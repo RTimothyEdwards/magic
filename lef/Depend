@@ -1,0 +1,27 @@
+lefCmd.o: lefCmd.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../utils/main.h ../textio/txcommands.h ../commands/commands.h
+lefTech.o: lefTech.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../lef/lefInt.h ../drc/drc.h
+lefWrite.o: lefWrite.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/tech.h ../utils/utils.h \
+ ../utils/malloc.h ../utils/stack.h ../utils/signals.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../graphics/graphics.h \
+ ../utils/main.h ../utils/undo.h ../cif/cif.h ../lef/lefInt.h
+defWrite.o: defWrite.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/tech.h ../utils/malloc.h ../utils/undo.h \
+ ../cif/cif.h ../extflat/extflat.h ../lef/lefInt.h ../drc/drc.h
+lefRead.o: lefRead.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h ../utils/undo.h \
+ ../database/database.h ../windows/windows.h ../graphics/graphics.h \
+ ../dbwind/dbwind.h ../utils/malloc.h ../textio/textio.h ../cif/cif.h \
+ ../cif/CIFint.h ../lef/lefInt.h
+defRead.o: defRead.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h ../utils/undo.h \
+ ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../utils/malloc.h ../graphics/graphics.h ../utils/main.h ../cif/cif.h \
+ ../lef/lefInt.h

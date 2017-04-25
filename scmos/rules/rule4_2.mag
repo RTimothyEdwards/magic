@@ -1,0 +1,132 @@
+magic
+tech scmos
+timestamp 751931635
+<< polysilicon >>
+rect 18 73 26 75
+rect 18 72 20 73
+rect 18 52 20 62
+rect 49 60 51 66
+rect 49 58 52 60
+rect 62 58 72 60
+rect 82 58 85 60
+rect 83 51 85 58
+rect 18 41 20 42
+rect 11 39 20 41
+rect 55 32 64 34
+rect 55 31 57 32
+rect -3 17 -1 24
+rect -3 15 0 17
+rect 10 15 20 17
+rect 30 15 33 17
+rect 31 9 33 15
+rect 55 11 57 21
+rect 55 0 57 1
+rect 49 -2 57 0
+<< ndiffusion >>
+rect 72 65 82 66
+rect 72 61 75 65
+rect 79 61 82 65
+rect 72 60 82 61
+rect 8 44 11 46
+rect 15 44 18 52
+rect 8 42 18 44
+rect 20 49 26 52
+rect 72 55 82 58
+rect 80 51 82 55
+rect 20 45 21 49
+rect 25 45 26 49
+rect 78 48 82 51
+rect 20 42 26 45
+rect 49 28 55 31
+rect 0 24 4 27
+rect 49 24 50 28
+rect 54 24 55 28
+rect 0 20 2 24
+rect 0 17 10 20
+rect 49 21 55 24
+rect 57 29 67 31
+rect 57 21 60 29
+rect 64 27 67 29
+rect 0 14 10 15
+rect 0 10 3 14
+rect 7 10 10 14
+rect 0 9 10 10
+<< pdiffusion >>
+rect 8 64 11 66
+rect 15 64 18 72
+rect 8 62 18 64
+rect 20 69 26 72
+rect 20 65 21 69
+rect 25 65 26 69
+rect 20 62 26 65
+rect 52 65 62 66
+rect 52 61 55 65
+rect 59 61 62 65
+rect 52 60 62 61
+rect 52 55 62 58
+rect 60 51 62 55
+rect 58 48 62 51
+rect 20 24 24 27
+rect 20 20 22 24
+rect 20 17 30 20
+rect 20 14 30 15
+rect 20 10 23 14
+rect 27 10 30 14
+rect 20 9 30 10
+rect 49 8 55 11
+rect 49 4 50 8
+rect 54 4 55 8
+rect 49 1 55 4
+rect 57 9 67 11
+rect 57 1 60 9
+rect 64 7 67 9
+<< ntransistor >>
+rect 72 58 82 60
+rect 18 42 20 52
+rect 55 21 57 31
+rect 0 15 10 17
+<< ptransistor >>
+rect 18 62 20 72
+rect 52 58 62 60
+rect 20 15 30 17
+rect 55 1 57 11
+<< ndcontact >>
+rect 75 61 79 65
+rect 11 44 15 48
+rect 76 51 80 55
+rect 21 45 25 49
+rect 50 24 54 28
+rect 2 20 6 24
+rect 60 25 64 29
+rect 3 10 7 14
+<< pdcontact >>
+rect 11 64 15 68
+rect 21 65 25 69
+rect 55 61 59 65
+rect 56 51 60 55
+rect 22 20 26 24
+rect 23 10 27 14
+rect 50 4 54 8
+rect 60 5 64 9
+<< psubstratepcontact >>
+rect 11 48 15 52
+rect 72 51 76 55
+rect 6 20 10 24
+rect 60 21 64 25
+<< nsubstratencontact >>
+rect 11 68 15 72
+rect 52 51 56 55
+rect 26 20 30 24
+rect 60 1 64 5
+<< labels >>
+rlabel space 47 31 47 33 3 4.2
+rlabel space 65 24 65 25 3 4.3
+rlabel space 57 19 60 19 5 4.1
+rlabel space 75 50 76 50 5 4.3
+rlabel space 70 55 70 58 7 4.1
+rlabel space 10 48 10 49 7 4.3
+rlabel space 15 54 18 54 1 4.1
+rlabel space -2 7 0 7 1 4.2
+rlabel space 6 25 7 25 1 4.3
+rlabel space 12 17 12 20 3 4.1
+<< end >>

@@ -1,0 +1,166 @@
+/* undefine all local define's used first ... */
+#define OPEN
+#undef scaleunit
+#undef lambda_1
+#undef lambda_2
+#undef lambda_3
+#undef lambda_4
+#undef lambda_5
+#undef lambda_6
+#undef lambda_7
+#undef lambda_8
+#undef lambda_9
+#undef lambda_v
+#undef lambda_half
+#undef pad_via
+#undef pad_glass
+/* for 2.0 micron process... */
+#if (lambda_value==100)
+#define lambda_half 50
+#define lambda_v 1.0(cif_tech)
+#define scaleunit 50
+#define lambda_1 100
+#define lambda_2 200
+#define lambda_3 300
+#define lambda_4 400
+#define lambda_5 500
+#define lambda_6 600
+#define lambda_7 700
+#define lambda_8 800
+#define pad_via 500
+#define pad_glass 600
+/* for 3.0 micron process... */
+#elif (lambda_value==150)
+#define lambda_half 75
+#define lambda_v 1.5(cif_tech)
+#define scaleunit 25
+#define lambda_1 150
+#define lambda_2 300
+#define lambda_3 450
+#define lambda_4 600
+#define lambda_5 750
+#define lambda_6 900
+#define lambda_7 1050
+#define lambda_8 1200
+#define pad_via 450
+#define pad_glass 600
+/* for 1.6 micron process... */
+#elif (lambda_value==80)
+#define lambda_half 40
+#define lambda_v 0.8(cif_tech)
+#define scaleunit 40
+#define lambda_1 80
+#define lambda_2 160
+#define lambda_3 240
+#define lambda_4 320
+#define lambda_5 400
+#define lambda_6 480
+#define lambda_7 560
+#define lambda_8 640
+#define pad_via 560
+#define pad_glass 640
+/* for 1.2 micron process... */
+#elif (lambda_value==60)
+#define lambda_half 30
+#define lambda_v 0.6(cif_tech)
+#define scaleunit 30
+#define lambda_1 60
+#define lambda_2 120
+#define lambda_3 180
+#define lambda_4 240
+#define lambda_5 300
+#define lambda_6 360
+#define lambda_7 420
+#define lambda_8 480
+#define pad_via 300
+#define pad_glass 600
+/* for HP CMOS26B - 1.0 micron process... */
+#elif (lambda_value==50)
+#define lambda_half 25
+#define lambda_v 0.5(cif_tech)
+#define scaleunit 5
+#define lambda_1 50
+#define lambda_2 100
+#define lambda_3 150
+#define lambda_4 200
+#define lambda_5 250
+#define lambda_6 300
+#define lambda_7 350
+#define lambda_8 400
+#define pad_via1 300
+#define pad_via2 200
+#define pad_glass 600
+/* for HP CMOS26G - 0.8 micron process... */
+#elif (lambda_value==40)
+#define lambda_half 20
+#define lambda_v 0.40(cif_tech)
+#define scaleunit 5
+#define lambda_1 40
+#define lambda_2 80
+#define lambda_3 120
+#define lambda_4 160
+#define lambda_5 200
+#define lambda_6 240
+#define lambda_7 280
+#define lambda_8 320
+#undef  pad_via2
+#undef  pad_via1
+#define pad_via1 300
+#define pad_via2 200
+#define pad_glass 600
+/* for HP CMOS14B - 0.6 micron process... */
+#elif (lambda_value==35)
+#define lambda_half 20
+#define lambda_v 0.35(cif_tech)
+#define scaleunit 5
+#define lambda_1 35
+#define lambda_2 70
+#define lambda_3 105
+#define lambda_4 140
+#define lambda_5 175
+#define lambda_6 210
+#define lambda_7 245
+#define lambda_8 280
+#undef  pad_via1
+#undef  pad_via2
+#define pad_via1 300
+#define pad_via2 200
+#define pad_glass 600
+/* for HP CMOS14B - 0.6 micron process... */
+#elif (lambda_value==30)
+#define lambda_half 15
+#define lambda_v 0.30(cif_tech)
+#define scaleunit 15
+#define lambda_1 30
+#define lambda_2 60
+#define lambda_3 90
+#define lambda_4 120
+#define lambda_5 150
+#define lambda_6 180
+#define lambda_7 210
+#define lambda_8 240
+#undef  pad_via1
+#undef  pad_via2
+#define pad_via1 300
+#define pad_via2 210
+#define pad_glass 600
+/* for 0.4 micron process... */
+#elif (lambda_value==20)
+#define lambda_half 10
+#define lambda_v 0.20(cif_tech)
+#define scaleunit 10
+#define lambda_1 20
+#define lambda_2 40
+#define lambda_3 60
+#define lambda_4 80
+#define lambda_5 100
+#define lambda_6 120
+#define lambda_7 140
+#define lambda_8 160
+#undef  pad_via1 
+#undef  pad_via2 
+#define pad_via1 300
+#define pad_via2 300
+#define pad_glass 600
+#endif
+#undef lambda_value

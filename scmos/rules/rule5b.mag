@@ -1,0 +1,28 @@
+magic
+tech scmos
+timestamp 736035532
+<< polysilicon >>
+rect 13 16 15 19
+rect 1 13 5 15
+rect 19 12 21 19
+rect 31 9 33 12
+rect 31 4 33 5
+<< ndiffusion >>
+rect 0 5 16 9
+<< pdiffusion >>
+rect 28 5 31 9
+rect 33 5 36 9
+<< ptransistor >>
+rect 31 5 33 9
+<< polycontact >>
+rect 5 12 9 16
+rect 12 12 16 16
+rect 0 0 16 4
+rect 30 0 34 4
+<< labels >>
+rlabel ndiffusion 4 7 4 7 1 a
+rlabel ptransistor 32 7 32 7 1 b
+rlabel polycontact 32 2 32 2 1 c
+rlabel pdiffusion 29 7 29 7 1 f
+rlabel polysilicon 20 15 20 15 1 d
+<< end >>

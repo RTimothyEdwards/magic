@@ -1,0 +1,74 @@
+                                                August 1999
+Files modified to implement file locking.
+
+file                    comment
+------------------------------------------------------------------
+
+flock/locking           documentation
+misc/magic.h            added #define FILE_LOCKS
+database/database.h     define CDNOEDIT cd_flag and flock_list
+database/DBio.c         definition of locking functions, and I/O calls.
+                        fixed :save command error
+database/DBcellname.c   diagnostics
+dbwind/DBWprocs.c       apply CDNOEDIT tests
+commands/cmde.c         checks on :edit command 
+commands/cmdlq.c        lock on :open command
+windows/windclient.c    defn: flock_close_wlist()
+windows/windcmdam.c     call to flock_close_wlist on window close
+windows/windcmdnr.c     Diagnostic code in windOpenCmd
+main/main.c             call to flock_close_wlist on Magic exit.
+utils/path.c            control of fopens
+
+The logic of the file locking implementation is as follows:
+
+First, Magic checks if there is a directory named flock in the directory
+given by CAD_ROOT. If directory flock is not present Magic turns off
+flie locking. If file locking is on:
+
+1. When a file is opened due to being named on the call line, or used in
+   a :load or :open command its status is checked.
+
+   If it is not locked, lock is set and file is opened r/w (if permissions
+   allow).
+
+   If it is locked, the file is opened read-only and NOT editing cell. An
+   attempt to use :edit to make it the editing cell will be rejected.
+
+2. A list of locked files is maintained in each magic execution.
+   Magic does (more or less)
+   open/close sequences when reading/writing files. In addition, Magic
+   just exits when it is :quit. The conditions that can cause the locking to
+   release a lock are :close and :quit. In principle some cell's locks
+   could be released on :close. However, if a window contains a root
+   cell which contains references to other cells down the hierarchy, only
+   the cells which are the root or have been expanded will have been
+   read from the filesystem and locked. Cells that are unexpanded are
+   not written back nor unlocked. The same cell may appear in multiple
+   windows in a locked or unlocked state. This all leads to the choice
+   that :close does not unlock any files. On :quit all locks are released.
+
+3. When Magic starts, a lock directory (flock_list) is created in the current
+   directory. A file is written in this directory for each local *.mag file
+   read by Magic. The file name is the lock record. This record is removed
+   on normal (:quit) termination. When Magic starts it checks for any
+   "leftover" locks and tries to clear any "stale" ones. Files that are read
+   from other directories (by being found through library paths or directly)
+   are unconditionally marked as read-only. Normally such files should not
+   be updated. If they are to be updated Magic must be executed from the
+   directory containing the file.
+
+   The following may be implemented to reduce problems due to "stale locks"
+   leftover from cases such as magic crashes: During execution Magic
+   updates the timestamp of its lock once every 10s. locks older
+   than 10s are stale. Ideally, a simple thread would do this, but...
+
+                         UPDATE HISTORY
+   -------------------------------------------------------------------
+
+   5 January 2000: It was discovered that the use of :addpath and,
+   generally, reading files from other directories had not been considered
+   properly. In fact, use of :addpath led to a magic crash since it tried
+   to create an invalid filename. This has now been corrected as 
+   described above. All non-local files are are marked read-only.
+
+

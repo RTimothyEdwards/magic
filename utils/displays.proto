@@ -1,0 +1,2 @@
+/dev/ttyp2 graphicsPort ourMon ourType 1234
+/dev/ttyx2 graphicsPort2 ourMon2 ourType2 12345

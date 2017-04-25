@@ -1,0 +1,135 @@
+/*  For HP CMOS14B process... No CCD, Bipolar, Poly2 layers.        */
+/*  This is prelimanary, please let me know if anything here seems
+    abnormal to you...   pi@lepton.isi.edu 3/02/95		    */
+style lambda=lambda_v
+    scalefactor lambda_1 scaleunit
+    layer CWN nwell
+        bloat-or allPDiff,PFet * lambda_6
+        bloat-or allNOhmic * lambda_3
+        grow lambda_3
+        shrink lambda_3
+        calma 42 1
+    layer CWP pwell
+        bloat-or allNDiff,NFet * lambda_6 pdop 0
+        bloat-or allPOhmic * lambda_3 ndop 0
+        grow lambda_3
+        shrink lambda_3
+        calma 41 1
+    layer CMT allMetal3,pad
+        labels m3
+        calma 62 1
+    layer CMS pad
+        grow lambda_2
+        or allMetal2
+        labels m2
+        calma 51 1
+    layer CMF pad
+	grow lambda_4
+        or allMetal1
+        labels homeMetal1
+        calma 49 1
+    layer CPG cap,cc
+        or allPoly
+        labels poly,nfet,pfet
+        calma 46 1
+    layer CAA allActive
+	or ndop,pdop
+#ifdef OPEN
+	or open,pstop
+#endif
+        labels ndiff,pdiff
+        calma 43 1
+    layer CVS pad
+        shrink pad_via2
+#ifdef OPEN
+	or open
+#endif
+        calma 61 1
+    layer CVS m3c
+        squares lambda_1 lambda_2 lambda_3
+        calma 61 1
+    layer CVA pad
+        shrink pad_via1
+#ifdef OPEN
+	or open
+#endif
+        calma 50 1
+    layer CVA m2c
+        squares lambda_1 lambda_2 lambda_3
+        calma 50 1
+    /* Generic contact to (active,poly)...
+	NOTE: no calma layer spec. for CCC, contact will not in
+	stream file */
+    layer CCC gc
+	calma 48 1
+    /* contacts for pdc/nsc (ndc/psc) must be generated separately */
+    layer CCA ndc,pdc
+        squares lambda_1 lambda_2 lambda_3
+#ifdef OPEN
+	or open
+#endif
+        calma 48 1
+    layer CCA nsc,psc
+	squares lambda_1 lambda_2 lambda_3
+	calma 48 1
+    layer CCP pc
+        squares lambda_1 lambda_2 lambda_3
+        calma 47 1
+    /* temp CIF layer - All diffusion N-Select layers */
+    templayer XTN
+        bloat-or allNDiff,ndop * lambda_2 allPOhmic,allPDiff,pdop 0
+        bloat-or nbd,nbdc * lambda_2
+        grow lambda_1
+        shrink lambda_1
+        shrink lambda_half
+        grow lambda_half
+    /* temp CIF layer - All diffusion P-Select layers */
+    templayer XTP
+        bloat-or allPDiff,pdop * lambda_2 allNOhmic,allNDiff,ndop 0
+        grow lambda_1
+        shrink lambda_1
+        shrink lambda_half
+        grow lambda_half
+    layer CSN
+        bloat-or allNDiff * lambda_2 allPOhmic,pdop 0
+        bloat-or NFet * lambda_2 ndiff lambda_3 allPOhmic 0
+        bloat-or allNOhmic * lambda_2 allPDiff,pdop 0
+	bloat-or ndop * lambda_2 allPOhmic,allPDiff,pdop 0
+        grow lambda_1
+        shrink lambda_1
+        shrink lambda_half
+        grow lambda_half
+        and-not XTP
+        calma 45 1
+    layer CSP
+        bloat-or allPDiff * lambda_2 allNOhmic,ndop 0
+        bloat-or PFet * lambda_2 pdiff lambda_3 allNOhmic 0
+        bloat-or allPOhmic * lambda_2 allNDiff,ndop 0
+	bloat-or pdop * lambda_2 allNOhmic,allNDiff,ndop 0
+        grow lambda_1
+        shrink lambda_1
+        shrink lambda_half
+        grow lambda_half
+#ifdef OPEN
+        bloat-min pstop * lambda_2 open 0
+#endif
+        and-not XTN
+	and-not CSN
+        calma 44 1
+    layer COP open
+        calma 23 1
+    layer CPS pstop
+        calma 24 1
+    layer COG pad
+        shrink pad_glass
+        or glass
+#ifdef OPEN
+	or open
+#endif
+	labels pad
+        calma 52 1
+    layer XP pad
+        shrink pad_glass
+	calma 26 1
+
+#undef cif_tech

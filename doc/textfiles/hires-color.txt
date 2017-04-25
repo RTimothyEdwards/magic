@@ -1,0 +1,52 @@
+
+                                                3 February 1997
+
+                     A More Colorful Magic
+
+                      Michael D. Godfrey
+
+
+This file describes the implementation of color visuals > 8bits.
+
+The purposes of these changes are:
+
+1. Try to select the "best" visual on systems which offer choices.
+   The current Magic just takes the default, and crashes if the
+   color depth is greater than 8.
+
+2. Support operation using TrueColor at 16 or 24 bits (and maybe 15
+   bits, thanks to Linux over-zealous implementation).
+
+The changes require X11R5 or above. I do not know what will happen
+if older X11's are used, but it is not likely to be useful. All
+changes are in the files graphics/grX11su1.c, grX11su2.c, and
+grX11su5.c. Most of the changes are in grX11su2.c.
+
+The changes are:
+
+1. Call XGetVisualInfo() to find out what visuals the X-server has
+   to offer.
+
+2. Look at the optional environment variable MAGIC_COLOR. If it is
+   present try to use the requested visual. Valid requests are:
+   setenv MAGIC_COLOR <8bit | 16bit | 24bit>. If the requested
+   visual is not offered Magic terminates. If there was no
+   MAGIC_COLOR variable try: 8bit PseudoColor, 24bit TrueColor, 16bit
+   TrueColor in that order.
+
+3. If 8bit PseudoColor was selected, the code is unchanged and the
+   file mos.7bit.dstyle5 is read from CAD_ROOT. If TrueColor is
+   selected, the generation of pixel values and masks is fundamentally
+   changed since TrueColor does not allow writable colormaps. The
+   intent is to produce the same RGB color values, but no "transparent"
+   colors are possible. Therefore, a new file: mos.24bit.dstlye5 is
+   read. This file has M1 and M2 stippled, and the selection box made
+   non-transparent.
+
+Further change in version 7.1:
+
+4. Because some X servers, like PC-XWare for Windows, reserve spots
+   at the bottom of the colormap rather than the top, it is necessary
+   to let these values be set at runtime.  We allow two environment
+   variables, X_COLORMAP_RESERVED and X_COLORMAP_BASE, for the
+   purpose of overriding the default values set in graphics/grX11su2.c.

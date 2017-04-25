@@ -1,0 +1,376 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 72 72 540 560
+%%DocumentNeededResources: font /Helveticafont /HelveticaBold
+%%EndComments
+%%BeginProlog
+%
+%  PostScript prolog for output from magic plot
+%  Version: 1.0
+%  written by Tim Edwards 4/05/00  JHU Applied Physics Laboratory
+%
+%%BeginResource: procset MAGICproc 1.0 1
+% supporting definitions
+
+/MAGICsave save def
+
+/bop { 1 setlinecap 0 setlinejoin 6 setmiterlimit 0 setgray } def
+/minit { /nChars matrix defaultmatrix 0 get abs 72 8.5 mul mul 64 div ceiling
+   cvi def 1 1 dtransform abs dup 1 exch div /onePix exch def
+   dup /resY exch def 1 exch div /iresY exch def
+   abs dup /resX exch def 1 exch div /iresX exch def
+   /bX 64 iresX mul def /bY 64 iresY mul def
+   /pattFont StipplePattern definefont pop
+   /patterns /pattFont findfont [iresX 64 mul 0 0 iresY 64 mul 0 0] makefont def
+   /ca nChars 1 add string def
+   } def
+/StipplePattern 45 dict def
+StipplePattern begin
+ /FontType 3 def
+ /FontMatrix [1 0 0 1 0 0] def
+ /FontBBox [0 0 1 1] def
+ /Encoding 256 array def
+ /PattName (P0) def
+ /tmpStr 1 string def
+ /NoPatt {<00>} def
+ 0 1 255 { Encoding exch /NoPatt put } for
+ /BuildChar {
+   1 0 0 0 1 1 setcachedevice exch begin Encoding exch get load
+   64 64 true [64 0 0 64 0 0] 5 -1 roll imagemask end } def
+end  
+/dp { StipplePattern begin dup 30 tmpStr cvrs PattName exch 1 exch
+   putinterval PattName cvn dup Encoding exch 4 -1 roll exch put exch
+   store end } def
+/sf { findfont exch scalefont setfont } bind def
+/sp { patterns setfont 2 setlinewidth } def
+/lb { gsave translate 0 0 moveto /just exch def gsave dup true charpath
+	flattenpath pathbbox grestore exch 4 -1 roll exch sub 3 1 roll sub
+	just 4 and 0 gt {just 8 and 0 eq {0.5 mul} if}{pop 0} ifelse exch
+	just 1 and 0 gt {just 2 and 0 eq {0.5 mul} if}{pop 0} ifelse exch
+	rmoveto show grestore } def
+/sl { 0 1 nChars { exch dup 3 1 roll ca 3 1 roll put } for pop } def
+/sc { setcmykcolor } bind def
+/l1 { onePix setlinewidth } def
+/l2 { onePix 2 mul setlinewidth } def
+/l3 { onePix 3 mul setlinewidth } def
+/ml { moveto lineto stroke } bind def
+/vl { moveto 0 exch rlineto stroke } bind def
+/hl { moveto 0 rlineto stroke } bind def
+/mr { rectstroke } bind def
+/mx { 4 copy rectstroke 4 -1 roll 4 -1 roll 4 copy moveto rlineto stroke
+   3 -1 roll dup neg 4 1 roll add moveto rlineto stroke } bind def
+/pl { gsave translate /d exch def 0 d neg moveto 0 d lineto stroke
+   d neg 0 moveto d 0 lineto stroke grestore } bind def
+/fb {/h exch def /w exch def /y exch def /x exch def gsave newpath
+   x y moveto w y lineto w h lineto x h lineto closepath clip
+   x resX mul cvi 63 not and dup iresX mul exch
+   w resX mul sub abs 63 add cvi 64 idiv /w exch def
+   y resY mul cvi 63 not and dup iresY mul exch
+   h resY mul sub abs 63 add cvi 64 idiv /h exch def
+   /ch ca 0 w getinterval def
+   moveto h { ch gsave show grestore 0 bY rmoveto } repeat grestore } def
+
+/f1 { 1.440 /Helvetica sf } def
+/f2 { 0.960 /HelveticaBold sf } def
+/f3 { 0.640 /Helvetica sf } def
+/col17 {0.090 0.686 0.718 0.000 sc} bind def
+/col16 {0.435 0.592 0.957 0.000 sc} bind def
+/col15 {0.749 0.498 0.247 0.000 sc} bind def
+/col14 {0.000 0.000 0.000 255.000 sc} bind def
+/col13 {0.373 0.875 0.247 0.000 sc} bind def
+/col12 {0.749 0.498 0.000 0.000 sc} bind def
+/col11 {0.000 0.000 1.000 0.000 sc} bind def
+/col10 {0.000 1.000 1.000 0.000 sc} bind def
+/col9 {0.875 0.184 0.875 0.000 sc} bind def
+/col8 {0.000 0.000 0.000 127.000 sc} bind def
+/col7 {1.000 0.247 1.000 0.000 sc} bind def
+/col6 {0.247 0.373 0.749 0.000 sc} bind def
+/col5 {0.122 0.435 1.000 0.000 sc} bind def
+/col4 {0.122 0.435 0.122 0.000 sc} bind def
+/col3 {0.000 0.000 0.000 192.000 sc} bind def
+/col2 {0.875 0.122 0.875 0.000 sc} bind def
+/col1 {0.184 0.373 0.435 0.000 sc} bind def
+{<000000000000000000000000000000003333333333333333333333333333333300000000000000000000000000000000cccccccccccccccccccccccccccccccc>} 13 dp
+{<00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000>} 12 dp
+{<010000800100008002000040020000400c0000300c000030f000000ff000000f000ff000000ff00000300c0000300c0000400200004002000080010000800100>} 11 dp
+{<f0f0f0f0f0f0f0f0606060606060606006060606060606060f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f06060606060606066060606060606060f0f0f0f0f0f0f0f0>} 10 dp
+{<18181818181818183c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c18181818181818188181818181818181c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c38181818181818181>} 9 dp
+{<18181818181818180c0c0c0c0c0c0c0c060606060606060603030303030303038181818181818181c0c0c0c0c0c0c0c060606060606060603030303030303030>} 8 dp
+{<181818181818181830303030303030306060606060606060c0c0c0c0c0c0c0c08181818181818181030303030303030306060606060606060c0c0c0c0c0c0c0c>} 7 dp
+{<07070707070707070e0e0e0e0e0e0e0e1c1c1c1c1c1c1c1c38383838383838387070707070707070e0e0e0e0e0e0e0e0c1c1c1c1c1c1c1c18383838383838383>} 6 dp
+{<ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff>} 5 dp
+{<00000000000000000000000000000000c0c0c0c0c0c0c0c00000000000000000000000000000000000000000000000000c0c0c0c0c0c0c0c0000000000000000>} 4 dp
+{<0003000300030003000c000c000c000c003000300030003000c000c000c000c003000300030003000c000c000c000c003000300030003000c000c000c000c000>} 3 dp
+{<a0a0a0a0a0a0a0a00a0a0a0a0a0a0a0aa0a0a0a0a0a0a0a00a0a0a0a0a0a0a0aa0a0a0a0a0a0a0a00a0a0a0a0a0a0a0aa0a0a0a0a0a0a0a00a0a0a0a0a0a0a0a>} 2 dp
+{<c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0000000000000000000000000000000000c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c00000000000000000000000000000000>} 1 dp
+%%EndResource
+%%EndProlog
+
+%%Page: 1 1
+/pgsave save def bop
+% 0 0 offsets
+72 85 translate
+12.500 12.500 scale
+minit
+0 0 26 37 gsave rectclip
+l2
+sp
+
+col2
+4 sl
+col1
+4 sl
+col9
+5 sl
+l1
+4 21 16 hl
+4 21 16 vl
+4 21 20 hl
+21 16 25 20 fb
+4 25 16 vl
+1 8 10 hl
+4 5 10 vl
+4 5 14 hl
+3 9 11 vl
+5 10 9 14 fb
+4 9 10 vl
+4 21 11 hl
+4 21 11 vl
+1 21 14 vl
+4 21 15 hl
+% 21 11 25 15 fb
+4 25 11 vl
+3 5 8 hl
+6 5 8 vl
+5 8 8 10 fb
+2 8 8 vl
+2 5 4 vl
+3 5 6 hl
+1 8 5 vl
+5 4 8 6 fb
+2 8 4 vl
+4 5 0 hl
+6 5 0 vl
+1 8 4 hl
+3 9 1 vl
+5 0 9 4 fb
+4 9 0 vl
+col1
+5 sl
+1 8 33 hl
+4 5 33 vl
+4 5 37 hl
+5 33 9 37 fb
+4 9 33 vl
+3 5 32 hl
+5 5 32 vl
+5 32 8 33 fb
+1 8 32 vl
+1 5 29 vl
+3 5 30 hl
+5 29 8 30 fb
+1 8 29 vl
+4 5 25 hl
+5 5 25 vl
+1 8 29 hl
+3 9 26 vl
+5 25 9 29 fb
+4 9 25 vl
+4 21 21 hl
+4 21 21 vl
+4 21 25 hl
+21 21 25 25 fb
+4 25 21 vl
+col17
+5 sl
+3 5 30 hl
+2 5 30 vl
+3 5 32 hl
+5 30 8 32 fb
+2 8 30 vl
+4 21 6 hl
+4 21 6 vl
+2 21 8 vl
+4 21 10 hl
+21 6 25 10 fb
+4 25 6 vl
+col16
+5 sl
+3 5 6 hl
+2 5 6 vl
+3 5 8 hl
+5 6 8 8 fb
+2 8 6 vl
+4 21 1 hl
+4 21 1 vl
+1 21 4 vl
+4 21 5 hl
+21 1 25 5 fb
+4 25 1 vl
+col10
+5 sl
+5 0 30 hl
+2 0 30 vl
+5 0 32 hl
+0 30 5 32 fb
+2 5 30 vl
+4 8 30 hl
+2 8 30 vl
+4 8 32 hl
+8 30 12 32 fb
+2 12 30 vl
+4 21 26 hl
+4 21 26 vl
+1 21 29 vl
+4 21 30 hl
+21 26 25 30 fb
+4 25 26 vl
+5 0 6 hl
+2 0 6 vl
+5 0 8 hl
+0 6 5 8 fb
+2 5 6 vl
+3 8 6 hl
+2 8 6 vl
+3 8 8 hl
+8 6 11 8 fb
+2 11 6 vl
+col1
+7 sl
+3 5 30 hl
+2 5 30 vl
+3 5 32 hl
+5 30 8 32 fb
+2 8 30 vl
+4 21 6 hl
+4 21 6 vl
+2 21 8 vl
+4 21 10 hl
+21 6 25 10 fb
+4 25 6 vl
+col9
+8 sl
+3 5 6 hl
+2 5 6 vl
+3 5 8 hl
+5 6 8 8 fb
+2 8 6 vl
+4 21 1 hl
+4 21 1 vl
+1 21 4 vl
+4 21 5 hl
+21 1 25 5 fb
+4 25 1 vl
+col6
+1 sl
+col7
+1 sl
+col11
+7 sl
+col12
+9 sl
+4 5 33 hl
+4 5 33 vl
+4 5 37 hl
+5 33 9 37 fb
+4 9 33 vl
+4 5 25 hl
+5 5 25 vl
+4 5 29 hl
+3 9 26 vl
+5 25 9 29 fb
+4 9 25 vl
+4 5 10 hl
+4 5 10 vl
+4 5 14 hl
+3 9 11 vl
+5 10 9 14 fb
+4 9 10 vl
+4 21 11 hl
+4 21 11 vl
+1 21 14 vl
+4 21 15 hl
+% 21 11 25 15 fb
+4 25 11 vl
+4 5 0 hl
+6 5 0 vl
+4 5 4 hl
+3 9 1 vl
+5 0 9 4 fb
+4 9 0 vl
+5 0 34 hl
+3 0 34 vl
+5 0 37 hl
+0 34 5 37 fb
+3 5 34 vl
+5 9 34 hl
+3 9 34 vl
+5 9 37 hl
+2 14 35 vl
+9 34 14 37 fb
+3 14 34 vl
+4 21 31 hl
+4 21 31 vl
+2 21 33 vl
+1 21 34 vl
+4 21 35 hl
+21 31 25 35 fb
+4 25 31 vl
+7 5 22 vl
+4 5 25 hl
+5 22 9 25 fb
+7 9 22 vl
+5 9 18 hl
+11 5 18 vl
+5 9 22 hl
+5 18 14 22 fb
+4 14 18 vl
+4 5 14 hl
+15 5 14 vl
+3 9 15 vl
+5 14 9 18 fb
+4 9 14 vl
+5 0 0 hl
+3 0 0 vl
+5 0 3 hl
+0 0 5 3 fb
+4 5 0 vl
+5 9 0 hl
+4 9 0 vl
+5 9 3 hl
+9 0 14 3 fb
+3 14 0 vl
+col13
+10 sl
+col14
+13 sl
+col14
+11 sl
+col14
+col14
+l2
+5 33 4 4 mx
+5 25 4 4 mx
+5 10 4 4 mx
+21 11 4 4 mx
+5 0 4 4 mx
+21 31 4 4 mr
+21 26 4 4 mr
+21 21 4 4 mr
+21 16 4 4 mr
+21 11 4 4 mr
+21 6 4 4 mr
+21 1 4 4 mr
+grestore
+f1 0 setgray
+(Metal) 4 26 33 lb
+(Polysilicon) 4 26 28 lb
+(P-Diffusion) 4 26 23 lb
+(N-Diffusion) 4 26 18 lb
+(Contact) 4 26 13 lb
+(P-Fet) 4 26 8 lb
+(N-Fet) 4 26 3 lb
+pgsave restore showpage
+
+%%Trailer
+MAGICsave restore
+%%EOF

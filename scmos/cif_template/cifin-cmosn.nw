@@ -1,0 +1,128 @@
+/* available devices:
+        nfet,pfet,enfet,epfet,nffet,pffet
+        poly capacitor
+        bipolar NPN transistor
+        buried CCD devices
+        linear capacitor
+*/
+#define cif_tech cmosn
+style lambda=lambda_v
+    scalefactor lambda_1
+    layer nwell CWN
+        labels CWN
+    layer m2 CMS
+        labels CMS
+    layer m1 CMF
+        labels CMF
+    layer poly CPG
+        labels CPG
+    layer psd CAA
+        and CSP
+    layer pdiff CWN
+        and CAA
+        and CSP
+        labels CSP
+    layer ndiff CAA
+        and CSN
+        labels CSN
+    layer nsd CWN
+        and CSN
+        and CAA
+    layer nfet CPG
+        and CAA
+        and CSN
+    layer pfet CAA
+        and CPG
+        and CSP
+        and CWN
+    layer enfet CEL
+        and CAA
+        and CSN
+    layer epfet CAA
+        and CEL
+        and CSP
+        and CWN
+    layer nffet CAA
+        and CEL
+        and CPG
+        and CSN
+    layer pffet CAA
+        and CEL
+        and CPG
+        and CSP
+        and CWN
+    layer m2c CVA
+        grow lambda_1
+        and CMS
+        and CMF
+    layer electrode CEL
+        labels CEL
+    layer ec CCC
+        grow lambda_1
+        and CMF
+        and CEL
+    layer cc CCC
+        grow lambda_1
+        and CMF
+        and CEL
+        and CPG
+        labels CCC
+    layer cap CPG
+        and CEL
+        and-not CAA
+    layer psc CCC
+        grow lambda_1
+        and CAA
+        and CSP
+        and CMF
+    layer ndc CCC
+        grow lambda_1
+        and CAA
+        and CSN
+        and CMF
+    layer pdc CCC
+        grow lambda_1
+        and CAA
+        and CWN
+        and CSP
+        and CMF
+    layer nsc CCC
+        grow lambda_1
+        and CAA
+        and CSN
+        and CWN
+        and CMF
+    layer pbc CCC
+        grow lambda_1
+        and CBA
+        and CMF
+    layer pc CCC
+        grow lambda_1
+        and CPG
+        and CMF
+        labels CCC
+    layer glass COG
+        labels COG
+    layer pad CMF
+        shrink lambda_1
+        and CMS
+        shrink lambda_5
+        and CVA
+        shrink lambda_1
+        and COG
+        grow lambda_6
+        and XP
+
+   calma CWN  1 *
+   calma CAA  3 *
+   calma CSP  8 *
+   calma CSN  7 *
+   calma CPG  4 *
+   calma CCC  9 *
+   calma CMF 10 *
+   calma CVA 11 *
+   calma CMS 12 *
+   calma COG 13 *
+   calma CEL  5 *
+
+#undef cif_tech

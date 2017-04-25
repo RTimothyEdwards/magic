@@ -1,0 +1,93 @@
+# defs.mak.in --
+# source file for autoconf-generated "defs.mak" for magic
+
+# @configure_input@
+# Feel free to change the values in here to suit your needs.
+# Be aware that running scripts/configure again will overwrite
+# any changes!
+
+SHELL                  = @SHELL@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@
+mandir = @mandir@
+
+SCRIPTS		       = ${MAGICDIR}/scripts
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+
+# Override standard "make" target when compiling under TCL
+ALL_TARGET = @ALL_TARGET@
+INSTALL_TARGET = @INSTALL_TARGET@
+
+# Change libdir to install in a different place
+BINDIR                 = ${bindir}
+MANDIR                 = ${mandir}
+LIBDIR                 = ${libdir}
+SYSDIR                 = ${libdir}/magic/sys
+SCMDIR                 = ${libdir}/magic/scm
+TCLDIR                 = ${libdir}/magic/tcl
+
+MAIN_EXTRA_LIBS	       = @extra_libs@
+LD_EXTRA_LIBS	       = @ld_extra_libs@
+LD_SHARED	       = @ld_extra_objs@
+TOP_EXTRA_LIBS	       = @top_extra_libs@
+SUB_EXTRA_LIBS	       = @sub_extra_libs@
+
+MODULES               += @modules@
+UNUSED_MODULES        += @unused@
+PROGRAMS	      += @programs@
+INSTALL_CAD_DIRS      += @cadinstall@
+
+RM                     = rm -f
+CP                     = cp
+AR                     = ar
+ARFLAGS                = crv
+LINK                   = ld -r
+LD                     = @LD@
+M4		       = @M4@
+RANLIB                 = @RANLIB@
+SHDLIB_EXT             = @SHDLIB_EXT@
+LDDL_FLAGS             = ${LDFLAGS} @LDDL_FLAGS@
+LD_RUN_PATH	       = @LD_RUN_PATH@
+LIB_SPECS	       = @LIB_SPECS@
+WISH_EXE	       = @WISH_EXE@
+TCL_LIB_DIR	       = @TCL_LIB_DIR@
+MAGIC_VERSION	       = @MAGIC_VERSION@
+MAGIC_REVISION	       = @MAGIC_REVISION@
+
+CC                     = @CC@
+CPP                    = @CPP@
+CXX		       = @CXX@
+
+CPPFLAGS               = -I. -I${MAGICDIR} @CPPFLAGS@
+DFLAGS                 = @extra_defs@ @DEFS@ -DNDEBUG -DGCORE=\"@GCORE@\"
+DFLAGS		      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\"
+CFLAGS                 = @CFLAGS@ @SHLIB_CFLAGS@ @INC_SPECS@
+
+READLINE_DEFS          = @rl_defs@
+READLINE_LIBS          = @rl_libs@
+
+DEPEND_FILE	       = Depend
+DEPEND_FLAG	       = @DEPEND_FLAG@
+EXEEXT		       = @EXEEXT@
+
+GR_CFLAGS              = @X_CFLAGS@ @gr_cflags@
+GR_DFLAGS	       = @gr_dflags@ -DNDEBUG
+GR_LIBS                = @gr_libs@ ${X11_LDFLAGS} @X_LIBS@
+GR_SRCS                = @gr_srcs@
+GR_HELPER_SRCS         = @gr_hsrcs@
+GR_HELPER_PROG         = @gr_hprog@
+
+OA		       = @OA@
+OA_LIBS		       = @OA_LIBS@
+
+DEPSRCS	  = ${SRCS}
+OBJS      = ${SRCS:.c=.o} ${CXXSRCS:.cpp=.o}
+LIB_OBJS  = ${LIB_SRCS:.c=.o}
+CLEANS    = ${OBJS} ${LIB_OBJS} lib${MODULE}.a lib${MODULE}.o ${MODULE}

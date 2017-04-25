@@ -1,0 +1,236 @@
+/* 
+
+  This is for lambda=1.0um - ie orbit's 2 um technologies.
+  Needs some more work for parallel coupling capacitances and upwards
+  fringe.
+
+*/
+#ifdef	extForSpice
+style	lambda=1.0(scna20_orb)
+#else
+style	lambda_irsim=1.0(scna20_orb)
+#endif
+
+	cscale		1
+	lambda		100
+	step		100
+	sidehalo	0	/* no parallel coupling cap */
+
+#ifdef	INCLUDE_FET_CAP /* Normally off since neither spice or irsim need it */
+	areacap allFet 750 /* af/lambda^2 */
+#endif
+
+
+#ifdef	extForSpice
+	areacap	(ndiff,nsd,ndc,nsc)/a			0
+	perimc	(ndiff,nsd,ndc,nsc)/a	space,pwell	0
+
+	areacap	(pdiff,psd,pdc,psc)/a			0
+	perimc	(pdiff,psd,pdc,psc)/a	space,nwell	0
+#else	
+	areacap	(ndiff,nsd,ndc,nsc)/a               398
+	perimc	(ndiff,nsd,ndc,nsc)/a  space,pwell  423 
+
+	areacap	(pdiff,psd,pdc,psc)/a               230
+	perimc	(pdiff,psd,pdc,psc)/a  space,nwell  85 
+#endif
+	/* ------------------------------------------------------ */
+
+	/* ------------   poly capacitances ---------------- */
+	areacap	PolyCap				39
+	areacap	cc/a,cap			39
+	overlap	PolyCap	allWell 	39
+	areacap	poly2,ec/a			50
+
+	perimc	PolyCap	~PolyCap	80
+	sideOverlap(PolyCap, ~PolyCap, allWell, 80, nothing)
+	/* ------------------------------------------------- */
+
+
+	/* NO fringe data avaliable */
+	/* ------------   metal1 capacitances ---------------- */
+	areacap	M1Cap				47
+	overlap	M1Cap	allWell		47	PolyCap,PNplusCap
+	overlap	M1Cap	PNplusCap		47	
+	overlap	M1Cap	PolyCap		30	
+	overlap M1Cap	poly2,cap	40
+
+	/* ------------------------------------------------- */
+
+
+	/* ------------   metal2 capacitances ---------------- */
+	areacap	M2Cap			19	
+	overlap	M2Cap	allWell	19	PolyCap,M1Cap,PNplusCap
+	overlap	M2Cap	PNplusCap	22	M1Cap
+	overlap	M2Cap	PolyCap	19	M1Cap
+	overlap	M2Cap	poly2	40	M1Cap
+	overlap	M2Cap	M1Cap	45	
+	/* ------------------------------------------------- */
+
+
+	/* -------------- MOSFet Devices -------------------------------*/
+	/* syntax: device mosfet <name> <gate_types> <s/d_types>	*/
+	/*		<sub_types> <sub_name> <gscap> <gccap>		*/
+	/* gscap, gccap defined since extresis needs them   		*/
+	device mosfet	pfet	pfet	pdiff,pdc	nwell	Vdd!	204	450
+	device mosfet	nfet	nfet	ndiff,ndc	pwell	Gnd!	150	450
+	device mosfet	epfet	epfet	pdiff,pdc	nwell	Vdd!	204	450
+	device mosfet	enfet	enfet	ndiff,ndc	pwell	Gnd!	150	450
+
+	/* -------------------- Poly-Poly2 Caps ------------------------*/
+	/* syntax: device capacitor <name> <top_types> <bottom_types>	*/
+	/*		<perim_cap> <area_cap>				*/
+	device capacitor None	cap,capc/a	poly,pc		120	745
+
+	/* ---------- NPN Vertical Bipolar Devices -------------*/
+	/* syntax: device bjt <name> <base_types> <emit_types> <coll_types> */
+	device bjt	npn	pbase,pbc/a	emit,emc/a	nwell
+
+	fetresis	nfet	linear		14100 /* resistance dyn L */
+	fetresis	pfet	linear		48100 /* resistance dyn H */
+	fetresis	nfet	saturation	14100 /* resistance dyn L */
+	fetresis	pfet	saturation	48100 /* resistance dyn H */
+
+	fetresis	enfet	linear		14100 /* resistance dyn L */
+	fetresis	epfet	linear		48100 /* resistance dyn H */
+	fetresis	enfet	saturation	14100 /* resistance dyn L */
+	fetresis	epfet	saturation	48100 /* resistance dyn H */
+	/* ------------------------------------------------- */
+
+	/* -------------- Resistivity (in milliohms per sq) -------*/
+	/* ---- assumed temp 85 C -----  */
+
+	resist	NDRes		26670
+	resist	PDRes		59550
+	resist	PolyRes		23860
+	resist  allPoly2    19690
+	resist	em,emc/a	27260
+	resist	pbase,pbc/a 2000000
+	resist	M1Res		49
+	resist	M2Res		26
+	resist	nwell		2505830
+
+	contact	pc		4			11000
+	contact ec/a,capc/a     4   9000
+	contact	ndc,pdc,nsc,psc	4	18710
+	contact pdc/a,psc/a     4    100560
+	contact	m2c			4		30
+	/* ------------------------------------------------- */
+
+	/* Order the planes for correct shielding */
+	planeOrder(implant,0)
+	planeOrder(well,1)
+	planeOrder(active,2)
+	planeOrder(metal1,3)
+	planeOrder(metal2,4)
+	planeOrder(metal3,5)
+	planeOrder(oxide,6)
+
+	/* Layer widths and thicknesses for inductance extraction */
+	/* and 3D rendering					  */
+	height nwell -0.1 0.1
+	height ndiff,pdiff,nndiff,ppdiff -0.075 0.075
+	height poly,pfet,nfet 0.1 0.05
+	height ndc,pdc,nsc,psc 0.001 0.25
+	height pc 0.1 0.15
+	height m1 0.2 0.05
+	height m2c 0.2 0.15
+	height m2 0.3 0.05
+
+#ifdef	extForSpice
+style	lambdaSp=1.0(scpe20_orb)
+#else
+style	lambda=1.0(scpe20_orb) 
+#endif
+
+	lambda		100
+	step		100
+	sidehalo	0	/* no parallel coupling cap */
+
+#ifdef	INCLUDE_FET_CAP /* Normally off since neither spice or irsim need it */
+	areacap allFet 750 /* af/lambda^2 */
+#endif
+
+
+#ifdef	extForSpice
+	areacap	(ndiff,nsd,ndc,nsc)/a			0
+	perimc	(ndiff,nsd,ndc,nsc)/a	space,pwell	0
+
+	areacap	(pdiff,psd,pdc,psc)/a			0
+	perimc	(pdiff,psd,pdc,psc)/a	space,nwell	0
+#else	
+	areacap	(ndiff,nsd,ndc,nsc)/a               398
+	perimc	(ndiff,nsd,ndc,nsc)/a  space,pwell  423 
+
+	areacap	(pdiff,psd,pdc,psc)/a               230
+	perimc	(pdiff,psd,pdc,psc)/a  space,nwell  85 
+#endif
+	/* ------------------------------------------------------ */
+
+	/* ------------   poly capacitances ---------------- */
+	areacap	PolyCap			57
+	overlap	PolyCap	allWell 	57
+
+	perimc	PolyCap	~PolyCap	168
+	sideOverlap(PolyCap, ~PolyCap, allWell, 168, nothing)
+	/* ------------------------------------------------- */
+
+
+	/* NO fringe data avaliable */
+	/* ------------   metal1 capacitances ---------------- */
+	areacap	M1Cap			41
+	overlap	M1Cap	allWell		41	PolyCap,PNplusCap
+	overlap	M1Cap	PNplusCap		41	
+	overlap	M1Cap	PolyCap		33	
+	overlap M1Cap	poly2,cap	45
+
+	/* ------------------------------------------------- */
+
+
+	/* ------------   metal2 capacitances ---------------- */
+	areacap	M2Cap			21	
+	overlap	M2Cap	allWell	21	PolyCap,M1Cap,PNplusCap
+	overlap	M2Cap	PNplusCap	21	M1Cap
+	overlap	M2Cap	PolyCap	25	M1Cap
+	overlap	M2Cap	M1Cap	33	
+	/* ------------------------------------------------- */
+
+
+	/* -------------- Fets -----------------------------*/
+	/* gscap, gccap defined since extresis needs them */
+	fet	pfet	pdiff,pdc	2 pfet	Vdd!	nwell	204	450
+	fet	nfet	ndiff,ndc	2 nfet	Gnd!	pwell	150	450
+
+	fetresis	nfet	linear		14100 /* resistance dyn L */
+	fetresis	pfet	linear		48100 /* resistance dyn H */
+
+	fetresis	nfet	saturation	14100 /* resistance dyn L */
+	fetresis	pfet	saturation	48100 /* resistance dyn H */
+	/* ------------------------------------------------- */
+
+	/* -------------- Resistivity (in milliohms per sq) -------*/
+	/* ---- assumed temp 85 C -----  */
+
+	resist	NDRes		26670
+	resist	PDRes		72860
+	resist	PolyRes		23860
+	resist  allPoly2    18540
+	resist	M1Res		49
+	resist	M2Res		26
+	resist	pwell		2128280
+
+	contact	pc			4	12800
+	contact ec/a,capc/a 4   8420
+	contact	(ndc,nsc)/a	4	36660
+	contact	(psc,pdc)/a	4	56300
+	contact	m2c			4	30
+	/* ------------------------------------------------- */
+
+	/* Order the planes for correct shielding */
+	planeOrder(implant,0)
+	planeOrder(well,1)
+	planeOrder(active,2)
+	planeOrder(metal1,3)
+	planeOrder(metal2,4)
+	planeOrder(metal3,5)
+	planeOrder(oxide,6)

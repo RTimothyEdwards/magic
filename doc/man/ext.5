@@ -1,0 +1,306 @@
+.\" sccsid @(#)ext.5	4.2 MAGIC (Berkeley) 11/30/85
+.\"
+.\" CONVENTIONS:
+.\"	italics:  things that are substituted for
+.\"	boldface: characters that are typed as-is
+.\"
+.\"	EXAMPLE:  \fIfilename\fB.mag\fR
+.\"	     or:  \fBcif \fR[\fIfile\fR]
+.\"
+.TH EXT 5
+.UC 4
+.SH NAME
+ext \- format of .ext files produced by Magic's hierarchical extractor
+
+.SH DESCRIPTION
+Magic's extractor produces a \fB.ext\fP file for
+each cell in a hierarchical design.
+The \fB.ext\fP file for cell \fIname\fP is \fIname\fB.ext\fR.
+This file contains three kinds of information:
+environmental information (scaling, timestamps, etc),
+the extracted circuit corresponding to the mask geometry of cell \fIname\fP,
+and the connections between this mask geometry and the subcells of \fIname\fP.
+.LP
+A \fB.ext\fP file consists of a series of lines, each of which begins
+with a keyword.
+The keyword beginning a line determines how the remainder
+of the line is interpreted.
+The following set of keywords define
+the environmental information:
+.TP
+.B "tech\ \fItechname\fR"
+Identifies the technology of cell \fIname\fP
+as \fItechname\fP, e.g, \fBnmos\fP, \fBcmos\fP.
+.TP
+.B "timestamp\ \fItime\fR"
+Identifies the time when cell \fIname\fP was last modified.
+The value \fItime\fP is the time stored by Unix, i.e, seconds
+since 00:00 GMT January 1, 1970.
+Note that this is \fInot\fP the time \fIname\fR was extracted, but rather
+the timestamp value stored in the \fB.mag\fP file.
+The incremental extractor compares the timestamp in each \fB.ext\fP
+file with the timestamp in each \fB.mag\fP file in
+a design; if they differ, that cell is re-extracted.
+.TP
+.B "version\ \fIversion\fR"
+Identifies the version of \fB.ext\fR format used to write
+\fIname\fB.ext\fR.
+The current version is \fB5.1\fR.
+.TP
+.B "style\ \fIstyle\fR"
+Identifies the style that the cell has been extracted with.
+.TP
+.B "scale\ \fIrscale\ cscale\ lscale\fR"
+Sets the scale to be used in interpreting resistance, capacitance,
+and linear dimension values in the remainder of the \fB.ext\fP file.
+Each resistance value must be multiplied by \fIrscale\fP to give
+the real resistance in milliohms.
+Each capacitance value must be
+multiplied by \fIcscale\fP to give the real capacitance in attofarads.
+Each linear dimension (e.g, width, height, transform coordinates)
+must be multiplied by \fIlscale\fP to give the real linear dimension
+in centimicrons.
+Also, each area dimension (e.g, transistor channel area)
+must be multiplied by \fIscale*scale\fP to give the real area
+in square centimicrons.
+At most one \fBscale\fP line may appear in a \fB.ext\fP file.
+If none appears, all of \fIrscale\fP, \fIcscale\fP, and \fIlscale\fP
+default to 1.
+.TP
+.B "resistclasses\ \fIr1 r2 ...\fR"
+Sets the resistance per square for the various resistance classes
+appearing in the technology file.
+The values \fIr1\fR, \fIr2\fR, etc. are in milliohms; they
+are not scaled by the value of \fIrscale\fR specified in the
+\fBscale\fR line above.
+Each node in a \fB.ext\fR file has a perimeter and area for
+each resistance class; the values \fIr1\fR, \fIr2\fR, etc.
+are used to convert these perimeters and areas into actual
+node resistances.
+See ``Magic Tutorial #8: Circuit Extraction''
+for a description of how resistances are computed from
+perimeters and areas by the program \fBext2sim\fR.
+.PP
+The following keywords define the circuit formed by
+the mask information in cell \fIname\fP.
+This circuit is
+extracted independently of any subcells; its connections
+to subcells are handled by the keywords in the section after
+this one.
+.TP
+.B "node \fIname R C x y type a1 p1 a2 p2 ... aN pN\fR"
+Defines an electrical node in \fIname\fP.
+This node is referred to by
+the name \fIname\fP in subsequent \fBequiv\fP lines, connections to
+the terminals of transistors in \fBfet\fP lines,
+and hierarchical connections or adjustments
+using \fBmerge\fP or \fBadjust\fP.
+The node has a total capacitance to ground of \fIC\fP attofarads,
+and a lumped resistance of \fIR\fP milliohms.
+For purposes of going back from the node name to the geometry
+defining the node, \fI(x,\|y)\fP is the coordinate
+of a point inside the node, and \fItype\fR is the layer
+on which this point appears.
+The values \fIa1\fR, \fIp1\fR, ... \fIaN\fR, \fIpN\fR are
+the area and perimeter for the material in
+each of the resistance classes described by the
+\fBresistclasses\fR line at the beginning of the \fB.ext\fR file;
+these values are used to compute adjusted hierarchical
+resistances more accurately.
+\fBNOTE:\fR
+since many analysis tools compute transistor gate capacitance themselves
+from the transistor's area and perimeter,
+the capacitance between a node and substrate (GND!) normally
+does not include the capacitance from transistor gates connected
+to that node.
+If the \fB.sim\fR file was produced by \fIext2sim\fR\|(1), check
+the technology file that was used to produce the original \fB.ext\fR
+files to see whether transistor gate capacitance is included or
+excluded;
+see ``Magic Maintainer's Manual #2: The Technology File'' for details.
+.TP
+.B "attr \fIname xl yl xh yh type text\fR"
+One of these lines appears for each label
+ending in the character ``\fB@\fR''
+that was attached to geometry in the node \fIname\fR.
+The location of each attribute label (\fIxl yl xh yh\fR)
+and the type of material to which it was attached (\fItype\fR)
+are given along with the text of the label minus the trailing
+``\fB@\fR'' character (\fItext\fR).
+.TP
+.B "equiv\ \fInode1\ node2\fR"
+Defines two node names in cell \fIname\fP as being equivalent:
+\fInode1\fP and \fInode2\fP.
+In a collection of node names
+related by \fBequiv\fP lines, exactly one must be defined
+by a \fBnode\fP line described above.
+.TP
+.B "fet\ \fItype\ xl\ yl\ xh\ yh\ area\ perim\ sub\ GATE\ T1\ T2\ ...\fR"
+Defines a transistor in \fIname\fP.
+The kind of transistor is \fItype\fP,
+a string that comes from the technology file and is intended to have
+meaning to simulation programs.
+The coordinates of a square entirely contained in
+the gate region of the transistor are \fI(xl,\ yl)\fP for its lower-left
+and \fI(xh,\ yh)\fP for its upper-right.
+All four coordinates are in
+the \fIname\fP's coordinate space, and are subject to scaling as described
+in \fBscale\fP above.
+The gate region of the transistor has area \fIarea\fP square centimicrons
+and perimeter \fIperim\fP centimicrons.
+The substrate of the transistor
+is connected to node \fIsub\fP.
+.sp
+The remainder of a \fBfet\fP line consists of a series of triples:
+\fIGATE\fP, \fIT1\fP, ....
+Each describes one of the terminals of the transistor; the first describes
+the gate, and the remainder describe the transistor's
+non-gate terminals (e.g, source and drain).
+Each triple consists of the name of a node connecting to that terminal,
+a terminal length, and an attribute list.
+The terminal length is in centimicrons; it is the length of that
+segment of the channel perimeter connecting to adjacent material,
+such as polysilicon for the gate or diffusion for a source or drain.
+.sp
+The attribute list is either the single token ``0'', meaning no attributes,
+or a comma-separated list of strings.
+The strings in the attribute list come from labels attached to the transistor.
+Any label ending in the character ``\fB^\fR'' is considered a gate attribute
+and appears on the gate's attribute list, minus the trailing
+``\fB^\fR''.
+Gate attributes may lie either along the border of a channel or in its interior.
+Any label ending in the character ``\fB$\fR'' is considered a non-gate
+attribute.
+It appears on the list of the terminal along which it lies,
+also minus the trailing ``\fB$\fR''.
+Non-gate attributes may only lie on the border of the channel.
+.PP
+The keywords in this section describe information that is not processed
+hierarchically: path lengths and accurate resistances that are computed
+by flattening an entire node and then producing a value for the flattened
+node.
+.TP
+.B "killnode\ \fInode\fR"
+During resistance extraction, it is sometimes necessary to break a node
+up into several smaller nodes.
+The appearance of a \fBkillnode\fR line
+during the processing of a \fB.ext\fR file means that all information
+currently accumulated about \fInode\fR, along with all fets that have
+a terminal connected to \fInode\fR, should be thrown out; it will be
+replaced by information later in the \fB.ext\fR file.
+The order of
+processing \fB.ext\fR files is important in order for this to work
+properly: children are processed before their parents, so a \fBkillnode\fR
+in a parent overrides one in a child.
+.TP
+.B "resist\ \fInode1\ node2\ R\fR"
+Defines a resistor of \fIR\fR milliohms between the two nodes
+\fInode1\fR and \fInode2\fR.
+Both names are hierarchical.
+.TP
+.B "distance\ \fIname1\ name2\ dmin\ dmax\fR"
+Gives the distance between two electrical terminals \fIname1\fR
+(a driver) and \fIname2\fR (a receiver).
+Note that these are
+terminals and not nodes: the names (which are hierarchical
+label names) are used to specify two different locations on the same
+electrical node.
+The two distances, \fIdmin\fR and \fIdmax\fR, are the lengths
+(in lambda) of the shortest and longest acyclic paths between the driver
+and receiver.
+.PP
+The keywords in this last section describe the subcells used
+by \fIname\fP, and how connections are made to and between them.
+.TP
+.B "use\ \fIdef\ use-id\ TRANSFORM\fR"
+Specifies that cell \fIdef\fP with instance identifier \fIuse-id\fP
+is a subcell of cell \fIname\fP.
+If cell \fIdef\fP is arrayed, then \fIuse-id\fP will be followed
+by two bracketed subscript ranges of the form:
+\fB[\fIlo\fB,\fIhi\fB,\fIsep\fB]\fR.
+The first range is for x, and the second for y.
+The subscripts for a given dimension are
+\fIlo\fP through \fIhi\fP inclusive, and the separation between
+adjacent array elements is \fIsep\fP centimicrons.
+.sp
+\fITRANSFORM\fP is a set of six
+integers that describe how coordinates in \fIdef\fP are to be
+transformed to coordinates in the parent \fIname\fP.
+It is used
+by \fIext2sim\fP\|(1) in transforming transistor locations to
+coordinates in the root of a design.
+The six integers of \fITRANSFORM\fP (\fIta,\ tb,\ tc,\ td,\ te,\ tf\fR) are
+interpreted as components in the following transformation matrix,
+by which all coordinates in \fIdef\fP are post-multiplied to get
+coordinates in \fIname\fP:
+.sp
+.in +2i
+.nf
+.ta +0.5i +0.5i +0.5i +0.5i +0.5i +0.5i +0.5i +0.5i
+\fIta\fR	\fItd\fR	0
+\fItb\fR	\fIte\fR	0
+\fItc\fR	\fItf\fR	1
+.fi
+.in -2i
+.TP
+.B "merge\ \fIpath1\ path2\ C\ a1\ p1\ a2\ p2 \ ...\ aN\ pN\fR"
+Used to specify a connection between two subcells, or between
+a subcell and mask information of \fIname\fP.
+Both \fIpath1\fP and \fIpath2\fP are hierarchical node names.
+To refer to a node in cell \fIname\fP itself, its pathname is
+just its node name.
+To refer to a node in a subcell of \fIname\fP, its pathname consists
+of the \fIuse-id\fP of the subcell (as it appeared in a \fBuse\fP line
+above), followed by a slash\ (\fI/\fR),
+followed by the node name in the subcell.
+For example, if \fIname\fP contains subcell \fIsub\fP with use identifier
+\fIsub-id\fP, and \fIsub\fP contains node \fIn\fP, the full pathname
+of node \fIn\fP relative to \fIname\fP will be \fIsub-id/n\fP.
+.PP
+Connections between adjacent elements of an array are represented
+using a special syntax that takes advantage of the regularity of arrays.
+A use-id in a path may optionally be followed by a range of the form
+\fB[\fIlo\fB:\fIhi\fB]\fR (before the following slash).
+Such a use-id
+is interpreted as the elements \fIlo\fP through \fIhi\fP inclusive
+of a one-dimensional array.
+An element of a two-dimensional array may
+be subscripted with two such ranges: first the y range, then the x range.
+.PP
+Whenever one \fIpath\fP in a \fBmerge\fP line contains such a subscript
+range, the other must contain one of comparable size.
+For example,
+.sp
+.ti +1i
+\fBmerge\fP\ \ sub-id[1:4,2:8]/a\ \ sub-id[2:5,1:7]/b
+.sp
+is acceptable because the range 1:4 is the same size as 2:5,
+and the range 2:8 is the same size as 1:7.
+.sp
+When a connection occurs between nodes in different cells,
+it may be that some
+resistance and capacitance has been recorded redundantly.
+For example, polysilicon in one cell may overlap polysilicon in another,
+so the capacitance to substrate will have been recorded twice.
+The values \fIC\fP, \fIa1\fR, \fIp1\fR, etc. in a \fBmerge\fP line provide a
+way of compensating for such overlap.
+Each of \fIa1\fR, \fIp1\fR, etc. (usually negative)
+are added to the area and perimeter
+for material of each resistance class
+to give an adjusted area and perimeter
+for the aggregate node.
+The value \fIC\fP attofarads (also usually negative) is added to the
+sum of the capacitances (to substrate) of nodes \fIpath1\fP and
+\fIpath2\fP to give the capacitance of the aggregate node.
+.TP
+.B "cap\ \fInode1\ node2\ C\fR"
+Defines a capacitor between the nodes \fInode1\fP and \fInode2\fP,
+with capacitance \fIC\fP.
+This construct is used to specify both internodal capacitance
+within a single cell and between cells.
+
+.SH AUTHOR
+Walter Scott
+
+.SH "SEE ALSO"
+ext2sim\|(1), magic\|(1)

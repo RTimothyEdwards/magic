@@ -1,0 +1,52 @@
+magic
+tech scmos
+timestamp 736070986
+<< polysilicon >>
+rect -3 12 -1 17
+rect 35 12 37 17
+rect -3 10 0 12
+rect 8 10 10 12
+rect 24 10 26 12
+rect 34 10 37 12
+rect -3 6 0 8
+rect 8 6 10 8
+rect 24 6 26 8
+rect 34 6 37 8
+rect -3 1 -1 6
+rect 35 1 37 6
+<< ndiffusion >>
+rect 0 13 12 16
+rect 0 12 8 13
+rect 0 8 8 10
+rect 0 3 8 6
+rect 0 0 3 3
+<< pdiffusion >>
+rect 22 13 34 16
+rect 26 12 34 13
+rect 26 8 34 10
+rect 26 3 34 6
+rect 31 0 34 3
+<< ntransistor >>
+rect 0 10 8 12
+rect 0 6 8 8
+<< ptransistor >>
+rect 26 10 34 12
+rect 26 6 34 8
+<< labels >>
+rlabel space 12 10 12 12 3 3.1
+rlabel space 11 8 11 10 3 3.2
+rlabel space 12 3 12 6 3 3.4
+rlabel space -1 18 0 18 1 3.5
+rlabel space 22 10 22 12 7 3.1
+rlabel space 23 8 23 10 7 3.2
+rlabel space 22 3 22 6 7 3.4
+rlabel space 24 2 26 2 1 3.3
+rlabel space -1 -17 34 -2 1 poly
+rlabel space 2 -4 2 -4 3 3.1______width______2
+rlabel space 2 -7 2 -7 3 3.2______space______2
+rlabel space 2 -10 2 -10 3 3.3______gate_overlap____2
+rlabel space 2 -13 2 -13 3 3.4______active_overlap__3
+rlabel space 2 -16 2 -16 3 3.5______to_active_____1
+rlabel space 34 18 35 18 1 3.5
+rlabel space 8 2 10 2 1 3.3
+<< end >>

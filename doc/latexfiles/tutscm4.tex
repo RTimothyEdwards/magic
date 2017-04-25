@@ -1,0 +1,78 @@
+%----------------------------------------------------------------------------
+% Magic tutorial number S-4 
+%----------------------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\documentclass[letterpaper,twoside,12pt]{article}
+\usepackage{epsfig,times}
+
+\setlength{\textwidth}{8.5in}
+\addtolength{\textwidth}{-2.0in}
+\setlength{\textheight}{11.0in}
+\addtolength{\textheight}{-2.0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0pt}
+\setlength{\topmargin}{-0.5in}
+\setlength{\headheight}{0.2in}
+\setlength{\headsep}{0.3in}
+\setlength{\topskip}{0pt}
+
+\def\hinch{\hspace*{0.5in}}
+\def\starti{\begin{center}\begin{tabbing}\hinch\=\hinch\=\hinch\=hinch\hinch\=\kill}
+\def\endi{\end{tabbing}\end{center}}
+\def\ii{\>\>\>}
+\def\mytitle{Magic Tutorial \#S-4: The design rule file}
+
+%----------------------------------------------------------------------------
+
+\begin{document}
+
+\makeatletter
+\newcommand{\ps@magic}{%
+	\renewcommand{\@oddhead}{\mytitle\hfil\today}%
+	\renewcommand{\@evenhead}{\today\hfil\mytitle}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\newcommand{\ps@mplain}{%
+	\renewcommand{\@oddhead}{}%
+	\renewcommand{\@evenhead}{}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\makeatother
+\pagestyle{magic}
+\thispagestyle{mplain}
+
+
+\begin{center}
+  {\bfseries \Large \mytitle} \\
+  \vspace*{0.5in}
+  {\itshape Rajit Manohar} \\
+  \vspace*{0.5in}
+   Deparment of Computer Science \\
+   California Institute of Technology \\
+   Pasadena, CA  91125 \\
+  \vspace*{0.25in}
+  This tutorial corresponds to Magic version 7. \\
+\end{center}
+\vspace*{0.5in}
+
+{\noindent\bfseries\large Tutorials to read first:}
+\starti
+   \> Magic Tutorial \#S-1: The scheme command-line interpreter
+\endi
+
+{\noindent\bfseries\large Commands introduced in this tutorial:}
+\starti
+   \> :drc.\*
+\endi
+
+{\noindent\bfseries\large Macros introduced in this tutorial:}
+
+\starti
+   \> {\itshape (None)}
+\endi
+
+\vspace*{0.25in}
+\section{Introduction}
+
+\end{document}

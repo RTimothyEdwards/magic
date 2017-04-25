@@ -1,0 +1,61 @@
+magic
+tech scmos
+timestamp 697876971
+<< polysilicon >>
+rect 0 16 2 18
+rect 6 16 10 18
+rect 24 16 29 18
+rect 31 16 38 18
+rect 40 16 42 18
+<< poly2 >>
+rect 10 23 24 24
+rect 10 18 11 23
+rect 23 18 24 23
+rect 29 18 31 21
+rect 38 18 40 21
+rect 10 11 11 16
+rect 23 11 24 16
+rect 29 14 31 16
+rect 38 14 40 16
+rect 10 10 24 11
+rect 27 13 33 14
+rect 10 8 16 10
+rect 27 9 28 13
+rect 32 9 33 13
+rect 27 8 33 9
+rect 36 13 42 14
+rect 36 9 37 13
+rect 41 9 42 13
+rect 36 8 42 9
+rect 10 4 11 8
+rect 15 4 16 8
+rect 10 3 16 4
+<< capacitor >>
+rect 11 18 23 23
+rect 10 16 24 18
+rect 29 16 31 18
+rect 38 16 40 18
+rect 11 11 23 16
+<< ndiffusion >>
+rect 2 18 6 19
+rect 2 15 6 16
+<< ntransistor >>
+rect 2 16 6 18
+<< ndcontact >>
+rect 2 19 6 23
+rect 2 11 6 15
+<< electrodecontact >>
+rect 28 9 32 13
+rect 37 9 41 13
+rect 11 4 15 8
+<< labels >>
+rlabel space 2 9 2 9 3 transistor
+rlabel space -10 18 -10 18 3 floating
+rlabel space -10 16 -10 16 3 gate
+rlabel space 27 6 27 6 3 erase
+rlabel space 27 4 27 4 3 voltage
+rlabel space 36 6 36 6 3 programming
+rlabel space 36 4 36 4 3 voltage
+rlabel space 10 1 10 1 3 control
+rlabel space 10 -1 10 -1 3 gate
+<< end >>

@@ -1,0 +1,112 @@
+----------------------------------------------------------------
+Explanation of the default keyboard macros
+(installed in ${CAD_ROOT}/magic/sys/.magic)
+----------------------------------------------------------------
+Note:	ellipses (...) indicate an interactive macro
+	asterisk (*) indicates a macro available only under X11
+
+----------------------------------------------------------------
+macro key		command
+----------------------------------------------------------------
+a			select visible
+A			select more visible
+ctrl-A			select less visible
+
+b			box
+
+c			copy
+
+d			delete
+ctrl-D			erase $
+
+e			edit
+
+f			sideways (flip horizontal)
+F			upside   (flip vertical)
+
+g			grid	(toggle)
+
+i			select cell
+I			select more cell
+ctrl-I			select less cell	*
+
+l			label...
+L			shell ls
+ctrl-L			redraw
+
+m			move
+M			stretch
+
+o			openwindow
+O			closewindow
+
+p			paint...
+
+ctrl-shift-Q		quit			*
+
+r			clockwise [90]
+R			clockwise 270
+ctrl-R			clockwise 180
+
+s			select
+S			select more
+ctrl-S			select less
+ctrl-shift-S		undo; select		*
+
+u			undo
+U			redo
+
+v			view
+V			xview
+
+w			writeall
+W			writeall force
+	
+x			expand
+X			unexpand
+ctrl-X			expand toggle
+
+z			zoom 0.5
+Z			zoom 2
+ctrl-Z			findbox zoom
+ctrl-shift-Z		center			*
+
+?			drc why
+/			select area; what; select clear
+,			select clear
+!			shell...		
+space			tool
+shift-space		tool box		*
+ctrl-shft-space 	tool wiring		*
+
+	(below:  [dir] may be one of right, left, up, or down)
+
+[dir]_arrow		scroll [dir] .1		*
+shift-[dir]_arrow	scroll [dir] 1		*
+ctrl-[dir]_arrow	box +[dir] 1		*
+ctrl-shift-[dir]_arrow  box -[~dir] 1		*
+
+keypad_period		box w 0; box h 0	*
+keypad_0		box w 4; box h 4	*
+shift-keypad_0		box w 7; box h 2	*
+ctrl-keypad_0		box w 2; box h 7	*
+
+	(below: [num] may be 1 through 9; the resulting direction [dir]
+	corresponds to the position of the number on the keypad.
+	Diagonal directions are implemented as two commands)
+
+keypad_[num]		move [dir] 1		*
+shift-keypad_[num]	stretch [dir] 1		*
+
+F1			paint ndiff		*
+F2			paint pdiff		*
+F3			paint poly		*
+F4			paint poly2		*
+F5			paint m1		*
+F6			paint m2		*
+F7			paint m3		*
+F8			paint m4		*
+F9			paint ndc		*
+F10			paint pdc		*
+F11			paint pc		*
+F12			paint via		*

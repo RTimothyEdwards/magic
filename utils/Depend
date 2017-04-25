@@ -1,0 +1,73 @@
+args.o: args.c ../utils/magic.h ../utils/utils.h
+child.o: child.c ../utils/utils.h ../utils/magic.h ../utils/malloc.h
+dqueue.o: dqueue.c ../utils/magic.h ../utils/dqueue.h ../utils/malloc.h
+finddisp.o: finddisp.c ../utils/magic.h ../utils/utils.h
+flock.o: flock.c ../utils/magic.h ../utils/hash.h ../utils/geometry.h \
+ ../tiles/tile.h ../database/database.h ../windows/windows.h \
+ ../utils/malloc.h
+flsbuf.o: flsbuf.c
+fraction.o: fraction.c ../utils/magic.h ../utils/geometry.h
+geometry.o: geometry.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/utils.h ../textio/textio.h ../tiles/tile.h
+getrect.o: getrect.c ../utils/magic.h ../utils/geometry.h
+hash.o: hash.c ../utils/magic.h ../utils/hash.h ../utils/malloc.h
+heap.o: heap.c ../utils/magic.h ../utils/geometry.h ../utils/heap.h \
+ ../utils/utils.h ../utils/malloc.h
+list.o: list.c ../utils/magic.h ../utils/utils.h ../utils/malloc.h \
+ ../utils/list.h
+lookup.o: lookup.c ../utils/magic.h ../utils/utils.h
+lookupany.o: lookupany.c
+lookupfull.o: lookupfull.c ../utils/magic.h
+macros.o: macros.c ../utils/magic.h ../utils/utils.h ../utils/hash.h \
+ ../utils/malloc.h ../utils/macros.h ../windows/windows.h \
+ ../utils/geometry.h
+main.o: main.c ../utils/main.h ../windows/windows.h ../utils/magic.h \
+ ../utils/geometry.h ../database/database.h ../tiles/tile.h \
+ ../utils/hash.h ../utils/malloc.h ../utils/magsgtty.h ../utils/macros.h \
+ ../textio/textio.h ../textio/txcommands.h ../utils/tech.h ../drc/drc.h \
+ ../graphics/graphics.h ../dbwind/dbwind.h ../commands/commands.h \
+ ../utils/signals.h ../utils/utils.h ../utils/runstats.h ../cif/cif.h \
+ ../router/router.h ../lef/lef.h ../extract/extract.h ../utils/undo.h \
+ ../netmenu/netmenu.h ../plow/plow.h ../utils/paths.h ../wiring/wiring.h \
+ ../plot/plot.h ../sim/sim.h ../utils/list.h ../mzrouter/mzrouter.h \
+ ../lisp/lisp.h ../graphics/wind3d.h
+malloc.o: malloc.c ../tcltk/tclmagic.h ../utils/magic.h ../utils/malloc.h
+match.o: match.c ../utils/magic.h ../textio/textio.h
+maxrect.o: maxrect.c ../utils/maxrect.h ../database/database.h \
+ ../tiles/tile.h ../utils/magic.h ../utils/geometry.h ../utils/hash.h \
+ ../utils/malloc.h
+netlist.o: netlist.c ../utils/magic.h ../utils/geometry.h ../utils/hash.h \
+ ../utils/heap.h ../tiles/tile.h ../database/database.h \
+ ../utils/netlist.h ../utils/signals.h ../textio/textio.h \
+ ../utils/malloc.h ../utils/styles.h
+niceabort.o: niceabort.c ../utils/magic.h ../textio/textio.h \
+ ../utils/utils.h ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../utils/main.h
+parser.o: parser.c ../utils/magic.h ../textio/textio.h
+path.o: path.c ../tcltk/tclmagic.h ../utils/magic.h ../utils/hash.h \
+ ../utils/malloc.h ../utils/utils.h
+pathvisit.o: pathvisit.c ../utils/magic.h ../utils/hash.h \
+ ../utils/malloc.h ../utils/pathvisit.h ../utils/utils.h
+port.o: port.c ../utils/magic.h ../utils/hash.h ../utils/malloc.h
+printstuff.o: printstuff.c ../utils/magic.h ../utils/geometry.h
+signals.o: signals.c ../utils/main.h ../windows/windows.h \
+ ../utils/magic.h ../utils/geometry.h ../database/database.h \
+ ../tiles/tile.h ../utils/hash.h ../utils/magsgtty.h ../textio/textio.h \
+ ../utils/signals.h ../graphics/graphics.h
+stack.o: stack.c ../utils/magic.h ../utils/utils.h ../utils/stack.h \
+ ../utils/malloc.h
+strdup.o: strdup.c ../utils/magic.h ../utils/malloc.h
+runstats.o: runstats.c ../utils/magic.h ../utils/runstats.h
+set.o: set.c ../utils/magic.h ../utils/utils.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/list.h
+show.o: show.c ../utils/magic.h ../utils/geometry.h ../windows/windows.h \
+ ../graphics/graphics.h ../utils/hash.h ../tiles/tile.h \
+ ../database/database.h ../dbwind/dbwind.h
+tech.o: tech.c ../utils/magic.h ../utils/geometry.h ../utils/utils.h \
+ ../utils/tech.h ../textio/textio.h ../windows/windows.h \
+ ../utils/malloc.h
+touchtypes.o: touchtypes.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h
+undo.o: undo.c ../utils/magic.h ../utils/utils.h ../utils/malloc.h \
+ ../utils/undo.h

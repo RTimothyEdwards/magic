@@ -1,0 +1,72 @@
+Autoconf Capsule Summary:
+----------------------------------------
+
+    Compile and install:
+
+	./configure [options]
+	make
+	make install
+
+    Autoconf options (use "./configure --help" for a complete list):
+
+	--prefix=DIR	Indicates the install directory.  Determines the
+			install directory of the executable.  Determines the
+			install directory of the libraries (${prefix}/lib)
+			unless use of "--libdir=DIR" overrides it.  Defaults
+			to /usr/local/.
+
+	--libdir=DIR	By default, ${prefix}/lib/.  Otherwise, run-time
+			files used by magic are installed here, and
+			${CAD_ROOT} is set to DIR.  In some distributions,
+			this is set to /usr/share/.
+
+	--with-interpreter=ARG
+			Enable one of the two interpreters.  ARG may be
+			one of "tcl" or "scheme".
+
+	--with-tcl	Equivalent to "--with-interpreter=tcl".
+			Normally enabled, if available.
+
+	--with-opengl	Enable OpenGL as a graphics option.  Normally
+			enabled, if available.
+
+	--without-x	Disable X11 as a graphics option.  Normally
+			enabled.
+
+	--disable-nonmanhattan
+			Disable non-Manhattan extensions.  Normally
+			enabled.
+
+	--disable-readline
+			Disable the GNU "readline" package.  Normally
+			enabled.
+	
+	--disable-threads
+			Disable threaded X11 and OpenGL graphics.
+			Normally enabled.
+
+Notes to Magic maintainers:
+--------------------------
+
+This directory contains all the sources for the Magic system and related
+programs.  The system runs on a number of machines.  You should read the
+Magic Maintainer's manual as well as the introduction to Magic before
+compiling the system.  These documents are in the "doc" subdirectory in
+PostScript, as well as the original LaTeX source.
+    
+The "proper" way to profile the amount of CPU time spent in each procedure
+is to edit "defs.mak" and add flag "-pg" to CFLAGS.  Then recompile, install,
+and run.  Note that this doesn't work with the Tcl version; you have to
+compile the standalone version.  After running, magic creates a file "gmon.out".
+To view the contents, run "gprof /usr/local/bin/magic > gprof.out" (the output
+can be very long). 
+
+Memory tracing in Tcl requires that Tcl and Tk be compiled with the
+TCL_MEM_DEBUG option.  Magic also must be compiled with TCL_MEM_DEBUG,
+which can be done by adding the definition -DTCL_MEM_DEBUG to DFLAGS
+in defs.mak, after running "configure".
+
+Magic is normally compiled without the optimization flag.  This is handled
+by explicitly setting CFLAGS as an environment variable in the top-level
+"configure" script prior to calling scripts/configure.  The top-level
+configure script needs to be modified to enable compile-time optimization.

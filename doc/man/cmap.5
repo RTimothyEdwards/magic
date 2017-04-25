@@ -1,0 +1,60 @@
+.\" sccsid @(#)cmap.5	4.2 (Berkeley) 10/17/85
+.\"
+.\" CONVENTIONS:
+.\"	italics:  things that are substituted for
+.\"	boldface: characters that are typed as-is
+.\"
+.\"	EXAMPLE:  \fIfilename\fB.mag\fR
+.\"	     or:  \fBcif \fR[\fIfile\fR]
+.\"
+.TH CMAP 5
+.UC 4
+.SH NAME
+cmap \- format of .cmap files (color maps)
+
+.SH DESCRIPTION
+.PP
+Color-map files define the mapping between eight-bit color numbers
+and red, green and blue intensities used for those numbers.
+They are read by Magic as part of system startup, and also
+by the \fB:load\fR and \fB:save\fR commands in color-map windows.
+Color-map file names usually have the form \fIx\fB.\fIy\fB.\fIz\fB.cmap\fIn\fR,
+where \fIx\fR is a class of technology files, \fIy\fR is a class of displays,
+\fIz\fR is a class of monitors, and \fIn\fR is a version
+number (currently \fB1\fR).
+The version number will change in the future
+if the format of color-map files ever changes.
+Normally, \fIx\fR and \fIy\fR correspond to the corresponding parts of a
+display styles file.
+For example, the color map file \fBmos.7bit.std.cmap1\fR is used today for most
+nMOS and CMOS technology files using displays that support at least seven
+bits of color per pixel and standard-phosphor monitors.
+It corresponds to the display styles file \fBmos.7bit.dstyle5\fR.
+.PP
+Color-map files are stored in ASCII form, with each line containing
+four decimal integers separated by white space.
+The first three integers are red, green, and blue intensities, and the
+fourth field is a color number.
+For current displays the intensities must be integers between 0 and 255.
+The color numbers must increase from line to line, and the last line must have
+a color number of 255.
+The red, green, and blue intensities on the first line are used for
+all colors from 0 up to and including the color number on that line.
+For other lines, the intensities on that line are used for all colors
+starting one color above the color number on the previous line and
+continuing up and through the color number on the current line.
+For example, consider the color map below:
+.nf
+.ta 2c 4c 6c 8c
+
+255	0	0	2
+0	0	255	3
+255	255	255	256
+
+.fi
+.LP
+This color map indicates that colors 0, 1, and 2 are to be red,
+color 3 is to be blue, and all other colors are to be white.
+
+.SH "SEE ALSO"
+magic\|(1), dstyle\|(5)

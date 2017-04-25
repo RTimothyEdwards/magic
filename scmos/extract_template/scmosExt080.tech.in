@@ -1,0 +1,103 @@
+/* 
+
+  This is for lambda=0.8um - ie orbit's 2 um technologies.
+  Needs some more work for parallel coupling capacitances and upwards
+  fringe.
+
+*/
+#ifdef	extForSpice
+style	lambda=0.8(scna16_ami)
+#else
+style	lambda_irsim=0.8(scna16_ami)
+#endif
+
+	cscale		1
+	lambda		80
+	step		100
+	sidehalo	0	/* no parallel coupling cap */
+
+#ifdef	INCLUDE_FET_CAP /* Normally off since neither spice or irsim need it */
+	areacap allFet 750 /* af/lambda^2 */
+#endif
+
+
+#ifdef	extForSpice
+	areacap	(ndiff,nsd,ndc,nsc)/a			0
+	perimc	(ndiff,nsd,ndc,nsc)/a	space,pwell	0
+
+	areacap	(pdiff,psd,pdc,psc)/a			0
+	perimc	(pdiff,psd,pdc,psc)/a	space,nwell	0
+#else	
+	areacap	(ndiff,nsd,ndc,nsc)/a               172
+	perimc	(ndiff,nsd,ndc,nsc)/a  space,pwell  60
+
+	areacap	(pdiff,psd,pdc,psc)/a               200
+	perimc	(pdiff,psd,pdc,psc)/a  space,nwell  68 
+#endif
+	/* ------------------------------------------------------ */
+
+	/* ------------   poly capacitances ---------------- */
+	areacap	PolyCap				22
+	overlap	PolyCap	allWell 	22
+	/* ------------------------------------------------- */
+
+
+	/* NO fringe data avaliable */
+	/* ------------   metal1 capacitances ---------------- */
+	areacap	M1Cap				20
+	overlap	M1Cap	allWell		20	PolyCap,PNplusCap
+	overlap	M1Cap	PNplusCap		20	
+	overlap	M1Cap	PolyCap		25	
+
+	/* ------------------------------------------------- */
+
+
+	/* ------------   metal2 capacitances ---------------- */
+	areacap	M2Cap			10	
+	overlap	M2Cap	allWell	12	PolyCap,M1Cap,PNplusCap
+	overlap	M2Cap	PNplusCap	12	M1Cap
+	overlap	M2Cap	PolyCap	11	M1Cap
+	overlap	M2Cap	M1Cap	23	
+	/* ------------------------------------------------- */
+
+
+	/* -------------- Fets -----------------------------*/
+	    /* cscab, cscap defined since extresis needs them */
+	fet	pfet	pdiff,pdc	2 pfet	Vdd!	nwell	204	450
+	fet	nfet	ndiff,ndc	2 nfet	Gnd!	pwell	150	450
+	fet	epfet	pdiff,pdc	2 epfet	Vdd!	nwell	204	450
+	fet	enfet	ndiff,ndc	2 enfet	Gnd!	pwell	150	450
+
+	fetresis	nfet	linear		14100 /* resistance dyn L */
+	fetresis	pfet	linear		48100 /* resistance dyn H */
+	fetresis	nfet	saturation	14100 /* resistance dyn L */
+	fetresis	pfet	saturation	48100 /* resistance dyn H */
+	/* ------------------------------------------------- */
+
+	/* -------------- Resistivity (in milliohms per sq) -------*/
+	/* ---- assumed temp 85 C -----  */
+
+	resist	NDRes		51680
+	resist	PDRes		74800
+	resist	PolyRes		34780
+	resist  allPoly2    22400
+	resist	M1Res		48
+	resist	M2Res		28
+	resist	nwell		1446400
+
+	contact	pc		4			61560
+	contact ec/a,capc/a     4   12010
+	contact	ndc,pdc,nsc,psc	4	45780
+	contact pdc/a,psc/a     4    32310
+	contact	m2c			4		37570
+	/* ------------------------------------------------- */
+
+	/* Order the planes for correct shielding */
+	planeOrder(implant,0)
+	planeOrder(well,1)
+	planeOrder(active,2)
+	planeOrder(metal1,3)
+	planeOrder(metal2,4)
+	planeOrder(metal3,5)
+	planeOrder(oxide,6)
+

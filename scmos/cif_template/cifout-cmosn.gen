@@ -1,0 +1,97 @@
+/* available devices:
+	nfet,pfet,enfet,epfet,nffet,pffet
+	poly capacitor
+	micro-machined devices
+*/
+#define cif_tech cmosn
+style lambda=lambda_v
+    scalefactor lambda_1 scaleunit
+    layer NWN nwell
+	bloat-or allPDiff,PFet * lambda_5
+	bloat-or allNOhmic * lambda_3
+	grow lambda_3
+	shrink lambda_3
+	calma 1 1
+    layer NWP pwell
+	bloat-or allNDiff,NFet * lambda_5
+        bloat-or allPOhmic * lambda_3
+	grow lambda_3
+	shrink lambda_3
+	calma 2 1
+    layer NMS allMetal2
+	labels m2
+	calma 12 1
+    layer NMF pad
+	grow lambda_1
+	or allMetal1
+	labels homeMetal1
+	calma 10 1
+    layer NPG cap
+	or allPoly
+	labels poly,nfet,pfet
+	calma 4 1
+    layer NAA allActive
+	or open,pstop
+	labels ndiff,pdiff
+	calma 3 1
+    layer NVA pad
+	shrink pad_via
+	or open
+	calma 11 1
+    layer NVA m2c
+	calma 11 1
+    layer NEL allPoly2
+	calma 5 1
+    layer NCT gc
+	or capc
+	or ec
+	calma 9 1
+    /* temp CIF layer for select generation */
+    templayer XTN
+	bloat-or allNDiff * lambda_2 allPOhmic 0
+	bloat-or ndop * lambda_2
+	grow lambda_1
+	shrink lambda_1
+	shrink lambda_half
+	grow lambda_half
+    templayer XTP
+	bloat-or allPDiff * lambda_2 allNOhmic 0
+	bloat-or pdop * lambda_2
+	grow lambda_1
+	shrink lambda_1
+	shrink lambda_half
+	grow lambda_half
+    layer NSN 
+	bloat-or allNDiff * lambda_2 allPOhmic 0
+	bloat-or NFet * lambda_2 ndiff lambda_3 allPOhmic 0
+	bloat-or allNOhmic * lambda_2 allPDiff 0
+	bloat-or ndop * lambda_2 allPOhmic,allPDiff,pdop 0
+	grow lambda_1
+	shrink lambda_1
+	shrink lambda_half
+	grow lambda_half
+	and-not XTP
+	calma 45 1
+    layer NSP
+	bloat-or allPDiff * lambda_2 allNOhmic 0
+	bloat-or PFet * lambda_2 pdiff lambda_3 allNOhmic 0
+	bloat-or allPOhmic * lambda_2 allNDiff 0
+	bloat-or pdop * lambda_2 allNOhmic,allNDiff,ndop 0
+	grow lambda_1
+	shrink lambda_1
+	shrink lambda_half
+	grow lambda_half
+	bloat-min pstop * lambda_2 open 0
+	and-not XTN
+	and-not NSN
+	calma 44 1
+    layer NOG pad
+	shrink pad_glass
+	or glass
+	or open
+	labels pad
+	calma 52 1
+    layer XP pad
+	shrink pad_glass
+
+#undef cif_tech

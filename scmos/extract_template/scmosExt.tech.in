@@ -1,0 +1,97 @@
+/* local definitions */
+#define	allContM1	ndc/m1,pdc/m1,nwc/m1,pwc/m1
+#define	PNplusWOC	ndiff,pdiff,nnd/a,ppd/a
+
+#define	CAPP	allPoly
+#define	SSEPP	~(allPoly)/act
+#define	SSEP1	~(allMetal1)/m1
+#define	SSEP2	~(allMetal2)/m2
+#define	SSEP3	~(allMetal3)/m3
+
+
+/* Make sure local cap defs don't appear before regardless of what cpp does*/
+#if defined(M1ContactsAct) \
+    || defined (M1Contacts) \
+    || defined (PNplusCap) \
+    || defined (PolyCap) \
+    || defined (M1Cap) \
+    || defined (M2Cap) \
+    || defined (M3Cap) \
+    || defined (M1CapNoDiff) \
+    || defined (NdRes) \
+    || defined (PdRes) \
+    || defined (M1Res) \
+    || defined (PolyRes) \
+    || defined (M2Res) \
+    || defined (M3Res) \
+    || defined (nothing)
+THERE_IS_AN_ERROR_SOME_LOCAL_CAPACITANCE_DEFINITIONS_HAVE_ALREADY_BEEN_DEFINED
+#endif
+
+/* Local capacitance definitions */
+#define	M1ContactsAct	ndc,pdc,nwc,pwc,nbdc,capc,ec,clc,emc,pbc
+#define	M1Contacts	M1ContactsAct,pc,via
+#define	PNplusCap	(ndiff,pdiff,em,col,ppd,nnd,M1ContactsAct)/a
+#define	PolyCap	(poly,pc)/a
+#define	M1Cap	(m1,M1Contacts)/m1
+#define	M2Cap	(m2,m2c,m3c,pad)/m2
+#define	M3Cap	(m3,m3c,pad)/m3
+#define	M1CapNoDiff	(m1,pc,via)/m1
+#define	NDRes	(ndiff,nsd,ndc/act,nsc/act)
+#define	PDRes	(pdiff,psd,pdc/act,psc/act)
+#define	PolyRes	(poly,pc/act,pfet,nfet)
+#define	M1Res	(metal1,m2c/metal1)
+#define	M2Res	(metal2,via/m2,pad)
+#define	M3Res	(metal3,pad/m3,via2/m3)
+
+
+#define	nothing
+
+/* Use macros for planeorder and sideoverlap for backwards compatibility */
+#if defined(V5)
+
+#define	planeOrder(l,ord)	planeorder	l	ord
+#define	noplaneOrdering	noplaneordering
+#define	sideOverlap(l1,sep,l2,cap,shield)\
+	sideoverlap	l1	sep	l2	cap	shield
+
+#else /* V5 */
+
+#define	planeOrder(l,ord)	
+#define	noplaneOrdering	
+#define	sideOverlap(l1,sep,l2,cap,shield)\
+	sideoverlap	l1	sep	l2	cap	
+
+#endif /* V5 */
+
+
+#define	 extForSpice
+
+/* 
+   If you are using irsim-9.3 or older then you need to re-include 
+   all the files without defining extForSpice so that the junction
+   capacitances will be extracted from magic instead of being calculated
+   from irsim-9.4 based on the values in the prm file and the s/d attributes
+   produced from magic-6.5
+*/
+
+#if defined(STANDARD) /* include ORBIT 2um, AMI 1.6um, HP1.2, and HP1.0/0.8 */
+#include "scmosExt100.tech.in"
+#include "scmosExt080.tech.in"
+#include "scmosExt060_orb.tech.in"
+#include "scmosExt34.tech.in"
+#include "scmosExt26b.tech.in"
+#endif /* STANDARD */
+
+#if defined(TIGHTMETAL)
+#include "scmosExt34.tech.in"
+#include "scmosExt26b.tech.in"
+#include "scmosExt14b-tm.tech.in"
+#endif
+
+#if defined(SUBMICRON)
+#include "scmosExt26b-sub.tech.in"
+#include "scmosExt14b-sub.tech.in"
+#endif
+
+#include "scmosExtDiag.tech.in"

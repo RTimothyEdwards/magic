@@ -1,0 +1,6 @@
+tclmagic.o: tclmagic.c ../tcltk/tclmagic.h ../utils/main.h \
+ ../windows/windows.h ../utils/magic.h ../utils/geometry.h \
+ ../database/database.h ../tiles/tile.h ../utils/hash.h ../utils/dqueue.h \
+ ../commands/commands.h ../utils/utils.h ../textio/textio.h \
+ ../textio/txcommands.h ../utils/signals.h ../graphics/graphics.h \
+ ../utils/malloc.h ../dbwind/dbwind.h

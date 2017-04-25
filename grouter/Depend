@@ -1,0 +1,58 @@
+grouteChan.o: grouteChan.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/styles.h ../utils/hash.h ../utils/heap.h ../utils/utils.h \
+ ../tiles/tile.h ../database/database.h ../debug/debug.h ../gcr/gcr.h \
+ ../windows/windows.h ../utils/main.h ../dbwind/dbwind.h \
+ ../utils/signals.h ../router/router.h ../grouter/grouter.h \
+ ../grouter/grouteDebug.h ../utils/netlist.h ../textio/textio.h \
+ ../utils/malloc.h
+grouteCrss.o: grouteCrss.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../utils/hash.h ../utils/heap.h ../utils/malloc.h \
+ ../debug/debug.h ../tiles/tile.h ../database/database.h ../gcr/gcr.h \
+ ../windows/windows.h ../utils/main.h ../dbwind/dbwind.h \
+ ../utils/signals.h ../router/router.h ../grouter/grouter.h \
+ ../grouter/grouteDebug.h ../utils/netlist.h ../textio/textio.h \
+ ../utils/styles.h
+grouteDens.o: grouteDens.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/hash.h ../utils/heap.h ../tiles/tile.h ../database/database.h \
+ ../utils/netlist.h ../gcr/gcr.h ../router/router.h ../grouter/grouter.h \
+ ../grouter/grouteDebug.h ../utils/signals.h ../textio/textio.h \
+ ../utils/malloc.h ../utils/styles.h ../debug/debug.h
+grouteMain.o: grouteMain.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/styles.h ../utils/hash.h ../utils/heap.h ../utils/utils.h \
+ ../tiles/tile.h ../database/database.h ../debug/debug.h ../gcr/gcr.h \
+ ../windows/windows.h ../utils/main.h ../dbwind/dbwind.h \
+ ../utils/signals.h ../router/router.h ../grouter/grouter.h \
+ ../grouter/grouteDebug.h ../utils/netlist.h ../textio/textio.h \
+ ../utils/malloc.h
+grouteMult.o: grouteMult.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/hash.h ../utils/heap.h ../tiles/tile.h ../database/database.h \
+ ../router/router.h ../gcr/gcr.h ../grouter/grouter.h \
+ ../grouter/grouteDebug.h ../utils/netlist.h ../utils/signals.h \
+ ../textio/textio.h ../utils/malloc.h ../utils/styles.h \
+ ../windows/windows.h ../dbwind/dbwind.h
+grouteMaze.o: grouteMaze.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../utils/hash.h ../utils/heap.h ../utils/malloc.h \
+ ../debug/debug.h ../tiles/tile.h ../database/database.h ../gcr/gcr.h \
+ ../windows/windows.h ../utils/main.h ../dbwind/dbwind.h \
+ ../utils/signals.h ../router/router.h ../grouter/grouter.h \
+ ../grouter/grouteDebug.h ../utils/netlist.h ../textio/textio.h \
+ ../utils/styles.h
+groutePath.o: groutePath.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/hash.h ../utils/heap.h ../tiles/tile.h ../debug/debug.h \
+ ../database/database.h ../gcr/gcr.h ../windows/windows.h ../utils/main.h \
+ ../dbwind/dbwind.h ../utils/signals.h ../router/router.h \
+ ../grouter/grouter.h ../grouter/grouteDebug.h ../textio/textio.h \
+ ../utils/malloc.h
+groutePen.o: groutePen.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/hash.h ../utils/heap.h ../tiles/tile.h ../database/database.h \
+ ../utils/netlist.h ../gcr/gcr.h ../router/router.h ../grouter/grouter.h \
+ ../grouter/grouteDebug.h ../utils/signals.h ../textio/textio.h \
+ ../utils/malloc.h ../utils/styles.h ../utils/list.h
+grouteTest.o: grouteTest.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/hash.h ../utils/heap.h ../tiles/tile.h ../database/database.h \
+ ../utils/signals.h ../textio/textio.h ../debug/debug.h ../gcr/gcr.h \
+ ../router/router.h ../grouter/grouter.h ../grouter/grouteDebug.h \
+ ../graphics/graphics.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../textio/txcommands.h ../utils/main.h ../utils/utils.h \
+ ../commands/commands.h ../utils/malloc.h ../utils/styles.h \
+ ../utils/netlist.h

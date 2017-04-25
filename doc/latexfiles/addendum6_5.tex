@@ -1,0 +1,203 @@
+%----------------------------------------------------------------------------
+% Magic Addendum: Version 6.5 differences
+%----------------------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\documentclass[letterpaper,twoside,12pt]{article}
+\usepackage{epsfig,times}
+
+\setlength{\textwidth}{8.5in}
+\addtolength{\textwidth}{-2.0in}
+\setlength{\textheight}{11.0in}
+\addtolength{\textheight}{-2.0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0pt}
+\setlength{\topmargin}{-0.5in}
+\setlength{\headheight}{0.2in}
+\setlength{\headsep}{0.3in}
+\setlength{\topskip}{0pt}
+
+\def\hinch{\hspace*{0.5in}}
+\def\starti{\begin{center}\begin{tabbing}\hinch\=\hinch\=\hinch\=hinch\hinch\=\kill}
+\def\endi{\end{tabbing}\end{center}}
+\def\ii{\>\>\>}
+\def\mytitle{Magic Addendum: Version 6.5 differences}
+
+%----------------------------------------------------------------------------
+
+\begin{document}
+
+\makeatletter
+\newcommand{\ps@magic}{%
+	\renewcommand{\@oddhead}{\mytitle\hfil\today}%
+	\renewcommand{\@evenhead}{\today\hfil\mytitle}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\newcommand{\ps@mplain}{%
+	\renewcommand{\@oddhead}{}%
+	\renewcommand{\@evenhead}{}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\makeatother
+\pagestyle{magic}
+\thispagestyle{mplain}
+
+\begin{center}
+  {\bfseries \Large \mytitle} \\
+  \vspace*{0.5in}
+  {\itshape Stefanos Sidiropoulos} \\
+  \vspace*{0.5in}
+   Center for Integrated Systems \\
+   Stanford University \\
+   Stanford, CA  94305 \\
+  \vspace*{0.25in}
+  This tutorial corresponds to Magic version 7. \\
+\end{center}
+\vspace*{0.5in}
+
+{\noindent\bfseries\large Affected Documents:}
+\starti
+   \> Magic Tutorial \#6: Design-Rule Checking \\
+   \> Magic Tutorial \#9: Format Conversion for CIF and Calma \\
+   \> Magic Tutorial \#W-1: Design-Rule Extensions \\
+   \> Magic Maintainer's Manual \#2: The Technology File \\
+   \> Magic man pages: ext2sim(1), ext2spice(1), extflat(3), ext(5).
+\endi
+
+\vspace*{0.25in}
+\section{Introduction}
+
+Magic 6.5 has some significant modifications that make some of the
+original version 6 documents obsolete.  The purpose of this addendum
+is to highlight these differences so that users can take advantage
+of the new features. 
+
+\section{Extractor Extensions}
+
+The 6.5 extractor uses double precision floating point numbers
+to represent capacitances. Therefore all the capacitances 
+in (aF/sq-lambda) associated with
+the {\itshape areacap, perimc, sidewall, sideoverlap} keywords
+in the extract section of the technology file can be {\itshape floating point
+numbers}. 
+
+Additionally the extension of the capacitance to floating point numbers
+affects the manual pages of ext2sim(1), ext2spice(1), extflat(3), ext(5)
+which can be found in your local system under CAD{\_}HOME/man
+
+The 6.5 extractor shields the perimeter capacitance from layer to layer.
+To facilitate this two new commands {\itshape planeorder, noplaneordering}
+have been introduced and the {\itshape sideoverlap} command has been modified.
+The syntax for the new commands is:
+
+\starti
+   \ii {\bfseries  planeorder} {\itshape  plane num }
+\endi
+
+Where {\itshape plane} is one of the defined planes and {\itshape num} is a positive
+integer indicating the ordering of this plane from lower to higher. So for
+example the metal1 plane has order 3 while metal2 has order 4.
+
+In case you dont want to specify the order of the planes the extractor
+will complain and assume a default one. If you want to suppress the
+warning you just have to issue the keyword:
+
+\starti
+   \ii {\bfseries  noplaneordering }
+\endi
+
+
+The {\itshape sideoverlap} keyword syntax has been altered to:
+
+\starti
+   \ii {\bfseries sideoverlap} {\itshape intypes outtypes ovtypes cap shieldtypes}
+\endi
+
+where {\itshape intypes}, {\itshape outtypes}, and {\itshape ovtypes} are type-lists
+and {\itshape cap} is capacitance in attofarads per lambda.
+This is the capacitance associated with an edge with a type
+in {\itshape intypes} on its inside and a type in {\itshape outtypes} on
+its outside, that overlaps a tile whose type is in {\itshape ovtypes}.
+If the {\itshape shieldtypes} is present however this shields the capacitance.
+So for example to shield metal-2 to poly capacitance use:
+
+\starti
+   \ii {\bfseries sideoverlap} M2Cap \~{}M2Cap PolyCap 19.41 M1Cap
+\endi
+
+\section{DRC Extensions}
+
+This version includes code fragments implemented in DEC-WRL by Don Stark
+which enable to implement more complicated DRC rules. For a description
+of these enhancements look in the magic tutorial \#W1 which can be
+found in the file doc/tutwrl1.ps under the magic source tree.
+
+\section{CIF extensions}
+
+Two new commands have been integrated in the cif output section courtesy
+of Steven Tell and Fred Heaton at UNC. 
+
+The first new command is a command that
+enables the generation of DRC correct layers at the top level (such as
+the nwell in the SCMOS tech files). The syntax is:
+
+\starti
+   \ii {\bfseries  min-width} {\itshape width }
+\endi
+
+The width argument is in centimicrons. This command should be specified
+within a layer sub-section of the cifoutput section of the technology
+file.
+
+The second command is an extension to the squares cif output command.
+Its syntax is:
+
+\starti
+   \ii {\bfseries  squares-grid} {\itshape border size separation grid}
+\endi
+
+The added argument is {\itshape grid}.  It is
+in units of centi-microns.  In some technologies, all features
+must fall on a specified grid.  In our case, this was a .05
+micron grid.  In the original implementation of magic, if lambda
+was not set to some integral multiple of the grid one could
+generate contacts that did not fall on grid boundaries.  By
+specifying the grid spacing, the new enhancement to the contact
+generation code will allow contacts to be generated on grid.
+This does introduce some problems.  In particular, some odd
+size contacts will not be able to generate a CIF contact structure
+that is centered on its corresponding magic contact.  This is
+not a problem in most cases, except where an odd size contact
+is shared between two cells.  In this case, the CIF contact
+strucuture might be shifted to the left during CIF generation
+to get it on grid and the other cell might be shifted to the
+right.  The superposition of these two structures may create
+an illegal contact size or spacing. Use with extreme care or combine
+it with cifwidth and cifspacing rules to verify correct operation.
+
+\section{New commands}
+
+Three new commands have been introduced (based on the WRL code fragments
+by Bob Mayo):
+
+\starti
+   \ii {\bfseries goto} {\itshape nodename}
+\endi
+
+Places the box/cross over the node named {\itshape nodename}.
+
+\starti
+   \ii {\bfseries findlabel} {\itshape labelname}
+\endi
+
+Places the box/cross over the label {\itshape nodename}.
+
+\starti
+   \ii {\bfseries flatten} {\itshape destname}
+\endi
+
+Flattens the cell in the current layout window and places it in the cell
+named {\itshape cellname}. The labels are changed to retain their hierarchical
+prefixes.
+
+\end{document}

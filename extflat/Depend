@@ -1,0 +1,30 @@
+EFargs.o: EFargs.c ../utils/magic.h ../utils/paths.h ../utils/geometry.h \
+ ../utils/hash.h ../utils/utils.h ../utils/malloc.h ../utils/pathvisit.h \
+ ../extflat/extflat.h ../extflat/EFint.h
+EFbuild.o: EFbuild.c ../utils/magic.h ../utils/geometry.h ../utils/hash.h \
+ ../utils/utils.h ../utils/malloc.h ../extflat/extflat.h \
+ ../extflat/EFint.h ../extract/extract.h
+EFdef.o: EFdef.c ../utils/magic.h ../utils/geometry.h ../utils/hash.h \
+ ../utils/utils.h ../utils/malloc.h ../extflat/extflat.h \
+ ../extflat/EFint.h
+EFerr.o: EFerr.c ../utils/magic.h ../utils/geometry.h ../textio/textio.h
+EFflat.o: EFflat.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../utils/hash.h ../utils/malloc.h ../utils/utils.h \
+ ../extflat/extflat.h ../extflat/EFint.h
+EFhier.o: EFhier.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../utils/hash.h ../utils/malloc.h ../utils/utils.h \
+ ../extflat/extflat.h ../extflat/EFint.h
+EFname.o: EFname.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/geofast.h ../utils/hash.h ../utils/malloc.h \
+ ../utils/utils.h ../extflat/extflat.h ../extflat/EFint.h
+EFread.o: EFread.c ../tcltk/tclmagic.h ../utils/magic.h ../utils/malloc.h \
+ ../utils/geometry.h ../utils/hash.h ../utils/utils.h ../tiles/tile.h \
+ ../commands/commands.h ../windows/windows.h ../database/database.h \
+ ../extflat/extflat.h ../extflat/EFint.h ../extract/extract.h \
+ ../utils/paths.h
+EFsym.o: EFsym.c ../utils/magic.h ../utils/geometry.h ../utils/geofast.h \
+ ../utils/hash.h ../utils/malloc.h ../utils/utils.h ../extflat/extflat.h \
+ ../extflat/EFint.h
+EFvisit.o: EFvisit.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../utils/hash.h ../utils/malloc.h ../utils/utils.h \
+ ../extflat/extflat.h ../extflat/EFint.h ../extract/extract.h

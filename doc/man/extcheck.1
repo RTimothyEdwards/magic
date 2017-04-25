@@ -1,0 +1,121 @@
+.TH EXTCHECK 1
+.SH NAME
+extcheck \- check hierarchical \fIext\fR\|(5) files for global node
+connectivity and summarize number of fets, nodes, etc.
+.SH SYNOPSIS
+.B extcheck
+[
+.B \-c
+.I cthresh
+] [
+.B \-p
+.I path
+] [
+.B \-r
+.I rthresh
+] [
+.B \-s
+\fIsym\fB=\fIvalue\fR
+] [
+.B \-C
+] [
+.B \-R
+] [
+.B \-S
+.I symfile
+] [
+.B \-T
+.I tech
+]
+.I root
+
+.SH DESCRIPTION
+\fIExtcheck\fR will read an extracted circuit in the hierarchical \fIext\fR\|(5)
+representation produced by Magic, check to ensure
+that all global nodes (those to which a label ending in an
+exclamantion point is attached) are fully connected in
+the layout, and then print a count of the number of various
+items (nodes, fets, etc) encountered while flattening the
+circuit.
+The root of the tree to be processed is the file \fIroot\fB.ext\fR;
+it and all the files it references are recursively flattened.
+.PP
+The following options are recognized:
+.TP
+.B \-c\ \fIcthresh\fP
+Set the capacitance threshold to \fIcthresh\fP femtofarads.
+\fIExtcheck\fR will count the number of explicit internodal capacitors
+greater than \fIcthresh\fR, the number of nodes whose capacitance
+is greater than \fIcthresh\fR, as well as the total number of
+nodes.
+(Other programs such as \fIext2sim\fR\|(1) use this
+option as a threshold value below which a capacitor will not
+be output).
+The default value for \fIcthresh\fP is 10 femtofarads.
+.TP
+.B \-p\ \fIpath\fP
+Normally, the path to search for \fB.ext\fP files is determined by
+looking for \fBpath\fP commands in first ~cad/lib/magic/sys/.magic,
+then ~/.magic, then .magic in the current directory.
+If \fB\-p\fP
+is specified, the colon-separated list of directories specified
+by \fIpath\fP is used instead.
+Each of these directories is searched
+in turn for the \fB.ext\fP files in a design.
+.TP
+.B \-r\ \fIrthresh\fP
+Set the resistance threshold to \fIrthresh\fP ohms.
+Similar in function
+to \fB\-c\fR, but for resistances.
+The default value for \fIrthresh\fP is 10 ohms.
+.TP
+.B \-s\ \fIsym\fB=\fIvalue\fP
+It's possible to use special attributes attached to transistor gates
+to control the length and width of transistors explicitly, rather than
+allowing them to be determined by the extractor.
+These attributes
+are of the form \fBext:w=\fIwidth\fB^\fR or \fBext:l=\fIlength\fB^\fR,
+where \fIwidth\fR or \fIlength\fR can either be numeric, or textual.
+(The trailing ``\fB^\fR'' indicates that these are transistor
+gate attributes).
+If textual, they are treated as symbols which can be assigned a numeric
+value at the time \fIext2sim\fR is run.
+The \fB\-s\fR flag is used to
+assign numeric values to symbols.
+If a textual symbol appears in one
+of the above attributes, but isn't given a numeric value via \fB\-s\fR
+(or \fB\-S\fR below), then it is ignored; otherwise, the transistor's
+length or width is set to the numeric value defined for that symbol.
+\fI(This option is not currently used by extcheck,
+but it is common to ext2sim\|(1) and other
+tools that are written using the extflat\|(3) library)\fR
+.TP
+.B \-C
+Set the capacitance threshold to infinity.
+Because this avoids any internodal capacitance processing,
+all tools will run faster when this flag is given.
+.TP
+.B \-R
+Set the resistance threshold to infinity.
+.TP
+.B \-S\ \fIsymfile\fP
+Each line in the file \fIsymfile\fR is of the form \fIsym\fB=\fIvalue\fR,
+just like the argument to the \fB\-s\fR flag above; the lines are interpreted
+in the same fashion.
+\fI(This option is not currently used by extcheck,
+but it is common to ext2sim et. al.)\fR
+.TP
+.B \-T\ \fItech\fP
+Set the technology in the output \fB.sim\fR file to \fItech\fP.
+This overrides any technology specified in the root \fB.ext\fR file.
+
+.SH "SEE ALSO"
+ext2dlys\|(1), ext2sim\|(1), ext2spice\|(1), magic\|(1),
+rsim\|(1), sim2spice\|(1), ext\|(5), sim\|(5)
+
+.SH AUTHOR
+Walter Scott
+
+.SH BUGS
+The \fB\-s\fR mechanism is incomplete; it should allow quantities other than
+transistor lengths and widths to be specified.

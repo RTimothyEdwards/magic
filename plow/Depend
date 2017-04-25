@@ -1,0 +1,50 @@
+PlowCmd.o: PlowCmd.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../utils/main.h ../textio/txcommands.h ../plow/plow.h ../select/select.h
+PlowJogs.o: PlowJogs.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/undo.h \
+ ../plow/plow.h ../plow/plowInt.h ../plow/plowDebugInt.h \
+ ../utils/malloc.h ../debug/debug.h
+PlowMain.o: PlowMain.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/undo.h \
+ ../debug/debug.h ../plow/plow.h ../plow/plowInt.h ../plow/plowDebugInt.h \
+ ../textio/textio.h ../windows/windows.h ../dbwind/dbwind.h ../drc/drc.h \
+ ../utils/styles.h ../utils/malloc.h ../utils/signals.h ../utils/main.h \
+ ../select/select.h ../graphics/graphics.h
+PlowQueue.o: PlowQueue.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../debug/debug.h \
+ ../plow/plowInt.h ../plow/plowDebugInt.h ../utils/malloc.h
+PlowRandom.o: PlowRandom.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../plow/plowInt.h \
+ ../plow/plowDebugInt.h ../textio/textio.h ../utils/undo.h \
+ ../utils/signals.h ../extract/extract.h
+PlowRules1.o: PlowRules1.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/undo.h \
+ ../plow/plow.h ../plow/plowInt.h ../plow/plowDebugInt.h ../drc/drc.h
+PlowRules2.o: PlowRules2.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/undo.h \
+ ../plow/plow.h ../plow/plowInt.h ../plow/plowDebugInt.h ../drc/drc.h
+PlowRules3.o: PlowRules3.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/undo.h \
+ ../plow/plow.h ../plow/plowInt.h ../plow/plowDebugInt.h ../drc/drc.h
+PlowSearch.o: PlowSearch.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../plow/plowInt.h \
+ ../plow/plowDebugInt.h ../utils/stack.h ../textio/textio.h
+PlowTech.o: PlowTech.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/utils.h \
+ ../utils/malloc.h ../plow/plowInt.h ../plow/plowDebugInt.h ../drc/drc.h
+PlowTest.o: PlowTest.c ../utils/magic.h ../utils/styles.h \
+ ../utils/utils.h ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../utils/undo.h ../database/database.h ../windows/windows.h \
+ ../graphics/graphics.h ../dbwind/dbwind.h ../utils/main.h \
+ ../commands/commands.h ../drc/drc.h ../debug/debug.h ../plow/plowInt.h \
+ ../plow/plowDebugInt.h ../textio/textio.h ../textio/txcommands.h
+PlowWidth.o: PlowWidth.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../plow/plowInt.h \
+ ../plow/plowDebugInt.h
+PlowYank.o: PlowYank.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/undo.h ../debug/debug.h ../plow/plow.h \
+ ../plow/plowInt.h ../plow/plowDebugInt.h ../textio/textio.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../drc/drc.h

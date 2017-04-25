@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# For installation, put this file (magic.sh) in a known executable path.
+# Put startup script "magic.tcl", shared library "tclmagic.so", and
+# "wish" replacement "magicexec" in ${CAD_ROOT}/magic/tcl/.
+#
+# This script starts magic under the Tcl interpreter,
+# reading commands from a special startup script which
+# launches magic and retains the Tcl interactive interpreter.
+
+# Parse for the argument "-c[onsole]".  If it exists, run magic
+# with the TkCon console.  Strip this argument from the argument list.
+
+TKCON=true
+DNULL=
+MAGIC_WISH=WISH_EXE
+export MAGIC_WISH
+
+# Hacks for Cygwin
+if [ "`uname | cut -d_ -f1`" = "CYGWIN" ]; then
+   export PATH="$PATH:TCLLIB_DIR"
+   export DISPLAY=${DISPLAY:=":0"}
+fi
+
+# Preserve quotes in arguments
+arglist=''
+for i in "$@" ; do
+   case $i in
+      -noc*) TKCON=;;
+      -dnull) DNULL=true;;
+      --version) TKCON=; DNULL=true;;
+      --prefix) TKCON=; DNULL=true;;
+      *) arglist="$arglist${arglist:+ }\"${i//\"/\\\"}\"";;
+   esac
+done
+
+if [ $TKCON ]; then
+
+   if [ $DNULL ]; then
+      exec TCL_DIR/tkcon.tcl -eval "source TCL_DIR/console.tcl" \
+	   -slave "set argc $#; set argv [list $*]; source TCL_DIR/magic.tcl"
+   else
+      exec TCL_DIR/tkcon.tcl -eval "source TCL_DIR/console.tcl" \
+	   -slave "package require Tk; set argc $#; set argv [list $arglist]; \
+	   source TCL_DIR/magic.tcl"
+   fi
+
+else
+
+#
+# Run the stand-in for wish (magicexec), which acts exactly like "wish"
+# except that it replaces ~/.wishrc with magic.tcl.  This executable is
+# *only* needed when running without the console; the console itself is
+# capable of sourcing the startup script.
+#
+# With option "-dnull" we set up for operation without Tk (simple interpreter
+# only, efficient for running in batch mode).
+#
+   if [ $DNULL ]; then
+      exec TCL_DIR/magicdnull -nowrapper "$@"
+   else
+      exec TCL_DIR/magicexec -- "$@"
+   fi
+fi

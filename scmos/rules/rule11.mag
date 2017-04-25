@@ -1,0 +1,28 @@
+magic
+tech scmos
+timestamp 736072947
+<< nwell >>
+rect 12 0 24 12
+<< polysilicon >>
+rect 0 19 15 21
+rect 0 13 2 19
+rect 10 13 15 19
+rect 0 10 15 13
+rect 0 2 2 10
+rect 10 8 15 10
+rect 10 4 12 8
+rect 10 2 15 4
+rect 0 0 15 2
+<< capacitor >>
+rect 2 13 10 19
+rect 2 8 10 10
+rect 2 4 4 8
+rect 8 4 10 8
+rect 2 2 10 4
+<< metal1 >>
+rect -3 4 4 8
+<< polycontact >>
+rect 12 4 16 8
+<< capcontact >>
+rect 4 4 8 8
+<< end >>

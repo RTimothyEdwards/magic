@@ -1,0 +1,242 @@
+%!PS-Adobe-2.0 EPSF-1.2
+%%Title: tut2.2.ps
+%%CreationDate: 
+%%DocumentFonts: Helvetica
+%%Pages: 1
+%%BoundingBox: 190 28 420 764
+%%EndComments
+
+/INIT {
+ 72 exch div dup dup scale
+ div exch findfont exch scalefont /TxFont exch def
+ /BoxOutline exch def /#copies exch def
+ TxFont dup /FontBBox get exch /FontMatrix get
+ exch aload pop 4 index transform /bbhi exch def pop 3 -1 roll
+ transform /bblow exch def /bbx exch def /bbhi bbhi bblow sub def
+ /nChars matrix defaultmatrix 0 get abs 72 8.5 mul mul 64 div ceiling cvi def
+ 1 1 dtransform abs dup 1 exch div /onePix exch def
+ dup /resY exch def 1 exch div /iresY exch def
+ abs dup /resX exch def 1 exch div /iresX exch def
+ /bX 64 iresX mul def /bY 64 iresY mul def
+ /pattFont StipplePattern definefont pop
+ /patterns /pattFont findfont [iresX 64 mul 0 0 iresY 64 mul 0 0] makefont def
+ /CA nChars 1 add string def  
+} def
+
+/StipplePattern 45 dict def
+
+StipplePattern begin
+ /FontType 3 def
+ /FontMatrix [1 0 0 1 0 0] def
+ /FontBBox [0 0 1 1] def
+ /Encoding 256 array def
+ /PattName (P0) def
+ /tmpStr 1 string def
+ /NoPatt {<00>} def
+
+ 0 1 255 { Encoding exch /NoPatt put } for
+
+ /BuildChar {
+   1 0 0 0 1 1 setcachedevice exch begin Encoding exch get load
+   64 64 true [64 0 0 64 0 0] 5 -1 roll imagemask end
+ } def
+end
+
+/DefPatt {
+ StipplePattern begin
+  dup 30 tmpStr cvrs PattName exch 1 exch putinterval PattName cvn dup
+  Encoding exch 4 -1 roll exch put exch store
+ end
+} def
+
+/HEADER { 4 onePix mul add moveto show } def
+
+/SL { 0 1 nChars { exch dup 3 1 roll CA 3 1 roll put } for pop } def
+/SC { 0 1 nChars { exch dup 3 1 roll CA 3 1 roll put } for 4 mul
+   colors exch 4 getinterval aload pop setcmykcolor } def
+
+/SP { patterns setfont 2 setlinewidth } def
+
+/ST { TxFont setfont onePix 2 mul setlinewidth } def
+
+/V { newpath moveto 0 exch rlineto stroke } def
+
+/H { newpath moveto 0 rlineto stroke } def
+
+/B {
+ /h exch def /w exch def
+ /y exch def /x exch def
+
+ gsave
+ newpath x y moveto w y lineto w h lineto x h lineto closepath clip
+ x resX mul cvi 63 not and dup iresX mul exch
+ w resX mul sub abs 63 add cvi 64 idiv /w exch def
+ y resY mul cvi 63 not and dup iresY mul exch
+ h resY mul sub abs 63 add cvi 64 idiv /h exch def
+ /CH CA 0 w getinterval def
+ moveto h { CH gsave show grestore 0 bY rmoveto } repeat
+ grestore
+} def
+
+/L {
+ gsave newpath dup bblow add 2 index bbx add exch moveto
+ 0 bbhi rlineto
+ 2 index stringwidth pop bbx abs 2 mul add 0 rlineto
+ 0 bbhi neg rlineto
+ closepath 1.0 setgray fill grestore moveto show
+} def
+
+/BB {
+ /h exch def /w exch def
+ /y exch def /x exch def
+ grestore
+ gsave
+ newpath
+ x y moveto
+ w y lineto
+ w h lineto
+ x h lineto
+ closepath
+ BoxOutline 1 eq { gsave stroke grestore } if clip
+} def
+
+/BS {
+ 4 copy BB exch pop exch pop exch bbhi add exch bbhi sub onePix sub L
+} def
+
+/MSAV { /Mstat save def } def
+/MRES { Mstat restore } def
+
+%%EndProlog
+%%Page: 1 1
+
+{<000000000000000000000000000000000c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c00000000000000000000000000000000c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0>} 0 DefPatt
+{<000000000000000000000000000000000c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c00000000000000000000000000000000c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0>} 1 DefPatt
+{<00000000000000000c0c0c0c0c0c0c0c000000000000000000000000000000000000000000000000c0c0c0c0c0c0c0c000000000000000000000000000000000>} 5 DefPatt
+{<00000000000000000c0c0c0c0c0c0c0c000000000000000000000000000000000000000000000000c0c0c0c0c0c0c0c000000000000000000000000000000000>} 6 DefPatt
+{<ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff>} 8 DefPatt
+{<8383838383838383c1c1c1c1c1c1c1c1e0e0e0e0e0e0e0e0707070707070707038383838383838381c1c1c1c1c1c1c1c0e0e0e0e0e0e0e0e0707070707070707>} 9 DefPatt
+{<8181818181818181c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3818181818181818118181818181818183c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c1818181818181818>} 11 DefPatt
+{<ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff>} 16 DefPatt
+/colors [0.18 0.37 0.43 0.00 0.87 0.12 0.87 0.00 0.00 0.00 0.00 0.75 0.12 0.43 0.12 0.00 0.12 0.43 1.00 0.00 0.25 0.37 0.75 0.00 1.00 0.25 1.00 0.00 0.00 0.00 0.00 0.50 0.87 0.18 0.87 0.00 0.00 1.00 1.00 0.00 0.00 0.00 1.00 0.00 0.75 0.50 0.00 0.00 0.37 0.87 0.25 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.75 0.75 0.50 0.25 0.00 ] def
+1 1 /Helvetica 10.0 300.000000 INIT
+% ST (tutcell.cif   Scale: 0.212766    \(5404X\)     Size: 14 x 47 microns      ) 828 3150 HEADER
+SP 828 150 translate
+0 SC
+1532 0 0 V
+894 0 0 H
+1532 894 0 V
+894 0 1532 H
+0 0 894 1532 B
+1 SC
+1404 0 1596 V
+894 0 1596 H
+1404 894 1596 V
+894 0 3000 H
+0 1596 894 3000 B
+5 SC
+1022 191 1787 V
+511 191 1787 H
+1022 702 1787 V
+511 191 2809 H
+191 1787 702 2809 B
+6 SC
+1149 191 191 V
+511 191 191 H
+1149 702 191 V
+511 191 1340 H
+191 191 702 1340 B
+8 SC
+894 319 319 V
+766 319 1915 V
+383 511 574 V
+319 319 511 1213 B
+256 511 2170 V
+319 1915 511 2681 B
+255 319 319 H
+255 574 319 V
+63 511 574 H
+511 319 574 574 B
+63 511 957 H
+256 574 957 V
+255 319 1213 H
+511 957 574 1213 B
+255 319 1915 H
+255 574 1915 V
+63 511 2170 H
+511 1915 574 2170 B
+63 511 2426 H
+255 574 2426 V
+255 319 2681 H
+511 2426 574 2681 B
+9 SC
+128 0 702 V
+128 0 2234 V
+702 0 702 H
+128 702 702 V
+702 0 830 H
+0 702 702 830 B
+766 0 2234 H
+128 766 2234 V
+766 0 2362 H
+0 2234 766 2362 B
+11 SC
+192 0 319 V
+192 0 2489 V
+319 0 511 H
+0 319 319 511 B
+63 319 511 V
+1213 319 957 V
+63 319 2426 V
+319 0 2489 H
+0 2489 319 2681 B
+63 574 511 V
+255 319 574 H
+319 319 574 574 B
+255 319 957 H
+511 574 957 V
+447 574 1723 V
+255 319 2170 H
+319 957 574 2170 B
+255 319 2426 H
+63 574 2426 V
+319 2426 574 2681 B
+894 0 319 H
+192 894 319 V
+320 574 511 H
+574 319 894 511 B
+320 574 1468 H
+255 894 1468 V
+320 574 1723 H
+574 1468 894 1723 B
+320 574 2489 H
+192 894 2489 V
+894 0 2681 H
+574 2489 894 2681 B
+16 SC
+128 383 383 V
+128 383 1021 V
+127 383 1979 V
+128 383 2489 V
+128 383 383 H
+128 511 383 V
+128 383 511 H
+383 383 511 511 B
+128 383 1021 H
+128 511 1021 V
+128 383 1149 H
+383 1021 511 1149 B
+128 383 1979 H
+127 511 1979 V
+128 383 2106 H
+383 1979 511 2106 B
+128 383 2489 H
+128 511 2489 V
+128 383 2617 H
+383 2489 511 2617 B
+ST gsave
+% (tutcell1) 0 0 894 3000 BS
+% 0 0 894 3000 BB
+grestore showpage
+
+%%Trailer

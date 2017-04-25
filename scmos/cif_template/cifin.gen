@@ -1,0 +1,227 @@
+/* available devices:
+	nfet,pfet,enfet,epfet,nffet,pffet
+	poly capacitor
+	bipolar NPN transistor
+	buried CCD devices
+	linear capacitor
+	micro-machined devices
+        metal3 and via2
+*/
+#ifndef NOWELL
+#define cif_tech gen
+#else
+#define cif_tech nowell
+#endif
+style lambda=lambda_v
+    scalefactor lambda_1
+#ifndef NOWELL
+    layer nwell CWN
+	labels CWN
+    layer pwell CWP
+	labels CWP
+#endif
+    layer poly CPG
+        labels CPG
+    layer pdiff CSP
+        and CAA
+        and CWN
+    layer ndiff CWP
+	or CWC
+        and CAA
+        and CSN 
+        and-not CCD
+    layer nsd CWN
+        and CSN
+        and CAA
+    layer psd CWP
+        and CSP
+        and CAA
+    layer pbase CBA
+        labels CBA
+    layer nfet CPG
+        and CAA
+        and CSN
+        and-not CCD
+    layer pfet CAA
+        and CPG
+        and CSP
+    layer enfet CEL
+        and CAA
+        and CSN
+        and-not CCD
+    layer epfet CAA
+        and CEL
+        and CSP
+    layer nffet CAA
+        and CEL
+        and CPG
+        and CSN
+	and CWP
+    layer pffet CAA
+        and CEL
+        and CPG
+        and CSP
+        and CWN
+    layer ndc CWP
+	or CWC
+	and CCA
+        grow lambda_1
+        and CAA
+        and CSN
+        and CMF
+    layer pdc CCA
+        grow lambda_1
+        and CAA
+        and CWN
+        and CSP
+        and CMF
+    layer nsc CCA
+        grow lambda_1
+        and CAA
+        and CSN
+        and CWN
+        and CMF
+    layer psc CCA
+        grow lambda_1
+        and CAA
+        and CSP
+        and CWP 
+        and CMF
+    layer gc CCC
+    layer m2c CVA
+        grow lambda_1
+        and CMS
+        and CMF
+        labels CMS
+    layer m3c CVS
+        grow lambda_1
+        and CMT
+        and CMS
+        and-not XP
+    layer electrode CEL
+        labels CEL
+    layer ec CCE
+        grow lambda_1
+        and CMF
+        and CEL
+        labels CMF
+    layer cc CCE
+        grow lambda_1
+        and CMF
+        and CEL
+        and CPG
+        labels CMF
+    layer cap CPG
+        and CEL
+        and-not CAA
+        labels CEL
+    layer pbc CCA
+        grow lambda_1
+        and CBA
+        and CMF
+        labels CBA
+    layer col CX
+        and CAA
+        and CSN
+        and CWN
+        labels CAA
+    layer clc CCA
+        grow lambda_1
+        and CX
+        and CAA
+        and CSN
+        and CWN
+        and CMF
+        labels CCA
+    layer emit CBA
+        and CSN
+        shrink lambda_2
+        labels CBA
+    layer emc CCA
+        grow lambda_1
+        and CBA
+        and CSN
+        and CMF
+        labels CBA
+    layer pc CCP
+        grow lambda_1
+        and CPG
+        and CMF
+    layer nbd CSN
+        shrink lambda_2
+        and CCD
+        and CAA
+	and-not CPG
+    layer nbdc CCA
+        grow lambda_1
+        and CCD
+        and CSN
+        and CAA
+    layer bd CPG
+	or  CEL
+	and CCD
+	and CAA
+        labels CCD
+    /* place the Cap well at the end, so that we can read linear */
+    /* capacitor correctly...                                    */
+    layer cwell CWC
+	labels CWC
+    layer glass COG
+#ifdef OPEN
+    layer open CAA
+        and CCA
+        and CVA
+        and COG
+	and COP
+    layer pstop CAA
+	and CPS
+        and CSP
+        and-not CWP
+        and-not CWN
+#endif
+    layer pad CMF
+        shrink lambda_1
+        and CMS
+        shrink lambda_5
+        and CVA
+        shrink lambda_1
+	and XP
+        and COG
+        grow lambda_6
+    layer m1 CMF
+        labels CMF
+    layer m2 CMS
+        labels CMS
+    layer m3 CMT
+        /* to avoid a CIF read problem around pads */
+        and-not XP
+        labels CMT
+
+#ifdef OPEN
+   calma COP 23 *
+   calma CPS 24 *
+#endif
+   calma CCC 25 *
+   calma XP  26 *
+   calma CWP 41 *
+   calma CWN 42 *
+   calma CAA 43 *
+   calma CSP 44 *
+   calma CSN 45 *
+   calma CPG 46 *
+   calma CCP 47 *
+   calma CCA 48 *
+   calma CMF 49 *
+   calma CVA 50 *
+   calma CMS 51 *
+   calma COG 52 *
+   calma CCE 55 *
+   calma CEL 56 *
+   calma CCD 57 *
+   calma CBA 58 *
+   calma CWC 59 *
+   calma CVS 61 *
+   calma CMT 62 *
+   calma CX  63 *
+
+#undef cif_tech

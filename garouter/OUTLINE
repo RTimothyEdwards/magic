@@ -1,0 +1,36 @@
+Gate-array router.
+This is an initial version tuned specifically for the AMCC 3500
+gate-array, intended mainly to develop experience in gate-array
+routing.  It is intended that this form the foundation for a
+more general-purpose routing system integrated with the other
+Magic routing tools.
+
+Overall structure:
+-----------------
+    - Build netlist (just like in router module)
+    - Channel generation:
+      Differences from Magic router:
+	- Channels are provided by the user rather than being
+	  generated automatically.  There are commands of the
+	  several forms:
+
+	    garoute channel xlo ylo xhi yhi
+		Define a general-purpose routing channel
+
+	    garoute channel xlo ylo xhi yhi [horizontal | vertical]
+		Define either a horizontal or a vertical
+		river-routing region
+
+	- Channels are cleared by
+	    garoute clear
+
+	- Terminals can appear inside river-routing channels.
+
+    - Terminal pin assignment:
+      Simply assign each pin to both sides of the channel, making
+      certain that there isn't already a pin in the way.  Assign
+      edge pins to the channel side that is nearest.  If pins are
+      not already aligned, we will do stem generation; it's up to
+      the user to leave enough room in the channels.
+
+    - Global routing:

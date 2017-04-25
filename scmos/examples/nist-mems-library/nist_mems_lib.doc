@@ -1,0 +1,78 @@
+The following are the cell names and cell descriptions of sample
+layouts designed at NIST for micromechanical designs.
+
+  1.  open-80x80
+
+      A MEMS test structure to check the progress of the EDP etchant
+      on an intended 80 um x 80 um cavity.  This design consists of a 
+      single open tile.
+
+  2.  open-oxide-80x80
+
+      An additional MEMS test structure to check the progress of
+      the etchant on an intended 80 um x 80 um cavity with a
+      trampoline-like suspended oxide.  This design consists of 
+      four trapezoidal-shaped open tiles brought together in close 
+      vicinity such that the four cavities merge in the 
+      post-processing etch step creating one large 80 um x 80 um 
+      cavity with a suspended layer of oxide (see fig. 1).
+
+  3.  thermal-converter
+
+      A polysilicon (poly1) heater with a metal1/poly1 thermopile 
+      used as an ac power sensor.
+
+  4.  thermal-actuator
+
+      A cantilever structure consisting of poly1 with metal1 on 
+      top.  These are connected at the end of the `diving board'
+      and, when heated, the diving board bends upward due to the
+      different thermal expansion coefficients of poly1 and
+      metal1.
+
+  5.  pixel-80x80
+
+      A heating element with an 80 um x 80 um cavity.  The heating 
+      element is made of meandering polysilicon (poly1) and is
+      suspended over top of the cavity with its encompassing oxide
+      after the anisotropic etch.
+
+  6.  pixel-160x160
+
+      Similar to the above structure but with a 160 um x 160 um 
+      cavity.
+
+  7.  micro-hot-plate
+
+      The microhotplate design consists of:
+      a.  A meandering polysilicon (poly1) heating element with
+          two external connections.
+      b.  An aluminum (metal1) plate with four external connections
+          over top of the polysilicon (poly1) heating element.
+          There is an oxide separating the poly1 and metal1.  
+          The heat is uniformly distributed across this metal1 
+          plate with the metal1 resistance changing linearly with 
+          temperature.  The metal1 sheet resistance at the 
+          various temperatures can be obtained with a 
+          van der Pauw measurement.
+
+  8.  gas-sensor
+
+      The gas sensor design consists of the microhotplate design
+      above with the addition of two layers:
+
+      a.  Four metal2 pads placed in the corners of the metal1
+          microhotplate (but not in contact with it). There 
+          are four external metal2 connections.
+      b.  Overglass openings centered on top of the metal2 pads.
+          The metal2 pads and overglass openings allow a substance 
+          (e.g., tin oxide and palladium) to be placed on top of the
+          whole pixel.  When heated, the resistance of the substance
+          changes in the presense of certain gases.  The metal2 acts
+          as a van der Pauw sheet resistor so the resistance change 
+          can be measured.  This application of the microhotplate is 
+          called a gas sensor.  (NIST has a patent pending on this
+          gas sensor design.)
+
+
+

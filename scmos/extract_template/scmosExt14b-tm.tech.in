@@ -1,0 +1,163 @@
+/* 
+
+   This is for HP's CMOS26B 1.0 micron CMOS Bulk Process. 
+   All parameters are defined based on HP's general process
+   specifications (GPP). Sidewall fringing was taken from 
+   Ersatco fictitious process (johnson,jouppi). 
+   
+   Upwards fringe caps (eg poly-->m1, poly-->m2) are computed
+   by the program scaleCap by using the Sakurai/Tamaru formula
+   based on the known capacitances.
+*/
+#ifdef	extForSpice
+style	lambda=0.35 
+#else
+style	lambda_irsim=0.35 
+#endif
+
+	lambda		35
+	step		100
+	sidehalo	10	/* 4 more than min m3 spacing */
+
+#ifdef	INCLUDE_FET_CAP /* Normally off since neither spice or irsim need it */
+	areacap allFet 692 /* af/lambda^2 */
+#endif
+
+	/* ------------   diff capacitances ---------------- */
+	areacap	nwell			25	/* 208aF/um2*/
+	perimc	nwell	~(nwell)	70 	/* scale the 26b value */
+
+#ifdef	extForSpice
+
+	areacap	(ndiff,nsd,ndc,nsc)/a			0
+	perimc	(ndiff,nsd,ndc,nsc)/a	space,pwell	0
+
+	areacap	(pdiff,psd,pdc,psc)/a			0
+	perimc	(pdiff,psd,pdc,psc)/a	space,nwell	0
+
+#else	
+
+	/* Real perim values increased a little to 
+	   compensate for not counting CJGATE     */
+	areacap	(ndiff,nsd,ndc,nsc)/a               31
+	perimc	(ndiff,nsd,ndc,nsc)/a  space,pwell  180 
+							/* field - 320aF/um */
+							/* gate - 614aF/um */
+
+	areacap	(pdiff,psd,pdc,psc)/a               71
+	perimc	(pdiff,psd,pdc,psc)/a  space,nwell  100 
+							/* field - 213aF/um */
+							/* gate - 332aF/um */
+#endif
+	/* ------------------------------------------------------ */
+
+	/* ------------   poly capacitances ---------------- */
+	areacap	PolyCap			11.1
+	overlap	PolyCap	allWell 	11.1	
+
+	perimc	PolyCap	~PolyCap	14.7
+	sideOverlap(PolyCap, ~PolyCap, allWell, 14.7, nothing)
+	sideOverlap(PolyCap, ~PolyCap, M1Cap, 6.7, nothing)
+	sideOverlap(PolyCap, ~PolyCap, M2Cap, 3.2, M1Cap)
+	sideOverlap(PolyCap, ~PolyCap, M3Cap, 2.1, (M1Cap,M2Cap))
+
+	sidewall PolyCap ~PolyCap ~PolyCap PolyCap	8.4
+	/* ------------------------------------------------- */
+
+
+	/* ------------   metal1 capacitances ---------------- */
+	areacap	M1Cap			4.8
+	overlap	M1Cap	allWell		4.8	PolyCap,PNplusCap
+	overlap	M1Cap	PNplusCap		7.7	
+	overlap	M1Cap	PolyCap		7.7	
+
+	perimc	M1Cap	~M1Cap		17.5
+	sideOverlap(M1Cap, ~M1Cap, allWell, 17.5, (PolyCap,PNplusCap))
+	sideOverlap(M1Cap, ~M1Cap, PNplusCap,  20.3, nothing)
+	sideOverlap(M1Cap, ~M1Cap, PolyCap, 20.3, nothing)
+	sideOverlap(M1Cap, ~M1Cap, M2Cap, 10.2, nothing)
+	sideOverlap(M1Cap, ~M1Cap, M3Cap, 5.6, M2Cap)
+
+	sidewall M1Cap   ~M1Cap   ~M1Cap   M1Cap	22.4
+	/* ------------------------------------------------- */
+
+
+	/* ------------   metal2 capacitances ---------------- */
+	areacap	M2Cap		1.8	
+	overlap	M2Cap	allWell	1.8	PolyCap,M1Cap,PNplusCap
+	overlap	M2Cap	PNplusCap	2.1	M1Cap
+	overlap	M2Cap	PolyCap	2.1	M1Cap
+	overlap	M2Cap	M1Cap	4.7	
+
+	perimc	M2Cap	~M2Cap	14.4
+	sideOverlap(M2Cap, ~M2Cap, allWell, 14.4, (M1Cap,PolyCap,PNplusCap) )
+	sideOverlap(M2Cap, ~M2Cap, PNplusCap,  15.1, M1Cap)
+	sideOverlap(M2Cap, ~M2Cap, PolyCap, 15.1, M1Cap)
+	sideOverlap(M2Cap, ~M2Cap, M1Cap,   17.5, nothing)
+	sideOverlap(M2Cap, ~M2Cap, M3Cap,   12.6, nothing)
+
+	sidewall M2Cap   ~M2Cap   ~M2Cap   M2Cap	25.2
+	/* ------------------------------------------------- */
+
+
+	/* ------------   metal3 capacitances ---------------- */
+	areacap	M3Cap		1.1	
+	overlap	M3Cap	allWell	1.1 PolyCap,M1Cap,M2Cap,PNplusCap
+	overlap	M3Cap	PNplusCap	1.2 M1Cap,M2Cap
+	overlap	M3Cap	PolyCap	1.2 M1Cap,M2Cap
+	overlap	M3Cap	M1Cap	1.8 M2Cap
+	overlap	M3Cap	M2Cap	4.5
+
+	perimc	M3Cap	~M3Cap	14.4
+	sideOverlap(M3Cap, ~M3Cap, allWell, 14.4, (PNplusCap,PolyCap,M1Cap,M2Cap))
+	sideOverlap(M3Cap, ~M3Cap, PNplusCap,  15.1, (M1Cap,M2Cap))
+	sideOverlap(M3Cap, ~M3Cap, PolyCap, 15.1, (M1Cap,M2Cap))
+	sideOverlap(M3Cap, ~M3Cap, M1Cap,   17.9, (M2Cap))
+	sideOverlap(M3Cap, ~M3Cap, M2Cap,   22.4, nothing)
+
+	sidewall M3Cap   ~M3Cap   ~M3Cap   M3Cap	40
+	/* ------------------------------------------------- */
+
+	/* Unchanged yet for .35um*/
+	/* -------------- Fets -----------------------------*/
+	/* cscab, cscap defined since extresis needs them */
+	/* gate cap is actually 982aF/um^2 or .344fF/um*/
+	fet	pfet	pdiff,pdc	2 pfet	Vdd!	nwell	254	120
+	fet	nfet	ndiff,ndc	2 nfet	Gnd!	pwell	311	120
+
+	/* These values are the equivalent resistance that irsim params for 
+	   3.3 V 85C */
+	fetresis	nfet	linear		14285 /* resistance dyn L */
+	fetresis	pfet	linear		40914 /* resistance dyn H */
+
+	fetresis	nfet	saturation	14285 /* resistance dyn L */
+	fetresis	pfet	saturation	40914 /* resistance dyn H */
+	/* ------------------------------------------------- */
+
+	/* -------------- Resistivity (in milliohms per sq) -------*/
+	/* ---- assumed temp 85 C -----  */
+
+	resist	NDRes		3100
+	resist	PDRes		2500
+	resist	PolyRes		7500	/*4400 for W>1.0um*/
+	resist	M1Res		83
+	resist	M2Res		84
+	resist	M3Res		41
+	resist	nwell		1980000 /*unchanged from 26b*/
+
+	/* Values are for per contact */
+	contact	pc		4	10000 /*8k-nom 15k-max*/
+	contact	ndc,pdc,nsc,psc	4	4500 
+	contact	m2c		4	1000  
+	contact	m3c		4	1000
+	/* ------------------------------------------------- */
+
+	/* Order the planes for correct shielding */
+	planeOrder(implant,0)
+	planeOrder(well,1)
+	planeOrder(active,2)
+	planeOrder(metal1,3)
+	planeOrder(metal2,4)
+	planeOrder(metal3,5)
+	planeOrder(oxide,6)
+

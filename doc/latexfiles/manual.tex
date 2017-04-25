@@ -1,0 +1,95 @@
+%----------------------------------------------------------------------------
+% Magic User's Manual
+%----------------------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\documentclass[letterpaper,twoside,12pt]{book}
+\usepackage{epsfig,times}
+
+\setlength{\textwidth}{8.5in}
+\addtolength{\textwidth}{-2.0in}
+\setlength{\textheight}{11.0in}
+\addtolength{\textheight}{-2.0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0pt}
+\setlength{\topmargin}{-0.5in}
+\setlength{\headheight}{0.2in}
+\setlength{\headsep}{0.3in}
+\setlength{\topskip}{0pt}
+
+\def\hinch{\hspace*{0.5in}}
+\def\starti{\begin{center}\begin{tabbing}\hinch\=\hinch\=\hinch\=hinch\hinch\=\kill}
+\def\endi{\end{tabbing}\end{center}}
+\def\ii{\>\>\>}
+\def\mytitle{Magic Tutorial \#X: Title_goes_here}
+
+%----------------------------------------------------------------------------
+
+\begin{document}
+
+\makeatletter
+\newcommand{\ps@magic}{%
+	\renewcommand{\@oddhead}{\mytitle\hfil\today}%
+	\renewcommand{\@evenhead}{\today\hfil\mytitle}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\newcommand{\ps@mplain}{%
+	\renewcommand{\@oddhead}{}%
+	\renewcommand{\@evenhead}{}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\makeatother
+\pagestyle{magic}
+
+\begin{frontmatter}
+
+\tableofcontents
+
+\listoffigures
+
+\listoftables
+
+\end{frontmatter}
+
+\chapter Overview
+\input{introduction.tex}
+
+\chapter Manual Pages---Section 1 (Programs)
+
+\chapter Manual Pages---Section 3 (Libraries)
+
+\chapter Manual Pages---Section 5 (File Formats)
+
+\chapter Manual Pages---Section 8 (System Maintenance)
+
+\chapter Tutorials
+\input{tut1.tex}
+\input{tut2.tex}
+\input{tut3.tex}
+\input{tut4.tex}
+\input{tut5.tex}
+\input{tut6.tex}
+\input{tut7.tex}
+\input{tut8.tex}
+\input{tut9.tex}
+\input{tut10.tex}
+\input{tut11.tex}
+\input{tutwrl1.tex}
+\input{tutscm1.tex}
+\input{tutscm2.tex}
+\input{tutscm3.tex}
+\input{tutscm4.tex}
+
+\chapter Maintainer's Manuals
+\input{maint1.tex}
+\input{maint2.tex}
+\input{maint3.tex}
+\input{maint4.tex}
+
+\chapter Technology Manuals
+
+\appendix
+
+\chapter Other Reports In This Series
+
+\end{document}

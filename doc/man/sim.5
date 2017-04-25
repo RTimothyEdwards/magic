@@ -1,0 +1,116 @@
+.\" sccsid @(#)sim.5	4.1 MAGIC (Berkeley) 11/29/85
+.\"
+.\" CONVENTIONS:
+.\"	italics:  things that are substituted for
+.\"	boldface: characters that are typed as-is
+.\"
+.\"	EXAMPLE:  \fIfilename\fB.mag\fR
+.\"	     or:  \fBcif \fR[\fIfile\fR]
+.\"
+.TH SIM 5
+.UC 4
+.SH NAME
+sim \- format of .sim files read by esim, crystal, etc.
+
+.SH DESCRIPTION
+The simulation tools \fIcrystal\fP\|(1) and \fIesim\fP\|(1) accept
+a circuit description in \fB.sim\fP format.
+There is a single \fB.sim\fP file for the entire circuit, unlike
+Magic's \fIext\fP\|(5) format in which there is a \fB.ext\fP file
+for every cell in a hierarchical design.
+.LP
+A \fB.sim\fP file consists of a series of lines, each of which begins
+with a key letter.
+The key letter beginning a line determines how the remainder
+of the line is interpreted.
+The following are the list of key letters understood.
+.TP
+.B "|\ units: \fIs\fB  tech: \fItech\fR format: \fIMIT|LBL|SU\fR"
+If present, this must be the first line in the \fB.sim\fP file.
+It identifies the technology of this circuit as \fItech\fP and
+gives a scale factor for units of linear dimension as \fIs\fP.
+All linear dimensions appearing in the \fB.sim\fP file are
+multiplied by \fIs\fP to give centimicrons. The format field
+signifies the sim variant. MIT and SU are compatible and understood
+by all tools. LBL is understood only by gemini(1).
+.TP
+.I "type  g  s  d  l  w  x  y  \fBg=\fIgattrs  \fBs=\fIsattrs  \fBd=\fIdattrs"
+Defines a transistor of type \fItype\fP.
+Currently, \fItype\fP may be
+\fBe\fP or \fBd\fP for NMOS, or \fBp\fP or \fBn\fP for CMOS.
+The name of the node to which the gate, source, and drain of the
+transistor are connected are given by \fIg\fP, \fIs\fP, and \fId\fP
+respectively.
+The length and width of the transistor are \fIl\fP and \fIw\fP.
+The next two tokens, \fIx\fP and \fIy\fP, are optional.
+If present,
+they give the location of a point inside the gate region of the transistor.
+The last three tokens are the attribute lists for the transistor
+gate, source, and drain.
+If no attributes are present for a particular
+terminal, the corresponding attribute list may be absent (i.e, there
+may be no \fBg=\fP field at all).
+The attribute lists \fIgattrs\fP, etc. are comma-separated lists of
+labels.
+The label names should not include any spaces, although some
+tools can accept label names with spaces if they are enclosed
+in double quotes.
+.B "In version 6.4.5 and later"
+the default format produced by ext2sim is SU. In this format the attribute
+of the gate starting with S_ is the substrate node of the fet. The attributes
+of the gate, and source and substrate starting with A_, P_ are the area and
+perimeter (summed for that node only once) of the source and drain respectively.
+This addition to the format is backwards compatible.
+.TP
+.B "C \fIn1 n2 cap\fR"
+Defines a capacitor between nodes \fIn1\fP and \fIn2\fP.
+The value of the capacitor is \fIcap\fP femtofarads.
+\fBNOTE:\fR
+since many analysis tools compute transistor gate capacitance themselves
+from the transistor's area and perimeter,
+the capacitance between a node and substrate (GND!) normally
+does not include the capacitance from transistor gates connected
+to that node.
+If the \fB.sim\fR file was produced by \fIext2sim\fR\|(1), check
+the technology file that was used to produce the original \fB.ext\fR
+files to see whether transistor gate capacitance is included or
+excluded;
+see ``Magic Maintainer's Manual #2: The Technology File'' for details.
+.TP
+.B "R \fInode res\fR"
+Defines the lumped resistance of node \fInode\fP to be \fIres\fP ohms.
+This construct is only interpreted by a few programs.
+.TP
+.B "r \fInode1 node2 res\fR"
+Defines an explicit resistor between nodes \fInode1\fP and
+\fInode2\fR of resistance \fIres\fP ohms.
+This construct is only interpreted by a few programs.
+.TP
+.B "N \fInode darea dperim parea pperim marea mperim"
+As an alternative to computed capacitances, some tools expect
+the total perimeter and area of the polysilicon, diffusion, and
+metal in each node to be reported in the \fB.sim\fP file.
+The \fBN\fP construct associates diffusion area \fIdarea\fP
+(in square centimicrons) and diffusion perimeter \fIdperim\fP (in centimicrons)
+with node \fInode\fP, polysilicon area \fIparea\fP and perimeter
+\fIpperim\fP, and metal area \fImarea\fP and perimeter \fImperim\fP.
+.I "This construct is technology dependent and obsolete."
+.TP
+.B "A \fInode attr\fR"
+Associates attribute \fIattr\fP for node \fInode\fP.
+The string
+\fIattr\fP should contain no blanks.
+.TP
+.B "= \fInode1 node2\fR"
+Each node in a \fB.sim\fP file is named implicitly by having it appear in
+a transistor definition.
+All node names appearing in a \fB.sim\fP file
+are assumed to be distinct.
+Some tools, such as \fIesim\fP\|(1), recognize aliases for node names.
+The \fB=\fR construct allows the name \fInode2\fP to be
+defined as an alias for the name \fInode1\fP.
+Aliases defined
+by means of this construct may not appear anywhere else in the \fB.sim\fP file.
+
+.SH "SEE ALSO"
+crystal\|(1), esim\|(1), ext2sim\|(1), sim2spice\|(1), ext\|(5)

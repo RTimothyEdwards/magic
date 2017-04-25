@@ -1,0 +1,111 @@
+/* 
+	This is for HP's CMOS34 1.2 micron CMOS Bulk Process. 
+	Again some parameters are defined by GPP others by Ersatzco
+	and others are computed.
+	
+*/
+#ifdef	extForSpice
+style	lambda=0.6(orb_scne12)
+#else
+style	lambda_irsim=0.6(orb_scne12)
+#endif
+
+	lambda	60
+	step	100
+	sidehalo	0
+
+#ifdef  INCLUDE_FET_CAP
+	areacap allFet 433 
+#endif
+
+	/* ------------   diff capacitances ---------------- */
+	areacap	nwell	35
+	perimc  nwell   ~(nwell)	47
+
+#ifdef	extForSpice
+	areacap	ndiff,nsd,ndc/a,nsc/a	0
+	areacap	pdiff,psd,pdc/a,psc/a	0
+
+	perimc	ndiff,nsd,ndc/a,nsc/a	space,pwell	0
+	perimc	pdiff,psd,pdc/a,psc/a	space,nwell	0
+#else	
+	areacap             ndiff,nsd,ndc/a,nsc/a               185
+	areacap             pdiff,psd,pdc/a,psc/a               148
+
+	perimc              ndiff,nsd,ndc/a,nsc/a  space,pwell  236 
+	perimc              pdiff,psd,pdc/a,psc/a  space,nwell  147 
+#endif
+	/* ------------------------------------------------- */
+
+
+	/* ------------  poly capacitances ---------------- */
+	areacap	PolyCap			29
+	overlap	PolyCap	allWell 	29	
+
+	perimc	PolyCap	~PolyCap	37
+	/* ------------------------------------------------- */
+
+	/* ------------  metal1 capacitances ---------------- */
+	areacap	M1Cap			16
+	overlap	M1Cap	allWell		16	PolyCap,PNplusCap
+	overlap	M1Cap	PNplusCap		16	
+	overlap	M1Cap	PolyCap		19	
+
+	perimc	M1Cap	~M1Cap		41
+	sideOverlap(M1Cap, ~M1Cap, allWell, 41, (PolyCap,PNplusCap))
+	sideOverlap(M1Cap, ~M1Cap, PNplusCap,  41, nothing)
+	/* ------------------------------------------------- */
+
+
+	/* ------------   metal2 capacitances ---------------- */
+	areacap	M2Cap		10	
+	overlap	M2Cap	allWell	10	PolyCap,M1Cap,PNplusCap
+	overlap	M2Cap	PNplusCap	10	M1Cap
+	overlap	M2Cap	PolyCap	12	M1Cap
+	overlap	M2Cap	M1Cap	14	
+
+	perimc	M2Cap	~M2Cap	42
+	sideOverlap(M2Cap, ~M2Cap, allWell, 42, (M1Cap,PolyCap,PNplusCap) )
+	sideOverlap(M2Cap, ~M2Cap, PNplusCap,  42, M1Cap)
+	/* ------------------------------------------------- */
+
+
+	/* -------------- Fets -----------------------------*/
+	/* cscab, cscap defined since extresis needs them */
+	device mosfet pfet pfet pdiff,pdc nwell Vdd! 270 623
+	device mosfet nfet nfet ndiff,ndc pwell Gnd! 90  623
+
+	/* ------- Poly-Poly2 Caps and NPN Vertical Bipolars ----------*/
+	device capacitor None cap,capc/a poly,pc 90 730
+	device bjt npn pbase,pbc/a emit,emc/a nwell
+
+	/* From irsim */
+	fetresis	nfet	linear	9700
+	fetresis	pfet	linear	35700
+	/* ------------------------------------------------- */
+
+	/* -------------- Resistivity (in milliohms per sq) -------*/
+	contact	pc		4	16210
+	contact ec      4    13510
+	contact	ndc,nsc,	4	56490
+	contact	pdc,psc,	4	181400
+	contact	m2c		4	43330
+
+
+	resist	ndiff,nsd,ndc/a,nsc/a	43180
+	resist	pdiff,psd,pdc/a,psc/a	79770
+	resist	PolyRes			22160
+	resist	allPoly2        21140	
+	resist	M1Res			51
+	resist	M2Res			26
+	resist	nwell			1195000
+	/* ------------------------------------------------- */
+
+	/* Order the planes for correct shielding */
+	planeOrder(implant,0)
+	planeOrder(well,1)
+	planeOrder(active,2)
+	planeOrder(metal1,3)
+	planeOrder(metal2,4)
+	planeOrder(metal3,5)
+	planeOrder(oxide,6)

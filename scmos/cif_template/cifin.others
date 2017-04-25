@@ -1,0 +1,575 @@
+/* There is a need to read layouts in SCGA CIF lsyrs. This input
+ * style is a first-order approximation. I've try this only on a
+ * single example You maight have problems with some of the new DRC
+ * rules. Both NPN transistors and BCCD devices are NOT included...
+ */
+style lambda=1.0(SCGA)
+    scalefactor 100
+    layer m2 CMS
+        labels CMS
+    layer m1 CMF
+        labels CMF
+    layer poly CPG
+        labels CPG
+    layer psd
+        and CAA
+        and-not CWG
+        and-not CSG
+    layer nsd CAA
+        and CWG
+    layer pdiff CAA
+        and-not CSG
+        and CWG
+    layer ndiff CSG
+        and CAA
+        and-not CWG
+        and-not CCD
+    layer pbase CBA
+        labels CBA
+    layer nfet CPG
+        and CAA
+        and CSG
+        and-not CWG
+        and-not CCD
+    layer pfet CPG
+        and CAA
+        and CWG
+    layer enfet CEL
+        and CAA
+        and CSG
+        and-not CWG
+        and-not CCD
+    layer epfet CEL
+        and CAA
+        and CWG
+    layer psc CCA
+        grow 100
+        and CAA
+        and-not CWG
+        and CMF
+    layer nsc CCA
+        grow 100
+        and CAA
+        and CWG
+        and CMF
+    layer ndc CCA
+        grow 100
+        and CAA
+        and CSG
+        and-not CWG
+        and CMF
+    layer pdc CCA
+        grow 100
+        and CAA
+        and CWG
+        and-not CSG
+        and CMF
+    layer m2c CVA
+        grow 150
+        shrink 50
+        and CMS
+        and CMF
+        labels CMS
+    layer electrode CEL
+        labels CEL
+    layer ec CCE
+        grow 100
+        and CMF
+        and CEL
+        labels CMF
+    layer cc CCE
+        grow 100
+        and CMF
+        and CEL
+        and CPG
+        labels CMF
+    layer cap CPG
+        and CEL
+        and-not CAA
+        labels CEL
+    layer pc CCP
+        grow 100
+        and CPG
+        and CMF
+/*    layer pbc CCA
+        grow 100
+        and CBA
+        and CMF
+        labels CBA
+    layer col CX
+        and CAA
+        and CSN
+        and CWN
+        labels CAA
+    layer clc CCA
+        grow 100
+        and CX
+        and CAA
+        and CSN
+        and CWN
+        and CMF
+        labels CCA
+    layer emit CBA
+        and CSN
+        shrink 200
+        labels CBA
+    layer emc CCA
+        grow 100
+        and CBA
+        and CSN
+        and CMF
+        labels CBA
+    layer nbd CSN
+        shrink 200
+        and CCD
+        and CAA
+	and-not CPG
+    layer nbdc CCA
+        grow 100
+        and CCD
+        and CSN
+        and CAA
+    layer bd CPG
+        or  CEL
+        and CCD
+        and CAA
+	labels CCD
+*/
+    layer glass COG
+    layer pad CMF
+        shrink 100
+        and CMS
+        shrink 500
+        and CVA
+        shrink 100
+        and COG
+        grow 600
+        and XP
+   calma CWG 53 *
+   calma CAA 43 *
+   calma CSG 54 *
+   calma CPG 46 *
+   calma CCP 47 *
+   calma CCA 48 *
+   calma CMF 49 *
+   calma CVA 50 *
+   calma CMS 51 *
+   calma COG 52 *
+   calma CCE 55 *
+   calma CEL 56 *
+   calma CCD 57 *
+   calma CBA 58 *
+
+style cbpm3u
+    scalefactor 50
+    layer pwell CW
+        labels CW
+    layer m2 CM2,CQ
+        labels CM2,CQ
+    layer m1 CM
+        labels CM
+    layer poly CP
+        labels CP
+    layer nsd CD
+        and CNS
+    layer ndiff CD
+        and CW
+        and CNS
+    layer pdiff CD
+        and CS
+    layer psd CW
+        and CS
+        and CD
+    layer pfet CP
+        and CD
+        and CS
+    layer nfet CD
+        and CP
+        and CW
+        and CNS
+    layer m2c CC2,CV
+        grow 150
+        and CM2,CQ
+        and CM
+    layer pc CC
+        grow 150
+        and CP
+        and CM
+    layer nsc CC
+        grow 150
+        and CD
+        and CNS
+        and CM
+    layer pdc CC
+        grow 150
+        and CD
+        and CS
+        and CM
+    layer ndc CC
+        grow 150
+        and CD
+        and CW
+        and CM
+        and CNS
+    layer psc CC
+        grow 150
+        and CD
+        and CS
+        and CW
+        and CM
+    layer glass CG
+    layer pad CM
+        and CM2,CQ
+        shrink 500
+        and CC2,CV
+        and CG
+        grow 500
+    calma CW 1 *
+    calma CD 3 *
+    calma CP 4 *
+    calma CS 5 *
+    calma CNS 6 *
+    calma CC 7 *
+    calma CM 8 *
+    calma CG 9 *
+    calma CV 13 *
+    calma CQ 14 *
+
+style oldcbpm3u
+    scalefactor 50
+    layer pwell CW
+        labels CW
+    layer m2 CM2,CQ
+        labels CM2,CQ
+    layer m1 CM
+        labels CM
+    layer poly CP
+        labels CP
+    layer nsd CD
+    layer ndiff CD
+        and CW
+    layer pdiff CD
+        and CS
+    layer psd CW
+        and CS
+        and CD
+    layer pfet CP
+        and CD
+        and CS
+    layer nfet CD
+        and CP
+        and CW
+    layer m2c CC2,CV
+        grow 150
+        and CM2,CQ
+        and CM
+    layer pc CC
+        grow 150
+        and CP
+        and CM
+    layer nsc CC
+        grow 150
+        and CD
+        and CM
+    layer pdc CC
+        grow 150
+        and CD
+        and CS
+        and CM
+    layer ndc CC
+        grow 150
+        and CD
+        and CW
+        and CM
+    layer psc CC
+        grow 150
+        and CD
+        and CS
+        and CW
+        and CM
+    layer glass CG
+    layer pad CM
+        and CM2,CQ
+        shrink 500
+        and CC2,CV
+        and CG
+        grow 500
+    calma CW 1 *
+    calma CD 3 *
+    calma CP 4 *
+    calma CS 5 *
+    calma CC 7 *
+    calma CM 8 *
+    calma CG 9 *
+    calma CV 13 *
+    calma CQ 14 *
+
+style oldcbpe2u
+    scalefactor 100
+    layer pwell CW
+        labels CW
+    layer m2 CM2,CQ
+        labels CM2,CQ
+    layer m1 CM
+        labels CM
+    layer poly CP
+        labels CP
+    layer nsd CD
+    layer ndiff CD
+        and CW
+    layer pdiff CD
+        and CS
+    layer psd CW
+        and CS
+        and CD
+    layer pfet CP
+        and CD
+        and CS
+    layer nfet CD
+        and CP
+        and CW
+    layer m2c CC2,CV
+        grow 150
+        and CM2,CQ
+        and CM
+    layer electrode CE
+        labels CE
+    layer pc CC
+        grow 150
+        and CP
+        and CM
+    layer capc CC
+        grow 150
+        and CE
+        and CM
+    layer nsc CC
+        grow 150
+        and CD
+        and CM
+    layer pdc CC
+        grow 150
+        and CD
+        and CS
+        and CM
+    layer ndc CC
+        grow 150
+        and CD
+        and CW
+        and CM
+    layer psc CC
+        grow 150
+        and CD
+        and CS
+        and CW
+        and CM
+    layer glass CG
+    layer pad CM
+        and CM2,CQ
+        shrink 500
+        and CC2,CV
+        and CG
+        grow 500
+    calma CW 1 *
+    calma CD 3 *
+    calma CP 4 *
+    calma CS 5 *
+    calma CC 7 *
+    calma CM 8 *
+    calma CG 9 *
+    calma CV 13 *
+    calma CQ 14 *
+
+/*
+style JPL
+    scalefactor 20
+    layer m2 CMS
+        labels CMS
+    layer m1 CMF
+        labels CMF
+    layer poly CPG
+        labels CPG
+    layer pdiff CSP
+        and CAA
+        and CWN
+    layer ndiff CSN
+        and CAA
+        and CWP 
+        and-not CCD
+    layer nsd CWN
+        and CSN
+        and CAA
+    layer psd CWP
+        and CSP
+        and CAA
+    layer nfet CPG
+        and CAA
+        and CSN
+        and-not CCD
+    layer pfet CAA
+        and CPG
+        and CSP
+    layer enfet CEL
+        and CAA
+        and CSN
+        and-not CCD
+    layer epfet CAA
+        and CEL
+        and CSP
+    layer ndc CCA
+        grow lambda_1
+        and CAA
+        and CWP
+        and CSN
+        and CMF
+    layer pdc CCA
+        grow lambda_1
+        and CAA
+        and CWN
+        and CSP
+        and CMF
+    layer nsc CCA
+        grow lambda_1
+        and CAA
+        and CSN
+        and CWN
+        and CMF
+    layer psc CCA
+        grow lambda_1
+        and CAA
+        and CSP
+        and CWP 
+        and CMF
+    layer gc CCC
+    layer m2c CVA
+        grow lambda_1
+        and CMS
+        and CMF
+        labels CMS
+    layer electrode CEL
+        labels CEL
+    layer ec CCE
+        grow lambda_1
+        and CMF
+        and CEL
+        labels CMF
+    layer cc CCE
+        grow lambda_1
+        and CMF
+        and CEL
+        and CPG
+        labels CMF
+    layer cap CPG
+        and CEL
+        and-not CAA
+        labels CEL
+    layer pbc CCA
+        grow lambda_1
+        and CBA
+        and CMF
+        labels CBA
+    layer col CX
+        and CAA
+        and CSN
+        and CWN
+        labels CAA
+    layer clc CCA
+        grow lambda_1
+        and CX
+        and CAA
+        and CSN
+        and CWN
+        and CMF
+        labels CCA
+    layer emit CBA
+        and CSN
+        shrink lambda_2
+        labels CBA
+    layer emc CCA
+        grow lambda_1
+        and CBA
+        and CSN
+        and CMF
+        labels CBA
+    layer pc CCP
+        grow lambda_1
+        and CPG
+        and CMF
+    layer bd CAA
+        and CCD
+        and-not CSN
+        grow lambda_2
+        and CAA
+        labels CCD
+    layer nbd CSN
+        shrink lambda_2
+        and CCD
+        and CAA
+        labels CCD
+    layer nbdc CCA
+        grow lambda_1
+        and CCD
+        and CSN
+        and CAA
+        labels CCD
+    layer glass COG
+#ifdef OPEN
+    layer open CAA
+        and CCA
+        and CVA
+        and COG
+    layer pstop CAA
+        and CSP
+        and-not CWP
+        and-not CWN
+#endif
+    layer pad CMF
+        shrink lambda_1
+        and CMS
+        shrink lambda_5
+        and CVA
+        shrink lambda_1
+        and COG
+        grow lambda_6
+        and XP
+    layer error_p CER
+
+   calma CWP 41 *
+   calma CWN 42 *
+   calma CAA 43 *
+   calma CSP 44 *
+   calma CSN 45 *
+   calma CPG 46 *
+   calma CCP 47 *
+   calma CCA 48 *
+   calma CMF 49 *
+   calma CVA 50 *
+   calma CMS 51 *
+   calma COG 52 *
+   calma CCE 55 *
+   calma CEL 56 *
+   calma CCD 57 *
+   calma CBA 58 *
+   calma CWC 59 *
+   calma CX  60 *
+   calma CER 61 *
+   calma CCC 63 *
+
+#undef cif_tech
+*/
+
+
+/* These follwoing technologies are for DRC error display  */
+/* Remove comment if you want to install them...
+style lambda=1.0(error)
+    scalefactor 100
+    layer error_s CX
+style lambda=0.8(error)
+    scalefactor 80
+    layer error_s CX
+style lambda=0.6(error)
+    scalefactor 60
+    layer gc CX
+style lambda=0.5(error)
+    scalefactor 50
+    layer error_s CX
+*/           

@@ -1,0 +1,123 @@
+#######################################################################
+#                                                                     #
+#                    MOSIS distribution Version 8.2                   #
+#								      #
+# This is a version control header file for MOSIS's distribution of   #
+# Magic related technology files and system libraries....             #
+#								      #
+#      Modified by Jen-I Pi, MOSIS Project, USC/ISI    06/02/1995     #
+#      Please send bug reports/comments to mosis@mosis.edu :-)        #
+#								      #
+#######################################################################
+
+INTRODUCTION
+
+  This officail MOSIS SCMOS technology release consists a famaly of
+  SCMOS technology files for Magic version 6.4.4 (available from
+  anonymous FTP gatekeeper.dec.com):
+
+   * "scmos"      - standard SCMOS technology for MOSIS process with
+	            minimum feature length larger than 1.5 micron.
+		    ORBIT 2.0 micron analog, ORBIT 1.2 micron processes
+		    are supported.
+   * "scmos-tm"   - SCMOS technology with tighter metal spacing rules
+		    for metal1 and metal2.
+		    HP-CMOS34, HP-CMOS26B (lambda=0.5 micron) and
+		    HP-CMOS14B (lambda=0.35 micron) processes are
+		    supported.
+   * "scmos-sub"  - SCMOS technology for HP's sub-micron CMOS processes.
+		    HP-CMOS26G (lambda=0.40 micron) and CMOS14B
+		    (lambda=0.30 micron) processes are supported.
+   * "scmos-ibm"  - SCMOS technology for IBM CMSX-2185 process.
+                    (not supported anymore, but it's there in case...)
+
+  To invoke Magic with appropriate technology selection, you need to
+  use the '-T' command option. For example, the command
+
+     "magic -Tscmos-sub"
+
+  start Magic with "scmos-sub" designated for HP's submicron processes.
+
+  MOSIS's distribution of Magic technolofy file for SCMOS technology
+  now has CIFinput and CIFoutput section in templates so that it will
+  be easier to maintain. It also supports two layers, "open" and
+  "pstop" for micro-machined design fabrication in CMOS process as 
+  described by Janet C. Marshall's paper in IEEE Circuit and Devices,
+  Vol. 8, N0. 6, 1992. this layer is now in a 'preliminary' stage.
+ 
+  Before installation, please read the file 'COPYRIGHT' for copyright
+  notice.
+
+INSTALLATION
+
+  Please install the latest release of Magic (version 6.4.4) available
+  from anonymous FTP gatekeeper.dec.com.
+
+  To generate all technology files, simply type
+
+     "make" if your are using Magic 6.4.x, or
+
+     "make version3" if your are using Magic 6.3.x
+
+  To install all technology files into the standard ~cad library, just type
+
+     "make install"
+
+  to you system (Unix) prompt. You might want to check the path for
+  standard ~cad/lib/magic/lib first before you do this...
+
+IRSIM PARAMETERS
+
+  Parameter files of various MOSIS supported process  for IRSIM
+  switch-level simulator can be found under the sub-directory
+  "irsim_parameters".
+
+DOCUMENTATION
+
+  Please read the file UPDATE for the lates update information...
+
+  In the doc subdirectory, you can find a preliminary PostScript file
+  for MOSIS's SCMOS Technology Manual. Warning: This manualscript is
+  in a very preliminary stage, if you have any problem with it don't
+  hesitate to discuss it further with me...(pi@isi.edu)
+
+EXAMPLE
+
+  In the 'examples' subdirectory, we have:
+
+  palette.mag - palette of all layers available in MOSIS's SCMOS tech-
+	nology". Turn your DRC off before viewing it!!
+
+  ccd.mag - An example of a buried channel CCD layout.
+
+  float_gate.mag - An example of a floating-gate device.
+
+  wellcap.mag - An example of layout of linear capacitors available
+	from SCNLC technology, i.e. HP's 1.2um process.
+
+  npn.mag - An example of a Bipolar NPN transistor layout. For ORBIT's
+	2um lower-noise Analog process.
+
+  large_npn.mag - A large NPN bipolar transistor consists of smalls
+	unit transistors.
+
+  all.mag - An example of part of the design rules... NOT Complete...
+
+  m3padframe.mag - A TinyChip padframe for HP's 1.0um process. Notice
+	that those m1 strip is required to complete a DRC free pad.
+	These pads use all three metal layers.
+
+  inf_source - An example of micromachined device fabrication. This
+        layout is a reproduction of Fig. 8 of Janet C. Marshall's
+	article titled "High Level Melds Micromachined Devices with
+	Foundries", IEEE Circuits and Devices, Vol. 8, No. 6, pp.
+	10-17, Nov. 1992. A complete NIST MEMS library is also
+        available from MOSIS's anonymous FTP archive.
+	
+BUGs
+
+  send you bug report or suggestions to mosis@mosis.edu
+
+Jen-I Pi  ******  05/24/95
+The MOSIS Service, USC/ISI
+(310) 822-1511 x640

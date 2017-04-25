@@ -1,0 +1,70 @@
+magic
+tech scmos
+timestamp 783829926
+<< error_p >>
+rect 0 -12 41 -10
+rect -2 -16 0 -12
+rect 41 -16 43 -12
+rect 0 -18 41 -16
+<< polysilicon >>
+rect 12 6 15 14
+rect 21 6 24 14
+rect 30 6 35 14
+rect 10 4 17 6
+rect 10 0 11 4
+rect 15 0 17 4
+rect 19 4 26 6
+rect 19 0 20 4
+rect 24 0 26 4
+rect 28 4 35 6
+rect 28 0 29 4
+rect 33 0 35 4
+<< electrode >>
+rect 6 20 12 21
+rect 6 16 7 20
+rect 11 16 12 20
+rect 6 14 12 16
+rect 15 20 21 21
+rect 15 16 16 20
+rect 20 16 21 20
+rect 15 14 21 16
+rect 24 20 30 21
+rect 24 16 25 20
+rect 29 16 30 20
+rect 24 14 30 16
+rect 6 6 10 14
+rect 17 6 19 14
+rect 26 6 28 14
+<< capacitor >>
+rect 10 6 12 14
+rect 15 6 17 14
+rect 19 6 21 14
+rect 24 6 26 14
+rect 28 6 30 14
+<< bccdiffusion >>
+rect 6 8 35 12
+rect 0 -16 41 -12
+<< nbccdiffusion >>
+rect 4 8 6 12
+rect 35 8 37 12
+rect 4 -8 6 -4
+rect 35 -8 37 -4
+<< polycontact >>
+rect 11 0 15 4
+rect 20 0 24 4
+rect 29 0 33 4
+<< electrodecontact >>
+rect 7 16 11 20
+rect 16 16 20 20
+rect 25 16 29 20
+<< nbccdiffcontact >>
+rect 0 8 4 12
+rect 37 8 41 12
+rect 0 -8 4 -4
+rect 37 -8 41 -4
+<< labels >>
+rlabel space -5 -7 -5 -7 3 layer
+rlabel space -5 -5 -5 -5 3 active
+rlabel space -5 -13 -5 -13 3 well
+rlabel space -5 -15 -5 -15 3 layer
+<< end >>

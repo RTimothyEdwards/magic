@@ -1,0 +1,70 @@
+.\" sccsid @(#)displays.5	4.1 MAGIC (Berkeley) 11/29/85
+.\"
+.\" CONVENTIONS:
+.\"      italics:  things that are substituted for
+.\"      boldface: characters that are typed as-is
+.\"
+.\"      EXAMPLE:  \fIfilename\fB.mag\fR
+.\"           or:  \fBcif \fR[\fIfile\fR]
+.\"
+.TH DISPLAYS 5 2/19/85
+.UC
+.SH NAME
+displays \- Display Configuration File
+.SH DESCRIPTION
+The interactive graphics programs Caesar, Magic,
+and Gremlin use two separate terminals:
+a text terminal from which commands are
+issued, and a color graphics terminal on which graphical output is displayed.
+These programs use a
+.B displays
+file to associate their text terminal with its corresponding display device.
+.PP
+The
+.B displays
+file is an ASCII text file with one line for each
+text terminal/graphics terminal pair.
+Each line contains 4 items separated by spaces:
+the name of the port attached to a text terminal,
+the name of the port attached to the associated graphics terminal,
+the phosphor type of the graphics terminal's monitor,
+and the type of graphics terminal.
+.PP
+An applications program may use the phosphor type
+to select a color map tuned to the monitor's characteristics.
+Only the \fBstd\fR phosphor type is supported at UC Berkeley.
+.PP
+The graphics terminal type specifies the device driver
+a program should use when communicating with its graphics terminal.
+Magic supports types \fBUCB512\fR, \fBAED1024\fR, and \fBSUN120\fR.
+Other programs may recognize different display types.
+See the manual entry for your specific application for more information.
+.PP
+A sample displays file is:
+.sp
+.in +0.5i
+.B
+.br
+/dev/ttyi1 /dev/ttyi0 std UCB512
+.br
+/dev/ttyj0 /dev/ttyj1 std UCB512
+.br
+/dev/ttyjf /dev/ttyhf std UCB512
+.br
+/dev/ttyhb /dev/ttyhc std UCB512
+.br
+/dev/ttyhc /dev/ttyhb std UCB512
+.R
+.in -0.5i
+.br
+.PP
+In this example, \fB/dev/ttyi1\fR connects to a text terminal.
+An associated \fBUCB512\fR graphics terminal with
+standard phosphor is connected to \fB/dev/ttyi0\fR.
+
+.SH "FILES"
+Magic uses the displays file ~cad/lib/displays.
+Gremlin looks in /usr/local/displays.
+
+.SH "SEE ALSO"
+magic(1)

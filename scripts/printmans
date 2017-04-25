@@ -1,0 +1,9 @@
+#!/bin/csh -f
+
+set cmd=($1)
+shift argv
+
+foreach i ($argv)
+    echo cat $i \| $cmd
+    cat $i | $cmd
+end

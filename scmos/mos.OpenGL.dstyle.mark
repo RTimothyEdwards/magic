@@ -1,0 +1,365 @@
+#
+#		      MOSIS distribution Version 8.2
+#
+# This file has been updated by MOSIS to be used for three metal, two poly
+# SCMOS technology files.
+#
+# (C) Copyright 1992, 1993, 1994, 1995 by
+#
+#       Jen-I Pi	       pi@isi.edu
+#       The MOSIS Service
+#	USC Information Sciences Institute	
+#	4676 Admiralty Way
+#	Marina del Rey, CA 90292
+#	(310) 822-1511 x640  fax (310)823-5624
+#
+# All Rights Reserved.
+# Last Modified Date: 03/15/95
+#
+# Permission to use, copy, modify, and distribute this technology
+# file and its associated documentation for any purpose and without
+# fee is hereby granted, provided that the above copyright notice
+# appears in all copies and that both that copyright notice and this
+# permission notice appear in supporting documentation, and that the
+# name of the University of Southern California not be used in
+# advertising or publicity pertaining to distribution of the software
+# without specific, written prior permission.  The University of
+# Southern California makes no representations about the suitability
+# of this technology file for any purpose. This technology file is
+# provided "as is" without express or implied warranty and the
+# University of Southern California retains the right to change its
+# content at any time without notice any other party.
+#
+# THE UNIVERSITY OF SOUTHERN CALIFORNIA DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS TECHNOLOGY FILE, INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL THE UNIVERSITY OF
+# SOUTHERN CALIFORNIA BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+# OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+# NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+# CONNECTION WITH THE USE OR PERFORMANCE OF THIS TECHNOLOGY FILE.
+#
+# This file describes the various display styles that are available
+# in Magic.  This new file is relatively technology-independent: it
+# contains enough different styles to support MOSIS's SCMOS process
+# without any changes.  Each display style describes a particular
+# way of drawing things on the display.  See "Magic Maintainer's
+# Manual #3: The Display Style and Glyph Files" for details on the
+# file format.
+#
+# Please send bug reports/comments to mosis@mosis.edu :-)
+#
+# "version" keyword replaces the version embedded in the filename.
+
+version 6
+# 
+# There is no bit plane usage in OpenGL.
+# The "mask" column used by other style files represents
+# the degree of opacity in the OpenGL version of magic.
+# opaque = 000 is completely transparent (nothing gets drawn),
+# while opaque = 170 is completely opaque.  Note that these
+# numbers are octal.  The bit planes argument of the
+# display_styles is set to 24 so we don't lose any bits in
+# color definitions.
+#
+
+display_styles 24
+#
+# The style below means "no color at all".  It is special, in that
+# it is used by cursors to indicate transparency.
+#
+# num   opaque  color   outline  fill  number   name    name
+# ----+------+--------+--------+------+-------+------+--------------
+0	177	000	000	solid	0	-	no_color_at_all
+#
+# Opaque styles used for drawing and erasing highlights, window borders,
+# etc.
+#				       stipple  short   long
+# num   opaque  color   outline  fill  number   name    name
+# ----+------+--------+--------+------+-------+------+--------------
+1	177	100	000	solid	0	-	solid_highlights
+2	134	100	000	stipple 12	-	medium_highlights
+3	134	100	000	stipple 9	-	pale_highlights
+4	134	100	000	stipple 10	-	horiz_highlights
+5	134	100	000	stipple 11	-	vert_highlights
+6	177	100	377	outline	0	-	outline_highlights
+7	134	100	314	outline 0	-	dotted_highlights
+#
+8	134	000	377	outline	0	e	erase_box
+9	177	000	000	solid	0	-	erase_highlights
+10	177	000	000	solid	0	E	erase_everything
+11	134	000	000	solid	0	-	erase_all_but_highl
+#
+12	134	073	377	outline	0	l	labels
+13	134	066	377	outline	0	L	ports
+14	177	040	377	outline	0	i	port_connections
+15	134	043	377	outline	0	-	bounding_boxes
+16	134	074	377	grid	0	-	solid_grid
+17	134	043	252	grid	0	-	dotted_grid
+18	134	043	000	solid	0	-	origin_square
+19	134	043	377	outline	0	-	draw_tile_details
+#
+20	177	067	000	solid	0	w	window_border
+21	177	067	377	stipple	6	-	window_elevator
+22	177	070	000	solid	0	c	window_caption
+23	177	071	000	solid	0	x	window_background
+#
+24	177	072	000	solid	0	-	color_editing
+#
+25	177	074	000	solid	0	T	tk_medium_gray
+26	177	076	000	solid	0	t	tk_light_gray
+#
+# General-purpose opaque colors.  These entries define a whole
+# bunch of generally-useful colors.
+#
+#				       stipple  short    long
+# num   opaque  color   outline  fill  number   name     name
+# ----+------+--------+--------+------+-------+------+--------------
+27	177	040	000	solid	0	W	white
+28	177	041	000	solid	0	-	gray1 (pale)
+29	177	042	000	solid	0	k	gray2 (dark)
+30	177	043	000	solid	0	K	black
+31	177	044	000	solid	0	r	red1 (pale)
+32	177	045	000	solid	0	-	red2 (medium)
+33	177	046	000	solid	0	R	red3 (dark)
+34	177	047	000	solid	0	g	green1 (pale)
+35	177	050	000	solid	0	-	green2 (medium)
+36	177	051	000	solid	0	G	green3 (dark)
+37	177	052	000	solid	0	b	blue1
+38	177	053	000	solid	0	B	blue2 (dark)
+39	177	054	000	solid	0	-	blue3
+40	177	055	000	solid	0	p	purple1
+41	177	056	000	solid	0	P	purple2
+42	177	057	000	solid	0	y	yellow1
+43	177	060	000	solid	0	Y	yellow2
+44	177	061	000	solid	0	o	orange1
+45	177	062	000	solid	0	O	orange2
+46	177	063	000	solid	0	n	brown1
+47	177	064	000	solid	0	N	brown2
+48	177	065	000	solid	0	m	magenta
+49	177	066	000	solid	0	C	cyan
+#
+#----------------------------------------------------------------------
+# All of the styles above this point are used internally by Magic for
+# things like menus, drawing the box, etc.  The style numbers and
+# number of styles must match the definitions in misc/style.h. 
+# All of the styles below this point are used by the technology file,
+# addressed by name or number.  Note that the numbers are only for
+# backwards compatibility with .tech27 files which specify styles
+# by number only.  The order in which styles are drawn is the order
+# in which they appear in this file, not the "num" column.  The
+# ordinal numbering reflects vagaries of the 8-bit-plane setup.
+# 24-bit styles have been re-ordered to match the physical vertical
+# position of layers in the layout.
+#----------------------------------------------------------------------
+
+layout_styles
+#
+# num   opaque  color   outline  fill  number   name     name
+# ----+------+--------+--------+------+-------+------+--------------
+10	077	006	000	stipple 7	-	cwell
+52	134	002	000	stipple 19	-	cwellnsc
+18	077	004	000	stipple 21	-       highvolt_nwell
+11	077	005	000	stipple 22	-	highvolt_pwell
+12	077	002	377	stipple	2	-	nwell
+13	077	003	377	stipple	2	-	pwell
+67	170	011	377	outline 0	-	subcircuit
+1	170	001	000	solid	0	-	polysilicon
+2	170	002	000	solid	0	-	ndiffusion
+69	177	050	000	solid	0	-	mvndiff
+70	177	051	000	solid	0	-	hvndiff
+71	177	054	000	solid	0	-	ncontact
+3	170	002	000	stipple	13	-	ndiff_in_nwell
+4	170	003	000	solid	0	-	pdiffusion
+72	177	063	000	solid	0	-	mvpdiff
+73	177	064	000	solid	0	-	hvpdiff
+74	177	055	000	solid	0	-	pcontact
+5	170	003	000	stipple 13	-	pdiff_in_pwell
+6	170	004	000	solid	0	-	ntransistor
+7	170	002	000	stipple 8	-       ntransistor_stripes
+8	170	005	000	solid	0	-	ptransistor
+9	170	003	000	stipple 9	-       ptransistor_stripes
+53      134     007     000     stipple 7       -       nwell_field_implant
+54      134     007     000     stipple 5       -       substrate_field_implant
+30	134	002	000	stipple 22	-	ndop_stripes
+31	134	003	000	stipple 21	-	pdop_stripes
+36	134	002	377	stipple 15	-	nselect
+35	134	003	377	stipple 1	-	pselect
+43      134     002     000     stipple 5       -       nselect2
+44      134     003     000     stipple 7       -       pselect2
+47      134     001     000     solid   0       -       poly_resist
+48      134     003     000     stipple 7       -       poly_resist_stripes    
+46      134     052     000     stipple 7       -       silicide_block
+14	134	006	000	solid	0	-	electrode
+27	134	003	000	stipple	9	-	electrode_stripes
+28	134	075	000	solid	0	-	capacitor
+15	134	003	000	stipple	10	-	pbase
+16	134	002	000	stipple 17	-	emitter
+17	134	003	000	stipple 11	-	bccd
+20	120	010	000	solid	0	-	metal1
+29	134	010	000	stipple	6	-	metal1_alt
+49	134	010	000	stipple 19	-	metal1tight
+26	134	011	000	solid	0	-	poly_contact
+21	120	020	000	solid	0	-	metal2
+50	134	020	000	stipple 19	-	metal2tight
+19	134	007	000	solid	0	-	via
+# MNM hack 9-11-2003
+55	134	143	377	stipple	29	-	via1
+22	120	065	000	solid   0	-	metal3
+51	134	065	000	stipple	8	-	metal3tight
+37	134	056	377	stipple 19	-	via2
+# MNM hack 9-11-2003
+56	134	143	377	stipple	30	-	via2alt
+23	120	041	000	solid  	0	-	metal4
+38	134	046	377	stipple	24	-	via3
+57	134	006	000	stipple	2	-	via3alt
+24	120	054	000	solid  	0	-	metal5
+39	134	051	377	stipple	5	-	via4
+64	120	056	000	solid	0	-	metal6
+59	134	020	377	stipple 2	-	via5
+65	120	046	000	solid	0	-	metal7
+60	134	056	377	stipple 2	-	via6
+66	120	042	000	solid	0	-	metal8
+61	134	063	377	stipple 2	-	via7
+62	134	046	000	stipple	3	-	mim_bottom
+63	134	042	000	stipple	3	-	mim_top
+58	134	007	000	solid	0	-	gen_contact
+32	134	007	377	cross	0	-	contact_X'es
+33	134	007	377	stipple 2	-	contact_waffle
+25	134	045	000	solid	0	-	pad4
+34	134	042	377	stipple 10	-	overglass
+68	134	041	377	solid	0	-	mems
+40	134	065	000	stipple 5	-	check_paint
+41	134	066	000	stipple 7	-	check_subcells
+42	177	040	000	stipple 4	-	error_waffle
+45      134     043     000     solid   0       -       comment
+#
+#----------------------------------------------------------------------
+# All of the styles below this point must duplicate the styles in
+# the section above, and represent a version of each previous
+# layer to use in non-edit cells ("pale" styles):
+#----------------------------------------------------------------------
+
+pale_styles
+#
+# Poly-diff styles:
+#				       stipple  short    long
+# num   opaque  color   outline  fill  number   name     name
+# ----+------+--------+--------+------+-------+------+--------------
+10	134	106	000	stipple 7	-	cwell
+52	134	002	000	stipple 13	-	cwellnsc
+18	134	107	000	stipple 21	-       highvolt_nwell
+11	134	105	000	stipple 22	-	highvolt_pwell
+12	134	102	377	stipple 2	-	nwell
+13	134	103	377	stipple	2	-	pwell
+67	134	111	377	outline 0	-	subcircuit
+1	134	101	000	solid	0	-	polysilicon
+2	134	102	000	solid	0	-	ndiffusion
+69	177	050	000	stipple	3	-	mvndiff
+70	177	051	000	stipple	3	-	hvndiff
+71	177	054	000	stipple	3	-	ncontact
+3	134	102	000	stipple	13	-	ndiff_in_nwell
+4	134	103	000	solid	0	-	pdiffusion
+72	177	063	000	stipple	25	-	mvpdiff
+73	177	064	000	stipple	25	-	hvpdiff
+74	177	055	000	stipple	25	-	pcontact
+5	134	103	000	stipple	13	-	pdiff_in_pwell
+6	134	104	000	solid	0	-	ntransistor
+7	134	102	000	stipple	7	-	ntransistor_stripes
+8	134	105	000	solid	0	-	ptransistor
+9	134	103	000	stipple 5	-	ptransistor_stripes
+53	134     007     000     stipple 7       -       nwell_field_implant
+54	134     007     000     stipple 5       -       substrate_field_implant
+30	134	102	000	stipple 22	-	ndop_stripes
+31	134	103	000	stipple 21	-	pdop_stripes
+36	134	102	377	stipple 15	-	nselect
+35	134	103	377	stipple 1	-	pselect
+43	134     002     000     stipple 5       -       nselect2
+44	134     003     000     stipple 7       -       pselect2
+47	134     001     000     solid   0       -       poly_resist
+48	134     003     000     stipple 7       -       poly_resist_stripes
+46	134     052     000     stipple 7       -       silicide_block
+14	134	106	000	solid	0	-	electrode
+27	134	103	000	stipple	9	-	electrode_stripes
+28	134	175	000	solid	0	-	capacitor
+15	134	103	000	stipple 10	-	pbase
+16	134	102	000	stipple 17	-	emitter
+17	134	103	000	stipple 11	-	bccd
+20	100	110	000	solid	0	-	metal1
+29	134	110	000	stipple	6	-	metal1_alt
+49	134	010	000	stipple 14	-	metal1tight
+26	134	111	000	solid	0	-	poly_contact
+21	100	120	000	solid	0	-	metal2
+50	134	020	000	stipple 5	-	metal2tight
+19	134	107	000	solid	0	-	via
+#55	134	120	000	stipple	2	-	via1
+# MNM hack 9-11-2003
+55	134	143	377	stipple	29	-	via1
+22	100	165	000	solid	0	-	metal3
+51	134	065	000	stipple	21	-	metal3tight
+37	134	156	377	stipple 19	-	via2
+# MNM hack 9-11-2003
+56	134	143	377	stipple	30	-	via2alt
+23	100	141	000	solid	0	-	metal4
+38	134	146	377	stipple 24	-	via3
+57	134	106	000	stipple	2	-	via3alt
+24	100	154	000	solid	0	-	metal5
+39	134	151	377	stipple 5	-	via4
+64	100	156	000	solid	0	-	metal6
+59	134	120	377	stipple 2	-	via5
+65	100	146	000	solid	0	-	metal7
+60	134	156	377	stipple 2	-	via6
+66	100	142	000	solid	0	-	metal8
+61	134	163	377	stipple 2	-	via7
+62	134	146	000	stipple	3	-	mim_bottom
+63	134	142	000	stipple	3	-	mim_top
+58	134	042	000	solid	0	-	gen_contact
+32	134	143	377	cross	0	-	contact_X'es
+33	134	143	377	stipple 2	-	contact_waffle
+25	134	145	000	solid	0	-	pad4
+34	134	142	377	stipple 10	-	overglass
+68	134	141	377	solid	0	-	mems
+40	134	065	000	stipple 5	-	check_paint
+41	134	066	000	stipple 7	-	check_subcells
+42	177	040	000	stipple 4	-	error_waffle
+45	134     017     000     solid   0       -       comment
+#----------------------------------------------------------------------
+
+stipples
+#-----------------------------------+---------------------------------------
+#		bit pattern	    |   description
+#-----------------------------------+---------------------------------------
+1  100 000 030 000 030 000 000 000	very sparsed stripes, ll to ur
+2  314 314 000 000 063 063 000 000	coarse knight's move (waffle)
+3  356 167 273 335 356 167 273 335	all but diagonal stripes, ll to ur
+4  000 000 314 314 000 000 314 314	offset waffle
+5  100 040 020 010 004 002 001 200	sparse diagonal stripes, ll to ur
+6  252 125 252 125 252 125 252 125	half 'n half (checkerboard)
+7  002 004 010 020 040 100 200 001	sparse diagonal stripes, lr to ul
+8  201 003 006 014 030 060 140 300	wide sparse diagonal stripes, lr to ul
+9  201 300 140 060 030 014 006 003	wide sparse diagonal stripes, ll to ur
+10 000 000 000 377 000 000 000 377	horizontal stripes
+11 104 104 104 104 104 104 104 104	vertical stripes
+12 125 252 125 252 125 252 125 252	complement of half `n half
+13 063 063 777 777 314 314 777 777	complement of #2 (coarse knight's move)
+14 252 125 252 125 252 125 252 125	half 'n half (checkerboard)
+15 000 001 000 030 000 000 000 030	very sparsed stripes, 11 to ur
+16 300 007 377 377 300 007 377 377	wide horizontal stripes
+17 307 307 307 307 307 307 307 307	wide vertical stripes
+18 174 174 174 174 174 174 174 174	wide vertical stripes (reverse of 17)
+19 074 303 102 102 303 074 044 044	bubbles
+20 044 102 201 201 102 044 030 030	offset diagonal crossex
+21 020 040 000 000 000 002 004 010	diagonal dotted line, lr to ul
+22 010 004 000 000 000 100 040 020      diagonal dotted line, ll to ur
+23 074 146 303 201 303 146 074 030	dense diagonal crossex
+24 703 474 675 675 474 703 733 733      complement of #19 empty bubbles
+25 335 273 167 356 335 273 167 356	all but diagonal stripes, lr to ul
+# attempt at new styles MNM
+26 140 300 201 003 006 014 030 060
+27 000 000 000 060 140 140 060 000      new gc thin
+28 000 002 006 016 016 006 002 000
+#29 000 000 000 000 030 074 176 000
+29 000 176 074 030 000 000 000 000
+#30 000 100 140 160 160 140 100 000
+30 000 004 014 034 034 014 004 000
+31 000 176 074 030 000 000 000 000

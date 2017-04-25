@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# Use:  ./configure [args]
+#
+#	where [args] are arguments passed to the scripts/configure script
+#
+# This script is a workaround to GNU autoconf which can't deal with having
+# all of its config scripts in a different directory than the configure
+# script itself.  It also sets up CFLAGS without the default optimizer
+# flag (-O2).
+
+( CFLAGS="-g"; export CFLAGS; cd scripts ; ./configure $* )

@@ -1,0 +1,21 @@
+rcsid = "$Header: /usr/cvsroot/magic-8.0/graphics/READ_ME,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $"
+
+
+	Overall organization of Magic's graphics directory
+
+In this directory are files to allow Magic to write to a display, going
+directly to the frame buffer or instead to a window package such as X.
+
+For each display supported, there is a driver contained in the files
+grXXX1.c through grXXX5.c, and grXXXInt.h.  The .c files contain
+the code for the driver, and basically just include implementations of
+routines listed in graphics.h.  The grXXXInt.h file contains internal 
+(thus the "Int") definitions used by the driver.
+
+Each driver is given a unique prefix.  "Aed" is used for Aed displays,
+"SunW" is used for the Sun window system driver, and "X11" is given
+for the X11 window system.  Multiple drivers can be created, for instance
+you could have "X11a" and "X11b" drivers.  A table near the start of
+grMain.c shows which drivers are available, and how they map to the 
+"-d" option on Magic's command line.  The Makefile must be updated, of
+course, to include the .o files for whatever drivers you wish to include.

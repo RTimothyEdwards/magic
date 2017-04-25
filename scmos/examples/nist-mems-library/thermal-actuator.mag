@@ -1,0 +1,25 @@
+magic
+tech scmos
+timestamp 760840666
+<< polysilicon >>
+rect 35 194 55 195
+rect 35 186 41 194
+rect 49 186 55 194
+rect 35 20 55 186
+rect 35 0 90 20
+<< metal1 >>
+rect 35 194 55 195
+rect 35 186 41 194
+rect 49 186 55 194
+rect 35 20 55 186
+rect 0 0 55 20
+<< polycontact >>
+rect 41 186 49 194
+<< substrateopen >>
+rect 10 200 80 220
+rect 10 40 30 200
+rect 60 40 80 200
+<< labels >>
+rlabel metal1 10 10 10 10 6 Vin
+rlabel polysilicon 80 10 80 10 6 Vout
+<< end >>

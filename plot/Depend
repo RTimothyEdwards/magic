@@ -1,0 +1,41 @@
+plotCmd.o: plotCmd.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h ../utils/utils.h \
+ ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../utils/main.h ../textio/txcommands.h ../plow/plow.h ../select/select.h \
+ ../commands/commands.h ../plot/plotInt.h
+plotGremln.o: plotGremln.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/tech.h \
+ ../utils/malloc.h ../utils/utils.h ../windows/windows.h \
+ ../commands/commands.h ../dbwind/dbwind.h ../textio/textio.h
+plotHP.o: plotHP.c ../utils/malloc.h ../plot/plotInt.h ../utils/magic.h \
+ ../utils/geometry.h
+plotPS.o: plotPS.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../utils/tech.h ../utils/malloc.h \
+ ../utils/utils.h ../windows/windows.h ../commands/commands.h \
+ ../dbwind/dbwind.h ../textio/textio.h
+plotMain.o: plotMain.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/tech.h \
+ ../utils/malloc.h ../plot/plotInt.h ../textio/textio.h ../utils/utils.h
+plotRutils.o: plotRutils.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../plot/plotInt.h \
+ ../textio/textio.h ../utils/utils.h
+plotVers.o: plotVers.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../plot/plotInt.h \
+ ../windows/windows.h ../commands/commands.h ../textio/textio.h \
+ ../utils/utils.h ../utils/tech.h ../utils/signals.h ../dbwind/dbwind.h \
+ ../cif/cif.h
+plotPixels.o: plotPixels.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../dbwind/dbwtech.h ../utils/malloc.h \
+ ../plot/plotInt.h ../windows/windows.h ../commands/commands.h \
+ ../textio/textio.h ../utils/utils.h ../utils/tech.h ../utils/signals.h \
+ ../utils/styles.h ../graphics/graphics.h ../dbwind/dbwind.h
+plotPNM.o: plotPNM.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/tech.h ../utils/malloc.h \
+ ../utils/utils.h ../utils/styles.h ../windows/windows.h \
+ ../graphics/graphics.h ../dbwind/dbwtech.h ../dbwind/dbwind.h \
+ ../utils/main.h ../commands/commands.h ../textio/textio.h \
+ ../utils/signals.h ../plot/plotInt.h

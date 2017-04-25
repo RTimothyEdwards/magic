@@ -1,0 +1,41 @@
+DBWcommands.o: DBWcommands.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/main.h \
+ ../commands/commands.h ../textio/textio.h ../textio/txcommands.h
+DBWdisplay.o: DBWdisplay.c ../utils/magic.h ../utils/malloc.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../graphics/graphics.h \
+ ../dbwind/dbwind.h ../utils/utils.h ../dbwind/dbwtech.h \
+ ../utils/styles.h ../utils/main.h ../utils/tech.h ../utils/signals.h
+DBWbuttons.o: DBWbuttons.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../windows/windows.h ../graphics/graphics.h ../dbwind/dbwind.h \
+ ../utils/styles.h ../textio/textio.h ../textio/txcommands.h \
+ ../utils/utils.h
+DBWelement.o: DBWelement.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../graphics/graphics.h \
+ ../dbwind/dbwind.h ../utils/utils.h ../utils/styles.h ../utils/malloc.h \
+ ../utils/signals.h
+DBWfdback.o: DBWfdback.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../windows/windows.h ../graphics/graphics.h ../dbwind/dbwind.h \
+ ../utils/utils.h ../utils/styles.h ../utils/malloc.h ../utils/signals.h
+DBWhlights.o: DBWhlights.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/styles.h ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../windows/windows.h ../graphics/graphics.h ../dbwind/dbwind.h \
+ ../textio/textio.h ../graphics/graphicsInt.h
+DBWprocs.o: DBWprocs.c ../utils/main.h ../windows/windows.h \
+ ../utils/magic.h ../utils/geometry.h ../database/database.h \
+ ../tiles/tile.h ../utils/hash.h ../commands/commands.h \
+ ../dbwind/dbwind.h ../graphics/graphics.h ../textio/textio.h \
+ ../textio/txcommands.h ../utils/utils.h ../utils/undo.h \
+ ../graphics/glyphs.h ../utils/malloc.h ../utils/styles.h
+DBWtools.o: DBWtools.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/styles.h ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../windows/windows.h ../graphics/graphics.h ../dbwind/dbwind.h \
+ ../textio/textio.h ../utils/main.h ../textio/txcommands.h
+DBWundo.o: DBWundo.c ../utils/magic.h ../utils/geometry.h \
+ ../windows/windows.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/main.h ../dbwind/dbwind.h \
+ ../utils/undo.h ../textio/textio.h ../commands/commands.h

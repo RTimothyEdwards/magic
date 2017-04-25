@@ -1,0 +1,45 @@
+CIFgen.o: CIFgen.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../cif/CIFint.h ../calma/calma.h \
+ ../commands/commands.h ../windows/windows.h ../select/selInt.h \
+ ../utils/stack.h ../utils/malloc.h ../utils/maxrect.h
+CIFhier.o: CIFhier.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../cif/CIFint.h ../cif/cif.h \
+ ../drc/drc.h ../textio/textio.h ../utils/undo.h ../utils/malloc.h \
+ ../utils/signals.h
+CIFmain.o: CIFmain.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../cif/CIFint.h ../textio/textio.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/styles.h
+CIFrdcl.o: CIFrdcl.c ../utils/magic.h ../utils/malloc.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h ../utils/undo.h \
+ ../database/database.h ../cif/CIFint.h ../cif/CIFread.h ../utils/utils.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/main.h ../drc/drc.h
+CIFrdpt.o: CIFrdpt.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../utils/malloc.h ../database/database.h \
+ ../windows/windows.h ../utils/main.h ../cif/CIFint.h ../cif/CIFread.h
+CIFrdpoly.o: CIFrdpoly.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../cif/CIFint.h \
+ ../cif/CIFread.h ../utils/malloc.h
+CIFrdtech.o: CIFrdtech.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/tech.h ../textio/textio.h \
+ ../utils/utils.h ../cif/CIFint.h ../cif/CIFread.h ../calma/calmaInt.h \
+ ../utils/malloc.h
+CIFrdutils.o: CIFrdutils.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../cif/CIFint.h \
+ ../cif/CIFread.h ../cif/cif.h ../textio/textio.h ../utils/signals.h \
+ ../utils/undo.h ../utils/malloc.h
+CIFsee.o: CIFsee.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../windows/windows.h \
+ ../graphics/graphics.h ../dbwind/dbwind.h ../utils/styles.h \
+ ../cif/CIFint.h ../textio/textio.h ../utils/undo.h
+CIFtech.o: CIFtech.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../utils/tech.h ../utils/utils.h \
+ ../utils/styles.h ../cif/CIFint.h ../calma/calmaInt.h ../textio/textio.h \
+ ../utils/malloc.h ../cif/cif.h ../drc/drc.h
+CIFwrite.o: CIFwrite.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/utils.h ../utils/hash.h ../database/database.h \
+ ../database/databaseInt.h ../utils/tech.h ../utils/stack.h \
+ ../utils/undo.h ../cif/cif.h ../cif/CIFint.h ../utils/signals.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/styles.h \
+ ../textio/textio.h

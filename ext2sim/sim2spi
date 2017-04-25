@@ -1,0 +1,88 @@
+#!/usr/bin/nawk -f
+# awk script to replace sim2spice!
+# Drew Wingard   June, 1988
+# modified by Peter Lim and Stefanos Sidiropoulos
+#
+#  The awk script allows spice simulation of layout from Stanford BiCMOS 
+#  Technology. To use this awk script, 
+#     1. generate a <block>.ext file from magic using ":ext"
+#     2. run ext2sim to generate <block>.sim file
+#     3. use sim2spi <block>.sim > <block>.spi to generate a spice deck.
+#     4. edit the generate spice deck as needed
+#
+# In order to recognize bipolars the ext2simBiCMOS program should be used
+# (this is no longer true --- Tim 10/10/97
+# (modified by Tim Edwards for bipolar handling w/magic 6.5.1)
+#
+# Areas and perimeters are calculated if the right ext2sim version is used
+BEGIN{
+	trimSubs = 1;
+	cnum = 1 ; bnum = 1 ; num = 1 ;
+	rnum = 1 ; xnum = 1; lumpResnum = 1 ;
+	print "* Extracted spice deck"  ;
+	print "* for su-bicmos you should get the .sim file using ext2simBiCMOS"
+	units = 1.0 ; # in microns
+}
+$1 == "|" 	{
+		   if ( $2 == "units:" ) units = $3 / 100 ;
+		   printf "* Units: %f, Technology: %s\n", units, $5;
+		}
+$1 ~ /^\|$/	{ scale = 1  }
+$1 ~ /^[Cc]$/	{ print "C"cnum , $2 , $3 , $4"fF" ; cnum = cnum + 1}
+$1 ~ /^p$/	{ 
+		  subs = "Vdd"
+		  if ( NF > 8 ) {
+			n = split($9, arr, "[=,]" );
+			subs = substr(arr[n],3,length(arr[n]));
+			if ( trimSubs ) {
+				l = length(subs);
+				if ( substr(subs,l,1) == "!" ) 
+					subs = substr(subs,1,l-1);
+			}
+		  	n = split($10, arr, "[=_,]");
+			ps = arr[n];
+			as = arr[n-2];
+		  	n = split($11, arr, "[=_,]");
+			pd = arr[n];
+			ad = arr[n-2];
+		  }
+		  print "M"num , $4 , $2 , $3 , subs, " PMOS W=" $6*units \
+		  "U L=" $5*units "U " 
+		  print "+ AD=" ad*units*units"P PD=" pd*units"U"\
+		         " AS=" as*units*units"P PS=" ps*units"U"
+		  num = num + 1}
+$1 ~ /^w$/	{ 
+		printf "Xcap%d %s %s wcap w=%fu l=%fu\n", xnum, $2, $3, \
+			$5*units,  $6*units;
+		xnum = xnum + 1;
+		}
+$1 ~ /^n$/	{ 
+		  subs = "Gnd"
+		  if ( NF > 8 ) {
+			n = split($9, arr, "[=,]" );
+			subs = substr(arr[n],3,length(arr[n]));
+			if ( trimSubs ) {
+				l = length(subs);
+				if ( substr(subs,l,1) == "!" ) 
+					subs = substr(subs,1,l-1);
+			}
+		  	n = split($10, arr, "[=_,]");
+			ps = arr[n];
+			as = arr[n-2];
+		  	n = split($11, arr, "[=_,]");
+			pd = arr[n];
+			ad = arr[n-2];
+		  }
+		  print "M"num , $4 , $2 , $3 , subs, " NMOS W=" $6*units \
+		        "U L=" $5*units "U " 
+		  print "+ AD=" ad*units*units"P PD=" pd*units"U"\
+		         " AS=" as*units*units"P PS=" ps*units"U"
+		  num = num + 1}
+
+$1 ~ /^b$/	{ print "Q"bnum , $3 , $4 , $2 " npn"
+		  bnum = bnum + 1}
+$1 ~ /^q$/	{ print "Q"bnum , $4 , $2 , $3 " 0 b1.6 " $6 - 1.6
+		  bnum = bnum + 1}
+$1 ~ /^r$/      { print "r"rnum , $2 , $3 , $4
+		  rnum = rnum + 1}
+$1 ~ /^R$/      { printf "ERROR: %s (lumped resistor not supported)\n", $0; }

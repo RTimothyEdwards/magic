@@ -1,0 +1,6 @@
+ext2sim.o: ext2sim.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/hash.h ../utils/utils.h ../tiles/tile.h \
+ ../database/database.h ../windows/windows.h ../textio/textio.h \
+ ../dbwind/dbwind.h ../commands/commands.h ../textio/txcommands.h \
+ ../extflat/extflat.h ../extract/extract.h ../utils/runstats.h \
+ ../utils/malloc.h

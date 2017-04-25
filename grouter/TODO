@@ -1,0 +1,6 @@
+When adjusting crossings involving river-routing tiles, be certain
+    to handle case where we go through several river-routing tiles
+    in a row (can happen even if river-routing channels aren't adjacent,
+    such as when density reaches its maximum in a normal channel that
+    is next to a river-routing channel).
+Look at expansion from destination at same time as from starting points.

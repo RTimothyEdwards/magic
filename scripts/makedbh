@@ -1,0 +1,189 @@
+#!/bin/csh -f
+#
+# makes the "database.h" (1st argument, $1) file from "database.h.in"
+# (2nd argument, $2), setting various mask operation definitions
+# according to the number of words implied by the value of TT_MAXTYPES
+
+# The following mess grabs the value of TT_MAXTYPES from database.h.in
+#
+set maxtypes=`sed -n -e '/^#define[[:space:]]*TT_MAXTYPES/s/#define[[:space:]]*TT_MAXTYPES[[:space:]]*//p' < $1 | sed -e 's/\/\*[[:print:]]*\*\/[[:space:]]*//g' `
+#
+# Alternative method works with outdated versions of sed/ed.
+#
+if ($maxtypes == "") then
+   set maxtypes=`sed -n -e '/^#define[ 	]*TT_MAXTYPES/s/#define[ 	]*TT_MAXTYPES[ 	]*//p' < $1 | sed -e 's/\/\*.*\*\/[ 	]*//g' `
+endif
+#
+# If we can't generate database.h correctly, nothing is going to compile.
+#
+if ($maxtypes == "") then
+   echo "Bad sed script in scripts/makedbh:  Cannot generate database/database.h!"
+   exit
+endif
+
+# Find derived values from bits per word
+# Note that bits-per-word should be determined from the compiler, but
+# 32 bits per word has always been hardwired into magic.
+#
+set bpw = 32
+
+# @ wordmask=$bpw - 1
+# set wordshift=`echo "c=l($bpw); d=l(2); scale=0; c/d" | bc -l`
+# @ maskwords=$maxtypes + $bpw - 1
+# @ maskwords/=$bpw
+
+@ maskwords=$maxtypes + $bpw - 1
+@ maskwords/=$bpw
+
+
+# Generate the main part of the database.h file from database.h.in
+cat $1 > $2
+
+# Generate a list of integers from 0 to the value of "maskwords" - 1
+set count=""
+@ maskwords--
+while (${maskwords} >= 0)
+   set count=`echo ${count} ${maskwords}`
+   @ maskwords--
+end
+
+# Definitions
+set ECHO_N = printf
+# echo -n is not POSIX, not portable to newer Bourne-shells
+
+echo "#define TTMaskZero(m) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	(m)->tt_words[$i] = 0" >> $2
+   if ($i == 0) then
+      echo ")" >> $2
+      echo "" >> $2
+   else
+      echo ", \" >> $2
+   endif
+end
+
+echo "#define TTMaskIsZero(m) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	(m)->tt_words[$i] == 0" >> $2
+   if ($i == 0) then
+      echo ")" >> $2
+      echo "" >> $2
+   else
+      echo " && \" >> $2
+   endif
+end
+
+echo "#define TTMaskEqual(m, n) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	(m)->tt_words[$i] == (n)->tt_words[$i]" >> $2
+   if ($i == 0) then
+      echo ")" >> $2
+      echo "" >> $2
+   else
+      echo " && \" >> $2
+   endif
+end
+
+echo "#define TTMaskIntersect(m, n) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	((m)->tt_words[$i] & (n)->tt_words[$i])" >> $2
+   if ($i == 0) then
+      echo ")" >> $2
+      echo "" >> $2
+   else
+      echo " || \" >> $2
+   endif
+end
+
+echo "#define TTMaskCom(m) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	((m)->tt_words[$i] = ~(m)->tt_words[$i])" >> $2
+   if ($i == 0) then
+      echo ")" >> $2
+      echo "" >> $2
+   else
+      echo ", \" >> $2
+   endif
+end
+
+echo "#define TTMaskCom2(m, n) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	((m)->tt_words[$i] = ~(n)->tt_words[$i])" >> $2
+   if ($i == 0) then
+      echo ")" >> $2
+      echo "" >> $2
+   else
+      echo ", \" >> $2
+   endif
+end
+
+echo "#define TTMaskSetMask(m, n) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	((m)->tt_words[$i] |= (n)->tt_words[$i])" >> $2
+   if ($i == 0) then
+      echo ")" >> $2
+      echo "" >> $2
+   else
+      echo ", \" >> $2
+   endif
+end
+
+echo "#define TTMaskSetMask3(m, n, o) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	((m)->tt_words[$i] |= (n)->tt_words[$i] | (o)->tt_words[$i])" \
+	>> $2
+   if ($i == 0) then
+      echo ")" >> $2
+      echo "" >> $2
+   else
+      echo ", \" >> $2
+   endif
+end
+
+echo "#define TTMaskAndMask(m, n) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	((m)->tt_words[$i] &= (n)->tt_words[$i])" >> $2
+   if ($i == 0) then
+      echo ")" >> $2
+      echo "" >> $2
+   else
+      echo ", \" >> $2
+   endif
+end
+
+echo "#define TTMaskAndMask3(m, n, o) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	((m)->tt_words[$i] = (n)->tt_words[$i] & (o)->tt_words[$i])" \
+	>> $2
+   if ($i == 0) then
+      echo ")" >> $2
+      echo "" >> $2
+   else
+      echo ", \" >> $2
+   endif
+end
+
+echo "#define TTMaskClearMask(m, n) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	((m)->tt_words[$i] &= ~(n)->tt_words[$i])" >> $2
+   if ($i == 0) then
+      echo ")" >> $2
+      echo "" >> $2
+   else
+      echo ", \" >> $2
+   endif
+end
+
+echo "#define TTMaskClearMask3(m, n, o) ( \" >> $2
+foreach i (${count})
+   ${ECHO_N} "	((m)->tt_words[$i] = (n)->tt_words[$i] & ~(o)->tt_words[$i])" \
+	>> $2
+   if ($i == 0) then
+      echo ")" >> $2
+   else
+      echo ", \" >> $2
+   endif
+end
+
+echo "" >> $2
+echo "#endif /* _DATABASE_H */" >> $2

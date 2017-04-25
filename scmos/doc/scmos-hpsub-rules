@@ -1,0 +1,85 @@
+********************************************************************
+** Notes for the use of special Magic technology file "scmos-sub" **
+**   for HP's CMOS26G process with lambda = 0.4 micron.           **
+**   for HP's CMOS14B process with lambda = 0.3 micron.           **
+********************************************************************
+
+To submit a design in this technology, please specify "SCN3M_SUBM"
+in your technology field when triple metals are used in the design.
+If your design use only double metals, please use 'SCN_SUBM'.
+
+The following set of rules in conventional MOSIS SCMOS technology has
+been modified in order to better match HP's submicron CMOS processes,
+specifically, CMOS26G and CMOS14TB.
+
+======================================================================
+  Description   Rule #        SCMOS         SCMOS       SCMOS_SUBM
+                                        (Tight Metal) (submicron rules)
+======================================================================
+WELL_W           1.1            10           10          12 (4.8)
+WELL_S_DIFF      1.2             9            9          18 (7.2)
+WELL_O_ACT_XTOR  2.3             5            5           6 (2.4)
+WELL_S_ACT_XTOR  2.3             5            5           6 (2.4)
+POLY_S           3.2             2            2           3 (1.2)
+CON_S            5B.3,6B.3       2            2           3 (1.2)
+M1_W             7.1             3            3           3 (1.2)
+M1_S             7.2             3            2           3 (1.2)
+M2_W             9.1             3            3           3 (1.2)
+M2_S             9.2             4            3           3 (1.2)
+M3_W             15.1            6            6           5 (2.0)
+M3_S             15.2            4            4           3 (1.2)
+======================================================================
+
+The HP CMOS26G process is a derivative of the HP CMOS26B process with
+most of the rules intact except a 3.5 micron metal3 pitch (reduced
+from previous 5.0 micron pitch). Please refer to the on-line process
+specification file more detal -
+(ftp://ftp.mosis.edu:pub/mosis/vendors/hp-cmos26b-g/scn08-hp-specs.inf)
+
+The HP CMOS14TB process is a low-voltage (3.3Volt) CMOS one-poly,
+three-metal process with 0.6 micron minimum drawn channel length.
+Please refer to the on-line process specification file more detal -
+(ftp://ftp.mosis.edu:pub/mosis/vendors/hp-cmos14b/scn06_hp_specs.inf)
+
+A special Magic technology file is prepared for designs targeted
+for this process - "scmos-sub". The beta version of this technology
+file can be obtained on our anonymous FTP server ftp.mosis.edu
+(128.9.0.32) under pub/mosis/magic directory. Two files are there for
+your retrieval:
+
+  (1) scmos-sub.tech
+  (2) scmos-sub.tech26
+
+You'll have to install the second file (with C-style comments removed)
+in the usual Magic library directory to be able to use it.
+
+********************************************************************
+** TIPS for the transformation of traditional SCMOS layout to     **
+**   SCMOS-SUB layout                                             **
+********************************************************************
+
+Most of the problems happens in the following cases:
+
+ (1) Poly spacing is now 3 lambda instead of 2 lambda previously.
+     You'll have to stretch the seriously-connected MOSFETs now.
+ (2) contact spacing is now 3 instead of 2 previously. This should be
+     taken care of automatically by the CIF output generator. but it
+     now requires the designer to use special sized contacts
+     (ndc,pdc,nsc,psc,pc) so that the resulting contacts will be on
+     the grid. You should verify this by the use of ":cif see CCA"
+     command.
+ (3) Due to the 3 lambda spacing rule for contacts, previously abutted
+     diffusion/substrate contacts now have to be separated by one
+     lambda.
+
+I have the follwoing three files to illustrate the necessary changes
+as described above:
+
+ (1) scmos-div4.mag    : standard SCMOS divide-by-4 cell.
+ (2) hp26g-div4-v1.mag : HP CMOS26G divide-by-4 cell with DRC
+              violation of diffusion/substrate contact spacing rule.
+ (3) hp26g-div4-v2.mag : correct CMOS26G divide-by-4 cell.
+
+they can be obtained at the same FTP site under pub/pi/layout/hp26g
+directory.
+

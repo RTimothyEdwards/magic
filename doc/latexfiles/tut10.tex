@@ -1,0 +1,580 @@
+%----------------------------------------------------------------------------
+% Magic tutorial number 10
+%----------------------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\documentclass[letterpaper,twoside,12pt]{article}
+\usepackage{epsfig,times}
+
+\setlength{\textwidth}{8.5in}
+\addtolength{\textwidth}{-2.0in}
+\setlength{\textheight}{11.0in}
+\addtolength{\textheight}{-2.0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0pt}
+\setlength{\topmargin}{-0.5in}
+\setlength{\headheight}{0.2in}
+\setlength{\headsep}{0.3in}
+\setlength{\topskip}{0pt}
+
+\def\hinch{\hspace*{0.5in}}
+\def\starti{\begin{center}\begin{tabbing}\hinch\=\hinch\=\hinch\=hinch\hinch\=\kill}
+\def\endi{\end{tabbing}\end{center}}
+\def\ii{\>\>\>}
+\def\mytitle{Magic Tutorial \#10: The Interactive Router}
+
+%----------------------------------------------------------------------------
+
+\begin{document}
+
+\makeatletter
+\newcommand{\ps@magic}{%
+	\renewcommand{\@oddhead}{\mytitle\hfil\today}%
+	\renewcommand{\@evenhead}{\today\hfil\mytitle}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\newcommand{\ps@mplain}{%
+	\renewcommand{\@oddhead}{}%
+	\renewcommand{\@evenhead}{}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\makeatother
+\pagestyle{magic}
+\thispagestyle{mplain}
+
+
+\begin{center}
+  {\bfseries \Large \mytitle} \\
+  \vspace*{0.5in}
+  {\itshape Michael Arnold} \\
+  \vspace*{0.5in}
+   O Division \\
+   Lawrence Livermore National Laboratory \\
+   Livermore, CA  94550 \\
+  \vspace*{0.25in}
+  This tutorial corresponds to Magic version 7. \\
+\end{center}
+\vspace*{0.5in}
+
+{\noindent\bfseries\large Tutorials to read first:}
+\starti
+   \> Magic Tutorial \#1: Getting Started \\
+   \> Magic Tutorial \#2: Basic Painting and Selection \\
+   \> Magic Tutorial \#4: Cell Hierarchies
+\endi
+
+{\noindent\bfseries\large Commands introduced in this tutorial:}
+\starti
+   \> :iroute
+\endi
+
+{\noindent\bfseries\large Macros introduced in this tutorial:}
+
+\starti
+   \> \^{}R, \^{}N
+\endi
+
+\vspace*{0.25in}
+\section{Introduction}
+
+The Magic interactive router, {\itshape Irouter}, provides an interactive interface
+to Magic's internal maze router.  It is intended as an aid to manual
+routing.  Routing is done one connection at a time, the user specifying 
+a starting point and destination areas prior to each connection.  The user 
+determines the order in which signals are routed and how multi-point nets
+are decomposed into point-to-area connections.  In addition parameters and
+special Magic {\itshape hint} layers permit the user to control the nature
+of the routes.  Typically the user determines the overall path of a connection,
+and leaves the details of satisfying the design-rules, and detouring around or 
+over minor obstacles, to the router.
+
+The interactive router is not designed for fully 
+automatic routing:  interactions between nets 
+are not considered, and net decomposition is 
+not automatic.  Thus netlists are generally
+not suitable input for the Irouter.  However it can be convenient to obtain
+endpoint information from netlists.  The {\itshape Net2ir} program uses
+netlist information to generate commands 
+to the Irouter with appropriate endpoints for specified
+signals.  Typically a user might
+setup parameters and hints to river-route a set of connections,
+and then generate Irouter commands with the appropriate endpoints via
+Net2ir.  For details on Net2ir see the
+manual page {\itshape net2ir(1)}.
+
+This tutorial provides detailed information on the use 
+of the Irouter.  On-line help, Irouter 
+subcommands, Irouter parameters, and hint-layers are explained.
+
+\section{Getting Started---`Cntl-R', `Cntl-N', `:iroute' and `:iroute help'}
+
+To make a connection with the Irouter, place the cursor over one
+end of the desired connection (the {\itshape start-point}) and the box at the
+other end (the {\itshape destination-area}).  Then type
+
+\starti
+   \ii {\bfseries Cntl-R}
+\endi
+
+Note that the box must be big 
+enough to allow the route to terminate entirely within it.  A 
+design-rule correct connection between the cursor and the box should 
+appear.  The macro 
+
+\starti
+   \ii {\bfseries Cntl-R}
+\endi
+
+and the long commands
+
+\starti
+   \ii {\bfseries :iroute} \\
+   \ii {\bfseries :iroute route}
+\endi
+
+are all equivalent.  They invoke the Irouter to connect the cursor with
+the interior of the box.  Note that the last connection is always left
+selected.   This allows further terminals to be
+connected to the route with the second Irouter macro, {\bfseries Cntl-N}.  Try
+typing
+
+\starti
+   \ii {\bfseries Cntl-N}
+\endi
+
+A connection between the cursor and the previous route should appear.  In
+general {\bfseries Cntl-N} routes from the cursor to the selection.
+
+There are a number of commands to set parameters and otherwise interact with
+the Irouter.  These commands have the general form
+
+\starti
+   \ii {\bfseries :iroute}{\itshape  subcommand }[{\itshape arguments}]
+\endi
+
+For a list of subcommands and a short description of each, type
+
+\starti
+   \ii {\bfseries :iroute help}
+\endi
+
+Usage information on a subcommand can be obtained by typing
+
+\starti
+   \ii {\bfseries :iroute help }[{\itshape subcommand}]
+\endi
+
+As with Magic in general, unique abbreviations of subcommands and most of their
+arguments are permitted.  Case is generally ignored.
+
+\section{:Undo and Cntl-C}
+
+As with other Magic commands, the results of {\bfseries :iroute} can be undone
+with {\bfseries :undo}, and if the Irouter is taking too long it can be interrupted
+with {\bfseries Cntl-C}.  This makes it easy to refine the results of the Irouter
+by trial and error.  If you don't like the
+results of a route, undo it, tweak the Irouter parameters or hints you are
+using and try again.  If the Irouter is taking too long, you can very
+likely speed things up by interrupting it, resetting 
+performance related parameters, and trying again.  The details of 
+parameters and
+hints are described later in this document.
+
+\section{More about Making Connections---`:iroute route'}
+
+Start points for routes can be specified via the cursor, 
+labels, or coordinates.  Destination areas can be specified via the box,
+labels, coordinates or the selection.  In addition start and destination
+layers can be specified explicitly.  For the syntax of all these options
+type
+
+\starti
+   \ii {\bfseries :iroute help route}
+\endi
+
+When a start point lies on top of existing geometry
+it is assumed that a connection to that material is desired.  If this is
+not the case, the desired starting layer must be explicitly
+specified.  When routing to the selection it is assumed that connection
+to the selected material is desired.  By default, routes to the box 
+may terminate on any active route layer.  If you are having trouble connecting 
+to a large region, it may
+be because the connection point or area is too far in the interior of the
+region.  Try moving it toward the edge.  (Alternately see the discussion
+of the {\itshape penetration} parameter in the wizard section below.)
+
+\section{Hints}
+
+Magic has three built-in layers for graphical 
+control of the Irouter, {\bfseries fence} ({\bfseries f}), 
+{\bfseries magnet} ({\bfseries mag}), and {\bfseries rotate}
+({\bfseries r}).  These layers
+can be painted and erased just like other Magic layers.  The effect 
+each has on the Irouter is described below.
+
+\subsection{The Fence Layer}
+
+The Irouter won't cross fence boundaries.  Thus the fence layer is useful
+both for carving out routing-regions and for blocking routing in given
+areas.  It is frequently useful to indicate the broad path of one or
+a series of routes with fence.  In addition to guiding the route, the
+use of fences can greatly speed up the router by limiting the search.
+
+\subsection{The Magnet Layer}
+
+Magnets attract the route.  They can be used to pull routes in a
+given direction, e.g., towards one edge of a channel.  Over use of
+magnets can make routing slow.  In particular magnets that are long and
+far away from the actual route can cause performance problems.  (If
+you are having problems with magnets and performance, see also the 
+discussion of the {\itshape penalty} parameter in the wizard section below.)
+
+\subsection{The Rotate Layer}
+
+The Irouter associates different weights with horizontal and vertical
+routes (see the layer-parameter section below).  This is so that 
+a preferred routing direction can be established for each layer.  When
+two good route-layers are available (as in a two-layer-metal process)
+interference between routes can be minimized by assigning opposite
+preferred directions to the layers.
+
+The rotate layer locally inverts the preferred directions.  An example
+use of the rotate layer might involve an {\bfseries L}-shaped bus.
+The natural preferred directions on one leg of the {\bfseries L} are the opposite
+from the other, and thus one leg needs to be 
+marked with the rotate layer.
+
+\section{Subcells}
+
+As with painting and other operations in Magic, the Irouter's
+output is written to the cell being edited.  What the router sees, that
+is which features act as obstacles, is determined by the
+window the route is issued to (or other designated reference window -
+see the wizard
+section.)  The contents of subcells expanded in the route window 
+are visible to the Irouter, but it only sees the bounding boxes
+of unexpanded subcells.  These bounding boxes appear on a special 
+{\bfseries SUBCELL}  pseudo-layer.  The spacing parameters to the {\bfseries SUBCELL}
+layer determine exactly how the Irouter treats unexpanded subcells.
+(See the section on spacing parameters below.)  By default, the
+spacings to the {\bfseries SUBCELL} layer are large enough to guarantee that
+no design-rules will be violated, regardless of the contents of 
+unexpanded subcells.  Routes can be terminated
+at unexpanded subcells in the same fashion that connections to 
+other pre-existing features are made.
+
+\section{Layer Parameters---`:iroute layers'}
+
+{\itshape Route-layers}, specified in the {\bfseries mzrouter} section of the
+technology file, are the layers potentially available
+to the Irouter for routing.  The {\bfseries layer} subcommand gives access
+to parameters associated with these route-layers.   Many of the
+parameters are weights for factors in the Irouter cost-function.  The
+Irouter strives for the cheapest possible route.  Thus the balance between
+the factors in the cost-function determines the character of the
+routes:  which layers are used in which directions, and the number of
+contacts and jogs can be controlled in this way.  But
+be careful!  Changes in these parameters can also
+profoundly influence performance.  Other parameters determine 
+which of the route-layers are actually available for routing and
+the width of routes on each layer.  It is a good idea to inactivate
+route-layers not being used anyway, as this speeds up routing.
+
+The layers subcommand takes a variable number of arguments.
+
+\starti
+   \ii {\bfseries :iroute layers}
+\endi
+
+prints a table with one row for each route-layer giving all parameter
+values.
+
+\starti
+   \ii {\bfseries :iroute layers}{\itshape  type}
+\endi
+
+prints all parameters associated with route-layer {\itshape type}.
+
+\starti
+   \ii {\bfseries :iroute layers}{\itshape  type parameter}
+\endi
+
+prints the value of {\itshape parameter} for layer {\itshape type}.
+If {\itshape type} is `{\bfseries *}', the value of {\itshape parameter}
+is printed for all layers.
+
+\starti
+   \ii {\bfseries :iroute layers} {\itshape type parameter value}
+\endi
+
+sets {\itshape parameter} to {\itshape value} on layer {\itshape type}.
+If {\itshape type} is `{\bfseries *}', {\itshape parameter} is set to
+{\itshape value} on all layers.
+
+\starti
+   \ii {\bfseries :iroute layers} {\itshape type} {\bfseries *}
+	{\itshape  value1 value2 }\dots{\itshape  valuen}
+\endi
+
+sets a row in the parameter table.
+
+\starti
+   \ii {\bfseries :iroute layers *}{\itshape  parameter value1 \dots valuen} 
+\endi
+
+sets a column in the table.
+
+There are six layer parameters.
+
+\begin{itemize}
+   \item {\bfseries active} \\
+	Takes the value of {\bfseries YES} (the default) or {\bfseries NO}.  Only
+	active layers are used by the Irouter.
+
+   \item {\bfseries width} \\
+	Width of routing created by the Irouter on the given layer.  The
+	default is the minimum width permitted by the design rules.
+
+   \item {\bfseries hcost} \\
+	Cost per unit-length for horizontal segments on this layer.
+
+   \item {\bfseries vcost} \\
+	Cost per unit-length for vertical segments.
+
+   \item {\bfseries jogcost} \\
+	Cost per jog (transition from horizontal to vertical segment).
+
+   \item {\bfseries hintcost} \\
+	Cost per unit-area between actual route and magnet segment.  
+\end{itemize}
+
+\section{Contact Parameters---`:iroute contacts'}
+
+The {\bfseries contacts} subcommand gives access to a table of parameters for 
+contact-types used in routing, one row of parameters per type.  The syntax is 
+identical to that of the {\bfseries layers} subcommand described above, and 
+parameters are printed and set in the same way.
+
+There are three contact-parameters.
+
+\begin{itemize}
+   \item {\bfseries active} \\
+	Takes the value of {\bfseries YES} (the default) or {\bfseries NO}.  Only
+	active contact types are used by the Irouter.
+
+   \item {\bfseries width} \\
+	Diameter of contacts of this type created by the Irouter.  The
+	default is the minimum width permitted by the design-rules.
+
+   \item {\bfseries cost} \\
+	Cost per contact charged by the Irouter cost-function.
+\end{itemize}
+
+\section{Spacing Parameters---`:iroute spacing'}
+
+The spacing parameters specify minimum
+spacings between the route-types
+(route-layers and route-contacts) and arbitrary Magic types.
+These spacings are the design-rules
+used internally by the Irouter during routing.  Default
+values are derived from the {\bfseries drc} section
+of the technology file.  These values can be
+overridden in the {\bfseries mzrouter} section of the 
+technology file.  (See the {\itshape Magic Maintainers Manual on Technology Files}
+for details.)  Spacings can be examined and changed at any
+time with the {\bfseries spacing} subcommand.  Spacing values can
+be {\bfseries nil}, {\bfseries 0}, or positive integers.  A value of {\bfseries nil}
+means there is no spacing constraint between the route-layer and the given type.  A
+value of {\bfseries 0} means the route-layer may not overlap the given type.  If
+a positive value is specified, the Irouter will maintain the
+given spacing between new routing on the specified 
+route-layer and pre-existing features of the specified type (except when
+connecting to the type at an end-point of the new route).
+
+The {\bfseries spacing} subcommand takes several forms.
+
+\starti
+   \ii {\bfseries :iroute spacing}
+\endi
+
+prints spacings for all route-types.  (Nil spacings are omitted.)
+
+\starti
+   \ii {\bfseries :iroute spacing} {\itshape route-type}
+\endi
+
+prints spacings for {\itshape route-type}.  (Nil spacings are omitted.)
+
+\starti
+   \ii {\bfseries :iroute spacing} {\itshape route-type type}
+\endi
+
+prints the spacing between {\itshape route-type} and {\itshape type}.
+
+\starti
+   \ii {\bfseries :iroute spacing} {\itshape route-type type value}
+\endi
+
+sets the spacing between {\itshape route-type} and {\itshape type} to {\itshape value}.
+
+The spacings associated with each route-type are 
+the ones that are observed when the
+Irouter places that route-type.  To change the spacing between two 
+route-types, two spacing parameters must be changed:  the spacing to
+the first type when routing on the second, and the spacing to
+the second type when routing on the first.
+
+Spacings to the {\bfseries SUBCELL} pseudo-type give the minimum spacing between
+a route-type and unexpanded subcells.  The {\bfseries SUBCELL} spacing for a given
+route-layer defaults to the maximum spacing to the route-layer required
+by the design-rules (in the
+{\bfseries drc} section of the technology file).  This ensures that
+no design-rules will be violated regardless of the contents of the
+subcell.  If subcell designs are constrained in a fashion that permits
+closer spacings to some layers, the {\bfseries SUBCELL} spacings can be
+changed to take advantage of this.
+
+\section{Search Parameters---`:search'}
+
+The Mzrouter search is windowed.  Early in the search only partial paths 
+near the start point are considered; as the search progresses the window
+is moved towards the goal.  This prevents combinatorial explosion during
+the search, but still permits the exploration of alternatives at all stages.
+The {\bfseries search} subcommand permits access to two parameters
+controlling the windowed search, {\bfseries rate}, and {\bfseries width}.  The {\bfseries rate}
+parameter determines how fast the window is shifted towards the goal, and
+the {\bfseries width} parameter gives the width of the window.  The units are
+comparable with those used in the cost parameters.  If the router is taking
+too long to complete, try increasing {\bfseries rate}.  If the router is
+choosing poor routes, try decreasing {\bfseries rate}.  The window width should
+probably be at least twice the rate. 
+
+The subcommand has this form:
+
+\starti
+   \ii {\bfseries :iroute search} [{\itshape parameter}] [{\itshape value}]
+\endi
+
+If {\itshape value} is omitted, the current value is printed, if {\itshape parameter}
+is omitted as well, both parameter values are printed.
+
+\section{Messages---`:iroute verbosity'}
+
+The number of messages printed by the Irouter is controlled by 
+
+\starti
+   \ii {\bfseries :iroute verbosity}{\itshape  value}
+\endi
+
+If verbosity is set to {\bfseries 0}, only errors and warnings 
+are printed.  A value
+of {\bfseries 1} (the default) results in short messages.
+A value of {\bfseries 2} causes statistics to be printed.
+
+\section{Version---`:iroute version'}
+ 
+The subcommand
+
+\starti
+   \ii {\bfseries :iroute version}
+\endi
+
+prints the Irouter version in use.
+
+\section{Saving and Restoring Parameters---`:iroute save'}
+
+The command
+
+\starti
+   \ii {\bfseries :iroute save} {\itshape file}{\bfseries .ir}
+\endi
+
+saves away the current settings of all the Irouter parameters in file
+{\itshape file}{\bfseries .ir}.  Parameters can be reset to these values
+at any time with the command
+
+\starti
+   \ii {\bfseries :source} {\itshape file}{\bfseries .ir}
+\endi
+
+This feature can be used to setup parameter-sets appropriate to different
+routing contexts.  Note that the extension {\bfseries .ir} is recommended 
+for Irouter parameter-files.
+
+\section{Wizard Parameters---`:iroute wizard'}
+
+Miscellaneous parameters that are probably not of interest 
+to the casual user are
+accessed via the {\bfseries wizard} subcommand.  The parameters are as follows:
+
+\begin{itemize}
+\item {\bfseries bloom}
+Takes on a non-negative integer value.  This controls the amount of
+compulsory searching from a focus, before the next focus is picked
+based on the cost-function and window position.  In practice {\bfseries 1} 
+(the default value)
+seems to be the best value.  This parameter may be removed in the future.
+
+\item {\bfseries boundsIncrement}
+Takes on the value {\bfseries AUTOMATIC} or a positive integer.  Determines in
+what size chunks the layout is preprocessed for routing.  This
+preprocessing (blockage generation) takes a significant fraction of the
+routing time, thus performance may well be improved by experimenting with
+this parameter.
+
+\item {\bfseries estimate}
+Takes on a boolean value.  If {\bfseries ON} (the default) an estimation plane 
+is generated prior to each route that permits 
+cost-to-completion estimates to factor in subcells and fence regions.  This
+can be very important to efficient routing.  Its rarely useful to turn
+estimation off.
+
+\item {\bfseries expandDests}
+Takes on a boolean value.  If {\bfseries ON} (not the default) destination areas
+are expanded to include all of any nodes they overlap.  This is particularly
+useful if the Irouter is being invoked from a script, since it is 
+difficult to determine optimal destination areas automatically.
+
+\item {\bfseries penalty}
+Takes on a rational value (default is 1024.0).  It is not strictly
+true that the router searches only within its window.  Paths behind
+the window are also considered, but with cost penalized by the 
+product of their distance to the window
+and the penalty factor.  It was originally thought that small
+penalties might be desirable, but experience, so far, has shown that large
+penalties work better.  In particular it is important that the ratio between
+the actual cost of a route and the initial estimate is less than the
+value of {\bfseries penalty}, otherwise the search can explode (take 
+practically forever).  If you suspect this is happening, you can set
+{\bfseries verbosity} to {\bfseries 2} to check, or just increase the value
+of {\bfseries penalty}.  In summary it appears that the value of penalty doesn't
+matter much as long as it is large (but not so large as to cause 
+overflows).  It will probably be removed in the future.
+
+\item {\bfseries penetration}
+This parameter takes the value {\bfseries AUTOMATIC} or a positive integer.  It
+determines how far into a blocked area the router will
+penetrate to make a connection.  Note however the router will in no case
+violate spacing constraints to nodes not involved in the route.
+
+\item {\bfseries window}
+This parameter takes the value {\bfseries COMMAND} (the default) or a window id 
+(small integers).  It determines the reference window for routes.  The router
+sees the world as it appears in the reference window, e.g., it sees the
+contents of subcells expanded in the reference window.  If {\bfseries window}
+is set to {\bfseries COMMAND} the reference window is the one that contained the
+cursor when the route was invoked.  To set the reference window to a fixed
+window, place the cursor in that window and type:
+\starti
+   \ii {\bfseries :iroute wizard window .}
+\endi
+\end{itemize}
+
+\begin{thebibliography}{1}
+   \bibitem{arnold} M.H. Arnold and W.S. Scott,
+	\newblock ``An Interactive Maze Router with Hints'',
+	\newblock {\itshape Proceedings of the 25th Design Automation Conference},
+	\newblock June 1988, pp. 672--676.
+\end{thebibliography}
+
+\end{document}

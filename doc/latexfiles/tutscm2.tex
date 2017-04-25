@@ -1,0 +1,269 @@
+%----------------------------------------------------------------------------
+% Magic tutorial number S-2
+%----------------------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\documentclass[letterpaper,twoside,12pt]{article}
+\usepackage{epsfig,times}
+
+\setlength{\textwidth}{8.5in}
+\addtolength{\textwidth}{-2.0in}
+\setlength{\textheight}{11.0in}
+\addtolength{\textheight}{-2.0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0pt}
+\setlength{\topmargin}{-0.5in}
+\setlength{\headheight}{0.2in}
+\setlength{\headsep}{0.3in}
+\setlength{\topskip}{0pt}
+
+\def\hinch{\hspace*{0.5in}}
+\def\starti{\begin{center}\begin{tabbing}\hinch\=\hinch\=\hinch\=hinch\=\hinch\=\kill}
+\def\endi{\end{tabbing}\end{center}}
+\def\ii{\>\>\>}
+\def\q{\special{ps:(") show}\hspace*{0.6em}}
+\def\mytitle{Magic Tutorial \#S-2: Boxes and labels}
+
+%----------------------------------------------------------------------------
+
+\begin{document}
+
+\makeatletter
+\newcommand{\ps@magic}{%
+	\renewcommand{\@oddhead}{\mytitle\hfil\today}%
+	\renewcommand{\@evenhead}{\today\hfil\mytitle}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\newcommand{\ps@mplain}{%
+	\renewcommand{\@oddhead}{}%
+	\renewcommand{\@evenhead}{}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\makeatother
+\pagestyle{magic}
+\thispagestyle{mplain}
+
+
+\begin{center}
+  {\bfseries \Large \mytitle} \\
+  \vspace*{0.5in}
+  {\itshape Rajit Manohar} \\
+  \vspace*{0.5in}
+   Department of Computer Science \\
+   California Institute of Technology \\
+   Pasadena, CA  91125 \\
+  \vspace*{0.25in}
+  This tutorial corresponds to Magic version 7. \\
+\end{center}
+\vspace*{0.5in}
+
+{\noindent\bfseries\large Tutorials to read first:}
+\starti
+   \> Magic Tutorial \#S-1: The scheme command-line interpreter
+\endi
+
+{\noindent\bfseries\large Commands introduced in this tutorial:}
+\starti
+   \> :getbox, :box.push, :box.pop, :box.move, :label.vert, :label.horiz, \\
+   \> :label.rename, :label.search, :label.find-next
+\endi
+
+{\noindent\bfseries\large Macros introduced in this tutorial:}
+
+\starti
+   \> {\itshape (None)}
+\endi
+
+\vspace*{0.25in}
+\section{The current box}
+
+The fundamental way scheme programs interact with magic layout is by
+using magic's {\bfseries box} command. For instance,
+
+\starti
+   \ii {\bfseries (box 1 1 2 2)}
+\endi
+
+changes the current box to the rectangle defined by the coordinates
+(1,1) and (2,2) in the current edit cell. This is the standard magic
+{\bfseries :box} command. After moving the box to a particular position in
+the layout, the area can be painted, erased, selected, etc.
+
+
+The scheme function {\bfseries getbox} returns the current box as a list of
+four integers. For instance,
+
+\starti
+   \ii {\bfseries (box 1 1 2 2)} \\
+   \ii {\bfseries (define x (getbox))}
+\endi
+
+
+will bind the list {\bfseries (1 1 2 2)} to variable {\bfseries x}.
+
+\section{Saving and restoring the box}
+
+If a scheme function moves the current box around, it is good practice
+to restore the box back to its original position. This is especially
+useful when writing a function that the user is likely to type on the
+command line.
+
+{\bfseries box.push} can be used to push a box onto the current stack of
+boxes. {\bfseries box.pop} restores the box to the one on the top of the box
+stack. The sequence
+
+\starti
+   \ii {\bfseries (box.push (getbox))} \\
+   \ii {\bfseries (box 1 1 5 4)} \\
+   \ii {\bfseries (paint poly)} \\
+   \ii {\bfseries (box.pop)}
+\endi
+
+will paint a rectangle of polysilicon from (1,1) to (5,4), restoring
+the original position of the box.
+
+\section{Moving the box}
+
+Magic's built-in {\bfseries move} command is not entirely
+reliable. Sometimes move commands are ignored, with disastrous
+effects. (Think about what might happen if a move command was ignored
+in the middle of drawing a stack of twenty transistors . . .) The
+scheme function {\bfseries box.move} moves the box relative to the current
+position.
+
+\starti
+   \ii {\bfseries (box.move 5 3)}
+\endi
+
+will move the box right 5 lambda and up 3 lambda.
+
+\section{Labelling vertical and horizontal wires}
+
+Datapaths are usually designed by designing cells for a single bit of
+the datapath, and then arraying those cells to obtain the complete
+datapath. When simulating such designs, it is usually desirable to
+label wires in the datapath with names like ``name0'', ``name1'', up to
+``nameN.''
+
+There are two functions that can be used to perform such a task. The
+function {\bfseries label.vert} returns a function that can be used as a
+labeller for vertically arrayed nodes. {\bfseries label.horiz} returns a
+function that can be used as a labeller for horizontally arrayed
+nodes.
+
+\starti
+   \ii {\bfseries (define lbl (label.vert {\q}name{\q} 6)}
+\endi
+
+The command above defines a new function {\bfseries lbl} that can be used to
+generate labels beginning with {\q}name0{\q} for nodes that are vertically
+spaced by 6 lambda. The simplest way to use this function is to bind
+it to a macro as follows:
+
+\starti
+   \ii {\bfseries (macro 1 {\q}lbl{\q})}
+\endi
+
+Place the box over the lowest node. Every time key ``1'' is pressed, a
+new label ``nameM'' is created and the box is moved up by 6
+lambda. {\bfseries label.horiz} can be used in a similar fashion for
+labelling nodes that are horizontally arrayed.
+
+\section{Finding and renaming existing labels}
+
+The label macros provide functionality to search for all labels
+that match a particular string. Place the box over the region of
+interest. Type:
+
+\starti
+   \ii {\bfseries (label.search {\q}label{\q})}
+\endi
+
+To place the box over the first occurrence of the label you searched
+for, type:
+
+\starti
+   \ii {\bfseries (label.find-next)}
+\endi
+
+Repeatedly executing this function causes the box to move to all the
+labels that match the search pattern. Typically, one would bind 
+{\bfseries label.find-next} to a macro.
+
+The command {\bfseries label.rename} can be used to rename all labels with a
+particular name. To use this command, place the box over the region of
+interest. Then type
+
+\starti
+   \ii {\bfseries (label.rename {\q}label1{\q} {\q}label2{\q})}
+\endi
+
+
+All occurrences of label ``label1'' in the current box will be
+renamed to ``label2''.
+
+\section{Writing these functions}
+
+The functions discussed in this tutorial are not built-in. They are
+user-defined functions in the default scheme file loaded in when magic
+starts.
+
+As you begin to use magic with the scheme command-line interpreter,
+you will observe that commands for drawing paint on the screen are
+extremely slow. This time interval is not normally noticeable because
+editing is interactive. However, when one can write a scheme program
+to draw twenty transistors on the screen, this delay becomes
+noticeable. It is worthwhile to minimize the number of magic commands
+executed, even if this involves writing more scheme code. The
+{\bfseries box-pop} command has been tuned a little to not execute the
+{\bfseries box} command if the box would not move as a result.
+
+\bfseries
+\starti
+\> (define box.list ()) \\ \\
+
+\> (define box.move \\
+\>\>   (lambda (dx dy) \\
+\ii     (let* ((x (getbox)) \\
+\ii\> 	      (nllx (+ dx (car x))) \\
+\ii\> 	      (nlly (+ dy (cadr x))) \\
+\ii\> 	      (nurx (+ dx (caddr x))) \\
+\ii\> 	      (nury (+ dy (cadddr x)))) \\
+\ii     (box nllx nlly nurx nury) \\
+\ii    ) \\
+\>\>  ) \\
+\>   ) \\ \\
+
+\>   (define box.=? \\
+\>\>   (lambda (b1 b2) \\
+\ii      (and (and (=? (car b1) (car b2)) (=? (cadr b1) (cadr b2))) \\
+\ii\>	      (and (=? (caddr b1) (caddr b2)) (=? (caddr b1) (caddr b2))) \\
+\ii	 ) \\
+\>\>   ) \\
+\>   ) \\ \\
+
+\> (define box.push \\
+\>\>   (lambda (pos) \\
+\ii	(set! box.list (cons pos box.list)) \\
+\>\>  ) \\
+\> )
+\endi
+
+
+\starti
+\> (define box.pop \\
+\>\>  (lambda () \\
+\ii      (if (null? box.list) \\
+\ii\>	    (echo {\q}Box list is empty{\q}) \\
+\ii\>	    (let ((x (car box.list))) \\
+\ii\>\>	       (begin  \\
+\ii\>\>        (set! box.list (cdr box.list)) \\
+\ii\>\>        (if (box.=? x (getbox)) \#t (eval (cons 'box x))) \\
+\ii\>\>	    ) \\
+\ii\>	 ) \\
+\ii    ) \\
+\>\> ) \\
+\> )
+\endi
+
+\end{document}

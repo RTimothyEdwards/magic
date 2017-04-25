@@ -1,0 +1,202 @@
+%----------------------------------------------------------------------------
+% Magic Maintainer's Manual number 4
+%----------------------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\documentclass[letterpaper,twoside,12pt]{article}
+\usepackage{epsfig,times}
+
+\setlength{\textwidth}{8.5in}
+\addtolength{\textwidth}{-2.0in}
+\setlength{\textheight}{11.0in}
+\addtolength{\textheight}{-2.0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0pt}
+\setlength{\topmargin}{-0.5in}
+\setlength{\headheight}{0.2in}
+\setlength{\headsep}{0.3in}
+\setlength{\topskip}{0pt}
+
+\def\hinch{\hspace*{0.5in}}
+\def\starti{\begin{center}\begin{tabbing}\hinch\=\hinch\=\hinch\=hinch\hinch\=\kill}
+\def\endi{\end{tabbing}\end{center}}
+\def\ii{\>\>\>}
+\def\mytitle{Magic Maintainer's Manual \#4: Using Magic Under X Windows}
+
+%----------------------------------------------------------------------------
+
+\begin{document}
+
+\makeatletter
+\newcommand{\ps@magic}{%
+	\renewcommand{\@oddhead}{\mytitle\hfil\today}%
+	\renewcommand{\@evenhead}{\today\hfil\mytitle}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\newcommand{\ps@mplain}{%
+	\renewcommand{\@oddhead}{}%
+	\renewcommand{\@evenhead}{}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\makeatother
+\pagestyle{magic}
+\thispagestyle{mplain}
+
+
+\begin{center}
+  {\bfseries \Large \mytitle} \\
+  \vspace*{0.5in}
+  {\itshape Don Stark} \\
+  \vspace*{0.5in}
+   Computer Systems Laboratory \\
+   Stanford University \\
+   Stanford, CA  94305 \\
+  \vspace*{0.25in}
+  This tutorial corresponds to Magic version 7. \\
+\end{center}
+\vspace*{0.5in}
+
+{\noindent\bfseries\large Tutorials to read first:}
+\starti
+   \> Magic Tutorial  \#1: Getting Started
+\endi
+
+{\noindent\bfseries\large Commands introduced in this tutorial:}
+\starti
+   \> {\itshape (None)}
+\endi
+
+{\noindent\bfseries\large Macros introduced in this tutorial:}
+
+\starti
+   \> {\itshape (None)}
+\endi
+\section{Introduction}
+
+This document provides information on Magic's X drivers that may be of help
+to system maintainers.
+
+\section{Compiling the Correct X Driver for your system.}
+
+Unfortunately, it is not possible to link with both the X10 and X11
+libraries, so you will have to compile Magic differently depending 
+on the version of X that you are running.
+
+\subsection{Compiling for X11}
+
+\begin{enumerate}
+\item Add the flag -DX11 to misc/DFLAGS
+\item Add -lX11 to magic/LIBS
+\item Change the SRCS line in graphics/Makefile to  \${BASE{\_}SRCS} \${X11{\_}SRCS}
+\item Change the OBJS line to  \${BASE{\_}OBJS} \${X11{\_}OBJS}
+\item Change the POBJS line to  \${BASE{\_}POBJS} \${X11{\_}POBJS}
+\item Change the HELPER{\_}SRCS line  \${X11HELPER{\_}SRCS}
+\item Change the HELPER{\_}SRCS line  \${X11HELPER{\_}PROG}
+\item Compile the module graphics.o
+\item Relink magic
+\end{enumerate}
+
+\subsection{Compiling for X10}
+
+\begin{enumerate}
+\item Add the flag -DX10 to misc/DFLAGS
+\item Add -lX10 to magic/LIBS
+\item Change the SRCS line in graphics/Makefile to  \${BASE{\_}SRCS} \${X10{\_}SRCS} 
+\item Change the OBJS line to  \${BASE{\_}SRCS} \${X10{\_}OBJS}
+\item Change the POBJS line to  \${BASE{\_}SRCS} \${X10{\_}POBJS}
+\item Change the HELPER{\_}SRCS line  \${X10HELPER{\_}SRCS}
+\item Change the HELPER{\_}SRCS line  \${X10HELPER{\_}PROG}
+\item Compile the module graphics.o
+\item Relink magic
+\end{enumerate}
+
+\section{Troubleshooting the X Drivers}
+
+The following is a list of problems sometimes encountered in running Magic
+under X and some suggestions about how to get around the problem.
+
+\subsection{X11 Driver}
+
+\begin{itemize}
+\item Fonts \\
+We have tried to pick a set of fonts that most machines running
+X11 Revision 3 will have, but there is nothing to guarantee that
+a given machine will have a font. If you're getting "unable to load font"
+messages, you will need to change the fonts that Magic uses.  The simplest 
+way to do this is to specify them in your .Xdefaults file as described in
+section 2.1. To change the default values that Magic uses, change the 
+"fontnames" array in the file grX11su3.c of the graphics module.
+The program {\itshape xlsfonts} will tell you what fonts are available on your
+machine.
+
+\item Strange Color Effects \\
+Magic often co-exists rather uneasily with 
+other X applications because it is picky about which colors it is allocated.
+If possible, it tries to allocate the colors it requires out of the 
+display's default colormap because this perturbs other applications the least.
+If this fails, however, Magic makes its own colormap.  When this colormap
+gets installed is a function of the window manager; most window managers 
+install it when the cursor is in the magic window.  Unfortunately, there is
+no way to guarantee that the window manager installs the magic colormap 
+correctly;  if you get erratic colormap behavior, try using a lower number 
+of planes or reducing the number of colors that other applications use.
+
+\item
+When magic's colormap is being used, other windows may change color, 
+possibly to some unusable combination such as black on black or white 
+on white.  This problem can sometimes be ameliorated by changing the 
+constants X{\_}COLORMAP{\_}BASE and X{\_}COLORMAP{\_}RESERVED in grX11su2.c;
+a more complete
+description of what these constants do is included in that file.
+Values for these constants that are incompatible with your machine
+will sometimes generate Xerrors in XQueryColors.
+
+\item Failure to prompt user for window position \\
+Whether or not the 
+designer is prompted for a window's location is dependent on the window 
+manager.  Certain window managers, notably {\itshape twm}, do not always 
+do this.
+\end{itemize}
+
+\subsection{X10 Driver}
+
+In general, the Version 10 driver is less reliable than the X11 one.
+If you have the choice, you are better off running under X11.
+
+\begin{itemize}
+\item grX2.GrXSetCMap: Failed to get color cells \\
+Magic gives this
+error when it can't get sufficient colors to run.  This can be caused
+by running Magic on a machine with an insufficient number of planes
+(8 planes are generally required to run a 7 bit dstyles file), or by 
+having too many colors already used by other applications.  Try 
+using only black and white xterms, xclocks, etc., and see if the problem 
+goes away.
+
+\item Couldn\'t get 7 planes; allocating by color \\
+Certain X10 servers, 
+most notably the VaxstationII-GPX, allocate colors in such a way that 
+Magic can never get the 7 color planes that it wants.  When this 
+happens, Magic instead allocates 128 colors. This is better than nothing, 
+but not by much; strange colors often result when layers overlap. 
+\end{itemize}
+
+\section{Acknowledgments}
+
+Many people share the credit (and the blame) for the Magic X drivers.   
+The original X10 port was done by Mark Linton and Doug Pan at Stanford 
+University.  Walter Scott and Eric Lunow of Lawrence Livermore 
+National Laboratories modified the driver and the windows module 
+so that magic windows act like normal X windows.  Meanwhile, Dave Durfee and
+Markus G. Wloka of Brown University improved the reliability of the Stanford 
+X10  driver and added support for a variable number of planes.  Marco Papa 
+of USC converted the Brown X10 driver to X11.  Concurrently, someone at 
+the University of Washington converted the Stanford X10 driver to X11.  
+The X11 driver in this distribution is predominantly a merge of the UW 
+driver with the multiwindow features of the LLNL driver.  Some of the ideas
+for supporting differing plane counts were borrowed from the USC/Brown work.
+Thanks to the Digital Equipment Corporation Western Research Laboratory 
+(DECWRL) for use of their computer facilities, and to Mike Chow of 
+Apple Computer for the Macintosh II-specific changes.
+
+\end{document}

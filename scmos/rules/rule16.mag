@@ -1,0 +1,82 @@
+magic
+tech scmos
+timestamp 783738099
+<< nwell >>
+rect 2 54 40 59
+rect -1 40 40 54
+rect 2 35 40 40
+rect 49 36 90 60
+rect 49 26 62 27
+rect -1 0 40 24
+rect 49 0 95 26
+<< collector >>
+rect 2 49 8 50
+rect 2 45 3 49
+rect 7 45 8 49
+rect 2 44 8 45
+rect 52 50 58 51
+rect 52 46 53 50
+rect 57 46 58 50
+rect 52 45 58 46
+rect 52 23 58 24
+rect 52 19 53 23
+rect 57 19 58 23
+rect 52 18 58 19
+rect 2 14 8 15
+rect 2 10 3 14
+rect 7 10 8 14
+rect 2 9 8 10
+rect 86 15 92 21
+rect 52 13 58 14
+rect 52 9 53 13
+rect 57 9 58 13
+rect 52 8 58 9
+rect 86 6 92 12
+<< emitter >>
+rect 66 46 70 50
+<< pbase >>
+rect 12 52 24 53
+rect 12 49 34 52
+rect 12 45 16 49
+rect 20 45 27 49
+rect 31 45 34 49
+rect 62 50 84 54
+rect 62 46 66 50
+rect 70 46 77 50
+rect 81 46 84 50
+rect 12 42 34 45
+rect 62 42 84 46
+rect 12 41 25 42
+rect 12 14 34 18
+rect 62 14 82 18
+rect 12 10 16 14
+rect 20 10 27 14
+rect 31 10 34 14
+rect 12 6 34 10
+rect 62 10 66 14
+rect 78 10 82 14
+rect 62 6 82 10
+<< collectorcontact >>
+rect 3 45 7 49
+rect 53 46 57 50
+rect 53 19 57 23
+rect 3 10 7 14
+rect 53 9 57 13
+<< emittercontact >>
+rect 16 45 20 49
+rect 16 10 20 14
+rect 66 10 78 14
+<< pbasecontact >>
+rect 27 45 31 49
+rect 77 46 81 50
+rect 27 10 31 14
+<< labels >>
+rlabel pbase 23 15 23 15 1 a
+rlabel emittercontact 18 12 18 12 1 b
+rlabel emittercontact 18 47 18 47 1 a
+rlabel collectorcontact 5 47 5 47 1 c
+rlabel pbasecontact 29 47 29 47 1 b
+rlabel collector 89 18 89 18 1 d
+rlabel collectorcontact 55 48 55 48 1 c
+rlabel pbasecontact 79 48 79 48 1 b
+<< end >>

@@ -1,0 +1,22 @@
+
+SCMOS rules for vertical NPN transistor has been revised from version
+6 to 7 due to the requirement to support ORBIT 1.2 micron process.
+
+If you use the "scmos" technology to load the cell "npn_array.mag",
+you'll find the following DRCs:
+
+N-well overlap of collector must be at least 3 (MOSIS rule #16.11)
+Pbase overlap of base contact must be at least 3 (MOSIS rule #16.5)
+
+The cell "npn_array.mag" is the actual test vehicle for the ORBIT
+2.0 micron process, so it should work OK if you target for that
+process. It is included here (without modification) to illustrate the 
+difference between thees processes.
+
+All other cells have been modified according to the latest SCMOS DRC
+rules - revision 7. Please send attention e-mail to mosis@mosis.edu
+if you have any problem or comments...
+
+Jen-I pi@isi.edu ;-)
+
+

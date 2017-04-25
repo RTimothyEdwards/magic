@@ -1,0 +1,61 @@
+magic
+tech scmos
+timestamp 783737406
+<< nwell >>
+rect 0 1 60 39
+<< metal1 >>
+rect 4 30 8 31
+rect 16 22 22 40
+rect 16 18 17 22
+rect 21 18 22 22
+rect 16 17 22 18
+rect 27 22 33 40
+rect 27 18 28 22
+rect 32 18 33 22
+rect 27 17 33 18
+rect 38 22 44 40
+rect 38 18 39 22
+rect 43 18 44 22
+rect 38 17 44 18
+rect 52 30 56 31
+rect 4 9 8 10
+rect 52 9 56 10
+rect 27 0 33 5
+<< collector >>
+rect 3 35 57 36
+rect 3 31 4 35
+rect 12 31 48 35
+rect 56 31 57 35
+rect 3 30 57 31
+rect 3 10 4 30
+rect 8 10 9 30
+rect 51 10 52 30
+rect 56 10 57 30
+rect 3 9 57 10
+rect 3 5 4 9
+rect 56 5 57 9
+rect 3 4 57 5
+<< pbase >>
+rect 13 22 47 26
+rect 13 18 17 22
+rect 21 18 28 22
+rect 32 18 39 22
+rect 43 18 47 22
+rect 13 14 47 18
+<< collectorcontact >>
+rect 4 31 12 35
+rect 48 31 56 35
+rect 4 10 8 30
+rect 52 10 56 30
+rect 4 5 56 9
+<< emittercontact >>
+rect 17 18 21 22
+rect 39 18 43 22
+<< pbasecontact >>
+rect 28 18 32 22
+<< labels >>
+rlabel metal1 30 1 30 1 1 collector
+rlabel metal1 30 39 30 39 1 base
+rlabel metal1 19 39 19 39 1 emitter1
+rlabel metal1 41 39 41 39 1 emitter2
+<< end >>

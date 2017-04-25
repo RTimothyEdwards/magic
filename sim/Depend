@@ -1,0 +1,19 @@
+SimDBstuff.o: SimDBstuff.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../database/databaseInt.h ../textio/textio.h \
+ ../utils/signals.h ../utils/malloc.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h ../sim/sim.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../commands/commands.h ../textio/txcommands.h \
+ ../utils/styles.h ../graphics/graphics.h
+SimSelect.o: SimSelect.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../utils/undo.h ../commands/commands.h ../select/selInt.h \
+ ../utils/main.h ../utils/malloc.h ../utils/signals.h ../sim/sim.h
+SimRsim.o: SimRsim.c
+SimExtract.o: SimExtract.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../debug/debug.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h ../utils/signals.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/styles.h ../utils/stack.h ../sim/sim.h

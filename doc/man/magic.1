@@ -1,0 +1,2472 @@
+.\" rcsid "$Header"
+.\"
+.\" CONVENTIONS:
+.\"	italics:  things that are substituted for
+.\"	boldface: characters that are typed as-is
+.\"
+.\"	EXAMPLE:  \fIfilename\fB.mag\fR
+.\"	     or:  \fBcif write \fR[\fIfile\fR]
+.\"
+.TH MAGIC 1
+.UC 4
+.SH NAME
+magic \- VLSI layout editor
+.SH SYNOPSIS
+.B magic
+[
+.BI \-T \ technology
+] [
+.BI \-d \ device_type
+] [
+.BI \-g \ graphics_port
+] [
+.BI \-m \ monitor_type
+] [
+.B \-D
+] [
+\fIfile\fP ]
+.br
+
+.SH DESCRIPTION
+Magic is an interactive editor for VLSI layouts that runs under all variants
+of UNIX, including Mac OS-X and Cygwin.
+This man page is a reference manual;  if you are a first-time user, you should
+use the Magic tutorials to get acquainted with the system (see the online
+resources links below).
+.PP
+Magic uses two windows: one for text and a separate window for displaying
+layouts.
+Magic runs under the window system X11 (use under Cygwin requires
+the presence of an X11 server in Windows;  the server that comes packaged
+with Cygwin works well).
+The command line switch "-d" can be used to tell
+Magic which kind of display you are running.
+Specifically, this is useful
+to tell magic to use OpenGL graphics instead of plain X11 ("-d OGL"), or
+to use 24 bit plane graphics instead of 8 bit planes ("-d 24BITS") if
+both are available on a video card with overlay support.
+.PP
+Here are the options accepted by Magic:
+.TP
+.B \-T
+The next argument is the name of a technology.
+The tile types, display information, and design rules for this technology
+are read by Magic from a technology file when it starts up.
+The technology defaults to ``scmos''.
+.TP
+.B \-d
+The next argument is the type of workstation or graphics display being used.
+Magic supports these types:
+.RS
+.TP
+.B NULL
+A null device for running Magic without using
+a graphics display, such as a batch job.
+Note that the special case
+"-dnull" (lowercase, no space) has a more streamlined startup specifically
+for batch processing.
+.TP
+.B X11
+X-windows, version 11.
+The is the preferred interface.
+Magic acts as a client to the X window server
+and interfaces to all graphics terminals supported
+by the X server.
+.TP
+.B OGL
+OpenGL graphics running under X11.
+This is the preferred interface on
+systems having hardware-accelerated 3D graphics video cards and drivers.
+.IP
+Addition information on Magic's X11 driver, including options for .Xdefaults
+files, may be
+found in ``Magic Maintainer's Manual #4:  Using Magic Under X Windows''.
+.TP
+.B XWIND
+Simply another name for the X11 driver.
+.RE
+If no device is specified, Magic tries to guess which driver is appropriate
+(by checking the environment variables and by poking around in /dev).
+.LP
+When Magic starts up it looks for a command file in
+${CAD_ROOT}/magic/sys/.magicrc and processes it if it exists.
+Then Magic looks for a file with the
+name ``.magicrc'' in the home directory and processes it if
+it exists.
+Finally, Magic looks for a .magicrc file in the
+current directory and reads it as a command file if
+it exists.
+The .magicrc file format is described under the
+\fBsource\fR command.
+If magic is compiled with Tcl/Tk support, then
+any magic or Tcl/Tk commands may be used inside the startup file.
+The startup file name was changed to ".magicrc" to avoid conflicts
+with a common system file named ".magic".
+However, the name ".magic"
+will be searched after ".magicrc" for backward compatibility.
+
+.SH "COMMANDS -- GENERAL INFORMATION"
+.PP
+Magics uses types of commands:  Key macros and long commands.
+The first form consists of single-key (or button) abbreviations called
+``macros''; macros are invoked by pressing a single key or mouse
+button.
+Certain macros are predefined in the systemwide
+${CAD_ROOT}/magic/sys/.magicrc file, but you can override them and
+add your own macros using the \fBmacro\fR command (described below
+under COMMANDS FOR ALL WINDOWS).
+The special macro "." is reserved
+to mean "execute the last typed long command".
+
+You can enter long commands in the terminal console at the console
+prompt, or from the layout window by typing a \fB:\fR or \fB;\fR
+key, which are the two other reserved macros meaning "switch keyboard
+focus to the console window".
+After typing the \fB:\fR or \fB;\fR
+key, type the text of the command, which will be written to the
+terminal window.
+Multiple commands may be specified on one line by
+separating them with semicolons.
+
+.PP
+Most commands deal with the window underneath the cursor,
+so if a command doesn't do what you expect make sure that you
+are pointing to the correct place on the screen.
+There are several
+different kinds of windows in Magic (layout, color, and netlist);
+each window has a different command set, described in a separate
+section below.
+
+.SH "MOUSE BUTTONS FOR LAYOUT WINDOWS"
+.PP
+Magic uses a three button mouse.
+The buttons are interpreted in a way that
+depends on the current tool, as indicated by the shape of the
+cursor (see the \fBtool\fR command).
+The
+various tools are described below.
+The initial tool is \fBbox\fR.
+These interpretations apply only when mouse buttons are pressed
+in the interior of a layout window.
+.TP
+.B "Box Tool"
+This is the default tool, and is indicated by a crosshair cursor.
+It is used to position the box and to
+paint and erase:
+.RS
+.TP
+\fBleft\fR
+This button is used to move the box by one of its corners.
+Normally, this button picks up the box by its lower-left corner.
+To pick the box up by a different corner, click the right button while
+the left button is down.
+This switches the pick-up point to the
+corner nearest the cursor.
+When the button
+is released, the box is moved to position the corner at
+the cursor location.
+If the box has been set to snap to
+the window's grid (see the \fB:snap\fR command), then
+the box corner is left aligned with the grid that the
+user has chosen for the window with the \fB:grid\fR command,
+even if that grid is not visible.
+.TP
+\fBright\fR
+Change the size of the box by moving one corner.
+Normally
+this button moves the upper-right corner of the box.
+To move a
+different corner, click the left button while the right
+button is down.
+This switches the corner to the one nearest
+the cursor.
+When you release the button, three corners of the
+box move in order to place the selected corner at the cursor
+location (the corner opposite the one you picked up remains fixed).
+Snapping to the window's grid is handled as for the left button.
+.TP
+\fBmiddle (bottom)\fR
+Used to paint or erase.
+If the crosshair is over paint, then
+the area of the box is painted with the layer(s) underneath the
+crosshair.
+If the crosshair is over white space, then the
+area of the box is erased.
+.RE
+.TP
+.B "Wiring Tool"
+The wiring tool, indicated by an arrow cursor,
+is used to provide an efficient interface to the
+wiring commands:
+.RS
+.TP
+\fBleft\fR
+Same as the long command \fBwire type\fR.
+.TP
+\fBright\fR
+Same as the long command \fBwire leg\fR.
+.TP
+\fBmiddle (bottom) \fR
+Same as the long command \fBwire switch\fR.
+.RE
+.TP
+.B "Netlist Tool"
+This tool is used to edit netlists interactively.
+It is indicated by
+a thick box cursor.
+.RS
+.TP
+\fBleft\fR
+Select the net associated with the terminal nearest the cursor.
+.TP
+\fBright\fR
+Find the terminal nearest the cursor, and toggle it into the
+current net (if it wasn't already in the current net) or out
+of the current net (if it was previously in the net).
+.TP
+\fBmiddle (bottom) \fR
+Find the terminal nearest the cursor, and join its net with
+the current net.
+.RE
+.TP
+.B "Rsim Tool"
+Used when running the IRSIM simulator under Magic.
+A pointing hand is used as the cursor.
+.RS
+.TP
+\fBleft\fR
+Moves the box just like the box tool.
+.TP
+\fBright\fR
+Moves the box just like the box tool.
+.TP
+\fBmiddle (bottom) \fR
+Displays the Rsim node values of the selected paint.
+.RE
+.SH "LONG COMMANDS FOR LAYOUT WINDOWS"
+.PP
+These commands work if you are pointing to the interior of a layout
+window.
+Commands are invoked by typing a colon (``:'') or semi-colon (``;''),
+followed by a line containing a command name and zero or more parameters.
+In addition, macros may be used to invoke commands with single
+keystrokes.
+Useful default macros are set in the global \fB.magicrc\fR file
+(in \fB${CAD_ROOT}/magic/sys\fR, normally \fB/usr/local/lib/magic/sys\fR).
+You can list all current macros with the \fBmacro\fR
+command, described under ``LONG COMMANDS FOR ALL WINDOWS''.
+Unique
+abbreviations are acceptable for
+all keywords in commands.
+The commands are:
+.TP
+.B "addpath \fIsearchpath\fR"
+Add more directories to the end of Magic's cell search path.
+See the
+documentation for the \fBpath\fR command for an explanation of the search
+path.
+.TP
+.B "array \fIxsize ysize\fP"
+Make many copies of the selection.
+There will be \fIxsize\fR
+instances in the x-direction and \fIysize\fR instances in the
+y-direction.
+Paint and labels are arrayed by copying them.
+Subcells are not copied, but instead each instance is turned into
+an array instance with elements
+numbered from 0 to \fIxsize\fR-1 in the x-direction, and
+from 0 to \fIysize\fR-1 in the y-direction.
+The spacing between elements of the array is determined by the box
+x- and y-dimensions.
+.TP
+.B "array \fIxlo ylo xhi yhi\fP"
+Identical to the form of \fBarray\fR above, except that the elements
+of arrayed cells are numbered left-to-right
+from \fIxlo\fR to \fIxhi\fR
+and bottom-to-top from \fIylo\fR to \fIyhi\fR.
+It is legal for \fIxlo\fR to be greater than \fIxhi\fR, and
+also for \fIylo\fR to be greater than \fIyhi\fR.
+.TP
+.B "box \fR[\fIargs\fR]"
+Used to change the size of the box or to find out its size.
+There are
+several sorts of arguments that may be given to this command:
+.RS
+.TP
+.I (No arguments.)
+Show the box size and its location in the edit cell,
+or root cell of its window if the edit cell isn't in that window.
+.TP
+\fIdirection\fR [\fIdistance\fR]
+Move the box
+.I distance
+units in \fIdirection\fR,
+which may be one of \fBleft\fR, \fBright\fR, \fBup\fR, or \fBdown\fR.
+\fIDistance\fR defaults to the width of the box if \fIdirection\fP
+is \fBright\fP or \fBleft\fP, and to the height of the box
+if \fIdirection\fP is \fBup\fP or \fBdown\fP.
+.TP
+\fBwidth [\fIsize\fR]
+.TP
+\fBheight [\fIsize\fR]
+Set the box to the width or height indicated.
+If \fIsize\fR is not
+specified the width or height is reported.
+.TP
+\fIx1 y1 x2 y2\fR
+Move the box to the coordinates specified (these are in edit cell coordinates
+if the edit cell is in the window under the cursor;  otherwise these
+are in the root coordinates of the window). \fIx1\fR
+and \fIy1\fR are the coordinates of the lower left corner of the box,
+while \fIx2\fR and \fIy2\fR are the upper right corner.
+The coordinates
+must all be integers.
+.RE
+.TP
+\fBcalma \fR[\fIoption\fR] [\fIargs\fR]
+This command is used to read and write files in Calma GDS II Stream format
+(version 3.0, corresponding to GDS II Release 5.1).
+This format is like CIF, in that it describes physical mask layers
+instead of Magic layers.
+In fact, the technology file specifies a correspondence
+between CIF and Calma layers.
+The current CIF output style (see \fBcif\ ostyle\fR) controls
+how Calma stream layers are generated from Magic layers.
+If no arguments are given,
+the \fBcalma\fR command generates a Calma stream
+file for the layout in the window
+beneath the cursor in \fIfile\fB.strm\fR, where \fIfile\fR is the
+name of the root cell.
+This stream file describes the entire cell hierarchy in the window.
+The name of the library is the same as the name of the root cell.
+\fIOption\fR and \fIargs\fR may be used
+to invoke one of several additional operations:
+.RS
+.TP
+\fBcalma flatten\fR
+Ordinarily, Magic arrays are output using the Calma ARRAY construct.
+After a \fBcalma flatten\fR command, though, arrays will be output
+instead as a collection of individual cell uses, as occurs when writing CIF.
+.TP
+\fBcalma help\fR
+Print a short synopsis of all of the \fBcalma\fR command options.
+.TP
+\fBcalma labels\fR
+Output labels whenever writing a Calma output file.
+.TP
+\fBcalma lower\fR
+Allow both upper and lower case to be output for label text.
+This is the default behavior; \fBcalma nolower\fR causes lower case
+to be converted to upper case on output.
+.TP
+\fBcalma noflatten\fR
+Undoes the effect of a prior \fB:calma flatten\fR command,
+re-enabling the output of Magic arrays using the Calma ARRAY
+construct.
+.TP
+\fBcalma nolabels\fR
+Don't output labels when writing a Calma output file.
+.TP
+\fBcalma nolower\fR
+Convert lower to upper case when outputting labels.
+.TP
+\fBcalma read \fIfile\fR
+The file \fIfile\fR.\fBstrm\fR is read in Calma format and converted to
+a collection of Magic cells.
+The current CIF input style determines
+how the Calma layers are converted to Magic layers.
+The new cells are marked for design-rule checking.
+Calma format doesn't identify the root of the collection
+of cells read in, so none of the cells read will appear on the display;
+use \fBload\fR to make them visible.
+If the Calma file had been produced by Magic, then the name of the
+root cell is the same as the library name printed by the \fB:calma read\fR
+command.
+.TP
+\fBcalma write \fIfileName\fR
+Writes a stream file just as if no arguments had been entered, except that
+the output is written into \fIfileName\fB.strm\fR instead of using the
+root cell name for the file name.
+.RE
+.TP
+\fBchannels\fR
+This command will run just the channel decomposition part of the
+Magic router, deriving channels for the area under the box.
+The channels
+will be displayed as outlined feedback areas over the edit cell.
+.TP
+\fBcif \fR[\fIoption\fR] [\fIargs\fR]
+Read or write files in Caltech
+Intermediate Form (CIF).
+If no arguments
+are given, this command generates a CIF file for the window
+beneath the cursor in \fIfile\fB.cif\fR, where \fIfile\fR is the
+name of the root cell.
+The CIF file describes the entire cell
+hierarchy in the window.
+\fIOption\fR and \fIargs\fR may be used
+to invoke one of several additional CIF operations:
+.RS
+.TP
+\fBcif arealabels \fR[\fByes \fR|\fB no]\fR
+Enables/disables the cif area-label extension.
+If enabled, area
+labels are written via the \fB95\fR cif extension.
+If disabled, labels
+are collapsed to points when writing cif and the \fB94\fR cif
+construct is used.
+Area-labels are disabled by default (many programs
+don't understand cif area-labels).
+.TP
+\fBcif help\fR
+Print a short synopsis of all of the cif command options.
+.TP
+\fBcif istyle \fR[\fIstyle\fR]
+Select the style to be used for CIF input.
+If no \fIstyle\fR
+argument is provided, then Magic prints the names of all CIF
+input styles defined in the technology file and identifies
+the current style.
+If \fIstyle\fR is provided, it is made
+the current style.
+.TP
+\fBcif ostyle \fR[\fIstyle\fR]
+Select the style to be used for CIF output.
+If no \fIstyle\fR
+argument is provided, then Magic prints the names of all CIF
+output styles defined in the technology file and identifies
+the current style.
+If \fIstyle\fR is provided, it is made
+the current style.
+.TP
+\fBcif read \fIfile\fR
+The file \fIfile\fR.\fBcif\fR is read in CIF format and converted to
+a collection of Magic cells.
+The current input style determines
+how the CIF layers are converted to Magic layers.
+The new cells are
+marked for design-rule checking.
+Any information in the top-level
+CIF cell is copied into the edit cell.
+Note: this command is not
+undo-able (it would waste too much space and time to save information
+for undoing).
+.TP
+\fBcif see \fIlayer\fR
+In this command \fIlayer\fR must be the CIF name for a layer in the
+current output style.
+Magic will display on the screen all the CIF
+for that layer that falls under the box, using stippled feedback
+areas.
+It's a bad
+idea to look at CIF over a large area,
+since this command requires
+the area under the box to be flattened and
+therefore is slow.
+.TP
+\fBcif statistics\fR
+Prints out statistics gathered by the CIF generator as it operates.
+This is probably not useful to anyone except system maintainers.
+.TP
+\fBcif write \fIfileName\fR
+Writes out CIF just as if no arguments had been entered, except that
+the CIF is written into \fIfileName\fB.cif\fR instead of using the
+root cell name for the file name.
+The current output style controls
+how CIF layers are generated from Magic layers.
+.TP
+\fBcif flat \fIfileName\fR
+Writes out CIF as in the \fBcif write\fR command, but flattens the
+design first (e.g. creates an internal version with the cell hierarchy
+removed).
+This
+is useful if one wishes to use the \fBand-not\fR
+feature of the CIF output styles, but is having problems with interactions
+of overlapping cells.
+.RE
+.TP
+\fBclockwise \fR[\fIdegrees\fR]
+Rotate the selection by \fB90\fR, \fB180\fR or \fB270\fR degrees.
+After the rotation, the lower-left
+corner of the selection's bounding box will be in the same place
+as the lower-left corner of the bounding box before the rotation.
+\fIDegrees\fR defaults to \fB90\fR.
+If the box
+is in the same window as the selection, it is rotated too.
+Only
+material in the edit cell is affected.
+.TP
+.B "copy \fR[\fIdirection \fR[\fIamount\fR]]"
+.TP
+.B "copy to \fIx y\fR"
+If no arguments are given, a copy of the selection is picking up
+at the point lying underneath the box lower-left
+corner, and placed so that this point lies at the cursor
+position.
+If \fIdirection\fR is given,
+it must be a Manhattan direction (e.g. \fBnorth\fR, see the ``DIRECTIONS''
+section below).
+The copy of the
+selection is moved in that direction by \fIamount\fR.
+If the
+box is in the same window as the selection, it is moved too.
+\fIAmount\fR defaults to \fB1\fR.
+The second form of the command behaves as though the cursor
+were pointing to (\fIx,\ y\fR) in the edit cell; a copy of the selection
+is picked up by the point beneath the lower-left corner of
+the box and placed so that this point lies at (\fIx\fR,\fI\ y\fR).
+.TP
+.B "corner \fIdirection1 direction2 \fR[layers\fR]"
+This command is similar to \fBfill\fR, except that it generates L-shaped
+wires that travel across the box first in
+\fIdirection1\fR and then in \fIdirection2\fR.
+For example, \fBcorner north east\fR finds all paint under the
+bottom edge of the box and extends it up to the top of the box and
+then across to the right side of the box, generating neat corners at
+the top of the box.
+The box should be at least as tall as it is wide
+for this command to work correctly.
+\fIDirection1\fR and \fIdirection2\fR must be
+Manhattan directions (see the section DIRECTIONS below) and must
+be orthogonal to each other.
+If \fIlayers\fR is specified then only
+those layers are used;  otherwise all layers are considered.
+.TP
+.B "delete"
+Delete all the information in the current selection that is in
+the edit cell.
+When cells are deleted, only the selected use(s) of the
+cell is (are) deleted:  other uses of the cell remain intact, as does
+the disk file containing the cell.
+Selected material outside the edit cell is not deleted.
+.TP
+\fBdrc option \fR[\fIargs\fR]
+This command is used to interact with the design rule checker.
+\fIOption\fR and \fIargs\fR (if needed) are used to invoke a \fBdrc\fR command
+in one of the following ways:
+.RS
+.TP
+\fBdrc catchup\fR
+Let the checker process all the areas that need rechecking.
+This
+command will not return until design-rule checking is complete or
+an interrupt is typed.
+The checker will run even if the background
+checker has been disabled with \fBdrc off\fR.
+.TP
+\fBdrc check\fR
+Mark the area under the box for rechecking in all cells that intersect
+the box.
+The recheck will occur in background after the command
+completes.
+This command is not normally necessary, since Magic
+automatically remembers which areas need to be rechecked.
+It
+should only be needed if the design rules are changed.
+.TP
+\fBdrc count\fR
+Print the number of errors in each cell under the box.
+Cells with no errors are skipped.
+.TP
+\fBdrc find\fR [\fInth\fR]
+Place the box over the \fInth\fR error area in the selected cell
+or edit cell, and
+print out information about the error just as if \fBdrc why\fR
+had been typed.
+If \fInth\fR isn't given (or is less than 1),
+the command moves to the next error area.
+Successive invocations of \fBdrc find\fR
+cycle through all the error tiles in the cell.
+If multiple cells are selected, this command uses the upper-leftmost one.
+If no cells are selected, this command uses the edit cell.
+.TP
+\fBdrc help\fR
+Print a short synopsis of all the drc command options.
+.TP
+\fBdrc off\fR
+Turn off the background checker.
+From now on, Magic will not
+recheck design rules immediately after each command (but it
+will record the areas that need to be rechecked;  the command
+\fBdrc on\fR can be used to restart the checker).
+.TP
+\fBdrc on\fR
+Turn on the background checker.
+The checker will check whatever modifications
+have not already been checked.
+From now on, the checker will reverify
+modified areas as they result from commands.
+The checker is run
+in the background, not synchronously with commands, so it may get
+temporarily behind if massive changes are made.
+.TP
+\fBdrc printrules \fR[\fIfile\fR]
+Print out the compiled rule set in \fIfile\fR, or on the text
+terminal if \fIfile\fR isn't given.
+For system maintenance only.
+.TP
+\fBdrc rulestats\fR
+Print out summary statistics about the compiled rule set.
+This
+is primarily for use in writing technology files.
+.TP
+\fBdrc statistics\fR
+Print out statistics kept by the design-rule checker.
+For each
+statistic, two values are printed:  the count since the last time
+\fBdrc statistics\fR was invoked, and the total count in this
+editing session.
+This command is intended primarily for system
+maintenance purposes.
+.TP
+\fBdrc why\fR
+Recheck the area underneath the box and print out the reason
+for each violation found.
+Since this command causes a recheck,
+the box should normally be placed around a small area (such as
+an error area).
+.RE
+.TP
+.B "dump \fIcellName \fR[\fBchild\fI refPointC\fR] [\fBparent\fI refPointP\fR]"
+Copy the contents of cell \fIcellName\fR into the edit cell
+so that \fIrefPointC\fR in the child is positioned at point \fIrefPointP\fR
+in the edit cell.
+The reference points can either be the name of a label,
+in which case the lower-left corner of the label's box is used as the reference
+point,
+or as a pair of numbers giving the (\fIx\fR,\ \fIy\fR) coordinates of a point
+explicitly.
+If \fIrefPointC\fR is not specified, the lower-left corner of \fIcellName\fR
+cell is used.
+If \fIrefPointP\fR is not specified, the lower-left corner of the box
+tool is used (the box must be in a window on the edit cell).
+After this command completes, the new information is selected.
+.TP
+.B "edit"
+Make the selected cell the edit cell, and edit it in context.
+The
+edit cell is normally displayed in brighter colors than other cells
+(see the \fBsee\fR command to change this).
+If
+more than one cell is selected,
+or if the selected cell is an array, the cursor
+position is used to select one of those cells as the new
+edit cell.
+Generally, Magic commands modify only the current edit cell.
+.TP
+.B "erase \fR[\fIlayers\fR]"
+For the area enclosed by the box, erase all paint in \fIlayers\fR.
+(See the ``LAYERS'' section for the syntax of layer lists).
+If
+\fIlayers\fR is omitted it defaults to \fB*,labels\fR.
+See your
+technology manual, or use the \fBlayers\fR command, to find out about
+the available layer names.
+.TP
+.B "expand \fR[\fBtoggle\fR]"
+If the keyword \fBtoggle\fR is supplied, all of the selected cells
+that are unexpanded are expanded, and all of the selected cells
+that are expanded are unexpanded.
+If \fBtoggle\fR isn't specified,
+then all of the cells underneath
+the box are expanded recursively until
+there is nothing but paint under the box.
+.TP
+\fBextract \fIoption\fR [\fIargs\fR]
+Extract a layout, producing one or
+more hierarchical \fB.ext\fP files that describe the electrical circuit
+implemented by the layout.
+The current extraction style (see \fBextract style\fR below) determines
+the parameters for parasitic resistance, capacitance, etc. that
+will be used.
+The \fBextract\fP command with no
+parameters
+checks timestamps and re-extracts as needed to bring
+all \fB.ext\fR files up-to-date for the cell in the
+window beneath the crosshair, and all cells beneath it.
+Magic displays any errors encountered during circuit
+extraction using stippled feedback areas over the area of
+the error, along with a message describing the type of error.
+Option\fR and \fIargs\fR are used in the following ways:
+.RS
+.TP
+\fBextract all\fR
+All cells in the window beneath the cursor
+are re-extracted regardless of whether they
+have changed since last being extracted.
+.TP
+\fBextract cell \fIname\fR
+Extract only the currently selected cell, placing the output
+in the file \fIname\fP.
+If more than one cell is selected,
+this command uses the upper-leftmost one.
+.TP
+\fBextract do \fR[ \fIoption\fR ]
+.TP
+\fBextract no \fIoption\fR
+Enable or disable various options governing how the extractor
+will work.
+Use \fB:extract do\fR with no arguments to print
+a list of available options and their current settings.
+When the \fBadjust\fR option is enabled, the extractor will
+compute compensating capacitance and resistance whenever cells
+overlap or abut; if disabled, the extractor will not compute
+these adjustments but will run faster.
+If \fBcapacitance\fR is enabled, node capacitances to substrate
+(perimeter and area) are computed; otherwise, all node capacitances
+are set to zero.
+Similarly, \fBresistance\fR governs whether or
+not node resistances are computed.
+The \fBcoupling\fR option controls whether coupling capacitances
+are computed or not; if disabled, flat extraction is significantly
+faster than if coupling capacitance computation is enabled.
+Finally, the \fBlength\fR option determines whether or not pathlengths
+in the root cell are computed (see \fBextract length\fR below).
+.TP
+\fBextract help\fR
+Prints a short synopsis of all the \fBextract\fR command options.
+.TP
+\fBextract length\fR [ \fIoption args\fR ]
+Provides several options for controlling which point-to-point path lengths
+are extracted explicitly.
+The extractor maintains two internal tables, one of \fIdrivers\fR, or
+places where a signal is generated, and one of \fIreceivers\fR, or
+places where a signal is sent.
+The components of each table are hierarchical label names, defined
+by means of the two commands \fBextract length driver \fIname1 \fR[\fIname2 ...\fR]
+and \fBextract length receiver \fIname1 \fR[\fIname2 ...\fR].
+If extraction of pathlengths is enabled (``\fB:extract do length\fR''),
+then when the root cell
+in an extract command is being extracted, the extractor will
+compute the shortest and longest path between each driver and
+each receiver on the same electrical net, and output it to the \fB.ext\fR file
+for the root cell.
+Normally, one should create a file of these Magic commands for the circuit
+drivers and receivers of interest, and use \fBsource\fR to read it in prior
+to circuit extraction.
+\fBExtract length clear\fR removes all the entries from
+both the driver and receiver tables.
+.TP
+\fBextract parents\fR
+Extract the currently selected cell and all of its parents.
+All of its parents must be loaded in order for
+this to work correctly.
+If more than one cell is selected,
+this command uses the upper-leftmost one.
+.TP
+\fBextract showparents\fR
+Like \fBextract parents\fP, but only print the cells that would
+be extracted; don't actually extract them.
+.TP
+\fBextract style \fR[\fIstyle\fR]
+Select the style to be used for extraction parameters.
+If no \fIstyle\fR
+argument is provided, then Magic prints the names of all extraction
+parameter styles defined in the technology file and identifies
+the current style.
+If \fIstyle\fR is provided, it is made
+the current style.
+.TP
+\fBextract unique \fR[\fB#\fR]
+For each cell in the window beneath the cursor, check to insure
+that no label is attached to more than one node.
+If the \fB#\fR
+keyword was not specified, whenever a label is attached to more than
+one node, the labels in all but one of the nodes are changed by
+appending a numeric suffix to make them unique.
+If the \fB#\fR keyword is specified, only names that
+end in a ``\fB#\fR'' are made unique;
+any other duplicate nodenames that don't end in a ``\fB!\fR''
+are reported by leaving a warning feedback area.
+This command is provided for converting old designs that
+were intended for extraction with Mextra, which would
+automatically append unique suffixes to node names
+when they appeared more than once.
+.TP
+\fBextract warn\fR [ [\fBno\fR] \fIoption\fR | [\fBno\fR] \fBall\fR ]
+The extractor always reports fatal errors.
+This command controls
+the types of warnings that are reported.
+\fIOption\fR may be one
+of the following: \fBdup\fR, to warn about two or more unconnected
+nodes in the same cell that have the same name, \fBfets\fR, to warn
+about transistors with fewer than the minimum number of terminals,
+and \fBlabels\fR, to warn when nodes are not labeled in the area of
+cell overlap.
+In addition, \fBall\fR may be used to refer to all warnings.
+If a warning is preceded by \fBno\fR, it is disabled.
+To disable all warnings, use ``\fBextract warn no all\fR''.
+To see
+which warning options are in effect, use ``\fBextract warn\fR''.
+.RE
+.TP
+\fBextresist [\fIcell\fR [\fIthreshold\fR] ]
+Postprocessor for improving on the resistance calculation performed by
+the circuit extractor.
+To use this command, you first have to extract
+the design rooted at \fIcell\fR with \fB:extract\ \fIcell\fR, and then
+flatten the design using \fIext2sim\fR\|(1), producing the files
+\fIcell\fB.sim\fR and \fIcell\fB.nodes\fR.
+Then run
+\fB:extresist\fI\ cell\fR to produce a file, \fIcell\fB.res.ext\fR,
+containing differences
+between the network described by the \fB.ext\fR files produced the
+first time around, and a new network that incorporates explicit
+two-point resistors where appropriate (see below).
+This file may be appended to \fIcell\fB.ext\fR, and then \fIext2sim\fR\
+run for a second time, to produce a new network with explicit resistors.
+The \fIthreshold\fR parameter is used to control which nodes are turned
+into resistor networks: any node whose total resistance exceeds
+\fIthreshold\fR times the smallest on-resistance of any transistor
+connected to that node will be approximated as a resistor network.
+.TP
+\fBfeedback \fIoption\fR [\fIargs\fR]
+Examine feedback information that is
+created by several of the Magic commands to report problems
+or highlight certain things for users.
+\fIOption\fR and
+\fIargs\fR are used in the following ways:
+.RS
+.TP
+\fBfeedback add \fItext\fR [\fIstyle\fR]
+Used to create a feedback area manually at the location of the box.
+This is intended as a way for other programs like Crystal to
+highlight things on a layout.
+They can generate
+a command file consisting of a \fBfeedback clear\fR command, and a
+sequence of \fBbox\fR and \fBfeedback add\fR commands.
+\fIText\fR
+is associated with the feedback (it will be printed by \fBfeedback why\fR
+and \fBfeedback find\fR).
+\fIStyle\fR tells how to display the feedback,
+and is one of \fBdotted\fR, \fBmedium\fR, \fBoutline\fR, \fBpale\fR, and
+\fBsolid\fR (if unspecified, \fIstyle\fR defaults to \fBpale\fR).
+.TP
+\fBfeedback clear\fR
+Clears all existing feedback information from the screen.
+.TP
+\fBfeedback count\fR
+Prints out a count of the current number of feedback areas.
+.TP
+\fBfeedback find \fR[\fInth\fR]
+Used to locate a particular feedback area.
+If \fInth\fR is
+specified, the box is moved to the location of the \fInth\fR
+feedback area.
+If \fInth\fR isn't specified, then the box
+is moved to the next sequential feedback area after the last
+one located with \fBfeedback find\fR.
+In either event, the
+explanation associated with the feedback area is printed.
+.TP
+\fBfeedback help\fR
+Prints a short synopsis of all the \fBfeedback\fR command options.
+.TP
+\fBfeedback save \fIfile\fR
+This option will save information about all existing feedback areas
+in \fIfile\fR.
+The information is stored as a collection of Magic
+commands, so that it can be recovered with the command
+\fBsource \fIfile\fR.
+.TP
+\fBfeedback why\fR
+Prints out the explanations associated with all feedback areas
+underneath the box.
+.RE
+.TP
+.B "fill \fIdirection\fR [\fIlayers\fR]"
+\fIDirection\fR is a Manhattan direction (see the section DIRECTIONS
+below).
+The paint visible under one edge of the box is sampled.
+Everywhere that the edge touches paint, the paint is extended
+in the given direction to the opposite side of the box.
+For example,
+if \fIdirection\fR is \fBnorth\fR, then paint is sampled under the
+bottom edge of the box and extended to the top edge.
+If \fIlayers\fR is specified, then only the given layers
+are considered;  if \fIlayers\fR isn't specified, then all layers
+are considered.
+.TP
+.B "findbox \fR[\fBzoom\fR]"
+Center the view on the box.
+If the optional \fBzoom\fR argument is present, zoom into the area specified
+by the box.
+This command will complain if the box is not in the window
+you are pointing to.
+.TP
+.B "flush \fR[\fIcellname\fR]"
+Cell \fIcellname\fR is reloaded from disk.
+All changes
+made to the cell since it was last saved are discarded.
+If \fIcellname\fR is not given, the edit cell is flushed.
+.TP
+\fBgaroute \fIoption\fR [\fIargs\fR]
+This command, with no \fIoption\fR or \fIarg\fR,
+is like the \fBroute\fR command: it generates routing in the
+edit cell to make connections specified in the current netlist.
+(See the \fBroute\fR command for further information).
+Unlike the \fBroute\fR command, this command is intended to be
+used for routing types of circuits, such as gate-arrays, whose
+routing channels can be determined in advance, and which require
+the ability to river-route across the tops of cells.
+The channels must have been predefined using \fBgaroute\ channel\fR
+commands prior to this command being invoked.
+Unlike the \fBroute\fR
+command, where the box indicates the routing area, this command
+ignores the box entirely.
+The new wires are placed in the edit cell.
+The netlist used is that selected by the \fBroute netlist\fR
+command, or the current netlist being edited in a \fBnetlist\fR
+window if no \fBroute netlist\fR command has been given.
+\fIOptions\fR and \fIargs\fR have the following effects:
+.RS
+.TP
+\fBgaroute channel \fR[\fItype\fR]
+.TP
+\fBgaroute channel \fIxlo ylo xhi yhi \fR[\fItype]\fR
+Define a channel.
+If \fIxlo\fR, \fIylo\fR, \fIxhi\fR, and \fIyhi\fR
+are provided, they are interpreted as the coordinates of the lower-left
+and upper-right of the bounding box for the channel respectively.
+Otherwise, the coordinates of the box are used.
+The boundary of each channel is adjusted inward to lie halfway
+between routing grid lines if it does not lie there already;
+if the channel is adjusted, a warning message is printed.
+The channel defined is an ordinary routing channel if \fItype\fR is
+not specified; such channels are identical to those used by the
+router of the \fBroute\fR command.
+If \fItype\fR is given, it must
+be either \fBh\fR or \fBv\fR.
+The channel thereby created will be
+a \fIriver-routing\fR channel inside which only left-to-right routes
+are possible (``\fBh\fR'') or top-to-bottom (``\fBv\fR'').
+Unlike a normal channel, a river-routing channel
+may contain terminals in its interior.
+.TP
+\fBgaroute generate\fI type \fR[\fIfile\fR]
+Provides a primitive form of channel decomposition for regular
+structures such as gate-array or standard-cell layouts.
+Generates a collection of \fBgaroute channel\fR commands, either to
+the standard output, or to \fIfile\fR if the latter is specified.
+The \fItype\fR parameter must be either \fBh\fR or \fBv\fR.
+The entire area contained within the box is turned into routing channels.
+Each cell inside this area has its bounding box computed for purposes
+of routing by looking only at those layers considered to be ``obstacles''
+to routing (see ``Tutorial #7: Netlists and Routing'' for details).
+The bounding box just computed is then extended all the way to the
+sides of the area of the box tool, vertically if \fItype\fR is \fBh\fR
+or horizontally if \fItype\fR is \fBv\fR.
+This extended area is then
+marked as belonging to a river-routing channel of type \fItype\fR;
+adjacent channels of this type are merged into a single channel.
+After all cells are processed, the areas not marked as being
+river-routing channels are output as normal channels.
+.TP
+\fBgaroute help\fR
+Print a short synopsis of all the \fBgaroute\fR command options.
+.TP
+\fBgaroute nowarn\fR
+If a given terminal appears in more than one place inside a cell,
+the router can leave feedback if it is not possible
+to route to all of the places where the terminal appears.
+The \fBgaroute nowarn\fR command instructs the router to leave feedback
+only if it is not possible to route to \fIany\fR of the locations of
+a terminal.
+(This is the default behavior of \fBgaroute\fR router).
+.TP
+\fBgaroute route\fR [\fInetlist\fR]
+Route the edit cell.
+If \fInetlist\fR is not specified, the netlist used is the same as
+when \fBgaroute\fR is given with no options.
+If \fInetlist\fR is
+given, then it is used instead.
+.TP
+\fBgaroute reset\fR
+Clear all channels defined by \fBgaroute channel\fR in preparation
+for redefining a new set of channels.
+.TP
+\fBgaroute warn\fR
+The opposite of \fBgaroute nowarn\fR, this command instructs
+the router to leave feedback if it is not possible to route to
+all of the places where a terminal appears when a terminal has
+more than one location, even if not all of those locations are
+actually selected for routing by the global router.
+.RE
+.TP
+.B "getcell \fIcellName \fR[\fBchild\fI refPointC\fR] [\fBparent\fI refPointP\fR]"
+This command adds a child cell instance to the edit cell.
+The instance refers to the cell \fIcellName\fR;  it is positioned
+so that \fIrefPointC\fR in the child is at point \fIrefPointP\fR
+in the edit cell.
+The reference points can either be the name of a label,
+in which case the lower-left corner of the label's box is used as the reference
+point,
+or as a pair of numbers giving the (\fIx\fR,\ \fIy\fR) coordinates of a point
+explicitly.
+If \fIrefPointC\fR is not specified, the lower-left corner of \fIcellName\fR
+cell is used.
+If \fIrefPointP\fR is not specified, the lower-left corner of the box
+tool is used (the box must be in a window on the edit cell).
+The new subcell is selected.
+The
+difference between this command and \fBdump\fR is that \fBdump\fR copies
+the contents of the cell, while \fBgetcell\fR simply makes a reference
+to the original cell.
+\fICellname\fR must not be the edit cell or
+one of its ancestors.
+.TP
+.B "getnode \fR[\fBalias on\fR | \fBalias off\fR]
+.TP
+.B "getnode \fR[\fBabort \fR[\fIstr\fR]]
+Getnode prints out the node names (used by the extractor) for all selected
+paint.
+If aliasing turned on,
+getnode prints all the names it finds for a given node.
+It may not print
+every name that exists, however.
+When turned off, it just prints one name.
+The abort option allows the user to tell getnode that it is not important
+to completely search nodes that have certain names.
+For example,
+\fBgetnode abort Vdd\fR will tell getnode not to continue searching the
+node if it determines that one of its names is Vdd.
+A \fBgetnode abort\fR, without a string argument, will erase the list of
+names previously created by calling \fBgetnode abort\fR with string arguments.
+Getnode can be safely aborted at any time by typing the interrupt character,
+usually ^C.
+See \fITutorial #11:  Using IRSIM and RSIM with Magic\fR for more information
+on this command.
+.TP
+.B "grid \fR[\fIxSpacing\fR [\fIySpacing \fR[\fIxOrigin yOrigin\fR]]]"
+.TP
+.B "grid off"
+If no arguments are given, a one-unit grid is toggled on or off in the
+window underneath the cursor.
+\fBGrid off\fR always turns the grid
+off, regardless of whether it was on or off previously.
+If numerical arguments are given,
+the arguments determine the grid spacing
+and origin for the window under the cursor.
+In its
+most general form, \fBgrid\fR
+takes four integer arguments.
+\fBXOrigin\fR and \fByOrigin\fR
+specify an origin for the grid:  horizontal and vertical grid lines
+will pass through this point.
+\fBXSpacing\fR and \fBySpacing\fR
+determine the number of units between adjacent grid lines.
+If \fBxOrigin\fR
+and \fByOrigin\fR are omitted, they default to 0.
+If \fBySpacing\fR
+is also omitted, the xSpacing value is used for both spacings.
+Grid parameters will be retained for
+a window until explicitly changed by another \fIgrid\fR
+command.
+When the grid is displayed, a solid box is drawn to
+show the origin of the edit cell.
+.TP
+.B "identify \fIinstance_id"
+Set the instance identifier of the selected cell use to
+\fIinstance_id\fR.
+\fIInstance_id\fR must be unique among
+all instance identifiers in the parent of the selected cell.
+Initially, Magic guarantees uniqueness of identifiers by
+giving each cell an initial identifier consisting of the cell
+definition name followed by an underscore and a small integer.
+.TP
+.B "iroute \fIsubcommand\fR [\fIargs\fR]"
+This command provides an interactive interface to the Magic
+maze-router.
+Routing
+is done one connection at a time.
+Three internal \fIhint\fR layers,
+\fBmagnet\fR, \fBfence\fR, and \fBrotate\fR, allow the user to guide routing
+graphically.
+Routes are chosen close to magnets (if possible), routing
+does not cross fence boundaries, and rotate areas reverse the
+preferred routing directions for each layer.
+The maze-router
+seeks to find a lowest-cost path.
+Parameters
+specifying costs for horizontal and vertical routing on
+each layer, cost for jogs and contacts, and cost (per unit area) for distance
+between a path and magnets, help determine the nature of
+the routes.
+Several \fIsearch\fR parameters permit tuning
+to achieve acceptable
+routes in as short a time as possible.
+Routing can
+always be interrupted with \fB^C\fR.
+The iroute subcommands are
+as follows:
+.RS
+.TP
+\fBiroute\fR
+Routes from cursor to inside box.
+.TP
+\fBiroute contact \fR[\fItype\fR] [\fIparameter\fR] [\fIvalue1\fR] ... [\fIvaluen\fR]
+An asterisk, \fB*\fR, can be used for \fItype\fR and \fIparameter\fR.
+This command is for setting and examining parameters related to contacts.
+.TP
+\fBiroute help \fR[\fIsubcommand\fR]
+Summarizes irouter commands.
+If a \fIsubcommand\fR is given, usage
+information for that subcommand is printed.
+.TP
+\fBiroute layers \fR[\fItype\fR] [\fIparameter\fR] [\fIvalue1\fR] ... [\fIvaluen\fR]
+An asterisk, \fB*\fR, can be used for \fItype\fR and \fIparameter\fR.
+This command is for setting and examining parameters related to route layers.
+.TP
+\fBiroute route \fR[\fIoptions\fR]
+Invokes the router.
+Options are as follows:
+.in +5
+.nf
+\fB-sLayers\fI layers\fR = layers route may start on
+\fB-sCursor\fR = start route at cursor (DEFAULT)
+\fB-sLabel \fIname\fR = start route at label of given name
+\fB-sPoint \fIx y\fR = start route at given coordinates
+\fB-dLayers\fI layers\fR = layers route may end on
+\fB-dBox\fR = route to box (DEFAULT)
+\fB-dLabel\fI name\fR = route to label of given name
+\fB-dRect\fI xbot ybot xtop ytop\fR = route to rectangle of given coordinates
+\fB-dSelection\fI = route to selection
+.in -5
+.fi
+.TP
+\fBiroute saveParameters \fR<\fIfilename\fR>
+Saves all current irouter parameter settings.
+The parameters can be restored
+to these values with the command ``\fBsource \fIfilename\fR''.
+.TP
+\fBiroute search \fR[\fIsearchParameter\fR] [\fIvalue\fR]
+Allows parameters controlling the search to be modified.
+If routing is too
+slow try increasing \fBrate\fR.
+If the router is producing bad results, try
+reducing \fBrate\fR.
+Its a good idea to make \fBwidth\fR at least twice as
+big as \fBrate\fR.
+.TP
+\fBiroute spacings \fR[\fIroute-type\fR] [\fItype\fR] [\fIspacing\fR] ... [\fItypen spacingn\fR]
+Default minimum spacings between a route-type placed by the router and other
+types are derived from the \fBdrc\fR section of the technology file.
+The
+defaults can be overridden by this command.
+The special type \fBSUBCELL\fR
+is used to specify minimum spacing to unexpanded subcells.
+.TP
+\fBiroute verbosity \fR[\fIlevel\fR]
+Controls the number of messages printed during routing:
+.in +5
+.nf
+\fB0\fR = errors and warnings only,
+\fB1\fR = brief,
+\fB2\fR = lots of statistics.
+.in -5
+.fi
+.TP
+\fBiroute version\fR
+Prints irouter version information.
+.TP
+\fBiroute wizard \fR[\fIwizardparameter\fR] [\fIvalue\fR]
+Used to examine and set miscellaneous parameters.
+Most of these are best
+left alone by the unadventurous user.
+.RE
+.TP
+.B "label \fIstring \fR[\fIpos \fR[\fIlayer\fR]]"
+A label with text \fIstring\fR
+is positioned at the box location.
+Labels may cover points, lines, or areas, and are associated
+with specific layers.
+Normally the
+box is collapsed to either a point or to a line (when labeling
+terminals on the edges of cells).
+Normally also, the area under
+the box is occupied by a single layer.
+If no \fIlayer\fR argument is specified, then the label is attached to
+the layer under the box, or space if no layer covers the entire
+area of the box.
+If \fIlayer\fR is specified but \fIlayer\fR
+doesn't cover the entire area of the box, the label will be
+moved to another layer or space.
+Labels attached to space will be considered by CIF processing
+programs to be attached to all layers overlapping the area
+of the label.
+\fIPos\fR is optional, and specifies where the label text is to be
+displayed relative to the box (e.g. ``north'').
+If \fIpos\fR isn't given, Magic will pick a position to
+ensure that the label text doesn't stick out past the edge of the
+cell.
+.TP
+.B "layers"
+Prints out the names of all the layers defined for the
+current technology.
+.TP
+.B "load \fR[\fIfile\fR]"
+Load the cell hierarchy rooted at \fIfile\fB.mag\fR into the window
+underneath the cursor.
+If no \fIfile\fR
+is supplied, a new unnamed cell is created.
+The root cell of the hierarchy is made the edit cell unless there is
+already an edit cell in a different window.
+.TP
+.B "move \fR[\fIdirection \fR[\fIamount\fR]]"
+.TP
+.B "move to \fIx y\fR"
+If no arguments are given, the selection is picked up by the
+point underneath the lower-left corner of the box and moved
+so that this point lies at the cursor location.
+If \fIdirection\fR is given,
+it must be a Manhattan direction (e.g. \fBnorth\fR).
+The
+selection is moved in that direction by \fIamount\fR.
+If the
+box is in the same window as the selection, it is moved too.
+\fIAmount\fR defaults to 1.
+Selected material that is not
+in the edit cell, is not affected.
+The
+second form of the command is as though the cursor
+were pointing to (\fIx,\ y\fR) in the edit cell; the selection
+is picked up by the point beneath the lower-left corner of
+the box and moved so that this point lies at (\fIx\fR,\fI\ y\fR).
+.TP
+.B "paint \fIlayers"
+The area underneath the box is painted in \fIlayers\fR.
+.TP
+.B "path \fR[\fIsearchpath\fR]"
+This command tells Magic where to look for cells.
+\fISearchpath\fR
+contains a list of directories separated by colons or spaces (if
+spaces are used, then \fIsearchpath\fR must be surrounded by
+quotes).
+When looking for a cell, Magic will check each directory in
+the path in order, until the cell is found.
+If the cell is not
+found anywhere in the path, Magic will look in the system library
+for it.
+If the \fIpath\fR command is invoked with no arguments,
+the current search path is printed.
+.TP
+.B "plot \fIoption\fR [\fIargs\fR]"
+Used to generate hardcopy plots direct from Magic.
+\fIOptions\fR
+and \fIargs\fR are used in the following ways:
+.RS
+.TP
+\fBplot gremlin \fIfile\fR [\fIlayers\fR]
+Generate a Gremlin-format description of everything under the
+box, and write the description in \fIfile\fR.
+If \fIlayers\fR
+isn't specified, paint, labels, and unexpanded subcells are
+all included in the Gremlin file just as they appear on the
+screen.
+If \fIlayers\fR is specified, then just the indicated layers
+are output in the Gremlin file.
+\fILayers\fR may include the
+special layers \fBlabels\fR and \fBsubcell\fR.
+The Gremlin
+file is scaled to have a total size between 256 and 512 units;
+you should use the \fBwidth\fR and/or \fBheight\fR Grn commands
+to ensure that the printed version is the size you want.
+Use
+the \fBmg\fR stipples in Grn.
+No plot parameters are
+used in Gremlin plotting.
+.TP
+\fBplot help\fR
+Print a short synopsis of all the \fBplot\fR command options.
+.TP
+\fBplot parameters [\fIname value\fR]
+If \fBplot parameters\fR is invoked with no additional arguments, the values
+for all of the plot parameters are printed.
+If \fIname\fR and
+\fIvalue\fR are provided, then \fIname\fR is the name of a plot
+parameter and \fIvalue\fR is a new value for it.
+Plot parameters
+are used to control various aspects of plotting;  all of them have
+``reasonable'' initial values.
+Most of the parameters available
+now are used to control Versatec-style plotting.
+They are:
+.RS
+.TP
+\fBcellIdFont\fR
+The name of the font to use for cell instance ids in Versatec plots.
+This must be a file in Vfont format.
+.TP
+\fBcellNameFont\fR
+The name of the font to use for cell names in Versatec plots.
+This must be a file in Vfont format.
+.TP
+\fBcolor\fR
+If this is set to \fBtrue\fR, the \fB:plot versatec\fR command will
+generate output suitable for a four-color Versatec plotter, using
+the styles defined in the \fBcolorversatec\fR style of the \fBplot\fR
+section of the technology file.
+If \fBcolor\fR is \fBfalse\fR (the default), then \fB:plot versatec\fR
+generates normal black-and-white plots.
+.TP
+\fBdirectory\fR
+The name of the directory in which to create raster files for
+the Versatec.
+The raster files have names of the form
+\fBmagicPlotXXXXXX\fR, where \fBXXXXXX\fR is a process-specific
+identifier.
+.TP
+\fBdotsPerInch\fR
+Indicates how many dots per inch there are on the Versatec printer.
+This parameter is used only for computing the scale factor for plotting.
+Must be an integer greater than zero.
+.TP
+\fBlabelFont\fR
+The name of the font to use for labels in Versatec plots.
+This must be a file in Vfont format.
+.TP
+\fBprinter\fR
+The name of the printer to which to spool Versatec raster files.
+.TP
+\fBshowcellnames\fR
+If ``true'' (the default) then the name and instance-identifier of
+each unexpanded subcell is displayed inside its bounding box.
+If
+this parameter is ``false'' then only the bounding box of the cell
+is displayed.
+.TP
+\fBspoolCommand\fR
+The command used to spool Versatec raster files.
+This must be
+a text string containing two ``%s'' formatting fields.
+The first
+``%s'' will be replaced with the printer name, and the second one
+will be replaced with the name of the raster file.
+.TP
+\fBswathHeight\fR
+How many raster lines of Versatec output to generate in memory at one time.
+The raster file is generated in swaths in order to keep the memory
+requirements reasonable.
+This parameter determines the size of
+the swaths.
+It must be an integer greater than zero, and should
+be a multiple of 16 in order to avoid misalignment of stipple patterns.
+.TP
+\fBwidth\fR
+The number of pixels across the Versatec printer.
+Must be an integer
+greater than 0, and must be an even multiple of 32.
+.RE
+.TP
+\fBplot versatec \fR[\fIsize\fR [\fIlayers\fR]]
+Generate a raster file describing all the the information underneath the
+box in a format suitable for printing on Versatec black-and-white
+or color printers, and spool the file for printing.
+See the plot parameters
+above for information about the parameters that are used to control
+Versatec plotting. \fISize\fR is used to scale the plot:  a scalefactor
+is chosen so that the area of the box is \fIsize\fR inches across on
+the printed page.
+\fISize\fR defaults to the width of the printer.
+\fILayers\fR selects which layers (including labels
+and subcells) to plot;  it defaults to everything visible on the screen.
+.RE
+.TP
+.B "plow \fIdirection\fR [\fIlayers\fR]"
+.TP
+.B "plow \fIoption\fR [\fIargs\fR]"
+The first form of this command invokes the plowing operation
+to stretch and/or compact a cell.
+\fIDirection\fR is a Manhattan direction.
+\fILayers\fR is an optional collection of mask layers,
+which defaults to \fB*\fR.
+One of the edges of the box is treated as a plow and dragged to the
+opposite edge of the box (e.g. the left edge is used as the plow
+when \fBplow right\fR is invoked).
+All edges on \fIlayers\fR that
+lie in the plow's path are pushed ahead of it, and they push other
+edges ahead of them to maintain design rules, connectivity, and
+transistor and contact sizes.
+Subcells are moved in their
+entirety without being modified internally.
+Any mask information overlapping a subcell moved by plowing
+is also moved by the same amount.
+\fIOption\fR and \fIargs\fR are used in the following ways:
+.RS
+.TP
+\fBplow boundary\fR
+The box specifies the area that may be modified by plowing.
+This area is highlighted with a pale stipple outline.
+Subsequent plows are not allowed to modify any area outside that
+specified by the box; if they do, the distance the plow moves
+is reduced by an amount sufficient to insure that no geometry
+outside the boundary gets affected.
+.TP
+\fBplow help\fR
+Prints a short synopsis of all the \fBplow\fR command options.
+.TP
+\fBplow horizon\fI\ n\fR
+.TP
+\fBplow horizon\fR
+The first form sets the plowing jog horizon to \fIn\fR units.
+The second form simply prints the value of the jog horizon.
+Every time plowing considers introducing a jog in a piece of
+material, it looks up and down that piece of material for a
+distance equal to the jog horizon.
+If it finds an existing
+jog within this distance, it uses it.
+Only if no jog is found
+within the jog horizon does plowing introduce one of its own.
+A jog horizon of zero means that plowing will always introduce
+new jogs where needed.
+A jog horizon of infinity (\fBplow nojogs\fR)
+means that plowing will not introduce any new jogs of its own.
+.TP
+\fBplow jogs\fR
+Re-enable jog insertion with a horizon of 0.
+This command
+is equivalent to \fBplow horizon 0\fR.
+.TP
+\fBplow noboundary\fR
+Remove any boundary specified with a previous \fBplow boundary\fR
+command.
+.TP
+\fBplow nojogs\fR
+Sets the jog horizon to infinity.
+This means that plowing will
+not introduce any jogs of its own; it will only use existing ones.
+.TP
+\fBplow nostraighten\fR
+Don't straighten jogs automatically after each plow operation.
+.TP
+\fBplow selection \fR[\fIdirection \fR[\fIdistance\fR]]
+Like the \fBmove\fR or \fBstretch\fR commands, this moves all the
+material in the selection that belongs to the edit cell.
+However, any material not in the selection is pushed out of
+its way, just as though each piece of the selection were plowed
+individually.
+If no arguments are given, the selection is picked up by the
+point underneath the lower-left corner of the box and plowed
+so that this point lies at the cursor location.
+The box is
+moved along with the selection.
+If \fIdirection\fR is given,
+it must be a Manhattan direction (e.g. \fBnorth\fR).
+The
+selection is moved in that direction by \fIamount\fR.
+If the
+box is in the same window as the selection, it is moved too.
+\fIAmount\fR defaults to 1.
+If there is selected material that
+isn't in the edit cell, it is ignored (note that this is different
+from \fBselect\fR and \fBmove\fR).
+If \fIdirection\fR isn't given and the
+cursor isn't exactly left, right, up, or down from the box
+corner, then Magic first rounds the cursor position off to a
+position that is one of those (whichever is closest).
+.TP
+\fBplow straighten\fR
+Straighten jogs automatically after each plow operation.
+The effect will be as though the \fBstraighten\fR command were
+invoked after each plow operation, with the same direction,
+and over the area changed by plowing.
+.RE
+.TP
+\fBresist \fIcell\fR [\fItolerance\fR]
+This command is similar to \fBextresist\fR above, but used for extracting
+resistance networks for individual nodes.
+Only the node underneath the box is processed.
+The network for this node is output to the file
+\fIcell\fB.res.ext\fR.
+See the description for \fBextresist\fR for an explanation of \fItolerance\fR.
+.TP
+\fBroute \fIoption\fR [\fIargs\fR]
+This command, with no \fIoption\fR or \fIarg\fR,
+is used to generate routing using the Magic router
+in the edit cell to make connections specified
+in the current netlist.
+The box is used to indicate the routing area:  no routing will be
+placed outside the area of the box.
+The new wires are
+placed in the edit cell.
+\fIOptions\fR and \fIargs\fR have the following effects:
+.RS
+.TP
+\fBroute end \fR[\fIreal\fR]
+Print the value of the channel end constant used by the channel router.
+If a value is supplied, the channel end constant is set to that value.
+The channel end constant is a dimensionless multiplier used to compute
+how far from the end of a channel to begin preparations to make
+end connections.
+.TP
+\fBroute help\fR
+Print a short synopsis of all the \fBroute\fR command options.
+.TP
+\fBroute jog \fR[\fIint\fR]
+Print the value of the minimum jog length used by the channel router.
+If a value is supplied, the minimum jog length is set to that value.
+The channel router makes no vertical jogs shorter than the minimum jog length,
+measured in router grid units.
+Higher values for this constant may improve the quality of the routing by
+removing unnecessary jogs; however, prohibiting short jogs may make some
+channels unroutable.
+.TP
+\fBroute metal\fR
+Toggle metal maximization on or off.
+The route command routes the
+preferred routing layer (termed ``metal'') horizontally and the alternate
+routing layer vertically.
+By default wires on the alternate routing layer are then converted, as much as
+possible, to the preferred layer before being painted into the layout.
+Enabling metal maximization improves the quality of the resulting
+routing, since the preferred routing layer generally has better electrical
+characteristics; however, designers wishing to do hand routing after automatic
+routing may find it easier to disable metal maximization and deal with a
+layer-per-direction layout.
+.TP
+\fBroute netlist \fR[\fIfile\fR]
+Print the name of the current netlist.
+If a file name is specified, it
+is opened if possible, and the new netlist is loaded.
+This option is
+provided primarily as a convenience so you need not open the netlist menu
+before routing.
+.TP
+\fBroute obstacle \fR[\fIreal\fR]
+Print the obstacle constant used by the channel router.
+If a value is
+supplied, set the channel router obstacle constant to that value.
+The obstacle constant is a dimensionless multiplier used in deciding how
+far in front of an obstacle the channel router should begin jogging nets
+out of the way.
+Larger values mean that nets will jog out of the way earlier;
+however, if nets jog out of the way too early routing area is wasted.
+.TP
+\fBroute origin \fR[\fIx y\fR]
+Print the x- and y-coordinates of the origin of the routing grid.
+By default, the routing grid starts from (0,0).
+However, by supplying
+an \fIx\fR and \fIy\fR coordinate to the \fBroute origin\fR command,
+the origin can be set to any other value.
+This command is primarily
+useful when routing a chip that has been designed with routing on
+the same pitch as the router will use, but where the left and bottom
+edges of the pre-existing routing don't line up with the routing grid
+lines (for example, the pre-existing routing might have been centered
+on routing grid lines).
+The alternative to specifying a different
+origin for the routing grid would be to translate all the material
+in the cell to be routed so that the prewiring lined up properly with
+routing grid lines.
+.TP
+\fBroute settings\fR
+Print the values of all router parameters.
+.TP
+\fBroute steady \fR[\fIint\fR]
+Print the value of the channel router's steady net constant.
+If a value
+is supplied, set the steady net constant to the value.
+The steady net constant, measured in router grid units,
+specifies how far beyond the next terminal the
+channel router should look for a conflicting terminal before deciding that
+a net is rising or falling.
+Larger values mean that the net rises and falls
+less often.
+.TP
+\fBroute tech\fR
+Print the router technology information.
+This includes information such as
+the names of the preferred and alternate routing layers, their wire widths,
+the router grid spacing, and the contact size.
+.TP
+\fBroute viamin\fR
+Minimize vias in (previously) routed netlist.
+This subcommand
+removes unnecessary layer
+changes in all nets in the current netlist to minimize via count.
+The
+preferred routing layer, \fBlayer1\fR in the \fBrouter\fR section
+of the technology file, is favored by the algorithm.
+Note that
+``\fBroute viamin\fR'' is
+an independent routing postpass that can be applied even if the routing
+was not generated by the \fBroute\fR command, provided the
+layers
+and widths agree with the \fBrouter\fR section
+of the technology file.
+.TP
+\fBroute vias \fR[\fIint\fR]
+Print the value of the metal maximization via constant.
+If a value
+is supplied, set the via constant to the value.
+The via constant, measured in router grid units, represents the tradeoff
+between metal maximization and
+the via count.
+In many cases it is possible to convert wiring on the
+alternate routing layer into routing on the preferred routing layer (``metal'')
+at the expense of introducing one or two vias.
+The via constant specifies the amount of converted wiring that makes it
+worthwhile to add vias to the routing.
+.RE
+.TP
+.B \fBrsim \fR[\fIoptions\fR]\fR [\fIfilename\fR]
+Runs rsim under Magic.
+See \fITutorial #11:  Using IRSIM and RSIM with Magic\fR for more information
+on what options and files are required by rsim.
+Normally, IRSIM requires a parameter file for the technology and a \fB.sim\fR
+file describing the circuit.
+.IP
+The \fBrsim\fR command without any options can be used to interact with
+a previously-started rsim.
+Type \fBrsim\fR and you will see the rsim prompt.
+To get back to magic, type \fBq\fR.
+.TP
+.B "save \fR[\fIname\fR]"
+Save the edit cell on disk.
+If the edit cell is currently the
+``(UNNAMED)'' cell, \fIname\fR must be specified; in this case
+the edit cell is renamed to \fIname\fR as well as being saved
+in the file \fIname\fR.\fBmag\fR.
+Otherwise, \fIname\fR is optional.
+If specified, the edit cell
+is saved in the file \fIname\fR.\fBmag\fR; otherwise, it is saved
+in the file from which it was originally read.
+.TP
+.B "see \fIoption\fR"
+This command is used to control which layers are to be displayed
+in the window under the cursor.
+It has several forms:
+.RS
+.TP
+\fBsee no \fIlayers\fR
+Do not display the given layers in the window under the
+cursor.
+If \fBlabels\fR is given as a layer name, don't
+display labels in that window either.
+If \fBerrors\fR is
+given as a layer, no design-rule violations will be displayed
+(the checker will continue to run, though).
+If \fIlayers\fR
+is given as "*", all mask layers will be disabled, but errors and
+labels will still be shown.
+See the "LAYERS" section at the end of
+this manual page for an explanation of layer naming in Magic.
+.TP
+\fBsee \fIlayers\fR
+Reenable display of the given \fIlayers\fR.
+Note that "*" expands to all mask layers, but does not include the label
+or error layers.
+See the "LAYERS" section at the end of this manual page for details.
+.TP
+\fBsee no\fR
+Don't display any mask layers or labels.
+Only subcell bounding
+boxes will be displayed.
+.TP
+\fBsee\fR
+Reenable display of all mask layers, labels, and errors.
+.TP
+\fBsee allSame\fR
+Display all cells the same way.
+This disables the facility
+where the edit cell is displayed in bright colors and non-edit
+cells are in paler colors.
+After \fBsee allSame\fR, all mask
+information will be displayed in bright colors.
+.TP
+\fBsee no allSame\fR
+Reenable the facility where non-edit cells are drawn in paler
+colors.
+.RE
+.TP
+.B "select \fIoption\fR"
+This command is used to select paint, labels, and subcells before
+operating on them with commands like \fBmove\fR and \fBcopy\fR
+and \fBdelete\fR.
+It has several forms:
+.RS
+.TP
+.B "select"
+If the cursor is over empty space, then this command is identical
+to \fBselect cell\fR.
+Otherwise, paint is selected.  The first
+time the command is invoked, a chunk of paint is selected: the
+largest rectangular area of material of the same type visible underneath
+the cursor.
+If the command is invoked again without moving the
+cursor, the selection is extended to include all material of the same
+type, regardless of shape.
+If the command is invoked a third time,
+the selection is extended again to include all material that is
+visible and electrically connected to the point underneath the cursor.
+.TP
+.B "select more"
+This command is identical to \fBselect\fR except that the selection
+is not first cleared.
+The result is to add the newly-selected material
+to what is already in the selection.
+.TP
+.B "select less"
+This chooses material just as \fBselect\fR does, but the material
+is removed from the selection, rather than added to it.
+The result is to deselect the chosen material.
+.TP
+.B "select \fR[\fBmore\fR | \fBless\fR] \fBarea\fI layers\fR"
+Select material by area.
+If \fIlayers\fR are not specified, then
+all paint, labels, and unexpanded subcells visible underneath the
+box are selected.
+If \fIlayers\fR is specified, then only those
+layers are selected.
+If \fBmore\fR is specified, the new material
+is added to the current selection rather than replacing it.
+If \fBless\fR is specified, the new material is removed from the
+selection (deselected).
+.TP
+.B "select \fR[\fBmore\fR | \fBless\fR] \fBcell\fI name\fR"
+Select a subcell.
+If \fIname\fR isn't given, this command finds a
+subcell that is visible underneath the cursor and selects it.
+If
+the command is repeated without moving the cursor then it will step
+through all the subcells under the cursor.
+If \fIname\fR is given,
+it is treated as a hierarchical instance identifier starting from the
+root of the window underneath the cursor.
+The named cell is selected.
+If \fBmore\fR is specified, the new subcell is added to the current
+selection instead of replacing it.
+If \fBless\fR is specified, the new subcell is removed from the
+selection (deselected).
+.TP
+.B "select clear"
+Clear out the selection.
+This does not affect the layout;  it
+merely deselects everything.
+.TP
+.B "select help"
+Print a short synopsis of the selection commands.
+.TP
+.B "select save \fIcell\fR"
+Save all the information in the selection as a Magic cell on disk.
+The selection will be saved in file \fIcell\fB.mag\fR.
+.TP
+.I "select and the see command"
+Select interacts with the \fBsee\fR command.
+When selecting individual pieces of material, only visible layers
+are candidates for selection.
+When selecting an entire area, however, both visible and non-visible
+material is selected.
+This behavior allows entire regions of material
+to be moved, even if \fBsee\fR has been used to turn off the display of
+some of the layers.
+.RE
+.TP
+.B "sideways\fR"
+Flip the selection left-to-right about a vertical axis running
+through the center of the selection's area.
+If the box is
+in the same window
+as the selection, it is flipped too.
+Selected material not in
+the edit cell is not affected.
+.TP
+.B "simcmd \fIcmd\fR"
+Sends the command \fIcmd\fR to rsim for execution.
+See \fITutorial #11:  Using IRSIM and RSIM with Magic\fR for more information.
+.TP
+.B "snap \fR[\fBon\fR]"
+.TP
+.B "snap \fR[\fBoff\fR]"
+Control whether the box and point are snapped to the grid selected
+for the windows in which they appear
+(the grid was set by the \fBgrid\fR command), or to the standard 1x1 grid.
+The default is for snapping to be \fBoff\fR, i.e., snapping to a 1x1 grid.
+With no arguments, \fBsnap\fR prints whether snapping is enabled or not.
+.TP
+.B \fBstartrsim \fR[\fIoptions\fR]\fR [\fIfilename\fR]
+Similar to the \fBrsim\fR command, except it returns to Magic as soon as
+rsim is started.
+See \fITutorial #11:  Using IRSIM and RSIM with Magic\fR for more information.
+.TP
+.B "straighten \fIdirection\fR"
+Straighten jogs in wires underneath the box by pulling them in \fIdirection\fR.
+Jogs are only straightened if doing so will cause no additional geometry
+to move.
+.TP
+.B "stretch \fR[\fIdirection \fR[\fIamount\fR]]"
+This command is identical to \fBmove\fR except that simple
+stretching occurs as the selection is moved.
+Each piece of
+paint in the selection causes the area through which it's
+moved to be erased in that layer.
+Also, each piece of paint
+in the selection that touches unselected material along its
+back side causes extra material to be painted to fill in the
+gap left by the move.
+If \fIdirection\fR isn't given and the
+cursor isn't exactly left, right, up, or down from the box
+corner, then Magic first rounds the cursor position off to a
+position that is one of those (whichever is closest).
+.TP
+.B "tool \fR[\fIname\fR | \fBinfo\fR]"
+Change the current tool.
+The result is that the cursor shape is
+different and the mouse buttons mean different things.
+The
+command \fBtool info\fR prints out the meanings of the buttons
+for the current tool.
+\fBTool \fIname\fR changes the current
+tool to \fIname\fR, where \fIname\fR is one of \fBbox\fR, \fBwiring\fR,
+or \fBnetlist\fR.
+If \fBtool\fR is invoked with no arguments,
+it picks a new tool in circular sequence:  multiple invocations
+will cycle through all of the available tools.
+.TP
+.B "unexpand"
+Unexpand all cells
+that touch the box but don't completely contain it.
+.TP
+.B "upsidedown\fR"
+Flip the selection upside down about a horizontal axis running
+through the center of the selection's area.
+If the box is in the same window
+as the selection then it is flipped too.
+Selected material that is not
+in the edit cell is not changed.
+.TP
+.B "what"
+Print out information about all the things that are selected.
+.TP
+.B "wire \fIoption \fR[\fIargs\fR]"
+This command provides a centerline-wiring style user interface.
+\fIOption\fR and \fIargs\fR specify a particular wiring option,
+as described below.
+Some of the options can be invoked via
+mouse buttons when the \fBwiring\fR tool is active.
+.RS
+.TP
+.B "wire help"
+Print out a synopsis of the various wiring commands.
+.TP
+.B "wire horizontal"
+Just like \fBwire leg\fR except that the new segment is forced to
+be horizontal.
+.TP
+.B "wire leg"
+Paint a horizontal or vertical segment of wire from one side of the box
+over to the cursor's x- or y-location (respectively).
+The direction
+(horizontal or vertical) is chosen so as to produce the longest
+possible segment.
+The segment is painted in the current wiring material
+and thickness.
+The new segment is selected, and the box is placed at
+its tip.
+.TP
+.B "wire switch \fB[\fIlayer width\fR]"
+Switch routing layers and place a contact at the box location.
+The
+contact type is chosen to
+connect the old and new routing materials.
+The box is placed at
+the position of the contact, and the contact is selected.
+If \fIlayer\fR and \fIwidth\fR are specified, they are used as
+the new routing material and width, respectively.
+If they are not
+specified, the new material and width are chosen to correspond to
+the material underneath the cursor.
+.TP
+.B "wire type \fB[\fIlayer width\fR]"
+Pick a material and width for wiring.
+If \fIlayer\fR and \fIwidth\fR
+are not given, then they are chosen from the material underneath
+the cursor, a square chunk of material is selected to indicate the
+layer and width that were chosen, and the box is placed over this
+chunk.
+If \fIlayer\fR and \fIwidth\fR are given, then this command
+does not modify the box position.
+.TP
+.B "wire vertical"
+Just like \fBwire leg\fR except that the new segment is forced to be
+vertical.
+.RE
+.TP
+.B "writeall \fR[\fBforce\fR]"
+This command steps through all the cells that have been modified
+in this edit session and gives you a chance to write them out.
+If the \fBforce\fR option is specified, then ``autowrite'' mode
+is used:  all modified cells are automatically written without
+asking for permission.
+
+.SH "COMMANDS FOR ALL WINDOWS"
+These commands are not used for layout, but are instead used for
+overall, housekeeping functions.
+They are valid in all
+windows.
+.TP
+.B "closewindow"
+The window under the cursor is closed.
+That area of the screen will
+now show other windows or the background.
+.TP
+\fBecho \fR[\fB-n\fR] \fIstr1 str2 ... strN\fR
+Prints \fIstr1 str2 ... strN\fR in the text window, separated by
+spaces and followed by a newline.
+If the \fB-n\fR switch is given, no newline is output
+after the command.
+.TP
+\fBhelp\fR [\fIpattern\fR]
+Displays a synopsis of commands that apply to the window you
+are pointing to.
+If \fIpattern\fR is given then only
+command descriptions containing the pattern are printed.
+\fIPattern\fR
+may contain '*' and '?' characters, which match a string of non-blank
+characters or a single non-blank character (respectively).
+.TP
+.B "logcommands \fR[\fIfile \fR[\fBupdate\fR]]]"
+If \fIfile\fR is given, all further commands are logged to that
+file.
+If no arguments are given, command logging is terminated.
+If the keyword \fBupdate\fR is present, commands are
+output to the file to cause the screen to be updated after each
+command when the command file is read back in.
+.TP
+.B "macro \fR[\fIchar \fR[\fIcommand\fR]]"
+\fICommand\fR is associated with \fIchar\fR such
+that typing \fIchar\fR on the keyboard is equivalent to typing
+``:'' followed by \fIcommand\fR.
+If \fIcommand\fR is omitted,
+the current macro for \fIchar\fR is printed.
+If \fIchar\fR is
+also omitted, then all current macros are printed.
+If \fIcommand\fR contains spaces, tabs, or semicolons then it must be placed
+in quotes.
+The semicolon acts as a command separator allowing multiple
+commands to be combined in a single macro.
+.TP
+.B "openwindow \fR[\fIcell\fR]"
+Open a new, empty window at the cursor position.
+Placement, sizing, and methods of manipulation are determined by
+the conventions of the window system in use.
+If
+\fIcell\fR is specified, then that cell is displayed
+in the new window.
+Otherwise the area of the box will be displayed
+in the new window.
+.TP
+.B "pushbutton \fIbutton action\fR"
+Simulates a button push.
+Button should be \fBleft\fR, \fBmiddle\fR,
+or \fBright\fR.
+Action is one of \fBup\fR, or \fBdown\fR.
+This command is normally invoked only from command scripts
+produced by the \fBlogcommands\fR command.
+.TP
+.B "quit"
+Exit Magic and return to the shell.
+If any cells, colormaps, or netlists
+have changed since they were last saved on disk, you
+are given a chance to abort the command and continue in Magic.
+.TP
+.B "redo \fR[\fIn\fR]"
+Redo the last \fIn\fR commands that were undone using \fBundo\fR (see below).
+The number of commands to redo defaults to 1 if \fIn\fR is not specified.
+.TP
+.B "redraw"
+Redraw the graphics screen.
+.TP
+.B "scroll \fIdirection \fR[\fIamount\fR]"
+The window under the cursor is moved by
+\fIamount\fR screenfulls in \fIdirection\fR
+relative to the circuit.
+If \fIamount\fR is omitted,
+it defaults to 0.5.
+.TP
+.B "send \fItype command\fR"
+Send a \fIcommand\fR to the window client named by \fItype\fR.
+The
+result is just as if \fIcommand\fR had been typed in a window
+of type \fItype\fR.
+See \fBspecialopen\fR, below,
+for the allowable types of windows.
+.TP
+.B "setpoint [\fIx y\fR [\fIwindowID\fR]]"
+Fakes the location of the cursor up until after the
+next interactive command.
+Without arguments, just prints out the current point location.
+This command is normally invoked only from command scripts.
+.IP
+If \fIwindowID\fR is given, then the point is assumed to be in that
+window's screen coordinate system rather than absolute screen
+coordinates.
+.TP
+.B "sleep \fIn"
+Causes Magic to go to sleep for \fIn\fR seconds.
+.TP
+.B "source \fIfilename"
+Each line of \fIfilename\fR is read and processed as one
+command.
+Any line whose last
+character is backslash is joined to the following line.
+The commands \fBsetpoint\fR, \fBpushbutton\fR, \fBecho\fR,
+\fBsleep\fR, and \fBupdatedisplay\fR are useful in command files,
+and seldom used elsewhere.
+.TP
+.B "specialopen \fR[\fIx1 y1 x2 y2\fR] \fItype\fR [\fIargs\fR]"
+Open a window of type \fItype\fR.
+If the optional \fIx1 y1 x2 y2\fR
+coordinates are given, then the new window will have its lower
+left corner at screen coordinates (\fIx1\fR, \fIy1\fR) and its upper right
+corner at screen coordinates (\fIx2\fR, \fIy2\fR).
+The \fIargs\fR arguments are interpreted
+differently depending upon the type of the window.
+These
+types are known:
+.RS
+.TP
+.B layout
+This type of window is used to edit a VLSI cell.
+The command takes a single argument
+which is used as the name of a cell to be loaded.
+The command
+.ce
+\fBopen \fIfilename\fR
+is a shorthand for the command
+.ce
+\fBspecialopen layout \fIfilename\fR.
+.TP
+.B color
+This type of window allows the color map to be edited.
+See the
+section COMMANDS FOR COLORMAP EDITING below.
+.TP
+.B netlist
+This type of window presents a menu that can be used to place labels,
+and to generate and edit net-lists.
+See the section
+COMMANDS FOR NETLIST EDITING below.
+.RE
+.TP
+.B "underneath"
+Move the window pointed at so that it lies underneath the rest of the windows.
+.TP
+.B "undo \fR[\fIcount\fR]"
+Undoes the last \fIcount\fR commands.
+Almost all commands in Magic
+are now undo-able.
+The only holdouts left are cell expansion/unexpansion,
+and window modifications (change of size, zooming, etc.).
+If \fIcount\fR is unspecified, it defaults to 1.
+.TP
+.B "updatedisplay"
+Update the display.
+This command is normally invoked only from command scripts.
+Scripts
+that do not contain this command update the screen only at the end of
+the script.
+.TP
+.B "view"
+Choose a view for the window underneath the cursor so that everything in
+the window is visible.
+.TP
+.B "windscrollbars \fR[\fIon\fR|\fIoff\fR]"
+Set the flag that determines if new windows will have scroll bars.
+.TP
+.B "windowpositions \fR[\fIfile\fR]"
+Write out the positions of the windows in a format suitable
+for the \fBsource\fR command.
+If \fIfile\fR is specified, then write it
+out to that file instead of to the terminal.
+.TP
+.B "zoom \fR[\fIfactor\fR]"
+Zoom the view in the window underneath the cursor
+by \fIfactor\fR.
+If \fIfactor\fR is less than 1, we zoom in;
+if it is greater than one, we zoom out.
+
+.SH "MOUSE BUTTONS FOR NETLIST WINDOWS"
+.PP
+When the  netlist menu is opened using the command \fBspecial netlist\fR,
+a menu appears on the screen.
+The colored areas on the menu can be clicked
+with various mouse buttons to perform various actions, such as placing
+labels and editing netlists.
+For details on how to use the menu,
+see ``Magic Tutorial #7: Netlists and Routing''.
+The menu buttons all
+correspond to commands that could be typed in netlist or layout windows.
+
+.SH "COMMANDS FOR NETLIST WINDOWS"
+.PP
+The commands described below work if you are pointing to the
+interior of the netlist menu.
+They may also be invoked when
+you are pointing at another window by using the \fBsend netlist\fR
+command.
+Terminal names in all of the commands below are
+hierarchical names consisting of zero or more cell use ids separated
+by slashes, followed by the label name, e.g. \fBtoplatch/shiftcell_1/in\fR.
+When processing the terminal paths, the search always starts in the
+edit cell.
+.TP
+\fBadd \fIterm1 term2\fR
+Add the terminal named \fIterm1\fR to the net containing
+terminal \fIterm2\fR.
+If \fIterm2\fR isn't in a net yet,
+make a new net containing just \fIterm1\fR and \fIterm2\fR.
+.TP
+\fBcleanup\fR
+Check the netlist to make sure that for every
+terminal named in the list there is at least one label in
+the design.
+Also check to make sure
+that every net contains at least two distinct terminals,
+or one terminal with several labels by the same name.
+When
+errors are found, give the user an opportunity to delete
+offending terminals and nets.
+This command can also be
+invoked by clicking the ``Cleanup'' menu button.
+.TP
+\fBcull\fR
+Examine the current netlist and the routing in the edit cell, and remove
+those nets from the netlist that are already routed.
+This command is often used
+after pre-routing nets by hand, so the router won't try to implement them
+again.
+.TP
+\fBdnet \fIname name\fR ...
+For each \fIname\fR given, delete the net containing that terminal.
+If no \fIname\fR is given, delete the currently-selected net, just
+as happens when the ``No Net'' menu button is clicked.
+.TP
+\fBdterm \fIname name\fR ...
+For each \fIname\fR given, delete that terminal from its net.
+.TP
+\fBextract\fR
+Pick a piece of paint in the edit cell that lies under the box.
+Starting from this, trace out all the electrically-connected
+material in the edit cell.
+Where this material touches subcells,
+find any terminals in the subcells and make a new net containing
+those terminals.
+Note:  this is a different command from the
+\fBextract\fR command in layout windows.
+.TP
+\fBfind \fIpattern \fR[\fIlayers\fR]
+Search the area beneath the box for labels matching \fIpattern\fR,
+which may contain the regular-expression characters ``\fB*\fR''
+``\fB?\fR'',
+``\fB[\fR'',
+``\fB]\fR'', and
+``\fB\e\fR'' (as matched by \fIcsh\fR\|(1);
+see the description of the \fBfind\fR button in
+``Magic Tutorial #7: Netlists and Routing'').
+For each label found, leave feedback whose text is the layer
+on which the label appears, followed by a semicolon, followed
+by the full hierarchical pathname of the label.
+The feedback surrounds the area of the label by one unit on all sides.
+(The reason for the one-unit extension is that feedback
+rectangles must have positive area, while labels may have
+zero width or height).
+If \fIlayers\fR are given, only labels attached to those layers
+are considered.
+.TP
+\fBflush \fR[\fInetlist\fR]
+The netlist named \fInetlist\fR is reloaded from the disk file
+\fInetlist\fB.net\fR.
+Any changes made to the netlist since the
+last time it was written are discarded.
+If \fInetlist\fR isn't
+given, the current netlist is flushed.
+.TP
+\fBjoin \fIterm1 term2\fR
+Join together the nets containing terminals \fIterm1\fR and
+\fIterm2\fR.
+The result is a single net containing all the
+terminals from both the old nets.
+.TP
+\fBnetlist \fR[\fIname\fR]
+Select a netlist to work on.
+If \fIname\fR is provided, read
+\fIname\fR.\fBnet\fR (if it hasn't already been read before) and make
+it the current netlist.
+If \fIname\fR
+isn't provided, use the name of the edit cell instead.
+.TP
+\fBprint \fR[\fIname\fR]
+Print the names of all the terminals in the net containing \fIname\fR.
+If \fIname\fR isn't provided, print the terminals in the current
+net.
+This command has the same effect as clicking on the ``Print''
+menu button.
+.TP
+\fBripup \fR[\fBnetlist\fR]
+This command has two forms.
+If \fBnetlist\fR isn't typed as an
+argument, then find a piece of paint in the edit cell under the
+box.
+Trace out all paint in the edit cell that is electrically
+connected to the starting piece, and delete all of this paint.
+If \fBnetlist\fR is typed, find all paint in the edit cell that
+is electrically connected to any of the terminals in the current
+netlist, and delete all of this paint.
+.TP
+\fBsavenetlist \fR[\fIfile\fR]
+Save the current netlist on disk.
+If \fIfile\fR is given, write
+the netlist in \fIfile\fR.\fBnet\fR.
+Otherwise, write the netlist
+back to the place from which it was read.
+.TP
+\fBshownet\fR
+Find a piece of paint in any cell underneath the box.
+Starting
+from this paint, trace out all paint in all cells that is
+electrically connected to the starting piece and highlight
+this paint on the screen.
+To make the highlights go away,
+invoke the command with the box over empty space.
+This command
+has the same effect as clicking on the ``Show'' menu button.
+.TP
+\fBshowterms\fR
+Find the labels corresponding to each of the terminals in the
+current netlist, and generate a feedback area over each.
+This
+command has the same effect as clicking on the ``Terms'' menu
+button.
+.TP
+\fBtrace\fR [\fIname\fR]
+This command is similar to \fBshownet\fR except that instead
+of starting from a piece of paint under the box, it starts
+from each of the terminals in the net containing \fIname\fR
+(or the current net if no \fIname\fR is given).
+All connected
+paint in all cells is highlighted.
+.TP
+\fBverify\fR
+Compare the current netlist against the wiring in the edit cell
+to make sure that the nets are implemented exactly as specified
+in the netlist.
+If there are discrepancies, feedback areas are
+created to describe them.
+This command can also be invoked by
+clicking the ``Verify'' menu button.
+.TP
+\fBwriteall\fR
+Scan through all the netlists that have been read during this
+editing session.
+If any have been modified, ask the user whether
+or not to write them out.
+
+.SH "MOUSE BUTTONS FOR COLORMAP WINDOWS"
+.PP
+Color windows display two sets of colored bars and a swatch
+of the color being edited.
+The left set of color bars is
+labeled Red, Green, and Blue;  these correspond to the proportion
+of red, green, and blue in the color being edited.
+The right
+set of bars is labeled Hue, Saturation, and Value;  these
+correspond to the same color but in a space whose axes are
+hue (spectral color), saturation (spectral purity vs. dilution
+with white), and value (light vs. dark).
+.PP
+The value of a color is changed by pointing inside the
+region spanned by one of the color bars and clicking any mouse button.
+The color bar will change so that it extends to the point
+selected by the crosshair when the button was pressed.
+The color
+can also be changed by clicking a button over one of the ``pumps''
+next to a color bar.
+A left-button click makes a 1% increment or decrement,
+and a right-button click makes a 5% change.
+.PP
+The color being edited can be
+changed by pressing the left button over the current color box in
+the editing window, then moving the mouse and releasing the button over
+a point on the screen that contains the color to be edited.
+A
+color value can be copied from an existing color to the current color
+by pressing the right mouse button over the current color box, then
+releasing the button when the cursor is over the color whose value
+is to be copied into the current color.
+
+.SH "COMMANDS FOR COLORMAP WINDOWS"
+.PP
+These commands work if you are pointing to the interior of a colormap
+window.
+The commands are:
+.TP
+.B "color \fR[\fInumber\fR]"
+Load \fInumber\fR as the color being edited in the window.
+\fINumber\fR must be an octal number between 0 and 377;
+it corresponds to the entry in the color map that is to be edited.
+If no \fInumber\fR is given, this command prints out the value of
+the color currently being edited.
+.TP
+.B "load \fR[\fItechStyle displayStyle monitorType\fR]"
+Load a new color map.
+If no arguments are specified, the color map for the
+current technology style (e.g, \fBmos\fR),
+display style (e.g, \fB7bit\fR), and monitor type (e.g, \fBstd\fR)
+is re-loaded.
+Otherwise, the color map
+is read from the file
+\fItechStyle\fR.\fIdisplayStyle\fR.\fImonitorType\fB.cmap\fR
+in the current directory or in the system library directory.
+.TP
+.B "save \fR[\fItechStyle displayStyle monitorType\fR]"
+Save the current color map.
+If no arguments are specified, save the color map in a
+file determined by the current technology style, display
+style, and monitor type as above.
+Otherwise, save it in the file
+\fItechStyle\fR.\fIdisplayStyle\fR.\fImonitorType\fB.cmap\fR
+in the current directory or in the system library directory.
+
+.SH "DIRECTIONS"
+.PP
+Many of the commands take a direction as an argument.
+The valid
+direction names are \fBnorth\fR, \fBsouth\fR, \fBeast\fR, \fBwest\fR,
+\fBtop\fR, \fBbottom\fR, \fBup\fR, \fBdown\fR, \fBleft\fR, \fBright\fR,
+\fBnortheast\fR, \fBne\fR, \fBsoutheast\fR, \fBse\fR, \fBnorthwest\fR,
+\fBnw\fR, \fBsouthwest\fR, \fBsw\fR, and \fBcenter\fR.
+In some
+cases, only Manhattan directions are permitted, which means only
+\fBnorth\fR, \fBsouth\fR, \fBeast\fR, \fBwest\fR, and their synonyms,
+are allowed.
+
+.SH "LAYERS"
+.PP
+The mask layers are different for each technology, and are
+described in the technology manuals.
+The layers below
+are defined in all technologies:
+.TP
+.B "*"
+All mask layers.
+Does not include special layers like the label layer
+and the error layer (see below).
+.TP
+.B "$"
+All layers underneath the cursor.
+.TP
+.B "errors"
+Design-rule violations (useful primarily in the \fBsee\fR command).
+.TP
+.B "labels"
+Label layer.
+.TP
+.B "subcell"
+Subcell layer.
+.PP
+Layer masks may be formed by constructing comma-separated lists
+of individual layer names.
+The individual layer names may be
+abbreviated, as long as the abbreviations are unique.
+For example, to indicate polysilicon and n-diffusion, use
+\fBpoly,ndiff\fR or \fBndiff,poly\fR.
+The special character \fB\-\fR causes all
+subsequent layers to be subtracted from the layer mask.
+For
+example, \fB*\-p\fR means ``all layers but polysilicon''.
+The special character \fB\+\fR reverses the effect of a previous
+\fB\-\fR; all subsequent layers are once again added to the layer
+mask.
+
+.SH "SEE ALSO"
+.PP
+ext2sim(1), ext2spice(1), cmap(5), dstyle(5), ext(5), sim(5),
+glyphs(5), magic(5), displays(5), net(5)
+.sp
+Online documentation can be found at the following URLs:
+.br
+http://opencircuitdesign.com/magic/
+.br
+http://vlsi.cornell.edu/magic/
+.br
+The OpenCircuitDesign website contains HTML versions of all the
+documentation found in the Magic "doc" subdirectory, including
+tutorials, technology file manual; download, compile and install
+instructions, and command reference.
+
+.SH "FILES"
+.PP
+.ta 5c
+.nf
+${CAD_ROOT}/magic/sys/.magic	startup file to create default macros
+.br
+~/.magic		user-specific startup command file
+.br
+${CAD_ROOT}/magic/nmos/*	some standard nmos cells
+.br
+${CAD_ROOT}/magic/scmos/*	some standard scmos cells
+.br
+${CAD_ROOT}/magic/sys/*.cmap	colormap files, see CMAP(5) man page
+.br
+${CAD_ROOT}/magic/sys/*.dstyle	display style files, see DSTYLE(5) man page
+.br
+${CAD_ROOT}/magic/sys/*.glyphs	cursor and window bitmap files, see GLYPH(5) man page
+.br
+${CAD_ROOT}/magic/sys/*.tech	technology files, see ``Maintainer's Manual
+		#2: The Technology File''
+.br
+${CAD_ROOT}/displays	configuration file for Magic serial-line displays
+.fi
+.PP
+\fICAD_ROOT variable.\fR  If the shell environment variable \fBCAD_ROOT\fR is set,
+Magic uses that location instead of the installed location (/usr/local/lib, by
+default).
+Normally one would change the search path (see below) rather than
+redirect the entire \fBCAD_ROOT\fR location.
+.PP
+\fISearch path.\fR  Magic's system and library files, such as technology files
+and display-style files, normally are placed in the ${CAD_ROOT}/magic area.
+However, Magic first tries to find them in the user's current directory.
+This
+makes it easier for an individual user to override installed system files.
+The search path is defined by the Magic command \fBpath\fR,
+
+.SH AUTHORS
+\fBOriginal\fR:  Gordon Hamachi, Robert Mayo, John Ousterhout, Walter Scott,
+George Taylor
+.sp
+\fBContributors\fR:  Michael Arnold (Magic maze-router and Irouter
+command), Don Stark (new contact scheme, X11 interface, various other things),
+Mike Chow (Rsim interface).
+The X11 driver is the work of several
+people, including Don Stark, Walter Scott, and Doug Pan.
+.sp
+\fBDevelopers\fR:  Ongoing development (magic version 6.5 and higher)
+made possible by Stefanos Sidiropolous, Tim Edwards, Rajit Manohar,
+Philippe Pouliquen, Michael Godfrey, and others.
+.sp
+Many other people have contributed to Magic, but it is impossible to list
+them all here.
+We appreciate their help!
+.SH BUGS
+.PP
+If Magic gets stuck for some reason, first try typing Control-C into the
+terminal window (in the Tcl/Tk version, this is the \fIoriginal\fR
+terminal, not the Tk console window).
+Most of Magic's lengthy database
+searches are interruptible.
+If this doesn't work, kill the process.
+The Tcl/Tk version automatically creates periodic backups that may be
+recovered with "magic -r".
+.PP
+Report bugs to \fBmagic-dev@csl.cornell.edu\fR.
+Please be specific:
+tell us exactly what you did to cause the problem, what you expected
+to happen, and what happened instead.
+If possible send along small
+files that we can use to reproduce the bug.
+A list of known bugs and
+fixes is also available from the above address.
+Tell us which version
+of magic you are running.

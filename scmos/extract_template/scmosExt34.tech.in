@@ -1,0 +1,119 @@
+/* 
+	This is for HP's CMOS34 1.2 micron CMOS Bulk Process. 
+	Again some parameters are defined by GPP others by Ersatzco
+	and others are computed.
+	
+*/
+#ifdef	extForSpice
+style	lambda=0.6(hp)
+#else
+style	lambda_irsim=0.6(hp)
+#endif
+
+	lambda	60
+	step	100
+	sidehalo	6	/* 2 more than min m2 spacing */
+
+#ifdef  INCLUDE_FET_CAP
+	areacap allFet 433 
+#endif
+
+	/* ------------   diff capacitances ---------------- */
+	areacap	nwell	35
+	perimc  nwell   ~(nwell)	47
+
+#ifdef	extForSpice
+	areacap	ndiff,nsd,ndc/a,nsc/a	0
+	areacap	pdiff,psd,pdc/a,psc/a	0
+
+	perimc	ndiff,nsd,ndc/a,nsc/a	space,pwell	0
+	perimc	pdiff,psd,pdc/a,psc/a	space,nwell	0
+#else	
+	areacap             ndiff,nsd,ndc/a,nsc/a               116
+	areacap             pdiff,psd,pdc/a,psc/a               187
+	/* Real values increased to compensate for not counting CJGATE */
+	perimc              ndiff,nsd,ndc/a,nsc/a  space,pwell  176 /* 156 */
+	perimc              pdiff,psd,pdc/a,psc/a  space,nwell  162 /* 132 */
+#endif
+	/* ------------------------------------------------- */
+
+
+	/* ------------  poly capacitances ---------------- */
+	areacap	PolyCap			28
+	overlap	PolyCap	allWell 	28	
+
+	perimc	PolyCap	~PolyCap	38
+	sideOverlap(PolyCap, ~PolyCap, allWell, 38, nothing)
+	sideOverlap(PolyCap, ~PolyCap, M1Cap, 34, nothing)
+	sideOverlap(PolyCap, ~PolyCap, M2Cap, 27, M1Cap)
+
+	sidewall PolyCap ~PolyCap ~PolyCap PolyCap	15
+	/* ------------------------------------------------- */
+
+	/* ------------  metal1 capacitances ---------------- */
+	areacap	M1Cap			18
+	overlap	M1Cap	allWell		18	PolyCap,PNplusCap
+	overlap	M1Cap	PNplusCap		46	
+	overlap	M1Cap	PolyCap		46	
+
+	perimc	M1Cap	~M1Cap		33
+	sideOverlap(M1Cap, ~M1Cap, allWell, 33, (PolyCap,PNplusCap))
+	sideOverlap(M1Cap, ~M1Cap, PNplusCap,  33, nothing)
+	sideOverlap(M1Cap, ~M1Cap, PolyCap, 33, nothing)
+	sideOverlap(M1Cap, ~M1Cap, M2Cap, 28, nothing)
+
+	sidewall M1Cap   ~M1Cap   ~M1Cap   M1Cap	27
+	/* ------------------------------------------------- */
+
+
+	/* ------------   metal2 capacitances ---------------- */
+	areacap	M2Cap		9	
+	overlap	M2Cap	allWell	9	PolyCap,M1Cap,PNplusCap
+	overlap	M2Cap	PNplusCap	12	M1Cap
+	overlap	M2Cap	PolyCap	14	M1Cap
+	overlap	M2Cap	M1Cap	30	
+
+	perimc	M2Cap	~M2Cap	22
+	sideOverlap(M2Cap, ~M2Cap, allWell, 22, (M1Cap,PolyCap,PNplusCap) )
+	sideOverlap(M2Cap, ~M2Cap, PNplusCap,  20, M1Cap)
+	sideOverlap(M2Cap, ~M2Cap, PolyCap, 22, M1Cap)
+	sideOverlap(M2Cap, ~M2Cap, M1Cap,   28, nothing)
+
+	sidewall M2Cap   ~M2Cap   ~M2Cap   M2Cap	33
+	/* ------------------------------------------------- */
+
+
+	/* -------------- Fets -----------------------------*/
+	/* cscab, cscap defined since extresis needs them */
+	fet	pfet	pdiff,pdc	2 pfet	Vdd!	nwell	270	623
+	fet	nfet	ndiff,ndc	2 nfet	Gnd!	pwell	90	623
+	fet	wcap	ndiff,ndc	1 wcap	Gnd!	pwell	300	0
+
+	/* From irsim */
+	fetresis	nfet	linear	9700
+	fetresis	pfet	linear	35700
+	/* ------------------------------------------------- */
+
+	/* -------------- Resistivity (in milliohms per sq) -------*/
+	contact	pc		4	16210
+	contact	ndc,nsc,	4	77000
+	contact	pdc,psc,	4	44260
+	contact	m2c		4	150
+
+
+	resist	ndiff,nsd,ndc/a,nsc/a	99630
+	resist	pdiff,psd,pdc/a,psc/a	120000
+	resist	PolyRes			25000
+	resist	M1Res			60
+	resist	M2Res			40
+	resist	nwell			1500000
+	/* ------------------------------------------------- */
+
+	/* Order the planes for correct shielding */
+	planeOrder(implant,0)
+	planeOrder(well,1)
+	planeOrder(active,2)
+	planeOrder(metal1,3)
+	planeOrder(metal2,4)
+	planeOrder(metal3,5)
+	planeOrder(oxide,6)

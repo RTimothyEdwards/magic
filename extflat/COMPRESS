@@ -1,0 +1,162 @@
+Name compression:
+
+	{prefix}/{suffix}	   -> {prefix} if {prefix} is unique
+	{prefix}/{suffix}	   -> {suffix} if {suffix} is unique
+	{prefix}/{middle}/{suffix} -> {prefix}/{suffix} if unique
+
+Consider array subscripts independently from name portions.
+Apply name compression only to the most-preferred name for each node.
+
+
+Algorithm (greedy):
+
+    Input is a name of the form:
+
+Name *
+shorten(startName)
+    Name *startName;	/* nk/.../n1/n0 */
+{
+    Name *best, *prefix, *suffix;
+    int bestLength, length, i;
+
+    best = startName;
+    bestLength = nameLength(startName);
+
+    /* Find small suffixes */
+    for (suffix = NULL, i = 0; i <= bestLength + 1; i++)
+    {
+	newName = "ni/.../n0";
+	if (totallyUnique(newName) && suffixUnique(newName))
+	{
+	    suffix = newName;
+	    break;
+	}
+    }
+    if (suffix && nameLength(suffix) < bestLength)
+    {
+	best = suffix;
+	bestLength = nameLength(suffix);
+    }
+
+    /* Find small prefixes */
+    for (prefix = NULL, i = bestLength + 1; i >= 0; i--)
+    {
+	newName = "nk/.../ni";
+	if (totallyUnique(newName) && prefixUnique(newName))
+	{
+	    prefix = newName;
+	    break;
+	}
+    }
+    if (prefix && nameLength(prefix) < bestLength)
+    {
+	best = prefix;
+	bestLength = nameLength(prefix);
+    }
+
+    /*
+     * Consider eliding inner parts of the name.
+     * This loop starts with the smallest length and goes up
+     * to names of length bestLength.
+     */
+    for (length = 1; length < bestLength; length++)
+	if (genAllSubNames(startName, length, elideFunc, &best))
+	    break;
+
+    return best;
+}
+
+/*
+ * totallyUnique --
+ *
+ * Determine whether 'name' is unique with respect to all the
+ * names currently in nameTable.
+ *
+ * Results:
+ *	TRUE if 'name' is unique, FALSE if not.
+ *
+ * Side effects:
+ *	None.
+ */
+
+bool
+totallyUnique(name)
+    Name *name;
+{
+}
+
+/*
+ * prefixUnique --
+ *
+ * Compare 'name' with all other names in nameTable, looking
+ * only at the leading components of these names.  If 'name'
+ * isn't unique with respect to the set of names formed by
+ * the leading components, return FALSE.
+ *
+ * Results:
+ *	TRUE if 'name' is unique as described above, FALSE if not.
+ *
+ * Side effects:
+ *	None.
+ */
+
+bool
+prefixUnique(name)
+    Name *name;
+{
+}
+
+/*
+ * suffixUnique --
+ *
+ * Compare 'name' with all other names in nameTable, looking
+ * only at the trailing components of these names.  If 'name'
+ * isn't unique with respect to the set of names formed by
+ * the trailing components, return FALSE.
+ *
+ * Results:
+ *	TRUE if 'name' is unique as described above, FALSE if not.
+ *
+ * Side effects:
+ *	None.
+ */
+
+bool
+suffixUnique(name)
+    Name *name;
+{
+}
+
+/*
+ * genAllSubNames --
+ *
+ * Generate all subnames of 'name' that are of length 'subLength'.
+ * Call (*func)() on each name, where (*func)() is of the following
+ * form:
+ *
+ *	int
+ *	(*func)(name, cdata)
+ *	    Name *name;
+ *	    ClientData cdata;
+ *	{
+ *	}
+ *
+ * This function should return 0 if genAllSubNames() should continue
+ * generating names, or 1 if we should stop.
+ *
+ * Results:
+ *	Returns 1 if (*func)() aborted the generation; otherwise
+ *	returns 0.
+ *
+ * Side effects:
+ *	None other than those caused by (*func)().
+ */
+
+int
+genAllSubNames(name, subLength, func, cdata)
+    Name *name;
+    int subLength;
+    int (*func)();
+    ClientData cdata;
+{
+}

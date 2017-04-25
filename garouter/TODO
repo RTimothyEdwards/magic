@@ -1,0 +1,18 @@
+TO DO:
+-----
+Eliminate unnecessary stuff from router module, particularly user channel
+    definition using labels.
+Via minimization.
+
+TEST:
+----
+Temporary hack: mechanism to use pre-routed stems provided by AMCC
+    (possibly an "alias" command to the router that sets up a table
+     mapping terminal names in the netlist to new names).
+Check for blockages in the channel; eliminate blocked layers from the
+    list of layers we try to connect to during stem generation.
+Stem generation: be generous in allowing stems to use above grid
+    lines as well as below.
+
+
+

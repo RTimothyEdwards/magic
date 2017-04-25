@@ -1,0 +1,700 @@
+%----------------------------------------------------------------------------
+% Magic tutorial number S-1
+%----------------------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\documentclass[letterpaper,twoside,12pt]{article}
+\usepackage{epsfig,times}
+
+\setlength{\textwidth}{8.5in}
+\addtolength{\textwidth}{-2.0in}
+\setlength{\textheight}{11.0in}
+\addtolength{\textheight}{-2.0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0pt}
+\setlength{\topmargin}{-0.5in}
+\setlength{\headheight}{0.2in}
+\setlength{\headsep}{0.3in}
+\setlength{\topskip}{0pt}
+
+\def\hinch{\hspace*{0.5in}}
+\def\starti{\begin{center}\begin{tabbing}\hinch\=\hinch\=\hinch\=hinch\hinch\=\kill}
+\def\endi{\end{tabbing}\end{center}}
+\def\ii{\>\>\>}
+\def\q{\special{ps:(") show}\hspace*{0.6em}}
+\def\mytitle{Magic Tutorial \#S-1: The scheme command-line interpreter}
+\def\bk{\special{ps:/bksp 2 string def bksp 0 92 put bksp show}\hspace*{0.4em}}
+
+%----------------------------------------------------------------------------
+
+\begin{document}
+
+\makeatletter
+\newcommand{\ps@magic}{%
+	\renewcommand{\@oddhead}{\mytitle\hfil\today}%
+	\renewcommand{\@evenhead}{\today\hfil\mytitle}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\newcommand{\ps@mplain}{%
+	\renewcommand{\@oddhead}{}%
+	\renewcommand{\@evenhead}{}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\makeatother
+\pagestyle{magic}
+\thispagestyle{mplain}
+
+
+\begin{center}
+  {\bfseries \Large \mytitle} \\
+  \vspace*{0.5in}
+  {\itshape Rajit Manohar} \\
+  \vspace*{0.5in}
+   Department of Computer Science \\
+   California Institute of Technology \\
+   Pasadena, CA  91125 \\
+  \vspace*{0.25in}
+  This tutorial corresponds to Magic version 7. \\
+\end{center}
+\vspace*{0.5in}
+
+{\noindent\bfseries\large Tutorials to read first:}
+\starti
+   \> Read reference \cite{sussman}
+\endi
+
+{\noindent\bfseries\large Commands introduced in this tutorial:}
+\starti
+   \> :scm-echo-result, :eval, lots of scheme functions
+\endi
+
+{\noindent\bfseries\large Macros introduced in this tutorial:}
+
+\starti
+   \> {\itshape (None)}
+\endi
+
+\vspace*{0.75in}
+\section{Introduction}
+
+Magic's original command-line interpreter has some limitations. Some of 
+these include the absence of definitions with arguments, block structure,
+the ability to define complex functions. We describe an extension which
+is almost completely backward compatible with the existing magic
+command-line syntax, but permits the use of Scheme on the command-line.
+
+\section{Backward compatibility}
+
+To permit existing magic source files to work within the scheme interpreter,
+we have had to sacrifice one feature of the magic command-line syntax. Single
+quotes can only be used to quote a single character. The reason for this
+limitation is that {\itshape unmatched} quotes are used by scheme to stop
+evaluation of the next input symbol.
+
+Parentheses are used by the scheme interpreter. If you use parentheses
+outside single or double quotes in your magic source files, you might
+find that the source files don't work properly. To circumvent this
+problem, simply put your parentheses in double quotes. You can also
+use backslashes to quote parentheses as in:
+
+\starti
+   \ii {\bfseries :macro {\bk}( {\q}echo hello{\q}}
+\endi
+
+Another thing
+you may notice is that floating-point numbers are parsed as such, and
+therefore a command such as
+
+\starti
+   \ii {\bfseries :echo 5.3}
+\endi
+
+would display the string {\bfseries 5.300000}. If you really want the string
+{\bfseries 5.3}, use:
+
+\starti
+   \ii {\bfseries :echo {\q}5.3{\q}}
+\endi
+
+If this difference is undesirable, the scheme interpreter can be
+turned off at compile-time. Talk to your local magic maintainer if you
+want this done. We feel that the minor trouble taken in modifying
+existing magic source files will be outweighed by the advantage of
+using a more powerful layout language.
+
+
+\section{The scheme interpreter}
+
+The interpreter supports a subset of the scheme language. The features
+of scheme that are missing include character types,
+vector types, file input/output, complex numbers, the distinction
+between exact and inexact arithmetic, quasi-quotations, and
+continuations.
+
+\subsection{Command-line interaction}
+
+When
+interacting with the command-line of magic, the interpreter implicitly
+parenthesizes its input. For example, the command
+
+\starti
+   \ii {\bfseries :paint poly}
+\endi
+
+would be interpreted as the scheme expression
+
+\starti
+   \ii {\bfseries (paint poly)}
+\endi
+
+This has exactly the same effect as the original expression, because
+all existing magic command-line functions are also scheme functions.
+Since the valid magic commands vary from window to window, the return
+value of the function is a boolean that indicates whether the command
+was valid for the current window.
+
+The boolean {\bfseries scm-echo-result} controls whether or not the result
+of the evaluation is displayed. If the variable does not exist, or the
+variable is not boolean-valued, the result of evaluation is not
+echoed. Since the input is implicitly parenthesized, typing in
+
+\starti
+   \ii {\bfseries :scm-echo-result}
+\endi
+
+would not display the value of the variable, since it would be
+evaluated as:
+
+\starti
+   \ii {\bfseries (scm-echo-result)}
+\endi
+
+To display the value of a variable, use the built-in procedure
+{\bfseries eval} as follows:
+
+\starti
+   \ii {\bfseries :eval scm-echo-result}
+\endi
+
+This would result in the expression:
+
+\starti
+   \ii {\bfseries (eval scm-echo-result)}
+\endi
+
+which would have the desired effect (note that for this to actually
+display anything, the value of {\bfseries scm-echo-result} must be {\bfseries \#t},
+and so examining its value is really a futile exercise---which is why
+it is an example, of course!).
+
+\subsection{Types of arguments}
+
+Since scheme expressions are typed, we may need to examine the
+type of a particular expression. The following functions return
+booleans, and can be used to determine the type of an object.
+
+{\bfseries \#t} and {\bfseries \#f} are constants representing the booleans true and
+false. A standard scheme convention is to name functions that return
+booleans with a name ending with ``?''. The built-in functions conform
+to this convention.
+
+The expression {\itshape expr} is evaluated, and the type of the result of
+evaluation is checked.
+
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (boolean?} {\itshape expr}{\bfseries )} &
+		{\bfseries \#t} if {\itshape expr} is a boolean \\ \hline
+	{\bfseries (symbol?} {\itshape expr}{\bfseries )} &
+		{\bfseries \#t} if {\itshape expr} is a symbol \\ \hline
+	{\bfseries (list?} {\itshape expr}{\bfseries )} &
+		{\bfseries \#t} if {\itshape expr} is a list \\ \hline
+	{\bfseries (pair?} {\itshape expr}{\bfseries )} &
+		{\bfseries \#t} if {\itshape expr} is a pair \\ \hline
+	{\bfseries (number?} {\itshape expr}{\bfseries )} &
+		{\bfseries \#t} if {\itshape expr} is a number \\ \hline
+	{\bfseries (string?} {\itshape expr}{\bfseries )} &
+		{\bfseries \#t} if {\itshape expr} is a string \\ \hline
+	{\bfseries (procedure?} {\itshape expr}{\bfseries )} &
+		{\bfseries \#t} if {\itshape expr} is a procedure \\ \hline
+   \end{tabular}
+\end{center}
+
+For example,
+
+\starti
+   \ii {\bfseries (boolean? \#t)}{\itshape  $=>$ \#t} \\
+   \ii {\bfseries (number? \#t)}{\itshape  $=>$ \#f}
+\endi
+
+\subsection{Lists and pairs}
+
+A pair is a record structure with two fields, called the car and cdr
+fields (for historical reasons). Pairs are used primarily to represent
+lists. A list can be defined recursively as either the empty list, or
+a pair whose cdr field is a list. The following functions are used to
+extract these fields and to construct new pairs and lists.
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (car} {\itshape pair}{\bfseries )} &
+		the car field of {\itshape pair} \\ \hline
+	{\bfseries (cdr} {\itshape pair}{\bfseries )}&
+		the cdr field {\itshape pair} \\ \hline
+	{\bfseries (cons} {\itshape obj1 obj2}{\bfseries )} &
+		a new pair whose car field is
+		{\itshape obj1} and cdr field is {\itshape obj2} \\ \hline
+	{\bfseries (list} {\itshape arg1 \dots}{\bfseries )} &
+		a new list consisting of its arguments \\ \hline
+	{\bfseries (null?} {\itshape list}{\bfseries )} &
+		{\bfseries \#t} if {\itshape list} is the empty list \\ \hline
+	{\bfseries (length} {\itshape list}{\bfseries )} &
+		the number of elements in {\itshape list} \\ \hline
+   \end{tabular}
+\end{center}
+
+For example,
+
+\starti
+   \ii {\bfseries (car '(a b c))}{\itshape  =$>$ a} \\
+   \ii {\bfseries (cdr '(a b c))}{\itshape  =$>$ (b c)} \\
+   \ii {\bfseries (cons 'a '(b c))}{\itshape  =$>$ (a b c)} \\
+   \ii {\bfseries (list 'a 'b 'c)}{\itshape  =$>$ (a b c)} \\
+   \ii {\bfseries (null? '(a b))}{\itshape  =$>$ \#f} \\
+   \ii {\bfseries (null? ())}{\itshape  =$>$ \#t}
+\endi
+
+The car field and cdr field of a pair can be set using the following two
+functions.
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (set-car!}  {\itshape pair obj}{\bfseries )} &
+		sets the car field of {\itshape pair} to
+		{\itshape obj}. It returns the new pair \\ \hline
+	{\bfseries (set-cdr!}  {\itshape pair obj}{\bfseries )} &
+		sets the cdr field of {\itshape pair} to
+		{\itshape obj}. It returns the new pair \\ \hline
+   \end{tabular}
+\end{center}
+
+These two functions have {\itshape side-effects}, another feature that
+distinguishes scheme from pure lisp. Another naming convention
+followed is that functions that have side-effects end in ``!''.
+
+Try the following sequence in magic:
+
+\starti
+   \ii {\bfseries (define x '(a b))}{\itshape  =$>$ (a b)} \\
+   \ii {\bfseries (set-car! x 'c)}{\itshape  =$>$ (c b)} \\
+   \ii {\bfseries (set-cdr! x '(q))}{\itshape  =$>$ (c q)} \\
+   \ii {\bfseries (set-cdr! x 'q)}{\itshape  =$>$ (c . q)} \\
+\endi
+
+After the last statement, the value of x is no longer a list but a
+pair.
+
+\subsection{Arithmetic}
+
+The interpreter supports both floating-point and integer
+arithmetic. The basic arithmetic functions are supported.
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (+ }{\itshape num1 num2}{\bfseries )} &
+		the sum {\itshape num1}+{\itshape num2} \\ \hline
+	{\bfseries (- }{\itshape num1 num2}{\bfseries )} &
+		the difference {\itshape num1}-{\itshape num2} \\ \hline
+	{\bfseries (* }{\itshape num1 num2}{\bfseries )} &
+		the product {\itshape num1}*{\itshape num2} \\ \hline
+	{\bfseries (/ }{\itshape num1 num2}{\bfseries )} &
+		the quotient {\itshape num1}/{\itshape num2} \\ \hline
+	{\bfseries (truncate }{\itshape num}{\bfseries )} &
+		the integer part of {\itshape num} \\ \hline
+   \end{tabular}
+\end{center}
+
+The division operator checks for division by zero, and 	promotes
+integers to floating-point if deemed necessary. Floating-point numbers
+can be converted into integers by truncation. The range of a number
+can be checked using the following predicates:
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (zero? }{\itshape num}{\bfseries )} &
+		{\bfseries \#t} if {\itshape num} is zero \\ \hline
+	{\bfseries (positive? }{\itshape num}{\bfseries )} &
+		{\bfseries \#t} if {\itshape num} is positive \\ \hline
+	{\bfseries (negative? }{\itshape num}{\bfseries )} &
+		{\bfseries \#t} if {\itshape num} is negative \\ \hline
+   \end{tabular}
+\end{center}
+
+\subsection{Strings}
+
+The interpreter supports string manipulation. String manipulation can
+be useful for interaction with the user as well as constructing names
+for labels.
+
+\begin{center}
+   \begin{tabular}{|l|p{0.6\columnwidth}|} \hline
+	{\bfseries (string-append }{\itshape str1 str2}{\bfseries )} &
+		the string formed by concatenating
+		{\itshape str1} and {\itshape str2} \\ \hline
+	{\bfseries (string-length }{\itshape str}{\bfseries )} &
+		the length of string {\itshape str} \\ \hline
+	{\bfseries (string-compare }{\itshape str1 str2}{\bfseries )} &
+		a positive, zero, or negative number depending on whether
+		{\itshape str1} is lexicographically greater, equal to,
+		or less than {\itshape str2} \\ \hline
+	{\bfseries (string-ref }{\itshape str int}{\bfseries )} &
+		the numerical value of the character stored at position
+		{\itshape int} in {\itshape str} (The first character
+		is at position 0.) \\ \hline
+	{\bfseries (string-set! }{\itshape str int1 int2}{\bfseries )} &
+		sets character in string {\itshape str} at position
+		{\itshape int1} to {\itshape int2} \\ \hline
+	{\bfseries (substring }{\itshape str int1 int2}{\bfseries )} &
+		returns substring of {\itshape str} from position
+		{\itshape int1} (inclusive) to {\itshape int2} (exclusive) \\ \hline
+   \end{tabular}
+\end{center}
+
+Strings can be used to convert to and from various types.
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (number-$>$string }{\itshape num}{\bfseries )} &
+		the string corresponding to the representation of
+		{\itshape num} \\ \hline
+	{\bfseries (string-$>$number }{\itshape str}{\bfseries )} &
+		the number corresponding to {\itshape str} \\ \hline
+	{\bfseries (string-$>$symbol }{\itshape str}{\bfseries )} &
+		a symbol named {\itshape str} \\ \hline
+	{\bfseries (symbol$->$string }{\itshape sym}{\bfseries )} &
+		the string corresponding to the name of {\itshape sym} \\ \hline
+   \end{tabular}
+\end{center}
+
+\subsection{Bindings and functions}
+
+An object (more accurately, the {\itshape location} where the object is
+stored)  can be bound to a symbol using the following two functions:
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (define }{\itshape sym expr}{\bfseries )} &
+		bind {\itshape expr} to {\itshape sym}, creating
+		a new symbol if necessary and return {\itshape expr} \\ \hline
+	{\bfseries (set! }{\itshape sym expr}{\bfseries )} &
+		bind {\itshape expr} to an existing symbol {\itshape sym}
+		and return {\itshape expr} \\ \hline
+   \end{tabular} \\
+   (Note: these functions do not evaluate their first argument.)
+\end{center}
+
+The difference between the two is that {\bfseries define} introduces a new
+binding, whereas {\bfseries set!} modifies an existing binding. In both
+cases, {\itshape expr} is evaluated, and the result is bound to the symbol
+{\itshape sym}. The result of the evaluation is also returned.
+
+\starti
+   \ii {\bfseries (define x 4)}{\itshape  $=>$  4}
+\endi
+
+Functions can be defined using lambda expressions. Typically a
+function is bound to a variable. If required, a lambda expression or
+built-in function can be applied to a list.
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (lambda }{\itshape list obj}{\bfseries )} &
+		a new function \\ \hline
+   \end{tabular} \\
+   (Note: a lambda does not evaluate its arguments.)
+\end{center}
+
+{\itshape list} is a list of symbol names, and {\itshape obj} is the expression
+that corresponds to the body of the function. For example,
+
+\starti
+   \ii {\bfseries (lambda (x y z) (+ (+ x y) z))}{\itshape  $=>$ \#proc}
+\endi
+
+is a function that takes three arguments and returns their sum. It can
+be bound to a symbol using {\bfseries define}.
+
+\starti
+   \ii {\bfseries (define sum3 (lambda (x y z) (+ (+ x y) z)))}{\itshape $=>$ \#proc}
+\endi
+
+Now, we can use {\bfseries sum3} like any other function.
+
+\starti
+   \ii {\bfseries (sum3 5 3 8)}{\itshape  $=>$ 16}
+\endi
+
+A function can be applied to a list using {\bfseries apply}.
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (apply }{\itshape proc list}{\bfseries )} &
+		apply {\itshape proc} to {\itshape list} \\ \hline
+   \end{tabular} \\
+   (Note: both {\itshape proc} and {\itshape list} are evaluated before
+	application.)
+\end{center}
+
+{\itshape list} is used as the list of arguments for the function. For
+instance, an alternative way to sum the three numbers in the example
+above is:
+
+\starti
+   \ii {\bfseries (apply sum3 '(3 5 8))}{\itshape  $=>$ 16}
+\endi
+
+An alternative method for creating bindings is provided by the
+{\bfseries let} mechanism.
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (let }{\itshape binding-list expr}{\bfseries )} &
+		evaluate {\itshape expr} after the bindings have
+		been performed \\ \hline
+	{\bfseries (let* }{\itshape binding-list expr}{\bfseries )} &
+		evaluate {\itshape expr} after the bindings have
+		been performed \\ \hline
+	{\bfseries (letrec }{\itshape binding-list expr}{\bfseries )} &
+		evaluate {\itshape expr} after the bindings have
+		been performed \\ \hline
+   \end{tabular}
+\end{center}
+
+The {\itshape binding-list} is a list of bindings. Each binding is a list
+containing a symbol and an expression. The expression is evaluated and
+bound to the symbol. In the case of {\bfseries let}, all the expressions are
+evaluated before binding them to any symbol; {\bfseries let*}, on the other
+hand, evaluates an expression and binds it to the symbol before
+evaluating the next expression. {\bfseries letrec} permits bindings to refer
+to each other, permitting mutually recursive function definitions.
+The evaluation order is defined to be from left to right in all
+cases. After performing the bindings, {\itshape expr} is evaluated with the
+new bindings in effect and the result is returned.
+
+{\bfseries let} bindings can be used in interesting ways. An example of
+their use is provided later.
+
+Scheme is an eager language, and only a few functions do not evaluate
+all their arguments (definitions and conditionals). Evaluation can be
+controlled to some degree using the following two functions:
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (quote }{\itshape obj}{\bfseries )} &
+		the unevaluated object {\itshape obj} \\ \hline
+	{\bfseries (eval }{\itshape obj}{\bfseries )} &
+		evaluates object {\itshape obj} \\ \hline
+   \end{tabular}
+\end{center}
+
+
+\subsection{Control structures}
+
+Since scheme is a functional programming language, functions that are
+usually written using loops are written using recursion. Conditional
+constructs are used to terminate the recursion. These constructs are
+slightly different in that they do not evaluate all their arguments
+(otherwise recursive functions would not terminate!). 
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (if }{\itshape expr arg1 arg2}{\bfseries )} &
+		evaluate {\itshape expr} and evaluate one
+		of {\itshape arg1} or {\itshape arg2} \\ \hline
+   \end{tabular}
+\end{center}
+
+The {\bfseries if} construct evaluates its first argument (which must result
+in a boolean), and if the result is {\bfseries \#t} evaluates {\itshape arg1} and
+returns the result; otherwise {\itshape arg2} is evaluated and returned.
+
+For instance, the standard factorial function might be written as:
+
+\starti
+   \ii {\bfseries (define fact (lambda (x) (if (positive? x) 
+	(* x (fact (- x 1))) 1)))}
+\endi
+
+A more complicated form of conditional behavior is provided by {\bfseries cond}.
+
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (cond }{\itshape arg1 arg2 ...}{\bfseries )} &
+		generalized conditional \\ \hline
+   \end{tabular}
+\end{center}
+
+Each argument consists of a list which contains two expressions. The
+first expression is evaluated (and must evaluate to a boolean), and if
+it is true the second expression is evaluated and returned as the
+result of the entire expression. If the result was false, the next
+argument is examined and the above procedure is repeated. If all
+arguments evaluate to false, the result is undefined.
+
+For instance if {\bfseries x} was a list, the expression
+
+\starti
+   \ii {\bfseries (cond ((null? x) x) ((list? x) (car x)) (\#t (echo {\q}error{\q})))}
+\endi
+
+would return the empty list if {\bfseries x} was the empty list and the
+first element from the list otherwise. When {\bfseries x} is not a list, an
+error message is displayed. Note that {\bfseries echo} is a standard magic
+command.
+
+Often one needs to evaluate a number of expressions in
+sequence (since the language has side-effects). The {\bfseries begin}
+construct can be used for this purpose.
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (begin }{\itshape arg1 arg2 \dots}{\bfseries )} &
+		sequencing construct \\ \hline
+   \end{tabular}
+\end{center}
+
+{\bfseries begin} evaluates each of its arguments in sequence, and returns
+the result of evaluating its last argument.
+
+\subsection{Interaction with layout}
+
+All standard magic commands are also scheme functions. This permits
+one to write scheme functions that interact with the layout
+directly. Apart from the standard magic commands, the following scheme
+functions are provided so as to enable the user to edit layout.
+
+\begin{center}
+   \begin{tabular}{|l|p{0.6\columnwidth}|} \hline
+	{\bfseries (getbox)} &
+		a list containing four members (llx lly urx ury) \\ \hline
+	{\bfseries (getpaint }{\itshape str}{\bfseries )} &
+		a list containing the boxes from layer {\itshape str}
+		under the current box that have paint in them \\ \hline
+	{\bfseries (getlabel }{\itshape str}{\bfseries )} &
+		a list containing the labels under the current box that
+		match {\itshape str} \\ \hline
+	{\bfseries (magic }{\itshape sym}{\bfseries )} &
+		forces {\itshape sym} to be interpreted as a
+		magic command \\ \hline
+   \end{tabular}
+\end{center}
+
+The pairs (llx,lly) and (urx,ury) correspond to magic coordinates for
+the lower left and upper right corner of the current
+box. {\bfseries getpaint} returns a list of boxes (llx lly urx ury), and
+{\bfseries getlabel} returns a list of tagged boxes (label llx lly urx ury)
+which contain the label string. {\bfseries magic} can be used to force the
+scheme interpreter to interpret a symbol as a magic procedure. The
+evaluation returns the specified magic command.
+
+
+\subsection{Miscellaneous}
+
+Some additional functions are provided to enable the user to debug
+functions.
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (showframe)}	&
+		display the current list of bindings \\ \hline
+	{\bfseries (display-object }{\itshape obj}{\bfseries )} &
+		display the type and value of {\itshape obj} \\ \hline
+	{\bfseries (error }{\itshape str}{\bfseries )} &
+		display error message and abort evaluation \\ \hline
+	{\bfseries (eqv? }{\itshape obj1 obj2}{\bfseries )} &
+		checks if two objects are equal \\ \hline
+	{\bfseries (collect-garbage)} &
+		force garbage collection \\ \hline
+   \end{tabular}
+\end{center}
+
+The following is a complete list of the built-in scheme variables that
+can be used to control the interpreter.
+
+\begin{center}
+   \begin{tabular}{|l|p{0.6\columnwidth}|} \hline
+	{\bfseries scm-library-path} &
+		a colon-separated path string \\ \hline
+	{\bfseries scm-echo-result} &
+		a boolean used to determine if the result of evaluation
+		should be displayed \\ \hline
+	{\bfseries scm-trace-magic} &
+		controls display of actual magic commands \\ \hline
+	{\bfseries scm-echo-parser-input} &
+		controls display of the string sent to the scheme parser \\ \hline
+	{\bfseries scm-echo-parser-output} &
+		controls display of the result of parsing \\ \hline
+	{\bfseries scm-stack-display-depth} &
+		controls the number of frames displayed in the stack trace
+		output when an error occurs during evaluation \\ \hline
+	{\bfseries scm-gc-frequency} &
+		controls the frequency of garbage collection \\ \hline
+   \end{tabular}
+\end{center}
+
+\subsection{Libraries}
+
+The following function loads in a file and evaluates its contents in order.
+
+\begin{center}
+   \begin{tabular}{|l|l|} \hline
+	{\bfseries (load-scm }{\itshape str}{\bfseries )} &
+		reads scheme commands in from the named file \\ \hline
+	{\bfseries (save-scm }{\itshape str obj}{\bfseries )} &
+		appends {\itshape obj} to the file {\itshape str},
+		creating a new file if necessary \\ \hline
+   \end{tabular}
+\end{center}
+
+The file can be in the current directory, or in any of the
+locations specified by a string containing a colon-separated list of
+directory names stored in {\bfseries scm-library-path}.
+
+The format of these files differs from standard magic source files
+because the contents of a line are not implicitly
+parenthesized. In addition, semicolons are used as a comment
+character; everything following a semicolon to the end of the current
+line is treated as a comment. 
+
+For instance,
+
+\starti
+   \ii {\bfseries define f (lambda (x) x)}
+\endi
+
+would define {\bfseries f} to be the identity function when placed in a
+magic source file (so as to provide backward compatibility). The same
+definition would result in an error if placed in a scheme source
+file. 
+
+\starti
+   \ii {\bfseries (define f (lambda (x) x))}
+\endi
+
+The above expression should be used in the scheme file to achieve the
+same effect.
+
+\begin{thebibliography}{2}
+
+\bibitem{sussman}
+H. Abelson and G.J. Sussman,
+\newblock {\itshape Structure and Interpretation of Computer Programs}.
+
+\bibitem{abelson}
+H. Abelson {\itshape et al.},
+\newblock {\itshape Revised Report on the Algorithmic Language Scheme}.
+\end{thebibliography}
+
+\end{document}

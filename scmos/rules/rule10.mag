@@ -1,0 +1,11 @@
+magic
+tech scmos
+timestamp 736072873
+<< metal1 >>
+rect 54 0 69 15
+rect 115 0 130 30
+<< metal2 >>
+rect 130 50 140 90
+<< pad >>
+rect 0 0 100 100
+<< end >>

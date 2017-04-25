@@ -1,0 +1,97 @@
+ExtArray.o: ExtArray.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../debug/debug.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h ../utils/signals.h ../utils/styles.h \
+ ../windows/windows.h ../dbwind/dbwind.h
+ExtBasic.o: ExtBasic.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../debug/debug.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h ../utils/signals.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/styles.h ../utils/stack.h
+ExtCell.o: ExtCell.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/styles.h ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../utils/malloc.h ../textio/textio.h ../debug/debug.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../utils/signals.h ../utils/stack.h ../utils/utils.h \
+ ../windows/windows.h ../utils/main.h ../utils/undo.h
+ExtCouple.o: ExtCouple.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h
+ExtHard.o: ExtHard.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../utils/malloc.h \
+ ../textio/textio.h ../utils/styles.h ../debug/debug.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../utils/geofast.h
+ExtHier.o: ExtHier.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../utils/styles.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../debug/debug.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h
+ExtLength.o: ExtLength.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../debug/debug.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h ../utils/signals.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/styles.h ../utils/stack.h ../utils/main.h \
+ ../utils/utils.h
+ExtMain.o: ExtMain.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/styles.h ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../utils/malloc.h ../textio/textio.h ../debug/debug.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../utils/signals.h ../utils/stack.h ../utils/utils.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/main.h ../utils/undo.h
+ExtNghbors.o: ExtNghbors.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../debug/debug.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../utils/signals.h ../utils/stack.h
+ExtPerim.o: ExtPerim.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/malloc.h \
+ ../utils/stack.h ../debug/debug.h ../extract/extract.h \
+ ../extract/extractInt.h ../extract/extDebugInt.h
+ExtRegion.o: ExtRegion.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/malloc.h \
+ ../textio/textio.h ../debug/debug.h ../extract/extract.h \
+ ../extract/extractInt.h ../extract/extDebugInt.h ../utils/signals.h
+ExtSubtree.o: ExtSubtree.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../debug/debug.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h ../utils/signals.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/styles.h
+ExtTech.o: ExtTech.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/utils.h ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../database/databaseInt.h ../utils/malloc.h \
+ ../textio/textio.h ../utils/tech.h ../debug/debug.h ../extract/extract.h \
+ ../extract/extractInt.h ../extract/extDebugInt.h ../cif/CIFint.h
+ExtTest.o: ExtTest.c ../utils/magic.h ../utils/utils.h \
+ ../utils/geometry.h ../utils/styles.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../windows/windows.h \
+ ../graphics/graphics.h ../dbwind/dbwind.h ../utils/main.h \
+ ../commands/commands.h ../textio/textio.h ../textio/txcommands.h \
+ ../debug/debug.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h
+ExtTimes.o: ExtTimes.c ../utils/magic.h ../utils/utils.h \
+ ../utils/geometry.h ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h
+ExtYank.o: ExtYank.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../debug/debug.h ../utils/styles.h ../extract/extract.h \
+ ../extract/extractInt.h ../extract/extDebugInt.h
+ExtInter.o: ExtInter.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../utils/undo.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../debug/debug.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h ../utils/signals.h ../utils/styles.h
+ExtUnique.o: ExtUnique.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/styles.h ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../utils/malloc.h ../textio/textio.h ../debug/debug.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../utils/signals.h ../utils/stack.h ../utils/utils.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/main.h ../utils/undo.h

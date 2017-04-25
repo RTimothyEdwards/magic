@@ -1,0 +1,10 @@
+*.*%
+*.cdslck
+.inca.db.*
+inca.*.pak
+*.swp
+*~
+*/av_extracted*/
+.nfs*
+*.cd-
+*/mommdl/

@@ -1,0 +1,236 @@
+.\" sccsid @(#)magic.5	4.1 MAGIC (Berkeley) 11/29/85
+.\"
+.\" CONVENTIONS:
+.\"	italics:  things that are substituted for
+.\"	boldface: characters that are typed as-is
+.\"
+.\"	EXAMPLE:  \fIfilename\fB.mag\fR
+.\"	     or:  \fBcif \fR[\fIfile\fR]
+.\"
+.de (X
+.sp
+.nf
+.in +1i
+..
+.de )X
+.in -1i
+.sp
+.fi
+..
+.TH MAGIC 5
+.UC 4
+.SH NAME
+magic \- format of \fB.mag\fR files read/written by Magic
+
+.SH DESCRIPTION
+Magic uses its own internal ASCII format for storing cells in disk files.
+Each cell \fIname\fP is stored in its own file, named \fIname\fB.mag\fR.
+.LP
+The first line in a \fB.mag\fP file is the string
+.(X
+\fBmagic\fP
+.)X
+to identify this as a Magic file.
+.LP
+The next line is optional and is used to identify the technology
+in which a cell was designed.
+If present, it should be of the form
+.(X
+\fBtech\fP \fItechname\fP
+.)X
+If absent, the technology defaults to a system-wide standard,
+currently \fBnmos\fP.
+.LP
+The next line is also optional and gives a timestamp for the cell.
+The line is of the format
+.(X
+\fBtimestamp\fP \fIstamp\fP
+.)X
+where \fIstamp\fP is a number of seconds since 00:00 GMT
+January 1, 1970 (i.e, the Unix time returned by the library
+function \fItime()\fP).
+It should be the last time this cell or any of its children changed.
+The timestamp is used to detect when a child is edited outside the
+context of its parent (the parent stores the last timestamp it saw
+for each of its children; see below).
+When this occurs, the
+design-rule checker must recheck the entire area of the child for
+subcell interaction errors.
+If this field is omitted in a cell, Magic
+supplies a default value that forces the rechecks.
+.LP
+Next come lines describing the contents of the cell.
+There are three kinds of groups of lines, describing
+mask rectangles, subcell uses, and labels.
+Each group must appear contiguously in the file,
+but the order between groups is arbitrary.
+.LP
+Each group of mask rectangles is headed with a line of the format
+.(X
+\fB<<\ \fIlayer\fB\ >>\fR
+.)X
+where \fIlayer\fP is a layername known in the current technology
+(see the \fBtech\fP line above).
+Each line after this header
+has the format
+.(X
+\fBrect\fI xbot ybot xtop ytop\fR
+.)X
+where \fI(xbot,\ ybot)\fR is the lower-left corner of the rectangle
+in Magic (lambda) coordinates, and \fI(xtop,\ ytop)\fR is
+the upper-right corner.
+Degenerate rectangles are not allowed; \fIxbot\fP must be strictly
+less than \fIxtop\fP, and \fIybot\fP strictly less than \fIytop\fP.
+The smallest legal value of \fIxbot\fP or \fIybot\fP is
+\fB\(mi67108858\fP,
+and the largest legal value for \fIxtop\fP or \fIytop\fP is
+\fB67108858\fP.
+Values that approach these limits (within a factor
+of 100 or 1000) may cause numerical overflows in Magic even though
+they are not strictly illegal.
+We recommend using coordinates around
+zero as much as possible.
+.PP
+Rectangles should be non-overlapping, although this is not
+essential.
+They should also already have been merged into maximal
+horizontal strips (the neighbor to the right or left of a rectangle
+should not be of the same type), but this is also not essential.
+.PP
+The second kind of line group describes a single cell use.
+Each cell use group is of the following form:
+.(X
+\fBuse\fI filename use-id\fR
+\fBarray\fI xlo xhi xsep ylo yhi ysep\fR
+\fBtimestamp\fI stamp\fR
+\fBtransform\fI a b c d e f\fR
+\fBbox\fI xbot ybot xtop ytop\fR
+.)X
+A group specifies a single instance of the cell named \fIfilename\fP,
+with instance-identifier \fIuse-id\fP.
+The instance-identifier \fIuse-id\fP must be unique among all cells
+used by this \fB.mag\fP file.
+If \fIuse-id\fP is not specified, a unique one is generated automatically.
+.LP
+The \fBarray\fP line need only be present if the cell is an array.
+If so, the X indices run from \fIxlo\fP to \fIxhi\fP inclusive,
+with elements being separated from each other in the X dimension
+by \fIxsep\fP lambda.
+The Y indices run from \fIylo\fP to \fIyhi\fP inclusive,
+with elements being separated from each other in the Y dimension
+by \fIysep\fP lambda.
+If \fIxlo\fP and \fIxhi\fP are equal, \fIxsep\fP is ignored; similarly
+if \fIylo\fP and \fIyhi\fP are equal, \fIysep\fP is ignored.
+.LP
+The \fBtimestamp\fP line is optional; if present, it gives the
+last time this cell was aware that the child \fIfilename\fP changed.
+If there is no \fBtimestamp\fP line, a timestamp of 0 is assumed.
+When the subcell is read in, this value is compared to the actual value
+at the beginning of the child cell.
+If there is a difference, the
+``timestamp mismatch'' message is printed, and Magic rechecks
+design-rules around the child.
+.LP
+The \fBtransform\fP line gives the geometric transform from coordinates
+of the child \fIfilename\fP into coordinates of the cell being read.
+The six integers \fIa\fP, \fIb\fP,
+\fIc\fP, \fId\fP, \fIe\fP, and \fIf\fP
+are part of the following transformation matrix,
+which is used to postmultiply all coordinates in the child \fIfilename\fP
+whenever their coordinates in the parent are required:
+.sp
+.in +2i
+.nf
+.ta +0.5i +0.5i +0.5i +0.5i +0.5i +0.5i +0.5i +0.5i
+\fIa\fR	\fId\fR	0
+\fIb\fR	\fIe\fR	0
+\fIc\fR	\fIf\fR	1
+.fi
+.in -2i
+.LP
+Finally, \fBbox\fP gives an estimate of the bounding box of cell
+\fIfilename\fP (covering all the elements of the array if an \fBarray\fP
+line was present), in coordinates of the cell being read.
+.LP
+The third kind of line group in a \fB.mag\fP file is a
+list of labels.
+It begins with the line
+.(X
+\fB<<\ labels\ >>\fR
+.)X
+and is followed by zero or more lines of the following form:
+.(X
+\fBrlabel\fI layer xbot ybot xtop ytop position text\fR
+.)X
+Here \fIlayer\fP is the name of one of the layers specified in
+the technology file for this cell.
+The label is attached to material
+of this type.
+\fILayer\fP may be \fBspace\fP, in which case the
+label is not considered to be attached to any layer.
+.LP
+Labels are rectangular.
+The lower-left corner of the label (the part
+attached to any geometry if \fIlayer\fP is non-\fBspace\fR) is
+at \fI(xbot,\ ybot)\fR, and the upper-right corner at \fI(xtop,\ ytop)\fR.
+The width of the rectangle or its height may be zero.
+In fact, most
+labels in Magic have a lower-left equal to their upper right.
+.LP
+The text of the label, \fItext\fP, may be any sequence of characters not
+including a newline.
+This text is located at one of nine possible orientations
+relative to the center of the label's rectangle.
+\fIPosition\fP is an integer between 0 and 8,
+each of which corresponds to a different orientation:
+.(X
+.ta +0.5i +0.5i
+\fB0\fR	center
+\fB1\fR	north
+\fB2\fR	northeast
+\fB3\fR	east
+\fB4\fR	southeast
+\fB5\fR	south
+\fB6\fR	southwest
+\fB7\fR	west
+\fB8\fR	northwest
+.)X
+.LP
+A \fB.mag\fP file is terminated by the line
+.(X
+\fB<<\ end\ >>\fR
+.)X
+Everything following this line is ignored.
+.LP
+Any line beginning with a pound sigh (``\fB#\fR'') is considered
+to be a comment and ignored.
+Beware, however, that these comments
+are discarded by Magic when it reads a cell, so if that cell is written
+again by Magic, the comments will be lost.
+
+.SH "NOTE FOR PROGRAMS THAT GENERATE MAGIC FILES"
+Magic's incremental design rule checker expects that every cell
+is either completely checked, or contains information to tell the
+checker which areas of the cell have yet to be
+examined for design-rule violations.
+To make sure that the design-rule checker verifies all the
+material that has been generated for a cell, programs
+that generate \fB.mag\fP files should place the following rectangle
+in each file:
+.(X
+\fB<< checkpaint >>\fR
+\fBrect \fIxbot ybot xtop ytop\fR
+.)X
+This rectangle may appear anywhere a list of rectangles is allowed;
+immediately following the \fBtimestamp\fP line at the beginning of
+a \fB.mag\fP file is a good place.
+The coordinates \fIxbot\fR
+etc. should be large enough to completely cover anything in the
+cell, and must surround all this material by at least one lambda.
+Be careful, however, not to make this area too ridiculously large.
+For example, if you use the maximum and minimum legal tile coordinates,
+it will take the design-rule checker an extremely long time
+to recheck the area.
+
+.SH "SEE ALSO"
+magic\|(1)

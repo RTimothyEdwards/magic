@@ -1,0 +1,33 @@
+lispMain.o: lispMain.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h ../textio/textio.h \
+ ../utils/signals.h ../utils/malloc.h
+lispEval.o: lispEval.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h ../textio/textio.h \
+ ../utils/malloc.h lispA-Z.h lisp.h lispargs.h ../utils/signals.h
+lispPrint.o: lispPrint.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h ../textio/textio.h \
+ ../utils/malloc.h lispargs.h ../utils/signals.h ../utils/hash.h
+lispParse.o: lispParse.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h ../textio/textio.h \
+ ../utils/hash.h ../utils/malloc.h
+lispA-Z.o: lispA-Z.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h lispargs.h ../textio/textio.h \
+ ../utils/malloc.h
+lispGC.o: lispGC.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h ../textio/textio.h \
+ ../utils/malloc.h lispargs.h
+lispFrame.o: lispFrame.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h ../textio/textio.h \
+ ../utils/malloc.h
+lispTrace.o: lispTrace.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h ../textio/textio.h \
+ ../utils/malloc.h
+lispArith.o: lispArith.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h lispargs.h ../textio/textio.h \
+ ../utils/malloc.h
+lispString.o: lispString.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h lispargs.h ../textio/textio.h \
+ ../utils/malloc.h
+lispIO.o: lispIO.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h lispargs.h ../textio/textio.h \
+ ../utils/malloc.h ../utils/utils.h ../utils/signals.h

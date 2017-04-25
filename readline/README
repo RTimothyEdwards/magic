@@ -1,0 +1,6 @@
+The readline/ directory contains the source for GNU readline-4.3. We
+are keeping a copy of the library in the readline/ directory to keep
+the magic distribution self-contained.
+
+- Tim Edwards, Johns Hopkins
+  Rajit Manohar, Cornell

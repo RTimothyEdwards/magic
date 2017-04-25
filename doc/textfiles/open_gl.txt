@@ -1,0 +1,184 @@
+
+                                                16 March 2000
+
+                 Magic Freed From 8 Bit Planes!
+
+                      R. Timothy Edwards
+
+
+This file describes the implementation of an OpenGL interface for
+magic.
+
+The purpose of these changes is:
+
+   Avoid the limit of 8 bit planes imposed by the pseudocolor colormap
+   without compromising the quality of the display by using stipples
+   in place of solid color fills.
+
+Details:
+
+   Magic is losing ground to 1) new VLSI fabrication
+   processes, and 2) new video cards.  The first is not
+   necessarily a problem:  magic is well thought out and
+   surprisingly versatile.  However, the second was giving
+   me fits a while back when I found that magic only runs
+   in 8-bit colormap (pseudocolor) mode, while many of my
+   other X11 applications wouldn't run at all and were only
+   happy in 24-bit (TrueColor) mode.  This is particularly
+   true of Linux and the new breed of window managers and
+   GUIs such as KDE which normally expect the desktop
+   visual to be 24-bit TrueColor.  I was forced to
+   close my X session and restart in 8-bit mode to get
+   magic to work.  Then, I would often get the problem
+   that by installing its own 8-bit colormap, magic would
+   cause the colors of the xterm which it uses for text
+   I/O to become unreadable.  Later, I bought the Xi
+   Graphics X11 server which supports 8-bit overlays on
+   top of a 24-bit color, and that works well, but I
+   regard it as a temporary solution.
+
+   Magic makes good use of its color bit planes to represent
+   layers in the VLSI layout.  The result is a display that
+   looks better than any of the multi-thousand-dollar
+   professional layout tools (Cadence or Mentor Graphics,
+   which use stipple patterns on a harsh black background,
+   or Tanner's L-Edit, which is still backwardly-compatible
+   to the original 4-plane color and uses a harsh white
+   background).  The problem with magic is that the 8-bit
+   colormap mode is increasingly considered "archaic" and
+   is less well supported as applications move toward 24-bit
+   color.  Also, fabrication processes have moved toward
+   multiple metal and poly layers, which exceeds the
+   capacity of 8 bit planes to represent separate fabrication
+   layers.
+
+   I have a solution:  write a new graphics interface to
+   magic for OpenGL.  Why?  OpenGL is supported by many
+   high-performance video cards.  It can do color blending
+   in hardware, which gives similar results to what magic
+   does with careful allocation of colors in the colormap.
+   And:  it's not limited to eight bit planes.  And:  it
+   works in 24-bit color.  And:  say goodbye to stipple
+   patterns.  All layers can be represented by solid colors,
+   and non-edit cell layers can have that "washed out" look
+   without compromising graphics resolution.  The results
+   are stunning.  Ideally, the interface would be based on
+   "glut", the generic graphics API for OpenGL, which would
+   avoid making explicit calls to X11 functions and make
+   magic easier to port to non-UNIX operating systems
+   (namely, Windows).  Unfortunately, this approach got
+   bogged down in a problem with threads and Xlib.  The
+   final answer on that is:  Don't ever multithread an
+   OpenGL program unless you're sure you have 100% control
+   over the relative timing of the execution of all X11 and
+   OpenGL calls.  Instead of glut, this implementation is
+   based on glX, the more specific API detailing the
+   use of OpenGL within an X11 environment.  This method
+   keeps the original X11Handler as the event manager for
+   magic, and uses X11 cursors and a few other routines.
+   Everything else is rendered using OpenGL commands.
+
+Usage notes:
+
+   Especially for Intel x86 and compatible platforms:
+   Don't attempt to using magic/OpenGL with the Mesa OpenGL
+   library unless you have video hardware support (as far as
+   I know, this is only true for the Voodoo cards).
+   More specifically, the hardware has to support color
+   blends (GL_BLEND function);  otherwise you will be waiting
+   all day long for magic to draw your chip layout.  There
+   is one (commercial) driver available as of this writing
+   (Xi graphics 3D Accelerated X server, see www.xig.com,
+   works with several dozen video cards), and promises for
+   the near future from SuSe, RedHat, MetroX, and Precision
+   Insight.  I am assuming that this is the wave of the
+   future;  otherwise, I wouldn't bother with the
+   implementation.  OpenGL rendering under the Xi Graphics
+   server is a bit slower than with the X11 interface, but
+   benchmarks are a complex combination of driver, card,
+   revision numbers of each, processor type and speed, and
+   magic implementation.
+
+   If magic is compiled only for OpenGL, this will come up
+   as the default.  Otherwise, if it is compiled along with
+   X11, X11 will be the default and it will require typing
+
+   > magic -d OGL
+
+   on the command line to get the OpenGL graphics.
+
+Implementation notes:
+
+   OpenGL is normally considered a 3D rendering engine;
+   here, I make use of 3D hardware acceleration, but all
+   transformation matrices are aligned perpendicular to
+   the depth (z) axis.  There is no colormap;  although
+   OpenGL can work in color index mode, there is no
+   point in doing so because the X11 version would be
+   faster.  For reasons of simplicity, the OpenGL
+   version takes its color input from mos.7bit.std.cmap1,
+   although instead of plugging them into a colormap, it
+   sets the color according to their RGB values.  The
+   mos.7bit.std.cmap1 has been extended to include a set
+   of solid colors which implement the "washed out" look
+   of magic's non-edit cells without reverting to the
+   checkerboard stipple pattern.  Existence of the gray
+   background made the color blending tricky, because
+   anything blended with gray becomes grayer.  However,
+   OpenGL allows color specs to run outside of the
+   normal color boundaries;  it only cares whether the
+   color values map to real video values after all
+   transformations (like blending) have been performed
+   on the color values.  So we compute "super-colors"
+   which can be whiter than white and blacker than
+   black, but which arithmetically resolve to the
+   usual magic colors when blended with the background
+   gray.  This achieves the desired effect.  The only
+   real difference between the OpenGL and X11 displays
+   is the blend colors, which are always "computationally
+   perfect" blends of multiple solids in OpenGL but have
+   been tweaked for aesthetic effect in the X11
+   colormap version.  This effect has been reproduced
+   in the OpenGL version by tweaking the color, style,
+   and tech files.  In addition, new styles have been
+   added for poly2 and capacitors.
+      OpenGL has several emergent features unavailable
+   in the X11 version:  one is an unlimited number of
+   solid colors (and their mixtures);  this made all
+   the difference on my layouts in 3-metal layer
+   technologies, where the 3rd metal layer covers large
+   areas and makes parts of the circuit uninterpretable
+   when viewed through the nasty cross-hatched magenta
+   stipple.  Under OpenGL, the magenta color is perhaps
+   still a bit severe, but the whole circuit is easily
+   viewed underneath.  The second emergent benefit is
+   that layers of the same material which overlap in
+   separate cells are drawn darker at the overlap (due
+   to the blending function), so it is much easier to
+   see where one cell ends and another begins.
+
+Bugs:
+
+   Bugs of the source and of the glX driver are difficult
+   to separate.  My Xi Graphics 3D Accelerated-X server
+   previously had problems drawing over X11 windows
+   overlapping the magic window;  this behavior has
+   disappeared in the current distribution of the X
+   server (May 2000).  A good test of server bugs is
+   to run magic/OpenGL on an SGI machine, which has a
+   stable implementation of OpenGL.
+
+Files changed are:
+
+1. scripts/configure.in		(altered)
+
+2. graphics/Makefile		(altered)
+
+3. graphics/grOGL*.c		(new)
+   graphics/grTOGL*.c		(new)
+
+4. scmos/mos.7bit.std.cmap	(altered)
+   scmos/mos.OpenGL.dstyle	(new)
+   scmos/mos.7bit.dstyle	(altered)
+   scmos/*.tech			(altered)
+

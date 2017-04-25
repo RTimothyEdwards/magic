@@ -1,0 +1,8 @@
+I. Bugs to fix (also in magic-7.5 [stable]):
+
+  1. The "extresist" code only recognizes original "fet" types, not
+     the new "device" types in the extract file.
+
+  2. "plow" has been broken for some time.  It should derive its rules
+     from the DRC decks (using the new routines that are meant for just
+     that sort of thing).

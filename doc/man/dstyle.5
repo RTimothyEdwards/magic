@@ -1,0 +1,176 @@
+.\" sccsid @(#)dstyle.5	4.6 (Berkeley) 10/20/85
+.\"
+.\" CONVENTIONS:
+.\"	italics:  things that are substituted for
+.\"	boldface: characters that are typed as-is
+.\"
+.\"	EXAMPLE:  \fIfilename\fB.mag\fR
+.\"	     or:  \fBcif \fR[\fIfile\fR]
+.\"
+.TH DSTYLE 5
+.UC 4
+.SH NAME
+dstyle \- format of .dstyle files (display styles)
+
+.SH DESCRIPTION
+.PP
+Display styles indicate how to render information on a screen.
+Each style describes one way of rendering information, for example
+as a solid area in red or as a dotted outline in purple.
+Different
+styles correspond to mask layers, highlights, labels, menus, window
+borders, and so on.
+See ``Magic Maintainer's Manual #3: Display Styles,
+Color Maps, and Glyphs'' for more information on how the styles are
+used.
+.PP
+Dstyle files usually have names of the form \fIx\fB.\fIy\fB.dstyle\fIn\fR,
+where \fIx\fR is a class of technologies, \fIy\fR is a class of
+displays, and \fIn\fR is a version number (currently \fB5\fR).
+The version number may increase in the future if the format
+of dstyle files changes.
+For example, the display style file \fBmos.7bit.dstyle5\fR provides
+all the rendering information for our nMOS and CMOS technologies
+for color displays with at least 7 bits of color.
+.PP
+Dstyle files are stored in ASCII as a series of lines.
+Lines beginning with ``#'' are considered to be comments and are ignored.
+The rest of the lines of the file are divided up into two sections
+separated by blank lines.
+There should not be any blank lines within a section.
+.SH "DISPLAY_STYLES SECTION"
+The first section begins with a line
+.DS L
+\fBdisplay_styles\fR \fIplanes\fR
+.DE
+where \fIplanes\fR is the number of bits of color information per
+pixel on the screen (between 1 and 8).
+Each line after that describes one display style
+and contains eight fields separated by white space:
+.DS L
+\fIstyle writeMask color outline fill stipple shortName longName\fR
+.DE
+The meanings of the fields are:
+.TP
+\fIstyle\fR
+The number of this style, in decimal.
+Styles 1 through 64 are used to display mask layers in the edit cell.
+The style number(s) to use for
+each mask layer is (are) specified in the technology file.
+Styles 65-128 are used for displaying mask layers in non-edit cells.
+If style \fIx\fR is used for a mask layer in the edit cell, style
+\fIx\fR+64 is used for the same mask layer in non-edit cells.
+Styles above 128 are used by the Magic code for various things like menus
+and highlights.
+See the file \fIstyles.h\fR in Magic for how styles above 128 are used.
+When redisplaying, the styles are drawn in order starting at 1, so the order
+of styles may affect what appears on the screen.
+.TP
+\fIwriteMask\fR
+This is an octal number specifying which bit-planes are to be
+modified when this style is rendered.
+For example, 1 means only information in bit-plane 0 will be affected, and 377
+means all eight bit-planes are affected.
+.TP
+\fIcolor\fR
+An octal number specifying the new values to be written into
+the bit-planes that are modified.
+This is used along with \fIwriteMask\fR to determine the new value of each
+pixel that's being modified:
+.DS C
+newPixel = (oldPixel & \(apwriteMask) | (color & writeMask)
+.DE
+The red, green, and blue intensities displayed for each pixel
+are not deterimined directly by the value of the pixel;  they
+come from a color map that maps the eight-bit pixel values
+into red, green, and blue intensities.
+Color maps are stored in separate files.
+.TP
+\fIoutline\fR
+If this field is zero, then no outline is drawn.
+If the field is non-zero, it specifies that outlines are to be drawn around
+the rectangular areas rendered in this style, and the octal
+value gives an eight-bit pattern telling how to draw the outline.
+For example, 377 means to draw a solid line, 252 means to draw
+a dotted line, 360 specifies long dashes, etc.
+This field only
+indicates \fIwhich\fR pixels will be modified:  the \fIwriteMask\fR
+and \fIcolor\fR fields indicate how the pixels are modified.
+.TP
+\fIfill\fR
+This is a text string specifying how the areas drawn in this
+style should be filled.
+It must have one of the values \fBsolid\fR,
+\fBstipple\fR, \fBcross\fR, \fBoutline\fR, \fBgrid\fR.
+\fBSolid\fR
+means that every pixel in the area is to modified according to
+\fIwriteMask\fR and \fIcolor\fR.
+\fBStipple\fR means that the area should be stippled:  the stipple
+pattern given by \fIstipple\fR is used to determine which pixels
+in the area are to be modified.
+\fBCross\fR means that an X
+is drawn in a solid line between the diagonally-opposite corners
+of the area being rendered.
+\fBOutline\fR means that the area
+should not be filled at all;  only an outline is drawn (if
+specified by \fIoutline\fR).
+\fBGrid\fR is a special style
+used to draw a grid in the line style given by \fIoutline\fR.
+The styles \fBcross\fR and \fBstipple\fR may be supplemented
+with an outline by giving a non-zero \fIoutline\fR field.
+The \fBoutline\fR and \fBgrid\fR styles don't make sense without
+an an outline, and \fBsolid\fR doesn't make sense with an
+outline (since all the pixels are modified anyway).
+.TP
+\fIstipple\fR
+Used when \fIfill\fR is \fBstipple\fR to specify (in decimal) the
+stipple number to use.
+.TP
+\fIshortName\fR
+This is a one-character name for this style.
+These names
+are used in the specification of glyphs and also in a few
+places in the Magic source code.
+Most styles have no short
+name;  use a ``-'' in this field for them.
+.TP
+\fIlongName\fR
+A more human-readable name for the style.
+It's not used at
+all by Magic.
+.SH "STIPPLES SECTION"
+.PP
+The second section of a dstyle file is separated from the
+first by a blank line.
+The first line of the second
+section must be
+.DS L
+\fBstipples\fR
+.DE
+and each additional line specifies one stipple pattern with
+the syntax
+.DS L
+\fInumber pattern name\fR
+.DE
+\fINumber\fR is a decimal number used to name the stipple
+in the \fIstipple\fR fields of style lines.
+\fINumber\fR
+must be no less than 1 and must be no greater than a device-dependent
+upper limit.
+Most devices support at least 15 stipple
+patterns.
+\fIPattern\fR
+consists of eight octal numbers, each from 0-377 and separated
+by white space.
+The
+numbers form an 8-by-8 array of bits indicating which
+pixels are to be modified when the stipple is used.
+The
+\fIname\fR field is just a human-readable description of
+the stipple;  it isn't used by Magic.
+
+.SH "FILES"
+\(apcad/lib/magic/sys/mos.7bit.dstyle5
+
+.SH "SEE ALSO"
+magic\|(1), cmap\|(5), glyphs\|(5)

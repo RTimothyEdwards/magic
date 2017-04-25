@@ -1,0 +1,2 @@
+net2ir.o: net2ir.c ../utils/magic.h ../utils/geometry.h ../utils/hash.h \
+ ../utils/malloc.h ../utils/utils.h

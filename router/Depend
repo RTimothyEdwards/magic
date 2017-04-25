@@ -1,0 +1,68 @@
+rtrCmd.o: rtrCmd.c ../tcltk/tclmagic.h ../utils/magic.h ../utils/styles.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h ../utils/utils.h \
+ ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../utils/main.h ../textio/txcommands.h ../select/select.h \
+ ../commands/commands.h ../utils/heap.h ../router/router.h \
+ ../utils/netlist.h ../netmenu/netmenu.h ../gcr/gcr.h \
+ ../grouter/grouter.h ../grouter/grouteDebug.h
+rtrMain.o: rtrMain.c ../utils/magic.h ../utils/geometry.h ../utils/hash.h \
+ ../utils/heap.h ../tiles/tile.h ../database/database.h ../gcr/gcr.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/main.h \
+ ../utils/signals.h ../router/rtrDcmpose.h ../netmenu/netmenu.h \
+ ../router/router.h ../grouter/grouter.h ../grouter/grouteDebug.h \
+ ../utils/netlist.h ../textio/textio.h ../utils/runstats.h
+rtrDcmpose.o: rtrDcmpose.c ../utils/magic.h ../textio/textio.h \
+ ../utils/geometry.h ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../utils/main.h \
+ ../dbwind/dbwind.h ../utils/heap.h ../utils/undo.h ../router/router.h \
+ ../router/rtrDcmpose.h ../gcr/gcr.h ../grouter/grouter.h \
+ ../grouter/grouteDebug.h ../utils/netlist.h ../utils/styles.h \
+ ../utils/malloc.h ../netmenu/netmenu.h ../debug/debug.h
+rtrFdback.o: rtrFdback.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/styles.h ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../windows/windows.h ../utils/main.h ../utils/utils.h ../gcr/gcr.h \
+ ../router/router.h ../utils/heap.h ../grouter/grouter.h \
+ ../grouter/grouteDebug.h ../utils/netlist.h ../textio/textio.h \
+ ../dbwind/dbwind.h ../utils/malloc.h
+rtrHazards.o: rtrHazards.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../gcr/gcr.h ../utils/malloc.h
+rtrChannel.o: rtrChannel.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../utils/hash.h ../utils/heap.h ../tiles/tile.h \
+ ../database/database.h ../gcr/gcr.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/signals.h ../utils/main.h ../router/router.h \
+ ../router/rtrDcmpose.h ../grouter/grouter.h ../grouter/grouteDebug.h \
+ ../textio/textio.h ../utils/styles.h
+rtrPaint.o: rtrPaint.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/hash.h ../utils/heap.h ../tiles/tile.h ../database/database.h \
+ ../gcr/gcr.h ../utils/signals.h ../router/router.h ../grouter/grouter.h \
+ ../grouter/grouteDebug.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../utils/main.h
+rtrPin.o: rtrPin.c ../utils/magic.h ../utils/geometry.h ../utils/styles.h \
+ ../utils/hash.h ../utils/heap.h ../debug/debug.h ../tiles/tile.h \
+ ../database/database.h ../gcr/gcr.h ../windows/windows.h ../utils/main.h \
+ ../dbwind/dbwind.h ../utils/signals.h ../router/router.h \
+ ../grouter/grouter.h ../grouter/grouteDebug.h ../textio/textio.h
+rtrSide.o: rtrSide.c ../utils/magic.h ../utils/geometry.h ../utils/hash.h \
+ ../utils/heap.h ../utils/malloc.h ../debug/debug.h ../tiles/tile.h \
+ ../database/database.h ../router/router.h ../gcr/gcr.h \
+ ../grouter/grouter.h ../grouter/grouteDebug.h ../textio/textio.h \
+ ../windows/windows.h ../utils/main.h ../utils/signals.h
+rtrStem.o: rtrStem.c ../utils/magic.h ../utils/geometry.h ../utils/hash.h \
+ ../tiles/tile.h ../database/database.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/styles.h ../router/router.h ../gcr/gcr.h \
+ ../utils/heap.h ../grouter/grouter.h ../grouter/grouteDebug.h \
+ ../utils/netlist.h ../textio/textio.h ../utils/main.h ../utils/malloc.h \
+ ../debug/debug.h ../utils/signals.h ../utils/maxrect.h
+rtrTech.o: rtrTech.c ../utils/magic.h ../utils/utils.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/tech.h ../textio/textio.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../router/router.h
+rtrVia.o: rtrVia.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../utils/heap.h ../database/database.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/main.h \
+ ../netmenu/netmenu.h ../textio/textio.h ../utils/styles.h \
+ ../utils/malloc.h ../gcr/gcr.h ../router/router.h ../router/routerInt.h
+rtrTravers.o: rtrTravers.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../utils/signals.h ../utils/malloc.h ../router/router.h \
+ ../windows/windows.h ../utils/main.h ../gcr/gcr.h ../router/routerInt.h

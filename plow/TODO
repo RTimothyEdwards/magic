@@ -1,0 +1,6 @@
+Avoid introducing slivers with subcell flypaper
+Better width computation (if upper bound is too big, use different algorithm).
+Move labels with straighten.
+Straighten should pull trailing tabs.
+Fix nonlinear boundary effects (runtime)
+Rule to pull trailing tabs when plowing.

@@ -1,0 +1,142 @@
+/* available devices:
+        nfet,pfet,enfet,epfet,nffet,pffet
+        poly capacitor
+*/
+#define cif_tech pwell
+style lambda=lambda_v
+    scalefactor lambda_1
+    layer pwell CWP
+        labels CWP
+    layer m3 CMT
+        /* to avoid a CIF read problem around pads */
+        and-not XP
+        labels CMT
+    layer m2 CMS
+        labels CMS
+    layer m1 CMF
+        labels CMF
+    layer poly CPG
+        labels CPG
+    layer nsd CAA
+        and CSN
+    layer ndiff CWP
+        and CSN
+        and CAA
+    layer pdiff CAA
+        and CSP
+	and-not CPS
+    layer psd CWP
+        and CSP
+        and CAA
+    layer pfet CPG
+        and CAA
+        and CSP
+    layer nfet CAA
+        and CPG
+        and CSN
+        and CWP
+    layer epfet CEL
+        and CAA
+        and CSP
+    layer enfet CAA
+        and CEL
+        and CSN
+        and CWP
+    layer m2c CVA
+        grow lambda_1
+        and CMS
+        and CMF
+        labels CMS
+    layer electrode CEL
+        labels CEL
+    layer ec CCE
+        grow lambda_1
+        and CMF
+        and CEL
+        labels CMF
+    layer cc CCE
+        grow lambda_1
+        and CMF
+        and CEL
+        and CPG
+        labels CMF
+    layer cap CPG
+        and CEL
+        and-not CAA
+        labels CEL
+    layer nsc CCA
+        grow lambda_1
+        and CAA
+        and CSN
+        and CMF
+    layer pdc CCA
+        grow lambda_1
+        and CAA
+        and CSP
+        and CMF
+    layer ndc CCA
+        grow lambda_1
+        and CSN
+        and CAA
+        and CWP
+        and CMF
+    layer psc CCA
+        grow lambda_1
+        and CAA
+        and CSP
+        and CWP
+        and CMF
+    layer pc CCP
+        grow lambda_1
+        and CPG
+        and CMF
+    layer m3c CVS
+        grow lambda_1
+        and CMT
+        and CMS
+        and-not XP
+    layer glass COG
+#ifdef OPEN
+    layer open CAA
+        and CCA
+        and CVA
+        and COG
+        and COP
+    layer pstop CAA
+        and CPS
+        and CSP
+        and-not CWP
+#endif
+    layer pad CMF
+        shrink lambda_1
+        and CMS
+        shrink lambda_5
+        and CVA
+        shrink lambda_1
+        and XP
+        and COG
+        grow lambda_6
+
+
+#ifdef OPEN
+   calma COP 23 *
+   calma CPS 24 *
+#endif
+   calma XP  26 *
+   calma CWP 41 *
+   calma CAA 43 *
+   calma CSP 44 *
+   calma CSN 45 *
+   calma CPG 46 *
+   calma CCP 47 *
+   calma CCA 48 *
+   calma CMF 49 *
+   calma CVA 50 *
+   calma CMS 51 *
+   calma COG 52 *
+   calma CCE 55 *
+   calma CEL 56 *
+   calma CVS 61 *
+   calma CMT 62 *
+
+#undef cif_tech

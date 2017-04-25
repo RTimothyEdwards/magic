@@ -1,0 +1,156 @@
+/* 
+
+   This is for HP's CMOS26B 1.0 micron CMOS Bulk Process. 
+   All parameters are defined based on HP's general process
+   specifications (GPP). Sidewall fringing was taken from 
+   Ersatco fictitious process (johnson,jouppi). 
+   
+   Upwards fringe caps (eg poly-->m1, poly-->m2) are computed
+   by the program scaleCap by using the Skurai/Tamaru formula
+   based on the known capacitances.
+*/
+#ifdef	extForSpice
+style	lambda=0.5 
+#else
+style	lambda_irsim=0.5 
+#endif
+
+	lambda		50
+	step		100
+	sidehalo	8	/* 2 more than min m3 spacing */
+
+#ifdef	INCLUDE_FET_CAP /* Normally off since neither spice or irsim need it */
+	areacap allFet 692 /* af/lambda^2 */
+#endif
+
+	/* ------------   diff capacitances ---------------- */
+	areacap	nwell			40
+	perimc	nwell	~(nwell)	100 
+
+#ifdef	extForSpice
+
+	areacap	(ndiff,nsd,ndc,nsc)/a			0
+	perimc	(ndiff,nsd,ndc,nsc)/a	space,pwell	0
+
+	areacap	(pdiff,psd,pdc,psc)/a			0
+	perimc	(pdiff,psd,pdc,psc)/a	space,nwell	0
+
+#else	
+
+	/* Real perim values increased a little to 
+	   compensate for not counting CJGATE     */
+	areacap	(ndiff,nsd,ndc,nsc)/a               40
+	perimc	(ndiff,nsd,ndc,nsc)/a  space,pwell  300 /* 250 */
+
+	areacap	(pdiff,psd,pdc,psc)/a               170
+	perimc	(pdiff,psd,pdc,psc)/a  space,nwell  200 /* 160 */
+#endif
+	/* ------------------------------------------------------ */
+
+	/* ------------   poly capacitances ---------------- */
+	areacap	PolyCap			15
+	overlap	PolyCap	allWell 	15	
+
+	perimc	PolyCap	~PolyCap	22
+	sideOverlap(PolyCap, ~PolyCap, allWell, 22, nothing)
+	sideOverlap(PolyCap, ~PolyCap, M1Cap, 10, nothing)
+	sideOverlap(PolyCap, ~PolyCap, M2Cap, 6, M1Cap)
+	sideOverlap(PolyCap, ~PolyCap, M3Cap, 4, (M1Cap,M2Cap))
+
+	sidewall PolyCap ~PolyCap ~PolyCap PolyCap	11
+	/* ------------------------------------------------- */
+
+
+	/* ------------   metal1 capacitances ---------------- */
+	areacap	M1Cap			8
+	overlap	M1Cap	allWell		8	PolyCap,PNplusCap
+	overlap	M1Cap	PNplusCap		14	
+	overlap	M1Cap	PolyCap		14	
+
+	perimc	M1Cap	~M1Cap		22
+	sideOverlap(M1Cap, ~M1Cap, allWell, 22, (PolyCap,PNplusCap))
+	sideOverlap(M1Cap, ~M1Cap, PNplusCap,  25, nothing)
+	sideOverlap(M1Cap, ~M1Cap, PolyCap, 25, nothing)
+	sideOverlap(M1Cap, ~M1Cap, M2Cap, 12, nothing)
+	sideOverlap(M1Cap, ~M1Cap, M3Cap, 7, M2Cap)
+
+	sidewall M1Cap   ~M1Cap   ~M1Cap   M1Cap	27
+	/* ------------------------------------------------- */
+
+
+	/* ------------   metal2 capacitances ---------------- */
+	areacap	M2Cap		4	
+	overlap	M2Cap	allWell	4	PolyCap,M1Cap,PNplusCap
+	overlap	M2Cap	PNplusCap	5	M1Cap
+	overlap	M2Cap	PolyCap	6	M1Cap
+	overlap	M2Cap	M1Cap	9	
+
+	perimc	M2Cap	~M2Cap	18
+	sideOverlap(M2Cap, ~M2Cap, allWell, 18, (M1Cap,PolyCap,PNplusCap) )
+	sideOverlap(M2Cap, ~M2Cap, PNplusCap,  19, M1Cap)
+	sideOverlap(M2Cap, ~M2Cap, PolyCap, 20, M1Cap)
+	sideOverlap(M2Cap, ~M2Cap, M1Cap,   23, nothing)
+	sideOverlap(M2Cap, ~M2Cap, M3Cap,   10, nothing)
+
+	sidewall M2Cap   ~M2Cap   ~M2Cap   M2Cap	33
+	/* ------------------------------------------------- */
+
+
+	/* ------------   metal3 capacitances ---------------- */
+	areacap	M3Cap		3	
+	overlap	M3Cap	allWell	3 PolyCap,M1Cap,M2Cap,PNplusCap
+	overlap	M3Cap	PNplusCap	3 M1Cap,M2Cap
+	overlap	M3Cap	PolyCap	3 M1Cap,M2Cap
+	overlap	M3Cap	M1Cap	4 M2Cap
+	overlap	M3Cap	M2Cap	9
+
+	perimc	M3Cap	~M3Cap	17
+	sideOverlap(M3Cap, ~M3Cap, allWell, 17, (PNplusCap,PolyCap,M1Cap,M2Cap))
+	sideOverlap(M3Cap, ~M3Cap, PNplusCap,  17, (M1Cap,M2Cap))
+	sideOverlap(M3Cap, ~M3Cap, PolyCap, 17, (M1Cap,M2Cap))
+	sideOverlap(M3Cap, ~M3Cap, M1Cap,   20, (M2Cap))
+	sideOverlap(M3Cap, ~M3Cap, M2Cap,   25, nothing)
+
+	sidewall M3Cap   ~M3Cap   ~M3Cap   M3Cap	50
+	/* ------------------------------------------------- */
+
+
+	/* -------------- Fets -----------------------------*/
+	    /* cscab, cscap defined since extresis needs them */
+	fet	pfet	pdiff,pdc	2 pfet	Vdd!	nwell	204	450
+	fet	nfet	ndiff,ndc	2 nfet	Gnd!	pwell	150	450
+
+	/* These values are the equivalent resistance that irsim params for 
+	   3.3 V 125C though. Probably we want to make that 5V, 27C  !!!! */
+	fetresis	nfet	linear		14100 /* resistance dyn L */
+	fetresis	pfet	linear		48100 /* resistance dyn H */
+
+	fetresis	nfet	saturation	14100 /* resistance dyn L */
+	fetresis	pfet	saturation	48100 /* resistance dyn H */
+	/* ------------------------------------------------- */
+
+	/* -------------- Resistivity (in milliohms per sq) -------*/
+	/* ---- assumed temp 85 C -----  */
+
+	resist	NDRes		3800
+	resist	PDRes		3800
+	resist	PolyRes		5000
+	resist	M1Res		81
+	resist	M2Res		81
+	resist	M3Res		34
+	resist	nwell		1980000
+
+	contact	pc		4	15000
+	contact	ndc,pdc,nsc,psc	4	1500
+	contact	m2c		4	500
+	contact	m3c		4	500
+	/* ------------------------------------------------- */
+
+	/* Order the planes for correct shielding */
+	planeOrder(implant,0)
+	planeOrder(well,1)
+	planeOrder(active,2)
+	planeOrder(metal1,3)
+	planeOrder(metal2,4)
+	planeOrder(metal3,5)
+	planeOrder(oxide,6)

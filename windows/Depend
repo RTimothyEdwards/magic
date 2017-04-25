@@ -1,0 +1,54 @@
+windClient.o: windClient.c ../utils/magic.h ../textio/textio.h \
+ ../utils/geometry.h ../windows/windows.h ../graphics/glyphs.h \
+ ../windows/windInt.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/main.h ../utils/macros.h \
+ ../utils/utils.h ../utils/malloc.h ../graphics/graphics.h \
+ ../utils/styles.h ../textio/txcommands.h ../utils/undo.h
+windCmdAM.o: windCmdAM.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../textio/textio.h ../utils/geometry.h ../windows/windows.h \
+ ../utils/malloc.h ../utils/runstats.h ../utils/macros.h ../utils/hash.h \
+ ../utils/signals.h ../graphics/graphics.h ../utils/styles.h \
+ ../textio/txcommands.h ../graphics/glyphs.h ../windows/windInt.h \
+ ../tiles/tile.h ../database/database.h ../dbwind/dbwind.h \
+ ../utils/utils.h
+windCmdNR.o: windCmdNR.c ../utils/magic.h ../textio/textio.h \
+ ../utils/geometry.h ../windows/windows.h ../graphics/glyphs.h \
+ ../windows/windInt.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/main.h ../utils/tech.h \
+ ../utils/runstats.h ../utils/undo.h ../utils/utils.h \
+ ../graphics/graphics.h ../textio/txcommands.h ../dbwind/dbwind.h
+windCmdSZ.o: windCmdSZ.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../textio/textio.h ../utils/geometry.h ../tiles/tile.h \
+ ../windows/windows.h ../graphics/glyphs.h ../windows/windInt.h \
+ ../utils/undo.h ../utils/utils.h ../utils/signals.h \
+ ../textio/txcommands.h ../utils/hash.h ../database/database.h \
+ ../dbwind/dbwind.h ../graphics/graphics.h
+windSend.o: windSend.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../textio/textio.h ../utils/geometry.h ../windows/windows.h \
+ ../graphics/glyphs.h ../windows/windInt.h ../utils/stack.h \
+ ../utils/utils.h ../utils/signals.h ../textio/txcommands.h
+windDebug.o: windDebug.c ../utils/magic.h ../utils/geometry.h \
+ ../windows/windows.h ../graphics/glyphs.h ../windows/windInt.h \
+ ../textio/textio.h ../textio/txcommands.h
+windDisp.o: windDisp.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/utils.h ../textio/textio.h ../utils/geometry.h \
+ ../graphics/glyphs.h ../windows/windows.h ../windows/windInt.h \
+ ../graphics/graphics.h ../utils/styles.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/undo.h ../utils/signals.h \
+ ../utils/malloc.h
+windMain.o: windMain.c ../utils/magic.h ../utils/geometry.h \
+ ../graphics/glyphs.h ../windows/windows.h ../windows/windInt.h \
+ ../utils/stack.h ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../textio/textio.h ../graphics/graphics.h ../utils/malloc.h \
+ ../utils/utils.h ../textio/txcommands.h
+windMove.o: windMove.c ../utils/magic.h ../textio/textio.h \
+ ../utils/geometry.h ../windows/windows.h ../graphics/graphics.h \
+ ../graphics/glyphs.h ../windows/windInt.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../utils/malloc.h
+windSearch.o: windSearch.c ../utils/magic.h ../utils/geometry.h \
+ ../windows/windows.h ../graphics/glyphs.h ../windows/windInt.h
+windTrans.o: windTrans.c ../utils/magic.h ../utils/geometry.h \
+ ../windows/windows.h ../graphics/glyphs.h ../windows/windInt.h
+windView.o: windView.c ../utils/magic.h ../utils/geometry.h \
+ ../windows/windows.h ../graphics/glyphs.h ../graphics/graphics.h \
+ ../windows/windInt.h ../textio/textio.h

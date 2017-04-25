@@ -1,0 +1,145 @@
+/*  For HP CMOS26B process... No CCD, Bipolar, Poly2 layers.
+    Two types of pad layer are supported, one (the pad layer)
+    contains both metal1 and metal2 layer while the other (the
+    pad2 layer) contains all three metals with all necessary via
+    properly defined...						    */
+/*  This is prelimanary, please let me know if anything here seems
+    abnormal to you...   pi@lepton.isi.edu 3/15/93		    */
+#ifdef NOWELL
+#undef cif_tech
+#define cif_tech nowell
+style lambda=lambda_v
+#else
+#undef cif_tech
+#define cif_tech sub
+style lambda=lambda_v
+#endif
+    scalefactor lambda_1
+#ifndef NOWELL
+    layer nwell CWN
+        labels CWN
+    layer pwell CWP
+        labels CWP
+#endif
+    layer m3 CMT
+	/* to avoid a CIF read problem around pads */
+	and-not XP
+        labels CMT
+    layer m2 CMS
+        labels CMS
+    layer m1 CMF
+        labels CMF
+    layer poly CPG
+        labels CPG
+    layer ndop CSN
+        and-not CWP
+        and CAA
+    layer pdop CSP
+        and CAA
+        and-not CWP
+	and-not CPS
+    layer pdiff CSP
+        and CWN
+        and CAA
+    layer ndiff CSN
+        and CWP
+        and CAA
+    layer nsd CWN
+        and CSN
+        and CAA
+    layer psd CSP
+        and CWP
+        and CAA
+    layer pbase CBA
+        labels CBA
+    layer nfet CPG
+        and CAA
+        and CSN
+        labels CPG
+    layer pfet CAA
+        and CPG
+        and CSP
+        labels CPG
+    layer ndc CCA
+        grow lambda_1
+        and CAA
+        and CWP
+        and CSN
+        and CMF
+    layer pdc CCA
+        grow lambda_1
+        and CAA
+        and CWN
+        and CSP
+        and CMF
+    layer nsc CCA
+        grow lambda_1
+        and CAA
+        and CSN
+        and CWN
+        and CMF
+    layer psc CCA
+        grow lambda_1
+        and CAA
+        and CSP
+        and CWP
+        and CMF
+    layer pbc CCA
+        grow lambda_1
+        and CBA
+        and CMF
+        labels CBA
+    layer m3c CVS
+        grow lambda_1
+        and CMT
+        and CMS
+	and-not XP
+    layer m2c CVA
+        grow lambda_1
+        and CMS
+        and CMF
+    layer pc CCP
+        grow lambda_1
+        and CPG
+        and CMF
+    layer gc CCC
+    layer glass COG
+	labels COG
+#ifdef OPEN
+    layer open CAA
+        and CCA
+        and CVA
+        and COG
+	and COP
+    layer pstop CAA
+	and CPS
+        and CSP
+        and-not CWP
+        and-not CWN
+#endif
+    /* assume all contact are in place .. */
+    layer pad COG
+        grow pad_glass
+        and XP
+
+#ifdef OPEN
+   calma COP 23 *
+   calma CPS 24 *
+#endif
+   calma CCC 25 *
+   calma XP  26 *
+   calma CWP 41 *
+   calma CWN 42 *
+   calma CAA 43 *
+   calma CSP 44 *
+   calma CSN 45 *
+   calma CPG 46 *
+   calma CCP 47 *
+   calma CCA 48 *
+   calma CMF 49 *
+   calma CVA 50 *
+   calma CMS 51 *
+   calma COG 52 *
+   calma CVS 61 *
+   calma CMT 62 *
+

@@ -1,0 +1,100 @@
+mzBlock.o: mzBlock.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/malloc.h \
+ ../utils/list.h ../debug/debug.h ../utils/heap.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzDebug.o: mzDebug.c ../utils/magic.h ../utils/signals.h \
+ ../textio/textio.h ../utils/hash.h ../utils/geometry.h ../tiles/tile.h \
+ ../database/database.h ../utils/malloc.h ../utils/list.h ../utils/heap.h \
+ ../mzrouter/mzrouter.h ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzEstimate.o: mzEstimate.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/malloc.h \
+ ../utils/list.h ../debug/debug.h ../utils/heap.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzXtndDown.o: mzXtndDown.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h ../utils/heap.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../utils/list.h ../debug/debug.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzXtndLeft.o: mzXtndLeft.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h ../utils/heap.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../utils/list.h ../debug/debug.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzXtndRght.o: mzXtndRght.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h ../utils/heap.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../utils/list.h ../debug/debug.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzXtndUp.o: mzXtndUp.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h ../utils/heap.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../utils/list.h ../debug/debug.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzHint.o: mzHint.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/malloc.h \
+ ../utils/list.h ../debug/debug.h ../utils/heap.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzInit.o: mzInit.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../drc/drc.h ../select/select.h \
+ ../utils/signals.h ../textio/textio.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/styles.h ../debug/debug.h ../utils/undo.h \
+ ../textio/txcommands.h ../utils/malloc.h ../utils/list.h ../utils/heap.h \
+ ../mzrouter/mzrouter.h ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzNumLine.o: mzNumLine.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/malloc.h \
+ ../utils/list.h ../debug/debug.h ../utils/heap.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzMain.o: mzMain.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../drc/drc.h ../select/select.h \
+ ../utils/signals.h ../textio/textio.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/styles.h ../debug/debug.h ../utils/undo.h \
+ ../textio/txcommands.h ../utils/malloc.h ../utils/main.h \
+ ../utils/geofast.h ../utils/list.h ../utils/heap.h \
+ ../utils/touchingtypes.h ../mzrouter/mzrouter.h ../utils/list.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzSearch.o: mzSearch.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../utils/hash.h ../utils/heap.h ../tiles/tile.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../utils/malloc.h ../utils/list.h ../debug/debug.h ../utils/styles.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzStart.o: mzStart.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h ../utils/heap.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../utils/list.h ../debug/debug.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzSubrs.o: mzSubrs.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../drc/drc.h ../select/select.h \
+ ../utils/signals.h ../textio/textio.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/styles.h ../debug/debug.h ../utils/undo.h \
+ ../textio/txcommands.h ../utils/malloc.h ../utils/main.h \
+ ../utils/geofast.h ../utils/list.h ../utils/touchingtypes.h \
+ ../utils/heap.h ../mzrouter/mzrouter.h ../mzrouter/mzInternal.h \
+ ../mzrouter/mzDebug.h
+mzTech.o: mzTech.c ../utils/magic.h ../utils/geometry.h ../utils/hash.h \
+ ../utils/heap.h ../tiles/tile.h ../database/database.h \
+ ../utils/signals.h ../textio/textio.h ../wiring/wiring.h \
+ ../utils/utils.h ../utils/tech.h ../utils/malloc.h ../utils/list.h \
+ ../windows/windows.h ../utils/main.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzTestCmd.o: mzTestCmd.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/hash.h ../tiles/tile.h ../database/database.h \
+ ../utils/signals.h ../textio/textio.h ../irouter/irouter.h \
+ ../graphics/graphics.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../dbwind/dbwtech.h ../textio/txcommands.h ../utils/main.h \
+ ../utils/utils.h ../commands/commands.h ../utils/styles.h \
+ ../utils/malloc.h ../utils/list.h ../utils/heap.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h
+mzWalk.o: mzWalk.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h ../utils/heap.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../utils/list.h ../debug/debug.h ../mzrouter/mzrouter.h \
+ ../mzrouter/mzInternal.h ../mzrouter/mzDebug.h

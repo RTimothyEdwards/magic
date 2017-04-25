@@ -1,0 +1,178 @@
+/* available devices:
+        nfet,pfet,enfet,epfet,nffet,pffet
+        poly capacitor
+        bipolar NPN transistor
+        buried CCD devices
+        linear capacitor
+*/
+#define cif_tech oldnwell
+style lambda=lambda_v
+    scalefactor lambda_1
+    layer cwell CWC
+    layer nwell CWN
+        labels CWN
+    layer m3 CMT
+        /* to avoid a CIF read problem around pads */
+        and-not XP
+        labels CMT
+    layer m2 CMS
+        labels CMS
+    layer m1 CMF
+        labels CMF
+    layer poly CPG
+        labels CPG
+    layer psd CAA
+    layer pdiff CWN
+        and CAA
+    layer ndiff CAA
+        and CSN
+        and-not CCD
+    layer nsd CWN
+        and CSN
+        and CAA
+    layer pbase CBA
+        labels CBA
+    layer nfet CPG
+        and CAA
+        and CSN
+        and-not CCD
+    layer pfet CAA
+        and CPG
+        and CWN
+    layer enfet CEL
+        and CAA
+        and CSN
+        and-not CCD
+    layer epfet CAA
+        and CEL
+        and CWN
+    layer nffet CAA
+        and CEL
+        and CPG
+        and CSN
+        labels CEL
+    layer pffet CAA
+        and CEL
+        and CPG
+        and CWN
+        labels CEL
+    layer m2c CVA
+        grow 150
+        shrink 50
+        and CMS
+        and CMF
+    layer electrode CEL
+        labels CEL
+    layer ec CCE
+        grow lambda_1
+        and CMF
+        and CEL
+    layer cc CCE
+        grow lambda_1
+        and CMF
+        and CEL
+        and CPG
+    layer cap CPG
+        and CEL
+        and-not CAA
+        labels CEL
+    layer psc CCA
+        grow lambda_1
+        and CAA
+        and CMF
+    layer ndc CCA
+        grow lambda_1
+        and CAA
+        and CSN
+        and CMF
+    layer pdc CCA
+        grow lambda_1
+        and CAA
+        and CWN
+        and CMF
+    layer nsc CCA
+        grow lambda_1
+        and CAA
+        and CSN
+        and CWN
+        and CMF
+    layer m3c CVS
+        grow lambda_1
+        and CMT
+        and CMS
+        and-not XP
+    layer gc CCC
+    layer pbc CCA
+        grow lambda_1
+        and CBA
+        and CMF
+    layer col CX
+        and CAA
+        and CSN
+        and CWN
+        labels CAA
+    layer clc CCA
+        grow lambda_1
+        and CX
+        and CAA
+        and CSN
+        and CWN
+        and CMF
+        labels CCA
+    layer emit CBA
+        and CSN
+        shrink lambda_2
+    layer emc CCA
+        grow lambda_1
+        and CBA
+        and CSN
+        and CMF
+    layer pc CCP
+        grow lambda_1
+        and CPG
+        and CMF
+    layer nbd CSN
+        shrink lambda_2
+        and CCD
+        and CAA
+	and-not CPG
+    layer nbdc CCA
+        grow lambda_1
+        and CCD
+        and CSN
+	and CAA
+    layer bd CPG
+        or  CEL
+        and CCD
+        and CAA
+	labels CCD
+    layer glass COG
+    layer pad CMF
+        shrink lambda_1
+        and CMS
+        shrink lambda_5
+        and CVA
+        shrink lambda_1
+        and COG
+        grow lambda_6
+        and XP
+
+   calma CWN 42 *
+   calma CAA 43 *
+   /* NO CSP layer for old style of CIF files */
+   calma CSN 45 *
+   calma CPG 46 *
+   calma CCP 47 *
+   calma CCA 48 *
+   calma CMF 49 *
+   calma CVA 50 *
+   calma CMS 51 *
+   calma COG 52 *
+   calma CCE 55 *
+   calma CEL 56 *
+   calma CCD 57 *
+   calma CBA 58 *
+   calma CWC 59 *
+   calma CX  60 *
+
+#undef cif_tech

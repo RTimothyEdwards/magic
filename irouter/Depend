@@ -1,0 +1,34 @@
+irCommand.o: irCommand.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/hash.h ../tiles/tile.h \
+ ../database/database.h ../utils/signals.h ../textio/textio.h \
+ ../graphics/graphics.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../dbwind/dbwtech.h ../textio/txcommands.h ../utils/main.h \
+ ../utils/utils.h ../commands/commands.h ../utils/styles.h \
+ ../utils/malloc.h ../utils/list.h ../mzrouter/mzrouter.h \
+ ../irouter/irouter.h ../irouter/irInternal.h ../irouter/irDebug.h
+irMain.o: irMain.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../drc/drc.h ../select/select.h \
+ ../utils/signals.h ../textio/textio.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/styles.h ../debug/debug.h ../utils/undo.h \
+ ../textio/txcommands.h ../utils/malloc.h ../utils/list.h \
+ ../mzrouter/mzrouter.h ../irouter/irouter.h ../irouter/irInternal.h \
+ ../mzrouter/mzrouter.h ../irouter/irDebug.h
+irRoute.o: irRoute.c ../utils/magic.h ../utils/geometry.h ../utils/hash.h \
+ ../tiles/tile.h ../database/database.h ../drc/drc.h ../textio/textio.h \
+ ../windows/windows.h ../utils/main.h ../dbwind/dbwind.h ../debug/debug.h \
+ ../utils/undo.h ../utils/signals.h ../utils/malloc.h ../utils/list.h \
+ ../utils/geofast.h ../utils/touchingtypes.h ../select/select.h \
+ ../mzrouter/mzrouter.h ../irouter/irouter.h ../irouter/irInternal.h \
+ ../mzrouter/mzrouter.h ../irouter/irDebug.h
+irTestCmd.o: irTestCmd.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/hash.h ../tiles/tile.h ../database/database.h \
+ ../utils/signals.h ../textio/textio.h ../irouter/irouter.h \
+ ../graphics/graphics.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../dbwind/dbwtech.h ../textio/txcommands.h ../utils/main.h \
+ ../utils/utils.h ../commands/commands.h ../utils/styles.h \
+ ../utils/malloc.h ../utils/list.h ../mzrouter/mzrouter.h \
+ ../irouter/irInternal.h ../mzrouter/mzrouter.h ../irouter/irDebug.h
+irUtils.o: irUtils.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../utils/list.h \
+ ../mzrouter/mzrouter.h ../irouter/irouter.h ../irouter/irInternal.h \
+ ../irouter/irDebug.h

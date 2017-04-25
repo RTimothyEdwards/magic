@@ -1,0 +1,28 @@
+magic
+tech scmos
+timestamp 732461619
+<< capwell >>
+rect 0 0 12 26
+rect 21 0 45 26
+<< polysilicon >>
+rect 2 4 3 15
+rect 42 13 46 16
+rect 2 2 6 4
+<< wellcapacitor >>
+rect 3 4 6 15
+rect 27 16 39 20
+rect 27 13 42 16
+rect 27 6 39 13
+<< ndiffusion >>
+rect 3 15 9 19
+rect 6 4 9 15
+rect 24 20 42 23
+rect 24 6 27 20
+rect 39 16 42 20
+rect 39 6 42 13
+rect 24 3 42 6
+<< polycontact >>
+rect 2 -2 6 2
+<< ndcontact >>
+rect 3 19 9 23
+<< end >>

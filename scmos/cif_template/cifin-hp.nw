@@ -1,0 +1,90 @@
+/* available devices:
+        nfet,pfet
+*/
+#define cif_tech hp
+style lambda=lambda_v
+    scalefactor lambda_1
+    layer nwell CWN
+        labels CWN
+    layer m3 CMT
+        labels CMT
+    layer m2 CMS
+        labels CMS
+    layer m1 CMF
+        labels CMF
+    layer poly CPG
+        labels CPG
+    layer psd CSP
+        and-not CWN
+    layer pdiff CWN
+        and CSP
+        labels CSP
+    layer ndiff CSN
+        and-not CWN
+        labels CSN
+    layer nsd CWN
+        and CSN
+    layer nfet CPG
+        and CSN
+	and-not CWN
+    layer pfet CPG
+        and CSP
+        and CWN
+    layer m3c CVS
+        grow lambda_1
+        and CMT
+        and CMS
+    layer m2c CVA
+        grow lambda_1
+        and CMS
+        and CMF
+    layer psc CCA
+        grow lambda_1
+	and-not CWN
+        and CSP
+        and CMF
+    layer ndc CCA
+        grow lambda_1
+        and-not CWN
+        and CSN
+        and CMF
+    layer pdc CCA
+        grow lambda_1
+        and CAA
+        and CWN
+        and CSP
+        and CMF
+    layer nsc CCA
+        grow lambda_1
+        and CSN
+        and CWN
+        and CMF
+    layer pc CCA
+        grow lambda_1
+        and CPG
+        and CMF
+        labels CPG
+    layer glass COG
+        labels COG
+    layer pad CMF
+        shrink lambda_1
+        and CMS
+        shrink lambda_5
+        and CVA
+        shrink lambda_1
+        and COG
+        grow lambda_6
+
+   calma CWN  1 *
+   calma CPG  4 *
+   calma CCA  8 *
+   calma CMF  9 *
+   calma CVA 10 *
+   calma CMS 11 *
+   calma CVS 12 *
+   calma CMT 13 *
+   calma COG 14 *
+   calma CSN 21 *
+   calma CSP 22 *
+
+#undef cif_tech

@@ -1,0 +1,270 @@
+Extend keyboard macros for magic
+Provided by Philippe Pouliquen
+Johns Hopkins University department of Electrical and Computer Engineering
+Added to magic-6.5.2 distribution 3/28/00
+
+--------------------------------------------------------------------------
+Use of extended keyboard macros:
+
+To distinguish between normal key macros and extended keyboard macros,
+the extended keyboard macros key names all start with 'XK_'. For instance,
+the 'i' key has:
+
+   macro i "select cell"
+   macro XK_i "select cell"
+
+Although these two macros are the same, the extended keyboard macros
+are only available when the mouse cursor is in the drawing window, and
+X11 graphics is being used. If the mouse cursor is in the terminal window,
+or if magic is started with "-d NULL" then only the normal macros are
+available. Note that with the "-d NULL" option, magic will warn about
+'Unrecognized macro name XK_xxx' on startup.
+
+For the uppercase version of the 'i' key, which you get when the 'shift'
+key and the 'i' key are depressed simultaneously, you would use:
+
+   macro I "select more cell"
+   macro Shift_XK_i "select more cell"
+
+Note that for some keys, such as the numbers, the shifted version is a
+symbol rather than a number. So the the number '3' and american keyboards,
+you would see:
+
+   macro 3 "see allSame"
+   macro XK_3 "see allSame"
+   macro # "see no allSame"
+   macro XK_3 "see no allSame"
+
+Finally, extended macros allow you to use any keyboard key as a distinct
+macro, along with its 'Meta', 'Control', 'Capslock', and 'Shift' variants.
+For instance, the up-arrow key is heavily loaded:
+
+   macro XK_Up "scroll u .1"
+   macro Shift_XK_Up "scroll u 1"
+   macro Control_XK_Up "box +u 1"
+   macro Control_Shift_XK_Up "box -d 1"
+
+There is one exception to the usual rule, involving the keypad.  Keypads
+are usually set up such that Shift + a keypad number produces the ASCII
+number.  To make it possible to distinguish between the number key and
+the keypad equivalent, magic parses the number key as ASCII and the
+keypad key as XK_KP_(number).  For example:
+
+   "XK_8" and "8" both refer to the "8" key.
+   "XK_KP_Up" refers to the unshifted keypad "8" key.
+   "XK_KP_8" refers to the shifted keypad "8" key, or the keypad "8" key
+	by itself with "Num Lock" ON.
+
+This exception was introduced in revision 42 of magic 7.2;  prior revisions
+did not distinguish the keypad from the number.
+
+Note that control characters should be specified with the carat ("^")
+notation.  Embedding actual control characters in the macro definition
+is not compatible with the Tcl-interpreter-based version of magic, for
+which it is a syntax error.  However, the printable carat notation is
+not backwardly-compatible to magic 6.X.
+
+--------------------------------------------------------------------------
+
+The easiest way to add a macro is to type the key combination you want to
+use and see what magic reports (if the key combination is not already in
+use). For instance, typing 'a' with all the modifiers results in the
+message:
+
+   Unknown macro or short command: 'Meta_Control_Capslock_Shift_XK_a'
+
+Finally, along with the 'macro' command, there is also an 'imacro'
+command. This version is an 'interactive' version of the normal macro.
+The assigned string is printed as if you had typed it in, allowing you
+to add more to the end of the command. For instance:
+
+   imacro l "label "
+   imacro XK_l "label "
+
+Now typing the 'l' key is equivalent to typing ":label ". Another example
+is the '!' to enter shell commands:
+
+   imacro ! "shell "
+   imacor XK_Shift_1 "shell "
+
+Now typing "!ls" followed by the return key is equivalent to typing
+":shell ls" to get a directory listing.
+
+##############################################################################
+#  Example .magic macro file
+##############################################################################
+macro '^L' "redraw"
+# A key
+macro a ""
+macro XK_a "select visible"
+macro A ""
+macro Shift_XK_a "select more visible"
+macro Control_XK_a "select less visible"
+# B key
+macro b "box"
+macro XK_b "box"
+macro B ""
+# C key
+macro c ""
+macro XK_c "copy"
+macro C ""
+# D key
+macro d "delete"
+macro XK_d "delete"
+macro '^D' "erase $"
+macro Control_XK_d "erase $"
+# E key
+macro e "edit"
+macro XK_e "edit"
+macro E ""
+# F key
+macro f "sideways"
+macro XK_f "sideways"
+macro F "upsidedown"
+macro Shift_XK_f "upsidedown"
+# G key
+macro g "grid"
+macro XK_g "grid"
+macro G ""
+# H key
+macro h ""
+macro H ""
+# I key
+macro i "select cell"
+macro XK_i "select cell"
+macro I "select more cell"
+macro Shift_XK_i "select more cell"
+macro Control_XK_i "select less cell"
+# J key
+macro j ""
+macro J ""
+# K key
+macro k ""
+macro K ""
+# L key
+imacro l "label "
+macro L "shell ls"
+# M key
+macro XK_m "move"
+macro Shift_XK_m "stretch"
+# N key
+macro n ""
+macro N ""
+# O key
+macro o "openwindow"
+macro XK_o "openwindow"
+macro O "closewindow"
+macro Shift_XK_o "closewindow"
+# P key
+imacro p "paint "
+imacro XK_p "paint "
+# Q key
+macro q ""
+macro Q ""
+# R key
+macro r "clockwise"
+macro XK_r "clockwise"
+macro R "clockwise 270"
+macro Shift_XK_r "clockwise 270"
+macro '^R' "clockwise 180"
+macro Control_XK_r "clockwise 180"
+# S key
+macro s ""
+macro XK_s "select"
+macro S ""
+macro Shift_XK_s "select more"
+macro Control_XK_s "select less"
+macro Control_Shift_XK_s "undo ; select"
+# T key
+macro t ""
+macro T ""
+# U key
+macro u "undo"
+macro XK_u "undo"
+macro U "redo"
+macro Shift_XK_u "redo"
+# V key
+macro v ""
+macro XK_v "xview"
+macro V ""
+macro Shift_XK_v "view"
+# W key
+macro w "writeall"
+macro XK_w "writeall"
+macro W "writeall force"
+macro Shift_XK_w "writeall force"
+# X key
+macro x "expand"
+macro XK_x "expand"
+macro X "unexpand"
+macro Shift_XK_x "unexpand"
+macro '^X' "expand toggle"
+macro Control_XK_x "expand toggle"
+# Y key
+macro y ""
+macro Y ""
+# Z key
+macro z ""
+macro XK_z "zoom .5"
+macro Z ""
+macro Shift_XK_z "zoom 2"
+macro Control_XK_z "center"
+# ? key
+macro ? "drc why"
+macro Shift_XK_question "drc why"
+macro / "select area; what ; select clear"
+macro XK_slash "select area; what ; select clear"
+# , key
+macro , ""
+macro XK_comma "select clear"
+# Quote key
+imacro '"' "shell "
+imacro XK_quotedbl "shell "
+imacro Shift_XK_quotedbl "shell "
+imacro "'" "shell "
+imacro XK_apostrophe "shell "
+imacro Shift_XK_apostrophe "shell "
+# Space key
+macro ' ' "tool"
+macro XK_space "tool"
+macro Shift_XK_space "tool box"
+macro Control_XK_space "tool wiring"
+# Arrow keys
+macro XK_Left "scroll l .1"
+macro Shift_XK_Left "scroll l 1"
+macro Control_XK_Left "box +l 1"
+macro Control_Shift_XK_Left "box -r 1"
+macro XK_Right "scroll r .1"
+macro Shift_XK_Right "scroll r 1"
+macro Control_XK_Right "box +r 1"
+macro Control_Shift_XK_Right "box -l 1"
+macro XK_Up "scroll u .1"
+macro Shift_XK_Up "scroll u 1"
+macro Control_XK_Up "box +u 1"
+macro Control_Shift_XK_Up "box -d 1"
+macro XK_Down "scroll d .1"
+macro Shift_XK_Down "scroll d 1"
+macro Control_XK_Down "box +d 1"
+macro Control_Shift_XK_Down "box -u 1"
+# Keypad keys
+macro XK_KP_0 "box w 4; box h 4"
+macro Shift_XK_KP_0 "box w 7; box h 2"
+macro Control_XK_KP_0 "box w 2; box h 7"
+macro XK_KP_1 "move l 1; move d 1"
+macro Shift_XK_KP_1 "stretch l 1; stretch d 1"
+macro XK_KP_2 "move d 1"
+macro Shift_XK_KP_2 "stretch d 1"
+macro XK_KP_3 "move r 1; move d 1"
+macro Shift_XK_KP_3 "stretch r 1; stretch d 1"
+macro XK_KP_4 "move l 1"
+macro Shift_XK_KP_4 "stretch l 1"
+macro XK_KP_5 "findbox zoom"
+macro Shift_XK_KP_5 "findbox"
+macro XK_KP_6 "move r 1"
+macro Shift_XK_KP_6 "stretch r 1"
+macro XK_KP_7 "move l 1; move u 1"
+macro Shift_XK_KP_7 "stretch l 1; stretch u 1"
+macro XK_KP_8 "move u 1"
+macro Shift_XK_KP_8 "stretch u 1"
+macro XK_KP_9 "move r 1; move u 1"
+macro Shift_XK_KP_9 "stretch r 1; stretch u 1"

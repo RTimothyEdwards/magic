@@ -1,0 +1,16 @@
+CMWmain.o: CMWmain.c ../utils/magic.h ../utils/geometry.h \
+ ../windows/windows.h ../database/database.h ../tiles/tile.h \
+ ../utils/hash.h ../utils/main.h ../commands/commands.h \
+ ../cmwind/cmwind.h ../textio/txcommands.h ../graphics/graphicsInt.h \
+ ../graphics/graphics.h ../textio/textio.h ../utils/utils.h \
+ ../utils/styles.h ../graphics/glyphs.h ../utils/malloc.h
+CMWcmmnds.o: CMWcmmnds.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../windows/windows.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../dbwind/dbwind.h ../utils/main.h \
+ ../commands/commands.h ../cmwind/cmwind.h ../textio/txcommands.h \
+ ../graphics/graphics.h ../textio/textio.h ../utils/utils.h \
+ ../utils/styles.h ../utils/undo.h
+CMWundo.o: CMWundo.c ../utils/magic.h ../utils/geometry.h \
+ ../graphics/graphics.h ../windows/windows.h ../cmwind/cmwind.h \
+ ../textio/txcommands.h ../utils/undo.h
+CMWrgbhsv.o: CMWrgbhsv.c ../utils/magic.h

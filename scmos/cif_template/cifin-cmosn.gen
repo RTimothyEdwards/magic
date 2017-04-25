@@ -1,0 +1,89 @@
+/* available devices:
+	nfet,pfet,enfet,epfet,nffet,pffet
+	poly capacitor
+	bipolar NPN transistor
+	buried CCD devices
+	linear capacitor
+	micro-machined devices
+*/
+#define cif_tech cmosn
+style lambda=lambda_v
+    scalefactor lambda_1
+    layer nwell NWN
+	labels NWN
+    layer pwell NWP
+	labels NWP
+    layer m2 NMS
+        labels NMS
+    layer m1 NMF
+        labels NMF
+    layer poly NPG
+        labels NPG
+    layer pdiff NSP
+        and NAA
+	and NWN
+    layer ndiff NSN
+        and NAA
+    layer nsd NWN
+        and NSN
+        and NAA
+    layer psd NSP
+        and NAA
+	and-not NWN
+    layer nfet NPG
+        and NAA
+        and NSN
+    layer pfet NAA
+        and NPG
+        and NSP
+    layer enfet NEL
+        and NAA
+        and NSN
+    layer epfet NAA
+        and NEL
+        and NSP
+    layer electrode NEL
+        labels NEL
+    layer cap NPG
+        and NEL
+        and-not NAA
+        labels NEL
+    layer gc NCT
+    layer m2c NVA
+        and NMS
+        and NMF
+        labels NMS
+    layer open NAA
+        and NCT
+        and NVA
+        and NOG
+	and NOP
+    layer pstop NAA
+	and NPS
+        and NSP
+        and-not NWP
+        and-not NWN
+    layer pad NMF
+        shrink lambda_1
+        and NMS
+        shrink lambda_5
+        and NVA
+        shrink lambda_1
+        and NOG
+        grow lambda_6
+        and XP
+
+    calma NWN  1 *
+    calma NWP  2 *
+    calma NAA  3 *
+    calma NPG  4 *
+    calma NEL  5 *
+    calma NSN  7 *
+    calma NSP  8 *
+    calma NCT  9 *
+    calma NMF 10 *
+    calma NVA 11 *
+    calma NMS 12 *
+    calma NOG 13 *
+
+#undef cif_tech

@@ -1,0 +1,61 @@
+magic
+tech scmos
+timestamp 736034963
+<< polysilicon >>
+rect 12 -2 15 14
+rect 21 -2 24 14
+rect 30 -2 35 14
+rect 10 -4 17 -2
+rect 10 -8 11 -4
+rect 15 -8 17 -4
+rect 19 -4 26 -2
+rect 19 -8 20 -4
+rect 24 -8 26 -4
+rect 28 -4 35 -2
+rect 28 -8 29 -4
+rect 33 -8 35 -4
+<< poly2 >>
+rect 6 20 12 21
+rect 6 16 7 20
+rect 11 16 12 20
+rect 6 14 12 16
+rect 15 20 21 21
+rect 15 16 16 20
+rect 20 16 21 20
+rect 15 14 21 16
+rect 24 20 30 21
+rect 24 16 25 20
+rect 29 16 30 20
+rect 24 14 30 16
+rect 6 -2 10 14
+rect 17 -2 19 14
+rect 26 -2 28 14
+<< capacitor >>
+rect 10 -2 12 14
+rect 15 -2 17 14
+rect 19 -2 21 14
+rect 24 -2 26 14
+rect 28 -2 30 14
+<< bccdiffusion >>
+rect 15 12 17 14
+rect 6 8 35 12
+rect 6 0 35 4
+<< nbccdiffusion >>
+rect 4 8 6 12
+rect 4 0 6 4
+rect 35 8 37 12
+rect 35 0 37 4
+<< polycontact >>
+rect 11 -8 15 -4
+rect 20 -8 24 -4
+rect 29 -8 33 -4
+<< electrodecontact >>
+rect 7 16 11 20
+rect 16 16 20 20
+rect 25 16 29 20
+<< nbccdiffcontact >>
+rect 0 8 4 12
+rect 0 0 4 4
+rect 37 8 41 12
+rect 37 0 41 4
+<< end >>

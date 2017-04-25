@@ -1,0 +1,497 @@
+%----------------------------------------------------------------------------
+% Magic tutorial number 1
+%----------------------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\documentclass[letterpaper,twoside,12pt]{article}
+\usepackage{epsfig,times}
+
+\setlength{\textwidth}{8.5in}
+\addtolength{\textwidth}{-2.0in}
+\setlength{\textheight}{11.0in}
+\addtolength{\textheight}{-2.0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0pt}
+\setlength{\topmargin}{-0.5in}
+\setlength{\headheight}{0.2in}
+\setlength{\headsep}{0.3in}
+\setlength{\topskip}{0pt}
+
+\def\hinch{\hspace*{0.5in}}
+\def\starti{\begin{center}\begin{tabbing}\hinch\=\hinch\=\hinch\=hinch\hinch\=\kill}
+\def\endi{\end{tabbing}\end{center}}
+\def\ii{\>\>\>}
+\def\mytitle{Magic Tutorial \#1: Getting Started}
+
+%----------------------------------------------------------------------------
+
+\begin{document}
+
+\makeatletter
+\newcommand{\ps@magic}{%
+	\renewcommand{\@oddhead}{\mytitle\hfil\today}%
+	\renewcommand{\@evenhead}{\today\hfil\mytitle}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\newcommand{\ps@mplain}{%
+	\renewcommand{\@oddhead}{}%
+	\renewcommand{\@evenhead}{}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\makeatother
+\pagestyle{magic}
+\thispagestyle{mplain}
+
+
+\begin{center}
+  {\bfseries \Large \mytitle} \\
+  \vspace*{0.5in}
+  {\itshape John Ousterhout} \\
+  \vspace*{0.5in}
+   Computer Science Division \\
+   Electrical Engineering and Computer Sciences \\
+   University of California \\
+   Berkeley, CA  94720 \\
+  \vspace*{0.25in}
+  {\itshape (Updated by others, too.)} \\
+  \vspace*{0.25in}
+  This tutorial corresponds to Magic version 7. \\
+\end{center}
+\vspace*{0.5in}
+
+\section{What is Magic?}
+
+Magic is an interactive system for creating and modifying
+VLSI circuit layouts.  With Magic, you use a color graphics
+display and a mouse or graphics tablet
+to design basic cells and to combine them
+hierarchically into large structures.  Magic is different from
+other layout editors you may have used.  The most important
+difference is that Magic is more than just a color painting
+tool:  it understands quite a bit about the nature of circuits
+and uses this information to provide you with
+additional operations.
+For example, Magic has built-in knowledge of layout rules;  as
+you are editing, it continuously checks for rule violations.
+Magic also knows about connectivity and transistors, and
+contains a built-in hierarchical
+circuit extractor.  Magic also has a {\itshape plow}
+operation that you can use to stretch or compact
+cells.  Lastly, Magic has routing tools that you can
+use to make the global interconnections in your circuits.
+
+Magic is based on the Mead-Conway style of design.  This means
+that it uses simplified design rules and circuit structures.
+The simplifications make it easier for you to design circuits
+and permit Magic to provide powerful assistance that would
+not be possible otherwise.  However, they
+result in slightly less dense circuits than you could get with
+more complex rules and structures.  For example, Magic permits
+only {\itshape Manhattan} designs (those whose edges are
+vertical or horizontal).  Circuit designers tell us that our
+conservative design rules cost 5-10\% in density.  We
+think that the density sacrifice is compensated for
+by reduced design time.
+
+\begin{table}[ht]
+   \begin{center}
+      \begin{tabular}{|l|} \hline
+	Magic Tutorial \#1: Getting Started \\
+	Magic Tutorial \#2: Basic Painting and Selection \\
+	Magic Tutorial \#3: Advanced Painting (Wiring and Plowing) \\
+	Magic Tutorial \#4: Cell Hierarchies \\
+	Magic Tutorial \#5: Multiple Windows \\
+	Magic Tutorial \#6: Design-Rule Checking \\
+	Magic Tutorial \#7: Netlists and Routing \\
+	Magic Tutorial \#8: Circuit Extraction \\
+	Magic Tutorial \#9: Format Conversion for CIF and Calma \\
+	Magic Tutorial \#10:  The Interactive Route \\
+	Magic Tutorial \#11:  Using RSIM with Magic \\ \hline
+	Magic Maintainer's Manual \#1: Hints for System Maintainers \\
+	Magic Maintainer's Manual \#2: The Technology File \\
+	Magic Maintainer's Manual \#3: Display Styles, Color Maps, and Glyphs \\
+	Magic Maintainer's Manual \#4: Using Magic Under X Windows \\ \hline
+	Magic Technology Manual \#1: NMOS \\
+	Magic Technology Manual \#2: SCMOS \\ \hline
+      \end{tabular}
+   \end{center}
+   \caption{The Magic tutorials, maintenance manuals, and technology manuals.}
+   \label{tutorials}
+\end{table}
+
+\section{How to Get Help and Report Problems}
+
+There are several ways you can get help about Magic.
+If you are trying to learn about the system, you should start
+off with the Magic tutorials, of which this is the first.
+Each tutorial introduces a particular set of facilities in Magic.
+There is also a set of manuals intended for system maintainers.
+These describe things like how to create new technologies.
+Finally, there is a set of technology manuals.  Each one of
+the technology manuals describes the features peculiar to
+a particular technology, such as layer names and design rules.
+Table~\ref{tutorials} lists all of the Magic manuals.
+The tutorials are designed to be read while you are running Magic,
+so that you can try out the new commands as they are explained.
+You needn't read all the tutorials at once;  each tutorial
+lists the other tutorials that you should read first.
+
+The tutorials are not necessarily complete.  Each one
+is designed to introduce a set of facilities, but it doesn't
+necessarily cover every possibility.  The ultimate authority
+on how Magic works is the reference manual, which is a standard
+Unix {\itshape man} page.  The {\itshape man} page gives concise
+and complete descriptions of all the Magic commands.
+Once you have a general idea how a command works, the {\itshape man}
+page is probably easier to consult than the tutorial.  However,
+the {\itshape man} page may not make much sense until after you've
+read the tutorial.
+
+A third way of getting help is available on-line through Magic
+itself.  The {\bfseries :help} command will print
+out one line for each Magic command, giving the command's syntax
+and an extremely brief description of the command.
+This facility is useful if you've forgotten the name or exact
+syntax of a command.  After each
+screenful of help information, {\bfseries :help} stops and prints ``--More--''.
+If you type a space, the next screenful of data will be output, and
+if you type {\bfseries q} the rest of the output will be skipped.
+If you're interested in information about a particular subject,
+you can type
+
+\starti
+   \ii {\bfseries :help} {\itshape subject}
+\endi
+
+This command will print out each command description that
+contains the {\itshape subject} string.
+
+If you have a question or problem that can't be answered
+with any of the above approaches, you may contact the Magic authors 
+by sending mail to {\ttfamily magic@ucbarpa.Berkeley.EDU}.
+This will log your message in a file (so we can't forget about it) and
+forward the message to the Magic maintainers.
+Magic maintenance is a mostly volunteer effort, so
+when you report a bug or ask a question, {\itshape please} be specific.  
+Obviously, the more specific you are, the more likely we can answer your
+question or reproduce the bug you found.
+We'll tend to answer the specific bug reports first, since they involve less
+time on our part.  Try to describe
+the exact sequence of events that led to the problem, what you
+expected to happen, and what actually happened.  If possible, 
+find a small example that reproduces the problem and
+send us the relevant (small!) files so we can make it happen here.
+Or best of all, send us a bug fix along with a small example of the problem.
+
+\section{Graphics Configuration}
+
+Magic can be run with different graphics hardware.  The most common
+configuration is to run Magic under X11 on a workstation.  Another way
+to run Magic is under SunView on a Sun workstation, or under OpenGL
+(in an X11 environment) on an SGI workstation or Linux box with
+accelerated 3D video hardware and drivers.  Legacy code exists
+supporting AED graphics terminals and X10 (the forerunner of X11).
+The rest of this section concerns X11.  
+
+Before starting up magic, make sure that your {\ttfamily DISPLAY} variable is
+set correctly. If you are running magic and your X server on the same
+machine, set it to {\ttfamily unix:0}:
+
+\starti
+  \ii {\bfseries setenv} {\ttfamily DISPLAY unix:0}
+\endi
+
+The Magic window is an ordinary X window, and can be moved and resized using
+the window manager.
+
+For now, you can skip to the next major section:  "Running Magic".
+
+\section{Advanced X Use}
+
+The X11 driver can read in window sizing and font preferences from 
+your {\itshape .Xdefaults} file.  The following specifications are recognized:
+
+\starti
+   \> {\bfseries magic.window:}    \ii  1000x600+10+10 \\
+   \> {\bfseries magic.newwindow:} \ii  300x300+400+100 \\
+   \> {\bfseries magic.small:}     \ii  helvetica8 \\
+   \> {\bfseries magic.medium:}    \ii  helvetica12 \\
+   \> {\bfseries magic.large:}     \ii  helvetica18 \\
+   \> {\bfseries magic.xlarge:}    \ii  helvetica24
+\endi
+
+{\bfseries magic.window} is the size and position of the initial window,
+while {\bfseries magic.newwindow} is the size and position of subsequent 
+windows.  If these are left blank, you will be prompted to give 
+the window's position and size. {\bfseries small}, {\bfseries medium},
+{\bfseries large},  and {\bfseries xlarge} are various fonts magic uses
+for labels.  
+Some X11 servers read the {\ttfamily .Xdefaults} file only when you initially
+log in; you may have to run {\ttfamily xrdb -load \~{}/.Xdefaults}
+for the changes to take 
+effect.
+
+Under X11, Magic can run on a display of any depth for which there are
+colormap and dstyle files.  Monochrome, 4 bit, 6 bit, 7 bit, and 24 bit
+files for MOS are distributed in this release.  You can explicitly specify 
+how many planes Magic is to use by adding a suffix numeral between 
+1 and 7 to ``XWIND'' when used with Magic's ``-d'' option.  
+For example, ``magic -d XWIND1'' runs magic on a monochrome 
+display and ``magic -d XWIND7'' runs magic on a 7 plane display.  
+If this number is not specified, magic checks the depth of the display
+and picks the largest number in the set \{1, 4, 6, 7, 16, 24\} that the display
+will support.
+Another way to force the display type is to set an environment variable
+called {\ttfamily MAGIC\_COLOR} to one of the strings ``8bit'', ``16bit'',
+or ``24bit''.
+
+\medskip
+\noindent {\bfseries \itshape Linux note:} \\
+Magic's ``native'' display (except when using the OpenGL interface)
+is the 8-bit PseudoColor visual type.  24-bit TrueColor visuals prevent
+Magic from allocating colors for bit-plane logical operations, so the
+24-bit interface is visually somewhat sub-par, requiring stipple
+patterns on all metal layers, for instance.  Under Linux, a few
+(commercial) X drivers will support 8-bit overlays on top of 24-bit
+TrueColor when using 32-bit color.  This is the ideal way to use
+magic, because the colormap for the rest of the display is preserved
+when the cursor is inside the Magic window.  Otherwise, the X session
+may have to be started using ``{\ttfamily startx --bpp 8}'' to force
+it to use the 8-bit PseudoColor visual.
+  
+\medskip
+\noindent {\bfseries \itshape X11 remote usage note:} \\
+When running Magic remotely on an X terminal, the colormap allocation
+may differ for the local machine compared to the remote machine.  In
+some cases, this can cause the background of magic to appear black,
+usually with a black-on-black cursor.  This is known to be true of
+X11 drivers for Windows (such as PC-XWare), due to the way the Windows
+8-bit PseudoColor colormap is set up.  This behavior can be corrected
+by setting two environment variables on the remote machine as follows:
+
+\starti
+   \ii {\bfseries setenv} {\ttfamily X\_COLORMAP\_BASE 128} \\
+   \ii {\bfseries setenv} {\ttfamily X\_COLORMAP\_DEFAULT 0} \\
+\endi
+
+This causes Magic to avoid trying to allocate the first color
+in the colormap, which under Windows is fixed as black.
+
+\section{Running Magic}
+
+From this point on, you should be sitting at a Magic workstation
+so you can experiment with the program as you read the manuals.
+Starting up Magic is usually pretty simple.  Just log in and, if needed,
+start up your favorite window system.  Then type the shell command
+
+\starti
+   \ii {\bfseries magic tut1}
+\endi
+
+{\bfseries Tut1} is the name of a library cell that you will play
+with in this tutorial.
+At this point, several colored rectangles should appear
+on the color display along with a white box and a cursor.
+A message will be printed on the text display to tell you that
+{\bfseries tut1} isn't writable (it's in a read-only library),
+and a ``$>$'' prompt should appear.
+If this has happened, then you can skip the rest of this
+section (except for the note below) and go directly to Section 5.
+
+Note: in the tutorials, when you see things printed in boldface,
+for example, {\bfseries magic tut1} from above, they refer to things
+you type exactly, such as command names and file names.  These
+are usually case sensitive ({\bfseries A} is different from {\bfseries a}).
+When you see things printed in italics, they refer to classes of
+things you might type.  Arguments in square brackets are optional.
+For example, a more complete description
+of the shell command for Magic is
+
+\starti
+   \ii {\bfseries magic} [{\itshape file}]
+\endi
+
+You could type any file name for {\itshape file}, and
+Magic would start editing that file.  It turns out that {\bfseries tut1}
+is just a file in Magic's cell library.  If you didn't type a
+file name, Magic would load a new blank cell.
+
+If things didn't happen as they should have when you tried to
+run Magic, any of several things could be wrong.  If a message
+of the form ``magic: Command not found'' appears on your screen
+it is because the shell couldn't find the Magic program.  The
+most stable version of Magic is the directory {\ttfamily \~{}cad/bin},
+and the newest public version is in {\ttfamily \~{}cad/new}.  You should
+make sure that both these directories are in your shell path.
+Normally, {\ttfamily \~{}cad/new} should appear before {\ttfamily \~{}cad/bin}.
+If this sounds like gibberish, find a Unix hacker and have him or her
+explain to you about paths.  If worst comes to worst, you can invoke
+Magic by typing its full name:
+
+\starti
+   \ii {\bfseries \~{}cad/bin/magic tut1}
+\endi
+
+Another possible problem is that
+Magic might not know what kind of display you are using.
+To solve this, use magic's {\bfseries -d} flag:
+\starti
+  \ii {\bfseries magic -d} {\itshape display} {\bfseries tut1}
+\endi
+{\itshape Display} is usually the model number of the workstation you are using or 
+the
+name of your window system.  Look in the manual page for a list of valid
+names, or just guess something.  Magic will print out the list of valid names
+if you guess wrong.
+
+If you are using a graphics terminal (not a workstation), 
+it is possible that Magic doesn't know which serial line to use.  To learn
+how to fix
+this, read about the {\bfseries -g} switch in the magic(1) manual page.  Also read
+the displays(5) manual page.
+
+\section{The Box and the Cursor}
+
+Two things, called the {\itshape box} and the {\itshape cursor}, are used
+to select things on the color display.  As you move the
+mouse, the cursor moves on the screen.  The cursor starts out
+with a crosshair shape, but you'll see later that its shape
+changes as you work to provide feedback about what you're
+doing.  The left and right
+mouse buttons are used to position the box.  If you press the
+left mouse button and then release it, the box will move so
+that its lower left corner is at the cursor position.  If
+you press and release the right mouse button, the upper right
+corner of the box will move to the cursor position, but the
+lower left corner will not change.  These two buttons are
+enough to position the box anywhere on the screen.  Try using
+the buttons to place the box around each of the colored rectangles
+on the screen.
+
+Sometimes it is convenient to move the box by a corner other
+than the lower left.  To do this, press the left mouse button
+and {\itshape hold it down}.  The cursor shape changes to show you
+that you are moving the box by its lower left corner:
+
+\begin{center}
+   \begin{tabular}{|c|} \hline
+	\hspace*{0.1in} \\ \hline
+   \end{tabular}
+\end{center}
+
+While
+holding the button down, move the cursor near the lower right
+corner of the box, and now click the right mouse button (i.e.
+press and release it, while still holding down the left
+button).  The cursor's shape will change to indicate that
+you are now moving the box by its lower right corner.  Move
+the cursor to a different place on the screen and release
+the left button.  The box should move so that its lower right
+corner is at the cursor position.  Try using this feature to
+move the box so that it is almost entirely off-screen to the
+left.  Try moving the box by each of its corners.
+
+You can also reshape the box by corners other than the upper
+right.  To do this, press the right mouse button and hold
+it down.  The cursor shape shows you that you are reshaping
+the box by its upper right corner:
+
+\begin{center}
+   \begin{tabular}{c|} \hline
+	\hspace*{0.1in} \\
+   \end{tabular}
+\end{center}
+
+Now move the cursor
+near some other corner of the box and click the left button,
+all the while holding the right button down.  The cursor
+shape will change to show you that now you are reshaping the
+box by a different corner.  When you release the right button,
+the box will reshape so that the selected corner is at
+the cursor position but the diagonally opposite corner is unchanged.
+Try reshaping the box by each of its corners.
+
+\section{Invoking Commands}
+
+Commands can be invoked in Magic in three ways:  by pressing
+buttons on the mouse;  by typing single keystrokes on the
+text keyboard (these are called
+{\itshape macros}); or by typing longer commands on the text
+keyboard (these are called {\itshape long commands}).  Many of the
+commands use the box and cursor to help guide the command.
+
+To see how commands can be invoked from the buttons, first
+position the box over a small blank area in the middle of the
+screen.  Then move the cursor over the red rectangle and
+press the middle mouse button.  At this point, the area of the box should
+get painted red.  Now move the cursor over empty space and
+press the middle button again.  The red paint should go away.
+Note how this command uses both the cursor and box locations
+to control what happens.
+
+As an example of a macro, type the {\bfseries g} key on
+the text keyboard.  A grid will appear on the color display, along
+with a small black box marking the origin of the cell.
+If you type {\bfseries g} again, the grid will go away.  You
+may have noticed earlier that the box corners didn't move to
+the exact cursor position:  you can see now that the box is
+forced to fall on grid points.
+
+Long commands are invoked by typing a colon (``:'') or
+semi-colon (``;'').  After you
+type the colon or semi-colon, the ``$>$'' prompt on the text
+screen will be replaced by a ``:'' prompt.  This indicates
+that Magic is waiting for a long command.  At this point
+you should type a line of text, followed by a return.
+When the long command has been processed, the ``$>$'' prompt
+reappears on the text display.  Try typing semi-colon followed by
+return to see how this works.  Occasionally a ``]'' (right bracket)
+prompt will appear.  This means that the design-rule checker is reverifying
+part of your design.  For now you can just ignore this and treat
+``]'' like ``$>$''.
+
+Each long command consists of the name of the command followed
+by arguments, if any are needed by that command.  The command
+name can be abbreviated, just as long as you type enough
+characters to distinguish it from all other long commands.
+For example, {\bfseries :h} and {\bfseries :he} may be used as abbreviations for
+{\bfseries :help}.  On the other hand, {\bfseries :u} may not be used as an
+abbreviation for {\bfseries :undo} because there is another command,
+{\bfseries :upsidedown}, that has the same abbreviation.  Try typing
+{\bfseries :u}.
+
+As an example of a long command, put the box over empty space on
+the color display, then invoke the long command
+
+\starti
+   \ii {\bfseries :paint red}
+\endi
+
+The box should fill with the red color, just as if you had
+used the middle mouse button to paint it.  Everything you can
+do in Magic can be invoked with a long command.  It turns out that
+the macros are just conveniences that are expanded into long
+commands and executed.  For example, the long command equivalent
+to the {\bfseries g} macro is
+
+\starti
+   \ii {\bfseries :grid}
+\endi
+
+Magic permits you to define new macros if you wish.  Once you've
+become familiar with Magic you'll almost certainly want to add
+your own macros so that you can invoke quickly the commands you
+use most frequently.  See the
+{\itshape magic(1)} man page under the command {\bfseries :macro}.
+
+One more long command is of immediate use to you.  It is
+
+\starti
+   \ii {\bfseries :quit}
+\endi
+
+Invoke this command.  Note that before exiting, Magic will
+give you one last chance to save the information that you've
+modified.  Type {\bfseries y} to exit without saving anything.
+
+\end{document}

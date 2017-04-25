@@ -1,0 +1,15 @@
+This directory contains template files for MOSIS's SCMOS technology
+for Magic layout editor.
+
+A simple command "make" should be able to generate all appropriate
+files needed. You can also use "make clean" to remove all files and
+then "make all" to generate all-style files.
+
+After all CIF input/output styles has been generated, you'll have to
+go to the scmos directory to 're-make' the SCMOS technology file.
+
+Gook luck,
+
+Jen-I pi@isi.edu :-)
+The MOSIS Services, USC/ISI
+(310) 822-1511 x640

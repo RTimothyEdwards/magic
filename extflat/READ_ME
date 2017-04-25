@@ -1,0 +1,5 @@
+This directory contains a library for reading hierarchical .ext files
+and flattening them.  See ../ext2sim, ../ext2spice, or ../ext2dlys for
+examples of programs that use this library.
+
+						Walter Scott

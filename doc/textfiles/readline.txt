@@ -1,0 +1,71 @@
+
+
+                                                11 January 2001
+
+                 Magic now with GNU Readline
+
+                      Jeff Solomon
+
+
+This file describes the implementation of the GNU Readline interface
+in to magic.
+
+1. Introduction
+
+  GNU Readline helps you type. As you may know from using a modern shell,
+  like bash, tcsh, or zsh, quickly returning to an old command or typing
+  only an abbreviation of the command desired can save a tremendous amount
+  of time. Now magic has those same capabilities with the addition of GNU
+  Readline.
+
+2. Building
+
+  First, you have to compile the readline interface in. Do this by
+  selecting "yes" when asked from scripts/config program. The magic
+  distribution comes with the source for readline and I'd suggest using it
+  because it will always be a version that works.
+
+3. Usage
+
+  The short answer is "Press <TAB>". In Readline, the TAB key cause
+  completion to occur. First press ":" to get the command prompt, then
+  hit TAB twice. You should see a list of all magic commands. Next, hit
+  the letter "c" and hit TAB again. You should see a list of all the
+  commands that begin with the letter "c". But wait, there's more! This
+  implementation of readline has context sensitive completion. Type
+  ":see " and hit TAB. It gives a list of possible layer names in the
+  current technology. Pretty cool, huh? Next, try ":getcell " and then
+  TAB, it will list all possible cell names. Very neat I think. Here are
+  the possible things that are completed depending on the command and
+  the placement of the cursor in a command:
+
+    commands
+    command arguments
+    macros
+    interative macros
+    layer names
+    file names/usernames
+    cell names
+    istyle names
+    ostyle names
+    directions (eg. bottom, down, east)
+
+  When in doubt, just hit TAB!
+
+4. Programming
+
+  Mostly all the code for the readline interface lives in
+  textio/txInput.c. There is also some in textio/txMain.c, but only in
+  one place of initialization. See these two files and the docs for
+  readline itself for instructions on changing the interface.
+
+5. GNU License vs. Magic License
+
+  The GNU license under with Readline is released is fairly
+  restrictive. There is some concern that by integrating readline into
+  magic, the magic code itself will be "infected" with the GNU
+  license. My belief (which clearly could be wrong) is that as long as
+  compiling without the code is an option and the code is clearly
+  #ifdef'ed then it should not be a problem because a clear
+  deliniation between magic and readline code has been maintained. Any
+  GNU experts feel free to enlighten the rest of us if we're wrong.

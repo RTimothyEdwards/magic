@@ -1,0 +1,36 @@
+DRCarray.o: DRCarray.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../drc/drc.h \
+ ../windows/windows.h ../commands/commands.h
+DRCbasic.o: DRCbasic.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../drc/drc.h \
+ ../utils/signals.h ../utils/maxrect.h ../utils/malloc.h
+DRCcif.o: DRCcif.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../dbwind/dbwtech.h ../drc/drc.h ../cif/cif.h \
+ ../cif/CIFint.h ../utils/signals.h ../utils/stack.h ../utils/malloc.h \
+ ../utils/utils.h
+DRCcontin.o: DRCcontin.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../textio/textio.h ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../dbwind/dbwtech.h ../utils/main.h ../commands/commands.h ../drc/drc.h \
+ ../utils/signals.h ../graphics/graphics.h ../utils/undo.h \
+ ../utils/malloc.h
+DRCmain.o: DRCmain.c ../utils/magic.h ../utils/malloc.h \
+ ../textio/textio.h ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../drc/drc.h ../utils/undo.h
+DRCsubcell.o: DRCsubcell.c ../utils/magic.h ../textio/textio.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../drc/drc.h ../windows/windows.h \
+ ../commands/commands.h ../utils/undo.h
+DRCtech.o: DRCtech.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/utils.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../drc/drc.h ../utils/tech.h ../textio/textio.h \
+ ../utils/malloc.h ../cif/cif.h ../cif/CIFint.h
+DRCprint.o: DRCprint.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../drc/drc.h
+DRCextend.o: DRCextend.c ../utils/magic.h ../utils/malloc.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../dbwind/dbwtech.h ../drc/drc.h ../utils/signals.h ../utils/stack.h \
+ ../utils/maxrect.h

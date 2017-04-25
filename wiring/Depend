@@ -1,0 +1,13 @@
+wireOps.o: wireOps.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../select/select.h \
+ ../textio/textio.h ../windows/windows.h ../dbwind/dbwind.h ../drc/drc.h \
+ ../utils/main.h ../wiring/wiring.h ../wiring/wireInt.h \
+ ../textio/txcommands.h ../utils/styles.h
+wireTech.o: wireTech.c ../utils/magic.h ../utils/utils.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/tech.h ../wiring/wiring.h \
+ ../utils/malloc.h
+wireUndo.o: wireUndo.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/tech.h \
+ ../wiring/wiring.h ../wiring/wireInt.h ../textio/textio.h \
+ ../utils/undo.h

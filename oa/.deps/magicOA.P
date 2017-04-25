@@ -1,0 +1,778 @@
+magicOA.o: magicOA.cpp /usr/local/include/c++/3.3.3/iostream \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/c++config.h \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/os_defines.h \
+  /usr/include/features.h /usr/include/sys/cdefs.h \
+  /usr/include/gnu/stubs.h /usr/local/include/c++/3.3.3/ostream \
+  /usr/local/include/c++/3.3.3/ios /usr/local/include/c++/3.3.3/iosfwd \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/c++locale.h \
+  /usr/local/include/c++/3.3.3/clocale /usr/include/locale.h \
+  /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/stddef.h \
+  /usr/include/bits/locale.h /usr/include/xlocale.h \
+  /usr/local/include/c++/3.3.3/cctype /usr/include/ctype.h \
+  /usr/include/bits/types.h /usr/include/bits/pthreadtypes.h \
+  /usr/include/bits/sched.h /usr/include/endian.h \
+  /usr/include/bits/endian.h \
+  /usr/local/include/c++/3.3.3/bits/stringfwd.h \
+  /usr/local/include/c++/3.3.3/bits/fpos.h \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/c++io.h \
+  /usr/local/include/c++/3.3.3/cstdio \
+  /usr/local/include/c++/3.3.3/cstddef /usr/include/stdio.h \
+  /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
+  /usr/include/bits/wchar.h /usr/include/gconv.h \
+  /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/stdarg.h \
+  /usr/include/bits/stdio_lim.h \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/gthr.h \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/gthr-default.h \
+  /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/pthread.h \
+  /usr/include/sched.h /usr/include/time.h /usr/include/bits/time.h \
+  /usr/include/signal.h /usr/include/bits/sigset.h \
+  /usr/include/bits/initspin.h \
+  /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/bits/sigthread.h \
+  /usr/include/unistd.h /usr/include/bits/posix_opt.h \
+  /usr/include/bits/environments.h /usr/include/bits/wordsize.h \
+  /usr/include/bits/confname.h /usr/include/getopt.h \
+  /usr/local/include/c++/3.3.3/cwchar /usr/local/include/c++/3.3.3/ctime \
+  /usr/local/include/c++/3.3.3/bits/functexcept.h \
+  /usr/local/include/c++/3.3.3/exception_defines.h \
+  /usr/local/include/c++/3.3.3/exception \
+  /usr/local/include/c++/3.3.3/bits/char_traits.h \
+  /usr/local/include/c++/3.3.3/cstring /usr/include/string.h \
+  /usr/local/include/c++/3.3.3/bits/localefwd.h \
+  /usr/local/include/c++/3.3.3/bits/ios_base.h \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/atomicity.h \
+  /usr/local/include/c++/3.3.3/bits/locale_classes.h \
+  /usr/local/include/c++/3.3.3/string /usr/local/include/c++/3.3.3/memory \
+  /usr/local/include/c++/3.3.3/bits/stl_algobase.h \
+  /usr/local/include/c++/3.3.3/climits \
+  /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/limits.h \
+  /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/syslimits.h \
+  /usr/include/limits.h /usr/include/bits/posix1_lim.h \
+  /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
+  /usr/include/bits/posix2_lim.h /usr/include/bits/xopen_lim.h \
+  /usr/local/include/c++/3.3.3/cstdlib /usr/include/stdlib.h \
+  /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
+  /usr/include/sys/types.h /usr/include/sys/select.h \
+  /usr/include/bits/select.h /usr/include/sys/sysmacros.h \
+  /usr/include/alloca.h /usr/local/include/c++/3.3.3/new \
+  /usr/local/include/c++/3.3.3/bits/stl_pair.h \
+  /usr/local/include/c++/3.3.3/bits/type_traits.h \
+  /usr/local/include/c++/3.3.3/bits/stl_iterator_base_types.h \
+  /usr/local/include/c++/3.3.3/bits/stl_iterator_base_funcs.h \
+  /usr/local/include/c++/3.3.3/bits/concept_check.h \
+  /usr/local/include/c++/3.3.3/bits/stl_iterator.h \
+  /usr/local/include/c++/3.3.3/bits/stl_alloc.h \
+  /usr/local/include/c++/3.3.3/bits/stl_threads.h \
+  /usr/local/include/c++/3.3.3/bits/stl_construct.h \
+  /usr/local/include/c++/3.3.3/bits/stl_uninitialized.h \
+  /usr/local/include/c++/3.3.3/bits/stl_raw_storage_iter.h \
+  /usr/local/include/c++/3.3.3/bits/stl_function.h \
+  /usr/local/include/c++/3.3.3/bits/basic_string.h \
+  /usr/local/include/c++/3.3.3/algorithm \
+  /usr/local/include/c++/3.3.3/bits/stl_algo.h \
+  /usr/local/include/c++/3.3.3/bits/stl_heap.h \
+  /usr/local/include/c++/3.3.3/bits/stl_tempbuf.h \
+  /usr/local/include/c++/3.3.3/bits/basic_string.tcc \
+  /usr/local/include/c++/3.3.3/streambuf \
+  /usr/local/include/c++/3.3.3/bits/streambuf.tcc \
+  /usr/local/include/c++/3.3.3/bits/basic_ios.h \
+  /usr/local/include/c++/3.3.3/bits/streambuf_iterator.h \
+  /usr/local/include/c++/3.3.3/bits/locale_facets.h \
+  /usr/local/include/c++/3.3.3/cwctype /usr/include/wctype.h \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/ctype_base.h \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/ctype_inline.h \
+  /usr/local/include/c++/3.3.3/bits/codecvt.h \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/codecvt_specializations.h \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/time_members.h \
+  /usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/messages_members.h \
+  /usr/local/include/c++/3.3.3/bits/basic_ios.tcc \
+  /usr/local/include/c++/3.3.3/bits/ostream.tcc \
+  /usr/local/include/c++/3.3.3/locale \
+  /usr/local/include/c++/3.3.3/bits/locale_facets.tcc \
+  /usr/local/include/c++/3.3.3/cerrno /usr/include/errno.h \
+  /usr/include/bits/errno.h /usr/include/linux/errno.h \
+  /usr/include/asm/errno.h /usr/local/include/c++/3.3.3/cmath \
+  /usr/include/math.h /usr/include/bits/huge_val.h \
+  /usr/include/bits/nan.h /usr/include/bits/mathdef.h \
+  /usr/include/bits/mathcalls.h \
+  /usr/local/include/c++/3.3.3/bits/cmath.tcc \
+  /usr/local/include/c++/3.3.3/limits \
+  /usr/local/include/c++/3.3.3/typeinfo \
+  /usr/local/include/c++/3.3.3/istream \
+  /usr/local/include/c++/3.3.3/bits/istream.tcc magicOA.h \
+  /usr/local/include/tcl.h /usr/local/include/tclDecls.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDB.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBase.h \
+  /usr/include/malloc.h /usr/include/sys/times.h /usr/include/dirent.h \
+  /usr/include/bits/dirent.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBaseTypes.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBaseModTypes.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBaseMsgs.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaMemory.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaString.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaException.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPoint.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaVector.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaSegment.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBox.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPointArray.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOrient.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTransform.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTimeStamp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPackedData.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDir.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaFile.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaMapFile.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaMapWindow.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTimer.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaType.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDomain.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaObject.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaIntProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaFloatProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaStringProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaAppProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaHierProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDoubleProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBooleanProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTimeProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaIntRangeProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaFloatRangeProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDoubleRangeProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTimeRangeProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaEnumProp.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDataCallback.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaGroup.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaCallback.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaThread.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaNameSpace.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaName.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaAppObjectDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaAppDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaCdbaNS.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaNativeNS.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaLefDefNS.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaSpiceNS.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaSpefNS.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaSpfNS.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaUnixNS.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaVerilogNS.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaVhdlNS.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaWinNS.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaCollection.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBaseCollection.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDump.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaComplex.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaHashTbl.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaLookupTbl.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTesselator.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaMutex.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDD.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDDMsgs.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDDException.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDDObject.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaFileSys.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaFSDir.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaLib.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaCell.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaView.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaFSFile.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaLibFile.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaCellFile.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaViewFile.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDDObjectDB.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDDCallback.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDDCollection.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDDDump.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaAntennaData.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTC.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTCModTypes.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTCMsgs.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTCObject.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTech.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTCException.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaRule.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaLayer.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDerivedLayer.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPhysicalLayer.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPurpose.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaSiteDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaViaDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaViaDefArray.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaViaSpec.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaRouteLayerSpec.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaRouteSpec.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOpPoint.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaAnalysisLib.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaCumulativeRatios.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTechDump.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTCCallback.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTCCollection.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDBModTypes.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDBMsgs.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDBException.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDBObject.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBlockObject.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDBCollection.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaHeaderCollection.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaNetCollection.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTermCollection.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaAttrType.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaSigType.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaSource.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaCellView.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBlock.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaScalarNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBusNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBusNetBit.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBusNetDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBundleNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaScalarTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBusTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBusTermBit.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBusTermDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBundleTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaFig.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaLPPHeader.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaLayerHeader.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTextAlign.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaFont.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaInstHeader.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaRowHeader.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaRow.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaScalarInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaArrayInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaVectorInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaVectorInstDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaShape.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaRect.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPolygon.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPath.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDonut.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDot.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaEllipse.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaArc.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaLine.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaText.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTextDisplay.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaViaParam.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaRouteElement.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaRoute.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaInstTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaInstPin.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaAssignmentDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaAssignment.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaConnectDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaHierPath.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaRegionQuery.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPin.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaTrackPattern.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaMarker.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDBDataCallback.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaParam.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaCluster.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBoundary.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaBlockage.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaViaHeader.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaScanChainSet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaScanChain.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaScanChainInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaSteiner.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaCMap.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaGCellPattern.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDBDump.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPinGroup.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaAnalysisPoint.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaAnalysisOpPoint.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOpPointHeader.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaRouteSpecHeader.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaReducedModel.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPoleResidue.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaLumpedElmore.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPiElmore.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaPiPoleResidue.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaElmore.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaNode.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaGroundedNode.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDevice.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaStdDevice.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaResistor.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaCouplingCap.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaInductor.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDiode.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaSeriesRL.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaMutualInductor.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaParasiticNetwork.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaGuide.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaSubNetwork.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaRouteOptimizer.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModObject.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModule.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModCellViewInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModScalarInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModVectorInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModVectorInstDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModInstHeader.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModModuleInstHeader.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModBundleNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModBusNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModBusNetBit.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModScalarNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModBusNetDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModInstTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModBundleTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModBusTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModBusTermBit.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModScalarTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModBusTermDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModConnectDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModAssignment.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModModuleInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModScalarModuleInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModVectorModuleInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccObject.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccurrence.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccCellViewInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccScalarInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccVectorInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccVectorInstDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccInstHeader.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccModuleInstHeader.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccBundleNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusNetBit.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccScalarNet.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusNetDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccInstTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccBundleTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusTermBit.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccScalarTerm.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusTermDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccConnectDef.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccAssignment.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccArrayInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccModuleInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccScalarModuleInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccVectorModuleInst.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaDBCallback.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaModCallback.h \
+  /home/tim/projects/multigig/OpenAccess/oa/include/oaOccCallback.h
+magicOA.cpp :
+/usr/local/include/c++/3.3.3/iostream :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/c++config.h :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/os_defines.h :
+/usr/include/features.h :
+/usr/include/sys/cdefs.h :
+/usr/include/gnu/stubs.h :
+/usr/local/include/c++/3.3.3/ostream :
+/usr/local/include/c++/3.3.3/ios :
+/usr/local/include/c++/3.3.3/iosfwd :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/c++locale.h :
+/usr/local/include/c++/3.3.3/clocale :
+/usr/include/locale.h :
+/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/stddef.h :
+/usr/include/bits/locale.h :
+/usr/include/xlocale.h :
+/usr/local/include/c++/3.3.3/cctype :
+/usr/include/ctype.h :
+/usr/include/bits/types.h :
+/usr/include/bits/pthreadtypes.h :
+/usr/include/bits/sched.h :
+/usr/include/endian.h :
+/usr/include/bits/endian.h :
+/usr/local/include/c++/3.3.3/bits/stringfwd.h :
+/usr/local/include/c++/3.3.3/bits/fpos.h :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/c++io.h :
+/usr/local/include/c++/3.3.3/cstdio :
+/usr/local/include/c++/3.3.3/cstddef :
+/usr/include/stdio.h :
+/usr/include/libio.h :
+/usr/include/_G_config.h :
+/usr/include/wchar.h :
+/usr/include/bits/wchar.h :
+/usr/include/gconv.h :
+/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/stdarg.h :
+/usr/include/bits/stdio_lim.h :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/gthr.h :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/gthr-default.h :
+/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/pthread.h :
+/usr/include/sched.h :
+/usr/include/time.h :
+/usr/include/bits/time.h :
+/usr/include/signal.h :
+/usr/include/bits/sigset.h :
+/usr/include/bits/initspin.h :
+/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/bits/sigthread.h :
+/usr/include/unistd.h :
+/usr/include/bits/posix_opt.h :
+/usr/include/bits/environments.h :
+/usr/include/bits/wordsize.h :
+/usr/include/bits/confname.h :
+/usr/include/getopt.h :
+/usr/local/include/c++/3.3.3/cwchar :
+/usr/local/include/c++/3.3.3/ctime :
+/usr/local/include/c++/3.3.3/bits/functexcept.h :
+/usr/local/include/c++/3.3.3/exception_defines.h :
+/usr/local/include/c++/3.3.3/exception :
+/usr/local/include/c++/3.3.3/bits/char_traits.h :
+/usr/local/include/c++/3.3.3/cstring :
+/usr/include/string.h :
+/usr/local/include/c++/3.3.3/bits/localefwd.h :
+/usr/local/include/c++/3.3.3/bits/ios_base.h :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/atomicity.h :
+/usr/local/include/c++/3.3.3/bits/locale_classes.h :
+/usr/local/include/c++/3.3.3/string :
+/usr/local/include/c++/3.3.3/memory :
+/usr/local/include/c++/3.3.3/bits/stl_algobase.h :
+/usr/local/include/c++/3.3.3/climits :
+/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/limits.h :
+/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.3.3/include/syslimits.h :
+/usr/include/limits.h :
+/usr/include/bits/posix1_lim.h :
+/usr/include/bits/local_lim.h :
+/usr/include/linux/limits.h :
+/usr/include/bits/posix2_lim.h :
+/usr/include/bits/xopen_lim.h :
+/usr/local/include/c++/3.3.3/cstdlib :
+/usr/include/stdlib.h :
+/usr/include/bits/waitflags.h :
+/usr/include/bits/waitstatus.h :
+/usr/include/sys/types.h :
+/usr/include/sys/select.h :
+/usr/include/bits/select.h :
+/usr/include/sys/sysmacros.h :
+/usr/include/alloca.h :
+/usr/local/include/c++/3.3.3/new :
+/usr/local/include/c++/3.3.3/bits/stl_pair.h :
+/usr/local/include/c++/3.3.3/bits/type_traits.h :
+/usr/local/include/c++/3.3.3/bits/stl_iterator_base_types.h :
+/usr/local/include/c++/3.3.3/bits/stl_iterator_base_funcs.h :
+/usr/local/include/c++/3.3.3/bits/concept_check.h :
+/usr/local/include/c++/3.3.3/bits/stl_iterator.h :
+/usr/local/include/c++/3.3.3/bits/stl_alloc.h :
+/usr/local/include/c++/3.3.3/bits/stl_threads.h :
+/usr/local/include/c++/3.3.3/bits/stl_construct.h :
+/usr/local/include/c++/3.3.3/bits/stl_uninitialized.h :
+/usr/local/include/c++/3.3.3/bits/stl_raw_storage_iter.h :
+/usr/local/include/c++/3.3.3/bits/stl_function.h :
+/usr/local/include/c++/3.3.3/bits/basic_string.h :
+/usr/local/include/c++/3.3.3/algorithm :
+/usr/local/include/c++/3.3.3/bits/stl_algo.h :
+/usr/local/include/c++/3.3.3/bits/stl_heap.h :
+/usr/local/include/c++/3.3.3/bits/stl_tempbuf.h :
+/usr/local/include/c++/3.3.3/bits/basic_string.tcc :
+/usr/local/include/c++/3.3.3/streambuf :
+/usr/local/include/c++/3.3.3/bits/streambuf.tcc :
+/usr/local/include/c++/3.3.3/bits/basic_ios.h :
+/usr/local/include/c++/3.3.3/bits/streambuf_iterator.h :
+/usr/local/include/c++/3.3.3/bits/locale_facets.h :
+/usr/local/include/c++/3.3.3/cwctype :
+/usr/include/wctype.h :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/ctype_base.h :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/ctype_inline.h :
+/usr/local/include/c++/3.3.3/bits/codecvt.h :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/codecvt_specializations.h :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/time_members.h :
+/usr/local/include/c++/3.3.3/i686-pc-linux-gnu/bits/messages_members.h :
+/usr/local/include/c++/3.3.3/bits/basic_ios.tcc :
+/usr/local/include/c++/3.3.3/bits/ostream.tcc :
+/usr/local/include/c++/3.3.3/locale :
+/usr/local/include/c++/3.3.3/bits/locale_facets.tcc :
+/usr/local/include/c++/3.3.3/cerrno :
+/usr/include/errno.h :
+/usr/include/bits/errno.h :
+/usr/include/linux/errno.h :
+/usr/include/asm/errno.h :
+/usr/local/include/c++/3.3.3/cmath :
+/usr/include/math.h :
+/usr/include/bits/huge_val.h :
+/usr/include/bits/nan.h :
+/usr/include/bits/mathdef.h :
+/usr/include/bits/mathcalls.h :
+/usr/local/include/c++/3.3.3/bits/cmath.tcc :
+/usr/local/include/c++/3.3.3/limits :
+/usr/local/include/c++/3.3.3/typeinfo :
+/usr/local/include/c++/3.3.3/istream :
+/usr/local/include/c++/3.3.3/bits/istream.tcc :
+magicOA.h :
+/usr/local/include/tcl.h :
+/usr/local/include/tclDecls.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDB.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBase.h :
+/usr/include/malloc.h :
+/usr/include/sys/times.h :
+/usr/include/dirent.h :
+/usr/include/bits/dirent.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBaseTypes.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBaseModTypes.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBaseMsgs.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaMemory.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaString.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaException.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPoint.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaVector.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaSegment.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBox.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPointArray.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOrient.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTransform.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTimeStamp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPackedData.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDir.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaFile.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaMapFile.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaMapWindow.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTimer.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaType.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDomain.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaObject.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaIntProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaFloatProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaStringProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaAppProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaHierProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDoubleProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBooleanProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTimeProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaIntRangeProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaFloatRangeProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDoubleRangeProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTimeRangeProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaEnumProp.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDataCallback.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaGroup.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaCallback.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaThread.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaNameSpace.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaName.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaAppObjectDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaAppDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaCdbaNS.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaNativeNS.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaLefDefNS.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaSpiceNS.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaSpefNS.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaSpfNS.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaUnixNS.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaVerilogNS.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaVhdlNS.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaWinNS.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaCollection.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBaseCollection.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDump.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaComplex.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaHashTbl.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaLookupTbl.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTesselator.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaMutex.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDD.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDDMsgs.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDDException.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDDObject.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaFileSys.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaFSDir.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaLib.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaCell.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaView.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaFSFile.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaLibFile.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaCellFile.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaViewFile.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDDObjectDB.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDDCallback.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDDCollection.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDDDump.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaAntennaData.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTC.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTCModTypes.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTCMsgs.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTCObject.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTech.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTCException.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaRule.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaLayer.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDerivedLayer.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPhysicalLayer.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPurpose.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaSiteDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaViaDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaViaDefArray.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaViaSpec.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaRouteLayerSpec.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaRouteSpec.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOpPoint.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaAnalysisLib.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaCumulativeRatios.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTechDump.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTCCallback.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTCCollection.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDBModTypes.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDBMsgs.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDBException.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDBObject.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBlockObject.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDBCollection.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaHeaderCollection.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaNetCollection.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTermCollection.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaAttrType.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaSigType.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaSource.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaCellView.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBlock.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaScalarNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBusNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBusNetBit.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBusNetDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBundleNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaScalarTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBusTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBusTermBit.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBusTermDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBundleTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaFig.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaLPPHeader.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaLayerHeader.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTextAlign.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaFont.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaInstHeader.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaRowHeader.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaRow.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaScalarInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaArrayInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaVectorInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaVectorInstDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaShape.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaRect.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPolygon.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPath.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDonut.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDot.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaEllipse.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaArc.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaLine.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaText.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTextDisplay.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaViaParam.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaRouteElement.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaRoute.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaInstTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaInstPin.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaAssignmentDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaAssignment.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaConnectDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaHierPath.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaRegionQuery.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPin.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaTrackPattern.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaMarker.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDBDataCallback.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaParam.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaCluster.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBoundary.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaBlockage.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaViaHeader.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaScanChainSet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaScanChain.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaScanChainInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaSteiner.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaCMap.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaGCellPattern.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDBDump.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPinGroup.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaAnalysisPoint.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaAnalysisOpPoint.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOpPointHeader.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaRouteSpecHeader.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaReducedModel.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPoleResidue.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaLumpedElmore.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPiElmore.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaPiPoleResidue.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaElmore.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaNode.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaGroundedNode.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDevice.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaStdDevice.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaResistor.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaCouplingCap.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaInductor.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDiode.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaSeriesRL.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaMutualInductor.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaParasiticNetwork.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaGuide.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaSubNetwork.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaRouteOptimizer.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModObject.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModule.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModCellViewInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModScalarInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModVectorInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModVectorInstDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModInstHeader.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModModuleInstHeader.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModBundleNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModBusNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModBusNetBit.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModScalarNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModBusNetDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModInstTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModBundleTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModBusTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModBusTermBit.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModScalarTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModBusTermDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModConnectDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModAssignment.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModModuleInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModScalarModuleInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModVectorModuleInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccObject.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccurrence.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccCellViewInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccScalarInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccVectorInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccVectorInstDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccInstHeader.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccModuleInstHeader.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccBundleNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusNetBit.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccScalarNet.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusNetDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccInstTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccBundleTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusTermBit.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccScalarTerm.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccBusTermDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccConnectDef.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccAssignment.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccArrayInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccModuleInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccScalarModuleInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccVectorModuleInst.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaDBCallback.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaModCallback.h :
+/home/tim/projects/multigig/OpenAccess/oa/include/oaOccCallback.h :

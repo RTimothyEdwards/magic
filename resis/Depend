@@ -1,0 +1,81 @@
+ResMain.o: ResMain.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/tech.h \
+ ../textio/txcommands.h ../resis/resis.h
+ResJunct.o: ResJunct.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../database/databaseInt.h ../utils/malloc.h \
+ ../textio/textio.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../utils/stack.h ../utils/tech.h ../textio/txcommands.h ../resis/resis.h
+ResMakeRes.o: ResMakeRes.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/tech.h \
+ ../textio/txcommands.h ../resis/resis.h
+ResSimple.o: ResSimple.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h ../utils/heap.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/stack.h ../utils/tech.h \
+ ../textio/txcommands.h ../resis/resis.h
+ResPrint.o: ResPrint.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/utils.h ../cif/cif.h \
+ ../utils/tech.h ../textio/txcommands.h ../utils/stack.h \
+ ../utils/styles.h ../resis/resis.h
+ResReadSim.o: ResReadSim.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/utils.h ../utils/tech.h \
+ ../textio/txcommands.h ../resis/resis.h
+ResConDCS.o: ResConDCS.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../utils/signals.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../utils/tech.h ../textio/txcommands.h ../resis/resis.h
+ResRex.o: ResRex.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../utils/undo.h ../database/database.h ../utils/malloc.h \
+ ../textio/textio.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../utils/utils.h ../utils/tech.h ../textio/txcommands.h ../resis/resis.h
+ResBasic.o: ResBasic.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/tech.h \
+ ../textio/txcommands.h ../resis/resis.h
+ResMerge.o: ResMerge.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../resis/resis.h
+ResChecks.o: ResChecks.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/utils.h ../utils/tech.h \
+ ../textio/txcommands.h ../utils/stack.h ../resis/resis.h
+ResFract.o: ResFract.c ../utils/magic.h ../utils/geometry.h \
+ ../textio/txcommands.h ../tiles/tile.h ../utils/signals.h \
+ ../utils/hash.h ../database/database.h ../database/databaseInt.h \
+ ../utils/malloc.h ../windows/windows.h ../utils/main.h
+ResUtils.o: ResUtils.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/stack.h ../utils/tech.h \
+ ../textio/txcommands.h ../resis/resis.h
+ResDebug.o: ResDebug.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../utils/malloc.h ../textio/textio.h \
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/utils.h ../utils/tech.h \
+ ../textio/txcommands.h ../utils/stack.h ../resis/resis.h

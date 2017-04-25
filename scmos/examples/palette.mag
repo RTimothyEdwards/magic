@@ -1,0 +1,239 @@
+magic
+tech scmos
+timestamp 775083658
+<< checkpaint >>
+rect 13 38 40 39
+rect 5 37 40 38
+rect 5 36 48 37
+rect -42 32 -18 36
+rect -46 24 -14 32
+rect -54 20 -14 24
+rect -90 -4 -66 20
+rect -60 16 -14 20
+rect -60 5 -6 16
+rect 5 12 62 36
+rect -60 4 -2 5
+rect 5 4 70 12
+rect -60 -4 70 4
+rect -54 -8 70 -4
+rect -51 -20 70 -8
+rect -50 -28 -2 -20
+rect 5 -22 54 -20
+rect 22 -28 54 -22
+rect -50 -30 -10 -28
+<< pwell >>
+rect 16 -10 20 -6
+<< nwell >>
+rect 0 -10 4 -6
+<< capwell >>
+rect 8 -10 12 -6
+<< highvoltnwell >>
+rect -8 -10 -4 -6
+<< highvoltpwell >>
+rect 24 -10 28 -6
+<< polysilicon >>
+rect 0 -2 4 2
+<< electrode >>
+rect 8 -2 12 2
+<< capacitor >>
+rect 16 -2 20 2
+<< wellcapacitor >>
+rect -40 -10 -36 -6
+<< ndiffusion >>
+rect -8 -2 -4 2
+<< pdiffusion >>
+rect 24 -2 28 2
+<< highvoltndiffusion >>
+rect -24 -2 -20 2
+<< highvoltpdiffusion >>
+rect 40 -2 44 2
+<< metal1 >>
+rect -24 22 -20 26
+<< metal2 >>
+rect -8 22 -4 26
+<< metal3 >>
+rect 8 22 12 26
+<< ntransistor >>
+rect -16 -10 -12 -6
+<< ptransistor >>
+rect 32 -10 36 -6
+<< entransistor >>
+rect -32 -10 -28 -6
+<< eptransistor >>
+rect 48 -10 52 -6
+<< doublentransistor >>
+rect -24 -10 -20 -6
+<< doubleptransistor >>
+rect 40 -10 44 -6
+<< highvoltntransistor >>
+rect -32 -2 -28 2
+<< highvoltptransistor >>
+rect 48 -2 52 2
+<< collector >>
+rect -24 14 -20 18
+<< emitter >>
+rect 8 14 12 18
+<< pbase >>
+rect 24 14 28 18
+<< bccdiffusion >>
+rect -16 14 -12 18
+<< nbccdiffusion >>
+rect -8 14 -4 18
+<< polycontact >>
+rect 0 6 4 10
+<< ndcontact >>
+rect -8 6 -4 10
+<< pdcontact >>
+rect 24 6 28 10
+<< highvoltndcontact >>
+rect -32 6 -28 10
+<< highvoltpdcontact >>
+rect 48 6 52 10
+<< capcontact >>
+rect 16 6 20 10
+<< electrodecontact >>
+rect 8 6 12 10
+<< collectorcontact >>
+rect -24 6 -20 10
+<< emittercontact >>
+rect 16 14 20 18
+<< pbasecontact >>
+rect 32 14 36 18
+<< nbccdiffcontact >>
+rect 0 14 4 18
+<< m2contact >>
+rect -16 22 -12 26
+<< m3contact >>
+rect 0 22 4 26
+<< psubstratepcontact >>
+rect 32 6 36 10
+<< nsubstratencontact >>
+rect -16 6 -12 10
+<< psubstratepdiff >>
+rect 32 -2 36 2
+<< nsubstratendiff >>
+rect -16 -2 -12 2
+<< highvoltpsubcontact >>
+rect 48 22 52 26
+<< highvoltnsubcontact >>
+rect -32 22 -28 26
+<< highvoltpsubdiff >>
+rect 48 14 52 18
+<< highvoltnsubdiff >>
+rect -32 14 -28 18
+<< nplusdoping >>
+rect -40 6 -36 10
+<< pplusdoping >>
+rect 40 6 44 10
+<< genericcontact >>
+rect 32 22 36 26
+<< substrateopen >>
+rect 40 22 44 26
+<< pdiffusionstop >>
+rect 40 14 44 18
+<< pad >>
+rect 16 22 20 26
+<< glass >>
+rect 24 22 28 26
+<< labels >>
+rlabel metal1 -24 22 -20 22 5 m1
+rlabel m2contact -16 22 -12 22 5 m2c
+rlabel metal2 -8 22 -4 22 5 m2
+rlabel capwell 8 -10 12 -10 5 cwell
+rlabel nwell 0 -10 4 -10 5 nwell
+rlabel ndiffusion -8 -2 -4 -2 5 ndiff
+rlabel polysilicon 0 -2 4 -2 5 poly
+rlabel electrode 8 -2 12 -2 5 poly2
+rlabel nsubstratendiff -16 -2 -12 -2 5 nsd
+rlabel nsubstratencontact -16 6 -12 6 5 nsc
+rlabel collectorcontact -24 6 -20 6 5 clc
+rlabel ndcontact -8 6 -4 6 5 ndc
+rlabel polycontact 0 6 4 6 5 pc
+rlabel electrodecontact 8 6 12 6 5 ec
+rlabel emitter 8 14 12 14 5 em
+rlabel nbccdiffcontact 0 14 4 14 5 nbdc
+rlabel nbccdiffusion -8 14 -4 14 5 nbd
+rlabel bccdiffusion -16 14 -12 14 5 bd
+rlabel collector -24 14 -20 14 5 col
+rlabel metal3 8 22 12 22 5 m3
+rlabel m3contact 0 22 4 22 5 m3c
+rlabel metal1 -22 24 -22 24 1 1
+rlabel m2contact -14 24 -14 24 1 2
+rlabel metal2 -6 24 -6 24 1 3
+rlabel m3contact 2 24 2 24 1 4
+rlabel metal3 10 24 10 24 1 5
+rlabel collectorcontact -22 8 -22 8 1 21
+rlabel nsubstratencontact -14 8 -14 8 1 22
+rlabel ndcontact -6 8 -6 8 1 23
+rlabel polycontact 2 8 2 8 1 24
+rlabel electrodecontact 10 8 10 8 1 25
+rlabel nsubstratendiff -14 0 -14 0 1 32
+rlabel ndiffusion -6 0 -6 0 1 33
+rlabel polysilicon 2 0 2 0 1 34
+rlabel electrode 10 0 10 0 1 35
+rlabel nwell 2 -8 2 -8 1 44
+rlabel capwell 10 -8 10 -8 1 45
+rlabel collector -22 16 -22 16 1 11
+rlabel bccdiffusion -14 16 -14 16 1 12
+rlabel nbccdiffusion -6 16 -6 16 1 13
+rlabel nbccdiffcontact 2 16 2 16 1 14
+rlabel emitter 10 16 10 16 1 15
+rlabel pad 16 22 20 22 5 pad
+rlabel pwell 16 -10 20 -10 5 pwell
+rlabel capacitor 16 -2 20 -2 5 cap
+rlabel pdiffusion 24 -2 28 -2 5 pdiff
+rlabel emittercontact 16 14 20 14 5 emc
+rlabel pbase 24 14 28 14 5 pbase
+rlabel pbasecontact 32 14 36 14 5 pbc
+rlabel psubstratepcontact 32 6 36 6 5 psc
+rlabel pdcontact 24 6 28 6 5 pdc
+rlabel capcontact 16 6 20 6 5 capc
+rlabel psubstratepdiff 32 -2 36 -2 5 psd
+rlabel substrateopen 40 22 44 22 5 open
+rlabel pdiffusionstop 40 14 44 14 5 pstop
+rlabel glass 24 22 28 22 5 glass
+rlabel genericcontact 32 22 36 22 5 gc
+rlabel pad 18 24 18 24 1 6
+rlabel glass 26 24 26 24 1 7
+rlabel substrateopen 42 24 42 24 1 9
+rlabel capcontact 18 8 18 8 1 26
+rlabel pdcontact 26 8 26 8 1 27
+rlabel psubstratepcontact 34 8 34 8 1 28
+rlabel capacitor 18 0 18 0 1 36
+rlabel pdiffusion 26 0 26 0 1 37
+rlabel psubstratepdiff 34 0 34 0 1 38
+rlabel pwell 18 -8 18 -8 1 46
+rlabel emittercontact 18 16 18 16 1 16
+rlabel pbase 26 16 26 16 1 17
+rlabel pbasecontact 34 16 34 16 1 18
+rlabel pdiffusionstop 42 16 42 16 1 19
+rlabel genericcontact 34 24 34 24 1 8
+rlabel highvoltntransistor -32 -2 -28 -2 5 hnfet
+rlabel highvoltndcontact -32 6 -28 6 5 hndc
+rlabel highvoltnsubdiff -32 14 -28 14 5 hnsd
+rlabel highvoltnsubcontact -32 22 -28 22 5 hnsc
+rlabel highvoltpsubcontact 48 22 52 22 5 hpsc
+rlabel highvoltpsubdiff 48 14 52 14 5 hpsd
+rlabel highvoltpdcontact 48 6 52 6 5 hpdc
+rlabel highvoltptransistor 48 -2 52 -2 5 hpfet
+rlabel highvoltpwell 24 -10 28 -10 5 hpwell
+rlabel doubleptransistor 40 -10 44 -10 5 pffet
+rlabel eptransistor 48 -10 52 -10 5 epfet
+rlabel doubleptransistor 42 -8 42 -8 1 47
+rlabel eptransistor 50 -8 50 -8 1 48
+rlabel ptransistor 32 -10 36 -10 5 pfet
+rlabel ptransistor 34 -8 34 -8 1 39
+rlabel doublentransistor -24 -10 -20 -10 5 nffet
+rlabel entransistor -32 -10 -28 -10 5 enfet
+rlabel doublentransistor -22 -8 -22 -8 1 43
+rlabel entransistor -30 -8 -30 -8 1 42
+rlabel ntransistor -16 -10 -12 -10 5 nfet
+rlabel ntransistor -14 -8 -14 -8 1 31
+rlabel highvoltnwell -8 -10 -4 -10 5 hnwell
+rlabel wellcapacitor -40 -10 -36 -10 5 wcap
+rlabel wellcapacitor -38 -8 -38 -8 1 41
+rlabel highvoltndiffusion -24 -2 -20 -2 5 hndiff
+rlabel highvoltpdiffusion 40 -2 44 -2 5 hpdiff
+rlabel pplusdoping 40 6 44 6 5 pdop
+rlabel nplusdoping -40 6 -36 6 5 ndop
+<< end >>

@@ -1,0 +1,123 @@
+LEF extensions to Magic-7.2
+-------------------------------------
+1) Ports
+
+   A new method exists for declaring a cell to be a subcircuit.
+   This involves the creation of ports, which are a special kind
+   of label.  The existence of any port in a cell marks that cell
+   as a subcircuit, which causes it to be treated differently
+   during the process of extraction and netlist generation:
+
+   a) Subcircuits are extracted as usual, except for the presence
+      of the "port" keyword for each port in the .ext file.
+
+   b) Exttosim (ext2sim) operates as usual, because the netlist is
+      not hierarchical.
+
+   c) Exttospice (ext2spice) will generate an "X" record for each
+      instance of the subcircuit cell, rather than flattening the
+      cell.  To simulate in SPICE, a ".subckt" record for the cell
+      must be added to the SPICE deck.  This behavior can be
+      subverted in the Tcl-based magic by using "exttospice subcircuits
+      off", in which case all subcircuits will be flattened.
+
+   d) The "extresis" command will ignore the contents of subcircuits.
+      On the other hand, after doing "extresis geometry", subsequent
+      use of "extresis" will generate a ".fh" file containing the
+      detailed three-dimensional geometry of the cell in the format
+      of nodes and segments used by the FastHenry field equation
+      solver.  This is unrelated to the LEF module.
+
+   A new command "port" turns labels into ports.  The syntax of
+   the command is:
+
+	port [option], where [option] is one of:
+
+		class	[type]		get [set] port class type
+		use	[type]		get [set] port use type
+		index	[number]	get [set] port number
+		connections [dir...]	get [set] port connection directions
+		make [index] [dir...]	turn a label into a port
+		remove			turn a port back into a label
+		help			print this help information
+		<index> [<directions>]
+
+   To use the port command, a label must first exist, and the cursor box
+   must overlap the label, and only that label.
+
+   The index indicates the order of the port in the argument list of the
+   subcircuit definition and calls.  The ordering of ports must match 
+   the order of arguments to any .subckt record used in a SPICE simulation
+   of the cell.
+
+   The directions given to "connections" must be one or more of "n", "s",
+   "e", and "w" (with no spaces in between; e.g., "port connections nsew").
+   They indicate the edge of the port to which connections may be made to
+   the cell.  This is unused by LEF, which uses more detailed information
+   about metal routing and obstructions inside the cell to determine how
+   to attach to a pin.  In the abbreviated command usage "port <index>",
+   a default direction will be determined by the position of the text on
+   the label.
+
+   Class and use types correspond to LEF classes and uses for pins.
+
+   Valid class types are:
+	default
+	input
+	output
+	tristate
+	bidirectional, inout
+	feedthrough, feedthru
+
+   Valid use types are:
+	default
+	analog
+	signal, digital
+	power
+	ground
+	clock
+
+2) Properties
+
+   While the "port" command and method specifies information about pins,
+   LEF also supports information about the cell itself.  The "property"
+   command is a general-purpose interface for attaching key-value pairs
+   to a cell, which are saved in the output and may be parsed by any
+   function.  Keys relevant to the LEF module begin with the text "LEF".
+   LEF-related keys are:
+
+	LEFclass	corresponding to LEF "CLASS"
+	LEFsource	corresponding to LEF "SOURCE"
+	LEFsymmetry	corresponding to LEF "SYMMETRY"
+
+   The string value attached to each key is written to the LEF output
+   verbatim, thus any value may be used that is acceptable LEF syntax.
+
+   The property command has the following syntax:
+
+	property [<key> [<value>]]
+
+   With no arguments, "property" returns all the key-value pairs defined
+   for the current edit cell.  Given the key argument only, it returns
+   the value attached to the indicated key.  Given both arguments, it
+   assigns the string value to the indicated key.  A value which is an
+   empty string ("") will cause the key to become undefined.  Values
+   which consist of more than one word must be enclosed in quotes.
+
+   Example:	property LEFsymmetry "X Y"
+
+3) LEF file generation
+
+   A LEF-definition file with extension ".lef" may be written for each
+   cell.  This file contains detailed information required for placing
+   and routing the cell, including all information regarding pins,
+   ports, and obstructions on the metallization layers.  The syntax of
+   the LEF command is:
+
+	lef write [<cell>]
+
+   to write a .lef file for a single cell.  If <cell> is not specified,
+   then the output will be for the current edit cell.  All cells in a
+   design my be written using the syntax:
+
+	lef writeall

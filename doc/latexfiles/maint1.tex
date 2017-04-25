@@ -1,0 +1,646 @@
+%----------------------------------------------------------------------------
+% Magic Maintainer's Manual number 1:  Installation and Development
+%----------------------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\documentclass[letterpaper,twoside,12pt]{article}
+\usepackage{epsfig,times}
+
+\setlength{\textwidth}{8.5in}
+\addtolength{\textwidth}{-2.0in}
+\setlength{\textheight}{11.0in}
+\addtolength{\textheight}{-2.0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0pt}
+\setlength{\topmargin}{-0.5in}
+\setlength{\headheight}{0.2in}
+\setlength{\headsep}{0.3in}
+\setlength{\topskip}{0pt}
+
+\def\hinch{\hspace*{0.5in}}
+\def\starti{\begin{center}\begin{tabbing}\hinch\=\hinch\=
+	\hinch\=hinch\hinch\=\kill}
+\def\endi{\end{tabbing}\end{center}}
+\def\ii{\>\>\>}
+\def\mytitle{Magic Maintainer's Manual \#1: Installation and Development}
+
+%----------------------------------------------------------------------------
+
+\begin{document}
+
+\makeatletter
+\newcommand{\ps@magic}{%
+	\renewcommand{\@oddhead}{\mytitle\hfil\today}%
+	\renewcommand{\@evenhead}{\today\hfil\mytitle}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\newcommand{\ps@mplain}{%
+	\renewcommand{\@oddhead}{}%
+	\renewcommand{\@evenhead}{}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\makeatother
+\pagestyle{magic}
+\thispagestyle{mplain}
+
+
+\begin{center}
+  {\bfseries \Large \mytitle} \\
+  \vspace*{0.5in}
+  {\itshape John Ousterhout} \\
+  {\itshape Walter Scott} \\
+  \vspace*{0.5in}
+   Computer Science Division \\
+   Electrical Engineering and Computer Sciences \\
+   University of California \\
+   Berkeley, CA  94720 \\
+  \vspace*{0.25in}
+  {\itshape Tim Edwards} \\
+  MultiGiG, Inc. \\
+  Scotts Valley, CA 95014 \\
+  \vspace*{0.25in}
+  This manual corresponds to Magic version 7.4 \\
+\end{center}
+\vspace*{0.5in}
+
+{\noindent\bfseries\large Tutorials to read first:}
+\starti
+   \> Preferably all of them.
+\endi
+
+{\noindent\bfseries\large Commands introduced in this manual:}
+\starti
+   \> {\itshape (None)}
+\endi
+
+{\noindent\bfseries\large Macros introduced in this manual:}
+
+\starti
+   \> {\itshape (None)}
+\endi
+
+\vspace*{0.75in}
+\section{Introduction}
+
+This document provides some information to help system administrators
+and would-be Magic maintainers learn about the system.
+Before doing anything to the internals of Magic, you should read at
+least the first, and perhaps all four, of the papers on Magic that
+appeared together in the {\itshape 1984 Design Automation Conference}.
+In addition, the following portions of magic have their own papers:
+
+\starti
+   \> {\bfseries extractor} \ii {\itshape 1985 Design Automation
+	Conference}, page 286. \\
+   \> {\bfseries channel router} \ii {\itshape 1985 Chapel Hill Conference
+	on VLSI}, page 145. \\
+   \> {\bfseries irouter and mzrouter} \ii {\itshape 1988 Design
+	Automation Conference}, page 672. \\
+   \> {\bfseries resistance extractor} \ii {\itshape 1987 Design
+	Automation Conference}, page 570.
+\endi
+
+These documents are available from the Magic websites, which are another
+useful source of information regarding the program:
+
+\starti
+   \> {\bfseries\ttfamily http://vlsi.cornell.edu/magic} \\
+   \> {\bfseries\ttfamily http://opencircuitdesign.com/magic}
+\endi
+
+The source for Magic can be downloaded from either website.  Currently,
+the stable distribution release of Magic is version 7.4, and
+development version is 7.5.  This
+documentation refers to features of the stable distribution version.  For
+compilation instructions for the development version, please refer to the
+documentation in that distribution.  This document corresponds specifically
+to version 7.4.
+
+\section{Compiling and Installing Magic}
+
+The download file comes in tarred, gzipped format.  Normally, one will
+follow the standard procedure to uncompress and expand:
+
+\starti
+   \ii tar xzf magic-7.4.0.tar.gz \\
+   \ii cd magic-7.4.0
+\endi
+
+\section{Magic-7.4 Compile and Install}
+
+Magic 7.4 has a GNU ``autoconf'' method which automates most of the
+configuration process.  The compile and install process is thereby
+simplified to the following:
+
+\starti
+   \ii ./configure \\
+   \ii make \\
+   \ii make install
+\endi
+
+The autoconf process makes an effort to find the libraries and
+include files needed, including Tcl/Tk and OpenGL, and will compile
+Magic with support for these options unless they are specifically
+prohibited by an option to the {\ttfamily configure} script.  Options
+may also be used to specify where libraries and include files may
+be found, if they are in a nonstandard location and the 
+{\ttfamily configure} script is unable to find them.  A full list
+of available options can be obtained by typing:
+
+\starti
+   \ii ./configure --help
+\endi
+
+The Tcl interpreter makes Magic a {\itshape package extension} of the
+Tcl language, rather than being embedded.  Tcl is largely compatible
+with Magic's existing command-line syntax, so Magic's command-line
+parser is simply given over to Tcl, and its graphics given over to Tk,
+the graphics interface for Tcl.  The Tcl version makes a GUI available
+for Magic, and provides numerous extensions to the program.  However,
+all critical functions are available with or without any compiled
+interpreter.
+
+The shell environment variable {\bfseries CAD{\_}HOME} exists as an
+override to the install path, so that Magic can be redirected to find its
+runtime files in a directory other than the location specified at
+compile time.  Generally, unless you know what you're doing, having an
+environment variable {\bfseries CAD{\_}HOME} is probably a bad idea.
+In versions prior to 7.2, it was necessary to have this set before running
+the program, so on systems that have had an older version of magic
+installed, user's startup files may contain such variable declarations,
+which should be removed.
+
+\section{Source Directory Structure} \label{structure}
+
+There are many source subdirectories in Magic.
+Most of these consist of modules of source code for the system,
+for example {\bfseries database}, {\bfseries cif}, and {\bfseries utils}.
+See Section~\ref{modules} of this document for brief descriptions of
+what's in each source directory.  Besides the source code,
+the other subdirectories are:
+
+\begin{itemize}
+\item {\bfseries doc} \\
+Contains sources for all the documentation, including {\itshape man}
+pages, tutorials, and maintenance manuals.
+Subdirectories of {\bfseries doc}, e.g. {\bfseries doc/scmos},
+contain some (outdated) technology manuals.
+The Makefile in each directory can be used to run
+off the documentation.  The tutorials, maintenance manuals,
+and technology manuals all use LaTeX, which means that you will need
+the LaTeX package to recompile the manuals from source.  Documentation
+is also available online in HTML format.
+
+\item {\bfseries magic} \\
+In addition to the source main() routine used for the non-Tcl-based
+compile option, this directory is where the modules of Magic are
+linked to form the executable version of the system.
+\end{itemize}
+
+Magic is a relatively large system:  there are around 575 source files,
+and 250,000 lines of C code.
+In order to make all
+of this manageable, we've organized the sources in a two-level
+structure.  Each module has its own subdirectory, and you can
+make changes to the module and recompile it by working
+within that subdirectory.
+
+There are two mailing lists associated with Magic development:
+\begin{enumerate}
+   \item {\ttfamily magic-hackers@csl.cornell.edu} is for general news
+	and discussions about the development process.
+   \item {\ttfamily magic-dev@csl.cornell.edu} is for developers only
+	and provides feedback on any CVS changes made in the repository.
+\end{enumerate}
+
+\section{Compiling and Installing }
+
+The top-level Makefile (\~{}cad/src/magic/Makefile) provides many options.
+
+The most useful Makefile options are:
+
+\begin{itemize}
+\item {\bfseries make magic} \\
+	Make a version of Magic.  All sub-modules are remade, if needed, 
+	and then the final magic binary is produced.
+
+\item {\bfseries make everything} \\
+	Same as ``make magic''. Both options make auxilary programs like
+	{\bfseries ext2sim} and {\bfseries ext2spice}.
+
+\item {\bfseries make force} \\
+	Force recompilation.  Like a ``make everything'', except that object
+	files are first removed to force complete recompilation from scratch.
+
+\item {\bfseries make clean} \\
+	Delete files that can be remade, such as binaries, object, and
+	library files.
+
+\item {\bfseries make veryclean} \\
+	A more complete cleanup, that removes the current configuration
+	in addition to the files removed int the {\bfseries make clean}
+	step.
+
+\item {\bfseries make install} \\
+	Install the Magic binaries and run-time library files.
+	For Tcl, install the Magic shared-object files in the lib
+	directory, and install a shell script as the ``magic''
+	executable.
+\end{itemize}
+
+Putting together a runnable Magic system proceeds in two steps
+after a source file has been modified.  First, the source file
+is compiled, and all the files in its module are linked together
+into a single file {\itshape xyz}{\bfseries .o}, where {\itshape xyz}
+is the name of the module.  Then all of the modules are linked together
+to form an executable version of Magic.
+The command {\bfseries make} in each source directory will compile and
+link the module locally;  {\bfseries make install} will compile and
+link it.  All Makefiles are set up to use the compiler flags found 
+in the source top-level directory file {\bfseries defs.mak}.
+
+\section{Summary of Magic Modules} \label{modules}
+
+This section contains brief summaries of what is in each of the Magic
+source subdirectories.  A number of files and directories were shifted
+around in the development of version 7.4, so this list has been
+updated accordingly.
+
+\begin{itemize}
+\item {\bfseries calma}  \\
+Contains code to read and write Calma (GDS-II) Stream-format files.  It
+uses many of the procedures in the {\bfseries cif} module.
+
+\item {\bfseries cif}  \\
+Contains code to process the CIF sections of technology
+files, and to generate CIF files from Magic.
+
+\item {\bfseries cmwind}  \\
+Contains code to implement special windows for editing color maps.
+
+\item {\bfseries commands}  \\
+The procedures in this module contain the top-level command
+routines for layout commands (commands that are
+valid in all windows are handled in the {\bfseries windows} module).
+These routines generally just parse the commands, check for
+errors, and call other routines to carry out the actions.
+
+\item {\bfseries database}  \\
+This is the largest and most important Magic module.  It
+implements the hierarchical corner-stitched database, and
+reads and writes Magic files.
+
+\item {\bfseries dbwind}  \\
+Provides display functions specific to layout windows, including managing
+the box, redisplaying layout, and displaying highlights and feedback.
+
+\item {\bfseries debug}  \\
+There's not much in this module, just a few routines used for
+debugging purposes.
+
+\item {\bfseries drc}  \\
+This module contains the incremental design-rule checker.  It
+contains code to read the {\bfseries drc} sections of technology files,
+record areas to be rechecked, and recheck those areas in
+a hierarchical fashion.  
+
+\item {\bfseries ext2sim} \\ 
+This is another self-contained program.  It's
+a self-contained program that flattens the hierarchical {\bfseries .ext}
+files generated by Magic's extractor into a single file in {\bfseries .sim}
+format.  See the manual page {\bfseries ext2sim~(1)}.
+
+\item {\bfseries ext2spice}  \\
+This is another self-contained program.  It converts {\bfseries .ext}
+files into single file in spice format.  
+See the manual page {\bfseries ext2spice~(1)}.
+
+\item {\bfseries extcheck}  \\
+Yet another independent program.  This one checks the {\bfseries .ext}
+files for global node connectivity and summarizes the number of FETs,
+nodes, etc.  See the manual page {\bfseries extcheck~(1)}.
+
+\item {\bfseries extflat}  \\
+Contains code that is used by the {\bfseries extract} module and the
+{\bfseries ext2\dots}
+programs.  The module produces a library that is linked in with the above
+programs.
+
+\item {\bfseries extract}  \\
+Contains code to read the {\bfseries extract} sections of technology files,
+and to generate hierarchical circuit descriptions ({\bfseries .ext} files)
+from Magic layouts.
+
+\item {\bfseries gcr}  \\
+Contains the channel router, which is an extension of Rivest's
+greedy router that can handle switchboxes and obstacles in the
+channels.
+
+\item {\bfseries graphics} \\ 
+This is the lowest-level graphics module.  It contains driver
+routines for X11 and OpenGL as well as the equivalent versions
+for use with Tk graphics under the Tcl-interpreter based version
+of Magic.  If you want to make Magic run on a new kind of
+display, this is the only module that should have to change.
+
+\item {\bfseries grouter}  \\
+The files in this module implement the global router, which
+computes the sequence of channels that each net is to pass
+through.
+
+\item {\bfseries irouter}  \\
+Contains the interactive router written by Michael Arnold at Lawrence
+Livermore National Labs.  This router allows the user to route nets
+interactively,  using special hint layers to control the routing.
+
+\item {\bfseries lef}  \\
+This module contains the LEF and DEF file format handling routines.
+
+\item {\bfseries lisp}  \\
+This module contains code which, if the SCHEME option is chosen at
+compile time, implements the lisp-like ``scheme'' interpreter.
+Scheme enables magic commands to be executed in a programming
+language framework, so complex functions can be defined.
+
+\item {\bfseries magic}  \\
+Contains the C {\bfseries main()} routine, and, alternatively, the
+Tcl initialization functions which replace it in the Tcl shared-object
+extensions.  Also contains all of the Tcl interpreter supporting code,
+such as the GUI wrapper, and the shell script which launches Magic.
+
+\item {\bfseries mzrouter}  \\
+Contains maze routing routines that are used by the irouter and garouter
+modules.
+
+\item {\bfseries net2ir}  \\
+Contains a program to convert a netlist into irouter commands.
+
+\item {\bfseries netmenu}  \\
+Implements netlists and the special netlist-editing windows.
+
+\item {\bfseries oa}  \\
+A very spare framework for an experimental interface to the OpenAccess
+database.  This is barely functional and is not enabled by the default
+configuration.
+
+\item {\bfseries plot}  \\
+The internals of the {\bfseries plot} command.  Code to write
+PostScript and rendered PNM output formats.  Disabled legacy
+code exists for the raw pixel, versatec, and gremlin formats,
+which may be compiled in by adding the appropriate definitions
+to the {\bfseries defs.mak} file.
+
+\item {\bfseries plow}  \\
+This module contains the code to support the {\bfseries :plow}
+and {\bfseries :straighten} commands.
+
+\item {\bfseries readline} \\
+``readline'' is an independent library of routines implementing
+command-line history and editing.  Version 7.4 of magic uses GNU
+readline-4.3.
+
+\item {\bfseries resis}  \\
+Resis is a module that does better resistance extraction via
+the :extresis command.  Courtesy of Don Stark of Stanford.
+
+\item {\bfseries router}  \\
+Contains the top-level routing code, including procedures
+to read the router sections of technology files,
+chop free space up into channels, analyze obstacles, and paint
+back the results produced by the channel router.
+
+\item {\bfseries scripts} \\
+This is not a module, but contains all of the shell scripts used
+by the make process.
+
+\item {\bfseries select}  \\
+This module contains files that manage the selection.  The routines
+here provide facilities for making a selection, enumerating what's
+in the selection, and manipulating the selection in several ways,
+such as moving it or copying it.
+
+\item {\bfseries sim}  \\
+Provides an interactive interface to the simulator rsim.  Courtesy of
+Mike Chow of Stanford.
+
+\item {\bfseries tcltk}  \\
+Contains the principle code used for the interface to the Tcl/Tk
+interpreter, the Tcl scripts that are used by the interface, and
+the startup scripts.  Note that much of the Tcl/Tk calls are
+scattered throughout the code, especially in the {\bfseries
+graphics} and {\bfseries commands} subdirectories.
+
+\item {\bfseries textio}  \\
+The top-level command interpreter.  This module grabs commands
+from the keyboard or mouse and sends them to the window module
+for processing.  Also provides routines for message and error
+printout, and to manage the prompt on the screen.
+
+\item {\bfseries tiles}  \\
+Implements basic corner-stitched tile planes.  This module was
+separated from {\bfseries database} in order to allow other clients
+to use tile planes without using the other database facilities
+too.
+
+\item {\bfseries utils}  \\
+This module implements a whole bunch of utility procedures,
+including a geometry package for dealing with rectangles and
+points and transformations, a heap package, a hash table package,
+a stack package, a revised memory allocator, the argument parser
+(formerly in module ``parser''), the initialization routines
+(formerly in module ``main''), the netlist handler (not associated
+with the ``netmenu'' module), the undo/redo handler, the technology
+reading code (formerly in module ``tech''), and lots of other stuff.
+
+\item {\bfseries windows}  \\
+This is the overall window manager.  It keeps track of windows
+and calls clients (like {\bfseries dbwind} and {\bfseries cmwind}) to process
+window-specific operations such as redisplaying or processing
+commands.  Commands that are valid in all windows, such as
+resizing or moving windows, are implemented here.
+
+\item {\bfseries wiring}  \\
+The files in this directory implement the {\bfseries :wire} command.
+There are routines to select wiring material, add wire legs,
+and place contacts.
+\end{itemize}
+
+\section{Portability Issues} \label{porting}
+
+Magic runs on a variety of machines.  Running ``configure'' in the top-level
+source directory sets the compile-time options.  
+If you are porting Magic, you will probably need to modify the file
+{\bfseries scripts/configure.in} to define the proper compile-time flags
+for your machine.  No changes should be made that would hamper Magic's
+operation on other machines.  Process the {\bfseries configure.in} file
+by doing {\bfseries cd scripts; autoconf}.  Note that the {\bfseries
+automake} program is not used in this process.  The {\bfseries configure}
+script is directed to produce not a Makefile, as usual, but to produce
+the {\bfseries defs.mak} file which is included by the Makefile.
+
+The top-level directory script {\bfseries configure} is a shell script
+wrapper for the actual autoconf-generated file {\bfseries
+scripts/configure}.  The indirect call serves two purposes:  All of
+the extra scripts required by autoconf can be kept in the {\bfseries
+scripts} subdirectory, and also the {\bfseries CFLAGS} environment
+variable can be set, allowing the compiler optimization flag to be
+disabled, resulting in an executable which is probably marginally
+slower, but much easier to debug.
+
+\section{Technology and Other Support Files}
+
+Besides the source code files, there are a number of other
+files that must be managed by Magic maintainers, including
+color maps, technology files, and other stuff.  Below is
+a listing of those files and where they are located.
+
+\subsection{Technology Files}
+
+See ``Magic Maintainer's Manual\ \#2: The Technology File'' for information on
+the contents of technology files.
+The sources for technology files are contained in the subdirectory
+{\bfseries tech}, in files like {\bfseries scmos.tech} and {\bfseries nmos.tech}.
+The technology files that Magic actually uses at runtime are kept in the
+directory {\bfseries /usr/local/lib/magic/sys};%$
+{\bfseries make install} in {\bfseries tech}
+will copy the sources to {\bfseries /usr/local/lib/magic/sys}.%$
+The installed versions of technology files have the extension {\bfseries .tech}.
+
+Historically, the techfile format version was embedded in the filename.
+The last version number to use this (27), is still accepted as a valid
+techfile filename (for example, {\bfseries nmos.tech27}, where {\bfseries 27} is a
+version number).  Now, the format number appears in the ``tech'' section of the
+tech file (the first section declared) as, e.g., ``format 28''.  Future
+changes to the tech version are expected to be backwardly compatible to version
+27, should query the format version from the file, and make adjustments as
+necessary to the read-in for backward compatibility.
+
+The technology files that are compiled and installed with the magic
+distribution are long outdated and useful mainly for demonstration purposes.
+A set of technology files corresponding to existing fabrication processes
+is available from Jeff Sondeen at ISI.  Others are available from the Magic
+website, and from MOSIS.
+
+\subsection{Display Styles}
+
+The display style file sources are contained in the source directory
+{\bfseries graphics}.  See ``Magic Maintainer's Manual\ \#3:  The Display Style
+and Glyph Files'' and the manual page {\itshape dstyle}~(5)
+for a description of their contents.
+{\bfseries Make install} in {\bfseries graphics} will copy the files to
+{\bfseries /usr/local/lib/magic/sys}, which is where Magic looks
+for them when it executes.
+
+\subsection{Glyph Files}
+
+Glyph files are described in Maintainer's Manual\ \#3 and the
+manual page {\itshape glyphs}~(5);  they define patterns that
+appear in the cursor.  The sources for glyph
+files appear in two places:  some of them are in {\bfseries graphics},
+in files like {\bfseries color.glyphs}, and some others are defined
+in {\bfseries windows/window}{\itshape XX}{\bfseries .glyphs}.
+When you {\bfseries make install} in
+those directories, the glyphs are copied to
+{\bfseries /usr/local/lib/magic/sys},%$
+which is where Magic looks for them when it executes.
+
+\subsection{Color Maps}
+
+The color map sources are also contained in the source directory {\bfseries graphics}.
+Color maps have names like {\bfseries mos.7bit.std.cmap},
+where {\bfseries mos} is the name of the technology style to which the color
+map applies,
+{\bfseries 7bit} is the display style,
+and {\bfseries std} is a type of monitor.
+If monitors
+have radically different phosphors, they may require different
+color maps to achieve the same affects.  Right now we only support
+the {\bfseries std} kind of monitor.  When Magic executes, it looks for
+color maps in {\bfseries /usr/local/lib/magic/sys};%$
+{\bfseries make install} in {\bfseries graphics}
+will copy them there.  Although color map files are textual,
+editing by hand is undesirable;  use Magic's color map editing
+window instead.
+
+\section{New Display Drivers}
+
+The most common kind of change that will be
+made to Magic is probably to adapt it for new kinds of color displays.
+Each display driver contains a standard collection of
+procedures to perform basic functions such as placing text,
+drawing filled rectangles, or changing the shape of the cursor.
+A table (defined in {\bfseries graphics/grMain.c}) holds the addresses
+of the routines for the current display driver.  At initialization
+time this table is filled in with the addresses of the routines
+for the particular display being used.  All graphics calls pass
+through the table.
+
+If you have a display other than the ones currently defined
+(X11 and OpenGL/GLX), and you want to build a
+new display driver, we recommend starting with the routines for
+the X11 (all the files in {\bfseries graphics} named
+{\bfseries grX11su}{\itshape n}{\bfseries .c}).
+Copy the files into a new set for your display,
+change the names of the routines, and modify them to perform
+the equivalent functions on your display.  Write an initialization
+routine like {\bfseries x11suSetDisplay}, and add information to the
+display type tables in {\bfseries graphics/grMain.c}.  At this point
+you should be all set.  There shouldn't be any need to modify
+anything outside of the graphics module.
+
+\section{Debugging}
+
+Magic works fine under GNU {\bfseries gdb}.  The Makefiles are set
+up to compile all files with the {\bfseries -g} switch, which creates
+debugging information.
+
+When Magic is compiled under the Tcl interpreter, however,
+one cannot run, e.g., ``{\bfseries gdb magic},'' because the
+magic executable is a script.  The proper way to run Tcl-based
+magic under a debugger is the following:
+
+\starti
+  \ii set pid=`ps --no-headers -o pid= -C wish` \\
+  \ii gdb program $pid
+\endi
+
+which is a simple invocation for Linux systems.  If it is not
+possible to get {\bf ps} to return a single process ID, the
+process ID can be obtained visually from the {\bf ps} command
+and given to {\bf gdb} as the process ID to attach to:
+
+\starti
+  \ii ps -C wish
+  \ii gdb program {\itshape process_ID}
+\endi
+
+wher the first command returns {\itshape process_ID}, the  process ID of
+the {\bfseries wish} process.  If the
+version of {\bfseries ps} on your system does not support the {\bfseries
+-C} option, there are other options that will report the {\bfseries wish}
+process.
+
+Because this method attaches to an already running program, this method
+does not work for capturing errors that occur during program startup.
+Note, however, that errors occurring during technology loading can be
+captured by attaching to the running process, then giving the command
+``{\bfseries tech load [tech filename]}'' to magic.  Otherwise, the
+procedure to attach to the process prior to initialization is the
+following:
+
+\starti
+  \ii gdb wish
+  \ii run
+  \ii set argc 3
+  \ii set argv \{-w -d OGL\}
+  \ii source /usr/local/lib/magic/tcl/magic.tcl
+\endi
+
+Note the necessity of setting variables {\bfseries argc} and {\bfseries
+argv} within Tcl to get the startup script to process them as if they
+were command-line arguments passed from the shell.  Any valid command-line
+arguments may be passed in this manner.  The debugger prompt can be reached
+by typing Ctrl-C.  Note that the Tk console window is not available when
+debugging, a minor inconvenience.
+
+\end{document}

@@ -1,0 +1,123 @@
+/* available devices:
+        nfet,pfet,enfet,epfet,nffet,pffet
+        poly capacitor
+        bipolar NPN transistor
+        buried CCD devices
+        linear capacitor
+*/
+#define cif_tech nwell
+style lambda=lambda_v
+    scalefactor lambda_1 scaleunit
+    layer CWC cwell
+	calma 59 1
+    layer CWN nwell
+	bloat-or pbase,pbc/a * lambda_6
+	bloat-or allPDiff,PFet * lambda_5
+	bloat-or allNOhmic * lambda_3
+	bloat-or clc/a * lambda_1
+	or col
+	grow lambda_3
+	shrink lambda_3
+	calma 42 1
+    layer CMS allMetal2
+	labels m2
+	calma 51 1
+    layer CMF pad
+	grow lambda_1
+	or allMetal1
+	labels homeMetal1
+	calma 49 1
+    layer CPG cap,cc
+	or allPoly
+	labels poly,nfet,pfet
+	calma 46 1
+    layer CAA clc
+	grow lambda_1
+	or em,emc,col
+	or allActive
+	or allHVDiff
+	or allCCDiff
+	labels ndiff,pdiff
+	calma 43 1
+    /* use CX layer to distinguish "col" and "nsd" */
+    layer CX col,clc
+	grow lambda_1
+	calma 60 1
+    layer CVA pad
+	shrink pad_via
+	calma 50 1
+    layer CVA m2c
+	squares lambda_1 lambda_2 lambda_3
+	calma 50 1
+    layer CEL allPoly2
+	calma 56 1
+    layer CCE capc,ec
+	squares lambda_2
+	calma 55 1
+    /* NOTE: no calma layer spec. for CCC, contact will NOT in
+	stream file */
+    layer CCC gc
+	calma 63 1
+    /* contacts for pdc/nsc (ndc/psc) must be generated separately */
+    layer CCA ndc,pdc,BiCut,nbdc
+	squares lambda_2
+	calma 48 1
+    layer CCA nsc,psc
+	squares lambda_2
+	calma 48 1
+    layer CCP pc
+	squares lambda_2
+	calma 47 1
+    layer CBA emc,emit
+	grow lambda_4
+	bloat-or pbc * lambda_1
+	or pbase
+	calma 58 1
+    /* temp CIF layer for select generation */
+    templayer XTN clc
+	grow lambda_1
+	or em,emc,col
+	grow lambda_2
+	bloat-or allNDiff * lambda_2 allPOhmic 0
+	bloat-or nbd,nbdc,ndop,wcap * lambda_2
+    templayer XTP pbc
+	grow lambda_1
+	bloat-or allPDiff * lambda_2 allNOhmic 0
+    layer CSN clc
+	grow lambda_1
+	or emc,emit,col
+	grow lambda_2
+	bloat-or allNDiff * lambda_2 allPOhmic 0
+	bloat-or NFet * lambda_2 ndiff lambda_3 allPOhmic 0
+	bloat-or allNOhmic * lambda_2 allPDiff 0
+	bloat-or nbd,nbdc,ndop,wcap * lambda_2
+	grow lambda_1
+	shrink lambda_1
+	shrink lambda_half
+	grow lambda_half
+	and-not XTP
+	calma 45 1
+    layer CSP pbc
+	grow lambda_1
+	bloat-or allPDiff * lambda_2 allNOhmic 0
+	bloat-or PFet * lambda_2 pdiff lambda_3 allNOhmic 0
+	bloat-or allPOhmic * lambda_2 allNDiff 0
+	bloat-or pdop * lambda_2
+	grow lambda_1
+	shrink lambda_1
+	shrink lambda_half
+	grow lambda_half
+	and-not XTN
+	and-not CSN
+	calma 44 1
+    layer CCD allCCDiff
+	grow lambda_2
+	calma 57 1
+    layer COG pad
+	shrink pad_glass
+	or glass
+	labels pad
+	calma 52 1
+    layer XP pad
+	shrink pad_glass
+#undef cif_tech

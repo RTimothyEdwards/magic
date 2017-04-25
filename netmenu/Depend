@@ -1,0 +1,46 @@
+NMbutton.o: NMbutton.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../windows/windows.h ../graphics/graphics.h ../dbwind/dbwind.h \
+ ../textio/textio.h ../textio/txcommands.h ../netmenu/nmInt.h \
+ ../netmenu/netmenu.h ../utils/styles.h ../utils/main.h
+NMcmdAK.o: NMcmdAK.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../windows/windows.h \
+ ../textio/txcommands.h ../netmenu/nmInt.h ../netmenu/netmenu.h \
+ ../utils/main.h ../textio/textio.h ../utils/malloc.h
+NMcmdLZ.o: NMcmdLZ.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../windows/windows.h \
+ ../textio/txcommands.h ../netmenu/nmInt.h ../netmenu/netmenu.h \
+ ../dbwind/dbwind.h ../utils/styles.h ../utils/main.h ../textio/textio.h
+NMlabel.o: NMlabel.c ../utils/magic.h ../utils/geometry.h \
+ ../utils/utils.h ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../windows/windows.h ../utils/main.h ../dbwind/dbwind.h \
+ ../netmenu/nmInt.h ../textio/textio.h ../textio/txcommands.h \
+ ../commands/commands.h ../utils/styles.h ../utils/malloc.h
+NMmain.o: NMmain.c ../utils/magic.h ../utils/geometry.h \
+ ../windows/windows.h ../graphics/graphics.h ../graphics/glyphs.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../dbwind/dbwind.h ../textio/textio.h ../utils/styles.h \
+ ../textio/txcommands.h ../netmenu/nmInt.h ../netmenu/netmenu.h \
+ ../utils/undo.h
+NMnetlist.o: NMnetlist.c ../utils/magic.h ../utils/utils.h \
+ ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../utils/main.h \
+ ../textio/textio.h ../netmenu/nmInt.h ../utils/undo.h ../utils/malloc.h \
+ ../netmenu/netmenu.h
+NMshowpt.o: NMshowpt.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../windows/windows.h ../graphics/graphics.h ../dbwind/dbwind.h \
+ ../utils/styles.h ../utils/main.h ../utils/malloc.h
+NMshowcell.o: NMshowcell.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../windows/windows.h ../graphics/graphics.h ../dbwind/dbwind.h \
+ ../utils/styles.h ../textio/textio.h ../utils/main.h ../netmenu/nmInt.h
+NMundo.o: NMundo.c ../utils/magic.h ../utils/geometry.h \
+ ../windows/windows.h ../netmenu/netmenu.h ../netmenu/nmInt.h \
+ ../utils/undo.h ../utils/utils.h
+NMwiring.o: NMwiring.c ../utils/magic.h ../utils/geometry.h \
+ ../tiles/tile.h ../utils/hash.h ../database/database.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/main.h \
+ ../netmenu/netmenu.h ../netmenu/nmInt.h ../textio/textio.h \
+ ../utils/styles.h ../drc/drc.h ../utils/malloc.h ../router/router.h \
+ ../utils/utils.h

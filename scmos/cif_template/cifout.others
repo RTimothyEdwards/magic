@@ -1,0 +1,70 @@
+/* this style is provided for interface only */
+/* usually you should not submit CIF files designed with SCMOS rules */
+/* for CBPM 3U runs.  The bloating and shrinking will be incorrrect */
+style cbpm3u
+    scalefactor 50 25
+    layer CW pwell
+	bloat-or ndiff,ndc,nfet * 750
+        bloat-or psc,ppd * 450
+	grow 450
+	shrink 450
+	calma 1 1
+    layer CQ allMetal2
+	labels m2
+	calma 14 1
+    layer CM pad
+	grow 150
+	or allMetal1
+	labels homeMetal1
+	calma 8 1
+    layer CP allPoly
+	labels poly,nfet,pfet
+	calma 4 1
+    layer CD allActive
+	labels ndiff,pdiff
+	calma 3 1
+    layer CV pad
+	shrink 450
+	calma 13 1
+    layer CV m2c
+	squares 150 300 450
+	calma 13 1
+    layer CC ndc,pdc,nsc,psc,pc
+	squares 300
+	calma 7 1
+    templayer TNF
+	bloat-or nfet ndiff 450 poly 300
+    layer CS
+	bloat-or pdiff,pfet,pdc/a * 300 nsd,nsc/a 0
+	bloat-or pfet * 300 pdiff 450 nsd,nsc/a 0
+	bloat-or psc/a,psd * 300 ndiff,ndc/a,nfet 0
+	and-not TNF
+	grow 150
+	shrink 150
+	calma 5 1
+    layer CG pad
+	shrink 600
+	or glass
+	calma 9 1
+    layer XP pad
+
+
+/* These following technologies are used to generate CIF	    */
+/* used for for DRC batch jobs. Remove comment if you want to	    */
+/* install it...				
+style lambda=1.5(error)
+    scalefactor 150 25
+    layer CX error_s,error_p,error_ps
+style lambda=1.0(error)
+    scalefactor 100 50
+    layer CX error_s,error_p,error_ps
+style lambda=0.8(error)
+    scalefactor 80 40
+    layer CX error_s,error_p,error_ps
+style lambda=0.6(error)
+    scalefactor 60 30
+    layer CX error_s,error_p,error_ps
+style lambda=0.5(error)
+    scalefactor 50 25
+    layer CX error_s,error_p,error_ps
+*/

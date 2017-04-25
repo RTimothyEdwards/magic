@@ -1,0 +1,16 @@
+magic
+tech scmos
+timestamp 715648933
+<< metal1 >>
+rect 7 0 10 3
+<< metal2 >>
+rect 0 11 11 14
+rect 0 4 6 7
+rect 10 4 11 7
+<< m2contact >>
+rect 6 3 10 7
+<< labels >>
+rlabel space 13 11 13 14 3 9.1
+rlabel space 15 7 15 11 3 9.2
+rlabel space 13 3 13 4 3 9.3
+<< end >>

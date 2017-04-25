@@ -1,0 +1,12 @@
+magic
+tech scmos
+timestamp 736070757
+<< pwell >>
+rect -10 0 0 16
+<< nwell >>
+rect 0 0 10 16
+rect 19 0 29 16
+<< labels >>
+rlabel space 0 -3 10 -3 1 1.1
+rlabel space 10 18 19 18 1 1.2
+<< end >>

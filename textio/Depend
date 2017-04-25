@@ -1,0 +1,22 @@
+txCommands.o: txCommands.c ../utils/magsgtty.h ../utils/magic.h \
+ ../textio/textio.h ../utils/geometry.h ../textio/txcommands.h \
+ ../textio/textioInt.h ../utils/macros.h ../utils/hash.h \
+ ../windows/windows.h ../tiles/tile.h ../database/database.h \
+ ../dbwind/dbwind.h ../drc/drc.h ../utils/signals.h \
+ ../graphics/graphics.h ../utils/dqueue.h ../utils/malloc.h \
+ ../utils/utils.h ../lisp/lisp.h
+txInput.o: txInput.c ../utils/magsgtty.h ../utils/magic.h ../utils/main.h \
+ ../windows/windows.h ../utils/geometry.h ../database/database.h \
+ ../tiles/tile.h ../utils/hash.h ../textio/textio.h \
+ ../textio/txcommands.h ../textio/textioInt.h ../utils/dqueue.h \
+ ../utils/macros.h ../graphics/graphics.h ../database/databaseInt.h \
+ ../cif/CIFint.h ../cif/CIFread.h
+txMain.o: txMain.c ../utils/magsgtty.h ../utils/magic.h \
+ ../textio/textio.h ../utils/geometry.h ../textio/txcommands.h \
+ ../textio/textioInt.h ../windows/windows.h ../tiles/tile.h \
+ ../utils/hash.h ../database/database.h ../dbwind/dbwind.h
+txMore.o: txMore.c ../utils/magic.h
+txOutput.o: txOutput.c ../utils/magsgtty.h ../utils/magic.h \
+ ../textio/textio.h ../utils/geometry.h ../textio/txcommands.h \
+ ../textio/textioInt.h ../windows/windows.h ../graphics/graphics.h \
+ ../utils/paths.h ../utils/utils.h ../utils/malloc.h

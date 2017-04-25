@@ -1,0 +1,66 @@
+Name:           magic
+Version:        @VERSION@
+Release:        1
+Summary:        Very capable VLSI layout tool
+Group:          Applications/Engineering
+License:        GPL
+URL:            http://www.opencircuitdesign.com/magic/index.html
+Source:         http://www.opencircuitdesign.com/magic/archive/%{name}-%{version}.tgz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildRequires:  libX11-devel, libXi-devel, libXmu-devel, libXext-devel
+BuildRequires:  tcl-devel, tk-devel, libGL-devel, libGLU-devel, blt, tcsh
+Requires:       libX11, libXi, libXmu, libXext, tcl, tk, libGL, libGLU, blt
+
+%description
+Magic is a venerable VLSI layout tool, written in the 1980's at Berkeley
+by John Ousterhout, now famous primarily for writing the scripting interpreter
+language Tcl. Due largely in part to its liberal Berkeley open-source license,
+magic has remained popular with universities and small companies.
+
+The open-source license has allowed VLSI engineers with a bent toward
+programming to implement clever ideas and help magic stay abreast of
+fabrication technology. However, it is the well thought-out core algorithms
+which lend to magic the greatest part of its popularity. Magic is widely cited
+as being the easiest tool to use for circuit layout, even for people who
+ultimately rely on commercial tools for their product design flow.
+
+%prep
+%setup -q
+
+%build
+%configure \
+  --with-tcl=%{_libdir} \
+  --with-tk=%{_libdir} \
+  --with-tclincls=%{_includedir} \
+  --with-tkincls=%{_includedir} \
+  --with-tcllibs=%{_libdir} \
+  --with-tklibs=%{_libdir}
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root,-)
+%doc INSTALL README README.Tcl TODO VERSION
+%{_bindir}/magic
+%{_bindir}/spice2sim
+%{_libdir}/magic/*
+%{_mandir}/man1/ext2sim.1.gz
+%{_mandir}/man1/ext2spice.1.gz
+%{_mandir}/man1/extcheck.1.gz
+%{_mandir}/man1/magic.1.gz
+%{_mandir}/man5/cmap.5.gz
+%{_mandir}/man5/displays.5.gz
+%{_mandir}/man5/dlys.5.gz
+%{_mandir}/man5/dstyle.5.gz
+%{_mandir}/man5/ext.5.gz
+%{_mandir}/man5/glyphs.5.gz
+%{_mandir}/man5/mag.5.gz
+%{_mandir}/man5/net.5.gz
+%{_mandir}/man5/sim.5.gz
+

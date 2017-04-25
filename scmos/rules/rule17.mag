@@ -1,0 +1,29 @@
+magic
+tech scmos
+timestamp 736076273
+<< capwell >>
+rect 0 0 10 12
+rect 19 0 29 12
+<< polysilicon >>
+rect 9 22 12 24
+rect 16 22 21 24
+rect 25 22 28 24
+<< ndiffusion >>
+rect 12 24 16 27
+rect 21 24 25 27
+rect 12 17 16 22
+rect 21 21 25 22
+rect 3 3 7 9
+<< ntransistor >>
+rect 12 22 16 24
+rect 21 22 25 24
+<< ndcontact >>
+rect 21 17 25 21
+rect 31 17 35 21
+<< psubstratepcontact >>
+rect -6 15 -2 19
+rect 4 15 8 19
+<< labels >>
+rlabel space 14 -5 34 17 1 boundary
+rlabel space -3 -3 13 15 1 boundary
+<< end >>

@@ -1,0 +1,53 @@
+/*  DIAGNOSTIC EXTRACTIONS */
+
+/*
+ * The idea here is to simply re-extract caps between nwell and GND
+ * as a test on whether all wells are plugged (with vdd)
+ */
+style check_nwell
+
+    lambda      100
+    step        100
+
+    resist      nwell                            2000000
+    areacap     nw,nwc,nsd                       100
+
+    
+    noplaneOrdering    /* never do coupling on these styles */
+
+style check_pwell
+
+    lambda      100
+    step        100
+
+    resist      pwell                            2000000
+    areacap     pw,pwc,psd                       100
+
+    noplaneOrdering    
+
+style check_psubstr
+/* The idea here is to simply re-extract caps between 
+ * p_guard_ring and GND as a test 
+ * to verify that the substrate is all contacted to the same ground
+ * signal (i.e. insure the substrate isn't accidentally a big resistor! 
+ */
+    lambda	50
+    step	200
+
+    areacap	psd,psc		1000
+
+    noplaneOrdering   
+
+style check_nsubstr
+/* The idea here is to simply re-extract caps between 
+ * n_guard_ring and GND as a test 
+ * to verify that the substrate is all contacted to the same Vcc
+ * signal (i.e. insure the substrate isn't accidentally a big resistor! 
+ */
+    lambda	50
+    step	200
+
+    areacap	nsd,nsc		1000
+
+    noplaneOrdering  
+

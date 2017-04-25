@@ -1,0 +1,488 @@
+magic
+tech scmos
+timestamp 783720303
+<< pwell >>
+rect 104 132 114 144
+<< nwell >>
+rect -9 203 1 219
+rect 10 203 20 219
+rect 150 114 190 138
+<< capwell >>
+rect 200 123 216 141
+rect 141 83 151 93
+rect 160 83 170 93
+<< polysilicon >>
+rect 65 213 67 218
+rect 103 213 105 218
+rect 65 211 68 213
+rect 76 211 78 213
+rect 92 211 94 213
+rect 102 211 105 213
+rect 119 210 121 217
+rect 202 216 204 219
+rect 165 214 175 215
+rect 165 210 166 214
+rect 174 210 175 214
+rect 190 213 194 215
+rect 208 212 210 219
+rect 65 207 68 209
+rect 76 207 78 209
+rect 92 207 94 209
+rect 102 207 105 209
+rect 119 208 122 210
+rect 132 208 142 210
+rect 152 208 155 210
+rect 165 209 175 210
+rect 219 209 221 212
+rect 65 202 67 207
+rect 103 202 105 207
+rect 153 202 155 208
+rect 219 204 221 205
+rect -1 185 1 187
+rect 31 179 33 181
+rect 37 179 40 181
+rect -1 169 1 179
+rect 38 178 40 179
+rect 38 176 53 178
+rect 106 174 118 176
+rect -1 161 1 163
+rect 89 162 91 168
+rect 81 142 107 144
+rect 81 134 83 142
+rect 91 134 94 142
+rect 102 140 107 142
+rect 130 143 142 145
+rect 102 136 104 140
+rect 102 134 107 136
+rect 81 132 107 134
+rect 130 133 132 143
+rect 140 135 142 143
+rect 138 133 142 135
+rect 97 119 99 121
+rect 102 119 106 121
+rect 104 117 106 119
+rect 139 123 141 130
+rect 202 127 203 130
+rect 213 127 214 130
+rect 202 125 214 127
+rect 97 92 99 94
+rect 102 92 106 94
+rect 104 90 106 92
+rect 201 89 204 97
+rect 210 89 213 97
+rect 219 89 224 97
+rect 199 87 206 89
+rect 199 83 200 87
+rect 204 83 206 87
+rect 208 87 215 89
+rect 208 83 209 87
+rect 213 83 215 87
+rect 217 87 224 89
+rect 217 83 218 87
+rect 222 83 224 87
+<< electrode >>
+rect 132 131 138 133
+rect 83 84 85 122
+rect 95 117 97 119
+rect 132 123 133 131
+rect 137 123 138 131
+rect 132 122 138 123
+rect 95 116 99 117
+rect 88 115 99 116
+rect 102 115 104 117
+rect 88 111 89 115
+rect 97 111 98 115
+rect 88 110 98 111
+rect 195 103 201 104
+rect 195 99 196 103
+rect 200 99 201 103
+rect 195 97 201 99
+rect 204 103 210 104
+rect 204 99 205 103
+rect 209 99 210 103
+rect 204 97 210 99
+rect 213 103 219 104
+rect 213 99 214 103
+rect 218 99 219 103
+rect 213 97 219 99
+rect 95 90 97 92
+rect 95 88 99 90
+rect 102 88 104 90
+rect 195 89 199 97
+rect 206 89 208 97
+rect 215 89 217 97
+<< capacitor >>
+rect 83 140 91 142
+rect 83 136 85 140
+rect 89 136 91 140
+rect 83 134 91 136
+rect 94 140 102 142
+rect 94 136 96 140
+rect 100 136 102 140
+rect 94 134 102 136
+rect 132 141 140 143
+rect 132 137 134 141
+rect 138 137 140 141
+rect 132 135 140 137
+rect 132 133 138 135
+rect 97 117 99 119
+rect 102 117 104 119
+rect 97 90 99 92
+rect 102 90 104 92
+rect 199 89 201 97
+rect 204 89 206 97
+rect 208 89 210 97
+rect 213 89 215 97
+rect 217 89 219 97
+<< wellcapacitor >>
+rect 203 127 213 130
+<< ndiffusion >>
+rect 38 213 42 216
+rect 45 213 49 216
+rect 68 214 80 217
+rect 68 213 76 214
+rect 68 209 76 211
+rect 122 213 124 217
+rect 122 210 132 213
+rect 68 204 76 207
+rect 68 201 71 204
+rect 122 202 132 208
+rect 189 205 205 209
+rect 33 181 37 184
+rect 33 178 37 179
+rect -14 168 -1 169
+rect -14 164 -10 168
+rect -2 164 -1 168
+rect -14 163 -1 164
+rect 1 163 5 169
+rect 41 166 44 170
+rect 30 163 44 166
+rect 80 166 83 173
+rect 106 164 118 168
+rect 128 119 131 126
+rect 203 130 213 134
+rect 99 94 102 95
+rect 99 86 102 88
+rect 131 86 136 91
+rect 144 86 148 90
+rect 99 82 100 86
+<< pdiffusion >>
+rect 90 214 102 217
+rect 94 213 102 214
+rect 142 217 146 220
+rect 94 209 102 211
+rect 142 213 144 217
+rect 142 210 152 213
+rect 38 200 42 203
+rect 45 200 49 203
+rect 94 204 102 207
+rect 99 201 102 204
+rect 142 202 152 208
+rect 216 205 219 209
+rect 221 205 224 209
+rect -14 184 -1 185
+rect -14 180 -10 184
+rect -2 180 -1 184
+rect -14 179 -1 180
+rect 1 179 5 185
+rect 99 121 102 122
+rect 99 113 102 115
+rect 99 109 100 113
+<< metal1 >>
+rect 49 168 53 170
+rect 78 169 88 172
+rect 106 169 109 173
+rect 175 171 179 176
+rect 83 162 93 165
+rect 157 162 160 165
+rect 175 162 179 167
+rect 133 141 137 147
+rect 81 136 85 140
+rect 89 136 96 140
+rect 133 137 134 141
+rect 133 131 137 137
+rect 133 121 137 123
+rect 48 102 63 117
+<< metal2 >>
+rect 150 173 161 176
+rect 118 169 136 173
+rect 201 171 205 179
+rect 150 166 156 169
+rect 160 166 161 169
+rect 193 167 205 171
+rect 201 162 205 163
+rect 63 127 73 142
+<< metal3 >>
+rect 200 172 214 178
+rect 178 171 194 172
+rect 178 167 179 171
+rect 193 167 194 171
+rect 178 166 194 167
+rect 200 167 214 168
+rect 200 163 201 167
+rect 205 163 214 167
+rect 200 162 214 163
+<< ntransistor >>
+rect 68 211 76 213
+rect 68 207 76 209
+rect 122 208 132 210
+rect 33 179 37 181
+rect -1 163 1 169
+rect 99 92 102 94
+<< ptransistor >>
+rect 94 211 102 213
+rect 94 207 102 209
+rect 142 208 152 210
+rect 219 205 221 209
+rect -1 179 1 185
+rect 99 119 102 121
+<< entransistor >>
+rect 99 88 102 90
+<< eptransistor >>
+rect 99 115 102 117
+<< doublentransistor >>
+rect 99 90 102 92
+<< doubleptransistor >>
+rect 99 117 102 119
+<< collector >>
+rect 152 128 158 129
+rect 152 124 153 128
+rect 157 124 158 128
+rect 152 123 158 124
+<< pbase >>
+rect 162 128 184 132
+rect 162 124 166 128
+rect 170 124 177 128
+rect 181 124 184 128
+rect 162 120 184 124
+<< bccdiffusion >>
+rect 195 91 224 95
+<< nbccdiffusion >>
+rect 193 91 195 95
+rect 224 91 226 95
+<< polycontact >>
+rect 166 210 174 214
+rect 194 212 198 216
+rect 201 212 205 216
+rect 165 199 175 205
+rect 189 199 205 203
+rect 218 200 222 204
+rect 49 164 53 168
+rect 88 168 92 172
+rect 104 136 108 140
+rect 106 117 110 121
+rect 202 121 214 125
+rect 106 90 110 94
+rect 200 83 204 87
+rect 209 83 213 87
+rect 218 83 222 87
+<< ndcontact >>
+rect 124 213 128 217
+rect 33 170 37 178
+rect 41 170 53 174
+rect -10 164 -2 168
+rect 79 162 83 166
+rect 203 134 213 138
+rect 99 95 103 99
+rect 100 82 104 86
+<< pdcontact >>
+rect 144 213 148 217
+rect -10 180 -2 184
+rect 99 122 103 126
+rect 100 109 104 113
+<< capcontact >>
+rect 85 136 89 140
+rect 96 136 100 140
+rect 134 137 138 141
+<< electrodecontact >>
+rect 133 123 137 131
+rect 89 111 97 115
+rect 196 99 200 103
+rect 205 99 209 103
+rect 214 99 218 103
+<< collectorcontact >>
+rect 153 124 157 128
+<< emittercontact >>
+rect 166 124 170 128
+<< pbasecontact >>
+rect 177 124 181 128
+<< nbccdiffcontact >>
+rect 189 91 193 95
+rect 226 91 230 95
+<< m2contact >>
+rect 109 169 118 173
+rect 136 169 140 173
+rect 156 165 160 169
+rect 175 167 179 171
+<< m3contact >>
+rect 179 167 193 171
+rect 201 163 205 167
+<< psubstratepcontact >>
+rect 128 213 132 217
+rect 140 169 144 173
+<< nsubstratencontact >>
+rect 148 213 152 217
+<< psubstratepdiff >>
+rect 53 211 57 216
+rect 135 173 144 174
+rect 135 169 140 173
+rect 135 168 144 169
+<< nsubstratendiff >>
+rect 53 200 57 205
+<< pad >>
+rect -7 102 33 142
+<< labels >>
+rlabel space 163 173 163 176 3 9.1
+rlabel space 165 169 165 173 3 9.2
+rlabel space 163 165 163 166 3 9.3
+rlabel polysilicon 36 179 38 179 1 6b.7
+rlabel ndcontact 34 171 36 173 5 6b.1
+rlabel ndcontact 33 173 33 175 7 6b.3
+rlabel ndiffusion 37 166 42 166 1 6b.4
+rlabel ndcontact 50 171 52 173 1 _
+rlabel ndcontact 46 171 48 173 1 _
+rlabel ndcontact 42 171 44 173 1 _
+rlabel ndcontact 34 175 36 177 1 _
+rlabel ndiffusion 33 177 33 179 7 6b.6
+rlabel polycontact 50 165 52 167 1 _
+rlabel space 53 173 53 176 3 6b.8
+rlabel space 33 166 33 171 7 6b.5
+rlabel space 38 170 38 171 3 6b.2
+rlabel metal1 53 167 53 171 3 6b.9
+rlabel space 34 159 34 159 3 not_enforced
+rlabel space 34 161 34 161 3 6b.8
+rlabel metal3 214 172 214 178 3 15.1
+rlabel space 208 168 208 172 3 15.2
+rlabel metal3 192 166 192 168 3 15.3
+rlabel space -7 144 33 144 1 10.1,10.2
+rlabel space 33 110 48 110 1 10.5
+rlabel space 33 132 63 132 1 10.4
+rlabel pad 23 132 23 142 3 10.3
+rlabel capacitor 83 142 91 142 1 11.1
+rlabel polysilicon 91 134 94 134 1 11.2
+rlabel polysilicon 81 142 81 144 7 11.3
+rlabel polysilicon 102 132 104 132 1 11.4
+rlabel polysilicon 102 137 105 137 1 11.5
+rlabel polycontact 105 137 107 139 1 _
+rlabel polycontact 107 118 109 120 1 _
+rlabel polysilicon 104 118 107 118 1 12.6
+rlabel space 94 117 94 119 7 12.5
+rlabel space 98 110 99 110 5 12.4
+rlabel space 85 115 88 115 1 12.2
+rlabel electrode 83 122 85 122 1 12.1
+rlabel m3contact 190 168 192 170 1 14.1
+rlabel m3contact 185 168 187 170 1 _
+rlabel m3contact 187 167 190 167 5 14.2
+rlabel m3contact 180 168 182 170 1 _
+rlabel m2contact 176 168 178 170 1 _
+rlabel metal3 178 171 180 171 1 14.4
+rlabel m3contact 202 164 204 166 1 _
+rlabel metal3 204 162 205 162 5 14.3
+rlabel nwell 158 123 162 123 1 16.2
+rlabel nwell 176 123 182 129 1 _
+rlabel nwell 164 122 172 130 1 _
+rlabel pbase 172 132 176 132 1 16.3
+rlabel pbase 162 132 164 132 1 16.4
+rlabel pbase 180 132 182 132 1 16.5
+rlabel pbasecontact 178 125 180 127 1 _
+rlabel nwell 152 114 158 114 1 16.6
+rlabel nwell 150 131 152 131 1 16.7
+rlabel emittercontact 167 125 169 127 1 16.8
+rlabel pbase 176 120 178 120 1 16.9
+rlabel collectorcontact 154 125 156 127 1 _
+rlabel nwell 156 130 158 130 1 16.10
+rlabel nwell 164 118 167 118 1 16.11
+rlabel polycontact 203 122 205 124 1 _
+rlabel polycontact 207 122 209 124 1 _
+rlabel polycontact 211 122 213 124 1 _
+rlabel space 199 124 199 127 7 18.4
+rlabel space 199 130 199 135 7 18.5
+rlabel capwell 202 141 203 141 1 18.2
+rlabel space 217 127 217 130 3 18.1
+rlabel space 221 130 221 138 3 18.3
+rlabel space 37 213 37 216 3 2.1
+rlabel space 42 212 45 212 1 2.2
+rlabel space 55 208 55 211 3 2.4
+rlabel space 50 208 50 213 3 2.3
+rlabel space 37 208 58 208 5 N-Region
+rlabel space 37 208 58 208 1 P-Region
+rlabel space 39 203 39 208 3 2.3
+rlabel space 59 205 59 208 3 2.4
+rlabel space 128 218 129 218 1 4.3
+rlabel space 134 210 134 213 3 4.1
+rlabel space 121 218 122 218 1 4.2
+rlabel space 173 216 175 216 1 5a.2
+rlabel polycontact 169 210 171 210 1 5a.3
+rlabel space 164 196 164 196 3 5a.2
+rlabel space 164 194 164 194 3 not_enforced
+rlabel polycontact 167 211 169 213 1 _
+rlabel polycontact 171 211 173 213 1 5a.1
+rlabel polycontact 167 201 169 203 1 _
+rlabel polycontact 171 201 173 203 1 _
+rlabel space 80 211 80 213 3 3.1
+rlabel space 79 209 79 211 3 3.2
+rlabel space 80 204 80 207 3 3.4
+rlabel space 76 203 78 203 1 3.3
+rlabel space 67 219 68 219 1 3.5
+rlabel space 90 211 90 213 7 3.1
+rlabel space 91 209 91 211 7 3.2
+rlabel space 90 204 90 207 7 3.4
+rlabel space 92 203 94 203 1 3.3
+rlabel space 102 219 103 219 1 3.5
+rlabel space 197 218 198 218 1 5b.2
+rlabel space 197 212 202 212 1 5b.4
+rlabel space 204 212 208 212 1 5b.5
+rlabel polycontact 192 199 194 199 1 5b.3
+rlabel space 205 202 205 205 3 5b.7
+rlabel space 192 196 192 196 3 5b.7
+rlabel space 192 194 192 194 3 not_enforced
+rlabel polycontact 202 200 204 202 1 _
+rlabel polycontact 198 200 200 202 1 _
+rlabel polycontact 194 200 196 202 1 _
+rlabel polycontact 190 200 192 202 1 _
+rlabel polycontact 195 213 197 215 1 5b.1
+rlabel polycontact 202 213 204 215 1 _
+rlabel space 223 203 223 205 3 5b.6
+rlabel space 216 199 216 199 3 (one_contact)
+rlabel polycontact 219 201 221 203 1 _
+rlabel space 199 81 201 81 1 19.6
+rlabel space 195 87 197 87 5 19.5
+rlabel space 220 97 220 100 3 19.4
+rlabel space 189 95 189 97 7 19.3
+rlabel space 215 80 217 80 1 19.2
+rlabel space 232 91 232 95 3 19.1
+rlabel space -9 200 1 200 1 1.1
+rlabel space 1 221 10 221 1 1.2
+rlabel pdiffusion -3 182 -1 182 1 6a.4
+rlabel space -9 159 -9 159 3 not_enforced
+rlabel space -9 161 -9 161 3 6a.2
+rlabel ndcontact -7 167 -5 167 1 6a.3
+rlabel pdcontact -9 181 -7 181 1 6a.1
+rlabel ndiffusion -10 167 -10 169 7 6a.2
+rlabel space 136 87 141 87 1 17.3
+rlabel capwell 141 83 144 83 5 17.4
+rlabel space 141 94 151 94 1 17.1
+rlabel space 151 87 160 87 1 17.2
+rlabel space 95 162 95 165 3 7.1
+rlabel space 93 168 93 169 3 7.3
+rlabel space 96 165 96 168 3 7.2
+rlabel space 77 165 77 166 7 7.4
+rlabel capcontact 135 138 137 140 1 13.1
+rlabel polysilicon 130 140 130 143 7 13.3
+rlabel space 132 147 134 147 1 13.4
+rlabel nwell 184 114 190 114 5 16.1
+rlabel space 112 162 115 162 1 8.2
+rlabel space 104 168 104 170 7 8.4
+rlabel space 104 172 104 174 7 8.4
+rlabel space 139 175 141 175 1 8.5
+rlabel space 137 166 139 166 5 8.1
+rlabel space 147 169 147 170 3 8.3
+rlabel space 146 172 146 174 3 8.4
+rlabel space 129 114 129 114 3 not_enforced
+rlabel space 129 117 129 117 3 13.3,13.5*
+rlabel space 142 126 142 128 3 13.2
+rlabel space 138 123 139 123 5 13.d*
+rlabel electrodecontact 134 124 136 126 1 _
+rlabel electrodecontact 134 128 136 130 1 _
+rlabel space 131 127 132 127 5 13.5
+<< end >>

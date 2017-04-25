@@ -1,0 +1,161 @@
+%----------------------------------------------------------------------------
+% Magic tutorial number S-3
+%----------------------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\documentclass[letterpaper,twoside,12pt]{article}
+\usepackage{epsfig,times}
+
+\setlength{\textwidth}{8.5in}
+\addtolength{\textwidth}{-2.0in}
+\setlength{\textheight}{11.0in}
+\addtolength{\textheight}{-2.0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0pt}
+\setlength{\topmargin}{-0.5in}
+\setlength{\headheight}{0.2in}
+\setlength{\headsep}{0.3in}
+\setlength{\topskip}{0pt}
+
+\def\hinch{\hspace*{0.5in}}
+\def\starti{\begin{center}\begin{tabbing}\hinch\=\hinch\=\hinch\=hinch\hinch\=\kill}
+\def\endi{\end{tabbing}\end{center}}
+\def\ii{\>\>\>}
+\def\mytitle{Magic Tutorial \#S-3: Transistor stacks}
+\def\q{\special{ps:(") show}\hspace*{0.6em}}
+
+%----------------------------------------------------------------------------
+
+\begin{document}
+
+\makeatletter
+\newcommand{\ps@magic}{%
+	\renewcommand{\@oddhead}{\mytitle\hfil\today}%
+	\renewcommand{\@evenhead}{\today\hfil\mytitle}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\newcommand{\ps@mplain}{%
+	\renewcommand{\@oddhead}{}%
+	\renewcommand{\@evenhead}{}%
+	\renewcommand{\@evenfoot}{\hfil\textrm{--{\thepage}--}\hfil}%
+	\renewcommand{\@oddfoot}{\@evenfoot}}
+\makeatother
+\pagestyle{magic}
+\thispagestyle{mplain}
+
+\begin{center}
+  {\bfseries \Large \mytitle} \\
+  \vspace*{0.5in}
+  {\itshape Rajit Manohar} \\
+  \vspace*{0.5in}
+   Department of Computer Science \\
+   California Institute of Technology \\
+   Pasadena, CA  91125 \\
+  \vspace*{0.25in}
+  This tutorial corresponds to Magic version 7. \\
+\end{center}
+\vspace*{0.5in}
+
+{\noindent\bfseries\large Tutorials to read first:}
+\starti
+   \> Magic Tutorial \#S-1: The scheme command-line interpreter
+\endi
+
+{\noindent\bfseries\large Commands introduced in this tutorial:}
+\starti
+   \> :stack.p, :stack.n, :stack.tallp, :stack.talln, :prs.draw, :prs.mgn, \\
+   \> :prs.talldraw, :prs.tallmgn
+\endi
+
+{\noindent\bfseries\large Macros introduced in this tutorial:}
+
+\starti
+   \> {\itshape (None)}
+\endi
+
+\vspace*{0.75in}
+\section{Stacks}
+
+The first step in laying out a gate/operator using magic tends to
+involve drawing the transistor stacks without any wiring, labelling
+all the important nodes in the circuit. Since the extractor pretends
+that nodes that have the same label are electrically connected, the
+extracted circuit can be simulated using SPICE to obtain some
+indication of the power/speed of the circuit.
+
+{\bfseries stack.tallp} and {\bfseries stack.talln} can be used to draw such
+transistor stacks and place contacts where required. These two
+functions take a transistor width and a list of strings that represent
+the stack as their arguments, and draw the stack vertically (gates run
+horizontally) at the current box. For example,
+
+\starti
+   \ii {\bfseries (stack.tallp 40 '(({\q}Vdd{\q}) {\q}a{\q} {\q}b{\q}
+	({\q}Inode{\q}) {\q}d{\q} ({\q}out{\q})))}
+\endi
+
+draws a vertical stack of p-transistors with the diffusion being 40
+lambda wide. The stack begins with a contact labelled ``Vdd'', followed
+by two gates labelled ``a'' and ``b'', followed by a contact labelled
+``Inode'', followed by a gate labelled ``d'', followed by a contact
+labelled ``out''. Contacts are indicated by placing the string for the
+label in parenthesis. Note the presence of the quote that prevents the
+interpreter from attempting to evaluate the list.
+
+The contact width and contact-gate spacing together amount to more
+than the spacing between adjacent gates. Often it is desired to
+eliminate this extra space by jogging the poly wires so that the
+amount of internal diffusion capacitance is minimized. The functions
+{\bfseries stack.p} and {\bfseries stack.n} can be used to do so. Typing
+
+\starti
+   \ii {\bfseries (stack.tallp 40 '(({\q}Vdd{\q}) {\q}a{\q} {\q}b{\q}
+	({\q}Inode{\q}) {\q}d{\q} ({\q}out{\q})))}
+\endi
+
+
+will draw the same stack and jog the poly wires corresponding to the
+gate for ``d''.
+
+\section{Production rules}
+
+The functions {\bfseries prs.draw} and {\bfseries prs.mgn} can be used to draw the
+transistor stacks that implement a production rule. For instance,
+
+\starti
+   \ii {\bfseries (prs.draw 40 {\q}x \& y $->$ z-{\q})}
+\endi
+
+will draw the stack required to implement the specified production
+rule with width 20. The function takes a gate width and a single
+production rule as its arguments. Note that the production rules must
+be in negation normal form, i.e., all negations must be on variables.
+
+Contacts can be shared between operators by providing a list of
+production rules as input to {\bfseries prs.mgn}, as follows:
+
+\starti
+   \ii {\bfseries (prs.mgn 40 20 {\q}x \& y $->$ z-{\q}
+	{\q}u \& v $->$ w-{\q} {\q}\~{}x \& \~{}y $->$ z+{\q})}
+\endi
+
+The contact to GND will be shared between the pull-down stacks for z
+and w.
+
+Both production-rule drawing function ensure that the variable order
+in the production rule (from left to right) corresponds to the gate
+order in the transistor stacks (from power supply to output).
+
+It is not always possible to directly draw a production rule in a
+single stack with no additional internal contacts. In this case, the
+function creates an internal node name of the form ``{\_}'' followed by a
+number. You can search for these using {\bfseries (label.search {\q}{\_}*{\q})},
+followed by {\bfseries (label.find-next)}.  To complete the implementation,
+you will have to wire up these internal contacts as well.
+
+Both {\bfseries prs.mgn} and {\bfseries prs.draw} draw the transistor stacks using
+{\bfseries stack.p} and {\bfseries stack.n}. The variants {\bfseries prs.tallmgn} and
+{\bfseries prs.talldraw} use {\bfseries stack.tallp} and {\bfseries stack.talln}
+instead.
+
+\end{document}

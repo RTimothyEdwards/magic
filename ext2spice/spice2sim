@@ -1,0 +1,81 @@
+#!/bin/awk -f
+# convert an ext2spice produced file to a .sim file for debugging
+#
+BEGIN {
+	firstLine = 1 ; gotScale = 0; firstFet = 1;
+	scale = 100;
+}
+
+firstLine == 1 {
+	if ( firstLine ) {
+	 style = $2 ; firstLine = 0;
+	 if ( style != "HSPICE" && style != "SPICE2" && style != "SPICE3" ) {
+	   print "weird spice style assuming SPICE3" | "cat 1>&2"
+	 }
+	 if ( style == "HSPICE" ) scale = -100;
+	}
+}
+
+$1 ~ /^\.opt/ && $2 ~ /^scale/ {
+	if ( style != "HSPICE" ) {
+		 print "ERROR: scale found in a non HSPICE file\n" |  "cat 1>&2"
+		 exit;
+	}
+	l = length($2)-7;
+	scale = (substr($2, 7, l))*100;
+}
+
+
+$1 ~ /^[m|M]/ {
+	if ( firstFet ) {
+		firstFet = 0;
+		if ( style == "HSPICE" && scale < 0 ) {
+		   print "ERROR: scale not fount in HSPICE file\n"| "cat 1>&2"
+		   exit;
+		}
+		printf "| units: %d tech: spice2sim format: MIT\n", scale
+		scale = scale/100;
+	}
+	sl = $8; sw = $7;
+	ll = length(sl);
+	lw = length(sw);
+	if ( style != "HSPICE" ) {
+		if (substr(sw, lw, 1)!= "u" || substr(sl, ll, 1) != "u") {
+		   print "ERROR: weird units in w/l of fet:\n", $0 | "cat 1>&2"
+		   exit;
+		}
+		l = substr(sl, 3, ll-3);
+		w = substr(sw, 3, lw-3);
+	} else { # HSPICE 
+		l = substr(sl, 3, ll-2);
+		w = substr(sw, 3, lw-2);
+		if ( NF == 9 ) { # get the mult
+			if ( substr($9, 1, 2) != "M=" ) {
+	  		    printf "ERROR - weird multiplier : %s\n", $0; 
+			} else w = w * (substr($9, 3, 100)+1.0-1.0);
+		}
+	}
+	printf "%s %s %s %s %.2f %.2f\n", substr($6,1,1), $3, $2, $4, l, w;
+}
+
+$1 ~ /^[c|C]/ {
+	  if ( $4 ~ /[0-9]*fF/ ) 
+		printf "C %s %s %s\n", $2, $3, substr($4, 1, length($4)-2);
+	  else
+	  	printf "ERROR - weird capacitor: %s\n", $0; 
+	}
+$1 ~ /^[R|R]/ {
+	  if ( $4 ~ /^[0-9]*/ ) 
+		printf "r %s %s %s\n", $2, $3, $4;
+	  else
+	  	printf "ERROR - weird resistor: %s\n", $0; 
+	}
+
+$1 ~ /^[q|Q]/	{ 
+	  print "ERROR: found a bipolar in spice file" | "cat 1>&2"
+	}
+
+$1 ~ /^[v|V]/	{ 
+	  print "ERROR: found a voltage source in spice file" | "cat 1>&2"
+	}
+
