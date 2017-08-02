@@ -1811,7 +1811,7 @@ dbReadLabels(cellDef, line, len, f, scalen, scaled)
 		TxError("Skipping bad \"port\" line: %s", line);
 		goto nextlabel;
 	    }
-	    lab->lab_flags &= ~LABEL_STICKY;
+	    /* lab->lab_flags &= ~LABEL_STICKY; */
 	    lab->lab_flags |= idx;
 	    for (pptr = &ppos[0]; *pptr != '\0'; pptr++)
 	    {

@@ -22,7 +22,7 @@ EXTRA_LIBS = ${MAGICDIR}/cmwind/libcmwind.o ${MAGICDIR}/commands/libcommands.o \
 BITMAPS = up.xbm down.xbm left.xbm right.xbm zoom.xbm lock.xbm
 DEST_XBM = $(BITMAPS:%=$(DESTDIR)${TCLDIR}/bitmaps/%)
 
-DFLAGS += -DMAGIC_DATE="\"`date`\""
+DFLAGS += -DMAGIC_DATE="\"`date`\"" -DCAD_DIR="${LIBDIR}"
 LIBS   += ${GR_LIBS} ${READLINE_LIBS} -lm ${LD_EXTRA_LIBS} \
 		${OA_LIBS} ${TOP_EXTRA_LIBS}
 CLEANS += tclmagic${SHDLIB_EXT} libtclmagic${SHDLIB_EXT}.a proto.magicrc
@@ -37,9 +37,8 @@ tclmagic${SHDLIB_EXT}: ${EXTRA_LIBS}
 	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} ${LD_RUN_PATH} \
 		${EXTRA_LIBS} -lc ${LIBS}
 
-proto.magicrc: proto.magicrc.m4
-	sed -e /CAD_DIR/s%CAD_DIR%${LIBDIR}%g proto.magicrc.m4 | \
-		${M4} ${GR_DFLAGS} ${DFLAGS} > proto.magicrc
+proto.magicrc: proto.magicrc.in
+	${CPP} ${GR_DFLAGS} ${DFLAGS} proto.magicrc.in > proto.magicrc
 
 install: $(DESTDIR)${BINDIR}/${MODULE}${EXEEXT} $(DESTDIR)${SYSDIR}/.magicrc \
 	$(DESTDIR)${SYSDIR}/magicps.pro

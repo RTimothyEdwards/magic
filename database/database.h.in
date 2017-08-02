@@ -519,6 +519,7 @@ typedef struct celluse
 #define CU_DESCEND_NO_SUBCKT	0x0005	/* Descend no subcircuits */
 #define CU_DESCEND_NO_VENDOR	0x0006	/* Descend no vendor-GDS subcells */
 #define CU_DESCEND_NO_LOCK	0x0007	/* Descend unlocked subcells only */
+#define CU_DESCEND_NONE		0x0009	/* Descend no subcells */
 
 /*
  * All subcells used by a cell are part of another tile plane,
@@ -635,6 +636,11 @@ typedef struct treeFilter
 					 * of paint to which the label is
 					 * attached
 					 */
+#define TF_LABEL_ATTACH_NOT_NE	0x04	/* Same as above, ignore tile NE corner */
+#define TF_LABEL_ATTACH_NOT_NW	0x08	/* Same as above, ignore tile NW corner */
+#define TF_LABEL_ATTACH_NOT_SE	0x10	/* Same as above, ignore tile SE corner */
+#define TF_LABEL_ATTACH_NOT_SW	0x20	/* Same as above, ignore tile SW corner */
+#define TF_LABEL_ATTACH_CORNER	0x3C	/* Mask of the four types above */
 
 /* -------------- Undo information passed to DBPaintPlane ------------- */
 
@@ -729,7 +735,7 @@ extern bool DBTechAddContact();
 extern bool DBTechAddCompose();
 extern TileType DBTechNameType(), DBTechNoisyNameType();
 extern int DBTechNamePlane(), DBTechNoisyNamePlane();
-extern PlaneMask DBTechNoisyNameMask();
+extern PlaneMask DBTechNameMask(), DBTechNoisyNameMask();
 extern PlaneMask DBTechTypesToPlanes();
 extern bool DBTechTypesOnPlane();
 extern void DBTechInitPlane();

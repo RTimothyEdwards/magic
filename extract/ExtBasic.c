@@ -147,6 +147,18 @@ void extTransBad();
 
 bool extLabType();
 
+/* Function returns 1 if a tile is found by DBTreeSrTiles()	*/
+/* that is not in the topmost def of the search.		*/
+
+int
+extFoundFunc(tile, cxp)
+    Tile *tile;
+    TreeContext *cxp;
+{
+    CellDef *def = (CellDef *)cxp->tc_filter->tf_arg;
+    return (def == cxp->tc_scx->scx_use->cu_def) ? 0 : 1;
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -187,10 +199,11 @@ extBasic(def, outFile)
 {
     NodeRegion *nodeList, *extFindNodes();
     bool coupleInitialized = FALSE;
-    TransRegion *transList;
+    TransRegion *transList, *reg;
     HashTable extCoupleHash;
     char *propptr;
     bool propfound = FALSE;
+    bool isabstract = FALSE;
 
     glob_subsnode = (NodeRegion *)NULL;
 
@@ -205,6 +218,33 @@ extBasic(def, outFile)
 				    ExtCurStyle->exts_transConn,
 				    extUnInit, extTransFirst, extTransEach);
     ExtResetTiles(def, extUnInit);
+
+    for (reg = transList; reg && !SigInterruptPending; reg = reg->treg_next)
+    {
+	/* For each transistor region, check if there is an equivalent	*/
+	/* region at the same location in a subcell.  The device in the	*/
+	/* subcell is given priority.  This avoids duplicating devices	*/
+	/* when, for example, a device contact is placed in another	*/
+	/* cell, which can happen for devices like capacitors and	*/
+	/* diodes, where the device identifier layer may include	*/
+	/* a contact type.						*/
+
+	SearchContext scontext;
+	CellUse	      dummy;
+	int	      extFoundFunc();
+
+	scontext.scx_use = &dummy;
+	dummy.cu_def = def;
+	dummy.cu_id = NULL;
+	scontext.scx_trans = GeoIdentityTransform;
+	scontext.scx_area.r_ll = scontext.scx_area.r_ur = reg->treg_tile->ti_ll;
+	scontext.scx_area.r_ur.p_x++;
+	scontext.scx_area.r_ur.p_y++;
+
+	if (DBTreeSrTiles(&scontext, &ExtCurStyle->exts_transMask, 0,
+			extFoundFunc, (ClientData)def) != 0)
+	    reg->treg_type = TT_SPACE;	/* Disables the trans record */
+    }
 
     /*
      * Build up a list of the electrical nodes (equipotentials)
@@ -265,6 +305,12 @@ extBasic(def, outFile)
 	    tnode->nreg_resist = (ResValue)0;
 	}
     }
+
+    /* Check for "LEFview", for which special output handling	*/
+    /* can be specified in ext2spice.				*/
+
+    DBPropGet(def, "LEFview", &isabstract);
+    if (isabstract) fprintf(outFile, "abstract\n");
 
     /* Output each node, along with its resistance and capacitance to substrate */
     if (!SigInterruptPending)
@@ -1388,6 +1434,8 @@ extOutputParameters(def, transList, outFile)
     {
 	TileType loctype = reg->treg_type;
 
+	if (loctype == TT_SPACE) continue;	/* This has been disabled */
+
 	/* Watch for rare split reg->treg_type */
 	if (loctype & TT_DIAGONAL)
 	    loctype = (reg->treg_type & TT_SIDE) ? ((reg->treg_type &
@@ -1602,6 +1650,8 @@ extOutputDevices(def, transList, outFile)
 
     for (reg = transList; reg && !SigInterruptPending; reg = reg->treg_next)
     {
+	if (reg->treg_type == TT_SPACE) continue;	/* This has been disabled */
+
 	/*
 	 * Visit all of the tiles in the transistor region, updating
 	 * extTransRec.tr_termnode[] and extTransRec.tr_termlen[],
@@ -1706,6 +1756,13 @@ extOutputDevices(def, transList, outFile)
 	    }
 	    if (ExtDoWarn & EXTWARN_FETS)
 		extTransBad(def, reg->treg_tile, mesg);
+
+	    /* Devices with no terminals or a null node are badly	*/
+	    /* formed and should not be output.	  This can happen when	*/
+	    /* parts of devices are split into different cells.		*/
+
+	    if ((extTransRec.tr_nterm == 0) || (node == NULL))
+		continue;	   
 	}
 	else if (extTransRec.tr_nterm > nsd)
 	{

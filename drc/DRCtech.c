@@ -1073,7 +1073,7 @@ drcExtend(argc, argv)
     DRCCookie *dp, *dpnew, *dptrig;
     TileType i, j;
     int plane, plane2;
-    TileTypeBitMask set2, setZ, setN;
+    TileTypeBitMask set2, setZ, setN, setM;
     PlaneMask pMask1, pMask2, pset, ptest;
     bool exact = FALSE;
 
@@ -1094,7 +1094,6 @@ drcExtend(argc, argv)
 			"the same plane\n");
 	return (0);
     }
-    TTMaskCom2(&setN, &set1);
 
     ptest = DBTechNoisyNameMask(layers2, &set2);
     pMask2 = CoincidentPlanes(&set2, ptest);
@@ -1105,6 +1104,13 @@ drcExtend(argc, argv)
 			"the same plane\n");
 	return (0);
     }
+
+    /* setM is the union of set1 and set2 */
+    TTMaskZero(&setM);
+    TTMaskSetMask3(&setM, &set1, &set2);
+
+    /* setN is the inverse of set1, and setC is the inverse of set2 */
+    TTMaskCom2(&setN, &set1);
     TTMaskCom2(&setC, &set2);
 
     /* Zero mask */
@@ -1130,14 +1136,14 @@ drcExtend(argc, argv)
 			/* find bucket preceding the new one we wish to insert */
 			dp = drcFindBucket(i, j, distance);
 			dpnew = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
-			drcAssign(dpnew, distance, dp->drcc_next, &set1, &setZ, why,
+			drcAssign(dpnew, distance, dp->drcc_next, &setM, &setZ, why,
 				    0, DRC_FORWARD, plane, plane);
 
 			dp->drcc_next = dpnew;
 
 			dp = drcFindBucket(j, i, distance);
 			dpnew = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
-			drcAssign(dpnew, distance, dp->drcc_next, &set1, &setZ, why,
+			drcAssign(dpnew, distance, dp->drcc_next, &setM, &setZ, why,
 				    0, DRC_REVERSE, plane, plane);
 	
 			dp->drcc_next = dpnew;
@@ -1171,7 +1177,7 @@ drcExtend(argc, argv)
 			/* find bucket preceding the new one we wish to insert */
 			dp = drcFindBucket(i, j, distance);
 			dpnew = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
-			drcAssign(dpnew, distance, dp->drcc_next, &set1, &setZ, why,
+			drcAssign(dpnew, distance, dp->drcc_next, &setM, &setZ, why,
 				    0, DRC_FORWARD, plane2, plane);
 			dptrig = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
 			drcAssign(dptrig, 1, dpnew, &setN, &setZ, why,
@@ -1180,7 +1186,7 @@ drcExtend(argc, argv)
 
 			dp = drcFindBucket(j, i, distance);
 			dpnew = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
-			drcAssign(dpnew, distance, dp->drcc_next, &set1, &setZ, why,
+			drcAssign(dpnew, distance, dp->drcc_next, &setM, &setZ, why,
 				    0, DRC_REVERSE, plane2, plane);
 			dptrig = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
 			drcAssign(dptrig, 1, dpnew, &setN, &setZ, why,

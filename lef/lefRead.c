@@ -1547,6 +1547,11 @@ origin_error:
 
 	DRCCheckThis(lefMacro, TT_CHECKPAINT, &lefMacro->cd_bbox);
     }
+
+    /* Note:  The value here is ignored, setting to "TRUE".	*/
+    /* The "extract" command only cares that the key exists.	*/
+
+    DBPropPut(lefMacro, "LEFview", StrDup((char **)NULL, "TRUE"));
     DBWAreaChanged(lefMacro, &lefMacro->cd_bbox, DBW_ALLWINDOWS,
 		&DBAllButSpaceBits);
 }

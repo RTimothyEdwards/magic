@@ -40,6 +40,7 @@ extern bool extHierSDAttr();
 extern bool esDoExtResis;
 extern bool esDoPorts;
 extern bool esDoHierarchy;
+extern bool esDoBlackBox;
 extern bool esDoResistorTee;
 extern int  esDoSubckt;
 extern bool esDevNodesOnly;

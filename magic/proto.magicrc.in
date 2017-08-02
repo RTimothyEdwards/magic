@@ -1,17 +1,14 @@
 #	$(CAD_ROOT)/magic/sys/.magicrc 
 # 	System wide start up file for magic, defines default macros.
 #
-#	rcsid $Header: /usr/cvsroot/magic-8.0/magic/proto.magicrc.m4,v 1.4 2008/12/11 04:20:09 tim Exp $
 #
-dnl
-dnl	Source file proto.magicrc.m4
-dnl	Process this file with the m4 macro processor
-dnl
-changequote([,])dnl
-ifdef([MAGIC_WRAPPER],[dnl
+#	Source file proto.magicrc.in
+#	Process this file with the cpp macro processor
+#
+#ifdef MAGIC_WRAPPER
 puts stdout "Processing system .magicrc file"
-])dnl (MAGIC_WRAPPER)
-ifelse(USE_NEW_MACROS,1,[dnl
+#endif /* MAGIC_WRAPPER */
+#ifdef USE_NEW_MACROS
 ###############################################################################
 #  Default .magicrc macro file (new macros)
 ###############################################################################
@@ -38,10 +35,16 @@ macro G "grid 2"
 # I key
 macro i "select cell"
 macro I "select more cell"
-ifdef([XLIB],[macro Control_XK_i "select less cell"],[dnl])
+#ifdef XLIB
+macro Control_XK_i "select less cell"
+#endif
 # L key
-ifdef([USE_READLINE],[imacro l "label "],[dnl])
-ifdef([MAGIC_WRAPPER],[imacro l "label "],[dnl])
+#ifdef USE_READLINE
+imacro l "label "
+#endif   /* (USE_READLINE) */
+#ifdef MAGIC_WRAPPER
+imacro l "label "
+#endif  /* (MAGIC_WRAPPER) */
 macro L "shell ls"
 macro ^L "redraw"
 # M key
@@ -53,10 +56,16 @@ macro ^N ""
 macro o "openwindow"
 macro O "closewindow"
 # P key
-ifdef([USE_READLINE],[imacro p "paint "],[dnl])
-ifdef([MAGIC_WRAPPER],[imacro p "paint "],[dnl])
+#ifdef USE_READLINE
+imacro p "paint "
+#endif   /* (USE_READLINE) */
+#ifdef MAGIC_WRAPPER
+imacro p "paint "
+#endif  /* (MAGIC_WRAPPER) */
 # Q key
-ifdef([XLIB],[macro Control_Shift_XK_q "quit"],[dnl])
+#ifdef XLIB
+macro Control_Shift_XK_q "quit"
+#endif /* (XLIB) */
 # R key
 macro r "clockwise"
 macro R "clockwise 270"
@@ -65,7 +74,9 @@ macro ^R "clockwise 180"
 macro s "select"
 macro S "select more"
 macro ^S "select less"
-ifdef([XLIB],[macro Control_Shift_XK_s "undo ; select"],[dnl])
+#ifdef XLIB
+macro Control_Shift_XK_s "undo ; select"
+#endif /* (XLIB) */
 # U key
 macro u "undo"
 macro U "redo"
@@ -83,20 +94,24 @@ macro ^X "expand toggle"
 macro z "zoom .5"
 macro Z "zoom 2"
 macro ^Z "findbox zoom"
-ifdef([XLIB],[macro Control_Shift_XK_z "center"],[dnl])
+#ifdef XLIB
+macro Control_Shift_XK_z "center"
+#endif /* (XLIB) */
 # Question mark
 macro ? "drc why"
 macro / "select area; what ; select clear"
 # Comma key
 macro , "select clear"
 # Exclamation mark
-ifdef([USE_READLINE],[imacro ! "shell "],[dnl])
+#ifdef USE_READLINE
+imacro ! "shell "
+#endif	/* (USE_READLINE) */
 # Space bar
 macro " " "tool"
 # Colon and semicolon (interactive command)
 imacro XK_colon ":"
 imacro XK_semicolon ":"
-ifdef([XLIB],[dnl
+#ifdef XLIB
 macro Shift_XK_space "tool box"
 macro Control_XK_space "tool wiring"
 # Arrow keys (X11 versions only)
@@ -165,8 +180,8 @@ macro XK_F9  "paint ndc"
 macro XK_F10 "paint pdc"
 macro XK_F11 "paint pc"
 macro XK_F12 "paint via"
-])dnl  (ifdef XLIB)
-],[dnl (else !USE_NEW_MACROS)
+#endif	/* (XLIB) */
+#else	/* USE_NEW_MACROS */
 ###############################################################################
 #  Default .magicrc macro file (original)
 ###############################################################################
@@ -214,9 +229,9 @@ imacro XK_colon ":"
 imacro XK_semicolon ":"
 macro ^R "iroute route -dBox"
 macro ^N "iroute route -dSelection"
-])dnl	(ifdef USE_NEW_MACROS)
+#endif	/* USE_NEW_MACROS */
 # Allow some box manipulation from all tools.
-ifdef([MAGIC_WRAPPER],[
+#ifdef MAGIC_WRAPPER
 macro Control_Button1 "*bypass box move bl cursor"
 macro Control_Button2 "*bypass paint cursor"
 macro Control_Button3 "*bypass box corner ur cursor"
@@ -227,7 +242,7 @@ macro Button2 "*bypass paint cursor"
 macro Shift_Button2 "*bypass erase cursor"
 macro Button3 "*bypass box corner ur cursor"
 macro Shift_Button3 "*bypass box move ur cursor"
-],[
+#else /* (!MAGIC_WRAPPER) */
 macro Control_Button1 "box move bl cursor"
 macro Control_Button2 "paint cursor"
 macro Control_Button3 "box corner ur cursor"
@@ -238,7 +253,7 @@ macro Button2 "paint cursor"
 macro Shift_Button2 "erase cursor"
 macro Button3 "box corner ur cursor"
 macro Shift_Button3 "box move ur cursor"
-])
+#endif /* (!MAGIC_WRAPPER) */
 # Color window button bindings
 macro color Button1 "pushbutton left"
 macro color Button2 "pushbutton middle"
@@ -269,7 +284,7 @@ macro wind3d  7 "view 0 1 0 rel"
 macro wind3d  8 "view 0 -1 0 rel"
 macro wind3d  9 "view 1 0 0 rel"
 macro wind3d  0 "view -1 0 0 rel"
-ifdef([XLIB],[dnl
+#ifdef XLIB
 macro wind3d  XK_Up "scroll 0 -0.25 0 rel"
 macro wind3d  XK_Down "scroll 0 0.25 0 rel"
 macro wind3d  XK_Left "scroll 0.25 0 0 rel"
@@ -278,7 +293,7 @@ macro wind3d  XK_minus "view 0 0 1 rel"
 macro wind3d  XK_equal "view 0 0 -1 rel"
 macro wind3d  XK_greater "zoom 1 2.0 rel"
 macro wind3d  XK_less "zoom 1 0.5 rel"
-])dnl  (ifdef XLIB)
+#endif	/* (XLIB) */
 #
 # Load basic set of fonts
 #
@@ -288,23 +303,20 @@ setlabel font FreeMono.pt3 0.6
 #
 # Additions for Tcl GUI wrapper
 #
-changequote(<,>)dnl
-ifelse(MAGIC_WRAPPER,1,<dnl
+#ifdef MAGIC_WRAPPER
 magic::suspendout
 if {![catch {set Opts(tools)}]} { magic::enable_tools }
 set GND "gnd!"
 set VDD "vdd!"
 magic::resumeout
 catch {source ${CAD_ROOT}/magic/sys/site.def}
->,<dnl
->)dnl (MAGIC_WRAPPER)
-changequote([,])dnl
+#endif  /* (!MAGIC_WRAPPER) */
 #
-ifdef([SCHEME_INTERPRETER],[dnl
+#ifdef SCHEME_INTERPRETER
 #
 # additions for default scm path
 #
 define scm-library-path "CAD_DIR/lib/magic/scm"
 load-scm "default.scm"
 load-scm "layout.scm"
-])dnl (SCHEME_INTERPRETER)
+#endif 	/* (SCHEME_INTERPRETER) */

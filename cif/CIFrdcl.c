@@ -515,19 +515,24 @@ cifCopyPaintFunc(tile, cifCopyRec)
     CIFCopyRec *cifCopyRec;
 {
     int pNum;
+    TileType dinfo;
     Rect sourceRect, targetRect;
     Transform *trans = cifCopyRec->trans;
     Plane *plane = cifCopyRec->plane;
+
+    dinfo = TiGetTypeExact(tile);
 
     if (trans)
     {
         TiToRect(tile, &sourceRect);
         GeoTransRect(trans, &sourceRect, &targetRect);
+	if (IsSplit(tile))
+	    dinfo = DBTransformDiagonal(TiGetTypeExact(tile), trans);
     }
     else
         TiToRect(tile, &targetRect);
 
-    DBNMPaintPlane(plane, TiGetTypeExact(tile), &targetRect, CIFPaintTable,
+    DBNMPaintPlane(plane, dinfo, &targetRect, CIFPaintTable,
                 (PaintUndoInfo *)NULL);
 
     return 0;
@@ -612,8 +617,12 @@ CIFPaintCurrent()
 		    {
 			CIFCopyRec cifCopyRec;
 
-			newplane = DBNewPlane((ClientData) TT_SPACE);
-			DBClearPaintPlane(newplane);
+			newplane = parray[pNum];
+			if (newplane == NULL)
+		 	{
+			    newplane = DBNewPlane((ClientData) TT_SPACE);
+			    DBClearPaintPlane(newplane);
+			}
 
 			cifCopyRec.plane = newplane;
 			cifCopyRec.trans = NULL;
@@ -1064,8 +1073,7 @@ cifParseUser94()
     }
     if (type >=0 )
     {
-	if (layer >= 0 && (cifCurReadStyle->crs_layers[layer]->crl_flags
-		& CIFR_TEXTLABELS))
+	if (layer >= 0 && cifCurReadStyle->crs_labelSticky[layer])
 	    flags = LABEL_STICKY;
 	else
 	    flags = 0;
@@ -1179,8 +1187,7 @@ cifParseUser95()
     if (type >=0 )
     {
 	int flags;
-	if (layer >= 0 && (cifCurReadStyle->crs_layers[layer]->crl_flags
-		& CIFR_TEXTLABELS))
+	if (layer >= 0 && cifCurReadStyle->crs_labelSticky[layer])
 	    flags = LABEL_STICKY;
 	else
 	    flags = 0;

@@ -532,8 +532,43 @@ DBTreeSrLabels(scx, mask, xMask, tpath, flags, func, cdarg)
     {
 	if (SigInterruptPending) break;
 	is_touching = FALSE;
+
 	if ((lab->lab_font < 0) || (flags & TF_LABEL_ATTACH))
-	    is_touching = GEO_TOUCH(&lab->lab_rect, r);
+	{
+	    /* For non-manhattan searches, label must be in or	*/
+	    /* touch the triangle.  (to-do:  needs a proper	*/
+	    /* insideness test)					*/
+	
+	    if (flags & TF_LABEL_ATTACH_CORNER)
+	    {
+		Rect r1 = *r;
+		Rect r2 = *r;
+		if (flags & TF_LABEL_ATTACH_NOT_NE)
+		{
+		    r1.r_ytop = r->r_ybot;
+		    r2.r_xtop = r->r_xbot;
+		}
+		else if (flags & TF_LABEL_ATTACH_NOT_NW)
+		{
+		    r1.r_ytop = r->r_ybot;
+		    r2.r_xbot = r->r_xtop;
+		}
+		else if (flags & TF_LABEL_ATTACH_NOT_SE)
+		{
+		    r1.r_ybot = r->r_ytop;
+		    r2.r_xtop = r->r_xbot;
+		}
+		else if (flags & TF_LABEL_ATTACH_NOT_SW)
+		{
+		    r1.r_ybot = r->r_ytop;
+		    r2.r_xbot = r->r_xtop;
+		}
+		is_touching = GEO_TOUCH(&lab->lab_bbox, &r1) ||
+			  GEO_TOUCH(&lab->lab_bbox, &r2);
+	    }
+	    else
+		is_touching = GEO_TOUCH(&lab->lab_rect, r);
+	}
 	if (!is_touching && (flags & TF_LABEL_DISPLAY) && (lab->lab_font >= 0))
 	    is_touching = GEO_TOUCH(&lab->lab_bbox, r);
 

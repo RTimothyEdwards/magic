@@ -554,14 +554,29 @@ mainInitAfterArgs()
 
     StrDup(&SysLibPath, MAGIC_SYS_PATH);
 
+    /*
+     * Historic behavior:  Expect to search for cells in a directory
+     * inside the install area with the same name as the technology.
+     * Deprecated but kept for backwards compatibility.  If directory
+     * does not exist, it will be ignored.
+     */
+
     if (TechFileName != NULL)
     {
-	CellLibPath = (char *)mallocMagic(strlen(MAGIC_LIB_PATH)
+	CellLibPath = (char *)mallocMagic(strlen(MAGIC_LIB_PATH_FORMAT)
 		+ strlen(TechFileName) - 1);
-	sprintf(CellLibPath, MAGIC_LIB_PATH, TechFileName);
+	sprintf(CellLibPath, MAGIC_LIB_PATH_FORMAT, TechFileName);
+	PaAppend(&CellLibPath, MAGIC_LIB_PATH_DEFAULT);
+    }
+    else if ((TechDefault != NULL) && TechOverridesDefault)
+    {
+	CellLibPath = (char *)mallocMagic(strlen(MAGIC_LIB_PATH_FORMAT)
+		+ strlen(TechDefault) - 1);
+	sprintf(CellLibPath, MAGIC_LIB_PATH_FORMAT, TechDefault);
+	PaAppend(&CellLibPath, MAGIC_LIB_PATH_DEFAULT);
     }
     else
-	CellLibPath = StrDup((char **)NULL, MAGIC_LIB_PATH);
+	StrDup(&CellLibPath, MAGIC_LIB_PATH_DEFAULT);
     
     if (MainGraphicsFile == NULL) MainGraphicsFile = "/dev/null";
     if (MainMouseFile == NULL) MainMouseFile = MainGraphicsFile;

@@ -459,8 +459,10 @@ calmaProcessDef(def, outf)
 
 	    DBPropGet(def->cd_parents->cu_parent, "GDS_FILE", &isReadOnly);
 	    if (!isReadOnly)
-		TxError("Calma output error:  Can't find GDS file for vendor cell."
-	    			"  Using magic's internal definition\n");
+		TxError("Calma output error:  Can't find GDS file \"%s\" "
+				"for vendor cell \"%s\".  Using magic's "
+				"internal definition\n", filename,
+				def->cd_name);
 	    else 
 		def->cd_flags |= CDVENDORGDS;
 	}

@@ -689,6 +689,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
     int keyword, subkey, values;
     int processed = 0;
     int pinDir = PORT_CLASS_DEFAULT;
+    int pinNum = 0;
     TileType curlayer = -1;
     Rect *currect, topRect;
     Transform t;
@@ -807,8 +808,9 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				GeoTransRect(&t, currect, &topRect);
 				DBPaint(rootDef, &topRect, curlayer);
 				DBPutLabel(rootDef, &topRect, -1, pinname, curlayer,
-					pinDir);
+					pinNum | pinDir | PORT_DIR_MASK);
 				pending = FALSE;
+				pinNum++;
 			    }
 			    break;
 			case DEF_PINS_PROP_FIXED:
@@ -821,7 +823,8 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				GeoTransRect(&t, currect, &topRect);
 				DBPaint(rootDef, &topRect, curlayer);
 				DBPutLabel(rootDef, &topRect, -1, pinname, curlayer,
-					pinDir);
+					pinNum | pinDir | PORT_DIR_MASK);
+				pinNum++;
 			    }
 			    break;
 		    }

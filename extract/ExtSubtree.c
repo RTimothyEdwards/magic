@@ -81,6 +81,7 @@ ExtTree *extSubList = (ExtTree *) NULL;
 /* Forward declarations of filter functions */
 char *extSubtreeTileToNode();
 int extSubtreeFunc();
+int extSubstrateFunc();
 int extConnFindFunc();
 int extSubtreeHardUseFunc();
 int extHardProc();
@@ -211,6 +212,17 @@ extSubtree(parentUse, reg, f)
 		extSubtreeInteractionArea += RECTAREA(&ha.ha_interArea);
 		extSubtreeClippedArea += RECTAREA(&ha.ha_clipArea);
 		extSubtreeInteraction(&ha);
+	    }
+	    else
+	    {
+		/* Make sure substrate connections have been handled	*/
+		/* even if there were no other interactions found.	*/
+		SearchContext scx;
+
+		scx.scx_trans = GeoIdentityTransform;
+		scx.scx_area = ha.ha_interArea;
+		scx.scx_use = ha.ha_parentUse;
+		DBCellSrArea(&scx, extSubstrateFunc, (ClientData)&ha);
 	    }
 	}
     }
@@ -790,6 +802,63 @@ extSubtreeFunc(scx, ha)
     return (2);
 }
 
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extSubstrateFunc
+ *
+ * This contains just the part of extSubtreeFunc() dealing with the
+ * substrate, so that substrate extraction can occur in cells not
+ * otherwise having extraction interactions, without incurring the
+ * overhead of all the other items handled by extHierSubtreeFunc().
+ *
+ * Results:
+ *	Always returns 2, to avoid further elements in arrays.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extSubstrateFunc(scx, ha)
+    SearchContext *scx;
+    HierExtractArg *ha;
+{
+    CellUse *use = scx->scx_use;
+    int x, y;
+
+    /* Record information for finding node names the hard way */
+    ha->ha_subUse = use;
+    ha->ha_subArea = use->cu_bbox;
+    GEOCLIP(&ha->ha_subArea, &ha->ha_interArea);
+
+    /* Process substrate connection.  All substrates should be	*/
+    /* connected together in the cell def, so in the case of an	*/
+    /* array, just make sure that the first array entry is	*/
+    /* connected.						*/
+    
+    if (use->cu_xhi == use->cu_xlo && use->cu_yhi == use->cu_ylo)
+	extHierSubstrate(ha, use, -1, -1);
+    else if (use->cu_xhi == use->cu_xlo && use->cu_yhi > use->cu_ylo)
+    {	
+	for (y = use->cu_ylo; y <= use->cu_yhi; y++)
+	    extHierSubstrate(ha, use, -1, y);
+    }
+    else if (use->cu_xhi > use->cu_xlo && use->cu_yhi == use->cu_ylo)
+    {
+	for (x = use->cu_xlo; x <= use->cu_xhi; x++)
+	extHierSubstrate(ha, use, x, -1);
+    }
+    else
+    {
+	for (x = use->cu_xlo; x <= use->cu_xhi; x++)
+	    for (y = use->cu_ylo; y <= use->cu_yhi; y++)
+		extHierSubstrate(ha, use, x, y);
+    }
+    return (2);
+}
+
+
 /*
  * ----------------------------------------------------------------------------
  *

@@ -79,11 +79,11 @@ scmosWR.tech: $(OBJS)
 	$(SC_CPP) -DV5 -DSTANDARD -DWELL_ROUTE_CHECK scmos.tech.out > scmosWR.tech
 	$(RM) scmos.tech.out
 
-minimum.tech: minimum.tech.m4
-	$(SC_M4) minimum.tech.m4 > minimum.tech
+minimum.tech: minimum.tech.in
+	$(SC_M4) minimum.tech.in > minimum.tech
 
-gdsquery.tech: gdsquery.tech.m4
-	$(SC_M4) gdsquery.tech.m4 > gdsquery.tech
+gdsquery.tech: gdsquery.tech.in
+	$(SC_M4) gdsquery.tech.in > gdsquery.tech
 
 $(CIFin):
 $(CIFout):

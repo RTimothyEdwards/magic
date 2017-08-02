@@ -40,7 +40,8 @@
 #define MAGIC_SYS_PATH	". $CAD_ROOT/magic/sys $CAD_ROOT/magic/sys/current"
 #define MAGIC_SYS_DOT	"$CAD_ROOT/magic/sys/.magicrc"
 #define MAGIC_PRE_DOT	"$CAD_ROOT/magic/sys/.initrc"
-#define MAGIC_LIB_PATH	"$CAD_ROOT/magic/%s $CAD_ROOT/magic/tutorial"
+#define MAGIC_LIB_PATH_FORMAT	"$CAD_ROOT/magic/%s"
+#define MAGIC_LIB_PATH_DEFAULT	"$CAD_ROOT/magic/sys/current $CAD_ROOT/magic/tutorial"
 #define HELPER_PATH	". BIN_DIR"		/* Used by graphics drivers */
 
 /*

@@ -592,9 +592,10 @@ DBTechPrintTypes(mask, dolist)
  */
 
 PlaneMask
-DBTechNoisyNameMask(layers, mask)
+DBTechNameMask0(layers, mask, noisy)
     char *layers;			/* String to be parsed. */
     TileTypeBitMask *mask;		/* Where to store the layer mask. */
+    bool noisy;				/* Whether or not to output errors */
 {
     char *p, *p2, c;
     TileTypeBitMask m2;        /* Each time around the loop, we will
@@ -652,7 +653,7 @@ DBTechNoisyNameMask(layers, mask)
 	    }
 	    save = *p2;
 	    *p2 = 0;
-	    planemask |= DBTechNoisyNameMask(p, &m2);
+	    planemask |= DBTechNameMask0(p, &m2, noisy);
 	    *p2 = save;
 	    if (save == ')') p = p2 + 1;
 	    else p = p2;
@@ -700,7 +701,10 @@ DBTechNoisyNameMask(layers, mask)
 			p++;
 		    }
 
-		    t = DBTechNoisyNameType(p);
+		    if (noisy)
+			t = DBTechNoisyNameType(p);
+		    else
+			t = DBTechNameType(p);
 		    if (t >= 0)
 			m2 = DBLayerTypeMaskTbl[t];
 
@@ -743,7 +747,10 @@ DBTechNoisyNameMask(layers, mask)
 	    while ((*p2 != 0) && (*p2 != ',')) p2 += 1;
 	    save = *p2;
 	    *p2 = 0;
-    	    plane = DBTechNoisyNamePlane(p+1);
+	    if (noisy)
+    		plane = DBTechNoisyNamePlane(p+1);
+	    else
+    		plane = DBTechNamePlane(p+1);
 	    *p2 = save;
 	    p = p2;
 	    if (plane > 0)
@@ -775,3 +782,20 @@ DBTechNoisyNameMask(layers, mask)
     return planemask;
 }
 
+/* Wrappers for DBTechNameMask0() */
+
+PlaneMask
+DBTechNoisyNameMask(layers, mask)
+    char *layers;			/* String to be parsed. */
+    TileTypeBitMask *mask;		/* Where to store the layer mask. */
+{
+    return DBTechNameMask0(layers, mask, TRUE);
+}
+
+PlaneMask
+DBTechNameMask(layers, mask)
+    char *layers;			/* String to be parsed. */
+    TileTypeBitMask *mask;		/* Where to store the layer mask. */
+{
+    return DBTechNameMask0(layers, mask, FALSE);
+}

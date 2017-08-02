@@ -52,13 +52,10 @@ typedef struct
  *		a single OR operation, so it can be handled specially.
  * CIFR_TEMPLAYER: Means this layer is a temporary CIF layer, and that
  *		the "crl_magicType" should be interpreted as a CIF layer.
- * CIFR_TEXTLABELS: Means this layer is used for text-only layers, not to
- *		be moved or electrically connected to any other layer.
  */
 
 #define CIFR_SIMPLE 1
 #define CIFR_TEMPLAYER 2
-#define CIFR_TEXTLABELS 4
 
 /* The following structure defines a complete CIF read-in style.
  * The constant MAXCIFRLAYERS must be less than TT_MAXTYPES, and
@@ -107,6 +104,8 @@ typedef struct cifrstyle
 				/* Gives the Magic layer to use for labels
 				 * on each possible CIF layer.
 				 */
+    bool crs_labelSticky[MAXCIFRLAYERS];
+				/* Marker if label layer makes sticky labels */
     CIFReadLayer *crs_layers[MAXCIFRLAYERS];
     HashTable cifCalmaToCif;    /* Table mapping from Calma layer numbers to
                                  * CIF layers

@@ -48,6 +48,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 bool esDoExtResis = FALSE;
 bool esDoPorts = TRUE;
 bool esDoHierarchy = FALSE;
+bool esDoBlackBox = FALSE;
 bool esDoRenumber = FALSE;
 bool esDoResistorTee = FALSE;
 int  esDoSubckt = AUTO;
@@ -207,9 +208,10 @@ Exttospice_Init(interp)
 #define EXTTOSPC_SCALE		8
 #define EXTTOSPC_SUBCIRCUITS	9
 #define EXTTOSPC_HIERARCHY	10
-#define EXTTOSPC_RENUMBER	11
-#define EXTTOSPC_MERGENAMES	12
-#define EXTTOSPC_HELP		13
+#define EXTTOSPC_BLACKBOX	11
+#define EXTTOSPC_RENUMBER	12
+#define EXTTOSPC_MERGENAMES	13
+#define EXTTOSPC_HELP		14
 
 void
 CmdExtToSpice(w, cmd)
@@ -256,6 +258,7 @@ CmdExtToSpice(w, cmd)
 	"scale [on|off]		use .option card for scaling",
 	"subcircuits [on|off]	standard cells become subcircuit calls",
 	"hierarchy [on|off]	output hierarchical spice for LVS",
+	"blackbox [on|off]	output abstract views as black-box entries",
 	"renumber [on|off]	on = number instances X1, X2, etc.\n"
 	"			off = keep instance ID names",
 	"global [on|off]	on = merge unconnected global nets by name",
@@ -371,6 +374,20 @@ CmdExtToSpice(w, cmd)
 		esDoHierarchy = TRUE;
 	    else	 /* no */
 		esDoHierarchy = FALSE;
+	    break;
+
+	case EXTTOSPC_BLACKBOX:
+	    if (cmd->tx_argc == 2)
+	    {
+		Tcl_SetResult(magicinterp, (esDoBlackBox) ? "on" : "off", NULL);
+		return;
+	    }
+	    idx = Lookup(cmd->tx_argv[2], yesno);
+	    if (idx < 0) goto usage;
+	    else if (idx < 3)	/* yes */
+		esDoBlackBox = TRUE;
+	    else	 /* no */
+		esDoBlackBox = FALSE;
 	    break;
 
 	case EXTTOSPC_RENUMBER:
@@ -828,7 +845,13 @@ runexttospice:
     locDoSubckt = FALSE;
     if (esDoHierarchy)
     {
+	if ((esDoSubckt == TRUE) || (locDoSubckt == TRUE))
+	    topVisit(efFlatRootDef, FALSE);
+
 	ESGenerateHierarchy(inName, flatFlags);
+
+	if ((esDoSubckt == TRUE) || (locDoSubckt == TRUE))
+	    fprintf(esSpiceF, ".ends\n");
     }
     else
     {
@@ -840,7 +863,7 @@ runexttospice:
 		locDoSubckt = TRUE;
 	}
 	if ((esDoSubckt == TRUE) || (locDoSubckt == TRUE))
-	    topVisit(efFlatRootDef);
+	    topVisit(efFlatRootDef, FALSE);
 
 	/* When generating subcircuits, remove the subcircuit	*/
 	/* flag from the top level cell.  Other than being	*/
@@ -1016,7 +1039,7 @@ main(argc, argv)
 	    locDoSubckt = TRUE;
     }
     if ((esDoSubckt == TRUE) || (locDoSubckt == TRUE))
-	topVisit(efFlatRootDef);
+	topVisit(efFlatRootDef, FALSE);
 
     /* If we don't want to write subcircuit calls, remove the	*/
     /* subcircuit flag from all cells at this time.		*/
@@ -1466,6 +1489,14 @@ subcktVisit(use, hierName, is_top)
 	}
     }
 
+    /* SPICE subcircuit names must begin with A-Z.  This will also be   */
+    /* enforced when writing X subcircuit calls.                        */
+    subcktname = def->def_name;
+    while (!isalpha(*subcktname)) subcktname++;
+
+    if (tchars > 80) fprintf(esSpiceF, "\n+");
+    fprintf(esSpiceF, " %s", subcktname);	/* subcircuit model name */
+
     // Check for a "device parameter" defined with the name of the cell.
     // This contains a list of parameter strings to be passed to the
     // cell instance.
@@ -1484,14 +1515,7 @@ subcktVisit(use, hierName, is_top)
 	tchars += (1 + strlen(pptr->parm_name));
     }    
     freeMagic(instname);
-
-    /* SPICE subcircuit names must begin with A-Z.  This will also be   */
-    /* enforced when writing X subcircuit calls.                        */
-    subcktname = def->def_name;
-    while (!isalpha(*subcktname)) subcktname++;
-
-    if (tchars > 80) fprintf(esSpiceF, "\n+");
-    fprintf(esSpiceF, " %s\n", subcktname);	/* subcircuit model name */
+    fprintf(esSpiceF, "\n");
     return 0;
 }
 
@@ -1542,14 +1566,18 @@ subcktUndef(use, hierName, is_top)
  *
  * where
  *	node1 node2 ... noden are the nodes connecting to the ports of
- *	the subcircuit.  "name" is the name of the cell def.
+ *	the subcircuit.  "name" is the name of the cell def.  If "doStub"
+ *	is TRUE, then the subcircuit is a stub (empty declaration) for a
+ *	subcircuit, and implicit substrate connections should not be
+ *	output.
  *
  * ----------------------------------------------------------------------------
  */
  
 void
-topVisit(def)
+topVisit(def, doStub)
     Def *def;
+    bool doStub;
 {
     EFNode *snode;
     EFNodeName *sname, *nodeName;
@@ -1660,8 +1688,14 @@ topVisit(def)
 		if (nodeName != NULL)
 		    break;
 		else if (portidx < 0)
-		    // Node has not been assigned a port number
-		    unnumbered->efnn_port = ++portmax;
+		{
+		    // Node has not been assigned a port number.
+		    // Give it one unless this is a black-box circuit
+		    // and "ext2spice blackbox on" is in effect.
+ 
+		    if (esDoBlackBox == FALSE || !(def->def_flags & DEF_ABSTRACT))
+			unnumbered->efnn_port = ++portmax;
+		}
 	    }
 	    portorder++;
 	}
@@ -1669,30 +1703,33 @@ topVisit(def)
 
     /* Add all implicitly-defined local substrate node names */
 
-    HashStartSearch(&hs);
-    while (he = HashNext(&def->def_nodes, &hs))
+    if (!doStub)
     {
-	sname = (EFNodeName *) HashGetValue(he);
-	if (sname == NULL) continue;
-	snode = sname->efnn_node;
-
-	if (snode->efnode_flags & EF_SUBS_PORT)
+	HashStartSearch(&hs);
+	while (he = HashNext(&def->def_nodes, &hs))
 	{
-	    if (snode->efnode_name->efnn_port < 0)
-	    {
-		char stmp[MAX_STR_SIZE];
+	    sname = (EFNodeName *) HashGetValue(he);
+	    if (sname == NULL) continue;
+	    snode = sname->efnn_node;
 
-		if (tchars > 80)
+	    if (snode->efnode_flags & EF_SUBS_PORT)
+	    {
+		if (snode->efnode_name->efnn_port < 0)
 		{
-		    /* Line continuation */
-		    fprintf(esSpiceF, "\n+");
-		    tchars = 1;
+		    char stmp[MAX_STR_SIZE];
+
+		    if (tchars > 80)
+		    {
+			/* Line continuation */
+			fprintf(esSpiceF, "\n+");
+			tchars = 1;
+		    }
+		    /* This is not a hierarchical name or node! */
+		    EFHNSprintf(stmp, snode->efnode_name->efnn_hier);
+		    fprintf(esSpiceF, " %s", stmp);
+		    snode->efnode_name->efnn_port = portorder++;
+		    tchars += strlen(stmp) + 1;
 		}
-		/* This is not a hierarchical name or node! */
-		EFHNSprintf(stmp, snode->efnode_name->efnn_hier);
-		fprintf(esSpiceF, " %s", stmp);
-		snode->efnode_name->efnn_port = portorder++;
-		tchars += strlen(stmp) + 1;
 	    }
 	}
     }

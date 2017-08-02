@@ -23,7 +23,9 @@
 ---------------------------------
 
    As of the release of version 8.2, Version 8.1 is now the new stable
-   distribution, and 8.2 is the development distribution.
+   distribution, and 8.2 is the development distribution.  First
+   development push over 8.1 is to add a Cairo (2D hardware-accelerated
+   graphics) interface ("magic -d CAIRO" or "magic -d XR").
 
 4. Version 8.1 Release Notes:
 ---------------------------------

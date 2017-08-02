@@ -53,8 +53,8 @@ char *extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
  */
 typedef enum
 {
-    ADJUST, ATTR, CAP, DEVICE, DIST, EQUIV, FET, KILLNODE, MERGE, NODE,
-    PARAMETERS, PORT, RESISTOR, RESISTCLASS, RNODE, SCALE, SUBCAP,
+    ABSTRACT, ADJUST, ATTR, CAP, DEVICE, DIST, EQUIV, FET, KILLNODE, MERGE,
+    NODE, PARAMETERS, PORT, RESISTOR, RESISTCLASS, RNODE, SCALE, SUBCAP,
     SUBSTRATE, TECH, TIMESTAMP, USE, VERSION, EXT_STYLE
 } Key;
 
@@ -66,6 +66,7 @@ static struct
 }
 keyTable[] =
 {
+    "abstract",		ABSTRACT,	0,	/* defines a LEF-like view */
     "adjust",		ADJUST,		4,
     "attr",		ATTR,		8,
     "cap",		CAP,		4,
@@ -404,9 +405,9 @@ readfile:
 		{
 		    DoResist = FALSE;
 		    def->def_flags |= DEF_SUBCIRCUIT;
-		    efBuildPortNode(def, argv[1], atoi(argv[2]), atoi(argv[3]),
-					atoi(argv[4]), argv[7]);
 		}
+		efBuildPortNode(def, argv[1], atoi(argv[2]), atoi(argv[3]),
+					atoi(argv[4]), argv[7]);
 		break;
 
 	    /*
@@ -553,6 +554,11 @@ resistChanged:
 	    /* resistor node1 node2 resistance */
 	    case RESISTOR:
 		efBuildResistor(def, argv[1], argv[2], rscale*atoi(argv[3]));
+		break;
+
+	    /* abstract (no options/arguments) */
+	    case ABSTRACT:
+		def->def_flags |= DEF_ABSTRACT;
 		break;
 
 	    /* To-do: compare timestamp against the cell */

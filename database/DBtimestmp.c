@@ -147,9 +147,12 @@ DBFixMismatch()
 	 * the uses.
 	 */
 
-	cellDef->cd_bbox.r_xtop = cellDef->cd_bbox.r_xbot - 1;
-	cellDef->cd_extended.r_xtop = cellDef->cd_extended.r_xbot - 1;
-	DBReComputeBbox(cellDef);
+	if (!(cellDef->cd_flags & CDFIXEDBBOX))
+	{
+	    cellDef->cd_bbox.r_xtop = cellDef->cd_bbox.r_xbot - 1;
+	    cellDef->cd_extended.r_xtop = cellDef->cd_extended.r_xbot - 1;
+	    DBReComputeBbox(cellDef);
+	}
 
 	/* Now, for each parent, recheck the parent in both the
 	 * old area of the child and the new area.

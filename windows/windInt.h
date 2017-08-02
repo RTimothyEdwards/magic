@@ -61,12 +61,16 @@ extern MagWindow *windSearchPoint();
 
 /* the width of window borders */
 extern int windCaptionPixels;
-#define THIN_LINE	(((w)->w_flags & WIND_BORDER) ? 2 : 0)	
-#define TOP_BORDER(w)	(((w)->w_flags & WIND_CAPTION) \
+#define THIN_LINE	((((w == NULL) ? WindDefaultFlags \
+	: (w)->w_flags) & WIND_BORDER) ? 2 : 0)	
+#define TOP_BORDER(w)	((((w == NULL) ? WindDefaultFlags \
+	: (w)->w_flags) & WIND_CAPTION) \
 	? windCaptionPixels : 2*THIN_LINE)
-#define BOT_BORDER(w)	(((w)->w_flags & WIND_SCROLLBARS) \
+#define BOT_BORDER(w)	((((w == NULL) ? WindDefaultFlags \
+	: (w)->w_flags) & WIND_SCROLLBARS) \
 	? 2*THIN_LINE + WindScrollBarWidth : 2*THIN_LINE)
-#define LEFT_BORDER(w)	(((w)->w_flags & WIND_SCROLLBARS) \
+#define LEFT_BORDER(w)	((((w == NULL) ? WindDefaultFlags \
+	: (w)->w_flags) & WIND_SCROLLBARS) \
 	? 2*THIN_LINE + WindScrollBarWidth : 2*THIN_LINE)
 #define RIGHT_BORDER(w)	2*THIN_LINE
 

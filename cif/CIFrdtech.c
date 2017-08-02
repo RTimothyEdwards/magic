@@ -365,6 +365,7 @@ cifReadStyleInit()
     for (i = 0; i < MAXCIFRLAYERS; i++)
     {
 	cifCurReadStyle->crs_labelLayer[i] = TT_SPACE;
+	cifCurReadStyle->crs_labelSticky[i] = FALSE;
 	cifCurReadStyle->crs_layers[i] = NULL;
     }
 }
@@ -861,7 +862,7 @@ CIFReadTechLine(sectionName, argc, argv)
 		cifCurReadStyle->crs_labelLayer[i]
 			= cifCurReadLayer->crl_magicType;
 		if (argc == 3)
-		    cifCurReadStyle->crs_layers[i]->crl_flags |= CIFR_TEXTLABELS;
+		    cifCurReadStyle->crs_labelSticky[i] = TRUE;
 	    }
 	}
 	return TRUE;

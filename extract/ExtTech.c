@@ -209,7 +209,7 @@ static keydesc devTable[] = {
     "rsubcircuit",	DEV_RSUBCKT,		4,	7,
 "name dev-types terminal-types [sub-types|None sub-node] [options]",
 
-    "msubcircuit",	DEV_MSUBCKT,		4,	11,
+    "msubcircuit",	DEV_MSUBCKT,		3,	11,
 "name dev-types [N] [term1-types ... termN-types [sub-types|None sub-node]] [options]",
 
     0
@@ -2127,14 +2127,35 @@ ExtTechLine(sectionName, argc, argv)
 
 		case DEV_SUBCKT:
 		case DEV_MSUBCKT:
+		    // Determine if [substrate, name] optional arguments
+		    // are present by checking if the last argument
+		    // parses as a layer list.
+
+		    if (DBTechNameMask(argv[argc - 1], &termtypes[0]) <= 0)
+		    {
+			if (strcmp(argv[argc - 2], "None"))
+			    DBTechNoisyNameMask(argv[argc - 2], &subsTypes);
+			else
+			    subsTypes = DBZeroTypeBits;
+			subsName = argv[argc - 1];
+			argc -= 2;
+		    }
+
 		    if (StrIsInt(argv[4]))
 		    {
 			nterm = atoi(argv[4]);
-			iterm = 4 + nterm;
+			iterm = 5;
+			if (nterm > argc - 5)
+			{
+			    TechError("Not enough terminals for subcircuit, "
+					"%d were required, %d found.\n",
+					nterm, argc - 5);
+			    nterm = argc - 5;
+			}
 		    }
 		    else
 		    {
-			nterm = 1;
+			nterm = argc - 4;
 			iterm = 4;
 		    }
 		    
@@ -2145,15 +2166,14 @@ ExtTechLine(sectionName, argc, argv)
 
 		    if (nterm == 0) i++;
 
-		    // Type MSUBCKT:  Source and drain are symmetric.  The
-		    // number of unique terminals in the definition is 1,
-		    // but nterm needs to be set to 2 for proper extraction.
+		    // Type MSUBCKT:  If source and drain are symmetric (both
+		    // have the same types), then they must both be declared,
+		    // but only one is used (same policy as "device mosfet").
 
-		    if ((dv->k_key == DEV_MSUBCKT) && (nterm == 1)) nterm = 2;
+		    if ((nterm == 2) && TTMaskEqual(&termtypes[nterm - 1],
+				&termtypes[nterm - 2]))
+			termtypes[nterm - 1] = DBZeroTypeBits;
 
-		    if (argc > i)
-			DBTechNoisyNameMask(argv[i], &subsTypes); /* substrate */
-		    if (argc > (i + 1)) subsName = argv[i + 1];
 		    break;
 
 		case DEV_RSUBCKT:

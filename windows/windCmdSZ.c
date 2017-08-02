@@ -427,6 +427,8 @@ windSpecialOpenCmd(w, cmd)
     if ((wc == (WindClient) NULL) || (client[0] == '*')) goto usage;
 
     if (haveCoords) {
+	windCheckOnlyWindow(&w, wc);
+
 	area.r_xbot = atoi(cmd->tx_argv[1]);
 	area.r_ybot = atoi(cmd->tx_argv[2]);
 	area.r_xtop = MAX(atoi(cmd->tx_argv[3]), area.r_xbot + WIND_MIN_WIDTH);
@@ -490,6 +492,12 @@ windNamesCmd(w, cmd)
     {
 	if (!strncmp(cmd->tx_argv[1], "all", 3))
 	    doforall = TRUE;
+#ifndef THREE_D
+	else if (!strncmp(cmd->tx_argv[1], "wind3d", 6))
+	{
+	    return;	// do nothing
+	}
+#endif 	/* THREE_D */
 	else
 	{
 	    wc = WindGetClient(cmd->tx_argv[1], FALSE);

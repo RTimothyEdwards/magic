@@ -387,7 +387,11 @@ efFlatNodesDeviceless(hc, cdata)
 	/* Mark this definition as having no devices, so it will not be visited */
 	hc->hc_use->use_def->def_flags |= DEF_NODEVICES;
 
-	(*usecount)--;
+	/* If this definition has no devices but has ports, then it is treated	*/
+	/* as a black-box device, so don't decrement the use count of the	*/
+	/* parent.								*/
+	if (!(hc->hc_use->use_def->def_flags & DEF_SUBCIRCUIT))
+	    (*usecount)--;
     }
     return (0);
 }

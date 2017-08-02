@@ -296,6 +296,77 @@ dbSrConnectStartFunc(tile, pTile)
     return 1;
 }
 
+/* Function similar to DBSrConnect but which does the first pass only	*/
+/* and leaves the marked tiles intact.  Tiles must be cleared by the	*/
+/* caller.								*/
+
+int
+DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
+    CellDef *def;		/* Cell definition in which to carry out
+				 * the connectivity search.  Only paint
+				 * in this definition is considered.
+				 */
+    Rect *startArea;		/* Area to search for an initial tile.  Only
+				 * tiles OVERLAPPING the area are considered.
+				 * This area should have positive x and y
+				 * dimensions.
+				 */
+    TileTypeBitMask *mask;	/* Only tiles of one of these types are used
+				 * as initial tiles.
+				 */
+    TileTypeBitMask *connect;	/* Pointer to a table indicating what tile
+				 * types connect to what other tile types.
+				 * Each entry gives a mask of types that
+				 * connect to tiles of a given type.
+				 */
+    Rect *bounds;		/* Area, in coords of scx->scx_use->cu_def,
+				 * that limits the search:  only tiles
+				 * overalapping this area will be returned.
+				 * Use TiPlaneRect to search everywhere.
+				 */
+    int (*func)();		/* Function to apply at each connected tile. */
+    ClientData clientData;	/* Client data for above function. */
+
+{
+    struct conSrArg csa;
+    int startPlane, result;
+    Tile *startTile;			/* Starting tile for search. */
+    extern int dbSrConnectFunc();	/* Forward declaration. */
+    extern int dbSrConnectStartFunc();
+
+    result = 0;
+    csa.csa_def = def;
+    csa.csa_bounds = *bounds;
+
+    /* Find a starting tile (if there are many tiles underneath the
+     * starting area, pick any one).  The search function just saves
+     * the tile address and returns.
+     */
+
+    startTile = NULL;
+    for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
+    {
+	if (DBSrPaintArea((Tile *) NULL,
+	    def->cd_planes[startPlane], startArea, mask,
+	    dbSrConnectStartFunc, (ClientData) &startTile) != 0) break;
+    }
+    if (startTile == NULL) return 0;
+    /* The following lets us call DBSrConnect recursively */
+    else if (startTile->ti_client == (ClientData)1) return 0;
+   
+
+    /* Pass 1.  During this pass the client function gets called. */
+
+    csa.csa_clientFunc = func;
+    csa.csa_clientData = clientData;
+    csa.csa_clear = FALSE;
+    csa.csa_connect = connect;
+    csa.csa_plane = startPlane;
+    if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
+
+    return result;
+}
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -402,6 +473,8 @@ dbSrConnectFunc(tile, csa)
 		if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
 	    }
 	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) continue;
+	    if (IsSplit(t2))
+		TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE)); /* bit set */
 	    if (dbSrConnectFunc(t2, csa) != 0) return 1;
 	}
     }
@@ -427,6 +500,13 @@ bottomside:
 		if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
 	    }
 	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) continue;
+	    if (IsSplit(t2))
+	    {
+		if (SplitDirection(t2))
+		    TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE)); /* bit set */
+		else
+		    TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE)); /* bit clear */
+	    }
 	    if (dbSrConnectFunc(t2, csa) != 0) return 1;
 	}
     }
@@ -451,6 +531,8 @@ rightside:
 		if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextRight;
 	    }
 	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) goto nextRight;
+	    if (IsSplit(t2))
+		TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE)); /* bit clear */
 	    if (dbSrConnectFunc(t2, csa) != 0) return 1;
 	}
 	nextRight: if (BOTTOM(t2) <= tileArea.r_ybot) break;
@@ -476,6 +558,13 @@ topside:
 		if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextTop;
 	    }
 	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) goto nextTop;
+	    if (IsSplit(t2))
+	    {
+		if (SplitDirection(t2))
+		    TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE)); /* bit clear */
+		else
+		    TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE)); /* bit set */
+	    }
 	    if (dbSrConnectFunc(t2, csa) != 0) return 1;
 	}
 	nextTop: if (LEFT(t2) <= tileArea.r_xbot) break;
@@ -606,8 +695,16 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 		    SearchContext scx2 = *csa2->csa2_topscx;
 		    TileTypeBitMask mask;
 
+		    // Do NOT go searching on labels connected to space!
+		    if (slab->lab_type == TT_SPACE) continue;
 		    TTMaskSetOnlyType(&mask, slab->lab_type);
 		    GeoTransRect(&scx->scx_trans, &slab->lab_rect, &scx2.scx_area);
+
+		    // Expand search area by 1 to capture edge and point labels.
+		    scx2.scx_area.r_xbot--;
+		    scx2.scx_area.r_xtop++;
+		    scx2.scx_area.r_ybot--;
+		    scx2.scx_area.r_ytop++;
 		    DBTreeSrTiles(&scx2, &mask, csa2->csa2_xMask,
 				dbcConnectFunc, (ClientData) csa2);
 		}
@@ -657,6 +754,7 @@ dbcConnectFunc(tile, cx)
     TileType loctype = TiGetTypeExact(tile);
     TileType dinfo = 0;
     int pNum = cx->tc_plane;
+    unsigned char searchtype;
     CellDef *def;
 
     TiToRect(tile, &tileArea);
@@ -767,8 +865,30 @@ dbcConnectFunc(tile, cx)
     /* Check the source def for any labels belonging to this	*/
     /* tile area and plane, and add them to the destination.	*/
 
+    searchtype = TF_LABEL_ATTACH;
+    if (IsSplit(tile))
+    {
+	/* If the tile is split, then labels attached to the	*/
+	/* opposite point of the triangle are NOT connected.	*/
+
+	if (SplitSide(tile))
+	{
+	    if (SplitDirection(tile))
+		searchtype |= TF_LABEL_ATTACH_NOT_SW;
+	    else
+		searchtype |= TF_LABEL_ATTACH_NOT_NW;
+	}
+	else
+	{
+	    if (SplitDirection(tile))
+		searchtype |= TF_LABEL_ATTACH_NOT_NE;
+	    else
+		searchtype |= TF_LABEL_ATTACH_NOT_SE;
+	}
+    }
+
     DBTreeSrLabels(&scx2, connectMask, csa2->csa2_xMask, NULL,
-			TF_LABEL_ATTACH, dbcConnectLabelFunc,
+			searchtype, dbcConnectLabelFunc,
 			(ClientData) csa2);
 
     /* Since the whole area of this tile hasn't been recorded,

@@ -840,11 +840,12 @@ SelectNet(scx, type, xMask, pArea, less)
     }
 
     TTMaskZero(&mask);
-    TTMaskSetType(&mask, type);
 
-    /* Clear out the temporary selection cell and yank all of the
-     * connected paint into it.
-     */
+    // Make sure that SelectNet() matches connection-compatible
+    // types with the type passed to the routine.
+
+    // TTMaskSetType(&mask, type);
+    TTMaskSetMask(&mask, &DBConnectTbl[type]);
 
     UndoDisable();
     DBCellClearDef(Select2Def);

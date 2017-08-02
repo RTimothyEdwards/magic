@@ -61,7 +61,7 @@ CmdLef(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    int option;
+    int option, i;
     char **msg, *namep;
     CellUse *selectedUse;
     CellDef *selectedDef;
@@ -79,12 +79,16 @@ CmdLef(w, cmd)
 					 * treat all geometry as "special"
 					 * nets in DEF format output.
 					 */
+    bool lefTech = FALSE;		/* Indicates that technology info
+					 * will be output along with the
+					 * lef macro.
+					 */
 
     static char *cmdLefOption[] =
     {	
 	"read [filename]		read a LEF file filename[.lef]\n"
 	"    read [filename] -import	read a LEF file; import cells from .mag files",
-	"write [cell]			write LEF for current or indicated cell",
+	"write [filename] [-tech]	write LEF for current cell",
 	"writeall			write all cells including the top-level cell\n"
 	"    writeall -notop		write all subcells of the top-level cell",
 	"help                   	print this help information",
@@ -167,31 +171,46 @@ CmdLef(w, cmd)
 	    }
 	    else
 	    {
-		if (cmd->tx_argc == 3)
-		    if (*(cmd->tx_argv[2]) == '-')
-			if (!strncmp(cmd->tx_argv[2], "-notop", 6))
-			    lefTopCell = FALSE;
-
-		LefWriteAll(selectedUse, lefTopCell);
-	    }
-	    break;
-	case LEF_WRITE:
-	    if (!is_lef)
-	    {
-		allSpecial = FALSE;
-		if (cmd->tx_argc == 4)
+		for (i = 2; i < cmd->tx_argc; i++)
 		{
-		    if (*(cmd->tx_argv[3]) == '-')
+		    if (*(cmd->tx_argv[i]) == '-')
 		    {
-			if (!strncmp(cmd->tx_argv[3], "-allspec", 8))
-			    allSpecial = TRUE;
+			if (!strncmp(cmd->tx_argv[i], "-notop", 6))
+			    lefTopCell = FALSE;
+			else if (!strncmp(cmd->tx_argv[i], "-tech", 5))
+			    lefTech = TRUE;
 			else goto wrongNumArgs;
 		    }
 		    else goto wrongNumArgs;
 		}
-		else if (cmd->tx_argc != 3) goto wrongNumArgs;
+		LefWriteAll(selectedUse, lefTopCell, lefTech);
 	    }
-            else if (cmd->tx_argc != 2) goto wrongNumArgs;
+	    break;
+	case LEF_WRITE:
+	    allSpecial = FALSE;
+	    for (i = 2; i < cmd->tx_argc; i++)
+	    {
+		if (*(cmd->tx_argv[i]) == '-')
+		{
+		    if (!strncmp(cmd->tx_argv[i], "-allspec", 8))
+		    {
+			if (!is_lef)
+			    allSpecial = TRUE;
+			else
+			    TxPrintf("The \"-allspec\" option is only for def write\n");
+		    }
+		    else if (!strncmp(cmd->tx_argv[i], "-tech", 5))
+		    {
+			if (is_lef)
+			    lefTech = TRUE;
+			else
+			    TxPrintf("The \"-tech\" option is only for lef write\n");
+		    }
+		    else goto wrongNumArgs;
+		}
+		else goto wrongNumArgs;
+	    }
+            if (cmd->tx_argc != 2 && cmd->tx_argc != 3) goto wrongNumArgs;
             if (selectedUse == NULL)
             {
                 TxError("No cell selected\n");
@@ -205,7 +224,7 @@ CmdLef(w, cmd)
 		DefWriteCell(selectedUse->cu_def, namep, allSpecial);
 	    else
 		LefWriteCell(selectedUse->cu_def, namep, selectedUse->cu_def
-			== EditRootDef);
+			== EditRootDef, lefTech);
 	    break;
 	case LEF_HELP:
 wrongNumArgs:

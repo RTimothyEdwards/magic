@@ -1548,11 +1548,12 @@ defGetType(ttype, lefptr)
 	while (he = HashNext(&LefInfo, &hs))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
-	    if (lefl && (lefl->type == ttype) && (contact == lefl->lefClass))
-	    {
-		if (lefptr) *lefptr = lefl;
-		return lefl->canonName;
-	    }
+	    if (lefl && (contact == lefl->lefClass))
+		if ((lefl->type == ttype) || (lefl->obsType == ttype))
+		{
+		    if (lefptr) *lefptr = lefl;
+		    return lefl->canonName;
+		}
 	}
     }
 

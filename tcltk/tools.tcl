@@ -485,16 +485,17 @@ proc magic::enable_tools {} {
 
 proc magic::trackwire {window {option {}}} {
    global Opts
+
    if {$Opts(motion) == {}} {
       if {$option == "done"} {
 	 wire switch
       } elseif {$option == "pick"} {
 	 puts stdout $window
 	 wire type
-         set Opts(motion) [bind ${window} <Motion>]
-         bind ${window} <Motion> [subst {$Opts(motion); *bypass wire show}]
+	 set Opts(motion) [bind ${window} <Motion>]
+	 bind ${window} <Motion> [subst {$Opts(motion); *bypass wire show}]
 	 if {$Opts(motion) == {}} {set Opts(motion) "null"}
-         cursor 21
+	 cursor 21
       }
    } else {
       if {$option != "cancel"} {

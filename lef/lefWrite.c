@@ -157,9 +157,10 @@ lefFileOpen(def, file, suffix, mode, prealfile)
  */
 
 void
-lefWriteHeader(def, f)
+lefWriteHeader(def, f, lefTech)
     CellDef *def;	/* Def for which to generate LEF output */
     FILE *f;		/* Output to this file */
+    bool lefTech;	/* If TRUE, write layer information */
 {
     TileType type;
 
@@ -183,6 +184,8 @@ lefWriteHeader(def, f)
     fprintf(f, "   DATABASE MICRONS 1000 ;\n");
     fprintf(f, "END UNITS\n");
     fprintf(f, "\n");
+
+    if (!lefTech) return;
 
     /* Layers (minimal information) */
 
@@ -277,14 +280,17 @@ lefWriteHeader(def, f)
 typedef struct
 {
     FILE	*file;		/* file to write to */
-    TileType	*lastType;	/* last type output, so we minimize LAYER
+    TileType	lastType;	/* last type output, so we minimize LAYER
 				 * statements.
 				 */
+    CellDef	*lefFlat;	/* Soure CellDef (flattened cell) */
     CellDef	*lefYank;	/* CellDef to write into */
     LefMapping  *lefMagicMap;	/* Layer inverse mapping table */
     TileTypeBitMask rmask;	/* mask of routing layer types */
     Point	origin;		/* origin of cell */
     float	oscale;		/* units scale conversion factor */
+    int		pNum;		/* Plane number for tile marking */
+    int		numWrites;	/* Track number of writes to output */
     int		lefMode;	/* can be LEF_MODE_PORT when searching
 				 * connections into ports, or
 				 * LEF_MODE_OBSTRUCT when generating
@@ -295,6 +301,29 @@ typedef struct
 				 * whole tile.
 				 */
 } lefClient;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ */
+
+int
+lefEraseGeometry(tile, cdata)
+    Tile *tile;
+    ClientData cdata;
+{
+    lefClient *lefdata = (lefClient *)cdata;
+    CellDef *flatDef = lefdata->lefFlat;
+    Rect area;
+    TileType ttype;
+
+    TiToRect(tile, &area);
+
+    /* Erase the tile area out of lefFlat */
+    DBErase(flatDef, &area, ttype);
+
+    return 0;
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -342,26 +371,13 @@ lefYankGeometry(tile, cdata)
     Rect area;
     TileType ttype, otype, ptype;
     LefMapping *lefMagicToLefLayer;
-    TileTypeBitMask *sMask;
+    TileTypeBitMask sMask;
+    bool iscut;
 
-    /* To enumerate obstructions, we search all tiles in the	*/
-    /* cell, and ignore all of those which were electrically	*/
-    /* connected to any pin.  These will have the tile's	*/
-    /* ti_client record set to 1.				*/
-
-    /* Because DBSrPaintArea will look at each tile once and	*/
-    /* only once, we can reset the ti_client record here, so	*/
-    /* everything is back to normal after LEF output.		*/
-
-    if (lefdata->lefMode == LEF_MODE_OBSTRUCT)
-	if (tile->ti_client == (ClientData)1)
-	{
-	    tile->ti_client = (ClientData)CLIENTDEFAULT;
-	    return 0;
-	}
+    /* Ignore marked tiles */
+    if (tile->ti_client != (ClientData)CLIENTDEFAULT) return 0;
 
     otype = TiGetTypeExact(tile);
-
     if (IsSplit(tile))
 	ttype = (otype & TT_SIDE) ? SplitRightType(tile) :
 			SplitLeftType(tile);
@@ -375,38 +391,30 @@ lefYankGeometry(tile, cdata)
 
     if (DBIsContact(ttype))
     {
-	sMask = DBResidueMask(ttype);
+	DBFullResidueMask(ttype, &sMask);
 
-	/* First check if lefdata->lastType is in the residue,	*/
-	/* and process first.					*/
+	/* Use the first routing layer that is represented	*/
+	/* in sMask.  If none, then return.			*/
 
-	if (TTMaskHasType(sMask, *(lefdata->lastType)))
-	    ttype = *(lefdata->lastType);
-	else
-	{
-	    /* And if not, then switch to the first routing	*/
-	    /* layer that is represented in sMask.  If none,	*/
-	    /* then return.					*/
-
-	    for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+	for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+	    if (TTMaskHasType(&sMask, ttype))
 		if (TTMaskHasType(&lefdata->rmask, ttype))
-		    if (TTMaskHasType(sMask, ttype))
-			break;
+		    break;
 
-	    if (ttype == DBNumTypes) return 0;
-	}
+	if (ttype == DBNumTypes) return 0;
+	iscut = TRUE;
     }
     else
     {
 	if (!TTMaskHasType(&lefdata->rmask, ttype)) return 0;
-	sMask = NULL;
+	iscut = FALSE;
     }
-    lefMagicToLefLayer = lefdata->lefMagicMap;
 
     TiToRect(tile, &area);
 
     while (ttype < DBNumTypes)
     {
+	lefMagicToLefLayer = lefdata->lefMagicMap;
 	if (lefMagicToLefLayer[ttype].lefInfo != NULL)
 	{
 	    if (IsSplit(tile))
@@ -415,15 +423,19 @@ lefYankGeometry(tile, cdata)
 			((otype & TT_SIDE) ? (ttype << 14) : ttype);
 	    else
 		ptype = ttype;
-	    DBPaint(lefdata->lefYank, &area, ptype);
+
+	    /* Paint into yank buffer */
+	    DBNMPaintPlane(lefdata->lefYank->cd_planes[lefdata->pNum],
+			ptype, &area, DBStdPaintTbl(ttype, lefdata->pNum),
+			(PaintUndoInfo *)NULL);
 	}
 
-	if (sMask == NULL) break;
+	if (iscut == FALSE) break;
 
 	for (++ttype; ttype < DBNumTypes; ttype++)
-	    if (TTMaskHasType(&lefdata->rmask, ttype))
-		if (TTMaskHasType(sMask, ttype))
-			break;
+	    if (TTMaskHasType(&sMask, ttype))
+		if (TTMaskHasType(&lefdata->rmask, ttype))
+		    break;
     }
     return 0;
 }
@@ -452,6 +464,13 @@ lefWriteGeometry(tile, cdata)
     TileType ttype, otype = TiGetTypeExact(tile);
     LefMapping *lefMagicToLefLayer = lefdata->lefMagicMap;
 
+    /* Ignore tiles that have already been output */
+    if (tile->ti_client != (ClientData)CLIENTDEFAULT)
+	return 0;
+
+    /* Mark this tile as visited */
+    TiSetClient(tile, (ClientData)1);
+
     /* Get layer type */
     if (IsSplit(tile))
 	ttype = (otype & TT_SIDE) ? SplitRightType(tile) :
@@ -463,13 +482,22 @@ lefWriteGeometry(tile, cdata)
 
     if (!TTMaskHasType(&lefdata->rmask, ttype)) return 0;
 
-    if (ttype != *(lefdata->lastType))
+    if (lefdata->numWrites == 0)
     {
-	if (lefMagicToLefLayer[ttype].lefInfo != NULL)
-		fprintf(f, "         LAYER %s ;\n",
-				lefMagicToLefLayer[ttype].lefName);
-	*(lefdata->lastType) = ttype;
+	if (lefdata->lefMode == LEF_MODE_PORT)
+	    fprintf(f, "      PORT\n");
+	else
+	    fprintf(f, "   OBS\n");
     }
+    lefdata->numWrites++;
+
+    if (ttype != lefdata->lastType)
+	if (lefMagicToLefLayer[ttype].lefInfo != NULL)
+	{
+	    fprintf(f, "         LAYER %s ;\n",
+				lefMagicToLefLayer[ttype].lefName);
+	    lefdata->lastType = ttype;
+	}
 
     if (IsSplit(tile))
 	if (otype & TT_SIDE)
@@ -518,20 +546,6 @@ lefWriteGeometry(tile, cdata)
 		scale * (float)(TOP(tile) - lefdata->origin.p_y));
 
     return 0;
-}
-
-/*
- * When called from SimSrConnect(), the callback function needs another
- * argument for the plane.
- */
-
-int
-lefYankGeometry2(tile, plane, cdata)
-    Tile *tile;
-    Plane *plane;
-    ClientData cdata;
-{
-    return lefYankGeometry(tile, cdata);
 }
 
 /*
@@ -611,29 +625,56 @@ lefWriteMacro(def, f, scale)
 {
     bool propfound;
     char *propvalue, *class = NULL;
-    Label *lab, *clab;
-    Rect boundary;
-    TileTypeBitMask lmask, boundmask;
+    Label *lab;
+    Rect boundary, labr;
+    SearchContext scx;
+    CellDef *lefFlatDef;
+    CellUse lefFlatUse, lefSourceUse;
+    TileTypeBitMask lmask, boundmask, *lrmask;
     TileType ttype;
     lefClient lc;
-    int idx, pNum;
+    int idx, pNum, maxport, curport;
     char *LEFtext;
     HashSearch hs;
     HashEntry *he;
+
+    extern CellDef *SelectDef;
 
     UndoDisable();
 
     TxPrintf("Diagnostic:  Writing LEF output for cell %s\n", def->cd_name);
 
+    lefFlatDef = DBCellLookDef("__lefFlat__");
+    if (lefFlatDef == (CellDef *)NULL)
+	lefFlatDef = DBCellNewDef("__lefFlat__", (char *)NULL);
+    DBCellSetAvail(lefFlatDef);
+    lefFlatDef->cd_flags |= CDINTERNAL;
+
+    lefFlatUse.cu_id = StrDup((char **)NULL, "Flattened cell");
+    lefFlatUse.cu_expandMask = CU_DESCEND_SPECIAL;
+    lefFlatUse.cu_def = lefFlatDef;
+    DBSetTrans(&lefFlatUse, &GeoIdentityTransform);
+    
+    lefSourceUse.cu_id = StrDup((char **)NULL, "Source cell");
+    lefSourceUse.cu_expandMask = CU_DESCEND_ALL;
+    lefSourceUse.cu_def = def;
+    DBSetTrans(&lefSourceUse, &GeoIdentityTransform);
+
+    scx.scx_use = &lefSourceUse;
+    scx.scx_trans = GeoIdentityTransform;
+    scx.scx_area = def->cd_bbox;
+    DBCellCopyAllPaint(&scx, &DBAllButSpaceAndDRCBits, CU_DESCEND_ALL, &lefFlatUse);
+
+    /* Reset scx to point to the flattened use */
+    scx.scx_use = &lefFlatUse;
+
     /* Set up client record. */
 
     lc.file = f;
-    lc.lastType = &ttype;
     lc.oscale = scale;
     lc.lefMagicMap = defMakeInverseLayerMap();
-    lc.lefYank = DBCellNewDef("lefYank", (char *)NULL);
-    DBCellSetAvail(lc.lefYank);
-    lc.lefYank->cd_flags |= CDINTERNAL;
+    lc.lastType = TT_SPACE;
+    lc.lefFlat = lefFlatDef;
 
     TxPrintf("Diagnostic:  Scale value is %f\n", lc.oscale);
 
@@ -641,10 +682,18 @@ lefWriteMacro(def, f, scale)
 
     TTMaskZero(&lc.rmask);
     TTMaskZero(&boundmask);
+
+    /* Any layer which has a port label attached to it should by	*/
+    /* necessity be considered a routing layer.	 Usually this will not	*/
+    /* add anything to the mask already created.			*/
+
+    for (lab = def->cd_labels; lab != NULL; lab = lab->lab_next)
+	if (lab->lab_flags & PORT_DIR_MASK)
+	    TTMaskSetType(&lc.rmask, lab->lab_type);
+
     HashStartSearch(&hs);
     while (he = HashNext(&LefInfo, &hs))
     {
-	TileTypeBitMask *lrmask;
 	lefLayer *lefl = (lefLayer *)HashGetValue(he);
 	if (lefl && (lefl->lefClass == CLASS_ROUTE || lefl->lefClass == CLASS_VIA))
 	    if (lefl->type != -1)
@@ -655,31 +704,14 @@ lefWriteMacro(def, f, scale)
 		    lrmask = DBResidueMask(lefl->type);
 		    TTMaskSetMask(&lc.rmask, lrmask);
 		}
-		else
-		{
-		    // Contact types whose residues contain a route
-		    // layer are included
-		    for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
-			if (DBIsContact(ttype))
-			{
-			    lrmask = DBResidueMask(ttype);
-			    TTMaskSetMask(&lc.rmask, lrmask);
-			}
-		}
 	    }
+	    if (lefl->obsType != -1)
+		TTMaskSetType(&lc.rmask, lefl->obsType);
 
 	if (lefl && (lefl->lefClass == CLASS_BOUND))
 	    if (lefl->type != -1)
 		TTMaskSetType(&boundmask, lefl->type);
     }
-
-    /* Any layer which has a port label attached to it should by	*/
-    /* necessity be considered a routing layer.	 Usually this will not	*/
-    /* add anything to the mask already created.			*/
-
-    for (lab = def->cd_labels; lab != NULL; lab = lab->lab_next)
-	if (lab->lab_flags & PORT_DIR_MASK)
-	    TTMaskSetType(&lc.rmask, lab->lab_type);
 
     /* NOTE:  This routine corresponds to Envisia LEF/DEF Language	*/
     /* Reference version 5.3 (May 31, 2000)				*/
@@ -723,145 +755,206 @@ lefWriteMacro(def, f, scale)
     else
 	boundary = def->cd_bbox;
 
-    /* Apparently ORIGIN is not reliable!  Assume origin must be (0,0)	*/
-    /* and adjust all geometry instead of adjusting the origin.		*/
+    /* Write position and size information */
 
-/*
     fprintf(f, "   ORIGIN %.4f %.4f ;\n",
-		lc.oscale * (float)boundary.r_xbot,
-		lc.oscale * (float)boundary.r_ybot);
-*/
-    fprintf(f, "   ORIGIN 0.00 0.00 ;\n");
-    lc.origin = boundary.r_ll;
+		-lc.oscale * (float)boundary.r_xbot,
+		-lc.oscale * (float)boundary.r_ybot);
 
     fprintf(f, "   SIZE %.4f BY %.4f ;\n",
 		lc.oscale * (float)(boundary.r_xtop - boundary.r_xbot),
 		lc.oscale * (float)(boundary.r_ytop - boundary.r_ybot));
 
+    lc.origin.p_x = 0;
+    lc.origin.p_y = 0;
+
     propvalue = (char *)DBPropGet(def, "LEFsymmetry", &propfound);
     if (propfound)
 	fprintf(f, "   SYMMETRY %s\n", propvalue);
+
+    /* Generate cell for yanking obstructions */
+
+    lc.lefYank = DBCellLookDef("__lefYank__");
+    if (lc.lefYank == (CellDef *)NULL)
+    lc.lefYank = DBCellNewDef("__lefYank__", (char *)NULL);
+
+    DBCellSetAvail(lc.lefYank);
+    lc.lefYank->cd_flags |= CDINTERNAL;
 
     /* List of pins (ports) (to be refined?) */
 
     lc.lefMode = LEF_MODE_PORT;
 
+    /* Determine the maximum port number, then output ports in order */
+    maxport = -1;
+    curport = 0;
     for (lab = def->cd_labels; lab != NULL; lab = lab->lab_next)
-    {
 	if (lab->lab_flags & PORT_DIR_MASK)
 	{
-	    /* Ignore ports which we have already visited. */
-	    if (lab->lab_flags & PORT_VISITED) continue;
-
+	    curport++;
 	    idx = lab->lab_flags & PORT_NUM_MASK;
-	    fprintf(f, "   PIN %s\n", lab->lab_text);
-	    if (lab->lab_flags & PORT_CLASS_MASK)
-	    {
-	        fprintf(f, "      DIRECTION ");
-		switch(lab->lab_flags & PORT_CLASS_MASK)
-		{
-		    case PORT_CLASS_INPUT:
-			fprintf(f, "INPUT");
-			break;
-		    case PORT_CLASS_OUTPUT:
-			fprintf(f, "OUTPUT");
-			break;
-		    case PORT_CLASS_TRISTATE:
-			fprintf(f, "OUTPUT TRISTATE");
-			break;
-		    case PORT_CLASS_BIDIRECTIONAL:
-			fprintf(f, "INOUT");
-			break;
-		    case PORT_CLASS_FEEDTHROUGH:
-			fprintf(f, "FEEDTHRU");
-			break;
-		}
-		fprintf(f, " ;\n");
-	    }
-	    if (lab->lab_flags & PORT_USE_MASK)
-	    {
-	        fprintf(f, "      USE ");
-		switch(lab->lab_flags & PORT_USE_MASK)
-		{
-		    case PORT_USE_SIGNAL:
-			fprintf(f, "SIGNAL");
-			break;
-		    case PORT_USE_ANALOG:
-			fprintf(f, "ANALOG");
-			break;
-		    case PORT_USE_POWER:
-			fprintf(f, "POWER");
-			break;
-		    case PORT_USE_GROUND:
-			fprintf(f, "GROUND");
-			break;
-		    case PORT_USE_CLOCK:
-			fprintf(f, "CLOCK");
-			break;
-		}
-		fprintf(f, " ;\n");
-	    }
-
-	    /* Query pin geometry for SHAPE (to be done?) */
-
-	    /* Generate port layout geometry using SimSrConnect()	*/
-	    /* Selects all electrically-connected material into the	*/
-	    /* select def.  Output all the layers and geometries of	*/
-	    /* the select def.						*/
-	    /*								*/
-	    /* We use SimSrConnect() and not DBSrConnect() because	*/
-	    /* SimSrConnect() leaves "marks" (tile->ti_client = 1)	*/
-	    /* which allows us to later search through all tiles for	*/
-	    /* anything that is not connected to a port, and generate	*/
-	    /* an "obstruction" record for it.				*/
-	    /*								*/
-	    /* Note: Use DBIsContact() to check if the layer is a VIA.	*/
-	    /* Presently, I am treating contacts like any other layer.	*/
-
-	    for (clab = lab; clab != NULL; clab = clab->lab_next)
-	    {
-		if ((clab->lab_flags & PORT_NUM_MASK) == idx)
-		{
-		    Rect labr = clab->lab_rect;
-
-		    /* Deal with degenerate (line or point) labels	*/
-		    /* by growing by 1 in each direction.		*/
-
-		    if (labr.r_xtop - labr.r_xbot == 0)
-		    {
-			labr.r_xtop++;
-			labr.r_xbot--;
-		    }
-		    if (labr.r_ytop - labr.r_ybot == 0)
-		    {
-			labr.r_ytop++;
-			labr.r_ybot--;
-		    }
-
-		    fprintf(f, "      PORT\n");
-
-		    TTMaskSetOnlyType(&lmask, clab->lab_type);
-
-		    ttype = TT_SPACE;
-		    SimSrConnect(def, &labr, &lmask, DBConnectTbl,
-			&TiPlaneRect, lefYankGeometry2, (ClientData) &lc);
-
-		    for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
-		    {
-			DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum], 
-				&TiPlaneRect, &lc.rmask,
-				lefWriteGeometry, (ClientData) &lc);
-			DBClearPaintPlane(lc.lefYank->cd_planes[pNum]);
-		    }
-
-		    fprintf(f, "      END\n");	/* end of port geometries */
-		    clab->lab_flags |= PORT_VISITED;
-		}
-	    }
-	    LEFtext = MakeLegalLEFSyntax(lab->lab_text);
-	    fprintf(f, "   END %s\n", lab->lab_text);	/* end of pin */
-	    if (LEFtext != lab->lab_text) freeMagic(LEFtext);
+	    if (idx > maxport)
+		maxport = idx;
 	}
+
+    if (maxport < 0) lab = def->cd_labels;
+
+    /* Work through pins in port order, if defined, otherwise	*/
+    /* in order of the label list.				*/
+
+    for (idx = 0; idx < ((maxport < 0) ? curport : maxport + 1); idx++)
+    {
+	if (maxport >= 0)
+	{
+	    for (lab = def->cd_labels; lab != NULL; lab = lab->lab_next)
+		if (lab->lab_flags & PORT_DIR_MASK)
+		    if (!(lab->lab_flags & PORT_VISITED))
+			if ((lab->lab_flags & PORT_NUM_MASK) == idx)
+			    break;
+	}
+	else
+	    while (lab && !(lab->lab_flags & PORT_DIR_MASK)) lab = lab->lab_next;
+
+	if (lab == NULL) continue;	/* Happens if indexes are skipped */
+
+	/* Ignore ports which we have already visited (shouldn't happen	*/
+	/* unless ports are shorted together).				*/
+
+	if (lab->lab_flags & PORT_VISITED) continue;
+
+	fprintf(f, "   PIN %s\n", lab->lab_text);
+	if (lab->lab_flags & PORT_CLASS_MASK)
+	{
+	    fprintf(f, "      DIRECTION ");
+	    switch(lab->lab_flags & PORT_CLASS_MASK)
+	    {
+		case PORT_CLASS_INPUT:
+		    fprintf(f, "INPUT");
+		    break;
+		case PORT_CLASS_OUTPUT:
+		    fprintf(f, "OUTPUT");
+		    break;
+		case PORT_CLASS_TRISTATE:
+		    fprintf(f, "OUTPUT TRISTATE");
+		    break;
+		case PORT_CLASS_BIDIRECTIONAL:
+		    fprintf(f, "INOUT");
+		    break;
+		case PORT_CLASS_FEEDTHROUGH:
+		    fprintf(f, "FEEDTHRU");
+		    break;
+	    }
+	    fprintf(f, " ;\n");
+	}
+	if (lab->lab_flags & PORT_USE_MASK)
+	{
+	    fprintf(f, "      USE ");
+	    switch(lab->lab_flags & PORT_USE_MASK)
+	    {
+		case PORT_USE_SIGNAL:
+		    fprintf(f, "SIGNAL");
+		    break;
+		case PORT_USE_ANALOG:
+		    fprintf(f, "ANALOG");
+		    break;
+		case PORT_USE_POWER:
+		    fprintf(f, "POWER");
+		    break;
+		case PORT_USE_GROUND:
+		    fprintf(f, "GROUND");
+		    break;
+		case PORT_USE_CLOCK:
+		    fprintf(f, "CLOCK");
+		    break;
+	    }
+	    fprintf(f, " ;\n");
+	}
+
+	/* Query pin geometry for SHAPE (to be done?) */
+
+	/* Generate port layout geometry using SimSrConnect()		*/
+	/* Selects all electrically-connected material into the		*/
+	/* select def.  Output all the layers and geometries of		*/
+	/* the select def.						*/
+	/*								*/
+	/* We use SimSrConnect() and not DBSrConnect() because		*/
+	/* SimSrConnect() leaves "marks" (tile->ti_client = 1)		*/
+	/* which allows us to later search through all tiles for	*/
+	/* anything that is not connected to a port, and generate	*/
+	/* an "obstruction" record for it.				*/
+	/*								*/
+	/* Note: Use DBIsContact() to check if the layer is a VIA.	*/
+	/* Presently, I am treating contacts like any other layer.	*/
+
+	labr = lab->lab_rect;
+
+	/* Deal with degenerate (line or point) labels	*/
+	/* by growing by 1 in each direction.		*/
+
+	if (labr.r_xtop - labr.r_xbot == 0)
+	{
+	    labr.r_xtop++;
+	    labr.r_xbot--;
+	}
+	if (labr.r_ytop - labr.r_ybot == 0)
+	{
+	    labr.r_ytop++;
+	    labr.r_ybot--;
+	}
+
+	// TTMaskSetOnlyType(&lmask, lab->lab_type);
+
+	ttype = TT_SPACE;
+	scx.scx_area = labr;
+	SelectClear();
+	SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
+
+	// For all geometry in the selection, write LEF records,
+	// and mark the corresponding tiles in lefFlatDef as
+	// visited.
+
+	lc.numWrites = 0;
+	lc.lastType = TT_SPACE;
+	for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
+	{
+	    lc.pNum = pNum;
+	    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
+			lefYankGeometry, (ClientData) &lc);
+
+	    DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum], 
+	    		&TiPlaneRect, &lc.rmask,
+	    		lefWriteGeometry, (ClientData) &lc);
+
+	    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
+			lefEraseGeometry, (ClientData) &lc);
+	}
+	DBCellClearDef(lc.lefYank);
+
+	if (lc.numWrites > 0)
+	    fprintf(f, "      END\n");	/* end of port geometries */
+	lab->lab_flags |= PORT_VISITED;
+
+	LEFtext = MakeLegalLEFSyntax(lab->lab_text);
+	fprintf(f, "   END %s\n", lab->lab_text);	/* end of pin */
+	if (LEFtext != lab->lab_text) freeMagic(LEFtext);
+
+	if (maxport >= 0)
+	{
+	    /* Sanity check to see if port number is a duplicate */
+	    for (lab = lab->lab_next; lab != NULL; lab = lab->lab_next)
+	    {
+		if (lab->lab_flags & PORT_DIR_MASK)
+		    if ((lab->lab_flags & PORT_NUM_MASK) == idx)
+		    {
+			TxError("Port index %d is used more than once\n", idx);
+			idx--;
+		    }
+	    }
+	}
+	else
+	    lab = lab->lab_next;
     }
 
     /* Clear all PORT_VISITED bits in labels */
@@ -872,15 +965,15 @@ lefWriteMacro(def, f, scale)
     /* List of routing obstructions */
 
     lc.lefMode = LEF_MODE_OBSTRUCT;
-    ttype = TT_SPACE;
+    lc.numWrites = 0;
+    lc.lastType = TT_SPACE;
 
     /* Restrict to routing planes only */
 
-    fprintf(f, "   OBS\n");
     for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
     {
-	DBSrPaintArea((Tile *)NULL, def->cd_planes[pNum], 
-		&TiPlaneRect, &lc.rmask,
+	DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum], 
+		&TiPlaneRect, &DBAllButSpaceAndDRCBits,
 		lefYankGeometry, (ClientData) &lc);
 
 	DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum], 
@@ -888,13 +981,18 @@ lefWriteMacro(def, f, scale)
 		lefWriteGeometry, (ClientData) &lc);
     }
 
-    fprintf(f, "   END\n");	/* end of obstruction geometries */
+    if (lc.numWrites > 0)
+	fprintf(f, "   END\n");	/* end of obstruction geometries */
 
     fprintf(f, "END %s\n", def->cd_name);	/* end of macro */
 
     SigDisableInterrupts();
     freeMagic(lc.lefMagicMap);
     DBCellClearDef(lc.lefYank);
+    DBCellClearDef(lefFlatDef);
+    freeMagic(lefSourceUse.cu_id);
+    freeMagic(lefFlatUse.cu_id);
+    SelectClear();
     SigEnableInterrupts();
 
     UndoEnable();
@@ -918,9 +1016,10 @@ lefWriteMacro(def, f, scale)
  */
 
 void
-LefWriteAll(rootUse, writeTopCell)
+LefWriteAll(rootUse, writeTopCell, lefTech)
     CellUse *rootUse;
     bool writeTopCell;
+    bool lefTech;
 {
     CellDef *def, *rootdef;
     FILE *f;
@@ -963,7 +1062,7 @@ LefWriteAll(rootUse, writeTopCell)
 
     /* Now generate LEF output for all the cells we just found */
 
-    lefWriteHeader(rootdef, f);
+    lefWriteHeader(rootdef, f, lefTech);
 
     while (def = (CellDef *) StackPop(lefDefStack))
     {
@@ -1029,10 +1128,11 @@ lefDefPushFunc(use)
  */
 
 void
-LefWriteCell(def, outName, isRoot)
+LefWriteCell(def, outName, isRoot, lefTech)
     CellDef *def;		/* Cell being written */
     char *outName;		/* Name of output file, or NULL. */
     bool isRoot;		/* Is this the root cell? */
+    bool lefTech;		/* Output layer information if TRUE */
 {
     char *filename;
     FILE *f;
@@ -1055,7 +1155,7 @@ LefWriteCell(def, outName, isRoot)
     }
 
     if (isRoot)
-	lefWriteHeader(def, f);
+	lefWriteHeader(def, f, lefTech);
     lefWriteMacro(def, f, scale);
     fclose(f);
 }

@@ -971,19 +971,24 @@ gdsCopyPaintFunc(tile, gdsCopyRec)
     GDSCopyRec *gdsCopyRec;
 {
     int pNum;
+    TileType dinfo;
     Rect sourceRect, targetRect;
     Transform *trans = gdsCopyRec->trans;
     Plane *plane = gdsCopyRec->plane;
+
+    dinfo = TiGetTypeExact(tile);
 
     if (trans)
     {
 	TiToRect(tile, &sourceRect);
 	GeoTransRect(trans, &sourceRect, &targetRect);
+	if (IsSplit(tile))
+	    dinfo = DBTransformDiagonal(TiGetTypeExact(tile), trans);
     }
     else
 	TiToRect(tile, &targetRect);
 
-    DBNMPaintPlane(plane, TiGetTypeExact(tile), &targetRect, CIFPaintTable,
+    DBNMPaintPlane(plane, dinfo, &targetRect, CIFPaintTable,
 		(PaintUndoInfo *)NULL);
     
     return 0;

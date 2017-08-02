@@ -671,7 +671,7 @@ CSH
 GCORE
 EGREP
 GREP
-M4
+PYTHON3
 RANLIB
 INSTALL_DATA
 INSTALL_SCRIPT
@@ -766,6 +766,7 @@ enable_route
 enable_rsim
 enable_new_macros
 with_opengl
+with_cairo
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1426,6 +1427,7 @@ Optional Packages:
   --with-tklibs=DIR       Find Tk library in DIR
   --with-openaccess=DIR	use OpenAccess libraries in DIR
   --with-opengl=DIR          use OpenGL include files in DIR
+  --with-cairo=DIR          use Cairo include files in DIR
 
 Some influential environment variables:
   CC          C compiler command
@@ -4026,18 +4028,16 @@ else
 fi
 
 
-for ac_prog in gm4 gnum4 m4
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
+# Extract the first word of "python3", so it can be a program name with args.
+set dummy python3; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_M4+:} false; then :
+if ${ac_cv_path_PYTHON3+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $M4 in
+  case $PYTHON3 in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_M4="$M4" # Let the user override the test with a path.
+  ac_cv_path_PYTHON3="$PYTHON3" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -4047,7 +4047,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_M4="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_PYTHON3="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -4055,30 +4055,29 @@ done
   done
 IFS=$as_save_IFS
 
+  test -z "$ac_cv_path_PYTHON3" && ac_cv_path_PYTHON3="no"
   ;;
 esac
 fi
-M4=$ac_cv_path_M4
-if test -n "$M4"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $M4" >&5
-$as_echo "$M4" >&6; }
+PYTHON3=$ac_cv_path_PYTHON3
+if test -n "$PYTHON3"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PYTHON3" >&5
+$as_echo "$PYTHON3" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
 
-  test -n "$M4" && break
-done
-test -n "$M4" || M4="no"
-
-if test x$M4 = xno; then
-  as_fn_error $? "M4 is required" "$LINENO" 5
-fi
+if test "x${PYTHON3}" == "x"; then
 
 
-if test "$CPP" = "$CC -E" ; then
-   CPP="$CPP -x c"
+   if test "$CPP" = "$CC -E" ; then
+      CPP="$CPP -x c"
+   fi
+
+else
+   CPP="${MAGICDIR}/scripts/preproc.py"
 fi
 
 
@@ -5276,6 +5275,7 @@ usingOGL=1
 use_libglu="-lGLU"
 usingTcl=1
 usingOA=0
+usingCairo=1
 
 
 # Extract the first word of "gcore", so it can be a program name with args.
@@ -6061,6 +6061,10 @@ else
   if test $usingOGL ; then
     echo "Cannot use OpenGL/GLX without X11, disabling."
     usingOGL=
+  fi
+  if test $usingCairo ; then
+    echo "Cannot use Cairo without X11, disabling."
+    usingCairo=
   fi
   if test $usingTcl ; then
     echo "Cannot compile TCL version without X11, disabling."
@@ -7463,6 +7467,105 @@ if test $usingOGL ; then
 fi
 
 
+
+# Check whether --with-cairo was given.
+if test "${with_cairo+set}" = set; then :
+  withval=$with_cairo;
+  if test "$withval" = "no" -o "$withval" = "NO" ; then
+    usingCairo=
+  elif test "$withval" != "no" -a "$withval" != "yes"; then
+    CAIRO_INCLUDE_DIR=${withval}
+  fi
+
+fi
+
+
+if test $usingCairo ; then
+    ac_save_CPPFLAGS="$CPPFLAGS"
+    if test $CAIRO_INCLUDE_DIR ; then
+        CPPFLAGS="$CPPFLAGS -I$CAIRO_INCLUDE_DIR"
+    fi
+    CPPFLAGS="$CPPFLAGS $X_CFLAGS"
+    ac_fn_c_check_header_mongrel "$LINENO" "cairo/cairo.h" "ac_cv_header_cairo_cairo_h" "$ac_includes_default"
+if test "x$ac_cv_header_cairo_cairo_h" = xyes; then :
+
+else
+
+	echo "Cairo header files not found, disabling Cairo"
+	usingCairo=
+
+fi
+
+
+    CPPFLAGS="$ac_save_CPPFLAGS"
+fi
+
+if test $usingCairo ; then
+    ac_save_CPPFLAGS="$CPPFLAGS"
+    ac_save_LDFLAGS="$LDFLAGS"
+    LDFLAGS="$LDFLAGS $X_LIBS $X_EXTRA_LIBS -lm"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cairo_user_to_device in -lcairo" >&5
+$as_echo_n "checking for cairo_user_to_device in -lcairo... " >&6; }
+if ${ac_cv_lib_cairo_cairo_user_to_device+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcairo  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cairo_user_to_device ();
+int
+main ()
+{
+return cairo_user_to_device ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_cairo_cairo_user_to_device=yes
+else
+  ac_cv_lib_cairo_cairo_user_to_device=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_cairo_cairo_user_to_device" >&5
+$as_echo "$ac_cv_lib_cairo_cairo_user_to_device" >&6; }
+if test "x$ac_cv_lib_cairo_cairo_user_to_device" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBCAIRO 1
+_ACEOF
+
+  LIBS="-lcairo $LIBS"
+
+else
+
+	echo "Cairo library files not found, disabling Cairo"
+ 	usingCairo=
+
+fi
+
+    CPPFLAGS="$ac_save_CPPFLAGS"
+    LDFLAGS="$ac_save_LDFLAGS"
+fi
+
+if test $usingCairo ; then
+    if test $CAIRO_INCLUDE_DIR ; then
+	gr_cflags="${gr_cflags} -I${CAIRO_INCLUDE_DIR}"
+    fi
+fi
+
+
+
 if test $usingTcl ; then
   cadinstall="$cadinstall graphics tcltk"
   modules="$modules tcltk"
@@ -7499,6 +7602,16 @@ if test $usingTcl ; then
 
     gr_dflags="$gr_dflags -DOGL"
     gr_libs="$gr_libs -lGL ${use_libglu} ${use_libxi} ${use_libxmu} ${use_libxext} -lm"
+    gr_srcs="$gr_srcs \${TOGL_SRCS}"
+    if ! test $usingX11 ; then
+      usingX11=1
+      gr_dflags="$gr_dflags -DXLIB"
+      gr_libs="$gr_libs -lX11"
+    fi
+  fi
+  if test $usingCairo ; then
+    gr_dflags="$gr_dflags -DCAIRO"
+    gr_libs="$gr_libs -lcairo -lfontconfig -lfreetype"
     gr_srcs="$gr_srcs \${TOGL_SRCS}"
     if ! test $usingX11 ; then
       usingX11=1
@@ -9257,6 +9370,20 @@ else
    echo "  files, which are usually available from the video card manufacturer."
    echo "  Magic with un-accelerated OpenGL, such as using Mesa GL without"
    echo "  a supported graphics card, is usually a very bad combination."
+   echo
+fi
+
+${ECHO_N} "Cairo:        "
+if test $usingCairo ; then
+   echo "yes"
+else
+   echo "no"
+   echo
+   echo "  Cairo graphics are considerably better than the standard 8-bit"
+   echo "  and 24-bit X11 graphics, provided that you have a video card and"
+   echo "  driver supporting hardware-accelerated graphics.  If you get this"
+   echo "  message, you may need to download Cairo and fontconfig libraries"
+   echo "  and header files, which are usually found in package cairo-devel."
    echo
 fi
 

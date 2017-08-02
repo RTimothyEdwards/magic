@@ -399,16 +399,29 @@ subcktHierVisit(use, hierName, is_top)
 {
     Def *def = use->use_def;
     EFNode *snode;
+    EFNodeName *nodeName;
     bool hasports = FALSE;
 
     /* Avoid generating records for circuits that have no ports.	*/
     /* These are already absorbed into the parent.  All other		*/
     /* subcircuits have at least one port marked by the EF_PORT flag.	*/
+    /* Do not count the substrate port, as it exists even on cells	*/
+    /* with no other ports.						*/
  
     for (snode = (EFNode *) def->def_firstn.efnode_next;
 		snode != &def->def_firstn;
 		snode = (EFNode *) snode->efnode_next)
-	if (snode->efnode_flags & (EF_PORT | EF_SUBS_PORT))
+	if (snode->efnode_flags & EF_PORT)
+	{
+	    for (nodeName = snode->efnode_name; nodeName != NULL;
+			nodeName = nodeName->efnn_next)
+		if (nodeName->efnn_port >= 0)
+		{
+		    hasports = TRUE;
+		    break;
+		}
+	}
+	else if (snode->efnode_flags & EF_SUBS_PORT)
 	{
 	    hasports = TRUE;
 	    break;
@@ -1714,6 +1727,7 @@ esHierVisit(hc, cdata)
     DefFlagsData *dfd;
     int flags;
     int locDoSubckt = esDoSubckt;
+    bool doStub;
 
     dfd = (DefFlagsData *)cdata;
     topdef = dfd->def;
@@ -1756,57 +1770,69 @@ esHierVisit(hc, cdata)
     hcf = EFFlatBuildOneLevel(hc->hc_use->use_def, flags);
 
     /* If definition has been marked as having no devices, then this	*/
-    /* def is not to be output unless it is the top level.		*/
+    /* def is not to be output unless it is the top level.  However, if	*/
+    /* this subcircuit is an abstract view, then create a subcircuit	*/
+    /* stub entry for it (declares port names and order but no devices)	*/
 
-    if ((def != topdef) && (hc->hc_use->use_def->def_flags & DEF_NODEVICES))
+    doStub = ((hc->hc_use->use_def->def_flags & DEF_ABSTRACT) && esDoBlackBox) ?
+		TRUE : FALSE;
+
+    if ((def != topdef) && (hc->hc_use->use_def->def_flags & DEF_NODEVICES) &&
+		(!doStub))
     {
 	EFFlatDone();
 	return 0;
     }
+    else if (doStub)
+	fprintf(esSpiceF, "* Black-box entry subcircuit for %s abstract view\n",
+		def->def_name);
 
     /* Generate subcircuit header */
     if ((def != topdef) || (def->def_flags & DEF_SUBCIRCUIT))
-	topVisit(def);
+	topVisit(def, doStub);
     else
 	fprintf(esSpiceF, "\n* Top level circuit %s\n\n", topdef->def_name);
 
-    /* Output subcircuit calls */
-    EFHierVisitSubcircuits(hcf, subcktHierVisit, (ClientData)NULL);
-
-    /* Merge devices */
-    if (esMergeDevsA || esMergeDevsC)
+    if (!doStub)	/* By definition, stubs have no internal components */
     {
-	devMerge *p;
+	/* Output subcircuit calls */
+	EFHierVisitSubcircuits(hcf, subcktHierVisit, (ClientData)NULL);
 
-	EFHierVisitDevs(hcf, spcdevHierMergeVisit, (ClientData)NULL);
-	TxPrintf("Devs merged: %d\n", esSpiceDevsMerged);
-	esFMIndex = 0;
-	for (p = devMergeList; p != NULL; p = p->next)
-	    freeMagic(p);
-	devMergeList = NULL;
-    }
+	/* Merge devices */
+	if (esMergeDevsA || esMergeDevsC)
+	{
+	    devMerge *p;
 
-    /* Output devices */
-    EFHierVisitDevs(hcf, spcdevHierVisit, (ClientData)NULL);
+	    EFHierVisitDevs(hcf, spcdevHierMergeVisit, (ClientData)NULL);
+	    TxPrintf("Devs merged: %d\n", esSpiceDevsMerged);
+	    esFMIndex = 0;
+	    for (p = devMergeList; p != NULL; p = p->next)
+		freeMagic(p);
+	    devMergeList = NULL;
+	}
 
-    /* Output lumped parasitic resistors */
-    EFHierVisitResists(hcf, spcresistHierVisit, (ClientData)NULL);
+	/* Output devices */
+	EFHierVisitDevs(hcf, spcdevHierVisit, (ClientData)NULL);
 
-    /* Output coupling capacitances */
-    sprintf( esSpiceCapFormat,  "C%%d %%s %%s %%.%dlffF\n", esCapAccuracy);
-    EFHierVisitCaps(hcf, spccapHierVisit, (ClientData)NULL);
+	/* Output lumped parasitic resistors */
+	EFHierVisitResists(hcf, spcresistHierVisit, (ClientData)NULL);
 
-    if (EFCompat == FALSE)
-    {
-	/* Find the substrate node */
-	EFHierVisitNodes(hcf, spcsubHierVisit, (ClientData)&resstr);
-	if (resstr == NULL) resstr = StrDup((char **)NULL, "0");
+	/* Output coupling capacitances */
+	sprintf( esSpiceCapFormat,  "C%%d %%s %%s %%.%dlffF\n", esCapAccuracy);
+	EFHierVisitCaps(hcf, spccapHierVisit, (ClientData)NULL);
 
-	/* Output lumped capacitance and resistance to substrate */
-	sprintf( esSpiceCapFormat,  "C%%d %%s %s %%.%dlffF%%s\n",
+	if (EFCompat == FALSE)
+	{
+	    /* Find the substrate node */
+	    EFHierVisitNodes(hcf, spcsubHierVisit, (ClientData)&resstr);
+	    if (resstr == NULL) resstr = StrDup((char **)NULL, "0");
+
+	    /* Output lumped capacitance and resistance to substrate */
+	    sprintf( esSpiceCapFormat,  "C%%d %%s %s %%.%dlffF%%s\n",
 			resstr, esCapAccuracy);
-	EFHierVisitNodes(hcf, spcnodeHierVisit, (ClientData) NULL);
-	freeMagic(resstr);
+	    EFHierVisitNodes(hcf, spcnodeHierVisit, (ClientData) NULL);
+	    freeMagic(resstr);
+	}
     }
 
     if ((def != topdef) || (def->def_flags & DEF_SUBCIRCUIT))
