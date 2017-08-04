@@ -407,7 +407,8 @@ tcairoSetProjection(llx, lly, width, height)
 			(Pixmap)toglCurrent.windowid);
 	glXMakeCurrent(grXdpy, (GLXDrawable)glpmap, grXcontext);
 	*/
-    cairopmap = XCreatePixmap(grXdpy, grXscrn, width, height, toglCurrent.depth)
+    cairopmap = XCreatePixmap(grXdpy, grXscrn, width, height, toglCurrent.depth);
+    cairo_set_source(grCairoContext);
     }
     else
 	glXMakeCurrent(grXdpy, (GLXDrawable)toglCurrent.windowid, grXcontext);
