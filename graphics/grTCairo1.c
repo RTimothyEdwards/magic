@@ -427,29 +427,34 @@ int llx, lly, width, height;
 	/* glEnable(GL_LINE_SMOOTH); */
 
 	/* Force draw to front buffer (in case of double-buffered config) */
-	glDrawBuffer(GL_FRONT);
+	//glDrawBuffer(GL_FRONT);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
+	cairo_identify_matrix(grCairoContext);
 
 	glViewport((GLsizei)llx, (GLsizei)lly, (GLsizei) width, (GLsizei) height);
+	// cairo equivalent??
 
 	/* scale to fit window */
 
 #ifdef OGL_INVERT_Y
-	glScalef(1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1), 1.0);
+	//glScalef(1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1), 1.0);
+	cairo_scale(grCairoContext, 1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1));
 #else
-	glScalef(1.0 / (float)(width >> 1), 1.0 / (float)(height >> 1), 1.0);
+	//glScalef(1.0 / (float)(width >> 1), 1.0 / (float)(height >> 1), 1.0);
+	cairo_scale(grCairoContext, 1.0 / (float)(width >> 1), 1.0 / (float)(height >> 1));
 #endif
 
 	/* magic origin maps to window center; move to window origin */
 
-	glTranslated(-(GLsizei)(width >> 1), -(GLsizei)(height >> 1), 0);
+	//glTranslated(-(GLsizei)(width >> 1), -(GLsizei)(height >> 1), 0);
+	cairo_translate(grCairoContext, -(GLsizei)(width >> 1), -(GLsizei)(height >> 1));
 
 	/* Remaining transformations are done on the modelview matrix */
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	//glMatrixMode(GL_MODELVIEW);
+	//glLoadIdentity();
 }
 
 
