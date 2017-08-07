@@ -410,10 +410,11 @@ int llx, lly, width, height;
 		*/
 		cairopmap = XCreatePixmap(grXdpy, grXscrn, width, height, tcairoCurrent.depth);
 		grCairoSurface = cairo_xlib_surface_create(grXdpy, cairopmap, grVisualInfo->visual, width, height);
-		//cairo_set_source(grCairoContext);
 	}
-	else
-		glXMakeCurrent(grXdpy, (GLXDrawable)toglCurrent.windowid, grXcontext);
+	else {
+		//glXMakeCurrent(grXdpy, (GLXDrawable)toglCurrent.windowid, grXcontext);
+		grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.window, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
+	}
 
 #ifndef OGL_SERVER_SIDE_ONLY
 	/* For batch-processing lines and rectangles */
