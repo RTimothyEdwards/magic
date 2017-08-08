@@ -10,8 +10,11 @@
 #include <stdio.h>
 char *getenv();
 
+/*
 #include <GL/gl.h>
 #include <GL/glx.h>
+*/
+#include <CAIRO/cairo.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -21,21 +24,24 @@ char *getenv();
 #include "windows/windows.h"
 #include "graphics/graphics.h"
 #include "graphics/graphicsInt.h"
-#include "grTOGLInt.h"
+//#include "grTOGLInt.h"
+#include "grTCairoInt.h"
 
-extern   char	     *DBWStyleType;
+extern   char        *DBWStyleType;
 extern   GLXContext  grXcontext;
 extern   Display     *grXdpy;
+
+extern cairo_t *grCairoContext;
 
 
 /*---------------------------------------------------------
  * GrOGLSetCMap --
  *
- *	OpenGL uses RGB values as read from the colormap file,
- *	directly, so there is no need to install colors into a
- *	colormap.  Therefore, this is a null routine.
+ *  OpenGL uses RGB values as read from the colormap file,
+ *  directly, so there is no need to install colors into a
+ *  colormap.  Therefore, this is a null routine.
  *
- * Results:	None.
+ * Results: None.
  *
  * Side Effects: None.
  *
@@ -47,183 +53,206 @@ GrTOGLSetCMap ()
 {
 }
 
-Rect grtoglLines[TOGL_BATCH_SIZE];
-int grtoglNbLines = 0;
-TOGLRect grtoglRects[TOGL_BATCH_SIZE];
-int grtoglNbRects = 0;
-Rect grtoglDiagonal[TOGL_BATCH_SIZE];
-int grtoglNbDiagonal = 0;
+Rect grtcairoLines[TCAIRO_BATCH_SIZE];
+int grtcairoNbLines = 0;
+TCairoRect grtcairoRects[TCAIRO_BATCH_SIZE];
+int grtcairoNbRects = 0;
+Rect grtcairoDiagonal[TCAIRO_BATCH_SIZE];
+int grtcairoNbDiagonal = 0;
 
 /*---------------------------------------------------------
  * grtoglDrawLines:
- *	This routine draws a batch of lines.
+ *  This routine draws a batch of lines.
  *
- * Results:	None.
+ * Results: None.
  *
  * Side Effects:
- *	Draw a bunch of lines.
+ *  Draw a bunch of lines.
  *---------------------------------------------------------
  */
 
 void
-grtoglDrawLines(lines, nb)
-    Rect lines[];
-    int nb;
+grtcairoDrawLines(lines, nb)
+Rect lines[];
+int nb;
 {
+	/*
+	#ifdef OGL_SERVER_SIDE_ONLY
+	    int i;
 
-#ifdef OGL_SERVER_SIDE_ONLY
+	    glBegin(GL_LINES);
+	    for (i = 0; i < nb; i++)
+	    {
+	        glVertex2i(lines[i].r_ll.p_x, lines[i].r_ll.p_y);
+	        glVertex2i(lines[i].r_ur.p_x, lines[i].r_ur.p_y);
+	    }
+	    glEnd();
+	#else
+	    glVertexPointer(2, GL_INT, 0, (GLvoid *)lines);
+	    glDrawArrays(GL_LINES, 0, nb << 1);
+	#endif
+	*/
 
-    int i;
-
-    glBegin(GL_LINES);
-    for (i = 0; i < nb; i++)
-    {
-	glVertex2i(lines[i].r_ll.p_x, lines[i].r_ll.p_y);
-	glVertex2i(lines[i].r_ur.p_x, lines[i].r_ur.p_y);
-    }
-    glEnd();
-
-#else
-
-    glVertexPointer(2, GL_INT, 0, (GLvoid *)lines);
-    glDrawArrays(GL_LINES, 0, nb << 1);
-
-#endif
+	int i;
+	for (i = 0; i < nb; i++)
+	{
+		cairo_move_to(grCairoContext, lines[i].r_ll.p_x, lines[i].r_ll.p_y);
+		cairo_line_to(grCairoContext, lines[i].r_ur.p_x, lines[i].r_ur.p_y);
+	}
+	// cairo_set_source_rgba(grCairoContext, r, g, b, a);
+	// cairo_set_line_width(grCairoContext, width);
+	cairo_stroke(grCairoContext);
 }
 
 /*---------------------------------------------------------
  * grtoglDrawLine:
- *	This routine draws a line.
+ *  This routine draws a line.
  *
- * Results:	None.
+ * Results: None.
  *
  * Side Effects:
- *	Draw a line for (x1, y1) to (x2, y2) inclusive.
+ *  Draw a line for (x1, y1) to (x2, y2) inclusive.
  *---------------------------------------------------------
  */
 
 void
-grtoglDrawLine (x1, y1, x2, y2)
-    int x1, y1;			/* Screen coordinates of first point. */
-    int x2, y2;			/* Screen coordinates of second point. */
+grtcairoDrawLine (x1, y1, x2, y2)
+int x1, y1;         /* Screen coordinates of first point. */
+int x2, y2;         /* Screen coordinates of second point. */
 {
-    /* Treat straight and diagonal lines separately.  Some		*/
-    /* implementations of OpenGL make straight lines twice as thick	*/
-    /* when smoothing is enabled.					*/
+	/* Treat straight and diagonal lines separately.  Some      */
+	/* implementations of OpenGL make straight lines twice as thick */
+	/* when smoothing is enabled.                   */
 
-    if ((x1 == x2) || (y1 == y2))
-    {
-	if (grtoglNbLines == TOGL_BATCH_SIZE) GR_TOGL_FLUSH_LINES();
-	grtoglLines[grtoglNbLines].r_ll.p_x = x1;
-	grtoglLines[grtoglNbLines].r_ll.p_y = y1;
-	grtoglLines[grtoglNbLines].r_ur.p_x = x2;
-	grtoglLines[grtoglNbLines].r_ur.p_y = y2;
-	grtoglNbLines++;
-    }
-    else
-    {
-	if (grtoglNbDiagonal == TOGL_BATCH_SIZE) GR_TOGL_FLUSH_DIAGONAL();
-	grtoglDiagonal[grtoglNbDiagonal].r_ll.p_x = x1;
-	grtoglDiagonal[grtoglNbDiagonal].r_ll.p_y = y1;
-	grtoglDiagonal[grtoglNbDiagonal].r_ur.p_x = x2;
-	grtoglDiagonal[grtoglNbDiagonal].r_ur.p_y = y2;
-	grtoglNbDiagonal++;
-    }
+	if ((x1 == x2) || (y1 == y2))
+	{
+		if (grtcairoNbLines == TCAIRO_BATCH_SIZE) GR_TCAIRO_FLUSH_LINES();
+		grtcairoLines[grtcairoNbLines].r_ll.p_x = x1;
+		grtcairoLines[grtcairoNbLines].r_ll.p_y = y1;
+		grtcairoLines[grtcairoNbLines].r_ur.p_x = x2;
+		grtcairoLines[grtcairoNbLines].r_ur.p_y = y2;
+		grtcairoNbLines++;
+	}
+	else
+	{
+		if (grtcairoNbDiagonal == TCAIRO_BATCH_SIZE) GR_TCAIRO_FLUSH_DIAGONAL();
+		grtcairoDiagonal[grtcairoNbDiagonal].r_ll.p_x = x1;
+		grtcairoDiagonal[grtcairoNbDiagonal].r_ll.p_y = y1;
+		grtcairoDiagonal[grtcairoNbDiagonal].r_ur.p_x = x2;
+		grtcairoDiagonal[grtcairoNbDiagonal].r_ur.p_y = y2;
+		grtcairoNbDiagonal++;
+	}
 }
 
 /*---------------------------------------------------------
  * grtoglFillRects:
- *	This routine draws a bunch of solid rectangles.
+ *  This routine draws a bunch of solid rectangles.
  *
- * Results:	None.
+ * Results: None.
  *
  * Side Effects:
- *	Drawing.
+ *  Drawing.
  *---------------------------------------------------------
  */
 
 void
-grtoglFillRects(rects, nb)
-    TOGLRect rects[];
-    int nb;
+grtcairoFillRects(rects, nb)
+TCairoRect rects[];
+int nb;
 {
+	/*
+	#ifdef OGL_SERVER_SIDE_ONLY
 
-#ifdef OGL_SERVER_SIDE_ONLY
+	    int i;
 
-    int i;
+	    for (i = 0; i < nb; i++)
+	    {
+	        glRecti(rects[i].r_ll.p_x, rects[i].r_ll.p_y,
+	                rects[i].r_ur.p_x, rects[i].r_ur.p_y);
+	    }
 
-    for (i = 0; i < nb; i++)
-    {
-	glRecti(rects[i].r_ll.p_x, rects[i].r_ll.p_y,
-		rects[i].r_ur.p_x, rects[i].r_ur.p_y);
-    }
+	#else
 
-#else
+	    glVertexPointer(2, GL_INT, 0, (GLvoid *)rects);
+	    glDrawArrays(GL_QUADS, 0, nb << 2);
 
-    glVertexPointer(2, GL_INT, 0, (GLvoid *)rects);
-    glDrawArrays(GL_QUADS, 0, nb << 2);
+	#endif
+	*/
+	int i;
 
-#endif
+	for (i = 0; i < nb; i++)
+	{
+		cairo_rectangle(rects[i].r_ll.p_x, rects[i].r_ll.p_y,
+		        		rects[i].r_ur.p_x, rects[i].r_ur.p_y);
+	}
+	// cairo_set_source_rgba(grCairoContext, r, g, b, a);
+	cairo_fill(cr);
 }
 
 /*---------------------------------------------------------
  * grtoglFillRect:
- *	This routine draws a solid rectangle.
+ *  This routine draws a solid rectangle.
  *
- * Results:	None.
+ * Results: None.
  *
  * Side Effects:
- *	Drawing.
+ *  Drawing.
  *---------------------------------------------------------
  */
 
 void
-grtoglFillRect(r)
-    Rect *r;	/* Address of a rectangle in screen
-			 * coordinates.
-			 */
+grtcairoFillRect(r)
+Rect *r;    /* Address of a rectangle in screen
+             * coordinates.
+             */
 {
-    if (grtoglNbRects == TOGL_BATCH_SIZE) GR_TOGL_FLUSH_RECTS();
-    grtoglRects[grtoglNbRects].r_ll.p_x = r->r_ll.p_x;
-    grtoglRects[grtoglNbRects].r_ll.p_y = r->r_ll.p_y;
+	if (grtcairoNbRects == TCAIRO_BATCH_SIZE) GR_TCAIRO_FLUSH_RECTS();
+	grtcairoRects[grtcairoNbRects].r_ll.p_x = r->r_ll.p_x;
+	grtcairoRects[grtcairoNbRects].r_ll.p_y = r->r_ll.p_y;
 
-    grtoglRects[grtoglNbRects].r_ur.p_x = r->r_ur.p_x;
-    grtoglRects[grtoglNbRects].r_ur.p_y = r->r_ur.p_y;
+	grtcairoRects[grtcairoNbRects].r_ur.p_x = r->r_ur.p_x;
+	grtcairoRects[grtcairoNbRects].r_ur.p_y = r->r_ur.p_y;
 
 #ifndef OGL_SERVER_SIDE_ONLY
-    grtoglRects[grtoglNbRects].r_ul.p_x = r->r_ll.p_x;
-    grtoglRects[grtoglNbRects].r_ul.p_y = r->r_ur.p_y;
+	grtcairoRects[grtcairoNbRects].r_ul.p_x = r->r_ll.p_x;
+	grtcairoRects[grtcairoNbRects].r_ul.p_y = r->r_ur.p_y;
 
-    grtoglRects[grtoglNbRects].r_lr.p_x = r->r_ur.p_x;
-    grtoglRects[grtoglNbRects].r_lr.p_y = r->r_ll.p_y;
+	grtcairoRects[grtcairoNbRects].r_lr.p_x = r->r_ur.p_x;
+	grtcairoRects[grtcairoNbRects].r_lr.p_y = r->r_ll.p_y;
 #endif
 
-    grtoglNbRects++;
+	grtcairoNbRects++;
 }
 
 /*---------------------------------------------------------
  * grtoglFillPolygon:
- *	This routine draws a solid (convex) polygon
+ *  This routine draws a solid (convex) polygon
  *
  * Results:     None.
  *
  * Side Effects:
- *	Drawing.
+ *  Drawing.
  *---------------------------------------------------------
  */
 
 void
 grtoglFillPolygon(tp, np)
-    Point *tp;
-    int np;
+Point *tp;
+int np;
 {
-    int i;
-
-    glEnable(GL_POLYGON_SMOOTH);
-    glBegin(GL_POLYGON);
-    for (i = 0; i < np; i++)
-	glVertex2i(tp[i].p_x, tp[i].p_y);
-    glEnd();
-    glDisable(GL_POLYGON_SMOOTH);
+	int i;
+	/*
+	glEnable(GL_POLYGON_SMOOTH);
+	glBegin(GL_POLYGON);
+	for (i = 0; i < np; i++)
+		glVertex2i(tp[i].p_x, tp[i].p_y);
+	glEnd();
+	glDisable(GL_POLYGON_SMOOTH);
+	*/
+	cairo_move_to(tp[0].p_x, tp[0].p_y);
+	for (i = 1; i < np; i++)
+		cairo_line_to(tp[i].p_x, tp[i].p_y);
+	cairo_close_path(grCairoContext);
+	cairo_fill(cr);
 }
 

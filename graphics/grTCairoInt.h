@@ -94,9 +94,9 @@ extern TCairoRect grtcairoRects[];
 
 #define GR_TCAIRO_FLUSH_DIAGONAL() { \
     if (grtcairoNbDiagonal>0) { \
-	glEnable(GL_LINE_SMOOTH); \
+	//glEnable(GL_LINE_SMOOTH); \
 	grtcairoDrawLines(grtcairoDiagonal, grtcairoNbDiagonal); \
-	glDisable(GL_LINE_SMOOTH); \
+	//glDisable(GL_LINE_SMOOTH); \
 	grtcairoNbDiagonal=0; \
     } \
 }
