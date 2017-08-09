@@ -70,6 +70,7 @@ TCAIRO_CURRENT tcairoCurrent = {(Tk_Font)0, 0, 0, 0, 0,
  * of those names, which don't get modified.  Check out the Makefile
  * for details on this.
  */
+/*
 extern void GrTOGLClose(), GrTOGLFlush();
 extern void GrTOGLDelete(), GrTOGLConfigure(), GrTOGLRaise(), GrTOGLLower();
 extern void GrTOGLLock(), GrTOGLUnlock(), GrTOGLIconUpdate();
@@ -79,7 +80,16 @@ extern int  GrTOGLWindowId();
 extern char *GrTkWindowName();
 
 extern void toglSetProjection();
+*/
+extern void GrTCairoClose(), GrTCairoFlush();
+extern void GrTCairoDelete(), GrTCairoConfigure(), GrTCairoRaise(), GrTCairoLower();
+extern void GrTCairoLock(), GrTCairoUnlock(), GrTCairoIconUpdate();
+extern bool GrTCairoInit();
+extern bool GrTCairoEventPending(), GrTCairoCreate(), grtcairoGetCursorPos();
+extern int  GrTCairoWindowId();
+extern char *GrTkWindowName();
 
+extern void tcairoSetProjection();
 
 /*---------------------------------------------------------
  * grtoglSetWMandC:
@@ -103,42 +113,50 @@ int c;			/* New value for current color */
 	static int oldMask = -1;
 
 	int lr, lb, lg;
-	GLfloat fr, fb, fg;
-	GLfloat aval; 	 /* Alpha default value was 0.75 */
+	//GLfloat fr, fb, fg;
+	//GLfloat aval; 	 /* Alpha default value was 0.75 */
+	float fr, fb, fg, aval;
 
 	if (mask == -65) mask = 127;	/* All planes */
 	if (mask == oldMask && c == oldColor) return;
 
-	GR_TOGL_FLUSH_BATCH();
+	//GR_TOGL_FLUSH_BATCH();
+	GR_TCAIRO_FLUSH_BATCH();
 
 	GrGetColor(c, &lr, &lb, &lg);
 
-	fr = ((GLfloat)lr / 255);
-	fg = ((GLfloat)lg / 255);
-	fb = ((GLfloat)lb / 255);
+	fr = ((float)lr / 255);
+	fg = ((float)lg / 255);
+	fb = ((float)lb / 255);
+	aval = ((float)mask / 127.0);
 
-	if (mask == 127)
-	{
-		glDisable(GL_BLEND);
-		aval = 1.0;
-	}
-	else
-	{
-		/* Calculate a "supercolor", outside of the normal color range, */
-		/* but which results in the desired color after a blend with	*/
-		/* the background color.					*/
+	/*
+		if (mask == 127)
+		{
+			glDisable(GL_BLEND);
+			aval = 1.0;
+		}
+		else
+		{
+			//Calculate a "supercolor", outside of the normal color range,
+			//but which results in the desired color after a blend with
+			//the background color.
 
-		fr = fr * 2 - 0.8;
-		fg = fg * 2 - 0.8;
-		fb = fb * 2 - 0.8;
+			fr = fr * 2 - 0.8;
+			fg = fg * 2 - 0.8;
+			fb = fb * 2 - 0.8;
 
-		aval = (GLfloat)mask / 127.0;	/* mask translates to alpha in	*/
-		/* the OpenGL version.		*/
+			aval = (GLfloat)mask / 127.0;	// mask translates to alpha in
+			//the OpenGL version.
 
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-	glColor4f(fr, fb, fg, aval);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
+	*/
+
+	//glColor4f(fr, fb, fg, aval);
+
+	cairo_set_source_rgba(grCairoContext, fr, fg, fb, aval);
 
 	oldColor = c;
 	oldMask = mask;
