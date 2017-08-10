@@ -162,27 +162,27 @@ grtoglLoadFont()
  */
 
 void
-grtoglSetCharSize (size)
+grtcairoSetCharSize (size)
 int size;       /* Width of characters, in pixels (6 or 8). */
 {
-	toglCurrent.fontSize = size;
+	tcairoCurrent.fontSize = size;
 	switch (size)
 	{
 	case GR_TEXT_DEFAULT:
 	case GR_TEXT_SMALL:
-		toglCurrent.font = grSmallFont;
+		tcairoCurrent.font = grSmallFont;
 		break;
 	case GR_TEXT_MEDIUM:
-		toglCurrent.font = grMediumFont;
+		tcairoCurrent.font = grMediumFont;
 		break;
 	case GR_TEXT_LARGE:
-		toglCurrent.font = grLargeFont;
+		tcairoCurrent.font = grLargeFont;
 		break;
 	case GR_TEXT_XLARGE:
-		toglCurrent.font = grXLargeFont;
+		tcairoCurrent.font = grXLargeFont;
 		break;
 	default:
-		TxError("%s%d\n", "grtoglSetCharSize: Unknown character size ",
+		TxError("%s%d\n", "grtcairoSetCharSize: Unknown character size ",
 		        size );
 		break;
 	}
@@ -206,7 +206,7 @@ int size;       /* Width of characters, in pixels (6 or 8). */
  */
 
 void
-GrTOGLTextSize(text, size, r)
+GrTCairoTextSize(text, size, r)
 char *text;
 int size;
 Rect *r;
