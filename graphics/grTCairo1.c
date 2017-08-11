@@ -176,9 +176,11 @@ int c;			/* New value for current color */
  */
 
 void
-grtoglSetLineStyle (style)
+grtCairoSetLineStyle (style)
 int style;			/* New stipple pattern for lines. */
 {
+	// unimplemented for cairo
+	/*
 	static int oldStyle = -1;
 	GLushort glstyle;
 
@@ -198,6 +200,7 @@ int style;			/* New stipple pattern for lines. */
 		glLineStipple(1, glstyle);
 		break;
 	}
+	*/
 }
 
 
@@ -216,7 +219,7 @@ int style;			/* New stipple pattern for lines. */
 cairo_surface_t *stippleSurfaces;
 
 void
-grtoglSetSPattern (sttable, numstipples)
+grtcarioSetSPattern (sttable, numstipples)
 int **sttable;			/* The table of patterns */
 int numstipples;			/* Number of stipples */
 {
@@ -237,7 +240,7 @@ int numstipples;			/* Number of stipples */
 			for (j = 0; j < 4; j++)
 				pdata[n++] = (GLubyte)sttable[k][i % 8];
 
-		grTOGLStipples[k] = pdata;
+		grTCairoStipples[k] = pdata;
 		stippleSurfaces[k] = cairo_image_surface_create_for_data(pdata, CAIRO_FORMAT_A1, 32, 32,
 																cairo_format_stride_for_width(CAIRO_FORMAT_A1, 32));
 	}
@@ -257,18 +260,18 @@ int numstipples;			/* Number of stipples */
  */
 
 void
-grtoglSetStipple (stipple)
+grtCairoSetStipple (stipple)
 int stipple;			/* The stipple number to be used. */
 {
 	static int oldStip = -1;
 	if (stipple == oldStip) return;
 	oldStip = stipple;
-	GR_TOGL_FLUSH_BATCH();
+	GR_TCAIRO_FLUSH_BATCH();
 	if (stipple == 0 || stipple > grNumStipples) {
 		//glDisable(GL_POLYGON_STIPPLE);
 		cairo_set_source_rgb(grCairoContext, 0, 0, 0);
 	} else {
-		if (grTOGLStipples[stipple] == (GLubyte *)NULL) MainExit(1);
+		if (stippleSurfaces[stipple] == (GLubyte *)NULL) MainExit(1);
 		//glEnable(GL_POLYGON_STIPPLE);
 		//glPolygonStipple(grTOGLStipples[stipple]);
 		cairo_pattern_set_extend(stippleSurfaces[stipple], CAIRO_EXTEND_REPEAT);
