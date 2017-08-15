@@ -252,23 +252,58 @@ Rect *r;
 /* backing store contains valid data or not.                */
 
 void
-grtoglFreeBackingStore(MagWindow *window)
+grtcairoFreeBackingStore(MagWindow *window)
 {
-	window->w_backingStore = (ClientData)0;
+	//window->w_backingStore = (ClientData)0;
+	Pixmap pmap = (Pixmap)window->w_backingStore;
+	if (pmap == (Pixmap)NULL) return;
+	XFreePixmap(grXdpy, pmap);
+	window->w_backingStore = (ClientData)NULL;
 }
 
 void
-grtoglCreateBackingStore(MagWindow *w)
+grtcairoCreateBackingStore(MagWindow *w)
 {
-	Tk_Window tkwind = (Tk_Window)w->w_grdata;
+	Pixmap pmap;
+	Window wind = (Window)w->w_grdata;
+	unsigned int width, height;
+	GC gc;
+	XGCValues gcValues;
+	int grDepth;
+
+	//Tk_Window tkwind = (Tk_Window)w->w_grdata;
 
 	/* ignore all windows other than layout */
-	if (w->w_client != DBWclientID) return;
+	//if (w->w_client != DBWclientID) return;
 
 	/* Deferred */
-	if (tkwind == NULL) return;
+	//if (tkwind == NULL) return;
 
-	w->w_backingStore = (ClientData)1;
+	//w->w_backingStore = (ClientData)1;
+
+
+
+	if (w->w_client != DBWclientID) return;
+
+	/* deferred */
+	if (w->w_grdata == (Window)NULL) return;
+
+	width = w->w_screenArea.r_xtop - w->w_screenArea.r_xbot;
+	height = w->w_screenArea.r_ytop - w->w_screenArea.r_ybot;
+
+	if (w->w_backingStore != (ClientData)NULL) grtcairoFreeBackingStore(w);
+
+	if (grXcopyGC == (GC)NULL)
+	{
+		gcValues.graphics_exposures = FALSE;
+		grXcopyGC = XCreateGC(grXdpy, wind, GCGraphicsExposures, &gcValues);
+	}
+	grDepth = grDisplay.depth;
+	if (grClass == 3) grDepth = 8;  /* Needed since grDisplay.depth is reset
+				     to 7 if Pseudocolor      */
+
+	pmap = XCreatePixmap(grXdpy, wind, width, height, grDepth);
+	w->w_backingStore = (ClientData)pmap;
 }
 
 bool
@@ -292,10 +327,11 @@ grtoglGetBackingStore(MagWindow *w, Rect *area)
 	xbot = r.r_xbot;
 	ybot = r.r_ybot;
 
-	glDrawBuffer(GL_FRONT);
-	glReadBuffer(GL_BACK);
-	glRasterPos2i((GLint)xbot, (GLint)ybot);
-
+	/*
+		glDrawBuffer(GL_FRONT);
+		glReadBuffer(GL_BACK);
+		glRasterPos2i((GLint)xbot, (GLint)ybot);
+	*/
 	/* Check for valid raster position */
 	// glGetBooleanv(GL_CURRENT_RASTER_POSITION_VALID, (GLboolean *)(&result));
 	// glGetIntegerv(GL_CURRENT_RASTER_POSITION, (GLint *)(&rasterpos[0]));
@@ -305,9 +341,28 @@ grtoglGetBackingStore(MagWindow *w, Rect *area)
 	//      (int)rasterpos[2], (int)rasterpos[3]);
 	// if (result == 0)
 	//    TxPrintf("Intended position = %d %d\n", xbot, ybot);
+	/*
+		glDisable(GL_BLEND);
+		glCopyPixels(xbot, ybot, width, height, GL_COLOR);
+	*/
 
-	glDisable(GL_BLEND);
-	glCopyPixels(xbot, ybot, width, height, GL_COLOR);
+	Window root_return;
+	int x_return, y_return;
+	unsigned int width_return, height_return;
+	unsigned int border_width_return;
+	unsigned int depth_return;
+
+	pmap = (Pixmap)w->w_backingStore;
+	if (pmap == (Pixmap)NULL)
+		return FALSE;
+	XGetGeometry(grXdpy, pmap, &root_return, &x_return, &y_return, &border_width_return, &depth_return);
+
+	cairo_surface_t *backingStoreSurface;
+	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
+	cairo_set_source_surface(grCairoContext, backingStoreSurface, xbot, ybot);
+	cairo_rectangle(grCairoContext, xbot, ybot, width, height);
+	cairo_fill(grCairoContext);
+
 
 	return TRUE;
 }
@@ -316,6 +371,7 @@ grtoglGetBackingStore(MagWindow *w, Rect *area)
 bool
 grtoglScrollBackingStore(MagWindow *w, Point *shift)
 {
+	/*
 	unsigned int width, height;
 	int xorigin, yorigin, xshift, yshift;
 
@@ -359,6 +415,50 @@ grtoglScrollBackingStore(MagWindow *w, Point *shift)
 	glDrawBuffer(GL_FRONT);
 
 	return TRUE;
+	*/
+
+	// copied from grX11su3.c
+	Pixmap pmap;
+	unsigned int width, height;
+	int xorigin, yorigin, xshift, yshift;
+
+	pmap = (Pixmap)w->w_backingStore;
+	if (pmap == (Pixmap)NULL)
+	{
+		TxPrintf("grx11ScrollBackingStore %d %d failure\n",
+		         shift->p_x, shift->p_y);
+		return FALSE;
+	}
+
+	width = w->w_screenArea.r_xtop - w->w_screenArea.r_xbot;
+	height = w->w_screenArea.r_ytop - w->w_screenArea.r_ybot;
+	xorigin = 0;
+	yorigin = 0;
+	xshift = shift->p_x;
+	yshift = -shift->p_y;
+
+	if (xshift > 0)
+		width -= xshift;
+	else if (xshift < 0)
+	{
+		width += xshift;
+		xorigin = -xshift;
+		xshift = 0;
+	}
+	if (yshift > 0)
+		height -= yshift;
+	else if (yshift < 0)
+	{
+		height += yshift;
+		yorigin = -yshift;
+		yshift = 0;
+	}
+
+	XCopyArea(grXdpy, pmap, pmap, grXcopyGC, xorigin, yorigin, width, height,
+	          xshift, yshift);
+
+	/* TxPrintf("grx11ScrollBackingStore %d %d\n", shift->p_x, shift->p_y); */
+	return TRUE;
 }
 
 void
@@ -387,12 +487,12 @@ grtoglPutBackingStore(MagWindow *w, Rect *area)
 		height -= ybot;
 		ybot = 0;
 	}
-
-	glReadBuffer(GL_FRONT);
-	glDrawBuffer(GL_BACK);
-	glRasterPos2i((GLint)xbot, (GLint)ybot);
-
-	/* Check for valid raster position */
+	/*
+		glReadBuffer(GL_FRONT);
+		glDrawBuffer(GL_BACK);
+		glRasterPos2i((GLint)xbot, (GLint)ybot);
+	*/
+	// Check for valid raster position
 	// glGetBooleanv(GL_CURRENT_RASTER_POSITION_VALID, (GLboolean *)(&result));
 	// glGetIntegerv(GL_CURRENT_RASTER_POSITION, (GLint *)(&rasterpos[0]));
 
@@ -401,11 +501,19 @@ grtoglPutBackingStore(MagWindow *w, Rect *area)
 	//      (int)rasterpos[2], (int)rasterpos[3]);
 	// if (result == 0)
 	//    TxPrintf("Intended position = %d %d\n", xbot, ybot);
+	/*
+		glDisable(GL_BLEND);
+		glCopyPixels(xbot, ybot, width, height, GL_COLOR);
 
-	glDisable(GL_BLEND);
-	glCopyPixels(xbot, ybot, width, height, GL_COLOR);
+		glDrawBuffer(GL_FRONT); // Return to normal front rendering
+	*/
 
-	glDrawBuffer(GL_FRONT); /* Return to normal front rendering */
+	cairo_surface_t *backingStoreSurface;
+	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
+	cairo_t *tempContext = cairo_create(backingStoreSurface);
+	cairo_set_source(tempContext, cairo_get_surface(grCairoContext));
+	cairo_rectangle(tempContext, xbot, ybot, width, height);
+	cairo_fill(tempContext);
 }
 
 

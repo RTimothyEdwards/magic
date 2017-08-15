@@ -48,7 +48,7 @@
 #include "utils/paths.h"
 #include "graphics/grTkCommon.h"
 
-GLubyte		**grTOGLStipples;
+uint8_t		**grTOGLStipples;
 HashTable	grTOGLWindowTable;
 //GLXContext	grXcontext;
 cairo_surface_t *grCairoSurface;
@@ -224,21 +224,21 @@ int **sttable;			/* The table of patterns */
 int numstipples;			/* Number of stipples */
 {
 	int i, j, k, n;
-	GLubyte *pdata;
+	uint8_t *pdata;
 
-	stippleSurfaces = malloc(sizeof(cairo_surface_t) * numstipples);
+	stippleSurfaces = mallocMagic(sizeof(cairo_surface_t) * numstipples);
 
-	grTOGLStipples = (GLubyte **)mallocMagic(numstipples * sizeof(GLubyte *));
+	grTOGLStipples = (uint8_t **)mallocMagic(numstipples * sizeof(uint8_t *));
 	for (k = 0; k < numstipples; k++)
 	{
-		pdata = (GLubyte *)mallocMagic(128 * sizeof(GLubyte));
+		pdata = (uint8_t *)mallocMagic(128 * sizeof(uint8_t));
 		n = 0;
 
 		/* expand magic's default 8x8 stipple to OpenGL's 32x32 */
 
 		for (i = 0; i < 32; i++)
 			for (j = 0; j < 4; j++)
-				pdata[n++] = (GLubyte)sttable[k][i % 8];
+				pdata[n++] = (uint8_t)sttable[k][i % 8];
 
 		grTCairoStipples[k] = pdata;
 		stippleSurfaces[k] = cairo_image_surface_create_for_data(pdata, CAIRO_FORMAT_A1, 32, 32,
@@ -271,7 +271,7 @@ int stipple;			/* The stipple number to be used. */
 		//glDisable(GL_POLYGON_STIPPLE);
 		cairo_set_source_rgb(grCairoContext, 0, 0, 0);
 	} else {
-		if (stippleSurfaces[stipple] == (GLubyte *)NULL) MainExit(1);
+		if (stippleSurfaces[stipple] == (uint8_t *)NULL) MainExit(1);
 		//glEnable(GL_POLYGON_STIPPLE);
 		//glPolygonStipple(grTOGLStipples[stipple]);
 		cairo_pattern_set_extend(stippleSurfaces[stipple], CAIRO_EXTEND_REPEAT);
