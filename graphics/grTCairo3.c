@@ -625,6 +625,7 @@ int pixsize;
 
 	if (pixsize < 5) return;    /* Label too small to be useful */
 
+	//should we be using cairo_show_glyphs??
 	for (ccur = clist; ccur != NULL; ccur = ccur->fc_next) {
 		tp = ccur->fc_points;
 		np = ccur->fc_numpoints;
