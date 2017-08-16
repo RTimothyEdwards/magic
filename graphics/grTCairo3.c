@@ -292,15 +292,16 @@ grtcairoCreateBackingStore(MagWindow *w)
 	height = w->w_screenArea.r_ytop - w->w_screenArea.r_ybot;
 
 	if (w->w_backingStore != (ClientData)NULL) grtcairoFreeBackingStore(w);
-
+	/*
 	if (grXcopyGC == (GC)NULL)
 	{
 		gcValues.graphics_exposures = FALSE;
 		grXcopyGC = XCreateGC(grXdpy, wind, GCGraphicsExposures, &gcValues);
 	}
+	*/
 	grDepth = grDisplay.depth;
-	if (grClass == 3) grDepth = 8;  /* Needed since grDisplay.depth is reset
-				     to 7 if Pseudocolor      */
+	//if (grClass == 3) grDepth = 8;  /* Needed since grDisplay.depth is reset
+	//			     to 7 if Pseudocolor      */
 
 	pmap = XCreatePixmap(grXdpy, wind, width, height, grDepth);
 	w->w_backingStore = (ClientData)pmap;
@@ -362,7 +363,6 @@ grtoglGetBackingStore(MagWindow *w, Rect *area)
 	cairo_set_source_surface(grCairoContext, backingStoreSurface, xbot, ybot);
 	cairo_rectangle(grCairoContext, xbot, ybot, width, height);
 	cairo_fill(grCairoContext);
-
 
 	return TRUE;
 }
@@ -508,6 +508,17 @@ grtoglPutBackingStore(MagWindow *w, Rect *area)
 		glDrawBuffer(GL_FRONT); // Return to normal front rendering
 	*/
 
+	Window root_return;
+	int x_return, y_return;
+	unsigned int width_return, height_return;
+	unsigned int border_width_return;
+	unsigned int depth_return;
+
+	pmap = (Pixmap)w->w_backingStore;
+	if (pmap == (Pixmap)NULL)
+		return FALSE;
+	XGetGeometry(grXdpy, pmap, &root_return, &x_return, &y_return, &border_width_return, &depth_return);
+
 	cairo_surface_t *backingStoreSurface;
 	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
 	cairo_t *tempContext = cairo_create(backingStoreSurface);
@@ -607,13 +618,23 @@ int pixsize;
 	Point *tp;
 	int np, nptotal;
 	int i, j;
-	static GLUtesselator *tess = NULL;
-	static GLdouble *v = NULL;
+//	static GLUtesselator *tess = NULL;
+//	static GLdouble *v = NULL;
 	static int maxnp = 0;
 	FontChar *ccur;
 
 	if (pixsize < 5) return;    /* Label too small to be useful */
 
+	for (ccur = clist; ccur != NULL; ccur = ccur->fc_next) {
+		tp = ccur->fc_points;
+		np = ccur->fc_numpoints;
+		cairo_move_to(grCairoContext, tp[0].p_x, tp[0].p_y);
+		for (i = 1; i < np; i++, j += 3) {
+			cairo_line_to(grCairoContext, tp[0].p_x, tp[0].p_y);
+		}
+	}
+
+/*
 	if (tess == NULL)
 	{
 		tess = gluNewTess();
@@ -661,6 +682,7 @@ int pixsize;
 		gluTessEndContour(tess);
 	}
 	gluTessEndPolygon(tess);
+*/
 }
 
 /*---------------------------------------------------------
@@ -695,17 +717,24 @@ LinkedRect *obscure;    /* List of obscuring areas */
 	float tmp;
 
 	/* Keep it simple for now---ignore clip and obscure */
+	/*
+		glDisable(GL_BLEND);
+		glPushMatrix();
+		glTranslated(pos->p_x, pos->p_y, 0);
+		glRotated(rotate, 0, 0, 1);
+	*/
 
-	glDisable(GL_BLEND);
-	glPushMatrix();
-	glTranslated(pos->p_x, pos->p_y, 0);
-	glRotated(rotate, 0, 0, 1);
+	// how to replace glPushMatrix???
+	cairo_translate(grCairoContext, pos->p_x, pos->p_y);
+	cairo_rotate(grCairoContext, ((double)angle) / 360 * 2 * M_PI);
 
 	/* Get label size */
 	cbbox = &DBFontList[font]->mf_extents;
 
-	fsize = (GLfloat)size / (GLfloat)cbbox->r_ytop;
-	glScalef(fsize, fsize, 1.0);
+	//fsize = (GLfloat)size / (GLfloat)cbbox->r_ytop;
+	fsize = (uint8_t)size / (uint8_t)cbbox->r_ytop;
+	//glScalef(fsize, fsize, 1.0);
+	cairo_scale(grCairoContext, fsize, fsize);
 
 	/* Adjust to baseline */
 	baseline = 0;
@@ -715,15 +744,17 @@ LinkedRect *obscure;    /* List of obscuring areas */
 		if (cbbox->r_ybot < baseline)
 			baseline = cbbox->r_ybot;
 	}
-	glTranslated(0, -baseline, 0);
+	//glTranslated(0, -baseline, 0);
+	cairo_translate(grCairoContext, 0, -baseline);
 
 	for (tptr = text; *tptr != '\0'; tptr++)
 	{
 		DBFontChar(font, *tptr, &clist, &coffset, NULL);
 		grtoglDrawCharacter(clist, *tptr, size);
-		glTranslated(coffset->p_x, coffset->p_y, 0);
+		//glTranslated(coffset->p_x, coffset->p_y, 0);
+		cairo_translate(grCairoContext, coffset->p_x, coffset->p_y);
 	}
-	glPopMatrix();
+	//glPopMatrix();
 }
 
 #endif /* VECTOR_FONTS */
