@@ -169,7 +169,7 @@ grtcairoSetCharSize (size)
 int size;       /* Width of characters, in pixels (6 or 8). */
 {
 	tcairoCurrent.fontSize = size;
-	cairo_set_font_size(grCairoContext, size);
+	cairo_set_font_size(grCairoContext, size*4+10);
 	switch (size)
 	{
 	case GR_TEXT_DEFAULT:
@@ -638,6 +638,7 @@ int pixsize;
 			cairo_line_to(grCairoContext, tp[0].p_x, tp[0].p_y);
 		}
 	}
+	cairo_fill(grCairoContext);
 
 /*
 	if (tess == NULL)
@@ -729,7 +730,7 @@ LinkedRect *obscure;    /* List of obscuring areas */
 		glRotated(rotate, 0, 0, 1);
 	*/
 
-	// how to replace glPushMatrix???
+	cairo_save(grCairoContext);
 	cairo_translate(grCairoContext, pos->p_x, pos->p_y);
 	cairo_rotate(grCairoContext, ((double)angle) / 360 * 2 * M_PI);
 
@@ -760,6 +761,7 @@ LinkedRect *obscure;    /* List of obscuring areas */
 		cairo_translate(grCairoContext, coffset->p_x, coffset->p_y);
 	}
 	//glPopMatrix();
+	cairo_restore(grCairoContext);
 }
 
 #endif /* VECTOR_FONTS */
@@ -826,6 +828,7 @@ LinkedRect *obscure;    /* A list of obscuring rectangles */
 	{
 		//glScissor(overlap.r_xbot, overlap.r_ybot, overlap.r_xtop - overlap.r_xbot,
 		//          overlap.r_ytop - overlap.r_ybot);
+		cairo_rectangle(grCairoContext, overlap.r_xbot, overlap.r_ybot, overlap.r_xtop - overlap.r_xbot, overlap.r_ytop - overlap.r_ybot);
 		cairo_clip(grCairoContext);
 		/*
 		glEnable(GL_SCISSOR_TEST);
@@ -838,6 +841,7 @@ LinkedRect *obscure;    /* A list of obscuring rectangles */
 		*/
 		cairo_move_to(grCairoContext, location.r_xbot, location.r_ybot);
 		cairo_show_text(grCairoContext, text);
+		cairo_fill(grCairoContext);
 	}
 }
 
