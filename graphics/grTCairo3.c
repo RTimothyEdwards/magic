@@ -133,6 +133,7 @@ Rect *clip;         /* a clipping rectangle */
 bool
 grtoglLoadFont()
 {
+	/*
 	Font id;
 	unsigned int i;
 
@@ -146,6 +147,8 @@ grtoglLoadFont()
 		}
 		glXUseXFont(id, 0, 256, grXBases[i]);
 	}
+	*/
+	cairo_select_font_face(grCairoContext, "sans-serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 	return TRUE;
 }
 
@@ -166,6 +169,7 @@ grtcairoSetCharSize (size)
 int size;       /* Width of characters, in pixels (6 or 8). */
 {
 	tcairoCurrent.fontSize = size;
+	cairo_set_font_size(grCairoContext, size);
 	switch (size)
 	{
 	case GR_TEXT_DEFAULT:
@@ -820,8 +824,10 @@ LinkedRect *obscure;    /* A list of obscuring rectangles */
 	/* copy the text to the color screen */
 	if ((overlap.r_xbot < overlap.r_xtop) && (overlap.r_ybot <= overlap.r_ytop))
 	{
-		glScissor(overlap.r_xbot, overlap.r_ybot, overlap.r_xtop - overlap.r_xbot,
-		          overlap.r_ytop - overlap.r_ybot);
+		//glScissor(overlap.r_xbot, overlap.r_ybot, overlap.r_xtop - overlap.r_xbot,
+		//          overlap.r_ytop - overlap.r_ybot);
+		cairo_clip(grCairoContext);
+		/*
 		glEnable(GL_SCISSOR_TEST);
 		glDisable(GL_BLEND);
 		glRasterPos2i(pos->p_x, pos->p_y);
@@ -829,6 +835,9 @@ LinkedRect *obscure;    /* A list of obscuring rectangles */
 		                    GR_TEXT_SMALL : toglCurrent.fontSize]);
 		glCallLists(strlen(text), GL_UNSIGNED_BYTE, (unsigned char *)text);
 		glDisable(GL_SCISSOR_TEST);
+		*/
+		cairo_move_to(grCairoContext, location.r_xbot, location.r_ybot);
+		cairo_show_text(grCairoContext, text);
 	}
 }
 
