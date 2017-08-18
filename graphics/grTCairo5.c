@@ -9,8 +9,9 @@
 #include <stdio.h>
 #include <X11/Xlib.h>
 
-#include <GL/gl.h>
-#include <GL/glx.h>
+//#include <GL/gl.h>
+//#include <GL/glx.h>
+#include <CAIRO/Cairo.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -29,6 +30,7 @@
 extern Display	*grXdpy;
 extern int	 grXscrn;
 extern HashTable grTCairoWindowTable;
+extern cairo_t *grCairoContext;
 
 
 /*
