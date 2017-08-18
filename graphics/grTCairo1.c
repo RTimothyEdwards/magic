@@ -1,4 +1,4 @@
-/* grTOGL1.c
+/* grTCairo1.c
  *
  * Copyright (C) 2003 Open Circuit Design, Inc., for MultiGiG Ltd.
  *
@@ -43,19 +43,19 @@
 #include "database/database.h"
 #include "drc/drc.h"
 #include "utils/macros.h"
-//#include "graphics/grTOGLInt.h"
+//#include "graphics/grTCairoInt.h"
 #include "graphics/grTCairoInt.h"
 #include "utils/paths.h"
 #include "graphics/grTkCommon.h"
 
-uint8_t		**grTOGLStipples;
-HashTable	grTOGLWindowTable;
+uint8_t		**grTCairoStipples;
+HashTable	grTCairoWindowTable;
 //GLXContext	grXcontext;
 cairo_surface_t *grCairoSurface;
 cairo_t *grCairoContext;
 XVisualInfo	*grVisualInfo;
 
-//TOGL_CURRENT toglCurrent= {(Tk_Font)0, 0, 0, 0, 0,
+//TCairo_CURRENT tcairoCurrent= {(Tk_Font)0, 0, 0, 0, 0,
 //	(Tk_Window)0, (Window)0, (MagWindow *)NULL};
 
 TCAIRO_CURRENT tcairoCurrent = {(Tk_Font)0, 0, 0, 0, 0,
@@ -71,15 +71,15 @@ TCAIRO_CURRENT tcairoCurrent = {(Tk_Font)0, 0, 0, 0, 0,
  * for details on this.
  */
 /*
-extern void GrTOGLClose(), GrTOGLFlush();
-extern void GrTOGLDelete(), GrTOGLConfigure(), GrTOGLRaise(), GrTOGLLower();
-extern void GrTOGLLock(), GrTOGLUnlock(), GrTOGLIconUpdate();
-extern bool GrTOGLInit();
-extern bool GrTOGLEventPending(), GrTOGLCreate(), grtoglGetCursorPos();
-extern int  GrTOGLWindowId();
+extern void GrTCairoClose(), GrTCairoFlush();
+extern void GrTCairoDelete(), GrTCairoConfigure(), GrTCairoRaise(), GrTCairoLower();
+extern void GrTCairoLock(), GrTCairoUnlock(), GrTCairoIconUpdate();
+extern bool GrTCairoInit();
+extern bool GrTCairoEventPending(), GrTCairoCreate(), grtcairoGetCursorPos();
+extern int  GrTCairoWindowId();
 extern char *GrTkWindowName();
 
-extern void toglSetProjection();
+extern void tcairoSetProjection();
 */
 extern void GrTCairoClose(), GrTCairoFlush();
 extern void GrTCairoDelete(), GrTCairoConfigure(), GrTCairoRaise(), GrTCairoLower();
@@ -92,7 +92,7 @@ extern char *GrTkWindowName();
 extern void tcairoSetProjection();
 
 /*---------------------------------------------------------
- * grtoglSetWMandC:
+ * grtcairoSetWMandC:
  *	This is a local routine that resets the value of the current
  *	write alpha (mask) and color, if necessary.
  *
@@ -105,7 +105,7 @@ extern void tcairoSetProjection();
  */
 
 void
-grtoglSetWMandC (mask, c)
+grtcairoSetWMandC (mask, c)
 int mask;			/* New value for write mask */
 int c;			/* New value for current color */
 {
@@ -120,7 +120,7 @@ int c;			/* New value for current color */
 	if (mask == -65) mask = 127;	/* All planes */
 	if (mask == oldMask && c == oldColor) return;
 
-	//GR_TOGL_FLUSH_BATCH();
+	//GR_TCairo_FLUSH_BATCH();
 	GR_TCAIRO_FLUSH_BATCH();
 
 	GrGetColor(c, &lr, &lb, &lg);
@@ -164,7 +164,7 @@ int c;			/* New value for current color */
 
 
 /*---------------------------------------------------------
- * grtoglSetLineStyle:
+ * grtcairoSetLineStyle:
  *	This local routine sets the current line style.
  *
  * Results:	None.
@@ -187,7 +187,7 @@ int style;			/* New stipple pattern for lines. */
 	style &= 0xFF;
 	if (style == oldStyle) return;
 	oldStyle = style;
-	GR_TOGL_FLUSH_BATCH();
+	GR_TCairo_FLUSH_BATCH();
 
 	switch (style) {
 	case 0xFF:
@@ -205,8 +205,8 @@ int style;			/* New stipple pattern for lines. */
 
 
 /*---------------------------------------------------------
- * grtoglSetSPattern:
- *	toglSetSPattern associates a stipple pattern with a given
+ * grtcairoSetSPattern:
+ *	tcairoSetSPattern associates a stipple pattern with a given
  *	stipple number.  This is a local routine called from
  *	grStyle.c .
  *
@@ -228,7 +228,7 @@ int numstipples;			/* Number of stipples */
 
 	stippleSurfaces = mallocMagic(sizeof(cairo_surface_t) * numstipples);
 
-	grTOGLStipples = (uint8_t **)mallocMagic(numstipples * sizeof(uint8_t *));
+	grTCairoStipples = (uint8_t **)mallocMagic(numstipples * sizeof(uint8_t *));
 	for (k = 0; k < numstipples; k++)
 	{
 		pdata = (uint8_t *)mallocMagic(128 * sizeof(uint8_t));
@@ -248,7 +248,7 @@ int numstipples;			/* Number of stipples */
 
 
 /*---------------------------------------------------------
- * grtoglSetStipple:
+ * grtcairoSetStipple:
  *	This routine sets the Xs current stipple number.
  *
  * Results: None.
@@ -273,7 +273,7 @@ int stipple;			/* The stipple number to be used. */
 	} else {
 		if (stippleSurfaces[stipple] == (uint8_t *)NULL) MainExit(1);
 		//glEnable(GL_POLYGON_STIPPLE);
-		//glPolygonStipple(grTOGLStipples[stipple]);
+		//glPolygonStipple(grTCairoStipples[stipple]);
 		cairo_pattern_set_extend(stippleSurfaces[stipple], CAIRO_EXTEND_REPEAT);
 		cairo_pattern_set_filter(stippleSurfaces[stipple], CAIRO_FILTER_NEAREST);
 		cairo_set_source(grCairoContext, stippleSurfaces[stipple]);
@@ -285,8 +285,8 @@ int stipple;			/* The stipple number to be used. */
 
 
 /*------------------------------------------------------------------------
- * GrTOGLInit:
- *	GrTOGLInit initializes the graphics display and clears its screen.
+ * GrTCairoInit:
+ *	GrTCairoInit initializes the graphics display and clears its screen.
  *	Files must have been previously opened with GrSetDisplay();
  *
  * Results: TRUE if successful.
@@ -367,13 +367,13 @@ GrTCairoInit ()
 	grNumBitPlanes = tcairoCurrent.depth;
 	grBitPlaneMask = (1 << tcairoCurrent.depth) - 1;
 
-	HashInit(&grTOGLWindowTable, 8, HT_WORDKEYS);
+	HashInit(&grTCairoWindowTable, 8, HT_WORDKEYS);
 
 	return grTkLoadFont();
 }
 
 /*---------------------------------------------------------
- * GrTOGLClose:
+ * GrTCairoClose:
  *
  * Results:	None.
  *
@@ -382,7 +382,7 @@ GrTCairoInit ()
  */
 
 void
-GrTOGLClose ()
+GrTCairoClose ()
 {
 	if (grXdpy == NULL) return;
 	if (grVisualInfo != NULL) XFree(grVisualInfo);
@@ -395,7 +395,7 @@ GrTOGLClose ()
 
 
 /*---------------------------------------------------------
- * GrTOGLFlush:
+ * GrTCairoFlush:
  * 	Flush output to display.
  *
  *	Flushing is done automatically the next time input is read,
@@ -408,9 +408,9 @@ GrTOGLClose ()
  */
 
 void
-GrTOGLFlush ()
+GrTCairoFlush ()
 {
-	GR_TOGL_FLUSH_BATCH();
+	GR_TCairo_FLUSH_BATCH();
 	glFlush();
 	glFinish();
 }
@@ -439,18 +439,18 @@ int llx, lly, width, height;
 		/*
 		if (glpmap != None) glXDestroyGLXPixmap(grXdpy, glpmap);
 		glpmap = glXCreateGLXPixmap(grXdpy, grVisualInfo,
-				(Pixmap)toglCurrent.windowid);
+				(Pixmap)tcairoCurrent.windowid);
 		glXMakeCurrent(grXdpy, (GLXDrawable)glpmap, grXcontext);
 		*/
 		cairopmap = XCreatePixmap(grXdpy, grXscrn, width, height, tcairoCurrent.depth);
 		grCairoSurface = cairo_xlib_surface_create(grXdpy, cairopmap, grVisualInfo->visual, width, height);
 	}
 	else {
-		//glXMakeCurrent(grXdpy, (GLXDrawable)toglCurrent.windowid, grXcontext);
+		//glXMakeCurrent(grXdpy, (GLXDrawable)tcairoCurrent.windowid, grXcontext);
 		grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.window, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
 	}
 
-#ifndef OGL_SERVER_SIDE_ONLY
+#ifndef Cairo_SERVER_SIDE_ONLY
 	/* For batch-processing lines and rectangles */
 	glEnableClientState(GL_VERTEX_ARRAY);
 #endif
@@ -472,7 +472,7 @@ int llx, lly, width, height;
 
 	/* scale to fit window */
 
-#ifdef OGL_INVERT_Y
+#ifdef Cairo_INVERT_Y
 	//glScalef(1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1), 1.0);
 	cairo_scale(grCairoContext, 1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1));
 #else
@@ -495,7 +495,7 @@ int llx, lly, width, height;
 /*
  * ---------------------------------------------------------------------------
  *
- * TOGLEventProc ---
+ * TCairoEventProc ---
  *
  *	Tk Event Handler
  *
@@ -509,7 +509,7 @@ int llx, lly, width, height;
  */
 
 void
-TOGLEventProc(clientData, xevent)
+TCairoEventProc(clientData, xevent)
 ClientData clientData;
 XEvent *xevent;
 {
@@ -559,7 +559,7 @@ XEvent *xevent;
 		}
 		nbytes = 0;
 
-		entry = HashLookOnly(&grTOGLWindowTable, (char *)tkwind);
+		entry = HashLookOnly(&grTCairoWindowTable, (char *)tkwind);
 		mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
 
 		if (mw && (mw->w_flags & WIND_SCROLLBARS))
@@ -582,7 +582,7 @@ XEvent *xevent;
 
 		if (IsModifierKey(keysym)) break;	/* Don't handle modifiers */
 
-		entry = HashLookOnly(&grTOGLWindowTable, (char *)tkwind);
+		entry = HashLookOnly(&grTCairoWindowTable, (char *)tkwind);
 		mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
 
 keys_and_buttons:
@@ -849,7 +849,7 @@ keys_and_buttons:
 		width = ConfigureEvent->width;
 		height = ConfigureEvent->height;
 
-		entry = HashLookOnly(&grTOGLWindowTable, (char *)tkwind);
+		entry = HashLookOnly(&grTCairoWindowTable, (char *)tkwind);
 		mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
 
 		screenRect.r_xbot = ConfigureEvent->x;
@@ -873,7 +873,7 @@ keys_and_buttons:
 	{
 		XVisibilityEvent *VisEvent = (XVisibilityEvent*) xevent;
 
-		entry = HashLookOnly(&grTOGLWindowTable, (char *)tkwind);
+		entry = HashLookOnly(&grTCairoWindowTable, (char *)tkwind);
 		mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
 
 		switch (VisEvent->state)
@@ -902,7 +902,7 @@ keys_and_buttons:
 		XExposeEvent *ExposeEvent = (XExposeEvent*) xevent;
 		Rect screenRect;
 
-		entry = HashLookOnly(&grTOGLWindowTable, (char *)tkwind);
+		entry = HashLookOnly(&grTCairoWindowTable, (char *)tkwind);
 		mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
 
 		screenRect.r_xbot = ExposeEvent->x;
@@ -940,7 +940,7 @@ keys_and_buttons:
 
 
 /*---------------------------------------------------------
- * oglSetDisplay:
+ * cairoSetDisplay:
  *	This routine sets the appropriate parameters so that
  *	Magic will work with the X display.
  *
@@ -960,7 +960,7 @@ keys_and_buttons:
  */
 
 bool
-oglSetDisplay (dispType, outFileName, mouseFileName)
+cairoSetDisplay (dispType, outFileName, mouseFileName)
 char *dispType;
 char *outFileName;
 char *mouseFileName;
@@ -981,49 +981,49 @@ char *mouseFileName;
 
 	GrPixelCorrect = 0;
 
-	GrLockPtr = GrTOGLLock;
-	GrUnlockPtr = GrTOGLUnlock;
-	GrInitPtr = GrTOGLInit;
-	GrClosePtr = GrTOGLClose;
-	GrSetCMapPtr = GrTOGLSetCMap;
+	GrLockPtr = GrTCairoLock;
+	GrUnlockPtr = GrTCairoUnlock;
+	GrInitPtr = GrTCairoInit;
+	GrClosePtr = GrTCairoClose;
+	GrSetCMapPtr = GrTCairoSetCMap;
 
-	GrEnableTabletPtr = GrTOGLEnableTablet;
-	GrDisableTabletPtr = GrTOGLDisableTablet;
-	GrSetCursorPtr = GrTOGLSetCursor;
-	GrTextSizePtr = GrTOGLTextSize;
-	GrDrawGlyphPtr = GrTOGLDrawGlyph;
-	GrReadPixelPtr = GrTOGLReadPixel;
-	GrFlushPtr = GrTOGLFlush;
+	GrEnableTabletPtr = GrTCairoEnableTablet;
+	GrDisableTabletPtr = GrTCairoDisableTablet;
+	GrSetCursorPtr = GrTCairoSetCursor;
+	GrTextSizePtr = GrTCairoTextSize;
+	GrDrawGlyphPtr = GrTCairoDrawGlyph;
+	GrReadPixelPtr = GrTCairoReadPixel;
+	GrFlushPtr = GrTCairoFlush;
 
-	GrCreateWindowPtr = GrTOGLCreate;
-	GrDeleteWindowPtr = GrTOGLDelete;
-	GrConfigureWindowPtr = GrTOGLConfigure;
-	GrOverWindowPtr = GrTOGLRaise;
-	GrUnderWindowPtr = GrTOGLLower;
-	GrUpdateIconPtr = GrTOGLIconUpdate;
-	GrEventPendingPtr = GrTOGLEventPending;
-	GrWindowIdPtr = GrTOGLWindowId;
+	GrCreateWindowPtr = GrTCairoCreate;
+	GrDeleteWindowPtr = GrTCairoDelete;
+	GrConfigureWindowPtr = GrTCairoConfigure;
+	GrOverWindowPtr = GrTCairoRaise;
+	GrUnderWindowPtr = GrTCairoLower;
+	GrUpdateIconPtr = GrTCairoIconUpdate;
+	GrEventPendingPtr = GrTCairoEventPending;
+	GrWindowIdPtr = GrTCairoWindowId;
 	GrWindowNamePtr = GrTkWindowName;		/* from grTkCommon.c */
-	GrGetCursorPosPtr = grtoglGetCursorPos;
-	GrGetCursorRootPosPtr = grtoglGetCursorRootPos;
+	GrGetCursorPosPtr = grtcairoGetCursorPos;
+	GrGetCursorRootPosPtr = grtcairoGetCursorRootPos;
 
 	/* local indirections */
-	grSetSPatternPtr = grtoglSetSPattern;
-	grPutTextPtr = grtoglPutText;
+	grSetSPatternPtr = grtcairoSetSPattern;
+	grPutTextPtr = grtcairoPutText;
 #ifdef VECTOR_FONTS
-	grFontTextPtr = grtoglFontText;
+	grFontTextPtr = grtcairoFontText;
 #endif
 	grDefineCursorPtr = grTkDefineCursor;
 	grFreeCursorPtr = grTkFreeCursors;
-	GrBitBltPtr = GrTOGLBitBlt;
-	grDrawGridPtr = grtoglDrawGrid;
-	grDrawLinePtr = grtoglDrawLine;
-	grSetWMandCPtr = grtoglSetWMandC;
-	grFillRectPtr = grtoglFillRect;
-	grSetStipplePtr = grtoglSetStipple;
-	grSetLineStylePtr = grtoglSetLineStyle;
-	grSetCharSizePtr = grtoglSetCharSize;
-	grFillPolygonPtr = grtoglFillPolygon;
+	GrBitBltPtr = GrTCairoBitBlt;
+	grDrawGridPtr = grtcairoDrawGrid;
+	grDrawLinePtr = grtcairoDrawLine;
+	grSetWMandCPtr = grtcairoSetWMandC;
+	grFillRectPtr = grtcairoFillRect;
+	grSetStipplePtr = grtcairoSetStipple;
+	grSetLineStylePtr = grtcairoSetLineStyle;
+	grSetCharSizePtr = grtcairoSetCharSize;
+	grFillPolygonPtr = grtcairoFillPolygon;
 
 #ifdef X11_BACKING_STORE
 	GrFreeBackingStorePtr = grtkFreeBackingStore;
@@ -1032,11 +1032,11 @@ char *mouseFileName;
 	GrPutBackingStorePtr = grtkPutBackingStore;
 	GrScrollBackingStorePtr = grtkScrollBackingStore;
 #else
-	GrFreeBackingStorePtr = grtoglFreeBackingStore;
-	GrCreateBackingStorePtr = grtoglCreateBackingStore;
-	GrGetBackingStorePtr = grtoglGetBackingStore;
-	GrPutBackingStorePtr = grtoglPutBackingStore;
-	GrScrollBackingStorePtr = grtoglScrollBackingStore;
+	GrFreeBackingStorePtr = grtcairoFreeBackingStore;
+	GrCreateBackingStorePtr = grtcairoCreateBackingStore;
+	GrGetBackingStorePtr = grtcairoGetBackingStore;
+	GrPutBackingStorePtr = grtcairoPutBackingStore;
+	GrScrollBackingStorePtr = grtcairoScrollBackingStore;
 #endif
 
 	if (execFailed) {
@@ -1044,7 +1044,7 @@ char *mouseFileName;
 		return FALSE;
 	}
 
-	if (!GrTOGLInit()) {
+	if (!GrTCairoInit()) {
 		return FALSE;
 	};
 
@@ -1062,7 +1062,7 @@ extern void MakeWindowCommand();
 /*
  * ----------------------------------------------------------------------------
  *
- * GrTOGLCreate --
+ * GrTCairoCreate --
  *      Create a new window under the X window system.
  *	Bind X window to Magic Window w.
  *
@@ -1076,7 +1076,7 @@ extern void MakeWindowCommand();
  */
 
 bool
-GrTOGLCreate(w, name)
+GrTCairoCreate(w, name)
 MagWindow *w;
 char *name;
 {
@@ -1122,7 +1122,7 @@ char *name;
 			if (Tk_WindowId(tktop) == 0)
 			{
 				Tk_SetWindowVisual(tktop, grVisualInfo->visual,
-				                   toglCurrent.depth, grAttributes.colormap);
+				                   tcairoCurrent.depth, grAttributes.colormap);
 			}
 			else
 			{
@@ -1152,19 +1152,19 @@ char *name;
 	{
 		bool result;
 
-		GrTOGLFlush();
+		GrTCairoFlush();
 
-		toglCurrent.window = tkwind;
-		toglCurrent.mw = w;
+		tcairoCurrent.window = tkwind;
+		tcairoCurrent.mw = w;
 
 		w->w_grdata = (ClientData) tkwind;
 
-		entry = HashFind(&grTOGLWindowTable, (char *)tkwind);
+		entry = HashFind(&grTCairoWindowTable, (char *)tkwind);
 		HashSetValue(entry, w);
 
 		/* ensure that the visual is what we wanted, if possible to change */
 
-		Tk_SetWindowVisual(tkwind, grVisualInfo->visual, toglCurrent.depth,
+		Tk_SetWindowVisual(tkwind, grVisualInfo->visual, tcairoCurrent.depth,
 		                   grAttributes.colormap);
 
 		/* map the window, if necessary */
@@ -1177,11 +1177,11 @@ char *name;
 		/* Tk_MoveResizeWindow(tkwind, x, y, width, height); */
 
 		wind = Tk_WindowId(tkwind);
-		toglCurrent.windowid = wind;
+		tcairoCurrent.windowid = wind;
 		glXMakeCurrent(grXdpy, (GLXDrawable)wind, grXcontext);
 
-		Tk_DefineCursor(tkwind, toglCurrent.cursor);
-		GrTOGLIconUpdate(w, w->w_caption);
+		Tk_DefineCursor(tkwind, tcairoCurrent.cursor);
+		GrTCairoIconUpdate(w, w->w_caption);
 
 		WindowNumber++;
 
@@ -1193,13 +1193,13 @@ char *name;
 
 		Tk_CreateEventHandler(tkwind, ExposureMask | StructureNotifyMask
 		                      | ButtonPressMask | KeyPressMask | VisibilityChangeMask,
-		                      (Tk_EventProc *)TOGLEventProc, (ClientData) tkwind);
+		                      (Tk_EventProc *)TCairoEventProc, (ClientData) tkwind);
 
 		/* set up commands to be passed expressly to this window */
 
 		MakeWindowCommand((name == NULL) ? windowname : name, w);
 
-		return (WindowNumber == 1) ? grtoglLoadFont() : 1;
+		return (WindowNumber == 1) ? grtcairoLoadFont() : 1;
 	}
 	else
 	{
@@ -1212,7 +1212,7 @@ char *name;
 /*
  * ----------------------------------------------------------------------------
  *
- * GrTOGLDelete --
+ * GrTCairoDelete --
  *      Destroy a Tk/OpenGL window.
  *
  * Results:
@@ -1225,14 +1225,14 @@ char *name;
  */
 
 void
-GrTOGLDelete(w)
+GrTCairoDelete(w)
 MagWindow *w;
 {
 	Tk_Window xw;
 	HashEntry	*entry;
 
 	xw = (Tk_Window) w->w_grdata;
-	entry = HashLookOnly(&grTOGLWindowTable, (char *)xw);
+	entry = HashLookOnly(&grTCairoWindowTable, (char *)xw);
 	HashSetValue(entry, NULL);
 
 	Tcl_DeleteCommand(magicinterp, Tk_PathName(xw));
@@ -1242,7 +1242,7 @@ MagWindow *w;
 /*
  * ----------------------------------------------------------------------------
  *
- * GrTOGLConfigure --
+ * GrTCairoConfigure --
  *      Resize/ Move an existing X window.
  *
  * Results:
@@ -1255,7 +1255,7 @@ MagWindow *w;
  */
 
 void
-GrTOGLConfigure(w)
+GrTCairoConfigure(w)
 MagWindow *w;
 {
 	if (w->w_flags & WIND_OFFSCREEN) return;
@@ -1269,7 +1269,7 @@ MagWindow *w;
 /*
  * ----------------------------------------------------------------------------
  *
- * GrTOGLRaise --
+ * GrTCairoRaise --
  *      Raise a window to the top of the screen such that nothing
  *	obscures it.
  *
@@ -1283,7 +1283,7 @@ MagWindow *w;
  */
 
 void
-GrTOGLRaise(w)
+GrTCairoRaise(w)
 MagWindow *w;
 {
 	Tk_Window tkwind;
@@ -1297,7 +1297,7 @@ MagWindow *w;
 /*
  * ----------------------------------------------------------------------------
  *
- * GrTOGLLower --
+ * GrTCairoLower --
  *      Lower a window below all other Tk windows.
  *	obscures it.
  *
@@ -1311,7 +1311,7 @@ MagWindow *w;
  */
 
 void
-GrTOGLLower(w)
+GrTCairoLower(w)
 MagWindow *w;
 {
 	Tk_Window tkwind;
@@ -1326,9 +1326,9 @@ MagWindow *w;
 /*
  * ----------------------------------------------------------------------------
  *
- * GrTOGLLock --
- *      Lock a window and set global variables "toglCurrent.window"
- *	and "toglCurrent.mw" to reference the locked window.
+ * GrTCairoLock --
+ *      Lock a window and set global variables "tcairoCurrent.window"
+ *	and "tcairoCurrent.mw" to reference the locked window.
  *
  * Results:
  *	None.
@@ -1340,7 +1340,7 @@ MagWindow *w;
  */
 
 void
-GrTOGLLock(w, flag)
+GrTCairoLock(w, flag)
 MagWindow *w;
 bool flag;
 {
@@ -1349,20 +1349,20 @@ bool flag;
 	grSimpleLock(w, flag);
 	if ( w != GR_LOCK_SCREEN )
 	{
-		toglCurrent.mw = w;
+		tcairoCurrent.mw = w;
 
 		if (w->w_flags & WIND_OFFSCREEN)
 		{
-			toglCurrent.window = (Tk_Window) NULL;
-			toglCurrent.windowid = (Pixmap) w->w_grdata;
+			tcairoCurrent.window = (Tk_Window) NULL;
+			tcairoCurrent.windowid = (Pixmap) w->w_grdata;
 		}
 		else
 		{
-			toglCurrent.window = (Tk_Window) w->w_grdata;
-			toglCurrent.windowid = Tk_WindowId(toglCurrent.window);
+			tcairoCurrent.window = (Tk_Window) w->w_grdata;
+			tcairoCurrent.windowid = Tk_WindowId(tcairoCurrent.window);
 		}
 
-		toglSetProjection(w->w_allArea.r_xbot, w->w_allArea.r_ybot,
+		tcairoSetProjection(w->w_allArea.r_xbot, w->w_allArea.r_ybot,
 		                  w->w_allArea.r_xtop - w->w_allArea.r_xbot,
 		                  w->w_allArea.r_ytop - w->w_allArea.r_ybot);
 	}
@@ -1371,7 +1371,7 @@ bool flag;
 /*
  * ----------------------------------------------------------------------------
  *
- * GrTOGLUnlock --
+ * GrTCairoUnlock --
  *      Unlock a window, flushing stuff out to the display.
  *
  * Results:
@@ -1385,18 +1385,18 @@ bool flag;
  */
 
 void
-GrTOGLUnlock(w)
+GrTCairoUnlock(w)
 MagWindow *w;
 {
-	/* GR_TOGL_FLUSH_BATCH(); */
-	GrTOGLFlush();	/* (?) Adds glFlush and glFinish to the above. */
+	/* GR_TCairo_FLUSH_BATCH(); */
+	GrTCairoFlush();	/* (?) Adds glFlush and glFinish to the above. */
 	grSimpleUnlock(w);
 }
 
 
 /*
  *-------------------------------------------------------------------------
- * GrTOGLEventPending --
+ * GrTCairoEventPending --
  *	check for pending graphics events.
  *      Here we use the X11 check for window events, because Tcl/Tk doesn't
  *      allows peeking into its event queue without executing whatever is
@@ -1412,9 +1412,9 @@ MagWindow *w;
  */
 
 bool
-GrTOGLEventPending()
+GrTCairoEventPending()
 {
-	Window       wind = toglCurrent.windowid;
+	Window       wind = tcairoCurrent.windowid;
 	XEvent       genEvent;
 	bool         retval;
 
@@ -1429,7 +1429,7 @@ GrTOGLEventPending()
 /*
  *-------------------------------------------------------------------------
  *
- * GrTOGLIconUpdate -- updates the icon text with the window script
+ * GrTCairoIconUpdate -- updates the icon text with the window script
  *
  * Results: none
  *
@@ -1439,7 +1439,7 @@ GrTOGLEventPending()
  */
 
 void
-GrTOGLIconUpdate(w, text)		/* See Blt code */
+GrTCairoIconUpdate(w, text)		/* See Blt code */
 MagWindow	*w;
 char	*text;
 {
@@ -1481,7 +1481,7 @@ char	*text;
 
 /*
  *-------------------------------------------------------------------------
- * GrTOGLWindowId --
+ * GrTCairoWindowId --
  *	Get magic's ID number from the indicated MagWindow structure
  *
  * Results:
@@ -1494,7 +1494,7 @@ char	*text;
  */
 
 int
-GrTOGLWindowId(tkname)
+GrTCairoWindowId(tkname)
 char *tkname;
 {
 	Tk_Window tkwind;
@@ -1505,7 +1505,7 @@ char *tkname;
 	tkwind = Tk_NameToWindow(magicinterp, tkname, Tk_MainWindow(magicinterp));
 	if (tkwind != NULL)
 	{
-		entry = HashLookOnly(&grTOGLWindowTable, (char *)tkwind);
+		entry = HashLookOnly(&grTCairoWindowTable, (char *)tkwind);
 		mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
 		if (mw) id = mw->w_wid;
 	}

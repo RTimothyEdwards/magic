@@ -49,7 +49,7 @@ extern cairo_t *grCairoContext;
  */
 
 void
-GrTOGLSetCMap ()
+GrTCairoSetCMap ()
 {
 }
 
@@ -236,7 +236,7 @@ Rect *r;    /* Address of a rectangle in screen
  */
 
 void
-grtoglFillPolygon(tp, np)
+grtcairoFillPolygon(tp, np)
 Point *tp;
 int np;
 {

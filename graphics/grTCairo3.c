@@ -31,7 +31,8 @@
 #include "utils/signals.h"
 #include "utils/utils.h"
 #include "utils/hash.h"
-#include "graphics/grTOGLInt.h"
+//#include "graphics/grTOGLInt.h"
+#include "graphics/grTCairoInt.h"
 #include "graphics/grTkCommon.h"
 #include "database/fonts.h"
 
@@ -234,7 +235,7 @@ Rect *r;
 		font = grXLargeFont;
 		break;
 	default:
-		TxError("%s%d\n", "GrTOGLTextSize: Unknown character size ",
+		TxError("%s%d\n", "GrTCairoTextSize: Unknown character size ",
 		        size );
 		break;
 	}
@@ -312,7 +313,7 @@ grtcairoCreateBackingStore(MagWindow *w)
 }
 
 bool
-grtoglGetBackingStore(MagWindow *w, Rect *area)
+grtcairoGetBackingStore(MagWindow *w, Rect *area)
 {
 	unsigned int width, height;
 	int xbot, ybot;
@@ -373,7 +374,7 @@ grtoglGetBackingStore(MagWindow *w, Rect *area)
 
 
 bool
-grtoglScrollBackingStore(MagWindow *w, Point *shift)
+grtcairoScrollBackingStore(MagWindow *w, Point *shift)
 {
 	/*
 	unsigned int width, height;
@@ -466,7 +467,7 @@ grtoglScrollBackingStore(MagWindow *w, Point *shift)
 }
 
 void
-grtoglPutBackingStore(MagWindow *w, Rect *area)
+grtcairoPutBackingStore(MagWindow *w, Rect *area)
 {
 	unsigned int width, height;
 	int ybot, xbot;
@@ -548,7 +549,7 @@ grtoglPutBackingStore(MagWindow *w, Rect *area)
  */
 
 int
-GrTOGLReadPixel (w, x, y)
+GrTCairoReadPixel (w, x, y)
 MagWindow *w;
 int x, y;       /* the location of a pixel in screen coords */
 {
@@ -571,7 +572,7 @@ int x, y;       /* the location of a pixel in screen coords */
  */
 
 void
-GrTOGLBitBlt(r, p)
+GrTCairoBitBlt(r, p)
 Rect *r;
 Point *p;
 {
@@ -614,7 +615,7 @@ myCombine(GLdouble coords[3], GLdouble *vertex_data[4],
  */
 
 void
-grtoglDrawCharacter(clist, tc, pixsize)
+grtcairoDrawCharacter(clist, tc, pixsize)
 FontChar *clist;
 unsigned char tc;
 int pixsize;
@@ -705,7 +706,7 @@ int pixsize;
  */
 
 void
-grtoglFontText(text, font, size, rotate, pos, clip, obscure)
+grtcairoFontText(text, font, size, rotate, pos, clip, obscure)
 char *text;         /* The text to be drawn */
 int   font;         /* Font to use from fontList */
 int   size;         /* Pixel size of the font */
@@ -756,7 +757,7 @@ LinkedRect *obscure;    /* List of obscuring areas */
 	for (tptr = text; *tptr != '\0'; tptr++)
 	{
 		DBFontChar(font, *tptr, &clist, &coffset, NULL);
-		grtoglDrawCharacter(clist, *tptr, size);
+		grtcairoDrawCharacter(clist, *tptr, size);
 		//glTranslated(coffset->p_x, coffset->p_y, 0);
 		cairo_translate(grCairoContext, coffset->p_x, coffset->p_y);
 	}
@@ -785,7 +786,7 @@ LinkedRect *obscure;    /* List of obscuring areas */
  */
 
 void
-grtoglPutText (text, pos, clip, obscure)
+grtcairoPutText (text, pos, clip, obscure)
 char *text;         /* The text to be drawn. */
 Point *pos;         /* A point located at the leftmost point of
                  * the baseline for this string.
@@ -798,11 +799,11 @@ LinkedRect *obscure;    /* A list of obscuring rectangles */
 	Rect overlap;
 	Rect textrect;
 	LinkedRect *ob;
-	void grTOGLGeoSub();
+	void grTCairoGeoSub();
 	int i;
 	float tscale;
 
-	GrTOGLTextSize(text, toglCurrent.fontSize, &textrect);
+	GrTCairoTextSize(text, tcairoCurrent.fontSize, &textrect);
 
 	location.r_xbot = pos->p_x + textrect.r_xbot;
 	location.r_xtop = pos->p_x + textrect.r_xtop;
@@ -816,7 +817,7 @@ LinkedRect *obscure;    /* A list of obscuring rectangles */
 		{
 			overlap = location;
 			GeoClip(&overlap, &ob->r_r);
-			grTOGLGeoSub(&location, &overlap);
+			grTCairoGeoSub(&location, &overlap);
 		}
 	}
 
@@ -852,7 +853,7 @@ LinkedRect *obscure;    /* A list of obscuring rectangles */
  */
 
 void
-grTOGLGeoSub(r, area)
+grTCairoGeoSub(r, area)
 Rect *r;        /* Rectangle to be subtracted from. */
 Rect *area;     /* Area to be subtracted. */
 
