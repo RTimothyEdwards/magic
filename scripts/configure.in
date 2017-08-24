@@ -28,6 +28,12 @@ AC_ISC_POSIX
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
+dnl GNU M4 is preferred due to some of the option switches.
+AC_PATH_PROGS([M4], [gm4 gnum4 m4], [no])
+if test x$M4 = xno; then
+  AC_MSG_ERROR([M4 is required])
+fi
+
 dnl Python3 is preferred for running the preprocessor script
 dnl but CPP can be used instead.
 AC_PATH_PROG([PYTHON3], [python3], [no])

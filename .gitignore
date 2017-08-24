@@ -2,6 +2,9 @@ defs.mak
 Depend
 config.cache
 config.log
+scripts/config.log
+scripts/config.status
+scripts/defs.mak
 *.o
 *.so
 *~
