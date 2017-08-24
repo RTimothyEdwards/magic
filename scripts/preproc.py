@@ -1,4 +1,4 @@
-#!/ef/efabless/opengalaxy/venv/bin/python3
+#!/bin/env python3
 #--------------------------------------------------------------------
 #
 # preproc.py
