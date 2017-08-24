@@ -11,7 +11,7 @@
 
 //#include <GL/gl.h>
 //#include <GL/glx.h>
-#include <CAIRO/Cairo.h>
+#include <CAIRO/cairo.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"

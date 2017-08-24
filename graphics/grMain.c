@@ -117,6 +117,7 @@ static char *grDisplayTypes[] = {
 extern bool x11SetDisplay();
 extern bool oglSetDisplay();
 extern bool nullSetDisplay();
+extern bool cairoSetDisplay();
 
 static bool (*(grInitProcs[]))() = {
 #ifdef	X11

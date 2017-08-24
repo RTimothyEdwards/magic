@@ -23,7 +23,7 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 */
-#include <Cairo/cairo.h>
+#include <CAIRO/cairo.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/main.h"
