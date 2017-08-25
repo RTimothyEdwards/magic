@@ -46,11 +46,11 @@ if test "x${PYTHON3}" == "x"; then
    dnl directory.
 
    if test "$CPP" = "$CC -E" ; then
-      CPP="$CPP -x c"
+      MCPP="$CPP -x c"
    fi
 
 else
-   CPP="${MAGICDIR}/scripts/preproc.py"
+   MCPP="\${MAGICDIR}/scripts/preproc.py"
 fi
 
 dnl check if the linker is a GNU linker
@@ -1751,6 +1751,7 @@ AC_SUBST(CFLAGS)
 AC_SUBST(DEPEND_FLAG)
 AC_SUBST(SHLIB_CFLAGS)
 AC_SUBST(LD_RUN_PATH)
+AC_SUBST(MCPP)
 
 AC_SUBST(MAGIC_VERSION)
 AC_SUBST(MAGIC_REVISION)
