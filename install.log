@@ -13,115 +13,14 @@ make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/doc'
 cd latexfiles && make install
 make[3]: Entering directory `/home/chuan/Desktop/magic-8.2/doc/latexfiles'
 ../../scripts/mkdirs /home/chuan/Desktop/magic_install/lib/magic/doc
-cp ../psfiles/tut1.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tut1.ps
-cp ../psfiles/tut2.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tut2.ps
-cp ../psfiles/tut3.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tut3.ps
-cp ../psfiles/tut4.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tut4.ps
-cp ../psfiles/tut5.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tut5.ps
-cp ../psfiles/tut6.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tut6.ps
-cp ../psfiles/tut7.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tut7.ps
-cp ../psfiles/tut8.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tut8.ps
-cp ../psfiles/tut9.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tut9.ps
-cp ../psfiles/tut10.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tut10.ps
-cp ../psfiles/tut11.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tut11.ps
-cp ../psfiles/maint1.ps /home/chuan/Desktop/magic_install/lib/magic/doc/maint1.ps
-cp ../psfiles/maint2.ps /home/chuan/Desktop/magic_install/lib/magic/doc/maint2.ps
-cp ../psfiles/maint3.ps /home/chuan/Desktop/magic_install/lib/magic/doc/maint3.ps
-cp ../psfiles/maint4.ps /home/chuan/Desktop/magic_install/lib/magic/doc/maint4.ps
-cp ../psfiles/introduction.ps /home/chuan/Desktop/magic_install/lib/magic/doc/introduction.ps
-cp ../psfiles/copyright.ps /home/chuan/Desktop/magic_install/lib/magic/doc/copyright.ps
-cp ../psfiles/addendum6_5.ps /home/chuan/Desktop/magic_install/lib/magic/doc/addendum6_5.ps
-cp ../psfiles/tutscm1.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tutscm1.ps
-cp ../psfiles/tutscm2.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tutscm2.ps
-cp ../psfiles/tutscm3.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tutscm3.ps
-cp ../psfiles/tutscm4.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tutscm4.ps
-cp ../psfiles/tuttcl1.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tuttcl1.ps
-cp ../psfiles/tuttcl2.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tuttcl2.ps
-cp ../psfiles/tuttcl3.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tuttcl3.ps
-cp ../psfiles/tuttcl4.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tuttcl4.ps
-cp ../psfiles/tuttcl5.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tuttcl5.ps
-cp ../psfiles/tutwrl1.ps /home/chuan/Desktop/magic_install/lib/magic/doc/tutwrl1.ps
 make[3]: Leaving directory `/home/chuan/Desktop/magic-8.2/doc/latexfiles'
 cd man && make install
 make[3]: Entering directory `/home/chuan/Desktop/magic-8.2/doc/man'
 ../../scripts/mkdirs /home/chuan/Desktop/magic_install/share/man/man1
-cp ext2spice.1 /home/chuan/Desktop/magic_install/share/man/man1/ext2spice.1
-cp extcheck.1 /home/chuan/Desktop/magic_install/share/man/man1/extcheck.1
-cp ext2sim.1 /home/chuan/Desktop/magic_install/share/man/man1/ext2sim.1
-cp cmap.5 /home/chuan/Desktop/magic_install/share/man/man5/cmap.5
-cp displays.5 /home/chuan/Desktop/magic_install/share/man/man5/displays.5
-cp dlys.5 /home/chuan/Desktop/magic_install/share/man/man5/dlys.5
-cp dstyle.5 /home/chuan/Desktop/magic_install/share/man/man5/dstyle.5
-cp ext.5 /home/chuan/Desktop/magic_install/share/man/man5/ext.5
-cp glyphs.5 /home/chuan/Desktop/magic_install/share/man/man5/glyphs.5
-cp mag.5 /home/chuan/Desktop/magic_install/share/man/man5/mag.5
-cp net.5 /home/chuan/Desktop/magic_install/share/man/man5/net.5
 make[3]: Leaving directory `/home/chuan/Desktop/magic-8.2/doc/man'
 cd tutcells && make install
 make[3]: Entering directory `/home/chuan/Desktop/magic-8.2/doc/tutcells'
 ../../scripts/mkdirs /home/chuan/Desktop/magic_install/lib/magic/tutorial
-cp m3a.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/m3a.mag
-cp maint2a.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/maint2a.mag
-cp tut1.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut1.mag
-cp tut2a.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut2a.mag
-cp tut2b.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut2b.mag
-cp tut2c.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut2c.mag
-cp tut2d.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut2d.mag
-cp tut3a.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut3a.mag
-cp tut3b.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut3b.mag
-cp tut3c.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut3c.mag
-cp tut3d.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut3d.mag
-cp tut3e.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut3e.mag
-cp tut3f.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut3f.mag
-cp tut3g.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut3g.mag
-cp tut3h.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut3h.mag
-cp tut4a.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut4a.mag
-cp tut4x.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut4x.mag
-cp tut4y.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut4y.mag
-cp tut4z.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut4z.mag
-cp tut5a.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut5a.mag
-cp tut5b.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut5b.mag
-cp tut6a.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut6a.mag
-cp tut6b.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut6b.mag
-cp tut6c.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut6c.mag
-cp tut6x.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut6x.mag
-cp tut6y.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut6y.mag
-cp tut7a.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut7a.mag
-cp tut7b.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut7b.mag
-cp tut7b.net /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut7b.net
-cp tut7c.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut7c.mag
-cp tut7d.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut7d.mag
-cp tut7d.net /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut7d.net
-cp tut8a.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8a.mag
-cp tut8b.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8b.mag
-cp tut8c.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8c.mag
-cp tut8d.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8d.mag
-cp tut8e.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8e.mag
-cp tut8f.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8f.mag
-cp tut8g.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8g.mag
-cp tut8h.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8h.mag
-cp tut8i.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8i.mag
-cp tut8j.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8j.mag
-cp tut8k.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8k.mag
-cp tut8l.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8l.mag
-cp tut8m.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8m.mag
-cp tut8n.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8n.mag
-cp tut8r.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut8r.mag
-cp tut9a.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut9a.mag
-cp tut9b.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut9b.mag
-cp tut9x.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut9x.mag
-cp tut9y.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut9y.mag
-cp tut11a.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut11a.mag
-cp tut11b.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut11b.mag
-cp tut11c.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut11c.mag
-cp tut11d.mag /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut11d.mag
-cp tut11a.al /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut11a.al
-cp tut11a.cmd /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut11a.cmd
-cp tut11a.ext /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut11a.ext
-cp tut11a.nodes /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut11a.nodes
-cp tut11a.sim /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut11a.sim
-cp tut11b.ext /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut11b.ext
-cp tut11c.ext /home/chuan/Desktop/magic_install/lib/magic/tutorial/tut11c.ext
 make[3]: Leaving directory `/home/chuan/Desktop/magic-8.2/doc/tutcells'
 cd html && make install
 make[3]: Entering directory `/home/chuan/Desktop/magic-8.2/doc/html'
@@ -136,26 +35,26 @@ rm -f objs/CIFin objs/CIFout objs/IBMCIFin objs/IBMCIFout objs/TMCIFin \
 make[3]: Leaving directory `/home/chuan/Desktop/magic-8.2/scmos/cif_template'
 make[3]: Entering directory `/home/chuan/Desktop/magic-8.2/scmos/cif_template'
 rm -f objs/CIFin
-/scripts/preproc.py -DSTANDARD cifin.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/CIFin
+gcc -E -DSTANDARD cifin.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/CIFin
 rm -f objs/CIFout
-/scripts/preproc.py -DSTANDARD cifout.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/CIFout
+gcc -E -DSTANDARD cifout.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/CIFout
 rm -f objs/IBMCIFin
-/scripts/preproc.py -DIBM cifin.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/IBMCIFin
+gcc -E -DIBM cifin.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/IBMCIFin
 rm -f objs/IBMCIFout
-/scripts/preproc.py -DIBM cifout.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/IBMCIFout
+gcc -E -DIBM cifout.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/IBMCIFout
 rm -f objs/TMCIFin
-/scripts/preproc.py -DTIGHTMETAL cifin.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/TMCIFin
+gcc -E -DTIGHTMETAL cifin.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/TMCIFin
 rm -f objs/TMCIFout
-/scripts/preproc.py -DTIGHTMETAL cifout.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/TMCIFout
+gcc -E -DTIGHTMETAL cifout.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/TMCIFout
 rm -f objs/SUBCIFin
-/scripts/preproc.py -DSUBMICRON cifin.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/SUBCIFin
+gcc -E -DSUBMICRON cifin.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/SUBCIFin
 rm -f objs/SUBCIFout
-/scripts/preproc.py -DSUBMICRON cifout.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/SUBCIFout
+gcc -E -DSUBMICRON cifout.c | sed -e "s/\\\\/\\\\\\\\/" -e "/^#/D" -e "s/(gen )/(gen)/" -e "s/(nowell )/(nowell)/" -e "s/(nwell )/(nwell)/" -e "s/(pwell )/(pwell)/" > objs/SUBCIFout
 make[3]: Leaving directory `/home/chuan/Desktop/magic-8.2/scmos/cif_template'
 /usr/bin/m4 minimum.tech.in > minimum.tech
 /usr/bin/m4 gdsquery.tech.in > gdsquery.tech
 sed -e 's/\\/\\\\/' scmos.tech.in > scmos.tech.out
-/scripts/preproc.py -I./extract_template -DV5 -DSTANDARD scmos.tech.out > scmos.tech
+../scripts/preproc.py -I./extract_template -DV5 -DSTANDARD scmos.tech.out > scmos.tech
 make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/scmos'
 make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
 for i in bw.glyphs color.glyphs; do \
