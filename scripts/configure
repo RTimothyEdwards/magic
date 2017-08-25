@@ -628,6 +628,7 @@ OA_LIBS
 OA
 MAGIC_REVISION
 MAGIC_VERSION
+MCPP
 LD_RUN_PATH
 SHLIB_CFLAGS
 DEPEND_FLAG
@@ -4124,11 +4125,11 @@ if test "x${PYTHON3}" == "x"; then
 
 
    if test "$CPP" = "$CC -E" ; then
-      CPP="$CPP -x c"
+      MCPP="$CPP -x c"
    fi
 
 else
-   CPP="${MAGICDIR}/scripts/preproc.py"
+   MCPP="\${MAGICDIR}/scripts/preproc.py"
 fi
 
 
@@ -8171,6 +8172,7 @@ fi
 if test "$GCC" = "yes" ; then
    DEPEND_FLAG="-MM"
 fi
+
 
 
 
