@@ -92,8 +92,10 @@ Point *p;			/* screen pos of lower left corner */
 				{
 					/* Note: mask has traditionally been 0-127 */
 					if (thisp != lastp) {
-						if (lastp != -1) glEnd();
-
+						if (lastp != -1) {
+							cairo_fill(grCairoContext);
+							//glEnd();
+						}
 						mask = GrStyleTable[thisp].mask << 1;
 						color = GrStyleTable[thisp].color;
 						GrGetColor(color, &red, &green, &blue);

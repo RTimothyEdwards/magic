@@ -170,7 +170,7 @@ grtcairoSetCharSize (size)
 int size;       /* Width of characters, in pixels (6 or 8). */
 {
 	tcairoCurrent.fontSize = size;
-	cairo_set_font_size(grCairoContext, size*4+10);
+	cairo_set_font_size(grCairoContext, size * 4 + 10);
 	switch (size)
 	{
 	case GR_TEXT_DEFAULT:
@@ -641,55 +641,55 @@ int pixsize;
 	}
 	cairo_fill(grCairoContext);
 
-/*
-	if (tess == NULL)
-	{
-		tess = gluNewTess();
-		gluTessCallback(tess, GLU_TESS_BEGIN, (_GLUfuncptr)glBegin);
-		gluTessCallback(tess, GLU_TESS_VERTEX, (_GLUfuncptr)glVertex3dv);
-		gluTessCallback(tess, GLU_TESS_END, (_GLUfuncptr)glEnd);
-		gluTessCallback(tess, GLU_TESS_COMBINE_DATA, (_GLUfuncptr)myCombine);
-	}
-	// Boundary-only does not look particularly good. . .
-	gluTessProperty(tess, GLU_TESS_BOUNDARY_ONLY, GL_FALSE);
-
-	nptotal = 0;
-	for (ccur = clist; ccur != NULL; ccur = ccur->fc_next)
-		nptotal += ccur->fc_numpoints;
-
-	if (nptotal > maxnp)
-	{
-		if (v != NULL) freeMagic((char *)v);
-		maxnp = nptotal;
-		v = (GLdouble *)mallocMagic(nptotal * 3 * sizeof(GLdouble));
-	}
-
-	j = 0;
-	for (ccur = clist; ccur != NULL; ccur = ccur->fc_next)
-	{
-		tp = ccur->fc_points;
-		np = ccur->fc_numpoints;
-
-		for (i = 0; i < np; i++, j += 3) {
-			v[j] = tp[i].p_x;
-			v[j + 1] = tp[i].p_y;
-			v[j + 2] = 0;
+	/*
+		if (tess == NULL)
+		{
+			tess = gluNewTess();
+			gluTessCallback(tess, GLU_TESS_BEGIN, (_GLUfuncptr)glBegin);
+			gluTessCallback(tess, GLU_TESS_VERTEX, (_GLUfuncptr)glVertex3dv);
+			gluTessCallback(tess, GLU_TESS_END, (_GLUfuncptr)glEnd);
+			gluTessCallback(tess, GLU_TESS_COMBINE_DATA, (_GLUfuncptr)myCombine);
 		}
-	}
+		// Boundary-only does not look particularly good. . .
+		gluTessProperty(tess, GLU_TESS_BOUNDARY_ONLY, GL_FALSE);
 
-	gluTessBeginPolygon(tess, (GLvoid *)(&tc));
-	j = 0;
-	for (ccur = clist; ccur != NULL; ccur = ccur->fc_next)
-	{
-		np = ccur->fc_numpoints;
-		gluTessBeginContour(tess);
-		for (i = 0; i < np; i++, j += 3) {
-			gluTessVertex(tess, &v[j], &v[j]);
+		nptotal = 0;
+		for (ccur = clist; ccur != NULL; ccur = ccur->fc_next)
+			nptotal += ccur->fc_numpoints;
+
+		if (nptotal > maxnp)
+		{
+			if (v != NULL) freeMagic((char *)v);
+			maxnp = nptotal;
+			v = (GLdouble *)mallocMagic(nptotal * 3 * sizeof(GLdouble));
 		}
-		gluTessEndContour(tess);
-	}
-	gluTessEndPolygon(tess);
-*/
+
+		j = 0;
+		for (ccur = clist; ccur != NULL; ccur = ccur->fc_next)
+		{
+			tp = ccur->fc_points;
+			np = ccur->fc_numpoints;
+
+			for (i = 0; i < np; i++, j += 3) {
+				v[j] = tp[i].p_x;
+				v[j + 1] = tp[i].p_y;
+				v[j + 2] = 0;
+			}
+		}
+
+		gluTessBeginPolygon(tess, (GLvoid *)(&tc));
+		j = 0;
+		for (ccur = clist; ccur != NULL; ccur = ccur->fc_next)
+		{
+			np = ccur->fc_numpoints;
+			gluTessBeginContour(tess);
+			for (i = 0; i < np; i++, j += 3) {
+				gluTessVertex(tess, &v[j], &v[j]);
+			}
+			gluTessEndContour(tess);
+		}
+		gluTessEndPolygon(tess);
+	*/
 }
 
 /*---------------------------------------------------------
