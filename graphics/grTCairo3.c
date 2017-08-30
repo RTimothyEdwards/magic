@@ -17,7 +17,9 @@
 #include <GL/glu.h>
 */
 
-#include <CAIRO/cairo.h>
+#include <cairo/cairo-xlib.h>
+
+#include <math.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -37,12 +39,13 @@
 #include "database/fonts.h"
 
 extern Display *grXdpy;
-
 extern cairo_t *grCairoContext;
+
+static GC grXcopyGC = (GC)NULL;
 
 /* locals */
 
-GLuint  grXBases[4];
+//GLuint  grXBases[4];
 
 
 /*---------------------------------------------------------
@@ -291,20 +294,21 @@ grtcairoCreateBackingStore(MagWindow *w)
 	if (w->w_client != DBWclientID) return;
 
 	/* deferred */
-	if (w->w_grdata == (Window)NULL) return;
+	if (wind == (Window)NULL) return;
 
 	width = w->w_screenArea.r_xtop - w->w_screenArea.r_xbot;
 	height = w->w_screenArea.r_ytop - w->w_screenArea.r_ybot;
 
 	if (w->w_backingStore != (ClientData)NULL) grtcairoFreeBackingStore(w);
-	/*
+
 	if (grXcopyGC == (GC)NULL)
 	{
 		gcValues.graphics_exposures = FALSE;
 		grXcopyGC = XCreateGC(grXdpy, wind, GCGraphicsExposures, &gcValues);
 	}
-	*/
-	grDepth = grDisplay.depth;
+
+	grDepth = Tk_Depth((Tk_Window)w->w_grdata);
+
 	//if (grClass == 3) grDepth = 8;  /* Needed since grDisplay.depth is reset
 	//			     to 7 if Pseudocolor      */
 
@@ -357,11 +361,12 @@ grtcairoGetBackingStore(MagWindow *w, Rect *area)
 	unsigned int width_return, height_return;
 	unsigned int border_width_return;
 	unsigned int depth_return;
+	Pixmap pmap;
 
 	pmap = (Pixmap)w->w_backingStore;
 	if (pmap == (Pixmap)NULL)
 		return FALSE;
-	XGetGeometry(grXdpy, pmap, &root_return, &x_return, &y_return, &border_width_return, &depth_return);
+	XGetGeometry(grXdpy, pmap, &root_return, &x_return, &y_return, &width_return, &height_return, &border_width_return, &depth_return);
 
 	cairo_surface_t *backingStoreSurface;
 	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
@@ -518,18 +523,22 @@ grtcairoPutBackingStore(MagWindow *w, Rect *area)
 	unsigned int width_return, height_return;
 	unsigned int border_width_return;
 	unsigned int depth_return;
+	Pixmap pmap;
 
 	pmap = (Pixmap)w->w_backingStore;
 	if (pmap == (Pixmap)NULL)
-		return FALSE;
-	XGetGeometry(grXdpy, pmap, &root_return, &x_return, &y_return, &border_width_return, &depth_return);
+		return;
+	XGetGeometry(grXdpy, pmap, &root_return, &x_return, &y_return, &width_return, &height_return, &border_width_return, &depth_return);
 
 	cairo_surface_t *backingStoreSurface;
 	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
 	cairo_t *tempContext = cairo_create(backingStoreSurface);
-	cairo_set_source(tempContext, cairo_get_surface(grCairoContext));
+	cairo_set_source(tempContext, cairo_get_source(grCairoContext));
 	cairo_rectangle(tempContext, xbot, ybot, width, height);
 	cairo_fill(tempContext);
+	
+	pmap = XCreatePixmap(grXdpy, wind, width, height, grDepth);
+	w->w_backingStore = (ClientData)pmap;
 }
 
 
@@ -576,8 +585,13 @@ GrTCairoBitBlt(r, p)
 Rect *r;
 Point *p;
 {
+	/*
 	glCopyPixels(r->r_xbot, r->r_ybot, r->r_xtop - r->r_xbot + 1,
 	             r->r_ytop - r->r_ybot + 1, GL_COLOR);
+	*/
+
+	cairo_set_source_surface(grCairoContext, cairo_get_source(grCairoContext), p->p_x, p->p_y);
+	// do some stuff
 }
 
 #ifdef VECTOR_FONTS
@@ -591,19 +605,22 @@ Point *p;
  *----------------------------------------------------------------------
  */
 
+/*
+// unused in cairo graphics
 void
 myCombine(GLdouble coords[3], GLdouble *vertex_data[4],
           GLfloat weight[4], GLdouble **outData, void *dataptr)
 {
-	/* This needs to be free'd at the end of gluTessEndPolygon()! */
+	// This needs to be free'd at the end of gluTessEndPolygon()!
 	GLdouble *new = (GLdouble *)mallocMagic(2 * sizeof(GLdouble));
 	new[0] = coords[0];
 	new[1] = coords[1];
 	*outData = new;
-	/* Diagnostic */
+	// Diagnostic
 	TxError("Intersecting polygon in char \"%c\" at %g %g!\n",
 	        *((char *)dataptr), coords[0], coords[1]);
 }
+*/
 
 /*
  *----------------------------------------------------------------------
@@ -718,7 +735,8 @@ LinkedRect *obscure;    /* List of obscuring areas */
 	char *tptr;
 	Point *coffset;     /* vector to next character */
 	Rect *cbbox;
-	GLfloat fsize, matvals[16];
+	//GLfloat fsize, matvals[16];
+	float fsize;
 	FontChar *clist;
 	int cheight, baseline;
 	float tmp;
@@ -733,7 +751,7 @@ LinkedRect *obscure;    /* List of obscuring areas */
 
 	cairo_save(grCairoContext);
 	cairo_translate(grCairoContext, pos->p_x, pos->p_y);
-	cairo_rotate(grCairoContext, ((double)angle) / 360 * 2 * M_PI);
+	cairo_rotate(grCairoContext, ((double)rotate) / 360 * 2 * M_PI);
 
 	/* Get label size */
 	cbbox = &DBFontList[font]->mf_extents;

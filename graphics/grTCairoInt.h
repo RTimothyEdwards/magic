@@ -14,21 +14,21 @@
 
 /* Constants
  */
-#define M_WIDTH		1023
-#define M_HEIGHT	750
+#define M_WIDTH     1023
+#define M_HEIGHT    750
 
-#define TCAIRO_BATCH_SIZE	10000
+#define TCAIRO_BATCH_SIZE   10000
 
 /* Current settings for X function parameters */
 typedef struct {
-    Tk_Font		font;
-    Tk_Cursor		cursor;
-    int			fontSize;
-    int			depth;
-    int			maskmod;
-    Tk_Window 		window;
-    Window		windowid;
-    MagWindow		*mw;
+	Tk_Font     font;
+	Tk_Cursor   cursor;
+	int         fontSize;
+	int         depth;
+	int         maskmod;
+	Tk_Window   window;
+	Window      windowid;
+	MagWindow   *mw;
 } TCAIRO_CURRENT;
 
 #ifdef Cairo_SERVER_SIDE_ONLY
@@ -37,7 +37,7 @@ typedef Rect TCairoRect;
 
 /* Used for vertex arrays */
 typedef struct {
-    Point r_ll, r_ul, r_ur, r_lr;
+	Point r_ll, r_ul, r_ur, r_lr;
 } TCairoRect;
 
 #endif
@@ -87,30 +87,30 @@ extern TCairoRect grtcairoRects[];
 
 #define GR_TCAIRO_FLUSH_LINES() { \
     if (grtcairoNbLines>0) { \
-	grtcairoDrawLines(grtcairoLines, grtcairoNbLines); \
-	grtcairoNbLines=0; \
+    grtcairoDrawLines(grtcairoLines, grtcairoNbLines); \
+    grtcairoNbLines=0; \
     } \
 }
 
 #define GR_TCAIRO_FLUSH_DIAGONAL() { \
     if (grtcairoNbDiagonal>0) { \
-	//glEnable(GL_LINE_SMOOTH); \
 	grtcairoDrawLines(grtcairoDiagonal, grtcairoNbDiagonal); \
-	//glDisable(GL_LINE_SMOOTH); \
-	grtcairoNbDiagonal=0; \
-    } \
+	grtcairoNbDiagonal = 0; \
+	} \
 }
 
 #define GR_TCAIRO_FLUSH_RECTS() { \
     if (grtcairoNbRects>0) { \
-	grtcairoFillRects(grtcairoRects, grtcairoNbRects); \
-	grtcairoNbRects=0; \
+    grtcairoFillRects(grtcairoRects, grtcairoNbRects); \
+    grtcairoNbRects=0; \
     } \
 }
 
-#define	GR_TCAIRO_FLUSH_BATCH() {GR_TCAIRO_FLUSH_LINES(); \
-		GR_TCAIRO_FLUSH_DIAGONAL(); \
-		GR_TCAIRO_FLUSH_RECTS();}
+#define GR_TCAIRO_FLUSH_BATCH() { \
+	GR_TCAIRO_FLUSH_LINES(); \
+    GR_TCAIRO_FLUSH_DIAGONAL(); \
+    GR_TCAIRO_FLUSH_RECTS(); \
+}
 
 /* Used by the wind3d window */
 extern void TCairoEventProc();

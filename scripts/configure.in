@@ -1263,7 +1263,7 @@ if test $usingTcl ; then
   if test $usingCairo ; then
     gr_dflags="$gr_dflags -DCAIRO"
     gr_libs="$gr_libs -lcairo -lfontconfig -lfreetype"
-    gr_srcs="$gr_srcs \${TOGL_SRCS}"
+    gr_srcs="$gr_srcs \${TCAIRO_SRCS}"
     if ! test $usingX11 ; then
       usingX11=1
       gr_dflags="$gr_dflags -DXLIB"

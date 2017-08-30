@@ -14,7 +14,7 @@ char *getenv();
 #include <GL/gl.h>
 #include <GL/glx.h>
 */
-#include <CAIRO/cairo.h>
+#include <cairo/cairo-xlib.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -28,7 +28,7 @@ char *getenv();
 #include "grTCairoInt.h"
 
 extern   char        *DBWStyleType;
-extern   GLXContext  grXcontext;
+//extern   GLXContext  grXcontext;
 extern   Display     *grXdpy;
 
 extern cairo_t *grCairoContext;
@@ -182,11 +182,12 @@ int nb;
 
 	for (i = 0; i < nb; i++)
 	{
-		cairo_rectangle(rects[i].r_ll.p_x, rects[i].r_ll.p_y,
+		cairo_rectangle(grCairoContext, 
+						rects[i].r_ll.p_x, rects[i].r_ll.p_y,
 		        		rects[i].r_ur.p_x, rects[i].r_ur.p_y);
 	}
 	// cairo_set_source_rgba(grCairoContext, r, g, b, a);
-	cairo_fill(cr);
+	cairo_fill(grCairoContext);
 }
 
 /*---------------------------------------------------------
@@ -249,10 +250,10 @@ int np;
 	glEnd();
 	glDisable(GL_POLYGON_SMOOTH);
 	*/
-	cairo_move_to(tp[0].p_x, tp[0].p_y);
+	cairo_move_to(grCairoContext, tp[0].p_x, tp[0].p_y);
 	for (i = 1; i < np; i++)
-		cairo_line_to(tp[i].p_x, tp[i].p_y);
+		cairo_line_to(grCairoContext, tp[i].p_x, tp[i].p_y);
 	cairo_close_path(grCairoContext);
-	cairo_fill(cr);
+	cairo_fill(grCairoContext);
 }
 

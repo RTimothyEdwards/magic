@@ -127,7 +127,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "15"
+| #define MAGIC_REVISION "16"
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
 configure:3471: result: gcc -E
@@ -148,7 +148,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "15"
+| #define MAGIC_REVISION "16"
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
 configure:3591: checking for g++
@@ -304,7 +304,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "15"
+| #define MAGIC_REVISION "16"
 | #define STDC_HEADERS 1
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_SYS_STAT_H 1
@@ -345,7 +345,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "15"
+| #define MAGIC_REVISION "16"
 | #define STDC_HEADERS 1
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_SYS_STAT_H 1
@@ -435,7 +435,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "15"
+| #define MAGIC_REVISION "16"
 | #define STDC_HEADERS 1
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_SYS_STAT_H 1
@@ -508,7 +508,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "15"
+| #define MAGIC_REVISION "16"
 | #define STDC_HEADERS 1
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_SYS_STAT_H 1
@@ -600,7 +600,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "15"
+| #define MAGIC_REVISION "16"
 | #define STDC_HEADERS 1
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_SYS_STAT_H 1
@@ -655,7 +655,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "15"
+| #define MAGIC_REVISION "16"
 | #define STDC_HEADERS 1
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_SYS_STAT_H 1
@@ -844,7 +844,7 @@ CPPFLAGS=''
 CSH='/bin/csh'
 CXX='g++'
 CXXFLAGS='-g -O2'
-DEFS='-DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"15\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1'
+DEFS='-DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1'
 DEPEND_FLAG='-MM'
 ECHO_C=''
 ECHO_N='printf'
@@ -868,7 +868,7 @@ LIBS='-lcairo '
 LIB_SPECS=' -L/usr/lib/x86_64-linux-gnu -ltk8.6 -L/usr/lib/x86_64-linux-gnu -ltcl8.6'
 LTLIBOBJS=''
 M4='/usr/bin/m4'
-MAGIC_REVISION='15'
+MAGIC_REVISION='16'
 MAGIC_VERSION='8.2'
 MCPP='${MAGICDIR}/scripts/preproc.py'
 OA=''
@@ -919,7 +919,7 @@ gr_dflags=' -DX11 -DXLIB -DCAIRO'
 gr_hprog=''
 gr_hsrcs=''
 gr_libs=' -lX11 -lcairo -lfontconfig -lfreetype'
-gr_srcs=' ${TK_SRCS} ${TOGL_SRCS} ${TKCOMMON_SRCS}'
+gr_srcs=' ${TK_SRCS} ${TCAIRO_SRCS} ${TKCOMMON_SRCS}'
 host='x86_64-unknown-linux-gnu'
 host_alias=''
 host_cpu='x86_64'
@@ -968,7 +968,7 @@ unused=' readline lisp'
 #define PACKAGE_BUGREPORT ""
 #define PACKAGE_URL ""
 #define MAGIC_VERSION "8.2"
-#define MAGIC_REVISION "15"
+#define MAGIC_REVISION "16"
 #define STDC_HEADERS 1
 #define HAVE_SYS_TYPES_H 1
 #define HAVE_SYS_STAT_H 1

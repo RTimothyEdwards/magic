@@ -23,7 +23,7 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 */
-#include <CAIRO/cairo.h>
+#include <cairo/cairo-xlib.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/main.h"
@@ -48,12 +48,12 @@
 #include "utils/paths.h"
 #include "graphics/grTkCommon.h"
 
-uint8_t		**grTCairoStipples;
-HashTable	grTCairoWindowTable;
+uint8_t			**grTCairoStipples;
+HashTable		grTCairoWindowTable;
 //GLXContext	grXcontext;
 cairo_surface_t *grCairoSurface;
-cairo_t *grCairoContext;
-XVisualInfo	*grVisualInfo;
+cairo_t 		*grCairoContext;
+XVisualInfo		*grVisualInfo;
 
 //TCairo_CURRENT tcairoCurrent= {(Tk_Font)0, 0, 0, 0, 0,
 //	(Tk_Window)0, (Window)0, (MagWindow *)NULL};
@@ -70,17 +70,7 @@ TCAIRO_CURRENT tcairoCurrent = {(Tk_Font)0, 0, 0, 0, 0,
  * of those names, which don't get modified.  Check out the Makefile
  * for details on this.
  */
-/*
-extern void GrTCairoClose(), GrTCairoFlush();
-extern void GrTCairoDelete(), GrTCairoConfigure(), GrTCairoRaise(), GrTCairoLower();
-extern void GrTCairoLock(), GrTCairoUnlock(), GrTCairoIconUpdate();
-extern bool GrTCairoInit();
-extern bool GrTCairoEventPending(), GrTCairoCreate(), grtcairoGetCursorPos();
-extern int  GrTCairoWindowId();
-extern char *GrTkWindowName();
 
-extern void tcairoSetProjection();
-*/
 extern void GrTCairoClose(), GrTCairoFlush();
 extern void GrTCairoDelete(), GrTCairoConfigure(), GrTCairoRaise(), GrTCairoLower();
 extern void GrTCairoLock(), GrTCairoUnlock(), GrTCairoIconUpdate();
@@ -176,7 +166,7 @@ int c;			/* New value for current color */
  */
 
 void
-grtCairoSetLineStyle (style)
+grtcairoSetLineStyle (style)
 int style;			/* New stipple pattern for lines. */
 {
 	// unimplemented for cairo
@@ -201,6 +191,7 @@ int style;			/* New stipple pattern for lines. */
 		break;
 	}
 	*/
+	;
 }
 
 
@@ -216,17 +207,17 @@ int style;			/* New stipple pattern for lines. */
  *---------------------------------------------------------
  */
 
-cairo_surface_t *stippleSurfaces;
+cairo_pattern_t **stipplePatterns;
 
 void
-grtcarioSetSPattern (sttable, numstipples)
+grtcairoSetSPattern (sttable, numstipples)
 int **sttable;			/* The table of patterns */
 int numstipples;			/* Number of stipples */
 {
 	int i, j, k, n;
 	uint8_t *pdata;
 
-	stippleSurfaces = mallocMagic(sizeof(cairo_surface_t) * numstipples);
+	stipplePatterns = (cairo_pattern_t **)mallocMagic(sizeof(cairo_pattern_t *) * numstipples);
 
 	grTCairoStipples = (uint8_t **)mallocMagic(numstipples * sizeof(uint8_t *));
 	for (k = 0; k < numstipples; k++)
@@ -236,13 +227,15 @@ int numstipples;			/* Number of stipples */
 
 		/* expand magic's default 8x8 stipple to OpenGL's 32x32 */
 
-		for (i = 0; i < 32; i++)
-			for (j = 0; j < 4; j++)
+		for (i = 0; i < 32; i++) {
+			for (j = 0; j < 4; j++) {
 				pdata[n++] = (uint8_t)sttable[k][i % 8];
+			}
+		}
 
 		grTCairoStipples[k] = pdata;
-		stippleSurfaces[k] = cairo_image_surface_create_for_data(pdata, CAIRO_FORMAT_A1, 32, 32,
-																cairo_format_stride_for_width(CAIRO_FORMAT_A1, 32));
+		stipplePatterns[k] = cairo_pattern_create_for_surface(cairo_image_surface_create_for_data(pdata, CAIRO_FORMAT_A1, 32, 32,
+		                     cairo_format_stride_for_width(CAIRO_FORMAT_A1, 32)));
 	}
 }
 
@@ -260,7 +253,7 @@ int numstipples;			/* Number of stipples */
  */
 
 void
-grtCairoSetStipple (stipple)
+grtcairoSetStipple (stipple)
 int stipple;			/* The stipple number to be used. */
 {
 	static int oldStip = -1;
@@ -271,16 +264,14 @@ int stipple;			/* The stipple number to be used. */
 		//glDisable(GL_POLYGON_STIPPLE);
 		cairo_set_source_rgb(grCairoContext, 0, 0, 0);
 	} else {
-		if (stippleSurfaces[stipple] == (uint8_t *)NULL) MainExit(1);
+		if (stipplePatterns[stipple] == (cairo_pattern_t *)NULL) MainExit(1);
 		//glEnable(GL_POLYGON_STIPPLE);
 		//glPolygonStipple(grTCairoStipples[stipple]);
-		cairo_pattern_set_extend(stippleSurfaces[stipple], CAIRO_EXTEND_REPEAT);
-		cairo_pattern_set_filter(stippleSurfaces[stipple], CAIRO_FILTER_NEAREST);
-		cairo_set_source(grCairoContext, stippleSurfaces[stipple]);
-		cairo_mask_surface(grCairoContext, stippleSurfaces[stipple], 0.0, 0.0)
+		cairo_pattern_set_extend(stipplePatterns[stipple], CAIRO_EXTEND_REPEAT);
+		cairo_pattern_set_filter(stipplePatterns[stipple], CAIRO_FILTER_NEAREST);
+		cairo_set_source(grCairoContext, stipplePatterns[stipple]);
+		cairo_mask_surface(grCairoContext, grCairoSurface, 0.0, 0.0);
 	}
-
-
 }
 
 
@@ -304,13 +295,15 @@ bool
 GrTCairoInit ()
 {
 	bool rstatus;
-#ifdef THREE_D
-	static int attributeList[] = { GLX_RGBA, GLX_DOUBLEBUFFER, None };
-#else
-	static int attributeList[] = { GLX_RGBA, None, None };
-#endif
+	/*
+	#ifdef THREE_D
+		static int attributeList[] = { GLX_RGBA, GLX_DOUBLEBUFFER, None };
+	#else
+		static int attributeList[] = { GLX_RGBA, None, None };
+	#endif
+	*/
 
-	tcairoCurrent.window = Tk_MainWindow(magicinterp);
+	tcairoCurrent.window = Tk_MainWindow(magicinterp); // XDefaultRootWindow(grXdpy) ??
 	if (tcairoCurrent.window == NULL)
 	{
 		TxError("No Top-Level Tk window available. . . is Tk running?\n");
@@ -323,31 +316,41 @@ GrTCairoInit ()
 
 	grXscrn = DefaultScreen(grXdpy);
 
-	grVisualInfo = glXChooseVisual(grXdpy, grXscrn, attributeList);
+	//grVisualInfo = glXChooseVisual(grXdpy, grXscrn, attributeList);
+	XVisualInfo grtemplate;
+	int gritems;
+	grtemplate.screen = grXscrn;
+	grtemplate.depth = 0;
+	grVisualInfo = XGetVisualInfo(grXdpy, VisualScreenMask, &grtemplate, &gritems);
 
 	if (!grVisualInfo)
 	{
-		/* Try for a double-buffered configuration */
-#ifdef THREE_D
+		TxError("No suitable visual!\n");
+		return FALSE;
+		/*
+		// Try for a double-buffered configuration
+		#ifdef THREE_D
 		attributeList[1] = None;
-#else
+		#else
 		attributeList[1] = GLX_DOUBLEBUFFER;
-#endif
+		#endif
 		grVisualInfo = glXChooseVisual(grXdpy, grXscrn, attributeList);
 		if (!grVisualInfo)
 		{
-			TxError("No suitable visual!\n");
-			return FALSE;
+		TxError("No suitable visual!\n");
+		return FALSE;
 		}
+		*/
 	}
+
 	grXscrn = grVisualInfo->screen;
 	tcairoCurrent.depth = grVisualInfo->depth;
 
 	/* TRUE = Direct rendering, FALSE = Indirect rendering */
 	/* (note that direct rendering may not be able to deal with pixmaps) */
 	//grXcontext = glXCreateContext(grXdpy, grVisualInfo, NULL, GL_FALSE);
-	// should we still use tcairoCurrent?
-	grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.window, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
+
+	grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.windowid, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
 	grCairoContext = cairo_create(grCairoSurface);
 
 	/* Basic GL parameters */
@@ -388,7 +391,6 @@ GrTCairoClose ()
 	if (grVisualInfo != NULL) XFree(grVisualInfo);
 
 	grTkFreeFonts();
-
 	/* Pop down Tk window but let Tcl/Tk */
 	/* do XCloseDisplay()		 */
 }
@@ -410,9 +412,9 @@ GrTCairoClose ()
 void
 GrTCairoFlush ()
 {
-	GR_TCairo_FLUSH_BATCH();
-	glFlush();
-	glFinish();
+	GR_TCAIRO_FLUSH_BATCH();
+	//glFlush();
+	//glFinish();
 }
 
 /*
@@ -447,13 +449,13 @@ int llx, lly, width, height;
 	}
 	else {
 		//glXMakeCurrent(grXdpy, (GLXDrawable)tcairoCurrent.windowid, grXcontext);
-		grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.window, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
+		grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.windowid, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
 	}
 
-#ifndef Cairo_SERVER_SIDE_ONLY
-	/* For batch-processing lines and rectangles */
-	glEnableClientState(GL_VERTEX_ARRAY);
-#endif
+// #ifndef Cairo_SERVER_SIDE_ONLY
+// 	 For batch-processing lines and rectangles
+// 	glEnableClientState(GL_VERTEX_ARRAY);
+// #endif
 
 	/* Because this tends to result in thick lines, it has been moved	*/
 	/* the line drawing routine so it can be enabled for individual	*/
@@ -467,28 +469,30 @@ int llx, lly, width, height;
 	//glLoadIdentity();
 	cairo_identify_matrix(grCairoContext);
 
-	glViewport((GLsizei)llx, (GLsizei)lly, (GLsizei) width, (GLsizei) height);
+	//glViewport((GLsizei)llx, (GLsizei)lly, (GLsizei) width, (GLsizei) height);
 	// cairo equivalent??
 
 	/* scale to fit window */
 
-#ifdef Cairo_INVERT_Y
+#ifdef CAIRO_INVERT_Y
 	//glScalef(1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1), 1.0);
-	cairo_scale(grCairoContext, 1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1));
+	//cairo_scale(grCairoContext, 1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1));
+	cairo_scale(grCairoContext, width, -height);
 #else
 	//glScalef(1.0 / (float)(width >> 1), 1.0 / (float)(height >> 1), 1.0);
-	cairo_scale(grCairoContext, 1.0 / (float)(width >> 1), 1.0 / (float)(height >> 1));
+	cairo_scale(grCairoContext, width, height);
 #endif
 
 	/* magic origin maps to window center; move to window origin */
 
 	//glTranslated(-(GLsizei)(width >> 1), -(GLsizei)(height >> 1), 0);
-	cairo_translate(grCairoContext, -(GLsizei)(width >> 1), -(GLsizei)(height >> 1));
+	cairo_translate(grCairoContext, -(int)(width >> 1), -(int)(height >> 1));
 
 	/* Remaining transformations are done on the modelview matrix */
 
 	//glMatrixMode(GL_MODELVIEW);
 	//glLoadIdentity();
+	cairo_identify_matrix(grCairoContext);
 }
 
 
@@ -1178,7 +1182,8 @@ char *name;
 
 		wind = Tk_WindowId(tkwind);
 		tcairoCurrent.windowid = wind;
-		glXMakeCurrent(grXdpy, (GLXDrawable)wind, grXcontext);
+		//glXMakeCurrent(grXdpy, (GLXDrawable)wind, grXcontext);
+		grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.windowid, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
 
 		Tk_DefineCursor(tkwind, tcairoCurrent.cursor);
 		GrTCairoIconUpdate(w, w->w_caption);
@@ -1363,8 +1368,8 @@ bool flag;
 		}
 
 		tcairoSetProjection(w->w_allArea.r_xbot, w->w_allArea.r_ybot,
-		                  w->w_allArea.r_xtop - w->w_allArea.r_xbot,
-		                  w->w_allArea.r_ytop - w->w_allArea.r_ybot);
+		                    w->w_allArea.r_xtop - w->w_allArea.r_xbot,
+		                    w->w_allArea.r_ytop - w->w_allArea.r_ybot);
 	}
 }
 
@@ -1507,7 +1512,9 @@ char *tkname;
 	{
 		entry = HashLookOnly(&grTCairoWindowTable, (char *)tkwind);
 		mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
-		if (mw) id = mw->w_wid;
+		if (mw) {
+			id = mw->w_wid;
+		}
 	}
 	return id;
 }

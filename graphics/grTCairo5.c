@@ -11,7 +11,7 @@
 
 //#include <GL/gl.h>
 //#include <GL/glx.h>
-#include <CAIRO/cairo.h>
+#include <cairo/cairo-xlib.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -165,7 +165,7 @@ Point *p;			/* screen pos of lower left corner */
 							//glBegin(GL_POINTS);
 							//glVertex2i((GLint)startx, (GLint)yloc);
 							//glEnd();
-							cairo_rectangle(startx, yloc, 1, 1);
+							cairo_rectangle(grCairoContext, startx, yloc, 1, 1);
 							cairo_fill(grCairoContext);
 						}
 						pixelp++;
@@ -209,15 +209,15 @@ int cursorNum;	/* The cursor number as defined in the display
 		return;
 	}
 
-	toglCurrent.cursor = grCursors[cursorNum];
+	tcairoCurrent.cursor = grCursors[cursorNum];
 
 	HashStartSearch(&hs);
-	while (entry = HashNext(&grTOGLWindowTable, &hs))
+	while (entry = HashNext(&grTCairoWindowTable, &hs))
 	{
 		if (HashGetValue(entry))
 		{
 			tkwind = (Tk_Window)entry->h_key.h_ptr;
-			Tk_DefineCursor(tkwind, toglCurrent.cursor);
+			Tk_DefineCursor(tkwind, tcairoCurrent.cursor);
 		}
 	}
 }

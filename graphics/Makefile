@@ -10,6 +10,7 @@ X11_SRCS  = grX11su1.c grX11su2.c grX11su3.c grX11su4.c grX11su5.c
 TK_SRCS   = grTk1.c grTk2.c grTk3.c grTk4.c grTk5.c
 TOGL_SRCS = grTOGL1.c grTOGL2.c grTOGL3.c grTOGL4.c grTOGL5.c
 OGL_SRCS  = grOGL1.c grOGL2.c grOGL3.c grOGL4.c grOGL5.c
+TCAIRO_SRCS = grTCairo1.c grTCairo2.c grTCairo3.c grTCairo4.c grTCairo5.c
 
 GLYPHS = bw.glyphs color.glyphs
 OUTLINE_FONTS = FreeSerif.pt3 FreeSans.pt3 FreeMono.pt3
@@ -24,7 +25,7 @@ include ${MAGICDIR}/defs.mak
 
 SRCS    = ${BASE_SRCS} ${GR_SRCS}
 DEPSRCS = ${BASE_SRCS} ${X11_SRCS} ${TK_SRCS} ${TOGL_SRCS} ${TKCOMMON_SRCS} \
-		${OGL_SRCS} ${X11HELPER_SRCS} ${X11THREAD_SRCS}
+		${OGL_SRCS} ${X11HELPER_SRCS} ${X11THREAD_SRCS} ${TCAIRO_SRCS}
 OBJS    = ${BASE_SRCS:.c=.o} ${GR_SRCS:.c=.o}
 CFLAGS += ${GR_CFLAGS}
 DFLAGS += ${GR_DFLAGS}
