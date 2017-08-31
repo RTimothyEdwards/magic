@@ -467,7 +467,7 @@ int llx, lly, width, height;
 
 	//glMatrixMode(GL_PROJECTION);
 	//glLoadIdentity();
-	cairo_identify_matrix(grCairoContext);
+	cairo_identity_matrix(grCairoContext);
 
 	//glViewport((GLsizei)llx, (GLsizei)lly, (GLsizei) width, (GLsizei) height);
 	// cairo equivalent??
@@ -492,7 +492,7 @@ int llx, lly, width, height;
 
 	//glMatrixMode(GL_MODELVIEW);
 	//glLoadIdentity();
-	cairo_identify_matrix(grCairoContext);
+	cairo_identity_matrix(grCairoContext);
 }
 
 

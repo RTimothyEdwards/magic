@@ -40,6 +40,7 @@
 
 extern Display *grXdpy;
 extern cairo_t *grCairoContext;
+extern cairo_surface_t *grCairoSurface;
 
 static GC grXcopyGC = (GC)NULL;
 
@@ -135,7 +136,7 @@ Rect *clip;         /* a clipping rectangle */
  */
 
 bool
-grtoglLoadFont()
+grtcairoLoadFont()
 {
 	/*
 	Font id;
@@ -533,12 +534,9 @@ grtcairoPutBackingStore(MagWindow *w, Rect *area)
 	cairo_surface_t *backingStoreSurface;
 	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
 	cairo_t *tempContext = cairo_create(backingStoreSurface);
-	cairo_set_source(tempContext, cairo_get_source(grCairoContext));
+	cairo_set_source_surface(tempContext, grCairoSurface, 0.0, 0.0);
 	cairo_rectangle(tempContext, xbot, ybot, width, height);
 	cairo_fill(tempContext);
-	
-	pmap = XCreatePixmap(grXdpy, wind, width, height, grDepth);
-	w->w_backingStore = (ClientData)pmap;
 }
 
 
@@ -590,7 +588,7 @@ Point *p;
 	             r->r_ytop - r->r_ybot + 1, GL_COLOR);
 	*/
 
-	cairo_set_source_surface(grCairoContext, cairo_get_source(grCairoContext), p->p_x, p->p_y);
+	cairo_set_source_surface(grCairoContext, grCairoSurface, p->p_x, p->p_y);
 	// do some stuff
 }
 
