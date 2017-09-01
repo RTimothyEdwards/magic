@@ -364,17 +364,20 @@ grtcairoGetBackingStore(MagWindow *w, Rect *area)
 	unsigned int width_return, height_return;
 	unsigned int border_width_return;
 	unsigned int depth_return;
-	Pixmap pmap;
 
+	Pixmap pmap;
 	pmap = (Pixmap)w->w_backingStore;
 	if (pmap == (Pixmap)NULL)
 		return FALSE;
-	XGetGeometry(grXdpy, pmap, &root_return, &x_return, &y_return, &width_return, &height_return, &border_width_return, &depth_return);
+
+	//XGetGeometry(grXdpy, pmap, &root_return, &x_return, &y_return, &width_return, &height_return, &border_width_return, &depth_return);
 
 	cairo_surface_t *backingStoreSurface;
-	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
-	cairo_set_source_surface(grCairoContext, backingStoreSurface, xbot, ybot);
+//	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
+	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width, height);
+	cairo_set_source_surface(grCairoContext, backingStoreSurface, 0, 0);
 	cairo_rectangle(grCairoContext, xbot, ybot, width, height);
+	cairo_set_operator(grCairoContext, CAIRO_OPERATOR_SOURCE);
 	cairo_fill(grCairoContext);
 
 	return TRUE;
@@ -534,10 +537,12 @@ grtcairoPutBackingStore(MagWindow *w, Rect *area)
 	XGetGeometry(grXdpy, pmap, &root_return, &x_return, &y_return, &width_return, &height_return, &border_width_return, &depth_return);
 
 	cairo_surface_t *backingStoreSurface;
-	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
+	//backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
+	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width, height);
 	cairo_t *tempContext = cairo_create(backingStoreSurface);
 	cairo_set_source_surface(tempContext, grCairoSurface, 0.0, 0.0);
 	cairo_rectangle(tempContext, xbot, ybot, width, height);
+	cairo_set_operator(tempContext, CAIRO_OPERATOR_SOURCE);
 	cairo_fill(tempContext);
 }
 

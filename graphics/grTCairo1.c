@@ -474,17 +474,19 @@ int llx, lly, width, height;
 	// cairo equivalent??
 
 	/* scale to fit window */
-
-#ifdef CAIRO_INVERT_Y
-	//glScalef(1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1), 1.0);
-	//cairo_scale(grCairoContext, 1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1));
+	/*
+	#ifdef CAIRO_INVERT_Y
+		//glScalef(1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1), 1.0);
+		//cairo_scale(grCairoContext, 1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1));
+		cairo_scale(grCairoContext, width, -height);
+		//cairo_scale(grCairoContext, 1, -1);
+	#else
+		//glScalef(1.0 / (float)(width >> 1), 1.0 / (float)(height >> 1), 1.0);
+		cairo_scale(grCairoContext, width, height);
+		//cairo_scale(grCairoContext, 1, 1);
+	#endif
+	*/
 	cairo_scale(grCairoContext, width, -height);
-	//cairo_scale(grCairoContext, 1, -1);
-#else
-	//glScalef(1.0 / (float)(width >> 1), 1.0 / (float)(height >> 1), 1.0);
-	cairo_scale(grCairoContext, width, height);
-	//cairo_scale(grCairoContext, 1, 1);
-#endif
 
 	/* magic origin maps to window center; move to window origin */
 
@@ -1031,15 +1033,15 @@ char *mouseFileName;
 	grSetLineStylePtr = grtcairoSetLineStyle;
 	grSetCharSizePtr = grtcairoSetCharSize;
 	grFillPolygonPtr = grtcairoFillPolygon;
-/*
-#ifdef X11_BACKING_STORE
-	GrFreeBackingStorePtr = grtkFreeBackingStore;
-	GrCreateBackingStorePtr = grtkCreateBackingStore;
-	GrGetBackingStorePtr = grtkGetBackingStore;
-	GrPutBackingStorePtr = grtkPutBackingStore;
-	GrScrollBackingStorePtr = grtkScrollBackingStore;
-#else
-*/
+	/*
+	#ifdef X11_BACKING_STORE
+		GrFreeBackingStorePtr = grtkFreeBackingStore;
+		GrCreateBackingStorePtr = grtkCreateBackingStore;
+		GrGetBackingStorePtr = grtkGetBackingStore;
+		GrPutBackingStorePtr = grtkPutBackingStore;
+		GrScrollBackingStorePtr = grtkScrollBackingStore;
+	#else
+	*/
 	GrFreeBackingStorePtr = grtcairoFreeBackingStore;
 	GrCreateBackingStorePtr = grtcairoCreateBackingStore;
 	GrGetBackingStorePtr = grtcairoGetBackingStore;

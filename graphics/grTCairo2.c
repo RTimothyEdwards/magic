@@ -184,7 +184,7 @@ int nb;
 	{
 		cairo_rectangle(grCairoContext, 
 						rects[i].r_ll.p_x, rects[i].r_ll.p_y,
-		        		rects[i].r_ur.p_x, rects[i].r_ur.p_y);
+		        		rects[i].r_ur.p_x-rects[i].r_ll.p_x, rects[i].r_ur.p_y-rects[i].r_ll.p_y);
 	}
 	// cairo_set_source_rgba(grCairoContext, r, g, b, a);
 	cairo_fill(grCairoContext);
