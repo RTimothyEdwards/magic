@@ -421,9 +421,6 @@ GrTCairoFlush ()
  *---------------------------------------------------------
  */
 
-//static GLXPixmap glpmap = None;
-Pixmap cairopmap = (Pixmap)NULL;
-
 #define glTransYs(n) (DisplayHeight(grXdpy, grXscrn)-(n))
 
 /*
@@ -436,27 +433,8 @@ void
 tcairoSetProjection(llx, lly, width, height)
 int llx, lly, width, height;
 {
-	if (tcairoCurrent.mw->w_flags & WIND_OFFSCREEN)
-	{
-		/*
-		if (glpmap != None) glXDestroyGLXPixmap(grXdpy, glpmap);
-		glpmap = glXCreateGLXPixmap(grXdpy, grVisualInfo,
-				(Pixmap)tcairoCurrent.windowid);
-		glXMakeCurrent(grXdpy, (GLXDrawable)glpmap, grXcontext);
-		*/
-		cairopmap = XCreatePixmap(grXdpy, tcairoCurrent.windowid, width, height, tcairoCurrent.depth);
-		grCairoSurface = cairo_xlib_surface_create(grXdpy, cairopmap, grVisualInfo->visual, width, height);
-	}
-	else {
-		//glXMakeCurrent(grXdpy, (GLXDrawable)tcairoCurrent.windowid, grXcontext);
-		grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.windowid, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
-	}
+	grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.windowid, grVisualInfo->visual, width, height);
 	grCairoContext = cairo_create(grCairoSurface);
-
-// #ifndef Cairo_SERVER_SIDE_ONLY
-// 	 For batch-processing lines and rectangles
-// 	glEnableClientState(GL_VERTEX_ARRAY);
-// #endif
 
 	/* Because this tends to result in thick lines, it has been moved	*/
 	/* the line drawing routine so it can be enabled for individual	*/

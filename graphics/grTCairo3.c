@@ -470,10 +470,20 @@ grtcairoScrollBackingStore(MagWindow *w, Point *shift)
 		yshift = 0;
 	}
 
+	/*
 	XCopyArea(grXdpy, pmap, pmap, grXcopyGC, xorigin, yorigin, width, height,
 	          xshift, yshift);
+	*/
 
 	/* TxPrintf("grx11ScrollBackingStore %d %d\n", shift->p_x, shift->p_y); */
+
+	cairo_surface_t *backingStoreSurface;
+	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width, height);
+	cairo_set_source_surface(grCairoContext, backingStoreSurface, xshift, yshift);
+	cairo_rectangle(grCairoContext, xorigin, yorigin, width, height);
+	cairo_set_operator(grCairoContext, CAIRO_OPERATOR_SOURCE);
+	cairo_fill(grCairoContext);
+
 	return TRUE;
 }
 
