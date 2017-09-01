@@ -101,7 +101,7 @@ Point *p;			/* screen pos of lower left corner */
 						GrGetColor(color, &red, &green, &blue);
 						//glColor4ub((GLubyte)red, (GLubyte)green, (GLubyte)blue,
 						//		(GLubyte)mask);
-						cairo_set_source_rbga(grCairoContext, ((float)red / 255), ((float)green / 255), ((float)blue / 255), ((float)mask / 127.0));
+						cairo_set_source_rgba(grCairoContext, ((float)red / 255), ((float)green / 255), ((float)blue / 255), ((float)mask / 127.0));
 						//glBegin(GL_POINTS);
 					}
 					x1 = bBox.r_xbot + x;

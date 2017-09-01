@@ -12691,3 +12691,1723 @@ make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
 make[2]: Nothing to be done for `tcl-main'.
 make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
 make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo1.o
+rm -f grTCairo1.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo1.c
+--- compiling graphics/grTCairo3.o
+rm -f grTCairo3.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo3.c
+--- linking libgraphics.o
+rm -f libgraphics.o
+ld -r grMain.o grLock.o grDStyle.o grText.o grCMap.o grClip.o grGlyphs.o grNull.o W3Dmain.o grTk1.o grTk2.o grTk3.o grTk4.o grTk5.o grTCairo1.o grTCairo2.o grTCairo3.o grTCairo4.o grTCairo5.o grTkCommon.o -o libgraphics.o 
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+--- making magic Tcl library (tclmagic.so)
+rm -f tclmagic.so
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6 -I. -I..  -o tclmagic.so  -shared -Wl,-soname,tclmagic.so -Wl,--version-script=../magic/symbol.map  \
+		../cmwind/libcmwind.o ../commands/libcommands.o ../database/libdatabase.o ../dbwind/libdbwind.o ../drc/libdrc.o ../debug/libdebug.o ../extract/libextract.o ../graphics/libgraphics.o ../select/libselect.o ../textio/libtextio.o ../tiles/libtiles.o ../windows/libwindows.o ../wiring/libwiring.o ../resis/libresis.o ../sim/libsim.o ../netmenu/libnetmenu.o ../plow/libplow.o ../utils/libutils.o ../ext2sim/libext2sim.o ../ext2spice/libext2spice.o ../calma/libcalma.o ../cif/libcif.o ../plot/libplot.o ../lef/liblef.o ../extflat/libextflat.o ../garouter/libgarouter.o 	../mzrouter/libmzrouter.o ../router/librouter.o 	../irouter/libirouter.o ../grouter/libgrouter.o 	../gcr/libgcr.o ../tcltk/libtcltk.o -lc -lX11 -lcairo -lfontconfig -lfreetype    -lm   
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo3.o
+rm -f grTCairo3.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo3.c
+--- linking libgraphics.o
+rm -f libgraphics.o
+ld -r grMain.o grLock.o grDStyle.o grText.o grCMap.o grClip.o grGlyphs.o grNull.o W3Dmain.o grTk1.o grTk2.o grTk3.o grTk4.o grTk5.o grTCairo1.o grTCairo2.o grTCairo3.o grTCairo4.o grTCairo5.o grTkCommon.o -o libgraphics.o 
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+--- making magic Tcl library (tclmagic.so)
+rm -f tclmagic.so
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6 -I. -I..  -o tclmagic.so  -shared -Wl,-soname,tclmagic.so -Wl,--version-script=../magic/symbol.map  \
+		../cmwind/libcmwind.o ../commands/libcommands.o ../database/libdatabase.o ../dbwind/libdbwind.o ../drc/libdrc.o ../debug/libdebug.o ../extract/libextract.o ../graphics/libgraphics.o ../select/libselect.o ../textio/libtextio.o ../tiles/libtiles.o ../windows/libwindows.o ../wiring/libwiring.o ../resis/libresis.o ../sim/libsim.o ../netmenu/libnetmenu.o ../plow/libplow.o ../utils/libutils.o ../ext2sim/libext2sim.o ../ext2spice/libext2spice.o ../calma/libcalma.o ../cif/libcif.o ../plot/libplot.o ../lef/liblef.o ../extflat/libextflat.o ../garouter/libgarouter.o 	../mzrouter/libmzrouter.o ../router/librouter.o 	../irouter/libirouter.o ../grouter/libgrouter.o 	../gcr/libgcr.o ../tcltk/libtcltk.o -lc -lX11 -lcairo -lfontconfig -lfreetype    -lm   
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo3.o
+rm -f grTCairo3.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo3.c
+grTCairo3.c: In function ‘grtcairoCreateBackingStore’:
+grTCairo3.c:307:3: warning: passing argument 1 of ‘TxError’ makes pointer from integer without a cast [enabled by default]
+   TxError(wind);
+   ^
+In file included from grTCairo3.c:32:0:
+../textio/textio.h:68:13: note: expected ‘char *’ but argument is of type ‘Window’
+ extern void TxError(char *, ...);
+             ^
+--- linking libgraphics.o
+rm -f libgraphics.o
+ld -r grMain.o grLock.o grDStyle.o grText.o grCMap.o grClip.o grGlyphs.o grNull.o W3Dmain.o grTk1.o grTk2.o grTk3.o grTk4.o grTk5.o grTCairo1.o grTCairo2.o grTCairo3.o grTCairo4.o grTCairo5.o grTkCommon.o -o libgraphics.o 
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+--- making magic Tcl library (tclmagic.so)
+rm -f tclmagic.so
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6 -I. -I..  -o tclmagic.so  -shared -Wl,-soname,tclmagic.so -Wl,--version-script=../magic/symbol.map  \
+		../cmwind/libcmwind.o ../commands/libcommands.o ../database/libdatabase.o ../dbwind/libdbwind.o ../drc/libdrc.o ../debug/libdebug.o ../extract/libextract.o ../graphics/libgraphics.o ../select/libselect.o ../textio/libtextio.o ../tiles/libtiles.o ../windows/libwindows.o ../wiring/libwiring.o ../resis/libresis.o ../sim/libsim.o ../netmenu/libnetmenu.o ../plow/libplow.o ../utils/libutils.o ../ext2sim/libext2sim.o ../ext2spice/libext2spice.o ../calma/libcalma.o ../cif/libcif.o ../plot/libplot.o ../lef/liblef.o ../extflat/libextflat.o ../garouter/libgarouter.o 	../mzrouter/libmzrouter.o ../router/librouter.o 	../irouter/libirouter.o ../grouter/libgrouter.o 	../gcr/libgcr.o ../tcltk/libtcltk.o -lc -lX11 -lcairo -lfontconfig -lfreetype    -lm   
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo3.o
+rm -f grTCairo3.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo3.c
+grTCairo3.c: In function ‘grtcairoCreateBackingStore’:
+grTCairo3.c:278:17: error: ‘Tk_WindowId’ undeclared (first use in this function)
+  Window wind = (Tk_WindowId)(tkwind);
+                 ^
+grTCairo3.c:278:17: note: each undeclared identifier is reported only once for each function it appears in
+grTCairo3.c:278:30: error: ‘tkwind’ undeclared (first use in this function)
+  Window wind = (Tk_WindowId)(tkwind);
+                              ^
+make[2]: *** [grTCairo3.o] Error 1
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo3.o
+rm -f grTCairo3.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo3.c
+grTCairo3.c: In function ‘grtcairoCreateBackingStore’:
+grTCairo3.c:285:17: error: ‘Tk_WindowId’ undeclared (first use in this function)
+  Window wind = (Tk_WindowId)(tkwind);
+                 ^
+grTCairo3.c:285:17: note: each undeclared identifier is reported only once for each function it appears in
+make[2]: *** [grTCairo3.o] Error 1
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo3.o
+rm -f grTCairo3.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo3.c
+--- linking libgraphics.o
+rm -f libgraphics.o
+ld -r grMain.o grLock.o grDStyle.o grText.o grCMap.o grClip.o grGlyphs.o grNull.o W3Dmain.o grTk1.o grTk2.o grTk3.o grTk4.o grTk5.o grTCairo1.o grTCairo2.o grTCairo3.o grTCairo4.o grTCairo5.o grTkCommon.o -o libgraphics.o 
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+--- making magic Tcl library (tclmagic.so)
+rm -f tclmagic.so
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6 -I. -I..  -o tclmagic.so  -shared -Wl,-soname,tclmagic.so -Wl,--version-script=../magic/symbol.map  \
+		../cmwind/libcmwind.o ../commands/libcommands.o ../database/libdatabase.o ../dbwind/libdbwind.o ../drc/libdrc.o ../debug/libdebug.o ../extract/libextract.o ../graphics/libgraphics.o ../select/libselect.o ../textio/libtextio.o ../tiles/libtiles.o ../windows/libwindows.o ../wiring/libwiring.o ../resis/libresis.o ../sim/libsim.o ../netmenu/libnetmenu.o ../plow/libplow.o ../utils/libutils.o ../ext2sim/libext2sim.o ../ext2spice/libext2spice.o ../calma/libcalma.o ../cif/libcif.o ../plot/libplot.o ../lef/liblef.o ../extflat/libextflat.o ../garouter/libgarouter.o 	../mzrouter/libmzrouter.o ../router/librouter.o 	../irouter/libirouter.o ../grouter/libgrouter.o 	../gcr/libgcr.o ../tcltk/libtcltk.o -lc -lX11 -lcairo -lfontconfig -lfreetype    -lm   
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo3.o
+rm -f grTCairo3.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo3.c
+--- linking libgraphics.o
+rm -f libgraphics.o
+ld -r grMain.o grLock.o grDStyle.o grText.o grCMap.o grClip.o grGlyphs.o grNull.o W3Dmain.o grTk1.o grTk2.o grTk3.o grTk4.o grTk5.o grTCairo1.o grTCairo2.o grTCairo3.o grTCairo4.o grTCairo5.o grTkCommon.o -o libgraphics.o 
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+--- making magic Tcl library (tclmagic.so)
+rm -f tclmagic.so
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6 -I. -I..  -o tclmagic.so  -shared -Wl,-soname,tclmagic.so -Wl,--version-script=../magic/symbol.map  \
+		../cmwind/libcmwind.o ../commands/libcommands.o ../database/libdatabase.o ../dbwind/libdbwind.o ../drc/libdrc.o ../debug/libdebug.o ../extract/libextract.o ../graphics/libgraphics.o ../select/libselect.o ../textio/libtextio.o ../tiles/libtiles.o ../windows/libwindows.o ../wiring/libwiring.o ../resis/libresis.o ../sim/libsim.o ../netmenu/libnetmenu.o ../plow/libplow.o ../utils/libutils.o ../ext2sim/libext2sim.o ../ext2spice/libext2spice.o ../calma/libcalma.o ../cif/libcif.o ../plot/libplot.o ../lef/liblef.o ../extflat/libextflat.o ../garouter/libgarouter.o 	../mzrouter/libmzrouter.o ../router/librouter.o 	../irouter/libirouter.o ../grouter/libgrouter.o 	../gcr/libgcr.o ../tcltk/libtcltk.o -lc -lX11 -lcairo -lfontconfig -lfreetype    -lm   
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo3.o
+rm -f grTCairo3.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo3.c
+--- linking libgraphics.o
+rm -f libgraphics.o
+ld -r grMain.o grLock.o grDStyle.o grText.o grCMap.o grClip.o grGlyphs.o grNull.o W3Dmain.o grTk1.o grTk2.o grTk3.o grTk4.o grTk5.o grTCairo1.o grTCairo2.o grTCairo3.o grTCairo4.o grTCairo5.o grTkCommon.o -o libgraphics.o 
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+--- making magic Tcl library (tclmagic.so)
+rm -f tclmagic.so
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6 -I. -I..  -o tclmagic.so  -shared -Wl,-soname,tclmagic.so -Wl,--version-script=../magic/symbol.map  \
+		../cmwind/libcmwind.o ../commands/libcommands.o ../database/libdatabase.o ../dbwind/libdbwind.o ../drc/libdrc.o ../debug/libdebug.o ../extract/libextract.o ../graphics/libgraphics.o ../select/libselect.o ../textio/libtextio.o ../tiles/libtiles.o ../windows/libwindows.o ../wiring/libwiring.o ../resis/libresis.o ../sim/libsim.o ../netmenu/libnetmenu.o ../plow/libplow.o ../utils/libutils.o ../ext2sim/libext2sim.o ../ext2spice/libext2spice.o ../calma/libcalma.o ../cif/libcif.o ../plot/libplot.o ../lef/liblef.o ../extflat/libextflat.o ../garouter/libgarouter.o 	../mzrouter/libmzrouter.o ../router/librouter.o 	../irouter/libirouter.o ../grouter/libgrouter.o 	../gcr/libgcr.o ../tcltk/libtcltk.o -lc -lX11 -lcairo -lfontconfig -lfreetype    -lm   
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo1.o
+rm -f grTCairo1.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo1.c
+--- compiling graphics/grTCairo3.o
+rm -f grTCairo3.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo3.c
+--- linking libgraphics.o
+rm -f libgraphics.o
+ld -r grMain.o grLock.o grDStyle.o grText.o grCMap.o grClip.o grGlyphs.o grNull.o W3Dmain.o grTk1.o grTk2.o grTk3.o grTk4.o grTk5.o grTCairo1.o grTCairo2.o grTCairo3.o grTCairo4.o grTCairo5.o grTkCommon.o -o libgraphics.o 
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+--- making magic Tcl library (tclmagic.so)
+rm -f tclmagic.so
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6 -I. -I..  -o tclmagic.so  -shared -Wl,-soname,tclmagic.so -Wl,--version-script=../magic/symbol.map  \
+		../cmwind/libcmwind.o ../commands/libcommands.o ../database/libdatabase.o ../dbwind/libdbwind.o ../drc/libdrc.o ../debug/libdebug.o ../extract/libextract.o ../graphics/libgraphics.o ../select/libselect.o ../textio/libtextio.o ../tiles/libtiles.o ../windows/libwindows.o ../wiring/libwiring.o ../resis/libresis.o ../sim/libsim.o ../netmenu/libnetmenu.o ../plow/libplow.o ../utils/libutils.o ../ext2sim/libext2sim.o ../ext2spice/libext2spice.o ../calma/libcalma.o ../cif/libcif.o ../plot/libplot.o ../lef/liblef.o ../extflat/libextflat.o ../garouter/libgarouter.o 	../mzrouter/libmzrouter.o ../router/librouter.o 	../irouter/libirouter.o ../grouter/libgrouter.o 	../gcr/libgcr.o ../tcltk/libtcltk.o -lc -lX11 -lcairo -lfontconfig -lfreetype    -lm   
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo1.o
+rm -f grTCairo1.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo1.c
+--- linking libgraphics.o
+rm -f libgraphics.o
+ld -r grMain.o grLock.o grDStyle.o grText.o grCMap.o grClip.o grGlyphs.o grNull.o W3Dmain.o grTk1.o grTk2.o grTk3.o grTk4.o grTk5.o grTCairo1.o grTCairo2.o grTCairo3.o grTCairo4.o grTCairo5.o grTkCommon.o -o libgraphics.o 
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+--- making magic Tcl library (tclmagic.so)
+rm -f tclmagic.so
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6 -I. -I..  -o tclmagic.so  -shared -Wl,-soname,tclmagic.so -Wl,--version-script=../magic/symbol.map  \
+		../cmwind/libcmwind.o ../commands/libcommands.o ../database/libdatabase.o ../dbwind/libdbwind.o ../drc/libdrc.o ../debug/libdebug.o ../extract/libextract.o ../graphics/libgraphics.o ../select/libselect.o ../textio/libtextio.o ../tiles/libtiles.o ../windows/libwindows.o ../wiring/libwiring.o ../resis/libresis.o ../sim/libsim.o ../netmenu/libnetmenu.o ../plow/libplow.o ../utils/libutils.o ../ext2sim/libext2sim.o ../ext2spice/libext2spice.o ../calma/libcalma.o ../cif/libcif.o ../plot/libplot.o ../lef/liblef.o ../extflat/libextflat.o ../garouter/libgarouter.o 	../mzrouter/libmzrouter.o ../router/librouter.o 	../irouter/libirouter.o ../grouter/libgrouter.o 	../gcr/libgcr.o ../tcltk/libtcltk.o -lc -lX11 -lcairo -lfontconfig -lfreetype    -lm   
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo5.o
+rm -f grTCairo5.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo5.c
+--- linking libgraphics.o
+rm -f libgraphics.o
+ld -r grMain.o grLock.o grDStyle.o grText.o grCMap.o grClip.o grGlyphs.o grNull.o W3Dmain.o grTk1.o grTk2.o grTk3.o grTk4.o grTk5.o grTCairo1.o grTCairo2.o grTCairo3.o grTCairo4.o grTCairo5.o grTkCommon.o -o libgraphics.o 
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+--- making magic Tcl library (tclmagic.so)
+rm -f tclmagic.so
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6 -I. -I..  -o tclmagic.so  -shared -Wl,-soname,tclmagic.so -Wl,--version-script=../magic/symbol.map  \
+		../cmwind/libcmwind.o ../commands/libcommands.o ../database/libdatabase.o ../dbwind/libdbwind.o ../drc/libdrc.o ../debug/libdebug.o ../extract/libextract.o ../graphics/libgraphics.o ../select/libselect.o ../textio/libtextio.o ../tiles/libtiles.o ../windows/libwindows.o ../wiring/libwiring.o ../resis/libresis.o ../sim/libsim.o ../netmenu/libnetmenu.o ../plow/libplow.o ../utils/libutils.o ../ext2sim/libext2sim.o ../ext2spice/libext2spice.o ../calma/libcalma.o ../cif/libcif.o ../plot/libplot.o ../lef/liblef.o ../extflat/libextflat.o ../garouter/libgarouter.o 	../mzrouter/libmzrouter.o ../router/librouter.o 	../irouter/libirouter.o ../grouter/libgrouter.o 	../gcr/libgcr.o ../tcltk/libtcltk.o -lc -lX11 -lcairo -lfontconfig -lfreetype    -lm   
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo1.o
+rm -f grTCairo1.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo1.c
+--- linking libgraphics.o
+rm -f libgraphics.o
+ld -r grMain.o grLock.o grDStyle.o grText.o grCMap.o grClip.o grGlyphs.o grNull.o W3Dmain.o grTk1.o grTk2.o grTk3.o grTk4.o grTk5.o grTCairo1.o grTCairo2.o grTCairo3.o grTCairo4.o grTCairo5.o grTkCommon.o -o libgraphics.o 
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+--- making magic Tcl library (tclmagic.so)
+rm -f tclmagic.so
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6 -I. -I..  -o tclmagic.so  -shared -Wl,-soname,tclmagic.so -Wl,--version-script=../magic/symbol.map  \
+		../cmwind/libcmwind.o ../commands/libcommands.o ../database/libdatabase.o ../dbwind/libdbwind.o ../drc/libdrc.o ../debug/libdebug.o ../extract/libextract.o ../graphics/libgraphics.o ../select/libselect.o ../textio/libtextio.o ../tiles/libtiles.o ../windows/libwindows.o ../wiring/libwiring.o ../resis/libresis.o ../sim/libsim.o ../netmenu/libnetmenu.o ../plow/libplow.o ../utils/libutils.o ../ext2sim/libext2sim.o ../ext2spice/libext2spice.o ../calma/libcalma.o ../cif/libcif.o ../plot/libplot.o ../lef/liblef.o ../extflat/libextflat.o ../garouter/libgarouter.o 	../mzrouter/libmzrouter.o ../router/librouter.o 	../irouter/libirouter.o ../grouter/libgrouter.o 	../gcr/libgcr.o ../tcltk/libtcltk.o -lc -lX11 -lcairo -lfontconfig -lfreetype    -lm   
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'
+make[1]: Entering directory `/home/chuan/Desktop/magic-8.2'
+--- making modules
+for dir in cmwind commands database dbwind debug drc extflat extract graphics netmenu plow resis select sim textio tiles utils windows wiring ext2sim ext2spice calma cif plot lef garouter grouter irouter mzrouter router gcr tcltk magic net2ir tcltk; do \
+		(cd $dir && make module); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cmwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/commands'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/database'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/dbwind'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/debug'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/drc'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extflat'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/extract'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/graphics'
+--- compiling graphics/grTCairo1.o
+rm -f grTCairo1.o
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6  -I. -I..  -DCAD_DIR=\"/home/chuan/Desktop/magic_install/lib\" -DBIN_DIR=\"/home/chuan/Desktop/magic_install/bin\" -DTCL_DIR=\"/home/chuan/Desktop/magic_install/lib/magic/tcl\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\" -DSHDLIB_EXT=\".so\" -DX11 -DXLIB -DCAIRO -DNDEBUG  -c grTCairo1.c
+--- linking libgraphics.o
+rm -f libgraphics.o
+ld -r grMain.o grLock.o grDStyle.o grText.o grCMap.o grClip.o grGlyphs.o grNull.o W3Dmain.o grTk1.o grTk2.o grTk3.o grTk4.o grTk5.o grTCairo1.o grTCairo2.o grTCairo3.o grTCairo4.o grTCairo5.o grTkCommon.o -o libgraphics.o 
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/graphics'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/netmenu'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plow'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/resis'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/select'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/textio'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tiles'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/utils'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/windows'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/wiring'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2sim'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/ext2spice'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/calma'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/cif'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/plot'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/lef'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/garouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/grouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/irouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/mzrouter'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/router'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/gcr'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `module'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+--- making Tcl shared libraries
+for dir in magic net2ir tcltk; do \
+		(cd $dir && make tcl-main); done
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/magic'
+--- making magic Tcl library (tclmagic.so)
+rm -f tclmagic.so
+gcc -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6 -I. -I..  -o tclmagic.so  -shared -Wl,-soname,tclmagic.so -Wl,--version-script=../magic/symbol.map  \
+		../cmwind/libcmwind.o ../commands/libcommands.o ../database/libdatabase.o ../dbwind/libdbwind.o ../drc/libdrc.o ../debug/libdebug.o ../extract/libextract.o ../graphics/libgraphics.o ../select/libselect.o ../textio/libtextio.o ../tiles/libtiles.o ../windows/libwindows.o ../wiring/libwiring.o ../resis/libresis.o ../sim/libsim.o ../netmenu/libnetmenu.o ../plow/libplow.o ../utils/libutils.o ../ext2sim/libext2sim.o ../ext2spice/libext2spice.o ../calma/libcalma.o ../cif/libcif.o ../plot/libplot.o ../lef/liblef.o ../extflat/libextflat.o ../garouter/libgarouter.o 	../mzrouter/libmzrouter.o ../router/librouter.o 	../irouter/libirouter.o ../grouter/libgrouter.o 	../gcr/libgcr.o ../tcltk/libtcltk.o -lc -lX11 -lcairo -lfontconfig -lfreetype    -lm   
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/magic'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/net2ir'
+echo "Nothing to do here"
+Nothing to do here
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/net2ir'
+make[2]: Entering directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[2]: Nothing to be done for `tcl-main'.
+make[2]: Leaving directory `/home/chuan/Desktop/magic-8.2/tcltk'
+make[1]: Leaving directory `/home/chuan/Desktop/magic-8.2'

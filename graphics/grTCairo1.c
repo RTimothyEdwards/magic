@@ -444,13 +444,14 @@ int llx, lly, width, height;
 				(Pixmap)tcairoCurrent.windowid);
 		glXMakeCurrent(grXdpy, (GLXDrawable)glpmap, grXcontext);
 		*/
-		cairopmap = XCreatePixmap(grXdpy, grXscrn, width, height, tcairoCurrent.depth);
+		cairopmap = XCreatePixmap(grXdpy, tcairoCurrent.windowid, width, height, tcairoCurrent.depth);
 		grCairoSurface = cairo_xlib_surface_create(grXdpy, cairopmap, grVisualInfo->visual, width, height);
 	}
 	else {
 		//glXMakeCurrent(grXdpy, (GLXDrawable)tcairoCurrent.windowid, grXcontext);
 		grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.windowid, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
 	}
+	grCairoContext = cairo_create(grCairoSurface);
 
 // #ifndef Cairo_SERVER_SIDE_ONLY
 // 	 For batch-processing lines and rectangles
@@ -478,9 +479,11 @@ int llx, lly, width, height;
 	//glScalef(1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1), 1.0);
 	//cairo_scale(grCairoContext, 1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1));
 	cairo_scale(grCairoContext, width, -height);
+	//cairo_scale(grCairoContext, 1, -1);
 #else
 	//glScalef(1.0 / (float)(width >> 1), 1.0 / (float)(height >> 1), 1.0);
 	cairo_scale(grCairoContext, width, height);
+	//cairo_scale(grCairoContext, 1, 1);
 #endif
 
 	/* magic origin maps to window center; move to window origin */
@@ -1028,7 +1031,7 @@ char *mouseFileName;
 	grSetLineStylePtr = grtcairoSetLineStyle;
 	grSetCharSizePtr = grtcairoSetCharSize;
 	grFillPolygonPtr = grtcairoFillPolygon;
-
+/*
 #ifdef X11_BACKING_STORE
 	GrFreeBackingStorePtr = grtkFreeBackingStore;
 	GrCreateBackingStorePtr = grtkCreateBackingStore;
@@ -1036,12 +1039,13 @@ char *mouseFileName;
 	GrPutBackingStorePtr = grtkPutBackingStore;
 	GrScrollBackingStorePtr = grtkScrollBackingStore;
 #else
+*/
 	GrFreeBackingStorePtr = grtcairoFreeBackingStore;
 	GrCreateBackingStorePtr = grtcairoCreateBackingStore;
 	GrGetBackingStorePtr = grtcairoGetBackingStore;
 	GrPutBackingStorePtr = grtcairoPutBackingStore;
 	GrScrollBackingStorePtr = grtcairoScrollBackingStore;
-#endif
+//#endif
 
 	if (execFailed) {
 		TxError("Execution failed!\n");
@@ -1184,6 +1188,7 @@ char *name;
 		tcairoCurrent.windowid = wind;
 		//glXMakeCurrent(grXdpy, (GLXDrawable)wind, grXcontext);
 		grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.windowid, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
+		grCairoContext = cairo_create(grCairoSurface);
 
 		Tk_DefineCursor(tkwind, tcairoCurrent.cursor);
 		GrTCairoIconUpdate(w, w->w_caption);

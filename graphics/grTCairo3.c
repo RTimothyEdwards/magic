@@ -274,23 +274,25 @@ void
 grtcairoCreateBackingStore(MagWindow *w)
 {
 	Pixmap pmap;
-	Window wind = (Window)w->w_grdata;
+	//Window wind = (Window)w->w_grdata;
+	Tk_Window tkwind = (Tk_Window)w->w_grdata;
+	Window wind;
 	unsigned int width, height;
 	GC gc;
 	XGCValues gcValues;
 	int grDepth;
 
-	//Tk_Window tkwind = (Tk_Window)w->w_grdata;
+
 
 	/* ignore all windows other than layout */
 	//if (w->w_client != DBWclientID) return;
 
 	/* Deferred */
-	//if (tkwind == NULL) return;
+	if (tkwind == NULL) return;
 
 	//w->w_backingStore = (ClientData)1;
 
-
+	wind = (Window)Tk_WindowId(tkwind);
 
 	if (w->w_client != DBWclientID) return;
 
@@ -588,8 +590,10 @@ Point *p;
 	             r->r_ytop - r->r_ybot + 1, GL_COLOR);
 	*/
 
-	cairo_set_source_surface(grCairoContext, grCairoSurface, p->p_x, p->p_y);
+	//cairo_set_source_surface(grCairoContext, grCairoSurface, p->p_x, p->p_y);
 	// do some stuff
+
+	; // unimplemented
 }
 
 #ifdef VECTOR_FONTS
