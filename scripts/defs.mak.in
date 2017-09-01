@@ -52,6 +52,7 @@ LINK                   = ld -r
 LD                     = @LD@
 M4		       = @M4@
 MCPP		       = @MCPP@
+SCPP		       = @SCPP@
 RANLIB                 = @RANLIB@
 SHDLIB_EXT             = @SHDLIB_EXT@
 LDDL_FLAGS             = ${LDFLAGS} @LDDL_FLAGS@

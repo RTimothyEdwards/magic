@@ -53,6 +53,12 @@ else
    MCPP="\${MAGICDIR}/scripts/preproc.py"
 fi
 
+if test "$CPP" = "$CC -E" ; then
+      SCPP="$CPP -x c"
+else
+      SCPP="$CPP"
+fi
+
 dnl check if the linker is a GNU linker
 
 #------------------------------------------------------------
@@ -1752,6 +1758,7 @@ AC_SUBST(DEPEND_FLAG)
 AC_SUBST(SHLIB_CFLAGS)
 AC_SUBST(LD_RUN_PATH)
 AC_SUBST(MCPP)
+AC_SUBST(SCPP)
 
 AC_SUBST(MAGIC_VERSION)
 AC_SUBST(MAGIC_REVISION)

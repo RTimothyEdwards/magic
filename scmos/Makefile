@@ -19,7 +19,7 @@ include ${MAGICDIR}/defs.mak
 
 SC_M4 = ${M4}
 #SC_CPP = ${MCPP} -I./extract_template
-SC_CPP = ${CPP} -I./extract_template
+SC_CPP = ${SCPP} -I./extract_template
 
 FILES = mos.7bit.dstyle mos.7bit.std.cmap \
 	mos.24bit.dstyle mos.24bit.std.cmap \

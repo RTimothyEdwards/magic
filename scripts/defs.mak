@@ -6,9 +6,9 @@
 # Be aware that running scripts/configure again will overwrite
 # any changes!
 
-SHELL                  = /bin/bash
+SHELL                  = /bin/sh
 
-prefix = /home/chuan/Desktop/magic_install
+prefix = /home/tim/cad
 exec_prefix = ${prefix}
 bindir = ${exec_prefix}/bin
 libdir = ${exec_prefix}/lib
@@ -16,7 +16,7 @@ mandir = ${prefix}/share/man
 
 SCRIPTS		       = ${MAGICDIR}/scripts
 
-INSTALL = /usr/bin/install -c
+INSTALL = /bin/install -c
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_SCRIPT = ${INSTALL}
@@ -49,27 +49,28 @@ CP                     = cp
 AR                     = ar
 ARFLAGS                = crv
 LINK                   = ld -r
-LD                     = /usr/bin/ld
-M4		       = /usr/bin/m4
+LD                     = /bin/ld
+M4		       = /bin/m4
 MCPP		       = ${MAGICDIR}/scripts/preproc.py
+SCPP		       = gcc -E -x c
 RANLIB                 = ranlib
 SHDLIB_EXT             = .so
 LDDL_FLAGS             = ${LDFLAGS} -shared -Wl,-soname,$@ -Wl,--version-script=${MAGICDIR}/magic/symbol.map
 LD_RUN_PATH	       = 
-LIB_SPECS	       =  -L/usr/lib/x86_64-linux-gnu -ltk8.6 -L/usr/lib/x86_64-linux-gnu -ltcl8.6
+LIB_SPECS	       =  -L/usr/lib64 -ltk8.6 -L/usr/lib64 -ltcl8.6
 WISH_EXE	       = /usr/bin/wish
 TCL_LIB_DIR	       = /usr/lib
 MAGIC_VERSION	       = 8.2
-MAGIC_REVISION	       = 16
+MAGIC_REVISION	       = 19
 
 CC                     = gcc
 CPP                    = gcc -E
 CXX		       = g++
 
 CPPFLAGS               = -I. -I${MAGICDIR} 
-DFLAGS                 =  -DCAD_DIR=\"${LIBDIR}\" -DBIN_DIR=\"${BINDIR}\" -DTCL_DIR=\"${TCLDIR}\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/usr/bin/gcore\"
+DFLAGS                 =  -DCAD_DIR=\"${LIBDIR}\" -DBIN_DIR=\"${BINDIR}\" -DTCL_DIR=\"${TCLDIR}\" -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"19\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DX11_BACKING_STORE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -Dlinux=1 -DSYSV=1 -DISC=1 -DNDEBUG -DGCORE=\"/bin/gcore\"
 DFLAGS		      += -DSHDLIB_EXT=\".so\"
-CFLAGS                 = -g -m64 -fPIC -Wimplicit-int -fPIC  -I/usr/include/tcl8.6/tk-private/generic -I/usr/include/tcl8.6
+CFLAGS                 = -g -m64 -fPIC -Wimplicit-int -fPIC 
 
 READLINE_DEFS          = 
 READLINE_LIBS          = 
