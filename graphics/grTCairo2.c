@@ -27,12 +27,15 @@ char *getenv();
 //#include "grTOGLInt.h"
 #include "grTCairoInt.h"
 
+#include "textio/txcommands.h"
+
 extern   char        *DBWStyleType;
 //extern   GLXContext  grXcontext;
 extern   Display     *grXdpy;
 
 extern cairo_t *grCairoContext;
-
+extern cairo_surface_t *grCairoSurface;
+extern cairo_pattern_t *currentStipple;
 
 /*---------------------------------------------------------
  * GrOGLSetCMap --
@@ -185,9 +188,12 @@ int nb;
 		cairo_rectangle(grCairoContext, 
 						rects[i].r_ll.p_x, rects[i].r_ll.p_y,
 		        		rects[i].r_ur.p_x-rects[i].r_ll.p_x, rects[i].r_ur.p_y-rects[i].r_ll.p_y);
+		TxPrintf("%d %d %d %d \n", rects[i].r_ll.p_x, rects[i].r_ll.p_y, rects[i].r_ur.p_x-rects[i].r_ll.p_x, rects[i].r_ur.p_y-rects[i].r_ll.p_y);
 	}
-	// cairo_set_source_rgba(grCairoContext, r, g, b, a);
-	cairo_fill(grCairoContext);
+	cairo_clip(grCairoContext);
+	cairo_mask(grCairoContext, currentStipple);
+	
+	//cairo_fill(grCairoContext);
 }
 
 /*---------------------------------------------------------

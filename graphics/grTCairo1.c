@@ -252,6 +252,8 @@ int numstipples;			/* Number of stipples */
  *---------------------------------------------------------
  */
 
+cairo_pattern_t *currentStipple;
+
 void
 grtcairoSetStipple (stipple)
 int stipple;			/* The stipple number to be used. */
@@ -262,15 +264,17 @@ int stipple;			/* The stipple number to be used. */
 	GR_TCAIRO_FLUSH_BATCH();
 	if (stipple == 0 || stipple > grNumStipples) {
 		//glDisable(GL_POLYGON_STIPPLE);
-		cairo_set_source_rgb(grCairoContext, 0, 0, 0);
+		//cairo_set_source_rgb(grCairoContext, 0, 0, 0);
+		currentStipple = cairo_pattern_create_rgba(0, 0, 0, 1);
 	} else {
 		if (stipplePatterns[stipple] == (cairo_pattern_t *)NULL) MainExit(1);
 		//glEnable(GL_POLYGON_STIPPLE);
 		//glPolygonStipple(grTCairoStipples[stipple]);
 		cairo_pattern_set_extend(stipplePatterns[stipple], CAIRO_EXTEND_REPEAT);
 		cairo_pattern_set_filter(stipplePatterns[stipple], CAIRO_FILTER_NEAREST);
-		cairo_set_source(grCairoContext, stipplePatterns[stipple]);
-		cairo_mask_surface(grCairoContext, grCairoSurface, 0.0, 0.0);
+		currentStipple = stipplePatterns[stipple];
+		//cairo_set_source(grCairoContext, stipplePatterns[stipple]);
+		//cairo_mask_surface(grCairoContext, grCairoSurface, 0.0, 0.0);
 	}
 }
 
@@ -361,6 +365,7 @@ GrTCairoInit ()
 	*/
 	cairo_set_line_width(grCairoContext, 1.0);
 	cairo_set_source_rgb(grCairoContext, 0, 0, 0);
+	currentStipple = cairo_pattern_create_rgba(0, 0, 0, 1);
 
 	/* OpenGL sets its own names for colormap and dstyle file types */
 	grCMapType = "OpenGL";
@@ -455,27 +460,31 @@ int llx, lly, width, height;
 	/*
 	#ifdef CAIRO_INVERT_Y
 		//glScalef(1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1), 1.0);
-		//cairo_scale(grCairoContext, 1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1));
-		cairo_scale(grCairoContext, width, -height);
-		//cairo_scale(grCairoContext, 1, -1);
 	#else
 		//glScalef(1.0 / (float)(width >> 1), 1.0 / (float)(height >> 1), 1.0);
-		cairo_scale(grCairoContext, width, height);
-		//cairo_scale(grCairoContext, 1, 1);
 	#endif
 	*/
-	cairo_scale(grCairoContext, width, -height);
+	//cairo_translate(grCairoContext, (width >> 1), (height >> 1));
+	//cairo_translate(grCairoContext, width/2.0, height/2.0);
+	cairo_translate(grCairoContext, 0, height);
+
+
+	//cairo_scale(grCairoContext, width >> 1, -(height >> 1));
+	cairo_scale(grCairoContext, 1.0, -1.0);
+	//cairo_scale(grCairoContext, 1.0 / width, -1.0 / height);
+
 
 	/* magic origin maps to window center; move to window origin */
 
 	//glTranslated(-(GLsizei)(width >> 1), -(GLsizei)(height >> 1), 0);
-	cairo_translate(grCairoContext, -(int)(width >> 1), -(int)(height >> 1));
+
 
 	/* Remaining transformations are done on the modelview matrix */
 
 	//glMatrixMode(GL_MODELVIEW);
 	//glLoadIdentity();
-	cairo_identity_matrix(grCairoContext);
+	//cairo_identity_matrix(grCairoContext);
+
 }
 
 

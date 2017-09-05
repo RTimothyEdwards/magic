@@ -370,11 +370,11 @@ grtcairoGetBackingStore(MagWindow *w, Rect *area)
 	if (pmap == (Pixmap)NULL)
 		return FALSE;
 
-	//XGetGeometry(grXdpy, pmap, &root_return, &x_return, &y_return, &width_return, &height_return, &border_width_return, &depth_return);
+	XGetGeometry(grXdpy, pmap, &root_return, &x_return, &y_return, &width_return, &height_return, &border_width_return, &depth_return);
 
 	cairo_surface_t *backingStoreSurface;
-//	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
-	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width, height);
+	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width_return, height_return);
+//	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width, height);
 	cairo_set_source_surface(grCairoContext, backingStoreSurface, 0, 0);
 	cairo_rectangle(grCairoContext, xbot, ybot, width, height);
 	cairo_set_operator(grCairoContext, CAIRO_OPERATOR_SOURCE);
@@ -480,7 +480,8 @@ grtcairoScrollBackingStore(MagWindow *w, Point *shift)
 	cairo_surface_t *backingStoreSurface;
 	backingStoreSurface = cairo_xlib_surface_create(grXdpy, pmap, DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width, height);
 	cairo_set_source_surface(grCairoContext, backingStoreSurface, xshift, yshift);
-	cairo_rectangle(grCairoContext, xorigin, yorigin, width, height);
+	//cairo_rectangle(grCairoContext, xorigin, yorigin, width, height);
+	cairo_rectangle(grCairoContext, xshift, yshift, width, height);
 	cairo_set_operator(grCairoContext, CAIRO_OPERATOR_SOURCE);
 	cairo_fill(grCairoContext);
 
@@ -554,6 +555,10 @@ grtcairoPutBackingStore(MagWindow *w, Rect *area)
 	cairo_rectangle(tempContext, xbot, ybot, width, height);
 	cairo_set_operator(tempContext, CAIRO_OPERATOR_SOURCE);
 	cairo_fill(tempContext);
+	
+	cairo_surface_flush(backingStoreSurface);
+	pmap = (Pixmap) cairo_image_surface_get_data(backingStoreSurface);
+	cairo_surface_mark_dirty(backingStoreSurface);
 }
 
 

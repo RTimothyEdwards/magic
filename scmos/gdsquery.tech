@@ -1,11 +1,11 @@
 tech
     format 28
-    minimum
+    gdsquery
 end
 
 version
-    version 0.0
-    description "Minimum technology file structure"
+    version 0.1
+    description "Minimal technology file for querying an unknown GDS database"
 end
 
 planes
@@ -28,9 +28,13 @@ connect
 end
 
 cifoutput
+style generic
+  scalefactor 1
 end
 
 cifinput
+style generic
+  scalefactor 1
 end
 
 # mzrouter
