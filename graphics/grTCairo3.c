@@ -557,7 +557,7 @@ grtcairoPutBackingStore(MagWindow *w, Rect *area)
 	cairo_fill(tempContext);
 	
 	cairo_surface_flush(backingStoreSurface);
-	pmap = (Pixmap) cairo_image_surface_get_data(backingStoreSurface);
+	w->w_backingStore = (ClientData) cairo_image_surface_get_data(backingStoreSurface);
 	cairo_surface_mark_dirty(backingStoreSurface);
 }
 
