@@ -1,19 +1,17 @@
-/* grTOGL2.c -
+/* grTCairo2.c -
  *
- * Copyright 2003 Open Circuit Design, Inc., for MultiGiG Ltd.
+ * Copyright 2017 Open Circuit Design
  *
  * This file contains additional functions to manipulate an X
  * color display.  Included here are rectangle drawing and color map
  * loading.
+ *
+ * Written by Chuan Chen
  */
 
 #include <stdio.h>
 char *getenv();
 
-/*
-#include <GL/gl.h>
-#include <GL/glx.h>
-*/
 #include <cairo/cairo-xlib.h>
 
 #include "tcltk/tclmagic.h"
@@ -24,13 +22,11 @@ char *getenv();
 #include "windows/windows.h"
 #include "graphics/graphics.h"
 #include "graphics/graphicsInt.h"
-//#include "grTOGLInt.h"
 #include "grTCairoInt.h"
 
 #include "textio/txcommands.h"
 
 extern   char        *DBWStyleType;
-//extern   GLXContext  grXcontext;
 extern   Display     *grXdpy;
 
 extern cairo_t *grCairoContext;
@@ -38,9 +34,9 @@ extern cairo_surface_t *grCairoSurface;
 extern cairo_pattern_t *currentStipple;
 
 /*---------------------------------------------------------
- * GrOGLSetCMap --
+ * GrTCairoSetCMap --
  *
- *  OpenGL uses RGB values as read from the colormap file,
+ *  Cairo uses RGB values as read from the colormap file,
  *  directly, so there is no need to install colors into a
  *  colormap.  Therefore, this is a null routine.
  *
@@ -64,7 +60,7 @@ Rect grtcairoDiagonal[TCAIRO_BATCH_SIZE];
 int grtcairoNbDiagonal = 0;
 
 /*---------------------------------------------------------
- * grtoglDrawLines:
+ * grtcairoDrawLines:
  *  This routine draws a batch of lines.
  *
  * Results: None.
@@ -79,23 +75,6 @@ grtcairoDrawLines(lines, nb)
 Rect lines[];
 int nb;
 {
-	/*
-	#ifdef OGL_SERVER_SIDE_ONLY
-	    int i;
-
-	    glBegin(GL_LINES);
-	    for (i = 0; i < nb; i++)
-	    {
-	        glVertex2i(lines[i].r_ll.p_x, lines[i].r_ll.p_y);
-	        glVertex2i(lines[i].r_ur.p_x, lines[i].r_ur.p_y);
-	    }
-	    glEnd();
-	#else
-	    glVertexPointer(2, GL_INT, 0, (GLvoid *)lines);
-	    glDrawArrays(GL_LINES, 0, nb << 1);
-	#endif
-	*/
-
 	int i;
 	for (i = 0; i < nb; i++)
 	{
@@ -108,7 +87,7 @@ int nb;
 }
 
 /*---------------------------------------------------------
- * grtoglDrawLine:
+ * grtcairoDrawLine:
  *  This routine draws a line.
  *
  * Results: None.
@@ -123,9 +102,8 @@ grtcairoDrawLine (x1, y1, x2, y2)
 int x1, y1;         /* Screen coordinates of first point. */
 int x2, y2;         /* Screen coordinates of second point. */
 {
-	/* Treat straight and diagonal lines separately.  Some      */
-	/* implementations of OpenGL make straight lines twice as thick */
-	/* when smoothing is enabled.                   */
+	/* Treat straight and diagonal lines separately. */
+	/* (Done for OpenGL;  possibly not necessary for Cairo) */
 
 	if ((x1 == x2) || (y1 == y2))
 	{
@@ -148,7 +126,7 @@ int x2, y2;         /* Screen coordinates of second point. */
 }
 
 /*---------------------------------------------------------
- * grtoglFillRects:
+ * grtcairoFillRects:
  *  This routine draws a bunch of solid rectangles.
  *
  * Results: None.
@@ -163,24 +141,6 @@ grtcairoFillRects(rects, nb)
 TCairoRect rects[];
 int nb;
 {
-	/*
-	#ifdef OGL_SERVER_SIDE_ONLY
-
-	    int i;
-
-	    for (i = 0; i < nb; i++)
-	    {
-	        glRecti(rects[i].r_ll.p_x, rects[i].r_ll.p_y,
-	                rects[i].r_ur.p_x, rects[i].r_ur.p_y);
-	    }
-
-	#else
-
-	    glVertexPointer(2, GL_INT, 0, (GLvoid *)rects);
-	    glDrawArrays(GL_QUADS, 0, nb << 2);
-
-	#endif
-	*/
 	int i;
 
 	for (i = 0; i < nb; i++)
@@ -188,16 +148,14 @@ int nb;
 		cairo_rectangle(grCairoContext, 
 						rects[i].r_ll.p_x, rects[i].r_ll.p_y,
 		        		rects[i].r_ur.p_x-rects[i].r_ll.p_x, rects[i].r_ur.p_y-rects[i].r_ll.p_y);
-		TxPrintf("%d %d %d %d \n", rects[i].r_ll.p_x, rects[i].r_ll.p_y, rects[i].r_ur.p_x-rects[i].r_ll.p_x, rects[i].r_ur.p_y-rects[i].r_ll.p_y);
+		// TxPrintf("%d %d %d %d \n", rects[i].r_ll.p_x, rects[i].r_ll.p_y, rects[i].r_ur.p_x-rects[i].r_ll.p_x, rects[i].r_ur.p_y-rects[i].r_ll.p_y);
 	}
 	cairo_clip(grCairoContext);
 	cairo_mask(grCairoContext, currentStipple);
-	
-	//cairo_fill(grCairoContext);
 }
 
 /*---------------------------------------------------------
- * grtoglFillRect:
+ * grtcairoFillRect:
  *  This routine draws a solid rectangle.
  *
  * Results: None.
@@ -220,19 +178,17 @@ Rect *r;    /* Address of a rectangle in screen
 	grtcairoRects[grtcairoNbRects].r_ur.p_x = r->r_ur.p_x;
 	grtcairoRects[grtcairoNbRects].r_ur.p_y = r->r_ur.p_y;
 
-#ifndef OGL_SERVER_SIDE_ONLY
 	grtcairoRects[grtcairoNbRects].r_ul.p_x = r->r_ll.p_x;
 	grtcairoRects[grtcairoNbRects].r_ul.p_y = r->r_ur.p_y;
 
 	grtcairoRects[grtcairoNbRects].r_lr.p_x = r->r_ur.p_x;
 	grtcairoRects[grtcairoNbRects].r_lr.p_y = r->r_ll.p_y;
-#endif
 
 	grtcairoNbRects++;
 }
 
 /*---------------------------------------------------------
- * grtoglFillPolygon:
+ * grtcairoFillPolygon:
  *  This routine draws a solid (convex) polygon
  *
  * Results:     None.
@@ -248,14 +204,6 @@ Point *tp;
 int np;
 {
 	int i;
-	/*
-	glEnable(GL_POLYGON_SMOOTH);
-	glBegin(GL_POLYGON);
-	for (i = 0; i < np; i++)
-		glVertex2i(tp[i].p_x, tp[i].p_y);
-	glEnd();
-	glDisable(GL_POLYGON_SMOOTH);
-	*/
 	cairo_move_to(grCairoContext, tp[0].p_x, tp[0].p_y);
 	for (i = 1; i < np; i++)
 		cairo_line_to(grCairoContext, tp[i].p_x, tp[i].p_y);

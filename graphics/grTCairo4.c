@@ -1,10 +1,11 @@
 /* grTCairo4.c -
  *
- * Copyright 2003 Open Circuit Design, Inc., for MultiGiG Ltd.
+ * Copyright 2017 Open Circuit Design
  *
  * This file contains functions to manage the graphics tablet associated
  * with the X display.
  *
+ * Written by Chuan Chen
  */
 
 #include <signal.h>
@@ -39,6 +40,7 @@ extern Display *grXdpy;
 void
 GrTCairoDisableTablet ()
 {
+    /* (Unimplemented) */
 }
 
 
@@ -57,6 +59,7 @@ GrTCairoDisableTablet ()
 void
 GrTCairoEnableTablet ()
 {
+    /* (Unimplemented) */
 }
 
 
