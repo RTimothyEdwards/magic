@@ -1,16 +1,15 @@
-/* grTOGL5.c -
+/* grTCairo5.c -
  *
- * Copyright 2003 Open Circuit Design, Inc., for MultiGiG Ltd.
+ * Copyright 2017 Open Circuit Design
  *
  *	Manipulate the programable cursor on the graphics display.
  *
+ * Written by Chuan Chen
  */
 
 #include <stdio.h>
 #include <X11/Xlib.h>
 
-//#include <GL/gl.h>
-//#include <GL/glx.h>
 #include <cairo/cairo-xlib.h>
 
 #include "tcltk/tclmagic.h"
@@ -24,7 +23,6 @@
 #include "graphics/graphics.h"
 #include "graphics/graphicsInt.h"
 #include "grTkCommon.h"
-//#include "grTOGLInt.h"
 #include "grTCairoInt.h"
 
 extern Display	*grXdpy;
@@ -35,7 +33,7 @@ extern cairo_t *grCairoContext;
 
 /*
  * ----------------------------------------------------------------------------
- * GrTOGLDrawGlyph --
+ * GrTCairoDrawGlyph --
  *
  *	Draw one glyph on the display.
  *
@@ -99,20 +97,15 @@ Point *p;			/* screen pos of lower left corner */
 						mask = GrStyleTable[thisp].mask << 1;
 						color = GrStyleTable[thisp].color;
 						GrGetColor(color, &red, &green, &blue);
-						//glColor4ub((GLubyte)red, (GLubyte)green, (GLubyte)blue,
-						//		(GLubyte)mask);
 						cairo_set_source_rgba(grCairoContext, ((float)red / 255), ((float)green / 255), ((float)blue / 255), ((float)mask / 127.0));
-						//glBegin(GL_POINTS);
 					}
 					x1 = bBox.r_xbot + x;
-					//glVertex2i((GLint)x1, (GLint)y1);
 					cairo_rectangle(grCairoContext, x1, y1, 1, 1);
 				}
 			}
 		}
 		if (lastp != -1) {
 			cairo_fill(grCairoContext);
-			//glEnd();
 		}
 	} else {
 		/* do pixel by pixel clipping */
@@ -158,13 +151,8 @@ Point *p;			/* screen pos of lower left corner */
 							mask = GrStyleTable[*pixelp].mask << 1;
 							color = GrStyleTable[*pixelp].color;
 							GrGetColor(color, &red, &green, &blue);
-							cairo_set_source_rbga(grCairoContext, ((float)red / 255), ((float)green / 255), ((float)blue / 255), ((float)mask / 127.0));
+							cairo_set_source_rgba(grCairoContext, ((float)red / 255), ((float)green / 255), ((float)blue / 255), ((float)mask / 127.0));
 
-							//glColor4ub((GLubyte)red, (GLubyte)green,
-							//           (GLubyte)blue, (GLubyte)mask);
-							//glBegin(GL_POINTS);
-							//glVertex2i((GLint)startx, (GLint)yloc);
-							//glEnd();
 							cairo_rectangle(grCairoContext, startx, yloc, 1, 1);
 							cairo_fill(grCairoContext);
 						}
@@ -181,7 +169,7 @@ Point *p;			/* screen pos of lower left corner */
 
 /*
  * ----------------------------------------------------------------------------
- * GrTOGLSetCursor:
+ * GrTCairoSetCursor:
  *
  *	Make the cursor be a new pattern, as defined in the display styles file.
  *

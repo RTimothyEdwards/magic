@@ -1,9 +1,11 @@
 /* grTCairo1.c
  *
- * Copyright (C) 2003 Open Circuit Design, Inc., for MultiGiG Ltd.
+ * Copyright (C) 2017 Open Circuit Design
  *
- * This file contains primitive functions for OpenGL running under
+ * This file contains primitive functions for Cairo running under
  * an X window system in a Tcl/Tk interpreter environment
+ *
+ * Written by Chuan Chen
  */
 
 #include <stdio.h>
@@ -19,10 +21,6 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-/*
-#include <GL/gl.h>
-#include <GL/glx.h>
-*/
 #include <cairo/cairo-xlib.h>
 
 #include "tcltk/tclmagic.h"
@@ -43,20 +41,15 @@
 #include "database/database.h"
 #include "drc/drc.h"
 #include "utils/macros.h"
-//#include "graphics/grTCairoInt.h"
 #include "graphics/grTCairoInt.h"
 #include "utils/paths.h"
 #include "graphics/grTkCommon.h"
 
 uint8_t			**grTCairoStipples;
 HashTable		grTCairoWindowTable;
-//GLXContext	grXcontext;
 cairo_surface_t *grCairoSurface;
 cairo_t 		*grCairoContext;
 XVisualInfo		*grVisualInfo;
-
-//TCairo_CURRENT tcairoCurrent= {(Tk_Font)0, 0, 0, 0, 0,
-//	(Tk_Window)0, (Window)0, (MagWindow *)NULL};
 
 TCAIRO_CURRENT tcairoCurrent = {(Tk_Font)0, 0, 0, 0, 0,
                                 (Tk_Window)0, (Window)0, (MagWindow *)NULL
@@ -103,48 +96,19 @@ int c;			/* New value for current color */
 	static int oldMask = -1;
 
 	int lr, lb, lg;
-	//GLfloat fr, fb, fg;
-	//GLfloat aval; 	 /* Alpha default value was 0.75 */
 	float fr, fb, fg, aval;
 
 	if (mask == -65) mask = 127;	/* All planes */
 	if (mask == oldMask && c == oldColor) return;
 
-	//GR_TCairo_FLUSH_BATCH();
 	GR_TCAIRO_FLUSH_BATCH();
 
-	GrGetColor(c, &lr, &lb, &lg);
+	GrGetColor(c, &lr, &lg, &lb);
 
 	fr = ((float)lr / 255);
 	fg = ((float)lg / 255);
 	fb = ((float)lb / 255);
 	aval = ((float)mask / 127.0);
-
-	/*
-		if (mask == 127)
-		{
-			glDisable(GL_BLEND);
-			aval = 1.0;
-		}
-		else
-		{
-			//Calculate a "supercolor", outside of the normal color range,
-			//but which results in the desired color after a blend with
-			//the background color.
-
-			fr = fr * 2 - 0.8;
-			fg = fg * 2 - 0.8;
-			fb = fb * 2 - 0.8;
-
-			aval = (GLfloat)mask / 127.0;	// mask translates to alpha in
-			//the OpenGL version.
-
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		}
-	*/
-
-	//glColor4f(fr, fb, fg, aval);
 
 	cairo_set_source_rgba(grCairoContext, fr, fg, fb, aval);
 
@@ -170,28 +134,6 @@ grtcairoSetLineStyle (style)
 int style;			/* New stipple pattern for lines. */
 {
 	// unimplemented for cairo
-	/*
-	static int oldStyle = -1;
-	GLushort glstyle;
-
-	style &= 0xFF;
-	if (style == oldStyle) return;
-	oldStyle = style;
-	GR_TCairo_FLUSH_BATCH();
-
-	switch (style) {
-	case 0xFF:
-	case 0x00:
-		glDisable(GL_LINE_STIPPLE);
-		break;
-	default:
-		glstyle = style | (style << 8);
-		glEnable(GL_LINE_STIPPLE);
-		glLineStipple(1, glstyle);
-		break;
-	}
-	*/
-	;
 }
 
 
@@ -225,7 +167,7 @@ int numstipples;			/* Number of stipples */
 		pdata = (uint8_t *)mallocMagic(128 * sizeof(uint8_t));
 		n = 0;
 
-		/* expand magic's default 8x8 stipple to OpenGL's 32x32 */
+		/* expand magic's default 8x8 stipple to 32x32 */
 
 		for (i = 0; i < 32; i++) {
 			for (j = 0; j < 4; j++) {
@@ -263,18 +205,12 @@ int stipple;			/* The stipple number to be used. */
 	oldStip = stipple;
 	GR_TCAIRO_FLUSH_BATCH();
 	if (stipple == 0 || stipple > grNumStipples) {
-		//glDisable(GL_POLYGON_STIPPLE);
-		//cairo_set_source_rgb(grCairoContext, 0, 0, 0);
 		currentStipple = cairo_pattern_create_rgba(0, 0, 0, 1);
 	} else {
 		if (stipplePatterns[stipple] == (cairo_pattern_t *)NULL) MainExit(1);
-		//glEnable(GL_POLYGON_STIPPLE);
-		//glPolygonStipple(grTCairoStipples[stipple]);
 		cairo_pattern_set_extend(stipplePatterns[stipple], CAIRO_EXTEND_REPEAT);
 		cairo_pattern_set_filter(stipplePatterns[stipple], CAIRO_FILTER_NEAREST);
 		currentStipple = stipplePatterns[stipple];
-		//cairo_set_source(grCairoContext, stipplePatterns[stipple]);
-		//cairo_mask_surface(grCairoContext, grCairoSurface, 0.0, 0.0);
 	}
 }
 
@@ -299,13 +235,6 @@ bool
 GrTCairoInit ()
 {
 	bool rstatus;
-	/*
-	#ifdef THREE_D
-		static int attributeList[] = { GLX_RGBA, GLX_DOUBLEBUFFER, None };
-	#else
-		static int attributeList[] = { GLX_RGBA, None, None };
-	#endif
-	*/
 
 	tcairoCurrent.window = Tk_MainWindow(magicinterp); // XDefaultRootWindow(grXdpy) ??
 	if (tcairoCurrent.window == NULL)
@@ -320,7 +249,6 @@ GrTCairoInit ()
 
 	grXscrn = DefaultScreen(grXdpy);
 
-	//grVisualInfo = glXChooseVisual(grXdpy, grXscrn, attributeList);
 	XVisualInfo grtemplate;
 	int gritems;
 	grtemplate.screen = grXscrn;
@@ -331,43 +259,19 @@ GrTCairoInit ()
 	{
 		TxError("No suitable visual!\n");
 		return FALSE;
-		/*
-		// Try for a double-buffered configuration
-		#ifdef THREE_D
-		attributeList[1] = None;
-		#else
-		attributeList[1] = GLX_DOUBLEBUFFER;
-		#endif
-		grVisualInfo = glXChooseVisual(grXdpy, grXscrn, attributeList);
-		if (!grVisualInfo)
-		{
-		TxError("No suitable visual!\n");
-		return FALSE;
-		}
-		*/
 	}
 
 	grXscrn = grVisualInfo->screen;
 	tcairoCurrent.depth = grVisualInfo->depth;
 
-	/* TRUE = Direct rendering, FALSE = Indirect rendering */
-	/* (note that direct rendering may not be able to deal with pixmaps) */
-	//grXcontext = glXCreateContext(grXdpy, grVisualInfo, NULL, GL_FALSE);
-
 	grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.windowid, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
 	grCairoContext = cairo_create(grCairoSurface);
 
-	/* Basic GL parameters */
-	/*
-	glLineWidth(1.0);
-	glShadeModel (GL_FLAT);
-	glPixelStorei(GL_PACK_LSB_FIRST, TRUE);
-	*/
 	cairo_set_line_width(grCairoContext, 1.0);
 	cairo_set_source_rgb(grCairoContext, 0, 0, 0);
 	currentStipple = cairo_pattern_create_rgba(0, 0, 0, 1);
 
-	/* OpenGL sets its own names for colormap and dstyle file types */
+	/* Use OpenGL names for colormap and dstyle file types */
 	grCMapType = "OpenGL";
 	grDStyleType = "OpenGL";
 
@@ -418,19 +322,17 @@ void
 GrTCairoFlush ()
 {
 	GR_TCAIRO_FLUSH_BATCH();
-	//glFlush();
-	//glFinish();
 }
 
 /*
  *---------------------------------------------------------
  */
 
-#define glTransYs(n) (DisplayHeight(grXdpy, grXscrn)-(n))
+#define grTransYs(n) (DisplayHeight(grXdpy, grXscrn)-(n))
 
 /*
  *---------------------------------------------------------
- * Set the OpenGL viewport (projection matrix) for a window
+ * Set the Cairo projection matrix for a window
  *---------------------------------------------------------
  */
 
@@ -441,50 +343,9 @@ int llx, lly, width, height;
 	grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.windowid, grVisualInfo->visual, width, height);
 	grCairoContext = cairo_create(grCairoSurface);
 
-	/* Because this tends to result in thick lines, it has been moved	*/
-	/* the line drawing routine so it can be enabled for individual	*/
-	/* lines.								*/
-	/* glEnable(GL_LINE_SMOOTH); */
-
-	/* Force draw to front buffer (in case of double-buffered config) */
-	//glDrawBuffer(GL_FRONT);
-
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
 	cairo_identity_matrix(grCairoContext);
-
-	//glViewport((GLsizei)llx, (GLsizei)lly, (GLsizei) width, (GLsizei) height);
-	// cairo equivalent??
-
-	/* scale to fit window */
-	/*
-	#ifdef CAIRO_INVERT_Y
-		//glScalef(1.0 / (float)(width >> 1), -1.0 / (float)(height >> 1), 1.0);
-	#else
-		//glScalef(1.0 / (float)(width >> 1), 1.0 / (float)(height >> 1), 1.0);
-	#endif
-	*/
-	//cairo_translate(grCairoContext, (width >> 1), (height >> 1));
-	//cairo_translate(grCairoContext, width/2.0, height/2.0);
 	cairo_translate(grCairoContext, 0, height);
-
-
-	//cairo_scale(grCairoContext, width >> 1, -(height >> 1));
 	cairo_scale(grCairoContext, 1.0, -1.0);
-	//cairo_scale(grCairoContext, 1.0 / width, -1.0 / height);
-
-
-	/* magic origin maps to window center; move to window origin */
-
-	//glTranslated(-(GLsizei)(width >> 1), -(GLsizei)(height >> 1), 0);
-
-
-	/* Remaining transformations are done on the modelview matrix */
-
-	//glMatrixMode(GL_MODELVIEW);
-	//glLoadIdentity();
-	//cairo_identity_matrix(grCairoContext);
-
 }
 
 
@@ -850,8 +711,8 @@ keys_and_buttons:
 
 		screenRect.r_xbot = ConfigureEvent->x;
 		screenRect.r_xtop = ConfigureEvent->x + width;
-		screenRect.r_ytop = glTransYs(ConfigureEvent->y);
-		screenRect.r_ybot = glTransYs(ConfigureEvent->y + height);
+		screenRect.r_ytop = grTransYs(ConfigureEvent->y);
+		screenRect.r_ybot = grTransYs(ConfigureEvent->y + height);
 
 		need_resize = (screenRect.r_xbot != mw->w_screenArea.r_xbot ||
 		               screenRect.r_xtop != mw->w_screenArea.r_xtop ||
@@ -1084,7 +945,7 @@ char *name;
 	char	*windowplace;
 	char	windowname[10];
 	int		x      = w->w_frameArea.r_xbot;
-	int		y      = glTransYs(w->w_frameArea.r_ytop);
+	int		y      = grTransYs(w->w_frameArea.r_ytop);
 	int		width  = w->w_frameArea.r_xtop - w->w_frameArea.r_xbot;
 	int		height = w->w_frameArea.r_ytop - w->w_frameArea.r_ybot;
 	unsigned long        attribmask = CWBackPixel | CWBorderPixel | CWColormap;
@@ -1099,8 +960,8 @@ char *name;
 		               (unsigned int *)&width, (unsigned int *)&height);
 		w->w_frameArea.r_xbot = x;
 		w->w_frameArea.r_xtop = x + width;
-		w->w_frameArea.r_ytop = glTransYs(y);
-		w->w_frameArea.r_ybot = glTransYs(y + height);
+		w->w_frameArea.r_ytop = grTransYs(y);
+		w->w_frameArea.r_ybot = grTransYs(y + height);
 		WindReframe(w, &(w->w_frameArea), FALSE, FALSE);
 	}
 
@@ -1175,7 +1036,6 @@ char *name;
 
 		wind = Tk_WindowId(tkwind);
 		tcairoCurrent.windowid = wind;
-		//glXMakeCurrent(grXdpy, (GLXDrawable)wind, grXcontext);
 		grCairoSurface = cairo_xlib_surface_create(grXdpy, tcairoCurrent.windowid, grVisualInfo->visual, Tk_Width(tcairoCurrent.window), Tk_Height(tcairoCurrent.window));
 		grCairoContext = cairo_create(grCairoSurface);
 
@@ -1212,7 +1072,7 @@ char *name;
  * ----------------------------------------------------------------------------
  *
  * GrTCairoDelete --
- *      Destroy a Tk/OpenGL window.
+ *      Destroy a Tk/Cairo window.
  *
  * Results:
  *	None.
@@ -1260,7 +1120,7 @@ MagWindow *w;
 	if (w->w_flags & WIND_OFFSCREEN) return;
 
 	Tk_MoveResizeWindow((Tk_Window)w->w_grdata,
-	                    w->w_frameArea.r_xbot, glTransYs(w->w_frameArea.r_ytop),
+	                    w->w_frameArea.r_xbot, grTransYs(w->w_frameArea.r_ytop),
 	                    w->w_frameArea.r_xtop - w->w_frameArea.r_xbot,
 	                    w->w_frameArea.r_ytop - w->w_frameArea.r_ybot);
 }
@@ -1388,7 +1248,7 @@ GrTCairoUnlock(w)
 MagWindow *w;
 {
 	/* GR_TCairo_FLUSH_BATCH(); */
-	GrTCairoFlush();	/* (?) Adds glFlush and glFinish to the above. */
+	GrTCairoFlush();
 	grSimpleUnlock(w);
 }
 
