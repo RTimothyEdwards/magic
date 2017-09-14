@@ -110,6 +110,7 @@ static char *grDisplayTypes[] = {
 #endif
 #ifdef CAIRO
     "CAIRO",
+    "XR",
 #endif
     "NULL",
     NULL};
@@ -133,6 +134,7 @@ static bool (*(grInitProcs[]))() = {
     oglSetDisplay,
 #endif
 #ifdef CAIRO
+    cairoSetDisplay,
     cairoSetDisplay,
 #endif
     nullSetDisplay,

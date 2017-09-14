@@ -71,8 +71,6 @@ extern int  GrTCairoWindowId();
 extern char *GrTkWindowName();		/* Use routine from grTkCommon.c */
 
 extern void tcairoSetProjection();
-
-extern int grCurColor;
 
 /*---------------------------------------------------------
  * grtcairoSetWMandC:
@@ -109,19 +107,7 @@ int c;			/* New value for current color */
 	fr = ((float)lr / 255);
 	fg = ((float)lg / 255);
 	fb = ((float)lb / 255);
-
-	if (mask == 127)
-	{
-	    aval = 1.0;
-	}
-	else
-	{
-	    /* "Supercolor", to counter the gray background */
-	    fr = fr * 2 - 0.8;
-	    fg = fg * 2 - 0.8;
-	    fb = fb * 2 - 0.8;
-	    aval = ((float)mask / 127.0);
-	}
+	aval = ((float)mask / 127.0);
 
 	cairo_set_source_rgba(tcairodata->context, fr, fg, fb, aval);
 
@@ -189,10 +175,8 @@ int numstipples;			/* Number of stipples */
 		}
 
 		grTCairoStipples[k] = pdata;
-		stipplePatterns[k] = cairo_pattern_create_for_surface(
-			cairo_image_surface_create_for_data(pdata,
-			CAIRO_FORMAT_A1, 32, 32,
-			cairo_format_stride_for_width(CAIRO_FORMAT_A1, 32)));
+		stipplePatterns[k] = cairo_pattern_create_for_surface(cairo_image_surface_create_for_data(pdata, CAIRO_FORMAT_A1, 32, 32,
+		                     cairo_format_stride_for_width(CAIRO_FORMAT_A1, 32)));
 	}
 }
 
@@ -336,6 +320,8 @@ GrTCairoFlush ()
  *---------------------------------------------------------
  */
 
+#define grTransYs(n) (DisplayHeight(grXdpy, grXscrn)-(n))
+
 /*
  *---------------------------------------------------------
  * Set the Cairo projection matrix for a window
@@ -363,8 +349,7 @@ int llx, lly, width, height;
 	tcairoCurrent.mw->w_grdata2 = (ClientData)tcairodata;
 
 	cairo_set_line_width(tcairodata->context, 1.0);
-	/* This should be pulled from STYLE_ERASEALL, not hard-coded */
-	cairo_set_source_rgb(tcairodata->context, 0.8, 0.8, 0.8);
+	cairo_set_source_rgb(tcairodata->context, 0, 0, 0);
 	currentStipple = cairo_pattern_create_rgba(0, 0, 0, 1);
     }
 
@@ -744,16 +729,6 @@ keys_and_buttons:
 		               screenRect.r_ybot != mw->w_screenArea.r_ybot ||
 		               screenRect.r_ytop != mw->w_screenArea.r_ytop);
 
-		/* Update Cairo surface */
-
-		if (need_resize)
-		{
-		    TCairoData *tcairodata;
-
-		    tcairodata = (TCairoData *)mw->w_grdata2;
-		    cairo_xlib_surface_set_size(tcairodata->surface, width, height);
-		}
-
 		/* Redraw the window */
 
 		WindReframe(mw, &screenRect, FALSE, FALSE);
@@ -1074,8 +1049,7 @@ char *name;
 		tcairodata->context = cairo_create(tcairodata->surface);
 
 		cairo_set_line_width(tcairodata->context, 1.0);
-		/* This should be pulled from STYLE_ERASEALL, not hard-coded */
-		cairo_set_source_rgb(tcairodata->context, 0.8, 0.8, 0.8);
+		cairo_set_source_rgb(tcairodata->context, 0, 0, 0);
 		currentStipple = cairo_pattern_create_rgba(0, 0, 0, 1);
 
 		Tk_DefineCursor(tkwind, tcairoCurrent.cursor);
@@ -1128,23 +1102,10 @@ MagWindow *w;
 {
 	Tk_Window xw;
 	HashEntry	*entry;
-	TCairoData *tcairodata;
 
 	xw = (Tk_Window) w->w_grdata;
 	entry = HashLookOnly(&grTCairoWindowTable, (char *)xw);
 	HashSetValue(entry, NULL);
-
-	tcairodata = (TCairoData *)w->w_grdata2;
-	if (tcairodata->backing_surface != NULL)
-	    cairo_destroy_surface(tcairodata->backing_surface);
-	if (tcairodata->backing_context != NULL)
-	    cairo_destroy(tcairodata->backing_context);
-	if (tcairodata->surface != NULL)
-	    cairo_destroy_surface(tcairodata->surface);
-	if (tcairodata->context != NULL)
-	    cairo_destroy(tcairodata->context);
-	freeMagic(w->w_grdata2);
-	w->w_grdata2 = (ClientData)NULL;
 
 	Tcl_DeleteCommand(magicinterp, Tk_PathName(xw));
 	Tk_DestroyWindow(xw);

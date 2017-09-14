@@ -85,8 +85,8 @@ Rect *clip;         /* a clipping rectangle */
 	for (x = xstart; x < (clip->r_xtop + 1) << SUBPIXELBITS; x += xsize)
 	{
 		shifted = x >> SUBPIXELBITS;
-		cairo_move_to(tcairodata->context, (double)shifted, (double)low);
-		cairo_line_to(tcairodata->context, (double)shifted, (double)hi);
+		cairo_move_to(tcairodata->context, shifted, low);
+		cairo_line_to(tcairodata->context, shifted, hi);
 		snum++;
 	}
 
@@ -96,8 +96,8 @@ Rect *clip;         /* a clipping rectangle */
 	for (y = ystart; y < (clip->r_ytop + 1) << SUBPIXELBITS; y += ysize)
 	{
 		shifted = y >> SUBPIXELBITS;
-		cairo_move_to(tcairodata->context, (double)low, (double)shifted);
-		cairo_line_to(tcairodata->context, (double)hi, (double)shifted);
+		cairo_move_to(tcairodata->context, low, shifted);
+		cairo_line_to(tcairodata->context, hi, shifted);
 		snum++;
 	}
 	cairo_stroke(tcairodata->context);
@@ -234,8 +234,7 @@ grtcairoFreeBackingStore(MagWindow *window)
 	window->w_backingStore = (ClientData)NULL;
 
 	tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
-	cairo_surface_destroy(tcairodata->backing_surface);
-	cairo_destroy(tcairodata->backing_context);
+	/* To do: destroy cairo surface and context */
 	tcairodata->backing_surface = NULL;
 	tcairodata->backing_context = NULL;
 }
@@ -280,23 +279,15 @@ grtcairoCreateBackingStore(MagWindow *w)
 	w->w_backingStore = (ClientData)pmap;
 
 	tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
-
-	if (tcairodata->backing_surface != NULL)
-	{
-	    cairo_surface_destroy(tcairodata->backing_surface);
-	    cairo_destroy(tcairodata->backing_context);
-	}
 	tcairodata->backing_surface = cairo_xlib_surface_create(grXdpy, pmap,
 		DefaultVisual(grXdpy, DefaultScreen(grXdpy)), width, height);
 	tcairodata->backing_context = cairo_create(tcairodata->backing_surface);
-
-	cairo_identity_matrix(tcairodata->backing_context);
 }
 
 bool
 grtcairoGetBackingStore(MagWindow *w, Rect *area)
 {
-	unsigned int width, height, sheight;
+	unsigned int width, height;
 	int xbot, ybot;
 	Rect r;
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
@@ -306,24 +297,27 @@ grtcairoGetBackingStore(MagWindow *w, Rect *area)
 	GEO_EXPAND(area, 1, &r);
 	GeoClip(&r, &(w->w_screenArea));
 
+	width = r.r_xtop - r.r_xbot;
+	height = r.r_ytop - r.r_ybot;
+
 	xbot = r.r_xbot;
 	ybot = r.r_ybot;
-	width = r.r_xtop - xbot;
-	height = r.r_ytop - ybot;
-	sheight = w->w_screenArea.r_ytop - w->w_screenArea.r_ybot;
 
-	// Fix Y orientation
-	ybot = sheight - height - ybot;
+	Window root_return;
+	int x_return, y_return;
+	unsigned int width_return, height_return;
+	unsigned int border_width_return;
+	unsigned int depth_return;
 
-	cairo_save(tcairodata->context);
-	cairo_identity_matrix(tcairodata->context);
-	cairo_set_source_surface(tcairodata->context, tcairodata->backing_surface,
-		0.0, 0.0);
-	cairo_rectangle(tcairodata->context, (double)xbot, (double)ybot,
-			(double)width, (double)height);
+	Pixmap pmap;
+	pmap = (Pixmap)w->w_backingStore;
+	if (pmap == (Pixmap)NULL)
+		return FALSE;
+
+	cairo_set_source_surface(tcairodata->context, tcairodata->backing_surface, 0, 0);
+	cairo_rectangle(tcairodata->context, xbot, ybot, width, height);
 	cairo_set_operator(tcairodata->context, CAIRO_OPERATOR_SOURCE);
 	cairo_fill(tcairodata->context);
-	cairo_restore(tcairodata->context);
 
 	return TRUE;
 }
@@ -340,7 +334,7 @@ grtcairoScrollBackingStore(MagWindow *w, Point *shift)
 	pmap = (Pixmap)w->w_backingStore;
 	if (pmap == (Pixmap)NULL)
 	{
-		TxPrintf("grtcairoScrollBackingStore %d %d failure\n",
+		TxPrintf("grx11ScrollBackingStore %d %d failure\n",
 		         shift->p_x, shift->p_y);
 		return FALSE;
 	}
@@ -352,73 +346,68 @@ grtcairoScrollBackingStore(MagWindow *w, Point *shift)
 	xshift = shift->p_x;
 	yshift = -shift->p_y;
 
-	/* Important:  Cairo does not watch where memory overlaps exist	*/
-	/* when copying and will erase memory when yshift is positive.	*/
-
+	if (xshift > 0)
+		width -= xshift;
+	else if (xshift < 0)
+	{
+		width += xshift;
+		xorigin = -xshift;
+		xshift = 0;
+	}
 	if (yshift > 0)
+		height -= yshift;
+	else if (yshift < 0)
 	{
-	    /* Noting that the highlights will be redrawn anyway, use	*/
-	    /* the main window surface as an intermediary to copy.	*/
-
-	    Rect area;
-
-	    cairo_save(tcairodata->context);
-	    cairo_identity_matrix(tcairodata->context);
-	    cairo_set_source_surface(tcairodata->context,
-			tcairodata->backing_surface, (double)xshift, (double)yshift);
-	    cairo_rectangle(tcairodata->context, (double)xorigin,
-			(double)yorigin, (double)width, (double)height);
-	    cairo_set_operator(tcairodata->context, CAIRO_OPERATOR_SOURCE);
-	    cairo_fill(tcairodata->context);
-	    cairo_restore(tcairodata->context);
-
-	    area.r_xbot = 0;
-	    area.r_xtop = width;
-	    area.r_ybot = 0;
-	    area.r_ytop = height;
-	    grtcairoPutBackingStore(w, &area);
+		height += yshift;
+		yorigin = -yshift;
+		yshift = 0;
 	}
-	else
-	{
-	    cairo_save(tcairodata->backing_context);
-	    cairo_set_source_surface(tcairodata->backing_context,
-			tcairodata->backing_surface, (double)xshift, (double)yshift);
-	    cairo_rectangle(tcairodata->backing_context, (double)xorigin,
-			(double)yorigin, (double)width, (double)height);
-	    cairo_set_operator(tcairodata->backing_context, CAIRO_OPERATOR_SOURCE);
-	    cairo_fill(tcairodata->backing_context);
-	    cairo_restore(tcairodata->backing_context);
-	}
+
+	/* TxPrintf("grx11ScrollBackingStore %d %d\n", shift->p_x, shift->p_y); */
+
+	cairo_set_source_surface(tcairodata->context, tcairodata->backing_surface,
+		xshift, yshift);
+	cairo_rectangle(tcairodata->context, xshift, yshift, width, height);
+	cairo_set_operator(tcairodata->context, CAIRO_OPERATOR_SOURCE);
+	cairo_fill(tcairodata->context);
+
 	return TRUE;
 }
 
 void
 grtcairoPutBackingStore(MagWindow *w, Rect *area)
 {
-	unsigned int width, height, sheight;
+	unsigned int width, height;
 	int ybot, xbot;
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 
 	if (w->w_backingStore == (ClientData)0) return;
 
-	xbot = area->r_xbot;
+	width = area->r_xtop - area->r_xbot;
+	height = area->r_ytop - area->r_ybot;
+
 	ybot = area->r_ybot;
+	xbot = area->r_xbot;
 
-	width = area->r_xtop - xbot;
-	height = area->r_ytop - ybot;
-	sheight = w->w_screenArea.r_ytop - w->w_screenArea.r_ybot;
+	if (xbot < 0) {
+		width -= xbot;
+		xbot = 0;
+	}
 
-	// Fix Y orientation
-	ybot = sheight - height - ybot;
+	if (ybot < 0) {
+		height -= ybot;
+		ybot = 0;
+	}
 
-	cairo_save(tcairodata->backing_context);
 	cairo_set_source_surface(tcairodata->backing_context, tcairodata->surface,
 		0.0, 0.0);
-	cairo_rectangle(tcairodata->backing_context, (double)xbot, (double)ybot,
-		(double)width, (double)height);
+	cairo_rectangle(tcairodata->backing_context, xbot, ybot, width, height);
 	cairo_set_operator(tcairodata->backing_context, CAIRO_OPERATOR_SOURCE);
 	cairo_fill(tcairodata->backing_context);
-	cairo_restore(tcairodata->backing_context);
+	
+	// cairo_surface_flush(tcairodata->backing_surface);
+	// w->w_backingStore = (ClientData) cairo_image_surface_get_data(tcairodata->backing_surface);
+	// cairo_surface_mark_dirty(tcairodata->backing_surface);
 }
 
 
@@ -485,7 +474,7 @@ int pixsize;
 {
 	Point *tp;
 	int np, nptotal;
-	int i;
+	int i, j;
 	static int maxnp = 0;
 	FontChar *ccur;
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
@@ -496,12 +485,10 @@ int pixsize;
 	for (ccur = clist; ccur != NULL; ccur = ccur->fc_next) {
 		tp = ccur->fc_points;
 		np = ccur->fc_numpoints;
-		cairo_move_to(tcairodata->context, (double)tp[0].p_x, (double)tp[0].p_y);
-		for (i = 1; i < np; i++) {
-			cairo_line_to(tcairodata->context, (double)tp[i].p_x,
-				(double)tp[i].p_y);
+		cairo_move_to(tcairodata->context, tp[0].p_x, tp[0].p_y);
+		for (i = 1; i < np; i++, j += 3) {
+			cairo_line_to(tcairodata->context, tp[0].p_x, tp[0].p_y);
 		}
-		cairo_close_path(tcairodata->context);
 	}
 	cairo_fill(tcairodata->context);
 }
@@ -539,15 +526,14 @@ LinkedRect *obscure;    /* List of obscuring areas */
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 
 	cairo_save(tcairodata->context);
-	cairo_translate(tcairodata->context, (double)pos->p_x, (double)pos->p_y);
-	// cairo_scale(tcairodata->context, 1.0, -1.0);
+	cairo_translate(tcairodata->context, pos->p_x, pos->p_y);
 	cairo_rotate(tcairodata->context, ((double)rotate) / 360 * 2 * M_PI);
 
 	/* Get label size */
 	cbbox = &DBFontList[font]->mf_extents;
 
-	fsize = (float)size / (float)cbbox->r_ytop;
-	cairo_scale(tcairodata->context, (double)fsize, (double)fsize);
+	fsize = (uint8_t)size / (uint8_t)cbbox->r_ytop;
+	cairo_scale(tcairodata->context, fsize, fsize);
 
 	/* Adjust to baseline */
 	baseline = 0;
@@ -557,14 +543,13 @@ LinkedRect *obscure;    /* List of obscuring areas */
 		if (cbbox->r_ybot < baseline)
 			baseline = cbbox->r_ybot;
 	}
-	cairo_translate(tcairodata->context, 0.0, (double)(-baseline));
+	cairo_translate(tcairodata->context, 0, -baseline);
 
 	for (tptr = text; *tptr != '\0'; tptr++)
 	{
 		DBFontChar(font, *tptr, &clist, &coffset, NULL);
 		grtcairoDrawCharacter(clist, *tptr, size);
-		cairo_translate(tcairodata->context, (double)coffset->p_x,
-				(double)coffset->p_y);
+		cairo_translate(tcairodata->context, coffset->p_x, coffset->p_y);
 	}
 	cairo_restore(tcairodata->context);
 }
@@ -629,16 +614,16 @@ LinkedRect *obscure;    /* A list of obscuring rectangles */
 	overlap = location;
 	GeoClip(&overlap, clip);
 
+	/* copy the text to the color screen */
 	if ((overlap.r_xbot < overlap.r_xtop) && (overlap.r_ybot <= overlap.r_ytop))
 	{
-		cairo_save(tcairodata->context);
-		cairo_move_to(tcairodata->context, (double)location.r_xbot,
-			(double)location.r_ybot);
-		/* The cairo coordinate system is upside-down, so invert */
-		cairo_scale(tcairodata->context, 1.0, -1.0);
+		cairo_rectangle(tcairodata->context, overlap.r_xbot,
+			overlap.r_ybot, overlap.r_xtop - overlap.r_xbot,
+			overlap.r_ytop - overlap.r_ybot);
+		cairo_clip(tcairodata->context);
+		cairo_move_to(tcairodata->context, location.r_xbot, location.r_ybot);
 		cairo_show_text(tcairodata->context, text);
 		cairo_fill(tcairodata->context);
-		cairo_restore(tcairodata->context);
 	}
 }
 

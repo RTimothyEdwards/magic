@@ -183,8 +183,13 @@ typedef struct WIND_S1 {
 				 * Set at window creation time.
 				 */
     ClientData w_grdata;	/* Data private to the graphics package. (G)
-				 * Often used to contain variables needed to
-				 * interface to SUNs window package.
+				 * Generally references an X11 or Tk window.
+				 */
+    ClientData w_grdata2;	/* Data private to the graphics packsge. (G)
+				 * Used to contain per-window information
+				 * other than the window itself, since
+				 * various parts of the code have w_grdata
+				 * hard-coded to the window pointer.
 				 */
     ClientData w_backingStore;	/* Specific data private to the graphics
 				 * package.  Used to save and restore the

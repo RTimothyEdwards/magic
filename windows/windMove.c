@@ -287,6 +287,7 @@ WindCreate(client, frameArea, isHint, argc, argv)
     w->w_stippleOrigin.p_y = 0;
     w->w_bbox = NULL;
     w->w_grdata = (ClientData) NULL;
+    w->w_grdata2 = (ClientData) NULL;
     w->w_backingStore = (ClientData)NULL;
     w->w_redrawAreas = (ClientData) NULL;
     w->w_iconname = NULL;
