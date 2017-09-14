@@ -75,8 +75,6 @@ int nb;
 {
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 	int i;
-
-	cairo_save(tcairodata->context);
 	for (i = 0; i < nb; i++)
 	{
 		cairo_move_to(tcairodata->context, lines[i].r_ll.p_x, lines[i].r_ll.p_y);
@@ -85,7 +83,6 @@ int nb;
 	// cairo_set_source_rgba(tcairodata->context, r, g, b, a);
 	// cairo_set_line_width(tcairodata->context, width);
 	cairo_stroke(tcairodata->context);
-	cairo_restore(tcairodata->context);
 }
 
 /*---------------------------------------------------------
@@ -146,14 +143,6 @@ int nb;
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 	int i;
 
-	// Diagnostic
-	Display *disp = cairo_xlib_surface_get_display(tcairodata->surface);
-	Screen *screen = cairo_xlib_surface_get_screen(tcairodata->surface);
-	Drawable draw = cairo_xlib_surface_get_drawable(tcairodata->surface);
-	int w = cairo_xlib_surface_get_width(tcairodata->surface);
-	int h = cairo_xlib_surface_get_height(tcairodata->surface);
-
-	cairo_save(tcairodata->context);
 	for (i = 0; i < nb; i++)
 	{
 		cairo_rectangle(tcairodata->context, 
@@ -163,7 +152,6 @@ int nb;
 	}
 	cairo_clip(tcairodata->context);
 	cairo_mask(tcairodata->context, currentStipple);
-	cairo_restore(tcairodata->context);
 }
 
 /*---------------------------------------------------------
@@ -217,12 +205,10 @@ int np;
 {
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 	int i;
-	cairo_save(tcairodata->context);
 	cairo_move_to(tcairodata->context, tp[0].p_x, tp[0].p_y);
 	for (i = 1; i < np; i++)
 		cairo_line_to(tcairodata->context, tp[i].p_x, tp[i].p_y);
 	cairo_close_path(tcairodata->context);
 	cairo_fill(tcairodata->context);
-	cairo_restore(tcairodata->context);
 }
 

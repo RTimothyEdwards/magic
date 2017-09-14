@@ -19,6 +19,9 @@
 
 #define TCAIRO_BATCH_SIZE   10000
 
+/* Inverted Y axis definition */
+#define grTransYs(n) (DisplayHeight(grXdpy, grXscrn)-(n))
+
 /* Current settings for X function parameters */
 typedef struct {
 	Tk_Font     font;
@@ -31,16 +34,21 @@ typedef struct {
 	MagWindow   *mw;
 } TCAIRO_CURRENT;
 
-#ifdef Cairo_SERVER_SIDE_ONLY
-typedef Rect TCairoRect;
-#else
+/* Per-window data held in MagWindow w->w_grdata2 */
+
+typedef struct {
+    /* Window surface and context */
+    cairo_t *context;
+    cairo_surface_t *surface;
+    /* Backing store surface and context */
+    cairo_t *backing_context;
+    cairo_surface_t *backing_surface;
+} TCairoData;
 
 /* Used for vertex arrays */
 typedef struct {
 	Point r_ll, r_ul, r_ur, r_lr;
 } TCairoRect;
-
-#endif
 
 extern TCAIRO_CURRENT tcairoCurrent;
 

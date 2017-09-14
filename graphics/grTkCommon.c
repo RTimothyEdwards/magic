@@ -1100,6 +1100,7 @@ ImgLayerConfigureInstance(instancePtr)
 
 	tmpmw.w_flags = WIND_OFFSCREEN;
 	tmpmw.w_grdata = (ClientData)instancePtr->pixmap;
+	tmpmw.w_grdata2 = (ClientData)NULL;
 	tmpmw.w_allArea = r;
 	tmpmw.w_clipAgainst = NULL;
 

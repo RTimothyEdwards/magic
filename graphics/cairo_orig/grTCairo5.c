@@ -28,6 +28,7 @@
 extern Display	*grXdpy;
 extern int	 grXscrn;
 extern HashTable grTCairoWindowTable;
+extern cairo_t *grCairoContext;
 
 
 /*
@@ -52,7 +53,6 @@ Point *p;			/* screen pos of lower left corner */
 	Rect bBox;
 	bool anyObscure;
 	LinkedRect *ob;
-	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 
 	GR_CHECK_LOCK();
 
@@ -91,20 +91,21 @@ Point *p;			/* screen pos of lower left corner */
 					/* Note: mask has traditionally been 0-127 */
 					if (thisp != lastp) {
 						if (lastp != -1) {
-							cairo_fill(tcairodata->context);
+							cairo_fill(grCairoContext);
+							//glEnd();
 						}
 						mask = GrStyleTable[thisp].mask << 1;
 						color = GrStyleTable[thisp].color;
 						GrGetColor(color, &red, &green, &blue);
-						cairo_set_source_rgba(tcairodata->context, ((float)red / 255), ((float)green / 255), ((float)blue / 255), ((float)mask / 127.0));
+						cairo_set_source_rgba(grCairoContext, ((float)red / 255), ((float)green / 255), ((float)blue / 255), ((float)mask / 127.0));
 					}
 					x1 = bBox.r_xbot + x;
-					cairo_rectangle(tcairodata->context, x1, y1, 1, 1);
+					cairo_rectangle(grCairoContext, x1, y1, 1, 1);
 				}
 			}
 		}
 		if (lastp != -1) {
-			cairo_fill(tcairodata->context);
+			cairo_fill(grCairoContext);
 		}
 	} else {
 		/* do pixel by pixel clipping */
@@ -150,10 +151,10 @@ Point *p;			/* screen pos of lower left corner */
 							mask = GrStyleTable[*pixelp].mask << 1;
 							color = GrStyleTable[*pixelp].color;
 							GrGetColor(color, &red, &green, &blue);
-							cairo_set_source_rgba(tcairodata->context, ((float)red / 255), ((float)green / 255), ((float)blue / 255), ((float)mask / 127.0));
+							cairo_set_source_rgba(grCairoContext, ((float)red / 255), ((float)green / 255), ((float)blue / 255), ((float)mask / 127.0));
 
-							cairo_rectangle(tcairodata->context, startx, yloc, 1, 1);
-							cairo_fill(tcairodata->context);
+							cairo_rectangle(grCairoContext, startx, yloc, 1, 1);
+							cairo_fill(grCairoContext);
 						}
 						pixelp++;
 					}
