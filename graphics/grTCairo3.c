@@ -188,38 +188,22 @@ char *text;
 int size;
 Rect *r;
 {
-	Tk_FontMetrics overall;
-	Tk_Font font;
+	TCairoData *tcairodata;
+	cairo_text_extents_t extents;
 	int width;
 
-	switch (size) {
-	case GR_TEXT_DEFAULT:
-	case GR_TEXT_SMALL:
-		font = grSmallFont;
-		break;
-	case GR_TEXT_MEDIUM:
-		font = grMediumFont;
-		break;
-	case GR_TEXT_LARGE:
-		font = grLargeFont;
-		break;
-	case GR_TEXT_XLARGE:
-		font = grXLargeFont;
-		break;
-	default:
-		TxError("%s%d\n", "GrTCairoTextSize: Unknown character size ",
-		        size );
-		break;
-	}
-	if (font == NULL) return;
-	Tk_GetFontMetrics(font, &overall);
-	width = Tk_TextWidth(font, text, strlen(text));
-	/* Hack alert!  Tk_TextWidth returns values too small! */
-	width = width + (width >> 4);
-	r->r_ytop = overall.ascent;
-	r->r_ybot = -overall.descent;
-	r->r_xtop = width;
-	r->r_xbot = 0;
+	/* Note:  size is ignored, as it is passed the current value;	*/
+	/* but the font size in cairo has already been set.		*/
+
+	if (tcairoCurrent.mw == 0) return;
+
+	tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
+	cairo_text_extents(tcairodata->context, text, &extents);
+
+	r->r_ytop = -extents.y_bearing;
+	r->r_ybot = -(extents.height + extents.y_bearing);
+	r->r_xtop = extents.width + extents.x_bearing;
+	r->r_xbot = extents.x_bearing;
 }
 
 /* Cairo backing store functions (now removed from the X11-based ones) */
@@ -539,6 +523,7 @@ LinkedRect *obscure;    /* List of obscuring areas */
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 
 	cairo_save(tcairodata->context);
+	cairo_set_operator(tcairodata->context, CAIRO_OPERATOR_SOURCE);
 	cairo_translate(tcairodata->context, (double)pos->p_x, (double)pos->p_y);
 	// cairo_scale(tcairodata->context, 1.0, -1.0);
 	cairo_rotate(tcairodata->context, ((double)rotate) / 360 * 2 * M_PI);
@@ -573,7 +558,6 @@ LinkedRect *obscure;    /* List of obscuring areas */
 
 /*---------------------------------------------------------
  * grtcairoPutText:
- *      (modified on SunPutText)
  *
  *  This routine puts a chunk of text on the screen in the current
  *  color, size, etc.  The caller must ensure that it fits on
@@ -632,10 +616,17 @@ LinkedRect *obscure;    /* A list of obscuring rectangles */
 	if ((overlap.r_xbot < overlap.r_xtop) && (overlap.r_ybot <= overlap.r_ytop))
 	{
 		cairo_save(tcairodata->context);
+		/* Clip text to the clip rectangle */
+		cairo_rectangle(tcairodata->context,
+			(double)clip->r_xbot, (double)clip->r_ybot,
+			(double)(clip->r_xtop - clip->r_xbot),
+			(double)(clip->r_ytop - clip->r_ybot));
+		cairo_clip(tcairodata->context);
 		cairo_move_to(tcairodata->context, (double)location.r_xbot,
 			(double)location.r_ybot);
 		/* The cairo coordinate system is upside-down, so invert */
 		cairo_scale(tcairodata->context, 1.0, -1.0);
+		cairo_set_operator(tcairodata->context, CAIRO_OPERATOR_SOURCE);
 		cairo_show_text(tcairodata->context, text);
 		cairo_fill(tcairodata->context);
 		cairo_restore(tcairodata->context);

@@ -353,6 +353,7 @@ tcairoSetProjection(llx, lly, width, height)
 int llx, lly, width, height;
 {
     TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
+    bool offscreen = FALSE;
 
     /* Note that offscreen-drawing comes from the Tk Image	*/
     /* routines in tkCommon.c and does not have an associated	*/
@@ -372,9 +373,12 @@ int llx, lly, width, height;
 	/* This should be pulled from STYLE_ERASEALL, not hard-coded */
 	cairo_set_source_rgb(tcairodata->context, 0.8, 0.8, 0.8);
 	currentStipple = cairo_pattern_create_rgba(0, 0, 0, 1);
+	offscreen = TRUE;
     }
 
     cairo_identity_matrix(tcairodata->context);
+    /* Half-pixel translate centers coordinates on pixel */
+    if (offscreen == FALSE) cairo_translate(tcairodata->context, 0.5, -0.5);
     cairo_translate(tcairodata->context, 0, height);
     cairo_scale(tcairodata->context, 1.0, -1.0);
 }
