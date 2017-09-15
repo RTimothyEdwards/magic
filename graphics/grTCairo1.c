@@ -1136,11 +1136,11 @@ MagWindow *w;
 
 	tcairodata = (TCairoData *)w->w_grdata2;
 	if (tcairodata->backing_surface != NULL)
-	    cairo_destroy_surface(tcairodata->backing_surface);
+	    cairo_surface_destroy(tcairodata->backing_surface);
 	if (tcairodata->backing_context != NULL)
 	    cairo_destroy(tcairodata->backing_context);
 	if (tcairodata->surface != NULL)
-	    cairo_destroy_surface(tcairodata->surface);
+	    cairo_surface_destroy(tcairodata->surface);
 	if (tcairodata->context != NULL)
 	    cairo_destroy(tcairodata->context);
 	freeMagic(w->w_grdata2);
