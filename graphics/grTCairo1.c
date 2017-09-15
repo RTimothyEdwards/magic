@@ -216,6 +216,8 @@ grtcairoSetStipple (stipple)
 int stipple;			/* The stipple number to be used. */
 {
 	static int oldStip = -1;
+	cairo_matrix_t matrix;
+
 	if (stipple == oldStip) return;
 	oldStip = stipple;
 	GR_TCAIRO_FLUSH_BATCH();
@@ -223,6 +225,10 @@ int stipple;			/* The stipple number to be used. */
 		currentStipple = cairo_pattern_create_rgba(0, 0, 0, 1);
 	} else {
 		if (stipplePatterns[stipple] == (cairo_pattern_t *)NULL) MainExit(1);
+
+		/* Patterns will be upside-down if not transformed like the window */
+		cairo_matrix_init_scale (&matrix, 1.0, -1.0);
+		cairo_pattern_set_matrix (stipplePatterns[stipple], &matrix);
 		cairo_pattern_set_extend(stipplePatterns[stipple], CAIRO_EXTEND_REPEAT);
 		cairo_pattern_set_filter(stipplePatterns[stipple], CAIRO_FILTER_NEAREST);
 		currentStipple = stipplePatterns[stipple];

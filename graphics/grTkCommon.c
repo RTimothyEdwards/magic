@@ -743,8 +743,8 @@ typedef struct LayerInstance {
  */
 
 static int		ImgLayerCreate _ANSI_ARGS_((Tcl_Interp *interp,
-			    const char *name, int argc, Tcl_Obj *CONST objv[],
-			    const Tk_ImageType *typePtr, Tk_ImageMaster master,
+			    CONST86 char *name, int argc, Tcl_Obj *const objv[],
+			    CONST86 Tk_ImageType *typePtr, Tk_ImageMaster master,
 			    ClientData *clientDataPtr));
 static ClientData	ImgLayerGet _ANSI_ARGS_((Tk_Window tkwin,
 			    ClientData clientData));
