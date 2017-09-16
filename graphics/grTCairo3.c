@@ -385,6 +385,12 @@ grtcairoPutBackingStore(MagWindow *w, Rect *area)
 
 	if (w->w_backingStore == (ClientData)0) return;
 
+	if (w->w_flags & WIND_OBSCURED)
+	{
+	    grtcairoFreeBackingStore(w);
+	    return;
+	}
+
 	xbot = area->r_xbot;
 	ybot = area->r_ybot;
 
