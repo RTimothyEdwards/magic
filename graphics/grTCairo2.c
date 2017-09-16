@@ -146,13 +146,6 @@ int nb;
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 	int i;
 
-	// Diagnostic
-	Display *disp = cairo_xlib_surface_get_display(tcairodata->surface);
-	Screen *screen = cairo_xlib_surface_get_screen(tcairodata->surface);
-	Drawable draw = cairo_xlib_surface_get_drawable(tcairodata->surface);
-	int w = cairo_xlib_surface_get_width(tcairodata->surface);
-	int h = cairo_xlib_surface_get_height(tcairodata->surface);
-
 	cairo_save(tcairodata->context);
 	for (i = 0; i < nb; i++)
 	{

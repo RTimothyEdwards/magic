@@ -457,6 +457,9 @@ DBWDrawCrosshair(window, plane)
 {
     Point p;
 
+    /* Crosshair is disabled by setting to MINFINITY */
+    if (crosshairPos.p_x == MINFINITY) return;
+
     WindPointToScreen(window, &crosshairPos, &p);
 
     GrSetStuff(STYLE_YELLOW1);
