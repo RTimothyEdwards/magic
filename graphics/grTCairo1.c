@@ -1144,11 +1144,9 @@ MagWindow *w;
 	entry = HashLookOnly(&grTCairoWindowTable, (char *)xw);
 	HashSetValue(entry, NULL);
 
+	grtcairoFreeBackingStore(w);
+
 	tcairodata = (TCairoData *)w->w_grdata2;
-	if (tcairodata->backing_surface != NULL)
-	    cairo_surface_destroy(tcairodata->backing_surface);
-	if (tcairodata->backing_context != NULL)
-	    cairo_destroy(tcairodata->backing_context);
 	if (tcairodata->surface != NULL)
 	    cairo_surface_destroy(tcairodata->surface);
 	if (tcairodata->context != NULL)
