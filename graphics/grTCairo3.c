@@ -217,7 +217,7 @@ grtcairoFreeBackingStore(MagWindow *window)
 	XFreePixmap(grXdpy, pmap);
 	window->w_backingStore = (ClientData)NULL;
 
-	tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
+	tcairodata = (TCairoData *)window->w_grdata2;
 	cairo_surface_destroy(tcairodata->backing_surface);
 	cairo_destroy(tcairodata->backing_context);
 	tcairodata->backing_surface = NULL;
@@ -263,7 +263,7 @@ grtcairoCreateBackingStore(MagWindow *w)
 	pmap = XCreatePixmap(grXdpy, wind, width, height, grDepth);
 	w->w_backingStore = (ClientData)pmap;
 
-	tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
+	tcairodata = (TCairoData *)w->w_grdata2;
 
 	if (tcairodata->backing_surface != NULL)
 	{
@@ -283,7 +283,7 @@ grtcairoGetBackingStore(MagWindow *w, Rect *area)
 	unsigned int width, height, sheight;
 	int xbot, ybot;
 	Rect r;
-	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
+	TCairoData *tcairodata = (TCairoData *)w->w_grdata2;
 
 	if (w->w_backingStore == (ClientData)0) return FALSE;
 
@@ -316,7 +316,7 @@ grtcairoGetBackingStore(MagWindow *w, Rect *area)
 bool
 grtcairoScrollBackingStore(MagWindow *w, Point *shift)
 {
-	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
+	TCairoData *tcairodata = (TCairoData *)w->w_grdata2;
 	Pixmap pmap;
 	unsigned int width, height;
 	int xorigin, yorigin, xshift, yshift;
@@ -381,7 +381,7 @@ grtcairoPutBackingStore(MagWindow *w, Rect *area)
 {
 	unsigned int width, height, sheight;
 	int ybot, xbot;
-	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
+	TCairoData *tcairodata = (TCairoData *)w->w_grdata2;
 
 	if (w->w_backingStore == (ClientData)0) return;
 
