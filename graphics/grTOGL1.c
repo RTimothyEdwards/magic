@@ -369,7 +369,7 @@ GrTOGLFlush ()
  *---------------------------------------------------------
  */
 
-static GLXPixmap glpmap = None;
+static GLXPbuffer pbuffer = None;
 
 #define glTransYs(n) (DisplayHeight(grXdpy, grXscrn)-(n))
 
@@ -385,10 +385,23 @@ toglSetProjection(llx, lly, width, height)
 {
     if (toglCurrent.mw->w_flags & WIND_OFFSCREEN)
     {
-	if (glpmap != None) glXDestroyGLXPixmap(grXdpy, glpmap);
-	glpmap = glXCreateGLXPixmap(grXdpy, grVisualInfo,
-			(Pixmap)toglCurrent.windowid);
-	glXMakeCurrent(grXdpy, (GLXDrawable)glpmap, grXcontext);
+	int count = 0;
+	int PBattrib[] = {
+	    GLX_PBUFFER_WIDTH, width,
+	    GLX_PBUFFER_HEIGHT, height,
+	    GLX_LARGEST_PBUFFER, False,
+	    None
+	};
+	GLXFBConfig *config;
+
+	if (pbuffer != None) glXDestroyPbuffer(grXdpy, pbuffer);
+	config = glXGetFBConfigs(grXdpy, grXscrn, &count);
+	if (config != NULL && count != 0)
+	{
+	    pbuffer = glXCreatePbuffer(grXdpy, config[0], PBattrib);
+	    glXMakeCurrent(grXdpy, (GLXDrawable)pbuffer, grXcontext);
+	}
+	if (config != NULL) XFree(config);
     }
     else
 	glXMakeCurrent(grXdpy, (GLXDrawable)toglCurrent.windowid, grXcontext);
@@ -422,6 +435,9 @@ toglSetProjection(llx, lly, width, height)
     /* magic origin maps to window center; move to window origin */
 
     glTranslated(-(GLsizei)(width >> 1), -(GLsizei)(height >> 1), 0);
+
+    if (toglCurrent.mw->w_flags & WIND_OFFSCREEN)
+	glTranslatef((float)0.5, (float)0.5, 0);
 
     /* Remaining transformations are done on the modelview matrix */
 
@@ -1326,11 +1342,62 @@ void
 GrTOGLUnlock(w)
     MagWindow *w;
 {
-    /* GR_TOGL_FLUSH_BATCH(); */
-    GrTOGLFlush();	/* (?) Adds glFlush and glFinish to the above. */
+    GrTOGLFlush();
+
+    if ((w != GR_LOCK_SCREEN) && (w->w_flags & WIND_OFFSCREEN))
+    {
+	GC grXcopyGC;
+	XGCValues gcValues;
+	unsigned char *pdata, *tdata;
+	int i, j;
+
+        Window root_return;
+        int x_return, y_return;
+        unsigned int pbwidth, pbheight, wborder, depth;
+
+	XGetGeometry(grXdpy, (Drawable)toglCurrent.windowid, &root_return,
+		&x_return, &y_return, &pbwidth, &pbheight, &wborder, &depth);
+
+	pdata = (unsigned char *)mallocMagic((pbwidth * pbheight * 3)
+			* sizeof(unsigned int));
+
+	/* In offscreen-rendering mode, copy Pbuffer back to window */
+	glReadBuffer(GL_FRONT);
+	glReadPixels(0, 0, pbwidth, pbheight, GL_RGB, GL_UNSIGNED_BYTE, pdata);
+
+        gcValues.graphics_exposures = FALSE;
+        grXcopyGC = XCreateGC(grXdpy, (Drawable)toglCurrent.windowid,
+		GCGraphicsExposures, &gcValues);
+
+	/* This is very slow, but the only way I've found to copy data	*/
+	/* from a Pbuffer into a Pixmap.  It is only used to make the	*/
+	/* icon images for the toolbar, so it does not need to be	*/
+	/* efficient.							*/
+
+	tdata = pdata;
+	for (i = 0; i < pbwidth; i++) {
+	    for (j = 0; j < pbheight; j++)
+	    {
+		unsigned long pcolor;
+		pcolor = *tdata++;
+		pcolor <<= 8;
+		pcolor |= *tdata++;
+		pcolor <<= 8;
+		pcolor |= *tdata++;
+		XSetForeground(grXdpy, grXcopyGC, pcolor);
+		XDrawPoint(grXdpy, (Drawable)toglCurrent.windowid, grXcopyGC,
+			pbwidth - i - 1, j);
+	    }
+	}
+
+	freeMagic(pdata);
+	XFreeGC(grXdpy, grXcopyGC);
+    }
+
     grSimpleUnlock(w);
 }
 
+
 
 /*           
  *-------------------------------------------------------------------------

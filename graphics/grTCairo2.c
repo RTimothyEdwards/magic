@@ -82,8 +82,6 @@ int nb;
 		cairo_move_to(tcairodata->context, lines[i].r_ll.p_x, lines[i].r_ll.p_y);
 		cairo_line_to(tcairodata->context, lines[i].r_ur.p_x, lines[i].r_ur.p_y);
 	}
-	// cairo_set_source_rgba(tcairodata->context, r, g, b, a);
-	// cairo_set_line_width(tcairodata->context, width);
 	cairo_stroke(tcairodata->context);
 	cairo_restore(tcairodata->context);
 }
