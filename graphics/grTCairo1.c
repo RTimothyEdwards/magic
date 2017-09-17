@@ -839,6 +839,25 @@ keys_and_buttons:
 	}
 }
 
+/* Set for off-screen display */
+
+void
+TCairoOffScreen()
+{
+    GrSetCMapPtr = GrTCairoSetCMap;
+    GrFlushPtr = GrTCairoFlush;
+
+    grDrawLinePtr = grtcairoDrawLine;
+    grSetWMandCPtr = grtcairoSetWMandC;
+    grFillRectPtr = grtcairoFillRect;
+    grSetStipplePtr = grtcairoSetStipple;
+    grSetLineStylePtr = grtcairoSetLineStyle;
+    grFillPolygonPtr = grtcairoFillPolygon;
+
+    if (stipplePatterns == NULL)
+	grtcairoSetSPattern(GrStippleTable, grNumStipples);
+}
+
 
 
 /*---------------------------------------------------------

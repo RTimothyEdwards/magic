@@ -893,6 +893,25 @@ keys_and_buttons:
 
 
 
+/* Set for on-screen display */
+
+void
+toglOnScreen()
+{
+    // GrLockPtr = GrTOGLLock;
+    // GrUnlockPtr = GrTOGLUnlock;
+    GrSetCMapPtr = GrTOGLSetCMap;
+    GrFlushPtr = GrTOGLFlush;
+
+    grSetSPatternPtr = grtoglSetSPattern;
+    grDrawLinePtr = grtoglDrawLine;
+    grSetWMandCPtr = grtoglSetWMandC;
+    grFillRectPtr = grtoglFillRect;
+    grSetStipplePtr = grtoglSetStipple;
+    grSetLineStylePtr = grtoglSetLineStyle;
+    grFillPolygonPtr = grtoglFillPolygon;
+}
+
 /*---------------------------------------------------------
  * oglSetDisplay:
  *	This routine sets the appropriate parameters so that
@@ -1293,12 +1312,28 @@ GrTOGLLower(w)
  * ----------------------------------------------------------------------------
  */
 
+#ifdef CAIRO_OFFSCREEN_RENDER
+extern void GrTCairoLock();
+extern void TCairoOffScreen();
+#endif
+
 void
 GrTOGLLock(w, flag)
     MagWindow *w;
     bool flag;
 {
     Window wind;
+
+#ifdef CAIRO_OFFSCREEN_RENDER
+    /* Use Cairo graphics for off-screen rendering */
+
+    if ((w != GR_LOCK_SCREEN) && (w->w_flags & WIND_OFFSCREEN))
+    {
+	GrTCairoLock(w, flag);
+	TCairoOffScreen();
+	return;
+    }
+#endif
 
     grSimpleLock(w, flag);
     if ( w != GR_LOCK_SCREEN )
@@ -1343,6 +1378,17 @@ GrTOGLUnlock(w)
     MagWindow *w;
 {
     GrTOGLFlush();
+
+#ifdef CAIRO_OFFSCREEN_RENDER
+    /* Use Cairo graphics for off-screen rendering */
+
+    if ((w != GR_LOCK_SCREEN) && (w->w_flags & WIND_OFFSCREEN))
+    {
+	GrTCairoUnlock(w);
+	toglOnScreen();
+	return;
+    }
+#endif
 
     if ((w != GR_LOCK_SCREEN) && (w->w_flags & WIND_OFFSCREEN))
     {

@@ -1214,6 +1214,21 @@ if test $usingCairo ; then
     fi
 fi
 
+dnl 
+
+AC_ARG_ENABLE(cairo-offscreen,
+[  --enable-cairo-offscreen        Use Cairo for off-screen rendering],
+[enable_cairo_offscreen=yes], 
+[])
+
+if test "x$enable_cairo_offscreen" = "xyes" ; then
+  if test $usingCairo ; then
+     AC_DEFINE(CAIRO_OFFSCREEN_RENDER)
+  else
+     echo "Cairo not being compiled in, can't use for offscreen rendering."
+  fi
+fi
+
 
 dnl ----------------------------------------------------------------
 dnl Once we're sure what, if any, interpreter is being compiled,
