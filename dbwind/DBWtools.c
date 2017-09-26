@@ -191,6 +191,18 @@ ToolGetBox(rootDef, rootArea)
     return TRUE;
 }
 
+/* ToolScaleBox ---  Simple scaling of the root area box, no update needed */
+
+void
+ToolScaleBox(scalen, scaled)
+    int scalen;
+    int scaled;
+{
+    DBScalePoint(&boxRootArea.r_ll, scalen, scaled);
+    DBScalePoint(&boxRootArea.r_ur, scalen, scaled);
+
+}
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -472,6 +484,16 @@ DBWDrawCrosshair(window, plane)
 		p.p_y < window->w_screenArea.r_ytop)
 	GrClipLine(window->w_screenArea.r_xbot, p.p_y,
 		   window->w_screenArea.r_xtop, p.p_y);
+}
+
+/* DBWScaleCrosshair ---  Simple scaling of the crosshair point, no update needed */
+
+void
+DBWScaleCrosshair(scalen, scaled)
+    int scalen;
+    int scaled;
+{
+    DBScalePoint(&crosshairPos, scalen, scaled);
 }
 
 /*

@@ -1453,6 +1453,9 @@ void
 DBScaleEverything(scalen, scaled)
     int scalen, scaled;
 {
+    void ToolScaleBox();
+    void DBWScaleCrosshair();
+
     int dbCellDefEnumFunc();
     LinkedCellDef *lhead, *lcd;
 
@@ -1483,6 +1486,12 @@ DBScaleEverything(scalen, scaled)
 
     /* Recovery of global plane pointers */
     MZAttachHintPlanes();
+
+    /* Modify root box */
+    ToolScaleBox(scalen, scaled);
+
+    /* Modify crosshair position */
+    DBWScaleCrosshair(scalen, scaled);
 
     SigEnableInterrupts();
 }
