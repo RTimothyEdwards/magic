@@ -213,7 +213,8 @@ int np;
 	for (i = 1; i < np; i++)
 		cairo_line_to(tcairodata->context, tp[i].p_x, tp[i].p_y);
 	cairo_close_path(tcairodata->context);
-	cairo_fill(tcairodata->context);
+	cairo_clip(tcairodata->context);
+	cairo_mask(tcairodata->context, currentStipple);
 	cairo_restore(tcairodata->context);
 }
 
