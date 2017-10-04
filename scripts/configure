@@ -1408,7 +1408,7 @@ Optional Features:
   --disable-cif        disable cif package
   --disable-client-render        disable OpenGL client-side rendering
   --enable-invert-y        invert screen top to bottom in OpenGL
-  --enable-framebuffer-backing-store     enable OpenGL framebuffer backing store
+  --disable-framebuffer-backing-store     disable OpenGL framebuffer backing store
   --disable-plot	disable plot package
   --disable-lef	disable LEF package
   --disable-readline	disable readline package
@@ -6942,7 +6942,7 @@ fi
 if test "${enable_framebuffer_backing_store+set}" = set; then :
   enableval=$enable_framebuffer_backing_store;
 else
-  enable_framebuffer_backing_store=no
+  enable_framebuffer_backing_store=yes
 fi
 
 

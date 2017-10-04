@@ -299,9 +299,28 @@ GrTOGLInit ()
     grXscrn = grVisualInfo->screen;
     toglCurrent.depth = grVisualInfo->depth;
 
-    /* TRUE = Direct rendering, FALSE = Indirect rendering */
-    /* (note that direct rendering may not be able to deal with pixmaps) */
+    /* glXCreateContext() 4th argument:				*/
+    /* TRUE = Direct rendering, FALSE = Indirect rendering 	*/
+
+    /* Direct rendering may not be able to deal with pixmaps. 	*/
+    /* Normally, magic should compile with OpenGL framebuffer	*/
+    /* backing store and pbuffer offscreen rendering.  However,	*/
+    /* if X11_BACKING_STORE is selected then force indirect	*/
+    /* rendering.  This can be avoided if the backing store	*/
+    /* functions sync between OpenGL and X11;  this has not	*/
+    /* been done yet.						*/
+
+    /* The CAIRO_OFFSCREEN_RENDER compile-time option uses	*/
+    /* Cairo to do the off-screen rendering, which allows	*/
+    /* OpenGL to run in direct-rendering mode only.  To do:	*/
+    /* determine from OpenGL attributes if indirect rendering	*/
+    /* is allowed, and handle automatically.			*/
+
+#ifdef X11_BACKING_STORE  
     grXcontext = glXCreateContext(grXdpy, grVisualInfo, NULL, GL_FALSE);
+#else
+    grXcontext = glXCreateContext(grXdpy, grVisualInfo, NULL, GL_TRUE);
+#endif
 
     /* Basic GL parameters */
 
@@ -868,7 +887,9 @@ keys_and_buttons:
 		if (mw->w_backingStore != (ClientData)NULL)
 		{
 		    Rect surface;
+		    (*GrLockPtr)(mw, FALSE);
 		    (*GrGetBackingStorePtr)(mw, &screenRect);
+		    (*GrUnlockPtr)(mw);
 		    WindScreenToSurface(mw, &screenRect, &surface);
 		    DBWHLRedrawPrepWindow(mw, &surface);
 		    WindDrawBorder(mw, &screenRect);
@@ -898,8 +919,6 @@ keys_and_buttons:
 void
 toglOnScreen()
 {
-    // GrLockPtr = GrTOGLLock;
-    // GrUnlockPtr = GrTOGLUnlock;
     GrSetCMapPtr = GrTOGLSetCMap;
     GrFlushPtr = GrTOGLFlush;
 
@@ -1377,7 +1396,6 @@ void
 GrTOGLUnlock(w)
     MagWindow *w;
 {
-    GrTOGLFlush();
 
 #ifdef CAIRO_OFFSCREEN_RENDER
     /* Use Cairo graphics for off-screen rendering */
@@ -1389,6 +1407,8 @@ GrTOGLUnlock(w)
 	return;
     }
 #endif
+
+    GrTOGLFlush();
 
     if ((w != GR_LOCK_SCREEN) && (w->w_flags & WIND_OFFSCREEN))
     {
@@ -1439,7 +1459,6 @@ GrTOGLUnlock(w)
 	freeMagic(pdata);
 	XFreeGC(grXdpy, grXcopyGC);
     }
-
     grSimpleUnlock(w);
 }
 

@@ -492,8 +492,10 @@ WindScroll(w, surfaceOffset, screenOffset)
 	    norefresh.r_ytop += moveorigin.p_y;
 	}
 
+	GrLock(w, FALSE);
 	(*GrScrollBackingStorePtr)(w, &moveorigin);
 	(*GrGetBackingStorePtr)(w, &norefresh);
+	GrUnlock(w);
 	WindAreaChanged(w, &refresh);
 	/* Update highlights over entire screen area */
 	DBWHLRedrawPrepWindow(w, &(w->w_surfaceArea));

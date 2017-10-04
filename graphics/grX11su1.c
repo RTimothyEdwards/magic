@@ -841,7 +841,9 @@ grX11Stdin()
 		    if (w->w_backingStore != (ClientData)NULL)
 		    {
 			Rect surface;
+			(*GrLockPtr)(w, FALSE);
 			(*GrGetBackingStorePtr)(w, &screenRect);
+			(*GrUnlockPtr)(w);
 			WindScreenToSurface(w, &screenRect, &surface);
 			DBWHLRedrawPrepWindow(w, &surface);
 			WindDrawBorder(w, &screenRect);
