@@ -381,7 +381,6 @@ GrTOGLFlush ()
 {
     GR_TOGL_FLUSH_BATCH();
     glFlush();
-    glFinish();
 }
 
 /*
