@@ -975,9 +975,9 @@ if test "x$enable_invert_y" = "xyes" ; then
 fi
 
 AC_ARG_ENABLE(framebuffer-backing-store,
-[  --enable-framebuffer-backing-store     enable OpenGL framebuffer backing store],
+[  --disable-framebuffer-backing-store     disable OpenGL framebuffer backing store],
 [], 
-[enable_framebuffer_backing_store=no])
+[enable_framebuffer_backing_store=yes])
 
 if test "x$enable_framebuffer_backing_store" != "xyes" ; then
   AC_DEFINE(X11_BACKING_STORE)

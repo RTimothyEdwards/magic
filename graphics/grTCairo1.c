@@ -816,7 +816,9 @@ keys_and_buttons:
 		if (mw->w_backingStore != (ClientData)NULL)
 		{
 			Rect surface;
+			(*GrLockPtr)(mw, FALSE);
 			(*GrGetBackingStorePtr)(mw, &screenRect);
+			(*GrUnlockPtr)(mw);
 			WindScreenToSurface(mw, &screenRect, &surface);
 			DBWHLRedrawPrepWindow(mw, &surface);
 			WindDrawBorder(mw, &screenRect);

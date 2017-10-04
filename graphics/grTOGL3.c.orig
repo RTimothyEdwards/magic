@@ -37,11 +37,6 @@ extern Display *grXdpy;
 
 GLuint  grXBases[4];
 
-typedef struct {
-   GLuint framebuffer;
-   GLuint renderbuffer;
-} RenderFrame;
-
 
 /*---------------------------------------------------------
  * grtoglDrawGrid:
@@ -246,24 +241,15 @@ GrTOGLTextSize(text, size, r)
 /* backing store contains valid data or not.				*/
 
 void
-grtoglFreeBackingStore(MagWindow *w)
+grtoglFreeBackingStore(MagWindow *window)
 {
-   RenderFrame *rf;
-
-   rf = (RenderFrame *)w->w_backingStore;
-   glDeleteFramebuffers(1, &rf->framebuffer);
-   glDeleteRenderbuffers(1, &rf->renderbuffer);
-   freeMagic(w->w_backingStore);
-   w->w_backingStore = (ClientData)0;
+   window->w_backingStore = (ClientData)0;
 }
 
 void
 grtoglCreateBackingStore(MagWindow *w)
 {
-   RenderFrame *rf;
-
    Tk_Window tkwind = (Tk_Window)w->w_grdata;
-   unsigned int width, height;
 
    /* ignore all windows other than layout */
    if (w->w_client != DBWclientID) return;
@@ -271,32 +257,18 @@ grtoglCreateBackingStore(MagWindow *w)
    /* Deferred */
    if (tkwind == NULL) return;
 
-   width = w->w_screenArea.r_xtop - w->w_screenArea.r_xbot;
-   height = w->w_screenArea.r_ytop - w->w_screenArea.r_ybot;
-
-   rf = (RenderFrame *)w->w_backingStore;
-   if (rf != (ClientData)NULL) {
-	glDeleteFramebuffers(1, &rf->framebuffer);
-	glDeleteRenderbuffers(1, &rf->renderbuffer);
-   }
-   else {
-        rf = (RenderFrame *)mallocMagic(sizeof(RenderFrame));
-	w->w_backingStore = (ClientData)rf;
-   }
-
-   glGenFramebuffers(1, &rf->framebuffer);
-   glGenRenderbuffers(1, &rf->renderbuffer);
-   glBindRenderbuffer(GL_RENDERBUFFER, rf->renderbuffer);
-   glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, width, height);
+   w->w_backingStore = (ClientData)1;
 }
 
 bool
 grtoglGetBackingStore(MagWindow *w, Rect *area)
 {
-    RenderFrame *rf;
     unsigned int width, height;
     int xbot, ybot;
     Rect r;
+
+    // GLboolean result;
+    // GLint rasterpos[4];
 
     if (w->w_backingStore == (ClientData)0) return FALSE;
 
@@ -309,20 +281,22 @@ grtoglGetBackingStore(MagWindow *w, Rect *area)
     xbot = r.r_xbot;
     ybot = r.r_ybot;
 
-    rf = (RenderFrame *)w->w_backingStore;
-
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, rf->framebuffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_RENDERBUFFER, rf->renderbuffer);
-
     glDrawBuffer(GL_FRONT);
-    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glReadBuffer(GL_BACK);
+    glRasterPos2i((GLint)xbot, (GLint)ybot);
 
-    glBlitFramebuffer(r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop,
-		r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop,
-		GL_COLOR_BUFFER_BIT, GL_LINEAR);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    /* Check for valid raster position */
+    // glGetBooleanv(GL_CURRENT_RASTER_POSITION_VALID, (GLboolean *)(&result));
+    // glGetIntegerv(GL_CURRENT_RASTER_POSITION, (GLint *)(&rasterpos[0]));
+
+    // TxPrintf("Raster valid = %d, position = %d %d %d %d\n",
+    //		(int)result, (int)rasterpos[0], (int)rasterpos[1],
+    //		(int)rasterpos[2], (int)rasterpos[3]);
+    // if (result == 0)
+    //      TxPrintf("Intended position = %d %d\n", xbot, ybot);
+
+    glDisable(GL_BLEND);
+    glCopyPixels(xbot, ybot, width, height, GL_COLOR);
 
     return TRUE;
 }
@@ -331,14 +305,12 @@ grtoglGetBackingStore(MagWindow *w, Rect *area)
 bool
 grtoglScrollBackingStore(MagWindow *w, Point *shift)
 {
-    RenderFrame *rf;
-    GLuint FramebufferName, RenderbufferName;
     unsigned int width, height;
     int xorigin, yorigin, xshift, yshift;
 
     if (w->w_backingStore == (ClientData)0)
     {
-	fprintf(stdout, "grtoglScrollBackingStore %d %d failure\n",
+	TxPrintf("grtoglScrollBackingStore %d %d failure\n",
 		shift->p_x, shift->p_y);
 	return FALSE;
     }
@@ -367,23 +339,13 @@ grtoglScrollBackingStore(MagWindow *w, Point *shift)
         yshift = 0;
     }
 
-    rf = (RenderFrame *)w->w_backingStore;
+    glDrawBuffer(GL_BACK);
+    glReadBuffer(GL_BACK);
+    glRasterPos2i((GLint)xshift, (GLint)yshift);
+    glDisable(GL_BLEND);
+    glCopyPixels(xorigin, yorigin, width, height, GL_COLOR);
 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, rf->framebuffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_RENDERBUFFER, rf->renderbuffer);
-
-    glBlitFramebuffer(xorigin, yorigin, xorigin + width, yorigin + height,
-		xshift, yshift, xshift + width, yshift + height,
-		GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rf->framebuffer);
-    glBlitFramebuffer(xshift, yshift, xshift + width, yshift + height,
-		xshift, yshift, xshift + width, yshift + height,
-		GL_COLOR_BUFFER_BIT, GL_LINEAR);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glDrawBuffer(GL_FRONT);
 
     return TRUE;
 }
@@ -391,41 +353,66 @@ grtoglScrollBackingStore(MagWindow *w, Point *shift)
 void
 grtoglPutBackingStore(MagWindow *w, Rect *area)
 {
-    RenderFrame *rf;
-    GLuint FramebufferName, RenderbufferName;
     unsigned int width, height;
     int ybot, xbot;
     Rect r;
 
-    if (w->w_backingStore == (ClientData)0) return;
+    // GLboolean result;
+    // GLint rasterpos[4];
 
-    if (w->w_flags & WIND_OBSCURED)
-    {
-	grtoglFreeBackingStore(w);
-	return;
-    }
+    if (w->w_backingStore == (ClientData)0) return;
 
     GEO_EXPAND(area, 1, &r);
     GeoClip(&r, &(w->w_screenArea));
+
+    /*
+    width = area->r_xtop - area->r_xbot;
+    height = area->r_ytop - area->r_ybot;
+
+    ybot = area->r_ybot;
+    xbot = area->r_xbot;
+    */
 
     width = r.r_xtop - r.r_xbot;
     height = r.r_ytop - r.r_ybot;
     ybot = r.r_ybot;
     xbot = r.r_xbot;
 
-    rf = (RenderFrame *)w->w_backingStore;
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rf->framebuffer);
-    glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_RENDERBUFFER, rf->renderbuffer);
+    if (xbot < 0) {
+	width -= xbot;
+	xbot = 0;
+    }
 
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    if (ybot < 0) {
+	height -= ybot;
+	ybot = 0;
+    }
+
     glReadBuffer(GL_FRONT);
+    glDrawBuffer(GL_BACK);
+    glRasterPos2i((GLint)xbot, (GLint)ybot);
 
-    glBlitFramebuffer(r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop,
-		r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop,
-		GL_COLOR_BUFFER_BIT, GL_LINEAR);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    /* Check for valid raster position */
+    // glGetBooleanv(GL_CURRENT_RASTER_POSITION_VALID, (GLboolean *)(&result));
+    // glGetIntegerv(GL_CURRENT_RASTER_POSITION, (GLint *)(&rasterpos[0]));
+
+    // TxPrintf("Raster valid = %d, position = %d %d %d %d\n",
+    //		(int)result, (int)rasterpos[0], (int)rasterpos[1],
+    //		(int)rasterpos[2], (int)rasterpos[3]);
+    // if (result == 0)
+    //     TxPrintf("Intended position = %d %d\n", xbot, ybot);
+
+    /* This area may need to be expanded by a pixel and/or      */
+    /* expanded by GrPixelCorrect to compensate for the OpenGL  */
+    /* coordinate system.                                       */
+
+    width--;
+    height--;
+
+    glDisable(GL_BLEND);
+    glCopyPixels(xbot, ybot, width, height, GL_COLOR);
+
+    glDrawBuffer(GL_FRONT);	/* Return to normal front rendering */
 }
 
 
