@@ -972,6 +972,7 @@ lefWriteMacro(def, f, scale)
 
     for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
     {
+	lc.pNum = pNum;
 	DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum], 
 		&TiPlaneRect, &DBAllButSpaceAndDRCBits,
 		lefYankGeometry, (ClientData) &lc);
