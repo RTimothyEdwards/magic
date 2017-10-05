@@ -251,6 +251,7 @@ grtoglFreeBackingStore(MagWindow *w)
    RenderFrame *rf;
 
    rf = (RenderFrame *)w->w_backingStore;
+   if (rf == NULL) return;
    glDeleteFramebuffers(1, &rf->framebuffer);
    glDeleteRenderbuffers(1, &rf->renderbuffer);
    freeMagic(w->w_backingStore);
