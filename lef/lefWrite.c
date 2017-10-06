@@ -315,9 +315,16 @@ lefEraseGeometry(tile, cdata)
     lefClient *lefdata = (lefClient *)cdata;
     CellDef *flatDef = lefdata->lefFlat;
     Rect area;
-    TileType ttype;
+    TileType ttype, otype;
 
     TiToRect(tile, &area);
+
+    otype = TiGetTypeExact(tile);
+    if (IsSplit(tile))
+	ttype = (otype & TT_SIDE) ? SplitRightType(tile) :
+			SplitLeftType(tile);
+    else
+	ttype = otype;
 
     /* Erase the tile area out of lefFlat */
     DBErase(flatDef, &area, ttype);
