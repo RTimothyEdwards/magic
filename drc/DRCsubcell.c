@@ -43,7 +43,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 static Rect drcSubIntArea;	/* Accumulates area of interactions. */
 static CellDef *drcSubDef;	/* Cell definition we're checking. */
 static int drcSubRadius;	/* Interaction radius. */
-static CellUse *drcSubCurUse;	/* Holds current use when checking to see
+static CellTileBody *drcCurSub;	/* Holds current tile when checking to see
 				 * if more than one use in an area.
 				 */
 static Rect drcSubLookArea;	/* Area where we're looking for interactions */
@@ -72,7 +72,7 @@ extern int DRCErrorType;
  * drcFindOtherCells --
  *
  * 	This is a search function invoked when looking around a given
- *	cell for interactions.  If a cell is found other than drcSubCurUse,
+ *	cell for interactions.  If a tile is found other than drcCurSub,
  *	then it constitutes an interaction, and its area is included
  *	into the area parameter.
  *
@@ -92,13 +92,19 @@ drcFindOtherCells(tile, area)
     Rect *area;			/* Area in which to include interactions. */
 {
     Rect r;
+    CellUse *use;
     CellTileBody *ctbptr = (CellTileBody *) tile->ti_body;
 
-    if (ctbptr == NULL) return 0;
-    if ((ctbptr->ctb_use != drcSubCurUse) || (ctbptr->ctb_next != NULL))
+    /* XXX */
+    /* if (ctbptr == NULL) return 0; */
+
+    if (ctbptr == drcCurSub) return 0;
+
+    for (ctbptr = (CellTileBody *) TiGetBody(tile); ctbptr != NULL;
+		ctbptr = ctbptr->ctb_next)
     {
-	TiToRect(tile, &r);
-	(void) GeoInclude(&r, area);
+	use = ctbptr->ctb_use;
+	GeoInclude(&use->cu_bbox, &r);
     }
     return 0;
 }
@@ -123,12 +129,14 @@ drcFindOtherCells(tile, area)
  */
 
 int
-drcSubcellTileFunc(tile)
+drcSubcellTileFunc(tile, propagate)
     Tile *tile;			/* Subcell tile. */
+    bool *propagate;		/* Errors to propagate up */
 {
-    Rect area, haloArea, intArea;
+    Rect area, haloArea, intArea, subIntArea, locIntArea;
     int i;
     CellTileBody *ctbptr = (CellTileBody *) tile->ti_body;
+    CellUse *subUse;
 
     if (ctbptr == NULL) return 0;
 
@@ -138,9 +146,20 @@ drcSubcellTileFunc(tile)
      * we're recomputing errors).
      */
 
-    TiToRect(tile, &area);
-    GEO_EXPAND(&area, drcSubRadius, &haloArea);
-    GeoClip(&haloArea, &drcSubLookArea);
+    /* XXX This is not right---the area of the cell plane tile is not	*/
+    /* the area of the subcell.						*/
+    /* TiToRect(tile, &area); */
+
+    for (ctbptr = (CellTileBody *) TiGetBody(tile); ctbptr != NULL;
+		ctbptr = ctbptr->ctb_next)
+    {
+	subUse = ctbptr->ctb_use;
+	area = subUse->cu_bbox;
+
+	GEO_EXPAND(&area, drcSubRadius, &haloArea);
+	GeoClip(&haloArea, &drcSubLookArea);
+    }
+
     intArea = GeoNullRect;
     for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
     {
@@ -148,7 +167,26 @@ drcSubcellTileFunc(tile)
 	    &haloArea, &DBAllButSpaceBits, drcIncludeArea,
 	    (ClientData) &intArea);
     }
-    drcSubCurUse = ctbptr->ctb_use;
+
+    /* DRC error tiles in a subcell are automatically pulled into the	*/
+    /* interaction area of the parent.	Ultimately this is recursive as	*/
+    /* all cells are checked and errors propagate to the top level.	*/
+
+    /* XXX */
+    for (ctbptr = (CellTileBody *) TiGetBody(tile); ctbptr != NULL;
+		ctbptr = ctbptr->ctb_next)
+    {
+	subUse = ctbptr->ctb_use;
+	subIntArea = GeoNullRect;
+	DBSrPaintArea((Tile *) NULL, subUse->cu_def->cd_planes[PL_DRC_ERROR],
+		&TiPlaneRect, &DBAllButSpaceBits, drcIncludeArea,
+		(ClientData) &subIntArea);
+	GeoTransRect(&(subUse->cu_transform), &subIntArea, &locIntArea);
+	GeoInclude(&locIntArea, &intArea);
+	if (!GEO_RECTNULL(&subIntArea)) *propagate = TRUE;
+    }
+
+    drcCurSub = ctbptr;
     (void) TiSrArea((Tile *) NULL, drcSubDef->cd_planes[PL_CELL],
 	&haloArea, drcFindOtherCells, (ClientData) &intArea);
     if (GEO_RECTNULL(&intArea)) return 0;
@@ -277,6 +315,7 @@ DRCFindInteractions(def, area, radius, interaction)
     int i;
     CellUse *use;
     SearchContext scx;
+    bool propagate;
 
     drcSubDef = def;
     drcSubRadius = radius;
@@ -291,8 +330,9 @@ DRCFindInteractions(def, area, radius, interaction)
 
     drcSubIntArea = GeoNullRect;
     GEO_EXPAND(area, radius, &drcSubLookArea);
+    propagate = FALSE;
     (void) TiSrArea((Tile *) NULL, def->cd_planes[PL_CELL],
-	&drcSubLookArea, drcSubcellTileFunc, (ClientData) NULL);
+	&drcSubLookArea, drcSubcellTileFunc, (ClientData)(&propagate));
     
     /* If there seems to be an interaction area, make a second pass
      * to make sure there's more than one cell with paint in the
@@ -302,21 +342,28 @@ DRCFindInteractions(def, area, radius, interaction)
     
     if (GEO_RECTNULL(&drcSubIntArea)) return FALSE;
     use = NULL;
-    for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
+
+    /* If errors are being propagated up from child to parent,	*/
+    /* then the interaction area is always valid.		*/
+
+    if (propagate == FALSE)
     {
-	if (DBSrPaintArea((Tile *) NULL, def->cd_planes[i],
-	    &drcSubIntArea, &DBAllButSpaceBits, drcAlwaysOne,
-	    (ClientData) NULL) != 0)
+	for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
 	{
-	    use = (CellUse *) -1;
-	    break;
+	    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[i],
+			&drcSubIntArea, &DBAllButSpaceBits, drcAlwaysOne,
+			(ClientData) NULL) != 0)
+	    {
+		use = (CellUse *) -1;
+		break;
+	    }
 	}
+	scx.scx_use = DRCDummyUse;
+	scx.scx_trans = GeoIdentityTransform;
+	scx.scx_area = drcSubIntArea;
+	if (DBTreeSrCells(&scx, 0, drcSubCheckPaint, (ClientData) &use) == 0)
+	    return FALSE;
     }
-    scx.scx_use = DRCDummyUse;
-    scx.scx_trans = GeoIdentityTransform;
-    scx.scx_area = drcSubIntArea;
-    if (DBTreeSrCells(&scx, 0, drcSubCheckPaint, (ClientData) &use) == 0)
-	return FALSE;
 
     /* OK, no more excuses, there's really an interaction area here. */
     
