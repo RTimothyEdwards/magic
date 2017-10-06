@@ -754,7 +754,7 @@ lefWriteMacro(def, f, scale)
 
     if (!TTMaskIsZero(&boundmask))
     {
-	for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
+	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	    DBSrPaintArea((Tile *)NULL, def->cd_planes[pNum], 
 			&TiPlaneRect, &boundmask, lefGetBound,
 			(ClientData)(&boundary));
@@ -922,7 +922,7 @@ lefWriteMacro(def, f, scale)
 
 	lc.numWrites = 0;
 	lc.lastType = TT_SPACE;
-	for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
+	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	{
 	    lc.pNum = pNum;
 	    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
@@ -977,7 +977,7 @@ lefWriteMacro(def, f, scale)
 
     /* Restrict to routing planes only */
 
-    for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
 	lc.pNum = pNum;
 	DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum], 

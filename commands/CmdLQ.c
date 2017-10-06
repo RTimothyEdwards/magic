@@ -698,7 +698,8 @@ CmdPaint(w, cmd)
     SelectClear();
     DBWAreaChanged(EditCellUse->cu_def, &editRect, DBW_ALLWINDOWS, &mask);
     DBReComputeBbox(EditCellUse->cu_def);
-    DRCCheckThis (EditCellUse->cu_def, TT_CHECKPAINT, &editRect);
+    if (DRCBackGround)
+	DRCCheckThis (EditCellUse->cu_def, TT_CHECKPAINT, &editRect);
 }
 
 /*

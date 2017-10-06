@@ -530,9 +530,6 @@ drcWhyFunc(scx, cdarg)
 
     /* Check paint and interactions in this subcell. */
     
-//  (void) DRCBasicCheck(def, &haloArea, &scx->scx_area,
-//		(dolist) ? drcListError : drcPrintError,
-//		(ClientData) scx);
     (void) DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
 		(dolist) ? drcListError : drcPrintError,
 		(ClientData) scx);
@@ -540,9 +537,8 @@ drcWhyFunc(scx, cdarg)
 		(dolist) ? drcListError : drcPrintError,
 		(ClientData) scx);
     
-    /* Also search children. */
-
-    (void) DBCellSrArea(scx, drcWhyFunc, (ClientData)cdarg);
+    /* New behavior:  Don't search children, instead propagate errors up. */
+    /* (void) DBCellSrArea(scx, drcWhyFunc, (ClientData)cdarg); */
 
     return 0;
 }
@@ -563,9 +559,8 @@ drcWhyAllFunc(scx, cdarg)
     (void) DRCArrayCheck(def, &scx->scx_area,
 		drcListallError, (ClientData)scx);
     
-    /* Also search children. */
-
-    (void) DBCellSrArea(scx, drcWhyAllFunc, (ClientData)cdarg);
+    /* New behavior:  Don't search children, instead propagate errors up. */
+    /* (void) DBCellSrArea(scx, drcWhyAllFunc, (ClientData)cdarg); */
 
     return 0;
 }
@@ -637,9 +632,8 @@ drcCheckFunc(scx, cdarg)
 
     DRCCheckThis(def, TT_CHECKPAINT, (Rect *) NULL);
 
-    /* Check child cells also. */
-
-    (void) DBCellSrArea(scx, drcCheckFunc, (ClientData) NULL);
+    /* New behavior:  Don't search children, instead propagate errors up. */
+    /* (void) DBCellSrArea(scx, drcCheckFunc, (ClientData) NULL); */
 
     /* As a special performance hack, if the complete cell area is
      * handled here, don't bother to look at any more array elements.
@@ -753,9 +747,8 @@ drcCountFunc(scx, dupTable)
 
     if ((scx->scx_use->cu_def->cd_flags & CDAVAILABLE) == 0) return 0;
 
-    /* Scan children recursively. */
-
-    (void) DBCellSrArea(scx, drcCountFunc, (ClientData) dupTable);
+    /* New behavior:  Don't search children, instead propagate errors up. */
+    /* (void) DBCellSrArea(scx, drcCountFunc, (ClientData) dupTable); */
 
     /* As a special performance hack, if the complete cell area is
      * handled here, don't bother to look at any more array elements.
@@ -901,8 +894,9 @@ drcFindFunc(scx, finddata)
 	return 1;
     }
     
-    /* Recursively search children */
-    return DBCellSrArea(scx, drcFindFunc, (ClientData)finddata);
+    /* New behavior:  Don't search children, instead propagate errors up. */
+    /* return DBCellSrArea(scx, drcFindFunc, (ClientData)finddata); */
+    return 0;
 }
 
 int

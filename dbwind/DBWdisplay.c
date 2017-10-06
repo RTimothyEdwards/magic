@@ -597,6 +597,14 @@ dbwPaintFunc(tile, cxp)
     }
 #endif
 
+    /* Ignore DRC error tiles in anything but the top-level window */
+    if (scx->scx_use != (CellUse *)dbwWindow->w_surfaceID)
+    {
+	TileType ttype = TiGetType(tile);
+	if (ttype == TT_ERROR_P || ttype == TT_ERROR_S || ttype == TT_ERROR_PS)
+	    return 0;
+    }
+
     if (!dbwIsLocked)
     {
 	GrLock(dbwLockW, TRUE);
