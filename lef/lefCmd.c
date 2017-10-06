@@ -208,7 +208,8 @@ CmdLef(w, cmd)
 		    }
 		    else goto wrongNumArgs;
 		}
-		else goto wrongNumArgs;
+		else if (i != 2)	    /* Is argument a filename? */
+		    goto wrongNumArgs;
 	    }
             if (cmd->tx_argc != 2 && cmd->tx_argc != 3) goto wrongNumArgs;
             if (selectedUse == NULL)
