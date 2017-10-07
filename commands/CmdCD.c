@@ -103,6 +103,7 @@ bool cmdDumpParseArgs();
 #define CALMA_WARNING	12
 #define CALMA_WRITE	13
 #define CALMA_POLYS	14
+#define CALMA_PATHS	15
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -140,8 +141,8 @@ CmdCalma(w, cmd)
 	"		for the window's root cell",
 	"polygon subcells [yes|no]\n"
 	"		put non-Manhattan polygons into subcells",
-	"unfracture tiles[yes|no]\n"
-	"		optimize tiling of non-Manhattan geometry",
+	"path subcells [yes|no]\n"
+	"		put wire paths into individual subcells",
 	NULL
     };
 
@@ -393,6 +394,28 @@ CmdCalma(w, cmd)
 	    if (option < 0)
 		goto wrongNumArgs;
 	    CalmaSubcellPolygons = (option < 3) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_PATHS:
+	    if (cmd->tx_argc == 3)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaSubcellPaths));
+#else
+		if (CalmaSubcellPaths)
+		    TxPrintf("Wire paths placed in subcells.\n");
+		else
+		    TxPrintf("Wire paths read as-is.\n");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 4)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[3], cmdCalmaYesNo);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaSubcellPaths = (option < 3) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_READONLY:

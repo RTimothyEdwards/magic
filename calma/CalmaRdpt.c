@@ -51,6 +51,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 extern int calmaNonManhattan;
 
 extern int CalmaPolygonCount;
+extern int CalmaPathCount;
 extern HashTable calmaDefInitHash;
 
 extern void calmaLayerError();
@@ -578,16 +579,16 @@ calmaElementPath()
     {
 	plane = cifCurReadPlanes[ciftype];
 
-	if (CalmaSubcellPolygons && (calmaNonManhattan > 0))
+	if (CalmaSubcellPaths)
 	{
-	    /* Place the polygon in its own subcell */
-	    char newname[] = "polygonXXXXX";
+	    /* Place the path in its own subcell */
+	    char newname[] = "pathXXXXX";
 	    HashEntry *he;
 
 	    savedef = cifReadCellDef;
 
 	    /* Make up name for cell */
-	    sprintf(newname + 7, "%05d", ++CalmaPolygonCount);
+	    sprintf(newname + 4, "%05d", ++CalmaPathCount);
 
 	    he = HashFind(&calmaDefInitHash, newname);
 	    if (!HashGetValue(he))

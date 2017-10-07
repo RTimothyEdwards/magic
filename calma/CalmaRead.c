@@ -55,6 +55,8 @@ bool CalmaSubcellPolygons = FALSE;	/* Put non-Manhattan polygons
 					 * in their own subcells.
 					 */
 int CalmaPolygonCount;
+bool CalmaSubcellPaths = FALSE;		/* Put paths in their own subcells. */
+int CalmaPathCount;
 bool CalmaFlattenUses = FALSE;		/* If TRUE, small cells in the input
 					 * stream are flattened when encountered
 					 * as uses.  This improves magic's
@@ -168,6 +170,7 @@ CalmaReadFile(file, filename)
 
     calmaTotalErrors = 0;
     CalmaPolygonCount = 0;
+    CalmaPathCount = 0;
 
     HashInit(&calmaDefInitHash, 32, 0);
     calmaLApresent = FALSE;

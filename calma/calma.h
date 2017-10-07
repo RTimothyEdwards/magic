@@ -26,6 +26,7 @@
 
 /* Externally visible variables */
 extern bool CalmaSubcellPolygons;
+extern bool CalmaSubcellPaths;
 extern bool CalmaDoLabels;
 extern bool CalmaDoLower;
 extern bool CalmaMergeTiles;
