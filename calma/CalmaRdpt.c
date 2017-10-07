@@ -471,15 +471,13 @@ calmaElementPath()
 
     width /= calmaReadScale2;
 
-    /* Set path extensions based on path type */
-    if (pathtype == CALMAPATH_SQUAREFLUSH || pathtype == CALMAPATH_CUSTOM)
-    {
-	extend1 = extend2 = 0;
-    }
-    else if (pathtype == CALMAPATH_SQUAREPLUS || pathtype == CALMAPATH_ROUND)
-    {
-	extend1 = extend2 = (width / 2);
-    }
+    /* Set path extensions based on path type.  Note that SQUARE endcaps */
+    /* are handled automatically by the CIFPaintWirePath routine.	 */
+    /* Round endcaps are not really handled other than assuming they're	 */
+    /* the same as square.  All others are truncated to zero and any	 */
+    /* custom endcap is added to the path here.				 */
+
+    extend1 = extend2 = 0;
 
     /* Handle BGNEXTN, ENDEXTN */
     PEEKRH(nbytes, rtype);
@@ -608,8 +606,8 @@ calmaElementPath()
 	}
 
 	CIFPaintWirePath(pathheadp, width,
-		(pathtype == CALMAPATH_SQUAREFLUSH) ? FALSE : TRUE,
-		plane, CIFPaintTable, (PaintUndoInfo *)NULL);
+		(pathtype == CALMAPATH_SQUAREFLUSH || pathtype == CALMAPATH_CUSTOM) ?
+		FALSE : TRUE, plane, CIFPaintTable, (PaintUndoInfo *)NULL);
 
 	if (cifCurReadPlanes == cifEditCellPlanes)
 	{
