@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
 #include <math.h>		/* for wire path-to-poly path conversion */
 
@@ -216,6 +217,63 @@ CIFParseFlash()
     DBPaintPlane(cifReadPlane, &rectangle, CIFPaintTable,
 	    (PaintUndoInfo *) NULL);
     return TRUE;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * CIFPropRecordPath --
+ *
+ * Generate a property in the current edit cell and set it to a string
+ * containing the values in the list at pathheadp.
+ *
+ * If "iswire" is TRUE, then all values in the path are assumed to be
+ * double the actual value (because path centerlines can be on half-
+ * lambda).
+ * ----------------------------------------------------------------------------
+ */
+
+void
+CIFPropRecordPath(def, pathheadp, iswire)
+    CellDef *def;
+    CIFPath *pathheadp;
+{
+    extern float CIFGetOutputScale();
+    CIFPath *pathp;
+    char *pathstr, *sptr;
+    int components;
+    float x, y, oscale, mult;
+
+    oscale = CIFGetOutputScale(1000);   /* 1000 for conversion to um */
+    if (oscale == 0.0) oscale = 1.0;
+    mult = (iswire == TRUE) ? 0.5 : 1.0;
+
+    pathp = pathheadp;
+    components = 0;
+
+    /* Count the number of components in the path */
+    while (pathp != NULL)
+    {
+	pathp = pathp->cifp_next;
+	components++;
+    }
+    /* Allocate enough space to hold 2 * N points at "infinity" */
+    pathstr = (char *)mallocMagic(components * 40);
+
+    pathp = pathheadp;
+    sptr = pathstr;
+    while (pathp != NULL)
+    {
+	x = (float)pathp->cifp_x * oscale * mult;
+	y = (float)pathp->cifp_y * oscale * mult;
+	sprintf(sptr, "%.3f %.3f ", x, y);
+	sptr = sptr + strlen(sptr);
+	pathp = pathp->cifp_next;
+    }
+
+    /* Reallocate pathstr to be no larger than needed to hold the path contents */
+    StrDup(&pathstr, pathstr);
+    DBPropPut(def, "path", (ClientData)pathstr);
 }
 
 /*

@@ -272,6 +272,7 @@ calmaElementBoundary()
 	}
     }
 
+    CIFPropRecordPath(cifReadCellDef, pathheadp, FALSE);
     rp = CIFPolyToRects(pathheadp, plane, CIFPaintTable, (PaintUndoInfo *)NULL);
     CIFFreePath(pathheadp);
 
@@ -605,6 +606,7 @@ calmaElementPath()
 	    }
 	}
 
+	CIFPropRecordPath(cifReadCellDef, pathheadp, TRUE);
 	CIFPaintWirePath(pathheadp, width,
 		(pathtype == CALMAPATH_SQUAREFLUSH || pathtype == CALMAPATH_CUSTOM) ?
 		FALSE : TRUE, plane, CIFPaintTable, (PaintUndoInfo *)NULL);
