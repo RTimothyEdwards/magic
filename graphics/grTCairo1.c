@@ -47,7 +47,7 @@
 
 uint8_t			**grTCairoStipples;
 HashTable		grTCairoWindowTable;
-XVisualInfo		*grVisualInfo;
+XVisualInfo		*grTCairoVisualInfo;
 
 TCAIRO_CURRENT tcairoCurrent = {(Tk_Font)0, 0, 0, 0, 0,
                                 (Tk_Window)0, (Window)0, (MagWindow *)NULL
@@ -274,16 +274,17 @@ GrTCairoInit ()
 	int gritems;
 	grtemplate.screen = grXscrn;
 	grtemplate.depth = 0;
-	grVisualInfo = XGetVisualInfo(grXdpy, VisualScreenMask, &grtemplate, &gritems);
+	grTCairoVisualInfo = XGetVisualInfo(grXdpy, VisualScreenMask,
+		&grtemplate, &gritems);
 
-	if (!grVisualInfo)
+	if (!grTCairoVisualInfo)
 	{
 		TxError("No suitable visual!\n");
 		return FALSE;
 	}
 
-	grXscrn = grVisualInfo->screen;
-	tcairoCurrent.depth = grVisualInfo->depth;
+	grXscrn = grTCairoVisualInfo->screen;
+	tcairoCurrent.depth = grTCairoVisualInfo->depth;
 
 	/* Use OpenGL names for colormap and dstyle file types */
 	grCMapType = "OpenGL";
@@ -311,7 +312,7 @@ void
 GrTCairoClose ()
 {
 	if (grXdpy == NULL) return;
-	if (grVisualInfo != NULL) XFree(grVisualInfo);
+	if (grTCairoVisualInfo != NULL) XFree(grTCairoVisualInfo);
 
 	grTkFreeFonts();
 	/* Pop down Tk window but let Tcl/Tk */
@@ -362,7 +363,7 @@ int llx, lly, width, height;
     if (tcairodata == NULL) {
 	tcairodata = (TCairoData *)mallocMagic(sizeof(TCairoData));
 	tcairodata->surface = cairo_xlib_surface_create(grXdpy,
-		tcairoCurrent.windowid, grVisualInfo->visual,
+		tcairoCurrent.windowid, grTCairoVisualInfo->visual,
 		width, height);
 	tcairodata->context = cairo_create(tcairodata->surface);
 	tcairodata->backing_context = (ClientData)NULL;
@@ -1022,7 +1023,7 @@ char *name;
 	}
 
 	grAttributes.colormap = XCreateColormap(grXdpy, RootWindow(grXdpy, grXscrn),
-	                                        grVisualInfo->visual, AllocNone);
+	                                        grTCairoVisualInfo->visual, AllocNone);
 	grAttributes.background_pixel = WhitePixel(grXdpy, grXscrn);
 	grAttributes.border_pixel = BlackPixel(grXdpy, grXscrn);
 
@@ -1030,13 +1031,14 @@ char *name;
 	{
 		if (!WindowNumber)
 		{
-			/* To do: deal with grVisualInfo---destroy and recreate top	*/
+			/* To do: deal with grTCairoVisualInfo---destroy and recreate top	*/
 			/* frame if necessary					*/
 
 			if (Tk_WindowId(tktop) == 0)
 			{
-				Tk_SetWindowVisual(tktop, grVisualInfo->visual,
-				                   tcairoCurrent.depth, grAttributes.colormap);
+				Tk_SetWindowVisual(tktop, grTCairoVisualInfo->visual,
+				                tcairoCurrent.depth,
+						grAttributes.colormap);
 			}
 			else
 			{
@@ -1084,8 +1086,8 @@ char *name;
 
 		/* ensure that the visual is what we wanted, if possible to change */
 
-		Tk_SetWindowVisual(tkwind, grVisualInfo->visual, tcairoCurrent.depth,
-		                   grAttributes.colormap);
+		Tk_SetWindowVisual(tkwind, grTCairoVisualInfo->visual,
+				tcairoCurrent.depth, grAttributes.colormap);
 
 		/* map the window, if necessary */
 
@@ -1099,7 +1101,7 @@ char *name;
 		wind = Tk_WindowId(tkwind);
 		tcairoCurrent.windowid = wind;
 		tcairodata->surface = cairo_xlib_surface_create(grXdpy,
-			tcairoCurrent.windowid, grVisualInfo->visual,
+			tcairoCurrent.windowid, grTCairoVisualInfo->visual,
 			Tk_Width(tcairoCurrent.window),
 			Tk_Height(tcairoCurrent.window));
 		tcairodata->context = cairo_create(tcairodata->surface);
