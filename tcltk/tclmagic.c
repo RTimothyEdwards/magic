@@ -1199,7 +1199,7 @@ Tclmagic_Init(interp)
     /* Remember the interpreter */
     magicinterp = interp;
 
-    if (Tcl_InitStubs(interp, "8.1", 0) == NULL) return TCL_ERROR;
+    if (Tcl_InitStubs(interp, "8.5", 0) == NULL) return TCL_ERROR;
 
     /* Initialization and Startup commands */
     Tcl_CreateCommand(interp, "magic::initialize", (Tcl_CmdProc *)_magic_initialize,

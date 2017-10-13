@@ -648,6 +648,7 @@ sub_extra_libs
 top_extra_libs
 ld_extra_objs
 ld_extra_libs
+stub_defs
 extra_defs
 extra_libs
 SCRIPTS
@@ -656,6 +657,7 @@ gr_libs
 TCL_LIB_DIR
 TCLSH_EXE
 WISH_EXE
+LIB_SPECS_NOSTUB
 LIB_SPECS
 INC_SPECS
 EXTRA_LIB_SPECS
@@ -5295,6 +5297,7 @@ fi
     ;;
 esac
 
+stub_defs=""
 extra_defs="$extra_defs -DCAD_DIR=\\\"\${LIBDIR}\\\" -DBIN_DIR=\\\"\${BINDIR}\\\""
 X_LIBS=
 X_CFLAGS=
@@ -6716,6 +6719,7 @@ $as_echo "${TCLSH_EXE}" >&6; }
   if test "x${magic_with_tcl_libraries}" != "x" ; then
     for libname in \
      "${magic_with_tcl_libraries}/${TCL_LIB_FILE}" \
+     "${magic_with_tcl_libraries}/lib${TCL_LIB_FILE}" \
      "${magic_with_tcl_libraries}/lib${TCL_LIB_NAME}${SHDLIB_EXT}" \
      "${magic_with_tcl_libraries}/lib${TCL_LIB_NAME}${SHDLIB_EXT_ALT}"
     do
@@ -6733,7 +6737,8 @@ $as_echo "${TCLSH_EXE}" >&6; }
   else
     for libname in \
      "${loclib:=${TCL_EXEC_PREFIX}/lib}/lib${TCL_LIB_NAME}${SHDLIB_EXT}" \
-     "${loclib:=${TCL_EXEC_PREFIX}/lib}/lib${TCL_LIB_NAME}${SHDLIB_EXT_ALT}"
+     "${loclib:=${TCL_EXEC_PREFIX}/lib}/lib${TCL_LIB_NAME}${SHDLIB_EXT_ALT}" \
+     "${loclib:=${TCL_EXEC_PREFIX}/lib64}/lib${TCL_LIB_NAME}${SHDLIB_EXT}"
     do
       if test -r "$libname" ; then
         TCL_LIB_DIR="${TCL_EXEC_PREFIX}/lib"
@@ -6752,6 +6757,7 @@ if test $usingTcl ; then
   if test "x${magic_with_tk_libraries}" != "x" ; then
     for libname in \
      "${magic_with_tk_libraries}/${TCL_LIB_FILE}" \
+     "${magic_with_tk_libraries}/lib${TCL_LIB_FILE}" \
      "${magic_with_tk_libraries}/lib${TK_LIB_NAME}${SHDLIB_EXT}" \
      "${magic_with_tk_libraries}/lib${TK_LIB_NAME}${SHDLIB_EXT_ALT}"
     do
@@ -6768,7 +6774,8 @@ if test $usingTcl ; then
   else
     for libname in \
      "${loclib:=${TK_EXEC_PREFIX}/lib}/lib${TK_LIB_NAME}${SHDLIB_EXT}" \
-     "${loclib:=${TK_EXEC_PREFIX}/lib}/lib${TK_LIB_NAME}${SHDLIB_EXT_ALT}"
+     "${loclib:=${TK_EXEC_PREFIX}/lib}/lib${TK_LIB_NAME}${SHDLIB_EXT_ALT}" \
+     "${loclib:=${TK_EXEC_PREFIX}/lib64}/lib${TK_LIB_NAME}${SHDLIB_EXT}"
     do
       if test -r "$libname" ; then
         TK_LIB_DIR="${TK_EXEC_PREFIX}/lib"
@@ -7654,6 +7661,7 @@ if test $usingTcl ; then
 
   extra_libs="$extra_libs \${MAGICDIR}/tcltk/libtcltk.o"
   extra_defs="$extra_defs -DTCL_DIR=\\\"\${TCLDIR}\\\""
+  stub_defs="$stub_defs -DUSE_TCL_STUBS -DUSE_TK_STUBS"
 elif test $usingScheme ; then
   modules="$modules lisp"
   unused="$unused tcltk"
@@ -7768,6 +7776,8 @@ case $target in
 
     ;;
   *darwin*)
+    $as_echo "#define macosx 1" >>confdefs.h
+
     if test "$CPP" = "cc -E" ; then
        CPPFLAGS="$CPPFLAGS -no-cpp-precomp"
     fi
@@ -7779,6 +7789,7 @@ esac
 # -----------------------------------------------------------------------
 
 if test $usingTcl ; then
+    LIB_SPECS_NOSTUB="${LIB_SPECS}"
 
 # -----------------------------------------------------------------------
 #
@@ -7790,9 +7801,11 @@ if test $usingTcl ; then
   fi
   if test "${TK_LIB_DIR}" = "/usr/lib" -o \
         "${TK_LIB_DIR}" = "/usr/lib64" ; then
-    LIB_SPECS="${LIB_SPECS} ${TK_LIB_SPEC}"
+    LIB_SPECS_NOSTUB="${LIB_SPECS_NOSTUB} ${TK_LIB_SPEC}"
+    LIB_SPECS="${LIB_SPECS} ${TK_STUB_LIB_SPEC}"
   else
-    LIB_SPECS="${LIB_SPECS} -L${TK_LIB_DIR} ${TK_LIB_SPEC}"
+    LIB_SPECS_NOSTUB="${LIB_SPECS_NOSTUB} -L${TK_LIB_DIR} ${TK_LIB_SPEC}"
+    LIB_SPECS="${LIB_SPECS} -L${TK_LIB_DIR} ${TK_STUB_LIB_SPEC}"
     if test "x${loader_run_path}" = "x" ; then
       loader_run_path="${TK_LIB_DIR}"
     else
@@ -7817,9 +7830,11 @@ if test $usingTcl ; then
   if test "${TCL_LIB_DIR}" = "/usr/lib" -o \
         "${TCL_LIB_DIR}" = "/usr/lib64" -o \
         "${TCL_LIB_DIR}" = "${TK_LIB_DIR}" ; then
-    LIB_SPECS="${LIB_SPECS} ${TCL_LIB_SPEC}"
+    LIB_SPECS_NOSTUB="${LIB_SPECS_NOSTUB} ${TCL_LIB_SPEC}"
+    LIB_SPECS="${LIB_SPECS} ${TCL_STUB_LIB_SPEC}"
   else
-    LIB_SPECS="${LIB_SPECS} -L${TCL_LIB_DIR} ${TCL_LIB_SPEC}"
+    LIB_SPECS_NOSTUB="${LIB_SPECS_NOSTUB} -L${TCL_LIB_DIR} ${TCL_LIB_SPEC}"
+    LIB_SPECS="${LIB_SPECS} -L${TCL_LIB_DIR} ${TCL_STUB_LIB_SPEC}"
     if test "x${loader_run_path}" = "x" ; then
       loader_run_path="${TCL_LIB_DIR}"
     else
@@ -7909,7 +7924,7 @@ if test $usingTcl ; then
       SHDLIB_EXT=".dylib"
       LDDL_FLAGS="-dynamiclib -flat_namespace -undefined suppress -noprebind"
       LDFLAGS="${LDFLAGS} ${LIB_SPECS}"
-      CFLAGS="${CFLAGS} ${X_CFLAGS} ${INC_SPECS} -fno-common"
+      CFLAGS="${CFLAGS} ${X_CFLAGS} ${INC_SPECS} -I/sw/include -fno-common"
       ;;
 
     *cygwin*)
@@ -8192,11 +8207,13 @@ fi
 
 
 
+
 fi
 
 if test "$GCC" = "yes" ; then
    DEPEND_FLAG="-MM"
 fi
+
 
 
 

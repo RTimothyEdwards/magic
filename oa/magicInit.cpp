@@ -296,7 +296,7 @@ int Magicoa_Init(Tcl_Interp *interp) {
 	Tcl_PkgProvide(interp, "magicOA", "0.1");
    
 #ifdef USE_TCL_STUBS
-    if(Tcl_InitStubs(interp, (char *)"8.1",0) == NULL)
+    if(Tcl_InitStubs(interp, (char *)"8.5",0) == NULL)
       return TCL_ERROR;
 #endif
 	try {

@@ -369,6 +369,8 @@ GrTkInit(dispType)
     int color_base, color_reserved;
     int status;
 
+    if (Tk_InitStubs(magicinterp, "8.5", 0) == NULL) return FALSE;
+
     grCurrent.window = Tk_MainWindow(magicinterp);
 
     if (grCurrent.window == NULL)

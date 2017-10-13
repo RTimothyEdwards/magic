@@ -42,7 +42,7 @@ Magiclef_Init(interp)
     if (interp == NULL) return TCL_ERROR;
     if (Tcl_PkgRequire(interp, "Tclmagic", MAGIC_VERSION, 0) == NULL)
 	return TCL_ERROR;
-    if (Tcl_InitStubs(interp, "8.1", 0) == NULL) return TCL_ERROR;
+    if (Tcl_InitStubs(interp, "8.5", 0) == NULL) return TCL_ERROR;
 
     TxPrintf("Auto-loading LEF/DEF module\n");
     TxFlushOut();
