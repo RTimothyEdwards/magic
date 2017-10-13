@@ -24,6 +24,7 @@ magic_AppInit(interp)
     if (Tcl_Init(interp) == TCL_ERROR) {
 	return TCL_ERROR;
     }
+    Tcl_StaticPackage(interp, "Tcl", Tcl_Init, Tcl_Init);
 
     /* This is where we replace the home ".tclshrc" file with	*/
     /* magic's startup script.					*/

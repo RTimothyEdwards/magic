@@ -54,7 +54,8 @@ magic_AppInit(interp)
     if (Tk_Init(interp) == TCL_ERROR) {
 	return TCL_ERROR;
     }
-    Tcl_StaticPackage(interp, "Tk", Tk_Init, Tk_SafeInit);
+    // Tcl_StaticPackage(interp, "Tk", Tk_Init, Tk_SafeInit);
+    Tcl_StaticPackage(interp, "Tk", Tk_Init, Tk_Init);
 
     /* This is where we replace the home ".wishrc" file with	*/
     /* magic's startup script.					*/

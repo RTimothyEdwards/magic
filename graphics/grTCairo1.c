@@ -257,6 +257,8 @@ GrTCairoInit ()
 {
 	bool rstatus;
 
+	if (Tk_InitStubs(magicinterp, "8.5", 0) == NULL) return FALSE;
+
 	tcairoCurrent.window = Tk_MainWindow(magicinterp);
 	if (tcairoCurrent.window == NULL)
 	{

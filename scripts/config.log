@@ -39,24 +39,24 @@ PATH: /usr/local/bin
 ## Core tests. ##
 ## ----------- ##
 
-configure:2486: checking build system type
-configure:2500: result: x86_64-unknown-linux-gnu
-configure:2520: checking host system type
-configure:2533: result: x86_64-unknown-linux-gnu
-configure:2553: checking target system type
-configure:2566: result: x86_64-unknown-linux-gnu
-configure:2658: checking for gcc
-configure:2674: found /bin/gcc
-configure:2685: result: gcc
-configure:2914: checking for C compiler version
-configure:2923: gcc --version >&5
+configure:2488: checking build system type
+configure:2502: result: x86_64-unknown-linux-gnu
+configure:2522: checking host system type
+configure:2535: result: x86_64-unknown-linux-gnu
+configure:2555: checking target system type
+configure:2568: result: x86_64-unknown-linux-gnu
+configure:2660: checking for gcc
+configure:2676: found /bin/gcc
+configure:2687: result: gcc
+configure:2916: checking for C compiler version
+configure:2925: gcc --version >&5
 gcc (GCC) 4.9.2 20150212 (Red Hat 4.9.2-6)
 Copyright (C) 2014 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-configure:2934: $? = 0
-configure:2923: gcc -v >&5
+configure:2936: $? = 0
+configure:2925: gcc -v >&5
 Using built-in specs.
 COLLECT_GCC=gcc
 COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-redhat-linux/4.9.2/lto-wrapper
@@ -64,58 +64,58 @@ Target: x86_64-redhat-linux
 Configured with: ../configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-bootstrap --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-linker-hash-style=gnu --enable-languages=c,c++,objc,obj-c++,fortran,ada,go,lto --enable-plugin --enable-initfini-array --disable-libgcj --with-isl=/builddir/build/BUILD/gcc-4.9.2-20150212/obj-x86_64-redhat-linux/isl-install --with-cloog=/builddir/build/BUILD/gcc-4.9.2-20150212/obj-x86_64-redhat-linux/cloog-install --enable-gnu-indirect-function --with-tune=generic --with-arch_32=i686 --build=x86_64-redhat-linux
 Thread model: posix
 gcc version 4.9.2 20150212 (Red Hat 4.9.2-6) (GCC) 
-configure:2934: $? = 0
-configure:2923: gcc -V >&5
+configure:2936: $? = 0
+configure:2925: gcc -V >&5
 gcc: error: unrecognized command line option '-V'
 gcc: fatal error: no input files
 compilation terminated.
-configure:2934: $? = 4
-configure:2923: gcc -qversion >&5
+configure:2936: $? = 4
+configure:2925: gcc -qversion >&5
 gcc: error: unrecognized command line option '-qversion'
 gcc: fatal error: no input files
 compilation terminated.
-configure:2934: $? = 4
-configure:2954: checking whether the C compiler works
-configure:2976: gcc -g   conftest.c  >&5
-configure:2980: $? = 0
-configure:3028: result: yes
-configure:3031: checking for C compiler default output file name
-configure:3033: result: a.out
-configure:3039: checking for suffix of executables
-configure:3046: gcc -o conftest -g   conftest.c  >&5
-configure:3050: $? = 0
-configure:3072: result: 
-configure:3094: checking whether we are cross compiling
-configure:3102: gcc -o conftest -g   conftest.c  >&5
-configure:3106: $? = 0
-configure:3113: ./conftest
-configure:3117: $? = 0
-configure:3132: result: no
-configure:3137: checking for suffix of object files
-configure:3159: gcc -c -g  conftest.c >&5
-configure:3163: $? = 0
-configure:3184: result: o
-configure:3188: checking whether we are using the GNU C compiler
-configure:3207: gcc -c -g  conftest.c >&5
-configure:3207: $? = 0
-configure:3216: result: yes
-configure:3225: checking whether gcc accepts -g
-configure:3245: gcc -c -g  conftest.c >&5
-configure:3245: $? = 0
-configure:3286: result: yes
-configure:3303: checking for gcc option to accept ISO C89
-configure:3366: gcc  -c -g  conftest.c >&5
-configure:3366: $? = 0
-configure:3379: result: none needed
-configure:3404: checking how to run the C preprocessor
-configure:3435: gcc -E  conftest.c
-configure:3435: $? = 0
-configure:3449: gcc -E  conftest.c
+configure:2936: $? = 4
+configure:2956: checking whether the C compiler works
+configure:2978: gcc -g   conftest.c  >&5
+configure:2982: $? = 0
+configure:3030: result: yes
+configure:3033: checking for C compiler default output file name
+configure:3035: result: a.out
+configure:3041: checking for suffix of executables
+configure:3048: gcc -o conftest -g   conftest.c  >&5
+configure:3052: $? = 0
+configure:3074: result: 
+configure:3096: checking whether we are cross compiling
+configure:3104: gcc -o conftest -g   conftest.c  >&5
+configure:3108: $? = 0
+configure:3115: ./conftest
+configure:3119: $? = 0
+configure:3134: result: no
+configure:3139: checking for suffix of object files
+configure:3161: gcc -c -g  conftest.c >&5
+configure:3165: $? = 0
+configure:3186: result: o
+configure:3190: checking whether we are using the GNU C compiler
+configure:3209: gcc -c -g  conftest.c >&5
+configure:3209: $? = 0
+configure:3218: result: yes
+configure:3227: checking whether gcc accepts -g
+configure:3247: gcc -c -g  conftest.c >&5
+configure:3247: $? = 0
+configure:3288: result: yes
+configure:3305: checking for gcc option to accept ISO C89
+configure:3368: gcc  -c -g  conftest.c >&5
+configure:3368: $? = 0
+configure:3381: result: none needed
+configure:3406: checking how to run the C preprocessor
+configure:3437: gcc -E  conftest.c
+configure:3437: $? = 0
+configure:3451: gcc -E  conftest.c
 conftest.c:11:28: fatal error: ac_nonexistent.h: No such file or directory
  #include <ac_nonexistent.h>
                             ^
 compilation terminated.
-configure:3449: $? = 1
+configure:3451: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -125,18 +125,18 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "30"
+| #define MAGIC_REVISION "34"
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
-configure:3474: result: gcc -E
-configure:3494: gcc -E  conftest.c
-configure:3494: $? = 0
-configure:3508: gcc -E  conftest.c
+configure:3476: result: gcc -E
+configure:3496: gcc -E  conftest.c
+configure:3496: $? = 0
+configure:3510: gcc -E  conftest.c
 conftest.c:11:28: fatal error: ac_nonexistent.h: No such file or directory
  #include <ac_nonexistent.h>
                             ^
 compilation terminated.
-configure:3508: $? = 1
+configure:3510: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -146,21 +146,21 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "30"
+| #define MAGIC_REVISION "34"
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
-configure:3594: checking for g++
-configure:3610: found /bin/g++
-configure:3621: result: g++
-configure:3648: checking for C++ compiler version
-configure:3657: g++ --version >&5
+configure:3596: checking for g++
+configure:3612: found /bin/g++
+configure:3623: result: g++
+configure:3650: checking for C++ compiler version
+configure:3659: g++ --version >&5
 g++ (GCC) 4.9.2 20150212 (Red Hat 4.9.2-6)
 Copyright (C) 2014 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-configure:3668: $? = 0
-configure:3657: g++ -v >&5
+configure:3670: $? = 0
+configure:3659: g++ -v >&5
 Using built-in specs.
 COLLECT_GCC=g++
 COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-redhat-linux/4.9.2/lto-wrapper
@@ -168,123 +168,123 @@ Target: x86_64-redhat-linux
 Configured with: ../configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-bootstrap --enable-shared --enable-threads=posix --enable-checking=release --enable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-linker-hash-style=gnu --enable-languages=c,c++,objc,obj-c++,fortran,ada,go,lto --enable-plugin --enable-initfini-array --disable-libgcj --with-isl=/builddir/build/BUILD/gcc-4.9.2-20150212/obj-x86_64-redhat-linux/isl-install --with-cloog=/builddir/build/BUILD/gcc-4.9.2-20150212/obj-x86_64-redhat-linux/cloog-install --enable-gnu-indirect-function --with-tune=generic --with-arch_32=i686 --build=x86_64-redhat-linux
 Thread model: posix
 gcc version 4.9.2 20150212 (Red Hat 4.9.2-6) (GCC) 
-configure:3668: $? = 0
-configure:3657: g++ -V >&5
+configure:3670: $? = 0
+configure:3659: g++ -V >&5
 g++: error: unrecognized command line option '-V'
 g++: fatal error: no input files
 compilation terminated.
-configure:3668: $? = 4
-configure:3657: g++ -qversion >&5
+configure:3670: $? = 4
+configure:3659: g++ -qversion >&5
 g++: error: unrecognized command line option '-qversion'
 g++: fatal error: no input files
 compilation terminated.
-configure:3668: $? = 4
-configure:3672: checking whether we are using the GNU C++ compiler
-configure:3691: g++ -c   conftest.cpp >&5
-configure:3691: $? = 0
-configure:3700: result: yes
-configure:3709: checking whether g++ accepts -g
-configure:3729: g++ -c -g  conftest.cpp >&5
-configure:3729: $? = 0
-configure:3770: result: yes
-configure:3794: checking for library containing strerror
-configure:3825: gcc -o conftest -g   conftest.c  >&5
-configure:3825: $? = 0
-configure:3842: result: none required
-configure:3864: checking for a BSD-compatible install
-configure:3932: result: /bin/install -c
-configure:3986: checking for ranlib
-configure:4002: found /bin/ranlib
-configure:4013: result: ranlib
-configure:4040: checking for gm4
-configure:4073: result: no
-configure:4040: checking for gnum4
-configure:4073: result: no
-configure:4040: checking for m4
-configure:4058: found /bin/m4
-configure:4070: result: /bin/m4
-configure:4088: checking for python3
-configure:4106: found /bin/python3
-configure:4119: result: /bin/python3
-configure:4164: checking for ld used by GCC
-configure:4227: result: /bin/ld
-configure:4234: checking if the linker (/bin/ld) is GNU ld
+configure:3670: $? = 4
+configure:3674: checking whether we are using the GNU C++ compiler
+configure:3693: g++ -c   conftest.cpp >&5
+configure:3693: $? = 0
+configure:3702: result: yes
+configure:3711: checking whether g++ accepts -g
+configure:3731: g++ -c -g  conftest.cpp >&5
+configure:3731: $? = 0
+configure:3772: result: yes
+configure:3796: checking for library containing strerror
+configure:3827: gcc -o conftest -g   conftest.c  >&5
+configure:3827: $? = 0
+configure:3844: result: none required
+configure:3866: checking for a BSD-compatible install
+configure:3934: result: /bin/install -c
+configure:3988: checking for ranlib
+configure:4004: found /bin/ranlib
+configure:4015: result: ranlib
+configure:4042: checking for gm4
+configure:4075: result: no
+configure:4042: checking for gnum4
+configure:4075: result: no
+configure:4042: checking for m4
+configure:4060: found /bin/m4
+configure:4072: result: /bin/m4
+configure:4090: checking for python3
+configure:4108: found /bin/python3
+configure:4121: result: /bin/python3
+configure:4166: checking for ld used by GCC
+configure:4229: result: /bin/ld
+configure:4236: checking if the linker (/bin/ld) is GNU ld
 GNU ld version 2.24
-configure:4246: result: yes
-configure:4253: checking for grep that handles long lines and -e
-configure:4311: result: /bin/grep
-configure:4316: checking for egrep
-configure:4378: result: /bin/grep -E
-configure:4383: checking for ANSI C header files
-configure:4403: gcc -c -g  conftest.c >&5
-configure:4403: $? = 0
-configure:4476: gcc -o conftest -g   conftest.c  >&5
-configure:4476: $? = 0
-configure:4476: ./conftest
-configure:4476: $? = 0
-configure:4487: result: yes
-configure:4500: checking for sys/types.h
-configure:4500: gcc -c -g  conftest.c >&5
-configure:4500: $? = 0
-configure:4500: result: yes
-configure:4500: checking for sys/stat.h
-configure:4500: gcc -c -g  conftest.c >&5
-configure:4500: $? = 0
-configure:4500: result: yes
-configure:4500: checking for stdlib.h
-configure:4500: gcc -c -g  conftest.c >&5
-configure:4500: $? = 0
-configure:4500: result: yes
-configure:4500: checking for string.h
-configure:4500: gcc -c -g  conftest.c >&5
-configure:4500: $? = 0
-configure:4500: result: yes
-configure:4500: checking for memory.h
-configure:4500: gcc -c -g  conftest.c >&5
-configure:4500: $? = 0
-configure:4500: result: yes
-configure:4500: checking for strings.h
-configure:4500: gcc -c -g  conftest.c >&5
-configure:4500: $? = 0
-configure:4500: result: yes
-configure:4500: checking for inttypes.h
-configure:4500: gcc -c -g  conftest.c >&5
-configure:4500: $? = 0
-configure:4500: result: yes
-configure:4500: checking for stdint.h
-configure:4500: gcc -c -g  conftest.c >&5
-configure:4500: $? = 0
-configure:4500: result: yes
-configure:4500: checking for unistd.h
-configure:4500: gcc -c -g  conftest.c >&5
-configure:4500: $? = 0
-configure:4500: result: yes
-configure:4516: checking size of void *
-configure:4521: gcc -o conftest -g   conftest.c  >&5
-configure:4521: $? = 0
-configure:4521: ./conftest
-configure:4521: $? = 0
-configure:4535: result: 8
-configure:4549: checking size of unsigned int
-configure:4554: gcc -o conftest -g   conftest.c  >&5
-configure:4554: $? = 0
-configure:4554: ./conftest
-configure:4554: $? = 0
-configure:4568: result: 4
-configure:4582: checking size of unsigned long
-configure:4587: gcc -o conftest -g   conftest.c  >&5
-configure:4587: $? = 0
-configure:4587: ./conftest
-configure:4587: $? = 0
-configure:4601: result: 8
-configure:4615: checking size of unsigned long long
-configure:4620: gcc -o conftest -g   conftest.c  >&5
-configure:4620: $? = 0
-configure:4620: ./conftest
-configure:4620: $? = 0
-configure:4634: result: 8
-configure:4645: checking whether byte ordering is bigendian
-configure:4660: gcc -c -g  conftest.c >&5
+configure:4248: result: yes
+configure:4255: checking for grep that handles long lines and -e
+configure:4313: result: /bin/grep
+configure:4318: checking for egrep
+configure:4380: result: /bin/grep -E
+configure:4385: checking for ANSI C header files
+configure:4405: gcc -c -g  conftest.c >&5
+configure:4405: $? = 0
+configure:4478: gcc -o conftest -g   conftest.c  >&5
+configure:4478: $? = 0
+configure:4478: ./conftest
+configure:4478: $? = 0
+configure:4489: result: yes
+configure:4502: checking for sys/types.h
+configure:4502: gcc -c -g  conftest.c >&5
+configure:4502: $? = 0
+configure:4502: result: yes
+configure:4502: checking for sys/stat.h
+configure:4502: gcc -c -g  conftest.c >&5
+configure:4502: $? = 0
+configure:4502: result: yes
+configure:4502: checking for stdlib.h
+configure:4502: gcc -c -g  conftest.c >&5
+configure:4502: $? = 0
+configure:4502: result: yes
+configure:4502: checking for string.h
+configure:4502: gcc -c -g  conftest.c >&5
+configure:4502: $? = 0
+configure:4502: result: yes
+configure:4502: checking for memory.h
+configure:4502: gcc -c -g  conftest.c >&5
+configure:4502: $? = 0
+configure:4502: result: yes
+configure:4502: checking for strings.h
+configure:4502: gcc -c -g  conftest.c >&5
+configure:4502: $? = 0
+configure:4502: result: yes
+configure:4502: checking for inttypes.h
+configure:4502: gcc -c -g  conftest.c >&5
+configure:4502: $? = 0
+configure:4502: result: yes
+configure:4502: checking for stdint.h
+configure:4502: gcc -c -g  conftest.c >&5
+configure:4502: $? = 0
+configure:4502: result: yes
+configure:4502: checking for unistd.h
+configure:4502: gcc -c -g  conftest.c >&5
+configure:4502: $? = 0
+configure:4502: result: yes
+configure:4518: checking size of void *
+configure:4523: gcc -o conftest -g   conftest.c  >&5
+configure:4523: $? = 0
+configure:4523: ./conftest
+configure:4523: $? = 0
+configure:4537: result: 8
+configure:4551: checking size of unsigned int
+configure:4556: gcc -o conftest -g   conftest.c  >&5
+configure:4556: $? = 0
+configure:4556: ./conftest
+configure:4556: $? = 0
+configure:4570: result: 4
+configure:4584: checking size of unsigned long
+configure:4589: gcc -o conftest -g   conftest.c  >&5
+configure:4589: $? = 0
+configure:4589: ./conftest
+configure:4589: $? = 0
+configure:4603: result: 8
+configure:4617: checking size of unsigned long long
+configure:4622: gcc -o conftest -g   conftest.c  >&5
+configure:4622: $? = 0
+configure:4622: ./conftest
+configure:4622: $? = 0
+configure:4636: result: 8
+configure:4647: checking whether byte ordering is bigendian
+configure:4662: gcc -c -g  conftest.c >&5
 conftest.c:26:9: error: unknown type name 'not'
          not a universal capable compiler
          ^
@@ -292,7 +292,7 @@ conftest.c:26:15: error: expected '=', ',', ';', 'asm' or '__attribute__' before
          not a universal capable compiler
                ^
 conftest.c:26:15: error: unknown type name 'universal'
-configure:4660: $? = 1
+configure:4662: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -302,7 +302,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "30"
+| #define MAGIC_REVISION "34"
 | #define STDC_HEADERS 1
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_SYS_STAT_H 1
@@ -323,9 +323,9 @@ configure: failed program was:
 | 	     #endif
 | 	     typedef int dummy;
 | 
-configure:4705: gcc -c -g  conftest.c >&5
-configure:4705: $? = 0
-configure:4723: gcc -c -g  conftest.c >&5
+configure:4707: gcc -c -g  conftest.c >&5
+configure:4707: $? = 0
+configure:4725: gcc -c -g  conftest.c >&5
 conftest.c: In function 'main':
 conftest.c:32:4: error: unknown type name 'not'
     not big endian
@@ -333,7 +333,7 @@ conftest.c:32:4: error: unknown type name 'not'
 conftest.c:32:12: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'endian'
     not big endian
             ^
-configure:4723: $? = 1
+configure:4725: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -343,7 +343,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "30"
+| #define MAGIC_REVISION "34"
 | #define STDC_HEADERS 1
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_SYS_STAT_H 1
@@ -372,58 +372,58 @@ configure: failed program was:
 |   ;
 |   return 0;
 | }
-configure:4851: result: no
-configure:4870: checking for ANSI C header files
-configure:4974: result: yes
-configure:4986: checking for setenv
-configure:4986: gcc -o conftest -g   conftest.c  >&5
-configure:4986: $? = 0
-configure:4986: result: yes
-configure:4986: checking for putenv
-configure:4986: gcc -o conftest -g   conftest.c  >&5
-configure:4986: $? = 0
-configure:4986: result: yes
-configure:4996: checking for vfork
-configure:4996: gcc -o conftest -g   conftest.c  >&5
-configure:4996: $? = 0
-configure:4996: result: yes
-configure:5004: checking sys/mman.h usability
-configure:5004: gcc -c -g  conftest.c >&5
-configure:5004: $? = 0
-configure:5004: result: yes
-configure:5004: checking sys/mman.h presence
-configure:5004: gcc -E  conftest.c
-configure:5004: $? = 0
-configure:5004: result: yes
-configure:5004: checking for sys/mman.h
-configure:5004: result: yes
-configure:5017: checking dirent.h usability
-configure:5017: gcc -c -g  conftest.c >&5
-configure:5017: $? = 0
-configure:5017: result: yes
-configure:5017: checking dirent.h presence
-configure:5017: gcc -E  conftest.c
-configure:5017: $? = 0
-configure:5017: result: yes
-configure:5017: checking for dirent.h
-configure:5017: result: yes
-configure:5030: checking limits.h usability
-configure:5030: gcc -c -g  conftest.c >&5
-configure:5030: $? = 0
-configure:5030: result: yes
-configure:5030: checking limits.h presence
-configure:5030: gcc -E  conftest.c
-configure:5030: $? = 0
-configure:5030: result: yes
-configure:5030: checking for limits.h
-configure:5030: result: yes
-configure:5043: checking param.h usability
-configure:5043: gcc -c -g  conftest.c >&5
+configure:4853: result: no
+configure:4872: checking for ANSI C header files
+configure:4976: result: yes
+configure:4988: checking for setenv
+configure:4988: gcc -o conftest -g   conftest.c  >&5
+configure:4988: $? = 0
+configure:4988: result: yes
+configure:4988: checking for putenv
+configure:4988: gcc -o conftest -g   conftest.c  >&5
+configure:4988: $? = 0
+configure:4988: result: yes
+configure:4998: checking for vfork
+configure:4998: gcc -o conftest -g   conftest.c  >&5
+configure:4998: $? = 0
+configure:4998: result: yes
+configure:5006: checking sys/mman.h usability
+configure:5006: gcc -c -g  conftest.c >&5
+configure:5006: $? = 0
+configure:5006: result: yes
+configure:5006: checking sys/mman.h presence
+configure:5006: gcc -E  conftest.c
+configure:5006: $? = 0
+configure:5006: result: yes
+configure:5006: checking for sys/mman.h
+configure:5006: result: yes
+configure:5019: checking dirent.h usability
+configure:5019: gcc -c -g  conftest.c >&5
+configure:5019: $? = 0
+configure:5019: result: yes
+configure:5019: checking dirent.h presence
+configure:5019: gcc -E  conftest.c
+configure:5019: $? = 0
+configure:5019: result: yes
+configure:5019: checking for dirent.h
+configure:5019: result: yes
+configure:5032: checking limits.h usability
+configure:5032: gcc -c -g  conftest.c >&5
+configure:5032: $? = 0
+configure:5032: result: yes
+configure:5032: checking limits.h presence
+configure:5032: gcc -E  conftest.c
+configure:5032: $? = 0
+configure:5032: result: yes
+configure:5032: checking for limits.h
+configure:5032: result: yes
+configure:5045: checking param.h usability
+configure:5045: gcc -c -g  conftest.c >&5
 conftest.c:64:19: fatal error: param.h: No such file or directory
  #include <param.h>
                    ^
 compilation terminated.
-configure:5043: $? = 1
+configure:5045: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -433,7 +433,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "30"
+| #define MAGIC_REVISION "34"
 | #define STDC_HEADERS 1
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_SYS_STAT_H 1
@@ -489,14 +489,14 @@ configure: failed program was:
 | # include <unistd.h>
 | #endif
 | #include <param.h>
-configure:5043: result: no
-configure:5043: checking param.h presence
-configure:5043: gcc -E  conftest.c
+configure:5045: result: no
+configure:5045: checking param.h presence
+configure:5045: gcc -E  conftest.c
 conftest.c:31:19: fatal error: param.h: No such file or directory
  #include <param.h>
                    ^
 compilation terminated.
-configure:5043: $? = 1
+configure:5045: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME ""
@@ -506,7 +506,7 @@ configure: failed program was:
 | #define PACKAGE_BUGREPORT ""
 | #define PACKAGE_URL ""
 | #define MAGIC_VERSION "8.2"
-| #define MAGIC_REVISION "30"
+| #define MAGIC_REVISION "34"
 | #define STDC_HEADERS 1
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_SYS_STAT_H 1
@@ -529,112 +529,112 @@ configure: failed program was:
 | #define HAVE_LIMITS_H 1
 | /* end confdefs.h.  */
 | #include <param.h>
-configure:5043: result: no
-configure:5043: checking for param.h
-configure:5043: result: no
-configure:5056: checking paths.h usability
-configure:5056: gcc -c -g  conftest.c >&5
-configure:5056: $? = 0
-configure:5056: result: yes
-configure:5056: checking paths.h presence
-configure:5056: gcc -E  conftest.c
-configure:5056: $? = 0
-configure:5056: result: yes
-configure:5056: checking for paths.h
-configure:5056: result: yes
-configure:5067: checking for va_copy
-configure:5085: gcc -o conftest -g   conftest.c  >&5
-configure:5085: $? = 0
-configure:5094: result: yes
-configure:5102: checking for __va_copy
-configure:5120: gcc -o conftest -g   conftest.c  >&5
-configure:5120: $? = 0
-configure:5129: result: yes
-configure:5344: checking for gcore
-configure:5362: found /bin/gcore
-configure:5375: result: /bin/gcore
-configure:5387: checking for csh
-configure:5405: found /bin/csh
-configure:5418: result: /bin/csh
-configure:5432: checking for X
-configure:5571: gcc -o conftest -g   conftest.c -lX11  >&5
-configure:5571: $? = 0
-configure:5621: result: libraries , headers 
-configure:5720: gcc -o conftest -g   conftest.c   -lX11 >&5
-configure:5720: $? = 0
-configure:5818: checking for gethostbyname
-configure:5818: gcc -o conftest -g   conftest.c  >&5
-configure:5818: $? = 0
-configure:5818: result: yes
-configure:5915: checking for connect
-configure:5915: gcc -o conftest -g   conftest.c  >&5
-configure:5915: $? = 0
-configure:5915: result: yes
-configure:5964: checking for remove
-configure:5964: gcc -o conftest -g   conftest.c  >&5
-configure:5964: $? = 0
-configure:5964: result: yes
-configure:6013: checking for shmat
-configure:6013: gcc -o conftest -g   conftest.c  >&5
-configure:6013: $? = 0
-configure:6013: result: yes
-configure:6071: checking for IceConnectionNumber in -lICE
-configure:6096: gcc -o conftest -g   conftest.c -lICE   >&5
-configure:6096: $? = 0
-configure:6105: result: yes
-configure:6141: checking for XOpenDevice in -lXi
-configure:6166: gcc -o conftest -g   conftest.c -lXi   >&5
-configure:6166: $? = 0
-configure:6175: result: yes
-configure:6181: checking for XmuInternAtom in -lXmu
-configure:6206: gcc -o conftest -g   conftest.c -lXmu   >&5
-configure:6206: $? = 0
-configure:6215: result: yes
-configure:6221: checking for XextFindDisplay in -lXext
-configure:6246: gcc -o conftest -g   conftest.c -lXext   >&5
-configure:6246: $? = 0
-configure:6255: result: yes
-configure:6335: checking for tclConfig.sh
-configure:6409: result: /usr/lib64/tclConfig.sh
-configure:6425: checking for tkConfig.sh
-configure:6498: result: /usr/lib64/tkConfig.sh
-configure:6632: checking for wish executable
-configure:6660: result: /usr/bin/wish
-configure:6666: checking for tclsh executable
-configure:6692: result: /usr/bin/tclsh
-configure:7397: checking GL/gl.h usability
-configure:7397: gcc -c -g   conftest.c >&5
-configure:7397: $? = 0
-configure:7397: result: yes
-configure:7397: checking GL/gl.h presence
-configure:7397: gcc -E   conftest.c
-configure:7397: $? = 0
-configure:7397: result: yes
-configure:7397: checking for GL/gl.h
-configure:7397: result: yes
-configure:7415: checking for glXCreateContext in -lGL
-configure:7440: gcc -o conftest -g     -lm conftest.c -lGL   >&5
-configure:7440: $? = 0
-configure:7449: result: yes
-configure:7465: checking for gluNewTess in -lGLU
-configure:7490: gcc -o conftest -g     -lm conftest.c -lGLU  -lGL  >&5
-configure:7490: $? = 0
-configure:7499: result: yes
-configure:7550: checking cairo/cairo.h usability
-configure:7550: gcc -c -g   conftest.c >&5
-configure:7550: $? = 0
-configure:7550: result: yes
-configure:7550: checking cairo/cairo.h presence
-configure:7550: gcc -E   conftest.c
-configure:7550: $? = 0
-configure:7550: result: yes
-configure:7550: checking for cairo/cairo.h
-configure:7550: result: yes
-configure:7568: checking for cairo_user_to_device in -lcairo
-configure:7593: gcc -o conftest -g     -lm conftest.c -lcairo  -lGLU -lGL  >&5
-configure:7593: $? = 0
-configure:7602: result: yes
-configure:8399: creating ./config.status
+configure:5045: result: no
+configure:5045: checking for param.h
+configure:5045: result: no
+configure:5058: checking paths.h usability
+configure:5058: gcc -c -g  conftest.c >&5
+configure:5058: $? = 0
+configure:5058: result: yes
+configure:5058: checking paths.h presence
+configure:5058: gcc -E  conftest.c
+configure:5058: $? = 0
+configure:5058: result: yes
+configure:5058: checking for paths.h
+configure:5058: result: yes
+configure:5069: checking for va_copy
+configure:5087: gcc -o conftest -g   conftest.c  >&5
+configure:5087: $? = 0
+configure:5096: result: yes
+configure:5104: checking for __va_copy
+configure:5122: gcc -o conftest -g   conftest.c  >&5
+configure:5122: $? = 0
+configure:5131: result: yes
+configure:5347: checking for gcore
+configure:5365: found /bin/gcore
+configure:5378: result: /bin/gcore
+configure:5390: checking for csh
+configure:5408: found /bin/csh
+configure:5421: result: /bin/csh
+configure:5435: checking for X
+configure:5574: gcc -o conftest -g   conftest.c -lX11  >&5
+configure:5574: $? = 0
+configure:5624: result: libraries , headers 
+configure:5723: gcc -o conftest -g   conftest.c   -lX11 >&5
+configure:5723: $? = 0
+configure:5821: checking for gethostbyname
+configure:5821: gcc -o conftest -g   conftest.c  >&5
+configure:5821: $? = 0
+configure:5821: result: yes
+configure:5918: checking for connect
+configure:5918: gcc -o conftest -g   conftest.c  >&5
+configure:5918: $? = 0
+configure:5918: result: yes
+configure:5967: checking for remove
+configure:5967: gcc -o conftest -g   conftest.c  >&5
+configure:5967: $? = 0
+configure:5967: result: yes
+configure:6016: checking for shmat
+configure:6016: gcc -o conftest -g   conftest.c  >&5
+configure:6016: $? = 0
+configure:6016: result: yes
+configure:6074: checking for IceConnectionNumber in -lICE
+configure:6099: gcc -o conftest -g   conftest.c -lICE   >&5
+configure:6099: $? = 0
+configure:6108: result: yes
+configure:6144: checking for XOpenDevice in -lXi
+configure:6169: gcc -o conftest -g   conftest.c -lXi   >&5
+configure:6169: $? = 0
+configure:6178: result: yes
+configure:6184: checking for XmuInternAtom in -lXmu
+configure:6209: gcc -o conftest -g   conftest.c -lXmu   >&5
+configure:6209: $? = 0
+configure:6218: result: yes
+configure:6224: checking for XextFindDisplay in -lXext
+configure:6249: gcc -o conftest -g   conftest.c -lXext   >&5
+configure:6249: $? = 0
+configure:6258: result: yes
+configure:6338: checking for tclConfig.sh
+configure:6412: result: /usr/lib64/tclConfig.sh
+configure:6428: checking for tkConfig.sh
+configure:6501: result: /usr/lib64/tkConfig.sh
+configure:6635: checking for wish executable
+configure:6663: result: /usr/bin/wish
+configure:6669: checking for tclsh executable
+configure:6695: result: /usr/bin/tclsh
+configure:7404: checking GL/gl.h usability
+configure:7404: gcc -c -g   conftest.c >&5
+configure:7404: $? = 0
+configure:7404: result: yes
+configure:7404: checking GL/gl.h presence
+configure:7404: gcc -E   conftest.c
+configure:7404: $? = 0
+configure:7404: result: yes
+configure:7404: checking for GL/gl.h
+configure:7404: result: yes
+configure:7422: checking for glXCreateContext in -lGL
+configure:7447: gcc -o conftest -g     -lm conftest.c -lGL   >&5
+configure:7447: $? = 0
+configure:7456: result: yes
+configure:7472: checking for gluNewTess in -lGLU
+configure:7497: gcc -o conftest -g     -lm conftest.c -lGLU  -lGL  >&5
+configure:7497: $? = 0
+configure:7506: result: yes
+configure:7557: checking cairo/cairo.h usability
+configure:7557: gcc -c -g   conftest.c >&5
+configure:7557: $? = 0
+configure:7557: result: yes
+configure:7557: checking cairo/cairo.h presence
+configure:7557: gcc -E   conftest.c
+configure:7557: $? = 0
+configure:7557: result: yes
+configure:7557: checking for cairo/cairo.h
+configure:7557: result: yes
+configure:7575: checking for cairo_user_to_device in -lcairo
+configure:7600: gcc -o conftest -g     -lm conftest.c -lcairo  -lGLU -lGL  >&5
+configure:7600: $? = 0
+configure:7609: result: yes
+configure:8416: creating ./config.status
 
 ## ---------------------- ##
 ## Running config.status. ##
@@ -651,8 +651,8 @@ generated by GNU Autoconf 2.69.  Invocation command line was
 
 on stravinsky
 
-config.status:799: creating defs.mak
-config.status:902: WARNING:  'defs.mak.in' seems to ignore the --datarootdir setting
+config.status:801: creating defs.mak
+config.status:904: WARNING:  'defs.mak.in' seems to ignore the --datarootdir setting
 
 ## ---------------- ##
 ## Cache variables. ##
@@ -759,7 +759,7 @@ CPPFLAGS=''
 CSH='/bin/csh'
 CXX='g++'
 CXXFLAGS='-g -O2'
-DEFS='-DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"30\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DHAVE_LIBGL=1 -DHAVE_LIBGLU=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -DTHREE_D=1 -Dlinux=1 -DSYSV=1 -DISC=1'
+DEFS='-DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DMAGIC_VERSION=\"8.2\" -DMAGIC_REVISION=\"34\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DSIZEOF_VOID_P=8 -DSIZEOF_UNSIGNED_INT=4 -DSIZEOF_UNSIGNED_LONG=8 -DSIZEOF_UNSIGNED_LONG_LONG=8 -DSTDC_HEADERS=1 -DHAVE_SETENV=1 -DHAVE_PUTENV=1 -DHAVE_SYS_MMAN_H=1 -DHAVE_DIRENT_H=1 -DHAVE_LIMITS_H=1 -DHAVE_PATHS_H=1 -DHAVE_VA_COPY=1 -DHAVE___VA_COPY=1 -DFILE_LOCKS=1 -DCALMA_MODULE=1 -DCIF_MODULE=1 -DPLOT_MODULE=1 -DLEF_MODULE=1 -DROUTE_MODULE=1 -DUSE_NEW_MACROS=1 -DHAVE_LIBGL=1 -DHAVE_LIBGLU=1 -DVECTOR_FONTS=1 -DHAVE_LIBCAIRO=1 -DMAGIC_WRAPPER=1 -DTHREE_D=1 -Dlinux=1 -DSYSV=1 -DISC=1'
 DEPEND_FLAG='-MM'
 ECHO_C=''
 ECHO_N='printf'
@@ -780,10 +780,11 @@ LDFLAGS=''
 LD_RUN_PATH=''
 LIBOBJS=''
 LIBS='-lcairo -lGLU -lGL '
-LIB_SPECS=' -L/usr/lib64 -ltk8.6 -L/usr/lib64 -ltcl8.6'
+LIB_SPECS=' -L/usr/lib64 -ltkstub8.6 -L/usr/lib64 -ltclstub8.6'
+LIB_SPECS_NOSTUB=' -L/usr/lib64 -ltk8.6 -L/usr/lib64 -ltcl8.6'
 LTLIBOBJS=''
 M4='/bin/m4'
-MAGIC_REVISION='30'
+MAGIC_REVISION='34'
 MAGIC_VERSION='8.2'
 MCPP='${MAGICDIR}/scripts/preproc.py'
 OA=''
@@ -862,6 +863,7 @@ rl_defs=''
 rl_libs=''
 sbindir='${exec_prefix}/sbin'
 sharedstatedir='${prefix}/com'
+stub_defs=' -DUSE_TCL_STUBS -DUSE_TK_STUBS'
 sub_extra_libs=''
 sysconfdir='${prefix}/etc'
 target='x86_64-unknown-linux-gnu'
@@ -884,7 +886,7 @@ unused=' readline lisp'
 #define PACKAGE_BUGREPORT ""
 #define PACKAGE_URL ""
 #define MAGIC_VERSION "8.2"
-#define MAGIC_REVISION "30"
+#define MAGIC_REVISION "34"
 #define STDC_HEADERS 1
 #define HAVE_SYS_TYPES_H 1
 #define HAVE_SYS_STAT_H 1
