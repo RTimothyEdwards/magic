@@ -7776,8 +7776,6 @@ case $target in
 
     ;;
   *darwin*)
-    $as_echo "#define macosx 1" >>confdefs.h
-
     if test "$CPP" = "cc -E" ; then
        CPPFLAGS="$CPPFLAGS -no-cpp-precomp"
     fi
