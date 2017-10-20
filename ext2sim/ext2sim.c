@@ -1012,6 +1012,7 @@ simdevVisit(dev, hierName, scale, trans)
 
     /* Computation of length and width has been moved from efVisitDevs */
     EFGetLengthAndWidth(dev, &l, &w);
+    if (esMergeDevsA || esMergeDevsC) w *= getCurDevMult();
 
     /* If only two terminals, connect the source to the drain */
     gate = &dev->dev_terms[0];
