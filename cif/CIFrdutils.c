@@ -876,6 +876,8 @@ path_intersect(pathHead, start, respt)
 		    }
 		}
 	    }
+	    else if (diagonal == FALSE)
+		continue;
 	}
 	else if (diagonal == FALSE)
 	    continue;
