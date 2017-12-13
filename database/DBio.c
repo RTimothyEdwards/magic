@@ -1473,6 +1473,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			cellDef->cd_bbox.r_xtop /= scaled;
 			cellDef->cd_bbox.r_ytop /= scaled;
 		    }
+		    cellDef->cd_extended = cellDef->cd_bbox;
 		    cellDef->cd_flags |= CDFIXEDBBOX;
 		}
 	    }
