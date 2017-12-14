@@ -1248,7 +1248,7 @@ CmdPort(w, cmd)
     {
 	/* Check for options that require only one selected port */
 
-	if ((option != PORT_REMOVE) && (option != PORT_LAST))
+	if (option != PORT_LAST)
 	{
 	    if (lab == NULL)
 		lab = portFindLabel(editDef, TRUE, TRUE);
@@ -1273,9 +1273,10 @@ CmdPort(w, cmd)
 	}
 	if ((option != PORT_LAST) && lab == NULL)
 	{
-	    /* Let "port remove" work without complaining. */
+	    /* Let "port remove" fail without complaining. */
 	    if (option != PORT_REMOVE)
 		TxError("Exactly one label may be present under the cursor box.\n");
+
 	    return;
 	}
 

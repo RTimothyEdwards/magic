@@ -157,7 +157,12 @@ proc magic::analyze_labels {} {
    set oval [lindex [setlabel offset] 0]
    set lval [lindex [setlabel layer] 0]
    set kval [lindex [setlabel sticky] 0]
-   set pval [lindex [port index] 0]
+   set isport [lindex [port exists] 0]
+   if {$isport} {
+       set pval [lindex [port index] 0]
+   } else {
+       set pval -1
+   }
 
    # Rescale internal units to microns
    set sval [lindex [setlabel size] 0]
@@ -257,6 +262,18 @@ proc magic::change_label {} {
       setlabel layer $ltype
    }
    setlabel sticky $typesticky
+
+   if {$typeport == 1 && $lport != ""} {
+      if {[port exists] == 0} {
+	 port make $lport
+      } else {
+	 port index $lport
+      }
+   } else {
+      if {[port exists] == 1} {
+         port remove
+      }
+   }
 }
 
 proc magic::make_new_label {} {
@@ -306,6 +323,11 @@ proc magic::make_new_label {} {
    }
    if {$typeport == 1 && $lport != ""} {
       port make $lport
+      # Auto-increment the value to the next available port.
+      set pval [port last]
+      incr pval
+      .texthelper.port.tent delete 0 end
+      .texthelper.port.tent insert 0 $pval
    } else {
       port remove
    }
