@@ -91,7 +91,6 @@ drcFindOtherCells(tile, area)
     Tile *tile;			/* Tile in subcell plane. */
     Rect *area;			/* Area in which to include interactions. */
 {
-    Rect r;
     CellUse *use;
     CellTileBody *ctbptr = (CellTileBody *) tile->ti_body;
 
@@ -104,7 +103,7 @@ drcFindOtherCells(tile, area)
 		ctbptr = ctbptr->ctb_next)
     {
 	use = ctbptr->ctb_use;
-	GeoInclude(&use->cu_bbox, &r);
+	GeoInclude(&use->cu_bbox, area);
     }
     return 0;
 }
