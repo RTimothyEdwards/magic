@@ -1478,7 +1478,7 @@ cmdLabelTextFunc(label, cellUse, transform, text)
 	TxPrintf("%s\n", label->lab_text);
 #endif
     }
-    else if (cellDef == EditRootDef)
+    else
     {
 	if (strcmp(text, label->lab_text))
 	{
@@ -1515,7 +1515,7 @@ cmdLabelRotateFunc(label, cellUse, transform, value)
 	TxPrintf("%d\n", label->lab_rotate);
 #endif
     }
-    else if (cellDef == EditRootDef)
+    else
     {
 	DBUndoEraseLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
@@ -1550,7 +1550,7 @@ cmdLabelSizeFunc(label, cellUse, transform, value)
 	TxPrintf("%g\n", (double)label->lab_size / 8.0);
 #endif
     }
-    else if (cellDef == EditRootDef)
+    else
     {
 	DBUndoEraseLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
@@ -1585,7 +1585,7 @@ cmdLabelJustFunc(label, cellUse, transform, value)
 	TxPrintf("%s\n", GeoPosToName(label->lab_just));
 #endif
     }
-    else if (cellDef == EditRootDef)
+    else
     {
 	DBUndoEraseLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
@@ -1621,7 +1621,7 @@ cmdLabelLayerFunc(label, cellUse, transform, value)
 	TxPrintf("%s\n", DBTypeLongNameTbl[label->lab_type]);
 #endif
     }
-    else if (cellDef == EditRootDef)
+    else
     {
 	ttype = (TileType)(*value);
 	if (label->lab_type != ttype)
@@ -1659,7 +1659,7 @@ cmdLabelStickyFunc(label, cellUse, transform, value)
 	TxPrintf("%s\n", (label->lab_flags & LABEL_STICKY) ? "true" : "false");
 #endif
     }
-    else if (cellDef == EditRootDef)
+    else
     {
 	newvalue = label->lab_flags;
 	newvalue &= ~LABEL_STICKY;
@@ -1703,7 +1703,7 @@ cmdLabelOffsetFunc(label, cellUse, transform, point)
 		(double)(label->lab_offset.p_y) / 8.0);
 #endif
     }
-    else if (cellDef == EditRootDef)
+    else
     {
 	DBUndoEraseLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
@@ -1744,7 +1744,7 @@ cmdLabelFontFunc(label, cellUse, transform, font)
 	    TxPrintf("%s\n", DBFontList[label->lab_font]->mf_name);
 #endif
     }
-    else if (cellDef == EditRootDef)
+    else
     {
 	DBUndoEraseLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
