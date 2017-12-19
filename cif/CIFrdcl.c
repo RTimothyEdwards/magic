@@ -1106,7 +1106,7 @@ bool
 cifParseUser95()
 {
     Rect rectangle;
-    Point size, center;
+    Point size, center, cscaled;
     char *name = NULL;
     TileType type;
     int layer, i;
@@ -1131,30 +1131,30 @@ cifParseUser95()
     /* so that half-lambda centers are resolved before remapping to	*/
     /* magic coordinates.						*/
 
-    center.p_x = CIFScaleCoord(center.p_x - size.p_x/2, COORD_ANY);
+    cscaled.p_x = CIFScaleCoord(center.p_x - size.p_x/2, COORD_ANY);
     savescale = cifCurReadStyle->crs_scaleFactor;
-    center.p_y = CIFScaleCoord(center.p_y - size.p_y/2, COORD_ANY);
+    cscaled.p_y = CIFScaleCoord(center.p_y - size.p_y/2, COORD_ANY);
     if (savescale != cifCurReadStyle->crs_scaleFactor)
     {
-	center.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	cscaled.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
 	savescale = cifCurReadStyle->crs_scaleFactor;
     }
     size.p_x = CIFScaleCoord(center.p_x + (size.p_x - size.p_x/2), COORD_ANY);
     if (savescale != cifCurReadStyle->crs_scaleFactor)
     {
-	center.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
-	center.p_y *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	cscaled.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	cscaled.p_y *= (savescale / cifCurReadStyle->crs_scaleFactor);
 	savescale = cifCurReadStyle->crs_scaleFactor;
     }
     size.p_y = CIFScaleCoord(center.p_y + (size.p_y - size.p_y/2), COORD_ANY);
     if (savescale != cifCurReadStyle->crs_scaleFactor)
     {
-	center.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
-	center.p_y *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	cscaled.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	cscaled.p_y *= (savescale / cifCurReadStyle->crs_scaleFactor);
 	size.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
     }
-    rectangle.r_xbot = center.p_x;
-    rectangle.r_ybot = center.p_y;
+    rectangle.r_xbot = cscaled.p_x;
+    rectangle.r_ybot = cscaled.p_y;
     rectangle.r_xtop = size.p_x;
     rectangle.r_ytop = size.p_y;
 
