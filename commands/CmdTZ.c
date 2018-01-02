@@ -566,7 +566,7 @@ CmdTech(w, cmd)
 	    {
 #ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, "Technology file does not exist"
-				"or is not readable\n", NULL);
+				" or is not readable\n", NULL);
 #else
 		TxError("Technology file does not exist or is not readable.\n");
 #endif
