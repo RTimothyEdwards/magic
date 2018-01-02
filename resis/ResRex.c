@@ -107,22 +107,22 @@ ExtResisForDef(celldef, resisdata)
     Maxtnumber = 0;
     HashInit(&ResNodeTable, INITFLATSIZE, HT_STRINGKEYS);
     /* read in .sim file */
-    result = ResReadSim(celldef->cd_name,
+    result = (ResReadSim(celldef->cd_name,
 	      	ResSimTransistor,ResSimCapacitor,ResSimResistor,
-		ResSimAttribute,ResSimMerge) == 0;
+		ResSimAttribute,ResSimMerge) == 0);
 
-    if (result == 0)
+    if (result)
 	/* read in .nodes file   */
-	result = ResReadNode(celldef->cd_name);
+	result = (ResReadNode(celldef->cd_name) == 0);
 
-    /* Check for subcircuit ports */
-    if (ResOptionsFlags & ResOpt_Blackbox)
-	result &= ResCheckBlackbox(celldef);
-    else
-	result &= ResCheckPorts(celldef);
-
-    if (result == 0) 
+    if (result)
     {
+	/* Check for subcircuit ports */
+	if (ResOptionsFlags & ResOpt_Blackbox)
+	    ResCheckBlackbox(celldef);
+	else
+	    ResCheckPorts(celldef);
+
 	/* Extract networks for nets that require it. */
 	if (!(ResOptionsFlags & ResOpt_FastHenry) || 
 			DBIsSubcircuit(celldef))
@@ -131,6 +131,8 @@ ExtResisForDef(celldef, resisdata)
 	if (ResOptionsFlags & ResOpt_Stat)
 	    ResPrintStats((ResGlobalParams *)NULL,"");
     }
+
+    /* Clean up */
 
     HashStartSearch(&hs);
     while((entry = HashNext(&ResNodeTable,&hs)) != NULL)
