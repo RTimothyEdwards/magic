@@ -855,6 +855,8 @@ ResInitializeNode(entry)
 	  node->oldname = NULL;
 	  node->drivepoint.p_x = INFINITY;
 	  node->drivepoint.p_y = INFINITY;
+	  node->location.p_x = INFINITY;
+	  node->location.p_y = INFINITY;
 	  node->rs_sublist[0]=NULL;
 	  node->rs_sublist[1]=NULL;
      }
