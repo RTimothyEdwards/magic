@@ -575,6 +575,9 @@ resSubcircuitFunc(cellDef, rdata)
     CellDef *cellDef;
     ResisData *rdata;
 {
+    if ((cellDef->cd_flags & CDINTERNAL) == CDINTERNAL)
+	return 0;
+
     if (cellDef != rdata->mainDef)
 	if (DBIsSubcircuit(cellDef))
 	    ExtResisForDef(cellDef, rdata);
