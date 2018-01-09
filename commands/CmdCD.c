@@ -3497,6 +3497,7 @@ CmdDrc(w, cmd)
 	
 	case DRC_OFF:
 	    DRCBackGround = DRC_SET_OFF;
+	    DRCBreak();
 #ifdef MAGIC_WRAPPER
 	    if (TxInputRedirect != TX_INPUT_REDIRECTED)
 #endif

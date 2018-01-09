@@ -2455,10 +2455,12 @@ dbWritePropFunc(key, value, cdata)
     ClientData cdata;
 {
     FILE *f = (FILE *)cdata;
-    char lstring[256];
+    char *lstring;
 
+    lstring = (char *)mallocMagic(10 + strlen((char *)value) + strlen(key));
     sprintf(lstring, "string %s %s\n", key, (char *)value);
     FPRINTR(f, lstring);
+    freeMagic(lstring);
 
     return 0;
 }
