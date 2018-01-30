@@ -1112,7 +1112,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		if ((defMacro == NULL) || ((defUse = DBCellNewUse(defMacro, usename))
 			== NULL))
 		{
-		    LefEndStatement(f);
+		    if (defMacro != NULL) LefEndStatement(f);
 		    break;
 		}
 		DBLinkCell(defUse, rootDef);
