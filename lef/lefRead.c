@@ -948,7 +948,8 @@ LefPaintPolygon(lefMacro, pointList, points, curlayer, keep)
  */
 
 enum lef_geometry_keys {LEF_LAYER = 0, LEF_WIDTH, LEF_PATH,
-	LEF_RECT, LEF_POLYGON, LEF_VIA, LEF_GEOMETRY_END};
+	LEF_RECT, LEF_POLYGON, LEF_VIA, LEF_PORT_CLASS,
+	LEF_GEOMETRY_END};
 
 LinkedRect *
 LefReadGeometry(lefMacro, f, oscale, do_list)
@@ -973,6 +974,7 @@ LefReadGeometry(lefMacro, f, oscale, do_list)
 	"RECT",
 	"POLYGON",
 	"VIA",
+	"CLASS",
 	"END",
 	NULL
     };
@@ -1073,6 +1075,9 @@ LefReadGeometry(lefMacro, f, oscale, do_list)
 	    case LEF_VIA:
 		LefEndStatement(f);
 		break;
+	    case LEF_PORT_CLASS:
+		LefEndStatement(f);
+		break;
 	    case LEF_GEOMETRY_END:
 		if (LefParseEndStatement(f, NULL) == 0)
 		{
@@ -1161,7 +1166,9 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, oscale)
  */
 
 enum lef_pin_keys {LEF_DIRECTION = 0, LEF_USE, LEF_PORT, LEF_CAPACITANCE,
-	LEF_PIN_END};
+	LEF_ANTENNADIFF, LEF_ANTENNAGATE, LEF_ANTENNAMOD,
+	LEF_ANTENNAPAR, LEF_ANTENNAPARSIDE, LEF_ANTENNAMAX, LEF_ANTENNAMAXSIDE,
+	LEF_SHAPE, LEF_NETEXPR, LEF_PIN_END};
 
 void
 LefReadPin(lefMacro, f, pinname, pinNum, oscale)
@@ -1181,6 +1188,15 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale)
 	"USE",
 	"PORT",
 	"CAPACITANCE",
+	"ANTENNADIFFAREA",
+	"ANTENNAGATEAREA",
+	"ANTENNAMODEL",
+	"ANTENNAPARTIALMETALAREA",
+	"ANTENNAPARTIALMETALSIDEAREA",
+	"ANTENNAMAXAREACAR",
+	"ANTENNAMAXSIDEAREACAR",
+	"SHAPE",
+	"NETEXPR",
 	"END",
 	NULL
     };
@@ -1256,6 +1272,15 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale)
 		LefReadPort(lefMacro, f, pinname, pinNum, pinDir, pinUse, oscale);
 		break;
 	    case LEF_CAPACITANCE:
+	    case LEF_ANTENNADIFF:
+	    case LEF_ANTENNAGATE:
+	    case LEF_ANTENNAMOD:
+	    case LEF_ANTENNAPAR:
+	    case LEF_ANTENNAPARSIDE:
+	    case LEF_ANTENNAMAX:
+	    case LEF_ANTENNAMAXSIDE:
+	    case LEF_SHAPE:
+	    case LEF_NETEXPR:
 		LefEndStatement(f);	/* Ignore. . . */
 		break;
 	    case LEF_PIN_END:
@@ -1681,10 +1706,20 @@ LefAddViaGeometry(f, lefl, curlayer, oscale)
  *------------------------------------------------------------
  */
 
-enum lef_layer_keys {LEF_LAYER_TYPE=0, LEF_LAYER_WIDTH, LEF_LAYER_SPACING,
+enum lef_layer_keys {LEF_LAYER_TYPE=0, LEF_LAYER_WIDTH,
+	LEF_LAYER_MAXWIDTH, LEF_LAYER_AREA,
+	LEF_LAYER_SPACING, LEF_LAYER_SPACINGTABLE,
 	LEF_LAYER_PITCH, LEF_LAYER_DIRECTION, LEF_LAYER_OFFSET,
+	LEF_LAYER_WIREEXT,
+	LEF_LAYER_RES, LEF_LAYER_CAP, LEF_LAYER_EDGECAP,
+	LEF_LAYER_THICKNESS, LEF_LAYER_HEIGHT,
+	LEF_LAYER_MINDENSITY, LEF_LAYER_ANTENNADIFF,
+	LEF_LAYER_ANTENNASIDE,
 	LEF_VIA_DEFAULT, LEF_VIA_LAYER, LEF_VIA_RECT,
-	LEF_VIARULE_VIA, LEF_LAYER_END};
+	LEF_VIA_ENCLOSURE, LEF_VIA_PREFERENCLOSURE,
+	LEF_VIARULE_OVERHANG,
+	LEF_VIARULE_METALOVERHANG, LEF_VIARULE_VIA,
+	LEF_VIARULE_GENERATE, LEF_LAYER_END};
 
 void
 LefReadLayerSection(f, lname, mode, lefl)
@@ -1711,15 +1746,38 @@ LefReadLayerSection(f, lname, mode, lefl)
     static char *layer_keys[] = {
 	"TYPE",
 	"WIDTH",
+	"MAXWIDTH",
+	"AREA",
 	"SPACING",
+	"SPACINGTABLE",
 	"PITCH",
 	"DIRECTION",
 	"OFFSET",
+	"WIREEXTENSION",
+	"RESISTANCE",
+	"CAPACITANCE",
+	"EDGECAPACITANCE",
+	"THICKNESS",
+	"HEIGHT",
+	"MINIMUMDENSITY",
+	"ANTENNADIFFAREARATIO",
+	"ANTENNASIDEAREARATIO",
 	"DEFAULT",
 	"LAYER",
 	"RECT",
+	"ENCLOSURE",
+	"PREFERENCLOSURE",
+	"OVERHANG",
+	"METALOVERHANG",
 	"VIA",
+	"GENERATE",
 	"END",
+	NULL
+    };
+
+    static char *spacing_keys[] = {
+	"RANGE",
+	";",
 	NULL
     };
 
@@ -1747,9 +1805,15 @@ LefReadLayerSection(f, lname, mode, lefl)
 				"ignoring.\n", token);
 		}
 		if (lefl->lefClass != typekey)
-		    LefError("Attempt to reclassify layer %s from %s to %s\n",
-				lname, layer_type_keys[lefl->lefClass],
-				layer_type_keys[typekey]);
+		{
+		    /* ROUTE and VIA are taken from techfile lef section */
+		    /* and so having a different TYPE is an error.	 */
+		    /* Otherwise just ignore the type.			 */
+		    if (typekey == CLASS_ROUTE || typekey == CLASS_VIA)
+			LefError("Attempt to reclassify layer %s from %s to %s\n",
+					lname, layer_type_keys[lefl->lefClass],
+					layer_type_keys[typekey]);
+		}
 		LefEndStatement(f);
 		break;
 	    case LEF_LAYER_WIDTH:
@@ -1759,11 +1823,21 @@ LefReadLayerSection(f, lname, mode, lefl)
 		    lefl->info.route.width = (int)roundf(fvalue / oscale);
 		LefEndStatement(f);
 		break;
+	    case LEF_LAYER_MAXWIDTH:
+	    case LEF_LAYER_AREA:
+		/* Not handled */
+		LefEndStatement(f);
+		break;
 	    case LEF_LAYER_SPACING:
+		/* To do:  Handle RANGE */
 		token = LefNextToken(f, TRUE);
 		sscanf(token, "%f", &fvalue);
 		if (lefl->lefClass == CLASS_ROUTE)
 		    lefl->info.route.spacing = (int)roundf(fvalue / oscale);
+		LefEndStatement(f);
+		break;
+	    case LEF_LAYER_SPACINGTABLE:
+		/* To do:  Handle spacing tables */
 		LefEndStatement(f);
 		break;
 	    case LEF_LAYER_PITCH:
@@ -1781,9 +1855,19 @@ LefReadLayerSection(f, lname, mode, lefl)
 		LefEndStatement(f);
 		break;
 	    case LEF_LAYER_OFFSET:
+	    case LEF_LAYER_RES:
+	    case LEF_LAYER_CAP:
+	    case LEF_LAYER_EDGECAP:
+	    case LEF_LAYER_THICKNESS:
+	    case LEF_LAYER_HEIGHT:
+	    case LEF_LAYER_MINDENSITY:
+	    case LEF_LAYER_ANTENNADIFF:
+	    case LEF_LAYER_ANTENNASIDE:
+	    case LEF_LAYER_WIREEXT:
 		LefEndStatement(f);
 		break;
 	    case LEF_VIA_DEFAULT:
+	    case LEF_VIARULE_GENERATE:
 		/* Do nothing; especially, don't look for end-of-statement! */
 		break;
 	    case LEF_VIA_LAYER:
@@ -1795,6 +1879,10 @@ LefReadLayerSection(f, lname, mode, lefl)
 		LefEndStatement(f);
 		break;
 	    case LEF_VIARULE_VIA:
+	    case LEF_VIA_ENCLOSURE:
+	    case LEF_VIA_PREFERENCLOSURE:
+	    case LEF_VIARULE_OVERHANG:
+	    case LEF_VIARULE_METALOVERHANG:
 		LefEndStatement(f);
 		break;
 	    case LEF_LAYER_END:
@@ -1826,7 +1914,10 @@ LefReadLayerSection(f, lname, mode, lefl)
  *------------------------------------------------------------
  */
 
-enum lef_sections {LEF_VERSION = 0, LEF_NAMESCASESENSITIVE,
+enum lef_sections {LEF_VERSION = 0,
+	LEF_BUSBITCHARS, LEF_DIVIDERCHAR, LEF_MANUFACTURINGGRID,
+	LEF_USEMINSPACING, LEF_CLEARANCEMEASURE,
+	LEF_NAMESCASESENSITIVE,
 	LEF_PROPERTYDEFS, LEF_UNITS, LEF_SECTION_LAYER,
 	LEF_SECTION_VIA, LEF_SECTION_VIARULE,
 	LEF_SECTION_SPACING, LEF_SECTION_SITE, LEF_PROPERTY,
@@ -1850,6 +1941,11 @@ LefRead(inName, importForeign)
 
     static char *sections[] = {
 	"VERSION",
+	"BUSBITCHARS",
+	"DIVIDERCHAR",
+	"MANUFACTURINGGRID",
+	"USEMINSPACING",
+	"CLEARANCEMEASURE",
 	"NAMESCASESENSITIVE",
 	"PROPERTYDEFINITIONS",
 	"UNITS",
@@ -1909,6 +2005,10 @@ LefRead(inName, importForeign)
 	switch (keyword)
 	{
 	    case LEF_VERSION:
+	    case LEF_BUSBITCHARS:
+	    case LEF_DIVIDERCHAR:
+	    case LEF_CLEARANCEMEASURE:
+	    case LEF_MANUFACTURINGGRID:
 		LefEndStatement(f);
 		break;
 	    case LEF_NAMESCASESENSITIVE:
@@ -1966,8 +2066,8 @@ LefRead(inName, importForeign)
 			mtype = DBTechNameType(LefLower(token));
 		    if (mtype < 0)
 		    {
-			LefError("Layer %s cannot be mapped to any magic layer!\n",
-				token);
+			/* Ignore.  This is probably a masterslice or	*/
+			/* overlap, but that hasn't been parsed yet.	*/
 			LefSkipSection(f, tsave);
 			break;
 		    }
