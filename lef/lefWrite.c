@@ -911,6 +911,10 @@ lefWriteMacro(def, f, scale)
 
 	// TTMaskSetOnlyType(&lmask, lab->lab_type);
 
+        // Avoid errors caused by labels attached to space or
+	// various technology file issues.
+	TTMaskClearType(&lc.rmask, TT_SPACE);
+
 	ttype = TT_SPACE;
 	scx.scx_area = labr;
 	SelectClear();
