@@ -3384,6 +3384,10 @@ drcTechFinalStyle(style)
     drcScaleUp(style, style->DRCScaleFactorD);
     drcScaleDown(style, style->DRCScaleFactorN);
 
+    /* Scale DRCTechHalo to match */
+    DRCTechHalo *= style->DRCScaleFactorD;
+    DRCTechHalo /= style->DRCScaleFactorN;
+
     /* Set maximum halo */
     style->DRCTechHalo = DRCTechHalo;
 
