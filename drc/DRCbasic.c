@@ -281,7 +281,7 @@ areaCheck(tile, arg)
  * Side effects:
  *	Calls function for each design-rule violation in celldef
  *	that is triggered by an edge in rect and whose violation
- *	area falls withing clipRect.  This routine makes a flat check:
+ *	area falls within clipRect.  This routine makes a flat check:
  *	it considers only information in the paint planes of celldef,
  *	and does not expand children.  Function should have the form:
  *	void

@@ -481,7 +481,7 @@ DRCContinuous()
 				 */
 	while ((DRCPendingRoot != (DRCPendingCookie *)NULL) &&
 	    DBSrPaintArea ((Tile *) NULL,
-	    DRCPendingRoot->dpc_def->cd_planes [PL_DRC_CHECK],
+	    DRCPendingRoot->dpc_def->cd_planes[PL_DRC_CHECK],
 	    &TiPlaneRect, &DBAllButSpaceBits, drcCheckTile, (ClientData) NULL))
 	{
 			     /* check for new user command (without blocking) */
@@ -664,7 +664,7 @@ drcCheckTile(tile, arg)
      */
 
     /* DRCBasicCheck (celldef, &checkbox, &erasebox, drcPaintError,
-	(ClientData) drcTempPlane); */
+		(ClientData) drcTempPlane); */
 
     /* Check #2:  check interactions between paint and subcells, and
      * also between subcells and other subcells.  If any part of a
@@ -675,8 +675,8 @@ drcCheckTile(tile, arg)
      */
 
     DRCErrorType = TT_ERROR_S;
-    (void) DRCInteractionCheck(celldef, &square, &erasebox,
-		drcPaintError, (ClientData) drcTempPlane);
+    (void) DRCInteractionCheck(celldef, &erasebox, drcPaintError,
+		(ClientData) drcTempPlane);
     
     /* Check #3:  check for array formation errors in the area. */
 

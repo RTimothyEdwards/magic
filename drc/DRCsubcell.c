@@ -573,9 +573,8 @@ drcExactOverlapTile(tile, cxp)
  */
 
 int
-DRCInteractionCheck(def, area, erasebox, func, cdarg)
+DRCInteractionCheck(def, erasebox, func, cdarg)
     CellDef *def;		/* Definition in which to do check. */
-    Rect *area;			/* Area in which all errors are to be found. */
     Rect *erasebox;		/* Smaller area containing DRC check tiles */
     void (*func)();		/* Function to call for each error. */
     ClientData cdarg;		/* Extra info to be passed to func. */
@@ -596,25 +595,25 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
      * square separately.
      */
     
-    x = (area->r_xbot/DRCStepSize) * DRCStepSize;
-    if (x > area->r_xbot) x -= DRCStepSize;
-    y = (area->r_ybot/DRCStepSize) * DRCStepSize;
-    if (y > area->r_ybot) y -= DRCStepSize;
-    for (square.r_xbot = x; square.r_xbot < area->r_xtop;
+    x = (erasebox->r_xbot/DRCStepSize) * DRCStepSize;
+    if (x > erasebox->r_xbot) x -= DRCStepSize;
+    y = (erasebox->r_ybot/DRCStepSize) * DRCStepSize;
+    if (y > erasebox->r_ybot) y -= DRCStepSize;
+    for (square.r_xbot = x; square.r_xbot < erasebox->r_xtop;
 	 square.r_xbot += DRCStepSize)
-	for (square.r_ybot = y; square.r_ybot < area->r_ytop;
+	for (square.r_ybot = y; square.r_ybot < erasebox->r_ytop;
 	     square.r_ybot += DRCStepSize)
 	{
 	    square.r_xtop = square.r_xbot + DRCStepSize;
 	    square.r_ytop = square.r_ybot + DRCStepSize;
 
-	    /* Limit square to area.  Otherwise, a huge processing	*/
+	    /* Limit square to erasebox.  Otherwise, a huge processing	*/
 	    /* penalty is incurred for finding a single error (e.g.,	*/
 	    /* using "drc find" or "drc why" in a large design with a	*/
 	    /* large step size.						*/
 
             cliparea = square;
-	    GeoClip(&cliparea, area);
+	    GeoClip(&cliparea, erasebox);
 
 	    /* Find all the interactions in the square, and clip to the error
 	     * area we're interested in. */
