@@ -573,8 +573,9 @@ drcExactOverlapTile(tile, cxp)
  */
 
 int
-DRCInteractionCheck(def, erasebox, func, cdarg)
+DRCInteractionCheck(def, area, erasebox, func, cdarg)
     CellDef *def;		/* Definition in which to do check. */
+    Rect *area;			/* Area in which all errors are to be found. */
     Rect *erasebox;		/* Smaller area containing DRC check tiles */
     void (*func)();		/* Function to call for each error. */
     ClientData cdarg;		/* Extra info to be passed to func. */
@@ -595,13 +596,13 @@ DRCInteractionCheck(def, erasebox, func, cdarg)
      * square separately.
      */
     
-    x = (erasebox->r_xbot/DRCStepSize) * DRCStepSize;
-    if (x > erasebox->r_xbot) x -= DRCStepSize;
-    y = (erasebox->r_ybot/DRCStepSize) * DRCStepSize;
-    if (y > erasebox->r_ybot) y -= DRCStepSize;
-    for (square.r_xbot = x; square.r_xbot < erasebox->r_xtop;
+    x = (area->r_xbot/DRCStepSize) * DRCStepSize;
+    if (x > area->r_xbot) x -= DRCStepSize;
+    y = (area->r_ybot/DRCStepSize) * DRCStepSize;
+    if (y > area->r_ybot) y -= DRCStepSize;
+    for (square.r_xbot = x; square.r_xbot < area->r_xtop;
 	 square.r_xbot += DRCStepSize)
-	for (square.r_ybot = y; square.r_ybot < erasebox->r_ytop;
+	for (square.r_ybot = y; square.r_ybot < area->r_ytop;
 	     square.r_ybot += DRCStepSize)
 	{
 	    square.r_xtop = square.r_xbot + DRCStepSize;
@@ -613,7 +614,7 @@ DRCInteractionCheck(def, erasebox, func, cdarg)
 	    /* large step size.						*/
 
             cliparea = square;
-	    GeoClip(&cliparea, erasebox);
+	    GeoClip(&cliparea, area);
 
 	    /* Find all the interactions in the square, and clip to the error
 	     * area we're interested in. */
@@ -621,7 +622,7 @@ DRCInteractionCheck(def, erasebox, func, cdarg)
 	    if (!DRCFindInteractions(def, &cliparea, DRCTechHalo, &intArea))
 	    {
 		/* Added May 4, 2008---if there are no subcells, run the
-		 * basic check over the area of the square.
+		 * basic check over the area of the erasebox.
 		 */
 		subArea = *erasebox;
 		GeoClip(&subArea, &cliparea);
@@ -691,6 +692,12 @@ DRCInteractionCheck(def, erasebox, func, cdarg)
 		}
 		DRCErrorType = errorSaveType;
 	    }
+
+ 	    /* Clip interaction area against subArea-expanded-by-halo */
+
+	    subArea = *erasebox;
+	    GEO_EXPAND(&subArea, DRCTechHalo, &cliparea);
+	    GeoClip(&intArea, &cliparea);
     
 	    /* Flatten the interaction area. */
 
