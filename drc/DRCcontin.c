@@ -615,6 +615,7 @@ drcCheckTile(tile, arg)
     Rect erasebox;		/* erase old ERROR tiles in this
 				 * region and clip new ERRORs to it
 				 */
+    Rect checkbox;
     CellDef * celldef;		/* First CellDef on DRCPending list. */
     Rect redisplayArea;		/* Area to be redisplayed. */
     extern int drcXorFunc();	/* Forward declarations. */
@@ -643,6 +644,12 @@ drcCheckTile(tile, arg)
 	erasebox.r_xbot, erasebox.r_ybot,
 	erasebox.r_xtop, erasebox.r_ytop);
     */
+
+    /* checkbox is erasebox expanded by DRCTechHalo.  Note that this is	*/
+    /* computed independently inside DRCInteractionCheck().		*/
+
+    GEO_EXPAND(&erasebox, DRCTechHalo, &checkbox);
+    GeoClip(&checkbox, &square);
 
     /* Use drcDisplayPlane to save all the current errors in the
      * area we're about to recheck.
@@ -675,8 +682,8 @@ drcCheckTile(tile, arg)
      */
 
     DRCErrorType = TT_ERROR_S;
-    (void) DRCInteractionCheck(celldef, &erasebox, drcPaintError,
-		(ClientData) drcTempPlane);
+    (void) DRCInteractionCheck(celldef, &square, &erasebox,
+		drcPaintError, (ClientData) drcTempPlane);
     
     /* Check #3:  check for array formation errors in the area. */
 
@@ -700,10 +707,10 @@ drcCheckTile(tile, arg)
     DBPaintPlane(celldef->cd_planes[PL_DRC_CHECK], &erasebox,
 	DBStdEraseTbl(TiGetType(tile), PL_DRC_CHECK),
 	(PaintUndoInfo *) NULL);
-    DBPaintPlane(celldef->cd_planes[PL_DRC_ERROR], &erasebox,
+    DBPaintPlane(celldef->cd_planes[PL_DRC_ERROR], &checkbox,
 	DBStdEraseTbl(TT_ERROR_P, PL_DRC_ERROR),
 	(PaintUndoInfo *) NULL);
-    DBPaintPlane(celldef->cd_planes[PL_DRC_ERROR], &square,
+    DBPaintPlane(celldef->cd_planes[PL_DRC_ERROR], &checkbox,
 	DBStdEraseTbl(TT_ERROR_S, PL_DRC_ERROR),
 	(PaintUndoInfo *) NULL);
     (void) DBSrPaintArea((Tile *) NULL, drcTempPlane, &TiPlaneRect,
