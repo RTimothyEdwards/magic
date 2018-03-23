@@ -1324,6 +1324,54 @@ badTransform:
 
     if (path[0] != '\0')
     {
+	char *slashptr;
+
+	/* Relative path handling:  If path does not have a leading "/"	*/
+	/* or "~" and cellDef->cd_file has path components, then the	*/
+	/* path should be interpreted relative to the path of the	*/
+	/* parent cell.							*/
+
+	if ((path[0] != '/') && (path[0] != '~'))
+	    if ((cellDef->cd_file != NULL) &&
+			(slashptr = strrchr(cellDef->cd_file, '/')) != NULL)
+	    {
+		char savepath[1024];
+		*slashptr = '\0';
+		strcpy(savepath, path);
+		sprintf(path, "%s/%s", cellDef->cd_file, savepath);
+		*slashptr = '/';
+	    }
+
+	/* If path has a leading '~/' and cellDef->cd_file has an	*/
+	/* absolute path that does not match the user's home directory,	*/
+	/* but appears to be a different home directory, then replace	*/
+	/* the "~" with the home directory used by the parent cell.	*/
+
+	if (path[0] == '~' && path[1] == '/')
+	    if ((cellDef->cd_file != NULL) && (cellDef->cd_file[0] == '/'))
+	    {
+		char *homedir = getenv("HOME");
+		if (strncmp(cellDef->cd_file, homedir, strlen(homedir)) ||
+			*(cellDef->cd_file + strlen(homedir)) != '/')
+		{
+		    char *homeroot = strrchr(homedir, '/');
+		    int rootlen = (int)(homeroot - homedir) + 1;
+		    if (!strncmp(cellDef->cd_file, homedir, rootlen))
+		    {
+			char savepath[1024];
+			char *userbrk = strchr(cellDef->cd_file + rootlen,
+				'/');
+			if (userbrk != NULL)
+			{
+			    int userlen = (int)(userbrk - cellDef->cd_file);
+			    strcpy(savepath, path + 1);
+			    strcpy(path, cellDef->cd_file);
+			    strcpy(path + userlen, savepath);
+			}
+		    }
+		}
+	    }
+
 	/* If "use" line contains a path name, then set cd_file to this	*/
 	/* and it will be the preferred path.  If cd_file is already	*/
 	/* set and points to a different target, then flag an error, as	*/
@@ -1332,13 +1380,10 @@ badTransform:
 
 	if (subCellDef->cd_file != NULL)
 	{
-	    char *slashptr = strrchr(subCellDef->cd_file, '/');
+	    slashptr = strrchr(subCellDef->cd_file, '/');
 	    if (slashptr != NULL)
 	    {
 		*slashptr = '\0';
-
-		/* NOTE:  This routine should probably check for	*/
-		/* relative vs. absolute paths. . .			*/
 
 		if (strcmp(subCellDef->cd_file, path))
 		{
@@ -1353,6 +1398,7 @@ badTransform:
 	else
 	{
 	    /* Reconstruct file from path and cellname */
+
 	    strcat(path, "/");
 	    strcat(path, subCellDef->cd_name);
 	    strcat(path, DBSuffix);
@@ -2967,9 +3013,26 @@ dbWriteCellFunc(cellUse, cdarg)
     }
     else
     {
-	sprintf(cstring, "use %s %c%s %s\n", cellUse->cu_def->cd_name,
-		(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-		cellUse->cu_id, cellUse->cu_def->cd_file);
+	/* If path starts with home path, then replace with "~"	*/
+	/* to make IP semi-portable between home directories	*/
+	/* with the same file structure.			*/
+
+	char *homedir = getenv("HOME");
+
+	if (!strncmp(cellUse->cu_def->cd_file, homedir, strlen(homedir))
+		&& (*(cellUse->cu_def->cd_file + strlen(homedir)) == '/'))
+	{
+	    sprintf(cstring, "use %s %c%s ~%s\n", cellUse->cu_def->cd_name,
+			(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
+			cellUse->cu_id, cellUse->cu_def->cd_file +
+			strlen(homedir));
+	}
+	else
+	{
+	    sprintf(cstring, "use %s %c%s %s\n", cellUse->cu_def->cd_name,
+			(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
+			cellUse->cu_id, cellUse->cu_def->cd_file);
+	}
     }
     FPRINTR(arg->wa_file, cstring);
 
