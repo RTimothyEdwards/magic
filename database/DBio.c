@@ -1156,8 +1156,8 @@ dbReadUse(cellDef, line, len, f, scalen, scaled)
     int scaled;		/* Divide values in file by this */
 {
     int xlo, xhi, ylo, yhi, xsep, ysep, childStamp;
-    int absa, absb, absd, abse;
-    char cellname[1024], useid[1024];
+    int absa, absb, absd, abse, nconv;
+    char cellname[1024], useid[1024], path[1024];
     CellUse *subCellUse;
     CellDef *subCellDef;
     Transform t;
@@ -1171,11 +1171,15 @@ dbReadUse(cellDef, line, len, f, scalen, scaled)
     }
 
     useid[0] = '\0';
-    if (sscanf(line, "use %1023s %1023s", cellname, useid) < 1)
+    nconv = sscanf(line, "use %1023s %1023s %1023s", cellname, useid, path);
+    if (nconv < 1)
     {
 	TxError("Malformed \"use\" line: %s", line);
 	return (FALSE);
     }
+    /* Make sure useid[0] is an empty string if no useid was provided */
+    if (nconv == 1) useid[0] = '\0';
+    if (nconv == 2) path[0] = '\0';
 
     locked = (useid[0] == CULOCKCHAR) ? TRUE : FALSE;
 
@@ -1318,6 +1322,43 @@ badTransform:
 	goto nextLine;
     }
 
+    if (path[0] != '\0')
+    {
+	/* If "use" line contains a path name, then set cd_file to this	*/
+	/* and it will be the preferred path.  If cd_file is already	*/
+	/* set and points to a different target, then flag an error, as	*/
+	/* there are now two versions of the same cell name coming from	*/
+	/* different sources, and this must be corrected.		*/
+
+	if (subCellDef->cd_file != NULL)
+	{
+	    char *slashptr = strrchr(subCellDef->cd_file, '/');
+	    if (slashptr != NULL)
+	    {
+		*slashptr = '\0';
+
+		/* NOTE:  This routine should probably check for	*/
+		/* relative vs. absolute paths. . .			*/
+
+		if (strcmp(subCellDef->cd_file, path))
+		{
+		    TxError("Internal inconsistency:  Instance is from path %s"
+				" but cell definition comes from %s.\n",
+				path, subCellDef->cd_file);
+		    TxError("Instance path will be ignored.  Please check and fix.\n");
+		}
+		*slashptr = '/';
+	    }
+	}
+	else
+	{
+	    /* Reconstruct file from path and cellname */
+	    strcat(path, "/");
+	    strcat(path, subCellDef->cd_name);
+	    strcat(path, DBSuffix);
+	    StrDup(&subCellDef->cd_file, path);
+	}
+    }
     
     subCellUse = DBCellNewUse(subCellDef, (useid[0]) ?
 		((locked) ? useid + 1 : useid) : (char *) NULL);
