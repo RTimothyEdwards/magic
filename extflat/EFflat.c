@@ -389,9 +389,12 @@ efFlatNodesDeviceless(hc, cdata)
 
 	/* If this definition has no devices but has ports, then it is treated	*/
 	/* as a black-box device, so don't decrement the use count of the	*/
-	/* parent.								*/
+	/* parent.  Alternately, devices flagged "abstract" are automatically	*/
+	/* treated as black-box devices.					*/
+
 	if (!(hc->hc_use->use_def->def_flags & DEF_SUBCIRCUIT))
-	    (*usecount)--;
+	    if (!(hc->hc_use->use_def->def_flags & DEF_ABSTRACT))
+		(*usecount)--;
     }
     return (0);
 }
