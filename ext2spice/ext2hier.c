@@ -1787,8 +1787,26 @@ esHierVisit(hc, cdata)
 	fprintf(esSpiceF, "* Black-box entry subcircuit for %s abstract view\n",
 		def->def_name);
 
+    /* Automatic subcircuit handling for top level:  Check if the top	*/
+    /* level has any ports defined.  If so, make a subcircuit record	*/
+    /* for it.  If not, don't.						*/
+
+    if ((def == topdef) && (locDoSubckt == AUTO))
+    {
+	/* Determine if there are ports */
+	locDoSubckt = FALSE;
+	for (snode = (EFNode *) def->def_firstn.efnode_next;
+			snode != &def->def_firstn;
+			snode = (EFNode *) snode->efnode_next)
+	    if (snode->efnode_flags & (EF_PORT | EF_SUBS_PORT))
+	    {
+		locDoSubckt = TRUE;
+		break;
+	    }
+    }
+
     /* Generate subcircuit header */
-    if ((def != topdef) || (def->def_flags & DEF_SUBCIRCUIT))
+    if ((def != topdef) || (def->def_flags & DEF_SUBCIRCUIT) || (locDoSubckt == TRUE))
 	topVisit(def, doStub);
     else
 	fprintf(esSpiceF, "\n* Top level circuit %s\n\n", topdef->def_name);
@@ -1835,7 +1853,7 @@ esHierVisit(hc, cdata)
 	}
     }
 
-    if ((def != topdef) || (def->def_flags & DEF_SUBCIRCUIT))
+    if ((def != topdef) || (def->def_flags & DEF_SUBCIRCUIT) || (locDoSubckt == TRUE))
 	fprintf(esSpiceF, ".ends\n\n");
     else
 	fprintf(esSpiceF, ".end\n\n");

@@ -845,13 +845,7 @@ runexttospice:
     locDoSubckt = FALSE;
     if (esDoHierarchy)
     {
-	if ((esDoSubckt == TRUE) || (locDoSubckt == TRUE))
-	    topVisit(efFlatRootDef, FALSE);
-
 	ESGenerateHierarchy(inName, flatFlags);
-
-	if ((esDoSubckt == TRUE) || (locDoSubckt == TRUE))
-	    fprintf(esSpiceF, ".ends\n");
     }
     else
     {
