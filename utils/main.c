@@ -650,6 +650,9 @@ mainInitAfterArgs()
 #endif
     TechAddClient("drc", DRCTechStyleInit, DRCTechLine, DRCTechFinal,
 			sec_types|sec_planes, &sec_drc, FALSE);
+    /* Plow rules are generated from the same lines as the DRC rules */
+    TechAddClient("drc", PlowDRCInit, PlowDRCLine, PlowDRCFinal,
+			sec_types|sec_planes, &sec_drc, FALSE);
 
 #ifdef LEF_MODULE
     TechAddClient("lef", LefTechInit, LefTechLine, nullProc,
@@ -756,8 +759,6 @@ mainInitAfterArgs()
     IRDebugInit();
     IRAfterTech();
 #endif
-
-    PlowAfterTech();	/* Copies DRC rule information into plow database */
 
 	/* Initialize the Sim Module (the part of it which involves (i)rsim) */
 #if !defined(NO_SIM_MODULE) && defined(RSIM_MODULE)

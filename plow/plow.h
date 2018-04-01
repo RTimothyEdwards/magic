@@ -26,7 +26,8 @@
 /* Technology file clients */
 extern int PlowTechInit(), PlowTechFinal();
 extern bool PlowTechLine();
-extern void PlowAfterTech();
+extern int PlowDRCInit(), PlowDRCFinal();
+extern bool PlowDRCLine();
 
 /* Called by CmdPlow() */
 extern bool Plow();
