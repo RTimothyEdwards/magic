@@ -3711,6 +3711,9 @@ DRCTechScale(scalen, scaled)
     drcScaleUp(DRCCurStyle, DRCCurStyle->DRCScaleFactorN);
     drcScaleDown(DRCCurStyle, DRCCurStyle->DRCScaleFactorD);
 
+    /* Do the same for the plow rules */
+    DRCPlowScale(DRCCurStyle->DRCScaleFactorN, DRCCurStyle->DRCScaleFactorD, FALSE);
+
     DRCCurStyle->DRCScaleFactorD *= scaled;
     DRCCurStyle->DRCScaleFactorN *= scalen;
 
@@ -3722,6 +3725,9 @@ DRCTechScale(scalen, scaled)
     /* Rescale all rules to the new scalefactor */
     drcScaleUp(DRCCurStyle, DRCCurStyle->DRCScaleFactorD);
     drcScaleDown(DRCCurStyle, DRCCurStyle->DRCScaleFactorN);
+
+    /* Do the same for the plow rules */
+    DRCPlowScale(DRCCurStyle->DRCScaleFactorD, DRCCurStyle->DRCScaleFactorN, TRUE);
 
     DRCTechHalo *= scaled;
     DRCTechHalo /= scalen;

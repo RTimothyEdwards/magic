@@ -2009,11 +2009,12 @@ plowMergeBottom(tp, plane)
 	TiJoinY(tp, tpLB, plane);
     }
 }
+
 
 /*
  * ----------------------------------------------------------------------------
  *
- * PlowInit --
+ * PlowAfterTech --
  *
  * Initialize the rule tables for plowing.  This gets called after
  * the technology file has been read, since we need to know about
@@ -2040,7 +2041,7 @@ plowMergeBottom(tp, plane)
  */
 
 void
-PlowInit()
+PlowAfterTech()
 {
     RuleTableEntry *rp, *re;
     TileTypeBitMask allButSpace, allBits;

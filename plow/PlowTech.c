@@ -43,7 +43,6 @@ extern char *maskToPrint();
 PlowRule *plowSpacingRulesTbl[TT_MAXTYPES][TT_MAXTYPES];
 PlowRule *plowWidthRulesTbl[TT_MAXTYPES][TT_MAXTYPES];
 
-
 /* Special type masks */
 
 TileTypeBitMask PlowContactTypes;	/* All types that are contacts */
@@ -68,9 +67,597 @@ TileTypeBitMask PlowFixedTypes;		/* Fixed-width types (e.g, fets).
 int plowMaxDist[TT_MAXTYPES];
 
 /* Forward declarations */
-extern void plowEdgeRule(), plowWidthRule(), plowSpacingRule();
+extern int plowEdgeRule(), plowWidthRule(), plowSpacingRule();
 PlowRule *plowTechOptimizeRule();
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * PlowInit() --
+ *
+ *
+ * One-time-only initialization (clearing) of plow tables on startup.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+PlowInit()
+{
+    int i, j;
+
+    for (i = 0; i < TT_MAXTYPES; i++)
+    {
+	for (j = 0; j < TT_MAXTYPES; j++)
+	{
+	    plowWidthRulesTbl[i][j] = (PlowRule *)NULL;
+	    plowSpacingRulesTbl[i][j] = (PlowRule *)NULL;
+	}
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * PlowDRCInit --
+ *
+ * Initialization before processing the "drc" section for plowing.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Clears the rules table.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+PlowDRCInit()
+{
+    register int i, j;
+    register PlowRule *pr;
+
+    /* Remove all old rules from the plowing rules table */
+    for (i = 0; i < DBNumTypes; i++)
+    {
+	for (j = 0; j < DBNumTypes; j++)
+	{
+	    for (pr = plowWidthRulesTbl[i][j]; pr; pr = pr->pr_next)
+		freeMagic((char *)pr);
+		
+	    for (pr = plowSpacingRulesTbl[i][j]; pr; pr = pr->pr_next)
+		freeMagic((char *)pr);
+
+	    plowWidthRulesTbl[i][j] = NULL;
+	    plowSpacingRulesTbl[i][j] = NULL;
+	}
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * PlowDRCLine --
+ *
+ * Process a single line from the "drc" section.
+ *
+ * Results:
+ *	TRUE always.
+ *
+ * Side effects:
+ *	Adds rules to our plowing rule tables.
+ *
+ * Organization:
+ *	We select a procedure based on the first keyword (argv[0])
+ *	and call it to do the work of implementing the rule.  Each
+ *	such procedure is of the following form:
+ *
+ *	void
+ *	proc(argc, argv)
+ *	    int argc;
+ *	    char *argv[];
+ *	{
+ *	}
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+    /*ARGSUSED*/
+bool
+PlowDRCLine(sectionName, argc, argv)
+    char *sectionName;		/* Unused */
+    int argc;
+    char *argv[];
+{
+    int which;
+    static struct
+    {
+	char	*rk_keyword;	/* Initial keyword */
+	int	 rk_minargs;	/* Min # arguments */
+	int	 rk_maxargs;	/* Max # arguments */
+	int    (*rk_proc)();	/* Procedure implementing this keyword */
+    } ruleKeys[] = {
+	"edge",		 8,	9,	plowEdgeRule,
+	"edge4way",	 8,	9,	plowEdgeRule,
+	"spacing",	 6,	6,	plowSpacingRule,
+	"width",	 4,	4,	plowWidthRule,
+	0
+    }, *rp;
+
+    /*
+     * Leave the job of printing error messages to the DRC tech file reader.
+     * We only process a few of the various design-rule types here anyway.
+     */
+    which = LookupStruct(argv[0], (LookupTable *) ruleKeys, sizeof ruleKeys[0]);
+    if (which >= 0)
+    {
+	rp = &ruleKeys[which];
+	if (argc >= rp->rk_minargs && argc <= rp->rk_maxargs)
+	    (*rp->rk_proc)(argc, argv);
+    }
+
+    return (TRUE);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * plowWidthRule --
+ *
+ * Process a width rule.
+ * This is of the form:
+ *
+ *	width layers distance why
+ * e.g, width poly,pmc 2 "poly width must be at least 2"
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Updates the plowing width rule table.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+plowWidthRule(argc, argv)
+    int argc;
+    char *argv[];
+{
+    char *layers = argv[1];
+    int distance = atoi(argv[2]);
+    TileTypeBitMask set, setC, tmp1;
+    PlaneMask ptest, pmask;
+    register PlowRule *pr;
+    register TileType i, j;
+    int pNum;
+
+    /*
+     * All layers in a width rule must be on the same plane;
+     * CoincidentPlanes() below maps contacts to their proper images.
+     */
+    ptest = DBTechNoisyNameMask(layers, &set);
+    pmask = CoincidentPlanes(&set, ptest);
+
+    if (pmask == 0)
+	return 0;
+    pNum = LowestMaskBit(pmask);
+
+    set = tmp1;
+    TTMaskCom2(&setC, &set);
+    TTMaskAndMask(&setC, &DBPlaneTypes[pNum]);
+
+    /*
+     * Must have types in 'set' for at least 'distance' to the right of
+     * any edge between a type in '~set' and a type in 'set'.
+     */
+    for (i = 0; i < DBNumTypes; i++)
+    {
+	if (TTMaskHasType(&setC, i))
+	{
+	    for (j = 0; j < DBNumTypes; j++)
+	    {
+		if (DBTypesOnSamePlane(i, j) && TTMaskHasType(&set, j))
+		{
+		    pr = (PlowRule *)mallocMagic(sizeof(PlowRule));
+		    pr->pr_dist = distance;
+		    pr->pr_mod = 0;
+		    pr->pr_ltypes = setC;
+		    pr->pr_oktypes = set;
+		    pr->pr_pNum = pNum;
+		    pr->pr_flags = PR_WIDTH;
+		    pr->pr_next = plowWidthRulesTbl[i][j];
+		    plowWidthRulesTbl[i][j] = pr;
+		}
+	    }
+	}
+    }
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * plowSpacingRule --
+ *
+ * Process a spacing rule.
+ * This is of the form:
+ *
+ *	spacing layers1 layers2 distance adjacency why
+ * e.g, spacing metal,pmc/m,dmc/m metal,pmc/m,dmc/m 4 touching_ok \
+ *		"metal spacing must be at least 4"
+ *
+ * Adjacency may be either "touching_ok" or "touching_illegal".  In
+ * the former case, no violation occurs when types in layers1 are
+ * immediately adjacent to types in layers2.  In the second case,
+ * such adjacency causes a violation.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Updates the plowing spacing rules.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+plowSpacingRule(argc, argv)
+    int argc;
+    char *argv[];
+{
+    char *layers1 = argv[1], *layers2 = argv[2];
+    int distance = atoi(argv[3]);
+    char *adjacency = argv[4];
+    TileTypeBitMask set1, set2, tmp1, tmp2, setR, setRreverse;
+    int pNum;
+    PlaneMask ptest, planes1, planes2;
+    register PlowRule *pr;
+    register TileType i, j;
+
+    ptest = DBTechNoisyNameMask(layers1, &set1);
+    planes1 = CoincidentPlanes(&set1, ptest);
+    ptest = DBTechNoisyNameMask(layers2, &set2);
+    planes2 = CoincidentPlanes(&set2, ptest);
+
+    if (planes1 == 0 || planes2 == 0)
+	return 0;
+
+    if (strcmp (adjacency, "touching_ok") == 0)
+    {
+	/* If touching is OK, everything must fall in the same plane. */
+	if (planes1 != planes2)
+	    return 0;
+	pNum = LowestMaskBit(planes1);
+
+	/*
+	 * Must not have 'set2' for 'distance' to the right of an edge between
+	 * 'set1' and the types in neither 'set1' nor 'set2' (ie, 'setR').
+	 */
+	set1 = tmp1;
+	set2 = tmp2;
+	planes1 = planes2 = PlaneNumToMaskBit(pNum);
+	TTMaskCom(&tmp1);
+	TTMaskCom(&tmp2);
+	TTMaskAndMask(&tmp1, &tmp2);
+	TTMaskAndMask(&tmp2, &DBPlaneTypes[pNum]);
+	setRreverse = setR = tmp1;
+    }
+    else if (strcmp (adjacency, "touching_illegal") == 0)
+    {
+	/*
+	 * Must not have 'set2' for 'distance' to the right of an edge between
+	 * 'set1' and the types not in 'set1' (ie, 'setR').
+	 */
+	TTMaskCom2(&setR, &set1);
+	TTMaskCom2(&setRreverse, &set2);
+    }
+    else return 0;
+
+    for (i = 0; i < DBNumTypes; i++)
+    {
+	for (j = 0; j < DBNumTypes; j++)
+	{
+	    if (i == j || !DBTypesOnSamePlane(i, j)) continue;
+
+	    /* LHS is an element of set1 and RHS is an element of setR */
+	    if (TTMaskHasType(&set1, i) && TTMaskHasType(&setR, j))
+	    {
+		/* May have to insert several buckets on different planes */
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		{
+		    if (!PlaneMaskHasPlane(planes2, pNum))
+			continue;
+		    pr = (PlowRule *)mallocMagic(sizeof(PlowRule));
+		    TTMaskClearMask3(&tmp1, &DBPlaneTypes[pNum], &set2);
+		    TTMaskCom2(&tmp2, &setRreverse);
+		    TTMaskAndMask3(&pr->pr_ltypes, &DBPlaneTypes[pNum], &tmp2);
+		    pr->pr_oktypes = tmp1;
+		    pr->pr_dist = distance;
+		    pr->pr_mod = 0;
+		    pr->pr_pNum = pNum;
+		    pr->pr_flags = 0;
+		    pr->pr_next = plowSpacingRulesTbl[i][j];
+		    plowSpacingRulesTbl[i][j] = pr;
+		}
+	    }
+
+	    /* Also apply backwards, unless it would create duplicates */
+	    if (TTMaskEqual(&set1, &set2)) continue;
+
+	    /* LHS is an element of set2, RHS is an element of setRreverse */
+	    if (TTMaskHasType(&set2, i) && TTMaskHasType(&setRreverse, j))
+	    {
+		/* May have to insert several buckets on different planes */
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		{
+		    if (!PlaneMaskHasPlane(planes1, pNum)) continue;
+		    pr = (PlowRule *)mallocMagic(sizeof(PlowRule));
+		    TTMaskClearMask3(&tmp1, &DBPlaneTypes[pNum], &set1);
+		    TTMaskCom2(&tmp2, &setRreverse);
+		    TTMaskAndMask3(&pr->pr_ltypes, &DBPlaneTypes[pNum], &tmp2);
+		    pr->pr_oktypes = tmp1;
+		    pr->pr_dist = distance;
+		    pr->pr_mod = 0;
+		    pr->pr_pNum = pNum;
+		    pr->pr_flags = 0;
+		    pr->pr_next = plowSpacingRulesTbl[i][j];
+		    plowSpacingRulesTbl[i][j] = pr;
+		}
+	    }
+	}
+    }
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * plowEdgeRule --
+ *
+ * Process a primitive edge rule.
+ * This is of the form:
+ *
+ *	edge layers1 layers2 dist OKtypes cornerTypes cornerDist why [plane]
+ * or	edge4way layers1 layers2 dist OKtypes cornerTypes cornerDist why [plane]
+ * e.g, edge poly,pmc s 1 diff poly,pmc "poly-diff separation must be 2"
+ *
+ * An "edge" rule is applied only down and to the left.
+ * An "edge4way" rule is applied in all four directions.
+ *
+ * For plowing, we consider edge rules to be spacing rules.
+ * Ordinary "edge" rules can be handled exactly (taking the distance
+ * to be the maximum of dist and cornerDist above), because they are
+ * always applied in the proper direction.  Each edge rule produces
+ * one normal spacing rule, and possibly an additional spacing rule
+ * that is only applied in the penumbra (if cornerTypes and layers2
+ * are different).
+ *
+ * An "edge4way" rule also requires a conservative approximation to
+ * handle the case when it is being applied in the opposite direction.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Updates the plowing spacing rules.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+plowEdgeRule(argc, argv)
+    int argc;
+    char *argv[];
+{
+    char *layers1 = argv[1], *layers2 = argv[2];
+    int distance = atoi(argv[3]);
+    char *okTypes = argv[4], *cornerTypes = argv[5];
+    int cdist = atoi(argv[6]);
+    TileTypeBitMask set1, set2, tmp1, tmp2, tmp3, setC, setM;
+    TileTypeBitMask setOK, setLeft, setRight;
+    int pNum, checkPlane, flags;
+    PlaneMask ptest, planes1, planes2, pmask;
+    bool needPenumbraOnly;
+    bool isFourWay = (strcmp(argv[0], "edge4way") == 0);
+    register PlowRule *pr;
+    register TileType i, j;
+
+    ptest = DBTechNoisyNameMask(layers1, &set1);
+    planes1 = CoincidentPlanes(&set1, ptest);
+    ptest = DBTechNoisyNameMask(layers2, &set2);
+    planes2 = CoincidentPlanes(&set2, ptest);
+    distance = MAX(distance, cdist);
+
+    /* Make sure that all edges between the two sets exist on one plane */
+    if (planes1 == 0 || planes2 == 0)
+	return 0;
+    if (planes1 != planes2)
+	return 0;
+
+    set1 = tmp1;
+    set2 = tmp2;
+    ptest = DBTechNoisyNameMask(cornerTypes, &tmp3);
+    pmask = CoincidentPlanes(&tmp3, ptest);
+    if (pmask == 0)
+	return 0;
+
+    pNum = LowestMaskBit(pmask);
+
+    /* If an explicit check plane was specified, use it */
+    checkPlane = pNum;
+    if (argc == 9)
+    {
+	checkPlane = DBTechNamePlane(argv[8]);
+	if (checkPlane < 0)
+	    return 0;
+    }
+
+    /* Get the images of everything in okTypes on the check plane */
+    ptest = DBTechNoisyNameMask(okTypes, &setM);
+    pmask = CoincidentPlanes(&setM, ptest);
+    if (pmask == 0)
+	return 0;
+
+    needPenumbraOnly = !TTMaskEqual(&set2, &setC);
+    TTMaskCom2(&setLeft, &setC);
+    TTMaskAndMask(&setLeft, &DBPlaneTypes[pNum]);
+    TTMaskCom2(&setRight, &set2);
+    TTMaskAndMask(&setRight, &DBPlaneTypes[pNum]);
+    flags = isFourWay ? PR_EDGE4WAY : PR_EDGE;
+    for (i = 0; i < DBNumTypes; i++)
+    {
+	if (TTMaskHasType(&set1, i))
+	{
+	    for (j = 0; j < DBNumTypes; j++)
+	    {
+		if (TTMaskHasType(&set2, j))
+		{
+		    pr = (PlowRule *)mallocMagic(sizeof(PlowRule));
+		    pr->pr_ltypes = setLeft;
+		    pr->pr_oktypes = setM;
+		    pr->pr_dist = distance;
+		    pr->pr_mod = 0;
+		    pr->pr_pNum = checkPlane;
+		    pr->pr_next = plowSpacingRulesTbl[i][j];
+		    pr->pr_flags = flags;
+		    plowSpacingRulesTbl[i][j] = pr;
+		}
+
+		if (needPenumbraOnly && TTMaskHasType(&setC, j))
+		{
+		    pr = (PlowRule *)mallocMagic(sizeof(PlowRule));
+		    pr->pr_ltypes = setRight;
+		    pr->pr_oktypes = setM;
+		    pr->pr_dist = distance;
+		    pr->pr_mod = 0;
+		    pr->pr_pNum = checkPlane;
+		    pr->pr_next = plowSpacingRulesTbl[i][j];
+		    pr->pr_flags = flags|PR_PENUMBRAONLY;
+		    plowSpacingRulesTbl[i][j] = pr;
+		}
+	    }
+	}
+    }
+
+    if (!isFourWay)
+	return 0;
+
+    /*
+     * Four-way edge rules are applied by the design-rule checker
+     * both forwards and backwards.  Since plowing can only look
+     * forward, we need to approximate the backward rules with
+     * a collection of forward rules.
+     *
+     * Suppose we have the following 4-way rule:
+     *
+     *   CORNER
+     *	--------+
+     *	  LEFT	|  RIGHT : OKTypes
+     *
+     * To check it in the following (backward) configuration, using
+     * only rightward-looking rules,
+     *
+     *	       OKTypes : RIGHT	|  LEFT
+     *				+--------
+     *				  CORNER
+     *
+     * we generate the following forward rules (with the same distance):
+     *
+     *    ~t
+     *	--------+
+     *	   t	|  ~t : ~LEFT
+     *
+     * for each t in ~OKTypes.  In plowing terms, each rule will have LTYPES of
+     * t and OKTYPES of ~LEFT.  In effect, this is creating a forward spacing
+     * rule between each of the types ~OKTypes, and the materials in LEFT.
+     * The edge is found on checkPlane, and checked on plane pNum.
+     *
+     * Because the corner and right-hand types for these rules are the same,
+     * we don't need to generate any PR_PENUMBRAONLY rules.
+     */
+
+    setRight = setM;
+    TTMaskCom2(&setLeft, &setM);
+    TTMaskAndMask(&setLeft, &DBPlaneTypes[checkPlane]);
+    TTMaskCom2(&setOK, &set1);
+    TTMaskAndMask(&setOK, &DBPlaneTypes[pNum]);
+    for (i = 0; i < DBNumTypes; i++)
+    {
+	if (TTMaskHasType(&setLeft, i))
+	{
+	    for (j = 0; j < DBNumTypes; j++)
+	    {
+		if (TTMaskHasType(&setRight, j))
+		{
+		    pr = (PlowRule *)mallocMagic(sizeof(PlowRule));
+		    TTMaskSetOnlyType(&pr->pr_ltypes, i);
+		    pr->pr_oktypes = setOK;
+		    pr->pr_dist = distance;
+		    pr->pr_mod = 0;
+		    pr->pr_pNum = pNum;
+		    pr->pr_flags = flags|PR_EDGEBACK;
+		    pr->pr_next = plowSpacingRulesTbl[i][j];
+		    plowSpacingRulesTbl[i][j] = pr;
+		}
+	    }
+	}
+    }
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * PlowDRCFinal --
+ *
+ * Called after all lines of the drc section in the technology file have been
+ * read.  The preliminary plowing rules tables are pruned by removing rules
+ * covered by other (longer distance) rules.
+ *
+ * We also construct plowMaxDist[] to contain for entry 't' the maximum
+ * distance associated with any plowing rule in a bucket with 't' on its
+ * LHS.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	May remove PlowRules from the linked lists of the width and
+ *	spacing rules tables.  Sets the values in plowMaxDist[].
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+PlowDRCFinal()
+{
+    register PlowRule *pr;
+    register TileType i, j;
+
+    for (i = 0; i < DBNumTypes; i++)
+    {
+	plowMaxDist[i] = 0;
+	for (j = 0; j < DBNumTypes; j++)
+	{
+	    if (pr = plowWidthRulesTbl[i][j])
+	    {
+		pr = plowWidthRulesTbl[i][j] = plowTechOptimizeRule(pr);
+		for ( ; pr; pr = pr->pr_next)
+		    if (pr->pr_dist > plowMaxDist[i])
+			plowMaxDist[i] = pr->pr_dist;
+	    }
+	    if (pr = plowSpacingRulesTbl[i][j])
+	    {
+		pr = plowSpacingRulesTbl[i][j] = plowTechOptimizeRule(pr);
+		for ( ; pr; pr = pr->pr_next)
+		    if (pr->pr_dist > plowMaxDist[i])
+			plowMaxDist[i] = pr->pr_dist;
+	    }
+	}
+    }
+}
 /*
  * ----------------------------------------------------------------------------
  *
@@ -170,9 +757,13 @@ next:	;
 void
 PlowTechInit()
 {
+    register TileType i, j;
+    PlowRule *pr;
+
     PlowFixedTypes = DBZeroTypeBits;
     PlowCoveredTypes = DBZeroTypeBits;
     PlowDragTypes = DBZeroTypeBits;
+
 }
 
 /*
@@ -286,8 +877,54 @@ PlowTechFinal()
 
 /*
  * ----------------------------------------------------------------------------
+ * 
+ * plowScaleUp ---
  *
- * PlowAfterTech ---
+ * Scale all plow distances according to the current DRC scale factor.
+ * ----------------------------------------------------------------------------
+ */
+
+void plowScaleUp(PlowRule *pr, int scalefactor)
+{
+    int dist;
+
+    if (pr->pr_dist > 0)
+    {
+	dist = pr->pr_dist;
+	if (pr->pr_mod != 0)
+	    pr->pr_dist--;
+	pr->pr_dist *= scalefactor;
+	pr->pr_dist += (short)pr->pr_mod;
+	pr->pr_mod = 0;
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * 
+ * plowScaleDown ---
+ *
+ * Scale all plow distances according to the current DRC scale factor.
+ * ----------------------------------------------------------------------------
+ */
+
+void plowScaleDown(PlowRule *pr, int scalefactor)
+{
+    int dist;
+
+    if (pr->pr_dist > 0)
+    {
+	dist = pr->pr_dist;
+	pr->pr_dist /= scalefactor;
+	if ((pr->pr_mod = (unsigned char)(dist % scalefactor)) != 0)
+	    pr->pr_dist++;
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DRCPlowScale ---
  *
  * Routine to run after the entire techfile has been processed (or reloaded),
  * or when the DRC rules have been rescaled, after an internal grid rescaling.
@@ -297,9 +934,35 @@ PlowTechFinal()
  */
 
 void
-PlowAfterTech()
+DRCPlowScale(int scaled, int scalen, bool adjustmax)
 {
-    /* This remains to be done. . . */
+    PlowRule *pr;
+    TileType i, j;
+
+    for (i = 0; i < TT_MAXTYPES; i++)
+    {
+	for (j = 0; j < TT_MAXTYPES; j++)
+	{
+	    for (pr = plowWidthRulesTbl[i][j]; pr; pr = pr->pr_next)
+	    {
+		plowScaleUp(pr, scaled);
+		plowScaleDown(pr, scalen);
+	    }
+
+	    for (pr = plowSpacingRulesTbl[i][j]; pr; pr = pr->pr_next)
+	    {
+		plowScaleUp(pr, scaled);
+		plowScaleDown(pr, scalen);
+	    }
+	}
+
+	/* Scale plowMaxDist */
+	if (adjustmax)
+	{
+	    plowMaxDist[i] *= scaled;
+	    plowMaxDist[i] /= scalen;
+	}
+    }
 }
 
 

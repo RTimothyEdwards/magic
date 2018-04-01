@@ -186,6 +186,7 @@ typedef struct prule
     int			 pr_dist;	/* Distance associated with this
 					 * design rule.
 					 */
+    int			 pr_mod;	/* Modulus for pr_dist	*/
     short		 pr_pNum;	/* Plane on which to apply rule
 					 * (for spacing rules only).
 					 */

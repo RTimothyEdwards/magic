@@ -218,7 +218,6 @@ CIFScaleCoord(cifCoord, snap_type)
 		CIFTechInputScale(1, denom, FALSE);
 		CIFTechOutputScale(1, denom);
 		DRCTechScale(1, denom);
-		PlowAfterTech();
 		ExtTechScale(1, denom);
 		WireTechScale(1, denom);
 #ifdef LEF_MODULE

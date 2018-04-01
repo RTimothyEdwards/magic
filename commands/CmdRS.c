@@ -258,10 +258,6 @@ CmdScaleGrid(w, cmd)
 
 	DRCTechScale(scalen, scaled);
 
-	/* Scale plow rules (must come after DRCTechScale) */
-
-	PlowAfterTech();
-
 	/* Scale extract parameters */
 
 	ExtTechScale(scalen, scaled);

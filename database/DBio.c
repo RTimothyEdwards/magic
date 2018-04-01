@@ -377,7 +377,6 @@ dbCellReadDef(f, cellDef, name, ignoreTech)
 	CIFTechInputScale(1, d, TRUE);
 	CIFTechOutputScale(1, d);
 	DRCTechScale(1, d);
-	PlowAfterTech();
 	ExtTechScale(1, d);
 	WireTechScale(1, d);
 #ifdef LEF_MODULE
