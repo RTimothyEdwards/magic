@@ -454,7 +454,7 @@ plowEdgeRule(argc, argv)
     int distance = atoi(argv[3]);
     char *okTypes = argv[4], *cornerTypes = argv[5];
     int cdist = atoi(argv[6]);
-    TileTypeBitMask set1, set2, tmp1, tmp2, tmp3, setC, setM;
+    TileTypeBitMask set1, set2, setC, setM;
     TileTypeBitMask setOK, setLeft, setRight;
     int pNum, checkPlane, flags;
     PlaneMask ptest, planes1, planes2, pmask;
@@ -475,10 +475,8 @@ plowEdgeRule(argc, argv)
     if (planes1 != planes2)
 	return 0;
 
-    set1 = tmp1;
-    set2 = tmp2;
-    ptest = DBTechNoisyNameMask(cornerTypes, &tmp3);
-    pmask = CoincidentPlanes(&tmp3, ptest);
+    ptest = DBTechNoisyNameMask(cornerTypes, &setC);
+    pmask = CoincidentPlanes(&setC, ptest);
     if (pmask == 0)
 	return 0;
 
