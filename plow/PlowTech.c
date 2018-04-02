@@ -227,7 +227,7 @@ plowWidthRule(argc, argv)
 {
     char *layers = argv[1];
     int distance = atoi(argv[2]);
-    TileTypeBitMask set, setC, tmp1;
+    TileTypeBitMask set, setC;
     PlaneMask ptest, pmask;
     register PlowRule *pr;
     register TileType i, j;
@@ -244,7 +244,6 @@ plowWidthRule(argc, argv)
 	return 0;
     pNum = LowestMaskBit(pmask);
 
-    set = tmp1;
     TTMaskCom2(&setC, &set);
     TTMaskAndMask(&setC, &DBPlaneTypes[pNum]);
 
@@ -335,8 +334,8 @@ plowSpacingRule(argc, argv)
 	 * Must not have 'set2' for 'distance' to the right of an edge between
 	 * 'set1' and the types in neither 'set1' nor 'set2' (ie, 'setR').
 	 */
-	set1 = tmp1;
-	set2 = tmp2;
+	tmp1 = set1;
+	tmp2 = set2;
 	planes1 = planes2 = PlaneNumToMaskBit(pNum);
 	TTMaskCom(&tmp1);
 	TTMaskCom(&tmp2);
