@@ -415,13 +415,14 @@ void
 prContactLHS(edge)
     Edge *edge;	/* Edge being moved (LHS is contact) */
 {
-    int pNum, pMax;
+    int pNum;
     PlaneMask connPlanes = DBConnPlanes[edge->e_ltype];
 
+    /* Remove the plane that has already been processed from the mask */
+    connPlanes &= ~PlaneNumToMaskBit(edge->e_pNum);
+
     /* Add the edges of the contact on its other planes */
-    connPlanes &= ~(edge->e_pNum);
-    pMax = DBPlane(edge->e_ltype) + 1;
-    for (pNum = pMax - 2; pNum <= pMax; pNum++)
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	if (PlaneMaskHasPlane(connPlanes, pNum))
 	    (void) plowAtomize(pNum, &edge->e_rect,
 				plowPropagateProcPtr, (ClientData) NULL);
@@ -431,13 +432,14 @@ int
 prContactRHS(edge)
     Edge *edge;	/* Edge being moved (RHS is contact) */
 {
-    int pNum, pMax;
+    int pNum;
     PlaneMask connPlanes = DBConnPlanes[edge->e_rtype];
 
+    /* Remove the plane that has already been processed from the mask */
+    connPlanes &= ~PlaneNumToMaskBit(edge->e_pNum);
+
     /* Add the edges of the contact on its other planes */
-    connPlanes &= ~(edge->e_pNum);
-    pMax = DBPlane(edge->e_ltype) + 1;
-    for (pNum = pMax - 2; pNum <= pMax; pNum++)
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	if (PlaneMaskHasPlane(connPlanes, pNum))
 	    (void) plowAtomize(pNum, &edge->e_rect,
 				plowPropagateProcPtr, (ClientData) NULL);

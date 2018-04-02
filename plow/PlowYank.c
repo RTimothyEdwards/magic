@@ -538,13 +538,25 @@ plowUpdatePaintTile(tile, ui)
 {
     Rect r, rtrans;
     TileType type = TiGetTypeExact(tile);
+    int pNum, pMask;
 
     r.r_ybot = BOTTOM(tile);
     r.r_ytop = TOP(tile);
     r.r_xbot = TRAILING(tile);
     r.r_xtop = LEADING(tile);
     GeoTransRect(&plowInverseTrans, &r, &rtrans);
-    DBPaintPlane(ui->pu_def->cd_planes[DBPlane(type)],
-		    &rtrans, DBWriteResultTbl[type], ui);
+
+    pMask = DBTypePlaneMaskTbl[type];
+
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+    {
+	if (PlaneMaskHasPlane(pMask, pNum))
+	{
+	    ui->pu_pNum = pNum;
+	    DBPaintPlane(ui->pu_def->cd_planes[pNum],
+			&rtrans, DBWriteResultTbl[type], ui);
+	}
+    }
+	
     return (0);
 }
