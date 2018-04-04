@@ -27,6 +27,19 @@
    development push over 8.1 is to add a Cairo (2D hardware-accelerated
    graphics) interface ("magic -d CAIRO" or "magic -d XR").
 
+   October, 2017:  DRC changes correctly handle DRC errors in a child
+   cell that are effectively corrected by geometry in the parent cell.
+
+   March, 2018: Added better version handling of subcells.  "Use"
+   records contain a path (relative or absolute) to the library used
+   by the subcell, and this path is honored as long as it can be
+   found.
+
+   April, 2018:  Added the "plow" function back to the level of
+   capability it originally had.  This does not include handling of
+   magic extensions since version 7, including non-manhattan geometry,
+   stacked contacts, and DRC rule extensions.
+
 4. Version 8.1 Release Notes:
 ---------------------------------
 
