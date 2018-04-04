@@ -3666,6 +3666,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     Rect rootBox;
     Transform *tx_cell, trans_cell;
     char **av;
+    char *cellnameptr, *fullpathname;
     int ac, clen;
 
     if (cmd->tx_argc < 2)
@@ -3680,18 +3681,78 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 	return FALSE;
     }
 
-    /* Locate the cell specified by the command */
-    if (CmdIllegalChars(cmd->tx_argv[1], "", "Cell name"))
-	return (FALSE);
+    /* cellnameptr should not include any path components */
+    if ((cellnameptr = strrchr(cmd->tx_argv[1], '/')) != NULL)
+    {
+	cellnameptr++;
+	/* Allocate extra space for cellname in case it needs an extension */
+	fullpathname = (char *)mallocMagic(strlen(cmd->tx_argv[1]) + 10);
+	strcpy(fullpathname, cmd->tx_argv[1]);
+    }
+    else
+    {
+	cellnameptr = cmd->tx_argv[1];
+	fullpathname = NULL;
+    }
 
     /* If the name still has ".mag" attached, then strip it. */
-    clen = strlen(cmd->tx_argv[1]);
-    if ((clen > 4) && !strcmp(cmd->tx_argv[1] + clen - 4, ".mag"))
-	*(cmd->tx_argv[1] + clen - 4) = '\0';
+    clen = strlen(cellnameptr);
+    if ((clen > 4) && !strcmp(cellnameptr + clen - 4, ".mag"))
+	*(cellnameptr + clen - 4) = '\0';
 
-    def = DBCellLookDef(cmd->tx_argv[1]);
+    /* However, if this is a full path, then the full path name must have .mag */
+    if (fullpathname != NULL)
+    {
+	clen = strlen(fullpathname);
+	if ((clen <= 4) || strcmp(fullpathname + clen - 4, ".mag"))
+	    strcat(cellnameptr, ".mag");
+    }
+
+    /* Check for illegal characters in the cellname */
+    if (CmdIllegalChars(cellnameptr, "", "Cell name"))
+    {
+	if (fullpathname) freeMagic(fullpathname);
+	return (FALSE);
+    }
+
+    def = DBCellLookDef(cellnameptr);
     if (def == (CellDef *) NULL)
-	def = DBCellNewDef(cmd->tx_argv[1], (char *) NULL);
+	def = DBCellNewDef(cellnameptr, (char *) NULL);
+
+    if (fullpathname != NULL)
+    {
+	/* Check if def already exists.  If it points to a	*/
+	/* different file, then force a rename of the cell and	*/
+	/* flag a warning.					*/
+
+	if (def->cd_file != NULL)
+	{
+	    /* Note: may want processing to see if absolute paths match */
+	    if (strcmp(def->cd_file, fullpathname))
+	    {
+		char uniqchar;
+		char *newcellname = (char *)mallocMagic(strlen(cellnameptr) + 3);
+		TxError("Warning:  Cell file path mismatch.  Existing cell has"
+			" path \"%s\", while %s path is \"%s\".\n",
+			def->cd_file, cmdName, fullpathname);
+		uniqchar = 'a';
+		while (def != NULL)
+		{
+		    sprintf(newcellname, "%s_%c", cellnameptr, uniqchar);
+		    def = DBCellLookDef(newcellname);
+		    uniqchar++;
+		}
+		TxError("Renaming cell to \"%s\" to avoid conflict.", newcellname);
+		def = DBCellNewDef(cellnameptr, (char *)NULL);
+		def->cd_file = StrDup(&def->cd_file, fullpathname);
+		freeMagic(newcellname);
+	    }
+	}
+	else
+	    def->cd_file = StrDup(&def->cd_file, fullpathname);
+	freeMagic(fullpathname);
+    }
+
     editDef = EditCellUse->cu_def;
 
     /*

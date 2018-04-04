@@ -5,6 +5,7 @@ config.log
 scripts/config.log
 scripts/config.status
 scripts/defs.mak
+.*.swp
 *.o
 *.so
 *~
