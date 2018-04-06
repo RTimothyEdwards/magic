@@ -2330,6 +2330,7 @@ DBCellWriteFile(cellDef, f)
      * plane being searched.
      */
 
+    arg.wa_name = cellDef->cd_file;
     arg.wa_file = f;
     arg.wa_reducer = reducer;
     for (type = TT_PAINTBASE; type < DBNumUserLayers; type++)
@@ -2991,20 +2992,25 @@ dbWriteCellFunc(cellUse, cdarg)
     struct writeArg *arg = (struct writeArg *) cdarg;
     Transform *t;
     Rect *b;
-    char     cstring[256], *pathend;
+    char     cstring[256], *pathend, *pathstart, *parent;
 
     t = &(cellUse->cu_transform);
     b = &(cellUse->cu_def->cd_bbox);
+    pathstart = cellUse->cu_def->cd_file;
+    parent = arg->wa_name;
 
-    if (cellUse->cu_def->cd_file == NULL)
+    if (pathstart == NULL)
 	pathend = NULL;
     else
     {
-	pathend = strrchr(cellUse->cu_def->cd_file, '/');
+	/* Get child path relative to the parent path */
+	while (*pathstart++ == *parent++);
+	pathend = strrchr(pathstart, '/');
 	if (pathend != NULL) *pathend = '\0';
     }
 
-    if ((cellUse->cu_def->cd_flags & CDVISITED) || (pathend == NULL))
+    if ((cellUse->cu_def->cd_flags & CDVISITED) || (pathend == NULL) ||
+		(pathstart == NULL) || (*pathstart == '\0'))
     {
 	sprintf(cstring, "use %s %c%s\n", cellUse->cu_def->cd_name,
 		(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
@@ -3030,7 +3036,7 @@ dbWriteCellFunc(cellUse, cdarg)
 	{
 	    sprintf(cstring, "use %s %c%s %s\n", cellUse->cu_def->cd_name,
 			(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-			cellUse->cu_id, cellUse->cu_def->cd_file);
+			cellUse->cu_id, pathstart);
 	}
     }
     FPRINTR(arg->wa_file, cstring);
