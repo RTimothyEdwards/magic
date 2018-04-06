@@ -1162,6 +1162,7 @@ dbReadUse(cellDef, line, len, f, scalen, scaled)
     Transform t;
     Rect r;
     bool locked;
+    char *slashptr;
 
     if (strncmp(line, "use", 3) != 0)
     {
@@ -1321,88 +1322,86 @@ badTransform:
 	goto nextLine;
     }
 
-    if (path[0] != '\0')
-    {
-	char *slashptr;
+    /* Relative path handling:  If path does not have a leading "/"	*/
+    /* or "~" and cellDef->cd_file has path components, then the path	*/
+    /* should be interpreted relative to the path of the parent cell.	*/
 
-	/* Relative path handling:  If path does not have a leading "/"	*/
-	/* or "~" and cellDef->cd_file has path components, then the	*/
-	/* path should be interpreted relative to the path of the	*/
-	/* parent cell.							*/
-
-	if ((path[0] != '/') && (path[0] != '~'))
-	    if ((cellDef->cd_file != NULL) &&
+    if ((path[0] == '\0') || ((path[0] != '/') && (path[0] != '~')))
+	if ((cellDef->cd_file != NULL) &&
 			(slashptr = strrchr(cellDef->cd_file, '/')) != NULL)
+	{
+	    *slashptr = '\0';
+	    if (path[0] == '\0')
+		strcpy(path, cellDef->cd_file);
+	    else
 	    {
 		char savepath[1024];
-		*slashptr = '\0';
 		strcpy(savepath, path);
 		sprintf(path, "%s/%s", cellDef->cd_file, savepath);
-		*slashptr = '/';
 	    }
+	    *slashptr = '/';
+	}
 
-	/* If path has a leading '~/' and cellDef->cd_file has an	*/
-	/* absolute path that does not match the user's home directory,	*/
-	/* but appears to be a different home directory, then replace	*/
-	/* the "~" with the home directory used by the parent cell.	*/
+    /* If path has a leading '~/' and cellDef->cd_file has an absolute	*/
+    /* path that does not match the user's home directory, but appears	*/
+    /* to be a different home directory, then replace the "~" with the	*/
+    /* home directory used by the parent cell.				*/
 
-	if (path[0] == '~' && path[1] == '/')
-	    if ((cellDef->cd_file != NULL) && (cellDef->cd_file[0] == '/'))
-	    {
-		char *homedir = getenv("HOME");
-		if (strncmp(cellDef->cd_file, homedir, strlen(homedir)) ||
+    if (path[0] == '~' && path[1] == '/')
+	if ((cellDef->cd_file != NULL) && (cellDef->cd_file[0] == '/'))
+	{
+	    char *homedir = getenv("HOME");
+	    if (strncmp(cellDef->cd_file, homedir, strlen(homedir)) ||
 			*(cellDef->cd_file + strlen(homedir)) != '/')
+	    {
+		char *homeroot = strrchr(homedir, '/');
+		int rootlen = (int)(homeroot - homedir) + 1;
+		if (!strncmp(cellDef->cd_file, homedir, rootlen))
 		{
-		    char *homeroot = strrchr(homedir, '/');
-		    int rootlen = (int)(homeroot - homedir) + 1;
-		    if (!strncmp(cellDef->cd_file, homedir, rootlen))
+		    char savepath[1024];
+		    char *userbrk = strchr(cellDef->cd_file + rootlen, '/');
+		    if (userbrk != NULL)
 		    {
-			char savepath[1024];
-			char *userbrk = strchr(cellDef->cd_file + rootlen,
-				'/');
-			if (userbrk != NULL)
-			{
-			    int userlen = (int)(userbrk - cellDef->cd_file);
-			    strcpy(savepath, path + 1);
-			    strcpy(path, cellDef->cd_file);
-			    strcpy(path + userlen, savepath);
-			}
+			int userlen = (int)(userbrk - cellDef->cd_file);
+			strcpy(savepath, path + 1);
+			strcpy(path, cellDef->cd_file);
+			strcpy(path + userlen, savepath);
 		    }
 		}
 	    }
+	}
 
-	/* If "use" line contains a path name, then set cd_file to this	*/
-	/* and it will be the preferred path.  If cd_file is already	*/
-	/* set and points to a different target, then flag an error, as	*/
-	/* there are now two versions of the same cell name coming from	*/
-	/* different sources, and this must be corrected.		*/
+    /* If "use" line contains a path name, then set cd_file to this and	*/
+    /* it will be the preferred path.  If cd_file is already set and	*/
+    /* points to a different target, then flag an error, as there are	*/
+    /* now two versions of the same cell name coming from different	*/
+    /* sources, and this must be corrected.				*/
 
-	if (subCellDef->cd_file != NULL)
+    if (subCellDef->cd_file != NULL)
+    {
+	slashptr = strrchr(subCellDef->cd_file, '/');
+	if (slashptr != NULL)
 	{
-	    slashptr = strrchr(subCellDef->cd_file, '/');
-	    if (slashptr != NULL)
-	    {
-		*slashptr = '\0';
+	    *slashptr = '\0';
 
-		if (strcmp(subCellDef->cd_file, path))
-		{
-		    TxError("Internal inconsistency:  Instance is from path %s"
+	    if (strcmp(subCellDef->cd_file, path))
+	    {
+		TxError("Internal inconsistency:  Instance is from path %s"
 				" but cell definition comes from %s.\n",
 				path, subCellDef->cd_file);
-		    TxError("Instance path will be ignored.  Please check and fix.\n");
-		}
-		*slashptr = '/';
+		TxError("Instance path will be ignored.  Please check and fix.\n");
 	    }
+	    *slashptr = '/';
 	}
-	else
-	{
-	    /* Reconstruct file from path and cellname */
+    }
+    else if (path[0] != '\0')
+    {
+	/* Reconstruct file from path and cellname */
 
-	    strcat(path, "/");
-	    strcat(path, subCellDef->cd_name);
-	    strcat(path, DBSuffix);
-	    StrDup(&subCellDef->cd_file, path);
-	}
+	strcat(path, "/");
+	strcat(path, subCellDef->cd_name);
+	strcat(path, DBSuffix);
+	StrDup(&subCellDef->cd_file, path);
     }
     
     subCellUse = DBCellNewUse(subCellDef, (useid[0]) ?
@@ -3003,10 +3002,29 @@ dbWriteCellFunc(cellUse, cdarg)
 	pathend = NULL;
     else
     {
+	char *slashptr, *pathorigin;
+
 	/* Get child path relative to the parent path */
-	while (*pathstart++ == *parent++);
+
+	pathorigin = pathstart;
 	pathend = strrchr(pathstart, '/');
-	if (pathend != NULL) *pathend = '\0';
+	slashptr = strchr(pathstart, '/');
+	while (slashptr)
+	{
+	    if (!strncmp(pathorigin, parent, (int)(slashptr - pathorigin + 1)))
+	    {
+		pathstart = slashptr + 1;
+		slashptr = strchr(pathstart, '/');
+	    }
+	    else
+		break;
+	}
+	if (pathend != NULL)
+	{
+	    *pathend = '\0';
+	    if (pathstart >= pathend)
+		pathstart = NULL;
+	}
     }
 
     if ((cellUse->cu_def->cd_flags & CDVISITED) || (pathend == NULL) ||
