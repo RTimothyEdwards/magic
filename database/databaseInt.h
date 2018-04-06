@@ -29,6 +29,7 @@
 
 struct writeArg
 {
+    char       *wa_name;	/* Filename of output file */
     FILE       *wa_file;	/* File to which to output */
     TileType	wa_type;	/* Type of tile being searched for */
     bool	wa_found;	/* Have any tiles been found yet? */
