@@ -46,32 +46,49 @@ proc magic::libcallback {command} {
 #----------------------------------------------
 
 proc magic::makelibmanager { mgrpath } {
+   global filtered
 
+   set filtered 1
    toplevel ${mgrpath}
    wm withdraw ${mgrpath}
    frame ${mgrpath}.actionbar
    frame ${mgrpath}.box
    frame ${mgrpath}.target
 
-   ttk::treeview ${mgrpath}.box.view -show tree -selectmode browse \
+   ttk::treeview ${mgrpath}.box.view -selectmode browse \
 		-yscrollcommand "${mgrpath}.box.vert set" \
 		-xscrollcommand "${mgrpath}.box.vert set" \
-		-columns 1
+		-columns 0
    scrollbar ${mgrpath}.box.vert -orient vertical -command "${mgrpath}.box.view yview"
+   ${mgrpath}.box.view heading #0 -text Cell
+   ${mgrpath}.box.view heading 0 -text Technology
+   ${mgrpath}.box.view column #0 -stretch true -anchor w -minwidth 300
+   ${mgrpath}.box.view column 0 -stretch false -anchor center -minwidth 100
 
-   pack ${mgrpath}.actionbar -side top -fill x
-   pack ${mgrpath}.box.view -side left -fill both -expand true
-   pack ${mgrpath}.box.vert -side right -fill y
-   pack ${mgrpath}.box -side top -fill both -expand true
-   pack ${mgrpath}.target -side top -fill x
+   grid columnconfigure ${mgrpath}.box 0 -weight 1 -minsize 500
+   grid columnconfigure ${mgrpath}.box 1 -weight 0
+   grid rowconfigure ${mgrpath}.box 0 -weight 1
+   grid ${mgrpath}.box.view -row 0 -column 0 -sticky news
+   grid ${mgrpath}.box.vert -row 0 -column 1 -sticky news
+
+   grid rowconfigure ${mgrpath} 0 -weight 0
+   grid rowconfigure ${mgrpath} 1 -weight 1
+   grid rowconfigure ${mgrpath} 2 -weight 0
+   grid columnconfigure ${mgrpath} 0 -weight 1
+   grid ${mgrpath}.actionbar -row 0 -column 0 -sticky news
+   grid ${mgrpath}.box -row 1 -column 0 -sticky news
+   grid ${mgrpath}.target -row 2 -column 0 -sticky news
 
    button ${mgrpath}.actionbar.load  -text "Load" -command {magic::libcallback load}
    button ${mgrpath}.actionbar.place -text "Place" -command {magic::libcallback place}
    button ${mgrpath}.actionbar.pick  -text "Pick" -command {magic::libcallback pick}
+   checkbutton ${mgrpath}.actionbar.filter -text "Filter" -variable filtered \
+	-command {magic::libmanager update}
 
    pack ${mgrpath}.actionbar.load -side left
    pack ${mgrpath}.actionbar.place -side left
    pack ${mgrpath}.actionbar.pick -side left
+   pack ${mgrpath}.actionbar.filter -side right
 
    label ${mgrpath}.target.name -text "Target window:"
    menubutton ${mgrpath}.target.list -text "default" \
@@ -94,7 +111,7 @@ proc magic::makelibmanager { mgrpath } {
       set s [.libmgr.box.view selection]
       # puts stdout "open $s"
       foreach i [.libmgr.box.view children $s] {
-	 magic::addtolibset $i
+         # This is NOT hierarchical like the cell manager!
          .libmgr.box.view item $i -open false
       }
    }
@@ -110,12 +127,12 @@ proc magic::makelibmanager { mgrpath } {
    }
 }
 
-proc magic::addlibentry {parent child tech} {
+proc magic::addlibentry {parent child name tech} {
    if {$child != 0} {
-      set hiername [join [list $parent $child] "/"]
+      set hiername ${parent}${child}
       # puts stdout "libentry $hiername"
       if {[.libmgr.box.view exists $hiername] == 0} {
-         .libmgr.box.view insert $parent end -id $hiername -text "$child"
+         .libmgr.box.view insert $parent end -id $hiername -text "$name"
          .libmgr.box.view set $hiername 0 "$tech"
       }
    }
@@ -123,13 +140,17 @@ proc magic::addlibentry {parent child tech} {
 
 # 
 proc magic::addtolibset {item} {
+   global filtered
+
    set pathname [.libmgr.box.view item $item -text]
    set pathfiles [glob -nocomplain -directory $pathname *.mag]
+   # puts stdout "addtolibset $item"
 
    # Sort files alphabetically
    
    foreach f [lsort $pathfiles] {
-      set rootname [file tail [file root $f]]
+      set tailname [file tail $f]
+      set rootname [file root $tailname]
       if {![catch {open $f r} fin]} {
          # Read first two lines, break on error
          if {[gets $fin line] < 0} {continue}	;# empty file error
@@ -143,8 +164,9 @@ proc magic::addtolibset {item} {
          close $fin
 
 	 # filter here for compatible technology
-
-         magic::addlibentry $item $rootname $tech
+	 if {($filtered == 0) || ($tech == [tech name])} {
+            magic::addlibentry $item $tailname $rootname $tech
+	 }
       }
    }
 }
@@ -186,24 +208,27 @@ proc magic::libmanager {{option "update"}} {
    set allpaths [concat $spath1 $spath2]
    foreach path $curpaths {
       if {[lsearch $allpaths $path] == -1} {
-	  .libmgr.box.view delete $path
+	  .libmgr.box.view delete ${path}
       }
    }
 
+   set first true
    foreach i $spath1 {
-      if {[.libmgr.box.view exists $i] == 0} {
- 	 .libmgr.box.view insert {} end -id $i -text $i
+      if {[.libmgr.box.view exists ${i}/] == 0} {
+ 	 .libmgr.box.view insert {} end -id ${i}/ -text ${i}/
       }
-      magic::addtolibset $i
-      .libmgr.box.view item $i -open false
+      magic::addtolibset ${i}/
+      .libmgr.box.view item ${i}/ -open $first
+      set first false
    }
    foreach i $spath2 {
       set expandname [subst $i]
-      if {[.libmgr.box.view exists $expandname] == 0} {
- 	 .libmgr.box.view insert {} end -id $expandname -text $expandname
+      if {[.libmgr.box.view exists ${expandname}/] == 0} {
+ 	 .libmgr.box.view insert {} end -id ${expandname}/ -text ${expandname}/
       }
-      magic::addtolibset $expandname
-      .libmgr.box.view item $expandname -open false
+      magic::addtolibset ${expandname}/
+      .libmgr.box.view item ${expandname}/ -open $first
+      set first false
    }
    magic::resumeall
 }
