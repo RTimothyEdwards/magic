@@ -1025,6 +1025,24 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 	f = PaLockOpen(cellDef->cd_file, "r", DBSuffix, ".",
 			(char *) NULL, &filename, &is_locked);
 
+	/* Fall back on the original method of using search paths. */
+
+	if (f == NULL)
+	{
+	    f = PaLockOpen(cellDef->cd_name, "r", DBSuffix, Path,
+			CellLibPath, &filename, &is_locked);
+
+	    if (f != NULL)
+	    {
+		TxError("Warning:  Parent cell of %s marked file location as %s.\n",
+			cellDef->cd_name, cellDef->cd_file);
+		TxError("Cell could not be found in that location.  However,"
+			" the cell was found in\n");
+		TxError("the search paths at %s.\n", filename);
+		TxError("Please make sure that this is the intended cell version.\n");
+	    }	    
+	}
+
 	if (errptr != NULL) *errptr = errno;
 	if (pptr != NULL) *pptr = '.';	// Put it back where you found it!
     }
