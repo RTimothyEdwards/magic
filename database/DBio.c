@@ -1035,7 +1035,7 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 	    if (f != NULL)
 	    {
 		if (pptr != NULL) *pptr = '.';
-		TxError("Warning:  Parent cell lists instance \"%s\" at bad file "
+		TxError("Warning:  Parent cell lists instance of \"%s\" at bad file "
 			"path %s.\n", cellDef->cd_name, cellDef->cd_file);
 		TxError("The cell exists in the search paths at %s.\n", filename);
 		TxError("The discovered version will be used.\n");
@@ -1409,9 +1409,10 @@ badTransform:
 
 	    if (strcmp(subCellDef->cd_file, pathptr))
 	    {
-		TxError("Duplicate cell:  Instance of cell %s is from path %s"
-				" but cell was previously read from %s.\n",
-				slashptr + 1, pathptr, subCellDef->cd_file);
+		TxError("Duplicate cell in %s:  Instance of cell %s is from "
+			"path %s but cell was previously read from %s.\n",
+			cellDef->cd_name, slashptr + 1, pathptr,
+			subCellDef->cd_file);
 
 		/* To do:  Check if new path does not exist (ignore),	*/
 		/* or if new path has same symbolic link or is the same	*/
