@@ -337,6 +337,228 @@ CalmaWrite(rootDef, f)
     return (good);
 }
 
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaDumpStructure --
+ *
+ * Parse a structure (cell) from the GDS file.  Check the name against the
+ * existing database and modify the name in case of a collision.  Then dump
+ * the entire cell verbatim.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+calmaDumpStructure(def, cellstart, outf, calmaDefHash)
+    CellDef *def;
+    off_t cellstart;
+    FILE *outf;
+    HashTable *calmaDefHash;
+{
+    int nbytes, rtype;
+    char *strname = NULL, *newnameptr, newname[CALMANAMELENGTH*2];
+    HashEntry *he;
+    CellDef *edef;
+
+    /* Make sure this is a structure; if not, let the caller know we're done */
+    PEEKRH(nbytes, rtype);
+    if (nbytes <= 0) return (FALSE);
+
+    if (rtype != CALMA_BGNSTR)
+    {
+	calmaOutRH(nbytes, rtype, CALMA_I2, outf);
+        return (FALSE);
+    }
+
+    /* Read the structure name */
+    if (!calmaSkipExact(CALMA_BGNSTR)) goto syntaxerror;
+    if (!calmaReadStringRecord(CALMA_STRNAME, &strname)) goto syntaxerror;
+    TxPrintf("Reading \"%s\".\n", strname);
+
+    /* Output structure begin */
+    calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, outf);
+    calmaOutDate(def->cd_timestamp, outf);
+    calmaOutDate(time((time_t *) 0), outf);
+
+    /* Prefix structure name with def name, and output new structure name */
+    he = HashFind(calmaDefHash, strname);
+    if ((newnameptr = (char *)HashGetValue(he)) != NULL)
+    {
+	/* Structure is defined more than once */
+	TxError("Structure %s defined redundantly in GDS\n", strname);
+    }
+    else if (!strcmp(strname, def->cd_name))
+    {
+	/* This is the top level cell being defined.  Its name	*/
+	/* does not get modified.				*/
+
+	newnameptr = mallocMagic(strlen(strname) + 1);
+	sprintf(newnameptr, "%s", strname);
+	calmaOutStringRecord(CALMA_STRNAME, newnameptr, outf);
+	HashSetValue(he, (char *)newnameptr);
+    }
+    else
+    {
+	/* Modify the cellname by prefixing with the def name */
+	newnameptr = mallocMagic(strlen(strname) + strlen(def->cd_name) + 8);
+	sprintf(newnameptr, "%s_%s", def->cd_name, strname);
+
+	/* Check if the cell is defined in the database */
+	edef = DBCellLookDef(newnameptr);
+	if (edef != NULL)
+	    // To do:  Expand upon this, but it's probably overkill
+	    sprintf(newnameptr, "%s_%s[[0]]", def->cd_name, strname);
+	calmaOutStringRecord(CALMA_STRNAME, newnameptr, outf);
+	HashSetValue(he, (char *)newnameptr);
+    }
+    freeMagic(strname);
+
+    /* Read and output the structure until CALMA_ENDSTR, except */
+    /* for handling any AREF or SREF names, which need name	*/
+    /* checks.							*/
+
+    while (1) 
+    {
+	int datatype;
+
+	READI2(nbytes);
+	if (feof(calmaInputFile))
+	{
+	    /* Unexpected end-of-file */
+	    fseek(calmaInputFile, -(CALMAHEADERLENGTH), SEEK_END);
+	    break;
+	}
+	rtype = getc(calmaInputFile);
+	datatype = getc(calmaInputFile);
+	switch (rtype) {
+	    case CALMA_BGNSTR:
+		UNREADRH(nbytes, rtype);
+		return (TRUE);
+	    case CALMA_ENDLIB:
+		UNREADRH(nbytes, rtype);
+		return (FALSE);
+
+	    case CALMA_SNAME:
+		UNREADRH(nbytes, rtype);
+		if (!calmaReadStringRecord(CALMA_SNAME, &strname))
+		    goto syntaxerror;
+
+		he = HashFind(calmaDefHash, strname);
+		newnameptr = (char *)HashGetValue(he);
+		if (newnameptr != NULL)
+		{
+		    calmaOutStringRecord(CALMA_SNAME, newnameptr, outf);
+		}
+		else
+		{
+		    TxError("Diagnostic:  %s is a forward reference?\n", strname);
+
+		    /* Could be a forward reference, so do a rename in	*/
+		    /* the same way used for structure definitions.	*/
+
+		    newnameptr = (char *)mallocMagic(strlen(strname) +
+				strlen(def->cd_name) + 8);
+		    sprintf(newnameptr, "%s_%s", def->cd_name, strname);
+
+		    edef = DBCellLookDef(newnameptr);
+		    if (edef != NULL)
+			sprintf(newnameptr, "%s_%s[[0]]", def->cd_name, strname);
+		    HashSetValue(he, (char *)newnameptr);
+		    calmaOutStringRecord(CALMA_SNAME, newnameptr, outf);
+		}
+		break;
+
+	    default:
+		calmaOutRH(nbytes, rtype, datatype, outf);
+		nbytes -= 4;
+
+		/* Copy nbytes from input to output */
+		while (nbytes-- > 0)
+		{
+		    int byte;
+		    if ((byte = getc(calmaInputFile)) < 0)
+		    {
+			TxError("End of file with %d bytes remaining to be read.\n",
+				nbytes);
+			while (nbytes-- > 0)
+			    putc(0, outf);	// zero-pad output
+			return (FALSE);
+		    }
+		    else
+			putc(byte, outf);
+		}
+		break;
+	}
+    }
+    return (FALSE);
+
+syntaxerror:
+    /* Syntax error: skip to CALMA_ENDSTR */
+    calmaSkipTo(CALMA_ENDSTR);
+    return (FALSE);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaFullDump --
+ *
+ * Read in a GDS-II stream format library and dump its contents to
+ * file "outf" verbatim except for cell references, which are renamed
+ * if there is a conflict with a cell def in memory.
+ *
+ * Because the dump is inside a larger output, the header and trailer
+ * are discarded.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+calmaFullDump(def, fi, cellstart, outf)
+    CellDef *def;
+    FILE *fi;
+    off_t cellstart;
+    FILE *outf;
+{
+    int version;
+    char *libname = NULL;
+    HashTable calmaDefHash;
+    static int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
+		CALMA_REFLIBS, CALMA_FONTS, CALMA_ATTRTABLE,
+		CALMA_STYPTABLE, CALMA_GENERATIONS, CALMA_UNITS, -1 };
+    static int skipBeforeLib[] = { CALMA_LIBDIRSIZE, CALMA_SRFNAME,
+		CALMA_LIBSECUR, -1 };
+
+    HashInit(&calmaDefHash, 32, 0);
+
+    calmaInputFile = fi;
+    cifReadCellDef = def;
+
+    /* Read and ignore the GDS-II header */
+
+    if (!calmaReadI2Record(CALMA_HEADER, &version)) goto done;
+    if (!calmaSkipExact(CALMA_BGNLIB)) goto done;
+    calmaSkipSet(skipBeforeLib);
+    if (!calmaReadStringRecord(CALMA_LIBNAME, &libname)) goto done;
+
+    // NOTE:  CALMA_UNITS needs to be parsed to determine if units in
+    // the input file are compatible with units being used in the output
+    // file.
+    calmaSkipSet(hdrSkip);
+ 
+    while (calmaDumpStructure(def, cellstart, outf, &calmaDefHash))
+	if (SigInterruptPending)
+	    goto done;
+    calmaSkipExact(CALMA_ENDLIB);
+
+done:
+    HashFreeKill(&calmaDefHash);
+    if (libname != NULL) freeMagic(libname);
+    return;
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -399,7 +621,7 @@ calmaProcessDef(def, outf)
     FILE *outf;		/* Stream file */
 {
     char *filename;
-    bool isReadOnly, oldStyle, hasContent;
+    bool isReadOnly, oldStyle, hasContent, isAbstract;
 
     /* Skip if already output */
     if ((int) def->cd_client > 0)
@@ -437,6 +659,7 @@ calmaProcessDef(def, outf)
      * definition will appear in the output.
      */
 
+    DBPropGet(def, "LEFview", &isAbstract);
     DBPropGet(def, "GDS_START", &hasContent);
     filename = (char *)DBPropGet(def, "GDS_FILE", &isReadOnly);
 
@@ -465,6 +688,20 @@ calmaProcessDef(def, outf)
 				def->cd_name);
 	    else 
 		def->cd_flags |= CDVENDORGDS;
+	}
+	else if (isAbstract)
+	{
+	    /* This is the trickiest part.  If the cell view is abstract then	*/
+	    /* the cell view has no hierarchy, and there is no way to descend	*/
+	    /* into the cell hierarchy and discover and write out all the	*/
+	    /* dependencies.  The dependencies are in the file but not in the	*/
+	    /* range GDS_START to GDS_END.  Furthermore, the dependencies have	*/
+	    /* not been loaded so naming conflicts may exist.  So the file must	*/
+	    /* be read end-to-end and parsed carefully.				*/
+
+	    calmaFullDump(def, fi, cellstart, outf);
+	    fclose(fi);
+	    def->cd_flags |= CDVENDORGDS;
 	}
 	else
 	{
@@ -500,8 +737,8 @@ calmaProcessDef(def, outf)
 	    else
 	    {
 		defsize = (size_t)(cellend - cellstart);
-
 		buffer = (char *)mallocMagic(defsize);
+
 		numbytes = fread(buffer, sizeof(char), (size_t)defsize, fi);
 		if (numbytes == defsize)
 		{
