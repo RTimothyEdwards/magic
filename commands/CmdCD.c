@@ -741,11 +741,19 @@ CmdCellname(w, cmd)
 
 	case IDX_DELETE:
 	    /* Unload the cell definition and free memory */
+	    /* Make sure selections are cleared or they may	*/
+	    /* contain references to the deleted cell def.	*/
 	    if ((locargc == 4) && !strcmp(cmd->tx_argv[3 + ((dolist) ? 1 : 0)],
 			"-noprompt"))
+	    {
+		SelectClear();
 	        DBCellDelete(cellname, TRUE);
+	    }
 	    else if (locargc == 3)
+	    {
+		SelectClear();
 	        DBCellDelete(cellname, FALSE);
+	    }
 	    else 
 		TxError("Delete cell command missing cellname\n");
 	    break;
