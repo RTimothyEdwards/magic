@@ -1400,39 +1400,42 @@ badTransform:
     /* now two versions of the same cell name coming from different	*/
     /* sources, and this must be corrected.				*/
 
-    if (subCellDef->cd_file != NULL)
+    if (*pathptr != '\0')
     {
-	slashptr = strrchr(subCellDef->cd_file, '/');
-	if (slashptr != NULL)
+	if (subCellDef->cd_file != NULL)
 	{
-	    *slashptr = '\0';
-
-	    if (strcmp(subCellDef->cd_file, pathptr))
+	    slashptr = strrchr(subCellDef->cd_file, '/');
+	    if (slashptr != NULL)
 	    {
-		TxError("Duplicate cell in %s:  Instance of cell %s is from "
-			"path %s but cell was previously read from %s.\n",
-			cellDef->cd_name, slashptr + 1, pathptr,
-			subCellDef->cd_file);
+		*slashptr = '\0';
 
-		/* To do:  Check if new path does not exist (ignore),	*/
-		/* or if new path has same symbolic link or is the same	*/
-		/* filesize and checksum (ignore).  If file appears to	*/
-		/* be truly different, then create a new cell with a	*/
-		/* modified cell name.					*/
+		if (strcmp(subCellDef->cd_file, pathptr))
+		{
+		    TxError("Duplicate cell in %s:  Instance of cell %s is from "
+				"path %s but cell was previously read from %s.\n",
+				cellDef->cd_name, slashptr + 1, pathptr,
+				subCellDef->cd_file);
 
-		TxError("New path will be ignored.  Please check.\n");
+		    /* To do:  Check if new path does not exist (ignore),	*/
+		    /* or if new path has same symbolic link or is the same	*/
+		    /* filesize and checksum (ignore).  If file appears to	*/
+		    /* be truly different, then create a new cell with a	*/
+		    /* modified cell name.					*/
+
+		    TxError("New path will be ignored.  Please check.\n");
+		}
+		*slashptr = '/';
 	    }
-	    *slashptr = '/';
 	}
-    }
-    else if (*pathptr != '\0')
-    {
-	/* Reconstruct file from path and cellname */
+	else
+	{
+	    /* Reconstruct file from path and cellname */
 
-	strcat(path, "/");
-	strcat(path, subCellDef->cd_name);
-	strcat(path, DBSuffix);
-	StrDup(&subCellDef->cd_file, path);
+	    strcat(path, "/");
+	    strcat(path, subCellDef->cd_name);
+	    strcat(path, DBSuffix);
+	    StrDup(&subCellDef->cd_file, path);
+	}
     }
     
     subCellUse = DBCellNewUse(subCellDef, (useid[0]) ?
