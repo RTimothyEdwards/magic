@@ -808,7 +808,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				GeoTransRect(&t, currect, &topRect);
 				DBPaint(rootDef, &topRect, curlayer);
 				DBPutLabel(rootDef, &topRect, -1, pinname, curlayer,
-					pinNum | pinDir | PORT_DIR_MASK);
+					pinNum | pinDir | PORT_DIR_MASK | LABEL_STICKY);
 				pending = FALSE;
 				pinNum++;
 			    }
@@ -823,7 +823,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				GeoTransRect(&t, currect, &topRect);
 				DBPaint(rootDef, &topRect, curlayer);
 				DBPutLabel(rootDef, &topRect, -1, pinname, curlayer,
-					pinNum | pinDir | PORT_DIR_MASK);
+					pinNum | pinDir | PORT_DIR_MASK | LABEL_STICKY);
 				pinNum++;
 			    }
 			    break;
