@@ -2363,7 +2363,10 @@ DBCellWriteFile(cellDef, f)
      * plane being searched.
      */
 
-    arg.wa_name = cellDef->cd_file;
+    if (cellDef->cd_file)
+	arg.wa_name = cellDef->cd_file;
+    else
+	arg.wa_name = cellDef->cd_name;
     arg.wa_file = f;
     arg.wa_reducer = reducer;
     for (type = TT_PAINTBASE; type < DBNumUserLayers; type++)
