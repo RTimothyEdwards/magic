@@ -201,14 +201,14 @@ file_is_not_writeable(name)
  *	current technology.  Each line after the header has the
  *	format "rect <xbot> <ybot> <xtop> <ytop>".
  *	Nonmanhattan geometry is covered by the entry
- *	"try <xbot> <ybot> <xtop> <ytop> <dir>" with <dir> indicating
+ *	"tri <xbot> <ybot> <xtop> <ytop> <dir>" with <dir> indicating
  *	the direction of the corner made by the right triangle.
  *	If the split tile contains more than one type, separate entries
  *	are output for each.
  *	
  *	6. Zero or more groups of lines describing cell uses.  Each group
  *	is of the form
- *		use <filename> <id>
+ *		use <filename> <id> [<path>]
  *		array <xlo> <xhi> <xsep> <ylo> <yhi> <ysep>
  *		timestamp <int>
  *		transform <a> <b> <c> <d> <e> <f>
@@ -219,7 +219,20 @@ file_is_not_writeable(name)
  *	identifier is generated internally.  The "array" line may be
  *	omitted	if the cell use is not an array.  The "timestamp" line is
  *	optional;  if present, it gives the last time the parent
- *	was aware that the child changed.
+ *	was aware that the child changed.  The <path> is a full path
+ *	to the location of the cell <id>.  <path> will be interpreted
+ *	relative to the parent cell (the .mag file being read) if it
+ *	does not begin with "/" or "~/".  Only the first instance of a
+ *	cell needs to declare <path>.  If omitted completely, the cell
+ *	is searched for in the search paths declared using the "addpath"
+ *	command, which is the original, backwardly-compatible behavior.
+ *	The new behavior using <path>, introduced in magic-8.2, implies
+ *	that (apart from backwardly-compatible use) the search path only
+ *	pertains to cells imported using "getcell", while cells named in
+ *	database files are version controlled by specifically naming the
+ *	path to the file.  If no cell <id> exists at <path>, then the
+ *	fall-back method is to use the search paths, which allows some
+ *	portability of layouts from place to place without breaking.
  *
  *	7. If the cell contains labels, then the labels are preceded
  *	by the line "<< labels >>".  Each label is one line of the form
@@ -1035,10 +1048,22 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 	    if (f != NULL)
 	    {
 		if (pptr != NULL) *pptr = '.';
+
+		/* NOTE:  May not want to present this as an error, as	*/
+		/* it is a common technique to read files from, say, a	*/
+		/* LEF file but not save them locally, and then expect	*/
+		/* that the layout views will be picked up from		*/
+		/* somewhere else in the search paths.			*/
+
 		TxError("Warning:  Parent cell lists instance of \"%s\" at bad file "
 			"path %s.\n", cellDef->cd_name, cellDef->cd_file);
 		TxError("The cell exists in the search paths at %s.\n", filename);
 		TxError("The discovered version will be used.\n");
+
+		/* Write the new path to cd_file or else magic will	*/
+		/* generate another error later.			*/
+
+		cellDef->cd_file = StrDup(&cellDef->cd_file, filename);
 	    }
 	}
 
