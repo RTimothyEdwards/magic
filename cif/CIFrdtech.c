@@ -1073,6 +1073,65 @@ CIFReadLoadStyle(stylename)
 /*
  * ----------------------------------------------------------------------------
  *
+ * CIFReadGetGrowSize --
+ *
+ *   Parse the rules for the given CIF/GDS layer "type" and return the
+ *   amount that it needs to be grown to create the magic contact layer
+ *   type.  This assumes that the input manipulations are straightforward.
+ *   It is expected that any "and" or "and-not" operations are to separate
+ *   the via type from other via types, and that the amount to grow is the
+ *   sum of all grow and shrink operations.
+ *
+ *   Note that the routine works to determine simple grow rules for any
+ *   layer but is specifically designed to determine how to convert cut
+ *   layers from a LEF file into magic contact types.
+ *
+ * Results:
+ *	Grow length, in magic units
+ *
+ * Side effects:
+ *	None
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+CIFReadGetGrowSize(type)
+    TileType type;
+{
+    CIFReadStyle *istyle = cifCurReadStyle;
+    CIFOp *op;
+    int i, dist = 0;
+
+    if (istyle == NULL) return 0;
+
+    for (i = 0; i < istyle->crs_nLayers; i++)
+    {
+	if (istyle->crs_layers[i]->crl_magicType == type)
+	{
+	    dist = 0;
+	    for (op = istyle->crs_layers[i]->crl_ops; op != NULL;
+			op = op->co_next)
+	    {
+		if (op->co_opcode == CIFOP_GROW ||
+				op->co_opcode == CIFOP_GROW_G)
+		{
+		    dist += op->co_distance;
+		}
+		if (op->co_opcode == CIFOP_SHRINK)
+		{
+		    dist -= op->co_distance;
+		}
+	    }
+	    if (dist > 0) break;
+	}
+    }
+    return dist;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * CIFGetInputScale --
  *
  *      This routine is given here so that the CIF input scale can be
