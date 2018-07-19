@@ -7779,6 +7779,9 @@ case $target in
     if test "$CPP" = "cc -E" ; then
        CPPFLAGS="$CPPFLAGS -no-cpp-precomp"
     fi
+
+$as_echo "#define _FORTIFY_SOURCE 0" >>confdefs.h
+
     ;;
 esac
 

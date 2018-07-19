@@ -1367,6 +1367,7 @@ case $target in
     if test "$CPP" = "cc -E" ; then
        CPPFLAGS="$CPPFLAGS -no-cpp-precomp"
     fi
+    AC_DEFINE(_FORTIFY_SOURCE, 0, [Avoid checks on string overruns])
     ;;
 esac
 
