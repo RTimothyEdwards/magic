@@ -1107,6 +1107,9 @@ CIFReadGetGrowSize(type)
 
     for (i = 0; i < istyle->crs_nLayers; i++)
     {
+	/* Don't confuse CIF types with magic types! */
+	if (istyle->crs_layers[i]->crl_flags & CIFR_TEMPLAYER) continue;
+
 	if (istyle->crs_layers[i]->crl_magicType == type)
 	{
 	    dist = 0;
