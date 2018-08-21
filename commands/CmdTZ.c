@@ -178,7 +178,7 @@ CmdTech(w, cmd)
 
     static char *cmdTechOption[] =
     {	
-	"load filename [-noprompt][-override]\n\
+	"load filename [-noprompt][-[no]override]\n\
 				Load a new technology",
 	"help			Display techinfo command options",
 	"name			Show current technology name",

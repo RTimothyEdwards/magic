@@ -435,7 +435,7 @@ DBWInitCommands()
 	"stretch [dir [amount]]	stretch box and selection",
 	CmdStretch, FALSE);
     WindAddCommand(DBWclientID,
-	"tech option	technology handling; type \"techinfo help\"\n\
+	"tech option	technology handling; type \"tech help\"\n\
 			for information on options",
 	CmdTech, FALSE);
 #ifndef MAGIC_WRAPPER
