@@ -335,7 +335,11 @@ DBEraseMask(cellDef, rect, mask)
 {
     TileType t;
 
-    for (t = DBNumTypes - 1; t >= TT_SELECTBASE; t--)
+    /* Corrected to restore erasing of error layers, which is	*/
+    /* functionality lost since magic version 7.1.  Modified by	*/
+    /* BIM 8/18/2018						*/
+
+    for (t = DBNumTypes - 1; t >= TT_PAINTBASE; t--)
 	if (TTMaskHasType(mask, t))
 	    DBErase(cellDef, rect, t);
 }

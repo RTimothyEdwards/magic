@@ -607,7 +607,7 @@ CmdErase(w, cmd)
     TxCommand *cmd;
 {
     Rect editRect, areaReturn;
-    TileTypeBitMask mask;
+    TileTypeBitMask mask, errorLayersForErasure, activeLayersForErasure;
     extern int cmdEraseCellsFunc();
 
     windCheckOnlyWindow(&w, DBWclientID);
@@ -643,10 +643,21 @@ CmdErase(w, cmd)
     if (TTMaskIsZero(&mask))
 	return;
 
-    TTMaskAndMask(&mask, &DBActiveLayerBits);
+    /* Split the mask into active and error layers.  This restores	*/
+    /* functionality lost since magic version 7.1.  Modified by BIM	*/
+    /* (Iain McNally) 8/18/2018						*/
+
+    TTMaskAndMask3(&activeLayersForErasure, &mask, &DBActiveLayerBits);
+    TTMaskClearMask3(&errorLayersForErasure, &mask, &DBAllButSpaceAndDRCBits);
 
     /* Erase paint. */
-    DBEraseValid(EditCellUse->cu_def, &editRect, &mask, 0);
+    DBEraseValid(EditCellUse->cu_def, &editRect, &activeLayersForErasure, 0);
+
+    /* Erase error layers if selected. */
+    if (!TTMaskIsZero(&errorLayersForErasure))
+    {
+	DBEraseMask(EditCellUse->cu_def, &editRect, &errorLayersForErasure);
+    }
 
     /* Erase labels. */
     areaReturn = editRect;
