@@ -1105,58 +1105,105 @@ cifParseUser94()
 bool
 cifParseUser95()
 {
+    /* Modified by BIM 1/8/2018 */
     Rect rectangle;
-    Point size, center, cscaled;
+    Point size, center, lowerleft, upperright;
     char *name = NULL;
     TileType type;
     int layer, i;
     int savescale;
 
     (void) StrDup(&name, cifParseName());
+
     if (! CIFParsePoint(&size, 1))
     {
 	CIFReadError("95 command, but no size; ignored.\n");
 	CIFSkipToSemi();
 	return FALSE;
     }
-    if (! CIFParsePoint(&center, 1))
+    
+    savescale = cifCurReadStyle->crs_scaleFactor;
+
+    /* The center coordinates returned are in CIF units *2              */
+    /* the values will be halved later before conversion to magic units */
+    
+    if (! CIFParsePoint(&center, 2))
     {
 	CIFReadError("95 command, but no location; ignored.\n");
 	CIFSkipToSemi();
 	return FALSE;
     }
 
+    /* If reading the center causes a CIF input scale to be redefined,	*/
+    /* then the length and width must also be changed.			*/
+
+    if (savescale != cifCurReadStyle->crs_scaleFactor)
+    {
+	size.p_x *= (cifCurReadStyle->crs_scaleFactor / savescale);
+	size.p_y *= (cifCurReadStyle->crs_scaleFactor / savescale);
+    }
+
     /* Scale the coordinates and create the rectangular area.		*/
-    /* Remap center and size to lowerleft and upperright, respectively, */
+    /* Explicitly calculate lowerleft and upperright using CIF units *2 */
     /* so that half-lambda centers are resolved before remapping to	*/
     /* magic coordinates.						*/
 
-    cscaled.p_x = CIFScaleCoord(center.p_x - size.p_x/2, COORD_ANY);
+    lowerleft.p_x = center.p_x - size.p_x;
+    lowerleft.p_y = center.p_y - size.p_y;
+    
+    upperright.p_x = center.p_x + size.p_x;
+    upperright.p_y = center.p_y + size.p_y;
+    
+    if ((lowerleft.p_x % 2 == 0) && (lowerleft.p_y % 2 == 0)) {
+
+      /* if possible convert values to CIF units by dividing by two */
+
+      lowerleft.p_x /= 2;
+      lowerleft.p_y /= 2;
+
+      upperright.p_x /= 2;
+      upperright.p_y /= 2;
+
+    } else {
+
+      /* if division by two would create inaccuracy then rescale to accommodate */
+
+      CIFInputRescale(2, 1);
+
+    }
+    
+    /* now scale each of the co-ordinates in turn */
+    
+    lowerleft.p_x = CIFScaleCoord(lowerleft.p_x, COORD_ANY);
     savescale = cifCurReadStyle->crs_scaleFactor;
-    cscaled.p_y = CIFScaleCoord(center.p_y - size.p_y/2, COORD_ANY);
+
+    lowerleft.p_y = CIFScaleCoord(lowerleft.p_y, COORD_ANY);
     if (savescale != cifCurReadStyle->crs_scaleFactor)
     {
-	cscaled.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	lowerleft.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
 	savescale = cifCurReadStyle->crs_scaleFactor;
     }
-    size.p_x = CIFScaleCoord(center.p_x + (size.p_x - size.p_x/2), COORD_ANY);
+
+    upperright.p_x = CIFScaleCoord(upperright.p_x, COORD_ANY);
     if (savescale != cifCurReadStyle->crs_scaleFactor)
     {
-	cscaled.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
-	cscaled.p_y *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	lowerleft.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	lowerleft.p_y *= (savescale / cifCurReadStyle->crs_scaleFactor);
 	savescale = cifCurReadStyle->crs_scaleFactor;
     }
-    size.p_y = CIFScaleCoord(center.p_y + (size.p_y - size.p_y/2), COORD_ANY);
+
+    upperright.p_y = CIFScaleCoord(upperright.p_y, COORD_ANY);
     if (savescale != cifCurReadStyle->crs_scaleFactor)
     {
-	cscaled.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
-	cscaled.p_y *= (savescale / cifCurReadStyle->crs_scaleFactor);
-	size.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	lowerleft.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	lowerleft.p_y *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	upperright.p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
     }
-    rectangle.r_xbot = cscaled.p_x;
-    rectangle.r_ybot = cscaled.p_y;
-    rectangle.r_xtop = size.p_x;
-    rectangle.r_ytop = size.p_y;
+
+    rectangle.r_xbot = lowerleft.p_x;
+    rectangle.r_ybot = lowerleft.p_y;
+    rectangle.r_xtop = upperright.p_x;
+    rectangle.r_ytop = upperright.p_y;
 
     /* Get a layer, lookup the layer, then add the label to the
      * current cell.  Tricky business: in order for the default
