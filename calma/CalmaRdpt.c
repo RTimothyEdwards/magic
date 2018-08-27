@@ -298,7 +298,7 @@ calmaElementBoundary()
 	    type = cifCurReadStyle->crs_labelLayer[ciftype];
 	    for (lab = cifReadCellDef->cd_labels; lab; lab = lab->lab_next)
 	    {
-		if ((GEO_SURROUND(&lab->lab_rect, &rp->r_r)) && (lab->lab_type == type))
+		if ((GEO_SURROUND(&rp->r_r, &lab->lab_rect)) && (lab->lab_type == type))
 		{
 		    lab->lab_rect = rp->r_r;	/* Replace with larger rectangle */
 		    break;
