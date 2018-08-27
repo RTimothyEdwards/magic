@@ -631,6 +631,8 @@ calmaElementPath()
     }
 }
 
+typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT } labelType;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -853,16 +855,9 @@ calmaElementText()
     else
     {
 	int flags, i;
+	Label *lab;
 
-        /* Find the style layer record corresponding to the label type */
-        layer = -1;
-        for (i = 0; i < cifCurReadStyle->crs_nLayers; i++)
-            if (cifCurReadStyle->crs_layers[i]->crl_magicType == type) {
-                layer = i;
-                break;
-            }
-
-	if (layer >= 0 && cifCurReadStyle->crs_labelSticky[layer])
+	if (cifnum >= 0 && (cifCurReadStyle->crs_labelSticky[cifnum] != LABEL_TYPE_NONE))
 	    flags = LABEL_STICKY;
 	else if (cifCurReadStyle->crs_flags & CRF_NO_RECONNECT_LABELS)
 	    flags = LABEL_STICKY;
@@ -870,10 +865,32 @@ calmaElementText()
 	    flags = 0;
 
 	if (font < 0)
-	    DBPutLabel(cifReadCellDef, &r, pos, textbody, type, flags);
+	    lab = DBPutLabel(cifReadCellDef, &r, pos, textbody, type, flags);
 	else
-	    DBPutFontLabel(cifReadCellDef, &r, font, size, angle,
+	    lab = DBPutFontLabel(cifReadCellDef, &r, font, size, angle,
 			&GeoOrigin, pos, textbody, type, flags);
+
+	if ((lab != NULL) && (cifnum >= 0) &&
+		((cifCurReadStyle->crs_labelSticky[cifnum] == LABEL_TYPE_PORT)))
+	{
+	    Label *sl;
+	    int idx;
+
+	    /* No port information can be encoded in the GDS file, so	*/
+	    /* assume defaults, and assume that the port order is the	*/
+	    /* order in which labels arrive in the GDS stream.		*/
+
+	    i = -1;
+	    for (sl = cifReadCellDef->cd_labels; sl != NULL; sl = sl->lab_next)
+	    {
+		idx = sl->lab_flags & PORT_NUM_MASK;
+		if (idx > i) i = idx;
+	    }
+	    i++;
+	    lab->lab_flags |= (PORT_NUM_MASK & i);
+	    lab->lab_flags |= PORT_DIR_NORTH | PORT_DIR_SOUTH |
+				PORT_DIR_EAST | PORT_DIR_WEST;
+	}
     }
 
     /* done with textbody */
