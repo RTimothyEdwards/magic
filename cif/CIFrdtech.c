@@ -62,6 +62,9 @@ CIFOp *cifCurReadOp;			/* Last geometric operation seen. */
 void cifReadStyleInit();
 void CIFReadLoadStyle();
 
+/* Label types used by the "labels" statement option */
+typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT } labelType;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -365,7 +368,7 @@ cifReadStyleInit()
     for (i = 0; i < MAXCIFRLAYERS; i++)
     {
 	cifCurReadStyle->crs_labelLayer[i] = TT_SPACE;
-	cifCurReadStyle->crs_labelSticky[i] = FALSE;
+	cifCurReadStyle->crs_labelSticky[i] = LABEL_TYPE_NONE;
 	cifCurReadStyle->crs_layers[i] = NULL;
     }
 }
@@ -465,6 +468,7 @@ CIFReadTechLine(sectionName, argc, argv)
     CalmaLayerType clt;
     int calmaLayers[CALMA_LAYER_MAX], calmaTypes[CALMA_LAYER_MAX];
     int nCalmaLayers, nCalmaTypes, l, t, j;
+    int calmaLabelType = LABEL_TYPE_NONE;
 
     if (argc <= 0) return TRUE;
     else if (argc >= 2) l = strlen(argv[1]);
@@ -848,7 +852,13 @@ CIFReadTechLine(sectionName, argc, argv)
 	{
 	    if (argc == 3)
 	    {
-		if (strcmp(argv[2], "text"))
+		if (!strcmp(argv[2], "text"))
+		    calmaLabelType = LABEL_TYPE_TEXT;
+		else if (!strcmp(argv[2], "sticky"))
+		    calmaLabelType = LABEL_TYPE_TEXT;
+		else if (!strcmp(argv[2], "port"))
+		    calmaLabelType = LABEL_TYPE_PORT;
+		else
 		    goto wrongNumArgs;
 	    }
 	    else
@@ -862,7 +872,7 @@ CIFReadTechLine(sectionName, argc, argv)
 		cifCurReadStyle->crs_labelLayer[i]
 			= cifCurReadLayer->crl_magicType;
 		if (argc == 3)
-		    cifCurReadStyle->crs_labelSticky[i] = TRUE;
+		    cifCurReadStyle->crs_labelSticky[i] = calmaLabelType;
 	    }
 	}
 	return TRUE;
