@@ -881,11 +881,36 @@ calmaOutFunc(def, f, cliprect)
 		(ClientData) &cos);
     }
 
-    /* Output labels */
+    /* Output labels.  Do this in two passes, first for non-port labels	*/
+    /* while finding the highest-numbered port.  Then output the port	*/
+    /* labels (if any) in the order of the port index.			*/
+
     if (CalmaDoLabels)
+    {
+	int i, maxport = -1;
+
 	for (lab = def->cd_labels; lab; lab = lab->lab_next)
-	    calmaWriteLabelFunc(lab,
+	{
+	    if ((lab->lab_flags & PORT_DIR_MASK) == 0)
+		calmaWriteLabelFunc(lab,
 			    CIFCurStyle->cs_labelLayer[lab->lab_type], f);
+	    else
+	    {
+		if ((lab->lab_flags & PORT_NUM_MASK) > maxport)
+		    maxport = lab->lab_flags & PORT_NUM_MASK;
+	    }
+	}
+	if (maxport >= 0)
+	    for (i = 0; i <= maxport; i++)
+		for (lab = def->cd_labels; lab; lab = lab->lab_next)
+		    if (((lab->lab_flags & PORT_DIR_MASK) != 0) &&
+				((lab->lab_flags & PORT_NUM_MASK) == i))
+		    {
+			calmaWriteLabelFunc(lab,
+				CIFCurStyle->cs_labelLayer[lab->lab_type], f);
+			break;	
+		    }
+    }
 
     /* End of structure */
     calmaOutRH(4, CALMA_ENDSTR, CALMA_NODATA, f);
