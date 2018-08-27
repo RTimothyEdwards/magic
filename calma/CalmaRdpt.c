@@ -57,6 +57,8 @@ extern HashTable calmaDefInitHash;
 extern void calmaLayerError();
 bool calmaReadPath();
 
+typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT } labelType;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -275,6 +277,35 @@ calmaElementBoundary()
     CIFPropRecordPath(cifReadCellDef, pathheadp, FALSE);
     rp = CIFPolyToRects(pathheadp, plane, CIFPaintTable, (PaintUndoInfo *)NULL);
     CIFFreePath(pathheadp);
+
+    /* If the input layer is designated for ports by a "label"	*/
+    /* statement in the cifinput section, then find any label	*/
+    /* bounded by the path and attach the path to it.  Note	*/
+    /* that this assumes two things:  (1) that labels can only	*/
+    /* be attached to simple rectangles, and (2) that the	*/
+    /* rectangle appears in the GDS stream after the label.  If	*/
+    /* either assumption is violated, this method needs to be	*/
+    /* re-coded.						*/
+
+    if (rp != NULL)
+    {
+	if ((ciftype >= 0) &&
+		((cifCurReadStyle->crs_labelSticky[ciftype] == LABEL_TYPE_PORT)))
+	{
+	    Label *lab;
+	    TileType type;
+
+	    type = cifCurReadStyle->crs_labelLayer[ciftype];
+	    for (lab = cifReadCellDef->cd_labels; lab; lab = lab->lab_next)
+	    {
+		if ((GEO_SURROUND(&lab->lab_rect, &rp->r_r)) && (lab->lab_type == type))
+		{
+		    lab->lab_rect = rp->r_r;	/* Replace with larger rectangle */
+		    break;
+		}
+	    }
+	}
+    }
 
     /* Paint the rectangles (if any) */
     for (; rp != NULL ; rp = rp->r_next)
@@ -631,8 +662,6 @@ calmaElementPath()
     }
 }
 
-typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT } labelType;
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -871,7 +900,7 @@ calmaElementText()
 			&GeoOrigin, pos, textbody, type, flags);
 
 	if ((lab != NULL) && (cifnum >= 0) &&
-		((cifCurReadStyle->crs_labelSticky[cifnum] == LABEL_TYPE_PORT)))
+		(cifCurReadStyle->crs_labelSticky[cifnum] == LABEL_TYPE_PORT))
 	{
 	    Label *sl;
 	    int idx;
