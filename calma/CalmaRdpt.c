@@ -290,7 +290,7 @@ calmaElementBoundary()
     if (rp != NULL)
     {
 	if ((ciftype >= 0) &&
-		((cifCurReadStyle->crs_labelSticky[ciftype] == LABEL_TYPE_PORT)))
+		((cifCurReadStyle->crs_labelSticky[ciftype] != LABEL_TYPE_NONE)))
 	{
 	    Label *lab;
 	    TileType type;
