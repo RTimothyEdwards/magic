@@ -208,8 +208,8 @@ typedef struct
  *		only be generated if the cell is a top-level cell.
  */
 
-#define CIF_TEMP 	1
-#define CIF_BBOX_TOP	2
+#define CIF_TEMP 		1
+#define CIF_BBOX_TOP		2
 
 /* The following data structure describes a complete set of CIF
  * layers.  The number of CIF layers (MAXCIFLAYERS) must not be
@@ -270,6 +270,11 @@ typedef struct cifstyle
 				 * for labels attached to this Magic layer.
 				 * -1 means no known CIF layer for this Magic
 				 * layer.
+				 */
+    int cs_portLayer[TT_MAXTYPES];
+				/* Similar to cs_labelLayer, to distinguish
+				 * between output types used for "normal"
+				 * text and those used specifically for ports.
 				 */
     CIFLayer *cs_layers[MAXCIFLAYERS];
 				/* Describes how to generate each layer.*/
