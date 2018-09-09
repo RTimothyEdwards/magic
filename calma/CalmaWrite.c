@@ -892,7 +892,7 @@ calmaOutFunc(def, f, cliprect)
 	for (lab = def->cd_labels; lab; lab = lab->lab_next)
 	{
 	    type = CIFCurStyle->cs_labelLayer[lab->lab_type];
-	    if ((lab->lab_flags & PORT_DIR_MASK) == 0)
+	    if ((type >= 0) && (lab->lab_flags & PORT_DIR_MASK) == 0)
 	    {
 		calmaWriteLabelFunc(lab, type, f);
 	    }
@@ -906,8 +906,8 @@ calmaOutFunc(def, f, cliprect)
 	    for (i = 0; i <= maxport; i++)
 		for (lab = def->cd_labels; lab; lab = lab->lab_next)
 		{
-		    type = CIFCurStyle->cs_labelLayer[lab->lab_type];
-		    if (((lab->lab_flags & PORT_DIR_MASK) != 0) &&
+		    type = CIFCurStyle->cs_portLayer[lab->lab_type];
+		    if ((type >= 0) && ((lab->lab_flags & PORT_DIR_MASK) != 0) &&
 				((lab->lab_flags & PORT_NUM_MASK) == i))
 		    {
 			calmaWriteLabelFunc(lab, type, f);
@@ -2469,6 +2469,9 @@ calmaWriteLabelFunc(lab, type, f)
     /* If the cifoutput layer is for labels only (has no operators),	*/
     /* and the label rectangle is not degenerate, then output the label	*/
     /* rectangle as a boundary with the label's layer:purpose pair.	*/
+
+    /* Note that the check for whether the CIF_LABEL_NOPORT flag has	*/
+    /* been set is done outside of this routine.			*/
 
     if ((CIFCurStyle->cs_layers[type]->cl_ops == NULL) &&
 		(lab->lab_rect.r_xtop > lab->lab_rect.r_xbot) &&

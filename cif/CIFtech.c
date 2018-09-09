@@ -179,7 +179,10 @@ cifTechStyleInit()
     CIFCurStyle->cs_hierLayers = DBZeroTypeBits;
     CIFCurStyle->cs_flags = 0;
     for (i=0;  i<TT_MAXTYPES;  i+=1)
+    {
 	CIFCurStyle->cs_labelLayer[i] = -1;
+	CIFCurStyle->cs_portLayer[i] = -1;
+    }
     for (i = 0; i < MAXCIFLAYERS; i++)
 	CIFCurStyle->cs_layers[i] = NULL;
 }
@@ -859,6 +862,8 @@ CIFTechLine(sectionName, argc, argv)
 
     if (strcmp(argv[0], "labels") == 0)
     {
+	bool portOnly = FALSE, noPort = FALSE;
+
 	if (cifCurLayer == NULL)
 	{
 	    TechError("Must define layer before giving labels it holds.\n");
@@ -866,12 +871,29 @@ CIFTechLine(sectionName, argc, argv)
 	}
 	if (cifCurLayer->cl_flags & CIF_TEMP)
 	    TechError("Why are you attaching labels to a temporary layer?\n");
-	if (argc != 2) goto wrongNumArgs;
+	if (argc == 3)
+	{
+	    if (!strncmp(argv[2], "port", 4))
+		portOnly = TRUE;
+	    else if (!strncmp(argv[2], "noport", 6))
+		noPort = TRUE;
+	    else
+	    {
+		TechError("Unknown option %s for labels statement.\n", argv[2]);
+		goto wrongNumArgs;
+	    }
+	}
+	else if (argc != 2) goto wrongNumArgs;
 	DBTechNoisyNameMask(argv[1], &mask);
 	for (i=0; i<TT_MAXTYPES; i+=1)
 	{
 	    if (TTMaskHasType(&mask, i))
-	        CIFCurStyle->cs_labelLayer[i] = CIFCurStyle->cs_nLayers-1;
+	    {
+		if (noPort == FALSE)
+		    CIFCurStyle->cs_labelLayer[i] = CIFCurStyle->cs_nLayers-1;
+		if (portOnly == TRUE)
+		    CIFCurStyle->cs_portLayer[i] = CIFCurStyle->cs_nLayers-1;
+	    }
 	}
 	cifGotLabels = TRUE;
 	return TRUE;
