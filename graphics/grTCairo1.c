@@ -363,6 +363,25 @@ int llx, lly, width, height;
     /* surface and context, so we need to make them.		*/
 
     if (tcairodata == NULL) {
+
+	/* For OpenGL using Cairo for off-screen rendering,	*/
+	/* grTCairoVisualInfo may be NULL and need to be set.	*/
+	if (grTCairoVisualInfo == NULL)
+	{
+	    XVisualInfo grtemplate;
+	    int gritems;
+	    grtemplate.screen = grXscrn;
+	    grtemplate.depth = 0;
+	    grTCairoVisualInfo = XGetVisualInfo(grXdpy, VisualScreenMask,
+				&grtemplate, &gritems);
+
+	    if (!grTCairoVisualInfo)
+	    {
+		TxError("No suitable visual!\n");
+		return;
+	    }
+	}
+
 	tcairodata = (TCairoData *)mallocMagic(sizeof(TCairoData));
 	tcairodata->surface = cairo_xlib_surface_create(grXdpy,
 		tcairoCurrent.windowid, grTCairoVisualInfo->visual,
