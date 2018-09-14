@@ -611,7 +611,7 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
     Rect rect, area, extended, *box;
     Rect redisplayArea;
     CellUse *use;
-    CellDef *parent;
+    CellDef *parent, *last;
     Label *label;
     bool foundAny;
     int pNum;
@@ -740,8 +740,15 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
      * of their respective parents.  Also, redisplay the use
      * in each parent, in each window where the cell isn't
      * expanded (i.e. the bounding box is no longer correct).
+     *
+     * Because more than one cell may be in an array, avoid
+     * running recurseProc more than once on the same parent.
+     * The simple way is just wait until the parent cell changes
+     * to run the process, although this could be done more
+     * thoroughly.
      */
 
+    last = NULL;
     for (use = cellDef->cd_parents; use != NULL; use = use->cu_nextuse)
     {
 	redisplayArea = use->cu_extended;
@@ -750,12 +757,17 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
 	{
 	    parent->cd_flags |= CDBOXESCHANGED;
 	    DBPlaceCell(use, parent);
-	    (*recurseProc)(parent);
+	    if (last != parent)
+	    {
+		if (last != NULL) (*recurseProc)(last);
+		last = parent;
+	    }
 	    (void) GeoInclude(&use->cu_extended, &redisplayArea);
 	    DBWAreaChanged(parent, &redisplayArea, (int) ~use->cu_expandMask,
 		&DBAllButSpaceBits);
 	}
     }
+    if ((last != NULL) && (parent != NULL)) (*recurseProc)(parent);
     UndoEnable();
 }
 

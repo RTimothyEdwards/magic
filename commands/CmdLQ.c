@@ -1196,6 +1196,9 @@ CmdPort(w, cmd)
         goto portWrongNumArgs;
     else
     {
+	/* Make sure edit box exists */
+	if (!ToolGetEditBox(&editBox)) return;
+
 	/* Handle syntax "port <name>|<index> [option ...]"	*/
 	/* Does not require a selection.			*/
 
@@ -1271,7 +1274,7 @@ CmdPort(w, cmd)
 	    }
 
 	}
-	if ((option != PORT_LAST) && lab == NULL)
+	if ((option != PORT_LAST) && (option != PORT_MAKEALL) && (lab == NULL))
 	{
 	    /* Let "port remove" fail without complaining. */
 	    if (option != PORT_REMOVE)
@@ -1509,15 +1512,27 @@ portWrongNumArgs:
     
 parseindex:
 
-    while (1) {
-
+    if ((option != PORT_MAKEALL) && (lab->lab_flags & PORT_DIR_MASK))
+    {
 	/* For this syntax, the label must not already be a port */
-	if (lab->lab_flags & PORT_DIR_MASK)
+	TxError("The selected label is already a port.\n");
+	TxError("Do \"port help\" to get a list of options.\n");
+	return;
+    }
+
+    while (lab != NULL) {
+
+	if (option == PORT_MAKEALL)
 	{
-	    TxError("The selected label is already a port.\n");
-	    TxError("Do \"port help\" to get a list of options.\n");
-	    return;
+	    /* Get the next valid label, skipping any that are not	*/
+	    /* inside the edit box or are already marked as ports.	*/
+
+	    while ((lab != NULL) && (!GEO_OVERLAP(&editBox, &lab->lab_rect)
+			|| (lab->lab_flags & PORT_DIR_MASK)))
+		lab = lab->lab_next;
+	    if (lab == NULL) break;
 	}
+	else if (lab->lab_flags & PORT_DIR_MASK) break;
 
 	if ((argc > argstart) && StrIsInt(cmd->tx_argv[argstart]))
 	{
@@ -1642,21 +1657,6 @@ parsepositions:
 	lab->lab_rect = editBox;
 	DBWLabelChanged(editDef, lab, DBW_ALLWINDOWS);
 	lab->lab_rect = tmpArea;
-
-	if (option == PORT_MAKEALL)
-	{
-	    /* Get the next valid label, skipping any that are not	*/
-	    /* inside the edit box or are already marked as ports.	*/
-
-	    lab = lab->lab_next;
-	    while ((lab != NULL) && (!GEO_OVERLAP(&editBox, &lab->lab_rect)
-			|| (lab->lab_flags & PORT_DIR_MASK)))
-		lab = lab->lab_next;
-
-	    if (lab == NULL) break;
-	}
-	else
-	    break;
     }
     editDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
 }
