@@ -546,7 +546,9 @@ drcTile (tile, arg)
 		    Rect *lr;
 		    int i;
 
-		    if (!trigpending) cptr->drcc_dist++;
+		    if (!trigpending || (DRCCurStyle->DRCFlags
+				& DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE))
+			cptr->drcc_dist++;
 
 		    if (cptr->drcc_flags & DRC_REVERSE)
 			mrd = drcCanonicalMaxwidth(tpleft, GEO_WEST, arg, cptr);
@@ -554,11 +556,20 @@ drcTile (tile, arg)
 			mrd = drcCanonicalMaxwidth(tile, GEO_EAST, arg, cptr);
 		    else
 			mrd = NULL;
-		    if (!trigpending) cptr->drcc_dist--;
+		    if (!trigpending || (DRCCurStyle->DRCFlags
+				& DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE))
+			cptr->drcc_dist--;
 		    if (trigpending)
 		    {
 			if (mrd)
-			    triggered = mrd->entries;
+			{
+			    /* Run-length rule */
+			    if ((cptr->drcc_cdist <= cptr->drcc_dist) ||
+					((edgeTop - edgeBot) > cptr->drcc_cdist))
+				triggered = mrd->entries;
+			    else
+				cptr = cptr->drcc_next;
+			}
 			else
 			    cptr = cptr->drcc_next;
 		    }
@@ -903,7 +914,9 @@ checkbottom:
 		    Rect *lr;
 		    int i;
 
-		    if (!trigpending) cptr->drcc_dist++;
+		    if (!trigpending || (DRCCurStyle->DRCFlags
+				& DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE))
+			cptr->drcc_dist++;
 
 		    if (cptr->drcc_flags & DRC_REVERSE)
 			mrd = drcCanonicalMaxwidth(tpbot, GEO_SOUTH, arg, cptr);
@@ -911,11 +924,18 @@ checkbottom:
 			mrd = drcCanonicalMaxwidth(tile, GEO_NORTH, arg, cptr);
 		    else
 			mrd = NULL;
-		    if (!trigpending) cptr->drcc_dist--;
+		    if (!trigpending || (DRCCurStyle->DRCFlags
+				& DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE))
+			cptr->drcc_dist--;
 		    if (trigpending)
 		    {
 			if (mrd)
-			    triggered = mrd->entries;
+			    /* Run-length rule */
+			    if ((cptr->drcc_cdist <= cptr->drcc_dist) ||
+					((edgeRight - edgeLeft) > cptr->drcc_cdist))
+				triggered = mrd->entries;
+			    else
+				cptr = cptr->drcc_next;
 			else
 			    cptr = cptr->drcc_next;
 		    }

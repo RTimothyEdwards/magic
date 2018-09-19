@@ -172,9 +172,23 @@ typedef struct drcstyle
     int			DRCScaleFactorD; /* Multiply dist by this to get magic units */
     int			DRCTechHalo;	/* largest action distance of design rules */
     int			DRCStepSize;	/* chunk size for decomposing large areas */
+    char		DRCFlags;	/* Option flags */
     drcWhyList		*DRCWhyList;
     PaintResultType	DRCPaintTable[NP][NT][NT];
 } DRCStyle;
+
+/* flag values used by DRCFlags */
+
+/*  DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE:  If set, indicates that the ruleset	*/
+/*  defines "wide" as material of MORE THAN the given DRC rule width value, as	*/
+/*  opposed to the default behavior, which is to define "wide" as material of	*/
+/*  AT LEAST the given DRC rule width value.					*/
+
+/* (Note that at least for now, there is no similar flag for "maxwidth" rules,	*/
+/* which are always interpreted as inclusive, meaning that material of the	*/
+/* exact width of the DRC rule width value is legal.)				*/
+
+#define DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE  0x01
 
 /* Things shared between DRC functions, but not used by the
  * outside world:
