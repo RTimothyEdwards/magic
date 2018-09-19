@@ -67,7 +67,7 @@ static int drcRulesOptimized = 0;
 int drcWidth(), drcSpacing(), drcEdge(), drcNoOverlap();
 int drcExactOverlap(), drcExtend();
 int drcSurround(), drcRectOnly(), drcOverhang();
-int drcStepSize();
+int drcStepSize(), drcOption();
 int drcMaxwidth(), drcArea(), drcRectangle(), drcAngles();
 int drcCifSetStyle(), drcCifWidth(), drcCifSpacing();
 int drcCifMaxwidth(), drcCifArea();
@@ -540,6 +540,7 @@ DRCTechStyleInit()
     DRCCurStyle->DRCScaleFactorN = 1;
     DRCCurStyle->DRCScaleFactorD = 1;
     DRCCurStyle->DRCStepSize = 0;
+    DRCCurStyle->DRCFlags = (char)0;
 
     DRCTechHalo = 0;
 
@@ -959,6 +960,8 @@ DRCTechAddRule(sectionName, argc, argv)
     "layers1 layers2 distance why",
 	"no_overlap",	 3,	3,	drcNoOverlap,
     "layers1 layers2",
+	"option",	 2,	2,	drcOption,
+    "option_name option_value",
 	"overhang",	 5,	5,	drcOverhang,
     "layers1 layers2 distance why",
 	"rect_only",	 3,	3,	drcRectOnly,
@@ -971,7 +974,7 @@ DRCTechAddRule(sectionName, argc, argv)
     "layers1 layers2 distance presence why",
 	"width",	 4,	4,	drcWidth,
     "layers width why",
-	"widespacing",	 7,	7,	drcSpacing,
+	"widespacing",	 7,	8,	drcSpacing,
     "layers1 width layers2 separation adjacency why",
         "area",		 5,	5,	drcArea,
     "layers area horizon why",
@@ -1661,12 +1664,14 @@ drcSpacing3(argc, argv)
 
 int
 drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
-		why, widerule, multiplane)
+		why, widerule, runlength, multiplane)
     TileTypeBitMask *set1, *set2;
     PlaneMask pmask1, pmask2;
     int wwidth, distance;
     char *adjacency, *why;
-    bool widerule, multiplane;
+    bool widerule;
+    int runlength;
+    bool multiplane;
 {
     TileTypeBitMask tmp1, tmp2, setR, setRreverse;
     int plane, plane2;
@@ -1825,7 +1830,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 			dptrig = (DRCCookie *) mallocMagic((unsigned)
 				(sizeof (DRCCookie)));
 			drcAssign(dptrig, wwidth, dpnew, set1, set1, why,
-				wwidth, DRC_REVERSE | DRC_MAXWIDTH |
+				runlength, DRC_REVERSE | DRC_MAXWIDTH |
 				DRC_TRIGGER | DRC_BENDS, plane2, plane);
 
 			dp->drcc_next = dptrig;
@@ -1880,7 +1885,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 			    dptrig = (DRCCookie *) mallocMagic((unsigned)
 					(sizeof (DRCCookie)));
 			    drcAssign(dptrig, wwidth, dpnew, set1, set1, why,
-					wwidth, DRC_FORWARD | DRC_MAXWIDTH |
+					runlength, DRC_FORWARD | DRC_MAXWIDTH |
 					DRC_TRIGGER | DRC_BENDS, plane2, plane);
 			    dp->drcc_next = dptrig;
 			}
@@ -2089,7 +2094,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
  * Notes:
  * Extended to include the rule syntax:
  *
- *	widespacing layers1 width layers2 distance adjacency why
+ *	widespacing layers1 width [runlength] layers2 distance adjacency why
  *
  * This extension covers rules such as "If m1 width > 10um, then spacing to
  * unconnected m1 must be at least 0.6um".  This assumes that the instantiated
@@ -2113,6 +2118,10 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
  * (Added 11/6/06) Adjacency may be "corner_ok", in which case it calls
  * routing drcSpacing3() (see above).
  *
+ * (Added 9/19/18) Additional run-length distance can be used to limit the
+ * maxwidth rule to geometry exceeding the given run-length (often used with
+ * 65nm and smaller feature size processes).
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -2126,7 +2135,7 @@ drcSpacing(argc, argv)
     char *why;
     TileTypeBitMask set1, set2, tmp1, tmp2;
     PlaneMask pmask1, pmask2, pmaskA, pmaskB, ptest;
-    int wwidth, distance, plane, plane2;
+    int wwidth, distance, plane, plane2, runlength;
     bool widerule, multiplane = FALSE;
 
     if ((argc == 7) && (!strcmp(argv[4], "corner_ok")))
@@ -2137,10 +2146,23 @@ drcSpacing(argc, argv)
     if (widerule)
     {
 	wwidth = atoi(argv[2]);
-	layers2 = argv[3];
-	distance = atoi(argv[4]);
-	adjacency = argv[5];
-	why = drcWhyDup(argv[6]);
+
+	if (argc == 8)
+	{
+	    runlength = atoi(argv[3]);
+	    layers2 = argv[4];
+	    distance = atoi(argv[5]);
+	    adjacency = argv[6];
+	    why = drcWhyDup(argv[7]);
+	}
+	else
+	{
+	    runlength = distance;
+	    layers2 = argv[3];
+	    distance = atoi(argv[4]);
+	    adjacency = argv[5];
+	    why = drcWhyDup(argv[6]);
+	}
 	/* TxPrintf("Info:  DRCtech:  widespacing rule for %s width %d:"
 		" spacing must be %d\n", layers1, wwidth, distance); */
     }
@@ -2151,7 +2173,8 @@ drcSpacing(argc, argv)
 	adjacency = argv[4];
 	wwidth = distance;
 	why = drcWhyDup(argv[5]);
-	if (argc == 7)
+	runlength = distance;
+	if (argc >= 7)
 	{
 	    TechError("Unknown argument in spacing line.\n");
 	    return(0);
@@ -2236,13 +2259,13 @@ drcSpacing(argc, argv)
 
 		    return drcMaskSpacing(&tmp1, &tmp2, pmaskA, pmaskB,
 				wwidth, distance, adjacency, why,
-				widerule, multiplane);
+				widerule, runlength, multiplane);
 		}
 	    }
     }
     else
 	return drcMaskSpacing(&set1, &set2, pmask1, pmask2, wwidth,
-		distance, adjacency, why, widerule, multiplane);
+		distance, adjacency, why, widerule, runlength, multiplane);
 
     return 0;
 }
@@ -3150,6 +3173,53 @@ drcRectangle(argc, argv)
 	}
     }
     return maxwidth;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * drcOption --
+ *
+ * Process an option declaration
+ * This is of the form:
+ *
+ *	option option_name [...]
+ *
+ * e.g,
+ *
+ *	option wide-width-inclusive
+ *
+ * Results:
+ *	Returns 0.
+ *
+ * Side effects:
+ *	Updates DRCFlags.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+drcOption(argc, argv)
+    int argc;
+    char *argv[];
+{
+    int i;
+
+    if (DRCCurStyle == NULL) return 0;
+
+    /* Assume space-separated list of options.  Flag an error on any	*/
+    /* option name not recognized.					*/
+
+    for (i = 1; i < argc; i++)
+    {
+	if (!strcmp(argv[i], "wide-width-noninclusive"))
+	    DRCCurStyle->DRCFlags |= DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE;
+	else
+ 	{
+	    TechError("Unrecognized DRC option \"%s\" (ignored).\n", argv[i]);
+	}
+    }
+    return (0);
 }
 
 /*
