@@ -563,12 +563,24 @@ drcTile (tile, arg)
 		    {
 			if (mrd)
 			{
-			    /* Run-length rule */
-			    if ((cptr->drcc_cdist <= cptr->drcc_dist) ||
-					((edgeTop - edgeBot) > cptr->drcc_cdist))
+			    if (cptr->drcc_cdist <= cptr->drcc_dist)
 				triggered = mrd->entries;
-			    else
-				cptr = cptr->drcc_next;
+		            else
+			    {
+				/* Run-length rule */
+				for (i = 0; i < mrd->entries; i++)
+				{
+				    lr = &mrd->rlist[i];
+				    GeoClip(lr, arg->dCD_clip);
+				    if ((lr->r_ytop - lr->r_ybot) > cptr->drcc_cdist)
+				    {
+					triggered = mrd->entries;
+					break;
+				    }
+				}
+				if (i == mrd->entries)
+				    cptr = cptr->drcc_next;
+			    }
 			}
 			else
 			    cptr = cptr->drcc_next;
@@ -930,12 +942,24 @@ checkbottom:
 		    if (trigpending)
 		    {
 			if (mrd)
-			    /* Run-length rule */
-			    if ((cptr->drcc_cdist <= cptr->drcc_dist) ||
-					((edgeRight - edgeLeft) > cptr->drcc_cdist))
+			    if (cptr->drcc_cdist <= cptr->drcc_dist)
 				triggered = mrd->entries;
-			    else
-				cptr = cptr->drcc_next;
+		            else
+			    {
+				/* Run-length rule */
+				for (i = 0; i < mrd->entries; i++)
+				{
+				    lr = &mrd->rlist[i];
+				    GeoClip(lr, arg->dCD_clip);
+				    if ((lr->r_xtop - lr->r_xbot) > cptr->drcc_cdist)
+				    {
+					triggered = mrd->entries;
+					break;
+				    }
+				}
+				if (i == mrd->entries)
+				    cptr = cptr->drcc_next;
+			    }
 			else
 			    cptr = cptr->drcc_next;
 		    }
