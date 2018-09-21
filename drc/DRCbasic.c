@@ -565,7 +565,7 @@ drcTile (tile, arg)
 			{
 			    if (cptr->drcc_cdist <= cptr->drcc_dist)
 				triggered = mrd->entries;
-		            else
+		            else if ((edgeTop - edgeBot) >= cptr->drcc_cdist)
 			    {
 				/* Run-length rule */
 				for (i = 0; i < mrd->entries; i++)
@@ -581,6 +581,8 @@ drcTile (tile, arg)
 				if (i == mrd->entries)
 				    cptr = cptr->drcc_next;
 			    }
+			    else
+				cptr = cptr->drcc_next;
 			}
 			else
 			    cptr = cptr->drcc_next;
@@ -942,9 +944,10 @@ checkbottom:
 		    if (trigpending)
 		    {
 			if (mrd)
+			{
 			    if (cptr->drcc_cdist <= cptr->drcc_dist)
 				triggered = mrd->entries;
-		            else
+		            else if ((edgeRight - edgeLeft) >= cptr->drcc_cdist)
 			    {
 				/* Run-length rule */
 				for (i = 0; i < mrd->entries; i++)
@@ -960,6 +963,9 @@ checkbottom:
 				if (i == mrd->entries)
 				    cptr = cptr->drcc_next;
 			    }
+			    else
+				cptr = cptr->drcc_next;
+			}
 			else
 			    cptr = cptr->drcc_next;
 		    }
