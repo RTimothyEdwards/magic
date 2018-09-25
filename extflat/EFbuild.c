@@ -1451,7 +1451,8 @@ efNodeAddName(node, he, hn)
 
     /* Link in the new name */
     oldnn = node->efnode_name;
-    if (oldnn == NULL || EFHNBest(newnn->efnn_hier, oldnn->efnn_hier))
+    if (oldnn == NULL || EFHNBest(newnn->efnn_hier, oldnn->efnn_hier)
+		|| (node->efnode_flags & EF_PORT))
     {
 	/* New head of list */
 	newnn->efnn_next = oldnn;
@@ -1534,7 +1535,7 @@ efNodeMerge(node1, node2)
 	}
 
 	/* Concatenate list of EFNodeNames, taking into account precedence */
-	if (EFHNBest(node2->efnode_name->efnn_hier,
+	if ((node2->efnode_flags & EF_PORT) || EFHNBest(node2->efnode_name->efnn_hier,
 		     node1->efnode_name->efnn_hier))
 	{
 	    /*
