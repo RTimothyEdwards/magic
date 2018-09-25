@@ -172,12 +172,13 @@ efReadDef(def, dosubckt, resist, noscale, toplevel)
    bool dosubckt, resist, noscale, toplevel;
 {
     int argc, ac, n;
+    CellDef *dbdef;
     EFCapValue cap;
     char line[1024], *argv[64], *name, *attrs;
     int rscale = 1;	/* Multiply resistances by this */
     int cscale = 1;	/* Multiply capacitances by this */
     float lscale = 1.0;	/* Multiply lambda by this */
-    FILE *inf;
+    FILE *inf = NULL;
     Use *use;
     Rect r;
     bool rc = TRUE;
@@ -187,7 +188,27 @@ efReadDef(def, dosubckt, resist, noscale, toplevel)
     /* Mark def as available */
     def->def_flags |= DEF_AVAILABLE;
     name = def->def_name;
-    inf = PaOpen(name, "r", ".ext", EFSearchPath, EFLibPath, &efReadFileName);
+
+    /* If cell is in main database, check if there is a file path set. */
+
+    if ((dbdef = DBCellLookDef(name)) != NULL)
+    {
+	if (dbdef->cd_file != NULL)
+	{
+	    char *filepath, *sptr;
+
+	    filepath = StrDup((char **)NULL, dbdef->cd_file);
+	    sptr = strrchr(filepath, '/');
+	    if (sptr) {
+		*sptr = '\0';
+		inf = PaOpen(name, "r", ".ext", filepath, EFLibPath, &efReadFileName);
+	    }	
+	    freeMagic(filepath);
+	}
+    }
+    if (inf == NULL)
+	inf = PaOpen(name, "r", ".ext", EFSearchPath, EFLibPath, &efReadFileName);
+
     if (inf == NULL)
     {
 	/* Complementary to .ext file write:  If file is in a read-only	*/
