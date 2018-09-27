@@ -1442,6 +1442,7 @@ efNodeAddName(node, he, hn)
 {
     EFNodeName *newnn;
     EFNodeName *oldnn;
+    bool topport;
 
     newnn = (EFNodeName *) mallocMagic((unsigned)(sizeof (EFNodeName)));
     newnn->efnn_node = node;
@@ -1449,10 +1450,13 @@ efNodeAddName(node, he, hn)
     newnn->efnn_port = -1;
     HashSetValue(he, (char *) newnn);
 
+    topport = ((node->efnode_flags & EF_PORT) && 
+		(node->efnode_name->efnn_hier->hn_parent == NULL)) ?
+		TRUE : FALSE;
+
     /* Link in the new name */
     oldnn = node->efnode_name;
-    if (oldnn == NULL || EFHNBest(newnn->efnn_hier, oldnn->efnn_hier)
-		|| (node->efnode_flags & EF_PORT))
+    if (oldnn == NULL || EFHNBest(newnn->efnn_hier, oldnn->efnn_hier) || topport)
     {
 	/* New head of list */
 	newnn->efnn_next = oldnn;
@@ -1528,14 +1532,20 @@ efNodeMerge(node1, node2)
     /* Make all EFNodeNames point to node1 */
     if (node2->efnode_name)
     {
+	bool topport;
+
 	for (nn = node2->efnode_name; nn; nn = nn->efnn_next)
 	{
 	    nnlast = nn;
 	    nn->efnn_node = node1;
 	}
 
+	topport = ((node2->efnode_flags & EF_PORT) && 
+		(node2->efnode_name->efnn_hier->hn_parent == NULL)) ?
+		TRUE : FALSE;
+
 	/* Concatenate list of EFNodeNames, taking into account precedence */
-	if ((node2->efnode_flags & EF_PORT) || EFHNBest(node2->efnode_name->efnn_hier,
+	if (topport || EFHNBest(node2->efnode_name->efnn_hier,
 		     node1->efnode_name->efnn_hier))
 	{
 	    /*
