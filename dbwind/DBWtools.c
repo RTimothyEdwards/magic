@@ -56,7 +56,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 static CellDef *boxRootDef = NULL;	/* CellDef for the box */
 static Rect boxRootArea;		/* Root def coords */
-static Point crosshairPos;		/* Crosshair position */
+
+typedef struct _crosshairRec {
+    Point    pos;	/* Crosshair position */
+    CellDef *def;	/* CellDef that crosshair position references */
+} CrosshairRec;
+
+static CrosshairRec curCrosshair;		/* Crosshair position */
 
 /*
  * If the following is DBW_SNAP_USER, the box gets snapped to the user's
@@ -390,8 +396,9 @@ ToolGetCorner(screenPoint)
 void
 dbwCrosshairInit()
 {
-    crosshairPos.p_x = MINFINITY;
-    crosshairPos.p_y = MINFINITY;
+    curCrosshair.pos.p_x = MINFINITY;
+    curCrosshair.pos.p_y = MINFINITY;
+    curCrosshair.def = (CellDef *)NULL;
     DBWHLAddClient(DBWDrawCrosshair);
 }
 
@@ -411,8 +418,8 @@ dbwCrosshairInit()
  */
 
 void
-dbwRecordCrosshairYPos(window, erase)
-    MagWindow *window;
+dbwRecordCrosshairYPos(def, erase)
+    CellDef *def;
     bool erase;			/* TRUE means crossair is being erased from its
 				 * current position.  FALSE means the crosshair
 				 * is being added at a new position.
@@ -422,13 +429,13 @@ dbwRecordCrosshairYPos(window, erase)
 
     xwire.r_xbot = MINFINITY;
     xwire.r_xtop = INFINITY;
-    xwire.r_ybot = xwire.r_ytop = crosshairPos.p_y;
-    DBWHLRedraw(WINDOW_DEF(window), &xwire, erase);
+    xwire.r_ybot = xwire.r_ytop = curCrosshair.pos.p_y;
+    DBWHLRedraw(def, &xwire, erase);
 }
 
 void
-dbwRecordCrosshairXPos(window, erase)
-    MagWindow *window;
+dbwRecordCrosshairXPos(def, erase)
+    CellDef *def;
     bool erase;			/* TRUE means crossair is being erased from its
 				 * current position.  FALSE means the crosshair
 				 * is being added at a new position.
@@ -438,8 +445,8 @@ dbwRecordCrosshairXPos(window, erase)
 
     xwire.r_ybot = MINFINITY;
     xwire.r_ytop = INFINITY;
-    xwire.r_xbot = xwire.r_xtop = crosshairPos.p_x;
-    DBWHLRedraw(WINDOW_DEF(window), &xwire, erase);
+    xwire.r_xbot = xwire.r_xtop = curCrosshair.pos.p_x;
+    DBWHLRedraw(def, &xwire, erase);
 }
 
 /*
@@ -469,10 +476,17 @@ DBWDrawCrosshair(window, plane)
 {
     Point p;
 
-    /* Crosshair is disabled by setting to MINFINITY */
-    if (crosshairPos.p_x == MINFINITY) return;
+    /* Unlike most highlights, which are related to the database and	*/
+    /* therefore drawn on all windows, the crosshair only exists in	*/
+    /* the cell where the pointer is active, and in any other window	*/
+    /* with the same root cell.  It is therefore necessary to check	*/
+    /* if the root def of the window matches the root def of the window	*/
+    /* with active focus.  Otherwise, translating the crosshair		*/
+    /* position to window coordinates makes no sense.			*/
 
-    WindPointToScreen(window, &crosshairPos, &p);
+    if (WINDOW_DEF(window) != curCrosshair.def) return;
+
+    WindPointToScreen(window, &(curCrosshair.pos), &p);
 
     GrSetStuff(STYLE_YELLOW1);
     if (p.p_x > window->w_screenArea.r_xbot &&
@@ -493,7 +507,7 @@ DBWScaleCrosshair(scalen, scaled)
     int scalen;
     int scaled;
 {
-    DBScalePoint(&crosshairPos, scalen, scaled);
+    DBScalePoint(&(curCrosshair.pos), scalen, scaled);
 }
 
 /*
@@ -515,24 +529,43 @@ DBWSetCrosshair(window, pos)
     MagWindow *window;
     Point *pos;			/* New crosshair location in coords of rootDef. */
 {
-    if (crosshairPos.p_x != pos->p_x)
+    bool needUpdate = FALSE;
+
+    if (WINDOW_DEF(window) != curCrosshair.def) needUpdate = TRUE;
+
+    /* Erase */
+
+    if (needUpdate || (curCrosshair.pos.p_x != pos->p_x))
     {
 	/* Record the old and area of the vertical line for redisplay. */
-	dbwRecordCrosshairXPos(window, TRUE);
-
-	/* Update the crosshair location. */
-	crosshairPos.p_x = pos->p_x;
-
-	/* Record the new area for redisplay. */
-	dbwRecordCrosshairXPos(window, FALSE);
+	dbwRecordCrosshairXPos(curCrosshair.def, TRUE);
     }
 
     /* Do the same thing for the horizontal crosshair line */
-    if (crosshairPos.p_y != pos->p_y)
+    if (needUpdate || (curCrosshair.pos.p_y != pos->p_y))
     {
-	dbwRecordCrosshairYPos(window, TRUE);
-	crosshairPos.p_y = pos->p_y;
-	dbwRecordCrosshairYPos(window, FALSE);
+	dbwRecordCrosshairYPos(curCrosshair.def, TRUE);
+    }
+
+    /* Record the CellDef that this position is referenced to. */
+    if (needUpdate) curCrosshair.def = WINDOW_DEF(window);
+
+    /* Draw */
+
+    if (curCrosshair.pos.p_x != pos->p_x)
+    {
+	/* Update the crosshair location. */
+	curCrosshair.pos.p_x = pos->p_x;
+
+	/* Record the new area for redisplay. */
+	dbwRecordCrosshairXPos(curCrosshair.def, FALSE);
+    }
+
+    /* Do the same thing for the horizontal crosshair line */
+    if (curCrosshair.pos.p_y != pos->p_y)
+    {
+	curCrosshair.pos.p_y = pos->p_y;
+	dbwRecordCrosshairYPos(curCrosshair.def, FALSE);
     }
 }
 
