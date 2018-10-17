@@ -2954,17 +2954,24 @@ CmdCrosshair(w, cmd)
 	{
 	    /* Erase and turn off */
 	    pos.p_x = pos.p_y = MINFINITY;
-	    DBWSetCrosshair(w, &pos);
+	}
+	else
+	{
+	    TxError("Usage: %s off|x y \n", cmd->tx_argv[0]);
+	    return;
 	}
     }
     else if (cmd->tx_argc == 3)
     {
 	pos.p_x = cmdParseCoord(w, cmd->tx_argv[1], FALSE, TRUE);
 	pos.p_y = cmdParseCoord(w, cmd->tx_argv[2], FALSE, FALSE);
-	DBWSetCrosshair(w, &pos);
     }
     else
+    {
 	TxError("Usage: %s off|x y \n", cmd->tx_argv[0]);
+	return;
+    }
+    DBWSetCrosshair(w, &pos);
 }
 
 
