@@ -553,8 +553,8 @@ proc magic::mgrupdate {win {cmdstr ""}} {
 
 # Set default width and height to be 3/4 of the screen size.
 set Opts(geometry) \
-"[expr 3 * [winfo screenwidth .] / 4]x[expr 3 * [winfo screenheight .] \
-/ 4]+100+100"
+"[expr {3 * [winfo screenwidth .] / 4}]x[expr {3 * [winfo screenheight .] \
+/ 4}]+100+100"
 
 # Procedures for the layout scrollbars, which are made from canvas
 # objects to avoid the problems associated with Tk's stupid scrollbar
@@ -629,8 +629,8 @@ proc magic::cursorview {win} {
    if {$cr == 0} {return}
    set olst [${win} cursor internal]
 
-   set olstx [expr [lindex $olst 0]]
-   set olsty [expr [lindex $olst 1]]
+   set olstx [lindex $olst 0]
+   set olsty [lindex $olst 1]
 
    if {$Opts(crosshair)} {
       *bypass crosshair ${olstx}i ${olsty}i
@@ -638,8 +638,8 @@ proc magic::cursorview {win} {
 
    # Use catch, because occasionally this fails on startup
    if {[catch {
-      set olstx [expr $olstx * $cr]
-      set olsty [expr $olsty * $cr]
+      set olstx [expr {$olstx * $cr}]
+      set olsty [expr {$olsty * $cr}]
    }]} {return}
 
    if {[${win} box exists]} {
