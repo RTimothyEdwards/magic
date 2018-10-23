@@ -599,7 +599,13 @@ CIFPaintCurrent()
 		Plane **parray;
 		extern char *(cifReadLayers[MAXCIFRLAYERS]);
 
-		if (cifReadCellDef->cd_flags & CDFLATGDS)
+		/* NOTE:  There should be no need to check for cd_client
+		 * here as cd_client should not be CLIENTDEFAULT if CDFLATGDS
+		 * is set in flags.  This condition has occurred, though, and
+		 * needs to be debugged.
+		 */
+		if ((cifReadCellDef->cd_flags & CDFLATGDS) && 
+				(cifReadCellDef->cd_client != (ClientData)CLIENTDEFAULT))
 		    parray = (Plane **)cifReadCellDef->cd_client;
 		else
 		{

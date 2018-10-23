@@ -984,6 +984,8 @@ ImgLayerConfigureInstance(instancePtr)
     Tk_Window tkwind = instancePtr->tkwin;
     MagWindow *mw, tmpmw;
 
+    int saveStyle;
+
     if (Tk_WindowId(tkwind) == 0)
 	Tk_MakeWindowExist(tkwind);
 
@@ -1106,6 +1108,9 @@ ImgLayerConfigureInstance(instancePtr)
 
 	GrLock(&tmpmw, FALSE);
 
+	/* Save the current state */
+	saveStyle = grCurDStyle;
+
 	/* First fill with background style */
 	GrSetStuff(STYLE_ERASEALL);
 	grInformDriver();
@@ -1156,9 +1161,13 @@ ImgLayerConfigureInstance(instancePtr)
 	    grInformDriver();
 	    GrDrawGlyphNum(masterPtr->layerLock, 0, 0);
 	}
+
+	/* Restore the original state */
+	GrSetStuff(saveStyle);
+	grInformDriver();
+
 	GrUnlock(&tmpmw);
     }
-
     return;
 
 error:
