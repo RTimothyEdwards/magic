@@ -428,7 +428,7 @@ readfile:
 		    def->def_flags |= DEF_SUBCIRCUIT;
 		}
 		efBuildPortNode(def, argv[1], atoi(argv[2]), atoi(argv[3]),
-					atoi(argv[4]), argv[7]);
+					atoi(argv[4]), argv[7], toplevel);
 		break;
 
 	    /*

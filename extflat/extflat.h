@@ -183,17 +183,21 @@ typedef struct efnhdr
      */
 #define EF_PORT		0x08
     /*
+     * Flag ports of a top-level cell in addition to setting EF_PORT
+     */
+#define EF_TOP_PORT	0x10
+    /*
      * This is used when a node is a substrate node with a local
      * node name, making it an implicitly-defined port.  It differs
      * from EF_DEVTERM in that EF_DEVTERM includes global substrate
      * nodes, which are not declared ports.
      */
-#define EF_SUBS_PORT	0x10
+#define EF_SUBS_PORT	0x20
     /*
      * EF_SUBS_NODE is defined for substrate nodes defined in the
      * .ext file.
      */
-#define EF_SUBS_NODE	0x20
+#define EF_SUBS_NODE	0x40
 
 extern int efNumResistClasses;	/* Number of resistance classes in efResists */
 
