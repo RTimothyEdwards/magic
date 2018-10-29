@@ -190,16 +190,22 @@ DBWHLRedraw(rootDef, area, erase)
     dbwhlDef = rootDef;		/* Must pass to search function. */
     dbwhlErase = erase;
 
-    /* If we're passed a NULL area, expand it by one unit so that
-     * we're certain to have non-zero area.  Otherwise the various
-     * search procedures have big troubles.
+    /* If we're passed a NULL area, expand it by one unit in both
+     * directions so that we're certain to have non-zero area.
+     * Otherwise the various search procedures have big troubles.
      */
     
     ourArea = *area;
     if (ourArea.r_xbot >= ourArea.r_xtop)
+    {
 	ourArea.r_xtop = ourArea.r_xbot + 1;
+	ourArea.r_xbot--;
+    }
     if (ourArea.r_ybot >= ourArea.r_ytop)
+    {
 	ourArea.r_ytop = ourArea.r_ybot + 1;
+	ourArea.r_ybot--;
+    }
     (void) WindSearch(DBWclientID, (ClientData) NULL, &ourArea,
 	dbwhlRedrawFunc, (ClientData) &ourArea);
 }

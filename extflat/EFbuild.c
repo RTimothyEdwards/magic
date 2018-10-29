@@ -879,12 +879,13 @@ efBuildDevice(def, class, type, r, argc, argv)
  */
 
 void
-efBuildPortNode(def, name, idx, x, y, layername)
+efBuildPortNode(def, name, idx, x, y, layername, toplevel)
     Def *def;		/* Def to which this connection is to be added */
     char *name;		/* One of the names for this node */
     int idx;		/* Port number (order) */
     int x; int y;	/* Location of a point inside this node */
     char *layername;	/* Name of tile type */
+    bool toplevel;	/* 1 if the cell def is the top level cell */
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -902,6 +903,8 @@ efBuildPortNode(def, name, idx, x, y, layername)
     if (nn != (EFNodeName *) NULL)
     {
 	nn->efnn_node->efnode_flags |= EF_PORT;
+	if (toplevel) 
+	    nn->efnn_node->efnode_flags |= EF_TOP_PORT;
 	nn->efnn_port = idx;
     }
 }
@@ -1442,7 +1445,7 @@ efNodeAddName(node, he, hn)
 {
     EFNodeName *newnn;
     EFNodeName *oldnn;
-    bool topport;
+    bool topport;	// New node to add is a top-level port
 
     newnn = (EFNodeName *) mallocMagic((unsigned)(sizeof (EFNodeName)));
     newnn->efnn_node = node;
@@ -1450,13 +1453,15 @@ efNodeAddName(node, he, hn)
     newnn->efnn_port = -1;
     HashSetValue(he, (char *) newnn);
 
-    topport = ((node->efnode_flags & EF_PORT) && 
-		(node->efnode_name->efnn_hier->hn_parent == NULL)) ?
-		TRUE : FALSE;
+    /* If the node is a port of the top level cell, denoted by flag	*/
+    /* EF_TOP_PORT, then the name given to the port always stays at the	*/
+    /* head of the list.						*/
+
+    topport = (node->efnode_flags & EF_TOP_PORT) ? TRUE : FALSE;
 
     /* Link in the new name */
     oldnn = node->efnode_name;
-    if (oldnn == NULL || EFHNBest(newnn->efnn_hier, oldnn->efnn_hier) || topport)
+    if (oldnn == NULL || (EFHNBest(newnn->efnn_hier, oldnn->efnn_hier) && !topport))
     {
 	/* New head of list */
 	newnn->efnn_next = oldnn;
@@ -1532,7 +1537,7 @@ efNodeMerge(node1, node2)
     /* Make all EFNodeNames point to node1 */
     if (node2->efnode_name)
     {
-	bool topport;
+	bool topport1, topport2;
 
 	for (nn = node2->efnode_name; nn; nn = nn->efnn_next)
 	{
@@ -1540,13 +1545,12 @@ efNodeMerge(node1, node2)
 	    nn->efnn_node = node1;
 	}
 
-	topport = ((node2->efnode_flags & EF_PORT) && 
-		(node2->efnode_name->efnn_hier->hn_parent == NULL)) ?
-		TRUE : FALSE;
+	topport1 = (node1->efnode_flags & EF_TOP_PORT) ?  TRUE : FALSE;
+	topport2 = (node2->efnode_flags & EF_TOP_PORT) ?  TRUE : FALSE;
 
 	/* Concatenate list of EFNodeNames, taking into account precedence */
-	if (topport || EFHNBest(node2->efnode_name->efnn_hier,
-		     node1->efnode_name->efnn_hier))
+	if (!topport1 && (topport2 || EFHNBest(node2->efnode_name->efnn_hier,
+		     node1->efnode_name->efnn_hier)))
 	{
 	    /*
 	     * New official name is that of node2.
