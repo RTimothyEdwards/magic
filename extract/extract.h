@@ -52,6 +52,7 @@ extern int ExtDoWarn;		/* Bitmask of above */
 #define DEV_SUBCKT     10		/* general-purpose subcircuit	*/
 #define DEV_RSUBCKT    11		/* Resistor-like subcircuit.	*/
 #define DEV_MSUBCKT    12		/* MOSFET-like subcircuit.	*/
+#define DEV_CSUBCKT    13		/* Capacitor-like subcircuit.	*/
 
 /* Device names for .ext file output (new in version 7.2)	*/
 /* (defined in extract/ExtBasic.c *and* extflat/EFread.c)	*/

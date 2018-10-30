@@ -588,6 +588,7 @@ spcdevHierVisit(hc, dev, scale)
 	    break;
 	case DEV_SUBCKT:
 	case DEV_RSUBCKT:
+	case DEV_CSUBCKT:
 	case DEV_MSUBCKT:
 	    devchar = 'X';
 	    break;
@@ -620,6 +621,7 @@ spcdevHierVisit(hc, dev, scale)
 		break;
 	    case DEV_SUBCKT:
 	    case DEV_RSUBCKT:
+	    case DEV_CSUBCKT:
 	    case DEV_MSUBCKT:
 		fprintf(esSpiceF, "%d", esSbckNum++);
 		break;
@@ -681,6 +683,7 @@ spcdevHierVisit(hc, dev, scale)
 	    /* Drop through to below (no break statement) */
 
 	case DEV_RSUBCKT:
+	case DEV_CSUBCKT:
 	    /* RC-like subcircuits are exactly like other subcircuits	*/
 	    /* except that the "gate" node is treated as an identifier	*/
 	    /* only and is not output.					*/
@@ -1051,6 +1054,7 @@ spcdevHierMergeVisit(hc, dev, scale)
 		    else
 			m = esFMult[cfp->esFMIndex] + (fp->l / cfp->l);
 		    break;
+		case DEV_CSUBCKT:
 		case DEV_CAP:
 		case DEV_CAPREV:
 		    if (fp->dev->dev_type == esNoModelType)
@@ -1451,6 +1455,7 @@ mergeThem:
 		    else
 		        m = esFMult[cfp->esFMIndex] + (fp->l / cfp->l);
 		    break;
+		case DEV_CSUBCKT:
 		case DEV_CAP:
 		case DEV_CAPREV:
 		    if (fp->dev->dev_type == esNoModelType)

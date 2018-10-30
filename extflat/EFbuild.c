@@ -639,6 +639,7 @@ efBuildDevice(def, class, type, r, argc, argv)
 	case DEV_SUBCKT:
 	case DEV_MSUBCKT:
 	case DEV_RSUBCKT:
+	case DEV_CSUBCKT:
 	    argstart = 0;
     }
 
@@ -719,6 +720,7 @@ efBuildDevice(def, class, type, r, argc, argv)
 	case DEV_CAP:
 	case DEV_CAPREV:
 	case DEV_RSUBCKT:
+	case DEV_CSUBCKT:
 	case DEV_MSUBCKT:
 	case DEV_SUBCKT:
 	case DEV_DIODE:
