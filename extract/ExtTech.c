@@ -212,6 +212,9 @@ static keydesc devTable[] = {
     "msubcircuit",	DEV_MSUBCKT,		3,	11,
 "name dev-types [N] [term1-types ... termN-types [sub-types|None sub-node]] [options]",
 
+    "csubcircuit",	DEV_CSUBCKT,		4,	7,
+"name dev-types terminal-types [sub-types|None sub-node] [options]",
+
     0
 };
 
@@ -2177,6 +2180,7 @@ ExtTechLine(sectionName, argc, argv)
 		    break;
 
 		case DEV_RSUBCKT:
+		case DEV_CSUBCKT:
 		    nterm = 2;
 		    DBTechNoisyNameMask(argv[4], &termtypes[0]);	/* terminals */
 		    termtypes[1] = DBZeroTypeBits;

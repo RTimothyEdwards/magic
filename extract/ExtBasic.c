@@ -56,7 +56,7 @@ static char sccsid[] = "@(#)ExtBasic.c	4.13 MAGIC (Berkeley) 12/5/85";
 #ifdef MAGIC_WRAPPER
 char *extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
 	"devcap", "devcaprev", "diode", "pdiode", "ndiode", "subckt",
-	"rsubckt", "msubckt", NULL};
+	"rsubckt", "msubckt", "csubckt", NULL};
 #endif
 
 /* --------------------- Data local to this file ---------------------- */
@@ -2076,6 +2076,7 @@ extOutputDevices(def, transList, outFile)
 
 	    case DEV_CAP:
 	    case DEV_CAPREV:
+	    case DEV_CSUBCKT:
 		hasModel = strcmp(ExtCurStyle->exts_transName[t], "None");
 		if (hasModel)
 		{
@@ -2144,8 +2145,17 @@ extOutputDevices(def, transList, outFile)
 			(void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 		    }
 		    extOutputDevParams(reg, t, outFile, length, width);
-		    if (subsName != NULL)
-			fprintf(outFile, " \"%s\"", subsName);
+
+		    if (ExtCurStyle->exts_deviceClass[t] == DEV_CSUBCKT)
+		    {
+			fprintf(outFile, " \"%s\"", (subsName == NULL) ?
+				"None" : subsName);
+		    }
+		    else	/* SPICE semiconductor resistor */
+		    {
+			if (subsName != NULL)
+			    fprintf(outFile, " \"%s\"", subsName);
+		    }
 		}
 		else
 		{
