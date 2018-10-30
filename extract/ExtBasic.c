@@ -2118,16 +2118,6 @@ extOutputDevices(def, transList, outFile)
 			(void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 
 			extComputeCapLW(&length, &width);
-			if ((length * width) > reg->treg_area)
-			{
-			    if (ExtDoWarn)
-				extTransBad(def, reg->treg_tile, "L,W estimated "
-					"for non-rectangular capacitor.");
-			    fprintf(outFile, " %d %d", width,
-					reg->treg_area / width);
-			}
-			else
-			    fprintf(outFile, " %d %d", length, width);
 
 			/* Free the lists */
 
@@ -2153,6 +2143,16 @@ extOutputDevices(def, transList, outFile)
 		    }
 		    else	/* SPICE semiconductor resistor */
 		    {
+			if ((length * width) > reg->treg_area)
+			{
+			    if (ExtDoWarn)
+				extTransBad(def, reg->treg_tile, "L,W estimated "
+					"for non-rectangular capacitor.");
+			    fprintf(outFile, " %d %d", width,
+					reg->treg_area / width);
+			}
+			else
+			    fprintf(outFile, " %d %d", length, width);
 			if (subsName != NULL)
 			    fprintf(outFile, " \"%s\"", subsName);
 		    }
