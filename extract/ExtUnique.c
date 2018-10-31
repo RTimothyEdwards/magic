@@ -85,8 +85,14 @@ extUniqueCell(def, option)
     Label *lab;
     char *text;
     int nwarn;
+    bool isabstract;
 
     nwarn = 0;
+
+    /* Check for "LEFview", as we do not care about unique names in abstract views */
+    DBPropGet(def, "LEFview", &isabstract);
+    if (isabstract) return nwarn;
+
     HashInit(&labelHash, 32, HT_STRINGKEYS);
     TxPrintf("Processing %s\n", def->cd_name);
     TxFlush();

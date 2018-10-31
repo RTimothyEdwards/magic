@@ -262,11 +262,17 @@ extBasic(def, outFile)
     if (!SigInterruptPending)
 	ExtLabelRegions(def, ExtCurStyle->exts_nodeConn, &nodeList, &TiPlaneRect);
 
+    /* Check for "LEFview", for which special output handling	*/
+    /* can be specified in ext2spice.				*/
+
+    DBPropGet(def, "LEFview", &isabstract);
+
     /*
      * Make sure all geometry with the same label is part of the
-     * same electrical node.
+     * same electrical node.  However:  Unconnected labels are allowed
+     * on abstract views.
      */
-    if (!SigInterruptPending && (ExtDoWarn & EXTWARN_DUP))
+    if (!SigInterruptPending && (ExtDoWarn & EXTWARN_DUP) && !isabstract)
 	extFindDuplicateLabels(def, nodeList);
 
     /*
@@ -306,10 +312,6 @@ extBasic(def, outFile)
 	}
     }
 
-    /* Check for "LEFview", for which special output handling	*/
-    /* can be specified in ext2spice.				*/
-
-    DBPropGet(def, "LEFview", &isabstract);
     if (isabstract) fprintf(outFile, "abstract\n");
 
     /* Output each node, along with its resistance and capacitance to substrate */
