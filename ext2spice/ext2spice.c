@@ -211,7 +211,8 @@ Exttospice_Init(interp)
 #define EXTTOSPC_BLACKBOX	11
 #define EXTTOSPC_RENUMBER	12
 #define EXTTOSPC_MERGENAMES	13
-#define EXTTOSPC_HELP		14
+#define EXTTOSPC_LVS		14
+#define EXTTOSPC_HELP		15
 
 void
 CmdExtToSpice(w, cmd)
@@ -262,6 +263,7 @@ CmdExtToSpice(w, cmd)
 	"renumber [on|off]	on = number instances X1, X2, etc.\n"
 	"			off = keep instance ID names",
 	"global [on|off]	on = merge unconnected global nets by name",
+	"lvs    		apply typical default settings for LVS",
 	"help			print help information",
 	NULL
     };
@@ -418,6 +420,27 @@ CmdExtToSpice(w, cmd)
 		esMergeNames = FALSE;
 	    break;
 
+	case EXTTOSPC_LVS:
+	    /* Apply default command settings for LVS */
+	    /* hierarchy = on		*/
+	    /* format    = ngspice	*/
+	    /* cthresh   = infinite	*/
+	    /* rthresh   = infinite	*/
+	    /* renumber  = off		*/
+	    /* scale     = off		*/
+	    /* blackbox  = on		*/
+	    /* subcircuit top = auto	*/
+
+	    esDoHierarchy = TRUE;
+	    esFormat = NGSPICE;
+	    LocCapThreshold = (EFCapValue)INFINITE_THRESHOLD_F;
+	    LocResistThreshold = INFINITE_THRESHOLD;
+	    esDoRenumber = FALSE;
+	    esScale = 0.0;
+	    esDoBlackBox = TRUE;
+	    esDoSubckt = 2;
+	    break;
+
 	case EXTTOSPC_SUBCIRCUITS:
 	    if (cmd->tx_argc == 2)
 	    {
@@ -489,7 +512,7 @@ CmdExtToSpice(w, cmd)
 	    if (idx < 0)
 	    {
 		Tcl_SetResult(magicinterp, "Bad format type.  Formats are:"
-			"spice2, spice3, and hspice.", NULL);
+			"spice2, spice3, hspice, and ngspice.", NULL);
 		return;
 	    }
 	    else
