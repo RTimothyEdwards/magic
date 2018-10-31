@@ -2320,6 +2320,7 @@ spcdevVisit(dev, hierName, scale, trans)
 	    /* Drop through to below (no break statement) */
 
 	case DEV_SUBCKT:
+	case DEV_CSUBCKT:
 
 	    /* Subcircuit is "Xnnn gate [source [drain [sub]]]"		*/
 	    /* Subcircuit .subckt record must be ordered to match!	*/
@@ -2330,7 +2331,6 @@ spcdevVisit(dev, hierName, scale, trans)
 	    /* Drop through to below (no break statement) */
 
 	case DEV_RSUBCKT:
-	case DEV_CSUBCKT:
 	    /* RC-like subcircuits are exactly like other subcircuits	*/
 	    /* except that the "gate" node is treated as an identifier	*/
 	    /* only and is not output.					*/

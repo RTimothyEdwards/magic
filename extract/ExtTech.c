@@ -2181,7 +2181,7 @@ ExtTechLine(sectionName, argc, argv)
 
 		case DEV_RSUBCKT:
 		case DEV_CSUBCKT:
-		    nterm = 2;
+		    nterm = (dv->k_key == DEV_RSUBCKT) ? 2 : 1;
 		    DBTechNoisyNameMask(argv[4], &termtypes[0]);	/* terminals */
 		    termtypes[1] = DBZeroTypeBits;
 
