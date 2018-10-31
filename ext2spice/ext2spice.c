@@ -429,6 +429,7 @@ CmdExtToSpice(w, cmd)
 	    /* renumber  = off		*/
 	    /* scale     = off		*/
 	    /* blackbox  = on		*/
+	    /* global    = off		*/
 	    /* subcircuit top = auto	*/
 
 	    esDoHierarchy = TRUE;
@@ -438,6 +439,7 @@ CmdExtToSpice(w, cmd)
 	    esDoRenumber = FALSE;
 	    esScale = 0.0;
 	    esDoBlackBox = TRUE;
+	    esMergeNames = FALSE;
 	    esDoSubckt = 2;
 	    break;
 
