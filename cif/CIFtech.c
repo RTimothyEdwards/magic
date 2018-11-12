@@ -889,9 +889,9 @@ CIFTechLine(sectionName, argc, argv)
 	{
 	    if (TTMaskHasType(&mask, i))
 	    {
-		if (noPort == FALSE)
+		if (portOnly != TRUE)
 		    CIFCurStyle->cs_labelLayer[i] = CIFCurStyle->cs_nLayers-1;
-		if (portOnly == TRUE)
+		if (noPort != TRUE)
 		    CIFCurStyle->cs_portLayer[i] = CIFCurStyle->cs_nLayers-1;
 	    }
 	}
