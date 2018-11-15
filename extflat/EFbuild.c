@@ -1632,6 +1632,8 @@ efNodeMerge(node1, node2)
      */
     if (node2->efnode_flags & EF_PORT)
 	node1->efnode_flags |= EF_PORT;
+    if (node2->efnode_flags & EF_TOP_PORT)
+	node1->efnode_flags |= EF_TOP_PORT;
 
     /*
      * If node2 has the EF_SUBS_NODE flag set, then copy the port

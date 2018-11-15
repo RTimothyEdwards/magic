@@ -1299,12 +1299,11 @@ char *nodeSpiceHierName(hc, hname)
     HierName *hname;
 {
     EFNodeName *nn;
-    HashEntry *he;
+    HashEntry *he, *he2;
     EFNode *node;
     Def *def = hc->hc_use->use_def;
 
-    // he = HashLookOnly(&def->def_nodes, EFHNToStr(hname));
-    he = HashLookOnly(&efNodeHashTable, (char *)hname);
+    he = EFHNLook(hname, NULL, "ext2spice");
     if (he == NULL) return "error";
 
     nn = (EFNodeName *) HashGetValue(he);
