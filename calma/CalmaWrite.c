@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>	/* for random() */
 #include <string.h>
 #include <ctype.h>
 #include <sys/types.h>
@@ -135,6 +136,11 @@ int calmaPaintScale;
  */
 int calmaPaintLayerNumber;
 int calmaPaintLayerType;
+
+/*
+ * Hash table used to determine which GDS libraries have been output
+ */
+HashTable calmaLibHash;
 
 /* Imports */
 extern time_t time();
@@ -285,6 +291,8 @@ CalmaWrite(rootDef, f)
 	return FALSE;
     }
 
+    HashInit(&calmaLibHash, 32, 0);
+
     /*
      * Make sure that the entire hierarchy rooted at rootDef is
      * read into memory and that timestamp mismatches are resolved
@@ -334,6 +342,7 @@ CalmaWrite(rootDef, f)
      */
     if (CalmaContactArrays) calmaDelContacts();
 
+    HashFreeKill(&calmaLibHash);
     return (good);
 }
 
@@ -345,22 +354,26 @@ CalmaWrite(rootDef, f)
  *
  * Parse a structure (cell) from the GDS file.  Check the name against the
  * existing database and modify the name in case of a collision.  Then dump
- * the entire cell verbatim.
+ * the entire cell verbatim.  The cell gets prefixed with the name "prefix"
+ * to prevent collisions with other unknown GDS files that may be dumped
+ * verbatim.
  *
  * ----------------------------------------------------------------------------
  */
 
 bool
-calmaDumpStructure(def, cellstart, outf, calmaDefHash)
+calmaDumpStructure(def, cellstart, outf, calmaDefHash, filename)
     CellDef *def;
     off_t cellstart;
     FILE *outf;
     HashTable *calmaDefHash;
+    char *filename;
 {
     int nbytes, rtype;
     char *strname = NULL, *newnameptr, newname[CALMANAMELENGTH*2];
-    HashEntry *he;
+    HashEntry *he, *he2;
     CellDef *edef;
+    char *prefix;
 
     /* Make sure this is a structure; if not, let the caller know we're done */
     PEEKRH(nbytes, rtype);
@@ -401,17 +414,82 @@ calmaDumpStructure(def, cellstart, outf, calmaDefHash)
     }
     else
     {
-	/* Modify the cellname by prefixing with the def name */
-	newnameptr = mallocMagic(strlen(strname) + strlen(def->cd_name) + 8);
-	sprintf(newnameptr, "%s_%s", def->cd_name, strname);
+	/* Check if the cellname is in the magic cell database.	*/
+	/* If so, check if that cell is an abstract view and	*/
+	/* calls the same library.  If so, the name does not	*/
+	/* get prefixed.  Otherwise, the cell is limited to the	*/
+	/* GDS library being read, and so takes the prefix.	*/
+
+	/* Modify the cellname by prefixing with "prefix", which is a	*/
+	/* unique identifier for the library.				*/
 
 	/* Check if the cell is defined in the database */
-	edef = DBCellLookDef(newnameptr);
+	edef = DBCellLookDef(strname);
 	if (edef != NULL)
-	    // To do:  Expand upon this, but it's probably overkill
-	    sprintf(newnameptr, "%s_%s[[0]]", def->cd_name, strname);
+	{
+	    bool isAbstract, isReadOnly;
+	    char *chklibname;
+
+	    /* Is view abstract? */
+	    DBPropGet(edef, "LEFview", &isAbstract);
+	    chklibname = (char *)DBPropGet(edef, "GDS_FILE", &isReadOnly);
+
+	    /* Is the library name the same? */
+	    if (isAbstract && !strcmp(filename, chklibname))
+	    {
+		/* Same library, so keep the cellname and mark the cell */
+		/* as having been written to GDS.			*/
+
+		newnameptr = mallocMagic(strlen(strname) + 1);
+		sprintf(newnameptr, "%s", strname);
+		HashSetValue(he, (char *)newnameptr);
+
+		TxPrintf("(1a) Writing \"%s\".\n", strname);
+	    }
+	    else
+	    {
+		/* Find the unique library prefix and prepend it to the cell name */
+
+		he2 = HashFind(&calmaLibHash, filename);
+		if (he2 == NULL)
+		{
+		    /* Should never happen */
+		    TxError("Fatal error:  Library %s not recorded!\n", filename);
+		    newnameptr = strname;
+		}
+		else
+		{
+		    prefix = (char *)HashGetValue(he2);
+		    newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 8);
+		    sprintf(newnameptr, "%s_%s", prefix, strname);
+
+		    TxPrintf("(1b) Writing \"%s\".\n", newnameptr);
+		    HashSetValue(he, (char *)newnameptr);
+		}
+	    }
+	}
+	else
+	{
+	    /* Find the unique library prefix and prepend it to the cell name */
+
+	    he2 = HashFind(&calmaLibHash, filename);
+	    if (he2 == NULL)
+	    {
+		/* Should never happen */
+		TxError("Fatal error:  Library %s not recorded!\n", filename);
+		newnameptr = strname;
+	    }
+	    else
+	    {
+		prefix = (char *)HashGetValue(he2);
+		newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 8);
+		sprintf(newnameptr, "%s_%s", prefix, strname);
+
+		TxPrintf("(1c) Writing \"%s\".\n", newnameptr);
+		HashSetValue(he, (char *)newnameptr);
+	    }
+	}
 	calmaOutStringRecord(CALMA_STRNAME, newnameptr, outf);
-	HashSetValue(he, (char *)newnameptr);
     }
     freeMagic(strname);
 
@@ -459,13 +537,14 @@ calmaDumpStructure(def, cellstart, outf, calmaDefHash)
 		    /* the same way used for structure definitions.	*/
 
 		    newnameptr = (char *)mallocMagic(strlen(strname) +
-				strlen(def->cd_name) + 8);
-		    sprintf(newnameptr, "%s_%s", def->cd_name, strname);
+				strlen(prefix) + 8);
+		    sprintf(newnameptr, "%s_%s", prefix, strname);
 
 		    edef = DBCellLookDef(newnameptr);
 		    if (edef != NULL)
-			sprintf(newnameptr, "%s_%s[[0]]", def->cd_name, strname);
+			sprintf(newnameptr, "%s_%s[[0]]", prefix, strname);
 		    HashSetValue(he, (char *)newnameptr);
+		    TxPrintf("(2) Writing \"%s\".\n", newnameptr);
 		    calmaOutStringRecord(CALMA_SNAME, newnameptr, outf);
 		}
 		break;
@@ -516,15 +595,19 @@ syntaxerror:
  */
 
 void
-calmaFullDump(def, fi, cellstart, outf)
+calmaFullDump(def, fi, cellstart, outf, filename)
     CellDef *def;
     FILE *fi;
     off_t cellstart;
     FILE *outf;
+    char *filename;
 {
-    int version;
-    char *libname = NULL;
+    int version, rval, i;
+    char *libname = NULL, uniqlibname[5];
+    char *sptr;
     HashTable calmaDefHash;
+    HashEntry *he;
+
     static int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
 		CALMA_REFLIBS, CALMA_FONTS, CALMA_ATTRTABLE,
 		CALMA_STYPTABLE, CALMA_GENERATIONS, CALMA_UNITS, -1 };
@@ -547,8 +630,21 @@ calmaFullDump(def, fi, cellstart, outf)
     // the input file are compatible with units being used in the output
     // file.
     calmaSkipSet(hdrSkip);
- 
-    while (calmaDumpStructure(def, cellstart, outf, &calmaDefHash))
+
+    // Record the GDS library so it will not be processed again.
+    he = HashFind(&calmaLibHash, filename);
+    // Generate a SHORT name for this cell (else it is easy to run into the
+    // GDS 32-character cellname limit).  Save it in the hash record.
+    for (i = 0; i < 4; i++) {
+	rval = random() % 62;
+	rval = (rval < 26) ? ('A' + rval) : ((rval < 52) ? ('a' + rval - 26) :
+			('0' + rval - 52));
+	uniqlibname[i] = (char)(rval & 127);
+    }
+    uniqlibname[4] = '\0';
+    HashSetValue(he, StrDup(NULL, uniqlibname));
+
+    while (calmaDumpStructure(def, cellstart, outf, &calmaDefHash, filename))
 	if (SigInterruptPending)
 	    goto done;
     calmaSkipExact(CALMA_ENDLIB);
@@ -622,6 +718,7 @@ calmaProcessDef(def, outf)
 {
     char *filename;
     bool isReadOnly, oldStyle, hasContent, isAbstract;
+    HashEntry *he;
 
     /* Skip if already output */
     if ((int) def->cd_client > 0)
@@ -665,7 +762,7 @@ calmaProcessDef(def, outf)
 
     if (isReadOnly && hasContent)
     {
-	char *buffer, *offptr;
+	char *buffer, *offptr, *retfilename;
 	size_t defsize, numbytes;
 	off_t cellstart, cellend;
  	dlong cval;
@@ -674,7 +771,7 @@ calmaProcessDef(def, outf)
 	/* Use PaOpen() so the paths searched are the same as were	*/
 	/* searched to find the .mag file that indicated this GDS file.	*/
 
-	fi = PaOpen(filename, "r", "", Path, CellLibPath, (char **)NULL);
+	fi = PaOpen(filename, "r", "", Path, CellLibPath, &retfilename);
 	if (fi == NULL)
 	{
 	    /* This is a rare error, but if the subcell is inside	*/
@@ -699,7 +796,15 @@ calmaProcessDef(def, outf)
 	    /* not been loaded so naming conflicts may exist.  So the file must	*/
 	    /* be read end-to-end and parsed carefully.				*/
 
-	    calmaFullDump(def, fi, cellstart, outf);
+	    TxPrintf("Checking if library %s was written.\n", retfilename);
+	    he = HashLookOnly(&calmaLibHash, retfilename);
+	    if (he == NULL)
+	    {
+	        TxPrintf("It wasn't.  Writing it now.\n");
+		calmaFullDump(def, fi, cellstart, outf, retfilename);
+	    }
+	    else
+	        TxPrintf("It was.  Skipping.\n");
 	    fclose(fi);
 	    def->cd_flags |= CDVENDORGDS;
 	}
@@ -2644,7 +2749,16 @@ calmaOutStringRecord(type, str, f)
      * Output at most CALMANAMELENGTH characters.
      */
     if (len & 01) len++;
-    if (len > CALMANAMELENGTH) len = CALMANAMELENGTH;
+    if (len > CALMANAMELENGTH)
+    {
+	char csav;
+	TxError("Warning:  Cellname %s truncated ", str);
+	csav = *(str + 32);
+	*(str + 32) = '\0';
+	TxError("to %32s (GDS format limit)\n", str);
+	*(str + 32) = csav;
+	len = CALMANAMELENGTH;
+    }
     calmaOutI2(len+4, f);	/* Record length */
     (void) putc(type, f);		/* Record type */
     (void) putc(CALMA_ASCII, f);	/* Data type */
