@@ -443,8 +443,6 @@ calmaDumpStructure(def, cellstart, outf, calmaDefHash, filename)
 		newnameptr = mallocMagic(strlen(strname) + 1);
 		sprintf(newnameptr, "%s", strname);
 		HashSetValue(he, (char *)newnameptr);
-
-		TxPrintf("(1a) Writing \"%s\".\n", strname);
 	    }
 	    else
 	    {
@@ -462,8 +460,6 @@ calmaDumpStructure(def, cellstart, outf, calmaDefHash, filename)
 		    prefix = (char *)HashGetValue(he2);
 		    newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 8);
 		    sprintf(newnameptr, "%s_%s", prefix, strname);
-
-		    TxPrintf("(1b) Writing \"%s\".\n", newnameptr);
 		    HashSetValue(he, (char *)newnameptr);
 		}
 	    }
@@ -484,8 +480,6 @@ calmaDumpStructure(def, cellstart, outf, calmaDefHash, filename)
 		prefix = (char *)HashGetValue(he2);
 		newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 8);
 		sprintf(newnameptr, "%s_%s", prefix, strname);
-
-		TxPrintf("(1c) Writing \"%s\".\n", newnameptr);
 		HashSetValue(he, (char *)newnameptr);
 	    }
 	}
@@ -544,7 +538,6 @@ calmaDumpStructure(def, cellstart, outf, calmaDefHash, filename)
 		    if (edef != NULL)
 			sprintf(newnameptr, "%s_%s[[0]]", prefix, strname);
 		    HashSetValue(he, (char *)newnameptr);
-		    TxPrintf("(2) Writing \"%s\".\n", newnameptr);
 		    calmaOutStringRecord(CALMA_SNAME, newnameptr, outf);
 		}
 		break;
@@ -796,15 +789,10 @@ calmaProcessDef(def, outf)
 	    /* not been loaded so naming conflicts may exist.  So the file must	*/
 	    /* be read end-to-end and parsed carefully.				*/
 
-	    TxPrintf("Checking if library %s was written.\n", retfilename);
 	    he = HashLookOnly(&calmaLibHash, retfilename);
 	    if (he == NULL)
-	    {
-	        TxPrintf("It wasn't.  Writing it now.\n");
 		calmaFullDump(def, fi, cellstart, outf, retfilename);
-	    }
-	    else
-	        TxPrintf("It was.  Skipping.\n");
+
 	    fclose(fi);
 	    def->cd_flags |= CDVENDORGDS;
 	}
