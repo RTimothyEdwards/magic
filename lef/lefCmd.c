@@ -61,7 +61,7 @@ CmdLef(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    int option, i;
+    int option, i, cargs;
     char **msg, *namep;
     CellUse *selectedUse;
     CellDef *selectedDef;
@@ -83,12 +83,17 @@ CmdLef(w, cmd)
 					 * will be output along with the
 					 * lef macro.
 					 */
+    bool lefHide = FALSE;		/* If TRUE, hide all details of
+					 * the macro other than pin area
+					 * immediately surrounding labels.
+					 */
 
     static char *cmdLefOption[] =
     {	
 	"read [filename]		read a LEF file filename[.lef]\n"
 	"    read [filename] -import	read a LEF file; import cells from .mag files",
-	"write [filename] [-tech]	write LEF for current cell",
+	"write [filename] [-tech]	write LEF for current cell\n"
+	"    write [filename] -hide	hide all details other than ports",
 	"writeall			write all cells including the top-level cell\n"
 	"    writeall -notop		write all subcells of the top-level cell",
 	"help                   	print this help information",
@@ -188,6 +193,7 @@ CmdLef(w, cmd)
 	    break;
 	case LEF_WRITE:
 	    allSpecial = FALSE;
+	    cargs = cmd->tx_argc;
 	    for (i = 2; i < cmd->tx_argc; i++)
 	    {
 		if (*(cmd->tx_argv[i]) == '-')
@@ -206,18 +212,26 @@ CmdLef(w, cmd)
 			else
 			    TxPrintf("The \"-tech\" option is only for lef write\n");
 		    }
+		    else if (!strncmp(cmd->tx_argv[i], "-hide", 5))
+		    {
+			if (is_lef)
+			    lefHide = TRUE;
+			else
+			    TxPrintf("The \"-hide\" option is only for def write\n");
+		    }
 		    else goto wrongNumArgs;
+		    cargs--;
 		}
 		else if (i != 2)	    /* Is argument a filename? */
 		    goto wrongNumArgs;
 	    }
-            if (cmd->tx_argc != 2 && cmd->tx_argc != 3) goto wrongNumArgs;
+            if (cargs != 2 && cargs != 3) goto wrongNumArgs;
             if (selectedUse == NULL)
             {
                 TxError("No cell selected\n");
                 return;
             }
-            if (cmd->tx_argc == 2)
+            if (cargs == 2)
 		namep = selectedUse->cu_def->cd_name;
 	    else
 		namep = cmd->tx_argv[2];
@@ -225,7 +239,7 @@ CmdLef(w, cmd)
 		DefWriteCell(selectedUse->cu_def, namep, allSpecial);
 	    else
 		LefWriteCell(selectedUse->cu_def, namep, selectedUse->cu_def
-			== EditRootDef, lefTech);
+			== EditRootDef, lefTech, lefHide);
 	    break;
 	case LEF_HELP:
 wrongNumArgs:

@@ -141,6 +141,7 @@ int calmaPaintLayerType;
  * Hash table used to determine which GDS libraries have been output
  */
 HashTable calmaLibHash;
+HashTable calmaPrefixHash;
 
 /* Imports */
 extern time_t time();
@@ -292,6 +293,7 @@ CalmaWrite(rootDef, f)
     }
 
     HashInit(&calmaLibHash, 32, 0);
+    HashInit(&calmaPrefixHash, 32, 0);
 
     /*
      * Make sure that the entire hierarchy rooted at rootDef is
@@ -343,6 +345,7 @@ CalmaWrite(rootDef, f)
     if (CalmaContactArrays) calmaDelContacts();
 
     HashFreeKill(&calmaLibHash);
+    HashKill(&calmaPrefixHash);
     return (good);
 }
 
@@ -596,7 +599,7 @@ calmaFullDump(def, fi, cellstart, outf, filename)
     char *filename;
 {
     int version, rval, i;
-    char *libname = NULL, uniqlibname[5];
+    char *libname = NULL, uniqlibname[3];
     char *sptr;
     HashTable calmaDefHash;
     HashEntry *he;
@@ -626,15 +629,32 @@ calmaFullDump(def, fi, cellstart, outf, filename)
 
     // Record the GDS library so it will not be processed again.
     he = HashFind(&calmaLibHash, filename);
-    // Generate a SHORT name for this cell (else it is easy to run into the
-    // GDS 32-character cellname limit).  Save it in the hash record.
-    for (i = 0; i < 4; i++) {
-	rval = random() % 62;
-	rval = (rval < 26) ? ('A' + rval) : ((rval < 52) ? ('a' + rval - 26) :
+
+    /* Generate a SHORT name for this cell (else it is easy to run into the
+     * GDS 32-character cellname limit).  Save it in the hash record.  The
+     * chance of generating the same prefix for a library that has items
+     * with conflicting names is vanishingly small, but to be pedantic, store
+     * the prefix in a hash table and check to make sure that uniqueness is
+     * ensured.
+     */
+    while (TRUE)
+    {
+	HashEntry *he2;
+
+	for (i = 0; i < 2; i++) {
+	    rval = random() % 62;
+	    rval = (rval < 26) ? ('A' + rval) : ((rval < 52) ? ('a' + rval - 26) :
 			('0' + rval - 52));
-	uniqlibname[i] = (char)(rval & 127);
+	    uniqlibname[i] = (char)(rval & 127);
+	}
+	uniqlibname[2] = '\0';
+	he2 = HashLookOnly(&calmaPrefixHash, uniqlibname);
+	if (he2 == NULL)
+	{
+	    he2 = HashFind(&calmaPrefixHash, uniqlibname);
+	    break;
+	}
     }
-    uniqlibname[4] = '\0';
     HashSetValue(he, StrDup(NULL, uniqlibname));
 
     while (calmaDumpStructure(def, cellstart, outf, &calmaDefHash, filename))

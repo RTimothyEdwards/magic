@@ -625,10 +625,11 @@ MakeLegalLEFSyntax(text)
  */
 
 void
-lefWriteMacro(def, f, scale)
+lefWriteMacro(def, f, scale, hide)
     CellDef *def;	/* Def for which to generate LEF output */
     FILE *f;		/* Output to this file */
     float scale;	/* Output distance units conversion factor */
+    bool hide;		/* If TRUE, hide all detail except pins */
 {
     bool propfound;
     char *propvalue, *class = NULL;
@@ -689,6 +690,7 @@ lefWriteMacro(def, f, scale)
 
     TTMaskZero(&lc.rmask);
     TTMaskZero(&boundmask);
+    TTMaskZero(&lmask);
 
     /* Any layer which has a port label attached to it should by	*/
     /* necessity be considered a routing layer.	 Usually this will not	*/
@@ -711,6 +713,8 @@ lefWriteMacro(def, f, scale)
 		    lrmask = DBResidueMask(lefl->type);
 		    TTMaskSetMask(&lc.rmask, lrmask);
 		}
+		if ((lefl->lefClass == CLASS_ROUTE) && (lefl->obsType != -1))
+		    TTMaskSetType(&lmask, lefl->type);
 	    }
 	    if (lefl->obsType != -1)
 		TTMaskSetType(&lc.rmask, lefl->obsType);
@@ -909,16 +913,17 @@ lefWriteMacro(def, f, scale)
 	    labr.r_ybot--;
 	}
 
-	// TTMaskSetOnlyType(&lmask, lab->lab_type);
-
         // Avoid errors caused by labels attached to space or
 	// various technology file issues.
 	TTMaskClearType(&lc.rmask, TT_SPACE);
 
-	ttype = TT_SPACE;
 	scx.scx_area = labr;
 	SelectClear();
-	SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
+
+	if (hide)
+	    SelectChunk(&scx, lab->lab_type, 0, NULL, FALSE);
+	else
+	    SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
 
 	// For all geometry in the selection, write LEF records,
 	// and mark the corresponding tiles in lefFlatDef as
@@ -981,13 +986,68 @@ lefWriteMacro(def, f, scale)
 
     /* Restrict to routing planes only */
 
+    if (hide)
+    {
+	/* If details of the cell are to be hidden, then first paint	*/
+	/* all route layers with an obstruction rectangle the size of	*/
+	/* the cell bounding box.  Then recompute the label chunk	*/
+	/* regions used above to write the ports, expand each chunk by	*/
+	/* the route metal spacing width, and erase that area from the	*/
+	/* obstruction.							*/
+
+	for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+	    if (TTMaskHasType(&lmask, ttype))
+		DBPaint(lc.lefYank, &boundary, ttype);
+
+	scx.scx_use = &lefSourceUse;
+	for (lab = def->cd_labels; lab != NULL; lab = lab->lab_next)
+	{
+	    Rect carea;
+	    int lspace;
+
+	    labr = lab->lab_rect;
+
+	    /* Force label area to be non-degenerate */
+	    if (labr.r_xbot >= labr.r_xtop)
+	    {
+		labr.r_xbot--;
+		labr.r_xtop++;
+	    }
+	    if (labr.r_ybot >= labr.r_ytop)
+	    {
+		labr.r_ybot--;
+		labr.r_ytop++;
+	    }
+	    
+	    if (lab->lab_flags & PORT_DIR_MASK)
+	    {
+		scx.scx_area = labr;
+		SelectClear();
+		SelectChunk(&scx, lab->lab_type, 0, &carea, FALSE);
+		lspace = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
+		carea.r_xbot -= lspace;
+		carea.r_ybot -= lspace;
+		carea.r_xtop += lspace;
+		carea.r_ytop += lspace;
+		DBErase(lc.lefYank, &carea, lab->lab_type);
+	    }
+	}
+    }
+    else
+    {
+	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	{
+	    lc.pNum = pNum;
+	    DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum], 
+			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
+			lefYankGeometry, (ClientData) &lc);
+	}
+    }
+
+    /* Write all the geometry just generated */
+
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
-	lc.pNum = pNum;
-	DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum], 
-		&TiPlaneRect, &DBAllButSpaceAndDRCBits,
-		lefYankGeometry, (ClientData) &lc);
-
 	DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum], 
 		&TiPlaneRect, &lc.rmask,
 		lefWriteGeometry, (ClientData) &lc);
@@ -1140,11 +1200,12 @@ lefDefPushFunc(use)
  */
 
 void
-LefWriteCell(def, outName, isRoot, lefTech)
+LefWriteCell(def, outName, isRoot, lefTech, lefHide)
     CellDef *def;		/* Cell being written */
     char *outName;		/* Name of output file, or NULL. */
     bool isRoot;		/* Is this the root cell? */
     bool lefTech;		/* Output layer information if TRUE */
+    bool lefHide;		/* Hide detail other than pins if TRUE */
 {
     char *filename;
     FILE *f;
@@ -1168,7 +1229,7 @@ LefWriteCell(def, outName, isRoot, lefTech)
 
     if (isRoot)
 	lefWriteHeader(def, f, lefTech);
-    lefWriteMacro(def, f, scale);
+    lefWriteMacro(def, f, scale, lefHide);
     fclose(f);
 }
 
