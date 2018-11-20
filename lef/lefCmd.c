@@ -217,7 +217,7 @@ CmdLef(w, cmd)
 			if (is_lef)
 			    lefHide = TRUE;
 			else
-			    TxPrintf("The \"-hide\" option is only for def write\n");
+			    TxPrintf("The \"-hide\" option is only for lef write\n");
 		    }
 		    else goto wrongNumArgs;
 		    cargs--;
