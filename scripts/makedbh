@@ -47,143 +47,143 @@ while (${maskwords} >= 0)
    @ maskwords--
 end
 
-# Definitions
-set ECHO_N = printf
-# echo -n is not POSIX, not portable to newer Bourne-shells
+# NOTE: echo -n is not POSIX, not portable to newer Bourne-shells, so use printf
+# NOTE:  Some OSes are known to buffer printf and echo independently, so do not
+# intermix "echo" and "printf" or output may have lines out of order.
 
-echo "#define TTMaskZero(m) ( \" >> $2
+printf "#define TTMaskZero(m) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	(m)->tt_words[$i] = 0" >> $2
+   printf "	(m)->tt_words[$i] = 0" >> $2
    if ($i == 0) then
-      echo ")" >> $2
-      echo "" >> $2
+      printf ")\n" >> $2
+      printf "\n" >> $2
    else
-      echo ", \" >> $2
+      printf ", \\\n" >> $2
    endif
 end
 
-echo "#define TTMaskIsZero(m) ( \" >> $2
+printf "#define TTMaskIsZero(m) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	(m)->tt_words[$i] == 0" >> $2
+   printf "	(m)->tt_words[$i] == 0" >> $2
    if ($i == 0) then
-      echo ")" >> $2
-      echo "" >> $2
+      printf ")\n" >> $2
+      printf "\n" >> $2
    else
-      echo " && \" >> $2
+      printf " && \\\n" >> $2
    endif
 end
 
-echo "#define TTMaskEqual(m, n) ( \" >> $2
+printf "#define TTMaskEqual(m, n) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	(m)->tt_words[$i] == (n)->tt_words[$i]" >> $2
+   printf "	(m)->tt_words[$i] == (n)->tt_words[$i]" >> $2
    if ($i == 0) then
-      echo ")" >> $2
-      echo "" >> $2
+      printf ")\n" >> $2
+      printf "\n" >> $2
    else
-      echo " && \" >> $2
+      printf " && \\\n" >> $2
    endif
 end
 
-echo "#define TTMaskIntersect(m, n) ( \" >> $2
+printf "#define TTMaskIntersect(m, n) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	((m)->tt_words[$i] & (n)->tt_words[$i])" >> $2
+   printf "	((m)->tt_words[$i] & (n)->tt_words[$i])" >> $2
    if ($i == 0) then
-      echo ")" >> $2
-      echo "" >> $2
+      printf ")\n" >> $2
+      printf "\n" >> $2
    else
-      echo " || \" >> $2
+      printf " || \\\n" >> $2
    endif
 end
 
-echo "#define TTMaskCom(m) ( \" >> $2
+printf "#define TTMaskCom(m) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	((m)->tt_words[$i] = ~(m)->tt_words[$i])" >> $2
+   printf "	((m)->tt_words[$i] = ~(m)->tt_words[$i])" >> $2
    if ($i == 0) then
-      echo ")" >> $2
-      echo "" >> $2
+      printf ")\n" >> $2
+      printf "\n" >> $2
    else
-      echo ", \" >> $2
+      printf ", \\\n" >> $2
    endif
 end
 
-echo "#define TTMaskCom2(m, n) ( \" >> $2
+printf "#define TTMaskCom2(m, n) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	((m)->tt_words[$i] = ~(n)->tt_words[$i])" >> $2
+   printf "	((m)->tt_words[$i] = ~(n)->tt_words[$i])" >> $2
    if ($i == 0) then
-      echo ")" >> $2
-      echo "" >> $2
+      printf ")\n" >> $2
+      printf "\n" >> $2
    else
-      echo ", \" >> $2
+      printf ", \\\n" >> $2
    endif
 end
 
-echo "#define TTMaskSetMask(m, n) ( \" >> $2
+printf "#define TTMaskSetMask(m, n) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	((m)->tt_words[$i] |= (n)->tt_words[$i])" >> $2
+   printf "	((m)->tt_words[$i] |= (n)->tt_words[$i])" >> $2
    if ($i == 0) then
-      echo ")" >> $2
-      echo "" >> $2
+      printf ")\n" >> $2
+      printf "\n" >> $2
    else
-      echo ", \" >> $2
+      printf ", \\\n" >> $2
    endif
 end
 
-echo "#define TTMaskSetMask3(m, n, o) ( \" >> $2
+printf "#define TTMaskSetMask3(m, n, o) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	((m)->tt_words[$i] |= (n)->tt_words[$i] | (o)->tt_words[$i])" \
+   printf "	((m)->tt_words[$i] |= (n)->tt_words[$i] | (o)->tt_words[$i])" \
 	>> $2
    if ($i == 0) then
-      echo ")" >> $2
-      echo "" >> $2
+      printf ")\n" >> $2
+      printf "\n" >> $2
    else
-      echo ", \" >> $2
+      printf ", \\\n" >> $2
    endif
 end
 
-echo "#define TTMaskAndMask(m, n) ( \" >> $2
+printf "#define TTMaskAndMask(m, n) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	((m)->tt_words[$i] &= (n)->tt_words[$i])" >> $2
+   printf "	((m)->tt_words[$i] &= (n)->tt_words[$i])" >> $2
    if ($i == 0) then
-      echo ")" >> $2
-      echo "" >> $2
+      printf ")\n" >> $2
+      printf "\n" >> $2
    else
-      echo ", \" >> $2
+      printf ", \\\n" >> $2
    endif
 end
 
-echo "#define TTMaskAndMask3(m, n, o) ( \" >> $2
+printf "#define TTMaskAndMask3(m, n, o) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	((m)->tt_words[$i] = (n)->tt_words[$i] & (o)->tt_words[$i])" \
+   printf "	((m)->tt_words[$i] = (n)->tt_words[$i] & (o)->tt_words[$i])" \
 	>> $2
    if ($i == 0) then
-      echo ")" >> $2
-      echo "" >> $2
+      printf ")\n" >> $2
+      printf "\n" >> $2
    else
-      echo ", \" >> $2
+      printf ", \\\n" >> $2
    endif
 end
 
-echo "#define TTMaskClearMask(m, n) ( \" >> $2
+printf "#define TTMaskClearMask(m, n) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	((m)->tt_words[$i] &= ~(n)->tt_words[$i])" >> $2
+   printf "	((m)->tt_words[$i] &= ~(n)->tt_words[$i])" >> $2
    if ($i == 0) then
-      echo ")" >> $2
-      echo "" >> $2
+      printf ")\n" >> $2
+      printf "\n" >> $2
    else
-      echo ", \" >> $2
+      printf ", \\\n" >> $2
    endif
 end
 
-echo "#define TTMaskClearMask3(m, n, o) ( \" >> $2
+printf "#define TTMaskClearMask3(m, n, o) ( \\\n" >> $2
 foreach i (${count})
-   ${ECHO_N} "	((m)->tt_words[$i] = (n)->tt_words[$i] & ~(o)->tt_words[$i])" \
+   printf "	((m)->tt_words[$i] = (n)->tt_words[$i] & ~(o)->tt_words[$i])" \
 	>> $2
    if ($i == 0) then
-      echo ")" >> $2
+      printf ")\n" >> $2
    else
-      echo ", \" >> $2
+      printf ", \\\n" >> $2
    endif
 end
 
-echo "" >> $2
-echo "#endif /* _DATABASE_H */" >> $2
+printf "\n" >> $2
+printf "#endif /* _DATABASE_H */\n" >> $2
