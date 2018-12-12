@@ -44,6 +44,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/runstats.h"
 #include "ext2spice/ext2spice.h"
 
+/* These global values are defined in ext2spice.c */
+extern HashTable subcktNameTable;
+extern DQueue    subcktNameQueue;
+
 // Structure passed to esHierVisit
 
 typedef struct _defflagsdata {
@@ -1870,6 +1874,15 @@ esHierVisit(hc, cdata)
     esDiodeNum = 0;
     esSbckNum = 0;
     esNodeNum = 10;
+
+    /* Reset the subcircuit hash table, if using HSPICE format */
+    if (esFormat == HSPICE)
+    {
+        HashInit(&subcktNameTable, 32, HT_STRINGKEYS);
+#ifndef UNSORTED_SUBCKT
+        DQInit(&subcktNameQueue, 64);
+#endif
+    }
 
     EFFlatDone();
     return 0;

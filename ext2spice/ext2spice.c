@@ -1369,6 +1369,10 @@ subcktVisit(use, hierName, is_top)
     /* Retain instance name unless esDoRenumber is set, or format is Spice2 */
     if (use->use_id == NULL || esDoRenumber == TRUE || esFormat == SPICE2)
     {
+	/* NOTE:  This really needs to update subcktNameTable so that	*/
+	/* it tracks between instance names and node names, when using	*/
+	/* HSPICE format + esDoRenumber.				*/
+
 	fprintf(esSpiceF, "X%d", esSbckNum++);
 	tchars = 5;
     }
@@ -3268,10 +3272,10 @@ char *efHNSprintfPrefix(hierName, str)
  * nodeHspiceName --
  *
  * Convert the hierarchical node name used in Berkeley spice 
- * to a name understodd by hspice and hopefully by the user.
+ * to a name understood by hspice and hopefully by the user.
  *
  * Results:
- *	A somewhat meaningfull node name
+ *	A somewhat meaningful node name
  *
  * Side effects:
  *	Mucks with the hash table above.
@@ -3306,7 +3310,7 @@ int nodeHspiceName(s)
     sf = p + 1;
 
     /* 
-     * look up prefix in the hash table ad create it if doesnt exist 
+     * look up prefix in the hash table and create it if doesn't exist 
      */
     if ((he = HashLookOnly(&subcktNameTable, s)) == NULL)
     {
