@@ -174,7 +174,9 @@ lefWriteHeader(def, f, lefTech)
     fprintf(f, "VERSION 5.3 ;\n");
     fprintf(f, "   NAMESCASESENSITIVE ON ;\n");
     fprintf(f, "   NOWIREEXTENSIONATPIN ON ;\n");
+    fprintf(f, "   NOWIREEXTENSIONATPIN ON ;\n");
     fprintf(f, "   DIVIDERCHAR \"/\" ;\n");
+    fprintf(f, "   BUSBITCHARS \"[]\" ;\n");
 
     /* As I understand it, this refers to the scalefactor of the GDS	*/
     /* file output.  Magic does all GDS in nanometers, so the LEF	*/
@@ -743,6 +745,11 @@ lefWriteMacro(def, f, scale, hide)
 	fprintf(f, "   CLASS %s\n", propvalue);
 	class = propvalue;
     }
+    else
+    {
+	/* Needs a class of some kind.  Use BLOCK as default if not defined */
+	fprintf(f, "   CLASS BLOCK\n");
+    }
 
     propvalue = (char *)DBPropGet(def, "LEFsource", &propfound);
     if (propfound)
@@ -1143,6 +1150,9 @@ LefWriteAll(rootUse, writeTopCell, lefTech)
 	    if ((writeTopCell == TRUE) || (def != rootdef))
 		lefWriteMacro(def, f, scale);
     }
+
+    /* End the LEF file */
+    fprintf(f, "END LIBRARY ;\n");
 
     fclose(f);
     StackFree(lefDefStack);
