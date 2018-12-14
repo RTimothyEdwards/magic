@@ -24,6 +24,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include <sys/types.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -158,6 +159,90 @@ drcPaintError(celldef, rect, cptr, plane)
     DRCErrorCount += 1;
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ * drcSubstitute ---
+ *
+ * Check for substitution sequences in the DRC "why" string in the DRCCookie
+ * record passed in cptr, and make the appropriate substitutions.  Return
+ * the modified string.
+ *
+ * Currently supported:
+ * %d	 encodes the rule distance.  Output is given in microns
+ * %c    encodes the rule corner distance.  Output is given in microns.
+ * %a	 encodes the rule distance as area.  Output is given in microns squared.
+ *
+ * To do:  Add flag bits to the drcc_flags field to indicate what type of
+ * rule this is (easier than decoding it from context), and add a substitution
+ * sequence "%s" to build the entire "why" string from the relevant rule data.
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+drcSubstitute (cptr)
+    DRCCookie * cptr;  		/* Design rule violated */
+{
+    static char *why_out = NULL;
+    char *whyptr = cptr->drcc_why, *sptr, *wptr;
+    int subscnt = 0, whylen;
+    float oscale, value;
+    extern float CIFGetOutputScale();
+
+    while ((sptr = strchr(whyptr, '%')) != NULL)
+    {
+	subscnt++;
+	whyptr = sptr + 1;
+    }
+    if (subscnt == 0) return whyptr;	/* No substitutions */
+
+    whyptr = cptr->drcc_why;
+    whylen = strlen(whyptr) + 20 * subscnt;
+    if (why_out != NULL) freeMagic(why_out);
+    why_out = (char *)mallocMagic(whylen * sizeof(char));
+    strcpy(why_out, whyptr);	
+
+    oscale = CIFGetOutputScale(1000);	/* 1000 for conversion to um */
+    wptr = why_out;
+
+    while ((sptr = strchr(whyptr, '%')) != NULL)
+    {
+	/* copy up to sptr */
+	strncpy(wptr, whyptr, (int)(sptr - whyptr));
+	wptr += (sptr - whyptr);
+
+	switch (*(sptr + 1))
+	{
+	    case 'd':
+		/* Replace with "dist" value in microns */
+		value = (float)cptr->drcc_dist * oscale;
+		snprintf(wptr, 20, "%01.3gum", value);
+		wptr += strlen(wptr);
+		break;
+	    case 'c':
+		/* Replace with "cdist" value in microns */
+		value = (float)cptr->drcc_cdist * oscale;
+		snprintf(wptr, 20, "%01.3gum", value);
+		wptr += strlen(wptr);
+		break;
+	    case 'a':
+		/* Replace with "dist" value in microns squared */
+		value = (float)cptr->drcc_dist * oscale * oscale;
+		snprintf(wptr, 20, "%01.4gum^2", value);
+		wptr += strlen(wptr);
+		break;
+	    default:
+		/* Any other character after '%', treat as literal */
+		wptr += 2;
+		break;
+	}
+	whyptr = sptr + 2;
+    }
+    /* copy remainder of string (including trailing null) */
+    strncpy(wptr, whyptr, strlen(whyptr) + 1);
+
+    return why_out;
+}
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -197,8 +282,8 @@ drcPrintError (celldef, rect, cptr, scx)
     h = HashFind(&DRCErrorTable, cptr->drcc_why);
     i = (spointertype) HashGetValue(h);
     if (i == 0)
-	TxPrintf("%s\n", cptr->drcc_why);
-    i += 1;
+	TxPrintf("%s\n", drcSubstitute(cptr));
+    i++;
     HashSetValue(h, (spointertype)i);
 }
 
@@ -230,7 +315,7 @@ drcListError (celldef, rect, cptr, scx)
 	Tcl_Obj *lobj;
 	lobj = Tcl_GetObjResult(magicinterp);
 	Tcl_ListObjAppendElement(magicinterp, lobj,
-			Tcl_NewStringObj(cptr->drcc_why, -1));
+			Tcl_NewStringObj(drcSubstitute(cptr), -1));
 	Tcl_SetObjResult(magicinterp, lobj);
     }
     i += 1;
