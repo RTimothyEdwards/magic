@@ -2051,6 +2051,10 @@ PlowAfterTech()
     TileTypeBitMask mask;
     TileType i, j;
 
+    /* Reset rules tables */
+    plowSearchRulesPtr = plowSearchRulesTbl;
+    plowCellRulesPtr = plowCellRulesTbl;
+
     /* Set the masks we will use for all the rules below */
     allButSpace = DBAllButSpaceAndDRCBits;
     allBits = DBAllTypeBits;
