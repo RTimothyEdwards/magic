@@ -225,8 +225,8 @@ drcSubstitute (cptr)
 		wptr += strlen(wptr);
 		break;
 	    case 'a':
-		/* Replace with "dist" value in microns squared */
-		value = (float)cptr->drcc_dist * oscale * oscale;
+		/* Replace with "cdist" value in microns squared */
+		value = (float)cptr->drcc_cdist * oscale * oscale;
 		snprintf(wptr, 20, "%01.4gum^2", value);
 		wptr += strlen(wptr);
 		break;
