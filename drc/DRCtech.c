@@ -1568,6 +1568,8 @@ drcAngles(argc, argv)
  *
  *	edge4way layers1 ~(layers3,layers1) distance ~(layers2) 0 0 why
  *
+ * The complementary case is redundant, so not checked.
+ *
  * ----------------------------------------------------------------------------
  */
 
