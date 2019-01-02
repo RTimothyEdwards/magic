@@ -164,8 +164,6 @@ lefWriteHeader(def, f, lefTech)
 {
     TileType type;
 
-    UndoDisable();
-
     TxPrintf("Diagnostic:  Write LEF header for cell %s\n", def->cd_name);
 
     /* NOTE:  This routine corresponds to Envisia LEF/DEF Language	*/
@@ -188,6 +186,8 @@ lefWriteHeader(def, f, lefTech)
     fprintf(f, "\n");
 
     if (!lefTech) return;
+
+    UndoDisable();
 
     /* Layers (minimal information) */
 

@@ -793,6 +793,7 @@ defNetGeometryFunc(tile, plane, defdata)
     char *lefName, viaName[24];
     LefMapping *MagicToLefTable = defdata->MagicToLefTbl;
 
+    if (ttype == TT_SPACE) return 0;
     TiToRect(tile, &r);
 
     /* Treat contacts here exactly the same way as defCountVias	*/
@@ -900,6 +901,7 @@ defNetGeometryFunc(tile, plane, defdata)
     /* Layer names are taken from the LEF database. */
 
     lefName = MagicToLefTable[ttype].lefName;
+    ASSERT(lefName, "Valid ttype");
     lefType = MagicToLefTable[ttype].lefInfo;
 
     orient = GEO_EAST;
@@ -1736,7 +1738,13 @@ defCountCompFunc(cellUse, total)
     /* Ignore any cellUse that does not have an identifier string. */
     if (cellUse->cu_id == NULL) return 0;
 
-    (*total)++;	/* Increment the count of uses */
+    /* Make sure that arrays are counted correctly */
+    int sx = cellUse->cu_xhi - cellUse->cu_xlo + 1;
+    int sy = cellUse->cu_yhi - cellUse->cu_ylo + 1;
+    // TxPrintf("Diagnostic: cell %s %d %d\n", cellUse->cu_id, sx, sy);
+    ASSERT(sx >= 0 && sy >= 0, "Valid array");
+
+    (*total) += sx * sy;	/* Increment the count of uses */
 
     return 0;	/* Keep the search going */
 }
@@ -1774,6 +1782,35 @@ defWriteComponents(f, rootDef, oscale)
     DBCellEnum(rootDef, defComponentFunc, (ClientData)&defdata);
 }
 
+/* Callback function used by defWriteComponents for array members */
+
+int
+arrayDefFunc(use, transform, x, y, defdata)
+    CellUse *use;		/* CellUse for array element */
+    Transform *transform;	/* Transform from use to parent */
+    int x, y;			/* Indices of element */
+    DefData *defdata;
+{
+    int sx = use->cu_xhi - use->cu_xlo;
+    int sy = use->cu_yhi - use->cu_ylo;
+    char idx[32];
+    Rect box;
+
+    idx[0] = 0;
+
+    if (sy) sprintf(idx, "%d%s", y, sx ? "," : "");
+    if (sx) sprintf(idx + strlen(idx), "%d", x);
+
+    GeoTransRect(transform, &use->cu_def->cd_bbox, &box);
+
+    fprintf(defdata->f, "   - %s[%s] %s\n      + PLACED ( %.10g %.10g ) %s ;\n",
+		use->cu_id, idx, use->cu_def->cd_name,
+		(float)box.r_xbot * defdata->scale,
+		(float)box.r_ybot * defdata->scale,
+		defTransPos(&use->cu_transform));
+    return 0;
+}
+
 /* Callback function used by defWriteComponents */
 
 int
@@ -1786,6 +1823,12 @@ defComponentFunc(cellUse, defdata)
 
     /* Ignore any cellUse that does not have an identifier string. */
     if (cellUse->cu_id == NULL) return 0;
+
+    if (cellUse->cu_xlo != cellUse->cu_xhi || cellUse->cu_ylo != cellUse->cu_yhi) {
+	/* expand the array */
+	DBArraySr(cellUse, &cellUse->cu_bbox, arrayDefFunc, defdata);
+	return 0;
+    }
 
     fprintf(f, "   - %s %s\n      + PLACED ( %.10g %.10g ) %s ;\n",
 	cellUse->cu_id, cellUse->cu_def->cd_name,
@@ -1823,6 +1866,7 @@ defMakeInverseLayerMap()
 
     lefMagicToLefLayer = (LefMapping *)mallocMagic(DBNumUserLayers
 		* sizeof(LefMapping));
+    memset(lefMagicToLefLayer, 0, sizeof(LefMapping) * TT_TECHDEPBASE);
     for (i = TT_TECHDEPBASE; i < DBNumUserLayers; i++)
     {
 	lefname = defGetType(i, &lefl);
