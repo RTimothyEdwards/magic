@@ -425,10 +425,36 @@ DBTechFinalConnect()
      * for those planes to which each type 'base' connects, exclusive
      * of its home plane and those planes to which it connects as a
      * contact.
+     *
+     * Note that DBAllConnPlanes() is used to check for connectivity
+     * (e.g., during extraction) where connections are made where no
+     * contact exists.  This is VERY compute-intensive, so adding
+     * planes unnecessarily must be avoided at all costs.  Consider
+     * that a better alternative might be to designate layers that
+     * connect to other planes as contacts themselves (such as
+     * nsd, which connects to nwell) and restrict the "connect" section
+     * to types in a plane (such as poly and transistor).
      */
+
     for (base = TT_TECHDEPBASE; base < DBNumTypes; base++)
     {
-	DBAllConnPlanes[base] = DBTechTypesToPlanes(&DBConnectTbl[base]);
+	TileTypeBitMask baseConnList;
+
+	/* For one, remove all contact types from the list of	*/
+	/* connecting types.  Otherwise, simple connect		*/
+	/* expressions like "*m1 *m1" have the unintended	*/
+	/* consequence of connecting the metal2 plane (because	*/
+	/* via contains m1) to the active plane (because active	*/
+	/* contacts also contain m1).				*/
+
+	baseConnList = DBConnectTbl[base];
+	for (s = 0; s < dbNumContacts; s++)
+	{
+	    ls = dbContactInfo[s];
+	    TTMaskClearType(&baseConnList, ls->l_type);
+	}
+
+	DBAllConnPlanes[base] = DBTechTypesToPlanes(&baseConnList);
 	DBAllConnPlanes[base] &= ~(PlaneNumToMaskBit(DBPlane(base)));
 	DBAllConnPlanes[base] &= ~DBConnPlanes[base];
     }
