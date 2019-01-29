@@ -29,6 +29,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <string.h>
 
+#include "tcltk/tclmagic.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "utils/geofast.h"
@@ -142,6 +143,8 @@ extSubtree(parentUse, reg, f)
     Rect r, rlab, rbloat, *b;
     Label *lab;
     bool result;
+    int cuts, totcuts;
+    float pdone, plast;
 
     if ((ExtOptions & (EXT_DOCOUPLING|EXT_DOADJUST))
 		   != (EXT_DOCOUPLING|EXT_DOADJUST))
@@ -172,7 +175,18 @@ extSubtree(parentUse, reg, f)
      * halo has been set above to reflect the maximum distance for
      * sidewall coupling capacitance).
      */
+
     b = &def->cd_bbox;
+
+    /* Monitor progress, for large designs */
+    totcuts = (b->r_ytop - b->r_ybot + ExtCurStyle->exts_stepSize - 1)
+		    / ExtCurStyle->exts_stepSize;
+    totcuts *= ((b->r_xtop - b->r_xbot + ExtCurStyle->exts_stepSize - 1)
+		    / ExtCurStyle->exts_stepSize);
+    cuts = 0;
+    pdone = 0.0;
+    plast = 0.0;
+
     for (r.r_ybot = b->r_ybot; r.r_ybot < b->r_ytop; r.r_ybot = r.r_ytop)
     {
 	r.r_ytop = r.r_ybot + ExtCurStyle->exts_stepSize;
@@ -223,6 +237,19 @@ extSubtree(parentUse, reg, f)
 		scx.scx_area = ha.ha_interArea;
 		scx.scx_use = ha.ha_parentUse;
 		DBCellSrArea(&scx, extSubstrateFunc, (ClientData)&ha);
+	    }
+
+	    cuts++;
+	    pdone = 100.0 * ((float)cuts / (float)totcuts);
+	    if ((((pdone - plast) > 5.0) || (cuts == totcuts)) && (cuts > 1)) {
+	        TxPrintf("Completed %d%%\n", (int)(pdone + 0.5));
+	        plast = pdone;
+		TxFlushOut();
+
+#ifdef MAGIC_WRAPPER
+		/* We need to let Tk paint the console display */
+		while (Tcl_DoOneEvent(TCL_DONT_WAIT) != 0);
+#endif
 	    }
 	}
     }
