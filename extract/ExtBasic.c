@@ -2059,12 +2059,9 @@ extOutputDevices(def, transList, outFile)
 					"Resistor has zero width");
 		}
 
-		extOutputDevParams(reg, t, outFile, length, width);
-
 		if (ExtCurStyle->exts_deviceClass[t] == DEV_RSUBCKT)
 		{
-		    fprintf(outFile, " \"%s\"", (subsName == NULL) ?
-				"None" : subsName);
+		    /* nothing */
 		}
 		else if (hasModel)	/* SPICE semiconductor resistor */
 		{
@@ -2074,6 +2071,15 @@ extOutputDevices(def, transList, outFile)
 		}
 		else		/* regular resistor */
 		    fprintf(outFile, " %g", dres / 1000.0); /* mOhms -> Ohms */
+
+		extOutputDevParams(reg, t, outFile, length, width);
+
+		if (ExtCurStyle->exts_deviceClass[t] == DEV_RSUBCKT)
+		{
+		    fprintf(outFile, " \"%s\"", (subsName == NULL) ?
+				"None" : subsName);
+		}
+
 		break;
 
 	    case DEV_CAP:
@@ -2136,12 +2142,10 @@ extOutputDevices(def, transList, outFile)
 			arg.fra_each = (int (*)()) NULL;
 			(void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 		    }
-		    extOutputDevParams(reg, t, outFile, length, width);
 
 		    if (ExtCurStyle->exts_deviceClass[t] == DEV_CSUBCKT)
 		    {
-			fprintf(outFile, " \"%s\"", (subsName == NULL) ?
-				"None" : subsName);
+		        /* (Nothing) */
 		    }
 		    else	/* SPICE semiconductor resistor */
 		    {
@@ -2157,6 +2161,14 @@ extOutputDevices(def, transList, outFile)
 			    fprintf(outFile, " %d %d", length, width);
 			if (subsName != NULL)
 			    fprintf(outFile, " \"%s\"", subsName);
+		    }
+
+		    extOutputDevParams(reg, t, outFile, length, width);
+
+		    if (ExtCurStyle->exts_deviceClass[t] == DEV_CSUBCKT)
+		    {
+			fprintf(outFile, " \"%s\"", (subsName == NULL) ?
+				"None" : subsName);
 		    }
 		}
 		else
