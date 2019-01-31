@@ -563,10 +563,12 @@ DBAdjustLabelsNew(def, area, noreconnect)
     lab = def->cd_labels;
     while (lab != NULL)
     {
+	    int locnoreconnect = noreconnect;
 	    if (!GEO_TOUCH(&lab->lab_rect, area)) {
 		    goto nextLab;
 	    }
-	    newType = DBPickLabelLayer(def, lab, noreconnect);
+	    if (lab->lab_type == TT_SPACE) locnoreconnect = FALSE;
+	    newType = DBPickLabelLayer(def, lab, locnoreconnect);
 	    if (newType == lab->lab_type) {
 		    goto nextLab;
 	    } 
@@ -643,7 +645,7 @@ DBPickLabelLayer(def, lab, noreconnect)
 {
     TileTypeBitMask types[3], types2[3];
     Rect check1, check2;
-    int i, plane;
+    int i, j, plane;
     TileType choice1, choice2, choice3, choice4, choice5, choice6;
     extern int dbPickFunc1(), dbPickFunc2();
 
@@ -753,62 +755,72 @@ DBPickLabelLayer(def, lab, noreconnect)
      * 5. A layer that covers the label.
      * 6. A layer that is a component of material that covers the label.
      * 7. Space.
+     *
+     * All searches are done from the lowest to highest plane, so that
+     * the label connects to material on the highest plane that matches
+     * the criteria above.  This avoids weirdnesses caused by declaring
+     * types out of order in the techfile.
      */
     
     if (TTMaskHasType(&types[0], lab->lab_type)) return lab->lab_type;
     plane = DBPlane(lab->lab_type);
     choice1 = choice2 = choice3 = choice4 = choice5 = choice6 = TT_SPACE;
-    for (i = TT_SELECTBASE; i < DBNumUserLayers; i += 1)
+    
+    for (j = PL_SELECTBASE; j < DBNumPlanes; j++)
     {
-	if (!TTMaskHasType(&types[2], i)) continue;
-	if (DBConnectsTo(i, lab->lab_type))
+	for (i = TT_SELECTBASE; i < DBNumUserLayers; i += 1)
 	{
-	    if (DBPlane(i) == plane)
+	    if (!TTMaskHasType(&DBPlaneTypes[j], i)) continue;
+
+	    if (DBConnectsTo(i, lab->lab_type))
 	    {
+		if (DBPlane(i) == plane)
+		{
+		    if (TTMaskHasType(&types[0], i))
+		    {
+			choice1 = i;
+			continue;
+		    }
+		    else if (TTMaskHasType(&types[1], i))
+		    {
+			choice2 = i;
+			continue;
+		    }
+		}
 		if (TTMaskHasType(&types[0], i))
 		{
-		    choice1 = i;
+		    choice3 = i;
 		    continue;
 		}
 		else if (TTMaskHasType(&types[1], i))
 		{
-		    choice2 = i;
+		    choice4 = i;
 		    continue;
 		}
 	    }
 	    if (TTMaskHasType(&types[0], i))
 	    {
-		choice3 = i;
+		/* A type that connects to more than itself is preferred */
+		if (choice5 == TT_SPACE)
+		    choice5 = i;
+		else
+		{
+		    TileTypeBitMask ctest;
+		    TTMaskZero(&ctest);
+		    TTMaskSetMask(&ctest, &DBConnectTbl[i]);
+		    TTMaskClearType(&ctest, i);
+		    if (!TTMaskIsZero(&ctest))
+			choice5 = i;
+		    else if (TTMaskHasType(&types[1], i))
+			choice6 = i;
+		}
 		continue;
 	    }
 	    else if (TTMaskHasType(&types[1], i))
 	    {
-		choice4 = i;
+		choice6 = i;
 		continue;
 	    }
-	}
-	if (TTMaskHasType(&types[0], i))
-	{
-	    /* A type that connects to more than itself is preferred */
-	    if (choice5 == TT_SPACE)
-		choice5 = i;
-	    else
-	    {
-		TileTypeBitMask ctest;
-		TTMaskZero(&ctest);
-		TTMaskSetMask(&ctest, &DBConnectTbl[i]);
-		TTMaskClearType(&ctest, i);
-		if (!TTMaskIsZero(&ctest))
-		    choice5 = i;
-		else if (TTMaskHasType(&types[1], i))
-		    choice6 = i;
-	    }
-	    continue;
-	}
-	else if (TTMaskHasType(&types[1], i))
-	{
-	    choice6 = i;
-	    continue;
 	}
     }
 
