@@ -172,7 +172,6 @@ lefWriteHeader(def, f, lefTech)
     fprintf(f, "VERSION 5.3 ;\n");
     fprintf(f, "   NAMESCASESENSITIVE ON ;\n");
     fprintf(f, "   NOWIREEXTENSIONATPIN ON ;\n");
-    fprintf(f, "   NOWIREEXTENSIONATPIN ON ;\n");
     fprintf(f, "   DIVIDERCHAR \"/\" ;\n");
     fprintf(f, "   BUSBITCHARS \"[]\" ;\n");
 
@@ -421,7 +420,7 @@ lefYankGeometry(tile, cdata)
 
     TiToRect(tile, &area);
 
-    while (ttype < DBNumTypes)
+    while (ttype < DBNumUserLayers)
     {
 	lefMagicToLefLayer = lefdata->lefMagicMap;
 	if (lefMagicToLefLayer[ttype].lefInfo != NULL)
