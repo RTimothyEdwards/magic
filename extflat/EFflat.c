@@ -193,16 +193,13 @@ EFFlatBuildOneLevel(def, flags)
     efFlatContext.hc_x = efFlatContext.hc_y = 0;
     efFlatRootUse.use_def = efFlatRootDef;
 
-    usecount = 0;
-
     /* Record all nodes of the next level in the hierarchy */
     efHierSrUses(&efFlatContext, efAddNodes, (ClientData)TRUE);
 
     /* Expand all subcells that contain connectivity information but	*/
     /* no active devices (including those in subcells).			*/
 
-    for (use = efFlatRootUse.use_def->def_uses; use; use = use->use_next)
-	usecount++;
+    usecount = HashGetNumEntries(&efFlatRootUse.use_def->def_uses);
 
     /* Recursively flatten uses that have no active devices */
     if (usecount > 0)
@@ -366,11 +363,10 @@ efFlatNodesDeviceless(hc, cdata)
     ClientData cdata;
 {
     int *usecount = (int *)cdata;
-    int newcount = 0;
+    int newcount;
     Use *use;
 
-    for (use = hc->hc_use->use_def->def_uses; use; use = use->use_next)
-	newcount++;
+    newcount = HashGetNumEntries(&hc->hc_use->use_def->def_uses);
 
     /* Recursively flatten uses that have no active devices */
     if (newcount > 0)
@@ -910,11 +906,10 @@ efFlatCapsDeviceless(hc)
     HierContext *hc;
 {
     Connection *conn;
-    int newcount = 0;
+    int newcount;
     Use *use;
 
-    for (use = hc->hc_use->use_def->def_uses; use; use = use->use_next)
-	newcount++;
+    newcount = HashGetNumEntries(&hc->hc_use->use_def->def_uses);
 
     /* Recursively flatten uses that have no active devices */
     if (newcount > 0)

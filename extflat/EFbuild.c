@@ -1098,6 +1098,7 @@ efBuildUse(def, subDefName, subUseId, ta, tb, tc, td, te, tf)
     Use *newuse;
     Def *newdef;
     char *cp;
+    HashEntry *he;
 
     newdef = efDefLook(subDefName);
     if (newdef == NULL)
@@ -1111,8 +1112,6 @@ efBuildUse(def, subDefName, subUseId, ta, tb, tc, td, te, tf)
     newuse->use_trans.t_d = td;
     newuse->use_trans.t_e = te;
     newuse->use_trans.t_f = tf;
-    newuse->use_next = def->def_uses;
-    def->def_uses = newuse;
 
     /* Set the use identifier and array information */
     if ((cp = strchr(subUseId, '[')) == NULL)
@@ -1121,15 +1120,21 @@ efBuildUse(def, subDefName, subUseId, ta, tb, tc, td, te, tf)
 	newuse->use_xlo = newuse->use_xhi = 0;
 	newuse->use_ylo = newuse->use_yhi = 0;
 	newuse->use_xsep = newuse->use_ysep = 0;
-	return;
     }
-
-    *cp = '\0';
-    newuse->use_id = StrDup((char **) NULL, subUseId);
-    *cp = '[';
-    (void) sscanf(cp, "[%d:%d:%d][%d:%d:%d]",
+    else
+    {
+	*cp = '\0';
+	newuse->use_id = StrDup((char **) NULL, subUseId);
+	*cp = '[';
+	(void) sscanf(cp, "[%d:%d:%d][%d:%d:%d]",
 		    &newuse->use_xlo, &newuse->use_xhi, &newuse->use_xsep,
 		    &newuse->use_ylo, &newuse->use_yhi, &newuse->use_ysep);
+    }
+
+    he = HashFind(&def->def_uses, newuse->use_id);
+    if (HashGetValue(he))
+        TxError("Warning: use %s appears more than once in def!\n", newuse->use_id);
+    HashSetValue(he, (ClientData)newuse);
 }
 
 /*
@@ -1646,6 +1651,38 @@ efNodeMerge(node1, node2)
     freeMagic((char *) node2);
 }
 
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * efFreeUseTable --
+ *
+ * Free the cell IDs allocated for each entry in the use hash table, and
+ * the memory allocated by the cell use, leaving the hash entry null.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+efFreeUseTable(table)
+    HashTable *table;
+{
+    HashSearch hs;
+    HashEntry *he;
+    Use *use;
+    HierName *hn;
+    EFNodeName *nn;
+
+    HashStartSearch(&hs);
+    while (he = HashNext(table, &hs))
+	if (use = (Use *) HashGetValue(he))
+	{
+	    if (use->use_id != NULL) freeMagic((char *)use->use_id);
+	    freeMagic(use);
+	}
+}
+
+
 /*
  * ----------------------------------------------------------------------------
  *

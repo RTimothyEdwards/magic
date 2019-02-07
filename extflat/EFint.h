@@ -155,11 +155,11 @@ typedef struct def
     int		 def_flags;	/* Flags -- see below */
     HashTable	 def_nodes;	/* Map names into EFNodeNames */
     HashTable	 def_dists;	/* Map pairs of names into Distances */
+    HashTable	 def_uses;	/* Hash children of this def by name */
     EFNode	 def_firstn;	/* Head of circular list of nodes */
 
 	/* The following are all NULL-terminated lists */
 
-    struct use	*def_uses;	/* Children of this def */
     Connection	*def_conns;	/* Hierarchical connections/adjustments */
     Connection	*def_caps;	/* Two-terminal capacitors */
     Connection	*def_resistors;	/* Two-terminal resistors */
@@ -199,8 +199,6 @@ typedef struct use
 {
     char	*use_id;	/* Use identifier (appears in hier paths) */
     Def		*use_def;	/* Sub def being used */
-    // EFNodeName *use_ports;	/* Port connections, for hierarchical output */
-    struct use	*use_next;	/* Next use in list (NULL-terminated) */
     Transform	 use_trans;	/* Transform up to parent coords (for fets) */
     ArrayInfo	 use_array;	/* Arraying information */
 } Use;

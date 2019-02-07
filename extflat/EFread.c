@@ -184,6 +184,8 @@ efReadDef(def, dosubckt, resist, noscale, toplevel)
     bool rc = TRUE;
     bool DoResist = resist;
     bool DoSubCircuit = dosubckt;
+    HashSearch hs;
+    HashEntry *he;
 
     /* Mark def as available */
     def->def_flags |= DEF_AVAILABLE;
@@ -611,11 +613,16 @@ resistChanged:
 	DoSubCircuit = FALSE;
 
     /* Read in each def that has not yet been read in */
-    for (use = def->def_uses; use; use = use->use_next)
+    
+    HashStartSearch(&hs);
+    while (he = HashNext(&def->def_uses, &hs))
+    {
+        use = (Use *)HashGetValue(he);
 	if ((use->use_def->def_flags & DEF_AVAILABLE) == 0)
 	    if (efReadDef(use->use_def, DoSubCircuit, resist, noscale, FALSE)
 			!= TRUE)
 		rc = FALSE;
+    }
 
     return rc;
 }

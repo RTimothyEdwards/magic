@@ -77,9 +77,13 @@ efHierSrUses(hc, func, cdata)
     HierContext newhc;
     Transform t;
     Use *u;
+    HashSearch hs;
+    HashEntry *he;
 
-    for (u = hc->hc_use->use_def->def_uses; u; u = u->use_next)
+    HashStartSearch(&hs);
+    while (he = HashNext(&hc->hc_use->use_def->def_uses, &hs))
     {
+	u = (Use *)HashGetValue(he);
 	newhc.hc_use = u;
 	if (!IsArray(u))
 	{
@@ -237,6 +241,8 @@ EFHierSrDefs(hc, func, cdata)
     HierContext newhc;
     Use *u;
     int retval;
+    HashSearch hs;
+    HashEntry *he;
 
     if (func == NULL)
     {
@@ -251,8 +257,10 @@ EFHierSrDefs(hc, func, cdata)
 	hc->hc_use->use_def->def_flags |= DEF_PROCESSED;
     }
 
-    for (u = hc->hc_use->use_def->def_uses; u; u = u->use_next)
+    HashStartSearch(&hs);
+    while (he = HashNext(&hc->hc_use->use_def->def_uses, &hs))
     {
+	u = (Use *)HashGetValue(he);
 	newhc.hc_use = u;
 	newhc.hc_hierName = NULL;
 	GeoTransTrans(&u->use_trans, &hc->hc_trans, &newhc.hc_trans);

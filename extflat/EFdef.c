@@ -113,13 +113,10 @@ EFDone()
 	freeMagic(def->def_name);
 	efFreeNodeTable(&def->def_nodes);
 	efFreeNodeList(&def->def_firstn);
+	efFreeUseTable(&def->def_uses);
 	HashKill(&def->def_nodes);
 	HashKill(&def->def_dists);
-	for (use = def->def_uses; use; use = use->use_next)
-	{
-	    freeMagic(use->use_id);
-	    freeMagic((char *) use);
-	}
+	HashKill(&def->def_uses);
 	for (conn = def->def_conns; conn; conn = conn->conn_next)
 	    efFreeConn(conn);
 	for (conn = def->def_caps; conn; conn = conn->conn_next)
@@ -248,12 +245,14 @@ efDefNew(name)
     newdef->def_caps = (Connection *) NULL;
     newdef->def_resistors = (Connection *) NULL;
     newdef->def_devs = (Dev *) NULL;
-    newdef->def_uses = (Use *) NULL;
     newdef->def_kills = (Kill *) NULL;
 
     /* Initialize circular list of nodes */
     newdef->def_firstn.efnode_next = (EFNodeHdr *) &newdef->def_firstn;
     newdef->def_firstn.efnode_prev = (EFNodeHdr *) &newdef->def_firstn;
+
+    /* Initialize hash table of uses */
+    HashInit(&newdef->def_uses, INITNODESIZE, HT_STRINGKEYS);
 
     /* Initialize hash table of node names */
     HashInit(&newdef->def_nodes, INITNODESIZE, HT_STRINGKEYS);

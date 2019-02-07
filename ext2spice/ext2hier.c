@@ -1552,7 +1552,8 @@ esMakePorts(hc, cdata)
     char *name, *portname, *tptr, *aptr, *locname;
     int j;
 
-    if (def->def_uses == NULL) return 0;	/* Bottom of hierarchy */
+    /* Done when the bottom of the hierarchy is reached */
+    if (HashGetNumEntries(&def->def_uses) == 0) return 0;
 
     for (conn = (Connection *)def->def_conns; conn; conn = conn->conn_next)
     {
@@ -1579,13 +1580,11 @@ esMakePorts(hc, cdata)
 
 		// Find the cell for the instance
 		portdef = NULL;
-		for (use = updef->def_uses; use; use = use->use_next)
+		he = HashFind(&updef->def_uses, portname);
+		if (he != NULL)
 		{
-		    if (!strcmp(use->use_id, portname))
-		    {
-			portdef = use->use_def;
-			break;
-		    }
+		    use = (Use *)HashGetValue(he);
+		    portdef = use->use_def;
 		}
 		if ((aptr == NULL) || (aptr > tptr))
 		    *tptr = '/';
@@ -1660,13 +1659,11 @@ esMakePorts(hc, cdata)
 
 		// Find the cell for the instance
 		portdef = NULL;
-		for (use = updef->def_uses; use; use = use->use_next)
+		he = HashFind(&updef->def_uses, portname);
+		if (he != NULL)
 		{
-		    if (!strcmp(use->use_id, portname))
-		    {
-			portdef = use->use_def;
-			break;
-		    }
+		    use = (Use *)HashGetValue(he);
+		    portdef = use->use_def;
 		}
 		if ((aptr == NULL) || (aptr > tptr))
 		    *tptr = '/';
@@ -1747,7 +1744,7 @@ esHierVisit(hc, cdata)
 
     if (def != topdef)
     {
-	if (def->def_devs == NULL && def->def_uses == NULL)
+	if ((def->def_devs == NULL) && (HashGetNumEntries(&def->def_uses) == 0))
 	{
 	    if (locDoSubckt == AUTO)
 	    {
