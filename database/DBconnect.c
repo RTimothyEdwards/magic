@@ -674,9 +674,15 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
     GeoTransPointDelta(&scx->scx_trans, &lab->lab_offset, &offset);
     rotate = GeoTransAngle(&scx->scx_trans, lab->lab_rotate);
 
-    DBEraseLabelsByContent(def, &r, -1, lab->lab_text);
-    DBPutFontLabel(def, &r, lab->lab_font, lab->lab_size, rotate, &offset,
+    /* Only add labels if they are on the search top level  */
+    /* (NOTE:  Could add hierachical labels using tpath)    */
+
+    if (scx->scx_use == csa2->csa2_topscx->scx_use)
+    {
+	DBEraseLabelsByContent(def, &r, -1, lab->lab_text);
+	DBPutFontLabel(def, &r, lab->lab_font, lab->lab_size, rotate, &offset,
 		pos, lab->lab_text, lab->lab_type, lab->lab_flags);
+    }
 
     if (lab->lab_flags & PORT_DIR_MASK)
     {
@@ -858,10 +864,6 @@ dbcConnectFunc(tile, cx)
 		&newarea, DBStdPaintTbl(loctype, pNum),
 		(PaintUndoInfo *) NULL);
 
-    /* Copy information from original context into new search context */
-    scx2 = *csa2->csa2_topscx;
-    scx2.scx_area = newarea;
-
     /* Check the source def for any labels belonging to this	*/
     /* tile area and plane, and add them to the destination.	*/
 
@@ -886,6 +888,14 @@ dbcConnectFunc(tile, cx)
 		searchtype |= TF_LABEL_ATTACH_NOT_SE;
 	}
     }
+
+    /* Note that the search must be done from the top since zero-size	*/
+    /* port labels can be on any part of the hierarchy with no paint	*/
+    /* underneath in its own cell to trigger the callback function.	*/
+
+    /* Copy information from top search context into new search context */
+    scx2 = *csa2->csa2_topscx;
+    scx2.scx_area = newarea;
 
     DBTreeSrLabels(&scx2, connectMask, csa2->csa2_xMask, NULL,
 			searchtype, dbcConnectLabelFunc,
