@@ -686,7 +686,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 {
     char *token;
     char pinname[LEF_LINE_MAX];
-    int keyword, subkey, values;
+    int keyword, subkey, values, flags;
     int processed = 0;
     int pinDir = PORT_CLASS_DEFAULT;
     int pinNum = 0;
@@ -805,10 +805,18 @@ DefReadPins(f, rootDef, sname, oscale, total)
 			    currect = LefReadRect(f, curlayer, oscale);
 			    if (pending)
 			    {
+				flags = PORT_DIR_MASK;
+				/* If layer was unknown, set to space and force	*/
+				/* non-sticky.					*/
+				if (curlayer < 0)
+				    curlayer = TT_SPACE;
+				else
+				    flags |= LABEL_STICKY;
+
 				GeoTransRect(&t, currect, &topRect);
 				DBPaint(rootDef, &topRect, curlayer);
 				DBPutLabel(rootDef, &topRect, -1, pinname, curlayer,
-					pinNum | pinDir | PORT_DIR_MASK | LABEL_STICKY);
+					pinNum | pinDir | flags);
 				pending = FALSE;
 				pinNum++;
 			    }
@@ -820,10 +828,18 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				pending = TRUE;
 			    else
 			    {
+				flags = PORT_DIR_MASK;
+				/* If layer was unknown, set to space and force	*/
+				/* non-sticky.					*/
+				if (curlayer < 0)
+				    curlayer = TT_SPACE;
+				else
+				    flags |= LABEL_STICKY;
+
 				GeoTransRect(&t, currect, &topRect);
 				DBPaint(rootDef, &topRect, curlayer);
 				DBPutLabel(rootDef, &topRect, -1, pinname, curlayer,
-					pinNum | pinDir | PORT_DIR_MASK | LABEL_STICKY);
+					pinNum | pinDir | flags);
 				pinNum++;
 			    }
 			    break;

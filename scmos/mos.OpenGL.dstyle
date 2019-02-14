@@ -186,8 +186,8 @@ layout_styles
 51	92	53	0x00	stipple	8	-	metal3tight
 91	63	53	0x00	stipple	1	-	obsmetal3
 37	92	46	0xff	stipple 19	-	via2
-56     120	53	0xff	stipple	36	-	via2arrow
-82     120	53	0xff	stipple	2	-	via2alt
+56     120	46	0xff	stipple	36	-	via2arrow
+82     120	46	0xff	stipple	2	-	via2alt
 23	80	33	0x00	solid  	0	-	metal4
 92	63	33	0x00	stipple	1	-	obsmetal4
 38	92	38	0xff	stipple	24	-	via3

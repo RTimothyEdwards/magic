@@ -1748,6 +1748,7 @@ enum lef_layer_keys {LEF_LAYER_TYPE=0, LEF_LAYER_WIDTH,
 	LEF_LAYER_WIREEXT,
 	LEF_LAYER_RES, LEF_LAYER_CAP, LEF_LAYER_EDGECAP,
 	LEF_LAYER_THICKNESS, LEF_LAYER_HEIGHT,
+	LEF_LAYER_PROPERTY, LEF_LAYER_ACDENSITY, LEF_LAYER_DCDENSITY,
 	LEF_LAYER_MINDENSITY, LEF_LAYER_ANTENNADIFF,
 	LEF_LAYER_ANTENNAAREA, LEF_LAYER_ANTENNASIDE,
 	LEF_VIA_DEFAULT, LEF_VIA_LAYER, LEF_VIA_RECT,
@@ -1794,6 +1795,9 @@ LefReadLayerSection(f, lname, mode, lefl)
 	"EDGECAPACITANCE",
 	"THICKNESS",
 	"HEIGHT",
+	"PROPERTY",
+	"ACCURRENTDENSITY",
+	"DCCURRENTDENSITY",
 	"MINIMUMDENSITY",
 	"ANTENNAAREARATIO",
 	"ANTENNADIFFAREARATIO",
@@ -1870,6 +1874,30 @@ LefReadLayerSection(f, lname, mode, lefl)
 		sscanf(token, "%f", &fvalue);
 		if (lefl->lefClass == CLASS_ROUTE)
 		    lefl->info.route.spacing = (int)roundf(fvalue / oscale);
+		LefEndStatement(f);
+		break;
+	    case LEF_LAYER_PROPERTY:
+		/* Ignoring property statements */
+		LefEndStatement(f);
+		break;
+	    case LEF_LAYER_ACDENSITY:
+		/* Stupid syntax */
+		token = LefNextToken(f, TRUE);	    /* value type */
+		token = LefNextToken(f, TRUE);	    /* value, FREQUENCY */
+		if (!strcmp(token, "FREQUENCY")) {
+		    LefEndStatement(f);
+		    token = LefNextToken(f, TRUE);
+		    if (!strcmp(token, "WIDTH"))    /* Optional width */
+			LefEndStatement(f);	/* Additional TABLEENTRIES */
+		}
+		LefEndStatement(f);
+		break;
+	    case LEF_LAYER_DCDENSITY:
+		/* Stupid syntax */
+		token = LefNextToken(f, TRUE);	    /* value type */
+		token = LefNextToken(f, TRUE);	    /* value, WIDTH */
+		if (!strcmp(token, "WIDTH"))
+		    LefEndStatement(f);	    /* Additional TABLEENTRIES */
 		LefEndStatement(f);
 		break;
 	    case LEF_LAYER_SPACINGTABLE:
