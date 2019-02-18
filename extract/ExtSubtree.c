@@ -233,8 +233,9 @@ extSubtree(parentUse, reg, f)
 		/* even if there were no other interactions found.	*/
 		SearchContext scx;
 
+		GEOCLIP(&ha.ha_clipArea, &r);
 		scx.scx_trans = GeoIdentityTransform;
-		scx.scx_area = ha.ha_interArea;
+		scx.scx_area = r;
 		scx.scx_use = ha.ha_parentUse;
 		DBCellSrArea(&scx, extSubstrateFunc, (ClientData)&ha);
 	    }
