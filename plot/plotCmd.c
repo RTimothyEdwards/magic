@@ -67,6 +67,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 typedef enum {
 	POSTSCRIPT=0,
 	PLOTPNM,
+#ifdef HAVE_LIBCAIRO
+	PLOTSVG,
+#endif
 #ifdef GREMLIN
 	STYLE_GREMLIN,
 #endif
@@ -94,12 +97,19 @@ CmdPlot(w, cmd)
     float width;
     int iwidth, scale;
 
+#ifdef HAVE_LIBCAIRO
+    extern void GrTCairoPlotSVG();
+#endif
+
     static char *cmdPlotOption[] =
     {	
 	"postscript file [layers]    generate PostScript file for what's\n\
                                      underneath the box",				
 	"pnm file [width [layers]]   generate PNM file for what's\n\
 		                     underneath the box",
+#ifdef HAVE_LIBCAIRO
+	"svg file		     generate SVG file for the whole window",
+#endif
 #ifdef GREMLIN
 	"gremlin file [layers]	     generate gremlin file for what's\n\
 		                     underneath the box",
@@ -137,6 +147,9 @@ CmdPlot(w, cmd)
     if ((option == PLOTPNM) || (option == POSTSCRIPT)
 #ifdef GREMLIN
 		|| (option == STYLE_GREMLIN)
+#endif
+#ifdef HAVE_LIBCAIRO
+		|| (option == PLOTSVG)
 #endif
 #ifdef VERSATEC
 	        || (option == STYLE_VERSATEC)
@@ -192,7 +205,7 @@ CmdPlot(w, cmd)
 	    }
 	    PlotPS(cmd->tx_argv[2], &scx, &mask, crec->dbw_bitmask);
 	    return;
-	    
+
 #ifdef GREMLIN
 	case STYLE_GREMLIN:
 	    if ((cmd->tx_argc != 3) && (cmd->tx_argc != 4))
@@ -250,6 +263,18 @@ CmdPlot(w, cmd)
 	    return;
 #endif
 
+#ifdef HAVE_LIBCAIRO
+	case PLOTSVG:
+	    if (cmd->tx_argc > 3)
+	    {
+		TxError("Too many arguments:\n    plot %s\n",
+			cmdPlotOption[PLOTSVG]);
+		return;
+	    }
+	    GrTCairoPlotSVG(cmd->tx_argv[2], window);
+	    return;
+#endif
+	    
 	case PLOTPNM:
 	    if (cmd->tx_argc > 5)
 	    {

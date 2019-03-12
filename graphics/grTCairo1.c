@@ -22,6 +22,7 @@
 #include <X11/keysym.h>
 
 #include <cairo/cairo-xlib.h>
+#include <cairo/cairo-svg.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/main.h"
@@ -343,7 +344,45 @@ GrTCairoFlush ()
 
 /*
  *---------------------------------------------------------
+ * Generate SVG graphics output
+ *---------------------------------------------------------
  */
+
+void
+GrTCairoPlotSVG (char *filename, MagWindow *mw)
+{
+    int screenw, screenh;
+    cairo_surface_t *wind_surface;
+    cairo_t *wind_context;
+
+    TCairoData *tcairodata = (TCairoData *)mw->w_grdata2;
+
+    if (tcairodata == NULL)
+    {
+	TxError("Must be running in mode \"-d XR\" (CAIRO) to get SVG output.\n");
+	return;
+    }
+
+    screenw = mw->w_screenArea.r_xtop - mw->w_screenArea.r_xbot;
+    screenh = mw->w_screenArea.r_ytop - mw->w_screenArea.r_ybot;
+
+    wind_surface = tcairodata->surface;
+    wind_context = tcairodata->context;
+    tcairodata->surface = (cairo_surface_t *)cairo_svg_surface_create(filename,
+		(double)screenw, (double)screenh);
+    tcairodata->context = cairo_create(tcairodata->surface);
+    WindRedisplay(mw);
+    WindUpdate();
+
+    cairo_surface_destroy(tcairodata->surface);
+    cairo_destroy(tcairodata->context);
+    tcairodata->surface = wind_surface;
+    tcairodata->context = wind_context;
+    WindRedisplay(mw);
+    WindUpdate();
+
+    return;
+}
 
 /*
  *---------------------------------------------------------
