@@ -289,6 +289,16 @@ calmaElementBoundary()
 
     if (rp != NULL)
     {
+        Rect rpc;
+	int savescale;
+
+	/* Convert rp to magic database units to compare to label rects */
+        rpc = rp->r_r;
+	rpc.r_xbot /= calmaReadScale1;
+	rpc.r_xtop /= calmaReadScale1;
+	rpc.r_ybot /= calmaReadScale1;
+	rpc.r_ytop /= calmaReadScale1;
+
 	if ((ciftype >= 0) &&
 		((cifCurReadStyle->crs_labelSticky[ciftype] != LABEL_TYPE_NONE)))
 	{
@@ -298,11 +308,16 @@ calmaElementBoundary()
 	    type = cifCurReadStyle->crs_labelLayer[ciftype];
 	    for (lab = cifReadCellDef->cd_labels; lab; lab = lab->lab_next)
 	    {
-		if ((GEO_SURROUND(&rp->r_r, &lab->lab_rect)) && (lab->lab_type == type))
+		if ((GEO_SURROUND(&rpc, &lab->lab_rect)) && (lab->lab_type == type))
 		{
-		    lab->lab_rect = rp->r_r;	/* Replace with larger rectangle */
+		    lab->lab_rect = rpc;	/* Replace with larger rectangle */
 		    break;
 		}
+	    }
+	    if (lab == NULL)
+	    {
+		/* There was no label in the area.  Create a placeholder label */
+		DBPutLabel(cifReadCellDef, &rpc, GEO_CENTER, "", type, 0);
 	    }
 	}
     }
@@ -885,6 +900,7 @@ calmaElementText()
     {
 	int flags, i;
 	Label *lab;
+	Label *sl;
 
         if (type == TT_SPACE)
 	    /* Assigning GDS layer to space prevents making the label sticky */
@@ -896,6 +912,29 @@ calmaElementText()
 	else
 	    flags = 0;
 
+	/* If there is an empty-string label surrounding the label position */
+	/* then replace the position with the larger one and remove the	    */
+	/* empty label.							    */
+
+	sl = NULL;
+	for (lab = cifReadCellDef->cd_labels; lab != NULL; lab = lab->lab_next)
+	{
+	    if (lab->lab_text[0] == '\0')
+	    {
+		if ((GEO_SURROUND(&lab->lab_rect, &r)) && (lab->lab_type == type))
+		{
+		    r = lab->lab_rect;
+		    if (sl == NULL)
+			cifReadCellDef->cd_labels = lab->lab_next;
+		    else
+			sl->lab_next = lab->lab_next;
+		    freeMagic((char *)lab);
+		    break;
+		}
+	    }
+	    sl = lab;
+	}
+
 	if (font < 0)
 	    lab = DBPutLabel(cifReadCellDef, &r, pos, textbody, type, flags);
 	else
@@ -905,7 +944,6 @@ calmaElementText()
 	if ((lab != NULL) && (cifnum >= 0) &&
 		(cifCurReadStyle->crs_labelSticky[cifnum] == LABEL_TYPE_PORT))
 	{
-	    Label *sl;
 	    int idx;
 
 	    /* No port information can be encoded in the GDS file, so	*/
