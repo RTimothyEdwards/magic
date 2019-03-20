@@ -928,6 +928,8 @@ calmaElementText()
 			cifReadCellDef->cd_labels = lab->lab_next;
 		    else
 			sl->lab_next = lab->lab_next;
+		    if (cifReadCellDef->cd_lastLabel == lab)
+			cifReadCellDef->cd_lastLabel = sl;
 		    freeMagic((char *)lab);
 		    break;
 		}
