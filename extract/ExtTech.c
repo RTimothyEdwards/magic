@@ -2854,14 +2854,14 @@ zinit:
     }
 
     /* If global variable "doConvert" is TRUE, then we convert from	*/
-    /* microns to lambda and microns^2 to lambda^2, based on the 	*/
-    /* current value of DBLambda and output scale.			*/
+    /* microns to lambda and microns^2 to lambda^2.			*/
 
     if (doConvert)
     {
-	/* Convert from micron units in the file to the current		*/
-	/* physical scalefactor as determined by the default CIF	*/
-	/* output scale.						*/
+	/* Use current CIF output scale for determining the scale	*/
+	/* factor between micron units in the extract section and 	*/
+	/* lambda units of the database (conversion from lambda to	*/
+	/* internal units is done separately).				*/
 
 	float dscale = CIFGetOutputScale(1000);
 

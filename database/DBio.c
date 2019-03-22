@@ -1584,17 +1584,17 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 	    if (!strcmp(propertyname, "GDS_FILE"))
 		cellDef->cd_flags |= CDVENDORGDS;
 
-	    /* Also process FIXED_BBOX property, but do not keep	*/
-	    /* the property, as it should be regenerated on cell	*/
-	    /* output from the current scale.				*/
+	    /* Also process FIXED_BBOX property, as units must match */
 
 	    if (!strcmp(propertyname, "FIXED_BBOX"))
 	    {
+		Rect locbbox;
+
 		if (sscanf(propertyvalue, "%d %d %d %d",
-			&(cellDef->cd_bbox.r_xbot),
-			&(cellDef->cd_bbox.r_ybot),
-			&(cellDef->cd_bbox.r_xtop),
-			&(cellDef->cd_bbox.r_ytop)) != 4)
+			&(locbbox.r_xbot),
+			&(locbbox.r_ybot),
+			&(locbbox.r_xtop),
+			&(locbbox.r_ytop)) != 4)
 		{
 		    TxError("Cannot read bounding box values in %s property",
 				propertyname);
@@ -1605,20 +1605,24 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 		{
 		    if (scalen > 1)
 		    {
-			cellDef->cd_bbox.r_xbot *= scalen;
-			cellDef->cd_bbox.r_ybot *= scalen;
-			cellDef->cd_bbox.r_xtop *= scalen;
-			cellDef->cd_bbox.r_ytop *= scalen;
+			locbbox.r_xbot *= scalen;
+			locbbox.r_ybot *= scalen;
+			locbbox.r_xtop *= scalen;
+			locbbox.r_ytop *= scalen;
 		    }
 		    if (scaled > 1)
 		    {
-			cellDef->cd_bbox.r_xbot /= scaled;
-			cellDef->cd_bbox.r_ybot /= scaled;
-			cellDef->cd_bbox.r_xtop /= scaled;
-			cellDef->cd_bbox.r_ytop /= scaled;
+			locbbox.r_xbot /= scaled;
+			locbbox.r_ybot /= scaled;
+			locbbox.r_xtop /= scaled;
+			locbbox.r_ytop /= scaled;
 		    }
-		    cellDef->cd_extended = cellDef->cd_bbox;
 		    cellDef->cd_flags |= CDFIXEDBBOX;
+		    storedvalue = (char *)mallocMagic(40);
+		    sprintf(storedvalue, "%d %d %d %d",
+			    locbbox.r_xbot, locbbox.r_ybot,
+			    locbbox.r_xtop, locbbox.r_ytop);
+		    (void) DBPropPut(cellDef, propertyname, storedvalue);
 		}
 	    }
 	    else
@@ -2536,27 +2540,6 @@ DBCellWriteFile(cellDef, f)
     {
 	FPRINTF(f, "<< properties >>\n");
 	DBPropEnum(cellDef, dbWritePropFunc, (ClientData)f);
-    }
-
-    /* Fixed bounding box goes into a special property in output file	*/
-    /* This is not kept internally as a property, so that it can be	*/
-    /* read and written in the correct units without regard to internal	*/
-    /* changes in scaling.						*/
-
-    if (cellDef->cd_flags & CDFIXEDBBOX)
-    {
-	// If there were no explicit properties, then we need to
-	// write the header
-
-	if (cellDef->cd_props == (ClientData)NULL)
-	    FPRINTF(f, "<< properties >>\n");
-
-	sprintf(lstring, "string FIXED_BBOX %d %d %d %d\n",
-		cellDef->cd_bbox.r_xbot / reducer,
-		cellDef->cd_bbox.r_ybot / reducer,
-		cellDef->cd_bbox.r_xtop / reducer,
-		cellDef->cd_bbox.r_ytop / reducer);
-	FPRINTF(f, lstring);
     }
 
     FPRINTF(f, "<< end >>\n");

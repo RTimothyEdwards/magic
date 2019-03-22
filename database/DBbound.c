@@ -58,48 +58,38 @@ DBBoundCellPlane(def, extended, rect)
     cbs.found = FALSE;
 
     *rect = GeoNullRect;
-    if (TiSrArea((Tile *)NULL, def->cd_planes[PL_CELL],
-		&TiPlaneRect, dbCellBoundFunc, (ClientData) &filter) == 0)
+    if (DBSrCellPlaneArea(def->cd_cellPlane, &TiPlaneRect,
+		dbCellBoundFunc, (ClientData) &filter) == 0)
 	return cbs.found;
     else
 	return -1;
 }
 
 int
-dbCellBoundFunc(tile, fp)
-    Tile *tile;
+dbCellBoundFunc(use, fp)
+    CellUse *use;
     TreeFilter *fp;
 {
-    CellUse *use;
-    CellTileBody *body;
     Rect *bbox;
     DBCellBoundStruct *cbs;
 
     cbs = (DBCellBoundStruct *)fp->tf_arg;
 
-    for (body = (CellTileBody *) TiGetBody(tile); body != NULL;
-		body = body->ctb_next)
+    bbox = &use->cu_bbox;
+    if (cbs->found)
     {
-	use = body->ctb_use;
-	bbox = &use->cu_bbox;
-	if ((BOTTOM(tile) <= bbox->r_ybot) && (RIGHT(tile) >= bbox->r_xtop))
- 	{
-	    if (cbs->found)
-	    {
-		if (cbs->extended)
-		    GeoInclude(&use->cu_extended, cbs->area);
-		else
-		    GeoInclude(&use->cu_bbox, cbs->area);
-	    }
-	    else
-	    {
-		if (cbs->extended)
-		    *cbs->area = use->cu_extended;
-		else
-		    *cbs->area = use->cu_bbox;
-		cbs->found = TRUE;
-	    }
-	}
+	if (cbs->extended)
+	    GeoInclude(&use->cu_extended, cbs->area);
+	else
+	    GeoInclude(&use->cu_bbox, cbs->area);
+    }
+    else
+    {
+	if (cbs->extended)
+	    *cbs->area = use->cu_extended;
+	else
+	    *cbs->area = use->cu_bbox;
+	cbs->found = TRUE;
     }
     return 0;
 }

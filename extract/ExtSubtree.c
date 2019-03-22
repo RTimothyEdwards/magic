@@ -31,6 +31,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
+#include "tcltk/tclmagic.h"
 #include "utils/geometry.h"
 #include "utils/geofast.h"
 #include "tiles/tile.h"
@@ -175,10 +176,10 @@ extSubtree(parentUse, reg, f)
      * halo has been set above to reflect the maximum distance for
      * sidewall coupling capacitance).
      */
-
     b = &def->cd_bbox;
 
-    /* Monitor progress, for large designs */
+    /* Monitor progress, for large designs, and allow display refresh at intervals */
+
     totcuts = (b->r_ytop - b->r_ybot + ExtCurStyle->exts_stepSize - 1)
 		    / ExtCurStyle->exts_stepSize;
     totcuts *= ((b->r_xtop - b->r_xbot + ExtCurStyle->exts_stepSize - 1)
@@ -233,7 +234,6 @@ extSubtree(parentUse, reg, f)
 		/* even if there were no other interactions found.	*/
 		SearchContext scx;
 
-		GEOCLIP(&ha.ha_clipArea, &r);
 		scx.scx_trans = GeoIdentityTransform;
 		scx.scx_area = r;
 		scx.scx_use = ha.ha_parentUse;
@@ -243,8 +243,8 @@ extSubtree(parentUse, reg, f)
 	    cuts++;
 	    pdone = 100.0 * ((float)cuts / (float)totcuts);
 	    if ((((pdone - plast) > 5.0) || (cuts == totcuts)) && (cuts > 1)) {
-	        TxPrintf("Completed %d%%\n", (int)(pdone + 0.5));
-	        plast = pdone;
+		TxPrintf("Completed %d%%\n", (int)(pdone + 0.5));
+		plast = pdone;
 		TxFlushOut();
 
 #ifdef MAGIC_WRAPPER

@@ -75,6 +75,7 @@ global int GeoOppositePos[] =
  */
 
 global Rect  GeoNullRect = { 0, 0, 0, 0 };
+global Rect  GeoInvertedRect = { 0, 0, -1, -1 };
 global Point GeoOrigin = { 0, 0 };
 
 
@@ -712,6 +713,24 @@ GeoIncludePoint(src, dst)
 	if (dst->r_ytop < src->p_y)
 	    dst->r_ytop = src->p_y;
     }
+}
+
+/*-------------------------------------------------------------------
+ *	GeoIncludeRectInBBox() --
+ *
+ *	Expand bounding box to include rectangle r
+ *
+ *-------------------------------------------------------------------
+ */
+void
+GeoIncludeRectInBBox(r, bbox)
+    Rect *r;
+    Rect *bbox;
+{
+    bbox->r_xbot = MIN(bbox->r_xbot,r->r_xbot);
+    bbox->r_ybot = MIN(bbox->r_ybot,r->r_ybot);
+    bbox->r_xtop = MAX(bbox->r_xtop,r->r_xtop);
+    bbox->r_ytop = MAX(bbox->r_ytop,r->r_ytop);
 }
 
 

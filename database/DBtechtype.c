@@ -70,7 +70,7 @@ TileTypeBitMask DBTechActiveLayerBits;	/* Layers marked locked in the techfile *
 /* Table of default, builtin planes */
 DefaultPlane dbTechDefaultPlanes[] =
 {
-    PL_CELL,		"subcell",
+    PL_ROUTER,		"router",
     PL_DRC_ERROR,	"designRuleError",
     PL_DRC_CHECK,	"designRuleCheck",
     PL_M_HINT,		"mhint",
@@ -584,8 +584,8 @@ DBTechFinalType()
     TTMaskZero(&DBTechActiveLayerBits);
     TTMaskSetMask(&DBTechActiveLayerBits, &DBActiveLayerBits);
 
-    /* Space is visible on all planes but the subcell plane */
-    TTMaskZero(&DBPlaneTypes[PL_CELL]);
+    /* Space is visible on all planes except the router */
+    TTMaskZero(&DBPlaneTypes[PL_ROUTER]);
     for (pNum = PL_PAINTBASE;  pNum < PL_MAXTYPES;  pNum++)
 	TTMaskSetOnlyType(&DBPlaneTypes[pNum], TT_SPACE);
 }

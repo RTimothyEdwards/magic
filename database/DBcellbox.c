@@ -616,11 +616,6 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
     bool foundAny;
     int pNum;
 
-    /* Cells which declare their bounding box to be fixed	*/
-    /* must return immediately.					*/
-
-    if (cellDef->cd_flags & CDFIXEDBBOX) return;
-
     /*
      * Include area of subcells separately
      */

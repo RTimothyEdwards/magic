@@ -832,7 +832,7 @@ cmdPsearchStats(str, tl, td, count)
  *
  * CmdTsearch --
  *
- * Call TiSrArea() a number of times over an area the size and shape of
+ * Call DBSrPaintArea() a number of times over an area the size and shape of
  * that specified by the box, each time over a different area in the
  * edit cell.
  *
@@ -943,18 +943,12 @@ CmdTsearch(w, cmd)
 
 	if (cmd->tx_argc < 5)
 	{
-	    (void) TiSrArea((Tile *) NULL, plane, &rsearch,
+	    (void) DBSrPaintArea((Tile *) NULL, plane, &rsearch, &DBAllTypeBits,
 		cmdTsrFunc, (ClientData) 0);
 	}
 	else
 	{
-	    /****
-	    if (strcmp(cmd->tx_argv[4], "mayo") == 0)
-		(void) TiSrAreaNR2((Tile *) NULL, plane, &rsearch, &mask,
-		    cmdTsrFunc, (ClientData) 0);
-	    else
-	    ****/
-		(void) DBSrPaintArea((Tile *) NULL, plane, &rsearch, &mask,
+	    (void) DBSrPaintArea((Tile *) NULL, plane, &rsearch, &mask,
 		    cmdTsrFunc, (ClientData) 0);
 	}
     }

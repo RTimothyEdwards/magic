@@ -113,7 +113,7 @@ ExtFindInteractions(def, halo, bloatby, resultPlane)
      * not including, the subtree under consideration.
      */
     extInterUse = (CellUse *) NULL;
-    (void) extCellSrArea(&scx, extInterSubtree, (ClientData) NULL);
+    (void) DBCellSrArea(&scx, extInterSubtree, (ClientData) NULL);
 
     /*
      * Process parent paint if there were any subcells.
@@ -123,7 +123,7 @@ ExtFindInteractions(def, halo, bloatby, resultPlane)
     if (extInterUse)
     {
 	extInterUse = (CellUse *) NULL;
-	(void) extCellSrArea(&scx, extInterSubtreePaint, (ClientData) def);
+	(void) DBCellSrArea(&scx, extInterSubtreePaint, (ClientData) def);
     }
     UndoEnable();
 }
@@ -179,7 +179,7 @@ extInterSubtree(scx)
 	BLOATBY(&parentScx.scx_area, extInterHalo);
 	parentScx.scx_trans = GeoIdentityTransform;
 	parentScx.scx_use = extParentUse;
-	(void) extCellSrArea(&parentScx, extInterSubtreeClip, (ClientData) scx);
+	(void) DBCellSrArea(&parentScx, extInterSubtreeClip, (ClientData) scx);
     }
     return (2);
 }
@@ -286,7 +286,7 @@ extInterSubtreeTile(tile, cxp)
     else newscx.scx_area = r;
     newscx.scx_trans = GeoIdentityTransform;
     newscx.scx_use = extParentUse;
-    (void) extCellSrArea(&newscx, extInterOverlapSubtree, (ClientData) NULL);
+    (void) DBCellSrArea(&newscx, extInterOverlapSubtree, (ClientData) NULL);
     return (0);
 }
 
@@ -394,7 +394,7 @@ extInterOverlapTile(tile, cxp)
  *
  * The client procedure should not modify any of the paint planes in
  * the cells visited by extTreeSrTiles, because we use DBSrPaintArea
- * instead of TiSrArea as our paint-tile enumeration function.
+ * as our paint-tile enumeration function.
  *
  * Results:
  *	0 is returned if the search finished normally.  1 is returned
@@ -442,7 +442,7 @@ extTreeSrPaintArea(scx, func, cdarg)
 	    return (1);
 
     /* Visit our children recursively */
-    return (extCellSrArea(scx, extTreeSrFunc, (ClientData) &filter));
+    return (DBCellSrArea(scx, extTreeSrFunc, (ClientData) &filter));
 }
 
 /*
@@ -477,215 +477,6 @@ extTreeSrFunc(scx, fp)
 	    return (1);
 
     /* Visit our children recursively */
-    return (extCellSrArea(scx, extTreeSrFunc, (ClientData) fp));
+    return (DBCellSrArea(scx, extTreeSrFunc, (ClientData) fp));
 }
-
-/*
- *-----------------------------------------------------------------------------
- *
- * extCellSrArea --
- *
- * Apply the supplied procedure to each of the cellUses found in the
- * given area in the subcell plane of the child def of the supplied
- * search context.
- *
- * The procedure is applied to each array element in each cell use that
- * overlaps the clipping rectangle.  The scx_x and scx_y parts of
- * the SearchContext passed to the filter function correspond to the
- * array element being visited.  The same CellUse is, of course, passed
- * as scx_use for all elements of the array.
- *
- * The array elements are visited by varying the X coordinate fastest.
- *
- * The procedure should be of the following form:
- *	int
- *	func(scx, cdarg)
- *	    SearchContext *scx;
- *	    ClientData cdarg;
- *	{
- *	}
- *
- * Func normally returns 0.  If it returns 1 then the search is
- * aborted.  If it returns 2, then any remaining elements in the
- * current array are skipped.
- *
- * Results:
- *	0 is returned if the search terminated normally.  1 is
- *	returned if it was aborted.
- *
- * Side effects:
- *	Whatever side effects are brought about by applying the
- *	procedure supplied.
- *
- *-----------------------------------------------------------------------------
- */
 
-int
-extCellSrArea(scx, func, cdarg)
-    SearchContext *scx;
-			/* Pointer to search context specifying a cell use to
-			 * search, an area in the coordinates of the cell's
-			 * def, and a transform back to "root" coordinates.
-			 * The area may have zero size.
-			 */
-    int (*func)();	/* Function to apply at every tile found */
-    ClientData cdarg;	/* Argument to pass to function */
-{
-    int xlo, xhi, ylo, yhi, xbase, ybase, xsep, ysep, clientResult;
-    int srchBot, srchRight;
-    Plane *plane = scx->scx_use->cu_def->cd_planes[PL_CELL];
-    Tile *tp, *tpnew;
-    Rect *rect, *bbox;
-    CellUse *use;
-    SearchContext newScx;
-    CellTileBody *body;
-    Transform t, tinv;
-    TreeFilter filter;
-    Rect expanded;
-    Point start;
-
-    filter.tf_func = func;
-    filter.tf_arg = cdarg;
-
-    if ((scx->scx_use->cu_def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(scx->scx_use->cu_def, (char *) NULL, TRUE, NULL))
-	    return 0;
-    
-    /*
-     * In order to make this work with zero-size areas, we first expand
-     * the area by before searching the tile plane.  extCellSrFunc will
-     * check carefully to throw out things that don't overlap the original
-     * area.  The expansion is tricky because we mustn't expand infinities.
-     */
-
-    expanded = scx->scx_area;
-    if (expanded.r_xbot > TiPlaneRect.r_xbot) expanded.r_xbot -= 1;
-    if (expanded.r_ybot > TiPlaneRect.r_ybot) expanded.r_ybot -= 1;
-    if (expanded.r_xtop < TiPlaneRect.r_xtop) expanded.r_xtop += 1;
-    if (expanded.r_ytop < TiPlaneRect.r_ytop) expanded.r_ytop += 1;
-    rect = &expanded;
-
-    /* Start along the top of the LHS of the search area */
-    start.p_x = rect->r_xbot;
-    start.p_y = rect->r_ytop - 1;
-    tp = plane->pl_hint;
-    GOTOPOINT(tp, &start);
-
-    /* Each iteration visits another tile on the LHS of the search area */
-    while (TOP(tp) > rect->r_ybot)
-    {
-	/* Each iteration enumerates another tile */
-enumerate:
-	plane->pl_hint = tp;
-	if (SigInterruptPending)
-	    return (1);
-
-	/*
-	 * Since subcells are allowed to overlap, a single tile body may
-	 * refer to many subcells and a single subcell may be referred to
-	 * by many tile bodies.  To insure that each CellUse is enumerated
-	 * exactly once, the procedure given to DBCellSrArea is only applied
-	 * to a CellUse when its lower right corner is contained in the
-	 * tile to dbCellSrFunc (or otherwise at the last tile encountered
-	 * in the event the lower right corner of the CellUse is outside the
-	 * search rectangle).
-	 */
-	srchBot = scx->scx_area.r_ybot;
-	srchRight = scx->scx_area.r_xtop;
-	for (body = (CellTileBody *) TiGetBody(tp);
-		body != NULL;
-		body = body->ctb_next)
-	{
-	    use = newScx.scx_use = body->ctb_use;
-	    ASSERT(use != (CellUse *) NULL, "dbCellSrFunc");
-
-	    /*
-	     * The check below is to ensure that we only enumerate each
-	     * cell once, even though it appears in many different tiles
-	     * in the subcell plane.
-	     */
-	    bbox = &use->cu_bbox;
-	    if (   (BOTTOM(tp) <= bbox->r_ybot ||
-		    (BOTTOM(tp) <= srchBot && bbox->r_ybot < srchBot))
-		&& (RIGHT(tp) >= bbox->r_xtop ||
-		    (RIGHT(tp) >= srchRight && bbox->r_xtop >= srchRight)))
-	    {
-		/*
-		 * Make sure that this cell really does overlap the
-		 * search area (it could be just touching because of
-		 * the expand-by-one in DBCellSrArea).
-		 */
-		if (!GEO_OVERLAP(&scx->scx_area, bbox)) continue;
-
-		/* If not an array element, it's much simpler */
-		if (use->cu_xlo == use->cu_xhi && use->cu_ylo == use->cu_yhi)
-		{
-		    newScx.scx_x = use->cu_xlo, newScx.scx_y = use->cu_yhi;
-		    if (SigInterruptPending) return 1;
-		    GEOINVERTTRANS(&use->cu_transform, &tinv);
-		    GEOTRANSTRANS(&use->cu_transform, &scx->scx_trans,
-				    &newScx.scx_trans);
-		    GEOTRANSRECT(&tinv, &scx->scx_area, &newScx.scx_area);
-		    if ((*func)(&newScx, filter.tf_arg) == 1)
-			return 1;
-		    continue;
-		}
-
-		/*
-		 * More than a single array element;
-		 * check to see which ones overlap our search area.
-		 */
-		DBArrayOverlap(use, &scx->scx_area, &xlo, &xhi, &ylo, &yhi);
-		xsep = (use->cu_xlo > use->cu_xhi)
-				? -use->cu_xsep : use->cu_xsep;
-		ysep = (use->cu_ylo > use->cu_yhi)
-				? -use->cu_ysep : use->cu_ysep;
-		for (newScx.scx_y = ylo; newScx.scx_y<=yhi; newScx.scx_y++)
-		    for (newScx.scx_x = xlo; newScx.scx_x<=xhi; newScx.scx_x++)
-		    {
-			if (SigInterruptPending) return 1;
-			xbase = xsep * (newScx.scx_x - use->cu_xlo);
-			ybase = ysep * (newScx.scx_y - use->cu_ylo);
-			GEOTRANSTRANSLATE(xbase, ybase, &use->cu_transform, &t);
-			GEOINVERTTRANS(&t, &tinv);
-			GEOTRANSTRANS(&t, &scx->scx_trans, &newScx.scx_trans);
-			GEOTRANSRECT(&tinv, &scx->scx_area, &newScx.scx_area);
-			clientResult = (*func)(&newScx, filter.tf_arg);
-			if (clientResult == 2) goto skipArray;
-			else if (clientResult == 1) return 1;
-		    }
-	    }
-	    skipArray: continue;
-	}
-
-	tpnew = TR(tp);
-	if (LEFT(tpnew) < rect->r_xtop)
-	{
-	    while (BOTTOM(tpnew) >= rect->r_ytop) tpnew = LB(tpnew);
-	    if (BOTTOM(tpnew) >= BOTTOM(tp) || BOTTOM(tp) <= rect->r_ybot)
-	    {
-		tp = tpnew;
-		goto enumerate;
-	    }
-	}
-
-	/* Each iteration returns one tile further to the left */
-	while (LEFT(tp) > rect->r_xbot)
-	{
-	    if (BOTTOM(tp) <= rect->r_ybot)
-		return (0);
-	    tpnew = LB(tp);
-	    tp = BL(tp);
-	    if (BOTTOM(tpnew) >= BOTTOM(tp) || BOTTOM(tp) <= rect->r_ybot)
-	    {
-		tp = tpnew;
-		goto enumerate;
-	    }
-	}
-
-	/* At left edge -- walk down to next tile along the left edge */
-	for (tp = LB(tp); RIGHT(tp) <= rect->r_xbot; tp = TR(tp))
-	    /* Nothing */;
-    }
-    return (0);
-}

@@ -856,8 +856,7 @@ void
 prFindCells(edge)
     Edge *edge;	/* Edge being moved */
 {
-    Plane *cellPlane = plowYankDef->cd_planes[PL_CELL];
-    Tile *cellTile = cellPlane->pl_hint;
+    BPlane *cellPlane = plowYankDef->cd_cellPlane;
     struct applyRule ar;
     Rect searchArea;
 
@@ -867,18 +866,7 @@ prFindCells(edge)
     searchArea.r_xtop = edge->e_newx + DRCTechHalo;
     ar.ar_moving = edge;
 
-    /*
-     * Don't bother doing anything if there is a single space tile
-     * beneath the plow.
-     */
-    if (TiGetBody(cellTile) == (ClientData) NULL
-	    && LEFT(cellTile) <= searchArea.r_xbot
-	    && BOTTOM(cellTile) <= searchArea.r_ybot
-	    && RIGHT(cellTile) >= searchArea.r_xtop
-	    && TOP(cellTile) >= searchArea.r_ytop)
-	return;
-
-    (void) TiSrArea(cellTile, cellPlane, &searchArea, plowFoundCell,
+    (void) DBSrCellPlaneArea(cellPlane, &searchArea, plowFoundCell,
 		(ClientData) &ar);
 }
 
@@ -947,7 +935,7 @@ prCell(edge)
     cellArea.r_xtop = edge->e_newx + DRCTechHalo;
     cellArea.r_ybot = edge->e_ybot - DRCTechHalo;
     cellArea.r_ytop = edge->e_ytop + DRCTechHalo;
-    (void) TiSrArea((Tile *) NULL, plowYankDef->cd_planes[edge->e_pNum],
+    (void) DBSrCellPlaneArea(plowYankDef->cd_cellPlane,
 		&cellArea, plowFoundCell,
 		(ClientData) &ar);
 }
@@ -1068,52 +1056,47 @@ plowCellPushPaint(impactedEdge, ar)
  */
 
 int
-plowFoundCell(cellTile, ar)
-    Tile *cellTile;
+plowFoundCell(use, ar)
+    CellUse *use;
     struct applyRule *ar;
 {
     Edge *movingEdge = ar->ar_moving;
-    CellTileBody *ctb;
     int xmove, xsep;
-    CellUse *use;
     Edge edge;
 
-    edge.e_pNum = PL_CELL;
-    for (ctb = (CellTileBody *) TiGetBody(cellTile); ctb; ctb = ctb->ctb_next)
-    {
-	use = ctb->ctb_use;
-	if (use->cu_bbox.r_xbot <= movingEdge->e_x)
-	{
-	    /*
-	     * If dragging the cell, move it by as much as this edge.
-	     */
-	    xmove = movingEdge->e_newx - movingEdge->e_x;
-	}
-	else
-	{
-	    /*
-	     * If pushing the cell, keep it DRCTechHalo in front of the edge
-	     * unless it was already closer.
-	     */
-	    xsep = use->cu_bbox.r_xbot - movingEdge->e_x;
-	    if (xsep > DRCTechHalo) xsep = DRCTechHalo;
-	    xmove = movingEdge->e_newx + xsep - use->cu_bbox.r_xbot;
-	}
+    edge.e_pNum = PL_ROUTER;
 
-	/* Only queue the edge if the cell has not moved far enough */
-	if ((use->cu_client != (ClientData)CLIENTDEFAULT) &&
+    if (use->cu_bbox.r_xbot <= movingEdge->e_x)
+    {
+	/*
+	 * If dragging the cell, move it by as much as this edge.
+	 */
+	xmove = movingEdge->e_newx - movingEdge->e_x;
+    }
+    else
+    {
+	/*
+	 * If pushing the cell, keep it DRCTechHalo in front of the edge
+	 * unless it was already closer.
+	 */
+	xsep = use->cu_bbox.r_xbot - movingEdge->e_x;
+	if (xsep > DRCTechHalo) xsep = DRCTechHalo;
+	xmove = movingEdge->e_newx + xsep - use->cu_bbox.r_xbot;
+    }
+
+    /* Only queue the edge if the cell has not moved far enough */
+    if ((use->cu_client != (ClientData)CLIENTDEFAULT) &&
 		((int)(use->cu_client) < xmove))
-	{
-	    edge.e_use = use;
-	    edge.e_flags = 0;
-	    edge.e_ytop = use->cu_bbox.r_ytop;
-	    edge.e_ybot = use->cu_bbox.r_ybot;
-	    edge.e_x = use->cu_bbox.r_xtop;
-	    edge.e_newx = use->cu_bbox.r_xtop + xmove;
-	    edge.e_ltype = PLOWTYPE_CELL;
-	    edge.e_rtype = PLOWTYPE_CELL;
-	    (void) (*plowPropagateProcPtr)(&edge);
-	}
+    {
+	edge.e_use = use;
+	edge.e_flags = 0;
+	edge.e_ytop = use->cu_bbox.r_ytop;
+	edge.e_ybot = use->cu_bbox.r_ybot;
+	edge.e_x = use->cu_bbox.r_xtop;
+	edge.e_newx = use->cu_bbox.r_xtop + xmove;
+	edge.e_ltype = PLOWTYPE_CELL;
+	edge.e_rtype = PLOWTYPE_CELL;
+	(void) (*plowPropagateProcPtr)(&edge);
     }
 
     return (0);

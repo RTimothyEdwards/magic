@@ -33,6 +33,10 @@
 #include "utils/hash.h"
 #endif	/* _HASH_H */
 
+#ifndef _BPLANE_H
+#include "bplane/bplane.h"
+#endif /* _BPLANE_H */
+
 /* ----------------------- Tunable constants -------------------------- */
 
 #define	MAXPLANES	64	/* Maximum number of planes per cell */
@@ -185,7 +189,7 @@ typedef unsigned char PaintResultType;
 
 
 #define	PL_MAXTYPES	MAXPLANES	/* Maximum number of planes per cell */
-#define	PL_CELL		0		/* Cell plane */
+#define	PL_ROUTER	0		/* Used by the router and plow modules */
 #define PL_DRC_CHECK	1		/* DRC plane for CHECK tiles */
 #define PL_DRC_ERROR	2		/* DRC plane for ERROR tiles */
 #define PL_M_HINT	3		/* magnet hints for irouter */
@@ -325,6 +329,7 @@ typedef struct celldef
 #endif
     char		*cd_name;	/* Name of cell */
     struct celluse	*cd_parents;	/* NULL-terminated list of all uses */
+    BPlane		*cd_cellPlane;	/* Instance locations */
     Plane		*cd_planes[MAXPLANES];	/* Tiles */
     ClientData		 cd_client;	/* This space for rent */
     int			 cd_timestamp;	/* Unique integer identifying last
@@ -461,6 +466,17 @@ typedef struct
 
 typedef struct celluse
 {
+    /* Binning plane element struct header---must go first! */
+    void		*cu_bpLinks[BP_NUM_LINKS];	/* link fields */
+    Rect		 cu_bbox;	/* Bounding box of this use, with
+					 * arraying taken into account, in
+					 * coordinates of the parent def.
+					 */
+    /* End of BPlane header */
+
+    Rect		 cu_extended;	/* Bounding box of this use, including
+					 * the area of rendered text labels.
+					 */
     unsigned int	 cu_expandMask;	/* Mask of windows in which this use
 					 * is expanded.
 					 */
@@ -473,13 +489,6 @@ typedef struct celluse
 					 * or NULL for end of list.
 					 */
     CellDef		*cu_parent;	/* Cell def containing this use */
-    Rect		 cu_bbox;	/* Bounding box of this use, with
-					 * arraying taken into account, in
-					 * coordinates of the parent def.
-					 */
-    Rect		 cu_extended;	/* Bounding box of this use, including
-					 * the area of rendered text labels.
-					 */
     ClientData		 cu_client;	/* This space for rent */
 } CellUse;
 
@@ -520,20 +529,6 @@ typedef struct celluse
 #define CU_DESCEND_NO_VENDOR	0x0006	/* Descend no vendor-GDS subcells */
 #define CU_DESCEND_NO_LOCK	0x0007	/* Descend unlocked subcells only */
 #define CU_DESCEND_NONE		0x0009	/* Descend no subcells */
-
-/*
- * All subcells used by a cell are part of another tile plane,
- * called the `cell plane'.  To handle overlap, each tile in
- * this plane points to a list of cell uses that appear in the
- * area covered by the tile.  Where there is overlap, this list
- * will contain more than one tile.
- */
-
-typedef struct celltilebody
-{
-    CellUse		*ctb_use;	/* Cell used */
-    struct celltilebody	*ctb_next;	/* Next tile body on list */
-} CellTileBody;
 
 /*
  * Declare tile type structure for non-manhattan geometry

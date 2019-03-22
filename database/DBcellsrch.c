@@ -51,7 +51,53 @@ struct seeTypesArg
     TileTypeBitMask *saa_mask;	/* Mask of tile types seen in search */
     Rect *saa_rect;		/* Search area in root coordinates */
 };
-
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * DBSrCellPlaneArea --
+ *
+ * Searches a CellDef's cell plane and calls function func() for each
+ * cell use found.
+ *
+ * func() must be in the form:
+ *
+ *	int func(CellUse *use, ClientData cdata)
+ *
+ * and must return 0 to keep the search running, or 1 to end the search.
+ *
+ * Replaces the original TiSrArea() routine, but with the function's
+ * first argument as a CellUse pointer rather than a Tile pointer,
+ * since the tile plane has been replaced with the BPlane method.
+ *
+ * Returns 1 if the func() returns 1;  otherwise returns 0 to keep the
+ * search alive.
+ *
+ *-----------------------------------------------------------------------------
+ */
+
+int
+DBSrCellPlaneArea(BPlane *plane, Rect *rect, int (*func)(), ClientData arg)
+{
+    BPEnum bpe;
+    CellUse *use;
+    int rval = 0;
+
+    BPEnumInit(&bpe, plane, rect, BPE_OVERLAP, "DBSrCellPlaneArea");
+
+    while (use = BPEnumNext(&bpe))
+    {
+	if ((*func)(use, arg))
+	{
+	    rval = 1;
+	    break;
+	}
+    }
+
+    BPEnumTerm(&bpe);
+    return rval;
+}
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -81,7 +127,7 @@ struct seeTypesArg
  *
  * The client procedure should not modify any of the paint planes in
  * the cells visited by DBTreeSrTiles, because we use DBSrPaintArea
- * instead of TiSrArea as our paint-tile enumeration function.
+ * as our paint-tile enumeration function.
  *
  * Results:
  *	0 is returned if the search finished normally.  1 is returned
@@ -112,7 +158,7 @@ DBTreeSrTiles(scx, mask, xMask, func, cdarg)
     int (*func)();		/* Function to apply at each qualifying tile */
     ClientData cdarg;		/* Client data for above function */
 {
-    int dbCellTileSrFunc();
+    int dbCellPlaneSrFunc();
     TreeFilter filter;
 
     /* Set up the filter and call the recursive filter function */
@@ -124,7 +170,7 @@ DBTreeSrTiles(scx, mask, xMask, func, cdarg)
     filter.tf_dinfo = 0;
     filter.tf_planes = DBTechTypesToPlanes(mask);
 
-    return dbCellTileSrFunc(scx, &filter);
+    return dbCellPlaneSrFunc(scx, &filter);
 }
 
 /*
@@ -154,7 +200,7 @@ DBTreeSrNMTiles(scx, dinfo, mask, xMask, func, cdarg)
     int (*func)();		/* Function to apply at each qualifying tile */
     ClientData cdarg;		/* Client data for above function */
 {
-    int dbCellTileSrFunc();
+    int dbCellPlaneSrFunc();
     TreeFilter filter;
 
     /* Set up the filter and call the recursive filter function */
@@ -166,17 +212,17 @@ DBTreeSrNMTiles(scx, dinfo, mask, xMask, func, cdarg)
     filter.tf_dinfo = dinfo;
     filter.tf_planes = DBTechTypesToPlanes(mask);
 
-    return dbCellTileSrFunc(scx, &filter);
+    return dbCellPlaneSrFunc(scx, &filter);
 }
 
 /*
- * dbCellTileSrFunc --
+ * dbCellPlaneSrFunc --
  *
  * Recursive filter procedure applied to the cell by DBTreeSrTiles().
  */
 
 int
-dbCellTileSrFunc(scx, fp)
+dbCellPlaneSrFunc(scx, fp)
     SearchContext *scx;
     TreeFilter *fp;
 {
@@ -184,7 +230,7 @@ dbCellTileSrFunc(scx, fp)
     CellDef *def = scx->scx_use->cu_def;
     int pNum;
 
-    ASSERT(def != (CellDef *) NULL, "dbCellTileSrFunc");
+    ASSERT(def != (CellDef *) NULL, "dbCellPlaneSrFunc");
     if (!DBDescendSubcell(scx->scx_use, fp->tf_xmask))
 	return 0;
     if ((def->cd_flags & CDAVAILABLE) == 0)
@@ -219,10 +265,10 @@ dbCellTileSrFunc(scx, fp)
 
     /*
      * Now apply ourselves recursively to each of the CellUses
-     * in our tile plane.
+     * in our cell plane.
      */
 
-    if (DBCellSrArea(scx, dbCellTileSrFunc, (ClientData) fp))
+    if (DBCellSrArea(scx, dbCellPlaneSrFunc, (ClientData) fp))
 	return 1;
     else return 0;
 }
@@ -270,7 +316,7 @@ DBTreeSrUniqueTiles(scx, mask, xMask, func, cdarg)
     int (*func)();		/* Function to apply at each qualifying tile */
     ClientData cdarg;		/* Client data for above function */
 {
-    int dbCellTileSrFunc();
+    int dbCellPlaneSrFunc();
     TreeFilter filter;
 
     /* Set up the filter and call the recursive filter function */
@@ -288,7 +334,7 @@ DBTreeSrUniqueTiles(scx, mask, xMask, func, cdarg)
  * dbCellUniqueTileSrFunc --
  *
  * Recursive filter procedure applied to the cell by DBTreeSrUniqueTiles().
- * This is similar to dbCellTileSrFunc, except that for each plane searched,
+ * This is similar to dbCellPlaneSrFunc, except that for each plane searched,
  * only the tile types having that plane as their home plane will be passed
  * to the filter function.  Contacts will therefore be processed only once.
  */
@@ -348,8 +394,6 @@ dbCellUniqueTileSrFunc(scx, fp)
  *
  * DBNoTreeSrTiles --
  *
- * (*** Move to database module after tested) 
- * 
  * NOTE: THIS PROCEDURE IS EXACTLY LIKE DBTreeSrTiles EXCEPT THAT IT DOES
  * NOT SEARCH SUBCELLS.
  *
@@ -377,7 +421,7 @@ dbCellUniqueTileSrFunc(scx, fp)
  *
  * The client procedure should not modify any of the paint planes in
  * the cells visited by DBTreeSrTiles, because we use DBSrPaintArea
- * instead of TiSrArea as our paint-tile enumeration function.
+ * as our paint-tile enumeration function.
  *
  * Results:
  *	0 is returned if the search finished normally.  1 is returned
@@ -1030,7 +1074,6 @@ DBCellSrArea(scx, func, cdarg)
 {
     TreeFilter filter;
     TreeContext context;
-    Rect expanded;
     int dbCellSrFunc();
 
     filter.tf_func = func;
@@ -1042,22 +1085,10 @@ DBCellSrArea(scx, func, cdarg)
 	if (!DBCellRead(scx->scx_use->cu_def, (char *) NULL, TRUE, NULL))
 	    return 0;
     
-    /* In order to make this work with zero-size areas, we first expand
-     * the area by before searching the tile plane.  DbCellSrFunc will
-     * check carefully to throw out things that don't overlap the original
-     * area.  The expansion is tricky because we mustn't expand infinities.
-     */
-
-    expanded = scx->scx_area;
-    if (expanded.r_xbot > TiPlaneRect.r_xbot) expanded.r_xbot -= 1;
-    if (expanded.r_ybot > TiPlaneRect.r_ybot) expanded.r_ybot -= 1;
-    if (expanded.r_xtop < TiPlaneRect.r_xtop) expanded.r_xtop += 1;
-    if (expanded.r_ytop < TiPlaneRect.r_ytop) expanded.r_ytop += 1;
-
-    if (TiSrArea((Tile *) NULL, scx->scx_use->cu_def->cd_planes[PL_CELL],
-		&expanded, dbCellSrFunc, (ClientData) &context))
+    if (DBSrCellPlaneArea(scx->scx_use->cu_def->cd_cellPlane,
+		&scx->scx_area, dbCellSrFunc, (ClientData) &context))
 	return 1;
-    else return 0;
+    return 0;
 }
 
 /*
@@ -1066,17 +1097,7 @@ DBCellSrArea(scx, func, cdarg)
  * dbCellSrFunc --
  *
  * Filter procedure for DBCellSrArea.  Applies the procedure given
- * to DBCellSrArea to any of the CellUses in the tile that are
- * enumerable.
- *
- * Since subcells are allowed to overlap, a single tile body may
- * refer to many subcells and a single subcell may be referred to
- * by many tile bodies.  To insure that each CellUse is enumerated
- * exactly once, the procedure given to DBCellSrArea is only applied
- * to a CellUse when its lower right corner is contained in the
- * tile to dbCellSrFunc (or otherwise at the last tile encountered
- * in the event the lower right corner of the CellUse is outside the
- * search rectangle).
+ * to DBCellSrArea to any of the CellUses in the given area.
  *
  * Results:
  *	0 is normally returned, and 1 is returned if an abort occurred.
@@ -1089,88 +1110,56 @@ DBCellSrArea(scx, func, cdarg)
  */
 
 int
-dbCellSrFunc(tile, cxp)
-    Tile *tile;
+dbCellSrFunc(use, cxp)
+    CellUse *use;
     TreeContext *cxp;
 {
     TreeFilter *fp = cxp->tc_filter;
     SearchContext *scx = cxp->tc_scx;
-    CellUse *use;
     Rect *bbox;
-    CellTileBody *body;
     SearchContext newScx;
     Transform t, tinv;
-    Rect tileArea;
-    int srchBot, srchRight;
     int xlo, xhi, ylo, yhi, xbase, ybase, xsep, ysep, clientResult;
 
-    srchBot = scx->scx_area.r_ybot;
-    srchRight = scx->scx_area.r_xtop;
-    TITORECT(tile, &tileArea);
+    bbox = &use->cu_bbox;
+    newScx.scx_use = use;
 
-    /* Make sure that this tile really does overlap the search area
-     * (it could be just touching because of the expand-by-one in
-     * DBCellSrArea).
-     */
-    
-    if (!GEO_OVERLAP(&tileArea, &scx->scx_area)) return 0;
-
-    for (body = (CellTileBody *) TiGetBody(tile);
-	    body != NULL;
-	    body = body->ctb_next)
+    /* If not an array element, life is much simpler */
+    if (use->cu_xlo == use->cu_xhi && use->cu_ylo == use->cu_yhi)
     {
-	use = newScx.scx_use = body->ctb_use;
-	ASSERT(use != (CellUse *) NULL, "dbCellSrFunc");
-
-	/* The check below is to ensure that we only enumerate each
-	 * cell once, even though it appears in many different tiles
-	 * in the subcell plane.
-	 */
-
-	bbox = &use->cu_bbox;
-	if (   (tileArea.r_ybot <= bbox->r_ybot ||
-		(tileArea.r_ybot <= srchBot && bbox->r_ybot < srchBot))
-	    && (tileArea.r_xtop >= bbox->r_xtop ||
-		(tileArea.r_xtop >= srchRight && bbox->r_xtop >= srchRight)))
-	{
-	    /* If not an array element, life is much simpler */
-	    if (use->cu_xlo == use->cu_xhi && use->cu_ylo == use->cu_yhi)
-	    {
-		newScx.scx_x = use->cu_xlo, newScx.scx_y = use->cu_yhi;
-		if (SigInterruptPending) return 1;
-		GEOINVERTTRANS(&use->cu_transform, &tinv);
-		GeoTransTrans(&use->cu_transform, &scx->scx_trans,
+	newScx.scx_x = use->cu_xlo, newScx.scx_y = use->cu_yhi;
+	if (SigInterruptPending) return 1;
+	GEOINVERTTRANS(&use->cu_transform, &tinv);
+	GeoTransTrans(&use->cu_transform, &scx->scx_trans,
 				&newScx.scx_trans);
-		GEOTRANSRECT(&tinv, &scx->scx_area, &newScx.scx_area);
-		if ((*fp->tf_func)(&newScx, fp->tf_arg) == 1)
-		    return 1;
-		continue;
-	    }
-
-	    /*
-	     * More than a single array element;
-	     * check to see which ones overlap our search area.
-	     */
-	    DBArrayOverlap(use, &scx->scx_area, &xlo, &xhi, &ylo, &yhi);
-	    xsep = (use->cu_xlo > use->cu_xhi) ? -use->cu_xsep : use->cu_xsep;
-	    ysep = (use->cu_ylo > use->cu_yhi) ? -use->cu_ysep : use->cu_ysep;
-	    for (newScx.scx_y = ylo; newScx.scx_y <= yhi; newScx.scx_y++)
-		for (newScx.scx_x = xlo; newScx.scx_x <= xhi; newScx.scx_x++)
-		{
-		    if (SigInterruptPending) return 1;
-		    xbase = xsep * (newScx.scx_x - use->cu_xlo);
-		    ybase = ysep * (newScx.scx_y - use->cu_ylo);
-		    GeoTransTranslate(xbase, ybase, &use->cu_transform, &t);
-		    GEOINVERTTRANS(&t, &tinv);
-		    GeoTransTrans(&t, &scx->scx_trans, &newScx.scx_trans);
-		    GEOTRANSRECT(&tinv, &scx->scx_area, &newScx.scx_area);
-		    clientResult = (*fp->tf_func)(&newScx, fp->tf_arg);
-		    if (clientResult == 2) goto skipArray;
-		    else if (clientResult == 1) return 1;
-		}
-	}
-	skipArray: continue;
+	GEOTRANSRECT(&tinv, &scx->scx_area, &newScx.scx_area);
+	if ((*fp->tf_func)(&newScx, fp->tf_arg) == 1)
+	    return 1;
+	return 0;
     }
+
+    /*
+     * More than a single array element;
+     * check to see which ones overlap our search area.
+     */
+    DBArrayOverlap(use, &scx->scx_area, &xlo, &xhi, &ylo, &yhi);
+    xsep = (use->cu_xlo > use->cu_xhi) ? -use->cu_xsep : use->cu_xsep;
+    ysep = (use->cu_ylo > use->cu_yhi) ? -use->cu_ysep : use->cu_ysep;
+    for (newScx.scx_y = ylo; newScx.scx_y <= yhi; newScx.scx_y++)
+        for (newScx.scx_x = xlo; newScx.scx_x <= xhi; newScx.scx_x++)
+	{
+	    if (SigInterruptPending) return 1;
+	    xbase = xsep * (newScx.scx_x - use->cu_xlo);
+	    ybase = ysep * (newScx.scx_y - use->cu_ylo);
+	    GeoTransTranslate(xbase, ybase, &use->cu_transform, &t);
+	    GEOINVERTTRANS(&t, &tinv);
+	    GeoTransTrans(&t, &scx->scx_trans, &newScx.scx_trans);
+	    GEOTRANSRECT(&tinv, &scx->scx_area, &newScx.scx_area);
+	    clientResult = (*fp->tf_func)(&newScx, fp->tf_arg);
+	    if (clientResult == 2) return 0;
+	    else if (clientResult == 1) return 1;
+	}
+
     return 0;
 }
 
@@ -1179,9 +1168,10 @@ dbCellSrFunc(tile, cxp)
  *
  * DBCellEnum --
  *
- * Apply the supplied procedure once to each CellUse in the subcell tile
+ * Apply the supplied procedure once to each CellUse in the subcell
  * plane of the supplied CellDef.  This procedure is not a geometric
- * search, but rather a hierarchical enumeration.
+ * search, but rather a hierarchical enumeration.  Use DBSrCellPlaneArea()
+ * for geometric searches over an area.
  *
  * The procedure should be of the following form:
  *	int
@@ -1216,7 +1206,7 @@ DBCellEnum(cellDef, func, cdarg)
     filter.tf_arg = cdarg;
     if ((cellDef->cd_flags & CDAVAILABLE) == 0)
 	if (!DBCellRead(cellDef, (char *) NULL, TRUE, NULL)) return 0;
-    if (TiSrArea((Tile *) NULL, cellDef->cd_planes[PL_CELL],
+    if (DBSrCellPlaneArea(cellDef->cd_cellPlane,
 		&TiPlaneRect, dbEnumFunc, (ClientData) &filter))
 	return 1;
     else return 0;
@@ -1228,11 +1218,7 @@ DBCellEnum(cellDef, func, cdarg)
  * dbEnumFunc --
  *
  * Filter procedure for DBCellEnum.  Applies the procedure given
- * to DBCellEnum to any of the CellUses in the tile that are
- * enumerable.
- *
- * The scheme used for handling overlapping subcells is the same
- * as used in DBCellSrArea above.
+ * to DBCellEnum to the visited CellUse.
  *
  * Results:
  *	0 normally, 1 if abort occurred.
@@ -1245,28 +1231,17 @@ DBCellEnum(cellDef, func, cdarg)
  */
 
 int
-dbEnumFunc(tile, fp)
-    Tile *tile;
+dbEnumFunc(use, fp)
+    CellUse *use;
     TreeFilter *fp;
 {
-    CellUse *use;
-    CellTileBody *body;
     Rect *bbox;
 
-    for (body = (CellTileBody *) TiGetBody(tile);
-	    body != NULL;
-	    body = body->ctb_next)
-    {
-	use = body->ctb_use;
-	ASSERT(use != (CellUse *) NULL, "dbCellSrFunc");
-
-	bbox = &use->cu_bbox;
-	if ((BOTTOM(tile) <= bbox->r_ybot) && (RIGHT(tile) >= bbox->r_xtop))
-	    if ((*fp->tf_func)(use, fp->tf_arg)) return 1;
-    }
+    bbox = &use->cu_bbox;
+    if ((*fp->tf_func)(use, fp->tf_arg)) return 1;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1594,10 +1569,10 @@ dbTileScaleFunc(tile, scvals)
  * DBSrCellUses --
  *
  *   Do function "func" for each cell use in cellDef, passing "arg" as
- *   client data.  Unlike DBEnumCell, this routine first collects a linked
- *   list of cell uses, then performs the function on the list, so that
- *   the search cannot be corrupted by, removing or reallocating the use
- *   structure from the cell def.  Function "func" takes 2 arguments:
+ *   client data.  This routine first collects a linked list of cell uses,
+ *   then performs the function on the list, so that the search cannot be
+ *   corrupted by (specifically) removing the use structure from the cell
+ *   def's bplane.  Function "func" takes 2 arguments:
  *
  *	int func(Celluse *use, ClientData arg) {}
  *
@@ -1671,7 +1646,7 @@ dbScaleCell(cellDef, scalen, scaled)
 			 */
     int scalen, scaled; /* scale numerator and denominator. */
 {
-    int dbCellTileEnumFunc(), dbCellUseEnumFunc();
+    int dbCellScaleFunc(), dbCellUseEnumFunc();
     Label *lab;
     int pNum;
     LinkedTile *lhead, *lt;
@@ -1731,31 +1706,13 @@ dbScaleCell(cellDef, scalen, scaled)
 	lu = lu->cu_next;
     }
 
-    /* Scale the position of all subcell uses.  Count all of the tiles in the	*/
+    /* Scale the position of all subcell uses.  Count all of the cells in the	*/
     /* subcell plane, and scale those without reference to the actual cells (so	*/
     /* we don't count the cells multiple times).				*/
 
     lhead = NULL;
-    (void) TiSrArea((Tile *)NULL, cellDef->cd_planes[PL_CELL], &TiPlaneRect,
-		dbCellTileEnumFunc, (ClientData) &lhead);
-
-    /* Scale each of the tiles in the linked list by (n / d)	*/
-    /* Don't scale (M)INFINITY on boundary tiles!		*/
-
-    lt = lhead;
-    while (lt != NULL)
-    {
-	DBScalePoint(&lt->tile->ti_ll, scalen, scaled);
-	lt = lt->t_next;
-    }
-
-    /* Free this linked tile structure */
-    lt = lhead;
-    while (lt != NULL)
-    {
-	freeMagic((char *)lt);
-	lt = lt->t_next;
-    }
+    (void) DBSrCellPlaneArea(cellDef->cd_cellPlane, &TiPlaneRect,
+		dbCellUseEnumFunc, (ClientData) &lhead);
 
     /* Scale all of the paint tiles in this cell by creating a new plane */
     /* and copying all tiles into the new plane at scaled dimensions.	 */
@@ -1810,33 +1767,33 @@ donecell:
     DBScalePoint(&cellDef->cd_extended.r_ll, scalen, scaled);
     DBScalePoint(&cellDef->cd_extended.r_ur, scalen, scaled);
 
-    return 0;
-}
+    /* If the cell is an abstract view with a fixed bounding box, then	*/
+    /* adjust the bounding box property to match the new scale.		*/
 
-/*
- * ----------------------------------------------------------------------------
- *
- * dbCellTileEnumFunc --
- *
- *   Enumeration procedure called on each tile encountered in the search of
- *   the cell plane.  Adds the tile to a linked list of tiles.
- *
- * ----------------------------------------------------------------------------
- */
+    if ((cellDef->cd_flags & CDFIXEDBBOX) != 0)
+    {
+	Rect r;
+	bool found;
+	char *propval;
 
-int
-dbCellTileEnumFunc(tile, arg)
-    Tile *tile;
-    LinkedTile **arg;
-{
-    LinkedTile *lt;
+	propval = (char *)DBPropGet(cellDef, "FIXED_BBOX", &found);
+	if (found)
+	{
+	    if (sscanf(propval, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
+			&r.r_xtop, &r.r_ytop) == 4)
+	    {
+		DBScalePoint(&r.r_ll, scalen, scaled);
+		DBScalePoint(&r.r_ur, scalen, scaled);
 
-    lt = (LinkedTile *) mallocMagic(sizeof(LinkedTile));
+		propval = (char *)mallocMagic(40);
+		sprintf(propval, "%d %d %d %d", r.r_xbot, r.r_ybot,
+			r.r_xtop, r.r_ytop);
+		DBPropPut(cellDef, "FIXED_BBOX", propval);
+	    }
+	}
+    
+    }
 
-    lt->tile = tile;
-    lt->t_next = (*arg);
-    (*arg) = lt;
- 
     return 0;
 }
 

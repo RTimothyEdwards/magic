@@ -1635,7 +1635,8 @@ CmdFindNetProc(nodename, use, rect, warn_not_found)
 	/* Find the tile type of the tile at the specified point which	*/
 	/* exists on the plane pnum.					*/
 
-	(void) TiSrArea(NULL, plane, &localrect, findTile, (ClientData) &ttype);
+	DBSrPaintArea(NULL, plane, &localrect, &DBAllTypeBits, findTile,
+			(ClientData) &ttype);
     }
     else
     {

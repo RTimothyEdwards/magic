@@ -228,14 +228,14 @@ rtrSideProcess(use, side, area, trans)
     {
 	/* EAST (easy case since we don't have to transform) */
 	case GEO_EAST:
-	    rtrSideTransPlane = use->cu_def->cd_planes[PL_CELL];
+	    rtrSideTransPlane = use->cu_def->cd_planes[PL_ROUTER];
 	    break;
 
 	/* Other cases use the transformed plane */
 	case GEO_SOUTH:
 	case GEO_NORTH:
 	case GEO_WEST:
-	    rtrSideTransPlane = rtrSideTransDef->cd_planes[PL_CELL];
+	    rtrSideTransPlane = rtrSideTransDef->cd_planes[PL_ROUTER];
 	    scx.scx_area = *area;
 	    scx.scx_use = use;
 	    scx.scx_trans = *trans;
@@ -245,19 +245,19 @@ rtrSideProcess(use, side, area, trans)
     }
 
     /* Initialize all client fields to NULL in the cell tile plane */
-    (void) TiSrArea((Tile *) NULL, rtrSideTransPlane, &rtrSideArea,
-	rtrSideInitClient, (ClientData) INFINITY);
+    (void) DBSrPaintArea((Tile *) NULL, rtrSideTransPlane, &rtrSideArea,
+		&DBAllTypeBits, rtrSideInitClient, (ClientData) INFINITY);
 
     /* Process all Sides for this direction */
-    retval = TiSrArea((Tile *) NULL, rtrSideTransPlane, &rtrSideArea,
-		    rtrEnumSidesFunc, (ClientData) NULL);
+    retval = DBSrPaintArea((Tile *) NULL, rtrSideTransPlane, &rtrSideArea,
+		    &DBAllTypeBits, rtrEnumSidesFunc, (ClientData) NULL);
 
     /* Clean up; be absolutely sure to reset client info */
     if (side == GEO_EAST)
     {
 	SigDisableInterrupts();
-	(void) TiSrArea((Tile *) NULL, rtrSideTransPlane, area,
-	    rtrSideInitClient, (ClientData) CLIENTDEFAULT);
+	(void) DBSrPaintArea((Tile *) NULL, rtrSideTransPlane, area,
+	    	&DBAllTypeBits, rtrSideInitClient, (ClientData) CLIENTDEFAULT);
 	SigEnableInterrupts();
     }
 

@@ -1,0 +1,38 @@
+TODO
+----
+
+NOTE:  nested enums are broken do to dynamic binning.
+
+Don't rebuild entire bplane when bbox grows.
+unsubbing sometimes.
+
+
+Some (remaining) bplane design issues:
+
+groups?
+	idea: support small number of groups by having
+	separate bplane for each group.  Do selection this
+	way.  Logically layered on top of bplanes - but may	
+	want to integrate.  
+	DECISION:  defer for now.
+
+pack/unpack?
+	Seems incompatible with user alloc/dealloc.
+	Complicated.
+	DECISION:  Forget it.
+
+coarse/fine with cache.
+	can be added later.  should fit in nicely.
+	no special support needed.
+
+integrated find/add?
+	can add later.  
+	don't worry about it now.
+	
+May want to add attributes, via external hash.
+
+
+
+
+
+

@@ -4,7 +4,7 @@
 
 MODULE    = tiles
 MAGICDIR  = ..
-SRCS      = tile.c search.c search2.c 
+SRCS      = tile.c search.c
 
 include ${MAGICDIR}/defs.mak
 include ${MAGICDIR}/rules.mak

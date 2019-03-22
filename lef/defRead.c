@@ -577,7 +577,7 @@ DefReadLocation(use, f, oscale, tptr)
     float oscale;
     Transform *tptr;
 {
-    Rect *r, tr;
+    Rect *r, tr, rect;
     int keyword;
     char *token;
     float x, y;
@@ -611,7 +611,25 @@ DefReadLocation(use, f, oscale, tptr)
     /* restore the lower-left corner position.			*/
 
     if (use)
+    {
 	r = &use->cu_def->cd_bbox;
+
+	/* Abstract views with fixed bounding boxes use the FIXED_BBOX property */
+
+	if (use->cu_def->cd_flags & CDFIXEDBBOX)
+	{
+	    char *propval;
+	    bool found;
+
+	    propval = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+	    if (found)
+	    {
+		if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,
+			    &rect.r_xtop, &rect.r_ytop) == 4)
+		    r = &rect;
+	    }
+	}
+    }
     else
 	r = &GeoNullRect;
 
@@ -805,9 +823,9 @@ DefReadPins(f, rootDef, sname, oscale, total)
 			    currect = LefReadRect(f, curlayer, oscale);
 			    if (pending)
 			    {
-				flags = PORT_DIR_MASK;
 				/* If layer was unknown, set to space and force	*/
 				/* non-sticky.					*/
+				flags = PORT_DIR_MASK;
 				if (curlayer < 0)
 				    curlayer = TT_SPACE;
 				else
@@ -828,9 +846,9 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				pending = TRUE;
 			    else
 			    {
-				flags = PORT_DIR_MASK;
 				/* If layer was unknown, set to space and force	*/
 				/* non-sticky.					*/
+				flags = PORT_DIR_MASK;
 				if (curlayer < 0)
 				    curlayer = TT_SPACE;
 				else

@@ -393,8 +393,8 @@ DBTechTypesToPlanes(mask)
     TileType t;
     PlaneMask planeMask, noCellMask, retMask;
 
-    /* Space tiles are present in all planes but the cell plane */
-    noCellMask = ~(PlaneNumToMaskBit(PL_CELL));
+    /* Space tiles are present in all planes but the router plane */
+    noCellMask = ~(PlaneNumToMaskBit(PL_ROUTER));
     if (TTMaskHasType(mask, TT_SPACE)) {
 	retMask = PlaneNumToMaskBit(DBNumPlanes) - 1;
 	retMask &= noCellMask;

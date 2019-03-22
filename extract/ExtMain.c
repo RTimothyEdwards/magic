@@ -475,7 +475,7 @@ extContainsGeometry(def, allButUse, area)
     bool extContainsCellFunc();
     int pNum;
 
-    if (TiSrArea((Tile *) NULL, def->cd_planes[PL_CELL], area,
+    if (DBSrCellPlaneArea(def->cd_cellPlane, area,
 			extContainsCellFunc, (ClientData) allButUse))
 	return (TRUE);
 
@@ -489,17 +489,11 @@ extContainsGeometry(def, allButUse, area)
 }
 
 bool
-extContainsCellFunc(tile, allButUse)
-    Tile *tile;
+extContainsCellFunc(use, allButUse)
+    CellUse *use;
     CellUse *allButUse;
 {
-    CellTileBody *ctb;
-
-    for (ctb = (CellTileBody *) TiGetBody(tile); ctb; ctb = ctb->ctb_next)
-	if (ctb->ctb_use != allButUse)
-	    return (TRUE);
-
-    return (FALSE);
+    return (use != allButUse) ? TRUE : FALSE;
 }
 
 int

@@ -334,9 +334,6 @@ enum_next:
  *
  *			NOTE:
  *
- * THIS IS THE PREFERRED WAY TO FIND ALL TILES IN A GIVEN AREA;
- * TiSrArea IS OBSOLETE FOR ALL BUT THE SUBCELL PLANE.
- *
  * Results:
  *	0 is returned if the search completed normally.  1 is returned
  *	if it aborted.
@@ -786,15 +783,10 @@ enumerate:
 /*
  * --------------------------------------------------------------------
  *
- * DBFreeCellPlane --
+ * DBClearCellPlane --
  *
- * Deallocate all tiles in the cell tile plane of a given CellDef.
- * Also deallocates the lists of CellTileBodies and their associated
- * CellUses, but not their associated CellDefs.
- * Don't free the cell tile plane itself or the four boundary tiles.
- *
- * Since cell tile planes contain less stuff than paint tile planes
- * usually, we don't have to be as performance-conscious here.
+ * Removes all CellUses from a def's cell plane.  Does not remove the
+ * cell plane itself.
  *
  * Results:
  *	None.
@@ -806,54 +798,40 @@ enumerate:
  */
 
 void
-DBFreeCellPlane(plane)
-    Plane *plane;	/* Plane whose storage is to be freed */
+DBClearCellPlane(def)
+    CellDef *def;
 {
-    int dbFreeCellFunc();
+    int dbDeleteCellUse();	/* Forward reference */
 
     /* Don't let this search be interrupted. */
-
     SigDisableInterrupts();
-    (void) TiSrArea((Tile *) NULL, plane, &TiPlaneRect,
-	    dbFreeCellFunc, (ClientData) NULL);
+
+    /* Remove everything from the BPlane */
+    /* Do not use BPDelete() inside a BPEnum loop.  Use DBSrCellUses */
+    /* to get a linked list of cell instances, then remove each one. */
+
+    DBSrCellUses(def, dbDeleteCellUse, (ClientData)NULL);
+
     SigEnableInterrupts();
 }
 
 /*
- * Filter function called via TiSrArea on behalf of DBFreeCellPlane()
- * above.  Deallocates each tile it is passed.  If the tile has a vanilla
- * body, only the tile is deallocated; otherwise, the tile body and its
- * label list are both deallocated along with the tile itself.
+ * --------------------------------------------------------------------
+ *
+ * dbDeleteCellUse ---
+ *
+ * Callback function from DBSrCellUses, calls BPDelete to remove a
+ * cell use from the cell plane
+ *
+ * --------------------------------------------------------------------
  */
 
-int
-dbFreeCellFunc(tile)
-    Tile *tile;
+int dbDeleteCellUse(CellUse *use, ClientData arg)
 {
-    CellTileBody *body;
-    CellUse *use;
-    Rect *bbox;
-
-    for (body = (CellTileBody *) TiGetBody(tile);
-	    body != NULL;
-	    body = body->ctb_next)
-    {
-	use = body->ctb_use;
-	ASSERT(use != (CellUse *) NULL, "dbCellSrFunc");
-
-	bbox = &use->cu_bbox;
-	if ((BOTTOM(tile) <= bbox->r_ybot) && (RIGHT(tile) >= bbox->r_xtop))
-	{
-	    /* The parent must be null before DBCellDeleteUse will work */
-	    use->cu_parent = (CellDef *) NULL;
-	    DBCellDeleteUse(use);
-	}
-	freeMagic((char *)body);
-    }
-
-    TiFree(tile);
+    dbInstanceUnplace(use);
     return 0;
 }
+
 
 /*
  * --------------------------------------------------------------------

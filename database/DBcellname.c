@@ -1318,7 +1318,8 @@ DBCellDefAlloc()
     TTMaskZero(&cellDef->cd_types);
     HashInit(&cellDef->cd_idHash, 16, HT_STRINGKEYS);
 
-    cellDef->cd_planes[PL_CELL] = DBNewPlane((ClientData) NULL);
+    cellDef->cd_cellPlane = BPNew();
+    cellDef->cd_planes[PL_ROUTER] = DBNewPlane((ClientData) NULL);
     for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
 	cellDef->cd_planes[pNum] = DBNewPlane((ClientData) TT_SPACE);
 
@@ -1512,9 +1513,10 @@ DBCellDefFree(cellDef)
      */
 
     SigDisableInterrupts();
-    DBFreeCellPlane(cellDef->cd_planes[PL_CELL]);
-    TiFreePlane(cellDef->cd_planes[PL_CELL]);
+    DBClearCellPlane(cellDef);	/* Remove instances only */
+    BPFree(cellDef->cd_cellPlane);	/* Remove the cell plane itself */
 
+    TiFreePlane(cellDef->cd_planes[PL_ROUTER]);
     for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
     {
 	DBFreePaintPlane(cellDef->cd_planes[pNum]);

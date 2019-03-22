@@ -739,7 +739,7 @@ plowPropagateRect(def, userRect, lc, changedArea)
 		    lc, plowInitialPaint, (ClientData) plowRect.r_xtop);
 
 	/* Find any subcells crossed by the plow */
-    (void) TiSrArea((Tile *) NULL, plowYankDef->cd_planes[PL_CELL],
+    (void) DBSrCellPlaneArea(plowYankDef->cd_cellPlane,
 		    &cellPlowRect, plowInitialCell, (ClientData) &cellPlowRect);
 
 	/* While edges remain, process them */
@@ -1120,7 +1120,7 @@ plowFindSelCell(yankUse, editUse)
 	return (0);
 
     edge.e_flags = 0;
-    edge.e_pNum = PL_CELL;
+    edge.e_pNum = PL_ROUTER;
     edge.e_use = yankUse;
     edge.e_ytop = yankUse->cu_bbox.r_ytop;
     edge.e_ybot = yankUse->cu_bbox.r_ybot;
@@ -1443,45 +1443,39 @@ plowInitialPaint(edge, xnew)
  */
 
 int
-plowInitialCell(cellTile, plowRect)
-    Tile *cellTile;
+plowInitialCell(use, plowRect)
+    CellUse *use;
     Rect *plowRect;
 {
-    CellTileBody *ctb;
-    CellUse *use;
     int xmove;
     Edge edge;
 
-    edge.e_pNum = PL_CELL;
-    for (ctb = (CellTileBody *) TiGetBody(cellTile); ctb; ctb = ctb->ctb_next)
+    if (use->cu_bbox.r_xbot < plowRect->r_xbot)
     {
-	use = ctb->ctb_use;
-	if (use->cu_bbox.r_xbot < plowRect->r_xbot)
-	{
-	    if (use->cu_bbox.r_xtop >= plowRect->r_xtop)
-		continue;
+	if (use->cu_bbox.r_xtop >= plowRect->r_xtop)
+	    return 0;
 
-	    /* Dragging this cell by its front edge */
-	    xmove = plowRect->r_xtop - use->cu_bbox.r_xtop;
-	}
-	else
-	{
-	    /* Pushing this cell by its back edge */
-	    xmove = plowRect->r_xtop - use->cu_bbox.r_xbot;
-	}
-
-	edge.e_use = use;
-	edge.e_flags = E_ISINITIAL;
-	edge.e_ytop = use->cu_bbox.r_ytop;
-	edge.e_ybot = use->cu_bbox.r_ybot;
-	edge.e_x = use->cu_bbox.r_xtop;
-	edge.e_newx = use->cu_bbox.r_xtop + xmove;
-	edge.e_ltype = PLOWTYPE_CELL;
-	edge.e_rtype = PLOWTYPE_CELL;
-	(void) plowQueueAdd(&edge);
+	/* Dragging this cell by its front edge */
+	xmove = plowRect->r_xtop - use->cu_bbox.r_xtop;
+    }
+    else
+    {
+	/* Pushing this cell by its back edge */
+	xmove = plowRect->r_xtop - use->cu_bbox.r_xbot;
     }
 
-    return (0);
+    edge.e_pNum = PL_ROUTER;
+    edge.e_use = use;
+    edge.e_flags = E_ISINITIAL;
+    edge.e_ytop = use->cu_bbox.r_ytop;
+    edge.e_ybot = use->cu_bbox.r_ybot;
+    edge.e_x = use->cu_bbox.r_xtop;
+    edge.e_newx = use->cu_bbox.r_xtop + xmove;
+    edge.e_ltype = PLOWTYPE_CELL;
+    edge.e_rtype = PLOWTYPE_CELL;
+    (void) plowQueueAdd(&edge);
+
+    return 0;
 }
 
 /*

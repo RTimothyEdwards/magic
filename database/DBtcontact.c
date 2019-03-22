@@ -765,13 +765,13 @@ DBTechFinalContact()
 
     /*
      * Initialize the masks of planes on which each type appears.
-     * It will contain all planes (except subcell) for space,
+     * It will contain all planes (except router) for space,
      * the home plane for each type up to DBNumTypes, and no
      * planes for undefined types.  Also update the mask of
      * types visible on each plane.
      */
 
-    DBTypePlaneMaskTbl[TT_SPACE] = ~(PlaneNumToMaskBit(PL_CELL));
+    DBTypePlaneMaskTbl[TT_SPACE] = ~(PlaneNumToMaskBit(PL_ROUTER));
     for (primaryType = 0; primaryType < DBNumTypes; primaryType++)
     {
 	pNum = DBPlane(primaryType);

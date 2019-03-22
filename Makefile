@@ -6,9 +6,9 @@ MAGICDIR   = .
 PROGRAMS   = magic
 TECH       = scmos
 LIBRARIES  = database utils extflat
-MODULES    = cmwind commands database dbwind debug drc extflat extract \
-	     graphics netmenu plow resis select sim textio tiles utils \
-	     windows wiring
+MODULES    = bplane cmwind commands database dbwind debug drc extflat \
+	     extract graphics netmenu plow resis select sim textio tiles \
+	     utils windows wiring
 
 MAKEFLAGS  =
 INSTALL_CAD_DIRS = windows doc ${TECH}

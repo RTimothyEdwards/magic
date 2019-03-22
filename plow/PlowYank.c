@@ -249,7 +249,7 @@ plowYankUpdateCell(yankChildUse)
 	    /* Restore the delta since DBPlaceCell re-initializes it to 0 */
 	    yankChildUse->cu_client = savedelta;
 
-	    /* Return 1 so TiSrArea doesn't bomb */
+	    /* Return 1 so DBSrCellPlaneArea doesn't bomb */
 	    return (1);
 	}
     }

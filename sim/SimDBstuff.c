@@ -676,7 +676,7 @@ SimSrConnect(def, startArea, mask, connect, bounds, func, clientData)
  *
  * The client procedure should not modify any of the paint planes in
  * the cells visited by SimTreeSrTiles, because we use DBSrPaintArea
- * instead of TiSrArea as our paint-tile enumeration function.
+ * as our paint-tile enumeration function.
  *
  * Results:
  *	0 is returned if the search finished normally.  1 is returned

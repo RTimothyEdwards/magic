@@ -3678,7 +3678,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     Point childPoint, editPoint, rootPoint;
     CellDef *def, *rootDef, *editDef;
     bool hasChild, hasRoot, hasTrans;
-    Rect rootBox;
+    Rect rootBox, bbox;
     Transform *tx_cell, trans_cell;
     char **av;
     char *cellnameptr, *fullpathname;
@@ -3793,6 +3793,25 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     }
 
     /*
+     * Get def's bounding box.  If def is an abstract view with CDFIXEDBBOX
+     * set, then used the property FIXED_BBOX to set the bounding box.
+     */
+    bbox = def->cd_bbox;
+    if (def->cd_flags & CDFIXEDBBOX)
+    {
+	char *propvalue;
+	bool found;
+
+	propvalue = DBPropGet(def, "FIXED_BBOX", &found);
+	if (found)
+	{
+	    if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		    &bbox.r_xtop, &bbox.r_ytop) != 4)
+		bbox = def->cd_bbox;
+	}
+    }
+
+    /*
      * Parse the remainder of the arguments to find out the reference
      * points in the child cell and the edit cell.  Use the defaults
      * of the lower-left corner of the child cell's bounding box, and
@@ -3843,23 +3862,23 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 		    p = Lookup(av[1], refPointNames);
 		    if (p == 0) /* lower left */
 		    {
-			childPoint.p_x = def->cd_bbox.r_ll.p_x;
-			childPoint.p_y = def->cd_bbox.r_ll.p_y;
+			childPoint.p_x = bbox.r_ll.p_x;
+			childPoint.p_y = bbox.r_ll.p_y;
 		    }
 		    else if (p == 1) /* lower right */
 		    {
-			childPoint.p_x = def->cd_bbox.r_ur.p_x;
-			childPoint.p_y = def->cd_bbox.r_ll.p_y;
+			childPoint.p_x = bbox.r_ur.p_x;
+			childPoint.p_y = bbox.r_ll.p_y;
 		    }
 		    else if (p == 2) /* upper left */
 		    {
-			childPoint.p_x = def->cd_bbox.r_ll.p_x;
-			childPoint.p_y = def->cd_bbox.r_ur.p_y;
+			childPoint.p_x = bbox.r_ll.p_x;
+			childPoint.p_y = bbox.r_ur.p_y;
 		    }
 		    else if (p == 3) /* upper right */
 		    {
-			childPoint.p_x = def->cd_bbox.r_ur.p_x;
-			childPoint.p_y = def->cd_bbox.r_ur.p_y;
+			childPoint.p_x = bbox.r_ur.p_x;
+			childPoint.p_y = bbox.r_ur.p_y;
 		    }
 		    else
 		    {
@@ -3960,9 +3979,9 @@ default_action:
 		    {
 			Rect r;
 
-			GeoTransRect(tx_cell, &def->cd_bbox, &r);
-			GeoTranslateTrans(tx_cell, def->cd_bbox.r_xbot - r.r_xbot,
-					  def->cd_bbox.r_ybot - r.r_ybot,
+			GeoTransRect(tx_cell, &bbox, &r);
+			GeoTranslateTrans(tx_cell, bbox.r_xbot - r.r_xbot,
+					  bbox.r_ybot - r.r_ybot,
 					  &trans_cell);
 		    }
 		    av += 1;
@@ -3991,23 +4010,23 @@ default_action:
 			p = Lookup(av[1], refPointNames);
 			if (p == 0) /* lower left */
 			{
-			    editPoint.p_x = def->cd_bbox.r_ll.p_x;
-			    editPoint.p_y = def->cd_bbox.r_ll.p_y;
+			    editPoint.p_x = bbox.r_ll.p_x;
+			    editPoint.p_y = bbox.r_ll.p_y;
 			}
 			else if (p == 1) /* lower right */
 			{
-			    editPoint.p_x = def->cd_bbox.r_ur.p_x;
-			    editPoint.p_y = def->cd_bbox.r_ll.p_y;
+			    editPoint.p_x = bbox.r_ur.p_x;
+			    editPoint.p_y = bbox.r_ll.p_y;
 			}
 			else if (p == 2) /* upper left */
 			{
-			    editPoint.p_x = def->cd_bbox.r_ll.p_x;
-			    editPoint.p_y = def->cd_bbox.r_ur.p_y;
+			    editPoint.p_x = bbox.r_ll.p_x;
+			    editPoint.p_y = bbox.r_ur.p_y;
 			}
 			else if (p == 3) /* upper right */
 			{
-			    editPoint.p_x = def->cd_bbox.r_ur.p_x;
-			    editPoint.p_y = def->cd_bbox.r_ur.p_y;
+			    editPoint.p_x = bbox.r_ur.p_x;
+			    editPoint.p_y = bbox.r_ur.p_y;
 			}
 			else
 			{
@@ -4073,7 +4092,7 @@ default_action:
      * provided.
      */
     if (!hasChild)
-	childPoint = def->cd_bbox.r_ll;
+	childPoint = bbox.r_ll;
     if (!hasRoot)
     {
 	if (!ToolGetBox(&rootDef, &rootBox))
@@ -4102,7 +4121,7 @@ box_error:
     GeoTranslateTrans(&trans_cell, rootPoint.p_x - childPoint.p_x,
 	    rootPoint.p_y - childPoint.p_y,
 	    &scx->scx_trans);
-    scx->scx_area = def->cd_bbox;
+    scx->scx_area = bbox;
     return TRUE;
 
 usage:

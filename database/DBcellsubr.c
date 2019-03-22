@@ -131,25 +131,20 @@ DBCellCopyDefBody(sourceDef, destDef)
      */
     
     SigDisableInterrupts();
-    (void) TiSrArea((Tile *) NULL, destDef->cd_planes[PL_CELL],
-	&TiPlaneRect, dbCopyDefFunc, (ClientData) destDef);
+    (void) DBSrCellPlaneArea(destDef->cd_cellPlane,
+		&TiPlaneRect, dbCopyDefFunc, (ClientData) destDef);
     SigEnableInterrupts();
 }
 
 int
-dbCopyDefFunc(tile, def)
-    Tile *tile;			/* Tile to search for subcell uses. */
+dbCopyDefFunc(use, def)
+    CellUse *use;		/* Subcell use. */
     CellDef *def;		/* Set parent pointer in each use to this. */
 {
-    CellTileBody *ctb;
-
-    for (ctb = (CellTileBody *) tile->ti_body;  ctb != NULL;
-	ctb = ctb->ctb_next)
-    {
-	ctb->ctb_use->cu_parent = def;
-    }
+    use->cu_parent = def;
     return 0;
 }
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -185,19 +180,8 @@ DBCellClearDef(cellDef)
 
     SigDisableInterrupts();
 
-    /*
-     * We use a simple optimization to avoid trying
-     * to clear an already empty plane.
-     */
-    plane = cellDef->cd_planes[PL_CELL];
-    tile = TR(plane->pl_left);
-    if (TiGetBody(tile) != (ClientData) NULL
-	    || LB(tile) != plane->pl_bottom
-	    || TR(tile) != plane->pl_right
-	    || RT(tile) != plane->pl_top)
-    {
-	DBClearCellPlane(plane);
-    }
+    /* Remove all instances from the cell plane */
+    DBClearCellPlane(cellDef);
 
     /* Reduce clutter by reinitializing the id hash table */
     HashKill(&cellDef->cd_idHash);
@@ -224,41 +208,7 @@ DBCellClearDef(cellDef)
     SigEnableInterrupts();
 }
 
-/*
- * ----------------------------------------------------------------------------
- *
- * DBClearCellPlane --
- *
- * Remove all cell uses contained in the given cell tile plane.
- * Deallocates the Tiles and CellTileBodies contained in the plane,
- * and constructs a new plane containing a single tile with a null
- * tile body.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *	Modifies the database plane given.
- *
- * ----------------------------------------------------------------------------
- */
 
-void
-DBClearCellPlane(plane)
-    Plane *plane;
-{
-    Tile *newCenterTile;
-
-    /* Free all tiles from plane, and delete all uses */
-    DBFreeCellPlane(plane);
-
-    /* Allocate a new central space tile with a NULL body */
-    newCenterTile = TiAlloc();
-    plane->pl_hint = newCenterTile;
-    TiSetBody(newCenterTile, NULL);
-    dbSetPlaneTile(plane, newCenterTile);
-}
-
 /*
  * ----------------------------------------------------------------------------
  *

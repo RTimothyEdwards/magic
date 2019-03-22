@@ -226,16 +226,18 @@ RtrDecompose(routeUse, area, netList)
      * Clear the valid flags for horizontal edges for all space tiles in
      * the error plane of the result cell.
      */
-    (void) TiSrArea((Tile *) NULL, cdTo->cd_planes[PL_DRC_ERROR], &RouteArea,
-	rtrSrClear, (ClientData) &RouteArea);
+    (void) DBSrPaintArea((Tile *) NULL, cdTo->cd_planes[PL_DRC_ERROR],
+		&RouteArea, &DBAllTypeBits, rtrSrClear,
+		(ClientData) &RouteArea);
 
     /*
      * Enumerate all tiles in the given area.
      * If a tile is not a space tile, then perform the corner
      * extension algorithm.
      */
-    (void) TiSrArea((Tile *) NULL, cdTo->cd_planes[PL_DRC_CHECK], &RouteArea,
-	rtrSrFunc, (ClientData) (cdTo->cd_planes[PL_DRC_ERROR]));
+    (void) DBSrPaintArea((Tile *) NULL, cdTo->cd_planes[PL_DRC_CHECK],
+		&RouteArea, &DBAllTypeBits, rtrSrFunc,
+		(ClientData) (cdTo->cd_planes[PL_DRC_ERROR]));
 
     /* Allow the modified area to be redisplayed if the cell is visible */
     DBReComputeBbox(cdTo);
@@ -344,8 +346,8 @@ rtrSrCells(scx, targetDef)
  *
  * Round a rectangle out to the nearest grid line, and
  * extend to a point halfway to the next grid point (if
- * roundUp is TRUE) or back half a grid from the nearest
- * grid line (if roundUp is FALSE).
+ * doRoundUp is TRUE) or back half a grid from the nearest
+ * grid line (if doRoundUp is FALSE).
  *
  * The halfway points are chosen to be RtrGridSpacing/2
  * down or to the left from grid lines.  Before rounding,
@@ -362,16 +364,16 @@ rtrSrCells(scx, targetDef)
  */
 
 void
-rtrRoundRect(r, sepUp, sepDown, roundUp)
+rtrRoundRect(r, sepUp, sepDown, doRoundUp)
     Rect *r;
     int sepUp, sepDown;
-    bool roundUp;
+    bool doRoundUp;
 {
     int halfGrid = RtrGridSpacing / 2;
 
     r->r_xbot = RTR_GRIDDOWN(r->r_xbot - sepDown, RtrOrigin.p_x);
     r->r_ybot = RTR_GRIDDOWN(r->r_ybot - sepDown, RtrOrigin.p_y);
-    if (roundUp)
+    if (doRoundUp)
     {
 	r->r_xbot -= halfGrid;
 	r->r_ybot -= halfGrid;
@@ -390,7 +392,7 @@ rtrRoundRect(r, sepUp, sepDown, roundUp)
      */
     r->r_xtop = RTR_GRIDUP(r->r_xtop + sepUp, RtrOrigin.p_x);
     r->r_ytop = RTR_GRIDUP(r->r_ytop + sepUp, RtrOrigin.p_y);
-    if (roundUp)
+    if (doRoundUp)
     {
 	r->r_xtop += RtrGridSpacing - halfGrid;
 	r->r_ytop += RtrGridSpacing - halfGrid;
@@ -503,7 +505,7 @@ rtrSplitToArea(area, def)
  *
  * rtrSrClear --
  *
- * TiSrArea function for each tile in the error plane of the __CHANNEL__
+ * DBSrPaintArea function for each tile in the error plane of the __CHANNEL__
  * def.  Sets the flags to 0 in internal space tiles, marking horizontal
  * invalid.  Mark edges at the boundary of the routing region as valid.
  *
@@ -561,12 +563,12 @@ rtrSrClear(tile, area)
  *
  * rtrSrFunc --
  *
- * Search function called from TiSrArea for each tile in the cell tile
+ * Search function called from DBSrPaintArea for each tile in the
  * plane.  Do this search in the OLD TILE PLANE.  Process corners
  * bordering space tiles.
  *
  * Results:
- *	Returns a 0 to TiSrArea so it won't abort the search.
+ *	Returns a 0 to DBSrPaintArea so it won't abort the search.
  *
  * Side effects:
  *	Modifies the result plane to reflect the channel structure.

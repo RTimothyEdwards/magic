@@ -2061,7 +2061,7 @@ extOutputDevices(def, transList, outFile)
 
 		if (ExtCurStyle->exts_deviceClass[t] == DEV_RSUBCKT)
 		{
-		    /* nothing */
+		    /* (Nothing) */
 		}
 		else if (hasModel)	/* SPICE semiconductor resistor */
 		{
@@ -2079,7 +2079,6 @@ extOutputDevices(def, transList, outFile)
 		    fprintf(outFile, " \"%s\"", (subsName == NULL) ?
 				"None" : subsName);
 		}
-
 		break;
 
 	    case DEV_CAP:
@@ -2145,7 +2144,7 @@ extOutputDevices(def, transList, outFile)
 
 		    if (ExtCurStyle->exts_deviceClass[t] == DEV_CSUBCKT)
 		    {
-		        /* (Nothing) */
+			/* (Nothing) */
 		    }
 		    else	/* SPICE semiconductor resistor */
 		    {

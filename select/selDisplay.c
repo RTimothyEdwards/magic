@@ -307,11 +307,34 @@ selRedisplayCellFunc(scx, window)
     SearchContext *scx;		/* Describes cell found. */
     MagWindow *window;		/* Window in which to redisplay. */
 {
-    Rect tmp, screen;
+    Rect tmp, screen, bbox;
     Point p;
     char idName[100];
 
-    GeoTransRect(&scx->scx_trans, &scx->scx_use->cu_def->cd_bbox, &tmp);
+    /* Selections of cells with a fixed bounding box flag show the outline  */
+    /* of the fixed bounding box, not the actual bounding box.		    */
+
+    if (scx->scx_use->cu_def->cd_flags & CDFIXEDBBOX)
+    {
+	bool found;
+	char *propval;
+
+	propval = (char *)DBPropGet(scx->scx_use->cu_def, "FIXED_BBOX", &found);
+	if (found)
+	{
+	    if (sscanf(propval, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		    &bbox.r_xtop, &bbox.r_ytop) == 4)
+		GeoTransRect(&scx->scx_trans, &bbox, &tmp);
+	    else
+		found = FALSE;
+	}
+	if (!found)
+	    GeoTransRect(&scx->scx_trans, &scx->scx_use->cu_def->cd_bbox, &tmp);
+    }
+    else
+    {
+	GeoTransRect(&scx->scx_trans, &scx->scx_use->cu_def->cd_bbox, &tmp);
+    }
     if (!DBSrPaintArea((Tile *) NULL, selRedisplayPlane, &tmp,
 	    &DBAllButSpaceBits, selAlways1, (ClientData) NULL))
 	return 0;

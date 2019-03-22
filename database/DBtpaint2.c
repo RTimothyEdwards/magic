@@ -149,9 +149,9 @@ dbTechPaintErasePlanes()
     TileType t, s;
     int pNum;
 
-    /* Space tiles are special: they may appear on any plane */
-    DBTypePaintPlanesTbl[TT_SPACE] = ~(PlaneNumToMaskBit(PL_CELL));
-    DBTypeErasePlanesTbl[TT_SPACE] = ~(PlaneNumToMaskBit(PL_CELL));
+    /* Space tiles are special: they may appear on any plane except router */
+    DBTypePaintPlanesTbl[TT_SPACE] = ~(PlaneNumToMaskBit(PL_ROUTER));
+    DBTypeErasePlanesTbl[TT_SPACE] = ~(PlaneNumToMaskBit(PL_ROUTER));
 
     /* Skip TT_SPACE */
     for (t = 1; t < DBNumTypes; t++)

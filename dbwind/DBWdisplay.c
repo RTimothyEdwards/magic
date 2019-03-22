@@ -183,7 +183,7 @@ DBWredisplay(w, rootArea, clipArea)
     GrLock(w, TRUE);
 
     /* Round up the redisplay area by 1 pixel on all sides.  This
-     * is needed because TiSrArea won't return tiles that touch
+     * is needed because DBSrPaintArea won't return tiles that touch
      * the area without overlapping it.  Without the round-up, there
      * will be occasional (in fact, frequent), one-pixel wide slivers.
      */
@@ -516,9 +516,9 @@ DBWredisplay(w, rootArea, clipArea)
 	dbwWatchTrans = crec->dbw_watchTrans;
         dbwWatchDemo = ((crec->dbw_flags & DBW_WATCHDEMO) != 0);
 	dbwSeeTypes = ((crec->dbw_flags & DBW_SEETYPES) != 0);
-	(void) TiSrArea((Tile *) NULL,
+	(void) DBSrPaintArea((Tile *) NULL,
 	    crec->dbw_watchDef->cd_planes[crec->dbw_watchPlane],
-	    &dbwWatchArea, dbwTileFunc, (ClientData) NULL);
+	    &dbwWatchArea, &DBAllTypeBits, dbwTileFunc, (ClientData) NULL);
     }
 
     /* Record information so that the highlight manager will redisplay
@@ -1114,7 +1114,7 @@ dbwTileFunc(tile)
 	GrPutText(string, STYLE_DRAWTILE, &p, GEO_CENTER,
 	    GR_TEXT_LARGE, FALSE, &r2, (Rect *) NULL);
     
-#define	OFFSET	12
+#define	XYOFFSET	12
 
     for (i=0;  i<4;  i++)
     {
@@ -1125,25 +1125,25 @@ dbwTileFunc(tile)
 	    case 0:
 		stitch = BL(tile);
 		p = pLL;
-		yoffset = OFFSET;
+		yoffset = XYOFFSET;
 		pos = GEO_NORTHEAST;
 		break;
 	    case 1:
 		stitch = LB(tile);
 		p = pLL;
-		xoffset = OFFSET;
+		xoffset = XYOFFSET;
 		pos = GEO_NORTHEAST;
 		break;
 	    case 2:
 		stitch = RT(tile);
 		p = pUR;
-		xoffset = -OFFSET;
+		xoffset = -XYOFFSET;
 		pos = GEO_SOUTHWEST;
 		break;
 	    case 3:
 		stitch = TR(tile);
 		p = pUR;
-		yoffset = -OFFSET;
+		yoffset = -XYOFFSET;
 		pos = GEO_SOUTHWEST;
 		break;
 	}

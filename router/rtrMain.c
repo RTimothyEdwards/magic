@@ -127,8 +127,8 @@ Route(routeUse, routeArea)
      * but don't do anything else.
      */
     RtrChannelList = (GCRChannel *) NULL;
-    (void) TiSrArea((Tile *) NULL, RtrChannelPlane, &RouteArea,
-	    rtrMakeChannel, (ClientData) &RouteArea);
+    (void) DBSrPaintArea((Tile *) NULL, RtrChannelPlane, &RouteArea,
+	    &DBAllTypeBits, rtrMakeChannel, (ClientData) &RouteArea);
     if (!SigInterruptPending)
     {
 	errs = GARoute(RtrChannelList, routeUse, &netList);
@@ -149,7 +149,7 @@ done:
  *
  * rtrMakeChannel --
  *
- * Function passed to TiSrArea to enumerate space tiles and convert them
+ * Function passed to DBSrPaintArea to enumerate space tiles and convert them
  * to channels.  Clip all tiles against the box 'clipBox'.  Don't set
  * hazards for this channel; that has to happen after stem assignment.
  *

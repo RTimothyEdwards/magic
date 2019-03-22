@@ -8,15 +8,25 @@ SRCS     = magicTop.c
 
 include ${MAGICDIR}/defs.mak
 
-EXTRA_LIBS = ${MAGICDIR}/cmwind/libcmwind.o ${MAGICDIR}/commands/libcommands.o \
-	    ${MAGICDIR}/database/libdatabase.o ${MAGICDIR}/dbwind/libdbwind.o \
-	    ${MAGICDIR}/drc/libdrc.o ${MAGICDIR}/debug/libdebug.o \
-	    ${MAGICDIR}/extract/libextract.o ${MAGICDIR}/graphics/libgraphics.o \
-	    ${MAGICDIR}/select/libselect.o ${MAGICDIR}/textio/libtextio.o \
-	    ${MAGICDIR}/tiles/libtiles.o ${MAGICDIR}/windows/libwindows.o \
-	    ${MAGICDIR}/wiring/libwiring.o ${MAGICDIR}/resis/libresis.o \
-	    ${MAGICDIR}/sim/libsim.o ${MAGICDIR}/netmenu/libnetmenu.o \
-	    ${MAGICDIR}/plow/libplow.o ${MAGICDIR}/utils/libutils.o \
+EXTRA_LIBS = ${MAGICDIR}/bplane/libbplane.o \
+	    ${MAGICDIR}/cmwind/libcmwind.o \
+	    ${MAGICDIR}/commands/libcommands.o \
+	    ${MAGICDIR}/database/libdatabase.o \
+	    ${MAGICDIR}/dbwind/libdbwind.o \
+	    ${MAGICDIR}/drc/libdrc.o \
+	    ${MAGICDIR}/debug/libdebug.o \
+	    ${MAGICDIR}/extract/libextract.o \
+	    ${MAGICDIR}/graphics/libgraphics.o \
+	    ${MAGICDIR}/select/libselect.o \
+	    ${MAGICDIR}/textio/libtextio.o \
+	    ${MAGICDIR}/tiles/libtiles.o \
+	    ${MAGICDIR}/windows/libwindows.o \
+	    ${MAGICDIR}/wiring/libwiring.o \
+	    ${MAGICDIR}/resis/libresis.o \
+	    ${MAGICDIR}/sim/libsim.o \
+	    ${MAGICDIR}/netmenu/libnetmenu.o \
+	    ${MAGICDIR}/plow/libplow.o \
+	    ${MAGICDIR}/utils/libutils.o \
 	    ${MAIN_EXTRA_LIBS}
 
 BITMAPS = up.xbm down.xbm left.xbm right.xbm zoom.xbm lock.xbm
