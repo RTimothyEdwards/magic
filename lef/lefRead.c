@@ -966,7 +966,7 @@ LefReadGeometry(lefMacro, f, oscale, do_list)
     LinkedRect *newRect, *rectList;
     Point *pointList;
     int points;
-    Rect *paintrect, *contact;
+    Rect *paintrect, *contact = NULL;
 
     static char *geometry_keys[] = {
 	"LAYER",
@@ -1013,7 +1013,7 @@ LefReadGeometry(lefMacro, f, oscale, do_list)
 		    {
 			// Cut layers defined as contacts use the contact
 			// dimensions, not the dimension from the LEF file
-			if (DBIsContact(curlayer) && !(GEO_RECTNULL(contact)))
+			if (DBIsContact(curlayer) && contact && !(GEO_RECTNULL(contact)))
 			{
 			    paintrect->r_xbot = (paintrect->r_xbot + paintrect->r_xtop);
 			    paintrect->r_ybot = (paintrect->r_ybot + paintrect->r_ytop);
@@ -1173,12 +1173,13 @@ enum lef_pin_keys {LEF_DIRECTION = 0, LEF_USE, LEF_PORT, LEF_CAPACITANCE,
 	LEF_SHAPE, LEF_NETEXPR, LEF_PIN_END};
 
 void
-LefReadPin(lefMacro, f, pinname, pinNum, oscale)
+LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
    CellDef *lefMacro;
    FILE *f;
    char *pinname;
    int pinNum;
    float oscale;
+   bool is_imported;
 {
     char *token;
     int keyword, subkey;
@@ -1272,7 +1273,26 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale)
 		LefEndStatement(f);
 		break;
 	    case LEF_PORT:
-		LefReadPort(lefMacro, f, pinname, pinNum, pinDir, pinUse, oscale);
+		if (is_imported)
+		{
+		    Label *lab;
+
+		    LefSkipSection(f, NULL);
+		    /* Skip the port geometry but find the pin name and	*/
+		    /* annotate with the use and direction.  Note that	*/
+		    /* there may be multiple instances of the label.	*/
+		    for (lab = lefMacro->cd_labels; lab; lab = lab->lab_next)
+		    {
+			if (!strcmp(lab->lab_text, pinname))
+			{
+			    lab->lab_flags &= ~(PORT_USE_MASK | PORT_DIR_MASK |
+					PORT_CLASS_MASK);
+			    lab->lab_flags = pinNum | pinUse | pinDir | PORT_DIR_MASK;
+			}
+		    }
+		}
+		else
+		    LefReadPort(lefMacro, f, pinname, pinNum, pinDir, pinUse, oscale);
 		break;
 	    case LEF_CAPACITANCE:
 	    case LEF_ANTENNADIFF:
@@ -1501,10 +1521,7 @@ origin_error:
 		TxPrintf("   Macro defines pin %s\n", token);
 		*/
 		sprintf(tsave, "%.127s", token);
-		if (is_imported)
-		    LefSkipSection(f, tsave);
-		else
-		    LefReadPin(lefMacro, f, tsave, pinNum++, oscale);
+		LefReadPin(lefMacro, f, tsave, pinNum++, oscale, is_imported);
 		break;
 	    case LEF_OBS:
 		/* Diagnostic */
@@ -1751,7 +1768,7 @@ enum lef_layer_keys {LEF_LAYER_TYPE=0, LEF_LAYER_WIDTH,
 	LEF_LAYER_PROPERTY, LEF_LAYER_ACDENSITY, LEF_LAYER_DCDENSITY,
 	LEF_LAYER_MINDENSITY, LEF_LAYER_ANTENNADIFF,
 	LEF_LAYER_ANTENNAAREA, LEF_LAYER_ANTENNASIDE,
-	LEF_VIA_DEFAULT, LEF_VIA_LAYER, LEF_VIA_RECT,
+	LEF_VIA_DEFAULT, LEF_VIA_LAYER, LEF_VIA_RECT, LEF_VIA_FOREIGN,
 	LEF_VIA_ENCLOSURE, LEF_VIA_PREFERENCLOSURE,
 	LEF_VIARULE_OVERHANG,
 	LEF_VIARULE_METALOVERHANG, LEF_VIARULE_VIA,
@@ -1805,6 +1822,7 @@ LefReadLayerSection(f, lname, mode, lefl)
 	"DEFAULT",
 	"LAYER",
 	"RECT",
+	"FOREIGN",
 	"ENCLOSURE",
 	"PREFERENCLOSURE",
 	"OVERHANG",
@@ -1943,6 +1961,7 @@ LefReadLayerSection(f, lname, mode, lefl)
 		LefAddViaGeometry(f, lefl, curlayer, oscale);
 		LefEndStatement(f);
 		break;
+	    case LEF_VIA_FOREIGN:
 	    case LEF_VIARULE_VIA:
 	    case LEF_VIA_ENCLOSURE:
 	    case LEF_VIA_PREFERENCLOSURE:
@@ -1984,7 +2003,7 @@ enum lef_sections {LEF_VERSION = 0,
 	LEF_USEMINSPACING, LEF_CLEARANCEMEASURE,
 	LEF_NAMESCASESENSITIVE,
 	LEF_PROPERTYDEFS, LEF_UNITS, LEF_SECTION_LAYER,
-	LEF_SECTION_VIA, LEF_SECTION_VIARULE,
+	LEF_SECTION_VIA, LEF_SECTION_VIARULE, LEF_SECTION_NONDEFAULTRULE,
 	LEF_SECTION_SPACING, LEF_SECTION_SITE, LEF_PROPERTY,
 	LEF_NOISETABLE, LEF_CORRECTIONTABLE, LEF_IRDROP,
 	LEF_ARRAY, LEF_SECTION_TIMING, LEF_EXTENSION, LEF_MACRO,
@@ -2017,6 +2036,7 @@ LefRead(inName, importForeign)
 	"LAYER",
 	"VIA",
 	"VIARULE",
+	"NONDEFAULTRULE",
 	"SPACING",
 	"SITE",
 	"PROPERTY",
@@ -2177,6 +2197,12 @@ LefRead(inName, importForeign)
 		LefReadLayerSection(f, tsave, keyword, lefl);
 		break;
 
+	    case LEF_SECTION_NONDEFAULTRULE:
+		token = LefNextToken(f, TRUE);
+		TxPrintf("LEF file:  Defines non-default rule %s (ignored)\n", token);
+		sprintf(tsave, "%.127s", token);
+		LefSkipSection(f, tsave);
+		break;
 	    case LEF_SECTION_SPACING:
 		LefSkipSection(f, sections[LEF_SECTION_SPACING]);
 		break;
