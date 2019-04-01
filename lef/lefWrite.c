@@ -741,18 +741,18 @@ lefWriteMacro(def, f, scale, hide)
     propvalue = (char *)DBPropGet(def, "LEFclass", &propfound);
     if (propfound)
     {
-	fprintf(f, "   CLASS %s\n", propvalue);
+	fprintf(f, "   CLASS %s ;\n", propvalue);
 	class = propvalue;
     }
     else
     {
 	/* Needs a class of some kind.  Use BLOCK as default if not defined */
-	fprintf(f, "   CLASS BLOCK\n");
+	fprintf(f, "   CLASS BLOCK ;\n");
     }
 
     propvalue = (char *)DBPropGet(def, "LEFsource", &propfound);
     if (propfound)
-	fprintf(f, "   SOURCE %s\n", propvalue);
+	fprintf(f, "   SOURCE %s ;\n", propvalue);
 
     fprintf(f, "   FOREIGN %s ;\n", def->cd_name);
 
@@ -787,7 +787,7 @@ lefWriteMacro(def, f, scale, hide)
 
     propvalue = (char *)DBPropGet(def, "LEFsymmetry", &propfound);
     if (propfound)
-	fprintf(f, "   SYMMETRY %s\n", propvalue);
+	fprintf(f, "   SYMMETRY %s ;\n", propvalue);
 
     /* Generate cell for yanking obstructions */
 
