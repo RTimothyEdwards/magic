@@ -723,7 +723,8 @@ WireAddContact(newType, newWidth)
     CellDef *boxRootDef;
     TileType oldType;
     TileTypeBitMask mask, allmask;
-    int oldOverlap, newOverlap, i, totalSize, oldDir;
+    int oldOverlap, newOverlap, oldExtend, newExtend;
+    int i, totalSize, oldDir;
     Contact *contact;
     SearchContext scx;
 
@@ -769,6 +770,8 @@ WireAddContact(newType, newWidth)
 	{
 	    oldOverlap = contact->con_surround1;
 	    newOverlap = contact->con_surround2;
+	    oldExtend = contact->con_extend1;
+	    newExtend = contact->con_extend2;
 	    goto gotContact;
 	}
 	if ((contact->con_layer2 == oldType) &&
@@ -776,10 +779,12 @@ WireAddContact(newType, newWidth)
 	{
 	    oldOverlap = contact->con_surround2;
 	    newOverlap = contact->con_surround1;
+	    oldExtend = contact->con_extend2;
+	    newExtend = contact->con_extend1;
 	    goto gotContact;
 	}
     }
-    TxError("Sorry, but the technology file doesn't define a contact\n");
+    TxError("The technology file doesn't define a contact\n");
     TxError("    between \"%s\" and \"%s\".\n",  DBTypeLongName(oldType),
 	    DBTypeLongName(WireType));
     return;
@@ -793,18 +798,18 @@ WireAddContact(newType, newWidth)
      */
 
     gotContact:
-    totalSize = contact->con_size + 2*oldOverlap;
+    totalSize = contact->con_size + 2 * oldOverlap;
     contactArea = oldLeg;
     if ((contactArea.r_xtop - contactArea.r_xbot) < totalSize)
     {
 	contactArea.r_xbot -= (totalSize - (contactArea.r_xtop
-		- contactArea.r_xbot))/2;
+		- contactArea.r_xbot)) / 2;
 	contactArea.r_xtop = contactArea.r_xbot + totalSize;
     }
     if ((contactArea.r_ytop - contactArea.r_ybot) < totalSize)
     {
 	contactArea.r_ybot -= (totalSize - (contactArea.r_ytop
-		- contactArea.r_ybot))/2;
+		- contactArea.r_ybot)) / 2;
 	contactArea.r_ytop = contactArea.r_ybot + totalSize;
     }
 
@@ -852,6 +857,48 @@ WireAddContact(newType, newWidth)
 	TTMaskSetOnlyType(&mask, contact->con_layer2);
 	TTMaskSetType(&allmask, contact->con_layer2);
 	GEO_EXPAND(&tmp, contact->con_surround2, &tmp2);
+	(void) GeoInclude(&tmp2, &editArea);
+	DBPaintValid(EditCellUse->cu_def, &tmp2, &mask, 0);
+    }
+    if (contact->con_extend1 != 0)
+    {
+	TTMaskSetOnlyType(&mask, contact->con_layer1);
+	TTMaskSetType(&allmask, contact->con_layer1);
+	tmp2 = tmp;
+	switch(oldDir)
+	{
+	    case GEO_NORTH:
+	    case GEO_SOUTH:
+		tmp2.r_ybot -= contact->con_extend1;
+		tmp2.r_ytop += contact->con_extend1;
+		break;
+	    case GEO_EAST:
+	    case GEO_WEST:
+		tmp2.r_xbot -= contact->con_extend1;
+		tmp2.r_xtop += contact->con_extend1;
+		break;
+	}
+	(void) GeoInclude(&tmp2, &editArea);
+	DBPaintValid(EditCellUse->cu_def, &tmp2, &mask, 0);
+    }
+    if (contact->con_extend2 != 0)
+    {
+	TTMaskSetOnlyType(&mask, contact->con_layer2);
+	TTMaskSetType(&allmask, contact->con_layer2);
+	tmp2 = tmp;
+	switch(oldDir)
+	{
+	    case GEO_NORTH:
+	    case GEO_SOUTH:
+		tmp2.r_xbot -= contact->con_extend2;
+		tmp2.r_xtop += contact->con_extend2;
+		break;
+	    case GEO_EAST:
+	    case GEO_WEST:
+		tmp2.r_ybot -= contact->con_extend2;
+		tmp2.r_ytop += contact->con_extend2;
+		break;
+	}
 	(void) GeoInclude(&tmp2, &editArea);
 	DBPaintValid(EditCellUse->cu_def, &tmp2, &mask, 0);
     }
