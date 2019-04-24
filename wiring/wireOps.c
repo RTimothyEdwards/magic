@@ -301,6 +301,7 @@ WireAddLeg(rect, point, direction)
     SearchContext scx;
     Point cursorPos;
     TileTypeBitMask mask;
+    int hwidth = WireWidth / 2;
 
     if (WireType == 0)
     {
@@ -372,20 +373,34 @@ WireAddLeg(rect, point, direction)
 
     if (direction == WIRE_HORIZONTAL)
     {
+	/* If the rect height is not the same as WireWidth, then center	*/
+	/* the new wire segment on the rect.				*/
+
+	if (rect->r_ytop - rect->r_ybot != WireWidth)
+	{
+	    int rmid = (rect->r_ytop + rect->r_ybot) / 2;
+	    rect->r_ybot = rmid - hwidth; 
+	    rect->r_ytop = rect->r_ybot + WireWidth;
+
+	    rmid = (rect->r_xtop + rect->r_xbot) / 2;
+	    rect->r_xbot = rmid - hwidth; 
+	    rect->r_xtop = rect->r_xbot + WireWidth;
+	}
+
 	/* The new leg will be horizontal.  First compute its span in
 	 * x, then its span in y.
 	 */
 
 	if (point->p_x > rect->r_xtop)
 	{
-	    new.r_xbot = rect->r_xtop;
-	    new.r_xtop = point->p_x;
+	    new.r_xbot = rect->r_xbot;
+	    new.r_xtop = point->p_x + hwidth;
 	    WireLastDir = GEO_EAST;
 	}
 	else if (point->p_x < rect->r_xbot)
 	{
-	    new.r_xtop = rect->r_xbot;
-	    new.r_xbot = point->p_x;
+	    new.r_xtop = rect->r_xtop;
+	    new.r_xbot = point->p_x - hwidth;
 	    WireLastDir = GEO_WEST;
 	}
 	else return;			/* Nothing to paint! */
@@ -395,7 +410,7 @@ WireAddLeg(rect, point, direction)
 	 * the wires so there's no real choice.
 	 */
 
-	new.r_ybot = point->p_y - WireWidth/2;
+	new.r_ybot = point->p_y - hwidth;
 	if (new.r_ybot < rect->r_ybot)
 	    new.r_ybot = rect->r_ybot;
 	else if (new.r_ybot > rect->r_ytop - WireWidth)
@@ -404,20 +419,34 @@ WireAddLeg(rect, point, direction)
     }
     else
     {
+	/* If the rect width is not the same as WireWidth, then center	*/
+	/* the new wire segment on the rect.				*/
+
+	if (rect->r_xtop - rect->r_xbot != WireWidth)
+	{
+	    int rmid = (rect->r_xtop + rect->r_xbot) / 2;
+	    rect->r_xbot = rmid - hwidth; 
+	    rect->r_xtop = rect->r_xbot + WireWidth;
+
+	    rmid = (rect->r_ytop + rect->r_ybot) / 2;
+	    rect->r_ybot = rmid - hwidth; 
+	    rect->r_ytop = rect->r_ybot + WireWidth;
+	}
+
 	/* The new wire segment is vertical.  See comments above (this
 	 * code is just like what's up there).
 	 */
 
 	if (point->p_y > rect->r_ytop)
 	{
-	    new.r_ybot = rect->r_ytop;
-	    new.r_ytop = point->p_y;
+	    new.r_ybot = rect->r_ybot;
+	    new.r_ytop = point->p_y + hwidth;
 	    WireLastDir = GEO_NORTH;
 	}
 	else if (point->p_y < rect->r_ybot)
 	{
-	    new.r_ytop = rect->r_ybot;
-	    new.r_ybot = point->p_y;
+	    new.r_ytop = rect->r_ytop;
+	    new.r_ybot = point->p_y - hwidth;
 	    WireLastDir = GEO_SOUTH;
 	}
 	else return;			/* Nothing to paint! */
@@ -453,7 +482,7 @@ WireAddLeg(rect, point, direction)
 	SelectChunk(&scx, WireType, 0, &leg, FALSE);
     }
 
-    /* Make the box a square at the tip of the new are just painted. */
+    /* Make the box a square at the tip of the new area just painted. */
 
     switch (WireLastDir)
     {
@@ -517,6 +546,7 @@ WireShowLeg()
     int direction = WIRE_CHOOSE;
     int delx, dely;
     MagWindow *w;
+    int hwidth = WireWidth / 2;
 
     if (WireType == 0) return;
 
@@ -557,20 +587,32 @@ WireShowLeg()
 
     if (direction == WIRE_HORIZONTAL)
     {
+	/* Correct for different width between wire and rect. */
+	if (rect->r_ytop - rect->r_ybot != WireWidth)
+	{
+	    int rmid = (rect->r_ytop + rect->r_ybot) / 2;
+	    rect->r_ybot = rmid - hwidth;
+	    rect->r_ytop = rect->r_ybot + WireWidth;
+
+	    rmid = (rect->r_xtop + rect->r_xbot) / 2;
+	    rect->r_xbot = rmid - hwidth;
+	    rect->r_xtop = rect->r_xbot + WireWidth;
+	}
+
 	/* The new leg will be horizontal.  First compute its span in
 	 * x, then its span in y.
 	 */
 
 	if (point->p_x > rect->r_xtop)
 	{
-	    new.r_xbot = rect->r_xtop;
-	    new.r_xtop = point->p_x;
+	    new.r_xbot = rect->r_xbot;
+	    new.r_xtop = point->p_x + hwidth;
 	    WireLastDir = GEO_EAST;
 	}
 	else if (point->p_x < rect->r_xbot)
 	{
-	    new.r_xtop = rect->r_xbot;
-	    new.r_xbot = point->p_x;
+	    new.r_xtop = rect->r_xtop;
+	    new.r_xbot = point->p_x - hwidth;
 	    WireLastDir = GEO_WEST;
 	}
 	else return;			/* Nothing to paint! */
@@ -580,7 +622,7 @@ WireShowLeg()
 	 * the wires so there's no real choice.
 	 */
 
-	new.r_ybot = point->p_y - WireWidth/2;
+	new.r_ybot = point->p_y - hwidth;
 	if (new.r_ybot < rect->r_ybot)
 	    new.r_ybot = rect->r_ybot;
 	else if (new.r_ybot > rect->r_ytop - WireWidth)
@@ -589,25 +631,37 @@ WireShowLeg()
     }
     else
     {
+	/* Correct for different width between wire and rect. */
+	if (rect->r_xtop - rect->r_xbot != WireWidth)
+	{
+	    int rmid = (rect->r_xtop + rect->r_xbot) / 2;
+	    rect->r_xbot = rmid - hwidth;
+	    rect->r_xtop = rect->r_xbot + WireWidth;
+
+	    rmid = (rect->r_ytop + rect->r_ybot) / 2;
+	    rect->r_ybot = rmid - hwidth;
+	    rect->r_ytop = rect->r_ybot + WireWidth;
+	}
+
 	/* The new wire segment is vertical.  See comments above (this
 	 * code is just like what's up there).
 	 */
 
 	if (point->p_y > rect->r_ytop)
 	{
-	    new.r_ybot = rect->r_ytop;
-	    new.r_ytop = point->p_y;
+	    new.r_ybot = rect->r_ybot;
+	    new.r_ytop = point->p_y + hwidth;
 	    WireLastDir = GEO_NORTH;
 	}
 	else if (point->p_y < rect->r_ybot)
 	{
-	    new.r_ytop = rect->r_ybot;
-	    new.r_ybot = point->p_y;
+	    new.r_ytop = rect->r_ytop;
+	    new.r_ybot = point->p_y - hwidth;
 	    WireLastDir = GEO_SOUTH;
 	}
 	else return;			/* Nothing to paint! */
 
-	new.r_xbot = point->p_x - WireWidth/2;
+	new.r_xbot = point->p_x - hwidth;
 	if (new.r_xbot < rect->r_xbot)
 	    new.r_xbot = rect->r_xbot;
 	if (new.r_xbot > rect->r_xtop - WireWidth)
