@@ -91,22 +91,25 @@ WireTechLine(sectionName, argc, argv)
     char *argv[];		/* Pointers to fields of line. */
 {
     Contact *new;
+    int hasExtend = 0;
 
     if (strcmp(argv[0], "contact") != 0)
     {
 	TechError("Unknown wiring keyword: %s.  Line ignored.\n", argv[0]);
 	return TRUE;
     }
-    if (argc != 7)
+    if ((argc != 7) && (argc != 9))
     {
-	TechError("\"contact\" lines must have exactly 7 arguments.\n");
+	TechError("\"contact\" lines must have exactly 7 or 9 arguments.\n");
 	return TRUE;
     }
+    if (argc == 9) hasExtend = 1;
 
     new = (Contact *) mallocMagic(sizeof(Contact));
     new->con_type = DBTechNoisyNameType(argv[1]);
     new->con_layer1 = DBTechNoisyNameType(argv[3]);
-    new->con_layer2 = DBTechNoisyNameType(argv[5]);
+    new->con_layer2 = DBTechNoisyNameType(argv[5 + hasExtend]);
+    new->con_extend1 = new->con_extend2 = 0;
     if ((new->con_type < 0) || (new->con_layer1 < 0) || (new->con_layer2 < 0))
     {
 	errorReturn:
@@ -116,22 +119,38 @@ WireTechLine(sectionName, argc, argv)
 
     if (!StrIsInt(argv[2]))
     {
-	TechError("3rd field must be an integer.\n");
+	TechError("Contact size must be an integer.\n");
 	goto errorReturn;
     }
     else new->con_size = atoi(argv[2]);
     if (!StrIsInt(argv[4]))
     {
-	TechError("5th field must be an integer.\n");
+	TechError("Contact surround distance must be an integer.\n");
 	goto errorReturn;
     }
     else new->con_surround1 = atoi(argv[4]);
-    if (!StrIsInt(argv[6]))
+    if (!StrIsInt(argv[6 + hasExtend]))
     {
-	TechError("6th field must be an integer.\n");
+	TechError("Contact surround distance must be an integer.\n");
 	goto errorReturn;
     }
-    else new->con_surround2 = atoi(argv[6]);
+    else new->con_surround2 = atoi(argv[6 + hasExtend]);
+
+    if (argc == 9)
+    {
+	if (!StrIsInt(argv[5]))
+	{
+	    TechError("Contact extend distance must be an integer.\n");
+	    goto errorReturn;
+	}
+	else new->con_extend1 = atoi(argv[5]);
+	if (!StrIsInt(argv[8]))
+	{
+	    TechError("Contact extend distance must be an integer.\n");
+	    goto errorReturn;
+	}
+	else new->con_extend2 = atoi(argv[8]);
+    }
 
     new->con_next = WireContacts;
     WireContacts = new;
@@ -201,5 +220,11 @@ WireTechScale(scalen, scaled)
 
 	con->con_surround2 *= scaled;
 	con->con_surround2 /= scalen;
+
+	con->con_extend1 *= scaled;
+	con->con_extend1 /= scalen;
+
+	con->con_extend2 *= scaled;
+	con->con_extend2 /= scalen;
     }
 }
