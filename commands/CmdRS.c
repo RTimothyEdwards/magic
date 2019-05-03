@@ -1349,7 +1349,8 @@ Okay:
 	     * click" code.
 	     */
 	    
-	    if ((cmd->tx_argc == 3) && (optionArgs == &cmd->tx_argv[2]))
+	    if ((cmd->tx_argc == 3) && (optionArgs == &cmd->tx_argv[2]) &&
+		(more == FALSE) && (less == FALSE))
 	    {
 		use = lastUse = scx.scx_use;
 		p.p_x = scx.scx_use->cu_xlo;
