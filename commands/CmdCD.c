@@ -3678,7 +3678,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     Point childPoint, editPoint, rootPoint;
     CellDef *def, *rootDef, *editDef;
     bool hasChild, hasRoot, hasTrans;
-    Rect rootBox;
+    Rect rootBox, bbox;
     Transform *tx_cell, trans_cell;
     char **av;
     char *cellnameptr, *fullpathname;
@@ -3790,6 +3790,25 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 	TxError("    which means that you're trying to create a circular\n");
 	TxError("    structure.  This isn't legal.\n");
 	return FALSE;
+    }
+
+    /*
+     * Get def's bounding box.  If def is an abstract view with CDFIXEDBBOX
+     * set, then used the property FIXED_BBOX to set the bounding box.
+     */
+    bbox = def->cd_bbox;
+    if (def->cd_flags & CDFIXEDBBOX)
+    {
+	char *propvalue;
+	bool found;
+
+	propvalue = DBPropGet(def, "FIXED_BBOX", &found);
+	if (found)
+	{
+	    if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		    &bbox.r_xtop, &bbox.r_ytop) != 4)
+		bbox = def->cd_bbox;
+	}
     }
 
     /*

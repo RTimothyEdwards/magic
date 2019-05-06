@@ -1370,7 +1370,7 @@ LefReadMacro(f, mname, oscale, importForeign)
     CellDef *lefMacro;
     HashEntry *he;
 
-    char *token, tsave[128];
+    char *token, tsave[128], *propval;
     int keyword, pinNum;
     float x, y;
     bool has_size, is_imported = FALSE;
@@ -1558,40 +1558,50 @@ origin_error:
     }
 
     /* Finish up creating the cell */
+    DBReComputeBbox(lefMacro);
 
     if (is_imported)
     {
-	/* Redefine cell bounding box to match the LEF macro	*/
-	/* Leave "extended" to mark the original bounding box	*/
+	/* Define the FIXED_BBOX property to match the LEF macro */
 
 	if (has_size)
 	{
-	    lefMacro->cd_bbox = lefBBox;
 	    lefMacro->cd_flags |= CDFIXEDBBOX;
+	    propval = (char *)mallocMagic(40);
+	    sprintf(propval, "%d %d %d %d",
+		    lefBBox.r_xbot, lefBBox.r_ybot,
+		    lefBBox.r_xtop, lefBBox.r_ytop);
+	    DBPropPut(lefMacro, "FIXED_BBOX", propval);
 	}
     }
     else
     {
 	DBAdjustLabelsNew(lefMacro, &TiPlaneRect, 1);
 
-	if (!has_size)
+	if (has_size)
 	{
-	    LefError("   Macro does not define size:  computing from geometry\n");
-	    DBReComputeBbox(lefMacro);
+	    lefMacro->cd_flags |= CDFIXEDBBOX;
+	    propval = (char *)mallocMagic(40);
+	    sprintf(propval, "%d %d %d %d",
+		    lefBBox.r_xbot, lefBBox.r_ybot,
+		    lefBBox.r_xtop, lefBBox.r_ytop);
+	    DBPropPut(lefMacro, "FIXED_BBOX", propval);
 	}
 	else
 	{
-            char *propstr = (char *)mallocMagic(64);
-	    int reducer = DBCellFindScale(lefMacro);
+	    LefError("   Macro does not define size:  computing from geometry\n");
 
-	    lefMacro->cd_bbox = lefBBox;
-	    lefMacro->cd_extended = lefBBox;
+	    /* Set the placement bounding box property to the current bounding box */
+	    lefMacro->cd_flags |= CDFIXEDBBOX;
+	    propval = (char *)mallocMagic(40);
+	    sprintf(propval, "%d %d %d %d",
+		    lefMacro->cd_bbox.r_xbot,
+		    lefMacro->cd_bbox.r_ybot,
+		    lefMacro->cd_bbox.r_xtop,
+		    lefMacro->cd_bbox.r_ytop);
+	    DBPropPut(lefMacro, "FIXED_BBOX", propval);
+	    DRCCheckThis(lefMacro, TT_CHECKPAINT, &lefMacro->cd_bbox);
 	}
-
-	/* Fix the bounding box and do not allow edits */
-	lefMacro->cd_flags |= /* CDNOEDIT | */ CDFIXEDBBOX;
-
-	DRCCheckThis(lefMacro, TT_CHECKPAINT, &lefMacro->cd_bbox);
     }
 
     /* Note:  The value here is ignored, setting to "TRUE".	*/
