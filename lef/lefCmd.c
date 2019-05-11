@@ -61,7 +61,7 @@ CmdLef(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    int option, i, cargs;
+    int option, i, cargs, units = 1000;	    /* Default nanometers */
     char **msg, *namep;
     CellUse *selectedUse;
     CellDef *selectedDef;
@@ -219,6 +219,25 @@ CmdLef(w, cmd)
 			else
 			    TxPrintf("The \"-hide\" option is only for lef write\n");
 		    }
+		    else if (!strncmp(cmd->tx_argv[i], "-units", 5))
+		    {
+			if (is_lef)
+			    TxPrintf("The \"-units\" option is only for def write\n");
+			else
+			{
+			    i++;
+			    cargs--;
+			    if ((cmd->tx_argc < i) || (!StrIsInt(cmd->tx_argv[i])))
+			    {
+				TxPrintf("The \"-units\" option requires an argument.\n");
+			    }
+			    else
+			    {
+				units = atoi(cmd->tx_argv[i]);
+				// To do:  Check range of units
+			    }
+			}
+		    }
 		    else goto wrongNumArgs;
 		    cargs--;
 		}
@@ -236,7 +255,7 @@ CmdLef(w, cmd)
 	    else
 		namep = cmd->tx_argv[2];
 	    if (!is_lef)
-		DefWriteCell(selectedUse->cu_def, namep, allSpecial);
+		DefWriteCell(selectedUse->cu_def, namep, allSpecial, units);
 	    else
 		LefWriteCell(selectedUse->cu_def, namep, selectedUse->cu_def
 			== EditRootDef, lefTech, lefHide);
