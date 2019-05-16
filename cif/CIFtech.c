@@ -1846,6 +1846,24 @@ CIFTechFinal()
 	}
     }
 
+    /* Added by Tim, 5/16/19					*/
+    /* Layers that depend on hierarchically generated layers	*/
+    /* (i.e., templayers) must themselves be hierarchically	*/
+    /* processed.						*/
+
+    for (i = 0; i < style->cs_nLayers; i++)
+    {
+	TileTypeBitMask ourDepend, mmask;
+
+	ourDepend = DBZeroTypeBits;
+	for (op = style->cs_layers[i]->cl_ops; op != NULL; op = op->co_next)
+	    TTMaskSetMask(&ourDepend, &op->co_cifMask);
+
+	TTMaskAndMask3(&mmask, &ourDepend, &style->cs_hierLayers);
+	if (!TTMaskIsZero(&mmask))
+	    TTMaskSetType(&style->cs_hierLayers, i);
+    }
+
     /* Added by Tim, 10/18/04					*/
 
     /* Go through the layer operators looking for those that	*/
