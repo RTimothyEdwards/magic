@@ -1411,7 +1411,7 @@ CmdWire(w, cmd)
 		else
 		{
 		    width = DRCGetDefaultLayerWidth(type);
-		    WireAddContact(type, width);
+		    WireAddContact(type, (WireWidth < width) ? width : WireWidth);
 		}
 	    }
 	    else if (!strcmp(cmd->tx_argv[2], "width"))

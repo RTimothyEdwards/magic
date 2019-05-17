@@ -816,22 +816,22 @@ WireAddContact(newType, newWidth)
     switch (oldDir)
     {
 	case GEO_NORTH:
-	    i = contactArea.r_ytop - totalSize;
+	    i = contactArea.r_ytop - WireWidth;
 	    if (i > contactArea.r_ybot)
 		contactArea.r_ybot = i;
 	    break;
 	case GEO_SOUTH:
-	    i = contactArea.r_ybot + totalSize;
+	    i = contactArea.r_ybot + WireWidth;
 	    if (i < contactArea.r_ytop)
 		contactArea.r_ytop = i;
 	    break;
 	case GEO_EAST:
-	    i = contactArea.r_xtop - totalSize;
+	    i = contactArea.r_xtop - WireWidth;
 	    if (i > contactArea.r_xbot)
 		contactArea.r_xbot = i;
 	    break;
 	case GEO_WEST:
-	    i = contactArea.r_xbot + totalSize;
+	    i = contactArea.r_xbot + WireWidth;
 	    if (i < contactArea.r_xtop)
 		contactArea.r_xtop = i;
 	    break;
