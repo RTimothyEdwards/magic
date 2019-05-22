@@ -404,6 +404,8 @@ calmaDumpStructure(def, cellstart, outf, calmaDefHash, filename)
     {
 	/* Structure is defined more than once */
 	TxError("Structure %s defined redundantly in GDS\n", strname);
+	/* To be considered:  Should the structure be output more than once? */
+	calmaOutStringRecord(CALMA_STRNAME, newnameptr, outf);
     }
     else if (!strcmp(strname, def->cd_name))
     {
