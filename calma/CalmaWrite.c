@@ -2757,16 +2757,17 @@ calmaOutStringRecord(type, str, f)
     /*
      * Make sure length is even.
      * Output at most CALMANAMELENGTH characters.
+     * If the name is longer than CALMANAMELENGTH, then output the
+     * last CALMANAMELENGTH characters (since cell names are more
+     * likely to be unique in the last characters than in the first
+     * characters).
      */
     if (len & 01) len++;
     if (len > CALMANAMELENGTH)
     {
-	char csav;
 	TxError("Warning:  Cellname %s truncated ", str);
-	csav = *(str + 32);
-	*(str + 32) = '\0';
-	TxError("to %32s (GDS format limit)\n", str);
-	*(str + 32) = csav;
+	TxError("to %s (GDS format limit)\n", str + len - CALMANAMELENGTH);
+	locstr = str + len - CALMANAMELENGTH;
 	len = CALMANAMELENGTH;
     }
     calmaOutI2(len+4, f);	/* Record length */
