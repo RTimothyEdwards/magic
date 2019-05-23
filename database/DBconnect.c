@@ -689,30 +689,71 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 	CellDef *orig_def = scx->scx_use->cu_def;
 	Label *slab;
 	int lidx = lab->lab_flags & PORT_NUM_MASK;
+	TileTypeBitMask *connectMask;
 
 	/* Check for equivalent ports. For any found, call	*/
 	/* DBTreeSrTiles recursively on the type and area	*/
 	/* of the label.					*/
 
+	/* Don't recurse, just add area to the csa2_list.       */
+	/* Only add the next label found to the list.  If there	*/
+	/* are more equivalent ports, they will be found when	*/
+	/* processing this label's area.			*/
+
 	for (slab = orig_def->cd_labels; slab != NULL; slab = slab->lab_next)
 	    if ((slab->lab_flags & PORT_DIR_MASK) && (slab != lab))
 		if ((slab->lab_flags & PORT_NUM_MASK) == lidx)
 		{
-		    SearchContext scx2 = *csa2->csa2_topscx;
-		    TileTypeBitMask mask;
+		    Rect newarea;
+		    int pNum;
 
 		    // Do NOT go searching on labels connected to space!
 		    if (slab->lab_type == TT_SPACE) continue;
-		    TTMaskSetOnlyType(&mask, slab->lab_type);
-		    GeoTransRect(&scx->scx_trans, &slab->lab_rect, &scx2.scx_area);
 
-		    // Expand search area by 1 to capture edge and point labels.
-		    scx2.scx_area.r_xbot--;
-		    scx2.scx_area.r_xtop++;
-		    scx2.scx_area.r_ybot--;
-		    scx2.scx_area.r_ytop++;
-		    DBTreeSrTiles(&scx2, &mask, csa2->csa2_xMask,
-				dbcConnectFunc, (ClientData) csa2);
+		    GeoTransRect(&scx->scx_trans, &slab->lab_rect, &newarea);
+
+		    // Avoid infinite looping.  If material under the label
+		    // has already been added to the destination, then ignore.
+
+		    connectMask = &csa2->csa2_connect[slab->lab_type];
+
+		    pNum = DBPlane(slab->lab_type);
+		    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[pNum],
+				&newarea, connectMask, dbcUnconnectFunc,
+				(ClientData) NULL) == 1)
+		        continue;
+
+		    newarea.r_xbot--;
+		    newarea.r_xtop++;
+		    newarea.r_ybot--;
+		    newarea.r_ytop++;
+
+		    /* Register the area and connection mask as needing to be processed */
+
+		    if (++csa2->csa2_top == csa2->csa2_size)
+		    {
+		        /* Reached list size limit---need to enlarge the list      */
+		        /* Double the size of the list every time we hit the limit */
+
+		        conSrArea *newlist;
+		        int i, lastsize = csa2->csa2_size;
+
+		        csa2->csa2_size *= 2;
+
+		        newlist = (conSrArea *)mallocMagic(csa2->csa2_size
+					* sizeof(conSrArea));
+		        memcpy((void *)newlist, (void *)csa2->csa2_list,
+					(size_t)lastsize * sizeof(conSrArea));
+		        freeMagic((char *)csa2->csa2_list);
+		        csa2->csa2_list = newlist;
+		    }
+
+		    csa2->csa2_list[csa2->csa2_top].area = newarea;
+		    csa2->csa2_list[csa2->csa2_top].connectMask = connectMask;
+		    csa2->csa2_list[csa2->csa2_top].dinfo = 0;
+
+		    /* See above:  Process only one equivalent port at a time */
+		    break;
 		}
     }
     return 0;
@@ -809,34 +850,12 @@ dbcConnectFunc(tile, cx)
 
     if (DBIsContact(loctype))
     {
-//	TileType ctype;
-//	TileTypeBitMask *cMask, *rMask = DBResidueMask(loctype);
-
-//	TTMaskSetOnlyType(&notConnectMask, loctype);
-
 	/* Different contact types may share residues (6/18/04) */
 	/* Use TTMaskIntersect(), not TTMaskEqual()---types	*/
 	/* which otherwise stack may be in separate cells	*/
 	/* (12/1/05)						*/
 
-//	for (ctype = TT_TECHDEPBASE; ctype < DBNumUserLayers; ctype++)
-//	{
-//	    if (DBIsContact(ctype))
-//	    {
-//		cMask = DBResidueMask(ctype);
-//		if (TTMaskIntersect(rMask, cMask))
-//		    TTMaskSetType(&notConnectMask, ctype);
-//	    }
-//	}
-
 	/* The mask of contact types must include all stacked contacts */
-//	for (ctype = DBNumUserLayers; ctype < DBNumTypes; ctype++)
-//	{
-//	    cMask = DBResidueMask(ctype);
-//	    if (TTMaskHasType(cMask, loctype))
-//		TTMaskSetType(&notConnectMask, ctype);
-//	}
-//	TTMaskCom(&notConnectMask);
 
 	TTMaskZero(&notConnectMask);
 	TTMaskSetMask(&notConnectMask, &DBNotConnectTbl[loctype]);
@@ -863,43 +882,6 @@ dbcConnectFunc(tile, cx)
     DBNMPaintPlane(def->cd_planes[pNum], dinfo,
 		&newarea, DBStdPaintTbl(loctype, pNum),
 		(PaintUndoInfo *) NULL);
-
-    /* Check the source def for any labels belonging to this	*/
-    /* tile area and plane, and add them to the destination.	*/
-
-    searchtype = TF_LABEL_ATTACH;
-    if (IsSplit(tile))
-    {
-	/* If the tile is split, then labels attached to the	*/
-	/* opposite point of the triangle are NOT connected.	*/
-
-	if (SplitSide(tile))
-	{
-	    if (SplitDirection(tile))
-		searchtype |= TF_LABEL_ATTACH_NOT_SW;
-	    else
-		searchtype |= TF_LABEL_ATTACH_NOT_NW;
-	}
-	else
-	{
-	    if (SplitDirection(tile))
-		searchtype |= TF_LABEL_ATTACH_NOT_NE;
-	    else
-		searchtype |= TF_LABEL_ATTACH_NOT_SE;
-	}
-    }
-
-    /* Note that the search must be done from the top since zero-size	*/
-    /* port labels can be on any part of the hierarchy with no paint	*/
-    /* underneath in its own cell to trigger the callback function.	*/
-
-    /* Copy information from top search context into new search context */
-    scx2 = *csa2->csa2_topscx;
-    scx2.scx_area = newarea;
-
-    DBTreeSrLabels(&scx2, connectMask, csa2->csa2_xMask, NULL,
-			searchtype, dbcConnectLabelFunc,
-			(ClientData) csa2);
 
     /* Since the whole area of this tile hasn't been recorded,
      * we must process its area to find any other tiles that
@@ -947,12 +929,6 @@ dbcConnectFunc(tile, cx)
 	newlist = (conSrArea *)mallocMagic(csa2->csa2_size * sizeof(conSrArea));
 	memcpy((void *)newlist, (void *)csa2->csa2_list,
 			(size_t)lastsize * sizeof(conSrArea));
-	// for (i = 0; i < lastsize; i++)
-	// {
-	//     newlist[i].area = csa2->csa2_list[i].area;
-	//     newlist[i].connectMask = csa2->csa2_list[i].connectMask;
-	//     newlist[i].dinfo = csa2->csa2_list[i].dinfo;
-	// }
 	freeMagic((char *)csa2->csa2_list);
 	csa2->csa2_list = newlist;
     }
@@ -1023,6 +999,7 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, destUse)
     struct conSrArg2 csa2;
     TileTypeBitMask *newmask;
     TileType newtype;
+    unsigned char searchtype;
 
     csa2.csa2_use = destUse;
     csa2.csa2_xMask = xMask;
@@ -1052,6 +1029,38 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, destUse)
 			(ClientData) &csa2);
 	else
 	    DBTreeSrTiles(scx, newmask, xMask, dbcConnectFunc, (ClientData) &csa2);
+
+	/* Check the source def for any labels belonging to this        */
+	/* tile area and plane, and add them to the destination.        */
+
+	/* (This code previously in dbcConnectFunc, but moved to avoid	*/
+	/* running the cell search from the top within another cell	*/
+	/* search, which creates deep stacks and can trigger stack	*/
+	/* overflow.)							*/
+
+	searchtype = TF_LABEL_ATTACH;
+	if (newtype & TT_DIAGONAL)
+	{
+	    /* If the tile is split, then labels attached to the        */
+	    /* opposite point of the triangle are NOT connected.        */
+
+        if (newtype & TT_SIDE)
+        {
+	    if (newtype & TT_DIRECTION)
+	        searchtype |= TF_LABEL_ATTACH_NOT_SW;
+	    else
+	        searchtype |= TF_LABEL_ATTACH_NOT_NW;
+	    }
+	    else
+	    {
+	    if (newtype & TT_DIRECTION)
+	        searchtype |= TF_LABEL_ATTACH_NOT_NE;
+	    else
+	        searchtype |= TF_LABEL_ATTACH_NOT_SE;
+	    }
+	}
+	DBTreeSrLabels(scx, newmask, xMask, NULL, searchtype,
+			dbcConnectLabelFunc, (ClientData) &csa2);
     }
     freeMagic((char *)csa2.csa2_list);
 

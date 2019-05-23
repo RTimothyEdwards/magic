@@ -288,6 +288,7 @@ calmaParseStructure(filename)
     int mfactor;
     off_t filepos;
     bool was_called;
+    bool was_initialized;
     CellDef *def;
 
     /* Make sure this is a structure; if not, let the caller know we're done */
@@ -296,7 +297,8 @@ calmaParseStructure(filename)
 	return (FALSE);
 
     /* Read the structure name */
-    if (!calmaSkipExact(CALMA_BGNSTR)) goto syntaxerror;;
+    was_initialized = FALSE;
+    if (!calmaSkipExact(CALMA_BGNSTR)) goto syntaxerror;
     if (!calmaReadStringRecord(CALMA_STRNAME, &strname)) goto syntaxerror;
     TxPrintf("Reading \"%s\".\n", strname);
 
@@ -354,6 +356,7 @@ calmaParseStructure(filename)
 
     /* Initialize the hash table for layer errors */
     HashInit(&calmaLayerHash, 32, sizeof (CalmaLayerType) / sizeof (unsigned));
+    was_initialized = TRUE;
 
     /* Body of structure: a sequence of elements */
     osrefs = nsrefs = 0;
@@ -466,7 +469,7 @@ done:
 
     /* Syntax error: skip to CALMA_ENDSTR */
 syntaxerror:
-    HashKill(&calmaLayerHash);
+    if (was_initialized == TRUE) HashKill(&calmaLayerHash);
     return (calmaSkipTo(CALMA_ENDSTR));
 }
 
