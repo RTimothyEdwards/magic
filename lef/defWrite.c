@@ -1821,6 +1821,7 @@ defComponentFunc(cellUse, defdata)
 {
     FILE *f = defdata->f;
     float oscale = defdata->scale;
+    char *nameroot;
 
     /* Ignore any cellUse that does not have an identifier string. */
     if (cellUse->cu_id == NULL) return 0;
@@ -1831,8 +1832,17 @@ defComponentFunc(cellUse, defdata)
 	return 0;
     }
 
+    /* In case the cd_name contains a path component (it's not supposed to),	*/
+    /* remove it.								*/
+
+    nameroot = strrchr(cellUse->cu_def->cd_name, '/');
+    if (nameroot != NULL)
+	nameroot++;
+    else
+	nameroot = cellUse->cu_def->cd_name;
+
     fprintf(f, "   - %s %s\n      + PLACED ( %.10g %.10g ) %s ;\n",
-	cellUse->cu_id, cellUse->cu_def->cd_name,
+	cellUse->cu_id, nameroot,
 	(float)cellUse->cu_bbox.r_xbot * oscale,
 	(float)cellUse->cu_bbox.r_ybot * oscale,
 	defTransPos(&cellUse->cu_transform));
