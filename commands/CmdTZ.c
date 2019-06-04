@@ -1348,7 +1348,7 @@ CmdWire(w, cmd)
 	case DECREMENT:
 	    if (cmd->tx_argc != 3 && cmd->tx_argc != 4)
 		goto badargs;
-	    if (!strcmp(cmd->tx_argv[2], "type"))
+	    if (!strcmp(cmd->tx_argv[2], "type") || !strcmp(cmd->tx_argv[2], "layer"))
 	    {
 		Contact *contact;
 		type = TT_SPACE;
@@ -1371,7 +1371,7 @@ CmdWire(w, cmd)
 		else
 		{
 		    width = DRCGetDefaultLayerWidth(type);
-		    WireAddContact(type, width);
+		    WireAddContact(type, (WireWidth < width) ? width : WireWidth);
 		}
 	    }
 	    else if (!strcmp(cmd->tx_argv[2], "width"))
