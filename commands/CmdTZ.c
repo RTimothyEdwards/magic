@@ -1736,17 +1736,20 @@ CmdWriteall(w, cmd)
     int cmdWriteallFunc();
     static char *force[] = { "force", 0 };
     int argc;
+    int flags = CDMODIFIED | CDBOXESCHANGED | CDSTAMPSCHANGED;
 
-    if ((cmd->tx_argc >= 2) && (Lookup(cmd->tx_argv[1], force) < 0))
+    if (cmd->tx_argc >= 2)
     {
-	TxError("Usage: %s [force [cellname ...]]\n", cmd->tx_argv[0]);
-	return;
+	flags = 0;
+	if (Lookup(cmd->tx_argv[1], force) < 0)
+	{
+	    TxError("Usage: %s [force [cellname ...]]\n", cmd->tx_argv[0]);
+	    return;
+	}
     }
-
     DBUpdateStamps();
     argc = cmd->tx_argc;
-    (void) DBCellSrDefs(CDMODIFIED|CDBOXESCHANGED|CDSTAMPSCHANGED,
-		cmdWriteallFunc, (ClientData)cmd);
+    (void) DBCellSrDefs(flags, cmdWriteallFunc, (ClientData)cmd);
     cmd->tx_argc = argc;
 }
 
