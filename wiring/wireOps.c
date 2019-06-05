@@ -706,6 +706,9 @@ WireShowLeg()
  * ----------------------------------------------------------------------------
  */
 
+#define WIRING_CONTACT_UP	1
+#define WIRING_CONTACT_DOWN	0
+
 void
 WireAddContact(newType, newWidth)
     TileType newType;		/* New type of material to use for wiring.
@@ -723,8 +726,9 @@ WireAddContact(newType, newWidth)
     CellDef *boxRootDef;
     TileType oldType;
     TileTypeBitMask mask, allmask;
-    int oldOverlap, newOverlap, oldExtend, newExtend;
-    int i, totalSize, oldDir;
+    int conSurround1, conSurround2, conExtend1, conExtend2, conSize;
+    int oldOverlap, newOverlap;
+    int i, totalSize, oldDir, updown;
     Contact *contact;
     SearchContext scx;
 
@@ -768,19 +772,39 @@ WireAddContact(newType, newWidth)
 	if ((contact->con_layer1 == oldType) &&
 		(contact->con_layer2 == WireType))
 	{
-	    oldOverlap = contact->con_surround1;
-	    newOverlap = contact->con_surround2;
-	    oldExtend = contact->con_extend1;
-	    newExtend = contact->con_extend2;
+	    conSurround1 = contact->con_surround1 / WireUnits;
+	    if ((contact->con_surround1 % WireUnits) != 0) conSurround1++;
+	    conSurround2 = contact->con_surround2 / WireUnits;
+	    if ((contact->con_surround2 % WireUnits) != 0) conSurround2++;
+	    conExtend1 = contact->con_extend1 / WireUnits;
+	    if ((contact->con_extend1 % WireUnits) != 0) conExtend1++;
+	    conExtend2 = contact->con_extend2 / WireUnits;
+	    if ((contact->con_extend2 % WireUnits) != 0) conExtend2++;
+	    conSize = contact->con_size / WireUnits;
+	    if ((contact->con_size % WireUnits) != 0) conSize++;
+
+	    oldOverlap = conSurround1;
+	    newOverlap = conSurround2;
+	    updown = WIRING_CONTACT_UP;
 	    goto gotContact;
 	}
 	if ((contact->con_layer2 == oldType) &&
 		(contact->con_layer1 == WireType))
 	{
-	    oldOverlap = contact->con_surround2;
-	    newOverlap = contact->con_surround1;
-	    oldExtend = contact->con_extend2;
-	    newExtend = contact->con_extend1;
+	    conSurround1 = contact->con_surround1 / WireUnits;
+	    if ((contact->con_surround1 % WireUnits) != 0) conSurround1++;
+	    conSurround2 = contact->con_surround2 / WireUnits;
+	    if ((contact->con_surround2 % WireUnits) != 0) conSurround2++;
+	    conExtend1 = contact->con_extend1 / WireUnits;
+	    if ((contact->con_extend1 % WireUnits) != 0) conExtend1++;
+	    conExtend2 = contact->con_extend2 / WireUnits;
+	    if ((contact->con_extend2 % WireUnits) != 0) conExtend2++;
+	    conSize = contact->con_size / WireUnits;
+	    if ((contact->con_size % WireUnits) != 0) conSize++;
+
+	    oldOverlap = conSurround2;
+	    newOverlap = conSurround1;
+	    updown = WIRING_CONTACT_DOWN;
 	    goto gotContact;
 	}
     }
@@ -798,7 +822,8 @@ WireAddContact(newType, newWidth)
      */
 
     gotContact:
-    totalSize = contact->con_size + 2 * oldOverlap;
+    totalSize = conSize + 2 * oldOverlap;
+    if (totalSize < WireWidth) totalSize = WireWidth;
     contactArea = oldLeg;
     if ((contactArea.r_xtop - contactArea.r_xbot) < totalSize)
     {
@@ -816,22 +841,22 @@ WireAddContact(newType, newWidth)
     switch (oldDir)
     {
 	case GEO_NORTH:
-	    i = contactArea.r_ytop - WireWidth;
+	    i = contactArea.r_ytop - totalSize;
 	    if (i > contactArea.r_ybot)
 		contactArea.r_ybot = i;
 	    break;
 	case GEO_SOUTH:
-	    i = contactArea.r_ybot + WireWidth;
+	    i = contactArea.r_ybot + totalSize;
 	    if (i < contactArea.r_ytop)
 		contactArea.r_ytop = i;
 	    break;
 	case GEO_EAST:
-	    i = contactArea.r_xtop - WireWidth;
+	    i = contactArea.r_xtop - totalSize;
 	    if (i > contactArea.r_xbot)
 		contactArea.r_xbot = i;
 	    break;
 	case GEO_WEST:
-	    i = contactArea.r_xbot + WireWidth;
+	    i = contactArea.r_xbot + totalSize;
 	    if (i < contactArea.r_xtop)
 		contactArea.r_xtop = i;
 	    break;
@@ -844,23 +869,23 @@ WireAddContact(newType, newWidth)
     TTMaskSetOnlyType(&mask, contact->con_type);
     TTMaskSetOnlyType(&allmask, contact->con_type);
     DBPaintValid(EditCellUse->cu_def, &tmp, &mask, 0);
-    if (contact->con_surround1 != 0)
+    if (conSurround1 != 0)
     {
 	TTMaskSetOnlyType(&mask, contact->con_layer1);
 	TTMaskSetType(&allmask, contact->con_layer1);
-	GEO_EXPAND(&tmp, contact->con_surround1, &tmp2);
+	GEO_EXPAND(&tmp, conSurround1, &tmp2);
 	(void) GeoInclude(&tmp2, &editArea);
 	DBPaintValid(EditCellUse->cu_def, &tmp2, &mask, 0);
     }
-    if (contact->con_surround2 != 0)
+    if (conSurround2 != 0)
     {
 	TTMaskSetOnlyType(&mask, contact->con_layer2);
 	TTMaskSetType(&allmask, contact->con_layer2);
-	GEO_EXPAND(&tmp, contact->con_surround2, &tmp2);
+	GEO_EXPAND(&tmp, conSurround2, &tmp2);
 	(void) GeoInclude(&tmp2, &editArea);
 	DBPaintValid(EditCellUse->cu_def, &tmp2, &mask, 0);
     }
-    if (contact->con_extend1 != 0)
+    if (conExtend1 != 0)
     {
 	TTMaskSetOnlyType(&mask, contact->con_layer1);
 	TTMaskSetType(&allmask, contact->con_layer1);
@@ -869,19 +894,41 @@ WireAddContact(newType, newWidth)
 	{
 	    case GEO_NORTH:
 	    case GEO_SOUTH:
-		tmp2.r_ybot -= contact->con_extend1;
-		tmp2.r_ytop += contact->con_extend1;
+		if (updown == WIRING_CONTACT_UP)
+		{
+		    tmp2.r_ybot -= conExtend1;
+		    tmp2.r_ytop += conExtend1;
+		    tmp2.r_xbot -= conSurround1;
+		    tmp2.r_xtop += conSurround1;
+		}
+		else {
+		    tmp2.r_xbot -= conExtend1;
+		    tmp2.r_xtop += conExtend1;
+		    tmp2.r_ybot -= conSurround1;
+		    tmp2.r_ytop += conSurround1;
+		}
 		break;
 	    case GEO_EAST:
 	    case GEO_WEST:
-		tmp2.r_xbot -= contact->con_extend1;
-		tmp2.r_xtop += contact->con_extend1;
+		if (updown == WIRING_CONTACT_UP)
+		{
+		    tmp2.r_xbot -= conExtend1;
+		    tmp2.r_xtop += conExtend1;
+		    tmp2.r_ybot -= conSurround1;
+		    tmp2.r_ytop += conSurround1;
+		}
+		else {
+		    tmp2.r_ybot -= conExtend1;
+		    tmp2.r_ytop += conExtend1;
+		    tmp2.r_xbot -= conSurround1;
+		    tmp2.r_xtop += conSurround1;
+		}
 		break;
 	}
 	(void) GeoInclude(&tmp2, &editArea);
 	DBPaintValid(EditCellUse->cu_def, &tmp2, &mask, 0);
     }
-    if (contact->con_extend2 != 0)
+    if (conExtend2 != 0)
     {
 	TTMaskSetOnlyType(&mask, contact->con_layer2);
 	TTMaskSetType(&allmask, contact->con_layer2);
@@ -890,13 +937,35 @@ WireAddContact(newType, newWidth)
 	{
 	    case GEO_NORTH:
 	    case GEO_SOUTH:
-		tmp2.r_xbot -= contact->con_extend2;
-		tmp2.r_xtop += contact->con_extend2;
+		if (updown == WIRING_CONTACT_UP)
+		{
+		    tmp2.r_xbot -= conExtend2;
+		    tmp2.r_xtop += conExtend2;
+		    tmp2.r_ybot -= conSurround2;
+		    tmp2.r_ytop += conSurround2;
+		}
+		else {
+		    tmp2.r_ybot -= conExtend2;
+		    tmp2.r_ytop += conExtend2;
+		    tmp2.r_xbot -= conSurround2;
+		    tmp2.r_xtop += conSurround2;
+		}
 		break;
 	    case GEO_EAST:
 	    case GEO_WEST:
-		tmp2.r_ybot -= contact->con_extend2;
-		tmp2.r_ytop += contact->con_extend2;
+		if (updown == WIRING_CONTACT_UP)
+		{
+		    tmp2.r_ybot -= conExtend2;
+		    tmp2.r_ytop += conExtend2;
+		    tmp2.r_xbot -= conSurround2;
+		    tmp2.r_xtop += conSurround2;
+		}
+		else {
+		    tmp2.r_xbot -= conExtend2;
+		    tmp2.r_xtop += conExtend2;
+		    tmp2.r_ybot -= conSurround2;
+		    tmp2.r_ytop += conSurround2;
+		}
 		break;
 	}
 	(void) GeoInclude(&tmp2, &editArea);
@@ -921,15 +990,15 @@ WireAddContact(newType, newWidth)
 	scx.scx_area = tmp;
 	TTMaskSetOnlyType(&mask, contact->con_type);
 	SelectArea(&scx, &mask, 0);
-	if (contact->con_surround1 != 0)
+	if (conSurround1 != 0)
 	{
-	    GEO_EXPAND(&tmp, contact->con_surround1, &scx.scx_area);
+	    GEO_EXPAND(&tmp, conSurround1, &scx.scx_area);
 	    TTMaskSetOnlyType(&mask, contact->con_layer1);
 	    SelectArea(&scx, &mask, 0);
 	}
-	if (contact->con_surround2 != 0)
+	if (conSurround2 != 0)
 	{
-	    GEO_EXPAND(&tmp, contact->con_surround2, &scx.scx_area);
+	    GEO_EXPAND(&tmp, conSurround2, &scx.scx_area);
 	    TTMaskSetOnlyType(&mask, contact->con_layer2);
 	    SelectArea(&scx, &mask, 0);
 	}

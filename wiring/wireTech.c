@@ -37,6 +37,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Linked list to store contact information collected by this module: */
 Contact *WireContacts;
+int WireUnits;		    // Units per lambda for wiring sizes
 
 
 /*
@@ -65,6 +66,7 @@ WireTechInit()
 	freeMagic((char *) WireContacts);
 	WireContacts = WireContacts->con_next;
     }
+    WireUnits = 1;
 }
 
 /*
@@ -92,6 +94,21 @@ WireTechLine(sectionName, argc, argv)
 {
     Contact *new;
     int hasExtend = 0;
+
+    if (!strcmp(argv[0], "scalefactor"))
+    {
+	if (argc != 2)
+	{
+	    TechError("\"scalefactor\" line must have exactly 2 arguments.\n");
+	    return TRUE;
+	}
+	if (!StrIsInt(argv[1]))
+	{
+	    TechError("\"scalefactor\" argument must be an integer.\n");
+	    return TRUE;
+	}
+	WireUnits = atoi(argv[1]);
+    }
 
     if (strcmp(argv[0], "contact") != 0)
     {
