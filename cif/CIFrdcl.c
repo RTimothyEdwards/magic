@@ -559,13 +559,15 @@ cifCopyPaintFunc(tile, cifCopyRec)
 int
 CIFPaintCurrent()
 {
+    extern int cifMakeBoundaryFunc();	/* Forward declaration. */
+    extern int cifPaintCurrentFunc();	/* Forward declaration. */
+
     Plane *plane, *swapplane;
     int i;
 
     for (i = 0; i < cifCurReadStyle->crs_nLayers; i++)
     {
 	TileType type;
-	extern int cifPaintCurrentFunc();	/* Forward declaration. */
 	CIFOp *op;
 
 	plane = CIFGenLayer(cifCurReadStyle->crs_layers[i]->crl_ops,
@@ -641,6 +643,23 @@ CIFPaintCurrent()
 		    }
 		}
 	    }
+	    else if (op == NULL)
+	    {
+		/* Handle boundary layer */
+
+		op = cifCurReadStyle->crs_layers[i]->crl_ops;
+		while (op)
+		{
+		    if (op->co_opcode == CIFOP_BOUNDARY) break;
+		    op = op->co_next;
+		}
+
+		if (op && (DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
+			&DBAllButSpaceBits, cifCheckPaintFunc,
+			(ClientData)NULL) == 1))
+		    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
+			&CIFSolidBits, cifMakeBoundaryFunc, (ClientData)NULL);
+	    }
 
 	    /* Swap planes */
 	    swapplane = cifCurReadPlanes[type];
@@ -652,8 +671,8 @@ CIFPaintCurrent()
 	    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
 			&CIFSolidBits, cifPaintCurrentFunc,
 			(ClientData)type);
-	}
-	
+	}	
+
 	/* Recycle the plane, which was dynamically allocated. */
 
 	DBFreePaintPlane(plane);
@@ -668,9 +687,34 @@ CIFPaintCurrent()
     return 0;
 }
 
-/* Below is the search function invoked for each CIF tile type
- * found for the current layer.
- */
+/* Use CIF layer geometry to define a fixed bounding box for the current cell */
+
+int
+cifMakeBoundaryFunc(tile, clientdata)
+    Tile *tile;			/* Tile of CIF information. */
+    ClientData clientdata;	/* Not used */
+{
+    /* It is assumed that there is one rectangle for the boundary.  */
+    /* If there are multiple rectangles defined with the boundary   */
+    /* layer, then the last one defines the FIXED_BBOX property.    */
+
+    Rect area;
+    char propertyvalue[128], *storedvalue;
+
+    TiToRect(tile, &area);
+
+    if (cifReadCellDef->cd_flags & CDFIXEDBBOX)
+	CIFReadError("Warning:  Cell %s boundary was redefined.\n",
+		    cifReadCellDef->cd_name);
+
+    sprintf(propertyvalue, "%d %d %d %d",
+	    area.r_xbot, area.r_ybot, area.r_xtop, area.r_ytop);
+    storedvalue = StrDup((char **)NULL, propertyvalue);
+    DBPropPut(cifReadCellDef, "FIXED_BBOX", storedvalue);
+    cifReadCellDef->cd_flags |= CDFIXEDBBOX;
+}
+
+/* Paint CIF layer geometry into the current cell def as magic layer "type"	*/
 
 int
 cifPaintCurrentFunc(tile, type)

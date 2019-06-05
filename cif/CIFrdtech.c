@@ -62,9 +62,6 @@ CIFOp *cifCurReadOp;			/* Last geometric operation seen. */
 void cifReadStyleInit();
 void CIFReadLoadStyle();
 
-/* Label types used by the "labels" statement option */
-typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT } labelType;
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -858,6 +855,8 @@ CIFReadTechLine(sectionName, argc, argv)
 		    calmaLabelType = LABEL_TYPE_TEXT;
 		else if (!strcmp(argv[2], "port"))
 		    calmaLabelType = LABEL_TYPE_PORT;
+		else if (!strncmp(argv[2], "cell", 4))
+		    calmaLabelType = LABEL_TYPE_CELLID;
 		else
 		    goto wrongNumArgs;
 	    }
@@ -952,6 +951,8 @@ CIFReadTechLine(sectionName, argc, argv)
 	newOp->co_opcode = CIFOP_SHRINK;
     else if (strcmp(argv[0], "copyup") == 0)
 	newOp->co_opcode = CIFOP_COPYUP;
+    else if (strcmp(argv[0], "boundary") == 0)
+	newOp->co_opcode = CIFOP_BOUNDARY;
     else
     {
 	TechError("Unknown statement \"%s\".\n", argv[0]);
@@ -967,7 +968,6 @@ CIFReadTechLine(sectionName, argc, argv)
 	    if (argc != 2) goto wrongNumArgs;
 	    CIFParseReadLayers(argv[1], &newOp->co_cifMask);
 	    break;
-	
 	case CIFOP_GROW:
 	case CIFOP_GROW_G:
 	case CIFOP_SHRINK:

@@ -54,8 +54,8 @@ typedef struct
  *		the "crl_magicType" should be interpreted as a CIF layer.
  */
 
-#define CIFR_SIMPLE 1
-#define CIFR_TEMPLAYER 2
+#define CIFR_SIMPLE	1
+#define CIFR_TEMPLAYER	2
 
 /* The following structure defines a complete CIF read-in style.
  * The constant MAXCIFRLAYERS must be less than TT_MAXTYPES, and

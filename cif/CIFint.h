@@ -121,6 +121,8 @@ typedef struct cifop
  *			the cell bounding box.  This involves no magic type
  *			layers but may itself be acted upon with grow/shrink
  *			rules.
+ * CIFOP_BOUNDARY -	Added 6/5/19---map the FIXED_BBOX property bounding
+ *			box coordinates into CIF layer geometry.
  * CIFOP_NET -		Added 11/3/08---pull an entire electrical net into
  *			the CIF layer, selectively picking layers.
  * CIFOP_MAXRECT -	Reduce all areas to the largest internal fitting
@@ -144,9 +146,10 @@ typedef struct cifop
 #define CIFOP_ANDNOT	12
 #define CIFOP_SQUARES_G	13
 #define CIFOP_BBOX	14
-#define CIFOP_NET	15
-#define CIFOP_MAXRECT	16
-#define CIFOP_COPYUP	17
+#define CIFOP_BOUNDARY	15
+#define CIFOP_NET	16
+#define CIFOP_MAXRECT	17
+#define CIFOP_COPYUP	18
 
 /* Added by Tim 10/21/2004 */
 /* The following structure is used to pass information on how to draw
