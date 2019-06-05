@@ -1604,10 +1604,18 @@ origin_error:
 	}
     }
 
+    /* Note:  When the LEF view is used to annotate an		*/
+    /* existing GDS view, then the view is not considered	*/
+    /* "abstract";  otherwise, writing GDS output gets very	*/
+    /* complicated and inefficient.				*/
+
     /* Note:  The value here is ignored, setting to "TRUE".	*/
     /* The "extract" command only cares that the key exists.	*/
+    /* i.e., setting it to "FALSE" would be ineffective.	*/
 
-    DBPropPut(lefMacro, "LEFview", StrDup((char **)NULL, "TRUE"));
+    if (!is_imported)
+	DBPropPut(lefMacro, "LEFview", StrDup((char **)NULL, "TRUE"));
+
     DBWAreaChanged(lefMacro, &lefMacro->cd_bbox, DBW_ALLWINDOWS,
 		&DBAllButSpaceBits);
 }
