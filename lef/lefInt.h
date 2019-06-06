@@ -131,7 +131,18 @@ TileType LefReadLayer();
 
 LefMapping *defMakeInverseLayerMap();
 
-void LefError(char *, ...);	/* Variable argument procedure requires */
-				/* parameter list.			*/
+void LefError(int, char *, ...);	/* Variable argument procedure requires */
+					/* parameter list.			*/
+
+/* Definitions for type passed to LefError() */
+
+#define LEF_ERROR	0
+#define LEF_WARNING	1
+#define LEF_INFO	2
+#define LEF_SUMMARY	3
+#define DEF_ERROR	4
+#define DEF_WARNING	5
+#define DEF_INFO	6
+#define DEF_SUMMARY	7
 
 #endif /* _LEFINT_H */

@@ -115,6 +115,7 @@ LefTechInit()
 	HashKill(&LefInfo);
     }
     HashInit(&LefInfo, 32, HT_STRINGKEYS);
+    lefCurrentLine = -1;
 }
 
 /*
@@ -252,17 +253,17 @@ LefTechLine(sectionName, argc, argv)
 
 	if (i == 0)
 	{
-	    LefError("Bad magic layer type \"%s\" in LEF layer definition.\n", argv[1]);
+	    TechError("Bad magic layer type \"%s\" in LEF layer definition.\n", argv[1]);
 	    return TRUE;
 	}
 	else if ((i == 2) && (option != LEFTECH_OBS))
 	{
-	    LefError("Can only define multiple types for via obstruction layers.\n");
+	    TechError("Can only define multiple types for via obstruction layers.\n");
 	    return TRUE;
 	}
 	else if (i > 2)
 	{
-	    LefError("Too many types in LEF layer definition.\n");
+	    TechError("Too many types in LEF layer definition.\n");
 	    return TRUE;
 	}
 
