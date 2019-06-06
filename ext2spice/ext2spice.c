@@ -1685,6 +1685,7 @@ topVisit(def, doStub)
 		EFNodeName *unnumbered;
 
 		sname = (EFNodeName *) HashGetValue(he);
+		if (sname == NULL) continue;	/* Should not happen */
 		snode = sname->efnn_node;
 
 		if (!(snode->efnode_flags & EF_PORT)) continue;
