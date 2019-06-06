@@ -130,6 +130,9 @@ typedef struct
 /* Length of record header */
 #define	CALMAHEADERLENGTH	4
 
+/* Label types */
+typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT, LABEL_TYPE_CELLID } labelType;
+
 /* ------------------------- Input macros ----------------------------- */
 
 /* Globals for Calma reading */

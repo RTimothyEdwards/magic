@@ -234,9 +234,10 @@ CIFParseFlash()
  */
 
 void
-CIFPropRecordPath(def, pathheadp, iswire)
+CIFPropRecordPath(def, pathheadp, iswire, propname)
     CellDef *def;
     CIFPath *pathheadp;
+    char *propname;
 {
     extern float CIFGetOutputScale();
     CIFPath *pathp;
@@ -273,7 +274,7 @@ CIFPropRecordPath(def, pathheadp, iswire)
 
     /* Reallocate pathstr to be no larger than needed to hold the path contents */
     StrDup(&pathstr, pathstr);
-    DBPropPut(def, "path", (ClientData)pathstr);
+    DBPropPut(def, propname, (ClientData)pathstr);
 }
 
 /*

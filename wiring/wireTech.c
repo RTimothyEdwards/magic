@@ -108,6 +108,7 @@ WireTechLine(sectionName, argc, argv)
 	    return TRUE;
 	}
 	WireUnits = atoi(argv[1]);
+	return TRUE;
     }
 
     if (strcmp(argv[0], "contact") != 0)

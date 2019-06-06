@@ -57,8 +57,6 @@ extern HashTable calmaDefInitHash;
 extern void calmaLayerError();
 bool calmaReadPath();
 
-typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT } labelType;
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -274,7 +272,6 @@ calmaElementBoundary()
 	}
     }
 
-    CIFPropRecordPath(cifReadCellDef, pathheadp, FALSE);
     rp = CIFPolyToRects(pathheadp, plane, CIFPaintTable, (PaintUndoInfo *)NULL);
     CIFFreePath(pathheadp);
 
@@ -300,7 +297,7 @@ calmaElementBoundary()
 	rpc.r_ytop /= calmaReadScale1;
 
 	if ((ciftype >= 0) &&
-		((cifCurReadStyle->crs_labelSticky[ciftype] != LABEL_TYPE_NONE)))
+		(cifCurReadStyle->crs_labelSticky[ciftype] != LABEL_TYPE_NONE))
 	{
 	    Label *lab;
 	    TileType type;
@@ -652,7 +649,7 @@ calmaElementPath()
 	    }
 	}
 
-	CIFPropRecordPath(cifReadCellDef, pathheadp, TRUE);
+	CIFPropRecordPath(cifReadCellDef, pathheadp, TRUE, "path");
 	CIFPaintWirePath(pathheadp, width,
 		(pathtype == CALMAPATH_SQUAREFLUSH || pathtype == CALMAPATH_CUSTOM) ?
 		FALSE : TRUE, plane, CIFPaintTable, (PaintUndoInfo *)NULL);
@@ -715,7 +712,7 @@ calmaElementText()
     cifnum = CIFCalmaLayerToCifLayer(layer, textt, cifCurReadStyle);
     if (cifnum < 0)
     {
-	if(cifCurReadStyle->crs_flags & CRF_IGNORE_UNKNOWNLAYER_LABELS) 
+	if (cifCurReadStyle->crs_flags & CRF_IGNORE_UNKNOWNLAYER_LABELS) 
 	    type = -1;
 	else {
 	    calmaLayerError("Label on unknown layer/datatype", layer, textt);
@@ -888,6 +885,12 @@ calmaElementText()
 	calmaReadError("Warning:  Ignoring empty string label at (%d, %d)\n",
 		r.r_ll.p_x * cifCurReadStyle->crs_scaleFactor,
 		r.r_ll.p_y * cifCurReadStyle->crs_scaleFactor);
+    }
+    else if (cifCurReadStyle->crs_labelSticky[cifnum] == LABEL_TYPE_CELLID)
+    {
+	/* Special handling of label layers marked "cellid" in the techfile. */
+	/* The actual cellname is the ID string, not the GDS structure name. */
+	DBCellRenameDef(cifReadCellDef, textbody);
     }
     else if (type < 0)
     {
