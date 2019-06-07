@@ -365,9 +365,8 @@ CalmaWrite(rootDef, f)
  */
 
 bool
-calmaDumpStructure(def, cellstart, outf, calmaDefHash, filename)
+calmaDumpStructure(def, outf, calmaDefHash, filename)
     CellDef *def;
-    off_t cellstart;
     FILE *outf;
     HashTable *calmaDefHash;
     char *filename;
@@ -593,10 +592,9 @@ syntaxerror:
  */
 
 void
-calmaFullDump(def, fi, cellstart, outf, filename)
+calmaFullDump(def, fi, outf, filename)
     CellDef *def;
     FILE *fi;
-    off_t cellstart;
     FILE *outf;
     char *filename;
 {
@@ -659,7 +657,7 @@ calmaFullDump(def, fi, cellstart, outf, filename)
     }
     HashSetValue(he, StrDup(NULL, uniqlibname));
 
-    while (calmaDumpStructure(def, cellstart, outf, &calmaDefHash, filename))
+    while (calmaDumpStructure(def, outf, &calmaDefHash, filename))
 	if (SigInterruptPending)
 	    goto done;
     calmaSkipExact(CALMA_ENDLIB);
@@ -813,7 +811,7 @@ calmaProcessDef(def, outf)
 
 	    he = HashLookOnly(&calmaLibHash, retfilename);
 	    if (he == NULL)
-		calmaFullDump(def, fi, cellstart, outf, retfilename);
+		calmaFullDump(def, fi, outf, retfilename);
 
 	    fclose(fi);
 	    def->cd_flags |= CDVENDORGDS;

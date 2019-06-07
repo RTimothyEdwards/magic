@@ -310,6 +310,7 @@ RtrChannelObstacles(use, ch)
     scx.scx_area.r_ytop += w * RtrGridSpacing + down;
     scx.scx_use = use;
     scx.scx_trans = GeoIdentityTransform;
+    TTMaskZero(&allObs);
     TTMaskSetMask3(&allObs, &RtrMetalObstacles, &RtrPolyObstacles);
     (void) DBTreeSrTiles(&scx, &allObs, 0, rtrChannelObstacleMark, (ClientData) ch);
 
