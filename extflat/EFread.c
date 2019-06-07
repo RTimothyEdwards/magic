@@ -174,7 +174,7 @@ efReadDef(def, dosubckt, resist, noscale, toplevel)
     int argc, ac, n;
     CellDef *dbdef;
     EFCapValue cap;
-    char line[1024], *argv[64], *name, *attrs;
+    char line[1024], *argv[128], *name, *attrs;
     int rscale = 1;	/* Multiply resistances by this */
     int cscale = 1;	/* Multiply capacitances by this */
     float lscale = 1.0;	/* Multiply lambda by this */
