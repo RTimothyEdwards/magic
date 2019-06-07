@@ -2457,6 +2457,7 @@ spcdevVisit(dev, hierName, scale, trans)
 			name, esSpiceF); 
 
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    sdM = getCurDevMult();
 	    spcWriteParams(dev, hierName, scale, l, w, sdM);
 	    break;
 
@@ -2474,6 +2475,7 @@ spcdevVisit(dev, hierName, scale, trans)
 			name, esSpiceF);
 
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    sdM = getCurDevMult();
 	    spcWriteParams(dev, hierName, scale, l, w, sdM);
 	    break;
 
