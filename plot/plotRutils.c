@@ -196,6 +196,7 @@ PlotFreeRaster(raster)
 				 * have been created with PlotNewRaster.
 				 */
 {
+    if (raster == NULL) return;
     freeMagic((char *) raster->ras_bits);
     freeMagic((char *) raster);
 }

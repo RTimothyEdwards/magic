@@ -1084,7 +1084,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
     Raster *raster = NULL;
 
     /* CMYK color separated raster buffers.	*/
-    Raster *kRaster, *cRaster, *mRaster, *yRaster;
+    Raster *kRaster = NULL, *cRaster = NULL, *mRaster = NULL, *yRaster = NULL;
 
     haveColorMessage = FALSE;
     GeoTransRect(&scx->scx_trans, &scx->scx_area, &rootClip);

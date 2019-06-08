@@ -1232,8 +1232,8 @@ selACPaintFunc2(tile, selACarg)
 	Rect rrect, orect;
 	int np, i, j;
 
-	ttype = (selACarg->ttype & TT_SIDE) ? ((ttype & TT_RIGHTMASK) >> 14) :
-		ttype & TT_LEFTMASK;
+	ttype = (selACarg->ttype & TT_SIDE) ? ((selACarg->ttype & TT_RIGHTMASK) >> 14) :
+		selACarg->ttype & TT_LEFTMASK;
 
 	if (type & TT_DIAGONAL)
 	    rtype = (type & TT_SIDE) ? SplitRightType(tile) :

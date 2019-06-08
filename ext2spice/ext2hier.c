@@ -661,6 +661,7 @@ spcdevHierVisit(hc, dev, scale)
 			"base", esSpiceF);
 
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    sdM = getCurDevMult();
 	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
 	    break;
 
@@ -788,6 +789,7 @@ spcdevHierVisit(hc, dev, scale)
 			subnode->efnode_name->efnn_hier,
 			"diode_bot", esSpiceF);
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    sdM = getCurDevMult();
 	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
 	    break;
 
@@ -808,6 +810,7 @@ spcdevHierVisit(hc, dev, scale)
 			gate->dterm_node->efnode_name->efnn_hier,
 			"diode_top", esSpiceF);
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    sdM = getCurDevMult();
 	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
 	    break;
 
@@ -1514,8 +1517,8 @@ devDistJunctHierVisit(hc, dev, scale)
 	return 0;
     }
 
-    w = (int)((float)w * scale);
     EFGetLengthAndWidth(dev, &l, &w);
+    w = (int)((float)w * scale);
 
     for (i = 1; i<dev->dev_nterm; i++)
     {

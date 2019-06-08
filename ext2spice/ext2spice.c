@@ -2335,6 +2335,7 @@ spcdevVisit(dev, hierName, scale, trans)
 			name, esSpiceF);
 
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    sdM = getCurDevMult();
 	    spcWriteParams(dev, hierName, scale, l, w, sdM);
 	    break;
 
@@ -2456,6 +2457,7 @@ spcdevVisit(dev, hierName, scale, trans)
 			name, esSpiceF); 
 
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    sdM = getCurDevMult();
 	    spcWriteParams(dev, hierName, scale, l, w, sdM);
 	    break;
 
@@ -2473,6 +2475,7 @@ spcdevVisit(dev, hierName, scale, trans)
 			name, esSpiceF);
 
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    sdM = getCurDevMult();
 	    spcWriteParams(dev, hierName, scale, l, w, sdM);
 	    break;
 
@@ -3796,8 +3799,8 @@ devDistJunctVisit(dev, hierName, scale, trans)
 	return 0;
     }
 
-    w = (int)((float)w * scale);
     EFGetLengthAndWidth(dev, &l, &w);
+    w = (int)((float)w * scale);
 
     for (i = 1; i<dev->dev_nterm; i++)
     {
