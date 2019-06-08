@@ -182,7 +182,6 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    // For parameter an followed by parameter pn,
 		    // process both at the same time
 
-		    sdM = getCurDevMult();
 		    if (plist->parm_next && plist->parm_next->parm_type[0] ==
 				'p' && plist->parm_next->parm_type[1] ==
 				plist->parm_type[1])
@@ -229,7 +228,6 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    // For parameter pn followed by parameter an,
 		    // process both at the same time
 
-		    sdM = getCurDevMult();
 		    if (plist->parm_next && plist->parm_next->parm_type[0] ==
 				'a' && plist->parm_next->parm_type[1] ==
 				plist->parm_type[1])
