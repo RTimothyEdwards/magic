@@ -431,8 +431,8 @@ endCoord:
 enum def_net_keys {DEF_NET_START = 0, DEF_NET_END};
 enum def_netprop_keys {
 	DEF_NETPROP_USE = 0, DEF_NETPROP_ROUTED, DEF_NETPROP_FIXED,
-	DEF_NETPROP_COVER, DEF_NETPROP_SOURCE, DEF_NETPROP_WEIGHT,
-	DEF_NETPROP_PROPERTY};
+	DEF_NETPROP_COVER, DEF_NETPROP_SOURCE, DEF_NETPROP_SHAPE,
+	DEF_NETPROP_WEIGHT, DEF_NETPROP_PROPERTY};
 
 void
 DefReadNets(f, rootDef, sname, oscale, special, total)
@@ -460,6 +460,7 @@ DefReadNets(f, rootDef, sname, oscale, special, total)
 	"FIXED",
 	"COVER",
 	"SOURCE",
+	"SHAPE",
 	"WEIGHT",
 	"PROPERTY",
 	NULL
@@ -516,7 +517,10 @@ DefReadNets(f, rootDef, sname, oscale, special, total)
 		    switch (subkey)
 		    {
 			case DEF_NETPROP_USE:
-			    /* Presently, we ignore this */
+			case DEF_NETPROP_SHAPE:
+			    /* Presently, we ignore this, except to	*/
+			    /* absorb the following value.		*/
+			    token = LefNextToken(f, TRUE);
 			    break;
 			case DEF_NETPROP_ROUTED:
 			case DEF_NETPROP_FIXED:
