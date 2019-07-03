@@ -9,4 +9,4 @@
 # script itself.  It also sets up CFLAGS without the default optimizer
 # flag (-O2).
 
-( CFLAGS="-g"; export CFLAGS; cd scripts ; ./configure $* )
+( CFLAGS="-g"; export CFLAGS; cd scripts ; ./configure "$@" )
