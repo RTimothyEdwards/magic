@@ -1732,6 +1732,100 @@ origin_error:
 /*
  *------------------------------------------------------------
  *
+ * LefGenViaGeometry --
+ *
+ *	Create geometry for a VIA section from a DEF file
+ *	using via generation parameters.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Adds to the lefLayer record for a via definition.
+ *
+ *------------------------------------------------------------
+ */
+
+void
+LefGenViaGeometry(f, lefl, sizex, sizey, spacex, spacey,
+	encbx, encby, enctx, encty, rows, cols,
+	tlayer, clayer, blayer, oscale)
+    FILE *f;			/* LEF file being read	*/
+    lefLayer *lefl;		/* pointer to via info	*/
+    int sizex, sizey;		/* cut size */
+    int spacex, spacey;		/* cut spacing */
+    int encbx, encby;		/* bottom enclosure of cuts */
+    int enctx, encty;		/* top enclosure of cuts */
+    int rows, cols;		/* number of cut rows and columns */
+    TileType tlayer;		/* Top layer type */
+    TileType clayer;		/* Cut layer type */
+    TileType blayer;		/* Bottom layer type */
+    float oscale;		/* output scaling	*/
+{
+    Rect rect;
+    int i, j, x, y, w, h, sw, sh;
+    LinkedRect *viaLR;
+
+    /* Compute top layer rect */
+
+    w = (sizex * cols) + (spacex * (cols - 1)) + 2 * enctx;
+    h = (sizey * rows) + (spacey * (rows - 1)) + 2 * encty;
+
+    rect.r_xtop = (int)roundf(w / oscale);
+    rect.r_xbot = -rect.r_xtop;
+    rect.r_ytop = (int)roundf(h / oscale);
+    rect.r_ybot = -rect.r_ytop;
+
+    /* Set via area to the top layer */
+    lefl->info.via.area = rect;
+    lefl->type = tlayer;
+
+    /* Compute bottom layer rect */
+
+    w = (sizex * cols) + (spacex * (cols - 1)) + 2 * encbx;
+    h = (sizey * rows) + (spacey * (rows - 1)) + 2 * encby;
+
+    rect.r_xtop = (int)roundf(w / oscale);
+    rect.r_xbot = -rect.r_xtop;
+    rect.r_ytop = (int)roundf(h / oscale);
+    rect.r_ybot = -rect.r_ytop;
+
+    viaLR = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+    viaLR->r_next = lefl->info.via.lr;
+    lefl->info.via.lr = viaLR;
+    viaLR->r_type = tlayer;
+    viaLR->r_r = rect;
+
+    w = (sizex * cols) + (spacex * (cols - 1));
+    h = (sizey * rows) + (spacey * (rows - 1));
+    x = -w / 2;
+    y = -h / 2;
+
+    for (i = 0; i < cols; i++)
+    {
+	for (j = 0; j < rows; j++)
+	{
+	    rect.r_xbot = (int)roundf(x / oscale);
+	    rect.r_ybot = (int)roundf(y / oscale);
+	    rect.r_xtop = rect.r_xbot + (int)roundf(sizex / oscale);
+	    rect.r_ytop = rect.r_ybot + (int)roundf(sizey / oscale);
+
+	    viaLR = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+	    viaLR->r_next = lefl->info.via.lr;
+	    lefl->info.via.lr = viaLR;
+	    viaLR->r_type = clayer;
+	    viaLR->r_r = rect;
+	    
+	    y += sizey + spacey;
+	}
+	x += sizex + spacex;
+	y = -h / 2;
+    }
+}
+
+/*
+ *------------------------------------------------------------
+ *
  * LefAddViaGeometry --
  *
  *	Read in geometry for a VIA section from a LEF or DEF

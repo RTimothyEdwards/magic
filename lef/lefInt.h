@@ -126,6 +126,7 @@ LinkedRect *LefReadGeometry();
 void LefEstimate();
 lefLayer *LefRedefined();
 void LefAddViaGeometry();
+void LefGenViaGeometry();
 Rect *LefReadRect();
 TileType LefReadLayer();
 
