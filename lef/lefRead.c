@@ -1889,7 +1889,7 @@ LefGenViaGeometry(f, lefl, sizex, sizey, spacex, spacey,
     viaLR = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
     viaLR->r_next = lefl->info.via.lr;
     lefl->info.via.lr = viaLR;
-    viaLR->r_type = tlayer;
+    viaLR->r_type = blayer;
     viaLR->r_r = rect;
 
     w = (sizex * cols) + (spacex * (cols - 1));

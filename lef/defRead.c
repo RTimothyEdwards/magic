@@ -86,7 +86,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
     bool valid = FALSE;		/* is there a valid reference point? */
     bool initial = TRUE;
     Rect locarea;
-    int extend;
+    int extend, lextend, hextend;
     float x, y, z, w;
     int routeWidth, paintWidth, saveWidth;
     TileType routeLayer, paintLayer;
@@ -435,6 +435,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	    /* Record current reference point */
 	    locarea.r_xbot = refp.p_x;
 	    locarea.r_ybot = refp.p_y;
+	    lextend = extend;
 
 	    /* Read an (X Y [extend]) point */
 	    token = LefNextToken(f, TRUE);	/* read X */
@@ -510,6 +511,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		LefError(DEF_ERROR, "Can't deal with nonmanhattan geometry in route.\n");
 		locarea.r_xbot = refp.p_x;
 		locarea.r_ybot = refp.p_y;
+		lextend = extend;
 	    }
 	    else
 	    {
@@ -522,6 +524,19 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		locarea.r_xtop = refp.p_x;
 		locarea.r_ytop = refp.p_y;
 
+		/* Change route segment to a canonical rectangle.  If	*/
+		/* the route is flipped relative to canonical coords,	*/
+		/* then the wire extentions have to be swapped as well.	*/
+
+		if ((locarea.r_xtop < locarea.r_xbot) ||
+			(locarea.r_ytop < locarea.r_ybot))
+		{
+		    hextend = lextend;
+		    lextend = extend;
+		}
+		else
+		    hextend = extend;
+
 		GeoCanonicalRect(&locarea, &newRoute->r_r);
 
 		if (newRoute->r_r.r_xbot == newRoute->r_r.r_xtop)
@@ -531,8 +546,8 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		}
 		else
 		{
-		    newRoute->r_r.r_xbot -= extend;
-		    newRoute->r_r.r_xtop += extend;
+		    newRoute->r_r.r_xbot -= lextend;
+		    newRoute->r_r.r_xtop += hextend;
 		}
 
 		if (newRoute->r_r.r_ybot == newRoute->r_r.r_ytop)
@@ -542,8 +557,8 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		}
 		else
 		{
-		    newRoute->r_r.r_ybot -= extend;
-		    newRoute->r_r.r_ytop += extend;
+		    newRoute->r_r.r_ybot -= lextend;
+		    newRoute->r_r.r_ytop += hextend;
 		}
 
 		/* If we don't have integer units here, we should	*/
