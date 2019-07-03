@@ -1765,6 +1765,7 @@ LefGenViaGeometry(f, lefl, sizex, sizey, spacex, spacey,
     Rect rect;
     int i, j, x, y, w, h, sw, sh;
     LinkedRect *viaLR;
+    float hscale = oscale / 2;
 
     /* Compute top layer rect */
 
@@ -1805,10 +1806,10 @@ LefGenViaGeometry(f, lefl, sizex, sizey, spacex, spacey,
     {
 	for (j = 0; j < rows; j++)
 	{
-	    rect.r_xbot = (int)roundf(x / oscale);
-	    rect.r_ybot = (int)roundf(y / oscale);
-	    rect.r_xtop = rect.r_xbot + (int)roundf(sizex / oscale);
-	    rect.r_ytop = rect.r_ybot + (int)roundf(sizey / oscale);
+	    rect.r_xbot = (int)roundf(x / hscale);
+	    rect.r_ybot = (int)roundf(y / hscale);
+	    rect.r_xtop = rect.r_xbot + (int)roundf(sizex / hscale);
+	    rect.r_ytop = rect.r_ybot + (int)roundf(sizey / hscale);
 
 	    viaLR = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
 	    viaLR->r_next = lefl->info.via.lr;
