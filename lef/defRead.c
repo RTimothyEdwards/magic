@@ -246,12 +246,17 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	    /* However, its use has been seen.	So "special" is not	*/
 	    /* checked here.						*/
 
+	    /* The rectangle coordinates are relative to the current	*/
+	    /* reference point, not absolute.				*/
+
+	    newRoute = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+
 	    /* Read an (llx lly urx ury) rectangle */
 	    token = LefNextToken(f, TRUE);	/* read llx */
 	    if (*token == '(') token = LefNextToken(f, TRUE);
 	    if (sscanf(token, "%f", &x) == 1)
 	    {
-		locarea.r_xbot = (int)roundf((2 * x) / oscale);
+		locarea.r_xbot = (refp.p_x / 2) + (int)roundf(x / oscale);
 	    }
 	    else
 	    {
@@ -262,7 +267,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	    token = LefNextToken(f, TRUE);	/* read lly */
 	    if (sscanf(token, "%f", &y) == 1)
 	    {
-		locarea.r_ybot = (int)roundf((2 * y) / oscale);
+		locarea.r_ybot = (refp.p_y / 2) + (int)roundf(y / oscale);
 	    }
 	    else
 	    {
@@ -273,7 +278,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	    token = LefNextToken(f, TRUE);	/* read urx */
 	    if (sscanf(token, "%f", &x) == 1)
 	    {
-		locarea.r_xtop = (int)roundf((2 * x) / oscale);
+		locarea.r_xtop = (refp.p_x / 2) + (int)roundf(x / oscale);
 	    }
 	    else
 	    {
@@ -283,7 +288,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	    token = LefNextToken(f, TRUE);	/* read ury */
 	    if (sscanf(token, "%f", &y) == 1)
 	    {
-		locarea.r_ytop = (int)roundf((2 * y) / oscale);
+		locarea.r_ytop = (refp.p_y / 2) + (int)roundf(y / oscale);
 	    }
 	    else
 	    {
@@ -296,6 +301,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		LefError(DEF_ERROR, "Bad coordinates in RECT.\n"); 
 		goto endCoord;
 	    }
+	    GeoCanonicalRect(&locarea, &newRoute->r_r);
 	}
 	else if (!strcmp(token, "POLYGON"))
 	{
