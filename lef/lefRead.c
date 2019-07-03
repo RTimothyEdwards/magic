@@ -1732,6 +1732,101 @@ origin_error:
 /*
  *------------------------------------------------------------
  *
+ * LefGrowVia ---
+ *
+ * For LEF contact types matching magic contact types, size the
+ * LEF contact cut to cover the minimum	rectangle in the other
+ * layers that satisfies the CIF/GDS contact generation.  Use
+ * the "cifinput" style	to determine how much the via layer
+ * needs to grow to make a contact area.  If the "cifinput"
+ * style is not	defined, then determine rules from "cifoutput".
+ *
+ *------------------------------------------------------------
+ */
+
+void LefGrowVia(curlayer, currect, lefl)
+    TileType curlayer;
+    Rect *currect;
+    lefLayer *lefl;
+{
+    if (DBIsContact(curlayer) && cifCurReadStyle != NULL)
+    {
+	int growSize;
+
+	/* Get the amount (in magic units) that the layer needs to	*/
+	/* expand according to the "cifinput" style rules to convert	*/
+	/* a contact cut to a magic contact layer.			*/
+
+	growSize = CIFReadGetGrowSize(curlayer);
+
+	/* All internal LEF via geometry values are doubled */
+	growSize <<= 1;	
+
+        if (growSize % cifCurReadStyle->crs_scaleFactor == 0)
+	   growSize /= cifCurReadStyle->crs_scaleFactor;
+	else
+	   growSize = growSize / cifCurReadStyle->crs_scaleFactor + 1;
+
+	if (growSize > 0)
+	{
+	    /* cifinput styles expect the cut size to be correct, so	*/
+	    /* there is no check for correctness of the layer.		*/
+
+	    currect->r_xbot = currect->r_xbot - growSize;
+	    currect->r_ybot = currect->r_ybot - growSize;
+	    currect->r_xtop = currect->r_xtop + growSize;
+	    currect->r_ytop = currect->r_ytop + growSize;
+	}
+    }
+    else if (DBIsContact(curlayer) && CIFCurStyle != NULL)
+    {
+	int edgeSize = 0, contSize, halfSize;
+
+	/* Get the minimum size of a contact (cut + borders) from cifoutput */
+	contSize = CIFGetContactSize(curlayer, &edgeSize, NULL, NULL);
+
+	/* All internal LEF via geometry values are doubled */
+	contSize <<= 1;	
+	edgeSize <<= 1;	
+
+        if (contSize % CIFCurStyle->cs_scaleFactor == 0)
+	   contSize /= CIFCurStyle->cs_scaleFactor;
+	else
+	   contSize = contSize / CIFCurStyle->cs_scaleFactor + 1;
+
+        if (edgeSize % CIFCurStyle->cs_scaleFactor == 0)
+	   edgeSize /= CIFCurStyle->cs_scaleFactor;
+	else
+	   edgeSize = edgeSize / CIFCurStyle->cs_scaleFactor + 1;
+
+	if (edgeSize > 0 && contSize > 0)
+	{
+	    /* Flag a warning if the cut size is different from what's expected */
+	    if ((currect->r_xtop - currect->r_xbot != edgeSize) ||
+			(currect->r_ytop - currect->r_ybot != edgeSize))
+	    {
+		LefError(LEF_WARNING, "Cut size for magic type \"%s\" (%d x %d) does "
+			"not match LEF/DEF\n",
+			DBTypeLongNameTbl[lefl->type],
+			edgeSize, edgeSize);
+		LefError(LEF_WARNING, "Via cut size (%d x %d).  Magic layer "
+			"cut size will be used!\n",
+			currect->r_xtop - currect->r_xbot,
+			currect->r_ytop - currect->r_ybot);
+	    }
+
+	    halfSize = contSize >> 1;
+	    currect->r_xbot = ((currect->r_xbot + currect->r_xtop) / 2) - halfSize;
+	    currect->r_ybot = ((currect->r_ybot + currect->r_ytop) / 2) - halfSize;
+	    currect->r_xtop = currect->r_xbot + contSize;
+	    currect->r_ytop = currect->r_ybot + contSize;
+	}
+    }
+}
+
+/*
+ *------------------------------------------------------------
+ *
  * LefGenViaGeometry --
  *
  *	Create geometry for a VIA section from a DEF file
@@ -1811,6 +1906,9 @@ LefGenViaGeometry(f, lefl, sizex, sizey, spacex, spacey,
 	    rect.r_xtop = rect.r_xbot + (int)roundf(sizex / hscale);
 	    rect.r_ytop = rect.r_ybot + (int)roundf(sizey / hscale);
 
+	    /* Expand via to the size used by magic */
+	    LefGrowVia(clayer, &rect, lefl);
+
 	    viaLR = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
 	    viaLR->r_next = lefl->info.via.lr;
 	    lefl->info.via.lr = viaLR;
@@ -1858,87 +1956,8 @@ LefAddViaGeometry(f, lefl, curlayer, oscale)
     /* Don't create any geometry for unknown layers! */
     if (curlayer < 0) return;
 
-    /* For LEF contact types matching magic contact types,	*/
-    /* size the LEF contact cut to cover the minimum		*/
-    /* rectangle in the other layers that satisfies the		*/
-    /* CIF/GDS contact generation.  Use the "cifinput" style	*/
-    /* to determine how much the via layer needs to grow to	*/
-    /* make a contact area.  If the "cifinput" style is not	*/
-    /* defined, then determine rules from "cifoutput".		*/
-
-    if (DBIsContact(curlayer) && cifCurReadStyle != NULL)
-    {
-	int growSize;
-
-	/* Get the amount (in magic units) that the layer needs to	*/
-	/* expand according to the "cifinput" style rules to convert	*/
-	/* a contact cut to a magic contact layer.			*/
-
-	growSize = CIFReadGetGrowSize(curlayer);
-
-	/* All internal LEF via geometry values are doubled */
-	growSize <<= 1;	
-
-        if (growSize % cifCurReadStyle->crs_scaleFactor == 0)
-	   growSize /= cifCurReadStyle->crs_scaleFactor;
-	else
-	   growSize = growSize / cifCurReadStyle->crs_scaleFactor + 1;
-
-	if (growSize > 0)
-	{
-	    /* cifinput styles expect the cut size to be correct, so	*/
-	    /* there is no check for correctness of the layer.		*/
-
-	    currect->r_xbot = currect->r_xbot - growSize;
-	    currect->r_ybot = currect->r_ybot - growSize;
-	    currect->r_xtop = currect->r_xtop + growSize;
-	    currect->r_ytop = currect->r_ytop + growSize;
-	}
-    }
-    else if (DBIsContact(curlayer) && CIFCurStyle != NULL)
-    {
-	int edgeSize = 0, contSize, halfSize;
-
-	/* Get the minimum size of a contact (cut + borders) from cifoutput */
-	contSize = CIFGetContactSize(curlayer, &edgeSize, NULL, NULL);
-
-	/* All internal LEF via geometry values are doubled */
-	contSize <<= 1;	
-	edgeSize <<= 1;	
-
-        if (contSize % CIFCurStyle->cs_scaleFactor == 0)
-	   contSize /= CIFCurStyle->cs_scaleFactor;
-	else
-	   contSize = contSize / CIFCurStyle->cs_scaleFactor + 1;
-
-        if (edgeSize % CIFCurStyle->cs_scaleFactor == 0)
-	   edgeSize /= CIFCurStyle->cs_scaleFactor;
-	else
-	   edgeSize = edgeSize / CIFCurStyle->cs_scaleFactor + 1;
-
-	if (edgeSize > 0 && contSize > 0)
-	{
-	    /* Flag a warning if the cut size is different from what's expected */
-	    if ((currect->r_xtop - currect->r_xbot != edgeSize) ||
-			(currect->r_ytop - currect->r_ybot != edgeSize))
-	    {
-		LefError(LEF_WARNING, "Cut size for magic type \"%s\" (%d x %d) does "
-			"not match LEF/DEF\n",
-			DBTypeLongNameTbl[lefl->type],
-			edgeSize, edgeSize);
-		LefError(LEF_WARNING, "Via cut size (%d x %d).  Magic layer "
-			"cut size will be used!\n",
-			currect->r_xtop - currect->r_xbot,
-			currect->r_ytop - currect->r_ybot);
-	    }
-
-	    halfSize = contSize >> 1;
-	    currect->r_xbot = ((currect->r_xbot + currect->r_xtop) / 2) - halfSize;
-	    currect->r_ybot = ((currect->r_ybot + currect->r_ytop) / 2) - halfSize;
-	    currect->r_xtop = currect->r_xbot + contSize;
-	    currect->r_ytop = currect->r_ybot + contSize;
-	}
-    }
+    /* Expand via to the size used by magic */
+    LefGrowVia(curlayer, currect, lefl);
 
     if (GEO_SAMERECT(lefl->info.via.area, GeoNullRect))
     {
