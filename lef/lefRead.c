@@ -1732,45 +1732,23 @@ origin_error:
 /*
  *------------------------------------------------------------
  *
- * LefAddViaGeometry --
+ * LefGrowVia ---
  *
- *	Read in geometry for a VIA section from a LEF or DEF
- *	file.
- *
- * Results:
- *	None.
- *
- * Side Effects:
- *	Adds to the lefLayer record for a via definition.
+ * For LEF contact types matching magic contact types, size the
+ * LEF contact cut to cover the minimum	rectangle in the other
+ * layers that satisfies the CIF/GDS contact generation.  Use
+ * the "cifinput" style	to determine how much the via layer
+ * needs to grow to make a contact area.  If the "cifinput"
+ * style is not	defined, then determine rules from "cifoutput".
  *
  *------------------------------------------------------------
  */
 
-void
-LefAddViaGeometry(f, lefl, curlayer, oscale)
-    FILE *f;			/* LEF file being read	*/
-    lefLayer *lefl;		/* pointer to via info	*/
-    TileType curlayer;		/* current tile type	*/
-    float oscale;		/* output scaling	*/
-{
+void LefGrowVia(curlayer, currect, lefl)
+    TileType curlayer;
     Rect *currect;
-    LinkedRect *viaLR;
-
-    /* Rectangles for vias are read in units of 1/2 lambda */
-    currect = LefReadRect(f, curlayer, (oscale / 2));
-    if (currect == NULL) return;
-
-    /* Don't create any geometry for unknown layers! */
-    if (curlayer < 0) return;
-
-    /* For LEF contact types matching magic contact types,	*/
-    /* size the LEF contact cut to cover the minimum		*/
-    /* rectangle in the other layers that satisfies the		*/
-    /* CIF/GDS contact generation.  Use the "cifinput" style	*/
-    /* to determine how much the via layer needs to grow to	*/
-    /* make a contact area.  If the "cifinput" style is not	*/
-    /* defined, then determine rules from "cifoutput".		*/
-
+    lefLayer *lefl;
+{
     if (DBIsContact(curlayer) && cifCurReadStyle != NULL)
     {
 	int growSize;
@@ -1844,6 +1822,142 @@ LefAddViaGeometry(f, lefl, curlayer, oscale)
 	    currect->r_ytop = currect->r_ybot + contSize;
 	}
     }
+}
+
+/*
+ *------------------------------------------------------------
+ *
+ * LefGenViaGeometry --
+ *
+ *	Create geometry for a VIA section from a DEF file
+ *	using via generation parameters.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Adds to the lefLayer record for a via definition.
+ *
+ *------------------------------------------------------------
+ */
+
+void
+LefGenViaGeometry(f, lefl, sizex, sizey, spacex, spacey,
+	encbx, encby, enctx, encty, rows, cols,
+	tlayer, clayer, blayer, oscale)
+    FILE *f;			/* LEF file being read	*/
+    lefLayer *lefl;		/* pointer to via info	*/
+    int sizex, sizey;		/* cut size */
+    int spacex, spacey;		/* cut spacing */
+    int encbx, encby;		/* bottom enclosure of cuts */
+    int enctx, encty;		/* top enclosure of cuts */
+    int rows, cols;		/* number of cut rows and columns */
+    TileType tlayer;		/* Top layer type */
+    TileType clayer;		/* Cut layer type */
+    TileType blayer;		/* Bottom layer type */
+    float oscale;		/* output scaling	*/
+{
+    Rect rect;
+    int i, j, x, y, w, h, sw, sh;
+    LinkedRect *viaLR;
+    float hscale = oscale / 2;
+
+    /* Compute top layer rect */
+
+    w = (sizex * cols) + (spacex * (cols - 1)) + 2 * enctx;
+    h = (sizey * rows) + (spacey * (rows - 1)) + 2 * encty;
+
+    rect.r_xtop = (int)roundf(w / oscale);
+    rect.r_xbot = -rect.r_xtop;
+    rect.r_ytop = (int)roundf(h / oscale);
+    rect.r_ybot = -rect.r_ytop;
+
+    /* Set via area to the top layer */
+    lefl->info.via.area = rect;
+    lefl->type = tlayer;
+
+    /* Compute bottom layer rect */
+
+    w = (sizex * cols) + (spacex * (cols - 1)) + 2 * encbx;
+    h = (sizey * rows) + (spacey * (rows - 1)) + 2 * encby;
+
+    rect.r_xtop = (int)roundf(w / oscale);
+    rect.r_xbot = -rect.r_xtop;
+    rect.r_ytop = (int)roundf(h / oscale);
+    rect.r_ybot = -rect.r_ytop;
+
+    viaLR = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+    viaLR->r_next = lefl->info.via.lr;
+    lefl->info.via.lr = viaLR;
+    viaLR->r_type = blayer;
+    viaLR->r_r = rect;
+
+    w = (sizex * cols) + (spacex * (cols - 1));
+    h = (sizey * rows) + (spacey * (rows - 1));
+    x = -w / 2;
+    y = -h / 2;
+
+    for (i = 0; i < cols; i++)
+    {
+	for (j = 0; j < rows; j++)
+	{
+	    rect.r_xbot = (int)roundf(x / hscale);
+	    rect.r_ybot = (int)roundf(y / hscale);
+	    rect.r_xtop = rect.r_xbot + (int)roundf(sizex / hscale);
+	    rect.r_ytop = rect.r_ybot + (int)roundf(sizey / hscale);
+
+	    /* Expand via to the size used by magic */
+	    LefGrowVia(clayer, &rect, lefl);
+
+	    viaLR = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+	    viaLR->r_next = lefl->info.via.lr;
+	    lefl->info.via.lr = viaLR;
+	    viaLR->r_type = clayer;
+	    viaLR->r_r = rect;
+	    
+	    y += sizey + spacey;
+	}
+	x += sizex + spacex;
+	y = -h / 2;
+    }
+}
+
+/*
+ *------------------------------------------------------------
+ *
+ * LefAddViaGeometry --
+ *
+ *	Read in geometry for a VIA section from a LEF or DEF
+ *	file.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Adds to the lefLayer record for a via definition.
+ *
+ *------------------------------------------------------------
+ */
+
+void
+LefAddViaGeometry(f, lefl, curlayer, oscale)
+    FILE *f;			/* LEF file being read	*/
+    lefLayer *lefl;		/* pointer to via info	*/
+    TileType curlayer;		/* current tile type	*/
+    float oscale;		/* output scaling	*/
+{
+    Rect *currect;
+    LinkedRect *viaLR;
+
+    /* Rectangles for vias are read in units of 1/2 lambda */
+    currect = LefReadRect(f, curlayer, (oscale / 2));
+    if (currect == NULL) return;
+
+    /* Don't create any geometry for unknown layers! */
+    if (curlayer < 0) return;
+
+    /* Expand via to the size used by magic */
+    LefGrowVia(curlayer, currect, lefl);
 
     if (GEO_SAMERECT(lefl->info.via.area, GeoNullRect))
     {
