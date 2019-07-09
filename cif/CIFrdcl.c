@@ -700,8 +700,31 @@ cifMakeBoundaryFunc(tile, clientdata)
 
     Rect area;
     char propertyvalue[128], *storedvalue;
+    int savescale;
 
     TiToRect(tile, &area);
+    area.r_xtop = CIFScaleCoord(area.r_xtop, COORD_EXACT);
+    savescale = cifCurReadStyle->crs_scaleFactor;
+    area.r_ytop = CIFScaleCoord(area.r_ytop, COORD_EXACT);
+    if (savescale != cifCurReadStyle->crs_scaleFactor)
+    {
+	area.r_xtop *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	savescale = cifCurReadStyle->crs_scaleFactor;
+    }
+    area.r_xbot = CIFScaleCoord(area.r_xbot, COORD_EXACT);
+    if (savescale != cifCurReadStyle->crs_scaleFactor)
+    {
+	area.r_xtop *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	area.r_ytop *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	savescale = cifCurReadStyle->crs_scaleFactor;
+    }
+    area.r_ybot = CIFScaleCoord(area.r_ybot, COORD_EXACT);
+    if (savescale != cifCurReadStyle->crs_scaleFactor)
+    {
+	area.r_xtop *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	area.r_ytop *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	area.r_xbot *= (savescale / cifCurReadStyle->crs_scaleFactor);
+    }
 
     if (cifReadCellDef->cd_flags & CDFIXEDBBOX)
 	CIFReadError("Warning:  Cell %s boundary was redefined.\n",
@@ -712,6 +735,7 @@ cifMakeBoundaryFunc(tile, clientdata)
     storedvalue = StrDup((char **)NULL, propertyvalue);
     DBPropPut(cifReadCellDef, "FIXED_BBOX", storedvalue);
     cifReadCellDef->cd_flags |= CDFIXEDBBOX;
+    return 0;
 }
 
 /* Paint CIF layer geometry into the current cell def as magic layer "type"	*/
