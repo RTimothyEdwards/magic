@@ -10,7 +10,7 @@ windCmdAM.o: windCmdAM.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../utils/signals.h ../graphics/graphics.h ../utils/styles.h \
  ../textio/txcommands.h ../graphics/glyphs.h ../windows/windInt.h \
  ../tiles/tile.h ../database/database.h ../dbwind/dbwind.h \
- ../utils/utils.h
+ ../utils/utils.h ../cif/cif.h
 windCmdNR.o: windCmdNR.c ../utils/magic.h ../textio/textio.h \
  ../utils/geometry.h ../windows/windows.h ../graphics/glyphs.h \
  ../windows/windInt.h ../tiles/tile.h ../utils/hash.h \

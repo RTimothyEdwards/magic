@@ -12,8 +12,9 @@ CIFmain.o: CIFmain.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../windows/windows.h ../dbwind/dbwind.h ../utils/styles.h
 CIFrdcl.o: CIFrdcl.c ../utils/magic.h ../utils/malloc.h \
  ../utils/geometry.h ../tiles/tile.h ../utils/hash.h ../utils/undo.h \
- ../database/database.h ../cif/CIFint.h ../cif/CIFread.h ../utils/utils.h \
- ../windows/windows.h ../dbwind/dbwind.h ../utils/main.h ../drc/drc.h
+ ../database/database.h ../cif/CIFint.h ../cif/CIFread.h ../cif/cif.h \
+ ../calma/calma.h ../utils/utils.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/main.h ../drc/drc.h
 CIFrdpt.o: CIFrdpt.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h \
  ../utils/hash.h ../utils/malloc.h ../database/database.h \
  ../windows/windows.h ../utils/main.h ../cif/CIFint.h ../cif/CIFread.h
