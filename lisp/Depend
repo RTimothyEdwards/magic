@@ -22,6 +22,12 @@ lispFrame.o: lispFrame.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
 lispTrace.o: lispTrace.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
  ../utils/geometry.h ../textio/txcommands.h ../textio/textio.h \
  ../utils/malloc.h
+lispMagic.o: lispMagic.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
+ ../utils/geometry.h ../textio/txcommands.h lispargs.h ../utils/geofast.h \
+ ../textio/textio.h ../utils/malloc.h ../tiles/tile.h ../utils/hash.h \
+ ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
+ ../utils/main.h ../commands/commands.h ../utils/utils.h \
+ ../select/select.h
 lispArith.o: lispArith.c ../lisp/lisp.h lispInt.h ../utils/magic.h \
  ../utils/geometry.h ../textio/txcommands.h lispargs.h ../textio/textio.h \
  ../utils/malloc.h

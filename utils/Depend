@@ -18,19 +18,20 @@ list.o: list.c ../utils/magic.h ../utils/utils.h ../utils/malloc.h \
 lookup.o: lookup.c ../utils/magic.h ../utils/utils.h
 lookupany.o: lookupany.c
 lookupfull.o: lookupfull.c ../utils/magic.h
-macros.o: macros.c ../utils/magic.h ../utils/utils.h ../utils/hash.h \
- ../utils/malloc.h ../utils/macros.h ../windows/windows.h \
- ../utils/geometry.h
-main.o: main.c ../utils/main.h ../windows/windows.h ../utils/magic.h \
+macros.o: macros.c ../utils/magic.h ../utils/main.h ../windows/windows.h \
  ../utils/geometry.h ../database/database.h ../tiles/tile.h \
- ../utils/hash.h ../utils/malloc.h ../utils/magsgtty.h ../utils/macros.h \
- ../textio/textio.h ../textio/txcommands.h ../utils/tech.h ../drc/drc.h \
- ../graphics/graphics.h ../dbwind/dbwind.h ../commands/commands.h \
- ../utils/signals.h ../utils/utils.h ../utils/runstats.h ../cif/cif.h \
- ../router/router.h ../lef/lef.h ../extract/extract.h ../utils/undo.h \
- ../netmenu/netmenu.h ../plow/plow.h ../utils/paths.h ../wiring/wiring.h \
- ../plot/plot.h ../sim/sim.h ../utils/list.h ../mzrouter/mzrouter.h \
- ../lisp/lisp.h ../graphics/wind3d.h
+ ../utils/hash.h ../utils/utils.h ../utils/malloc.h ../utils/macros.h
+main.o: main.c ../tcltk/tclmagic.h ../utils/main.h ../windows/windows.h \
+ ../utils/magic.h ../utils/geometry.h ../database/database.h \
+ ../tiles/tile.h ../utils/hash.h ../utils/malloc.h ../utils/magsgtty.h \
+ ../utils/macros.h ../textio/textio.h ../textio/txcommands.h \
+ ../utils/tech.h ../drc/drc.h ../graphics/graphics.h ../dbwind/dbwind.h \
+ ../commands/commands.h ../utils/signals.h ../utils/utils.h \
+ ../utils/runstats.h ../cif/cif.h ../router/router.h ../lef/lef.h \
+ ../extract/extract.h ../utils/undo.h ../netmenu/netmenu.h ../plow/plow.h \
+ ../utils/paths.h ../wiring/wiring.h ../plot/plot.h ../sim/sim.h \
+ ../utils/list.h ../mzrouter/mzrouter.h ../lisp/lisp.h \
+ ../graphics/wind3d.h
 malloc.o: malloc.c ../tcltk/tclmagic.h ../utils/magic.h ../utils/malloc.h
 match.o: match.c ../utils/magic.h ../textio/textio.h
 maxrect.o: maxrect.c ../utils/maxrect.h ../database/database.h \
@@ -63,9 +64,9 @@ set.o: set.c ../utils/magic.h ../utils/utils.h ../utils/geometry.h \
 show.o: show.c ../utils/magic.h ../utils/geometry.h ../windows/windows.h \
  ../graphics/graphics.h ../utils/hash.h ../tiles/tile.h \
  ../database/database.h ../dbwind/dbwind.h
-tech.o: tech.c ../utils/magic.h ../utils/geometry.h ../utils/utils.h \
- ../utils/tech.h ../textio/textio.h ../windows/windows.h \
- ../utils/malloc.h
+tech.o: tech.c ../database/database.h ../tiles/tile.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/hash.h ../utils/utils.h ../utils/tech.h \
+ ../textio/textio.h ../windows/windows.h ../utils/malloc.h
 touchtypes.o: touchtypes.c ../utils/magic.h ../utils/geometry.h \
  ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
  ../database/database.h
