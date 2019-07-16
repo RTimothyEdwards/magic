@@ -774,7 +774,21 @@ calmaElementText()
 
     /* NOTE:  Record may contain both PRESENTATION and WIDTH */
     PEEKRH(nbytes, rtype);
-    if (nbytes > 0 && rtype != CALMA_STRANS)
+    if (nbytes > 0 && rtype == CALMA_WIDTH)
+    {
+	/* Use WIDTH value to set the font size */
+	if (!calmaReadI4Record(CALMA_WIDTH, &size)) 
+	{
+	    calmaReadError("Error in reading WIDTH in calmaElementText()\n") ;
+	    return;
+	}
+	size *= calmaReadScale1;
+	    if (size % calmaReadScale2 != 0)
+		calmaReadError("Text width snapped to nearest integer boundary.\n");
+
+        size /= calmaReadScale2;
+    }
+    else if (nbytes > 0 && rtype != CALMA_STRANS)
 	calmaSkipSet(ignore);
 
     READRH(nbytes, rtype);
