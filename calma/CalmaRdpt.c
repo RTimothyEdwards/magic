@@ -772,6 +772,11 @@ calmaElementText()
     else if (nbytes > 0 && rtype != CALMA_STRANS)
 	calmaSkipSet(ignore);
 
+    /* NOTE:  Record may contain both PRESENTATION and WIDTH */
+    PEEKRH(nbytes, rtype);
+    if (nbytes > 0 && rtype != CALMA_STRANS)
+	calmaSkipSet(ignore);
+
     READRH(nbytes, rtype);
     if (nbytes > 0 && rtype == CALMA_STRANS)
     {
