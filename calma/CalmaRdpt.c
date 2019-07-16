@@ -725,7 +725,7 @@ calmaElementText()
     angle = 0;
 
     /* Default size is 1um */
-    size = (int)((800 * cifCurReadStyle->crs_multiplier)
+    size = (int)((1000 * cifCurReadStyle->crs_multiplier)
 				/ cifCurReadStyle->crs_scaleFactor);
     /* Default position is bottom-right (but what the spec calls "top-left"!) */
     pos = GEO_SOUTHEAST;
@@ -776,17 +776,23 @@ calmaElementText()
     PEEKRH(nbytes, rtype);
     if (nbytes > 0 && rtype == CALMA_WIDTH)
     {
+	int width;
+
 	/* Use WIDTH value to set the font size */
-	if (!calmaReadI4Record(CALMA_WIDTH, &size)) 
+	if (!calmaReadI4Record(CALMA_WIDTH, &width)) 
 	{
 	    calmaReadError("Error in reading WIDTH in calmaElementText()\n") ;
 	    return;
 	}
-	size *= calmaReadScale1;
-	    if (size % calmaReadScale2 != 0)
-		calmaReadError("Text width snapped to nearest integer boundary.\n");
+	width *= calmaReadScale1;
+	if (width % calmaReadScale2 != 0)
+	    calmaReadError("Text width snapped to nearest integer boundary.\n");
 
-        size /= calmaReadScale2;
+        width /= calmaReadScale2;
+
+	/* Convert to database units, because dimension goes to PutLabel    */
+	/* and is not converted through CIFPaintCurrent().		    */
+	size = CIFScaleCoord(width, COORD_ANY);
     }
     else if (nbytes > 0 && rtype != CALMA_STRANS)
 	calmaSkipSet(ignore);
@@ -801,9 +807,10 @@ calmaElementText()
 	if (nbytes > 0 && rtype == CALMA_MAG)
 	{
 	    calmaReadR8(&dval);
+
 	    /* Assume that MAG is the label size in microns	*/
-	    /* "size" is the label size in 8 * (database units) */
-	    size = (int)((dval * 800 * cifCurReadStyle->crs_multiplier)
+	    /* "size" is the label size in 10 * (database units) */
+	    size = (int)((dval * 1000 * cifCurReadStyle->crs_multiplier)
 				/ cifCurReadStyle->crs_scaleFactor);
 	}
 	else
