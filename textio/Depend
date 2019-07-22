@@ -1,10 +1,10 @@
-txCommands.o: txCommands.c ../utils/magsgtty.h ../utils/magic.h \
- ../textio/textio.h ../utils/geometry.h ../textio/txcommands.h \
- ../textio/textioInt.h ../utils/macros.h ../utils/hash.h \
- ../windows/windows.h ../tiles/tile.h ../database/database.h \
- ../dbwind/dbwind.h ../drc/drc.h ../utils/signals.h \
- ../graphics/graphics.h ../utils/dqueue.h ../utils/malloc.h \
- ../utils/utils.h ../lisp/lisp.h
+txCommands.o: txCommands.c ../tcltk/tclmagic.h ../utils/magsgtty.h \
+ ../utils/magic.h ../textio/textio.h ../utils/geometry.h \
+ ../textio/txcommands.h ../textio/textioInt.h ../utils/macros.h \
+ ../utils/hash.h ../windows/windows.h ../tiles/tile.h \
+ ../database/database.h ../dbwind/dbwind.h ../drc/drc.h \
+ ../utils/signals.h ../graphics/graphics.h ../utils/dqueue.h \
+ ../utils/malloc.h ../utils/utils.h ../lisp/lisp.h
 txInput.o: txInput.c ../utils/magsgtty.h ../utils/magic.h ../utils/main.h \
  ../windows/windows.h ../utils/geometry.h ../database/database.h \
  ../tiles/tile.h ../utils/hash.h ../textio/textio.h \

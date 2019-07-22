@@ -1392,7 +1392,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
     CellDef *defMacro;
     CellUse *defUse;
     Transform t;
-    char *token;
+    char *token, *dptr;
     char usename[512];
     int keyword, subkey, values;
     int processed = 0;
@@ -1447,6 +1447,22 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		    LefEndStatement(f);
 		    break;
 		}
+
+		/* Does use name contain brackets?  If so, this can */
+		/* interfere with magic's use of arrays.	    */
+
+		/* NOTE:  It is not clear that this needs to be	    */
+		/* done during DEF read.  The only confusion comes  */
+		/* from the arrays being parsed by ExtFlat when	    */
+		/* doing ext2spice.				    */
+
+		dptr = strchr(usename, '[');
+		if (dptr != NULL) {
+		    *dptr = '_';
+		    dptr = strchr(dptr + 1, ']');
+		    if (dptr != NULL) *dptr = '_';
+		}
+
 		token = LefNextToken(f, TRUE);
 
 		/* Find the corresponding macro definition */

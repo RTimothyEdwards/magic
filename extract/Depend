@@ -9,7 +9,7 @@ ExtBasic.o: ExtBasic.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../database/database.h ../utils/malloc.h ../textio/textio.h \
  ../debug/debug.h ../extract/extract.h ../extract/extractInt.h \
  ../extract/extDebugInt.h ../utils/signals.h ../windows/windows.h \
- ../dbwind/dbwind.h ../utils/styles.h ../utils/stack.h
+ ../dbwind/dbwind.h ../utils/styles.h ../utils/stack.h ../utils/utils.h
 ExtCell.o: ExtCell.c ../utils/magic.h ../utils/geometry.h \
  ../utils/styles.h ../tiles/tile.h ../utils/hash.h ../database/database.h \
  ../utils/malloc.h ../textio/textio.h ../debug/debug.h \
@@ -57,8 +57,8 @@ ExtRegion.o: ExtRegion.c ../utils/magic.h ../utils/geometry.h \
  ../tiles/tile.h ../utils/hash.h ../database/database.h ../utils/malloc.h \
  ../textio/textio.h ../debug/debug.h ../extract/extract.h \
  ../extract/extractInt.h ../extract/extDebugInt.h ../utils/signals.h
-ExtSubtree.o: ExtSubtree.c ../utils/magic.h ../utils/geometry.h \
- ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
+ExtSubtree.o: ExtSubtree.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/geofast.h ../tiles/tile.h ../utils/hash.h \
  ../database/database.h ../utils/malloc.h ../textio/textio.h \
  ../debug/debug.h ../extract/extract.h ../extract/extractInt.h \
  ../extract/extDebugInt.h ../utils/signals.h ../windows/windows.h \
@@ -67,7 +67,8 @@ ExtTech.o: ExtTech.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../utils/utils.h ../utils/geometry.h ../tiles/tile.h ../utils/hash.h \
  ../database/database.h ../database/databaseInt.h ../utils/malloc.h \
  ../textio/textio.h ../utils/tech.h ../debug/debug.h ../extract/extract.h \
- ../extract/extractInt.h ../extract/extDebugInt.h ../cif/CIFint.h
+ ../extract/extractInt.h ../extract/extDebugInt.h ../cif/CIFint.h \
+ ../cif/cif.h
 ExtTest.o: ExtTest.c ../utils/magic.h ../utils/utils.h \
  ../utils/geometry.h ../utils/styles.h ../tiles/tile.h ../utils/hash.h \
  ../database/database.h ../utils/malloc.h ../windows/windows.h \

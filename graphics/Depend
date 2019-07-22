@@ -93,10 +93,10 @@ grTOGL2.o: grTOGL2.c ../tcltk/tclmagic.h ../utils/magic.h \
  grTOGLInt.h
 grTOGL3.o: grTOGL3.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../utils/geometry.h ../utils/malloc.h ../windows/windows.h \
- ../graphics/graphics.h ../graphics/graphicsInt.h ../textio/textio.h \
- ../utils/signals.h ../utils/utils.h ../utils/hash.h \
- ../graphics/grTOGLInt.h ../graphics/grTkCommon.h ../database/fonts.h \
- ../tiles/tile.h
+ ../graphics/graphics.h ../graphics/graphicsInt.h ../dbwind/dbwind.h \
+ ../database/database.h ../tiles/tile.h ../utils/hash.h \
+ ../textio/textio.h ../utils/signals.h ../utils/utils.h \
+ ../graphics/grTOGLInt.h ../graphics/grTkCommon.h ../database/fonts.h
 grTOGL4.o: grTOGL4.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../utils/magsgtty.h ../textio/textio.h ../utils/geometry.h \
  ../windows/windows.h ../graphics/graphics.h ../graphics/graphicsInt.h \
@@ -136,3 +136,28 @@ X11Helper.o: X11Helper.c
 grX11thread.o: grX11thread.c ../utils/magic.h ../utils/geometry.h \
  ../graphics/graphics.h ../windows/windows.h ../graphics/graphicsInt.h \
  grX11Int.h
+grTCairo1.o: grTCairo1.c ../tcltk/tclmagic.h ../utils/main.h \
+ ../windows/windows.h ../utils/magic.h ../utils/geometry.h \
+ ../database/database.h ../tiles/tile.h ../utils/hash.h ../utils/malloc.h \
+ ../utils/magsgtty.h ../graphics/graphics.h ../graphics/graphicsInt.h \
+ ../textio/textio.h ../textio/txcommands.h ../utils/signals.h \
+ ../utils/utils.h ../drc/drc.h ../utils/macros.h \
+ ../graphics/grTCairoInt.h ../utils/paths.h ../graphics/grTkCommon.h
+grTCairo2.o: grTCairo2.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../textio/textio.h ../utils/geometry.h ../graphics/glyphs.h \
+ ../windows/windows.h ../graphics/graphics.h ../graphics/graphicsInt.h \
+ grTCairoInt.h ../textio/txcommands.h
+grTCairo3.o: grTCairo3.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/malloc.h ../windows/windows.h \
+ ../graphics/graphics.h ../graphics/graphicsInt.h ../dbwind/dbwind.h \
+ ../database/database.h ../tiles/tile.h ../utils/hash.h \
+ ../textio/textio.h ../utils/signals.h ../utils/utils.h \
+ ../graphics/grTCairoInt.h ../graphics/grTkCommon.h ../database/fonts.h
+grTCairo4.o: grTCairo4.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/magsgtty.h ../textio/textio.h ../utils/geometry.h \
+ ../windows/windows.h ../graphics/graphics.h ../graphics/graphicsInt.h \
+ ../graphics/grTkCommon.h ../textio/txcommands.h grTCairoInt.h
+grTCairo5.o: grTCairo5.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/styles.h ../utils/hash.h ../textio/textio.h ../utils/geometry.h \
+ ../graphics/glyphs.h ../windows/windows.h ../graphics/graphics.h \
+ ../graphics/graphicsInt.h grTkCommon.h grTCairoInt.h

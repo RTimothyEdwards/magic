@@ -40,11 +40,12 @@ CmdLQ.o: CmdLQ.c ../tcltk/tclmagic.h ../utils/magic.h ../utils/malloc.h \
  ../netmenu/netmenu.h
 CmdRS.o: CmdRS.c ../tcltk/tclmagic.h ../utils/magic.h ../utils/stack.h \
  ../utils/geometry.h ../utils/utils.h ../tiles/tile.h ../utils/hash.h \
- ../database/database.h ../database/fonts.h ../windows/windows.h \
- ../dbwind/dbwind.h ../utils/main.h ../commands/commands.h \
- ../textio/textio.h ../graphics/graphics.h ../utils/tech.h ../drc/drc.h \
- ../textio/txcommands.h ../utils/malloc.h ../utils/netlist.h \
- ../netmenu/netmenu.h ../select/select.h ../utils/signals.h ../sim/sim.h
+ ../utils/styles.h ../database/database.h ../database/fonts.h \
+ ../windows/windows.h ../dbwind/dbwind.h ../utils/main.h \
+ ../commands/commands.h ../textio/textio.h ../graphics/graphics.h \
+ ../utils/tech.h ../drc/drc.h ../textio/txcommands.h ../utils/malloc.h \
+ ../utils/netlist.h ../netmenu/netmenu.h ../select/select.h \
+ ../utils/signals.h ../sim/sim.h
 CmdTZ.o: CmdTZ.c ../tcltk/tclmagic.h ../utils/magic.h ../utils/malloc.h \
  ../utils/geometry.h ../utils/utils.h ../tiles/tile.h ../utils/hash.h \
  ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \

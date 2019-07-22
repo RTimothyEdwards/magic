@@ -32,6 +32,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "tiles/tile.h"
 #include "utils/hash.h"
 #include "utils/undo.h"
+#include "utils/utils.h"	/* For StrDup() */
 #include "database/database.h"
 #include "windows/windows.h"
 #include "graphics/graphics.h"

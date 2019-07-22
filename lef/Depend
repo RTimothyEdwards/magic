@@ -17,9 +17,10 @@ defWrite.o: defWrite.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../cif/cif.h ../extflat/extflat.h ../lef/lefInt.h ../drc/drc.h
 lefRead.o: lefRead.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../utils/geometry.h ../tiles/tile.h ../utils/hash.h ../utils/undo.h \
- ../database/database.h ../windows/windows.h ../graphics/graphics.h \
- ../dbwind/dbwind.h ../utils/malloc.h ../textio/textio.h ../cif/cif.h \
- ../cif/CIFint.h ../lef/lefInt.h
+ ../utils/utils.h ../database/database.h ../windows/windows.h \
+ ../graphics/graphics.h ../dbwind/dbwind.h ../utils/malloc.h \
+ ../textio/textio.h ../cif/cif.h ../cif/CIFint.h ../cif/CIFread.h \
+ ../lef/lefInt.h
 defRead.o: defRead.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../utils/geometry.h ../tiles/tile.h ../utils/hash.h ../utils/undo.h \
  ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
