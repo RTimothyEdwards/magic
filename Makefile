@@ -58,6 +58,7 @@ libs:
 		(cd $$dir && ${MAKE} lib); done
 
 depend:	database/database.h
+	@echo --- making dependencies
 	${RM} */Depend
 	for dir in ${MODULES} ${UNUSED_MODULES} ${PROGRAMS}; do \
 		(cd $$dir && ${MAKE} depend); done

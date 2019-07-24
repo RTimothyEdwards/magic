@@ -3802,7 +3802,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 	char *propvalue;
 	bool found;
 
-	propvalue = DBPropGet(def, "FIXED_BBOX", &found);
+	propvalue = (char *)DBPropGet(def, "FIXED_BBOX", &found);
 	if (found)
 	{
 	    if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,

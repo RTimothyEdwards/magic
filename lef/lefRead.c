@@ -2448,7 +2448,7 @@ LefRead(inName, importForeign)
 
 	    case LEF_SECTION_NONDEFAULTRULE:
 		token = LefNextToken(f, TRUE);
-		TxPrintf("LEF file:  Defines non-default rule %s (ignored)\n", token);
+		LefError(LEF_INFO, "Defines non-default rule %s (ignored)\n", token);
 		sprintf(tsave, "%.127s", token);
 		LefSkipSection(f, tsave);
 		break;
@@ -2457,7 +2457,7 @@ LefRead(inName, importForeign)
 		break;
 	    case LEF_SECTION_SITE:
 		token = LefNextToken(f, TRUE);
-		TxPrintf("LEF file:  Defines site %s (ignored)\n", token);
+		LefError(LEF_INFO, "Defines site %s (ignored)\n", token);
 		sprintf(tsave, "%.127s", token);
 		LefSkipSection(f, tsave);
 		break;

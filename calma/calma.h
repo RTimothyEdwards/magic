@@ -42,5 +42,6 @@ extern bool CalmaWrite();
 extern void CalmaReadFile();
 extern void CalmaTechInit();
 extern bool CalmaGenerateArray();
+extern void CalmaReadError();
 
 #endif /* _CALMA_H */
