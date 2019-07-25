@@ -20,7 +20,7 @@ ${DEPEND_FILE}:
 # Original Depend file generating line:
 #	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} ${SRCS} > ${DEPEND_FILE}
 
-.c.o:
+.c.o:	../database/database.h
 	@echo --- compiling ${MODULE}/$*.o
 	${RM} $*.o
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS}  -c $*.c
@@ -46,10 +46,6 @@ ${MODULE}: lib${MODULE}.o ${EXTRA_LIBS}
 ${DESTDIR}${BINDIR}/${MODULE}${EXEEXT}: ${MODULE}${EXEEXT}
 	${RM} ${DESTDIR}${BINDIR}/${MODULE}${EXEEXT}
 	${CP} ${MODULE}${EXEEXT} ${DESTDIR}${BINDIR}
-
-../database/database.h: ../database/database.h.in
-	@echo --- making header file database/database.h
-	${SCRIPTS}/makedbh ../database/database.h.in ../database/database.h
 
 clean:
 	${RM} ${CLEANS}
