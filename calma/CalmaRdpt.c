@@ -57,8 +57,6 @@ extern HashTable calmaDefInitHash;
 extern void calmaLayerError();
 bool calmaReadPath();
 
-typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT } labelType;
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -145,7 +143,7 @@ calmaReadPoint(p, iscale)
 	rescale = calmaReadScale2 / FindGCF(calmaReadScale2, abs(p->p_x));
 	if ((calmaReadScale1 * rescale) > CIFRescaleLimit)
 	{
-	    calmaReadError("Warning:  calma units at max scale; value rounded\n");
+	    CalmaReadError("Warning:  calma units at max scale; value rounded\n");
 	    if (p->p_x < 0)
 		p->p_x -= ((calmaReadScale2 - 1) >> 1);
 	    else
@@ -167,7 +165,7 @@ calmaReadPoint(p, iscale)
 	rescale = calmaReadScale2 / FindGCF(calmaReadScale2, abs(p->p_y));
 	if ((calmaReadScale1 * rescale) > CIFRescaleLimit)
 	{
-	    calmaReadError("Warning:  calma units at max scale; value rounded\n");
+	    CalmaReadError("Warning:  calma units at max scale; value rounded\n");
 	    if (p->p_y < 0)
 		p->p_y -= ((calmaReadScale2 - 1) >> 1);
 	    else
@@ -218,7 +216,7 @@ calmaElementBoundary()
     if (!calmaReadI2Record(CALMA_LAYER, &layer)
 	    || !calmaReadI2Record(CALMA_DATATYPE, &dt))
     {
-	calmaReadError("Missing layer or datatype in boundary/box.\n");
+	CalmaReadError("Missing layer or datatype in boundary/box.\n");
 	return;
     }
 
@@ -236,7 +234,7 @@ calmaElementBoundary()
     if (!calmaReadPath(&pathheadp, (plane == NULL) ? 0 : 1)) 
     {
 	if (plane != NULL)
-	    calmaReadError("Error while reading path for boundary/box; ignored.\n");
+	    CalmaReadError("Error while reading path for boundary/box; ignored.\n");
 	return;
     }
 
@@ -274,7 +272,6 @@ calmaElementBoundary()
 	}
     }
 
-    CIFPropRecordPath(cifReadCellDef, pathheadp, FALSE);
     rp = CIFPolyToRects(pathheadp, plane, CIFPaintTable, (PaintUndoInfo *)NULL);
     CIFFreePath(pathheadp);
 
@@ -300,7 +297,7 @@ calmaElementBoundary()
 	rpc.r_ytop /= calmaReadScale1;
 
 	if ((ciftype >= 0) &&
-		((cifCurReadStyle->crs_labelSticky[ciftype] != LABEL_TYPE_NONE)))
+		(cifCurReadStyle->crs_labelSticky[ciftype] != LABEL_TYPE_NONE))
 	{
 	    Label *lab;
 	    TileType type;
@@ -332,7 +329,7 @@ calmaElementBoundary()
 
     if (cifCurReadPlanes == cifEditCellPlanes)
     {
-	CIFPaintCurrent();
+	CIFPaintCurrent(FILE_CALMA);
 	DBReComputeBbox(cifReadCellDef);
 	DRCCheckThis(cifReadCellDef, TT_CHECKPAINT, &cifReadCellDef->cd_bbox);
 	DBWAreaChanged(cifReadCellDef, &cifReadCellDef->cd_bbox,
@@ -386,7 +383,7 @@ calmaElementBox()
     if (!calmaReadI2Record(CALMA_LAYER, &layer)
 	    || !calmaReadI2Record(CALMA_BOXTYPE, &dt))
     {
-	calmaReadError("Missing layer or datatype in boundary/box.\n");
+	CalmaReadError("Missing layer or datatype in boundary/box.\n");
 	return;
     }
 
@@ -410,7 +407,7 @@ calmaElementBox()
     READRH(nbytes, rtype);
     if (nbytes < 0)
     {
-	calmaReadError("EOF when reading box.\n");
+	CalmaReadError("EOF when reading box.\n");
 	return;
     }
     if (rtype != CALMA_XY)
@@ -423,7 +420,7 @@ calmaElementBox()
     npoints = (nbytes - CALMAHEADERLENGTH) / 8;
     if (npoints != 5)
     {
-	calmaReadError("Box doesn't have 5 points.\n");
+	CalmaReadError("Box doesn't have 5 points.\n");
 	(void) calmaSkipBytes(nbytes - CALMAHEADERLENGTH);
 	return;
     }
@@ -494,7 +491,7 @@ calmaElementPath()
     if (pathtype != CALMAPATH_SQUAREFLUSH && pathtype != CALMAPATH_SQUAREPLUS &&
 		pathtype != CALMAPATH_CUSTOM)
     {
-	calmaReadError("Warning: pathtype %d unsupported (ignored).\n", pathtype);
+	CalmaReadError("Warning: pathtype %d unsupported (ignored).\n", pathtype);
 	pathtype = CALMAPATH_SQUAREFLUSH;
     }
 
@@ -508,13 +505,13 @@ calmaElementPath()
     {
 	if (!calmaReadI4Record(CALMA_WIDTH, &width)) 
 	{
-	    calmaReadError("Error in reading WIDTH in calmaElementPath()\n") ;
+	    CalmaReadError("Error in reading WIDTH in calmaElementPath()\n") ;
 	    return;
 	}
     }
     width *= calmaReadScale1;
     if (width % calmaReadScale2 != 0)
-	calmaReadError("Wire width snapped to nearest integer boundary.\n");
+	CalmaReadError("Wire width snapped to nearest integer boundary.\n");
 
     width /= calmaReadScale2;
 
@@ -531,12 +528,12 @@ calmaElementPath()
     if (nbytes > 0 && rtype == CALMA_BGNEXTN)
     {
 	if (!calmaReadI4Record(CALMA_BGNEXTN, &extend1))
-	    calmaReadError("Error in reading BGNEXTN in path (ignored)\n") ;
+	    CalmaReadError("Error in reading BGNEXTN in path (ignored)\n") ;
 	else
 	{
 	    extend1 *= calmaReadScale1;
 	    if (extend1 % calmaReadScale2 != 0)
-		calmaReadError("Wire extension snapped to nearest integer boundary.\n");
+		CalmaReadError("Wire extension snapped to nearest integer boundary.\n");
 	    extend1 *= 2;
 	    extend1 /= calmaReadScale2;
 	}
@@ -546,12 +543,12 @@ calmaElementPath()
     if (nbytes > 0 && rtype == CALMA_ENDEXTN)
     {
 	if (!calmaReadI4Record(CALMA_ENDEXTN, &extend2))
-	    calmaReadError("Error in reading ENDEXTN in path (ignored)\n") ;
+	    CalmaReadError("Error in reading ENDEXTN in path (ignored)\n") ;
 	else
 	{
 	    extend2 *= calmaReadScale1;
 	    if (extend2 % calmaReadScale2 != 0)
-		calmaReadError("Wire extension snapped to nearest integer boundary.\n");
+		CalmaReadError("Wire extension snapped to nearest integer boundary.\n");
 	    extend2 *= 2;
 	    extend2 /= calmaReadScale2;
 	}
@@ -561,7 +558,7 @@ calmaElementPath()
     savescale = calmaReadScale1;
     if (!calmaReadPath(&pathheadp, 2)) 
     {
-	calmaReadError("Improper path; ignored.\n");
+	CalmaReadError("Improper path; ignored.\n");
 	return;
     }
     if (savescale != calmaReadScale1)
@@ -652,14 +649,14 @@ calmaElementPath()
 	    }
 	}
 
-	CIFPropRecordPath(cifReadCellDef, pathheadp, TRUE);
+	CIFPropRecordPath(cifReadCellDef, pathheadp, TRUE, "path");
 	CIFPaintWirePath(pathheadp, width,
 		(pathtype == CALMAPATH_SQUAREFLUSH || pathtype == CALMAPATH_CUSTOM) ?
 		FALSE : TRUE, plane, CIFPaintTable, (PaintUndoInfo *)NULL);
 
 	if (cifCurReadPlanes == cifEditCellPlanes)
 	{
-	    CIFPaintCurrent();
+	    CIFPaintCurrent(FILE_CALMA);
 	    DBReComputeBbox(cifReadCellDef);
 	    DRCCheckThis(cifReadCellDef, TT_CHECKPAINT, &cifReadCellDef->cd_bbox);
 	    DBWAreaChanged(cifReadCellDef, &cifReadCellDef->cd_bbox,
@@ -715,7 +712,7 @@ calmaElementText()
     cifnum = CIFCalmaLayerToCifLayer(layer, textt, cifCurReadStyle);
     if (cifnum < 0)
     {
-	if(cifCurReadStyle->crs_flags & CRF_IGNORE_UNKNOWNLAYER_LABELS) 
+	if (cifCurReadStyle->crs_flags & CRF_IGNORE_UNKNOWNLAYER_LABELS) 
 	    type = -1;
 	else {
 	    calmaLayerError("Label on unknown layer/datatype", layer, textt);
@@ -728,7 +725,7 @@ calmaElementText()
     angle = 0;
 
     /* Default size is 1um */
-    size = (int)((800 * cifCurReadStyle->crs_multiplier)
+    size = (int)((1000 * cifCurReadStyle->crs_multiplier)
 				/ cifCurReadStyle->crs_scaleFactor);
     /* Default position is bottom-right (but what the spec calls "top-left"!) */
     pos = GEO_SOUTHEAST;
@@ -775,6 +772,31 @@ calmaElementText()
     else if (nbytes > 0 && rtype != CALMA_STRANS)
 	calmaSkipSet(ignore);
 
+    /* NOTE:  Record may contain both PRESENTATION and WIDTH */
+    PEEKRH(nbytes, rtype);
+    if (nbytes > 0 && rtype == CALMA_WIDTH)
+    {
+	int width;
+
+	/* Use WIDTH value to set the font size */
+	if (!calmaReadI4Record(CALMA_WIDTH, &width)) 
+	{
+	    CalmaReadError("Error in reading WIDTH in calmaElementText()\n") ;
+	    return;
+	}
+	width *= calmaReadScale1;
+	if (width % calmaReadScale2 != 0)
+	    CalmaReadError("Text width snapped to nearest integer boundary.\n");
+
+        width /= calmaReadScale2;
+
+	/* Convert to database units, because dimension goes to PutLabel    */
+	/* and is not converted through CIFPaintCurrent().		    */
+	size = CIFScaleCoord(width, COORD_ANY);
+    }
+    else if (nbytes > 0 && rtype != CALMA_STRANS)
+	calmaSkipSet(ignore);
+
     READRH(nbytes, rtype);
     if (nbytes > 0 && rtype == CALMA_STRANS)
     {
@@ -785,9 +807,10 @@ calmaElementText()
 	if (nbytes > 0 && rtype == CALMA_MAG)
 	{
 	    calmaReadR8(&dval);
+
 	    /* Assume that MAG is the label size in microns	*/
-	    /* "size" is the label size in 8 * (database units) */
-	    size = (int)((dval * 800 * cifCurReadStyle->crs_multiplier)
+	    /* "size" is the label size in 10 * (database units) */
+	    size = (int)((dval * 1000 * cifCurReadStyle->crs_multiplier)
 				/ cifCurReadStyle->crs_scaleFactor);
 	}
 	else
@@ -817,7 +840,7 @@ calmaElementText()
     nbytes -= CALMAHEADERLENGTH;
     if (nbytes < 8)
     {
-	calmaReadError("Not enough bytes in point record.\n");
+	CalmaReadError("Not enough bytes in point record.\n");
     }
     else
     {
@@ -867,15 +890,15 @@ calmaElementText()
 	    }
 	}
 	if (changed) {
-	    calmaReadError("Warning:  improper characters fixed in label '%s'\n",
+	    CalmaReadError("Warning:  improper characters fixed in label '%s'\n",
 			savstring);
 	    if (!algmsg) {
 		algmsg = TRUE;
-		calmaReadError("    (algorithm used:  trailing <CR> dropped, "
+		CalmaReadError("    (algorithm used:  trailing <CR> dropped, "
 				"<CR> and ' ' changed to '_', \n"
 				"    other non-printables changed to '?')\n");
 	    }
-	    calmaReadError("	modified label is '%s'\n", textbody);
+	    CalmaReadError("	modified label is '%s'\n", textbody);
 	    freeMagic(savstring);
 	}
     }
@@ -885,13 +908,19 @@ calmaElementText()
     /* Place the label */
     if (strlen(textbody) == 0)
     {
-	calmaReadError("Warning:  Ignoring empty string label at (%d, %d)\n",
+	CalmaReadError("Warning:  Ignoring empty string label at (%d, %d)\n",
 		r.r_ll.p_x * cifCurReadStyle->crs_scaleFactor,
 		r.r_ll.p_y * cifCurReadStyle->crs_scaleFactor);
     }
+    else if (cifCurReadStyle->crs_labelSticky[cifnum] == LABEL_TYPE_CELLID)
+    {
+	/* Special handling of label layers marked "cellid" in the techfile. */
+	/* The actual cellname is the ID string, not the GDS structure name. */
+	DBCellRenameDef(cifReadCellDef, textbody);
+    }
     else if (type < 0)
     {
-	calmaReadError("Warning:  label \"%s\" at (%d, %d) is on unhandled"
+	CalmaReadError("Warning:  label \"%s\" at (%d, %d) is on unhandled"
 		" layer:purpose pair %d:%d and will be discarded.\n", textbody,
 		r.r_ll.p_x * cifCurReadStyle->crs_scaleFactor,
 		r.r_ll.p_y * cifCurReadStyle->crs_scaleFactor, layer, textt);
@@ -1007,7 +1036,7 @@ calmaReadPath(pathheadpp, iscale)
     READRH(nbytes, rtype);
     if (nbytes < 0)
     {
-	calmaReadError("EOF when reading path.\n");
+	CalmaReadError("EOF when reading path.\n");
 	return (FALSE);
     }
     if (rtype != CALMA_XY)
@@ -1034,7 +1063,7 @@ calmaReadPath(pathheadpp, iscale)
 	    }
 	}
 	if (ABS(path.cifp_x) > 0x0fffffff || ABS(path.cifp_y) > 0x0fffffff) {
-	    calmaReadError("Warning:  Very large point in path:  (%d, %d)\n",
+	    CalmaReadError("Warning:  Very large point in path:  (%d, %d)\n",
 		path.cifp_x, path.cifp_y);
 	}
 	if (feof(calmaInputFile))
@@ -1112,6 +1141,6 @@ calmaLayerError(mesg, layer, dt)
     if (HashGetValue(he) == NULL)
     {
 	HashSetValue(he, (ClientData) 1);
-	calmaReadError("%s, layer=%d type=%d\n", mesg, layer, dt);
+	CalmaReadError("%s, layer=%d type=%d\n", mesg, layer, dt);
     }
 }

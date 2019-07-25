@@ -53,6 +53,25 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *------------------------------------------------------------
  */
 
+enum def_netspecial_keys {DEF_SPECNET_SHAPE = 0, DEF_SPECNET_STYLE,
+	DEF_SPECNET_USE, DEF_SPECNET_VOLTAGE, DEF_SPECNET_FIXEDBUMP,
+	DEF_SPECNET_ORIGINAL, DEF_SPECNET_PATTERN, DEF_SPECNET_ESTCAP,
+	DEF_SPECNET_WEIGHT, DEF_SPECNET_PROPERTY};
+
+enum def_netspecial_shape_keys {
+	DEF_SPECNET_SHAPE_RING = 0,
+	DEF_SPECNET_SHAPE_PADRING,
+	DEF_SPECNET_SHAPE_BLOCKRING,
+	DEF_SPECNET_SHAPE_STRIPE,
+	DEF_SPECNET_SHAPE_FOLLOWPIN,
+	DEF_SPECNET_SHAPE_IOWIRE,
+	DEF_SPECNET_SHAPE_COREWIRE,
+	DEF_SPECNET_SHAPE_BLOCKWIRE,
+	DEF_SPECNET_SHAPE_BLOCKAGEWIRE,
+	DEF_SPECNET_SHAPE_FILLWIRE,
+	DEF_SPECNET_SHAPE_FILLWIREOPC,
+	DEF_SPECNET_SHAPE_DRCFILL};
+
 char *
 DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
     CellDef *rootDef;		/* Cell to paint */
@@ -67,11 +86,43 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
     bool valid = FALSE;		/* is there a valid reference point? */
     bool initial = TRUE;
     Rect locarea;
+    int extend, lextend, hextend;
     float x, y, z, w;
     int routeWidth, paintWidth, saveWidth;
     TileType routeLayer, paintLayer;
     HashEntry *he;
     lefLayer *lefl;
+    int keyword;
+
+    static char *specnet_keys[] = {
+	"SHAPE",
+	"STYLE",
+	"USE",
+	"VOLTAGE",
+	"FIXEDBUMP",
+	"ORIGINAL",
+	"PATTERN",
+	"ESTCAP",
+	"WEIGHT",
+	"PROPERTY",
+	NULL
+    };
+
+    static char *specnet_shape_keys[] = {
+	"RING",
+	"PADRING",
+	"BLOCKRING",
+	"STRIPE",
+	"FOLLOWPIN",
+	"IOWIRE",
+	"COREWIRE",
+	"BLOCKWIRE",
+	"BLOCKAGEWIRE",
+	"FILLWIRE",
+	"FILLWIREOPC",
+	"DRCFILL",
+	NULL
+    };
 
     while (initial || (token = LefNextToken(f, TRUE)) != NULL)
     {
@@ -105,7 +156,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 
 	    if (routeLayer < 0)
 	    {
-		LefError("Unknown layer type \"%s\" for NEW route\n", token); 
+		LefError(DEF_ERROR, "Unknown layer type \"%s\" for NEW route\n", token); 
 		continue;
 	    }
 	    paintLayer = routeLayer;
@@ -116,7 +167,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%f", &w) != 1)
 		{
-		    LefError("Bad width in special net\n");
+		    LefError(DEF_ERROR, "Bad width in special net\n");
 		    continue;
 		}
 		if (w != 0)
@@ -130,6 +181,141 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		paintWidth = (lefl) ? lefl->info.route.width :
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
 	}
+	else if ((*token == '+') && (special == TRUE))
+	{
+	    int netstyle;
+
+	    /* Check for SHAPE, STYLE, or USE keywords */
+	    token = LefNextToken(f, TRUE);
+	    keyword = Lookup(token, specnet_keys);
+	    if (keyword < 0)
+	    {
+		LefError(DEF_INFO, "Unknown keyword \"%s\" in SPECIALNET "
+			"definition; ignoring.\n", token);
+		LefEndStatement(f);
+		continue;
+	    }
+	    switch(keyword)
+	    {
+		case DEF_SPECNET_STYLE:
+		    token = LefNextToken(f, TRUE);
+		    if (sscanf(token, "%d", &netstyle) != 1)
+		    {
+			LefError(DEF_INFO, "Net style \"%s\" in SPECIALNET "
+				    "definition is not a number; ignoring.\n", token);
+			LefEndStatement(f);
+			continue;
+		    }
+		    break;
+
+		case DEF_SPECNET_SHAPE:
+		    token = LefNextToken(f, TRUE);
+		    keyword = Lookup(token, specnet_shape_keys);
+		    if (keyword < 0)
+		    {
+			LefError(DEF_INFO, "Unknown SHAPE \"%s\" in SPECIALNET "
+				"definition; ignoring.\n", token);
+			LefEndStatement(f);
+			continue;
+		    }
+		    break;
+
+		case DEF_SPECNET_PROPERTY:
+		    /* Ignore except to absorb the next two tokens. */
+		    token = LefNextToken(f, TRUE);  /* Drop through */
+
+		case DEF_SPECNET_USE:
+		case DEF_SPECNET_VOLTAGE:
+		case DEF_SPECNET_ORIGINAL:
+		case DEF_SPECNET_PATTERN:
+		case DEF_SPECNET_ESTCAP:
+		case DEF_SPECNET_WEIGHT:
+		    /* Ignore except to absorb the next token. */
+		    token = LefNextToken(f, TRUE);  /* Drop through */
+
+		case DEF_SPECNET_FIXEDBUMP:
+		    /* Ignore this keyword */
+		    break;
+
+
+	    }
+	}
+	else if (!strcmp(token, "RECT"))
+	{
+	    /* NOTE:  Use of "RECT" in NETS is not in the LEF/DEF spec.	*/
+	    /* However, its use has been seen.	So "special" is not	*/
+	    /* checked here.						*/
+
+	    /* The rectangle coordinates are relative to the current	*/
+	    /* reference point, not absolute.				*/
+
+	    newRoute = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+
+	    /* Read an (llx lly urx ury) rectangle */
+	    token = LefNextToken(f, TRUE);	/* read llx */
+	    if (*token == '(') token = LefNextToken(f, TRUE);
+	    if (sscanf(token, "%f", &x) == 1)
+	    {
+		locarea.r_xbot = (refp.p_x / 2) + (int)roundf(x / oscale);
+	    }
+	    else
+	    {
+		LefError(DEF_ERROR, "Cannot parse X coordinate in RECT.\n"); 
+		goto endCoord;
+	    }
+
+	    token = LefNextToken(f, TRUE);	/* read lly */
+	    if (sscanf(token, "%f", &y) == 1)
+	    {
+		locarea.r_ybot = (refp.p_y / 2) + (int)roundf(y / oscale);
+	    }
+	    else
+	    {
+		LefError(DEF_ERROR, "Cannot parse Y coordinate in RECT.\n"); 
+		goto endCoord;
+	    }
+
+	    token = LefNextToken(f, TRUE);	/* read urx */
+	    if (sscanf(token, "%f", &x) == 1)
+	    {
+		locarea.r_xtop = (refp.p_x / 2) + (int)roundf(x / oscale);
+	    }
+	    else
+	    {
+		LefError(DEF_ERROR, "Cannot parse X coordinate in RECT.\n"); 
+		goto endCoord;
+	    }
+	    token = LefNextToken(f, TRUE);	/* read ury */
+	    if (sscanf(token, "%f", &y) == 1)
+	    {
+		locarea.r_ytop = (refp.p_y / 2) + (int)roundf(y / oscale);
+	    }
+	    else
+	    {
+		LefError(DEF_ERROR, "Cannot parse Y coordinate in RECT.\n"); 
+		goto endCoord;
+	    }
+	    token = LefNextToken(f, TRUE);	/* read closing parens */
+	    if (*token != ')')
+	    {
+		LefError(DEF_ERROR, "Bad coordinates in RECT.\n"); 
+		goto endCoord;
+	    }
+	    GeoCanonicalRect(&locarea, &newRoute->r_r);
+	}
+	else if (!strcmp(token, "POLYGON"))
+	{
+	    LefError(DEF_ERROR, "Route has POLYGON entries, this is not handled!\n",
+			token);
+	    token = LefNextToken(f, TRUE);	/* read opening parens */
+	    goto endCoord;
+	}
+	else if (!strcmp(token, "VIRTUAL"))
+	{
+	    /* Is this a LEF 5.8 thing?  Not sure if it should be ignored!  */
+	    /* Should the whole wire leg be ignored?			    */
+	    continue;
+	}
 	else if (*token != '(')	/* via name */
 	{
 	    /* A '+' or ';' record ends the route */
@@ -138,7 +324,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 
 	    else if (valid == FALSE)
 	    {
-		LefError("Route has via name \"%s\" but no points!\n", token);
+		LefError(DEF_ERROR, "Route has via name \"%s\" but no points!\n", token);
 		continue;
 	    }
 	    he = HashLookOnly(&LefInfo, token);
@@ -197,7 +383,8 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		}
 		else if ((paintLayer = DBTechNameType(LefLower(token))) >= 0)
 		{
-		    LefError("Error: Via \"%s\" named but undefined.\n", token);
+		    LefError(DEF_ERROR, "Error: Via \"%s\" named but undefined.\n",
+				token);
 		    newRoute->r_r.r_xbot = refp.p_x - paintWidth;
 		    newRoute->r_r.r_ybot = refp.p_y - paintWidth;
 		    newRoute->r_r.r_xtop = refp.p_x + paintWidth;
@@ -209,7 +396,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		    newRoute->r_r.r_ytop >>= 1;
 		}
 		else
-		   LefError("Via name \"%s\" unknown in route.\n", token);
+		   LefError(DEF_ERROR, "Via name \"%s\" unknown in route.\n", token);
 
 		/* After the via, the new route layer becomes whatever	*/
 		/* residue of the via was NOT the previous route layer.	*/
@@ -244,7 +431,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		}
 	    }
 	    else
-		LefError("Via name \"%s\" unknown in route.\n", token);
+		LefError(DEF_ERROR, "Via name \"%s\" unknown in route.\n", token);
 	}
 	else
 	{
@@ -254,14 +441,15 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	    /* Record current reference point */
 	    locarea.r_xbot = refp.p_x;
 	    locarea.r_ybot = refp.p_y;
+	    lextend = extend;
 
-	    /* Read an (X Y) point */
+	    /* Read an (X Y [extend]) point */
 	    token = LefNextToken(f, TRUE);	/* read X */
 	    if (*token == '*')
 	    {
 		if (valid == FALSE)
 		{
-		    LefError("No reference point for \"*\" wildcard\n"); 
+		    LefError(DEF_ERROR, "No reference point for \"*\" wildcard\n"); 
 		    goto endCoord;
 		}
 	    }
@@ -271,7 +459,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	    }
 	    else
 	    {
-		LefError("Cannot parse X coordinate.\n"); 
+		LefError(DEF_ERROR, "Cannot parse X coordinate.\n"); 
 		goto endCoord;
 	    }
 	    token = LefNextToken(f, TRUE);	/* read Y */
@@ -279,7 +467,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	    {
 		if (valid == FALSE)
 		{
-		    LefError("No reference point for \"*\" wildcard\n"); 
+		    LefError(DEF_ERROR, "No reference point for \"*\" wildcard\n"); 
 		    freeMagic(newRoute);
 		    newRoute = NULL;
 		    goto endCoord;
@@ -291,7 +479,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	    }
 	    else
 	    {
-		LefError("Cannot parse Y coordinate.\n"); 
+		LefError(DEF_ERROR, "Cannot parse Y coordinate.\n"); 
 		goto endCoord;
 	    }
 
@@ -300,19 +488,19 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	    /* is apparently how everyone interprets it, and is true for    */
 	    /* 5.6 spec.						    */
 
-	    z = (special) ? 0 : paintWidth;
+	    extend = (special) ? 0 : paintWidth;
 	    token = LefNextToken(f, TRUE);
 	    if (*token != ')')
 	    {
 		/* non-default route extension */
 		if (sscanf(token, "%f", &z) != 1)
-		    LefError("Can't parse route extension value.\n");
+		    LefError(DEF_ERROR, "Can't parse route extension value.\n");
 
 		/* all values will be divided by 2, so we need	*/
 		/* to multiply up by 2 now.			*/
 
 		else
-		    z *= 2;
+		    extend = (int)roundf((2 * z) / oscale);
 	    }
 
 	    /* Indicate that we have a valid reference point */
@@ -326,9 +514,10 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		/* Skip over nonmanhattan segments, reset the reference	*/
 		/* point, and output a warning.				*/
 
-		LefError("Can't deal with nonmanhattan geometry in route.\n");
+		LefError(DEF_ERROR, "Can't deal with nonmanhattan geometry in route.\n");
 		locarea.r_xbot = refp.p_x;
 		locarea.r_ybot = refp.p_y;
+		lextend = extend;
 	    }
 	    else
 	    {
@@ -341,6 +530,19 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		locarea.r_xtop = refp.p_x;
 		locarea.r_ytop = refp.p_y;
 
+		/* Change route segment to a canonical rectangle.  If	*/
+		/* the route is flipped relative to canonical coords,	*/
+		/* then the wire extentions have to be swapped as well.	*/
+
+		if ((locarea.r_xtop < locarea.r_xbot) ||
+			(locarea.r_ytop < locarea.r_ybot))
+		{
+		    hextend = lextend;
+		    lextend = extend;
+		}
+		else
+		    hextend = extend;
+
 		GeoCanonicalRect(&locarea, &newRoute->r_r);
 
 		if (newRoute->r_r.r_xbot == newRoute->r_r.r_xtop)
@@ -350,8 +552,8 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		}
 		else
 		{
-		    newRoute->r_r.r_xbot -= z;
-		    newRoute->r_r.r_xtop += z;
+		    newRoute->r_r.r_xbot -= lextend;
+		    newRoute->r_r.r_xtop += hextend;
 		}
 
 		if (newRoute->r_r.r_ybot == newRoute->r_r.r_ytop)
@@ -361,8 +563,8 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 		}
 		else
 		{
-		    newRoute->r_r.r_ybot -= z;
-		    newRoute->r_r.r_ytop += z;
+		    newRoute->r_r.r_ybot -= lextend;
+		    newRoute->r_r.r_ytop += hextend;
 		}
 
 		/* If we don't have integer units here, we should	*/
@@ -471,7 +673,7 @@ DefReadNets(f, rootDef, sname, oscale, special, total)
 	keyword = Lookup(token, net_keys);
 	if (keyword < 0)
 	{
-	    LefError("Unknown keyword \"%s\" in NET "
+	    LefError(DEF_INFO, "Unknown keyword \"%s\" in NET "
 			"definition; ignoring.\n", token);
 	    LefEndStatement(f);
 	    continue;
@@ -508,14 +710,16 @@ DefReadNets(f, rootDef, sname, oscale, special, total)
 		    subkey = Lookup(token, net_property_keys);
 		    if (subkey < 0)
 		    {
-			LefError("Unknown net property \"%s\" in "
+			LefError(DEF_INFO, "Unknown net property \"%s\" in "
 				"NET definition; ignoring.\n", token);
 			continue;
 		    }
 		    switch (subkey)
 		    {
 			case DEF_NETPROP_USE:
-			    /* Presently, we ignore this */
+			    /* Presently, we ignore this, except to	*/
+			    /* absorb the following value.		*/
+			    token = LefNextToken(f, TRUE);
 			    break;
 			case DEF_NETPROP_ROUTED:
 			case DEF_NETPROP_FIXED:
@@ -530,7 +734,7 @@ DefReadNets(f, rootDef, sname, oscale, special, total)
 	    case DEF_NET_END:
 		if (!LefParseEndStatement(f, sname))
 		{
-		    LefError("Net END statement missing.\n");
+		    LefError(DEF_ERROR, "Net END statement missing.\n");
 		    keyword = -1;
 		}
 		break;
@@ -542,7 +746,7 @@ DefReadNets(f, rootDef, sname, oscale, special, total)
 	TxPrintf("  Processed %d%s nets total.\n", processed,
 		(special) ? " special" : "");
     else
-	LefError("Warning:  Number of nets read (%d) does not match "
+	LefError(DEF_WARNING, "Number of nets read (%d) does not match "
 		"the number declared (%d).\n", processed, total);
 
     freeMagic((char *)defLayerMap);
@@ -600,7 +804,7 @@ DefReadLocation(use, f, oscale, tptr)
     keyword = Lookup(token, orientations);
     if (keyword < 0)
     {
-	LefError("Unknown macro orientation \"%s\".\n", token);
+	LefError(DEF_ERROR, "Unknown macro orientation \"%s\".\n", token);
 	return -1;
     }
 
@@ -668,7 +872,7 @@ DefReadLocation(use, f, oscale, tptr)
     return 0;
 
 parse_error:
-    LefError("Cannot parse location: must be ( X Y ) orient\n");
+    LefError(DEF_ERROR, "Cannot parse location: must be ( X Y ) orient\n");
     return -1;
 }
 
@@ -692,7 +896,8 @@ enum def_pins_keys {DEF_PINS_START = 0, DEF_PINS_END};
 enum def_pins_prop_keys {
 	DEF_PINS_PROP_NET = 0, DEF_PINS_PROP_DIR,
 	DEF_PINS_PROP_LAYER, DEF_PINS_PROP_USE,
-	DEF_PINS_PROP_PLACED, DEF_PINS_PROP_FIXED};
+	DEF_PINS_PROP_PLACED, DEF_PINS_PROP_FIXED,
+	DEF_PINS_PROP_PORT, DEF_PINS_PROP_SPECIAL};
 
 void
 DefReadPins(f, rootDef, sname, oscale, total)
@@ -713,6 +918,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
     Transform t;
     lefLayer *lefl;
     bool pending = FALSE;
+    bool hasports = FALSE;
 
     static char *pin_keys[] = {
 	"-",
@@ -727,6 +933,8 @@ DefReadPins(f, rootDef, sname, oscale, total)
 	"USE",
 	"PLACED",
 	"FIXED",
+	"PORT",
+	"SPECIAL",
 	NULL
     };
 
@@ -755,7 +963,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 
 	if (keyword < 0)
 	{
-	    LefError("Unknown keyword \"%s\" in PINS "
+	    LefError(DEF_INFO, "Unknown keyword \"%s\" in PINS "
 			"definition; ignoring.\n", token);
 	    LefEndStatement(f);
 	    continue;
@@ -763,13 +971,14 @@ DefReadPins(f, rootDef, sname, oscale, total)
 	switch (keyword)
 	{
 	    case DEF_PINS_START:		/* "-" keyword */
+		hasports = FALSE;
 
 		// Flag an error if a pin was waiting on a layer
 		// specification that was never given.
 
 		if (pending)
 		{
-		    LefError("Pin specified without layer, was not placed.\n");
+		    LefError(DEF_ERROR, "Pin specified without layer, was not placed.\n");
 		}
 
 		/* Update the record of the number of pins		*/
@@ -781,7 +990,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%2047s", pinname) != 1)
 		{
-		    LefError("Bad pin statement:  Need pin name\n");
+		    LefError(DEF_ERROR, "Bad pin statement:  Need pin name\n");
 		    LefEndStatement(f);
 		    break;
 		}
@@ -799,12 +1008,24 @@ DefReadPins(f, rootDef, sname, oscale, total)
 		    subkey = Lookup(token, pin_property_keys);
 		    if (subkey < 0)
 		    {
-			LefError("Unknown pin property \"%s\" in "
+			LefError(DEF_INFO, "Unknown pin property \"%s\" in "
 				"PINS definition; ignoring.\n", token);
 			continue;
 		    }
 		    switch (subkey)
 		    {
+			case DEF_PINS_PROP_SPECIAL:
+			    /* Ignore this */
+			    break;
+			case DEF_PINS_PROP_PORT:
+			    /* Ignore this, except that each port adds to   */
+			    /* the count of total pins processed.  Note	    */
+			    /* that since "processed" is incremented before */
+			    /* the first PORT is seen, then "processed"	    */
+			    /* should not be incremented until the 2nd PORT */
+			    if (hasports) processed++;
+			    hasports = TRUE;
+			    break;
 			case DEF_PINS_PROP_USE:
 			case DEF_PINS_PROP_NET:
 			    /* Get the net name, but ignore it */
@@ -814,7 +1035,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 			    token = LefNextToken(f, TRUE);
 			    subkey = Lookup(token, pin_classes);
 			    if (subkey < 0)
-				LefError("Unknown pin class\n");
+				LefError(DEF_ERROR, "Unknown pin class\n");
 			    else
 				pinDir = lef_class_to_bitmask[subkey];
 			    break;
@@ -869,7 +1090,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 	    case DEF_PINS_END:
 		if (!LefParseEndStatement(f, sname))
 		{
-		    LefError("Pins END statement missing.\n");
+		    LefError(DEF_ERROR, "Pins END statement missing.\n");
 		    keyword = -1;
 		}
 		break;
@@ -880,7 +1101,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
     if (processed == total)
 	TxPrintf("  Processed %d pins total.\n", processed);
     else
-	LefError("Warning:  Number of pins read (%d) does not match "
+	LefError(DEF_WARNING, "Number of pins read (%d) does not match "
 		"the number declared (%d).\n", processed, total);
 }
  
@@ -904,7 +1125,10 @@ DefReadPins(f, rootDef, sname, oscale, total)
 
 enum def_vias_keys {DEF_VIAS_START = 0, DEF_VIAS_END};
 enum def_vias_prop_keys {
-	DEF_VIAS_PROP_RECT = 0};
+	DEF_VIAS_PROP_RECT = 0, DEF_VIAS_PROP_VIARULE,
+	DEF_VIAS_PROP_CUTSIZE, DEF_VIAS_PROP_LAYERS,
+	DEF_VIAS_PROP_CUTSPACING, DEF_VIAS_PROP_ENCLOSURE,
+	DEF_VIAS_PROP_ROWCOL};
 
 void
 DefReadVias(f, sname, oscale, total)
@@ -922,6 +1146,13 @@ DefReadVias(f, sname, oscale, total)
     lefLayer *lefl;
     HashEntry *he;
 
+    /* For generated vias */
+    bool generated = FALSE;
+    int sizex, sizey, spacex, spacey;
+    int encbx, encby, enctx, encty;
+    int rows = 1, cols = 1;
+    TileType tlayer, clayer, blayer;
+
     static char *via_keys[] = {
 	"-",
 	"END",
@@ -930,6 +1161,12 @@ DefReadVias(f, sname, oscale, total)
 
     static char *via_property_keys[] = {
 	"RECT",
+	"VIARULE",
+	"CUTSIZE",
+	"LAYERS",
+	"CUTSPACING",
+	"ENCLOSURE",
+	"ROWCOL",
 	NULL
     };
 
@@ -939,7 +1176,7 @@ DefReadVias(f, sname, oscale, total)
 
 	if (keyword < 0)
 	{
-	    LefError("Unknown keyword \"%s\" in VIAS "
+	    LefError(DEF_INFO, "Unknown keyword \"%s\" in VIAS "
 			"definition; ignoring.\n", token);
 	    LefEndStatement(f);
 	    continue;
@@ -957,7 +1194,7 @@ DefReadVias(f, sname, oscale, total)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%2047s", vianame) != 1)
 		{
-		    LefError("Bad via statement:  Need via name\n");
+		    LefError(DEF_ERROR, "Bad via statement:  Need via name\n");
 		    LefEndStatement(f);
 		    break;
 		}
@@ -977,7 +1214,7 @@ DefReadVias(f, sname, oscale, total)
 		}
 		else
 		{
-		    LefError("Warning:  Composite via \"%s\" redefined.\n", vianame);
+		    LefError(DEF_WARNING, "Composite via \"%s\" redefined.\n", vianame);
 		    lefl = LefRedefined(lefl, vianame);
 		}
 
@@ -986,14 +1223,24 @@ DefReadVias(f, sname, oscale, total)
 
 		while ((token = LefNextToken(f, TRUE)) != NULL)
 		{
-		    if (*token == ';') break;
+		    if (*token == ';') {
+			if (generated == TRUE) {
+			    /* Complete the generated via */
+			    LefGenViaGeometry(f, lefl,
+				    sizex, sizey, spacex, spacey,
+				    encbx, encby, enctx, encty,
+				    rows, cols, tlayer, clayer, blayer,
+				    oscale);
+			}
+			break;
+		    }
 		    if (*token != '+') continue;
 
 		    token = LefNextToken(f, TRUE);
 		    subkey = Lookup(token, via_property_keys);
 		    if (subkey < 0)
 		    {
-			LefError("Unknown via property \"%s\" in "
+			LefError(DEF_INFO, "Unknown via property \"%s\" in "
 				"VIAS definition; ignoring.\n", token);
 			continue;
 		    }
@@ -1003,6 +1250,90 @@ DefReadVias(f, sname, oscale, total)
 			    curlayer = LefReadLayer(f, FALSE);
 			    LefAddViaGeometry(f, lefl, curlayer, oscale);
 			    break;
+
+			case DEF_VIAS_PROP_VIARULE:
+			    token = LefNextToken(f, TRUE);
+			    /* Ignore this.  To do:  Parse VIARULE statements	*/
+			    /* and use the rule to fill any missing values.	*/
+			    break;
+			case DEF_VIAS_PROP_CUTSIZE:
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &sizex) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for CUTSIZE.\n");
+				/* To do:  Get cut size from DRC ruleset */
+			    }
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &sizey) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for CUTSIZE.\n");
+				/* To do:  Get cut size from DRC ruleset */
+			    }
+			    generated = TRUE;
+			    break;
+			case DEF_VIAS_PROP_LAYERS:
+			    blayer = LefReadLayer(f, FALSE);
+			    clayer = LefReadLayer(f, FALSE);
+			    tlayer = LefReadLayer(f, FALSE);
+			    generated = TRUE;
+			    break;
+			case DEF_VIAS_PROP_CUTSPACING:
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &spacex) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for CUTSPACING.\n");
+				/* To do:  Get cut spacing from DRC ruleset */
+			    }
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &spacey) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for CUTSPACING.\n");
+				/* To do:  Get cut spacing from DRC ruleset */
+			    }
+			    generated = TRUE;
+			    break;
+			case DEF_VIAS_PROP_ENCLOSURE:
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &enctx) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for ENCLOSURE.\n");
+				/* To do:  Get cut enclosures from DRC ruleset */
+			    }
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &encty) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for ENCLOSURE.\n");
+				/* To do:  Get cut enclosures from DRC ruleset */
+			    }
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &encbx) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for ENCLOSURE.\n");
+				/* To do:  Get cut enclosures from DRC ruleset */
+			    }
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &encby) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for ENCLOSURE.\n");
+				/* To do:  Get cut enclosures from DRC ruleset */
+			    }
+			    generated = TRUE;
+			    break;
+			case DEF_VIAS_PROP_ROWCOL:
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &rows) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for ROWCOL.\n");
+				rows = 1;
+			    }
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &cols) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for ROWCOL.\n");
+				cols = 1;
+			    }
+			    generated = TRUE;
+			    break;
 		    }
 		}
 		break;
@@ -1010,7 +1341,7 @@ DefReadVias(f, sname, oscale, total)
 	    case DEF_VIAS_END:
 		if (!LefParseEndStatement(f, sname))
 		{
-		    LefError("Vias END statement missing.\n");
+		    LefError(DEF_ERROR, "Vias END statement missing.\n");
 		    keyword = -1;
 		}
 		break;
@@ -1021,7 +1352,7 @@ DefReadVias(f, sname, oscale, total)
     if (processed == total)
 	TxPrintf("  Processed %d vias total.\n", processed);
     else
-	LefError("Warning:  Number of vias read (%d) does not match "
+	LefError(DEF_WARNING, "Number of vias read (%d) does not match "
 		"the number declared (%d).\n", processed, total);
 }
  
@@ -1061,7 +1392,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
     CellDef *defMacro;
     CellUse *defUse;
     Transform t;
-    char *token;
+    char *token, *dptr;
     char usename[512];
     int keyword, subkey, values;
     int processed = 0;
@@ -1093,7 +1424,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 
 	if (keyword < 0)
 	{
-	    LefError("Unknown keyword \"%s\" in COMPONENT "
+	    LefError(DEF_INFO, "Unknown keyword \"%s\" in COMPONENT "
 			"definition; ignoring.\n", token);
 	    LefEndStatement(f);
 	    continue;
@@ -1111,10 +1442,27 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%511s", usename) != 1)
 		{
-		    LefError("Bad component statement:  Need use and macro names\n");
+		    LefError(DEF_ERROR, "Bad component statement:  Need "
+			    "use and macro names\n");
 		    LefEndStatement(f);
 		    break;
 		}
+
+		/* Does use name contain brackets?  If so, this can */
+		/* interfere with magic's use of arrays.	    */
+
+		/* NOTE:  It is not clear that this needs to be	    */
+		/* done during DEF read.  The only confusion comes  */
+		/* from the arrays being parsed by ExtFlat when	    */
+		/* doing ext2spice.				    */
+
+		dptr = strchr(usename, '[');
+		if (dptr != NULL) {
+		    *dptr = '_';
+		    dptr = strchr(dptr + 1, ']');
+		    if (dptr != NULL) *dptr = '_';
+		}
+
 		token = LefNextToken(f, TRUE);
 
 		/* Find the corresponding macro definition */
@@ -1129,8 +1477,8 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		    defMacro->cd_flags &= ~CDNOTFOUND;
 		    if (!DBCellRead(defMacro, (char *)NULL, TRUE, NULL))
 		    {
-		        LefError("Cell %s is not defined.  Maybe you have not "
-				"read the corresponding LEF file?\n",
+		        LefError(DEF_ERROR, "Cell %s is not defined.  Maybe you "
+				"have not read the corresponding LEF file?\n",
 				token);
 		        LefEndStatement(f);
 			DBCellDeleteDef(defMacro);
@@ -1163,7 +1511,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		    subkey = Lookup(token, property_keys);
 		    if (subkey < 0)
 		    {
-			LefError("Unknown component property \"%s\" in "
+			LefError(DEF_INFO, "Unknown component property \"%s\" in "
 				"COMPONENT definition; ignoring.\n", token);
 			continue;
 		    }
@@ -1198,7 +1546,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 	    case DEF_COMP_END:
 		if (!LefParseEndStatement(f, sname))
 		{
-		    LefError("Component END statement missing.\n");
+		    LefError(DEF_ERROR, "Component END statement missing.\n");
 		    keyword = -1;
 		}
 
@@ -1216,7 +1564,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
     if (processed == total)
 	TxPrintf("  Processed %d subcell instances total.\n", processed);
     else
-	LefError("Warning:  Number of subcells read (%d) does not match "
+	LefError(DEF_WARNING, "Number of subcells read (%d) does not match "
 		"the number declared (%d).\n", processed, total);
 }
 
@@ -1330,7 +1678,7 @@ DefRead(inName)
 	keyword = Lookup(token, sections);
 	if (keyword < 0)
 	{
-	    LefError("Unknown keyword \"%s\" in DEF file; ignoring.\n", token);
+	    LefError(DEF_INFO, "Unknown keyword \"%s\" in DEF file; ignoring.\n", token);
 	    LefEndStatement(f);
 	    continue;
 	}
@@ -1346,7 +1694,7 @@ DefRead(inName)
 		token = LefNextToken(f, TRUE);
 		if (strcmp(token, DBTechName))
 		{
-		    LefError("Warning: DEF technology name \"%s\" does not"
+		    LefError(DEF_WARNING, "DEF technology name \"%s\" does not"
 			" match current magic technology name \"%s\"\n",
 			token, DBTechName);
 		}
@@ -1366,8 +1714,8 @@ DefRead(inName)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &dscale) != 1)
 		{
-		    LefError("Invalid syntax for UNITS statement.\n");
-		    LefError("Assuming default value of 100\n");
+		    LefError(DEF_ERROR, "Invalid syntax for UNITS statement.\n");
+		    LefError(DEF_INFO, "Assuming default value of 100\n");
 		    dscale = 100;
 		}
 		/* We don't care if the scale is 100, 200, 1000, or 2000. */
@@ -1453,7 +1801,7 @@ DefRead(inName)
 	    case DEF_END:
 		if (!LefParseEndStatement(token, "DESIGN"))
 		{
-		    LefError("END statement out of context.\n");
+		    LefError(DEF_ERROR, "END statement out of context.\n");
 		    keyword = -1;
 		}
 		break;
@@ -1461,7 +1809,7 @@ DefRead(inName)
 	if (keyword == DEF_END) break;
     }
     TxPrintf("DEF read: Processed %d lines.\n", lefCurrentLine);
-    LefError(NULL);	/* print statement of errors, if any, and reset */
+    LefError(DEF_SUMMARY, NULL);    /* print statement of errors, if any, and reset */
 
     /* Cleanup */
 

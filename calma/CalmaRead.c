@@ -232,7 +232,7 @@ done:
 	freeMagic(libname);
     }
 
-    CIFReadCellCleanup(1);
+    CIFReadCellCleanup(FILE_CALMA);
     HashKill(&calmaDefInitHash);
     UndoEnable();
 
@@ -330,7 +330,7 @@ calmaParseUnits()
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaReadError --
+ * CalmaReadError --
  *
  * This procedure is called to print out error messages during
  * Calma file reading.
@@ -349,29 +349,35 @@ calmaParseUnits()
 
 void
     /*VARARGS1*/
-calmaReadError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
+CalmaReadError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
     char *format;
     char *a1, *a2, *a3, *a4, *a5, *a6, *a7, *a8, *a9, *a10;
 {
+    off_t filepos;
+
     calmaTotalErrors++;
     if (CIFWarningLevel == CIF_WARN_NONE) return;
 
     if ((calmaTotalErrors < 100) || (CIFWarningLevel != CIF_WARN_LIMIT))
     {   
+	filepos = ftello(calmaInputFile);
 
         if (CIFWarningLevel == CIF_WARN_REDIRECT)
         {
             if (calmaErrorFile != NULL)
             {
-                fprintf(calmaErrorFile, "Error while reading cell \"%s\": ",
+                fprintf(calmaErrorFile, "Error while reading cell \"%s\" ",
                                 cifReadCellDef->cd_name);
+		fprintf(calmaErrorFile, "(byte position %"DLONG_PREFIX"ld): ",
+				(dlong)filepos);
                 fprintf(calmaErrorFile, format, a1, a2, a3, a4, a5, a6, a7, 
                                 a8, a9, a10);
             }
         }
         else
         {
-            TxError("Error while reading cell \"%s\": ", cifReadCellDef->cd_name);
+            TxError("Error while reading cell \"%s\" ", cifReadCellDef->cd_name);
+	    TxError("(byte position %"DLONG_PREFIX"d): ", (dlong)filepos);
             TxError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
         }
     }
@@ -402,7 +408,7 @@ calmaUnexpected(wanted, got)
     int wanted;	/* Type of record we wanted */
     int got;	/* Type of record we got */
 {
-    calmaReadError("Unexpected record type in input: \n");
+    CalmaReadError("Unexpected record type in input: \n");
 
     if (CIFWarningLevel == CIF_WARN_NONE) return;
     if (calmaTotalErrors < 100 || (CIFWarningLevel != CIF_WARN_LIMIT))

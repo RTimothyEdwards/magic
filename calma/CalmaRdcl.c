@@ -141,7 +141,7 @@ calmaSetPosition(sname)
 	return originalPos;
      }
 
-     calmaReadError("Cell \"%s\" is used but not defined in this file.\n", sname);
+     CalmaReadError("Cell \"%s\" is used but not defined in this file.\n", sname);
 
      return originalPos;
 }
@@ -288,6 +288,7 @@ calmaParseStructure(filename)
     int mfactor;
     off_t filepos;
     bool was_called;
+    bool was_initialized;
     CellDef *def;
 
     /* Make sure this is a structure; if not, let the caller know we're done */
@@ -296,7 +297,8 @@ calmaParseStructure(filename)
 	return (FALSE);
 
     /* Read the structure name */
-    if (!calmaSkipExact(CALMA_BGNSTR)) goto syntaxerror;;
+    was_initialized = FALSE;
+    if (!calmaSkipExact(CALMA_BGNSTR)) goto syntaxerror;
     if (!calmaReadStringRecord(CALMA_STRNAME, &strname)) goto syntaxerror;
     TxPrintf("Reading \"%s\".\n", strname);
 
@@ -316,23 +318,23 @@ calmaParseStructure(filename)
 
 	    if (!CalmaPostOrder)
 	    {
-		calmaReadError("Cell \"%s\" was already defined in this file.\n",
+		CalmaReadError("Cell \"%s\" was already defined in this file.\n",
 				strname);
-		calmaReadError("Ignoring duplicate definition\n");
+		CalmaReadError("Ignoring duplicate definition\n");
 	    }
 	    calmaNextCell();
 	    return TRUE;
 	}
 	else
 	{
-	    calmaReadError("Cell \"%s\" was already defined in this file.\n",
+	    CalmaReadError("Cell \"%s\" was already defined in this file.\n",
 				strname);
 	    for (suffix = 1; HashGetValue(he) != NULL; suffix++)
 	    {
 		(void) sprintf(newname, "%s_%d", strname, suffix);
 		he = HashFind(&calmaDefInitHash, newname);
 	    }
-	    calmaReadError("Giving this cell a new name: %s\n", newname);
+	    CalmaReadError("Giving this cell a new name: %s\n", newname);
 	    strncpy(strname, newname, CALMANAMELENGTH*2);
 	}
     }
@@ -354,6 +356,7 @@ calmaParseStructure(filename)
 
     /* Initialize the hash table for layer errors */
     HashInit(&calmaLayerHash, 32, sizeof (CalmaLayerType) / sizeof (unsigned));
+    was_initialized = TRUE;
 
     /* Body of structure: a sequence of elements */
     osrefs = nsrefs = 0;
@@ -434,7 +437,7 @@ calmaParseStructure(filename)
 	 * the appropriate cell of the database.
 	 */
 
-	CIFPaintCurrent();
+	CIFPaintCurrent(FILE_CALMA);
     }
 
     DBAdjustLabelsNew(cifReadCellDef, &TiPlaneRect,
@@ -466,7 +469,7 @@ done:
 
     /* Syntax error: skip to CALMA_ENDSTR */
 syntaxerror:
-    HashKill(&calmaLayerHash);
+    if (was_initialized == TRUE) HashKill(&calmaLayerHash);
     return (calmaSkipTo(CALMA_ENDSTR));
 }
 
@@ -505,7 +508,7 @@ calmaParseElement(filename, pnsrefs, pnpaths)
     READRH(nbytes, rtype);
     if (nbytes < 0)
     {
-	calmaReadError("Unexpected EOF.\n");
+	CalmaReadError("Unexpected EOF.\n");
 	return (FALSE);
     }
 
@@ -533,7 +536,7 @@ calmaParseElement(filename, pnsrefs, pnpaths)
 	    calmaElementText();
 	    break;
 	case CALMA_NODE:
-	    calmaReadError("NODE elements not supported: skipping.\n");
+	    CalmaReadError("NODE elements not supported: skipping.\n");
 	    calmaSkipSet(node);
 	    break;
 	default:
@@ -661,10 +664,10 @@ calmaElementSref(filename)
 
     if (DBIsAncestor(def, cifReadCellDef))
     {
-	calmaReadError("Cell %s is an ancestor of %s",
+	CalmaReadError("Cell %s is an ancestor of %s",
 			def->cd_name, cifReadCellDef->cd_name);
-	calmaReadError(" and can't be used as a subcell.\n");
-	calmaReadError("(Use skipped)\n");
+	CalmaReadError(" and can't be used as a subcell.\n");
+	CalmaReadError("(Use skipped)\n");
 	return -1;
     }
 
@@ -719,12 +722,12 @@ calmaElementSref(filename)
     nref = nbytes / 8;
     if (nref > 3)
     {
-	calmaReadError("Too many points (%d) in SREF/AREF\n", nref);
+	CalmaReadError("Too many points (%d) in SREF/AREF\n", nref);
 	nref = 3;
     }
     else if (nref < 1)
     {
-	calmaReadError("Missing reference points in SREF/AREF (using 0,0)\n");
+	CalmaReadError("Missing reference points in SREF/AREF (using 0,0)\n");
 	refarray[0].p_x = refarray[0].p_y = 0;
 	refarray[1].p_x = refarray[1].p_y = 0;
 	refarray[2].p_x = refarray[2].p_y = 0;
@@ -853,8 +856,8 @@ calmaElementSref(filename)
 		if (p.p_x % cols)
 		{
 		    n = (p.p_x + (cols+1)/2) / cols;
-		    calmaReadError("# cols doesn't divide displacement ref pt\n");
-		    calmaReadError("    %d / %d -> %d\n", p.p_x, cols, n);
+		    CalmaReadError("# cols doesn't divide displacement ref pt\n");
+		    CalmaReadError("    %d / %d -> %d\n", p.p_x, cols, n);
 		    xsep = n;
 		}
 		else xsep = p.p_x / cols;
@@ -865,8 +868,8 @@ calmaElementSref(filename)
 		if (p.p_y % rows)
 		{
 		    n = (p.p_y + (rows+1)/2) / rows;
-		    calmaReadError("# rows doesn't divide displacement ref pt\n");
-		    calmaReadError("    %d / %d -> %d\n", p.p_y, rows, n);
+		    CalmaReadError("# rows doesn't divide displacement ref pt\n");
+		    CalmaReadError("    %d / %d -> %d\n", p.p_y, rows, n);
 		    ysep = n;
 		}
 		ysep = p.p_y / rows;

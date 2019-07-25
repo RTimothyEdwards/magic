@@ -557,15 +557,18 @@ cifCopyPaintFunc(tile, cifCopyRec)
  */
 
 int
-CIFPaintCurrent()
+CIFPaintCurrent(filetype)
+    bool filetype;
 {
+    extern int cifMakeBoundaryFunc();	/* Forward declaration. */
+    extern int cifPaintCurrentFunc();	/* Forward declaration. */
+
     Plane *plane, *swapplane;
     int i;
 
     for (i = 0; i < cifCurReadStyle->crs_nLayers; i++)
     {
 	TileType type;
-	extern int cifPaintCurrentFunc();	/* Forward declaration. */
 	CIFOp *op;
 
 	plane = CIFGenLayer(cifCurReadStyle->crs_layers[i]->crl_ops,
@@ -641,6 +644,23 @@ CIFPaintCurrent()
 		    }
 		}
 	    }
+	    else if (op == NULL)
+	    {
+		/* Handle boundary layer */
+
+		op = cifCurReadStyle->crs_layers[i]->crl_ops;
+		while (op)
+		{
+		    if (op->co_opcode == CIFOP_BOUNDARY) break;
+		    op = op->co_next;
+		}
+
+		if (op && (DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
+			&DBAllButSpaceBits, cifCheckPaintFunc,
+			(ClientData)NULL) == 1))
+		    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
+			&CIFSolidBits, cifMakeBoundaryFunc, (ClientData)filetype);
+	    }
 
 	    /* Swap planes */
 	    swapplane = cifCurReadPlanes[type];
@@ -652,8 +672,8 @@ CIFPaintCurrent()
 	    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
 			&CIFSolidBits, cifPaintCurrentFunc,
 			(ClientData)type);
-	}
-	
+	}	
+
 	/* Recycle the plane, which was dynamically allocated. */
 
 	DBFreePaintPlane(plane);
@@ -668,9 +688,86 @@ CIFPaintCurrent()
     return 0;
 }
 
-/* Below is the search function invoked for each CIF tile type
- * found for the current layer.
- */
+/* Use CIF layer geometry to define a fixed bounding box for the current cell */
+
+int
+cifMakeBoundaryFunc(tile, clientdata)
+    Tile *tile;			/* Tile of CIF information. */
+    ClientData clientdata;	/* Pass the file type (CIF or CALMA) */
+{
+    /* It is assumed that there is one rectangle for the boundary.  */
+    /* If there are multiple rectangles defined with the boundary   */
+    /* layer, then the last one defines the FIXED_BBOX property.    */
+
+    Rect area;
+    char propertyvalue[128], *storedvalue;
+    int savescale;
+    bool filetype = (bool)clientdata;
+
+    TiToRect(tile, &area);
+    area.r_xtop = CIFScaleCoord(area.r_xtop, COORD_EXACT);
+    savescale = cifCurReadStyle->crs_scaleFactor;
+    area.r_ytop = CIFScaleCoord(area.r_ytop, COORD_EXACT);
+    if (savescale != cifCurReadStyle->crs_scaleFactor)
+    {
+	area.r_xtop *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	savescale = cifCurReadStyle->crs_scaleFactor;
+    }
+    area.r_xbot = CIFScaleCoord(area.r_xbot, COORD_EXACT);
+    if (savescale != cifCurReadStyle->crs_scaleFactor)
+    {
+	area.r_xtop *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	area.r_ytop *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	savescale = cifCurReadStyle->crs_scaleFactor;
+    }
+    area.r_ybot = CIFScaleCoord(area.r_ybot, COORD_EXACT);
+    if (savescale != cifCurReadStyle->crs_scaleFactor)
+    {
+	area.r_xtop *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	area.r_ytop *= (savescale / cifCurReadStyle->crs_scaleFactor);
+	area.r_xbot *= (savescale / cifCurReadStyle->crs_scaleFactor);
+    }
+
+    if (cifReadCellDef->cd_flags & CDFIXEDBBOX)
+    {
+	char *propvalue;
+	bool found;
+
+	/* Only flag a warning if the redefined boundary was	*/
+	/* different from the original.				*/
+
+	propvalue = (char *)DBPropGet(cifReadCellDef, "FIXED_BBOX", &found);
+	if (found)
+	{
+	    Rect bbox;
+	    if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		    &bbox.r_xtop, &bbox.r_ytop) == 4)
+	    {
+		if ((bbox.r_xbot != area.r_xbot) ||
+			(bbox.r_ybot != area.r_ybot) ||
+			(bbox.r_xtop != area.r_xtop) ||
+			(bbox.r_ytop != area.r_ytop))
+		{
+		    if (filetype == FILE_CIF)
+			CIFReadError("Warning:  Cell %s boundary was redefined.\n",
+				cifReadCellDef->cd_name);
+		    else
+			CalmaError("Warning:  Cell %s boundary was redefined.\n",
+				cifReadCellDef->cd_name);
+		}
+	    }
+	}
+    }
+
+    sprintf(propertyvalue, "%d %d %d %d",
+	    area.r_xbot, area.r_ybot, area.r_xtop, area.r_ytop);
+    storedvalue = StrDup((char **)NULL, propertyvalue);
+    DBPropPut(cifReadCellDef, "FIXED_BBOX", storedvalue);
+    cifReadCellDef->cd_flags |= CDFIXEDBBOX;
+    return 0;
+}
+
+/* Paint CIF layer geometry into the current cell def as magic layer "type"	*/
 
 int
 cifPaintCurrentFunc(tile, type)
@@ -773,7 +870,7 @@ CIFParseFinish()
      * layer info.
      */
     
-    CIFPaintCurrent();
+    CIFPaintCurrent(FILE_CIF);
 
     DBAdjustLabels(cifReadCellDef, &TiPlaneRect);
     DBReComputeBbox(cifReadCellDef);
@@ -1321,8 +1418,8 @@ CIFParseUser()
  */
 
 void
-CIFReadCellCleanup(type)
-    int type;		 // 0 = CIF, 1 = GDS, because routine is used by both
+CIFReadCellCleanup(filetype)
+    bool filetype;
 {
     HashEntry *h;
     HashSearch hs;
@@ -1332,10 +1429,10 @@ CIFReadCellCleanup(type)
 
     if (cifSubcellBeingRead)
     {
-	if (type == 0)
+	if (filetype == FILE_CIF)
 	    CIFReadError("CIF ended partway through a symbol definition.\n");
 	else
-	    calmaReadError("GDS ended partway through a symbol definition.\n");
+	    CalmaReadError("GDS ended partway through a symbol definition.\n");
 	(void) CIFParseFinish();
     }
 
@@ -1348,24 +1445,24 @@ CIFReadCellCleanup(type)
 	def = (CellDef *) HashGetValue(h);
 	if (def == NULL)
 	{
-	    if (type == 0)
+	    if (filetype == FILE_CIF)
 		CIFReadError("cell table has NULL entry (Magic error).\n");
 	    else
-		calmaReadError("cell table has NULL entry (Magic error).\n");
+		CalmaReadError("cell table has NULL entry (Magic error).\n");
 	    continue;
 	}
 	flags = def->cd_flags;
 	if (!(flags & CDAVAILABLE))
 	{
-	    if (type == 0)
+	    if (filetype == FILE_CIF)
 		CIFReadError("cell %s was used but not defined.\n", def->cd_name);
 	    else
-		calmaReadError("cell %s was used but not defined.\n", def->cd_name);
+		CalmaReadError("cell %s was used but not defined.\n", def->cd_name);
         }
 	def->cd_flags &= ~CDPROCESSEDGDS;
 
-	if ((type == 0 && CIFNoDRCCheck == FALSE) ||
-			(type == 1 && CalmaNoDRCCheck == FALSE))
+	if ((filetype == FILE_CIF && CIFNoDRCCheck == FALSE) ||
+			(filetype == 1 && CalmaNoDRCCheck == FALSE))
 	    DRCCheckThis(def, TT_CHECKPAINT, &def->cd_bbox);
 	DBWAreaChanged(def, &def->cd_bbox, DBW_ALLWINDOWS, &DBAllButSpaceBits);
 	DBCellSetModified(def, TRUE);
@@ -1373,7 +1470,7 @@ CIFReadCellCleanup(type)
 
     /* Do geometrical processing on the top-level cell. */
 
-    CIFPaintCurrent();
+    CIFPaintCurrent(FILE_CIF);
     DBAdjustLabels(EditCellUse->cu_def, &TiPlaneRect);
     DBReComputeBbox(EditCellUse->cu_def);
     DBWAreaChanged(EditCellUse->cu_def, &EditCellUse->cu_def->cd_bbox,
@@ -1417,7 +1514,7 @@ CIFReadCellCleanup(type)
 	    if (!(def->cd_flags & CDFLATTENED))
 		CIFReadError("%s read error:  Unresolved geometry in cell"
 			" %s maps to no magic layers\n",
-			(type == 0) ? "CIF" : "GDS", def->cd_name);
+			(filetype == FILE_CIF) ? "CIF" : "GDS", def->cd_name);
 
 #if 0
 	    /* Remove the cell if it has no parents, no children, and no geometry */
@@ -1430,11 +1527,11 @@ CIFReadCellCleanup(type)
 		if (DBCellDeleteDef(def) == FALSE)
 		{
 		    CIFReadError("%s read error:  Unable to delete cell %s\n",
-				(type == 0) ? "CIF" : "GDS", savename);
+				(filetype == FILE_CIF) ? "CIF" : "GDS", savename);
 		}
 		else
 		{
-		    if (type == 0)
+		    if (filetype == FILE_CIF)
 			TxPrintf("CIF read:  Removed flattened cell %s\n", savename);
 		    else
 			TxPrintf("GDS read:  Removed flattened cell %s\n", savename);

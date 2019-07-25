@@ -47,7 +47,7 @@ database/database.h: database/database.h.in
 	@echo --- making header file database/database.h
 	${SCRIPTS}/makedbh database/database.h.in database/database.h
 
-modules:
+modules: database/database.h depend
 	@echo --- making modules
 	for dir in ${MODULES} ${PROGRAMS}; do \
 		(cd $$dir && ${MAKE} module); done
@@ -58,6 +58,7 @@ libs:
 		(cd $$dir && ${MAKE} lib); done
 
 depend:	database/database.h
+	@echo --- making dependencies
 	${RM} */Depend
 	for dir in ${MODULES} ${UNUSED_MODULES} ${PROGRAMS}; do \
 		(cd $$dir && ${MAKE} depend); done

@@ -223,8 +223,8 @@ efAdjustSubCap(def, nodeName, nodeCapAdjust)
     EFNode *node;
     HashEntry *he;
 
-    he = HashFind(&def->def_nodes, nodeName);
-    if (nodename = (EFNodeName *) HashGetValue(he))
+    he = HashLookOnly(&def->def_nodes, nodeName);
+    if (he && (nodename = (EFNodeName *) HashGetValue(he)))
     {
 	node = nodename->efnn_node;
 	node->efnode_cap += (EFCapValue) nodeCapAdjust;

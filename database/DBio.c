@@ -1623,6 +1623,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			    locbbox.r_xbot, locbbox.r_ybot,
 			    locbbox.r_xtop, locbbox.r_ytop);
 		    (void) DBPropPut(cellDef, propertyname, storedvalue);
+
 		}
 	    }
 	    else

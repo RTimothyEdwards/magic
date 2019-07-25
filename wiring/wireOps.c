@@ -301,6 +301,7 @@ WireAddLeg(rect, point, direction)
     SearchContext scx;
     Point cursorPos;
     TileTypeBitMask mask;
+    int hwidth = WireWidth / 2;
 
     if (WireType == 0)
     {
@@ -372,20 +373,34 @@ WireAddLeg(rect, point, direction)
 
     if (direction == WIRE_HORIZONTAL)
     {
+	/* If the rect height is not the same as WireWidth, then center	*/
+	/* the new wire segment on the rect.				*/
+
+	if (rect->r_ytop - rect->r_ybot != WireWidth)
+	{
+	    int rmid = (rect->r_ytop + rect->r_ybot) / 2;
+	    rect->r_ybot = rmid - hwidth; 
+	    rect->r_ytop = rect->r_ybot + WireWidth;
+
+	    rmid = (rect->r_xtop + rect->r_xbot) / 2;
+	    rect->r_xbot = rmid - hwidth; 
+	    rect->r_xtop = rect->r_xbot + WireWidth;
+	}
+
 	/* The new leg will be horizontal.  First compute its span in
 	 * x, then its span in y.
 	 */
 
 	if (point->p_x > rect->r_xtop)
 	{
-	    new.r_xbot = rect->r_xtop;
-	    new.r_xtop = point->p_x;
+	    new.r_xbot = rect->r_xbot;
+	    new.r_xtop = point->p_x + hwidth;
 	    WireLastDir = GEO_EAST;
 	}
 	else if (point->p_x < rect->r_xbot)
 	{
-	    new.r_xtop = rect->r_xbot;
-	    new.r_xbot = point->p_x;
+	    new.r_xtop = rect->r_xtop;
+	    new.r_xbot = point->p_x - hwidth;
 	    WireLastDir = GEO_WEST;
 	}
 	else return;			/* Nothing to paint! */
@@ -395,7 +410,7 @@ WireAddLeg(rect, point, direction)
 	 * the wires so there's no real choice.
 	 */
 
-	new.r_ybot = point->p_y - WireWidth/2;
+	new.r_ybot = point->p_y - hwidth;
 	if (new.r_ybot < rect->r_ybot)
 	    new.r_ybot = rect->r_ybot;
 	else if (new.r_ybot > rect->r_ytop - WireWidth)
@@ -404,20 +419,34 @@ WireAddLeg(rect, point, direction)
     }
     else
     {
+	/* If the rect width is not the same as WireWidth, then center	*/
+	/* the new wire segment on the rect.				*/
+
+	if (rect->r_xtop - rect->r_xbot != WireWidth)
+	{
+	    int rmid = (rect->r_xtop + rect->r_xbot) / 2;
+	    rect->r_xbot = rmid - hwidth; 
+	    rect->r_xtop = rect->r_xbot + WireWidth;
+
+	    rmid = (rect->r_ytop + rect->r_ybot) / 2;
+	    rect->r_ybot = rmid - hwidth; 
+	    rect->r_ytop = rect->r_ybot + WireWidth;
+	}
+
 	/* The new wire segment is vertical.  See comments above (this
 	 * code is just like what's up there).
 	 */
 
 	if (point->p_y > rect->r_ytop)
 	{
-	    new.r_ybot = rect->r_ytop;
-	    new.r_ytop = point->p_y;
+	    new.r_ybot = rect->r_ybot;
+	    new.r_ytop = point->p_y + hwidth;
 	    WireLastDir = GEO_NORTH;
 	}
 	else if (point->p_y < rect->r_ybot)
 	{
-	    new.r_ytop = rect->r_ybot;
-	    new.r_ybot = point->p_y;
+	    new.r_ytop = rect->r_ytop;
+	    new.r_ybot = point->p_y - hwidth;
 	    WireLastDir = GEO_SOUTH;
 	}
 	else return;			/* Nothing to paint! */
@@ -453,7 +482,7 @@ WireAddLeg(rect, point, direction)
 	SelectChunk(&scx, WireType, 0, &leg, FALSE);
     }
 
-    /* Make the box a square at the tip of the new are just painted. */
+    /* Make the box a square at the tip of the new area just painted. */
 
     switch (WireLastDir)
     {
@@ -517,6 +546,7 @@ WireShowLeg()
     int direction = WIRE_CHOOSE;
     int delx, dely;
     MagWindow *w;
+    int hwidth = WireWidth / 2;
 
     if (WireType == 0) return;
 
@@ -557,20 +587,32 @@ WireShowLeg()
 
     if (direction == WIRE_HORIZONTAL)
     {
+	/* Correct for different width between wire and rect. */
+	if (rect->r_ytop - rect->r_ybot != WireWidth)
+	{
+	    int rmid = (rect->r_ytop + rect->r_ybot) / 2;
+	    rect->r_ybot = rmid - hwidth;
+	    rect->r_ytop = rect->r_ybot + WireWidth;
+
+	    rmid = (rect->r_xtop + rect->r_xbot) / 2;
+	    rect->r_xbot = rmid - hwidth;
+	    rect->r_xtop = rect->r_xbot + WireWidth;
+	}
+
 	/* The new leg will be horizontal.  First compute its span in
 	 * x, then its span in y.
 	 */
 
 	if (point->p_x > rect->r_xtop)
 	{
-	    new.r_xbot = rect->r_xtop;
-	    new.r_xtop = point->p_x;
+	    new.r_xbot = rect->r_xbot;
+	    new.r_xtop = point->p_x + hwidth;
 	    WireLastDir = GEO_EAST;
 	}
 	else if (point->p_x < rect->r_xbot)
 	{
-	    new.r_xtop = rect->r_xbot;
-	    new.r_xbot = point->p_x;
+	    new.r_xtop = rect->r_xtop;
+	    new.r_xbot = point->p_x - hwidth;
 	    WireLastDir = GEO_WEST;
 	}
 	else return;			/* Nothing to paint! */
@@ -580,7 +622,7 @@ WireShowLeg()
 	 * the wires so there's no real choice.
 	 */
 
-	new.r_ybot = point->p_y - WireWidth/2;
+	new.r_ybot = point->p_y - hwidth;
 	if (new.r_ybot < rect->r_ybot)
 	    new.r_ybot = rect->r_ybot;
 	else if (new.r_ybot > rect->r_ytop - WireWidth)
@@ -589,25 +631,37 @@ WireShowLeg()
     }
     else
     {
+	/* Correct for different width between wire and rect. */
+	if (rect->r_xtop - rect->r_xbot != WireWidth)
+	{
+	    int rmid = (rect->r_xtop + rect->r_xbot) / 2;
+	    rect->r_xbot = rmid - hwidth;
+	    rect->r_xtop = rect->r_xbot + WireWidth;
+
+	    rmid = (rect->r_ytop + rect->r_ybot) / 2;
+	    rect->r_ybot = rmid - hwidth;
+	    rect->r_ytop = rect->r_ybot + WireWidth;
+	}
+
 	/* The new wire segment is vertical.  See comments above (this
 	 * code is just like what's up there).
 	 */
 
 	if (point->p_y > rect->r_ytop)
 	{
-	    new.r_ybot = rect->r_ytop;
-	    new.r_ytop = point->p_y;
+	    new.r_ybot = rect->r_ybot;
+	    new.r_ytop = point->p_y + hwidth;
 	    WireLastDir = GEO_NORTH;
 	}
 	else if (point->p_y < rect->r_ybot)
 	{
-	    new.r_ytop = rect->r_ybot;
-	    new.r_ybot = point->p_y;
+	    new.r_ytop = rect->r_ytop;
+	    new.r_ybot = point->p_y - hwidth;
 	    WireLastDir = GEO_SOUTH;
 	}
 	else return;			/* Nothing to paint! */
 
-	new.r_xbot = point->p_x - WireWidth/2;
+	new.r_xbot = point->p_x - hwidth;
 	if (new.r_xbot < rect->r_xbot)
 	    new.r_xbot = rect->r_xbot;
 	if (new.r_xbot > rect->r_xtop - WireWidth)
@@ -652,6 +706,9 @@ WireShowLeg()
  * ----------------------------------------------------------------------------
  */
 
+#define WIRING_CONTACT_UP	1
+#define WIRING_CONTACT_DOWN	0
+
 void
 WireAddContact(newType, newWidth)
     TileType newType;		/* New type of material to use for wiring.
@@ -669,7 +726,9 @@ WireAddContact(newType, newWidth)
     CellDef *boxRootDef;
     TileType oldType;
     TileTypeBitMask mask, allmask;
-    int oldOverlap, newOverlap, i, totalSize, oldDir;
+    int conSurround1, conSurround2, conExtend1, conExtend2, conSize;
+    int oldOverlap, newOverlap;
+    int i, totalSize, oldDir, updown;
     Contact *contact;
     SearchContext scx;
 
@@ -713,19 +772,43 @@ WireAddContact(newType, newWidth)
 	if ((contact->con_layer1 == oldType) &&
 		(contact->con_layer2 == WireType))
 	{
-	    oldOverlap = contact->con_surround1;
-	    newOverlap = contact->con_surround2;
+	    conSurround1 = contact->con_surround1 / WireUnits;
+	    if ((contact->con_surround1 % WireUnits) != 0) conSurround1++;
+	    conSurround2 = contact->con_surround2 / WireUnits;
+	    if ((contact->con_surround2 % WireUnits) != 0) conSurround2++;
+	    conExtend1 = contact->con_extend1 / WireUnits;
+	    if ((contact->con_extend1 % WireUnits) != 0) conExtend1++;
+	    conExtend2 = contact->con_extend2 / WireUnits;
+	    if ((contact->con_extend2 % WireUnits) != 0) conExtend2++;
+	    conSize = contact->con_size / WireUnits;
+	    if ((contact->con_size % WireUnits) != 0) conSize++;
+
+	    oldOverlap = conSurround1;
+	    newOverlap = conSurround2;
+	    updown = WIRING_CONTACT_UP;
 	    goto gotContact;
 	}
 	if ((contact->con_layer2 == oldType) &&
 		(contact->con_layer1 == WireType))
 	{
-	    oldOverlap = contact->con_surround2;
-	    newOverlap = contact->con_surround1;
+	    conSurround1 = contact->con_surround1 / WireUnits;
+	    if ((contact->con_surround1 % WireUnits) != 0) conSurround1++;
+	    conSurround2 = contact->con_surround2 / WireUnits;
+	    if ((contact->con_surround2 % WireUnits) != 0) conSurround2++;
+	    conExtend1 = contact->con_extend1 / WireUnits;
+	    if ((contact->con_extend1 % WireUnits) != 0) conExtend1++;
+	    conExtend2 = contact->con_extend2 / WireUnits;
+	    if ((contact->con_extend2 % WireUnits) != 0) conExtend2++;
+	    conSize = contact->con_size / WireUnits;
+	    if ((contact->con_size % WireUnits) != 0) conSize++;
+
+	    oldOverlap = conSurround2;
+	    newOverlap = conSurround1;
+	    updown = WIRING_CONTACT_DOWN;
 	    goto gotContact;
 	}
     }
-    TxError("Sorry, but the technology file doesn't define a contact\n");
+    TxError("The technology file doesn't define a contact\n");
     TxError("    between \"%s\" and \"%s\".\n",  DBTypeLongName(oldType),
 	    DBTypeLongName(WireType));
     return;
@@ -739,18 +822,19 @@ WireAddContact(newType, newWidth)
      */
 
     gotContact:
-    totalSize = contact->con_size + 2*oldOverlap;
+    totalSize = conSize + 2 * oldOverlap;
+    if (totalSize < WireWidth) totalSize = WireWidth;
     contactArea = oldLeg;
     if ((contactArea.r_xtop - contactArea.r_xbot) < totalSize)
     {
 	contactArea.r_xbot -= (totalSize - (contactArea.r_xtop
-		- contactArea.r_xbot))/2;
+		- contactArea.r_xbot)) / 2;
 	contactArea.r_xtop = contactArea.r_xbot + totalSize;
     }
     if ((contactArea.r_ytop - contactArea.r_ybot) < totalSize)
     {
 	contactArea.r_ybot -= (totalSize - (contactArea.r_ytop
-		- contactArea.r_ybot))/2;
+		- contactArea.r_ybot)) / 2;
 	contactArea.r_ytop = contactArea.r_ybot + totalSize;
     }
 
@@ -785,19 +869,105 @@ WireAddContact(newType, newWidth)
     TTMaskSetOnlyType(&mask, contact->con_type);
     TTMaskSetOnlyType(&allmask, contact->con_type);
     DBPaintValid(EditCellUse->cu_def, &tmp, &mask, 0);
-    if (contact->con_surround1 != 0)
+    if (conSurround1 != 0)
     {
 	TTMaskSetOnlyType(&mask, contact->con_layer1);
 	TTMaskSetType(&allmask, contact->con_layer1);
-	GEO_EXPAND(&tmp, contact->con_surround1, &tmp2);
+	GEO_EXPAND(&tmp, conSurround1, &tmp2);
 	(void) GeoInclude(&tmp2, &editArea);
 	DBPaintValid(EditCellUse->cu_def, &tmp2, &mask, 0);
     }
-    if (contact->con_surround2 != 0)
+    if (conSurround2 != 0)
     {
 	TTMaskSetOnlyType(&mask, contact->con_layer2);
 	TTMaskSetType(&allmask, contact->con_layer2);
-	GEO_EXPAND(&tmp, contact->con_surround2, &tmp2);
+	GEO_EXPAND(&tmp, conSurround2, &tmp2);
+	(void) GeoInclude(&tmp2, &editArea);
+	DBPaintValid(EditCellUse->cu_def, &tmp2, &mask, 0);
+    }
+    if (conExtend1 != 0)
+    {
+	TTMaskSetOnlyType(&mask, contact->con_layer1);
+	TTMaskSetType(&allmask, contact->con_layer1);
+	tmp2 = tmp;
+	switch(oldDir)
+	{
+	    case GEO_NORTH:
+	    case GEO_SOUTH:
+		if (updown == WIRING_CONTACT_UP)
+		{
+		    tmp2.r_ybot -= conExtend1;
+		    tmp2.r_ytop += conExtend1;
+		    tmp2.r_xbot -= conSurround1;
+		    tmp2.r_xtop += conSurround1;
+		}
+		else {
+		    tmp2.r_xbot -= conExtend1;
+		    tmp2.r_xtop += conExtend1;
+		    tmp2.r_ybot -= conSurround1;
+		    tmp2.r_ytop += conSurround1;
+		}
+		break;
+	    case GEO_EAST:
+	    case GEO_WEST:
+		if (updown == WIRING_CONTACT_UP)
+		{
+		    tmp2.r_xbot -= conExtend1;
+		    tmp2.r_xtop += conExtend1;
+		    tmp2.r_ybot -= conSurround1;
+		    tmp2.r_ytop += conSurround1;
+		}
+		else {
+		    tmp2.r_ybot -= conExtend1;
+		    tmp2.r_ytop += conExtend1;
+		    tmp2.r_xbot -= conSurround1;
+		    tmp2.r_xtop += conSurround1;
+		}
+		break;
+	}
+	(void) GeoInclude(&tmp2, &editArea);
+	DBPaintValid(EditCellUse->cu_def, &tmp2, &mask, 0);
+    }
+    if (conExtend2 != 0)
+    {
+	TTMaskSetOnlyType(&mask, contact->con_layer2);
+	TTMaskSetType(&allmask, contact->con_layer2);
+	tmp2 = tmp;
+	switch(oldDir)
+	{
+	    case GEO_NORTH:
+	    case GEO_SOUTH:
+		if (updown == WIRING_CONTACT_UP)
+		{
+		    tmp2.r_xbot -= conExtend2;
+		    tmp2.r_xtop += conExtend2;
+		    tmp2.r_ybot -= conSurround2;
+		    tmp2.r_ytop += conSurround2;
+		}
+		else {
+		    tmp2.r_ybot -= conExtend2;
+		    tmp2.r_ytop += conExtend2;
+		    tmp2.r_xbot -= conSurround2;
+		    tmp2.r_xtop += conSurround2;
+		}
+		break;
+	    case GEO_EAST:
+	    case GEO_WEST:
+		if (updown == WIRING_CONTACT_UP)
+		{
+		    tmp2.r_ybot -= conExtend2;
+		    tmp2.r_ytop += conExtend2;
+		    tmp2.r_xbot -= conSurround2;
+		    tmp2.r_xtop += conSurround2;
+		}
+		else {
+		    tmp2.r_xbot -= conExtend2;
+		    tmp2.r_xtop += conExtend2;
+		    tmp2.r_ybot -= conSurround2;
+		    tmp2.r_ytop += conSurround2;
+		}
+		break;
+	}
 	(void) GeoInclude(&tmp2, &editArea);
 	DBPaintValid(EditCellUse->cu_def, &tmp2, &mask, 0);
     }
@@ -820,15 +990,15 @@ WireAddContact(newType, newWidth)
 	scx.scx_area = tmp;
 	TTMaskSetOnlyType(&mask, contact->con_type);
 	SelectArea(&scx, &mask, 0);
-	if (contact->con_surround1 != 0)
+	if (conSurround1 != 0)
 	{
-	    GEO_EXPAND(&tmp, contact->con_surround1, &scx.scx_area);
+	    GEO_EXPAND(&tmp, conSurround1, &scx.scx_area);
 	    TTMaskSetOnlyType(&mask, contact->con_layer1);
 	    SelectArea(&scx, &mask, 0);
 	}
-	if (contact->con_surround2 != 0)
+	if (conSurround2 != 0)
 	{
-	    GEO_EXPAND(&tmp, contact->con_surround2, &scx.scx_area);
+	    GEO_EXPAND(&tmp, conSurround2, &scx.scx_area);
 	    TTMaskSetOnlyType(&mask, contact->con_layer2);
 	    SelectArea(&scx, &mask, 0);
 	}

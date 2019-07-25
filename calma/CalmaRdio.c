@@ -110,8 +110,8 @@ calmaReadTransform(ptrans, name)
 
         if (dmag != (double)((int)(dmag + 0.5)))
 	{
-	    calmaReadError("Non-integer magnification (%g) in transform\n", dmag);
-	    calmaReadError("Rounding to %d.\n", (int)(dmag + 0.5));
+	    CalmaReadError("Non-integer magnification (%g) in transform\n", dmag);
+	    CalmaReadError("Rounding to %d.\n", (int)(dmag + 0.5));
 	}
 	GeoScaleTrans(ptrans, (int)(dmag + 0.5), &t);
 	*ptrans = t;
@@ -144,13 +144,13 @@ calmaReadTransform(ptrans, name)
 	case 0:	case 90: case 180: case 270:
 	    break;
 	default:
-	    calmaReadError("Non-Manhattan angle (%d) in transform\n", angle);
+	    CalmaReadError("Non-Manhattan angle (%d) in transform\n", angle);
 	    if (angle < 45) angle = 0;
 	    else if (angle < 135) angle = 90;
 	    else if (angle < 225) angle = 180;
 	    else if (angle < 315) angle = 270;
 	    else angle = 0;
-	    calmaReadError("    Rounding to %d degrees.\n", angle);
+	    CalmaReadError("    Rounding to %d degrees.\n", angle);
     }
 
     /*
@@ -223,7 +223,7 @@ calmaReadI2Record(type, pvalue)
     return (TRUE);
 
 eof:
-    calmaReadError("Unexpected EOF.\n");
+    CalmaReadError("Unexpected EOF.\n");
     return (FALSE);
 }
 
@@ -268,7 +268,7 @@ calmaReadI4Record(type, pvalue)
     return (TRUE);
 
 eof:
-    calmaReadError("Unexpected EOF.\n");
+    CalmaReadError("Unexpected EOF.\n");
     return (FALSE);
 }
 
@@ -317,7 +317,7 @@ calmaReadStringRecord(type, str)
     return (TRUE);
 
 eof:
-    calmaReadError("Unexpected EOF.\n");
+    CalmaReadError("Unexpected EOF.\n");
     return (FALSE);
 }
 
@@ -478,7 +478,7 @@ calmaSkipExact(type)
     return (TRUE);
 
 eof:
-    calmaReadError("Unexpected EOF.\n");
+    CalmaReadError("Unexpected EOF.\n");
     return (FALSE);
 }
 

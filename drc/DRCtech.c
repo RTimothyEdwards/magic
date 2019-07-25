@@ -2159,9 +2159,9 @@ drcSpacing(argc, argv)
 	}
 	else
 	{
-	    runlength = distance;
 	    layers2 = argv[3];
 	    distance = atoi(argv[4]);
+	    runlength = distance;
 	    adjacency = argv[5];
 	    why = drcWhyDup(argv[6]);
 	}

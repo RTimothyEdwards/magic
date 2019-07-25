@@ -1,3 +1,0 @@
-extcheck.o: extcheck.c ../utils/magic.h ../utils/paths.h \
- ../utils/geometry.h ../utils/hash.h ../utils/utils.h \
- ../utils/pathvisit.h ../extflat/extflat.h ../utils/runstats.h

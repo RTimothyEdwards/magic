@@ -365,9 +365,8 @@ CalmaWrite(rootDef, f)
  */
 
 bool
-calmaDumpStructure(def, cellstart, outf, calmaDefHash, filename)
+calmaDumpStructure(def, outf, calmaDefHash, filename)
     CellDef *def;
-    off_t cellstart;
     FILE *outf;
     HashTable *calmaDefHash;
     char *filename;
@@ -404,6 +403,8 @@ calmaDumpStructure(def, cellstart, outf, calmaDefHash, filename)
     {
 	/* Structure is defined more than once */
 	TxError("Structure %s defined redundantly in GDS\n", strname);
+	/* To be considered:  Should the structure be output more than once? */
+	calmaOutStringRecord(CALMA_STRNAME, newnameptr, outf);
     }
     else if (!strcmp(strname, def->cd_name))
     {
@@ -591,10 +592,9 @@ syntaxerror:
  */
 
 void
-calmaFullDump(def, fi, cellstart, outf, filename)
+calmaFullDump(def, fi, outf, filename)
     CellDef *def;
     FILE *fi;
-    off_t cellstart;
     FILE *outf;
     char *filename;
 {
@@ -657,7 +657,7 @@ calmaFullDump(def, fi, cellstart, outf, filename)
     }
     HashSetValue(he, StrDup(NULL, uniqlibname));
 
-    while (calmaDumpStructure(def, cellstart, outf, &calmaDefHash, filename))
+    while (calmaDumpStructure(def, outf, &calmaDefHash, filename))
 	if (SigInterruptPending)
 	    goto done;
     calmaSkipExact(CALMA_ENDLIB);
@@ -811,7 +811,7 @@ calmaProcessDef(def, outf)
 
 	    he = HashLookOnly(&calmaLibHash, retfilename);
 	    if (he == NULL)
-		calmaFullDump(def, fi, cellstart, outf, retfilename);
+		calmaFullDump(def, fi, outf, retfilename);
 
 	    fclose(fi);
 	    def->cd_flags |= CDVENDORGDS;
@@ -2755,16 +2755,17 @@ calmaOutStringRecord(type, str, f)
     /*
      * Make sure length is even.
      * Output at most CALMANAMELENGTH characters.
+     * If the name is longer than CALMANAMELENGTH, then output the
+     * last CALMANAMELENGTH characters (since cell names are more
+     * likely to be unique in the last characters than in the first
+     * characters).
      */
     if (len & 01) len++;
     if (len > CALMANAMELENGTH)
     {
-	char csav;
 	TxError("Warning:  Cellname %s truncated ", str);
-	csav = *(str + 32);
-	*(str + 32) = '\0';
-	TxError("to %32s (GDS format limit)\n", str);
-	*(str + 32) = csav;
+	TxError("to %s (GDS format limit)\n", str + len - CALMANAMELENGTH);
+	locstr = str + len - CALMANAMELENGTH;
 	len = CALMANAMELENGTH;
     }
     calmaOutI2(len+4, f);	/* Record length */

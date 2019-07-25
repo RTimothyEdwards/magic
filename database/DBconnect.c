@@ -700,15 +700,14 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 	/* Check for equivalent ports. For any found, call	*/
 	/* DBTreeSrTiles recursively on the type and area	*/
 	/* of the label.					*/
-	/* Don't recurse, just add area to the csa2_list.	*/
-	/* To avoid infinite recursion, only look at labels	*/
-	/* forward of the currently searched label, and only	*/
-	/* add the next one to the list.  If there are more	*/
-	/* equivalent ports, they will be found when processing	*/
-	/* this label's area.					*/
 
-	for (slab = lab->lab_next; slab != NULL; slab = slab->lab_next)
-	    if (slab->lab_flags & PORT_DIR_MASK)
+	/* Don't recurse, just add area to the csa2_list.       */
+	/* Only add the next label found to the list.  If there	*/
+	/* are more equivalent ports, they will be found when	*/
+	/* processing this label's area.			*/
+
+	for (slab = orig_def->cd_labels; slab != NULL; slab = slab->lab_next)
+	    if ((slab->lab_flags & PORT_DIR_MASK) && (slab != lab))
 		if ((slab->lab_flags & PORT_NUM_MASK) == lidx)
 		{
 		    Rect newarea;
@@ -1036,36 +1035,37 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, destUse)
 	else
 	    DBTreeSrTiles(scx, newmask, xMask, dbcConnectFunc, (ClientData) &csa2);
 
-        /* Check the source def for any labels belonging to this	*/
-        /* tile area and plane, and add them to the destination.	*/
+	/* Check the source def for any labels belonging to this        */
+	/* tile area and plane, and add them to the destination.        */
 
-	/* (This code previously in dbcConnectFunc, but the change to	*/
-	/* BPlane for cells means that the cell search cannot be run	*/
-	/* from the top within another cell search.)			*/
+	/* (This code previously in dbcConnectFunc, but moved to avoid	*/
+	/* running the cell search from the top within another cell	*/
+	/* search, which creates deep stacks and can trigger stack	*/
+	/* overflow.)							*/
 
-        searchtype = TF_LABEL_ATTACH;
+	searchtype = TF_LABEL_ATTACH;
 	if (newtype & TT_DIAGONAL)
-        {
-	    /* If the tile is split, then labels attached to the	*/
-	    /* opposite point of the triangle are NOT connected.	*/
+	{
+	    /* If the tile is split, then labels attached to the        */
+	    /* opposite point of the triangle are NOT connected.        */
 
-	    if (newtype & TT_SIDE)
-	    {
-		if (newtype & TT_DIRECTION)
-		    searchtype |= TF_LABEL_ATTACH_NOT_SW;
-		else
-		    searchtype |= TF_LABEL_ATTACH_NOT_NW;
+        if (newtype & TT_SIDE)
+        {
+	    if (newtype & TT_DIRECTION)
+	        searchtype |= TF_LABEL_ATTACH_NOT_SW;
+	    else
+	        searchtype |= TF_LABEL_ATTACH_NOT_NW;
 	    }
 	    else
 	    {
-		if (newtype & TT_DIRECTION)
-		    searchtype |= TF_LABEL_ATTACH_NOT_NE;
-		else
-		    searchtype |= TF_LABEL_ATTACH_NOT_SE;
+	    if (newtype & TT_DIRECTION)
+	        searchtype |= TF_LABEL_ATTACH_NOT_NE;
+	    else
+	        searchtype |= TF_LABEL_ATTACH_NOT_SE;
 	    }
 	}
 	DBTreeSrLabels(scx, newmask, xMask, NULL, searchtype,
-			    dbcConnectLabelFunc, (ClientData) &csa2);
+			dbcConnectLabelFunc, (ClientData) &csa2);
     }
     freeMagic((char *)csa2.csa2_list);
 

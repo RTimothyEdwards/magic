@@ -30,6 +30,7 @@
 extern TileType WireType;
 extern int WireWidth;
 extern int WireLastDir;
+extern int WireUnits;
 
 /* Undo procedure: */
 

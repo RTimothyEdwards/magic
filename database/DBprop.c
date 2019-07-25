@@ -55,6 +55,7 @@ DBPropPut(cellDef, name, value)
 {
     HashTable *htab;
     HashEntry *entry;
+    char *oldvalue;
 
     /* Honor the NOEDIT flag */
     if (cellDef->cd_flags & CDNOEDIT) return;
@@ -67,6 +68,8 @@ DBPropPut(cellDef, name, value)
     htab = (HashTable *) cellDef->cd_props;
     
     entry = HashFind(htab, name);
+    oldvalue = (char *)HashGetValue(entry);
+    if (oldvalue != NULL) freeMagic(oldvalue);
     HashSetValue(entry, value);
 }
 

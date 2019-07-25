@@ -1767,8 +1767,8 @@ donecell:
     DBScalePoint(&cellDef->cd_extended.r_ll, scalen, scaled);
     DBScalePoint(&cellDef->cd_extended.r_ur, scalen, scaled);
 
-    /* If the cell is an abstract view with a fixed bounding box, then	*/
-    /* adjust the bounding box property to match the new scale.		*/
+    /* If the cell is an abstract view with a fixed bounding box, then  */
+    /* adjust the bounding box property to match the new scale.         */
 
     if ((cellDef->cd_flags & CDFIXEDBBOX) != 0)
     {
@@ -1791,9 +1791,7 @@ donecell:
 		DBPropPut(cellDef, "FIXED_BBOX", propval);
 	    }
 	}
-    
     }
-
     return 0;
 }
 

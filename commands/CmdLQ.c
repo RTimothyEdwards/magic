@@ -1005,6 +1005,54 @@ CmdPolygon(w, cmd)
 }
 
 /*----------------------------------------------------------------------*/
+/* cmdPortLabelFunc() ---						*/
+/*----------------------------------------------------------------------*/
+
+int
+cmdPortLabelFunc1(scx, label, tpath, cdata)
+    SearchContext *scx;
+    Label *label;
+    TerminalPath *tpath;
+    ClientData cdata;
+{
+    Label **rlab = (Label **)cdata;
+
+    if (GEO_SURROUND(&scx->scx_area, &label->lab_rect))
+    {
+	if (*rlab != NULL)
+	{
+	    // More than one label in the area;  ambiguous.
+	    *rlab = NULL;
+	    return 1;
+	}
+	*rlab = label;
+    }
+    return 0;
+}
+
+int
+cmdPortLabelFunc2(scx, label, tpath, cdata)
+    SearchContext *scx;
+    Label *label;
+    TerminalPath *tpath;
+    ClientData cdata;
+{
+    Label **rlab = (Label **)cdata;
+
+    if (GEO_OVERLAP(&scx->scx_area, &label->lab_rect))
+    {
+	if (*rlab != NULL)
+	{
+	    // More than one label in the area;  ambiguous.
+	    *rlab = NULL;
+	    return 1;
+	}
+	*rlab = label;
+    }
+    return 0;
+}
+
+/*----------------------------------------------------------------------*/
 /* portFindLabel ---							*/
 /*									*/
 /* Find a label in the cell editDef.					*/
@@ -1015,12 +1063,13 @@ CmdPolygon(w, cmd)
 /*----------------------------------------------------------------------*/
 
 Label *
-portFindLabel(editDef, port, unique)
+portFindLabel(editDef, port, unique, nonEdit)
     CellDef *editDef;
     bool unique;
     bool port;
+    bool *nonEdit;	// TRUE if label is not in the edit cell
 {
-    bool found;
+    int found;
     Label *lab, *sl;
     Rect editBox;
 
@@ -1029,33 +1078,62 @@ portFindLabel(editDef, port, unique)
      */
 
     ToolGetEditBox(&editBox);
-    found = FALSE;
+    found = 0;
+    if (nonEdit) *nonEdit = FALSE;
     lab = NULL;
     for (sl = editDef->cd_labels; sl != NULL; sl = sl->lab_next)
     {
 	if (GEO_OVERLAP(&editBox, &sl->lab_rect))
 	{
-	    if (found == TRUE)
+	    if (found > 0)
 	    {
 		/* Let's do this again with the GEO_SURROUND function	*/
 		/* and see if we come up with only one label.		*/
 
-		found = FALSE;
+		found = 0;
 		for (sl = editDef->cd_labels; sl != NULL; sl = sl->lab_next)
 		{
 		    if (GEO_SURROUND(&editBox, &sl->lab_rect))
 		    {
-			if (found == TRUE && unique == TRUE) return NULL;
+			if (found > 0 && unique == TRUE) return NULL;
 			lab = sl;
-			found = TRUE;
+			found++;
 		    }
 		}
 		break;
 	    }
 	    lab = sl;
-	    found = TRUE;
+	    found++;
+	    if (nonEdit) *nonEdit = FALSE;
 	}
     }
+
+    /* If no label was found, then search the hierarchy under the box.	*/
+    /* The calling routine may determine whether a label that is not in	*/
+    /* the edit cell may be valid for the command (e.g., if querying	*/
+    /* but not changing values).					*/
+
+    if (found == 0)
+    {
+	SearchContext scx;
+	scx.scx_area = editBox;
+	scx.scx_use = EditCellUse;
+	scx.scx_trans = GeoIdentityTransform;
+
+	/* First check for exactly one label surrounded by the cursor box.  */
+	/* If that fails, check for exactly one label overlapping the	    */
+	/* cursor box.							    */
+
+        DBTreeSrLabels(&scx, &DBAllButSpaceBits, 0, NULL, TF_LABEL_ATTACH,
+		cmdPortLabelFunc1, (ClientData) &lab);
+	if (lab == NULL)
+	    DBTreeSrLabels(&scx, &DBAllButSpaceBits, 0, NULL, TF_LABEL_ATTACH,
+		    cmdPortLabelFunc2, (ClientData) &lab);
+
+	if (lab != NULL)
+	    if (nonEdit) *nonEdit = TRUE;
+    }
+    
     return lab;
 }
 /*
@@ -1121,6 +1199,7 @@ CmdPort(w, cmd)
     int i, idx, pos, type, option, argc;
     unsigned short dirmask;
     bool found;
+    bool nonEdit = FALSE;
     Label *lab, *sl;
     Rect editBox, tmpArea;
     CellDef *editDef = EditCellUse->cu_def;
@@ -1254,7 +1333,7 @@ CmdPort(w, cmd)
 	if (option != PORT_LAST)
 	{
 	    if (lab == NULL)
-		lab = portFindLabel(editDef, TRUE, TRUE);
+		lab = portFindLabel(editDef, TRUE, TRUE, &nonEdit);
 
 	    if (option == PORT_EXISTS)
 	    {
@@ -1293,6 +1372,17 @@ CmdPort(w, cmd)
 	    {
 		if (option != PORT_REMOVE)
 		    TxError("The selected label is not a port.\n");
+		return;
+	    }
+	}
+
+	/* Check for options that cannot operate on a non-edit cell label */
+	if (nonEdit)
+	{
+	    if ((option == PORT_MAKE) || (option == PORT_MAKEALL) ||
+		(option == PORT_REMOVE) || (argc == 3))
+	    {
+		TxError("Cannot modify a port in an non-edit cell.\n");
 		return;
 	    }
 	}

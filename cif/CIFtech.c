@@ -104,6 +104,7 @@ cifTechFreeStyle()
 			    case CIFOP_OR:
 			    case CIFOP_BBOX:
 			    case CIFOP_MAXRECT:
+			    case CIFOP_BOUNDARY:
 				/* These options use co_client to hold a single	*/
 				/* integer value, so it is not allocated.	*/
 				break;
@@ -802,8 +803,7 @@ CIFTechLine(sectionName, argc, argv)
     if (CIFCurStyle->cs_status != TECH_PENDING) return TRUE;
 
     newLayer = NULL;
-    if ((strcmp(argv[0], "templayer") == 0)
-	|| (strcmp(argv[0], "layer") == 0))
+    if ((strcmp(argv[0], "templayer") == 0) || (strcmp(argv[0], "layer") == 0))
     {
 	if (CIFCurStyle->cs_nLayers == MAXCIFLAYERS)
 	{
@@ -1047,6 +1047,8 @@ CIFTechLine(sectionName, argc, argv)
 	newOp->co_opcode = CIFOP_NET;
     else if (strcmp(argv[0], "maxrect") == 0)
 	newOp->co_opcode = CIFOP_MAXRECT;
+    else if (strcmp(argv[0], "boundary") == 0)
+	newOp->co_opcode = CIFOP_BOUNDARY;
     else
     {
 	TechError("Unknown statement \"%s\".\n", argv[0]);
@@ -1193,6 +1195,12 @@ bloatCheck:
 		    TechError("BBox takes only one optional argument \"top\".\n");
 	    }
 	    else if (argc != 1)
+		goto wrongNumArgs;
+	    break;
+
+	case CIFOP_BOUNDARY:
+	    /* CIFOP_BOUNDARY has no arguments */
+	    if (argc != 1)
 		goto wrongNumArgs;
 	    break;
 
@@ -1752,6 +1760,7 @@ CIFTechFinal()
 		    {
 			case CIFOP_OR:
 			case CIFOP_BBOX:
+			case CIFOP_BOUNDARY:
 			case CIFOP_MAXRECT:
 			case CIFOP_NET:
 			    break;
@@ -1844,6 +1853,24 @@ CIFTechFinal()
 	    TTMaskSetType(&style->cs_hierLayers, i);
 	    TTMaskSetMask(&style->cs_hierLayers, &ourDepend);
 	}
+    }
+
+    /* Added by Tim, 5/16/19					*/
+    /* Layers that depend on hierarchically generated layers	*/
+    /* (i.e., templayers) must themselves be hierarchically	*/
+    /* processed.						*/
+
+    for (i = 0; i < style->cs_nLayers; i++)
+    {
+	TileTypeBitMask ourDepend, mmask;
+
+	ourDepend = DBZeroTypeBits;
+	for (op = style->cs_layers[i]->cl_ops; op != NULL; op = op->co_next)
+	    TTMaskSetMask(&ourDepend, &op->co_cifMask);
+
+	TTMaskAndMask3(&mmask, &ourDepend, &style->cs_hierLayers);
+	if (!TTMaskIsZero(&mmask))
+	    TTMaskSetType(&style->cs_hierLayers, i);
     }
 
     /* Added by Tim, 10/18/04					*/
@@ -2214,6 +2241,7 @@ CIFTechOutputScale(n, d)
 		    {
 			case CIFOP_OR:
 			case CIFOP_BBOX:
+			case CIFOP_BOUNDARY:
 			case CIFOP_MAXRECT:
 			case CIFOP_NET:
 			    break;

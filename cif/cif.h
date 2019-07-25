@@ -30,6 +30,10 @@
 				 * depends on the size of the layout.
 				 */
 
+/* Passed to CIFPaintCurrent() for print statement formatting */
+#define FILE_CIF    0
+#define FILE_CALMA  1
+
 /* Exported global variables (commands/CmdCD.c) */
 
 extern int  CIFWarningLevel;

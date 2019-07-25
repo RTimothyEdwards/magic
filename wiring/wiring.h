@@ -48,10 +48,15 @@ typedef struct _Contact
 				 * con_layer1 must be painted around the
 				 * edge of the contact.
 				 */
+    int con_extend1;		/* How much additional material of type
+				 * con_layer1 must extend beyond the
+				 * contact in the orientation of the route.
+				 */
     TileType con_layer2;	/* Same information for second layer that
 				 * the contact connects.
 				 */
     int con_surround2;
+    int con_extend2;
 
     ContactPtr con_next;	/* Pointer to next contact record */
 } Contact;

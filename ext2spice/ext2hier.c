@@ -661,6 +661,7 @@ spcdevHierVisit(hc, dev, scale)
 			"base", esSpiceF);
 
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    sdM = getCurDevMult();
 	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
 	    break;
 
@@ -788,6 +789,7 @@ spcdevHierVisit(hc, dev, scale)
 			subnode->efnode_name->efnn_hier,
 			"diode_bot", esSpiceF);
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    sdM = getCurDevMult();
 	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
 	    break;
 
@@ -808,6 +810,7 @@ spcdevHierVisit(hc, dev, scale)
 			gate->dterm_node->efnode_name->efnn_hier,
 			"diode_top", esSpiceF);
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
+	    sdM = getCurDevMult();
 	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
 	    break;
 
@@ -1514,8 +1517,8 @@ devDistJunctHierVisit(hc, dev, scale)
 	return 0;
     }
 
-    w = (int)((float)w * scale);
     EFGetLengthAndWidth(dev, &l, &w);
+    w = (int)((float)w * scale);
 
     for (i = 1; i<dev->dev_nterm; i++)
     {
@@ -1552,7 +1555,8 @@ esMakePorts(hc, cdata)
     char *name, *portname, *tptr, *aptr, *locname;
     int j;
 
-    if (def->def_uses == NULL) return 0;	/* Bottom of hierarchy */
+    /* Done when the bottom of the hierarchy is reached */
+    if (HashGetNumEntries(&def->def_uses) == 0) return 0;
 
     for (conn = (Connection *)def->def_conns; conn; conn = conn->conn_next)
     {
@@ -1579,13 +1583,11 @@ esMakePorts(hc, cdata)
 
 		// Find the cell for the instance
 		portdef = NULL;
-		for (use = updef->def_uses; use; use = use->use_next)
+		he = HashFind(&updef->def_uses, portname);
+		if (he != NULL)
 		{
-		    if (!strcmp(use->use_id, portname))
-		    {
-			portdef = use->use_def;
-			break;
-		    }
+		    use = (Use *)HashGetValue(he);
+		    portdef = use->use_def;
 		}
 		if ((aptr == NULL) || (aptr > tptr))
 		    *tptr = '/';
@@ -1660,13 +1662,11 @@ esMakePorts(hc, cdata)
 
 		// Find the cell for the instance
 		portdef = NULL;
-		for (use = updef->def_uses; use; use = use->use_next)
+		he = HashFind(&updef->def_uses, portname);
+		if (he != NULL)
 		{
-		    if (!strcmp(use->use_id, portname))
-		    {
-			portdef = use->use_def;
-			break;
-		    }
+		    use = (Use *)HashGetValue(he);
+		    portdef = use->use_def;
 		}
 		if ((aptr == NULL) || (aptr > tptr))
 		    *tptr = '/';
@@ -1747,7 +1747,7 @@ esHierVisit(hc, cdata)
 
     if (def != topdef)
     {
-	if (def->def_devs == NULL && def->def_uses == NULL)
+	if ((def->def_devs == NULL) && (HashGetNumEntries(&def->def_uses) == 0))
 	{
 	    if (locDoSubckt == AUTO)
 	    {

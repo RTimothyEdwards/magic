@@ -655,11 +655,11 @@ proc magic::tool {{type next}} {
 	 macro  Button1          "magic::trackwire %W pick"
 	 macro  Button2          "magic::trackwire %W done"
 	 macro  Button3          "magic::trackwire %W cancel"
-         macro  Shift_Button1    "wire incr type"
+         macro  Shift_Button1    "wire incr type ; wire show"
 	 macro  Shift_Button2    "wire switch"
-	 macro  Shift_Button3    "wire decr type"
-	 macro  Button4 "wire incr width"
-	 macro  Button5 "wire decr width"
+	 macro  Shift_Button3    "wire decr type ; wire show"
+	 macro  Button4 "wire incr width ; wire show"
+	 macro  Button5 "wire decr width ; wire show"
 	
       }
       netlist {

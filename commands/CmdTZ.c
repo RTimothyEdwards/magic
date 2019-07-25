@@ -1348,7 +1348,7 @@ CmdWire(w, cmd)
 	case DECREMENT:
 	    if (cmd->tx_argc != 3 && cmd->tx_argc != 4)
 		goto badargs;
-	    if (!strcmp(cmd->tx_argv[2], "type"))
+	    if (!strcmp(cmd->tx_argv[2], "type") || !strcmp(cmd->tx_argv[2], "layer"))
 	    {
 		Contact *contact;
 		type = TT_SPACE;
@@ -1371,7 +1371,7 @@ CmdWire(w, cmd)
 		else
 		{
 		    width = DRCGetDefaultLayerWidth(type);
-		    WireAddContact(type, width);
+		    WireAddContact(type, (WireWidth < width) ? width : WireWidth);
 		}
 	    }
 	    else if (!strcmp(cmd->tx_argv[2], "width"))
@@ -1411,7 +1411,7 @@ CmdWire(w, cmd)
 		else
 		{
 		    width = DRCGetDefaultLayerWidth(type);
-		    WireAddContact(type, width);
+		    WireAddContact(type, (WireWidth < width) ? width : WireWidth);
 		}
 	    }
 	    else if (!strcmp(cmd->tx_argv[2], "width"))
@@ -1736,17 +1736,20 @@ CmdWriteall(w, cmd)
     int cmdWriteallFunc();
     static char *force[] = { "force", 0 };
     int argc;
+    int flags = CDMODIFIED | CDBOXESCHANGED | CDSTAMPSCHANGED;
 
-    if ((cmd->tx_argc >= 2) && (Lookup(cmd->tx_argv[1], force) < 0))
+    if (cmd->tx_argc >= 2)
     {
-	TxError("Usage: %s [force [cellname ...]]\n", cmd->tx_argv[0]);
-	return;
+	flags = 0;
+	if (Lookup(cmd->tx_argv[1], force) < 0)
+	{
+	    TxError("Usage: %s [force [cellname ...]]\n", cmd->tx_argv[0]);
+	    return;
+	}
     }
-
     DBUpdateStamps();
     argc = cmd->tx_argc;
-    (void) DBCellSrDefs(CDMODIFIED|CDBOXESCHANGED|CDSTAMPSCHANGED,
-		cmdWriteallFunc, (ClientData)cmd);
+    (void) DBCellSrDefs(flags, cmdWriteallFunc, (ClientData)cmd);
     cmd->tx_argc = argc;
 }
 

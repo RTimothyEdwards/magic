@@ -152,7 +152,8 @@ dbCopyDefFunc(use, def)
  * DBCellClearDef --
  *
  * Empties out all tile planes of the indicated CellDef, making it
- * as though the def had been newly allocated.
+ * as though the def had been newly allocated.  This also removes all
+ * labels and all properties from the cell.
  *
  * Results:
  *	None.
@@ -205,6 +206,10 @@ DBCellClearDef(cellDef)
 	freeMagic((char *) lab);
     cellDef->cd_labels = (Label *) NULL;
     cellDef->cd_lastLabel = (Label *) NULL;
+
+    /* Remove all defined properties */
+    DBPropClearAll(cellDef);
+
     SigEnableInterrupts();
 }
 

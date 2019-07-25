@@ -3036,6 +3036,29 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		}
 		break;
 
+	    case CIFOP_BOUNDARY:
+		cifPlane = curPlane;
+		/* This function for cifoutput only.  cifinput handled separately. */
+		if (cellDef && (cellDef->cd_flags & CDFIXEDBBOX))
+		{
+		    char *propvalue;
+		    bool found;
+
+		    propvalue = (char *)DBPropGet(cellDef, "FIXED_BBOX", &found);
+		    if (!found) break;
+		    if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+				&bbox.r_xtop, &bbox.r_ytop) != 4) break;
+
+		    cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
+		    bbox.r_xbot *= cifScale;
+		    bbox.r_xtop *= cifScale;
+		    bbox.r_ybot *= cifScale;
+		    bbox.r_ytop *= cifScale;
+		    DBNMPaintPlane(cifPlane, CIF_SOLIDTYPE, &bbox,
+				CIFPaintTable, (PaintUndoInfo *)NULL); 
+		}
+		break;
+
 	    case CIFOP_BBOX:
 		if (CIFErrorDef == NULL) break;
 
@@ -3149,6 +3172,7 @@ CIFGen(cellDef, area, planes, layers, replace, genAllPlanes, clientdata)
 	    CIFErrorLayer = i;
 	    new[i] = CIFGenLayer(CIFCurStyle->cs_layers[i]->cl_ops,
 		    &expanded, cellDef, new, clientdata);
+
 	    /* Clean up the non-manhattan geometry in the plane */
 	    if (CIFUnfracture) DBMergeNMTiles(new[i], &expanded,
 			(PaintUndoInfo *)NULL);

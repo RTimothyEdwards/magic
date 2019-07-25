@@ -84,10 +84,11 @@ char *defGetType();		/* Forward declaration */
  */
 
 void
-defWriteHeader(def, f, oscale)
+defWriteHeader(def, f, oscale, units)
     CellDef *def;	/* Def for which to generate DEF output */
     FILE *f;		/* Output to this file */
     float oscale;
+    int units;		/* Units for UNITS; could be derived from oscale */
 {
     TileType type;
 
@@ -113,10 +114,10 @@ defWriteHeader(def, f, oscale)
     /* technology).							*/
     fprintf(f, "   TECHNOLOGY %s ;\n", DBTechName);
 
-    /* As I understand it, this refers to the scalefactor of the GDS	*/
-    /* file output.  Magic does all GDS in nanometers, so the LEF	*/
-    /* scalefactor (conversion to microns) is always 1000.		*/
-    fprintf(f, "   UNITS DISTANCE MICRONS 1000 ;\n");
+    /* The DEF scalefactor (conversion to microns) is always 1000	*/
+    /* (nanometers) unless overridden on the command line.		*/
+
+    fprintf(f, "   UNITS DISTANCE MICRONS %d ;\n", units);
 
     /* Die area, taken from the cell def bounding box.			*/
     fprintf(f, "   DIEAREA ( %.10g %.10g ) ( %.10g %.10g ) ;\n", 
@@ -1820,6 +1821,7 @@ defComponentFunc(cellUse, defdata)
 {
     FILE *f = defdata->f;
     float oscale = defdata->scale;
+    char *nameroot;
 
     /* Ignore any cellUse that does not have an identifier string. */
     if (cellUse->cu_id == NULL) return 0;
@@ -1830,8 +1832,17 @@ defComponentFunc(cellUse, defdata)
 	return 0;
     }
 
+    /* In case the cd_name contains a path component (it's not supposed to),	*/
+    /* remove it.								*/
+
+    nameroot = strrchr(cellUse->cu_def->cd_name, '/');
+    if (nameroot != NULL)
+	nameroot++;
+    else
+	nameroot = cellUse->cu_def->cd_name;
+
     fprintf(f, "   - %s %s\n      + PLACED ( %.10g %.10g ) %s ;\n",
-	cellUse->cu_id, cellUse->cu_def->cd_name,
+	cellUse->cu_id, nameroot,
 	(float)cellUse->cu_bbox.r_xbot * oscale,
 	(float)cellUse->cu_bbox.r_ybot * oscale,
 	defTransPos(&cellUse->cu_transform));
@@ -1864,10 +1875,10 @@ defMakeInverseLayerMap()
     TileType i;
     char *lefname;
 
-    lefMagicToLefLayer = (LefMapping *)mallocMagic(DBNumUserLayers
+    lefMagicToLefLayer = (LefMapping *)mallocMagic(DBNumTypes
 		* sizeof(LefMapping));
     memset(lefMagicToLefLayer, 0, sizeof(LefMapping) * TT_TECHDEPBASE);
-    for (i = TT_TECHDEPBASE; i < DBNumUserLayers; i++)
+    for (i = TT_TECHDEPBASE; i < DBNumTypes; i++)
     {
 	lefname = defGetType(i, &lefl);
 	lefMagicToLefLayer[i].lefName = lefname;
@@ -1916,22 +1927,27 @@ defMakeInverseLayerMap()
  */
 
 void
-DefWriteCell(def, outName, allSpecial)
+DefWriteCell(def, outName, allSpecial, units)
     CellDef *def;		/* Cell being written */
     char *outName;		/* Name of output file, or NULL. */
     bool allSpecial;		/* Treat all nets as SPECIALNETS? */
+    int units;			/* Force units to this value (default 1000) */
 {
     char *filename;
     FILE *f;
     NetCount nets;
     int total;
-    float scale = CIFGetOutputScale(1);	/* Note that "1" here corresponds
-					 * to "1000" in the header UNITS line
-					 */
+    float scale;
+
     LefMapping *lefMagicToLefLayer;
     int i;
     lefLayer *lefl;
     HashEntry *he;
+
+    /* Note that "1" corresponds to "1000" in the header UNITS line,	*/
+    /* or units of nanometers.  10 = centimicrons, 1000 = microns.	*/
+
+    scale = CIFGetOutputScale(1000 / units);
 
     f = lefFileOpen(def, outName, ".def", "w", &filename);
 
@@ -1949,7 +1965,7 @@ DefWriteCell(def, outName, allSpecial)
 	return;
     }
 
-    defWriteHeader(def, f, scale);
+    defWriteHeader(def, f, scale, units);
 
     lefMagicToLefLayer = defMakeInverseLayerMap();
 
