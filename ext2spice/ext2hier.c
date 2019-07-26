@@ -1572,14 +1572,29 @@ esMakePorts(hc, cdata)
 
 	    while (tptr != NULL)
 	    {
+		int idum[6];
+		bool is_array;
+
 		/* Ignore array information for the purpose of tracing	*/	
-		/* the cell definition hierarchy.			*/
+		/* the cell definition hierarchy.  Complementary to the	*/
+		/* method used in EFbuild.c, only consider uses of	*/
+		/* brackets that conform to the [ax:bx:cx][ay:by:cy]	*/
+		/* notation.						*/
 
 		aptr = strchr(portname, '[');
-		if ((aptr == NULL) || (aptr > tptr))
-		    *tptr = '\0';
-		else
+		if (aptr && (aptr < tptr) &&
+			(sscanf(aptr, "[%d:%d:%d][%d:%d:%d]", 
+			&idum[0], &idum[1], &idum[2],
+			&idum[3], &idum[4], &idum[5]) == 6))
+		{
+		    is_array = TRUE;
 		    *aptr = '\0';
+		}
+		else
+		{
+		    is_array = FALSE;
+		    *tptr = '\0';
+		}
 
 		// Find the cell for the instance
 		portdef = NULL;
@@ -1589,10 +1604,10 @@ esMakePorts(hc, cdata)
 		    use = (Use *)HashGetValue(he);
 		    portdef = use->use_def;
 		}
-		if ((aptr == NULL) || (aptr > tptr))
-		    *tptr = '/';
-		else
+		if (is_array)
 		    *aptr = '[';
+		else
+		    *tptr = '/';
 		portname = tptr + 1;
 
 		// Find the net of portname in the subcell and
@@ -1651,14 +1666,26 @@ esMakePorts(hc, cdata)
 
 	    while (tptr != NULL)
 	    {
+		int idum[6];
+		bool is_array;
+
 		/* Ignore array information for the purpose of tracing	*/	
 		/* the cell definition hierarchy.			*/
 
 		aptr = strchr(portname, '[');
-		if ((aptr == NULL) || (aptr > tptr))
-		    *tptr = '\0';
-		else
+		if (aptr && (aptr < tptr) &&
+			(sscanf(aptr, "[%d:%d:%d][%d:%d:%d]", 
+			&idum[0], &idum[1], &idum[2],
+			&idum[3], &idum[4], &idum[5]) == 6))
+		{
 		    *aptr = '\0';
+		    is_array = TRUE;
+		}
+		else
+		{
+		    *tptr = '\0';
+		    is_array = FALSE;
+		}
 
 		// Find the cell for the instance
 		portdef = NULL;
@@ -1668,10 +1695,10 @@ esMakePorts(hc, cdata)
 		    use = (Use *)HashGetValue(he);
 		    portdef = use->use_def;
 		}
-		if ((aptr == NULL) || (aptr > tptr))
-		    *tptr = '/';
-		else
+		if (is_array)
 		    *aptr = '[';
+		else
+		    *tptr = '/';
 		portname = tptr + 1;
 
 		// Find the net of portname in the subcell and

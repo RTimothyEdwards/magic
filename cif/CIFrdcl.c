@@ -752,7 +752,7 @@ cifMakeBoundaryFunc(tile, clientdata)
 			CIFReadError("Warning:  Cell %s boundary was redefined.\n",
 				cifReadCellDef->cd_name);
 		    else
-			CalmaError("Warning:  Cell %s boundary was redefined.\n",
+			CalmaReadError("Warning:  Cell %s boundary was redefined.\n",
 				cifReadCellDef->cd_name);
 		}
 	    }

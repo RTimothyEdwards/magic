@@ -1123,12 +1123,26 @@ efBuildUse(def, subDefName, subUseId, ta, tb, tc, td, te, tf)
     }
     else
     {
-	*cp = '\0';
-	newuse->use_id = StrDup((char **) NULL, subUseId);
-	*cp = '[';
-	(void) sscanf(cp, "[%d:%d:%d][%d:%d:%d]",
+	/* Note: Preserve any use of brackets as-is other than the  */
+	/* standard magic array notation below.  This allows, for   */
+	/* example, verilog instance arrays read from DEF files	to  */
+	/* be passed through correctly.				    */
+
+	if ((sscanf(cp, "[%d:%d:%d][%d:%d:%d]",
 		    &newuse->use_xlo, &newuse->use_xhi, &newuse->use_xsep,
-		    &newuse->use_ylo, &newuse->use_yhi, &newuse->use_ysep);
+		    &newuse->use_ylo, &newuse->use_yhi, &newuse->use_ysep)) == 6)
+	{
+	    *cp = '\0';
+	    newuse->use_id = StrDup((char **) NULL, subUseId);
+	    *cp = '[';
+	}
+	else
+	{
+	    newuse->use_id = StrDup((char **) NULL, subUseId);
+	    newuse->use_xlo = newuse->use_xhi = 0;
+	    newuse->use_ylo = newuse->use_yhi = 0;
+	    newuse->use_xsep = newuse->use_ysep = 0;
+	}
     }
 
     he = HashFind(&def->def_uses, newuse->use_id);

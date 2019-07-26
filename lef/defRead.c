@@ -1450,18 +1450,22 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 
 		/* Does use name contain brackets?  If so, this can */
 		/* interfere with magic's use of arrays.	    */
+		/* NOTE:  This has been commented out.  I think	    */
+		/* the only confusion is in ext2spice and can be    */
+		/* avoided by allowing any bracket notation in an   */
+		/* instance name other than that used by the .ext   */
+		/* file for dealing with arrays, which uses the	    */
+		/* specific syntax [xlo:xsep:xhi][ylo:ysep:yhi] and */
+		/* is easy enough to distinguish.		    */
 
-		/* NOTE:  It is not clear that this needs to be	    */
-		/* done during DEF read.  The only confusion comes  */
-		/* from the arrays being parsed by ExtFlat when	    */
-		/* doing ext2spice.				    */
-
-		dptr = strchr(usename, '[');
-		if (dptr != NULL) {
-		    *dptr = '_';
-		    dptr = strchr(dptr + 1, ']');
-		    if (dptr != NULL) *dptr = '_';
-		}
+		/* 
+		    dptr = strchr(usename, '[');
+		    if (dptr != NULL) {
+			*dptr = '_';
+			dptr = strchr(dptr + 1, ']');
+			if (dptr != NULL) *dptr = '_';
+		    }
+		*/
 
 		token = LefNextToken(f, TRUE);
 
