@@ -775,11 +775,12 @@ enum def_orient {DEF_NORTH, DEF_SOUTH, DEF_EAST, DEF_WEST,
 	DEF_FLIPPED_WEST};
 
 int
-DefReadLocation(use, f, oscale, tptr)
+DefReadLocation(use, f, oscale, tptr, noplace)
     CellUse *use;
     FILE *f;
     float oscale;
     Transform *tptr;
+    bool noplace;
 {
     Rect *r, tr, rect;
     int keyword;
@@ -791,21 +792,32 @@ DefReadLocation(use, f, oscale, tptr)
 	"N", "S", "E", "W", "FN", "FS", "FE", "FW"
     };
 
-    token = LefNextToken(f, TRUE);
-    if (*token != '(') goto parse_error;
-    token = LefNextToken(f, TRUE);
-    if (sscanf(token, "%f", &x) != 1) goto parse_error;
-    token = LefNextToken(f, TRUE);
-    if (sscanf(token, "%f", &y) != 1) goto parse_error;
-    token = LefNextToken(f, TRUE);
-    if (*token != ')') goto parse_error;
-    token = LefNextToken(f, TRUE);
-
-    keyword = Lookup(token, orientations);
-    if (keyword < 0)
+    if (noplace)
     {
-	LefError(DEF_ERROR, "Unknown macro orientation \"%s\".\n", token);
-	return -1;
+	LefError(DEF_WARNING, "Unplaced component \"%s\" will be put at origin.\n",
+		    use->cu_id);
+	x = 0;
+	y = 0;
+	keyword = DEF_NORTH;
+    }
+    else
+    {
+        token = LefNextToken(f, TRUE);
+        if (*token != '(') goto parse_error;
+        token = LefNextToken(f, TRUE);
+        if (sscanf(token, "%f", &x) != 1) goto parse_error;
+        token = LefNextToken(f, TRUE);
+        if (sscanf(token, "%f", &y) != 1) goto parse_error;
+        token = LefNextToken(f, TRUE);
+        if (*token != ')') goto parse_error;
+        token = LefNextToken(f, TRUE);
+
+        keyword = Lookup(token, orientations);
+        if (keyword < 0)
+        {
+	    LefError(DEF_ERROR, "Unknown macro orientation \"%s\".\n", token);
+	    return -1;
+	}
     }
 
     /* The standard transformations are all defined to rotate	*/
@@ -1062,7 +1074,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 			    break;
 			case DEF_PINS_PROP_FIXED:
 			case DEF_PINS_PROP_PLACED:
-			    DefReadLocation(NULL, f, oscale, &t);
+			    DefReadLocation(NULL, f, oscale, &t, FALSE);
 			    if (curlayer == -1)
 				pending = TRUE;
 			    else
@@ -1522,10 +1534,12 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		    switch (subkey)
 		    {
 			case DEF_PROP_PLACED:
-			case DEF_PROP_UNPLACED:
 			case DEF_PROP_FIXED:
 			case DEF_PROP_COVER:
-			    DefReadLocation(defUse, f, oscale, &t);
+			    DefReadLocation(defUse, f, oscale, &t, FALSE);
+			    break;
+			case DEF_PROP_UNPLACED:
+			    DefReadLocation(defUse, f, oscale, &t, TRUE);
 			    break;
 			case DEF_PROP_SOURCE:
 			case DEF_PROP_WEIGHT:
