@@ -309,14 +309,11 @@ DBFlagMismatches(checkDef)
     CellDef *checkDef;
 {
     CellUse *parentUse;
-    long count;
 
     for (parentUse = checkDef->cd_parents; parentUse != NULL;
 		    parentUse = parentUse->cu_nextuse)
     {
-	count++;
 	if (parentUse->cu_parent == NULL) continue;
 	parentUse->cu_parent->cd_flags |= CDSTAMPSCHANGED;
     }
-    TxPrintf("Diagnostic:  cell %s count = %ld\n", checkDef->cd_name, count);
 }
