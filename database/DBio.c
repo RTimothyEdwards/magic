@@ -619,6 +619,9 @@ done:
 	    }
 	}
     }
+    /* Update timestamp flags */
+    DBFlagMismatches(cellDef);
+
     cellDef->cd_timestamp = cellStamp;
     if (cellStamp == 0)
     {
@@ -869,6 +872,8 @@ DBReadBackup(name)
 			name);
 		return FALSE;
 	    }
+	    /* Update timestamp flags from dbCellReadDef() */
+	    DBFlagMismatches();
 	}
 	else
 	{
