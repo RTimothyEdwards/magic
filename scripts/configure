@@ -8072,7 +8072,7 @@ fi
       # Not available on all versions:  check for include file.
       SHLIB_CFLAGS="-fpic"
       LDDL_FLAGS="-shared ${LIB_SPECS}"
-      CFLAGS="${CFLAGS} -l/usr/X11R6/include"
+      CFLAGS="${CFLAGS} -L/usr/X11R6/include"
       ;;
 
     *-netbsd*|*-openbsd*)
