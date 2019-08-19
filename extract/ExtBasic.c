@@ -85,8 +85,16 @@ typedef struct		/* Position of each terminal (below) tile position */
     Point	pt;
 } TermTilePos;
 
+/* Field definitions for tr_devmatch */
+#define MATCH_ID    0x01		/* Device matches identifier in devrec */
+#define MATCH_SUB   0x02		/* Device matches substrate type in devrec */
+#define MATCH_TERM  0x04		/* Device matches terminal in devrec */
+/* (additional fields: bit shifts up by 1 for each defined device terminal) */
+
 struct transRec
 {
+    ExtDevice   *tr_devrec;		/* Device record in ExtCurStyle */
+    int		 tr_devmatch;		/* Fields of tr_devrec that match device */
     int		 tr_nterm;		/* Number of terminals */
     int		 tr_gatelen;		/* Perimeter of connection to gate */
     NodeRegion	*tr_gatenode;		/* Node region for gate terminal */
@@ -134,6 +142,7 @@ void extOutputNodes();
 int extTransTileFunc();
 int extTransPerimFunc();
 int extTransFindSubs();
+int extTransFindId();
 
 int extAnnularTileFunc();
 int extResistorTileFunc();
@@ -214,8 +223,8 @@ extBasic(def, outFile)
      * the regions.
      */
     transList = (TransRegion *) ExtFindRegions(def, &TiPlaneRect,
-				    &ExtCurStyle->exts_transMask,
-				    ExtCurStyle->exts_transConn,
+				    &ExtCurStyle->exts_deviceMask,
+				    ExtCurStyle->exts_deviceConn,
 				    extUnInit, extTransFirst, extTransEach);
     ExtResetTiles(def, extUnInit);
 
@@ -241,7 +250,7 @@ extBasic(def, outFile)
 	scontext.scx_area.r_ur.p_x++;
 	scontext.scx_area.r_ur.p_y++;
 
-	if (DBTreeSrTiles(&scontext, &ExtCurStyle->exts_transMask, 0,
+	if (DBTreeSrTiles(&scontext, &ExtCurStyle->exts_deviceMask, 0,
 			extFoundFunc, (ClientData)def) != 0)
 	    reg->treg_type = TT_SPACE;	/* Disables the trans record */
     }
@@ -1429,6 +1438,7 @@ extOutputParameters(def, transList, outFile)
     TransRegion *reg;
     TileType t;
     TileTypeBitMask tmask;
+    ExtDevice *devptr;
 
     TTMaskZero(&tmask);
 
@@ -1450,84 +1460,45 @@ extOutputParameters(def, transList, outFile)
     {
 	if (TTMaskHasType(&tmask, t))
 	{
-	    plist = ExtCurStyle->exts_deviceParams[t];
-	    if (plist != (ParamList *)NULL)
+	    /* Note:  If there are multiple variants of a device type, they	*/
+	    /* will all be listed even if they are not all present in the	*/
+	    /* design.								*/
+
+	    for (devptr = ExtCurStyle->exts_device[t]; devptr; devptr = devptr->exts_next)
 	    {
-		fprintf(outFile, "parameters %s", ExtCurStyle->exts_transName[t]);
-		for (; plist != NULL; plist = plist->pl_next)
+		plist = devptr->exts_deviceParams;
+		if (plist != (ParamList *)NULL)
 		{
-		    if (plist->pl_param[1] != '\0')
+		    fprintf(outFile, "parameters %s", devptr->exts_deviceName);
+		    for (; plist != NULL; plist = plist->pl_next)
 		    {
-			if (plist->pl_scale != 1.0)
-			    fprintf(outFile, " %c%c=%s*%g", 
+			if (plist->pl_param[1] != '\0')
+			{
+			    if (plist->pl_scale != 1.0)
+				fprintf(outFile, " %c%c=%s*%g", 
 					plist->pl_param[0], plist->pl_param[1],
 					plist->pl_name, plist->pl_scale);
-			else
-			    fprintf(outFile, " %c%c=%s", plist->pl_param[0],
+			    else
+				fprintf(outFile, " %c%c=%s", plist->pl_param[0],
 					plist->pl_param[1], plist->pl_name);
-		    }
-		    else
-		    {
-			if (plist->pl_scale != 1.0)
-			    fprintf(outFile, " %c=%s*%g", 
+			}
+			else
+			{
+			    if (plist->pl_scale != 1.0)
+				fprintf(outFile, " %c=%s*%g", 
 					plist->pl_param[0],
 					plist->pl_name, plist->pl_scale);
-			else
-			    fprintf(outFile, " %c=%s", plist->pl_param[0],
+			    else
+				fprintf(outFile, " %c=%s", plist->pl_param[0],
 					plist->pl_name);
+			
+			}
 		    }
+		    fprintf(outFile, "\n");
 		}
-		fprintf(outFile, "\n");
 	    }
 	}
     }
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * extGetNativeResistClass() --
- *
- * For the purpose of generating a node area and perimeter value to output
- * to a subcircuit call as a passed parameter.  The value output is assumed
- * to refer only to the part of the whole eletrical node that is the
- * actual device node, not to include connected metal, contacts, etc.
- * Since area and perimeter information about a node is separated into
- * resist classes, we need to figure out which resist class belongs to
- * the device terminal type.
- *
- * "type" is the type identifier for the device (e.g., gate).  "term" is
- * the index of the terminal for the device.  Devices with symmetrical
- * terminals (e.g., MOSFETs), may have fewer type masks than terminals.
- *
- * ----------------------------------------------------------------------------
- */
-
-int
-extGetNativeResistClass(type, term)
-    TileType type;
-    int term;
-{
-    TileTypeBitMask *tmask, *rmask;
-    int i, n;
-
-    tmask = NULL;
-    for (i = 0;; i++)
-    {
-	rmask = &ExtCurStyle->exts_transSDTypes[type][i];
-	if (TTMaskIsZero(rmask)) break;
-	tmask = rmask;
-	if (i == term) break;
-    }
-    if (tmask == NULL) return -1;	/* Error */
-
-    for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
-    {
-	rmask = &ExtCurStyle->exts_typesByResistClass[n];
-	if (TTMaskIntersect(rmask, tmask))
-	    return n;
-    }
-    return -1; 		/* Error */
 }
 
 /*
@@ -1549,16 +1520,16 @@ extGetNativeResistClass(type, term)
  */
 
 void
-extOutputDevParams(reg, t, outFile, length, width)
+extOutputDevParams(reg, devptr, outFile, length, width)
     TransRegion *reg;
-    TileType t;
+    ExtDevice *devptr;
     FILE *outFile;
     int length;
     int width;
 {
     ParamList *chkParam;
 
-    for (chkParam = ExtCurStyle->exts_deviceParams[t]; chkParam
+    for (chkParam = devptr->exts_deviceParams; chkParam
 		!= NULL; chkParam = chkParam->pl_next)
     {
 	switch(tolower(chkParam->pl_param[0]))
@@ -1585,9 +1556,9 @@ extOutputDevParams(reg, t, outFile, length, width)
 		break;
 	    case 'c':
 		fprintf(outFile, " %c=%g", chkParam->pl_param[0],
-			(ExtCurStyle->exts_transGateCap[t]
+			(extTransRec.tr_devrec->exts_deviceGateCap
 			* reg->treg_area) +
-			(ExtCurStyle->exts_transSDCap[t]
+			(extTransRec.tr_devrec->exts_deviceSDCap
 			* extTransRec.tr_perim));
 		break;
 	    case 's':
@@ -1625,7 +1596,7 @@ extOutputDevParams(reg, t, outFile, length, width)
  *	None.
  *
  * Side effects:
- *	Writes a number of 'fet' records to the file 'outFile'.
+ *	Writes a number of 'device' records to the file 'outFile'.
  *
  * Interruptible.  If SigInterruptPending is detected, we stop traversing
  * the transistor list and return.
@@ -1641,6 +1612,7 @@ extOutputDevices(def, transList, outFile)
 {
     NodeRegion *node, *subsNode;
     TransRegion *reg;
+    ExtDevice *devptr;
     char *subsName;
     FindRegion arg;
     LabelList *ll;
@@ -1663,13 +1635,15 @@ extOutputDevices(def, transList, outFile)
 	 * them with 'reg', then visit them again re-marking them with
 	 * the gate node (extGetRegion(reg->treg_tile)).
 	 */
+	extTransRec.tr_devrec = (ExtDevice *)NULL;
+	extTransRec.tr_devmatch = 0;
 	extTransRec.tr_nterm = 0;
 	extTransRec.tr_gatelen = 0;
 	extTransRec.tr_perim = 0;
 	extTransRec.tr_subsnode = (NodeRegion *)NULL;
 
 	arg.fra_def = def;
-	arg.fra_connectsTo = ExtCurStyle->exts_transConn;
+	arg.fra_connectsTo = ExtCurStyle->exts_deviceConn;
 
 	extTransRec.tr_gatenode = (NodeRegion *) extGetRegion(reg->treg_tile);
 	t = reg->treg_type;
@@ -1686,7 +1660,6 @@ extOutputDevices(def, transList, outFile)
 	/* 5/30/09---but, reinitialize the array out to MAXSD,	*/
 	/* or devices declaring minterms < maxterms screw up!	*/
 
-	nsd = ExtCurStyle->exts_transSDCount[t];
 	for (i = 0; i < MAXSD; i++) extTransRec.tr_termnode[i] = NULL;
 
 	/* Mark with reg and process each perimeter segment */
@@ -1712,16 +1685,20 @@ extOutputDevices(def, transList, outFile)
 	/* search fails, give up and proceed with the reduced	*/
 	/* number of terminals.					*/
 
+	devptr = extTransRec.tr_devrec;
+	if (devptr == NULL) continue;	/* Bad device; do not output */
+
+	nsd = devptr->exts_deviceSDCount;
 	while (extTransRec.tr_nterm < nsd)
 	{
 	    TileTypeBitMask *tmask;
 
-	    tmask = &ExtCurStyle->exts_transSDTypes[t][extTransRec.tr_nterm];
+	    tmask = &devptr->exts_deviceSDTypes[extTransRec.tr_nterm];
 	    if (TTMaskIsZero(tmask)) break;
 	    if (!TTMaskIntersect(tmask, &DBPlaneTypes[reg->treg_pnum]))
 	    {
 		node = NULL;
-		extTransFindSubs(reg->treg_tile, t, tmask, def, &node);
+		extTransFindSubs(reg->treg_tile, t, tmask, def, &node, NULL);
 		if (node == NULL) break;
 		extTransRec.tr_termnode[extTransRec.tr_nterm++] = node;
 	    }
@@ -1774,18 +1751,18 @@ extOutputDevices(def, transList, outFile)
 
 	/*
 	 * Output the transistor record.
-	 * The type is ExtCurStyle->exts_transName[t], which should have
+	 * The type is devptr->exts_deviceName, which should have
 	 * some meaning to the simulator we are producing this file for.
 	 * Use the default substrate node unless the transistor overlaps
-	 * material whose type is in exts_transSubstrateTypes, in which
+	 * material whose type is in exts_deviceSubstrateTypes, in which
 	 * case we use the node of the overlapped material.
 	 *
 	 * Technology files using the "substrate" keyword (magic-8.1 or
 	 * newer) should have the text "error" in the substrate node
 	 * name.
 	 */
-	subsName = ExtCurStyle->exts_transSubstrateName[t];
-	if (!TTMaskIsZero(&ExtCurStyle->exts_transSubstrateTypes[t])
+	subsName = devptr->exts_deviceSubstrateName;
+	if (!TTMaskIsZero(&devptr->exts_deviceSubstrateTypes)
 		&& (subsNode = extTransRec.tr_subsnode))
 	{
 	    subsName = extNodeName(subsNode);
@@ -1809,12 +1786,12 @@ extOutputDevices(def, transList, outFile)
 #endif
 
 	/* Original-style FET record backward compatibility */
-	if (ExtCurStyle->exts_deviceClass[t] != DEV_FET)
+	if (devptr->exts_deviceClass != DEV_FET)
 	    fprintf(outFile, "device ");
 
 	fprintf(outFile, "%s %s",
-			extDevTable[ExtCurStyle->exts_deviceClass[t]],
-			ExtCurStyle->exts_transName[t]);
+			extDevTable[devptr->exts_deviceClass],
+			devptr->exts_deviceName);
 
 	fprintf(outFile, " %d %d %d %d",
 		reg->treg_ll.p_x, reg->treg_ll.p_y, 
@@ -1830,7 +1807,7 @@ extOutputDevices(def, transList, outFile)
 	/* etc., etc.							*/
 	/*				Tim, 2/20/03			*/
 
-	switch (ExtCurStyle->exts_deviceClass[t])
+	switch (devptr->exts_deviceClass)
 	{
 	    case DEV_FET:	/* old style, perimeter & area */
 		fprintf(outFile, " %d %d \"%s\"",
@@ -1887,7 +1864,7 @@ extOutputDevices(def, transList, outFile)
 		    /* because the substrate node (i.e., well) is the	*/
 		    /* other terminal.					*/
 
-		    if (ExtDoWarn && (ExtCurStyle->exts_transSDCount[t] > 0))
+		    if (ExtDoWarn && (devptr->exts_deviceSDCount > 0))
 			extTransBad(def, reg->treg_tile,
 				"Could not determine device boundary");
 		    length = width = 0;
@@ -1929,14 +1906,14 @@ extOutputDevices(def, transList, outFile)
 
 		}
 
-		if (ExtCurStyle->exts_deviceClass[t] == DEV_MOSFET ||
-			ExtCurStyle->exts_deviceClass[t] == DEV_ASYMMETRIC ||
-			ExtCurStyle->exts_deviceClass[t] == DEV_BJT)
+		if (devptr->exts_deviceClass == DEV_MOSFET ||
+			devptr->exts_deviceClass == DEV_ASYMMETRIC ||
+			devptr->exts_deviceClass == DEV_BJT)
 		{
 		    fprintf(outFile, " %d %d", length, width);
 		}
 
-		extOutputDevParams(reg, t, outFile, length, width);
+		extOutputDevParams(reg, devptr, outFile, length, width);
 
 		fprintf(outFile, " \"%s\"", (subsName == NULL) ?
 					"None" : subsName);
@@ -1945,14 +1922,14 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_DIODE:	/* Only handle the optional substrate node */
 	    case DEV_NDIODE:
 	    case DEV_PDIODE:
-		extOutputDevParams(reg, t, outFile, length, width);
+		extOutputDevParams(reg, devptr, outFile, length, width);
 		if (subsName != NULL)
 		    fprintf(outFile, " \"%s\"", subsName);
 		break;
 
 	    case DEV_RES:
 	    case DEV_RSUBCKT:
-		hasModel = strcmp(ExtCurStyle->exts_transName[t], "None");
+		hasModel = strcmp(devptr->exts_deviceName, "None");
 		length = extTransRec.tr_perim;
 		isAnnular = FALSE;
 	
@@ -2059,7 +2036,7 @@ extOutputDevices(def, transList, outFile)
 					"Resistor has zero width");
 		}
 
-		if (ExtCurStyle->exts_deviceClass[t] == DEV_RSUBCKT)
+		if (devptr->exts_deviceClass == DEV_RSUBCKT)
 		{
 		    /* nothing */
 		}
@@ -2072,9 +2049,9 @@ extOutputDevices(def, transList, outFile)
 		else		/* regular resistor */
 		    fprintf(outFile, " %g", dres / 1000.0); /* mOhms -> Ohms */
 
-		extOutputDevParams(reg, t, outFile, length, width);
+		extOutputDevParams(reg, devptr, outFile, length, width);
 
-		if (ExtCurStyle->exts_deviceClass[t] == DEV_RSUBCKT)
+		if (devptr->exts_deviceClass == DEV_RSUBCKT)
 		{
 		    fprintf(outFile, " \"%s\"", (subsName == NULL) ?
 				"None" : subsName);
@@ -2085,7 +2062,7 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_CAP:
 	    case DEV_CAPREV:
 	    case DEV_CSUBCKT:
-		hasModel = strcmp(ExtCurStyle->exts_transName[t], "None");
+		hasModel = strcmp(devptr->exts_deviceName, "None");
 		if (hasModel)
 		{
 		    for (n = 0; n < extTransRec.tr_nterm &&
@@ -2143,7 +2120,7 @@ extOutputDevices(def, transList, outFile)
 			(void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 		    }
 
-		    if (ExtCurStyle->exts_deviceClass[t] == DEV_CSUBCKT)
+		    if (devptr->exts_deviceClass == DEV_CSUBCKT)
 		    {
 		        /* (Nothing) */
 		    }
@@ -2163,9 +2140,9 @@ extOutputDevices(def, transList, outFile)
 			    fprintf(outFile, " \"%s\"", subsName);
 		    }
 
-		    extOutputDevParams(reg, t, outFile, length, width);
+		    extOutputDevParams(reg, devptr, outFile, length, width);
 
-		    if (ExtCurStyle->exts_deviceClass[t] == DEV_CSUBCKT)
+		    if (devptr->exts_deviceClass == DEV_CSUBCKT)
 		    {
 			fprintf(outFile, " \"%s\"", (subsName == NULL) ?
 				"None" : subsName);
@@ -2173,8 +2150,8 @@ extOutputDevices(def, transList, outFile)
 		}
 		else
 		{
-		    dcap = (ExtCurStyle->exts_transGateCap[t] * reg->treg_area) +
-			(ExtCurStyle->exts_transSDCap[t] * extTransRec.tr_perim);
+		    dcap = (devptr->exts_deviceGateCap * reg->treg_area) +
+			(devptr->exts_deviceSDCap * extTransRec.tr_perim);
 
 		    fprintf(outFile, " %g", dcap / 1000.0);  /* aF -> fF */
 		}
@@ -2191,7 +2168,7 @@ extOutputDevices(def, transList, outFile)
 	/* device is asymmetric, in which case source and drain do not	*/
 	/* permute, and the terminal order is fixed.			*/
 
-	if (TTMaskIsZero(&ExtCurStyle->exts_transSDTypes[t][1]))
+	if (TTMaskIsZero(&devptr->exts_deviceSDTypes[1]))
 	    ExtSortTerminals(&extTransRec, ll); 
 
 	/* each non-gate terminal */
@@ -2203,17 +2180,29 @@ extOutputDevices(def, transList, outFile)
     }
 }
 
+/* Structure to hold a node region and a tile type */
+
+typedef struct _node_type {
+    NodeRegion *region;
+    TileType layer;
+} NodeAndType;
+
 int
-extTransFindSubs(tile, t, mask, def, sn)
+extTransFindSubs(tile, t, mask, def, sn, layerptr)
     Tile *tile;
     TileType t;
     TileTypeBitMask *mask;
     CellDef *def;
     NodeRegion **sn;
+    TileType *layerptr;
 {
     Rect tileArea;
     int pNum;
     int extTransFindSubsFunc1();	/* Forward declaration */
+    NodeAndType noderec;
+
+    noderec.region = (NodeRegion *)NULL;
+    noderec.layer = TT_SPACE;
 
     TiToRect(tile, &tileArea);
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
@@ -2221,7 +2210,65 @@ extTransFindSubs(tile, t, mask, def, sn)
 	if (TTMaskIntersect(&DBPlaneTypes[pNum], mask))
 	{
 	    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[pNum], &tileArea,
-		    mask, extTransFindSubsFunc1, (ClientData)sn))
+		    mask, extTransFindSubsFunc1, (ClientData)&noderec))
+	    {
+		*sn = noderec.region;
+		if (layerptr) *layerptr = noderec.layer;
+		return 1;
+	    }
+	}
+    }
+    return 0;
+}
+
+int
+extTransFindSubsFunc1(tile, noderecptr)
+    Tile *tile;
+    NodeAndType *noderecptr;
+{
+    TileType type;
+
+    /* Report split substrate region errors (two different substrate
+     * regions under the same device)
+     */
+
+    if (tile->ti_client != (ClientData) extUnInit)
+    {
+	if ((noderecptr->region != (NodeRegion *)NULL) &&
+		    (noderecptr->region != tile->ti_client))
+	    TxError("Warning:  Split substrate under device at (%d %d)\n",
+			tile->ti_ll.p_x, tile->ti_ll.p_y);
+	if (IsSplit(tile))
+	    type = (SplitSide(tile)) ? SplitRightType(tile): SplitLeftType(tile);
+	else
+	    type = TiGetTypeExact(tile);
+
+	noderecptr->region = (NodeRegion *)tile->ti_client;
+	noderecptr->layer = type;
+	return 1;
+    }
+    return 0;
+}
+
+int
+extTransFindId(tile, mask, def, idtypeptr)
+    Tile *tile;
+    TileTypeBitMask *mask;
+    CellDef *def;
+    TileType *idtypeptr;
+{
+    TileType type;
+    Rect tileArea;
+    int pNum;
+    int extTransFindIdFunc1();	/* Forward declaration */
+
+    TiToRect(tile, &tileArea);
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+    {
+	if (TTMaskIntersect(&DBPlaneTypes[pNum], mask))
+	{
+	    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[pNum], &tileArea,
+		    mask, extTransFindIdFunc1, (ClientData)idtypeptr))
 		return 1;
 	}
     }
@@ -2229,24 +2276,92 @@ extTransFindSubs(tile, t, mask, def, sn)
 }
 
 int
-extTransFindSubsFunc1(tile, sn)
+extTransFindIdFunc1(tile, idtypeptr)
     Tile *tile;
-    NodeRegion **sn;
+    TileType *idtypeptr;
 {
-    /* Report split substrate region errors (two different substrate
-     * regions under the same device)
+    /*
+     * ID Layer found overlapping device area, so return 1 to halt search.
      */
+    if (IsSplit(tile))
+        *idtypeptr = (SplitSide(tile)) ? SplitRightType(tile): SplitLeftType(tile);
+    else
+	*idtypeptr = TiGetTypeExact(tile);
 
-    if (tile->ti_client != (ClientData) extUnInit)
+    return 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extDevFindMatch --
+ *
+ * Find and return the next matching device record.  extTransRec is queried
+ * to find how many fields have been matched to the device already.  Then
+ * it finds the next record with the same matching fields.  Because records
+ * are in no specific order, it will loop to the beginning of the records
+ * after reaching the end.  It is the responsibility of the calling routine to
+ * determine if all matching devices have been tested.
+ *
+ * deventry is the record position to start the search.
+ * t is the tile type of the device.
+ * ----------------------------------------------------------------------------
+ */
+
+ExtDevice *
+extDevFindMatch(deventry, t)
+    ExtDevice *deventry;
+    TileType t;
+{
+    ExtDevice *devptr;
+    int i, j, matchflags;
+    bool match;
+
+    matchflags = extTransRec.tr_devmatch;
+
+    if (deventry->exts_next == NULL)
+	devptr = ExtCurStyle->exts_device[t];
+    else
+	devptr = deventry->exts_next;
+
+    for (; devptr != deventry;
+		devptr = (devptr->exts_next) ? devptr->exts_next :
+		ExtCurStyle->exts_device[t])
     {
-	if ((*sn != (NodeRegion *)NULL) && (*sn != tile->ti_client))
-	    TxError("Warning:  Split substrate under device at (%d %d)\n",
-			tile->ti_ll.p_x, tile->ti_ll.p_y);
+	if (matchflags == 0) break;	/* Always return next entry */
 
-	*sn = (NodeRegion *) tile->ti_client;
-	return 1;
+	if (matchflags & MATCH_ID)	/* Must have the same identifier */
+	    if (!TTMaskEqual(&devptr->exts_deviceIdentifierTypes,
+			    &deventry->exts_deviceIdentifierTypes)) continue;
+
+	if (matchflags & MATCH_SUB)	/* Must have the same substrate type */
+	    if (!TTMaskEqual(&devptr->exts_deviceSubstrateTypes,
+			    &deventry->exts_deviceSubstrateTypes)) continue;
+
+	j = MATCH_TERM;
+	match = True;
+	for (i = 0; i < MAXSD; i++)
+	{
+	    if (extTransRec.tr_termnode[i] == NULL) break;
+	    if (matchflags & j)	/* Must have the same terminal type */
+	    {
+		if (TTMaskIsZero(&devptr->exts_deviceSDTypes[i]))
+		{
+		    match = False;
+		    break;
+		}
+		if (!TTMaskEqual(&devptr->exts_deviceSDTypes[i],
+			    &deventry->exts_deviceSDTypes[i]))
+		{
+		    match = False;
+		    break;
+		}
+	    }
+	    j >>= 1;
+	}
+	if (match) break;
     }
-    return 0;
+    return (devptr == deventry) ? NULL : devptr;
 }
 
 /*
@@ -2273,10 +2388,12 @@ extTransTileFunc(tile, pNum, arg)
     int pNum;
     FindRegion *arg;
 {
-    TileTypeBitMask mask;
-    TileType loctype;
-    int perim;
+    TileTypeBitMask mask, cmask, *smask;
+    TileType loctype, idlayer, sublayer;
+    int perim, result;
     bool allow_globsubsnode;
+    ExtDevice *devptr, *deventry, *devtest;
+    NodeRegion *region;
 
     LabelList *ll;
     Label *lab;
@@ -2306,7 +2423,7 @@ extTransTileFunc(tile, pNum, arg)
     else
 	loctype = TiGetTypeExact(tile);
 
-    mask = ExtCurStyle->exts_transConn[loctype];
+    mask = ExtCurStyle->exts_deviceConn[loctype];
     TTMaskCom(&mask);
 
     /* NOTE:  DO NOT USE extTransRec.tr_perim += extEnumTilePerim(...)	*/
@@ -2317,32 +2434,146 @@ extTransTileFunc(tile, pNum, arg)
 		extTransPerimFunc, (ClientData)NULL);
     extTransRec.tr_perim += perim;
 
-    allow_globsubsnode = FALSE;
-    if (extTransRec.tr_subsnode == (NodeRegion *)NULL)
-    {
-	TileTypeBitMask *smask;
+    devptr = extTransRec.tr_devrec;
+    if (devptr == NULL) return 0;   /* No matching devices, so forget it. */
 
-	smask = &ExtCurStyle->exts_transSubstrateTypes[loctype];
-	if (TTMaskHasType(smask, TT_SPACE))
-	{
-	    allow_globsubsnode = TRUE;
-	    TTMaskClearType(smask, TT_SPACE);
-	}
-	extTransFindSubs(tile, loctype, smask, arg->fra_def, &extTransRec.tr_subsnode);
-	if (allow_globsubsnode)
-	    TTMaskSetType(smask, TT_SPACE);
+    allow_globsubsnode = FALSE;
+
+    /* Create a mask of all substrate types of all device records, and	*/
+    /* search for substrate types on this combined mask.		*/
+
+    TTMaskZero(&cmask);
+    for (devtest = ExtCurStyle->exts_device[loctype]; devtest;
+		devtest = devtest->exts_next)
+	TTMaskSetMask(&cmask, &devtest->exts_deviceSubstrateTypes);
+
+    if (TTMaskHasType(&cmask, TT_SPACE))
+    {
+	allow_globsubsnode = TRUE;
+	TTMaskClearType(&cmask, TT_SPACE);
     }
 
-    /* If the transistor does not connect to a defined node, and
-     * the substrate types include "space", then it is assumed to
-     * connect to the global substrate.
-     */
-
     if (extTransRec.tr_subsnode == (NodeRegion *)NULL)
-	if (allow_globsubsnode)
-	    extTransRec.tr_subsnode = glob_subsnode;
+    {
+	sublayer = TT_SPACE;
+	region = NULL;
+	extTransFindSubs(tile, loctype, &cmask, arg->fra_def, &region, &sublayer);
 
-    return (0);
+	/* If the device does not connect to a defined node, and
+	 * the substrate types include "space", then it is assumed to
+	 * connect to the global substrate.
+	 */
+
+	if (region == (NodeRegion *)NULL)
+	    if (allow_globsubsnode)
+		region = glob_subsnode;
+
+	extTransRec.tr_subsnode = region;
+
+	if ((region != (NodeRegion *)NULL) &&
+		!(TTMaskHasType(&devptr->exts_deviceSubstrateTypes, sublayer)))
+	{
+	    /* A substrate layer was found but is not compatible with the   */
+	    /* current device.  Find a device record with the substrate	    */
+	    /* layer that was found, and set the substrate match flag.	    */
+
+	    deventry = devptr;
+	    while (devptr != NULL)
+	    {
+		devptr = extDevFindMatch(devptr, loctype);
+		if ((devptr == NULL) || (devptr == deventry))
+		{
+		    TxError("No matching device for %s with substrate layer %s\n",
+				DBTypeLongNameTbl[loctype], DBTypeLongNameTbl[sublayer]);
+		    devptr = NULL;
+		    break;
+		}
+		if (TTMaskHasType(&devptr->exts_deviceSubstrateTypes, sublayer))
+		{
+		    extTransRec.tr_devmatch |= MATCH_SUB;
+		    break;
+		}
+	    }
+	}
+	else if (region == (NodeRegion *)NULL)
+	{
+	    TxError("Device %s does not have a compatible substrate node!\n",
+		    DBTypeLongNameTbl[loctype]);
+	    devptr = NULL;
+	}
+    }
+    extTransRec.tr_devrec = devptr;
+    if (devptr == NULL) return 0;	/* No matching devices, so forget it. */
+
+    /* If at least one device type declares an ID layer, then make a	*/
+    /* mask of all device ID types, and search on the area of the	*/
+    /* device to see if any device identifier layers are found.		*/
+
+    TTMaskZero(&cmask);
+    for (devtest = ExtCurStyle->exts_device[loctype]; devtest;
+		devtest = devtest->exts_next)
+	TTMaskSetMask(&cmask, &devtest->exts_deviceIdentifierTypes);
+
+    if (!TTMaskIsZero(&cmask))
+    {
+	idlayer = TT_SPACE;
+	extTransFindId(tile, &cmask, arg->fra_def, &idlayer);
+
+	if ((idlayer == TT_SPACE) && !TTMaskIsZero(&devptr->exts_deviceIdentifierTypes))
+	{
+	    /* Device expected an ID layer but none was present.  Find a device	*/
+	    /* record with no ID layer, and set the ID match flag.		*/
+
+	    deventry = devptr;
+	    while (devptr != NULL)
+	    {
+		devptr = extDevFindMatch(devptr, loctype);
+		if ((devptr == NULL) || (devptr == deventry))
+		{
+		    TxError("No matching device for %s with no ID layer\n",
+				DBTypeLongNameTbl[loctype]);
+		    devptr = NULL;
+		    break;
+		}
+		if (TTMaskIsZero(&devptr->exts_deviceIdentifierTypes))
+		{
+		    extTransRec.tr_devmatch |= MATCH_ID;
+		    break;
+		}
+	    }
+	}
+	else if ((idlayer != TT_SPACE) &&
+		    !TTMaskHasType(&devptr->exts_deviceIdentifierTypes, idlayer))
+	{
+	    /* Device expected no ID layer but one was present.	 Find a device	*/
+	    /* record with the ID layer and set the ID match flag.  If there is	*/
+	    /* a valid device without the ID layer, then ignore the ID layer	*/
+	    /* and flag a warning.						*/
+
+	    deventry = devptr;
+	    while (devptr != NULL)
+	    {
+		devptr = extDevFindMatch(devptr, loctype);
+		if ((devptr == NULL) || (devptr == deventry))
+		{
+		    TxError("ID layer %s on non-matching device %s was ignored.\n",
+			    DBTypeLongNameTbl[idlayer], DBTypeLongNameTbl[loctype]);
+		    devptr = deventry;
+		    break;
+		}
+		if (TTMaskHasType(&devptr->exts_deviceIdentifierTypes, idlayer))
+		{
+		    extTransRec.tr_devmatch |= MATCH_ID;
+		    break;
+		}
+	    }
+	}
+	else
+	    extTransRec.tr_devmatch |= MATCH_ID;
+    }
+    extTransRec.tr_devrec = devptr;
+
+    return 0;
 }
 
 int
@@ -2352,6 +2583,7 @@ extTransPerimFunc(bp)
     TileType tinside, toutside;
     Tile *tile;
     NodeRegion *diffNode = (NodeRegion *) extGetRegion(bp->b_outside);
+    ExtDevice *devptr, *deventry;
     int i, len = BoundaryLength(bp);
     int thisterm;
     LabelList *ll;
@@ -2370,115 +2602,138 @@ extTransPerimFunc(bp)
     else
         toutside = TiGetTypeExact(bp->b_outside);
 
-    for (i = 0; !TTMaskIsZero(&ExtCurStyle->exts_transSDTypes[tinside][i]); i++)
+    if (extTransRec.tr_devrec != NULL)
+	devptr = extTransRec.tr_devrec;
+    else
+	devptr = ExtCurStyle->exts_device[tinside];
+
+    deventry = devptr;
+    while(devptr)
     {
-	/* TT_SPACE is allowed, for declaring that a device terminal is	*/
-	/* the substrate.  However, it should not be in the plane of	*/
-	/* the device identifier layer, so space tiles should never be	*/
-	/* flagged during a device perimeter search.			*/
-
-	if (toutside == TT_SPACE) break;
-
-	if (TTMaskHasType(&ExtCurStyle->exts_transSDTypes[tinside][i], toutside))
+	extTransRec.tr_devrec = devptr;
+	for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
 	{
-	    /*
-	     * It's a diffusion terminal (source or drain).  See if the node is
-	     * already in our table; add it if it wasn't already there.
-	     * Asymmetric devices must have terminals in order.
-	     */
-	    if (TTMaskIsZero(&ExtCurStyle->exts_transSDTypes[tinside][1]))
+	    /* TT_SPACE is allowed, for declaring that a device terminal is	*/
+	    /* the substrate.  However, it should not be in the plane of	*/
+	    /* the device identifier layer, so space tiles should never be	*/
+	    /* flagged during a device perimeter search.			*/
+
+	    if (toutside == TT_SPACE) break;
+
+	    if (TTMaskHasType(&devptr->exts_deviceSDTypes[i], toutside))
 	    {
-		for (thisterm = 0; thisterm < extTransRec.tr_nterm; thisterm++)
-		    if (extTransRec.tr_termnode[thisterm] == diffNode)
-			break;
-	    }
-	    else
-		thisterm = i;
-
-	    if (extTransRec.tr_termnode[thisterm] == NULL)
-	    {
-		extTransRec.tr_nterm++;
-		extTransRec.tr_termnode[thisterm] = diffNode;
-		extTransRec.tr_termlen[thisterm] = 0;
-		extTransRec.tr_termvector[thisterm].p_x = 0;
-		extTransRec.tr_termvector[thisterm].p_y = 0;
-		extTransRec.tr_termpos[thisterm].pnum = DBPlane(toutside);
-		extTransRec.tr_termpos[thisterm].pt = bp->b_outside->ti_ll;
-
-		/* Find the total area of this terminal */
-	    }
-	    else if (extTransRec.tr_termnode[thisterm] == diffNode)
-	    {
-		TermTilePos  *pos = &(extTransRec.tr_termpos[thisterm]);
-		Tile         *otile = bp->b_outside;
-
-		/* update the region tile position */
-
-		if( DBPlane(TiGetType(otile)) < pos->pnum )
+		/*
+		 * It's a diffusion terminal (source or drain).  See if the node is
+		 * already in our table; add it if it wasn't already there.
+		 * Asymmetric devices must have terminals in order.
+		 */
+		if (TTMaskIsZero(&devptr->exts_deviceSDTypes[1]))
 		{
-		    pos->pnum = DBPlane(TiGetType(otile));
-		    pos->pt = otile->ti_ll;
+		    for (thisterm = 0; thisterm < extTransRec.tr_nterm; thisterm++)
+			if (extTransRec.tr_termnode[thisterm] == diffNode)
+			    break;
 		}
-		else if( DBPlane(TiGetType(otile)) == pos->pnum )
+		else
+		    thisterm = i;
+
+		if (extTransRec.tr_termnode[thisterm] == NULL)
 		{
-		    if( LEFT(otile) < pos->pt.p_x )
+		    extTransRec.tr_nterm++;
+		    extTransRec.tr_termnode[thisterm] = diffNode;
+		    extTransRec.tr_termlen[thisterm] = 0;
+		    extTransRec.tr_termvector[thisterm].p_x = 0;
+		    extTransRec.tr_termvector[thisterm].p_y = 0;
+		    extTransRec.tr_termpos[thisterm].pnum = DBPlane(toutside);
+		    extTransRec.tr_termpos[thisterm].pt = bp->b_outside->ti_ll;
+
+		    /* Find the total area of this terminal */
+		}
+		else if (extTransRec.tr_termnode[thisterm] == diffNode)
+		{
+		    TermTilePos  *pos = &(extTransRec.tr_termpos[thisterm]);
+		    Tile         *otile = bp->b_outside;
+
+		    /* update the region tile position */
+
+		    if( DBPlane(TiGetType(otile)) < pos->pnum )
+		    {
+			pos->pnum = DBPlane(TiGetType(otile));
 			pos->pt = otile->ti_ll;
-		    else if( LEFT(otile) == pos->pt.p_x && 
+		    }
+		    else if( DBPlane(TiGetType(otile)) == pos->pnum )
+		    {
+			if( LEFT(otile) < pos->pt.p_x )
+			    pos->pt = otile->ti_ll;
+			else if( LEFT(otile) == pos->pt.p_x && 
 				BOTTOM(otile) < pos->pt.p_y )
-			pos->pt.p_y = BOTTOM(otile);
+			    pos->pt.p_y = BOTTOM(otile);
+		    }
 		}
-	    }
-	    else
-	    {
-		TxError("Error:  Asymmetric device with multiple terminals!\n");
-	    }
-
-	    /* Add the length to this terminal's perimeter */
-	    extTransRec.tr_termlen[thisterm] += len;
-
-	    /* Update the boundary traversal vector */
-	    switch(bp->b_direction) {
-		case BD_LEFT:
-		    extTransRec.tr_termvector[thisterm].p_y += len;
-		    break;
-		case BD_TOP:
-		    extTransRec.tr_termvector[thisterm].p_x += len;
-		    break;
-		case BD_RIGHT:
-		    extTransRec.tr_termvector[thisterm].p_y -= len;
-		    break;
-		case BD_BOTTOM:
-		    extTransRec.tr_termvector[thisterm].p_x -= len;
-		    break;
-	    }
-
-	    /*
-	     * Mark this attribute as belonging to this transistor
-	     * if it is either:
-	     *	(1) a terminal attribute whose LL corner touches bp->b_segment,
-	     *   or	(2) a gate attribute that lies inside bp->b_inside.
-	     */
-	    for (ll = extTransRec.tr_gatenode->nreg_labels; ll; ll = ll->ll_next)
-	    {
-		/* Skip if already marked */
-		if (ll->ll_attr != LL_NOATTR)
-		    continue;
-		lab = ll->ll_label;
-		if (GEO_ENCLOSE(&lab->lab_rect.r_ll, &bp->b_segment)
-			&& extLabType(lab->lab_text, LABTYPE_TERMATTR))
+		else
 		{
-		    ll->ll_attr = thisterm;
+		    TxError("Error:  Asymmetric device with multiple terminals!\n");
 		}
+
+		/* Add the length to this terminal's perimeter */
+		extTransRec.tr_termlen[thisterm] += len;
+
+		/* Update the boundary traversal vector */
+		switch(bp->b_direction) {
+		    case BD_LEFT:
+			extTransRec.tr_termvector[thisterm].p_y += len;
+			break;
+		    case BD_TOP:
+			extTransRec.tr_termvector[thisterm].p_x += len;
+			break;
+		    case BD_RIGHT:
+			extTransRec.tr_termvector[thisterm].p_y -= len;
+			break;
+		    case BD_BOTTOM:
+			extTransRec.tr_termvector[thisterm].p_x -= len;
+			break;
+		}
+
+		/*
+		 * Mark this attribute as belonging to this transistor
+		 * if it is either:
+		 *	(1) a terminal attribute whose LL corner touches bp->b_segment,
+		 *   or	(2) a gate attribute that lies inside bp->b_inside.
+		 */
+		for (ll = extTransRec.tr_gatenode->nreg_labels; ll; ll = ll->ll_next)
+		{
+		    /* Skip if already marked */
+		    if (ll->ll_attr != LL_NOATTR)
+			continue;
+		    lab = ll->ll_label;
+		    if (GEO_ENCLOSE(&lab->lab_rect.r_ll, &bp->b_segment)
+				&& extLabType(lab->lab_text, LABTYPE_TERMATTR))
+		    {
+			ll->ll_attr = thisterm;
+		    }
+		}
+		SDterm = TRUE;
+		extTransRec.tr_devmatch |= (MATCH_TERM << thisterm);
+		break;
 	    }
-	    SDterm = TRUE;
+	}
+
+	if (SDterm) break;
+	if (extConnectsTo(tinside, toutside, ExtCurStyle->exts_nodeConn))
+	{
+	    /* Not in a terminal, but are in something that connects to gate */
+	    extTransRec.tr_gatelen += len;
 	    break;
 	}
-    }
 
-    if (!SDterm && extConnectsTo(tinside, toutside, ExtCurStyle->exts_nodeConn))
+	/* Did not find a matching terminal, so see if a different extraction	*/
+	/* record matches the terminal type.					*/
+	devptr = extDevFindMatch(devptr, tinside);
+	if (devptr == deventry) devptr = NULL;
+    }
+    if (devptr == NULL)
     {
-	/* Not in a terminal, but are in something that connects to gate */
-	extTransRec.tr_gatelen += len;
+	TxError("Error:  Cannot find valid terminals on device %s!\n",
+		DBTypeLongNameTbl[tinside]);
     }
 
     /*
@@ -2532,7 +2787,7 @@ extAnnularTileFunc(tile, pNum)
     else
 	loctype = TiGetTypeExact(tile);
 
-    mask = ExtCurStyle->exts_transConn[loctype];
+    mask = ExtCurStyle->exts_deviceConn[loctype];
     TTMaskCom(&mask);
     extEnumTilePerim(tile, mask, pNum, extSpecialPerimFunc, (ClientData) TRUE);
     return (0);
@@ -2569,6 +2824,7 @@ extResistorTileFunc(tile, pNum)
 {
     TileTypeBitMask mask;
     TileType loctype;
+    ExtDevice *devptr;
 
     /*
      * Visit each segment of the perimeter of this tile that
@@ -2581,11 +2837,21 @@ extResistorTileFunc(tile, pNum)
     else
 	loctype = TiGetTypeExact(tile);
 
-    mask = ExtCurStyle->exts_transConn[loctype];
-    TTMaskSetMask(&mask, &ExtCurStyle->exts_transSDTypes[loctype][0]);
-    TTMaskCom(&mask);
+    mask = ExtCurStyle->exts_deviceConn[loctype];
 
-    extEnumTilePerim(tile, mask, pNum, extSpecialPerimFunc, (ClientData)FALSE);
+    devptr = extTransRec.tr_devrec;
+    if (devptr == NULL) devptr = ExtCurStyle->exts_device[loctype];
+
+    while (devptr)
+    {
+	TTMaskSetMask(&mask, &devptr->exts_deviceSDTypes[0]);
+	TTMaskCom(&mask);
+
+	extEnumTilePerim(tile, mask, pNum, extSpecialPerimFunc, (ClientData)FALSE);
+
+	if (extSpecialBounds[0] == NULL) devptr = devptr->exts_next;
+    }
+    if (devptr != NULL) extTransRec.tr_devrec = devptr;
 
     return (0);
 }
@@ -2605,6 +2871,7 @@ extSpecialPerimFunc(bp, sense)
     NodeRegion *diffNode = (NodeRegion *) extGetRegion(bp->b_outside);
     int thisterm, extended, i;
     LinkedBoundary *newBound, *lb, *lastlb;
+    ExtDevice *devptr;
     bool needSurvey;
 
     /* Note that extEnumTilePerim() assumes for the non-Manhattan case	*/
@@ -2633,19 +2900,27 @@ extSpecialPerimFunc(bp, sense)
 	    break;
     }
 
+    devptr = extTransRec.tr_devrec;
+    if (devptr == NULL) devptr = ExtCurStyle->exts_device[tinside];
+
     /* Check all terminal classes for a matching type */
     needSurvey = FALSE;
-    for (i = 0; !TTMaskIsZero(&ExtCurStyle->exts_transSDTypes[tinside][i]); i++)
+    for (; devptr; devptr = devptr->exts_next)
     {
-	if (TTMaskHasType(&ExtCurStyle->exts_transSDTypes[tinside][i], toutside))
+	for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
 	{
-	    needSurvey = TRUE;
-	    break;
+	    if (TTMaskHasType(&devptr->exts_deviceSDTypes[i], toutside))
+	    {
+		needSurvey = TRUE;
+		break;
+	    }
 	}
     }
 
     if (!sense || needSurvey)
     {
+	extTransRec.tr_devrec = devptr;
+
 	if (toutside == TT_SPACE)
 	    if (glob_subsnode != NULL)
 		diffNode = glob_subsnode;

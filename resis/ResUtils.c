@@ -144,6 +144,7 @@ ResAddPlumbing(tile, arg)
      TileType		loctype, t1;
      Tile		*tp1,*tp2,*source;
      resTransistor	*resFet;
+     ExtDevice		*devptr;
      
      if (resTransStack == NULL)
      {
@@ -159,8 +160,9 @@ ResAddPlumbing(tile, arg)
 	else
 	    loctype = TiGetTypeExact(tile);
 	  
+	  devptr = ExtCurStyle->exts_device[loctype];
      	  junk2 = resAddField(tile);
-	  if (TTMaskHasType(&(ExtCurStyle->exts_transMask), loctype))
+	  if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), loctype))
 	  {
    	       resFet = (resTransistor *) mallocMagic((unsigned)(sizeof(resTransistor)));
 	       {
@@ -191,7 +193,7 @@ ResAddPlumbing(tile, arg)
 	       /* top */
 	       for (tp2= RT(tile); RIGHT(tp2) > LEFT(tile); tp2 = BL(tp2))
 	       {
-	      	    if TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[loctype][0]),
+	      	    if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetBottomType(tp2))
 		    {
 			  junk2->sourceEdge |= TOPEDGE;
@@ -206,7 +208,7 @@ ResAddPlumbing(tile, arg)
 	       if (source == NULL)
 	       for (tp2= LB(tile); LEFT(tp2) < RIGHT(tile); tp2 = TR(tp2))
 	       {
-	      	    if TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[loctype][0]),
+	      	    if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetTopType(tp2))
 		    {
 			  junk2->sourceEdge |= BOTTOMEDGE;
@@ -221,7 +223,7 @@ ResAddPlumbing(tile, arg)
 	       if (source == NULL)
 	       for (tp2= TR(tile); TOP(tp2) > BOTTOM(tile); tp2 = LB(tp2))
 	       {
-	      	    if TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[loctype][0]),
+	      	    if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetLeftType(tp2))
 		    {
 			  junk2->sourceEdge |= RIGHTEDGE;
@@ -236,7 +238,7 @@ ResAddPlumbing(tile, arg)
 	       if (source == NULL)
 	       for (tp2= BL(tile); BOTTOM(tp2) < TOP(tile); tp2 = RT(tp2))
 	       {
-	      	    if TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[loctype][0]),
+	      	    if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetRightType(tp2))
 		    {
 			  source = tp2;
@@ -339,6 +341,7 @@ ResAddPlumbing(tile, arg)
 		    else
 		        t1 = TiGetTypeExact(tp1);
 
+		    devptr = ExtCurStyle->exts_device[t1];
 		    j0 = (tileJunk *) tp1->ti_client;
 		    /* top */
 		    for (tp2= RT(tp1); RIGHT(tp2) > LEFT(tp1); tp2 = BL(tp2))
@@ -352,7 +355,7 @@ ResAddPlumbing(tile, arg)
 	       			    Junk->tj_status |= RES_TILE_TRAN;
 				    
 			       }
-	      	    	  else if TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t1][0]),
+	      	    	  else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetBottomType(tp2))
 			  {
 			       Junk = resAddField(tp2);
@@ -373,7 +376,7 @@ ResAddPlumbing(tile, arg)
 	       			    Junk->transistorList =  resFet;
 	       			    Junk->tj_status |= RES_TILE_TRAN;
 			       }
-	      	    	  else if TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t1][0]),
+	      	    	  else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetTopType(tp2))
 			  {
 			       Junk = resAddField(tp2);
@@ -394,7 +397,7 @@ ResAddPlumbing(tile, arg)
 	       			    Junk->transistorList =  resFet;
 	       			    Junk->tj_status |= RES_TILE_TRAN;
 			       }
-	      	    	  else if TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t1][0]),
+	      	    	  else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetLeftType(tp2))
 			  {
      	  		       Junk = resAddField(tp2);
@@ -415,7 +418,7 @@ ResAddPlumbing(tile, arg)
 	       			    Junk->transistorList =  resFet;
 	       			    Junk->tj_status |= RES_TILE_TRAN;
 			       }
-	      	    	  else if TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t1][0]),
+	      	    	  else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetRightType(tp2))
 			  {
      	  		       Junk = resAddField(tp2);
@@ -577,7 +580,7 @@ ResPreProcessTransistors(TileList, TransistorList, Def)
 	    {
 		if (TTMaskHasType(&ttresidues, residue))
 		{
-		    if (TTMaskHasType(&ExtCurStyle->exts_transMask, residue))
+		    if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, residue))
 		    {
 			pNum = DBPlane(residue);
 			break;
@@ -594,7 +597,7 @@ ResPreProcessTransistors(TileList, TransistorList, Def)
 	tt = TiGetType(tile);
 	tstruct = (tileJunk *) tile->ti_client;
 
-	if (!TTMaskHasType(&ExtCurStyle->exts_transMask, tt) ||
+	if (!TTMaskHasType(&ExtCurStyle->exts_deviceMask, tt) ||
 				tstruct->transistorList == NULL)
 	{
 	    TxError("Bad Transistor Location at %d,%d\n",

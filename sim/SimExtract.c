@@ -239,16 +239,18 @@ SimFreeNodeRegs()
 int SimInitConnTables()
 {
     int  i, t, sd, p;
+    ExtDevice *devptr;
 
-    SimTransMask = ExtCurStyle->exts_transMask;
+    SimTransMask = ExtCurStyle->exts_deviceMask;
 
     TTMaskZero( &SimSDMask );
     for( t = TT_TECHDEPBASE; t < DBNumTypes; t++ )
     {
-	for (i = 0; !TTMaskHasType(&ExtCurStyle->exts_transSDTypes[t][i],
+	devptr = ExtCurStyle->exts_device[t];
+	for (i = 0; !TTMaskHasType(&devptr->exts_deviceSDTypes[i],
 			TT_SPACE); i++)
 	{
-	     TTMaskSetMask( &SimSDMask, &ExtCurStyle->exts_transSDTypes[t][i] );
+	     TTMaskSetMask( &SimSDMask, &devptr->exts_deviceSDTypes[i] );
 	     TTMaskZero( &SimFetMask[t] );
 	}
     }
@@ -258,12 +260,13 @@ int SimInitConnTables()
     {
 	if (TTMaskHasType(&SimTransMask, t))
 	{
+	    devptr = ExtCurStyle->exts_device[t];
 	    for (sd = TT_TECHDEPBASE; sd < DBNumTypes; sd++)
 	    {
-		for (i = 0; !TTMaskHasType(&ExtCurStyle->exts_transSDTypes[t][i],
+		for (i = 0; !TTMaskHasType(&devptr->exts_deviceSDTypes[i],
 				TT_SPACE); i++)
 		{
-		    if (TTMaskHasType(&ExtCurStyle->exts_transSDTypes[t][i], sd))
+		    if (TTMaskHasType(&devptr->exts_deviceSDTypes[i], sd))
 		    {
 			TTMaskSetType(&SimFetMask[sd], t);
 			SimFetPlanes |= PlaneNumToMaskBit(DBPlane(t));
@@ -471,14 +474,16 @@ SimTransistorTile(tile, pNum, arg)
 {
     int i;
     TileType t;
+    ExtDevice *devptr;
 
     extSetNodeNum((LabRegion *)&transistor, pNum, tile);
     if (transistor.t_do_terms)
     {
 	t = TiGetType(tile);
-	for (i = 0; !TTMaskHasType(&ExtCurStyle->exts_transSDTypes[t][i],
+	devptr = ExtCurStyle->exts_device[t];
+	for (i = 0; !TTMaskHasType(&devptr->exts_deviceSDTypes[i],
 			TT_SPACE); i++)
-	    extEnumTilePerim(tile, ExtCurStyle->exts_transSDTypes[t][i],
+	    extEnumTilePerim(tile, devptr->exts_deviceSDTypes[i],
 			SimTransTerms, (ClientData) &transistor );
     }
 

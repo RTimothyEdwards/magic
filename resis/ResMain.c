@@ -53,7 +53,7 @@ extern HashTable	ResNodeTable;
  * ResInitializeConn--
  *
  *  Sets up mask by Source/Drain type of transistors. This is 
- *  exts_transSDtypes turned inside out.
+ *  exts_deviceSDtypes turned inside out.
  *
  *  Results: none
  *
@@ -67,18 +67,20 @@ ResInitializeConn()
 {
     TileType tran, diff;
     char *tran_name;
+    ExtDevice *devptr;
  	
     for (tran = TT_TECHDEPBASE; tran < TT_MAXTYPES; tran++)
     {
-	tran_name = (ExtCurStyle->exts_transName)[tran];
+	devptr = ExtCurStyle->exts_device[tran];
+	tran_name = devptr->exts_deviceName;
 	if ((tran_name != NULL) && (strcmp(tran_name, "None")))
 	{
 	    for (diff = TT_TECHDEPBASE; diff < TT_MAXTYPES; diff++)
 	    {
-		if TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[tran][0]), diff)
+		if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), diff)
 		    TTMaskSetType(&ResConnectWithSD[diff],tran);
 
-		if TTMaskHasType(&(ExtCurStyle->exts_transSubstrateTypes[tran]),diff)
+		if TTMaskHasType(&(devptr->exts_deviceSubstrateTypes),diff)
 		    TTMaskSetType(&ResConnectWithSD[diff],tran);
 	    }
 	}
@@ -163,7 +165,7 @@ ResDissolveContacts(contacts)
 	{
 	    if (TTMaskHasType(&residues, t))
 	    {
-		if (TTMaskHasType(&ExtCurStyle->exts_transMask, t))
+		if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, t))
 		    continue;
 		DBPaint(ResUse->cu_def, &(contacts->cp_rect), t);	
 	    }
@@ -824,6 +826,7 @@ FindStartTile(goodies, SourcePoint)
     Point	workingPoint;
     Tile	*tile, *tp;
     int		pnum, t1, t2;
+    ExtDevice   *devptr;
      
     workingPoint.p_x = goodies->rg_tranloc->p_x;
     workingPoint.p_y = goodies->rg_tranloc->p_y;
@@ -868,12 +871,12 @@ FindStartTile(goodies, SourcePoint)
 
     if (IsSplit(tile))
     {
-        if (TTMaskHasType(&ExtCurStyle->exts_transMask, TiGetLeftType(tile)) != 0)
+        if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetLeftType(tile)) != 0)
 	{
 	    t1 = TiGetLeftType(tile);
 	    TiSetBody(tile, t1 & ~TT_SIDE);
 	}
-        else if (TTMaskHasType(&ExtCurStyle->exts_transMask, TiGetRightType(tile)) != 0)
+        else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetRightType(tile)) != 0)
 	{
 	    t1 = TiGetRightType(tile);
 	    TiSetBody(tile, t1 & TT_SIDE);
@@ -885,7 +888,7 @@ FindStartTile(goodies, SourcePoint)
 	    return(NULL);
 	}
     }
-    else if (TTMaskHasType(&ExtCurStyle->exts_transMask, TiGetType(tile)) == 0)
+    else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetType(tile)) == 0)
     {
 	TxError("Couldn't find transistor at %d %d\n",
 		goodies->rg_tranloc->p_x, goodies->rg_tranloc->p_y);
@@ -894,11 +897,12 @@ FindStartTile(goodies, SourcePoint)
     else
 	t1 = TiGetType(tile);
 
+    devptr = ExtCurStyle->exts_device[t1];
     /* left */
     for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp=RT(tp))
     {
 	t2 = TiGetRightType(tp);
-	if (TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t1][0]),t2))
+	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t2))
 	{
 	    SourcePoint->p_x = LEFT(tile);
 	    SourcePoint->p_y = (MIN(TOP(tile),TOP(tp))+
@@ -911,7 +915,7 @@ FindStartTile(goodies, SourcePoint)
     for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
     {
 	t2 = TiGetLeftType(tp);
-	if (TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t1][0]),t2))
+	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t2))
 	{
 	    SourcePoint->p_x = RIGHT(tile);
 	    SourcePoint->p_y = (MIN(TOP(tile),TOP(tp))+
@@ -924,7 +928,7 @@ FindStartTile(goodies, SourcePoint)
     for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp=BL(tp))
     {
 	t2 = TiGetBottomType(tp);
-	if (TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t1][0]),t2))
+	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t2))
 	{
 	    SourcePoint->p_y = TOP(tile);
 	    SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp))+
@@ -937,7 +941,7 @@ FindStartTile(goodies, SourcePoint)
     for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
     {
 	t2 = TiGetTopType(tp);
-	if (TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t1][0]),t2))
+	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t2))
 	{
 	    SourcePoint->p_y = BOTTOM(tile);
 	    SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp))+
@@ -977,7 +981,7 @@ ResGetTransistor(pt)
      
      for (pnum= PL_TECHDEPBASE; pnum < DBNumPlanes; pnum++)
      {
-     	  if (TTMaskIntersect(&ExtCurStyle->exts_transMask,&DBPlaneTypes[pnum]) == 0)
+     	  if (TTMaskIntersect(&ExtCurStyle->exts_deviceMask,&DBPlaneTypes[pnum]) == 0)
 	  {
 	       continue;
 	  }
@@ -987,11 +991,11 @@ ResGetTransistor(pt)
 
 	  if (IsSplit(tile))
 	  {
-              if (TTMaskHasType(&ExtCurStyle->exts_transMask, TiGetLeftType(tile))
-              	   || TTMaskHasType(&ExtCurStyle->exts_transMask, TiGetRightType(tile)))
+              if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetLeftType(tile))
+              	   || TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetRightType(tile)))
                   return(((tileJunk *)tile->ti_client)->transistorList);
 	  }
-	  else if (TTMaskHasType(&ExtCurStyle->exts_transMask, TiGetType(tile)))
+	  else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetType(tile)))
           {
                return(((tileJunk *)tile->ti_client)->transistorList);
           }

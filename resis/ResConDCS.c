@@ -102,6 +102,7 @@ dbcConnectFuncDCS(tile, cx)
     SearchContext	scx2;
     int			pNum;
     CellDef		*def;
+    ExtDevice		*devptr;
 
     TiToRect(tile, &tileArea);
     srArea = &scx->scx_area;
@@ -121,8 +122,9 @@ dbcConnectFuncDCS(tile, cx)
     for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp=RT(tp))
     {
          t2 = TiGetType(tp);
-	 if (TTMaskHasType(&(ExtCurStyle->exts_transMask),t2) &&
-	     TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]),t1))
+	 devptr = ExtCurStyle->exts_device[t2];
+	 if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t2) &&
+	     TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t1))
 	     {
     	          TiToRect(tp, &tranArea);
 	          thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
@@ -137,8 +139,9 @@ dbcConnectFuncDCS(tile, cx)
     for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
     {
          t2 = TiGetType(tp);
-	 if (TTMaskHasType(&(ExtCurStyle->exts_transMask),t2) &&
-	     TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]),t1))
+	 devptr = ExtCurStyle->exts_device[t2];
+	 if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t2) &&
+	     TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t1))
 	     {
     	          TiToRect(tp, &tranArea);
 	          thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
@@ -153,8 +156,9 @@ dbcConnectFuncDCS(tile, cx)
     for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp=BL(tp))
     {
          t2 = TiGetType(tp);
-	 if (TTMaskHasType(&(ExtCurStyle->exts_transMask),t2) &&
-	     TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]),t1))
+	 devptr = ExtCurStyle->exts_device[t2];
+	 if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t2) &&
+	     TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t1))
 	     {
     	          TiToRect(tp, &tranArea);
 	          thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
@@ -169,8 +173,9 @@ dbcConnectFuncDCS(tile, cx)
     for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
     {
          t2 = TiGetType(tp);
-	 if (TTMaskHasType(&(ExtCurStyle->exts_transMask),t2) &&
-	     TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]),t1))
+	 devptr = ExtCurStyle->exts_device[t2];
+	 if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t2) &&
+	     TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t1))
 	     {
     	          TiToRect(tp, &tranArea);
 	          thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
@@ -182,7 +187,7 @@ dbcConnectFuncDCS(tile, cx)
 	     }
     }
     }
-    else if TTMaskHasType(&(ExtCurStyle->exts_transMask),t1)
+    else if TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t1)
     {
     	          TiToRect(tile, &tranArea);
 	          thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
@@ -425,6 +430,7 @@ DBTreeCopyConnectDCS(scx, mask, xMask, connect, area, destUse)
     ResTranTile		*CurrentT;
     CellDef		*def = destUse->cu_def;
     TileType		newtype;
+    ExtDevice		*devptr;
 
     csa2.csa2_use = destUse;
     csa2.csa2_xMask = xMask;
@@ -443,13 +449,14 @@ DBTreeCopyConnectDCS(scx, mask, xMask, connect, area, destUse)
 	TTMaskZero(&ResSubsTypeBitMask);
 	for (tran = TT_TECHDEPBASE; tran < TT_MAXTYPES; tran++)
 	{
-	    tran_name = (ExtCurStyle->exts_transName)[tran];
+	    devptr = ExtCurStyle->exts_device[tran];
+	    tran_name = devptr->exts_deviceName;
 	    if ((tran_name != NULL) && (strcmp(tran_name, "None")))
 	    {
 		TTMaskSetMask(&DiffTypeBitMask,
-	      		&(ExtCurStyle->exts_transSDTypes[tran][0]));
+	      		&(devptr->exts_deviceSDTypes[0]));
 		TTMaskSetMask(&ResSubsTypeBitMask,
-	      		&(ExtCurStyle->exts_transSubstrateTypes[tran]));
+	      		&(devptr->exts_deviceSubstrateTypes));
 	    }
 	}
 	first = 0;
@@ -520,12 +527,14 @@ resSubSearchFunc(tile,cx)
      ResTranTile	*thisTran;
      Rect		tranArea;
      TileType		t = TiGetType(tile);
+     ExtDevice		*devptr;
 
      /* Right now, we're only going to extract substrate terminals for 
      	devices with only one diffusion terminal, principally bipolar
 	devices.
      */
-     if (ExtCurStyle->exts_transSDCount[t] >1) return 0;
+     devptr = ExtCurStyle->exts_device[t]
+     if (devptr->exts_deviceSDCount >1) return 0;
      TiToRect(tile, &tranArea);
      thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
      GeoTransRect(&cx->tc_scx->scx_trans, &tranArea, &thisTran->area);

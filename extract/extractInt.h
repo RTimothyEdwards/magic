@@ -484,6 +484,82 @@ typedef struct extkeep
 } ExtKeep;
 
 /*
+ * Structure used to define transistors and other extracted devices
+ * One of these records is kept per tile type.  However, the record
+ * can link to additional records through the "exts_next" record,
+ * so that multiple extraction devices can be defined for the same
+ * tile type, provided that each definition has a unique combination
+ * of exts_deviceSDTypes and exts_deviceSubstrateTypes.
+ */
+
+typedef struct extDevice
+{
+	/* Name of each transistor type as output in .ext file */
+    char		*exts_deviceName;
+
+	/* List of parameter names for each subcircuit type */
+    ParamList		*exts_deviceParams;
+
+	/* Device class for each layer type */
+    char		exts_deviceClass;
+
+	/*
+	 * Per-square resistances for each possible transistor type,
+	 * in the various regions that such a type might operate.
+	 * The only operating region currently used is "linear",
+	 * which the resistance extractor uses in its thresholding
+	 * operation.  NOTE: resistances in this table are in OHMS
+	 * per square, not MILLIOHMS!
+	 */
+
+    HashTable		 exts_deviceResist;
+    ResValue		 exts_linearResist;
+
+	/*
+	 * Mask of the types of tiles that connect to the channel terminals
+	 * of a transistor type.  The intent is that these will be the
+	 * diffusion terminals of a transistor, ie, its source and drain.
+	 * UPDATED May, 2008:  Record is a list of type masks, allowing
+	 * multiple terminal types in the case of, e.g., high-voltage
+	 * or other asymmetric devices.  The last entry in the list should
+	 * be equal to DBSpaceBits.
+	 */
+    TileTypeBitMask	 *exts_deviceSDTypes;
+
+	/*
+	 * Maximum number of terminals (source/drains) per transistor type.
+	 * This table exists to allow the possibility of transistors with
+	 * more than two diffusion terminals at some point in the future.
+	 */
+    int			 exts_deviceSDCount;
+
+	/* Currently unused: gate-source capacitance per unit perimeter */
+    CapValue		 exts_deviceSDCap;
+
+	/* Currently unused: gate-channel capacitance per unit area */
+    CapValue		 exts_deviceGateCap;
+
+	/*
+	 * Each type of transistor has a substrate node.  By default,
+	 * it is the one given by exts_deviceSubstrateName[t].  However,
+	 * if the mask exts_deviceSubstrateTypes is non-zero, and if
+	 * the transistor overlaps material of one of the types in the
+	 * mask, then the transistor substrate node is the node of the
+	 * material it overlaps.
+	 */
+    char		*exts_deviceSubstrateName;
+    TileTypeBitMask	 exts_deviceSubstrateTypes;
+
+	/*
+	 * Each device type can have any number of extract models based
+	 * on identifier layers (such as thickox, esd, etc.)
+	 */
+    TileTypeBitMask	 exts_deviceIdentifierTypes;
+
+    struct extDevice    *exts_next;
+} ExtDevice;
+
+/*
  * Parameters for the process being extracted.
  * We try to use use integers here, rather than floats, to be nice to
  * machines like Sun workstations that don't have hardware
@@ -524,11 +600,11 @@ typedef struct extstyle
     TileTypeBitMask	 exts_resistConn[NT];
 
     /*
-     * Connectivity for determining transistors.
-     * Each transistor type should connect only to itself.
+     * Connectivity for determining devices.
+     * Each devices type should connect only to itself.
      * Nothing else should connect to anything else.
      */
-    TileTypeBitMask	 exts_transConn[NT];
+    TileTypeBitMask	 exts_deviceConn[NT];
 
     /*
      * Set of types to be considered for extraction.  Types not in
@@ -779,65 +855,14 @@ typedef struct extstyle
 	 */
     TileTypeBitMask	 exts_sideEdges[NT];
 
-    /* Transistors */
+    /* Devices */
 
-	/* Name of each transistor type as output in .ext file */
-    char		*exts_transName[NT];
+	/* Contains one for each type of device, zero for all other tile types */
+    TileTypeBitMask	 exts_deviceMask;
 
-	/* List of parameter names for each subcircuit type */
-    ParamList		*exts_deviceParams[NT];
+	/* All information about a device goes in this record (see above) */
+    ExtDevice		*exts_device[NT];
 
-	/* Device class for each layer type */
-    char		exts_deviceClass[NT];
-
-	/* Contains one for each type of fet, zero for all other types */
-    TileTypeBitMask	 exts_transMask;
-
-	/*
-	 * Per-square resistances for each possible transistor type,
-	 * in the various regions that such a type might operate.
-	 * The only operating region currently used is "linear",
-	 * which the resistance extractor uses in its thresholding
-	 * operation.  NOTE: resistances in this table are in OHMS
-	 * per square, not MILLIOHMS!
-	 */
-    HashTable		 exts_transResist[NT];
-    ResValue		 exts_linearResist[NT];
-
-	/*
-	 * Mask of the types of tiles that connect to the channel terminals
-	 * of a transistor type.  The intent is that these will be the
-	 * diffusion terminals of a transistor, ie, its source and drain.
-	 * UPDATED May, 2008:  Record is a list of type masks, allowing
-	 * multiple terminal types in the case of, e.g., high-voltage
-	 * or other asymmetric devices.  The last entry in the list should
-	 * be equal to DBSpaceBits.
-	 */
-    TileTypeBitMask	 *exts_transSDTypes[NT];
-
-	/*
-	 * Maximum number of terminals (source/drains) per transistor type.
-	 * This table exists to allow the possibility of transistors with
-	 * more than two diffusion terminals at some point in the future.
-	 */
-    int			 exts_transSDCount[NT];
-
-	/* Currently unused: gate-source capacitance per unit perimeter */
-    CapValue		 exts_transSDCap[NT];
-
-	/* Currently unused: gate-channel capacitance per unit area */
-    CapValue		 exts_transGateCap[NT];
-
-	/*
-	 * Each type of transistor has a substrate node.  By default,
-	 * it is the one given by exts_transSubstrateName[t].  However,
-	 * if the mask exts_transSubstrateTypes[t] is non-zero, and if
-	 * the transistor overlaps material of one of the types in the
-	 * mask, then the transistor substrate node is the node of the
-	 * material it overlaps.  If exts_transSub
-	 */
-    char		*exts_transSubstrateName[NT];
-    TileTypeBitMask	 exts_transSubstrateTypes[NT];
 #ifdef ARIEL
     TileTypeBitMask	 exts_subsTransistorTypes[NT];
 #endif	/* ARIEL */

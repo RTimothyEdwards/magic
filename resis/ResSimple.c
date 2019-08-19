@@ -732,6 +732,7 @@ ResCalculateChildCapacitance(me)
      float		childcap;
      tElement		*tptr;
      int		t;
+     ExtDevice		*devptr;
 
      
      if (me->rn_client != (ClientData) NULL) /* we have a loop */
@@ -752,12 +753,13 @@ ResCalculateChildCapacitance(me)
 	  t = TiGetType(tran->rt_tile);
 	  if (tran->rt_gate == me)
 	  {
+	       devptr = ExtCurStyle->exts_device[t];
 	       myC->rc_Cdownstream += 
 	       		tran->rt_length*
 			tran->rt_width*
-			ExtCurStyle->exts_transGateCap[t]+
+			devptr->exts_deviceGateCap+
 	       		(tran->rt_width+tran->rt_width)*
-			ExtCurStyle->exts_transSDCap[t];
+			devptr->exts_deviceSDCap;
 
 	  }
      }

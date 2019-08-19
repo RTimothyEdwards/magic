@@ -114,6 +114,7 @@ ResPrintExtTran(outextfile, transistors)
 {
     TileType t;
     char *subsName;
+    ExtDevice *devptr;
 
     for (; transistors != NULL; transistors = transistors->nextTran)
     {
@@ -122,7 +123,8 @@ ResPrintExtTran(outextfile, transistors)
 	    if (ResOptionsFlags & ResOpt_DoExtFile)
 	    {
 		t = transistors->layout->rt_trantype;
-		subsName = ExtCurStyle->exts_transSubstrateName[t];
+		devptr = ExtCurStyle->exts_device[t];
+		subsName = devptr->exts_deviceSubstrateName;
 
 #ifdef MAGIC_WRAPPER
 		/* Substrate variable name substitution */
@@ -139,7 +141,7 @@ ResPrintExtTran(outextfile, transistors)
 		/* fet type xl yl xh yh area perim sub gate t1 t2 */
 		fprintf(outextfile,"fet %s %d %d %d %d %d %d "
 				"%s \"%s\" %d %s \"%s\" %d %s \"%s\" %d %s\n",
-			ExtCurStyle->exts_transName[t],
+			devptr->exts_deviceName,
 			transistors->layout->rt_inside.r_ll.p_x,
 			transistors->layout->rt_inside.r_ll.p_y,
 			transistors->layout->rt_inside.r_ll.p_x + 1,
