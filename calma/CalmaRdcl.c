@@ -903,7 +903,8 @@ calmaElementSref(filename)
 
 	    for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
 	    {
-		if (gdsplanes[pNum] != NULL)
+		if ((def->cd_client != (ClientData)CLIENTDEFAULT) &&
+			(gdsplanes[pNum] != NULL))
 		{
 		    gdsCopyRec.plane = cifCurReadPlanes[pNum];
 		    if (isArray)
