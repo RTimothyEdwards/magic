@@ -405,18 +405,18 @@ calmaParseStructure(filename)
      */
     if (CalmaFlattenUses && (!was_called) && (npaths < 10) && (nsrefs == 0))
     {
-	/* To-do:  If CDFLATGDS is already set, need to remove	*/
+	/* If CDFLATGDS is already set, may need to remove	*/
 	/* existing planes and free memory.			*/
 
-	if (cifReadCellDef->cd_flags & CDFLATGDS)
+	if ((cifReadCellDef->cd_client != (ClientData)CLIENTDEFAULT) &&
+		(cifReadCellDef->cd_flags & CDFLATGDS))
 	{
 	    Plane **cifplanes = (Plane **)cifReadCellDef->cd_client;
 	    int pNum;
 
             for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
             {
-		if ((cifReadCellDef->cd_client != (ClientData)CLIENTDEFAULT) &&
-			(cifplanes[pNum] != NULL))
+		if (cifplanes[pNum] != NULL)
                 {
                     DBFreePaintPlane(cifplanes[pNum]);
                     TiFreePlane(cifplanes[pNum]);
