@@ -139,6 +139,7 @@ ResEachTile(tile, startpoint)
     bool	merged;
     tElement	*tcell;
     tileJunk	*tstructs= (tileJunk *)(tile->ti_client);
+    ExtDevice   *devptr;
       
     ResTileCount++;
 
@@ -165,7 +166,7 @@ ResEachTile(tile, startpoint)
 	resNodeIsPort(resptr, x, y, tile);
     }
 
-    if TTMaskHasType(&(ExtCurStyle->exts_transMask), t1)
+    if TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t1)
     {
 	/* 
 	 * The transistor is put in the center of the tile. This is fine
@@ -250,8 +251,9 @@ ResEachTile(tile, startpoint)
     for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp=RT(tp))
     {
 	t2 = TiGetRightType(tp);
-	if(TTMaskHasType(&(ExtCurStyle->exts_transMask), t2) &&
-	      TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]), t1))
+	devptr = ExtCurStyle->exts_device[t2];
+	if(TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2) &&
+	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t1))
         /* found transistor */
 	{
 	    xj = LEFT(tile);
@@ -272,8 +274,9 @@ ResEachTile(tile, startpoint)
     for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
     {
       	t2 = TiGetLeftType(tp);
-	if(TTMaskHasType(&(ExtCurStyle->exts_transMask), t2) &&
-	      TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]), t1))
+	devptr = ExtCurStyle->exts_device[t2];
+	if(TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2) &&
+	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t1))
         /* found transistor */
 	{
 	    xj = RIGHT(tile);
@@ -294,8 +297,9 @@ ResEachTile(tile, startpoint)
     for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp=BL(tp))
     {
       	t2 = TiGetBottomType(tp);
-	if(TTMaskHasType(&(ExtCurStyle->exts_transMask),t2) &&
-	      TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]),t1))
+	devptr = ExtCurStyle->exts_device[t2];
+	if(TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t2) &&
+	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t1))
         /* found transistor */
 	{
 	    yj = TOP(tile);
@@ -315,8 +319,9 @@ ResEachTile(tile, startpoint)
     for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
     {
       	t2 = TiGetTopType(tp);
-	if(TTMaskHasType(&(ExtCurStyle->exts_transMask), t2) &&
-	      TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]), t1))
+	devptr = ExtCurStyle->exts_device[t2];
+	if(TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2) &&
+	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t1))
         /* found transistor */
 	{
 	    yj = BOTTOM(tile);

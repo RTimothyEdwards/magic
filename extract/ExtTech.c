@@ -299,36 +299,41 @@ ExtGetDevInfo(idx, devnameptr, sd_rclassptr, sub_rclassptr, subnameptr)
     TileTypeBitMask *rmask, *tmask;
     int n, i = 0, j;
     bool repeat;
+    ExtDevice *devptr;
     char *locdname;
     char **uniquenamelist = (char **)mallocMagic(DBNumTypes * sizeof(char *));
 
 
     for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
     {
-	locdname = ExtCurStyle->exts_transName[t];
-	if (locdname != NULL)
+	for (devptr = ExtCurStyle->exts_device[t]; devptr; devptr = devptr->exts_next)
 	{
-	    repeat = FALSE;
-	    for (j = 0; j < i; j++)
-		if (!strcmp(uniquenamelist[j], locdname))
-		{
-		    repeat = TRUE;
-		    break;
-		}
-	    if (repeat == FALSE)
+	    locdname = devptr->exts_deviceName;
+	    if (locdname != NULL)
 	    {
-		if (i == idx) break;
-		uniquenamelist[i] = locdname;
-		i++;
+		repeat = FALSE;
+		for (j = 0; j < i; j++)
+		    if (!strcmp(uniquenamelist[j], locdname))
+		    {
+			repeat = TRUE;
+			break;
+		    }
+		if (repeat == FALSE)
+		{
+		    if (i == idx) break;
+		    uniquenamelist[i] = locdname;
+		    i++;
+		}
 	    }
 	}
     }
     if (t == DBNumTypes) return FALSE;
+    if (devptr == NULL) return FALSE;
 
     *devnameptr = locdname;
-    *subnameptr = ExtCurStyle->exts_transSubstrateName[t];
+    *subnameptr = devptr->exts_deviceSubstrateName;
 
-    tmask = &ExtCurStyle->exts_transSDTypes[t][0];
+    tmask = &devptr->exts_deviceSDTypes[0];
     *sd_rclassptr = (short)(-1);	/* NO_RESCLASS */
 
     for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
@@ -341,7 +346,7 @@ ExtGetDevInfo(idx, devnameptr, sd_rclassptr, sub_rclassptr, subnameptr)
 	}
     }
 
-    tmask = &ExtCurStyle->exts_transSubstrateTypes[t];
+    tmask = &devptr->exts_deviceSubstrateTypes;
     *sub_rclassptr = (short)(-1);	/* NO_RESCLASS */
 
     for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
@@ -538,22 +543,9 @@ extTechStyleAlloc()
     TileType r;
 
     style = (ExtStyle *) mallocMagic(sizeof (ExtStyle));
-
-    /* Make sure that the memory for character strings is NULL, */
-    /* because we want the Init section to free memory if it	*/
-    /* has been previously allocated.				*/
-
-    for (r = 0; r < NT; r++)
-    {
-	style->exts_transSubstrateName[r] = (char *) NULL;
-	style->exts_transName[r] = (char *) NULL;
-	style->exts_transSDTypes[r] = (TileTypeBitMask *) NULL;
-	style->exts_deviceParams[r] = (ParamList *) NULL;
-	style->exts_deviceClass[r] = (char) 0;
-	style->exts_transResist[r].ht_table = (HashEntry **) NULL;
-    }
     return style;
 }
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -575,7 +567,7 @@ extTechStyleInit(style)
     style->exts_status = TECH_NOT_LOADED;
 
     style->exts_sidePlanes = style->exts_overlapPlanes = 0;
-    TTMaskZero(&style->exts_transMask);
+    TTMaskZero(&style->exts_deviceMask);
     style->exts_activeTypes = DBAllButSpaceAndDRCBits;
 
     for (r = 0; r < NP; r++)
@@ -589,7 +581,7 @@ extTechStyleInit(style)
     {
 	TTMaskZero(&style->exts_nodeConn[r]);
 	TTMaskZero(&style->exts_resistConn[r]);
-	TTMaskZero(&style->exts_transConn[r]);
+	TTMaskZero(&style->exts_deviceConn[r]);
 	style->exts_allConn[r] = DBAllTypeBits;
 
 	style->exts_sheetResist[r] = 0;
@@ -620,43 +612,41 @@ extTechStyleInit(style)
 #ifdef ARIEL
 	TTMaskZero(&style->exts_subsTransistorTypes[r]);
 #endif
-	if (style->exts_transSDTypes[r] != NULL)
-	    freeMagic(style->exts_transSDTypes[r]);
-	style->exts_transSDTypes[r] = NULL;
-	style->exts_transSDCount[r] = 0;
-	style->exts_transGateCap[r] = (CapValue) 0;
-	style->exts_transSDCap[r] = (CapValue) 0;
-	if (style->exts_transSubstrateName[r] != (char *) NULL)
+	if (style->exts_device[r] != NULL)
 	{
-	    freeMagic(style->exts_transSubstrateName[r]);
-	    style->exts_transSubstrateName[r] = (char *) NULL;
-	}
-	if (style->exts_transName[r] != (char *) NULL)
-	{
-	    freeMagic(style->exts_transName[r]);
-	    style->exts_transName[r] = (char *) NULL;
-	}
-	while (style->exts_deviceParams[r] != (ParamList *) NULL)
-	{
-	    /* Parameter lists are shared.  Only free the last one! */
+	    ExtDevice *devptr;
+	    for (devptr = style->exts_device[r]; devptr; devptr = devptr->exts_next)
+	    {
 
-	    if (style->exts_deviceParams[r]->pl_count > 1)
-	    {
-		style->exts_deviceParams[r]->pl_count--;
-		style->exts_deviceParams[r] = (ParamList *)NULL;
+		if (devptr->exts_deviceSDTypes != NULL)
+		    freeMagic(devptr->exts_deviceSDTypes);
+		if (devptr->exts_deviceSubstrateName != (char *) NULL)
+		    freeMagic(devptr->exts_deviceSubstrateName);
+		if (devptr->exts_deviceName != (char *) NULL)
+		    freeMagic(devptr->exts_deviceName);
+		while (devptr->exts_deviceParams != (ParamList *) NULL)
+		{
+		    /* Parameter lists are shared.  Only free the last one! */
+
+		    if (devptr->exts_deviceParams->pl_count > 1)
+		    {
+			devptr->exts_deviceParams->pl_count--;
+			devptr->exts_deviceParams = (ParamList *)NULL;
+		    }
+		    else
+		    {
+			freeMagic(devptr->exts_deviceParams->pl_name);
+			freeMagic(devptr->exts_deviceParams);
+			devptr->exts_deviceParams = devptr->exts_deviceParams->pl_next;
+		    }
+		}
+		if (devptr->exts_deviceResist.ht_table != (HashEntry **) NULL)
+		    HashKill(&devptr->exts_deviceResist);
+
+		freeMagic(devptr);
 	    }
-	    else
-	    {
-		freeMagic(style->exts_deviceParams[r]->pl_name);
-		freeMagic(style->exts_deviceParams[r]);
-		style->exts_deviceParams[r] = style->exts_deviceParams[r]->pl_next;
-	    }
+	    style->exts_device[r] = (ExtDevice *)NULL;
 	}
-	style->exts_deviceClass[r] = (char)0;
-	if (style->exts_transResist[r].ht_table != (HashEntry **) NULL)
-	    HashKill(&style->exts_transResist[r]);
-	HashInit(&style->exts_transResist[r], 8, HT_STRINGKEYS);
-	style->exts_linearResist[r] = 0;
     }
 
     style->exts_sideCoupleHalo = 0;
@@ -798,14 +788,6 @@ ExtTechInit()
     if (ExtCurStyle != NULL)
     {
 	extTechStyleInit(ExtCurStyle);
-
-	/* Everything has been freed except the hash tables, which */
-	/* were just reinitialized by extTechStyleInit().	   */
-        for (r = 0; r < NT; r++)
-	{
-	    if (ExtCurStyle->exts_transResist[r].ht_table != (HashEntry **) NULL)
-		HashKill(&ExtCurStyle->exts_transResist[r]);
-	}
 	ExtCurStyle = NULL;
     }
 
@@ -1569,7 +1551,7 @@ ExtTechLine(sectionName, argc, argv)
     PlaneMask pshield, pov;
     CapValue capVal, gscap, gccap;
     TileTypeBitMask types1, types2, termtypes[MAXSD];
-    TileTypeBitMask near, far, ov, shield, subsTypes;
+    TileTypeBitMask near, far, ov, shield, subsTypes, idTypes;
     char *subsName, *transName, *cp, *endptr, *paramName;
     TileType s, t, r, o;
     keydesc *kp, *dv;
@@ -1578,6 +1560,7 @@ ExtTechLine(sectionName, argc, argv)
     EdgeCap *cnew;
     ExtKeep *es, *newStyle;
     ParamList *subcktParams, *newParam;
+    ExtDevice *devptr;
     int refcnt;
     double dhalo;
     bool bad;
@@ -1888,24 +1871,32 @@ ExtTechLine(sectionName, argc, argv)
 		gccap = (argc > 7) ? aToCap(argv[7]) : (CapValue) 0;
 	    }
 
-	    TTMaskSetMask(&ExtCurStyle->exts_transMask, &types1);
+	    TTMaskSetMask(&ExtCurStyle->exts_deviceMask, &types1);
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 		if (TTMaskHasType(&types1, t))
 		{
-		    TTMaskSetMask(ExtCurStyle->exts_transConn+t,&types1);
-		    ExtCurStyle->exts_transSDTypes[t] = (TileTypeBitMask *)
+		    devptr = (ExtDevice *)mallocMagic(sizeof(ExtDevice));
+		    devptr->exts_deviceSDTypes = (TileTypeBitMask *)
 				mallocMagic(2 * sizeof(TileTypeBitMask));
-		    ExtCurStyle->exts_transSDTypes[t][0] = termtypes[0];
-		    ExtCurStyle->exts_transSDTypes[t][1] = DBZeroTypeBits;
-		    ExtCurStyle->exts_transSDCount[t] = nterm;
-		    ExtCurStyle->exts_transSDCap[t] = gscap;
-		    ExtCurStyle->exts_transGateCap[t] = gccap;
-		    ExtCurStyle->exts_deviceClass[t] = DEV_FET;
-		    ExtCurStyle->exts_transName[t] =
-			    StrDup((char **) NULL, transName);
-		    ExtCurStyle->exts_transSubstrateName[t] =
+		    devptr->exts_deviceSDTypes[0] = termtypes[0];
+		    devptr->exts_deviceSDTypes[1] = DBZeroTypeBits;
+		    devptr->exts_deviceSDCount = nterm;
+		    devptr->exts_deviceSDCap = gscap;
+		    devptr->exts_deviceGateCap = gccap;
+		    devptr->exts_deviceClass = DEV_FET;
+		    devptr->exts_deviceName = StrDup((char **) NULL, transName);
+		    devptr->exts_deviceSubstrateName =
 			    StrDup((char **) NULL, subsName);
-		    ExtCurStyle->exts_transSubstrateTypes[t] = subsTypes;
+		    devptr->exts_deviceSubstrateTypes = subsTypes;
+		    devptr->exts_deviceIdentifierTypes = DBZeroTypeBits;
+		    devptr->exts_deviceParams = (ParamList *) NULL;
+		    devptr->exts_deviceResist.ht_table = (HashEntry **) NULL;
+		    HashInit(&devptr->exts_deviceResist, 8, HT_STRINGKEYS);
+
+		    TTMaskSetMask(ExtCurStyle->exts_deviceConn + t, &types1);
+
+		    devptr->exts_next = ExtCurStyle->exts_device[t];
+		    ExtCurStyle->exts_device[t] = devptr;
 #ifdef ARIEL
 		    {
 			int z;
@@ -1941,7 +1932,7 @@ ExtTechLine(sectionName, argc, argv)
 
 	    /* Parse second argument for device type */
 
-	    n = LookupStruct(argv[1], (LookupTable *) devTable, sizeof devTable[0]);
+	    n = LookupStruct(argv[1], (LookupTable *)devTable, sizeof devTable[0]);
 	    if (n < 0)
 	    {
 		TechError("Illegal device.  Legal devices are:\n\t");
@@ -1996,6 +1987,18 @@ ExtTechLine(sectionName, argc, argv)
 		newParam->pl_name = StrDup((char **)NULL, paramName);
 		newParam->pl_next = subcktParams;
 		subcktParams = newParam;
+		argc--;
+	    }
+
+	    /* If the last entry before any parameters starts with '+',	*/
+	    /* then use it to set the identity marker.	Otherwise, the	*/
+	    /* identity marker is NULL.					*/
+
+	    idTypes = DBZeroTypeBits;
+	    if (*argv[argc - 1] == '+')
+	    {
+		if ((DBTechNameMask(argv[argc - 1] + 1, &idTypes)) == 0)
+		    idTypes = DBZeroTypeBits;
 		argc--;
 	    }
 
@@ -2194,31 +2197,45 @@ ExtTechLine(sectionName, argc, argv)
 		    break;
 	    }
 
-	    TTMaskSetMask(&ExtCurStyle->exts_transMask, &types1);
+	    TTMaskSetMask(&ExtCurStyle->exts_deviceMask, &types1);
+
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 	    {
 		if (TTMaskHasType(&types1, t))
 		{
-		    TTMaskSetMask(ExtCurStyle->exts_transConn + t, &types1);
+		    devptr = (ExtDevice *)mallocMagic(sizeof(ExtDevice));
 
 		    for (i = 0; !TTMaskIsZero(&termtypes[i]); i++);
-		    ExtCurStyle->exts_transSDTypes[t] = (TileTypeBitMask *)
+		    devptr->exts_deviceSDTypes = (TileTypeBitMask *)
 					mallocMagic((i + 1) * sizeof(TileTypeBitMask));
 			
 		    for (i = 0; !TTMaskIsZero(&termtypes[i]); i++)
-			ExtCurStyle->exts_transSDTypes[t][i] = termtypes[i];
-		    ExtCurStyle->exts_transSDTypes[t][i] = DBZeroTypeBits;
+			devptr->exts_deviceSDTypes[i] = termtypes[i];
+		    devptr->exts_deviceSDTypes[i] = DBZeroTypeBits;
 
-		    ExtCurStyle->exts_transSDCount[t] = nterm;
-		    ExtCurStyle->exts_transSDCap[t] = gscap;
-		    ExtCurStyle->exts_transGateCap[t] = gccap;
-		    ExtCurStyle->exts_deviceClass[t] = class;
-		    ExtCurStyle->exts_transName[t] =
-			    StrDup((char **) NULL, transName);
+		    devptr->exts_deviceSDCount = nterm;
+		    devptr->exts_deviceSDCap = gscap;
+		    devptr->exts_deviceGateCap = gccap;
+		    devptr->exts_deviceClass = class;
+		    devptr->exts_deviceName = StrDup((char **) NULL, transName);
 		    if (subsName != NULL)
-			ExtCurStyle->exts_transSubstrateName[t] =
+			devptr->exts_deviceSubstrateName =
 				StrDup((char **) NULL, subsName);
-		    ExtCurStyle->exts_transSubstrateTypes[t] = subsTypes;
+		    devptr->exts_deviceSubstrateTypes = subsTypes;
+		    devptr->exts_deviceIdentifierTypes = idTypes;
+		    devptr->exts_deviceParams = (ParamList *) NULL;
+		    if (subcktParams != NULL)
+		    {
+			devptr->exts_deviceParams = subcktParams;
+			subcktParams->pl_count++;
+		    }
+		    devptr->exts_deviceResist.ht_table = (HashEntry **) NULL;
+		    HashInit(&devptr->exts_deviceResist, 8, HT_STRINGKEYS);
+
+		    devptr->exts_next = ExtCurStyle->exts_device[t];
+		    ExtCurStyle->exts_device[t] = devptr;
+
+		    TTMaskSetMask(ExtCurStyle->exts_deviceConn + t, &types1);
 #ifdef ARIEL
 		    {
 			int z;
@@ -2231,11 +2248,6 @@ ExtTechLine(sectionName, argc, argv)
 			}
 		    }
 #endif
-		    if (subcktParams != NULL)
-		    {
-			ExtCurStyle->exts_deviceParams[t] = subcktParams;
-			subcktParams->pl_count++;
-		    }
 		}
 	    }
 	    break;
@@ -2249,13 +2261,19 @@ ExtTechLine(sectionName, argc, argv)
 	    val = atoi(argv[3]);
 	    isLinear = (strcmp(argv[2], "linear") == 0);
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+	    {
+		ExtDevice *devptr;
 		if (TTMaskHasType(&types1, t))
 		{
-		    he = HashFind(&ExtCurStyle->exts_transResist[t], argv[2]);
-		    HashSetValue(he, (spointertype)val);
-		    if (isLinear)
-			ExtCurStyle->exts_linearResist[t] = val;
+		    for (devptr = ExtCurStyle->exts_device[t]; devptr; devptr = devptr->exts_next)
+		    {
+			he = HashFind(&devptr->exts_deviceResist, argv[2]);
+			HashSetValue(he, (spointertype)val);
+			if (isLinear)
+			    devptr->exts_linearResist = val;
+		    }
 		}
+	    }
 	    break;
 	case HEIGHT: {
 	    float height, thick;
@@ -2619,7 +2637,7 @@ diffplane:
  *
  * Postprocess the technology specific information for extraction.
  * Builds the connectivity tables exts_nodeConn[], exts_resistConn[],
- * and exts_transConn[].
+ * and exts_deviceConn[].
  *
  * Results:
  *	None.
@@ -2664,9 +2682,9 @@ extTechFinalStyle(style)
     for (r = TT_TECHDEPBASE; r < DBNumTypes; r++)
     {
 	maskBits = style->exts_nodeConn[r] = DBConnectTbl[r];
-	if (!TTMaskHasType(&style->exts_transMask, r))
+	if (!TTMaskHasType(&style->exts_deviceMask, r))
 	{
-	     TTMaskZero(&style->exts_transConn[r]);
+	     TTMaskZero(&style->exts_deviceConn[r]);
 	}
 	for (s = TT_TECHDEPBASE; s < DBNumTypes; s++)
 	{
@@ -2870,10 +2888,15 @@ zinit:
 
 	for (r = 0; r < DBNumTypes; r++)
 	{
-	    style->exts_areaCap[r] *= sqfac;
-	    style->exts_transSDCap[r] *= sqfac;
-	    style->exts_transGateCap[r] *= sqfac;
+	    ExtDevice *devptr;
 
+	    for (devptr = style->exts_device[r]; devptr; devptr = devptr->exts_next)
+	    {
+		devptr->exts_deviceSDCap *= sqfac;
+		devptr->exts_deviceGateCap *= sqfac;
+	    }
+
+	    style->exts_areaCap[r] *= sqfac;
 	    for (s = 0; s < DBNumTypes; s++)
 	    {
 		EdgeCap *ec;
@@ -2953,13 +2976,18 @@ ExtTechScale(scalen, scaled)
 
     for (i = 0; i < DBNumTypes; i++)
     {
+	ExtDevice *devptr;
+
 	style->exts_areaCap[i] *= sqn;
 	style->exts_areaCap[i] /= sqd;
 
-	style->exts_transSDCap[i] *= sqn;
-	style->exts_transSDCap[i] /= sqd;
-	style->exts_transGateCap[i] *= sqn;
-	style->exts_transGateCap[i] /= sqd;
+	for (devptr = style->exts_device[i]; devptr; devptr = devptr->exts_next)
+	{
+	    devptr->exts_deviceSDCap *= sqn;
+	    devptr->exts_deviceSDCap /= sqd;
+	    devptr->exts_deviceGateCap *= sqn;
+	    devptr->exts_deviceGateCap /= sqd;
+	}
 
 	style->exts_height[i] *= scaled;
 	style->exts_height[i] /= scalen;

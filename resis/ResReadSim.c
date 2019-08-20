@@ -187,8 +187,10 @@ ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
 	       else if (fettype != MINFINITY)
 	       {
 		    float sheetr;
+		    ExtDevice *devptr;
 
-		    sheetr=(float)ExtCurStyle->exts_linearResist[fettype];
+		    devptr = ExtCurStyle->exts_device[fettype];
+		    sheetr=(float)devptr->exts_linearResist;
 		    result = (*fetproc)(line,sheetr,fettype);
 	       }
 	       if (result != 0)
