@@ -415,7 +415,8 @@ calmaParseStructure(filename)
 
             for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
             {
-                if (cifplanes[pNum] != NULL)
+		if ((cifReadCellDef->cd_client != (ClientData)CLIENTDEFAULT) &&
+			(cifplanes[pNum] != NULL))
                 {
                     DBFreePaintPlane(cifplanes[pNum]);
                     TiFreePlane(cifplanes[pNum]);
