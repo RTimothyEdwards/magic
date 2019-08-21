@@ -123,18 +123,6 @@ LinkedBoundary **extSpecialBounds;	/* Linked Boundary List */
 NodeRegion *glob_subsnode = NULL;	/* Global substrate node */
 NodeRegion *temp_subsnode = NULL;	/* Last subsnode found */
 
-/* Structure used for finding substrate connections on implicitly-defined
- * substrates
- */
-
-typedef struct TSD1
-{
-    bool found;		/* Set to 1 if a substrate connection was found */
-    Rect rtrans;	/* Rectangle of device */
-    Rect rhalo;		/* Search halo around device */
-    NodeRegion *nreg;	/* Closest substrate region within halo */
-} TransSubsData;
-
 #define	EDGENULL(r)	((r)->r_xbot > (r)->r_xtop || (r)->r_ybot > (r)->r_ytop)
 
 /* Forward declarations */
@@ -3396,9 +3384,11 @@ extFindNodes(def, clipArea, subonly)
 {
     int extNodeAreaFunc();
     int extSubsFunc();
+    int extSubsFunc2();
     FindRegion arg;
     int pNum, n;
     TileTypeBitMask subsTypesNonSpace;
+    bool space_is_substrate;
 
     /* Reset perimeter and area prior to node extraction */
     for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
@@ -3418,19 +3408,52 @@ extFindNodes(def, clipArea, subonly)
     /* call extNodeAreaFunc() on the first of these to generate	 */
     /* a single substrate node.					 */
 
+    /* Refinement:  Split search into two parts, one on the	*/
+    /* globSubstratePlane and one on all other planes.  ONLY	*/
+    /* search other planes if TT_SPACE is in the list of	*/
+    /* substrate types, and then only consider those types to	*/
+    /* be part of the substrate node if they have only space	*/
+    /* below them on the globSubstratePlane.  This method lets	*/
+    /* a single type like "psd" operate on, for example, both	*/
+    /* the substrate and an isolated pwell, without implicitly	*/
+    /* connecting the isolated pwell to the substrate.		*/
+
     temp_subsnode = (NodeRegion *)NULL;		// Reset for new search
+
+    if (TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, TT_SPACE))
+	space_is_substrate = True;
+    else
+	space_is_substrate = False;
 
     TTMaskZero(&subsTypesNonSpace);
     TTMaskSetMask(&subsTypesNonSpace, &ExtCurStyle->exts_globSubstrateTypes);
     TTMaskClearType(&subsTypesNonSpace, TT_SPACE);
 
+    pNum = ExtCurStyle->exts_globSubstratePlane;
+    /* Does the type set of this plane intersect the substrate types? */
+    if (TTMaskIntersect(&DBPlaneTypes[pNum], &subsTypesNonSpace))
+    {
+	arg.fra_pNum = pNum;
+	DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
+			&TiPlaneRect, &subsTypesNonSpace, extUnInit,
+			extSubsFunc, (ClientData) &arg);
+    }
+
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
+	if (pNum == ExtCurStyle->exts_globSubstratePlane) continue;
+
 	/* Does the type set of this plane intersect the substrate types? */
+
 	if (TTMaskIntersect(&DBPlaneTypes[pNum], &subsTypesNonSpace))
 	{
 	    arg.fra_pNum = pNum;
-	    DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
+	    if (space_is_substrate)
+		DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
+			&TiPlaneRect, &subsTypesNonSpace, extUnInit,
+			extSubsFunc2, (ClientData) &arg);
+	    else
+		DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
 			&TiPlaneRect, &subsTypesNonSpace, extUnInit,
 			extSubsFunc, (ClientData) &arg);
 	}
@@ -3503,6 +3526,39 @@ extSubsFunc(tile, arg)
     return (0);
 }
 
+int
+extSubsFunc2(tile, arg)
+    Tile *tile;
+    FindRegion *arg;
+{
+    int pNum; 
+    Rect tileArea;
+    int extSubsFunc3();
+
+    TiToRect(tile, &tileArea);
+
+    /* Run second search in the area of the tile on the substrate plane	*/
+    /* to make sure that nothing but space is under these tiles.	*/
+
+    pNum = ExtCurStyle->exts_globSubstratePlane;
+
+    if (DBSrPaintArea((Tile *) NULL, arg->fra_def->cd_planes[pNum],
+		&tileArea, &DBAllButSpaceBits, 
+		extSubsFunc3, (ClientData)NULL) == 0)
+    {
+	/* Mark this tile as pending and push it */
+	PUSHTILE(tile, arg->fra_pNum);
+    }
+    return (0);
+}
+
+int
+extSubsFunc3(tile)
+    Tile *tile;
+{
+    /* Stops the search because something that was not space was found */
+    return 1;
+}
 
 int
 extNodeAreaFunc(tile, arg)

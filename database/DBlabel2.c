@@ -296,18 +296,25 @@ DBTreeFindUse(name, use, scx)
 	if ((def->cd_flags & CDAVAILABLE) == 0)
 	    (void) DBCellRead(def, (char *) NULL, TRUE, NULL);
 
-	/*
-	 * Pull off the next component of path up to but not including
-	 * any array subscripts.
-	 */
-	for (cp = name; *cp && *cp != '[' && *cp != '/'; cp++)
-	    /* Nothing */;
-	csave = *cp;
-	*cp = '\0';
 	he = HashLookOnly(&def->cd_idHash, name);
-	*cp = csave;
 	if (he == NULL || HashGetValue(he) == NULL)
-	    return;
+	{
+	    /*
+	     * Pull off the next component of path up to but not including
+	     * any array subscripts.
+	     * NOTE:  This should check the array bounds and only remove
+	     * array components that are expected, not array components
+	     * embedded in the name.
+	     */
+	    for (cp = name; *cp && *cp != '[' && *cp != '/'; cp++)
+		/* Nothing */;
+	    csave = *cp;
+	    *cp = '\0';
+	    he = HashLookOnly(&def->cd_idHash, name);
+	    *cp = csave;
+	    if (he == NULL || HashGetValue(he) == NULL)
+		return;
+	}
 	use = (CellUse *) HashGetValue(he);
 	def = use->cu_def;
 
