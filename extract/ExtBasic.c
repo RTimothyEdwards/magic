@@ -2704,7 +2704,7 @@ extTransPerimFunc(bp)
 		break;
 	    }
 	}
-
+	if (toutside == TT_SPACE) break;
 	if (SDterm) break;
 	if (extConnectsTo(tinside, toutside, ExtCurStyle->exts_nodeConn))
 	{
@@ -2715,6 +2715,7 @@ extTransPerimFunc(bp)
 
 	/* Did not find a matching terminal, so see if a different extraction	*/
 	/* record matches the terminal type.					*/
+
 	devptr = extDevFindMatch(devptr, tinside);
 	if (devptr == deventry) devptr = NULL;
     }
