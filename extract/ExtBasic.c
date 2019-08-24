@@ -142,6 +142,8 @@ void extOutputParameters();
 void extTransOutTerminal();
 void extTransBad();
 
+ExtDevice *extDevFindMatch();
+
 bool extLabType();
 
 /* Function returns 1 if a tile is found by DBTreeSrTiles()	*/
@@ -1600,12 +1602,12 @@ extOutputDevices(def, transList, outFile)
 {
     NodeRegion *node, *subsNode;
     TransRegion *reg;
-    ExtDevice *devptr;
+    ExtDevice *devptr, *deventry;
     char *subsName;
     FindRegion arg;
     LabelList *ll;
     TileType t;
-    int nsd, length, width, n, i, ntiles, corners, tn, rc;
+    int nsd, length, width, n, i, ntiles, corners, tn, rc, termcount;
     double dres, dcap;
     char mesg[256];
     bool isAnnular, hasModel;
@@ -1675,28 +1677,61 @@ extOutputDevices(def, transList, outFile)
 
 	devptr = extTransRec.tr_devrec;
 	if (devptr == NULL) continue;	/* Bad device; do not output */
+	deventry = devptr;
 
-	nsd = devptr->exts_deviceSDCount;
-	while (extTransRec.tr_nterm < nsd)
+	/* Use devmatch flags to determine if the specific S/D	*/
+	/* terminal was handled by extTransPerimFunc already.	*/
+	/* Only look at required S/D terminals that have not	*/
+	/* yet been found.					*/
+
+	while (TRUE)
 	{
-	    TileTypeBitMask *tmask;
-
-	    tmask = &devptr->exts_deviceSDTypes[extTransRec.tr_nterm];
-	    if (TTMaskIsZero(tmask)) break;
-	    if (!TTMaskIntersect(tmask, &DBPlaneTypes[reg->treg_pnum]))
+	    nsd = devptr->exts_deviceSDCount;
+	    for (termcount = 0; termcount < nsd; termcount++)
 	    {
-		node = NULL;
-		extTransFindSubs(reg->treg_tile, t, tmask, def, &node, NULL);
-		if (node == NULL) break;
-		extTransRec.tr_termnode[extTransRec.tr_nterm++] = node;
+		TileTypeBitMask *tmask;
+
+		if ((extTransRec.tr_devmatch & (MATCH_TERM << termcount)) != 0)
+		    continue;   /* This terminal already found by perimeter search */
+
+		tmask = &devptr->exts_deviceSDTypes[termcount];
+		if (TTMaskIsZero(tmask)) break;	/* End of SD terminals */
+		else if (!TTMaskIntersect(tmask, &DBPlaneTypes[reg->treg_pnum]))
+		{
+		    node = NULL;
+		    extTransFindSubs(reg->treg_tile, t, tmask, def, &node, NULL);
+		    if (node == NULL) {
+			/* See if there is another matching device record	*/
+			/* with a different terminal type, and try again.	*/
+			devptr = extDevFindMatch(devptr, t);
+			break;
+		    }
+		    extTransRec.tr_devmatch |= (MATCH_TERM << termcount);
+		    extTransRec.tr_termnode[termcount++] = node;
+		}
+		else if (TTMaskHasType(tmask, TT_SPACE)) {
+		    /* Device node is specified as being the substrate */
+		    if (glob_subsnode == NULL) {
+			/* See if there is another matching device record	*/
+			/* with a different terminal type, and try again.	*/
+			devptr = extDevFindMatch(devptr, t);
+			break;
+		    }
+		    extTransRec.tr_devmatch |= (MATCH_TERM << termcount);
+		    extTransRec.tr_termnode[termcount] = glob_subsnode;
+		}
+		else {
+		    /* Determine if there is another matching device record */
+		    /* that has fewer required terminals.		    */
+		    devptr = extDevFindMatch(devptr, t);
+		    break;
+		}
 	    }
-	    else if (TTMaskHasType(tmask, TT_SPACE)) {
-		/* Device node is specified as being the substrate */
-		if (glob_subsnode == NULL) break;
-		extTransRec.tr_termnode[extTransRec.tr_nterm++] = glob_subsnode;
-	    }
-	    else break;
+	    if (termcount == nsd) break;    /* All terminals accounted for */
+	    if (devptr == deventry) break;  /* No other device records available */
+	    /* Try again with a different device record */
 	}
+	extTransRec.tr_nterm = termcount;
 
 	/*
 	 * For types that require a minimum number of terminals,
@@ -1849,8 +1884,8 @@ extOutputDevices(def, transList, outFile)
 		{
 		    /* Don't issue a warning on devices such as a 	*/
 		    /* vertical diode that may declare zero terminals	*/
-		    /* because the substrate node (i.e., well) is the	*/
-		    /* other terminal.					*/
+		    /* because the default substrate node is the other	*/
+		    /* terminal.					*/
 
 		    if (ExtDoWarn && (devptr->exts_deviceSDCount > 0))
 			extTransBad(def, reg->treg_tile,
@@ -2435,63 +2470,66 @@ extTransTileFunc(tile, pNum, arg)
 		devtest = devtest->exts_next)
 	TTMaskSetMask(&cmask, &devtest->exts_deviceSubstrateTypes);
 
-    if (TTMaskHasType(&cmask, TT_SPACE))
+    if (!TTMaskIsZero(&cmask))
     {
-	allow_globsubsnode = TRUE;
-	TTMaskClearType(&cmask, TT_SPACE);
-    }
-
-    if (extTransRec.tr_subsnode == (NodeRegion *)NULL)
-    {
-	sublayer = TT_SPACE;
-	region = NULL;
-	extTransFindSubs(tile, loctype, &cmask, arg->fra_def, &region, &sublayer);
-
-	/* If the device does not connect to a defined node, and
-	 * the substrate types include "space", then it is assumed to
-	 * connect to the global substrate.
-	 */
-
-	if (region == (NodeRegion *)NULL)
-	    if (allow_globsubsnode)
-		region = glob_subsnode;
-
-	extTransRec.tr_subsnode = region;
-
-	if ((region != (NodeRegion *)NULL) &&
-		!(TTMaskHasType(&devptr->exts_deviceSubstrateTypes, sublayer)))
+	if (TTMaskHasType(&cmask, TT_SPACE))
 	{
-	    /* A substrate layer was found but is not compatible with the   */
-	    /* current device.  Find a device record with the substrate	    */
-	    /* layer that was found, and set the substrate match flag.	    */
+	    allow_globsubsnode = TRUE;
+	    TTMaskClearType(&cmask, TT_SPACE);
+	}
 
-	    deventry = devptr;
-	    while (devptr != NULL)
+	if (extTransRec.tr_subsnode == (NodeRegion *)NULL)
+	{
+	    sublayer = TT_SPACE;
+	    region = NULL;
+	    extTransFindSubs(tile, loctype, &cmask, arg->fra_def, &region, &sublayer);
+
+	    /* If the device does not connect to a defined node, and
+	     * the substrate types include "space", then it is assumed to
+	     * connect to the global substrate.
+	     */
+
+	    if (region == (NodeRegion *)NULL)
+		if (allow_globsubsnode)
+		    region = glob_subsnode;
+
+	    extTransRec.tr_subsnode = region;
+
+	    if ((region != (NodeRegion *)NULL) &&
+		    !(TTMaskHasType(&devptr->exts_deviceSubstrateTypes, sublayer)))
 	    {
-		devptr = extDevFindMatch(devptr, loctype);
-		if ((devptr == NULL) || (devptr == deventry))
+		/* A substrate layer was found but is not compatible with the   */
+		/* current device.  Find a device record with the substrate	*/
+		/* layer that was found, and set the substrate match flag.	*/
+
+		deventry = devptr;
+		while (devptr != NULL)
 		{
-		    TxError("No matching device for %s with substrate layer %s\n",
+		    devptr = extDevFindMatch(devptr, loctype);
+		    if ((devptr == NULL) || (devptr == deventry))
+		    {
+			TxError("No matching device for %s with substrate layer %s\n",
 				DBTypeLongNameTbl[loctype], DBTypeLongNameTbl[sublayer]);
-		    devptr = NULL;
-		    break;
-		}
-		if (TTMaskHasType(&devptr->exts_deviceSubstrateTypes, sublayer))
-		{
-		    extTransRec.tr_devmatch |= MATCH_SUB;
-		    break;
+			devptr = NULL;
+			break;
+		    }
+		    if (TTMaskHasType(&devptr->exts_deviceSubstrateTypes, sublayer))
+		    {
+			extTransRec.tr_devmatch |= MATCH_SUB;
+			break;
+		    }
 		}
 	    }
+	    else if (region == (NodeRegion *)NULL)
+	    {
+		TxError("Device %s does not have a compatible substrate node!\n",
+			DBTypeLongNameTbl[loctype]);
+		devptr = NULL;
+	    }
 	}
-	else if (region == (NodeRegion *)NULL)
-	{
-	    TxError("Device %s does not have a compatible substrate node!\n",
-		    DBTypeLongNameTbl[loctype]);
-	    devptr = NULL;
-	}
+	extTransRec.tr_devrec = devptr;
+	if (devptr == NULL) return 0;	/* No matching devices, so forget it. */
     }
-    extTransRec.tr_devrec = devptr;
-    if (devptr == NULL) return 0;	/* No matching devices, so forget it. */
 
     /* If at least one device type declares an ID layer, then make a	*/
     /* mask of all device ID types, and search on the area of the	*/
@@ -2889,27 +2927,23 @@ extSpecialPerimFunc(bp, sense)
 	    break;
     }
 
-    devptr = extTransRec.tr_devrec;
-    if (devptr == NULL) devptr = ExtCurStyle->exts_device[tinside];
+    /* Required to use the same device record that was used to find */
+    /* the terminals.						    */
+    if ((devptr = extTransRec.tr_devrec) == NULL) return 0;
 
     /* Check all terminal classes for a matching type */
     needSurvey = FALSE;
-    for (; devptr; devptr = devptr->exts_next)
+    for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
     {
-	for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
+	if (TTMaskHasType(&devptr->exts_deviceSDTypes[i], toutside))
 	{
-	    if (TTMaskHasType(&devptr->exts_deviceSDTypes[i], toutside))
-	    {
-		needSurvey = TRUE;
-		break;
-	    }
+	    needSurvey = TRUE;
+	    break;
 	}
     }
 
     if (!sense || needSurvey)
     {
-	extTransRec.tr_devrec = devptr;
-
 	if (toutside == TT_SPACE)
 	    if (glob_subsnode != NULL)
 		diffNode = glob_subsnode;
