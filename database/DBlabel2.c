@@ -296,6 +296,7 @@ DBTreeFindUse(name, use, scx)
 	if ((def->cd_flags & CDAVAILABLE) == 0)
 	    (void) DBCellRead(def, (char *) NULL, TRUE, NULL);
 
+	cp = name;
 	he = HashLookOnly(&def->cd_idHash, name);
 	if (he == NULL || HashGetValue(he) == NULL)
 	{
@@ -306,7 +307,7 @@ DBTreeFindUse(name, use, scx)
 	     * array components that are expected, not array components
 	     * embedded in the name.
 	     */
-	    for (cp = name; *cp && *cp != '[' && *cp != '/'; cp++)
+	    for (; *cp && *cp != '[' && *cp != '/'; cp++)
 		/* Nothing */;
 	    csave = *cp;
 	    *cp = '\0';
