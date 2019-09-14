@@ -375,7 +375,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
     char *strname = NULL, *newnameptr, newname[CALMANAMELENGTH*2];
     HashEntry *he, *he2;
     CellDef *edef;
-    char *prefix;
+    char *prefix = NULL;
 
     /* Make sure this is a structure; if not, let the caller know we're done */
     PEEKRH(nbytes, rtype);
@@ -397,23 +397,35 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
     calmaOutDate(def->cd_timestamp, outf);
     calmaOutDate(time((time_t *) 0), outf);
 
+    /* Find the structure's unique prefix, in case structure calls subcells */
+    /* that are not yet defined.					    */
+
+    he2 = HashFind(&calmaLibHash, filename);
+    if (he2 == NULL)
+	TxError("Fatal error:  Library %s not recorded!\n", filename);
+    else
+	prefix = (char *)HashGetValue(he2);
+
     /* Prefix structure name with def name, and output new structure name */
     he = HashFind(calmaDefHash, strname);
     if ((newnameptr = (char *)HashGetValue(he)) != NULL)
     {
 	/* Structure is defined more than once */
-	TxError("Structure %s defined redundantly in GDS\n", strname);
+	if (*newnameptr != '0')
+	    TxError("Structure %s defined redundantly in GDS\n", strname);
+	else
+	    *newnameptr = '1';
 	/* To be considered:  Should the structure be output more than once? */
-	calmaOutStringRecord(CALMA_STRNAME, newnameptr, outf);
+	calmaOutStringRecord(CALMA_STRNAME, newnameptr + 1, outf);
     }
     else if (!strcmp(strname, def->cd_name))
     {
 	/* This is the top level cell being defined.  Its name	*/
 	/* does not get modified.				*/
 
-	newnameptr = mallocMagic(strlen(strname) + 1);
-	sprintf(newnameptr, "%s", strname);
-	calmaOutStringRecord(CALMA_STRNAME, newnameptr, outf);
+	newnameptr = mallocMagic(strlen(strname) + 2);
+	sprintf(newnameptr, "1%s", strname);
+	calmaOutStringRecord(CALMA_STRNAME, newnameptr + 1, outf);
 	HashSetValue(he, (char *)newnameptr);
     }
     else
@@ -444,26 +456,20 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		/* Same library, so keep the cellname and mark the cell */
 		/* as having been written to GDS.			*/
 
-		newnameptr = mallocMagic(strlen(strname) + 1);
-		sprintf(newnameptr, "%s", strname);
+		newnameptr = mallocMagic(strlen(strname) + 2);
+		sprintf(newnameptr, "1%s", strname);
 		HashSetValue(he, (char *)newnameptr);
 	    }
 	    else
 	    {
 		/* Find the unique library prefix and prepend it to the cell name */
 
-		he2 = HashFind(&calmaLibHash, filename);
-		if (he2 == NULL)
-		{
-		    /* Should never happen */
-		    TxError("Fatal error:  Library %s not recorded!\n", filename);
-		    newnameptr = strname;
-		}
+		if (prefix == NULL)
+		    newnameptr = strname;   /* Should never happen */
 		else
 		{
-		    prefix = (char *)HashGetValue(he2);
-		    newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 8);
-		    sprintf(newnameptr, "%s_%s", prefix, strname);
+		    newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 9);
+		    sprintf(newnameptr, "1%s_%s", prefix, strname);
 		    HashSetValue(he, (char *)newnameptr);
 		}
 	    }
@@ -472,18 +478,12 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 	{
 	    /* Find the unique library prefix and prepend it to the cell name */
 
-	    he2 = HashFind(&calmaLibHash, filename);
-	    if (he2 == NULL)
-	    {
-		/* Should never happen */
-		TxError("Fatal error:  Library %s not recorded!\n", filename);
-		newnameptr = strname;
-	    }
+	    if (prefix == NULL)
+		newnameptr = strname;	    /* Should never happen */
 	    else
 	    {
-		prefix = (char *)HashGetValue(he2);
-		newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 8);
-		sprintf(newnameptr, "%s_%s", prefix, strname);
+		newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 9);
+		sprintf(newnameptr, "1%s_%s", prefix, strname);
 		HashSetValue(he, (char *)newnameptr);
 	    }
 	}
@@ -525,7 +525,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		newnameptr = (char *)HashGetValue(he);
 		if (newnameptr != NULL)
 		{
-		    calmaOutStringRecord(CALMA_SNAME, newnameptr, outf);
+		    calmaOutStringRecord(CALMA_SNAME, newnameptr + 1, outf);
 		}
 		else
 		{
@@ -535,14 +535,14 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		    /* the same way used for structure definitions.	*/
 
 		    newnameptr = (char *)mallocMagic(strlen(strname) +
-				strlen(prefix) + 8);
-		    sprintf(newnameptr, "%s_%s", prefix, strname);
+				strlen(prefix) + 9);
+		    sprintf(newnameptr, "0%s_%s", prefix, strname);
 
-		    edef = DBCellLookDef(newnameptr);
+		    edef = DBCellLookDef(newnameptr + 1);
 		    if (edef != NULL)
-			sprintf(newnameptr, "%s_%s[[0]]", prefix, strname);
+			sprintf(newnameptr, "0%s_%s[[0]]", prefix, strname);
 		    HashSetValue(he, (char *)newnameptr);
-		    calmaOutStringRecord(CALMA_SNAME, newnameptr, outf);
+		    calmaOutStringRecord(CALMA_SNAME, newnameptr + 1, outf);
 		}
 		break;
 
