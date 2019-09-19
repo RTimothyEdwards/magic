@@ -872,11 +872,16 @@ typedef struct extstyle
 	 * types that connect to the substrate.  Since for non-SOI
 	 * processes, this generally is used to specify that space on
 	 * the well plane is the substrate, the plane number for the
-	 * well plane is given, too.
+	 * well plane is given, too.  The "shield types" mask is a
+	 * mask of types that prevent any types in exts_globSubstrateTypes
+	 * from contacting the substrate (e.g., deep nwell might be a
+	 * shielding type, or it could be a special marker layer like
+	 * "not_substrate").
 	 */
     char		*exts_globSubstrateName;
     TileTypeBitMask	 exts_globSubstrateTypes;
     int			 exts_globSubstratePlane;
+    TileTypeBitMask	 exts_globSubstrateShieldTypes;
 
     /* Scaling */
 	/*

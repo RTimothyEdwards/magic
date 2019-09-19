@@ -157,7 +157,7 @@ static keydesc keyTable[] = {
     "style",		STYLE,		2,	4,
 "stylename",
 
-    "substrate",	SUBSTRATE,	3,	3,
+    "substrate",	SUBSTRATE,	3,	4,
 "types plane",
 
     "units",		UNITS,		2,	2,
@@ -675,6 +675,7 @@ extTechStyleInit(style)
 
     style->exts_globSubstratePlane = -1;
     TTMaskZero(&style->exts_globSubstrateTypes);
+    TTMaskZero(&style->exts_globSubstrateShieldTypes);
 }
 
 
@@ -1927,7 +1928,6 @@ ExtTechLine(sectionName, argc, argv)
 	case DEFAULTSIDEWALL:
 	    ExtTechSimpleSidewallCap(argv);
 	    break;
-
 	case DEVICE:
 
 	    /* Parse second argument for device type */
@@ -2587,8 +2587,22 @@ ExtTechLine(sectionName, argc, argv)
 	    ExtCurStyle->exts_stepSize = val;
 	    break;
 	case SUBSTRATE:
+	    /* If the last entry starts with '-', then use it to set	*/
+	    /* the shield types.   Otherwise, the shield types mask is	*/
+	    /* NULL.							*/
+
+	    idTypes = DBZeroTypeBits;
+	    if (*argv[argc - 1] == '-')
+	    {
+		if ((DBTechNameMask(argv[argc - 1] + 1, &idTypes)) == 0)
+		    idTypes = DBZeroTypeBits;
+		argc--;
+	    }
+
 	    TTMaskZero(&ExtCurStyle->exts_globSubstrateTypes);
+	    TTMaskZero(&ExtCurStyle->exts_globSubstrateShieldTypes);
 	    TTMaskSetMask(&ExtCurStyle->exts_globSubstrateTypes, &types1);
+	    ExtCurStyle->exts_globSubstrateShieldTypes = idTypes;
 	    ExtCurStyle->exts_globSubstratePlane = DBTechNoisyNamePlane(argv[2]);
 	    break;
 	case NOPLANEORDER: {
