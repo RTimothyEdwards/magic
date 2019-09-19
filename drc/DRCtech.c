@@ -872,17 +872,13 @@ DRCTechLine(sectionName, argc, argv)
 }
 
 void
-drcAssign(cookie, dist, next, mask, corner, why, cdist, flags, planeto, planefrom)
+drcCifAssign(cookie, dist, next, mask, corner, why, cdist, flags, planeto, planefrom)
     DRCCookie *cookie, *next;
     int dist, cdist;
     TileTypeBitMask *mask, *corner;
     char *why;
     int flags, planeto, planefrom;
 {
-    /* Diagnostic */
-    if (planeto >= DBNumPlanes) {
-	TxError("Bad plane in DRC assign!\n");
-    }
     (cookie)->drcc_dist = dist;
     (cookie)->drcc_next = next;
     (cookie)->drcc_mask = *mask;
@@ -894,6 +890,27 @@ drcAssign(cookie, dist, next, mask, corner, why, cdist, flags, planeto, planefro
     (cookie)->drcc_plane = planeto;
     (cookie)->drcc_mod = 0;
     (cookie)->drcc_cmod = 0;
+}
+
+// This is like drcCifAssign, but checks for bad plane numbers in planeto and
+// planefrom
+
+void
+drcAssign(cookie, dist, next, mask, corner, why, cdist, flags, planeto, planefrom)
+    DRCCookie *cookie, *next;
+    int dist, cdist;
+    TileTypeBitMask *mask, *corner;
+    char *why;
+    int flags, planeto, planefrom;
+{
+    /* Diagnostic */
+    if (planeto >= DBNumPlanes)
+	TechError("Bad plane in DRC assignment.\n");
+    if (planefrom >= DBNumPlanes)
+	TechError("Bad edge plane in DRC assignment.\n");
+
+    drcCifAssign(cookie, dist, next, mask, corner, why, cdist, flags, planeto,
+	    planefrom);
 }
 
 /*
