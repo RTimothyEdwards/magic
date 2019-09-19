@@ -3546,13 +3546,28 @@ extSubsFunc(tile, arg)
     Tile *tile;
     FindRegion *arg;
 {
+    int pNum; 
+    Rect tileArea;
     TileType type;
+    TileTypeBitMask *smask;
+    int extSubsFunc3();
 
     if (IsSplit(tile))
     {
 	type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (type == TT_SPACE) return 0;		/* Should not happen */
     }
+
+    /* Run second search in the area of the tile on the substrate plane	*/
+    /* to make sure that no shield types are covering this tile.	*/
+
+    TiToRect(tile, &tileArea);
+    smask = &ExtCurStyle->exts_globSubstrateShieldTypes;
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	if (TTMaskIntersect(&DBPlaneTypes[pNum], smask))
+	    if (DBSrPaintArea((Tile *) NULL, arg->fra_def->cd_planes[pNum],
+			&tileArea, smask, extSubsFunc3, (ClientData)NULL) != 0)
+		return (1);
 
     /* Mark this tile as pending and push it */
     PUSHTILE(tile, arg->fra_pNum);
@@ -3568,11 +3583,22 @@ extSubsFunc2(tile, arg)
 {
     int pNum; 
     Rect tileArea;
+    TileTypeBitMask *smask;
     int extSubsFunc3();
 
     TiToRect(tile, &tileArea);
 
     /* Run second search in the area of the tile on the substrate plane	*/
+    /* to make sure that no shield types are covering this tile.	*/
+
+    smask = &ExtCurStyle->exts_globSubstrateShieldTypes;
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	if (TTMaskIntersect(&DBPlaneTypes[pNum], smask))
+	    if (DBSrPaintArea((Tile *) NULL, arg->fra_def->cd_planes[pNum],
+			&tileArea, smask, extSubsFunc3, (ClientData)NULL) != 0)
+		return (1);
+
+    /* Run third search in the area of the tile on the substrate plane	*/
     /* to make sure that nothing but space is under these tiles.	*/
 
     pNum = ExtCurStyle->exts_globSubstratePlane;
