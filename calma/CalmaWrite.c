@@ -487,7 +487,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		HashSetValue(he, (char *)newnameptr);
 	    }
 	}
-	calmaOutStringRecord(CALMA_STRNAME, newnameptr, outf);
+	calmaOutStringRecord(CALMA_STRNAME, newnameptr + 1, outf);
     }
     freeMagic(strname);
 
