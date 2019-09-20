@@ -239,6 +239,8 @@ extern void drcPrintError();
 extern int drcIncludeArea();
 extern int drcExactOverlapTile();
 extern void drcInitRulesTbl();
+extern void drcAssign();
+extern void drcCifAssign();
 
 /*
  * Exported procedures
