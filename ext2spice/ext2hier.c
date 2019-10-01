@@ -1576,24 +1576,22 @@ esMakePorts(hc, cdata)
 		bool is_array;
 
 		/* Ignore array information for the purpose of tracing	*/	
-		/* the cell definition hierarchy.  Complementary to the	*/
-		/* method used in EFbuild.c, only consider uses of	*/
-		/* brackets that conform to the [ax:bx:cx][ay:by:cy]	*/
-		/* notation.						*/
+		/* the cell definition hierarchy.  If a cell use name	*/
+		/* contains a bracket, check first if the complete name	*/
+		/* matches a use.  If not, then check if the part	*/
+		/* the last opening bracket matches a known use.	*/
 
-		aptr = strchr(portname, '[');
-		if (aptr && (aptr < tptr) &&
-			(sscanf(aptr, "[%d:%d:%d][%d:%d:%d]", 
-			&idum[0], &idum[1], &idum[2],
-			&idum[3], &idum[4], &idum[5]) == 6))
+		aptr = strrchr(portname, '[');
+		*tptr = '\0';
+		is_array = FALSE;
+		if (aptr != NULL)
 		{
-		    is_array = TRUE;
-		    *aptr = '\0';
-		}
-		else
-		{
-		    is_array = FALSE;
-		    *tptr = '\0';
+		    he = HashFind(&updef->def_uses, portname);
+		    if (he == NULL)
+		    {
+			*aptr = '\0';
+			is_array = TRUE;
+		    }
 		}
 
 		// Find the cell for the instance
@@ -1606,8 +1604,7 @@ esMakePorts(hc, cdata)
 		}
 		if (is_array)
 		    *aptr = '[';
-		else
-		    *tptr = '/';
+		*tptr = '/';
 		portname = tptr + 1;
 
 		// Find the net of portname in the subcell and
