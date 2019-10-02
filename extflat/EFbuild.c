@@ -553,8 +553,8 @@ efBuildDeviceParams(name, argc, argv)
 	if (name[0] == ':')
 	{
 	    newparm->parm_name = StrDup((char **)NULL, argv[n]);
-	    newparm->parm_type[1] = '0' + n / 10;
-	    newparm->parm_type[0] = '0' + n % 10;
+	    newparm->parm_type[0] = '0' + n / 10;
+	    newparm->parm_type[1] = '0' + n % 10;
 	}
 	else
 	    newparm->parm_name = StrDup((char **)NULL, pptr + 1);
