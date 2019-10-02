@@ -1586,7 +1586,7 @@ esMakePorts(hc, cdata)
 		is_array = FALSE;
 		if (aptr != NULL)
 		{
-		    he = HashFind(&updef->def_uses, portname);
+		    he = HashLookOnly(&updef->def_uses, portname);
 		    if (he == NULL)
 		    {
 			*aptr = '\0';
