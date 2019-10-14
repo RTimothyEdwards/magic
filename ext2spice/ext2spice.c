@@ -2714,7 +2714,9 @@ FILE *outf;
 	if ((nodeClient *)nn->efnn_node->efnode_client == (ClientData)NULL)
 	    initNodeClientHier(nn->efnn_node);
 
-	((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask |= DEV_CONNECT_MASK;
+	if (!esDistrJunct)
+	    ((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask |=
+			DEV_CONNECT_MASK;
         return nn->efnn_node;
    }
 }
@@ -2919,8 +2921,11 @@ spcdevOutNode(prefix, suffix, name, outf)
     nn = (EFNodeName *) HashGetValue(he);
     nname = nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier);
     fprintf(outf, " %s", nname);
+
     /* Mark node as visited */
-    ((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask |= DEV_CONNECT_MASK;
+    if (!esDistrJunct)
+	((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask |= DEV_CONNECT_MASK;
+
     return (1 + strlen(nname));
 }
 
