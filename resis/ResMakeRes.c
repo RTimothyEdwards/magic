@@ -24,6 +24,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/tech.h"
 #include "textio/txcommands.h"
 #include "resis/resis.h"
+#include "cif/CIFint.h"
 
 /* Forward declarations */
 bool ResCalcNearTransistor();
@@ -783,13 +784,14 @@ ResDoContacts(contact, nodes, resList)
     resNode	 *resptr;
     cElement	 *ccell;
     int		 tilenum, squaresx, squaresy, viawidth;
-    int 	 minside, spacing, border;
+    int 	 minside, spacing, border, cscale;
     float	 squaresf;
     resResistor	 *resistor;
     resElement	 *element;
     static int	 too_small = 1;
      
     minside = CIFGetContactSize(contact->cp_type, &viawidth, &spacing, &border);
+    cscale = CIFCurStyle->cs_scaleFactor;
 
     if ((ExtCurStyle->exts_viaResist[contact->cp_type] == 0) || (viawidth == 0))
     {
@@ -818,7 +820,8 @@ ResDoContacts(contact, nodes, resList)
     }
     else
     {
-	if ((contact->cp_width < minside) || (contact->cp_height < minside))
+	if (((contact->cp_width * cscale) < minside) ||
+		    ((contact->cp_height * cscale) < minside))
 	{
 	    if (too_small)
 	    {
@@ -832,13 +835,13 @@ ResDoContacts(contact, nodes, resList)
 	else
 	{
 	    viawidth += spacing;
-	    squaresf = (float)(contact->cp_width - minside) / (float)viawidth;
+	    squaresf = (float)((contact->cp_width * cscale) - minside) / (float)viawidth;
 	    squaresf *= ExtCurStyle->exts_unitsPerLambda;
 	    squaresf /= (float)viawidth;
 	    squaresx = (int)squaresf;
 	    squaresx++;
 
-	    squaresf = (float)(contact->cp_height - minside) / (float)viawidth;
+	    squaresf = (float)((contact->cp_height * cscale) - minside) / (float)viawidth;
 	    squaresf *= ExtCurStyle->exts_unitsPerLambda;
 	    squaresf /= (float)viawidth;
 	    squaresy = (int)squaresf;
