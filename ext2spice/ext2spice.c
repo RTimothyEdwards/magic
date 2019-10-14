@@ -1248,7 +1248,7 @@ spcmainArgs(pargc, pargv)
 usage:
     TxError("Usage: ext2spice [-B] [-o spicefile] [-M|-m] [-y cap_digits] "
 		"[-J flat|hier]\n"
-		"[-f spice2|spice3|hspice] [-M] [-m] "
+		"[-f spice2|spice3|hspice|ngspice] [-M] [-m] "
 #ifdef MAGIC_WRAPPER
 		"[file]\n"
 #else
