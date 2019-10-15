@@ -310,6 +310,7 @@ extern void CIFLoadStyle();
 extern Plane *CIFPlanes[];		/* Normal place to store CIF. */
 extern CIFKeep *CIFStyleList;		/* List of all CIF styles. */
 extern CIFStyle *CIFCurStyle;		/* Current style being used. */
+extern CIFStyle *CIFDRCStyle;		/* CIF style for DRC checking (optional) */
 extern CellUse *CIFComponentUse;	/* Flatten stuff in here if needed. */
 extern CellDef *CIFComponentDef;	/* Corresponds to CIFComponentUse. */
 extern CellUse *CIFDummyUse;		/* Used to dummy up a CellUse for a

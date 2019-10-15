@@ -1081,13 +1081,17 @@ CIFTechLine(sectionName, argc, argv)
 	    if (argc != 3) goto wrongNumArgs;
 	    cifParseLayers(argv[1], CIFCurStyle, &newOp->co_paintMask,
 		(TileTypeBitMask *)NULL, FALSE);
-	    bloatLayers = newOp->co_paintMask;
 	    bloats = (BloatData *)mallocMagic(sizeof(BloatData));
 	    for (i = 0; i < TT_MAXTYPES; i++)
 		bloats->bl_distance[i] = 0;
 	    newOp->co_client = (ClientData)bloats;
-
 	    cifParseLayers(argv[2], CIFCurStyle, &mask, &tempMask, TRUE);
+
+	    /* 10/15/2019:  Lifting restriction that the types that	*/
+	    /* trigger the bloating must be in the same plane as the	*/
+	    /* types that are bloated into.				*/
+
+	    TTMaskZero(&bloatLayers);
 	    TTMaskSetMask(&bloatLayers, &mask);
 	    if (!TTMaskEqual(&tempMask, &DBZeroTypeBits))
 		TechError("Can't use templayers in bloat statement.\n");
@@ -1945,7 +1949,7 @@ CIFLoadStyle(stylename)
 {
     SectionID invcif;
 
-    if (CIFCurStyle->cs_name == stylename) return;
+    if (CIFCurStyle && (CIFCurStyle->cs_name == stylename)) return;
 
     cifTechNewStyle();
     CIFCurStyle->cs_name = stylename;

@@ -843,6 +843,35 @@ endbloat:
 }
 
 /*
+ *-------------------------------------------------------
+ *
+ * cifFoundFun --
+ *
+ *	Find the first tile in the given area.
+ *
+ * Results:
+ *	Return 1 to stop the search and process.
+ *	Set clientData to the tile found.
+ *
+ *-------------------------------------------------------
+ */
+
+int
+cifFoundFunc(tile, treturn)
+    Tile *tile;
+    Tile **treturn;
+{
+    *treturn = tile;
+    return 1;
+}
+
+/* Data structure for bloat-all function */
+typedef struct _bloatStruct {
+    CIFOp	*op;
+    CellDef	*def;
+} BloatStruct;
+
+/*
  * ----------------------------------------------------------------------------
  *
  * cifBloatAllFunc --
@@ -873,17 +902,25 @@ endbloat:
     }
 
 int
-cifBloatAllFunc(tile, op)
+cifBloatAllFunc(tile, bls)
     Tile *tile;			/* The tile to be processed. */
-    CIFOp *op;			/* Describes the operation to be performed */
+    BloatStruct *bls;
 {
     Rect area;
     TileTypeBitMask connect;
     Tile *t, *tp;
     TileType type;
-    BloatData *bloats = (BloatData *)op->co_client;
+    BloatData *bloats;
     int i;
+    PlaneMask pmask;
+    int pNum;
+    CIFOp *op;
+    CellDef *def;
     static Stack *BloatStack = (Stack *)NULL;
+
+    op = bls->op;
+    def = bls->def;
+    bloats = (BloatData *)op->co_client;
 
     /* Create a mask of all connecting types (these must be in a single
      * plane), then call a search function to find all connecting material
@@ -900,7 +937,24 @@ cifBloatAllFunc(tile, op)
     if (BloatStack == (Stack *)NULL)
 	BloatStack = StackNew(64);
 
-    PUSHTILE(tile, BloatStack);
+    /* If the type of the tile to be processed is not in the same plane	*/
+    /* as the bloat type(s), then find any tile under the tile to be	*/
+    /* processed that belongs to the connect mask, and use that as the	*/
+    /* starting tile.							*/
+
+    t = tile;
+    type = TiGetType(tile);
+    pNum = DBPlane(type);
+    pmask = CoincidentPlanes(&connect, pNum);
+    if (pmask == 0)
+    {
+	TiToRect(tile, &area);
+	if (DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &area,
+		&connect, cifFoundFunc, (ClientData)(&t)) == 0)
+	    return 0;	    /* Nothing found here */
+    }
+
+    PUSHTILE(t, BloatStack);
     while (!StackEmpty(BloatStack))
     {
 	t = (Tile *) STACKPOP(BloatStack);
@@ -2688,6 +2742,7 @@ cifSrTiles(cifOp, area, cellDef, temps, func, cdArg)
 {
     TileTypeBitMask maskBits;
     TileType t;
+    Tile *tp;
     int i;
     BloatData *bloats;
 
@@ -2699,7 +2754,7 @@ cifSrTiles(cifOp, area, cellDef, temps, func, cdArg)
 
     cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
 
-    /* Bloat operations have to be in a single plane */
+    /* Bloat operations (except bloat-all) have to be in a single plane */
 
     switch (cifOp->co_opcode) {
 	case CIFOP_BLOAT:
@@ -2783,6 +2838,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
     SearchContext scx;
     TileType ttype;
     char *netname;
+    BloatStruct bls;
     int (*cifGrowFuncPtr)() = (CIFCurStyle->cs_flags & CWF_GROW_EUCLIDEAN) ?
 		cifGrowEuclideanFunc : cifGrowFunc;
 
@@ -2971,8 +3027,10 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 
 	    case CIFOP_BLOATALL:
 		cifPlane = curPlane;
+		bls.op = op;
+		bls.def = cellDef;
 		cifSrTiles(op, area, cellDef, temps,
-		    cifBloatAllFunc, (ClientData) op);
+		    cifBloatAllFunc, (ClientData)&bls);
 		break;
 	    
 	    case CIFOP_SQUARES:
