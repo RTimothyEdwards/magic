@@ -450,8 +450,8 @@ DBTreeCopyConnectDCS(scx, mask, xMask, connect, area, destUse)
 	for (tran = TT_TECHDEPBASE; tran < TT_MAXTYPES; tran++)
 	{
 	    devptr = ExtCurStyle->exts_device[tran];
-	    tran_name = devptr->exts_deviceName;
-	    if ((tran_name != NULL) && (strcmp(tran_name, "None")))
+	    if ((devptr != NULL) && ((tran_name = devptr->exts_deviceName) != NULL)
+		    && (strcmp(tran_name, "None")))
 	    {
 		TTMaskSetMask(&DiffTypeBitMask,
 	      		&(devptr->exts_deviceSDTypes[0]));

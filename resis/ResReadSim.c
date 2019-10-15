@@ -146,8 +146,12 @@ ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
 	       	    case '|': 	
 		    		if (strcmp(line[NODEUNITS],"units:") == 0)
 				{
-				     lambda = (float)atof(line[NODELAMBDA]);
-				     if (lambda == 0.0) lambda = 1.0; 
+				    lambda = (float)atof(line[NODELAMBDA]);
+				    if (lambda == 0.0) lambda = 1.0; 
+				    /* NOTE:  units is derived from EFScale	*/
+				    /* which needs a factor of 100 conversion	*/
+				    /* to database units.			*/
+				    lambda *= 100.0;
 				}
 				result=0;
 				break;

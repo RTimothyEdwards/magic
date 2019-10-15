@@ -298,12 +298,12 @@ ExtGetDevInfo(idx, devnameptr, sd_rclassptr, sub_rclassptr, subnameptr)
     TileType t;
     TileTypeBitMask *rmask, *tmask;
     int n, i = 0, j;
-    bool repeat;
+    bool repeat, found;
     ExtDevice *devptr;
     char *locdname;
     char **uniquenamelist = (char **)mallocMagic(DBNumTypes * sizeof(char *));
 
-
+    found = FALSE;
     for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
     {
 	for (devptr = ExtCurStyle->exts_device[t]; devptr; devptr = devptr->exts_next)
@@ -320,12 +320,17 @@ ExtGetDevInfo(idx, devnameptr, sd_rclassptr, sub_rclassptr, subnameptr)
 		    }
 		if (repeat == FALSE)
 		{
-		    if (i == idx) break;
+		    if (i == idx)
+		    {
+			found = TRUE;
+			break;
+		    }
 		    uniquenamelist[i] = locdname;
 		    i++;
 		}
 	    }
 	}
+	if (found == TRUE) break;
     }
     if (t == DBNumTypes) return FALSE;
     if (devptr == NULL) return FALSE;

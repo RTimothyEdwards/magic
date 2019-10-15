@@ -2337,7 +2337,7 @@ extDevFindMatch(deventry, t)
     TileType t;
 {
     ExtDevice *devptr;
-    int i, j, matchflags;
+    int i, j, k, matchflags;
     bool match;
 
     matchflags = extTransRec.tr_devmatch;
@@ -2362,10 +2362,11 @@ extDevFindMatch(deventry, t)
 			    &deventry->exts_deviceSubstrateTypes)) continue;
 
 	j = MATCH_TERM;
+	i = 0;
 	match = True;
-	for (i = 0; i < MAXSD; i++)
+	for (k = 0; k < devptr->exts_deviceSDCount; k++)
 	{
-	    if (extTransRec.tr_termnode[i] == NULL) break;
+	    if (extTransRec.tr_termnode[k] == NULL) break;
 	    if (matchflags & j)	/* Must have the same terminal type */
 	    {
 		if (TTMaskIsZero(&devptr->exts_deviceSDTypes[i]))
@@ -2380,7 +2381,13 @@ extDevFindMatch(deventry, t)
 		    break;
 		}
 	    }
-	    j >>= 1;
+	    j <<= 1;
+
+	    /* NOTE:  There are fewer exts_deviceSDTypes records than	*/
+	    /* terminals if all S/D terminals are the same type.  In	*/
+	    /* that case k increments and j bit shifts but i remains	*/
+	    /* the same.						*/
+	    if (!TTMaskIsZero(&devptr->exts_deviceSDTypes[i + 1])) i++;
 	}
 	if (match) break;
     }
@@ -2522,9 +2529,19 @@ extTransTileFunc(tile, pNum, arg)
 	    }
 	    else if (region == (NodeRegion *)NULL)
 	    {
-		TxError("Device %s does not have a compatible substrate node!\n",
-			DBTypeLongNameTbl[loctype]);
-		devptr = NULL;
+		/* If ExtCurStyle->exts_globSubstrateTypes contains no types	*/
+		/* then this is an older style techfile without a "substrate"	*/
+		/* definition in the extract section.  In that case, it is	*/
+		/* expected that the substrate name in the device line will be	*/
+		/* used.							*/
+
+		if (!TTMaskIsZero(&ExtCurStyle->exts_globSubstrateTypes) ||
+			(devptr->exts_deviceSubstrateName == NULL))
+		{
+		    TxError("Device %s does not have a compatible substrate node!\n",
+				DBTypeLongNameTbl[loctype]);
+		    devptr = NULL;
+		}
 	    }
 	}
 	extTransRec.tr_devrec = devptr;
@@ -2737,8 +2754,27 @@ extTransPerimFunc(bp)
 			ll->ll_attr = thisterm;
 		    }
 		}
-		SDterm = TRUE;
+
+		/* Check if number of terminals exceeds the number allowed in	*/
+		/* this device record.  If so, check if there is another device	*/
+		/* record with a different number of terminals.			*/
+
 		extTransRec.tr_devmatch |= (MATCH_TERM << thisterm);
+		if (thisterm >= devptr->exts_deviceSDCount)
+		{
+		    devptr = extDevFindMatch(devptr, tinside);
+
+		    /* Should this be an error instead of a warning?		*/
+		    /* Traditionally more terminals than defined was allowed	*/
+		    /* but not necessarily handled correctly by ext2spice.	*/
+
+		    if (devptr == deventry)
+			TxError("Warning:  Device has more terminals than defined "
+				"for type!\n");
+		    else
+			extTransRec.tr_devrec = devptr;
+		}
+		SDterm = TRUE;
 		break;
 	    }
 	}
