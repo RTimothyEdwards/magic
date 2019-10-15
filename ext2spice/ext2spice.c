@@ -140,9 +140,16 @@ esFormatSubs(outf, suf)
 	if ((EFTrimFlags & EF_TRIMGLOB ) && suf[l] == '!' ||
 	         (EFTrimFlags & EF_TRIMLOCAL) && suf[l] == '#')
 	    suf[l] = '\0' ;
-	if (EFTrimFlags & EF_CONVERTCOMMAS)
+	if (EFTrimFlags & EF_CONVERTCOMMA)
 	    while ((specchar = strchr(suf, ',')) != NULL)
-		*specchar = ';';
+		*specchar = '|';
+	if (EFTrimFlags & EF_CONVERTBRACKETS)
+	{
+	    while ((specchar = strchr(suf, '[')) != NULL)
+		*specchar = '_';
+	    while ((specchar = strchr(suf, ']')) != NULL)
+		*specchar = '_';
+	}
 	if (EFTrimFlags & EF_CONVERTEQUAL)
 	    while ((specchar = strchr(suf, '=')) != NULL)
 		*specchar = ':';
@@ -607,7 +614,7 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_DEFAULT:
 	    LocCapThreshold = 2;
 	    LocResistThreshold = INFINITE_THRESHOLD;
-	    EFTrimFlags = EF_CONVERTCOMMAS | EF_CONVERTEQUAL;
+	    EFTrimFlags = EF_CONVERTCOMMA | EF_CONVERTEQUAL;
 	    EFScale = 0.0;
 	    if (EFArgTech)
 	    {
@@ -821,7 +828,7 @@ runexttospice:
 
     // This forces options TRIMGLOB and CONVERTEQUAL, not sure that's such a
     // good idea. . .
-    EFTrimFlags |= EF_TRIMGLOB | EF_CONVERTEQUAL;
+    EFTrimFlags |= EF_TRIMGLOB | EF_CONVERTEQUAL | EF_CONVERTCOMMA;
     if (IS_FINITE_F(EFCapThreshold)) flatFlags |= EF_FLATCAPS;
     if (esFormat == HSPICE)
 	EFTrimFlags |= EF_TRIMLOCAL;
@@ -1379,7 +1386,7 @@ subcktVisit(use, hierName, is_top)
     else
     {
 	int savflags = EFTrimFlags;
-	EFTrimFlags = 0;	// Do no substitutions on subcircuit names
+	EFTrimFlags = EF_CONVERTCOMMA;	// Only substitute commas on subcircuit names
 
 	/* Use full hierarchical decomposition for name */
 	/* (not just use->use_id.  hierName already has use->use_id at end) */
@@ -3220,7 +3227,7 @@ EFHNSprintf(str, hierName)
     char *str;
     HierName *hierName;
 {
-    bool trimGlob, trimLocal, convertComma, convertEqual;
+    bool trimGlob, trimLocal, convertComma, convertEqual, convertBrackets;
     char *s, *cp, c;
     char *efHNSprintfPrefix(HierName *, char *);
 
@@ -3231,8 +3238,9 @@ EFHNSprintf(str, hierName)
 	cp = hierName->hn_name; 
 	trimGlob = (EFTrimFlags & EF_TRIMGLOB);
 	trimLocal = (EFTrimFlags & EF_TRIMLOCAL);
-	convertComma = (EFTrimFlags & EF_CONVERTCOMMAS);
+	convertComma = (EFTrimFlags & EF_CONVERTCOMMA);
 	convertEqual = (EFTrimFlags & EF_CONVERTEQUAL);
+	convertBrackets = (EFTrimFlags & EF_CONVERTBRACKETS);
 	while (c = *cp++)
 	{
 	    switch (c)
@@ -3240,7 +3248,9 @@ EFHNSprintf(str, hierName)
 		case '!':	if (!trimGlob) *str++ = c; break;
 		case '.':	*str++ = (esFormat == HSPICE)?'@':'.'; break;
 		case '=':	if (convertEqual) *str++ = ':'; break;
-		case ',':	if (convertComma) *str++ = ';'; break;
+		case ',':	if (convertComma) *str++ = '|'; break;
+		case '[':	*str++ = (convertBrackets) ? '_' : '['; break;
+		case ']':	*str++ = (convertBrackets) ? '_' : ']'; break;
 		case '#':	if (trimLocal) break;	// else fall through
 		default:	*str++ = c; break;
 	    }
@@ -3257,6 +3267,8 @@ char *efHNSprintfPrefix(hierName, str)
 {
     char *cp, c;
     bool convertEqual = (EFTrimFlags & EF_CONVERTEQUAL) ? TRUE : FALSE;
+    bool convertComma = (EFTrimFlags & EF_CONVERTCOMMA) ? TRUE : FALSE;
+    bool convertBrackets = (EFTrimFlags & EF_CONVERTBRACKETS) ? TRUE : FALSE;
 
     if (hierName->hn_parent)
 	str = efHNSprintfPrefix(hierName->hn_parent, str);
@@ -3265,6 +3277,13 @@ char *efHNSprintfPrefix(hierName, str)
     while (1) {
 	if (convertEqual && (*cp == '='))
 	   *str = ':';
+	else if (convertBrackets && ((*cp == '[') || (*cp == ']')))
+	   *str = '_';
+	else if (*cp == ',')
+	{
+	    if (convertComma) *str = '|';
+	    else str--;
+	}
 	else
 	   *str = *cp;
 	if (!(*str)) break;

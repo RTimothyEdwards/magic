@@ -209,8 +209,10 @@ EFArgs(argc, argv, err_result, argsProc, cdata)
 		    goto usage;
 		if (strchr(cp, '!')) EFTrimFlags |= EF_TRIMGLOB;
 		if (strchr(cp, '#')) EFTrimFlags |= EF_TRIMLOCAL;
-		if (strchr(cp, ',')) EFTrimFlags |= EF_CONVERTCOMMAS;
+		if (strchr(cp, ',')) EFTrimFlags |= EF_CONVERTCOMMA;
 		if (strchr(cp, '=')) EFTrimFlags |= EF_CONVERTEQUAL;
+		if (strchr(cp, '[')) EFTrimFlags |= EF_CONVERTBRACKETS;
+		if (strchr(cp, ']')) EFTrimFlags |= EF_CONVERTBRACKETS;
 		break;
 	    case 'C':
 		EFCapThreshold = (EFCapValue)INFINITE_THRESHOLD_F;
