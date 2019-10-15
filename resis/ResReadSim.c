@@ -243,13 +243,17 @@ ResReadNode(nodefile)
 	entry = HashFind(&ResNodeTable,line[NODENODENAME]);
 	node = ResInitializeNode(entry);
 	      
-	node->location.p_x = (int)((float)atof(line[NODENODEX])/lambda);
-	node->location.p_y = (int)((float)atof(line[NODENODEY])/lambda);
+	/* NOTE:  Fixed 10/15/2019.  No scalefactor is passed to EFNodeVisit()
+	 * so there is no scaling by lambda.  Values are in centimicrons always,
+	 * and factor of 100 is required to get database units.
+	 */
+	node->location.p_x = (int)((float)atof(line[NODENODEX]) / 100.0);
+	node->location.p_y = (int)((float)atof(line[NODENODEY]) / 100.0);
 #ifdef ARIEL	      
-	node->rs_bbox.r_xbot = (int)((float)atof(line[NODE_BBOX_LL_X])/lambda);
-	node->rs_bbox.r_ybot = (int)((float)atof(line[NODE_BBOX_LL_Y])/lambda);
-	node->rs_bbox.r_xtop = (int)((float)atof(line[NODE_BBOX_UR_X])/lambda);
-	node->rs_bbox.r_ytop = (int)((float)atof(line[NODE_BBOX_UR_Y])/lambda);
+	node->rs_bbox.r_xbot = (int)((float)atof(line[NODE_BBOX_LL_X]) / 100.0);
+	node->rs_bbox.r_ybot = (int)((float)atof(line[NODE_BBOX_LL_Y]) / 100.0);
+	node->rs_bbox.r_xtop = (int)((float)atof(line[NODE_BBOX_UR_X]) / 100.0);
+	node->rs_bbox.r_ytop = (int)((float)atof(line[NODE_BBOX_UR_Y]) / 100.0);
 #endif
 	if (cp = strchr(line[NODETYPE], ';')) *cp = '\0';
 	node->type = DBTechNameType(line[NODETYPE]);
