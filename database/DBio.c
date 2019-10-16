@@ -2350,6 +2350,8 @@ DBCellWriteFile(cellDef, f)
     int reducer;
     char *estring;
     char lstring[256];
+    char *propvalue;
+    bool propfound;
 
 #define FPRINTF(f,s)\
 {\
@@ -2542,11 +2544,42 @@ DBCellWriteFile(cellDef, f)
     }
 
     /* And any properties */
+
+    /* NOTE:  FIXED_BBOX is treated specially;  values are database */
+    /* values and should be divided by reducer.  Easiest to do it   */
+    /* here and revert values after.				    */
+
+    propvalue = (char *)DBPropGet(cellDef, "FIXED_BBOX", &propfound);
+    if (propfound)
+    {
+	char *proporig, *propscaled;
+	Rect scalebox, bbox;
+
+	proporig = StrDup((char **)NULL, propvalue);
+	propscaled = mallocMagic(strlen(propvalue) + 5);
+	if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		    &bbox.r_xtop, &bbox.r_ytop) == 4)
+	{
+	    scalebox.r_xbot = bbox.r_xbot / reducer;
+	    scalebox.r_xtop = bbox.r_xtop / reducer;
+	    scalebox.r_ybot = bbox.r_ybot / reducer;
+	    scalebox.r_ytop = bbox.r_ytop / reducer;
+	    sprintf(propscaled, "%d %d %d %d",
+		    bbox.r_xbot / reducer, bbox.r_ybot / reducer,
+		    bbox.r_xtop / reducer, bbox.r_ytop / reducer);
+
+	    DBPropPut(cellDef, "FIXED_BBOX", propscaled);
+	    propvalue = proporig;
+	}
+    }
+
     if (cellDef->cd_props != (ClientData)NULL)
     {
 	FPRINTF(f, "<< properties >>\n");
 	DBPropEnum(cellDef, dbWritePropFunc, (ClientData)f);
     }
+
+    if (propfound) DBPropPut(cellDef, "FIXED_BBOX", propvalue);
 
     FPRINTF(f, "<< end >>\n");
 

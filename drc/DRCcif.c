@@ -67,9 +67,10 @@ extern bool DRCForceReload;
 TileTypeBitMask drcCifGenLayers;
 
 DRCCookie *drcCifRules[MAXCIFLAYERS][2];
-DRCCookie *drcCifCur=NULL;
+DRCCookie *drcCifCur = NULL;
 int	drcCifValid = FALSE;
-int	beenWarned;
+bool	beenWarned = FALSE;
+char	*drcNeedStyle = NULL;
 
 #define DRC_CIF_SPACE		0
 #define DRC_CIF_SOLID		1
@@ -112,14 +113,12 @@ drcCifSetStyle(argc, argv)
     {
 	if (!strcmp(new->cs_name, argv[1]))
 	{
+	    drcNeedStyle = new->cs_name;
 	    DRCForceReload = TRUE;
 	    if (!strcmp(new->cs_name, CIFCurStyle->cs_name))
 		drcCifStyle = CIFCurStyle;
 	    else
 	    {
-		TechError("DRC cif extensions are not enabled.\n\t"
-			"Use \"cif ostyle %s\" to enable them.\n",
-			new->cs_name);
 		drcCifStyle = NULL;
 		beenWarned = TRUE;	/* post no more error messages */
 	    }
@@ -501,9 +500,35 @@ drcCifCheck(arg)
     int		scale;
     int		i,j;
     int		oldTiles;
+    CIFStyle	*CIFSaveStyle = NULL;
 
+    if (CIFCurStyle != drcCifStyle)
+    {
+	if (drcNeedStyle == NULL) {
+	    TxError("Error:  No DRC CIF style declared!\n");
+	    return;
+	}
+
+	CIFSaveStyle = CIFCurStyle;
+
+	if (drcCifStyle == NULL)
+	{
+	    TxPrintf("Loading DRC CIF style.\n");
+	    CIFCurStyle = NULL;
+	    CIFLoadStyle(drcNeedStyle);
+	    if (drcCifValid == FALSE)
+		CIFCurStyle = CIFSaveStyle;
+	    else
+		drcCifStyle = CIFCurStyle;
+	}
+	if (drcCifStyle == NULL)
+	{
+	    TxError("Error:  Failed to load CIF DRC style.\n");
+	    return;
+	}
+	CIFCurStyle = drcCifStyle;
+    }
     if (drcCifValid == FALSE) return;
-    else if (CIFCurStyle != drcCifStyle) return;
 
     scale = drcCifStyle->cs_scaleFactor;
     cifrect = *checkRect;
@@ -534,6 +559,9 @@ drcCifCheck(arg)
      }
      arg->dCD_rect = checkRect;
      DRCstatCifTiles += DRCstatTiles - oldTiles;
+
+     /* Put it back the way you found it */
+     if (CIFSaveStyle != NULL) CIFCurStyle = CIFSaveStyle;
 }
 
 /*

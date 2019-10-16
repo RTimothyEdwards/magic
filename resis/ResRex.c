@@ -988,6 +988,12 @@ ResCheckSimNodes(celldef, resisdata)
 	       	gparams.rg_tranloc = &node->drivepoint;
 		gparams.rg_status |= DRIVEONLY;
 	    }
+	    if (node->status  & PORTNODE)
+	    {
+		/* The node is a port, not a transistor, so make    */
+		/* sure rg_ttype is set accordingly.		    */
+		gparams.rg_ttype = node->rs_ttype;
+	    }
 	}
 	if (gparams.rg_tranloc == NULL && node->status & FORCE)
 	{
