@@ -2226,6 +2226,8 @@ ExtTechLine(sectionName, argc, argv)
 		    if (subsName != NULL)
 			devptr->exts_deviceSubstrateName =
 				StrDup((char **) NULL, subsName);
+		    else
+			devptr->exts_deviceSubstrateName = (char *)NULL;
 		    devptr->exts_deviceSubstrateTypes = subsTypes;
 		    devptr->exts_deviceIdentifierTypes = idTypes;
 		    devptr->exts_deviceParams = (ParamList *) NULL;
