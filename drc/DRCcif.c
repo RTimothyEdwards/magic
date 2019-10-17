@@ -504,10 +504,7 @@ drcCifCheck(arg)
 
     if (CIFCurStyle != drcCifStyle)
     {
-	if (drcNeedStyle == NULL) {
-	    TxError("Error:  No DRC CIF style declared!\n");
-	    return;
-	}
+	if (drcNeedStyle == NULL) return;
 
 	CIFSaveStyle = CIFCurStyle;
 

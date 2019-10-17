@@ -1147,6 +1147,17 @@ spcmainArgs(pargc, pargv)
     char **argv = *pargv, *cp;
     int argc = *pargc;
 
+    char usage_text[] = "Usage: ext2spice "
+		"[-B] [-o spicefile] [-M|-m] [-y cap_digits] "
+		"[-J flat|hier]\n"
+		"[-f spice2|spice3|hspice|ngspice] [-M] [-m] "
+#ifdef MAGIC_WRAPPER
+		"[file]\n";
+#else
+		"[-j device:sdRclass[/subRclass]/defaultSubstrate]\n"
+		"file\n\n    or else see options to extcheck(1)\n";
+#endif
+
     switch (argv[0][1])
     {
 	case 'd':
@@ -1243,6 +1254,9 @@ spcmainArgs(pargc, pargv)
 	    break;
 	    }
 #endif			/* MAGIC_WRAPPER */
+	case 'h':	/* -h or -help, as suggested by "ext2spice help" */
+	    TxPrintf(usage_text);
+	    break;
 	default:
 	    TxError("Unrecognized flag: %s\n", argv[0]);
 	    goto usage;
@@ -1253,16 +1267,7 @@ spcmainArgs(pargc, pargv)
     return 0;
 
 usage:
-    TxError("Usage: ext2spice [-B] [-o spicefile] [-M|-m] [-y cap_digits] "
-		"[-J flat|hier]\n"
-		"[-f spice2|spice3|hspice|ngspice] [-M] [-m] "
-#ifdef MAGIC_WRAPPER
-		"[file]\n"
-#else
-		"[-j device:sdRclass[/subRclass]/defaultSubstrate]\n"
-		"file\n\n    or else see options to extcheck(1)\n"
-#endif
-		);
+    TxError(usage_text);
 
 #ifdef MAGIC_WRAPPER
     return 1;
