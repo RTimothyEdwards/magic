@@ -71,7 +71,7 @@ typedef enum
     AREAC, CONTACT, CSCALE,
     DEFAULTAREACAP, DEFAULTOVERLAP, DEFAULTPERIMETER, DEFAULTSIDEOVERLAP,
     DEFAULTSIDEWALL,
-    DEVICE, FET, FETRESIST, HEIGHT, LAMBDA, OVERC,
+    DEVICE, FET, FETRESIST, HEIGHT, ANTENNA, LAMBDA, OVERC,
     PERIMC, PLANEORDER, NOPLANEORDER, RESIST, RSCALE, SIDEHALO, SIDEOVERLAP,
     SIDEWALL, STEP, STYLE, SUBSTRATE, UNITS, VARIANT
 } Key;
@@ -121,6 +121,9 @@ static keydesc keyTable[] = {
 
     "height",		HEIGHT,		4,	4,
 "type height-above-subtrate thickness",
+
+    "antenna",		ANTENNA,	3,	3,
+"type antenna-ratio",
 
     "lambda",		LAMBDA,		2,	2,
 "units-per-lambda",
@@ -1785,6 +1788,7 @@ ExtTechLine(sectionName, argc, argv)
 	case FET:
 	case FETRESIST:
 	case HEIGHT:
+	case ANTENNA:
 	case OVERC:
 	case PERIMC:
 	case RESIST:
@@ -2302,6 +2306,22 @@ ExtTechLine(sectionName, argc, argv)
 		{
 		    ExtCurStyle->exts_height[t] = height;
 		    ExtCurStyle->exts_thick[t] = thick;
+		}
+	    }
+	    break;
+	case ANTENNA: {
+	    float antennaratio;
+
+	    if (!StrIsNumeric(argv[2]))
+	    {
+		TechError("Layer antenna ratio %s must be numeric\n", argv[2]);
+		break;
+	    }
+	    antennaratio = (float)strtod(argv[2], NULL);
+	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+		if (TTMaskHasType(&types1, t))
+		{
+		    ExtCurStyle->exts_antennaRatio[t] = antennaratio;
 		}
 	    }
 	    break;

@@ -945,7 +945,7 @@ cifBloatAllFunc(tile, bls)
     t = tile;
     type = TiGetType(tile);
     pNum = DBPlane(type);
-    pmask = CoincidentPlanes(&connect, pNum);
+    pmask = CoincidentPlanes(&connect, PlaneNumToMaskBit(pNum));
     if (pmask == 0)
     {
 	TiToRect(tile, &area);
