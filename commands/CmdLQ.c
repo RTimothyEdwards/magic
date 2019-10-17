@@ -1882,8 +1882,16 @@ printPropertiesFunc(name, value)
 #ifdef MAGIC_WRAPPER
     char *keyvalue;
 
-    keyvalue = (char *)mallocMagic(strlen(name) + strlen((char *)value) + 2);
-    sprintf(keyvalue, "%s %s", name, (char *)value);
+    if (value == NULL)
+    {
+	keyvalue = (char *)mallocMagic(strlen(name) + 4);
+	sprintf(keyvalue, "%s {}", name);
+    }
+    else
+    {
+	keyvalue = (char *)mallocMagic(strlen(name) + strlen((char *)value) + 2);
+	sprintf(keyvalue, "%s %s", name, (char *)value);
+    }
     Tcl_AppendElement(magicinterp, keyvalue);
     freeMagic(keyvalue);
     

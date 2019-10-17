@@ -24,7 +24,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "resis/resis.h"
 
-int resSubTranFunc();
+int resSubDevFunc();
 
 /*
  *--------------------------------------------------------------------------
@@ -113,13 +113,13 @@ resAllPortNodes(tile, list)
  *--------------------------------------------------------------------------
  *
  * ResEachTile--for each tile, make a list of all possible current sources/
- *   sinks including contacts, transistors, and junctions.  Once this
+ *   sinks including contacts, devices, and junctions.  Once this
  *   list is made, calculate the resistor nextwork for the tile.
  *
  *  Results: returns TRUE or FALSE depending on whether a node was 
  *           involved in a merge.
  *
- *  Side Effects: creates Nodes, transistors, junctions, and breakpoints.
+ *  Side Effects: creates Nodes, devices, junctions, and breakpoints.
  *
  *
  *--------------------------------------------------------------------------
@@ -169,21 +169,21 @@ ResEachTile(tile, startpoint)
     if TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t1)
     {
 	/* 
-	 * The transistor is put in the center of the tile. This is fine
-	 * for single tile transistors, but not as good for multiple ones.
+	 * The device is put in the center of the tile. This is fine
+	 * for single tile device, but not as good for multiple ones.
 	 */
 
-	if (tstructs->tj_status & RES_TILE_TRAN)
+	if (tstructs->tj_status & RES_TILE_DEV)
  	{
-	    if (tstructs->transistorList->rt_gate == NULL)
+	    if (tstructs->deviceList->rd_fet_gate == NULL)
 	    {
 		int x = (LEFT(tile) + RIGHT(tile)) >> 1;
 		int y = (TOP(tile) + BOTTOM(tile)) >> 1;
 
 		resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
-		tstructs->transistorList->rt_gate = resptr;
+		tstructs->deviceList->rd_fet_gate = resptr;
 		tcell = (tElement *) mallocMagic((unsigned)(sizeof(tElement)));
-		tcell->te_thist = tstructs->transistorList;
+		tcell->te_thist = tstructs->deviceList;
 		tcell->te_nextt = NULL;
 
 		InitializeNode(resptr, x, y, RES_NODE_JUNCTION);
@@ -220,7 +220,7 @@ ResEachTile(tile, startpoint)
 	    {
 	        (void)DBSrPaintArea((Tile *) NULL, 
 		  	ResUse->cu_def->cd_planes[pNum], 
-		        &tileArea, mask, resSubTranFunc, (ClientData) tile);
+		        &tileArea, mask, resSubDevFunc, (ClientData) tile);
 	    }
         }
     }
@@ -254,11 +254,11 @@ ResEachTile(tile, startpoint)
 	devptr = ExtCurStyle->exts_device[t2];
 	if(TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2) &&
 	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t1))
-        /* found transistor */
+        /* found device */
 	{
 	    xj = LEFT(tile);
 	    yj = (TOP(tp) + BOTTOM(tp)) >> 1;
-	    ResNewSDTransistor(tile, tp, xj, yj, RIGHTEDGE, &ResNodeQueue);
+	    ResNewSDDevice(tile, tp, xj, yj, RIGHTEDGE, &ResNodeQueue);
 	}
 	if TTMaskHasType(&(ExtCurStyle->exts_nodeConn[t1]), t2)
 	/* tile is junction  */
@@ -277,11 +277,11 @@ ResEachTile(tile, startpoint)
 	devptr = ExtCurStyle->exts_device[t2];
 	if(TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2) &&
 	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t1))
-        /* found transistor */
+        /* found device */
 	{
 	    xj = RIGHT(tile);
 	    yj = (TOP(tp)+BOTTOM(tp))>>1;
-	    ResNewSDTransistor(tile, tp, xj, yj, LEFTEDGE, &ResNodeQueue);
+	    ResNewSDDevice(tile, tp, xj, yj, LEFTEDGE, &ResNodeQueue);
 	}
 	if TTMaskHasType(&ExtCurStyle->exts_nodeConn[t1], t2)
 	/* tile is junction  */
@@ -300,11 +300,11 @@ ResEachTile(tile, startpoint)
 	devptr = ExtCurStyle->exts_device[t2];
 	if(TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t2) &&
 	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t1))
-        /* found transistor */
+        /* found device */
 	{
 	    yj = TOP(tile);
 	    xj = (LEFT(tp)+RIGHT(tp))>>1;
-	    ResNewSDTransistor(tile,tp,xj,yj,BOTTOMEDGE, &ResNodeQueue);
+	    ResNewSDDevice(tile,tp,xj,yj,BOTTOMEDGE, &ResNodeQueue);
 	}
 	if TTMaskHasType(&ExtCurStyle->exts_nodeConn[t1],t2)
 	/* tile is junction  */
@@ -322,11 +322,11 @@ ResEachTile(tile, startpoint)
 	devptr = ExtCurStyle->exts_device[t2];
 	if(TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2) &&
 	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t1))
-        /* found transistor */
+        /* found device */
 	{
 	    yj = BOTTOM(tile);
 	    xj = (LEFT(tp) + RIGHT(tp)) >> 1;
-	    ResNewSDTransistor(tile, tp, xj, yj, TOPEDGE, &ResNodeQueue);
+	    ResNewSDDevice(tile, tp, xj, yj, TOPEDGE, &ResNodeQueue);
 	}
 	if TTMaskHasType(&(ExtCurStyle->exts_nodeConn[t1]), t2)
 	/* tile is junction  */
@@ -349,7 +349,7 @@ ResEachTile(tile, startpoint)
 /*
  *-------------------------------------------------------------------------
  *
- * resSubTranFunc -- called when DBSrPaintArea finds a transistor within
+ * resSubDevFunc -- called when DBSrPaintArea finds a device within
  *	a substrate area.
  *
  * Results: always returns 0 to keep search going.
@@ -360,7 +360,7 @@ ResEachTile(tile, startpoint)
  */
 
 int
-resSubTranFunc(tile,tp)
+resSubDevFunc(tile,tp)
 	Tile	*tile,*tp;
 	
 
@@ -370,13 +370,13 @@ resSubTranFunc(tile,tp)
      tElement	*tcell;
      int	x,y;
 
-     if (junk->transistorList->rt_subs== NULL)
+     if (junk->deviceList->rd_fet_subs == NULL)
      {
           resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
-	  junk->transistorList->rt_subs = resptr;
-	  junk->tj_status |= RES_TILE_TRAN;
+	  junk->deviceList->rd_fet_subs = resptr;
+	  junk->tj_status |= RES_TILE_DEV;
           tcell = (tElement *) mallocMagic((unsigned)(sizeof(tElement)));
-	  tcell->te_thist = junk->transistorList;
+	  tcell->te_thist = junk->deviceList;
 	  tcell->te_nextt = NULL;
 	  x = (LEFT(tile)+RIGHT(tile))>>1;
 	  y = (TOP(tile)+BOTTOM(tile))>>1;

@@ -1080,7 +1080,7 @@ CIFTechLine(sectionName, argc, argv)
 	case CIFOP_BLOATALL:
 	    if (argc != 3) goto wrongNumArgs;
 	    cifParseLayers(argv[1], CIFCurStyle, &newOp->co_paintMask,
-		(TileTypeBitMask *)NULL, FALSE);
+			&newOp->co_cifMask, FALSE);
 	    bloats = (BloatData *)mallocMagic(sizeof(BloatData));
 	    for (i = 0; i < TT_MAXTYPES; i++)
 		bloats->bl_distance[i] = 0;
