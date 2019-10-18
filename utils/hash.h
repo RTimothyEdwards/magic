@@ -115,6 +115,7 @@ extern void HashInit(HashTable *, int, int), HashInitClient(), HashStats(), Hash
 	    HashFreeKill();
 extern HashEntry *HashFind(HashTable *, char *);
 extern HashEntry *HashLookOnly(HashTable *, char *);
+extern void HashRemove(HashTable *, char *);
 extern void HashStartSearch(HashSearch *);
 extern HashEntry *HashNext(HashTable *, HashSearch *);
 

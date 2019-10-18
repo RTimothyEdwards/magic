@@ -66,35 +66,37 @@ typedef struct resistor
 #define  rr_connection1 	rr_node[0]
 #define  rr_connection2		rr_node[1]
 
+/* Definitions for old FET-style MOSFET devices */
 #define RT_GATE		0
 #define RT_SOURCE	1
 #define RT_DRAIN	2
 #define RT_SUBS		3
-#define RT_TERMCOUNT	4
-typedef struct transistor
-{
-     int		rt_status;	/* status bits 			  */
-     struct transistor  *rt_nextTran;	/* next transistor in linked list */
-     					/* terminals of transistor	  */
-     struct resnode	*rt_terminals[RT_TERMCOUNT];
-     int		rt_perim;	/* info about transistor	*/
-     int		rt_area;	/* used in .ext and .sim file   */
-     int		rt_length;	/* patches.			*/
-     int		rt_width;
-     int		rt_tiles;	/* number of tiles in transistor   */
-     int		rt_trantype;	/* tiletype of transistor.	*/
-     Rect		rt_inside;	/* 1x1 rectangle inside transistor */
-     Tile		*rt_tile;	/* pointer to a tile in transistor */
-#ifdef ARIEL
-     float		rt_i;		/* Current injected from this tran */
-     					/* in milliamps			   */
-#endif
-} resTransistor;
 
-#define rt_gate		rt_terminals[RT_GATE]
-#define rt_source	rt_terminals[RT_SOURCE]
-#define rt_drain	rt_terminals[RT_DRAIN]
-#define rt_subs		rt_terminals[RT_SUBS]
+#define rd_fet_gate	rd_terminals[RT_GATE]
+#define rd_fet_source	rd_terminals[RT_SOURCE]
+#define rd_fet_drain	rd_terminals[RT_DRAIN]
+#define rd_fet_subs	rd_terminals[RT_SUBS]
+
+typedef struct device
+{
+     int		rd_status;	/* status bits 			  */
+     struct device     *rd_nextDev;	/* next device in linked list	  */
+     					/* terminals of device		  */
+     struct resnode   **rd_terminals;
+     int		rd_nterms;	/* number of terminals in rt_terminals */
+     int		rd_perim;	/* info about device		*/
+     int		rd_area;	/* used in .ext and .sim file   */
+     int		rd_length;	/* patches.			*/
+     int		rd_width;
+     int		rd_tiles;	/* number of tiles in device    */
+     int		rd_devtype;	/* tiletype of device.		*/
+     Rect		rd_inside;	/* 1x1 rectangle inside device  */
+     Tile	       *rd_tile;	/* pointer to a tile in device	*/
+#ifdef ARIEL
+     float		rd_i;		/* Current injected from this device */
+     					/* in milliamps			     */
+#endif
+} resDevice;
 
 /* 
   a junction is formed when two tiles that connect are next to one another.
@@ -149,7 +151,7 @@ typedef struct jelement
 typedef struct telement
 {
      struct telement    *te_nextt;
-     resTransistor	*te_thist;
+     resDevice		*te_thist;
 } tElement;
 
 typedef struct celement
@@ -160,7 +162,7 @@ typedef struct celement
 
 /* 
    Nodes formed from network.  These are linked both forwards and backwords
-   to other nodes.  Lists of transistors, resistors, junctions, and contacts
+   to other nodes.  Lists of devices, resistors, junctions, and contacts
    corresponding to this node are kept.
 */
 typedef struct resnode
@@ -190,7 +192,7 @@ typedef struct resnode
 					/* for this node.		*/
      ClientData		rn_client;	/* Random pointer		*/
      int		rn_id;
-}resNode;
+} resNode;
 
 typedef struct nelement
 {
@@ -222,32 +224,32 @@ typedef struct breakpoint
 typedef struct tilejunk
 {
      cElement		*contactList;	  /*widgets connected to this tile */
-     resTransistor	*transistorList;
+     resDevice		*deviceList;
      resPort		*portList;
      ResJunction	*junctionList;
      Breakpoint		*breakList;
-     int		sourceEdge;	/* used in transistor tiles to keep
-     					   of which diffusion edges are
-					   the transistor's source
-					*/
+     int		sourceEdge;	/* used in device tiles to keep
+     					 * of which diffusion edges are
+					 * a transistor's source
+					 */
      int		tj_status;	/* status of tile processing  */
 } tileJunk;
 
-/* ResTransTile keeps track of the location and type of transistors.
+/* ResDevTile keeps track of the location and type of devices.
    These areas are painted into our copied def after the tree is totally
    flattened. (They can't be painted right away becasue the copy routine
    uses the new def to keep track of where it is in the design. It is also
-   used when transistors are preproceesed.
+   used when devices are preproceesed.
 */
 
-typedef struct restrantile
+typedef struct resdevtile
 {
-     struct restrantile	*nextTran;
+     struct resdevtile	*nextDev;
      Rect		area;
      TileType		type;
      int		perim;
      int		overlap;
-} ResTranTile;
+} ResDevTile;
 
 /*  
     Goodies contains random stuff passed between the node extractor
@@ -261,10 +263,10 @@ typedef struct goodstuff
      float	rg_maxres;
      float	rg_nodecap;
      float	rg_Tdi;
-     int	rg_bigtranres;
+     int	rg_bigdevres;
      int	rg_tilecount;
      int	rg_status;
-     Point	*rg_tranloc;
+     Point	*rg_devloc;
      char	*rg_name;
 } ResGlobalParams;
 
@@ -280,26 +282,26 @@ typedef struct rcdelaystuff
 
 /* ResSim.c type declarations */
 
-typedef struct rtran
+typedef struct rdev
 {
-     struct rtran	*nextTran;	/* Next transistor in linked list */
-     struct rtran	*realTran;	/* Single Lumped Transistor for   */
-     					/* transistors connected in parallel */
-     resTransistor	*layout;	/* pointer to resTransistor that  */
-     					/* corresponds to RTran		  */
+     struct rdev	*nextDev;	/* Next device in linked list */
+     struct rdev 	*realDev;	/* Single Lumped Device for   */
+     					/* devices connected in parallel  */
+     resDevice		*layout;	/* pointer to resDevice that	  */
+     					/* corresponds to RDev		  */
      int		status;
      struct ressimnode	*gate;		/* Terminals of transistor.	  */
      struct ressimnode	*source;
      struct ressimnode	*drain;
      Point		location;	/* Location of lower left point of */
-     					/* transistor.			   */
-     float		resistance;     /* "Resistance" of transistor.	   */
-     int		tnumber;	/* Transistor number		   */
-     int		rs_ttype;	/* transistor type		   */
+     					/* device.			   */
+     float		resistance;     /* "Resistance" of device.	   */
+     int		tnumber;	/* Device number		   */
+     int		rs_ttype;	/* device type			   */
      char               *rs_gattr;      /* Gate attributes, if any         */
      char               *rs_sattr;
      char               *rs_dattr;
-} RTran;
+} RDev;
 
 typedef struct ressimnode
 {
@@ -327,7 +329,7 @@ typedef struct ressimnode
 					/* tile in the lowest numbered    */
 					/* plane contained in the node .  */
      TileType		type;		/* Tile type of tile at location  */
-     struct tranptr	*firstTran;	/* linked list of transistors	  */
+     struct devptr	*firstDev;	/* linked list of devices	  */
      					/* connected to node.		  */
      char		*name;		/* Pointer to name of node stored */
      					/* in hash table.		  */
@@ -341,15 +343,15 @@ typedef struct ressimnode
 #define	RES_SUB_GND	0
 #define RES_SUB_VDD	1
 
-/* `cons' cell for linked list of transistors connected to node	*/
+/* `cons' cell for linked list of devices connected to node	*/
 
-typedef struct tranptr
+typedef struct devptr
 {
-     struct tranptr	*nextTran;
-     struct rtran	*thisTran;
-     int		terminal;	/* which terminal of transistor   */
-					/* is connected to node.	  */
-} tranPtr;
+     struct devptr	*nextDev;
+     struct rdev	*thisDev;
+     int		terminal;	/* which terminal of device    */
+					/* is connected to node.       */
+} devPtr;
 
 /* ResTime.c type declarations	*/
 
@@ -360,7 +362,7 @@ typedef struct resevent		/* Raw event list read in from rsim/tv */
      int	rv_tmin;   	/* minimum event time in units of 100ps */
      int	rv_tmax;   	/* maximum event time in units of 100ps */
      float	rv_i;		/* event current in milliamps		*/
-     resTransistor	*rv_tran;	/* transistor where charge drains */
+     resDevice *rv_dev;		/* device where charge drains */
 } ResEvent;
 
 typedef struct reseventcell
@@ -372,8 +374,8 @@ typedef struct reseventcell
 typedef struct rescurrentevent /* processed event used to feed relaxer */
 {
      struct rescurrentevent 	*ri_next;
-     float			ri_i;
-     resTransistor		*ri_tran;
+     float			 ri_i;
+     resDevice			*ri_dev;
 } ResCurrentEvent;
 
 typedef struct restimebin     /* Holds one timestep's worth of Events */
@@ -406,7 +408,7 @@ typedef struct	clump
 } ResClump;
 
 /* the first two fields of this plug must be the the same as for 
-	resTransistor
+	resDevice
 */
 typedef struct plug
 {
@@ -437,7 +439,7 @@ typedef struct capval
 
 /* type of node flags */
 #define RES_NODE_JUNCTION 		0x00000001
-#define RES_NODE_TRANSISTOR		0x00000002
+#define RES_NODE_DEVICE			0x00000002
 #define RES_NODE_CONTACT		0x00000004
 #define RES_NODE_ORIGIN 		0x00000008
 
@@ -452,15 +454,15 @@ typedef struct capval
 #define		RES_REACHED_RESISTOR	0x00100000
 #define		RES_HEAP		0x00200000
 
-/* transistor flags  */
-#define		RES_TRAN_SAVE		0x00000001
-#define		RES_TRAN_PLUG		0x00000002
+/* device flags  */
+#define		RES_DEV_SAVE		0x00000001
+#define		RES_DEV_PLUG		0x00000002
 
 /* flags for tiles 				  	*/
 /* A tile which is part of a source/drain region. 	*/
 #define RES_TILE_SD	0x1
-/* A tile which is actually a transistor	  	*/
-#define RES_TILE_TRAN	0x2
+/* A tile which is actually a device			*/
+#define RES_TILE_DEV 	0x2
 /* Indicates whether the tile has been processed or not */
 #define RES_TILE_DONE	0x4
 /*a temporary marking flag 				*/
@@ -566,7 +568,7 @@ typedef struct capval
 
 /* Assorted Variables */
 
-extern RTran			*ResTranList;
+extern RDev			*ResRDevList;
 extern REcell			*ResBigEventList;
 extern int 			ResOptionsFlags;
 extern char			*ResCurrentNode;
@@ -587,24 +589,24 @@ extern TileTypeBitMask 		ResConnectWithSD[NT];
 extern TileTypeBitMask		ResCopyMask[NT]; 
 extern resResistor 		*ResResList;
 extern resNode     		*ResNodeList;
-extern resTransistor 		*ResTransList;
+extern resDevice 		*ResDevList;
 extern ResContactPoint		*ResContactList;
 extern resNode			*ResNodeQueue;
 extern resNode			*ResOriginNode;
 extern resNode			*resCurrentNode;
 extern HashTable 		ResNodeTable;
-extern HashTable 		ResSimTranTable;
+extern HashTable 		ResSimDevTable;
 extern ResFixPoint		*ResFixList;
 extern int			ResTileCount;
 extern ResSimNode		**ResNodeArray;
 extern CellDef			*mainDef;
 extern TileTypeBitMask		ResSubsTypeBitMask;
-extern	HashTable		ResTranTable;
+extern	HashTable		ResDevTable;
 extern TileTypeBitMask		ResNoMergeMask[NT];
 extern	ResGlobalParams		gparams;
 extern int			ResPortIndex;
 
-extern int	      		ResSimTransistor();
+extern int	      		ResSimDevice();
 extern int	      		ResSimCombineParallel();
 extern int	      		ResSimCapacitor();
 extern int	      		ResSimResistor();
@@ -613,16 +615,16 @@ extern int			ResSimMerge();
 extern int 			dbSrConnectStartFunc();
 extern int			ResEach(),ResAddPlumbing(),ResRemovePlumbing();
 extern float			ResCalculateChildCapacitance();
-extern ResTranTile		*DBTreeCopyConnectDCS();
+extern ResDevTile		*DBTreeCopyConnectDCS();
 extern Tile			*ResFindTile();
-extern resTransistor		*ResImageAddPlug();
-extern resTransistor		*ResGetTransistor();
+extern resDevice		*ResImageAddPlug();
+extern resDevice		*ResGetDevice();
 extern tileJunk 		*resAddField();
 extern int			ResCheckPorts();
 extern int			ResCheckBlackbox();
 extern void			ResCheckSimNodes();
 extern void			ResSortByGate();
-extern void			ResFixTranName();
+extern void			ResFixDevName();
 extern void			ResWriteLumpFile();
 extern void			ResSortBreaks();
 
@@ -649,7 +651,7 @@ extern void			ResSortBreaks();
 #define ResJunkInit(Junk) \
 {  \
           Junk->contactList = (cElement *) NULL; \
-          Junk->transistorList = (resTransistor *) NULL; \
+          Junk->deviceList = (resDevice *) NULL; \
           Junk->junctionList = (ResJunction *) NULL; \
           Junk->breakList = (Breakpoint *) NULL; \
 	  Junk->portList = (resPort *) NULL; \

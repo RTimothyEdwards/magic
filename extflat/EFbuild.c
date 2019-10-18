@@ -1225,14 +1225,14 @@ efBuildResistor(def, nodeName1, nodeName2, resistance)
     Def *def;		/* Def to which this connection is to be added */
     char *nodeName1;	/* Name of first node in resistor */
     char *nodeName2;	/* Name of second node in resistor */
-    float resistance;	/* Resistor value */
+    int resistance;	/* Resistor value */
 {
     Connection *conn;
 
     conn = (Connection *) mallocMagic((unsigned)(sizeof (Connection)));
     if (efConnInitSubs(conn, nodeName1, nodeName2))
     {
-	conn->conn_res = resistance;
+	conn->conn_res = (float)resistance;
 	conn->conn_next = def->def_resistors;
 	def->def_resistors = conn;
     }

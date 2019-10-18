@@ -842,10 +842,21 @@ endbloat:
     return 0;
 }
 
+#define CIF_PENDING     0
+#define CIF_UNPROCESSED CLIENTDEFAULT
+#define CIF_PROCESSED   1
+#define CIF_IGNORE   	2
+
+#define PUSHTILE(tp, stack) \
+    if ((tp)->ti_client == (ClientData) CIF_UNPROCESSED) { \
+	(tp)->ti_client = (ClientData) CIF_PENDING; \
+	STACKPUSH((ClientData) (tp), stack); \
+    }
+
 /*
  *-------------------------------------------------------
  *
- * cifFoundFun --
+ * cifFoundFunc --
  *
  *	Find the first tile in the given area.
  *
@@ -857,12 +868,12 @@ endbloat:
  */
 
 int
-cifFoundFunc(tile, treturn)
+cifFoundFunc(tile, BloatStackPtr)
     Tile *tile;
-    Tile **treturn;
+    Stack **BloatStackPtr;
 {
-    *treturn = tile;
-    return 1;
+    PUSHTILE(tile, *BloatStackPtr);
+    return 0;
 }
 
 /* Data structure for bloat-all function */
@@ -890,17 +901,6 @@ typedef struct _bloatStruct {
  * ----------------------------------------------------------------------------
  */
 
-#define CIF_PENDING     0
-#define CIF_UNPROCESSED CLIENTDEFAULT
-#define CIF_PROCESSED   1
-#define CIF_IGNORE   	2
-
-#define PUSHTILE(tp, stack) \
-    if ((tp)->ti_client == (ClientData) CIF_UNPROCESSED) { \
-	(tp)->ti_client = (ClientData) CIF_PENDING; \
-	STACKPUSH((ClientData) (tp), stack); \
-    }
-
 int
 cifBloatAllFunc(tile, bls)
     Tile *tile;			/* The tile to be processed. */
@@ -911,9 +911,8 @@ cifBloatAllFunc(tile, bls)
     Tile *t, *tp;
     TileType type;
     BloatData *bloats;
-    int i;
+    int i, locScale;
     PlaneMask pmask;
-    int pNum;
     CIFOp *op;
     CellDef *def;
     static Stack *BloatStack = (Stack *)NULL;
@@ -944,17 +943,31 @@ cifBloatAllFunc(tile, bls)
 
     t = tile;
     type = TiGetType(tile);
-    pNum = DBPlane(type);
-    pmask = CoincidentPlanes(&connect, PlaneNumToMaskBit(pNum));
-    if (pmask == 0)
+    if (type == CIF_SOLIDTYPE)
     {
-	TiToRect(tile, &area);
-	if (DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &area,
-		&connect, cifFoundFunc, (ClientData)(&t)) == 0)
-	    return 0;	    /* Nothing found here */
-    }
+	pmask = 0;
+	locScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
 
-    PUSHTILE(t, BloatStack);
+	/* Get the tile into magic database coordinates if it's in CIF coords */
+	TiToRect(tile, &area);
+	area.r_xbot /= locScale;
+	area.r_xtop /= locScale;
+	area.r_ybot /= locScale;
+	area.r_ytop /= locScale;
+    }
+    else
+    {
+	int pNum = DBPlane(type);
+	pmask = CoincidentPlanes(&connect, PlaneNumToMaskBit(pNum));
+	if (pmask == 0) TiToRect(tile, &area);
+	locScale = cifScale;
+    }
+    if (pmask == 0)
+	DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &area,
+		&connect, cifFoundFunc, (ClientData)(&BloatStack));
+    else
+	PUSHTILE(t, BloatStack);
+
     while (!StackEmpty(BloatStack))
     {
 	t = (Tile *) STACKPOP(BloatStack);
@@ -964,10 +977,10 @@ cifBloatAllFunc(tile, bls)
 	/* Get the tile into CIF coordinates. */
 
 	TiToRect(t, &area);
-	area.r_xbot *= cifScale;
-	area.r_ybot *= cifScale;
-	area.r_xtop *= cifScale;
-	area.r_ytop *= cifScale;
+	area.r_xbot *= locScale;
+	area.r_ybot *= locScale;
+	area.r_xtop *= locScale;
+	area.r_ytop *= locScale;
 
 	DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &area,
 		CIFPaintTable, (PaintUndoInfo *) NULL);

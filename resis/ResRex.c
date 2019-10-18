@@ -45,11 +45,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 
 HashTable 	ResNodeTable;   /* Hash table of sim file nodes   */
-RTran		*ResTranList;	/* Linked list of Sim transistors */
+RDev		*ResRDevList;	/* Linked list of Sim devices	  */
 ResGlobalParams	gparams;	/* Junk passed between 		  */
 				/* ResCheckSimNodes and 	  */
 				/* ResExtractNet.		  */
-int		Maxtnumber;     /*maximum transistor number 	  */
+int		Maxtnumber;     /*maximum device number 	  */
 extern ResSimNode	*ResOriginalNodes;	/*Linked List of Nodes		  */
 int		resNodeNum;
 
@@ -94,21 +94,21 @@ ExtResisForDef(celldef, resisdata)
     CellDef *celldef;
     ResisData *resisdata;
 {
-    RTran	*oldTran;
+    RDev	*oldRDev;
     HashSearch	hs;
     HashEntry	*entry;
-    tranPtr	*tptr,*oldtptr;
+    devPtr	*tptr,*oldtptr;
     ResSimNode  *node;
     int		result;
 
-    ResTranList = NULL;
+    ResRDevList = NULL;
     ResOriginalNodes = NULL;
 
     Maxtnumber = 0;
     HashInit(&ResNodeTable, INITFLATSIZE, HT_STRINGKEYS);
     /* read in .sim file */
     result = (ResReadSim(celldef->cd_name,
-	      	ResSimTransistor,ResSimCapacitor,ResSimResistor,
+	      	ResSimDevice,ResSimCapacitor,ResSimResistor,
 		ResSimAttribute,ResSimMerge) == 0);
 
     if (result)
@@ -138,7 +138,7 @@ ExtResisForDef(celldef, resisdata)
     while((entry = HashNext(&ResNodeTable,&hs)) != NULL)
     {
 	node=(ResSimNode *) HashGetValue(entry);
-	tptr = node->firstTran;
+	tptr = node->firstDev;
 	if (node == NULL)
 	{
 	    TxError("Error:  NULL Hash entry!\n");
@@ -147,22 +147,22 @@ ExtResisForDef(celldef, resisdata)
 	while (tptr != NULL)
 	{
 	    oldtptr = tptr;
-	    tptr = tptr->nextTran;
+	    tptr = tptr->nextDev;
 	    freeMagic((char *)oldtptr);
 	}
 	freeMagic((char *) node);
     }
     HashKill(&ResNodeTable);
-    while (ResTranList != NULL)
+    while (ResRDevList != NULL)
     {
-    	oldTran = ResTranList;
-	ResTranList = ResTranList->nextTran;
-	if (oldTran->layout != NULL)
+    	oldRDev = ResRDevList;
+	ResRDevList = ResRDevList->nextDev;
+	if (oldRDev->layout != NULL)
 	{
-	    freeMagic((char *)oldTran->layout);
-	    oldTran->layout = NULL;
+	    freeMagic((char *)oldRDev->layout);
+	    oldRDev->layout = NULL;
 	}
-	freeMagic((char *)oldTran);
+	freeMagic((char *)oldRDev);
     }
 }
 
@@ -206,7 +206,7 @@ CmdExtResis(win, cmd)
 
     static char *cmdExtresisCmd[] = 
     {
-	"tolerance [value]    set ratio between resistor and transistor tol.",
+	"tolerance [value]    set ratio between resistor and device tol.",
 	"all 		       extract all the nets",
 	"simplify [on/off]    turn on/off simplification of resistor nets",
 	"extout   [on/off]    turn on/off writing of .res.ext file",
@@ -448,7 +448,7 @@ typedef enum {
 	     	if (cmd->tx_argc != 3) return;
 		tt = DBTechNoisyNameType(cmd->tx_argv[2]);
 		if (tt <= 0 || ToolGetBox(&def, &rect)== FALSE) return;
-		gparams.rg_tranloc = &rect.r_ll;
+		gparams.rg_devloc = &rect.r_ll;
 		gparams.rg_ttype = tt;
 		gparams.rg_status = DRIVEONLY;
 		oldoptions = ResOptionsFlags;
@@ -463,7 +463,7 @@ typedef enum {
 		fp.fp_next = NULL;
 		if (ResExtractNet(&fp, &gparams, NULL) != 0) return;
 		ResPrintResistorList(stdout,ResResList);
-		ResPrintTransistorList(stdout,ResTransList);
+		ResPrintDeviceList(stdout,ResRDevList);
 #ifdef LAPLACE
 		if (ResOptionsFlags & ResOpt_DoLaplace)
 		{
@@ -722,7 +722,7 @@ ResCheckBlackbox(cellDef)
  *
  *	Subcircuit boundaries mark an area which is to be checked
  *	explicitly for geometry information.  Because there may be
- *	no transistors in the subcircuit cell, we must find the ports
+ *	no devices in the subcircuit cell, we must find the ports
  *	into the subcircuit and declare them to be "driving" nodes so
  *	the extresis algorithm will treat them as being part of valid
  *	networks.
@@ -806,7 +806,7 @@ ResCheckPorts(cellDef)
  *-------------------------------------------------------------------------
  *
  * ResCheckSimNodes-- check to see if lumped resistance is greater than the
- *		      transistor resistance; if it is, Extract the net 
+ *		      device resistance; if it is, Extract the net 
  *		      resistance. If the maximum point to point resistance
  *		      in the extracted net is still creater than the 
  *		      tolerance, then output the extracted net.
@@ -824,7 +824,7 @@ ResCheckSimNodes(celldef, resisdata)
     ResisData	*resisdata;
 {
     ResSimNode	*node;
-    tranPtr	*ptr;
+    devPtr	*ptr;
     float	ftolerance, rctolerance, minRes, cumRes;
     int		failed1=0;
     int 	failed3=0;
@@ -876,7 +876,7 @@ ResCheckSimNodes(celldef, resisdata)
       */
     if (ResOptionsFlags & ResOpt_FastHenry)
     {
-	ResPrintReference(ResFHFile, ResTranList, celldef);
+	ResPrintReference(ResFHFile, ResRDevList, celldef);
     }
 
     for (node = ResOriginalNodes; node != NULL; node=node->nextnode)
@@ -913,11 +913,11 @@ ResCheckSimNodes(celldef, resisdata)
 	    continue;
 	total++;
 	  
-     	ResSortByGate(&node->firstTran);
-	/* Find largest SD transistor connected to node.	*/
+     	ResSortByGate(&node->firstDev);
+	/* Find largest SD device connected to node.	*/
 	  
 	minRes = FLT_MAX;
-	gparams.rg_tranloc = (Point *) NULL;
+	gparams.rg_devloc = (Point *) NULL;
 	gparams.rg_status = FALSE;
 	gparams.rg_nodecap = node->capacitance;
 
@@ -925,10 +925,10 @@ ResCheckSimNodes(celldef, resisdata)
 	/* to identify which tile the drivepoint is on.	 */
 	gparams.rg_ttype = node->rs_ttype;
 
-	for (ptr = node->firstTran; ptr != NULL; ptr=ptr->nextTran)
+	for (ptr = node->firstDev; ptr != NULL; ptr=ptr->nextDev)
 	{
-	    RTran	*t1;
-	    RTran	*t2;
+	    RDev	*t1;
+	    RDev	*t2;
 
 	    if (ptr->terminal == GATE)
 	    {
@@ -936,14 +936,14 @@ ResCheckSimNodes(celldef, resisdata)
 	    }
 	    else
 	    {
-	       	/* get cumulative resistance of all transistors */
+	       	/* get cumulative resistance of all devices */
 		/* with same connections.			    */
-		cumRes = ptr->thisTran->resistance;
-	        t1 = ptr->thisTran;
-		for (; ptr->nextTran != NULL; ptr = ptr->nextTran)
+		cumRes = ptr->thisDev->resistance;
+	        t1 = ptr->thisDev;
+		for (; ptr->nextDev != NULL; ptr = ptr->nextDev)
 		{
-	            t1 = ptr->thisTran;
-		    t2 = ptr->nextTran->thisTran;
+	            t1 = ptr->thisDev;
+		    t2 = ptr->nextDev->thisDev;
 		    if (t1->gate != t2->gate) break;
 		    if ((t1->source != t2->source ||
 			     t1->drain  != t2->drain) &&
@@ -964,7 +964,7 @@ ResCheckSimNodes(celldef, resisdata)
 		if (minRes > cumRes)
 		{
 		    minRes = cumRes;
-		    gparams.rg_tranloc = &t1->location;
+		    gparams.rg_devloc = &t1->location;
 		    gparams.rg_ttype = t1->rs_ttype;
 		}
 	    }
@@ -985,26 +985,26 @@ ResCheckSimNodes(celldef, resisdata)
 	    }
 	    if (node->status  & DRIVELOC)
 	    {
-	       	gparams.rg_tranloc = &node->drivepoint;
+	       	gparams.rg_devloc = &node->drivepoint;
 		gparams.rg_status |= DRIVEONLY;
 	    }
 	    if (node->status  & PORTNODE)
 	    {
-		/* The node is a port, not a transistor, so make    */
+		/* The node is a port, not a device, so make    */
 		/* sure rg_ttype is set accordingly.		    */
 		gparams.rg_ttype = node->rs_ttype;
 	    }
 	}
-	if (gparams.rg_tranloc == NULL && node->status & FORCE)
+	if (gparams.rg_devloc == NULL && node->status & FORCE)
 	{
     	    TxError("Node %s has force label but no drive point or "
-			"driving transistor\n",node->name);
+			"driving device\n",node->name);
 	}
-	if (minRes == FLT_MAX || gparams.rg_tranloc == NULL)
+	if (minRes == FLT_MAX || gparams.rg_devloc == NULL)
 	{
 	    continue;
 	}
-	gparams.rg_bigtranres = (int)minRes*OHMSTOMILLIOHMS;
+	gparams.rg_bigdevres = (int)minRes*OHMSTOMILLIOHMS;
 	if (rctol == 0.0 || tol == 0.0)
 	{
 	    ftolerance = 0.0;
@@ -1017,7 +1017,7 @@ ResCheckSimNodes(celldef, resisdata)
 	}
 
 	/* 
-	 *   Is the transistor resistance greater than the lumped node 
+	 *   Is the device resistance greater than the lumped node 
 	 *   resistance? If so, extract net.
 	 */
 
@@ -1052,20 +1052,20 @@ ResCheckSimNodes(celldef, resisdata)
 		}
 	    }
 #ifdef PARANOID
-	    ResSanityChecks(node->name,ResResList,ResNodeList,ResTransList);
+	    ResSanityChecks(node->name,ResResList,ResNodeList,ResDevList);
 #endif
 	    ResCleanUpEverything();
 	}
     }
      
     /* 
-     * Print out all transistors which have had at least one terminal changed
+     * Print out all device which have had at least one terminal changed
      * by resistance extraction.
      */
 
     if (ResOptionsFlags & ResOpt_DoExtFile)
     {
-	ResPrintExtTran(ResExtFile,ResTranList);
+	ResPrintExtDev(ResExtFile,ResRDevList);
     }
 
     /*
@@ -1132,21 +1132,21 @@ ResCheckSimNodes(celldef, resisdata)
  *-------------------------------------------------------------------------
  *
  * ResFixUpConnections-- Changes the connection to  a terminal of the sim 
- *	transistor.  The new name is formed by appending .t# to the old name.
+ *	device.  The new name is formed by appending .t# to the old name.
  *	The new name is added to the hash table of node names.
  *
  * Results:none
  *
  * Side Effects: Allocates new ResSimNodes. Modifies the terminal connections
- *	of sim Transistors.
+ *	of sim Devices.
  *
  *-------------------------------------------------------------------------
  */
 
 void
-ResFixUpConnections(simTran, layoutTran, simNode, nodename)
-    RTran		*simTran;
-    resTransistor 	*layoutTran;
+ResFixUpConnections(simDev, layoutDev, simNode, nodename)
+    RDev		*simDev;
+    resDevice		*layoutDev;
     ResSimNode		*simNode;
     char		*nodename;
 
@@ -1162,12 +1162,12 @@ ResFixUpConnections(simTran, layoutTran, simNode, nodename)
     {
 	return;
     }
-    if (simTran->layout == NULL)
+    if (simDev->layout == NULL)
     {
-	layoutTran->rt_status |= RES_TRAN_SAVE;
-	simTran->layout = layoutTran;
+	layoutDev->rd_status |= RES_DEV_SAVE;
+	simDev->layout = layoutDev;
     }
-    simTran->status |= TRUE;
+    simDev->status |= TRUE;
     if (strcmp(nodename,oldnodename) != 0)
     {
 	strcpy(oldnodename,nodename);
@@ -1175,11 +1175,11 @@ ResFixUpConnections(simTran, layoutTran, simNode, nodename)
     (void)sprintf(newname,"%s%s%d",nodename,".t",resNodeNum++);
     notdecremented = TRUE;
      
-    if (simTran->gate == simNode)
+    if (simDev->gate == simNode)
     {
-	if ((gate=layoutTran->rt_gate) != NULL)
+	if ((gate=layoutDev->rd_fet_gate) != NULL)
 	{
-	    /* cosmetic addition: If the layout tran already has a      */
+	    /* cosmetic addition: If the layout device already has a      */
 	    /* name, the new one won't be used, so we decrement resNodeNum */
 	    if (gate->rn_name != NULL)
 	    {
@@ -1187,8 +1187,8 @@ ResFixUpConnections(simTran, layoutTran, simNode, nodename)
 		notdecremented = FALSE;
 	    }  
 
-	    ResFixTranName(newname,GATE,simTran,gate);
-	    gate->rn_name = simTran->gate->name;
+	    ResFixDevName(newname,GATE,simDev,gate);
+	    gate->rn_name = simDev->gate->name;
      	    (void)sprintf(newname,"%s%s%d",nodename,".t",resNodeNum++);
 	}
 	else
@@ -1196,24 +1196,24 @@ ResFixUpConnections(simTran, layoutTran, simNode, nodename)
 	    TxError("Missing gate connection\n");
 	}
     }
-    if (simTran->source == simNode)
+    if (simDev->source == simNode)
     {
-     	if (simTran->drain == simNode)
+     	if (simDev->drain == simNode)
 	{
-	    if ((source=layoutTran->rt_source) && 
-	       	   (drain=layoutTran->rt_drain))
+	    if ((source=layoutDev->rd_fet_source) && 
+	       	   (drain=layoutDev->rd_fet_drain))
 	    {
 	        if (source->rn_name != NULL && notdecremented)
 		{
 		    resNodeNum--;
 		    notdecremented = FALSE;
 		}  
-	        ResFixTranName(newname,SOURCE,simTran,source);
-	        source->rn_name = simTran->source->name;
+	        ResFixDevName(newname,SOURCE,simDev,source);
+	        source->rn_name = simDev->source->name;
 		(void)sprintf(newname,"%s%s%d",nodename,".t",resNodeNum++);
 	        if (drain->rn_name != NULL)  resNodeNum--;
-	        ResFixTranName(newname,DRAIN,simTran,drain);
-	        drain->rn_name = simTran->drain->name;
+	        ResFixDevName(newname,DRAIN,simDev,drain);
+	        drain->rn_name = simDev->drain->name;
 	       	/* one to each */
 	    }
 	    else
@@ -1223,9 +1223,9 @@ ResFixUpConnections(simTran, layoutTran, simNode, nodename)
 	}
 	else
 	{
-	    if (source=layoutTran->rt_source)
+	    if (source=layoutDev->rd_fet_source)
 	    {
-		if (drain=layoutTran->rt_drain)
+		if (drain=layoutDev->rd_fet_drain)
 		{
 		    if (source != drain)
 		    {
@@ -1244,10 +1244,10 @@ ResFixUpConnections(simTran, layoutTran, simNode, nodename)
 			   drain = source;
 			}
 		    }
-		    layoutTran->rt_drain = (resNode *)NULL;
+		    layoutDev->rd_fet_drain = (resNode *)NULL;
 	            if (source->rn_name != NULL)  resNodeNum--;
-	            ResFixTranName(newname,SOURCE,simTran,source);
-	            source->rn_name = simTran->source->name;
+	            ResFixDevName(newname,SOURCE,simDev,source);
+	            source->rn_name = simDev->source->name;
 		}
 		else
 		{
@@ -1256,8 +1256,8 @@ ResFixUpConnections(simTran, layoutTran, simNode, nodename)
 			resNodeNum--;
 			notdecremented = FALSE;
 		    }  
-	            ResFixTranName(newname,SOURCE,simTran,source);
-	            source->rn_name = simTran->source->name;
+	            ResFixDevName(newname,SOURCE,simDev,source);
+	            source->rn_name = simDev->source->name;
 		}
 		    
 	    }
@@ -1267,11 +1267,11 @@ ResFixUpConnections(simTran, layoutTran, simNode, nodename)
 	    }
 	}
     }
-    else if (simTran->drain == simNode)
+    else if (simDev->drain == simNode)
     {
-	if (source=layoutTran->rt_source)
+	if (source=layoutDev->rd_fet_source)
 	{
-	    if (drain=layoutTran->rt_drain)
+	    if (drain=layoutDev->rd_fet_drain)
 	    {
 		if (drain != source)
 		{
@@ -1290,14 +1290,14 @@ ResFixUpConnections(simTran, layoutTran, simNode, nodename)
 			 drain = source;
 		    }
 		}
-		layoutTran->rt_source = (resNode *) NULL;
+		layoutDev->rd_fet_source = (resNode *) NULL;
              	if (drain->rn_name != NULL)
 		{
 		    resNodeNum--;
 		    notdecremented = FALSE;
 		}  
-	        ResFixTranName(newname, DRAIN, simTran, drain);
-	        drain->rn_name = simTran->drain->name;
+	        ResFixDevName(newname, DRAIN, simDev, drain);
+	        drain->rn_name = simDev->drain->name;
 	    }
 	    else
 	    {
@@ -1306,8 +1306,8 @@ ResFixUpConnections(simTran, layoutTran, simNode, nodename)
 		    resNodeNum--;
 		    notdecremented = FALSE;
 		}  
-		ResFixTranName(newname,DRAIN,simTran,source);
-		source->rn_name = simTran->drain->name;
+		ResFixDevName(newname,DRAIN,simDev,source);
+		source->rn_name = simDev->drain->name;
 	    }
 	}
 	else
@@ -1325,27 +1325,27 @@ ResFixUpConnections(simTran, layoutTran, simNode, nodename)
 /*
  *-------------------------------------------------------------------------
  *
- *  ResFixTranName-- Moves transistor connection to new node.
+ *  ResFixDevName-- Moves device connection to new node.
  *
  * Results:
  *	None.
  *
- * Side Effects: May create a new node. Creates a new transistor pointer.
+ * Side Effects: May create a new node. Creates a new device pointer.
  *
  *-------------------------------------------------------------------------
  */
 
 void
-ResFixTranName(line,type,transistor,layoutnode)
+ResFixDevName(line,type,device,layoutnode)
     char 	line[];
     int		type;
-    RTran	*transistor;
+    RDev	*device;
     resNode	*layoutnode;
 
 {
     HashEntry		*entry;
     ResSimNode		*node;
-    tranPtr		*tptr;
+    devPtr		*tptr;
      
     if (layoutnode->rn_name != NULL)
     {
@@ -1358,24 +1358,24 @@ ResFixTranName(line,type,transistor,layoutnode)
         entry = HashFind(&ResNodeTable,line);
         node = ResInitializeNode(entry);
     }
-    tptr = (tranPtr *) mallocMagic((unsigned) (sizeof(tranPtr)));
-    tptr->thisTran = transistor;
-    tptr->nextTran = node->firstTran;
-    node->firstTran = tptr;
+    tptr = (devPtr *) mallocMagic((unsigned) (sizeof(devPtr)));
+    tptr->thisDev = device;
+    tptr->nextDev = node->firstDev;
+    node->firstDev = tptr;
     tptr->terminal = type;
     switch(type)
     {
      	case GATE:
-	    node->oldname = transistor->gate->name;
-	    transistor->gate = node;
+	    node->oldname = device->gate->name;
+	    device->gate = node;
 	    break;
      	case SOURCE:
-	    node->oldname = transistor->source->name;
-	    transistor->source = node;
+	    node->oldname = device->source->name;
+	    device->source = node;
 	    break;
      	case DRAIN:
-	    node->oldname = transistor->drain->name;
-	    transistor->drain = node;
+	    node->oldname = device->drain->name;
+	    device->drain = node;
 	    break;
 	default:
 	    TxError("Bad Terminal Specifier\n");
@@ -1387,59 +1387,59 @@ ResFixTranName(line,type,transistor,layoutnode)
 /*
  *-------------------------------------------------------------------------
  *
- *  ResSortByGate--sorts transistor pointers whose terminal field is either
+ *  ResSortByGate--sorts device pointers whose terminal field is either
  *	drain or source by gate node number, then by drain (source) number.
- *	This places transistors with identical connections next to one 
+ *	This places devices with identical connections next to one 
  *	another.
  *
  * Results: none
  *
- * Side Effects: modifies order of transistors
+ * Side Effects: modifies order of devices
  *
  *-------------------------------------------------------------------------
  */
 
 void
-ResSortByGate(TranpointerList)
-    tranPtr	**TranpointerList;
+ResSortByGate(DevpointerList)
+    devPtr	**DevpointerList;
 {
     int		changed=TRUE;
     int		localchange=TRUE;
-    tranPtr	*working, *last=NULL, *current, *gatelist=NULL;
+    devPtr	*working, *last=NULL, *current, *gatelist=NULL;
      
-    working = *TranpointerList;
+    working = *DevpointerList;
     while (working != NULL)
     {
 	if (working->terminal == GATE)
 	{
 	    current = working;
-	    working = working->nextTran;
+	    working = working->nextDev;
        	    if (last == NULL)
 	    {
-		*TranpointerList = working;
+		*DevpointerList = working;
 	    }
 	    else
 	    {
-	      	last->nextTran = working;
+	      	last->nextDev = working;
 	    }
-	    current->nextTran = gatelist;
+	    current->nextDev = gatelist;
 	    gatelist = current;
 	}
 	else
 	{
 	    last = working;
-	    working = working->nextTran;
+	    working = working->nextDev;
 	}
     }
     while (changed == TRUE)
     {
 	changed = localchange = FALSE;
-	working = *TranpointerList;
+	working = *DevpointerList;
 	last = NULL;
-	while (working != NULL && (current = working->nextTran) != NULL)
+	while (working != NULL && (current = working->nextDev) != NULL)
 	{
-	    RTran	*w = working->thisTran;
-	    RTran	*c = current->thisTran;
+	    RDev	*w = working->thisDev;
+	    RDev	*c = current->thisDev;
 
 	    if (w->gate > c->gate)
 	    {
@@ -1466,7 +1466,7 @@ ResSortByGate(TranpointerList)
 	    else
 	    {
 		last = working;
-		working = working->nextTran;
+		working = working->nextDev;
 		continue;
 	    }
 	    if (localchange)
@@ -1474,31 +1474,31 @@ ResSortByGate(TranpointerList)
 		localchange = FALSE;
 		if (last == NULL)
 		{
-		     *TranpointerList = current;
+		     *DevpointerList = current;
 		}
 		else
 		{
-		     last->nextTran = current;
+		     last->nextDev = current;
 		}
-		working->nextTran = current->nextTran;
-		current->nextTran = working;
+		working->nextDev = current->nextDev;
+		current->nextDev = working;
 		last = current;
 	    }
 	}
     }
     if (working == NULL)
     {
-	*TranpointerList = gatelist;
+	*DevpointerList = gatelist;
     }
     else
     {
-     	if (working->nextTran != NULL)
+     	if (working->nextDev != NULL)
 	{
-	    TxError("Bad Transistor pointer in sort\n");
+	    TxError("Bad Device pointer in sort\n");
 	}
 	else
 	{
-	    working->nextTran = gatelist;
+	    working->nextDev = gatelist;
 	}
     }
 }
@@ -1527,7 +1527,7 @@ ResWriteLumpFile(node)
 	if (gparams.rg_nodecap != 0)
 	{
 	    lumpedres = (int)((gparams.rg_Tdi/gparams.rg_nodecap
-			-(float)(gparams.rg_bigtranres))/OHMSTOMILLIOHMS);
+			-(float)(gparams.rg_bigdevres))/OHMSTOMILLIOHMS);
 	}
 	else
 	{
@@ -1619,36 +1619,36 @@ ResWriteExtFile(celldef, node, tol, rctol, nidx, eidx)
     float	tol, rctol;
     int		*nidx, *eidx;
 {
-    float	RCtran;
+    float	RCdev;
     char	*cp, newname[MAXNAME];
-    tranPtr	*ptr;
-    resTransistor	*layoutFet, *ResGetTransistor();
+    devPtr	*ptr;
+    resDevice	*layoutDev, *ResGetDevice();
      
-    RCtran = gparams.rg_bigtranres * gparams.rg_nodecap;
+    RCdev = gparams.rg_bigdevres * gparams.rg_nodecap;
 
     if (tol == 0.0 ||(node->status & FORCE) ||
 		(ResOptionsFlags & ResOpt_ExtractAll)||
 		(ResOptionsFlags & ResOpt_Simplify)==0||
-		(rctol+1)*RCtran < rctol*gparams.rg_Tdi)
+		(rctol+1)*RCdev < rctol*gparams.rg_Tdi)
     {
 	ASSERT(gparams.rg_Tdi != -1,"ResWriteExtFile");
 	(void)sprintf(newname,"%s",node->name);
         cp = newname+strlen(newname)-1;
         if (*cp == '!' || *cp == '#') *cp = '\0';
-	if ((rctol+1)*RCtran < rctol*gparams.rg_Tdi || 
+	if ((rctol+1)*RCdev < rctol*gparams.rg_Tdi || 
 	  			(ResOptionsFlags & ResOpt_Tdi) == 0)
 	{
 	    if ((ResOptionsFlags & (ResOpt_RunSilent|ResOpt_Tdi)) == ResOpt_Tdi)
 	    {
 		TxError("Adding  %s; Tnew = %.2fns,Told = %.2fns\n",
-		     	    node->name,gparams.rg_Tdi/Z_TO_N, RCtran/Z_TO_N);
+		     	    node->name,gparams.rg_Tdi/Z_TO_N, RCdev/Z_TO_N);
 	    }
         }
-        for (ptr = node->firstTran; ptr != NULL; ptr=ptr->nextTran)
+        for (ptr = node->firstDev; ptr != NULL; ptr=ptr->nextDev)
         {
-	    if (layoutFet = ResGetTransistor(&ptr->thisTran->location))
+	    if (layoutDev = ResGetDevice(&ptr->thisDev->location))
 	    {
-		ResFixUpConnections(ptr->thisTran,layoutFet,node,newname);
+		ResFixUpConnections(ptr->thisDev,layoutDev,node,newname);
 	    }
 	}
         if (ResOptionsFlags & ResOpt_DoExtFile)

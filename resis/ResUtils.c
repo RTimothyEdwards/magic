@@ -122,8 +122,8 @@ ResEach(tile, pNum, arg)
  * ResAddPlumbing-- Each tile is a tileJunk structure associated with it
  * to keep track of various things used by the extractor. ResAddPlumbing
  * adds this structure and sets the tile's ClientData field to point to it.
- * If the tile is a transistor, then a transistor structure is also added;
- * all connected transistor tiles are enumerated and their transistorList 
+ * If the tile is a device, then a device structure is also added;
+ * all connected device tiles are enumerated and their deviceList 
  * fields set to the new structure.
  *
  * Results: always returns 0
@@ -140,372 +140,379 @@ ResAddPlumbing(tile, arg)
 
 {
      tileJunk		*Junk,*junk2;
-     static	Stack	*resTransStack=NULL;
+     static	Stack	*resDevStack=NULL;
      TileType		loctype, t1;
      Tile		*tp1,*tp2,*source;
-     resTransistor	*resFet;
+     resDevice		*resDev;
      ExtDevice		*devptr;
      
-     if (resTransStack == NULL)
-     {
-     	  resTransStack = StackNew(64);
-     }
+     if (resDevStack == NULL)
+     	  resDevStack = StackNew(64);
+
      if (tile->ti_client == (ClientData) CLIENTDEFAULT)
      {
 	if (IsSplit(tile))
-	{
 	    loctype = (SplitSide(tile)) ? SplitRightType(tile) :
 			SplitLeftType(tile);
-	}
 	else
 	    loctype = TiGetTypeExact(tile);
 	  
-	  devptr = ExtCurStyle->exts_device[loctype];
-     	  junk2 = resAddField(tile);
-	  if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), loctype))
-	  {
-   	       resFet = (resTransistor *) mallocMagic((unsigned)(sizeof(resTransistor)));
-	       {
-	       	    int	   i;
-		    for (i=0; i != RT_TERMCOUNT;i++)
-		    	resFet->rt_terminals[i] = (resNode *) NULL;
-	       }
-               resFet->rt_tile = tile;
-	       resFet->rt_inside.r_ll.p_x = LEFT(tile);
-	       resFet->rt_inside.r_ll.p_y = BOTTOM(tile);
-	       resFet->rt_inside.r_ur.p_x = RIGHT(tile);
-	       resFet->rt_inside.r_ur.p_y = TOP(tile);
-	       resFet->rt_trantype = loctype;
-               resFet->rt_tiles = 0;
-	       resFet->rt_length = 0;
-	       resFet->rt_width = 0;
-	       resFet->rt_perim = 0;
-	       resFet->rt_area = 0;
-	       resFet->rt_status = 0;
-               resFet->rt_nextTran = (resTransistor *) *arg;
-	       *arg = (ClientData)resFet;
-	       junk2->transistorList =  resFet;
-	       junk2->tj_status |= RES_TILE_TRAN;
-	       
-	       source = NULL;
-	       /* find diffusion (if present) to be source contact */
+	devptr = ExtCurStyle->exts_device[loctype];
+     	junk2 = resAddField(tile);
+	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), loctype))
+	{
+	    int i, nterms;
 
-	       /* top */
-	       for (tp2= RT(tile); RIGHT(tp2) > LEFT(tile); tp2 = BL(tp2))
-	       {
-	      	    if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+	    /* Count SD terminals of the device */
+	    nterms = 0;
+	    for (i = 0; ; i++)
+	    {
+		if (TTMaskIsZero(&(devptr->exts_deviceSDTypes[i]))) break;
+		nterms++;
+	    }
+	    if (nterms < devptr->exts_deviceSDCount)
+		nterms = devptr->exts_deviceSDCount;
+
+	    /* resDev terminals includes device identifier (e.g., gate) and
+	     * substrate, so add two to nterms.
+	     */
+	    nterms += 2;
+
+   	    resDev = (resDevice *) mallocMagic((unsigned)(sizeof(resDevice)));
+	    resDev->rd_nterms = nterms;
+	    resDev->rd_terminals = (resNode **) mallocMagic(nterms * sizeof(resNode *));
+	    for (i=0; i != nterms;i++)
+	    	resDev->rd_terminals[i] = (resNode *) NULL;
+
+            resDev->rd_tile = tile;
+	    resDev->rd_inside.r_ll.p_x = LEFT(tile);
+	    resDev->rd_inside.r_ll.p_y = BOTTOM(tile);
+	    resDev->rd_inside.r_ur.p_x = RIGHT(tile);
+	    resDev->rd_inside.r_ur.p_y = TOP(tile);
+	    resDev->rd_devtype = loctype;
+            resDev->rd_tiles = 0;
+	    resDev->rd_length = 0;
+	    resDev->rd_width = 0;
+	    resDev->rd_perim = 0;
+	    resDev->rd_area = 0;
+	    resDev->rd_status = 0;
+            resDev->rd_nextDev = (resDevice *) *arg;
+	    *arg = (ClientData)resDev;
+	    junk2->deviceList =  resDev;
+	    junk2->tj_status |= RES_TILE_DEV;
+	       
+	    source = NULL;
+	    /* find diffusion (if present) to be source contact */
+
+	    /* top */
+	    for (tp2= RT(tile); RIGHT(tp2) > LEFT(tile); tp2 = BL(tp2))
+	    {
+	      	 if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetBottomType(tp2))
-		    {
-			  junk2->sourceEdge |= TOPEDGE;
-			  source = tp2;
-			  Junk = resAddField(source);
-			  Junk->tj_status |= RES_TILE_SD;
-			  break;
-		    }
-	       }
+		 {
+		    junk2->sourceEdge |= TOPEDGE;
+		    source = tp2;
+		    Junk = resAddField(source);
+		    Junk->tj_status |= RES_TILE_SD;
+		    break;
+		 }
+	    }
 
-	       /*bottom*/
-	       if (source == NULL)
-	       for (tp2= LB(tile); LEFT(tp2) < RIGHT(tile); tp2 = TR(tp2))
-	       {
-	      	    if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+	    /*bottom*/
+	    if (source == NULL)
+	    for (tp2= LB(tile); LEFT(tp2) < RIGHT(tile); tp2 = TR(tp2))
+	    {
+	      	if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetTopType(tp2))
-		    {
-			  junk2->sourceEdge |= BOTTOMEDGE;
-			  source = tp2;
-			  Junk = resAddField(source);
-			  Junk->tj_status |= RES_TILE_SD;
-			  break;
-		    }
-	       }
+		{
+		    junk2->sourceEdge |= BOTTOMEDGE;
+		    source = tp2;
+		    Junk = resAddField(source);
+		    Junk->tj_status |= RES_TILE_SD;
+		    break;
+		}
+	    }
 
-	       /*right*/
-	       if (source == NULL)
-	       for (tp2= TR(tile); TOP(tp2) > BOTTOM(tile); tp2 = LB(tp2))
-	       {
-	      	    if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+	    /*right*/
+	    if (source == NULL)
+	    for (tp2= TR(tile); TOP(tp2) > BOTTOM(tile); tp2 = LB(tp2))
+	    {
+	      	if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetLeftType(tp2))
-		    {
-			  junk2->sourceEdge |= RIGHTEDGE;
-			  source = tp2;
-			  Junk = resAddField(source);
-			  Junk->tj_status |= RES_TILE_SD;
-			  break;
-		    }
-	       }
+		{
+		    junk2->sourceEdge |= RIGHTEDGE;
+		    source = tp2;
+		    Junk = resAddField(source);
+		    Junk->tj_status |= RES_TILE_SD;
+		    break;
+		}
+	    }
 
-	       /*left*/
-	       if (source == NULL)
-	       for (tp2= BL(tile); BOTTOM(tp2) < TOP(tile); tp2 = RT(tp2))
-	       {
-	      	    if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+	    /*left*/
+	    if (source == NULL)
+	    for (tp2= BL(tile); BOTTOM(tp2) < TOP(tile); tp2 = RT(tp2))
+	    {
+	      	if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetRightType(tp2))
-		    {
-			  source = tp2;
-			  Junk = resAddField(source);
-			  Junk->tj_status |= RES_TILE_SD;
-			  junk2->sourceEdge |= LEFTEDGE;
-			  break;
-		    }
-	       }
+		{
+		    source = tp2;
+		    Junk = resAddField(source);
+		    Junk->tj_status |= RES_TILE_SD;
+		    junk2->sourceEdge |= LEFTEDGE;
+		    break;
+		}
+	    }
 	       
-	       /* We need to know whether a given diffusion tile connects to
-	        * the source or to the drain of a transistor.  A single 
-		* diffusion tile is marked, and all connecting diffusion tiles
-		* are enumerated and called the source.  Any other SD tiles
-		* are assumed to be the drain.  BUG: this does not work 
-		* correctly with multi SD structures. 
-	        */
+	    /* We need to know whether a given diffusion tile connects to
+	     * the source or to the drain of a device.  A single 
+	     * diffusion tile is marked, and all connecting diffusion tiles
+	     * are enumerated and called the source.  Any other SD tiles
+	     * are assumed to be the drain.  BUG: this does not work 
+	     * correctly with multi SD structures. 
+	     */
 
-	       if (source != (Tile *) NULL)
-	       {
-	            STACKPUSH((ClientData) (source),resTransStack);
-	       }
-	       while (!StackEmpty(resTransStack))
-	       {
-	       	    tp1 = (Tile *) STACKPOP(resTransStack);
-		    if (IsSplit(tp1))
-		    {
-			t1 = (SplitSide(tp1)) ? SplitRightType(tp1) :
+	    if (source != (Tile *) NULL)
+	    {
+	        STACKPUSH((ClientData) (source),resDevStack);
+	    }
+	    while (!StackEmpty(resDevStack))
+	    {
+	       	tp1 = (Tile *) STACKPOP(resDevStack);
+		if (IsSplit(tp1))
+		{
+		    t1 = (SplitSide(tp1)) ? SplitRightType(tp1) :
 				SplitLeftType(tp1);
-		    }
-		    else
-		        t1 = TiGetTypeExact(tp1);
+		}
+		else
+		    t1 = TiGetTypeExact(tp1);
 
-		     /* top */
-		     for (tp2= RT(tp1); RIGHT(tp2) > LEFT(tp1); tp2 = BL(tp2))
-		     {
-			  if (TiGetBottomType(tp2) == t1)
-		          {
-		               tileJunk	 *j= resAddField(tp2);
-			       if ((j->tj_status & RES_TILE_SD) ==0)
-			       {
-			            j->tj_status |= RES_TILE_SD;
-	            	            STACKPUSH((ClientData)tp2,resTransStack);
-			       }
-		          }
-		     }
-		     /*bottom*/
-		     for (tp2= LB(tp1); LEFT(tp2) < RIGHT(tp1); tp2 = TR(tp2))
-		     {
-		          if (TiGetTopType(tp2) == t1)
-		          {
-		               tileJunk	 *j= resAddField(tp2);
-			       if ((j->tj_status & RES_TILE_SD) == 0)
-			       {
-			            j->tj_status |= RES_TILE_SD;
-	            	            STACKPUSH((ClientData) (tp2),resTransStack);
-			       }
-		          }
-		     }
-		     /*right*/
-		     for (tp2= TR(tp1); TOP(tp2) > BOTTOM(tp1); tp2 = LB(tp2))
-		     {
-		          if (TiGetLeftType(tp2) == t1)
-		          {
-		               tileJunk	 *j= resAddField(tp2);
-			       if ((j->tj_status & RES_TILE_SD) == 0)
-			       {
-			            j->tj_status |= RES_TILE_SD;
-	            	            STACKPUSH((ClientData) (tp2),resTransStack);
-			       }
-		          }
-		     }
-		     /*left*/
-		     for (tp2= BL(tp1); BOTTOM(tp2) < TOP(tp1); tp2 = RT(tp2))
-		     {
-		          if (TiGetRightType(tp2) == t1)
-		          {
-		               tileJunk	 *j= resAddField(tp2);
-			       if ((j->tj_status & RES_TILE_SD) == 0)
-			       {
-			            j->tj_status |= RES_TILE_SD;
-	            	            STACKPUSH((ClientData) (tp2),resTransStack);
-			       }
-		          }
-		     }
-	       }
-	       /* find rest of transistor; search for source edges */
-
-	       STACKPUSH((ClientData) (tile), resTransStack);
-	       while (!StackEmpty(resTransStack))
-	       {
-	       	    tileJunk	*j0;
-
-		    tp1= (Tile *) STACKPOP(resTransStack);
-		    if (IsSplit(tp1))
+		/* top */
+		for (tp2= RT(tp1); RIGHT(tp2) > LEFT(tp1); tp2 = BL(tp2))
+		{
+		    if (TiGetBottomType(tp2) == t1)
 		    {
-			t1 = (SplitSide(tp1)) ? SplitRightType(tp1) :
+		        tileJunk	 *j= resAddField(tp2);
+			if ((j->tj_status & RES_TILE_SD) ==0)
+			{
+			    j->tj_status |= RES_TILE_SD;
+	            	    STACKPUSH((ClientData)tp2,resDevStack);
+			}
+		    }
+		}
+		/*bottom*/
+		for (tp2= LB(tp1); LEFT(tp2) < RIGHT(tp1); tp2 = TR(tp2))
+		{
+		    if (TiGetTopType(tp2) == t1)
+		    {
+		        tileJunk	 *j= resAddField(tp2);
+			if ((j->tj_status & RES_TILE_SD) == 0)
+			{
+			    j->tj_status |= RES_TILE_SD;
+	            	    STACKPUSH((ClientData) (tp2),resDevStack);
+			}
+		    }
+		}
+		/*right*/
+		for (tp2= TR(tp1); TOP(tp2) > BOTTOM(tp1); tp2 = LB(tp2))
+		{
+		    if (TiGetLeftType(tp2) == t1)
+		    {
+		        tileJunk	 *j= resAddField(tp2);
+			if ((j->tj_status & RES_TILE_SD) == 0)
+			{
+			    j->tj_status |= RES_TILE_SD;
+	            	    STACKPUSH((ClientData) (tp2),resDevStack);
+			}
+		    }
+		}
+		/*left*/
+		for (tp2= BL(tp1); BOTTOM(tp2) < TOP(tp1); tp2 = RT(tp2))
+		{
+		    if (TiGetRightType(tp2) == t1)
+		    {
+		        tileJunk	 *j= resAddField(tp2);
+			if ((j->tj_status & RES_TILE_SD) == 0)
+			{
+			    j->tj_status |= RES_TILE_SD;
+	            	    STACKPUSH((ClientData) (tp2),resDevStack);
+			}
+		    }
+		}
+	    }
+
+	    /* find rest of device; search for source edges */
+
+	    STACKPUSH((ClientData) (tile), resDevStack);
+	    while (!StackEmpty(resDevStack))
+	    {
+	       	tileJunk	*j0;
+
+		tp1= (Tile *) STACKPOP(resDevStack);
+		if (IsSplit(tp1))
+		{
+		    t1 = (SplitSide(tp1)) ? SplitRightType(tp1) :
 				SplitLeftType(tp1);
-		    }
-		    else
-		        t1 = TiGetTypeExact(tp1);
+		}
+		else
+		    t1 = TiGetTypeExact(tp1);
 
-		    devptr = ExtCurStyle->exts_device[t1];
-		    j0 = (tileJunk *) tp1->ti_client;
-		    /* top */
-		    for (tp2= RT(tp1); RIGHT(tp2) > LEFT(tp1); tp2 = BL(tp2))
-		    {
-		     	  if ((TiGetBottomType(tp2) == t1) &&
+		devptr = ExtCurStyle->exts_device[t1];
+		j0 = (tileJunk *) tp1->ti_client;
+		/* top */
+		for (tp2= RT(tp1); RIGHT(tp2) > LEFT(tp1); tp2 = BL(tp2))
+		{
+		    if ((TiGetBottomType(tp2) == t1) &&
 			      (tp2->ti_client == (ClientData) CLIENTDEFAULT))
-			       {
-     	  			    Junk = resAddField(tp2);
-				    STACKPUSH((ClientData)(tp2),resTransStack);
-	       			    Junk->transistorList =  resFet;
-	       			    Junk->tj_status |= RES_TILE_TRAN;
+		    {
+     	  		Junk = resAddField(tp2);
+			STACKPUSH((ClientData)(tp2),resDevStack);
+	       		Junk->deviceList =  resDev;
+	       		Junk->tj_status |= RES_TILE_DEV;
 				    
-			       }
-	      	    	  else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
-				TiGetBottomType(tp2))
-			  {
-			       Junk = resAddField(tp2);
-			       if (Junk->tj_status & RES_TILE_SD)
-			       {
-			       	    j0->sourceEdge |= TOPEDGE;
-			       }
-			  }
-		     }
-		     /*bottom*/
-		     for (tp2= LB(tp1); LEFT(tp2) < RIGHT(tp1); tp2 = TR(tp2))
-		     {
-		     	  if ((TiGetTopType(tp2) == t1) &&
-			      (tp2->ti_client == (ClientData) CLIENTDEFAULT))
-			       {
-     	  			    Junk = resAddField(tp2);
-				    STACKPUSH((ClientData)(tp2),resTransStack);
-	       			    Junk->transistorList =  resFet;
-	       			    Junk->tj_status |= RES_TILE_TRAN;
-			       }
-	      	    	  else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
-				TiGetTopType(tp2))
-			  {
-			       Junk = resAddField(tp2);
-			       if (Junk->tj_status & RES_TILE_SD)
-			       {
-			       	    j0->sourceEdge |= BOTTOMEDGE;
-			       }
-			  }
-		     }
-		     /*right*/
-		     for (tp2= TR(tp1); TOP(tp2) > BOTTOM(tp1); tp2 = LB(tp2))
-		     {
-		     	  if ((TiGetLeftType(tp2) == t1) &&
-			      (tp2->ti_client == (ClientData) CLIENTDEFAULT))
-			       {
-     	  			    Junk = resAddField(tp2);
-				    STACKPUSH((ClientData)(tp2),resTransStack);
-	       			    Junk->transistorList =  resFet;
-	       			    Junk->tj_status |= RES_TILE_TRAN;
-			       }
-	      	    	  else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
-				TiGetLeftType(tp2))
-			  {
-     	  		       Junk = resAddField(tp2);
-			       if (Junk->tj_status & RES_TILE_SD)
-			       {
-			       	    j0->sourceEdge |= RIGHTEDGE;
-			       }
-			  }
-		     }
-		     /*left*/
-		     for (tp2= BL(tp1); BOTTOM(tp2) < TOP(tp1); tp2 = RT(tp2))
-		     {
-		     	  if ((TiGetRightType(tp2) == t1) &&
-			      (tp2->ti_client == (ClientData) CLIENTDEFAULT))
-			       {
-     	  			    Junk = resAddField(tp2);
-				    STACKPUSH((ClientData)(tp2),resTransStack);
-	       			    Junk->transistorList =  resFet;
-	       			    Junk->tj_status |= RES_TILE_TRAN;
-			       }
-	      	    	  else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
-				TiGetRightType(tp2))
-			  {
-     	  		       Junk = resAddField(tp2);
-			       if (Junk->tj_status & RES_TILE_SD)
-			       {
-			       	    j0->sourceEdge |= LEFTEDGE;
-			       }
-			  }
-		     }
-	       }
-
-	       /* unmark all tiles marked as being part of source */
-
-	       if (source != (Tile *) NULL)
-	       {
-	            tileJunk	*j = (tileJunk *) source->ti_client;
-
-		    STACKPUSH((ClientData) (source),resTransStack);
-		    j->tj_status &= ~RES_TILE_SD;
-	       }
-	       while (!StackEmpty(resTransStack))
-	       {
-	       	    tp1 = (Tile *) STACKPOP(resTransStack);
-		    if (IsSplit(tp1))
-		    {
-			t1 = (SplitSide(tp1)) ? SplitRightType(tp1) :
-				SplitLeftType(tp1);
 		    }
-		    else
-		        t1 = TiGetTypeExact(tp1);
+	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+				TiGetBottomType(tp2))
+		    {
+			Junk = resAddField(tp2);
+			if (Junk->tj_status & RES_TILE_SD)
+			       	    j0->sourceEdge |= TOPEDGE;
+		    }
+		}
+		/*bottom*/
+		for (tp2= LB(tp1); LEFT(tp2) < RIGHT(tp1); tp2 = TR(tp2))
+		{
+		    if ((TiGetTopType(tp2) == t1) &&
+			      (tp2->ti_client == (ClientData) CLIENTDEFAULT))
+		    {
+     	  		Junk = resAddField(tp2);
+			STACKPUSH((ClientData)(tp2),resDevStack);
+	       		Junk->deviceList =  resDev;
+	       		Junk->tj_status |= RES_TILE_DEV;
+		    }
+	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+				TiGetTopType(tp2))
+		    {
+			Junk = resAddField(tp2);
+			if (Junk->tj_status & RES_TILE_SD)
+			    j0->sourceEdge |= BOTTOMEDGE;
+		    }
+		}
+		/*right*/
+		for (tp2= TR(tp1); TOP(tp2) > BOTTOM(tp1); tp2 = LB(tp2))
+		{
+		    if ((TiGetLeftType(tp2) == t1) &&
+			      (tp2->ti_client == (ClientData) CLIENTDEFAULT))
+		    {
+			Junk = resAddField(tp2);
+			STACKPUSH((ClientData)(tp2),resDevStack);
+	       		Junk->deviceList =  resDev;
+	       		Junk->tj_status |= RES_TILE_DEV;
+		    }
+	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+				TiGetLeftType(tp2))
+		   {
+     	  		Junk = resAddField(tp2);
+			if (Junk->tj_status & RES_TILE_SD)
+			    j0->sourceEdge |= RIGHTEDGE;
+		    }
+		}
+		/*left*/
+		for (tp2= BL(tp1); BOTTOM(tp2) < TOP(tp1); tp2 = RT(tp2))
+		{
+		    if ((TiGetRightType(tp2) == t1) &&
+			      (tp2->ti_client == (ClientData) CLIENTDEFAULT))
+		    {
+     	  		Junk = resAddField(tp2);
+			STACKPUSH((ClientData)(tp2),resDevStack);
+	       		Junk->deviceList =  resDev;
+	       		Junk->tj_status |= RES_TILE_DEV;
+		    }
+	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+				TiGetRightType(tp2))
+		    {
+     	  		Junk = resAddField(tp2);
+			if (Junk->tj_status & RES_TILE_SD)
+			    j0->sourceEdge |= LEFTEDGE;
+		    }
+		}
+	    }
 
-		     /* top */
-		     for (tp2= RT(tp1); RIGHT(tp2) > LEFT(tp1); tp2 = BL(tp2))
-		     {
-		          tileJunk	*j2 = (tileJunk *) tp2->ti_client;
-			  if (TiGetBottomType(tp2) == t1)
-		          {
-			       if (j2->tj_status & RES_TILE_SD)
-			       {
-			            j2->tj_status &= ~RES_TILE_SD;
-	            	            STACKPUSH((ClientData) tp2,resTransStack);
-			       }
-		          }
-		     }
-		     /*bottom*/
-		     for(tp2= LB(tp1); LEFT(tp2) < RIGHT(tp1); tp2 = TR(tp2))
-		     {
-		          tileJunk	*j2 = (tileJunk *) tp2->ti_client;
-		          if (TiGetTopType(tp2) == t1)
-		          {
-			       if (j2->tj_status & RES_TILE_SD)
-			       {
-			            j2->tj_status &= ~RES_TILE_SD;
-	            	            STACKPUSH((ClientData) tp2,resTransStack);
-			       }
-		          }
-		     }
-		     /*right*/
-		     for (tp2= TR(tp1); TOP(tp2) > BOTTOM(tp1); tp2 = LB(tp2))
-		     {
-		          tileJunk	*j2 = (tileJunk *) tp2->ti_client;
-		          if (TiGetLeftType(tp2) == t1)
-		          {
-			       if (j2->tj_status & RES_TILE_SD)
-			       {
-			            j2->tj_status &= ~RES_TILE_SD;
-	            	            STACKPUSH((ClientData) tp2,resTransStack);
-			       }
-		          }
-		     }
-		     /*left*/
-		     for (tp2= BL(tp1); BOTTOM(tp2) < TOP(tp1); tp2 = RT(tp2))
-		     {
-		          tileJunk	*j2 = (tileJunk *) tp2->ti_client;
-		          if (TiGetRightType(tp2) == t1)
-		          {
-			       if (j2->tj_status & RES_TILE_SD)
-			       {
-			            j2->tj_status &= ~RES_TILE_SD;
-	            	            STACKPUSH((ClientData) tp2,resTransStack);
-			       }
-		          }
-		     }
-	       }
-	  }
-     }
-     return(0);
+	    /* unmark all tiles marked as being part of source */
+
+	    if (source != (Tile *) NULL)
+	    {
+	        tileJunk	*j = (tileJunk *) source->ti_client;
+
+		STACKPUSH((ClientData) (source),resDevStack);
+		j->tj_status &= ~RES_TILE_SD;
+	    }
+	    while (!StackEmpty(resDevStack))
+	    {
+	        tp1 = (Tile *) STACKPOP(resDevStack);
+		if (IsSplit(tp1))
+		{
+		    t1 = (SplitSide(tp1)) ? SplitRightType(tp1) :
+				SplitLeftType(tp1);
+		}
+		else
+		    t1 = TiGetTypeExact(tp1);
+
+		/* top */
+		for (tp2= RT(tp1); RIGHT(tp2) > LEFT(tp1); tp2 = BL(tp2))
+		{
+		    tileJunk	*j2 = (tileJunk *) tp2->ti_client;
+		    if (TiGetBottomType(tp2) == t1)
+		    {
+			if (j2->tj_status & RES_TILE_SD)
+			{
+			    j2->tj_status &= ~RES_TILE_SD;
+	            	    STACKPUSH((ClientData) tp2,resDevStack);
+			}
+		    }
+		}
+		/*bottom*/
+		for(tp2= LB(tp1); LEFT(tp2) < RIGHT(tp1); tp2 = TR(tp2))
+		{
+		    tileJunk	*j2 = (tileJunk *) tp2->ti_client;
+		    if (TiGetTopType(tp2) == t1)
+		    {
+			if (j2->tj_status & RES_TILE_SD)
+			{
+			    j2->tj_status &= ~RES_TILE_SD;
+	           	    STACKPUSH((ClientData) tp2,resDevStack);
+			}
+		    }
+		}
+		/*right*/
+		for (tp2= TR(tp1); TOP(tp2) > BOTTOM(tp1); tp2 = LB(tp2))
+		{
+		    tileJunk	*j2 = (tileJunk *) tp2->ti_client;
+		    if (TiGetLeftType(tp2) == t1)
+		    {
+			if (j2->tj_status & RES_TILE_SD)
+			{
+			    j2->tj_status &= ~RES_TILE_SD;
+	            	    STACKPUSH((ClientData) tp2,resDevStack);
+			}
+		    }
+		}
+		/*left*/
+		for (tp2= BL(tp1); BOTTOM(tp2) < TOP(tp1); tp2 = RT(tp2))
+		{
+		    tileJunk	*j2 = (tileJunk *) tp2->ti_client;
+		    if (TiGetRightType(tp2) == t1)
+		    {
+			if (j2->tj_status & RES_TILE_SD)
+			{
+			    j2->tj_status &= ~RES_TILE_SD;
+	            	    STACKPUSH((ClientData) tp2,resDevStack);
+			}
+		    }
+		}
+	    }
+	}
+    }
+    return(0);
 }
 
 /*
@@ -539,39 +546,39 @@ ResRemovePlumbing(tile, arg)
 /*
  *-------------------------------------------------------------------------
  *
- * ResPreprocessTransistors-- Given a list of all the transistor tiles and 
- * a list of all the transistors, this procedure calculates the width and 
+ * ResPreprocessDevices-- Given a list of all the device tiles and 
+ * a list of all the devices, this procedure calculates the width and 
  * length.  The width is set equal to the sum of all edges that touch 
  * diffusion divided by 2. The length is the remaining perimeter divided by 
- * 2*tiles.  The perimeter and area fields of transistor structures are also
+ * 2*tiles.  The perimeter and area fields of device structures are also
  * fixed.
  *
  * Results: none
  *
- * Side Effects: sets length and width of transistors. "ResTransTile" 
+ * Side Effects: sets length and width of devices. "ResDevTile" 
  * structures are freed.
  *
  *-------------------------------------------------------------------------
  */
 
 void
-ResPreProcessTransistors(TileList, TransistorList, Def)
-    ResTranTile		*TileList;
-    resTransistor	*TransistorList;
+ResPreProcessDevices(TileList, DeviceList, Def)
+    ResDevTile		*TileList;
+    resDevice		*DeviceList;
     CellDef		*Def;
 {
     Tile	*tile;
-    ResTranTile	*oldTile;
+    ResDevTile	*oldTile;
     tileJunk	*tstruct;
     TileType	tt, residue;
     int		pNum;
      
-    while (TileList != (ResTranTile *) NULL)
+    while (TileList != (ResDevTile *) NULL)
     {
 	tt = TileList->type;
 	if (DBIsContact(tt))
 	{
-	    /* Find which residue of the contact is a transistor type. */
+	    /* Find which residue of the contact is a device. */
 	    TileTypeBitMask ttresidues;
 
 	    DBFullResidueMask(tt, &ttresidues);
@@ -598,51 +605,51 @@ ResPreProcessTransistors(TileList, TransistorList, Def)
 	tstruct = (tileJunk *) tile->ti_client;
 
 	if (!TTMaskHasType(&ExtCurStyle->exts_deviceMask, tt) ||
-				tstruct->transistorList == NULL)
+				tstruct->deviceList == NULL)
 	{
-	    TxError("Bad Transistor Location at %d,%d\n",
+	    TxError("Bad Device Location at %d,%d\n",
 			TileList->area.r_ll.p_x,
 			TileList->area.r_ll.p_y);
 	}
 	else if ((tstruct->tj_status & RES_TILE_MARK) == 0)
 	{
-	    resTransistor	*rt = tstruct->transistorList;
+	    resDevice	*rd = tstruct->deviceList;
 
 	    tstruct->tj_status |= RES_TILE_MARK;
-	    rt->rt_perim += TileList->perim;
-	    rt->rt_length += TileList->overlap;
-	    rt->rt_area += (TileList->area.r_xtop - TileList->area.r_xbot)
+	    rd->rd_perim += TileList->perim;
+	    rd->rd_length += TileList->overlap;
+	    rd->rd_area += (TileList->area.r_xtop - TileList->area.r_xbot)
 			* (TileList->area.r_ytop - TileList->area.r_ybot);
-	    rt->rt_tiles++;
+	    rd->rd_tiles++;
 	}
 	oldTile = TileList;
-	TileList = TileList->nextTran;
+	TileList = TileList->nextDev;
 	freeMagic((char *)oldTile);
     }
 
-    for(; TransistorList != NULL;TransistorList = TransistorList->rt_nextTran)
+    for(; DeviceList != NULL;DeviceList = DeviceList->rd_nextDev)
     {
-     	int width  = TransistorList->rt_perim;
-	int length = TransistorList->rt_length;
-	if (TransistorList->rt_tiles != 0)
+     	int width  = DeviceList->rd_perim;
+	int length = DeviceList->rd_length;
+	if (DeviceList->rd_tiles != 0)
 	{
 	    if (length)
 	    {
-	        TransistorList->rt_length = (float) length /
-			((float)((TransistorList->rt_tiles) << 1));
-	        TransistorList->rt_width = (width-length) >> 1;
+	        DeviceList->rd_length = (float) length /
+			((float)((DeviceList->rd_tiles) << 1));
+	        DeviceList->rd_width = (width-length) >> 1;
 	    }
 	    else
 	    {
-	       	double perimeter = TransistorList->rt_perim;
-		double area = TransistorList->rt_area;
+	       	double perimeter = DeviceList->rd_perim;
+		double area = DeviceList->rd_area;
 		    
 		perimeter /= 4.0;
 
-		TransistorList->rt_width = perimeter +
+		DeviceList->rd_width = perimeter +
 			sqrt(perimeter * perimeter-area);
-		TransistorList->rt_length = (TransistorList->rt_perim
-			- 2 * TransistorList->rt_width) >> 1;
+		DeviceList->rd_length = (DeviceList->rd_perim
+			- 2 * DeviceList->rd_width) >> 1;
 	    }
 	}
     }

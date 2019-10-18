@@ -79,7 +79,10 @@ DBPropPut(cellDef, name, value)
     entry = HashFind(htab, name);
     oldvalue = (char *)HashGetValue(entry);
     if (oldvalue != NULL) freeMagic(oldvalue);
-    HashSetValue(entry, value);
+    if (value == (ClientData)NULL)
+	HashRemove(htab, name);
+    else
+	HashSetValue(entry, value);
 }
 
 /* ----------------------------------------------------------------------------

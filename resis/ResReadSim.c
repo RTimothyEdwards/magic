@@ -36,12 +36,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 
 /* constants defining where various fields can be found in .sim files. */
-#define		RTRAN_LENGTH		4
-#define		RTRAN_WIDTH		5
-#define		RTRAN_TRANX		6
-#define		RTRAN_TRANY		7
-#define		RTRAN_ATTR		8
-#define		RTRAN_NUM_ATTR		3
+#define		RDEV_LENGTH		4
+#define		RDEV_WIDTH		5
+#define		RDEV_DEVX		6
+#define		RDEV_DEVY		7
+#define		RDEV_ATTR		8
+#define		RDEV_NUM_ATTR		3
 #define		RESNODENAME	1
 #define		NODERESISTANCE	2
 #define		COUPLETERMINAL1 1
@@ -80,7 +80,7 @@ ResSimNode *ResInitializeNode();
 
 ResSimNode	*ResOriginalNodes;	/*Linked List of Nodes 	*/
 static float	lambda=1.0;       	/* Scale factor		*/
-char	RTRAN_NOATTR[1]={'0'};
+char	RDEV_NOATTR[1]={'0'};
 ResFixPoint		*ResFixList;
 
 #define nodeinit(n)\
@@ -185,7 +185,7 @@ ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
 	       }
 	       if (fettype == -1)
 	       {
-	       	    TxError("Error in Reading tran line of sim file.\n");
+	       	    TxError("Error in Reading device line of sim file.\n");
 		    result = 1;
 	       }
 	       else if (fettype != MINFINITY)
@@ -320,29 +320,29 @@ gettokens(line,fp)
 /*
  *-------------------------------------------------------------------------
  *
- *  ResSimTransistor-- Processes a transistor line from a sim file.
+ *  ResSimDevice-- Processes a device line from a sim file.
  *
  * Results: returns 0 if line was added correctly.
  *
- * Side Effects: Allocates transistors and adds nodes to the node hash table.
+ * Side Effects: Allocates devices and adds nodes to the node hash table.
  *
  *-------------------------------------------------------------------------
  */
 
 int
-ResSimTransistor(line,rpersquare,ttype)
+ResSimDevice(line,rpersquare,ttype)
 	char line[][MAXTOKEN];
 	float	rpersquare;
 	TileType	ttype;
 
 {
-     RTran		*transistor;
+     RDev		*device;
      int		rvalue,i,j,k;
      char		*newattr,tmpattr[MAXTOKEN];
      static int		nowarning = TRUE;
      
-     transistor = (RTran *) mallocMagic((unsigned) (sizeof(RTran)));
-     if ((line[RTRAN_WIDTH][0] == '\0') || (line[RTRAN_LENGTH][0] == '\0'))
+     device = (RDev *) mallocMagic((unsigned) (sizeof(RDev)));
+     if ((line[RDEV_WIDTH][0] == '\0') || (line[RDEV_LENGTH][0] == '\0'))
      {
      	  TxError("error in input file:\n");
 	  return(1);
@@ -355,23 +355,23 @@ ResSimTransistor(line,rpersquare,ttype)
 		TxError("All driven nodes will be extracted\n");
 		nowarning = FALSE;
 	   }
-	   transistor->resistance = MagAtof(line[RTRAN_LENGTH]) * rpersquare/MagAtof(line[RTRAN_WIDTH]);
+	   device->resistance = MagAtof(line[RDEV_LENGTH]) * rpersquare/MagAtof(line[RDEV_WIDTH]);
      }
-     transistor->tnumber = ++Maxtnumber;
-     transistor->status = FALSE;
-     transistor->nextTran = ResTranList;
-     transistor->location.p_x = atoi(line[RTRAN_TRANX]);
-     transistor->location.p_y = atoi(line[RTRAN_TRANY]);
-     transistor->rs_gattr=RTRAN_NOATTR;
-     transistor->rs_sattr=RTRAN_NOATTR;
-     transistor->rs_dattr=RTRAN_NOATTR;
-     transistor->rs_ttype = ttype;
+     device->tnumber = ++Maxtnumber;
+     device->status = FALSE;
+     device->nextDev = ResRDevList;
+     device->location.p_x = atoi(line[RDEV_DEVX]);
+     device->location.p_y = atoi(line[RDEV_DEVY]);
+     device->rs_gattr=RDEV_NOATTR;
+     device->rs_sattr=RDEV_NOATTR;
+     device->rs_dattr=RDEV_NOATTR;
+     device->rs_ttype = ttype;
      
      /* sim attributes look like g=a1,a2   	 */
      /* ext attributes are "a1","a2"	   	 */
      /* do conversion from one to the other here */
 
-     for (i=RTRAN_ATTR;i < RTRAN_ATTR+RTRAN_NUM_ATTR;i++)
+     for (i=RDEV_ATTR;i < RDEV_ATTR+RDEV_NUM_ATTR;i++)
      {
      	  if (line[i][0] == '\0') break;
 	  k=0;
@@ -395,18 +395,18 @@ ResSimTransistor(line,rpersquare,ttype)
 	  strncpy(newattr,tmpattr,k);
 	  switch (line[i][0])
 	  {
-	       case 'g': transistor->rs_gattr =  newattr; break;
-	       case 's': transistor->rs_sattr =  newattr; break;
-	       case 'd': transistor->rs_dattr =  newattr; break;
+	       case 'g': device->rs_gattr =  newattr; break;
+	       case 's': device->rs_sattr =  newattr; break;
+	       case 'd': device->rs_dattr =  newattr; break;
 	       default: TxError("Bad fet attribute\n");
 	       		break;
 	  }
      }
-     ResTranList = transistor;
-     transistor->layout = NULL;
-     rvalue = ResSimNewNode(line[GATE],GATE,transistor) +
-     	      ResSimNewNode(line[SOURCE],SOURCE,transistor) +
-     	      ResSimNewNode(line[DRAIN],DRAIN,transistor);
+     ResRDevList = device;
+     device->layout = NULL;
+     rvalue = ResSimNewNode(line[GATE],GATE,device) +
+     	      ResSimNewNode(line[SOURCE],SOURCE,device) +
+     	      ResSimNewNode(line[DRAIN],DRAIN,device);
      
      return(rvalue);
 }
@@ -425,35 +425,35 @@ ResSimTransistor(line,rpersquare,ttype)
  */
 
 int
-ResSimNewNode(line,type,transistor)
+ResSimNewNode(line,type,device)
 	char 		line[];
 	int		type;
-	RTran		*transistor;
+	RDev		*device;
 
 {
      HashEntry		*entry;
      ResSimNode		*node;
-     tranPtr		*tptr;
+     devPtr		*tptr;
      
      if (line[0] == '\0')
      {
-     	  TxError("Missing transistor connection\n");
+     	  TxError("Missing device connection\n");
 	  return(1);
      }
      entry = HashFind(&ResNodeTable,line);
      node = ResInitializeNode(entry);
-     tptr = (tranPtr *) mallocMagic((unsigned) (sizeof(tranPtr)));
-     tptr->thisTran = transistor;
-     tptr->nextTran = node->firstTran;
-     node->firstTran = tptr;
+     tptr = (devPtr *) mallocMagic((unsigned) (sizeof(devPtr)));
+     tptr->thisDev = device;
+     tptr->nextDev = node->firstDev;
+     node->firstDev = tptr;
      tptr->terminal = type;
      switch(type)
      {
-     	  case GATE:   transistor->gate = node;
+     	  case GATE:   device->gate = node;
 	  	       break;
-     	  case SOURCE: transistor->source = node;
+     	  case SOURCE: device->source = node;
 	  	       break;
-     	  case DRAIN:  transistor->drain = node;
+     	  case DRAIN:  device->drain = node;
 	  	       break;
 	  default:  TxError("Bad Terminal Specifier\n");
 	  		break;
@@ -806,7 +806,7 @@ ResSimMerge(line)
 
 {
      ResSimNode		*node;
-     tranPtr		*ptr;
+     devPtr		*ptr;
      
      if ((line[ALIASNAME][0] == '\0') || (line[REALNAME][0] == '\0'))
      {
@@ -818,12 +818,12 @@ ResSimMerge(line)
      node->forward = ResInitializeNode(HashFind(&ResNodeTable,line[REALNAME]));
      node->forward->resistance += node->resistance;
      node->forward->capacitance += node->capacitance;
-     while (node->firstTran != NULL)
+     while (node->firstDev != NULL)
      {
-     	  ptr=node->firstTran;
-	  node->firstTran = node->firstTran->nextTran;
-	  ptr->nextTran = node->forward->firstTran;
-	  node->forward->firstTran = ptr;
+     	  ptr=node->firstDev;
+	  node->firstDev = node->firstDev->nextDev;
+	  ptr->nextDev = node->forward->firstDev;
+	  node->forward->firstDev = ptr;
      }
      return(0);
 }
@@ -860,7 +860,7 @@ ResInitializeNode(entry)
 	  node->cap_couple = 0;
 	  node->resistance = 0;
 	  node->type = 0;
-	  node->firstTran = NULL;
+	  node->firstDev = NULL;
 	  node->name = entry->h_key.h_name;
 	  node->oldname = NULL;
 	  node->drivepoint.p_x = INFINITY;

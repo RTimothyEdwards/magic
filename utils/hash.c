@@ -557,6 +557,51 @@ HashStats(table)
 	printf("# of buckets with %d entries: %d.\n", i, count[i]);
     printf("# of buckets with >%d entries: %d.\n", MAXCOUNT-1, overflow);
 }
+
+/*---------------------------------------------------------
+ *
+ * HashRemove --
+ *
+ *	Remove an entry from the hash table.  The entry
+ *	is assumed to have no data (NULL value).  Only
+ *	use this routine on STRINGKEY type hash tables.
+ *	If the entry does not exist, then the routine
+ *	returns without doing anything.
+ *
+ *  Results:
+ *	None
+ *---------------------------------------------------------
+ */
+
+void
+HashRemove(table, key)
+    HashTable *table;	/* Hash table to search. */
+    char *key;			/* Interpreted according to table->ht_ptrKeys
+				 * as described in HashInit()'s comments.
+				 */
+{
+    HashEntry *h, *hlast;
+    int bucket;
+
+    bucket = hash(table, key);
+    h = *(table->ht_table + bucket);
+    hlast = NULL;
+    while (h != NIL)
+    {
+	if (strcmp(h->h_key.h_name, key) == 0)
+	{
+	    freeMagic((char *)h);
+	    if (hlast != NULL)
+		hlast->h_next = h->h_next;
+	    else
+		*(table->ht_table + bucket) = h->h_next;
+	    break;
+	}
+	hlast = h;
+	h = h->h_next;
+    }
+}
+
 
 /*---------------------------------------------------------
  *
