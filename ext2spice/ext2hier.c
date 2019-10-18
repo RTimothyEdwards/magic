@@ -1596,7 +1596,7 @@ esMakePorts(hc, cdata)
 
 		// Find the cell for the instance
 		portdef = NULL;
-		he = HashFind(&updef->def_uses, portname);
+		he = HashLookOnly(&updef->def_uses, portname);
 		if (he != NULL)
 		{
 		    use = (Use *)HashGetValue(he);
