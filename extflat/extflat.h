@@ -142,7 +142,7 @@ typedef struct
 {
     int		 pa_area;
     int		 pa_perim;
-} PerimArea;
+} EFPerimArea;
 
 typedef struct efnhdr
 {
@@ -219,7 +219,7 @@ typedef struct efnode
 				 */
     EFAttr	*efnode_attrs;	/* Node attribute list */
     ClientData	 efnode_client;	/* For hire */
-    PerimArea	 efnode_pa[1];	/* Dummy; each node actually has
+    EFPerimArea	 efnode_pa[1];	/* Dummy; each node actually has
 				 * efNumResistClasses array elements
 				 * allocated to it.
 				 */

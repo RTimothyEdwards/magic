@@ -172,7 +172,7 @@ efBuildNode(def, isSubsnode, nodeName, nodeCap, x, y, layerName, av, ac)
     HashSetValue(he, (char *) newname);
 
     /* New node itself */
-    size = sizeof (EFNode) + (efNumResistClasses - 1) * sizeof (PerimArea);
+    size = sizeof (EFNode) + (efNumResistClasses - 1) * sizeof (EFPerimArea);
     newnode = (EFNode *) mallocMagic((unsigned)(size));
     newnode->efnode_flags = (isSubsnode == TRUE) ? EF_SUBS_NODE : 0;
     newnode->efnode_cap = nodeCap;
@@ -1182,7 +1182,7 @@ efBuildConnect(def, nodeName1, nodeName2, deltaC, av, ac)
     int n;
     Connection *conn;
     unsigned size = sizeof (Connection)
-		    + (efNumResistClasses - 1) * sizeof (PerimArea);
+		    + (efNumResistClasses - 1) * sizeof (EFPerimArea);
 
     conn = (Connection *) mallocMagic((unsigned)(size));
 

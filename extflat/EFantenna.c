@@ -29,7 +29,8 @@
 #include "textio/txcommands.h"
 #endif
 #include "extflat/extflat.h"
-#include "extract/extract.h"	/* for extDevTable */
+#include "extract/extract.h"
+#include "extract/extractInt.h"
 #include "utils/malloc.h"
 
 /* Forward declarations */
@@ -103,6 +104,8 @@ CmdAntennaCheck(w, cmd)
     char *subname;
     int idx;
 
+    CellUse *editUse;
+
     static char *cmdAntennaCheckOption[] = {
 	"[run] [options]	run antennacheck on current cell\n"
 	"			use \"run -help\" to get standard options",
@@ -134,6 +137,13 @@ usage:
 
 runantennacheck:
 
+    if (ExtCurStyle->exts_planeOrderStatus == noPlaneOrder)
+    {
+	TxError("No planeorder specified for this process:  "
+		    "Cannot run antenna checks!\n");
+	return;
+    }
+
     EFInit();
     EFCapThreshold = INFINITY;
     EFResistThreshold = INFINITY;
@@ -162,6 +172,7 @@ runantennacheck:
 	}
 	inName = ((CellUse *) w->w_surfaceID)->cu_def->cd_name;
     }
+    editUse = (CellUse *)w->w_surfaceID;
 
     /*
      * Initializations specific to this program.
@@ -178,7 +189,7 @@ runantennacheck:
     flatFlags = EF_FLATNODES;
     EFFlatBuild(inName, flatFlags);
 
-    EFVisitDevs(antennacheckVisit, (ClientData)NULL);
+    EFVisitDevs(antennacheckVisit, (ClientData)editUse);
     EFFlatDone();
     EFDone();
 
@@ -234,9 +245,30 @@ usage:
     TxError("Usage: antennacheck\n");
     return 1;
 }
-
 
-
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * AntennaGetNode --
+ *
+ * function to find a node given its hierarchical prefix and suffix
+ *
+ * Results:
+ *  a pointer to the node struct or NULL
+ *
+ * ----------------------------------------------------------------------------
+ */
+EFNode *
+AntennaGetNode(prefix, suffix)
+HierName *prefix;
+HierName *suffix;
+{
+        HashEntry *he;
+
+        he = EFHNConcatLook(prefix, suffix, "output");
+        return(((EFNodeName *) HashGetValue(he))->efnn_node);
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -256,15 +288,30 @@ usage:
  */
 
 int
-antennacheckVisit(dev, hierName, scale, trans)
+antennacheckVisit(dev, hierName, scale, trans, editUse)
     Dev *dev;		/* Device being output */
     HierName *hierName;	/* Hierarchical path down to this device */
     float scale;	/* Scale transform for output */
     Transform *trans;	/* Coordinate transform */
+    CellUse *editUse;	/* ClientData is edit cell use */
 {
-    DevTerm *gate, *source, *drain;
-    int l, w;
+    DevTerm *gate;
+    int pos, pNum, pNum2, pmax, p, i, j, gatearea, diffarea, total;
+    double difftotal;
+    int *antennaarea;
     Rect r;
+    EFNode *gnode;
+    SearchContext scx;
+    TileTypeBitMask gatemask;
+
+    extern CellDef *extPathDef;	    /* see extract/ExtLength.c */
+    extern CellUse *extPathUse;	    /* see extract/ExtLength.c */
+
+    extern int  areaAccumFunc(), antennaAccumFunc();
+
+    antennaarea = (int *)mallocMagic(DBNumTypes * sizeof(int));
+    
+    for (i = 0; i < DBNumTypes; i++) antennaarea[i] = 0;
 
     switch(dev->dev_class)
     {
@@ -274,24 +321,176 @@ antennacheckVisit(dev, hierName, scale, trans)
 
 	    /* Procedure:
 	     *
-	     * 1.  If device is marked visited, return.
-	     * 2.  Mark device visited
-	     * 3.  Mark all connected devices visited
-	     * 4.  For each plane from metal1 up (determined by planeorder):
-	     *   a.  Run SimTreeCopyConnect()
+	     * 1.  If device gate node is marked visited, return.
+	     * 2.  Mark device gate node visited
+	     * 3.  For each plane from metal1 up (determined by planeorder):
+	     *   a.  Run DBTreeCopyConnect()
 	     *   b.  Accumulate gate area of connected devices
-	     *	 c.  Accumulate	metal area of connected devices
-	     *	 d.  Check against antenna ratio
-	     *	 e.  Generate feedback if in violation of antenna rule
+	     *   c.  Accumulate diffusion area of connected devices
+	     *	 d.  Accumulate	metal area of connected devices
+	     *	 e.  Check against antenna ratio(s)
+	     *	 f.  Generate feedback if in violation of antenna rule
 	     *
-	     * NOTE:  SimTreeCopyConnect() is used cumulatively, so that
+	     * NOTE: DBTreeCopyConnect() is used cumulatively, so that
 	     * additional searching only needs to be done for the additional
-	     * layer being searched.  This is the reason for using
-	     * SimTreeCopyConnect() instead of DBTreeCopyConnect().
+	     * layer being searched.
 	     */
 
-	    /* To be completed */
+	    gate = &dev->dev_terms[0];
+
+	    gnode = AntennaGetNode(hierName, gate->dterm_node->efnode_name->efnn_hier);
+	    if (beenVisited((nodeClient *)gnode->efnode_client, 0))
+		return 0;
+	    else
+		markVisited((nodeClient *)gnode->efnode_client, 0);
+
+	    /* Find the plane of the gate type */
+	    pNum = DBPlane(dev->dev_type);
+	    pos = ExtCurStyle->exts_planeOrder[pNum];
+	    pmax = ++pos;
+
+	    /* Find the highest plane in the technology */
+	    for (p = PL_TECHDEPBASE; p < DBNumPlanes; p++)
+		if (ExtCurStyle->exts_planeOrder[p] > pmax)
+		    pmax = ExtCurStyle->exts_planeOrder[p];
+
+	    /* Use the cellDef reserved for extraction */
+	    DBCellClearDef(extPathDef);
+	    scx.scx_use = editUse;
+	    scx.scx_trans = GeoIdentityTransform;
+
+	    /* gatemask is a mask of all gate types for MOSFET devices	*/
+
+	    TTMaskZero(&gatemask);
+	    for (i = 0; i < DBNumTypes; i++)
+	    {
+		ExtDevice *ed;
+		char devclass;
+
+		if (ExtCurStyle->exts_device[i] != NULL)
+		{
+		    for (ed = ExtCurStyle->exts_device[i]; ed; ed = ed->exts_next)
+		    {
+			devclass = ed->exts_deviceClass;
+			switch (devclass)
+			{
+			    case DEV_MOSFET:
+			    case DEV_FET:
+			    case DEV_ASYMMETRIC:
+			    case DEV_MSUBCKT:
+				TTMaskSetType(&gatemask, i);
+				break;
+			}
+		    }
+		}
+	    }
+
+	    for (; pos <= pmax; pos++)
+	    {
+		/* Modify DBConnectTbl to limit connectivity to the plane   */
+		/* of the antenna check and below			    */
+
+		/* To be completed */
+
+		DBTreeCopyConnect(&scx, &DBConnectTbl[dev->dev_type], 0,
+			DBConnectTbl, &TiPlaneRect, extPathUse);
+
+		/* Search plane of gate type and accumulate all (new) gate area */
+		DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[pNum],
+			&TiPlaneRect, &gatemask, areaAccumFunc, (ClientData)&gatearea);
+
+		/* Search planes of tie type and accumulate all (new) tiedown areas */
+		for (p = 0;  p < DBNumPlanes; p++)
+		    DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[p],
+			    &TiPlaneRect, &ExtCurStyle->exts_antennaTieTypes,
+			    areaAccumFunc, (ClientData)&diffarea);
+
+		/* Search metal planes and accumulate all (new) antenna areas */
+		for (p = 0;  p < DBNumPlanes; p++)
+		{
+		    if (ExtCurStyle->exts_planeOrder[p] == pos)
+		    {
+			pNum2 = p;
+		    }
+		    if (ExtCurStyle->exts_planeOrder[p] <= pos)
+			DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[p],
+				&TiPlaneRect, &DBAllButSpaceAndDRCBits,
+				antennaAccumFunc, (ClientData)&antennaarea);
+		}
+
+		/* To be elaborated. . . this encodes only one of several   */
+		/* methods of calculating antenna violations.		    */
+
+		if (diffarea == 0)
+		{
+		    difftotal = 0.0;
+		    for (i = 0; i < DBNumTypes; i++)
+			difftotal += antennaarea[i] / ExtCurStyle->exts_antennaRatio[i];
+
+		    if (difftotal > gatearea)
+			TxError("Antenna violation detected at plane %s "
+				"(violation to be elaborated)",
+				DBPlaneLongNameTbl[pNum2]);
+		}
+	    }
     }
     return 0;
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * areaAccumFunc --
+ *
+ *	Accumulate the total tile area searched
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+areaAccumFunc(tile, totalarea)
+    Tile *tile;
+    int *totalarea;
+{
+    Rect rect;
+    int area;
+
+    TiToRect(tile, &rect);
+
+    area += (rect.r_xtop - rect.r_xbot) * (rect.r_ytop - rect.r_ybot);
+
+    *totalarea += area;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * antennaAccumFunc --
+ *
+ *	Accumulate the total tile area searched, keeping an individual
+ *	count for each tile type.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+antennaAccumFunc(tile, typeareas)
+    Tile *tile;
+    int **typeareas;
+{
+    Rect rect;
+    int area;
+    int type;
+
+    type = TiGetType(tile);
+
+    TiToRect(tile, &rect);
+
+    area += (rect.r_xtop - rect.r_xbot) * (rect.r_ytop - rect.r_ybot);
+
+    *typeareas[type] += area;
+
+    return 0;
+}

@@ -32,4 +32,5 @@ EFantenna.o: EFantenna.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../utils/geometry.h ../utils/hash.h ../utils/utils.h ../tiles/tile.h \
  ../database/database.h ../windows/windows.h ../textio/textio.h \
  ../dbwind/dbwind.h ../textio/txcommands.h ../extflat/extflat.h \
- ../extract/extract.h ../utils/malloc.h
+ ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
+ ../utils/malloc.h

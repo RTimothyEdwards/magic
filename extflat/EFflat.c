@@ -430,7 +430,7 @@ efAddNodes(hc, stdcell)
     bool is_subcircuit = (def->def_flags & DEF_SUBCIRCUIT) ? TRUE : FALSE;
 
     scale = def->def_scale;
-    size = sizeof (EFNode) + (efNumResistClasses-1) * sizeof (PerimArea);
+    size = sizeof (EFNode) + (efNumResistClasses-1) * sizeof (EFPerimArea);
 
     for (node = (EFNode *) def->def_firstn.efnode_next;
 	    node != &def->def_firstn;
@@ -467,10 +467,10 @@ efAddNodes(hc, stdcell)
 	newnode->efnode_type = node->efnode_type;
 	if (!stdcell)
 	    bcopy((char *) node->efnode_pa, (char *) newnode->efnode_pa,
-			efNumResistClasses * sizeof (PerimArea));
+			efNumResistClasses * sizeof (EFPerimArea));
 	else
 	    bzero((char *) newnode->efnode_pa,
-			efNumResistClasses * sizeof (PerimArea));
+			efNumResistClasses * sizeof (EFPerimArea));
 	GeoTransRect(&hc->hc_trans, &node->efnode_loc, &newnode->efnode_loc);
 
 	/* Scale the result by "scale" --- hopefully we end up with an integer	*/
