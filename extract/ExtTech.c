@@ -71,7 +71,7 @@ typedef enum
     AREAC, CONTACT, CSCALE,
     DEFAULTAREACAP, DEFAULTOVERLAP, DEFAULTPERIMETER, DEFAULTSIDEOVERLAP,
     DEFAULTSIDEWALL,
-    DEVICE, FET, FETRESIST, HEIGHT, ANTENNA, LAMBDA, OVERC,
+    DEVICE, FET, FETRESIST, HEIGHT, ANTENNA, TIEDOWN, LAMBDA, OVERC,
     PERIMC, PLANEORDER, NOPLANEORDER, RESIST, RSCALE, SIDEHALO, SIDEOVERLAP,
     SIDEWALL, STEP, STYLE, SUBSTRATE, UNITS, VARIANT
 } Key;
@@ -124,6 +124,9 @@ static keydesc keyTable[] = {
 
     "antenna",		ANTENNA,	3,	3,
 "type antenna-ratio",
+
+    "tiedown",		TIEDOWN,	2,	2,
+"types",
 
     "lambda",		LAMBDA,		2,	2,
 "units-per-lambda",
@@ -665,14 +668,17 @@ extTechStyleInit(style)
     style->exts_numResistClasses = 0;
 
     style->exts_planeOrderStatus = needPlaneOrder ;
+    TTMaskZero(&style->exts_antennaTieTypes);
 
     for (r = 0; r < DBNumTypes; r++)
     {
+	style->exts_antennaRatio[r] = 0;
 	style->exts_resistByResistClass[r] = 0;
 	TTMaskZero(&style->exts_typesByResistClass[r]);
 	style->exts_typesResistChanged[r] = DBAllButSpaceAndDRCBits;
 	TTMaskSetType(&style->exts_typesResistChanged[r], TT_SPACE);
 	style->exts_typeToResistClass[r] = -1;
+
     }
     doConvert = FALSE;
 
@@ -1789,6 +1795,7 @@ ExtTechLine(sectionName, argc, argv)
 	case FETRESIST:
 	case HEIGHT:
 	case ANTENNA:
+	case TIEDOWN:
 	case OVERC:
 	case PERIMC:
 	case RESIST:
@@ -2324,6 +2331,9 @@ ExtTechLine(sectionName, argc, argv)
 		    ExtCurStyle->exts_antennaRatio[t] = antennaratio;
 		}
 	    }
+	    break;
+	case TIEDOWN:
+	    TTMaskSetMask(&ExtCurStyle->exts_antennaTieTypes, &types1);
 	    break;
 	case UNITS:
 	    if (!strcmp(argv[1], "microns"))

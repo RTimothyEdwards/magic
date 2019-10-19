@@ -133,7 +133,7 @@ typedef struct conn
     } conn_value;
 
     struct conn	*conn_next;	/* Next connection in list */
-    PerimArea	 conn_pa[1];	/* Dummy; each connection actually has
+    EFPerimArea	 conn_pa[1];	/* Dummy; each connection actually has
 				 * efNumResistClasses array elements
 				 * allocated to it.
 				 */

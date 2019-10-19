@@ -659,6 +659,9 @@ typedef struct extstyle
     /* Antenna area ratio for each layer */
     float		exts_antennaRatio[NT];
 
+    /* Mask of types that tie down antennas */
+    TileTypeBitMask	exts_antennaTieTypes;
+
     /*
      * Capacitance to substrate for each tile type, in units of
      * attofarads per square lambda.
