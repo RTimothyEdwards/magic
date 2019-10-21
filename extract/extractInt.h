@@ -48,6 +48,17 @@ typedef int ResValue;	/* Warning:  in some places resistances are stored
 			 * as ints.  This is here for documentation only.
 			 */
 
+typedef struct {
+     float ratioGate;
+     float ratioDiff;
+} RatioValues;
+
+/* Antenna models */
+#define ANTENNAMODEL_PARTIAL	   0x01
+#define ANTENNAMODEL_CUMULATIVE    0x02
+#define ANTENNAMODEL_AREA	   0x04
+#define ANTENNAMODEL_SIDEWALL	   0x08
+
 /* ------------------------ Parameter lists --------------------------- */
 
 /* These lists keep track of what parameter names subcircuit definitions
@@ -656,8 +667,10 @@ typedef struct extstyle
     float		exts_height[NT];
     float		exts_thick[NT];
 
+    char		exts_antennaModel;
+
     /* Antenna area ratio for each layer */
-    float		exts_antennaRatio[NT];
+    RatioValues		exts_antennaRatio[NT];
 
     /* Mask of types that tie down antennas */
     TileTypeBitMask	exts_antennaTieTypes;
@@ -1060,6 +1073,7 @@ extern NodeRegion *extBasic();
 extern NodeRegion *extFindNodes();
 extern ExtTree *extHierNewOne();
 extern int extNbrPushFunc();
+extern TileType extGetDevType();
 
 /* --------------------- Miscellaneous globals ------------------------ */
 

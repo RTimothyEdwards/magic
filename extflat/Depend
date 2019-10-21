@@ -29,8 +29,8 @@ EFvisit.o: EFvisit.c ../utils/magic.h ../utils/geometry.h \
  ../utils/geofast.h ../utils/hash.h ../utils/malloc.h ../utils/utils.h \
  ../extflat/extflat.h ../extflat/EFint.h ../extract/extract.h
 EFantenna.o: EFantenna.c ../tcltk/tclmagic.h ../utils/magic.h \
- ../utils/geometry.h ../utils/hash.h ../utils/utils.h ../tiles/tile.h \
- ../database/database.h ../windows/windows.h ../textio/textio.h \
- ../dbwind/dbwind.h ../textio/txcommands.h ../extflat/extflat.h \
- ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
- ../utils/malloc.h
+ ../utils/geometry.h ../utils/hash.h ../utils/utils.h ../utils/styles.h \
+ ../tiles/tile.h ../database/database.h ../windows/windows.h \
+ ../textio/textio.h ../dbwind/dbwind.h ../textio/txcommands.h \
+ ../extflat/extflat.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h ../utils/malloc.h
