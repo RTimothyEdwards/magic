@@ -76,6 +76,7 @@ extern void ExtSetStyle();
 extern void ExtPrintStyle();
 extern void ExtCell();
 
+
 #ifdef MAGIC_WRAPPER
 extern bool ExtGetDevInfo();
 extern bool ExtCompareStyle();

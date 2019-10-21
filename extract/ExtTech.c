@@ -71,7 +71,7 @@ typedef enum
     AREAC, CONTACT, CSCALE,
     DEFAULTAREACAP, DEFAULTOVERLAP, DEFAULTPERIMETER, DEFAULTSIDEOVERLAP,
     DEFAULTSIDEWALL,
-    DEVICE, FET, FETRESIST, HEIGHT, ANTENNA, TIEDOWN, LAMBDA, OVERC,
+    DEVICE, FET, FETRESIST, HEIGHT, ANTENNA, MODEL, TIEDOWN, LAMBDA, OVERC,
     PERIMC, PLANEORDER, NOPLANEORDER, RESIST, RSCALE, SIDEHALO, SIDEOVERLAP,
     SIDEWALL, STEP, STYLE, SUBSTRATE, UNITS, VARIANT
 } Key;
@@ -122,8 +122,11 @@ static keydesc keyTable[] = {
     "height",		HEIGHT,		4,	4,
 "type height-above-subtrate thickness",
 
-    "antenna",		ANTENNA,	3,	3,
+    "antenna",		ANTENNA,	4,	4,
 "type antenna-ratio",
+
+    "model",		MODEL,		3,	3,
+"partial-cumulative area-sidewall",
 
     "tiedown",		TIEDOWN,	2,	2,
 "types",
@@ -375,6 +378,35 @@ ExtGetDevInfo(idx, devnameptr, sd_rclassptr, sub_rclassptr, subnameptr)
 }
 
 #endif /* MAGIC_WRAPPER */
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extGetDevType --
+ *
+ *	Given an extraction model device name (devname), return the associated
+ *	magic tiletype for the device.
+ *
+ * Results:
+ *	Tile type that represents the device "devname" in the magic database.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+TileType
+extGetDevType(devname)
+    char *devname;
+{
+    TileType t;
+    ExtDevice *devptr;
+
+    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+	for (devptr = ExtCurStyle->exts_device[t]; devptr; devptr = devptr->exts_next)
+	    if (!strcmp(devptr->exts_deviceName, devname))
+		return t;
+
+    return -1;
+}
 
 
 #ifdef THREE_D
@@ -672,7 +704,8 @@ extTechStyleInit(style)
 
     for (r = 0; r < DBNumTypes; r++)
     {
-	style->exts_antennaRatio[r] = 0;
+	style->exts_antennaRatio[r].ratioGate = 0.0;
+	style->exts_antennaRatio[r].ratioDiff = 0.0;
 	style->exts_resistByResistClass[r] = 0;
 	TTMaskZero(&style->exts_typesByResistClass[r]);
 	style->exts_typesResistChanged[r] = DBAllButSpaceAndDRCBits;
@@ -2321,17 +2354,53 @@ ExtTechLine(sectionName, argc, argv)
 
 	    if (!StrIsNumeric(argv[2]))
 	    {
-		TechError("Layer antenna ratio %s must be numeric\n", argv[2]);
+		TechError("Gate layer antenna ratio %s must be numeric\n", argv[2]);
 		break;
 	    }
 	    antennaratio = (float)strtod(argv[2], NULL);
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 		if (TTMaskHasType(&types1, t))
 		{
-		    ExtCurStyle->exts_antennaRatio[t] = antennaratio;
+		    ExtCurStyle->exts_antennaRatio[t].ratioGate = antennaratio;
+		}
+
+	    if (!StrIsNumeric(argv[3]))
+	    {
+		if (!strcasecmp(argv[3], "none"))
+		    antennaratio = INFINITY;
+		else
+		{
+		    TechError("Diff layer antenna ratio %s must be numeric\n", argv[3]);
+		    break;
+		}
+	    }
+	    else
+		antennaratio = (float)strtod(argv[3], NULL);
+	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+		if (TTMaskHasType(&types1, t))
+		{
+		    ExtCurStyle->exts_antennaRatio[t].ratioDiff = antennaratio;
 		}
 	    }
 	    break;
+	case MODEL:
+	    if (!strcmp(argv[1], "partial"))
+		ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_PARTIAL;
+	    else if (!strcmp(argv[1], "cumulative"))
+		ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_CUMULATIVE;
+	    else
+		TxError("Unknown antenna model \"%s\":  Use \"partial\" or "
+			    "\"cumulative\"");
+
+	    if (!strcmp(argv[2], "area"))
+		ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_AREA;
+	    else if (!strcmp(argv[2], "sidewall"))
+		ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_SIDEWALL;
+	    else
+		TxError("Unknown antenna model \"%s\":  Use \"area\" or "
+			    "\"sidewall\"");
+	    break;
+
 	case TIEDOWN:
 	    TTMaskSetMask(&ExtCurStyle->exts_antennaTieTypes, &types1);
 	    break;
@@ -2973,6 +3042,10 @@ zinit:
 				ec = ec->ec_next)
 		    ec->ec_cap *= 0.5;
 	    }
+
+	    /* Layer thickness and height are in microns, but are floating-point */
+	    style->exts_thick[r] /= dscale;
+	    style->exts_height[r] /= dscale;
 	}
 
 	/* side halo and step size are also in microns */

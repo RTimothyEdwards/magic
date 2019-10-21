@@ -14,18 +14,20 @@
 #include <stdlib.h>	/* for atof() */
 #include <string.h>
 #include <ctype.h>
+#include <math.h>	/* for INFINITY */
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "utils/hash.h"
 #include "utils/utils.h"
+#include "utils/styles.h"
 #include "tiles/tile.h"
 #ifdef MAGIC_WRAPPER
 #include "database/database.h"
 #include "windows/windows.h"
 #include "textio/textio.h"
-#include "dbwind/dbwind.h"	/* for DBWclientID */
+#include "dbwind/dbwind.h"
 #include "textio/txcommands.h"
 #endif
 #include "extflat/extflat.h"
@@ -70,6 +72,34 @@ typedef struct {
 	((nodeClientHier *) (node)->efnode_client)->visitMask = (long) 0; \
 }
 
+/* Diagnostic */
+int efGates;
+static int efAntennaDebug = FALSE;
+
+/* The extract file is designed to be independent of the magic database,    */
+/* but that means that the device types do not match magic database types.  */
+/* A lookup table is needed to cross-reference the device types.	    */
+
+TileType *EFDeviceTypes;
+
+typedef struct _aas {
+    int *accum;		/* Pointer to array of accumulated areas per type */
+    int pNum;		/* Plane of check */
+    Rect r;		/* Holds any one visited rectangle */
+    CellDef *def;	/* CellDef for adding feedback */
+} AntennaAccumStruct;
+
+typedef struct _gdas {
+    int accum;		/* Accumulated area of all gates/diff */
+    Rect r;		/* Holds any one visited rectangle */
+    CellDef *def;	/* CellDef for adding feedback */
+} GateDiffAccumStruct;
+
+typedef struct _ams {
+    int pNum;		/* Plane of check */
+    CellDef *def;	/* CellDef for adding feedback */
+} AntennaMarkStruct;
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -80,16 +110,18 @@ typedef struct {
  */
 
 #define ANTENNACHECK_RUN     0
-#define ANTENNACHECK_HELP    1
+#define ANTENNACHECK_DEBUG   1
+#define ANTENNACHECK_HELP    2
 
 void
 CmdAntennaCheck(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    int i,flatFlags;
+    int i, flatFlags;
     char *inName;
     FILE *f;
+    TileType t;
 
     int option = ANTENNACHECK_RUN;
     int value;
@@ -109,6 +141,7 @@ CmdAntennaCheck(w, cmd)
     static char *cmdAntennaCheckOption[] = {
 	"[run] [options]	run antennacheck on current cell\n"
 	"			use \"run -help\" to get standard options",
+	"debug			print detailed information about each error",
         "help			print help information",
 	NULL
     };
@@ -124,6 +157,9 @@ CmdAntennaCheck(w, cmd)
     {
 	case ANTENNACHECK_RUN:
 	    goto runantennacheck;
+	    break;
+	case ANTENNACHECK_DEBUG:
+	    efAntennaDebug = TRUE;
 	    break;
 	case ANTENNACHECK_HELP:
 usage:
@@ -179,6 +215,7 @@ runantennacheck:
      */
 
     /* Read the hierarchical description of the input circuit */
+    TxPrintf("Reading extract file.\n");
     if (EFReadFile(inName, FALSE, FALSE, FALSE) == FALSE)
     {
 	EFDone();
@@ -187,13 +224,24 @@ runantennacheck:
 
     /* Convert the hierarchical description to a flat one */
     flatFlags = EF_FLATNODES;
+    TxPrintf("Building flattened netlist.\n");
     EFFlatBuild(inName, flatFlags);
 
+    /* Build device lookup table */
+    EFDeviceTypes = (TileType *)mallocMagic(MAXDEVTYPES * sizeof(TileType));
+    for (i = 0; i < MAXDEVTYPES; i++)
+	if (EFDevTypes[i])
+	    EFDeviceTypes[i] = extGetDevType(EFDevTypes[i]);
+
+    efGates = 0;
+    TxPrintf("Running antenna checks.\n");
     EFVisitDevs(antennacheckVisit, (ClientData)editUse);
     EFFlatDone();
     EFDone();
 
     TxPrintf("antennacheck finished.\n");
+    freeMagic(EFDeviceTypes);
+    efAntennaDebug = FALSE;
 }
 
 
@@ -296,28 +344,30 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
     CellUse *editUse;	/* ClientData is edit cell use */
 {
     DevTerm *gate;
+    TileType t, conType;
     int pos, pNum, pNum2, pmax, p, i, j, gatearea, diffarea, total;
-    double difftotal;
+    double anttotal;
+    float saveRatio;
     int *antennaarea;
-    Rect r;
+    Rect r, gaterect;
     EFNode *gnode;
     SearchContext scx;
-    TileTypeBitMask gatemask;
+    TileTypeBitMask gatemask, saveConMask;
+    bool antennaError;
 
     extern CellDef *extPathDef;	    /* see extract/ExtLength.c */
     extern CellUse *extPathUse;	    /* see extract/ExtLength.c */
 
-    extern int  areaAccumFunc(), antennaAccumFunc();
+    extern int  areaAccumFunc(), antennaAccumFunc(), areaMarkFunc();
 
     antennaarea = (int *)mallocMagic(DBNumTypes * sizeof(int));
     
-    for (i = 0; i < DBNumTypes; i++) antennaarea[i] = 0;
-
     switch(dev->dev_class)
     {
 	case DEV_FET:
 	case DEV_MOSFET:
-	    GeoTransRect(trans, &dev->dev_rect, &r);
+	case DEV_MSUBCKT:
+	case DEV_ASYMMETRIC:
 
 	    /* Procedure:
 	     *
@@ -336,16 +386,23 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 	     * layer being searched.
 	     */
 
+	    GeoTransRect(trans, &dev->dev_rect, &r);
 	    gate = &dev->dev_terms[0];
-
 	    gnode = AntennaGetNode(hierName, gate->dterm_node->efnode_name->efnn_hier);
+	    if (gnode->efnode_client == (ClientData) NULL)
+                initNodeClient(gnode);
 	    if (beenVisited((nodeClient *)gnode->efnode_client, 0))
 		return 0;
 	    else
 		markVisited((nodeClient *)gnode->efnode_client, 0);
 
+	    /* Diagnostic stuff */
+	    efGates++;
+	    if (efGates % 100 == 0) TxPrintf("   %d gates analyzed.\n", efGates);
+
 	    /* Find the plane of the gate type */
-	    pNum = DBPlane(dev->dev_type);
+	    t = EFDeviceTypes[dev->dev_type];
+	    pNum = DBPlane(t);
 	    pos = ExtCurStyle->exts_planeOrder[pNum];
 	    pmax = ++pos;
 
@@ -354,10 +411,15 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 		if (ExtCurStyle->exts_planeOrder[p] > pmax)
 		    pmax = ExtCurStyle->exts_planeOrder[p];
 
+	    /* Create the yank cell if it doesn't already exist */
+	    if (extPathDef == (CellDef *) NULL)
+	        DBNewYank("__PATHYANK__", &extPathUse, &extPathDef);
+
 	    /* Use the cellDef reserved for extraction */
-	    DBCellClearDef(extPathDef);
+	    /* DBCellClearDef(extPathDef); */	    /* See below */
 	    scx.scx_use = editUse;
 	    scx.scx_trans = GeoIdentityTransform;
+	    scx.scx_area = r;
 
 	    /* gatemask is a mask of all gate types for MOSFET devices	*/
 
@@ -387,53 +449,203 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 
 	    for (; pos <= pmax; pos++)
 	    {
+		GateDiffAccumStruct gdas;
+		AntennaAccumStruct aas;
+		AntennaMarkStruct ams;
+
+		/* Find the plane of pos */
+
+		for (p = 0;  p < DBNumPlanes; p++)
+		    if (ExtCurStyle->exts_planeOrder[p] == pos)
+			pNum2 = p;
+
+		/* Find the tiletype which is a contact and whose base is pNum2 */
+		/* (NOTE:  Need to extend to all such contacts, as there may be	*/
+		/* more than one.) (Also should find these types up top, not	*/
+		/* within the loop.)						*/
+
 		/* Modify DBConnectTbl to limit connectivity to the plane   */
 		/* of the antenna check and below			    */
 
-		/* To be completed */
+		conType = -1;
+		for (i = 0; i < DBNumTypes; i++)
+		    if (DBIsContact(i) && DBPlane(i) == pNum2)
+		    {
+			conType = i;
+			TTMaskZero(&saveConMask);
+			TTMaskSetMask(&saveConMask, &DBConnectTbl[i]);
+			TTMaskZero(&DBConnectTbl[i]);
+			for (j = 0; j < DBNumTypes; j++)
+			    if (TTMaskHasType(&saveConMask, j) &&
+					(DBPlane(j) <= pNum2))
+				TTMaskSetType(&DBConnectTbl[i], j);
+			break;
+		    }
 
-		DBTreeCopyConnect(&scx, &DBConnectTbl[dev->dev_type], 0,
+	        for (i = 0; i < DBNumTypes; i++) antennaarea[i] = 0;
+	        gatearea = 0;
+	        diffarea = 0;
+
+		/* Note:  Ideally, the addition of material in the next	    */
+		/* metal plane is additive.  But that requires enumerating  */
+		/* all the vias and using those as starting points for the  */
+		/* next connectivity search, which needs to be coded.	    */
+
+		DBCellClearDef(extPathDef);
+
+		/* To do:  Mark tiles so area count can be progressive */
+
+		DBTreeCopyConnect(&scx, &DBConnectTbl[t], 0,
 			DBConnectTbl, &TiPlaneRect, extPathUse);
 
-		/* Search plane of gate type and accumulate all (new) gate area */
-		DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[pNum],
-			&TiPlaneRect, &gatemask, areaAccumFunc, (ClientData)&gatearea);
-
-		/* Search planes of tie type and accumulate all (new) tiedown areas */
+		/* Search planes of tie types and accumulate all tiedown areas */
+		gdas.accum = 0;
 		for (p = 0;  p < DBNumPlanes; p++)
 		    DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[p],
 			    &TiPlaneRect, &ExtCurStyle->exts_antennaTieTypes,
-			    areaAccumFunc, (ClientData)&diffarea);
+			    areaAccumFunc, (ClientData)&gdas);
+		diffarea = gdas.accum;
 
-		/* Search metal planes and accumulate all (new) antenna areas */
+		/* Search plane of gate type and accumulate all gate area */
+		gdas.accum = 0;
+		DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[pNum],
+			&TiPlaneRect, &gatemask, areaAccumFunc, (ClientData)&gdas);
+		gatearea = gdas.accum;
+
+		/* Search metal planes and accumulate all antenna areas */
 		for (p = 0;  p < DBNumPlanes; p++)
 		{
-		    if (ExtCurStyle->exts_planeOrder[p] == pos)
-		    {
-			pNum2 = p;
-		    }
+		    if (ExtCurStyle->exts_antennaModel & ANTENNAMODEL_PARTIAL)
+			if (p != pNum2) continue;
+
+		    aas.pNum = p;
+		    aas.accum = &antennaarea[0];
 		    if (ExtCurStyle->exts_planeOrder[p] <= pos)
 			DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[p],
 				&TiPlaneRect, &DBAllButSpaceAndDRCBits,
-				antennaAccumFunc, (ClientData)&antennaarea);
+				antennaAccumFunc, (ClientData)&aas);
 		}
 
-		/* To be elaborated. . . this encodes only one of several   */
-		/* methods of calculating antenna violations.		    */
-
+		antennaError = FALSE;
 		if (diffarea == 0)
 		{
-		    difftotal = 0.0;
+		    anttotal = 0.0;
+		    saveRatio = 0.0;
 		    for (i = 0; i < DBNumTypes; i++)
-			difftotal += antennaarea[i] / ExtCurStyle->exts_antennaRatio[i];
+		    {
+			if (ExtCurStyle->exts_antennaRatio[i].ratioGate > 0)
+			{
+			    anttotal += (double)antennaarea[i] /
+				    (double)ExtCurStyle->exts_antennaRatio[i].ratioGate;
+			}
+			if (ExtCurStyle->exts_antennaRatio[i].ratioGate > saveRatio)
+			    saveRatio = ExtCurStyle->exts_antennaRatio[i].ratioGate;
+		    }
 
-		    if (difftotal > gatearea)
-			TxError("Antenna violation detected at plane %s "
-				"(violation to be elaborated)",
-				DBPlaneLongNameTbl[pNum2]);
+		    if (anttotal > (double)gatearea)
+		    {
+			antennaError = TRUE;
+			if (efAntennaDebug == TRUE)
+			{
+			    TxError("Antenna violation detected at plane %s\n",
+				    DBPlaneLongNameTbl[pNum2]);
+			    TxError("Effective antenna ratio %g > limit %g\n",
+				    saveRatio * (float)anttotal / (float)gatearea,
+				    saveRatio);
+			    TxError("Gate rect (%d %d) to (%d %d)\n", 
+				    gdas.r.r_xbot, gdas.r.r_ybot,
+				    gdas.r.r_xtop, gdas.r.r_ytop);
+			    TxError("Antenna rect (%d %d) to (%d %d)\n", 
+				    aas.r.r_xbot, aas.r.r_ybot,
+				    aas.r.r_xtop, aas.r.r_ytop);
+			}
+		    }
 		}
+		else
+		{
+		    anttotal = 0.0;
+		    saveRatio = 0.0;
+		    for (i = 0; i < DBNumTypes; i++)
+			if (ExtCurStyle->exts_antennaRatio[i].ratioDiff != INFINITY)
+			{
+			    if (ExtCurStyle->exts_antennaRatio[i].ratioDiff > 0)
+				anttotal += (double)antennaarea[i] /
+				    (double)ExtCurStyle->exts_antennaRatio[i].ratioDiff;
+			    if (ExtCurStyle->exts_antennaRatio[i].ratioDiff > saveRatio)
+				saveRatio = ExtCurStyle->exts_antennaRatio[i].ratioDiff;
+			}
+
+		    if (anttotal > (double)gatearea)
+		    {
+			antennaError = TRUE;
+			if (efAntennaDebug == TRUE)
+			{
+			    TxError("Antenna violation detected at plane %s\n",
+		    			DBPlaneLongNameTbl[pNum2]);
+			    TxError("Effective antenna ratio %g > limit %g\n",
+				    saveRatio * (float)anttotal / (float)gatearea,
+				    saveRatio);
+			    TxError("Gate rect (%d %d) to (%d %d)\n", 
+				    gdas.r.r_xbot, gdas.r.r_ybot,
+				    gdas.r.r_xtop, gdas.r.r_ytop);
+			    TxError("Antenna rect (%d %d) to (%d %d)\n", 
+				    aas.r.r_xbot, aas.r.r_ybot,
+				    aas.r.r_xtop, aas.r.r_ytop);
+			}
+		    }
+		}
+
+		if (antennaError)
+		{
+		    /* Search plane of gate type and mark all gate areas */
+		    ams.def = editUse->cu_def;
+		    ams.pNum = pNum2;
+		    DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[pNum],
+			    &TiPlaneRect, &gatemask, areaMarkFunc, (ClientData)&ams);
+
+		    /* Search metal planes and accumulate all antenna areas */
+		    for (p = 0;  p < DBNumPlanes; p++)
+		    {
+			if (ExtCurStyle->exts_antennaModel & ANTENNAMODEL_PARTIAL)
+			    if (p != pNum2) continue;
+
+			if (ExtCurStyle->exts_planeOrder[p] <= pos)
+			    DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[p],
+				    &TiPlaneRect, &DBAllButSpaceAndDRCBits,
+				    areaMarkFunc, (ClientData)&ams);
+		    }
+		}
+
+		/* Put the connect table back the way it was */
+		if (conType >= 0)
+		    TTMaskSetMask(&DBConnectTbl[conType], &saveConMask);
 	    }
     }
+    freeMagic(antennaarea);
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * areaMarkFunc --
+ *
+ *	Mark the tile areas searched with feedback entries
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+areaMarkFunc(tile, ams)
+    Tile *tile;
+    AntennaMarkStruct *ams;
+{
+    Rect rect;
+    char msg[200];
+
+    TiToRect(tile, &rect);
+    sprintf(msg, "Antenna error at plane %s\n", DBPlaneLongNameTbl[ams->pNum]);
+    DBWFeedbackAdd(&rect, msg, ams->def, 1, STYLE_PALEHIGHLIGHTS);
     return 0;
 }
 
@@ -448,19 +660,16 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
  */
 
 int
-areaAccumFunc(tile, totalarea)
+areaAccumFunc(tile, gdas)
     Tile *tile;
-    int *totalarea;
+    GateDiffAccumStruct *gdas;
 {
-    Rect rect;
-    int area;
+    Rect *rect = &(gdas->r);
+    int area, type;
 
-    TiToRect(tile, &rect);
-
-    area += (rect.r_xtop - rect.r_xbot) * (rect.r_ytop - rect.r_ybot);
-
-    *totalarea += area;
-
+    TiToRect(tile, rect);
+    area = (rect->r_xtop - rect->r_xbot) * (rect->r_ytop - rect->r_ybot);
+    gdas->accum += area;
     return 0;
 }
 
@@ -470,27 +679,164 @@ areaAccumFunc(tile, totalarea)
  * antennaAccumFunc --
  *
  *	Accumulate the total tile area searched, keeping an individual
- *	count for each tile type.
+ *	count for each tile type.  If the antenna model is SIDEWALL, then
+ *	calculate the area of the tile sidewall (tile perimeter * layer
+ *	thickness), rather than the drawn tile area.
  *
  * ----------------------------------------------------------------------------
  */
 
 int
-antennaAccumFunc(tile, typeareas)
+antennaAccumFunc(tile, aaptr)
     Tile *tile;
-    int **typeareas;
+    AntennaAccumStruct *aaptr;
 {
-    Rect rect;
+    Rect *rect = &(aaptr->r);
     int area;
     int type;
+    int *typeareas = aaptr->accum;
+    int plane = aaptr->pNum;
+    float thick;
 
     type = TiGetType(tile);
 
-    TiToRect(tile, &rect);
+    TiToRect(tile, rect);
 
-    area += (rect.r_xtop - rect.r_xbot) * (rect.r_ytop - rect.r_ybot);
+    if (ExtCurStyle->exts_antennaModel & ANTENNAMODEL_SIDEWALL)
+    {
+	/* Accumulate perimeter of tile where tile abuts space */
 
-    *typeareas[type] += area;
+	Tile *tp;
+	int perimeter = 0, pmax, pmin;
 
+	/* Top */
+	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+	{
+	    if (TiGetBottomType(tp) == TT_SPACE)
+	    {
+		pmin = MAX(LEFT(tile), LEFT(tp));
+		pmax = MIN(RIGHT(tile), RIGHT(tp));
+		perimeter += (pmax - pmin);
+	    }
+	}
+	/* Bottom */
+	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+	{
+	    if (TiGetTopType(tp) == TT_SPACE)
+	    {
+		pmin = MAX(LEFT(tile), LEFT(tp));
+		pmax = MIN(RIGHT(tile), RIGHT(tp));
+		perimeter += (pmax - pmin);
+	    }
+	}
+	/* Left */
+	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+	{
+	    if (TiGetRightType(tp) == TT_SPACE)
+	    {
+		pmin = MAX(BOTTOM(tile), BOTTOM(tp));
+		pmax = MIN(TOP(tile), TOP(tp));
+		perimeter += (pmax - pmin);
+	    }
+	}
+	/* Right */
+	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
+	{
+	    if (TiGetLeftType(tp) == TT_SPACE)
+	    {
+		pmin = MAX(BOTTOM(tile), BOTTOM(tp));
+		pmax = MIN(TOP(tile), TOP(tp));
+		perimeter += (pmax - pmin);
+	    }
+	}
+
+	if (DBIsContact(type))
+	{
+	    int cperim;
+	    TileType ttype;
+	    TileTypeBitMask sMask;
+	    float thick;
+
+	    cperim = ((rect->r_xtop - rect->r_xbot) + (rect->r_ytop - rect->r_ybot)) << 1;
+
+	    /* For contacts, add the area of the perimeter to the   */
+	    /* residue (metal) type on the plane being searched.    */
+	    /* Then, if the plane is the same as the base type of   */
+	    /* the contact, add the entire perimeter area of the    */
+	    /* tile to the total for the contact type itself.	    */
+
+	    DBFullResidueMask(type, &sMask);
+	    for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+		if (TTMaskHasType(&sMask, ttype))
+		    if (DBTypeOnPlane(ttype, plane))
+		    {
+			thick = ExtCurStyle->exts_thick[ttype];
+			typeareas[ttype] += (int)((float)perimeter * thick);
+		    }
+
+	    if (type >= DBNumUserLayers)
+	    {
+		DBResidueMask(type, &sMask);
+		for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+		    if (TTMaskHasType(&sMask, ttype))
+			if (DBTypeOnPlane(ttype, plane))
+			{
+			    thick = ExtCurStyle->exts_thick[ttype];
+			    typeareas[ttype] += (int)((float)perimeter * thick);
+			    break;
+			}
+	    }
+	    else
+	    {
+		thick = ExtCurStyle->exts_thick[type];
+		typeareas[type] += (int)((float)perimeter * thick);
+	    }
+	}
+	else
+	{
+	    /* Area is perimeter times layer thickness */
+	    thick = ExtCurStyle->exts_thick[type];
+	    typeareas[type] += (int)((float)perimeter * thick);
+	}
+    }
+    else
+    {
+	/* Simple tile area calculation */
+	area = (rect->r_xtop - rect->r_xbot) * (rect->r_ytop - rect->r_ybot);
+
+	/* If type is a contact, then add area to both residues as well	*/
+	/* as the contact type.						*/
+
+	/* NOTE:  Restrict area counts per plane so areas of contacts	*/
+	/* are not double-counted.					*/
+
+	if (DBIsContact(type))
+	{
+	    TileType ttype;
+	    TileTypeBitMask sMask;
+
+	    DBFullResidueMask(type, &sMask);
+	    for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+		if (TTMaskHasType(&sMask, ttype))
+		    if (DBTypeOnPlane(ttype, plane))
+			typeareas[ttype] += area;
+
+	    if (type >= DBNumUserLayers)
+	    {
+		DBResidueMask(type, &sMask);
+		for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+		    if (TTMaskHasType(&sMask, ttype))
+			if (DBTypeOnPlane(ttype, plane))
+			{
+			    typeareas[ttype] += area;
+			    break;
+			}
+	    }
+	    else
+		typeareas[type] += area;
+	}
+	else
+	    typeareas[type] += area;
+    }
     return 0;
 }
