@@ -36,6 +36,11 @@ extern char *nodeSpiceHierName();
 extern devMerge *mkDevMerge();
 extern bool extHierSDAttr();
 
+extern bool devIsKilled();
+extern float getCurDevMult();
+extern void addDevMult();
+extern void setDevMult();
+
 /* Options specific to ext2spice */
 extern bool esDoExtResis;
 extern bool esDoPorts;
@@ -166,7 +171,7 @@ typedef struct {
 
 /* 
  *---------------------------------------------------------
- * Variables & macros used for merging parallel devs       
+ * Variables used for merging parallel devs       
  * The merging of devs is based on the fact that spcdevVisit 
  * visits the devs in the same order all the time so the 
  * value of esFMult[i] keeps the multiplier for the ith dev
@@ -174,30 +179,7 @@ typedef struct {
  */
 #define	DEV_KILLED	((float) -1.0)
 #define	FMULT_SIZE	(1<<10)
-
-#define	devIsKilled(n) ( esFMult[(n)] <=(float)0.0 )
-
 #define	DEV_KILLED	((float) -1.0)
-
-
-/* macro to add a dev's multiplier to the table and grow it if necessary */
-#define addDevMult(f) \
-{  \
-	if ( esFMult == NULL ) { \
-	  esFMult = (float *) mallocMagic((unsigned) (esFMSize*sizeof(float)));  \
-	} else if ( esFMIndex >= esFMSize ) {  \
-	  int i;  \
-	  float *op = esFMult ;  \
-	  esFMult = (float *) mallocMagic((unsigned) ((esFMSize = esFMSize*2)*sizeof(float))); \
-	  for ( i = 0 ; i < esFMSize/2 ; i++ ) esFMult[i] = op[i]; \
-	  if (op) freeMagic(op); \
-	}  \
-	esFMult[esFMIndex++] = (float)(f); \
-}
-
-#define	setDevMult(i,f) { esFMult[(i)] = (float)(f); }
-
-#define	getCurDevMult() ((esFMult && (esFMIndex > 0)) ? esFMult[esFMIndex-1] : (float)1.0)
 
 #ifdef MAGIC_WRAPPER
 #define 	atoCap(s)	((EFCapValue)atof(s))

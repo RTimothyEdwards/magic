@@ -1883,6 +1883,9 @@ esHierVisit(hc, cdata)
 	    EFHierVisitNodes(hcf, spcnodeHierVisit, (ClientData) NULL);
 	    freeMagic(resstr);
 	}
+
+	/* Reset device merge index for next cell */
+	if (esMergeDevsA || esMergeDevsC) esFMIndex = 0;
     }
 
     if ((def != topdef) || (def->def_flags & DEF_SUBCIRCUIT) || (locDoSubckt == TRUE))
