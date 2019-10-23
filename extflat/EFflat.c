@@ -1018,14 +1018,23 @@ efFlatSingleCap(hc, name1, name2, conn)
     EFNode *n1, *n2;
     HashEntry *he;
     EFCoupleKey ck;
+    static char msg0[] = "cap(1)";
+    static char msg1[] = "cap(2)";
+    char *msg;
+    
+    /* Connections that are below threshold (ext2spice hierarchy only)	*/
+    /* will be missing.  Do not generate errors for these.		*/
 
-    if ((he = EFHNLook(hc->hc_hierName, name1, "cap(1)")) == NULL)
+    msg = (fabs((double)conn->conn_cap / 1000) < EFCapThreshold) ? NULL : msg0;
+
+    if ((he = EFHNLook(hc->hc_hierName, name1, msg)) == NULL)
 	return 0;
     n1 = ((EFNodeName *) HashGetValue(he))->efnn_node;
     if (n1->efnode_flags & EF_KILLED)
 	return 0;
 
-    if ((he = EFHNLook(hc->hc_hierName, name2, "cap(2)")) == NULL)
+    if (msg) msg = msg1;
+    if ((he = EFHNLook(hc->hc_hierName, name2, msg)) == NULL)
 	return 0;
     n2 = ((EFNodeName *) HashGetValue(he))->efnn_node;
     if (n2->efnode_flags & EF_KILLED)
