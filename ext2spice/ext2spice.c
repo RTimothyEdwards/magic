@@ -264,7 +264,8 @@ CmdExtToSpice(w, cmd)
 	"extresist [on|off]	incorporate information from extresist",
 	"resistor tee [on|off]	model resistor capacitance as a T-network",
 	"scale [on|off]		use .option card for scaling",
-	"subcircuits [on|off]	standard cells become subcircuit calls",
+	"subcircuits [top|descend] [on|off|auto]\n"
+	"			standard cells become subcircuit calls",
 	"hierarchy [on|off]	output hierarchical spice for LVS",
 	"blackbox [on|off]	output abstract views as black-box entries",
 	"renumber [on|off]	on = number instances X1, X2, etc.\n"
@@ -2093,6 +2094,56 @@ esOutputResistor(dev, hierName, scale, term1, term2, has_model, l, w, dscale)
 	if (sdM != 1.0)
 	    fprintf(esSpiceF, " M=%g", sdM);
     }
+}
+
+/* Report if device at index n has been deleted due to merging */
+
+bool
+devIsKilled(n)
+    int n;
+{
+    return (esFMult[(n)] <= (float)0.0) ? TRUE : FALSE;
+}
+
+/* Add a dev's multiplier to the table and grow it if necessary */
+
+void
+addDevMult(f)
+    float f;
+{
+    int i;
+    float *op;
+
+    if (esFMult == NULL) {
+          esFMult = (float *) mallocMagic((unsigned) (esFMSize*sizeof(float)));
+    }
+    else if (esFMIndex >= esFMSize)
+    {
+        op = esFMult;
+	esFMSize *= 2;
+        esFMult = (float *)mallocMagic((unsigned)(esFMSize * sizeof(float)));
+        for (i = 0; i < esFMSize / 2; i++) esFMult[i] = op[i];
+        if (op) freeMagic(op);
+    }
+    esFMult[esFMIndex++] = f;
+}
+
+/* Set the multiplier value f of device at index i */
+
+void
+setDevMult(i, f)
+    int i;
+    float f;
+{
+    esFMult[i] = f;
+}
+
+/* Get the multiplier value of the device at the current index esFMIndex */
+
+float
+getCurDevMult()
+{
+    return (esFMult && (esFMIndex > 0)) ? esFMult[esFMIndex-1] : (float)1.0;
 }
 
 /*

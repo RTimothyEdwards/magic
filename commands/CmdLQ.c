@@ -318,7 +318,7 @@ CmdLabel(w, cmd)
  * Implement the "load" command.
  *
  * Usage:
- *	load [name [scaled n [d]]] [-force]
+ *	load [name [scaled n [d]]] [-force] [-nowindow]
  *
  * If name is supplied, then the window containing the point tool is
  * remapped so as to edit the cell with the given name.
@@ -364,15 +364,16 @@ CmdLoad(w, cmd)
 	    locargc--;
 	    ignoreTech = TRUE;
 	}
-	if (locargc >= 4 && !strncmp(cmd->tx_argv[2], "scale", 5) &&
+	if ((locargc >= 4) && !strncmp(cmd->tx_argv[2], "scale", 5) &&
 		StrIsInt(cmd->tx_argv[3]))
 	{
 	    n = atoi(cmd->tx_argv[3]);
- 	    if (cmd->tx_argc == 5 && StrIsInt(cmd->tx_argv[4]))
+ 	    if ((locargc == 5) && StrIsInt(cmd->tx_argv[4]))
 	        d = atoi(cmd->tx_argv[4]);
 	    else if (locargc != 4)
 	    {
-		TxError("Usage: %s name scaled n [d]\n", cmd->tx_argv[0]);
+		TxError("Usage: %s name scaled n [d] [-force] [-nowindow]\n",
+			    cmd->tx_argv[0]);
 		return;
 	    }
 	    DBLambda[0] *= d;
@@ -381,7 +382,8 @@ CmdLoad(w, cmd)
 	}
 	else if (!ignoreTech && !noWindow)
 	{
-	    TxError("Usage: %s [name [scaled n [d]]]\n", cmd->tx_argv[0]);
+	    TxError("Usage: %s name [scaled n [d]] [-force] [-nowindow]\n",
+			    cmd->tx_argv[0]);
 	    return;
 	}
     }

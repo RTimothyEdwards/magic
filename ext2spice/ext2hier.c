@@ -1656,7 +1656,7 @@ esMakePorts(hc, cdata)
 	    // In particular, this keeps parasitics out of the netlist for
 	    // LVS purposes if "cthresh" is set to "infinite".
 
-	    if (fabs((double)conn->conn_cap) < EFCapThreshold) continue;
+	    if (fabs((double)conn->conn_cap / 1000) < EFCapThreshold) continue;
 
 	    portname = name;
 	    updef = def;
@@ -1883,6 +1883,9 @@ esHierVisit(hc, cdata)
 	    EFHierVisitNodes(hcf, spcnodeHierVisit, (ClientData) NULL);
 	    freeMagic(resstr);
 	}
+
+	/* Reset device merge index for next cell */
+	if (esMergeDevsA || esMergeDevsC) esFMIndex = 0;
     }
 
     if ((def != topdef) || (def->def_flags & DEF_SUBCIRCUIT) || (locDoSubckt == TRUE))

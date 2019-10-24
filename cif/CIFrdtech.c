@@ -621,8 +621,10 @@ CIFReadTechLine(sectionName, argc, argv)
 
 	if (argc >= 3)
 	{
-	    if(!strncmp(argv[argc - 1], "nanom", 5))
+	    if (!strncmp(argv[argc - 1], "nanom", 5))
 		cifCurReadStyle->crs_multiplier = 10;
+	    else if (!strncmp(argv[argc - 1], "angstr", 6))
+		cifCurReadStyle->crs_multiplier = 100;
 	}
 
 	if (cifCurReadStyle->crs_scaleFactor <= 0)
