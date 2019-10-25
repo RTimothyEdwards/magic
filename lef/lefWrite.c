@@ -638,7 +638,7 @@ lefWriteMacro(def, f, scale, hide)
 {
     bool propfound;
     char *propvalue, *class = NULL;
-    Label *lab;
+    Label *lab, *tlab;
     Rect boundary, labr;
     SearchContext scx;
     CellDef *lefFlatDef;
@@ -968,15 +968,21 @@ lefWriteMacro(def, f, scale, hide)
 
 	if (maxport >= 0)
 	{
-	    /* Sanity check to see if port number is a duplicate */
-	    for (lab = lab->lab_next; lab != NULL; lab = lab->lab_next)
+	    /* Sanity check to see if port number is a duplicate.  ONLY */
+	    /* flag this if the other index has a different text, as it	*/
+	    /* is perfectly legal to have multiple ports with the same	*/
+	    /* name and index.						*/
+
+	    for (tlab = lab->lab_next; tlab != NULL; tlab = tlab->lab_next)
 	    {
-		if (lab->lab_flags & PORT_DIR_MASK)
-		    if ((lab->lab_flags & PORT_NUM_MASK) == idx)
-		    {
-			TxError("Port index %d is used more than once\n", idx);
-			idx--;
-		    }
+		if (tlab->lab_flags & PORT_DIR_MASK)
+		    if ((tlab->lab_flags & PORT_NUM_MASK) == idx)
+			if (strcmp(lab->lab_text, lab->lab_text))
+			{
+			    TxError("Index %d is used for ports \"%s\" and \"%s\"\n",
+					idx, lab->lab_text, tlab->lab_text);
+			    idx--;
+			}
 	    }
 	}
 	else
