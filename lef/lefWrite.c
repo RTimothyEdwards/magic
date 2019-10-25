@@ -83,6 +83,7 @@ lefFileOpen(def, file, suffix, mode, prealfile)
 			 */
 {
     char namebuf[512], *name, *endp, *ends;
+    char *locsuffix;
     int len;
     FILE *rfile;
 
@@ -115,14 +116,17 @@ lefFileOpen(def, file, suffix, mode, prealfile)
 	    (void) strncpy(namebuf, name, len);
 	    namebuf[len] = '\0';
 	    name = namebuf;
+	    locsuffix = suffix;
 	}
+	else
+	    locsuffix = NULL;
     }
 
     /* Try once as-is, and if this fails, try stripping any leading	*/
     /* path information in case cell is in a read-only directory (mode	*/
     /* "read" only, and if def is non-NULL).				*/
 
-    if ((rfile = PaOpen(name, mode, suffix, Path, CellLibPath, prealfile)) != NULL)
+    if ((rfile = PaOpen(name, mode, locsuffix, Path, CellLibPath, prealfile)) != NULL)
 	return rfile;
 
     if (def) 
