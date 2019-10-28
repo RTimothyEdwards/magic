@@ -205,7 +205,7 @@ EFFlatBuildOneLevel(def, flags)
     if (usecount > 0)
 	efHierSrUses(&efFlatContext, efFlatNodesDeviceless, (ClientData)&usecount);
 
-    if ((usecount == 0) && (efFlatRootUse.use_def->def_devs == NULL))
+    if ((usecount == 0) && (HashGetNumEntries(&efFlatRootUse.use_def->def_devs) == 0))
 	efFlatRootUse.use_def->def_flags |= DEF_NODEVICES;
 
     /* Record all local nodes */
@@ -372,7 +372,7 @@ efFlatNodesDeviceless(hc, cdata)
     if (newcount > 0)
 	efHierSrUses(hc, efFlatNodesDeviceless, (ClientData)&newcount);
 
-    if ((hc->hc_use->use_def->def_devs == NULL) && (newcount == 0))
+    if ((HashGetNumEntries(&hc->hc_use->use_def->def_devs) == 0) && (newcount == 0))
     {
 	/* Add all our own nodes to the table */
 	efAddNodes(hc, TRUE);

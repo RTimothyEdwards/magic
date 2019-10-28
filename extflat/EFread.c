@@ -356,8 +356,7 @@ readfile:
 		r.r_xtop = atoi(argv[5]);
 		r.r_ytop = atoi(argv[6]);
 
-		if (efBuildDevice(def, (char)n, argv[2], &r, argc - 7,
-				&argv[7]) != 0)
+		if (efBuildDevice(def, (char)n, argv[2], &r, argc - 7, &argv[7]) != 0)
 		{
 		    efReadError("Incomplete terminal description for device\n");
 		    continue;

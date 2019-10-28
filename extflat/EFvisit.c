@@ -300,6 +300,8 @@ efVisitDevs(hc, ca)
     Dev *dev;
     float scale;
     Transform t;
+    HashSearch hs;
+    HashEntry *he;
 
     if (def->def_flags & DEF_SUBCIRCUIT) return 0;
 
@@ -311,15 +313,17 @@ efVisitDevs(hc, ca)
     t = hc->hc_trans;
   
     /* Visit our own devices */
-    for (dev = def->def_devs; dev; dev = dev->dev_next)
+
+    HashStartSearch(&hs);
+    while (he = HashNext(&def->def_devs, &hs))
     {
+	dev = (Dev *)HashGetValue(he);
 	if (efDevKilled(dev, hc->hc_hierName))
 	    continue;
 
 	if ((*ca->ca_proc)(dev, hc->hc_hierName, scale, &t, ca->ca_cdata))
 	    return 1;
     }
-
     return 0;
 }
 
