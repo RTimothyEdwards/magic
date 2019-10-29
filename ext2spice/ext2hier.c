@@ -1627,8 +1627,8 @@ esMakePorts(hc, cdata)
 			nn->efnn_port = -1;	// Will be sorted later
 
 			// Diagnostic
-			TxPrintf("Port connection in %s from net %s to net %s (%s)\n",
-				def->def_name, locname, name, portname);
+			// TxPrintf("Port connection in %s from net %s to net %s (%s)\n",
+			//	def->def_name, locname, name, portname);
 		    }
 		}
 

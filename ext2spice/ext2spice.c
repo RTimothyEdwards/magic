@@ -1372,10 +1372,11 @@ subcktVisit(use, hierName, is_top)
     EFNode *snode;
     Def *def = use->use_def;
     EFNodeName *nodeName;
-    int portorder, portmax, imp_max, tchars;
+    int portorder, portmax, portidx, imp_max, tchars;
     char stmp[MAX_STR_SIZE];
     char *instname, *subcktname;
     DevParam *plist, *pptr;
+    EFNodeName **nodeList;
 
     if (is_top == TRUE) return 0;	/* Ignore the top-level cell */
 
@@ -1467,34 +1468,52 @@ subcktVisit(use, hierName, is_top)
 	/* Port numbers need not start at zero or be contiguous. */
 	/* They will be printed in numerical order.		 */
 
-	portorder = 0;
-	while (portorder <= portmax)
-	{
-	    for (snode = (EFNode *) def->def_firstn.efnode_next;
+	nodeList = (EFNodeName **)mallocMagic((portmax + 1) * sizeof(EFNodeName *));
+	for (portidx = 0; portidx <= portmax; portidx++)
+	    nodeList[portidx] = (EFNodeName *)NULL;
+
+	for (snode = (EFNode *) def->def_firstn.efnode_next;
 			snode != &def->def_firstn;
 			snode = (EFNode *) snode->efnode_next)
-	    {
-		if (!(snode->efnode_flags & EF_PORT)) continue;
-		for (nodeName = snode->efnode_name; nodeName != NULL;
+	{
+	    if (!(snode->efnode_flags & EF_PORT)) continue;
+	    for (nodeName = snode->efnode_name; nodeName != NULL;
 			nodeName = nodeName->efnn_next)
+	    {
+		EFNodeName *nn;
+		HashEntry *he;
+		char *pname;
+
+		portidx = nodeName->efnn_port;
+		if (nodeList[portidx] == NULL)
 		{
-		    int portidx = nodeName->efnn_port;
-		    if (portidx == portorder)
-		    {
-			if (tchars > 80)
-			{
-			    fprintf(esSpiceF, "\n+");
-			    tchars = 1;
-			}
-			tchars += spcdevOutNode(hierName, nodeName->efnn_hier,
-					"subcircuit", esSpiceF); 
-			break;
-		    }
+		    nodeList[portidx] = nodeName;
 		}
-		if (nodeName != NULL) break;
+		else if (EFHNBest(nodeName->efnn_hier, nodeList[portidx]->efnn_hier))
+		{
+		    nodeList[portidx] = nodeName;
+		}
 	    }
-	    portorder++;
 	}
+
+	for (portidx = 0; portidx <= portmax; portidx++)
+	{
+	    nodeName = nodeList[portidx];
+
+	    if (nodeName == NULL)
+		TxError("No port connection on port %d;  need to resolve.\n", portidx);
+	    else
+	    {
+		if (tchars > 80)
+		{
+		    fprintf(esSpiceF, "\n+");
+		    tchars = 1;
+		}
+		tchars += spcdevOutNode(hierName, nodeName->efnn_hier,
+				"subcircuit", esSpiceF); 
+	    }
+	}
+	freeMagic(nodeList);
 
 	/* Look for all implicit substrate connections that are	*/
 	/* declared as local node names, and put them last.	*/
@@ -1682,8 +1701,7 @@ topVisit(def, doStub)
 		    tchars += strlen(pname) + 1;
 		    basenode->efnode_name->efnn_port = portorder++;
 		}
-		if (snode->efnode_name->efnn_hier->hn_parent == NULL)
-		    snode->efnode_name->efnn_port = basenode->efnode_name->efnn_port;
+		snode->efnode_name->efnn_port = basenode->efnode_name->efnn_port;
 	    }
 	}
     }
