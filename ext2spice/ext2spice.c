@@ -1615,7 +1615,7 @@ topVisit(def, doStub)
     Def *def;
     bool doStub;
 {
-    EFNode *snode;
+    EFNode *snode, *basenode;
     EFNodeName *sname, *nodeName;
     HashSearch hs;
     HashEntry *he;
@@ -1668,7 +1668,9 @@ topVisit(def, doStub)
 	    snode = sname->efnn_node;
 
 	    if (snode->efnode_flags & EF_PORT)
-		if (snode->efnode_name->efnn_port < 0)
+	    {
+		pname = nodeSpiceName(snode->efnode_name->efnn_hier, &basenode);
+		if (basenode->efnode_name->efnn_port < 0)
 		{
 		    if (tchars > 80)
 		    {
@@ -1676,11 +1678,13 @@ topVisit(def, doStub)
 			fprintf(esSpiceF, "\n+");
 			tchars = 1;
 		    }
-		    pname = nodeSpiceName(snode->efnode_name->efnn_hier);
 		    fprintf(esSpiceF, " %s", pname);
 		    tchars += strlen(pname) + 1;
-		    snode->efnode_name->efnn_port = portorder++;
+		    basenode->efnode_name->efnn_port = portorder++;
 		}
+		if (snode->efnode_name->efnn_hier->hn_parent == NULL)
+		    snode->efnode_name->efnn_port = basenode->efnode_name->efnn_port;
+	    }
 	}
     }
     else
@@ -1714,7 +1718,7 @@ topVisit(def, doStub)
 			    fprintf(esSpiceF, "\n+");
 			    tchars = 1;
 			}
-			pname =	nodeSpiceName(snode->efnode_name->efnn_hier);
+			pname =	nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
 			fprintf(esSpiceF, " %s", pname);
 			tchars += strlen(pname) + 1;
 			break;
@@ -2771,7 +2775,8 @@ FILE *outf;
     	/* Canonical name */
     	nn = (EFNodeName *) HashGetValue(he);
 	if (outf) 
-	   fprintf(outf, "%s", nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier));
+	   fprintf(outf, "%s", nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier,
+		    NULL));
 
 	/* Mark node as visited */
 	if ((nodeClient *)nn->efnn_node->efnode_client == (ClientData)NULL)
@@ -2982,7 +2987,7 @@ spcdevOutNode(prefix, suffix, name, outf)
 	return 0;
     }
     nn = (EFNodeName *) HashGetValue(he);
-    nname = nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier);
+    nname = nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier, NULL);
     fprintf(outf, " %s", nname);
 
     /* Mark node as visited */
@@ -3028,8 +3033,8 @@ spccapVisit(hierName1, hierName2, cap)
     if (cap <= EFCapThreshold)
 	return 0;
 
-    fprintf(esSpiceF, esSpiceCapFormat ,esCapNum++,nodeSpiceName(hierName1),
-                                          nodeSpiceName(hierName2), cap);
+    fprintf(esSpiceF, esSpiceCapFormat ,esCapNum++,nodeSpiceName(hierName1, NULL),
+                                          nodeSpiceName(hierName2, NULL), cap);
     return 0;
 }
 
@@ -3064,8 +3069,8 @@ spcresistVisit(hierName1, hierName2, res)
     HierName *hierName2;
     float res;
 {
-    fprintf(esSpiceF, "R%d %s %s %g\n", esResNum++, nodeSpiceName(hierName1),
-			nodeSpiceName(hierName2), res / 1000.);
+    fprintf(esSpiceF, "R%d %s %s %g\n", esResNum++, nodeSpiceName(hierName1, NULL),
+			nodeSpiceName(hierName2, NULL), res / 1000.);
 
     return 0;
 }
@@ -3100,7 +3105,7 @@ spcsubVisit(node, res, cap, resstr)
     if (node->efnode_flags & EF_SUBS_NODE)
     {
 	hierName = (HierName *) node->efnode_name->efnn_hier;
-	nsn = nodeSpiceName(hierName);
+	nsn = nodeSpiceName(hierName, NULL);
 	*resstr = StrDup((char **)NULL, nsn);
 	return 1;
     }
@@ -3150,7 +3155,7 @@ spcnodeVisit(node, res, cap)
     if (!isConnected && node->efnode_flags & EF_PORT) isConnected = TRUE;
 
     hierName = (HierName *) node->efnode_name->efnn_hier;
-    nsn = nodeSpiceName(hierName);
+    nsn = nodeSpiceName(hierName, NULL);
 
     if (esFormat == SPICE2 || esFormat == HSPICE && strncmp(nsn, "z@", 2)==0 ) {
 	static char ntmp[MAX_STR_SIZE];
@@ -3195,7 +3200,7 @@ nodeVisitDebug(node, res, cap)
     EFAttr *ap;
     
     hierName = (HierName *) node->efnode_name->efnn_hier;
-    nsn = nodeSpiceName(hierName);
+    nsn = nodeSpiceName(hierName, NULL);
     TxError("** %s (%x)\n", nsn, node);
 
     printf("\t client.name=%s, client.m_w=%p\n",
@@ -3218,23 +3223,27 @@ nodeVisitDebug(node, res, cap)
  *
  * Side effects:
  *      Allocates nodeClients for the node.
+ *	Returns the node in the "rnode" pointer, if non-NULL.
  *
  * ----------------------------------------------------------------------------
  */
 static char esTempName[MAX_STR_SIZE];
 
-char *nodeSpiceName(hname)
+char *nodeSpiceName(hname, rnode)
     HierName *hname;
+    EFNode **rnode;
 {
     EFNodeName *nn;
     HashEntry *he;
     EFNode *node;
 
+    if (rnode) *rnode = (EFNode *)NULL;
     he = EFHNLook(hname, (char *) NULL, "nodeName");
     if ( he == NULL )
 	return "errGnd!";
     nn = (EFNodeName *) HashGetValue(he);
     node = nn->efnn_node;
+    if (rnode) *rnode = node;
 
     if ( (nodeClient *) (node->efnode_client) == NULL ) {
     	initNodeClient(node);
