@@ -591,23 +591,28 @@ efBuildDevice(def, class, type, r, argc, argv)
     Rect *r;		/* Coordinates of 1x1 rectangle entirely inside device */
     int argc;		/* Size of argv */
     char *argv[];	/* Tokens for the rest of the dev line.
-			 * The first depend on the type of device.  The rest
-			 * are taken in groups of 3, one for each terminal.
-			 * Each group of 3 consists of the node name to which
-			 * the terminal connects, the length of the terminal,
-			 * and an attribute list (or the token 0).
+			 * Starts with the last two position values, used to
+			 * hash the device record.  The next arguments depend
+			 * on the type of device.  The rest are taken in groups
+			 * of 3, one for each terminal.  Each group of 3 consists
+			 * of the node name to which the terminal connects, the
+			 * length of the terminal, and an attribute list (or the
+			 * token 0).
 			 */
 {
     int n, nterminals, pn;
+    HashEntry *he;
     DevTerm *term;
     Dev *newdev, devtmp;
     DevParam *newparm, *devp, *sparm;
     char ptype, *pptr, **av;
+    char devhash[24];
     int argstart = 1;	/* start of terminal list in argv[] */
     bool hasModel = strcmp(type, "None") ? TRUE : FALSE;
 
     int area, perim;	/* Total area, perimeter of primary type (i.e., channel) */
 
+    newdev = (Dev *)NULL;
     devtmp.dev_subsnode = NULL;
     devtmp.dev_cap = 0.0;
     devtmp.dev_res = 0.0;
@@ -713,7 +718,6 @@ efBuildDevice(def, class, type, r, argc, argv)
     }
 
     /* Check for optional substrate node */
-
     switch (class)
     {
 	case DEV_RES:
@@ -743,93 +747,149 @@ efBuildDevice(def, class, type, r, argc, argv)
 
     nterminals = (argc - argstart) / 3;
 
-    newdev = (Dev *) mallocMagic((unsigned) DevSize(nterminals));
-    newdev->dev_subsnode = devtmp.dev_subsnode;
-    newdev->dev_cap = devtmp.dev_cap;
-    newdev->dev_res = devtmp.dev_res;
-    newdev->dev_area = devtmp.dev_area;
-    newdev->dev_perim = devtmp.dev_perim;
-    newdev->dev_length = devtmp.dev_length;
-    newdev->dev_width = devtmp.dev_width;
-    newdev->dev_params = devtmp.dev_params;
+    /* Determine if this device has been seen before */
 
-    newdev->dev_nterm = nterminals;
-    newdev->dev_rect = *r;
-    newdev->dev_type = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, type);
-    newdev->dev_class = class;
+    sprintf(devhash, "%dx%d", r->r_xbot, r->r_ybot);
+    he = HashFind(&def->def_devs, devhash);
+    newdev = (Dev *)HashGetValue(he);
+    if (newdev)
+    {
+	/* Duplicate device.  Duplicates will only appear in res.ext files
+	 * where a device has nodes changed.  Merge all properties of the
+	 * original device with nodes from the new device.  Keep the
+	 * original device and discard the new one.
+	 *
+	 * Check that the device is actually the same device type and number
+	 * of terminals.  If not, throw an error and abandon the new device.
+	 */
+
+        if ((newdev->dev_class != class) ||
+		    (strcmp(EFDevTypes[newdev->dev_type], type)))
+	{
+	    TxError("Device %s %s at (%d, %d) overlaps incompatible device %s %s!\n",
+		    extDevTable[class], type, r->r_xbot, r->r_ybot,
+		    extDevTable[newdev->dev_class], EFDevTypes[newdev->dev_type]);
+	    return 0;
+	}
+        else if (newdev->dev_nterm != nterminals)
+	{
+	    TxError("Device %s %s at (%d, %d) overlaps device with incompatible"
+		    " number of terminals (%d vs. %d)!\n",
+		    extDevTable[class], type, r->r_xbot, r->r_ybot, nterminals,
+		    newdev->dev_nterm);
+	    return 0;
+	}
+    }
+    else
+    {
+	newdev = (Dev *) mallocMagic((unsigned) DevSize(nterminals));
+
+	/* Add this dev to the hash table for def */
+	HashSetValue(he, (ClientData)newdev);
+
+        newdev->dev_cap = devtmp.dev_cap;
+        newdev->dev_res = devtmp.dev_res;
+        newdev->dev_area = devtmp.dev_area;
+        newdev->dev_perim = devtmp.dev_perim;
+        newdev->dev_length = devtmp.dev_length;
+        newdev->dev_width = devtmp.dev_width;
+        newdev->dev_params = devtmp.dev_params;
+
+        newdev->dev_nterm = nterminals;
+        newdev->dev_rect = *r;
+        newdev->dev_type = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, type);
+        newdev->dev_class = class;
  
+        switch (class)
+        {
+	    case DEV_FET:		/* old-style "fet" record */
+		newdev->dev_area = atoi(argv[0]);
+		newdev->dev_perim = atoi(argv[1]);
+		break;
+	    case DEV_MOSFET:	/* new-style "device mosfet" record */
+	    case DEV_ASYMMETRIC:
+	    case DEV_BJT:
+		newdev->dev_length = atoi(argv[0]);
+		newdev->dev_width = atoi(argv[1]);
+		break;
+	    case DEV_RES:
+		if (hasModel && StrIsInt(argv[0]) && StrIsInt(argv[1]))
+		{
+		    newdev->dev_length = atoi(argv[0]);
+		    newdev->dev_width = atoi(argv[1]);
+		}
+		else if (StrIsNumeric(argv[0]))
+		{
+		    newdev->dev_res = (float)atof(argv[0]);
+		}
+		else
+		{
+		    if (hasModel)
+		    {
+			efReadError("Error: expected L and W, got %s %s\n", argv[0],
+				argv[1]);
+			newdev->dev_length = 0;
+			newdev->dev_width = 0;
+		    }
+		    else
+		    {
+			efReadError("Error: expected resistance value, got %s\n",
+				    argv[0]);
+			newdev->dev_res = 0.0;
+		    }
+		}
+		break;
+	    case DEV_CAP:
+	    case DEV_CAPREV:
+		if (hasModel && StrIsInt(argv[0]) && StrIsInt(argv[1]))
+		{
+		    newdev->dev_length = atoi(argv[0]);
+		    newdev->dev_width = atoi(argv[1]);
+		}
+		else if (StrIsNumeric(argv[0]))
+		{
+		    newdev->dev_cap = (float)atof(argv[0]);
+		}
+		else
+		{
+		    if (hasModel)
+		    {
+			efReadError("Error: expected L and W, got %s %s\n", argv[0],
+				argv[1]);
+			newdev->dev_length = 0;
+			newdev->dev_width = 0;
+		    }
+		    else
+		    {
+			efReadError("Error: expected capacitance value, got %s\n",
+					    argv[0]);
+			newdev->dev_cap = 0.0;
+		    }
+		}
+		break;
+	}
+    }
+
+    newdev->dev_subsnode = devtmp.dev_subsnode;
     switch (class)
     {
 	case DEV_FET:		/* old-style "fet" record */
-	    newdev->dev_area = atoi(argv[0]);
-	    newdev->dev_perim = atoi(argv[1]);
 	    newdev->dev_subsnode = efBuildDevNode(def, argv[2], TRUE);
 	    break;
 	case DEV_MOSFET:	/* new-style "device mosfet" record */
 	case DEV_ASYMMETRIC:
 	case DEV_BJT:
-	    newdev->dev_length = atoi(argv[0]);
-	    newdev->dev_width = atoi(argv[1]);
-
 	    /* "None" in the place of the substrate name means substrate is ignored */
 	    if ((argstart == 3) && (strncmp(argv[2], "None", 4) != 0))
 		newdev->dev_subsnode = efBuildDevNode(def, argv[2], TRUE);
 	    break;
 	case DEV_RES:
-	    if (hasModel && StrIsInt(argv[0]) && StrIsInt(argv[1]))
-	    {
-		newdev->dev_length = atoi(argv[0]);
-		newdev->dev_width = atoi(argv[1]);
-	    }
-	    else if (StrIsNumeric(argv[0]))
-	    {
-		newdev->dev_res = (float)atof(argv[0]);
-	    }
-	    else
-	    {
-		if (hasModel)
-		{
-		    efReadError("Error: expected L and W, got %s %s\n", argv[0],
-				argv[1]);
-		    newdev->dev_length = 0;
-		    newdev->dev_width = 0;
-		}
-		else
-		{
-		    efReadError("Error: expected resistance value, got %s\n", argv[0]);
-		    newdev->dev_res = 0.0;
-		}
-	    }
 	    if ((argstart == 3) && (strncmp(argv[2], "None", 4) != 0))
 		newdev->dev_subsnode = efBuildDevNode(def, argv[2], TRUE);
 
 	    break;
 	case DEV_CAP:
 	case DEV_CAPREV:
-	    if (hasModel && StrIsInt(argv[0]) && StrIsInt(argv[1]))
-	    {
-		newdev->dev_length = atoi(argv[0]);
-		newdev->dev_width = atoi(argv[1]);
-	    }
-	    else if (StrIsNumeric(argv[0]))
-	    {
-		newdev->dev_cap = (float)atof(argv[0]);
-	    }
-	    else
-	    {
-		if (hasModel)
-		{
-		    efReadError("Error: expected L and W, got %s %s\n", argv[0],
-				argv[1]);
-		    newdev->dev_length = 0;
-		    newdev->dev_width = 0;
-		}
-		else
-		{
-		    efReadError("Error: expected capacitance value, got %s\n", argv[0]);
-		    newdev->dev_cap = 0.0;
-		}
-	    }
 	    if ((argstart == 3) && (strncmp(argv[2], "None", 4) != 0))
 		newdev->dev_subsnode = efBuildDevNode(def, argv[2], TRUE);
 
@@ -858,10 +918,6 @@ efBuildDevice(def, class, type, r, argc, argv)
 #undef	TERM_NAME
 #undef	TERM_PERIM
 #undef	TERM_ATTRS
-
-    /* Add this dev to the list for def */
-    newdev->dev_next = def->def_devs;
-    def->def_devs = newdev;
 
     return 0;
 }
@@ -1696,6 +1752,36 @@ efFreeUseTable(table)
 	}
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * efFreeDevTable --
+ *
+ * Free the device records allocated for each entry in the device hash table,
+ * the memory allocated by the device, leaving the hash entry null.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+efFreeDevTable(table)
+    HashTable *table;
+{
+    Dev *dev;
+    HashSearch hs;
+    HashEntry *he;
+    int n;
+
+    HashStartSearch(&hs);
+    while (he = HashNext(table, &hs))
+    {
+	dev = (Dev *)HashGetValue(he);
+	for (n = 0; n < (int)dev->dev_nterm; n++)
+	    if (dev->dev_terms[n].dterm_attrs)
+		freeMagic((char *) dev->dev_terms[n].dterm_attrs);
+	freeMagic((char *) dev);
+    }
+}
 
 /*
  * ----------------------------------------------------------------------------

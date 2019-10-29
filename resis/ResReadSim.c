@@ -79,7 +79,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 ResSimNode *ResInitializeNode();
 
 ResSimNode	*ResOriginalNodes;	/*Linked List of Nodes 	*/
-static float	lambda=1.0;       	/* Scale factor		*/
+static float	resscale=1.0;       	/* Scale factor		*/
 char	RDEV_NOATTR[1]={'0'};
 ResFixPoint		*ResFixList;
 
@@ -146,12 +146,8 @@ ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
 	       	    case '|': 	
 		    		if (strcmp(line[NODEUNITS],"units:") == 0)
 				{
-				    lambda = (float)atof(line[NODELAMBDA]);
-				    if (lambda == 0.0) lambda = 1.0; 
-				    /* NOTE:  units is derived from EFScale	*/
-				    /* which needs a factor of 100 conversion	*/
-				    /* to database units.			*/
-				    lambda *= 100.0;
+				    resscale = (float)atof(line[NODELAMBDA]);
+				    if (resscale == 0.0) resscale = 1.0; 
 				}
 				result=0;
 				break;
@@ -231,6 +227,14 @@ ResReadNode(nodefile)
     HashEntry	*entry;
     ResSimNode	*node;
     char *cp;
+    float lambda;
+
+    /* NOTE:  Units from the .sim file or the .nodes file are in centimicrons
+     * when multiplied by resscale (units from the .sim file 1st line).
+     * multiply resscale by the extract scale (exts_unitsPerLambda) used to
+     * generate .ext dimensions originally, to get back to database units.
+     */
+    lambda = resscale * (float)ExtCurStyle->exts_unitsPerLambda;
      
     fp = PaOpen(nodefile,"r",".nodes",".", (char *) NULL, (char **) NULL);
     if (fp == NULL)
@@ -243,17 +247,13 @@ ResReadNode(nodefile)
 	entry = HashFind(&ResNodeTable,line[NODENODENAME]);
 	node = ResInitializeNode(entry);
 	      
-	/* NOTE:  Fixed 10/15/2019.  No scalefactor is passed to EFNodeVisit()
-	 * so there is no scaling by lambda.  Values are in centimicrons always,
-	 * and factor of 100 is required to get database units.
-	 */
-	node->location.p_x = (int)((float)atof(line[NODENODEX]) / 100.0);
-	node->location.p_y = (int)((float)atof(line[NODENODEY]) / 100.0);
+	node->location.p_x = (int)((float)atof(line[NODENODEX]) / lambda);
+	node->location.p_y = (int)((float)atof(line[NODENODEY]) / lambda);
 #ifdef ARIEL	      
-	node->rs_bbox.r_xbot = (int)((float)atof(line[NODE_BBOX_LL_X]) / 100.0);
-	node->rs_bbox.r_ybot = (int)((float)atof(line[NODE_BBOX_LL_Y]) / 100.0);
-	node->rs_bbox.r_xtop = (int)((float)atof(line[NODE_BBOX_UR_X]) / 100.0);
-	node->rs_bbox.r_ytop = (int)((float)atof(line[NODE_BBOX_UR_Y]) / 100.0);
+	node->rs_bbox.r_xbot = (int)((float)atof(line[NODE_BBOX_LL_X]) / lambda);
+	node->rs_bbox.r_ybot = (int)((float)atof(line[NODE_BBOX_LL_Y]) / lambda);
+	node->rs_bbox.r_xtop = (int)((float)atof(line[NODE_BBOX_UR_X]) / lambda);
+	node->rs_bbox.r_ytop = (int)((float)atof(line[NODE_BBOX_UR_Y]) / lambda);
 #endif
 	if (cp = strchr(line[NODETYPE], ';')) *cp = '\0';
 	node->type = DBTechNameType(line[NODETYPE]);
@@ -340,6 +340,7 @@ ResSimDevice(line,rpersquare,ttype)
      int		rvalue,i,j,k;
      char		*newattr,tmpattr[MAXTOKEN];
      static int		nowarning = TRUE;
+     float		lambda;
      
      device = (RDev *) mallocMagic((unsigned) (sizeof(RDev)));
      if ((line[RDEV_WIDTH][0] == '\0') || (line[RDEV_LENGTH][0] == '\0'))
@@ -360,8 +361,11 @@ ResSimDevice(line,rpersquare,ttype)
      device->tnumber = ++Maxtnumber;
      device->status = FALSE;
      device->nextDev = ResRDevList;
-     device->location.p_x = atoi(line[RDEV_DEVX]);
-     device->location.p_y = atoi(line[RDEV_DEVY]);
+
+     lambda = resscale * (float)ExtCurStyle->exts_unitsPerLambda;
+     device->location.p_x = (int)((float)atof(line[RDEV_DEVX]) / lambda);
+     device->location.p_y = (int)((float)atof(line[RDEV_DEVY]) / lambda);
+
      device->rs_gattr=RDEV_NOATTR;
      device->rs_sattr=RDEV_NOATTR;
      device->rs_dattr=RDEV_NOATTR;

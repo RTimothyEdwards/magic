@@ -1771,7 +1771,8 @@ esHierVisit(hc, cdata)
 
     if (def != topdef)
     {
-	if ((def->def_devs == NULL) && (HashGetNumEntries(&def->def_uses) == 0))
+	if ((HashGetNumEntries(&def->def_devs) == 0) &&
+		    (HashGetNumEntries(&def->def_uses) == 0))
 	{
 	    if (locDoSubckt == AUTO)
 	    {

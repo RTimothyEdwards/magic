@@ -471,6 +471,8 @@ efHierVisitDevs(hc, ca)
 {
     Def *def = hc->hc_use->use_def;
     Dev *dev;
+    HashSearch hs;
+    HashEntry *he;
     float scale;
 
     /*
@@ -482,8 +484,10 @@ efHierVisitDevs(hc, ca)
     scale = (efScaleChanged && def->def_scale != 1.0) ? def->def_scale : 1.0;
 
     /* Visit all devices */
-    for (dev = def->def_devs; dev; dev = dev->dev_next)
+    HashStartSearch(&hs);
+    while (he = HashNext(&def->def_devs, &hs))
     {
+	dev = (Dev *)HashGetValue(he);
 	if (efHierDevKilled(hc, dev, hc->hc_hierName))
 	    continue;
 

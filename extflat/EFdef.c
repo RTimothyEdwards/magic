@@ -103,7 +103,6 @@ EFDone()
     Kill *kill;
     Def *def;
     Use *use;
-    Dev *dev;
     int n;
 
     HashStartSearch(&hs);
@@ -114,22 +113,18 @@ EFDone()
 	efFreeNodeTable(&def->def_nodes);
 	efFreeNodeList(&def->def_firstn);
 	efFreeUseTable(&def->def_uses);
+	efFreeDevTable(&def->def_devs);
 	HashKill(&def->def_nodes);
 	HashKill(&def->def_dists);
 	HashKill(&def->def_uses);
+	HashKill(&def->def_devs);
 	for (conn = def->def_conns; conn; conn = conn->conn_next)
 	    efFreeConn(conn);
 	for (conn = def->def_caps; conn; conn = conn->conn_next)
 	    efFreeConn(conn);
 	for (conn = def->def_resistors; conn; conn = conn->conn_next)
 	    efFreeConn(conn);
-	for (dev = def->def_devs; dev; dev = dev->dev_next)
-	{
-	    for (n = 0; n < (int)dev->dev_nterm; n++)
-		if (dev->dev_terms[n].dterm_attrs)
-		    freeMagic((char *) dev->dev_terms[n].dterm_attrs);
-	    freeMagic((char *) dev);
-	}
+
 	for (kill = def->def_kills; kill; kill = kill->kill_next)
 	{
 	    freeMagic(kill->kill_name);
@@ -150,13 +145,6 @@ EFDone()
 	freeMagic(EFTech);
 	EFTech = (char *)NULL;
     }
-
-    /* Free up all HierNames that were stored in efFreeHashTable */
-/*
-    HashStartSearch(&hs);
-    while (he = HashNext(&efFreeHashTable, &hs))
-	freeMagic(he->h_key.h_ptr);
-*/
 
     /* Free up the parameter name tables for each device */
 
@@ -244,7 +232,6 @@ efDefNew(name)
     newdef->def_conns = (Connection *) NULL;
     newdef->def_caps = (Connection *) NULL;
     newdef->def_resistors = (Connection *) NULL;
-    newdef->def_devs = (Dev *) NULL;
     newdef->def_kills = (Kill *) NULL;
 
     /* Initialize circular list of nodes */
@@ -256,6 +243,9 @@ efDefNew(name)
 
     /* Initialize hash table of node names */
     HashInit(&newdef->def_nodes, INITNODESIZE, HT_STRINGKEYS);
+
+    /* Initialize hash table of devices */
+    HashInit(&newdef->def_devs, INITNODESIZE, HT_STRINGKEYS);
 
     /* Initialize hash table of distances */
     HashInitClient(&newdef->def_dists, INITNODESIZE, HT_CLIENTKEYS,
