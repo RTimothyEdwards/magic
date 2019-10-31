@@ -1485,6 +1485,7 @@ subcktVisit(use, hierName, is_top)
 		char *pname;
 
 		portidx = nodeName->efnn_port;
+		if (portidx < 0) continue;
 		if (nodeList[portidx] == NULL)
 		{
 		    nodeList[portidx] = nodeName;
