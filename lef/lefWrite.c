@@ -121,6 +121,8 @@ lefFileOpen(def, file, suffix, mode, prealfile)
 	else
 	    locsuffix = NULL;
     }
+    else
+	locsuffix = suffix;
 
     /* Try once as-is, and if this fails, try stripping any leading	*/
     /* path information in case cell is in a read-only directory (mode	*/
