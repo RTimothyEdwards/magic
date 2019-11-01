@@ -291,10 +291,10 @@ calmaElementBoundary()
 
 	/* Convert rp to magic database units to compare to label rects */
         rpc = rp->r_r;
-	rpc.r_xbot /= calmaReadScale1;
-	rpc.r_xtop /= calmaReadScale1;
-	rpc.r_ybot /= calmaReadScale1;
-	rpc.r_ytop /= calmaReadScale1;
+	rpc.r_xbot /= cifCurReadStyle->crs_scaleFactor;
+	rpc.r_xtop /= cifCurReadStyle->crs_scaleFactor;
+	rpc.r_ybot /= cifCurReadStyle->crs_scaleFactor;
+	rpc.r_ytop /= cifCurReadStyle->crs_scaleFactor;
 
 	if ((ciftype >= 0) &&
 		(cifCurReadStyle->crs_labelSticky[ciftype] != LABEL_TYPE_NONE))
