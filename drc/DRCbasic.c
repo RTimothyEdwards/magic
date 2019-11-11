@@ -623,6 +623,7 @@ drcTile (tile, arg)
 
 		result = 0;
 		arg->dCD_radial = 0; 
+		arg->dCD_entries = 0;
 		do {
 		    if (triggered)
 		    {
@@ -992,6 +993,7 @@ checkbottom:
 
 		result = 0;
 		arg->dCD_radial = 0; 
+		arg->dCD_entries = 0;
 		do {
 		    if (triggered)
 		    {
