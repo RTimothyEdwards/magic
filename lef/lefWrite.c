@@ -933,7 +933,18 @@ lefWriteMacro(def, f, scale, hide)
 	SelectClear();
 
 	if (hide)
+	{
 	    SelectChunk(&scx, lab->lab_type, 0, NULL, FALSE);
+
+	    /* Note that a sticky label could be placed over multiple	*/
+	    /* tile types, which would cause SelectChunk to fail.  So	*/
+	    /* always paint the label type into the label area in	*/
+	    /* SelectDef.						*/
+
+	    pNum = DBPlane(lab->lab_type);
+	    DBPaintPlane(SelectDef->cd_planes[pNum], &lab->lab_rect,
+		    DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
+	}
 	else
 	    SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
 
@@ -1042,6 +1053,7 @@ lefWriteMacro(def, f, scale, hide)
 		scx.scx_area = labr;
 		SelectClear();
 		SelectChunk(&scx, lab->lab_type, 0, &carea, FALSE);
+		if (GEO_RECTNULL(&carea)) carea = lab->lab_rect;
 		lspace = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
 		carea.r_xbot -= lspace;
 		carea.r_ybot -= lspace;
