@@ -2919,7 +2919,8 @@ extResistorTileFunc(tile, pNum)
 
 	extEnumTilePerim(tile, mask, pNum, extSpecialPerimFunc, (ClientData)FALSE);
 
-	if (extSpecialBounds[0] == NULL) devptr = devptr->exts_next;
+	if (extSpecialBounds[0] != NULL) break;
+	devptr = devptr->exts_next;
     }
     if (devptr != NULL) extTransRec.tr_devrec = devptr;
 
