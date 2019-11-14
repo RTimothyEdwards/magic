@@ -264,7 +264,7 @@ file_is_not_writeable(name)
  */
 
 bool
-dbCellReadDef(f, cellDef, name, ignoreTech)
+dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
     FILE *f;		/* The file, already opened by the caller */
     CellDef *cellDef;	/* Pointer to definition of cell to be read in */
     char *name;		/* Name of file from which to read definition.
@@ -279,6 +279,7 @@ dbCellReadDef(f, cellDef, name, ignoreTech)
 			 * names do not match, but an attempt will be
 			 * made to read the file anyway.
 			 */
+    bool dereference;	/* If TRUE, ignore path references in the input */
 {
     int cellStamp = 0, rectCount = 0, rectReport = 10000;
     char line[2048], tech[50], layername[50];
@@ -437,7 +438,7 @@ dbCellReadDef(f, cellDef, name, ignoreTech)
 	 */
 	if (sscanf(line, "<< %s >>", layername) != 1)
 	{
-	    if (!dbReadUse(cellDef, line, sizeof line, f, n, d))
+	    if (!dbReadUse(cellDef, line, sizeof line, f, n, d, dereference))
 		goto badfile;
 	    continue;
 	}
@@ -863,7 +864,7 @@ DBReadBackup(name)
 	    cellDef->cd_flags &= ~CDNOTFOUND;
 	    cellDef->cd_flags |= CDAVAILABLE;
 
-	    if (dbCellReadDef(f, cellDef, filename, TRUE) == FALSE)
+	    if (dbCellReadDef(f, cellDef, filename, TRUE, FALSE) == FALSE)
 		return FALSE;
 
 	    if (dbFgets(line, sizeof(line), f) == NULL)
@@ -919,7 +920,7 @@ DBReadBackup(name)
  */
 
 bool
-DBCellRead(cellDef, name, ignoreTech, errptr)
+DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
     CellDef *cellDef;	/* Pointer to definition of cell to be read in */
     char *name;		/* Name of file from which to read definition.
 			 * If NULL, then use cellDef->cd_file; if that
@@ -933,6 +934,7 @@ DBCellRead(cellDef, name, ignoreTech, errptr)
 			 * names do not match, but an attempt will be
 			 * made to read the file anyway.
 			 */
+    bool dereference;	/* If TRUE, ignore path references in the input */
     int *errptr;	/* Copy of errno set by file reading routine
 			 * is placed here, unless NULL.
 			 */
@@ -950,7 +952,7 @@ DBCellRead(cellDef, name, ignoreTech, errptr)
 
     else
     {
-	result = (dbCellReadDef(f, cellDef, name, ignoreTech));
+	result = (dbCellReadDef(f, cellDef, name, ignoreTech, dereference));
 
 #ifdef FILE_LOCKS
 	/* Close files that were locked by another user */
@@ -1193,13 +1195,14 @@ DBTestOpen(name, fullPath)
  */
 
 bool
-dbReadUse(cellDef, line, len, f, scalen, scaled)
+dbReadUse(cellDef, line, len, f, scalen, scaled, dereference)
     CellDef *cellDef;	/* Cell whose cells are being read */
     char *line;		/* Line containing "use ..." */
     int len;		/* Size of buffer pointed to by line */
     FILE *f;		/* Input file */
     int scalen;		/* Multiply values in file by this */
     int scaled;		/* Divide values in file by this */
+    bool dereference;	/* If TRUE, ignore path references */
 {
     int xlo, xhi, ylo, yhi, xsep, ysep, childStamp;
     int absa, absb, absd, abse, nconv;
@@ -1230,7 +1233,7 @@ dbReadUse(cellDef, line, len, f, scalen, scaled)
 
     pathptr = &path[0];
     while (*pathptr == ' ' || *pathptr == '\t') pathptr++;
-    if (*pathptr == '\n') *pathptr = '\0';
+    if ((dereference == TRUE) || (*pathptr == '\n')) *pathptr = '\0';
 
     locked = (useid[0] == CULOCKCHAR) ? TRUE : FALSE;
 
@@ -2840,7 +2843,7 @@ DBCellWrite(cellDef, fileName)
 #ifdef FILE_LOCKS
 	else
 	    /* Re-aquire the lock on the new file by opening it. */
-	    DBCellRead(cellDef, NULL, TRUE, NULL);
+	    DBCellRead(cellDef, NULL, TRUE, FALSE, NULL);
 #endif  
 
     }

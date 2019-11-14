@@ -95,7 +95,7 @@ WindUnload(surfaceID)
 
     for (mw = windTopWindow; mw != NULL; mw = mw->w_nextWindow)
 	if (mw->w_surfaceID == surfaceID)
-	    DBWloadWindow(mw, (char *)NULL, TRUE, FALSE);
+	    DBWloadWindow(mw, (char *)NULL, TRUE, FALSE, FALSE);
 }
 
 /*

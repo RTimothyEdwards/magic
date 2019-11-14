@@ -1394,7 +1394,7 @@ W3DloadWindow(window, name)
     if (newEditDef == (CellDef *)NULL)
 	return FALSE;
 
-    if (!DBCellRead(newEditDef, (char *)NULL, TRUE, NULL))
+    if (!DBCellRead(newEditDef, (char *)NULL, TRUE, FALSE, NULL))
 	return FALSE;
 
     DBReComputeBbox(newEditDef);

@@ -312,7 +312,7 @@ cifOut(outf)
 	/* Read the cell in if it is not already available. */
 	if ((def->cd_flags & CDAVAILABLE) == 0)
 	{
-	    if (!DBCellRead(def, (char *) NULL, TRUE, NULL)) continue;
+	    if (!DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL)) continue;
 	}
 
 	/* Add any subcells to the stack.  This must be done before

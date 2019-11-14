@@ -746,7 +746,7 @@ calmaProcessDef(def, outf)
 
     /* Read the cell in if it is not already available. */
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(def, (char *) NULL, TRUE, NULL))
+	if (!DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL))
 	    return (0);
 
     /*
