@@ -778,6 +778,20 @@ lefWriteMacro(def, f, scale, hide)
     else
 	boundary = def->cd_bbox;
 
+    /* If a bounding box has been declared with the FIXED_BBOX property	*/
+    /* then it takes precedence over def->cd_bbox.			*/
+
+    if (def->cd_flags & CDFIXEDBBOX)
+    {
+	char *propvalue;
+	bool found;
+
+	propvalue = (char *)DBPropGet(def, "FIXED_BBOX", &found);
+	if (found)
+	    sscanf(propvalue, "%d %d %d %d", &boundary.r_xbot,
+		    &boundary.r_ybot, &boundary.r_xtop, &boundary.r_ytop);
+    }
+
     /* Write position and size information */
 
     fprintf(f, "   ORIGIN %.4f %.4f ;\n",

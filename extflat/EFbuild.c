@@ -606,7 +606,7 @@ efBuildDevice(def, class, type, r, argc, argv)
     Dev *newdev, devtmp;
     DevParam *newparm, *devp, *sparm;
     char ptype, *pptr, **av;
-    char devhash[24];
+    char devhash[64];
     int argstart = 1;	/* start of terminal list in argv[] */
     bool hasModel = strcmp(type, "None") ? TRUE : FALSE;
 
@@ -749,7 +749,7 @@ efBuildDevice(def, class, type, r, argc, argv)
 
     /* Determine if this device has been seen before */
 
-    sprintf(devhash, "%dx%d", r->r_xbot, r->r_ybot);
+    sprintf(devhash, "%dx%d%s", r->r_xbot, r->r_ybot, type);
     he = HashFind(&def->def_devs, devhash);
     newdev = (Dev *)HashGetValue(he);
     if (newdev)

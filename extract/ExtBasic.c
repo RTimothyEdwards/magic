@@ -1686,6 +1686,7 @@ extOutputDevices(def, transList, outFile)
 
 	while (TRUE)
 	{
+	    if (devptr == NULL) break;	    /* Bad device */
 	    nsd = devptr->exts_deviceSDCount;
 	    for (termcount = 0; termcount < nsd; termcount++)
 	    {
@@ -1726,6 +1727,7 @@ extOutputDevices(def, transList, outFile)
 		    devptr = extDevFindMatch(devptr, t);
 		    break;
 		}
+		if (termcount == nsd) break;    /* All terminals accounted for */
 	    }
 	    if (termcount == nsd) break;    /* All terminals accounted for */
 	    if (devptr == deventry) break;  /* No other device records available */
@@ -1770,6 +1772,11 @@ extOutputDevices(def, transList, outFile)
 	{
 	    /* It is not an error condition to have more terminals */
 	    /* than the minimum.				   */
+	}
+	if (devptr == NULL) {
+	    TxError("Warning:  No matching extraction type for device at (%d %d)\n",
+			reg->treg_tile->ti_ll.p_x, reg->treg_tile->ti_ll.p_y);
+	    continue;
 	}
 
 	/*
@@ -2912,7 +2919,8 @@ extResistorTileFunc(tile, pNum)
 
 	extEnumTilePerim(tile, mask, pNum, extSpecialPerimFunc, (ClientData)FALSE);
 
-	if (extSpecialBounds[0] == NULL) devptr = devptr->exts_next;
+	if (extSpecialBounds[0] != NULL) break;
+	devptr = devptr->exts_next;
     }
     if (devptr != NULL) extTransRec.tr_devrec = devptr;
 
