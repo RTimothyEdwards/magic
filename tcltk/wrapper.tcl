@@ -367,6 +367,10 @@ catch {source ${CAD_ROOT}/magic/tcl/cellmgr.tcl}
 
 catch {source ${CAD_ROOT}/magic/tcl/libmgr.tcl}
 
+# Generate the DRC manager
+
+catch {source ${CAD_ROOT}/magic/tcl/drcmgr.tcl}
+
 # Generate the text helper
 
 catch {source ${CAD_ROOT}/magic/tcl/texthelper.tcl}
@@ -1403,6 +1407,13 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
 		wm deiconify .techmgr ; raise .techmgr \
 		} else { \
 		wm withdraw .techmgr } }]
+
+   $m add check -label "DRC Manager" -variable Opts(drcmgr) \
+	-command [subst { magic::drcmanager create; \
+		if { \$Opts(drcmgr) } { \
+		wm deiconify .drcmgr ; raise .drcmgr \
+		} else { \
+		wm withdraw .drcmgr } }]
 
    $m add check -label "Netlist Window" -variable Opts(netlist) \
 	-command [subst { if { \[windownames netlist\] != {}} { \
