@@ -127,10 +127,10 @@ DBWcreate(window, argc, argv)
 
     window->w_clientData = (ClientData) crec;
     if (argc > 0)
-	DBWloadWindow(window, argv[0], TRUE, FALSE);
+	DBWloadWindow(window, argv[0], TRUE, FALSE, FALSE);
     else if (ToolGetBox(&boxDef, &box))
     {
-	DBWloadWindow(window, boxDef->cd_name, TRUE, FALSE);
+	DBWloadWindow(window, boxDef->cd_name, TRUE, FALSE, FALSE);
 
 	/* Zoom in on the box, leaving a 10% border or at least 2 units
 	 * on each side.
@@ -148,7 +148,7 @@ DBWcreate(window, argc, argv)
     }
     else
     {
-	DBWloadWindow(window, (char *) NULL, TRUE, FALSE);
+	DBWloadWindow(window, (char *) NULL, TRUE, FALSE, FALSE);
     }
     return TRUE;
 }
@@ -249,7 +249,7 @@ dbwReloadFunc(w, name)
     MagWindow *w;
     char *name;
 {
-    DBWloadWindow(w, name, TRUE, FALSE);
+    DBWloadWindow(w, name, TRUE, FALSE, FALSE);
     return (0);
 }
 
@@ -274,18 +274,20 @@ dbwReloadFunc(w, name)
  *	cell doesn't change.
  *
  *	If "expand" is true, unexpands all subcells of the root cell.
+ *	If "dereference" is true, ignore path reference in the input file.
  *
  * ----------------------------------------------------------------------------
  */
 
 void
-DBWloadWindow(window, name, ignoreTech, expand)
+DBWloadWindow(window, name, ignoreTech, expand, dereference)
     MagWindow *window;	/* Identifies window to which cell is to be bound */
     char *name;		/* Name of new cell to be bound to this window */
     bool ignoreTech;	/* If FALSE, indicates that the technology of
 			 * the layout must match the current technology.
 			 */
     bool expand;	/* Indicates whether or not to expand the cell */
+    bool dereference;	/* If TRUE, ignore path references in the input */
 {
     CellDef *newEditDef;
     CellUse *newEditUse;
@@ -383,7 +385,7 @@ DBWloadWindow(window, name, ignoreTech, expand)
 	if (newEditDef == (CellDef *) NULL)
 	    newEditDef = DBCellNewDef(rootname, (char *) NULL);
 
-	if (!DBCellRead(newEditDef, name, ignoreTech, &error_val))
+	if (!DBCellRead(newEditDef, name, ignoreTech, dereference, &error_val))
 	{
 	    if (error_val == ENOENT)
 	    {

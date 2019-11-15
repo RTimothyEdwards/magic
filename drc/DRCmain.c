@@ -969,7 +969,7 @@ drcFindFunc(scx, finddata)
     if (HashGetValue(h) != 0) return 0;
     HashSetValue(h, 1);
 
-    (void) DBCellRead(def, (char *) NULL, TRUE, NULL);
+    (void) DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL);
 
     if (DBSrPaintArea((Tile *) NULL, def->cd_planes[PL_DRC_ERROR],
 	    &def->cd_bbox, &DBAllButSpaceBits, drcFindFunc2,

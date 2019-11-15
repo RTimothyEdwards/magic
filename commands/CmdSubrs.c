@@ -309,7 +309,7 @@ cmdFlushCell(def)
     }
     DBCellClearDef(def);
     DBCellClearAvail(def);
-    (void) DBCellRead(def, (char *) NULL, TRUE, NULL);
+    (void) DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL);
     DBCellSetAvail(def);
     DBReComputeBbox(def);
     DBCellSetModified(def, FALSE);

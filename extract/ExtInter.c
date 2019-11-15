@@ -424,7 +424,7 @@ extTreeSrPaintArea(scx, func, cdarg)
     int pNum;
 
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(def, (char *) NULL, TRUE, NULL)) return 0;
+	if (!DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL)) return 0;
 
     filter.tf_func = func;
     filter.tf_arg = cdarg;
@@ -461,7 +461,7 @@ extTreeSrFunc(scx, fp)
     int pNum;
 
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(def, (char *) NULL, TRUE, NULL)) return (0);
+	if (!DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL)) return (0);
 
     context.tc_scx = scx;
     context.tc_filter = fp;
@@ -548,7 +548,7 @@ extCellSrArea(scx, func, cdarg)
     filter.tf_arg = cdarg;
 
     if ((scx->scx_use->cu_def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(scx->scx_use->cu_def, (char *) NULL, TRUE, NULL))
+	if (!DBCellRead(scx->scx_use->cu_def, (char *) NULL, TRUE, FALSE, NULL))
 	    return 0;
     
     /*

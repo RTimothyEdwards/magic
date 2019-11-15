@@ -137,7 +137,7 @@ DBFixMismatch()
 	mismatch = mismatch->mm_next;
 	if (cellDef->cd_flags & CDPROCESSED) continue;
 
-	(void) DBCellRead(cellDef, (char *) NULL, TRUE, NULL);
+	(void) DBCellRead(cellDef, (char *) NULL, TRUE, FALSE, NULL);
 
 	/* Jimmy up the cell's current bounding box, so the following
 	 * procedure call will absolutely and positively know that

@@ -1491,7 +1491,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		    /* magic .mag layout file.				*/
 		    defMacro = DBCellNewDef(token, (char *)NULL);
 		    defMacro->cd_flags &= ~CDNOTFOUND;
-		    if (!DBCellRead(defMacro, (char *)NULL, TRUE, NULL))
+		    if (!DBCellRead(defMacro, (char *)NULL, TRUE, FALSE, NULL))
 		    {
 		        LefError(DEF_ERROR, "Cell %s is not defined.  Maybe you "
 				"have not read the corresponding LEF file?\n",

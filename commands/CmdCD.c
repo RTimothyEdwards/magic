@@ -3079,7 +3079,7 @@ CmdDown(w, cmd)
     GeoTransRect(&EditToRootTransform, &(EditCellUse->cu_def->cd_bbox), &area);
     (void) WindSearch(DBWclientID, (ClientData) NULL,
 	    (Rect *) NULL, cmdEditRedisplayFunc, (ClientData) &area);
-    DBWloadWindow(w, EditCellUse->cu_def->cd_name, TRUE, FALSE);
+    DBWloadWindow(w, EditCellUse->cu_def->cd_name, TRUE, FALSE, FALSE);
 }
 
 /* Search function to find the new edit cell:  look for a cell use
@@ -3777,7 +3777,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
      * looked for then no new error message will be printed.
      */
     def->cd_flags &= ~CDNOTFOUND;
-    if (!DBCellRead(def, (char *) NULL, TRUE, NULL))
+    if (!DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL))
 	return (FALSE);
     DBReComputeBbox(def);
     dummy->cu_def = def;

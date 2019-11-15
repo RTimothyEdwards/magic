@@ -81,7 +81,7 @@ DBExpand(cellUse, expandMask, expandFlag)
 	def = cellUse->cu_def;
 	if ((def->cd_flags & CDAVAILABLE) == 0)
 	{
-	    if (!DBCellRead(def, (char *) NULL, TRUE, NULL))
+	    if (!DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL))
 		return;
 	    /* Note:  we don't have to recompute the bbox here, because
 	     * if it changed, then a timestamp violation must have occurred
@@ -144,7 +144,7 @@ DBExpandAll(rootUse, rootRect, expandMask, expandFlag, func, cdarg)
     struct expandArg arg;
 
     if ((rootUse->cu_def->cd_flags & CDAVAILABLE) == 0)
-	(void) DBCellRead(rootUse->cu_def, (char *) NULL, TRUE, NULL);
+	(void) DBCellRead(rootUse->cu_def, (char *) NULL, TRUE, FALSE, NULL);
 
     /*
      * Walk through the area and set the expansion state
@@ -193,7 +193,7 @@ dbExpandFunc(scx, arg)
 	/* If the cell is unavailable, then don't expand it.
 	 */
 	if ((childUse->cu_def->cd_flags & CDAVAILABLE) == 0)
-	    if(!DBCellRead(childUse->cu_def, (char *) NULL, TRUE, NULL))
+	    if(!DBCellRead(childUse->cu_def, (char *) NULL, TRUE, FALSE, NULL))
 	    {
 		TxError("Cell %s is unavailable.  It could not be expanded.\n",
 			childUse->cu_def->cd_name);
@@ -303,7 +303,7 @@ dbReadAreaFunc(scx)
 
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
-	(void) DBCellRead(def, (char *) NULL, TRUE, NULL);
+	(void) DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL);
 	/* Note: we don't have to invoke DBReComputeBbox here because
 	 * if the bbox changed then there was a timestamp mismatch and
 	 * the timestamp code will take care of the bounding box later.

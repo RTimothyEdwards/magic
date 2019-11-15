@@ -59,7 +59,8 @@ bool efFlatGlobCmp(HierName *, HierName *);
 char *efFlatGlobCopy(HierName *);
 void efFlatGlobError(EFNodeName *, EFNodeName *);
 int efAddNodes(HierContext *, bool);
-int efAddOneConn(HierContext *, char *, char *, Connection *);
+int efAddConns(HierContext *, bool);
+int efAddOneConn(HierContext *, char *, char *, Connection *, bool);
 
 
 /*
@@ -193,8 +194,11 @@ EFFlatBuildOneLevel(def, flags)
     efFlatContext.hc_x = efFlatContext.hc_y = 0;
     efFlatRootUse.use_def = efFlatRootDef;
 
+    /* NOTE:  Do the following two routines need to be deeper than one level? */
     /* Record all nodes of the next level in the hierarchy */
     efHierSrUses(&efFlatContext, efAddNodes, (ClientData)TRUE);
+    /* Record those connections as well. */
+    efHierSrUses(&efFlatContext, efAddConns, (ClientData)FALSE);
 
     /* Expand all subcells that contain connectivity information but	*/
     /* no active devices (including those in subcells).			*/
@@ -210,7 +214,7 @@ EFFlatBuildOneLevel(def, flags)
 
     /* Record all local nodes */
     efAddNodes(&efFlatContext, FALSE);
-    efAddConns(&efFlatContext);
+    efAddConns(&efFlatContext, TRUE);
 
     efFlatKills(&efFlatContext);
     if (!(flags & EF_NONAMEMERGE))
@@ -300,7 +304,7 @@ efFlatNodes(hc)
     efAddNodes(hc, FALSE);
 
     /* Process our own connections and adjustments */
-    (void) efAddConns(hc);
+    (void) efAddConns(hc, TRUE);
 
     return (0);
 }
@@ -352,7 +356,7 @@ efFlatNodesStdCell(hc)
 
     /* Process our own connections and adjustments */
     if (!(hc->hc_use->use_def->def_flags & DEF_SUBCIRCUIT))
-	(void) efAddConns(hc);
+	(void) efAddConns(hc, TRUE);
 
     return (0);
 }
@@ -378,7 +382,7 @@ efFlatNodesDeviceless(hc, cdata)
 	efAddNodes(hc, TRUE);
 
 	/* Process our own connections and adjustments */
-	efAddConns(hc);
+	efAddConns(hc, TRUE);
 
 	/* Mark this definition as having no devices, so it will not be visited */
 	hc->hc_use->use_def->def_flags |= DEF_NODEVICES;
@@ -562,8 +566,9 @@ efAddNodes(hc, stdcell)
  */
 
 int
-efAddConns(hc)
+efAddConns(hc, doWarn)
     HierContext *hc;
+    bool doWarn;
 {
     Connection *conn;
 
@@ -576,9 +581,9 @@ efAddConns(hc)
     {
 	/* Special case for speed when no array info is present */
 	if (conn->conn_1.cn_nsubs == 0)
-	    efAddOneConn(hc, conn->conn_name1, conn->conn_name2, conn);
+	    efAddOneConn(hc, conn->conn_name1, conn->conn_name2, conn, doWarn);
 	else
-	    efHierSrArray(hc, conn, efAddOneConn, (ClientData) NULL);
+	    efHierSrArray(hc, conn, efAddOneConn, (ClientData)doWarn);
     }
 
     return (0);
@@ -605,16 +610,17 @@ efAddConns(hc)
  */
 
 int
-efAddOneConn(hc, name1, name2, conn)
+efAddOneConn(hc, name1, name2, conn, doWarn)
     HierContext *hc;
     char *name1, *name2;	/* These are strings, not HierNames */
     Connection *conn;
+    bool doWarn;
 {
     HashEntry *he1, *he2;
     EFNode *node, *newnode;
     int n;
 
-    he1 = EFHNLook(hc->hc_hierName, name1, "connect(1)");
+    he1 = EFHNLook(hc->hc_hierName, name1, (doWarn) ? "connect(1)" : NULL);
     if (he1 == NULL)
 	return 0;
 
@@ -630,7 +636,7 @@ efAddOneConn(hc, name1, name2, conn)
     /* Merge this node with conn_name2 if one was specified */
     if (name2)
     {
-	he2 = EFHNLook(hc->hc_hierName, name2, "connect(2)");
+	he2 = EFHNLook(hc->hc_hierName, name2, (doWarn) ? "connect(2)" : NULL);
 	if (he2 == NULL)
 	    return 0;
 	newnode = ((EFNodeName *) HashGetValue(he2))->efnn_node;
