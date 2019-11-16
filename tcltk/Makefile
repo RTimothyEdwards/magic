@@ -18,6 +18,7 @@ TCL_FILES = \
 	console.tcl \
 	techbuilder.tcl \
 	cellmgr.tcl \
+	drcmgr.tcl \
 	libmgr.tcl \
 	texthelper.tcl \
 	tools.tcl \

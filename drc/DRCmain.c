@@ -343,7 +343,7 @@ drcListallError (celldef, rect, cptr, scx)
     area = &scx->scx_area;
     if ((area != NULL) && (!GEO_OVERLAP(area, rect))) return;
     DRCErrorCount += 1;
-    h = HashFind(&DRCErrorTable, cptr->drcc_why);
+    h = HashFind(&DRCErrorTable, drcSubstitute(cptr));
     lobj = (Tcl_Obj *) HashGetValue(h);
     if (lobj == NULL)
        lobj = Tcl_NewListObj(0, NULL);
@@ -747,111 +747,42 @@ drcCheckFunc(scx, cdarg)
  * ----------------------------------------------------------------------------
  */
 
-DRCCountList *
+int
 DRCCount(use, area)
     CellUse *use;		/* Top-level use of hierarchy. */
     Rect *area;			/* Area in which violations are counted. */
 {
-    DRCCountList  *dcl, *newdcl;
-    HashTable	  dupTable;
-    HashEntry	  *he;
-    HashSearch	  hs;
     int		  count;
     SearchContext scx;
-    extern int    drcCountFunc();	/* Forward reference. */
-
-    /* Use a hash table to make sure that we don't output information
-     * for any cell more than once.
-     */
-
-    HashInit(&dupTable, 16, HT_WORDKEYS);
+    CellDef	  *def;
+    extern int drcCountFunc2();
 
     scx.scx_use = use;
     scx.scx_x = use->cu_xlo;
     scx.scx_y = use->cu_ylo;
     scx.scx_area = *area;
     scx.scx_trans = GeoIdentityTransform;
-    (void) drcCountFunc(&scx, &dupTable);
 
-    /* Create the list from the hash table */
-
-    dcl = NULL;
-    if (dupTable.ht_table != (HashEntry **) NULL)
-    {
-	HashStartSearch(&hs);
-	while ((he = HashNext(&dupTable, &hs)) != (HashEntry *)NULL)
-	{
-            count = (spointertype)HashGetValue(he);
-	    if (count > 1)
-	    {
-		newdcl = (DRCCountList *)mallocMagic(sizeof(DRCCountList));
-		newdcl->dcl_count = count - 1;
-		newdcl->dcl_def = (CellDef *)he->h_key.h_ptr;
-		newdcl->dcl_next = dcl;
-		dcl = newdcl;
-	    }
-	}
-    }
-    HashKill(&dupTable);
-    return dcl;
-}
-
-int
-drcCountFunc(scx, dupTable)
-    SearchContext *scx;
-    HashTable *dupTable;		/* Passed as client data, used to
-					 * avoid searching any cell twice.
-					 */
-{
-    int count;
-    HashEntry *h;
-    CellDef *def;
-    extern int drcCountFunc2();
-
-    /* If we've already seen this cell definition before, then skip it
-     * now.
-     */
-
-    def = scx->scx_use->cu_def;
-    h = HashFind(dupTable, (char *)def);
-    if (HashGetValue(h) != 0) goto done;
-    HashSetValue(h, 1);
+    def = use->cu_def;
 
     /* Count errors in this cell definition by scanning the error plane. */
 
     count = 0;
     (void) DBSrPaintArea((Tile *) NULL, def->cd_planes[PL_DRC_ERROR],
-	&def->cd_bbox, &DBAllButSpaceBits, drcCountFunc2, (ClientData) &count);
-    HashSetValue(h, (spointertype)count + 1);
+	&def->cd_bbox, &DBAllButSpaceBits, drcCountFunc2, (ClientData)(&count));
 
-    /* Ignore children that have not been loaded---we will only report	*/
-    /* errors that can be seen.  This avoids immediately loading and	*/
-    /* drc processing large layouts simply because we asked for an	*/
-    /* error count.  When the cell is loaded, drc will be checked	*/
-    /* anyway, and the count can be updated in response to that check.	*/
-
-    if ((scx->scx_use->cu_def->cd_flags & CDAVAILABLE) == 0) return 0;
-
-    /* New behavior:  Don't search children, instead propagate errors up. */
-    /* (void) DBCellSrArea(scx, drcCountFunc, (ClientData) dupTable); */
-
-    /* As a special performance hack, if the complete cell area is
-     * handled here, don't bother to look at any more array elements.
-     */
-    
-    done: if (GEO_SURROUND(&scx->scx_area, &def->cd_bbox)) return 2;
-    else return 0;
+    return count;
 }
 
 int
-drcCountFunc2(tile, pCount)
-    Tile *tile;			/* Tile found in error plane. */
-    int *pCount;		/* Address of count word. */
+drcCountFunc2(tile, countptr)
+    Tile *tile;		    /* Tile found in error plane.   */
+    int *countptr;	    /* Address of count word.	    */
 {
-    if (TiGetType(tile) != (TileType) TT_SPACE) *pCount += 1;
+    if (TiGetType(tile) != (TileType) TT_SPACE) (*countptr)++;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
