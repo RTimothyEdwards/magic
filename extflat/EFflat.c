@@ -127,7 +127,7 @@ EFFlatBuild(name, flags)
 	if (flags & EF_NOFLATSUBCKT)
 	    efFlatNodesStdCell(&efFlatContext);
 	else
-	    efFlatNodes(&efFlatContext);
+	    efFlatNodes(&efFlatContext, FALSE, TRUE);
 	efFlatKills(&efFlatContext);
 	if (!(flags & EF_NONAMEMERGE))
 	    efFlatGlob();
@@ -194,11 +194,8 @@ EFFlatBuildOneLevel(def, flags)
     efFlatContext.hc_x = efFlatContext.hc_y = 0;
     efFlatRootUse.use_def = efFlatRootDef;
 
-    /* NOTE:  Do the following two routines need to be deeper than one level? */
-    /* Record all nodes of the next level in the hierarchy */
-    efHierSrUses(&efFlatContext, efAddNodes, (ClientData)TRUE);
-    /* Record those connections as well. */
-    efHierSrUses(&efFlatContext, efAddConns, (ClientData)FALSE);
+    /* Record all nodes down the hierarchy from here */
+    efFlatNodes(&efFlatContext, (ClientData)TRUE, (ClientData)FALSE);
 
     /* Expand all subcells that contain connectivity information but	*/
     /* no active devices (including those in subcells).			*/
@@ -295,16 +292,16 @@ EFFlatDone()
  */
 
 int
-efFlatNodes(hc)
+efFlatNodes(hc, stdcell, doWarn)
     HierContext *hc;
 {
     (void) efHierSrUses(hc, efFlatNodes);
 
     /* Add all our own nodes to the table */
-    efAddNodes(hc, FALSE);
+    efAddNodes(hc, stdcell);
 
     /* Process our own connections and adjustments */
-    (void) efAddConns(hc, TRUE);
+    (void) efAddConns(hc, doWarn);
 
     return (0);
 }
