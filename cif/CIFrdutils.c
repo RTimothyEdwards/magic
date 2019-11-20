@@ -120,7 +120,10 @@ CIFReadError(char *format, ...)
     if (CIFWarningLevel == CIF_WARN_NONE) return;
     if ((cifTotalErrors < 100) || (CIFWarningLevel != CIF_WARN_LIMIT))
     {
-	TxError("Error at line %d of CIF file: ", cifLineNumber);
+	if (cifLineNumber > 0)
+	    TxError("Error at line %d of CIF file: ", cifLineNumber);
+	else
+	    TxError("CIF file read error: ", cifLineNumber);
 	va_start(args, format);
 	Vfprintf(stderr, format, args);
 	va_end(args);
@@ -141,7 +144,10 @@ CIFReadWarning(char *format, ...)
     if (CIFWarningLevel == CIF_WARN_NONE) return;
     if ((cifTotalWarnings < 100) || (CIFWarningLevel != CIF_WARN_LIMIT))
     {
-	TxError("Warning at line %d of CIF file: ", cifLineNumber);
+	if (cifLineNumber > 0)
+	    TxError("Warning at line %d of CIF file: ", cifLineNumber);
+	else
+	    TxError("CIF file read warning: ");
 	va_start(args, format);
 	Vfprintf(stderr, format, args);
 	va_end(args);

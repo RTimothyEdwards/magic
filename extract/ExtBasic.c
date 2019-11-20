@@ -2800,10 +2800,16 @@ extTransPerimFunc(bp)
 	devptr = extDevFindMatch(devptr, tinside);
 	if (devptr == deventry) devptr = NULL;
     }
+
     if (devptr == NULL)
     {
-	TxError("Error:  Cannot find valid terminals on device %s!\n",
-		DBTypeLongNameTbl[tinside]);
+	/* Outside type is not a terminal, so return to the original	*/
+	/* device record.  NOTE:  Should probably check if this device	*/
+	/* type is a FET, as being here would indicate an error.	*/
+	/* However, failure to find all terminals will be flagged as an	*/
+	/* error elsewhere.						*/
+
+	extTransRec.tr_devrec = deventry;
     }
 
     /*
