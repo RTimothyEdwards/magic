@@ -1327,6 +1327,7 @@ bloatCheck:
 		slots->sl_lsize = 0;
 		slots->sl_lsep = 0;
 		slots->sl_offset = 0;
+		slots->sl_start = 0;
 	    }
 	    if (argc >= 5)
 	    {
@@ -1361,7 +1362,7 @@ bloatCheck:
 		    goto errorReturn;
 		}
 	    }
-	    if (argc == 8)
+	    if (argc >= 8)
 	    {
 		i = atoi(argv[7]);
 		slots->sl_offset = i;
@@ -1371,7 +1372,17 @@ bloatCheck:
 		    goto errorReturn;
 		}
 	    }
-	    if ((argc < 4) || (argc == 6) || (argc > 8))
+	    if (argc == 9)
+	    {
+		i = atoi(argv[8]);
+		slots->sl_start = i;
+		if (i < 0)
+		{
+		    TechError("Slot start must be non-negative.\n");
+		    goto errorReturn;
+		}
+	    }
+	    if ((argc < 4) || (argc == 6) || (argc > 9))
 		goto wrongNumArgs;
 	    break;
     }
@@ -1685,7 +1696,7 @@ CIFTechFinal()
 		{
 		    slots = (SlotsData *)op->co_client;
 
-		    for (j = 0; j < 7; j++)
+		    for (j = 0; j < 8; j++)
 		    {
 			switch (j) {
 			   case 0: bvalue = slots->sl_sborder; break;
@@ -1695,6 +1706,7 @@ CIFTechFinal()
 			   case 4: bvalue = slots->sl_lsize; break;
 			   case 5: bvalue = slots->sl_lsep; break;
 			   case 6: bvalue = slots->sl_offset; break;
+			   case 7: bvalue = slots->sl_start; break;
 			}
 			if (bvalue != 0)
 			{
@@ -2193,7 +2205,7 @@ CIFTechOutputScale(n, d)
 		else if (op->co_opcode == CIFOP_SLOTS)
 		{
 		    slots = (SlotsData *)op->co_client;
-		    for (j = 0; j < 7; j++)
+		    for (j = 0; j < 8; j++)
 		    {
 			switch (j) {
 			    case 0: bptr = &slots->sl_sborder; break;
@@ -2203,6 +2215,7 @@ CIFTechOutputScale(n, d)
 			    case 4: bptr = &slots->sl_lsize; break;
 			    case 5: bptr = &slots->sl_lsep; break;
 			    case 6: bptr = &slots->sl_offset; break;
+			    case 7: bptr = &slots->sl_start; break;
 			}
 			if (*bptr != 0)
 			{
@@ -2319,6 +2332,8 @@ CIFTechOutputScale(n, d)
 			    slots->sl_lsep /= lexpand;
 			if (slots->sl_offset != 0)
 			    slots->sl_offset /= lexpand;
+			if (slots->sl_start != 0)
+			    slots->sl_start /= lexpand;
 			break;
 		    case CIFOP_SQUARES_G:
 			squares = (SquaresData *)op->co_client;

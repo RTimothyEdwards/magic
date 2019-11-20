@@ -2011,13 +2011,13 @@ cifSlotsFillArea(op, cellDef, plane)
 
 	    cifSlotFunc(&bbox, op, &nUp, &nAcross, &llcut, vertical);
 
-	    cut.r_ybot = llcut.r_ybot;
-	    cut.r_ytop = llcut.r_ytop;
+	    cut.r_ybot = llcut.r_ybot + slots->sl_start;
+	    cut.r_ytop = llcut.r_ytop + slots->sl_start;
 
 	    /* For each contact cut area, check that there is	*/
 	    /* no whitespace					*/
 
-	    offset = 0;
+	    offset = slots->sl_start;
 	    for (i = 0; i < nUp; i++)
 	    {
 		cut.r_xbot = llcut.r_xbot + offset;
