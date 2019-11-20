@@ -628,6 +628,38 @@ proc magic::add_selectlist {pname ptext all_values parameters} {
    set magic::${pname}_val $value
 }
 
+#----------------------------------------------------------
+#  Add a selectable-list parameter to the gencell window 
+#  Unlike the routine above, it returns the index of the
+#  selection, not the selection itself.  This is useful for
+#  keying the selection to other parameter value lists.
+#----------------------------------------------------------
+
+proc magic::add_selectindex {pname ptext all_values parameters} {
+
+   if [dict exists $parameters $pname] {
+        set value [dict get $parameters $pname]
+   } else {
+       set value 0
+   }
+
+   set numrows [lindex [grid size .params.edits] 1]
+   label .params.edits.${pname}_lab -text $ptext
+   menubutton .params.edits.${pname}_sel -menu .params.edits.${pname}_sel.menu \
+		-relief groove -text [lindex ${all_values} ${value}]
+   grid .params.edits.${pname}_lab -row $numrows -column 0 -sticky ens
+   grid .params.edits.${pname}_sel -row $numrows -column 1 -sticky wns
+   menu .params.edits.${pname}_sel.menu -tearoff 0
+   set idx 0
+   foreach item ${all_values} {
+       .params.edits.${pname}_sel.menu add radio -label $item \
+	-variable magic::${pname}_val -value $idx \
+	-command ".params.edits.${pname}_sel configure -text $item"
+       incr idx
+   }
+   set magic::${pname}_val $value
+}
+
 #-------------------------------------------------------------
 # gencell_defaults ---
 #
