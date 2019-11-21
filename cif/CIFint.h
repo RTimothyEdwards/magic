@@ -69,6 +69,7 @@ typedef struct slots_data
     int sl_lsize;
     int sl_lsep;
     int sl_offset;
+    int sl_start;
 } SlotsData;
 
 typedef struct cifop

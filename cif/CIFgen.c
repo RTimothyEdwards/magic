@@ -1790,7 +1790,7 @@ cifSlotsFillArea(op, cellDef, plane)
 {
     Tile *tile, *t, *tp;
     Rect bbox, area, square, cut, llcut;
-    int nAcross, nUp, left, spitch, lpitch, ssize, lsize;
+    int nAcross, nUp, left, spitch, lpitch, ssize, lsize, offset;
     int diff, right;
     int xpitch, ypitch, xborder, yborder, xdiff, ydiff;
     int i, j, k, savecount;
@@ -2011,16 +2011,17 @@ cifSlotsFillArea(op, cellDef, plane)
 
 	    cifSlotFunc(&bbox, op, &nUp, &nAcross, &llcut, vertical);
 
-	    cut.r_ybot = llcut.r_ybot;
-	    cut.r_ytop = llcut.r_ytop;
+	    cut.r_ybot = llcut.r_ybot + slots->sl_start;
+	    cut.r_ytop = llcut.r_ytop + slots->sl_start;
 
 	    /* For each contact cut area, check that there is	*/
 	    /* no whitespace					*/
 
+	    offset = slots->sl_start;
 	    for (i = 0; i < nUp; i++)
 	    {
-		cut.r_xbot = llcut.r_xbot;
-		cut.r_xtop = llcut.r_xtop;
+		cut.r_xbot = llcut.r_xbot + offset;
+		cut.r_xtop = llcut.r_xtop + offset;
 
 		square.r_ybot = cut.r_ybot - yborder;
 		square.r_ytop = cut.r_ytop + yborder;
@@ -2047,6 +2048,8 @@ cifSlotsFillArea(op, cellDef, plane)
 		}
 		cut.r_ybot += ypitch;
 		cut.r_ytop += ypitch;
+		offset += slots->sl_offset;
+		if (offset >= xpitch) offset -= xpitch;
 	    }
 	    if (savecount != CIFTileOps) break;
 
