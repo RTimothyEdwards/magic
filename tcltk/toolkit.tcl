@@ -280,6 +280,7 @@ proc magic::gencell_setparams {parameters} {
       } elseif {[regexp {^.params.edits.(.*)_sel$} $s valid pname] != 0} {
 	 set value [dict get $parameters $pname]
          set magic::${pname}_val $value
+	 .params.edits.${pname}_sel configure -text $value
       } elseif {[regexp {^.params.edits.(.*)_txt$} $s valid pname] != 0} {
 	 if {[dict exists $parameters $pname]} {
 	    set value [dict get $parameters $pname]
@@ -310,11 +311,18 @@ proc magic::gencell_change {instname gencell_type library parameters} {
 	if {$newinstname == $instname} {set newinstname $instname}
 	if {[instance list exists $newinstname] != ""} {set newinstname $instname}
     }
+    if {[dict exists $parameters gencell]} {
+        # Setting special parameter "gencell" forces the gencell to change type
+	set gencell_type [dict get $parameters gencell]
+    }
     if {[catch {set parameters [${library}::${gencell_type}_check $parameters]} \
 		checkerr]} {
 	puts stderr $checkerr
     }
     magic::gencell_setparams $parameters
+    if {[dict exists $parameters gencell]} {
+	set parameters [dict remove $parameters gencell]
+    }
 
     set gname [instance list celldef $instname]
 
@@ -346,6 +354,7 @@ proc magic::gencell_change {instname gencell_type library parameters} {
 	    puts stderr $drawerr
 	}
 	property parameters $parameters
+	property gencell ${gencell_type}
 	tech revert
 	popstack
         select cell $instname
@@ -400,14 +409,24 @@ proc magic::gencell_create {gencell_type library parameters} {
     set newinstname ""
 
     # Get device defaults
-    set pdefaults [${library}::${gencell_type}_defaults]
     if {$parameters == {}} {
         # Pull user-entered values from dialog
-        set parameters [dict merge $pdefaults [magic::gencell_getparams]]
+        set dialogparams [magic::gencell_getparams]
+	if {[dict exists $dialogparams gencell]} {
+	    # Setting special parameter "gencell" forces the gencell to change type
+	    set gencell_type [dict get $dialogparams gencell]
+	}
+	set pdefaults [${library}::${gencell_type}_defaults]
+        set parameters [dict merge $pdefaults $dialogparams]
 	set newinstname [.params.title.ient get]
 	if {$newinstname == "(default)"} {set newinstname ""}
 	if {[instance list exists $newinstname] != ""} {set newinstname ""}
     } else {
+	if {[dict exists $parameters gencell]} {
+	    # Setting special parameter "gencell" forces the gencell to change type
+	    set gencell_type [dict get $parameters gencell]
+	}
+	set pdefaults [${library}::${gencell_type}_defaults]
         set parameters [dict merge $pdefaults $parameters]
     }
 
@@ -416,6 +435,9 @@ proc magic::gencell_create {gencell_type library parameters} {
 	puts stderr $checkerr
     }
     magic::gencell_setparams $parameters
+    if {[dict exists $parameters gencell]} {
+	set parameters [dict remove $parameters gencell]
+    }
 
     set snaptype [snap list]
     snap internal
@@ -546,6 +568,10 @@ proc magic::add_dependency {callback gencell_type library args} {
 #----------------------------------------------------------
 
 proc magic::update_dialog {callback pname gencell_type library} {
+    if {[dict exists $parameters gencell]} {
+        # Setting special parameter "gencell" forces the gencell to change type
+	set gencell_type [dict get $parameters gencell]
+    }
     set pdefaults [${library}::${gencell_type}_defaults]
     set parameters [dict merge $pdefaults [magic::gencell_getparams]]
     if {$callback != {}} {
@@ -605,12 +631,12 @@ proc magic::add_message {pname ptext parameters {color blue}} {
 #  Add a selectable-list parameter to the gencell window 
 #----------------------------------------------------------
 
-proc magic::add_selectlist {pname ptext all_values parameters} {
+proc magic::add_selectlist {pname ptext all_values parameters {itext ""}} {
 
    if [dict exists $parameters $pname] {
         set value [dict get $parameters $pname]
    } else {
-       set value ""
+       set value $itext
    }
 
    set numrows [lindex [grid size .params.edits] 1]
@@ -635,12 +661,12 @@ proc magic::add_selectlist {pname ptext all_values parameters} {
 #  keying the selection to other parameter value lists.
 #----------------------------------------------------------
 
-proc magic::add_selectindex {pname ptext all_values parameters} {
+proc magic::add_selectindex {pname ptext all_values parameters {ival 0}} {
 
    if [dict exists $parameters $pname] {
         set value [dict get $parameters $pname]
    } else {
-       set value 0
+       set value $ival
    }
 
    set numrows [lindex [grid size .params.edits] 1]
@@ -745,9 +771,7 @@ proc magic::gencell_dialog {instname gencell_type library parameters} {
 	 set instname $instroot
       }
       set gname [instance list celldef [subst $instname]]
-      if {$gencell_type == {}} {
-	 set gencell_type [cellname list property $gname gencell]
-      }
+      set gencell_type [cellname list property $gname gencell]
       if {$library == {}} {
 	 set library [cellname list property $gname library]
       }
