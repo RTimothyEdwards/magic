@@ -568,12 +568,16 @@ proc magic::add_dependency {callback gencell_type library args} {
 #----------------------------------------------------------
 
 proc magic::update_dialog {callback pname gencell_type library} {
+    set pdefaults [${library}::${gencell_type}_defaults]
+    set parameters [dict merge $pdefaults [magic::gencell_getparams]]
+
     if {[dict exists $parameters gencell]} {
         # Setting special parameter "gencell" forces the gencell to change type
 	set gencell_type [dict get $parameters gencell]
+	set pdefaults [${library}::${gencell_type}_defaults]
+	set parameters [dict merge $pdefaults [magic::gencell_getparams]]
     }
-    set pdefaults [${library}::${gencell_type}_defaults]
-    set parameters [dict merge $pdefaults [magic::gencell_getparams]]
+
     if {$callback != {}} {
        set parameters [$callback $pname $parameters]
     }
