@@ -131,6 +131,7 @@ typedef struct cifop
  * CIFOP_COPYUP -	Added 5/5/16---make and keep a copy the resulting layer,
  *			which will be painted into parent cells instead of the
  *			current cell.  This replaces the "fault" method.
+ * CIFOP_CLOSE -	Added 11/25/19---close up areas smaller than indicated
  */
 
 #define CIFOP_AND	1
@@ -151,6 +152,7 @@ typedef struct cifop
 #define CIFOP_NET	16
 #define CIFOP_MAXRECT	17
 #define CIFOP_COPYUP	18
+#define CIFOP_CLOSE	19
 
 /* Added by Tim 10/21/2004 */
 /* The following structure is used to pass information on how to draw

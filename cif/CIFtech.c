@@ -1049,6 +1049,8 @@ CIFTechLine(sectionName, argc, argv)
 	newOp->co_opcode = CIFOP_MAXRECT;
     else if (strcmp(argv[0], "boundary") == 0)
 	newOp->co_opcode = CIFOP_BOUNDARY;
+    else if (strcmp(argv[0], "close") == 0)
+	newOp->co_opcode = CIFOP_CLOSE;
     else
     {
 	TechError("Unknown statement \"%s\".\n", argv[0]);
@@ -1068,6 +1070,7 @@ CIFTechLine(sectionName, argc, argv)
 	case CIFOP_GROW:
 	case CIFOP_GROW_G:
 	case CIFOP_SHRINK:
+	case CIFOP_CLOSE:
 	    if (argc != 2) goto wrongNumArgs;
 	    newOp->co_distance = atoi(argv[1]);
 	    if (newOp->co_distance <= 0)
