@@ -1109,6 +1109,7 @@ cifGatherFunc(tile, atotal, mode)
 {
     Tile *tp;
     TileType type;
+    dlong locarea;
     Rect area, newarea;
     ClientData cdata = (mode == CLOSE_SEARCH) ? (ClientData)CIF_UNPROCESSED :
 	    (ClientData)CIF_PENDING;
@@ -1130,7 +1131,12 @@ cifGatherFunc(tile, atotal, mode)
     if (mode == CLOSE_SEARCH)
     {
 	if ((*atotal != INFINITY) && (*atotal < growDistance))
-	    *atotal += (area.r_xtop - area.r_xbot) * (area.r_ytop - area.r_ybot);
+	    locarea = (dlong)(area.r_xtop - area.r_xbot)
+			* (dlong)(area.r_ytop - area.r_ybot);
+	    if (locarea > (dlong)INFINITY)
+		*atotal = INFINITY;
+	    else
+		*atotal += (int)locarea;
     }
     else if (mode == CLOSE_FILL)
     {
