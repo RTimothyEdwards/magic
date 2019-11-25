@@ -513,7 +513,7 @@ drcCifCheck(arg)
 	    TxPrintf("Loading DRC CIF style.\n");
 	    CIFCurStyle = NULL;
 	    CIFLoadStyle(drcNeedStyle);
-	    if (drcCifValid == FALSE)
+	    if (drcCifValid != FALSE)
 		CIFCurStyle = CIFSaveStyle;
 	    else
 		drcCifStyle = CIFCurStyle;
@@ -525,7 +525,11 @@ drcCifCheck(arg)
 	}
 	CIFCurStyle = drcCifStyle;
     }
-    if (drcCifValid == FALSE) return;
+    if (drcCifValid == FALSE)
+    {
+	CIFCurStyle = CIFSaveStyle;
+	return;
+    }
 
     scale = drcCifStyle->cs_scaleFactor;
     cifrect = *checkRect;
