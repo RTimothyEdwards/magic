@@ -514,7 +514,7 @@ cifGrowFunc(tile, table)
     CIFTileOps += 1;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1047,6 +1047,134 @@ cifBloatAllFunc(tile, bls)
 	    }
     }
     return 0;	/* Keep the search alive. . . */
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifCloseFunc --
+ *
+ * 	Called for each relevant tile during close operations.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	Paints into cifNewPlane.  Tiles in old plane are tagged with
+ *	a static value in ClientData, which does not need to be reset
+ *	since the old plane will be free'd.
+ * ----------------------------------------------------------------------------
+ */
+
+#define CLOSE_SEARCH 0
+#define CLOSE_FILL   1
+#define CLOSE_DONE   2
+
+int
+cifCloseFunc(tile, plane)
+    Tile *tile;
+    Plane *plane;
+{
+    Rect area, newarea;
+    int atotal;
+    int cifGatherFunc();
+
+    /* If tile is marked, then it has been handled, so ignore it */
+    if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
+
+    atotal = 0;
+
+    /* Search all sides for connected space tiles, and accumulate the total */
+    /* area.  If any connected tile borders infinity, then stop searching   */
+    /* because the area is not enclosed.				    */
+
+    cifGatherFunc(tile, &atotal, CLOSE_SEARCH);
+
+    /* If the total area is smaller than the rule area, then paint all the  */
+    /* tile areas into the destination plane.				    */
+
+    if ((atotal != INFINITY) && (atotal < growDistance))
+	cifGatherFunc(tile, &atotal, CLOSE_FILL);
+    else
+	cifGatherFunc(tile, &atotal, CLOSE_DONE);
+
+    return 0;
+}
+
+int
+cifGatherFunc(tile, atotal, mode)
+    Tile *tile;
+    int *atotal;
+    bool mode;
+{
+    Tile *tp;
+    TileType type;
+    dlong locarea;
+    Rect area, newarea;
+    ClientData cdata = (mode == CLOSE_SEARCH) ? (ClientData)CIF_UNPROCESSED :
+	    (ClientData)CIF_PENDING;
+
+    /* Ignore if tile has already been processed */
+    if (tile->ti_client != cdata) return 0;
+
+    TiToRect(tile, &area);
+
+    /* Boundary tiles indicate an unclosed area, so set the area total to   */
+    /* INFINITY and don't try to run calculations on it.		    */
+
+    if ((area.r_xbot == TiPlaneRect.r_xbot) || (area.r_ybot == TiPlaneRect.r_ybot) ||
+	    (area.r_xtop == TiPlaneRect.r_xtop) || (area.r_ytop == TiPlaneRect.r_ytop))
+	*atotal = INFINITY;
+
+    /* Stop accumulating if already larger than growDistance to avoid the   */
+    /* possibility of integer overflow.					    */
+    if (mode == CLOSE_SEARCH)
+    {
+	if ((*atotal != INFINITY) && (*atotal < growDistance))
+	    locarea = (dlong)(area.r_xtop - area.r_xbot)
+			* (dlong)(area.r_ytop - area.r_ybot);
+	    if (locarea > (dlong)INFINITY)
+		*atotal = INFINITY;
+	    else
+		*atotal += (int)locarea;
+    }
+    else if (mode == CLOSE_FILL)
+    {
+	DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *)NULL);
+	CIFTileOps++;
+    }
+
+    if (mode == CLOSE_SEARCH)
+	tile->ti_client = (ClientData)CIF_PENDING;
+    else
+	tile->ti_client = (ClientData)CIF_PROCESSED;
+
+    /* Look for additional neighboring space tiles */
+    /* Check top */
+    if (area.r_ytop != TiPlaneRect.r_ytop)
+        for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+		cifGatherFunc(tp, atotal, mode);
+
+    /* Check bottom */
+    if (area.r_ybot != TiPlaneRect.r_ybot)
+        for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+		cifGatherFunc(tp, atotal, mode);
+
+    /* Check left */
+    if (area.r_xbot != TiPlaneRect.r_xbot)
+	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+		cifGatherFunc(tp, atotal, mode);
+
+    /* Check right */
+    if (area.r_xtop != TiPlaneRect.r_xtop)
+	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
+	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+		cifGatherFunc(tp, atotal, mode);
+
+    return 0;
 }
 
 /*--------------------------------------------------------------*/
@@ -3028,6 +3156,22 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		nextPlane = temp;
 		break;
 	    
+	    case CIFOP_CLOSE:
+		growDistance = op->co_distance;
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifScale = 1;
+		/* First copy the existing paint into the target plane */
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &CIFSolidBits, cifPaintFunc, (ClientData)CIFPaintTable);
+
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &DBSpaceBits, cifCloseFunc, (ClientData)&curPlane);
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
+		break;
+
 	    case CIFOP_BLOAT:
 		cifPlane = curPlane;
 		cifSrTiles(op, area, cellDef, temps,
