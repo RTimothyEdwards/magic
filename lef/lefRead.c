@@ -1212,18 +1212,21 @@ LefReadGeometry(lefMacro, f, oscale, do_list)
  *
  * Side Effects:
  *	Reads input from file f;
- *	Paints into the CellDef lefMacro.
+ *	Generates a new label entry in the CellDef lefMacro.
+ *	If "lanno" is not NULL, then the label pointed to by
+ *	lanno is modified.
  *
  *------------------------------------------------------------
  */
 
 void
-LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, oscale)
+LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, oscale, lanno)
     CellDef *lefMacro;
     FILE *f;
     char *pinName;
     int pinNum, pinDir, pinUse;
     float oscale;
+    Label *lanno;
 {
     Label *newlab;
     LinkedRect *rectList;
@@ -1235,7 +1238,15 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, oscale)
 	if (pinNum >= 0)
 	{
 	    /* Label this area */
-	    DBPutLabel(lefMacro, &rectList->r_r, -1, pinName, rectList->r_type, 0);
+	    if (lanno != NULL)
+	    {
+		/* Modify an existing label */
+		lanno->lab_rect = rectList->r_r;
+		lanno->lab_type = rectList->r_type;
+	    }
+	    else
+		/* Create a new label (non-rendered) */
+		DBPutLabel(lefMacro, &rectList->r_r, -1, pinName, rectList->r_type, 0);
 
 	    /* Set this label to be a port */
 
@@ -1243,13 +1254,16 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, oscale)
 		LefError(LEF_ERROR, "Internal error: No labels in cell!\n");
 	    else
 	    {
-		newlab = lefMacro->cd_lastLabel;
+		newlab = (lanno != NULL) ? lanno : lefMacro->cd_lastLabel;
 		if (strcmp(newlab->lab_text, pinName))
 		    LefError(LEF_ERROR, "Internal error:  Can't find the label!\n");
 		else /* Make this a port */
 		    newlab->lab_flags = pinNum | pinUse | pinDir | PORT_DIR_MASK;
 	    }
-	    /* DBAdjustLabels(lefMacro, &rectList->area); */
+	    /* If lanno is non-NULL then the first rectangle in the LEF	    */
+	    /* port list is used to modify it.  All other LEF port geometry */
+	    /* generates new labels in the CellDef.			    */
+	    if (lanno != NULL) lanno = NULL;
 	}
 
 	freeMagic((char *)rectList);
@@ -1383,24 +1397,43 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 	    case LEF_PORT:
 		if (is_imported)
 		{
+		    bool needRect = TRUE;
 		    Label *lab;
 
-		    LefSkipSection(f, NULL);
 		    /* Skip the port geometry but find the pin name and	*/
 		    /* annotate with the use and direction.  Note that	*/
 		    /* there may be multiple instances of the label.	*/
+		    /* However, if the label is a point label, then	*/
+		    /* replace it with the geometry from the LEF file.	*/
 		    for (lab = lefMacro->cd_labels; lab; lab = lab->lab_next)
 		    {
 			if (!strcmp(lab->lab_text, pinname))
 			{
-			    lab->lab_flags &= ~(PORT_USE_MASK | PORT_DIR_MASK |
+			    if (GEO_RECTNULL(&lab->lab_rect))
+				break;
+			    else
+			    {
+				needRect = FALSE;
+				lab->lab_flags &= ~(PORT_USE_MASK | PORT_DIR_MASK |
 					PORT_CLASS_MASK);
-			    lab->lab_flags = pinNum | pinUse | pinDir | PORT_DIR_MASK;
+				lab->lab_flags = pinNum | pinUse | pinDir |
+					PORT_DIR_MASK;
+			    }
 			}
 		    }
+		    if (needRect)
+		    {
+			if (lab == NULL)
+			    DBEraseLabelsByContent(lefMacro, NULL, -1, pinname);
+			LefReadPort(lefMacro, f, pinname, pinNum, pinDir, pinUse,
+				oscale, lab);
+		    }
+		    else
+			LefSkipSection(f, NULL);
 		}
 		else
-		    LefReadPort(lefMacro, f, pinname, pinNum, pinDir, pinUse, oscale);
+		    LefReadPort(lefMacro, f, pinname, pinNum, pinDir, pinUse, oscale,
+			    NULL);
 		break;
 	    case LEF_CAPACITANCE:
 	    case LEF_ANTENNADIFF:
