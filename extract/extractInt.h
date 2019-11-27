@@ -49,14 +49,16 @@ typedef int ResValue;	/* Warning:  in some places resistances are stored
 			 */
 
 typedef struct {
+     char  areaType;	/* ANTENNAMODEL_SURFACE or ANTENNAMODEL_SIDEWALL */
      float ratioGate;
-     float ratioDiff;
+     float ratioDiffA;	/* Proportional */
+     float ratioDiffB;	/* Constant */
 } RatioValues;
 
 /* Antenna models */
 #define ANTENNAMODEL_PARTIAL	   0x01
 #define ANTENNAMODEL_CUMULATIVE    0x02
-#define ANTENNAMODEL_AREA	   0x04
+#define ANTENNAMODEL_SURFACE	   0x04
 #define ANTENNAMODEL_SIDEWALL	   0x08
 
 /* ------------------------ Parameter lists --------------------------- */
