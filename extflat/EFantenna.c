@@ -347,7 +347,7 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
     TileType t, conType;
     int pos, pNum, pNum2, pmax, p, i, j, gatearea, diffarea, total;
     double anttotal;
-    float saveRatio;
+    float saveRatio, ratioTotal;
     int *antennaarea;
     Rect r, gaterect;
     EFNode *gnode;
@@ -566,13 +566,15 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 		    anttotal = 0.0;
 		    saveRatio = 0.0;
 		    for (i = 0; i < DBNumTypes; i++)
-			if (ExtCurStyle->exts_antennaRatio[i].ratioDiff != INFINITY)
+			if (ExtCurStyle->exts_antennaRatio[i].ratioDiffB != INFINITY)
 			{
-			    if (ExtCurStyle->exts_antennaRatio[i].ratioDiff > 0)
-				anttotal += (double)antennaarea[i] /
-				    (double)ExtCurStyle->exts_antennaRatio[i].ratioDiff;
-			    if (ExtCurStyle->exts_antennaRatio[i].ratioDiff > saveRatio)
-				saveRatio = ExtCurStyle->exts_antennaRatio[i].ratioDiff;
+			    ratioTotal = ExtCurStyle->exts_antennaRatio[i].ratioDiffB +
+				diffarea * ExtCurStyle->exts_antennaRatio[i].ratioDiffA;
+
+			    if (ratioTotal > 0)
+				anttotal += (double)antennaarea[i] / (double)ratioTotal;
+			    if (ratioTotal > saveRatio)
+				saveRatio = ratioTotal;
 			}
 
 		    if (anttotal > (double)gatearea)
@@ -702,7 +704,7 @@ antennaAccumFunc(tile, aaptr)
 
     TiToRect(tile, rect);
 
-    if (ExtCurStyle->exts_antennaModel & ANTENNAMODEL_SIDEWALL)
+    if (ExtCurStyle->exts_antennaRatio[type].areaType & ANTENNAMODEL_SIDEWALL)
     {
 	/* Accumulate perimeter of tile where tile abuts space */
 
@@ -799,7 +801,7 @@ antennaAccumFunc(tile, aaptr)
 	    typeareas[type] += (int)((float)perimeter * thick);
 	}
     }
-    else
+    else if (ExtCurStyle->exts_antennaRatio[type].areaType & ANTENNAMODEL_SURFACE)
     {
 	/* Simple tile area calculation */
 	area = (rect->r_xtop - rect->r_xbot) * (rect->r_ytop - rect->r_ybot);

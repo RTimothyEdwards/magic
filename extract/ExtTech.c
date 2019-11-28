@@ -122,11 +122,11 @@ static keydesc keyTable[] = {
     "height",		HEIGHT,		4,	4,
 "type height-above-subtrate thickness",
 
-    "antenna",		ANTENNA,	4,	4,
-"type antenna-ratio",
+    "antenna",		ANTENNA,	4,	6,
+"type [calc-type] [antenna-ratio-proportional] antenna-ratio-const",
 
-    "model",		MODEL,		3,	3,
-"partial-cumulative area-sidewall",
+    "model",		MODEL,		2,	3,
+"partial-cumulative [area-sidewall]",
 
     "tiedown",		TIEDOWN,	2,	2,
 "types",
@@ -704,8 +704,10 @@ extTechStyleInit(style)
 
     for (r = 0; r < DBNumTypes; r++)
     {
+	style->exts_antennaRatio[r].areaType = (char)0;
 	style->exts_antennaRatio[r].ratioGate = 0.0;
-	style->exts_antennaRatio[r].ratioDiff = 0.0;
+	style->exts_antennaRatio[r].ratioDiffA = 0.0;
+	style->exts_antennaRatio[r].ratioDiffB = 0.0;
 	style->exts_resistByResistClass[r] = 0;
 	TTMaskZero(&style->exts_typesByResistClass[r]);
 	style->exts_typesResistChanged[r] = DBAllButSpaceAndDRCBits;
@@ -2351,38 +2353,96 @@ ExtTechLine(sectionName, argc, argv)
 	    break;
 	case ANTENNA: {
 	    float antennaratio;
+	    char areaType;
+	    bool hasModel = FALSE;
+	    int argidx = 2;
 
 	    if (!StrIsNumeric(argv[2]))
 	    {
-		TechError("Gate layer antenna ratio %s must be numeric\n", argv[2]);
-		break;
+		if (!strcmp(argv[2], "surface") || !strcmp(argv[2], "area"))
+		{
+		    areaType = ANTENNAMODEL_SURFACE;
+		    hasModel = TRUE;
+		}
+		else if (!strcmp(argv[2], "sidewall") || !strcmp(argv[2], "perimeter"))
+		{
+		    areaType = ANTENNAMODEL_SIDEWALL;
+		    hasModel = TRUE;
+		}
+		else
+		{
+		    TechError("Error in layer antenna calculation type \"%s\"; "
+			    " must be \"surface\" or \"sidewall\"\n", argv[2]);
+		    break;
+		}
 	    }
-	    antennaratio = (float)strtod(argv[2], NULL);
+	    if (hasModel == FALSE)
+	    {
+		if (ExtCurStyle->exts_antennaModel & ANTENNAMODEL_SURFACE)
+		    areaType = ANTENNAMODEL_SURFACE;
+		else if (ExtCurStyle->exts_antennaModel & ANTENNAMODEL_SIDEWALL)
+		    areaType = ANTENNAMODEL_SIDEWALL;
+		else
+		    TechError("No antenna calculation type given for layer(s) %s "
+			    " and no default calculation type found.\n", argv[1]);
+	    }
+
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 		if (TTMaskHasType(&types1, t))
-		{
-		    ExtCurStyle->exts_antennaRatio[t].ratioGate = antennaratio;
-		}
+		    ExtCurStyle->exts_antennaRatio[t].areaType = areaType;
 
-	    if (!StrIsNumeric(argv[3]))
+	    if (hasModel == TRUE) argidx = 3;
+
+	    if (!StrIsNumeric(argv[argidx]))
 	    {
-		if (!strcasecmp(argv[3], "none"))
+		TechError("Gate layer antenna ratio %s must be numeric\n", argv[argidx]);
+		break;
+	    }
+	    antennaratio = (float)strtod(argv[argidx], NULL);
+
+	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+		if (TTMaskHasType(&types1, t))
+		    ExtCurStyle->exts_antennaRatio[t].ratioGate = antennaratio;
+
+	    argidx++;
+	    if (!StrIsNumeric(argv[argidx]))
+	    {
+		if (!strcasecmp(argv[argidx], "none"))
 		    antennaratio = INFINITY;
 		else
 		{
-		    TechError("Diff layer antenna ratio %s must be numeric\n", argv[3]);
+		    TechError("Diff layer antenna ratio %s must be numeric\n",
+			    argv[argidx]);
 		    break;
 		}
 	    }
 	    else
-		antennaratio = (float)strtod(argv[3], NULL);
+		antennaratio = (float)strtod(argv[argidx], NULL);
+
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 		if (TTMaskHasType(&types1, t))
+		    ExtCurStyle->exts_antennaRatio[t].ratioDiffB = antennaratio;
+
+	    argidx++;
+	    if (argidx < argc)
+	    {
+		if (!StrIsNumeric(argv[argidx]))
 		{
-		    ExtCurStyle->exts_antennaRatio[t].ratioDiff = antennaratio;
+		    TechError("Diff layer antenna ratio %s must be numeric\n",
+				argv[argidx]);
+		    break;
 		}
+		antennaratio = (float)strtod(argv[argidx], NULL);
 	    }
+	    else
+		antennaratio = 0;
+
+	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+		if (TTMaskHasType(&types1, t))
+		    ExtCurStyle->exts_antennaRatio[t].ratioDiffA = antennaratio;
+
 	    break;
+	}
 	case MODEL:
 	    if (!strcmp(argv[1], "partial"))
 		ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_PARTIAL;
@@ -2392,13 +2452,16 @@ ExtTechLine(sectionName, argc, argv)
 		TxError("Unknown antenna model \"%s\":  Use \"partial\" or "
 			    "\"cumulative\"");
 
-	    if (!strcmp(argv[2], "area"))
-		ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_AREA;
-	    else if (!strcmp(argv[2], "sidewall"))
-		ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_SIDEWALL;
-	    else
-		TxError("Unknown antenna model \"%s\":  Use \"area\" or "
-			    "\"sidewall\"");
+	    if (argc > 2)
+	    {
+		if (!strcmp(argv[2], "surface") || !strcmp(argv[2], "area"))
+		    ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_SURFACE;
+		else if (!strcmp(argv[2], "sidewall") || !strcmp(argv[2], "perimeter"))
+		    ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_SIDEWALL;
+		else
+		    TxError("Unknown antenna model \"%s\":  Use \"surface\" or "
+				    "\"sidewall\"");
+	    }
 	    break;
 
 	case TIEDOWN:
