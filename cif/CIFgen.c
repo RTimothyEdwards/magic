@@ -114,6 +114,71 @@ cifPaintFunc(tile, table)
 /*
  * ----------------------------------------------------------------------------
  *
+ * cifGrowMinFunc --
+ *
+ * 	Called for each relevant tile during grow-min operations.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	Scales the tile by cifScale, then expands its area by the
+ *	remainder of the distance to meet the minimum dimension, as
+ *	defined by the grid distance (growDistance) in the current
+ *	CIFOp, then paints this area into cifNewPlane using the table
+ *	passed as parameter.
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifGrowMinFunc(tile, plane)
+    Tile *tile;
+    Plane *plane;
+{
+    Rect area, *maxr;
+    int locDist, width, height;
+    TileTypeBitMask mask;
+    TileType type;
+
+    TiToRect(tile, &area);
+    type = TiGetType(tile);
+
+    TTMaskZero(&mask);
+    TTMaskSetType(&mask, type);
+
+    maxr = FindMaxRectangle2(&area, tile, plane, &mask);
+    if (maxr == NULL) return 0;	    /* Should not happen */
+
+    maxr->r_xbot *= cifScale;
+    maxr->r_xtop *= cifScale;
+    maxr->r_ybot *= cifScale;
+    maxr->r_ytop *= cifScale;
+
+    width = maxr->r_xtop - maxr->r_xbot;
+    height = maxr->r_ytop - maxr->r_ybot;
+    locDist = (growDistance - width) / 2;
+    if (locDist > 0)
+    {
+	maxr->r_xbot -= locDist;
+	maxr->r_xtop += locDist;
+    }
+
+    locDist = (growDistance - height) / 2;
+    if (locDist > 0)
+    {
+	maxr->r_ybot -= locDist;
+	maxr->r_ytop += locDist;
+    }
+
+    DBPaintPlane(cifPlane, maxr, CIFPaintTable, (PaintUndoInfo *) NULL);
+
+    CIFTileOps += 1;
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * cifGrowGridFunc --
  *
  * 	Called for each relevant tile during grow-grid operations.
@@ -1505,7 +1570,7 @@ cifRectBoundingBox(op, cellDef, plane)
 	    }
 	    else
 	    {
-		maxr = FindMaxRectangle2(&bbox, tile, plane);
+		maxr = FindMaxRectangle2(&bbox, tile, plane, NULL);
 		DBPaintPlane(cifPlane, maxr, CIFPaintTable, (PaintUndoInfo *)NULL);
 		CIFTileOps++;
 	    }
@@ -3121,6 +3186,20 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		cifScale = 1;
 		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
 		    &CIFSolidBits, *cifGrowFuncPtr, (ClientData) CIFPaintTable);
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
+		break;
+
+	    /* GROWMIN grows non-uniformly to ensure minimum dimensions */
+
+	    case CIFOP_GROWMIN:
+		growDistance = op->co_distance;
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifScale = 1;
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &CIFSolidBits, cifGrowMinFunc, (ClientData)curPlane);
 		temp = curPlane;
 		curPlane = nextPlane;
 		nextPlane = temp;

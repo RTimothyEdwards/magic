@@ -1023,6 +1023,8 @@ CIFTechLine(sectionName, argc, argv)
 	newOp->co_opcode = CIFOP_OR;
     else if (strcmp(argv[0], "grow") == 0)
 	newOp->co_opcode = CIFOP_GROW;
+    else if (strcmp(argv[0], "grow-min") == 0)
+	newOp->co_opcode = CIFOP_GROWMIN;
     else if (strcmp(argv[0], "grow-grid") == 0)
 	newOp->co_opcode = CIFOP_GROW_G;
     else if (strcmp(argv[0], "shrink") == 0)
@@ -1068,6 +1070,7 @@ CIFTechLine(sectionName, argc, argv)
 	    break;
 	
 	case CIFOP_GROW:
+	case CIFOP_GROWMIN:
 	case CIFOP_GROW_G:
 	case CIFOP_SHRINK:
 	case CIFOP_CLOSE:
@@ -1499,6 +1502,7 @@ cifComputeRadii(layer, des)
 	    case CIFOP_OR: break;
 
 	    case CIFOP_GROW:
+	    case CIFOP_GROWMIN:
 	    case CIFOP_GROW_G:
 		grow += op->co_distance;
 		break;
