@@ -96,6 +96,7 @@ typedef struct cifop
  *			the masks.
  * CIFOP_GROW -		Grow the current results uniformly by co_distance.
  * CIFOP_GROW_G -	Grow the current results to snap to the indicated grid.
+ * CIFOP_GROWMIN -	Grow result such that no dimension is less than co_distance.
  * CIFOP_SHRINK -	Shrink the current results uniformly by co_distance.
  * CIFOP_BLOAT -	Find layers in paintMask, then bloat selectively
  *			according to bl_distance, and OR the results into
@@ -137,22 +138,23 @@ typedef struct cifop
 #define CIFOP_AND	1
 #define CIFOP_OR	2
 #define CIFOP_GROW	3
-#define CIFOP_GROW_G	4
-#define CIFOP_SHRINK	5
-#define CIFOP_BLOAT	6
-#define CIFOP_SQUARES	7
-#define CIFOP_SLOTS	8
-#define CIFOP_BLOATMAX	9
-#define CIFOP_BLOATMIN	10
-#define CIFOP_BLOATALL	11
-#define CIFOP_ANDNOT	12
-#define CIFOP_SQUARES_G	13
-#define CIFOP_BBOX	14
-#define CIFOP_BOUNDARY	15
-#define CIFOP_NET	16
-#define CIFOP_MAXRECT	17
-#define CIFOP_COPYUP	18
-#define CIFOP_CLOSE	19
+#define CIFOP_GROWMIN	4
+#define CIFOP_GROW_G	5
+#define CIFOP_SHRINK	6
+#define CIFOP_BLOAT	7
+#define CIFOP_SQUARES	8
+#define CIFOP_SLOTS	9
+#define CIFOP_BLOATMAX	10
+#define CIFOP_BLOATMIN	11
+#define CIFOP_BLOATALL	12
+#define CIFOP_ANDNOT	13
+#define CIFOP_SQUARES_G	14
+#define CIFOP_BBOX	15
+#define CIFOP_BOUNDARY	16
+#define CIFOP_NET	17
+#define CIFOP_MAXRECT	18
+#define CIFOP_COPYUP	19
+#define CIFOP_CLOSE	20
 
 /* Added by Tim 10/21/2004 */
 /* The following structure is used to pass information on how to draw

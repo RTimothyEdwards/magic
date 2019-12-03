@@ -234,6 +234,9 @@ FindMaxRects(tile, mrd)
  *	example, from the router code to expand a point label into the
  *	maximum size rectangular terminal.
  *
+ *	If expandtypes is NULL, then searching is done over tiles that
+ *	match by the ClientData record instead of types.
+ *
  * Results:
  *	Pointer to a rectangle containing the maximum size area found.
  *	This pointer should not be deallocated!
@@ -290,7 +293,7 @@ FindMaxRectangle(bbox, startpoint, plane, expandtypes)
  * FindMaxRectangle2 ---
  *
  *	This routine differs from FindMaxRectangle in passing a starting
- *	tile to the routine
+ *	tile to the routine.
  *
  * Results:
  *	Pointer to a rectangle containing the maximum size area found.
@@ -300,10 +303,11 @@ FindMaxRectangle(bbox, startpoint, plane, expandtypes)
  */
 
 Rect *
-FindMaxRectangle2(bbox, starttile, plane)
+FindMaxRectangle2(bbox, starttile, plane, expandtypes)
     Rect *bbox;				/* bounding box of area searched */
     Tile *starttile;			/* use this tile to start */
     Plane *plane;			/* plane of types to expand */
+    TileTypeBitMask *expandtypes;	/* types to expand in, may be NULL */
 {
     MaxRectsData *mrd;
     TileType tt;
@@ -312,7 +316,7 @@ FindMaxRectangle2(bbox, starttile, plane)
     int s, sidx = -1;
 
     /* Find tile in def that surrounds or touches startpoint */
-    mrd = genCanonicalMaxwidth(bbox, starttile, plane, NULL);
+    mrd = genCanonicalMaxwidth(bbox, starttile, plane, expandtypes);
 
     /* Return only the largest rectangle found */
 
