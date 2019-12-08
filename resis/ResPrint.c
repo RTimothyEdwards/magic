@@ -135,20 +135,40 @@ ResPrintExtDev(outextfile, devices)
 		    if (varsub != NULL) subsName = varsub;
 		}
 #endif
+		/* Output according to device type and class. */
+		/* Code largely matches what's in ExtBasic.c extOutputDevices() */
 
-		/* Output according to device type */
+		if (devptr->exts_deviceClass != DEV_FET)
+		    fprintf(outextfile,"device ");
 
-		/* fet type xl yl xh yh area perim sub gate t1 t2 */
-		fprintf(outextfile,"fet %s %d %d %d %d %d %d "
-				"%s \"%s\" %d %s \"%s\" %d %s \"%s\" %d %s\n",
+		fprintf(outextfile,"%s %s %d %d %d %d ",
+			extDevTable[devptr->exts_deviceClass],
 			devptr->exts_deviceName,
 			devices->layout->rd_inside.r_ll.p_x,
 			devices->layout->rd_inside.r_ll.p_y,
 			devices->layout->rd_inside.r_ll.p_x + 1,
-			devices->layout->rd_inside.r_ll.p_y + 1,
-			devices->layout->rd_area,
-			devices->layout->rd_perim,
-			subsName,
+			devices->layout->rd_inside.r_ll.p_y + 1);
+
+		switch (devptr->exts_deviceClass)
+		{
+		    case DEV_FET:
+			fprintf(outextfile," %d %d",
+				devices->layout->rd_area,
+				devices->layout->rd_perim);
+			break;
+
+		    case DEV_MOSFET:
+		    case DEV_ASYMMETRIC:
+		    case DEV_BJT:
+			fprintf(outextfile," %d %d",
+				devices->layout->rd_length,
+				devices->layout->rd_width);
+			break;
+		}
+
+		fprintf(outextfile, " \"%s\"", subsName);
+
+		fprintf(outextfile, " \"%s\" %d %s \"%s\" %d %s \"%s\" %d %s\n",
 			devices->gate->name,
 			devices->layout->rd_length * 2,
 			devices->rs_gattr,
@@ -190,7 +210,7 @@ ResPrintExtNode(outextfile, nodelist, nodename)
      ResSimNode *node,*ResInitializeNode();
      bool	DoKillNode = TRUE;
      resNode	*snode = nodelist;
-     
+
      /* If any of the subnode names match the original node name, then	*/
      /* we don't want to rip out that node with a "killnode" statement.	*/
 

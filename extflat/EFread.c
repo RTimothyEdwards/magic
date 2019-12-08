@@ -38,6 +38,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
 #include "extract/extract.h"
+#include "extract/extractInt.h"
 #include "utils/paths.h"
 
 #ifndef MAGIC_WRAPPER
@@ -96,6 +97,7 @@ keyTable[] =
 /* Data shared with EFerror.c */
 char *efReadFileName;	/* Name of file currently being read */
 int efReadLineNum;	/* Current line number in above file */
+float locScale;		/* Multiply values in the file by this on read-in */
 
 /* Data local to this file */
 static bool efReadDef();
@@ -139,6 +141,7 @@ EFReadFile(name, dosubckt, resist, noscale)
     if (def == NULL)
 	def = efDefNew(name);
 
+    locScale = 1.0;
     rc = efReadDef(def, dosubckt, resist, noscale, TRUE);
     if (EFArgTech) EFTech = StrDup((char **) NULL, EFArgTech);
     if (EFScale == 0.0) EFScale = 1.0;
@@ -265,6 +268,11 @@ readfile:
 		    cscale = 1;
 		}
 		lscale = (float)atof(argv[3]);
+		if (lscale != ExtCurStyle->exts_unitsPerLambda)
+		{
+		    locScale = lscale / ExtCurStyle->exts_unitsPerLambda;
+		    lscale = ExtCurStyle->exts_unitsPerLambda;
+		}
 		if (lscale == 0.0)
 		{
 		    efReadError("Bad linear scaling = 0; reset to 1.\n");
@@ -283,10 +291,10 @@ readfile:
 
 	    /* attr node xlo ylo xhi yhi type text */
 	    case ATTR:
-		r.r_xbot = atoi(argv[2]);
-		r.r_ybot = atoi(argv[3]);
-		r.r_xtop = atoi(argv[4]);
-		r.r_ytop = atoi(argv[5]),
+		r.r_xbot = (int)(0.5 + (float)atoi(argv[2]) * locScale);
+		r.r_ybot = (int)(0.5 + (float)atoi(argv[3]) * locScale);
+		r.r_xtop = (int)(0.5 + (float)atoi(argv[4]) * locScale);
+		r.r_ytop = (int)(0.5 + (float)atoi(argv[5]) * locScale),
 		efBuildAttr(def, argv[1], &r, argv[6], argv[7]);
 		break;
 
@@ -351,10 +359,10 @@ readfile:
 			break;	/* we will deal with in efBuildDevice().   */
 		}
 
-		r.r_xbot = atoi(argv[3]);
-		r.r_ybot = atoi(argv[4]);
-		r.r_xtop = atoi(argv[5]);
-		r.r_ytop = atoi(argv[6]);
+		r.r_xbot = (int)(0.5 + (float)atoi(argv[3]) * locScale);
+		r.r_ybot = (int)(0.5 + (float)atoi(argv[4]) * locScale);
+		r.r_xtop = (int)(0.5 + (float)atoi(argv[5]) * locScale);
+		r.r_ytop = (int)(0.5 + (float)atoi(argv[6]) * locScale);
 
 		if (efBuildDevice(def, (char)n, argv[2], &r, argc - 7, &argv[7]) != 0)
 		{
@@ -366,10 +374,10 @@ readfile:
 	    /* for backwards compatibility */
 	    /* fet type xlo ylo xhi yhi area perim substrate GATE T1 T2 ... */
 	    case FET:
-		r.r_xbot = atoi(argv[2]);
-		r.r_ybot = atoi(argv[3]);
-		r.r_xtop = atoi(argv[4]);
-		r.r_ytop = atoi(argv[5]);
+		r.r_xbot = (int)(0.5 + (float)atoi(argv[2]) * locScale);
+		r.r_ybot = (int)(0.5 + (float)atoi(argv[3]) * locScale);
+		r.r_xtop = (int)(0.5 + (float)atoi(argv[4]) * locScale);
+		r.r_ytop = (int)(0.5 + (float)atoi(argv[5]) * locScale);
 		if (efBuildDevice(def, DEV_FET, argv[1], &r, argc - 6, &argv[6]) != 0)
 		{
 		    efReadError("Incomplete terminal description for fet\n");
@@ -563,8 +571,8 @@ resistChanged:
 	    /* distance driver receiver min max */
 	    case DIST:
 		efBuildDist(def, argv[1], argv[2],
-			(int)(lscale*atoi(argv[3])),
-			(int)(lscale*atoi(argv[4])));
+			(int)(lscale*atoi(argv[3])*locScale),
+			(int)(lscale*atoi(argv[4])*locScale));
 		break;
 
 	    /* killnode nodename */

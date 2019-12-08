@@ -954,26 +954,25 @@ ResDoSimplify(tolerance,rctol,goodies)
 	 {
 	      RCDelayStuff	*rc = (RCDelayStuff *) ResNodeList->rn_client;
 
-	      if (rc != (RCDelayStuff *)NULL)
-	      {
-	          goodies->rg_nodecap = totalcap;
-	          ResCalculateTDi(ResOriginNode,(resResistor *)NULL,
+	      goodies->rg_nodecap = totalcap;
+	      ResCalculateTDi(ResOriginNode,(resResistor *)NULL,
 	      					goodies->rg_bigdevres);
-	          goodies->rg_Tdi = rc->rc_Tdi;
-	          slownode = ResNodeList;
-	          for (node = ResNodeList; node != NULL; node = node->rn_more)
-	          {     
-	      	       rc = (RCDelayStuff *)node->rn_client;
-		       if (rc && (goodies->rg_Tdi < rc->rc_Tdi))
-		       {
-		   	    slownode = node;
-			    goodies->rg_Tdi = rc->rc_Tdi;
-		       }
-	          }
-	          slownode->rn_status |= RN_MAXTDI;
-	      }
+	      if (rc != (RCDelayStuff *)NULL)
+		   goodies->rg_Tdi = rc->rc_Tdi;
 	      else
-		  goodies->rg_Tdi = 0;
+		   goodies->rg_Tdi = 0;
+
+	      slownode = ResNodeList;
+	      for (node = ResNodeList; node != NULL; node = node->rn_more)
+	      {     
+	      	   rc = (RCDelayStuff *)node->rn_client;
+		   if (rc && (goodies->rg_Tdi < rc->rc_Tdi))
+		   {
+		   	slownode = node;
+			goodies->rg_Tdi = rc->rc_Tdi;
+		   }
+	      }
+	      slownode->rn_status |= RN_MAXTDI;
 	 }
 	 else
 	 {

@@ -130,7 +130,6 @@ ResProcessJunction(tile, tp, xj, yj, NodeList)
 	     return;
 	}
 #endif
-
 	if (j2->tj_status & RES_TILE_DONE) return;
 	resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
 	resptr->rn_te = (tElement *) NULL;

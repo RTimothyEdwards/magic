@@ -21,7 +21,7 @@ EFread.o: EFread.c ../tcltk/tclmagic.h ../utils/magic.h ../utils/malloc.h \
  ../utils/geometry.h ../utils/hash.h ../utils/utils.h ../tiles/tile.h \
  ../commands/commands.h ../windows/windows.h ../database/database.h \
  ../extflat/extflat.h ../extflat/EFint.h ../extract/extract.h \
- ../utils/paths.h
+ ../extract/extractInt.h ../extract/extDebugInt.h ../utils/paths.h
 EFsym.o: EFsym.c ../utils/magic.h ../utils/geometry.h ../utils/geofast.h \
  ../utils/hash.h ../utils/malloc.h ../utils/utils.h ../extflat/extflat.h \
  ../extflat/EFint.h

@@ -296,7 +296,6 @@ typedef struct rdev
      Point		location;	/* Location of lower left point of */
      					/* device.			   */
      float		resistance;     /* "Resistance" of device.	   */
-     int		tnumber;	/* Device number		   */
      int		rs_ttype;	/* device type			   */
      char               *rs_gattr;      /* Gate attributes, if any         */
      char               *rs_sattr;
@@ -572,7 +571,6 @@ extern RDev			*ResRDevList;
 extern REcell			*ResBigEventList;
 extern int 			ResOptionsFlags;
 extern char			*ResCurrentNode;
-extern int 			Maxtnumber;
 extern ResSimNode		*ResOriginalNodes;
 #ifdef ARIEL
 extern int 			ResMinEventTime;

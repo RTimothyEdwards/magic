@@ -229,12 +229,12 @@ ResReadNode(nodefile)
     char *cp;
     float lambda;
 
-    /* NOTE:  Units from the .sim file or the .nodes file are in centimicrons
-     * when multiplied by resscale (units from the .sim file 1st line).
-     * multiply resscale by the extract scale (exts_unitsPerLambda) used to
-     * generate .ext dimensions originally, to get back to database units.
+    /* NOTE:  Units from the .nodes file are in centimicrons.
+     * Divide by the extract scale (exts_unitsPerLambda) to get back
+     * to database units.  This assumes that exts_unitsPerLambda doesn't
+     * change between output and readback.
      */
-    lambda = resscale * (float)ExtCurStyle->exts_unitsPerLambda;
+    lambda = (float)ExtCurStyle->exts_unitsPerLambda;
      
     fp = PaOpen(nodefile,"r",".nodes",".", (char *) NULL, (char **) NULL);
     if (fp == NULL)
@@ -358,11 +358,10 @@ ResSimDevice(line,rpersquare,ttype)
 	   }
 	   device->resistance = MagAtof(line[RDEV_LENGTH]) * rpersquare/MagAtof(line[RDEV_WIDTH]);
      }
-     device->tnumber = ++Maxtnumber;
      device->status = FALSE;
      device->nextDev = ResRDevList;
 
-     lambda = resscale * (float)ExtCurStyle->exts_unitsPerLambda;
+     lambda = (float)ExtCurStyle->exts_unitsPerLambda / resscale;
      device->location.p_x = (int)((float)atof(line[RDEV_DEVX]) / lambda);
      device->location.p_y = (int)((float)atof(line[RDEV_DEVY]) / lambda);
 
