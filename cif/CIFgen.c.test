@@ -129,18 +129,12 @@ cifPaintFunc(tile, table)
  *	distance (including distance zero) sharing the same type (0 or 1)
  *	on both the tile top and bottom, find the diagonal length.  If
  *	less than co_distance, then expand this area and paint.
- *	NOTE:  This algorithm does not cover a number of geometry cases
- *	and needs to be reworked.  It should be restricted to cases of
- *	layers that have "rect_only" DRC rules.  Since the rule is usually
- *	needed for implants on FET gates to maintain the implant width for
- *	small gates, the "rect_only" requirement is not particularly
- *	constraining.
  *	    
  * ----------------------------------------------------------------------------
  */
 
 int
-cifGrowMinFunc(tile, table)
+cifGrowMinFuncAbandoned(tile, table)
     Tile *tile;
     PaintResultType *table;		/* Table to be used for painting. */
 {
@@ -278,6 +272,213 @@ cifGrowMinFunc(tile, table)
 	    }
     }
 
+    CIFTileOps += 1;
+    return 0;
+}
+
+/* Take two */
+
+int
+cifClearFunc(tile, clearArea)
+    Tile *tile;
+    Rect *clearArea;
+{
+    Rect area;
+
+    TiToRect(tile, &area);
+
+    area.r_xbot *= cifScale;
+    area.r_xtop *= cifScale;
+    area.r_ybot *= cifScale;
+    area.r_ytop *= cifScale;
+
+    if (area.r_xtop > clearArea->r_xtop) clearArea->r_xtop = area.r_xtop;
+    if (area.r_xbot < clearArea->r_xbot) clearArea->r_xbot = area.r_xbot;
+    if (area.r_ytop > clearArea->r_ytop) clearArea->r_ytop = area.r_ytop;
+    if (area.r_ybot < clearArea->r_ybot) clearArea->r_ybot = area.r_ybot;
+    return 0;
+}
+
+int
+cifGrowMinFunc(tile, table)
+    Tile *tile;
+    PaintResultType *table;		/* Table to be used for painting. */
+{
+    Rect area, clearArea;
+    TileType type, tptype, tp2type;
+    Tile *tp, *tp2;
+    TileTypeBitMask mask;
+    int hdist, vdist;
+
+    area.r_xbot *= cifScale;
+    area.r_xtop *= cifScale;
+    area.r_ybot *= cifScale;
+    area.r_ytop *= cifScale;
+
+    TTMaskZero(&mask);
+    TTMaskSetType(&mask, TT_SPACE);
+
+    /* Check for eight corner situations (4 outside, 4 inside) */
+
+    /* (1) Outside corner at tile top right */
+    tp = RT(tile);
+    tp2 = TR(tile);
+    tptype = TiGetBottomType(tp);
+    tp2type = TiGetLeftType(tp2);
+    if (tptype == tp2type == TT_SPACE)
+    {
+	area.r_xtop = RIGHT(tile);
+	area.r_ytop = TOP(tile);
+	area.r_xbot = area.r_xtop - growDistance;
+	area.r_ybot = area.r_ytop - growDistance;
+
+	clearArea.r_xbot = clearArea.r_xtop = area.r_xbot;
+	clearArea.r_ybot = clearArea.r_ytop = area.r_ybot;
+
+	/* Search for space tiles in this area */
+	DBSrPaintArea(tile, plane, &area,
+		&mask, cifClearFunc, (ClientData)(&clearArea));
+
+	if (!GEO_RECTNULL(&clearArea))
+	{
+	    GeoClip(&clearArea, &area);
+	    /* XXX WIP Stopped here, work in progress, or maybe abandoned */
+	}
+    }
+
+    /* (2) Outside corner at tile bottom left */
+    tp = LB(tile);
+    tp2 = BL(tile);
+    tptype = TiGetTopType(tp);
+    tp2type = TiGetRightType(tp2);
+    if (tptype == tp2type == TT_SPACE)
+    {
+	area.r_xbot = LEFT(tile);
+	area.r_ybot = BOTTOM(tile);
+	area.r_xtop = area.r_xbot + growDistance;
+	area.r_ytop = area.r_ybot + growDistance;
+
+	/* TBD */
+    }
+
+    /* (3) Outside corner at tile top left */
+    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp));
+    for (tp2 = BL(tile); BOTTOM(tp2) < TOP(tile); tp2 = TR(tp2));
+    tptype = TiGetBottomType(tp);
+    tp2type = TiGetRightType(tp2);
+    if (tptype == tp2type == TT_SPACE)
+    {
+	area.r_xbot = LEFT(tile);
+	area.r_ytop = TOP(tile);
+	area.r_xtop = area.r_xbot + growDistance;
+	area.r_ybot = area.r_ytop - growDistance;
+
+	/* TBD */
+    }
+
+    /* (4) Outside corner at tile bottom right */
+    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp));
+    for (tp2 = TR(tile); TOP(tp2) > BOTTOM(tile); tp2 = BL(tp2));
+    tptype = TiGetTopType(tp);
+    tp2type = TiGetLeftType(tp2);
+    if (tptype == tp2type == TT_SPACE)
+    {
+	area.r_xtop = RIGHT(tile);
+	area.r_ybot = BOTTOM(tile);
+	area.r_xbot = area.r_xtop - growDistance;
+	area.r_ytop = area.r_ybot + growDistance;
+
+	/* TBD */
+    }
+
+    /* (5) Tile top right corner is an inside corner */
+    tp = RT(tile);
+    tp2 = TR(tile);
+    tptype = TiGetBottomType(tp);
+    tp2type = TiGetLeftType(tp2);
+    if (tptype != TT_SPACE && tp2type == TT_SPACE)
+    {
+	area.r_xtop = RIGHT(tile);
+	area.r_ybot = TOP(tile);
+	area.r_xbot = area.r_xtop - growDistance;
+	area.r_ytop = area.r_ybot + growDistance;
+
+	/* TBD */
+    }
+
+    /* (6) Tile bottom left corner is an inside corner */
+    tp = LB(tile);
+    tp2 = BL(tile);
+    tptype = TiGetTopType(tp);
+    tp2type = TiGetRightType(tp2);
+    if (tptype != TT_SPACE && tp2type == TT_SPACE)
+    {
+	area.r_xbot = LEFT(tile);
+	area.r_ytop = BOTTOM(tile);
+	area.r_xtop = area.r_xbot + growDistance;
+	area.r_ybot = area.r_ytop - growDistance;
+
+	/* TBD */
+    }
+
+    /* (7) Tile top left corner is an inside corner */
+    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp));
+    for (tp2 = BL(tile); BOTTOM(tp2) < TOP(tile); tp2 = TR(tp2));
+    tptype = TiGetBottomType(tp);
+    tp2type = TiGetRightType(tp2);
+    if (tptype != TT_SPACE && tp2type == TT_SPACE)
+    {
+	area.r_xbot = LEFT(tile);
+	area.r_ybot = TOP(tile);
+	area.r_xtop = area.r_xbot + growDistance;
+	area.r_ytop = area.r_ybot + growDistance;
+
+	/* TBD */
+    }
+
+    /* (8) Tile bottom right corner is an inside corner */
+    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp));
+    for (tp2 = TR(tile); TOP(tp2) > BOTTOM(tile); tp2 = BL(tp2));
+    tptype = TiGetTopType(tp);
+    tp2type = TiGetLeftType(tp2);
+    if (tptype != TT_SPACE && tp2type == TT_SPACE)
+    {
+	area.r_xtop = LEFT(tile);
+	area.r_ytop = BOTTOM(tile);
+	area.r_xbot = area.r_xtop - growDistance;
+	area.r_ybot = area.r_ytop - growDistance;
+
+	/* TBD */
+    }
+
+    CIFTileOps += 1;
+    return 0;
+ }
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifRemoveFunc --
+ *
+ * 	Called for each relevant tile during remove-min operations.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	Scales the tile by cifScale, then expands its area by the
+ *	remainder of the distance to meet the minimum dimension, as
+ *	defined by the grid distance (growDistance) in the current
+ *	CIFOp, then paints this area into cifNewPlane using the table
+ *	passed as parameter.
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifRemoveFunc(tile, table)
+    Tile *tile;
+    PaintResultType *table;		/* Table to be used for painting. */
+{
     CIFTileOps += 1;
     return 0;
 }
@@ -3306,6 +3507,20 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		cifScale = 1;
 		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
 		    &CIFSolidBits, cifGrowMinFunc, (ClientData)CIFPaintTable);
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
+		break;
+
+	    /* REMOVE removes areas not meeting minimum width dimension */
+
+	    case CIFOP_REMOVE:
+		growDistance = op->co_distance;
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifScale = 1;
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &CIFSolidBits, cifRemoveFunc, (ClientData)CIFPaintTable);
 		temp = curPlane;
 		curPlane = nextPlane;
 		nextPlane = temp;

@@ -35,21 +35,19 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define INITFLATSIZE		1024
 #define MAXNAME			1000
 
-
-/* time constants are produced by multiplying attofarads by milliohms,  */
+/* Time constants are produced by multiplying attofarads by milliohms,  */
 /* giving zeptoseconds (yes, really.  Look it up).  This constant 	*/
-/* converts zeptoseconts to nanoseconds.				*/
+/* converts zeptoseconds to nanoseconds.				*/
+
 #define Z_TO_N		1e12
 
 /* ResSimNode is a node read in from a sim file */
-
 
 HashTable 	ResNodeTable;   /* Hash table of sim file nodes   */
 RDev		*ResRDevList;	/* Linked list of Sim devices	  */
 ResGlobalParams	gparams;	/* Junk passed between 		  */
 				/* ResCheckSimNodes and 	  */
 				/* ResExtractNet.		  */
-int		Maxtnumber;     /*maximum device number 	  */
 extern ResSimNode	*ResOriginalNodes;	/*Linked List of Nodes		  */
 int		resNodeNum;
 
@@ -104,7 +102,6 @@ ExtResisForDef(celldef, resisdata)
     ResRDevList = NULL;
     ResOriginalNodes = NULL;
 
-    Maxtnumber = 0;
     HashInit(&ResNodeTable, INITFLATSIZE, HT_STRINGKEYS);
     /* read in .sim file */
     result = (ResReadSim(celldef->cd_name,
@@ -868,6 +865,19 @@ ResCheckSimNodes(celldef, resisdata)
     {
      	TxError("Couldn't open output file\n");
 	return;
+    }
+
+    /*
+     * Write a scale line at the top of the .res.ext file, as the
+     * scale may be different from the original .ext file.
+     */
+
+    if (ResExtFile != NULL)
+    {
+	fprintf(ResExtFile, "scale %d %d %g\n",
+                ExtCurStyle->exts_resistScale,
+                ExtCurStyle->exts_capScale,
+                ExtCurStyle->exts_unitsPerLambda);
     }
 
      /*

@@ -63,6 +63,8 @@ void efNodeMerge();
 bool efConnBuildName();
 bool efConnInitSubs();
 
+extern float locScale;
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -177,10 +179,10 @@ efBuildNode(def, isSubsnode, nodeName, nodeCap, x, y, layerName, av, ac)
     newnode->efnode_flags = (isSubsnode == TRUE) ? EF_SUBS_NODE : 0;
     newnode->efnode_cap = nodeCap;
     newnode->efnode_attrs = (EFAttr *) NULL;
-    newnode->efnode_loc.r_xbot = x;
-    newnode->efnode_loc.r_ybot = y;
-    newnode->efnode_loc.r_xtop = x + 1;
-    newnode->efnode_loc.r_ytop = y + 1;
+    newnode->efnode_loc.r_xbot = (int)(0.5 + (float)x * locScale);
+    newnode->efnode_loc.r_ybot = (int)(0.5 + (float)y * locScale);
+    newnode->efnode_loc.r_xtop = newnode->efnode_loc.r_xbot + 1;
+    newnode->efnode_loc.r_ytop = newnode->efnode_loc.r_ybot + 1;
     newnode->efnode_client = (ClientData) NULL;
     if (layerName) newnode->efnode_type =
 	    efBuildAddStr(EFLayerNames, &EFLayerNumNames, MAXTYPES, layerName);
@@ -686,7 +688,8 @@ efBuildDevice(def, class, type, r, argc, argv)
 		{
 		    pn = *(argv[argstart] + 1) - '0';
 		    if (pn == 0)
-			devtmp.dev_area = atoi(pptr);
+			devtmp.dev_area = (int)(0.5 + (float)atoi(pptr)
+				* locScale * locScale);
 		    /* Otherwise, punt */
 		}
 		break;
@@ -697,15 +700,15 @@ efBuildDevice(def, class, type, r, argc, argv)
 		{
 		    pn = *(argv[argstart] + 1) - '0';
 		    if (pn == 0)
-			devtmp.dev_perim = atoi(pptr);
+			devtmp.dev_perim = (int)(0.5 + (float)atoi(pptr) * locScale);
 		    /* Otherwise, use verbatim */
 		}
 		break;
 	    case 'l':
-		devtmp.dev_length = atoi(pptr);
+		devtmp.dev_length = (int)(0.5 + (float)atoi(pptr) * locScale);
 		break;
 	    case 'w':
-		devtmp.dev_width = atoi(pptr);
+		devtmp.dev_width = (int)(0.5 + (float)atoi(pptr) * locScale);
 		break;
 	    case 'c':
 		devtmp.dev_cap = (float)atof(pptr);
@@ -1248,8 +1251,9 @@ efBuildConnect(def, nodeName1, nodeName2, deltaC, av, ac)
 	conn->conn_next = def->def_conns;
 	for (n = 0; n < efNumResistClasses && ac > 1; n++, ac -= 2)
 	{
-	    conn->conn_pa[n].pa_area = atoi(*av++);
-	    conn->conn_pa[n].pa_perim = atoi(*av++);
+	    conn->conn_pa[n].pa_area = (int)(0.5 + (float)atoi(*av++)
+		    * locScale * locScale);
+	    conn->conn_pa[n].pa_perim = (int)(0.5 + (float)atoi(*av++) * locScale);
 	}
 	for ( ; n < efNumResistClasses; n++)
 	    conn->conn_pa[n].pa_area = conn->conn_pa[n].pa_perim = 0;
