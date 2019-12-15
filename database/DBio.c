@@ -1440,9 +1440,22 @@ badTransform:
 	    slashptr = strrchr(subCellDef->cd_file, '/');
 	    if (slashptr != NULL)
 	    {
+		bool pathOK = FALSE;
 		*slashptr = '\0';
 
-		if (strcmp(subCellDef->cd_file, pathptr))
+		/* Avoid generating error message if pathptr starts with '~' */
+		/* and the tilde-expanded name matches the subCellDef name   */
+
+		if (*pathptr == '~')
+		{
+		    char *homedir = getenv("HOME");
+		    if (!strncmp(subCellDef->cd_file, homedir, strlen(homedir))
+			    && (!strcmp(subCellDef->cd_file + strlen(homedir),
+			    pathptr + 1)))
+			pathOK = TRUE;
+		}
+
+		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr))
 		{
 		    TxError("Duplicate cell in %s:  Instance of cell %s is from "
 				"path %s but cell was previously read from %s.\n",
