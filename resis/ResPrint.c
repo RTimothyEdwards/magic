@@ -85,10 +85,10 @@ ResPrintExtRes(outextfile,resistors,nodename)
 	  }
 	  if (ResOptionsFlags & ResOpt_DoExtFile)
 	  {
-     	       fprintf(outextfile, "resist \"%s\" \"%s\" %d\n",
+     	       fprintf(outextfile, "resist \"%s\" \"%s\" %g\n",
 		    resistors->rr_connection1->rn_name,
 		    resistors->rr_connection2->rn_name,
-		    (int) (resistors->rr_value/ExtCurStyle->exts_resistScale));
+		    resistors->rr_value / (float)ExtCurStyle->exts_resistScale);
 	  }
      }
 }
