@@ -1159,13 +1159,11 @@ spcresistHierVisit(hc, hierName1, hierName2, res)
     HierContext *hc;
     HierName *hierName1;
     HierName *hierName2;
-    int res;
+    float res;
 {
-    res = (res + 500) / 1000;
- 
-    fprintf(esSpiceF, "R%d %s %s %d\n", esResNum++,
+    fprintf(esSpiceF, "R%d %s %s %g\n", esResNum++,
 		nodeSpiceHierName(hc, hierName1),
-                nodeSpiceHierName(hc, hierName2), res);
+                nodeSpiceHierName(hc, hierName2), res / 1000.);
 
     return 0;
 }

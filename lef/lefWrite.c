@@ -84,6 +84,7 @@ lefFileOpen(def, file, suffix, mode, prealfile)
 {
     char namebuf[512], *name, *endp, *ends;
     char *locsuffix;
+    char *pptr;
     int len;
     FILE *rfile;
 
@@ -109,7 +110,7 @@ lefFileOpen(def, file, suffix, mode, prealfile)
 
     if (endp = strrchr(ends, '.'))
     {
-	if (!strcmp(endp, suffix))
+	if (strcmp(endp, suffix))
 	{
 	    len = endp - name;
 	    if (len > sizeof namebuf - 1) len = sizeof namebuf - 1;
