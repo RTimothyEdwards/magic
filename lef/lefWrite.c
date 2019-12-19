@@ -1133,10 +1133,11 @@ lefWriteMacro(def, f, scale, hide)
  */
 
 void
-LefWriteAll(rootUse, writeTopCell, lefTech)
+LefWriteAll(rootUse, writeTopCell, lefTech, recurse)
     CellUse *rootUse;
     bool writeTopCell;
     bool lefTech;
+    bool recurse;
 {
     CellDef *def, *rootdef;
     FILE *f;
@@ -1155,8 +1156,12 @@ LefWriteAll(rootUse, writeTopCell, lefTech)
     (void) DBCellSrDefs(0, lefDefInitFunc, (ClientData) 0);
 
     /* Recursively visit all defs in the tree and push on stack */
+    /* If "recurse" is false, then only the children of the root use	*/
+    /* are pushed (this is the default behavior).			*/
     lefDefStack = StackNew(100);
-    (void) lefDefPushFunc(rootUse);
+    if (writeTopCell)
+	lefDefPushFunc(rootUse, (bool *)NULL);
+    DBCellEnum(rootUse->cu_def, lefDefPushFunc, (ClientData)&recurse);
 
     /* Open the file for output */
 
@@ -1185,8 +1190,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech)
     {
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)
-	    if ((writeTopCell == TRUE) || (def != rootdef))
-		lefWriteMacro(def, f, scale);
+	    lefWriteMacro(def, f, scale);
     }
 
     /* End the LEF file */
@@ -1217,8 +1221,9 @@ lefDefInitFunc(def)
  */
 
 int
-lefDefPushFunc(use)
+lefDefPushFunc(use, recurse)
     CellUse *use;
+    bool *recurse; 
 {
     CellDef *def = use->cu_def;
 
@@ -1227,7 +1232,8 @@ lefDefPushFunc(use)
 
     def->cd_client = (ClientData) 1;
     StackPush((ClientData) def, lefDefStack);
-    (void) DBCellEnum(def, lefDefPushFunc, (ClientData) 0);
+    if (recurse && (*recurse))
+	(void) DBCellEnum(def, lefDefPushFunc, (ClientData)recurse);
     return (0);
 }
 

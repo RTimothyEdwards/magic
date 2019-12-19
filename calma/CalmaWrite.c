@@ -1024,7 +1024,7 @@ calmaOutFunc(def, f, cliprect)
 				((lab->lab_flags & PORT_NUM_MASK) == i))
 		    {
 			calmaWriteLabelFunc(lab, type, f);
-			break;	
+			/* break; */  /* Do not limit to unique labels! */
 		    }
 		}
     }
