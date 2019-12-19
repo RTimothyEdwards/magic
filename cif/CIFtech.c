@@ -994,6 +994,8 @@ CIFTechLine(sectionName, argc, argv)
 		CIFCurStyle->cs_flags |= CWF_SEE_VENDOR;
 	    else if (strcmp(argv[i], "no-errors") == 0)
 		CIFCurStyle->cs_flags |= CWF_NO_ERRORS;
+	    else if (strcmp(argv[i], "string-limit") == 0)
+		CIFCurStyle->cs_flags |= CWF_STRING_LIMIT;
 	}
 	return TRUE;
     }

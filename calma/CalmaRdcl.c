@@ -282,7 +282,7 @@ calmaParseStructure(filename)
 {
     static int structs[] = { CALMA_STRCLASS, CALMA_STRTYPE, -1 };
     int nbytes, rtype, nsrefs, osrefs, npaths;
-    char *strname = NULL, newname[CALMANAMELENGTH*2];
+    char *strname = NULL;
     HashEntry *he;
     int suffix;
     int mfactor;
@@ -327,15 +327,21 @@ calmaParseStructure(filename)
 	}
 	else
 	{
+	    char *newname;
+
 	    CalmaReadError("Cell \"%s\" was already defined in this file.\n",
 				strname);
+	    newname = (char *)mallocMagic(strlen(strname) + 20);
 	    for (suffix = 1; HashGetValue(he) != NULL; suffix++)
 	    {
 		(void) sprintf(newname, "%s_%d", strname, suffix);
 		he = HashFind(&calmaDefInitHash, newname);
 	    }
 	    CalmaReadError("Giving this cell a new name: %s\n", newname);
-	    strncpy(strname, newname, CALMANAMELENGTH*2);
+	    freeMagic(strname);
+	    strname = mallocMagic(strlen(newname) + 1);
+	    strcpy(strname, newname);
+	    freeMagic(newname);
 	}
     }
     cifReadCellDef = calmaFindCell(strname, &was_called);

@@ -297,6 +297,7 @@ typedef struct cifstyle
 #define CWF_GROW_EUCLIDEAN	0x08
 #define CWF_SEE_VENDOR		0x10	/* Override vendor GDS flag in cells */
 #define CWF_NO_ERRORS		0x20	/* Do not generate error msgs and fdbk */
+#define CWF_STRING_LIMIT	0x40	/* Use older Calma format character limit */
 
 /* procedures */
 
