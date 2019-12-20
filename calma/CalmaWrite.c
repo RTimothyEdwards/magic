@@ -372,7 +372,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
     char *filename;
 {
     int nbytes, rtype;
-    char *strname = NULL, *newnameptr, newname[CALMANAMELENGTH*2];
+    char *strname = NULL, *newnameptr;
     HashEntry *he, *he2;
     CellDef *edef;
     char *prefix = NULL;
@@ -1024,7 +1024,7 @@ calmaOutFunc(def, f, cliprect)
 				((lab->lab_flags & PORT_NUM_MASK) == i))
 		    {
 			calmaWriteLabelFunc(lab, type, f);
-			break;	
+			/* break; */  /* Do not limit to unique labels! */
 		    }
 		}
     }
@@ -1316,7 +1316,7 @@ calmaOutStructName(type, def, f)
     CellDef *def;
     FILE *f;
 {
-    char defname[CALMANAMELENGTH+1];
+    char *defname;
     unsigned char c;
     char *cp;
     int calmanum;
@@ -1341,10 +1341,11 @@ calmaOutStructName(type, def, f)
 	}
 	/* We really should ensure that the new name is unique. . . */
     }
-    if (cp <= def->cd_name + CALMANAMELENGTH)
+    if ((!(CIFCurStyle->cs_flags & CWF_STRING_LIMIT)) ||
+	    (cp <= def->cd_name + CALMANAMELENGTH))
     {
 	/* Yes, it's legal: use it */
-	(void) strcpy(defname, def->cd_name);
+	defname = StrDup(NULL, def->cd_name);
     }
     else
     {
@@ -1352,12 +1353,14 @@ calmaOutStructName(type, def, f)
 bad:
 	calmanum = (int) def->cd_client;
 	if (calmanum < 0) calmanum = -calmanum;
+	defname = (char *)mallocMagic(32);
 	(void) sprintf(defname, "XXXXX%d", calmanum);
 	TxError("Warning: string in output unprintable; changed to \'%s\'\n",
 		 defname);
     }
 
     calmaOutStringRecord(type, defname, f);
+    freeMagic(defname);
 }
 
 /* Added by NP 8/21/2004 */
@@ -2734,7 +2737,7 @@ calmaOutDate(t, f)
 void
 calmaOutStringRecord(type, str, f)
     int type;		/* Type of this record (data type is ASCII string) */
-    char *str;	/* String to be output (<= CALMANAMELENGTH chars) */
+    char *str;	/* String to be output */
     FILE *f;	/* Stream file */
 {
     int len;
@@ -2759,9 +2762,16 @@ calmaOutStringRecord(type, str, f)
      * last CALMANAMELENGTH characters (since cell names are more
      * likely to be unique in the last characters than in the first
      * characters).
+     *
+     * NOTE:  GDS format has not used CALMANAMELENGTH restrictions
+     * for ages.  Since this is a 2-byte record, then is it not
+     * worth checking the 65536 - 4 character limit.  The CALMANAMELENGTH
+     * restriction must be enabled in the cifoutput flags.
      */
+
+
     if (len & 01) len++;
-    if (len > CALMANAMELENGTH)
+    if ((CIFCurStyle->cs_flags & CWF_STRING_LIMIT) && (len > CALMANAMELENGTH))
     {
 	TxError("Warning:  Cellname %s truncated ", str);
 	TxError("to %s (GDS format limit)\n", str + len - CALMANAMELENGTH);

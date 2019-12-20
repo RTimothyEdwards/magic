@@ -87,6 +87,11 @@ CmdLef(w, cmd)
 					 * the macro other than pin area
 					 * immediately surrounding labels.
 					 */
+    bool recurse = FALSE;		/* If TRUE, recurse on all subcells
+					 * during "writeall".  By default,
+					 * only the immediate children of the
+					 * top level cell are output.
+					 */
 
     static char *cmdLefOption[] =
     {	
@@ -95,7 +100,8 @@ CmdLef(w, cmd)
 	"write [filename] [-tech]	write LEF for current cell\n"
 	"    write [filename] -hide	hide all details other than ports",
 	"writeall			write all cells including the top-level cell\n"
-	"    writeall -notop		write all subcells of the top-level cell",
+	"    writeall -notop		write all children of the top-level cell\n"
+	"    writeall -all		recurse on all subcells of the top-level cell",
 	"help                   	print this help information",
 	NULL
     };
@@ -184,11 +190,13 @@ CmdLef(w, cmd)
 			    lefTopCell = FALSE;
 			else if (!strncmp(cmd->tx_argv[i], "-tech", 5))
 			    lefTech = TRUE;
+			else if (!strncmp(cmd->tx_argv[i], "-all", 4))
+			    recurse = TRUE;
 			else goto wrongNumArgs;
 		    }
 		    else goto wrongNumArgs;
 		}
-		LefWriteAll(selectedUse, lefTopCell, lefTech);
+		LefWriteAll(selectedUse, lefTopCell, lefTech, recurse);
 	    }
 	    break;
 	case LEF_WRITE:
