@@ -934,7 +934,7 @@ DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
 			 * names do not match, but an attempt will be
 			 * made to read the file anyway.
 			 */
-    bool dereference;	/* If TRUE, ignore path references in the input */
+    bool dereference;	/* If TRUE then ignore path argument to uses */
     int *errptr;	/* Copy of errno set by file reading routine
 			 * is placed here, unless NULL.
 			 */
@@ -2855,8 +2855,11 @@ DBCellWrite(cellDef, fileName)
 
 #ifdef FILE_LOCKS
 	else
+	{
+	    bool dereference = (cellDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
 	    /* Re-aquire the lock on the new file by opening it. */
-	    DBCellRead(cellDef, NULL, TRUE, FALSE, NULL);
+	    DBCellRead(cellDef, NULL, TRUE, dereference, NULL);
+	}
 #endif  
 
     }

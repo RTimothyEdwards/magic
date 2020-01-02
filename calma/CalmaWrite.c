@@ -746,8 +746,11 @@ calmaProcessDef(def, outf)
 
     /* Read the cell in if it is not already available. */
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL))
+    {
+	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL))
 	    return (0);
+    }
 
     /*
      * Output the definitions for any of our descendants that have

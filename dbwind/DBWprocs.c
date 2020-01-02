@@ -385,6 +385,8 @@ DBWloadWindow(window, name, ignoreTech, expand, dereference)
 	if (newEditDef == (CellDef *) NULL)
 	    newEditDef = DBCellNewDef(rootname, (char *) NULL);
 
+	if (dereference) newEditDef->cd_flags |= CDDEREFERENCE;
+
 	if (!DBCellRead(newEditDef, name, ignoreTech, dereference, &error_val))
 	{
 	    if (error_val == ENOENT)

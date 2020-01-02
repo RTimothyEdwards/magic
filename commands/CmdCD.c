@@ -3650,7 +3650,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 {
     Point childPoint, editPoint, rootPoint;
     CellDef *def, *rootDef, *editDef;
-    bool hasChild, hasRoot, hasTrans;
+    bool hasChild, hasRoot, hasTrans, dereference;
     Rect rootBox, bbox;
     Transform *tx_cell, trans_cell;
     char **av;
@@ -3750,7 +3750,8 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
      * looked for then no new error message will be printed.
      */
     def->cd_flags &= ~CDNOTFOUND;
-    if (!DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL))
+    dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+    if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL))
 	return (FALSE);
     DBReComputeBbox(def);
     dummy->cu_def = def;

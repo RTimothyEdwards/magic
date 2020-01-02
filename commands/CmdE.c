@@ -130,7 +130,11 @@ CmdEdit(w, cmd)
 	return;
     }
     else if (!(EditCellUse->cu_def->cd_flags & CDAVAILABLE))
-	DBCellRead(EditCellUse->cu_def, (char *)NULL, TRUE, FALSE, NULL);
+    {
+	bool dereference = (EditCellUse->cu_def->cd_flags & CDDEREFERENCE) ?
+		TRUE : FALSE;
+	DBCellRead(EditCellUse->cu_def, (char *)NULL, TRUE, dereference, NULL);
+    }
 
     if (EditCellUse->cu_def->cd_flags & CDNOEDIT)
     {
