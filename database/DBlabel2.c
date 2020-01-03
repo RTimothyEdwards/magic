@@ -294,7 +294,10 @@ DBTreeFindUse(name, use, scx)
 	 * is read in from disk.
 	 */
 	if ((def->cd_flags & CDAVAILABLE) == 0)
-	    (void) DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL);
+	{
+	    bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	    (void) DBCellRead(def, (char *) NULL, TRUE, dereference, NULL);
+	}
 
 	cp = name;
 	he = HashLookOnly(&def->cd_idHash, name);
@@ -343,7 +346,10 @@ DBTreeFindUse(name, use, scx)
     /* Ensure that the leaf cell is read in */
     def = use->cu_def;
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	(void) DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL);
+    {
+	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	(void) DBCellRead(def, (char *) NULL, dereference, NULL);
+    }
 
     scx->scx_use = use;
 }

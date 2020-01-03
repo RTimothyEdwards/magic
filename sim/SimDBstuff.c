@@ -789,7 +789,10 @@ SimCellTileSrFunc(scx, fp)
     if (!DBDescendSubcell(scx->scx_use, fp->tf_xmask))
 	return 0;
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(def, (char *) NULL, TRUE, FALSE, NULL)) return 0;
+    {
+	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+    }
 
     context.tc_scx = scx;
     context.tc_filter = fp;

@@ -73,8 +73,12 @@ DBDescendSubcell(use, xMask)
 
 	case CU_DESCEND_NO_SUBCKT:
 	    if ((use->cu_def->cd_flags & CDAVAILABLE) == 0)
-		if (!DBCellRead(use->cu_def, (char *) NULL, TRUE, FALSE, NULL))
+	    {
+		bool dereference = (use->cu_def->cd_flags & CDDEREFERENCE) ?
+			TRUE : FALSE;
+		if (!DBCellRead(use->cu_def, (char *) NULL, TRUE, dereference, NULL))
 		    return FALSE;
+	    }
 	    return (DBIsSubcircuit(use->cu_def)) ? FALSE : TRUE;
 
 	case CU_DESCEND_NO_LOCK:
