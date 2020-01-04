@@ -527,7 +527,8 @@ drcCifCheck(arg)
     }
     if (drcCifValid == FALSE)
     {
-	CIFCurStyle = CIFSaveStyle;
+	if (CIFSaveStyle != NULL)
+	    CIFCurStyle = CIFSaveStyle;
 	return;
     }
 
