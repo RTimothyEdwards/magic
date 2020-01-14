@@ -1501,9 +1501,7 @@ subcktVisit(use, hierName, is_top)
 	{
 	    nodeName = nodeList[portidx];
 
-	    if (nodeName == NULL)
-		TxError("No port connection on port %d;  need to resolve.\n", portidx);
-	    else
+	    if (nodeName != NULL)
 	    {
 		if (tchars > 80)
 		{
@@ -1512,6 +1510,12 @@ subcktVisit(use, hierName, is_top)
 		}
 		tchars += spcdevOutNode(hierName, nodeName->efnn_hier,
 				"subcircuit", esSpiceF); 
+	    }
+	    else
+	    {
+		// As port indexes do not have to be contiguous, this does not
+		// necessarily indicate an error condition.  No need to report?
+		// TxError("No port connection on port %d;  need to resolve.\n", portidx);
 	    }
 	}
 	freeMagic(nodeList);
@@ -1717,6 +1721,7 @@ topVisit(def, doStub)
 	    HashStartSearch(&hs);
 	    while (he = HashNext(&def->def_nodes, &hs))
 	    {
+		char stmp[MAX_STR_SIZE];
 		int portidx;
 		EFNodeName *unnumbered;
 
@@ -1737,7 +1742,17 @@ topVisit(def, doStub)
 			    fprintf(esSpiceF, "\n+");
 			    tchars = 1;
 			}
-			pname =	nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
+			// If view is abstract, rely on the given port name, not
+			// the node.  Otherwise, artifacts of the abstract view
+			// may cause nodes to be merged and the names lost.
+
+			if (def->def_flags & DEF_ABSTRACT)
+			{
+			    EFHNSprintf(stmp, nodeName->efnn_hier);
+			    pname = stmp;
+			}
+			else
+			    pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
 			fprintf(esSpiceF, " %s", pname);
 			tchars += strlen(pname) + 1;
 			break;

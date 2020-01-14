@@ -728,11 +728,15 @@ start:
 		}
 	    }
 
-	    if (*get == '\\')	/* Process quoted characters literally */
-	    {
-		get++;
-		if (*get == '\0') break;
-	    }
+	    /* Process backslash characters literally unless they   */
+	    /* are followed by the end-of-line.			    */
+
+	    if (*get == '\\')
+		if (*(get + 1) == '\0')
+		{
+		    get++;
+		    break;
+		}
 
 	    /* Copy into token receiving area */
 	    *put++ = *get++;
