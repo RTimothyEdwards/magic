@@ -16,20 +16,20 @@
 #include <ctype.h>
 #include <math.h>	/* for INFINITY */
 
+#ifdef MAGIC_WRAPPER
 #include "tcltk/tclmagic.h"
+#endif
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "utils/hash.h"
 #include "utils/utils.h"
 #include "utils/styles.h"
 #include "tiles/tile.h"
-#ifdef MAGIC_WRAPPER
 #include "database/database.h"
 #include "windows/windows.h"
 #include "textio/textio.h"
 #include "dbwind/dbwind.h"
 #include "textio/txcommands.h"
-#endif
 #include "extflat/extflat.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
