@@ -874,7 +874,7 @@ DBReadBackup(name)
 		return FALSE;
 	    }
 	    /* Update timestamp flags from dbCellReadDef() */
-	    DBFlagMismatches();
+	    DBFlagMismatches(cellDef);
 	}
 	else
 	{
