@@ -648,7 +648,12 @@ ResExtractNet(startlist,goodies,cellname)
          scx.scx_area.r_ur.p_x = fix->fp_loc.p_x+2;
          scx.scx_area.r_ur.p_y = fix->fp_loc.p_y+2;
 	 startpoint = fix->fp_loc;
-	 TTMaskSetOnlyType(&FirstTileMask,fix->fp_ttype);
+
+	 // Because fix->fp_ttype might come from a label with a sticky type
+	 // that does not correspond exactly to the layer underneath, include
+	 // all connecting types.
+	 /* TTMaskSetOnlyType(&FirstTileMask,fix->fp_ttype); */
+	 TTMaskSetMask(&FirstTileMask, &DBConnectTbl[fix->fp_ttype]);
 
          newdevtiles = DBTreeCopyConnectDCS(&scx, &FirstTileMask, 0,
 	         			ResCopyMask, &TiPlaneRect, ResUse);
@@ -829,8 +834,31 @@ FindStartTile(goodies, SourcePoint)
     int		pnum, t1, t2;
     ExtDevice   *devptr;
      
+    /* If the drive point is on a contact, check for the contact residues   */
+    /* first, then the contact type itself.				    */
+
+    if (DBIsContact(goodies->rg_ttype))
+    {
+	TileTypeBitMask *rmask = DBResidueMask(goodies->rg_ttype);
+	TileType savtype = goodies->rg_ttype;
+	TileType rtype;
+
+	savtype = goodies->rg_ttype;
+	for (rtype = TT_TECHDEPBASE; rtype < DBNumUserLayers; rtype++)
+	    if (TTMaskHasType(rmask, rtype))
+	    {
+		if ((tile = FindStartTile(goodies, SourcePoint)) != NULL)
+		{
+		    goodies->rg_ttype = savtype;
+		    return tile;
+		}
+	    }
+	goodies->rg_ttype = savtype;
+    }
+
     workingPoint.p_x = goodies->rg_devloc->p_x;
     workingPoint.p_y = goodies->rg_devloc->p_y;
+
     pnum = DBPlane(goodies->rg_ttype);
 
     /* for drivepoints, we don't have to find a device */
@@ -840,6 +868,7 @@ FindStartTile(goodies, SourcePoint)
 	GOTOPOINT(tile, &workingPoint);
 	SourcePoint->p_x = workingPoint.p_x;
 	SourcePoint->p_y = workingPoint.p_y;
+
 	if (TiGetTypeExact(tile) == goodies->rg_ttype)
 	    return tile;
 	else
