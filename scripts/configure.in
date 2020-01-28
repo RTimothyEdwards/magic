@@ -349,13 +349,13 @@ fi
 # place that is a temporary staging area, like DESTDIR, but unlike DESTDIR,
 # the prefix is replaced by the destination directory, rather than appended
 # to it.
-dist_prefix="\${exec_prefix}"
+DIST_DIR="\${exec_prefix}"
 AC_ARG_WITH(distdir,
 [  --with-distdir=DIR	    install into location DIR for distribution], [
   if test "$withval" = "no" -o "$withval" = "NO" ; then
-     dist_prefix="\${exec_prefix}"
+     DIST_DIR="\${exec_prefix}"
   else
-     dist_prefix=$arg
+     DIST_DIR=${withval}
   fi
 ], )
 
@@ -1782,7 +1782,7 @@ AC_SUBST(modules)
 AC_SUBST(unused)
 AC_SUBST(programs)
 AC_SUBST(cadinstall)
-AC_SUBST(dist_prefix)
+AC_SUBST(DIST_DIR)
 
 AC_SUBST(rl_defs)
 AC_SUBST(rl_libs)

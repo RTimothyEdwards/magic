@@ -34,9 +34,9 @@ SCMDIR                 = ${libdir}/magic/scm
 TCLDIR                 = ${libdir}/magic/tcl
 
 # Install targets may be different if dist_prefix is set by configure
-INSTALL_BINDIR         = @dist_prefix@/bin
-INSTALL_MANDIR         = @dist_prefix@/share/man
-INSTALL_LIBDIR         = @dist_prefix@/lib
+INSTALL_BINDIR         = @DIST_DIR@/bin
+INSTALL_MANDIR         = @DIST_DIR@/share/man
+INSTALL_LIBDIR         = @DIST_DIR@/lib
 INSTALL_SYSDIR         = ${INSTALL_LIBDIR}/magic/sys
 INSTALL_SCMDIR         = ${INSTALL_LIBDIR}/magic/scm
 INSTALL_TCLDIR         = ${INSTALL_LIBDIR}/magic/tcl
