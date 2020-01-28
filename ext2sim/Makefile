@@ -26,12 +26,12 @@ exttosim${SHDLIB_EXT}: simwrap.o ${MAGICDIR}/extflat/libextflat.o
 	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} simwrap.o \
 		${MAGICDIR}/extflat/libextflat.o ${LD_SHARED} -lc ${LIBS}
 
-install: $(DESTDIR)${BINDIR}/${MODULE}${EXEEXT}
+install: $(DESTDIR)${INSTALL_BINDIR}/${MODULE}${EXEEXT}
 
-install-tcl: $(DESTDIR)${TCLDIR}/exttosim${SHDLIB_EXT}
+install-tcl: $(DESTDIR)${INSTALL_TCLDIR}/exttosim${SHDLIB_EXT}
 
-$(DESTDIR)${TCLDIR}/exttosim${SHDLIB_EXT}: exttosim${SHDLIB_EXT}
-	${RM} $(DESTDIR)${TCLDIR}/exttosim${SHDLIB_EXT}
-	${CP} exttosim${SHDLIB_EXT} $(DESTDIR)${TCLDIR}/exttosim${SHDLIB_EXT}
+$(DESTDIR)${INSTALL_TCLDIR}/exttosim${SHDLIB_EXT}: exttosim${SHDLIB_EXT}
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/exttosim${SHDLIB_EXT}
+	${CP} exttosim${SHDLIB_EXT} $(DESTDIR)${INSTALL_TCLDIR}/exttosim${SHDLIB_EXT}
 
 include ${MAGICDIR}/rules.mak

@@ -32,21 +32,21 @@ TCL_FILES = \
 	magic.tcl
 
 BIN_FILES = \
-	$(DESTDIR)${BINDIR}/magic.sh \
-	$(DESTDIR)${BINDIR}/ext2spice.sh \
-	$(DESTDIR)${BINDIR}/ext2sim.sh
+	$(DESTDIR)${INSTALL_BINDIR}/magic.sh \
+	$(DESTDIR)${INSTALL_BINDIR}/ext2spice.sh \
+	$(DESTDIR)${INSTALL_BINDIR}/ext2sim.sh
 
 tcl-main: magicexec magicdnull magic.tcl magic.sh ext2spice.sh ext2sim.sh
 
 install-tcl: magicexec magicdnull ${BIN_FILES} ${TCL_FILES}
-	${RM} $(DESTDIR)${TCLDIR}/magicexec
-	${CP} magicexec $(DESTDIR)${TCLDIR}/magicexec
-	${RM} $(DESTDIR)${TCLDIR}/magicdnull
-	${CP} magicdnull $(DESTDIR)${TCLDIR}/magicdnull
-	(cd $(DESTDIR)${TCLDIR}; ${RM} ${TCL_FILES})
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/magicexec
+	${CP} magicexec $(DESTDIR)${INSTALL_TCLDIR}/magicexec
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/magicdnull
+	${CP} magicdnull $(DESTDIR)${INSTALL_TCLDIR}/magicdnull
+	(cd $(DESTDIR)${INSTALL_TCLDIR}; ${RM} ${TCL_FILES})
 	for i in ${TCL_FILES}; do \
-		${CP} $$i $(DESTDIR)${TCLDIR}; done
-	(cd $(DESTDIR)${TCLDIR}; chmod 0755 tkcon.tcl tkshell.tcl)
+		${CP} $$i $(DESTDIR)${INSTALL_TCLDIR}; done
+	(cd $(DESTDIR)${INSTALL_TCLDIR}; chmod 0755 tkcon.tcl tkshell.tcl)
 
 magicexec: magicexec.c ${MAGICDIR}/defs.mak
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} ${LDFLAGS} magicexec.c \
@@ -73,23 +73,23 @@ ext2spice.sh: ext2spice.sh.in ${MAGICDIR}/defs.mak
 ext2sim.sh: ext2sim.sh.in ${MAGICDIR}/defs.mak
 	sed -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g ext2sim.sh.in > ext2sim.sh
 
-$(DESTDIR)${TCLDIR}/%: %
-	${RM} $(DESTDIR)${TCLDIR}/$*
-	${CP} $* $(DESTDIR)${TCLDIR}/$*
+$(DESTDIR)${INSTALL_TCLDIR}/%: %
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/$*
+	${CP} $* $(DESTDIR)${INSTALL_TCLDIR}/$*
 
-$(DESTDIR)${BINDIR}/magic.sh: magic.sh
-	${RM} $(DESTDIR)${BINDIR}/magic.sh $(DESTDIR)${BINDIR}/magic
-	${CP} magic.sh $(DESTDIR)${BINDIR}/magic
-	(cd $(DESTDIR)${BINDIR}; chmod 0755 magic)
+$(DESTDIR)${INSTALL_BINDIR}/magic.sh: magic.sh
+	${RM} $(DESTDIR)${INSTALL_BINDIR}/magic.sh $(DESTDIR)${INSTALL_BINDIR}/magic
+	${CP} magic.sh $(DESTDIR)${INSTALL_BINDIR}/magic
+	(cd $(DESTDIR)${INSTALL_BINDIR}; chmod 0755 magic)
 
-$(DESTDIR)${BINDIR}/ext2spice.sh: ext2spice.sh
-	${RM} $(DESTDIR)${BINDIR}/ext2spice
-	${CP} ext2spice.sh $(DESTDIR)${BINDIR}/ext2spice
-	(cd $(DESTDIR)${BINDIR}; chmod 0755 ext2spice)
+$(DESTDIR)${INSTALL_BINDIR}/ext2spice.sh: ext2spice.sh
+	${RM} $(DESTDIR)${INSTALL_BINDIR}/ext2spice
+	${CP} ext2spice.sh $(DESTDIR)${INSTALL_BINDIR}/ext2spice
+	(cd $(DESTDIR)${INSTALL_BINDIR}; chmod 0755 ext2spice)
 
-$(DESTDIR)${BINDIR}/ext2sim.sh: ext2sim.sh
-	${RM} $(DESTDIR)${BINDIR}/ext2sim
-	${CP} ext2sim.sh $(DESTDIR)${BINDIR}/ext2sim
-	(cd $(DESTDIR)${BINDIR}; chmod 0755 ext2sim)
+$(DESTDIR)${INSTALL_BINDIR}/ext2sim.sh: ext2sim.sh
+	${RM} $(DESTDIR)${INSTALL_BINDIR}/ext2sim
+	${CP} ext2sim.sh $(DESTDIR)${INSTALL_BINDIR}/ext2sim
+	(cd $(DESTDIR)${INSTALL_BINDIR}; chmod 0755 ext2sim)
 
 include ${MAGICDIR}/rules.mak

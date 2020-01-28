@@ -20,7 +20,7 @@ EXTRA_LIBS = ${MAGICDIR}/cmwind/libcmwind.o ${MAGICDIR}/commands/libcommands.o \
 	    ${MAIN_EXTRA_LIBS}
 
 BITMAPS = up.xbm down.xbm left.xbm right.xbm zoom.xbm lock.xbm
-DEST_XBM = $(BITMAPS:%=$(DESTDIR)${TCLDIR}/bitmaps/%)
+DEST_XBM = $(BITMAPS:%=$(DESTDIR)${INSTALL_TCLDIR}/bitmaps/%)
 
 DFLAGS += -DMAGIC_DATE="\"`date`\"" -DCAD_DIR="${LIBDIR}"
 LIBS   += ${GR_LIBS} ${READLINE_LIBS} -lm ${LD_EXTRA_LIBS} \
@@ -41,30 +41,30 @@ tclmagic${SHDLIB_EXT}: ${EXTRA_LIBS}
 proto.magicrc: proto.magicrc.in
 	${SCPP} ${GR_DFLAGS} ${DFLAGS} proto.magicrc.in > proto.magicrc
 
-install: $(DESTDIR)${BINDIR}/${MODULE}${EXEEXT} $(DESTDIR)${SYSDIR}/.magicrc \
-	$(DESTDIR)${SYSDIR}/magicps.pro
+install: $(DESTDIR)${INSTALL_BINDIR}/${MODULE}${EXEEXT} $(DESTDIR)${INSTALL_SYSDIR}/.magicrc \
+	$(DESTDIR)${INSTALL_SYSDIR}/magicps.pro
 
-install-tcl: $(DESTDIR)${TCLDIR}/tclmagic${SHDLIB_EXT} $(DESTDIR)${SYSDIR}/.magicrc \
-	$(DESTDIR)${SYSDIR}/.initrc $(DESTDIR)${SYSDIR}/magicps.pro ${DEST_XBM}
+install-tcl: $(DESTDIR)${INSTALL_TCLDIR}/tclmagic${SHDLIB_EXT} $(DESTDIR)${INSTALL_SYSDIR}/.magicrc \
+	$(DESTDIR)${INSTALL_SYSDIR}/.initrc $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro ${DEST_XBM}
 
-$(DESTDIR)${TCLDIR}/tclmagic${SHDLIB_EXT}: tclmagic${SHDLIB_EXT}
-	${RM} $(DESTDIR)${TCLDIR}/tclmagic${SHDLIB_EXT}
-	${CP} tclmagic${SHDLIB_EXT} $(DESTDIR)${TCLDIR}/tclmagic${SHDLIB_EXT}
+$(DESTDIR)${INSTALL_TCLDIR}/tclmagic${SHDLIB_EXT}: tclmagic${SHDLIB_EXT}
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/tclmagic${SHDLIB_EXT}
+	${CP} tclmagic${SHDLIB_EXT} $(DESTDIR)${INSTALL_TCLDIR}/tclmagic${SHDLIB_EXT}
 
-$(DESTDIR)${TCLDIR}/bitmaps/%: bitmaps/%
-	${RM} $(DESTDIR)${TCLDIR}/bitmaps/$*
-	${CP} bitmaps/$* $(DESTDIR)${TCLDIR}/bitmaps/$*
+$(DESTDIR)${INSTALL_TCLDIR}/bitmaps/%: bitmaps/%
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/bitmaps/$*
+	${CP} bitmaps/$* $(DESTDIR)${INSTALL_TCLDIR}/bitmaps/$*
 
-$(DESTDIR)${SYSDIR}/.magicrc: proto.magicrc
-	${RM} $(DESTDIR)${SYSDIR}/.magicrc
-	${CP} proto.magicrc $(DESTDIR)${SYSDIR}/.magicrc
+$(DESTDIR)${INSTALL_SYSDIR}/.magicrc: proto.magicrc
+	${RM} $(DESTDIR)${INSTALL_SYSDIR}/.magicrc
+	${CP} proto.magicrc $(DESTDIR)${INSTALL_SYSDIR}/.magicrc
 
-$(DESTDIR)${SYSDIR}/.initrc: proto.initrc
-	${RM} $(DESTDIR)${SYSDIR}/.initrc
-	${CP} proto.initrc $(DESTDIR)${SYSDIR}/.initrc
+$(DESTDIR)${INSTALL_SYSDIR}/.initrc: proto.initrc
+	${RM} $(DESTDIR)${INSTALL_SYSDIR}/.initrc
+	${CP} proto.initrc $(DESTDIR)${INSTALL_SYSDIR}/.initrc
 
-$(DESTDIR)${SYSDIR}/magicps.pro: magicps.pro
-	${RM} $(DESTDIR)${SYSDIR}/magicps.pro
-	${CP} magicps.pro $(DESTDIR)${SYSDIR}/magicps.pro
+$(DESTDIR)${INSTALL_SYSDIR}/magicps.pro: magicps.pro
+	${RM} $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro
+	${CP} magicps.pro $(DESTDIR)${INSTALL_SYSDIR}/magicps.pro
 
 include ${MAGICDIR}/rules.mak

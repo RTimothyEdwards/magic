@@ -28,10 +28,10 @@ tclplot${SHDLIB_EXT}: tclplot.o ${OBJS}
 	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} tclplot.o ${OBJS} \
 		 ${EXTRA_LIBS} -lc ${LIBS}
 
-install-tcl: $(DESTDIR)${TCLDIR}/tclplot${SHDLIB_EXT}
+install-tcl: $(DESTDIR)${INSTALL_TCLDIR}/tclplot${SHDLIB_EXT}
 
-$(DESTDIR)${TCLDIR}/tclplot${SHDLIB_EXT}: tclplot${SHDLIB_EXT}
-	${RM} $(DESTDIR)${TCLDIR}/tclplot${SHDLIB_EXT}
-	${CP} tclplot${SHDLIB_EXT} $(DESTDIR)${TCLDIR}/tclplot${SHDLIB_EXT}
+$(DESTDIR)${INSTALL_TCLDIR}/tclplot${SHDLIB_EXT}: tclplot${SHDLIB_EXT}
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/tclplot${SHDLIB_EXT}
+	${CP} tclplot${SHDLIB_EXT} $(DESTDIR)${INSTALL_TCLDIR}/tclplot${SHDLIB_EXT}
 
 include ${MAGICDIR}/rules.mak

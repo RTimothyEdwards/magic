@@ -29,16 +29,16 @@ exttospice${SHDLIB_EXT}: spicewrap.o spicehier.o ${MAGICDIR}/extflat/libextflat.
 	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} spicewrap.o spicehier.o \
 		${MAGICDIR}/extflat/libextflat.o ${LD_SHARED} -lc ${LIBS}
 
-install: $(DESTDIR)${BINDIR}/${MODULE}${EXEEXT} $(DESTDIR)${BINDIR}/spice2sim 
+install: $(DESTDIR)${INSTALL_BINDIR}/${MODULE}${EXEEXT} $(DESTDIR)${INSTALL_BINDIR}/spice2sim 
 
-install-tcl: $(DESTDIR)${TCLDIR}/exttospice${SHDLIB_EXT} $(DESTDIR)${BINDIR}/spice2sim
+install-tcl: $(DESTDIR)${INSTALL_TCLDIR}/exttospice${SHDLIB_EXT} $(DESTDIR)${INSTALL_BINDIR}/spice2sim
 
-$(DESTDIR)${TCLDIR}/exttospice${SHDLIB_EXT}: exttospice${SHDLIB_EXT}
-	${RM} $(DESTDIR)${TCLDIR}/exttospice${SHDLIB_EXT}
-	${CP} exttospice${SHDLIB_EXT} $(DESTDIR)${TCLDIR}/exttospice${SHDLIB_EXT}
+$(DESTDIR)${INSTALL_TCLDIR}/exttospice${SHDLIB_EXT}: exttospice${SHDLIB_EXT}
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/exttospice${SHDLIB_EXT}
+	${CP} exttospice${SHDLIB_EXT} $(DESTDIR)${INSTALL_TCLDIR}/exttospice${SHDLIB_EXT}
 
-$(DESTDIR)${BINDIR}/spice2sim: spice2sim
-	${RM} $(DESTDIR)${BINDIR}/spice2sim
-	${CP} spice2sim $(DESTDIR)${BINDIR}/spice2sim
+$(DESTDIR)${INSTALL_BINDIR}/spice2sim: spice2sim
+	${RM} $(DESTDIR)${INSTALL_BINDIR}/spice2sim
+	${CP} spice2sim $(DESTDIR)${INSTALL_BINDIR}/spice2sim
 
 include ${MAGICDIR}/rules.mak

@@ -15,7 +15,7 @@ tcl-main:
 
 main: net2ir
 
-install: $(DESTDIR)${BINDIR}/${MODULE}${EXEEXT}
+install: $(DESTDIR)${INSTALL_BINDIR}/${MODULE}${EXEEXT}
 
 install-tcl:
 	echo "Nothing to do here"
