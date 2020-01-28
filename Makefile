@@ -77,12 +77,14 @@ install-real: install-dirs
 		(cd $$dir && ${MAKE} install); done
 
 install-tcl-dirs:
-	${MAGICDIR}/scripts/mkdirs $(DESTDIR)${INSTALL_BINDIR} $(DESTDIR)${INSTALL_MANDIR} \
-		$(DESTDIR)${SYSDIR} $(DESTDIR)${INSTALL_TCLDIR} $(DESTDIR)${INSTALL_TCLDIR}/bitmaps
+	${MAGICDIR}/scripts/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
+	$(DESTDIR)${INSTALL_MANDIR} $(DESTDIR)${INSTALL_SYSDIR} \
+	$(DESTDIR)${INSTALL_TCLDIR} $(DESTDIR)${INSTALL_TCLDIR}/bitmaps
 
 install-dirs:
-	${MAGICDIR}/scripts/mkdirs $(DESTDIR)${INSTALL_BINDIR} $(DESTDIR)${INSTALL_MANDIR} \
-		$(DESTDIR)${INSTALL_SYSDIR} $(DESTDIR)${INSTALL_SCMDIR}
+	${MAGICDIR}/scripts/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
+	$(DESTDIR)${INSTALL_MANDIR} $(DESTDIR)${INSTALL_SYSDIR} \
+	$(DESTDIR)${INSTALL_SCMDIR}
 
 install-tcl:
 	@echo --- installing executable to $(DESTDIR)${INSTALL_BINDIR}

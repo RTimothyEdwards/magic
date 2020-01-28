@@ -6,7 +6,7 @@ MAGICDIR = ../..
 
 include ${MAGICDIR}/defs.mak
 
-TUTDIR = ${LIBDIR}/magic/tutorial
+TUTDIR = ${INSTALL_LIBDIR}/magic/tutorial
 
 TUTFILES= m3a.mag maint2a.mag tut1.mag \
     tut2a.mag tut2b.mag tut2c.mag tut2d.mag \
