@@ -22,10 +22,10 @@ magiclef${SHDLIB_EXT}: tcllef.o ${OBJS}
 	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} tcllef.o ${OBJS} \
 		 ${EXTRA_LIBS} -lc ${LIBS}
 
-install-tcl: $(DESTDIR)${TCLDIR}/magiclef${SHDLIB_EXT}
+install-tcl: $(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}
 
-$(DESTDIR)${TCLDIR}/magiclef${SHDLIB_EXT}: magiclef${SHDLIB_EXT}
-	${RM} $(DESTDIR)${TCLDIR}/magiclef${SHDLIB_EXT}
-	${CP} magiclef${SHDLIB_EXT} $(DESTDIR)${TCLDIR}/magiclef${SHDLIB_EXT}
+$(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}: magiclef${SHDLIB_EXT}
+	${RM} $(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}
+	${CP} magiclef${SHDLIB_EXT} $(DESTDIR)${INSTALL_TCLDIR}/magiclef${SHDLIB_EXT}
 
 include ${MAGICDIR}/rules.mak

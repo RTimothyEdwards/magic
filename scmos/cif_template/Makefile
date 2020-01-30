@@ -21,8 +21,7 @@ all: $(OBJS_DIR) $(CIFIN) $(CIFOUT) $(IBMCIFIN) $(IBMCIFOUT) $(TMCIFIN) \
 	$(TMCIFOUT) $(SUBCIFIN) $(SUBCIFOUT)
 
 clean:;
-	rm -f $(CIFIN) $(CIFOUT) $(IBMCIFIN) $(IBMCIFOUT) $(TMCIFIN) \
-	$(TMCIFOUT) $(SUBCIFIN) $(SUBCIFOUT)
+	rm -rf $(OBJS_DIR)
 
 scg: cifout.c cifout-cmos26b.gen cifout.gen cifout.nw\
 	   cifout.others cifout.pw cifout.scgnw cifout.scgpw

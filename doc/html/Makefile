@@ -2,7 +2,7 @@ MAGICDIR = ../..
 
 include $(MAGICDIR)/defs.mak
 
-HTML_INSTDIR=$(LIBDIR)/magic/doc/html
+HTML_INSTDIR=$(INSTALL_LIBDIR)/magic/doc/html
 
 install: $(DESTDIR)${HTML_INSTDIR}
 	tar cf - . | (cd $(DESTDIR)${HTML_INSTDIR}; tar xf - )

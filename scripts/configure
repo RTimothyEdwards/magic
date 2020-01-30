@@ -640,6 +640,7 @@ gr_dflags
 gr_cflags
 rl_libs
 rl_defs
+DIST_DIR
 cadinstall
 programs
 unused
@@ -747,6 +748,7 @@ ac_user_opts='
 enable_option_checking
 with_gnu_ld
 with_x
+with_distdir
 with_interpreter
 with_tcl
 with_tk
@@ -1425,6 +1427,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-x                use the X Window System
+  --with-distdir=DIR	    install into location DIR for distribution
   --with-interpreter=arg	enable interpreter (tcl, scheme, or no)
   --with-tcl=DIR          Find tclConfig.sh in DIR
   --with-tk=DIR           Find tkConfig.sh in DIR
@@ -6136,6 +6139,24 @@ else
   fi
 fi
 
+# For distributed installs, where the run-time files are installed in a
+# place that is a temporary staging area, like DESTDIR, but unlike DESTDIR,
+# the prefix is replaced by the destination directory, rather than appended
+# to it.
+DIST_DIR="\${exec_prefix}"
+
+# Check whether --with-distdir was given.
+if test "${with_distdir+set}" = set; then :
+  withval=$with_distdir;
+  if test "$withval" = "no" -o "$withval" = "NO" ; then
+     DIST_DIR="\${exec_prefix}"
+  else
+     DIST_DIR=${withval}
+  fi
+
+fi
+
+
 # Check for libXi, which is required on some systems but not available on
 # others.
 use_libxi=""
@@ -8214,6 +8235,7 @@ fi
 if test "$GCC" = "yes" ; then
    DEPEND_FLAG="-MM"
 fi
+
 
 
 

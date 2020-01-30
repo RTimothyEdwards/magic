@@ -54,11 +54,11 @@ all: $(OBJS) $(DEPEND) ${TECHFILES}
 
 install-tcl: all
 	for i in ${FILES} ${TECHFILES}; do \
-		${CP} $$i $(DESTDIR)${SYSDIR}; done
+		${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
 
 install: all
 	for i in ${FILES} ${TECHFILES}; do \
-		${CP} $$i $(DESTDIR)${SYSDIR}; done
+		${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
 
 scmos.tech: $(OBJS)
 	sed -e 's/\\/\\\\/' scmos.tech.in > scmos.tech.out
@@ -96,8 +96,8 @@ $(SCIFin):
 $(SCIFout):
 	cd cif_template; ${MAKE} clean; ${MAKE};
 
-$(DESTDIR)${SYSDIR}/%: %
-	cp $* $(DESTDIR)${SYSDIR}/$*
+$(DESTDIR)${INSTALL_SYSDIR}/%: %
+	cp $* $(DESTDIR)${INSTALL_SYSDIR}/$*
 
 clean:;
 	-rm -f *.tech *.tech27
