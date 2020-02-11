@@ -372,6 +372,7 @@ GrTCairoPlotSVG (char *filename, MagWindow *mw)
 		(double)screenw, (double)screenh);
     cairo_svg_surface_restrict_to_version(tcairodata->surface,
 		CAIRO_SVG_VERSION_1_2);
+
     tcairodata->context = cairo_create(tcairodata->surface);
     WindRedisplay(mw);
     WindUpdate();
