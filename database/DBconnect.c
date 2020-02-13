@@ -679,6 +679,11 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 
     if (scx->scx_use == csa2->csa2_topscx->scx_use)
     {
+	/* Do not repeat a label copy;  check that the label doesn't	*/
+	/* already exist in the destination def first.			*/
+	if (DBCheckLabelsByContent(def, &r, lab->lab_type, lab->lab_text))
+	    return 0;
+
 	DBEraseLabelsByContent(def, &r, -1, lab->lab_text);
 	DBPutFontLabel(def, &r, lab->lab_font, lab->lab_size, rotate, &offset,
 		pos, lab->lab_text, lab->lab_type, lab->lab_flags);
