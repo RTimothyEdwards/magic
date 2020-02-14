@@ -418,7 +418,7 @@ DBWredisplay(w, rootArea, clipArea)
         /* Set style information beforehand */
         GrSetStuff(STYLE_LABEL);
 	(void) DBTreeSrLabels(&scontext, &DBAllTypeBits, bitMask,
-		(TerminalPath *) NULL, TF_LABEL_DISPLAY,
+		(TerminalPath *) NULL, TF_LABEL_DISPLAY | TF_LABEL_ATTACH,
 		dbwLabelFunc, (ClientData) NULL);
 	GrClipTo(&rootClip);
     }

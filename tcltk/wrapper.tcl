@@ -629,7 +629,7 @@ proc magic::cursorview {win} {
       return
    }
    set framename [winfo parent $win]
-   if {[catch {set cr [cif scale out]}]} {return}
+   if {[catch {set cr [*bypass cif scale out]}]} {return}
    if {$cr == 0} {return}
    set olst [${win} cursor internal]
 
