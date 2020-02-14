@@ -1792,6 +1792,7 @@ FlatCopyAllLabels(scx, mask, xMask, targetUse)
     char pathstring[FLATTERMSIZE];
     TerminalPath	tpath;
     
+    pathstring[0] = '\0';
     tpath.tp_first = tpath.tp_next = pathstring;
     tpath.tp_last = pathstring + FLATTERMSIZE;
 
