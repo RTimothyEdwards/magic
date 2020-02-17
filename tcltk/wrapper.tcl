@@ -1,5 +1,5 @@
 # This is the "Magic wrapper".
-# It's main purpose is to redefine the "openwindow" command in magic so that
+# Its main purpose is to redefine the "openwindow" command in magic so that
 # opening a new window creates a window wrapped by a GUI interface.
 #
 # Written by Tim Edwards, August 23, 2002.

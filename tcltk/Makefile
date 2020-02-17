@@ -24,7 +24,6 @@ TCL_FILES = \
 	tools.tcl \
 	mazeroute.tcl \
 	strip_reflibs.tcl \
-	drc.tcl \
 	toolkit.tcl \
 	toolkit_rev0.tcl \
 	bsitools.tcl \

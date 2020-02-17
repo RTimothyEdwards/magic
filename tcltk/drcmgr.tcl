@@ -101,11 +101,13 @@ proc magic::makedrcmanager { mgrpath } {
 	-command {magic::drccallback update}
    button ${mgrpath}.actionbar.last -text "Last" -command {magic::drccallback last}
    button ${mgrpath}.actionbar.next -text "Next" -command {magic::drccallback next}
+   button ${mgrpath}.actionbar.save -text "Save" -command {magic::drc_save_report}
    button ${mgrpath}.actionbar.zoom  -text "Zoom" -command {magic::drccallback zoom}
 
    pack ${mgrpath}.actionbar.update -side left
    pack ${mgrpath}.actionbar.last -side left
    pack ${mgrpath}.actionbar.next -side left
+   pack ${mgrpath}.actionbar.save -side left
    pack ${mgrpath}.actionbar.zoom -side right
 
    label ${mgrpath}.target.name -text "Target window:"
@@ -150,7 +152,6 @@ proc magic::adddrcentry {key valuelist} {
    }
 }
 
-
 #--------------------------------------------------------------
 # The cell manager window main callback function
 #--------------------------------------------------------------
@@ -192,4 +193,108 @@ proc magic::drcmanager {{option "update"}} {
 }
 
 }	;# (if Tk version 8.5)
+
+#---------------------------------------------------
+# Alternative way to view/save DRC errors in magic.
+# Dump a text file of errors and positions.  Note
+# that the dump, using "drc listall why", enumerates
+# every single edge check and is therefore more
+# detailed than the areas declared by "drc count"
+# or enumerated in "drc find".
+#---------------------------------------------------
+
+proc magic::drc_save_report {{cellname ""} {outfile ""}} {
+
+    if {$outfile == ""} {set outfile "drc.out"}
+
+    set fout [open $outfile w]
+    set oscale [cif scale out]
+
+    # magic::suspendall
+
+    if {$cellname == ""} {
+	select top cell
+        set cellname [cellname list self]
+	set origname ""
+    } else {
+	set origname [cellname list self]
+	puts stdout "loading $cellname\n"
+	flush stdout
+   
+	load $cellname
+	select top cell
+    }
+
+    drc check
+    set count [drc list count]
+
+    puts $fout "$cellname $count"
+    puts $fout "----------------------------------------"
+    set drcresult [drc listall why]
+    foreach {errtype coordlist} $drcresult {
+	puts $fout $errtype
+	puts $fout "----------------------------------------"
+	foreach coord $coordlist {
+	    set bllx [expr {$oscale * [lindex $coord 0]}]
+	    set blly [expr {$oscale * [lindex $coord 1]}]
+	    set burx [expr {$oscale * [lindex $coord 2]}]
+	    set bury [expr {$oscale * [lindex $coord 3]}]
+	    set coords [format " %.3f %.3f %.3f %.3f" $bllx $blly $burx $bury]
+	    puts $fout "$coords"
+	}
+	puts $fout "----------------------------------------"
+    }
+    puts $fout ""
+
+    if {$origname != ""} {
+	load $origname
+    }
+
+    # magic::resumeall
+
+    close $fout
+    puts stdout "done with $outfile\n"
+    flush stdout
+}
+
+#---------------------------------------------------
+# Read back a dumped file of DRC errors.  This is of
+# limited use, as any layout should have DRC errors
+# already marked.  This routine loads errors into
+# "feedback" areas, which is redundant to the error
+# tiles.  However, feedback areas are more precise,
+# as they mark the error area at each checked edge
+#---------------------------------------------------
+
+proc magic::drc_load_report {{drc_file ""}} {
+
+    if {$drc_file == ""} {
+	set drc_file "drc.out"
+    }
+    set fin [open $drc_file r]
+
+    puts stdout "Reading $drc_file\n"
+    flush stdout
+
+    magic::suspendall
+
+    set error_text ""
+    while {[gets $fin line] >= 0} {
+	if {[string first " " $line] == 0} {
+	    if [regexp { ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)} $line lmatch llx lly urx ury] {
+		feedback add "$error_text" vert_highlights ${llx}um ${lly}um \
+			${llx}um ${ury}um ${urx}um ${ury}um ${urx}um ${lly}um
+	    }
+	} elseif {[string first "-" $line] != 0} {
+	    set error_text $line
+	}
+    }
+    magic::resumeall
+
+    close $fin
+
+    puts stdout "Done.\n"
+    puts stdout "Use \"feedback find\" to enumerate errors.\n"
+    flush stdout
+}
 
