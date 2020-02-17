@@ -537,6 +537,7 @@ set Opts(crosshair) 0
 set Opts(hidelocked) 0
 set Opts(hidespecial) 0
 set Opts(toolbar) 0
+set Opts(toolsize) 16
 set Opts(drc) 1
 set Opts(autobuttontext) 1
 
@@ -720,18 +721,21 @@ proc magic::toolupdate {win {yesno "yes"} {layerlist "none"}} {
 # Generate the toolbar images for a technology
 
 proc magic::maketoolimages {} {
+   global Opts
+
+   set tsize $Opts(toolsize)
 
    # Generate a layer image for "space" that will be used when layers are
    # invisible.
 
-   image create layer img_space -name none
+   image create layer img_space -name none -width $tsize -height $tsize
 
    set all_layers [concat {errors labels subcell} [magic::tech layer "*"]]
 
    foreach layername $all_layers {
-      image create layer img_$layername -name $layername
+      image create layer img_$layername -name $layername -width $tsize -height $tsize
       image create layer pale_$layername -name $layername \
-		-disabled true -icon 23
+		-disabled true -icon 23 -width $tsize -height $tsize
     }
 }
 
