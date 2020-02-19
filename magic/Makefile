@@ -39,7 +39,7 @@ tclmagic${SHDLIB_EXT}: ${EXTRA_LIBS}
 		-lc ${LIBS} ${LIB_SPECS} ${LDFLAGS}
 
 proto.magicrc: proto.magicrc.in
-	${SCPP} ${GR_DFLAGS} ${DFLAGS} proto.magicrc.in > proto.magicrc
+	${MCPP} ${GR_DFLAGS} ${DFLAGS} proto.magicrc.in > proto.magicrc
 
 install: $(DESTDIR)${INSTALL_BINDIR}/${MODULE}${EXEEXT} $(DESTDIR)${INSTALL_SYSDIR}/.magicrc \
 	$(DESTDIR)${INSTALL_SYSDIR}/magicps.pro
