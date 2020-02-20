@@ -28,37 +28,6 @@ AC_ISC_POSIX
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
-dnl GNU M4 is preferred due to some of the option switches.
-AC_PATH_PROGS([M4], [gm4 gnum4 m4], [no])
-if test x$M4 = xno; then
-  AC_MSG_ERROR([M4 is required])
-fi
-
-dnl Python3 is preferred for running the preprocessor script
-dnl but CPP can be used instead.
-AC_PATH_PROG([PYTHON3], [python3], [no])
-if test "x${PYTHON3}" == "x"; then
-
-   dnl check size of pointer for correct behavior on 64-bit systems
-   dnl If the C preprocessor is GCC, we need to force the flag to
-   dnl assert that input files are of type C, or else the preprocessing
-   dnl stage will not execute correctly on the ".in" files in the scmos
-   dnl directory.
-
-   if test "$CPP" = "$CC -E" ; then
-      MCPP="$CPP -x c"
-   fi
-
-else
-   MCPP="\${MAGICDIR}/scripts/preproc.py"
-fi
-
-if test "$CPP" = "$CC -E" ; then
-      SCPP="$CPP -x c"
-else
-      SCPP="$CPP"
-fi
-
 dnl check if the linker is a GNU linker
 
 #------------------------------------------------------------
@@ -306,6 +275,7 @@ use_libglu="-lGLU"
 usingTcl=1
 usingOA=0
 usingCairo=1
+usingPython3=1
 
 dnl Check for gcore, used by niceabort.c
 
@@ -319,6 +289,32 @@ AC_PATH_PROG(CSH, csh, [no])
 
 if test "x${CSH}" = "x"; then
   AC_MSG_ERROR([cannot find /bin/csh---cannot compile!])
+fi
+
+dnl Python3 is preferred for running the preprocessor script
+dnl but CPP can be used instead.
+AC_PATH_PROG([PYTHON3], [python3], [no])
+if test "x${PYTHON3}" == "x"; then
+
+   dnl check size of pointer for correct behavior on 64-bit systems
+   dnl If the C preprocessor is GCC, we need to force the flag to
+   dnl assert that input files are of type C, or else the preprocessing
+   dnl stage will not execute correctly on the ".in" files in the scmos
+   dnl directory.
+
+   usingPython3=
+   if test "$CPP" = "$CC -E" ; then
+      MCPP="$CPP -x c"
+      MSED="sed -e 's/\\/\\\\/'"
+   else
+      MCPP="$CPP"
+      MSED="sed -e 's/\\/\\\\/'"
+   fi
+
+else
+   MCPP="\${MAGICDIR}/scripts/preproc.py -ccomm"
+   MSED="cat"
+   usingPython3=1
 fi
 
 dnl Check for X enabled/disabled
@@ -1802,7 +1798,7 @@ AC_SUBST(DEPEND_FLAG)
 AC_SUBST(SHLIB_CFLAGS)
 AC_SUBST(LD_RUN_PATH)
 AC_SUBST(MCPP)
-AC_SUBST(SCPP)
+AC_SUBST(MSED)
 
 AC_SUBST(MAGIC_VERSION)
 AC_SUBST(MAGIC_REVISION)
@@ -1839,6 +1835,19 @@ else
    echo
 fi
 
+${ECHO_N} "Python3:      "
+if test $usingPython3 ; then
+   echo "yes"
+else
+   echo "no"
+   echo
+   echo "  Magic installation will use the gcc preprocessor for forming"
+   echo "  the default SCMOS technology files and the macro definitions."
+   echo "  This usually works, but in case of preprocessor failure, you"
+   echo "  may need python3 installed."
+   echo
+fi
+
 ${ECHO_N} "OpenGL:       "
 if test $usingOGL ; then
    echo "yes"
@@ -1851,14 +1860,18 @@ if test $usingOGL ; then
 else
    echo "no"
    echo
-   echo "  OpenGL graphics are considerably better than the standard 8-bit"
-   echo "  and 24-bit X11 graphics, provided that you have a video card and"
-   echo "  driver supporting accelerated OpenGL graphics.  If you get this"
-   echo "  message, you may need to download OpenGL libraries and header"
-   echo "  files, which are usually available from the video card manufacturer."
-   echo "  Magic with un-accelerated OpenGL, such as using Mesa GL without"
-   echo "  a supported graphics card, is usually a very bad combination."
-   echo
+   if test $usingCairo ; then
+      echo "  Cairo graphics are available so OpenGL is purely optional."
+   else
+      echo "  OpenGL graphics are considerably better than the standard 8-bit"
+      echo "  and 24-bit X11 graphics, provided that you have a video card and"
+      echo "  driver supporting accelerated OpenGL graphics.  If you get this"
+      echo "  message, you may need to download OpenGL libraries and header"
+      echo "  files, which are usually available from the video card manufacturer."
+      echo "  Magic with un-accelerated OpenGL, such as using Mesa GL without"
+      echo "  a supported graphics card, is usually a very bad combination."
+      echo
+   fi
 fi
 
 ${ECHO_N} "Cairo:        "
@@ -1867,12 +1880,18 @@ if test $usingCairo ; then
 else
    echo "no"
    echo
-   echo "  Cairo graphics are considerably better than the standard 8-bit"
-   echo "  and 24-bit X11 graphics, provided that you have a video card and"
-   echo "  driver supporting hardware-accelerated graphics.  If you get this"
-   echo "  message, you may need to download Cairo and fontconfig libraries"
-   echo "  and header files, which are usually found in package cairo-devel."
-   echo
+   if test $usingOGL ; then
+      echo "  OpenGL graphics are available so Cairo is purely optional"
+      echo "  unless there are issues with the video card driver's"
+      echo "  implementation of OpenGL."
+   else
+      echo "  Cairo graphics are considerably better than the standard 8-bit"
+      echo "  and 24-bit X11 graphics, provided that you have a video card and"
+      echo "  driver supporting hardware-accelerated graphics.  If you get this"
+      echo "  message, you may need to download Cairo and fontconfig libraries"
+      echo "  and header files, which are usually found in package cairo-devel."
+      echo
+   fi
 fi
 
 if test $usingTcl ; then

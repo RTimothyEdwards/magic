@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #--------------------------------------------------------------------
 #
 # preproc.py
@@ -25,6 +25,7 @@
 #	#endif
 #
 #	#define <variable> [...]
+#	#define <variable>(<parameters>) [...]
 #	#undef <variable>
 #
 #	#include <filename>
@@ -146,10 +147,27 @@ def solve_condition(condition, keys, defines, keyrex):
     else:
         return 0
 
+def sortkeys(keys):
+    newkeys = []
+    for i in range(0, len(keys)):
+        keyword = keys[i]
+        found = False
+        for j in range(0, len(newkeys)):
+            inword = newkeys[j]
+            if inword in keyword:
+                # Insert keyword before inword
+                newkeys.insert(j, keyword)
+                found = True
+                break
+        if not found:
+            newkeys.append(keyword)
+    return newkeys
+
 def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
 
     includerex = re.compile('^[ \t]*#include[ \t]+"*([^ \t\n\r"]+)')
     definerex = re.compile('^[ \t]*#define[ \t]+([^ \t]+)[ \t]+(.+)')
+    paramrex = re.compile('^([^\(]+)\(([^\)]+)\)')
     defrex = re.compile('^[ \t]*#define[ \t]+([^ \t\n\r]+)')
     undefrex = re.compile('^[ \t]*#undef[ \t]+([^ \t\n\r]+)')
     ifdefrex = re.compile('^[ \t]*#ifdef[ \t]+(.+)')
@@ -160,7 +178,8 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
     endifrex = re.compile('^[ \t]*#endif')
     commentrex = re.compile('^###[^#]*$')
     ccstartrex = re.compile('/\*')		# C-style comment start
-    ccendrex = re.compile('\*/')			# C-style comment end
+    ccendrex = re.compile('\*/')		# C-style comment end
+    contrex = re.compile('.*\\\\$')		# Backslash continuation line
 
     badifrex = re.compile('^[ \t]*#if[ \t]*.*')
     badelserex = re.compile('^[ \t]*#else[ \t]*.*')
@@ -187,7 +206,7 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
                 break
 
     if not ifile:
-        print("Error:  Cannot open file " + inputfile + " for reading.\n")
+        print("Error:  Cannot open file " + inputfile + " for reading.\n", file=sys.stderr)
         return
 
     ccblock = -1
@@ -196,6 +215,8 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
     lineno = 0
 
     filetext = ifile.readlines()
+    lastline = []
+
     for line in filetext:
         lineno += 1
 
@@ -206,7 +227,7 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
                 if pmatch:
                     ematch = ccendrex.search(line[pmatch.end(0):])
                     if ematch:
-                        line = line[0:pmatch.start(0)] + line[ematch.end(0)+2:]
+                        line = line[0:pmatch.start(0)] + line[pmatch.end(0) + ematch.end(0):]
                     else:
                         line = line[0:pmatch.start(0)]
                         ccblock = 1
@@ -218,55 +239,31 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
                 else:
                     continue
 
+        # Handle continuation detected in previous line
+        if lastline:
+            # Note:  Apparently there is a character retained after the backslash,
+            # so strip the last two characters from the line.
+            line = lastline[0:-2] + line
+            lastline = []
+
+        # Continuation lines have the next highest priority.  However, this
+        # script will attempt to keep continuation lines in the body of the
+        # text and only collapse lines where continuation lines occur in
+        # a preprocessor statement.
+
+        cmatch = contrex.match(line)
+
         # Ignore lines beginning with "###"
         pmatch = commentrex.match(line)
         if pmatch:
             continue
 
-        # Handle include.  Note that this code does not expect or
-        # handle 'if' blocks that cross file boundaries.
-        pmatch = includerex.match(line)
-        if pmatch:
-            inclfile = pmatch.group(1)
-            runpp(keys, keyrex, defines, ccomm, incdirs, inclfile, ofile)
-            continue
-
-        # Handle define (with value)
-        pmatch = definerex.match(line)
-        if pmatch:
-            condition = pmatch.group(1)
-            value = pmatch.group(2)
-            defines[condition] = value
-            keyrex[condition] = re.compile(condition)
-            if condition not in keys:
-                keys.append(condition)
-            continue
-
-        # Handle define (simple case, no value)
-        pmatch = defrex.match(line)
-        if pmatch:
-            condition = pmatch.group(1)
-            print("Defrex condition is " + condition)
-            defines[condition] = '1'
-            keyrex[condition] = re.compile(condition)
-            if condition not in keys:
-                keys.append(condition)
-            print("Defrex value is " + defines[condition])
-            continue
-
-        # Handle undef
-        pmatch = undefrex.match(line)
-        if pmatch:
-            condition = pmatch.group(1)
-            if condition in keys:
-                defines.pop(condition)
-                keyrex.pop(condition)
-                keys.remove(condition)
-            continue
-
         # Handle ifdef
         pmatch = ifdefrex.match(line)
         if pmatch:
+            if cmatch:
+                lastline = line
+                continue
             if ifblock != -1:
                 ifstack.append(ifblock)
                 
@@ -280,6 +277,9 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
         # Handle ifndef
         pmatch = ifndefrex.match(line)
         if pmatch:
+            if cmatch:
+                lastline = line
+                continue
             if ifblock != -1:
                 ifstack.append(ifblock)
                 
@@ -294,6 +294,9 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
         # Handle if
         pmatch = ifrex.match(line)
         if pmatch:
+            if cmatch:
+                lastline = line
+                continue
             if ifblock != -1:
                 ifstack.append(ifblock)
 
@@ -307,8 +310,11 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
         # Handle elseif
         pmatch = elseifrex.match(line)
         if pmatch:
+            if cmatch:
+                lastline = line
+                continue
             if ifblock == -1:
-               print("Error: #elseif without preceding #if at line " + str(lineno) + ".")
+               print("Error: #elseif without preceding #if at line " + str(lineno) + ".", file=sys.stderr)
                ifblock = 0
 
             if ifblock == 1:
@@ -321,8 +327,11 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
         # Handle else
         pmatch = elserex.match(line)
         if pmatch:
+            if cmatch:
+                lastline = line
+                continue
             if ifblock == -1:
-               print("Error: #else without preceding #if at line " + str(lineno) + ".")
+               print("Error: #else without preceding #if at line " + str(lineno) + ".", file=sys.stderr)
                ifblock = 0
 
             if ifblock == 1:
@@ -334,8 +343,11 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
         # Handle endif
         pmatch = endifrex.match(line)
         if pmatch:
+            if cmatch:
+                lastline = line
+                continue
             if ifblock == -1:
-                print("Error:  #endif outside of #if block at line " + str(lineno) + " (ignored)")
+                print("Error:  #endif outside of #if block at line " + str(lineno) + " (ignored)", file=sys.stderr)
             elif ifstack:
                 ifblock = ifstack.pop()
             else:
@@ -345,7 +357,7 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
         # Check for 'if' or 'else' that were not properly formed
         pmatch = badifrex.match(line)
         if pmatch:
-            print("Error:  Badly formed #if statement at line " + str(lineno) + " (ignored)")
+            print("Error:  Badly formed #if statement at line " + str(lineno) + " (ignored)", file=sys.stderr)
             if ifblock != -1:
                 ifstack.append(ifblock)
 
@@ -357,7 +369,7 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
 
         pmatch = badelserex.match(line)
         if pmatch:
-            print("Error:  Badly formed #else statement at line " + str(lineno) + " (ignored)")
+            print("Error:  Badly formed #else statement at line " + str(lineno) + " (ignored)", file=sys.stderr)
             ifblock = 2
             continue
 
@@ -365,15 +377,120 @@ def runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile):
         if ifblock == 0 or ifblock == 2:
             continue
 
+        # Handle include.  Note that this code does not expect or
+        # handle 'if' blocks that cross file boundaries.
+        pmatch = includerex.match(line)
+        if pmatch:
+            if cmatch:
+                lastline = line
+                continue
+            inclfile = pmatch.group(1)
+            runpp(keys, keyrex, defines, ccomm, incdirs, inclfile, ofile)
+            continue
+
+        # Handle define (with value)
+        pmatch = definerex.match(line)
+        if pmatch:
+            if cmatch:
+                lastline = line
+                continue
+            condition = pmatch.group(1)
+
+            # Additional handling of definition w/parameters: #define X(a,b,c) ..."
+            rmatch = paramrex.match(condition) 
+            if rmatch:
+                # 'condition' as a key into keyrex only needs to be unique.
+                # Use the definition word without everything in parentheses
+                condition = rmatch.group(1)
+
+                # 'pcondition' is the actual search regexp and must capture all
+                # the parameters individually for substitution
+
+                parameters = rmatch.group(2).split(',')
+
+                # Generate the regexp string to match comma-separate values
+                # Note that this is based on the cpp preprocessor, which
+                # apparently allows commas in arguments if surrounded by
+                # parentheses;  e.g., "def(a, b, (c1,c2))".  This is NOT
+                # handled.
+
+                pcondition = condition + '\('
+                for param in parameters[0:-1]:
+                    pcondition += '(.*),'
+                pcondition += '(.*)\)'
+
+                # Generate the substitution string with group substitutions
+                pvalue = pmatch.group(2)
+                idx = 1
+                for param in parameters:
+                    pvalue = pvalue.replace(param, '\g<' + str(idx) + '>')
+                    idx = idx + 1
+
+                defines[condition] = pvalue
+                keyrex[condition] = re.compile(pcondition)
+            else:
+                parameters = []
+                value = pmatch.group(2)
+                # Note:  Need to check for infinite recursion here, but it's tricky.
+                defines[condition] = value
+                keyrex[condition] = re.compile(condition)
+
+            if condition not in keys:
+                # Parameterized keys go to the front of the list
+                if parameters:
+                    keys.insert(0, condition)
+                else:
+                    keys.append(condition)
+                keys = sortkeys(keys)
+            continue
+
+        # Handle define (simple case, no value)
+        pmatch = defrex.match(line)
+        if pmatch:
+            if cmatch:
+                lastline = line
+                continue
+            condition = pmatch.group(1)
+            defines[condition] = '1'
+            keyrex[condition] = re.compile(condition)
+            if condition not in keys:
+                keys.append(condition)
+                keys = sortkeys(keys)
+            continue
+
+        # Handle undef
+        pmatch = undefrex.match(line)
+        if pmatch:
+            if cmatch:
+                lastline = line
+                continue
+            condition = pmatch.group(1)
+            if condition in keys:
+                defines.pop(condition)
+                keyrex.pop(condition)
+                keys.remove(condition)
+            continue
+
         # Now do definition replacement on what's left (if anything)
-        for keyword in keys:
-            line = keyrex[keyword].sub(defines[keyword], line)
+        # This must be done repeatedly from the top until there are no
+        # more substitutions to make.
+
+        while True:
+            origline = line
+            for keyword in keys:
+                newline = keyrex[keyword].sub(defines[keyword], line)
+                if newline != line:
+                    line = newline
+                    break
+                    
+            if line == origline:
+                break
                 
         # Output the line
         print(line, file=ofile, end='')
 
     if ifblock != -1 or ifstack != []:
-        print("Error:  input file ended with an unterminated #if block.")
+        print("Error:  input file ended with an unterminated #if block.", file=sys.stderr)
 
     if ifile != sys.stdin:
         ifile.close()
@@ -433,6 +550,7 @@ if __name__ == '__main__':
             defines[keyword] = value
             keyrex[keyword] = re.compile(keyword)
             keys.append(keyword)
+            keys = sortkeys(keys)
         else:
             print('Bad option ' + item + ', options are -help, -ccomm, -D<def> -I<dir>\n')
             sys.exit(1)
@@ -445,6 +563,12 @@ if __name__ == '__main__':
     if not ofile:
         print("Error:  Cannot open file " + output_file + " for writing.")
         sys.exit(1)
+
+    # Sort keys so that if any definition contains another definition, the
+    # subset word is handled last;  otherwise the subset word will get
+    # substituted, screwing up the definition names in which it occurs.
+
+    keys = sortkeys(keys)
 
     runpp(keys, keyrex, defines, ccomm, incdirs, inputfile, ofile)
     if ofile != sys.stdout:

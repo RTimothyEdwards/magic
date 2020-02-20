@@ -17,9 +17,7 @@ MAGICDIR = ..
 
 include ${MAGICDIR}/defs.mak
 
-SC_M4 = ${M4}
-#SC_CPP = ${MCPP} -I./extract_template
-SC_CPP = ${SCPP} -I./extract_template
+SC_PP = ${MCPP} -I./extract_template
 
 FILES = mos.7bit.dstyle mos.7bit.std.cmap \
 	mos.24bit.dstyle mos.24bit.std.cmap \
@@ -61,30 +59,33 @@ install: all
 		${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
 
 scmos.tech: $(OBJS)
-	sed -e 's/\\/\\\\/' scmos.tech.in > scmos.tech.out
-	$(SC_CPP) -DV5 -DSTANDARD scmos.tech.out > scmos.tech
+	$(MSED) scmos.tech.in > scmos.tech.out
+	$(SC_PP) -DV5 -DSTANDARD scmos.tech.out > scmos.tech
 	$(RM) scmos.tech.out
 
 scmos-tm.tech: $(OBJS)
-	sed -e 's/\\/\\\\/' scmos.tech.in > scmos.tech.out
-	$(SC_CPP) -DV5 -DHPTECH -DTIGHTMETAL scmos.tech.out > scmos-tm.tech
+	$(MSED) scmos.tech.in > scmos.tech.out
+	cat scmos.tech.in > scmos.tech.out
+	$(SC_PP) -DV5 -DHPTECH -DTIGHTMETAL scmos.tech.out > scmos-tm.tech
 	$(RM) scmos.tech.out
 
 scmos-sub.tech: $(OBJS)
-	sed -e 's/\\/\\\\/' scmos.tech.in > scmos.tech.out
-	$(SC_CPP) -DV5 -DSUBMICRON scmos.tech.out > scmos-sub.tech
+	$(MSED) scmos.tech.in > scmos.tech.out
+	cat scmos.tech.in > scmos.tech.out
+	$(SC_PP) -DV5 -DSUBMICRON scmos.tech.out > scmos-sub.tech
 	$(RM) scmos.tech.out
 
 scmosWR.tech: $(OBJS)
-	sed -e 's/\\/\\\\/' scmos.tech.in > scmos.tech.out
-	$(SC_CPP) -DV5 -DSTANDARD -DWELL_ROUTE_CHECK scmos.tech.out > scmosWR.tech
+	$(MSED) scmos.tech.in > scmos.tech.out
+	cat scmos.tech.in > scmos.tech.out
+	$(SC_PP) -DV5 -DSTANDARD -DWELL_ROUTE_CHECK scmos.tech.out > scmosWR.tech
 	$(RM) scmos.tech.out
 
 minimum.tech: minimum.tech.in
-	$(SC_M4) minimum.tech.in > minimum.tech
+	$(SC_PP) minimum.tech.in > minimum.tech
 
 gdsquery.tech: gdsquery.tech.in
-	$(SC_M4) gdsquery.tech.in > gdsquery.tech
+	$(SC_PP) gdsquery.tech.in > gdsquery.tech
 
 $(CIFin):
 $(CIFout):

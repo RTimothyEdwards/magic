@@ -52,8 +52,8 @@ style	lambda_irsim=0.6(orb_scne12)
 	overlap	M1Cap	PolyCap		19	
 
 	perimc	M1Cap	~M1Cap		41
-	sideOverlap(M1Cap, ~M1Cap, allWell, 41, (PolyCap,PNplusCap))
-	sideOverlap(M1Cap, ~M1Cap, PNplusCap,  41, nothing)
+	sideOverlap(M1Cap, ~M1Cap, allWell, 41, PolyCapCommaPNplusCap)
+	sideOverlap(M1Cap, ~M1Cap, PNplusCap,  41, )
 	/* ------------------------------------------------- */
 
 
@@ -65,7 +65,7 @@ style	lambda_irsim=0.6(orb_scne12)
 	overlap	M2Cap	M1Cap	14	
 
 	perimc	M2Cap	~M2Cap	42
-	sideOverlap(M2Cap, ~M2Cap, allWell, 42, (M1Cap,PolyCap,PNplusCap) )
+	sideOverlap(M2Cap, ~M2Cap, allWell, 42, M1CapCommaPolyCapCommaPNplusCap )
 	sideOverlap(M2Cap, ~M2Cap, PNplusCap,  42, M1Cap)
 	/* ------------------------------------------------- */
 
