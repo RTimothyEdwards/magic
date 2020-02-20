@@ -24,7 +24,6 @@ TCL_FILES = \
 	tools.tcl \
 	mazeroute.tcl \
 	strip_reflibs.tcl \
-	drc.tcl \
 	toolkit.tcl \
 	toolkit_rev0.tcl \
 	bsitools.tcl \
@@ -50,11 +49,13 @@ install-tcl: magicexec magicdnull ${BIN_FILES} ${TCL_FILES}
 
 magicexec: magicexec.c ${MAGICDIR}/defs.mak
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} ${LDFLAGS} magicexec.c \
-		-o magicexec ${LD_RUN_PATH} ${LIBS} ${LIB_SPECS_NOSTUB}
+		-o magicexec ${LD_RUN_PATH} ${LIB_SPECS_NOSTUB} ${LIBS} \
+		${GR_LIBS}
 
 magicdnull: magicdnull.c ${MAGICDIR}/defs.mak
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS_NOSTUB} ${LDFLAGS} magicdnull.c \
-		-o magicdnull ${LD_RUN_PATH} ${LIBS} ${LIB_SPECS_NOSTUB}
+		-o magicdnull ${LD_RUN_PATH} ${LIB_SPECS_NOSTUB} ${LIBS} \
+		${GR_LIBS}
 
 magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak
 	sed -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g  \

@@ -581,8 +581,11 @@ DBTreeSrLabels(scx, mask, xMask, tpath, flags, func, cdarg)
 	    else
 		is_touching = GEO_TOUCH(&lab->lab_rect, r);
 	}
-	if (!is_touching && (flags & TF_LABEL_DISPLAY) && (lab->lab_font >= 0))
+	if (!is_touching && (flags & TF_LABEL_DISPLAY) && lab->lab_font >= 0)
+	{
+	    /* Check against bounds of the rendered label text */
 	    is_touching = GEO_TOUCH(&lab->lab_bbox, r);
+	}
 
 	if (is_touching && TTMaskHasType(mask, lab->lab_type))
 	    if ((*func)(scx, lab, tpath, cdarg))

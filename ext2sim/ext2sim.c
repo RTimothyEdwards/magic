@@ -1078,7 +1078,7 @@ simdevVisit(dev, hierName, scale, trans)
     {
 	putc(' ', esSimF);
 	simdevSubstrate(hierName, subnode->efnode_name->efnn_hier,
-	             dev->dev_type, 0, FALSE, esSimF);
+	             dev->dev_type, 0.0, FALSE, esSimF);
     }
 
     GeoTransRect(trans, &dev->dev_rect, &r);
@@ -1196,7 +1196,8 @@ int
 simdevSubstrate( prefix, suffix, type, scale, doAP, outf)
 HierName *prefix;
 HierName *suffix;
-int type, scale;
+int type;
+float scale;
 bool doAP;
 FILE *outf;
 {
@@ -1264,7 +1265,8 @@ FILE *outf;
  
 bool simnAP(node, resClass, scale, outf)
 EFNode *node;
-int  resClass, scale;
+int  resClass;
+float scale;
 FILE *outf;
 {
 	int a, p;
@@ -1277,8 +1279,8 @@ FILE *outf;
 		return FALSE;
 	}
 	markVisited((nodeClient *)node->efnode_client, resClass);
-	a = node->efnode_pa[resClass].pa_area*scale*scale;
-	p = node->efnode_pa[resClass].pa_perim*scale;
+	a = (int)(node->efnode_pa[resClass].pa_area*scale*scale);
+	p = (int)(node->efnode_pa[resClass].pa_perim*scale);
 	if ( a < 0 ) a = 0;
 	if ( p < 0 ) p = 0;
 	fprintf(outf,"A_%d,P_%d", a, p);
@@ -1288,7 +1290,8 @@ FILE *outf;
 bool simnAPHier(dterm, hierName, resClass, scale, outf)
     DevTerm *dterm;
     HierName *hierName;
-    int  resClass, scale;
+    int  resClass;
+    float scale;
     FILE *outf;
 {
 	EFNode *node = dterm->dterm_node;
@@ -1308,8 +1311,8 @@ bool simnAPHier(dterm, hierName, resClass, scale, outf)
 		return FALSE;
 	}
 	markVisited((nodeClientHier *)node->efnode_client, resClass);
-	a = node->efnode_pa[resClass].pa_area*scale*scale;
-	p = node->efnode_pa[resClass].pa_perim*scale;
+	a = (int)(node->efnode_pa[resClass].pa_area*scale*scale);
+	p = (int)(node->efnode_pa[resClass].pa_perim*scale);
 	if ( a < 0 ) a = 0;
 	if ( p < 0 ) p = 0;
 	fprintf(outf,"A_%d,P_%d", a, p);

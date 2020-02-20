@@ -656,6 +656,9 @@ dbcUnconnectFunc(tile, clientData)
  * ----------------------------------------------------------------------------
  */
 
+/* To do:  Make the tpath entries dynamically allocated */
+#define FLATTERMSIZE 1024
+
 int
 dbcConnectLabelFunc(scx, lab, tpath, csa2)
     SearchContext *scx;
@@ -667,6 +670,8 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
     Rect r;
     Point offset;
     int pos, rotate;
+    char newlabtext[FLATTERMSIZE];
+    char *newlabptr;
     int dbcConnectFunc();		/* Forward declaration */
 
     GeoTransRect(&scx->scx_trans, &lab->lab_rect, &r);
@@ -677,12 +682,29 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
     /* Only add labels if they are on the search top level  */
     /* (NOTE:  Could add hierachical labels using tpath)    */
 
-    if (scx->scx_use == csa2->csa2_topscx->scx_use)
+    if (scx->scx_use != csa2->csa2_topscx->scx_use)
     {
-	DBEraseLabelsByContent(def, &r, -1, lab->lab_text);
-	DBPutFontLabel(def, &r, lab->lab_font, lab->lab_size, rotate, &offset,
-		pos, lab->lab_text, lab->lab_type, lab->lab_flags);
+	int newllen = tpath->tp_next - tpath->tp_first;
+	newlabtext[0] = '\0';
+	if (newllen > 0)
+	    strncpy(newlabtext, tpath->tp_first, newllen);
+	sprintf(newlabtext + newllen, "%s", lab->lab_text);
+	newlabptr = newlabtext;
     }
+    else
+	newlabptr = lab->lab_text;
+
+    /* Do not repeat a label copy;  check that the label doesn't	*/
+    /* already exist in the destination def first.			*/
+    if (DBCheckLabelsByContent(def, &r, lab->lab_type, lab->lab_text))
+	return 0;
+
+    if (DBCheckLabelsByContent(def, &r, lab->lab_type, newlabptr))
+	return 0;
+
+    DBEraseLabelsByContent(def, &r, -1, lab->lab_text);
+    DBPutFontLabel(def, &r, lab->lab_font, lab->lab_size, rotate, &offset,
+		pos, newlabptr, lab->lab_type, lab->lab_flags);
 
     if (lab->lab_flags & PORT_DIR_MASK)
     {
@@ -1019,6 +1041,13 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, destUse)
     DBTreeSrTiles(scx, mask, xMask, dbcConnectFunc, (ClientData) &csa2);
     while (csa2.csa2_top >= 0)
     {
+        char pathstring[FLATTERMSIZE];
+        TerminalPath tpath;
+
+        tpath.tp_first = tpath.tp_next = pathstring;
+        tpath.tp_last = pathstring + FLATTERMSIZE;
+	pathstring[0] = '\0';
+
 	newmask = csa2.csa2_list[csa2.csa2_top].connectMask;
 	scx->scx_area = csa2.csa2_list[csa2.csa2_top].area;
 	newtype = csa2.csa2_list[csa2.csa2_top].dinfo;
@@ -1059,7 +1088,7 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, destUse)
 	        searchtype |= TF_LABEL_ATTACH_NOT_SE;
 	    }
 	}
-	DBTreeSrLabels(scx, newmask, xMask, NULL, searchtype,
+	DBTreeSrLabels(scx, newmask, xMask, &tpath, searchtype,
 			dbcConnectLabelFunc, (ClientData) &csa2);
     }
     freeMagic((char *)csa2.csa2_list);

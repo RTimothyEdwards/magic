@@ -313,7 +313,55 @@ DBEraseLabel(cellDef, area, mask, areaReturn)
 	cellDef->cd_flags |= CDMODIFIED|CDGETNEWSTAMP;
     return (erasedAny);
 }
-
+
+#define	RECTEQUAL(r1, r2)	  ((r1)->r_xbot == (r2)->r_xbot \
+				&& (r1)->r_ybot == (r2)->r_ybot \
+				&& (r1)->r_xtop == (r2)->r_xtop \
+				&& (r1)->r_ytop == (r2)->r_ytop)
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBCheckLabelsByContent --
+ *
+ * Return any label found on the label list for the given
+ * CellDef that matches the given specification.
+ *
+ * Results:
+ *	Returns a label if a match is found, otherwise returns NULL.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+Label *
+DBCheckLabelsByContent(def, rect, type, text)
+    CellDef *def;		/* Where to look for label to delete. */
+    Rect *rect;			/* Coordinates of label.  If NULL, then
+				 * labels are searched regardless of coords.
+				 */
+    TileType type;		/* Layer label is attached to.  If < 0, then
+				 * labels are searched regardless of type.
+				 */
+    char *text;			/* Text associated with label.  If NULL, then
+				 * labels are searched regardless of text.
+				 */
+{
+    Label *lab;
+
+    for (lab = def->cd_labels; lab; lab = lab->lab_next)
+    {
+	if ((rect != NULL) && !(RECTEQUAL(&lab->lab_rect, rect))) continue;
+	if ((type >= 0) && (type != lab->lab_type)) continue;
+	if ((text != NULL) && (strcmp(text, lab->lab_text) != 0)) continue;
+
+	return lab;
+    }
+    return NULL;
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -347,11 +395,6 @@ DBEraseLabelsByContent(def, rect, type, text)
 				 */
 {
     Label *lab, *labPrev;
-
-#define	RECTEQUAL(r1, r2)	  ((r1)->r_xbot == (r2)->r_xbot \
-				&& (r1)->r_ybot == (r2)->r_ybot \
-				&& (r1)->r_xtop == (r2)->r_xtop \
-				&& (r1)->r_ytop == (r2)->r_ytop)
 
     for (labPrev = NULL, lab = def->cd_labels;
 	    lab != NULL;
