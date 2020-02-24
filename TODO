@@ -1,8 +1,16 @@
-I. Bugs to fix (also in magic-7.5 [stable]):
+I. Bugs to fix
 
-  1. The "extresist" code only recognizes original "fet" types, not
-     the new "device" types in the extract file.
+  1. The "extresist" code needs to extract substrate networks.  Moreover,
+     the "extresist" code really needs to have the dependence on
+     ext2sim removed, and instead read directly from .ext files.  The
+     .sim format has no substrate connections, so this cannot be properly
+     represented.  Also, there is nothing that is read from the .sim file
+     that is not already present in the .ext file.
 
-  2. "plow" has been broken for some time.  It should derive its rules
-     from the DRC decks (using the new routines that are meant for just
-     that sort of thing).
+  2. "plow" should derive its rules from the DRC decks (using the new
+     routines that are meant for just that sort of thing).
+
+  3. It is possible to trick the net selection into an infinite loop in
+     unusual geometry situations.  That these situations would be DRC
+     errors does not excuse the infinite loop behavior.  The geometry
+     required is unusual enough that this is not a high priority item.
