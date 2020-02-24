@@ -10,8 +10,6 @@ scripts/defs.mak
 *.so
 *~
 scmos/cif_template/objs/*
-UPDATE_ME
-VERSION
 database/database.h
 install.log
 magic/proto.magicrc
