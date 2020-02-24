@@ -13,7 +13,7 @@ MODULES    = cmwind commands database dbwind debug drc extflat extract \
 MAKEFLAGS  =
 INSTALL_CAD_DIRS = windows doc ${TECH}
 
-include defs.mak
+-include defs.mak
 
 all:	$(ALL_TARGET)
 
