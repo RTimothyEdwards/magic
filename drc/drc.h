@@ -39,9 +39,14 @@ typedef struct drccookie
     int		      drcc_edgeplane;	/* Plane of edge */
     int		      drcc_plane;	/* Index of plane on which to check
 					 * legal types. */
-    char              *drcc_why;	/* Explanation of error found */
+    int 	      drcc_tag;		/* Tag to explanation of error found */
     struct drccookie  *drcc_next;
 } DRCCookie;
+
+/* These DRC tags in DRCcookie are predefined. */
+#define DRC_ARRAY_OVERLAP_TAG	1
+#define DRC_OVERLAP_TAG		2
+#define DRC_SUBCELL_OVERLAP_TAG	3
 
 /* *This is size "int" because it holds an area for DRC_AREA rules,	  */
 /* and therefore may have twice the bit length of a normal rule distance. */
@@ -143,22 +148,6 @@ typedef struct drckeep
 } DRCKeep;
 
 /*
- * DRC "why" strings are potentially referred to hundreds of times by
- * DRC cookies in the rule table.  Rather than creating hundreds of
- * copies of each string, we create just one copy and let all the cookies
- * point to that one copy.
- *
- * Since we can't free these shared "why" strings when we delete a cookie,
- * we keep a list of these strings and free them all when convenient.
- */
-    
-typedef struct drcwhylist
-{
-    char                * dwl_string;
-    struct drcwhylist   * dwl_next;
-} drcWhyList;      
- 
-/*
  * Structure defining a DRC style
  */
 
@@ -173,7 +162,8 @@ typedef struct drcstyle
     int			DRCTechHalo;	/* largest action distance of design rules */
     int			DRCStepSize;	/* chunk size for decomposing large areas */
     char		DRCFlags;	/* Option flags */
-    drcWhyList		*DRCWhyList;
+    char		**DRCWhyList;	/* Indexed list of "why" text strings */
+    int			DRCWhySize;	/* Length of DRCWhyList */
     PaintResultType	DRCPaintTable[NP][NT][NT];
 } DRCStyle;
 
@@ -229,6 +219,7 @@ extern DRCKeep  *DRCStyleList;	/* List of available DRC styles */
 extern DRCStyle *DRCCurStyle;	/* Current DRC style in effect */
 extern CellDef  *DRCdef;	/* Current cell being checked for DRC */
 extern CellUse  *DRCuse, *DRCDummyUse;
+extern HashTable DRCErrorTable;	    /* DRC errors, hashed by name */
 
 /* 
  * Internal procedures
@@ -241,6 +232,7 @@ extern int drcExactOverlapTile();
 extern void drcInitRulesTbl();
 extern void drcAssign();
 extern void drcCifAssign();
+extern int drcWhyCreate();
 
 /*
  * Exported procedures
