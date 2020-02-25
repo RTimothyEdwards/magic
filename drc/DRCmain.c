@@ -748,9 +748,10 @@ drcCheckFunc(scx, cdarg)
  */
 
 DRCCountList *
-DRCCount(use, area)
+DRCCount(use, area, recurse)
     CellUse *use;		/* Top-level use of hierarchy. */
     Rect *area;			/* Area in which violations are counted. */
+    bool recurse;		/* If TRUE, count errors in all subcells */
 {
     DRCCountList  *dcl, *newdcl;
     HashTable	  dupTable;
@@ -761,11 +762,18 @@ DRCCount(use, area)
     CellDef	  *def;
     extern int drcCountFunc();
 
+    /* Shouldn't happen? */
+    if (!(use->cu_def->cd_flags & CDAVAILABLE)) return NULL;	
+
     /* Use a hash table to make sure that we don't output information
      * for any cell more than once.
      */
 
     HashInit(&dupTable, 16, HT_WORDKEYS);
+
+    /* Clearing CDAVAILABLE from cd_flags keeps the count from recursing */
+    if (recurse == FALSE)
+	use->cu_def->cd_flags &= ~CDAVAILABLE;
 
     scx.scx_use = use;
     scx.scx_x = use->cu_xlo;
@@ -794,6 +802,11 @@ DRCCount(use, area)
 	}
     }
     HashKill(&dupTable);
+
+    /* Restore the CDAVAILABLE flag */
+    if (recurse == FALSE)
+	use->cu_def->cd_flags |= CDAVAILABLE;
+
     return dcl;
 }
 
@@ -832,6 +845,10 @@ drcCountFunc(scx, dupTable)
     /* anyway, and the count can be updated in response to that check.	*/
 
     if ((scx->scx_use->cu_def->cd_flags & CDAVAILABLE) == 0) return 0;
+
+    /* Scan children recursively. */
+
+    DBCellSrArea(scx, drcCountFunc, (ClientData)dupTable);
 
     /* As a special performance hack, if the complete cell area is
      * handled here, don't bother to look at any more array elements.

@@ -290,6 +290,7 @@ WindCreate(client, frameArea, isHint, argc, argv)
     w->w_grdata2 = (ClientData) NULL;
     w->w_backingStore = (ClientData)NULL;
     w->w_redrawAreas = (ClientData) NULL;
+    w->w_surfaceID = (ClientData) NULL;
     w->w_iconname = NULL;
     for (id = 0; ((1 << id) & windWindowMask) != 0; id++) /* advance id */ ;
     windWindowMask |= (1 << id);

@@ -3322,7 +3322,7 @@ CmdDrc(w, cmd)
 		rootArea = w->w_surfaceArea;
 
 	    rootUse = (CellUse *) window->w_surfaceID;
-	    dcl = DRCCount(rootUse, &rootArea);
+	    dcl = DRCCount(rootUse, &rootArea, doforall);
 	    while (dcl != NULL)
 	    {
 		if (count_total >= 0)
