@@ -3182,6 +3182,7 @@ CmdDrc(w, cmd)
     bool	doforall = FALSE;
     bool	dolist = FALSE;
     int		count_total;
+    DRCCountList *dcl;
     int argc = cmd->tx_argc;
     char **argv = cmd->tx_argv;
 #ifdef MAGIC_WRAPPER
@@ -3196,7 +3197,7 @@ CmdDrc(w, cmd)
 	"*stepsize [d]		change DRC step size to d units",
 	"catchup                run checker and wait for it to complete",
 	"check                  recheck area under box in all cells",
-	"count                  count error tiles in each cell under box",
+	"count [total]          count error tiles in each cell under box",
 	"euclidean on|off	enable/disable Euclidean geometry checking",
 	"find [nth]     	locate next (or nth) error in the layout",
 	"help                   print this help information",
@@ -3304,6 +3305,14 @@ CmdDrc(w, cmd)
 	    break;
 	
 	case COUNT:
+	    count_total = -1;
+	    if (argc == 3)
+		if (!strncmp(argv[2], "total", 5))
+		    count_total = 0;
+
+#ifdef MAGIC_WRAPPER
+	    if (count_total == -1) lobj = Tcl_NewListObj(0, NULL);
+#endif
 	    if ((window = w) == NULL)
 	    {
 		window = ToolGetBoxWindow(&rootArea, (int *) NULL);
@@ -3313,44 +3322,61 @@ CmdDrc(w, cmd)
 		rootArea = w->w_surfaceArea;
 
 	    rootUse = (CellUse *) window->w_surfaceID;
-	    count_total = DRCCount(rootUse, &rootArea);
-
-#ifdef MAGIC_WRAPPER
-	    if (dolist)
+	    dcl = DRCCount(rootUse, &rootArea);
+	    while (dcl != NULL)
 	    {
-		lobj = Tcl_NewListObj(0, NULL);
-		Tcl_ListObjAppendElement(magicinterp, lobj,
-			Tcl_NewStringObj(rootUse->cu_def->cd_name, -1));
-		Tcl_ListObjAppendElement(magicinterp, lobj,
-			Tcl_NewIntObj(count_total));
-	    }
-	    else
-	    {
+		if (count_total >= 0)
+		    count_total += dcl->dcl_count;
+		else
+		{
+#ifdef MAGIC_WRAPPER
+		    if (dolist)
+		    {
+			Tcl_Obj *pobj = Tcl_NewListObj(0, NULL);
+			Tcl_ListObjAppendElement(magicinterp, pobj,
+				Tcl_NewStringObj(dcl->dcl_def->cd_name, -1));
+			Tcl_ListObjAppendElement(magicinterp, pobj,
+				Tcl_NewIntObj(dcl->dcl_count));
+			Tcl_ListObjAppendElement(magicinterp, lobj, pobj);
+		    }
+		    else
+		    {
 #endif
-		   
-	    if (count_total > 1)
-		TxPrintf("Cell %s has %d error tiles.\n",
-			rootUse->cu_def->cd_name, count_total);
-	    else if (count_total == 1)
-		TxPrintf("Cell %s has just one error tile.\n",
-			rootUse->cu_def->cd_name);
+		    if (dcl->dcl_count > 1)
+			TxPrintf("Cell %s has %d error tiles.\n",
+				dcl->dcl_def->cd_name, dcl->dcl_count);
+		    else if (dcl->dcl_count == 1)
+			TxPrintf("Cell %s has just one error tile.\n",
+				dcl->dcl_def->cd_name);
+#ifdef MAGIC_WRAPPER
+		    }
+#endif
+		}
+		freeMagic((char *)dcl);
+		dcl = dcl->dcl_next;
+	    }
 
 #ifdef MAGIC_WRAPPER
-	    }
-#endif
-
-#ifdef MAGIC_WRAPPER
-	    if (doforall)
-	        Tcl_SetObjResult(magicinterp, lobj);
-	    else if (count_total >= 0)
+	    if (count_total >= 0)
 	    {
 		if (dolist)
 		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(count_total));
 		else
-		    TxPrintf("Total DRC errors found: %d\n", count_total);
+		{
+		    if ((DRCBackGround != DRC_SET_OFF) && (count_total == -1))
+			count_total = 0;
+		    if (count_total >= 0)
+			TxPrintf("Total DRC errors found: %d\n", count_total);
+		}
 	    }
+	    else if (dolist)
+		Tcl_SetObjResult(magicinterp, lobj);
+
 #else
-	    TxPrintf("Total DRC errors found: %d\n", count_total);
+	    if ((DRCBackGround != DRC_SET_OFF) && (count_total == -1))
+		count_total = 0;
+	    if (count_gotal >= 0)
+		TxPrintf("Total DRC errors found: %d\n", count_total);
 #endif
 	    break;
 

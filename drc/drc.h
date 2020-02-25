@@ -125,6 +125,15 @@ typedef struct drcpendingcookie
     struct drcpendingcookie *dpc_next;
 } DRCPendingCookie;
 
+/* Structure used to pass back lists of cell definitions and error tile counts */
+
+typedef struct drccountlist
+{
+    CellDef             *dcl_def;
+    int                 dcl_count;
+    struct drccountlist *dcl_next;
+} DRCCountList;
+
 /* Structure used to keep information about the current DRC style */
 
 typedef struct drckeep
@@ -258,7 +267,7 @@ extern void DRCPrintRulesTable();
 extern void DRCWhy();
 extern void DRCPrintStats();
 extern void DRCCheck();
-extern int DRCCount();
+extern DRCCountList *DRCCount();
 extern int DRCFind();
 extern void DRCCatchUp();
 extern bool DRCFindInteractions();
