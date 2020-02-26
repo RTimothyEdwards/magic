@@ -35,23 +35,23 @@ proc magic::makeglyphimages {} {
     set gsize [expr {int($Opts(scale) * 13)}]
     set gscale [expr {int($Opts(scale))}]
 
-    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/up.png
+    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/up.gif
     image create photo Glyph(up) -width $gsize -height $gsize
     Glyph(up) copy stdglyph -zoom $gscale
 
-    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/down.png
+    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/down.gif
     image create photo Glyph(down) -width $gsize -height $gsize
     Glyph(down) copy stdglyph -zoom $gscale
 
-    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/left.png
+    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/left.gif
     image create photo Glyph(left) -width $gsize -height $gsize
     Glyph(left) copy stdglyph -zoom $gscale
 
-    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/right.png
+    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/right.gif
     image create photo Glyph(right) -width $gsize -height $gsize
     Glyph(right) copy stdglyph -zoom $gscale
 
-    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/zoom.png
+    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/zoom.gif
     image create photo Glyph(zoom) -width $gsize -height $gsize
     Glyph(zoom) copy stdglyph -zoom $gscale
 

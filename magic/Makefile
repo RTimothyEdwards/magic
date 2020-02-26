@@ -19,7 +19,7 @@ EXTRA_LIBS = ${MAGICDIR}/cmwind/libcmwind.o ${MAGICDIR}/commands/libcommands.o \
 	    ${MAGICDIR}/plow/libplow.o ${MAGICDIR}/utils/libutils.o \
 	    ${MAIN_EXTRA_LIBS}
 
-BITMAPS = up.png down.png left.png right.png zoom.png lock.xbm
+BITMAPS = up.gif down.gif left.gif right.gif zoom.gif lock.xbm
 DEST_XBM = $(BITMAPS:%=$(DESTDIR)${INSTALL_TCLDIR}/bitmaps/%)
 
 DFLAGS += -DMAGIC_DATE="\"`date`\"" -DCAD_DIR="${LIBDIR}"
