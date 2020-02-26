@@ -61,6 +61,11 @@ global int DRCRuleOptimization = TRUE;
 static int drcRulesSpecified = 0;
 static int drcRulesOptimized = 0;
 
+/* Rules with unique names are tagged with a reference number	*/
+/* for use in placing errors into the DRC error plane.		*/
+
+static int DRCtag = 0;
+
 /*
  * Forward declarations.
  */
@@ -281,21 +286,14 @@ drcTechFreeStyle()
 		dp = DRCCurStyle->DRCRulesTbl[i][j];
 		while (dp != NULL)
 		{
-		    char *old = (char *) dp;
+		    char *old = (char *)dp;
 		    dp = dp->drcc_next;
 		    freeMagic(old);
 		}
 	    }
 
-	/* Clear the DRCWhyList */
-
-	while (DRCCurStyle->DRCWhyList != NULL)
-	{
-	    old = (char *) DRCCurStyle->DRCWhyList;
-	    StrDup(&(DRCCurStyle->DRCWhyList->dwl_string), (char *) NULL);
-	    DRCCurStyle->DRCWhyList = DRCCurStyle->DRCWhyList->dwl_next;
-	    freeMagic(old);
-	}
+	/* Clear the Why string list */
+	freeMagic(DRCCurStyle->DRCWhyList);
 
 	freeMagic(DRCCurStyle);
 	DRCCurStyle = NULL;
@@ -329,31 +327,54 @@ drcTechNewStyle()
 
 /*
  * ----------------------------------------------------------------------------
- * drcWhyDup --
+ * drcWhyCreate --
  *
- * Duplicate a shared "why" string using StrDup() and remember it so we can
- * free it sometime later, in drcWhyClear().
+ * Create a hash entry for the DRC "why" string, if it does not already
+ * exist.
  *
  * Returns:
- *	A copy of the given string.
+ *	A pointer to the drcWhy structure containing the string and tag.
  *
  * Side effects:
- *	Adds to the DRCWhyList.  Calls StrDup().
+ *	Adds to the DRCWhyList if whystring has not been used before.
+ *	Calls StrDup() and increments DRCWhySize.  DRCWhyList is allocated
+ *	in blocks of 50 at a time and only expands when filled.
+ *	Temporary hash table DRCErrorTable is used to determine if a
+ *	string entry is unique.  It is cleared after the technology file
+ *	has been processed.
  * ----------------------------------------------------------------------------
  */
 
-char *
-drcWhyDup(why)
-    char * why;
+int
+drcWhyCreate(whystring)
+    char *whystring;
 {
-    struct drcwhylist * new;
+    HashEntry *he;
 
-    new = (struct drcwhylist *) mallocMagic((unsigned) (sizeof *new));
-    new->dwl_string = StrDup((char **) NULL, why);
-    new->dwl_next = DRCCurStyle->DRCWhyList;
-    DRCCurStyle->DRCWhyList = new;
+    he = HashLookOnly(&DRCErrorTable, whystring);
+    if (he != NULL)
+	return (int)((pointertype)HashGetValue(he));
 
-    return new->dwl_string;
+    /* Grow the list in increments of 50 */
+    if ((DRCCurStyle->DRCWhySize % 50) == 0)
+    {
+	int i;
+	char **newList;
+	newList = (char **)mallocMagic((DRCCurStyle->DRCWhySize + 51) * sizeof(char *));
+	for (i = 0; i < DRCCurStyle->DRCWhySize; i++)
+	    newList[i] = DRCCurStyle->DRCWhyList[i];
+	if (DRCCurStyle->DRCWhySize > 0)
+	    freeMagic((char *)DRCCurStyle->DRCWhyList);
+	DRCCurStyle->DRCWhyList = newList;
+    }
+    DRCCurStyle->DRCWhySize++;
+
+    he = HashFind(&DRCErrorTable, whystring);
+    HashSetValue(he, (char *)((pointertype)DRCCurStyle->DRCWhySize));
+
+    DRCCurStyle->DRCWhyList[DRCCurStyle->DRCWhySize] = StrDup((char **)NULL, whystring);
+
+    return DRCCurStyle->DRCWhySize;
 }
 
 /*
@@ -535,12 +556,29 @@ DRCTechStyleInit()
     DRCCurStyle->ds_status = TECH_NOT_LOADED;
 
     TTMaskZero(&DRCCurStyle->DRCExactOverlapTypes);
-    DRCCurStyle->DRCWhyList = NULL;
     DRCCurStyle->DRCTechHalo = 0;
     DRCCurStyle->DRCScaleFactorN = 1;
     DRCCurStyle->DRCScaleFactorD = 1;
     DRCCurStyle->DRCStepSize = 0;
     DRCCurStyle->DRCFlags = (char)0;
+    DRCCurStyle->DRCWhySize = 0;
+
+    HashInit(&DRCErrorTable, 16, HT_STRINGKEYS);
+
+    /* First DRC entry is associated with the statically-allocated  */
+    /* drcArrayCookie and has a tag of DRC_ARRAY_OVERLAP_TAG = 1    */
+    /* (see DRCarray.c).					    */
+    drcWhyCreate("This layer can't abut or partially overlap between array elements");
+
+    /* Second DRC entry is associated with the statically-allocated */
+    /* drcOverlapCookie and has a tag of DRC_OVERLAP_TAG = 2	    */
+    /* (see DRCbasic.c).					    */
+    drcWhyCreate("Can't overlap those layers");
+
+    /* Third DRC entry is associated with the statically-allocated   */
+    /* drcSubcellCookie and has a tag of DRC_SUBCELL_OVERLAP_TAG = 3 */
+    /* (see DRCsubcell.c).					     */
+    drcWhyCreate("This layer can't abut or partially overlap between subcells");
 
     DRCTechHalo = 0;
 
@@ -872,18 +910,18 @@ DRCTechLine(sectionName, argc, argv)
 }
 
 void
-drcCifAssign(cookie, dist, next, mask, corner, why, cdist, flags, planeto, planefrom)
+drcCifAssign(cookie, dist, next, mask, corner, tag, cdist, flags, planeto, planefrom)
     DRCCookie *cookie, *next;
     int dist, cdist;
     TileTypeBitMask *mask, *corner;
-    char *why;
+    int tag;
     int flags, planeto, planefrom;
 {
     (cookie)->drcc_dist = dist;
     (cookie)->drcc_next = next;
     (cookie)->drcc_mask = *mask;
     (cookie)->drcc_corner = *corner;
-    (cookie)->drcc_why = why;
+    (cookie)->drcc_tag = tag;
     (cookie)->drcc_cdist = cdist;
     (cookie)->drcc_flags = flags;
     (cookie)->drcc_edgeplane = planefrom;
@@ -900,7 +938,7 @@ drcAssign(cookie, dist, next, mask, corner, why, cdist, flags, planeto, planefro
     DRCCookie *cookie, *next;
     int dist, cdist;
     TileTypeBitMask *mask, *corner;
-    char *why;
+    int why;
     int flags, planeto, planefrom;
 {
     /* Diagnostic */
@@ -1088,7 +1126,7 @@ drcExtend(argc, argv)
     char *layers1 = argv[1];
     char *layers2 = argv[2];
     int distance = atoi(argv[3]);
-    char *why;
+    int why;
     TileTypeBitMask set1, setC;
     DRCCookie *dp, *dpnew, *dptrig;
     TileType i, j;
@@ -1100,10 +1138,10 @@ drcExtend(argc, argv)
     if (!strncmp(argv[4], "exact_", 6))
     {
 	exact = TRUE;
-	why = drcWhyDup(argv[5]);
+	why = drcWhyCreate(argv[5]);
     }
     else
-	why = drcWhyDup(argv[4]);
+	why = drcWhyCreate(argv[4]);
 
     ptest = DBTechNoisyNameMask(layers1, &set1);
     pMask1 = CoincidentPlanes(&set1, ptest);
@@ -1257,7 +1295,7 @@ drcWidth(argc, argv)
 {
     char *layers = argv[1];
     int distance = atoi(argv[2]);
-    char *why = drcWhyDup(argv[3]);
+    int why = drcWhyCreate(argv[3]);
     TileTypeBitMask set, setC;
     PlaneMask pmask, pset, ptest;
     DRCCookie *dp, *dpnew;
@@ -1342,7 +1380,7 @@ drcArea(argc, argv)
     char *layers = argv[1];
     int distance = atoi(argv[2]);
     int	horizon = atoi(argv[3]);
-    char *why = drcWhyDup(argv[4]);
+    int why = drcWhyCreate(argv[4]);
     TileTypeBitMask set, setC;
     DRCCookie *dp, *dpnew;
     TileType i, j;
@@ -1442,7 +1480,7 @@ drcMaxwidth(argc, argv)
     char *layers = argv[1];
     int distance = atoi(argv[2]);
     char *bends = argv[3];
-    char *why;
+    int why;
     TileTypeBitMask set, setC;
     DRCCookie *dp, *dpnew;
     TileType i, j;
@@ -1469,7 +1507,7 @@ drcMaxwidth(argc, argv)
 	    bend = 0;
 	else
 	    bend = DRC_BENDS;
-	why = drcWhyDup(argv[3]);
+	why = drcWhyCreate(argv[3]);
     }
     else
     {
@@ -1480,7 +1518,7 @@ drcMaxwidth(argc, argv)
 	    TechError("unknown bend option %s\n",bends);
 	    return (0);
 	}
-	why = drcWhyDup(argv[4]);
+	why = drcWhyCreate(argv[4]);
     }
 
     for (i = 0; i < DBNumTypes; i++)
@@ -1531,7 +1569,7 @@ drcAngles(argc, argv)
 {
     char *layers = argv[1];
     int angles = atoi(argv[2]);
-    char *why = drcWhyDup(argv[3]);
+    int why = drcWhyCreate(argv[3]);
     TileTypeBitMask set;
     DRCCookie *dp, *dpnew;
     int plane;
@@ -1599,7 +1637,7 @@ drcSpacing3(argc, argv)
     char *layers3 = argv[5];
     int distance = atoi(argv[3]);
     char *adjacency = argv[4];
-    char *why = drcWhyDup(argv[6]);
+    int why = drcWhyCreate(argv[6]);
     TileTypeBitMask set1, set2, set3;
     int plane;
     DRCCookie *dp, *dpnew;
@@ -2151,7 +2189,7 @@ drcSpacing(argc, argv)
 {
     char *layers1 = argv[1], *layers2;
     char *adjacency;
-    char *why;
+    int why;
     TileTypeBitMask set1, set2, tmp1, tmp2;
     PlaneMask pmask1, pmask2, pmaskA, pmaskB, ptest;
     int wwidth, distance, plane, plane2, runlength;
@@ -2172,7 +2210,7 @@ drcSpacing(argc, argv)
 	    layers2 = argv[4];
 	    distance = atoi(argv[5]);
 	    adjacency = argv[6];
-	    why = drcWhyDup(argv[7]);
+	    why = drcWhyCreate(argv[7]);
 	}
 	else
 	{
@@ -2180,7 +2218,7 @@ drcSpacing(argc, argv)
 	    distance = atoi(argv[4]);
 	    runlength = distance;
 	    adjacency = argv[5];
-	    why = drcWhyDup(argv[6]);
+	    why = drcWhyCreate(argv[6]);
 	}
 	/* TxPrintf("Info:  DRCtech:  widespacing rule for %s width %d:"
 		" spacing must be %d\n", layers1, wwidth, distance); */
@@ -2191,7 +2229,7 @@ drcSpacing(argc, argv)
 	distance = atoi(argv[3]);
 	adjacency = argv[4];
 	wwidth = distance;
-	why = drcWhyDup(argv[5]);
+	why = drcWhyCreate(argv[5]);
 	runlength = distance;
 	if (argc >= 7)
 	{
@@ -2325,7 +2363,7 @@ drcEdge(argc, argv)
     int distance = atoi(argv[3]);
     char *okTypes = argv[4], *cornerTypes = argv[5];
     int cdist = atoi(argv[6]);
-    char *why = drcWhyDup(argv[7]);
+    int why = drcWhyCreate(argv[7]);
     bool fourway = (strcmp(argv[0], "edge4way") == 0);
     TileTypeBitMask set1, set2, setC, setM;
     DRCCookie *dp, *dpnew;
@@ -2491,7 +2529,7 @@ drcOverhang(argc, argv)
 {
     char *layers2 = argv[1], *layers1 = argv[2];
     int distance = atoi(argv[3]);
-    char *why = drcWhyDup(argv[4]);
+    int why = drcWhyCreate(argv[4]);
     TileTypeBitMask set1, set2, setM, setC, setN, set2inv;
     DRCCookie *dp, *dpnew, *dptrig;
     int plane, plane2;
@@ -2627,7 +2665,7 @@ drcRectOnly(argc, argv)
     char *argv[];
 {
     char *layers = argv[1];
-    char *why = drcWhyDup(argv[2]);
+    int why = drcWhyCreate(argv[2]);
     TileTypeBitMask set1, set2, setC;
     PlaneMask pmask, pset, ptest;
     DRCCookie *dp, *dpnew;
@@ -2727,7 +2765,7 @@ drcSurround(argc, argv)
     char *layers1 = argv[1], *layers2 = argv[2];
     int distance = atoi(argv[3]);
     char *presence = argv[4];
-    char *why = drcWhyDup(argv[5]);
+    int why = drcWhyCreate(argv[5]);
     TileTypeBitMask set1, set2, setM, invM, setR;
     DRCCookie *dp, *dpnew, *dptrig;
     int plane1, plane2;
@@ -3100,7 +3138,7 @@ drcRectangle(argc, argv)
     char *argv[];
 {
     char *layers = argv[1];
-    char *why = drcWhyDup(argv[4]);
+    int why = drcWhyCreate(argv[4]);
     TileTypeBitMask types, nottypes;
     int maxwidth;
     static char *drcRectOpt[4] = {"any", "even", "odd", 0};
@@ -3466,6 +3504,9 @@ drcTechFinalStyle(style)
     DRCCookie **dpp, **dp2back;
     TileType i, j;
 
+    /* Done with DRCErrorTable */
+    HashKill(&DRCErrorTable);
+
     /* If the scale factor is not 1, then divide all distances by	*/
     /* the scale factor, take the ceiling, and save the (negative)	*/
     /* remainder.							*/
@@ -3587,7 +3628,6 @@ drcTechFinalStyle(style)
 		    }
 		    else
 		    {
-			/* Don't free the shared drcc_why string here! */
 			freeMagic((char *)dptest);
 			drcRulesOptimized++;
 		    }
@@ -3682,7 +3722,8 @@ drcTechFinalStyle(style)
 
 		/* TxPrintf("For edge %s-%s, \"%s\" covers \"%s\"\n",
 		    DBTypeShortName(i), DBTypeShortName(j),
-		    next->drcc_why, dp->drcc_why);
+		    DRCCurStyle->DRCWhyList[next->drcc_tag],
+		    DRCCurStyle->DRCWhyList[dp->drcc_tag]);
 		*/
 		dp2back = &(style->DRCRulesTbl[i][j]);
 		while (*dp2back != dp)
@@ -3704,7 +3745,6 @@ drcTechFinalStyle(style)
 		else
 		    *dp2back = dp->drcc_next;
 
-		/* Don't free the shared drcc_why string here! */
 		freeMagic((char *) dp);
 		drcRulesOptimized += 1;
 	    }

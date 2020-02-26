@@ -48,7 +48,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "utils/utils.h"
 
-extern char *drcWhyDup(); 
 extern int  drcCifTile();
 extern int  areaCifCheck();
 extern void drcCheckCifMaxwidth();
@@ -169,7 +168,7 @@ drcCifWidth(argc, argv)
     char *layername = argv[1];
     int scalefactor;
     int centidistance = atoi(argv[2]);
-    char *why = drcWhyDup(argv[3]);
+    int why = drcWhyCreate(argv[3]);
     TileTypeBitMask set, setC, tmp1;
     int	thislayer = -1;
     DRCCookie *dpnew,*dpnext;
@@ -228,7 +227,7 @@ drcCifSpacing(argc, argv)
     char *argv[];
 {
     char *adjacency = argv[4];
-    char *why = drcWhyDup(argv[5]);
+    int why = drcWhyCreate(argv[5]);
     DRCCookie *dpnext, *dpnew;
     int needReverse = FALSE;
     TileType i, j;
@@ -1065,7 +1064,7 @@ drcCifArea(argc, argv)
     char *layers = argv[1];
     int centiarea = atoi(argv[2]);
     int	centihorizon = atoi(argv[3]);
-    char *why = drcWhyDup(argv[4]);
+    int why = drcWhyCreate(argv[4]);
     TileTypeBitMask set, setC, tmp1;
     DRCCookie *dpnext, *dpnew;
     TileType i, j;
@@ -1126,7 +1125,7 @@ drcCifMaxwidth(argc, argv)
     char *layers = argv[1];
     int centidistance = atoi(argv[2]);
     char *bends = argv[3];
-    char *why = drcWhyDup(argv[4]);
+    int why = drcWhyCreate(argv[4]);
     TileTypeBitMask set, setC, tmp1;
     DRCCookie *dpnext, *dpnew;
     TileType i, j;

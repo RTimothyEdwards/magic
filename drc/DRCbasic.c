@@ -47,7 +47,7 @@ static DRCCookie drcOverlapCookie = {
     0, 0, 0, 0,
     { 0 }, { 0 },
     0, 0, 0,
-    "Can't overlap those layers",
+    DRC_OVERLAP_TAG,
     (DRCCookie *) NULL
 };
 

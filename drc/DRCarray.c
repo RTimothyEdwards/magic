@@ -46,7 +46,7 @@ static DRCCookie drcArrayCookie = {
     0, 0, 0, 0,
     { 0 }, { 0 },
     0, 0, 0,
-    "This layer can't abut or partially overlap between array elements",
+    DRC_ARRAY_OVERLAP_TAG,
     (DRCCookie *) NULL
 };
 
