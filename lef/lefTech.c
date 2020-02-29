@@ -270,7 +270,7 @@ LefTechLine(sectionName, argc, argv)
 	isContact = DBIsContact(mtype);
 	if (option == LEFTECH_LAYER)
 	    option = (isContact) ? LEFTECH_CUT : LEFTECH_ROUTE;
-	else if (isContact && (option != LEFTECH_CUT && option != LEFTECH_CONTACT))
+	else if (isContact && (option != LEFTECH_CUT && option != LEFTECH_CONTACT && option != LEFTECH_OBS))
             TechError("Attempt to define cut type %s as %s.\n",
 			DBTypeLongNameTbl[mtype], keywords[option]);
 	else if (!isContact && (option == LEFTECH_CUT || option == LEFTECH_CONTACT))
