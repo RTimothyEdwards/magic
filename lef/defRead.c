@@ -1287,6 +1287,35 @@ DefReadVias(f, sname, oscale, total)
 			    blayer = LefReadLayer(f, FALSE);
 			    clayer = LefReadLayer(f, FALSE);
 			    tlayer = LefReadLayer(f, FALSE);
+
+			    /* Provisional behavior:  A known tool generating	*/
+			    /* DEF uses the order (bottom, top, cut).  This may	*/
+			    /* be a bug in the tool and an issue is being	*/
+			    /* raised.  However, there is no harm in detecting	*/
+			    /* which layer is the cut and swapping as needed.	*/
+
+			    if (!DBIsContact(clayer))
+			    {
+				TileType swaplayer;
+				LefError(DEF_WARNING, "Improper layer order for"
+					" VIARULE.\n");
+				if (DBIsContact(tlayer))
+				{
+				    swaplayer = clayer;
+				    clayer = tlayer;
+				    tlayer = swaplayer;
+				}
+				else if (DBIsContact(blayer))
+				{
+				    swaplayer = clayer;
+				    clayer = blayer;
+				    blayer = swaplayer;
+				}
+				else
+				    LefError(DEF_ERROR, "No cut layer specified in"
+					    " VIARULE.\n");
+			    }
+
 			    generated = TRUE;
 			    break;
 			case DEF_VIAS_PROP_CUTSPACING:
