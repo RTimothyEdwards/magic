@@ -190,13 +190,15 @@ CmdLef(w, cmd)
 			    lefTopCell = FALSE;
 			else if (!strncmp(cmd->tx_argv[i], "-tech", 5))
 			    lefTech = TRUE;
+			else if (!strncmp(cmd->tx_argv[i], "-hide", 5))
+			    lefHide = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-all", 4))
 			    recurse = TRUE;
 			else goto wrongNumArgs;
 		    }
 		    else goto wrongNumArgs;
 		}
-		LefWriteAll(selectedUse, lefTopCell, lefTech, recurse);
+		LefWriteAll(selectedUse, lefTopCell, lefTech, lefHide, recurse);
 	    }
 	    break;
 	case LEF_WRITE:

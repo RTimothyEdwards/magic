@@ -361,7 +361,8 @@ drcWhyCreate(whystring)
 	int i;
 	char **newList;
 	newList = (char **)mallocMagic((DRCCurStyle->DRCWhySize + 51) * sizeof(char *));
-	for (i = 0; i < DRCCurStyle->DRCWhySize; i++)
+	newList[0] = (char *)NULL;
+	for (i = 1; i <= DRCCurStyle->DRCWhySize; i++)
 	    newList[i] = DRCCurStyle->DRCWhyList[i];
 	if (DRCCurStyle->DRCWhySize > 0)
 	    freeMagic((char *)DRCCurStyle->DRCWhyList);
