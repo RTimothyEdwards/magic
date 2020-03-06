@@ -1434,7 +1434,7 @@ CmdCif(w, cmd)
 	    if (!ToolGetBox(&rootDef, &box))
 	    {
 		TxError("Use the box to select the area in");
-		TxError(" which you want to see CIF.\n");
+		TxError(" which you want to paint CIF.\n");
 		return;
 	    }
 	    if (argc == 5)

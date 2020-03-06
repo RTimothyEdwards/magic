@@ -23,6 +23,6 @@ lefRead.o: lefRead.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../lef/lefInt.h
 defRead.o: defRead.c ../tcltk/tclmagic.h ../utils/magic.h \
  ../utils/geometry.h ../tiles/tile.h ../utils/hash.h ../utils/undo.h \
- ../database/database.h ../windows/windows.h ../dbwind/dbwind.h \
- ../utils/malloc.h ../graphics/graphics.h ../utils/main.h ../cif/cif.h \
- ../lef/lefInt.h
+ ../utils/utils.h ../database/database.h ../windows/windows.h \
+ ../dbwind/dbwind.h ../utils/malloc.h ../graphics/graphics.h \
+ ../utils/main.h ../cif/cif.h ../lef/lefInt.h

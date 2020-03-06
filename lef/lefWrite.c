@@ -1133,10 +1133,11 @@ lefWriteMacro(def, f, scale, hide)
  */
 
 void
-LefWriteAll(rootUse, writeTopCell, lefTech, recurse)
+LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
     CellUse *rootUse;
     bool writeTopCell;
     bool lefTech;
+    bool lefHide;
     bool recurse;
 {
     CellDef *def, *rootdef;
@@ -1190,7 +1191,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech, recurse)
     {
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)
-	    lefWriteMacro(def, f, scale);
+	    lefWriteMacro(def, f, scale, lefHide);
     }
 
     /* End the LEF file */

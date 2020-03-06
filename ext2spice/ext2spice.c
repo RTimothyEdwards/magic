@@ -2873,7 +2873,14 @@ int spcnAP(node, resClass, scale, asterm, psterm, m, outf, w)
 
     if (!esDistrJunct || w == -1) goto oldFmt;
 
-    dsc = w / ((nodeClient*)node->efnode_client)->m_w.widths[resClass];
+    if (((nodeClient*)node->efnode_client)->m_w.widths != NULL)
+	dsc = w / ((nodeClient*)node->efnode_client)->m_w.widths[resClass];
+    else
+    {
+	TxError("Device missing records for source/drain area/perim.\n");
+	dsc = w;
+    }
+
     if (esScale < 0)
     {
 	if (asterm)

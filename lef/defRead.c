@@ -26,6 +26,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "tiles/tile.h"
 #include "utils/hash.h"
 #include "utils/undo.h"
+#include "utils/utils.h"
 #include "database/database.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
@@ -73,11 +74,12 @@ enum def_netspecial_shape_keys {
 	DEF_SPECNET_SHAPE_DRCFILL};
 
 char *
-DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
+DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
     CellDef *rootDef;		/* Cell to paint */
     FILE *f;			/* Input file */
     float oscale;		/* Scale factor between LEF and magic units */
     bool special;		/* True if this section is SPECIALNETS */
+    char *netname;		/* Name of the net, if net is to be labeled */
     LefMapping *defLayerMap;	/* magic-to-lef layer mapping array */
 {
     char *token;
@@ -85,6 +87,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
     Point refp;			/* reference point */
     bool valid = FALSE;		/* is there a valid reference point? */
     bool initial = TRUE;
+    bool labeled = TRUE;
     Rect locarea;
     int extend, lextend, hextend;
     float x, y, z, w;
@@ -123,6 +126,8 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	"DRCFILL",
 	NULL
     };
+
+    if (netname != NULL) labeled = FALSE;
 
     while (initial || (token = LefNextToken(f, TRUE)) != NULL)
     {
@@ -605,6 +610,16 @@ endCoord:
 	/* paint */
 	DBPaint(rootDef, &routeTop->r_r, routeTop->r_type);
 
+	/* label */
+	if (labeled == FALSE)
+	{
+	    Rect r;
+	    r.r_xbot = r.r_xtop = (routeTop->r_r.r_xbot + routeTop->r_r.r_xtop) / 2;
+	    r.r_ybot = r.r_ytop = (routeTop->r_r.r_ybot + routeTop->r_r.r_ytop) / 2;
+	    DBPutLabel(rootDef, &r, GEO_CENTER, netname, routeTop->r_type, 0);
+	    labeled = TRUE;
+	}
+
 	/* advance to next point and free record (1-delayed) */
 	freeMagic((char *)routeTop);
 	routeTop = routeTop->r_next;
@@ -636,15 +651,17 @@ enum def_netprop_keys {
 	DEF_NETPROP_PROPERTY};
 
 void
-DefReadNets(f, rootDef, sname, oscale, special, total)
+DefReadNets(f, rootDef, sname, oscale, special, dolabels, total)
     FILE *f;
     CellDef *rootDef;
     char *sname;
     float oscale;
     bool special;		/* True if this section is SPECIALNETS */
+    bool dolabels;		/* If true, create a label for each net */
     int total;
 {
     char *token;
+    char *netname = NULL;
     int keyword, subkey;
     int processed = 0;
     LefMapping *defLayerMap;
@@ -684,8 +701,8 @@ DefReadNets(f, rootDef, sname, oscale, special, total)
 	    case DEF_NET_START:
 
 		/* Get net name */
-		/* Presently, we ignore net names completely.	*/
 		token = LefNextToken(f, TRUE);
+		if (dolabels) netname = StrDup((char **)NULL, token);
 
 		/* Update the record of the number of nets processed	*/
 		/* and spit out a message for every 5% finished.	*/
@@ -725,10 +742,11 @@ DefReadNets(f, rootDef, sname, oscale, special, total)
 			case DEF_NETPROP_FIXED:
 			case DEF_NETPROP_COVER:
 			    token = DefAddRoutes(rootDef, f, oscale, special,
-					defLayerMap);
+					netname, defLayerMap);
 			    break;
 		    }
 		}
+		if (dolabels) freeMagic(netname);
 		break;
 
 	    case DEF_NET_END:
@@ -1287,6 +1305,35 @@ DefReadVias(f, sname, oscale, total)
 			    blayer = LefReadLayer(f, FALSE);
 			    clayer = LefReadLayer(f, FALSE);
 			    tlayer = LefReadLayer(f, FALSE);
+
+			    /* Provisional behavior:  A known tool generating	*/
+			    /* DEF uses the order (bottom, top, cut).  This may	*/
+			    /* be a bug in the tool and an issue is being	*/
+			    /* raised.  However, there is no harm in detecting	*/
+			    /* which layer is the cut and swapping as needed.	*/
+
+			    if (!DBIsContact(clayer))
+			    {
+				TileType swaplayer;
+				LefError(DEF_WARNING, "Improper layer order for"
+					" VIARULE.\n");
+				if (DBIsContact(tlayer))
+				{
+				    swaplayer = clayer;
+				    clayer = tlayer;
+				    tlayer = swaplayer;
+				}
+				else if (DBIsContact(blayer))
+				{
+				    swaplayer = clayer;
+				    clayer = blayer;
+				    blayer = swaplayer;
+				}
+				else
+				    LefError(DEF_ERROR, "No cut layer specified in"
+					    " VIARULE.\n");
+			    }
+
 			    generated = TRUE;
 			    break;
 			case DEF_VIAS_PROP_CUTSPACING:
@@ -1619,8 +1666,9 @@ enum def_sections {DEF_VERSION = 0, DEF_NAMESCASESENSITIVE,
 	DEF_END};
 
 void
-DefRead(inName)
+DefRead(inName, dolabels)
     char *inName;
+    bool dolabels;
 {
     CellDef *rootDef;
     FILE *f;
@@ -1796,13 +1844,15 @@ DefRead(inName)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
-		DefReadNets(f, rootDef, sections[DEF_SPECIALNETS], oscale, TRUE, total);
+		DefReadNets(f, rootDef, sections[DEF_SPECIALNETS], oscale, TRUE,
+			dolabels, total);
 		break;
 	    case DEF_NETS:
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
-		DefReadNets(f, rootDef, sections[DEF_NETS], oscale, FALSE, total);
+		DefReadNets(f, rootDef, sections[DEF_NETS], oscale, FALSE,
+			dolabels, total);
 		break;
 	    case DEF_IOTIMINGS:
 		LefSkipSection(f, sections[DEF_IOTIMINGS]);
