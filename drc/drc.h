@@ -219,7 +219,6 @@ extern DRCKeep  *DRCStyleList;	/* List of available DRC styles */
 extern DRCStyle *DRCCurStyle;	/* Current DRC style in effect */
 extern CellDef  *DRCdef;	/* Current cell being checked for DRC */
 extern CellUse  *DRCuse, *DRCDummyUse;
-extern HashTable DRCErrorTable;	    /* DRC errors, hashed by name */
 
 /* 
  * Internal procedures

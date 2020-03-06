@@ -40,6 +40,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 CIFStyle *drcCifStyle = NULL;
 bool	 DRCForceReload = FALSE;
+HashTable DRCWhyErrorTable;        /* Table of DRC errors */
 
 /*
  * DRC interaction radius being used (not necessarily the same as
@@ -339,7 +340,7 @@ drcTechNewStyle()
  *	Adds to the DRCWhyList if whystring has not been used before.
  *	Calls StrDup() and increments DRCWhySize.  DRCWhyList is allocated
  *	in blocks of 50 at a time and only expands when filled.
- *	Temporary hash table DRCErrorTable is used to determine if a
+ *	Temporary hash table DRCWhyErrorTable is used to determine if a
  *	string entry is unique.  It is cleared after the technology file
  *	has been processed.
  * ----------------------------------------------------------------------------
@@ -351,7 +352,7 @@ drcWhyCreate(whystring)
 {
     HashEntry *he;
 
-    he = HashLookOnly(&DRCErrorTable, whystring);
+    he = HashLookOnly(&DRCWhyErrorTable, whystring);
     if (he != NULL)
 	return (int)((pointertype)HashGetValue(he));
 
@@ -370,7 +371,7 @@ drcWhyCreate(whystring)
     }
     DRCCurStyle->DRCWhySize++;
 
-    he = HashFind(&DRCErrorTable, whystring);
+    he = HashFind(&DRCWhyErrorTable, whystring);
     HashSetValue(he, (char *)((pointertype)DRCCurStyle->DRCWhySize));
 
     DRCCurStyle->DRCWhyList[DRCCurStyle->DRCWhySize] = StrDup((char **)NULL, whystring);
@@ -564,7 +565,7 @@ DRCTechStyleInit()
     DRCCurStyle->DRCFlags = (char)0;
     DRCCurStyle->DRCWhySize = 0;
 
-    HashInit(&DRCErrorTable, 16, HT_STRINGKEYS);
+    HashInit(&DRCWhyErrorTable, 16, HT_STRINGKEYS);
 
     /* First DRC entry is associated with the statically-allocated  */
     /* drcArrayCookie and has a tag of DRC_ARRAY_OVERLAP_TAG = 1    */
@@ -3505,8 +3506,8 @@ drcTechFinalStyle(style)
     DRCCookie **dpp, **dp2back;
     TileType i, j;
 
-    /* Done with DRCErrorTable */
-    HashKill(&DRCErrorTable);
+    /* Done with DRCWhyErrorTable */
+    HashKill(&DRCWhyErrorTable);
 
     /* If the scale factor is not 1, then divide all distances by	*/
     /* the scale factor, take the ceiling, and save the (negative)	*/
