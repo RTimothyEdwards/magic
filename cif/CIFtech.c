@@ -2117,7 +2117,7 @@ CIFTechOutputScale(n, d)
     SquaresData *squares;
     SlotsData *slots;
     BloatData *bloats;
-    bool has_odd_space;
+    bool has_odd_space = FALSE;
 
     if (ostyle == NULL) return;
 
