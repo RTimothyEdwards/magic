@@ -43,7 +43,7 @@ style	lambda_irsim=1.0(scna20_orb)
 	areacap	poly2,ec/a			50
 
 	perimc	PolyCap	~PolyCap	80
-	sideOverlap(PolyCap, ~PolyCap, allWell, 80, nothing)
+	sideOverlap(PolyCap, ~PolyCap, allWell, 80, )
 	/* ------------------------------------------------- */
 
 
@@ -172,7 +172,7 @@ style	lambda=1.0(scpe20_orb)
 	overlap	PolyCap	allWell 	57
 
 	perimc	PolyCap	~PolyCap	168
-	sideOverlap(PolyCap, ~PolyCap, allWell, 168, nothing)
+	sideOverlap(PolyCap, ~PolyCap, allWell, 168, )
 	/* ------------------------------------------------- */
 
 

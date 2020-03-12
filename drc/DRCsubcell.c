@@ -56,7 +56,7 @@ static DRCCookie drcSubcellCookie = {
     0, 0, 0, 0,
     { 0 }, { 0 },
     0, 0, 0,
-    "This layer can't abut or partially overlap between subcells",
+    DRC_SUBCELL_OVERLAP_TAG,
     (DRCCookie *) NULL
 };
 

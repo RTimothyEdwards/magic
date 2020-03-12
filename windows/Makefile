@@ -15,13 +15,13 @@ include ${MAGICDIR}/defs.mak
 include ${MAGICDIR}/rules.mak
 
 install-tcl:
-	@echo --- installing glyphs to $(DESTDIR)${SYSDIR}
+	@echo --- installing glyphs to $(DESTDIR)${INSTALL_SYSDIR}
 	for i in ${GLYPHS} ${FONTS}; do \
-		(cd $(DESTDIR)${SYSDIR} && ${RM} $$i); \
-		${CP} $$i $(DESTDIR)${SYSDIR}; done
+		(cd $(DESTDIR)${INSTALL_SYSDIR} && ${RM} $$i); \
+		${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
 
 install:
-	@echo --- installing glyphs to $(DESTDIR)${SYSDIR}
+	@echo --- installing glyphs to $(DESTDIR)${INSTALL_SYSDIR}
 	for i in ${GLYPHS} ${FONTS}; do \
-		(cd $(DESTDIR)${SYSDIR} && ${RM} $$i); \
-		${CP} $$i $(DESTDIR)${SYSDIR}; done
+		(cd $(DESTDIR)${INSTALL_SYSDIR} && ${RM} $$i); \
+		${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done

@@ -288,6 +288,7 @@ cmdFlushCell(def)
     CellDef *def;
 {
     CellUse *parentUse;
+    bool dereference;
 
     /* Disallow flushing a cell that contains the edit cell as a child */
     if (EditCellUse && (EditCellUse->cu_parent == def))
@@ -309,7 +310,8 @@ cmdFlushCell(def)
     }
     DBCellClearDef(def);
     DBCellClearAvail(def);
-    (void) DBCellRead(def, (char *) NULL, TRUE, NULL);
+    dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+    (void) DBCellRead(def, (char *) NULL, TRUE, dereference, NULL);
     DBCellSetAvail(def);
     DBReComputeBbox(def);
     DBCellSetModified(def, FALSE);

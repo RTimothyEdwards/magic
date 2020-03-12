@@ -141,7 +141,7 @@ DBTechInitPlane()
     for (dpp = dbTechDefaultPlanes; dpp->dp_names; dpp++)
     {
 	cp = dbTechNameAdd(dpp->dp_names, (ClientData) dpp->dp_plane,
-			&dbPlaneNameLists);
+			&dbPlaneNameLists, FALSE);
 	if (cp == NULL)
 	{
 	    TxError("DBTechInit: can't add plane names %s\n", dpp->dp_names);
@@ -224,7 +224,7 @@ DBTechInitType()
     for (dtp = dbTechDefaultTypes; dtp->dt_names; dtp++)
     {
 	cp = dbTechNameAdd(dtp->dt_names, (ClientData) dtp->dt_type,
-			&dbTypeNameLists);
+			&dbTypeNameLists, FALSE);
 	if (cp == NULL)
 	{
 	    TxError("DBTechInit: can't add type names %s\n", dtp->dt_names);
@@ -283,7 +283,7 @@ DBTechAddPlane(sectionName, argc, argv)
 	return FALSE;
     }
 
-    cp = dbTechNameAdd(argv[0], (ClientData) DBNumPlanes, &dbPlaneNameLists);
+    cp = dbTechNameAdd(argv[0], (ClientData) DBNumPlanes, &dbPlaneNameLists, FALSE);
     if (cp == NULL)
 	return FALSE;
     DBPlaneLongNameTbl[DBNumPlanes++] = cp;
@@ -315,7 +315,7 @@ DBTechAddNameToType(newname, ttype, canonical)
 {
     char *cp;
 
-    cp = dbTechNameAdd(newname, (ClientData) ttype, &dbTypeNameLists);
+    cp = dbTechNameAdd(newname, (ClientData) ttype, &dbTypeNameLists, TRUE);
     if (canonical)
 	DBTypeLongNameTbl[ttype] = cp;
 }
@@ -455,7 +455,7 @@ DBTechAddType(sectionName, argc, argv)
     }
     else
     {
-	cp = dbTechNameAdd(argv[1], (ClientData) DBNumTypes, &dbTypeNameLists);
+	cp = dbTechNameAdd(argv[1], (ClientData) DBNumTypes, &dbTypeNameLists, FALSE);
 	if (cp == NULL)
 	    return FALSE;
 
@@ -513,7 +513,7 @@ dbTechNewStackedType(type1, type2)
     }
 
     sprintf(buf, "%s+%s", DBTypeShortName(type1), DBTypeShortName(type2));
-    cp = dbTechNameAdd(buf, (ClientData) DBNumTypes, &dbTypeNameLists);
+    cp = dbTechNameAdd(buf, (ClientData) DBNumTypes, &dbTypeNameLists, FALSE);
     if (cp == NULL)
     {
 	TechError("Couldn't generate new stacking type %s\n", buf);
@@ -730,10 +730,11 @@ dbTechNameLookup(str, table)
  */
 
 char *
-dbTechNameAdd(name, cdata, ptable)
+dbTechNameAdd(name, cdata, ptable, alias)
     char *name;	/* Comma-separated list of names to be added */
     ClientData cdata;		/* Value to be stored with each name above */
     NameList *ptable;		/* Table to which we will add names */
+    int alias;			/* 1 if this is an alias (never make primary) */
 {
     char *cp;
     char onename[BUFSIZ];
@@ -769,7 +770,7 @@ dbTechNameAdd(name, cdata, ptable)
 	}
     }
 
-    if (primary)
+    if (primary && (alias == 0))
 	primary->sn_primary = TRUE;
     return (first);
 }

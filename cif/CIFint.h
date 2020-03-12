@@ -69,6 +69,7 @@ typedef struct slots_data
     int sl_lsize;
     int sl_lsep;
     int sl_offset;
+    int sl_start;
 } SlotsData;
 
 typedef struct cifop
@@ -95,6 +96,7 @@ typedef struct cifop
  *			the masks.
  * CIFOP_GROW -		Grow the current results uniformly by co_distance.
  * CIFOP_GROW_G -	Grow the current results to snap to the indicated grid.
+ * CIFOP_GROWMIN -	Grow result such that no dimension is less than co_distance.
  * CIFOP_SHRINK -	Shrink the current results uniformly by co_distance.
  * CIFOP_BLOAT -	Find layers in paintMask, then bloat selectively
  *			according to bl_distance, and OR the results into
@@ -130,26 +132,29 @@ typedef struct cifop
  * CIFOP_COPYUP -	Added 5/5/16---make and keep a copy the resulting layer,
  *			which will be painted into parent cells instead of the
  *			current cell.  This replaces the "fault" method.
+ * CIFOP_CLOSE -	Added 11/25/19---close up areas smaller than indicated
  */
 
 #define CIFOP_AND	1
 #define CIFOP_OR	2
 #define CIFOP_GROW	3
-#define CIFOP_GROW_G	4
-#define CIFOP_SHRINK	5
-#define CIFOP_BLOAT	6
-#define CIFOP_SQUARES	7
-#define CIFOP_SLOTS	8
-#define CIFOP_BLOATMAX	9
-#define CIFOP_BLOATMIN	10
-#define CIFOP_BLOATALL	11
-#define CIFOP_ANDNOT	12
-#define CIFOP_SQUARES_G	13
-#define CIFOP_BBOX	14
-#define CIFOP_BOUNDARY	15
-#define CIFOP_NET	16
-#define CIFOP_MAXRECT	17
-#define CIFOP_COPYUP	18
+#define CIFOP_GROWMIN	4
+#define CIFOP_GROW_G	5
+#define CIFOP_SHRINK	6
+#define CIFOP_BLOAT	7
+#define CIFOP_SQUARES	8
+#define CIFOP_SLOTS	9
+#define CIFOP_BLOATMAX	10
+#define CIFOP_BLOATMIN	11
+#define CIFOP_BLOATALL	12
+#define CIFOP_ANDNOT	13
+#define CIFOP_SQUARES_G	14
+#define CIFOP_BBOX	15
+#define CIFOP_BOUNDARY	16
+#define CIFOP_NET	17
+#define CIFOP_MAXRECT	18
+#define CIFOP_COPYUP	19
+#define CIFOP_CLOSE	20
 
 /* Added by Tim 10/21/2004 */
 /* The following structure is used to pass information on how to draw
@@ -292,6 +297,7 @@ typedef struct cifstyle
 #define CWF_GROW_EUCLIDEAN	0x08
 #define CWF_SEE_VENDOR		0x10	/* Override vendor GDS flag in cells */
 #define CWF_NO_ERRORS		0x20	/* Do not generate error msgs and fdbk */
+#define CWF_STRING_LIMIT	0x40	/* Use older Calma format character limit */
 
 /* procedures */
 
@@ -310,6 +316,7 @@ extern void CIFLoadStyle();
 extern Plane *CIFPlanes[];		/* Normal place to store CIF. */
 extern CIFKeep *CIFStyleList;		/* List of all CIF styles. */
 extern CIFStyle *CIFCurStyle;		/* Current style being used. */
+extern CIFStyle *CIFDRCStyle;		/* CIF style for DRC checking (optional) */
 extern CellUse *CIFComponentUse;	/* Flatten stuff in here if needed. */
 extern CellDef *CIFComponentDef;	/* Corresponds to CIFComponentUse. */
 extern CellUse *CIFDummyUse;		/* Used to dummy up a CellUse for a

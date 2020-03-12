@@ -21,7 +21,7 @@ ResMakeRes.o: ResMakeRes.c ../utils/magic.h ../utils/geometry.h \
  ../bplane/bplaneInt.h ../utils/malloc.h ../textio/textio.h \
  ../extract/extract.h ../extract/extractInt.h ../extract/extDebugInt.h \
  ../windows/windows.h ../dbwind/dbwind.h ../utils/tech.h \
- ../textio/txcommands.h ../resis/resis.h
+ ../textio/txcommands.h ../resis/resis.h ../cif/CIFint.h
 ResSimple.o: ResSimple.c ../utils/magic.h ../utils/geometry.h \
  ../utils/geofast.h ../tiles/tile.h ../utils/hash.h ../utils/heap.h \
  ../database/database.h ../bplane/bplane.h ../bplane/bpOpaque.h \

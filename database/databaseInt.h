@@ -199,6 +199,7 @@ extern void DBUndoPutLabel();
 extern void DBUndoEraseLabel();
 extern void DBUndoCellUse();
 extern void DBStampMismatch();
+extern void DBFlagMismatches();
 extern void DBTechAddNameToType();
 
 extern void dbComputeBbox();

@@ -318,7 +318,7 @@ CmdLabel(w, cmd)
  * Implement the "load" command.
  *
  * Usage:
- *	load [name [scaled n [d]]] [-force]
+ *	load [name [scaled n [d]]] [-force] [-nowindow] [-dereference]
  *
  * If name is supplied, then the window containing the point tool is
  * remapped so as to edit the cell with the given name.
@@ -330,6 +330,13 @@ CmdLabel(w, cmd)
  *
  * An input file can be scaled by specifying the "scaled" option, for
  * which the geometry of the input file is multiplied by n/d.
+ *
+ * Magic saves the path to instances to ensure correct versioning.  But
+ * this interferes with attempts to re-link instances from a different
+ * location (such as an abstract view instead of a full view, or vice
+ * versa).  So the "-dereference" option strips the instance paths from
+ * the input file and relies only on the search locations set up by the
+ * "path" command to find the location of instances.
  *
  * Results:
  *	None.
@@ -350,6 +357,7 @@ CmdLoad(w, cmd)
     int locargc = cmd->tx_argc;
     bool ignoreTech = FALSE;
     bool noWindow = FALSE;
+    bool dereference = FALSE;
     int keepGoing();			/* forward declaration */
 
     if (locargc > 2)
@@ -359,29 +367,38 @@ CmdLoad(w, cmd)
 	    locargc--;
 	    noWindow = TRUE;
 	}
+	if (!strncmp(cmd->tx_argv[locargc - 1], "-deref", 5))
+	{
+	    locargc--;
+	    dereference = TRUE;
+	}
 	if (!strncmp(cmd->tx_argv[locargc - 1], "-force", 6))
 	{
 	    locargc--;
 	    ignoreTech = TRUE;
 	}
-	if (locargc >= 4 && !strncmp(cmd->tx_argv[2], "scale", 5) &&
+	if ((locargc >= 4) && !strncmp(cmd->tx_argv[2], "scale", 5) &&
 		StrIsInt(cmd->tx_argv[3]))
 	{
 	    n = atoi(cmd->tx_argv[3]);
- 	    if (cmd->tx_argc == 5 && StrIsInt(cmd->tx_argv[4]))
+ 	    if ((locargc == 5) && StrIsInt(cmd->tx_argv[4]))
 	        d = atoi(cmd->tx_argv[4]);
 	    else if (locargc != 4)
 	    {
-		TxError("Usage: %s name scaled n [d]\n", cmd->tx_argv[0]);
+		TxError("Usage: %s name scaled n [d] [-force] "
+			    "[-nowindow] [-dereference]\n",
+			    cmd->tx_argv[0]);
 		return;
 	    }
 	    DBLambda[0] *= d;
 	    DBLambda[1] *= n;
 	    ReduceFraction(&DBLambda[0], &DBLambda[1]);
 	}
-	else if (!ignoreTech && !noWindow)
+	else if (!ignoreTech && !noWindow && !dereference)
 	{
-	    TxError("Usage: %s [name [scaled n [d]]]\n", cmd->tx_argv[0]);
+	    TxError("Usage: %s name [scaled n [d]] [-force] "
+			    "[-nowindow] [-dereference]\n",
+			    cmd->tx_argv[0]);
 	    return;
 	}
     }
@@ -406,7 +423,7 @@ CmdLoad(w, cmd)
 	}
 #endif
 	DBWloadWindow((noWindow == TRUE) ? NULL : w, cmd->tx_argv[1],
-			ignoreTech, FALSE);
+			ignoreTech, FALSE, dereference);
 
 	if ((n > 1) || (d > 1))
 	{
@@ -439,7 +456,7 @@ CmdLoad(w, cmd)
 	    ReduceFraction(&DBLambda[0], &DBLambda[1]);
 	}
     }
-    else DBWloadWindow(w, (char *) NULL, TRUE, FALSE);
+    else DBWloadWindow(w, (char *) NULL, TRUE, FALSE, FALSE);
 }
 
 /*
@@ -1882,8 +1899,16 @@ printPropertiesFunc(name, value)
 #ifdef MAGIC_WRAPPER
     char *keyvalue;
 
-    keyvalue = (char *)mallocMagic(strlen(name) + strlen((char *)value) + 2);
-    sprintf(keyvalue, "%s %s", name, (char *)value);
+    if (value == NULL)
+    {
+	keyvalue = (char *)mallocMagic(strlen(name) + 4);
+	sprintf(keyvalue, "%s {}", name);
+    }
+    else
+    {
+	keyvalue = (char *)mallocMagic(strlen(name) + strlen((char *)value) + 2);
+	sprintf(keyvalue, "%s %s", name, (char *)value);
+    }
     Tcl_AppendElement(magicinterp, keyvalue);
     freeMagic(keyvalue);
     

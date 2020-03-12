@@ -60,7 +60,7 @@ extern int dbcConnectFuncDCS();
 extern int resSubSearchFunc();
 #endif
 
-static ResTranTile  *TransList = NULL;
+static ResDevTile  *DevList = NULL;
 static TileTypeBitMask	DiffTypeBitMask;
 TileTypeBitMask	ResSubsTypeBitMask;
 
@@ -73,14 +73,14 @@ extern void ResCalcPerimOverlap();
  *
  * dbcConnectFuncDCS -- the same as dbcConnectFunc, except that it does
  *	some extra searching around diffusion tiles looking for
- *	transistors.
+ *	devices.
  *
  * Results:
  *	Always returns 0 to keep the search from aborting.
  *
  * Side effects:
  *	Adds a new record to the current check list. May also add new
- *	ResTranTile structures.
+ *	ResDevTile structures.
  *
  * ----------------------------------------------------------------------------
  */
@@ -92,8 +92,8 @@ dbcConnectFuncDCS(tile, cx)
 
 {
     struct conSrArg2	*csa2;
-    Rect 		tileArea, *srArea, tranArea, newarea;
-    ResTranTile		*thisTran;
+    Rect 		tileArea, *srArea, devArea, newarea;
+    ResDevTile		*thisDev;
     TileTypeBitMask	notConnectMask, *connectMask;
     Tile		*tp;
     TileType		t2, t1, loctype, ctype;
@@ -102,6 +102,7 @@ dbcConnectFuncDCS(tile, cx)
     SearchContext	scx2;
     int			pNum;
     CellDef		*def;
+    ExtDevice		*devptr;
 
     TiToRect(tile, &tileArea);
     srArea = &scx->scx_area;
@@ -121,79 +122,83 @@ dbcConnectFuncDCS(tile, cx)
     for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp=RT(tp))
     {
          t2 = TiGetType(tp);
-	 if (TTMaskHasType(&(ExtCurStyle->exts_transMask),t2) &&
-	     TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]),t1))
+	 devptr = ExtCurStyle->exts_device[t2];
+	 if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t2) &&
+	     TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t1))
 	     {
-    	          TiToRect(tp, &tranArea);
-	          thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
-		  ResCalcPerimOverlap(thisTran,tp);
-	          GeoTransRect(&scx->scx_trans, &tranArea, &thisTran->area);
-	          thisTran->type = TiGetType(tp);
-	          thisTran->nextTran = TransList;
-	          TransList = thisTran;
+    	          TiToRect(tp, &devArea);
+	          thisDev = (ResDevTile *) mallocMagic((unsigned)(sizeof(ResDevTile)));
+		  ResCalcPerimOverlap(thisDev,tp);
+	          GeoTransRect(&scx->scx_trans, &devArea, &thisDev->area);
+	          thisDev->type = TiGetType(tp);
+	          thisDev->nextDev = DevList;
+	          DevList = thisDev;
 	     }
     }
     /*right*/
     for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
     {
          t2 = TiGetType(tp);
-	 if (TTMaskHasType(&(ExtCurStyle->exts_transMask),t2) &&
-	     TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]),t1))
+	 devptr = ExtCurStyle->exts_device[t2];
+	 if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t2) &&
+	     TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t1))
 	     {
-    	          TiToRect(tp, &tranArea);
-	          thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
-	          GeoTransRect(&scx->scx_trans, &tranArea, &thisTran->area);
-	          thisTran->type = TiGetType(tp);
-	          thisTran->nextTran = TransList;
-	          TransList = thisTran;
-		  ResCalcPerimOverlap(thisTran,tp);
+    	          TiToRect(tp, &devArea);
+	          thisDev = (ResDevTile *) mallocMagic((unsigned)(sizeof(ResDevTile)));
+	          GeoTransRect(&scx->scx_trans, &devArea, &thisDev->area);
+	          thisDev->type = TiGetType(tp);
+	          thisDev->nextDev = DevList;
+	          DevList = thisDev;
+		  ResCalcPerimOverlap(thisDev,tp);
 	     }
     }
     /*top*/
     for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp=BL(tp))
     {
          t2 = TiGetType(tp);
-	 if (TTMaskHasType(&(ExtCurStyle->exts_transMask),t2) &&
-	     TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]),t1))
+	 devptr = ExtCurStyle->exts_device[t2];
+	 if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t2) &&
+	     TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t1))
 	     {
-    	          TiToRect(tp, &tranArea);
-	          thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
-	          GeoTransRect(&scx->scx_trans, &tranArea, &thisTran->area);
-	          thisTran->type = TiGetType(tp);
-	          thisTran->nextTran = TransList;
-	          TransList = thisTran;
-		  ResCalcPerimOverlap(thisTran,tp);
+    	          TiToRect(tp, &devArea);
+	          thisDev = (ResDevTile *) mallocMagic((unsigned)(sizeof(ResDevTile)));
+	          GeoTransRect(&scx->scx_trans, &devArea, &thisDev->area);
+	          thisDev->type = TiGetType(tp);
+	          thisDev->nextDev = DevList;
+	          DevList = thisDev;
+		  ResCalcPerimOverlap(thisDev,tp);
 	     }
     }
     /*bottom */
     for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
     {
          t2 = TiGetType(tp);
-	 if (TTMaskHasType(&(ExtCurStyle->exts_transMask),t2) &&
-	     TTMaskHasType(&(ExtCurStyle->exts_transSDTypes[t2][0]),t1))
+	 devptr = ExtCurStyle->exts_device[t2];
+	 if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t2) &&
+	     TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t1))
 	     {
-    	          TiToRect(tp, &tranArea);
-	          thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
-	          GeoTransRect(&scx->scx_trans, &tranArea, &thisTran->area);
-	          thisTran->type = TiGetType(tp);
-	          thisTran->nextTran = TransList;
-	          TransList = thisTran;
-		  ResCalcPerimOverlap(thisTran,tp);
+    	          TiToRect(tp, &devArea);
+	          thisDev = (ResDevTile *) mallocMagic((unsigned)(sizeof(ResDevTile)));
+	          GeoTransRect(&scx->scx_trans, &devArea, &thisDev->area);
+	          thisDev->type = TiGetType(tp);
+	          thisDev->nextDev = DevList;
+	          DevList = thisDev;
+		  ResCalcPerimOverlap(thisDev,tp);
 	     }
     }
     }
-    else if TTMaskHasType(&(ExtCurStyle->exts_transMask),t1)
+    else if TTMaskHasType(&(ExtCurStyle->exts_deviceMask),t1)
     {
-    	          TiToRect(tile, &tranArea);
-	          thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
-		  ResCalcPerimOverlap(thisTran,tile);
-	          GeoTransRect(&scx->scx_trans, &tranArea, &thisTran->area);
-	          thisTran->type = TiGetType(tile);
-	          thisTran->nextTran = TransList;
-	          TransList = thisTran;
+    	          TiToRect(tile, &devArea);
+	          thisDev = (ResDevTile *) mallocMagic((unsigned)(sizeof(ResDevTile)));
+		  ResCalcPerimOverlap(thisDev,tile);
+	          GeoTransRect(&scx->scx_trans, &devArea, &thisDev->area);
+	          thisDev->type = TiGetType(tile);
+	          thisDev->nextDev = DevList;
+	          DevList = thisDev;
     }
     /* in some cases (primarily bipolar technology), we'll want to extract
-       transistors whose substrate terminals are part of the given region.
+       devices whose substrate terminals are part of the given region.
        The following does that check.  (10-11-88)
     */
 #ifdef ARIEL
@@ -333,8 +338,8 @@ dbcConnectFuncDCS(tile, cx)
  */
 
 void
-ResCalcPerimOverlap(trans, tile)
-    ResTranTile	*trans;
+ResCalcPerimOverlap(dev, tile)
+    ResDevTile	*dev;
     Tile	*tile;
 
 {
@@ -342,7 +347,7 @@ ResCalcPerimOverlap(trans, tile)
     int		t1;
     int		overlap;
     
-    trans->perim = (TOP(tile)-BOTTOM(tile)-LEFT(tile)+RIGHT(tile))<<1;
+    dev->perim = (TOP(tile)-BOTTOM(tile)-LEFT(tile)+RIGHT(tile))<<1;
     overlap =0;
     
     t1 = TiGetType(tile);
@@ -386,7 +391,7 @@ ResCalcPerimOverlap(trans, tile)
 	}
     	 
     }
-    trans->overlap = overlap;
+    dev->overlap = overlap;
 }
 	
 
@@ -399,7 +404,7 @@ ResCalcPerimOverlap(trans, tile)
  *	dbcConnectFuncDCS.
  *
  * Results:
- *	Linked list of transistors.
+ *	Linked list of devices.
  *
  * Side effects:
  *	The contents of the result cell are modified.
@@ -407,7 +412,7 @@ ResCalcPerimOverlap(trans, tile)
  * ----------------------------------------------------------------------------
  */
 
-ResTranTile *
+ResDevTile *
 DBTreeCopyConnectDCS(scx, mask, xMask, connect, area, destUse)
     SearchContext *scx;
     TileTypeBitMask *mask;
@@ -419,12 +424,13 @@ DBTreeCopyConnectDCS(scx, mask, xMask, connect, area, destUse)
 {
     static int 		first = 1;
     struct conSrArg2	csa2; 
-    int			tran, pNum;
-    char		*tran_name;
+    int			dev, pNum;
+    char		*dev_name;
     TileTypeBitMask	*newmask;
-    ResTranTile		*CurrentT;
+    ResDevTile		*CurrentT;
     CellDef		*def = destUse->cu_def;
     TileType		newtype;
+    ExtDevice		*devptr;
 
     csa2.csa2_use = destUse;
     csa2.csa2_xMask = xMask;
@@ -441,21 +447,22 @@ DBTreeCopyConnectDCS(scx, mask, xMask, connect, area, destUse)
     {
 	TTMaskZero(&DiffTypeBitMask);
 	TTMaskZero(&ResSubsTypeBitMask);
-	for (tran = TT_TECHDEPBASE; tran < TT_MAXTYPES; tran++)
+	for (dev = TT_TECHDEPBASE; dev < TT_MAXTYPES; dev++)
 	{
-	    tran_name = (ExtCurStyle->exts_transName)[tran];
-	    if ((tran_name != NULL) && (strcmp(tran_name, "None")))
+	    devptr = ExtCurStyle->exts_device[dev];
+	    if ((devptr != NULL) && ((dev_name = devptr->exts_deviceName) != NULL)
+		    && (strcmp(dev_name, "None")))
 	    {
 		TTMaskSetMask(&DiffTypeBitMask,
-	      		&(ExtCurStyle->exts_transSDTypes[tran][0]));
+	      		&(devptr->exts_deviceSDTypes[0]));
 		TTMaskSetMask(&ResSubsTypeBitMask,
-	      		&(ExtCurStyle->exts_transSubstrateTypes[tran]));
+	      		&(devptr->exts_deviceSubstrateTypes));
 	    }
 	}
 	first = 0;
     }
 
-    TransList = NULL;
+    DevList = NULL;
     DBTreeSrTiles(scx, mask, xMask, dbcConnectFuncDCS, (ClientData) &csa2);
     while (csa2.csa2_top >= 0)
     {
@@ -471,7 +478,7 @@ DBTreeCopyConnectDCS(scx, mask, xMask, connect, area, destUse)
     }
     freeMagic((char *)csa2.csa2_list);
 
-    for (CurrentT = TransList; CurrentT != NULL; CurrentT=CurrentT->nextTran)
+    for (CurrentT = DevList; CurrentT != NULL; CurrentT=CurrentT->nextDev)
     {
 	TileType  t = CurrentT->type;
 	TileType  nt;
@@ -489,7 +496,7 @@ DBTreeCopyConnectDCS(scx, mask, xMask, connect, area, destUse)
     }
 
     DBReComputeBbox(def);
-    return(TransList);
+    return(DevList);
 }
 
 
@@ -499,7 +506,7 @@ DBTreeCopyConnectDCS(scx, mask, xMask, connect, area, destUse)
  *
  * resSubSearchFunc --
  *
- *	called when DBSrPaintArea finds a transistor within
+ *	called when DBSrPaintArea finds a device within
  *	a substrate area.
  *
  * Results:
@@ -517,22 +524,24 @@ resSubSearchFunc(tile,cx)
 	
 
 {
-     ResTranTile	*thisTran;
-     Rect		tranArea;
+     ResDevTile		*thisDev;
+     Rect		devArea;
      TileType		t = TiGetType(tile);
+     ExtDevice		*devptr;
 
      /* Right now, we're only going to extract substrate terminals for 
      	devices with only one diffusion terminal, principally bipolar
 	devices.
      */
-     if (ExtCurStyle->exts_transSDCount[t] >1) return 0;
-     TiToRect(tile, &tranArea);
-     thisTran = (ResTranTile *) mallocMagic((unsigned)(sizeof(ResTranTile)));
-     GeoTransRect(&cx->tc_scx->scx_trans, &tranArea, &thisTran->area);
-     thisTran->type = t;
-     thisTran->nextTran = TransList;
-     TransList = thisTran;
-     ResCalcPerimOverlap(thisTran,tile);
+     devptr = ExtCurStyle->exts_device[t]
+     if (devptr->exts_deviceSDCount >1) return 0;
+     TiToRect(tile, &devArea);
+     thisDev = (ResDevTile *) mallocMagic((unsigned)(sizeof(ResDevTile)));
+     GeoTransRect(&cx->tc_scx->scx_trans, &devArea, &thisDev->area);
+     thisDev->type = t;
+     thisDev->nextDev = DevList;
+     DevList = thisDev;
+     ResCalcPerimOverlap(thisDev,tile);
      
      return 0;
 }

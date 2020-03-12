@@ -107,7 +107,7 @@ ResDoneWithNode(resptr)
 	  }
      }
 
-     /* Eliminations that can be only if there are no transistors connected */
+     /* Eliminations that can be only if there are no devices connected */
      /* to node. Series and dangling connections fall in this group.	    */
 
      if ((resptr->rn_te == NULL) && (resptr->rn_why != RES_NODE_ORIGIN)
@@ -219,7 +219,7 @@ ResFixParallel(elimResis,newResis)
 /*
  *-------------------------------------------------------------------------
  *
- * ResSeriesCheck -- for nodes with no transistors, sees if a series
+ * ResSeriesCheck -- for nodes with no devices, sees if a series
  	or loop combination is possible.
  *
  * Results: returns SINGLE,LOOP,or SERIES if succesful.
@@ -403,7 +403,7 @@ ResSeriesCheck(resptr)
 /*
  *-------------------------------------------------------------------------
  *
- * ResParallelCheck -- tries to do parallel combinations of transistors.
+ * ResParallelCheck -- tries to do parallel combinations of devices.
  *
  * Results: returns PARALLEL if successful
  *
@@ -641,7 +641,7 @@ ResMergeNodes(node1,node2,pendingList,doneList)
 	
  {
       resElement	*workingRes,*tRes;
-      tElement		*workingFet,*tFet;
+      tElement		*workingDev,*tDev;
       jElement		*workingJunc,*tJunc;
       cElement		*workingCon,*tCon;
       Tile		*tile;
@@ -677,13 +677,13 @@ ResMergeNodes(node1,node2,pendingList,doneList)
       /* combine relevant flags */
       node1->rn_status |= (node2->rn_status & RN_MAXTDI);
 
-      /*merge transistor lists */
-      workingFet = node2->rn_te;
-      while (workingFet != NULL)
+      /*merge device lists */
+      workingDev = node2->rn_te;
+      while (workingDev != NULL)
       {
-      	   if (workingFet->te_thist->rt_status & RES_TRAN_PLUG)
+      	   if (workingDev->te_thist->rd_status & RES_DEV_PLUG)
 	   {
-	       ResPlug	*plug = (ResPlug *) workingFet->te_thist;
+	       ResPlug	*plug = (ResPlug *) workingDev->te_thist;
 	       if (plug->rpl_node == node2)
 	       {
 	       	    plug->rpl_node = node1;
@@ -697,19 +697,18 @@ ResMergeNodes(node1,node2,pendingList,doneList)
 	   }
 	   else
 	   {
-	        
 		int j;
 
-		for (j=0;j!= RT_TERMCOUNT;j++)
-		if (workingFet->te_thist->rt_terminals[j] == node2)
+		for (j = 0; j != workingDev->te_thist->rd_nterms; j++)
+		if (workingDev->te_thist->rd_terminals[j] == node2)
 	        {
-	   	     workingFet->te_thist->rt_terminals[j] = node1;
+	   	     workingDev->te_thist->rd_terminals[j] = node1;
 	        }
 	   }
-	   tFet = workingFet;
-	   workingFet = workingFet->te_nextt;
-	   tFet->te_nextt = node1->rn_te;
-	   node1->rn_te = tFet;
+	   tDev = workingDev;
+	   workingDev = workingDev->te_nextt;
+	   tDev->te_nextt = node1->rn_te;
+	   node1->rn_te = tDev;
       }
 
       /* append junction lists */

@@ -1389,12 +1389,14 @@ W3DloadWindow(window, name)
     CellDef *newEditDef;
     CellUse *newEditUse;
     Rect loadBox;
+    bool dereference;
 
     newEditDef = DBCellLookDef(name);
     if (newEditDef == (CellDef *)NULL)
 	return FALSE;
 
-    if (!DBCellRead(newEditDef, (char *)NULL, TRUE, NULL))
+    dereference = (newEditDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+    if (!DBCellRead(newEditDef, (char *)NULL, TRUE, dereference, NULL))
 	return FALSE;
 
     DBReComputeBbox(newEditDef);

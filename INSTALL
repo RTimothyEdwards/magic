@@ -7,6 +7,8 @@ Autoconf Capsule Summary:
 	make
 	make install
 
+    Note: Remember to use 'gmake' on FreeBSD.
+
     Autoconf options (use "./configure --help" for a complete list):
 
 	--prefix=DIR	Indicates the install directory.  Determines the

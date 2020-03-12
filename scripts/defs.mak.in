@@ -33,6 +33,14 @@ SYSDIR                 = ${libdir}/magic/sys
 SCMDIR                 = ${libdir}/magic/scm
 TCLDIR                 = ${libdir}/magic/tcl
 
+# Install targets may be different if dist_prefix is set by configure
+INSTALL_BINDIR         = @DIST_DIR@/bin
+INSTALL_MANDIR         = @DIST_DIR@/share/man
+INSTALL_LIBDIR         = @DIST_DIR@/lib
+INSTALL_SYSDIR         = ${INSTALL_LIBDIR}/magic/sys
+INSTALL_SCMDIR         = ${INSTALL_LIBDIR}/magic/scm
+INSTALL_TCLDIR         = ${INSTALL_LIBDIR}/magic/tcl
+
 MAIN_EXTRA_LIBS	       = @extra_libs@
 LD_EXTRA_LIBS	       = @ld_extra_libs@
 LD_SHARED	       = @ld_extra_objs@
@@ -50,9 +58,8 @@ AR                     = ar
 ARFLAGS                = crv
 LINK                   = ld -r
 LD                     = @LD@
-M4		       = @M4@
 MCPP		       = @MCPP@
-SCPP		       = @SCPP@
+MSED		       = @MSED@
 RANLIB                 = @RANLIB@
 SHDLIB_EXT             = @SHDLIB_EXT@
 LDDL_FLAGS             = ${LDFLAGS} @LDDL_FLAGS@

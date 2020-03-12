@@ -13,11 +13,11 @@ SCMSRC    = default.scm box.scm label.scm draw.scm drc.scm \
 
 include ${MAGICDIR}/defs.mak
 
-INST_SCMSRC = ${SCMSRC:%=$(DESTDIR)${SCMDIR}/%}
+INST_SCMSRC = ${SCMSRC:%=$(DESTDIR)${INSTALL_SCMDIR}/%}
 
 install: ${INST_SCMSRC}
 
 $(DESTDIR)${SCMDIR}/%: scm/%
-	${CP} scm/$* $(DESTDIR)$(SCMDIR)/$*
+	${CP} scm/$* $(DESTDIR)$(INSTALL_SCMDIR)/$*
 
 include ${MAGICDIR}/rules.mak

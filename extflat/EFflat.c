@@ -59,7 +59,8 @@ bool efFlatGlobCmp(HierName *, HierName *);
 char *efFlatGlobCopy(HierName *);
 void efFlatGlobError(EFNodeName *, EFNodeName *);
 int efAddNodes(HierContext *, bool);
-int efAddOneConn(HierContext *, char *, char *, Connection *);
+int efAddConns(HierContext *, bool);
+int efAddOneConn(HierContext *, char *, char *, Connection *, bool);
 
 
 /*
@@ -126,7 +127,7 @@ EFFlatBuild(name, flags)
 	if (flags & EF_NOFLATSUBCKT)
 	    efFlatNodesStdCell(&efFlatContext);
 	else
-	    efFlatNodes(&efFlatContext);
+	    efFlatNodes(&efFlatContext, FALSE, TRUE);
 	efFlatKills(&efFlatContext);
 	if (!(flags & EF_NONAMEMERGE))
 	    efFlatGlob();
@@ -193,8 +194,8 @@ EFFlatBuildOneLevel(def, flags)
     efFlatContext.hc_x = efFlatContext.hc_y = 0;
     efFlatRootUse.use_def = efFlatRootDef;
 
-    /* Record all nodes of the next level in the hierarchy */
-    efHierSrUses(&efFlatContext, efAddNodes, (ClientData)TRUE);
+    /* Record all nodes down the hierarchy from here */
+    efFlatNodes(&efFlatContext, (ClientData)TRUE, (ClientData)FALSE);
 
     /* Expand all subcells that contain connectivity information but	*/
     /* no active devices (including those in subcells).			*/
@@ -205,12 +206,12 @@ EFFlatBuildOneLevel(def, flags)
     if (usecount > 0)
 	efHierSrUses(&efFlatContext, efFlatNodesDeviceless, (ClientData)&usecount);
 
-    if ((usecount == 0) && (efFlatRootUse.use_def->def_devs == NULL))
+    if ((usecount == 0) && (HashGetNumEntries(&efFlatRootUse.use_def->def_devs) == 0))
 	efFlatRootUse.use_def->def_flags |= DEF_NODEVICES;
 
     /* Record all local nodes */
     efAddNodes(&efFlatContext, FALSE);
-    efAddConns(&efFlatContext);
+    efAddConns(&efFlatContext, TRUE);
 
     efFlatKills(&efFlatContext);
     if (!(flags & EF_NONAMEMERGE))
@@ -291,16 +292,16 @@ EFFlatDone()
  */
 
 int
-efFlatNodes(hc)
+efFlatNodes(hc, stdcell, doWarn)
     HierContext *hc;
 {
     (void) efHierSrUses(hc, efFlatNodes);
 
     /* Add all our own nodes to the table */
-    efAddNodes(hc, FALSE);
+    efAddNodes(hc, stdcell);
 
     /* Process our own connections and adjustments */
-    (void) efAddConns(hc);
+    (void) efAddConns(hc, doWarn);
 
     return (0);
 }
@@ -352,7 +353,7 @@ efFlatNodesStdCell(hc)
 
     /* Process our own connections and adjustments */
     if (!(hc->hc_use->use_def->def_flags & DEF_SUBCIRCUIT))
-	(void) efAddConns(hc);
+	(void) efAddConns(hc, TRUE);
 
     return (0);
 }
@@ -372,13 +373,13 @@ efFlatNodesDeviceless(hc, cdata)
     if (newcount > 0)
 	efHierSrUses(hc, efFlatNodesDeviceless, (ClientData)&newcount);
 
-    if ((hc->hc_use->use_def->def_devs == NULL) && (newcount == 0))
+    if ((HashGetNumEntries(&hc->hc_use->use_def->def_devs) == 0) && (newcount == 0))
     {
 	/* Add all our own nodes to the table */
 	efAddNodes(hc, TRUE);
 
 	/* Process our own connections and adjustments */
-	efAddConns(hc);
+	efAddConns(hc, TRUE);
 
 	/* Mark this definition as having no devices, so it will not be visited */
 	hc->hc_use->use_def->def_flags |= DEF_NODEVICES;
@@ -430,7 +431,7 @@ efAddNodes(hc, stdcell)
     bool is_subcircuit = (def->def_flags & DEF_SUBCIRCUIT) ? TRUE : FALSE;
 
     scale = def->def_scale;
-    size = sizeof (EFNode) + (efNumResistClasses-1) * sizeof (PerimArea);
+    size = sizeof (EFNode) + (efNumResistClasses-1) * sizeof (EFPerimArea);
 
     for (node = (EFNode *) def->def_firstn.efnode_next;
 	    node != &def->def_firstn;
@@ -467,10 +468,10 @@ efAddNodes(hc, stdcell)
 	newnode->efnode_type = node->efnode_type;
 	if (!stdcell)
 	    bcopy((char *) node->efnode_pa, (char *) newnode->efnode_pa,
-			efNumResistClasses * sizeof (PerimArea));
+			efNumResistClasses * sizeof (EFPerimArea));
 	else
 	    bzero((char *) newnode->efnode_pa,
-			efNumResistClasses * sizeof (PerimArea));
+			efNumResistClasses * sizeof (EFPerimArea));
 	GeoTransRect(&hc->hc_trans, &node->efnode_loc, &newnode->efnode_loc);
 
 	/* Scale the result by "scale" --- hopefully we end up with an integer	*/
@@ -527,6 +528,7 @@ efAddNodes(hc, stdcell)
 	    HashSetValue(he, (char *) newname);
 	    newname->efnn_node = newnode;
 	    newname->efnn_hier = hierName;
+	    newname->efnn_port = -1;
 	    if (newnode->efnode_name)
 	    {
 		newname->efnn_next = newnode->efnode_name->efnn_next;
@@ -561,8 +563,9 @@ efAddNodes(hc, stdcell)
  */
 
 int
-efAddConns(hc)
+efAddConns(hc, doWarn)
     HierContext *hc;
+    bool doWarn;
 {
     Connection *conn;
 
@@ -575,9 +578,9 @@ efAddConns(hc)
     {
 	/* Special case for speed when no array info is present */
 	if (conn->conn_1.cn_nsubs == 0)
-	    efAddOneConn(hc, conn->conn_name1, conn->conn_name2, conn);
+	    efAddOneConn(hc, conn->conn_name1, conn->conn_name2, conn, doWarn);
 	else
-	    efHierSrArray(hc, conn, efAddOneConn, (ClientData) NULL);
+	    efHierSrArray(hc, conn, efAddOneConn, (ClientData)doWarn);
     }
 
     return (0);
@@ -604,16 +607,17 @@ efAddConns(hc)
  */
 
 int
-efAddOneConn(hc, name1, name2, conn)
+efAddOneConn(hc, name1, name2, conn, doWarn)
     HierContext *hc;
     char *name1, *name2;	/* These are strings, not HierNames */
     Connection *conn;
+    bool doWarn;
 {
     HashEntry *he1, *he2;
     EFNode *node, *newnode;
     int n;
 
-    he1 = EFHNLook(hc->hc_hierName, name1, "connect(1)");
+    he1 = EFHNLook(hc->hc_hierName, name1, (doWarn) ? "connect(1)" : NULL);
     if (he1 == NULL)
 	return 0;
 
@@ -629,7 +633,7 @@ efAddOneConn(hc, name1, name2, conn)
     /* Merge this node with conn_name2 if one was specified */
     if (name2)
     {
-	he2 = EFHNLook(hc->hc_hierName, name2, "connect(2)");
+	he2 = EFHNLook(hc->hc_hierName, name2, (doWarn) ? "connect(2)" : NULL);
 	if (he2 == NULL)
 	    return 0;
 	newnode = ((EFNodeName *) HashGetValue(he2))->efnn_node;
@@ -1018,14 +1022,23 @@ efFlatSingleCap(hc, name1, name2, conn)
     EFNode *n1, *n2;
     HashEntry *he;
     EFCoupleKey ck;
+    static char msg0[] = "cap(1)";
+    static char msg1[] = "cap(2)";
+    char *msg;
+    
+    /* Connections that are below threshold (ext2spice hierarchy only)	*/
+    /* will be missing.  Do not generate errors for these.		*/
 
-    if ((he = EFHNLook(hc->hc_hierName, name1, "cap(1)")) == NULL)
+    msg = (fabs((double)conn->conn_cap / 1000) < EFCapThreshold) ? NULL : msg0;
+
+    if ((he = EFHNLook(hc->hc_hierName, name1, msg)) == NULL)
 	return 0;
     n1 = ((EFNodeName *) HashGetValue(he))->efnn_node;
     if (n1->efnode_flags & EF_KILLED)
 	return 0;
 
-    if ((he = EFHNLook(hc->hc_hierName, name2, "cap(2)")) == NULL)
+    if (msg) msg = msg1;
+    if ((he = EFHNLook(hc->hc_hierName, name2, msg)) == NULL)
 	return 0;
     n2 = ((EFNodeName *) HashGetValue(he))->efnn_node;
     if (n2->efnode_flags & EF_KILLED)

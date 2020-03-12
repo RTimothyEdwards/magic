@@ -66,11 +66,23 @@ DBPropPut(cellDef, name, value)
 	HashInit( (HashTable *) cellDef->cd_props, 8, 0);
     }
     htab = (HashTable *) cellDef->cd_props;
+
+    /* Special handling of FIXED_BBOX, which uses CDFIXEDBBOX as a quick lookup */
+    if (!strcmp(name, "FIXED_BBOX"))
+    {
+	if (value == (ClientData)NULL)
+	    cellDef->cd_flags &= ~CDFIXEDBBOX;
+	else
+	    cellDef->cd_flags |= CDFIXEDBBOX;
+    }
     
     entry = HashFind(htab, name);
     oldvalue = (char *)HashGetValue(entry);
     if (oldvalue != NULL) freeMagic(oldvalue);
-    HashSetValue(entry, value);
+    if (value == (ClientData)NULL)
+	HashRemove(htab, name);
+    else
+	HashSetValue(entry, value);
 }
 
 /* ----------------------------------------------------------------------------
@@ -202,4 +214,8 @@ DBPropClearAll(cellDef)
     HashKill(htab);
     freeMagic((char *) htab);
     cellDef->cd_props = (ClientData) NULL;
+
+    /* Since CDFIXEDBBOX requires a FIXED_BBOX property, clearing all	*/
+    /* properties necessarily means this flag must be clear.		*/
+    cellDef->cd_flags &= ~CDFIXEDBBOX;
 }

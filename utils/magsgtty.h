@@ -22,11 +22,19 @@
 #define _MAGSGTTY_H
 
 #if !defined(SYSV) && !defined(CYGWIN)
+
 # ifdef	ALPHA
 # undef MAX
 # undef MIN
 # endif
-#include <sgtty.h>
+
+# ifndef COMPAT_43TTY
+# define COMPAT_43TTY
+# endif
+
+#include <sys/ioctl.h>
+#include <sys/ioctl_compat.h>
+
 #else
 #include <termio.h>
 #endif

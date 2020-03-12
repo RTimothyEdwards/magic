@@ -101,42 +101,42 @@ ResPrintResistorList(fp,list)
 /*
  *-------------------------------------------------------------------------
  *
- * ResPrintTransistorList--
+ * ResPrintDeviceList--
  *
  *
  *  Results: none
  *
- *  Side effects: prints out transistors in list to file fp.
+ *  Side effects: prints out devices in list to file fp.
  *
  *-------------------------------------------------------------------------
  */
 
 void
-ResPrintTransistorList(fp,list)
+ResPrintDeviceList(fp,list)
 	FILE *fp;
-	resTransistor *list;
+	resDevice *list;
 
 {
     static char termtype[] = {'g','s','d','c'};
     int i;
-    for (; list != NULL; list = list->rt_nextTran)
+    for (; list != NULL; list = list->rd_nextDev)
     {
-     	if (list->rt_status & RES_TRAN_PLUG) continue;
+     	if (list->rd_status & RES_DEV_PLUG) continue;
 	if (fp == stdout)
-	    TxPrintf("t w %d l %d ", list->rt_width, list->rt_length);
+	    TxPrintf("t w %d l %d ", list->rd_width, list->rd_length);
 	else
-	    fprintf(fp, "t w %d l %d ", list->rt_width, list->rt_length);
-	for (i=0; i!= RT_TERMCOUNT;i++)
+	    fprintf(fp, "t w %d l %d ", list->rd_width, list->rd_length);
+	for (i = 0; i != list->rd_nterms; i++)
 	{
-	    if (list->rt_terminals[i] == NULL) continue;
+	    if (list->rd_terminals[i] == NULL) continue;
 	    if (fp == stdout)
 		TxPrintf("%c (%d,%d) ",termtype[i],
-	       		list->rt_terminals[i]->rn_loc.p_x,
-			list->rt_terminals[i]->rn_loc.p_y);
+	       		list->rd_terminals[i]->rn_loc.p_x,
+			list->rd_terminals[i]->rn_loc.p_y);
 	    else
 		fprintf(fp, "%c (%d,%d) ",termtype[i],
-	       		list->rt_terminals[i]->rn_loc.p_x,
-			list->rt_terminals[i]->rn_loc.p_y);
+	       		list->rd_terminals[i]->rn_loc.p_x,
+			list->rd_terminals[i]->rn_loc.p_y);
 	       
 	}
 	if (fp == stdout)

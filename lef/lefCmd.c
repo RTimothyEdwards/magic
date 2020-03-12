@@ -87,6 +87,15 @@ CmdLef(w, cmd)
 					 * the macro other than pin area
 					 * immediately surrounding labels.
 					 */
+    bool recurse = FALSE;		/* If TRUE, recurse on all subcells
+					 * during "writeall".  By default,
+					 * only the immediate children of the
+					 * top level cell are output.
+					 */
+    bool defLabelNets = FALSE;		/* If TRUE, attach a label to the
+					 * center of the first rectangle
+					 * found on that net.
+					 */
 
     static char *cmdLefOption[] =
     {	
@@ -95,7 +104,9 @@ CmdLef(w, cmd)
 	"write [filename] [-tech]	write LEF for current cell\n"
 	"    write [filename] -hide	hide all details other than ports",
 	"writeall			write all cells including the top-level cell\n"
-	"    writeall -notop		write all subcells of the top-level cell",
+	"    writeall -notop		write all children of the top-level cell\n"
+	"    writeall -all		recurse on all subcells of the top-level cell\n",
+	"    writeall -hide		hide all details other than ports",
 	"help                   	print this help information",
 	NULL
     };
@@ -103,7 +114,8 @@ CmdLef(w, cmd)
     static char *cmdDefOption[] =
     {	
 	"read [filename]		read a DEF file filename[.def]",
-	"write [cell] [-allspecial]	write DEF for current or indicated cell",
+	"write [cell] [-allspecial]	write DEF for current or indicated cell\n",
+	"write -labels			label every net in NETS with the net name",
 	"writeall			(use \"flatten -nosubckt\" + \"def"
 					" write\" instead)",
 	"help                   	print this help information",
@@ -151,22 +163,32 @@ CmdLef(w, cmd)
     switch (option)
     {
 	case LEF_READ:
-            if (cmd->tx_argc != 3)
+            if (cmd->tx_argc > 3)
 	    {
-		if (cmd->tx_argc == 4)
+		for (i = 3; i < cmd->tx_argc; i++)
 		{
-		    if (*(cmd->tx_argv[3]) == '-')
-			if (!strncmp(cmd->tx_argv[3], "-import", 7))
+		    if (*(cmd->tx_argv[i]) == '-')
+		    {
+			if (!strncmp(cmd->tx_argv[i], "-import", 7))
 			    lefImport = TRUE;
+			else if (!strncmp(cmd->tx_argv[i], "-label", 6))
+			{
+			    if (is_lef)
+				TxPrintf("The \"-labels\" option is only for def read\n");
+			    else
+				defLabelNets = TRUE;
+			}
+		    }
 		}
-		else
-		    goto wrongNumArgs;
 	    }
+	    else if (cmd->tx_argc < 3)
+		goto wrongNumArgs;
+
             namep = cmd->tx_argv[2];
 	    if (is_lef)
 		LefRead(namep, lefImport);
 	    else
-		DefRead(namep);
+		DefRead(namep, defLabelNets);
 	    break;
 	case LEF_WRITEALL:
 	    if (!is_lef)
@@ -184,11 +206,15 @@ CmdLef(w, cmd)
 			    lefTopCell = FALSE;
 			else if (!strncmp(cmd->tx_argv[i], "-tech", 5))
 			    lefTech = TRUE;
+			else if (!strncmp(cmd->tx_argv[i], "-hide", 5))
+			    lefHide = TRUE;
+			else if (!strncmp(cmd->tx_argv[i], "-all", 4))
+			    recurse = TRUE;
 			else goto wrongNumArgs;
 		    }
 		    else goto wrongNumArgs;
 		}
-		LefWriteAll(selectedUse, lefTopCell, lefTech);
+		LefWriteAll(selectedUse, lefTopCell, lefTech, lefHide, recurse);
 	    }
 	    break;
 	case LEF_WRITE:

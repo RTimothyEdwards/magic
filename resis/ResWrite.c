@@ -38,7 +38,7 @@ static char sccsid[] = "@(#)Write.c	4.10 MAGIC (Stanford Addition) 07/86";
 
 #define	RT_SIZE	0xf
 #define MAXTOKEN 256
-#define TRANFLATSIZE 1024
+#define DEVFLATSIZE 1024
 #define RESGROUPSIZE  256
 
 void
@@ -136,15 +136,15 @@ resCurrentPrintFunc(node,resistor,filename)
 	FILE		*filename;
 
 {
-     tElement	 *workingTran;
+     tElement	 *workingDev;
      float	i_sum=0.0;
      
-     for (workingTran = node->rn_te; workingTran != NULL;
-     				workingTran=workingTran->te_nextt)
+     for (workingDev = node->rn_te; workingDev != NULL;
+     				workingDev=workingDev->te_nextt)
      {
-          if ((workingTran->te_thist->rt_status & RES_TRAN_PLUG) ||
-	  	workingTran->te_thist->rt_gate != node)
-	  i_sum += workingTran->te_thist->rt_i;
+          if ((workingDev->te_thist->rd_status & RES_DEV_PLUG) ||
+	  	workingDev->te_thist->rd_gate != node)
+	  i_sum += workingDev->te_thist->rd_i;
      }
      if (i_sum != 0.0)
      {
@@ -167,11 +167,11 @@ ResDeviceCounts()
 {
          int i,j,k;
          resNode *n;
-         resTransistor *t;
+         resDevice *t;
          resResistor *r;
 
 	 for (n=ResNodeList,i=0;n!=NULL;n=n->rn_more,i++);
-         for (t=ResTransList,j=0;t!=NULL;t=t->rt_nextTran,j++);
+         for (t=ResDevList,j=0;t!=NULL;t=t->rd_nextDev,j++);
          for (r=ResResList,k=0;r!=NULL;r=r->rr_nextResistor,k++);
          TxError("n=%d t=%d r=%d\n",i,j,k);
 	 TxFlushErr();

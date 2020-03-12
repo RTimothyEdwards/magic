@@ -372,10 +372,10 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
     char *filename;
 {
     int nbytes, rtype;
-    char *strname = NULL, *newnameptr, newname[CALMANAMELENGTH*2];
+    char *strname = NULL, *newnameptr;
     HashEntry *he, *he2;
     CellDef *edef;
-    char *prefix;
+    char *prefix = NULL;
 
     /* Make sure this is a structure; if not, let the caller know we're done */
     PEEKRH(nbytes, rtype);
@@ -397,23 +397,35 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
     calmaOutDate(def->cd_timestamp, outf);
     calmaOutDate(time((time_t *) 0), outf);
 
+    /* Find the structure's unique prefix, in case structure calls subcells */
+    /* that are not yet defined.					    */
+
+    he2 = HashFind(&calmaLibHash, filename);
+    if (he2 == NULL)
+	TxError("Fatal error:  Library %s not recorded!\n", filename);
+    else
+	prefix = (char *)HashGetValue(he2);
+
     /* Prefix structure name with def name, and output new structure name */
     he = HashFind(calmaDefHash, strname);
     if ((newnameptr = (char *)HashGetValue(he)) != NULL)
     {
 	/* Structure is defined more than once */
-	TxError("Structure %s defined redundantly in GDS\n", strname);
+	if (*newnameptr != '0')
+	    TxError("Structure %s defined redundantly in GDS\n", strname);
+	else
+	    *newnameptr = '1';
 	/* To be considered:  Should the structure be output more than once? */
-	calmaOutStringRecord(CALMA_STRNAME, newnameptr, outf);
+	calmaOutStringRecord(CALMA_STRNAME, newnameptr + 1, outf);
     }
     else if (!strcmp(strname, def->cd_name))
     {
 	/* This is the top level cell being defined.  Its name	*/
 	/* does not get modified.				*/
 
-	newnameptr = mallocMagic(strlen(strname) + 1);
-	sprintf(newnameptr, "%s", strname);
-	calmaOutStringRecord(CALMA_STRNAME, newnameptr, outf);
+	newnameptr = mallocMagic(strlen(strname) + 2);
+	sprintf(newnameptr, "1%s", strname);
+	calmaOutStringRecord(CALMA_STRNAME, newnameptr + 1, outf);
 	HashSetValue(he, (char *)newnameptr);
     }
     else
@@ -444,26 +456,20 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		/* Same library, so keep the cellname and mark the cell */
 		/* as having been written to GDS.			*/
 
-		newnameptr = mallocMagic(strlen(strname) + 1);
-		sprintf(newnameptr, "%s", strname);
+		newnameptr = mallocMagic(strlen(strname) + 2);
+		sprintf(newnameptr, "1%s", strname);
 		HashSetValue(he, (char *)newnameptr);
 	    }
 	    else
 	    {
 		/* Find the unique library prefix and prepend it to the cell name */
 
-		he2 = HashFind(&calmaLibHash, filename);
-		if (he2 == NULL)
-		{
-		    /* Should never happen */
-		    TxError("Fatal error:  Library %s not recorded!\n", filename);
-		    newnameptr = strname;
-		}
+		if (prefix == NULL)
+		    newnameptr = strname;   /* Should never happen */
 		else
 		{
-		    prefix = (char *)HashGetValue(he2);
-		    newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 8);
-		    sprintf(newnameptr, "%s_%s", prefix, strname);
+		    newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 9);
+		    sprintf(newnameptr, "1%s_%s", prefix, strname);
 		    HashSetValue(he, (char *)newnameptr);
 		}
 	    }
@@ -472,22 +478,16 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 	{
 	    /* Find the unique library prefix and prepend it to the cell name */
 
-	    he2 = HashFind(&calmaLibHash, filename);
-	    if (he2 == NULL)
-	    {
-		/* Should never happen */
-		TxError("Fatal error:  Library %s not recorded!\n", filename);
-		newnameptr = strname;
-	    }
+	    if (prefix == NULL)
+		newnameptr = strname;	    /* Should never happen */
 	    else
 	    {
-		prefix = (char *)HashGetValue(he2);
-		newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 8);
-		sprintf(newnameptr, "%s_%s", prefix, strname);
+		newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 9);
+		sprintf(newnameptr, "1%s_%s", prefix, strname);
 		HashSetValue(he, (char *)newnameptr);
 	    }
 	}
-	calmaOutStringRecord(CALMA_STRNAME, newnameptr, outf);
+	calmaOutStringRecord(CALMA_STRNAME, newnameptr + 1, outf);
     }
     freeMagic(strname);
 
@@ -525,7 +525,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		newnameptr = (char *)HashGetValue(he);
 		if (newnameptr != NULL)
 		{
-		    calmaOutStringRecord(CALMA_SNAME, newnameptr, outf);
+		    calmaOutStringRecord(CALMA_SNAME, newnameptr + 1, outf);
 		}
 		else
 		{
@@ -535,14 +535,14 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		    /* the same way used for structure definitions.	*/
 
 		    newnameptr = (char *)mallocMagic(strlen(strname) +
-				strlen(prefix) + 8);
-		    sprintf(newnameptr, "%s_%s", prefix, strname);
+				strlen(prefix) + 9);
+		    sprintf(newnameptr, "0%s_%s", prefix, strname);
 
-		    edef = DBCellLookDef(newnameptr);
+		    edef = DBCellLookDef(newnameptr + 1);
 		    if (edef != NULL)
-			sprintf(newnameptr, "%s_%s[[0]]", prefix, strname);
+			sprintf(newnameptr, "0%s_%s[[0]]", prefix, strname);
 		    HashSetValue(he, (char *)newnameptr);
-		    calmaOutStringRecord(CALMA_SNAME, newnameptr, outf);
+		    calmaOutStringRecord(CALMA_SNAME, newnameptr + 1, outf);
 		}
 		break;
 
@@ -746,8 +746,11 @@ calmaProcessDef(def, outf)
 
     /* Read the cell in if it is not already available. */
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(def, (char *) NULL, TRUE, NULL))
+    {
+	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL))
 	    return (0);
+    }
 
     /*
      * Output the definitions for any of our descendants that have
@@ -1024,7 +1027,7 @@ calmaOutFunc(def, f, cliprect)
 				((lab->lab_flags & PORT_NUM_MASK) == i))
 		    {
 			calmaWriteLabelFunc(lab, type, f);
-			break;	
+			/* break; */  /* Do not limit to unique labels! */
 		    }
 		}
     }
@@ -1316,7 +1319,7 @@ calmaOutStructName(type, def, f)
     CellDef *def;
     FILE *f;
 {
-    char defname[CALMANAMELENGTH+1];
+    char *defname;
     unsigned char c;
     char *cp;
     int calmanum;
@@ -1341,10 +1344,11 @@ calmaOutStructName(type, def, f)
 	}
 	/* We really should ensure that the new name is unique. . . */
     }
-    if (cp <= def->cd_name + CALMANAMELENGTH)
+    if ((!(CIFCurStyle->cs_flags & CWF_STRING_LIMIT)) ||
+	    (cp <= def->cd_name + CALMANAMELENGTH))
     {
 	/* Yes, it's legal: use it */
-	(void) strcpy(defname, def->cd_name);
+	defname = StrDup(NULL, def->cd_name);
     }
     else
     {
@@ -1352,12 +1356,14 @@ calmaOutStructName(type, def, f)
 bad:
 	calmanum = (int) def->cd_client;
 	if (calmanum < 0) calmanum = -calmanum;
+	defname = (char *)mallocMagic(32);
 	(void) sprintf(defname, "XXXXX%d", calmanum);
 	TxError("Warning: string in output unprintable; changed to \'%s\'\n",
 		 defname);
     }
 
     calmaOutStringRecord(type, defname, f);
+    freeMagic(defname);
 }
 
 /* Added by NP 8/21/2004 */
@@ -2734,7 +2740,7 @@ calmaOutDate(t, f)
 void
 calmaOutStringRecord(type, str, f)
     int type;		/* Type of this record (data type is ASCII string) */
-    char *str;	/* String to be output (<= CALMANAMELENGTH chars) */
+    char *str;	/* String to be output */
     FILE *f;	/* Stream file */
 {
     int len;
@@ -2759,9 +2765,16 @@ calmaOutStringRecord(type, str, f)
      * last CALMANAMELENGTH characters (since cell names are more
      * likely to be unique in the last characters than in the first
      * characters).
+     *
+     * NOTE:  GDS format has not used CALMANAMELENGTH restrictions
+     * for ages.  Since this is a 2-byte record, then is it not
+     * worth checking the 65536 - 4 character limit.  The CALMANAMELENGTH
+     * restriction must be enabled in the cifoutput flags.
      */
+
+
     if (len & 01) len++;
-    if (len > CALMANAMELENGTH)
+    if ((CIFCurStyle->cs_flags & CWF_STRING_LIMIT) && (len > CALMANAMELENGTH))
     {
 	TxError("Warning:  Cellname %s truncated ", str);
 	TxError("to %s (GDS format limit)\n", str + len - CALMANAMELENGTH);

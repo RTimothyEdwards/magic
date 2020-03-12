@@ -282,7 +282,7 @@ calmaParseStructure(filename)
 {
     static int structs[] = { CALMA_STRCLASS, CALMA_STRTYPE, -1 };
     int nbytes, rtype, nsrefs, osrefs, npaths;
-    char *strname = NULL, newname[CALMANAMELENGTH*2];
+    char *strname = NULL;
     HashEntry *he;
     int suffix;
     int mfactor;
@@ -327,15 +327,21 @@ calmaParseStructure(filename)
 	}
 	else
 	{
+	    char *newname;
+
 	    CalmaReadError("Cell \"%s\" was already defined in this file.\n",
 				strname);
+	    newname = (char *)mallocMagic(strlen(strname) + 20);
 	    for (suffix = 1; HashGetValue(he) != NULL; suffix++)
 	    {
 		(void) sprintf(newname, "%s_%d", strname, suffix);
 		he = HashFind(&calmaDefInitHash, newname);
 	    }
 	    CalmaReadError("Giving this cell a new name: %s\n", newname);
-	    strncpy(strname, newname, CALMANAMELENGTH*2);
+	    freeMagic(strname);
+	    strname = mallocMagic(strlen(newname) + 1);
+	    strcpy(strname, newname);
+	    freeMagic(newname);
 	}
     }
     cifReadCellDef = calmaFindCell(strname, &was_called);
@@ -405,17 +411,18 @@ calmaParseStructure(filename)
      */
     if (CalmaFlattenUses && (!was_called) && (npaths < 10) && (nsrefs == 0))
     {
-	/* To-do:  If CDFLATGDS is already set, need to remove	*/
+	/* If CDFLATGDS is already set, may need to remove	*/
 	/* existing planes and free memory.			*/
 
-	if (cifReadCellDef->cd_flags & CDFLATGDS)
+	if ((cifReadCellDef->cd_client != (ClientData)CLIENTDEFAULT) &&
+		(cifReadCellDef->cd_flags & CDFLATGDS))
 	{
 	    Plane **cifplanes = (Plane **)cifReadCellDef->cd_client;
 	    int pNum;
 
             for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
             {
-                if (cifplanes[pNum] != NULL)
+		if (cifplanes[pNum] != NULL)
                 {
                     DBFreePaintPlane(cifplanes[pNum]);
                     TiFreePlane(cifplanes[pNum]);
@@ -903,7 +910,8 @@ calmaElementSref(filename)
 
 	    for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
 	    {
-		if (gdsplanes[pNum] != NULL)
+		if ((def->cd_client != (ClientData)CLIENTDEFAULT) &&
+			(gdsplanes[pNum] != NULL))
 		{
 		    gdsCopyRec.plane = cifCurReadPlanes[pNum];
 		    if (isArray)

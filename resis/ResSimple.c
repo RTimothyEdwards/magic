@@ -45,7 +45,7 @@ int	resRemoveLoops = FALSE;
 
 /* Forward declarations */
 
-extern void ResMoveTransistors();
+extern void ResMoveDevices();
 extern void ResAddResistorToList();
 
 
@@ -58,7 +58,7 @@ extern void ResAddResistorToList();
  *
  * Results: none
  *
- * Side Effects:  Can eliminate nodes and resistors, and move transistors from
+ * Side Effects:  Can eliminate nodes and resistors, and move devices from
  *		one node to another.
  *
  *-------------------------------------------------------------------------
@@ -233,7 +233,7 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
         
      }
      /* 
-         Two resistors in series? Combine them and move transistors to 
+         Two resistors in series? Combine them and move devices to 
         appropriate end.
      */
      else if (numdrive+numreceive == 2 &&
@@ -260,10 +260,10 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 
      	  /* 
 	     make one big resistor out of two little ones, eliminating
-	     the current node.  Transistors connected to this node are
+	     the current node.  Devices connected to this node are
 	     moved to either end depending on their resistance.
 	  */
-	  ResMoveTransistors(node,otherNode);
+	  ResMoveDevices(node,otherNode);
           otherNode->rn_noderes = MIN(node->rn_noderes,otherNode->rn_noderes);
           node2->rn_float.rn_area += resistor1->rr_value*node->rn_float.rn_area/(resistor1->rr_value+resistor2->rr_value);
           node1->rn_float.rn_area += resistor2->rr_value*node->rn_float.rn_area/(resistor1->rr_value+resistor2->rr_value);
@@ -380,34 +380,34 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 /*
  *-------------------------------------------------------------------------
  *
- * ResMoveTransistors-- move transistors from one node1 to node2
+ * ResMoveDevices-- move devices from one node1 to node2
  *
  * Results: none
  *
- * Side Effects: Changes transistor connections and node tElements.
+ * Side Effects: Changes device connections and node tElements.
  *
  *-------------------------------------------------------------------------
  */
 
 void
-ResMoveTransistors(node1,node2)
+ResMoveDevices(node1,node2)
 	resNode		*node1,*node2;
 
 {
-     tElement		*tranptr,*oldptr;
-     resTransistor	*transistor;
+     tElement		*devptr,*oldptr;
+     resDevice	*device;
      
-     tranptr = node1->rn_te;
-     while (tranptr != NULL)
+     devptr = node1->rn_te;
+     while (devptr != NULL)
      {
-	  transistor = tranptr->te_thist;
-	  oldptr = tranptr;
-	  tranptr = tranptr->te_nextt;
-	  if (transistor->rt_status & RES_TRAN_PLUG)
+	  device = devptr->te_thist;
+	  oldptr = devptr;
+	  devptr = devptr->te_nextt;
+	  if (device->rd_status & RES_DEV_PLUG)
 	  {
-	       if (((ResPlug *)(transistor))->rpl_node == node1)
+	       if (((ResPlug *)(device))->rpl_node == node1)
 	       {
-	       	    ((ResPlug *)(transistor))->rpl_node = node2;
+	       	    ((ResPlug *)(device))->rpl_node = node2;
 	       }
 	       else
 	       {
@@ -416,21 +416,21 @@ ResMoveTransistors(node1,node2)
 	  }
 	  else
 	  {
-	       if (transistor->rt_gate == node1)
+	       if (device->rd_fet_gate == node1)
 	       {
-   	            transistor->rt_gate = node2;
+   	            device->rd_fet_gate = node2;
 	       }
-	       else	if (transistor->rt_source == node1)
+	       else	if (device->rd_fet_source == node1)
 	       {
-	            transistor->rt_source = node2;
+	            device->rd_fet_source = node2;
 	       }
-	       else if (transistor->rt_drain == node1)
+	       else if (device->rd_fet_drain == node1)
 	       {
-  	            transistor->rt_drain = node2;
+  	            device->rd_fet_drain = node2;
 	       }
 	       else
 	       {
-	            TxError("Missing Transistor connection in squish routines at %d, %d\n",node1->rn_loc.p_x,node1->rn_loc.p_y);
+	            TxError("Missing Device connection in squish routines at %d, %d\n",node1->rn_loc.p_x,node1->rn_loc.p_y);
 	       }
 	  }
 	  oldptr->te_nextt = node2->rn_te;
@@ -728,10 +728,11 @@ ResCalculateChildCapacitance(me)
 {
      RCDelayStuff	*myC;
      resElement		*workingRes;
-     resTransistor	*tran;
+     resDevice		*dev;
      float		childcap;
      tElement		*tptr;
      int		t;
+     ExtDevice		*devptr;
 
      
      if (me->rn_client != (ClientData) NULL) /* we have a loop */
@@ -748,16 +749,17 @@ ResCalculateChildCapacitance(me)
      /* get capacitance for all connected gates */
      for (tptr = me->rn_te; tptr != NULL; tptr = tptr->te_nextt)
      {
-     	  tran = tptr->te_thist;
-	  t = TiGetType(tran->rt_tile);
-	  if (tran->rt_gate == me)
+     	  dev = tptr->te_thist;
+	  t = TiGetType(dev->rd_tile);
+	  if (dev->rd_fet_gate == me)
 	  {
+	       devptr = ExtCurStyle->exts_device[t];
 	       myC->rc_Cdownstream += 
-	       		tran->rt_length*
-			tran->rt_width*
-			ExtCurStyle->exts_transGateCap[t]+
-	       		(tran->rt_width+tran->rt_width)*
-			ExtCurStyle->exts_transSDCap[t];
+	       		dev->rd_length*
+			dev->rd_width*
+			devptr->exts_deviceGateCap+
+	       		(dev->rd_width+dev->rd_width)*
+			devptr->exts_deviceSDCap;
 
 	  }
      }
@@ -915,7 +917,7 @@ ResDoSimplify(tolerance,rctol,goodies)
     goodies->rg_maxres = bigres;
     
 #ifdef PARANOID
-    ResSanityChecks("ExtractSingleNet",ResResList,ResNodeList,ResTransList);
+    ResSanityChecks("ExtractSingleNet",ResResList,ResNodeList,ResDevList);
 #endif
 
     /* Is extracted network still greater than the tolerance?	*/
@@ -952,26 +954,25 @@ ResDoSimplify(tolerance,rctol,goodies)
 	 {
 	      RCDelayStuff	*rc = (RCDelayStuff *) ResNodeList->rn_client;
 
+	      goodies->rg_nodecap = totalcap;
+	      ResCalculateTDi(ResOriginNode,(resResistor *)NULL,
+	      					goodies->rg_bigdevres);
 	      if (rc != (RCDelayStuff *)NULL)
-	      {
-	          goodies->rg_nodecap = totalcap;
-	          ResCalculateTDi(ResOriginNode,(resResistor *)NULL,
-	      					goodies->rg_bigtranres);
-	          goodies->rg_Tdi = rc->rc_Tdi;
-	          slownode = ResNodeList;
-	          for (node = ResNodeList; node != NULL; node = node->rn_more)
-	          {     
-	      	       rc = (RCDelayStuff *)node->rn_client;
-		       if (rc && (goodies->rg_Tdi < rc->rc_Tdi))
-		       {
-		   	    slownode = node;
-			    goodies->rg_Tdi = rc->rc_Tdi;
-		       }
-	          }
-	          slownode->rn_status |= RN_MAXTDI;
-	      }
+		   goodies->rg_Tdi = rc->rc_Tdi;
 	      else
-		  goodies->rg_Tdi = 0;
+		   goodies->rg_Tdi = 0;
+
+	      slownode = ResNodeList;
+	      for (node = ResNodeList; node != NULL; node = node->rn_more)
+	      {     
+	      	   rc = (RCDelayStuff *)node->rn_client;
+		   if (rc && (goodies->rg_Tdi < rc->rc_Tdi))
+		   {
+		   	slownode = node;
+			goodies->rg_Tdi = rc->rc_Tdi;
+		   }
+	      }
+	      slownode->rn_status |= RN_MAXTDI;
 	 }
 	 else
 	 {
@@ -982,7 +983,7 @@ ResDoSimplify(tolerance,rctol,goodies)
     {
     	 goodies->rg_Tdi = 0;
     }
-    if ((rctol+1)*goodies->rg_bigtranres*goodies->rg_nodecap > 
+    if ((rctol+1)*goodies->rg_bigdevres*goodies->rg_nodecap > 
     rctol*goodies->rg_Tdi && 
     (ResOptionsFlags & ResOpt_Tdi) &&
     goodies->rg_Tdi != -1)
@@ -1023,7 +1024,7 @@ ResDoSimplify(tolerance,rctol,goodies)
 		   rctol != 0)
 	      {
 	           ResPruneTree(ResOriginNode,
-		   (rctol+1)*goodies->rg_bigtranres*goodies->rg_nodecap/rctol,
+		   (rctol+1)*goodies->rg_bigdevres*goodies->rg_nodecap/rctol,
 		   	        &ResNodeList,&ResNodeQueue,&ResResList);
 	      }
 	      ResOriginNode->rn_status &= ~MARKED;
@@ -1087,8 +1088,8 @@ ResSetPathRes()
      }
      if (ResOriginNode == NULL)
      {
-     	  resTransistor	*res = ResGetTransistor(gparams.rg_tranloc);
-	  ResOriginNode = res->rt_source;
+     	  resDevice	*res = ResGetDevice(gparams.rg_devloc);
+	  ResOriginNode = res->rd_fet_source;
 	  ResOriginNode->rn_why = RES_NODE_ORIGIN;
 	  ResOriginNode->rn_noderes = 0;
      }

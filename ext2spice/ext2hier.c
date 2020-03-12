@@ -1159,13 +1159,11 @@ spcresistHierVisit(hc, hierName1, hierName2, res)
     HierContext *hc;
     HierName *hierName1;
     HierName *hierName2;
-    int res;
+    float res;
 {
-    res = (res + 500) / 1000;
- 
-    fprintf(esSpiceF, "R%d %s %s %d\n", esResNum++,
+    fprintf(esSpiceF, "R%d %s %s %g\n", esResNum++,
 		nodeSpiceHierName(hc, hierName1),
-                nodeSpiceHierName(hc, hierName2), res);
+                nodeSpiceHierName(hc, hierName2), res / 1000.);
 
     return 0;
 }
@@ -1572,27 +1570,39 @@ esMakePorts(hc, cdata)
 
 	    while (tptr != NULL)
 	    {
-		/* Ignore array information for the purpose of tracing	*/	
-		/* the cell definition hierarchy.			*/
+		int idum[6];
+		bool is_array;
 
-		aptr = strchr(portname, '[');
-		if ((aptr == NULL) || (aptr > tptr))
-		    *tptr = '\0';
-		else
-		    *aptr = '\0';
+		/* Ignore array information for the purpose of tracing	*/	
+		/* the cell definition hierarchy.  If a cell use name	*/
+		/* contains a bracket, check first if the complete name	*/
+		/* matches a use.  If not, then check if the part	*/
+		/* the last opening bracket matches a known use.	*/
+
+		aptr = strrchr(portname, '[');
+		*tptr = '\0';
+		is_array = FALSE;
+		if (aptr != NULL)
+		{
+		    he = HashLookOnly(&updef->def_uses, portname);
+		    if (he == NULL)
+		    {
+			*aptr = '\0';
+			is_array = TRUE;
+		    }
+		}
 
 		// Find the cell for the instance
 		portdef = NULL;
-		he = HashFind(&updef->def_uses, portname);
+		he = HashLookOnly(&updef->def_uses, portname);
 		if (he != NULL)
 		{
 		    use = (Use *)HashGetValue(he);
 		    portdef = use->use_def;
 		}
-		if ((aptr == NULL) || (aptr > tptr))
-		    *tptr = '/';
-		else
+		if (is_array)
 		    *aptr = '[';
+		*tptr = '/';
 		portname = tptr + 1;
 
 		// Find the net of portname in the subcell and
@@ -1613,6 +1623,10 @@ esMakePorts(hc, cdata)
 		    {
 			nn->efnn_node->efnode_flags |= EF_PORT;
 			nn->efnn_port = -1;	// Will be sorted later
+
+			// Diagnostic
+			// TxPrintf("Port connection in %s from net %s to net %s (%s)\n",
+			//	def->def_name, locname, name, portname);
 		    }
 		}
 
@@ -1622,9 +1636,6 @@ esMakePorts(hc, cdata)
 
 		updef = portdef;
 	    }
-	    // Diagnostic
-	    // TxPrintf("Connection in %s to net %s (%s)\n", def->def_name,
-	    //		name, portname);
 	}
     }
 
@@ -1644,34 +1655,46 @@ esMakePorts(hc, cdata)
 	    // In particular, this keeps parasitics out of the netlist for
 	    // LVS purposes if "cthresh" is set to "infinite".
 
-	    if (fabs((double)conn->conn_cap) < EFCapThreshold) continue;
+	    if (fabs((double)conn->conn_cap / 1000) < EFCapThreshold) continue;
 
 	    portname = name;
 	    updef = def;
 
 	    while (tptr != NULL)
 	    {
+		int idum[6];
+		bool is_array;
+
 		/* Ignore array information for the purpose of tracing	*/	
 		/* the cell definition hierarchy.			*/
 
 		aptr = strchr(portname, '[');
-		if ((aptr == NULL) || (aptr > tptr))
-		    *tptr = '\0';
-		else
+		if (aptr && (aptr < tptr) &&
+			(sscanf(aptr, "[%d:%d:%d][%d:%d:%d]", 
+			&idum[0], &idum[1], &idum[2],
+			&idum[3], &idum[4], &idum[5]) == 6))
+		{
 		    *aptr = '\0';
+		    is_array = TRUE;
+		}
+		else
+		{
+		    *tptr = '\0';
+		    is_array = FALSE;
+		}
 
 		// Find the cell for the instance
 		portdef = NULL;
-		he = HashFind(&updef->def_uses, portname);
+		he = HashLookOnly(&updef->def_uses, portname);
 		if (he != NULL)
 		{
 		    use = (Use *)HashGetValue(he);
 		    portdef = use->use_def;
 		}
-		if ((aptr == NULL) || (aptr > tptr))
-		    *tptr = '/';
-		else
+		if (is_array)
 		    *aptr = '[';
+		else
+		    *tptr = '/';
 		portname = tptr + 1;
 
 		// Find the net of portname in the subcell and
@@ -1747,7 +1770,8 @@ esHierVisit(hc, cdata)
 
     if (def != topdef)
     {
-	if ((def->def_devs == NULL) && (HashGetNumEntries(&def->def_uses) == 0))
+	if ((HashGetNumEntries(&def->def_devs) == 0) &&
+		    (HashGetNumEntries(&def->def_uses) == 0))
 	{
 	    if (locDoSubckt == AUTO)
 	    {
@@ -1859,6 +1883,9 @@ esHierVisit(hc, cdata)
 	    EFHierVisitNodes(hcf, spcnodeHierVisit, (ClientData) NULL);
 	    freeMagic(resstr);
 	}
+
+	/* Reset device merge index for next cell */
+	if (esMergeDevsA || esMergeDevsC) esFMIndex = 0;
     }
 
     if ((def != topdef) || (def->def_flags & DEF_SUBCIRCUIT) || (locDoSubckt == TRUE))

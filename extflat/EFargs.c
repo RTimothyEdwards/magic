@@ -160,6 +160,15 @@ EFArgs(argc, argv, err_result, argsProc, cdata)
     HierName *hierName;
     FILE *f;
 
+    char usage_text[] = 
+	"Standard arguments: [-R] [-C] [-r rthresh] [-c cthresh] [-v]\n"
+		"[-p searchpath] [-s sym=value] [-S symfile] [-t trimchars]\n"
+#ifdef MAGIC_WRAPPER
+		"[rootfile]\n";
+#else
+		"[-T techname] rootfile\n";
+#endif
+
     if (err_result != NULL) *err_result = FALSE;
 
     /* Hash table of nodes we're going to watch if -N given */
@@ -209,8 +218,10 @@ EFArgs(argc, argv, err_result, argsProc, cdata)
 		    goto usage;
 		if (strchr(cp, '!')) EFTrimFlags |= EF_TRIMGLOB;
 		if (strchr(cp, '#')) EFTrimFlags |= EF_TRIMLOCAL;
-		if (strchr(cp, ',')) EFTrimFlags |= EF_CONVERTCOMMAS;
+		if (strchr(cp, ',')) EFTrimFlags |= EF_CONVERTCOMMA;
 		if (strchr(cp, '=')) EFTrimFlags |= EF_CONVERTEQUAL;
+		if (strchr(cp, '[')) EFTrimFlags |= EF_CONVERTBRACKETS;
+		if (strchr(cp, ']')) EFTrimFlags |= EF_CONVERTBRACKETS;
 		break;
 	    case 'C':
 		EFCapThreshold = (EFCapValue)INFINITE_THRESHOLD_F;
@@ -268,6 +279,11 @@ EFArgs(argc, argv, err_result, argsProc, cdata)
 	    case 'z':
 		efHNStats = TRUE;
 		break;
+	    case 'h':
+		if (argsProc != NULL) (*argsProc)(&argc, &argv, cdata);
+		TxPrintf(usage_text);
+		if (err_result != NULL) *err_result = TRUE;
+		return NULL;
 
 	    /*** Try a caller-supplied argument processing function ***/
 	    default:
@@ -310,19 +326,15 @@ EFArgs(argc, argv, err_result, argsProc, cdata)
 	realIn[cp - inname] = '\0';
 	inname = realIn;
     }
-
     return inname;
 
 usage:
-    TxError("Standard arguments: [-R] [-C] [-r rthresh] [-c cthresh] [-v]\n"
-		"[-p searchpath] [-s sym=value] [-S symfile] [-t trimchars]\n"
+    TxError(usage_text);
 
 #ifdef MAGIC_WRAPPER
-		"[rootfile]\n");
     if (err_result != NULL) *err_result = TRUE;
     return NULL;
 #else
-		"[-T techname] rootfile\n");
     exit (1);
     /*NOTREACHED*/
 #endif

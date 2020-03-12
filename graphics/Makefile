@@ -40,22 +40,22 @@ ${GR_HELPER_PROG}: ${GR_HELPER_SRCS}
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${GR_HELPER_SRCS} \
 		-o ${GR_HELPER_PROG} ${LIBS}
 
-install: $(DESTDIR)${BINDIR}/${GR_HELPER_PROG} glyphs fonts
+install: $(DESTDIR)${INSTALL_BINDIR}/${GR_HELPER_PROG} glyphs fonts
 
 install-tcl: glyphs fonts
 
-$(DESTDIR)${BINDIR}/${GR_HELPER_PROG}: ${GR_HELPER_PROG}
-	${RM} $(DESTDIR)${BINDIR}/${GR_HELPER_PROG}
-	${CP} ${GR_HELPER_PROG} $(DESTDIR)${BINDIR}
+$(DESTDIR)${INSTALL_BINDIR}/${GR_HELPER_PROG}: ${GR_HELPER_PROG}
+	${RM} $(DESTDIR)${INSTALL_BINDIR}/${GR_HELPER_PROG}
+	${CP} ${GR_HELPER_PROG} $(DESTDIR)${INSTALL_BINDIR}
 
 glyphs: ${GLYPHS}
 	for i in ${GLYPHS}; do \
-	${RM} $(DESTDIR)${SYSDIR}/$$i; \
-	${CP} $$i $(DESTDIR)${SYSDIR}; done
+	${RM} $(DESTDIR)${INSTALL_SYSDIR}/$$i; \
+	${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
 
 fonts: ${OUTLINE_FONTS}
 	for i in ${OUTLINE_FONTS}; do \
-	${RM} $(DESTDIR)${SYSDIR}/$$i; \
-	${CP} $$i $(DESTDIR)${SYSDIR}; done
+	${RM} $(DESTDIR)${INSTALL_SYSDIR}/$$i; \
+	${CP} $$i $(DESTDIR)${INSTALL_SYSDIR}; done
 
 include ${MAGICDIR}/rules.mak

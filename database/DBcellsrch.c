@@ -234,7 +234,10 @@ dbCellPlaneSrFunc(scx, fp)
     if (!DBDescendSubcell(scx->scx_use, fp->tf_xmask))
 	return 0;
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(def, (char *) NULL, TRUE, NULL)) return 0;
+    {
+	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+    }
 
     context.tc_scx = scx;
     context.tc_filter = fp;
@@ -353,7 +356,10 @@ dbCellUniqueTileSrFunc(scx, fp)
     if (!DBDescendSubcell(scx->scx_use, fp->tf_xmask))
 	return 0;
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(def, (char *) NULL, TRUE, NULL)) return 0;
+    {
+	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+    }
 
     context.tc_scx = scx;
     context.tc_filter = fp;
@@ -462,7 +468,10 @@ DBNoTreeSrTiles(scx, mask, xMask, func, cdarg)
 	return 0;
 
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(def, (char *) NULL, TRUE, NULL)) return 0;
+    {
+	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+    }
 
     filter.tf_func = func;
     filter.tf_arg = cdarg;
@@ -570,7 +579,10 @@ DBTreeSrLabels(scx, mask, xMask, tpath, flags, func, cdarg)
     ASSERT(def != (CellDef *) NULL, "DBTreeSrLabels");
     if (!DBDescendSubcell(cellUse, xMask)) return 0;
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(def, (char *) NULL, TRUE, NULL)) return 0;
+    {
+	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+    }
 
     for (lab = def->cd_labels; lab; lab = lab->lab_next)
     {
@@ -613,8 +625,11 @@ DBTreeSrLabels(scx, mask, xMask, tpath, flags, func, cdarg)
 	    else
 		is_touching = GEO_TOUCH(&lab->lab_rect, r);
 	}
-	if (!is_touching && (flags & TF_LABEL_DISPLAY) && (lab->lab_font >= 0))
+	if (!is_touching && (flags & TF_LABEL_DISPLAY) && lab->lab_font >= 0)
+	{
+	    /* Check against bounds of the rendered label text */
 	    is_touching = GEO_TOUCH(&lab->lab_bbox, r);
+	}
 
 	if (is_touching && TTMaskHasType(mask, lab->lab_type))
 	    if ((*func)(scx, lab, tpath, cdarg))
@@ -671,7 +686,10 @@ dbCellLabelSrFunc(scx, fp)
     ASSERT(def != (CellDef *) NULL, "dbCellLabelSrFunc");
     if (!DBDescendSubcell(scx->scx_use, fp->tf_xmask)) return 0;
     if ((def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(def, (char *) NULL, TRUE, NULL)) return 0;
+    {
+	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+    }
     
     if (fp->tf_tpath != (TerminalPath *) NULL)
     {
@@ -785,8 +803,11 @@ DBTreeSrCells(scx, xMask, func, cdarg)
     if (!DBDescendSubcell(cellUse, xMask))
 	return 0;
     if ((cellUse->cu_def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(cellUse->cu_def, (char *) NULL, TRUE, NULL))
+    {
+	bool dereference = (cellUse->cu_def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	if (!DBCellRead(cellUse->cu_def, (char *) NULL, TRUE, dereference, NULL))
 	    return 0;
+    }
 
     context.tc_scx = scx;
     context.tc_filter = &filter;
@@ -831,8 +852,11 @@ dbTreeCellSrFunc(scx, fp)
     else
     {
 	if ((use->cu_def->cd_flags & CDAVAILABLE) == 0)
-	    if (!DBCellRead(use->cu_def, (char *) NULL, TRUE, NULL))
+	{
+	    bool dereference = (use->cu_def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	    if (!DBCellRead(use->cu_def, (char *) NULL, TRUE, dereference, NULL))
 		return 0;
+	}
 	result = DBCellSrArea(scx, dbTreeCellSrFunc, (ClientData) fp);
     }
     return result;
@@ -1082,8 +1106,12 @@ DBCellSrArea(scx, func, cdarg)
     context.tc_scx = scx;
 
     if ((scx->scx_use->cu_def->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(scx->scx_use->cu_def, (char *) NULL, TRUE, NULL))
+    {
+	bool dereference = (scx->scx_use->cu_def->cd_flags & CDDEREFERENCE) ?
+		TRUE : FALSE;
+	if (!DBCellRead(scx->scx_use->cu_def, (char *) NULL, TRUE, dereference, NULL))
 	    return 0;
+    }
     
     if (DBSrCellPlaneArea(scx->scx_use->cu_def->cd_cellPlane,
 		&scx->scx_area, dbCellSrFunc, (ClientData) &context))
@@ -1205,7 +1233,10 @@ DBCellEnum(cellDef, func, cdarg)
     filter.tf_func = func;
     filter.tf_arg = cdarg;
     if ((cellDef->cd_flags & CDAVAILABLE) == 0)
-	if (!DBCellRead(cellDef, (char *) NULL, TRUE, NULL)) return 0;
+    {
+	bool dereference = (cellDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	if (!DBCellRead(cellDef, (char *) NULL, TRUE, dereference, NULL)) return 0;
+    }
     if (DBSrCellPlaneArea(cellDef->cd_cellPlane,
 		&TiPlaneRect, dbEnumFunc, (ClientData) &filter))
 	return 1;

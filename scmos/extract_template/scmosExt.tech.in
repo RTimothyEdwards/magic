@@ -23,8 +23,7 @@
     || defined (M1Res) \
     || defined (PolyRes) \
     || defined (M2Res) \
-    || defined (M3Res) \
-    || defined (nothing)
+    || defined (M3Res)
 THERE_IS_AN_ERROR_SOME_LOCAL_CAPACITANCE_DEFINITIONS_HAVE_ALREADY_BEEN_DEFINED
 #endif
 
@@ -45,21 +44,20 @@ THERE_IS_AN_ERROR_SOME_LOCAL_CAPACITANCE_DEFINITIONS_HAVE_ALREADY_BEEN_DEFINED
 #define	M3Res	(metal3,pad/m3,via2/m3)
 
 
-#define	nothing
-
 /* Use macros for planeorder and sideoverlap for backwards compatibility */
 #if defined(V5)
 
-#define	planeOrder(l,ord)	planeorder	l	ord
+#define	planeOrder(name,idx)	planeorder	name	idx
 #define	noplaneOrdering	noplaneordering
-#define	sideOverlap(l1,sep,l2,cap,shield)\
+#define	sideOverlap(l1,sep,l2,cap,shield) \
 	sideoverlap	l1	sep	l2	cap	shield
+#define Comma ,
 
 #else /* V5 */
 
-#define	planeOrder(l,ord)	
+#define	planeOrder(name,idx)	
 #define	noplaneOrdering	
-#define	sideOverlap(l1,sep,l2,cap,shield)\
+#define	sideOverlap(l1,sep,l2,cap,shield) \
 	sideoverlap	l1	sep	l2	cap	
 
 #endif /* V5 */

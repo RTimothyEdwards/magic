@@ -3,7 +3,7 @@ MAGICDIR = ../..
 include $(MAGICDIR)/defs.mak
 
 PS_SRCDIR=../psfiles
-PS_INSTDIR=$(LIBDIR)/magic/doc
+PS_INSTDIR=$(INSTALL_LIBDIR)/magic/doc
 
 .SUFFIXES: .dvi .tex .ps
 

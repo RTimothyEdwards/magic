@@ -126,6 +126,8 @@ DBFixMismatch()
 
     while (mismatch != NULL)
     {
+	bool dereference;
+
 	/* Be careful to remove the front element from the mismatch
 	 * list before processing it, because while processing it we
 	 * may add new elements to the list.
@@ -137,7 +139,8 @@ DBFixMismatch()
 	mismatch = mismatch->mm_next;
 	if (cellDef->cd_flags & CDPROCESSED) continue;
 
-	(void) DBCellRead(cellDef, (char *) NULL, TRUE, NULL);
+	dereference = (cellDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+	(void) DBCellRead(cellDef, (char *) NULL, TRUE, dereference, NULL);
 
 	/* Jimmy up the cell's current bounding box, so the following
 	 * procedure call will absolutely and positively know that
@@ -267,6 +270,16 @@ dbStampFunc(cellDef)
  *	processing.  When DBFixMismatch is called, it will notify
  *	the design-rule checker to recheck both wrongArea, and
  *	the cell's eventual correct area.
+ *
+ * This routine has been modified from a poor implementation.  Previously
+ * the parent def of all uses of the cell being checked would be marked
+ * for a stamp mismatch check.  However, when reading a cell with large
+ * numbers of instances, the list of instances would be parsed for every
+ * instance added, leading to an O(N^2) computation.  Routine DBStampMismatch()
+ * has been broken into two parts.  DBStampMismatch() only records the
+ * area to be checked.  DBFlagMismatches() looks at the parents of each
+ * celldef only once, after all instances have been read.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -278,16 +291,27 @@ DBStampMismatch(cellDef, wrongArea)
 					 */
 {
     Mismatch *mm;
-    CellUse *parentUse;
 
     mm = (Mismatch *) mallocMagic((unsigned) (sizeof (Mismatch)));
     mm->mm_cellDef = cellDef;
     mm->mm_oldArea = *wrongArea;
     mm->mm_next = mismatch;
     mismatch = mm;
+}
 
-    for (parentUse = cellDef->cd_parents; parentUse != NULL;
-	parentUse = parentUse->cu_nextuse)
+/*
+ * ----------------------------------------------------------------------------
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBFlagMismatches(checkDef)
+    CellDef *checkDef;
+{
+    CellUse *parentUse;
+
+    for (parentUse = checkDef->cd_parents; parentUse != NULL;
+		    parentUse = parentUse->cu_nextuse)
     {
 	if (parentUse->cu_parent == NULL) continue;
 	parentUse->cu_parent->cd_flags |= CDSTAMPSCHANGED;

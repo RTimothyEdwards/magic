@@ -31,66 +31,66 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /*
  *-------------------------------------------------------------------------
  *
- * ResNewSDTransistor-- called when a transistor is reached via a piece of
- *			 diffusion. (Transistors  reached via poly, i.e.
+ * ResNewSDDevice -- called when a device is reached via a piece of
+ *			 diffusion. (Devices  reached via poly, i.e.
  *			 gates, are handled by ResEachTile.)
  *
  * Results:none
  *
  * Side Effects: determines to which terminal (source or drain) node 
  * is connected. Makes new node if node hasn't already been created .
- * Allocates breakpoint in current tile for transistor.
+ * Allocates breakpoint in current tile for device.
  *
  *-------------------------------------------------------------------------
  */
 
 void
-ResNewSDTransistor(tile,tp,xj,yj,direction,PendingList)
+ResNewSDDevice(tile,tp,xj,yj,direction,PendingList)
 	Tile 		*tile,*tp;
 	int 		xj,yj,direction;
 	resNode		**PendingList;
 {
 	resNode		*resptr;
-	resTransistor	*resFet;
+	resDevice	*resDev;
 	tElement	*tcell;
 	int		newnode;
 	tileJunk	*j;
 	
 	newnode = FALSE;
 	j = (tileJunk *) tp->ti_client;
-	resFet = j->transistorList;
+	resDev = j->deviceList;
 	if ((j->sourceEdge & direction) != 0)
 	{
-	     if (resFet->rt_source == (resNode *) NULL)
+	     if (resDev->rd_fet_source == (resNode *) NULL)
 		 {
 		     resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
 		     newnode = TRUE;
-		     resFet->rt_source = resptr;
+		     resDev->rd_fet_source = resptr;
 		 }
 		 else
 		 {
-		      resptr = resFet->rt_source;
+		      resptr = resDev->rd_fet_source;
 		 }
 	}
 	else
 	{
-	     if (resFet->rt_drain == (resNode *) NULL)
+	     if (resDev->rd_fet_drain == (resNode *) NULL)
 		 {
 		     resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
 		     newnode = TRUE;
-		     resFet->rt_drain = resptr;
+		     resDev->rd_fet_drain = resptr;
 		 }
 		 else
 		 {
-		      resptr = resFet->rt_drain;
+		      resptr = resDev->rd_fet_drain;
 		 }
 	}
 	if (newnode)
 	{
 	     tcell = (tElement *) mallocMagic((unsigned)(sizeof(tElement)));
 	     tcell->te_nextt = NULL;
-	     tcell->te_thist = j->transistorList;
-	     InitializeNode(resptr,xj,yj,RES_NODE_TRANSISTOR);
+	     tcell->te_thist = j->deviceList;
+	     InitializeNode(resptr,xj,yj,RES_NODE_DEVICE);
 	     resptr->rn_te = tcell;
 	     ResAddToQueue(resptr,PendingList);
 	}
@@ -130,7 +130,6 @@ ResProcessJunction(tile, tp, xj, yj, NodeList)
 	     return;
 	}
 #endif
-
 	if (j2->tj_status & RES_TILE_DONE) return;
 	resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
 	resptr->rn_te = (tElement *) NULL;

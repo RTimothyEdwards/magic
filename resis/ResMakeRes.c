@@ -24,9 +24,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/tech.h"
 #include "textio/txcommands.h"
 #include "resis/resis.h"
+#include "cif/CIFint.h"
 
 /* Forward declarations */
-bool ResCalcNearTransistor();
+bool ResCalcNearDevice();
 bool ResCalcNorthSouth();
 bool ResCalcEastWest();
 
@@ -57,12 +58,12 @@ ResCalcTileResistance(tile, junk, pendingList, doneList)
 {
     int 	MaxX = MINFINITY, MinX = INFINITY;
     int		MaxY = MINFINITY, MinY = INFINITY;
-    int		transistor;
+    int		device;
     bool	merged;
     Breakpoint 	*p1;
      
     merged = FALSE;
-    transistor = FALSE;
+    device = FALSE;
      
     if ((p1 = junk->breakList) == NULL) return FALSE;
     for (; p1; p1 = p1->br_next)
@@ -73,18 +74,18 @@ ResCalcTileResistance(tile, junk, pendingList, doneList)
 	if (x < MinX) MinX = x;
 	if (y > MaxY) MaxY = y;
 	if (y < MinY) MinY = y;
-	if (p1->br_this->rn_why == RES_NODE_TRANSISTOR)
+	if (p1->br_this->rn_why == RES_NODE_DEVICE)
 	{
-	    transistor = TRUE;
+	    device = TRUE;
 	}
     }
      
     /* Finally, produce resistors for partition. Keep track of	*/
     /* whether or not the node was involved in a merge.		*/
      
-    if (transistor)
+    if (device)
     {
-	merged |= ResCalcNearTransistor(tile, pendingList, doneList, &ResResList);
+	merged |= ResCalcNearDevice(tile, pendingList, doneList, &ResResList);
     }
     else if (MaxY-MinY > MaxX-MinX)
     {
@@ -443,9 +444,9 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 /*
  *-------------------------------------------------------------------------
  *
- * ResCalcNearTransistor-- Calculating the direction of current flow near
- *	transistors is tricky because there are two adjoining regions with
- *	vastly different sheet resistances.  ResCalcNearTransistor is called
+ * ResCalcNearDevice-- Calculating the direction of current flow near
+ *	devices is tricky because there are two adjoining regions with
+ *	vastly different sheet resistances.  ResCalcNearDevice is called
  *	whenever a diffusion tile adjoining a real tile is found.  It makes
  *	a guess at the correct direction of current flow, removes extra 
  *	breakpoints, and call either ResCalcEastWest or ResCalcNorthSouth
@@ -459,14 +460,14 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
  */
 
 bool
-ResCalcNearTransistor(tile, pendingList, doneList, resList)
+ResCalcNearDevice(tile, pendingList, doneList, resList)
     Tile	*tile;
     resNode	**pendingList, **doneList;
     resResistor	**resList;
 
 {
      bool 		merged;
-     int		trancount,tranedge,deltax,deltay;
+     int		devcount,devedge,deltax,deltay;
      Breakpoint		*p1,*p2,*p3;
      tileJunk		*junk = (tileJunk *)tile->ti_client;
      
@@ -484,35 +485,35 @@ ResCalcNearTransistor(tile, pendingList, doneList, resList)
 	  junk->breakList = NULL;
 	  return(merged);
      }
-     /* count the number of transistor breakpoints  */
+     /* count the number of device breakpoints  */
      /* mark which edge they connect to		    */
-     trancount = 0;
-     tranedge = 0;
+     devcount = 0;
+     devedge = 0;
      for (p1=junk->breakList; p1 != NULL;p1 = p1->br_next)
      {
-	  if (p1->br_this->rn_why == RES_NODE_TRANSISTOR)
+	  if (p1->br_this->rn_why == RES_NODE_DEVICE)
 	  {
-	       trancount++;
-	       if (p1->br_loc.p_x == LEFT(tile)) tranedge |= LEFTEDGE;
-	       else if (p1->br_loc.p_x == RIGHT(tile)) tranedge |= RIGHTEDGE;
-	       else if (p1->br_loc.p_y == TOP(tile)) tranedge |= TOPEDGE;
-	       else if (p1->br_loc.p_y == BOTTOM(tile)) tranedge |= BOTTOMEDGE;
+	       devcount++;
+	       if (p1->br_loc.p_x == LEFT(tile)) devedge |= LEFTEDGE;
+	       else if (p1->br_loc.p_x == RIGHT(tile)) devedge |= RIGHTEDGE;
+	       else if (p1->br_loc.p_y == TOP(tile)) devedge |= TOPEDGE;
+	       else if (p1->br_loc.p_y == BOTTOM(tile)) devedge |= BOTTOMEDGE;
 	  }
      }
-     /* use distance from transistor to next breakpoint as determinant     */
-     /* if there is only one transistor or if all the transitors are along */
+     /* use distance from device to next breakpoint as determinant     */
+     /* if there is only one device or if all the devices are along */
      /* the same edge.							   */
-     if (trancount == 1 		|| 
-        (tranedge & LEFTEDGE) == tranedge	||
-        (tranedge & RIGHTEDGE) == tranedge 	||
-        (tranedge & TOPEDGE) == tranedge 	||
-        (tranedge & BOTTOMEDGE) == tranedge)
+     if (devcount == 1 		|| 
+        (devedge & LEFTEDGE) == devedge	||
+        (devedge & RIGHTEDGE) == devedge 	||
+        (devedge & TOPEDGE) == devedge 	||
+        (devedge & BOTTOMEDGE) == devedge)
      {
 	  ResSortBreaks(&junk->breakList,TRUE);
           p2 = NULL;
           for (p1=junk->breakList; p1 != NULL;p1 = p1->br_next)
           {
-	       if (p1->br_this->rn_why == RES_NODE_TRANSISTOR)
+	       if (p1->br_this->rn_why == RES_NODE_DEVICE)
 	       {
 	            break;
 	       }
@@ -579,7 +580,7 @@ ResCalcNearTransistor(tile, pendingList, doneList, resList)
           p2 = NULL;
           for (p1=junk->breakList; p1 != NULL;p1 = p1->br_next)
           {
-	       if (p1->br_this->rn_why == RES_NODE_TRANSISTOR)
+	       if (p1->br_this->rn_why == RES_NODE_DEVICE)
 	       {
 	            break;
 	       }
@@ -650,27 +651,27 @@ ResCalcNearTransistor(tile, pendingList, doneList, resList)
 	  }
 
      }
-     /* multiple transistors connected to the partition */
+     /* multiple devices connected to the partition */
      else  
      {
-     	  if (tranedge == 0)
+     	  if (devedge == 0)
 	  {
-	       TxError("Error in transistor current direction routine\n");
+	       TxError("Error in device current direction routine\n");
 	       return(merged);
 	  }
 	  /* check to see if the current flow is north-south		*/
 	  /* possible north-south conditions:				*/
-	  /* 1. there are transistors along the top and bottom edges    */
+	  /* 1. there are devices along the top and bottom edges    */
 	  /*    but not along the left or right			        */
-	  /* 2. there are transistors along two sides at right angles,  */
+	  /* 2. there are devices along two sides at right angles,  */
 	  /*    and the tile is wider than it is tall.			*/
 	  
-	  if ((tranedge & TOPEDGE)     && 
-	      (tranedge & BOTTOMEDGE)  &&
-	      !(tranedge & LEFTEDGE)   &&
-	      !(tranedge & RIGHTEDGE)  			||
-	      (tranedge & TOPEDGE || tranedge & BOTTOMEDGE) &&
-	      (tranedge & LEFTEDGE || tranedge & RIGHTEDGE) &&
+	  if ((devedge & TOPEDGE)     && 
+	      (devedge & BOTTOMEDGE)  &&
+	      !(devedge & LEFTEDGE)   &&
+	      !(devedge & RIGHTEDGE)  			||
+	      (devedge & TOPEDGE || devedge & BOTTOMEDGE) &&
+	      (devedge & LEFTEDGE || devedge & RIGHTEDGE) &&
 	      RIGHT(tile)-LEFT(tile) > TOP(tile)-BOTTOM(tile))
 	 {
                /* re-sort nodes south to north. */
@@ -679,7 +680,7 @@ ResCalcNearTransistor(tile, pendingList, doneList, resList)
 	      /* eliminate duplicate S/D pointers */
 	      for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
 	      {
-	      	   if  (p1->br_this->rn_why == RES_NODE_TRANSISTOR &&
+	      	   if  (p1->br_this->rn_why == RES_NODE_DEVICE &&
 		       (p1->br_loc.p_y == BOTTOM(tile) ||
 		        p1->br_loc.p_y == TOP(tile)))
 		   {
@@ -720,7 +721,7 @@ ResCalcNearTransistor(tile, pendingList, doneList, resList)
 	      /* eliminate duplicate S/D pointers */
 	      for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
 	      {
-	      	   if (p1->br_this->rn_why == RES_NODE_TRANSISTOR &&
+	      	   if (p1->br_this->rn_why == RES_NODE_DEVICE &&
 		       (p1->br_loc.p_x == LEFT(tile) ||
 		        p1->br_loc.p_x == RIGHT(tile)))
 		   {
@@ -783,13 +784,14 @@ ResDoContacts(contact, nodes, resList)
     resNode	 *resptr;
     cElement	 *ccell;
     int		 tilenum, squaresx, squaresy, viawidth;
-    int 	 minside, spacing, border;
+    int 	 minside, spacing, border, cscale;
     float	 squaresf;
     resResistor	 *resistor;
     resElement	 *element;
     static int	 too_small = 1;
      
     minside = CIFGetContactSize(contact->cp_type, &viawidth, &spacing, &border);
+    cscale = CIFCurStyle->cs_scaleFactor;
 
     if ((ExtCurStyle->exts_viaResist[contact->cp_type] == 0) || (viawidth == 0))
     {
@@ -818,7 +820,8 @@ ResDoContacts(contact, nodes, resList)
     }
     else
     {
-	if ((contact->cp_width < minside) || (contact->cp_height < minside))
+	if (((contact->cp_width * cscale) < minside) ||
+		    ((contact->cp_height * cscale) < minside))
 	{
 	    if (too_small)
 	    {
@@ -832,13 +835,13 @@ ResDoContacts(contact, nodes, resList)
 	else
 	{
 	    viawidth += spacing;
-	    squaresf = (float)(contact->cp_width - minside) / (float)viawidth;
+	    squaresf = (float)((contact->cp_width * cscale) - minside) / (float)viawidth;
 	    squaresf *= ExtCurStyle->exts_unitsPerLambda;
 	    squaresf /= (float)viawidth;
 	    squaresx = (int)squaresf;
 	    squaresx++;
 
-	    squaresf = (float)(contact->cp_height - minside) / (float)viawidth;
+	    squaresf = (float)((contact->cp_height * cscale) - minside) / (float)viawidth;
 	    squaresf *= ExtCurStyle->exts_unitsPerLambda;
 	    squaresf /= (float)viawidth;
 	    squaresy = (int)squaresf;

@@ -69,9 +69,8 @@ TileType DRCErrorType;		/* Type of error tile to paint. */
 
 /* Used by drcPrintError: */
 
-HashTable DRCErrorTable;	/* Hash table used to eliminate duplicate
-				 * error strings.
-				 */
+int *DRCErrorList;		/* List of DRC error type counts */
+HashTable DRCErrorTable;	/* Table of DRC errors and geometry */
 
 /* Global variables used by all DRC modules to record statistics.
  * For each statistic we keep two values, the count since stats
@@ -183,11 +182,12 @@ drcSubstitute (cptr)
     DRCCookie * cptr;  		/* Design rule violated */
 {
     static char *why_out = NULL;
-    char *whyptr = cptr->drcc_why, *sptr, *wptr;
+    char *whyptr, *sptr, *wptr;
     int subscnt = 0, whylen;
     float oscale, value;
     extern float CIFGetOutputScale();
 
+    whyptr = DRCCurStyle->DRCWhyList[cptr->drcc_tag];
     while ((sptr = strchr(whyptr, '%')) != NULL)
     {
 	subscnt++;
@@ -195,7 +195,7 @@ drcSubstitute (cptr)
     }
     if (subscnt == 0) return whyptr;	/* No substitutions */
 
-    whyptr = cptr->drcc_why;
+    whyptr = DRCCurStyle->DRCWhyList[cptr->drcc_tag];
     whylen = strlen(whyptr) + 20 * subscnt;
     if (why_out != NULL) freeMagic(why_out);
     why_out = (char *)mallocMagic(whylen * sizeof(char));
@@ -256,7 +256,7 @@ drcSubstitute (cptr)
  *
  * Side effects:
  *	DRCErrorCount is incremented.  The text associated with
- *	the error is entered into DRCErrorTable, and, if this is
+ *	the error is entered into DRCErrorList, and, if this is
  *	the first time that entry has been seen, then the error
  *	text is printed.  If the area parameter is non-NULL, then
  *	only errors intersecting that area are considered.
@@ -279,12 +279,11 @@ drcPrintError (celldef, rect, cptr, scx)
     area = &scx->scx_area;
     if ((area != NULL) && (!GEO_OVERLAP(area, rect))) return;
     DRCErrorCount += 1;
-    h = HashFind(&DRCErrorTable, cptr->drcc_why);
-    i = (spointertype) HashGetValue(h);
+
+    i = DRCErrorList[cptr->drcc_tag];
     if (i == 0)
 	TxPrintf("%s\n", drcSubstitute(cptr));
-    i++;
-    HashSetValue(h, (spointertype)i);
+    DRCErrorList[cptr->drcc_tag] = i + 1;
 }
 
 /* Same routine as above, but output goes to a Tcl list and is appended	*/
@@ -308,8 +307,7 @@ drcListError (celldef, rect, cptr, scx)
     area = &scx->scx_area;
     if ((area != NULL) && (!GEO_OVERLAP(area, rect))) return;
     DRCErrorCount += 1;
-    h = HashFind(&DRCErrorTable, cptr->drcc_why);
-    i = (spointertype) HashGetValue(h);
+    i = DRCErrorList[cptr->drcc_tag];
     if (i == 0)
     {
 	Tcl_Obj *lobj;
@@ -318,8 +316,7 @@ drcListError (celldef, rect, cptr, scx)
 			Tcl_NewStringObj(drcSubstitute(cptr), -1));
 	Tcl_SetObjResult(magicinterp, lobj);
     }
-    i += 1;
-    HashSetValue(h, (spointertype)i);
+    DRCErrorList[cptr->drcc_tag] = i + 1;
 }
 
 /* Same routine as above, but output for every single error is recorded	*/
@@ -343,7 +340,7 @@ drcListallError (celldef, rect, cptr, scx)
     area = &scx->scx_area;
     if ((area != NULL) && (!GEO_OVERLAP(area, rect))) return;
     DRCErrorCount += 1;
-    h = HashFind(&DRCErrorTable, cptr->drcc_why);
+    h = HashFind(&DRCErrorTable, drcSubstitute(cptr));
     lobj = (Tcl_Obj *) HashGetValue(h);
     if (lobj == NULL)
        lobj = Tcl_NewListObj(0, NULL);
@@ -475,11 +472,15 @@ DRCWhy(dolist, use, area)
 {
     SearchContext scx;
     Rect box;
+    int i;
     extern int drcWhyFunc();		/* Forward reference. */
 
-    /* Create a hash table to used for eliminating duplicate messages. */
+    /* Create a hash table to eliminate duplicate messages. */
 
-    HashInit(&DRCErrorTable, 16, HT_STRINGKEYS);
+    DRCErrorList = (int *)mallocMagic((DRCCurStyle->DRCWhySize + 1) * sizeof(int));
+    for (i = 0; i <= DRCCurStyle->DRCWhySize; i++)
+	DRCErrorList[i] = 0;
+
     DRCErrorCount = 0;
     box = DRCdef->cd_bbox;
 
@@ -494,12 +495,9 @@ DRCWhy(dolist, use, area)
     drcWhyFunc(&scx, (pointertype)dolist);
     UndoEnable();
 
-    /* Delete the hash table now that we're finished (otherwise there
-     * will be a core leak.
-     */
-	
-    HashKill(&DRCErrorTable);
-
+    /* Delete the error list */
+    freeMagic(DRCErrorList);
+    
     /* Redisplay the DRC yank definition in case anyone is looking
      * at it.
      */
@@ -532,7 +530,7 @@ DRCWhyAll(use, area, fout)
     HashEntry	*he;
     Tcl_Obj *lobj, *robj;
 
-    /* Create a hash table to used for eliminating duplicate messages. */
+    /* Create a hash table for storing all of the results */
 
     HashInit(&DRCErrorTable, 16, HT_STRINGKEYS);
     DRCErrorCount = 0;
@@ -566,10 +564,7 @@ DRCWhyAll(use, area, fout)
     }
     Tcl_SetObjResult(magicinterp, robj);
 
-    /* Delete the hash table now that we're finished (otherwise there
-     * will be a core leak.
-     */
-	
+    /* Delete the error table now that we're finished */
     HashKill(&DRCErrorTable);
 
     /* Redisplay the DRC yank definition in case anyone is looking
@@ -748,9 +743,10 @@ drcCheckFunc(scx, cdarg)
  */
 
 DRCCountList *
-DRCCount(use, area)
+DRCCount(use, area, recurse)
     CellUse *use;		/* Top-level use of hierarchy. */
     Rect *area;			/* Area in which violations are counted. */
+    bool recurse;		/* If TRUE, count errors in all subcells */
 {
     DRCCountList  *dcl, *newdcl;
     HashTable	  dupTable;
@@ -758,13 +754,21 @@ DRCCount(use, area)
     HashSearch	  hs;
     int		  count;
     SearchContext scx;
-    extern int    drcCountFunc();	/* Forward reference. */
+    CellDef	  *def;
+    extern int drcCountFunc();
+
+    /* Shouldn't happen? */
+    if (!(use->cu_def->cd_flags & CDAVAILABLE)) return NULL;	
 
     /* Use a hash table to make sure that we don't output information
      * for any cell more than once.
      */
 
     HashInit(&dupTable, 16, HT_WORDKEYS);
+
+    /* Clearing CDAVAILABLE from cd_flags keeps the count from recursing */
+    if (recurse == FALSE)
+	use->cu_def->cd_flags &= ~CDAVAILABLE;
 
     scx.scx_use = use;
     scx.scx_x = use->cu_xlo;
@@ -781,7 +785,7 @@ DRCCount(use, area)
 	HashStartSearch(&hs);
 	while ((he = HashNext(&dupTable, &hs)) != (HashEntry *)NULL)
 	{
-            count = (spointertype)HashGetValue(he);
+	    count = (spointertype)HashGetValue(he);
 	    if (count > 1)
 	    {
 		newdcl = (DRCCountList *)mallocMagic(sizeof(DRCCountList));
@@ -793,15 +797,20 @@ DRCCount(use, area)
 	}
     }
     HashKill(&dupTable);
+
+    /* Restore the CDAVAILABLE flag */
+    if (recurse == FALSE)
+	use->cu_def->cd_flags |= CDAVAILABLE;
+
     return dcl;
 }
 
 int
 drcCountFunc(scx, dupTable)
     SearchContext *scx;
-    HashTable *dupTable;		/* Passed as client data, used to
-					 * avoid searching any cell twice.
-					 */
+    HashTable *dupTable;	    /* Passed as client data, used to
+				     * avoid searching any cell twice.
+				     */
 {
     int count;
     HashEntry *h;
@@ -821,7 +830,7 @@ drcCountFunc(scx, dupTable)
 
     count = 0;
     (void) DBSrPaintArea((Tile *) NULL, def->cd_planes[PL_DRC_ERROR],
-	&def->cd_bbox, &DBAllButSpaceBits, drcCountFunc2, (ClientData) &count);
+	&def->cd_bbox, &DBAllButSpaceBits, drcCountFunc2, (ClientData)(&count));
     HashSetValue(h, (spointertype)count + 1);
 
     /* Ignore children that have not been loaded---we will only report	*/
@@ -832,26 +841,26 @@ drcCountFunc(scx, dupTable)
 
     if ((scx->scx_use->cu_def->cd_flags & CDAVAILABLE) == 0) return 0;
 
-    /* New behavior:  Don't search children, instead propagate errors up. */
-    /* (void) DBCellSrArea(scx, drcCountFunc, (ClientData) dupTable); */
+    /* Scan children recursively. */
+
+    DBCellSrArea(scx, drcCountFunc, (ClientData)dupTable);
 
     /* As a special performance hack, if the complete cell area is
      * handled here, don't bother to look at any more array elements.
      */
-    
     done: if (GEO_SURROUND(&scx->scx_area, &def->cd_bbox)) return 2;
     else return 0;
 }
 
 int
-drcCountFunc2(tile, pCount)
-    Tile *tile;			/* Tile found in error plane. */
-    int *pCount;		/* Address of count word. */
+drcCountFunc2(tile, countptr)
+    Tile *tile;		    /* Tile found in error plane.   */
+    int *countptr;	    /* Address of count word.	    */
 {
-    if (TiGetType(tile) != (TileType) TT_SPACE) *pCount += 1;
+    if (TiGetType(tile) != (TileType) TT_SPACE) (*countptr)++;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -963,13 +972,15 @@ drcFindFunc(scx, finddata)
     CellDef *def;
     HashEntry *h;
     int drcFindFunc2();
+    bool dereference;
 
     def = scx->scx_use->cu_def;
     h = HashFind(finddata->deft, (char *)def);
     if (HashGetValue(h) != 0) return 0;
     HashSetValue(h, 1);
 
-    (void) DBCellRead(def, (char *) NULL, TRUE, NULL);
+    dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+    (void) DBCellRead(def, (char *) NULL, TRUE, dereference, NULL);
 
     if (DBSrPaintArea((Tile *) NULL, def->cd_planes[PL_DRC_ERROR],
 	    &def->cd_bbox, &DBAllButSpaceBits, drcFindFunc2,

@@ -26,6 +26,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "tiles/tile.h"
 #include "utils/hash.h"
 #include "utils/undo.h"
+#include "utils/utils.h"
 #include "database/database.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
@@ -73,11 +74,12 @@ enum def_netspecial_shape_keys {
 	DEF_SPECNET_SHAPE_DRCFILL};
 
 char *
-DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
+DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
     CellDef *rootDef;		/* Cell to paint */
     FILE *f;			/* Input file */
     float oscale;		/* Scale factor between LEF and magic units */
     bool special;		/* True if this section is SPECIALNETS */
+    char *netname;		/* Name of the net, if net is to be labeled */
     LefMapping *defLayerMap;	/* magic-to-lef layer mapping array */
 {
     char *token;
@@ -85,6 +87,7 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
     Point refp;			/* reference point */
     bool valid = FALSE;		/* is there a valid reference point? */
     bool initial = TRUE;
+    bool labeled = TRUE;
     Rect locarea;
     int extend, lextend, hextend;
     float x, y, z, w;
@@ -123,6 +126,8 @@ DefAddRoutes(rootDef, f, oscale, special, defLayerMap)
 	"DRCFILL",
 	NULL
     };
+
+    if (netname != NULL) labeled = FALSE;
 
     while (initial || (token = LefNextToken(f, TRUE)) != NULL)
     {
@@ -605,6 +610,16 @@ endCoord:
 	/* paint */
 	DBPaint(rootDef, &routeTop->r_r, routeTop->r_type);
 
+	/* label */
+	if (labeled == FALSE)
+	{
+	    Rect r;
+	    r.r_xbot = r.r_xtop = (routeTop->r_r.r_xbot + routeTop->r_r.r_xtop) / 2;
+	    r.r_ybot = r.r_ytop = (routeTop->r_r.r_ybot + routeTop->r_r.r_ytop) / 2;
+	    DBPutLabel(rootDef, &r, GEO_CENTER, netname, routeTop->r_type, 0);
+	    labeled = TRUE;
+	}
+
 	/* advance to next point and free record (1-delayed) */
 	freeMagic((char *)routeTop);
 	routeTop = routeTop->r_next;
@@ -636,15 +651,17 @@ enum def_netprop_keys {
 	DEF_NETPROP_PROPERTY};
 
 void
-DefReadNets(f, rootDef, sname, oscale, special, total)
+DefReadNets(f, rootDef, sname, oscale, special, dolabels, total)
     FILE *f;
     CellDef *rootDef;
     char *sname;
     float oscale;
     bool special;		/* True if this section is SPECIALNETS */
+    bool dolabels;		/* If true, create a label for each net */
     int total;
 {
     char *token;
+    char *netname = NULL;
     int keyword, subkey;
     int processed = 0;
     LefMapping *defLayerMap;
@@ -684,8 +701,8 @@ DefReadNets(f, rootDef, sname, oscale, special, total)
 	    case DEF_NET_START:
 
 		/* Get net name */
-		/* Presently, we ignore net names completely.	*/
 		token = LefNextToken(f, TRUE);
+		if (dolabels) netname = StrDup((char **)NULL, token);
 
 		/* Update the record of the number of nets processed	*/
 		/* and spit out a message for every 5% finished.	*/
@@ -725,10 +742,11 @@ DefReadNets(f, rootDef, sname, oscale, special, total)
 			case DEF_NETPROP_FIXED:
 			case DEF_NETPROP_COVER:
 			    token = DefAddRoutes(rootDef, f, oscale, special,
-					defLayerMap);
+					netname, defLayerMap);
 			    break;
 		    }
 		}
+		if (dolabels) freeMagic(netname);
 		break;
 
 	    case DEF_NET_END:
@@ -775,11 +793,12 @@ enum def_orient {DEF_NORTH, DEF_SOUTH, DEF_EAST, DEF_WEST,
 	DEF_FLIPPED_WEST};
 
 int
-DefReadLocation(use, f, oscale, tptr)
+DefReadLocation(use, f, oscale, tptr, noplace)
     CellUse *use;
     FILE *f;
     float oscale;
     Transform *tptr;
+    bool noplace;
 {
     Rect *r, tr, rect;
     int keyword;
@@ -791,21 +810,32 @@ DefReadLocation(use, f, oscale, tptr)
 	"N", "S", "E", "W", "FN", "FS", "FE", "FW"
     };
 
-    token = LefNextToken(f, TRUE);
-    if (*token != '(') goto parse_error;
-    token = LefNextToken(f, TRUE);
-    if (sscanf(token, "%f", &x) != 1) goto parse_error;
-    token = LefNextToken(f, TRUE);
-    if (sscanf(token, "%f", &y) != 1) goto parse_error;
-    token = LefNextToken(f, TRUE);
-    if (*token != ')') goto parse_error;
-    token = LefNextToken(f, TRUE);
-
-    keyword = Lookup(token, orientations);
-    if (keyword < 0)
+    if (noplace)
     {
-	LefError(DEF_ERROR, "Unknown macro orientation \"%s\".\n", token);
-	return -1;
+	LefError(DEF_WARNING, "Unplaced component \"%s\" will be put at origin.\n",
+		    use->cu_id);
+	x = 0;
+	y = 0;
+	keyword = DEF_NORTH;
+    }
+    else
+    {
+        token = LefNextToken(f, TRUE);
+        if (*token != '(') goto parse_error;
+        token = LefNextToken(f, TRUE);
+        if (sscanf(token, "%f", &x) != 1) goto parse_error;
+        token = LefNextToken(f, TRUE);
+        if (sscanf(token, "%f", &y) != 1) goto parse_error;
+        token = LefNextToken(f, TRUE);
+        if (*token != ')') goto parse_error;
+        token = LefNextToken(f, TRUE);
+
+        keyword = Lookup(token, orientations);
+        if (keyword < 0)
+        {
+	    LefError(DEF_ERROR, "Unknown macro orientation \"%s\".\n", token);
+	    return -1;
+	}
     }
 
     /* The standard transformations are all defined to rotate	*/
@@ -1062,7 +1092,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 			    break;
 			case DEF_PINS_PROP_FIXED:
 			case DEF_PINS_PROP_PLACED:
-			    DefReadLocation(NULL, f, oscale, &t);
+			    DefReadLocation(NULL, f, oscale, &t, FALSE);
 			    if (curlayer == -1)
 				pending = TRUE;
 			    else
@@ -1275,6 +1305,35 @@ DefReadVias(f, sname, oscale, total)
 			    blayer = LefReadLayer(f, FALSE);
 			    clayer = LefReadLayer(f, FALSE);
 			    tlayer = LefReadLayer(f, FALSE);
+
+			    /* Provisional behavior:  A known tool generating	*/
+			    /* DEF uses the order (bottom, top, cut).  This may	*/
+			    /* be a bug in the tool and an issue is being	*/
+			    /* raised.  However, there is no harm in detecting	*/
+			    /* which layer is the cut and swapping as needed.	*/
+
+			    if (!DBIsContact(clayer))
+			    {
+				TileType swaplayer;
+				LefError(DEF_WARNING, "Improper layer order for"
+					" VIARULE.\n");
+				if (DBIsContact(tlayer))
+				{
+				    swaplayer = clayer;
+				    clayer = tlayer;
+				    tlayer = swaplayer;
+				}
+				else if (DBIsContact(blayer))
+				{
+				    swaplayer = clayer;
+				    clayer = blayer;
+				    blayer = swaplayer;
+				}
+				else
+				    LefError(DEF_ERROR, "No cut layer specified in"
+					    " VIARULE.\n");
+			    }
+
 			    generated = TRUE;
 			    break;
 			case DEF_VIAS_PROP_CUTSPACING:
@@ -1450,18 +1509,22 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 
 		/* Does use name contain brackets?  If so, this can */
 		/* interfere with magic's use of arrays.	    */
+		/* NOTE:  This has been commented out.  I think	    */
+		/* the only confusion is in ext2spice and can be    */
+		/* avoided by allowing any bracket notation in an   */
+		/* instance name other than that used by the .ext   */
+		/* file for dealing with arrays, which uses the	    */
+		/* specific syntax [xlo:xsep:xhi][ylo:ysep:yhi] and */
+		/* is easy enough to distinguish.		    */
 
-		/* NOTE:  It is not clear that this needs to be	    */
-		/* done during DEF read.  The only confusion comes  */
-		/* from the arrays being parsed by ExtFlat when	    */
-		/* doing ext2spice.				    */
-
-		dptr = strchr(usename, '[');
-		if (dptr != NULL) {
-		    *dptr = '_';
-		    dptr = strchr(dptr + 1, ']');
-		    if (dptr != NULL) *dptr = '_';
-		}
+		/* 
+		    dptr = strchr(usename, '[');
+		    if (dptr != NULL) {
+			*dptr = '_';
+			dptr = strchr(dptr + 1, ']');
+			if (dptr != NULL) *dptr = '_';
+		    }
+		*/
 
 		token = LefNextToken(f, TRUE);
 
@@ -1471,11 +1534,14 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 
 		if (defMacro == (CellDef *)NULL)
 		{
+		    bool dereference;
+
 		    /* Before giving up, assume that this cell has a	*/
 		    /* magic .mag layout file.				*/
 		    defMacro = DBCellNewDef(token, (char *)NULL);
 		    defMacro->cd_flags &= ~CDNOTFOUND;
-		    if (!DBCellRead(defMacro, (char *)NULL, TRUE, NULL))
+		    dereference = (defMacro->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+		    if (!DBCellRead(defMacro, (char *)NULL, TRUE, dereference, NULL))
 		    {
 		        LefError(DEF_ERROR, "Cell %s is not defined.  Maybe you "
 				"have not read the corresponding LEF file?\n",
@@ -1518,10 +1584,12 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		    switch (subkey)
 		    {
 			case DEF_PROP_PLACED:
-			case DEF_PROP_UNPLACED:
 			case DEF_PROP_FIXED:
 			case DEF_PROP_COVER:
-			    DefReadLocation(defUse, f, oscale, &t);
+			    DefReadLocation(defUse, f, oscale, &t, FALSE);
+			    break;
+			case DEF_PROP_UNPLACED:
+			    DefReadLocation(defUse, f, oscale, &t, TRUE);
 			    break;
 			case DEF_PROP_SOURCE:
 			case DEF_PROP_WEIGHT:
@@ -1598,8 +1666,9 @@ enum def_sections {DEF_VERSION = 0, DEF_NAMESCASESENSITIVE,
 	DEF_END};
 
 void
-DefRead(inName)
+DefRead(inName, dolabels)
     char *inName;
+    bool dolabels;
 {
     CellDef *rootDef;
     FILE *f;
@@ -1775,13 +1844,15 @@ DefRead(inName)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
-		DefReadNets(f, rootDef, sections[DEF_SPECIALNETS], oscale, TRUE, total);
+		DefReadNets(f, rootDef, sections[DEF_SPECIALNETS], oscale, TRUE,
+			dolabels, total);
 		break;
 	    case DEF_NETS:
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
-		DefReadNets(f, rootDef, sections[DEF_NETS], oscale, FALSE, total);
+		DefReadNets(f, rootDef, sections[DEF_NETS], oscale, FALSE,
+			dolabels, total);
 		break;
 	    case DEF_IOTIMINGS:
 		LefSkipSection(f, sections[DEF_IOTIMINGS]);

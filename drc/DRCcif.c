@@ -48,7 +48,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "utils/utils.h"
 
-extern char *drcWhyDup(); 
 extern int  drcCifTile();
 extern int  areaCifCheck();
 extern void drcCheckCifMaxwidth();
@@ -67,9 +66,10 @@ extern bool DRCForceReload;
 TileTypeBitMask drcCifGenLayers;
 
 DRCCookie *drcCifRules[MAXCIFLAYERS][2];
-DRCCookie *drcCifCur=NULL;
+DRCCookie *drcCifCur = NULL;
 int	drcCifValid = FALSE;
-int	beenWarned;
+bool	beenWarned = FALSE;
+char	*drcNeedStyle = NULL;
 
 #define DRC_CIF_SPACE		0
 #define DRC_CIF_SOLID		1
@@ -112,14 +112,12 @@ drcCifSetStyle(argc, argv)
     {
 	if (!strcmp(new->cs_name, argv[1]))
 	{
+	    drcNeedStyle = new->cs_name;
 	    DRCForceReload = TRUE;
 	    if (!strcmp(new->cs_name, CIFCurStyle->cs_name))
 		drcCifStyle = CIFCurStyle;
 	    else
 	    {
-		TechError("DRC cif extensions are not enabled.\n\t"
-			"Use \"cif ostyle %s\" to enable them.\n",
-			new->cs_name);
 		drcCifStyle = NULL;
 		beenWarned = TRUE;	/* post no more error messages */
 	    }
@@ -170,7 +168,7 @@ drcCifWidth(argc, argv)
     char *layername = argv[1];
     int scalefactor;
     int centidistance = atoi(argv[2]);
-    char *why = drcWhyDup(argv[3]);
+    int why = drcWhyCreate(argv[3]);
     TileTypeBitMask set, setC, tmp1;
     int	thislayer = -1;
     DRCCookie *dpnew,*dpnext;
@@ -200,7 +198,7 @@ drcCifWidth(argc, argv)
 
     dpnext = drcCifRules[thislayer][DRC_CIF_SPACE];
     dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
-    drcAssign(dpnew, centidistance, dpnext, &CIFSolidBits,
+    drcCifAssign(dpnew, centidistance, dpnext, &CIFSolidBits,
     		&CIFSolidBits, why, centidistance,
 		DRC_FORWARD, thislayer, 0);
     drcCifRules[thislayer][DRC_CIF_SPACE] = dpnew;
@@ -229,7 +227,7 @@ drcCifSpacing(argc, argv)
     char *argv[];
 {
     char *adjacency = argv[4];
-    char *why = drcWhyDup(argv[5]);
+    int why = drcWhyCreate(argv[5]);
     DRCCookie *dpnext, *dpnew;
     int needReverse = FALSE;
     TileType i, j;
@@ -292,7 +290,7 @@ drcCifSpacing(argc, argv)
     centidistance *= drcCifStyle->cs_expander;		// BSI
     dpnext = drcCifRules[layer[0]][DRC_CIF_SOLID];
     dpnew = (DRCCookie *) mallocMagic((unsigned) sizeof (DRCCookie));
-    drcAssign(dpnew, centidistance, dpnext, &DBSpaceBits,
+    drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits,
     		&cmask, why, centidistance, DRC_FORWARD, layer[1], 0);
     drcCifRules[layer[0]][DRC_CIF_SOLID] = dpnew;
     if (needReverse) dpnew->drcc_flags |= DRC_BOTHCORNERS;
@@ -300,7 +298,7 @@ drcCifSpacing(argc, argv)
     // Add rule in reverse direction
     dpnext = drcCifRules[layer[0]][DRC_CIF_SPACE];
     dpnew = (DRCCookie *) mallocMagic((unsigned) sizeof (DRCCookie));
-    drcAssign(dpnew, centidistance, dpnext, &DBSpaceBits,
+    drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits,
     		&cmask, why, centidistance, DRC_REVERSE, layer[1], 0);
     drcCifRules[layer[0]][DRC_CIF_SPACE] = dpnew;
     
@@ -312,14 +310,14 @@ drcCifSpacing(argc, argv)
          dpnew->drcc_flags |= DRC_BOTHCORNERS;
          dpnext = drcCifRules[layer[1]][DRC_CIF_SOLID];
          dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
-         drcAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
+         drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
 		why, centidistance, DRC_FORWARD|DRC_BOTHCORNERS, layer[0], 0);
          drcCifRules[layer[1]][DRC_CIF_SOLID] = dpnew;
 
 	 // Add rule in reverse direction
 	 dpnext = drcCifRules[layer[1]][DRC_CIF_SPACE];
 	 dpnew = (DRCCookie *) mallocMagic((unsigned) sizeof (DRCCookie));
-	 drcAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
+	 drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
 		why, centidistance, DRC_REVERSE|DRC_BOTHCORNERS, layer[0], 0);
 	 drcCifRules[layer[1]][DRC_CIF_SPACE] = dpnew;
     
@@ -327,14 +325,14 @@ drcCifSpacing(argc, argv)
 	 {
               dpnext = drcCifRules[layer[1]][DRC_CIF_SPACE];
               dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
-              drcAssign(dpnew, centidistance, dpnext, &DBSpaceBits,
+              drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits,
 			&cmask, why, centidistance, DRC_REVERSE | DRC_BOTHCORNERS,
 			layer[0], 0);
                  drcCifRules[layer[1]][DRC_CIF_SPACE] = dpnew;
 	 
               dpnext = drcCifRules[layer[0]][DRC_CIF_SPACE];
               dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
-              drcAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
+              drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
 			why, centidistance, DRC_REVERSE | DRC_BOTHCORNERS,
 			layer[1], 0);
                  drcCifRules[layer[0]][DRC_CIF_SPACE] = dpnew;
@@ -345,13 +343,13 @@ drcCifSpacing(argc, argv)
     {
          dpnext = drcCifRules[layer[1]][DRC_CIF_SPACE];
          dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
-         drcAssign(dpnew, scalefactor, dpnext, &DBSpaceBits, &DBZeroTypeBits,
+         drcCifAssign(dpnew, scalefactor, dpnext, &DBSpaceBits, &DBZeroTypeBits,
 			why, scalefactor, DRC_FORWARD, layer[0], 0);
          drcCifRules[layer[1]][DRC_CIF_SPACE] = dpnew;
 
          dpnext = drcCifRules[layer[0]][DRC_CIF_SPACE];
          dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
-         drcAssign(dpnew, scalefactor, dpnext, &DBSpaceBits, &DBZeroTypeBits,
+         drcCifAssign(dpnew, scalefactor, dpnext, &DBSpaceBits, &DBZeroTypeBits,
 			why, scalefactor, DRC_FORWARD, layer[1], 0);
          drcCifRules[layer[0]][DRC_CIF_SPACE] = dpnew;
     }
@@ -501,9 +499,37 @@ drcCifCheck(arg)
     int		scale;
     int		i,j;
     int		oldTiles;
+    CIFStyle	*CIFSaveStyle = NULL;
 
-    if (drcCifValid == FALSE) return;
-    else if (CIFCurStyle != drcCifStyle) return;
+    if (CIFCurStyle != drcCifStyle)
+    {
+	if (drcNeedStyle == NULL) return;
+
+	CIFSaveStyle = CIFCurStyle;
+
+	if (drcCifStyle == NULL)
+	{
+	    TxPrintf("Loading DRC CIF style.\n");
+	    CIFCurStyle = NULL;
+	    CIFLoadStyle(drcNeedStyle);
+	    if (drcCifValid != FALSE)
+		CIFCurStyle = CIFSaveStyle;
+	    else
+		drcCifStyle = CIFCurStyle;
+	}
+	if (drcCifStyle == NULL)
+	{
+	    TxError("Error:  Failed to load CIF DRC style.\n");
+	    return;
+	}
+	CIFCurStyle = drcCifStyle;
+    }
+    if (drcCifValid == FALSE)
+    {
+	if (CIFSaveStyle != NULL)
+	    CIFCurStyle = CIFSaveStyle;
+	return;
+    }
 
     scale = drcCifStyle->cs_scaleFactor;
     cifrect = *checkRect;
@@ -534,6 +560,9 @@ drcCifCheck(arg)
      }
      arg->dCD_rect = checkRect;
      DRCstatCifTiles += DRCstatTiles - oldTiles;
+
+     /* Put it back the way you found it */
+     if (CIFSaveStyle != NULL) CIFCurStyle = CIFSaveStyle;
 }
 
 /*
@@ -1035,7 +1064,7 @@ drcCifArea(argc, argv)
     char *layers = argv[1];
     int centiarea = atoi(argv[2]);
     int	centihorizon = atoi(argv[3]);
-    char *why = drcWhyDup(argv[4]);
+    int why = drcWhyCreate(argv[4]);
     TileTypeBitMask set, setC, tmp1;
     DRCCookie *dpnext, *dpnew;
     TileType i, j;
@@ -1066,7 +1095,7 @@ drcCifArea(argc, argv)
     centiarea *= (drcCifStyle->cs_expander * drcCifStyle->cs_expander);
     dpnext = drcCifRules[thislayer][DRC_CIF_SPACE];
     dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
-    drcAssign(dpnew, centihorizon, dpnext, &CIFSolidBits, &CIFSolidBits,
+    drcCifAssign(dpnew, centihorizon, dpnext, &CIFSolidBits, &CIFSolidBits,
 		why, centiarea, DRC_AREA | DRC_FORWARD, thislayer, 0);
     drcCifRules[thislayer][DRC_CIF_SPACE] = dpnew;
 
@@ -1096,7 +1125,7 @@ drcCifMaxwidth(argc, argv)
     char *layers = argv[1];
     int centidistance = atoi(argv[2]);
     char *bends = argv[3];
-    char *why = drcWhyDup(argv[4]);
+    int why = drcWhyCreate(argv[4]);
     TileTypeBitMask set, setC, tmp1;
     DRCCookie *dpnext, *dpnew;
     TileType i, j;
@@ -1136,10 +1165,9 @@ drcCifMaxwidth(argc, argv)
     centidistance *= drcCifStyle->cs_expander;		// BSI
     dpnext = drcCifRules[thislayer][DRC_CIF_SPACE];
     dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
-    drcAssign(dpnew, centidistance, dpnext, &CIFSolidBits, &CIFSolidBits,
+    drcCifAssign(dpnew, centidistance, dpnext, &CIFSolidBits, &CIFSolidBits,
 		why, centidistance, DRC_MAXWIDTH | bend, thislayer, 0);
     drcCifRules[thislayer][DRC_CIF_SPACE] = dpnew;
-
 
     return ((centidistance+scalefactor-1)/scalefactor);
 }

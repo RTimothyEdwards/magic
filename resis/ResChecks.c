@@ -43,16 +43,16 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-ResSanityChecks(nodename,resistorList,nodeList,tranlist)
+ResSanityChecks(nodename,resistorList,nodeList,devlist)
 	char		*nodename;
 	resResistor	*resistorList;
 	resNode		*nodeList;
-	resTransistor	*tranlist;
+	resDevice	*devlist;
 
 {
      resResistor	*resistor;
      resNode		*node;
-     resTransistor	*tran;
+     resDevice		*dev;
      resElement		*rcell;
      static	Stack	*resSanityStack = NULL;
      int		reached,foundorigin;
@@ -107,29 +107,29 @@ ResSanityChecks(nodename,resistorList,nodeList,tranlist)
 	  }
 	  resistor->rr_status &= ~RES_REACHED_RESISTOR;
      }
-     for (tran = tranlist; tran != NULL; tran = tran->rt_nextTran)
+     for (dev = devlist; dev != NULL; dev = dev->rd_nextDev)
      {
      	  int	i;
 
-	  if (tran->rt_status & RES_TRAN_PLUG) continue;
+	  if (dev->rd_status & RES_DEV_PLUG) continue;
 	  reached = FALSE;
-	  for (i=0;i != RT_TERMCOUNT;i++)
+	  for (i=0;i != dev->rd_nterms;i++)
 	  {
-	       if (tran->rt_terminals[i] != NULL)
+	       if (dev->rd_terminals[i] != NULL)
 	       {
 	            reached = TRUE;
-	            if ((tran->rt_terminals[i]->rn_status & RES_REACHED_NODE) == 0)
+	            if ((dev->rd_terminals[i]->rn_status & RES_REACHED_NODE) == 0)
 	            {
-	       	         TxError("Transistor node %d unreached in %s\n",i,nodename);
+	       	         TxError("Device node %d unreached in %s\n",i,nodename);
 	            }
 	       }
 	  }
 	  if (reached == 0)
 	  {
-	       TxError("Unreached transistor in %s at %d %d\n",
+	       TxError("Unreached device in %s at %d %d\n",
 					nodename,
-	       				tran->rt_inside.r_xbot,
-	       				tran->rt_inside.r_ybot);
+	       				dev->rd_inside.r_xbot,
+	       				dev->rd_inside.r_ybot);
 	  }
      }
      foundorigin = 0;

@@ -133,7 +133,7 @@ typedef struct conn
     } conn_value;
 
     struct conn	*conn_next;	/* Next connection in list */
-    PerimArea	 conn_pa[1];	/* Dummy; each connection actually has
+    EFPerimArea	 conn_pa[1];	/* Dummy; each connection actually has
 				 * efNumResistClasses array elements
 				 * allocated to it.
 				 */
@@ -156,6 +156,7 @@ typedef struct def
     HashTable	 def_nodes;	/* Map names into EFNodeNames */
     HashTable	 def_dists;	/* Map pairs of names into Distances */
     HashTable	 def_uses;	/* Hash children of this def by name */
+    HashTable	 def_devs;	/* Devices (hash by position) */
     EFNode	 def_firstn;	/* Head of circular list of nodes */
 
 	/* The following are all NULL-terminated lists */
@@ -163,7 +164,6 @@ typedef struct def
     Connection	*def_conns;	/* Hierarchical connections/adjustments */
     Connection	*def_caps;	/* Two-terminal capacitors */
     Connection	*def_resistors;	/* Two-terminal resistors */
-    Dev		*def_devs;	/* Devices */
     Kill	*def_kills;	/* Used to modify hierarchical structure
 				 * using information present only in the
 				 * parent, e.g, to kill an old node and

@@ -1452,7 +1452,11 @@ CmdIdentify(w, cmd)
 	return;
     }
 
-    if (CmdIllegalChars(cmd->tx_argv[1], "[],/", "Cell use id"))
+    /* NOTE: Relaxing the definition of illegal characters in cell use IDs */
+    /* by allowing brackets.  Possibly the list can be reduced further.	*/
+
+    /* if (CmdIllegalChars(cmd->tx_argv[1], "[],/", "Cell use id")) */
+    if (CmdIllegalChars(cmd->tx_argv[1], ",/", "Cell use id"))
 	return;
 
     if (SelEnumCells(FALSE, (int *) NULL, (SearchContext *) NULL,
@@ -1789,6 +1793,7 @@ FlatCopyAllLabels(scx, mask, xMask, targetUse)
     char pathstring[FLATTERMSIZE];
     TerminalPath	tpath;
     
+    pathstring[0] = '\0';
     tpath.tp_first = tpath.tp_next = pathstring;
     tpath.tp_last = pathstring + FLATTERMSIZE;
 

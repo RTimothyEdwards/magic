@@ -13,7 +13,7 @@ MODULES    = bplane cmwind commands database dbwind debug drc extflat \
 MAKEFLAGS  =
 INSTALL_CAD_DIRS = windows doc ${TECH}
 
-include defs.mak
+-include defs.mak
 
 all:	$(ALL_TARGET)
 
@@ -66,8 +66,8 @@ depend:	database/database.h
 install: $(INSTALL_TARGET)
 
 install-magic:
-	@echo --- installing executable to $(DESTDIR)${BINDIR}
-	@echo --- installing runtime files to $(DESTDIR)${LIBDIR}
+	@echo --- installing executable to $(DESTDIR)${INSTALL_BINDIR}
+	@echo --- installing runtime files to $(DESTDIR)${INSTALL_LIBDIR}
 	@${MAKE} install-real 2>&1 >> install.log
 
 install-real: install-dirs
@@ -77,16 +77,18 @@ install-real: install-dirs
 		(cd $$dir && ${MAKE} install); done
 
 install-tcl-dirs:
-	${MAGICDIR}/scripts/mkdirs $(DESTDIR)${BINDIR} $(DESTDIR)${MANDIR} \
-		$(DESTDIR)${SYSDIR} $(DESTDIR)${TCLDIR} $(DESTDIR)${TCLDIR}/bitmaps
+	${MAGICDIR}/scripts/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
+	$(DESTDIR)${INSTALL_MANDIR} $(DESTDIR)${INSTALL_SYSDIR} \
+	$(DESTDIR)${INSTALL_TCLDIR} $(DESTDIR)${INSTALL_TCLDIR}/bitmaps
 
 install-dirs:
-	${MAGICDIR}/scripts/mkdirs $(DESTDIR)${BINDIR} $(DESTDIR)${MANDIR} \
-		$(DESTDIR)${SYSDIR} $(DESTDIR)${SCMDIR}
+	${MAGICDIR}/scripts/mkdirs $(DESTDIR)${INSTALL_BINDIR} \
+	$(DESTDIR)${INSTALL_MANDIR} $(DESTDIR)${INSTALL_SYSDIR} \
+	$(DESTDIR)${INSTALL_SCMDIR}
 
 install-tcl:
-	@echo --- installing executable to $(DESTDIR)${BINDIR}
-	@echo --- installing runtime files to $(DESTDIR)${LIBDIR}
+	@echo --- installing executable to $(DESTDIR)${INSTALL_BINDIR}
+	@echo --- installing runtime files to $(DESTDIR)${INSTALL_LIBDIR}
 	@${MAKE} install-tcl-real 2>&1 >> install.log
 
 install-tcl-real: install-tcl-dirs

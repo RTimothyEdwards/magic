@@ -1156,7 +1156,7 @@ mainInitFinal()
 		    LefRead(temporary->fn, FALSE);
 		    break;
 		case FN_DEF_FILE:
-		    DefRead(temporary->fn);
+		    DefRead(temporary->fn, FALSE);
 		    break;
 #endif
 #ifdef MAGIC_WRAPPER

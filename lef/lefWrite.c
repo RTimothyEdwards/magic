@@ -83,6 +83,8 @@ lefFileOpen(def, file, suffix, mode, prealfile)
 			 */
 {
     char namebuf[512], *name, *endp, *ends;
+    char *locsuffix;
+    char *pptr;
     int len;
     FILE *rfile;
 
@@ -108,21 +110,26 @@ lefFileOpen(def, file, suffix, mode, prealfile)
 
     if (endp = strrchr(ends, '.'))
     {
-	if (!strcmp(endp, suffix))
+	if (strcmp(endp, suffix))
 	{
 	    len = endp - name;
 	    if (len > sizeof namebuf - 1) len = sizeof namebuf - 1;
 	    (void) strncpy(namebuf, name, len);
 	    namebuf[len] = '\0';
 	    name = namebuf;
+	    locsuffix = suffix;
 	}
+	else
+	    locsuffix = NULL;
     }
+    else
+	locsuffix = suffix;
 
     /* Try once as-is, and if this fails, try stripping any leading	*/
     /* path information in case cell is in a read-only directory (mode	*/
     /* "read" only, and if def is non-NULL).				*/
 
-    if ((rfile = PaOpen(name, mode, suffix, Path, CellLibPath, prealfile)) != NULL)
+    if ((rfile = PaOpen(name, mode, locsuffix, Path, CellLibPath, prealfile)) != NULL)
 	return rfile;
 
     if (def) 
@@ -634,7 +641,7 @@ lefWriteMacro(def, f, scale, hide)
 {
     bool propfound;
     char *propvalue, *class = NULL;
-    Label *lab;
+    Label *lab, *tlab;
     Rect boundary, labr;
     SearchContext scx;
     CellDef *lefFlatDef;
@@ -771,6 +778,20 @@ lefWriteMacro(def, f, scale, hide)
     }
     else
 	boundary = def->cd_bbox;
+
+    /* If a bounding box has been declared with the FIXED_BBOX property	*/
+    /* then it takes precedence over def->cd_bbox.			*/
+
+    if (def->cd_flags & CDFIXEDBBOX)
+    {
+	char *propvalue;
+	bool found;
+
+	propvalue = (char *)DBPropGet(def, "FIXED_BBOX", &found);
+	if (found)
+	    sscanf(propvalue, "%d %d %d %d", &boundary.r_xbot,
+		    &boundary.r_ybot, &boundary.r_xtop, &boundary.r_ytop);
+    }
 
     /* Write position and size information */
 
@@ -927,7 +948,18 @@ lefWriteMacro(def, f, scale, hide)
 	SelectClear();
 
 	if (hide)
+	{
 	    SelectChunk(&scx, lab->lab_type, 0, NULL, FALSE);
+
+	    /* Note that a sticky label could be placed over multiple	*/
+	    /* tile types, which would cause SelectChunk to fail.  So	*/
+	    /* always paint the label type into the label area in	*/
+	    /* SelectDef.						*/
+
+	    pNum = DBPlane(lab->lab_type);
+	    DBPaintPlane(SelectDef->cd_planes[pNum], &lab->lab_rect,
+		    DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
+	}
 	else
 	    SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
 
@@ -964,15 +996,21 @@ lefWriteMacro(def, f, scale, hide)
 
 	if (maxport >= 0)
 	{
-	    /* Sanity check to see if port number is a duplicate */
-	    for (lab = lab->lab_next; lab != NULL; lab = lab->lab_next)
+	    /* Sanity check to see if port number is a duplicate.  ONLY */
+	    /* flag this if the other index has a different text, as it	*/
+	    /* is perfectly legal to have multiple ports with the same	*/
+	    /* name and index.						*/
+
+	    for (tlab = lab->lab_next; tlab != NULL; tlab = tlab->lab_next)
 	    {
-		if (lab->lab_flags & PORT_DIR_MASK)
-		    if ((lab->lab_flags & PORT_NUM_MASK) == idx)
-		    {
-			TxError("Port index %d is used more than once\n", idx);
-			idx--;
-		    }
+		if (tlab->lab_flags & PORT_DIR_MASK)
+		    if ((tlab->lab_flags & PORT_NUM_MASK) == idx)
+			if (strcmp(lab->lab_text, lab->lab_text))
+			{
+			    TxError("Index %d is used for ports \"%s\" and \"%s\"\n",
+					idx, lab->lab_text, tlab->lab_text);
+			    idx--;
+			}
 	    }
 	}
 	else
@@ -1030,6 +1068,7 @@ lefWriteMacro(def, f, scale, hide)
 		scx.scx_area = labr;
 		SelectClear();
 		SelectChunk(&scx, lab->lab_type, 0, &carea, FALSE);
+		if (GEO_RECTNULL(&carea)) carea = lab->lab_rect;
 		lspace = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
 		carea.r_xbot -= lspace;
 		carea.r_ybot -= lspace;
@@ -1094,10 +1133,12 @@ lefWriteMacro(def, f, scale, hide)
  */
 
 void
-LefWriteAll(rootUse, writeTopCell, lefTech)
+LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
     CellUse *rootUse;
     bool writeTopCell;
     bool lefTech;
+    bool lefHide;
+    bool recurse;
 {
     CellDef *def, *rootdef;
     FILE *f;
@@ -1116,8 +1157,12 @@ LefWriteAll(rootUse, writeTopCell, lefTech)
     (void) DBCellSrDefs(0, lefDefInitFunc, (ClientData) 0);
 
     /* Recursively visit all defs in the tree and push on stack */
+    /* If "recurse" is false, then only the children of the root use	*/
+    /* are pushed (this is the default behavior).			*/
     lefDefStack = StackNew(100);
-    (void) lefDefPushFunc(rootUse);
+    if (writeTopCell)
+	lefDefPushFunc(rootUse, (bool *)NULL);
+    DBCellEnum(rootUse->cu_def, lefDefPushFunc, (ClientData)&recurse);
 
     /* Open the file for output */
 
@@ -1146,8 +1191,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech)
     {
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)
-	    if ((writeTopCell == TRUE) || (def != rootdef))
-		lefWriteMacro(def, f, scale);
+	    lefWriteMacro(def, f, scale, lefHide);
     }
 
     /* End the LEF file */
@@ -1178,8 +1222,9 @@ lefDefInitFunc(def)
  */
 
 int
-lefDefPushFunc(use)
+lefDefPushFunc(use, recurse)
     CellUse *use;
+    bool *recurse; 
 {
     CellDef *def = use->cu_def;
 
@@ -1188,7 +1233,8 @@ lefDefPushFunc(use)
 
     def->cd_client = (ClientData) 1;
     StackPush((ClientData) def, lefDefStack);
-    (void) DBCellEnum(def, lefDefPushFunc, (ClientData) 0);
+    if (recurse && (*recurse))
+	(void) DBCellEnum(def, lefDefPushFunc, (ClientData)recurse);
     return (0);
 }
 

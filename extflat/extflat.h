@@ -40,8 +40,9 @@ typedef unsigned char U_char;
 /* Flags to control output of node names.  Stored in EFTrimFlags */
 #define	EF_TRIMGLOB		0x01	/* Delete trailing '!' from names */
 #define	EF_TRIMLOCAL		0x02	/* Delete trailing '#' from names */
-#define EF_CONVERTCOMMAS	0x04	/* Change ',' to ';' in names */
-#define EF_CONVERTEQUAL		0x08	/* Change '=' to ':' in names */
+#define EF_CONVERTCOMMA		0x04	/* Change ',' to '|' in names, else remove */
+#define EF_CONVERTEQUAL		0x08	/* Change '=' to ':' in names, else remove */
+#define EF_CONVERTBRACKETS	0x10	/* Change '[' and ']' to '_' in names */
 
 /*
  * capacitance type now set to float
@@ -141,7 +142,7 @@ typedef struct
 {
     int		 pa_area;
     int		 pa_perim;
-} PerimArea;
+} EFPerimArea;
 
 typedef struct efnhdr
 {
@@ -218,7 +219,7 @@ typedef struct efnode
 				 */
     EFAttr	*efnode_attrs;	/* Node attribute list */
     ClientData	 efnode_client;	/* For hire */
-    PerimArea	 efnode_pa[1];	/* Dummy; each node actually has
+    EFPerimArea	 efnode_pa[1];	/* Dummy; each node actually has
 				 * efNumResistClasses array elements
 				 * allocated to it.
 				 */

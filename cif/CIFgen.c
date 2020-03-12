@@ -114,6 +114,177 @@ cifPaintFunc(tile, table)
 /*
  * ----------------------------------------------------------------------------
  *
+ * cifGrowMinFunc --
+ *
+ * 	Called for each relevant tile during grow-min operations.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	May paint into cifNewPlane
+ *
+ * Algorithm (based on maximum horizontal stripes rule):
+ *	Scan top and bottom boundaries from left to right.  For any
+ *	distance (including distance zero) sharing the same type (0 or 1)
+ *	on both the tile top and bottom, find the diagonal length.  If
+ *	less than co_distance, then expand this area and paint.
+ *	NOTE:  This algorithm does not cover a number of geometry cases
+ *	and needs to be reworked.  It should be restricted to cases of
+ *	layers that have "rect_only" DRC rules.  Since the rule is usually
+ *	needed for implants on FET gates to maintain the implant width for
+ *	small gates, the "rect_only" requirement is not particularly
+ *	constraining.
+ *	    
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifGrowMinFunc(tile, table)
+    Tile *tile;
+    PaintResultType *table;		/* Table to be used for painting. */
+{
+    Rect area, parea;
+    int locDist, width, height, h;
+    TileType type, tptype;
+    Tile *tp, *tp2;
+
+    TiToRect(tile, &area);
+
+    area.r_xbot *= cifScale;
+    area.r_xtop *= cifScale;
+    area.r_ybot *= cifScale;
+    area.r_ytop *= cifScale;
+
+    parea = area;
+
+    /* Check whole tile for minimum width */
+    width = area.r_xtop - area.r_xbot;
+    if (width < growDistance)
+    {
+	locDist = (growDistance - width) / 2;
+	area.r_xbot -= locDist;
+	area.r_xtop += locDist;
+
+	/* If there is another tile on top or bottom, and the height is	*/
+	/* less than minimum, then extend height in the direction of	*/
+	/* the bordering tile.  Otherwise, if the height is less than	*/
+	/* minimum, then grow halfway in both directions.		*/
+
+	height = area.r_ytop - area.r_ybot;
+	if (height < growDistance)
+	{
+	    bool freeTop, freeBot;
+
+	    freeTop = freeBot = TRUE;
+
+	    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+		if (TiGetTopType(tp) == TiGetBottomType(tile))
+		{
+		    freeBot = FALSE;
+		    break;
+		}
+
+	    for (tp2 = RT(tile); RIGHT(tp2) > LEFT(tile); tp2 = BL(tp2))
+		if (TiGetBottomType(tp2) == TiGetTopType(tile))
+		{
+		    freeTop = FALSE;
+		    break;
+		}
+
+	    /* In the following, value h ensures that the euclidean */
+	    /* distance between inside corners of the layer	    */
+	    /* satisfies growDistance.				    */
+
+	    if (freeTop == TRUE && freeBot == FALSE)
+	    {
+		locDist = (growDistance - height) / 2;
+		h = (int)sqrt((double)(growDistance * growDistance) -
+			    0.25 * (double)((growDistance + width) *
+			    (growDistance + width)) + 0.5);
+		area.r_ybot -= h;
+	    }
+	    else if (freeTop == FALSE && freeBot == TRUE)
+	    {
+		h = (int)sqrt((double)(growDistance * growDistance) -
+			    0.25 * (double)((growDistance + width) *
+			    (growDistance + width)) + 0.5);
+		area.r_ytop += h;
+	    }
+	    else {
+		locDist = (growDistance - height) / 2;
+		area.r_ybot -= locDist;
+		area.r_ytop += locDist;
+	    }
+	}
+    }
+    DBPaintPlane(cifPlane, &area, table, (PaintUndoInfo *) NULL);
+
+    area = parea;
+
+    /* Scan bottom from left to right */
+    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+    {
+	tptype = TiGetTopType(tp);
+	/* Scan top from right to left across range of tp */
+	for (tp2 = RT(tile); RIGHT(tp2) > LEFT(tile); tp2 = BL(tp2))
+	    if (TiGetBottomType(tp2) == tptype)
+	    {
+		/* Set range to length of overlap */
+		if ((LEFT(tp2) <= RIGHT(tp)) && (LEFT(tp2) >= LEFT(tp)))
+		{
+		    area.r_xbot = LEFT(tp2) < LEFT(tile) ? LEFT(tile) : LEFT(tp2);
+		    area.r_xtop = RIGHT(tp) > RIGHT(tile) ? RIGHT(tile) : RIGHT(tp);
+		}
+		else if ((RIGHT(tp2) >= LEFT(tp)) && (RIGHT(tp2) <= RIGHT(tp)))
+		{
+		    area.r_xbot = LEFT(tp) < LEFT(tile) ? LEFT(tile) : LEFT(tp);
+		    area.r_xtop = RIGHT(tp2) > RIGHT(tile) ? RIGHT(tile) : RIGHT(tp2);
+		}
+		else continue;
+
+		area.r_xbot *= cifScale;
+		area.r_xtop *= cifScale;
+
+		/* Does area violate minimum width requirement? */
+		width = area.r_xtop - area.r_xbot;
+		height = area.r_ytop - area.r_ybot;
+
+		/* Manhattan requirement (to-do: Euclidean) */
+		if (width < growDistance)
+		{
+		    locDist = (growDistance - width) / 2;
+		    parea.r_xbot = area.r_xbot - locDist;
+		    parea.r_xtop = area.r_xtop + locDist;
+		}
+		else
+		{
+		    parea.r_xbot = area.r_xbot;
+		    parea.r_xtop = area.r_xtop;
+		}
+		if (height < growDistance)
+		{
+		    locDist = (growDistance - height) / 2;
+		    parea.r_ybot = area.r_ybot - locDist;
+		    parea.r_ytop = area.r_ytop + locDist;
+		}
+		else
+		{
+		    parea.r_ybot = area.r_ybot;
+		    parea.r_ytop = area.r_ytop;
+		}
+		if ((width < growDistance) || (height < growDistance))
+		    DBPaintPlane(cifPlane, &parea, table, (PaintUndoInfo *) NULL);
+	    }
+    }
+
+    CIFTileOps += 1;
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * cifGrowGridFunc --
  *
  * 	Called for each relevant tile during grow-grid operations.
@@ -514,7 +685,7 @@ cifGrowFunc(tile, table)
     CIFTileOps += 1;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -842,6 +1013,46 @@ endbloat:
     return 0;
 }
 
+#define CIF_PENDING     0
+#define CIF_UNPROCESSED CLIENTDEFAULT
+#define CIF_PROCESSED   1
+#define CIF_IGNORE   	2
+
+#define PUSHTILE(tp, stack) \
+    if ((tp)->ti_client == (ClientData) CIF_UNPROCESSED) { \
+	(tp)->ti_client = (ClientData) CIF_PENDING; \
+	STACKPUSH((ClientData) (tp), stack); \
+    }
+
+/*
+ *-------------------------------------------------------
+ *
+ * cifFoundFunc --
+ *
+ *	Find the first tile in the given area.
+ *
+ * Results:
+ *	Return 1 to stop the search and process.
+ *	Set clientData to the tile found.
+ *
+ *-------------------------------------------------------
+ */
+
+int
+cifFoundFunc(tile, BloatStackPtr)
+    Tile *tile;
+    Stack **BloatStackPtr;
+{
+    PUSHTILE(tile, *BloatStackPtr);
+    return 0;
+}
+
+/* Data structure for bloat-all function */
+typedef struct _bloatStruct {
+    CIFOp	*op;
+    CellDef	*def;
+} BloatStruct;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -861,29 +1072,25 @@ endbloat:
  * ----------------------------------------------------------------------------
  */
 
-#define CIF_PENDING     0
-#define CIF_UNPROCESSED CLIENTDEFAULT
-#define CIF_PROCESSED   1
-#define CIF_IGNORE   	2
-
-#define PUSHTILE(tp, stack) \
-    if ((tp)->ti_client == (ClientData) CIF_UNPROCESSED) { \
-	(tp)->ti_client = (ClientData) CIF_PENDING; \
-	STACKPUSH((ClientData) (tp), stack); \
-    }
-
 int
-cifBloatAllFunc(tile, op)
+cifBloatAllFunc(tile, bls)
     Tile *tile;			/* The tile to be processed. */
-    CIFOp *op;			/* Describes the operation to be performed */
+    BloatStruct *bls;
 {
     Rect area;
     TileTypeBitMask connect;
     Tile *t, *tp;
     TileType type;
-    BloatData *bloats = (BloatData *)op->co_client;
-    int i;
+    BloatData *bloats;
+    int i, locScale;
+    PlaneMask pmask;
+    CIFOp *op;
+    CellDef *def;
     static Stack *BloatStack = (Stack *)NULL;
+
+    op = bls->op;
+    def = bls->def;
+    bloats = (BloatData *)op->co_client;
 
     /* Create a mask of all connecting types (these must be in a single
      * plane), then call a search function to find all connecting material
@@ -900,7 +1107,38 @@ cifBloatAllFunc(tile, op)
     if (BloatStack == (Stack *)NULL)
 	BloatStack = StackNew(64);
 
-    PUSHTILE(tile, BloatStack);
+    /* If the type of the tile to be processed is not in the same plane	*/
+    /* as the bloat type(s), then find any tile under the tile to be	*/
+    /* processed that belongs to the connect mask, and use that as the	*/
+    /* starting tile.							*/
+
+    t = tile;
+    type = TiGetType(tile);
+    if (type == CIF_SOLIDTYPE)
+    {
+	pmask = 0;
+	locScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
+
+	/* Get the tile into magic database coordinates if it's in CIF coords */
+	TiToRect(tile, &area);
+	area.r_xbot /= locScale;
+	area.r_xtop /= locScale;
+	area.r_ybot /= locScale;
+	area.r_ytop /= locScale;
+    }
+    else
+    {
+	int pNum = DBPlane(type);
+	pmask = CoincidentPlanes(&connect, PlaneNumToMaskBit(pNum));
+	if (pmask == 0) TiToRect(tile, &area);
+	locScale = cifScale;
+    }
+    if (pmask == 0)
+	DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &area,
+		&connect, cifFoundFunc, (ClientData)(&BloatStack));
+    else
+	PUSHTILE(t, BloatStack);
+
     while (!StackEmpty(BloatStack))
     {
 	t = (Tile *) STACKPOP(BloatStack);
@@ -910,10 +1148,10 @@ cifBloatAllFunc(tile, op)
 	/* Get the tile into CIF coordinates. */
 
 	TiToRect(t, &area);
-	area.r_xbot *= cifScale;
-	area.r_ybot *= cifScale;
-	area.r_xtop *= cifScale;
-	area.r_ytop *= cifScale;
+	area.r_xbot *= locScale;
+	area.r_ybot *= locScale;
+	area.r_xtop *= locScale;
+	area.r_ytop *= locScale;
 
 	DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &area,
 		CIFPaintTable, (PaintUndoInfo *) NULL);
@@ -980,6 +1218,134 @@ cifBloatAllFunc(tile, op)
 	    }
     }
     return 0;	/* Keep the search alive. . . */
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifCloseFunc --
+ *
+ * 	Called for each relevant tile during close operations.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	Paints into cifNewPlane.  Tiles in old plane are tagged with
+ *	a static value in ClientData, which does not need to be reset
+ *	since the old plane will be free'd.
+ * ----------------------------------------------------------------------------
+ */
+
+#define CLOSE_SEARCH 0
+#define CLOSE_FILL   1
+#define CLOSE_DONE   2
+
+int
+cifCloseFunc(tile, plane)
+    Tile *tile;
+    Plane *plane;
+{
+    Rect area, newarea;
+    int atotal;
+    int cifGatherFunc();
+
+    /* If tile is marked, then it has been handled, so ignore it */
+    if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
+
+    atotal = 0;
+
+    /* Search all sides for connected space tiles, and accumulate the total */
+    /* area.  If any connected tile borders infinity, then stop searching   */
+    /* because the area is not enclosed.				    */
+
+    cifGatherFunc(tile, &atotal, CLOSE_SEARCH);
+
+    /* If the total area is smaller than the rule area, then paint all the  */
+    /* tile areas into the destination plane.				    */
+
+    if ((atotal != INFINITY) && (atotal < growDistance))
+	cifGatherFunc(tile, &atotal, CLOSE_FILL);
+    else
+	cifGatherFunc(tile, &atotal, CLOSE_DONE);
+
+    return 0;
+}
+
+int
+cifGatherFunc(tile, atotal, mode)
+    Tile *tile;
+    int *atotal;
+    bool mode;
+{
+    Tile *tp;
+    TileType type;
+    dlong locarea;
+    Rect area, newarea;
+    ClientData cdata = (mode == CLOSE_SEARCH) ? (ClientData)CIF_UNPROCESSED :
+	    (ClientData)CIF_PENDING;
+
+    /* Ignore if tile has already been processed */
+    if (tile->ti_client != cdata) return 0;
+
+    TiToRect(tile, &area);
+
+    /* Boundary tiles indicate an unclosed area, so set the area total to   */
+    /* INFINITY and don't try to run calculations on it.		    */
+
+    if ((area.r_xbot == TiPlaneRect.r_xbot) || (area.r_ybot == TiPlaneRect.r_ybot) ||
+	    (area.r_xtop == TiPlaneRect.r_xtop) || (area.r_ytop == TiPlaneRect.r_ytop))
+	*atotal = INFINITY;
+
+    /* Stop accumulating if already larger than growDistance to avoid the   */
+    /* possibility of integer overflow.					    */
+    if (mode == CLOSE_SEARCH)
+    {
+	if ((*atotal != INFINITY) && (*atotal < growDistance))
+	    locarea = (dlong)(area.r_xtop - area.r_xbot)
+			* (dlong)(area.r_ytop - area.r_ybot);
+	    if (locarea > (dlong)INFINITY)
+		*atotal = INFINITY;
+	    else
+		*atotal += (int)locarea;
+    }
+    else if (mode == CLOSE_FILL)
+    {
+	DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *)NULL);
+	CIFTileOps++;
+    }
+
+    if (mode == CLOSE_SEARCH)
+	tile->ti_client = (ClientData)CIF_PENDING;
+    else
+	tile->ti_client = (ClientData)CIF_PROCESSED;
+
+    /* Look for additional neighboring space tiles */
+    /* Check top */
+    if (area.r_ytop != TiPlaneRect.r_ytop)
+        for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+		cifGatherFunc(tp, atotal, mode);
+
+    /* Check bottom */
+    if (area.r_ybot != TiPlaneRect.r_ybot)
+        for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+		cifGatherFunc(tp, atotal, mode);
+
+    /* Check left */
+    if (area.r_xbot != TiPlaneRect.r_xbot)
+	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+		cifGatherFunc(tp, atotal, mode);
+
+    /* Check right */
+    if (area.r_xtop != TiPlaneRect.r_xtop)
+	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
+	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+		cifGatherFunc(tp, atotal, mode);
+
+    return 0;
 }
 
 /*--------------------------------------------------------------*/
@@ -1310,7 +1676,7 @@ cifRectBoundingBox(op, cellDef, plane)
 	    }
 	    else
 	    {
-		maxr = FindMaxRectangle2(&bbox, tile, plane);
+		maxr = FindMaxRectangle2(&bbox, tile, plane, NULL);
 		DBPaintPlane(cifPlane, maxr, CIFPaintTable, (PaintUndoInfo *)NULL);
 		CIFTileOps++;
 	    }
@@ -1723,7 +2089,7 @@ cifSlotsFillArea(op, cellDef, plane)
 {
     Tile *tile, *t, *tp;
     Rect bbox, area, square, cut, llcut;
-    int nAcross, nUp, left, spitch, lpitch, ssize, lsize;
+    int nAcross, nUp, left, spitch, lpitch, ssize, lsize, offset;
     int diff, right;
     int xpitch, ypitch, xborder, yborder, xdiff, ydiff;
     int i, j, k, savecount;
@@ -1944,16 +2310,17 @@ cifSlotsFillArea(op, cellDef, plane)
 
 	    cifSlotFunc(&bbox, op, &nUp, &nAcross, &llcut, vertical);
 
-	    cut.r_ybot = llcut.r_ybot;
-	    cut.r_ytop = llcut.r_ytop;
+	    cut.r_ybot = llcut.r_ybot + slots->sl_start;
+	    cut.r_ytop = llcut.r_ytop + slots->sl_start;
 
 	    /* For each contact cut area, check that there is	*/
 	    /* no whitespace					*/
 
+	    offset = slots->sl_start;
 	    for (i = 0; i < nUp; i++)
 	    {
-		cut.r_xbot = llcut.r_xbot;
-		cut.r_xtop = llcut.r_xtop;
+		cut.r_xbot = llcut.r_xbot + offset;
+		cut.r_xtop = llcut.r_xtop + offset;
 
 		square.r_ybot = cut.r_ybot - yborder;
 		square.r_ytop = cut.r_ytop + yborder;
@@ -1980,6 +2347,8 @@ cifSlotsFillArea(op, cellDef, plane)
 		}
 		cut.r_ybot += ypitch;
 		cut.r_ytop += ypitch;
+		offset += slots->sl_offset;
+		if (offset >= xpitch) offset -= xpitch;
 	    }
 	    if (savecount != CIFTileOps) break;
 
@@ -2688,6 +3057,7 @@ cifSrTiles(cifOp, area, cellDef, temps, func, cdArg)
 {
     TileTypeBitMask maskBits;
     TileType t;
+    Tile *tp;
     int i;
     BloatData *bloats;
 
@@ -2699,7 +3069,7 @@ cifSrTiles(cifOp, area, cellDef, temps, func, cdArg)
 
     cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
 
-    /* Bloat operations have to be in a single plane */
+    /* Bloat operations (except bloat-all) have to be in a single plane */
 
     switch (cifOp->co_opcode) {
 	case CIFOP_BLOAT:
@@ -2783,6 +3153,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
     SearchContext scx;
     TileType ttype;
     char *netname;
+    BloatStruct bls;
     int (*cifGrowFuncPtr)() = (CIFCurStyle->cs_flags & CWF_GROW_EUCLIDEAN) ?
 		cifGrowEuclideanFunc : cifGrowFunc;
 
@@ -2926,6 +3297,20 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		nextPlane = temp;
 		break;
 
+	    /* GROWMIN grows non-uniformly to ensure minimum dimensions */
+
+	    case CIFOP_GROWMIN:
+		growDistance = op->co_distance;
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifScale = 1;
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &CIFSolidBits, cifGrowMinFunc, (ClientData)CIFPaintTable);
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
+		break;
+
 	    /* GROW_G grows non-uniformly to the indicated grid. */
 
 	    case CIFOP_GROW_G:
@@ -2956,6 +3341,22 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		nextPlane = temp;
 		break;
 	    
+	    case CIFOP_CLOSE:
+		growDistance = op->co_distance;
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifScale = 1;
+		/* First copy the existing paint into the target plane */
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &CIFSolidBits, cifPaintFunc, (ClientData)CIFPaintTable);
+
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &DBSpaceBits, cifCloseFunc, (ClientData)&curPlane);
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
+		break;
+
 	    case CIFOP_BLOAT:
 		cifPlane = curPlane;
 		cifSrTiles(op, area, cellDef, temps,
@@ -2971,8 +3372,10 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 
 	    case CIFOP_BLOATALL:
 		cifPlane = curPlane;
+		bls.op = op;
+		bls.def = cellDef;
 		cifSrTiles(op, area, cellDef, temps,
-		    cifBloatAllFunc, (ClientData) op);
+		    cifBloatAllFunc, (ClientData)&bls);
 		break;
 	    
 	    case CIFOP_SQUARES:

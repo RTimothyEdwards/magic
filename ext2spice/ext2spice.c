@@ -140,9 +140,16 @@ esFormatSubs(outf, suf)
 	if ((EFTrimFlags & EF_TRIMGLOB ) && suf[l] == '!' ||
 	         (EFTrimFlags & EF_TRIMLOCAL) && suf[l] == '#')
 	    suf[l] = '\0' ;
-	if (EFTrimFlags & EF_CONVERTCOMMAS)
+	if (EFTrimFlags & EF_CONVERTCOMMA)
 	    while ((specchar = strchr(suf, ',')) != NULL)
-		*specchar = ';';
+		*specchar = '|';
+	if (EFTrimFlags & EF_CONVERTBRACKETS)
+	{
+	    while ((specchar = strchr(suf, '[')) != NULL)
+		*specchar = '_';
+	    while ((specchar = strchr(suf, ']')) != NULL)
+		*specchar = '_';
+	}
 	if (EFTrimFlags & EF_CONVERTEQUAL)
 	    while ((specchar = strchr(suf, '=')) != NULL)
 		*specchar = ':';
@@ -257,7 +264,8 @@ CmdExtToSpice(w, cmd)
 	"extresist [on|off]	incorporate information from extresist",
 	"resistor tee [on|off]	model resistor capacitance as a T-network",
 	"scale [on|off]		use .option card for scaling",
-	"subcircuits [on|off]	standard cells become subcircuit calls",
+	"subcircuits [top|descend] [on|off|auto]\n"
+	"			standard cells become subcircuit calls",
 	"hierarchy [on|off]	output hierarchical spice for LVS",
 	"blackbox [on|off]	output abstract views as black-box entries",
 	"renumber [on|off]	on = number instances X1, X2, etc.\n"
@@ -607,7 +615,7 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_DEFAULT:
 	    LocCapThreshold = 2;
 	    LocResistThreshold = INFINITE_THRESHOLD;
-	    EFTrimFlags = EF_CONVERTCOMMAS | EF_CONVERTEQUAL;
+	    EFTrimFlags = EF_CONVERTCOMMA | EF_CONVERTEQUAL;
 	    EFScale = 0.0;
 	    if (EFArgTech)
 	    {
@@ -821,7 +829,7 @@ runexttospice:
 
     // This forces options TRIMGLOB and CONVERTEQUAL, not sure that's such a
     // good idea. . .
-    EFTrimFlags |= EF_TRIMGLOB | EF_CONVERTEQUAL;
+    EFTrimFlags |= EF_TRIMGLOB | EF_CONVERTEQUAL | EF_CONVERTCOMMA;
     if (IS_FINITE_F(EFCapThreshold)) flatFlags |= EF_FLATCAPS;
     if (esFormat == HSPICE)
 	EFTrimFlags |= EF_TRIMLOCAL;
@@ -1140,6 +1148,17 @@ spcmainArgs(pargc, pargv)
     char **argv = *pargv, *cp;
     int argc = *pargc;
 
+    char usage_text[] = "Usage: ext2spice "
+		"[-B] [-o spicefile] [-M|-m] [-y cap_digits] "
+		"[-J flat|hier]\n"
+		"[-f spice2|spice3|hspice|ngspice] [-M] [-m] "
+#ifdef MAGIC_WRAPPER
+		"[file]\n";
+#else
+		"[-j device:sdRclass[/subRclass]/defaultSubstrate]\n"
+		"file\n\n    or else see options to extcheck(1)\n";
+#endif
+
     switch (argv[0][1])
     {
 	case 'd':
@@ -1236,6 +1255,9 @@ spcmainArgs(pargc, pargv)
 	    break;
 	    }
 #endif			/* MAGIC_WRAPPER */
+	case 'h':	/* -h or -help, as suggested by "ext2spice help" */
+	    TxPrintf(usage_text);
+	    break;
 	default:
 	    TxError("Unrecognized flag: %s\n", argv[0]);
 	    goto usage;
@@ -1246,16 +1268,7 @@ spcmainArgs(pargc, pargv)
     return 0;
 
 usage:
-    TxError("Usage: ext2spice [-B] [-o spicefile] [-M|-m] [-y cap_digits] "
-		"[-J flat|hier]\n"
-		"[-f spice2|spice3|hspice] [-M] [-m] "
-#ifdef MAGIC_WRAPPER
-		"[file]\n"
-#else
-		"[-j device:sdRclass[/subRclass]/defaultSubstrate]\n"
-		"file\n\n    or else see options to extcheck(1)\n"
-#endif
-		);
+    TxError(usage_text);
 
 #ifdef MAGIC_WRAPPER
     return 1;
@@ -1359,10 +1372,11 @@ subcktVisit(use, hierName, is_top)
     EFNode *snode;
     Def *def = use->use_def;
     EFNodeName *nodeName;
-    int portorder, portmax, imp_max, tchars;
+    int portorder, portmax, portidx, imp_max, tchars;
     char stmp[MAX_STR_SIZE];
     char *instname, *subcktname;
     DevParam *plist, *pptr;
+    EFNodeName **nodeList;
 
     if (is_top == TRUE) return 0;	/* Ignore the top-level cell */
 
@@ -1379,7 +1393,7 @@ subcktVisit(use, hierName, is_top)
     else
     {
 	int savflags = EFTrimFlags;
-	EFTrimFlags = 0;	// Do no substitutions on subcircuit names
+	EFTrimFlags = EF_CONVERTCOMMA;	// Only substitute commas on subcircuit names
 
 	/* Use full hierarchical decomposition for name */
 	/* (not just use->use_id.  hierName already has use->use_id at end) */
@@ -1454,34 +1468,57 @@ subcktVisit(use, hierName, is_top)
 	/* Port numbers need not start at zero or be contiguous. */
 	/* They will be printed in numerical order.		 */
 
-	portorder = 0;
-	while (portorder <= portmax)
-	{
-	    for (snode = (EFNode *) def->def_firstn.efnode_next;
+	nodeList = (EFNodeName **)mallocMagic((portmax + 1) * sizeof(EFNodeName *));
+	for (portidx = 0; portidx <= portmax; portidx++)
+	    nodeList[portidx] = (EFNodeName *)NULL;
+
+	for (snode = (EFNode *) def->def_firstn.efnode_next;
 			snode != &def->def_firstn;
 			snode = (EFNode *) snode->efnode_next)
-	    {
-		if (!(snode->efnode_flags & EF_PORT)) continue;
-		for (nodeName = snode->efnode_name; nodeName != NULL;
+	{
+	    if (!(snode->efnode_flags & EF_PORT)) continue;
+	    for (nodeName = snode->efnode_name; nodeName != NULL;
 			nodeName = nodeName->efnn_next)
+	    {
+		EFNodeName *nn;
+		HashEntry *he;
+		char *pname;
+
+		portidx = nodeName->efnn_port;
+		if (portidx < 0) continue;
+		if (nodeList[portidx] == NULL)
 		{
-		    int portidx = nodeName->efnn_port;
-		    if (portidx == portorder)
-		    {
-			if (tchars > 80)
-			{
-			    fprintf(esSpiceF, "\n+");
-			    tchars = 1;
-			}
-			tchars += spcdevOutNode(hierName, nodeName->efnn_hier,
-					"subcircuit", esSpiceF); 
-			break;
-		    }
+		    nodeList[portidx] = nodeName;
 		}
-		if (nodeName != NULL) break;
+		else if (EFHNBest(nodeName->efnn_hier, nodeList[portidx]->efnn_hier))
+		{
+		    nodeList[portidx] = nodeName;
+		}
 	    }
-	    portorder++;
 	}
+
+	for (portidx = 0; portidx <= portmax; portidx++)
+	{
+	    nodeName = nodeList[portidx];
+
+	    if (nodeName != NULL)
+	    {
+		if (tchars > 80)
+		{
+		    fprintf(esSpiceF, "\n+");
+		    tchars = 1;
+		}
+		tchars += spcdevOutNode(hierName, nodeName->efnn_hier,
+				"subcircuit", esSpiceF); 
+	    }
+	    else
+	    {
+		// As port indexes do not have to be contiguous, this does not
+		// necessarily indicate an error condition.  No need to report?
+		// TxError("No port connection on port %d;  need to resolve.\n", portidx);
+	    }
+	}
+	freeMagic(nodeList);
 
 	/* Look for all implicit substrate connections that are	*/
 	/* declared as local node names, and put them last.	*/
@@ -1602,7 +1639,7 @@ topVisit(def, doStub)
     Def *def;
     bool doStub;
 {
-    EFNode *snode;
+    EFNode *snode, *basenode;
     EFNodeName *sname, *nodeName;
     HashSearch hs;
     HashEntry *he;
@@ -1655,7 +1692,9 @@ topVisit(def, doStub)
 	    snode = sname->efnn_node;
 
 	    if (snode->efnode_flags & EF_PORT)
-		if (snode->efnode_name->efnn_port < 0)
+	    {
+		pname = nodeSpiceName(snode->efnode_name->efnn_hier, &basenode);
+		if (basenode->efnode_name->efnn_port < 0)
 		{
 		    if (tchars > 80)
 		    {
@@ -1663,11 +1702,12 @@ topVisit(def, doStub)
 			fprintf(esSpiceF, "\n+");
 			tchars = 1;
 		    }
-		    pname = nodeSpiceName(snode->efnode_name->efnn_hier);
 		    fprintf(esSpiceF, " %s", pname);
 		    tchars += strlen(pname) + 1;
-		    snode->efnode_name->efnn_port = portorder++;
+		    basenode->efnode_name->efnn_port = portorder++;
 		}
+		snode->efnode_name->efnn_port = basenode->efnode_name->efnn_port;
+	    }
 	}
     }
     else
@@ -1681,6 +1721,7 @@ topVisit(def, doStub)
 	    HashStartSearch(&hs);
 	    while (he = HashNext(&def->def_nodes, &hs))
 	    {
+		char stmp[MAX_STR_SIZE];
 		int portidx;
 		EFNodeName *unnumbered;
 
@@ -1701,7 +1742,17 @@ topVisit(def, doStub)
 			    fprintf(esSpiceF, "\n+");
 			    tchars = 1;
 			}
-			pname =	nodeSpiceName(snode->efnode_name->efnn_hier);
+			// If view is abstract, rely on the given port name, not
+			// the node.  Otherwise, artifacts of the abstract view
+			// may cause nodes to be merged and the names lost.
+
+			if (def->def_flags & DEF_ABSTRACT)
+			{
+			    EFHNSprintf(stmp, nodeName->efnn_hier);
+			    pname = stmp;
+			}
+			else
+			    pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
 			fprintf(esSpiceF, " %s", pname);
 			tchars += strlen(pname) + 1;
 			break;
@@ -2081,6 +2132,56 @@ esOutputResistor(dev, hierName, scale, term1, term2, has_model, l, w, dscale)
 	if (sdM != 1.0)
 	    fprintf(esSpiceF, " M=%g", sdM);
     }
+}
+
+/* Report if device at index n has been deleted due to merging */
+
+bool
+devIsKilled(n)
+    int n;
+{
+    return (esFMult[(n)] <= (float)0.0) ? TRUE : FALSE;
+}
+
+/* Add a dev's multiplier to the table and grow it if necessary */
+
+void
+addDevMult(f)
+    float f;
+{
+    int i;
+    float *op;
+
+    if (esFMult == NULL) {
+          esFMult = (float *) mallocMagic((unsigned) (esFMSize*sizeof(float)));
+    }
+    else if (esFMIndex >= esFMSize)
+    {
+        op = esFMult;
+	esFMSize *= 2;
+        esFMult = (float *)mallocMagic((unsigned)(esFMSize * sizeof(float)));
+        for (i = 0; i < esFMSize / 2; i++) esFMult[i] = op[i];
+        if (op) freeMagic(op);
+    }
+    esFMult[esFMIndex++] = f;
+}
+
+/* Set the multiplier value f of device at index i */
+
+void
+setDevMult(i, f)
+    int i;
+    float f;
+{
+    esFMult[i] = f;
+}
+
+/* Get the multiplier value of the device at the current index esFMIndex */
+
+float
+getCurDevMult()
+{
+    return (esFMult && (esFMIndex > 0)) ? esFMult[esFMIndex-1] : (float)1.0;
 }
 
 /*
@@ -2708,13 +2809,16 @@ FILE *outf;
     	/* Canonical name */
     	nn = (EFNodeName *) HashGetValue(he);
 	if (outf) 
-	   fprintf(outf, "%s", nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier));
+	   fprintf(outf, "%s", nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier,
+		    NULL));
 
 	/* Mark node as visited */
 	if ((nodeClient *)nn->efnn_node->efnode_client == (ClientData)NULL)
 	    initNodeClientHier(nn->efnn_node);
 
-	((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask |= DEV_CONNECT_MASK;
+	if (!esDistrJunct)
+	    ((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask |=
+			DEV_CONNECT_MASK;
         return nn->efnn_node;
    }
 }
@@ -2769,7 +2873,14 @@ int spcnAP(node, resClass, scale, asterm, psterm, m, outf, w)
 
     if (!esDistrJunct || w == -1) goto oldFmt;
 
-    dsc = w / ((nodeClient*)node->efnode_client)->m_w.widths[resClass];
+    if (((nodeClient*)node->efnode_client)->m_w.widths != NULL)
+	dsc = w / ((nodeClient*)node->efnode_client)->m_w.widths[resClass];
+    else
+    {
+	TxError("Device missing records for source/drain area/perim.\n");
+	dsc = w;
+    }
+
     if (esScale < 0)
     {
 	if (asterm)
@@ -2917,10 +3028,13 @@ spcdevOutNode(prefix, suffix, name, outf)
 	return 0;
     }
     nn = (EFNodeName *) HashGetValue(he);
-    nname = nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier);
+    nname = nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier, NULL);
     fprintf(outf, " %s", nname);
+
     /* Mark node as visited */
-    ((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask |= DEV_CONNECT_MASK;
+    if (!esDistrJunct)
+	((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask |= DEV_CONNECT_MASK;
+
     return (1 + strlen(nname));
 }
 
@@ -2960,8 +3074,8 @@ spccapVisit(hierName1, hierName2, cap)
     if (cap <= EFCapThreshold)
 	return 0;
 
-    fprintf(esSpiceF, esSpiceCapFormat ,esCapNum++,nodeSpiceName(hierName1),
-                                          nodeSpiceName(hierName2), cap);
+    fprintf(esSpiceF, esSpiceCapFormat ,esCapNum++,nodeSpiceName(hierName1, NULL),
+                                          nodeSpiceName(hierName2, NULL), cap);
     return 0;
 }
 
@@ -2996,8 +3110,8 @@ spcresistVisit(hierName1, hierName2, res)
     HierName *hierName2;
     float res;
 {
-    fprintf(esSpiceF, "R%d %s %s %g\n", esResNum++, nodeSpiceName(hierName1),
-			nodeSpiceName(hierName2), res / 1000.);
+    fprintf(esSpiceF, "R%d %s %s %g\n", esResNum++, nodeSpiceName(hierName1, NULL),
+			nodeSpiceName(hierName2, NULL), res / 1000.);
 
     return 0;
 }
@@ -3032,7 +3146,7 @@ spcsubVisit(node, res, cap, resstr)
     if (node->efnode_flags & EF_SUBS_NODE)
     {
 	hierName = (HierName *) node->efnode_name->efnn_hier;
-	nsn = nodeSpiceName(hierName);
+	nsn = nodeSpiceName(hierName, NULL);
 	*resstr = StrDup((char **)NULL, nsn);
 	return 1;
     }
@@ -3082,7 +3196,7 @@ spcnodeVisit(node, res, cap)
     if (!isConnected && node->efnode_flags & EF_PORT) isConnected = TRUE;
 
     hierName = (HierName *) node->efnode_name->efnn_hier;
-    nsn = nodeSpiceName(hierName);
+    nsn = nodeSpiceName(hierName, NULL);
 
     if (esFormat == SPICE2 || esFormat == HSPICE && strncmp(nsn, "z@", 2)==0 ) {
 	static char ntmp[MAX_STR_SIZE];
@@ -3127,7 +3241,7 @@ nodeVisitDebug(node, res, cap)
     EFAttr *ap;
     
     hierName = (HierName *) node->efnode_name->efnn_hier;
-    nsn = nodeSpiceName(hierName);
+    nsn = nodeSpiceName(hierName, NULL);
     TxError("** %s (%x)\n", nsn, node);
 
     printf("\t client.name=%s, client.m_w=%p\n",
@@ -3150,23 +3264,27 @@ nodeVisitDebug(node, res, cap)
  *
  * Side effects:
  *      Allocates nodeClients for the node.
+ *	Returns the node in the "rnode" pointer, if non-NULL.
  *
  * ----------------------------------------------------------------------------
  */
 static char esTempName[MAX_STR_SIZE];
 
-char *nodeSpiceName(hname)
+char *nodeSpiceName(hname, rnode)
     HierName *hname;
+    EFNode **rnode;
 {
     EFNodeName *nn;
     HashEntry *he;
     EFNode *node;
 
+    if (rnode) *rnode = (EFNode *)NULL;
     he = EFHNLook(hname, (char *) NULL, "nodeName");
     if ( he == NULL )
 	return "errGnd!";
     nn = (EFNodeName *) HashGetValue(he);
     node = nn->efnn_node;
+    if (rnode) *rnode = node;
 
     if ( (nodeClient *) (node->efnode_client) == NULL ) {
     	initNodeClient(node);
@@ -3215,7 +3333,7 @@ EFHNSprintf(str, hierName)
     char *str;
     HierName *hierName;
 {
-    bool trimGlob, trimLocal, convertComma, convertEqual;
+    bool trimGlob, trimLocal, convertComma, convertEqual, convertBrackets;
     char *s, *cp, c;
     char *efHNSprintfPrefix(HierName *, char *);
 
@@ -3226,8 +3344,9 @@ EFHNSprintf(str, hierName)
 	cp = hierName->hn_name; 
 	trimGlob = (EFTrimFlags & EF_TRIMGLOB);
 	trimLocal = (EFTrimFlags & EF_TRIMLOCAL);
-	convertComma = (EFTrimFlags & EF_CONVERTCOMMAS);
+	convertComma = (EFTrimFlags & EF_CONVERTCOMMA);
 	convertEqual = (EFTrimFlags & EF_CONVERTEQUAL);
+	convertBrackets = (EFTrimFlags & EF_CONVERTBRACKETS);
 	while (c = *cp++)
 	{
 	    switch (c)
@@ -3235,7 +3354,9 @@ EFHNSprintf(str, hierName)
 		case '!':	if (!trimGlob) *str++ = c; break;
 		case '.':	*str++ = (esFormat == HSPICE)?'@':'.'; break;
 		case '=':	if (convertEqual) *str++ = ':'; break;
-		case ',':	if (convertComma) *str++ = ';'; break;
+		case ',':	if (convertComma) *str++ = '|'; break;
+		case '[':	*str++ = (convertBrackets) ? '_' : '['; break;
+		case ']':	*str++ = (convertBrackets) ? '_' : ']'; break;
 		case '#':	if (trimLocal) break;	// else fall through
 		default:	*str++ = c; break;
 	    }
@@ -3252,6 +3373,8 @@ char *efHNSprintfPrefix(hierName, str)
 {
     char *cp, c;
     bool convertEqual = (EFTrimFlags & EF_CONVERTEQUAL) ? TRUE : FALSE;
+    bool convertComma = (EFTrimFlags & EF_CONVERTCOMMA) ? TRUE : FALSE;
+    bool convertBrackets = (EFTrimFlags & EF_CONVERTBRACKETS) ? TRUE : FALSE;
 
     if (hierName->hn_parent)
 	str = efHNSprintfPrefix(hierName->hn_parent, str);
@@ -3260,6 +3383,13 @@ char *efHNSprintfPrefix(hierName, str)
     while (1) {
 	if (convertEqual && (*cp == '='))
 	   *str = ':';
+	else if (convertBrackets && ((*cp == '[') || (*cp == ']')))
+	   *str = '_';
+	else if (*cp == ',')
+	{
+	    if (convertComma) *str = '|';
+	    else str--;
+	}
 	else
 	   *str = *cp;
 	if (!(*str)) break;

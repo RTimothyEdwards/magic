@@ -1,5 +1,5 @@
 # This is the "Magic wrapper".
-# It's main purpose is to redefine the "openwindow" command in magic so that
+# Its main purpose is to redefine the "openwindow" command in magic so that
 # opening a new window creates a window wrapped by a GUI interface.
 #
 # Written by Tim Edwards, August 23, 2002.
@@ -22,26 +22,43 @@ if {[lsearch [namespace children] ::tkshell] < 0} {
    catch {source ${CAD_ROOT}/magic/tcl/tkshell.tcl}
 }
 
-# Button images
+proc magic::makeglyphimages {} {
+    global Opts
+    global Glyph
+    global CAD_ROOT
 
-set Glyph(up) [image create bitmap \
-	-file ${CAD_ROOT}/magic/tcl/bitmaps/up.xbm \
-	-background gray -foreground steelblue]
-set Glyph(down) [image create bitmap \
-	-file ${CAD_ROOT}/magic/tcl/bitmaps/down.xbm \
-	-background gray -foreground steelblue]
-set Glyph(left) [image create bitmap \
-	-file ${CAD_ROOT}/magic/tcl/bitmaps/left.xbm \
-	-background gray -foreground steelblue]
-set Glyph(right) [image create bitmap \
-	-file ${CAD_ROOT}/magic/tcl/bitmaps/right.xbm \
-	-background gray -foreground steelblue]
-set Glyph(zoom) [image create bitmap \
-	-file ${CAD_ROOT}/magic/tcl/bitmaps/zoom.xbm \
-	-background gray -foreground steelblue]
-set Glyph(lock) [image create bitmap \
+    # Check if glyphs exist---don't need to make them more than once
+    if {![catch {set Glyph(up)}]} {return}
+
+    # Glyph images
+   
+    set gsize [expr {int($Opts(scale) * 13)}]
+    set gscale [expr {int($Opts(scale))}]
+
+    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/up.gif
+    image create photo Glyph(up) -width $gsize -height $gsize
+    Glyph(up) copy stdglyph -zoom $gscale
+
+    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/down.gif
+    image create photo Glyph(down) -width $gsize -height $gsize
+    Glyph(down) copy stdglyph -zoom $gscale
+
+    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/left.gif
+    image create photo Glyph(left) -width $gsize -height $gsize
+    Glyph(left) copy stdglyph -zoom $gscale
+
+    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/right.gif
+    image create photo Glyph(right) -width $gsize -height $gsize
+    Glyph(right) copy stdglyph -zoom $gscale
+
+    image create photo stdglyph -file ${CAD_ROOT}/magic/tcl/bitmaps/zoom.gif
+    image create photo Glyph(zoom) -width $gsize -height $gsize
+    Glyph(zoom) copy stdglyph -zoom $gscale
+
+    image create bitmap Glyph(lock) \
 	-file ${CAD_ROOT}/magic/tcl/bitmaps/lock.xbm \
 	-background gray80 -foreground steelblue4]
+}
 
 # Menu button callback functions
 
@@ -367,6 +384,10 @@ catch {source ${CAD_ROOT}/magic/tcl/cellmgr.tcl}
 
 catch {source ${CAD_ROOT}/magic/tcl/libmgr.tcl}
 
+# Generate the DRC manager
+
+catch {source ${CAD_ROOT}/magic/tcl/drcmgr.tcl}
+
 # Generate the text helper
 
 catch {source ${CAD_ROOT}/magic/tcl/texthelper.tcl}
@@ -533,6 +554,8 @@ set Opts(crosshair) 0
 set Opts(hidelocked) 0
 set Opts(hidespecial) 0
 set Opts(toolbar) 0
+set Opts(scale) 1.0
+set Opts(toolscale) 1.0
 set Opts(drc) 1
 set Opts(autobuttontext) 1
 
@@ -625,7 +648,7 @@ proc magic::cursorview {win} {
       return
    }
    set framename [winfo parent $win]
-   if {[catch {set cr [cif scale out]}]} {return}
+   if {[catch {set cr [*bypass cif scale out]}]} {return}
    if {$cr == 0} {return}
    set olst [${win} cursor internal]
 
@@ -716,18 +739,22 @@ proc magic::toolupdate {win {yesno "yes"} {layerlist "none"}} {
 # Generate the toolbar images for a technology
 
 proc magic::maketoolimages {} {
+   global Opts
+
+   # Tool size expands with the GUI scale but can also be expanded independently.
+   set tsize [expr {int($Opts(scale) * $Opts(toolscale) * 16)}]
 
    # Generate a layer image for "space" that will be used when layers are
    # invisible.
 
-   image create layer img_space -name none
+   image create layer img_space -name none -width $tsize -height $tsize
 
    set all_layers [concat {errors labels subcell} [magic::tech layer "*"]]
 
    foreach layername $all_layers {
-      image create layer img_$layername -name $layername
+      image create layer img_$layername -name $layername -width $tsize -height $tsize
       image create layer pale_$layername -name $layername \
-		-disabled true -icon 23
+		-disabled true -icon 23 -width $tsize -height $tsize
     }
 }
 
@@ -892,6 +919,8 @@ proc magic::techrebuild {winpath {cmdstr ""}} {
 # current view in magic (in pixels)
 
 proc magic::setscrollvalues {win} {
+   global Opts
+
    set svalues [${win} view get]
    set bvalues [${win} view bbox]
 
@@ -918,16 +947,19 @@ proc magic::setscrollvalues {win} {
    set ya [expr { $wheight - $ya }]
    set yb [expr { $wheight - $yb }]
 
-   ${framename}.xscroll.bar coords slider $xa 2 $xb 15
-   ${framename}.yscroll.bar coords slider 2 $ya 15 $yb
+   set swidth [expr {int($Opts(scale) * 13)}]
+   set slength [expr {$swidth + 2}]
+
+   ${framename}.xscroll.bar coords slider $xa 2 $xb $slength
+   ${framename}.yscroll.bar coords slider 2 $ya $slength $yb
 
    set xb [expr { 1 + ($xa + $xb) / 2 }]
    set xa [expr { $xb - 2 }]
-   ${framename}.xscroll.bar coords centre $xa 4 $xb 13
+   ${framename}.xscroll.bar coords centre $xa 4 $xb $swidth
 
    set yb [expr { 1 + ($ya + $yb) / 2 }]
    set ya [expr { $yb - 2 }]
-   ${framename}.yscroll.bar coords centre 4 $ya 13 $yb
+   ${framename}.yscroll.bar coords centre 4 $ya $swidth $yb
 }
 
 # Procedure to update scrollbars in response to an internal command
@@ -1011,6 +1043,9 @@ proc magic::dragscroll { w v orient } {
 proc magic::makescrollbar { fname orient win } {
    global scale
    global Glyph
+   global Opts
+
+   set swidth [expr {int($Opts(scale) * 13)}]
 
    set scale($orient,update) 0
    set scale($orient,origin) 0
@@ -1018,19 +1053,19 @@ proc magic::makescrollbar { fname orient win } {
    # To be done:  add glyphs for the arrows
 
    if { "$orient" == "x" } {
-      canvas ${fname}.bar -height 13 -relief sunken -borderwidth 1
-      button ${fname}.lb -image $Glyph(left) -borderwidth 1 \
+      canvas ${fname}.bar -height $swidth -relief sunken -borderwidth 1
+      button ${fname}.lb -image Glyph(left) -borderwidth 1 \
 		-command "${win} scroll left .1 w"
-      button ${fname}.ub -image $Glyph(right) -borderwidth 1 \
+      button ${fname}.ub -image Glyph(right) -borderwidth 1 \
 		-command "${win} scroll right .1 w"
       pack ${fname}.lb -side left
       pack ${fname}.bar -fill $orient -expand true -side left
       pack ${fname}.ub -side right
    } else {
-      canvas ${fname}.bar -width 13 -relief sunken -borderwidth 1
-      button ${fname}.lb -image $Glyph(down) -borderwidth 1 \
+      canvas ${fname}.bar -width $swidth -relief sunken -borderwidth 1
+      button ${fname}.lb -image Glyph(down) -borderwidth 1 \
 		-command "${win} scroll down .1 w"
-      button ${fname}.ub -image $Glyph(up) -borderwidth 1 \
+      button ${fname}.ub -image Glyph(up) -borderwidth 1 \
 		-command "${win} scroll up .1 w"
       pack ${fname}.ub
       pack ${fname}.bar -fill $orient -expand true
@@ -1046,7 +1081,7 @@ proc magic::makescrollbar { fname orient win } {
    # Create a small mark in the center of the scrolling rectangle which aids
    # in determining how much the window is being scrolled when the full
    # scrollbar extends past the window edges.
-   ${fname}.bar create rect 4 4 13 13 -fill black -width 0 -tag centre
+   ${fname}.bar create rect 4 4 $swidth $swidth -fill black -width 0 -tag centre
    ${fname}.bar bind centre <Button-1> "magic::setscroll %W %$orient $orient"
    ${fname}.bar bind centre <ButtonRelease-1> "magic::scrollview %W $win $orient"
    ${fname}.bar bind centre <B1-Motion> "magic::dragscroll %W %$orient $orient"
@@ -1119,12 +1154,14 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
 
    pack ${framename}.pane -side top -fill both -expand true
 
-   frame ${layoutframe}.xscroll -height 13
-   frame ${layoutframe}.yscroll -width 13
+   set swidth [expr {int($Opts(scale) * 13)}]
+   frame ${layoutframe}.xscroll -height $swidth
+   frame ${layoutframe}.yscroll -width $swidth
 
+   magic::makeglyphimages
    magic::makescrollbar ${layoutframe}.xscroll x ${winname}
    magic::makescrollbar ${layoutframe}.yscroll y ${winname}
-   button ${layoutframe}.zb -image $Glyph(zoom) -borderwidth 1 -command "${winname} zoom 2"
+   button ${layoutframe}.zb -image Glyph(zoom) -borderwidth 1 -command "${winname} zoom 2"
 
    # Add bindings for mouse buttons 2 and 3 to the zoom button
    bind ${layoutframe}.zb <Button-3> "${winname} zoom 0.5"
@@ -1403,6 +1440,13 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
 		wm deiconify .techmgr ; raise .techmgr \
 		} else { \
 		wm withdraw .techmgr } }]
+
+   $m add check -label "DRC Manager" -variable Opts(drcmgr) \
+	-command [subst { magic::drcmanager create; \
+		if { \$Opts(drcmgr) } { \
+		wm deiconify .drcmgr ; raise .drcmgr \
+		} else { \
+		wm withdraw .drcmgr } }]
 
    $m add check -label "Netlist Window" -variable Opts(netlist) \
 	-command [subst { if { \[windownames netlist\] != {}} { \

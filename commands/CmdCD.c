@@ -1434,7 +1434,7 @@ CmdCif(w, cmd)
 	    if (!ToolGetBox(&rootDef, &box))
 	    {
 		TxError("Use the box to select the area in");
-		TxError(" which you want to see CIF.\n");
+		TxError(" which you want to paint CIF.\n");
 		return;
 	    }
 	    if (argc == 5)
@@ -3079,7 +3079,7 @@ CmdDown(w, cmd)
     GeoTransRect(&EditToRootTransform, &(EditCellUse->cu_def->cd_bbox), &area);
     (void) WindSearch(DBWclientID, (ClientData) NULL,
 	    (Rect *) NULL, cmdEditRedisplayFunc, (ClientData) &area);
-    DBWloadWindow(w, EditCellUse->cu_def->cd_name, TRUE, FALSE);
+    DBWloadWindow(w, EditCellUse->cu_def->cd_name, TRUE, FALSE, FALSE);
 }
 
 /* Search function to find the new edit cell:  look for a cell use
@@ -3182,7 +3182,7 @@ CmdDrc(w, cmd)
     bool	doforall = FALSE;
     bool	dolist = FALSE;
     int		count_total;
-    DRCCountList *dcl, *dclsrch;
+    DRCCountList *dcl;
     int argc = cmd->tx_argc;
     char **argv = cmd->tx_argv;
 #ifdef MAGIC_WRAPPER
@@ -3197,9 +3197,9 @@ CmdDrc(w, cmd)
 	"*stepsize [d]		change DRC step size to d units",
 	"catchup                run checker and wait for it to complete",
 	"check                  recheck area under box in all cells",
-	"count                  count error tiles in each cell under box",
+	"count [total]          count error tiles in each cell under box",
 	"euclidean on|off	enable/disable Euclidean geometry checking",
-	"find [nth]      	locate next (or nth) error in the layout",
+	"find [nth]     	locate next (or nth) error in the layout",
 	"help                   print this help information",
 	"off                    turn off background checker",
 	"on                     reenable background checker",
@@ -3313,7 +3313,6 @@ CmdDrc(w, cmd)
 #ifdef MAGIC_WRAPPER
 	    if (count_total == -1) lobj = Tcl_NewListObj(0, NULL);
 #endif
-
 	    if ((window = w) == NULL)
 	    {
 		window = ToolGetBoxWindow(&rootArea, (int *) NULL);
@@ -3323,7 +3322,7 @@ CmdDrc(w, cmd)
 		rootArea = w->w_surfaceArea;
 
 	    rootUse = (CellUse *) window->w_surfaceID;
-	    dcl = DRCCount(rootUse, &rootArea);
+	    dcl = DRCCount(rootUse, &rootArea, doforall);
 	    while (dcl != NULL)
 	    {
 		if (count_total >= 0)
@@ -3343,7 +3342,6 @@ CmdDrc(w, cmd)
 		    else
 		    {
 #endif
-		   
 		    if (dcl->dcl_count > 1)
 			TxPrintf("Cell %s has %d error tiles.\n",
 				dcl->dcl_def->cd_name, dcl->dcl_count);
@@ -3372,11 +3370,12 @@ CmdDrc(w, cmd)
 		}
 	    }
 	    else if (dolist)
-	        Tcl_SetObjResult(magicinterp, lobj);
+		Tcl_SetObjResult(magicinterp, lobj);
+
 #else
 	    if ((DRCBackGround != DRC_SET_OFF) && (count_total == -1))
 		count_total = 0;
-	    if (count_total >= 0)
+	    if (count_gotal >= 0)
 		TxPrintf("Total DRC errors found: %d\n", count_total);
 #endif
 	    break;
@@ -3677,7 +3676,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 {
     Point childPoint, editPoint, rootPoint;
     CellDef *def, *rootDef, *editDef;
-    bool hasChild, hasRoot, hasTrans;
+    bool hasChild, hasRoot, hasTrans, dereference;
     Rect rootBox, bbox;
     Transform *tx_cell, trans_cell;
     char **av;
@@ -3777,7 +3776,8 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
      * looked for then no new error message will be printed.
      */
     def->cd_flags &= ~CDNOTFOUND;
-    if (!DBCellRead(def, (char *) NULL, TRUE, NULL))
+    dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+    if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL))
 	return (FALSE);
     DBReComputeBbox(def);
     dummy->cu_def = def;

@@ -994,6 +994,8 @@ CIFTechLine(sectionName, argc, argv)
 		CIFCurStyle->cs_flags |= CWF_SEE_VENDOR;
 	    else if (strcmp(argv[i], "no-errors") == 0)
 		CIFCurStyle->cs_flags |= CWF_NO_ERRORS;
+	    else if (strcmp(argv[i], "string-limit") == 0)
+		CIFCurStyle->cs_flags |= CWF_STRING_LIMIT;
 	}
 	return TRUE;
     }
@@ -1023,6 +1025,8 @@ CIFTechLine(sectionName, argc, argv)
 	newOp->co_opcode = CIFOP_OR;
     else if (strcmp(argv[0], "grow") == 0)
 	newOp->co_opcode = CIFOP_GROW;
+    else if (strcmp(argv[0], "grow-min") == 0)
+	newOp->co_opcode = CIFOP_GROWMIN;
     else if (strcmp(argv[0], "grow-grid") == 0)
 	newOp->co_opcode = CIFOP_GROW_G;
     else if (strcmp(argv[0], "shrink") == 0)
@@ -1049,6 +1053,8 @@ CIFTechLine(sectionName, argc, argv)
 	newOp->co_opcode = CIFOP_MAXRECT;
     else if (strcmp(argv[0], "boundary") == 0)
 	newOp->co_opcode = CIFOP_BOUNDARY;
+    else if (strcmp(argv[0], "close") == 0)
+	newOp->co_opcode = CIFOP_CLOSE;
     else
     {
 	TechError("Unknown statement \"%s\".\n", argv[0]);
@@ -1066,8 +1072,10 @@ CIFTechLine(sectionName, argc, argv)
 	    break;
 	
 	case CIFOP_GROW:
+	case CIFOP_GROWMIN:
 	case CIFOP_GROW_G:
 	case CIFOP_SHRINK:
+	case CIFOP_CLOSE:
 	    if (argc != 2) goto wrongNumArgs;
 	    newOp->co_distance = atoi(argv[1]);
 	    if (newOp->co_distance <= 0)
@@ -1080,14 +1088,18 @@ CIFTechLine(sectionName, argc, argv)
 	case CIFOP_BLOATALL:
 	    if (argc != 3) goto wrongNumArgs;
 	    cifParseLayers(argv[1], CIFCurStyle, &newOp->co_paintMask,
-		(TileTypeBitMask *)NULL, FALSE);
-	    bloatLayers = newOp->co_paintMask;
+			&newOp->co_cifMask, FALSE);
 	    bloats = (BloatData *)mallocMagic(sizeof(BloatData));
 	    for (i = 0; i < TT_MAXTYPES; i++)
 		bloats->bl_distance[i] = 0;
 	    newOp->co_client = (ClientData)bloats;
-
 	    cifParseLayers(argv[2], CIFCurStyle, &mask, &tempMask, TRUE);
+
+	    /* 10/15/2019:  Lifting restriction that the types that	*/
+	    /* trigger the bloating must be in the same plane as the	*/
+	    /* types that are bloated into.				*/
+
+	    TTMaskZero(&bloatLayers);
 	    TTMaskSetMask(&bloatLayers, &mask);
 	    if (!TTMaskEqual(&tempMask, &DBZeroTypeBits))
 		TechError("Can't use templayers in bloat statement.\n");
@@ -1323,6 +1335,7 @@ bloatCheck:
 		slots->sl_lsize = 0;
 		slots->sl_lsep = 0;
 		slots->sl_offset = 0;
+		slots->sl_start = 0;
 	    }
 	    if (argc >= 5)
 	    {
@@ -1357,7 +1370,7 @@ bloatCheck:
 		    goto errorReturn;
 		}
 	    }
-	    if (argc == 8)
+	    if (argc >= 8)
 	    {
 		i = atoi(argv[7]);
 		slots->sl_offset = i;
@@ -1367,7 +1380,17 @@ bloatCheck:
 		    goto errorReturn;
 		}
 	    }
-	    if ((argc < 4) || (argc == 6) || (argc > 8))
+	    if (argc == 9)
+	    {
+		i = atoi(argv[8]);
+		slots->sl_start = i;
+		if (i < 0)
+		{
+		    TechError("Slot start must be non-negative.\n");
+		    goto errorReturn;
+		}
+	    }
+	    if ((argc < 4) || (argc == 6) || (argc > 9))
 		goto wrongNumArgs;
 	    break;
     }
@@ -1481,6 +1504,7 @@ cifComputeRadii(layer, des)
 	    case CIFOP_OR: break;
 
 	    case CIFOP_GROW:
+	    case CIFOP_GROWMIN:
 	    case CIFOP_GROW_G:
 		grow += op->co_distance;
 		break;
@@ -1681,7 +1705,7 @@ CIFTechFinal()
 		{
 		    slots = (SlotsData *)op->co_client;
 
-		    for (j = 0; j < 7; j++)
+		    for (j = 0; j < 8; j++)
 		    {
 			switch (j) {
 			   case 0: bvalue = slots->sl_sborder; break;
@@ -1691,6 +1715,7 @@ CIFTechFinal()
 			   case 4: bvalue = slots->sl_lsize; break;
 			   case 5: bvalue = slots->sl_lsep; break;
 			   case 6: bvalue = slots->sl_offset; break;
+			   case 7: bvalue = slots->sl_start; break;
 			}
 			if (bvalue != 0)
 			{
@@ -1945,7 +1970,7 @@ CIFLoadStyle(stylename)
 {
     SectionID invcif;
 
-    if (CIFCurStyle->cs_name == stylename) return;
+    if (CIFCurStyle && (CIFCurStyle->cs_name == stylename)) return;
 
     cifTechNewStyle();
     CIFCurStyle->cs_name = stylename;
@@ -2092,7 +2117,7 @@ CIFTechOutputScale(n, d)
     SquaresData *squares;
     SlotsData *slots;
     BloatData *bloats;
-    bool has_odd_space;
+    bool has_odd_space = FALSE;
 
     if (ostyle == NULL) return;
 
@@ -2189,7 +2214,7 @@ CIFTechOutputScale(n, d)
 		else if (op->co_opcode == CIFOP_SLOTS)
 		{
 		    slots = (SlotsData *)op->co_client;
-		    for (j = 0; j < 7; j++)
+		    for (j = 0; j < 8; j++)
 		    {
 			switch (j) {
 			    case 0: bptr = &slots->sl_sborder; break;
@@ -2199,6 +2224,7 @@ CIFTechOutputScale(n, d)
 			    case 4: bptr = &slots->sl_lsize; break;
 			    case 5: bptr = &slots->sl_lsep; break;
 			    case 6: bptr = &slots->sl_offset; break;
+			    case 7: bptr = &slots->sl_start; break;
 			}
 			if (*bptr != 0)
 			{
@@ -2315,6 +2341,8 @@ CIFTechOutputScale(n, d)
 			    slots->sl_lsep /= lexpand;
 			if (slots->sl_offset != 0)
 			    slots->sl_offset /= lexpand;
+			if (slots->sl_start != 0)
+			    slots->sl_start /= lexpand;
 			break;
 		    case CIFOP_SQUARES_G:
 			squares = (SquaresData *)op->co_client;

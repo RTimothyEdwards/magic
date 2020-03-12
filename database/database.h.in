@@ -396,6 +396,9 @@ typedef struct celldef
  *	    with the option "gds readonly true".
  *	CDVISITED indicates that at least one instance of the cell was
  *	    already output during a file write.
+ *	CDDEREFERENCE is a flag indicating that when loading or expanding
+ *	    children of a cell, the path should be ignored and the cell
+ *	    path should be searched for the location.
  */
 
 #define	CDAVAILABLE	 0x0001
@@ -413,6 +416,7 @@ typedef struct celldef
 #define CDPROCESSEDGDS	 0x1000
 #define CDVENDORGDS	 0x2000
 #define CDVISITED	 0x4000
+#define CDDEREFERENCE	 0x8000
 
 /*
  * Description of an array.

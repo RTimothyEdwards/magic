@@ -300,6 +300,8 @@ efVisitDevs(hc, ca)
     Dev *dev;
     float scale;
     Transform t;
+    HashSearch hs;
+    HashEntry *he;
 
     if (def->def_flags & DEF_SUBCIRCUIT) return 0;
 
@@ -311,15 +313,17 @@ efVisitDevs(hc, ca)
     t = hc->hc_trans;
   
     /* Visit our own devices */
-    for (dev = def->def_devs; dev; dev = dev->dev_next)
+
+    HashStartSearch(&hs);
+    while (he = HashNext(&def->def_devs, &hs))
     {
+	dev = (Dev *)HashGetValue(he);
 	if (efDevKilled(dev, hc->hc_hierName))
 	    continue;
 
 	if ((*ca->ca_proc)(dev, hc->hc_hierName, scale, &t, ca->ca_cdata))
 	    return 1;
     }
-
     return 0;
 }
 
@@ -859,7 +863,7 @@ EFHNOut(hierName, outf)
     HierName *hierName;
     FILE *outf;
 {
-    bool trimGlob, trimLocal, trimComma;
+    bool trimGlob, trimLocal, convComma, convBrackets;
     char *cp, c;
 
     if (hierName->hn_parent) efHNOutPrefix(hierName->hn_parent, outf);
@@ -868,13 +872,19 @@ EFHNOut(hierName, outf)
 	cp = hierName->hn_name; 
 	trimGlob = (EFTrimFlags & EF_TRIMGLOB);
 	trimLocal = (EFTrimFlags & EF_TRIMLOCAL);
-	trimComma = (EFTrimFlags & EF_CONVERTCOMMAS);
+	convComma = (EFTrimFlags & EF_CONVERTCOMMA);
+	convBrackets = (EFTrimFlags & EF_CONVERTBRACKETS);
 	while (c = *cp++)
 	{
 	    if (*cp) 
 	    {
-		if (trimComma && (c == ','))
-		    putc(';', outf);
+		if (c == ',')
+		{
+		    if (convComma)
+			putc('|', outf);
+		}
+		else if (convBrackets && ((c == '[') || (c == ']')))
+		    putc('_', outf);
 		else
 		    putc(c, outf);
 	    }

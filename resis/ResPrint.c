@@ -63,7 +63,7 @@ ResPrintExtRes(outextfile,resistors,nodename)
      {
 	  /* 
 	     These names shouldn't be null; they should either be set by
-	     the transistor name or by the node printing routine.  This
+	     the device name or by the node printing routine.  This
 	     code is included in case the resistor network is printed
 	     before the nodes.
 	  */
@@ -85,10 +85,10 @@ ResPrintExtRes(outextfile,resistors,nodename)
 	  }
 	  if (ResOptionsFlags & ResOpt_DoExtFile)
 	  {
-     	       fprintf(outextfile, "resist \"%s\" \"%s\" %d\n",
+     	       fprintf(outextfile, "resist \"%s\" \"%s\" %g\n",
 		    resistors->rr_connection1->rn_name,
 		    resistors->rr_connection2->rn_name,
-		    (int) (resistors->rr_value/ExtCurStyle->exts_resistScale));
+		    resistors->rr_value / (float)ExtCurStyle->exts_resistScale);
 	  }
      }
 }
@@ -97,32 +97,34 @@ ResPrintExtRes(outextfile,resistors,nodename)
 /*
  *-------------------------------------------------------------------------
  *
- * ResPrintExtTran-- Print out all transistors that have had at least 
+ * ResPrintExtDev-- Print out all devices that have had at least 
  *	one terminal changed.
  *
  * Results:none
  *
- * Side Effects:prints transistor lines to output file
+ * Side Effects:prints device lines to output file
  *
  *-------------------------------------------------------------------------
  */
 
 void
-ResPrintExtTran(outextfile, transistors)
+ResPrintExtDev(outextfile, devices)
     FILE	*outextfile;
-    RTran	*transistors;
+    RDev	*devices;
 {
     TileType t;
     char *subsName;
+    ExtDevice *devptr;
 
-    for (; transistors != NULL; transistors = transistors->nextTran)
+    for (; devices != NULL; devices = devices->nextDev)
     {
-	if (transistors->status & TRUE)
+	if (devices->status & TRUE)
 	{
 	    if (ResOptionsFlags & ResOpt_DoExtFile)
 	    {
-		t = transistors->layout->rt_trantype;
-		subsName = ExtCurStyle->exts_transSubstrateName[t];
+		t = devices->layout->rd_devtype;
+		devptr = ExtCurStyle->exts_device[t];
+		subsName = devptr->exts_deviceSubstrateName;
 
 #ifdef MAGIC_WRAPPER
 		/* Substrate variable name substitution */
@@ -133,29 +135,49 @@ ResPrintExtTran(outextfile, transistors)
 		    if (varsub != NULL) subsName = varsub;
 		}
 #endif
+		/* Output according to device type and class. */
+		/* Code largely matches what's in ExtBasic.c extOutputDevices() */
 
-		/* Output according to device type */
+		if (devptr->exts_deviceClass != DEV_FET)
+		    fprintf(outextfile,"device ");
 
-		/* fet type xl yl xh yh area perim sub gate t1 t2 */
-		fprintf(outextfile,"fet %s %d %d %d %d %d %d "
-				"%s \"%s\" %d %s \"%s\" %d %s \"%s\" %d %s\n",
-			ExtCurStyle->exts_transName[t],
-			transistors->layout->rt_inside.r_ll.p_x,
-			transistors->layout->rt_inside.r_ll.p_y,
-			transistors->layout->rt_inside.r_ll.p_x + 1,
-			transistors->layout->rt_inside.r_ll.p_y + 1,
-			transistors->layout->rt_area,
-			transistors->layout->rt_perim,
-			subsName,
-			transistors->gate->name,
-			transistors->layout->rt_length * 2,
-			transistors->rs_gattr,
-			transistors->source->name,
-			transistors->layout->rt_width,
-			transistors->rs_sattr,
-			transistors->drain->name,
-			transistors->layout->rt_width,
-			transistors->rs_dattr);
+		fprintf(outextfile,"%s %s %d %d %d %d ",
+			extDevTable[devptr->exts_deviceClass],
+			devptr->exts_deviceName,
+			devices->layout->rd_inside.r_ll.p_x,
+			devices->layout->rd_inside.r_ll.p_y,
+			devices->layout->rd_inside.r_ll.p_x + 1,
+			devices->layout->rd_inside.r_ll.p_y + 1);
+
+		switch (devptr->exts_deviceClass)
+		{
+		    case DEV_FET:
+			fprintf(outextfile," %d %d",
+				devices->layout->rd_area,
+				devices->layout->rd_perim);
+			break;
+
+		    case DEV_MOSFET:
+		    case DEV_ASYMMETRIC:
+		    case DEV_BJT:
+			fprintf(outextfile," %d %d",
+				devices->layout->rd_length,
+				devices->layout->rd_width);
+			break;
+		}
+
+		fprintf(outextfile, " \"%s\"", subsName);
+
+		fprintf(outextfile, " \"%s\" %d %s \"%s\" %d %s \"%s\" %d %s\n",
+			devices->gate->name,
+			devices->layout->rd_length * 2,
+			devices->rs_gattr,
+			devices->source->name,
+			devices->layout->rd_width,
+			devices->rs_sattr,
+			devices->drain->name,
+			devices->layout->rd_width,
+			devices->rs_dattr);
 	    }
 	}
     }
@@ -188,7 +210,7 @@ ResPrintExtNode(outextfile, nodelist, nodename)
      ResSimNode *node,*ResInitializeNode();
      bool	DoKillNode = TRUE;
      resNode	*snode = nodelist;
-     
+
      /* If any of the subnode names match the original node name, then	*/
      /* we don't want to rip out that node with a "killnode" statement.	*/
 
@@ -242,7 +264,7 @@ ResPrintExtNode(outextfile, nodelist, nodename)
 /*
  *-------------------------------------------------------------------------
  *
- * ResPrintStats -- Prints out the node name, the number of transistors,
+ * ResPrintStats -- Prints out the node name, the number of devices,
  *	and the number of nodes for each net added.  Also keeps a running
  *	track of the totals.
  *
@@ -597,7 +619,7 @@ ResPrintFHRects(fp, reslist, nodename, eidx)
  *	(FastHenry) file output.
  *
  *	NOTE:  For now, I am assuming that substrate = ground (GND).
- *	However, a transistor list is passed, and it should be parsed
+ *	However, a device list is passed, and it should be parsed
  *	for substrate devices, allowing the creation of VDD and GND
  *	reference planes for both substrate and wells.
  *
@@ -612,9 +634,9 @@ ResPrintFHRects(fp, reslist, nodename, eidx)
  */
 
 void
-ResPrintReference(fp, transistors, cellDef)
+ResPrintReference(fp, devices, cellDef)
     FILE	*fp;
-    RTran	*transistors;
+    RDev	*devices;
     CellDef	*cellDef;
 {
     char 	*outfile = cellDef->cd_name;

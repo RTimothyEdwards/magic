@@ -56,10 +56,10 @@ style	lambda_irsim=0.30
 	overlap	PolyCap	allWell 	8.2
 
 	perimc	PolyCap	~PolyCap	12.6
-	sideOverlap(PolyCap, ~PolyCap, allWell, 12.6, nothing)
-	sideOverlap(PolyCap, ~PolyCap, M1Cap, 5.7, nothing)
+	sideOverlap(PolyCap, ~PolyCap, allWell, 12.6,  )
+	sideOverlap(PolyCap, ~PolyCap, M1Cap, 5.7,  )
 	sideOverlap(PolyCap, ~PolyCap, M2Cap, 2.7, M1Cap)
-	sideOverlap(PolyCap, ~PolyCap, M3Cap, 1.8, (M1Cap,M2Cap))
+	sideOverlap(PolyCap, ~PolyCap, M3Cap, 1.8, M1CapCommaM2Cap)
 
 	sidewall PolyCap ~PolyCap ~PolyCap PolyCap	7.2
 	/* ------------------------------------------------- */
@@ -72,10 +72,10 @@ style	lambda_irsim=0.30
 	overlap	M1Cap	PolyCap		5.7	
 
 	perimc	M1Cap	~M1Cap		15
-	sideOverlap(M1Cap, ~M1Cap, allWell, 15, (PolyCap,PNplusCap))
-	sideOverlap(M1Cap, ~M1Cap, PNplusCap,  17.4, nothing)
-	sideOverlap(M1Cap, ~M1Cap, PolyCap, 17.4, nothing)
-	sideOverlap(M1Cap, ~M1Cap, M2Cap, 8.7, nothing)
+	sideOverlap(M1Cap, ~M1Cap, allWell, 15, PolyCapCommaPNplusCap)
+	sideOverlap(M1Cap, ~M1Cap, PNplusCap,  17.4,  )
+	sideOverlap(M1Cap, ~M1Cap, PolyCap, 17.4,  )
+	sideOverlap(M1Cap, ~M1Cap, M2Cap, 8.7,  )
 	sideOverlap(M1Cap, ~M1Cap, M3Cap, 4.8, M2Cap)
 
 	sidewall M1Cap   ~M1Cap   ~M1Cap   M1Cap	19.2
@@ -90,11 +90,11 @@ style	lambda_irsim=0.30
 	overlap	M2Cap	M1Cap	3.5	
 
 	perimc	M2Cap	~M2Cap	12.3
-	sideOverlap(M2Cap, ~M2Cap, allWell, 12.3, (M1Cap,PolyCap,PNplusCap) )
+	sideOverlap(M2Cap, ~M2Cap, allWell, 12.3, M1CapCommaPolyCapCommaPNplusCap )
 	sideOverlap(M2Cap, ~M2Cap, PNplusCap,  12.9, M1Cap)
 	sideOverlap(M2Cap, ~M2Cap, PolyCap, 12.9, M1Cap)
-	sideOverlap(M2Cap, ~M2Cap, M1Cap,   15, nothing)
-	sideOverlap(M2Cap, ~M2Cap, M3Cap,   10.8, nothing)
+	sideOverlap(M2Cap, ~M2Cap, M1Cap,   15,  )
+	sideOverlap(M2Cap, ~M2Cap, M3Cap,   10.8,  )
 
 	sidewall M2Cap   ~M2Cap   ~M2Cap   M2Cap	21.6
 	/* ------------------------------------------------- */
@@ -109,11 +109,11 @@ style	lambda_irsim=0.30
 	overlap	M3Cap	M2Cap	3.3
 
 	perimc	M3Cap	~M3Cap	12.3
-	sideOverlap(M3Cap, ~M3Cap, allWell, 12.3, (PNplusCap,PolyCap,M1Cap,M2Cap))
-	sideOverlap(M3Cap, ~M3Cap, PNplusCap,  12.9, (M1Cap,M2Cap))
-	sideOverlap(M3Cap, ~M3Cap, PolyCap, 12.9, (M1Cap,M2Cap))
-	sideOverlap(M3Cap, ~M3Cap, M1Cap,   15.3, (M2Cap))
-	sideOverlap(M3Cap, ~M3Cap, M2Cap,   19.2, nothing)
+	sideOverlap(M3Cap, ~M3Cap, allWell, 12.3, PNplusCapCommaPolyCapCommaM1CapCommaM2Cap)
+	sideOverlap(M3Cap, ~M3Cap, PNplusCap,  12.9, M1CapCommaM2Cap)
+	sideOverlap(M3Cap, ~M3Cap, PolyCap, 12.9, M1CapCommaM2Cap)
+	sideOverlap(M3Cap, ~M3Cap, M1Cap,   15.3, M2Cap)
+	sideOverlap(M3Cap, ~M3Cap, M2Cap,   19.2,  )
 
 	sidewall M3Cap   ~M3Cap   ~M3Cap   M3Cap	34.3
 	/* ------------------------------------------------- */

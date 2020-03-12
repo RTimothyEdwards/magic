@@ -361,7 +361,7 @@ extShowTech(name)
 	}
     }
 
-    extShowTrans("Transistor", &ExtCurStyle->exts_transMask, out);
+    extShowTrans("Transistor", &ExtCurStyle->exts_deviceMask, out);
 
     fprintf(out, "\nNode resistance and capacitance:\n");
     fprintf(out, "type     R-ohm/sq  AreaC-ff/l**2\n");
@@ -472,7 +472,7 @@ extShowTech(name)
 
     extShowConnect("\nNode connectivity", ExtCurStyle->exts_nodeConn, out);
     extShowConnect("\nResistive region connectivity", ExtCurStyle->exts_resistConn, out);
-    extShowConnect("\nTransistor connectivity", ExtCurStyle->exts_transConn, out);
+    extShowConnect("\nTransistor connectivity", ExtCurStyle->exts_deviceConn, out);
 
     if (out != stdout)
 	(void) fclose(out);
@@ -493,12 +493,17 @@ extShowTrans(name, mask, out)
     for (t = 0; t < DBNumTypes; t++)
 	if (TTMaskHasType(mask, t))
 	{
-	    fprintf(out, "    %-8.8s  %d terminals: ",
-			DBTypeShortName(t), ExtCurStyle->exts_transSDCount[t]);
-	    extShowMask(&ExtCurStyle->exts_transSDTypes[t][0], out);
-	    fprintf(out, "\n\tcap (gate-sd/gate-ch) = %lf/%lf\n",
-			ExtCurStyle->exts_transSDCap[t],
-			ExtCurStyle->exts_transGateCap[t]);
+	    ExtDevice *devptr;
+
+	    for (devptr = ExtCurStyle->exts_device[t]; devptr; devptr = devptr->exts_next)
+	    {
+		fprintf(out, "    %-8.8s  %d terminals: ",
+			DBTypeShortName(t), devptr->exts_deviceSDCount);
+		extShowMask(&devptr->exts_deviceSDTypes[0], out);
+		fprintf(out, "\n\tcap (gate-sd/gate-ch) = %lf/%lf\n",
+			devptr->exts_deviceSDCap,
+			devptr->exts_deviceGateCap);
+	    }
 	}
 }
 

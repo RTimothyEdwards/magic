@@ -752,7 +752,7 @@ cifMakeBoundaryFunc(tile, clientdata)
 			CIFReadError("Warning:  Cell %s boundary was redefined.\n",
 				cifReadCellDef->cd_name);
 		    else
-			CalmaError("Warning:  Cell %s boundary was redefined.\n",
+			CalmaReadError("Warning:  Cell %s boundary was redefined.\n",
 				cifReadCellDef->cd_name);
 		}
 	    }
@@ -1508,13 +1508,18 @@ CIFReadCellCleanup(filetype)
 	    freeMagic((char *)def->cd_client);
 	    def->cd_client = (ClientData)CLIENTDEFAULT;
 
+#if 0
 	    /* If the CDFLATTENED flag was not set, then this geometry	*/
-	    /* was never instantiated, and should generate a warning.	*/
+	    /* was never instantiated, and should generate a message.	*/
+	    /* However, this is not an error condition as there are a	*/
+	    /* number of useful reasons to copy lots of information up	*/
+	    /* the GDS hierarchy for "just in case" scenarios.		*/
 
 	    if (!(def->cd_flags & CDFLATTENED))
-		CIFReadError("%s read error:  Unresolved geometry in cell"
+		CIFReadWarning("%s read:  Unresolved geometry in cell"
 			" %s maps to no magic layers\n",
 			(filetype == FILE_CIF) ? "CIF" : "GDS", def->cd_name);
+#endif
 
 #if 0
 	    /* Remove the cell if it has no parents, no children, and no geometry */

@@ -23,10 +23,16 @@ EFread.o: EFread.c ../tcltk/tclmagic.h ../utils/magic.h ../utils/malloc.h \
  ../bplane/bplane.h ../bplane/bpOpaque.h ../utils/ihash.h \
  ../bplane/bpEnum.h ../utils/geofast.h ../bplane/bplaneInt.h \
  ../extflat/extflat.h ../extflat/EFint.h ../extract/extract.h \
- ../utils/paths.h
+ ../extract/extractInt.h ../extract/extDebugInt.h ../utils/paths.h
 EFsym.o: EFsym.c ../utils/magic.h ../utils/geometry.h ../utils/geofast.h \
  ../utils/hash.h ../utils/malloc.h ../utils/utils.h ../extflat/extflat.h \
  ../extflat/EFint.h
 EFvisit.o: EFvisit.c ../utils/magic.h ../utils/geometry.h \
  ../utils/geofast.h ../utils/hash.h ../utils/malloc.h ../utils/utils.h \
  ../extflat/extflat.h ../extflat/EFint.h ../extract/extract.h
+EFantenna.o: EFantenna.c ../tcltk/tclmagic.h ../utils/magic.h \
+ ../utils/geometry.h ../utils/hash.h ../utils/utils.h ../utils/styles.h \
+ ../tiles/tile.h ../database/database.h ../windows/windows.h \
+ ../textio/textio.h ../dbwind/dbwind.h ../textio/txcommands.h \
+ ../extflat/extflat.h ../extract/extract.h ../extract/extractInt.h \
+ ../extract/extDebugInt.h ../utils/malloc.h

@@ -127,10 +127,10 @@ DBWcreate(window, argc, argv)
 
     window->w_clientData = (ClientData) crec;
     if (argc > 0)
-	DBWloadWindow(window, argv[0], TRUE, FALSE);
+	DBWloadWindow(window, argv[0], TRUE, FALSE, FALSE);
     else if (ToolGetBox(&boxDef, &box))
     {
-	DBWloadWindow(window, boxDef->cd_name, TRUE, FALSE);
+	DBWloadWindow(window, boxDef->cd_name, TRUE, FALSE, FALSE);
 
 	/* Zoom in on the box, leaving a 10% border or at least 2 units
 	 * on each side.
@@ -148,7 +148,7 @@ DBWcreate(window, argc, argv)
     }
     else
     {
-	DBWloadWindow(window, (char *) NULL, TRUE, FALSE);
+	DBWloadWindow(window, (char *) NULL, TRUE, FALSE, FALSE);
     }
     return TRUE;
 }
@@ -249,7 +249,7 @@ dbwReloadFunc(w, name)
     MagWindow *w;
     char *name;
 {
-    DBWloadWindow(w, name, TRUE, FALSE);
+    DBWloadWindow(w, name, TRUE, FALSE, FALSE);
     return (0);
 }
 
@@ -274,26 +274,29 @@ dbwReloadFunc(w, name)
  *	cell doesn't change.
  *
  *	If "expand" is true, unexpands all subcells of the root cell.
+ *	If "dereference" is true, ignore path reference in the input file.
  *
  * ----------------------------------------------------------------------------
  */
 
 void
-DBWloadWindow(window, name, ignoreTech, expand)
+DBWloadWindow(window, name, ignoreTech, expand, dereference)
     MagWindow *window;	/* Identifies window to which cell is to be bound */
     char *name;		/* Name of new cell to be bound to this window */
     bool ignoreTech;	/* If FALSE, indicates that the technology of
 			 * the layout must match the current technology.
 			 */
     bool expand;	/* Indicates whether or not to expand the cell */
+    bool dereference;	/* If TRUE, ignore path references in the input */
 {
-    CellDef *newEditDef;
+    CellDef *newEditDef, *deleteDef;
     CellUse *newEditUse;
     void DisplayWindow();
     int res, newEdit, error_val;
     int xadd, yadd;
     Rect loadBox;
     char *rootname;
+    bool isUnnamed;
     int UnexpandFunc();		/* forward declaration */
 
     loadBox.r_xbot = loadBox.r_ybot = 0;
@@ -302,6 +305,19 @@ DBWloadWindow(window, name, ignoreTech, expand)
     /* See if we're to change the edit cell */
     newEdit = !WindSearch((WindClient) DBWclientID, (ClientData) NULL,
 			    (Rect *) NULL, dbwLoadFunc, (ClientData) window);
+
+    /* The (UNNAMED) cell generally gets in the way, so delete it if	*/
+    /* any new cell is loaded and (UNNAMED) has no contents.		*/
+
+    if (window->w_surfaceID == (ClientData)NULL)
+	deleteDef = NULL;
+    else
+    {
+	deleteDef = ((CellUse *)window->w_surfaceID)->cu_def;
+	if (strcmp(deleteDef->cd_name, "(UNNAMED)") ||
+		deleteDef->cd_flags & (CDMODIFIED|CDBOXESCHANGED|CDSTAMPSCHANGED))
+	    deleteDef = NULL;
+    }
 
     if ((name == (char *) NULL) || (name[0] == '\0'))
     {
@@ -383,7 +399,9 @@ DBWloadWindow(window, name, ignoreTech, expand)
 	if (newEditDef == (CellDef *) NULL)
 	    newEditDef = DBCellNewDef(rootname, (char *) NULL);
 
-	if (!DBCellRead(newEditDef, name, ignoreTech, &error_val))
+	if (dereference) newEditDef->cd_flags |= CDDEREFERENCE;
+
+	if (!DBCellRead(newEditDef, name, ignoreTech, dereference, &error_val))
 	{
 	    if (error_val == ENOENT)
 	    {
@@ -499,6 +517,12 @@ DBWloadWindow(window, name, ignoreTech, expand)
     if (newEdit)
 	DBWAreaChanged(newEditDef, &newEditDef->cd_bbox, DBW_ALLWINDOWS,
 	    &DBAllButSpaceBits);
+
+    /* If the cell before loading was (UNNAMED) and it was	*/
+    /* never modified, then delete it now.			*/
+
+    if (deleteDef != NULL)
+	DBCellDelete(deleteDef->cd_name, TRUE);
 }
 
 /* This function is called for each cell whose expansion status changed.
