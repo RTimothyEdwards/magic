@@ -91,6 +91,10 @@ extHierSubstrate(ha, use, x, y)
     /* define a substrate plane or substrate connections. */
     if (glob_subsnode == NULL) return;
 
+    /* If the substrate has already been extracted for this use	*/
+    /* then there is no need to do it again.			*/
+    if (use->cu_flags & CU_SUB_EXTRACTED) return;
+
     def = (CellDef *)ha->ha_parentUse->cu_def;
 
     /* Register the name of the parent's substrate */
