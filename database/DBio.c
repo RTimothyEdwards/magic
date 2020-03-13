@@ -1455,7 +1455,8 @@ badTransform:
 			pathOK = TRUE;
 		}
 
-		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr))
+		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
+			    && (dereference == FALSE))
 		{
 		    TxError("Duplicate cell in %s:  Instance of cell %s is from "
 				"path %s but cell was previously read from %s.\n",

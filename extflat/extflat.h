@@ -212,6 +212,7 @@ typedef struct efnode
 
     EFCapValue	 efnode_cap;	/* Total capacitance to ground for this node */
     int		 efnode_type;	/* Index into type table for node */
+    int		 efnode_num;	/* Number of items in efnode_hdr list */
     Rect	 efnode_loc;	/* Location of a 1x1 rect contained in this
 				 * node.  This information is provided in the
 				 * .ext file so it will be easy to map between

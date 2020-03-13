@@ -145,6 +145,7 @@ extSubtree(parentUse, reg, f)
     bool result;
     int cuts, totcuts;
     float pdone, plast;
+    SearchContext scx;
 
     if ((ExtOptions & (EXT_DOCOUPLING|EXT_DOADJUST))
 		   != (EXT_DOCOUPLING|EXT_DOADJUST))
@@ -231,9 +232,8 @@ extSubtree(parentUse, reg, f)
 	    {
 		/* Make sure substrate connections have been handled	*/
 		/* even if there were no other interactions found.	*/
-		SearchContext scx;
 
-		GEOCLIP(&ha.ha_clipArea, &r);
+		ha.ha_clipArea = r;
 		scx.scx_trans = GeoIdentityTransform;
 		scx.scx_area = r;
 		scx.scx_use = ha.ha_parentUse;

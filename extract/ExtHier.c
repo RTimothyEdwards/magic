@@ -107,7 +107,6 @@ extHierSubstrate(ha, use, x, y)
     /* Make sure substrate labels are represented */
     ExtLabelRegions(use->cu_def, ExtCurStyle->exts_nodeConn, &nodeList,
 			&TiPlaneRect);
-
     ExtResetTiles(use->cu_def, extUnInit);
 
     name2 = extNodeName(temp_subsnode);
