@@ -1,1 +1,0 @@
-magicTop.o: magicTop.c ../utils/magic.h ../utils/malloc.h
