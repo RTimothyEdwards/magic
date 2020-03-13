@@ -909,6 +909,7 @@ extSubstrateFunc(scx, ha)
 	    for (y = use->cu_ylo; y <= use->cu_yhi; y++)
 		extHierSubstrate(ha, use, x, y);
     }
+    use->cu_flags |= CU_SUB_EXTRACTED;
     return (2);
 }
 
