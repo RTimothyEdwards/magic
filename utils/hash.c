@@ -220,14 +220,15 @@ hash(table, key)
     char *key;
 {
     unsigned *up;
-    int i, j;
+    unsigned long i;
+    int j;
 
     i = 0;
     switch (table->ht_ptrKeys)
     {
 	/* Add up the characters as though this were a number */
 	case HT_STRINGKEYS:
-	    while (*key != 0) i = (i*10) + (*key++ - '0');
+	    while (*key != 0) i = (*key++) + (i << 6) + (i << 16) - i;
 	    break;
 
 	/* Map the key into another 32-bit value if necessary */

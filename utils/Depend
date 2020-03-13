@@ -3,10 +3,15 @@ child.o: child.c ../utils/utils.h ../utils/magic.h ../utils/malloc.h
 dqueue.o: dqueue.c ../utils/magic.h ../utils/dqueue.h ../utils/malloc.h
 finddisp.o: finddisp.c ../utils/magic.h ../utils/utils.h
 flock.o: flock.c ../utils/magic.h ../utils/hash.h ../utils/geometry.h \
+<<<<<<< HEAD
  ../tiles/tile.h ../database/database.h ../bplane/bplane.h \
  ../bplane/bpOpaque.h ../utils/ihash.h ../bplane/bpEnum.h \
  ../utils/utils.h ../utils/geofast.h ../bplane/bplaneInt.h \
  ../windows/windows.h ../utils/malloc.h
+=======
+ ../tiles/tile.h ../database/database.h ../windows/windows.h \
+ ../utils/malloc.h
+>>>>>>> master
 flsbuf.o: flsbuf.c
 fraction.o: fraction.c ../utils/magic.h ../utils/geometry.h
 geometry.o: geometry.c ../utils/magic.h ../utils/geometry.h \

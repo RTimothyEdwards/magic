@@ -184,6 +184,7 @@ efBuildNode(def, isSubsnode, nodeName, nodeCap, x, y, layerName, av, ac)
     newnode->efnode_loc.r_xtop = newnode->efnode_loc.r_xbot + 1;
     newnode->efnode_loc.r_ytop = newnode->efnode_loc.r_ybot + 1;
     newnode->efnode_client = (ClientData) NULL;
+    newnode->efnode_num = 1;
     if (layerName) newnode->efnode_type =
 	    efBuildAddStr(EFLayerNames, &EFLayerNumNames, MAXTYPES, layerName);
     else newnode->efnode_type = 0;
@@ -464,7 +465,7 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	{
 	    if (efWarn)
 		efReadError("Merged nodes %s and %s\n", nodeName1, nodeName2);
-	    efNodeMerge(nn1->efnn_node, nn2->efnn_node);
+	    efNodeMerge(&nn1->efnn_node, &nn2->efnn_node);
 	}
 	return;
     }
@@ -1580,70 +1581,86 @@ efNodeAddName(node, he, hn)
  */
 
 void
-efNodeMerge(node1, node2)
-    EFNode *node1, *node2;	/* Hierarchical nodes */
+efNodeMerge(node1ptr, node2ptr)
+    EFNode **node1ptr, **node2ptr;	/* Pointers to hierarchical nodes */
 {
     EFNodeName *nn, *nnlast;
     EFAttr *ap;
     int n;
+    EFNode *keeping, *removing;
 
     /* Sanity check: ignore if same node */
-    if (node1 == node2)
+    if (*node1ptr == *node2ptr)
 	return;
+
+    /* Keep the node with the greater number of entries, and merge  */
+    /* the node with fewer entries into it.			    */
+
+    if ((*node1ptr)->efnode_num >= (*node2ptr)->efnode_num)
+    {
+	keeping = *node1ptr;
+	removing = *node2ptr;
+    }
+    else
+    {
+	keeping = *node2ptr;
+	removing = *node1ptr;
+    }
 
     if (efWatchNodes)
     {
-	if (HashLookOnly(&efWatchTable, (char *) node1->efnode_name->efnn_hier)
-	    || (node2->efnode_name
+	if (HashLookOnly(&efWatchTable, (char *) keeping->efnode_name->efnn_hier)
+	    || (removing->efnode_name
 		&& HashLookOnly(&efWatchTable,
-				(char *) node2->efnode_name->efnn_hier)))
+				(char *) removing->efnode_name->efnn_hier)))
 	{
 	    printf("\ncombine: %s\n",
-		EFHNToStr(node1->efnode_name->efnn_hier));
+		EFHNToStr(keeping->efnode_name->efnn_hier));
 	    printf("  with   %s\n\n", 
-		node2->efnode_name
-		    ? EFHNToStr(node2->efnode_name->efnn_hier)
+		removing->efnode_name
+		    ? EFHNToStr(removing->efnode_name->efnn_hier)
 		    : "(unnamed)");
 	}
     }
 
     /* Sum capacitances, perimeters, areas */
-    node1->efnode_cap += node2->efnode_cap;
+    keeping->efnode_cap += removing->efnode_cap;
     for (n = 0; n < efNumResistClasses; n++)
     {
-	node1->efnode_pa[n].pa_area += node2->efnode_pa[n].pa_area;
-	node1->efnode_pa[n].pa_perim += node2->efnode_pa[n].pa_perim;
+	keeping->efnode_pa[n].pa_area += removing->efnode_pa[n].pa_area;
+	keeping->efnode_pa[n].pa_perim += removing->efnode_pa[n].pa_perim;
     }
 
-    /* Make all EFNodeNames point to node1 */
-    if (node2->efnode_name)
+    /* Make all EFNodeNames point to "keeping" */
+    if (removing->efnode_name)
     {
-	bool topport1, topport2;
+	bool topportk, topportr;
 
-	for (nn = node2->efnode_name; nn; nn = nn->efnn_next)
+	for (nn = removing->efnode_name; nn; nn = nn->efnn_next)
 	{
 	    nnlast = nn;
-	    nn->efnn_node = node1;
+	    nn->efnn_node = keeping;
 	}
 
-	topport1 = (node1->efnode_flags & EF_TOP_PORT) ?  TRUE : FALSE;
-	topport2 = (node2->efnode_flags & EF_TOP_PORT) ?  TRUE : FALSE;
+	topportk = (keeping->efnode_flags & EF_TOP_PORT) ?  TRUE : FALSE;
+	topportr = (removing->efnode_flags & EF_TOP_PORT) ?  TRUE : FALSE;
 
 	/* Concatenate list of EFNodeNames, taking into account precedence */
-	if (!topport1 && (topport2 || EFHNBest(node2->efnode_name->efnn_hier,
-		     node1->efnode_name->efnn_hier)))
+	if ((!keeping->efnode_name) || (!topportk && (topportr
+		    || EFHNBest(removing->efnode_name->efnn_hier,
+		     keeping->efnode_name->efnn_hier))))
 	{
 	    /*
-	     * New official name is that of node2.
+	     * New official name is that of "removing".
 	     * The new list of names is:
-	     *	node2-names, node1-names
+	     *	removing-names, keeping-names
 	     */
-	    nnlast->efnn_next = node1->efnode_name;
-	    node1->efnode_name = node2->efnode_name;
+	    nnlast->efnn_next = keeping->efnode_name;
+	    keeping->efnode_name = removing->efnode_name;
 
 	    /*
-	     * Choose the new location only if node2's location is a valid one,
-	     * i.e, node2 wasn't created before it was mentioned.  This is mainly
+	     * Choose the new location only if "removing"'s location is a valid one,
+	     * i.e, "removing" wasn't created before it was mentioned.  This is mainly
 	     * to deal with new fets, resistors, and capacitors created by resistance
 	     * extraction, which appear with their full hierarchical names in the
 	     * .ext file for the root cell.
@@ -1658,18 +1675,10 @@ efNodeMerge(node1, node2)
 	     *
 	     *					Tim, 6/14/04
 	     */
-	    if (node2->efnode_type > 0)
+	    if (removing->efnode_type > 0)
 	    {
-		node1->efnode_loc = node2->efnode_loc;
-		node1->efnode_type = node2->efnode_type;
-
-		if (node2->efnode_loc.r_ybot < node1->efnode_loc.r_ybot
-		    || (node2->efnode_loc.r_ybot == node1->efnode_loc.r_ybot
-		    && node2->efnode_loc.r_xbot < node1->efnode_loc.r_xbot))
-		{
-//		    node1->efnode_loc = node2->efnode_loc;
-//		    node1->efnode_type = node2->efnode_type;
-		}
+		keeping->efnode_loc = removing->efnode_loc;
+		keeping->efnode_type = removing->efnode_type;
 	    }
 	}
 	else
@@ -1677,52 +1686,59 @@ efNodeMerge(node1, node2)
 	    /*
 	     * Keep old official name.
 	     * The new list of names is:
-	     *	node1-names[0], node2-names, node1-names[1-]
+	     *	keeping-names[0], removing-names, keeping-names[1-]
 	     */
-	    nnlast->efnn_next = node1->efnode_name->efnn_next;
-	    node1->efnode_name->efnn_next = node2->efnode_name;
+	    nnlast->efnn_next = keeping->efnode_name->efnn_next;
+	    keeping->efnode_name->efnn_next = removing->efnode_name;
 	}
     }
 
+    /* Merge list counts */
+    keeping->efnode_num += removing->efnode_num;
+
     /* Merge attribute lists */
-    if (ap = node2->efnode_attrs)
+    if (ap = removing->efnode_attrs)
     {
 	while (ap->efa_next)
 	    ap = ap->efa_next;
-	ap->efa_next = node1->efnode_attrs;
-	node1->efnode_attrs = ap;
-	node2->efnode_attrs = (EFAttr *) NULL;	/* Sanity */
+	ap->efa_next = keeping->efnode_attrs;
+	keeping->efnode_attrs = ap;
+	removing->efnode_attrs = (EFAttr *) NULL;	/* Sanity */
     }
 
-    /* Unlink node2 from list for def */
-    node2->efnode_prev->efnhdr_next = node2->efnode_next;
-    node2->efnode_next->efnhdr_prev = node2->efnode_prev;
+    /* Unlink "removing" from list for def */
+    removing->efnode_prev->efnhdr_next = removing->efnode_next;
+    removing->efnode_next->efnhdr_prev = removing->efnode_prev;
 
     /*
      * Only if both nodes were EF_DEVTERM do we keep EF_DEVTERM set
      * in the resultant node.
      */
-    if ((node2->efnode_flags & EF_DEVTERM) == 0)
-	node1->efnode_flags &= ~EF_DEVTERM;
+    if ((removing->efnode_flags & EF_DEVTERM) == 0)
+	keeping->efnode_flags &= ~EF_DEVTERM;
 
     /*
-     * If node2 has the EF_PORT flag set, then copy the port
+     * If "removing" has the EF_PORT flag set, then copy the port
      * record in the flags to node1.
      */
-    if (node2->efnode_flags & EF_PORT)
-	node1->efnode_flags |= EF_PORT;
-    if (node2->efnode_flags & EF_TOP_PORT)
-	node1->efnode_flags |= EF_TOP_PORT;
+    if (removing->efnode_flags & EF_PORT)
+	keeping->efnode_flags |= EF_PORT;
+    if (removing->efnode_flags & EF_TOP_PORT)
+	keeping->efnode_flags |= EF_TOP_PORT;
 
     /*
-     * If node2 has the EF_SUBS_NODE flag set, then copy the port
-     * record in the flags to node1.
+     * If "removing" has the EF_SUBS_NODE flag set, then copy the port
+     * record in the flags to "keeping".
      */
-    if (node2->efnode_flags & EF_SUBS_NODE)
-	node1->efnode_flags |= EF_SUBS_NODE;
+    if (removing->efnode_flags & EF_SUBS_NODE)
+	keeping->efnode_flags |= EF_SUBS_NODE;
 
-    /* Get rid of node2 */
-    freeMagic((char *) node2);
+    /* Get rid of "removing" */
+    freeMagic((char *) removing);
+
+    /* Make sure that the active node is always node1 */
+    *node1ptr = keeping;
+    *node2ptr = (EFNode *)NULL;	    /* Sanity check */
 }
 
 

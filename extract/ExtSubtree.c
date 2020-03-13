@@ -94,6 +94,26 @@ void extSubtreeAdjustInit();
 void extSubtreeOutputCoupling();
 void extSubtreeHardSearch();
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extClearUseFlags --
+ *
+ *  Callback function to clear the CU_SUB_EXTRACTED flag from each child
+ *  use of a CellDef.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extClearUseFlags(use, clientData)
+    CellUse *use;
+    ClientData clientData;
+{
+    use->cu_flags &= ~CU_SUB_EXTRACTED;
+    return 0;
+}
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -146,6 +166,7 @@ extSubtree(parentUse, reg, f)
     bool result;
     int cuts, totcuts;
     float pdone, plast;
+    SearchContext scx;
 
     if ((ExtOptions & (EXT_DOCOUPLING|EXT_DOADJUST))
 		   != (EXT_DOCOUPLING|EXT_DOADJUST))
@@ -232,8 +253,8 @@ extSubtree(parentUse, reg, f)
 	    {
 		/* Make sure substrate connections have been handled	*/
 		/* even if there were no other interactions found.	*/
-		SearchContext scx;
 
+		ha.ha_clipArea = r;
 		scx.scx_trans = GeoIdentityTransform;
 		scx.scx_area = r;
 		scx.scx_use = ha.ha_parentUse;
@@ -292,6 +313,9 @@ done:
     /* Output connections and node adjustments */
     extOutputConns(&ha.ha_connHash, f);
     HashKill(&ha.ha_connHash);
+
+    /* Clear the CU_SUB_EXTRACTED flag from all children instances */
+    DBCellEnum(def, extClearUseFlags, (ClientData)NULL);
 }
 
 #ifdef	exactinteractions
@@ -800,6 +824,8 @@ extSubtreeFunc(scx, ha)
 	    for (y = use->cu_ylo; y <= use->cu_yhi; y++)
 		extHierSubstrate(ha, use, x, y);
     }
+    /* Mark substrate as having been extracted for this use. */
+    use->cu_flags |= CU_SUB_EXTRACTED;
 
     /* Free the cumulative node list we extracted above */
     if (ha->ha_cumFlat.et_nodes)
