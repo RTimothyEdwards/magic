@@ -361,7 +361,11 @@ lefGetBound(tile, cdata)
     Rect area;
 
     TiToRect(tile, &area);
-    GeoInclude(&area, boundary);
+
+    if (boundary->r_xtop <= boundary->r_xbot)
+	*boundary = area;
+    else
+	GeoInclude(&area, boundary);
     return 0;
 }
 
@@ -641,7 +645,7 @@ lefWriteMacro(def, f, scale, hide)
 {
     bool propfound;
     char *propvalue, *class = NULL;
-    Label *lab, *tlab;
+    Label *lab, *tlab, *reflab;
     Rect boundary, labr;
     SearchContext scx;
     CellDef *lefFlatDef;
@@ -771,8 +775,9 @@ lefWriteMacro(def, f, scale, hide)
 
     if (!TTMaskIsZero(&boundmask))
     {
+	boundary.r_xbot = boundary.r_xtop = 0;
 	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-	    DBSrPaintArea((Tile *)NULL, def->cd_planes[pNum], 
+	    DBSrPaintArea((Tile *)NULL, lefFlatUse.cu_def->cd_planes[pNum], 
 			&TiPlaneRect, &boundmask, lefGetBound,
 			(ClientData)(&boundary));
     }
@@ -924,75 +929,90 @@ lefWriteMacro(def, f, scale, hide)
 	/* Note: Use DBIsContact() to check if the layer is a VIA.	*/
 	/* Presently, I am treating contacts like any other layer.	*/
 
-	labr = lab->lab_rect;
+	reflab = lab;
 
-	/* Deal with degenerate (line or point) labels	*/
-	/* by growing by 1 in each direction.		*/
-
-	if (labr.r_xtop - labr.r_xbot == 0)
+	while (lab != NULL)
 	{
-	    labr.r_xtop++;
-	    labr.r_xbot--;
-	}
-	if (labr.r_ytop - labr.r_ybot == 0)
-	{
-	    labr.r_ytop++;
-	    labr.r_ybot--;
-	}
 
-        // Avoid errors caused by labels attached to space or
-	// various technology file issues.
-	TTMaskClearType(&lc.rmask, TT_SPACE);
+	    labr = lab->lab_rect;
 
-	scx.scx_area = labr;
-	SelectClear();
+	    /* Deal with degenerate (line or point) labels	*/
+	    /* by growing by 1 in each direction.		*/
 
-	if (hide)
-	{
-	    SelectChunk(&scx, lab->lab_type, 0, NULL, FALSE);
+	    if (labr.r_xtop - labr.r_xbot == 0)
+	    {
+		labr.r_xtop++;
+		labr.r_xbot--;
+	    }
+	    if (labr.r_ytop - labr.r_ybot == 0)
+	    {
+		labr.r_ytop++;
+		labr.r_ybot--;
+	    }
 
-	    /* Note that a sticky label could be placed over multiple	*/
-	    /* tile types, which would cause SelectChunk to fail.  So	*/
-	    /* always paint the label type into the label area in	*/
-	    /* SelectDef.						*/
+	    // Avoid errors caused by labels attached to space or
+	    // various technology file issues.
+	    TTMaskClearType(&lc.rmask, TT_SPACE);
 
-	    pNum = DBPlane(lab->lab_type);
-	    DBPaintPlane(SelectDef->cd_planes[pNum], &lab->lab_rect,
-		    DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
-	}
-	else
-	    SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
+	    scx.scx_area = labr;
+	    SelectClear();
 
-	// For all geometry in the selection, write LEF records,
-	// and mark the corresponding tiles in lefFlatDef as
-	// visited.
+	    if (hide)
+	    {
+		SelectChunk(&scx, lab->lab_type, 0, NULL, FALSE);
 
-	lc.numWrites = 0;
-	lc.lastType = TT_SPACE;
-	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-	{
-	    lc.pNum = pNum;
-	    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+		/* Note that a sticky label could be placed over multiple   */
+		/* tile types, which would cause SelectChunk to fail.  So   */
+		/* always paint the label type into the label area in	    */
+		/* SelectDef.						    */
+
+		pNum = DBPlane(lab->lab_type);
+		DBPaintPlane(SelectDef->cd_planes[pNum], &lab->lab_rect,
+			DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
+	    }
+	    else
+		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
+
+	    // For all geometry in the selection, write LEF records,
+	    // and mark the corresponding tiles in lefFlatDef as
+	    // visited.
+
+	    lc.numWrites = 0;
+	    lc.lastType = TT_SPACE;
+	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	    {
+		lc.pNum = pNum;
+		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
 			lefYankGeometry, (ClientData) &lc);
 
-	    DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum], 
+		DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum], 
 	    		&TiPlaneRect, &lc.rmask,
 	    		lefWriteGeometry, (ClientData) &lc);
 
-	    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
 			lefEraseGeometry, (ClientData) &lc);
+	    }
+	    DBCellClearDef(lc.lefYank);
+	    lab->lab_flags |= PORT_VISITED;
+
+	    /* Check if any other ports belong to this pin */
+
+	    for (; lab != NULL; lab = lab->lab_next)
+		if (lab->lab_flags & PORT_DIR_MASK)
+		    if (!(lab->lab_flags & PORT_VISITED))
+			if ((lab->lab_flags & PORT_NUM_MASK) == idx)
+			    break;
+
+	    if (lc.numWrites > 0)
+		fprintf(f, "      END\n");	/* end of port geometries */
+	    lc.numWrites = 0;
 	}
-	DBCellClearDef(lc.lefYank);
 
-	if (lc.numWrites > 0)
-	    fprintf(f, "      END\n");	/* end of port geometries */
-	lab->lab_flags |= PORT_VISITED;
-
-	LEFtext = MakeLegalLEFSyntax(lab->lab_text);
-	fprintf(f, "   END %s\n", lab->lab_text);	/* end of pin */
-	if (LEFtext != lab->lab_text) freeMagic(LEFtext);
+	LEFtext = MakeLegalLEFSyntax(reflab->lab_text);
+	fprintf(f, "   END %s\n", reflab->lab_text);	/* end of pin */
+	if (LEFtext != reflab->lab_text) freeMagic(LEFtext);
 
 	if (maxport >= 0)
 	{
@@ -1001,20 +1021,20 @@ lefWriteMacro(def, f, scale, hide)
 	    /* is perfectly legal to have multiple ports with the same	*/
 	    /* name and index.						*/
 
-	    for (tlab = lab->lab_next; tlab != NULL; tlab = tlab->lab_next)
+	    for (tlab = reflab->lab_next; tlab != NULL; tlab = tlab->lab_next)
 	    {
 		if (tlab->lab_flags & PORT_DIR_MASK)
 		    if ((tlab->lab_flags & PORT_NUM_MASK) == idx)
-			if (strcmp(lab->lab_text, lab->lab_text))
+			if (strcmp(reflab->lab_text, tlab->lab_text))
 			{
 			    TxError("Index %d is used for ports \"%s\" and \"%s\"\n",
-					idx, lab->lab_text, tlab->lab_text);
+					idx, reflab->lab_text, tlab->lab_text);
 			    idx--;
 			}
 	    }
 	}
 	else
-	    lab = lab->lab_next;
+	    lab = reflab->lab_next;
     }
 
     /* Clear all PORT_VISITED bits in labels */
@@ -1025,7 +1045,6 @@ lefWriteMacro(def, f, scale, hide)
     /* List of routing obstructions */
 
     lc.lefMode = LEF_MODE_OBSTRUCT;
-    lc.numWrites = 0;
     lc.lastType = TT_SPACE;
 
     /* Restrict to routing planes only */
@@ -1037,11 +1056,29 @@ lefWriteMacro(def, f, scale, hide)
 	/* the cell bounding box.  Then recompute the label chunk	*/
 	/* regions used above to write the ports, expand each chunk by	*/
 	/* the route metal spacing width, and erase that area from the	*/
-	/* obstruction.							*/
+	/* obstruction.	 For the obstruction boundary, find the extent	*/
+	/* of paint on the layer, not the LEF macro boundary, since	*/
+	/* paint may extend beyond the boundary, and sometimes the	*/
+	/* boundary may extend beyond the paint.  To be done:  make	*/
+	/* sure that every pin has a legal path to the outside of the	*/
+	/* cell.  Otherwise, this routine can block internal pins.	*/
+
+	Rect layerBound;
 
 	for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
 	    if (TTMaskHasType(&lmask, ttype))
-		DBPaint(lc.lefYank, &boundary, ttype);
+	    {
+		layerBound.r_xbot = layerBound.r_xtop = 0;
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		    if (TTMaskHasType(&DBPlaneTypes[pNum], ttype))
+		    {
+			DBSrPaintArea((Tile *)NULL, lefFlatUse.cu_def->cd_planes[pNum], 
+				&TiPlaneRect, &DBAllButSpaceAndDRCBits,
+				lefGetBound, (ClientData)(&layerBound));
+		    }
+
+		DBPaint(lc.lefYank, &layerBound, ttype);
+	    }
 
 	scx.scx_use = &lefSourceUse;
 	for (lab = def->cd_labels; lab != NULL; lab = lab->lab_next)
