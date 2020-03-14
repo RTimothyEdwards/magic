@@ -62,6 +62,11 @@ int efAddNodes(HierContext *, bool);
 int efAddConns(HierContext *, bool);
 int efAddOneConn(HierContext *, char *, char *, Connection *, bool);
 
+/* Flags passed to efFlatNode() */
+
+#define FLATNODE_STDCELL    0x01
+#define FLATNODE_DOWARN	    0x02
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -127,7 +132,10 @@ EFFlatBuild(name, flags)
 	if (flags & EF_NOFLATSUBCKT)
 	    efFlatNodesStdCell(&efFlatContext);
 	else
-	    efFlatNodes(&efFlatContext, FALSE, TRUE);
+	{
+	    int flags = FLATNODE_DOWARN;    /* No FLATNODE_STDCELL flag */
+	    efFlatNodes(&efFlatContext, (ClientData)flags);
+	}
 	efFlatKills(&efFlatContext);
 	if (!(flags & EF_NONAMEMERGE))
 	    efFlatGlob();
@@ -166,6 +174,7 @@ EFFlatBuildOneLevel(def, flags)
     Use *use;
     int efFlatNodesDeviceless();	/* Forward declaration */
     int efFlatCapsDeviceless();		/* Forward declaration */
+    int flatnodeflags;
 
     efFlatRootDef = def;
 
@@ -195,7 +204,8 @@ EFFlatBuildOneLevel(def, flags)
     efFlatRootUse.use_def = efFlatRootDef;
 
     /* Record all nodes down the hierarchy from here */
-    efFlatNodes(&efFlatContext, (ClientData)TRUE, (ClientData)FALSE);
+    flatnodeflags = FLATNODE_STDCELL;	/* No FLATDNODE_DOWARN flag */
+    efFlatNodes(&efFlatContext, (ClientData)flatnodeflags);
 
     /* Expand all subcells that contain connectivity information but	*/
     /* no active devices (including those in subcells).			*/
@@ -292,10 +302,16 @@ EFFlatDone()
  */
 
 int
-efFlatNodes(hc, stdcell, doWarn)
+efFlatNodes(hc, clientData)
     HierContext *hc;
+    ClientData clientData;
 {
-    (void) efHierSrUses(hc, efFlatNodes);
+    int flags = (int)clientData;
+
+    bool stdcell = (flags & FLATNODE_STDCELL) ? TRUE : FALSE;
+    bool doWarn = (flags & FLATNODE_DOWARN) ? TRUE : FALSE;
+
+    (void) efHierSrUses(hc, efFlatNodes, clientData);
 
     /* Add all our own nodes to the table */
     efAddNodes(hc, stdcell);
@@ -466,6 +482,7 @@ efAddNodes(hc, stdcell)
 	newnode->efnode_client = (ClientData) NULL;
 	newnode->efnode_flags = node->efnode_flags;
 	newnode->efnode_type = node->efnode_type;
+	newnode->efnode_num = 1;
 	if (!stdcell)
 	    bcopy((char *) node->efnode_pa, (char *) newnode->efnode_pa,
 			efNumResistClasses * sizeof (EFPerimArea));
@@ -514,7 +531,7 @@ efAddNodes(hc, stdcell)
 		if (hierName != nn->efnn_hier)
 		    EFHNFree(hierName, hc->hc_hierName, HN_CONCAT);
 		if (oldname->efnn_node != newnode)
-		    efNodeMerge(oldname->efnn_node, newnode);
+		    efNodeMerge(&oldname->efnn_node, &newnode);
 		newnode = oldname->efnn_node;
 		continue;
 	    }
@@ -638,7 +655,7 @@ efAddOneConn(hc, name1, name2, conn, doWarn)
 	    return 0;
 	newnode = ((EFNodeName *) HashGetValue(he2))->efnn_node;
 	if (node != newnode)
-	    efNodeMerge(node, newnode);
+	    efNodeMerge(&node, &newnode);
     }
 
     return 0;
@@ -744,7 +761,7 @@ efFlatGlob()
 	    {
 		efFlatGlobError(nameGlob, nameFlat);
 	    }
-	    efNodeMerge(nodeFlat, nodeGlob);
+	    efNodeMerge(&nodeFlat, &nodeGlob);
 	    nameGlob->efnn_node = nodeFlat;
 	}
     }

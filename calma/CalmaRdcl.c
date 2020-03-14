@@ -345,6 +345,7 @@ calmaParseStructure(filename)
 	}
     }
     cifReadCellDef = calmaFindCell(strname, &was_called);
+    def->cd_flags &= ~CDDEREFERENCE;
     DBCellClearDef(cifReadCellDef);
     DBCellSetAvail(cifReadCellDef);
     HashSetValue(he, cifReadCellDef);
@@ -664,6 +665,10 @@ calmaElementSref(filename)
 	    TxPrintf("Cell definition %s does not exist!\n", sname);
 	    fseek(calmaInputFile, originalFilePos, SEEK_SET);
 	    def = calmaFindCell(sname, NULL);
+	    /* Cell flags set to "dereferenced" in case there is no	*/
+	    /* definition in the GDS file.  If there is a definition	*/
+	    /* made after the instance, then the flag will be cleared.	*/
+	    def->cd_flags |= CDDEREFERENCE;
 	}
     }
 
