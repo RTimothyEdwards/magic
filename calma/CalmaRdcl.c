@@ -345,11 +345,11 @@ calmaParseStructure(filename)
 	}
     }
     cifReadCellDef = calmaFindCell(strname, &was_called);
-    def->cd_flags &= ~CDDEREFERENCE;
     DBCellClearDef(cifReadCellDef);
     DBCellSetAvail(cifReadCellDef);
     HashSetValue(he, cifReadCellDef);
     cifCurReadPlanes = cifSubcellPlanes;
+    cifReadCellDef->cd_flags &= ~CDDEREFERENCE;
 
     /* Done with strname */
     if (strname != NULL) freeMagic(strname);
