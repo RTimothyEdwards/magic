@@ -1,3 +1,0 @@
-tile.o: tile.c ../utils/magic.h ../utils/malloc.h ../utils/geometry.h \
- ../tiles/tile.h
-search.o: search.c ../utils/magic.h ../utils/geometry.h ../tiles/tile.h

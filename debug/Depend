@@ -1,8 +1,0 @@
-debugFlags.o: debugFlags.c ../utils/magic.h ../debug/debug.h \
- ../textio/textio.h ../utils/malloc.h ../utils/utils.h
-hist.o: hist.c ../utils/magic.h ../utils/geometry.h \
- ../database/database.h ../tiles/tile.h ../utils/hash.h \
- ../bplane/bplane.h ../bplane/bpOpaque.h ../utils/ihash.h \
- ../bplane/bpEnum.h ../utils/utils.h ../utils/geofast.h \
- ../bplane/bplaneInt.h ../textio/textio.h ../debug/debug.h \
- ../utils/malloc.h
