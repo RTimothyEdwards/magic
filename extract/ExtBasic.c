@@ -226,11 +226,14 @@ extBasic(def, outFile)
 	/* when, for example, a device contact is placed in another	*/
 	/* cell, which can happen for devices like capacitors and	*/
 	/* diodes, where the device identifier layer may include	*/
-	/* a contact type.						*/
+	/* a contact type.  NOTE:  This routine needs to limit the	*/
+	/* search to devices in the same plane as the transistor under	*/
+	/* consideration.						*/
 
 	SearchContext scontext;
 	CellUse	      dummy;
 	int	      extFoundFunc();
+	TileTypeBitMask transPlaneMask;
 
 	scontext.scx_use = &dummy;
 	dummy.cu_def = def;
@@ -240,8 +243,11 @@ extBasic(def, outFile)
 	scontext.scx_area.r_ur.p_x++;
 	scontext.scx_area.r_ur.p_y++;
 
-	if (DBTreeSrTiles(&scontext, &ExtCurStyle->exts_deviceMask, 0,
-			extFoundFunc, (ClientData)def) != 0)
+	TTMaskAndMask3(&transPlaneMask, &ExtCurStyle->exts_deviceMask,
+		    &DBPlaneTypes[reg->treg_pnum]);
+
+	if (DBTreeSrTiles(&scontext, &transPlaneMask, 0, extFoundFunc,
+		    (ClientData)def) != 0)
 	    reg->treg_type = TT_SPACE;	/* Disables the trans record */
     }
 
