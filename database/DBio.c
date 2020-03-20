@@ -1133,7 +1133,14 @@ dbReadOpen(cellDef, name, setFileName, errptr)
     cellDef->cd_flags &= ~CDNOTFOUND;
 #endif
     if (setFileName)
+    {
+	/* Remove any ".mag" file extension */
+	char *pptr = strrchr(filename, '.');
+	if (pptr != NULL)
+	    if (!strcmp(pptr, DBSuffix)) *pptr = '\0';
+
 	(void) StrDup(&cellDef->cd_file, filename);
+    }
     cellDef->cd_flags |= CDAVAILABLE;
     return (f);
 }

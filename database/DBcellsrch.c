@@ -1389,6 +1389,42 @@ typedef struct LCU1		/* A linked celluse record */
 /*
  * ----------------------------------------------------------------------------
  *
+ * DBMovePoint ---
+ *
+ *    Move a point by a position (origx, origy).  Ignore positions which
+ *    are marked as (M)INFINITY.
+ *
+ * Results:
+ *	TRUE if the point was moved (point position was not infinite)
+ *
+ * Side effects:
+ *	Point structure pointed to by the first argument is repositioned.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+DBMovePoint(p, origx, origy)
+    Point *p;
+    int origx, origy;
+{
+    int result = FALSE;
+    if ((p->p_x < (INFINITY - 2)) && (p->p_x > (MINFINITY + 2)))
+    {
+	p->p_x -= origx;
+	result = TRUE;
+    }
+    if ((p->p_y < (INFINITY + 2)) && (p->p_y > (MINFINITY + 2)))
+    {
+	p->p_y -= origy;
+	result = TRUE;
+    }
+    return result;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DBScaleValue ---
  *
  *    Scale an integer by a factor of (scalen / scaled).  Always round down.
@@ -1538,6 +1574,14 @@ struct scaleArg {
    bool modified;
 };
 
+struct moveArg {
+   int origx;
+   int origy;
+   int pnum;
+   Plane *ptarget;
+   bool modified;
+};
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1615,6 +1659,74 @@ dbTileScaleFunc(tile, scvals)
     DBNMPaintPlane(scvals->ptarget, exact, &targetRect,
 		((scvals->doCIF) ? CIFPaintTable :
 		DBStdPaintTbl(type, scvals->pnum)),
+		(PaintUndoInfo *)NULL);
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbMovePlane --
+ *
+ *   Relocation procedure called on a single plane.  Copies paint into the
+ *   new plane at a delta position (-origx, -origy)
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+dbMovePlane(oldplane, newplane, pnum, origx, origy)
+    Plane *oldplane, *newplane;
+    int pnum;
+    int origx, origy;
+{
+    int dbTileMoveFunc();		/* forward declaration */
+    struct moveArg arg;
+
+    arg.origx = origx;
+    arg.origy = origy;
+    arg.ptarget = newplane;
+    arg.pnum = pnum;
+    arg.modified = FALSE;
+    (void) DBSrPaintArea((Tile *) NULL, oldplane, &TiPlaneRect,
+		&DBAllButSpaceBits, dbTileMoveFunc, (ClientData) &arg);
+
+    return arg.modified;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbTileMoveFunc --
+ *
+ *   Repositioning procedure called on each tile being copied from one plane
+ *   to another.  Delta position (-origx, -origy) is stored inside the struct
+ *   moveArg before calling.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbTileMoveFunc(tile, mvvals)
+    Tile *tile;
+    struct moveArg *mvvals;
+{
+    TileType type;
+    Rect targetRect;
+    TileType exact;
+
+    TiToRect(tile, &targetRect);
+
+    mvvals->modified = TRUE;
+    DBMovePoint(&targetRect.r_ll, mvvals->origx, mvvals->origy);
+    DBMovePoint(&targetRect.r_ur, mvvals->origx, mvvals->origy);
+
+    type = TiGetTypeExact(tile);
+    exact = type;
+    if (IsSplit(tile))
+	type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+    DBNMPaintPlane(mvvals->ptarget, exact, &targetRect,
+		DBStdPaintTbl(type, mvvals->pnum),
 		(PaintUndoInfo *)NULL);
     return 0;
 }
@@ -1804,9 +1916,6 @@ dbScaleCell(cellDef, scalen, scaled)
         cellDef->cd_planes[pNum] = newplane;
     }
 
-    /* Check consistency of several global pointers	*/
-    /* WARNING:  This list may not be complete!		*/
-
     /* Also scale the position of all labels. */
     /* If labels are the rendered-font type, scale the size as well */
 
@@ -1949,3 +2058,176 @@ dbCellUseEnumFunc(cellUse, arg)
  
     return 0;
 }
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBMoveCell --
+ *
+ *   Reposition a cell to a different origin.  This routine is equivalent to
+ *   unexpanding all contents of a cell, selecting everything, and issuing a
+ *   move command.  However, for very large layouts this becomes memory- and
+ *   compute- intensive.  The process of reorienting an entire layout to a
+ *   new position can be done much more efficiently.  This routine is
+ *   essentially a copy of dbScaleCell() but changes only position and not
+ *   scale.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+DBMoveCell(cellDef, origx, origy)
+    CellDef *cellDef;	/* Pointer to CellDef to be saved.  This def might
+			 * be an internal buffer; if so, we ignore it.
+			 */
+    int origx, origy; /* Internal unit coordinates which will become the new origin */
+{
+    int dbCellTileEnumFunc(), dbCellUseEnumFunc();
+    Label *lab;
+    int pNum;
+    LinkedTile *lhead, *lt;
+    LinkedCellUse *luhead, *lu;
+    Plane *newplane;
+
+    /* Unlike dbScaleCell(), this routine is only run on valid edit defs */ 
+
+    cellDef->cd_flags |= CDBOXESCHANGED;
+
+    /* Enumerate all unique cell uses, and move their position in the	*/ 
+    /* bounding box and transform.					*/
+
+    luhead = NULL;
+
+    (void) DBCellEnum(cellDef, dbCellUseEnumFunc, (ClientData) &luhead);
+
+    lu = luhead;
+    while (lu != NULL)
+    {
+	CellUse *use;
+	Rect *bbox;
+
+	use = lu->cellUse;
+	bbox = &use->cu_bbox;
+
+	/* TxPrintf("CellUse: BBox is ll (%d, %d), transform [%d %d %d %d %d %d]\n",
+		bbox->r_xbot, bbox->r_ybot,
+		use->cu_transform.t_a, use->cu_transform.t_b, use->cu_transform.t_c,
+		use->cu_transform.t_d, use->cu_transform.t_e, use->cu_transform.t_f); */
+
+	DBMovePoint(&bbox->r_ll, origx, origy);
+	DBMovePoint(&bbox->r_ur, origx, origy);
+
+	bbox = &use->cu_extended;
+	DBMovePoint(&bbox->r_ll, origx, origy);
+	DBMovePoint(&bbox->r_ur, origx, origy);
+
+	use->cu_transform.t_c -= origx;
+	use->cu_transform.t_f -= origy;
+
+	lu = lu->cu_next;
+    }
+
+    /* Free this linked cellUse structure */
+    lu = luhead;
+    while (lu != NULL)
+    {
+	freeMagic((char *)lu);
+	lu = lu->cu_next;
+    }
+
+    /* Move the position of all subcell uses.  Count all of the tiles in the	*/
+    /* subcell plane, and move those without reference to the actual cells (so	*/
+    /* we don't count the cells multiple times).				*/
+
+    lhead = NULL;
+    (void) TiSrArea((Tile *)NULL, cellDef->cd_planes[PL_CELL], &TiPlaneRect,
+		dbCellTileEnumFunc, (ClientData) &lhead);
+
+    /* Move each of the tiles in the linked list by (-x, -y)	*/
+    /* Don't move (M)INFINITY on boundary tiles!		*/
+
+    lt = lhead;
+    while (lt != NULL)
+    {
+	DBMovePoint(&lt->tile->ti_ll, origx, origy);
+	lt = lt->t_next;
+    }
+
+    /* Free this linked tile structure */
+    lt = lhead;
+    while (lt != NULL)
+    {
+	freeMagic((char *)lt);
+	lt = lt->t_next;
+    }
+
+    /* Move all of the paint tiles in this cell by creating a new plane */
+    /* and copying all tiles into the new plane at the new position.	 */
+
+    for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
+    {
+	if (cellDef->cd_planes[pNum] == NULL) continue;
+	newplane = DBNewPlane((ClientData) TT_SPACE);
+	DBClearPaintPlane(newplane);
+	if (dbMovePlane(cellDef->cd_planes[pNum], newplane, pNum,
+		origx, origy, FALSE))
+	    cellDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
+        DBFreePaintPlane(cellDef->cd_planes[pNum]);
+	TiFreePlane(cellDef->cd_planes[pNum]);
+        cellDef->cd_planes[pNum] = newplane;
+    }
+
+    /* Also move the position of all labels. */
+
+    if (cellDef->cd_labels)
+    {
+	for (lab = cellDef->cd_labels; lab; lab = lab->lab_next)
+	{
+	    DBMovePoint(&lab->lab_rect.r_ll, origx, origy);
+	    DBMovePoint(&lab->lab_rect.r_ur, origx, origy);
+
+	    if (lab->lab_font >= 0)
+	    {
+		DBMovePoint(&lab->lab_bbox.r_ll, origx, origy);
+		DBMovePoint(&lab->lab_bbox.r_ur, origx, origy);
+	    }
+	}
+    }
+
+donecell:
+
+    /* The cellDef bounding box gets moved to match the new position. */
+
+    DBMovePoint(&cellDef->cd_bbox.r_ll, origx, origy);
+    DBMovePoint(&cellDef->cd_bbox.r_ur, origx, origy);
+    DBMovePoint(&cellDef->cd_extended.r_ll, origx, origy);
+    DBMovePoint(&cellDef->cd_extended.r_ur, origx, origy);
+
+    /* If the cell is an abstract view with a fixed bounding box, then  */
+    /* adjust the bounding box property to match the new scale.         */
+
+    if ((cellDef->cd_flags & CDFIXEDBBOX) != 0)
+    {
+	Rect r;
+	bool found;
+	char *propval;
+
+	propval = (char *)DBPropGet(cellDef, "FIXED_BBOX", &found);
+	if (found)
+	{
+	    if (sscanf(propval, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
+			&r.r_xtop, &r.r_ytop) == 4)
+	    {
+		DBMovePoint(&r.r_ll, origx, origy);
+		DBMovePoint(&r.r_ur, origx, origy);
+
+		propval = (char *)mallocMagic(40);
+		sprintf(propval, "%d %d %d %d", r.r_xbot, r.r_ybot,
+			r.r_xtop, r.r_ytop);
+		DBPropPut(cellDef, "FIXED_BBOX", propval);
+	    }
+	}
+    }
+    return 0;
+}
+

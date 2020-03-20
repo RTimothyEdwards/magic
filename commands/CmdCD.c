@@ -3714,14 +3714,6 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     if ((clen > 4) && !strcmp(cellnameptr + clen - 4, ".mag"))
 	*(cellnameptr + clen - 4) = '\0';
 
-    /* However, if this is a full path, then the full path name must have .mag */
-    if (fullpathname != NULL)
-    {
-	clen = strlen(fullpathname);
-	if ((clen <= 4) || strcmp(fullpathname + clen - 4, ".mag"))
-	    strcat(cellnameptr, ".mag");
-    }
-
     /* Check for illegal characters in the cellname */
     if (CmdIllegalChars(cellnameptr, "", "Cell name"))
     {
