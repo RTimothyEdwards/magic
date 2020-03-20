@@ -1619,7 +1619,7 @@ esMakePorts(hc, cdata)
 			nn = (EFNodeName *) HashGetValue(he);
 		    }
 
-		    if (!(nn->efnn_node->efnode_flags & EF_PORT))
+		    if (nn->efnn_node && !(nn->efnn_node->efnode_flags & EF_PORT))
 		    {
 			nn->efnn_node->efnode_flags |= EF_PORT;
 			nn->efnn_port = -1;	// Will be sorted later

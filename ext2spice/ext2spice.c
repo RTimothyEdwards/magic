@@ -1668,7 +1668,7 @@ topVisit(def, doStub)
 	sname = (EFNodeName *) HashGetValue(he);
 	if (sname == NULL) continue;
 	snode = sname->efnn_node;
-	if (!(snode->efnode_flags & EF_PORT)) continue;
+	if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
 	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	{
 	    portorder = nodeName->efnn_port;
@@ -1729,7 +1729,7 @@ topVisit(def, doStub)
 		if (sname == NULL) continue;	/* Should not happen */
 		snode = sname->efnn_node;
 
-		if (!(snode->efnode_flags & EF_PORT)) continue;
+		if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
 
 		for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 		{
@@ -1787,7 +1787,7 @@ topVisit(def, doStub)
 	    if (sname == NULL) continue;
 	    snode = sname->efnn_node;
 
-	    if (snode->efnode_flags & EF_SUBS_PORT)
+	    if (snode && (snode->efnode_flags & EF_SUBS_PORT))
 	    {
 		if (snode->efnode_name->efnn_port < 0)
 		{
