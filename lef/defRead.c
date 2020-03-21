@@ -1220,6 +1220,9 @@ DefReadVias(f, sname, oscale, total)
  
 		LefEstimate(processed++, total, "vias");
 
+		/* If not otherwise specified, rows and columns default to 1 */
+		rows = cols = 1;
+
 		/* Get via name */
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%2047s", vianame) != 1)

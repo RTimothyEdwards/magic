@@ -1054,23 +1054,22 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 
 	    if (f != NULL)
 	    {
-		if (pptr != NULL) *pptr = '.';
-
 		/* NOTE:  May not want to present this as an error, as	*/
 		/* it is a common technique to read files from, say, a	*/
 		/* LEF file but not save them locally, and then expect	*/
 		/* that the layout views will be picked up from		*/
 		/* somewhere else in the search paths.			*/
 
+		if (pptr != NULL) *pptr = '.';
 		TxError("Warning:  Parent cell lists instance of \"%s\" at bad file "
 			"path %s.\n", cellDef->cd_name, cellDef->cd_file);
-		TxError("The cell exists in the search paths at %s.\n", filename);
-		TxError("The discovered version will be used.\n");
 
 		/* Write the new path to cd_file or else magic will	*/
 		/* generate another error later.			*/
-
 		cellDef->cd_file = StrDup(&cellDef->cd_file, filename);
+
+		TxError("The cell exists in the search paths at %s.\n", filename);
+		TxError("The discovered version will be used.\n");
 	    }
 	}
 
@@ -2732,7 +2731,7 @@ DBCellWrite(cellDef, fileName)
 	/* surprises can occur after saving a file as a different	*/
 	/* filename.							*/
 
-	cellDef->cd_file = StrDup(&cellDef->cd_file, realname);
+	cellDef->cd_file = StrDup(&cellDef->cd_file, fileName);
     }
     else if (cellDef->cd_file)
     {
