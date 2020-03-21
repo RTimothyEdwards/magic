@@ -618,6 +618,14 @@ MakeLegalLEFSyntax(text)
     return rstr;
 }
 	    
+/* Linked list structure for holding PIN PORT geometry areas */
+
+typedef struct _labelLinkedList {
+    Label *lll_label;
+    Rect lll_area;
+    struct _labelLinkedList *lll_next;
+} labelLinkedList;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -657,6 +665,7 @@ lefWriteMacro(def, f, scale, hide)
     char *LEFtext;
     HashSearch hs;
     HashEntry *he;
+    labelLinkedList *lll = NULL;
 
     extern CellDef *SelectDef;
 
@@ -959,7 +968,11 @@ lefWriteMacro(def, f, scale, hide)
 
 	    if (hide)
 	    {
-		SelectChunk(&scx, lab->lab_type, 0, NULL, FALSE);
+		Rect carea;
+		labelLinkedList *newlll;
+
+		SelectChunk(&scx, lab->lab_type, 0, &carea, FALSE);
+		if (GEO_RECTNULL(&carea)) carea = lab->lab_rect;
 
 		/* Note that a sticky label could be placed over multiple   */
 		/* tile types, which would cause SelectChunk to fail.  So   */
@@ -967,8 +980,15 @@ lefWriteMacro(def, f, scale, hide)
 		/* SelectDef.						    */
 
 		pNum = DBPlane(lab->lab_type);
-		DBPaintPlane(SelectDef->cd_planes[pNum], &lab->lab_rect,
+		DBPaintPlane(SelectDef->cd_planes[pNum], &carea,
 			DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
+
+		/* Remember this area since it's going to get erased */
+		newlll = (labelLinkedList *)mallocMagic(sizeof(labelLinkedList));
+		newlll->lll_label = lab;
+		newlll->lll_area = carea;
+		newlll->lll_next = lll;
+		lll = newlll;
 	    }
 	    else
 		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
@@ -1064,6 +1084,7 @@ lefWriteMacro(def, f, scale, hide)
 	/* cell.  Otherwise, this routine can block internal pins.	*/
 
 	Rect layerBound;
+	labelLinkedList *thislll;
 
 	for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
 	    if (TTMaskHasType(&lmask, ttype))
@@ -1080,39 +1101,20 @@ lefWriteMacro(def, f, scale, hide)
 		DBPaint(lc.lefYank, &layerBound, ttype);
 	    }
 
-	scx.scx_use = &lefSourceUse;
-	for (lab = def->cd_labels; lab != NULL; lab = lab->lab_next)
+	for (thislll = lll; thislll; thislll = thislll->lll_next)
 	{
-	    Rect carea;
 	    int lspace;
 
-	    labr = lab->lab_rect;
+	    lab = thislll->lll_label;
 
-	    /* Force label area to be non-degenerate */
-	    if (labr.r_xbot >= labr.r_xtop)
-	    {
-		labr.r_xbot--;
-		labr.r_xtop++;
-	    }
-	    if (labr.r_ybot >= labr.r_ytop)
-	    {
-		labr.r_ybot--;
-		labr.r_ytop++;
-	    }
-	    
-	    if (lab->lab_flags & PORT_DIR_MASK)
-	    {
-		scx.scx_area = labr;
-		SelectClear();
-		SelectChunk(&scx, lab->lab_type, 0, &carea, FALSE);
-		if (GEO_RECTNULL(&carea)) carea = lab->lab_rect;
-		lspace = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
-		carea.r_xbot -= lspace;
-		carea.r_ybot -= lspace;
-		carea.r_xtop += lspace;
-		carea.r_ytop += lspace;
-		DBErase(lc.lefYank, &carea, lab->lab_type);
-	    }
+	    lspace = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
+	    thislll->lll_area.r_xbot -= lspace;
+	    thislll->lll_area.r_ybot -= lspace;
+	    thislll->lll_area.r_xtop += lspace;
+	    thislll->lll_area.r_ytop += lspace;
+	    DBErase(lc.lefYank, &thislll->lll_area, lab->lab_type);
+
+	    freeMagic(thislll);
 	}
     }
     else
