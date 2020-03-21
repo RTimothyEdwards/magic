@@ -859,7 +859,7 @@ DBReadBackup(name)
 
  	    cellDef = DBCellLookDef(rootname);
 	    if (cellDef == (CellDef *)NULL)
-		cellDef = DBCellNewDef(rootname, (char *)NULL);
+		cellDef = DBCellNewDef(rootname);
 
 	    cellDef->cd_flags &= ~CDNOTFOUND;
 	    cellDef->cd_flags |= CDAVAILABLE;
@@ -1352,7 +1352,7 @@ badTransform:
     subCellDef = DBCellLookDef(cellname);
     if (subCellDef == (CellDef *) NULL)
     {
-	subCellDef = DBCellNewDef(cellname, (char *)NULL);
+	subCellDef = DBCellNewDef(cellname);
 	subCellDef->cd_timestamp = childStamp;
 
 	/* Make sure rectangle is non-degenerate */

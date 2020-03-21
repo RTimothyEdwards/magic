@@ -1541,7 +1541,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 
 		    /* Before giving up, assume that this cell has a	*/
 		    /* magic .mag layout file.				*/
-		    defMacro = DBCellNewDef(token, (char *)NULL);
+		    defMacro = DBCellNewDef(token);
 		    defMacro->cd_flags &= ~CDNOTFOUND;
 		    dereference = (defMacro->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
 		    if (!DBCellRead(defMacro, (char *)NULL, TRUE, dereference, NULL))

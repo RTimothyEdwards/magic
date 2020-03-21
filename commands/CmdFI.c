@@ -1943,7 +1943,7 @@ CmdFlatten(w, cmd)
     	 TxError("%s already exists\n",destname);
 	 return;
     }
-    newdef = DBCellNewDef(destname, (char *) NULL);
+    newdef = DBCellNewDef(destname);
     ASSERT(newdef, "CmdFlatten");
     DBCellSetAvail(newdef);
     newuse = DBCellNewUse(newdef, (char *) NULL);

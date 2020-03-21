@@ -675,7 +675,7 @@ lefWriteMacro(def, f, scale, hide)
 
     lefFlatDef = DBCellLookDef("__lefFlat__");
     if (lefFlatDef == (CellDef *)NULL)
-	lefFlatDef = DBCellNewDef("__lefFlat__", (char *)NULL);
+	lefFlatDef = DBCellNewDef("__lefFlat__");
     DBCellSetAvail(lefFlatDef);
     lefFlatDef->cd_flags |= CDINTERNAL;
 
@@ -828,7 +828,7 @@ lefWriteMacro(def, f, scale, hide)
 
     lc.lefYank = DBCellLookDef("__lefYank__");
     if (lc.lefYank == (CellDef *)NULL)
-    lc.lefYank = DBCellNewDef("__lefYank__", (char *)NULL);
+    lc.lefYank = DBCellNewDef("__lefYank__");
 
     DBCellSetAvail(lc.lefYank);
     lc.lefYank->cd_flags |= CDINTERNAL;

@@ -1245,14 +1245,12 @@ DBCellLookDef(cellName)
  */
 
 CellDef *
-DBCellNewDef(cellName, cellFileName)
+DBCellNewDef(cellName)
     char *cellName;		/* Name by which the cell is known */
-    char *cellFileName;		/* Name of disk file in which the cell 
-				 * should be kept when written out.
-				 */
 {
     CellDef *cellDef;
     HashEntry *entry;
+    char *dotptr;
 
     if (cellName == (char *) NULL)
 	cellName = UNNAMED;
@@ -1264,10 +1262,12 @@ DBCellNewDef(cellName, cellFileName)
     cellDef = DBCellDefAlloc();
     HashSetValue(entry, (ClientData) cellDef);
     cellDef->cd_name = StrDup((char **) NULL, cellName);
-    if (cellFileName == (char *) NULL)
-	cellDef->cd_file = cellFileName;
-    else
-	cellDef->cd_file = StrDup((char **) NULL, cellFileName);
+
+    /* Strip any .mag extension off of the cell name */    
+    dotptr = strrchr(cellDef->cd_name, '.');
+    if (dotptr && !strcmp(dotptr, ".mag")) *dotptr = '\0';
+
+    cellDef->cd_file = NULL;
     return (cellDef);
 }
 
@@ -2081,7 +2081,7 @@ DBNewYank(yname, pyuse, pydef)
     *pydef = DBCellLookDef(yname);
     if (*pydef == (CellDef *) NULL)
     {
-	*pydef = DBCellNewDef (yname,(char *) NULL);
+	*pydef = DBCellNewDef(yname);
 	ASSERT(*pydef != (CellDef *) NULL, "DBNewYank");
 	DBCellSetAvail(*pydef);
 	(*pydef)->cd_flags |= CDINTERNAL;
