@@ -466,6 +466,8 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	    if (efWarn)
 		efReadError("Merged nodes %s and %s\n", nodeName1, nodeName2);
 	    efNodeMerge(&nn1->efnn_node, &nn2->efnn_node);
+	    if (nn1->efnn_port > 0) nn2->efnn_port = nn1->efnn_port;
+	    else if (nn2->efnn_port > 0) nn1->efnn_port = nn2->efnn_port;
 	}
 	return;
     }
