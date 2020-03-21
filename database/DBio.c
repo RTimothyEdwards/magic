@@ -2721,29 +2721,25 @@ DBCellWrite(cellDef, fileName)
     /*
      * Figure out the name of the file we will eventually write.
      */
-    if (fileName)
+    if (!fileName)
     {
-	realname = (char *) mallocMagic(strlen(fileName) + strlen(DBSuffix) + 1);
-	(void) sprintf(realname, "%s%s", fileName, DBSuffix);
+	if (cellDef->cd_file)
+	    fileName = cellDef->cd_file;
+	else if (cellDef->cd_name)
+	    fileName = cellDef->cd_name;
+	else
+	    return FALSE;
+    }
 
-	/* Bug fix: 7/17/99, Michael D. Godfrey:  Forces		*/
-	/* cd_name and cd_file to ALWAYS be the same, otherwise ugly	*/
-	/* surprises can occur after saving a file as a different	*/
-	/* filename.							*/
+    /* Bug fix: 7/17/99, Michael D. Godfrey:  Forces		    */
+    /* cd_name and cd_file to ALWAYS be the same, otherwise ugly    */
+    /* surprises can occur after saving a file as a different	    */
+    /* filename.						    */
 
-	cellDef->cd_file = StrDup(&cellDef->cd_file, fileName);
-    }
-    else if (cellDef->cd_file)
-    {
-	realname = StrDup((char **) NULL, cellDef->cd_file);
-    }
-    else if (cellDef->cd_name)
-    {
-	realname = (char *) mallocMagic((unsigned) (strlen(cellDef->cd_name)
-		+ strlen(DBSuffix) + 1));
-	(void) sprintf(realname, "%s%s", cellDef->cd_name, DBSuffix);
-    }
-    else return (FALSE);
+    cellDef->cd_file = StrDup(&cellDef->cd_file, fileName);
+
+    realname = (char *) mallocMagic(strlen(fileName) + strlen(DBSuffix) + 1);
+    (void) sprintf(realname, "%s%s", fileName, DBSuffix);
 
     /*
      * Expand the filename, removing the leading ~, if any.
