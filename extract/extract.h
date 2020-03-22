@@ -66,6 +66,7 @@ extern char *extDevTable[];
 #define	EXT_DORESISTANCE	0x08	/* Extract resistance */
 #define	EXT_DOLENGTH		0x10	/* Extract pathlengths */
 #define	EXT_DOALL		0x1f	/* ALL OF THE ABOVE */
+#define	EXT_DOLOCAL		0x20	/* Write to local directory only */
 
 extern int ExtOptions;		/* Bitmask of above */
 
