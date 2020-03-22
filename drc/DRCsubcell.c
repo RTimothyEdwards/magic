@@ -43,6 +43,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 static Rect drcSubIntArea;	/* Accumulates area of interactions. */
 static CellDef *drcSubDef;	/* Cell definition we're checking. */
 static int drcSubRadius;	/* Interaction radius. */
+static CellUse *drcCurSub;	/* Holds current use while searching for interactions */
 static Rect drcSubLookArea;	/* Area where we're looking for interactions */
 static void (*drcSubFunc)();	/* Error function. */
 static ClientData drcSubClientData;
@@ -61,6 +62,37 @@ static DRCCookie drcSubcellCookie = {
 };
 
 extern int DRCErrorType;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * drcFindOtherCells --
+ *
+ *	This is a search function invoked when looking around a given
+ *	cell for interactions.  If a cell use is found other than drcCurSub,
+ *	then it constitutes an interaction, and its area is included into
+ *	the area parameter.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	The area parameter may be modified by including the area
+ *	of the current use.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+drcFindOtherCells(use, area)
+    CellUse *use;
+    Rect *area;
+{
+    if (use != drcCurSub)
+    	GeoInclude(&use->cu_bbox, area);
+
+    return 0;
+}
 
 
 /*
@@ -121,6 +153,15 @@ drcSubcellFunc(subUse, propagate)
     GeoTransRect(&(subUse->cu_transform), &subIntArea, &locIntArea);
     GeoInclude(&locIntArea, &intArea);
     if (!GEO_RECTNULL(&subIntArea)) *propagate = TRUE;
+
+    drcCurSub = subUse;
+    (void) DBSrCellPlaneArea(drcSubDef->cd_cellPlane, &haloArea,
+		drcFindOtherCells, (ClientData)(&intArea));
+    if (GEO_RECTNULL(&intArea)) return 0;
+
+    GEO_EXPAND(&intArea, drcSubRadius, &intArea);
+    GeoClip(&intArea, &haloArea);
+    (void) GeoInclude(&intArea, &drcSubIntArea);
     return 0;
 }
 
