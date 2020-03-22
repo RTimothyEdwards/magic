@@ -1220,6 +1220,9 @@ DefReadVias(f, sname, oscale, total)
  
 		LefEstimate(processed++, total, "vias");
 
+		/* If not otherwise specified, rows and columns default to 1 */
+		rows = cols = 1;
+
 		/* Get via name */
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%2047s", vianame) != 1)
@@ -1538,7 +1541,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 
 		    /* Before giving up, assume that this cell has a	*/
 		    /* magic .mag layout file.				*/
-		    defMacro = DBCellNewDef(token, (char *)NULL);
+		    defMacro = DBCellNewDef(token);
 		    defMacro->cd_flags &= ~CDNOTFOUND;
 		    dereference = (defMacro->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
 		    if (!DBCellRead(defMacro, (char *)NULL, TRUE, dereference, NULL))

@@ -273,7 +273,7 @@ cifFindCell(cifNum)
 	def = DBCellLookDef(name);
 	if (def == NULL)
 	{
-	    def = DBCellNewDef(name, (char *) NULL);
+	    def = DBCellNewDef(name);
 
 	    /* Tricky point:  call DBReComputeBbox here to make SURE
 	     * that the cell has a valid bounding box.  Otherwise,

@@ -112,7 +112,7 @@ CIFInitCells()
     CIFTotalDef = DBCellLookDef("__CIF__");
     if (CIFTotalDef == (CellDef *) NULL)
     {
-	CIFTotalDef = DBCellNewDef ("__CIF__",(char *) NULL);
+	CIFTotalDef = DBCellNewDef("__CIF__");
 	ASSERT(CIFTotalDef != (CellDef *) NULL, "cifMakeCell");
 	DBCellSetAvail(CIFTotalDef);
 	CIFTotalDef->cd_flags |= CDINTERNAL;
@@ -124,7 +124,7 @@ CIFInitCells()
     CIFComponentDef = DBCellLookDef("__CIF2__");
     if (CIFComponentDef == (CellDef *) NULL)
     {
-	CIFComponentDef = DBCellNewDef ("__CIF2__",(char *) NULL);
+	CIFComponentDef = DBCellNewDef("__CIF2__");
 	ASSERT(CIFComponentDef != (CellDef *) NULL, "cifMakeCell");
 	DBCellSetAvail(CIFComponentDef);
 	CIFComponentDef->cd_flags |= CDINTERNAL;

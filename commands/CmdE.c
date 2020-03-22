@@ -878,7 +878,8 @@ cmdExpandFunc(use, windowMask)
 #define	DOCAPACITANCE	2
 #define	DOCOUPLING	3
 #define	DOLENGTH	4
-#define	DORESISTANCE	5
+#define	DOLOCAL		5
+#define	DORESISTANCE	6
 
 #define	LENCLEAR	0
 #define	LENDRIVER	1
@@ -900,6 +901,7 @@ CmdExtract(w, cmd)
     CellDef	*selectedDef;
     bool dolist = FALSE;
     bool doforall = FALSE;
+    bool doLocal = FALSE;
     int argc = cmd->tx_argc;
     char **argv = cmd->tx_argv;
 
@@ -918,6 +920,7 @@ CmdExtract(w, cmd)
 	"capacitance		extract substrate capacitance",
 	"coupling		extract coupling capacitance",
 	"length			compute driver-receiver pathlengths",
+	"local			put all generated files in the current directory",
 	"resistance		estimate resistance",
 	NULL
     };
@@ -1136,6 +1139,7 @@ CmdExtract(w, cmd)
 		TxPrintf("%s capacitance\n", OPTSET(EXT_DOCAPACITANCE));
 		TxPrintf("%s coupling\n", OPTSET(EXT_DOCOUPLING));
 		TxPrintf("%s length\n", OPTSET(EXT_DOLENGTH));
+		TxPrintf("%s local\n", OPTSET(EXT_DOLOCAL));
 		TxPrintf("%s resistance\n", OPTSET(EXT_DORESISTANCE));
 		return;
 #undef	OPTSET
@@ -1163,6 +1167,7 @@ CmdExtract(w, cmd)
 		case DOCAPACITANCE:	option = EXT_DOCAPACITANCE; break;
 		case DOCOUPLING:	option = EXT_DOCOUPLING; break;
 		case DOLENGTH:		option = EXT_DOLENGTH; break;
+		case DOLOCAL:		option = EXT_DOLOCAL; break;
 		case DORESISTANCE:	option = EXT_DORESISTANCE; break;
 	    }
 	    if (no) ExtOptions &= ~option;

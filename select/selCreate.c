@@ -108,7 +108,7 @@ SelectInit()
     SelectDef = DBCellLookDef("__SELECT__");
     if (SelectDef == (CellDef *) NULL)
     {
-	SelectDef = DBCellNewDef("__SELECT__",(char *) NULL);
+	SelectDef = DBCellNewDef("__SELECT__");
 	ASSERT(SelectDef != (CellDef *) NULL, "SelectInit");
 	DBCellSetAvail(SelectDef);
 	SelectDef->cd_flags |= CDINTERNAL;
@@ -122,7 +122,7 @@ SelectInit()
     Select2Def = DBCellLookDef("__SELECT2__");
     if (Select2Def == (CellDef *) NULL)
     {
-	Select2Def = DBCellNewDef("__SELECT2__",(char *) NULL);
+	Select2Def = DBCellNewDef("__SELECT2__");
 	ASSERT(Select2Def != (CellDef *) NULL, "SelectInit");
 	DBCellSetAvail(Select2Def);
 	Select2Def->cd_flags |= CDINTERNAL;

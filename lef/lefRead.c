@@ -572,7 +572,7 @@ lefFindCell(name)
 	def = DBCellLookDef(name);
 	if (def == NULL)
 	{
-	    def = DBCellNewDef(name, (char *)NULL);
+	    def = DBCellNewDef(name);
 	    DBReComputeBbox(def);
 	}
 	HashSetValue(h, def);

@@ -859,7 +859,7 @@ DBReadBackup(name)
 
  	    cellDef = DBCellLookDef(rootname);
 	    if (cellDef == (CellDef *)NULL)
-		cellDef = DBCellNewDef(rootname, (char *)NULL);
+		cellDef = DBCellNewDef(rootname);
 
 	    cellDef->cd_flags &= ~CDNOTFOUND;
 	    cellDef->cd_flags |= CDAVAILABLE;
@@ -1054,23 +1054,22 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 
 	    if (f != NULL)
 	    {
-		if (pptr != NULL) *pptr = '.';
-
 		/* NOTE:  May not want to present this as an error, as	*/
 		/* it is a common technique to read files from, say, a	*/
 		/* LEF file but not save them locally, and then expect	*/
 		/* that the layout views will be picked up from		*/
 		/* somewhere else in the search paths.			*/
 
+		if (pptr != NULL) *pptr = '.';
 		TxError("Warning:  Parent cell lists instance of \"%s\" at bad file "
 			"path %s.\n", cellDef->cd_name, cellDef->cd_file);
-		TxError("The cell exists in the search paths at %s.\n", filename);
-		TxError("The discovered version will be used.\n");
 
 		/* Write the new path to cd_file or else magic will	*/
 		/* generate another error later.			*/
-
 		cellDef->cd_file = StrDup(&cellDef->cd_file, filename);
+
+		TxError("The cell exists in the search paths at %s.\n", filename);
+		TxError("The discovered version will be used.\n");
 	    }
 	}
 
@@ -1353,7 +1352,7 @@ badTransform:
     subCellDef = DBCellLookDef(cellname);
     if (subCellDef == (CellDef *) NULL)
     {
-	subCellDef = DBCellNewDef(cellname, (char *)NULL);
+	subCellDef = DBCellNewDef(cellname);
 	subCellDef->cd_timestamp = childStamp;
 
 	/* Make sure rectangle is non-degenerate */
@@ -2722,29 +2721,25 @@ DBCellWrite(cellDef, fileName)
     /*
      * Figure out the name of the file we will eventually write.
      */
-    if (fileName)
+    if (!fileName)
     {
-	realname = (char *) mallocMagic(strlen(fileName) + strlen(DBSuffix) + 1);
-	(void) sprintf(realname, "%s%s", fileName, DBSuffix);
+	if (cellDef->cd_file)
+	    fileName = cellDef->cd_file;
+	else if (cellDef->cd_name)
+	    fileName = cellDef->cd_name;
+	else
+	    return FALSE;
+    }
 
-	/* Bug fix: 7/17/99, Michael D. Godfrey:  Forces		*/
-	/* cd_name and cd_file to ALWAYS be the same, otherwise ugly	*/
-	/* surprises can occur after saving a file as a different	*/
-	/* filename.							*/
+    /* Bug fix: 7/17/99, Michael D. Godfrey:  Forces		    */
+    /* cd_name and cd_file to ALWAYS be the same, otherwise ugly    */
+    /* surprises can occur after saving a file as a different	    */
+    /* filename.						    */
 
-	cellDef->cd_file = StrDup(&cellDef->cd_file, realname);
-    }
-    else if (cellDef->cd_file)
-    {
-	realname = StrDup((char **) NULL, cellDef->cd_file);
-    }
-    else if (cellDef->cd_name)
-    {
-	realname = (char *) mallocMagic((unsigned) (strlen(cellDef->cd_name)
-		+ strlen(DBSuffix) + 1));
-	(void) sprintf(realname, "%s%s", cellDef->cd_name, DBSuffix);
-    }
-    else return (FALSE);
+    cellDef->cd_file = StrDup(&cellDef->cd_file, fileName);
+
+    realname = (char *) mallocMagic(strlen(fileName) + strlen(DBSuffix) + 1);
+    (void) sprintf(realname, "%s%s", fileName, DBSuffix);
 
     /*
      * Expand the filename, removing the leading ~, if any.

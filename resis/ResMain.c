@@ -113,7 +113,7 @@ ResGetReCell()
     ResDef = DBCellLookDef("__RESIS__");
     if (ResDef == NULL)
     {
-	ResDef = DBCellNewDef("__RESIS__", (char *) NULL);
+	ResDef = DBCellNewDef("__RESIS__");
 	ASSERT (ResDef != (CellDef *) NULL, "ResGetReCell");
 	DBCellSetAvail(ResDef);
 	ResDef->cd_flags |= CDINTERNAL;   

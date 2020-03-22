@@ -665,7 +665,7 @@ cmdSaveCell(cellDef, newName, noninteractive, tryRename)
     }
 
 cleanup:
-    if (fileName != newName)
+    if ((fileName != newName) && (fileName != cellDef->cd_name))
 	freeMagic(fileName);
     return;
 }

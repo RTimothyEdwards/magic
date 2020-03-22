@@ -95,8 +95,11 @@ ExtCell(def, outName, doLength)
 {
     char *filename;
     FILE *f;
+    bool doLocal;
 
-    f = extFileOpen(def, outName, "w", &filename);
+    doLocal = (ExtOptions & EXT_DOLOCAL) ? TRUE : FALSE;
+
+    f = extFileOpen(def, outName, "w", doLocal, &filename);
 
     TxPrintf("Extracting %s into %s:\n", def->cd_name, filename);
 
@@ -149,7 +152,7 @@ ExtCell(def, outName, doLength)
  */
 
 FILE *
-extFileOpen(def, file, mode, prealfile)
+extFileOpen(def, file, mode, doLocal, prealfile)
     CellDef *def;	/* Cell whose .ext file is to be written */
     char *file;		/* If non-NULL, open 'name'.ext; otherwise,
 			 * derive filename from 'def' as described
@@ -158,6 +161,7 @@ extFileOpen(def, file, mode, prealfile)
     char *mode;		/* Either "r" or "w", the mode in which the .ext
 			 * file is to be opened.
 			 */
+    bool  doLocal;	/* If true, always write to local directory */
     char **prealfile;	/* If this is non-NULL, it gets set to point to
 			 * a string holding the name of the .ext file.
 			 */
@@ -167,6 +171,8 @@ extFileOpen(def, file, mode, prealfile)
     FILE *rfile, *testf;
 
     if (file) name = file;
+    else if (doLocal)
+	name = def->cd_name;	/* No path component, so save locally */
     else if (def->cd_file)
     {
 	name = def->cd_file;

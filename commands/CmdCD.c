@@ -896,14 +896,12 @@ CmdCellname(w, cmd)
 		{
 		    char *fullpath;
 		    fullpath = (char *)mallocMagic(strlen(filepath) +
-			strlen(cellDef->cd_name) + 6);
-		    sprintf(fullpath, "%s/%s.mag", filepath, cellDef->cd_name);
+			strlen(cellDef->cd_name) + 2);
+		    sprintf(fullpath, "%s/%s", filepath, cellDef->cd_name);
 
 		    if (cellDef->cd_file != NULL)
-		    {
 			freeMagic(cellDef->cd_file);
-			cellDef->cd_file = NULL;
-		    }
+
 		    cellDef->cd_file = fullpath;	
 		}
 	    }
@@ -945,7 +943,7 @@ CmdCellname(w, cmd)
 	    newDef = DBCellLookDef(cellname);
 	    if (newDef == (CellDef *) NULL)
 	    {
-		newDef = DBCellNewDef(cellname, (char *) NULL);
+		newDef = DBCellNewDef(cellname);
 		DBCellSetAvail(newDef);
 	    }
 	    break;
@@ -1442,7 +1440,7 @@ CmdCif(w, cmd)
 		paintDef = DBCellLookDef(argv[4]);
 		if (paintDef == (CellDef *)NULL)
 		{
-		    paintDef = DBCellNewDef(argv[4], (char *)NULL);
+		    paintDef = DBCellNewDef(argv[4]);
 		    DBCellSetAvail(paintDef);
 		}
 	    }
@@ -3699,8 +3697,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     if ((cellnameptr = strrchr(cmd->tx_argv[1], '/')) != NULL)
     {
 	cellnameptr++;
-	/* Allocate extra space for cellname in case it needs an extension */
-	fullpathname = (char *)mallocMagic(strlen(cmd->tx_argv[1]) + 10);
+	fullpathname = (char *)mallocMagic(strlen(cmd->tx_argv[1]) + 2);
 	strcpy(fullpathname, cmd->tx_argv[1]);
     }
     else
@@ -3723,7 +3720,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 
     def = DBCellLookDef(cellnameptr);
     if (def == (CellDef *) NULL)
-	def = DBCellNewDef(cellnameptr, (char *) NULL);
+	def = DBCellNewDef(cellnameptr);
 
     if (fullpathname != NULL)
     {
@@ -3749,7 +3746,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 		    uniqchar++;
 		}
 		TxError("Renaming cell to \"%s\" to avoid conflict.", newcellname);
-		def = DBCellNewDef(cellnameptr, (char *)NULL);
+		def = DBCellNewDef(cellnameptr);
 		def->cd_file = StrDup(&def->cd_file, fullpathname);
 		freeMagic(newcellname);
 	    }
@@ -3777,7 +3774,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     dummy->cu_expandMask = CU_DESCEND_SPECIAL;
     if (DBIsAncestor(def, EditCellUse->cu_def))
     {
-	TxError("The edit cell is already a desecendant of \"%s\",\n",
+	TxError("The edit cell is already a descendant of \"%s\",\n",
 	    cmd->tx_argv[1]);
 	TxError("    which means that you're trying to create a circular\n");
 	TxError("    structure.  This isn't legal.\n");
