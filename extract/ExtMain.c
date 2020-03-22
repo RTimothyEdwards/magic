@@ -626,7 +626,6 @@ closeit:
 void
 extExtractStack(stack, doExtract, rootDef)
     Stack *stack;
-    bool doExtract;
     CellDef *rootDef;
 {
     int fatal = 0, warnings = 0;

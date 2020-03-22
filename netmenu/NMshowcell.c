@@ -235,7 +235,7 @@ nmGetShowCell()
     nmscShowDef = DBCellLookDef("__SHOW__");
     if (nmscShowDef == NULL)
     {
-	nmscShowDef = DBCellNewDef("__SHOW__", (char *) NULL);
+	nmscShowDef = DBCellNewDef("__SHOW__");
 	ASSERT (nmscShowDef != (CellDef *) NULL, "nmGetShowCell");
 	DBCellSetAvail(nmscShowDef);
 	nmscShowDef->cd_flags |= CDINTERNAL;

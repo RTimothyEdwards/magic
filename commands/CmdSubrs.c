@@ -33,6 +33,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "tiles/tile.h"
 #include "utils/hash.h"
+#include "utils/malloc.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "utils/main.h"
@@ -589,6 +590,8 @@ cmdSaveCell(cellDef, newName, noninteractive, tryRename)
 			 * place where it was saved.
 			 */
 {
+    char *fileName = newName;
+
     /* Eliminate the phony labels added for use by rsim */
 #ifndef NO_SIM_MODULE
     SimEraseLabels();
@@ -604,41 +607,41 @@ cmdSaveCell(cellDef, newName, noninteractive, tryRename)
     {
 	if (newName == NULL)
 	    TxPrintf("Must specify name for cell %s.\n", UNNAMED);
-	newName = cmdCheckNewName(cellDef, newName, TRUE, noninteractive);
-	if (newName == NULL) return;
+	fileName = cmdCheckNewName(cellDef, newName, TRUE, noninteractive);
+	if (fileName == NULL) return;
     }
     else if (newName != NULL)
     {
-	newName = cmdCheckNewName(cellDef, newName, TRUE, noninteractive);
-	if (newName == NULL) return;
+	fileName = cmdCheckNewName(cellDef, newName, TRUE, noninteractive);
+	if (fileName == NULL) return;
     }
     else
     {
 	if (cellDef->cd_file == NULL)
 	{
-	    newName = cmdCheckNewName(cellDef, cellDef->cd_name,
+	    fileName = cmdCheckNewName(cellDef, cellDef->cd_name,
 		TRUE, noninteractive);
-	    if (newName == NULL) return;
+	    if (fileName == NULL) return;
 	}
     }
 
     DBUpdateStamps();
-    if (!DBCellWrite(cellDef, newName))
+    if (!DBCellWrite(cellDef, fileName))
     {
 	TxError("Could not write file.  Cell not written.\n");
-	return;
+	goto cleanup;
     }
 
-    if (!tryRename || (newName == NULL) || (strcmp(cellDef->cd_name, newName) == 0))
-	return;
+    if (!tryRename || (fileName == NULL) || (strcmp(cellDef->cd_name, fileName) == 0))
+	goto cleanup;
 
     /* Rename the cell */
-    if (!DBCellRenameDef(cellDef, newName))
+    if (!DBCellRenameDef(cellDef, fileName))
     {
 	/* This should never happen */
 	TxError("Magic error: there is already a cell named \"%s\"\n",
-		    newName);
-	return;
+		    fileName);
+	goto cleanup;
     }
 
     if (EditCellUse && (cellDef == EditCellUse->cu_def))
@@ -660,6 +663,11 @@ cmdSaveCell(cellDef, newName, noninteractive, tryRename)
 	(void) WindSearch(DBWclientID, (ClientData) NULL, (Rect *) NULL, 
 		cmdSaveWindSet, (ClientData) cellDef);
     }
+
+cleanup:
+    if ((fileName != newName) && (fileName != cellDef->cd_name))
+	freeMagic(fileName);
+    return;
 }
 
 /*
@@ -694,38 +702,44 @@ cmdCheckNewName(def, newName, tryRename, noninteractive)
     bool tryRename;
     bool noninteractive;
 {
-    static char newname[256];
     static char *yesno[] = { "no", "yes", 0 };
     char *filename;
     char *prompt;
+    char *returnname;
     int code;
     FILE *f;
 
+    returnname = newName;
+
 again:
-    if (newName == NULL)
+    if (returnname == NULL)
     {
 	if (noninteractive) {
 	    TxError("Can't write file named '%s'\n", def->cd_name);
 	    return NULL;
 	};
 	TxPrintf("File for cell %s: [hit return to abort save] ", def->cd_name);
-	if (TxGetLine(newname, sizeof newname) == NULL || newname[0] == '\0')
+	returnname = (char *)mallocMagic(1024 * sizeof(char));
+	if (TxGetLine(returnname, sizeof returnname) == NULL || returnname[0] == '\0')
 	{
 	    TxPrintf("Cell not saved.\n");
+	    freeMagic(returnname);
 	    return ((char *) NULL);
 	}
-	if (CmdIllegalChars(newname, "[],", "Cell name"))
+	if (CmdIllegalChars(returnname, "[],", "Cell name"))
+	{
+	    freeMagic(returnname);
 	    goto again;
-	newName = newname;
+	}
     }
 
     /* Remove any ".mag" file extension from the name */
-    else if (!strcmp(newName + strlen(newName) - 4, ".mag"))
-	*(newName + strlen(newName) - 4) = '\0';
+    if (!strcmp(returnname + strlen(returnname) - 4, ".mag"))
+	*(returnname + strlen(returnname) - 4) = '\0';
 
-    if (strcmp(newName, def->cd_name) != 0)
+    if (strcmp(returnname, def->cd_name) != 0)
     {
-	if (f = PaOpen(newName, "r", DBSuffix, ".", (char *) NULL, &filename))
+	if (f = PaOpen(returnname, "r", DBSuffix, ".", (char *) NULL, &filename))
 	{
 	    (void) fclose(f);
 	    if (noninteractive) {
@@ -740,23 +754,24 @@ again:
 		if (code == 0)
 		{
 		    /* No -- don't overwrite */
-		    newName = NULL;
+		    if (returnname != newName) freeMagic(returnname);
+		    returnname = NULL;
 		    goto again;
 		}
 	    }
 	}
 
-	if (tryRename && DBCellLookDef(newName) != NULL)
+	if (tryRename && DBCellLookDef(returnname) != NULL)
 	{
 	    TxError("Can't rename cell '%s' to '%s' because that cell already exists.\n",
-	    def->cd_name, newName);
+			def->cd_name, returnname);
+	    if (returnname != newName) freeMagic(returnname);
 	    if (noninteractive) return NULL;
-	    newName = NULL;
+	    returnname = NULL;
 	    goto again;
 	}
     }
-
-    return (newName);
+    return (returnname);
 }
 
 /*

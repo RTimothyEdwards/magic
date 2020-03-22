@@ -153,8 +153,11 @@ CmdSave(w, cmd)
     DBUpdateStamps();
     if (cmd->tx_argc == 2)
     {
+	char *fileName;
+
 	if (CmdIllegalChars(cmd->tx_argv[1], "[],", "Cell name"))
 	    return;
+
 	cmdSaveCell(locDef, cmd->tx_argv[1], FALSE, TRUE);
     }
     else cmdSaveCell(locDef, (char *) NULL, FALSE, TRUE);
@@ -842,6 +845,8 @@ CmdSelect(w, cmd)
 	option = SEL_DEFAULT;
     else
     {
+	char *fileName;
+
 	option = Lookup(optionArgs[0], cmdSelectOption);
 	if (option < 0 && cmd->tx_argc != 2)
 	{

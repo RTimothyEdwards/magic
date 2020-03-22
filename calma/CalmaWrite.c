@@ -1416,7 +1416,7 @@ calmaGetContactCell(type, lookOnly)
     def = DBCellLookDef(contactCellName);
     if ((def == (CellDef *) NULL) && (lookOnly == FALSE))
     {
-	def = DBCellNewDef(contactCellName, (char *) NULL);
+	def = DBCellNewDef(contactCellName);
        	def->cd_flags &= ~(CDMODIFIED|CDGETNEWSTAMP);
         def->cd_flags |= CDAVAILABLE;
     }

@@ -273,7 +273,7 @@ RtrFindChannelDef()
     /* Create our target cell */
     if ((def = DBCellLookDef("__CHANNEL__")) == (CellDef *) NULL)
     {
-        def = DBCellNewDef("__CHANNEL__", (char *) NULL);
+        def = DBCellNewDef("__CHANNEL__");
 	DBCellSetAvail(def);
 	def->cd_flags |= CDINTERNAL;
     }

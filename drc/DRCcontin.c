@@ -345,7 +345,7 @@ DRCInit()
     DRCdef = DBCellLookDef(DRCYANK);
     if (DRCdef == (CellDef *) NULL)
     {
-	DRCdef = DBCellNewDef (DRCYANK,(char *) NULL);
+	DRCdef = DBCellNewDef(DRCYANK);
 	ASSERT(DRCdef != (CellDef *) NULL, "DRCInit");
 	DBCellSetAvail(DRCdef);
 	DRCdef->cd_flags |= CDINTERNAL;

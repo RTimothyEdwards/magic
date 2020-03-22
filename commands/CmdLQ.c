@@ -480,8 +480,8 @@ keepGoing(use, clientdata)
  * Implement the "move" command.
  *
  * Usage:
- *	move [direction [amount]]
- *	move to x y
+ *	move [origin] [direction [amount]]
+ *	move [origin] to x y
  *
  * Results:
  *	None.
@@ -502,12 +502,13 @@ CmdMove(w, cmd)
     Point rootPoint, editPoint;
     CellDef *rootDef;
     int argpos;
+    bool doOrigin = FALSE;
 
     if (cmd->tx_argc > 4)
     {
 	badUsage:
-	TxError("Usage: %s [direction [amount]]\n", cmd->tx_argv[0]);
-	TxError("   or: %s to x y\n", cmd->tx_argv[0]);
+	TxError("Usage: %s [origin] [direction [amount]]\n", cmd->tx_argv[0]);
+	TxError("   or: %s [origin] to x y\n", cmd->tx_argv[0]);
 	return;
     }
 
@@ -518,18 +519,26 @@ CmdMove(w, cmd)
 
 	if (!ToolGetEditBox((Rect *)NULL)) return;
 
-	if (strcmp(cmd->tx_argv[1], "to") == 0)
+	argpos = 1;
+
+	if (strcmp(cmd->tx_argv[1], "origin") == 0)
+	{
+	    doOrigin = TRUE;
+	    argpos++;
+	}
+
+	if (strcmp(cmd->tx_argv[argpos], "to") == 0)
 	{
 	    if (cmd->tx_argc != 4)
 		goto badUsage;
-	    editPoint.p_x = cmdParseCoord(w, cmd->tx_argv[2], FALSE, TRUE);
-	    editPoint.p_y = cmdParseCoord(w, cmd->tx_argv[3], FALSE, FALSE);
+	    editPoint.p_x = cmdParseCoord(w, cmd->tx_argv[argpos + 1], FALSE, TRUE);
+	    editPoint.p_y = cmdParseCoord(w, cmd->tx_argv[argpos + 2], FALSE, FALSE);
 	    GeoTransPoint(&EditToRootTransform, &editPoint, &rootPoint);
 	    goto moveToPoint;
 	}
 
-	indx = GeoNameToPos(cmd->tx_argv[1], FALSE, FALSE);
-	argpos = (indx < 0) ? 1 : 2;
+	indx = GeoNameToPos(cmd->tx_argv[argpos], FALSE, FALSE);
+	if (indx >= 0) argpos++;
 
 	if (cmd->tx_argc >= 3)
 	{
@@ -605,8 +614,9 @@ CmdMove(w, cmd)
 	 * but is retained for backward compatibility.
 	 */
 
-	if (ToolGetBox(&rootDef, &rootBox) && ((rootDef == SelectRootDef)
-                                           || (SelectRootDef == NULL)))
+	if (ToolGetBox(&rootDef, &rootBox) &&
+		((rootDef == SelectRootDef) || (SelectRootDef == NULL))
+		&& (doOrigin == FALSE))
 	{
 	    GeoTransRect(&t, &rootBox, &newBox);
 	    DBWSetBox(rootDef, &newBox);
@@ -640,11 +650,41 @@ moveToPoint:
 	}
 	GeoTransTranslate(rootPoint.p_x - rootBox.r_xbot,
 	    rootPoint.p_y - rootBox.r_ybot, &GeoIdentityTransform, &t);
-	GeoTransRect(&t, &rootBox, &newBox);
-	DBWSetBox(rootDef, &newBox);
+	if (doOrigin == FALSE)
+	{
+	    GeoTransRect(&t, &rootBox, &newBox);
+	    DBWSetBox(rootDef, &newBox);
+	}
     }
     
-    SelectTransform(&t);
+    if (doOrigin)
+    {
+	DBMoveCell(rootDef, t.t_c, t.t_f);
+
+	/* Adjust box to maintain relative position */
+
+	if (ToolGetBox(&rootDef, &rootBox) &&
+		((rootDef == SelectRootDef) || (SelectRootDef == NULL)))
+	{
+	    t.t_c = -t.t_c;
+	    t.t_f = -t.t_f;
+	    GeoTransRect(&t, &rootBox, &newBox);
+	    DBWSetBox(rootDef, &newBox);
+	    t.t_c = -t.t_c;
+	    t.t_f = -t.t_f;
+	}
+
+        /* Adjust all window viewing positions and redraw */
+
+        WindTranslate(t.t_c, t.t_f);
+
+        /* This is harsh.  Might work to change all distance measures	*/
+        /* in the undo record, but this is simple and direct.           */
+
+        UndoFlush();
+    }
+    else
+	SelectTransform(&t);
 }
 
 /*

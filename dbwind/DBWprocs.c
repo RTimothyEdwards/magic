@@ -328,7 +328,7 @@ DBWloadWindow(window, name, ignoreTech, expand, dereference)
 	newEditDef = DBCellLookDef(UNNAMED);
 	if (newEditDef == (CellDef *) NULL)
 	{
-	    newEditDef = DBCellNewDef(UNNAMED, (char *) NULL);
+	    newEditDef = DBCellNewDef(UNNAMED);
 	    DBCellSetAvail(newEditDef);
 	}
     }
@@ -397,7 +397,7 @@ DBWloadWindow(window, name, ignoreTech, expand, dereference)
 	    }
 	}
 	if (newEditDef == (CellDef *) NULL)
-	    newEditDef = DBCellNewDef(rootname, (char *) NULL);
+	    newEditDef = DBCellNewDef(rootname);
 
 	if (dereference) newEditDef->cd_flags |= CDDEREFERENCE;
 
@@ -431,7 +431,7 @@ DBWloadWindow(window, name, ignoreTech, expand, dereference)
 		    newEditDef = DBCellLookDef(UNNAMED);
 		    if (newEditDef == (CellDef *) NULL)
 		    {
-			newEditDef = DBCellNewDef(UNNAMED, (char *) NULL);
+			newEditDef = DBCellNewDef(UNNAMED);
 			DBCellSetAvail(newEditDef);
 		    }
 		}

@@ -289,6 +289,47 @@ WindScale(scalen, scaled)
     }
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * WindTranslate --
+ *
+ *	Move the viewing windows by the given delta position.  Because
+ *	this is done in conjunction with repositioning the geometry
+ *	("move origin" command), we don't preserve the center position
+ *	like WindZoom() does.  The net effect is that the image in the
+ *	window doesn't appear to change.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	All windows will be now view a different portion of the client's area.  
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+WindTranslate(origx, origy)
+    int origx, origy;
+{
+    extern void DBMovePoint();
+    MagWindow *w2;
+    Rect newArea;
+
+    for (w2 = windTopWindow; w2 != NULL; w2 = w2->w_nextWindow)
+    {
+	newArea.r_xbot = w2->w_surfaceArea.r_xbot;
+	newArea.r_xtop = w2->w_surfaceArea.r_xtop;
+	newArea.r_ybot = w2->w_surfaceArea.r_ybot;
+	newArea.r_ytop = w2->w_surfaceArea.r_ytop;
+	DBMovePoint(&newArea.r_ll, origx, origy);
+	DBMovePoint(&newArea.r_ur, origx, origy);
+	WindMove(w2, &newArea);
+    }
+}
+
+
 
 /*
  * ----------------------------------------------------------------------------
