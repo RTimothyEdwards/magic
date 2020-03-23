@@ -25,3 +25,5 @@ tcltk/magic.sh
 tcltk/magic.tcl
 tcltk/magicdnull
 tcltk/magicexec
+tcltk/ext2spice.sh
+tcltk/ext2sim.sh
