@@ -55,7 +55,7 @@ proc magic::resumeall {} {
 proc magic::makecrashbackup {} {
    global Opts
 
-   crash save
+   *bypass crash save
    if {$Opts(backupinterval) > 0} {
       after $Opts(backupinterval) magic::makecrashbackup
    }
