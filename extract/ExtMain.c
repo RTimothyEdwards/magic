@@ -586,8 +586,11 @@ extTimestampMisMatch(def)
     FILE *extFile;
     bool ret = TRUE;
     int stamp;
+    bool doLocal;
 
-    extFile = extFileOpen(def, (char *) NULL, "r", (char **) NULL);
+    doLocal = (ExtOptions & EXT_DOLOCAL) ? TRUE : FALSE;
+
+    extFile = extFileOpen(def, (char *) NULL, "r", doLocal, (char **) NULL);
     if (extFile == NULL)
 	return (TRUE);
 
