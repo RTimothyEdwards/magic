@@ -9,7 +9,7 @@ SRCS = tclmagic.c
 include ${MAGICDIR}/defs.mak
 
 DFLAGS += -DMAGIC_DATE="\"`date`\""
-CLEANS += magic.sh magic.tcl magicexec magicdnull
+CLEANS += magic.sh magic.tcl magicexec magicdnull ext2spice.sh ext2sim.sh
 
 TCL_FILES = \
 	tkcon.tcl \

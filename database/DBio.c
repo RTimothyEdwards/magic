@@ -2709,7 +2709,7 @@ DBCellWrite(cellDef, fileName)
 #define NAME_SIZE	1000
     char *template = ".XXXXXXX";
     char *realname, *tmpname, *expandname;
-    char *cp1, *cp2;
+    char *cp1, *cp2, *dotptr;
     char expandbuf[NAME_SIZE];
     FILE *realf, *tmpf;
     int tmpres;
@@ -2738,8 +2738,16 @@ DBCellWrite(cellDef, fileName)
 
     cellDef->cd_file = StrDup(&cellDef->cd_file, fileName);
 
-    realname = (char *) mallocMagic(strlen(fileName) + strlen(DBSuffix) + 1);
-    (void) sprintf(realname, "%s%s", fileName, DBSuffix);
+    /* The cd_file should not have the .mag suffix, but make sure   */
+    /* it doesn't before adding one.				    */
+
+    if (strcmp(fileName + strlen(fileName) - 4, DBSuffix))
+    {
+	realname = (char *) mallocMagic(strlen(fileName) + strlen(DBSuffix) + 1);
+	(void) sprintf(realname, "%s%s", fileName, DBSuffix);
+    }
+    else
+	realname = StrDup((char **)NULL, fileName);
 
     /*
      * Expand the filename, removing the leading ~, if any.
@@ -2927,13 +2935,21 @@ DBCellWrite(cellDef, fileName)
 	}
     }
 
+    /* Copy expandname back to cellDef->cd_file, if the name was changed.   */
+    /* The file extension does not get copied into cd_file.		    */
+
+    dotptr = strrchr(expandname, '.');
+    if (dotptr) *dotptr = '\0';
+    if (strcmp(expandname, cellDef->cd_file))
+	StrDup(&cellDef->cd_file, expandname);
+    if (dotptr) *dotptr = '.';
+
     /* Everything worked so far. */
 
-    (void) StrDup(&cellDef->cd_file, expandname);
     result = TRUE;
     {
 	struct stat thestat;
-	realf = fopen(expandname,"r");
+	realf = fopen(expandname, "r");
 	if (realf == NULL)
 	{
 	    cellDef->cd_flags |= CDMODIFIED;
