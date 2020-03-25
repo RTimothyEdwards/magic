@@ -4044,6 +4044,8 @@ DRCGetDefaultLayerSurround(ttype1, ttype2)
  *	itself, where one of the shapes has width greater than "twidth".
  *	The result value is in magic internal units.
  *
+ *	If "twidth" is zero, then return the maximum spacing rule distance.
+ *
  * Side effects:
  *	None.
  *
@@ -4066,7 +4068,7 @@ DRCGetDefaultWideLayerSpacing(ttype, twidth)
 	if (cptr->drcc_flags & DRC_TRIGGER)		/* Widespacing rule */
 	{
 	    widerule = TRUE;
-	    if (cptr->drcc_dist > twidth)   /* Check against rule width */
+	    if (twidth > 0 && cptr->drcc_dist > twidth)   /* Check against rule width */
 		return routeSpacing;
 	}
 	if (widerule && ((cptr->drcc_flags & DRC_REVERSE) == 0))    /* FORWARD only */

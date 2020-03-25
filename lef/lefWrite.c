@@ -1103,9 +1103,13 @@ lefWriteMacro(def, f, scale, hide)
 
 	for (thislll = lll; thislll; thislll = thislll->lll_next)
 	{
-	    int lspacex, lspacey, lwidth;
+	    int lspacex, lspacey, lwidth, mspace;
 
 	    lab = thislll->lll_label;
+
+	    mspace = DRCGetDefaultWideLayerSpacing(lab->lab_type, 0);
+	    if (mspace == 0)
+		mspace = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
 
 	    /* Look for wide spacing rules.  If there are no wide spacing   */
 	    /* rules, then fall back on the default spacing rule.	    */
@@ -1118,12 +1122,29 @@ lefWriteMacro(def, f, scale, hide)
 	    if (lspacey == 0)
 		lspacey = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
 
-	    thislll->lll_area.r_xbot -= lspacex;
-	    thislll->lll_area.r_ybot -= lspacey;
-	    thislll->lll_area.r_xtop += lspacex;
-	    thislll->lll_area.r_ytop += lspacey;
-	    DBErase(lc.lefYank, &thislll->lll_area, lab->lab_type);
+	    /* Is the label touching the boundary?  If so, then use the	    */
+	    /* maximum space from the inside edge.			    */
+	    if (thislll->lll_area.r_xtop >= boundary.r_xtop)
+		thislll->lll_area.r_xbot -= mspace;
+	    else
+		thislll->lll_area.r_xbot -= lspacex;
 
+	    if (thislll->lll_area.r_ytop >= boundary.r_ytop)
+		thislll->lll_area.r_ybot -= mspace;
+	    else
+		thislll->lll_area.r_ybot -= lspacey;
+
+	    if (thislll->lll_area.r_xbot <= boundary.r_xbot)
+		thislll->lll_area.r_xtop += mspace;
+	    else
+		thislll->lll_area.r_xtop += lspacex;
+
+	    if (thislll->lll_area.r_ybot <= boundary.r_ybot)
+		thislll->lll_area.r_ytop += mspace;
+	    else
+		thislll->lll_area.r_ytop += lspacey;
+
+	    DBErase(lc.lefYank, &thislll->lll_area, lab->lab_type);
 	    freeMagic(thislll);
 	}
     }
