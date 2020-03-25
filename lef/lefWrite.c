@@ -1103,15 +1103,25 @@ lefWriteMacro(def, f, scale, hide)
 
 	for (thislll = lll; thislll; thislll = thislll->lll_next)
 	{
-	    int lspace;
+	    int lspacex, lspacey, lwidth;
 
 	    lab = thislll->lll_label;
 
-	    lspace = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
-	    thislll->lll_area.r_xbot -= lspace;
-	    thislll->lll_area.r_ybot -= lspace;
-	    thislll->lll_area.r_xtop += lspace;
-	    thislll->lll_area.r_ytop += lspace;
+	    /* Look for wide spacing rules.  If there are no wide spacing   */
+	    /* rules, then fall back on the default spacing rule.	    */
+	    lwidth = thislll->lll_area.r_xtop - thislll->lll_area.r_xbot;
+	    lspacex = DRCGetDefaultWideLayerSpacing(lab->lab_type, lwidth);
+	    if (lspacex == 0)
+		lspacex = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
+	    lwidth = thislll->lll_area.r_ytop - thislll->lll_area.r_ybot;
+	    lspacey = DRCGetDefaultWideLayerSpacing(lab->lab_type, lwidth);
+	    if (lspacey == 0)
+		lspacey = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
+
+	    thislll->lll_area.r_xbot -= lspacex;
+	    thislll->lll_area.r_ybot -= lspacey;
+	    thislll->lll_area.r_xtop += lspacex;
+	    thislll->lll_area.r_ytop += lspacey;
 	    DBErase(lc.lefYank, &thislll->lll_area, lab->lab_type);
 
 	    freeMagic(thislll);

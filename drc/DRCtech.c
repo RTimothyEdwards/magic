@@ -4031,3 +4031,62 @@ DRCGetDefaultLayerSurround(ttype1, ttype2)
     }
     return layerSurround;
 }
+
+/*
+ *-----------------------------------------------------------------------------
+ *  DRCGetDefaultLayerWideSpacing ---
+ *
+ *	Determine a default layer-to-self wide-layer spacing rule from
+ *	the DRC width rules of a layer.
+ *
+ * Results:
+ *	The minimum spacing between the specified magic layer type and
+ *	itself, where one of the shapes has width greater than "twidth".
+ *	The result value is in magic internal units.
+ *
+ * Side effects:
+ *	None.
+ *
+ *-----------------------------------------------------------------------------
+ */
+
+int
+DRCGetDefaultWideLayerSpacing(ttype, twidth)
+    TileType ttype;
+    int twidth;
+{
+    int routeSpacing = 0;
+    DRCCookie *cptr;
+    TileTypeBitMask *set;
+    bool widerule = FALSE;
+
+    for (cptr = DRCCurStyle->DRCRulesTbl[ttype][TT_SPACE]; cptr != (DRCCookie *) NULL;
+	cptr = cptr->drcc_next)
+    {
+	if (cptr->drcc_flags & DRC_TRIGGER)		/* Widespacing rule */
+	{
+	    widerule = TRUE;
+	    if (cptr->drcc_dist > twidth)   /* Check against rule width */
+		return routeSpacing;
+	}
+	if (widerule && ((cptr->drcc_flags & DRC_REVERSE) == 0))    /* FORWARD only */
+	{
+	    set = &cptr->drcc_mask;
+	    if (!TTMaskHasType(set, ttype))
+	        if (PlaneMaskHasPlane(DBTypePlaneMaskTbl[ttype], cptr->drcc_plane) &&
+			(cptr->drcc_dist == cptr->drcc_cdist))
+		{
+		    routeSpacing = cptr->drcc_dist;
+		    /* Diagnostic */
+		    /*
+		    TxPrintf("DRC: Layer %s has wide spacing %d to layer %s width %d\n",
+			DBTypeLongNameTbl[ttype1], routeSpacing,
+			DBTypeLongNameTbl[ttype2], twidth);
+		    */
+		}
+	}
+	if (!(cptr->drcc_flags & DRC_TRIGGER)) widerule = FALSE;
+    }
+    return routeSpacing;
+}
+
