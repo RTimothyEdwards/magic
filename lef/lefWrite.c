@@ -836,6 +836,7 @@ lefWriteMacro(def, f, scale, hide)
     /* List of pins (ports) (to be refined?) */
 
     lc.lefMode = LEF_MODE_PORT;
+    lc.numWrites = 0;
 
     /* Determine the maximum port number, then output ports in order */
     maxport = -1;

@@ -987,9 +987,9 @@ calmaElementText()
 	    {
 		idx = sl->lab_flags & PORT_NUM_MASK;
 		if (idx > i) i = idx;
-		if ((sl != lab) && !strcmp(sl->lab_text, textbody))
+		if ((idx > 0) && (sl != lab) && !strcmp(sl->lab_text, textbody))
 		{
-		    i = (sl->lab_flags & PORT_NUM_MASK) - 1;
+		    i = idx - 1;
 		    break;
 		}
 	    }
