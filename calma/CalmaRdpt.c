@@ -979,13 +979,19 @@ calmaElementText()
 
 	    /* No port information can be encoded in the GDS file, so	*/
 	    /* assume defaults, and assume that the port order is the	*/
-	    /* order in which labels arrive in the GDS stream.		*/
+	    /* order in which labels arrive in the GDS stream.  If	*/
+	    /* ports have the same text, then give them the same index.	*/
 
 	    i = -1;
 	    for (sl = cifReadCellDef->cd_labels; sl != NULL; sl = sl->lab_next)
 	    {
 		idx = sl->lab_flags & PORT_NUM_MASK;
 		if (idx > i) i = idx;
+		if (!strcmp(sl->lab_text, textbody))
+		{
+		    i = (sl->lab_flags & PORT_NUM_MASK) - 1;
+		    break;
+		}
 	    }
 	    i++;
 	    lab->lab_flags |= (PORT_NUM_MASK & i);
