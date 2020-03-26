@@ -750,7 +750,16 @@ ResCalculateChildCapacitance(me)
      for (tptr = me->rn_te; tptr != NULL; tptr = tptr->te_nextt)
      {
      	  dev = tptr->te_thist;
-	  t = TiGetType(dev->rd_tile);
+	  /* Hack for non-Manhattan geometry.  Only one side of a split	*/
+	  /* tile should correspond to a device type.			*/
+	  if (IsSplit(dev->rd_tile))
+	  {
+	      t = TiGetLeftType(dev->rd_tile);
+	      if (ExtCurStyle->exts_device[t] == NULL)
+		  t = TiGetRightType(dev->rd_tile);
+	  }
+	  else
+	      t = TiGetType(dev->rd_tile);
 	  if (dev->rd_fet_gate == me)
 	  {
 	       devptr = ExtCurStyle->exts_device[t];
