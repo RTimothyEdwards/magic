@@ -836,6 +836,7 @@ lefWriteMacro(def, f, scale, hide)
     /* List of pins (ports) (to be refined?) */
 
     lc.lefMode = LEF_MODE_PORT;
+    lc.numWrites = 0;
 
     /* Determine the maximum port number, then output ports in order */
     maxport = -1;
@@ -1103,17 +1104,48 @@ lefWriteMacro(def, f, scale, hide)
 
 	for (thislll = lll; thislll; thislll = thislll->lll_next)
 	{
-	    int lspace;
+	    int lspacex, lspacey, lwidth, mspace;
 
 	    lab = thislll->lll_label;
 
-	    lspace = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
-	    thislll->lll_area.r_xbot -= lspace;
-	    thislll->lll_area.r_ybot -= lspace;
-	    thislll->lll_area.r_xtop += lspace;
-	    thislll->lll_area.r_ytop += lspace;
-	    DBErase(lc.lefYank, &thislll->lll_area, lab->lab_type);
+	    mspace = DRCGetDefaultWideLayerSpacing(lab->lab_type, 1E6);
+	    if (mspace == 0)
+		mspace = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
 
+	    /* Look for wide spacing rules.  If there are no wide spacing   */
+	    /* rules, then fall back on the default spacing rule.	    */
+	    lwidth = thislll->lll_area.r_xtop - thislll->lll_area.r_xbot;
+	    lspacex = DRCGetDefaultWideLayerSpacing(lab->lab_type, lwidth);
+	    if (lspacex == 0)
+		lspacex = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
+	    lwidth = thislll->lll_area.r_ytop - thislll->lll_area.r_ybot;
+	    lspacey = DRCGetDefaultWideLayerSpacing(lab->lab_type, lwidth);
+	    if (lspacey == 0)
+		lspacey = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
+
+	    /* Is the label touching the boundary?  If so, then use the	    */
+	    /* maximum space from the inside edge.			    */
+	    if (thislll->lll_area.r_xtop >= boundary.r_xtop)
+		thislll->lll_area.r_xbot -= mspace;
+	    else
+		thislll->lll_area.r_xbot -= lspacex;
+
+	    if (thislll->lll_area.r_ytop >= boundary.r_ytop)
+		thislll->lll_area.r_ybot -= mspace;
+	    else
+		thislll->lll_area.r_ybot -= lspacey;
+
+	    if (thislll->lll_area.r_xbot <= boundary.r_xbot)
+		thislll->lll_area.r_xtop += mspace;
+	    else
+		thislll->lll_area.r_xtop += lspacex;
+
+	    if (thislll->lll_area.r_ybot <= boundary.r_ybot)
+		thislll->lll_area.r_ytop += mspace;
+	    else
+		thislll->lll_area.r_ytop += lspacey;
+
+	    DBErase(lc.lefYank, &thislll->lll_area, lab->lab_type);
 	    freeMagic(thislll);
 	}
     }
