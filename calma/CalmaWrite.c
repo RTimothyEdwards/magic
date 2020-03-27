@@ -451,7 +451,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 	    chklibname = (char *)DBPropGet(edef, "GDS_FILE", &isReadOnly);
 
 	    /* Is the library name the same? */
-	    if (isAbstract && !strcmp(filename, chklibname))
+	    if (isAbstract && isReadOnly && !strcmp(filename, chklibname))
 	    {
 		/* Same library, so keep the cellname and mark the cell */
 		/* as having been written to GDS.			*/
