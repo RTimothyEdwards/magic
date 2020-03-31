@@ -92,7 +92,7 @@ static char *freeDelayedItem = NULL;
 
 void *
 mallocMagic(nbytes)
-    unsigned int nbytes;
+    size_t nbytes;
 {
     void *p;
     
@@ -150,12 +150,12 @@ freeMagic(cp)
 
 void *
 callocMagic(nbytes)
-    unsigned int nbytes;
+    size_t nbytes;
 {
     void *cp;
 
     cp = mallocMagic(nbytes);
-    bzero(cp, (int) nbytes);
+    bzero(cp, (size_t) nbytes);
 
     return (cp);
 }
