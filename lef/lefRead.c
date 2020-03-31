@@ -1593,10 +1593,14 @@ LefReadMacro(f, mname, oscale, importForeign)
 	switch (keyword)
 	{
 	    case LEF_CLASS:
+		strcpy(tsave, "");
 		token = LefNextToken(f, TRUE);
-		if (*token != '\n')
-		    DBPropPut(lefMacro, "LEFclass", StrDup((char **)NULL, token));
-		LefEndStatement(f);
+		while (*token != ';')
+		{
+		    sprintf(tsave + strlen(tsave), " %s", token);
+		    token = LefNextToken(f, TRUE);
+		}
+		DBPropPut(lefMacro, "LEFclass", StrDup((char **)NULL, tsave + 1));
 		break;
 	    case LEF_SIZE:
 		token = LefNextToken(f, TRUE);
