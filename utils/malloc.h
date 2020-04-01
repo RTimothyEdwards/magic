@@ -22,8 +22,8 @@
 #ifndef _MALLOC_H
 #define _MALLOC_H
 
-extern void *mallocMagic(unsigned int);
-extern void *callocMagic(unsigned int);
+extern void *mallocMagic(size_t);
+extern void *callocMagic(size_t);
 extern void freeMagic(void *);
 
 #endif
