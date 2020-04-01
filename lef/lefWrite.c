@@ -973,7 +973,7 @@ lefWriteMacro(def, f, scale, hide)
 		labelLinkedList *newlll;
 
 		SelectChunk(&scx, lab->lab_type, 0, &carea, FALSE);
-		if (GEO_RECTNULL(&carea)) carea = lab->lab_rect;
+		if (GEO_RECTNULL(&carea)) carea = labr;
 
 		/* Note that a sticky label could be placed over multiple   */
 		/* tile types, which would cause SelectChunk to fail.  So   */
