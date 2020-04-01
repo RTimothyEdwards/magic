@@ -824,6 +824,10 @@ lefWriteMacro(def, f, scale, hide)
     if (propfound)
 	fprintf(f, "   SYMMETRY %s ;\n", propvalue);
 
+    propvalue = (char *)DBPropGet(def, "LEFsite", &propfound);
+    if (propfound)
+	fprintf(f, "   SITE %s ;\n", propvalue);
+
     /* Generate cell for yanking obstructions */
 
     lc.lefYank = DBCellLookDef("__lefYank__");
