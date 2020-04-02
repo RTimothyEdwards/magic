@@ -824,6 +824,10 @@ lefWriteMacro(def, f, scale, hide)
     if (propfound)
 	fprintf(f, "   SYMMETRY %s ;\n", propvalue);
 
+    propvalue = (char *)DBPropGet(def, "LEFsite", &propfound);
+    if (propfound)
+	fprintf(f, "   SITE %s ;\n", propvalue);
+
     /* Generate cell for yanking obstructions */
 
     lc.lefYank = DBCellLookDef("__lefYank__");
@@ -973,7 +977,7 @@ lefWriteMacro(def, f, scale, hide)
 		labelLinkedList *newlll;
 
 		SelectChunk(&scx, lab->lab_type, 0, &carea, FALSE);
-		if (GEO_RECTNULL(&carea)) carea = lab->lab_rect;
+		if (GEO_RECTNULL(&carea)) carea = labr;
 
 		/* Note that a sticky label could be placed over multiple   */
 		/* tile types, which would cause SelectChunk to fail.  So   */
@@ -1104,46 +1108,20 @@ lefWriteMacro(def, f, scale, hide)
 
 	for (thislll = lll; thislll; thislll = thislll->lll_next)
 	{
-	    int lspacex, lspacey, lwidth, mspace;
+	    int mspace;
 
 	    lab = thislll->lll_label;
 
+	    /* Look for wide spacing rules.  If there are no wide spacing   */
+	    /* rules, then fall back on the default spacing rule.	    */
 	    mspace = DRCGetDefaultWideLayerSpacing(lab->lab_type, 1E6);
 	    if (mspace == 0)
 		mspace = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
 
-	    /* Look for wide spacing rules.  If there are no wide spacing   */
-	    /* rules, then fall back on the default spacing rule.	    */
-	    lwidth = thislll->lll_area.r_xtop - thislll->lll_area.r_xbot;
-	    lspacex = DRCGetDefaultWideLayerSpacing(lab->lab_type, lwidth);
-	    if (lspacex == 0)
-		lspacex = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
-	    lwidth = thislll->lll_area.r_ytop - thislll->lll_area.r_ybot;
-	    lspacey = DRCGetDefaultWideLayerSpacing(lab->lab_type, lwidth);
-	    if (lspacey == 0)
-		lspacey = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
-
-	    /* Is the label touching the boundary?  If so, then use the	    */
-	    /* maximum space from the inside edge.			    */
-	    if (thislll->lll_area.r_xtop >= boundary.r_xtop)
-		thislll->lll_area.r_xbot -= mspace;
-	    else
-		thislll->lll_area.r_xbot -= lspacex;
-
-	    if (thislll->lll_area.r_ytop >= boundary.r_ytop)
-		thislll->lll_area.r_ybot -= mspace;
-	    else
-		thislll->lll_area.r_ybot -= lspacey;
-
-	    if (thislll->lll_area.r_xbot <= boundary.r_xbot)
-		thislll->lll_area.r_xtop += mspace;
-	    else
-		thislll->lll_area.r_xtop += lspacex;
-
-	    if (thislll->lll_area.r_ybot <= boundary.r_ybot)
-		thislll->lll_area.r_ytop += mspace;
-	    else
-		thislll->lll_area.r_ytop += lspacey;
+	    thislll->lll_area.r_xbot -= mspace;
+	    thislll->lll_area.r_ybot -= mspace;
+	    thislll->lll_area.r_xtop += mspace;
+	    thislll->lll_area.r_ytop += mspace;
 
 	    DBErase(lc.lefYank, &thislll->lll_area, lab->lab_type);
 	    freeMagic(thislll);
