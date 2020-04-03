@@ -368,7 +368,7 @@ extLengthYank(use, labList)
 	scx.scx_trans = GeoIdentityTransform;
 	GEO_EXPAND(&lab->lab_rect, 1, &scx.scx_area);
 	DBTreeCopyConnect(&scx, &DBConnectTbl[lab->lab_type], 0,
-		DBConnectTbl, &TiPlaneRect, extPathUse);
+		DBConnectTbl, &TiPlaneRect, TRUE, extPathUse);
     }
 
     if (DebugIsSet(extDebugID, extDebLength))

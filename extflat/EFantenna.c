@@ -83,14 +83,14 @@ static int efAntennaDebug = FALSE;
 TileType *EFDeviceTypes;
 
 typedef struct _aas {
-    int *accum;		/* Pointer to array of accumulated areas per type */
+    dlong *accum;	/* Pointer to array of accumulated areas per type */
     int pNum;		/* Plane of check */
     Rect r;		/* Holds any one visited rectangle */
     CellDef *def;	/* CellDef for adding feedback */
 } AntennaAccumStruct;
 
 typedef struct _gdas {
-    int accum;		/* Accumulated area of all gates/diff */
+    dlong accum;	/* Accumulated area of all gates/diff */
     Rect r;		/* Holds any one visited rectangle */
     CellDef *def;	/* CellDef for adding feedback */
 } GateDiffAccumStruct;
@@ -345,10 +345,11 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 {
     DevTerm *gate;
     TileType t, conType;
-    int pos, pNum, pNum2, pmax, p, i, j, gatearea, diffarea, total;
+    int pos, pNum, pNum2, pmax, p, i, j, total;
+    dlong gatearea, diffarea;
     double anttotal;
     float saveRatio, ratioTotal;
-    int *antennaarea;
+    dlong *antennaarea;
     Rect r, gaterect;
     EFNode *gnode;
     SearchContext scx;
@@ -360,7 +361,7 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 
     extern int  areaAccumFunc(), antennaAccumFunc(), areaMarkFunc();
 
-    antennaarea = (int *)mallocMagic(DBNumTypes * sizeof(int));
+    antennaarea = (dlong *)mallocMagic(DBNumTypes * sizeof(dlong));
     
     switch(dev->dev_class)
     {
@@ -482,7 +483,7 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 			break;
 		    }
 
-	        for (i = 0; i < DBNumTypes; i++) antennaarea[i] = 0;
+	        for (i = 0; i < DBNumTypes; i++) antennaarea[i] = (dlong)0;
 	        gatearea = 0;
 	        diffarea = 0;
 
@@ -496,10 +497,10 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 		/* To do:  Mark tiles so area count can be progressive */
 
 		DBTreeCopyConnect(&scx, &DBConnectTbl[t], 0,
-			DBConnectTbl, &TiPlaneRect, extPathUse);
+			DBConnectTbl, &TiPlaneRect, FALSE, extPathUse);
 
 		/* Search planes of tie types and accumulate all tiedown areas */
-		gdas.accum = 0;
+		gdas.accum = (dlong)0;
 		for (p = 0;  p < DBNumPlanes; p++)
 		    DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[p],
 			    &TiPlaneRect, &ExtCurStyle->exts_antennaTieTypes,
@@ -507,7 +508,7 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 		diffarea = gdas.accum;
 
 		/* Search plane of gate type and accumulate all gate area */
-		gdas.accum = 0;
+		gdas.accum = (dlong)0;
 		DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[pNum],
 			&TiPlaneRect, &gatemask, areaAccumFunc, (ClientData)&gdas);
 		gatearea = gdas.accum;
@@ -667,10 +668,11 @@ areaAccumFunc(tile, gdas)
     GateDiffAccumStruct *gdas;
 {
     Rect *rect = &(gdas->r);
-    int area, type;
+    int type;
+    dlong area;
 
     TiToRect(tile, rect);
-    area = (rect->r_xtop - rect->r_xbot) * (rect->r_ytop - rect->r_ybot);
+    area = (dlong)(rect->r_xtop - rect->r_xbot) * (dlong)(rect->r_ytop - rect->r_ybot);
     gdas->accum += area;
     return 0;
 }
@@ -694,9 +696,9 @@ antennaAccumFunc(tile, aaptr)
     AntennaAccumStruct *aaptr;
 {
     Rect *rect = &(aaptr->r);
-    int area;
+    dlong area;
     int type;
-    int *typeareas = aaptr->accum;
+    dlong *typeareas = aaptr->accum;
     int plane = aaptr->pNum;
     float thick;
 
@@ -773,7 +775,7 @@ antennaAccumFunc(tile, aaptr)
 		    if (DBTypeOnPlane(ttype, plane))
 		    {
 			thick = ExtCurStyle->exts_thick[ttype];
-			typeareas[ttype] += (int)((float)perimeter * thick);
+			typeareas[ttype] += (dlong)((float)perimeter * thick);
 		    }
 
 	    if (type >= DBNumUserLayers)
@@ -784,27 +786,28 @@ antennaAccumFunc(tile, aaptr)
 			if (DBTypeOnPlane(ttype, plane))
 			{
 			    thick = ExtCurStyle->exts_thick[ttype];
-			    typeareas[ttype] += (int)((float)perimeter * thick);
+			    typeareas[ttype] += (dlong)((float)perimeter * thick);
 			    break;
 			}
 	    }
 	    else
 	    {
 		thick = ExtCurStyle->exts_thick[type];
-		typeareas[type] += (int)((float)perimeter * thick);
+		typeareas[type] += (dlong)((float)perimeter * thick);
 	    }
 	}
 	else
 	{
 	    /* Area is perimeter times layer thickness */
 	    thick = ExtCurStyle->exts_thick[type];
-	    typeareas[type] += (int)((float)perimeter * thick);
+	    typeareas[type] += (dlong)((float)perimeter * thick);
 	}
     }
     else if (ExtCurStyle->exts_antennaRatio[type].areaType & ANTENNAMODEL_SURFACE)
     {
 	/* Simple tile area calculation */
-	area = (rect->r_xtop - rect->r_xbot) * (rect->r_ytop - rect->r_ybot);
+	area = (dlong)(rect->r_xtop - rect->r_xbot)
+		* (dlong)(rect->r_ytop - rect->r_ybot);
 
 	/* If type is a contact, then add area to both residues as well	*/
 	/* as the contact type.						*/

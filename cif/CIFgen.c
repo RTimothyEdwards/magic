@@ -3431,7 +3431,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		    scx.scx_use = CIFDummyUse;
 		    scx.scx_trans = GeoIdentityTransform;
 		    DBTreeCopyConnect(&scx, &DBConnectTbl[ttype], 0,
-				DBConnectTbl, &TiPlaneRect, Select2Use);
+				DBConnectTbl, &TiPlaneRect, FALSE, Select2Use);
 		    cifSrTiles(op, area, Select2Def, temps, cifPaintFunc,
 				(ClientData) CIFPaintTable);
 		    DBCellClearDef(Select2Def);

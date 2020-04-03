@@ -1795,6 +1795,7 @@ dbScaleCell(cellDef, scalen, scaled)
     LinkedTile *lhead, *lt;
     LinkedCellUse *luhead, *lu;
     Plane *newplane;
+    BPlane *cellPlane, *cellPlaneOrig;
 
     /* DBCellEnum() attempts to read unavailable celldefs.  We don't	*/
     /* want to do that here, so check CDAVAILABLE flag first.	  	*/
@@ -1811,6 +1812,7 @@ dbScaleCell(cellDef, scalen, scaled)
 
     (void) DBCellEnum(cellDef, dbCellUseEnumFunc, (ClientData) &luhead);
 
+    cellPlane = BPNew();
     lu = luhead;
     while (lu != NULL)
     {
@@ -1838,8 +1840,15 @@ dbScaleCell(cellDef, scalen, scaled)
 	DBScaleValue(&use->cu_array.ar_xsep, scalen, scaled);
 	DBScaleValue(&use->cu_array.ar_ysep, scalen, scaled);
 
+	BPAdd(cellPlane, use);
+
 	lu = lu->cu_next;
     }
+
+    /* Swap the CellDef's cell plane */
+    cellPlaneOrig = cellDef->cd_cellPlane;
+    cellDef->cd_cellPlane = cellPlane;
+    BPFree(cellPlaneOrig);
 
     /* Free this linked cellUse structure */
     lu = luhead;
@@ -2010,6 +2019,7 @@ DBMoveCell(cellDef, origx, origy)
     LinkedTile *lhead, *lt;
     LinkedCellUse *luhead, *lu;
     Plane *newplane;
+    BPlane *cellPlane, *cellPlaneOrig;
 
     /* Unlike dbScaleCell(), this routine is only run on valid edit defs */ 
 
@@ -2022,6 +2032,7 @@ DBMoveCell(cellDef, origx, origy)
 
     (void) DBCellEnum(cellDef, dbCellUseEnumFunc, (ClientData) &luhead);
 
+    cellPlane = BPNew();
     lu = luhead;
     while (lu != NULL)
     {
@@ -2046,8 +2057,15 @@ DBMoveCell(cellDef, origx, origy)
 	use->cu_transform.t_c -= origx;
 	use->cu_transform.t_f -= origy;
 
+	BPAdd(cellPlane, use);
+
 	lu = lu->cu_next;
     }
+
+    /* Swap the CellDef's cell plane */
+    cellPlaneOrig = cellDef->cd_cellPlane;
+    cellDef->cd_cellPlane = cellPlane;
+    BPFree(cellPlaneOrig);
 
     /* Free this linked cellUse structure */
     lu = luhead;

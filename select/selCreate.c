@@ -749,7 +749,7 @@ SelectRegion(scx, type, xMask, pArea, less)
     UndoDisable();
     DBCellClearDef(Select2Def);
     DBTreeCopyConnect(scx, &connections[type], xMask, connections,
-	    &TiPlaneRect, Select2Use);
+	    &TiPlaneRect, TRUE, Select2Use);
     UndoEnable();
 
     /* Now transfer what we found into the main selection cell.  Pick
@@ -850,7 +850,7 @@ SelectNet(scx, type, xMask, pArea, less)
     UndoDisable();
     DBCellClearDef(Select2Def);
     DBTreeCopyConnect(scx, &mask, xMask, DBConnectTbl,
-	    &TiPlaneRect, Select2Use);
+	    &TiPlaneRect, TRUE, Select2Use);
     UndoEnable();
 
     /* Network undo method added by Nishit and Tim, July 8-10, 2004 */

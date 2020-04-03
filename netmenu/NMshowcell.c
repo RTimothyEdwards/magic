@@ -294,7 +294,7 @@ NMShowUnderBox()
 	&DBAllButSpaceBits);
     DBCellClearDef(nmscShowUse->cu_def);
     DBTreeCopyConnect(&scx, &DBAllButSpaceAndDRCBits, 0,
-	    DBConnectTbl, &TiPlaneRect, nmscShowUse);
+	    DBConnectTbl, &TiPlaneRect, TRUE, nmscShowUse);
     DBWAreaChanged(nmscShowDef, &nmscShowDef->cd_bbox, DBW_ALLWINDOWS,
 	&DBAllButSpaceBits);
     NMShowCell(nmscShowUse, rootDef);
@@ -418,6 +418,6 @@ nmSRNFunc(rect, name, label, cdarg)
     scx.scx_trans = GeoIdentityTransform;
 
     DBTreeCopyConnect(&scx, &DBConnectTbl[label->lab_type], 0,
-	    DBConnectTbl, &TiPlaneRect, nmscShowUse);
+	    DBConnectTbl, &TiPlaneRect, TRUE, nmscShowUse);
     return(0);
 }

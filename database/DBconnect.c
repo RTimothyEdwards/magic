@@ -994,7 +994,7 @@ dbcConnectFunc(tile, cx)
  */
 
 void
-DBTreeCopyConnect(scx, mask, xMask, connect, area, destUse)
+DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
     SearchContext *scx;			/* Describes starting area.  The
 					 * scx_use field gives the root of
 					 * the hierarchy to search, and the
@@ -1017,6 +1017,10 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, destUse)
     Rect *area;				/* The resulting information is
 					 * clipped to this area.  Pass
 					 * TiPlaneRect to get everything.
+					 */
+    bool doLabels;			/* If TRUE, copy connected labels
+					 * and paint.  If FALSE, copy only
+					 * connected paint.
 					 */
     CellUse *destUse;			/* Result use in which to place
 					 * anything connected to material of
@@ -1093,7 +1097,8 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, destUse)
 	        searchtype |= TF_LABEL_ATTACH_NOT_SE;
 	    }
 	}
-	DBTreeSrLabels(scx, newmask, xMask, &tpath, searchtype,
+	if (doLabels)
+	    DBTreeSrLabels(scx, newmask, xMask, &tpath, searchtype,
 			dbcConnectLabelFunc, (ClientData) &csa2);
     }
     freeMagic((char *)csa2.csa2_list);
