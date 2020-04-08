@@ -276,8 +276,8 @@ int IHashStats2(IHashTable *table,
   if(nEntries) *nEntries = table->iht_nEntries;
 
   return 
-    UtlsStatMallocMem(sizeof(IHashTable)) + 
-    UtlsStatMallocMem(sizeof(void *)* table->iht_nBuckets);
+    IHashAlignedSize(sizeof(IHashTable)) + 
+    IHashAlignedSize(sizeof(void *)* table->iht_nBuckets);
 }
 
 /* hash for key fields that are pointers to strings */
