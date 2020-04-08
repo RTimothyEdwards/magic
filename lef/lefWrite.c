@@ -37,6 +37,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "graphics/graphics.h"
 #include "utils/main.h"
 #include "utils/undo.h"
+#include "drc/drc.h"
 #include "cif/cif.h"
 #include "lef/lefInt.h"
 
@@ -1114,7 +1115,7 @@ lefWriteMacro(def, f, scale, hide)
 
 	    /* Look for wide spacing rules.  If there are no wide spacing   */
 	    /* rules, then fall back on the default spacing rule.	    */
-	    mspace = DRCGetDefaultWideLayerSpacing(lab->lab_type, 1E6);
+	    mspace = DRCGetDefaultWideLayerSpacing(lab->lab_type, (int)1E6);
 	    if (mspace == 0)
 		mspace = DRCGetDefaultLayerSpacing(lab->lab_type, lab->lab_type);
 

@@ -239,6 +239,7 @@ extern int drcWhyCreate();
 
 extern int DRCGetDefaultLayerWidth();
 extern int DRCGetDefaultLayerSpacing();
+extern int DRCGetDefaultWideLayerSpacing();
 extern int DRCGetDefaultLayerSurround();
 
 extern void DRCTechInit();
