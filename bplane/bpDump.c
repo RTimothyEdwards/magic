@@ -37,6 +37,7 @@
 #include "utils/utils.h"
 #include "database/database.h"
 #include "utils/geometry.h"
+#include "cif/cif.h"
 #include "bplane/bplaneInt.h"
 
 static int bpDumpFlags; /* set by bpDump, used by subroutines */
@@ -66,7 +67,6 @@ static void bpIndent(int n)
  */		 
 void bpDumpRect(Rect *r)
 {
-
   if(bpDumpFlags & BPD_INTERNAL_UNITS)
   {
     fprintf(stderr,"%d ",
@@ -80,14 +80,18 @@ void bpDumpRect(Rect *r)
   }
   else
   {
-    fprintf(stderr,"%s ",
-	    UnitsI2S(r->r_xbot));
-    fprintf(stderr,"%s ",
-	    UnitsI2S(r->r_ybot));
-    fprintf(stderr,"%s ",
-	    UnitsI2S(r->r_xtop));
-    fprintf(stderr,"%s",
-	    UnitsI2S(r->r_ytop));
+    float oscale;
+
+    oscale = CIFGetOutputScale(1000);
+
+    fprintf(stderr,"%f ",
+	    oscale * (float)r->r_xbot);
+    fprintf(stderr,"%f ",
+	    oscale * (float)r->r_ybot);
+    fprintf(stderr,"%f ",
+	    oscale * (float)r->r_xtop);
+    fprintf(stderr,"%f",
+	    oscale * (float)r->r_ytop);
   }
 }
 
@@ -168,11 +172,15 @@ static void bpBinArrayDump(BinArray *ba, int indent)
   }
   else
   {
-    fprintf(stderr,"{dx %s} ",
-	    UnitsI2S(dx));
+    float oscale;
 
-    fprintf(stderr,"{dy %s} ",
-	    UnitsI2S(dy));
+    oscale = CIFGetOutputScale(1000);
+
+    fprintf(stderr,"{dx %f} ",
+	    (float)dx * oscale);
+
+    fprintf(stderr,"{dy %f} ",
+	    (float)dy * oscale);
   }
     fprintf(stderr,"{dimX %d} {dimY %d} {  bbox ",
 	  dimX,
