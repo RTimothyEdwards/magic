@@ -400,10 +400,12 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 	    efGates++;
 	    if (efGates % 100 == 0) TxPrintf("   %d gates analyzed.\n", efGates);
 
-	    /* WIP XXX Temporary! */
+	    /* Diagnostic for debugging */
+	    /*
 	    TxPrintf("Gate %d : (%d %d) to (%d %d) net %s\n", efGates, r.r_xbot,
 		    r.r_ybot, r.r_xtop, r.r_ytop,
 		    gnode->efnode_name->efnn_hier->hn_name);
+	    */
 
 	    /* Find the plane of the gate type */
 	    t = EFDeviceTypes[dev->dev_type];
