@@ -65,12 +65,7 @@ dbInstanceUnplace(CellUse *use)
      * or else we could leave the subcell tile plane in a weird
      * state.
      */
-    SigDisableInterrupts();
-
     BPDelete(use->cu_parent->cd_cellPlane, use);
-    DBUndoCellUse(use, UNDO_CELL_DELETE);
-
-    SigEnableInterrupts();
 }
 
 
@@ -187,14 +182,13 @@ DBDeleteCell (use)
 {
     ASSERT(use != (CellUse *) NULL, "DBDeleteCell");
 
-    dbInstanceUnplace(use);
-
     /* It's important that this code run with interrupts disabled,
      * or else we could leave the subcell tile plane in a weird
      * state.
      */
 
     SigDisableInterrupts();
+    dbInstanceUnplace(use);
     use->cu_parent->cd_flags |= CDMODIFIED|CDGETNEWSTAMP;
     if (UndoIsEnabled())
 	DBUndoCellUse(use, UNDO_CELL_DELETE);

@@ -29,6 +29,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "tiles/tile.h"
 #include "utils/signals.h"
 #include "utils/hash.h"
+#include "utils/undo.h"
 #include "database/database.h"
 #include "database/databaseInt.h"
 #include "utils/malloc.h"
@@ -829,6 +830,8 @@ DBClearCellPlane(def)
 int dbDeleteCellUse(CellUse *use, ClientData arg)
 {
     dbInstanceUnplace(use);
+    if (UndoIsEnabled())
+	DBUndoCellUse(use, UNDO_CELL_DELETE);
     return 0;
 }
 

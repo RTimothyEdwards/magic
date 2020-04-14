@@ -19,7 +19,22 @@
 ---------------------------------
    See the file "INSTALL" in this directory.
 
-3. Version 8.2 Release Notes:
+3. Version 8.3 Release Notes:
+---------------------------------
+
+   During the course of version 8.2, magic moved to a git-oriented
+   development.  There are no longer "stable" and "distribution"
+   versions.  There is only the git repo with various development
+   branches.
+
+   First release contains the "bplane" implementation for the cell
+   plane pulled from the open source code for micromagic.  This is
+   much more efficient than using the corner-stitched tile plane
+   for cells, and speeds up a number of methods, such as extraction,
+   by a factor of 3 to 5 or so, depending on the amount of hierarchy
+   in the design.
+
+4. Version 8.2 Release Notes:
 ---------------------------------
 
    As of the release of version 8.2, Version 8.1 is now the new stable
@@ -40,7 +55,15 @@
    magic extensions since version 7, including non-manhattan geometry,
    stacked contacts, and DRC rule extensions.
 
-4. Version 8.1 Release Notes:
+   Extended the extraction method to allow multiple extracted device
+   types per magic layer, depending on the surrounding context
+   (connecting layers, substrate, identifier layers, etc.).
+
+   Corrected the "extresist" method for non-FET devices, although it
+   continues to need fundamental work to remove its dependence on the
+   ".sim" format files.
+
+5. Version 8.1 Release Notes:
 ---------------------------------
 
    As of the release of version 8.1, Version 8.0 is now the new stable
@@ -54,7 +77,7 @@
       name without any understanding of a substrate node and
       connectivity.
 
-5. Version 8.0 Release Notes:
+6. Version 8.0 Release Notes:
 ---------------------------------
 
    As of the release of version 8.0, Version 7.5 is now the new stable
@@ -82,7 +105,7 @@
    7) New extraction method "msubcircuit" with methods for specifying
       parameter names for source/drain area and perimeter.
 
-6. Version 7.5 Release Notes:
+7. Version 7.5 Release Notes:
 ---------------------------------
 
    Version 7.5 is the development branch.  Version 7.5.0 is the same as
@@ -137,7 +160,7 @@
 
    See the online release notes for a more thorough list of features.
 
-7. Version 7.4 Release Notes:
+8. Version 7.4 Release Notes:
 ---------------------------------
 
    Version 7.4 is the new stable distribution version of magic.
@@ -149,7 +172,7 @@
    not be a "What's new in 7.4" section, as there is not supposed
    to be anything new in version 7.4.
 
-8. Version 7.3 Release Notes:
+9. Version 7.3 Release Notes:
 ---------------------------------
 
    Magic release 7.3 incorporates a stacked contact model which is,
@@ -197,7 +220,7 @@
 	28) New method for crash backups, including restore with "magic -r"
         29) A number of other technology file additions and enhancements
 
-9. Version 7.2 Release Notes:
+10. Version 7.2 Release Notes:
 ---------------------------------
 
    Magic release 7.2 incorporates the capability to run magic from the Tcl
@@ -255,7 +278,7 @@
       26) Improved techfile format with asterisk-notation and DRC
 	  "surround", "overhang", and "rect_only" statements.
 
-10. Version 7.1 Release Notes:
+11. Version 7.1 Release Notes:
 ---------------------------------
 
    Magic release 7.1 consolidates all known patches/features
@@ -283,7 +306,7 @@
             - tons of other small things that hopefully make the build process
               nicer.
 
-11. Releases prior to version 7:
+12. Releases prior to version 7:
 ---------------------------------
 
    What's new in 6.5.2:
