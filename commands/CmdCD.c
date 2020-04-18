@@ -3373,7 +3373,7 @@ CmdDrc(w, cmd)
 #else
 	    if ((DRCBackGround != DRC_SET_OFF) && (count_total == -1))
 		count_total = 0;
-	    if (count_gotal >= 0)
+	    if (count_total >= 0)
 		TxPrintf("Total DRC errors found: %d\n", count_total);
 #endif
 	    break;
