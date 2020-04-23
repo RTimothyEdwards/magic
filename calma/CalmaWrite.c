@@ -733,7 +733,7 @@ calmaProcessDef(def, outf)
     FILE *outf;		/* Stream file */
 {
     char *filename;
-    bool isReadOnly, oldStyle, hasContent, isAbstract;
+    bool isReadOnly, oldStyle, hasContent, isAbstract, hasGDSEnd;
     HashEntry *he;
 
     /* Skip if already output */
@@ -777,6 +777,7 @@ calmaProcessDef(def, outf)
 
     DBPropGet(def, "LEFview", &isAbstract);
     DBPropGet(def, "GDS_START", &hasContent);
+    DBPropGet(def, "GDS_END", &hasGDSEnd);
     filename = (char *)DBPropGet(def, "GDS_FILE", &isReadOnly);
 
     if (isReadOnly && hasContent)
@@ -805,7 +806,7 @@ calmaProcessDef(def, outf)
 	    if (isReadOnly)
 		def->cd_flags |= CDVENDORGDS;
 	}
-	else if (isAbstract)
+	else if (isAbstract || (!hasGDSEnd))
 	{
 	    /* This is the trickiest part.  If the cell view is abstract then	*/
 	    /* the cell view has no hierarchy, and there is no way to descend	*/
