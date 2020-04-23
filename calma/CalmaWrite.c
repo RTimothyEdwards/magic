@@ -470,8 +470,8 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		    newnameptr = strname;   /* Should never happen */
 		else
 		{
-		    newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 9);
-		    sprintf(newnameptr, "1%s_%s", prefix, strname);
+		    newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 8);
+		    sprintf(newnameptr, "1%s%s", prefix, strname);
 		    HashSetValue(he, (char *)newnameptr);
 		}
 	    }
@@ -485,8 +485,8 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		newnameptr = strname;	    /* Should never happen */
 	    else
 	    {
-		newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 9);
-		sprintf(newnameptr, "1%s_%s", prefix, strname);
+		newnameptr = mallocMagic(strlen(strname) + strlen(prefix) + 8);
+		sprintf(newnameptr, "1%s%s", prefix, strname);
 		HashSetValue(he, (char *)newnameptr);
 	    }
 	}
@@ -538,12 +538,12 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		    /* the same way used for structure definitions.	*/
 
 		    newnameptr = (char *)mallocMagic(strlen(strname) +
-				strlen(prefix) + 9);
-		    sprintf(newnameptr, "0%s_%s", prefix, strname);
+				strlen(prefix) + 8);
+		    sprintf(newnameptr, "0%s%s", prefix, strname);
 
 		    edef = DBCellLookDef(newnameptr + 1);
 		    if (edef != NULL)
-			sprintf(newnameptr, "0%s_%s[[0]]", prefix, strname);
+			sprintf(newnameptr, "0%s%s[[0]]", prefix, strname);
 		    HashSetValue(he, (char *)newnameptr);
 		    calmaOutStringRecord(CALMA_SNAME, newnameptr + 1, outf);
 		}
@@ -602,8 +602,9 @@ calmaFullDump(def, fi, outf, filename)
     char *filename;
 {
     int version, rval, i;
-    char *libname = NULL, uniqlibname[3];
-    char *sptr;
+    char *libname = NULL, uniqlibname[4];
+    char *sptr, *viewopts;
+    bool isAbstract;
     HashTable calmaDefHash;
     HashEntry *he;
 
@@ -633,32 +634,48 @@ calmaFullDump(def, fi, outf, filename)
     // Record the GDS library so it will not be processed again.
     he = HashFind(&calmaLibHash, filename);
 
-    /* Generate a SHORT name for this cell (else it is easy to run into the
-     * GDS 32-character cellname limit).  Save it in the hash record.  The
-     * chance of generating the same prefix for a library that has items
-     * with conflicting names is vanishingly small, but to be pedantic, store
-     * the prefix in a hash table and check to make sure that uniqueness is
-     * ensured.
+    /* If property LEFview is defined as "no_prefix" instead of "TRUE",
+     * then do not create a unique prefix for subcells.  This is generally
+     * ill-advised, but can be needed if a foundry runs specific DRC checks
+     * on specific cell names, in which case adding a prefix can cause DRC
+     * errors to appear.  It is then incumbent on the user to ensure that
+     * names in the GDS file do not shadow any names in the database.
      */
-    while (TRUE)
-    {
-	HashEntry *he2;
 
-	for (i = 0; i < 2; i++) {
-	    rval = random() % 62;
-	    rval = (rval < 26) ? ('A' + rval) : ((rval < 52) ? ('a' + rval - 26) :
-			('0' + rval - 52));
-	    uniqlibname[i] = (char)(rval & 127);
-	}
-	uniqlibname[2] = '\0';
-	he2 = HashLookOnly(&calmaPrefixHash, uniqlibname);
-	if (he2 == NULL)
+    viewopts = (char *)DBPropGet(def, "LEFview", &isAbstract);
+    if ((!isAbstract) || (strcasecmp(viewopts, "no_prefix")))
+    {
+
+	/* Generate a SHORT name for this cell (else it is easy to run into the
+	 * GDS 32-character cellname limit).  Save it in the hash record.  The
+	 * chance of generating the same prefix for a library that has items
+	 * with conflicting names is vanishingly small, but to be pedantic, store
+	 * the prefix in a hash table and check to make sure that uniqueness is
+	 * ensured.
+	 */
+	while (TRUE)
 	{
-	    he2 = HashFind(&calmaPrefixHash, uniqlibname);
-	    break;
+	    HashEntry *he2;
+
+	    for (i = 0; i < 2; i++) {
+		rval = random() % 62;
+		rval = (rval < 26) ? ('A' + rval) : ((rval < 52) ? ('a' + rval - 26) :
+			('0' + rval - 52));
+		uniqlibname[i] = (char)(rval & 127);
+	    }
+	    uniqlibname[2] = '_';
+	    uniqlibname[3] = '\0';
+	    he2 = HashLookOnly(&calmaPrefixHash, uniqlibname);
+	    if (he2 == NULL)
+	    {
+		he2 = HashFind(&calmaPrefixHash, uniqlibname);
+		break;
+	    }
 	}
+	HashSetValue(he, StrDup(NULL, uniqlibname));
     }
-    HashSetValue(he, StrDup(NULL, uniqlibname));
+    else
+	HashSetValue(he, StrDup(NULL, ""));
 
     while (calmaDumpStructure(def, outf, &calmaDefHash, filename))
 	if (SigInterruptPending)
