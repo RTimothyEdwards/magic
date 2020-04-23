@@ -444,13 +444,15 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 	if (edef != NULL)
 	{
 	    bool isAbstract, isReadOnly;
-	    char *chklibname;
+	    char *chklibname, *dotptr;
 
 	    /* Is view abstract? */
 	    DBPropGet(edef, "LEFview", &isAbstract);
 	    chklibname = (char *)DBPropGet(edef, "GDS_FILE", &isReadOnly);
+	    dotptr = strrchr(filename, '.');
+	    if (dotptr) *dotptr = '\0';
 
-	    /* Is the library name the same? */
+	    /* Is the library name the same as the filename (less extension)? */
 	    if (isAbstract && isReadOnly && !strcmp(filename, chklibname))
 	    {
 		/* Same library, so keep the cellname and mark the cell */
@@ -473,6 +475,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		    HashSetValue(he, (char *)newnameptr);
 		}
 	    }
+	    if (dotptr) *dotptr = '.';
 	}
 	else
 	{

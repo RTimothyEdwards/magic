@@ -14,3 +14,19 @@ I. Bugs to fix
      unusual geometry situations.  That these situations would be DRC
      errors does not excuse the infinite loop behavior.  The geometry
      required is unusual enough that this is not a high priority item.
+
+  4. The LEF read/write should operate from the GDS rules and layers, not
+     the magic database layers.  LEF setup should be put in the cifinput
+     and cifoutput sections in the techfile, not in its own section.
+
+  5. Implement a CRC checksum to replace (or complement) timestamps.
+     Cells are marked as invalid only if the checksum fails to match, not
+     if the timestamp is outdated.  This helps with two problems:  (1)
+     PDKs which are reinstalled but not changed, and (2) libraries which
+     are copied from one place to another but not changed.
+
+  6. Implement tile planes that can be defined as either maximum horizontal
+     stripes (default) or maximum vertical stripes.  The latter, if applied
+     to vertically oriented route layers, vastly speeds up searches on
+     those layers.  The code for manipulating tile planes with maximum
+     vertical stripes exists but is used only in by the maze router.
