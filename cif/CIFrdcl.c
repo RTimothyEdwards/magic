@@ -1497,15 +1497,20 @@ CIFReadCellCleanup(filetype)
 
 	    UndoDisable();
 
-	    for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
+	    /* cifplanes should be valid, but don't crash magic if not */
+	    if (cifplanes != (ClientData)CLIENTDEFAULT)
 	    {
-	        if (cifplanes[pNum] != NULL)
+
+		for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
 		{
-		    DBFreePaintPlane(cifplanes[pNum]);
-		    TiFreePlane(cifplanes[pNum]);
+		    if (cifplanes[pNum] != NULL)
+		    {
+			DBFreePaintPlane(cifplanes[pNum]);
+			TiFreePlane(cifplanes[pNum]);
+		    }
 		}
+		freeMagic((char *)def->cd_client);
 	    }
-	    freeMagic((char *)def->cd_client);
 	    def->cd_client = (ClientData)CLIENTDEFAULT;
 
 #if 0
