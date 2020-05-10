@@ -804,6 +804,55 @@ LefReadLayer(f, obstruct)
 
 /*
  *------------------------------------------------------------
+ * LefReadLefPoint --
+ *
+ *	Read a LEF point record from the file, and
+ *	return the two coordinates in LEF units (floating-point).
+ *
+ * Results:
+ *	Return 0 on success, 1 on error.
+ *
+ * Side Effects:
+ *	Reads input from file f;
+ *	Returns values for the two point coordinates, as type
+ *	float, in "xp" and "yp".
+ *
+ * Note:
+ *	Most LEF files do not put parentheses around points, e.g.,
+ *	in the ORIGIN statement, although the LEF specification
+ *	definition of a point insists that it must.  Therefore
+ *	we attempt to parse points correctly either way.
+ *
+ *------------------------------------------------------------
+ */
+
+int
+LefReadLefPoint(f, xp, yp)
+    FILE *f;
+    float *xp, *yp;
+{
+    char *token;
+    bool needMatch = FALSE;
+
+    token = LefNextToken(f, TRUE);
+    if (*token == '(')
+    {
+	token = LefNextToken(f, TRUE);
+	needMatch = TRUE;
+    }
+    if (!token || sscanf(token, "%f", xp) != 1) return 1;
+    token = LefNextToken(f, TRUE);
+    if (!token || sscanf(token, "%f", yp) != 1) return 1;
+    if (needMatch)
+    {
+	token = LefNextToken(f, TRUE);
+	if (*token != ')') return 1;
+    }
+    return 0;
+}
+
+/*
+ *------------------------------------------------------------
  * LefReadRect --
  *
  *	Read a LEF "RECT" record from the file, and
@@ -1620,11 +1669,7 @@ size_error:
 		LefEndStatement(f);
 		break;
 	    case LEF_ORIGIN:
-		token = LefNextToken(f, TRUE);
-		if (!token || sscanf(token, "%f", &x) != 1) goto origin_error;
-		token = LefNextToken(f, TRUE);
-		if (!token || sscanf(token, "%f", &y) != 1) goto origin_error;
-
+		if (LefReadLefPoint(f, x, y) != 0) goto origin_error;
 		lefBBox.r_xbot = -(int)roundf(x / oscale);
 		lefBBox.r_ybot = -(int)roundf(y / oscale);
 		if (has_size)
