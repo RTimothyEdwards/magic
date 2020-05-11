@@ -1498,7 +1498,7 @@ CIFReadCellCleanup(filetype)
 	    UndoDisable();
 
 	    /* cifplanes should be valid, but don't crash magic if not */
-	    if (cifplanes != (ClientData)CLIENTDEFAULT)
+	    if (cifplanes != (Plane **)CLIENTDEFAULT)
 	    {
 
 		for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)

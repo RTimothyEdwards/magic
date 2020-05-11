@@ -1669,7 +1669,7 @@ size_error:
 		LefEndStatement(f);
 		break;
 	    case LEF_ORIGIN:
-		if (LefReadLefPoint(f, x, y) != 0) goto origin_error;
+		if (LefReadLefPoint(f, &x, &y) != 0) goto origin_error;
 		lefBBox.r_xbot = -(int)roundf(x / oscale);
 		lefBBox.r_ybot = -(int)roundf(y / oscale);
 		if (has_size)
