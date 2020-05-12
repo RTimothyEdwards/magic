@@ -107,7 +107,7 @@ DBCellRename(cellname, newname)
 
     if ((celldef->cd_flags & CDINTERNAL) == CDINTERNAL)
     {
-	TxError("Attempt to rename internal cell \"%s\"\n", cellname);
+	TxError("Error:  Attempt to rename internal cell \"%s\"\n", cellname);
 	return FALSE;
     }
 
@@ -117,7 +117,7 @@ DBCellRename(cellname, newname)
 
     if ((celldef->cd_flags & CDVENDORGDS) == CDVENDORGDS)
     {
-	TxError("Attempt to rename read-only cell \"%s\"\n", cellname);
+	TxError("Error:  Attempt to rename read-only cell \"%s\"\n", cellname);
 	return FALSE;
     }
 
