@@ -168,9 +168,10 @@ void AppendFlag(char **rstr, bool *flagset, char *fname)
  */
 
 char *
-DBWPrintElements(cellDef, flagmask)
+DBWPrintElements(cellDef, flagmask, reducer)
     CellDef *cellDef;
     unsigned char flagmask;
+    int reducer;
 {
     DBWElement *elem;
     HashSearch hs;
@@ -205,17 +206,17 @@ DBWPrintElements(cellDef, flagmask)
 			((sptr->next == NULL) ? " " : ","));
 
 		/* print start point */
-		sprintf(istr, "%d", elem->area.r_xbot);
+		sprintf(istr, "%d", elem->area.r_xbot / reducer);
 		AppendString(&rstr, istr, " ");
-		sprintf(istr, "%d", elem->area.r_ybot);
+		sprintf(istr, "%d", elem->area.r_ybot / reducer);
 		AppendString(&rstr, istr, " ");
 		switch (elem->type)
 		{
 		    case ELEMENT_RECT:
 		        /* end point */
-			sprintf(istr, "%d", elem->area.r_xtop);
+			sprintf(istr, "%d", elem->area.r_xtop / reducer);
 			AppendString(&rstr, istr, " ");
-			sprintf(istr, "%d", elem->area.r_ytop);
+			sprintf(istr, "%d", elem->area.r_ytop / reducer);
 			AppendString(&rstr, istr, "\n");
 			/* no flags to write.  Only applicable flag is  */
 			/* temporary/persistent, and temporary elements */
@@ -223,9 +224,9 @@ DBWPrintElements(cellDef, flagmask)
 		        break;
 		    case ELEMENT_LINE:
 		        /* end point */
-			sprintf(istr, "%d", elem->area.r_xtop);
+			sprintf(istr, "%d", elem->area.r_xtop / reducer);
 			AppendString(&rstr, istr, " ");
-			sprintf(istr, "%d", elem->area.r_ytop);
+			sprintf(istr, "%d", elem->area.r_ytop / reducer);
 			AppendString(&rstr, istr, NULL);
 			/* any non-default flags? */
 			flagset = FALSE;
@@ -261,6 +262,42 @@ DBWPrintElements(cellDef, flagmask)
 	}
     }
     return rstr;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBWScaleElements --
+ *
+ *	Scale each element by the given integer numerator and denominator
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Element values are modified.
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBWScaleElements(n, d)
+    int n, d;
+{
+    DBWElement *elem;
+    HashSearch hs;
+    HashEntry *he;
+    extern bool DBScalePoint();	    /* Forward declaration */
+
+    HashStartSearch(&hs);
+    while (he = HashNext(&elementTable, &hs))
+    {
+	if (elem = (DBWElement *)HashGetValue(he))
+	{
+	    /* scale area rectangle */
+	    DBScalePoint(&elem->area.r_ll, n, d);
+	    DBScalePoint(&elem->area.r_ur, n, d);
+	}
+    }
 }
 
 

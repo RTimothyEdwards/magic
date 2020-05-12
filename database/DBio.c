@@ -2558,7 +2558,7 @@ DBCellWriteFile(cellDef, f)
     }
 
     /* Now any persistent elements */
-    estring = DBWPrintElements(cellDef, DBW_ELEMENT_PERSISTENT);
+    estring = DBWPrintElements(cellDef, DBW_ELEMENT_PERSISTENT, reducer);
     if (estring != NULL)
     {
 	FPRINTF(f, "<< elements >>\n");

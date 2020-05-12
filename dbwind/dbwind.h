@@ -219,6 +219,8 @@ extern void DBWElementNames();
 extern void DBWElementInbox();
 extern void DBWElementParseFlags();
 extern char *DBWPrintElements();
+extern void DBWScaleElements();
+extern void DBWScaleCrosshair();
 
 /* Random procedures used internally to this module.  None of these
  * should ever need to be called by the outside world.
@@ -231,5 +233,6 @@ extern void DBWFeedbackShow();
 
 extern void dbwElementInit();
 extern void dbwCrosshairInit();
+
 
 #endif /* _DBWIND_H */

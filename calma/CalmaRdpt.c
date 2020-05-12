@@ -1143,6 +1143,15 @@ calmaLayerError(mesg, layer, dt)
     CalmaLayerType clt;
     HashEntry *he;
 
+    /* Ignore errors for cells that are marked as read-only, since  */
+    /* these are normally expected to have unhandled layer types,   */
+    /* since the purpose of read-only cells is to preserve exactly  */
+    /* layout in the cell which may not be represented in the tech  */
+    /* file.							    */
+
+    if ((cifReadCellDef->cd_flags & CDVENDORGDS) == CDVENDORGDS)
+	return;
+
     clt.clt_layer = layer;
     clt.clt_type = dt;
     he = HashFind(&calmaLayerHash, (char *) &clt);

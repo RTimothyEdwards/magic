@@ -30,6 +30,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/hash.h"
 #include "database/database.h"
 #include "database/databaseInt.h"
+#include "dbwind/dbwind.h"
 #include "textio/textio.h"
 #include "utils/signals.h"
 #include "windows/windows.h"
@@ -1496,7 +1497,6 @@ DBScaleEverything(scalen, scaled)
     int scalen, scaled;
 {
     void ToolScaleBox();
-    void DBWScaleCrosshair();
 
     int dbCellDefEnumFunc();
     LinkedCellDef *lhead, *lcd;
@@ -1525,6 +1525,9 @@ DBScaleEverything(scalen, scaled)
 	freeMagic((char *)lcd);
 	lcd = lcd->cd_next;
     }
+
+    /* Scale all elements */
+    DBWScaleElements(scalen, scaled);
 
     /* Recovery of global plane pointers */
     MZAttachHintPlanes();

@@ -111,6 +111,16 @@ DBCellRename(cellname, newname)
 	return FALSE;
     }
 
+    /* Disallow renaming if the cell has the READONLY flag set,	*/
+    /* because the cellname must match the name in the GDS	*/
+    /* file referenced.						*/
+
+    if ((celldef->cd_flags & CDVENDORGDS) == CDVENDORGDS)
+    {
+	TxError("Attempt to rename read-only cell \"%s\"\n", cellname);
+	return FALSE;
+    }
+
     /* Good to go! */
 
     UndoDisable();
