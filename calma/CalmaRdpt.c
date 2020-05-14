@@ -922,10 +922,11 @@ calmaElementText()
     }
     else if (type < 0)
     {
-	CalmaReadError("Warning:  label \"%s\" at (%d, %d) is on unhandled"
-		" layer:purpose pair %d:%d and will be discarded.\n", textbody,
-		r.r_ll.p_x * cifCurReadStyle->crs_scaleFactor,
-		r.r_ll.p_y * cifCurReadStyle->crs_scaleFactor, layer, textt);
+	if (!(cifCurReadStyle->crs_flags & CRF_IGNORE_UNKNOWNLAYER_LABELS))
+	    CalmaReadError("Warning:  label \"%s\" at (%d, %d) is on unhandled"
+		    " layer:purpose pair %d:%d and will be discarded.\n", textbody,
+		    r.r_ll.p_x * cifCurReadStyle->crs_scaleFactor,
+		    r.r_ll.p_y * cifCurReadStyle->crs_scaleFactor, layer, textt);
     }
     else
     {
