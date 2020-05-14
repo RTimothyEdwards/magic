@@ -47,6 +47,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "calma/calma.h"
 
 int calmaNonManhattan;
+int CalmaFlattenLimit = 10;
 
 extern HashTable calmaDefInitHash;
 
@@ -410,7 +411,8 @@ calmaParseStructure(filename)
      * cell by painting when instanced.  But---if this cell was
      * instanced before it was defined, then it can't be flattened.
      */
-    if (CalmaFlattenUses && (!was_called) && (npaths < 10) && (nsrefs == 0))
+    if (CalmaFlattenUses && (!was_called) && (npaths < CalmaFlattenLimit)
+		&& (nsrefs == 0))
     {
 	/* If CDFLATGDS is already set, may need to remove	*/
 	/* existing planes and free memory.			*/

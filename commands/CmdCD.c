@@ -117,6 +117,8 @@ CmdCalma(w, cmd)
     CellDef *rootDef;
     FILE *f;
 
+    extern int CalmaFlattenLimit;
+
     static char *gdsExts[] = {".gds", ".gds2", ".strm", "", NULL};
     static char *cmdCalmaYesNo[] = { "no", "false", "off", "yes", "true", "on", 0 };
     static char *cmdCalmaWarnOptions[] = { "default", "none", "align",
@@ -127,7 +129,7 @@ CmdCalma(w, cmd)
 	"arrays [yes|no]	output arrays as individual subuses (like in CIF)",
 	"contacts [yes|no]	optimize output by arraying contacts as subcells",
 	"drccheck [yes|no]	mark all cells as needing DRC checking",
-	"flatten [yes|no]	flatten simple cells (e.g., contacts) on input",
+	"flatten [yes|no|limit]	flatten simple cells (e.g., contacts) on input",
 	"ordering [on|off]	cause cells to be read in post-order",
 	"labels [yes|no]	cause labels to be output when writing GDS-II",
 	"lower [yes|no]		allow both upper and lower case in labels",
@@ -285,8 +287,17 @@ CmdCalma(w, cmd)
 
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
-		goto wrongNumArgs;
-	    CalmaFlattenUses = (option < 3) ? FALSE : TRUE;
+	    {
+	        if (StrIsInt(cmd->tx_argv[2]))
+		{
+		    CalmaFlattenLimit = atoi(cmd->tx_argv[2]);
+		    CalmaFlattenUses = (CalmaFlattenLimit > 0) ? TRUE : FALSE;
+		}
+		else
+		    goto wrongNumArgs;
+	    }
+	    else
+		CalmaFlattenUses = (option < 3) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_ORDERING:
