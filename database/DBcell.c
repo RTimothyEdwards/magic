@@ -65,6 +65,7 @@ dbInstanceUnplace(CellUse *use)
      * or else we could leave the subcell tile plane in a weird
      * state.
      */
+
     BPDelete(use->cu_parent->cd_cellPlane, use);
 }
 

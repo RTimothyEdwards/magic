@@ -1239,3 +1239,46 @@ DBWElementPos(MagWindow *w, char *ename, Rect *crect)
 	    elem->rootDef->cd_flags |= CDMODIFIED;
     }
 }
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBWElementClearDef --
+ *
+ * 	Removes all elements associated with the given CellDef.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Elements are removed from the element hash.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBWElementClearDef(cellDef)
+    CellDef *cellDef;
+{
+    DBWElement *elem;
+    HashEntry *entry;
+    styleptr stylePtr;
+    HashSearch hs;
+
+    HashStartSearch(&hs);
+    while ((entry = HashNext(&elementTable, &hs)) != NULL)
+    {
+	elem = (DBWElement *) HashGetValue(entry);
+	if (!elem) continue;
+	if (elem->rootDef != cellDef) continue;
+
+	for (stylePtr = elem->stylelist; stylePtr != NULL; stylePtr = stylePtr->next)
+	    freeMagic(stylePtr);
+
+	if (elem->type == ELEMENT_TEXT)
+	    freeMagic(elem->text);
+
+	HashSetValue(entry, NULL);
+	freeMagic(elem);
+    }
+}

@@ -30,6 +30,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "tiles/tile.h"
 #include "database/database.h"
 #include "database/databaseInt.h"
+#include "dbwind/dbwind.h"
 #include "utils/signals.h"
 
     /* Forward declarations */
@@ -213,6 +214,9 @@ DBCellClearDef(cellDef)
 
     /* Remove all defined properties */
     DBPropClearAll(cellDef);
+
+    /* Remove any elements associated with the cell */
+    DBWElementClearDef(cellDef);
 
     SigEnableInterrupts();
 }

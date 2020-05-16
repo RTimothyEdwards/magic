@@ -217,6 +217,7 @@ extern void DBWElementAddText();
 extern void DBWElementDelete();
 extern void DBWElementNames();
 extern void DBWElementInbox();
+extern void DBWElementClearDef();
 extern void DBWElementParseFlags();
 extern char *DBWPrintElements();
 extern void DBWScaleElements();

@@ -40,6 +40,7 @@
 #include "utils/utils.h"
 #include "utils/malloc.h"
 #include "database/database.h"
+#include "textio/textio.h"
 #include "utils/geometry.h"
 #include "bplane/bplaneInt.h"
 
@@ -180,6 +181,11 @@ void BPDelete(BPlane *bp, void *element)
   Element *e = element; 
 
   ASSERT(e,"BPDelete");
+  if (bp->bp_count == 0)
+  {
+      TxError("Error:  Attempt to delete instance from empty cell!\n");
+      return;
+  }
   bp->bp_count--;
 
   /* if element was on edge of bbox, bbox may no longer

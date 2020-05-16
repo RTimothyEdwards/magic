@@ -811,7 +811,7 @@ DBClearCellPlane(def)
     /* Do not use BPDelete() inside a BPEnum loop.  Use DBSrCellUses */
     /* to get a linked list of cell instances, then remove each one. */
 
-    DBSrCellUses(def, dbDeleteCellUse, (ClientData)NULL);
+    DBSrCellUses(def, dbDeleteCellUse, (ClientData)def);
 
     SigEnableInterrupts();
 }
@@ -829,9 +829,32 @@ DBClearCellPlane(def)
 
 int dbDeleteCellUse(CellUse *use, ClientData arg)
 {
+    CellDef *def = (CellDef *)arg;
+    CellUse *defuses, *lastuse;
+
     dbInstanceUnplace(use);
+
     if (UndoIsEnabled())
 	DBUndoCellUse(use, UNDO_CELL_DELETE);
+
+    /* Remove use from cd_parents of the use's def */
+    lastuse = (CellUse *)NULL;
+    for (defuses = use->cu_def->cd_parents; defuses ; defuses = defuses->cu_nextuse)
+    {
+	if (defuses == use)
+	{
+	    if (lastuse)
+		lastuse->cu_nextuse = defuses->cu_nextuse; 
+	    else
+		use->cu_def->cd_parents = defuses->cu_nextuse;
+	    defuses->cu_nextuse = (CellUse *)NULL;
+	    break;
+	}
+	lastuse = defuses;
+    }
+    if (use->cu_id) freeMagic(use->cu_id);
+    freeMagic(use);
+
     return 0;
 }
 
