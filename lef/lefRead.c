@@ -1306,8 +1306,11 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, oscale, lanno)
 		newlab = (lanno != NULL) ? lanno : lefMacro->cd_lastLabel;
 		if (strcmp(newlab->lab_text, pinName))
 		    LefError(LEF_ERROR, "Internal error:  Can't find the label!\n");
-		else /* Make this a port */
-		    newlab->lab_flags = pinNum | pinUse | pinDir | PORT_DIR_MASK;
+		else
+		    /* Make this a port, and make it a sticky label so that */
+		    /* it is guaranteed to be on the layer on which it is defined */
+		    newlab->lab_flags = pinNum | pinUse | pinDir | PORT_DIR_MASK |
+			    LABEL_STICKY;
 	    }
 	    /* If lanno is non-NULL then the first rectangle in the LEF	    */
 	    /* port list is used to modify it.  All other LEF port geometry */
