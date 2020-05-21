@@ -27,6 +27,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "tiles/tile.h"
 #include "utils/hash.h"
 #include "database/database.h"
+#include "extract/extract.h"
 #include "utils/tech.h"
 #include "utils/utils.h"
 #include "utils/malloc.h"
@@ -373,6 +374,32 @@ lefGetBound(tile, cdata)
 /*
  * ----------------------------------------------------------------------------
  *
+ * lefAccumulateArea --
+ *
+ * Function called to accumulate the tile area of tiles
+ *
+ * Return 0 to keep the search going.
+ * ----------------------------------------------------------------------------
+ */
+
+int
+lefAccumulateArea(tile, cdata)
+    Tile *tile;
+    ClientData cdata;
+{
+    int *area = (int *)cdata;
+    Rect rarea;
+
+    TiToRect(tile, &rarea);
+
+    *area += (rarea.r_xtop - rarea.r_xbot) * (rarea.r_ytop - rarea.r_ybot);
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * lefYankGeometry --
  *
  * Function called from SimSrConnect() that copies geometry from
@@ -652,14 +679,14 @@ lefWriteMacro(def, f, scale, hide)
     float scale;	/* Output distance units conversion factor */
     bool hide;		/* If TRUE, hide all detail except pins */
 {
-    bool propfound;
+    bool propfound, ispwrrail;
     char *propvalue, *class = NULL;
     Label *lab, *tlab, *reflab;
     Rect boundary, labr;
     SearchContext scx;
     CellDef *lefFlatDef;
     CellUse lefFlatUse, lefSourceUse;
-    TileTypeBitMask lmask, boundmask, *lrmask;
+    TileTypeBitMask lmask, boundmask, *lrmask, gatetypemask, difftypemask;
     TileType ttype;
     lefClient lc;
     int idx, pNum, maxport, curport;
@@ -745,6 +772,10 @@ lefWriteMacro(def, f, scale, hide)
 	    if (lefl->type != -1)
 		TTMaskSetType(&boundmask, lefl->type);
     }
+
+    /* Gate and diff types are determined from the extraction style */
+    ExtGetGateTypesMask(&gatetypemask);
+    ExtGetDiffTypesMask(&difftypemask);
 
     /* NOTE:  This routine corresponds to Envisia LEF/DEF Language	*/
     /* Reference version 5.3 (May 31, 2000)				*/
@@ -904,6 +935,7 @@ lefWriteMacro(def, f, scale, hide)
 	    }
 	    fprintf(f, " ;\n");
 	}
+	ispwrrail = FALSE;
 	if (lab->lab_flags & PORT_USE_MASK)
 	{
 	    fprintf(f, "      USE ");
@@ -917,9 +949,11 @@ lefWriteMacro(def, f, scale, hide)
 		    break;
 		case PORT_USE_POWER:
 		    fprintf(f, "POWER");
+		    ispwrrail = TRUE;
 		    break;
 		case PORT_USE_GROUND:
 		    fprintf(f, "GROUND");
+		    ispwrrail = TRUE;
 		    break;
 		case PORT_USE_CLOCK:
 		    fprintf(f, "CLOCK");
@@ -927,6 +961,27 @@ lefWriteMacro(def, f, scale, hide)
 	    }
 	    fprintf(f, " ;\n");
 	}
+#ifdef MAGIC_WRAPPER
+	else
+	{
+	    char *pwr;
+
+	    /* Determine power rails by matching the $VDD and $GND Tcl variables */
+
+	    pwr = (char *)Tcl_GetVar(magicinterp, "VDD", TCL_GLOBAL_ONLY);
+	    if (pwr && (!strcmp(lab->lab_text, pwr)))
+	    {
+		ispwrrail = TRUE;
+		fprintf(f, "      USE POWER ;\n");
+	    }
+	    pwr = (char *)Tcl_GetVar(magicinterp, "GND", TCL_GLOBAL_ONLY);
+	    if (pwr && (!strcmp(lab->lab_text, pwr)))
+	    {
+		ispwrrail = TRUE;
+		fprintf(f, "      USE GROUND ;\n");
+	    }
+	}
+#endif
 
 	/* Query pin geometry for SHAPE (to be done?) */
 
@@ -948,6 +1003,7 @@ lefWriteMacro(def, f, scale, hide)
 
 	while (lab != NULL)
 	{
+	    int antarea;
 
 	    labr = lab->lab_rect;
 
@@ -998,6 +1054,41 @@ lefWriteMacro(def, f, scale, hide)
 	    }
 	    else
 		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
+
+	    // Search for gate and diff types and accumulate antenna
+	    // areas.  For gates, check for all gate types tied to
+	    // devices with MOSFET types (including "msubcircuit", etc.).
+	    // For diffusion, use the types declared in the "tiedown"
+	    // statement in the extract section of the techfile.
+
+	    if (ispwrrail == FALSE)
+	    {
+		antarea = 0;
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		{
+		    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+			    &TiPlaneRect, &gatetypemask,
+			    lefAccumulateArea, (ClientData) &antarea);
+		}
+		if (antarea > 0)
+		{
+		    fprintf(f, "      ANTENNAGATEAREA %.4f ;\n",
+			    lc.oscale * lc.oscale * (float)antarea);
+		}
+
+		antarea = 0;
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		{
+		    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+			    &TiPlaneRect, &difftypemask,
+			    lefAccumulateArea, (ClientData) &antarea);
+		}
+		if (antarea > 0)
+		{
+		    fprintf(f, "      ANTENNADIFFAREA %.4f ;\n",
+			    lc.oscale * lc.oscale * (float)antarea);
+		}
+	    }
 
 	    // For all geometry in the selection, write LEF records,
 	    // and mark the corresponding tiles in lefFlatDef as

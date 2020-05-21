@@ -77,6 +77,8 @@ extern void ExtSetStyle();
 extern void ExtPrintStyle();
 extern void ExtCell();
 
+extern int ExtGetGateTypesMask();
+extern int ExtGetDiffTypesMask();
 
 #ifdef MAGIC_WRAPPER
 extern bool ExtGetDevInfo();

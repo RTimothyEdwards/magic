@@ -408,6 +408,67 @@ extGetDevType(devname)
     return -1;
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ExtGetGateTypesMask --
+ *
+ *	Put a mask of FET gate types in the mask pointer argument.
+ *	Return 0 on success, 1 on failure (no extraction style set)
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+ExtGetGateTypesMask(mask)
+    TileTypeBitMask *mask;
+{
+    TileType ttype;
+
+    if (ExtCurStyle == NULL) return 1;
+
+    TTMaskZero(mask);
+    for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+    {
+        if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, ttype))
+        {
+            ExtDevice *devptr = ExtCurStyle->exts_device[ttype];
+
+            for (; devptr; devptr = devptr->exts_next)
+                if ((devptr->exts_deviceClass == DEV_MOSFET) ||
+                        (devptr->exts_deviceClass == DEV_FET) ||
+                        (devptr->exts_deviceClass == DEV_ASYMMETRIC) ||
+                        (devptr->exts_deviceClass == DEV_MSUBCKT))
+                    TTMaskSetType(mask, ttype);
+        }
+    }
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ExtGetDiffTypesMask --
+ *
+ *	Put a mask of diffusion types in the mask pointer argument.
+ *	Return 0 on success, 1 on failure (no extraction style set)
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+ExtGetDiffTypesMask(mask)
+    TileTypeBitMask *mask;
+{
+    TileType ttype;
+
+    if (ExtCurStyle == NULL) return 1;
+
+    TTMaskZero(mask);
+    TTMaskSetMask(mask, &ExtCurStyle->exts_antennaTieTypes);
+
+    return 0;
+}
 
 #ifdef THREE_D
 /*
