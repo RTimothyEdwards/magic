@@ -130,3 +130,10 @@ tags:
 TAGS: 
 	${RM} TAGS
 	find . ${MODULES} ${PROGRAMS} -name "*.[ch]" -maxdepth 1 | xargs etags -o TAGS
+
+setup-git:
+	git config --local include.path ../.gitconfig
+	git stash save
+	rm .git/index
+	git checkout HEAD -- "$$(git rev-parse --show-toplevel)"
+	git stash pop
