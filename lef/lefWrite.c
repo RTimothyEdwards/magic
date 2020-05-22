@@ -301,6 +301,7 @@ typedef struct
     float	oscale;		/* units scale conversion factor */
     int		pNum;		/* Plane number for tile marking */
     int		numWrites;	/* Track number of writes to output */
+    bool	needHeader;	/* TRUE if PIN record header needs to be written */
     int		lefMode;	/* can be LEF_MODE_PORT when searching
 				 * connections into ports, or
 				 * LEF_MODE_OBSTRUCT when generating
@@ -529,6 +530,15 @@ lefWriteGeometry(tile, cdata)
 
     if (!TTMaskHasType(&lefdata->rmask, ttype)) return 0;
 
+    if (lefdata->needHeader)
+    {
+	/* Reset the tile to not visited and return 1 to    */
+	/* signal that something is going to be written.    */
+
+	TiSetClient(tile, (ClientData)CLIENTDEFAULT);
+	return 1;
+    }
+
     if (lefdata->numWrites == 0)
     {
 	if (lefdata->lefMode == LEF_MODE_PORT)
@@ -653,6 +663,102 @@ typedef struct _labelLinkedList {
     Rect lll_area;
     struct _labelLinkedList *lll_next;
 } labelLinkedList;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * LefWritePinHeader --
+ *
+ *	Write the PIN record for the LEF macro along with any known properties
+ *	such as CLASS and USE.  Discover the USE POWER or GROUND if it is not
+ *	set as a property and the label name matches the Tcl variables $VDD
+ *	or $GND.
+ *
+ * Returns TRUE if the pin is a power pin, otherwise FALSE.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+LefWritePinHeader(f, lab)
+    FILE *f;
+    Label *lab;
+{
+    bool ispwrrail = FALSE;
+
+    fprintf(f, "   PIN %s\n", lab->lab_text);
+    if (lab->lab_flags & PORT_CLASS_MASK)
+    {
+	fprintf(f, "      DIRECTION ");
+	switch(lab->lab_flags & PORT_CLASS_MASK)
+	{
+	    case PORT_CLASS_INPUT:
+		fprintf(f, "INPUT");
+		break;
+	    case PORT_CLASS_OUTPUT:
+		fprintf(f, "OUTPUT");
+		break;
+	    case PORT_CLASS_TRISTATE:
+		fprintf(f, "OUTPUT TRISTATE");
+		break;
+	    case PORT_CLASS_BIDIRECTIONAL:
+		fprintf(f, "INOUT");
+		break;
+	    case PORT_CLASS_FEEDTHROUGH:
+		fprintf(f, "FEEDTHRU");
+		break;
+	}
+	fprintf(f, " ;\n");
+    }
+    ispwrrail = FALSE;
+    if (lab->lab_flags & PORT_USE_MASK)
+    {
+	fprintf(f, "      USE ");
+	switch(lab->lab_flags & PORT_USE_MASK)
+	{
+	    case PORT_USE_SIGNAL:
+		fprintf(f, "SIGNAL");
+		break;
+	    case PORT_USE_ANALOG:
+		fprintf(f, "ANALOG");
+		break;
+	    case PORT_USE_POWER:
+		fprintf(f, "POWER");
+		ispwrrail = TRUE;
+		break;
+	    case PORT_USE_GROUND:
+		fprintf(f, "GROUND");
+		ispwrrail = TRUE;
+		break;
+	    case PORT_USE_CLOCK:
+		fprintf(f, "CLOCK");
+		break;
+	}
+	fprintf(f, " ;\n");
+    }
+#ifdef MAGIC_WRAPPER
+    else
+    {
+	char *pwr;
+
+	/* Determine power rails by matching the $VDD and $GND Tcl variables */
+
+	pwr = (char *)Tcl_GetVar(magicinterp, "VDD", TCL_GLOBAL_ONLY);
+	if (pwr && (!strcmp(lab->lab_text, pwr)))
+	{
+	    ispwrrail = TRUE;
+	    fprintf(f, "      USE POWER ;\n");
+	}
+	pwr = (char *)Tcl_GetVar(magicinterp, "GND", TCL_GLOBAL_ONLY);
+	if (pwr && (!strcmp(lab->lab_text, pwr)))
+	{
+	    ispwrrail = TRUE;
+	    fprintf(f, "      USE GROUND ;\n");
+	}
+    }
+#endif
+    return ispwrrail;
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -911,78 +1017,6 @@ lefWriteMacro(def, f, scale, hide)
 
 	if (lab->lab_flags & PORT_VISITED) continue;
 
-	fprintf(f, "   PIN %s\n", lab->lab_text);
-	if (lab->lab_flags & PORT_CLASS_MASK)
-	{
-	    fprintf(f, "      DIRECTION ");
-	    switch(lab->lab_flags & PORT_CLASS_MASK)
-	    {
-		case PORT_CLASS_INPUT:
-		    fprintf(f, "INPUT");
-		    break;
-		case PORT_CLASS_OUTPUT:
-		    fprintf(f, "OUTPUT");
-		    break;
-		case PORT_CLASS_TRISTATE:
-		    fprintf(f, "OUTPUT TRISTATE");
-		    break;
-		case PORT_CLASS_BIDIRECTIONAL:
-		    fprintf(f, "INOUT");
-		    break;
-		case PORT_CLASS_FEEDTHROUGH:
-		    fprintf(f, "FEEDTHRU");
-		    break;
-	    }
-	    fprintf(f, " ;\n");
-	}
-	ispwrrail = FALSE;
-	if (lab->lab_flags & PORT_USE_MASK)
-	{
-	    fprintf(f, "      USE ");
-	    switch(lab->lab_flags & PORT_USE_MASK)
-	    {
-		case PORT_USE_SIGNAL:
-		    fprintf(f, "SIGNAL");
-		    break;
-		case PORT_USE_ANALOG:
-		    fprintf(f, "ANALOG");
-		    break;
-		case PORT_USE_POWER:
-		    fprintf(f, "POWER");
-		    ispwrrail = TRUE;
-		    break;
-		case PORT_USE_GROUND:
-		    fprintf(f, "GROUND");
-		    ispwrrail = TRUE;
-		    break;
-		case PORT_USE_CLOCK:
-		    fprintf(f, "CLOCK");
-		    break;
-	    }
-	    fprintf(f, " ;\n");
-	}
-#ifdef MAGIC_WRAPPER
-	else
-	{
-	    char *pwr;
-
-	    /* Determine power rails by matching the $VDD and $GND Tcl variables */
-
-	    pwr = (char *)Tcl_GetVar(magicinterp, "VDD", TCL_GLOBAL_ONLY);
-	    if (pwr && (!strcmp(lab->lab_text, pwr)))
-	    {
-		ispwrrail = TRUE;
-		fprintf(f, "      USE POWER ;\n");
-	    }
-	    pwr = (char *)Tcl_GetVar(magicinterp, "GND", TCL_GLOBAL_ONLY);
-	    if (pwr && (!strcmp(lab->lab_text, pwr)))
-	    {
-		ispwrrail = TRUE;
-		fprintf(f, "      USE GROUND ;\n");
-	    }
-	}
-#endif
-
 	/* Query pin geometry for SHAPE (to be done?) */
 
 	/* Generate port layout geometry using SimSrConnect()		*/
@@ -999,11 +1033,12 @@ lefWriteMacro(def, f, scale, hide)
 	/* Note: Use DBIsContact() to check if the layer is a VIA.	*/
 	/* Presently, I am treating contacts like any other layer.	*/
 
+	lc.needHeader = TRUE;
 	reflab = lab;
 
 	while (lab != NULL)
 	{
-	    int antarea;
+	    int antgatearea, antdiffarea;
 
 	    labr = lab->lab_rect;
 
@@ -1061,33 +1096,20 @@ lefWriteMacro(def, f, scale, hide)
 	    // For diffusion, use the types declared in the "tiedown"
 	    // statement in the extract section of the techfile.
 
-	    if (ispwrrail == FALSE)
+	    antgatearea = 0;
+	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	    {
-		antarea = 0;
-		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-		{
-		    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
 			    &TiPlaneRect, &gatetypemask,
-			    lefAccumulateArea, (ClientData) &antarea);
-		}
-		if (antarea > 0)
-		{
-		    fprintf(f, "      ANTENNAGATEAREA %.4f ;\n",
-			    lc.oscale * lc.oscale * (float)antarea);
-		}
+			    lefAccumulateArea, (ClientData) &antgatearea);
+	    }
 
-		antarea = 0;
-		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-		{
-		    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+	    antdiffarea = 0;
+	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	    {
+		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
 			    &TiPlaneRect, &difftypemask,
-			    lefAccumulateArea, (ClientData) &antarea);
-		}
-		if (antarea > 0)
-		{
-		    fprintf(f, "      ANTENNADIFFAREA %.4f ;\n",
-			    lc.oscale * lc.oscale * (float)antarea);
-		}
+			    lefAccumulateArea, (ClientData) &antdiffarea);
 	    }
 
 	    // For all geometry in the selection, write LEF records,
@@ -1103,9 +1125,25 @@ lefWriteMacro(def, f, scale, hide)
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
 			lefYankGeometry, (ClientData) &lc);
 
-		DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum], 
+		while (DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum], 
 	    		&TiPlaneRect, &lc.rmask,
-	    		lefWriteGeometry, (ClientData) &lc);
+	    		lefWriteGeometry, (ClientData) &lc) == 1)
+		{
+		    /* needHeader was set and there was something to write, */
+		    /* so write the headr and then re-run the search.	    */
+
+		    ispwrrail = LefWritePinHeader(f, lab);
+		    if (ispwrrail == FALSE)
+		    {
+			if (antgatearea > 0)
+			    fprintf(f, "      ANTENNAGATEAREA %.4f ;\n",
+				    lc.oscale * lc.oscale * (float)antgatearea);
+			if (antdiffarea > 0)
+			    fprintf(f, "      ANTENNADIFFAREA %.4f ;\n",
+				    lc.oscale * lc.oscale * (float)antdiffarea);
+		    }
+		    lc.needHeader = FALSE;
+		}
 
 		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
@@ -1128,7 +1166,8 @@ lefWriteMacro(def, f, scale, hide)
 	}
 
 	LEFtext = MakeLegalLEFSyntax(reflab->lab_text);
-	fprintf(f, "   END %s\n", reflab->lab_text);	/* end of pin */
+	if (lc.needHeader == FALSE)
+	    fprintf(f, "   END %s\n", reflab->lab_text);	/* end of pin */
 	if (LEFtext != reflab->lab_text) freeMagic(LEFtext);
 
 	if (maxport >= 0)
