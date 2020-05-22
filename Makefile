@@ -127,6 +127,11 @@ tags:
 	${RM} tags
 	find . ${MODULES} ${PROGRAMS} -name "*.[ch]" -maxdepth 1 | xargs ctags -o tags
 
-TAGS: 
+TAGS:
 	${RM} TAGS
 	find . ${MODULES} ${PROGRAMS} -name "*.[ch]" -maxdepth 1 | xargs etags -o TAGS
+
+fix-trailing-whitespace:
+	find -name "*.[ch]" | xargs sed -i -e's/\s\+$$//'
+	find -name "*.cpp"  | xargs sed -i -e's/\s\+$$//'
+	find -name "*.tcl"  | xargs sed -i -e's/\s\+$$//'
