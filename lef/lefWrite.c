@@ -1202,6 +1202,7 @@ lefWriteMacro(def, f, scale, hide)
 
     lc.lefMode = LEF_MODE_OBSTRUCT;
     lc.lastType = TT_SPACE;
+    lc.needHeader = FALSE;
 
     /* Restrict to routing planes only */
 
