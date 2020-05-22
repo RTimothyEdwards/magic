@@ -17,7 +17,7 @@
  *  software outside of the United States of America may require an
  *  export license.
  *
- *  $Id: lispParse.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
+ *  $Id$
  *
  *************************************************************************/
 
