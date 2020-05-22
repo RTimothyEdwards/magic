@@ -17,7 +17,7 @@
  *  software outside of the United States of America may require an
  *  export license.
  *
- *  $Id$
+ *  $Header$
  *
  *************************************************************************/
 #ifndef __LISPINT_H__

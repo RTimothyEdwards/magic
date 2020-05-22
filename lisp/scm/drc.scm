@@ -15,7 +15,7 @@
 ;  software outside of the United States of America may require an
 ;  export license.
 ;
-;  $Id$
+;  $Header$
 ;
 ; Requires: default.scm
 ;

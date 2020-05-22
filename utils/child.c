@@ -5,7 +5,7 @@
  *  Pasadena, CA 91125.
  *  All Rights Reserved
  *
- *  $Id$
+ *  $Header$
  *
  *************************************************************************/
 #include <stdio.h>
