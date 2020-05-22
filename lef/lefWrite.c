@@ -560,7 +560,7 @@ lefWriteGeometry(tile, cdata)
 	if (otype & TT_SIDE)
 	{
 	    if (otype & TT_DIRECTION)
-		fprintf(f, "	    POLYGON %.4f %.4f %.4f %.4f %.4f %.4f ;\n",
+		fprintf(f, "	    POLYGON %.6f %.6f %.6f %.6f %.6f %.6f ;\n",
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -568,7 +568,7 @@ lefWriteGeometry(tile, cdata)
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
 			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
 	    else
-		fprintf(f, "	    POLYGON %.4f %.4f %.4f %.4f %.4f %.4f ;\n",
+		fprintf(f, "	    POLYGON %.6f %.6f %.6f %.6f %.6f %.6f ;\n",
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -579,7 +579,7 @@ lefWriteGeometry(tile, cdata)
 	else
 	{
 	    if (otype & TT_DIRECTION)
-		fprintf(f, "	    POLYGON %.4f %.4f %.4f %.4f %.4f %.4f ;\n",
+		fprintf(f, "	    POLYGON %.6f %.6f %.6f %.6f %.6f %.6f ;\n",
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -587,7 +587,7 @@ lefWriteGeometry(tile, cdata)
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
 	    else
-		fprintf(f, "	    POLYGON %.4f %.4f %.4f %.4f %.4f %.4f ;\n",
+		fprintf(f, "	    POLYGON %.6f %.6f %.6f %.6f %.6f %.6f ;\n",
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -596,7 +596,7 @@ lefWriteGeometry(tile, cdata)
 			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
 	}
     else
-	fprintf(f, "	    RECT %.4f %.4f %.4f %.4f ;\n",
+	fprintf(f, "	    RECT %.6f %.6f %.6f %.6f ;\n",
 		scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 		scale * (float)(BOTTOM(tile) - lefdata->origin.p_y),
 		scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -947,11 +947,11 @@ lefWriteMacro(def, f, scale, hide)
 
     /* Write position and size information */
 
-    fprintf(f, "   ORIGIN %.4f %.4f ;\n",
+    fprintf(f, "   ORIGIN %.6f %.6f ;\n",
 		-lc.oscale * (float)boundary.r_xbot,
 		-lc.oscale * (float)boundary.r_ybot);
 
-    fprintf(f, "   SIZE %.4f BY %.4f ;\n",
+    fprintf(f, "   SIZE %.6f BY %.6f ;\n",
 		lc.oscale * (float)(boundary.r_xtop - boundary.r_xbot),
 		lc.oscale * (float)(boundary.r_ytop - boundary.r_ybot));
 
@@ -1136,10 +1136,10 @@ lefWriteMacro(def, f, scale, hide)
 		    if (ispwrrail == FALSE)
 		    {
 			if (antgatearea > 0)
-			    fprintf(f, "      ANTENNAGATEAREA %.4f ;\n",
+			    fprintf(f, "      ANTENNAGATEAREA %.6f ;\n",
 				    lc.oscale * lc.oscale * (float)antgatearea);
 			if (antdiffarea > 0)
-			    fprintf(f, "      ANTENNADIFFAREA %.4f ;\n",
+			    fprintf(f, "      ANTENNADIFFAREA %.6f ;\n",
 				    lc.oscale * lc.oscale * (float)antdiffarea);
 		    }
 		    lc.needHeader = FALSE;
