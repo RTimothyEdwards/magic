@@ -20,4 +20,4 @@ computation, you have to call "collect-garbage" explicitly.
  Ithaca NY 14853
  http://www.csl.cornell.edu/~rajit/
 
-$Id$
+$Header$

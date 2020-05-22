@@ -198,7 +198,7 @@ proc ::tkcon::Init {} {
 	    tkcon_puts tkcon_gets observe observe_var unalias which what
 	}
 	version		2.3
-	RCS		{RCS: @(#) $Id$}
+	RCS		{RCS: @(#) $Header$}
 	HEADURL		{http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/tkcon/tkcon/tkcon.tcl?rev=HEAD}
 	docs		"http://tkcon.sourceforge.net/"
 	email		{jeff@hobbs.org}
