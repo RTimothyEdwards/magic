@@ -42,6 +42,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "cif/cif.h"
 #include "lef/lefInt.h"
 
+
+#define FP "%.6f"
+#define POINT FP " " FP
+#define IN0 "  "
+#define IN1 "    "
+#define IN2 "      "
+
 /* ---------------------------------------------------------------------*/
 
 /* Stack of cell definitions */
@@ -179,17 +186,17 @@ lefWriteHeader(def, f, lefTech)
     /* Reference version 5.3 (May 31, 2000)				*/
 
     fprintf(f, "VERSION 5.3 ;\n");
-    fprintf(f, "   NAMESCASESENSITIVE ON ;\n");
-    fprintf(f, "   NOWIREEXTENSIONATPIN ON ;\n");
-    fprintf(f, "   DIVIDERCHAR \"/\" ;\n");
-    fprintf(f, "   BUSBITCHARS \"[]\" ;\n");
+    fprintf(f, IN0 "NAMESCASESENSITIVE ON ;\n");
+    fprintf(f, IN0 "NOWIREEXTENSIONATPIN ON ;\n");
+    fprintf(f, IN0 "DIVIDERCHAR \"/\" ;\n");
+    fprintf(f, IN0 "BUSBITCHARS \"[]\" ;\n");
 
     /* As I understand it, this refers to the scalefactor of the GDS	*/
     /* file output.  Magic does all GDS in nanometers, so the LEF	*/
     /* scalefactor (conversion to microns) is always 1000.		*/
 
     fprintf(f, "UNITS\n");
-    fprintf(f, "   DATABASE MICRONS 1000 ;\n");
+    fprintf(f, IN0 "DATABASE MICRONS 1000 ;\n");
     fprintf(f, "END UNITS\n");
     fprintf(f, "\n");
 
@@ -234,35 +241,35 @@ lefWriteHeader(def, f, lefTech)
 		    int cutarea;
 		    cutarea = (lefl->info.via.area.r_xtop - lefl->info.via.area.r_xbot);
 		    cutarea *= (lefl->info.via.area.r_ytop - lefl->info.via.area.r_ybot);
-		    fprintf(f, "   TYPE CUT ;\n");
+		    fprintf(f, IN0 "TYPE CUT ;\n");
 		    if (cutarea > 0)
-			fprintf(f, "   CUT AREA %f ;\n",
+			fprintf(f, IN0 "CUT AREA %f ;\n",
 					(float)cutarea * oscale * oscale);
 		}
 		else if (lefl->lefClass == CLASS_ROUTE)
 		{
-		    fprintf(f, "   TYPE ROUTING ;\n");
+		    fprintf(f, IN0 "TYPE ROUTING ;\n");
 		    if (lefl->info.route.pitch > 0)
-			fprintf(f, "   PITCH %f ;\n", (float)(lefl->info.route.pitch)
+			fprintf(f, IN0 "PITCH %f ;\n", (float)(lefl->info.route.pitch)
 				* oscale);
 		    if (lefl->info.route.width > 0)
-			fprintf(f, "   WIDTH %f ;\n", (float)(lefl->info.route.width)
+			fprintf(f, IN0 "WIDTH %f ;\n", (float)(lefl->info.route.width)
 				* oscale);
 		    if (lefl->info.route.spacing > 0)
-			fprintf(f, "   SPACING %f ;\n", (float)(lefl->info.route.spacing)
+			fprintf(f, IN0 "SPACING %f ;\n", (float)(lefl->info.route.spacing)
 				* oscale);
 		    /* No sense in providing direction info unless we know the width */
 		    if (lefl->info.route.width > 0)
-			fprintf(f, "   DIRECTION %s ;\n", (lefl->info.route.hdirection)
+			fprintf(f, IN0 "DIRECTION %s ;\n", (lefl->info.route.hdirection)
 				?  "HORIZONTAL" : "VERTICAL");
 		}
 		else if (lefl->lefClass == CLASS_MASTER)
 		{
-		    fprintf(f, "   TYPE MASTERSLICE ;\n");
+		    fprintf(f, IN0 "TYPE MASTERSLICE ;\n");
 		}
 		else if (lefl->lefClass == CLASS_OVERLAP)
 		{
-		    fprintf(f, "   TYPE OVERLAP ;\n");
+		    fprintf(f, IN0 "TYPE OVERLAP ;\n");
 		}
 		fprintf(f, "END %s\n\n", lefl->canonName);
 	    }
@@ -542,9 +549,9 @@ lefWriteGeometry(tile, cdata)
     if (lefdata->numWrites == 0)
     {
 	if (lefdata->lefMode == LEF_MODE_PORT)
-	    fprintf(f, "      PORT\n");
+	    fprintf(f, IN1 "PORT\n");
 	else
-	    fprintf(f, "   OBS\n");
+	    fprintf(f, IN0 "OBS\n");
     }
     lefdata->numWrites++;
 
@@ -560,7 +567,7 @@ lefWriteGeometry(tile, cdata)
 	if (otype & TT_SIDE)
 	{
 	    if (otype & TT_DIRECTION)
-		fprintf(f, "	    POLYGON %.6f %.6f %.6f %.6f %.6f %.6f ;\n",
+		fprintf(f, IN2 "POLYGON " POINT " " POINT " " POINT " ;\n",
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -568,7 +575,7 @@ lefWriteGeometry(tile, cdata)
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
 			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
 	    else
-		fprintf(f, "	    POLYGON %.6f %.6f %.6f %.6f %.6f %.6f ;\n",
+		fprintf(f, IN2 "POLYGON " POINT " " POINT " " POINT " ;\n",
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -579,7 +586,7 @@ lefWriteGeometry(tile, cdata)
 	else
 	{
 	    if (otype & TT_DIRECTION)
-		fprintf(f, "	    POLYGON %.6f %.6f %.6f %.6f %.6f %.6f ;\n",
+		fprintf(f, IN2 "POLYGON " POINT " " POINT " " POINT " ;\n",
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -587,7 +594,7 @@ lefWriteGeometry(tile, cdata)
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
 	    else
-		fprintf(f, "	    POLYGON %.6f %.6f %.6f %.6f %.6f %.6f ;\n",
+		fprintf(f, IN2 "POLYGON " POINT " " POINT " " POINT " ;\n",
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -596,7 +603,7 @@ lefWriteGeometry(tile, cdata)
 			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
 	}
     else
-	fprintf(f, "	    RECT %.6f %.6f %.6f %.6f ;\n",
+	fprintf(f, IN2 "RECT " POINT " " POINT " ;\n",
 		scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 		scale * (float)(BOTTOM(tile) - lefdata->origin.p_y),
 		scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -686,10 +693,10 @@ LefWritePinHeader(f, lab)
 {
     bool ispwrrail = FALSE;
 
-    fprintf(f, "   PIN %s\n", lab->lab_text);
+    fprintf(f, IN0 "PIN %s\n", lab->lab_text);
     if (lab->lab_flags & PORT_CLASS_MASK)
     {
-	fprintf(f, "      DIRECTION ");
+	fprintf(f, IN1 "DIRECTION ");
 	switch(lab->lab_flags & PORT_CLASS_MASK)
 	{
 	    case PORT_CLASS_INPUT:
@@ -713,7 +720,7 @@ LefWritePinHeader(f, lab)
     ispwrrail = FALSE;
     if (lab->lab_flags & PORT_USE_MASK)
     {
-	fprintf(f, "      USE ");
+	fprintf(f, IN1 "USE ");
 	switch(lab->lab_flags & PORT_USE_MASK)
 	{
 	    case PORT_USE_SIGNAL:
@@ -747,13 +754,13 @@ LefWritePinHeader(f, lab)
 	if (pwr && (!strcmp(lab->lab_text, pwr)))
 	{
 	    ispwrrail = TRUE;
-	    fprintf(f, "      USE POWER ;\n");
+	    fprintf(f, IN1 "USE POWER ;\n");
 	}
 	pwr = (char *)Tcl_GetVar(magicinterp, "GND", TCL_GLOBAL_ONLY);
 	if (pwr && (!strcmp(lab->lab_text, pwr)))
 	{
 	    ispwrrail = TRUE;
-	    fprintf(f, "      USE GROUND ;\n");
+	    fprintf(f, IN1 "USE GROUND ;\n");
 	}
     }
 #endif
@@ -899,20 +906,20 @@ lefWriteMacro(def, f, scale, hide)
     propvalue = (char *)DBPropGet(def, "LEFclass", &propfound);
     if (propfound)
     {
-	fprintf(f, "   CLASS %s ;\n", propvalue);
+	fprintf(f, IN0 "CLASS %s ;\n", propvalue);
 	class = propvalue;
     }
     else
     {
 	/* Needs a class of some kind.  Use BLOCK as default if not defined */
-	fprintf(f, "   CLASS BLOCK ;\n");
+	fprintf(f, IN0 "CLASS BLOCK ;\n");
     }
 
     propvalue = (char *)DBPropGet(def, "LEFsource", &propfound);
     if (propfound)
-	fprintf(f, "   SOURCE %s ;\n", propvalue);
+	fprintf(f, IN0 "SOURCE %s ;\n", propvalue);
 
-    fprintf(f, "   FOREIGN %s ;\n", def->cd_name);
+    fprintf(f, IN0 "FOREIGN %s ;\n", def->cd_name);
 
     /* If a boundary class was declared in the LEF section, then use	*/
     /* that layer type to define the boundary.  Otherwise, the cell	*/
@@ -947,11 +954,11 @@ lefWriteMacro(def, f, scale, hide)
 
     /* Write position and size information */
 
-    fprintf(f, "   ORIGIN %.6f %.6f ;\n",
+    fprintf(f, IN0 "ORIGIN " POINT " ;\n",
 		-lc.oscale * (float)boundary.r_xbot,
 		-lc.oscale * (float)boundary.r_ybot);
 
-    fprintf(f, "   SIZE %.6f BY %.6f ;\n",
+    fprintf(f, IN0 "SIZE " FP " BY " FP " ;\n",
 		lc.oscale * (float)(boundary.r_xtop - boundary.r_xbot),
 		lc.oscale * (float)(boundary.r_ytop - boundary.r_ybot));
 
@@ -960,11 +967,11 @@ lefWriteMacro(def, f, scale, hide)
 
     propvalue = (char *)DBPropGet(def, "LEFsymmetry", &propfound);
     if (propfound)
-	fprintf(f, "   SYMMETRY %s ;\n", propvalue);
+	fprintf(f, IN0 "SYMMETRY %s ;\n", propvalue);
 
     propvalue = (char *)DBPropGet(def, "LEFsite", &propfound);
     if (propfound)
-	fprintf(f, "   SITE %s ;\n", propvalue);
+	fprintf(f, IN0 "SITE %s ;\n", propvalue);
 
     /* Generate cell for yanking obstructions */
 
@@ -1136,10 +1143,10 @@ lefWriteMacro(def, f, scale, hide)
 		    if (ispwrrail == FALSE)
 		    {
 			if (antgatearea > 0)
-			    fprintf(f, "      ANTENNAGATEAREA %.6f ;\n",
+			    fprintf(f, IN1 "ANTENNAGATEAREA " FP " ;\n",
 				    lc.oscale * lc.oscale * (float)antgatearea);
 			if (antdiffarea > 0)
-			    fprintf(f, "      ANTENNADIFFAREA %.6f ;\n",
+			    fprintf(f, IN1 "ANTENNADIFFAREA " FP " ;\n",
 				    lc.oscale * lc.oscale * (float)antdiffarea);
 		    }
 		    lc.needHeader = FALSE;
@@ -1161,13 +1168,13 @@ lefWriteMacro(def, f, scale, hide)
 			    break;
 
 	    if (lc.numWrites > 0)
-		fprintf(f, "      END\n");	/* end of port geometries */
+		fprintf(f, IN1 "END\n");	/* end of port geometries */
 	    lc.numWrites = 0;
 	}
 
 	LEFtext = MakeLegalLEFSyntax(reflab->lab_text);
 	if (lc.needHeader == FALSE)
-	    fprintf(f, "   END %s\n", reflab->lab_text);	/* end of pin */
+	    fprintf(f, IN0 "END %s\n", reflab->lab_text);	/* end of pin */
 	if (LEFtext != reflab->lab_text) freeMagic(LEFtext);
 
 	if (maxport >= 0)
@@ -1279,7 +1286,7 @@ lefWriteMacro(def, f, scale, hide)
     }
 
     if (lc.numWrites > 0)
-	fprintf(f, "   END\n");	/* end of obstruction geometries */
+	fprintf(f, IN0 "END\n");	/* end of obstruction geometries */
 
     fprintf(f, "END %s\n", def->cd_name);	/* end of macro */
 
