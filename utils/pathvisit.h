@@ -16,7 +16,7 @@
  * This file defines the PaVisit structure used by pathvisit.c.
  */
 
-/* rcsid "$Header: /usr/cvsroot/magic-8.0/utils/pathvisit.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $" */
+/* rcsid "$Header$" */
 
 #ifndef	_PATHVISIT_H
 #define	_PATHVISIT_H

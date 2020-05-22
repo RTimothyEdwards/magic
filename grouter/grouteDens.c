@@ -17,7 +17,7 @@
  */
 
 #ifndef	lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/grouter/grouteDens.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
+static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #endif	/* lint */
 
 #include <stdio.h>

@@ -18,7 +18,7 @@
  *     *********************************************************************
  */
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header:";
+static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #endif  /* not lint */
 
 #include <stdio.h>

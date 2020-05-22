@@ -1,5 +1,5 @@
 #
-# rcsid $Header: /usr/cvsroot/magic-8.0/Makefile,v 1.1.1.1 2008/02/03 20:43:49 tim Exp $
+# rcsid $Header$
 #
 
 MAGICDIR   = .

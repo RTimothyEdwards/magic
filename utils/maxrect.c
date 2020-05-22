@@ -1,6 +1,6 @@
 
 #ifndef	lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/utils/maxrect.c,v 1.4 2010/09/24 19:53:20 tim Exp $";
+static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #endif	
 
 #include <sys/types.h>

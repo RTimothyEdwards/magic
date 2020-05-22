@@ -20,7 +20,7 @@
  */
 
 #ifndef	lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/drc/DRCbasic.c,v 1.7 2010/09/20 21:13:22 tim Exp $";
+static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #endif	/* not lint */
 
 #include <sys/types.h>

@@ -16,7 +16,7 @@
  *     *********************************************************************
  *
  *
- * RCSID $Header: /usr/cvsroot/magic-8.0/utils/netlist.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
+ * RCSID $Header$
  */
 
 #ifndef _RMNETLIST_H
