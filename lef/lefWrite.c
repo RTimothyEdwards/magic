@@ -1,19 +1,19 @@
 /*
- * lefWrite.c --      
+ * lefWrite.c --
  *
  * This module incorporates the LEF/DEF format for standard-cell place and
  * route.
  *
  * Version 0.1 (May 1, 2003):  LEF output for cells, to include pointer to
  * GDS, automatic generation of GDS if not already made, bounding box export,
- * port export, export of irouter "fence", "magnet", and "rotate" layers    
+ * port export, export of irouter "fence", "magnet", and "rotate" layers
  * for defining router hints, and generating areas for obstructions and
  * pin layers.
  *
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/lefWrite.c,v 1.3 2010/06/24 12:37:18 tim Exp $";            
+static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/lefWrite.c,v 1.3 2010/06/24 12:37:18 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -97,7 +97,7 @@ lefFileOpen(def, file, suffix, mode, prealfile)
     int len;
     FILE *rfile;
 
-    if (file) 
+    if (file)
 	name = file;
     else if (def && def->cd_file)
 	name = def->cd_file;
@@ -141,7 +141,7 @@ lefFileOpen(def, file, suffix, mode, prealfile)
     if ((rfile = PaOpen(name, mode, locsuffix, Path, CellLibPath, prealfile)) != NULL)
 	return rfile;
 
-    if (def) 
+    if (def)
     {
 	if (name == def->cd_name) return NULL;
 	name = def->cd_name;
@@ -226,7 +226,7 @@ lefWriteHeader(def, f, lefTech)
 	        if (lefl->refCnt > 1) lefl->refCnt = -lefl->refCnt;
 
 		/* Ignore obstruction-only layers */
-		if (lefl->type == -1) continue;	
+		if (lefl->type == -1) continue;
 
 		/* Ignore VIA types, report only CUT types here */
 		else if ((lefl->lefClass == CLASS_VIA)
@@ -650,11 +650,11 @@ MakeLegalLEFSyntax(text)
     if (*cptr == '\0' && *bptr == '\0')
 	return text;
 
-    rstr = StrDup((char **)NULL, text); 
-    
+    rstr = StrDup((char **)NULL, text);
+
     for (cptr = rstr; *cptr != '\0'; cptr++)
 	for (bptr = badLEFchars; bptr != '\0'; bptr++)
-	    if (*cptr == *bptr) 
+	    if (*cptr == *bptr)
 	    {
 		*cptr = '_';
 		break;
@@ -662,7 +662,7 @@ MakeLegalLEFSyntax(text)
 
     return rstr;
 }
-	    
+
 /* Linked list structure for holding PIN PORT geometry areas */
 
 typedef struct _labelLinkedList {
@@ -824,7 +824,7 @@ lefWriteMacro(def, f, scale, hide)
     lefFlatUse.cu_expandMask = CU_DESCEND_SPECIAL;
     lefFlatUse.cu_def = lefFlatDef;
     DBSetTrans(&lefFlatUse, &GeoIdentityTransform);
-    
+
     lefSourceUse.cu_id = StrDup((char **)NULL, "Source cell");
     lefSourceUse.cu_expandMask = CU_DESCEND_ALL;
     lefSourceUse.cu_def = def;
@@ -895,7 +895,7 @@ lefWriteMacro(def, f, scale, hide)
 
     /* Macro header information (to be completed) */
 
-    fprintf(f, "MACRO %s\n", def->cd_name); 
+    fprintf(f, "MACRO %s\n", def->cd_name);
 
     /* LEF data is stored in the "cd_props" hash table.  If the hash	*/
     /* table is NULL or a specific property undefined, then the LEF	*/
@@ -931,7 +931,7 @@ lefWriteMacro(def, f, scale, hide)
     {
 	boundary.r_xbot = boundary.r_xtop = 0;
 	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-	    DBSrPaintArea((Tile *)NULL, lefFlatUse.cu_def->cd_planes[pNum], 
+	    DBSrPaintArea((Tile *)NULL, lefFlatUse.cu_def->cd_planes[pNum],
 			&TiPlaneRect, &boundmask, lefGetBound,
 			(ClientData)(&boundary));
     }
@@ -1106,7 +1106,7 @@ lefWriteMacro(def, f, scale, hide)
 	    antgatearea = 0;
 	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	    {
-		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
 			    &TiPlaneRect, &gatetypemask,
 			    lefAccumulateArea, (ClientData) &antgatearea);
 	    }
@@ -1114,7 +1114,7 @@ lefWriteMacro(def, f, scale, hide)
 	    antdiffarea = 0;
 	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	    {
-		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
 			    &TiPlaneRect, &difftypemask,
 			    lefAccumulateArea, (ClientData) &antdiffarea);
 	    }
@@ -1128,11 +1128,11 @@ lefWriteMacro(def, f, scale, hide)
 	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	    {
 		lc.pNum = pNum;
-		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
 			lefYankGeometry, (ClientData) &lc);
 
-		while (DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum], 
+		while (DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
 	    		&TiPlaneRect, &lc.rmask,
 	    		lefWriteGeometry, (ClientData) &lc) == 1)
 		{
@@ -1152,7 +1152,7 @@ lefWriteMacro(def, f, scale, hide)
 		    lc.needHeader = FALSE;
 		}
 
-		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
+		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
 			lefEraseGeometry, (ClientData) &lc);
 	    }
@@ -1236,7 +1236,7 @@ lefWriteMacro(def, f, scale, hide)
 		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 		    if (TTMaskHasType(&DBPlaneTypes[pNum], ttype))
 		    {
-			DBSrPaintArea((Tile *)NULL, lefFlatUse.cu_def->cd_planes[pNum], 
+			DBSrPaintArea((Tile *)NULL, lefFlatUse.cu_def->cd_planes[pNum],
 				&TiPlaneRect, &DBAllButSpaceAndDRCBits,
 				lefGetBound, (ClientData)(&layerBound));
 		    }
@@ -1270,7 +1270,7 @@ lefWriteMacro(def, f, scale, hide)
 	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	{
 	    lc.pNum = pNum;
-	    DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum], 
+	    DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum],
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
 			lefYankGeometry, (ClientData) &lc);
 	}
@@ -1280,7 +1280,7 @@ lefWriteMacro(def, f, scale, hide)
 
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
-	DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum], 
+	DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
 		&TiPlaneRect, &lc.rmask,
 		lefWriteGeometry, (ClientData) &lc);
     }
@@ -1387,14 +1387,14 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
     fclose(f);
     StackFree(lefDefStack);
 }
- 
+
 /*
  * Function to initialize the client data field of all
  * cell defs, in preparation for generating LEF output
  * for a subtree rooted at a particular def.
  */
 
-int 
+int
 lefDefInitFunc(def)
     CellDef *def;
 {
@@ -1411,7 +1411,7 @@ lefDefInitFunc(def)
 int
 lefDefPushFunc(use, recurse)
     CellUse *use;
-    bool *recurse; 
+    bool *recurse;
 {
     CellDef *def = use->cu_def;
 
