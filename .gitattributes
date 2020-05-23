@@ -1,0 +1,8 @@
+*.c		filter=header
+*.h		filter=header
+*.cpp		filter=header
+*.tcl		filter=header
+*.scm		filter=header
+Makefile	filter=header
+
+*.gds		diff=gds

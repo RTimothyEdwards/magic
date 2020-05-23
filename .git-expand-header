@@ -1,0 +1,14 @@
+#! /usr/bin/env bash
+
+FILE="$(basename $1)"
+GIT_DATE="$(git log -n1 --pretty=%ai -- $1)"
+GIT_AUTHOR="$(git log -n1 --pretty=%ae -- $1)"
+GIT_HASH="$(git log -n1 --pretty=%h -- $1)"
+GIT_REV="$(git describe --long --always ${GIT_HASH})"
+
+sed \
+	-e"s@\\\$Date\\\$@\\\$Date: ${GIT_DATE}\\\$@" \
+	-e"s|\\\$Author\\\$|\\\$Author: ${GIT_AUTHOR}\\\$|" \
+	-e"s@\\\$Id\\\$@\\\$Id: ${GIT_REV}\\\$@" \
+	-e"s@\\\$Revision\\\$@\\\$Revision: ${GIT_REV}\\\$@" \
+	-e"s|\\\$Header\\\$|\\\$Header: ${FILE} ${GIT_REV} ${GIT_DATE} ${GIT_AUTHOR} \\\$|"

@@ -131,7 +131,16 @@ TAGS:
 	${RM} TAGS
 	find . ${MODULES} ${PROGRAMS} -name "*.[ch]" -maxdepth 1 | xargs etags -o TAGS
 
+<<<<<<< HEAD
 fix-trailing-whitespace:
 	find -name "*.[ch]" | xargs sed -i -e's/\s\+$$//'
 	find -name "*.cpp"  | xargs sed -i -e's/\s\+$$//'
 	find -name "*.tcl"  | xargs sed -i -e's/\s\+$$//'
+=======
+setup-git:
+	git config --local include.path ../.gitconfig
+	git stash save
+	rm .git/index
+	git checkout HEAD -- "$$(git rev-parse --show-toplevel)"
+	git stash pop
+>>>>>>> Adding git expanding command.
