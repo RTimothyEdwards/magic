@@ -1,6 +1,6 @@
-%!PS-AdobeFont-1.0: FreeSans $Revision: 1.1.1.1 $
+%!PS-AdobeFont-1.0: FreeSans $Revision$
 %%Title: FreeSans
-%Version: $Revision: 1.1.1.1 $
+%Version: $Revision$
 %%CreationDate: Fri Feb  1 11:56:16 2008
 %%Creator: R. Timothy Edwards
 %Copyright: Copyleft 2002, 2003, 2005 Free Software Foundation.
@@ -16,7 +16,7 @@
 /XUID [1021 202 645001535 9000585] def
 /PaintType 0 def
 /FontInfo 10 dict dup begin
- /version ($Revision: 1.1.1.1 $) readonly def
+ /version ($Revision$) readonly def
  /Notice (Copyleft 2002, 2003, 2005 Free Software Foundation.) readonly def
  /FullName (Free Sans) readonly def
  /FamilyName (FreeSans) readonly def
