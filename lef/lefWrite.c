@@ -1102,6 +1102,9 @@ lefWriteMacro(def, f, scale, hide)
 		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
 			    &TiPlaneRect, &gatetypemask,
 			    lefAccumulateArea, (ClientData) &antgatearea);
+		// Stop after first plane with geometry to avoid double-counting
+		// contacts.
+		if (antgatearea > 0) break;
 	    }
 
 	    antdiffarea = 0;
@@ -1110,6 +1113,9 @@ lefWriteMacro(def, f, scale, hide)
 		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum], 
 			    &TiPlaneRect, &difftypemask,
 			    lefAccumulateArea, (ClientData) &antdiffarea);
+		// Stop after first plane with geometry to avoid double-counting
+		// contacts.
+		if (antdiffarea > 0) break;
 	    }
 
 	    // For all geometry in the selection, write LEF records,
