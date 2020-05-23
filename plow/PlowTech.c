@@ -5,16 +5,16 @@
  * Read the "drc" section of the technology file and construct the
  * design rules used by plowing.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -125,7 +125,7 @@ PlowDRCInit()
 	{
 	    for (pr = plowWidthRulesTbl[i][j]; pr; pr = pr->pr_next)
 		freeMagic((char *)pr);
-		
+
 	    for (pr = plowSpacingRulesTbl[i][j]; pr; pr = pr->pr_next)
 		freeMagic((char *)pr);
 
@@ -134,7 +134,7 @@ PlowDRCInit()
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -199,7 +199,7 @@ PlowDRCLine(sectionName, argc, argv)
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -274,7 +274,7 @@ plowWidthRule(argc, argv)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -409,7 +409,7 @@ plowSpacingRule(argc, argv)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -603,7 +603,7 @@ plowEdgeRule(argc, argv)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -733,7 +733,7 @@ next:	;
 
     return (ruleList);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -762,7 +762,7 @@ PlowTechInit()
     PlowDragTypes = DBZeroTypeBits;
 
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -840,7 +840,7 @@ PlowTechLine(sectionName, argc, argv)
     }
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -874,7 +874,7 @@ PlowTechFinal()
 
 /*
  * ----------------------------------------------------------------------------
- * 
+ *
  * plowScaleUp ---
  *
  * Scale all plow distances according to the current DRC scale factor.
@@ -898,7 +898,7 @@ void plowScaleUp(PlowRule *pr, int scalefactor)
 
 /*
  * ----------------------------------------------------------------------------
- * 
+ *
  * plowScaleDown ---
  *
  * Scale all plow distances according to the current DRC scale factor.
@@ -962,7 +962,7 @@ DRCPlowScale(int scaled, int scalen, bool adjustmax)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *

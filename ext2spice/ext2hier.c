@@ -85,7 +85,7 @@ ESGenerateHierarchy(inName, flags)
     EFHierSrDefs(&hc, NULL, NULL);	/* Clear processed */
 
     dfd.def = u.use_def;
-    dfd.flags = flags; 
+    dfd.flags = flags;
     EFHierSrDefs(&hc, esHierVisit, (ClientData)(&dfd));
     EFHierSrDefs(&hc, NULL, NULL);	/* Clear processed */
 
@@ -187,7 +187,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				plist->parm_type[1])
 		    {
 			spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_name, 
+				scale, plist->parm_name,
 				plist->parm_next->parm_name, sdM,
 				esSpiceF, w);
 			plist = plist->parm_next;
@@ -233,7 +233,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				plist->parm_type[1])
 		    {
 			spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_next->parm_name, 
+				scale, plist->parm_next->parm_name,
 				plist->parm_name, sdM, esSpiceF, w);
 			plist = plist->parm_next;
 		    }
@@ -342,7 +342,7 @@ esOutputHierResistor(hc, dev, scale, term1, term2, has_model, l, w, dscale)
     int dscale;			/* Device scaling (for split resistors) */
 {
     Rect r;
-    float sdM ; 
+    float sdM ;
     char name[12], devchar;
 
     /* Resistor is "Rnnn term1 term2 value" 		 */
@@ -372,7 +372,7 @@ esOutputHierResistor(hc, dev, scale, term1, term2, has_model, l, w, dscale)
     {
 	fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
-	if (esScale < 0) 
+	if (esScale < 0)
 	{
 	    fprintf(esSpiceF, " w=%d l=%d", (int)((float)w * scale),
 			(int)(((float)l * scale) / (float)dscale));
@@ -411,7 +411,7 @@ subcktHierVisit(use, hierName, is_top)
     /* subcircuits have at least one port marked by the EF_PORT flag.	*/
     /* Do not count the substrate port, as it exists even on cells	*/
     /* with no other ports.						*/
- 
+
     for (snode = (EFNode *) def->def_firstn.efnode_next;
 		snode != &def->def_firstn;
 		snode = (EFNode *) snode->efnode_next)
@@ -456,13 +456,13 @@ subcktHierVisit(use, hierName, is_top)
  * Format of a .spice dev line:
  *
  *	M%d drain gate source substrate type w=w l=l * x y
- *      + ad= pd= as= ps=  * asub= psub=  
- *      **devattr g= s= d= 
+ *      + ad= pd= as= ps=  * asub= psub=
+ *      **devattr g= s= d=
  *
  * where
  *	type is a name identifying this type of transistor
  *      other types of transistors are extracted with
- *      an M card but it should be easy to turn them to whatever 
+ *      an M card but it should be easy to turn them to whatever
  *      you want.
  *	gate, source, and drain are the nodes to which these three
  *		terminals connect
@@ -486,12 +486,12 @@ spcdevHierVisit(hc, dev, scale)
     int l, w, i, parmval;
     Rect r;
     bool subAP= FALSE, hierS, hierD, extHierSDAttr() ;
-    float sdM; 
+    float sdM;
     char devchar;
     bool has_model = TRUE;
 
     /* If no terminals, or only a gate, can't do much of anything */
-    if (dev->dev_nterm <= 1 ) 
+    if (dev->dev_nterm <= 1 )
 	return 0;
 
     if ( (esMergeDevsA || esMergeDevsC) && devIsKilled(esFMIndex++) )
@@ -645,7 +645,7 @@ spcdevHierVisit(hc, dev, scale)
 	    /* extraction sets collector=subnode, emitter=gate, base=drain	*/
 
 	    spcdevOutNode(hc->hc_hierName, subnode->efnode_name->efnn_hier,
-			"collector", esSpiceF); 
+			"collector", esSpiceF);
 	    spcdevOutNode(hc->hc_hierName, gate->dterm_node->efnode_name->efnn_hier,
 			"emitter", esSpiceF);
 
@@ -950,11 +950,11 @@ spcdevHierVisit(hc, dev, scale)
 		fprintf(esSpiceF, " M=%g", sdM);
 
 	    /*
-	     * Check controlling attributes and output area and perimeter. 
+	     * Check controlling attributes and output area and perimeter.
 	     */
 	    hierS = extHierSDAttr(source);
 	    hierD = extHierSDAttr(drain);
-	    if ( gate->dterm_attrs ) 
+	    if ( gate->dterm_attrs )
 		subAP = Match(ATTR_SUBSAP, gate->dterm_attrs ) ;
 
 	    fprintf(esSpiceF, "\n+ ");
@@ -973,8 +973,8 @@ spcdevHierVisit(hc, dev, scale)
 				dev->dev_type);
 		    fprintf(esSpiceF, "asub=0 psub=0");
 		}
-		else if (subnodeFlat) 
-		    spcnAP(subnodeFlat, esFetInfo[dev->dev_type].resClassSub, scale, 
+		else if (subnodeFlat)
+		    spcnAP(subnodeFlat, esFetInfo[dev->dev_type].resClassSub, scale,
 	       			"asub", "psub", sdM, esSpiceF, -1);
 		else
 		    fprintf(esSpiceF, "asub=0 psub=0");
@@ -987,9 +987,9 @@ spcdevHierVisit(hc, dev, scale)
 		    fprintf(esSpiceF,"\n**devattr");
 		if (gate->dterm_attrs)
 		    fprintf(esSpiceF, " g=%s", gate->dterm_attrs);
-		if (source->dterm_attrs) 
+		if (source->dterm_attrs)
 		    fprintf(esSpiceF, " s=%s", source->dterm_attrs);
-		if (drain->dterm_attrs) 
+		if (drain->dterm_attrs)
 		    fprintf(esSpiceF, " d=%s", drain->dterm_attrs);
 	    }
 	    break;
@@ -1038,7 +1038,7 @@ spcdevHierMergeVisit(hc, dev, scale)
 
     fp = mkDevMerge((float)((float)l * scale), (float)((float)w * scale),
 		gnode, snode, dnode, subnode, hc->hc_hierName, dev);
-		
+
     for (cfp = devMergeList; cfp != NULL; cfp = cfp->next)
     {
 	if ((pmode = parallelDevs(fp, cfp)) != NOT_PARALLEL)
@@ -1086,7 +1086,7 @@ spcdevHierMergeVisit(hc, dev, scale)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1128,7 +1128,7 @@ spccapHierVisit(hc, hierName1, hierName2, cap)
                 nodeSpiceHierName(hc, hierName2), cap);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1209,7 +1209,7 @@ spcsubHierVisit(hc, node, res, cap, resstrptr)
  *
  * spcnodeHierVisit --
  *
- * Procedure to output a single node to the .spice file along with its 
+ * Procedure to output a single node to the .spice file along with its
  * attributes and its dictionary (if present). Called by EFHierVisitNodes().
  *
  * Results:
@@ -1225,7 +1225,7 @@ int
 spcnodeHierVisit(hc, node, res, cap)
     HierContext *hc;
     EFNode *node;
-    int res; 
+    int res;
     double cap;
 {
     EFNodeName *nn;
@@ -1241,7 +1241,7 @@ spcnodeHierVisit(hc, node, res, cap)
         	((((nodeClient *)node->efnode_client)->m_w.visitMask
 		& DEV_CONNECT_MASK) != 0);
     }
-    if (!isConnected && esDevNodesOnly) 
+    if (!isConnected && esDevNodesOnly)
 	return 0;
 
     /* Don't mark known ports as "FLOATING" nodes */
@@ -1326,14 +1326,14 @@ char *nodeSpiceHierName(hc, hname)
     else goto retName;
 
 makeName:
-    if (esFormat == SPICE2) 
+    if (esFormat == SPICE2)
 	sprintf(esTempName, "%d", esNodeNum++);
     else {
        EFHNSprintf(esTempName, node->efnode_name->efnn_hier);
        if (esFormat == HSPICE) /* more processing */
 	  nodeHspiceName(esTempName);
     }
-    ((nodeClient *) (node->efnode_client))->spiceNodeName = 
+    ((nodeClient *) (node->efnode_client))->spiceNodeName =
 	    StrDup(NULL, esTempName);
 
 retName:
@@ -1391,7 +1391,7 @@ devMergeHierVisit(hc, dev, scale)
     dnode = GetHierNode(hc, drain->dterm_node->efnode_name->efnn_hier);
     if (dev->dev_subsnode)
 	subnode = spcdevSubstrate(hc->hc_hierName,
-			dev->dev_subsnode->efnode_name->efnn_hier, 
+			dev->dev_subsnode->efnode_name->efnn_hier,
 			dev->dev_type, NULL);
     else
 	subnode = NULL;
@@ -1405,12 +1405,12 @@ devMergeHierVisit(hc, dev, scale)
     hD = extHierSDAttr(drain);
 
     /*
-     * run the list of devs. compare the current one with 
+     * run the list of devs. compare the current one with
      * each one in the list. if they fullfill the matching requirements
      * merge them only if:
      * 1) they have both apf S, D attributes
-     * or 
-     * 2) one of them has aph S, D attributes and they have the same 
+     * or
+     * 2) one of them has aph S, D attributes and they have the same
      *    hierarchical prefix
      * If one of them has apf and the other aph print a warning.
      */
@@ -1424,9 +1424,9 @@ devMergeHierVisit(hc, dev, scale)
 	    cs = cd = &cfp->dev->dev_terms[1];
 	    if (cfp->dev->dev_nterm >= 3)
 	    {
-		if (pmode == PARALLEL) 
+		if (pmode == PARALLEL)
 		    cd = &cfp->dev->dev_terms[2];
-		    else if (pmode == ANTIPARALLEL) 
+		    else if (pmode == ANTIPARALLEL)
 			cs = &cfp->dev->dev_terms[2];
 	    }
 
@@ -1470,7 +1470,7 @@ mergeThem:
 				((fp->l  * fp->w) / (cfp->l * cfp->w));
 		    break;
 	    }
-	    setDevMult(fp->esFMIndex, DEV_KILLED); 
+	    setDevMult(fp->esFMIndex, DEV_KILLED);
 	    setDevMult(cfp->esFMIndex, m);
 	    esSpiceDevsMerged++;
 	    /* Need to do attribute stuff here */
@@ -1500,7 +1500,7 @@ mergeThem:
  * ----------------------------------------------------------------------------
  */
 
-int 
+int
 devDistJunctHierVisit(hc, dev, scale)
     HierContext *hc;
     Dev *dev;			/* Dev to examine */
@@ -1573,7 +1573,7 @@ esMakePorts(hc, cdata)
 		int idum[6];
 		bool is_array;
 
-		/* Ignore array information for the purpose of tracing	*/	
+		/* Ignore array information for the purpose of tracing	*/
 		/* the cell definition hierarchy.  If a cell use name	*/
 		/* contains a bracket, check first if the complete name	*/
 		/* matches a use.  If not, then check if the part	*/
@@ -1665,12 +1665,12 @@ esMakePorts(hc, cdata)
 		int idum[6];
 		bool is_array;
 
-		/* Ignore array information for the purpose of tracing	*/	
+		/* Ignore array information for the purpose of tracing	*/
 		/* the cell definition hierarchy.			*/
 
 		aptr = strchr(portname, '[');
 		if (aptr && (aptr < tptr) &&
-			(sscanf(aptr, "[%d:%d:%d][%d:%d:%d]", 
+			(sscanf(aptr, "[%d:%d:%d][%d:%d:%d]",
 			&idum[0], &idum[1], &idum[2],
 			&idum[3], &idum[4], &idum[5]) == 6))
 		{
@@ -1796,7 +1796,7 @@ esHierVisit(hc, cdata)
 		if (def != topdef) return 0;
 	    }
 	}
-    } 
+    }
 
     /* Flatten this definition only */
     hcf = EFFlatBuildOneLevel(hc->hc_use->use_def, flags);

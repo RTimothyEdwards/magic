@@ -6,16 +6,16 @@
  * The head of the queue grows towards lower addresses, and the tail grows
  * up.  The array is treated like a cirular ring of size dq_maxSize.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid "$Header: /usr/cvsroot/magic-8.0/utils/dqueue.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $"
@@ -27,7 +27,7 @@
 
 #include "utils/magic.h"
 
-/* The dqueue structure, to be manipulated only by the 
+/* The dqueue structure, to be manipulated only by the
  * procedures declared in this file.
  */
 typedef struct {

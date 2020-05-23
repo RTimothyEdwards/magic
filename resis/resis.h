@@ -19,15 +19,15 @@ typedef struct contactpoint
      Point  			cp_center;     	/*Center of contact   */
      Rect			cp_rect;	/* Tile rectangle     */
      Tile			*cp_contactTile;
-     						/* 
-						   The following two keep 
+     						/*
+						   The following two keep
 						   track of the tiles where
 						   the contact was before
 						   preprocessing, and the
 						   next contact in that tile's
 						   area.
 						*/
-						    
+
      Tile                       *cp_tile[LAYERS_PER_CONTACT];
      int			cp_currentcontact; /* keeps track of tile
       						   being processed
@@ -44,11 +44,11 @@ typedef struct contactpoint
 typedef struct resistor
 {
      struct resistor    *rr_nextResistor; /*  Doubly linked list pointers */
-     struct resistor    *rr_lastResistor;  
+     struct resistor    *rr_lastResistor;
      struct resnode  	*rr_node[2];
      float		rr_value;	  /* Resistor's value in milliohms  */
      int		rr_status;	  /* Status bit used for processing */
-     union 
+     union
      {
          float		rr_area;	  /* area in resistor. Used to 	  */
      					  /* distribute capacitance	  */
@@ -98,7 +98,7 @@ typedef struct device
 #endif
 } resDevice;
 
-/* 
+/*
   a junction is formed when two tiles that connect are next to one another.
 */
 
@@ -124,9 +124,9 @@ typedef struct resport
      char 	    *rp_nodename;
 } resPort;
 
-/* 
+/*
   ?element are 'cons' cells used to make linked lists of their referential
-  structures.  
+  structures.
 */
 
 typedef struct reselement
@@ -160,7 +160,7 @@ typedef struct celement
      ResContactPoint	*ce_thisc;
 } cElement;
 
-/* 
+/*
    Nodes formed from network.  These are linked both forwards and backwords
    to other nodes.  Lists of devices, resistors, junctions, and contacts
    corresponding to this node are kept.
@@ -201,7 +201,7 @@ typedef struct nelement
      resNode	      *ne_thisEl;
 } nElement;
 
-/* 
+/*
    Breakpoints are places on a tile which may serve as sources/sinks of
    current. When resistance is calculated for a tile. this is calculated
    between these points.
@@ -215,7 +215,7 @@ typedef struct breakpoint
      Rect		*br_crect;
 } Breakpoint;
 
-/* 
+/*
   Each tile needs to keep track of the following things associated with it.
   Since there are too many things to fit in the single ti_client field,
   this 1 to 6 adaptor is used.
@@ -251,15 +251,15 @@ typedef struct resdevtile
      int		overlap;
 } ResDevTile;
 
-/*  
+/*
     Goodies contains random stuff passed between the node extractor
-    and ResCheckSimNodes. The location of a start tile and the resistive 
-    tolerance are passed down, while the derived network is passed back. 
+    and ResCheckSimNodes. The location of a start tile and the resistive
+    tolerance are passed down, while the derived network is passed back.
 */
 
 typedef struct goodstuff
 {
-     TileType	rg_ttype;	
+     TileType	rg_ttype;
      float	rg_maxres;
      float	rg_nodecap;
      float	rg_Tdi;
@@ -335,7 +335,7 @@ typedef struct ressimnode
      char		*oldname;	/* Pointer to previous name of    */
      					/* node, if it exists		  */
      tElement		*rs_sublist[2]; /* pointers to Gnd and Vdd sub	  */
-     					/* strate connections, 
+     					/* strate connections,
 							if they exist  	  */
 } ResSimNode;
 
@@ -394,7 +394,7 @@ typedef struct resfixpoint    /* Keeps track of where voltage sources are */
      int			fp_status;
      Tile			*fp_tile;
      resNode			*fp_node;
-     char			fp_name[1];	
+     char			fp_name[1];
 } ResFixPoint;
 
 typedef struct	clump
@@ -406,7 +406,7 @@ typedef struct	clump
      rElement  *rp_singlelist;
 } ResClump;
 
-/* the first two fields of this plug must be the the same as for 
+/* the first two fields of this plug must be the the same as for
 	resDevice
 */
 typedef struct plug
@@ -467,7 +467,7 @@ typedef struct capval
 /*a temporary marking flag 				*/
 #define RES_TILE_MARK	0x8
 /* indicates that tile has unidirectional current flow */
-#ifdef LAPLACE	
+#ifdef LAPLACE
 #define RES_TILE_1D	0x10
 #define RES_TILE_GDONE	0x20
 #endif
@@ -584,7 +584,7 @@ extern HashTable 		ResPlugTable;
 extern CellUse 			*ResUse;
 extern CellDef 			*ResDef;
 extern TileTypeBitMask 		ResConnectWithSD[NT];
-extern TileTypeBitMask		ResCopyMask[NT]; 
+extern TileTypeBitMask		ResCopyMask[NT];
 extern resResistor 		*ResResList;
 extern resNode     		*ResNodeList;
 extern resDevice 		*ResDevList;

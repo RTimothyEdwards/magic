@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- *  lispargs.h -- 
+ *  lispargs.h --
  *
  *   Macros for looking at various entries in a list.
  *

@@ -6,16 +6,16 @@
  * and to array extraction.
  * The procedures in this file are not re-entrant.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -59,7 +59,7 @@ int extHierConnectFunc1();
 int extHierConnectFunc2();
 int extHierConnectFunc3();
 Node *extHierNewNode();
-
+
 
 /*----------------------------------------------*/
 /* extHierSubstrate				*/
@@ -254,7 +254,7 @@ extHierConnectFunc1(oneTile, ha)
 	rtype = ha->hierType;
 	ha->hierType = (rtype & TT_SIDE) ? SplitRightType(oneTile) :
 		SplitLeftType(oneTile);
-    }  
+    }
 
     connected = &(ExtCurStyle->exts_nodeConn[ha->hierType]);
     TITORECT(oneTile, &r);
@@ -343,7 +343,7 @@ extHierConnectFunc1(oneTile, ha)
 				- sizeof lab->lab_text + 1;
 		    newlab = (Label *)mallocMagic((unsigned)n);
 		    bcopy((char *)lab, (char *)newlab, (int)n);
-		
+
 		    newlab->lab_next = ha->ha_parentUse->cu_def->cd_labels;
 		    ha->ha_parentUse->cu_def->cd_labels = newlab;
 		}
@@ -467,7 +467,7 @@ extHierConnectFunc3(cum, ha)
     NodeName *nn;
     char *name;
     Rect r;
-    Label *lab = (Label *)(ha->hierOneTile);	/* Lazy recasting */	
+    Label *lab = (Label *)(ha->hierOneTile);	/* Lazy recasting */
 
     /* Compute the overlap area */
     r.r_xbot = MAX(lab->lab_rect.r_xbot, LEFT(cum));
@@ -643,7 +643,7 @@ extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -722,7 +722,7 @@ extOutputConns(table, outf)
 	freeMagic((char *) nfirst);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -767,7 +767,7 @@ extHierNewNode(he)
 
     return (node);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -823,7 +823,7 @@ extHierLabEach(tile, pNum, arg)
     extSetNodeNum(reg, pNum, tile);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -875,7 +875,7 @@ extHierNewOne()
 	HashInit(&et->et_coupleHash, 32, HashSize(sizeof (CoupleKey)));
     return (et);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

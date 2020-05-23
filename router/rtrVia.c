@@ -3,16 +3,16 @@
  *	This file contains procedures that minimize vias and
  *	maximize metal.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -85,7 +85,7 @@ int	rtrExamineStack();		/* Examines the tile stack for
 					   replacement segments to be converted
 					   to the target material */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -125,7 +125,7 @@ rtrFollowLocFunc(rect, name, label, area)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -161,7 +161,7 @@ rtrFollowName(name, firstInNet, area)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -200,7 +200,7 @@ rtrCheckTypes(tile, cdata)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -239,7 +239,7 @@ rtrExtend(tile,area,stub)
 	stub->r_ytop = MIN(area->r_ytop, TOP(tile));
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -281,14 +281,14 @@ rtrStubGen(tile, si)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * rtrReferenceTile --
  *	Store a reference tile and corresponding extension stub.
  *	Recursively call DBSrPaintArea to generate extension
- *	stubs intersecting the reference stub.	Each tile 
+ *	stubs intersecting the reference stub.	Each tile
  *	adjacent to the via will in turn be a reference tile.
  *
  * Results:
@@ -313,7 +313,7 @@ rtrReferenceTile(tile, si)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -377,7 +377,7 @@ rtrViaCheck(area, def)
 	    (void) DBSrPaintArea((Tile *)NULL, si.si_plane,
 		    &r, &mask, rtrReferenceTile, (ClientData) &si);
 	}
-	    
+
     /*
      * Erase via and paint extensions.
      */
@@ -392,7 +392,7 @@ rtrViaCheck(area, def)
     rtrVias++;
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -436,7 +436,7 @@ rtrListArea(tile, oldType, newType, deltax, deltay)
     ap->ap_next = rtrAreaList;
     rtrAreaList = ap;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -469,7 +469,7 @@ rtrListVia(tile)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -482,7 +482,7 @@ rtrListVia(tile)
  * Side effects:
  *	On the first pass, segments of poly
  *	are replaced with metal and connecting vias are erased.
- *	On the second pass, segments of metal 
+ *	On the second pass, segments of metal
  *	are replaced with poly and connecting vias are erased.
  *
  * ----------------------------------------------------------------------------
@@ -505,7 +505,7 @@ RtrViaMinimize(def)
      * These segments of poly are replaced with metal
      * and the connecting via's are removed.
      */
-    
+
     rtrVias = 0;
     rtrTarget  = RtrMetalType;
     rtrReplace = RtrPolyType;
@@ -536,7 +536,7 @@ RtrViaMinimize(def)
 	rtrViaCheck(&vp->vp_area, def);
 	freeMagic( (char *)vp);
     }
-    
+
     /*
      * Pass 2 --
      * Repeat the entire process replacing metal with poly.

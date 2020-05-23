@@ -3,16 +3,16 @@
  *
  * Commands with names beginning with the letters A through B.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -44,7 +44,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/netlist.h"
 #include "select/select.h"
 
-
+
 /* ---------------------------------------------------------------------------
  *
  * CmdAddPath --
@@ -80,7 +80,7 @@ CmdAddPath( w, cmd )
     }
     PaAppend(&Path, cmd->tx_argv[1]);
 }
-
+
 
 /* Linked-list structure for returning information about arrayed cells */
 
@@ -173,7 +173,7 @@ CmdArray(w, cmd)
 	}
         if (locargc <= 1)
 	    goto badusage;	/* Prohibits "array -list" alone */
-	
+
 	option = Lookup(cmd->tx_argv[argstart], cmdArrayOption);
 	if (option < 0) {
 	    if (locargc == 3 || locargc == 5)
@@ -186,7 +186,7 @@ CmdArray(w, cmd)
 
     /* Get all information about cell uses in the current selection */
 
-    (void) SelEnumCells(FALSE, (bool *) NULL, (SearchContext *) NULL, 
+    (void) SelEnumCells(FALSE, (bool *) NULL, (SearchContext *) NULL,
 		selGetArrayFunc, (ClientData) &lahead);
 
     /* Note:  All "unimplemented functions" below will require a routine
@@ -240,7 +240,7 @@ CmdArray(w, cmd)
 		goto badusage;
 
 	    if (!StrIsInt(cmd->tx_argv[argstart + 1])
-			|| !StrIsInt(cmd->tx_argv[argstart + 2])) 
+			|| !StrIsInt(cmd->tx_argv[argstart + 2]))
 		goto badusage;
 
 	    if (locargc == 4)
@@ -253,7 +253,7 @@ CmdArray(w, cmd)
 	    }
 	    else if (locargc == 6)
 	    {
-		if (!StrIsInt(cmd->tx_argv[argstart + 3]) || 
+		if (!StrIsInt(cmd->tx_argv[argstart + 3]) ||
 			!StrIsInt(cmd->tx_argv[argstart + 4])) goto badusage;
 		a.ar_xlo = atoi(cmd->tx_argv[argstart + 1]);
 		a.ar_xhi = atoi(cmd->tx_argv[argstart + 2]);
@@ -426,7 +426,7 @@ CmdArray(w, cmd)
 
 	case ARRAY_DEFAULT:
 	    if (!StrIsInt(cmd->tx_argv[argstart])
-			|| !StrIsInt(cmd->tx_argv[argstart + 1])) 
+			|| !StrIsInt(cmd->tx_argv[argstart + 1]))
 		    goto badusage;
 	    if (locargc == 3)
 	    {
@@ -438,7 +438,7 @@ CmdArray(w, cmd)
 	    }
 	    else
 	    {
-		if (!StrIsInt(cmd->tx_argv[argstart + 2]) || 
+		if (!StrIsInt(cmd->tx_argv[argstart + 2]) ||
 			!StrIsInt(cmd->tx_argv[argstart + 3])) goto badusage;
 		a.ar_xlo = atoi(cmd->tx_argv[argstart]);
 		a.ar_xhi = atoi(cmd->tx_argv[argstart + 1]);
@@ -487,7 +487,7 @@ selGetArrayFunc(selUse, use, trans, arg)
    LinkedArray **arg;
 {
     /* Check "use" for array information and pass this to arrayInfo */
-  
+
     LinkedArray *la;
     int xlo, xhi, ylo, yhi, xsep, ysep, t;
 
@@ -510,17 +510,17 @@ selGetArrayFunc(selUse, use, trans, arg)
     la->arrayInfo.ar_xhi = xhi;
     la->arrayInfo.ar_ylo = ylo;
     la->arrayInfo.ar_yhi = yhi;
-    
+
     /* Reverse the transformation in DBMakeArray */
 
     ysep = (trans->t_d * use->cu_xsep - trans->t_a * use->cu_ysep);
     ysep /= (trans->t_d * trans->t_b - trans->t_a * trans->t_e);
- 
+
     if (trans->t_a == 0)
 	xsep = (use->cu_ysep - trans->t_e * ysep) / trans->t_d;
     else
 	xsep = (use->cu_xsep - trans->t_b * ysep) / trans->t_a;
-    
+
     la->arrayInfo.ar_xsep = xsep;
     la->arrayInfo.ar_ysep = ysep;
 
@@ -531,7 +531,7 @@ selGetArrayFunc(selUse, use, trans, arg)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -690,7 +690,7 @@ CmdBox(w, cmd)
 #endif
 	    return;
     }
-    
+
     if (needBox)
     {
 	if (refEdit)

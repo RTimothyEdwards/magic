@@ -4,16 +4,16 @@
  *	particular, it contains the routines to handle paint,
  *	including rectangles, wires, flashes, and polygons.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -37,7 +37,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "cif/CIFint.h"
 #include "cif/CIFread.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -69,7 +69,7 @@ CIFParseBox()
     Point	direction;
     Rect	rectangle, r2;
     int		savescale;
-    
+
     /*	Take the 'B'. */
 
     TAKE();
@@ -122,7 +122,7 @@ CIFParseBox()
 
     rectangle.r_xbot = -rectangle.r_xtop;
     rectangle.r_ybot = -rectangle.r_ytop;
-   
+
     /*	Optional direction vector:  have to build transform to do rotate. */
 
     if (CIFParseSInteger(&direction.p_x))
@@ -147,7 +147,7 @@ CIFParseBox()
     DBPaintPlane(cifReadPlane, &r2, CIFPaintTable, (PaintUndoInfo *) NULL);
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -180,7 +180,7 @@ CIFParseFlash()
     int		savescale;
     Point	center;
     Rect	rectangle;
-    
+
     /* Take the 'R'. */
 
     TAKE();
@@ -570,7 +570,7 @@ PaintPolygon(pointlist, number, plane, ptable, ui, keep)
     LinkedRect	*rectp, *rectlist;
     CIFPath *newpath, *cifpath = (CIFPath *)NULL;
     int i;
-   
+
     for (i = 0; i < number; i++)
     {
 	newpath = (CIFPath *) mallocMagic((unsigned) sizeof (CIFPath));
@@ -625,7 +625,7 @@ PaintWireList(pointlist, number, width, endcap, plane, ptable, ui)
 {
     CIFPath *newpath, *cifpath = (CIFPath *)NULL;
     int i;
-   
+
     for (i = 0; i < number; i++)
     {
 	newpath = (CIFPath *) mallocMagic((unsigned) sizeof (CIFPath));
@@ -637,7 +637,7 @@ PaintWireList(pointlist, number, width, endcap, plane, ptable, ui)
     CIFPaintWirePath(cifpath, width, endcap, plane, ptable, ui);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -698,7 +698,7 @@ CIFParseWire()
     return TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -745,7 +745,7 @@ CIFParseLayer()
     /* Set current plane for use by the routines that parse geometric
      * elements.
      */
-    
+
     type = CIFReadNameToType(name, FALSE);
     if (type < 0)
     {
@@ -761,7 +761,7 @@ CIFParseLayer()
     CIFSkipToSemi();
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -794,7 +794,7 @@ CIFParsePoly()
 	CIFSkipToSemi();
 	return FALSE;
     }
-    if (!CIFParsePath(&pathheadp, 1)) 
+    if (!CIFParsePath(&pathheadp, 1))
     {
 	CIFReadError("polygon, but improper path; ignored.\n");
 	CIFSkipToSemi();

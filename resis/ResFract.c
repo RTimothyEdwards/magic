@@ -1,5 +1,5 @@
 /*
- * ResFract.c 
+ * ResFract.c
  *
  * routines to convert a maximum horizontal rectangles database
  * into one fractured in the manner of Horowitz's '83 Transactions
@@ -36,7 +36,7 @@ Plane	*resFracPlane;
 
 extern void ResCheckConcavity();
 
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -44,8 +44,8 @@ extern void ResCheckConcavity();
  *	one where the split at each concave corner is in the direction
  *	with the least material of the same tiletype.  This is done
  *	using TiSplitX and TiJoinY.  Joins are only done on tiles with
- *	the same time; this implies that contacts should first be erased 
- *	using ResDissolve contacts. 
+ *	the same time; this implies that contacts should first be erased
+ *	using ResDissolve contacts.
  *
  *	We can't use DBSrPaintArea because  the fracturing
  *	routines modify the database.  This is essentially the same routine
@@ -83,16 +83,16 @@ enumerate:
 
 	if ((tt=TiGetType(resSrTile)) != TT_SPACE)
 	{
-	     resTopTile = RT(resSrTile); 
+	     resTopTile = RT(resSrTile);
 	     while (RIGHT(resTopTile) > LEFT(resSrTile))
 	     {
 	     	  TileType ntt = TiGetType(resTopTile);
-		  
+
 		  if (ntt != tt)
 		  {
 		       resTopTile=BL(resTopTile);
 		       continue;
-		  } 
+		  }
 		  /* ok, we may have found a concave corner */
 		  ResCheckConcavity(resSrTile,resTopTile,tt);
 		  if (resTopTile  == NULL) break;
@@ -105,7 +105,7 @@ enumerate:
 		       resTopTile=BL(resTopTile);
 		  }
 	     }
-	     
+
 	}
 
 	tpnew = TR(resSrTile);
@@ -139,7 +139,7 @@ enumerate:
     }
     return (0);
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -240,7 +240,7 @@ ResCheckConcavity(bot,top,tt)
 		 }
      }
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -248,8 +248,8 @@ ResCheckConcavity(bot,top,tt)
  *	for tiles of a given type.
  *
  * Results: returns the coordinate that is the farthest point in the specified
- *	direction that one can walk and still be surrounded by material of 
- *	a given type. 
+ *	direction that one can walk and still be surrounded by material of
+ *	a given type.
  *
  * Side Effects: if func is non-NULL, it is called on each tile intersected
  *	by the path.  (Note that if the path moves along the edge of a tile,
@@ -268,7 +268,7 @@ resWalkup(tile,tt,xpos,ypos,func)
 {
      Point	pt;
      Tile	*tp;
-     
+
      pt.p_x = xpos;
      while (TiGetType(tile) == tt)
      {
@@ -281,7 +281,7 @@ resWalkup(tile,tt,xpos,ypos,func)
 	       	    if (TiGetType(tp) != tt) return(BOTTOM(tp));
 	       }
 	  }
-	  else 
+	  else
 	  {
 	       if (func) tile = (*func)(tile,xpos);
 	  }
@@ -302,7 +302,7 @@ resWalkdown(tile,tt,xpos,ypos,func)
      Point	pt;
      Tile	*tp;
      Tile	*endt;
-     
+
      pt.p_x = xpos;
      while (TiGetType(tile) == tt)
      {
@@ -315,14 +315,14 @@ resWalkdown(tile,tt,xpos,ypos,func)
 	       	    if (TiGetType(tp) != tt)
 		    {
 		    	 if (BOTTOM(tp) < ypos) endt = tp;
-		    } 
+		    }
 	       }
 	       if (endt)
 	       {
 	       	    return TOP(endt);
 	       }
 	  }
-	  else 
+	  else
 	  {
 	       if (func) tile = (*func)(tile,xpos);
 	  }
@@ -342,7 +342,7 @@ resWalkright(tile,tt,xpos,ypos,func)
 {
      Point	pt;
      Tile	*tp;
-     
+
      pt.p_y = ypos;
      while (TiGetType(tile) == tt)
      {
@@ -355,7 +355,7 @@ resWalkright(tile,tt,xpos,ypos,func)
 	       	    if (TiGetType(tp) != tt) return(LEFT(tp));
 	       }
 	  }
-	  else 
+	  else
 	  {
 	       if (func) tile = (*func)(tile,ypos);
 	  }
@@ -376,7 +376,7 @@ resWalkleft(tile,tt,xpos,ypos,func)
      Point	pt;
      Tile	*tp;
      Tile	*endt;
-     
+
      pt.p_y = ypos;
      while (TiGetType(tile) == tt)
      {
@@ -389,14 +389,14 @@ resWalkleft(tile,tt,xpos,ypos,func)
 	       	    if (TiGetType(tp) != tt)
 		    {
 		    	 if (LEFT(tp) < xpos) endt = tp;
-		    } 
+		    }
 	       }
 	       if (endt)
 	       {
 	       	    return RIGHT(endt);
 	       }
 	  }
-	  else 
+	  else
 	  {
 	       if (func) tile = (*func)(tile,ypos);
 	  }
@@ -405,7 +405,7 @@ resWalkleft(tile,tt,xpos,ypos,func)
      }
      return(RIGHT(tile));
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -428,7 +428,7 @@ ResSplitX(tile,x)
      TileType	tt = TiGetType(tile);
      Tile	*tp = TiSplitX(tile,x);
      Tile	*tp2;
-     
+
      TiSetBody(tp,tt);
      /* check to see if we can combine with the tiles above or below us */
      tp2 = RT(tile);
@@ -437,13 +437,13 @@ ResSplitX(tile,x)
      	  if (tp2 == resSrTile)
 	  {
 	       if (resTopTile == tile) resTopTile = NULL;
-	       TiJoinY(tp2,tile,resFracPlane); 
+	       TiJoinY(tp2,tile,resFracPlane);
 	       tile = tp2;
 	  }
 	  else
 	  {
 	       if (resTopTile == tp2) resTopTile = NULL;
-	       TiJoinY(tile,tp2,resFracPlane); 
+	       TiJoinY(tile,tp2,resFracPlane);
 	  }
      }
      tp2 = LB(tile);
@@ -452,13 +452,13 @@ ResSplitX(tile,x)
      	  if (tp2 == resSrTile)
 	  {
 	       if (resTopTile == tile) resTopTile = NULL;
-	       TiJoinY(tp2,tile,resFracPlane); 
+	       TiJoinY(tp2,tile,resFracPlane);
 	       tile = tp2;
 	  }
 	  else
 	  {
 	       if (resTopTile == tp2) resTopTile = NULL;
-	       TiJoinY(tile,tp2,resFracPlane); 
+	       TiJoinY(tile,tp2,resFracPlane);
 	  }
      }
      /* do the same checks with the newly created tile */
@@ -471,7 +471,7 @@ ResSplitX(tile,x)
      tp2 = LB(tp);
      if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tp) && RIGHT(tp2) == RIGHT(tp))
      {
-     	  TiJoinY(tp2,tp,resFracPlane); 
+     	  TiJoinY(tp2,tp,resFracPlane);
      }
      return tile;
 }

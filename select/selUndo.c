@@ -6,16 +6,16 @@
  *	All this file does is record things to be redisplayed, since
  *	the normal undo package won't handle that.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -111,7 +111,7 @@ typedef struct
 
 UndoType SelUndoNetClientID;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -149,7 +149,7 @@ SelUndoInit()
     if (SelUndoNetClientID < (UndoType) 0)
 	TxError("Couldn't add net selection as an undo client!\n");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -202,7 +202,7 @@ SelRememberForUndo(before, def, area)
      * created, so save around its address and fill in the event when
      * the "after" event is created.
      */
-    
+
     if (before)
     {
 	sue->sue_before = TRUE;
@@ -222,7 +222,7 @@ SelRememberForUndo(before, def, area)
 	beforeEvent = NULL;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -374,7 +374,7 @@ SelUndoCreateNet(sue)
     scx.scx_area.r_ybot = sue->sue_startpoint.p_y;
     scx.scx_area.r_xtop = scx.scx_area.r_xbot + 1;
     scx.scx_area.r_ytop = scx.scx_area.r_ybot + 1;
-	
+
     // window = CmdGetRootPoint((Point *) NULL, &scx.scx_area);
 
     window = CmdGetRootPoint((Point *) NULL, (Rect *) NULL);
@@ -397,7 +397,7 @@ SelUndoCreateNet(sue)
  *
  * ----------------------------------------------------------------------------
  */
- 
+
 void
 SelUndoDestroyNet()
 {

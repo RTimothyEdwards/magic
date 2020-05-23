@@ -6,17 +6,17 @@
  *
  *
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  *
@@ -26,16 +26,16 @@
 #ifndef _MZINTERNAL_H
 #define _MZINTERNAL_H
 
-/* 
+/*
  * Structures etc. that are exported by the mzrouter are defined in
  * mzrouter.h.
  *
- *  Structures (etc.) defined here are shared between files in this module. 
+ *  Structures (etc.) defined here are shared between files in this module.
  *
- *  Structures local to a given source 
+ *  Structures local to a given source
  *  file are defined at the top of that source file.
  *
- *  Structures specific to a given function are defined at 
+ *  Structures specific to a given function are defined at
  *  the head of that function.
  */
 
@@ -49,15 +49,15 @@
 
 /* ------------------------ Version String --------------------------- */
 #define MZROUTER_VERSION "0.6"
- 
+
 /* ------------------------ Debugging flags ----------------------------- */
 extern ClientData mzDebugID;
 #include "mzDebug.h"
 
 /* ---------- Default Parameter Values ----------------------------------- */
 
-/* Penalty factor applied to cost estimate in excess of max window bound 
- * represented as mantissa / 2**nExponent 
+/* Penalty factor applied to cost estimate in excess of max window bound
+ * represented as mantissa / 2**nExponent
  */
 /* (2048/2**1 = 1028) */
 #define DEF_PENALTY_MANTISSA 2048
@@ -78,7 +78,7 @@ extern ClientData mzDebugID;
  */
 #define DEF_BOUNDS_INCREMENT -1
 
-/* If reset, degenerate estimation plane used (just 4 tiles - one for each 
+/* If reset, degenerate estimation plane used (just 4 tiles - one for each
  * quadrant with respect to destination point).
  */
 #define DEF_ESTIMATE 1
@@ -97,7 +97,7 @@ extern ClientData mzDebugID;
 /* Maximum distance route can penetrate blocked areas to reach destination.
  * Note only "same node" blockage will be penetrated, i.e. blocks steming from
  * spacing to unrelated nodes are always honored.
- * 
+ *
  * A value of -1 causes the max penetration to be recomputed prior to each
  * route based on the design rules for the active routetypes.
  */
@@ -112,8 +112,8 @@ extern ClientData mzDebugID;
  */
 #define DEF_BLOOM_LIMIT	0
 
-/* This struc used to make list of named parameter sets for maze routing. 
- * Only the MazeParameters themselves are passed to the routines 
+/* This struc used to make list of named parameter sets for maze routing.
+ * Only the MazeParameters themselves are passed to the routines
  * in this module.
  */
 typedef struct mazestyle
@@ -121,10 +121,10 @@ typedef struct mazestyle
     char *ms_name;		/* name of style */
     List *ms_spacingL;		/* used to store spacing during tech readin. */
     MazeParameters ms_parms;	/* parameter settings for this style */
-    struct mazestyle *ms_next;  
+    struct mazestyle *ms_next;
 } MazeStyle;
 
-
+
 /* ----- TileTypes, Paint Tables, and Paint Planes, and Internal Cells  ---- */
 /* RESULT CELL */
 extern CellDef *mzResultDef;
@@ -148,14 +148,14 @@ extern CellUse *mzResultUse;
 #define TT_ABOVE_LR_WALK  (5 + TT_OFF)
 #define TT_BELOW_LR_WALK  (6 + TT_OFF)
     /* Approach to dest area */
-#define TT_LEFT_WALK	  (7 + TT_OFF)  
+#define TT_LEFT_WALK	  (7 + TT_OFF)
 #define TT_RIGHT_WALK     (8 + TT_OFF)
 #define TT_TOP_WALK       (9 + TT_OFF)
 #define TT_BOTTOM_WALK    (10 + TT_OFF)
     /* route destination area */
-#define TT_DEST_AREA      (11 + TT_OFF)  
+#define TT_DEST_AREA      (11 + TT_OFF)
     /* Can't route in this space */
-#define	TT_BLOCKED	  (12 + TT_OFF)	
+#define	TT_BLOCKED	  (12 + TT_OFF)
 
 #define TT_MAXROUTETYPES (1 + TT_BLOCKED)
 
@@ -164,7 +164,7 @@ extern CellDef *mzBlockDef ;
 
 /* BOUNDS PLANE */
     /* Blockage planes generated here */
-#define TT_INBOUNDS	(1 + TT_OFF)	
+#define TT_INBOUNDS	(1 + TT_OFF)
 #define TT_GENBLOCK	(2 + TT_OFF)
 extern PaintResultType mzBoundsPaintTbl[TT_MAXROUTETYPES][TT_MAXROUTETYPES];
 extern Plane *mzHBoundsPlane;
@@ -198,7 +198,7 @@ typedef struct numberLine
 {
     int		nl_sizeAlloced;  /* Number of entries allocated */
     int		nl_sizeUsed;
-    int  	*nl_entries;	
+    int  	*nl_entries;
 } NumberLine;
 
 /*
@@ -247,7 +247,7 @@ typedef struct
 
 /*
  * The following hash table is used to index points
- * so that redundant extension from points reached more than once 
+ * so that redundant extension from points reached more than once
  * is avoided.
  * It is indexed by (x,y,routeLayer, orientation).  Orientation is either
  * Horizontal, vertical, or original (point on layer).  Horizontal and
@@ -351,12 +351,12 @@ extern NumberLine mzXAlignNL;
 extern NumberLine mzYAlignNL;
 /* initial size of above number lines */
 #define INITIAL_ALIGN_SIZE 100
- 
+
 /* Fence parity */
 extern bool mzInsideFence;
 
 /* largest design rule distance - used during incremental blockage gen. */
-extern int mzContextRadius; 
+extern int mzContextRadius;
 
 /* Route types */
 extern RouteLayer *mzRouteLayers;
@@ -370,15 +370,15 @@ extern RouteType *mzActiveRTs;
  */
 extern int mzBoundsIncrement;
 
-/* If reset, degenerate estimation plane used (just 4 tiles - one for each 
+/* If reset, degenerate estimation plane used (just 4 tiles - one for each
  * quadrant with respect to destination point).
  */
 extern int mzEstimate;
-/* If set, routes may terminate at any geometry that is 
+/* If set, routes may terminate at any geometry that is
  * electrically connected to specified dest areas (default TRUE)
  */
 extern int mzExpandDests;
-/* If set, routes may start at any geometry that is 
+/* If set, routes may start at any geometry that is
  * electrically connected to specified start areas (default TRUE)
  */
 extern int mzExpandStarts;
@@ -387,7 +387,7 @@ extern int mzTopHintsOnly;
 /* Maximum distance route will extend into blocked area to connect to dest. */
 extern int mzMaxWalkLength;
 /* limits area of route for performance,
- * NOTE: IF NONNULL, USER MUST MAKE SURE ROUTE IS ACTUALLY LIMITED TO THIS 
+ * NOTE: IF NONNULL, USER MUST MAKE SURE ROUTE IS ACTUALLY LIMITED TO THIS
  * AREA WITH FENCES, OTHERWISE THE RESULT IS UNPREDICTABLE.
  */
 extern Rect *mzBoundsHint;
@@ -412,18 +412,18 @@ extern int mzNumBlooms;
 extern int mzNumOutsideBlooms;	/* num blooms from outside window */
 extern int mzNumComplete;	/* number of complete paths so far */
 extern int mzBlockGenCalls;	/* # of calls to blockage gen. code */
-extern double mzBlockGenArea;   /* area over which blockage planes 
+extern double mzBlockGenArea;   /* area over which blockage planes
 				 * have been gened. */
 extern int mzNumPathsGened;	/* number of partial paths added to heap */
 extern int mzNumPaths;		/* number of paths processed */
-extern int mzReportInterval;    /* frequency that # of paths etc. 
+extern int mzReportInterval;    /* frequency that # of paths etc.
 				 * is reported. */
 extern int mzPathsTilReport;	/* counts down to next path report */
 
 /* Variables controlling search */
 extern dlong mzWInitialMinToGo;
 extern dlong mzWInitialMaxToGo;
-extern dlong mzBloomMaxCost;	
+extern dlong mzBloomMaxCost;
 
 /* Search status */
 extern dlong mzWindowMinToGo; /* Window location */
@@ -434,7 +434,7 @@ extern List *mzMarkedCellsList;
 
 /* ------------ Interesting Point Macros -------------------------------- */
 /* The following macros are used in the low-level routines for finding
- * the NEXT interesting point to the Right, Left, Up and Down.  
+ * the NEXT interesting point to the Right, Left, Up and Down.
  *
  * The macros are used to choose the first among 2 interesting points.
  */

@@ -1,15 +1,15 @@
 /* grX11su5.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  *	Manipulate the programable cursor on the graphics display.
@@ -37,7 +37,7 @@ extern XColor colors[];
 
 Cursor grCursors[MAX_CURSORS];
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrXDrawGlyph --
@@ -60,7 +60,7 @@ GrX11DrawGlyph (gl, p)
     Rect bBox;
     bool anyObscure;
     LinkedRect *ob;
-    
+
     GR_CHECK_LOCK();
     bBox.r_ll = *p;
     bBox.r_xtop = p->p_x + gl->gr_xsize - 1;
@@ -106,7 +106,7 @@ GrX11DrawGlyph (gl, p)
 	    if ( (yloc <= grCurClip.r_ytop) && (yloc >= grCurClip.r_ybot) ) {
 		int laststartx;
 		laststartx = bBox.r_xbot - 1;
-		for (startx = bBox.r_xbot; startx <= bBox.r_xtop; 
+		for (startx = bBox.r_xbot; startx <= bBox.r_xtop;
 			startx = endx + 1) {
 		    int *pixelp;
 
@@ -115,7 +115,7 @@ GrX11DrawGlyph (gl, p)
 
 		    if (anyObscure) {
 			for (ob = grCurObscure; ob != NULL; ob = ob->r_next) {
-			    if ( (ob->r_r.r_ybot <= yloc) && 
+			    if ( (ob->r_r.r_ybot <= yloc) &&
 				 (ob->r_r.r_ytop >= yloc) ) {
 				if (ob->r_r.r_xbot <= startx)
 				    startx = MAX(startx, ob->r_r.r_xtop + 1);
@@ -126,7 +126,7 @@ GrX11DrawGlyph (gl, p)
 		    }
 
 		    /* stop if we aren't advancing */
-		    if (startx == laststartx) break;  
+		    if (startx == laststartx) break;
 		    laststartx = startx;
 		    if (startx > endx) continue;
 
@@ -151,7 +151,7 @@ GrX11DrawGlyph (gl, p)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * grxDefineCursor:
@@ -189,7 +189,7 @@ grx11DefineCursor(glyphs)
     oldClip = grCurClip;
     grCurClip = GrScreenRect;
     grCurClip.r_ytop += 16;
-    
+
     /* enter the glyphs */
     for (glyphnum = 0; glyphnum < glyphs->gr_num; glyphnum++) {
 
@@ -261,7 +261,7 @@ grx11DefineCursor(glyphs)
 	    i = (y & 1) ? (32 - y) : (30 - y);
 
 	    curs[i] = mbits[i] = 0;
-	    for (x = 0; x < 8; x++) 
+	    for (x = 0; x < 8; x++)
 	    {
 		if (*p == fgstyle)
 		     curs[i] |= (1 << x);
@@ -285,7 +285,7 @@ grx11DefineCursor(glyphs)
     GrUnlock(GR_LOCK_SCREEN);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrXSetCursor:
@@ -316,7 +316,7 @@ GrX11SetCursor(cursorNum)
     }
 
     grCurrent.cursor = grCursors[cursorNum];
-    
+
     HashStartSearch(&hs);
     while (entry = HashNext(&grX11WindowTable,&hs))
     {

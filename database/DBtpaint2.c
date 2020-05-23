@@ -4,16 +4,16 @@
  * Default composition rules.
  * Pretty complicated, unfortunately, so it's in a separate file.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -57,7 +57,7 @@ extern void dbComposeSavedRules();
 extern void dbComposeCompose();
 extern void dbComposeDecompose();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -123,7 +123,7 @@ DBTechFinalCompose()
     /* dbTechPrintPaint("DBTechFinalCompose", TRUE, FALSE); */
     /* dbTechPrintPaint("DBTechFinalCompose", FALSE, FALSE); */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -222,7 +222,7 @@ dbComposePaintAllImages()
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -340,7 +340,7 @@ dbComposeContacts()
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * dbComposePaintContact --
@@ -550,7 +550,7 @@ dbComposePaintContact(lpImage, lpPaint)
  * ----------------------------------------------------------------------------
  */
 
-bool 
+bool
 dbComposeSubsetResidues(lpImage, lpErase, outMask)
     LayerInfo *lpImage, *lpErase;
     TileTypeBitMask *outMask;
@@ -613,7 +613,7 @@ dbComposeSubsetResidues(lpImage, lpErase, outMask)
     return rval;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * dbComposeEraseContact --
@@ -645,7 +645,7 @@ dbComposeEraseContact(lpImage, lpErase)
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	if (PlaneMaskHasPlane(lpErase->l_pmask, pNum))
 	    if ((lpImage->l_type < DBNumUserLayers)
-			|| (pNum == DBPlane(lpImage->l_type))) 
+			|| (pNum == DBPlane(lpImage->l_type)))
 		SETERASE(lpImage->l_type, lpErase->l_type, pNum, TT_SPACE);
 
     /* Erasing self should always leave space; otherwise    */
@@ -700,7 +700,7 @@ dbComposeEraseContact(lpImage, lpErase)
 		itype = DBPlaneToResidue(lpImage->l_type, pNum);
 		SETERASE(lpImage->l_type, lpErase->l_type, pNum, itype);
 	    }
-	
+
     }
 
     /* Diagnostic (to be removed or commented out) */
@@ -828,7 +828,7 @@ dbComposeSavedRules()
 	rule = &dbSavedRules[n];
 	lpContact = &dbLayerInfo[rule->r_result];
 	imageType = lpContact->l_type;
-   
+
 	for (pair = rule->r_pairs; pair < &rule->r_pairs[rule->r_npairs];
 		    	pair++)
     	{
@@ -842,7 +842,7 @@ dbComposeSavedRules()
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * dbComposeDecompose --
@@ -886,7 +886,7 @@ dbComposeDecompose(imageType, componentType, remainingType)
     dbSetEraseEntry(imageType, componentType, pNum, resultType);
     TTMaskSetType(&dbNotDefaultEraseTbl[imageType], componentType);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * dbComposeCompose --

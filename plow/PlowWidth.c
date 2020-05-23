@@ -4,16 +4,16 @@
  * Plowing.
  * Determine the true minimum width of a piece of geometry.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -43,7 +43,7 @@ int plowInitWidthBackFunc(), plowWidthBackFunc();
 int plowWidthNumCalls = 0;
 int plowWidthNumChoices = 0;
 #endif	/* COUNTWIDTHCALLS */
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -140,7 +140,7 @@ plowFindWidth(edge, types, bbox, prect)
 #endif	/* DEBUGWIDTH */
     return (MIN(x, y));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -188,7 +188,7 @@ plowInitWidthFunc(tile, wc)
 
     return (1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -300,7 +300,7 @@ clipright:
 	wc->wc_area.r_xtop = wc->wc_area.r_xbot + yw;
     return (1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -395,7 +395,7 @@ plowFindWidthBack(edge, types, bbox, prect)
 #endif	/* DEBUGWIDTH */
     return (MIN(x, y));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -443,7 +443,7 @@ plowInitWidthBackFunc(tile, wc)
 
     return (1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

@@ -40,7 +40,7 @@ pthread_t xloop_thread = 0;
  *   Pass XEvents on to the magic main process by writing into the
  *   connecting pipe.  Keystrokes must be handled such that magic
  *   can treat untranslated keyboard input from stdin the same way
- *   that it treats translated keyboard input through X11.  
+ *   that it treats translated keyboard input through X11.
  *   Use XLookupString() to get an ASCII character out of the
  *   keycode, but also pass back the event structure so we can
  *   pull out key modifier information in grX11Stdin().
@@ -52,7 +52,7 @@ pthread_t xloop_thread = 0;
  * Results:
  *	None.
  *
- * Side effects: 
+ * Side effects:
  *	pipe I/O
  *
  *--------------------------------------------------------------
@@ -63,7 +63,7 @@ ParseEvent (event, parentID)
     XEvent *event;
     int parentID;
 {
-    if (event->type == KeyPress) 
+    if (event->type == KeyPress)
     {
 	XKeyPressedEvent *KeyPressedEvent = (XKeyPressedEvent *) event;
 	char inChar[10], c, *p;
@@ -123,7 +123,7 @@ ParseEvent (event, parentID)
 		if ((c = *p++) == 3)	/* Ctrl-C interrupt */
 		{
 		    kill(parentID, SIGINT);
-		} 
+		}
 		else
 		{
 		    /* When Control modifier is present, use the capital */
@@ -182,7 +182,7 @@ xloop_begin(window)
 	ParseEvent(&xevent, parentID);
 	XUnlockDisplay(grXdpy);
     }
-}  
+}
 
 /*----------------------------------------------------------------------
  * xloop_create --

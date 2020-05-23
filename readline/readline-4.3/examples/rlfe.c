@@ -1,7 +1,7 @@
 /* A front-end using readline to "cook" input lines for Kawa.
  *
  * Copyright (C) 1999  Per Bothner
- * 
+ *
  * This front-end program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2, or (at your option)
@@ -164,7 +164,7 @@ volatile int propagate_sigwinch = 0;
  * propagate window size changes from input file descriptor to
  * master side of pty.
  */
-void sigwinch_handler(int signal) { 
+void sigwinch_handler(int signal) {
    propagate_sigwinch = 1;
 }
 
@@ -176,7 +176,7 @@ void sigwinch_handler(int signal) {
  * Once the slave pty has been opened, you are responsible to free *name.
  */
 
-int get_master_pty(char **name) { 
+int get_master_pty(char **name) {
    int i, j;
    /* default to returning error */
    int master = -1;
@@ -227,7 +227,7 @@ int get_master_pty(char **name) {
  * Otherwise, it has returned the slave file descriptor.
  */
 
-int get_slave_pty(char *name) { 
+int get_slave_pty(char *name) {
    struct group *gptr;
    gid_t gid;
    int slave = -1;
@@ -459,9 +459,9 @@ main(int argc, char** argv)
 	fprintf (stderr, "%s: warning: could not open log file %s: %s\n",
 			 progname, logfname, strerror (errno));
     }
-    
+
   rl_readline_name = appname;
-  
+
 #ifdef DEBUG
   debugfile = fopen("LOG", "w");
 #endif
@@ -497,7 +497,7 @@ main(int argc, char** argv)
     }
 
   if (child == 0)
-    { 
+    {
       int slave;  /* file descriptor for slave pty */
 
       /* We are in the child process */
@@ -517,7 +517,7 @@ main(int argc, char** argv)
        * not work correctly unless there is a session group leader
        * and process group leader (which a session group leader
        * automatically is). This also disassociates us from our old
-       * controlling tty. 
+       * controlling tty.
        */
       if (setsid() < 0)
 	{
@@ -604,8 +604,8 @@ main(int argc, char** argv)
   rl_instream = fdopen (master, "r");
   rl_getc_function = my_rl_getc;
 
-  rl_prep_term_function = null_prep_terminal; 
-  rl_deprep_term_function = null_deprep_terminal; 
+  rl_prep_term_function = null_prep_terminal;
+  rl_deprep_term_function = null_deprep_terminal;
   rl_callback_handler_install (prompt, line_handler);
 
 #if 1
@@ -967,7 +967,7 @@ rlfe_filename_completion_function (text, state)
         STRDUP (filename, text);
       else
 	{
-	  filename = malloc(1); 
+	  filename = malloc(1);
 	  if (filename == 0)
 	    return ((char *)NULL);
 	  filename[0] = '\0';

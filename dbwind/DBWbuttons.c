@@ -7,16 +7,16 @@
  * between them.  This file also provides the default button handler,
  * which is used to move the box.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -71,7 +71,7 @@ void (*DBWButtonCurrentProc)();
 static int buttonCorner = TOOL_ILG;	/* Nearest corner when button went
 					 * down.
 					 */
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -91,7 +91,7 @@ static int buttonCorner = TOOL_ILG;	/* Nearest corner when button went
  *	a call to DBWChangeButtonHandler) each button press or release
  *	in a layout window causes proc to be invoked as follows:
  *
- *	int	
+ *	int
  *	proc(w, cmd)
  *	    MagWindow *w;
  *	    TxCommand *cmd;
@@ -138,7 +138,7 @@ DBWAddButtonHandler(name, proc, cursor, doc)
     TxError("    table.  Get your Magic wizard to increase the size of\n");
     TxError("    MAXBUTTONHANDLERS in DBWbuttons.c\n");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -235,7 +235,7 @@ DBWChangeButtonHandler(name)
     DBWButtonCurrentProc = dbwButtonProcs[dbwButtonCurrentIndex];
     return oldName;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -260,7 +260,7 @@ DBWPrintButtonDoc()
     TxPrintf("%s", dbwButtonDoc[dbwButtonCurrentIndex]);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	dbwButtonSetCursor --
@@ -312,7 +312,7 @@ dbwButtonSetCursor(button, corner)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *

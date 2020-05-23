@@ -6,16 +6,16 @@
  * DB*ShortName(), * the procedures in this file MUST be called
  * after DBTechFinalType() has been called.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -39,7 +39,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 #include "utils/malloc.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -203,7 +203,7 @@ DBTechNameTypes(typename, bitmask)
     return (type < DBNumUserLayers) ? type : -2;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -267,7 +267,7 @@ DBTechNamePlane(planename)
 {
     return ((spointertype) dbTechNameLookup(planename, &dbPlaneNameLists));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -304,7 +304,7 @@ DBTechNoisyNamePlane(planename)
 
     return (pNum);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -365,7 +365,7 @@ DBPlaneShortName(pNum)
 	return (DBPlaneLongNameTbl[pNum]);
     return ("???");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -409,7 +409,7 @@ DBTechTypesToPlanes(mask)
     retMask = planeMask & noCellMask;
     return retMask;
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -453,7 +453,7 @@ DBTechPrintTypes(mask, dolist)
 	{
 	    if (((TileType)(spointertype) p->sn_value) == i)
 	    {
-		if (dolist) 
+		if (dolist)
 		{
 		    if (firstname) keepname = p->sn_name;
 		    else if (strlen(p->sn_name) > strlen(keepname))
@@ -505,7 +505,7 @@ DBTechPrintTypes(mask, dolist)
 	    {
 		if (((TileType)(spointertype) p->sn_value) == dtp->dt_type)
 		{
-		    if (dolist) 
+		    if (dolist)
 		    {
 		        if (firstname) keepname = p->sn_name;
 		        else if (strlen(p->sn_name) > strlen(keepname))
@@ -547,7 +547,7 @@ DBTechPrintTypes(mask, dolist)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -761,7 +761,7 @@ DBTechNameMask0(layers, mask, noisy)
 	}
 	else
 	{
-	    TileType t; 
+	    TileType t;
 
 	    for (t = TT_TECHDEPBASE; t < DBNumUserLayers; t++)
 		if (TTMaskHasType(&m2, t))

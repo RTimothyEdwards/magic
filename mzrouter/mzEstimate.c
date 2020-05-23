@@ -6,31 +6,31 @@
  * Contains code for building estimation plane (just prior to route), and
  * routine for computing estimates (using the estimation plane) during routing.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * EXPLANATION OF ESTIMATION CODE:
- * The purpose of the estimation code is to estimate cost to completion 
- * from any point to the destintation taking into account the need to 
+ * The purpose of the estimation code is to estimate cost to completion
+ * from any point to the destintation taking into account the need to
  * detour around major obstactles such as subcells and fences.
  *
  * The estimation plane permits multiple destination area (routes are
  * made to what ever area is easiest to reach).  The mzrouter also permits
  * multiple start points of course.
- * 
+ *
  * To achieve this purpose, prior to beginning the search for a route an
  * estimation plane is generated with info that allows quick estimation
- * of cost to completion during routing.  
+ * of cost to completion during routing.
  *
  * The estimation plane contains
  * ``solid'' tiles for major obstacles (subcells and fences) and space
@@ -41,29 +41,29 @@
  *
  * Estimators are generated for each tile in the estimation plane that allow
  * estimates to be made for points in that tile.  An estimator consists
- * of five numbers: 
- *     (x0,y0,hcost,vcost,cost0) 
+ * of five numbers:
+ *     (x0,y0,hcost,vcost,cost0)
  * that are used in the following formula:
  *     EstCost = (x - x0)*hcost + (y -y0)*vcost + cost0.
  * An estimator represents the approximate cost of a path beginning at any
- * point (x,y) in the current tile and proceedings horizontally and then 
+ * point (x,y) in the current tile and proceedings horizontally and then
  * vertically
  * (or vice versa) to the tile corner (x0,y0) and then following the cheapest
- * path along tile-edges to a destination area.  The cheapest path from 
+ * path along tile-edges to a destination area.  The cheapest path from
  * (x0,y0) is precomputed and has cost cost0.  Currently only
  * tile corners (x0,y0) of the tile the estimator is attached to are used
  * for estimators.  Estimators are also generated for paths from edges of
  * a tile straight across to the nearest dest area (with out jogs).  These
  * "straight shot" estimators have zero hcost or vcost.
  * Several estimators are attached to each
- * tile, and the least cost one is used for any given (x,y). 
+ * tile, and the least cost one is used for any given (x,y).
  *
  * The estimation plane is generated in the following steps:
  *
  *     1. Generate solid tiles for unexpanded subcells (if subcells
           can not be routed across on any active layer)  and fences.
  *
- *     2. Split space tiles along extended edges of solid tiles and 
+ *     2. Split space tiles along extended edges of solid tiles and
  *        destination areas.
  *
  *     3. Assign a horizontal and vertical cost for routing in each tile.
@@ -76,7 +76,7 @@
  *        hor edges is min hor cost of the two adjacent tiles, weight on
  *        vertical edges is min of vert costs of adjacent tiles.  Djikstra's
  *        algor. computes least cost path along tile-edges to
- *        destination for all tile corners 
+ *        destination for all tile corners
  *        (e.g. it generates all the cost0's for the estimators).
  *
  *     5. Build estimators for each tile - currently one estimator is built
@@ -139,7 +139,7 @@ typedef struct vertex
 #define VX_L_RIGHT	4
 #define VX_IN		8
 
-/* Estimators for estimating cost from point within tile, (x,y), along a 
+/* Estimators for estimating cost from point within tile, (x,y), along a
  * certain path to destination.
  *
  * EstCost = (x - x0) * hCost + (y - y0) * vCost + cost0
@@ -179,7 +179,7 @@ extern void mzSplitTiles();
 extern void mzAssignVertexCosts();
 extern void mzAddVertex();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -216,8 +216,8 @@ mzBuildEstimate()
 	    RouteLayer *rL;
 
 	    subcellsOpaque = TRUE;
-	    for(rL = mzActiveRLs; 
-		rL!=NULL && subcellsOpaque; 
+	    for(rL = mzActiveRLs;
+		rL!=NULL && subcellsOpaque;
 		rL=rL->rl_nextActive)
 	    {
 		if(rL->rl_routeType.rt_spacing[TT_SUBCELL] < 0)
@@ -230,8 +230,8 @@ mzBuildEstimate()
 	/* If over-the-cell routing is not possible,
 	 * add a tile to the estimation plane for each unexpanded subcell.
 	 *
-	 * NOTE: A 0 expansion mask is special cased since 
-	 *     the mzrouter interpets a 0 mask to mean all subcells are 
+	 * NOTE: A 0 expansion mask is special cased since
+	 *     the mzrouter interpets a 0 mask to mean all subcells are
 	 *     expanded,
 	 *     while DBTreeSrCells() takes a 0 mask to mean all subcells are
 	 *     unexpanded.
@@ -299,12 +299,12 @@ mzBuildEstimate()
 
 	/* clip area to bounding box to avoid overflow during transforms */
 	GEOCLIP(&(scx.scx_area),&(mzDestAreasUse->cu_def->cd_bbox));
-	
+
 	(void) DBTreeSrTiles(
-			     &scx, 
-			     &DBAllButSpaceAndDRCBits, 
-			     0, 
-			     mzProcessDestEstFunc, 
+			     &scx,
+			     &DBAllButSpaceAndDRCBits,
+			     0,
+			     mzProcessDestEstFunc,
 			     (ClientData) NULL);
 	}
 
@@ -314,7 +314,7 @@ mzBuildEstimate()
 	List *solidsList = NULL;
 	List *l;
 
-	/* Build list of all solid, 
+	/* Build list of all solid,
 	 * i.e. nonspace, tiles on estimation plane. */
         DBSrPaintArea(NULL,         /* no hint tile */
 	   mzEstimatePlane,
@@ -327,7 +327,7 @@ mzBuildEstimate()
 	for(l=solidsList; l!=NULL; l = LIST_TAIL(l))
 	{
 	    Tile *solid = (Tile *) LIST_FIRST(l);
-	    Point p; 
+	    Point p;
 
 	    /* lower left corner */
 	    mzSplitTiles(mzEstimatePlane,&(solid->ti_ll));
@@ -375,7 +375,7 @@ mzBuildEstimate()
 	    }
         }
 
-	/* visit all tiles in estimate plane attaching cost structures 
+	/* visit all tiles in estimate plane attaching cost structures
 	 * (including vertices) to the client fields.  Horizontal and
 	 * vertical costs are assigned.
 	 */
@@ -419,7 +419,7 @@ mzBuildEstimate()
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -455,7 +455,7 @@ mzCleanEstimate()
 	   &TiPlaneRect,	    /* max paintable rect */
 	   &DBAllTypeBits,
 	   mzReclaimTCFunc,
-	   (ClientData) NULL);	
+	   (ClientData) NULL);
 
         DBClearPaintPlane(mzEstimatePlane);
 
@@ -467,7 +467,7 @@ mzCleanEstimate()
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -494,13 +494,13 @@ mzReclaimTCFunc(tile, notUsed)
     {
 	TileCosts *tc = ((TileCosts *) (tile->ti_client));
 	Estimate *e;
-	
+
 	/* free estimates attached to tilecosts struc */
 	for(e=tc->tc_estimates; e!=NULL; e=e->e_next)
 	{
 	    freeMagic((char *) e);
 	}
-	
+
 	/* free tilecosts struc */
 	freeMagic((char *) (tile->ti_client));
 
@@ -512,7 +512,7 @@ mzReclaimTCFunc(tile, notUsed)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -568,7 +568,7 @@ mzProcessDestEstFunc(tile, cxp)
     {
 	int mzDestTileEstFunc();
 	TileTypeBitMask destMask;
-	
+
 	TTMaskSetOnlyType(&destMask, TT_DEST_AREA);
 	TTMaskSetType(&destMask, TT_LEFT_WALK);
 	TTMaskSetType(&destMask, TT_RIGHT_WALK);
@@ -577,9 +577,9 @@ mzProcessDestEstFunc(tile, cxp)
 
 	DBSrPaintArea(NULL,	/* no hint tile */
 		      rT->rt_hBlock,
-		      &rect, 
+		      &rect,
 		      &destMask,
-		      mzDestTileEstFunc, 
+		      mzDestTileEstFunc,
 		      (ClientData) NULL);
     }
 
@@ -587,7 +587,7 @@ mzProcessDestEstFunc(tile, cxp)
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -617,7 +617,7 @@ mzDestTileEstFunc(tile, cdarg)
     if(TiGetType(tile)==TT_DEST_AREA)
     /* paint dest area into estimate plane */
     {
-    	DBPaintPlane(mzEstimatePlane, 
+    	DBPaintPlane(mzEstimatePlane,
 		     &rect,
 		     mzEstimatePaintTbl[TT_EST_DEST],
 		     (PaintUndoInfo *) NULL);
@@ -625,7 +625,7 @@ mzDestTileEstFunc(tile, cdarg)
     else
     /* cut hole for walk in estimate plane */
     {
-	DBPaintPlane(mzEstimatePlane, 
+	DBPaintPlane(mzEstimatePlane,
 		     &rect,
 		     mzEstimatePaintTbl[TT_SPACE],
 		     (PaintUndoInfo *) NULL);
@@ -634,14 +634,14 @@ mzDestTileEstFunc(tile, cdarg)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzAddSubcellEstFunc --
  *
  * Filter function called via DBTreeSrTiles on behalf of mzBuildEstimate()
- * above, for each unexpanded subcell in the area of interest, 
+ * above, for each unexpanded subcell in the area of interest,
  * a TT_EST_SUBCELL tile is painted on each estimate plane for
  * the bounding box of the subcell.
  *
@@ -666,8 +666,8 @@ mzAddSubcellEstFunc(scx, cdarg)
     GEOTRANSRECT(&scx->scx_trans, &r, &rDest);
 
     /* paint subcell block onto estimate plane */
-    DBPaintPlane(mzEstimatePlane, 
-	&rDest, 
+    DBPaintPlane(mzEstimatePlane,
+	&rDest,
 	mzEstimatePaintTbl[TT_EST_SUBCELL],
 	(PaintUndoInfo *) NULL);
 
@@ -675,14 +675,14 @@ mzAddSubcellEstFunc(scx, cdarg)
     return (0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzAddFenceEstFunc --
  *
  * Filter function called via DBSrPaintArea on behalf of mzBuildEstimate()
- * above, for each fence tile in the area of interest, 
+ * above, for each fence tile in the area of interest,
  * a TT_EST_FENCE tile is painted on the estimate plane for
  * each nonspace tile on the fence plane.
  *
@@ -701,13 +701,13 @@ mzAddFenceEstFunc(tile, buildArea)
     Rect *buildArea; /* currently ignored */
 {
     Rect r;
- 
+
     /* Get boundary of tile */
     TITORECT(tile, &r);
 
     /* paint fence into estimate plane */
-    DBPaintPlane(mzEstimatePlane, 
-	&r, 
+    DBPaintPlane(mzEstimatePlane,
+	&r,
 	mzEstimatePaintTbl[TT_EST_FENCE],
 	(PaintUndoInfo *) NULL);
 
@@ -715,7 +715,7 @@ mzAddFenceEstFunc(tile, buildArea)
     return (0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -744,7 +744,7 @@ mzBuildSolidsListFunc(tile, listPtr)
     return(0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -790,7 +790,7 @@ mzAssignCostsFunc(tile, spaceCosts)
 	newCosts->tc_hCost = INT_MAX;
 	newCosts->tc_vCost = INT_MAX;
 	break;
-	
+
 	default:
 	/* unrecognized tile type */
 	ASSERT(FALSE,"mzAssignCostsFunc");
@@ -813,7 +813,7 @@ mzAssignCostsFunc(tile, spaceCosts)
 	v->vx_cost = COST_MAX;
     }
     else
-    {	
+    {
 	/* no 'T' */
 	newCosts->tc_vxLRight.vx_status = VX_NONE;
     }
@@ -829,7 +829,7 @@ mzAssignCostsFunc(tile, spaceCosts)
 	v->vx_cost = COST_MAX;
     }
     else
-    {	
+    {
 	/* no 'T' */
 	newCosts->tc_vxULeft.vx_status = VX_NONE;
     }
@@ -841,7 +841,7 @@ mzAssignCostsFunc(tile, spaceCosts)
     return(0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -879,14 +879,14 @@ mzDestInitialAssignFunc(tile, cdarg)
     return(0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzBuildEstimatesFunc --
  *
  * Build path estimates for this tile.
- * (For now builds 
+ * (For now builds
  *    + one estimate for each corner of the tile.
  *    + one estimate for no jog path to destination in each direction where
  *      this is possible.)
@@ -913,7 +913,7 @@ mzBuildEstimatesFunc(tile, notUsed)
     return(0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -935,12 +935,12 @@ mzBuildCornerEstimators(tile)
     Tile *tile;
 {
     TileCosts *tc = (TileCosts *) (tile->ti_client);
-    Vertex *vLLeft = NULL; 
-    Vertex *vULeft = NULL; 
+    Vertex *vLLeft = NULL;
+    Vertex *vULeft = NULL;
     Vertex *vLRight = NULL;
     Vertex *vURight = NULL;
 
-    /* find vertex strucs corresponding to four corners. 
+    /* find vertex strucs corresponding to four corners.
      *  (NULL, for corners at infinity)
      */
     {
@@ -984,7 +984,7 @@ mzBuildCornerEstimators(tile)
 		    vLRight = &(tc->tc_vxLRight);
 		}
 		else
-		{   
+		{
 		    /* no 'T', stored with tRight */
 		    vLRight = &(((TileCosts *)(tRight->ti_client))->tc_vxLLeft);
 		}
@@ -1005,7 +1005,7 @@ mzBuildCornerEstimators(tile)
 		    /* upper right at 'T'  stored with tRT */
 		    vURight = &(((TileCosts *)(tRT->ti_client))->tc_vxLRight);
 		}
-		else 
+		else
 		{
 		    /* no 'T', stored in own tile */
 		    NEXT_TILE_UP(tDiag, tTR, RIGHT(tile));
@@ -1019,7 +1019,7 @@ mzBuildCornerEstimators(tile)
     {
         Estimate *e;
 
-	/* Estimate for lower left corner */ 
+	/* Estimate for lower left corner */
 	if (vLLeft)
 	{
 	    e = (Estimate *) mallocMagic((unsigned) (sizeof(Estimate)));
@@ -1031,7 +1031,7 @@ mzBuildCornerEstimators(tile)
 	    e->e_next = tc->tc_estimates;
 	    tc->tc_estimates = e;
 	}
-	    
+
 	/* Estimate for lower right corner */
 	if (vLRight)
 	{
@@ -1075,7 +1075,7 @@ mzBuildCornerEstimators(tile)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1100,9 +1100,9 @@ mzBuildStraightShotEstimators(tile)
     /* straight right */
     {
 	Tile *tSolid = tile;
-	
+
 	/* get first solid tile to right */
-	while(TiGetType(tSolid)==TT_SPACE && 
+	while(TiGetType(tSolid)==TT_SPACE &&
 	      tSolid!=mzEstimatePlane->pl_right)
 	{
 	    tSolid = TR(tSolid);
@@ -1130,9 +1130,9 @@ mzBuildStraightShotEstimators(tile)
     /* straight left */
     {
 	Tile *tSolid = tile;
-	
+
 	/* get first solid tile to left */
-	while(TiGetType(tSolid)==TT_SPACE && 
+	while(TiGetType(tSolid)==TT_SPACE &&
 	      tSolid!=mzEstimatePlane->pl_left)
 	{
 	    tSolid = BL(tSolid);
@@ -1160,9 +1160,9 @@ mzBuildStraightShotEstimators(tile)
     /* straight up */
     {
 	Tile *tSolid = tile;
-	
+
 	/* get first solid tile above */
-	while(TiGetType(tSolid)==TT_SPACE && 
+	while(TiGetType(tSolid)==TT_SPACE &&
 	      tSolid!=mzEstimatePlane->pl_top)
 	{
 	    tSolid = RT(tSolid);
@@ -1190,9 +1190,9 @@ mzBuildStraightShotEstimators(tile)
     /* straight down */
     {
 	Tile *tSolid = tile;
-	
+
 	/* get first solid tile below */
-	while(TiGetType(tSolid)==TT_SPACE && 
+	while(TiGetType(tSolid)==TT_SPACE &&
 	      tSolid!=mzEstimatePlane->pl_bottom)
 	{
 	    tSolid = LB(tSolid);
@@ -1220,7 +1220,7 @@ mzBuildStraightShotEstimators(tile)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1236,16 +1236,16 @@ mzBuildStraightShotEstimators(tile)
  *      specifically sets floating origin coords.  (Floating coords
  *      are those with corresponding cost field of 0, hence
  *      there value does not matter when computing estimates.  They
- *      are set here as a convience, to permit uniform treatment of 
+ *      are set here as a convience, to permit uniform treatment of
  *      all estimators within this function.)
- *      
- *      
+ *
+ *
  *
  * ----------------------------------------------------------------------------
  */
 
 bool
-AlwaysAsGood(est1, est2, tile) 
+AlwaysAsGood(est1, est2, tile)
     Estimate *est1;
     Estimate *est2;
     Tile *tile;
@@ -1255,13 +1255,13 @@ AlwaysAsGood(est1, est2, tile)
 	return FALSE;
     }
     else
-    /* check if using est1 even from est2 origin 
+    /* check if using est1 even from est2 origin
      * is cheaper than using est2 */
     {
 	/* If est2 x origin is floating, set to worst case */
 	if(est2->e_hCost == 0)
 	{
-	    est2->e_x0 = (ABS(LEFT(tile) - est1->e_x0) > 
+	    est2->e_x0 = (ABS(LEFT(tile) - est1->e_x0) >
 			  ABS(RIGHT(tile) - est1->e_x0)) ?
 			  LEFT(tile) : RIGHT(tile);
 	}
@@ -1269,7 +1269,7 @@ AlwaysAsGood(est1, est2, tile)
 	/* If est2 y origin is floating, set to worst case */
 	if(est2->e_vCost == 0)
 	{
-	    est2->e_y0 = (ABS(BOTTOM(tile) - est1->e_y0) > 
+	    est2->e_y0 = (ABS(BOTTOM(tile) - est1->e_y0) >
 			  ABS(TOP(tile) - est1->e_y0)) ?
 			  BOTTOM(tile) : TOP(tile);
 	}
@@ -1285,8 +1285,8 @@ AlwaysAsGood(est1, est2, tile)
 	    hCost = (dlong) (est1->e_hCost *
 				 ABS(est2->e_x0 - est1->e_x0));
 	    vCost = (dlong) (est1->e_vCost *
-				 ABS(est2->e_y0 - est1->e_y0));	
-	    
+				 ABS(est2->e_y0 - est1->e_y0));
+
 	    cost = hCost + vCost;
 	    cost += est1->e_cost0;
 
@@ -1295,7 +1295,7 @@ AlwaysAsGood(est1, est2, tile)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1372,7 +1372,7 @@ mzTrimEstimatesFunc(tile, notUsed)
     return(0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1410,7 +1410,7 @@ mzSplitTiles(plane, point)
     {
 	/* init t to tile to right of pointTile */
 	NEXT_TILE_RIGHT(t,pointTile,y);
-	
+
 	while (TiGetType(t)==TT_SPACE && BOTTOM(t)!=y && t!=plane->pl_right)
 	{
 	    /* split t */
@@ -1425,7 +1425,7 @@ mzSplitTiles(plane, point)
     {
 	/* init t to tile above pointTile */
 	NEXT_TILE_UP(t,pointTile,x)
-	
+
 	while (TiGetType(t)==TT_SPACE && LEFT(t)!=x && t!=plane->pl_top)
 	{
 	    /* split t */
@@ -1440,7 +1440,7 @@ mzSplitTiles(plane, point)
     {
 	/* init t to tile to left of pointTile */
 	NEXT_TILE_LEFT(t,pointTile,y);
-	
+
 	while (TiGetType(t)==TT_SPACE && BOTTOM(t)!=y && t!=plane->pl_left)
 	{
 	    /* split t */
@@ -1455,7 +1455,7 @@ mzSplitTiles(plane, point)
     {
 	/* init t to tile below pointTile */
 	NEXT_TILE_DOWN(t,pointTile,x);
-	
+
 	while (TiGetType(t)==TT_SPACE && LEFT(t)!=x && t!=plane->pl_bottom)
 	{
 	    /* split t */
@@ -1483,7 +1483,7 @@ mzSplitTiles(plane, point)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1526,7 +1526,7 @@ mzAssignVertexCosts()
 	TileTypeBitMask destOnly;
 
 	TTMaskSetOnlyType(&destOnly, TT_EST_DEST);
-	
+
         DBSrPaintArea(NULL,         /* no hint tile */
 	   mzEstimatePlane,
 	   &mzBoundingRect,
@@ -1554,7 +1554,7 @@ mzAssignVertexCosts()
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1622,7 +1622,7 @@ mzAddVertex(vxThis, adjHeap)
     /* process adjacent vertex ABOVE */
     {
 	Vertex *vxAbove;
-	int yAbove; 
+	int yAbove;
 
 	/* Check for no edge above */
 	if(LEFT(tLoc)!=loc.p_x)
@@ -1643,7 +1643,7 @@ mzAddVertex(vxThis, adjHeap)
 		yAbove = BOTTOM(tAbove);
 	    }
 	    else
-	    { 
+	    {
 		/* T from bottom */
 		vxAbove = &(((TileCosts *)(tLoc->ti_client))->tc_vxULeft);
 		yAbove = BOTTOM(tAbove);
@@ -1700,7 +1700,7 @@ mzAddVertex(vxThis, adjHeap)
 		xRight = LEFT(tRight);
 	    }
 	    else
-	    { 
+	    {
 		/* T from left */
 		vxRight = &(((TileCosts *)(tLoc->ti_client))->tc_vxLRight);
 		xRight = LEFT(tRight);
@@ -1856,16 +1856,16 @@ mzAddVertex(vxThis, adjHeap)
 noLeft:;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzEstimatedCost --
  *
- * Results:  
+ * Results:
  *	Estimated cost of route from point to destination.
  *
- * Side effects:  
+ * Side effects:
  *	None.
  *
  * ----------------------------------------------------------------------------
@@ -1900,18 +1900,18 @@ mzEstimatedCost(point)
 
     return bestCost;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
- * mzDumpEstimates -- 
+ * mzDumpEstimates --
  *
  * Dump info in estimate plane (for debugging).
  *
- * Results:  
+ * Results:
  *	None.
  *
- * Side effects:  
+ * Side effects:
  *	info written to file or via TxPrintf()
  *
  * ----------------------------------------------------------------------------
@@ -1943,14 +1943,14 @@ mzDumpEstimates(area,fd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzDumpEstFunc --
  *
  * Filter function called via DBSrPaintArea on behalf of mzDumpEstimates()
- * above, for each estimate tile in the area of interest, 
+ * above, for each estimate tile in the area of interest,
  * the info associated with each tile is dumped.
  *
  * Results:
@@ -1969,7 +1969,7 @@ mzDumpEstFunc(tile, fd)
 {
     Rect r;
     TileCosts *tilec = (TileCosts *) tile->ti_client;
- 
+
     /* Get boundary of tile */
     TITORECT(tile, &r);
 
@@ -1978,15 +1978,15 @@ mzDumpEstFunc(tile, fd)
     {
 	fprintf(fd,"\ntile %p\t\t  (x: %d to %d, y: %d to %d)\n",
 		tile, r.r_xbot, r.r_xtop, r.r_ybot, r.r_ytop);
-	fprintf(fd,"\thcost = %d ", 
-		tilec->tc_hCost); 
-	fprintf(fd,"vcost = %d \n", 
+	fprintf(fd,"\thcost = %d ",
+		tilec->tc_hCost);
+	fprintf(fd,"vcost = %d \n",
 		tilec->tc_vCost);
 	{
 	    char str[100];
 	    Estimate *e;
 
-	    fprintf(fd,"\tEstimates:\n");	    
+	    fprintf(fd,"\tEstimates:\n");
 
 	    for(e=tilec->tc_estimates; e!=NULL; e=e->e_next)
 	    {
@@ -1996,19 +1996,19 @@ mzDumpEstFunc(tile, fd)
 	    }
 	}
     }
-    else 
+    else
     {
 	TxPrintf("\ntile %x\t\t  (x: %d to %d, y: %d to %d)\n",
 		(pointertype) tile, r.r_xbot, r.r_xtop, r.r_ybot, r.r_ytop);
-	TxPrintf("\thcost = %d, ", 
+	TxPrintf("\thcost = %d, ",
 		tilec->tc_hCost);
-	TxPrintf("vcost = %d \n", 
+	TxPrintf("vcost = %d \n",
 		tilec->tc_vCost);
 	{
 	    char str[100];
 	    Estimate *e;
 
-	    TxPrintf("\tEstimates:\n");	    
+	    TxPrintf("\tEstimates:\n");
 
 	    for(e=tilec->tc_estimates; e!=NULL; e=e->e_next)
 	    {
@@ -2018,7 +2018,7 @@ mzDumpEstFunc(tile, fd)
 	    }
 	}
     }
-		
+
     /* continue search */
     return (0);
 }

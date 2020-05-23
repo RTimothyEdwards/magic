@@ -4,17 +4,17 @@
  * Code to process the `*mzroute' command.
  * `*mzroute' is a wizard command for debugging and testing the maze router.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -51,14 +51,14 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 typedef struct
 {
     char	*sC_name;	/* name of iroute subcommand */
-    void	(*sC_proc)();	/* Procedure implementing this 
+    void	(*sC_proc)();	/* Procedure implementing this
 				       subcommand */
     char 	*sC_commentString;
     char	*sC_usage;
 } TestCmdTableE;
 extern TestCmdTableE mzTestCommands[];
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -71,7 +71,7 @@ extern TestCmdTableE mzTestCommands[];
  *
  * Side effects:
  *	Modify debug flags.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -111,13 +111,13 @@ mzDebugTstCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzDumpEstimatesTstCmd --
  *
- * mzrouter wizard command (`:*mzroute') to dump estimate plane info 
+ * mzrouter wizard command (`:*mzroute') to dump estimate plane info
  * associated with tiles under the box.
  *
  * Results:
@@ -125,7 +125,7 @@ mzDebugTstCmd(w, cmd)
  *
  * Side effects:
  *	See above.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -158,13 +158,13 @@ mzDumpEstimatesTstCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzDumpTagsTstCmd --
  *
- * mzrouter wizard command (`:*mzroute') to dump tag info 
+ * mzrouter wizard command (`:*mzroute') to dump tag info
  * associated with tiles under the box.
  *
  * Results:
@@ -172,7 +172,7 @@ mzDumpEstimatesTstCmd(w, cmd)
  *
  * Side effects:
  *	See above.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -205,7 +205,7 @@ mzDumpTagsTstCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -219,7 +219,7 @@ mzDumpTagsTstCmd(w, cmd)
  *
  * Side effects:
  *	See above.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -247,8 +247,8 @@ mzHelpTstCmd(w, cmd)
     {
 	/* Lookup subcommand in table, and printed associated help info */
 	which = LookupStruct(
-	    cmd->tx_argv[2], 
-	    (LookupTable *) mzTestCommands, 
+	    cmd->tx_argv[2],
+	    (LookupTable *) mzTestCommands,
 	    sizeof mzTestCommands[0]);
 
         /* Process result of lookup */
@@ -264,13 +264,13 @@ mzHelpTstCmd(w, cmd)
 	else if (which == -1)
 	{
 	    /* ambiguous subcommand - complain */
-	    TxError("Ambiguous *mzroute subcommand: \"%s\"\n", 
+	    TxError("Ambiguous *mzroute subcommand: \"%s\"\n",
 		    cmd->tx_argv[2]);
 	}
 	else
 	{
 	    /* unrecognized subcommand - complain */
-	    TxError("Unrecognized iroute subcommand: \"%s\"\n", 
+	    TxError("Unrecognized iroute subcommand: \"%s\"\n",
 		    cmd->tx_argv[2]);
 	    TxError("Valid *mzroute subcommands are:  ");
 	    for (n = 0; mzTestCommands[n].sC_name; n++)
@@ -282,7 +282,7 @@ mzHelpTstCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -295,7 +295,7 @@ mzHelpTstCmd(w, cmd)
  *
  * Side effects:
  *	fiddle with some number lines.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -306,7 +306,7 @@ mzNumberLineTstCmd(w, cmd)
 {
     NumberLine myLine;
     int *result;
-    
+
     mzNLInit(&myLine, 2);
 
     TxPrintf("Inserting 10\n");
@@ -361,7 +361,7 @@ mzNumberLineTstCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -374,7 +374,7 @@ mzNumberLineTstCmd(w, cmd)
  *
  * Side effects:
  *	Dump routelayers and routecontacts.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -391,7 +391,7 @@ mzParmsTstCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -405,7 +405,7 @@ mzParmsTstCmd(w, cmd)
  *
  * Side effects:
  *	Dump routelayers and routecontacts.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -431,12 +431,12 @@ mzPlaneTstCmd(w, cmd)
 
     /* convert name to type */
     t = DBTechNameType(layerName);
-    if(t == -1) 
+    if(t == -1)
     {
 	TxPrintf("`%s' is ambiguous\n",layerName);
 	return;
     }
-    if(t == -2) 
+    if(t == -2)
     {
 	TxPrintf("`%s' type not recognized\n",layerName);
 	return;
@@ -453,10 +453,10 @@ mzPlaneTstCmd(w, cmd)
 
     /* Attach Blockage plane of routeType to "__BLOCK" cell for display */
     mzBlockDef->cd_planes[PL_M_HINT] = rT->rt_hBlock;
-    
+
     /* Display it */
-    DBWAreaChanged(mzBlockDef, 
-		   &TiPlaneRect, 
+    DBWAreaChanged(mzBlockDef,
+		   &TiPlaneRect,
 		   DBW_ALLWINDOWS,
 		   &DBAllButSpaceBits);
     WindUpdate();
@@ -464,13 +464,13 @@ mzPlaneTstCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzVersionCmd --
  *
- * mzrouter wizard subcommand (`*mzroute version') to display mzrouter 
+ * mzrouter wizard subcommand (`*mzroute version') to display mzrouter
  * version string.
  *
  * Results:
@@ -478,7 +478,7 @@ mzPlaneTstCmd(w, cmd)
  *
  * Side effects:
  *	Displays version string.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -501,7 +501,7 @@ mzVersionCmd(w, cmd)
     return;
 }
 
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -521,7 +521,7 @@ mzVersionCmd(w, cmd)
  *	and call it to do the work of implementing the rule.  Each
  *	such procedure is of the following form:
  *
- *	int	
+ *	int
  *	proc(argc, argv)
  *	    int argc;
  *	    char *argv[];
@@ -588,8 +588,8 @@ MZTest(w, cmd)
     {
 	/* Lookup subcommand in table */
 	which = LookupStruct(
-	    cmd->tx_argv[1], 
-	    (LookupTable *) mzTestCommands, 
+	    cmd->tx_argv[1],
+	    (LookupTable *) mzTestCommands,
 	    sizeof mzTestCommands[0]);
 
         /* Process result of lookup */

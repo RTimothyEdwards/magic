@@ -25,13 +25,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "resis/resis.h"
 
-
+
 /*
  * ---------------------------------------------------------------------------
  *
- * ResFirst -- Checks to see if tile is a contact. If it is, allocate a 
+ * ResFirst -- Checks to see if tile is a contact. If it is, allocate a
  *	contact structure.
- * 
+ *
  *
  * Results: Always returns NULL (in the form of a Region pointer)
  *
@@ -52,7 +52,7 @@ ResFirst(tile, arg)
     ResContactPoint *reg;
     TileType t;
     int i;
-    
+
     if (IsSplit(tile))
     {
 	t = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
@@ -86,13 +86,13 @@ ResFirst(tile, arg)
     }
     return((Region *) NULL);
 }
-
+
 /*
  *--------------------------------------------------------------------------
  *
  * ResEach--
  *
- * ResEach calls ResFirst unless this is the first contact, in which case it 
+ * ResEach calls ResFirst unless this is the first contact, in which case it
  * has alreay been processed
  *
  * results: returns 0
@@ -108,14 +108,14 @@ ResEach(tile, pNum, arg)
     int pNum;
     FindRegion *arg;
 {
-   
+
    if ( ((ResContactPoint *)(arg->fra_region))->cp_contactTile != tile)
    {
    	(void) ResFirst(tile, arg);
    }
    return(0);
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -123,7 +123,7 @@ ResEach(tile, pNum, arg)
  * to keep track of various things used by the extractor. ResAddPlumbing
  * adds this structure and sets the tile's ClientData field to point to it.
  * If the tile is a device, then a device structure is also added;
- * all connected device tiles are enumerated and their deviceList 
+ * all connected device tiles are enumerated and their deviceList
  * fields set to the new structure.
  *
  * Results: always returns 0
@@ -145,7 +145,7 @@ ResAddPlumbing(tile, arg)
      Tile		*tp1,*tp2,*source;
      resDevice		*resDev;
      ExtDevice		*devptr;
-     
+
      if (resDevStack == NULL)
      	  resDevStack = StackNew(64);
 
@@ -156,7 +156,7 @@ ResAddPlumbing(tile, arg)
 			SplitLeftType(tile);
 	else
 	    loctype = TiGetTypeExact(tile);
-	  
+
 	devptr = ExtCurStyle->exts_device[loctype];
      	junk2 = resAddField(tile);
 	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), loctype))
@@ -200,7 +200,7 @@ ResAddPlumbing(tile, arg)
 	    *arg = (ClientData)resDev;
 	    junk2->deviceList =  resDev;
 	    junk2->tj_status |= RES_TILE_DEV;
-	       
+
 	    source = NULL;
 	    /* find diffusion (if present) to be source contact */
 
@@ -262,13 +262,13 @@ ResAddPlumbing(tile, arg)
 		    break;
 		}
 	    }
-	       
+
 	    /* We need to know whether a given diffusion tile connects to
-	     * the source or to the drain of a device.  A single 
+	     * the source or to the drain of a device.  A single
 	     * diffusion tile is marked, and all connecting diffusion tiles
 	     * are enumerated and called the source.  Any other SD tiles
-	     * are assumed to be the drain.  BUG: this does not work 
-	     * correctly with multi SD structures. 
+	     * are assumed to be the drain.  BUG: this does not work
+	     * correctly with multi SD structures.
 	     */
 
 	    if (source != (Tile *) NULL)
@@ -368,7 +368,7 @@ ResAddPlumbing(tile, arg)
 			STACKPUSH((ClientData)(tp2),resDevStack);
 	       		Junk->deviceList =  resDev;
 	       		Junk->tj_status |= RES_TILE_DEV;
-				    
+
 		    }
 	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetBottomType(tp2))
@@ -514,7 +514,7 @@ ResAddPlumbing(tile, arg)
     }
     return(0);
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -533,7 +533,7 @@ ResRemovePlumbing(tile, arg)
      ClientData *arg;
 
 {
-     
+
      if (tile->ti_client != (ClientData) CLIENTDEFAULT)
      {
           freeMagic(((char *)(tile->ti_client)));
@@ -542,20 +542,20 @@ ResRemovePlumbing(tile, arg)
      return(0);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
- * ResPreprocessDevices-- Given a list of all the device tiles and 
- * a list of all the devices, this procedure calculates the width and 
- * length.  The width is set equal to the sum of all edges that touch 
- * diffusion divided by 2. The length is the remaining perimeter divided by 
+ * ResPreprocessDevices-- Given a list of all the device tiles and
+ * a list of all the devices, this procedure calculates the width and
+ * length.  The width is set equal to the sum of all edges that touch
+ * diffusion divided by 2. The length is the remaining perimeter divided by
  * 2*tiles.  The perimeter and area fields of device structures are also
  * fixed.
  *
  * Results: none
  *
- * Side Effects: sets length and width of devices. "ResDevTile" 
+ * Side Effects: sets length and width of devices. "ResDevTile"
  * structures are freed.
  *
  *-------------------------------------------------------------------------
@@ -572,7 +572,7 @@ ResPreProcessDevices(TileList, DeviceList, Def)
     tileJunk	*tstruct;
     TileType	tt, residue;
     int		pNum;
-     
+
     while (TileList != (ResDevTile *) NULL)
     {
 	tt = TileList->type;
@@ -582,7 +582,7 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 	    TileTypeBitMask ttresidues;
 
 	    DBFullResidueMask(tt, &ttresidues);
-	       
+
 	    for (residue = TT_TECHDEPBASE; residue < DBNumUserLayers; residue++)
 	    {
 		if (TTMaskHasType(&ttresidues, residue))
@@ -643,7 +643,7 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 	    {
 	       	double perimeter = DeviceList->rd_perim;
 		double area = DeviceList->rd_area;
-		    
+
 		perimeter /= 4.0;
 
 		DeviceList->rd_width = perimeter +
@@ -655,7 +655,7 @@ ResPreProcessDevices(TileList, DeviceList, Def)
     }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -677,7 +677,7 @@ ResAddToQueue(node,list)
      *list = node;
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -696,7 +696,7 @@ ResRemoveFromQueue(node,list)
 	resNode	*node,**list;
 
 {
-     
+
      if (node->rn_less != NULL)
      {
      	  node->rn_less->rn_more = node->rn_more;

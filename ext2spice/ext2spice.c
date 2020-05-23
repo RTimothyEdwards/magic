@@ -71,9 +71,9 @@ int esSbckNum; 	/* used in hspice node name shortening   */
 int esNoModelType;  /* index for device type "None" (model-less device) */
 
 /*
- * The following hash table and associated functions are used only if 
- * the format is hspice, to keep the translation between the hierarchical 
- * prefix of a node and the x num that we use to output valid hspice 
+ * The following hash table and associated functions are used only if
+ * the format is hspice, to keep the translation between the hierarchical
+ * prefix of a node and the x num that we use to output valid hspice
  * which also are meaningful.
  */
 HashTable subcktNameTable ; /* the hash table itself */
@@ -87,7 +87,7 @@ typedef struct GLL *globalListPtr;
 
 typedef struct GLL {
     globalListPtr gll_next;
-    char *gll_name;   
+    char *gll_name;
 } globalList;
 
 unsigned long	initMask = 0;
@@ -97,11 +97,11 @@ bool esMergeDevsC = FALSE; /* conservative merging of devs L1=L2 and W1=W2 */
 			   /* used with the hspice multiplier */
 bool esDistrJunct = FALSE;
 
-/* 
+/*
  *---------------------------------------------------------
- * Variables & macros used for merging parallel devs       
- * The merging of devs is based on the fact that spcdevVisit 
- * visits the devs in the same order all the time so the 
+ * Variables & macros used for merging parallel devs
+ * The merging of devs is based on the fact that spcdevVisit
+ * visits the devs in the same order all the time so the
  * value of esFMult[i] keeps the multiplier for the ith dev
  *---------------------------------------------------------
  */
@@ -247,7 +247,7 @@ CmdExtToSpice(w, cmd)
     globalList *glist = NULL;
 
     static EFCapValue LocCapThreshold = 2;
-    static int LocResistThreshold = INFINITE_THRESHOLD; 
+    static int LocResistThreshold = INFINITE_THRESHOLD;
 
     static char *spiceFormats[] = {
 	"SPICE2", "SPICE3", "HSPICE", "NGSPICE", NULL
@@ -317,7 +317,7 @@ CmdExtToSpice(w, cmd)
     typedef enum {
 	IDX_YES, IDX_TRUE, IDX_ON, IDX_NO, IDX_FALSE, IDX_OFF,
 	IDX_AUTO, IDX_TOP, IDX_DESCEND
-    } yesnoType;  
+    } yesnoType;
 
     esNoModelType = -1;
 
@@ -544,7 +544,7 @@ CmdExtToSpice(w, cmd)
 		return;
 	    }
 	    else if (cmd->tx_argc < 3) goto usage;
-	
+
 	    /* Note that strtod() (called by StrIsNumeric()) accepts	*/
 	    /* "infinite" as a valid numerical value;  however, the	*/
 	    /* conversion to C type INF is *not* INFINITE_THRESHOLD, so	*/
@@ -554,7 +554,7 @@ CmdExtToSpice(w, cmd)
 		LocCapThreshold = (EFCapValue)INFINITE_THRESHOLD_F;
 	    else if (StrIsNumeric(cmd->tx_argv[2]))
 		LocCapThreshold = atoCap(cmd->tx_argv[2]);
-	    else 
+	    else
 		TxError("exttospice: numeric value or \"infinite\" expected.\n");
 	    break;
 
@@ -573,7 +573,7 @@ CmdExtToSpice(w, cmd)
 		LocResistThreshold = atoi(cmd->tx_argv[2]);
 	    else if (!strncmp(cmd->tx_argv[2], "inf", 3))
 		LocResistThreshold = INFINITE_THRESHOLD;
-	    else 
+	    else
 		TxError("exttospice: integer value or \"infinite\" expected.\n");
 	    break;
 
@@ -611,7 +611,7 @@ CmdExtToSpice(w, cmd)
 		    break;
 	    }
 	    break;
-	    
+
 	case EXTTOSPC_DEFAULT:
 	    LocCapThreshold = 2;
 	    LocResistThreshold = INFINITE_THRESHOLD;
@@ -662,7 +662,7 @@ runexttospice:
     EFCapThreshold = LocCapThreshold;
 
     /* Process command line arguments */
-    
+
     inName = EFArgs(argc, argv, &err_result, spcmainArgs, (ClientData) NULL);
     if (err_result == TRUE)
     {
@@ -673,7 +673,7 @@ runexttospice:
     if (inName == NULL)
     {
 	/* Assume that we want to do exttospice on the currently loaded cell */
-	
+
 	if (w == (MagWindow *) NULL)
 	{
 	    windCheckOnlyWindow(&w, DBWclientID);
@@ -693,7 +693,7 @@ runexttospice:
 
     /*
      * Initializations specific to this program.
-     * Make output name inName.spice if they weren't 
+     * Make output name inName.spice if they weren't
      * explicitly specified
      */
 
@@ -817,7 +817,7 @@ runexttospice:
 
     fprintf(esSpiceF, "* %s file created from %s.ext - technology: %s\n\n",
 	    spiceFormats[esFormat], inName, EFTech);
-    if (esScale < 0) 
+    if (esScale < 0)
     	fprintf(esSpiceF, ".option scale=%gu\n\n", EFScale / 100.0);
     else
 	esScale = EFScale / 100.0;
@@ -945,10 +945,10 @@ runexttospice:
 	if ((esDoSubckt == TRUE) || (locDoSubckt == TRUE))
 	    fprintf(esSpiceF, ".ends\n");
 
-	if (esFormat == HSPICE) 
+	if (esFormat == HSPICE)
 	    printSubcktDict();
 
-	EFFlatDone(); 
+	EFFlatDone();
     }
     EFDone();
 
@@ -1020,7 +1020,7 @@ main(argc, argv)
 
     /*
      * Initializations specific to this program.
-     * Make output name inName.spice if they weren't 
+     * Make output name inName.spice if they weren't
      * explicitly specified
      */
 
@@ -1041,7 +1041,7 @@ main(argc, argv)
 
     fprintf(esSpiceF, "* %s file created from %s.ext - technology: %s\n\n",
 	    spiceFormats[esFormat], inName, EFTech);
-    if (esScale < 0) 
+    if (esScale < 0)
     	fprintf(esSpiceF,".option scale=%gu\n\n", EFScale / 100.0);
     else
 	esScale = EFScale / 100.0;
@@ -1101,10 +1101,10 @@ main(argc, argv)
     if ((esDoSubckt == TRUE) || (locDoSubckt == TRUE))
 	fprintf(esSpiceF, ".ends\n");
 
-    if (esFormat == HSPICE) 
+    if (esFormat == HSPICE)
 	printSubcktDict();
 
-    EFFlatDone(); 
+    EFFlatDone();
     EFDone();
 
     if (esSpiceF) fclose(esSpiceF);
@@ -1115,7 +1115,7 @@ main(argc, argv)
 
 #endif	/* MAGIC_WRAPPER */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1189,12 +1189,12 @@ spcmainArgs(pargc, pargv)
 	        esFormat = SPICE2;
 	     else if (strcasecmp(ftmp, "SPICE3") == 0)
 		esFormat = SPICE3;
-	     else if (strcasecmp(ftmp, "HSPICE") == 0) 
+	     else if (strcasecmp(ftmp, "HSPICE") == 0)
 	     {
 		esFormat = HSPICE;
 		esScale = -1.0;
 	     }
-	     else if (strcasecmp(ftmp, "NGSPICE") == 0) 
+	     else if (strcasecmp(ftmp, "NGSPICE") == 0)
 		esFormat = NGSPICE;
 	     else goto usage;
 	     break;
@@ -1249,8 +1249,8 @@ spcmainArgs(pargc, pargv)
 	    }
 	    esFetInfo[ndx].defSubs = (char *)mallocMagic((unsigned)(strlen(subsNode)+1));
 	    strcpy(esFetInfo[ndx].defSubs,subsNode);
-	    TxError("info: dev %s(%d) sdRclass=%d subRclass=%d dSub=%s\n", 
-	    cp, ndx, esFetInfo[ndx].resClassSD, esFetInfo[ndx].resClassSub, 
+	    TxError("info: dev %s(%d) sdRclass=%d subRclass=%d dSub=%s\n",
+	    cp, ndx, esFetInfo[ndx].resClassSD, esFetInfo[ndx].resClassSub,
             esFetInfo[ndx].defSubs);
 	    break;
 	    }
@@ -1303,14 +1303,14 @@ HierName *suffix;
     if (nn == NULL) return NULL;
     return(nn->efnn_node);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * extHierSDAttr --
  * Check if the attribute of the argument dev_terminal or the global
  * settings are such that we want a hierarchical extraction of its S/D
- * 
+ *
  *
  * Results:
  *  TRUE or FALSE
@@ -1328,7 +1328,7 @@ bool extHierSDAttr(term)
 
     if (term->dterm_attrs)
     {
-	if (Match(ATTR_HIERAP, term->dterm_attrs) != FALSE) 
+	if (Match(ATTR_HIERAP, term->dterm_attrs) != FALSE)
 	    r = TRUE;
 	else if (Match(ATTR_FLATAP, term->dterm_attrs) != FALSE)
 	    r = FALSE;
@@ -1434,7 +1434,7 @@ subcktVisit(use, hierName, is_top)
 			    tchars = 1;
 			}
 			tchars += spcdevOutNode(hierName, nodeName->efnn_hier,
-					"subcircuit", esSpiceF); 
+					"subcircuit", esSpiceF);
 		    }
 	}
 
@@ -1509,7 +1509,7 @@ subcktVisit(use, hierName, is_top)
 		    tchars = 1;
 		}
 		tchars += spcdevOutNode(hierName, nodeName->efnn_hier,
-				"subcircuit", esSpiceF); 
+				"subcircuit", esSpiceF);
 	    }
 	    else
 	    {
@@ -1573,7 +1573,7 @@ subcktVisit(use, hierName, is_top)
 	}
 	fprintf(esSpiceF, " %s", pptr->parm_name);
 	tchars += (1 + strlen(pptr->parm_name));
-    }    
+    }
     freeMagic(instname);
     fprintf(esSpiceF, "\n");
     return 0;
@@ -1633,7 +1633,7 @@ subcktUndef(use, hierName, is_top)
  *
  * ----------------------------------------------------------------------------
  */
- 
+
 void
 topVisit(def, doStub)
     Def *def;
@@ -1767,7 +1767,7 @@ topVisit(def, doStub)
 		    // Node has not been assigned a port number.
 		    // Give it one unless this is a black-box circuit
 		    // and "ext2spice blackbox on" is in effect.
- 
+
 		    if (esDoBlackBox == FALSE || !(def->def_flags & DEF_ABSTRACT))
 			unnumbered->efnn_port = ++portmax;
 		}
@@ -1825,7 +1825,7 @@ topVisit(def, doStub)
 	pname = pptr->parm_name;
 	fprintf(esSpiceF, " %s", pname);
 	tchars += strlen(pname) + 1;
-    }    
+    }
     freeMagic(instname);
 
     fprintf(esSpiceF, "\n");
@@ -1880,7 +1880,7 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 			fprintf(esSpiceF, "%gp", parmval * scale * scale
 				* esScale * esScale);
 		}
-		else 
+		else
 		{
 		    int pn;
 
@@ -1946,7 +1946,7 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		    else
 			fprintf(esSpiceF, "%gu", parmval * scale * esScale);
 		}
-		else 
+		else
 		{
 		    int pn;
 
@@ -2091,7 +2091,7 @@ esOutputResistor(dev, hierName, scale, term1, term2, has_model, l, w, dscale)
     int l, w;			/* Device length and width */
     int dscale;			/* Device scaling (for split resistors) */
 {
-    float sdM ; 
+    float sdM ;
     char name[12], devchar;
 
     /* Resistor is "Rnnn term1 term2 value" 		 */
@@ -2121,7 +2121,7 @@ esOutputResistor(dev, hierName, scale, term1, term2, has_model, l, w, dscale)
     {
 	fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 
-	if (esScale < 0) 
+	if (esScale < 0)
 	    fprintf(esSpiceF, " w=%g l=%g", w * scale, (l * scale) / dscale);
 	else
 	    fprintf(esSpiceF, " w=%gu l=%gu",
@@ -2201,13 +2201,13 @@ getCurDevMult()
  * Format of a .spice dev line:
  *
  *	M%d drain gate source substrate type w=w l=l * x y
- *      + ad= pd= as= ps=  * asub= psub=  
- *      **devattr g= s= d= 
+ *      + ad= pd= as= ps=  * asub= psub=
+ *      **devattr g= s= d=
  *
  * where
  *	type is a name identifying this type of transistor
  *      other types of transistors are extracted with
- *      an M card but it should be easy to turn them to whatever 
+ *      an M card but it should be easy to turn them to whatever
  *      you want.
  *	gate, source, and drain are the nodes to which these three
  *		terminals connect
@@ -2231,14 +2231,14 @@ spcdevVisit(dev, hierName, scale, trans)
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
     int l, w, i, parmval;
     bool subAP= FALSE, hierS, hierD, extHierSDAttr() ;
-    float sdM; 
+    float sdM;
     char name[12], devchar;
     bool has_model = TRUE;
 
     sprintf(name, "output");
 
     /* If no terminals, can't do much of anything */
-    if (dev->dev_nterm < 1 ) 
+    if (dev->dev_nterm < 1 )
 	return 0;
 
     if ( (esMergeDevsA || esMergeDevsC) && devIsKilled(esFMIndex++) )
@@ -2312,7 +2312,7 @@ spcdevVisit(dev, hierName, scale, trans)
 	case DEV_RES:
 	case DEV_CAP:
 	case DEV_CAPREV:
-	    if (dev->dev_nterm < 1) 
+	    if (dev->dev_nterm < 1)
 		return 0;
 	    if (dev->dev_type == esNoModelType)
 		has_model = FALSE;
@@ -2422,7 +2422,7 @@ spcdevVisit(dev, hierName, scale, trans)
 	    /* extraction sets collector=subnode, emitter=gate, base=drain	*/
 
 	    sprintf(name, "fet");
-	    spcdevOutNode(hierName, subnode->efnode_name->efnn_hier, name, esSpiceF); 
+	    spcdevOutNode(hierName, subnode->efnode_name->efnn_hier, name, esSpiceF);
 	    spcdevOutNode(hierName, gate->dterm_node->efnode_name->efnn_hier,
 			name, esSpiceF);
 
@@ -2555,7 +2555,7 @@ spcdevVisit(dev, hierName, scale, trans)
 			name, esSpiceF);
 	    else if (subnode)
 		spcdevOutNode(hierName, subnode->efnode_name->efnn_hier,
-			name, esSpiceF); 
+			name, esSpiceF);
 
 	    fprintf(esSpiceF, " %s", EFDevTypes[dev->dev_type]);
 	    sdM = getCurDevMult();
@@ -2571,7 +2571,7 @@ spcdevVisit(dev, hierName, scale, trans)
 			name, esSpiceF);
 	    else if (subnode)
 		spcdevOutNode(hierName, subnode->efnode_name->efnn_hier,
-			name, esSpiceF); 
+			name, esSpiceF);
 	    spcdevOutNode(hierName, gate->dterm_node->efnode_name->efnn_hier,
 			name, esSpiceF);
 
@@ -2706,15 +2706,15 @@ spcdevVisit(dev, hierName, scale, trans)
 		fprintf(esSpiceF, " M=%g", sdM);
 
 	    /*
-	     * Check controlling attributes and output area and perimeter. 
+	     * Check controlling attributes and output area and perimeter.
 	     */
 	    hierS = extHierSDAttr(source);
 	    hierD = extHierSDAttr(drain);
-	    if ( gate->dterm_attrs ) 
+	    if ( gate->dterm_attrs )
 		subAP = Match(ATTR_SUBSAP, gate->dterm_attrs ) ;
 
 	    fprintf(esSpiceF, "\n+ ");
-	    if (hierD) 
+	    if (hierD)
         	spcnAPHier(drain, hierName, esFetInfo[dev->dev_type].resClassSD,
 			scale, "ad", "pd", sdM, esSpiceF);
 	    else
@@ -2740,8 +2740,8 @@ spcdevVisit(dev, hierName, scale, trans)
 				dev->dev_type);
 		    fprintf(esSpiceF, "asub=0 psub=0");
 		}
-		else if (subnodeFlat) 
-		    spcnAP(subnodeFlat, esFetInfo[dev->dev_type].resClassSub, scale, 
+		else if (subnodeFlat)
+		    spcnAP(subnodeFlat, esFetInfo[dev->dev_type].resClassSub, scale,
 	       			"asub", "psub", sdM, esSpiceF, -1);
 		else
 		    fprintf(esSpiceF, "asub=0 psub=0");
@@ -2754,9 +2754,9 @@ spcdevVisit(dev, hierName, scale, trans)
 		    fprintf(esSpiceF,"\n**devattr");
 		if (gate->dterm_attrs)
 		    fprintf(esSpiceF, " g=%s", gate->dterm_attrs);
-		if (source->dterm_attrs) 
+		if (source->dterm_attrs)
 		    fprintf(esSpiceF, " s=%s", source->dterm_attrs);
-		if (drain->dterm_attrs) 
+		if (drain->dterm_attrs)
 		    fprintf(esSpiceF, " d=%s", drain->dterm_attrs);
 	    }
 	    break;
@@ -2770,7 +2770,7 @@ spcdevVisit(dev, hierName, scale, trans)
  *
  * spcdevSubstrate -
  *
- * Output the node name of the substrate of a dev. If the suffix is the 
+ * Output the node name of the substrate of a dev. If the suffix is the
  * same as the default dont go looking for it just output the default
  * (trimmed appropriately). Otherwise look it up ..
  *
@@ -2802,13 +2802,13 @@ FILE *outf;
     	he = EFHNConcatLook(prefix, suffix, "substrate");
     	if (he == NULL)
     	{
-		if (outf) 
+		if (outf)
 		   fprintf(outf, "errGnd!");
 		return NULL;
     	}
     	/* Canonical name */
     	nn = (EFNodeName *) HashGetValue(he);
-	if (outf) 
+	if (outf)
 	   fprintf(outf, "%s", nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier,
 		    NULL));
 
@@ -2829,7 +2829,7 @@ FILE *outf;
  *
  * spcnAP, spcnAPHier --
  *
- * Output the area perimeter of the node with type type if it has not 
+ * Output the area perimeter of the node with type type if it has not
  * been visited.
  * The spcnAPHier version outputs the area and perimeter only within the
  * local subcell with hierarchical name hierName.
@@ -2890,7 +2890,7 @@ int spcnAP(node, resClass, scale, asterm, psterm, m, outf, w)
 	    fprintf(outf, pfmt,
 			node->efnode_pa[resClass].pa_perim * scale * dsc);
     }
-    else 
+    else
     {
 	if (asterm)
 	    fprintf(outf, afmt,
@@ -2906,7 +2906,7 @@ int spcnAP(node, resClass, scale, asterm, psterm, m, outf, w)
 
 oldFmt:
     if (resClass == NO_RESCLASS ||
-		beenVisited((nodeClient *)node->efnode_client, resClass)) 
+		beenVisited((nodeClient *)node->efnode_client, resClass))
 	scale = 0;
     else
 	markVisited((nodeClient *)node->efnode_client, resClass);
@@ -2920,7 +2920,7 @@ oldFmt:
 	    fprintf(outf, pfmt,
 			node->efnode_pa[resClass].pa_perim * scale / m);
     }
-    else 
+    else
     {
 	if (asterm)
 	    fprintf(outf, afmt,
@@ -2956,7 +2956,7 @@ int spcnAPHier(dterm, hierName, resClass, scale, asterm, psterm, m, outf)
 	sprintf(afmt," %s=%%gp", asterm);
 	sprintf(pfmt," %s=%%gu", psterm);
     }
-    if (node->efnode_client == (ClientData) NULL) 
+    if (node->efnode_client == (ClientData) NULL)
 	initNodeClientHier(node);
 
     nc = (nodeClientHier *)node->efnode_client;
@@ -2966,7 +2966,7 @@ int spcnAPHier(dterm, hierName, resClass, scale, asterm, psterm, m, outf)
 	nc->lastPrefix = hierName;
     }
     if (resClass == NO_RESCLASS ||
-	    beenVisited((nodeClientHier *)node->efnode_client, resClass) ) 
+	    beenVisited((nodeClientHier *)node->efnode_client, resClass) )
 	scale = 0.0;
     else
 	markVisited((nodeClientHier *)node->efnode_client, resClass);
@@ -3038,7 +3038,7 @@ spcdevOutNode(prefix, suffix, name, outf)
     return (1 + strlen(nname));
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3078,7 +3078,7 @@ spccapVisit(hierName1, hierName2, cap)
                                           nodeSpiceName(hierName2, NULL), cap);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3115,7 +3115,7 @@ spcresistVisit(hierName1, hierName2, res)
 
     return 0;
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -3158,7 +3158,7 @@ spcsubVisit(node, res, cap, resstr)
  *
  * spcnodeVisit --
  *
- * Procedure to output a single node to the .spice file along with its 
+ * Procedure to output a single node to the .spice file along with its
  * attributes and its dictionary (if present). Called by EFVisitNodes().
  *
  * Results:
@@ -3173,7 +3173,7 @@ spcsubVisit(node, res, cap, resstr)
 int
 spcnodeVisit(node, res, cap)
     EFNode *node;
-    int res; 
+    int res;
     double cap;
 {
     EFNodeName *nn;
@@ -3189,7 +3189,7 @@ spcnodeVisit(node, res, cap)
         	((((nodeClient *)node->efnode_client)->m_w.visitMask
 		& DEV_CONNECT_MASK) != 0);
     }
-    if (!isConnected && esDevNodesOnly) 
+    if (!isConnected && esDevNodesOnly)
 	return 0;
 
     /* Don't mark known ports as "FLOATING" nodes */
@@ -3209,7 +3209,7 @@ spcnodeVisit(node, res, cap)
     if (cap > EFCapThreshold)
     {
 	fprintf(esSpiceF, esSpiceCapFormat, esCapNum++, nsn, cap,
-			(isConnected) ?  "\n" : 
+			(isConnected) ?  "\n" :
 			(esFormat == NGSPICE) ? " ; **FLOATING\n" :
 			" **FLOATING\n");
     }
@@ -3232,14 +3232,14 @@ spcnodeVisit(node, res, cap)
 int
 nodeVisitDebug(node, res, cap)
     EFNode *node;
-    int res; 
+    int res;
     double cap;
 {
     EFNodeName *nn;
     HierName *hierName;
     char *fmt, *nsn;
     EFAttr *ap;
-    
+
     hierName = (HierName *) node->efnode_name->efnn_hier;
     nsn = nodeSpiceName(hierName, NULL);
     TxError("** %s (%x)\n", nsn, node);
@@ -3249,7 +3249,7 @@ nodeVisitDebug(node, res, cap)
     ((nodeClient *)node->efnode_client)->m_w.widths);
    return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3295,14 +3295,14 @@ char *nodeSpiceName(hname, rnode)
 
 
 makeName:
-    if ( esFormat == SPICE2 ) 
+    if ( esFormat == SPICE2 )
 	sprintf(esTempName, "%d", esNodeNum++);
     else {
        EFHNSprintf(esTempName, node->efnode_name->efnn_hier);
        if ( esFormat == HSPICE ) /* more processing */
 	nodeHspiceName(esTempName);
     }
-   ((nodeClient *) (node->efnode_client))->spiceNodeName = 
+   ((nodeClient *) (node->efnode_client))->spiceNodeName =
 	    StrDup(NULL, esTempName);
 
 retName:
@@ -3316,7 +3316,7 @@ retName:
  *
  * Create a hierarchical node name.
  * The flags in EFTrimFlags control whether global (!) or local (#)
- * suffixes are to be trimmed. Also substitutes \. with \@ if the 
+ * suffixes are to be trimmed. Also substitutes \. with \@ if the
  * format is hspice.
  *
  * Results:
@@ -3328,7 +3328,7 @@ retName:
  * ----------------------------------------------------------------------------
  */
 
-int 
+int
 EFHNSprintf(str, hierName)
     char *str;
     HierName *hierName;
@@ -3341,7 +3341,7 @@ EFHNSprintf(str, hierName)
     if (hierName->hn_parent) str = efHNSprintfPrefix(hierName->hn_parent, str);
     if (EFTrimFlags)
     {
-	cp = hierName->hn_name; 
+	cp = hierName->hn_name;
 	trimGlob = (EFTrimFlags & EF_TRIMGLOB);
 	trimLocal = (EFTrimFlags & EF_TRIMLOCAL);
 	convertComma = (EFTrimFlags & EF_CONVERTCOMMA);
@@ -3405,7 +3405,7 @@ char *efHNSprintfPrefix(hierName, str)
  *
  * nodeHspiceName --
  *
- * Convert the hierarchical node name used in Berkeley spice 
+ * Convert the hierarchical node name used in Berkeley spice
  * to a name understood by hspice and hopefully by the user.
  *
  * Results:
@@ -3426,25 +3426,25 @@ int nodeHspiceName(s)
     static char map[MAX_STR_SIZE];
 
     /*
-     * find the suffix 
+     * find the suffix
      */
     l = strlen(s);
-    for (p = s + l; (p > s) && *p != '/'; p--); 
+    for (p = s + l; (p > s) && *p != '/'; p--);
     if (p == s)
     {
 	strcpy(map, s);
 	goto topLevel;
     }
 
-    /* 
-     * break it into prefix '/0' suffix 
+    /*
+     * break it into prefix '/0' suffix
      */
-    if (*p == '/') 
-	*p = 0; 
+    if (*p == '/')
+	*p = 0;
     sf = p + 1;
 
-    /* 
-     * look up prefix in the hash table and create it if doesn't exist 
+    /*
+     * look up prefix in the hash table and create it if doesn't exist
      */
     if ((he = HashLookOnly(&subcktNameTable, s)) == NULL)
     {
@@ -3455,7 +3455,7 @@ int nodeHspiceName(s)
 	DQPushRear(&subcktNameQueue, he);
 #endif
     }
-    else 
+    else
 	snum = (spointertype) HashGetValue(he);
     sprintf(map, "x%d/%s", snum, sf);
 
@@ -3511,7 +3511,7 @@ int printSubcktDict()
     while ((he = (HashEntry *)DQPopFront(&subcktNameQueue)) != NULL)
 #else
     HashStartSearch(&hs);
-    while ((he = HashNext(&subcktNameTable, &hs)) != NULL) 
+    while ((he = HashNext(&subcktNameTable, &hs)) != NULL)
 #endif
 	fprintf(esSpiceF,"* x%"DLONG_PREFIX"d\t%s\n", (dlong) HashGetValue(he), he->h_key.h_name);
     return 0;
@@ -3750,7 +3750,7 @@ devMergeVisit(dev, hierName, scale, trans)
     }
     if (dev->dev_subsnode)
 	subnode = spcdevSubstrate(hierName,
-			dev->dev_subsnode->efnode_name->efnn_hier, 
+			dev->dev_subsnode->efnode_name->efnn_hier,
 			dev->dev_type, NULL);
     else
 	subnode = NULL;
@@ -3764,12 +3764,12 @@ devMergeVisit(dev, hierName, scale, trans)
     hD = extHierSDAttr(drain);
 
     /*
-     * run the list of devs. compare the current one with 
+     * run the list of devs. compare the current one with
      * each one in the list. if they fullfill the matching requirements
      * merge them only if:
      * 1) they have both apf S, D attributes
-     * or 
-     * 2) one of them has aph S, D attributes and they have the same 
+     * or
+     * 2) one of them has aph S, D attributes and they have the same
      *    hierarchical prefix
      * If one of them has apf and the other aph print a warning.
      */
@@ -3783,19 +3783,19 @@ devMergeVisit(dev, hierName, scale, trans)
 	    cs = cd = &cfp->dev->dev_terms[1];
 	    if (cfp->dev->dev_nterm >= 3)
 	    {
-		if (pmode == PARALLEL) 
+		if (pmode == PARALLEL)
 		    cd = &cfp->dev->dev_terms[2];
-		    else if (pmode == ANTIPARALLEL) 
+		    else if (pmode == ANTIPARALLEL)
 			cs = &cfp->dev->dev_terms[2];
 	    }
 
 	    chS = extHierSDAttr(cs); chD = extHierSDAttr(cd);
 	    if (!(chS || chD || hS || hD)) /* all flat S, D */
 		goto mergeThem;
-	    if (cfp->hierName != hierName && 
+	    if (cfp->hierName != hierName &&
 			((chS && !hS) || (chD && !hD) ||
 			(!chS && hS) || (!chD && hD)))
-	    { 
+	    {
 
 		efHNSprintfPrefix((cfp->hierName)?cfp->hierName:hierName,
 				     esTempName);
@@ -3844,7 +3844,7 @@ mergeThem:
 				((fp->l  * fp->w) / (cfp->l * cfp->w));
 		    break;
 	    }
-	    setDevMult(fp->esFMIndex, DEV_KILLED); 
+	    setDevMult(fp->esFMIndex, DEV_KILLED);
 	    setDevMult(cfp->esFMIndex, m);
 	    esSpiceDevsMerged++;
 	    /* Need to do attribute stuff here */
@@ -3874,7 +3874,7 @@ mergeThem:
  * ----------------------------------------------------------------------------
  */
 
-int 
+int
 update_w(resClass, w,  n)
     short  resClass;
     int w;
@@ -3883,7 +3883,7 @@ update_w(resClass, w,  n)
     nodeClient *nc;
     int i;
 
-    if (n->efnode_client == (ClientData)NULL) 
+    if (n->efnode_client == (ClientData)NULL)
 	initNodeClient(n);
     nc = (nodeClient *) n->efnode_client;
     if (nc->m_w.widths == NULL)
@@ -3912,7 +3912,7 @@ update_w(resClass, w,  n)
  * ----------------------------------------------------------------------------
  */
 
-int 
+int
 devDistJunctVisit(dev, hierName, scale, trans)
     Dev *dev;			/* Dev to examine */
     HierName *hierName;		/* Hierarchical path down to this dev */

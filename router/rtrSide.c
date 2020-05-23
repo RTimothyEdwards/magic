@@ -4,16 +4,16 @@
  * Contains procedures for enumerating the sides of groups of
  * collinear cells.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -74,7 +74,7 @@ int rtrSideMinChanWidth;	/* See comments in rtrEnumSides() */
 int rtrEnumSidesFunc();
 int rtrSideInitClient();
 int rtrSideLookCellsFunc();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -180,7 +180,7 @@ rtrEnumSides(use, area, minChannelWidth, func, cdata)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -263,7 +263,7 @@ rtrSideProcess(use, side, area, trans)
 
     return (retval);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -289,7 +289,7 @@ rtrSideInitClient(tile, client)
     tile->ti_client = client;
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -450,7 +450,7 @@ rtrEnumSidesFunc(tile)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

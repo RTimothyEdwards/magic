@@ -4,16 +4,16 @@
  *	of the windows.  This includes things like pan, zoom, and loading
  *	of windows.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -33,7 +33,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 extern void windNewView();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -69,7 +69,7 @@ windFixSurfaceArea(w)
     w->w_origin.p_y += (newArea.r_ybot - w->w_surfaceArea.r_ybot) * w->w_scale;
     w->w_surfaceArea = newArea;
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -129,7 +129,7 @@ WindLoad(w, client, surfaceID, surfaceArea)
    return TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindMove --
@@ -141,7 +141,7 @@ WindLoad(w, client, surfaceID, surfaceArea)
  *	None.
  *
  * Side effects:
- *	The window will be now view a different portion of the clients area.  
+ *	The window will be now view a different portion of the clients area.
  *	The client may be called to redisplay the areas that moved.
  * ----------------------------------------------------------------------------
  */
@@ -159,13 +159,13 @@ WindMove(w, surfaceArea)
      * window, compute the scale twice, once using the y-dimension
      * alone, and once using x alone.  Then use the smaller scale factor.
      */
-    
+
     size = (surfaceArea->r_xtop - surfaceArea->r_xbot + 1);
-    xscale = ((dlong)(w->w_screenArea.r_xtop - 
+    xscale = ((dlong)(w->w_screenArea.r_xtop -
 	    w->w_screenArea.r_xbot + 1) * SUBPIXEL) / size;
 
     size = (surfaceArea->r_ytop - surfaceArea->r_ybot + 1);
-    yscale = ((w->w_screenArea.r_ytop - 
+    yscale = ((w->w_screenArea.r_ytop -
 	    w->w_screenArea.r_ybot + 1) * SUBPIXEL) / size;
 
     w->w_scale = MIN(xscale, yscale);
@@ -208,7 +208,7 @@ WindMove(w, surfaceArea)
     windNewView(w);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindZoom --
@@ -222,7 +222,7 @@ WindMove(w, surfaceArea)
  *	None.
  *
  * Side effects:
- *	The window will be now view a different portion of the client's area.  
+ *	The window will be now view a different portion of the client's area.
  *	The client may be called to redisplay part of the screen.
  * ----------------------------------------------------------------------------
  */
@@ -264,7 +264,7 @@ WindZoom(w, factor)
  *	None.
  *
  * Side effects:
- *	All windows will be now view a different portion of the client's area.  
+ *	All windows will be now view a different portion of the client's area.
  *
  * ----------------------------------------------------------------------------
  */
@@ -304,7 +304,7 @@ WindScale(scalen, scaled)
  *	None.
  *
  * Side effects:
- *	All windows will be now view a different portion of the client's area.  
+ *	All windows will be now view a different portion of the client's area.
  *
  * ----------------------------------------------------------------------------
  */
@@ -329,8 +329,8 @@ WindTranslate(origx, origy)
     }
 }
 
-
-
+
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -348,7 +348,7 @@ WindTranslate(origx, origy)
  *
  * ----------------------------------------------------------------------------
  */
-    
+
     /* ARGSUSED */
 
 void
@@ -356,7 +356,7 @@ WindView(w)
     MagWindow *w;
 {
     Rect bbox;
-#define SLOP	10	/* Amount of border (in fraction of a screenfull) 
+#define SLOP	10	/* Amount of border (in fraction of a screenfull)
 			 * to add.
 			 */
     if (w == NULL)
@@ -376,7 +376,7 @@ WindView(w)
 
     WindMove(w, &bbox);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -440,7 +440,7 @@ WindScroll(w, surfaceOffset, screenOffset)
      * make sure that w->w_surfaceArea still overlaps the window area
      * on all sides.
      */
-    
+
     if (screenOffset != NULL)
     {
 	int units, pixels;

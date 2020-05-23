@@ -8,16 +8,16 @@
  * the search strongly toward the destination rather than
  * propagating isotropically from the starting points.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -105,7 +105,7 @@ int fudgeDenom = 10;
 
 /* Marker to indicate an already-processed GlPoint */
 #define	PROCESSED_MARK	((GlPoint *) 1)
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -246,7 +246,7 @@ glRouteToPoint(loc, bestCost)
 
     return (lastPt);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -276,7 +276,7 @@ glScalePenalties()
     glChanPenalty *= RtrGridSpacing;
     glPenaltiesScaled = TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -346,7 +346,7 @@ glPopFromHeap(pNewBest, newPaths, hEntry)
     if (*pNewBest)
     {
 	/*
-	 * Pop bestcost heap until path that hasn't already been 
+	 * Pop bestcost heap until path that hasn't already been
 	 * processed is reached.   (Already processed paths are marked
 	 * by setting their gl_next field to PROCESSED_MARK).  This
 	 * point will be the one with the best possible cost plus
@@ -409,7 +409,7 @@ glPopFromHeap(pNewBest, newPaths, hEntry)
 	 * The minimum acceptable cost for transfer from the
 	 * Reserve heap (glHeap) to the proximity and best heaps
 	 * will be glBestCost * (fudgeNumer / fudgeDenom).
-	 */ 
+	 */
 	minAcceptableCost = (glBestCost * fudgeNumer) / fudgeDenom;
 	if (DebugIsSet(glDebugID, glDebHeap))
 	    TxPrintf("Min acceptable cost = %d\n", minAcceptableCost);
@@ -470,7 +470,7 @@ glPopFromHeap(pNewBest, newPaths, hEntry)
     }
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -544,7 +544,7 @@ glFinalPropagate(inPt, loc)
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -611,7 +611,7 @@ glRiverPropagate(inPt)
 
     return (-1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -889,7 +889,7 @@ glNormalPropagate(inPt, inCh, heapCost)
     }
     else glCrossingsComplete++;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1065,7 +1065,7 @@ glPinCost(inPt, pin, oldCost)
 
     return (MIN(cost, oldCost));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1167,7 +1167,7 @@ glSetDensityClip(inPt, ch, dRect)
 
     return (dRect->r_xtop >= dRect->r_xbot && dRect->r_ytop >= dRect->r_ybot);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1253,7 +1253,7 @@ glSetPinClip(inPt, inCh, heapCost, dRect, pRect)
     /* Clip against dRect */
     GEOCLIP(pRect, dRect);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1294,7 +1294,7 @@ glResetCost(headPage, headFree)
 	headFree = 0;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1378,7 +1378,7 @@ glPropagateFn(outCh, outPin, inPt)
     }
     return (finalCost);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1498,7 +1498,7 @@ glCrossPenalty(cost, inCh, outCh, inPin, outPin)
 
     return (cost);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1563,7 +1563,7 @@ glDensityExceeded(inCh, inPin, outPin)
 
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1622,7 +1622,7 @@ glRectToRange(ch, r, pr)
     if (r->r_xtop == ch->gcr_length + 1)
 	pr->pr_rmin = clipR.r_ybot, pr->pr_rmax = clipR.r_ytop;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1671,7 +1671,7 @@ glJogsAcrossChannel(inPin, outPin)
 
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1732,7 +1732,7 @@ glPropagateDebug(inPt, inPin, outCh, outPin, prevCost, distCost)
     nrMore(mesg);
     nrShowRect(EditCellUse->cu_def, &r, STYLE_ERASEHIGHLIGHTS);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1766,7 +1766,7 @@ glLogPath(inPt, cost)
 		inPt->gl_length, cost);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

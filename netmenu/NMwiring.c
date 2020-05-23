@@ -6,16 +6,16 @@
  *	verify that all the connections in a netlist actually
  *	exist in the circuit.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -80,7 +80,7 @@ static bool nmwVerifyNetHasErrors;	/* TRUE means an error has already
 					 */
 static bool nmwNetFound = FALSE;	/* TRUE means a net has been found and
 					 * we should skip the rest of the
-					 * terminals in that net 
+					 * terminals in that net
 					 */
 /* The nmMeasureTiles array (which grows dynamically as needed) records
  * all tiles found on the current net.
@@ -98,7 +98,7 @@ static int nmVCount= 0;
 
 #define TERMLENGTH 200
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -134,7 +134,7 @@ nmwRipTileFunc(tile, plane, listHead)
     *listHead = new;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -171,11 +171,11 @@ NMRipup()
     (void) DBSrConnect(EditCellUse->cu_def, &area,
 	&DBAllButSpaceAndDRCBits, DBConnectTbl,
 	&TiPlaneRect, nmwRipTileFunc, (ClientData) &list);
-    
+
     /* Now go through the list one item at a time and delete
      * the attached paint.
      */
-    
+
     TTMaskZero(&maskBits);
     while (list != NULL)
     {
@@ -192,7 +192,7 @@ NMRipup()
     DBReComputeBbox(EditCellUse->cu_def);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -249,7 +249,7 @@ nmRipLocFunc(rect, name, label, area)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -281,7 +281,7 @@ nmRipNameFunc(name, firstInNet, area)
     (void) DBSrLabelLoc(EditCellUse, name, nmRipLocFunc, (ClientData) area);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -311,7 +311,7 @@ NMRipupList()
      * rectangle that accumlates the total area of the edit cell that
      * was modified.
      */
-    
+
     area = GeoNullRect;
     (void) NMEnumNets(nmRipNameFunc, (ClientData) &area);
     DBReComputeBbox(EditCellUse->cu_def);
@@ -320,7 +320,7 @@ NMRipupList()
     DRCCheckThis(EditCellUse->cu_def, TT_CHECKPAINT, &area);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -346,7 +346,7 @@ nmwNetCellFunc(scx)
 	scx->scx_use->cu_id);
     return 2;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -373,7 +373,7 @@ nmwCheckFunc(name, otherName)
     if (strcmp(name, otherName) == 0) return 1;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -405,7 +405,7 @@ nmwNetTermFunc(scx, label, tpath, netPtr)
     char **netPtr;		/* Pointer to a terminal in current net. */
 {
     char *p, *p2;
-    
+
     if (strchr(tpath->tp_first, '/') == 0) return 0;
 
     /* Add the label name onto the end of the terminal path name. */
@@ -444,7 +444,7 @@ nmwNetTermFunc(scx, label, tpath, netPtr)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -484,7 +484,7 @@ nmwNetTileFunc(tile, plane, netPtr)
      * have to blow up the tile's area by one for searching,
      * so that we get anything that even touches it.
      */
-    
+
     TiToRect(tile, &scx.scx_area);
     scx.scx_area.r_xbot -= 1;
     scx.scx_area.r_xtop += 1;
@@ -506,14 +506,14 @@ nmwNetTileFunc(tile, plane, netPtr)
     /* If no new terminal was added, then make sure there aren't any
      * subcells underneath the current tile.
      */
-    
+
     if (!nmwGotTerm)
     {
 	(void) DBCellSrArea(&scx, nmwNetCellFunc, (ClientData) NULL);
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -557,7 +557,7 @@ NMExtract()
     NMSelectNet(net);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -578,7 +578,7 @@ NMExtract()
  *
  * ----------------------------------------------------------------------------
  */
- 
+
 int
 nmwVerifyLabelFunc2(scx, label, tpath, cd)
     SearchContext *scx;		/* Describes state of search. */
@@ -604,7 +604,7 @@ nmwVerifyLabelFunc2(scx, label, tpath, cd)
 
     name = NMTermInList(tpath->tp_first);
     /*if (name == NULL) return 0;*/
-    if (name == NULL) 
+    if (name == NULL)
     {
 	/*
 	** make sure there is enough space in the array to hold this
@@ -645,7 +645,7 @@ nmwVerifyLabelFunc2(scx, label, tpath, cd)
      * terminal.  If not, then allocate a new array and copy the old
      * to the new.
      */
-    
+
     if (nmwVerifyCount == nmwVerifySize)
     {
 	char ** newNames;
@@ -675,7 +675,7 @@ nmwVerifyLabelFunc2(scx, label, tpath, cd)
      * netlist table, since its address is permanent and can be
      * compared later to see if we got all the terminals in the net.
      */
-    
+
     nmwVerifyNames[nmwVerifyCount] = name;
     GeoTransRect(&scx->scx_trans, &label->lab_rect,
 	&nmwVerifyAreas[nmwVerifyCount]);
@@ -684,12 +684,12 @@ nmwVerifyLabelFunc2(scx, label, tpath, cd)
     /* See if there are any other labels with the same name as this
      * one.  If so, trace out the wiring that connects to them.
      */
-    
+
     (void) DBSrLabelLoc(EditCellUse, name, nmwVerifyLabelFunc, cd);
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -733,7 +733,7 @@ nmwVerifyTileFunc(tile, plane, func)
 	0, &tpath, TF_LABEL_ATTACH, nmwVerifyLabelFunc2, (ClientData) func);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -781,11 +781,11 @@ nmwVerifyLabelFunc(rect, name, label, cd)
 		&& (strcmp(name, nmwVerifyNames[i]) == 0))
 	    return 0;
     }
-    
+
     /* Trace out all wiring in the edit cell that's attached to this
      * label (to accumulate information about what's actually wired).
      */
-    
+
     if (label->lab_type == TT_SPACE) mask = &DBAllButSpaceAndDRCBits;
     else mask = &DBConnectTbl[label->lab_type];
 
@@ -797,7 +797,7 @@ nmwVerifyLabelFunc(rect, name, label, cd)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -831,14 +831,14 @@ nmwVErrorLabelFunc(rect, name, label)
     /* Make the feedback area larger than the label;  otherwise point labels
      * won't be visible at all.
      */
-    
+
     GEO_EXPAND(rect, 1, &biggerArea);
     DBWFeedbackAdd(&biggerArea, msg, EditCellUse->cu_def, 1,
 	    STYLE_PALEHIGHLIGHTS);
     nmwVerifyErrors += 1;
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -894,7 +894,7 @@ nmwVerifyTermFunc(name, report)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -935,12 +935,12 @@ nmwVerifyNetFunc(name, first)
      * off by enumerating all instances of the first terminal.  Lower-
      * level procedures do the rest.
      */
-    
+
     nmwVerifyCount=0;
     nmwNonTerminalCount=0;
     (void) DBSrLabelLoc(EditCellUse, name, nmwVerifyLabelFunc,
 	    (ClientData) NULL);
-    
+
     /* Check whether the label was found, if not report an error.
      */
     if (nmwVerifyCount == 0)
@@ -956,7 +956,7 @@ nmwVerifyNetFunc(name, first)
      * care of errors and NULLs out entries that it found terminals
      * for.
      */
-    
+
     nmwVerifyNetHasErrors = FALSE;
     (void) NMEnumTerms(name, nmwVerifyTermFunc, (ClientData) 1);
 
@@ -964,7 +964,7 @@ nmwVerifyNetFunc(name, first)
      * they represent shorts between this net and other nets.  Print
      * errors for them.
      */
-    
+
     for (i = 0; i < nmwVerifyCount; i++)
     {
 	if (nmwVerifyNames[i] != NULL)
@@ -1000,7 +1000,7 @@ nmwVerifyNetFunc(name, first)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1028,7 +1028,7 @@ NMVerify()
     /* Enumerate all the nets and let the search function do the
      * real work.
      */
-    
+
     nmwVerifyErrors = 0;
     (void) NMEnumNets(nmwVerifyNetFunc, (ClientData) NULL);
 
@@ -1052,7 +1052,7 @@ NMVerify()
 	TxPrintf("%d feedback areas generated.\n", nmwVerifyErrors);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1091,7 +1091,7 @@ NMCull()
 		nmwCullDone);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1171,7 +1171,7 @@ nmwCullNetFunc(name, first)
 
     return 0;
 }
-
+
 
 #ifdef ROUTE_MODULE
 
@@ -1229,7 +1229,7 @@ nmMeasureFunc(r, type, clientData)
 	nmVCount++;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1301,7 +1301,7 @@ nmAllFunc(name, firstInNet, fp)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1371,7 +1371,7 @@ nmwMeasureTileFunc(tile)
 
 	    if (nmMeasureSize != 0)
 		freeMagic((char *) nmMeasureTiles);
-	
+
 	    nmMeasureTiles = newTiles;
 		nmMeasureSize = newSize;
 	}

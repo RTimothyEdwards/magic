@@ -29,7 +29,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define MAXNAME			1000
 #define KV_TO_mV		1000000
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -58,7 +58,7 @@ ResPrintNodeList(fp,list)
 	  	list,list->rn_loc.p_x,list->rn_loc.p_y,list->rn_noderes);
      }
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -97,7 +97,7 @@ ResPrintResistorList(fp,list)
     }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -137,7 +137,7 @@ ResPrintDeviceList(fp,list)
 		fprintf(fp, "%c (%d,%d) ",termtype[i],
 	       		list->rd_terminals[i]->rn_loc.p_x,
 			list->rd_terminals[i]->rn_loc.p_y);
-	       
+
 	}
 	if (fp == stdout)
 	    TxPrintf("\n");

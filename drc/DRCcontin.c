@@ -6,16 +6,16 @@
  * records areas that need to be rechecked, and provides a
  * routine to perform those checks in background.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -46,7 +46,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #ifdef MAGIC_WRAPPER
 
-/* Global variable which indicates that the background checker is 
+/* Global variable which indicates that the background checker is
  * still registered as an idle process.
  */
 
@@ -146,7 +146,7 @@ extern int drcCheckTile();
 extern CellDef *DRCErrorDef;
 extern TileType DRCErrorType;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * DRCCheckThis --
@@ -268,7 +268,7 @@ DRCCheckThis (celldef, operation, area)
 	DRCCheckThis (cu->cu_parent, TT_CHECKSUBCELL, &transRect);
     }
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -410,7 +410,7 @@ DRCBreak()
     if (DRCHasWork && (DRCStatus == DRC_IN_PROGRESS))
     {
 	UndoEnable();
-	
+
 	/* fprintf(stderr, "DRC breaking. . .\n"); fflush(stderr); */
 
 	/* As a convenience for debugging DRC stuff, we pretend the DRC
@@ -441,7 +441,7 @@ DRCBreak()
  *	None.
  *
  * Side effects:
- *	Modifies the DRC_CHECK and DRC_ERROR planes 
+ *	Modifies the DRC_CHECK and DRC_ERROR planes
  *	of the CellDefs on the DRCPending list.
  * ----------------------------------------------------------------------------
  */
@@ -550,7 +550,7 @@ checkDone:
 #endif
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * drcCheckTile --
@@ -627,7 +627,7 @@ drcCheckTile(tile, arg)
     /* Find the checkerboard square containing the lower-left corner
      * of the check tile, then find all check tiles within that square.
      */
-    
+
     DRCstatSquares += 1;
     square.r_xbot = (LEFT(tile)/DRCStepSize) * DRCStepSize;
     if (square.r_xbot > LEFT(tile)) square.r_xbot -= DRCStepSize;
@@ -658,7 +658,7 @@ drcCheckTile(tile, arg)
     DBClearPaintPlane(drcDisplayPlane);
     (void) DBSrPaintArea((Tile *) NULL, celldef->cd_planes[PL_DRC_ERROR],
 	&square, &DBAllButSpaceBits, drcXorFunc, (ClientData) NULL);
-    
+
     /* Check #1:  recheck the paint of the cell, ignoring subcells. */
 
     DRCErrorType = TT_ERROR_P;
@@ -684,7 +684,7 @@ drcCheckTile(tile, arg)
     DRCErrorType = TT_ERROR_S;
     (void) DRCInteractionCheck(celldef, &square, &erasebox,
 		drcPaintError, (ClientData) drcTempPlane);
-    
+
     /* Check #3:  check for array formation errors in the area. */
 
     DRCErrorType = TT_ERROR_P;
@@ -721,7 +721,7 @@ drcCheckTile(tile, arg)
      * clip to square and redisplay.  If check tiles are being
      * displayed, then always redisplay the entire area.
      */
-    
+
     (void) DBSrPaintArea((Tile *) NULL, celldef->cd_planes[PL_DRC_ERROR],
 	&square, &DBAllButSpaceBits, drcXorFunc, (ClientData) NULL);
     if (DBBoundPlane(drcDisplayPlane, &redisplayArea))
@@ -771,7 +771,7 @@ drcPutBackFunc(tile, cellDef)
 	(PaintUndoInfo *) NULL);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- *  lispFrame.c -- 
+ *  lispFrame.c --
  *
  *   This module contains routines that muck around with frames.
  *
@@ -175,12 +175,12 @@ LispFrameRevLookup (l,f)
 {
   Sexp *f1;
   f1 = revfindbinding (l,f);
-  if (!f1) 
+  if (!f1)
     return NULL;
   else
     return LSYM(CAR(f1));
 }
-  
+
 
 
 /*------------------------------------------------------------------------
@@ -269,7 +269,7 @@ LispModifyBinding (name,val,f)
   return 0;
 }
 
-		
+
 /*-----------------------------------------------------------------------------
  *
  *  LispFramePush --

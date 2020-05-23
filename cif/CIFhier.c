@@ -8,16 +8,16 @@
  *	separately.  This module computes the extra CIF that may be
  *	needed.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -82,7 +82,7 @@ static CIFLayer *CurCifLayer;
     (dst)->r_ybot = (src)->r_ybot * scale; \
     (dst)->r_xtop = (src)->r_xtop * scale; \
     (dst)->r_ytop = (src)->r_ytop * scale;
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -148,7 +148,7 @@ CIFInitCells()
     CIFDummyUse = DBCellNewUse(CIFTotalDef, (char *) NULL);
     DBSetTrans (CIFDummyUse, &GeoIdentityTransform);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -198,7 +198,7 @@ cifHierCleanup()
 
     SigEnableInterrupts();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -274,7 +274,7 @@ cifHierCopyFunc(tile, cxp)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -317,7 +317,7 @@ cifHierCellFunc(scx)
     GEO_EXPAND(&scx->scx_area, CIFCurStyle->cs_radius, &newscx.scx_area);
     (void) DBTreeSrTiles(&newscx, &CIFCurStyle->cs_yankLayers, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
-    
+
     /* Set CIFErrorDef to NULL to ignore errors here... these will
      * get reported anyway when the cell is CIF'ed non-hierarchically,
      * so there's no point in making a second report here.
@@ -329,7 +329,7 @@ cifHierCellFunc(scx)
 	    &CIFCurStyle->cs_hierLayers, FALSE, TRUE);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -370,7 +370,7 @@ cifHierErrorFunc(tile, checkArea)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -453,7 +453,7 @@ cifHierPaintFunc(tile, plane)
     CIFTileOps += 1;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -482,7 +482,7 @@ cifCheckAndErase(style)
     int i;
 
     /* Process all of the bits of CIF in CIFComponentPlanes. */
-    
+
     for (i=0; i<style->cs_nLayers; i++)
     {
 	CIFErrorLayer = i;
@@ -492,7 +492,7 @@ cifCheckAndErase(style)
 	    (ClientData) CIFTotalPlanes[i]);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -548,7 +548,7 @@ CIFGenSubcells(def, area, output)
      * out if there are any subcell interactions within one
      * radius of the square.
      */
-    
+
     totalArea = *area;
     GeoClip(&totalArea, &def->cd_bbox);
     for (y = totalArea.r_ybot; y < totalArea.r_ytop; y += stepSize)
@@ -565,12 +565,12 @@ CIFGenSubcells(def, area, output)
 	    GEO_EXPAND(&square, radius, &square);
 	    if (!DRCFindInteractions(def, &square, radius,
 		&interaction)) continue;
-	    
+
 	    /* We've found an interaction.  Flatten it into CIFTotalUse, then
 	     * make CIF from what's flattened.  Yank extra material to
 	     * ensure that CIF is generated correctly.
 	     */
-	    
+
 	    GEO_EXPAND(&interaction, CIFCurStyle->cs_radius, &scx.scx_area);
 	    (void) DBTreeSrTiles(&scx, &CIFCurStyle->cs_yankLayers, 0,
 		cifHierCopyFunc, (ClientData) CIFTotalDef);
@@ -582,10 +582,10 @@ CIFGenSubcells(def, area, output)
 	     * and generate CIF for each subcell individually.  OR this
 	     * combined CIF together into CIFComponentPlanes.
 	     */
-	    
+
 	    scx.scx_area = interaction;
 	    (void) DBCellSrArea(&scx, cifHierCellFunc, (ClientData) NULL);
-	    
+
 	    /* Also generate CIF for the paint in the parent alone.  Ignore
 	     * CIF generation errors here, since they will already have been
 	     * recorded when the parent was CIF'ed by itself.
@@ -599,14 +599,14 @@ CIFGenSubcells(def, area, output)
 	     * CIF, then erase the piece stuff from the overall, and
 	     * throw away the pieces.
 	     */
-	    
+
 	    CIFErrorDef = def;
 	    cifCheckAndErase(CIFCurStyle);
 
 	    /* Lastly, paint everything from the pieces into the result
 	     * planes.
 	     */
-	    
+
 	    oldTileOps2 = CIFTileOps;
 	    for (i=0; i<CIFCurStyle->cs_nLayers; i++)
 	    {
@@ -619,11 +619,11 @@ CIFGenSubcells(def, area, output)
 
 	    cifHierCleanup();
 	}
-    
+
     CIFHierTileOps += CIFTileOps - oldTileOps;
     UndoEnable();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -684,14 +684,14 @@ cifHierElementFunc(use, transform, x, y, checkArea)
 
     return 0;
 }
-
+
 
 /*
  * ---------------------------------------------------------------------------
  * cifGrowSliver() --
  *
  * This function is passed the address of a "sliver" rectangle.  It then
- * grows the shortest dimension of the sliver so that it is at least minimum 
+ * grows the shortest dimension of the sliver so that it is at least minimum
  * width.  The minimum width is found through the variable CurCifLayer which
  * identifies the current layer being generated.  A "minwidth" command has been
  * added to the cifoutput section for which the minimum width of each layer
@@ -744,7 +744,7 @@ cifGrowSliver(tile, area)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -794,7 +794,7 @@ cifHierPaintArrayFunc(tile)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -852,7 +852,7 @@ cifHierArrayFunc(scx, output)
     radius = CIFCurStyle->cs_radius;
     if ((use->cu_xlo == use->cu_xhi) && (use->cu_ylo == use->cu_yhi))
 	return 2;
-    
+
     /* We only want interactions between neighboring cells, so reduce	*/
     /* the array size to at most 2x2, process, then restore the		*/
     /* original array count.						*/
@@ -869,7 +869,7 @@ cifHierArrayFunc(scx, output)
      * of the parent.  If the array is 1-dimensional, we set the
      * corresponding spacing to an impossibly large distance.
      */
-    
+
     childArea.r_xbot = 0;
     childArea.r_ybot = 0;
 
@@ -956,7 +956,7 @@ cifHierArrayFunc(scx, output)
 	CIFErrorDef = use->cu_parent;
 	CIFGen(CIFTotalDef, &B, CIFTotalPlanes, &CIFCurStyle->cs_hierLayers,
 		FALSE, TRUE);
-	
+
 	/* D */
 
 	D.r_xbot = use->cu_bbox.r_xtop - xsep + radius;
@@ -977,7 +977,7 @@ cifHierArrayFunc(scx, output)
 	/* Remove redundant CIF that's already in the children, and
 	 * make sure everything in the kids is in the parent too.
 	 */
-    
+
 	CIFErrorDef = use->cu_parent;
 	cifCheckAndErase(CIFCurStyle);
 
@@ -986,7 +986,7 @@ cifHierArrayFunc(scx, output)
 	 * be replicated many times over to cover each of the array
 	 * interaction areas.
 	 */
-    
+
 	oldTileOps = CIFTileOps;
 	for (i=0; i<CIFCurStyle->cs_nLayers; i++)
 	{
@@ -1037,7 +1037,7 @@ cifHierArrayFunc(scx, output)
 		(void) DBSrPaintArea((Tile *) NULL, CIFTotalPlanes[i],
 			&cifArea, &CIFSolidBits, cifHierPaintArrayFunc,
 			(ClientData) NULL);
-	    
+
 		/* The right edge of the array (from D). */
 
 		cifHierXSpacing = 0;
@@ -1048,7 +1048,7 @@ cifHierArrayFunc(scx, output)
 		(void) DBSrPaintArea((Tile *) NULL, CIFTotalPlanes[i],
 			&cifArea, &CIFSolidBits, cifHierPaintArrayFunc,
 			(ClientData) NULL);
-	    
+
 		/* The core of the array (from A and B).  This code is a bit
 		 * tricky in order to work correctly even for arrays where
 		 * radius < ysep.  The "if" statement handles this case.
@@ -1081,7 +1081,7 @@ cifHierArrayFunc(scx, output)
     return 2;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1122,7 +1122,7 @@ CIFGenArrays(def, area, output)
     /* Bill all tile operations here to hierarchical processing in
      * addition to adding to the total.
      */
-    
+
     oldTileOps = CIFTileOps;
 
     if (output == NULL)

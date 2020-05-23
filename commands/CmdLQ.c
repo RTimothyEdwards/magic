@@ -3,16 +3,16 @@
  *
  * Commands with names beginning with the letters L through Q.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -50,7 +50,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 void CmdPaintEraseButton();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -125,7 +125,7 @@ CmdLabelProc(text, font, size, rotate, offx, offy, pos, sticky, type)
     DBWLabelChanged(EditCellUse->cu_def, lab, DBW_ALLWINDOWS);
     lab->lab_rect = tmpArea;
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -281,7 +281,7 @@ CmdLabel(w, cmd)
 		pos = GeoTransPos(&RootToEditTransform, pos);
 	}
     }
-    
+
     /*
      * Find and check validity of type parameter.  Accept prefix "-" on
      * layer as an indication of a "sticky" label (label is fixed to
@@ -309,7 +309,7 @@ CmdLabel(w, cmd)
     CmdLabelProc(p, font, size, rotate, offx, offy, pos, sticky, type);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -627,7 +627,7 @@ CmdMove(w, cmd)
 	/* Use the displacement between the box lower-left corner and
 	 * the point as the transform.
 	 */
-	
+
 	MagWindow *window;
 
 	window = ToolGetPoint(&rootPoint, (Rect *) NULL);
@@ -656,7 +656,7 @@ moveToPoint:
 	    DBWSetBox(rootDef, &newBox);
 	}
     }
-    
+
     if (doOrigin)
     {
 	DBMoveCell(rootDef, t.t_c, t.t_f);
@@ -686,7 +686,7 @@ moveToPoint:
     else
 	SelectTransform(&t);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -758,7 +758,7 @@ CmdPaint(w, cmd)
     if (DRCBackGround)
 	DRCCheckThis (EditCellUse->cu_def, TT_CHECKPAINT, &editRect);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -796,7 +796,7 @@ CmdPaintEraseButton(w, butPoint, isPaint)
 
     WindPointToSurface(w, butPoint, (Point *) NULL, &rootRect);
 
-    DBSeeTypesAll(((CellUse *)w->w_surfaceID), &rootRect, 
+    DBSeeTypesAll(((CellUse *)w->w_surfaceID), &rootRect,
 	    crec->dbw_bitmask, &mask);
     TTMaskAndMask(&mask, &DBActiveLayerBits);
     TTMaskAndMask(&mask, &crec->dbw_visibleLayers);
@@ -967,7 +967,7 @@ CmdPath(w, cmd)
 	(void) StrDup(pathptr, srcptr);
     }
     return;
-	
+
 usage:
     TxError("Usage: %s [search|cell|sys] [[+]path]\n", cmd->tx_argv[0]);
 }
@@ -1116,7 +1116,7 @@ cmdPortLabelFunc2(scx, label, tpath, cdata)
 /*									*/
 /* If "port" is true, then search only for labels that are ports.	*/
 /* If "unique" is true, then return a label only if exactly one label	*/
-/* is found in the edit box.						*/ 
+/* is found in the edit box.						*/
 /*----------------------------------------------------------------------*/
 
 Label *
@@ -1190,7 +1190,7 @@ portFindLabel(editDef, port, unique, nonEdit)
 	if (lab != NULL)
 	    if (nonEdit) *nonEdit = TRUE;
     }
-    
+
     return lab;
 }
 /*
@@ -1244,7 +1244,7 @@ portFindLabel(editDef, port, unique, nonEdit)
 #define PORT_MAKEALL	8
 #define PORT_NAME	9
 #define PORT_REMOVE	10
-#define PORT_HELP	11	
+#define PORT_HELP	11
 
 void
 CmdPort(w, cmd)
@@ -1656,7 +1656,7 @@ portWrongNumArgs:
 	}
 	return;
     }
-    
+
 parseindex:
 
     if ((option != PORT_MAKEALL) && (lab->lab_flags & PORT_DIR_MASK))
@@ -1717,7 +1717,7 @@ parseindex:
 			break;
 		    }
 		    else if ((sl->lab_flags & PORT_NUM_MASK) > idx)
-			idx = (sl->lab_flags & PORT_NUM_MASK); 
+			idx = (sl->lab_flags & PORT_NUM_MASK);
 		}
 	    }
 	    idx++;
@@ -1837,7 +1837,7 @@ CmdDoProperty(def, cmd, argstart)
     char *value;
     bool propfound;
     int locargc = cmd->tx_argc - argstart + 1;
-    
+
     if (locargc == 1)
     {
 	/* print all properties and their values */
@@ -1872,7 +1872,7 @@ CmdDoProperty(def, cmd, argstart)
 	    DBPropPut(def, cmd->tx_argv[argstart], value);
 	}
 	def->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
-    }    
+    }
     else
     {
 	TxError("Usage: property [name] [value]\n");
@@ -1951,7 +1951,7 @@ printPropertiesFunc(name, value)
     }
     Tcl_AppendElement(magicinterp, keyvalue);
     freeMagic(keyvalue);
-    
+
 #else
     TxPrintf("%s = %s\n", name, value);
 #endif
@@ -1992,7 +1992,7 @@ CmdNetlist(w, cmd)
     char **msg, *lastargv;
     Point cursor;
     static char *cmdNetlistOption[] =
-    {	
+    {
 	"help           print this help information",
 	"select		select the net nearest the cursor",
 	"join           join current net and net containing terminal nearest the cursor",

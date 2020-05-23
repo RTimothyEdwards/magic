@@ -4,16 +4,16 @@
  * This file defines constants used internally by the calma
  * module, but not exported to the rest of the world.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid $Header: /usr/cvsroot/magic-8.0/calma/calmaInt.h,v 1.2 2010/06/24 12:37:15 tim Exp $
@@ -157,7 +157,7 @@ extern int  calmaLArtype;
 # define ntohs(x)        (x)
 # define htonl(x)        (x)
 # define htons(x)        (x)
-# endif 
+# endif
 #endif
 
 typedef union { char uc[2]; unsigned short us; } TwoByteInt;

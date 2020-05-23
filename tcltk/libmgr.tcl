@@ -138,7 +138,7 @@ proc magic::addlibentry {parent child name tech} {
    }
 }
 
-# 
+#
 proc magic::addtolibset {item} {
    global filtered
 
@@ -147,7 +147,7 @@ proc magic::addtolibset {item} {
    # puts stdout "addtolibset $item"
 
    # Sort files alphabetically
-   
+
    foreach f [lsort $pathfiles] {
       set tailname [file tail $f]
       set rootname [file root $tailname]

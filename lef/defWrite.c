@@ -1,5 +1,5 @@
 /*
- * defWrite.c --      
+ * defWrite.c --
  *
  * This module incorporates the LEF/DEF format for standard-cell place and
  * route.
@@ -11,7 +11,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/defWrite.c,v 1.2 2008/02/10 19:30:21 tim Exp $";            
+static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/defWrite.c,v 1.2 2008/02/10 19:30:21 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -66,7 +66,7 @@ char *defGetType();		/* Forward declaration */
 
 /*----------------------------------------------------------------------*/
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -120,7 +120,7 @@ defWriteHeader(def, f, oscale, units)
     fprintf(f, "   UNITS DISTANCE MICRONS %d ;\n", units);
 
     /* Die area, taken from the cell def bounding box.			*/
-    fprintf(f, "   DIEAREA ( %.10g %.10g ) ( %.10g %.10g ) ;\n", 
+    fprintf(f, "   DIEAREA ( %.10g %.10g ) ( %.10g %.10g ) ;\n",
 	(float)def->cd_bbox.r_xbot * oscale,
 	(float)def->cd_bbox.r_ybot * oscale,
 	(float)def->cd_bbox.r_xtop * oscale,
@@ -152,7 +152,7 @@ defTransPos(Transform *t)
 {
     static char *def_orient[] = {
 	"N", "S", "E", "W", "FN", "FS", "FE", "FW"
-    }; 
+    };
 
     bool ew;  /* east-or-west identifier */
     bool sw;  /* south-or-west identifier */
@@ -174,8 +174,8 @@ defTransPos(Transform *t)
     if (flip) pos += 4;
     if (ew) pos += 2;
     if (sw) pos += 1;
-    
-    return def_orient[pos]; 
+
+    return def_orient[pos];
 }
 
 /*
@@ -233,7 +233,7 @@ defCountNets(rootDef, allSpecial)
 	EFDone();
 	total.has_nets = FALSE;
     }
-    
+
     if (allSpecial) total.regular = 0;
     return total;
 }
@@ -261,7 +261,7 @@ defnodeCount(node, res, cap, total)
 	char *pwr;
 	cp = hierName->hn_name;
 	clast = *(cp + strlen(cp) - 1);
-	
+
 	/* Global nodes are marked as "special nets" */
 	if (clast == '!')
 	    node->efnode_flags |= EF_SPECIAL;
@@ -318,7 +318,7 @@ defnodeCount(node, res, cap, total)
 	else if (node->efnode_flags & EF_PORT)
 	    total->regular++;
     }
-    
+
     return 0;	/* Keep going. . . */
 }
 
@@ -338,7 +338,7 @@ defnodeCount(node, res, cap, total)
  * ----------------------------------------------------------------------------
  */
 
-void 
+void
 defHNsprintf(str, hierName, divchar)
     char *str;
     HierName *hierName;
@@ -358,7 +358,7 @@ defHNsprintf(str, hierName, divchar)
     /* magic name anyway), or dashes, asterisks, or percent signs	*/
     /* (which are interpreted as wildcard characters by LEF/DEF).	*/
 
-    cp = hierName->hn_name; 
+    cp = hierName->hn_name;
     while (c = *cp++)
     {
 	switch (c)
@@ -416,7 +416,7 @@ nodeDefName(hname)
     EFNodeName *nn;
     HashEntry *he;
     EFNode *node;
-    static char nodeName[256]; 
+    static char nodeName[256];
 
     he = EFHNLook(hname, (char *) NULL, "nodeName");
     if (he == NULL)
@@ -445,7 +445,7 @@ nodeDefName(hname)
  *	Output to DEF file; resets defdata->outcolumn
  *
  *------------------------------------------------------------
- */ 
+ */
 
 #define MAX_DEF_COLUMNS 70
 
@@ -767,7 +767,7 @@ defPortTileFunc(tile, cx)
 		rport->r_xbot, rport->r_ybot,
 		rport->r_xtop, rport->r_ytop);
     */
-    
+
     return 1;	/* No need to check further */
 }
 
@@ -1026,7 +1026,7 @@ defNetGeometryFunc(tile, plane, defdata)
 	    r.r_ytop = r.r_ybot + 1;
 
 	/* "sameroute" is true only if rectangles touch in the		*/
-	/* direction of the route.					*/ 
+	/* direction of the route.					*/
 	/* NOTE:  We should compute this FIRST and use it to determine	*/
 	/* the current route direction!					*/
 	/* Another hack---for special nets, don't continue routes that	*/
@@ -1067,7 +1067,7 @@ defNetGeometryFunc(tile, plane, defdata)
 		defdata->orient == GEO_CENTER)
 	    sameroute = FALSE;
     }
-		
+
 
     /* Determine if we need to write a NEW (type) record.  We do this	*/
     /* if 1) this is the first tile visited (except that we don't	*/
@@ -1502,7 +1502,7 @@ defCountViaFunc(tile, cviadata)
 	cviadata->total++;	/* Increment the count of uses */
 	lefl = (lefLayer *)mallocMagic(sizeof(lefLayer));
 	lefl->type = ttype;
-	lefl->obsType = -1; 
+	lefl->obsType = -1;
 	lefl->lefClass = CLASS_VIA;
 	lefl->info.via.area = r;
 	lefl->info.via.cell = (CellDef *)NULL;
@@ -1617,12 +1617,12 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 		continue;
 
 	    if (lefl->lefClass == CLASS_VIA)
-	    { 
+	    {
 		fprintf(f, "   - %s", (char *)lefl->canonName);
 
 		/* Generate squares for the area as determined	*/
 		/* by the cifoutput section of the tech file	*/
-		
+
 		rMask = DBResidueMask(lefl->type);
 		for (ttype = TT_TECHDEPBASE; ttype < DBNumUserLayers; ttype++)
 		    if (TTMaskHasType(rMask, ttype))
@@ -1666,7 +1666,7 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 			for (j = 0; j < nAc; j++)
 			{
 			     square.r_xtop = square.r_xbot + size;
-	
+
 			     fprintf(f, "\n      + RECT %s ( %.10g %.10g )"
 					" ( %.10g %.10g )",
 					lefMagicToLefLayer[lefl->type].lefName,
@@ -1690,7 +1690,7 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 			(float)(lefl->info.via.area.r_ybot) * oscale / 2,
 			(float)(lefl->info.via.area.r_xtop) * oscale / 2,
 			(float)(lefl->info.via.area.r_ytop) * oscale / 2);
-	 	}	
+	 	}
 		fprintf(f, " ;\n");
 	    }
 	}
@@ -1714,7 +1714,7 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
  *
  *------------------------------------------------------------
  */
- 
+
 int
 defCountComponents(rootDef)
     CellDef *rootDef;
@@ -1971,14 +1971,14 @@ DefWriteCell(def, outName, allSpecial, units)
 
     /* Vias---magic contact areas are reported as vias. */
     total = defCountVias(def, lefMagicToLefLayer, scale);
-    fprintf(f, "VIAS %d ;\n", total); 
+    fprintf(f, "VIAS %d ;\n", total);
     if (total > 0)
 	defWriteVias(f, def, scale, lefMagicToLefLayer);
     fprintf(f, "END VIAS\n\n");
 
     /* Components (i.e., cell uses) */
     total = defCountComponents(def);
-    fprintf(f, "COMPONENTS %d ;\n", total); 
+    fprintf(f, "COMPONENTS %d ;\n", total);
     if (total > 0)
 	defWriteComponents(f, def, scale);
     fprintf(f, "END COMPONENTS\n\n");
@@ -1991,14 +1991,14 @@ DefWriteCell(def, outName, allSpecial, units)
 
     /* "Special" nets---nets matching $GND, $VDD, or $globals(*) 	*/
 
-    fprintf(f, "SPECIALNETS %d ;\n", nets.special); 
+    fprintf(f, "SPECIALNETS %d ;\n", nets.special);
     if (nets.special > 0)
-	defWriteNets(f, def, scale, lefMagicToLefLayer, (allSpecial) ? 
+	defWriteNets(f, def, scale, lefMagicToLefLayer, (allSpecial) ?
 		ALL_SPECIAL : DO_SPECIAL);
     fprintf(f, "END SPECIALNETS\n\n");
 
     /* "Regular" nets */
-    fprintf(f, "NETS %d ;\n", nets.regular); 
+    fprintf(f, "NETS %d ;\n", nets.regular);
     if (nets.regular > 0)
 	defWriteNets(f, def, scale, lefMagicToLefLayer, DO_REGULAR);
     fprintf(f, "END NETS\n\n");

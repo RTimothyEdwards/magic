@@ -2,18 +2,18 @@
  * mzSubrs.c --
  *
  * Misc. surport routines for the Maze router.
- * 
- *     ********************************************************************* 
+ *
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -48,7 +48,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "mzrouter/mzInternal.h"
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -130,7 +130,7 @@ mzComputeDerivedParms()
 	int i;
 
 	rT->rt_effWidth = MAX(MAX(rT1->rt_width,rT2->rt_width),rT->rt_width);
-    
+
         for(i=0;i<=TT_MAXTYPES;i++)
 	{
 	    int bot, bot1, bot2;
@@ -216,7 +216,7 @@ mzComputeDerivedParms()
 	    mzBoundsIncrement = 30*minPitch;
 	}
     }
-	
+
     /* Set up (global) bounding rect for route */
     if(mzBoundsHint)
     /* Blockage gen will be confined to user supplied hint (+ 2 units)
@@ -246,7 +246,7 @@ mzComputeDerivedParms()
 	maxWidth = 0;
 	maxSpacing = 0;
 	for (rT = mzRouteTypes; rT!=NULL; rT=rT->rt_next)
-	{   
+	{
 	    int i;
 
 	    maxWidth = MAX(maxWidth,rT->rt_width);
@@ -260,9 +260,9 @@ mzComputeDerivedParms()
 	mzBoundingRect.r_ybot += safeHalo;
 	mzBoundingRect.r_ytop -= safeHalo;
 
-	ASSERT(mzBoundingRect.r_xbot < mzBoundingRect.r_xtop, 
+	ASSERT(mzBoundingRect.r_xbot < mzBoundingRect.r_xtop,
 	       "mzComputeDerivedParms");
-	ASSERT(mzBoundingRect.r_ybot < mzBoundingRect.r_ytop, 
+	ASSERT(mzBoundingRect.r_ybot < mzBoundingRect.r_ytop,
 	       "mzComputeDerivedParms");
     }
 }
@@ -279,7 +279,7 @@ int mzMakeEndpoints;  /* Set to MZ_EXPAND_START, MZ_EXPAND_DEST, or
  * Used to mark tiles that are part of start or dest nodes.
  *
  * If mzExpandEndpoints is set, also adds dest areas for connected tiles.
- * 
+ *
  * Results:
  *	none.
  *
@@ -296,7 +296,7 @@ mzMarkConnectedTiles(rect, type, expandType)
     int expandType;
 {
     List *expandList = NULL;	/* areas remaining to be expanded from */
-   
+
     /* set global controlling the creation of dest areas for each connected
      * tile found.
      */
@@ -312,7 +312,7 @@ mzMarkConnectedTiles(rect, type, expandType)
 	e->cr_rect = *rect;
 	LIST_ADD(e, expandList);
     }
-    
+
     /* repeatedly expand from top area on expandList */
     while(expandList)
     {
@@ -320,7 +320,7 @@ mzMarkConnectedTiles(rect, type, expandType)
 	SearchContext scx;
 	TileTypeBitMask typeMask;
 	int mzConnectedTileFunc();
-	
+
 	/* Restrict marking to route bounds */
 	if(GEO_OVERLAP(&mzBoundingRect, &(e->cr_rect)))
 	{
@@ -330,9 +330,9 @@ mzMarkConnectedTiles(rect, type, expandType)
 	    scx.scx_area = e->cr_rect;
 
 	    /* Grow search area by one unit in each direction so that in
-	     * addition to overlapping 
+	     * addition to overlapping
 	     * tiles we also get those that just touch it.
-	     */	    
+	     */
 	    scx.scx_area.r_xbot -= 1;
 	    scx.scx_area.r_ybot -= 1;
 	    scx.scx_area.r_xtop += 1;
@@ -342,21 +342,21 @@ mzMarkConnectedTiles(rect, type, expandType)
 	    TTMaskSetOnlyType(&typeMask, e->cr_type);
 
 	    /* search for connecting tiles, mark them, and add them to
-	     * expandList (They are inserted 
+	     * expandList (They are inserted
 	     * AFTER the first (= current) element.)
 	     */
-	    (void) 
+	    (void)
 	    DBTreeSrTiles(
-			  &scx, 
-			  &(DBConnectTbl[e->cr_type]), /* enumerate all 
-							* tiles of connecting 
-							* types */ 
+			  &scx,
+			  &(DBConnectTbl[e->cr_type]), /* enumerate all
+							* tiles of connecting
+							* types */
 			  mzCellExpansionMask,
-			  mzConnectedTileFunc, 
+			  mzConnectedTileFunc,
 			  (ClientData) expandList);
 	}
 
-	/* Done processing top element of expandList, toss it */ 
+	/* Done processing top element of expandList, toss it */
 	e = (ColoredRect *) ListPop(&expandList);
 	freeMagic((char *) e);
     }
@@ -390,7 +390,7 @@ mzMarkConnectedTiles(rect, type, expandType)
     return;
 }
 
-
+
 /*
  * ---------------------------------------------------------------------
  *
@@ -428,7 +428,7 @@ mzConnectedTileFunc(tile, cxp)
 	SearchContext *scx = cxp->tc_scx;
 	List *expandList = (List *) (cxp->tc_filter->tf_arg);
 	Rect rRaw, r;
-    
+
 	/* Get bounding box of tile */
 	TITORECT(tile, &rRaw);
 	GEOTRANSRECT(&scx->scx_trans, &rRaw, &r);
@@ -458,15 +458,15 @@ mzConnectedTileFunc(tile, cxp)
 	{
 	    RouteLayer *rL;
 	    TileType ttype = TiGetType(tile);
-		
+
 	    for(rL=mzRouteLayers; rL!=NULL; rL=rL->rl_next)
 	    {
-		if (rL->rl_routeType.rt_active && 
+		if (rL->rl_routeType.rt_active &&
 		   TTMaskHasType(&(DBConnectTbl[ttype]),
 				   rL->rl_routeType.rt_tileType))
 		{
 		    DBPaint(mzDestAreasUse->cu_def,
-			    &r, 
+			    &r,
 			    rL->rl_routeType.rt_tileType);
 		}
 	    }
@@ -492,7 +492,7 @@ mzConnectedTileFunc(tile, cxp)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -506,7 +506,7 @@ mzConnectedTileFunc(tile, cxp)
  *	Always returns 0 (to continue search)
  *
  * Side effects:
- *	Mark client field in subcell use, and add use to list of marked 
+ *	Mark client field in subcell use, and add use to list of marked
  *      subcells.
  *
  * ----------------------------------------------------------------------------
@@ -557,7 +557,7 @@ MZGetContact(path, prev)
 
     /* Find RouteContact connecting the route layers of path and prev.  */
 
-    for (cL = path->rp_rLayer->rl_contactL;  cL != NULL && 
+    for (cL = path->rp_rLayer->rl_contactL;  cL != NULL &&
 	    ((RouteContact*)LIST_FIRST(cL))->rc_rLayer1 != prev->rp_rLayer &&
 	    ((RouteContact*)LIST_FIRST(cL))->rc_rLayer2 != prev->rp_rLayer;
 	    cL = LIST_TAIL(cL));
@@ -649,7 +649,7 @@ mzPaintContact(path, prev)
     return cWidth;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -694,7 +694,7 @@ RoutePage *mzFirstPage = NULL;
 RoutePage *mzLastPage = NULL;
 RoutePage *mzCurPage = NULL;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -738,7 +738,7 @@ mzAllocRPath()
 
     return (&mzCurPage->rpp_array[mzCurPage->rpp_free++]);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -775,7 +775,7 @@ mzFreeAllRPaths()
     /* Start allocating again from the first page on the list */
     mzCurPage = mzFirstPage;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -793,7 +793,7 @@ mzFreeAllRPaths()
  * ----------------------------------------------------------------------------
  */
 
-bool 
+bool
 mzPresent(rL,touchingTypes)
     RouteLayer *rL;
     TileTypeBitMask *touchingTypes;
@@ -812,6 +812,6 @@ mzPresent(rL,touchingTypes)
 		(rC->rc_rLayer1==rL || rC->rc_rLayer2==rL))
 	    return TRUE;
     }
-    
+
     return FALSE;
 }

@@ -105,7 +105,7 @@ OACellSearch(scx, xMask, func, cdarg)
 
     /* Get the name of the instance, which should have been set by	*/
     /* rexlite when the OpenAccess database was opened under magic.	*/
-   
+
     instname = scx->scx_use->cu_id;
 
     /* Query the OpenAccess database.  For each cell overlapping the

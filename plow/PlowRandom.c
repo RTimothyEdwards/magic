@@ -7,16 +7,16 @@
  * result that has the same extracted circuit (minus the
  * parasitics) as the initial cell.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -51,7 +51,7 @@ extern CellDef *plowYankDef;
 int plowFindFirstError();
 void plowGenRect();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -161,7 +161,7 @@ PlowRandomTest(def)
     (void) unlink(tempExt);
 #endif	/* notdef */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -185,7 +185,7 @@ plowFindFirstError()
 {
     return (1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -232,7 +232,7 @@ plowGenRect(bbox, r)
 	r->r_ybot = temp;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -263,7 +263,7 @@ plowGenRandom(lo, hi)
 
     return ((r % range) + lo);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

@@ -1,15 +1,15 @@
 /* grLock.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains information related to the locking of windows.
@@ -93,7 +93,7 @@ grWindName(w)
 
 void
 grSimpleLock(w, inside)
-    MagWindow *w;		/* The window to lock, or GR_LOCK_SCREEN if the 
+    MagWindow *w;		/* The window to lock, or GR_LOCK_SCREEN if the
 			 * whole screen.
 			 */
     bool inside;	/* If TRUE, clip to inside of window, otherwise clip
@@ -109,7 +109,7 @@ grSimpleLock(w, inside)
     } else {
 	if (grLockedWindow != NULL) {
 	    TxError("Magic error: Attempt to lock more than one window!\n");
-	    TxError("Currently locked window is: '%s'\n", 
+	    TxError("Currently locked window is: '%s'\n",
 		grWindName(grLockedWindow));
 	    TxError("Window to be locked is: '%s'\n", grWindName(w));
 	    /* dump core here */
@@ -135,7 +135,7 @@ grSimpleUnlock(w)
     if (grTraceLocks) TxError("--- Unlock %s\n", grWindName(w));
     if (w != grLockedWindow) {
 	TxError("Magic error: Attempt to unlock a window that wasn't locked\n");
-	TxError("Currently locked window is: '%s'\n", 
+	TxError("Currently locked window is: '%s'\n",
 	    grWindName(grLockedWindow));
 	TxError("Window to be unlocked is: '%s'\n", grWindName(w));
 	/* dump core here */

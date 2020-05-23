@@ -36,7 +36,7 @@ exec ${MAGIC_WISH:=wish} "$0" ${1+"$@"}
 #
 #    set ::tkcon::PRIV(proxy) {wwwproxy:8080 1}
 #
-# Or you can set the above variable from within tkcon by calling 
+# Or you can set the above variable from within tkcon by calling
 #
 #    tkcon master set ::tkcon:PRIV(proxy) wwwproxy:8080
 #
@@ -656,7 +656,7 @@ proc ::tkcon::GarbageCollect {} {
 ## ::tkcon::EvalCmd) in turn.  Any uncompleted command will not be eval'ed.
 # ARGS:	w	- console text widget
 # Calls:	::tkcon::CmdGet, ::tkcon::CmdSep, ::tkcon::EvalCmd
-## 
+##
 proc ::tkcon::Eval {w} {
     set incomplete [CmdSep [CmdGet $w] cmds last]
     $w mark set insert end-1c
@@ -676,7 +676,7 @@ proc ::tkcon::Eval {w} {
 # Calls:	::tkcon::Prompt
 # Outputs:	result of command to stdout (or stderr if error occured)
 # Returns:	next event number
-## 
+##
 proc ::tkcon::EvalCmd {w cmd} {
     variable OPT
     variable PRIV
@@ -907,7 +907,7 @@ proc ::tkcon::EvalSocketClosed {} {
 ## ::tkcon::EvalNamespace - evaluates the args in a particular namespace
 ## This is an override for ::tkcon::EvalAttached for when the user wants
 ## to attach to a particular namespace of the attached interp
-# ARGS:	attached	
+# ARGS:	attached
 #	namespace	the namespace to evaluate in
 #	args		the args to evaluate
 # RETURNS:	the result of the command
@@ -935,7 +935,7 @@ proc ::tkcon::Namespaces {{ns ::} {l {}}} {
 ## ::tkcon::CmdGet - gets the current command from the console widget
 # ARGS:	w	- console text widget
 # Returns:	text which compromises current command line
-## 
+##
 proc ::tkcon::CmdGet w {
     if {![llength [$w tag nextrange prompt limit end]]} {
 	$w tag add stdin limit end-1c
@@ -949,7 +949,7 @@ proc ::tkcon::CmdGet w {
 #	last	- varname of any remainder (like an incomplete final command).
 #		If there is only one command, it's placed in this var.
 # Returns:	constituent command info in varnames specified by list & rmd.
-## 
+##
 proc ::tkcon::CmdSep {cmd list last} {
     upvar 1 $list cmds $last inc
     set inc {}
@@ -976,7 +976,7 @@ proc ::tkcon::CmdSep {cmd list last} {
 ## ::tkcon::CmdSplit - splits multiple commands into a list
 # ARGS:	cmd	- (possible) multiple command to separate
 # Returns:	constituent commands in a list
-## 
+##
 proc ::tkcon::CmdSplit {cmd} {
     set inc {}
     set cmds {}
@@ -1000,7 +1000,7 @@ proc ::tkcon::CmdSplit {cmd} {
 ## Called by ::tkcon::EvalCmd
 # ARGS:	w	- text widget
 # Outputs:	tag name guaranteed unique in the widget
-## 
+##
 proc ::tkcon::UniqueTag {w} {
     set tags [$w tag names]
     set idx 0
@@ -1013,7 +1013,7 @@ proc ::tkcon::UniqueTag {w} {
 # ARGS:	w	- console text widget
 #	size	- # of lines to constrain to
 # Outputs:	may delete data in console widget
-## 
+##
 proc ::tkcon::ConstrainBuffer {w size} {
     if {[$w index end] > $size} {
 	$w delete 1.0 [expr {int([$w index end])-$size}].0
@@ -1023,7 +1023,7 @@ proc ::tkcon::ConstrainBuffer {w size} {
 ## ::tkcon::Prompt - displays the prompt in the console widget
 # ARGS:	w	- console text widget
 # Outputs:	prompt (specified in ::tkcon::OPT(prompt1)) to console
-## 
+##
 proc ::tkcon::Prompt {{pre {}} {post {}} {prompt {}}} {
     variable OPT
     variable PRIV
@@ -1055,7 +1055,7 @@ proc ::tkcon::Prompt {{pre {}} {post {}} {prompt {}}} {
 }
 
 ## ::tkcon::About - gives about info for tkcon
-## 
+##
 proc ::tkcon::About {} {
     variable OPT
     variable PRIV
@@ -1090,7 +1090,7 @@ proc ::tkcon::About {} {
 
 ## ::tkcon::InitMenus - inits the menubar and popup for the console
 # ARGS:	w	- console text widget
-## 
+##
 proc ::tkcon::InitMenus {w title} {
     variable OPT
     variable PRIV
@@ -1523,7 +1523,7 @@ proc ::tkcon::NamespaceMenu m {
     }
 }
 
-## Namepaces List 
+## Namepaces List
 ##
 proc ::tkcon::NamespacesList {names} {
     variable PRIV
@@ -1896,7 +1896,7 @@ proc ::tkcon::NewSocket {} {
 ## The file is actually sourced in the currently attached's interp
 # ARGS:	fn	- (optional) filename to source in
 # Returns:	selected filename ({} if nothing was selected)
-## 
+##
 proc ::tkcon::Load { {fn ""} } {
     set types {
 	{{Tcl Files}	{.tcl .tk}}
@@ -1915,7 +1915,7 @@ proc ::tkcon::Load { {fn ""} } {
 ## This does not eval in a slave because it's not necessary
 # ARGS:	w	- console text widget
 # 	fn	- (optional) filename to save to
-## 
+##
 proc ::tkcon::Save { {fn ""} {type ""} {opt ""} {mode w} } {
     variable PRIV
 
@@ -1985,7 +1985,7 @@ proc ::tkcon::MainInit {} {
     ## Creates a slave interpreter and sources in this script.
     ## All other interpreters also get a command to eval function in the
     ## new interpreter.
-    ## 
+    ##
     proc ::tkcon::New {} {
 	variable PRIV
 	global argv0 argc argv
@@ -2022,7 +2022,7 @@ proc ::tkcon::MainInit {} {
     ## ::tkcon::Exit - full exit OR destroy slave console
     ## This proc should only be called in the main interpreter from a slave.
     ## The master determines whether we do a full exit or just kill the slave.
-    ## 
+    ##
     proc ::tkcon::Exit {slave args} {
 	variable PRIV
 	variable OPT
@@ -2045,7 +2045,7 @@ proc ::tkcon::MainInit {} {
     ## This proc should only be called by the main interpreter.  If it is
     ## called from there, it will ask before exiting tkcon.  All others
     ## (slaves) will just have their slave interpreter deleted, closing them.
-    ## 
+    ##
     proc ::tkcon::Destroy {{slave {}}} {
 	variable PRIV
 
@@ -2515,7 +2515,7 @@ proc ::tkcon::ErrorHighlight w {
 ## This always exists in the main interpreter, and is aliased into
 ## other connected interpreters
 # ARGS:	totally variable, see internal comments
-## 
+##
 proc tkcon {cmd args} {
     global errorInfo
 
@@ -2797,9 +2797,9 @@ proc tkcon {cmd args} {
 ## This allows me to capture all stdout/stderr to the console window
 ## This will be renamed to 'puts' at the appropriate time during init
 ##
-# ARGS:	same as usual	
+# ARGS:	same as usual
 # Outputs:	the string with a color-coded text tag
-## 
+##
 proc tkcon_puts args {
     set len [llength $args]
     foreach {arg1 arg2 arg3} $args { break }
@@ -2861,7 +2861,7 @@ proc tkcon_puts args {
 	    set sarg [string range $sarg 0 [expr {$bpt - 1}]]
 	    set nl 0
 	}
-	    
+
 
 	if {$nl == 0} {
 	    tkcon console insert output $sarg $farg
@@ -2901,7 +2901,7 @@ proc tkcon_puts args {
 ## This allows me to capture all stdin input without needing to stdin
 ## This will be renamed to 'gets' at the appropriate time during init
 ##
-# ARGS:		same as gets	
+# ARGS:		same as gets
 # Outputs:	same as gets
 ##
 proc tkcon_gets args {
@@ -2925,12 +2925,12 @@ proc tkcon_gets args {
 }
 
 ## edit - opens a file/proc/var for reading/editing
-## 
+##
 # Arguments:
 #   type	proc/file/var
 #   what	the actual name of the item
 # Returns:	nothing
-## 
+##
 proc edit {args} {
     array set opts {-find {} -type {} -attach {}}
     while {[string match -* [lindex $args 0]]} {
@@ -3082,7 +3082,7 @@ proc echo args { puts [concat $args] }
 
 ## clear - clears the buffer of the console (not the history though)
 ## This is executed in the parent interpreter
-## 
+##
 proc clear {{pcnt 100}} {
     if {![regexp {^[0-9]*$} $pcnt] || $pcnt < 1 || $pcnt > 100} {
 	return -code error \
@@ -3100,7 +3100,7 @@ proc clear {{pcnt 100}} {
 ## If called with one arg, returns the alias of that arg (or {} if none)
 # ARGS:	newcmd	- (optional) command to bind alias to
 # 	args	- command and args being aliased
-## 
+##
 proc alias {{newcmd {}} args} {
     if {[string match {} $newcmd]} {
 	set res {}
@@ -3117,7 +3117,7 @@ proc alias {{newcmd {}} args} {
 
 ## unalias - unaliases an alias'ed command
 # ARGS:	cmd	- command to unbind as an alias
-## 
+##
 proc unalias {cmd} {
     interp alias {} $cmd {}
 }
@@ -3137,7 +3137,7 @@ proc unalias {cmd} {
 #	--	forcibly ends options recognition
 #
 # Returns:	the values of the requested items in a 'source'able form
-## 
+##
 proc dump {type args} {
     set whine 1
     set code  ok
@@ -3689,13 +3689,13 @@ proc observe_var {name el op} {
 ## which - tells you where a command is found
 # ARGS:	cmd	- command name
 # Returns:	where command is found (internal / external / unknown)
-## 
+##
 proc which cmd {
     ## This tries to auto-load a command if not recognized
     set types [uplevel 1 [list what $cmd 1]]
     if {[llength $types]} {
 	set out {}
-	
+
 	foreach type $types {
 	    switch -- $type {
 		alias		{ set res "$cmd: aliased to [alias $cmd]" }
@@ -3726,7 +3726,7 @@ proc which cmd {
 ## what - tells you what a string is recognized as
 # ARGS:	str	- string to id
 # Returns:	id types of command as list
-## 
+##
 proc what {str {autoload 0}} {
     set types {}
     if {[llength [info commands $str]] || ($autoload && \
@@ -3773,7 +3773,7 @@ proc what {str {autoload 0}} {
 #	-long	- list in full format "permissions size date filename"
 #	-full	- displays / after directories and link paths for links
 # Returns:	a directory listing
-## 
+##
 proc dir {args} {
     array set s {
 	all 0 full 0 long 0
@@ -4183,7 +4183,7 @@ proc ::tkcon::Bindings {} {
     }
 
     ## Get all Text bindings into TkConsole
-    foreach ev [bind Text] { bind TkConsole $ev [bind Text $ev] }	
+    foreach ev [bind Text] { bind TkConsole $ev [bind Text $ev] }
     ## We really didn't want the newline insertion
     bind TkConsole <Control-Key-o> {}
 
@@ -4655,7 +4655,7 @@ proc ::tkcon::TagProc w {
 # 	c1	- first char of pair
 # 	c2	- second char of pair
 # Calls:	::tkcon::Blink
-## 
+##
 proc ::tkcon::MatchPair {w c1 c2 {lim 1.0}} {
     if {[string compare {} [set ix [$w search -back $c1 insert $lim]]]} {
 	while {
@@ -4693,7 +4693,7 @@ proc ::tkcon::MatchPair {w c1 c2 {lim 1.0}} {
 ## The quote to match is assumed to be at the text index 'insert'.
 # ARGS:	w	- console text widget
 # Calls:	::tkcon::Blink
-## 
+##
 proc ::tkcon::MatchQuote {w {lim 1.0}} {
     set i insert-1c
     set j 0
@@ -4719,7 +4719,7 @@ proc ::tkcon::MatchQuote {w {lim 1.0}} {
 # 	i2	- end index of blink region
 # 	dur	- duration in usecs to blink for
 # Outputs:	blinks selected characters in $w
-## 
+##
 proc ::tkcon::Blink {w args} {
     eval [list $w tag add blink] $args
     after $::tkcon::OPT(blinktime) [list $w] tag remove blink $args
@@ -4734,7 +4734,7 @@ proc ::tkcon::Blink {w args} {
 # ARGS:	w	- text window in which to insert the string
 # 	s	- string to insert (usually just a single char)
 # Outputs:	$s to text widget
-## 
+##
 proc ::tkcon::Insert {w s} {
     if {[string match {} $s] || [string match disabled [$w cget -state]]} {
 	return
@@ -4750,7 +4750,7 @@ proc ::tkcon::Insert {w s} {
     $w see insert
 }
 
-## ::tkcon::Expand - 
+## ::tkcon::Expand -
 # ARGS:	w	- text widget in which to expand str
 # 	type	- type of expansion (path / proc / variable)
 # Calls:	::tkcon::Expand(Pathname|Procname|Variable)
@@ -4759,7 +4759,7 @@ proc ::tkcon::Insert {w s} {
 #		match equaled the string to expand, then all possible matches
 #		are output to stdout.  Triggers bell if no matches are found.
 # Returns:	number of matches found
-## 
+##
 proc ::tkcon::Expand {w {type ""}} {
     set exp "\[^\\\\\]\[\[ \t\n\r\\\{\"$\]"
     set tmp [$w search -backwards -regexp $exp insert-1c limit-1c]
@@ -4798,7 +4798,7 @@ proc ::tkcon::Expand {w {type ""}} {
 # Calls:	::tkcon::ExpandBestMatch
 # Returns:	list containing longest unique match followed by all the
 #		possible further matches
-## 
+##
 proc ::tkcon::ExpandPathname str {
     set pwd [EvalAttached pwd]
     # Cause a string like {C:/Program\ Files/} to become "C:/Program Files/"
@@ -4880,7 +4880,7 @@ proc ::tkcon::ExpandProcname str {
 # Calls:	::tkcon::ExpandBestMatch
 # Returns:	list containing longest unique match followed by all the
 #		possible further matches
-## 
+##
 proc ::tkcon::ExpandVariable str {
     if {[regexp {([^\(]*)\((.*)} $str junk ary str]} {
 	## Looks like they're trying to expand an array.
@@ -4908,7 +4908,7 @@ proc ::tkcon::ExpandVariable str {
 ## or $e is {}.  $e is extra for compatibility with proc below.
 # ARGS:	l	- list to find best unique match in
 # Returns:	longest unique match in the list
-## 
+##
 proc ::tkcon::ExpandBestMatch2 {l {e {}}} {
     set s [lindex $l 0]
     if {[llength $l]>1} {
@@ -4928,7 +4928,7 @@ proc ::tkcon::ExpandBestMatch2 {l {e {}}} {
 # ARGS:	l	- list to find best unique match in
 # 	e	- currently best known unique match
 # Returns:	longest unique match in the list
-## 
+##
 proc ::tkcon::ExpandBestMatch {l {e {}}} {
     set ec [lindex $l 0]
     if {[llength $l]>1} {
@@ -5292,7 +5292,7 @@ proc ::tkcon::Retrieve {} {
 ## ::tkcon::Resource - re'source's this script into current console
 ## Meant primarily for my development of this program.  It follows
 ## links until the ultimate source is found.
-## 
+##
 set ::tkcon::PRIV(SCRIPT) [info script]
 if {!$::tkcon::PRIV(WWW) && [string compare $::tkcon::PRIV(SCRIPT) {}]} {
     # we use a catch here because some wrap apps choke on 'file type'

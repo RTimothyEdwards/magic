@@ -4,16 +4,16 @@
  * Plowing.
  * Queue of edges to move.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -52,7 +52,7 @@ Edge **plowLastBin[NP];		/* Last bin that has any edges in it */
 
 /* Debugging */
 int plowTooFar;			/* # times we reduced plow size */
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -102,7 +102,7 @@ plowQueueInit(bbox, dist)
 	    *pptr++ = (Edge *) NULL;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -130,7 +130,7 @@ plowQueueDone()
 	    freeMagic((char *) plowBinArray[pNum]);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -436,7 +436,7 @@ prepend:
 done:
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -511,7 +511,7 @@ plowQueueLeftmost(edge)
     freeMagic((char *) enew);
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

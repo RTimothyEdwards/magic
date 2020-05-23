@@ -27,7 +27,7 @@ int boundingBoxInfo(const char *instName, const char *defName,
 		    int llx, int lly, int urx, int ury, const char *curName,
 		    ClientData *cdarg)
 {
-  cout << " callback func boundingBoxInfo : result - " 
+  cout << " callback func boundingBoxInfo : result - "
        << curName << "\n bounding box "
        << llx << " " << lly << " " << urx << " " << ury << endl;
   return 0;
@@ -42,12 +42,12 @@ int __Tcl_Rtn_Error(const char *function,const char *file,unsigned int line,
 
     chars1 = snprintf(NULL,0,"Error in %s at %s:%d: ",function,file,line);
     chars2 = vsnprintf(NULL,0,fmt,msg);
-    
+
     buf = (char *)malloc(chars1 + chars2 + 1);
 
     sprintf(buf,"Error in %s at %s:%d: ",function,file,line);
     vsprintf(buf+chars1,fmt,msg);
-    
+
     fputs(buf,stderr);
     fputc('\n',stderr);
 
@@ -60,13 +60,13 @@ int REX_Tcl_Error(const char *fmt, ...) {
     int chars;
     va_list msg;
     va_start(msg,fmt);
- 
+
     chars = vsnprintf(NULL,0,fmt,msg);
-     
+
     buf = (char *)malloc(chars+1);
- 
+
     vsprintf(buf,fmt,msg);
-     
+
     Tcl_SetResult(REX_interp, buf,(Tcl_FreeProc *) free);
     return TCL_OK;
 }
@@ -77,21 +77,21 @@ int REX_Tcl_Eval(char *fmt, ...) {
     int nchars, rtn;
     va_list msg;
     va_start(msg,fmt);
-    
+
     nchars = vsnprintf(ptr2,256,fmt,msg);
     if(nchars >= 256) {
 	ptr2 = (char *)malloc(nchars+1);
 	vsprintf(ptr2,fmt,msg);
     }
-    
+
     if(REX_debug_file) {
 	fputs(ptr2,REX_debug_file);
 	fputc('\n',REX_debug_file);
 	fflush(REX_debug_file);
     }
-    
+
     rtn = Tcl_Eval(REX_interp, (char *)ptr2);
-    
+
     if(nchars >= 256)
 	free(ptr2);
     return rtn;
@@ -107,7 +107,7 @@ TCLFUNC(print_tech_info) {
 
   if(objc != 2)
       TCL_RTN_ERROR("Usage: %s tech",getArgString(0));
- 
+
   try {
     getTechInfo(getArgString(1));
   } CATCH
@@ -120,7 +120,7 @@ TCLFUNC(get_user_unit) {
 
   if(objc != 2)
     TCL_RTN_ERROR("Usage: %s tech",getArgString(0));
- 
+
   try {
     getUserUnit(getArgString(1), uUnit, NULL, techUserUnit);
     Tcl_Obj *strResult = Tcl_NewStringObj(uUnit, strlen(uUnit));
@@ -136,7 +136,7 @@ TCLFUNC(get_db_units_per_user_unit) {
 
   if(objc != 2)
       TCL_RTN_ERROR("Usage: %s tech",getArgString(0));
- 
+
   try {
     getDBUnitsPerUserUnit(getArgString(1), dbUPerUU, NULL, techDBUPerUU);
     Tcl_Obj *intResult = Tcl_NewIntObj(dbUPerUU);
@@ -218,7 +218,7 @@ TCLFUNC(get_bounding_box) {
      inststring = getArgString(1);
 
   try {
-    getBoundingBox(NULL, inststring, defstring, 
+    getBoundingBox(NULL, inststring, defstring,
 	       boundingBoxInfo, NULL, callback);
   } CATCH
   return TCL_OK;
@@ -262,7 +262,7 @@ static const struct tclCmd tclCmds[] = {
 
 void
 helpPrint() {
-  printf ("help <cmd>\n");    
+  printf ("help <cmd>\n");
   printf ("where cmd is one of \n");
   for(unsigned int i = 1; i < tclCmdsNum ; i++) {
     printf("  %-24s", tclCmds[i].name);
@@ -294,7 +294,7 @@ int Magicoa_Init(Tcl_Interp *interp) {
 	TCLENTRY();
 
 	Tcl_PkgProvide(interp, "magicOA", "0.1");
-   
+
 #ifdef USE_TCL_STUBS
     if(Tcl_InitStubs(interp, (char *)"8.5",0) == NULL)
       return TCL_ERROR;
@@ -303,7 +303,7 @@ int Magicoa_Init(Tcl_Interp *interp) {
 	int args=1;
 	char *argv[] = {"tclsh"};
 	oaDBInit(&args, argv);
- 
+
 	} CATCH
 
 	for(unsigned int i = 0; i < tclCmdsNum ; i++) {

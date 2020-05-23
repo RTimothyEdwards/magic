@@ -3,16 +3,16 @@
  *
  * Cell copying (yank and stuff)
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -169,7 +169,7 @@ DBPaintPlaneXor(def, pNum, type, area, undo)
  *
  *    This function calls DBPaintPlane, but first checks if the type
  *    being painted is an active layer.  If the type is a contact,
- *    then the residues are checked to see if they are active layers. 
+ *    then the residues are checked to see if they are active layers.
  *    Painting proceeds accordingly.
  *
  * ----------------------------------------------------------------------------
@@ -246,7 +246,7 @@ DBCellCopyManhattanPaint(scx, mask, xMask, targetUse)
     (void) DBTreeSrTiles(scx, mask, xMask, dbCopyManhattanPaint, (ClientData) &arg);
 }
 
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -289,7 +289,7 @@ DBCellCopyAllPaint(scx, mask, xMask, targetUse)
 
     DBTreeSrTiles(scx, &locMask, xMask, dbCopyAllPaint, (ClientData) &arg);
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -332,7 +332,7 @@ DBCellCopyAllLabels(scx, mask, xMask, targetUse, pArea)
     /* DBTeeSrLabels finds all the labels that we want plus some more.
      * We'll filter out the ones that we don't need.
      */
-    
+
     arg.cla_targetUse = targetUse;
     arg.cla_bbox = pArea;
     if (pArea != NULL)
@@ -387,7 +387,7 @@ dbCopyAllLabels(scx, lab, tpath, arg)
     }
     return 0;
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -447,7 +447,7 @@ DBCellCopyPaint(scx, mask, xMask, targetUse)
 		mask, dbCopyAllPaint, (ClientData) &cxp);
 	}
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -456,7 +456,7 @@ DBCellCopyPaint(scx, mask, xMask, targetUse)
  * Copy labels from scx->scx_use to targetUse, transforming according to
  * the transform in scx.  Only labels attached to layers of the types
  * specified by mask are copied.  If mask contains the L_LABEL bit, then
- * all labels are copied regardless of their layer.  The area copied is 
+ * all labels are copied regardless of their layer.  The area copied is
  * determined by GEO_LABEL_IN_AREA.
  *
  * Results:
@@ -573,7 +573,7 @@ dbCopyManhattanPaint(tile, cxp)
     return (0);
 }
 
-
+
 /***
  *** Filter function for paint
  ***/
@@ -601,7 +601,7 @@ dbCopyAllPaint(tile, cxp)
 
     bool splittile = FALSE;
     TileType dinfo = 0;
-    
+
     if (IsSplit(tile))
     {
 	splittile = TRUE;
@@ -667,7 +667,7 @@ dbCopyAllPaint(tile, cxp)
 	int np, i, j;
 
 	GrClipTriangle(&targetRect, &arg->caa_rect, TRUE, dinfo, points, &np);
-	
+
 	if (np == 0)
 	   return(0);
 
@@ -756,7 +756,7 @@ splitdone:
 
     return (0);
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -816,7 +816,7 @@ DBCellCopyAllCells(scx, xMask, targetUse, pArea)
 
     (void) DBTreeSrCells(scx, xMask, dbCellCopyCellsFunc, (ClientData) &arg);
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -866,7 +866,7 @@ DBCellCopyCells(scx, targetUse, pArea)
 
     (void) DBCellSrArea(scx, dbCellCopyCellsFunc, (ClientData) &arg);
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -963,7 +963,7 @@ dbCellCopyCellsFunc(scx, arg)
     }
     return 2;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -993,7 +993,7 @@ DBNewPaintTable(newTable))[NT][NT]
     if (newTable) dbCurPaintTbl = newTable;
     return oldTable;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

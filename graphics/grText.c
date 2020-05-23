@@ -3,16 +3,16 @@
  * Contains functions for manipulating text that are not dependent
  * upon the display type.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -86,13 +86,13 @@ GrFontText(str, style, p, font, size, rotate, clip)
 
 #define TEXTOFFSET 5
 
-
+
 /*---------------------------------------------------------
  * GrPutText:
  *	This routine puts a chunk of text on the screen in the given
  *	color, size, and position.  It is clipped to a rectangle.
  *
- * Results:	
+ * Results:
  *	True if the text was able to be displayed.
  *
  * Side Effects:
@@ -114,11 +114,11 @@ GrPutText(str, style, p, pos, size, adjust, clip, actual)
 			 */
 
     Point *p;		/* The point to align with */
-    int pos;		/* The alignment desired (GR_NORTH, 
+    int pos;		/* The alignment desired (GR_NORTH,
 			 * GR_NORTHEAST, etc.)
 			 */
-    int size;		/* The desired size of the text 
-			 * (such as GR_TEXT_MEDIUM).  
+    int size;		/* The desired size of the text
+			 * (such as GR_TEXT_MEDIUM).
 			 */
     bool adjust;	/* TRUE means adjust the text (either by
 			 * sliding it around or using a smaller font)
@@ -180,7 +180,7 @@ GrPutText(str, style, p, pos, size, adjust, clip, actual)
 		xpos = p->p_x + TEXTOFFSET;
 		break;
 	    default:
-		TxError("Illegal position (%d) for text (internal error)\n", 
+		TxError("Illegal position (%d) for text (internal error)\n",
 		    pos);
 		return FALSE;
 		break;
@@ -278,7 +278,7 @@ GrPutText(str, style, p, pos, size, adjust, clip, actual)
     }
 
     /* ASSERTION: By now the text is positioned properly. */
-    
+
     /* do all clipping within the grPutTextPtr routine */
 
     (*grSetCharSizePtr)(size);

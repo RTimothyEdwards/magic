@@ -1,7 +1,7 @@
 
 #ifndef	lint
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/drc/DRCextend.c,v 1.6 2010/09/20 21:13:22 tim Exp $";
-#endif	
+#endif
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -73,7 +73,7 @@ drcCheckAngles(tile, arg, cptr)
 /*
  *-------------------------------------------------------------------------
  *
- * drcCheckArea- checks to see that a collection of tiles of a given 
+ * drcCheckArea- checks to see that a collection of tiles of a given
  *	type have more than a minimum area.
  *
  * Results: none
@@ -97,7 +97,7 @@ drcCheckArea(starttile,arg,cptr)
     Rect		*cliprect = arg->dCD_rect;
 
     arealimit = cptr->drcc_cdist;
-     
+
     arg->dCD_cptr = cptr;
     if (DRCstack == (Stack *) NULL)
 	DRCstack = StackNew(64);
@@ -145,7 +145,7 @@ drcCheckArea(starttile,arg,cptr)
 	     (*(arg->dCD_function)) (arg->dCD_celldef, &rect,
 		 arg->dCD_cptr, arg->dCD_clientData);
 	     /***
-	     DBWAreaChanged(arg->dCD_celldef,&rect, DBW_ALLWINDOWS, 
+	     DBWAreaChanged(arg->dCD_celldef,&rect, DBW_ALLWINDOWS,
 						    &DBAllButSpaceBits);
 	     ***/
 	     (*(arg->dCD_errors))++;
@@ -197,7 +197,7 @@ forgetit:
      }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -244,7 +244,7 @@ drcCheckMaxwidth(starttile,arg,cptr)
 	tile = (Tile *) STACKPOP(DRCstack);
 	if (tile->ti_client != (ClientData)DRC_PENDING) continue;
 	tile->ti_client = (ClientData)DRC_PROCESSED;
-	
+
 	if (boundrect.r_xbot > LEFT(tile)) boundrect.r_xbot = LEFT(tile);
 	if (boundrect.r_xtop < RIGHT(tile)) boundrect.r_xtop = RIGHT(tile);
 	if (boundrect.r_ybot > BOTTOM(tile)) boundrect.r_ybot = BOTTOM(tile);
@@ -275,7 +275,7 @@ drcCheckMaxwidth(starttile,arg,cptr)
     }
 
     if (boundrect.r_xtop - boundrect.r_xbot > edgelimit &&
-             boundrect.r_ytop - boundrect.r_ybot > edgelimit) 
+             boundrect.r_ytop - boundrect.r_ybot > edgelimit)
     {
 	Rect	rect;
 	TiToRect(starttile,&rect);
@@ -286,7 +286,7 @@ drcCheckMaxwidth(starttile,arg,cptr)
 	    (*(arg->dCD_errors))++;
 	    retval = 1;
 	}
-	 
+
     }
 
     /* reset the tiles */
@@ -332,13 +332,13 @@ drcCheckMaxwidth(starttile,arg,cptr)
     return retval;
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
- * drcCheckRectSize- 
+ * drcCheckRectSize-
  *
- *	Checks to see that a collection of tiles of given 
+ *	Checks to see that a collection of tiles of given
  *	types have the proper size (max size and also even or odd size).
  *
  * Results: none
@@ -372,10 +372,10 @@ drcCheckRectSize(starttile, arg, cptr)
      */
     arg->dCD_cptr = cptr;
     ASSERT(TTMaskHasType(oktypes, TiGetType(starttile)), "drcCheckRectSize");
-    for (t = starttile; TTMaskHasType(oktypes, TiGetType(t)); t = TR(t)) 
+    for (t = starttile; TTMaskHasType(oktypes, TiGetType(t)); t = TR(t))
 	/* loop has empty body */ ;
     errwidth = width = LEFT(t) - LEFT(starttile);
-    for (t = starttile; TTMaskHasType(oktypes, TiGetType(t)); t = RT(t)) 
+    for (t = starttile; TTMaskHasType(oktypes, TiGetType(t)); t = RT(t))
 	/* loop has empty body */ ;
     errheight = height = BOTTOM(t) - BOTTOM(starttile);
     ASSERT(width > 0 && height > 0, "drcCheckRectSize");
@@ -399,7 +399,7 @@ drcCheckRectSize(starttile, arg, cptr)
 		arg->dCD_cptr, arg->dCD_clientData);
 	    (*(arg->dCD_errors))++;
 	}
-	
+
     }
 }
 
@@ -462,7 +462,7 @@ drcCanonicalMaxwidth(starttile, dir, arg, cptr)
 
     boundrect = &(mrd->rlist[0]);
     mrd->match = CLIENTDEFAULT;
-     
+
     edgelimit = cptr->drcc_dist;
     arg->dCD_cptr = cptr;
 

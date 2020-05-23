@@ -4,16 +4,16 @@
  * Plowing.
  * Shadow and other searches.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -162,7 +162,7 @@ switch ((o)->o_nextDir) \
 	    break; \
     } \
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -256,7 +256,7 @@ plowSrShadow(pNum, area, okTypes, proc, cdata)
     plane->pl_hint = tp;
     return (ret);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -333,7 +333,7 @@ plowShadowRHS(tp, s, bottomLeft)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -409,7 +409,7 @@ plowSrShadowInitial(pNum, area, okTypes, proc, cdata)
     plane->pl_hint = tp;
     return (ret);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -489,7 +489,7 @@ plowShadowInitialRHS(tp, s, bottomLeft)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -566,7 +566,7 @@ plowSrShadowBack(pNum, area, okTypes, proc, cdata)
     if (!ret) plane->pl_hint = tp;
     return (ret);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -643,7 +643,7 @@ plowShadowLHS(tp, s, topRight)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -729,7 +729,7 @@ plowAtomize(pNum, rect, proc, cdata)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -856,7 +856,7 @@ plowSrOutline(pNum, startPoint, insideTypes, initialDir, dirMask, proc, cdata)
     while (STACKPOP(plowOutlineStack) != (ClientData) NULL)
 	/* Nothing */;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1028,7 +1028,7 @@ plowSrOutlineInit(outline)
 
     STACKOUTLINE(outline);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

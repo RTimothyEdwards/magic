@@ -5,16 +5,16 @@
  * of a netlist, finding all locations for each terminal, and sorting
  * the nets of a netlist into order of increasing area on a Heap.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -41,7 +41,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Forward declarations */
 int nlTermFunc(), nlLabelFunc();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -127,7 +127,7 @@ NLBuild(rootUse, netList)
 done:
     return (netList->nnl_numNets);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -187,7 +187,7 @@ nlTermFunc(name, firstInNet, netList)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -237,7 +237,7 @@ nlLabelFunc(area, name, label, term)
     (void) GeoInclude(&loc->nloc_rect, &term->nterm_net->nnet_area);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -276,7 +276,7 @@ NLFree(netList)
 
     HashKill(&netList->nnl_names);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -332,7 +332,7 @@ NLSort(netList, netHeap)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

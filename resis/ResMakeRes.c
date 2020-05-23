@@ -31,12 +31,12 @@ bool ResCalcNearDevice();
 bool ResCalcNorthSouth();
 bool ResCalcEastWest();
 
-
+
 /*
  *--------------------------------------------------------------------------
  *
  * ResCalcTileResistance-- Given a set of partitions for a tile, the tile can
- *	be converted into resistors. To do this, nodes are sorted in the 
+ *	be converted into resistors. To do this, nodes are sorted in the
  *	direction of current flow. Resistors are created by counting squares
  *	between successive breakpoints. Breakpoints with the same coordinate
  *	are combined.
@@ -49,7 +49,7 @@ bool ResCalcEastWest();
  *
  */
 
-bool 
+bool
 ResCalcTileResistance(tile, junk, pendingList, doneList)
     Tile 	*tile;
     tileJunk 	*junk;
@@ -61,10 +61,10 @@ ResCalcTileResistance(tile, junk, pendingList, doneList)
     int		device;
     bool	merged;
     Breakpoint 	*p1;
-     
+
     merged = FALSE;
     device = FALSE;
-     
+
     if ((p1 = junk->breakList) == NULL) return FALSE;
     for (; p1; p1 = p1->br_next)
     {
@@ -79,10 +79,10 @@ ResCalcTileResistance(tile, junk, pendingList, doneList)
 	    device = TRUE;
 	}
     }
-     
+
     /* Finally, produce resistors for partition. Keep track of	*/
     /* whether or not the node was involved in a merge.		*/
-     
+
     if (device)
     {
 	merged |= ResCalcNearDevice(tile, pendingList, doneList, &ResResList);
@@ -96,7 +96,7 @@ ResCalcTileResistance(tile, junk, pendingList, doneList)
 	merged |= ResCalcEastWest(tile, pendingList, doneList, &ResResList);
     }
 
-    /* 
+    /*
      * For all the new resistors, propagate the resistance from the origin
      * to the new nodes.
      */
@@ -104,7 +104,7 @@ ResCalcTileResistance(tile, junk, pendingList, doneList)
     return(merged);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -131,17 +131,17 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
     resNode	*currNode;
     float	rArea;
     tileJunk	*junk = (tileJunk *)tile->ti_client;
-     
+
     merged = FALSE;
     height = TOP(tile) - BOTTOM(tile);
 
-    /* 
+    /*
      * One Breakpoint? No resistors need to be made. Free up the first
      * breakpoint, then return.
      */
 
     p1 = junk->breakList;
-    if   (p1->br_next == NULL) 
+    if   (p1->br_next == NULL)
     {
 	p1->br_this->rn_float.rn_area += height * (LEFT(tile) - RIGHT(tile));
 	freeMagic((char *)p1);
@@ -152,9 +152,9 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
     /* re-sort nodes left to right. */
 
     ResSortBreaks(&junk->breakList, TRUE);
-     
-    /* 
-     * Eliminate breakpoints with the same X coordinate and merge 
+
+    /*
+     * Eliminate breakpoints with the same X coordinate and merge
      * their nodes.
      */
 
@@ -199,7 +199,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 		 freeMagic((char *)p1);
 	    }
 
-	    /* 
+	    /*
 	     * Was the node used in another junk or breakpoint?
 	     * If so, replace the old node with the new one.
 	     */
@@ -214,7 +214,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	    }
        }
 
-       /* 
+       /*
         * If the X coordinates don't match, make a resistor between
         * the breakpoints.
         */
@@ -246,7 +246,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 		resistor->rr_status = RES_DIAGONAL;
 		resistor->rr_status |= (SplitDirection(tile)) ? RES_NS
 			: RES_EW;
-			
+
 	    }
 	    else
 	    {
@@ -264,7 +264,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	    resistor->rr_connection1->rn_float.rn_area += rArea;
 	    resistor->rr_connection2->rn_float.rn_area += rArea;
 	    resistor->rr_float.rr_area = 0;
-		    
+
 	    freeMagic((char *)p1);
 	}
     }
@@ -274,7 +274,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
     return(merged);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -301,17 +301,17 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     resNode	*currNode;
     float	rArea;
     tileJunk	*junk = (tileJunk *)tile->ti_client;
-     
+
     merged = FALSE;
     width = RIGHT(tile)-LEFT(tile);
 
-    /* 
+    /*
      * One Breakpoint? No resistors need to be made. Free up the first
      * breakpoint, then return.
      */
 
     p1 = junk->breakList;
-    if   (p1->br_next == NULL) 
+    if   (p1->br_next == NULL)
     {
 	p1->br_this->rn_float.rn_area += width * (TOP(tile) - BOTTOM(tile));
      	freeMagic((char *)p1);
@@ -322,8 +322,8 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     /* re-sort nodes south to north. */
     ResSortBreaks(&junk->breakList, FALSE);
 
-    /* 
-     * Eliminate breakpoints with the same Y coordinate and merge 
+    /*
+     * Eliminate breakpoints with the same Y coordinate and merge
      * their nodes.
      */
 
@@ -367,8 +367,8 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	    	 ResMergeNodes(p2->br_this,p1->br_this,pendingList,doneList);
 		 freeMagic((char *)p1);
 	    }
-		    
-	    /* 
+
+	    /*
 	     * Was the node used in another junk or breakpoint?
 	     * If so, replace the old node with the new one.
 	     */
@@ -383,7 +383,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	    }
 	}
 
-	/* 
+	/*
 	 * If the Y coordinates don't match, make a resistor between
 	 * the breakpoints.
 	 */
@@ -440,7 +440,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     return(merged);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -448,7 +448,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
  *	devices is tricky because there are two adjoining regions with
  *	vastly different sheet resistances.  ResCalcNearDevice is called
  *	whenever a diffusion tile adjoining a real tile is found.  It makes
- *	a guess at the correct direction of current flow, removes extra 
+ *	a guess at the correct direction of current flow, removes extra
  *	breakpoints, and call either ResCalcEastWest or ResCalcNorthSouth
  *
  * Results:
@@ -470,16 +470,16 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
      int		devcount,devedge,deltax,deltay;
      Breakpoint		*p1,*p2,*p3;
      tileJunk		*junk = (tileJunk *)tile->ti_client;
-     
-     
+
+
      merged = FALSE;
 
-     /* 
+     /*
         One Breakpoint? No resistors need to be made. Free up the first
      	breakpoint, then return.
      */
-     
-     if   (junk->breakList->br_next == NULL) 
+
+     if   (junk->breakList->br_next == NULL)
      {
      	  freeMagic((char *)junk->breakList);
 	  junk->breakList = NULL;
@@ -503,7 +503,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
      /* use distance from device to next breakpoint as determinant     */
      /* if there is only one device or if all the devices are along */
      /* the same edge.							   */
-     if (devcount == 1 		|| 
+     if (devcount == 1 		||
         (devedge & LEFTEDGE) == devedge	||
         (devedge & RIGHTEDGE) == devedge 	||
         (devedge & TOPEDGE) == devedge 	||
@@ -517,18 +517,18 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 	       {
 	            break;
 	       }
-	       if (p1->br_next != NULL && 
+	       if (p1->br_next != NULL &&
 	       	     (p1->br_loc.p_x != p1->br_next->br_loc.p_x ||
 	       	      p1->br_loc.p_y != p1->br_next->br_loc.p_y))
-	       
+
 	       {
 	       	    p2 = p1;
 	       }
           }
 	  deltax=INFINITY;
-	  for (p3 = p1->br_next; 
-	       p3 != NULL && 
-	       p3->br_loc.p_x == p1->br_loc.p_x && 
+	  for (p3 = p1->br_next;
+	       p3 != NULL &&
+	       p3->br_loc.p_x == p1->br_loc.p_x &&
 	       p3->br_loc.p_y == p1->br_loc.p_y; p3 = p3->br_next);
 	  if (p3 != NULL)
 	  {
@@ -584,18 +584,18 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 	       {
 	            break;
 	       }
-	       if (p1->br_next != NULL && 
+	       if (p1->br_next != NULL &&
 	       	     (p1->br_loc.p_x != p1->br_next->br_loc.p_x ||
 	       	      p1->br_loc.p_y != p1->br_next->br_loc.p_y))
-	       
+
 	       {
 	       	    p2 = p1;
 	       }
           }
 	  deltay=INFINITY;
-	  for (p3 = p1->br_next; 
-	       p3 != NULL && 
-	       p3->br_loc.p_x == p1->br_loc.p_x && 
+	  for (p3 = p1->br_next;
+	       p3 != NULL &&
+	       p3->br_loc.p_x == p1->br_loc.p_x &&
 	       p3->br_loc.p_y == p1->br_loc.p_y; p3 = p3->br_next);
 	  if (p3 != NULL)
 	  {
@@ -652,7 +652,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 
      }
      /* multiple devices connected to the partition */
-     else  
+     else
      {
      	  if (devedge == 0)
 	  {
@@ -665,8 +665,8 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 	  /*    but not along the left or right			        */
 	  /* 2. there are devices along two sides at right angles,  */
 	  /*    and the tile is wider than it is tall.			*/
-	  
-	  if ((devedge & TOPEDGE)     && 
+
+	  if ((devedge & TOPEDGE)     &&
 	      (devedge & BOTTOMEDGE)  &&
 	      !(devedge & LEFTEDGE)   &&
 	      !(devedge & RIGHTEDGE)  			||
@@ -688,7 +688,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 			p2 = junk->breakList;
 			while ( p2 != NULL)
 			{
-			     if (p2->br_this == p1->br_this	&& 
+			     if (p2->br_this == p1->br_this	&&
 			         p2 != p1			&&
 				 p2->br_loc.p_y != BOTTOM(tile) &&
 				 p2->br_loc.p_y != TOP(tile))
@@ -729,7 +729,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 			p2 = junk->breakList;
 			while ( p2 != NULL)
 			{
-			     if (p2->br_this == p1->br_this	&& 
+			     if (p2->br_this == p1->br_this	&&
 			         p2 != p1			&&
 				 p2->br_loc.p_x != LEFT(tile) &&
 				 p2->br_loc.p_x != RIGHT(tile))
@@ -760,14 +760,14 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
      }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
  * ResDoContacts-- Add node (or nodes) for a contact.  If there are contact
  *	resistances, also add a resistor.
  *
- * Results: 
+ * Results:
  *	None.
  *
  * Side Effects: Creates nodes and resistors
@@ -789,7 +789,7 @@ ResDoContacts(contact, nodes, resList)
     resResistor	 *resistor;
     resElement	 *element;
     static int	 too_small = 1;
-     
+
     minside = CIFGetContactSize(contact->cp_type, &viawidth, &spacing, &border);
     cscale = CIFCurStyle->cs_scaleFactor;
 
@@ -856,14 +856,14 @@ ResDoContacts(contact, nodes, resList)
 	    resptr = (resNode *) mallocMagic((unsigned) (sizeof(resNode)));
 	    InitializeNode(resptr,x,y,RES_NODE_CONTACT);
 	    ResAddToQueue(resptr,nodes);
-	  
+
  	    /* add contact pointer to node  */
 
 	    ccell = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
 	    ccell->ce_nextc = resptr->rn_ce;
 	    resptr->rn_ce = ccell;
 	    ccell->ce_thisc = contact;
-	       
+
 	    contact->cp_cnode[tilenum] = resptr;
 	    NEWBREAK(resptr, tile, contact->cp_center.p_x,
 			contact->cp_center.p_y, &contact->cp_rect);
@@ -879,7 +879,7 @@ ResDoContacts(contact, nodes, resList)
 	        (*resList) = resistor;
 	        resistor->rr_connection1 = contact->cp_cnode[tilenum-1];
 	        resistor->rr_connection2 = contact->cp_cnode[tilenum];
-		    
+
 	        element = (resElement *) mallocMagic((unsigned) (sizeof(resElement)));
 	        element->re_nextEl = contact->cp_cnode[tilenum-1]->rn_re;
 	        element->re_thisEl = resistor;
@@ -889,11 +889,11 @@ ResDoContacts(contact, nodes, resList)
 	        element->re_thisEl = resistor;
 	        contact->cp_cnode[tilenum]->rn_re = element;
 
-		/* Need to figure out how to handle the multiple nodes	*/	
+		/* Need to figure out how to handle the multiple nodes	*/
 		/* and multiple resistors necessary to determine the 	*/
 		/* correct geometry for the geometry extractor.  For	*/
 		/* now, extract as one big glob.			*/
-	
+
 		/* rr_cl doesn't need to represent centerline; use for	*/
 		/* # squares in y direction instead; use rr_width for	*/
 		/* # squares in x direction.				*/
@@ -966,4 +966,4 @@ ResSortBreaks(masterlist, xsort)
 	}
     }
 }
-	
+

@@ -13,16 +13,16 @@
  * has the effect of routing more constrained nets first, and less
  * constrained ones later.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -59,7 +59,7 @@ int glNumTries;		/* Debugging too -- # calls to glProcessLoc() */
 void glClientInit();
 void glClientFree();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -145,7 +145,7 @@ GlGlobalRoute(chanList, netList)
     glChanFreeMap();
     glStatsDone(netList->nnl_numNets, numTerms);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -194,7 +194,7 @@ glClientInit(chanList, netList)
     for (net = netList->nnl_nets; net; net = net->nnet_next)
 	net->nnet_cdata = (ClientData) callocMagic((unsigned) (sizeof (NetClient)));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -243,7 +243,7 @@ glClientFree(chanList, netList)
 	net->nnet_cdata = (ClientData) NULL;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

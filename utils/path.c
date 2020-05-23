@@ -1,15 +1,15 @@
 /* path.c
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains routines that implement a path mechanism, whereby
@@ -55,7 +55,7 @@ static bool noTable = TRUE;
  *	Add a string to the designated path variable.
  *
  *	pathptr is a pointer to the path variable;  srcptr is the
- *	newstring is the new string to append to the path. 
+ *	newstring is the new string to append to the path.
  */
 void
 PaAppend(char **pathptr, char *newstring)
@@ -73,7 +73,7 @@ PaAppend(char **pathptr, char *newstring)
     *pathptr = new;
 }
 
-
+
 /*-------------------------------------------------------------------
  * PaExpand --
  *	This routine converts tilde notation and environment variable
@@ -157,7 +157,7 @@ PaExpand(psource, pdest, size)
 	 * home directory.
 	 */
 
-	if (strcmp(expandName, "") == 0) 
+	if (strcmp(expandName, "") == 0)
 	    string = getenv("HOME");
 	else
 	{
@@ -284,7 +284,7 @@ noexpand:
     return size;
 }
 
-
+
 /* ----------------------------------------------------------------------------
  * nextName --
  *	This local procedure is used to step through a path, adding a
@@ -358,7 +358,7 @@ nextName(ppath, file, dest, size)
  *	the given file name.  If the first character of the
  *	file name is "~" or "/" or if nosearch is TRUE, then we try
  *	to look up the file with the original name, doing tilde
- *	expansion of course and returning that result.  If none of 
+ *	expansion of course and returning that result.  If none of
  *	these conditions is met, we go through the path	trying to
  *	look up the file once for each path entry by prepending the
  *	path entry to the original file name. This concatenated name
@@ -598,7 +598,7 @@ char *newWD;			/* New working directory to be used.  Must
 	/* Scan through the old path, copying separators to the new
 	 * path until getting the first character of the directory.
 	 */
-	
+
 	while (isspace(*pOld) || (*pOld == ':'))
 	{
 	    if (spaceLeft <= 0) goto subsDone;
@@ -609,7 +609,7 @@ char *newWD;			/* New working directory to be used.  Must
 	/* If the first character of the directory isn't a "/", "$", or "~",
 	 * then add in the new directory name in front of it in newPath.
 	 */
-	
+
 	if ((*pOld != '/') && (*pOld != '~') && (*pOld != '$') && (*pOld != 0))
 	{
 	    pWD = newWD;
@@ -639,7 +639,7 @@ char *newWD;			/* New working directory to be used.  Must
     else newPath[NEWPATHSIZE-1] = 0;
     return newPath;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PaEnum --

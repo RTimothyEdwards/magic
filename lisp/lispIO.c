@@ -38,7 +38,7 @@
  *
  *      ("load-scm" "filename")
  *      Reads and evaluates file.
- *      
+ *
  *
  *  Results:
  *      #t => file was opened successfully.
@@ -105,7 +105,7 @@ LispLoad (name,s,f)
     }
     if (val == ';') {
       /* skip to eol */
-      while ((val = fgetc(fp)) != EOF && val != '\n') 
+      while ((val = fgetc(fp)) != EOF && val != '\n')
 	;
       if (val == '\n') line++;
       continue;
@@ -113,7 +113,7 @@ LispLoad (name,s,f)
     if (val == '\n') line++;
     if (val == '\t' || val == '\n') val = ' ';
     /* skip white space at nesting level zero */
-    if (nest == 0 && isspace (val)) 
+    if (nest == 0 && isspace (val))
       continue;
     if (nest == 0 && val != '(') {
       TxPrintf ("Error reading file %s, line %d\n", LSTR(ARG1(s)), line);
@@ -268,7 +268,7 @@ LispWrite (name,s,f)
  *
  *      (spawn list-of-strings)
  *      Reads and evaluates file.
- *      
+ *
  *
  *  Results:
  *      pid => the pid of the spawned process.
@@ -316,7 +316,7 @@ LispSpawn (name,s,f)
     t = LLIST(CDR(t));
   }
   argv[n] = NULL;
-  
+
   FORK_f(pid);
   if (pid < 0) {
     TxPrintf ("Error: could not fork a process!\n");
@@ -369,7 +369,7 @@ LispWait (name,s,f)
     TxPrintf ("Usage: (%s pid)\n", name);
     RETURN;
   }
-  
+
   if (WaitPid (LINTEGER(ARG1(s)), &stat) < 0) {
     TxPrintf ("%s: waiting for an invalid pid\n", name);
     RETURN;

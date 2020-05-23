@@ -3,16 +3,16 @@
  *
  * Code for linking together the pins in adjacent channels.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *		      Lawrence Livermore National Laboratory
  */
@@ -45,7 +45,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 bool rtrPinArrayBlock();
 void rtrPinShow(GCRPin *);
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -189,7 +189,7 @@ rtrPinArrayInit(ch, side, pins, nPins)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -250,7 +250,7 @@ RtrPointToPin(ch, side, point)
     ASSERT(FALSE, "Pin not on side of channel in RtrPointToPin");
     return &ch->gcr_lPins[0];
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -265,7 +265,7 @@ RtrPointToPin(ch, side, point)
  *
  * Also propagate obstacle flags for pins.  If a pin's obstacle flags
  * contain GCROBST, then set this bit in gcr_linked's flags as well.
- * 
+ *
  * Results:
  *	TRUE if the blockage state of any pins changed, FALSE
  *	otherwise.  The caller should iterate over all channels
@@ -339,7 +339,7 @@ rtrPinArrayBlock(ch, pins, opins, nPins)
 
     return changed;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -349,7 +349,7 @@ rtrPinArrayBlock(ch, pins, opins, nPins)
  * list headed by the zero-th pin along that side.  Usable pins (for purposes
  * of global routing) are those that are unassigned (gcr_pId == 0) and that
  * have gcr_linked != NULL.
- * 
+ *
  * Results:
  *	None.
  *
@@ -437,7 +437,7 @@ void rtrPinShow(pin)
     ShowRect(EditCellUse->cu_def, &r, STYLE_ERASEHIGHLIGHTS);
 #endif	/* notdef */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -447,7 +447,7 @@ void rtrPinShow(pin)
  * actually used during global routing.  The unused ones have gcr_pSeg
  * equal to GCR_STEMSEGID and must be unmarked here (otherwise the channel
  * router will try to route them!).
- * 
+ *
  * Results:
  *	None.
  *

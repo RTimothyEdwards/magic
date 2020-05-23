@@ -30,16 +30,16 @@
  *	screen background color) is ignored by us.
  *
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -73,20 +73,20 @@ int WindPackageType = WIND_MAGIC_WINDOWS;
 int WindScrollBarWidth = 7;
 
 /* ------ Internal variables that are global within the window package ----- */
-clientRec *windFirstClientRec = NULL;	/* the head of the linked list 
-					 * of clients 
+clientRec *windFirstClientRec = NULL;	/* the head of the linked list
+					 * of clients
 					 */
 MagWindow *windTopWindow = NULL;		/* the topmost window */
 MagWindow *windBottomWindow = NULL;	/* ...and the bottom window */
 extern Plane *windRedisplayArea;	/* See windDisplay.c for details. */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindInit --
  *
  *	Initialize the window package.  No windows are created, but the
- *	package will be initialized so that it can do these things in the 
+ *	package will be initialized so that it can do these things in the
  *	future.
  *
  * Results:
@@ -116,7 +116,7 @@ WindInit()
     WindAreaChanged((MagWindow *) NULL, (Rect *) NULL);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindAddClient --
@@ -126,7 +126,7 @@ WindInit()
  *
  * Results:
  *	A unique ID (of type WindClient) is returned.
- *	This is used to identify the client in future calls to the window 
+ *	This is used to identify the client in future calls to the window
  *	package.
  *
  * Routines supplied:
@@ -173,12 +173,12 @@ WindInit()
  *
  *
  *	( The window is about to be moved or resized.  This procedure will
- *	  be called twice.  
+ *	  be called twice.
  *
- *	  The first time (with 'final' == FALSE), the window 
- *	  will be passed in 'w' as it is now and a suggested new w_screenarea 
+ *	  The first time (with 'final' == FALSE), the window
+ *	  will be passed in 'w' as it is now and a suggested new w_screenarea
  *	  is passed in 'newpos'.  The client is free to modify 'newpos' to
- *	  be whatever screen location it desires.  The routine should not 
+ *	  be whatever screen location it desires.  The routine should not
  *	  pass 'w' to any window procedure such as windMove since 'w' has
  *	  the old transform, etc. instead of the new one.
  *
@@ -217,7 +217,7 @@ WindInit()
  */
 
 WindClient
-WindAddClient(clientName, create, delete, redisplay, command, update, 
+WindAddClient(clientName, create, delete, redisplay, command, update,
 		exitproc, reposition, icon)
     char *clientName;		/* A textual name for the client.  This
 				 * name will be visable in the user
@@ -266,7 +266,7 @@ WindAddClient(clientName, create, delete, redisplay, command, update,
     return (WindClient) res;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindGetClient --
@@ -294,7 +294,7 @@ WindGetClient(clientName, exact)
 
     if (exact)
     {
-	for (cr = windFirstClientRec; cr != (clientRec *) NULL; 
+	for (cr = windFirstClientRec; cr != (clientRec *) NULL;
 		cr = cr->w_nextClient)
 	    if (!strcmp(clientName, cr->w_clientName))
 		return (WindClient)cr;
@@ -305,7 +305,7 @@ WindGetClient(clientName, exact)
 
     found = NULL;
     length = strlen(clientName);
-    for (cr = windFirstClientRec; cr != (clientRec *) NULL; 
+    for (cr = windFirstClientRec; cr != (clientRec *) NULL;
 	    cr = cr->w_nextClient)
     {
 	if (!strncmp(clientName, cr->w_clientName, length))
@@ -370,7 +370,7 @@ WindPrintClientList(wizard)
 {
     clientRec *cr;
 
-    for (cr = windFirstClientRec; cr != (clientRec *) NULL; 
+    for (cr = windFirstClientRec; cr != (clientRec *) NULL;
 	    cr = cr->w_nextClient) {
 	if (wizard || (cr->w_clientName[0] != '*'))
 	    TxError("	%s\n", cr->w_clientName);
@@ -465,7 +465,7 @@ WindAddCommand(rc, text, func, dynamic)
     /* Copy the old values, inserting the new command in alphabetical	*/
     /* order.								*/
 
-    for (cidx = 0; (commandTable[cidx] != NULL) && 
+    for (cidx = 0; (commandTable[cidx] != NULL) &&
 		(strcmp(commandTable[cidx], text) < 0); cidx++)
     {
 	newcmdTable[cidx] = commandTable[cidx];
@@ -549,7 +549,7 @@ WindReplaceCommand(rc, command, newfunc)
 /*
  * ----------------------------------------------------------------------------
  * WindGetCommandTable --
- * 
+ *
  *	For functions wishing to parse the command table of a client
  *	directly, this routine returns a pointer to the top of the
  *	table.  The only purpose of this routine is to export the

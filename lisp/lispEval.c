@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- *  lispEval.c -- 
+ *  lispEval.c --
  *
  *   This module contains the core of the mini-scheme interpreter.
  *
@@ -133,7 +133,7 @@ static struct LispBuiltinFn FnTable[] = {
   { "let*", -1, 1, LispLetStar },
   { "letrec", -1, 1, LispLetRec },
   { "cond", -1, 1, LispCond },
-  
+
   { "begin", -1, 1, LispBegin },
 
   /* define: evaluate only second argument */
@@ -275,7 +275,7 @@ LispMagicSend (name,s,f)
   char argstring[TX_MAX_CMDLEN];
   int k = 0;
   int i, j;
-  
+
   argc = 1;
   argv[0] = name;
   while (s) {
@@ -419,7 +419,7 @@ LispApply (s,l,f)
   eval = LispEval (eval, f);
   return eval;
 }
-    
+
 
 
 /*-----------------------------------------------------------------------------
@@ -446,7 +446,7 @@ LispBuiltinApply (num,s,f)
   return FnTable[num].f(FnTable[num].name, s, f);
 }
 
-  
+
 /*------------------------------------------------------------------------
  *
  *  evalList --

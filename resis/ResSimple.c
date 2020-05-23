@@ -49,7 +49,7 @@ extern void ResMoveDevices();
 extern void ResAddResistorToList();
 
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -92,15 +92,15 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
      }
      *biglist = node;
 
-     /* 
+     /*
         Walk though resistors. Mark uninitialized ones and assign them
         A direction. Keep track of the number of resistors pointing in
 	each direction.
      */
-     for (resisptr = node->rn_re; resisptr != NULL; resisptr = resisptr->re_nextEl) 
+     for (resisptr = node->rn_re; resisptr != NULL; resisptr = resisptr->re_nextEl)
      {
      	if (((resisptr->re_thisEl->rr_status & RES_MARKED) == RES_MARKED) &&
-     	    (resisptr->re_thisEl->rr_connection2 == node)) 
+     	    (resisptr->re_thisEl->rr_connection2 == node))
 	{
 		     if (resistor1 == NULL)
 		     {
@@ -111,16 +111,16 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 		     	  resistor2 = resisptr->re_thisEl;
 		     }
 		     numdrive++;
-	} 
-	else 
+	}
+	else
 	{
-	     /* 
+	     /*
 	        Resistor direction is from node1 to node2. If the resistor
 	        is not marked, mark it and make sure the direction is
 		set properly.
 	     */
-	     
-	     if ((resisptr->re_thisEl->rr_status & RES_MARKED) != RES_MARKED)	     
+
+	     if ((resisptr->re_thisEl->rr_status & RES_MARKED) != RES_MARKED)
 	     {
 	     	  if (resisptr->re_thisEl->rr_connection2 == node)
 		  {
@@ -133,7 +133,7 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 	     {
 	          resistor1 = resisptr->re_thisEl;
 	     }
-	     else		     
+	     else
 	     {
 	     	  resistor2 = resisptr->re_thisEl;
 	     }
@@ -141,7 +141,7 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 	}
      }
 
-     /* 
+     /*
         Is the node reached by one resistor? If it is, check the resistor's
         other end.  Check the number of drivers at the other end. If it is
 	more than 1, delete the current resistor to break the deadlock.
@@ -165,7 +165,7 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 		       {
 		       	    PendingReceivers++;
 		       }
-		       if (resisptr->re_thisEl->rr_status & RES_DEADEND || 
+		       if (resisptr->re_thisEl->rr_status & RES_DEADEND ||
 		           resisptr->re_thisEl->rr_value > tolerance)
 		       {
 		       	    MarkedReceivers++;
@@ -202,12 +202,12 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 		  return;
 	     }
 
-	     /* 
-	        Break loop here. More than one driver indicates a loop; 
+	     /*
+	        Break loop here. More than one driver indicates a loop;
 	        remove deadend, allowing drivers to be merged
 	     */
 	     else if (UnMarkedReceivers == 0 && (MarkedReceivers == 1 && NumberOfDrivers > 1 || resistor2 != resistor1))
-	     
+
 	     {
 		  otherNode->rn_float.rn_area += resistor1->rr_float.rr_area;
 		  otherNode->rn_status &= ~RES_DONE_ONCE;
@@ -227,13 +227,13 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 		       }
 		       *nodelist = otherNode;
 	          }
-	          ResDoneWithNode(otherNode); 
+	          ResDoneWithNode(otherNode);
 	     }
 	}
-        
+
      }
-     /* 
-         Two resistors in series? Combine them and move devices to 
+     /*
+         Two resistors in series? Combine them and move devices to
         appropriate end.
      */
      else if (numdrive+numreceive == 2 &&
@@ -253,12 +253,12 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 	  resistor2->rr_status |= RES_MARKED;
 	  node1 = (resistor1->rr_connection1 == node) ? resistor1->rr_connection2 : resistor1->rr_connection1;
 	  node2 = (resistor2->rr_connection1 == node) ? resistor2->rr_connection2 : resistor2->rr_connection1;
-	  otherNode = (resistor1->rr_status & RES_DEADEND && 
+	  otherNode = (resistor1->rr_status & RES_DEADEND &&
 	  	       resistor1->rr_value  < tolerance / 2) ||
-	  	      ((resistor2->rr_status & RES_DEADEND) == 0 && 
+	  	      ((resistor2->rr_status & RES_DEADEND) == 0 &&
 		      resistor1->rr_value < resistor2->rr_value) ? node1 : node2;
 
-     	  /* 
+     	  /*
 	     make one big resistor out of two little ones, eliminating
 	     the current node.  Devices connected to this node are
 	     moved to either end depending on their resistance.
@@ -301,7 +301,7 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 	  otherNode->rn_status |= (node->rn_status & RN_MAXTDI);
 	  ResCleanNode(node,TRUE,biglist,nodelist);
 	  node1->rn_status &= ~RES_DONE_ONCE;
-	  if (node1->rn_status & MARKED) 
+	  if (node1->rn_status & MARKED)
 	  {
 	     node1->rn_status &= ~MARKED;
 	     ResRemoveFromQueue(node1,biglist);
@@ -314,7 +314,7 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 	     *nodelist = node1;
 	  }
 	  node2->rn_status &= ~RES_DONE_ONCE;
-	  if (node2->rn_status & MARKED) 
+	  if (node2->rn_status & MARKED)
 	  {
 	     node2->rn_status &= ~MARKED;
 	     ResRemoveFromQueue(node2,biglist);
@@ -326,22 +326,22 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 	     }
 	     *nodelist = node2;
 	  }
-	  ResDoneWithNode(node1); 
+	  ResDoneWithNode(node1);
      }
 
-     /* 
+     /*
         Last resort- keep propagating down the tree.  To avoid looping,
-        mark each node when it is reached. Don't reschedule node if 
+        mark each node when it is reached. Don't reschedule node if
 	none of the connections to it have changed since it was marked
      */
      else if (numreceive > 0 && (node->rn_status & RES_DONE_ONCE) == 0)
      {
           node->rn_status |= RES_DONE_ONCE;
-	  for (resisptr = node->rn_re; resisptr != NULL; resisptr = resisptr->re_nextEl) 
+	  for (resisptr = node->rn_re; resisptr != NULL; resisptr = resisptr->re_nextEl)
 	  {
 		if (resisptr->re_thisEl->rr_connection1 == node)
 		{
-		     	  /* 
+		     	  /*
 			     elements with a resistance greater than the
 			     tolerance should only be propagated past once-
 			     loops may occur otherwise.
@@ -352,8 +352,8 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 			  }
 			  if (resisptr->re_thisEl->rr_connection2->rn_status & MARKED)
 			  {
-			       /* 
-			          mark big resistors so we only process them 
+			       /*
+			          mark big resistors so we only process them
 			          once.
 			       */
 			       if (resisptr->re_thisEl->rr_value > tolerance)
@@ -376,7 +376,7 @@ ResSimplifyNet(nodelist,biglist,reslist,tolerance)
 }
 
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -396,7 +396,7 @@ ResMoveDevices(node1,node2)
 {
      tElement		*devptr,*oldptr;
      resDevice	*device;
-     
+
      devptr = node1->rn_te;
      while (devptr != NULL)
      {
@@ -439,12 +439,12 @@ ResMoveDevices(node1,node2)
      node1->rn_te = NULL;
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
  * ResScrunchNet-- Last ditch net simplification. Used to break deadlocks
- *	in ResSimplifyNet.  Resistors are sorted by value. The smallest 
+ *	in ResSimplifyNet.  Resistors are sorted by value. The smallest
  *	resistor is combined with its smallest neighbor, and ResSimplifyNet
  *	is called.  This continues until the smallest resistor is greater
  *	than the tolerance.
@@ -467,7 +467,7 @@ ResScrunchNet(reslist,pendingList,biglist,tolerance)
      resNode *node1,*node2;
      resElement  *rcell1;
      int	c1,c2;
-     
+
      /* sort resistors by size */
      current = *reslist;
      while (current != NULL)
@@ -488,8 +488,8 @@ ResScrunchNet(reslist,pendingList,biglist,tolerance)
 	       }
 	       ResAddResistorToList(working,&locallist);
      }
-     
-     
+
+
      *reslist = locallist;
      while (*reslist != NULL && (*reslist)->rr_value < tolerance)
      {
@@ -501,7 +501,7 @@ ResScrunchNet(reslist,pendingList,biglist,tolerance)
 	  working = NULL;
 	  c1=0;
 	  c2=0;
-	  
+
 	  /* search for next smallest adjoining resistor */
 	  for (rcell1 = current->rr_connection1->rn_re; rcell1 != NULL; rcell1 = rcell1->re_nextEl)
 	  {
@@ -515,7 +515,7 @@ ResScrunchNet(reslist,pendingList,biglist,tolerance)
 		    }
 		    else
 		    {
-		    	 if (working->rr_value > rcell1->re_thisEl->rr_value) 
+		    	 if (working->rr_value > rcell1->re_thisEl->rr_value)
 			 {
 			      node1 = current->rr_connection1;
 			      working = rcell1->re_thisEl;
@@ -535,7 +535,7 @@ ResScrunchNet(reslist,pendingList,biglist,tolerance)
 		    }
 		    else
 		    {
-		    	 if (working->rr_value > rcell1->re_thisEl->rr_value) 
+		    	 if (working->rr_value > rcell1->re_thisEl->rr_value)
 			 {
 			      node1 = current->rr_connection2;
 			      working = rcell1->re_thisEl;
@@ -543,7 +543,7 @@ ResScrunchNet(reslist,pendingList,biglist,tolerance)
 		    }
 	       }
 	  }
-	  /* 
+	  /*
 	     if the current resistor isn't a deadend, add its  value and
 	     area to that of the next smallest one.  If it is a deadend,
 	     simply add its area to its node.
@@ -557,7 +557,7 @@ ResScrunchNet(reslist,pendingList,biglist,tolerance)
 	  {
 	       node1->rn_float.rn_area += current->rr_float.rr_area;
 	  }
-	  /* 
+	  /*
 	     Move everything from from one end of the ressistor to the
 	     other and eliminate the resistor.
 	  */
@@ -581,8 +581,8 @@ ResScrunchNet(reslist,pendingList,biglist,tolerance)
 	       ResMergeNodes(node1,node2,pendingList,biglist);
 	  }
 
-	  /* 
-	     Try further simplification on net using ResDoneWithNode and 
+	  /*
+	     Try further simplification on net using ResDoneWithNode and
 	     ResSimplifyNet.
 	  */
 	  ResRemoveFromQueue(node1,biglist);
@@ -596,11 +596,11 @@ ResScrunchNet(reslist,pendingList,biglist,tolerance)
      }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
- * ResAddResistorToList-- Adds resistor to list according to its value 
+ * ResAddResistorToList-- Adds resistor to list according to its value
  *	(smallest first).
  *
  * Results:none
@@ -614,9 +614,9 @@ void
 ResAddResistorToList(resistor,locallist)
      resResistor	*resistor,**locallist;
 
-{     
+{
      resResistor *local,*last=NULL;
-     
+
      for (local = *locallist; local != NULL; local = local->rr_nextResistor)
      {
 	  if (local->rr_value >= resistor->rr_value)
@@ -656,7 +656,7 @@ ResAddResistorToList(resistor,locallist)
     }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -681,7 +681,7 @@ ResDistributeCapacitance(nodelist,totalcap)
      float totalarea=0,capperarea;
      resNode	*workingNode;
      resElement	*rptr;
-     
+
      for (workingNode = nodelist; workingNode != NULL; workingNode=workingNode->rn_more)
      {
      	  for (rptr = workingNode->rn_re; rptr != NULL; rptr=rptr->re_nextEl)
@@ -706,12 +706,12 @@ ResDistributeCapacitance(nodelist,totalcap)
      }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
- * ResCalculateChildCapacitance-- calculates capacitance of this node and 
- * all downstream nodes. 
+ * ResCalculateChildCapacitance-- calculates capacitance of this node and
+ * all downstream nodes.
  *
  * Results: Returns capacitance of this node and children nodes if connected
  * 	    to a tree- returns -1 If the subtree contains loops.
@@ -734,7 +734,7 @@ ResCalculateChildCapacitance(me)
      int		t;
      ExtDevice		*devptr;
 
-     
+
      if (me->rn_client != (ClientData) NULL) /* we have a loop */
      {
 	  return(-1);
@@ -745,7 +745,7 @@ ResCalculateChildCapacitance(me)
      /* This following assumes that ResDistributeCapacitance has been run */
      /* and the the resulting capacitance value is stored in the area field */
      myC->rc_Cdownstream = me->rn_float.rn_area;
-     
+
      /* get capacitance for all connected gates */
      for (tptr = me->rn_te; tptr != NULL; tptr = tptr->te_nextt)
      {
@@ -763,7 +763,7 @@ ResCalculateChildCapacitance(me)
 	  if (dev->rd_fet_gate == me)
 	  {
 	       devptr = ExtCurStyle->exts_device[t];
-	       myC->rc_Cdownstream += 
+	       myC->rc_Cdownstream +=
 	       		dev->rd_length*
 			dev->rd_width*
 			devptr->exts_deviceGateCap+
@@ -790,7 +790,7 @@ ResCalculateChildCapacitance(me)
      return(myC->rc_Cdownstream);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -814,7 +814,7 @@ ResCalculateTDi(node,resistor,resistorvalue)
      resElement	*workingRes;
      RCDelayStuff	*rcd = (RCDelayStuff *)node->rn_client;
      RCDelayStuff	*rcd2;
-     
+
      ASSERT(rcd != NULL,"ResCalculateTdi");
      if (resistor == NULL)
      {
@@ -824,9 +824,9 @@ ResCalculateTDi(node,resistor,resistorvalue)
      {
           rcd2 = (RCDelayStuff *)resistor->rr_connection1->rn_client;
           ASSERT(rcd2 != NULL,"ResCalculateTdi");
-          rcd->rc_Tdi=rcd->rc_Cdownstream*(float)resistor->rr_value + 
+          rcd->rc_Tdi=rcd->rc_Cdownstream*(float)resistor->rr_value +
 	  							rcd2->rc_Tdi;
-     
+
      }
 
      for (workingRes = node->rn_re; workingRes != NULL; workingRes=workingRes->re_nextEl)
@@ -840,11 +840,11 @@ ResCalculateTDi(node,resistor,resistorvalue)
 	  }
      }
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
- *  ResPruneTree-- Designed to be run just after ResCalculateTDi to prune all 
+ *  ResPruneTree-- Designed to be run just after ResCalculateTDi to prune all
  *	branches off the tree whose end node value of Tdi is less than the
  *	tolerance.  This eliminates many resistors in nets with high fanout.
  *
@@ -864,14 +864,14 @@ ResPruneTree(node,minTdi,nodelist1,nodelist2,resistorlist)
 {
      resResistor	*currentRes;
      resElement		*current;
-     
+
      current = node->rn_re;
      while(current != NULL)
      {
      	  currentRes = current->re_thisEl;
 	  current = current->re_nextEl;
 	  /* if branch points outward, call routine on subtrees */
-	  if (currentRes->rr_connection1 == node) 
+	  if (currentRes->rr_connection1 == node)
 	  {
 	       ResPruneTree(currentRes->rr_connection2, minTdi,nodelist1,nodelist2,resistorlist);
 	  }
@@ -900,7 +900,7 @@ ResPruneTree(node,minTdi,nodelist1,nodelist2,resistorlist)
 	  }
      }
 }
-
+
 int
 ResDoSimplify(tolerance,rctol,goodies)
 	float	tolerance;
@@ -913,7 +913,7 @@ ResDoSimplify(tolerance,rctol,goodies)
     float		millitolerance;
     float		totalcap;
     resResistor		*res;
-    
+
 
     resRemoveLoops = FALSE;
     ResSetPathRes();
@@ -921,10 +921,10 @@ ResDoSimplify(tolerance,rctol,goodies)
     {
     	 bigres = MAX(bigres,node->rn_noderes);
     }
-    
+
     bigres /= OHMSTOMILLIOHMS; /* convert from milliohms to ohms */
     goodies->rg_maxres = bigres;
-    
+
 #ifdef PARANOID
     ResSanityChecks("ExtractSingleNet",ResResList,ResNodeList,ResDevList);
 #endif
@@ -935,12 +935,12 @@ ResDoSimplify(tolerance,rctol,goodies)
     /* values get calculated correctly.				*/
 
      (void) ResDistributeCapacitance(ResNodeList,goodies->rg_nodecap);
-     
+
     if ((tolerance > bigres || (ResOptionsFlags &ResOpt_Simplify)==0) &&
 	(ResOptionsFlags &ResOpt_DoLumpFile)==0)
     {
     	 return(0);
-    } 
+    }
     res = ResResList;
     while (res)
     {
@@ -958,7 +958,7 @@ ResDoSimplify(tolerance,rctol,goodies)
 
      if (ResOptionsFlags & ResOpt_Tdi)
      {
-	 if (goodies->rg_nodecap != -1 && 
+	 if (goodies->rg_nodecap != -1 &&
 	 	(totalcap = ResCalculateChildCapacitance(ResOriginNode)) != -1)
 	 {
 	      RCDelayStuff	*rc = (RCDelayStuff *) ResNodeList->rn_client;
@@ -973,7 +973,7 @@ ResDoSimplify(tolerance,rctol,goodies)
 
 	      slownode = ResNodeList;
 	      for (node = ResNodeList; node != NULL; node = node->rn_more)
-	      {     
+	      {
 	      	   rc = (RCDelayStuff *)node->rn_client;
 		   if (rc && (goodies->rg_Tdi < rc->rc_Tdi))
 		   {
@@ -992,24 +992,24 @@ ResDoSimplify(tolerance,rctol,goodies)
     {
     	 goodies->rg_Tdi = 0;
     }
-    if ((rctol+1)*goodies->rg_bigdevres*goodies->rg_nodecap > 
-    rctol*goodies->rg_Tdi && 
+    if ((rctol+1)*goodies->rg_bigdevres*goodies->rg_nodecap >
+    rctol*goodies->rg_Tdi &&
     (ResOptionsFlags & ResOpt_Tdi) &&
     goodies->rg_Tdi != -1)
     {
     	  return(0);
     }
 
-    /* Simplify network; resistors are still in milliohms, so use 
+    /* Simplify network; resistors are still in milliohms, so use
        millitolerance.
     */
 
     if (ResOptionsFlags & ResOpt_Simplify)
     {
-	 
+
 	 millitolerance = tolerance*MILLIOHMSPEROHM;
 
-         /* 
+         /*
          Start simplification at driver (R=0). Remove it from the done list
          and add it to the pending list. Call ResSimplifyNet as long as nodes
          remain in the pending list.
@@ -1056,8 +1056,8 @@ ResDoSimplify(tolerance,rctol,goodies)
 	      {
 	           ResSimplifyNet(&ResNodeQueue,&ResNodeList,&ResResList,millitolerance);
 	      }
-	 
-	     /* 
+
+	     /*
 	      Call ResScrunchNet to eliminate any remaining under tolerance
 	      resistors.
 	     */
@@ -1065,9 +1065,9 @@ ResDoSimplify(tolerance,rctol,goodies)
          }
      }
     return(0);
-     
+
 }
-
+
 void
 ResSetPathRes()
 
@@ -1081,7 +1081,7 @@ ResSetPathRes()
      	  init = 0;
 	  HeapInit(&ResistorHeap,128,FALSE,FALSE);
      }
-     
+
      for (node = ResNodeList; node != NULL ;node = node->rn_more)
      {
 	 if (node->rn_noderes == 0)
@@ -1089,7 +1089,7 @@ ResSetPathRes()
 	      ResOriginNode = node;
 	      node->rn_status |= FINISHED;
 	 }
-	 else 
+	 else
 	 {
 	      node->rn_noderes = RES_INFINITY;
 	      node->rn_status &= ~FINISHED;
@@ -1109,7 +1109,7 @@ ResSetPathRes()
 	  resPathRes((resResistor *) he.he_id);
      }
 }
-
+
 void
 resPathNode(node)
 	resNode	*node;
@@ -1122,12 +1122,12 @@ resPathNode(node)
      {
      	  resResistor	*res = re->re_thisEl;
 	  resNode	*node2;
-	  
+
 	  if (res->rr_status & RES_HEAP) continue;
 	  if ((node2=res->rr_node[0]) == node) node2 = res->rr_node[1];
 	  if ((node2->rn_status & FINISHED) == 0)
 	  {
-	       HeapAddInt(&ResistorHeap,  node->rn_noderes + res->rr_value, 
+	       HeapAddInt(&ResistorHeap,  node->rn_noderes + res->rr_value,
 			(char *)res);
 	  }
      }
@@ -1140,7 +1140,7 @@ resPathRes(res)
 {
      resNode	*node0,*node1;
      int	flag0,flag1;
-     
+
      res->rr_status |= RES_HEAP;
      res->rr_status &= ~RES_MARKED;
      node0 = res->rr_node[0];
@@ -1162,7 +1162,7 @@ resPathRes(res)
      	  node1->rn_noderes = node0->rn_noderes+res->rr_value;
 	  resPathNode(node1);
      }
-     else  
+     else
      {
      	  ASSERT(flag1,"ResPathRes");
           res->rr_node[0] = node1;

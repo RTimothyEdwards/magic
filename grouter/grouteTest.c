@@ -3,16 +3,16 @@
  *
  * Testing code for the global router.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -92,7 +92,7 @@ GlNetHisto *glNetHistoList = NULL;
 void GlInit();
 void glShowCross();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -233,7 +233,7 @@ glDebugSides(side)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -291,7 +291,7 @@ GlInit()
     for (n = 0; dflags[n].di_name; n++)
 	*(dflags[n].di_id) = DebugAddFlag(glDebugID, dflags[n].di_name);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -320,7 +320,7 @@ glShowPath(dest, root, kind)
     for (temp = dest; temp != root; temp = temp->gl_path)
 	glShowCross(temp->gl_pin, dummyId, kind);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -381,7 +381,7 @@ glShowCross(pin, netId, kind)
     r.r_ytop += RtrMetalWidth;
     ShowRect(EditCellUse->cu_def, &r, style);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -413,7 +413,7 @@ glHistoAdd(heapPtsBefore, frontierPtsBefore, startPtsBefore)
     gh->glh_next = glNetHistoList;
     glNetHistoList = gh;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -511,7 +511,7 @@ glHistoDump()
     /* Done */
     (void) fclose(fp);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -554,7 +554,7 @@ glStatsInit()
 	    perror(logFileName);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

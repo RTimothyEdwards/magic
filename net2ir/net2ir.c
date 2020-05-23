@@ -2,7 +2,7 @@
  * net2ir --
  *
  * Given a feedback file produced by the Magic :find command (from
- * the netlist menu) followed by :feed save, giving label locations and 
+ * the netlist menu) followed by :feed save, giving label locations and
  * layers, and a netlist
  * file, produce a set of irouter commands to route the two-point
  * nets in the order in which they appear in the netlist file.
@@ -138,15 +138,15 @@ getfirst:
 	if(nterms == 0)
 	{
 	    printf(":iroute route -slayers %s -sPoint %d %d ",
-		   li->li_layer, 
-		   li->li_area.r_xbot, 
+		   li->li_layer,
+		   li->li_area.r_xbot,
 		   li->li_area.r_ybot);
 	}
 	else
 	{
 	    printf("-dlayers %s -dRect %d %d %d %d\n",
-		   li->li_layer, 
-		   li->li_area.r_xbot, 
+		   li->li_layer,
+		   li->li_area.r_xbot,
 		   li->li_area.r_ybot,
 		   li->li_area.r_xtop,
 		   li->li_area.r_ytop);

@@ -9,16 +9,16 @@
  *
  * The procedures in this file are not re-entrant.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -114,7 +114,7 @@ extClearUseFlags(use, clientData)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -236,7 +236,7 @@ extSubtree(parentUse, reg, f)
 			// If result == FALSE then ha.ha_interArea is invalid.
 			ha.ha_interArea = rlab;
 			result = TRUE;
-		    }	
+		    }
 		    else
 		        result |= GeoIncludeAll(&rlab, &ha.ha_interArea);
 		}
@@ -361,7 +361,7 @@ extSubtreeInterFunc(tile, ha)
     return (0);
 }
 #endif	/* exactinteractions */
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -494,7 +494,7 @@ extSubtreeInteraction(ha)
 	 * hierarchy are part of ha_connHash and have adjustments
 	 * that are printed in the "merge" statement.  Nodes not in
 	 * the current cell are not considered.  Anything left over
-	 * has its adjusted value output. 
+	 * has its adjusted value output.
 	 */
 	for (reg = ha->ha_parentReg; reg; reg = reg->nreg_next)
 	{
@@ -555,7 +555,7 @@ extSubtreeInteraction(ha)
     extHierFreeLabels(cumDef);
     DBCellClearDef(cumDef);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -622,7 +622,7 @@ extSubtreeAdjustInit(ha)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -674,7 +674,7 @@ extSubtreeOutputCoupling(ha)
 	fprintf(ha->ha_outf, "\"%s\" %lg\n", name, cap);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -805,11 +805,11 @@ extSubtreeFunc(scx, ha)
     /* connected together in the cell def, so in the case of an	*/
     /* array, just make sure that the first array entry is	*/
     /* connected.						*/
-    
+
     if (use->cu_xhi == use->cu_xlo && use->cu_yhi == use->cu_ylo)
 	extHierSubstrate(ha, use, -1, -1);
     else if (use->cu_xhi == use->cu_xlo && use->cu_yhi > use->cu_ylo)
-    {	
+    {
 	for (y = use->cu_ylo; y <= use->cu_yhi; y++)
 	    extHierSubstrate(ha, use, -1, y);
     }
@@ -855,7 +855,7 @@ extSubtreeFunc(scx, ha)
 
     return (2);
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -890,11 +890,11 @@ extSubstrateFunc(scx, ha)
     /* connected together in the cell def, so in the case of an	*/
     /* array, just make sure that the first array entry is	*/
     /* connected.						*/
-    
+
     if (use->cu_xhi == use->cu_xlo && use->cu_yhi == use->cu_ylo)
 	extHierSubstrate(ha, use, -1, -1);
     else if (use->cu_xhi == use->cu_xlo && use->cu_yhi > use->cu_ylo)
-    {	
+    {
 	for (y = use->cu_ylo; y <= use->cu_yhi; y++)
 	    extHierSubstrate(ha, use, -1, y);
     }
@@ -912,7 +912,7 @@ extSubstrateFunc(scx, ha)
     use->cu_flags |= CU_SUB_EXTRACTED;
     return (2);
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -1080,7 +1080,7 @@ extConnFindFunc(tp, preg)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

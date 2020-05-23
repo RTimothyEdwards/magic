@@ -3,24 +3,24 @@
  *
  * Construction of blockage planes.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
- *     * University of California.                                         * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * University of California.                                         *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * A blockage plane is used to determine the legal areas for routing.
  * Each point on the interior of a space tile in a blockage plane is
  * a legal position to place the lower-left corner of a piece of wiring.
  *
- * To build a blockage plane, each solid mask tile in the 
+ * To build a blockage plane, each solid mask tile in the
  * layout is bloated in
  * all four directions and painted into the blockage plane.  To the
  * top and right, it is only bloated by the minimum separation from
@@ -57,11 +57,11 @@
  * the areas in which a route's lower left corner can be placed that will
  * let the route terminate without DRC errors.  This is the following:
  *
- *		    w-1		        w-1	
+ *		    w-1		        w-1
  *		  <----->	      <---->
  *		        +-------------+-----+	^
  *		        |. . . . . . .|. . .|	| w-1
- *		        | . . . . . . | . . |	| 
+ *		        | . . . . . . | . . |	|
  *		  +-----+. . . . . . .+-----+	v
  *		  |	| . . . . . . . . . |
  *		  |	|. . .tile . . . . .|
@@ -110,7 +110,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* Forward declarations */
 extern void mzPaintBlockType();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -118,20 +118,20 @@ extern void mzPaintBlockType();
  *
  * Build blockage info from paint in buildArea.
  *
- * The design rules are used 
+ * The design rules are used
  * to build a map of blocked areas in blockage planes of RouteTypes.
  * This map will consist of TT_SPACE tiles, where a zero-width
- * path will yield a 
+ * path will yield a
  * legal route when flushed out to wire width paint, and various
- * types of block tiles.   Multiple block types are needed to handle route 
+ * types of block tiles.   Multiple block types are needed to handle route
  * termination at the destination node properly.
  *
  * TT_BLOCKED and TT_SAMENODE are generated from the mask data
  * (SAMENODE areas are only blocked by the destination node itself).
  *
  * In addition to blockage planes for route layers, there are
- * blockage planes for contacts, assumed to connect two planes.  
- * Both planes of mask information 
+ * blockage planes for contacts, assumed to connect two planes.
+ * Both planes of mask information
  * are effectively AND-ed together to form the blockage plane for
  * that type of contact.
  *
@@ -180,17 +180,17 @@ mzBuildMaskDataBlocks(buildArea)
 	scx.scx_use = mzRouteUse;
 
 	(void) DBTreeSrTiles(
-			     &scx, 
-			     &DBAllButSpaceAndDRCBits, 
+			     &scx,
+			     &DBAllButSpaceAndDRCBits,
 			     mzCellExpansionMask,
-			     mzBuildBlockFunc, 
+			     mzBuildBlockFunc,
 			     (ClientData) buildArea);
     }
 
-    /* Add blocks at unexpanded subcells on all blockage planes 
+    /* Add blocks at unexpanded subcells on all blockage planes
      *
-     * NOTE: A 0 expansion mask is special cased since 
-     *     the mzrotuer interpets a 0 mask to mean all subcells are 
+     * NOTE: A 0 expansion mask is special cased since
+     *     the mzrotuer interpets a 0 mask to mean all subcells are
      *     expanded,
      *     while DBTreeSrCells() takes a 0 mask to mean all subcells are
      *     unexpanded.
@@ -213,7 +213,7 @@ mzBuildMaskDataBlocks(buildArea)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -221,7 +221,7 @@ mzBuildMaskDataBlocks(buildArea)
  *
  * Filter function called via DBTreeSrTiles on behalf of mzBuildBlock()
  * above, for each solid tile in the area of interest.  Paints TT_BLOCKED
- * (TT_SAMENODE if the tile is marked) areas on each of the planes 
+ * (TT_SAMENODE if the tile is marked) areas on each of the planes
  * affected by this tile.
  *
  * Results:
@@ -252,14 +252,14 @@ mzBuildBlockFunc(tile, cxp)
     return (0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzBlockSubcellsFunc --
  *
  * Filter function called via DBTreeSrTiles on behalf of mzBuildBlock()
- * above, for each unexpanded subcell in the area of interest, 
+ * above, for each unexpanded subcell in the area of interest,
  * a "blocked" area (TT_BLOCKED) is painted on each blockage plane for
  * the bounding box of the subcell, bloated by the maximum design rule
  * spacing on that plane.
@@ -330,7 +330,7 @@ mzPaintSameNodeFunc(Tile *t, Rect *buildArea)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -427,7 +427,7 @@ mzPaintBlockType(r, type, buildArea, blockType)
 	    }
 	    else
 	    {
-		/* If the tile type is a contact of the same 
+		/* If the tile type is a contact of the same
 		 * type as the route type, draw a block layer, not SAMENODE.
 		 * This prevents the maze router from attempting to place
 		 * a contact too close to an existing one, causing a DRC
@@ -468,10 +468,10 @@ mzPaintBlockType(r, type, buildArea, blockType)
 		GEOCLIP(&rblock, buildArea);
 		if (!GEO_RECTNULL(&rblock))
 		{
-		    DBPaintPlane(rT->rt_hBlock, &rblock, 
+		    DBPaintPlane(rT->rt_hBlock, &rblock,
 				mzBlockPaintTbl[blockType],
 				(PaintUndoInfo *) NULL);
-		    DBPaintPlaneVert(rT->rt_vBlock, &rblock, 
+		    DBPaintPlaneVert(rT->rt_vBlock, &rblock,
 		 		mzBlockPaintTbl[blockType],
 		 		(PaintUndoInfo *) NULL);
 		}
@@ -490,10 +490,10 @@ mzPaintBlockType(r, type, buildArea, blockType)
 	    {
 		/* and paint it */
 
-		DBPaintPlane(rT->rt_hBlock, &rblock, 
+		DBPaintPlane(rT->rt_hBlock, &rblock,
 				mzBlockPaintTbl[locBlockType],
 				(PaintUndoInfo *) NULL);
-		DBPaintPlaneVert(rT->rt_vBlock, &rblock, 
+		DBPaintPlaneVert(rT->rt_vBlock, &rblock,
 		 		mzBlockPaintTbl[locBlockType],
 		 		(PaintUndoInfo *) NULL);
 	    }
@@ -503,11 +503,11 @@ mzPaintBlockType(r, type, buildArea, blockType)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
- * mzBuildFenceBlocks -- 
+ * mzBuildFenceBlocks --
  *
  * Blocks regions of fence parity opposite of the destination-point.
  * (Fence boundaries can not be crossed).
@@ -541,26 +541,26 @@ mzBuildFenceBlocks(buildArea)
     if(mzInsideFence)
     {
 	DBSrPaintArea(NULL,	/* no hint tile */
-		      mzHFencePlane, 
-		      &searchArea, 
+		      mzHFencePlane,
+		      &searchArea,
 		      &DBSpaceBits,
-		      mzBuildFenceBlocksFunc, 
+		      mzBuildFenceBlocksFunc,
 		      (ClientData) buildArea);
     }
     else
     {
 	DBSrPaintArea(NULL,	/* no hint tile */
-		      mzHFencePlane, 
-		      &searchArea, 
+		      mzHFencePlane,
+		      &searchArea,
 		      &DBAllButSpaceBits,
-		      mzBuildFenceBlocksFunc, 
+		      mzBuildFenceBlocksFunc,
 		      (ClientData) buildArea);
     }
 
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -586,7 +586,7 @@ mzBuildFenceBlocksFunc(tile, buildArea)
 {
     RouteType *rT;
     int d;
-    Rect r, rAdjusted; 
+    Rect r, rAdjusted;
     TileType tt = TiGetType(tile);
 
     /* Get boundary of tile */
@@ -611,21 +611,21 @@ mzBuildFenceBlocksFunc(tile, buildArea)
 	GEOCLIP(&rAdjusted, buildArea);
 
 	/* Paint into blockage planes */
-	DBPaintPlane(rT->rt_hBlock, 
-		     &rAdjusted, 
-		     mzBlockPaintTbl[TT_BLOCKED], 
+	DBPaintPlane(rT->rt_hBlock,
+		     &rAdjusted,
+		     mzBlockPaintTbl[TT_BLOCKED],
 		     (PaintUndoInfo *) NULL);
-	DBPaintPlaneVert(rT->rt_vBlock, 
-	 		 &rAdjusted, 
-	 		 mzBlockPaintTbl[TT_BLOCKED], 
+	DBPaintPlaneVert(rT->rt_vBlock,
+	 		 &rAdjusted,
+	 		 mzBlockPaintTbl[TT_BLOCKED],
 	 		 (PaintUndoInfo *) NULL);
     }
-   
+
     /* return 0 - to continue search */
     return(0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -654,7 +654,7 @@ mzExtendBlockBoundsR(rect)
     TileTypeBitMask genMask;
     /* Generate twice the required bounds increment, so we don't have
      * to regenerate as soon as we move from the center of the newly
-     * generated region. 
+     * generated region.
      */
     int genBoundsIncrement = mzBoundsIncrement * 2;
     int mzExtendBlockFunc();
@@ -669,31 +669,31 @@ mzExtendBlockBoundsR(rect)
     area.r_ytop = rect->r_ytop + genBoundsIncrement;
 
 
-    DBPaintPlane(mzHBoundsPlane, 
+    DBPaintPlane(mzHBoundsPlane,
 	    &area,
 	    mzBoundsPaintTbl[TT_GENBLOCK],
 	    (PaintUndoInfo *) NULL);
 
     /* Generate blockage planes under each GENBLOCK tile = regions in
-     * new area where blockage planes not previously generated 
+     * new area where blockage planes not previously generated
     */
     TTMaskZero(&genMask);
     TTMaskSetType(&genMask,TT_GENBLOCK);
-    DBSrPaintArea(NULL,         /* no hint tile */ 
+    DBSrPaintArea(NULL,         /* no hint tile */
        mzHBoundsPlane,
        &area,
        &genMask,
        mzExtendBlockFunc,
        (ClientData) NULL);
 
-    /* Paint area INBOUNDS in both bounds planes 
-     *(blockage planes now generated here) 
+    /* Paint area INBOUNDS in both bounds planes
+     *(blockage planes now generated here)
      */
-    DBPaintPlane(mzHBoundsPlane, 
+    DBPaintPlane(mzHBoundsPlane,
 	    &area,
 	    mzBoundsPaintTbl[TT_INBOUNDS],
 	    (PaintUndoInfo *) NULL);
-    DBPaintPlaneVert(mzVBoundsPlane, 
+    DBPaintPlaneVert(mzVBoundsPlane,
  	    &area,
  	    mzBoundsPaintTbl[TT_INBOUNDS],
  	    (PaintUndoInfo *) NULL);
@@ -704,13 +704,13 @@ mzExtendBlockBoundsR(rect)
 #define RECT_AREA(r) \
     ((double)(r.r_xtop - r.r_xbot)*(double)(r.r_ytop - r.r_ybot))
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzExtendBlockFunc --
  *
- * Called by DBSrPaintArea for rectangles where blockage info must be 
+ * Called by DBSrPaintArea for rectangles where blockage info must be
  * generated.
  *
  * Results:
@@ -761,7 +761,7 @@ mzExtendBlockFunc(tile, cdarg)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -787,7 +787,7 @@ mzExtendBlockBounds(point)
     Point *point;
 {
     Rect rect;
-    
+
     rect.r_ll = *point;
     rect.r_ur = *point;
 
@@ -796,7 +796,7 @@ mzExtendBlockBounds(point)
     return;
 }
 
-/* 
+/*
  * This struc is used to store generated walks, since it is necessary
  * to defer painting walks until all are generated.
  */
@@ -810,7 +810,7 @@ typedef struct
 /* global used to store walks prior to painting them */
 List *mzWalkList;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -822,7 +822,7 @@ List *mzWalkList;
  *
  * TT_DEST_AREA and TT_*_WALK regions are generated from the special dest area
  * cell.  Dest areas are regions to connect to and walks are regions blocked
- * only by dest nodes and directly adjacent to a dest area.  Walks are 
+ * only by dest nodes and directly adjacent to a dest area.  Walks are
  * routed through by special termination code.
  *
  * Results:
@@ -851,33 +851,33 @@ mzBuildDestAreaBlocks()
     /* Compute bounding box for dest areas cell */
     DBReComputeBbox(mzDestAreasUse->cu_def);
 
-    /* Process dest areas in dest area cell one by one.  
+    /* Process dest areas in dest area cell one by one.
      *     - generates normal blockage info.
      *     - paints dest area into appropriate blockage planes.
      *     - generates alignments.
      *     - generates list of walks.
-     *     
-     * Walks are not actually painted yet because existing 
+     *
+     * Walks are not actually painted yet because existing
      * walks can interfere with the generation of new ones.
      */
 
     scx.scx_area = mzBoundingRect;
     scx.scx_trans = GeoIdentityTransform;
     scx.scx_use = mzDestAreasUse;
-	
+
     /* clip area to bounding box to avoid overflow during transforms */
     GEOCLIP(&(scx.scx_area), &(mzDestAreasUse->cu_def->cd_bbox));
 
-    (void) DBTreeSrTiles( &scx, &DBAllButSpaceAndDRCBits, 
+    (void) DBTreeSrTiles( &scx, &DBAllButSpaceAndDRCBits,
 			     0, mzDestAreaFunc, (ClientData) NULL);
 
-    (void) DBTreeSrTiles( &scx, &DBAllButSpaceAndDRCBits, 
+    (void) DBTreeSrTiles( &scx, &DBAllButSpaceAndDRCBits,
 			     0, mzDestWalksFunc, (ClientData) NULL);
 
-    (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 
+    (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits,
 			     0, mzUDCWalksFunc, (ClientData) NULL);
 
-    (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 
+    (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits,
 			     0, mzLRCWalksFunc, (ClientData) NULL);
 
     /* Paint walks into blockage planes (and dealloc walk list) */
@@ -895,13 +895,13 @@ mzBuildDestAreaBlocks()
 		TxError("Fatal: Bad destination walk!\n");
 	 	continue;	/* Try to go on anyway */
 	    }
-		
-	    DBPaintPlane(walk->w_rT->rt_hBlock, 
+
+	    DBPaintPlane(walk->w_rT->rt_hBlock,
 			 &(walk->w_rect),
 			 mzBlockPaintTbl[walk->w_type],
 			 (PaintUndoInfo *) NULL);
 
-	    DBPaintPlaneVert(walk->w_rT->rt_vBlock, 
+	    DBPaintPlaneVert(walk->w_rT->rt_vBlock,
 			     &(walk->w_rect),
 			     mzBlockPaintTbl[walk->w_type],
 			     (PaintUndoInfo *) NULL);
@@ -912,7 +912,7 @@ mzBuildDestAreaBlocks()
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -957,7 +957,7 @@ mzDestAreaFunc(tile, cxp)
     /* the gaRoute info. . .					  */
     if (rT == NULL)
 	return 1;
-	
+
     /* Draw the routable destination area (see comments at top of file). */
 
     r.r_xtop = rect.r_xtop - rT->rt_width;
@@ -1039,7 +1039,7 @@ mzDestWalksFunc(tile, cxp)
     /* the gaRoute info. . .					  */
     if (rT == NULL)
 	return 1;
-	
+
      /* Generate alignments and walks for dest areas.
       *
       * Since the above dest area may be partially blocked, the blockage
@@ -1054,30 +1054,30 @@ mzDestWalksFunc(tile, cxp)
     TTMaskSetOnlyType(&destAreaMask, TT_DEST_AREA);
 
     DBSrPaintArea(NULL,	/* no hint tile */
-		      rT->rt_hBlock, &rect, 
-		      &destAreaMask, mzHWalksFunc, 
+		      rT->rt_hBlock, &rect,
+		      &destAreaMask, mzHWalksFunc,
 		      (ClientData) rT);
 
     DBSrPaintArea(NULL,	/* no hint tile */
-		      rT->rt_vBlock, &rect, 
-		      &destAreaMask, mzVWalksFunc, 
+		      rT->rt_vBlock, &rect,
+		      &destAreaMask, mzVWalksFunc,
 		      (ClientData) rT);
 
     DBSrPaintArea(NULL,	/* no hint tile */
-		      rT->rt_hBlock, &rect, 
-		      &destAreaMask, mzLRCWalksFunc, 
+		      rT->rt_hBlock, &rect,
+		      &destAreaMask, mzLRCWalksFunc,
 		      (ClientData) rT);
 
     DBSrPaintArea(NULL,	/* no hint tile */
-		      rT->rt_vBlock, &rect, 
-		      &destAreaMask, mzUDCWalksFunc, 
+		      rT->rt_vBlock, &rect,
+		      &destAreaMask, mzUDCWalksFunc,
 		      (ClientData) rT);
 
     /* continue with next dest area */
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1112,14 +1112,14 @@ mzHWalksFunc(tile, cdarg)
     {
 	Walk *walk;
 	Tile *tLeft = BL(tile);
-	
+
 	/* Build walks for blocks to left of tile */
 	while(BOTTOM(tLeft)<TOP(tile))
 	{
 	    if(TiGetType(tLeft)==TT_SAMENODE)
 	    {
 		walk = (Walk *) mallocMagic((unsigned) (sizeof(Walk)));
-		walk->w_rT = rT; 
+		walk->w_rT = rT;
 		walk->w_type = TT_LEFT_WALK;
 		walk->w_rect.r_ybot = MAX(BOTTOM(tile),BOTTOM(tLeft));
 		walk->w_rect.r_ytop = MIN(TOP(tile),TOP(tLeft));
@@ -1128,7 +1128,7 @@ mzHWalksFunc(tile, cdarg)
 					   RIGHT(tLeft)-mzMaxWalkLength);
 		LIST_ADD(walk, mzWalkList);
 	    }
-	    
+
 	    /* move to next tile up */
 	    tLeft = RT(tLeft);
 	}
@@ -1145,12 +1145,12 @@ mzHWalksFunc(tile, cdarg)
 	   if(TiGetType(tRight)==TT_SAMENODE)
 	   {
 	       walk = (Walk *) mallocMagic((unsigned) (sizeof(Walk)));
-	       walk->w_rT = rT; 
+	       walk->w_rT = rT;
 	       walk->w_type = TT_RIGHT_WALK;
 	       walk->w_rect.r_ybot = MAX(BOTTOM(tile),BOTTOM(tRight));
 	       walk->w_rect.r_ytop = MIN(TOP(tile),TOP(tRight));
 	       walk->w_rect.r_xbot = LEFT(tRight);
-	       walk->w_rect.r_xtop = MIN(RIGHT(tRight), 
+	       walk->w_rect.r_xtop = MIN(RIGHT(tRight),
 					  LEFT(tRight)+mzMaxWalkLength);
 	       LIST_ADD(walk, mzWalkList);
 	   }
@@ -1159,13 +1159,13 @@ mzHWalksFunc(tile, cdarg)
 	   tRight = LB(tRight);
        }
     }
-   
+
     /* return 0 - to continue search */
     return(0);
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1200,7 +1200,7 @@ mzVWalksFunc(tile, cdarg)
     {
 	Walk *walk;
 	Tile *tBelow = LB(tile);
-	
+
 	/* Build walks for blocks to below tile */
 	while(LEFT(tBelow)<RIGHT(tile))
 	{
@@ -1226,8 +1226,8 @@ mzVWalksFunc(tile, cdarg)
     {
 	Walk *walk;
 	Tile *tAbove = RT(tile);
-	
-	
+
+
 	/* Build walks for blocks above tile */
 	while(RIGHT(tAbove)>LEFT(tile))
 	{
@@ -1239,7 +1239,7 @@ mzVWalksFunc(tile, cdarg)
 		walk->w_rect.r_xbot = MAX(LEFT(tile),LEFT(tAbove));;
 		walk->w_rect.r_xtop = MIN(RIGHT(tile),RIGHT(tAbove));
 		walk->w_rect.r_ybot = BOTTOM(tAbove);
-		walk->w_rect.r_ytop = MIN(TOP(tAbove), 
+		walk->w_rect.r_ytop = MIN(TOP(tAbove),
 					   BOTTOM(tAbove)+mzMaxWalkLength);
 		LIST_ADD(walk, mzWalkList);
 	    }
@@ -1248,12 +1248,12 @@ mzVWalksFunc(tile, cdarg)
 	    tAbove = BL(tAbove);
 	}
     }
-   
+
     /* return 0 - to continue search */
     return(0);
 }
 
-/* 
+/*
  *  Structure to pass data between mzLRCWalksFunc, mzUDCWalksFunc, and mzCWalksFunc2
  */
 typedef struct walkContactFuncData
@@ -1263,7 +1263,7 @@ typedef struct walkContactFuncData
     int			wd_walk;	/* TT_ABOVE_*_WALK or TT_BELOW_*_WALK */
 } WalkContactFuncData;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1287,7 +1287,7 @@ mzLRCWalksFunc(tile, cdarg)
     ClientData cdarg;
 {
     RouteType *rT = (RouteType *) cdarg; /* RouteType of this dest area */
-    RouteContact *rC;	
+    RouteContact *rC;
     Rect rect;
     int walkType;
 
@@ -1297,7 +1297,7 @@ mzLRCWalksFunc(tile, cdarg)
     /* process contact types that can connect to this dest area */
     for (rC = mzRouteContacts; rC != NULL; rC = rC->rc_next)
     {
-	RouteLayer *rLOther = NULL; 
+	RouteLayer *rLOther = NULL;
 
 	/* skip inactive contact types */
 	if (!(rC->rc_routeType.rt_active)) continue;
@@ -1314,7 +1314,7 @@ mzLRCWalksFunc(tile, cdarg)
 	    walkType = TT_BELOW_LR_WALK;
 	}
 
-	/* If current contact type (RC) permits connection to dest area, 
+	/* If current contact type (RC) permits connection to dest area,
 	 * insert CONTACT_WALK(s) into blockage planes for other layer.
 	 */
 	if (rLOther)
@@ -1327,7 +1327,7 @@ mzLRCWalksFunc(tile, cdarg)
 	    TTMaskSetOnlyType(&contactOKMask, TT_SPACE);
 	    TTMaskSetType(&contactOKMask, TT_SAMENODE);
 
-	    wD.wd_bounds = &rect; 
+	    wD.wd_bounds = &rect;
 	    wD.wd_rL = rLOther;
 	    wD.wd_walk = walkType;
 
@@ -1336,13 +1336,13 @@ mzLRCWalksFunc(tile, cdarg)
 
 	    DBSrPaintArea(NULL,	/* no hint tile */
 			      rC->rc_routeType.rt_hBlock,
-			      &rect, 
+			      &rect,
 			      &contactOKMask,
-			      mzCWalksFunc2, 
+			      mzCWalksFunc2,
 			      (ClientData) &wD);
 	}
     }
-    
+
     /* return 0 - to continue search */
     return(0);
 }
@@ -1370,7 +1370,7 @@ mzUDCWalksFunc(tile, cdarg)
     ClientData cdarg;
 {
     RouteType *rT = (RouteType *) cdarg; /* RouteType of this dest area */
-    RouteContact *rC;	
+    RouteContact *rC;
     Rect rect;
     int walkType;
 
@@ -1380,7 +1380,7 @@ mzUDCWalksFunc(tile, cdarg)
     /* process contact types that can connect to this dest area */
     for (rC = mzRouteContacts; rC != NULL; rC = rC->rc_next)
     {
-	RouteLayer *rLOther = NULL; 
+	RouteLayer *rLOther = NULL;
 
 	/* skip inactive contact types */
 	if (!(rC->rc_routeType.rt_active)) continue;
@@ -1397,7 +1397,7 @@ mzUDCWalksFunc(tile, cdarg)
 	    walkType = TT_BELOW_UD_WALK;
 	}
 
-	/* If current contact type (RC) permits connection to dest area, 
+	/* If current contact type (RC) permits connection to dest area,
 	 * insert CONTACT_WALK(s) into blockage planes for other layer.
 	 */
 	if (rLOther)
@@ -1410,7 +1410,7 @@ mzUDCWalksFunc(tile, cdarg)
 	    TTMaskSetOnlyType(&contactOKMask, TT_SPACE);
 	    TTMaskSetType(&contactOKMask, TT_SAMENODE);
 
-	    wD.wd_bounds = &rect; 
+	    wD.wd_bounds = &rect;
 	    wD.wd_rL = rLOther;
 	    wD.wd_walk = walkType;
 
@@ -1419,18 +1419,18 @@ mzUDCWalksFunc(tile, cdarg)
 
 	    DBSrPaintArea(NULL,	/* no hint tile */
 			      rC->rc_routeType.rt_vBlock,
-			      &rect, 
+			      &rect,
 			      &contactOKMask,
-			      mzCWalksFunc2, 
+			      mzCWalksFunc2,
 			      (ClientData) &wD);
 	}
     }
-    
+
     /* return 0 - to continue search */
     return(0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *

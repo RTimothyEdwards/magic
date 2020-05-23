@@ -21,7 +21,7 @@ proc magic::add_menu {framename toolname button_text } {
 ###
 proc magic::add_menu_command {framename toolname button_text command} {
    set m ${framename}.titlebar.mbuttons.${toolname}.toolmenu
-   $m add command -label "$button_text" -command $command 
+   $m add command -label "$button_text" -command $command
 }
 
 ###

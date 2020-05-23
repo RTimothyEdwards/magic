@@ -1,6 +1,6 @@
  /*************************************************************************
  *
- *  lispPrint.c -- 
+ *  lispPrint.c --
  *
  *   Stuff that prints out the internals of lists.
  *

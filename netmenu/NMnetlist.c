@@ -4,16 +4,16 @@
  *	package.  It reads and writes netlists, and provides
  *	routines to modify the nets.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -109,7 +109,7 @@ Netlist *nmListHead = NULL;		/* The first netlist in the linked
 
 static char *(yesno[]) = {"no", "yes", NULL};
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -148,7 +148,7 @@ NMAddTerm(new, other)
 
     if ((nmCurrentNetlist == NULL) || (new == NULL) || (other == NULL))
 	return NULL;
-    
+
     nmCurrentNetlist->nl_flags |= NL_MODIFIED;
     hNew = HashFind(&nmCurrentNetlist->nl_table, new);
     newEntry = (NetEntry *) HashGetValue(hNew);
@@ -173,7 +173,7 @@ NMAddTerm(new, other)
     /* Now lookup the (supposedly pre-existing) terminal.  If it
      * doesn't have an entry in the hash table, make a new one.
      */
-    
+
     hOther = HashFind(&nmCurrentNetlist->nl_table, other);
     otherEntry = (NetEntry *) HashGetValue(hOther);
     if (otherEntry == 0)
@@ -198,7 +198,7 @@ NMAddTerm(new, other)
     NMUndo(new, other, NMUE_ADD);
     return otherEntry->ne_name;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -236,7 +236,7 @@ NMDeleteTerm(name)
     entry->ne_prev->ne_next = entry->ne_next;
     freeMagic((char *) entry);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -270,7 +270,7 @@ NMJoinNets(termA, termB)
     /* Lookup the two nets, and make sure that they both exist
      * and aren't already the same.
      */
-    
+
     ha = HashFind(&nmCurrentNetlist->nl_table, termA);
     netA = (NetEntry *) HashGetValue(ha);
     hb = HashFind(&nmCurrentNetlist->nl_table, termB);
@@ -309,7 +309,7 @@ NMJoinNets(termA, termB)
     tmp->ne_next = netB;
     netB->ne_prev = tmp;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -358,7 +358,7 @@ NMDeleteNet(net)
 	next = next->ne_next;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -432,7 +432,7 @@ NMNewNetlist(name)
      * or doesn't have a proper header line, issue a warning message,
      * then just start a new list.
      */
-    
+
     file = PaOpen(name, "r", ".net", Path, CellLibPath, &fullName);
     if (file == NULL)
     {
@@ -459,7 +459,7 @@ NMNewNetlist(name)
      * character.  Lines starting with "#" are treated as comments.
      * None of this gets recorded for undo-ing.
      */
-    
+
     UndoDisable();
     currentTerm = NULL;
     while (fgets(line, MAXLINESIZE, file) != NULL)
@@ -495,7 +495,7 @@ NMNewNetlist(name)
     nmCurrentNetlist->nl_flags &= ~NL_MODIFIED;
     (void) fclose(file);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -520,7 +520,7 @@ NMNetlistName()
     else
 	return ((char *) NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -611,7 +611,7 @@ int NMEnumNets(func, clientData)
     }
     return result;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -666,7 +666,7 @@ NMEnumTerms(name, func, clientData)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -689,7 +689,7 @@ NMHasList()
 {
     return(nmCurrentNetlist != NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -724,7 +724,7 @@ NMTermInList(name)
     if (entry == NULL) return NULL;
     return entry->ne_name;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -805,7 +805,7 @@ nmWriteNetsFunc(name, firstInNet, file)
     fprintf(file, "%s\n", name);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -858,7 +858,7 @@ NMCheckWritten()
     } while (indx < 0);
     return indx;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -913,7 +913,7 @@ NMWriteAll()
     nmCurrentNetlist = saveCurrent;
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -942,7 +942,7 @@ NMFlushNetlist(name)
     HashEntry *h;
 
     /* Find the netlist in question. */
-    
+
     list = NULL;
     for (prev = &nmListHead; *prev != NULL; prev = &(*prev)->nl_next)
     {
@@ -961,7 +961,7 @@ NMFlushNetlist(name)
     /* If the netlist has been modified, give the user a chance to
      * skip this.
      */
-    
+
     if (list->nl_flags & NL_MODIFIED)
     {
 	char answer[10];
@@ -986,7 +986,7 @@ NMFlushNetlist(name)
     /* Unlink the netlist from the list of netlists, and free up
      * everything in it.
      */
-    
+
     *prev = list->nl_next;
     HashStartSearch(&hs);
     while (TRUE)
@@ -1001,7 +1001,7 @@ NMFlushNetlist(name)
     /* If the netlist was the current netlist, read it in again from
      * disk.
      */
-    
+
     if (list == nmCurrentNetlist)
         NMNewNetlist(name);
 }

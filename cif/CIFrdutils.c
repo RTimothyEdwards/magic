@@ -5,16 +5,16 @@
  *	reading CIF files, plus a bunch of utility routines
  *	for skipping white space, parsing numbers and points, etc.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -92,7 +92,7 @@ Plane *cifReadPlane;			/* Plane into which to paint material
 					 * NULL means no layer command has
 					 * been seen for the current cell.
 					 */
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -133,7 +133,7 @@ CIFReadError(char *format, ...)
 	TxError("Error limit set:  Remaining errors will not be reported.\n");
     }
 }
-
+
 
 void
 CIFReadWarning(char *format, ...)
@@ -300,7 +300,7 @@ CIFScaleCoord(cifCoord, snap_type)
 
     return result;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -333,7 +333,7 @@ cifIsBlank(ch)
     }
     else return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -355,7 +355,7 @@ cifIsBlank(ch)
 void
 CIFSkipBlanks()
 {
-    
+
     while (cifIsBlank(PEEK())) {
 	if (TAKE() == '\n')
 	{
@@ -363,7 +363,7 @@ CIFSkipBlanks()
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -393,7 +393,7 @@ CIFSkipSep()
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -415,7 +415,7 @@ void
 CIFSkipToSemi()
 {
     int	ch;
-    
+
     for (ch = PEEK() ; ((ch != ';') && (ch != EOF)) ; ch = PEEK()) {
 	if (TAKE() == '\n')
 	{
@@ -423,7 +423,7 @@ CIFSkipToSemi()
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -443,7 +443,7 @@ CIFSkipToSemi()
 void
 CIFSkipSemi()
 {
-    
+
     CIFSkipBlanks();
     if (PEEK() != ';') {
 	CIFReadError("`;\' expected.\n");
@@ -452,7 +452,7 @@ CIFSkipSemi()
     TAKE();
     CIFSkipBlanks();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -498,7 +498,7 @@ CIFParseSInteger(valuep)
 	*valuep = -(*valuep);
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -616,7 +616,7 @@ CIFParsePoint(pointp, iscale)
     return TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -713,7 +713,7 @@ CIFParsePath(pathheadpp, iscale)
  *	first three points in the given CIF path.
  *
  * Results:
- *	TRUE if point is inside, FALSE if outside or on the border 	
+ *	TRUE if point is inside, FALSE if outside or on the border
  *
  * Side effects:
  *	None.
@@ -754,7 +754,7 @@ test_insideness(start, tpoint)
  * Side effects:
  *	value of respt contains point to which segment will be
  *	truncated.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -856,7 +856,7 @@ path_intersect(pathHead, start, respt)
 	/* with the smaller absolute distance takes precedence.)	*/
 
 	if (test_insideness(start, &path->cifp_point)) {
-	    int tmpdist = abs(newdist);		/* save this value */	
+	    int tmpdist = abs(newdist);		/* save this value */
 	    if (path->cifp_x == path->cifp_next->cifp_x ||
 			path->cifp_y == path->cifp_next->cifp_y)
 	    {
@@ -1072,7 +1072,7 @@ CIFMakeManhattanPath(pathHead, plane, resultTbl, ui)
 	edir = CIFEdgeDirection(first, last);
 	if (edir == CIF_DIAG_DL || edir == CIF_DIAG_UR)
 	{
-	    new->cifp_x = first->cifp_x; 
+	    new->cifp_x = first->cifp_x;
 	    new->cifp_y = last->cifp_y;
 	}
 	else  /* edir == CIF_DIAG_DR || edir == CIF_DIAG_UL */
@@ -1135,7 +1135,7 @@ CIFMakeManhattanPath(pathHead, plane, resultTbl, ui)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1184,7 +1184,7 @@ CIFEdgeDirection(first, last)
 	return CIF_DOWN;
     return CIF_ZERO;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1225,7 +1225,7 @@ CIFCleanPath(pathHead)
 	path = next;
 	if (!path) return;
     }
-	 
+
     while (next = path->cifp_next)
     {
 	if ((dir2 = CIFEdgeDirection(path, next)) == CIF_ZERO)
@@ -1259,7 +1259,7 @@ path_inc:
     if (!pathHead->cifp_next)
     {
 	/* Ensure that the resulting path is closed. */
-	if ((pathHead->cifp_x != path->cifp_x) ||	
+	if ((pathHead->cifp_x != path->cifp_x) ||
 	    (pathHead->cifp_y != path->cifp_y))
 	{
 	    next = (CIFPath *) mallocMagic((unsigned) (sizeof (CIFPath)));
@@ -1287,7 +1287,7 @@ path_inc:
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1314,7 +1314,7 @@ CIFFreePath(path)
 	path = path->cifp_next;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1340,7 +1340,7 @@ cifCommandError()
     CIFSkipToSemi();
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1370,7 +1370,7 @@ cifParseEnd()
     }
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1392,7 +1392,7 @@ cifParseComment()
 {
     int		opens;
     int		ch;
-    
+
 	/*
 	 *	take the '('
 	 */
@@ -1417,7 +1417,7 @@ cifParseComment()
     } while (opens > 0);
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1459,7 +1459,7 @@ CIFDirectionToTrans(point)
 	point->p_x, point->p_y);
     return &GeoIdentityTransform;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1554,7 +1554,7 @@ CIFParseTransform(transformp)
 
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

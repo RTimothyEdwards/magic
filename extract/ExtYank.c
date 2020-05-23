@@ -4,16 +4,16 @@
  * Circuit extraction.
  * Hierarchical yanking of paint and labels.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -45,7 +45,7 @@ Rect extSubcellArea;		/* Area of currently processed subcell, clipped
 /* Forward declarations of filter functions */
 int extHierYankFunc();
 int extHierLabelFunc();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -93,7 +93,7 @@ extHierCopyLabels(sourceDef, targetDef)
 	targetDef->cd_labels = firstLab;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -124,7 +124,7 @@ extHierFreeLabels(def)
 	freeMagic((char *) lab);
     def->cd_labels = (Label *) NULL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

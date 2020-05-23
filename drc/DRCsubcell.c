@@ -5,16 +5,16 @@
  * violations that occur as a result of interactions between
  * subcells and either paint or other subcells.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -94,7 +94,7 @@ drcFindOtherCells(use, area)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -164,7 +164,7 @@ drcSubcellFunc(subUse, propagate)
     (void) GeoInclude(&intArea, &drcSubIntArea);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -188,7 +188,7 @@ drcAlwaysOne()
 {
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -238,7 +238,7 @@ drcSubCheckPaint(scx, curUse)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -301,13 +301,13 @@ DRCFindInteractions(def, area, radius, interaction)
     propagate = FALSE;
     (void) DBSrCellPlaneArea(def->cd_cellPlane, &drcSubLookArea,
 		drcSubcellFunc, (ClientData)(&propagate));
-    
+
     /* If there seems to be an interaction area, make a second pass
      * to make sure there's more than one cell with paint in the
      * area.  This will save us a lot of work where two cells
      * have overlapping bounding boxes without overlapping paint.
      */
-    
+
     if (GEO_RECTNULL(&drcSubIntArea)) return FALSE;
     use = NULL;
 
@@ -334,13 +334,13 @@ DRCFindInteractions(def, area, radius, interaction)
     }
 
     /* OK, no more excuses, there's really an interaction area here. */
-    
+
     *interaction = drcSubIntArea;
     GeoClip(interaction, area);
     if (GEO_RECTNULL(interaction)) return FALSE;
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -377,7 +377,7 @@ drcExactOverlapCheck(tile, arg)
     (*(arg->dCD_errors))++;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -416,7 +416,7 @@ drcExactOverlapTile(tile, cxp)
     Tile *tp;
     Rect r1, r2, r3, rex;
     int i;
-    
+
     arg = (struct drcClientData *) cxp->tc_filter->tf_arg;
     TiToRect(tile, &r1);
     GeoTransRect(&(cxp->tc_scx->scx_trans), &r1, &r2);
@@ -505,7 +505,7 @@ drcExactOverlapTile(tile, cxp)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -564,7 +564,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
     /* Divide the area to be checked up into squares.  Process each
      * square separately.
      */
-    
+
     x = (area->r_xbot/DRCStepSize) * DRCStepSize;
     if (x > area->r_xbot) x -= DRCStepSize;
     y = (area->r_ybot/DRCStepSize) * DRCStepSize;
@@ -599,7 +599,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 
 		errorSaveType = DRCErrorType;
 		DRCErrorType = TT_ERROR_P;	// Basic check is always ERROR_P
-                DRCBasicCheck(def, &intArea, &subArea, func, cdarg); 
+                DRCBasicCheck(def, &intArea, &subArea, func, cdarg);
 		DRCErrorType = errorSaveType;
 		continue;
 	    }
@@ -631,16 +631,16 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		{
 		    subArea.r_ybot = intArea.r_ytop;
 		    GEO_EXPAND(&subArea, DRCTechHalo, &eraseHalo);
-                    DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg); 
-		} 
+                    DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
+		}
 		/* check below */
 		if (intArea.r_ybot > eraseClip.r_ybot)
 		{
 		    subArea.r_ybot = eraseClip.r_ybot;
 		    subArea.r_ytop = intArea.r_ybot;
 		    GEO_EXPAND(&subArea, DRCTechHalo, &eraseHalo);
-                    DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg); 
-		} 
+                    DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
+		}
 		subArea.r_ytop = intArea.r_ytop;
 		subArea.r_ybot = intArea.r_ybot;
 
@@ -649,7 +649,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		{
 		    subArea.r_xbot = intArea.r_xtop;
 		    GEO_EXPAND(&subArea, DRCTechHalo, &eraseHalo);
-                    DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg); 
+                    DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
 		}
 		/* check left */
 		if (intArea.r_xbot > eraseClip.r_xbot)
@@ -657,7 +657,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		    subArea.r_xtop = intArea.r_xbot;
 		    subArea.r_xbot = eraseClip.r_xbot;
 		    GEO_EXPAND(&subArea, DRCTechHalo, &eraseHalo);
-                    DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg); 
+                    DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
 		}
 		DRCErrorType = errorSaveType;
 	    }
@@ -667,7 +667,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 	    subArea = *erasebox;
 	    GEO_EXPAND(&subArea, DRCTechHalo, &cliparea);
 	    GeoClip(&intArea, &cliparea);
-    
+
 	    /* Flatten the interaction area. */
 
 	    DRCstatInteractions += 1;
@@ -708,7 +708,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 	    (void) DBTreeSrUniqueTiles(&scx, &DRCCurStyle->DRCExactOverlapTypes,
 			0, drcExactOverlapTile, (ClientData) &arg);
 	}
-    
+
     /* Update count of interaction tiles processed. */
 
     DRCstatIntTiles += DRCstatTiles - oldTiles;

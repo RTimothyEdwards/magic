@@ -3,16 +3,16 @@
  *
  *	Routines for double ended queues.  See 'dqueue.h'.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -76,7 +76,7 @@ void
 DQFree(q)
     DQueue *q;
 {
-    freeMagic((char *) q->dq_data); 
+    freeMagic((char *) q->dq_data);
 }
 
 /*
@@ -101,7 +101,7 @@ DQPushFront(q, elem)
     ClientData elem;
 {
     if (q->dq_size == q->dq_maxSize)  DQChangeSize(q, 2 * q->dq_maxSize);
-    q->dq_data[q->dq_front] = elem; 
+    q->dq_data[q->dq_front] = elem;
     q->dq_front--;
     if (q->dq_front < 0) q->dq_front = q->dq_maxSize;
     q->dq_size++;
@@ -113,7 +113,7 @@ DQPushRear(q, elem)
     ClientData elem;
 {
     if (q->dq_size == q->dq_maxSize)  DQChangeSize(q, 2 * q->dq_maxSize);
-    q->dq_data[q->dq_rear] = elem; 
+    q->dq_data[q->dq_rear] = elem;
     q->dq_rear++;
     if (q->dq_rear > q->dq_maxSize) q->dq_rear = 0;
     q->dq_size++;
@@ -184,7 +184,7 @@ DQChangeSize(q, newSize)
     if (newSize < q->dq_size) newSize = q->dq_size;
     DQInit(&newq, newSize);
     DQCopy(&newq, q);
-    freeMagic((char *) q->dq_data); 
+    freeMagic((char *) q->dq_data);
     q->dq_data = newq.dq_data;
     q->dq_maxSize = newq.dq_maxSize;
     q->dq_front = newq.dq_front;

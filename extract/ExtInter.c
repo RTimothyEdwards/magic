@@ -4,16 +4,16 @@
  * Circuit extraction.
  * Finds interaction areas.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -59,7 +59,7 @@ int extInterSubtreePaint();
 
 #define	BLOATBY(r, h) ( (r)->r_xbot -= (h), (r)->r_ybot -= (h), \
 			(r)->r_xtop += (h), (r)->r_ytop += (h) )
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -144,7 +144,7 @@ extInterSubtreePaint(scx, def)
 
     return (2);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -208,7 +208,7 @@ extInterSubtreeClip(overlapScx, scx)
 		(ClientData) &r);
     return (2);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -246,7 +246,7 @@ extInterSubtreeElement(use, trans, x, y, r)
 		extInterSubtreeTile, (ClientData) NULL);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -289,7 +289,7 @@ extInterSubtreeTile(tile, cxp)
     (void) DBCellSrArea(&newscx, extInterOverlapSubtree, (ClientData) NULL);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -320,7 +320,7 @@ extInterOverlapSubtree(scx)
     (void) extTreeSrPaintArea(scx, extInterOverlapTile, (ClientData) NULL);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -362,7 +362,7 @@ extInterOverlapTile(tile, cxp)
 
     return (0);
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *

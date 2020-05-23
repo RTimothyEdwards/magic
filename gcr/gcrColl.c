@@ -2,16 +2,16 @@
  *
  *	The greedy router:  Collapsing split nets.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -41,7 +41,7 @@ int      *	gcrNthSplit=(int *) NULL;
 /* Forward declarations */
 void gcrEvalPat();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	gcrCollapse  --
@@ -118,7 +118,7 @@ gcrCollapse(col, width, bot, top, freed)
     gcrEvalPat( col, freed, width);
     *col=(GCRColEl *) NULL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -155,7 +155,7 @@ gcrInitCollapse(size)
 	gcrBestCol = (GCRColEl *) NULL;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	gcrEvalPat --
@@ -248,7 +248,7 @@ gcrEvalPat(col, freed, size)
     freeMagic((char *) *col);
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	gcrNextSplit --
@@ -277,7 +277,7 @@ gcrNextSplit(col, size, i)
 	    return(i);
     return(size+1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	gcrPickBest --
@@ -302,7 +302,7 @@ gcrPickBest(ch)
     ch->gcr_lCol=gcrBestCol;
     gcrBestCol=(GCRColEl *) NULL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	gcrReduceRange --
@@ -311,7 +311,7 @@ gcrPickBest(ch)
  *	of each uncollapsed split net downward, and trying to move the
  *	outermost bottom track of each uncollapsed split net upwards.
  *	Make no jogs which are shorter than minimum jog length.
- * 
+ *
  * Results:
  *	None.
  *

@@ -1,15 +1,15 @@
 /* grMain.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains a few core variables and routines for
@@ -45,7 +45,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * the table 'grDisplayTypes' and then add a pointer to an initialization
  * routine to 'grInitProcs'.  The initialization routine will fill in all
  * of the graphics routine pointers so that they point to procedures that
- * can handle the new display type.  All calls to device-specific 
+ * can handle the new display type.  All calls to device-specific
  * procedures are made by indirecting through these pointers.
  */
 
@@ -98,7 +98,7 @@ global unsigned char GrDisplayStatus = DISPLAY_IDLE;
 static char *grDisplayTypes[] = {
 #ifdef	X11
     "XWIND",
-    "X11", 	
+    "X11",
     "8BIT",
     "16BIT",
     "24BIT",
@@ -122,11 +122,11 @@ extern bool cairoSetDisplay();
 
 static bool (*(grInitProcs[]))() = {
 #ifdef	X11
-    x11SetDisplay,  
-    x11SetDisplay,  
-    x11SetDisplay,  
-    x11SetDisplay,  
-    x11SetDisplay,  
+    x11SetDisplay,
+    x11SetDisplay,
+    x11SetDisplay,
+    x11SetDisplay,
+    x11SetDisplay,
 #endif	/* X11 */
 #ifdef  OGL
     oglSetDisplay,
@@ -220,7 +220,7 @@ extern void grNullProc();
 void (*GrStopPtr)() = grNullProc;
 void (*GrResumePtr)() = grNullProc;
 
-
+
 /*---------------------------------------------------------
  * GrSetDisplay --
  *	This routine sets a display type, opens files,  and initializes the
@@ -228,7 +228,7 @@ void (*GrResumePtr)() = grNullProc;
  *
  * Results:
  *	TRUE is returned if the display was found and initialized
- *	successfully.  If the type didn't register, or the file is 
+ *	successfully.  If the type didn't register, or the file is
  *	NULL, then FALSE is returned.
  *
  * Side Effects:
@@ -241,9 +241,9 @@ void (*GrResumePtr)() = grNullProc;
 bool
 GrSetDisplay(type, outName, mouseName)
 char *type;			/* Name of the display type. */
-char *outName;			/* Filename used for communciation with 
+char *outName;			/* Filename used for communciation with
 				 * display. */
-char *mouseName;		/* Filename used for communciation 
+char *mouseName;		/* Filename used for communciation
 				 * with tablet. */
 
 {
@@ -252,7 +252,7 @@ char *mouseName;		/* Filename used for communciation
     int i;
     bool res;
 
-    if (outName == NULL) 
+    if (outName == NULL)
     {
 	TxError("No graphics device specified.\n");
 	return FALSE;
@@ -294,7 +294,7 @@ char *mouseName;		/* Filename used for communciation
 
     /* Call the initialization procedure. */
     res = (*(grInitProcs[i]))(type, outName, mouseName);
-    if (!res) 
+    if (!res)
     {
 	TxError("The graphics display couldn't be correctly initialized.\n");
 	TxError("Use '-d NULL' if you don't need graphics.\n");
@@ -357,7 +357,7 @@ GrIsDisplay(disp1, disp2)
     return FALSE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrGuessDisplayType --
@@ -421,13 +421,13 @@ GrGuessDisplayType(graphics, mouse, display, monitor)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * grFgets --
  *
  *	Just like fgets, except that it times out after 20 seconds, and prints
- *	a warning message.  After one second a warning message is also 
+ *	a warning message.  After one second a warning message is also
  *	printed.
  *
  * Results:
@@ -449,9 +449,9 @@ grFgets(str, n, stream, name)
     char *newstr;
     struct timeval threeSec, twentySecs;
 
-    threeSec.tv_sec = 3;	
+    threeSec.tv_sec = 3;
     threeSec.tv_usec = 0;
-    twentySecs.tv_sec = 20;	
+    twentySecs.tv_sec = 20;
     twentySecs.tv_usec = 0;
 
     FD_ZERO(&fn);
@@ -527,7 +527,7 @@ grFgets(str, n, stream, name)
  *	Used when we need to point a procedure pointer to something, but
  *	don't want it to do anything.
  *
- * Results:	
+ * Results:
  *	None.
  *
  * Side Effects:

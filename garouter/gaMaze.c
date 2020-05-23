@@ -3,16 +3,16 @@
  *
  * Code to interface to mzrouter for harder stems.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -54,7 +54,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 MazeParameters *gaMazeParms = NULL;
 
 /* Top Level Cell used by mzrouter during stem generation.
- * Contains a fence, to limit the scope of the search, 
+ * Contains a fence, to limit the scope of the search,
  * and the edit cell as a subcell */
 
 CellUse *gaMazeTopUse;
@@ -65,7 +65,7 @@ CellUse *gaMazeTopSub;
 
 void gaMazeBounds();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -86,7 +86,7 @@ bool
 gaMazeInit(routeUse)
     CellUse *routeUse;		/* Cell routing will be done in - made subcell
 				 * of gaMazeTop
-				 */ 
+				 */
 {
     UndoDisable();
 
@@ -114,12 +114,12 @@ gaMazeInit(routeUse)
 	gaMazeTopSub = DBCellNewUse(routeUse->cu_def, "__MAZE_TOP_SUB");
 	DBPlaceCell(gaMazeTopSub, gaMazeTopDef);
     }
-    
+
     UndoEnable();
     return TRUE;
-}        
+}
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -158,15 +158,15 @@ GAMazeInitParms()
     return TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * gaMazeRoute --
  *
- * Try to maze route from pinPoint to terminalLoc 
+ * Try to maze route from pinPoint to terminalLoc
  * ending up on a layer in `pinLayerMask' while constraining
- * all wiring to stay within boundingRect. 
+ * all wiring to stay within boundingRect.
  *
  * Uses the Magic maze router (mzrouter module).
  *
@@ -187,7 +187,7 @@ gaMazeRoute(routeUse, terminalLoc, pinPoint, pinLayerMask, side, writeFlag)
 				 * by the router, i.e. their contents are
 				 * examined.  And routing across the tops of
 				 * subcells is permitted.
-				 */ 
+				 */
     NLTermLoc *terminalLoc;	/* Terminal to connect to - somewhere in
 				 * interior of cell */
     Point *pinPoint;		/* Point to connect from (on edge of cell) */
@@ -197,7 +197,7 @@ gaMazeRoute(routeUse, terminalLoc, pinPoint, pinLayerMask, side, writeFlag)
 					 */
     int side;			/* side of cell destPoint lies on */
     bool writeFlag;	        /* If non-null, paint back result (into
-				 * routeUse), otherwise just check if 
+				 * routeUse), otherwise just check if
 				 * route is possible.
 				 */
 {
@@ -241,7 +241,7 @@ gaMazeRoute(routeUse, terminalLoc, pinPoint, pinLayerMask, side, writeFlag)
 		    break;
 		}
 	    }
-	
+
 	    /* make sure we found a routelayer */
 	    if (rL == NULL)
 	    {
@@ -278,7 +278,7 @@ gaMazeRoute(routeUse, terminalLoc, pinPoint, pinLayerMask, side, writeFlag)
 	}
 
 	/* if write flag set, paint back route path */
-	if (writeFlag) 
+	if (writeFlag)
 	{
 	    CellUse *resultUse;
 
@@ -297,7 +297,7 @@ gaMazeRoute(routeUse, terminalLoc, pinPoint, pinLayerMask, side, writeFlag)
 		DBReComputeBbox(routeUse->cu_def);
 	    }
 
-	    /* Notify dbwind module (for redisplay), and DRC module 
+	    /* Notify dbwind module (for redisplay), and DRC module
 	     * of changed area */
 	    {
 		Rect changedArea;
@@ -331,13 +331,13 @@ abort:
     return done;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * gaMazeBounds --
  *
- * Pick a rectangular area for mazerouting containing terminalLoc and 
+ * Pick a rectangular area for mazerouting containing terminalLoc and
  * enough extra slop to make sure connection and contacts are possible
  * at the end points.
  *
@@ -370,7 +370,7 @@ gaMazeBounds(terminalLoc, pinPoint, r)
 	/* compute max active width */
 	{
 	    RouteType *rT;
-	 
+
 	    for(rT=gaMazeParms->mp_rTypes; rT!=NULL; rT=rT->rt_next)
 	    {
 		if(rT->rt_active)

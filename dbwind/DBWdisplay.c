@@ -5,16 +5,16 @@
  * It saves up information about what is to be redisplayed, then
  * does all of the redisplay at a convenient time.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -77,7 +77,7 @@ static Transform dbwWatchTrans;	/* Transform to root coords for watch tiles. */
 static int dbwWatchDemo;	/* TRUE means use "demo" style for watch
 				 * tile display.
 				 */
-static int  dbwSeeTypes;	/* TRUE means use tile type instead of 
+static int  dbwSeeTypes;	/* TRUE means use tile type instead of
 				   pointer value for watch display.
 				*/
 static Rect dbwMinBBox;		/* If bounding boxes aren't at least this
@@ -129,7 +129,7 @@ extern int dbwTileFunc(), dbwWatchFunc(), dbwLabelFunc();
 extern int dbwPaintFunc(), dbwBBoxFunc();
 extern int dbwWindowFunc(), dbwChangedFunc();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * DBWredisplay --
@@ -157,7 +157,7 @@ DBWredisplay(w, rootArea, clipArea)
     Rect *rootArea;		/* The area that must be redisplayed, in
 				 * root cell coordinates.
 				 */
-    Rect *clipArea;		/* The screen area that we should clip to 
+    Rect *clipArea;		/* The screen area that we should clip to
 				 */
 {
     int i;
@@ -170,7 +170,7 @@ DBWredisplay(w, rootArea, clipArea)
     TileTypeBitMask layers, rmask;
 
     /*
-    TxPrintf("Root area (%d, %d) (%d, %d) redisplay.\n", 
+    TxPrintf("Root area (%d, %d) (%d, %d) redisplay.\n",
 	    rootArea->r_xbot, rootArea->r_ybot,
 	    rootArea->r_xtop, rootArea->r_ytop);
     */
@@ -187,7 +187,7 @@ DBWredisplay(w, rootArea, clipArea)
      * the area without overlapping it.  Without the round-up, there
      * will be occasional (in fact, frequent), one-pixel wide slivers.
      */
-    
+
     largerArea = *rootArea;
     largerArea.r_xbot -= 1;
     largerArea.r_ybot -= 1;
@@ -198,7 +198,7 @@ DBWredisplay(w, rootArea, clipArea)
     cellDef = ((CellUse *)w->w_surfaceID)->cu_def;
 
     pixelsPerLambda = w->w_scale / SUBPIXEL;
-    lambdasPerPixel = (SUBPIXEL / w->w_scale) + 1; 
+    lambdasPerPixel = (SUBPIXEL / w->w_scale) + 1;
 
     if ((crec->dbw_origin.p_x != w->w_origin.p_x)
 	|| (crec->dbw_origin.p_y != w->w_origin.p_y)
@@ -212,7 +212,7 @@ DBWredisplay(w, rootArea, clipArea)
 	 * so update measurements on label size in this window.
 	 * Also, pick a size for labels based on the scale in
 	 * half the window:  the idea is to make the labels about
-	 * half the height of typical wires.  
+	 * half the height of typical wires.
 	 */
 	int halfWireWidth;
 	Rect text;
@@ -253,13 +253,13 @@ DBWredisplay(w, rootArea, clipArea)
     (void) GeoInclude(&GrCrossRect, &crec->dbw_expandAmounts);
     if (pixelsPerLambda > 0)
     {
-	labelArea.r_xtop -= 
+	labelArea.r_xtop -=
 		ceilDiv(crec->dbw_expandAmounts.r_xbot, pixelsPerLambda);
-	labelArea.r_ytop -= 
+	labelArea.r_ytop -=
 		ceilDiv(crec->dbw_expandAmounts.r_ybot, pixelsPerLambda);
-	labelArea.r_xbot -= 
+	labelArea.r_xbot -=
 		ceilDiv(crec->dbw_expandAmounts.r_xtop, pixelsPerLambda);
-	labelArea.r_ybot -= 
+	labelArea.r_ybot -=
 		ceilDiv(crec->dbw_expandAmounts.r_ytop, pixelsPerLambda);
     }
     else
@@ -295,7 +295,7 @@ DBWredisplay(w, rootArea, clipArea)
      * information about the edit cell so we can identify it during
      * the action routines.
      */
-    
+
     if (cellDef == EditRootDef)
     {
         editDef = EditCellUse->cu_def;
@@ -334,8 +334,8 @@ DBWredisplay(w, rootArea, clipArea)
 	    TileType t, s;
 	    TileTypeBitMask *rMask;
 
-	    /* For each contact type, if the contact is not visible,	*/  
-	    /* display any of its residue layers that are visible.	*/  
+	    /* For each contact type, if the contact is not visible,	*/
+	    /* display any of its residue layers that are visible.	*/
 
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 		if (DBIsContact(t))
@@ -378,7 +378,7 @@ DBWredisplay(w, rootArea, clipArea)
 		if (GrFreeBackingStorePtr != NULL)
 		    (*GrFreeBackingStorePtr)(w);
 	    }
-	
+
 	    if (dbwIsLocked)
 	    {
 		GrUnlock(w);
@@ -407,14 +407,14 @@ DBWredisplay(w, rootArea, clipArea)
 	scontext.scx_area = labelArea;
 
 	/* make sure that we are searching an area, not just a point */
-	scontext.scx_area.r_xtop = MAX(scontext.scx_area.r_xtop, 
+	scontext.scx_area.r_xtop = MAX(scontext.scx_area.r_xtop,
 		scontext.scx_area.r_xbot + 1);
-	scontext.scx_area.r_ytop = MAX(scontext.scx_area.r_ytop, 
+	scontext.scx_area.r_ytop = MAX(scontext.scx_area.r_ytop,
 		scontext.scx_area.r_ybot + 1);
 	dbwLabelSize = crec->dbw_labelSize;
 	dbwExpandAmounts = &crec->dbw_expandAmounts;
 	GrClipTo(&GrScreenRect);
- 
+
         /* Set style information beforehand */
         GrSetStuff(STYLE_LABEL);
 	(void) DBTreeSrLabels(&scontext, &DBAllTypeBits, bitMask,
@@ -422,7 +422,7 @@ DBWredisplay(w, rootArea, clipArea)
 		dbwLabelFunc, (ClientData) NULL);
 	GrClipTo(&rootClip);
     }
-    
+
     /* Next, display the bounding boxes that are visible.  Before doing
      * this, calculate the area occupied by the text "BBB".  A cell won't
      * get its id or name displayed unless its bbox is at least this
@@ -472,14 +472,14 @@ DBWredisplay(w, rootArea, clipArea)
 	gridRect.r_xtop = gridRect.r_xbot + w->w_scale*width;
 	gridRect.r_ytop = gridRect.r_ybot + w->w_scale*height;
 	GrClipBox(&gridRect, STYLE_GRID);
-    
+
 	/* Redisplay a little square around the origin for the edit cell
 	 * (if the edit cell is in this window).  Make the origin 4 pixels
 	 * across, but don't display it unless this is less than two lambda
 	 * units.  That way, we always know how much to redisplay (in lambda
 	 * units), when the edit cell changes.
 	 */
-	
+
 	if (editDef != NULL)
 	{
 	    Rect r, r2;
@@ -502,7 +502,7 @@ DBWredisplay(w, rootArea, clipArea)
     /* If there is a tile plane being "watched", redisplay
      * its structure.
      */
-    
+
     if (crec->dbw_watchPlane >= 0)
     {
 	Transform toCell;
@@ -549,7 +549,7 @@ DBWredisplay(w, rootArea, clipArea)
     if (GrPutBackingStorePtr != NULL)
 	(*GrPutBackingStorePtr)(w, &rootClip);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -620,7 +620,7 @@ dbwPaintFunc(tile, cxp)
     /* If this isn't the edit cell, add 64 to the display style
      * to be used.
      */
-    
+
     if (!dbwAllSame && ((editDef != scx->scx_use->cu_def)
 	|| (scx->scx_trans.t_a != editTrans.t_a)
 	|| (scx->scx_trans.t_b != editTrans.t_b)
@@ -652,7 +652,7 @@ dbwPaintFunc(tile, cxp)
     GrBox(dbwWindow, &scx->scx_trans, tile);
     return 0;
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -699,7 +699,7 @@ DBWDrawLabel(label, rect, pos, style, labelSize, sizeBox)
 {
     Point p;
     Rect location;
-    char *text = label->lab_text; 
+    char *text = label->lab_text;
     int result;
 
     if (style >= 0) GrSetStuff(style);
@@ -899,7 +899,7 @@ DBWDrawFontLabel(label, window, trans, style)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -950,7 +950,7 @@ dbwLabelFunc(scx, label, tpath)
 	disStyle = newStyle;
         GrSetStuff(newStyle);
     }
-	
+
     if (label->lab_font < 0)
     {
 	screenPos = GeoTransPos(&scx->scx_trans, label->lab_just);
@@ -991,7 +991,7 @@ dbwLabelFunc(scx, label, tpath)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1043,7 +1043,7 @@ dbwBBoxFunc(scx)
         GR_TEXT_LARGE, TRUE, &r, (Rect *)NULL);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1097,7 +1097,7 @@ dbwTileFunc(tile)
     GeoClipPoint(&pLL, &rootClip);
     GeoClipPoint(&pUR, &rootClip);
 
-    
+
     if (dbwSeeTypes)
     {
     	 (void) sprintf(string, "%s",DBTypeShortName(TiGetType(tile)));
@@ -1106,14 +1106,14 @@ dbwTileFunc(tile)
     {
 	(void) sprintf(string, "%p", tile);
     }
-    
+
     GeoClip(&r2, &rootClip);
     p.p_x = (r2.r_xbot + r2.r_xtop)/2;
     p.p_y = (r2.r_ybot + r2.r_ytop)/2;
     if (!dbwWatchDemo || dbwSeeTypes)
 	GrPutText(string, STYLE_DRAWTILE, &p, GEO_CENTER,
 	    GR_TEXT_LARGE, FALSE, &r2, (Rect *) NULL);
-    
+
 #define	XYOFFSET	12
 
     for (i=0;  i<4;  i++)
@@ -1253,7 +1253,7 @@ dbwTileFunc(tile)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	DBWAreaChanged --
@@ -1309,7 +1309,7 @@ DBWAreaChanged(cellDef, defArea, expandMask, layers)
 	|| (defArea->r_ybot == defArea->r_ytop)) return;
 
     /**
-    TxPrintf("Cell %s, area (%d, %d) (%d, %d) changed, mask %d.\n", 
+    TxPrintf("Cell %s, area (%d, %d) (%d, %d) changed, mask %d.\n",
 	    cellDef->cd_name,  defArea->r_xbot, defArea->r_ybot,
 	    defArea->r_xtop, defArea->r_ytop, expandMask);
     **/
@@ -1321,7 +1321,7 @@ DBWAreaChanged(cellDef, defArea, expandMask, layers)
     /* First, translate the area back up through the hierarchy to
      * cells that are roots of windows.
      */
-    
+
     for (use = cellDef->cd_parents; use != NULL; use = use->cu_nextuse)
     {
 	/* We're only interested in a use if it's expanded in one of
@@ -1329,7 +1329,7 @@ DBWAreaChanged(cellDef, defArea, expandMask, layers)
 	 * AND of the old one and the windows in which this use is
 	 * expanded.
 	 */
-	
+
 	newMask = expandMask & use->cu_expandMask;
 	if (newMask == 0) continue;
 
@@ -1349,7 +1349,7 @@ DBWAreaChanged(cellDef, defArea, expandMask, layers)
 	 * translate the area back into the coordinates of the parent
 	 * and invoke ourselves recursively.
 	 */
-	
+
 	if ((use->cu_xlo == use->cu_xhi) && (use->cu_ylo == use->cu_yhi))
 	{
 	    GeoTransRect(&use->cu_transform, defArea, &newArea);
@@ -1406,7 +1406,7 @@ DBWAreaChanged(cellDef, defArea, expandMask, layers)
     SigEnableInterrupts();
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1439,7 +1439,7 @@ dbwChangedFunc(w, area)
     /* If none of the layers being redisplayed is visible in this
      * window, then there's no need to do anything.
      */
-    
+
     if (dbwLayersChanged != NULL)
     {
 	TTMaskAndMask3(&tmp, dbwLayersChanged, &crec->dbw_visibleLayers);
@@ -1455,7 +1455,7 @@ dbwChangedFunc(w, area)
      * to account for labels that are rooted in the given area but
      * stick out past it.
      */
-    
+
     if (dbwLayersChanged == NULL)
     {
 	screenArea.r_xbot += crec->dbw_expandAmounts.r_xbot;
@@ -1481,7 +1481,7 @@ dbwChangedFunc(w, area)
     else WindAreaChanged(w, &screenArea);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1522,7 +1522,7 @@ DBWLabelChanged(cellDef, lab, mask)
     /* This procedure is basically the same as DBWAreaChanged, so
      * see that procedure for documentation on how this all works.
      */
-    
+
     saveArea = lab->lab_rect;
     savePos = lab->lab_just;
 
@@ -1609,13 +1609,13 @@ dbwLabelChangedFunc(w, lab)
     WindAreaChanged(w, &screenArea);
     return 0;
 }
-
+
 /*
  * Technology initialization for the display module.
  */
 
 global TileTypeBitMask	*DBWStyleToTypesTbl = NULL;
-
+
 /*
  * ----------------------------------------------------------------------------
  * DBWTechInitStyles --
@@ -1646,11 +1646,11 @@ DBWTechInitStyles()
 
     DBWStyleToTypesTbl = (TileTypeBitMask *)mallocMagic(DBWNumStyles *
 		sizeof(TileTypeBitMask));
-	
+
     for (i = 0; i < DBWNumStyles; i++)
 	TTMaskZero(DBWStyleToTypesTbl + i);
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------

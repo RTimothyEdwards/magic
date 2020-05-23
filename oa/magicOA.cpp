@@ -36,17 +36,17 @@ getTechInfo (const char *techName)
     routeSpec->getLayerSpecs(routeLayerSpecArray);
     oaString routeLayerName;
 
-    cout <<"Route layer specs" << endl; 
+    cout <<"Route layer specs" << endl;
     for (int i = 0; i < routeLayerSpecArray.getNumValues(); i++) {
       oaRouteLayerSpec routeLayerSpec = routeLayerSpecArray[i];
       oaPhysicalLayer *routeLayer = routeLayerSpec.layer();
       routeLayer->getName(routeLayerName);
-      cout << "Route layer name: " << routeLayerName << endl; 
-      cout << "  width - " 
+      cout << "Route layer name: " << routeLayerName << endl;
+      cout << "  width - "
 	   << routeLayerSpec.width() << "\n"
 	   << "  spacing - "
 	   << routeLayerSpec.spacing() << "\n"
-	   << "  diag width - " 
+	   << "  diag width - "
 	   << routeLayerSpec.diagWidth() << "\n"
 	   << "  diag spacing - "
 	   << routeLayerSpec.diagSpacing() << "\n"
@@ -64,18 +64,18 @@ getTechInfo (const char *techName)
     oaString layerName;
     oaString purposeName;
     layer->getName(layerName);
-    cout << "Layer name: " << layerName 
+    cout << "Layer name: " << layerName
 	 << ", layer number: " << layer->getNumber() << endl;
-    if (oaPhysicalLayer *phyLayer = 
+    if (oaPhysicalLayer *phyLayer =
 	oaPhysicalLayer::find(chipTech, layer->getNumber())) {
-      cout << "Physical layer name:\n" 
-	   << "  routing grid pitch - " 
+      cout << "Physical layer name:\n"
+	   << "  routing grid pitch - "
 	   << phyLayer->getRouteGridPitch() << "\n"
-	   << "  routing grid offset - " 
+	   << "  routing grid offset - "
 	   << phyLayer->getRouteGridOffset() << "\n"
-	   << "  preferred routing dir - " 
+	   << "  preferred routing dir - "
 	   << (phyLayer->getPrefRoutingDir()).getName() << "\n"
-	   << "  manufacturing grid - " 
+	   << "  manufacturing grid - "
 	   << phyLayer->getManufacturingGrid() << "\n"
 	   << endl;
     }
@@ -95,8 +95,8 @@ getTechInfo (const char *techName)
 }
 
 int
-getUserUnit(const char *techName, char *userUnit, ClientData *cdarg, 
-		int (*magicFunc)(const char *techName, char *userUnit, 
+getUserUnit(const char *techName, char *userUnit, ClientData *cdarg,
+		int (*magicFunc)(const char *techName, char *userUnit,
 		ClientData *cdarg), oaCellViewType viewType)
 {
 
@@ -145,9 +145,9 @@ getUserUnit(const char *techName, char *userUnit, ClientData *cdarg,
 }
 
 int
-getDBUnitsPerUserUnit(const char *techName, int &dbUPerUU, 
-			  ClientData *cdarg, int (*magicFunc) 
-			  (const char *techName, int &dbUPerUU, 
+getDBUnitsPerUserUnit(const char *techName, int &dbUPerUU,
+			  ClientData *cdarg, int (*magicFunc)
+			  (const char *techName, int &dbUPerUU,
 			  ClientData *cdarg), oaCellViewType viewType)
 {
 
@@ -254,7 +254,7 @@ closeAll() {
   while (oaCellView *cellView = cellViewIter.getNext()) {
     cellView->close();
   }
-  
+
   curCellView = NULL;
   return 0;
 }
@@ -263,7 +263,7 @@ int
 getBoundingBox (oaInst *instPtr, const char *instanceName, const char *defName,
 		int (*magicFunc)(const char *instName, const char *defName,
 				 int llx, int lly, int urx, int ury,
-				 const char *curName, ClientData *cdarg), 
+				 const char *curName, ClientData *cdarg),
 		ClientData *cdarg, int callBack) {
 
   oaNativeNS ns;
@@ -285,12 +285,12 @@ getBoundingBox (oaInst *instPtr, const char *instanceName, const char *defName,
       cout << "No cellview open" << endl;
       return 1;
     }
-    
+
     topBlock = cellView->getTopBlock();
     topBlock->getBBox(bBox);
-    cout << "Layout size " << bBox.left() << "," << bBox.bottom() 
+    cout << "Layout size " << bBox.left() << "," << bBox.bottom()
        << " - " << bBox.right() << "," << bBox.top() << endl;
-    
+
   } else {
 
     oaBox bBox;
@@ -319,7 +319,7 @@ getBoundingBox (oaInst *instPtr, const char *instanceName, const char *defName,
       }
       topBlock->getBBox(bBox);
       //call magic function
-//      magicFunc (instanceName, defName, 
+//      magicFunc (instanceName, defName,
 //                bBox.left() + instOrigin.x(), bBox.bottom() + instOrigin.y(),
 //                bBox.right() + instOrigin.x(), bBox.top() + instOrigin.y(),
 //                instName, cdarg);

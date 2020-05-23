@@ -3,16 +3,16 @@
  *	This file contains routines to interpret commands typed inside
  *	netlist windows.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -36,7 +36,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/styles.h"
 #include "utils/main.h"
 #include "textio/textio.h"
-
+
 
 #ifdef ROUTE_MODULE
 
@@ -101,7 +101,7 @@ NMCmdMeasure(w, cmd)
 
 #endif
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -139,7 +139,7 @@ NMCmdNetlist(w, cmd)
 	NMNewNetlist(EditCellUse->cu_def->cd_name);
     else NMNewNetlist(cmd->tx_argv[1]);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -344,7 +344,7 @@ NMCmdSavenetlist(w, cmd)
 	NMWriteNetlist((char *) NULL);
     else NMWriteNetlist(cmd->tx_argv[1]);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -380,7 +380,7 @@ NMCmdShownet(w, cmd)
     }
     NMShowUnderBox();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -459,7 +459,7 @@ nmShowtermsFunc2(rect, name, label, cdarg)
 	    1, STYLE_PALEHIGHLIGHTS);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -495,7 +495,7 @@ NMCmdTrace(w, cmd)
 	NMShowRoutedNet((char *) NULL);
     else NMShowRoutedNet(cmd->tx_argv[1]);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -535,7 +535,7 @@ NMCmdVerify(w, cmd)
     }
     NMVerify();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

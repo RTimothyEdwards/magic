@@ -3,16 +3,16 @@
  *
  * Commands for the route modules only.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -499,7 +499,7 @@ CmdRoute(w, cmd)
     char *netListName;
 
     static char *cmdRouteOption[] =
-    {	
+    {
 	"*checks		toggle column checking",
 	"*debug		toggle router trace messages",
 	"*file <file>		route from a channel data file",
@@ -515,7 +515,7 @@ CmdRoute(w, cmd)
 	"obstacle <real>	set obstacle constant",
 	"origin [x y]		print or set routing grid origin",
 	"stats			print and clear previous route statistics",
-	"settings		show router parameters", 
+	"settings		show router parameters",
 	"steady <int>		set steady net constant",
 	"tech			show router technology information",
 	"vias <int>		set metal maximization via limit (grid units)",

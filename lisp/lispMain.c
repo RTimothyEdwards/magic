@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- *  lispMain.c -- 
+ *  lispMain.c --
  *
  *   This module contains the mini-scheme interpreter interface.
  *
@@ -88,7 +88,7 @@ LispEvaluate (argc, argv, inFile)
 
   l = LispFrameLookup (LispNewString ("scm-echo-parser-input"),
 		       LispMainFrame);
-  if (l && LTYPE(l) == S_BOOL && LBOOL(l)) 
+  if (l && LTYPE(l) == S_BOOL && LBOOL(l))
     TxPrintf (" [ %s ]\n", output_buf);
   l = LispParseString (output_buf);
   res = LispFrameLookup (LispNewString ("scm-echo-parser-output"),

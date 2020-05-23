@@ -10,16 +10,16 @@
  * to get information about the current tool location and relocate
  * the box.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -51,7 +51,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * root cell def.  If the box is placed in one window, it will
  * be displayed in all compatible windows.  The box may not have
  * one corner placed in one window and other corners in
- * incompatible windows.  
+ * incompatible windows.
  */
 
 static CellDef *boxRootDef = NULL;	/* CellDef for the box */
@@ -75,7 +75,7 @@ int DBWSnapToGrid = DBW_SNAP_LAMBDA;
 
 extern int DBWToolDraw();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -123,10 +123,10 @@ toolFindPoint(p, rootPoint, rootArea)
     if (DBWSnapToGrid != DBW_SNAP_INTERNAL)
 	ToolSnapToGrid(WindCurrentWindow, rootPoint, rootArea);
     return WindCurrentWindow;
-    
+
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	ToolGetPoint --
@@ -159,13 +159,13 @@ ToolGetPoint(rootPoint, rootArea)
 {
     extern TxCommand *WindCurrentCmd;
 
-    if (WindCurrentCmd == NULL) 
+    if (WindCurrentCmd == NULL)
 	return NULL;
     else
 	return toolFindPoint(&WindCurrentCmd->tx_p, rootPoint, rootArea);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * ToolGetBox --
@@ -209,7 +209,7 @@ ToolScaleBox(scalen, scaled)
 
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * ToolGetBoxWindow --
@@ -257,7 +257,7 @@ ToolGetBoxWindow(rootArea, pMask)
     toolMask = 0;
     window = NULL;
     if (boxRootDef != NULL)
-	(void) WindSearch(DBWclientID, (ClientData) NULL, (Rect *) NULL, 
+	(void) WindSearch(DBWclientID, (ClientData) NULL, (Rect *) NULL,
 	    toolWindowSave, (ClientData) &window);
     if ((window != NULL) && (rootArea != NULL)) *rootArea = boxRootArea;
     if (pMask != NULL) *pMask = toolMask;
@@ -278,7 +278,7 @@ toolWindowSave(window, clientData)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -304,12 +304,12 @@ bool
 ToolGetEditBox(rect)
     Rect *rect;
 {
-    if (boxRootDef == NULL) 
+    if (boxRootDef == NULL)
     {
 	TxError("Box must be present\n");
 	return FALSE;
     }
-    if (EditRootDef != boxRootDef) 
+    if (EditRootDef != boxRootDef)
     {
 	TxError("The box isn't in a window on the edit cell.\n");
 	return FALSE;
@@ -319,7 +319,7 @@ ToolGetEditBox(rect)
     return TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	ToolGetCorner --
@@ -389,7 +389,7 @@ ToolGetCorner(screenPoint)
  *
  * Side effects:
  *	Initializes static memory.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -617,7 +617,7 @@ dbwRecordBoxArea(erase)
 	DBWHLRedraw(boxRootDef, &side, erase);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -693,7 +693,7 @@ DBWDrawBox(window, plane)
      * blob, then don't do the widening.  This is to make the box more
      * useable when features are very small.
      */
-    
+
     if (((screenArea.r_xtop != screenArea.r_xbot) &&
 	    (screenArea.r_xtop < screenArea.r_xbot + 4))
 	    || ((screenArea.r_ytop != screenArea.r_ybot) &&
@@ -749,7 +749,7 @@ dbwBoxAlways1()
 {
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	DBWSetBox --
@@ -789,7 +789,7 @@ DBWSetBox(rootDef, rect)
 
     dbwRecordBoxArea(FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	ToolMoveBox --
@@ -799,7 +799,7 @@ DBWSetBox(rootDef, rect)
  *	the box corner is snapped to the user's grid (set with the :grid
  *	command) if DBWSnapToGrid is DBW_SNAP_USER.  If DBWSnapToGrid is
  *	DBW_SNAP_LAMBDA, the box corner is snapped to the nearest integer
- *	lambda value. 
+ *	lambda value.
  *
  * Results:
  *	None.
@@ -890,7 +890,7 @@ ToolMoveBox(corner, point, screenCoords, rootDef)
     DBWSetBox(newDef, &newArea);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	ToolMoveCorner --
@@ -963,7 +963,7 @@ ToolMoveCorner(corner, point, screenCoords, rootDef)
      * current box root def, then just move the whole durned box.
      * Also move the whole box if a weird corner is specified.
      */
-    
+
     if ((newDef != oldDef) || (corner < 0) || (corner > TOOL_TL))
     {
 	ToolMoveBox(corner, &p, FALSE, newDef);
@@ -996,7 +996,7 @@ ToolMoveCorner(corner, point, screenCoords, rootDef)
     /* If the movement turned the box inside out, turn it right
      * side out again.
      */
-    
+
     if (newArea.r_xbot > newArea.r_xtop)
     {
 	tmp = newArea.r_xtop;
@@ -1012,7 +1012,7 @@ ToolMoveCorner(corner, point, screenCoords, rootDef)
 
     DBWSetBox(newDef, &newArea);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

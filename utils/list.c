@@ -4,16 +4,16 @@
  *	A separate structure is used to link list elements together.
  *	Thus list elements do not require pointers and can be anything.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -28,7 +28,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "utils/list.h"
 
-
+
 /* ----------------------------------------------------------------------------
  *	ListPop --
  *	Returns top data item on list, deallocates top list element, and
@@ -55,7 +55,7 @@ ListPop(listPP)
     return result;
 }
 
-
+
 /* ----------------------------------------------------------------------------
  *	ListContainsP --
  * 	Check if list contains given element.
@@ -78,7 +78,7 @@ ListContainsP(element,list)
 
     return list!=NULL;
 }
-
+
 /* ----------------------------------------------------------------------------
  *	ListDealloc --
  * 	Deallocate list strucs in list.
@@ -89,7 +89,7 @@ ListContainsP(element,list)
  * Side effects:
  *	Storage reclaimed.
  *
- * NOTE:  Remember to set pointers to lists to null after deallocating 
+ * NOTE:  Remember to set pointers to lists to null after deallocating
  *        the list (if pointers are to be used again)!
  * ----------------------------------------------------------------------------
  */
@@ -104,7 +104,7 @@ ListDealloc(list)
     return;
 }
 
-
+
 /* ----------------------------------------------------------------------------
  *	ListDeallocC --
  * 	Deallocate list strucs in list AND CONTENTS of list.
@@ -115,7 +115,7 @@ ListDealloc(list)
  * Side effects:
  *	Storage reclaimed.
  *
- * NOTE:  Remember to set pointers to lists to null after deallocating 
+ * NOTE:  Remember to set pointers to lists to null after deallocating
  *        the list (if pointers are to be used again)!
  * ----------------------------------------------------------------------------
  */
@@ -132,7 +132,7 @@ ListDeallocC(list)
 
     return;
 }
-
+
 /* ----------------------------------------------------------------------------
  *	ListLength --
  * 	Count number of elements in list.
@@ -156,7 +156,7 @@ ListLength(list)
 
     return count;
 }
-
+
 /* ----------------------------------------------------------------------------
  *	ListReverse --
  * 	Make reversed copy of list.

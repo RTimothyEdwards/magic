@@ -48,7 +48,7 @@
  *	- generates "stems" for all terminals,
  *	- sets up the channels for global routing,
  *	- calls the global router to determine the sequence of channel
- *	  boundary points through which the route for each net will pass, 
+ *	  boundary points through which the route for each net will pass,
  *	- calls the channel router to fill in the detailed routes for
  *	  each net in each channel structure, and then paint this
  *	  information back into the edit cell,
@@ -69,7 +69,7 @@
  * one net.  A given label may appear in several places in the same cell,
  * so a terminal may have several locations.  The router assumes that all
  * of these locations are already electrically connected.
- * 
+ *
  *
  * Channels and pins:
  * -----------------
@@ -189,18 +189,18 @@
  * channels are routed independently of what material is in adjacent
  * channels, sometimes it is necessary during this paintback to add
  * contacts at channel boundaries to switch routing layers.
- * 
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -230,7 +230,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "debug/debug.h"
 #include "drc/drc.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -300,7 +300,7 @@ done:
 
     return (errs);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -368,10 +368,10 @@ GARoute(list, routeUse, netList)
     {
 	RtrMilestonePrint();
 	RtrPaintBack(ch, routeUse->cu_def);
-	/* update bounding box NOW so searches during stem gen. 
+	/* update bounding box NOW so searches during stem gen.
 	 * work correctly.
 	 */
-	DBReComputeBbox(routeUse->cu_def);  
+	DBReComputeBbox(routeUse->cu_def);
     }
     RtrMilestoneDone();
     if (SigInterruptPending)
@@ -404,7 +404,7 @@ done:
     /* Return number of errors */
     return (DBWFeedbackCount - feedCount);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

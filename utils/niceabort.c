@@ -4,16 +4,16 @@
  * Nice version of abort which dumps core without actually
  * killing the running job.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -61,7 +61,7 @@ time_t time();
 char *ctime();
 
 void
-DumpCore() 
+DumpCore()
 {
     int parentPid = getpid();
     int cpid, gcpid, wpid;
@@ -161,7 +161,7 @@ DumpCore()
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -186,7 +186,7 @@ niceabort()
 
     timesCalled++;
     TxPrintf("-------------------- Error #%d\n", timesCalled);
-    if (timesCalled > 10) 
+    if (timesCalled > 10)
     {
 	TxPrintf("\nAbort called more than 10 times -- things are really hosed!\n");
 	TxPrintf("Recommendation:\n");
@@ -194,7 +194,7 @@ niceabort()
 	TxPrintf("  2) Send magic a SIGTERM signal and it will ATTEMPT to write out your files.\n");
 	TxPrintf("     (It might trash them, though.)\n");
 	TxPrintf("Magic going to sleep now for 10 hours -- please kill me.\n");
-	sleep(3600);  
+	sleep(3600);
     }
 
     TxPrintf("Magic has encountered a major internal inconsistency:\n\n");

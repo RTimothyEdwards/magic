@@ -25,14 +25,14 @@
 
 extern Display *grXdpy;
 
-
+
 /*---------------------------------------------------------
  * GrTOGLDisableTablet:
  *	Turns off the cursor.
  *
  * Results:	None.
  *
- * Side Effects:    None.		
+ * Side Effects:    None.
  *---------------------------------------------------------
  */
 
@@ -41,12 +41,12 @@ GrTOGLDisableTablet ()
 {
 }
 
-
+
 /*---------------------------------------------------------
  * GrTOGLEnableTablet:
  *	This routine enables the graphics tablet.
  *
- * Results: 
+ * Results:
  *   	None.
  *
  * Side Effects:
@@ -59,7 +59,7 @@ GrTOGLEnableTablet ()
 {
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * grtoglGetCursorPos:
@@ -85,7 +85,7 @@ grtoglGetCursorPos (mw, p)
     Window win1, win2;
 
     if (mw == (MagWindow *)NULL) mw = toglCurrent.mw;
-    
+
     XQueryPointer(grXdpy, Tk_WindowId((Tk_Window)(mw->w_grdata)),
 		  &win1, &win2, &x1, &y1,
 		  &x, &y, &buttons);
@@ -121,7 +121,7 @@ grtoglGetCursorRootPos (mw, p)
     Window win1, win2;
 
     if (mw == (MagWindow *)NULL) mw = toglCurrent.mw;
-    
+
     XQueryPointer(grXdpy, Tk_WindowId((Tk_Window)(mw->w_grdata)),
 		  &win1, &win2, &x1, &y1,
 		  &x, &y, &buttons);

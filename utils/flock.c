@@ -69,7 +69,7 @@
  * modified the file right after opening.  However, this rare condition
  * is unlikely to be a serious problem, and prevents a process from
  * having to hold open many file descriptors.
- * 
+ *
  *-------------------------------------------------------------------------
  */
 
@@ -105,7 +105,7 @@ FILE *flock_open(filename, mode, is_locked)
     /* a normal fopen() and return.					*/
 
     if (is_locked == NULL) return fopen(filename, mode);
-	
+
     /* Diagnostic */
     /* TxPrintf("Opening file <%s>\n", filename); */
 
@@ -114,7 +114,7 @@ FILE *flock_open(filename, mode, is_locked)
     {
 	if (is_locked) *is_locked = TRUE;
 	f = fopen(filename, "r");
-	goto done;	
+	goto done;
     }
 
     fl.l_len = 0;
@@ -130,7 +130,7 @@ FILE *flock_open(filename, mode, is_locked)
 	goto done;
     }
     fclose(tmp);
-	
+
     if (fl.l_type == F_UNLCK)
     {
 	fl.l_len = 0;

@@ -7,17 +7,17 @@
  *     `:iroute' command  - IRCommand() in irCommand.c
  *     `:*iroute' command - IRTest() in irTestCmd.c
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1987, 1990 Michael H. Arnold, Walter S. Scott, and  *
  *     * the Regents of the University of California.                      *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -66,18 +66,18 @@ MazeParameters *irMazeParms = NULL;  /* parameter settings passed to maze router
  * corresponding fileds in irMazeParms.  They exist for historical
  * reasons.
  */
-RouteLayer *irRouteLayers;   
+RouteLayer *irRouteLayers;
 RouteContact *irRouteContacts;
 RouteType *irRouteTypes;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * IRDebugInit --
  *
  * This procedure is called when Magic starts up, and should not be
- * called again.  
+ * called again.
  *
  * Results:
  *	None.
@@ -85,7 +85,7 @@ RouteType *irRouteTypes;
  * Side effects:
  *	Register ourselves with debug module
  *	Setup some internal datastructures.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -128,7 +128,7 @@ IRDebugInit()
  * Side effects:
  *	Register ourselves with debug module
  *	Setup some internal datastructures.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 

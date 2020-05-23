@@ -3,16 +3,16 @@
  *
  * Commands with names beginning with the letter E.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -44,7 +44,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "extract/extract.h"
 #include "select/select.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -98,7 +98,7 @@ CmdEdit(w, cmd)
          * only in windows where the edit cell is displayed differently from
          * other cells.
          */
-    
+
         GeoTransRect(&EditToRootTransform, &(usave->cu_def->cd_bbox), &area);
         (void) WindSearch(DBWclientID, (ClientData) NULL,
 	    	(Rect *) NULL, cmdEditRedisplayFunc, (ClientData) &area);
@@ -106,12 +106,12 @@ CmdEdit(w, cmd)
 	DBWUndoOldEdit(EditCellUse, EditRootDef, &EditToRootTransform,
 			&RootToEditTransform);
     }
-	
+
     /* Use the position of the point to select one of the currently-selected
      * cells (if there are more than one).  If worst comes to worst, just
      * select any selected cell.
      */
-    
+
     (void) ToolGetPoint((Point *) NULL, &pointArea);
 
     cmdFoundNewEdit = FALSE;
@@ -231,7 +231,7 @@ cmdEditEnumFunc(selUse, use, transform, area)
     /* It overlaps.  Now find out which array element it points to,
      * and adjust the transforms accordingly.
      */
-    
+
     DBArrayOverlap(use, &useArea, &xlo, &xhi, &ylo, &yhi);
     GeoTransTrans(DBGetArrayTransform(use, xlo, ylo), transform,
 	    &EditToRootTransform);
@@ -574,7 +574,7 @@ badusage:
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -678,7 +678,7 @@ CmdErase(w, cmd)
 	 * area of interest, then erase all those cells.  Continue
 	 * this until all cells have been erased.
 	 */
-	
+
 	scx.scx_use = EditCellUse;
 	scx.scx_x = scx.scx_y = 0;
 	scx.scx_area = editRect;
@@ -721,13 +721,13 @@ ClientData cdarg;		/* Not used. */
     /* All this procedure does is to remember cells that are
      * found, up to MAXCELLS of them.
      */
-    
+
     if (cmdEraseCount >= MAXCELLS) return 1;
     cmdEraseCells[cmdEraseCount] = scx->scx_use;
     cmdEraseCount += 1;
     return 2;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -762,7 +762,7 @@ CmdExpand(w, cmd)
     CellDef *rootBoxDef;
     int cmdExpandFunc();		/* Forward reference. */
 
-    if (cmd->tx_argc > 2 || (cmd->tx_argc == 2 
+    if (cmd->tx_argc > 2 || (cmd->tx_argc == 2
 	&& (strncmp(cmd->tx_argv[1], "toggle", strlen(cmd->tx_argv[1])) != 0)))
     {
 	TxError("Usage: %s or %s toggle\n", cmd->tx_argv[0], cmd->tx_argv[0]);
@@ -784,7 +784,7 @@ CmdExpand(w, cmd)
     /* the cursor box and window to restore the original view.          */
 
     d = DBLambda[1];
-    do 
+    do
     {
 	if (d != DBLambda[1])
 	{
@@ -833,7 +833,7 @@ cmdExpandFunc(use, windowMask)
 	    &DBAllButSpaceBits);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -939,7 +939,7 @@ CmdExtract(w, cmd)
 	NULL
     };
     static char *cmdExtCmd[] =
-    {	
+    {
 	"all			extract root cell and all its children",
 	"cell name		extract selected cell into file \"name\"",
 	"do [option]		enable extractor option",

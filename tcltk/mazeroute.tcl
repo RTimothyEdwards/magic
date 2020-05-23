@@ -125,7 +125,7 @@ proc genmazeparams {} {
        incr k
        label .mazeparams.r${k}0 -text [lindex $layer 0]
        checkbox .mazeparams.r${k}1
-       for {set j 2} {$j < 8} {incr j} { 
+       for {set j 2} {$j < 8} {incr j} {
           entry .mazeparams.r${k}${j} -text [lindex $contact $j]
        }
    }
@@ -138,7 +138,7 @@ proc genmazeparams {} {
        incr k
        label .mazeparams.r${k}0 -text [lindex $contact 0]
        checkbox .mazeparams.r${k}1
-       for {set j 2} {$j < 4} {incr j} { 
+       for {set j 2} {$j < 4} {incr j} {
           entry .mazeparams.r${k}${j} -text [lindex $contact $j]
        }
    }
@@ -155,7 +155,7 @@ proc loadnetlist { {netfile {}} } {
       set netfile [ tk_getOpenFile -filetypes \
 	   {{NET {.net {.net}}} {"All files" {*}}}]
    }
-   
+
    if [catch {open  $netfile r} fnet] {
       set netname [file rootname $netfile]
       if [catch {open  ${netfile}.net r} fnet] {
@@ -373,7 +373,7 @@ proc disassemble {} {
 proc buildfence {} {
    global Opts
 
-   pushbox 
+   pushbox
    if {$Opts(fenced) == 0} {
       select top cell
       box grow c 1i
@@ -416,7 +416,7 @@ proc loadfailed { {netfile {}} } {
       set netfile [ tk_getOpenFile -filetypes \
 	   {{FAILED {.failed {.failed}}} {"All files" {*}}}]
    }
-   
+
    if [catch {open  $netfile r} fnet] {
       set netname [file rootname $netfile]
       if [catch {open  ${netfile}.failed r} fnet] {
@@ -454,7 +454,7 @@ proc savefailed { {netfile {}} } {
       set netname [file rootname $netfile]
       set netname ${netname}.failed
    }
-   
+
    if [catch {open  $netfile w} fnet] {
       set netname [file rootname $netfile]
       if [catch {open  ${netfile}.failed w} fnet] {

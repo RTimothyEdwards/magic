@@ -4,16 +4,16 @@
  * Procedures to interface the colormap editor with the window package
  * for the purposes of window creation, deletion, and modification.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -71,7 +71,7 @@ extern void CMWundoInit();
  * |  | - | |                | | + |        | - | |                | | + |  |
  * |  +---+ +----------------+ +---+        +---+ +----------------+ +---+  |
  * |									    |
- * |               Blue                                 Value  
+ * |               Blue                                 Value
  * |  +---+ +----------------+ +---+        +---+ +----------------+ +---+  |
  * |  | - | |                | | + |        | - | |                | | + |  |
  * |  +---+ +----------------+ +---+        +---+ +----------------+ +---+  |
@@ -130,13 +130,13 @@ char *cmwCurrentColorText = "Color Being Edited";
 /* Bounding rectangle for entire window */
 
 Rect colorWindowRect = {{0, 1500}, {24000, 17000}};
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * CMWcreate --
  *
- * A new window has been created.  Create and initialize the needed 
+ * A new window has been created.  Create and initialize the needed
  * structures.
  *
  * Results:
@@ -171,7 +171,7 @@ CMWcreate(window, argc, argv)
     CMWloadWindow(window, color);
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -200,7 +200,7 @@ CMWdelete(window)
     freeMagic((char *) cr);
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -227,7 +227,7 @@ CMWreposition(window, newScreenArea, final)
 	WindMove(window, &colorWindowRect);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -332,7 +332,7 @@ CMWredisplay(w, rootArea, clipArea)
      * to that color.  Instead, change the color in a particular style
      * reserved for our own use.
      */
-    
+
     if (GEO_TOUCH(&cmwCurrentColorArea, rootArea))
     {
 	GrStyleTable[STYLE_CMEDIT].color = cr->cmw_color;
@@ -353,7 +353,7 @@ CMWredisplay(w, rootArea, clipArea)
 
     GrUnlock(w);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -389,7 +389,7 @@ CMWloadWindow(w, color)
     /* move the contents of the window so the color bars show */
     WindMove(w, &colorWindowRect);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

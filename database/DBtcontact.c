@@ -9,16 +9,16 @@
  *		   case when it is a contact.
  *  Type	-- TileType stored in a tile
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -63,7 +63,7 @@ void dbTechMatchResidues();
 void dbTechAddStackedContacts();
 int dbTechAddOneStackedContact();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -98,7 +98,7 @@ DBTechInitContact()
 
     dbNumContacts = 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -155,7 +155,7 @@ DBTechInitContact()
  *	syntax as the "contact" statement but describe a composite
  *	image such as a transistor or capacitor formed by layers on
  *	different planes.
- * 
+ *
  * Results:
  *	FALSE on error, TRUE if successful.
  *
@@ -404,7 +404,7 @@ dbTechAddOneStackedContact(type1, type2)
 
 	/* The home plane of the contact is the plane of the	*/
 	/* first shared residue found.				*/
-	
+
 	for (sres = TT_TECHDEPBASE; sres < DBNumUserLayers; sres++)
 	    if (TTMaskHasType(&ttshared, sres))
 	    {
@@ -489,7 +489,7 @@ DBMaskAddStacking(mask)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -540,7 +540,7 @@ dbTechContactResidues(argc, argv, contactType)
 		DBTypeLongName(residueType));
 	    return -1;
 	}
- 
+
 	/*
 	 * Make sure the residue is on the same or an adjacent plane
 	 * to the contact's home type.
@@ -596,9 +596,9 @@ dbTechContactResidues(argc, argv, contactType)
     /* Ignore self */
 
     TTMaskClearType(&mmask, contactType);
-    
+
     if (!TTMaskEqual(&mmask, &DBZeroTypeBits))
-    {   
+    {
 	TxPrintf("Contact residues for %s identical to those for ",
 		DBTypeLongName(contactType));
 
@@ -607,7 +607,7 @@ dbTechContactResidues(argc, argv, contactType)
 		TxPrintf("%s ", DBTypeLongName(imageType));
 
 	TxPrintf("\n");
-    }  
+    }
 
     /* All clear to set the residue bitmask for this contact type */
 

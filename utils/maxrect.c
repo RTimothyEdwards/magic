@@ -1,7 +1,7 @@
 
 #ifndef	lint
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/utils/maxrect.c,v 1.4 2010/09/24 19:53:20 tim Exp $";
-#endif	
+#endif
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -164,7 +164,7 @@ FindMaxRects(tile, mrd)
 
 	if (entries > (mrd->listdepth - 4))  // was entries == mrd->listdepth
 	{
-	    Rect *newrlist;		
+	    Rect *newrlist;
 
 	    mrd->listdepth <<= 1;	/* double the list size */
 
@@ -240,7 +240,7 @@ FindMaxRects(tile, mrd)
  * Results:
  *	Pointer to a rectangle containing the maximum size area found.
  *	This pointer should not be deallocated!
- *	
+ *
  *-------------------------------------------------------------------------
  */
 
@@ -298,7 +298,7 @@ FindMaxRectangle(bbox, startpoint, plane, expandtypes)
  * Results:
  *	Pointer to a rectangle containing the maximum size area found.
  *	This pointer should not be deallocated!
- *	
+ *
  *-------------------------------------------------------------------------
  */
 

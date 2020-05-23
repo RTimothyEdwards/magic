@@ -3,16 +3,16 @@
  *	This file provides routines for displaying the current
  *	selection on the screen.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -57,7 +57,7 @@ static CellDef *selDisRoot = NULL;	/* Name of a root cell in a window,
  */
 
 static Plane *selRedisplayPlane;
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -102,7 +102,7 @@ SelRedisplay(window, plane)
     /* Make sure that we've got something to show in the area
      * being redisplayed.
      */
-    
+
     if (((CellUse *) (window->w_surfaceID))->cu_def != selDisRoot) return;
     displayDef = selDisUse->cu_def;
     if (!DBBoundPlane(plane, &planeArea)) return;
@@ -231,8 +231,8 @@ selRedisplayFunc(tile, window)
      * of a different type along that border.  If the bottom of
      * the tile is at -infinity, then don't do anything.
      */
-    
-    if (IsSplit(tile))  
+
+    if (IsSplit(tile))
     {
 	/* By definition, split tiles have a different type on the other */
 	/* side of the split.  So always draw a line on the diagonal.    */
@@ -358,7 +358,7 @@ selRedisplayCellFunc(scx, window)
         GR_TEXT_LARGE, TRUE, &screen, (Rect *) NULL);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

@@ -3,16 +3,16 @@
  *
  * Read in a technology file.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -105,7 +105,7 @@ techSection *techSectionFree;		/* Pointer to next free section */
 techSection *techCurrentSection;	/* Pointer to current section */
 
 techSection *techFindSection();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -372,7 +372,7 @@ TechAddClient(sectionName, init, proc, final, prevSections, pSectionID, opt)
 	tcl->tc_next = tcp;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * TechLoad --
@@ -526,8 +526,8 @@ TechLoad(filename, initmask)
 #endif
 	ExtTechInit();
 	DRCTechInit();
-	MZTechInit();	
-	
+	MZTechInit();
+
             /* Changing number of planes requires handling on every     */
             /* celldef.  So we need to save the original number of      */
             /* planes to see if it shrinks or expands.                  */
@@ -762,7 +762,7 @@ skipsection:
 
     return (retval);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -805,7 +805,7 @@ TechError(char *fmt, ...)
     va_end(args);
 }
 
-
+
 /* ================== Functions local to this module ================== */
 
 /*
@@ -843,7 +843,7 @@ techFindSection(sectionName)
     }
     return ((techSection *) NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -952,7 +952,7 @@ start:
 	 * Grab up characters to the end of the token.  Any character
 	 * preceded by a backslash is taken literally.
 	 */
-	
+
 	while (*get != '\0')
 	{
 	    if (inquote)
@@ -977,7 +977,7 @@ start:
 	 */
 	if (get == argv[argc])
 	    break;
-	
+
 	/* Terminate the token and advance over the terminating character. */
 
 	if (*get != '\0') get++;	/* Careful!  could be at end of line! */

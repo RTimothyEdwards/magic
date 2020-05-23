@@ -3,16 +3,16 @@
  *
  * CellUse/CellDef creation, deletion, naming.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -158,7 +158,7 @@ DBEnumerateTypes(rMask)
     HashSearch hs;
     HashEntry *entry;
     CellDef *cellDef;
-    
+
     TTMaskZero(rMask);
     HashStartSearch(&hs);
     while ((entry = HashNext(&dbCellDefTable, &hs)) != NULL)
@@ -250,7 +250,7 @@ DBCellDelete(cellname, force)
     DBUndoReset(celldef);
 
     /* If we're destroying "UNNAMED", then we want to rename it first	*/
-    /* so that WindUnload() will create a new one.			*/ 
+    /* so that WindUnload() will create a new one.			*/
 
     if (!strcmp(cellname, UNNAMED))
 	DBCellRename(cellname, "__UNNAMED__");
@@ -281,7 +281,7 @@ DBCellDelete(cellname, force)
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -317,7 +317,7 @@ DBCellInit()
  *
  * ----------------------------------------------------------------------------
  */
- 
+
 char *
 dbGetUseName(celluse)
    CellUse *celluse;
@@ -355,7 +355,7 @@ dbGetUseName(celluse)
 	    newsize += strlen(ybuf);
 	}
     }
-   
+
     newID = (char *)mallocMagic(newsize);
     strcpy(newID, useID);
     if (isx || isy)
@@ -369,7 +369,7 @@ dbGetUseName(celluse)
     return (newID);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -559,7 +559,7 @@ dbCellPrintInfo(StartDef, who, dolist)
     }  /* endswitch */
 }
 
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -630,7 +630,7 @@ DBCellPrint(CellName, who, dolist)
     HashEntry *entry;
     CellDef *celldef;
     CellUse *celluse;
-    
+
     if (!dolist)
     {
 	switch (who)
@@ -963,7 +963,7 @@ dbUsePrintInfo(StartUse, who, dolist)
  *	if it is not a hierarchical name;  otherwise, if it is a
  *	hierarchical name, the instance before the last '/' is mapped
  *	to its cellDef, and that cellDef is searched for the indicated
- *	instance.  
+ *	instance.
  *
  * ----------------------------------------------------------------------------
  */
@@ -982,14 +982,14 @@ DBUsePrint(CellName, who, dolist)
     char *lasthier;
 
     int dbCellUsePrintFunc();
-    
+
     if ((CellName != NULL) && ((lasthier = strrchr(CellName, '/')) != NULL))
     {
 	char *prevhier;
 	*lasthier = '\0';
 	prevhier = strrchr(CellName, '/');
 	if (prevhier == NULL)
-	    prevhier = CellName;	
+	    prevhier = CellName;
 	else
 	    prevhier++;
 
@@ -1155,7 +1155,7 @@ DBLockUse(UseName, bval)
     CellUse *celluse;
 
     int dbUseLockFunc();
-    
+
    /*
     *
     * Check to see if a cell name was specified. If not,
@@ -1225,7 +1225,7 @@ DBCellLookDef(cellName)
     return ((CellDef *) HashGetValue(entry));
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1273,14 +1273,14 @@ DBCellNewDef(cellName)
     HashSetValue(entry, (ClientData) cellDef);
     cellDef->cd_name = StrDup((char **) NULL, cellName);
 
-    /* Strip any .mag extension off of the cell name */    
+    /* Strip any .mag extension off of the cell name */
     dotptr = strrchr(cellDef->cd_name, '.');
     if (dotptr && !strcmp(dotptr, ".mag")) *dotptr = '\0';
 
     cellDef->cd_file = NULL;
     return (cellDef);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1339,7 +1339,7 @@ DBCellDefAlloc()
 
     return (cellDef);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1387,7 +1387,7 @@ DBCellNewUse(cellDef, useName)
 
     /* Initial client field */
     /* (commands can use this field for whatever
-     * they like, but should restore its value to CLIENTDEFAULT before exiting.) 
+     * they like, but should restore its value to CLIENTDEFAULT before exiting.)
      */
     cellUse->cu_client = (ClientData) CLIENTDEFAULT;
 
@@ -1395,7 +1395,7 @@ DBCellNewUse(cellDef, useName)
     DBComputeUseBbox(cellUse);
     return (cellUse);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1440,7 +1440,7 @@ DBCellRenameDef(cellDef, newName)
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1483,7 +1483,7 @@ DBCellDeleteDef(cellDef)
     DBCellDefFree(cellDef);
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1541,7 +1541,7 @@ DBCellDefFree(cellDef)
 
     freeMagic((char *) cellDef);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1598,7 +1598,7 @@ DBCellDeleteUse(cellUse)
     freeMagic((char *) cellUse);
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1632,7 +1632,7 @@ DBCellSrDefs(pattern, func, cdata)
     int pattern;	/* Used for selecting cell definitions.  If any
 			 * of the bits in the pattern are in a def->cd_flags,
 			 * or if pattern is 0, the user-supplied function
-			 * is invoked.  
+			 * is invoked.
 			 */
     int (*func)();	/* Function to be applied to each matching CellDef */
     ClientData cdata;	/* Client data also passed to function */
@@ -1653,7 +1653,7 @@ DBCellSrDefs(pattern, func, cdata)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1710,7 +1710,7 @@ DBLinkCell(use, parentDef)
     lastName = strrchr(use->cu_def->cd_name, '/');
     if (lastName == NULL) lastName = use->cu_def->cd_name;
     else lastName++;
-    
+
     /* This search must not be interrupted */
     SigDisableInterrupts();
     (void) DBCellEnum(parentDef, dbLinkFunc, (ClientData) lastName);
@@ -1773,7 +1773,7 @@ dbLinkFunc(cellUse, defname)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1818,7 +1818,7 @@ DBReLinkCell(cellUse, newName)
     if (UndoIsEnabled()) DBUndoCellUse(cellUse, UNDO_CELL_SETID);
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1843,7 +1843,7 @@ DBFindUse(id, parentDef)
 {
     HashEntry *he;
     char *delimit;
-   
+
     /* Sanity checks */
     if (id == NULL) return NULL;
     if (parentDef == NULL) return NULL;
@@ -1858,7 +1858,7 @@ DBFindUse(id, parentDef)
 
     return (CellUse *) HashGetValue(he);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1902,7 +1902,7 @@ DBGenerateUniqueIds(def, warn)
     HashKill(&dbUniqueDefTable);
     HashKill(&dbUniqueNameTable);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1944,7 +1944,7 @@ dbFindNamesFunc(use, parentDef)
     }
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2007,7 +2007,7 @@ setHash:
     DBSetUseIdHash(use, parentDef);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2035,7 +2035,7 @@ DBSetUseIdHash(use, parentDef)
     he = HashFind(&parentDef->cd_idHash, use->cu_id);
     HashSetValue(he, (ClientData) use);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2064,7 +2064,7 @@ DBUnLinkCell(use, parentDef)
 	HashSetValue(he, (ClientData) NULL);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *

@@ -1,15 +1,15 @@
 /* graphics.h -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains a bunch of macros that look like
@@ -27,7 +27,7 @@
 
 /* data structures */
 typedef struct {
-    int idx, mask, color, outline, fill, stipple;          
+    int idx, mask, color, outline, fill, stipple;
     char shortname;
     char *longname;
 } GR_STYLE_LINE;
@@ -44,10 +44,10 @@ extern bool (*GrInitPtr)();
 extern void (*GrClosePtr)();
 extern void (*GrTextSizePtr)();
 
-/* 
- * Display painting and text routines 
+/*
+ * Display painting and text routines
  *
- *    You must call GrLock() before using these, and 
+ *    You must call GrLock() before using these, and
  *    call GrUnlock() afterwards.
  */
 extern void (*GrLockPtr)();
@@ -141,7 +141,7 @@ extern void (*GrResumePtr)();
 /* Number of colors defined in the colormap */
 extern int GrNumColors;
 
-/* Different graphics (OpenGL vs. X11, for instance) have different 
+/* Different graphics (OpenGL vs. X11, for instance) have different
  * definitions of line and rectangle/polygon coordinates.  Usually
  * this boils down to a single pixel difference on rectangle edges.
  * GrPixelCorrect should be set to 0 for OpenGL and other real-valued
@@ -202,11 +202,11 @@ extern unsigned char GrDisplayStatus;
 #define GR_STSTIPPLE    3
 #define GR_STGRID       4
 
-/* 4 text sizes that are specified by the graphics driver, plus a 5th one.  
- * This last one is for systems that allow the user to specify a default font 
+/* 4 text sizes that are specified by the graphics driver, plus a 5th one.
+ * This last one is for systems that allow the user to specify a default font
  * (such as a sun) -- on other systems it's size is decided by the driver.
  *
- * Note: 
+ * Note:
  *    These must be in sequential, ascending order.
  */
 #define GR_TEXT_SMALL	0

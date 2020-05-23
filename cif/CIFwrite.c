@@ -3,16 +3,16 @@
  *
  * Output of CIF.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -86,7 +86,7 @@ char *CIFPathPrefix = NULL;
 bool CIFHierWriteDisable = FALSE;
 bool CIFArrayWriteDisable = FALSE;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -178,7 +178,7 @@ CIFWrite(rootDef, f)
     good = !ferror(f);
     return (good);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -203,7 +203,7 @@ cifWriteInitFunc(def)
     def->cd_client = (ClientData) 0;
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -230,7 +230,7 @@ cifWriteMarkFunc(use)
     StackPush((ClientData) use->cu_def, cifStack);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -277,7 +277,7 @@ cifOutPreamble(outf, cell)
     fprintf(outf,"( @@style : %s );\n", CIFCurStyle->cs_name);
     fprintf(outf,"( @@date : %s );\n", now);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -328,7 +328,7 @@ cifOut(outf)
 	cifOutFunc(def, outf);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -375,7 +375,7 @@ cifOutFunc(def, f)
      * Output all the tiles associated with this cell.  Skip temporary
      * layers.
      */
-    
+
     GEO_EXPAND(&def->cd_bbox, CIFCurStyle->cs_radius, &bigArea);
     CIFErrorDef = def;
     CIFGen(def, &bigArea, CIFPlanes, &DBAllTypeBits, TRUE, TRUE);
@@ -450,7 +450,7 @@ cifOutFunc(def, f)
     (void) DBCellEnum(def, cifWriteUseFunc, (ClientData) f);
     fprintf(f, "DF;\n");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -495,7 +495,7 @@ cifWriteUseFunc(use, f)
 	     * use identifier, which should include array subscripting
 	     * information.
 	     */
-	     
+
   	    /*
 	     * Insert a 91 user command to label the next cell
 	     */
@@ -547,7 +547,7 @@ cifWriteUseFunc(use, f)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -615,15 +615,15 @@ cifWritePaintFunc(tile, f)
     CIFRects += 1;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * CIFWriteFlat --
  *
  * Write out the entire tree rooted at the supplied CellDef in CIF format,
- * to the specified file, but write non-hierarchical CIF.  
- *   
+ * to the specified file, but write non-hierarchical CIF.
+ *
  * Results:
  *	TRUE if the cell could be written successfully, FALSE otherwise.
  *
@@ -635,9 +635,9 @@ cifWritePaintFunc(tile, f)
  *
  * Algorithm:
  * 	We operate on the cell in chunks chosen to keep the memory utilization
- * reasonable.  Foreach chunk, we use DBTreeSrTiles and cifHierCopyFunc to 
- * flatten the 
- * chunk into a yank buffer ("eliminating" the subcell problem), then use 
+ * reasonable.  Foreach chunk, we use DBTreeSrTiles and cifHierCopyFunc to
+ * flatten the
+ * chunk into a yank buffer ("eliminating" the subcell problem), then use
  * cifOut to generate the CIF.
  *	No hierarchical design rule checking or bounding box computation
  *	occur during this operation -- both are explicitly avoided.
@@ -665,11 +665,11 @@ CIFWriteFlat(rootDef, f)
     cifOutPreamble(f, rootDef);
 
     /*
-     * Now process each chunk.  We cheat and use cifOut(), so we need to have 
+     * Now process each chunk.  We cheat and use cifOut(), so we need to have
      * a stack for the single flattened "component" to be on.
      */
 
-    { 
+    {
 	scx.scx_use = CIFDummyUse;
 	scx.scx_trans = GeoIdentityTransform;
 	GEO_EXPAND(&rootDef->cd_bbox, CIFCurStyle->cs_radius, &scx.scx_area);
@@ -700,7 +700,7 @@ CIFWriteFlat(rootDef, f)
     fprintf(f, "C %d;\nEnd\n", (int) CIFComponentDef->cd_client);
     DBCellClearDef(CIFComponentDef);
     good = !ferror(f);
-    
+
     /* Report any errors that occurred. */
 
     if (DBWFeedbackCount != oldCount)

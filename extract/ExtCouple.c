@@ -4,16 +4,16 @@
  * Circuit extraction.
  * Extraction of coupling capacitance.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -85,7 +85,7 @@ typedef struct _esws {
 /* --------------------- Debugging stuff ---------------------- */
 #define CAP_DEBUG	FALSE
 
-void extNregAdjustCap(nr, c, str) 
+void extNregAdjustCap(nr, c, str)
     NodeRegion *nr;
     CapValue c;
     char *str;
@@ -109,7 +109,7 @@ void extAdjustCouple(he, c, str)
     fprintf(stderr, "CapDebug: %s-%s += %f (%s)\n", name1, name2, c, str);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -202,7 +202,7 @@ extFindCoupling(def, table, clipArea)
  *
  * ----------------------------------------------------------------------------
  */
-   
+
 void
 extRelocateSubstrateCoupling(table, subsnode)
     HashTable *table;		/* Coupling capacitance hash table */
@@ -238,7 +238,7 @@ extRelocateSubstrateCoupling(table, subsnode)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -285,7 +285,7 @@ extOutputCoupling(table, outFile)
 	fprintf(outFile, "\"%s\" %lg\n", text, cap);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -356,7 +356,7 @@ extBasicOverlap(tile, ecs)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -493,14 +493,14 @@ extAddOverlap(tbelow, ecpls)
 	     */
 	    rabove->nreg_cap -= ExtCurStyle->exts_areaCap[ta] * ov.o_area;
 	    if (CAP_DEBUG)
-		extNregAdjustCap(rabove, 
+		extNregAdjustCap(rabove,
 		    -(ExtCurStyle->exts_areaCap[ta] * ov.o_area),
 		    "obsolete_overlap");
 
 	} else if (CAP_DEBUG)
-	    extNregAdjustCap(rabove, 0.0, 
+	    extNregAdjustCap(rabove, 0.0,
 		"obsolete_overlap (skipped, wrong direction)");
-	    
+
         /* If the regions are the same, skip this part */
         if (rabove == rbelow) return (0);
 
@@ -513,7 +513,7 @@ extAddOverlap(tbelow, ecpls)
 	c = extGetCapValue(he);
 	c += ExtCurStyle->exts_overlapCap[ta][tb] * ov.o_area;
 	if (CAP_DEBUG)
-	    extAdjustCouple(he, ExtCurStyle->exts_overlapCap[ta][tb] * 
+	    extAdjustCouple(he, ExtCurStyle->exts_overlapCap[ta][tb] *
 		ov.o_area, "overlap");
 	extSetCapValue(he, c);
     }
@@ -584,7 +584,7 @@ extSubtractOverlap2(tile, ov)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -618,7 +618,7 @@ extBasicCouple(tile, ecs)
 			ecs->plane, extAddCouple, (ClientData) ecs);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -684,7 +684,7 @@ extAddCouple(bp, ecs)
     {
 	bpCopy = *bp;
 	bp = &bpCopy;
-	
+
 	GEOCLIP(&bp->b_segment, extCoupleSearchArea);
 
 	/* Fixed 2/27/2017 by Tim
@@ -750,7 +750,7 @@ extAddCouple(bp, ecs)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -802,7 +802,7 @@ extSideOverlap(tp, esws)
     GEOCLIP(&ov.o_clip, &extSideOverlapSearchArea);
     ov.o_area = length;
     areaAccountedFor = 0;
-    ASSERT(length == GEO_WIDTH(&ov.o_clip) * GEO_HEIGHT(&ov.o_clip), 
+    ASSERT(length == GEO_WIDTH(&ov.o_clip) * GEO_HEIGHT(&ov.o_clip),
 	"extSideOverlap");
     ta = TiGetType(bp->b_inside);
     tb = TiGetType(tp);
@@ -827,8 +827,8 @@ extSideOverlap(tp, esws)
 	/* Does this rule "e" include the tile we found? */
 	if (TTMaskHasType(&e->ec_near, TiGetType(tp)))
 	{
-	    /* We have a possible capacitor, but are the tiles shielded from 
-	     * each other part of the way?  
+	    /* We have a possible capacitor, but are the tiles shielded from
+	     * each other part of the way?
 	     */
 	    int pNum;
 	    ov.o_area = length;
@@ -846,13 +846,13 @@ extSideOverlap(tp, esws)
 		    if (ov.o_pmask == 0)
 		    {
 			(void) DBSrPaintArea((Tile *) NULL,
-			    extOverlapDef->cd_planes[pNum], &ov.o_clip, 
+			    extOverlapDef->cd_planes[pNum], &ov.o_clip,
 			    &ov.o_tmask, extSubtractOverlap, (ClientData) &ov);
 		    }
 		    else
 		    {
 			(void) DBSrPaintArea((Tile *) NULL,
-			    extOverlapDef->cd_planes[pNum], &ov.o_clip, 
+			    extOverlapDef->cd_planes[pNum], &ov.o_clip,
 			    &DBAllTypeBits,
 			    extSubtractOverlap2, (ClientData) &ov);
 		    }
@@ -864,11 +864,11 @@ extSideOverlap(tp, esws)
 	    areaAccountedFor += ov.o_area;
 	}
     }
-    
+
     /* Add in the new capacitance. */
     if (tb == TT_SPACE)
     {
-	/* Is tp a space tile?  If so, extGetRegion points to garbage;  	
+	/* Is tp a space tile?  If so, extGetRegion points to garbage;
 	 * make terminal 2 point to ground.
 	 */
 	rbp->nreg_cap += cap;
@@ -881,8 +881,8 @@ extSideOverlap(tp, esws)
 	if (oa > ob)
 	{
 	    /* If the overlapped tile is between the substrate and the boundary
-	     * tile, then we subtract the fringe substrate capacitance 
-	     * from rbp's region due to the area of the sideoverlap, since 
+	     * tile, then we subtract the fringe substrate capacitance
+	     * from rbp's region due to the area of the sideoverlap, since
 	     * we now know it is shielded from the substrate.
 	     */
 	    CapValue subcap;
@@ -900,7 +900,7 @@ extSideOverlap(tp, esws)
 	    if (CAP_DEBUG)
 		extNregAdjustCap(rbp, -subcap, "obsolete_perimcap");
 	} else if (CAP_DEBUG)
-	    extNregAdjustCap(rbp, 0.0, 
+	    extNregAdjustCap(rbp, 0.0,
 		"obsolete_perimcap (skipped, wrong direction)");
 
 	/* If the nodes are electrically connected, then we don't add	*/
@@ -915,7 +915,7 @@ extSideOverlap(tp, esws)
     }
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -969,7 +969,7 @@ extSideLeft(tpfar, bp)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1018,7 +1018,7 @@ extSideRight(tpfar, bp)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1067,7 +1067,7 @@ extSideTop(tpfar, bp)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1116,7 +1116,7 @@ extSideBottom(tpfar, bp)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1162,7 +1162,7 @@ extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep)
     for (e = extCoupleList; e; e = e->ec_next)
 	if (TTMaskHasType(&e->ec_near, near) && TTMaskHasType(&e->ec_far, far)) {
 	    cap += (e->ec_cap * overlap) / sep;
-	    if (CAP_DEBUG) 
+	    if (CAP_DEBUG)
 		extAdjustCouple(he, (e->ec_cap * overlap) / sep, "sidewall");
 	}
     extSetCapValue(he, cap);

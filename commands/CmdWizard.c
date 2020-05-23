@@ -6,16 +6,16 @@
  * These commands are not intended to be used by the ordinary magic
  * user, but are provided for the benefit of system maintainers/implementors.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -52,7 +52,7 @@ extern void cmdPsearchStats();
 
 void cmdStatsHier(CellDef *, int, CellDef *);
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -155,7 +155,7 @@ CmdCoord(w, cmd)
 		    editRect.r_xtop, editRect.r_ytop);
     TxPrintf("\n");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -185,7 +185,7 @@ CmdExtractTest(w, cmd)
 }
 #endif
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -397,7 +397,7 @@ CmdShowtech(w, cmd)
 	(void) fclose(outf);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -721,7 +721,7 @@ cmdStatsOutput(def, cc)
     freeMagic((char *) ci);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -826,7 +826,7 @@ cmdPsearchStats(str, tl, td, count)
     ups = us / count;
     TxPrintf("%s: %d searches, %d us/search [%s]\n", str, count, ups, rstatp);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -914,7 +914,7 @@ CmdTsearch(w, cmd)
 
     if (!TTMaskEqual(&mask, &DBZeroTypeBits))
 	numTilesFound = 0;
-	
+
     for (i = 0; i < count; i++)
     {
 	/*****
@@ -977,7 +977,7 @@ cmdTsrFunc(tp)
     numTilesFound++;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

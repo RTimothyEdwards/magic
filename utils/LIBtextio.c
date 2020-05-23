@@ -4,16 +4,16 @@
  * File that only goes in libmagicutils.a to define procedures
  * referenced from textio that might not be defined elsewhere.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -23,7 +23,7 @@ static char rcsid[] = "$Header: /usr/cvsroot/magic-8.0/utils/LIBtextio.c,v 1.1.1
 
 #include <stdio.h>
 #include <stdarg.h>
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -48,7 +48,7 @@ TxGetLine(buf, size)
     return (fgets(buf, size, stdin));
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -78,7 +78,7 @@ TxFlush()
     (void) fflush(stdout);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -99,7 +99,7 @@ void
 TxError(char *fmt, ...)
 {
     va_list ap;
- 
+
     (void) fflush(stdout);
     (void) fflush(stderr);
     va_start(ap, fmt);
@@ -107,7 +107,7 @@ TxError(char *fmt, ...)
     va_end(ap);
     (void) fflush(stderr);
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -129,7 +129,7 @@ void
 TxPrintf(char *fmt, ...)
 {
     va_list ap;
- 
+
     (void) fflush(stderr);
     (void) fflush(stdout);
     va_start(ap, fmt);
@@ -137,5 +137,5 @@ TxPrintf(char *fmt, ...)
     va_end(ap);
     (void) fflush(stdout);
 }
-
+
 

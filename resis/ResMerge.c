@@ -25,7 +25,7 @@ extern void ResEliminateResistor();
 extern void ResCleanNode();
 extern void ResFixBreakPoint();
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -49,13 +49,13 @@ ResDoneWithNode(resptr)
      resNode		*resptr2;
      resElement		*rcell1;
      resResistor	*rr1;
-     
+
      resptr2 = NULL;
      resptr->rn_status |= TRUE;
      status = UNTOUCHED;
 
      /* are there any resistors? */
-     
+
      if (resptr->rn_re == NULL)
      {
 	  return;
@@ -64,10 +64,10 @@ ResDoneWithNode(resptr)
      /* Special handling for geometry option */
 
      if (ResOptionsFlags & ResOpt_Geometry) return;
-     
+
      /* Eliminate resistors with connections to one terminal and */
      /* resistors with value 0.					 */
-     
+
      for (rcell1 = resptr->rn_re; rcell1 != NULL; rcell1 = rcell1->re_nextEl)
      {
      	  rr1 = rcell1->re_thisEl;
@@ -80,7 +80,7 @@ ResDoneWithNode(resptr)
 	       status = LOOP;
 	       ResDoneWithNode(resptr);
 	       break;
-  
+
 	  }
 	  else if (rr1->rr_value == 0)
 	  {
@@ -96,7 +96,7 @@ ResDoneWithNode(resptr)
 	        ResMergeNodes(resptr2,resptr,&ResNodeQueue,&ResNodeList);
 		resptr2->rn_float.rn_area += rr1->rr_float.rr_area;
 	       	ResEliminateResistor(rr1,&ResResList);
-		if ((resptr2->rn_status & TRUE) == TRUE) 
+		if ((resptr2->rn_status & TRUE) == TRUE)
 		{
 		     resptr2->rn_status &= ~TRUE;
 		     ResDoneWithNode(resptr2);
@@ -121,11 +121,11 @@ ResDoneWithNode(resptr)
      }
      if ((status == UNTOUCHED) && (resptr->rn_why != RES_NODE_ORIGIN))
      {
-	  status = ResTriangleCheck(resptr);   
+	  status = ResTriangleCheck(resptr);
      }
 }
 
-
+
 /*
  *------------------------------------------------------------------------
  *
@@ -133,7 +133,7 @@ ResDoneWithNode(resptr)
  *
  * Results: none
  *
- * Side Effects: ResFixRes combines two resistors in series.  the second 
+ * Side Effects: ResFixRes combines two resistors in series.  the second
  * Resistor is eliminated.  Resptr is the node that is "cut out" of the
  * network.
  *
@@ -143,11 +143,11 @@ ResDoneWithNode(resptr)
 void
 ResFixRes(resptr,resptr2,resptr3,elimResis,newResis)
 	resNode *resptr,*resptr2,*resptr3;
-	resResistor *elimResis, *newResis; 
+	resResistor *elimResis, *newResis;
 
 {
      resElement  *thisREl;
-     
+
      resptr3->rn_float.rn_area += newResis->rr_value*resptr->rn_float.rn_area/((float)(newResis->rr_value+elimResis->rr_value));
      resptr2->rn_float.rn_area += elimResis->rr_value*resptr->rn_float.rn_area/((float)(newResis->rr_value+elimResis->rr_value));
      newResis->rr_value += elimResis->rr_value;
@@ -167,15 +167,15 @@ ResFixRes(resptr,resptr2,resptr3,elimResis,newResis)
 	       (thisREl->re_thisEl = newResis);
 	       break;
 	  }
-	  	
+
      }
      if (thisREl == NULL) TxError("Resistor not found in duo\n");
      ResDeleteResPointer(resptr,elimResis);
      ResDeleteResPointer(resptr,newResis);
-     ResEliminateResistor(elimResis, &ResResList);     
+     ResEliminateResistor(elimResis, &ResResList);
      ResCleanNode(resptr, TRUE,&ResNodeList,&ResNodeQueue);
 }
-
+
 /*
  *------------------------------------------------------------------------
  *
@@ -184,8 +184,8 @@ ResFixRes(resptr,resptr2,resptr3,elimResis,newResis)
  * Results: none
  *
  * Side Effects: ResFixParallel combines two resistors in parallel. T
- *  	The second  Resistor is eliminated.  
- * 
+ *  	The second  Resistor is eliminated.
+ *
  *
  *------------------------------------------------------------------------
  */
@@ -215,7 +215,7 @@ ResFixParallel(elimResis,newResis)
      ResDeleteResPointer(elimResis->rr_connection2,elimResis);
      ResEliminateResistor(elimResis,&ResResList);
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -265,7 +265,7 @@ ResSeriesCheck(resptr)
      else if (res_next->re_nextEl == NULL)
      {
 	   rr2 = res_next->re_thisEl;
-	   if (!TTMaskHasType(ResNoMergeMask+rr1->rr_tt,rr2->rr_tt)) 
+	   if (!TTMaskHasType(ResNoMergeMask+rr1->rr_tt,rr2->rr_tt))
 	   {
 		if (rr1->rr_connection1 == resptr)
 		{
@@ -294,7 +294,7 @@ ResSeriesCheck(resptr)
 			       rr1->rr_connection1 = rr2->rr_connection2;
 			       ResFixRes(resptr,resptr2,resptr3,rr2,rr1);
 			  }
-			  if ((resptr2->rn_status & TRUE) == TRUE) 
+			  if ((resptr2->rn_status & TRUE) == TRUE)
 			  {
 			       resptr2->rn_status &= ~TRUE;
 			       ResDoneWithNode(resptr2);
@@ -323,7 +323,7 @@ ResSeriesCheck(resptr)
 			       rr1->rr_connection1 = rr2->rr_connection1;
 			       ResFixRes(resptr,resptr2,resptr3,rr2,rr1);
 			  }
-			  if ((resptr2->rn_status & TRUE) == TRUE) 
+			  if ((resptr2->rn_status & TRUE) == TRUE)
 			  {
 			      resptr2->rn_status &= ~TRUE;
 			      ResDoneWithNode(resptr2);
@@ -352,11 +352,11 @@ ResSeriesCheck(resptr)
 			  {
 			       status = SERIES;
 			       resptr3 = rr2->rr_connection2;
-			       rr1->rr_connection2 = 
+			       rr1->rr_connection2 =
 			       rr2->rr_connection2;
 			       ResFixRes(resptr,resptr2,resptr3,rr2,rr1);
 			  }
-			  if ((resptr2->rn_status & TRUE) == TRUE) 
+			  if ((resptr2->rn_status & TRUE) == TRUE)
 			  {
 			       resptr2->rn_status &= ~TRUE;
 			       ResDoneWithNode(resptr2);
@@ -382,11 +382,11 @@ ResSeriesCheck(resptr)
 			  {
 			       status = SERIES;
 			       resptr3 = rr2->rr_connection1;
-			       rr1->rr_connection2 = 
+			       rr1->rr_connection2 =
 			       rr2->rr_connection1;
 			       ResFixRes(resptr,resptr2,resptr3,rr2,rr1);
 			  }
-			  if ((resptr2->rn_status & TRUE) == TRUE) 
+			  if ((resptr2->rn_status & TRUE) == TRUE)
 			  {
 			       resptr2->rn_status &= ~TRUE;
 			       ResDoneWithNode(resptr2);
@@ -399,7 +399,7 @@ ResSeriesCheck(resptr)
      return status;
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -422,15 +422,15 @@ ResParallelCheck(resptr)
      int		status=UNTOUCHED;
      resElement		*rcell1,*rcell2;
 
-	
-     for (rcell1 = resptr->rn_re; 
+
+     for (rcell1 = resptr->rn_re;
      		rcell1->re_nextEl != NULL; rcell1 = rcell1->re_nextEl)
      {
 	   r1 = rcell1->re_thisEl;
 
-	   for (rcell2 = rcell1->re_nextEl; 
+	   for (rcell2 = rcell1->re_nextEl;
 	   	rcell2 != NULL; rcell2 = rcell2->re_nextEl)
-	       
+
 	   {
 	        r2 = rcell2->re_thisEl;
 		if (TTMaskHasType(ResNoMergeMask+r1->rr_tt,r2->rr_tt)) continue;
@@ -439,7 +439,7 @@ ResParallelCheck(resptr)
 	            ((r1->rr_connection1 == r2->rr_connection2) &&
 	             (r1->rr_connection2 == r2->rr_connection1)))
 	        {
-	             resptr3 = (r1->rr_connection1 == resptr) ? 
+	             resptr3 = (r1->rr_connection1 == resptr) ?
 		     		r1->rr_connection2 :  r1->rr_connection1;
 		     ResFixParallel(r1,r2);
 	             status = PARALLEL;
@@ -459,7 +459,7 @@ ResParallelCheck(resptr)
      return status;
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -483,14 +483,14 @@ ResTriangleCheck(resptr)
      resNode		*n1,*n2,*n3;
      resElement		*rcell1,*rcell2,*rcell3,*element;
 
-     for (rcell1 = resptr->rn_re; 
+     for (rcell1 = resptr->rn_re;
      		rcell1->re_nextEl != NULL; rcell1 = rcell1->re_nextEl)
      {
           rr1 = rcell1->re_thisEl;
 	  n1 = (rr1->rr_connection1 == resptr)?rr1->rr_connection2:
 	  				       rr1->rr_connection1;
 
-          for (rcell2 = rcell1->re_nextEl; 
+          for (rcell2 = rcell1->re_nextEl;
 	  	rcell2 != NULL; rcell2 = rcell2->re_nextEl)
 	  {
 	       rr2 = rcell2->re_thisEl;
@@ -498,13 +498,13 @@ ResTriangleCheck(resptr)
 		   continue;
 	       n2 = (rr2->rr_connection1 == resptr) ? rr2->rr_connection2 :
 	       					    rr2->rr_connection1;
-	       for (rcell3 = n1->rn_re; 
+	       for (rcell3 = n1->rn_re;
 	       		rcell3 != NULL; rcell3 = rcell3->re_nextEl)
 	       {
 		    rr3 = rcell3->re_thisEl;
-		    if (TTMaskHasType(ResNoMergeMask+rr1->rr_tt,rr3->rr_tt)) 
+		    if (TTMaskHasType(ResNoMergeMask+rr1->rr_tt,rr3->rr_tt))
 		    		continue;
-		    if (TTMaskHasType(ResNoMergeMask+rr2->rr_tt,rr3->rr_tt)) 
+		    if (TTMaskHasType(ResNoMergeMask+rr2->rr_tt,rr3->rr_tt))
 		    		continue;
 
 		    if (((rr3->rr_connection1 != n1) ||
@@ -620,8 +620,8 @@ ResTriangleCheck(resptr)
      }
      return status;
 }
-
-/* 
+
+/*
  *--------------------------------------------------------------------------
  *
  * ResMergeNodes--
@@ -638,7 +638,7 @@ ResTriangleCheck(resptr)
 void
 ResMergeNodes(node1,node2,pendingList,doneList)
  	resNode *node1,*node2,**pendingList,**doneList;
-	
+
  {
       resElement	*workingRes,*tRes;
       tElement		*workingDev,*tDev;
@@ -646,7 +646,7 @@ ResMergeNodes(node1,node2,pendingList,doneList)
       cElement		*workingCon,*tCon;
       Tile		*tile;
       int		i;
-      
+
       /* sanity check  */
       if (node1 == node2) return;
       if (node1 == NULL || node2 == NULL)
@@ -654,7 +654,7 @@ ResMergeNodes(node1,node2,pendingList,doneList)
       	   TxError("Attempt to merge NULL node\n");
 	   return;
       }
-      
+
       /* don't want to merge away startpoint */
       if (node2->rn_why & RES_NODE_ORIGIN)
       {
@@ -672,8 +672,8 @@ ResMergeNodes(node1,node2,pendingList,doneList)
 	   }
       }
       node1->rn_float.rn_area += node2->rn_float.rn_area;
-      
-      
+
+
       /* combine relevant flags */
       node1->rn_status |= (node2->rn_status & RN_MAXTDI);
 
@@ -733,7 +733,7 @@ ResMergeNodes(node1,node2,pendingList,doneList)
 	   tJunc->je_nextj = node1->rn_je;
 	   node1->rn_je = tJunc;
       }
-      
+
       /* Append connection lists */
       workingCon = node2->rn_ce;
       while (workingCon != NULL)
@@ -758,7 +758,7 @@ ResMergeNodes(node1,node2,pendingList,doneList)
 	   tCon->ce_nextc = node1->rn_ce;
 	   node1->rn_ce = tCon;
       }
-      
+
       /* Moves resistors to new node  */
       workingRes = node2->rn_re;
       while (workingRes != NULL)
@@ -804,7 +804,7 @@ ResMergeNodes(node1,node2,pendingList,doneList)
       freeMagic((char *)node2);
  }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -826,7 +826,7 @@ ResDeleteResPointer(node,resistor)
 {
      resElement *rcell1,*rcell2;
      int	notfound=TRUE;
-     
+
      rcell1 = NULL;
      rcell2 = node->rn_re;
      while (rcell2 != NULL)
@@ -858,7 +858,7 @@ ResDeleteResPointer(node,resistor)
      }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -898,7 +898,7 @@ ResEliminateResistor(resistor,homelist)
      freeMagic((char *)resistor);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -925,7 +925,7 @@ ResCleanNode(resptr,junk,homelist1,homelist2)
      cElement *ccell;
      jElement *jcell;
      tElement *tcell;
-     
+
      /* free up contact and junction lists */
      while (resptr->rn_ce != NULL)
      {
@@ -977,11 +977,11 @@ ResCleanNode(resptr,junk,homelist1,homelist2)
 	       	    TxError("Error: Attempted to eliminate node from wrong list.\n");
 	       }
 	  }
-	  if (resptr->rn_more != NULL) 
+	  if (resptr->rn_more != NULL)
 	  {
 	       resptr->rn_more->rn_less = resptr->rn_less;
 	  }
-	  
+
 	  {
 	       resptr->rn_re = (resElement *) CLIENTDEFAULT;
 	       resptr->rn_ce = (cElement   *) CLIENTDEFAULT;
@@ -994,7 +994,7 @@ ResCleanNode(resptr,junk,homelist1,homelist2)
      }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -1017,11 +1017,11 @@ ResFixBreakPoint(sourcelist,origNode,newNode)
 {
      Breakpoint		*bp,*bp2,*bp3,*bp4;
      int		alreadypresent;
-     
+
      alreadypresent = FALSE;
      for (bp4 = *sourcelist; bp4 != NULL; bp4 = bp4->br_next)
      {
-     	  if (bp4->br_this == newNode) 
+     	  if (bp4->br_this == newNode)
 	  {
 	       alreadypresent = TRUE;
 	       break;
@@ -1031,7 +1031,7 @@ ResFixBreakPoint(sourcelist,origNode,newNode)
      bp = *sourcelist;
      while (bp != NULL)
      {
-     	  if (bp->br_this == origNode) 
+     	  if (bp->br_this == origNode)
 	  {
 	       if (alreadypresent)
 	       {
@@ -1059,5 +1059,5 @@ ResFixBreakPoint(sourcelist,origNode,newNode)
 	  bp2 = bp;
 	  bp = bp->br_next;
      }
-     
+
 }

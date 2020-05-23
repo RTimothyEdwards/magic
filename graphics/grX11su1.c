@@ -1,15 +1,15 @@
 /* grX11su1.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains primitive functions to manipulate an X window system
@@ -117,7 +117,7 @@ extern void grXWStdin();
 extern bool grx11GetCursorPos();
 
 
-
+
 /*---------------------------------------------------------
  * grxSetWMandC:
  *	This is a local routine that resets the value of the current
@@ -158,7 +158,7 @@ grx11SetWMandC (mask, c)
     oldM = mask;
 }
 
-
+
 /*---------------------------------------------------------
  * grxSetLineStyle:
  *	This local routine sets the current line style.
@@ -253,7 +253,7 @@ grx11SetLineStyle (style)
 #endif
 }
 
-
+
 /*---------------------------------------------------------
  * grxSetSPattern:
  *	xSetSPattern associates a stipple pattern with a given
@@ -293,7 +293,7 @@ grx11SetSPattern (sttable, numstipples)
     }
 }
 
-
+
 /*---------------------------------------------------------
  * grxSetStipple:
  *	This routine sets the Xs current stipple number.
@@ -323,7 +323,7 @@ grx11SetStipple (stipple)
     }
 }
 
-
+
 /*---------------------------------------------------------
  * GrX11Init:
  *
@@ -367,7 +367,7 @@ GrX11Init(dispType)
     XInitThreads();
 #endif
 
-    grXdpy = XOpenDisplay(NULL); 
+    grXdpy = XOpenDisplay(NULL);
     if (grXdpy == NULL)
     {
     	 TxError("Couldn't open display; check DISPLAY variable\n");
@@ -406,7 +406,7 @@ GrX11Init(dispType)
     grVisual = XDefaultVisual(grXdpy, grXscrn);
     defpsvid = XVisualIDFromVisual(grVisual);
     grtemplate.screen = grXscrn;
-    grtemplate.depth = 0; 
+    grtemplate.depth = 0;
     grvisual_get = XGetVisualInfo(grXdpy, VisualScreenMask, &grtemplate, &gritems);
     if(grvisual_get == NULL)
     {
@@ -525,7 +525,7 @@ GrX11Init(dispType)
 	    color_reserved = (int)atoi(env_str);
 	else
 	    color_reserved = X_COLORMAP_RESERVED;
-	 
+
         gritems = -1;
         if (log_color != NULL)
 	{
@@ -589,8 +589,8 @@ GrX11Init(dispType)
 	status = 0;
 	if (grClass != 4)
 	    status= XAllocColorCells(grXdpy, grXcmap, TRUE, grDisplay.planes,
-			grDisplay.planeCount, &grDisplay.basepixel, 1); 
-	if (status == 0) 
+			grDisplay.planeCount, &grDisplay.basepixel, 1);
+	if (status == 0)
 	  /*
 	   * Ok, we tried to be nice; now lets whack the default colormap
 	   * and put in one of our own.
@@ -621,7 +621,7 @@ GrX11Init(dispType)
 		grDisplay.planes[j] = 1 << j;
 	    status = 1;
 	    for (i = 0; i < usableColors; i++) colors[i].pixel = i;
-	    XQueryColors(grXdpy, XDefaultColormap(grXdpy, 
+	    XQueryColors(grXdpy, XDefaultColormap(grXdpy,
 			grXscrn), colors, usableColors);
 	    if (grDisplay.planeCount <= 8)
 		XStoreColors(grXdpy, grXcmap, colors, usableColors);
@@ -636,8 +636,8 @@ GrX11Init(dispType)
 		grDisplay.colorCount = grDisplay.realColors;
 	    }
 	}
-	     			
-	if (grXcmap == 0 || status == 0) 
+
+	if (grXcmap == 0 || status == 0)
 	{
 	    TxError( "X11 setup: Unable to allocate %d planes\n",
 			grDisplay.planeCount);
@@ -676,7 +676,7 @@ GrX11Init(dispType)
     return grx11LoadFont();
 }
 
-
+
 /*---------------------------------------------------------
  * GrXClose --
  *
@@ -710,7 +710,7 @@ GrX11Close ()
 #endif
 }
 
-
+
 /*---------------------------------------------------------
  * GrXFlush:
  * 	Flush output to display.
@@ -730,7 +730,7 @@ GrX11Flush ()
    XFlush(grXdpy);
 }
 
-
+
 /*
  * ---------------------------------------------------------------------------
  *
@@ -754,7 +754,7 @@ grX11Stdin()
     XEvent	xevent;
     HashEntry	*entry;
     read(pipeRead, &xevent, sizeof(XEvent));
-    switch (xevent.type) 
+    switch (xevent.type)
     {
 	case ButtonPress:
 	case ButtonRelease:
@@ -818,14 +818,14 @@ grX11Stdin()
 		event->txe_p.p_y = grXToMagic(KeyPressedEvent->y);
 		event->txe_wid = grCurrent.mw->w_wid;
 		TxAddEvent(event);
-	    } 
+	    }
 	    break;
 	case Expose:
 	    {
 		    XExposeEvent *ExposeEvent = (XExposeEvent*) &xevent;
 		    Rect screenRect;
 		    MagWindow	*w;
-		    
+
 	            grCurrent.window = ExposeEvent->window;
 		    entry = HashLookOnly(&grX11WindowTable,grCurrent.window);
 	            w = (entry)?(MagWindow *)HashGetValue(entry):0;
@@ -833,9 +833,9 @@ grX11Stdin()
 
 		    screenRect.r_xbot = ExposeEvent->x;
             	    screenRect.r_xtop = ExposeEvent->x+ExposeEvent->width;
-            	    screenRect.r_ytop = 
+            	    screenRect.r_ytop =
 			 	w->w_allArea.r_ytop-ExposeEvent->y;
-            	    screenRect.r_ybot = w->w_allArea.r_ytop - 
+            	    screenRect.r_ybot = w->w_allArea.r_ytop -
 		    		(ExposeEvent->y + ExposeEvent->height);
 
 		    if (w->w_backingStore != (ClientData)NULL)
@@ -858,7 +858,7 @@ grX11Stdin()
 		    XConfigureEvent *ConfigureEvent = (XConfigureEvent*) &xevent;
 		    Rect screenRect;
 		    MagWindow	*w;
-		    
+
 	            grCurrent.window = ConfigureEvent->window;
 		    entry = HashLookOnly(&grX11WindowTable,grCurrent.window);
 	            w = (entry)?(MagWindow *)HashGetValue(entry):0;
@@ -868,10 +868,10 @@ grX11Stdin()
             	    screenRect.r_xtop = ConfigureEvent->x+
 			 		ConfigureEvent->width;
             	    screenRect.r_ytop = grXsToMagic(ConfigureEvent->y);
-            	    screenRect.r_ybot = 
+            	    screenRect.r_ybot =
 			 	grXsToMagic(ConfigureEvent->y+
 					    ConfigureEvent->height);
-		 
+
 		    WindReframe(w,&screenRect,FALSE,FALSE);
 		    WindRedisplay(w);
             }
@@ -909,7 +909,7 @@ grX11Stdin()
 		{
 	    	    XAnyEvent *anyEvent = (XAnyEvent*) &xevent;
 		    MagWindow	*w;
-		    
+
 	            grCurrent.window = anyEvent->window;
 		    entry = HashLookOnly(&grX11WindowTable, grCurrent.window);
 	            w = (entry)?(MagWindow *)HashGetValue(entry):0;
@@ -931,7 +931,7 @@ grX11Stdin()
      }
 }
 
-
+
 /*---------------------------------------------------------
  * x11SetDisplay:
  *	This routine sets the appropriate parameters so that
@@ -1036,7 +1036,7 @@ x11SetDisplay (dispType, outFileName, mouseFileName)
     GrConfigureWindowPtr = GrX11Configure;
     GrOverWindowPtr = GrX11Raise;
     GrUnderWindowPtr = GrX11Lower;
-    GrUpdateIconPtr = GrX11IconUpdate; 
+    GrUpdateIconPtr = GrX11IconUpdate;
     GrGetCursorPosPtr = grx11GetCursorPos;
     GrGetCursorRootPosPtr = grx11GetCursorRootPos;
 
@@ -1061,7 +1061,7 @@ x11SetDisplay (dispType, outFileName, mouseFileName)
     grSetLineStylePtr = grx11SetLineStyle;
     grSetCharSizePtr = grx11SetCharSize;
     grFillPolygonPtr = grx11FillPolygon;
-    
+
     if (execFailed)
     {
 	TxError("Execution failed!\n");
@@ -1079,7 +1079,7 @@ x11SetDisplay (dispType, outFileName, mouseFileName)
 
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1116,7 +1116,7 @@ grXWStdin(fd, cdata)
     event->txe_p.p_y = GR_CURSOR_Y;
     TxAddEvent(event);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1197,7 +1197,7 @@ GrX11Create(w, name)
 	/*
 	 * Signal xhelper to poll window.
 	 */
-	grCurrent.window = wind; 
+	grCurrent.window = wind;
 	/*
 	 * Define window cursor and complete initialization.
 	 */
@@ -1220,15 +1220,15 @@ GrX11Create(w, name)
              grGCGlyph = XCreateGC(grXdpy, grCurrent.window, 0, 0);
         }
 	XSetPlaneMask(grXdpy,grGCGlyph,AllPlanes);
-	grCurrent.window = wind; 
+	grCurrent.window = wind;
 	grCurrent.mw = w;
 	w->w_grdata = (ClientData) wind;
-	
+
 	entry = HashFind(&grX11WindowTable,grCurrent.window);
 	HashSetValue(entry,w);
 
         XDefineCursor(grXdpy, grCurrent.window,grCurrent.cursor);
-	GrX11IconUpdate(w,w->w_caption); 
+	GrX11IconUpdate(w,w->w_caption);
 
 #ifdef HAVE_PTHREADS
 	xloop_create(wind);
@@ -1249,7 +1249,7 @@ GrX11Create(w, name)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1275,10 +1275,10 @@ GrX11Delete(w)
     xw = (Window) w->w_grdata;
     entry = HashLookOnly(&grX11WindowTable,xw);
     HashSetValue(entry,NULL);
-    
+
     XDestroyWindow(grXdpy,xw);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1303,7 +1303,7 @@ GrX11Configure(w)
 		w->w_frameArea.r_xtop - w->w_frameArea.r_xbot,
 		    w->w_frameArea.r_ytop - w->w_frameArea.r_ybot);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1326,7 +1326,7 @@ GrX11Raise(w)
 {
     XRaiseWindow(grXdpy, (Window) w->w_grdata );
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1350,7 +1350,7 @@ GrX11Lower(w)
     XLowerWindow(grXdpy, (Window) w->w_grdata );
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1380,7 +1380,7 @@ GrX11Lock(w, flag)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1405,7 +1405,7 @@ GrX11Unlock(w)
     grSimpleUnlock(w);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -1427,7 +1427,7 @@ GrX11IconUpdate(w,text)
      Window	wind = (Window)(w->w_grdata);
      XClassHint	class;
      char	*brack;
-     
+
      if (w->w_grdata == (ClientData)NULL) return;
      class.res_name = "magic";
      class.res_class = "magic";

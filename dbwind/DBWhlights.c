@@ -6,16 +6,16 @@
  *	to display so that when one of them updates its highlights
  *	it doesn't trash the others' highlights.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -47,7 +47,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #define MAXCLIENTS 10
 static int (*(dbwhlClients[MAXCLIENTS]))();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -57,7 +57,7 @@ static int (*(dbwhlClients[MAXCLIENTS]))();
  *	that are displaying highlights.  The redisplay procedure
  *	passed in by the client will be invoked in the following
  *	way:
- *		int	
+ *		int
  *		redisplayProc(window, plane)
  *		    MagWindow *window;
  *		    Plane *plane;
@@ -98,7 +98,7 @@ DBWHLAddClient(redisplayProc)
     TxError("Magic error:  ran out of space in highlight client table.\n");
     TxError("Tell your system maintainer to enlarge the table.\n");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -135,7 +135,7 @@ DBWHLRemoveClient(redisplayProc)
     }
     ASSERT(FALSE, "DBWHLRemoveClient");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -194,7 +194,7 @@ DBWHLRedraw(rootDef, area, erase)
      * directions so that we're certain to have non-zero area.
      * Otherwise the various search procedures have big troubles.
      */
-    
+
     ourArea = *area;
     if (ourArea.r_xbot >= ourArea.r_xtop)
     {
@@ -259,13 +259,13 @@ dbwhlRedrawFunc(window, area)
 	 * an attempt is made to redraw into an obscured or unmapped
 	 * window.
 	 */
-    
+
 	if (((GrGetBackingStorePtr == NULL) &&
 		((GrStyleTable[STYLE_ERASEHIGHLIGHTS].mask &
 		GrStyleTable[STYLE_ERASEALLBUTTOOLS].mask) != 0)) ||
 		((GrGetBackingStorePtr != NULL) &&
 		window->w_backingStore == (ClientData)NULL))
-		
+
 	{
 	    DBWAreaChanged(dbwhlDef, area, crec->dbw_bitmask,
 			(TileTypeBitMask *) NULL);
@@ -277,7 +277,7 @@ dbwhlRedrawFunc(window, area)
 		DBStdPaintTbl(TT_ERROR_P, PL_DRC_ERROR),
 		(PaintUndoInfo *) NULL);
     }
-    
+
     /* The area whose highlights must be redrawn is the area erased, but
      * it must be expanded again to include the fact that we may have
      * just erased a piece of a label that stuck out from some other point.
@@ -286,7 +286,7 @@ dbwhlRedrawFunc(window, area)
      * eliminate edge effects:  all impacted highlights are now guaranteed
      * to OVERLAP an area in dbwhlRedrawPlane, not just touch.
      */
-    
+
     erase.r_xbot -= expand.r_xtop;
     erase.r_ybot -= expand.r_ytop;
     erase.r_xtop -= expand.r_xbot;
@@ -364,15 +364,15 @@ DBWHLRedrawWind(window)
     int i;
     DBWclientRec *crec;
     extern int dbwhlEraseFunc();	/* Forward reference. */
-    
+
     GrLock(window, TRUE);
     crec = (DBWclientRec *) window->w_clientData;
 
     /* First erase, then redraw: */
-    
+
     (void) DBSrPaintArea((Tile *) NULL, crec->dbw_hlErase, &TiPlaneRect,
 	    &DBAllButSpaceBits, dbwhlEraseFunc, (ClientData)window);
-    
+
     /* Now call each client to redraw its own stuff. */
 
     for (i = 0; i < MAXCLIENTS; i += 1)
@@ -413,7 +413,7 @@ dbwhlEraseFunc(tile, window)
     if (needErase) GrClipBox(&area, STYLE_ERASEHIGHLIGHTS);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * DBWHLUpdate --

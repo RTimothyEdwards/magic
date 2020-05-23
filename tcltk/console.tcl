@@ -129,7 +129,7 @@ rename ::tkcon::New ::tkcon::NewConsole
 proc ::tkcon::New {} {
    global argv0 argc argv
 
-   set argc 1 
-   list set argv $argv0   
-   ::tkcon::NewConsole 
+   set argc 1
+   list set argv $argv0
+   ::tkcon::NewConsole
 }

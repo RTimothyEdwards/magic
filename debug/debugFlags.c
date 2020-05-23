@@ -5,16 +5,16 @@
  * The debugging module provides a standard collection of
  * procedures for setting, examining, and testing debugging flags.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -32,7 +32,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 struct debugClient debugClients[MAXDEBUGCLIENTS];
 int debugNumClients = 0;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -84,7 +84,7 @@ DebugAddClient(name, maxflags)
 
     return ((ClientData) debugNumClients++);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -137,7 +137,7 @@ DebugAddFlag(clientID, name)
     dc->dc_flags[dc->dc_nflags].df_value = FALSE;
     return (dc->dc_nflags++);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -173,7 +173,7 @@ DebugShow(clientID)
 	TxPrintf("%-5.5s %s\n", dc->dc_flags[n].df_value ? "TRUE" : "FALSE",
 		dc->dc_flags[n].df_name);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

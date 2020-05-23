@@ -3,16 +3,16 @@
  *
  *	Functions to find & enumerate windows.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -28,7 +28,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "graphics/glyphs.h"
 #include "windows/windInt.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windSearchPoint --
@@ -41,8 +41,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *	window packages more that one window may contain that point.  In
  *	particular, under Sun Windows ALL windows contain the point (0, 0).
  *
- *	If 'inside' is non-NULL, it points to a boolean variable which will be 
- *	set to TRUE if the point is in the interior of the window, and FALSE 
+ *	If 'inside' is non-NULL, it points to a boolean variable which will be
+ *	set to TRUE if the point is in the interior of the window, and FALSE
  *	if it is in the border of the window.
  *
  * Side effects:
@@ -65,7 +65,7 @@ windSearchPoint(p, inside)
     {
 	if (GEO_ENCLOSE(p, &(w->w_allArea) ))
 	{
-	    if (inside != (bool *) NULL) 
+	    if (inside != (bool *) NULL)
 		*inside = GEO_ENCLOSE(p, &(w->w_screenArea) );
 	    return w;
 	}
@@ -128,7 +128,7 @@ WindSearchData(grdata)
     }
     return NULL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindSearch --
@@ -144,7 +144,7 @@ WindSearchData(grdata)
  *	be of the form
  *
  *	    int func(window, clientData)
- *		MagWindow *window;		
+ *		MagWindow *window;
  *		ClientData clientData;
  *	    {
  *	    }
@@ -183,7 +183,7 @@ WindSearch(client, surfaceID, surfaceArea, func, clientData)
     for (w = windTopWindow; w != (MagWindow *) NULL; w = w->w_nextWindow)
     {
 	if ( ((client == (WindClient) NULL) || (w->w_client == client)) &&
-	     ((surfaceID == (ClientData) NULL) || 
+	     ((surfaceID == (ClientData) NULL) ||
 	      (w->w_surfaceID == surfaceID)) )
 	{
 	    if (surfaceArea == (Rect *) NULL)

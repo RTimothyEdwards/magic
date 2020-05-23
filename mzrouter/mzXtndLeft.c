@@ -3,17 +3,17 @@
  *
  * Code for finding next interesting point to left.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 #ifndef lint
@@ -36,7 +36,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "mzrouter/mzrouter.h"
 #include "mzrouter/mzInternal.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -95,11 +95,11 @@ mzExtendLeft(path)
     }
 
     /*
-     *  Initial pNew to next pt where there is a change in the amount of 
-     *  space on the BLOCKAGE plane in the direction perpendicular to the 
+     *  Initial pNew to next pt where there is a change in the amount of
+     *  space on the BLOCKAGE plane in the direction perpendicular to the
      *  extension.  (A special case of this is an actual block
      *  of the extension).  Want to consider jogs at such points.
-     *  
+     *
      */
     {
 	Tile *tpNext;
@@ -114,7 +114,7 @@ mzExtendLeft(path)
 	    Tile *tpBounds;
 
 	    /* get blockage plane tile under pOrg */
-	    tpThis = TiSrPointNoHint(path->rp_rLayer->rl_routeType.rt_vBlock, 
+	    tpThis = TiSrPointNoHint(path->rp_rLayer->rl_routeType.rt_vBlock,
 				     &pOrg);
 
 	    /* org point should not be blocked */
@@ -132,17 +132,17 @@ mzExtendLeft(path)
 		   /* hit edge of bounds before jog found */
 		   goto leftEndJog;
 		}
-		else if(TOP(tpBounds)<=TOP(tpThis) && 
+		else if(TOP(tpBounds)<=TOP(tpThis) &&
 			TOP(tpBounds)<=mzRouteUse->cu_def->cd_bbox.r_ytop)
 		{
 		    Point p;
 
 		    p.p_x = MIN(RIGHT(tpBounds), pOrg.p_x);
 		    p.p_y = TOP(tpBounds);
-		
+
 		    mzExtendBlockBounds(&p);
 		    if(SigInterruptPending) return;
-		
+
 		    covered = FALSE;
 		}
 		else if(BOTTOM(tpBounds)>=BOTTOM(tpThis) &&
@@ -151,10 +151,10 @@ mzExtendLeft(path)
 		    Point p;
 		    p.p_x = MIN(RIGHT(tpBounds), pOrg.p_x);
 		    p.p_y = BOTTOM(tpBounds);
-		
+
 		    mzExtendBlockBounds(&p);
 		    if(SigInterruptPending) return;
-		
+
 		    covered = FALSE;
 		}
 
@@ -166,7 +166,7 @@ mzExtendLeft(path)
 	    }
 	}
 
-	/* also get next tile over */ 
+	/* also get next tile over */
 	NEXT_TILE_LEFT(tpNext, tpThis, pOrg.p_y);
 	ntype = TiGetType(tpNext);
 
@@ -224,8 +224,8 @@ mzExtendLeft(path)
 	    if((TOP(tpNext)<TOP(tpThis) || BOTTOM(tpNext)>BOTTOM(tpThis)) &&
 		LEFT(tpThis)<pOrg.p_x)
 	    {
-		/* space is constricting, prune pNew to far 
-		 * end of this tile 
+		/* space is constricting, prune pNew to far
+		 * end of this tile
 		 */
 		PRUNE_TO_MAX(pNew.p_x, LEFT(tpThis), reasons, RC_JOG);
 	    }
@@ -239,12 +239,12 @@ mzExtendLeft(path)
     }
 
     /*
-     *  Prune pNew to next pt where there is a change in the amount of 
-     *  space on other active BLOCKAGE planes in the direction perpendicular 
-     *  to the 
+     *  Prune pNew to next pt where there is a change in the amount of
+     *  space on other active BLOCKAGE planes in the direction perpendicular
+     *  to the
      *  extension.  (A special case of this is a actual block
      *  of the extension).  Want to consider jogs at such points.
-     *  
+     *
      */
     for(rL=mzActiveRLs; rL!=NULL; rL=rL->rl_nextActive)
     {
@@ -253,18 +253,18 @@ mzExtendLeft(path)
 	bool covered;
 
 	/* skip current layer (already handled above) */
-	if(rL == path->rp_rLayer) 
+	if(rL == path->rp_rLayer)
 	{
 	    continue;
 	}
 
 	/* get blockage plane tile under pOrg */
-	tpThis = TiSrPointNoHint(rL->rl_routeType.rt_vBlock, 
+	tpThis = TiSrPointNoHint(rL->rl_routeType.rt_vBlock,
 				 &pOrg);
 
 	tpType = TiGetType(tpThis);
 
-	if ((tpType != TT_SPACE) && (tpType != TT_SAMENODE)) 
+	if ((tpType != TT_SPACE) && (tpType != TT_SAMENODE))
 	{
 	    /* ORG POINT BLOCKED */
 	    /* this case handled by contact code below, so skip to next layer*/
@@ -284,14 +284,14 @@ mzExtendLeft(path)
 		Tile *tpBounds;
 
 		/* get blockage plane tile under pOrg */
-		tpThis = TiSrPointNoHint(rL->rl_routeType.rt_vBlock, 
+		tpThis = TiSrPointNoHint(rL->rl_routeType.rt_vBlock,
 					 &pOrg);
 
 		/* org point should not be blocked */
 		ASSERT(TiGetType(tpThis)==TT_SPACE,
 		       "mzExtendLeft, others");
 
-		/* check to see if covered, 
+		/* check to see if covered,
 		   if not extend bounds and start over */
 		covered = TRUE;
 		tpBounds = TiSrPointNoHint(mzVBoundsPlane, &pOrg);
@@ -303,17 +303,17 @@ mzExtendLeft(path)
 			/* hit edge of bounds before jog found */
 			goto leftNextLayer;
 		    }
-		    else if(TOP(tpBounds)<=TOP(tpThis) && 
+		    else if(TOP(tpBounds)<=TOP(tpThis) &&
 			    TOP(tpBounds)<=mzRouteUse->cu_def->cd_bbox.r_ytop)
 		    {
 			Point p;
 
 			p.p_x = MIN(RIGHT(tpBounds), pOrg.p_x);
 			p.p_y = TOP(tpBounds);
-		
+
 			mzExtendBlockBounds(&p);
 			if(SigInterruptPending) return;
-		
+
 			covered = FALSE;
 		    }
 		    else if(BOTTOM(tpBounds)>=BOTTOM(tpThis) &&
@@ -323,10 +323,10 @@ mzExtendLeft(path)
 			Point p;
 			p.p_x = MIN(RIGHT(tpBounds), pOrg.p_x);
 			p.p_y = BOTTOM(tpBounds);
-		
+
 			mzExtendBlockBounds(&p);
 			if(SigInterruptPending) return;
-		
+
 			covered = FALSE;
 		    }
 
@@ -338,7 +338,7 @@ mzExtendLeft(path)
 		}
 	    }
 
-	    /* get next tile over */ 
+	    /* get next tile over */
 	    NEXT_TILE_LEFT(tpNext, tpThis, pOrg.p_y);
 	    ntype = TiGetType(tpNext);
 
@@ -347,14 +347,14 @@ mzExtendLeft(path)
 		/* path blocked */
 		if(LEFT(tpThis)==pOrg.p_x)
 		{
-		    /* pOrg right up against obstacle, can't extend so 
+		    /* pOrg right up against obstacle, can't extend so
 		       go to next layer */
 		    continue;
 		}
 		else
 		{
 		    /* prune pNew to just this side of block */
-		    PRUNE_TO_MAX(pNew.p_x, 
+		    PRUNE_TO_MAX(pNew.p_x,
 				 LEFT(tpThis),
 				 reasons,
 				 RC_ALIGNOTHER);
@@ -363,13 +363,13 @@ mzExtendLeft(path)
 	    else
 	    {
 		/* path not blocked */
-		if((TOP(tpNext)<TOP(tpThis) || BOTTOM(tpNext)>BOTTOM(tpThis)) 
+		if((TOP(tpNext)<TOP(tpThis) || BOTTOM(tpNext)>BOTTOM(tpThis))
 		   && LEFT(tpThis)<pOrg.p_x)
 		{
-		    /* space is constricting, initial pNew to far 
-		     * end of this tile 
+		    /* space is constricting, initial pNew to far
+		     * end of this tile
 		     */
-		    PRUNE_TO_MAX(pNew.p_x, 
+		    PRUNE_TO_MAX(pNew.p_x,
 				 LEFT(tpThis),
 				 reasons,
 				 RC_ALIGNOTHER);
@@ -377,7 +377,7 @@ mzExtendLeft(path)
 		else
 		{
 		    /* initial pNew to just inside next tile */
-		    PRUNE_TO_MAX(pNew.p_x, 
+		    PRUNE_TO_MAX(pNew.p_x,
 				 LEFT(tpThis)-1,
 				 reasons,
 				 RC_ALIGNOTHER);
@@ -409,7 +409,7 @@ mzExtendLeft(path)
     /* Prune pNew to either side  of tile edges on ROTATE plane (organized
      * into maximum strips in perpendicular direction).  Jogging
      * at such points can effect cost.
-     * NOTE:  Also must have intermediate path points at boundaries between 
+     * NOTE:  Also must have intermediate path points at boundaries between
      * rotate and non-rotate since edge cost different in these regions.
      */
     {
@@ -438,13 +438,13 @@ mzExtendLeft(path)
 	{
 	    /* find tile in contact blockage plane under pOrg */
 	    tp = TiSrPointNoHint(
-		((RouteContact*) LIST_FIRST(cL))->rc_routeType.rt_hBlock, 
+		((RouteContact*) LIST_FIRST(cL))->rc_routeType.rt_hBlock,
 		&pStep);
 	    tpType = TiGetType(tp);
 
 	    if ((tpType == TT_SPACE) || (tpType == TT_SAMENODE))
 	    {
-		/* SPACE TILE */ 
+		/* SPACE TILE */
 		if(RIGHT(tp)-1 < pOrg.p_x)
 		    /* prune to beginning of tile */
 		    PRUNE_TO_MAX(pNew.p_x, RIGHT(tp)-1, reasons, RC_CONTACT);
@@ -606,7 +606,7 @@ mzExtendLeft(path)
 		    lowPt.p_y - BOTTOM(tp) : -1;
 
 		/* delta = distance to nearest hint */
-		if (deltaUp < 0) 
+		if (deltaUp < 0)
 		{
 		    if (deltaDown < 0)
 			delta = 0;

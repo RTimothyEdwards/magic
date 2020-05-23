@@ -4,16 +4,16 @@
  * Procedures to read a .ext file and call the procedures
  * in EFbuild.c to build up a description of each def.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -105,7 +105,7 @@ static bool efReadDef();
 /* atoCap - convert a string to a EFCapValue */
 #define	atoCap(s)	((EFCapValue)atof(s))
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -207,7 +207,7 @@ efReadDef(def, dosubckt, resist, noscale, toplevel)
 	    if (sptr) {
 		*sptr = '\0';
 		inf = PaOpen(name, "r", ".ext", filepath, EFLibPath, &efReadFileName);
-	    }	
+	    }
 	    freeMagic(filepath);
 	}
     }
@@ -622,7 +622,7 @@ resistChanged:
 	DoSubCircuit = FALSE;
 
     /* Read in each def that has not yet been read in */
-    
+
     HashStartSearch(&hs);
     while (he = HashNext(&def->def_uses, &hs))
     {
@@ -635,7 +635,7 @@ resistChanged:
 
     return rc;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -748,7 +748,7 @@ start:
 	 */
 	if (get == argv[argc])
 	    break;
-	
+
 	/* Terminate the token and advance over the terminating character. */
 
 	if (*get != '\0') get++;	/* Careful!  could be at end of line! */

@@ -67,7 +67,7 @@ TileTypeBitMask	ResSubsTypeBitMask;
 /* Forward declarations */
 extern void ResCalcPerimOverlap();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -87,7 +87,7 @@ extern void ResCalcPerimOverlap();
 
 int
 dbcConnectFuncDCS(tile, cx)
-    Tile *tile;		
+    Tile *tile;
     TreeContext *cx;
 
 {
@@ -112,9 +112,9 @@ dbcConnectFuncDCS(tile, cx)
 		((tileArea.r_ybot >= srArea->r_ytop-1) ||
 		(tileArea.r_ytop <= srArea->r_ybot+1)))
 	return 0;
- 
 
-    
+
+
     t1 = TiGetType(tile);
     if TTMaskHasType(&DiffTypeBitMask,t1)
     {
@@ -210,8 +210,8 @@ dbcConnectFuncDCS(tile, cx)
          {
 	     if (TTMaskIntersect(&DBPlaneTypes[pNum], mask))
 	     {
-	          (void)DBSrPaintArea((Tile *) NULL, 
-		  	scx->scx_use->cu_def->cd_planes[pNum], 
+	          (void)DBSrPaintArea((Tile *) NULL,
+		  	scx->scx_use->cu_def->cd_planes[pNum],
 		        &tileArea,mask,resSubSearchFunc, (ClientData) cx);
 	     }
          }
@@ -239,7 +239,7 @@ dbcConnectFuncDCS(tile, cx)
     if (DBIsContact(loctype))
     {
 	/* The mask of contact types must include all stacked contacts */
-	
+
 	TTMaskZero(&notConnectMask);
 	TTMaskSetMask(&notConnectMask, &DBNotConnectTbl[loctype]);
     }
@@ -323,7 +323,7 @@ dbcConnectFuncDCS(tile, cx)
     return 0;
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -346,10 +346,10 @@ ResCalcPerimOverlap(dev, tile)
     Tile	*tp;
     int		t1;
     int		overlap;
-    
+
     dev->perim = (TOP(tile)-BOTTOM(tile)-LEFT(tile)+RIGHT(tile))<<1;
     overlap =0;
-    
+
     t1 = TiGetType(tile);
     /* left */
     for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp=RT(tp))
@@ -359,7 +359,7 @@ ResCalcPerimOverlap(dev, tile)
 	      overlap += MIN(TOP(tile),TOP(tp))-
 	   		  MAX(BOTTOM(tile),BOTTOM(tp));
 	}
-    	 
+
     }
     /*right*/
     for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
@@ -369,7 +369,7 @@ ResCalcPerimOverlap(dev, tile)
 	      overlap += MIN(TOP(tile),TOP(tp))-
 	   		  MAX(BOTTOM(tile),BOTTOM(tp));
 	}
-    	 
+
     }
     /*top*/
     for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp=BL(tp))
@@ -379,7 +379,7 @@ ResCalcPerimOverlap(dev, tile)
 	      overlap += MIN(RIGHT(tile),RIGHT(tp))-
 	   		  MAX(LEFT(tile),LEFT(tp));
 	}
-    	 
+
     }
     /*bottom */
     for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
@@ -389,18 +389,18 @@ ResCalcPerimOverlap(dev, tile)
 	      overlap += MIN(RIGHT(tile),RIGHT(tp))-
 	   		  MAX(LEFT(tile),LEFT(tp));
 	}
-    	 
+
     }
     dev->overlap = overlap;
 }
-	
-
+
+
 /*
  * ----------------------------------------------------------------------------
  *
  * DBTreeCopyConnectDCS --
  *
- * 	Basically the same as DBTreeCopyConnect, except it calls 
+ * 	Basically the same as DBTreeCopyConnect, except it calls
  *	dbcConnectFuncDCS.
  *
  * Results:
@@ -416,14 +416,14 @@ ResDevTile *
 DBTreeCopyConnectDCS(scx, mask, xMask, connect, area, destUse)
     SearchContext *scx;
     TileTypeBitMask *mask;
-    int xMask;	
+    int xMask;
     TileTypeBitMask *connect;
-    Rect *area;	
+    Rect *area;
     CellUse *destUse;
 
 {
     static int 		first = 1;
-    struct conSrArg2	csa2; 
+    struct conSrArg2	csa2;
     int			dev, pNum;
     char		*dev_name;
     TileTypeBitMask	*newmask;
@@ -498,7 +498,7 @@ DBTreeCopyConnectDCS(scx, mask, xMask, connect, area, destUse)
     DBReComputeBbox(def);
     return(DevList);
 }
-
+
 
 #ifdef ARIEL
 /*
@@ -521,7 +521,7 @@ int
 resSubSearchFunc(tile,cx)
 	Tile	*tile;
 	TreeContext	*cx;
-	
+
 
 {
      ResDevTile		*thisDev;
@@ -529,7 +529,7 @@ resSubSearchFunc(tile,cx)
      TileType		t = TiGetType(tile);
      ExtDevice		*devptr;
 
-     /* Right now, we're only going to extract substrate terminals for 
+     /* Right now, we're only going to extract substrate terminals for
      	devices with only one diffusion terminal, principally bipolar
 	devices.
      */
@@ -542,7 +542,7 @@ resSubSearchFunc(tile,cx)
      thisDev->nextDev = DevList;
      DevList = thisDev;
      ResCalcPerimOverlap(thisDev,tile);
-     
+
      return 0;
 }
 

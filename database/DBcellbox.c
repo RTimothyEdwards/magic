@@ -4,16 +4,16 @@
  * Procedures for calculating and changing cell bounding boxes,
  * and for manipulating arrays of cells.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -34,7 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "dbwind/dbwind.h"
 #include "utils/undo.h"
 
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -105,7 +105,7 @@ DBPrintUseId(scx, name, size, display_only)
 
     return (sp);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -143,7 +143,7 @@ DBCellClearAvail(cellDef)
 {
     cellDef->cd_flags &= ~(CDNOTFOUND|CDAVAILABLE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -185,7 +185,7 @@ DBCellSetModified(cellDef, ismod)
     if (ismod)
 	cellDef->cd_flags |= CDMODIFIED|CDGETNEWSTAMP;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -253,7 +253,7 @@ DBComputeUseBbox(use)
     GeoTransRect(&use->cu_transform, &childRect, &use->cu_bbox);
     GeoTransRect(&use->cu_transform, &childExtend, &use->cu_extended);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -276,7 +276,7 @@ DBIsChild(cu1, cu2)
 {
     return (cu1->cu_parent == cu2->cu_def);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -305,7 +305,7 @@ DBSetArray(fromCellUse, toCellUse)
     toCellUse->cu_xsep = fromCellUse->cu_xsep;
     toCellUse->cu_ysep = fromCellUse->cu_ysep;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -330,7 +330,7 @@ DBSetTrans(cellUse, trans)
     cellUse->cu_transform = *trans;
     DBComputeUseBbox(cellUse);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -389,7 +389,7 @@ DBMakeArray(cellUse, rootToCell, xlo, ylo, xhi, yhi, xsep, ysep)
 
     DBComputeUseBbox(cellUse);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -483,7 +483,7 @@ DBArrayOverlap(cu, parentRect, pxlo, pxhi, pylo, pyhi)
      * The intent is that "outlo" will be the smaller of the two
      * coordinates, and "outhi" the larger.
      */
-    
+
     /* Even though it should never happen, handle zero spacings
      * gracefully.
      */
@@ -545,7 +545,7 @@ DBArrayOverlap(cu, parentRect, pxlo, pxhi, pylo, pyhi)
 	*pyhi = outyhi;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -765,7 +765,7 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
     if ((last != NULL) && (parent != NULL)) (*recurseProc)(parent);
     UndoEnable();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -812,7 +812,7 @@ DBComputeArrayArea(area, cellUse, x, y, prect)
     prect->r_ybot = area->r_ybot + ydelta;
     prect->r_ytop = area->r_ytop + ydelta;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

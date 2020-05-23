@@ -469,7 +469,7 @@ LispCdr (name,s,f)
 
 LispObj *
 LispCons (name,s,f)
-     char *name; 
+     char *name;
      Sexp *s;
      Sexp *f;
 {
@@ -729,7 +729,7 @@ LispLet (name,s,f)
   LispGCAddSexp (saved = s);
   LispGCAddSexp (f);
   LispGCAddSexp (frame);
-  
+
   while (s) {
     if (LTYPE(CAR(s)) != S_LIST || LTYPE(CDR(s)) != S_LIST) {
       TxPrintf ("%s: binding must be a list\n", name);
@@ -763,7 +763,7 @@ LispLet (name,s,f)
   LispGCRemoveSexp (saved);
 
   return body;
-}  
+}
 
 
 
@@ -830,13 +830,13 @@ LispLetRec (name,s,f)
   }
 
   body = LispEval (body, frame);
-  
+
   LispGCRemoveSexp (frame);
   LispGCRemoveSexp (f);
   LispGCRemoveSexp (saved);
 
   return body;
-}  
+}
 
 
 
@@ -873,7 +873,7 @@ LispLetStar (name,s,f)
   body = ARG2(s);
   s = LLIST(ARG1(s));
   frame = f;
-  
+
   LispGCAddSexp (saved = s);
   LispGCAddSexp (f);
   LispGCAddSexp (frame);
@@ -941,7 +941,7 @@ LispSetCarBang (name,s,f)
      Sexp *f;
 {
   LispObj *l;
-  
+
   if (!ARG1P(s) || !ARG2P(s) || LTYPE(ARG1(s)) != S_LIST || !LLIST(ARG1(s)) || ARG3P(s)) {
     TxPrintf ("Usage: (%s pair obj)\n", name);
     RETURN;
@@ -974,7 +974,7 @@ LispSetCdrBang (name,s,f)
      Sexp *f;
 {
   LispObj *l;
-  
+
   if (!ARG1P(s) || !ARG2P(s) || LTYPE(ARG1(s)) != S_LIST || !LLIST(ARG1(s)) || ARG3P(s)) {
     TxPrintf ("Usage: (%s pair obj)\n", name);
     RETURN;
@@ -1002,7 +1002,7 @@ LispSetCdrBang (name,s,f)
  *
  *  Lispeval --
  *
- *      Evaluate argument. 
+ *      Evaluate argument.
  *      (eval object)
  *
  *  Results:
@@ -1092,7 +1092,7 @@ LispIf (name,s,f)
      Sexp *s;
      Sexp *f;
 {
-  if (!ARG1P(s) || !ARG2P(s) || !ARG3P(s) || LTYPE(ARG1(s)) != S_BOOL 
+  if (!ARG1P(s) || !ARG2P(s) || !ARG3P(s) || LTYPE(ARG1(s)) != S_BOOL
       || ARG4P(s)) {
     TxPrintf ("Usage: (%s bool obj1 obj2)\n", name);
     RETURN;
@@ -1102,7 +1102,7 @@ LispIf (name,s,f)
 
   if (LBOOL(ARG1(s)))
     return LispEval (ARG2(s), f);
-  else 
+  else
     return LispEval (ARG3(s), f);
 }
 
@@ -1132,7 +1132,7 @@ LispCond (name,s,f)
   LispObj *l;
   LispObj *m;
   Sexp *t, *saved;
-  
+
   if (!ARG1P(s)) {
     TxPrintf ("Usage: (%s (bool val) ...)\n", name);
     RETURN;
@@ -1415,7 +1415,7 @@ LispLambda (name,s,f)
  *
  *      (display-object s)
  *      Prints object out to screen.
- *      
+ *
  *
  *  Results:
  *      returns #t.
@@ -1456,7 +1456,7 @@ LispDisplayObj (name,s,f)
  *
  *      (print-object s)
  *      Prints object out to screen, no newlines
- *      
+ *
  *
  *  Results:
  *      returns #t.

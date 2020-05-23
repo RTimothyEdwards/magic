@@ -3,16 +3,16 @@
  *
  * More paint and erase primitives
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -29,7 +29,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/hash.h"
 #include "database/database.h"
 #include "database/databaseInt.h"
-
+
 /*
  * ----------------------------------------------------------------------------
  * DBPaint --
@@ -134,7 +134,7 @@ dbResolveImages(tile, cellDef)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * DBErase --
@@ -166,7 +166,7 @@ DBErase (cellDef, rect, type)
 
     if (GEO_SAMERECT(*rect, TiPlaneRect))
 	allPlane = TRUE;
-    else 
+    else
 	GEO_EXPAND(rect, 1, &brect);
 
     if (type & TT_DIAGONAL)
@@ -207,7 +207,7 @@ DBErase (cellDef, rect, type)
 	    }
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * DBPaintMask --
@@ -280,7 +280,7 @@ DBPaintValid(cellDef, rect, mask, dinfo)
 
     /* If any residue of a contact is not in the active layers	*/
     /* list, then paint only the valid residue layers.		*/
- 
+
     for (t = TT_SELECTBASE; t < DBNumUserLayers; t++)
 	if (TTMaskHasType(&mmask, t))
 	    if (DBIsContact(t))
@@ -379,7 +379,7 @@ DBEraseValid(cellDef, rect, mask, dinfo)
 
     /* If any residue of a contact is not in the active layers	*/
     /* list, then erase the contact in multiple passes.		*/
- 
+
     for (t = TT_SELECTBASE; t < DBNumUserLayers; t++)
 	if (TTMaskHasType(&mmask, t))
 	    if (DBIsContact(t))

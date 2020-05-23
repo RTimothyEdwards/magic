@@ -61,7 +61,7 @@ extern void GrOGLLock(), GrOGLUnlock(), GrOGLIconUpdate();
 extern bool GrOGLInit(), GrOGLCreate();
 extern void grOGLWStdin();
 
-
+
 /*---------------------------------------------------------
  * groglSetWMandC:
  *	This is a local routine that resets the value of the current
@@ -111,13 +111,13 @@ groglSetWMandC (mask, c)
        glEnable(GL_BLEND);
        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
-    glColor4f(fr, fb, fg, aval); 
+    glColor4f(fr, fb, fg, aval);
 
     oldMask = mask;
     oldColor = c;
 }
 
-
+
 /*---------------------------------------------------------
  * groglSetLineStyle:
  *	This local routine sets the current line style.
@@ -154,7 +154,7 @@ groglSetLineStyle (style)
     }
 }
 
-
+
 /*---------------------------------------------------------
  * groglSetSPattern:
  *	xSetSPattern associates stipple patterns with
@@ -191,7 +191,7 @@ groglSetSPattern (sttable, numstipples)
     }
 }
 
-
+
 /*---------------------------------------------------------
  * groglSetStipple:
  *	This routine sets the Xs current stipple number.
@@ -221,7 +221,7 @@ groglSetStipple (stipple)
     }
 }
 
-
+
 /*---------------------------------------------------------
  * GrOGLInit:
  *	GrOGLInit initializes the graphics display and clears its screen.
@@ -247,7 +247,7 @@ GrOGLInit()
 
     grXdpy = XOpenDisplay(NULL);
     if (grXdpy == NULL)
-    {   
+    {
 	TxError("Couldn't open display; check DISPLAY variable\n");
 	return FALSE;
     }
@@ -294,7 +294,7 @@ GrOGLInit()
     if (grVisualInfo != NULL) XFree(grVisualInfo);
     return groglPreLoadFont();
 }
-
+
 /*---------------------------------------------------------
  * GrOGLClose:
  *
@@ -322,7 +322,7 @@ GrOGLClose()
 #endif
 }
 
-
+
 /*---------------------------------------------------------
  * GrOGLFlush:
  * 	Flush output to display.
@@ -506,7 +506,7 @@ pipehandler()
 	screenRect.r_xtop = ConfigureEvent->x + width;
 	screenRect.r_ybot = glTransYs(ConfigureEvent->y);
 	screenRect.r_ytop = glTransYs(ConfigureEvent->y + height);
-		 
+
 	SigDisableInterrupts();
 
 	/* Redraw the window */
@@ -568,7 +568,7 @@ pipehandler()
 	    WindScreenToSurface(mw, &screenRect, &surface);
 	    DBWHLRedrawPrepWindow(mw, &surface);
 	    WindDrawBorder(mw, &screenRect);
-	}	
+	}
 	else
 	    WindAreaChanged(mw, &screenRect);
 	WindUpdate(mw);
@@ -576,7 +576,7 @@ pipehandler()
 	} break;
 
       case CreateNotify:	{
-	
+
    	XAnyEvent 	*AnyEvent = (XAnyEvent *) &xevent;
 
 	entry = HashLookOnly(&grOGLWindowTable, AnyEvent->window);
@@ -614,7 +614,7 @@ oglSetDisplay (dispType, outFileName, mouseFileName)
     WindPackageType = WIND_X_WINDOWS;	/* This works okay. */
 
     grCursorType = "bw";
-    
+
     WindScrollBarWidth = 14;
 
     pipe(fildes);
@@ -646,7 +646,7 @@ oglSetDisplay (dispType, outFileName, mouseFileName)
     else {
         fclose(f);
     }
-    
+
     FORK(Xhelper);
     if (Xhelper == 0) {    /* Child process */
         char argv[2][100];
@@ -688,7 +688,7 @@ oglSetDisplay (dispType, outFileName, mouseFileName)
     GrConfigureWindowPtr = GrOGLConfigure;
     GrOverWindowPtr = GrOGLRaise;
     GrUnderWindowPtr = GrOGLLower;
-    GrUpdateIconPtr = GrOGLIconUpdate; 
+    GrUpdateIconPtr = GrOGLIconUpdate;
     GrBitBltPtr = GrOGLBitBlt;
 
     GrFreeBackingStorePtr = groglFreeBackingStore;
@@ -910,7 +910,7 @@ GrOGLDelete(w)
 
     XDestroyWindow(grXdpy, xw);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -958,7 +958,7 @@ GrOGLRaise(w)
 {
     XRaiseWindow(grXdpy, (Window) w->w_grdata );
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -981,7 +981,7 @@ GrOGLLower(w)
 {
     XLowerWindow(grXdpy, (Window) w->w_grdata );
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1014,7 +1014,7 @@ GrOGLLock(w, flag)
 			 w->w_allArea.r_ytop - w->w_allArea.r_ybot);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1037,7 +1037,7 @@ GrOGLUnlock(w)
     GrOGLFlush();
     grSimpleUnlock(w);
 }
-
+
 
 /*
  *-------------------------------------------------------------------------
@@ -1059,7 +1059,7 @@ GrOGLIconUpdate(w,text)
      Window wind = (Window) w->w_grdata;
      XClassHint	class;
      char	*brack;
-     
+
      if (w->w_grdata == (ClientData)NULL) return;
      class.res_name = "magic";
      class.res_class = "magic";

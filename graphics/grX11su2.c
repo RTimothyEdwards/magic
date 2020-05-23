@@ -1,15 +1,15 @@
 /* grX11su2.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains additional functions to manipulate an X
@@ -39,7 +39,7 @@ extern unsigned long grPixels[256];
 extern XColor   colors[256*3];	/* Unique colors used by Magic */
 extern Colormap grXcmap;
 
-
+
 /*---------------------------------------------------------
  * GrXSetCMap:
  *
@@ -63,7 +63,7 @@ GrX11SetCMap ()
     int red_shift, green_shift, blue_shift;
     unsigned long grCompleteMask;
 
-    /* grCompleteMask is a mask of all the planes not used by this 
+    /* grCompleteMask is a mask of all the planes not used by this
      * technology.  It is OR'd in with the mask that magic supplies
      * to ensure that unused bits of the pixel are cleared.
      */
@@ -171,13 +171,13 @@ GrX11SetCMap ()
 		{
 		    grPixels[i] |= grDisplay.planes[j];
 		    grPlanes[i] |= grDisplay.planes[j];
-		} 
+		}
 	}
     }
 
     if (grDisplay.depth)
     {
-	for (i = 0; i < grDisplay.realColors; i++) 
+	for (i = 0; i < grDisplay.realColors; i++)
 	{
 	    if (!GrGetColor(i, &red, &green, &blue)) break;
 	    colors[i].pixel = grPixels[i];
@@ -229,7 +229,7 @@ grx11DrawLines(lines, nb)
     XDrawSegments(grXdpy, grCurrent.window, grGCDraw,
 	      lines, nb);
 }
-
+
 /*---------------------------------------------------------
  * grxDrawLine:
  *	This routine draws a line.
@@ -254,7 +254,7 @@ grx11DrawLine (x1, y1, x2, y2)
     grx11NbLines++;
 }
 
-
+
 /*---------------------------------------------------------
  * grxFillRects:
  *	This routine draws a bunch of solid rectangles.
@@ -274,7 +274,7 @@ grx11FillRects(rects, nb)
     XFillRectangles(grXdpy, grCurrent.window, grGCFill, rects, nb);
 }
 
-
+
 /*---------------------------------------------------------
  * grxFillRect:
  *	This routine draws a solid rectangle.

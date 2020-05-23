@@ -1,28 +1,28 @@
 // ************************************************************************
-// 
+//
 // Copyright (c) 1995-2002 Juniper Networks, Inc. All rights reserved.
-// 
+//
 // Permission is hereby granted, without written agreement and without
 // license or royalty fees, to use, copy, modify, and distribute this
 // software and its documentation for any purpose, provided that the
 // above copyright notice and the following three paragraphs appear in
 // all copies of this software.
-// 
+//
 // IN NO EVENT SHALL JUNIPER NETWORKS, INC. BE LIABLE TO ANY PARTY FOR
 // DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
 // ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF
 // JUNIPER NETWORKS, INC. HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
-// 
+//
 // JUNIPER NETWORKS, INC. SPECIFICALLY DISCLAIMS ANY WARRANTIES,
 // INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
 // NON-INFRINGEMENT.
-// 
+//
 // THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND JUNIPER
 // NETWORKS, INC. HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-// 
+//
 // ************************************************************************
 
 #ifndef _BPENUM_H
@@ -44,12 +44,12 @@
 extern void DumpRect(char *msg, Rect *r);
 
 /* state machine states */
-#define BPS_BINS 0       
-#define BPS_BINS_INSIDE 1       
-#define BPS_INBOX 2 
-#define BPS_INBOX_INSIDE 3       
-#define BPS_HASH 4 
-#define BPS_DONE 5 
+#define BPS_BINS 0
+#define BPS_BINS_INSIDE 1
+#define BPS_INBOX 2
+#define BPS_INBOX_INSIDE 3
+#define BPS_HASH 4
+#define BPS_DONE 5
 
 /* range code */
 #define R_LEFT 1
@@ -65,7 +65,7 @@ extern void DumpRect(char *msg, Rect *r);
  * Returns: bin area.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 static __inline__ Rect bpBinArea(BinArray *ba, int i)
 {
   int dimX = ba->ba_dimX;
@@ -74,9 +74,9 @@ static __inline__ Rect bpBinArea(BinArray *ba, int i)
   int xi = i % dimX;
   int yi = i / dimX;
   Rect area;
-  
-  area.r_xbot = ba->ba_bbox.r_xbot + dx*xi; 
-  area.r_ybot = ba->ba_bbox.r_ybot + dy*yi; 
+
+  area.r_xbot = ba->ba_bbox.r_xbot + dx*xi;
+  area.r_ybot = ba->ba_bbox.r_ybot + dy*yi;
   area.r_xtop = area.r_xbot + dx;
   area.r_ytop = area.r_ybot + dy;
 
@@ -96,7 +96,7 @@ static __inline__ Rect bpBinArea(BinArray *ba, int i)
  * Returns:  int encoding 'range'.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 static __inline__ int
 bpEnumRange(Rect *bin, Rect *srch)
 {
@@ -125,7 +125,7 @@ bpEnumRange(Rect *bin, Rect *srch)
  * Returns:  TRUE on match, FALSE otherwise.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 static __inline__ bool
 bpEnumMatchQ(BPEnum *bpe, Element *e)
 {
@@ -149,8 +149,8 @@ bpEnumMatchQ(BPEnum *bpe, Element *e)
  * push a bin array onto an enum stack.
  *
  * ----------------------------------------------------------------------------
- */		 
-static __inline__ bool bpEnumPushInside(BPEnum *bpe, 
+ */
+static __inline__ bool bpEnumPushInside(BPEnum *bpe,
 					BinArray *ba)
 {
   BPStack *bps;
@@ -164,7 +164,7 @@ static __inline__ bool bpEnumPushInside(BPEnum *bpe,
   /* set up indices to scan entire bin array */
   bps->bps_i = -1;
   bps->bps_max = ba->ba_numBins;
-  
+
   return TRUE;
 }
 
@@ -174,11 +174,11 @@ static __inline__ bool bpEnumPushInside(BPEnum *bpe,
  *
  * push a bin array onto an enum stack.
  *
- * normally returns TRUE, returns FALSE on (possible) state change. 
+ * normally returns TRUE, returns FALSE on (possible) state change.
  *
  * ----------------------------------------------------------------------------
- */		 
-static __inline__ bool bpEnumPush(BPEnum *bpe, 
+ */
+static __inline__ bool bpEnumPush(BPEnum *bpe,
 				  BinArray *ba,
 				  bool inside)
 {
@@ -194,7 +194,7 @@ static __inline__ bool bpEnumPush(BPEnum *bpe,
 
   /* special case inside */
   if(inside) return bpEnumPushInside(bpe,ba);
-  
+
   bbox = &ba->ba_bbox;
   if(GEO_SURROUND(&bpe->bpe_srchArea,bbox))
   {
@@ -210,13 +210,13 @@ static __inline__ bool bpEnumPush(BPEnum *bpe,
   bps->bps_subbin = FALSE;
   bps->bps_rejects = 0;
 
-  /* compute search area for this bin array */ 
+  /* compute search area for this bin array */
   dx = ba->ba_dx;
   dy = ba->ba_dy;
-  area.r_xbot = bpe->bpe_srchArea.r_xbot - dx; 
-  area.r_xtop = bpe->bpe_srchArea.r_xtop + 1; 
-  area.r_ybot = bpe->bpe_srchArea.r_ybot - dy; 
-  area.r_ytop = bpe->bpe_srchArea.r_ytop + 1; 
+  area.r_xbot = bpe->bpe_srchArea.r_xbot - dx;
+  area.r_xtop = bpe->bpe_srchArea.r_xtop + 1;
+  area.r_ybot = bpe->bpe_srchArea.r_ybot - dy;
+  area.r_ytop = bpe->bpe_srchArea.r_ytop + 1;
   GEOCLIP(&area,bbox);
 
   if(GEO_RECTNULL(&area))
@@ -238,7 +238,7 @@ static __inline__ bool bpEnumPush(BPEnum *bpe,
     area.r_ybot -= bbox->r_ybot;
     area.r_ytop -= bbox->r_ybot;
 
-    /* DumpRect("area relative to bin bbox = ",&area); */ 
+    /* DumpRect("area relative to bin bbox = ",&area); */
 
     area.r_xbot /= ba->ba_dx;
     area.r_xtop /= ba->ba_dx;
@@ -246,7 +246,7 @@ static __inline__ bool bpEnumPush(BPEnum *bpe,
     area.r_ytop /= ba->ba_dy;
 
     i = area.r_ybot*dimX + area.r_xbot;  /* next index */
-    bps->bps_i = i-1; 
+    bps->bps_i = i-1;
     bps->bps_rowMax = i + area.r_xtop - area.r_xbot;
     bps->bps_max = area.r_ytop*dimX + area.r_xtop;
     bps->bps_rowDelta = dimX + area.r_xbot - area.r_xtop;
@@ -259,19 +259,19 @@ static __inline__ bool bpEnumPush(BPEnum *bpe,
     }
   }
 
-  return TRUE; 
+  return TRUE;
 }
 
 /*
  * ----------------------------------------------------------------------------
  * bpEnumNextBin1 --
  *
- * called by bpEnumNextBin() after indexes for new bin are setup 
+ * called by bpEnumNextBin() after indexes for new bin are setup
  *
  * returns:  normally returns TRUE, returns FALSE on state change.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 static __inline__ bool
 bpEnumNextBin1(BPEnum *bpe, BPStack *bps, bool inside)
 {
@@ -290,8 +290,8 @@ bpEnumNextBin1(BPEnum *bpe, BPStack *bps, bool inside)
  * bpEnumNextBin --
  *
  * called by bpEnumNextBINS to advance to next bin (bucket).
- * 
- * cycles through normal bins first, then oversized, 
+ *
+ * cycles through normal bins first, then oversized,
  * finally, for toplevel, sets INBOX state.
  *
  * sets bpe->bpe_nextElement to first element in next bin.
@@ -299,7 +299,7 @@ bpEnumNextBin1(BPEnum *bpe, BPStack *bps, bool inside)
  * returns:  normally returns TRUE, returns FALSE on state change.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 static __inline__ bool
 bpEnumNextBin(BPEnum *bpe, bool inside)
 {
@@ -308,7 +308,7 @@ bpEnumNextBin(BPEnum *bpe, bool inside)
 #ifdef PARANOID
   ASSERT(bps,"bpEnumNextBin");
   ASSERT(!bpe->bpe_nextElement,"bpEnumNextBin");
-#endif 
+#endif
 
   /*
   fprintf(stderr,"DEBUG bpEnumNextBin TOP inside=%d nextElement=%x\n",
@@ -318,7 +318,7 @@ bpEnumNextBin(BPEnum *bpe, bool inside)
   /* consider subbining this bin before advancing to next */
   if(!inside)
   {
-    if(bps->bps_rejects >= bpMinBAPop 
+    if(bps->bps_rejects >= bpMinBAPop
        && (bps->bps_subbin || bps->bps_i == bps->bps_node->ba_numBins))
     {
       int i = bps->bps_i;
@@ -338,7 +338,7 @@ bpEnumNextBin(BPEnum *bpe, bool inside)
     }
     bps->bps_rejects = 0;
   }
-  
+
   /* handle inside case first */
   if(inside)
   {
@@ -354,7 +354,7 @@ bpEnumNextBin(BPEnum *bpe, bool inside)
   else
   {
     /* cycle only through relevant bins */
-    
+
     /* next in row */
     if(bps->bps_i<bps->bps_rowMax)
     {
@@ -365,7 +365,7 @@ bpEnumNextBin(BPEnum *bpe, bool inside)
     /* next row */
     if(bps->bps_i<bps->bps_max)
     {
-      bps->bps_i += bps->bps_rowDelta; 
+      bps->bps_i += bps->bps_rowDelta;
       bps->bps_rowMax += bps->bps_dimX;
       goto bin;
     }
@@ -382,7 +382,7 @@ bpEnumNextBin(BPEnum *bpe, bool inside)
   /* fprintf(stderr,"DEBUG BPEnumNextBin Pop.\n"); */
   bpe->bpe_top--;
   if(bpe->bpe_top>bpe->bpe_stack) return FALSE; /* state may have changed */
-  
+
   /* inbox */
   /* fprintf(stderr,"DEBUG BPEnumNextBin INBOX.\n"); */
   bpe->bpe_nextElement = bpe->bpe_plane->bp_inBox;
@@ -403,14 +403,14 @@ bpEnumNextBin(BPEnum *bpe, bool inside)
  * (bin enumeration.)
  *
  * ----------------------------------------------------------------------------
- */		 
-static __inline__ Element* bpEnumNextBINS(BPEnum *bpe, bool inside) 
+ */
+static __inline__ Element* bpEnumNextBINS(BPEnum *bpe, bool inside)
 {
   /* bin by bin */
   do
   {
-    /* search this bin */ 
-    Element *e = bpe->bpe_nextElement; 
+    /* search this bin */
+    Element *e = bpe->bpe_nextElement;
 
     while(e && !inside && !bpEnumMatchQ(bpe,e))
     {
@@ -427,7 +427,7 @@ static __inline__ Element* bpEnumNextBINS(BPEnum *bpe, bool inside)
 
     bpe->bpe_nextElement = NULL;
   }
-  while(bpEnumNextBin(bpe,inside));  
+  while(bpEnumNextBin(bpe,inside));
 
   /* next state */
   return NULL;
@@ -442,8 +442,8 @@ static __inline__ Element* bpEnumNextBINS(BPEnum *bpe, bool inside)
  * unbinned enumeration.
  *
  * ----------------------------------------------------------------------------
- */		 
-static __inline__ Element *bpEnumNextINBOX(BPEnum *bpe, 
+ */
+static __inline__ Element *bpEnumNextINBOX(BPEnum *bpe,
 					   bool inside)
 {
   Element *e = bpe->bpe_nextElement;
@@ -469,14 +469,14 @@ static __inline__ Element *bpEnumNextINBOX(BPEnum *bpe,
  * (hash based (EQUALS) enumerations.)
  *
  * ----------------------------------------------------------------------------
- */		 
-static __inline__ Element *bpEnumNextHASH(BPEnum *bpe) 
+ */
+static __inline__ Element *bpEnumNextHASH(BPEnum *bpe)
 {
   Element *e = bpe->bpe_nextElement;
 
   if(e)
   {
-    bpe->bpe_nextElement = 
+    bpe->bpe_nextElement =
       IHashLookUpNext(bpe->bpe_plane->bp_hashTable, e);
   }
   else
@@ -493,7 +493,7 @@ static __inline__ Element *bpEnumNextHASH(BPEnum *bpe)
  * get next element in enumeration.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 static __inline__ void *BPEnumNext(BPEnum *bpe)
 {
   Element *e;

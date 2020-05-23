@@ -6,16 +6,16 @@
  *
  * rcsid "$Header: /usr/cvsroot/magic-8.0/extract/extractInt.h,v 1.7 2010/08/10 00:18:46 tim Exp $"
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  *   This module has been modified at DEC/WRL and Stanford University.
@@ -107,8 +107,8 @@ typedef struct ll
 				 * attribute, rather than one of the diffusion
 				 * terminals' attributes.
 				 */
-#define LL_SORTATTR	-3      /* value for ll_attr used in 
-				 * ExtBasic.c/ExtSortTerminals() to swap 
+#define LL_SORTATTR	-3      /* value for ll_attr used in
+				 * ExtBasic.c/ExtSortTerminals() to swap
 				 * the attributes as well as the regions
 				 * -- Stefanos 5/96
 				 */
@@ -221,7 +221,7 @@ typedef struct treg
 typedef struct {	/* Maintain plane information when pushing	*/
     Rect area;		/* tiles on the node stack.  For use with	*/
     int  plane;		/* function extNbrPushFunc().			*/
-} PlaneAndArea; 
+} PlaneAndArea;
 
 /* Structure to be kept in a hash table of node regions for the current	*/
 /* extract cell.  It tracks the original substrate cap calculated for	*/
@@ -247,7 +247,7 @@ typedef struct {
 #define	extMakeNodeNumPrint(buf, plane, coord) \
     (void) sprintf((buf), "%s_%s%d_%s%d#", DBPlaneShortName(plane), \
 	((coord).p_x < 0) ? "n": "", abs((coord).p_x), \
-	((coord).p_y < 0) ? "n": "", abs((coord).p_y)) 
+	((coord).p_y < 0) ? "n": "", abs((coord).p_y))
 
 /* Old way:  cryptic numbers, but a bit shorter
  *
@@ -577,7 +577,7 @@ typedef struct extDevice
  * We try to use use integers here, rather than floats, to be nice to
  * machines like Sun workstations that don't have hardware
  * floating point.
- * 
+ *
  * In the case of capacitances, though, we may have to use floats, depending
  * upon the type CapValue.  In some newer processes the capacitance per
  * lambda^2 is less than 1 attofarad.
@@ -728,7 +728,7 @@ typedef struct extstyle
 	 */
     TileTypeBitMask	 exts_overlapOtherTypes[NT];
     PlaneMask		 exts_overlapOtherPlanes[NT];
-    
+
 	/*
 	 * Both exts_overlapShieldTypes[][] and exts_overlapShieldPlanes[][]
 	 * are indexed by the same pair of types used to index the table
@@ -757,7 +757,7 @@ typedef struct extstyle
 	 * and the default planeorder is used for the style.
 	 */
     int			exts_planeOrder[NP];
-	/* set/reset with planeorder commands to determine  whether 
+	/* set/reset with planeorder commands to determine  whether
 	 * we will warn if no planeorder is specified. This is done
 	 * because at Stanford we use a lot of diagnostic extraction
 	 * styles (for floating wells etc.) and we don't want to specify
@@ -816,7 +816,7 @@ typedef struct extstyle
      * overlap a type to which it has sidewall overlap capacitance, the
      * original capacitance to substrate is replaced with the overlap
      * capacitance to the tile overlapped, if the edge is above the tile
-     * being overlapped (according to ext_planeOrder).  If the tiles are 
+     * being overlapped (according to ext_planeOrder).  If the tiles are
      * the other way around, then this replacement is not done.
      */
 
@@ -824,7 +824,7 @@ typedef struct extstyle
 	 * The entry exts_sideOverlapCap[i][j] is a list of the coupling
 	 * capacitance info between edges with type 'i' on the inside
 	 * and 'j' on the outside, and other kinds of tiles on other
-	 * planes.  The ec_near mask in the EdgeCap record identifies the 
+	 * planes.  The ec_near mask in the EdgeCap record identifies the
 	 * types to which we have sidewall overlap capacitance, and the
 	 * ec_far mask identifies the types that shield the tiles preventing
 	 * a capacitance.
@@ -839,8 +839,8 @@ typedef struct extstyle
 	 * exts_sideOverlapShieldPlanes[s][t] is a list of the planes that
 	 * need to be examined for shielding material when we are considering
 	 * a sidewall overlap capacitor between types s and t.  This may
-	 * be the "or" of the planes needed by several sideoverlap rules, 
-	 * since there can be several types of edges in which type s is 
+	 * be the "or" of the planes needed by several sideoverlap rules,
+	 * since there can be several types of edges in which type s is
 	 * the "intype" member and the "outtype" member varies.  Note that
 	 * sideOverlapShieldPlanes is indexed like overlapShieldPlanes, not
 	 * like sideOverlapOtherPlanes.

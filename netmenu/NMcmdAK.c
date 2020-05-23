@@ -3,16 +3,16 @@
  *	This file contains routines to interpret commands typed inside
  *	netlist windows.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -34,7 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/main.h"
 #include "textio/textio.h"
 #include "utils/malloc.h"
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -73,7 +73,7 @@ NMCmdAdd(w, cmd)
     }
     (void) NMAddTerm(cmd->tx_argv[1], cmd->tx_argv[2]);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -156,7 +156,7 @@ NMCmdCleanup(w, cmd)
      * netlist, and that is a dangerous thing to do while a search
      * is in progress.
      */
-    
+
     for (p = nmCleanupList; p != NULL; p = p->nmcl_next)
     {
 	char answer[30];
@@ -273,7 +273,7 @@ nmCleanupNet()
 	nmCleanupList = p;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -312,7 +312,7 @@ NMCmdCull(w, cmd)
     }
     NMCull();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -367,7 +367,7 @@ NMCmdDnet(w, cmd)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -415,7 +415,7 @@ NMCmdDterm(w, cmd)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -458,7 +458,7 @@ NMCmdExtract(w, cmd)
 */
     NMExtract();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -502,7 +502,7 @@ NMCmdFindLabels(w, cmd)
     }
     NMShowLabel(pattern, pMask);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -548,7 +548,7 @@ NMCmdFlush(w, cmd)
 
     NMFlushNetlist(name);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

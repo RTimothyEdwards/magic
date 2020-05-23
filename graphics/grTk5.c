@@ -26,7 +26,7 @@
 extern HashTable	grTkWindowTable;
 extern XColor colors[];
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTkDrawGlyph --
@@ -49,7 +49,7 @@ GrTkDrawGlyph (gl, p)
     Rect bBox;
     bool anyObscure;
     LinkedRect *ob;
-    
+
     GR_CHECK_LOCK();
     bBox.r_ll = *p;
     bBox.r_xtop = p->p_x + gl->gr_xsize - 1;
@@ -96,7 +96,7 @@ GrTkDrawGlyph (gl, p)
 	    if ( (yloc <= grCurClip.r_ytop) && (yloc >= grCurClip.r_ybot) ) {
 		int laststartx;
 		laststartx = bBox.r_xbot - 1;
-		for (startx = bBox.r_xbot; startx <= bBox.r_xtop; 
+		for (startx = bBox.r_xbot; startx <= bBox.r_xtop;
 			startx = endx + 1) {
 		    int *pixelp;
 
@@ -105,7 +105,7 @@ GrTkDrawGlyph (gl, p)
 
 		    if (anyObscure) {
 			for (ob = grCurObscure; ob != NULL; ob = ob->r_next) {
-			    if ( (ob->r_r.r_ybot <= yloc) && 
+			    if ( (ob->r_r.r_ybot <= yloc) &&
 				 (ob->r_r.r_ytop >= yloc) ) {
 				if (ob->r_r.r_xbot <= startx)
 				    startx = MAX(startx, ob->r_r.r_xtop + 1);
@@ -116,7 +116,7 @@ GrTkDrawGlyph (gl, p)
 		    }
 
 		    /* stop if we aren't advancing */
-		    if (startx == laststartx) break;  
+		    if (startx == laststartx) break;
 		    laststartx = startx;
 		    if (startx > endx) continue;
 
@@ -141,7 +141,7 @@ GrTkDrawGlyph (gl, p)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTkSetCursor:
@@ -172,7 +172,7 @@ GrTkSetCursor(cursorNum)
 	return;
     }
     grCurrent.cursor = grCursors[cursorNum];
-    
+
     HashStartSearch(&hs);
     while (entry = HashNext(&grTkWindowTable,&hs))
     {

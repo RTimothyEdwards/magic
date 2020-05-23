@@ -3,16 +3,16 @@
  *
  * Commands with names beginning with the letters R through S.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -53,7 +53,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 extern void DisplayWindow();
 
-
+
 #if !defined(NO_SIM_MODULE) && defined(RSIM_MODULE)
 /*
  * ----------------------------------------------------------------------------
@@ -70,7 +70,7 @@ extern void DisplayWindow();
  *
  * ----------------------------------------------------------------------------
  */
-  
+
 void
 CmdRsim(w, cmd)
     MagWindow *w;
@@ -99,7 +99,7 @@ CmdRsim(w, cmd)
 }
 #endif
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -162,7 +162,7 @@ CmdSave(w, cmd)
     }
     else cmdSaveCell(locDef, (char *) NULL, FALSE, TRUE);
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -223,7 +223,7 @@ CmdScaleGrid(w, cmd)
 	    else
 		goto scalegridusage;
 	}
-	else	
+	else
 	{
 	    if (!StrIsInt(cmd->tx_argv[2]))
 		goto scalegridusage;
@@ -469,7 +469,7 @@ CmdSee(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -514,7 +514,7 @@ cmdSelectArea(layers, less)
      * no problem.  If it's in more than window, the cursor must
      * disambiguate the windows.
      */
-    
+
     xMask = ((DBWclientRec *) window->w_clientData)->dbw_bitmask;
     if ((windowMask & ~xMask) != 0)
     {
@@ -534,7 +534,7 @@ cmdSelectArea(layers, less)
 	TTMaskClearType(&mask, TT_SPACE);
     }
     else return;
-    
+
     if (less)
       {
 	(void) SelRemoveArea(&scx.scx_area, &mask);
@@ -546,7 +546,7 @@ cmdSelectArea(layers, less)
     crec = (DBWclientRec *) window->w_clientData;
     SelectArea(&scx, &mask, crec->dbw_bitmask);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -591,7 +591,7 @@ cmdSelectVisible(layers, less)
      * no problem.  If it's in more than window, the cursor must
      * disambiguate the windows.
      */
-    
+
     xMask = ((DBWclientRec *) window->w_clientData)->dbw_bitmask;
     if ((windowMask & ~xMask) != 0)
     {
@@ -611,7 +611,7 @@ cmdSelectVisible(layers, less)
 	TTMaskClearType(&mask, TT_SPACE);
     }
     else return;
-    
+
     if (less)
       {
 	(void) SelRemoveArea(&scx.scx_area, &mask);
@@ -631,7 +631,7 @@ cmdSelectVisible(layers, less)
     }
     SelectArea(&scx, &mask, crec->dbw_bitmask);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -776,7 +776,7 @@ CmdSelect(w, cmd)
 #ifdef MAGIC_WRAPPER
     char *tclstr;
 #endif
-    
+
 /* How close two clicks must be to be considered the same point: */
 
 #define MARGIN 2
@@ -793,7 +793,7 @@ CmdSelect(w, cmd)
      * the argument list and set the "more" flag.  Similarly for options
      * "less", "nocycle", "top", and "cell".
      */
-    
+
     if (cmd->tx_argc >= 2)
     {
 	int arg1len = strlen(cmd->tx_argv[1]);
@@ -831,7 +831,7 @@ CmdSelect(w, cmd)
 	    cmd->tx_argc--;
 	}
 
-	else if (!strncmp(cmd->tx_argv[1], "top", arg1len)) 
+	else if (!strncmp(cmd->tx_argv[1], "top", arg1len))
 	{
 	    if ((cmd->tx_argc >= 3) && !strncmp(cmd->tx_argv[2],
 			"cell", strlen(cmd->tx_argv[2])))
@@ -897,7 +897,7 @@ CmdSelect(w, cmd)
 		cmdSelectArea(optionArgs[1], less);
 	    else cmdSelectArea("*,label,subcell", less);
 	    return;
-	
+
 	/*--------------------------------------------------------------------
 	 * Select everything under the box, perhaps looking only at
 	 * particular layers, but only if its visible.
@@ -911,7 +911,7 @@ CmdSelect(w, cmd)
 		cmdSelectVisible(optionArgs[1], less);
 	    else cmdSelectVisible("*,label,subcell", less);
 	    return;
-	
+
 	/*--------------------------------------------------------------------
 	 * Clear out all of the material in the selection.
 	 *--------------------------------------------------------------------
@@ -921,7 +921,7 @@ CmdSelect(w, cmd)
 	    if ((more) || (less) || (cmd->tx_argc > 2)) goto usageError;
 	    SelectClear();
 	    return;
-	
+
 	/*--------------------------------------------------------------------
 	 * Print out help information.
 	 *--------------------------------------------------------------------
@@ -1080,7 +1080,7 @@ CmdSelect(w, cmd)
 	    GeoTransRect(&SelectUse->cu_transform, &SelectDef->cd_bbox, &selarea);
 	    DBWHLRedraw(SelectRootDef, &selarea, FALSE);
 	    break;
-	
+
 	case SEL_BOX: case SEL_CHUNK: case SEL_REGION: case SEL_NET:
 	    if (cmd->tx_argc > 3) goto usageError;
 	    if (cmd->tx_argc == 3)
@@ -1156,7 +1156,7 @@ Okay:
 	     * instance followed by selecting an instance that was occupying the
 	     * same space WILL cause a crash).
 	     */
-	
+
 	    if (!GEO_ENCLOSE(&cmd->tx_p, &lastArea)
 		    || ((lastCommand + 1) != TxCommandNumber))
 	    {
@@ -1185,7 +1185,7 @@ Okay:
 		     * box/cursor to begin the selection
 		     */
 		    TileTypeBitMask uMask;
-	
+
 		    if (CmdParseLayers (optionArgs[1], &uMask))
 		    {
 			if (TTMaskEqual (&uMask, &DBSpaceBits))
@@ -1353,7 +1353,7 @@ Okay:
 	     * and select it.  In this case, defeat all of the "multiple
 	     * click" code.
 	     */
-	    
+
 	    if ((cmd->tx_argc == 3) && (optionArgs == &cmd->tx_argv[2]) &&
 		(more == FALSE) && (less == FALSE))
 	    {
@@ -1399,7 +1399,7 @@ Okay:
 		lessCellCycle = less;
 		use = DBSelectCell(scx.scx_use, lastUse, &lastIndices,
 			&scx.scx_area, crec->dbw_bitmask, &trans, &p, &tpath);
-    
+
 		/* Use the window's root cell if nothing else is found. */
 
 		if (use == NULL)
@@ -1855,7 +1855,7 @@ CmdSetLabel(w, cmd)
 	    TxPrintf("\n");
 #endif
 	    break;
-	
+
 	case SETLABEL_TEXT:
 	    if (EditCellUse)
 	    {
@@ -1899,7 +1899,7 @@ CmdSetLabel(w, cmd)
 			if (font < -1) break;
 		    }
 		}
-	    
+
 		if (EditCellUse)
 		{
 		    SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
@@ -1957,7 +1957,7 @@ CmdSetLabel(w, cmd)
 	    {
 		offset.p_x = cmdScaleCoord(w, cmd->tx_argv[2], TRUE, TRUE, 8);
 		offset.p_y = cmdScaleCoord(w, cmd->tx_argv[3], TRUE, FALSE, 8);
-	    }	
+	    }
 	    if (EditCellUse)
 	    {
 		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
@@ -2072,7 +2072,7 @@ CmdSideways(w, cmd)
      * y-axis, then move it back so its lower-left corner is in
      * the same place that it used to be.
      */
-    
+
     GeoTransRect(&GeoSidewaysTransform, &SelectDef->cd_bbox, &bbox);
     GeoTranslateTrans(&GeoSidewaysTransform,
 	SelectDef->cd_bbox.r_xbot - bbox.r_xbot,
@@ -2083,7 +2083,7 @@ CmdSideways(w, cmd)
     /* Flip the box, if it exists and is in the same window as the
      * selection.
      */
-    
+
     if (ToolGetBox(&rootDef, &rootBox) && (rootDef == SelectRootDef))
     {
 	Rect newBox;
@@ -2094,7 +2094,7 @@ CmdSideways(w, cmd)
 
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2137,7 +2137,7 @@ CmdShell(w, cmd)
 	freeMagic(command);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2190,7 +2190,7 @@ CmdSgraph(w, cmd)
  *
  * Results:
  *	Rsim is forked from Magic.
- * 
+ *
  * Side effects:
  *	None.
  *
@@ -2227,7 +2227,7 @@ CmdStartRsim(w, cmd)
     }
     SimConnectRsim(TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2241,7 +2241,7 @@ CmdStartRsim(w, cmd)
  * Side effects:
  *	None.
  *
- * ---------------------------------------------------------------------------- 
+ * ----------------------------------------------------------------------------
  */
 
 void
@@ -2304,7 +2304,7 @@ CmdSimCmd(w, cmd)
 }
 #endif
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2365,7 +2365,7 @@ CmdSnap(w, cmd)
 printit:
     if (n == SNAP_LIST)  /* list */
 #ifdef MAGIC_WRAPPER
-	Tcl_SetResult(magicinterp, 
+	Tcl_SetResult(magicinterp,
 		(DBWSnapToGrid == DBW_SNAP_INTERNAL) ? "internal" :
 		((DBWSnapToGrid == DBW_SNAP_LAMBDA) ? "lambda" : "user"),
 		TCL_VOLATILE);
@@ -2379,7 +2379,7 @@ printit:
 		((DBWSnapToGrid == DBW_SNAP_LAMBDA) ? "lambda" : "user"));
 }
 
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -2563,7 +2563,7 @@ CmdSplitErase(w, cmd)
     DRCCheckThis (EditCellUse->cu_def, TT_CHECKPAINT, &editRect);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2672,7 +2672,7 @@ CmdStretch(w, cmd)
 	/* Use the displacement between the box lower-left corner and
 	 * the point as the transform.  Round off to a Manhattan distance.
 	 */
-	
+
 	Point rootPoint;
 	MagWindow *window;
 	int absX, absY;
@@ -2705,6 +2705,6 @@ CmdStretch(w, cmd)
 	GeoTransRect(&t, &rootBox, &newBox);
 	DBWSetBox(rootDef, &newBox);
     }
-    
+
     SelectStretch(xdelta, ydelta);
 }

@@ -3,16 +3,16 @@
  *
  * Interface to the undo package for the database.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -107,7 +107,7 @@ bool dbUndoUndid;
 
 extern void dbUndoEdit();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -204,7 +204,7 @@ DBUndoReset(celldef)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -229,7 +229,7 @@ dbUndoInit()
     dbUndoAreaChanged.r_xbot = dbUndoAreaChanged.r_xtop = 0;
     dbUndoAreaChanged.r_ybot = dbUndoAreaChanged.r_ytop = 0;
 }
-
+
 /*
  * ============================================================================
  *
@@ -413,7 +413,7 @@ endPaintBack:
     (void) GeoInclude(&up->pue_rect, &dbUndoAreaChanged);
     (void) DRCCheckThis(dbUndoLastCell, TT_CHECKPAINT, &up->pue_rect);
 }
-
+
 /*
  * ============================================================================
  *
@@ -485,7 +485,7 @@ DBUndoPutLabel(cellDef, lab)
     lup->lue_offset = lab->lab_offset;
     strcpy(lup->lue_text, lab->lab_text);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -528,7 +528,7 @@ DBUndoEraseLabel(cellDef, lab)
     lup->lue_offset = lab->lab_offset;
     strcpy(lup->lue_text, lab->lab_text);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -585,7 +585,7 @@ dbUndoLabelBack(up)
     if (up->lue_type == TT_SPACE)
 	dbUndoUndid = TRUE;
 }
-
+
 /*
  * ============================================================================
  *
@@ -670,7 +670,7 @@ DBUndoCellUse(use, action)
     up->cue_flags = use->cu_flags;
     strcpy(up->cue_id, use->cu_id);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -703,7 +703,7 @@ dbUndoCellForw(up)
 	    use->cu_expandMask = up->cue_expandMask;
 	    use->cu_bbox = up->cue_bbox;
 	    use->cu_extended = up->cue_extended;
-	    use->cu_flags = up->cue_flags; 
+	    use->cu_flags = up->cue_flags;
 	    use->cu_id = StrDup((char **) NULL, up->cue_id);
 	    (void) DBLinkCell(use, up->cue_parent);
 	    DBPlaceCell(use, up->cue_parent);
@@ -747,7 +747,7 @@ dbUndoCellForw(up)
 	    freeMagic(use->cu_id);
 	    use->cu_id = (char *) NULL;
 	    break;
-	
+
 	case UNDO_CELL_LOCKDOWN:
 	    use = findUse(up, TRUE);
 	    use->cu_flags = up->cue_flags;
@@ -772,7 +772,7 @@ dbUndoCellBack(up)
 	    use->cu_expandMask = up->cue_expandMask;
 	    use->cu_bbox = up->cue_bbox;
 	    use->cu_extended = up->cue_extended;
-	    use->cu_flags = up->cue_flags; 
+	    use->cu_flags = up->cue_flags;
 	    use->cu_id = StrDup((char **) NULL, up->cue_id);
 	    SigDisableInterrupts ();
 	    (void) DBLinkCell(use, up->cue_parent);
@@ -827,7 +827,7 @@ dbUndoCellBack(up)
 	    break;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -848,7 +848,7 @@ dbUndoCellBack(up)
  *
  * ----------------------------------------------------------------------------
  */
- 
+
 CellUse *
 findUse(up, matchName)
     cellUE *up;
@@ -874,7 +874,7 @@ findUse(up, matchName)
     ASSERT(FALSE, "findUse: use == NULL");
     return (CellUse *) NULL;
 }
-
+
 /*
  * ============================================================================
  *
@@ -941,7 +941,7 @@ dbUndoEdit(new)
     strcpy(up->eue_name, new->cd_name);
     dbUndoLastCell = new;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -968,7 +968,7 @@ dbUndoOpenCell(eup)
     ASSERT(newDef != (CellDef *) NULL, "dbUndoOpenCell");
     dbUndoLastCell = newDef;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

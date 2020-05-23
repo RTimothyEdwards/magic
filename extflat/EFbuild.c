@@ -4,16 +4,16 @@
  * Procedures for building up the hierarchical representation
  * of a circuit.  These are all called from efReadDef() in EFread.c.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -65,7 +65,7 @@ bool efConnInitSubs();
 
 extern float locScale;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -288,7 +288,7 @@ efBuildAttr(def, nodeName, r, layerName, text)
     ap->efa_next = nn->efnn_node->efnode_attrs;
     nn->efnn_node->efnode_attrs = ap;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -371,7 +371,7 @@ efBuildDist(def, driver, receiver, min, max)
 	HashSetValue(he, (ClientData) he->h_key.h_ptr);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -401,7 +401,7 @@ efBuildKill(def, name)
     kill->kill_next = def->def_kills;
     def->def_kills = kill;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -476,7 +476,7 @@ efBuildEquiv(def, nodeName1, nodeName2)
     efNodeAddName(nn2->efnn_node, he1,
 			EFStrToHN((HierName *) NULL, nodeName1));
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -532,7 +532,7 @@ efBuildDeviceParams(name, argc, argv)
 	pptr = strchr(argv[n], '=');
 	if (pptr == NULL)
 	{
-	    efReadError("Bad parameter assignment \"%s\" for device \"%s\"\n", 
+	    efReadError("Bad parameter assignment \"%s\" for device \"%s\"\n",
 			argv[n], name);
 	    continue;
 	}
@@ -805,7 +805,7 @@ efBuildDevice(def, class, type, r, argc, argv)
         newdev->dev_rect = *r;
         newdev->dev_type = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, type);
         newdev->dev_class = class;
- 
+
         switch (class)
         {
 	    case DEV_FET:		/* old-style "fet" record */
@@ -967,7 +967,7 @@ efBuildPortNode(def, name, idx, x, y, layername, toplevel)
     if (nn != (EFNodeName *) NULL)
     {
 	nn->efnn_node->efnode_flags |= EF_PORT;
-	if (toplevel) 
+	if (toplevel)
 	    nn->efnn_node->efnode_flags |= EF_TOP_PORT;
 	nn->efnn_port = idx;
     }
@@ -1079,7 +1079,7 @@ efBuildDevNode(def, name, isSubsNode)
     }
     return nn->efnn_node;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1123,7 +1123,7 @@ efBuildAddStr(table, pMax, size, str)
 
     return max;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1212,7 +1212,7 @@ efBuildUse(def, subDefName, subUseId, ta, tb, tc, td, te, tf)
         TxError("Warning: use %s appears more than once in def!\n", newuse->use_id);
     HashSetValue(he, (ClientData)newuse);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1263,7 +1263,7 @@ efBuildConnect(def, nodeName1, nodeName2, deltaC, av, ac)
 	def->def_conns = conn;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1300,7 +1300,7 @@ efBuildResistor(def, nodeName1, nodeName2, resistance)
 	def->def_resistors = conn;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1337,7 +1337,7 @@ efBuildCap(def, nodeName1, nodeName2, cap)
 	def->def_caps = conn;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1392,7 +1392,7 @@ bad:
     freeMagic((char *) conn);
     return FALSE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1498,7 +1498,7 @@ again:
     cnp->cn_nsubs = nsubs;
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1558,7 +1558,7 @@ efNodeAddName(node, he, hn)
 	oldnn->efnn_next = newnn;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1618,7 +1618,7 @@ efNodeMerge(node1ptr, node2ptr)
 	{
 	    printf("\ncombine: %s\n",
 		EFHNToStr(keeping->efnode_name->efnn_hier));
-	    printf("  with   %s\n\n", 
+	    printf("  with   %s\n\n",
 		removing->efnode_name
 		    ? EFHNToStr(removing->efnode_name->efnn_hier)
 		    : "(unnamed)");
@@ -1742,7 +1742,7 @@ efNodeMerge(node1ptr, node2ptr)
     *node1ptr = keeping;
     *node2ptr = (EFNode *)NULL;	    /* Sanity check */
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -1846,7 +1846,7 @@ efFreeNodeTable(table)
 	    freeMagic((char *) nn);
 	}
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1880,7 +1880,7 @@ efFreeNodeList(head)
 	freeMagic((char *) node);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

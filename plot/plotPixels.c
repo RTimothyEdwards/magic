@@ -6,16 +6,16 @@
  * green and blue value between 0 and 255 for a pixel.  Pixels go across left
  * to right, and down the image.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -44,9 +44,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/tech.h"
 #include "utils/signals.h"
 #include "utils/styles.h"
-#include "graphics/graphics.h"	
+#include "graphics/graphics.h"
 #include "dbwind/dbwind.h"
-    
+
 #ifdef LLNL
 
 /* forward declarations */
@@ -129,7 +129,7 @@ static RasterFont *cellIdPixFont;   /* Font to use when rendering cell ids. */
 
 #endif /* LLNL */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotPixTechInit --
@@ -152,7 +152,7 @@ PlotPixTechInit()
      * plot directory, default font names, etc.
      */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotPixTechLine --
@@ -182,7 +182,7 @@ PlotPixTechLine(sectionName, argc, argv)
 
 #ifdef LLNL
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -215,11 +215,11 @@ PlotPixPoint(raster, x, y, style)
     if ((y < 0) || (y >= raster->pix_height)) return;
 
     rp = raster->pix_pixels + x + y*raster->pix_width;
-    *rp = (*rp & ~(GrStyleTable[style].mask)) | 
+    *rp = (*rp & ~(GrStyleTable[style].mask)) |
 	   (GrStyleTable[style].color & GrStyleTable[style].mask);
 
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -317,7 +317,7 @@ PlotPixArbLine(raster, src, dst, style)
     }
     PlotPixPoint(raster, x, y, style);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -362,11 +362,11 @@ plotPixLine(area, widen, style)
 	    plotFillPixRaster(pixRasterSwath, &swathArea,style, GR_STSOLID);
     }
     else
-      PlotPixFatLine(pixRasterSwath, 
-		     &swathArea.r_ll, &swathArea.r_ur, 
+      PlotPixFatLine(pixRasterSwath,
+		     &swathArea.r_ll, &swathArea.r_ur,
 		     widen, curStyle);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -438,7 +438,7 @@ PlotPixFatLine(raster, src, dst, widen, style)
 	PlotPixArbLine(raster, &newSrc, &newDst, style);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -506,7 +506,7 @@ plotPixRect(area, widen, style)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -560,13 +560,13 @@ plotPixTile(tile, cxp)
 
     /* if the current style's fill-mode is GR_STOUTLINE or GR_STCROSS
      * we cannot let plotFillPixRaster render the tile, since we get
-     * extra horizontal lines at swath boundaries.  Too bad, it was a 
-     * neat idea, but we cannot force the user to render the entire 
+     * extra horizontal lines at swath boundaries.  Too bad, it was a
+     * neat idea, but we cannot force the user to render the entire
      * image at once (*sigh*)
      */
 
     if((GrStyleTable[curStyle].fill == GR_STOUTLINE) ||
-       (GrStyleTable[curStyle].fill == GR_STCROSS))    
+       (GrStyleTable[curStyle].fill == GR_STCROSS))
     {				/* draw the outline */
 	plotPixRect(&tileArea, 1, curStyle);
     }
@@ -584,7 +584,7 @@ plotPixTile(tile, cxp)
     plotFillPixRaster(pixRasterSwath, &swathArea, curStyle, -1);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -713,12 +713,12 @@ plotPixLabel(scx, label)
     labelSize.r_xtop += point.p_x + 1;
     labelSize.r_ybot += point.p_y - 1;
     labelSize.r_ytop += point.p_y + 1;
-    PlotPixRasterText(pixRasterSwath, &swathClip, 
+    PlotPixRasterText(pixRasterSwath, &swathClip,
 		      labelPixFont, label->lab_text, &point, STYLE_LABEL);
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -765,7 +765,7 @@ plotPixCell(scx)
     point.p_x -= (textSize.r_xtop + textSize.r_xbot)/2;
     point.p_y = (2*swathArea.r_ytop + swathArea.r_ybot)/3;
     point.p_y -= (textSize.r_ytop + textSize.r_ybot)/2;
-    PlotPixRasterText(pixRasterSwath, &swathClip, 
+    PlotPixRasterText(pixRasterSwath, &swathClip,
 		 cellNamePixFont, def->cd_name, &point, STYLE_BBOX);
 
     (void) DBPrintUseId(scx, idName, 100, TRUE);
@@ -774,12 +774,12 @@ plotPixCell(scx)
     point.p_x -= (textSize.r_xtop + textSize.r_xbot)/2;
     point.p_y = (swathArea.r_ytop + 2*swathArea.r_ybot)/3;
     point.p_y -= (textSize.r_ytop + textSize.r_ybot)/2;
-    PlotPixRasterText(pixRasterSwath, &swathClip, 
+    PlotPixRasterText(pixRasterSwath, &swathClip,
 		      cellIdPixFont, idName, &point, STYLE_BBOX);
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -976,7 +976,7 @@ PlotPixels(scx, layers, xMask, width)
 
 	swathY = swathsDown * PlotPixHeight;
 	PlotClearPixRaster(pixRasterSwath, (Rect *) NULL);
-	
+
 	/* Compute the area of the swath that overlaps the portion of
 	 * the layout we're plotting.
 	 */
@@ -1072,7 +1072,7 @@ PlotPixels(scx, layers, xMask, width)
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1102,7 +1102,7 @@ PlotNewPixRaster(height, width)
     new->pix_pixels = (char *) mallocMagic((unsigned) (height * width));
     return new;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1129,7 +1129,7 @@ PixRaster *pr;		/* PixRaster whose memory is to be freed.
     freeMagic((char *) pr->pix_pixels);
     freeMagic((char *) pr);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1186,14 +1186,14 @@ Rect *area;				/* Area to be cleared, in PixRaster
 	right += pr->pix_width;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * plotFillPixRaster --
  *
  * 	Given a PixRaster and an area, this procedure renders the given area
- *	of the PixRaster with a particular stipple pattern or other 
+ *	of the PixRaster with a particular stipple pattern or other
  * 	appropriate style.
  *
  * Results:
@@ -1223,7 +1223,7 @@ PixRaster *pr;		/* Pointer to PixRaster whose bits are
     int line;
     char *right;
     int curStipple, curColor, curMask; /* local copies so we don't have to
-					* continually indirect through 
+					* continually indirect through
 					* GrStyleTable
 					*/
     Rect r;			/* for passing to plotPixLine */
@@ -1257,12 +1257,12 @@ PixRaster *pr;		/* Pointer to PixRaster whose bits are
     /*
      * now select the appropriate rendering style
      * and render the area.  If we were passed a non-negative fill argument,
-     * let it override the fill mode from GrStyleTable.  Otherwise, use the 
+     * let it override the fill mode from GrStyleTable.  Otherwise, use the
      * mode from the table.  This is so we can make solid areas in STYLE_LABEL,
      * for example, instead of getting the arms of the crosses hollow.
      */
 
-    if (fill < 0) 
+    if (fill < 0)
       fill = GrStyleTable[style].fill;
 
     switch (fill)
@@ -1285,7 +1285,7 @@ PixRaster *pr;		/* Pointer to PixRaster whose bits are
 
 	      /* select "line" of stipple pattern and AND it with the bitmask
 	       * for the bit in the line
-	       * x&07 == x % 8 and is faster 
+	       * x&07 == x % 8 and is faster
 	       */
 
 	      if(GrStippleTable[curStipple][line&07] &
@@ -1319,7 +1319,7 @@ PixRaster *pr;		/* Pointer to PixRaster whose bits are
 	break;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1372,7 +1372,7 @@ PlotDumpPixRaster(pr, file)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1406,13 +1406,13 @@ PlotPixRasterText(raster, clip, font, string, point, style)
 				 * the raster, but only raster points inside
 				 * the area will be modified.
 				 */
-    int style;			/* style for the text to be rendered in -- 
+    int style;			/* style for the text to be rendered in --
 				 * used only for the correct color.
 				 */
 {
     int xOrig;			/* X-origin for current character. */
     int color;
-    
+
     color = GrStyleTable[style].color;
     /* Outer loop:  process each character. */
 
@@ -1434,7 +1434,7 @@ PlotPixRasterText(raster, clip, font, string, point, style)
 	 * time, from top to bottom.  Skip rows that are outside the
 	 * area of the raster.
 	 */
-	
+
 	d = &font->fo_chars[*string];
 	cBytesPerLine = (d->left + d->right + 7) >> 3;
 	for (i = 0; i < d->up + d->down; i++)
@@ -1451,7 +1451,7 @@ PlotPixRasterText(raster, clip, font, string, point, style)
 	     * to skip areas that fall outside the raster to the
 	     * left or right.
 	     */
-	    
+
 	    for (j = -d->left,
 		     charBitPtr = font->fo_bits + d->addr + i*cBytesPerLine;
 	         j < d->right;

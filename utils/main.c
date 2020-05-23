@@ -5,16 +5,16 @@
  * initializes the other modules and then calls the 'textio'
  * module to read and execute commands.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -77,7 +77,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "graphics/wind3d.h"
 #endif
 
-
+
 /*
  * Global data structures
  *
@@ -105,17 +105,17 @@ global CellDef	*EditRootDef = NULL;
 global Transform EditToRootTransform;
 global Transform RootToEditTransform;
 
-
+
 /*
  * data structures local to main.c
  *
  */
 
 /* the filename specified on the command line */
-static char *MainFileName = NULL;	
+static char *MainFileName = NULL;
 
 /* RC file specified on the command line */
-static char *RCFileName = NULL;	
+static char *RCFileName = NULL;
 
 /* Definition of file types that magic can read */
 #define FN_MAGIC_DB	0
@@ -152,7 +152,7 @@ global char *MainCopyright = "\n--- MAGIC: Copyright (C) 1985, 1990 "
 /* Forward declarations */
 char *mainArg();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * MainExit:
@@ -308,7 +308,7 @@ mainDoArgs(argc, argv)
 		    }
 		    break;
 
-		/* 
+		/*
 		 * We are being debugged.
 		 */
 		case 'D':
@@ -422,7 +422,7 @@ mainDoArgs(argc, argv)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -463,7 +463,7 @@ mainArg(pargc, pargv, mesg)
     return cp;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * mainInitBeforeArgs:
@@ -501,7 +501,7 @@ mainInitBeforeArgs(argc, argv)
      * Get preliminary info on the graphics display.
      * This may be overriden later.
      */
-    GrGuessDisplayType(&MainGraphicsFile, &MainMouseFile, 
+    GrGuessDisplayType(&MainGraphicsFile, &MainMouseFile,
 	&MainDisplayType, &MainMonType);
     FindDisplay((char *)NULL, "displays", CAD_LIB_PATH, &MainGraphicsFile,
 	&MainMouseFile, &MainDisplayType, &MainMonType);
@@ -509,7 +509,7 @@ mainInitBeforeArgs(argc, argv)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * mainInitAfterArgs:
@@ -577,7 +577,7 @@ mainInitAfterArgs()
     }
     else
 	StrDup(&CellLibPath, MAGIC_LIB_PATH_DEFAULT);
-    
+
     if (MainGraphicsFile == NULL) MainGraphicsFile = "/dev/null";
     if (MainMouseFile == NULL) MainMouseFile = MainGraphicsFile;
 
@@ -631,13 +631,13 @@ mainInitAfterArgs()
 #ifdef CIF_MODULE
     TechAddClient("cifoutput", CIFTechStyleInit, CIFTechLine, CIFTechFinal,
 			(SectionID) 0, &sec_cifoutput, FALSE);
-	
+
     TechAddClient("cifinput", CIFReadTechStyleInit, CIFReadTechLine,
 		    CIFReadTechFinal, (SectionID) 0, &sec_cifinput, FALSE);
 #else
     TechAddClient("cifoutput", nullProc,nullProc,nullProc,
 			(SectionID) 0, &sec_cifoutput, FALSE);
-	
+
     TechAddClient("cifinput", nullProc,nullProc,nullProc,
 		     (SectionID) 0, &sec_cifinput, FALSE);
 #endif
@@ -666,7 +666,7 @@ mainInitAfterArgs()
     TechAddClient("extract", nullProc, ExtTechLine, ExtTechFinal,
 			sec_types|sec_connect, &sec_extract, FALSE);
 #endif
-	
+
     TechAddClient("wiring", WireTechInit, WireTechLine, WireTechFinal,
 			sec_types, &sec_wiring, TRUE);
 
@@ -752,7 +752,7 @@ mainInitAfterArgs()
 #ifdef ROUTE_MODULE
     MZInit();
 
-    /* Initialize the interactive router - 
+    /* Initialize the interactive router -
      * NOTE the mzrouter must be initialized prior to the irouter
      * so that default parameters will be completely setup
      */
@@ -873,8 +873,8 @@ mainInitFinal()
     f = PaOpen(MAGIC_SYS_DOT, "r", (char *) NULL, ".",
 	    (char *) NULL, (char **) NULL);
     if (f != NULL)
-    { 
-	TxDispatch(f); 
+    {
+	TxDispatch(f);
 	(void) fclose(f);
     }
 
@@ -1039,7 +1039,7 @@ mainInitFinal()
 
 	    if (f != NULL)
 	    {
-		TxDispatch(f); 
+		TxDispatch(f);
 		(void) fclose(f);
 	    }
 	}
@@ -1071,7 +1071,7 @@ mainInitFinal()
 
 	if (f != NULL)
 	{
-	    TxDispatch(f); 
+	    TxDispatch(f);
 	    fclose(f);
 	}
 
@@ -1175,7 +1175,7 @@ mainInitFinal()
 	    freeMagic(temporary);
 	}
     }
-    
+
     /* Create an initial box. */
 
     if (MakeMainWindow && EditCellUse)
@@ -1190,7 +1190,7 @@ mainInitFinal()
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * mainFinish:
@@ -1221,7 +1221,7 @@ mainFinished()
  *	not called 'main' so that other programs that use Magic may do
  *	something else.
  *
- * Results:	
+ * Results:
  *	None.
  *
  * Side Effects:
@@ -1248,5 +1248,5 @@ magicMain(argc, argv)
     mainFinished();
 }
 
-
+
 

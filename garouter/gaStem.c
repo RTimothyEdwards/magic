@@ -3,16 +3,16 @@
  *
  * Assignment of routing-grid pin locations to terminals.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -91,7 +91,7 @@ bool gaStemInternalFunc();
 bool gaStemInternal();
 bool gaStemGrow();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -184,7 +184,7 @@ gaStemAssignAll(routeUse, netList)
 		gaNumSimpleStem, gaNumMazeStem);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -248,7 +248,7 @@ fail:
     gaNumNoChan++;
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -359,7 +359,7 @@ gaStemContainingChannelFunc(tile, pCh)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -403,14 +403,14 @@ gaStemGrow(area)
 
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * gaStemInternal --
  *
  * Having determined that 'loc' lies entirely within a river-routing
- * channel, try to bring it out to both sides of the channel.  
+ * channel, try to bring it out to both sides of the channel.
  *
  * If the terminal permits a grid aligned route,  "simple" routes are
  * tried first.  A simple route is a grid aligned straight line from
@@ -468,8 +468,8 @@ gaStemInternal(routeUse, doWarn, loc, net, ch, netList)
      */
     if (gaStemInternalFunc(routeUse, loc, net, ch, start, netList))
 	return (TRUE);
-    for (lo = start - RtrGridSpacing, hi = start + RtrGridSpacing; 
-	 lo >= min || hi <= max; 
+    for (lo = start - RtrGridSpacing, hi = start + RtrGridSpacing;
+	 lo >= min || hi <= max;
 	 lo -= RtrGridSpacing, hi += RtrGridSpacing)
     {
 	if (lo >= min)
@@ -488,7 +488,7 @@ gaStemInternal(routeUse, doWarn, loc, net, ch, netList)
     }
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -612,7 +612,7 @@ gaStemInternalFunc(routeUse, loc, net, ch, gridLine, netList)
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -652,7 +652,7 @@ gaStemCheckPin(routeUse, terminalLoc, ch, side, gridPoint, netList)
     GCRPin *pin;
     SimpleStem simple;
     short code;
-    
+
     /*
      * Discard this pin immediately if any of the following are true:
      *	- it is already occupied by a net
@@ -720,7 +720,7 @@ hardway:
     /* Simple connections have failed, so try using mzrouter.  A connection
      * must be possible from EITHER ROUTING LAYER, so we know we can connect
      * no matter how the channel is routed.
-     * 
+     *
      * NULL writeUse is used so no paint is generated, we just check
      * if the connections are possible, deferring the actual stem generation
      * until after channel routing, so we know what layers to connect to.
@@ -731,9 +731,9 @@ hardway:
 	TTMaskSetOnlyType(&polyMask, RtrPolyType);
 	TTMaskSetOnlyType(&metalMask, RtrMetalType);
 
-	if(gaMazeRoute(routeUse, terminalLoc, gridPoint, polyMask, side, 
+	if(gaMazeRoute(routeUse, terminalLoc, gridPoint, polyMask, side,
 		       writeFlag)  &&
-	   gaMazeRoute(routeUse, terminalLoc, gridPoint, metalMask, side, 
+	   gaMazeRoute(routeUse, terminalLoc, gridPoint, metalMask, side,
 		       writeFlag))
 	{
 	    gaNumMazeStem++;
@@ -745,7 +745,7 @@ hardway:
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -795,7 +795,7 @@ gaStemNetClear(termArea, point, side, netList)
     NLNet *net;
     Rect r;
 
-    /* 
+    /*
      * First cut: determine a search area large enough so that any
      * terminals lying entirely outside of it can't possibly conflict
      * with this one.
@@ -853,7 +853,7 @@ gaStemNetClear(termArea, point, side, netList)
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -923,7 +923,7 @@ gaStemGridRange(type, r, pMinGrid, pMaxGrid, pStart)
     *pMinGrid = min;
     *pStart = start;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -979,7 +979,7 @@ out:
 	TxPrintf("%d total stems painted.\n", numInt + gaNumExtPaint);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1006,7 +1006,7 @@ gaStemPaint(routeUse, terminalLoc)
     CellUse *routeUse;
     NLTermLoc *terminalLoc;
 {
-    TileTypeBitMask terminalLayerMask;	/* Possible layers for stem at 
+    TileTypeBitMask terminalLayerMask;	/* Possible layers for stem at
 					   terminal */
     TileTypeBitMask pinLayerMask;	/* Possible layers for stem at pin */
     Rect  errArea;
@@ -1032,7 +1032,7 @@ gaStemPaint(routeUse, terminalLoc)
      * it was unable to connect to).
      */
     flags = pin->gcr_ch->gcr_result[pin->gcr_x][pin->gcr_y];
-    if (!rtrStemMask(routeUse, terminalLoc, flags, 
+    if (!rtrStemMask(routeUse, terminalLoc, flags,
 		     &terminalLayerMask, &pinLayerMask))
     {
 	errReason = "Terminal is not on a legal routing layer";
@@ -1049,7 +1049,7 @@ gaStemPaint(routeUse, terminalLoc)
 
     /*
      * The terminal could be internal (terminalLoc->nloc_rect lies
-     * inside a river-routing channel) or external (terminalLoc->nloc_rect 
+     * inside a river-routing channel) or external (terminalLoc->nloc_rect
      * lies outside of a channel but the stem tip borders on a normal
      * routing channel).  In the latter case, use the old stem
      * generation code (temporary measure until we get our own
@@ -1066,7 +1066,7 @@ gaStemPaint(routeUse, terminalLoc)
 
     ASSERT(pin->gcr_linked->gcr_ch->gcr_type != CHAN_NORMAL, "gaStemPaint");
 
-    /* 
+    /*
      * Try a simple stem.
      */
 
@@ -1098,9 +1098,9 @@ gaStemPaint(routeUse, terminalLoc)
 	    }
 	}
     }
-	 
+
     /*
-     * Try the maze router. 
+     * Try the maze router.
      */
     if (RtrMazeStems)
     {
@@ -1118,16 +1118,16 @@ gaStemPaint(routeUse, terminalLoc)
 	    if (gaMazeInit(EditCellUse) == FALSE)
 		goto totalLoss;
 
-    
-	if(gaMazeRoute(routeUse, terminalLoc, pinPoint, pinLayerMask, side, 
+
+	if(gaMazeRoute(routeUse, terminalLoc, pinPoint, pinLayerMask, side,
 		       writeResult))
 	{
 	    gaNumMazePaint++;
-	    
+
 	    if(DebugIsSet(gaDebugID,gaDebShowMaze))
-	    /* Feedback all maze routes so we can check them 
-	     * (this will cause all maze routes to be reported as 
-	     *  routing errors) 
+	    /* Feedback all maze routes so we can check them
+	     * (this will cause all maze routes to be reported as
+	     *  routing errors)
 	     */
 	    {
 		Rect area;
@@ -1138,10 +1138,10 @@ gaStemPaint(routeUse, terminalLoc)
 		{
 		    GEO_EXPAND(&area, 1, &area);
 		}
-    
-		DBWFeedbackAdd(&area, 
-			       "MAZE ROUTE", 
-			       routeUse->cu_def, 
+
+		DBWFeedbackAdd(&area,
+			       "MAZE ROUTE",
+			       routeUse->cu_def,
 			       1,
 			       STYLE_PALEHIGHLIGHTS);
 	    }
@@ -1167,7 +1167,7 @@ totalLoss:
     {
 	GEO_EXPAND(&errArea, 1, &errArea);
     }
-    
+
 failure:
     DBWFeedbackAdd(&errArea, errReason, routeUse->cu_def, 1,
 		   STYLE_PALEHIGHLIGHTS);

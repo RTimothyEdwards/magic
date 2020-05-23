@@ -4,16 +4,16 @@
  * Input of Calma GDS-II stream format.
  * Processing for cells.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -256,7 +256,7 @@ calmaExact()
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -483,7 +483,7 @@ syntaxerror:
     return (calmaSkipTo(CALMA_ENDSTR));
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -530,7 +530,7 @@ calmaParseElement(filename, pnsrefs, pnpaths)
 	    if (madeinst >= 0)
 		(*pnsrefs) += madeinst;
 	    break;
-	case CALMA_BOUNDARY:	
+	case CALMA_BOUNDARY:
 	    calmaElementBoundary();
 	    (*pnpaths)++;
 	    break;
@@ -538,11 +538,11 @@ calmaParseElement(filename, pnsrefs, pnpaths)
 	    calmaElementBox();
 	    (*pnpaths)++;
 	    break;
-	case CALMA_PATH:	
+	case CALMA_PATH:
 	    calmaElementPath();
 	    (*pnpaths)++;
 	    break;
-	case CALMA_TEXT:	
+	case CALMA_TEXT:
 	    calmaElementText();
 	    break;
 	case CALMA_NODE:
@@ -969,7 +969,7 @@ calmaElementSref(filename)
 
     return ((def->cd_flags & CDFLATGDS) ? (madeinst ? 1 : 0) : 1);
 }
-
+
 
 /* Callback function for determining if a cell has at least one subcell */
 
@@ -1008,7 +1008,7 @@ gdsCopyPaintFunc(tile, gdsCopyRec)
 
     DBNMPaintPlane(plane, dinfo, &targetRect, CIFPaintTable,
 		(PaintUndoInfo *)NULL);
-    
+
     return 0;
 }
 

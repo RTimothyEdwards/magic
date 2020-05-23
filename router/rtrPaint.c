@@ -4,16 +4,16 @@
  *	on channel routing results, then paint the results back
  *	into the edit cell.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -51,7 +51,7 @@ extern void rtrMaxMetal();
 
 bool rtrMetalOkay();
 bool rtrDoVia();
-
+
 /*
  * ----------------------------------------------------------------------------
  * RtrPaintBack --
@@ -79,7 +79,7 @@ RtrPaintBack(ch, def)
     rtrPaintRows(def, ch);
     rtrPaintColumns(def, ch);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -154,7 +154,7 @@ rtrPaintRows(def, ch)
 	    }
 	    else nextType = TT_SPACE;
 
-	    /* If the new type is different from the old, paint the old, 
+	    /* If the new type is different from the old, paint the old,
 	     * and store the start of the new run.
 	     */
 
@@ -171,7 +171,7 @@ rtrPaintRows(def, ch)
 		    DBPaintPlane(def->cd_planes[ui.pu_pNum], &paint,
 			DBStdPaintTbl(curType, ui.pu_pNum), &ui);
 		}
-		
+
 		paint.r_xbot = ch->gcr_origin.p_x + (col * RtrGridSpacing);
 		paint.r_ybot = ch->gcr_origin.p_y + (row * RtrGridSpacing);
 		if (nextType == RtrMetalType)
@@ -204,7 +204,7 @@ rtrPaintRows(def, ch)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -253,7 +253,7 @@ rtrPaintColumns(def, ch)
 	    /* Figure out what material needs to be present in this
 	     * column between this row and the next one above.
 	     */
-	    
+
 	    code = column[row];
 	    if (code & GCRU)
 	    {
@@ -311,7 +311,7 @@ rtrPaintColumns(def, ch)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -407,7 +407,7 @@ rtrDoVia(ch, col, row)
 
     return(FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -540,7 +540,7 @@ rtrMaxMetal(ch)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -599,7 +599,7 @@ rtrMetalOkay(ch, col, dir)
 
     return ((flags & (GCRBLKM|GCRR)) == 0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -638,7 +638,7 @@ RtrPaintContact(def, area)
 	DBPaint(def, &larger, RtrPolyType);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

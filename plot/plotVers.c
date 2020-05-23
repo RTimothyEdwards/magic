@@ -4,16 +4,16 @@
  * This file contains the procedures that generate plots on
  * Versatec-style black-and-white printers.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -45,8 +45,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Library imports: */
 
-extern int rasFileByteCount; 
-  
+extern int rasFileByteCount;
+
 /* Records of the following type are used to describe how to generate
  * output for the mask layers.  Each style describes a particular
  * stipple pattern.
@@ -186,7 +186,7 @@ static RasterFont *cellNameFont; /* Font to use when rendering cell names. */
 static RasterFont *cellIdFont;	 /* Font to use when rendering cell ids. */
 
 #endif /* VERSATEC */
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotVersTechInit --
@@ -237,7 +237,7 @@ PlotVersTechInit()
 
 #endif /* VERSATEC */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotColorVersTechInit --
@@ -288,7 +288,7 @@ PlotColorVersTechInit()
 
 #endif /* VERSATEC */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotVersTechLine --
@@ -516,7 +516,7 @@ plotTransToSwath(src, dst)
     dst->r_ybot = (((src->r_ybot - plotLL.p_y)*scale) >> scaleShift) - swathY;
     dst->r_ytop = (((src->r_ytop - plotLL.p_y)*scale) >> scaleShift) - swathY;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -563,7 +563,7 @@ plotVersLine(area, widen, raster)
     else
     PlotRastFatLine(raster, &swathArea.r_ll, &swathArea.r_ur, widen);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -632,7 +632,7 @@ plotVersRect(area, widen, raster)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -662,13 +662,13 @@ plotVersTile(tile, cxp)
     Raster *raster = (Raster *)cxp->tc_filter->tf_arg;
 
     /* Transform tile coords to root coords and then to swath coords. */
-    
+
     TITORECT(tile, &tileArea);
     GEOTRANSRECT(trans, &tileArea, &rootArea);
     plotTransToSwath(&rootArea, &swathArea);
 
     /* Handle X'ed things specially. */
-    
+
     if (curStyle->vs_flags & VS_CROSS)
     {
 	if (!IsSplit(tile))
@@ -726,7 +726,7 @@ plotVersTile(tile, cxp)
      * have the wrong types.  First, search the tile's bottom border
      * (unless it is at infinity).
      */
-    
+
     if (IsSplit(tile) && (!(SplitSide(tile) ^ SplitDirection(tile))))
 	goto searchleft;	/* nothing on bottom of split */
 
@@ -819,7 +819,7 @@ searchright:
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -874,7 +874,7 @@ plotVersLabel(scx, label, tpath, raster)
 	    point.p_y = (swathArea.r_ytop + swathArea.r_ybot)/2;
 	    point.p_y -= (labelSize.r_ytop + labelSize.r_ybot)/2;
 	    break;
-	
+
 	case GEO_SOUTH:
 	case GEO_SOUTHEAST:
 	case GEO_SOUTHWEST:
@@ -888,14 +888,14 @@ plotVersLabel(scx, label, tpath, raster)
 	case GEO_SOUTHWEST:
 	    point.p_x = swathArea.r_xbot - crossSize - 2 - labelSize.r_xtop;
 	    break;
-	
+
 	case GEO_CENTER:
 	case GEO_NORTH:
 	case GEO_SOUTH:
 	    point.p_x = (swathArea.r_xtop + swathArea.r_xbot)/2;
 	    point.p_x -= (labelSize.r_xtop + labelSize.r_xbot)/2;
 	    break;
-	
+
 	case GEO_EAST:
 	case GEO_NORTHEAST:
 	case GEO_SOUTHEAST:
@@ -907,7 +907,7 @@ plotVersLabel(scx, label, tpath, raster)
      * done depending on whether the label is a point, a line, or an
      * area.
      */
-    
+
     if ((rootArea.r_xbot == rootArea.r_xtop) &&
 	    (rootArea.r_ybot == rootArea.r_ytop))
     {
@@ -954,7 +954,7 @@ plotVersLabel(scx, label, tpath, raster)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -976,7 +976,7 @@ int
 plotVersCell(scx, raster)
     SearchContext *scx;		/* Describes cell whose bbox is to
 				 * be plotted.
-				 */	
+				 */
     Raster *raster;		/* Raster to write to */
 {
     char idName[100];
@@ -1019,7 +1019,7 @@ plotVersCell(scx, raster)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1033,7 +1033,7 @@ plotVersCell(scx, raster)
  *	versatec color plot file in straight color raster format.
  *
  *	If PlotVersPlotType is HPGL2 or HPRTL, it will generate
- *	an HPRTL file for the supported HP plotters. 
+ *	an HPRTL file for the supported HP plotters.
  *
  * Results:
  *	None.
@@ -1071,7 +1071,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
     static char *yesNo[] = {"no", "yes", NULL};
     int dotsAcross, dotsDown, swathsDown, scaleDown;
     int mag_width;			/* lambda */
-    float width;			/* inches */	
+    float width;			/* inches */
     char fileName[200], command[300], answer[32];
     float length, mBytes;
     Transform tinv;
@@ -1093,7 +1093,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
     /* Get conversion factor (internal units to inches) */
     oscale = CIFGetOutputScale(1000);	/* convert to microns */
     oscale *= 3.937e-5;			/* convert to inches */
-   
+
     /* Compute plot width from scalefactor */
     mag_width = rootClip.r_xtop - rootClip.r_xbot;
     maxScale = ((float)PlotVersWidth / (float)PlotVersDotsPerInch)
@@ -1146,7 +1146,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
     length = dotsDown;
     length /= PlotVersDotsPerInch;
     TxPrintf("Plot will be %.1f inches wide by %.1f inches long.\n", width, length);
-    TxPrintf("It will take %.2f Megabytes in \"%s\".\n", 
+    TxPrintf("It will take %.2f Megabytes in \"%s\".\n",
 		(PlotVersPlotType == HPRTL || PlotVersPlotType == HPGL2)
 		? 4.0 * mBytes : mBytes, PlotTempDirectory);
     TxPrintf("Lambda: %.3f (um)	  Requested scale: %dX    Actual scale: %dX   "
@@ -1167,7 +1167,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
      * we don't already have one.  If the swath size has changed,
      * recycle the raster for a new one.
      */
-    
+
     if ((raster != NULL) && ((raster->ras_width != PlotVersWidth)
 		|| (raster->ras_height != PlotVersSwathHeight)))
     {
@@ -1196,7 +1196,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
     /* Load font information for the plot, if it isn't already
      * loaded.
      */
-    
+
     labelFont = PlotLoadFont(PlotVersLabelFont);
     cellNameFont = PlotLoadFont(PlotVersNameFont);
     cellIdFont = PlotLoadFont(PlotVersIdFont);
@@ -1239,7 +1239,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
     /* Step down the page one swath at a time, rasterizing everything
      * that overlaps the current swath, then outputting the swath.
      */
-    
+
     GeoInvertTrans(&scx->scx_trans, &tinv);
     for (color = BLACK; color <= YELLOW; color++)
     {
@@ -1257,7 +1257,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
 	    case HPGL2:
 		PlotHPGL2Header(PlotVersWidth, dotsDown, PlotVersDotsPerInch,
 			usedScale, file);
-		break; 
+		break;
 	    case VERSATEC_COLOR:
 	        if (PlotDumpColorPreamble(color, file, dotsDown, PlotVersWidth) != 0)
 		    goto error;
@@ -1268,8 +1268,8 @@ PlotVersatec(scx, layers, xMask, user_scale)
 		TxFlush();
 		break;
 	}
-	for (swathsDownThisColor -= 1; 
-	     swathsDownThisColor >= 0; 
+	for (swathsDownThisColor -= 1;
+	     swathsDownThisColor >= 0;
 	     swathsDownThisColor -= 1)
 	{
 	    SearchContext scx2;
@@ -1288,7 +1288,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
 	    /* Compute the area of the swath that overlaps the portion of
 	     * the layout we're plotting.
 	     */
-	
+
 	    plotTransToSwath(&rootClip, &swathClip);
 	    if (swathClip.r_xbot < 0) swathClip.r_xbot = 0;
 	    if (swathClip.r_ybot < 0) swathClip.r_ybot = 0;
@@ -1307,7 +1307,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
 	     * non-label stuff has to be expanded slightly, because lines
 	     * are drawn more than 1 pixel thick.
 	     */
-	
+
 	    scx2 = *scx;
 	    root.r_xbot = (scaleDown*swathClip.r_xbot)/scale + plotLL.p_x;
 	    root.r_xtop = (scaleDown*swathClip.r_xtop)/scale + plotLL.p_x;
@@ -1331,7 +1331,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
 	    }
 
 	    /* For each Versatec style, output stippled areas for all
-	     * the tiles requested by the style. 
+	     * the tiles requested by the style.
 	     */
 
 	    switch (PlotVersPlotType)
@@ -1340,7 +1340,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
 		    curStyle = plotVersStyles;
 		    break;
 	        case HPGL2: case HPRTL:
-		    curStyle = plotColorVersStyles;	
+		    curStyle = plotColorVersStyles;
 		    if (curStyle == NULL)
 		    {
 		        TxError("Warning:  No color versatec styles are defined"
@@ -1349,13 +1349,13 @@ PlotVersatec(scx, layers, xMask, user_scale)
 		    }
 		    break;
 		default:
-		    curStyle = plotColorVersStyles;	
+		    curStyle = plotColorVersStyles;
 		    if (!haveColorMessage)
 		    {
 			TxError("Warning:  No color versatec styles are defined"
 				    " in the technology file!\nPlot will be"
 				    " monochrome.\n");
-			haveColorMessage = TRUE; 
+			haveColorMessage = TRUE;
 			curStyle = plotVersStyles;
 		    }
 	    }

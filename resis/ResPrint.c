@@ -34,7 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 extern ResSimNode *ResInitializeNode();
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -58,10 +58,10 @@ ResPrintExtRes(outextfile,resistors,nodename)
      char	newname[MAXNAME];
      HashEntry  *entry;
      ResSimNode *node,*ResInitializeNode();
-     
+
      for (; resistors != NULL; resistors=resistors->rr_nextResistor)
      {
-	  /* 
+	  /*
 	     These names shouldn't be null; they should either be set by
 	     the device name or by the node printing routine.  This
 	     code is included in case the resistor network is printed
@@ -93,11 +93,11 @@ ResPrintExtRes(outextfile,resistors,nodename)
      }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
- * ResPrintExtDev-- Print out all devices that have had at least 
+ * ResPrintExtDev-- Print out all devices that have had at least
  *	one terminal changed.
  *
  * Results:none
@@ -183,7 +183,7 @@ ResPrintExtDev(outextfile, devices)
     }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -218,7 +218,7 @@ ResPrintExtNode(outextfile, nodelist, nodename)
 	if (nodelist->rn_name != NULL)
 	    if (!strcmp(nodelist->rn_name, nodename))
 	    {
-		DoKillNode = FALSE; 
+		DoKillNode = FALSE;
 		break;
 	    }
 
@@ -260,7 +260,7 @@ ResPrintExtNode(outextfile, nodelist, nodename)
      }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -428,7 +428,7 @@ ResPrintFHNodes(fp, nodelist, nodename, nidx, celldef)
 
 	    cxb = (float)(contact_res->rr_cl - 1) / 2;
 	    for (i = 0; i < contact_res->rr_cl; i++)
-	    {	    
+	    {
 		cx = del * ((float)i - cxb);
 	        cyb = (float)(contact_res->rr_width - 1) / 2;
 		for (j = 0; j < contact_res->rr_width; j++)
@@ -439,7 +439,7 @@ ResPrintFHNodes(fp, nodelist, nodename, nidx, celldef)
 		    fprintf(fp, "x=%1.2f y=%1.2f z=%1.2f\n",
 			((float)nodeptr->rn_loc.p_x + cx) * oscale,
 			((float)nodeptr->rn_loc.p_y + cy) * oscale,
-			height); 
+			height);
 		}
 	    }
 
@@ -448,7 +448,7 @@ ResPrintFHNodes(fp, nodelist, nodename, nidx, celldef)
 	    fprintf(fp, ".equiv ");
 	    resWriteNodeName(fp, nodeptr);
 	    for (i = 0; i < contact_res->rr_cl; i++)
-	    {	    
+	    {
 		for (j = 0; j < contact_res->rr_width; j++)
 		{
 		    fprintf(fp, " ");
@@ -520,7 +520,7 @@ ResPrintFHNodes(fp, nodelist, nodename, nidx, celldef)
  *-------------------------------------------------------------------------
  * ResPrintFHRects --
  *	Generate FastHenry segment output to the FastHenry data file
- *	"fp".	
+ *	"fp".
  *
  * Results:
  *	None.
@@ -655,7 +655,7 @@ ResPrintReference(fp, devices, cellDef)
     fprintf(fp, ".Default rho=0.02 nhinc=3 nwinc=3 rh=2 rw=2\n\n");
     fprintf(fp, "* Reference plane (substrate, ground)\n");
 
-    fprintf(fp, "Gsub x1=%1.2f y1=%1.2f z1=0 x2=%1.2f y2=%1.2f z2=0\n", 
+    fprintf(fp, "Gsub x1=%1.2f y1=%1.2f z1=0 x2=%1.2f y2=%1.2f z2=0\n",
 		llx, lly, urx, lly);
     fprintf(fp, "+ x3=%1.2f y3=%1.2f z3=0\n", urx, ury);
 
@@ -743,7 +743,7 @@ ResCreateCenterlines(reslist, nidx, def)
 		strcat(name, nodeptr->rn_name);
 
 	    /* Note that if any element exists with name "name"	*/
-	    /* it will be deleted (overwritten).		*/ 
+	    /* it will be deleted (overwritten).		*/
 	    DBWElementAddLine(w, name, &rcanon, def, STYLE_YELLOW1);
 	}
     }

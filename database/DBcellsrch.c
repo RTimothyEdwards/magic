@@ -3,16 +3,16 @@
  *
  * Area searching which spans cell boundaries.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -276,7 +276,7 @@ dbCellPlaneSrFunc(scx, fp)
 	return 1;
     else return 0;
 }
-
+
 
 /*
  *-----------------------------------------------------------------------------
@@ -395,7 +395,7 @@ dbCellUniqueTileSrFunc(scx, fp)
     else return 0;
 }
 
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -500,7 +500,7 @@ DBNoTreeSrTiles(scx, mask, xMask, func, cdarg)
     return 0;
 }
 
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -595,7 +595,7 @@ DBTreeSrLabels(scx, mask, xMask, tpath, flags, func, cdarg)
 	    /* For non-manhattan searches, label must be in or	*/
 	    /* touch the triangle.  (to-do:  needs a proper	*/
 	    /* insideness test)					*/
-	
+
 	    if (flags & TF_LABEL_ATTACH_CORNER)
 	    {
 		Rect r1 = *r;
@@ -652,7 +652,7 @@ DBTreeSrLabels(scx, mask, xMask, tpath, flags, func, cdarg)
      * instead of just TOUCH.  Be careful when expanding:  can't expand
      * any coordinate past infinity.
      */
-    
+
     scx2 = *scx;
     if (scx2.scx_area.r_xbot > TiPlaneRect.r_xbot) scx2.scx_area.r_xbot -= 1;
     if (scx2.scx_area.r_ybot > TiPlaneRect.r_ybot) scx2.scx_area.r_ybot -= 1;
@@ -691,7 +691,7 @@ dbCellLabelSrFunc(scx, fp)
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
 	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
     }
-    
+
     if (fp->tf_tpath != (TerminalPath *) NULL)
     {
 	TerminalPath *tp = fp->tf_tpath;
@@ -741,7 +741,7 @@ cleanup:
 
     return (result);
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -862,7 +862,7 @@ dbTreeCellSrFunc(scx, fp)
     }
     return result;
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -1006,7 +1006,7 @@ DBSrRoots(baseDef, transform, func, cdarg)
     }
     return 0;
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -1045,7 +1045,7 @@ DBIsAncestor(cellDef1, cellDef2)
     }
     return (FALSE);
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -1113,13 +1113,13 @@ DBCellSrArea(scx, func, cdarg)
 	if (!DBCellRead(scx->scx_use->cu_def, (char *) NULL, TRUE, dereference, NULL))
 	    return 0;
     }
-    
+
     if (DBSrCellPlaneArea(scx->scx_use->cu_def->cd_cellPlane,
 		&scx->scx_area, dbCellSrFunc, (ClientData) &context))
 	return 1;
     return 0;
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -1191,7 +1191,7 @@ dbCellSrFunc(use, cxp)
 
     return 0;
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -1243,7 +1243,7 @@ DBCellEnum(cellDef, func, cdarg)
 	return 1;
     else return 0;
 }
-
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -1506,7 +1506,7 @@ DBScaleEverything(scalen, scaled)
     SigDisableInterrupts();
 
     lhead = NULL;
-    (void) DBCellSrDefs(0, dbCellDefEnumFunc, (ClientData) &lhead);    
+    (void) DBCellSrDefs(0, dbCellDefEnumFunc, (ClientData) &lhead);
 
     /* Apply scaling function to each CellDef */
 
@@ -1895,7 +1895,7 @@ dbScaleCell(cellDef, scalen, scaled)
 
 		DBScalePoint(&lab->lab_bbox.r_ll, scalen, scaled);
 		DBScalePoint(&lab->lab_bbox.r_ur, scalen, scaled);
-		
+
 		for (i = 0; i < 4; i++)
 		    DBScalePoint(&lab->lab_corners[i], scalen, scaled);
 	    }
@@ -1962,7 +1962,7 @@ dbCellDefEnumFunc(cellDef, arg)
     lcd->cellDef = cellDef;
     lcd->cd_next = (*arg);
     (*arg) = lcd;
- 
+
     return 0;
 }
 
@@ -1989,7 +1989,7 @@ dbCellUseEnumFunc(cellUse, arg)
     lcu->cellUse = cellUse;
     lcu->cu_next = (*arg);
     (*arg) = lcu;
- 
+
     return 0;
 }
 
@@ -2024,11 +2024,11 @@ DBMoveCell(cellDef, origx, origy)
     Plane *newplane;
     BPlane *cellPlane, *cellPlaneOrig;
 
-    /* Unlike dbScaleCell(), this routine is only run on valid edit defs */ 
+    /* Unlike dbScaleCell(), this routine is only run on valid edit defs */
 
     cellDef->cd_flags |= CDBOXESCHANGED;
 
-    /* Enumerate all unique cell uses, and move their position in the	*/ 
+    /* Enumerate all unique cell uses, and move their position in the	*/
     /* bounding box and transform.					*/
 
     luhead = NULL;

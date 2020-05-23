@@ -25,7 +25,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "commands/commands.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -98,7 +98,7 @@ CmdLef(w, cmd)
 					 */
 
     static char *cmdLefOption[] =
-    {	
+    {
 	"read [filename]		read a LEF file filename[.lef]\n"
 	"    read [filename] -import	read a LEF file; import cells from .mag files",
 	"write [filename] [-tech]	write LEF for current cell\n"
@@ -112,7 +112,7 @@ CmdLef(w, cmd)
     };
 
     static char *cmdDefOption[] =
-    {	
+    {
 	"read [filename]		read a DEF file filename[.def]",
 	"write [cell] [-allspecial]	write DEF for current or indicated cell\n",
 	"write -labels			label every net in NETS with the net name",

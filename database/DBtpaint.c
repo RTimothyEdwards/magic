@@ -3,16 +3,16 @@
  *
  * Management of composition rules and the paint/erase tables.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -64,7 +64,7 @@ extern void dbTechBitTypeInit();
 
 bool dbTechAddPaintErase();
 bool dbTechSaveCompose();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -108,7 +108,7 @@ DBTechInitCompose()
 
     stype = dtype = &(DBEraseResultTbl[0][0][0]);
     for (ps = 0; ps < TT_MAXTYPES; ps++)
-	*dtype++ = (PaintResultType)ps; 
+	*dtype++ = (PaintResultType)ps;
     for (ps = 1; ps < PL_MAXTYPES * TT_MAXTYPES; ps++)
     {
 	memcpy((void *)dtype, (void *)stype, (size_t)TT_MAXTYPES
@@ -245,7 +245,7 @@ DBTechInitCompose()
 
     for (s = 0; s < DBNumTypes; s++) DBSpecialResultTbl[s] = TT_CHECKSUBCELL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -258,7 +258,7 @@ DBTechInitCompose()
  *
  *	bitToType[i] and bitToType[j] combine to yield bitToType[i | j]
  *
- * Also (unless composeFlag is set) erasing bitToType[j] from bitToType[i] 
+ * Also (unless composeFlag is set) erasing bitToType[j] from bitToType[i]
  * gives bitToType[i & (~j)],
  * i.e., it clears all of the j-type material out of the i-type material.
  * The bitToType[k] for which k's binary representation has only a single
@@ -302,7 +302,7 @@ dbTechBitTypeInit(bitToType, n, pNum, composeFlag)
     }
 }
 
-/* Returns nonzero if exactly one bit set */ 
+/* Returns nonzero if exactly one bit set */
 
 int
 dbIsPrimary(n)
@@ -320,8 +320,8 @@ dbIsPrimary(n)
 
     return (bitCount==1);
 }
-      
-
+
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -440,7 +440,7 @@ DBTechAddCompose(sectionName, argc, argv)
 
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -520,7 +520,7 @@ dbTechSaveCompose(ruleType, t, argc, argv)
 
     return TRUE;
 }
-
+
 
 #if 0	/* deprecated function (5/11/04) */
 /*
@@ -571,7 +571,7 @@ dbTechCheckImages(t, r, s)
 }
 #endif	/* 0 */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -682,7 +682,7 @@ dbTechAddPaintErase(type, sectionName, argc, argv)
     return TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -733,7 +733,7 @@ dbTechCheckPaint(where)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

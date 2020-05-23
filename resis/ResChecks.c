@@ -27,12 +27,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "resis/resis.h"
 
 #ifdef PARANOID
-
+
 /*
  *-------------------------------------------------------------------------
  *
  * ResSanityChecks -- Checks that resistor and node lists are consistant.
- *	Make sure that all resistors are connected, and that each node 
+ *	Make sure that all resistors are connected, and that each node
  *	to which a resistor is connected has the correct pointer in its list.
  *
  * Results: none
@@ -56,7 +56,7 @@ ResSanityChecks(nodename,resistorList,nodeList,devlist)
      resElement		*rcell;
      static	Stack	*resSanityStack = NULL;
      int		reached,foundorigin;
-     
+
      if (resSanityStack == NULL)
      {
      	  resSanityStack = StackNew(64);
@@ -64,14 +64,14 @@ ResSanityChecks(nodename,resistorList,nodeList,devlist)
      for (node = nodeList; node != NULL; node=node->rn_more)
      {
      	  node->rn_status &= ~RES_REACHED_NODE;
-	  if (node->rn_why == RES_NODE_ORIGIN)  
+	  if (node->rn_why == RES_NODE_ORIGIN)
 	  		STACKPUSH((ClientData) node, resSanityStack);
      }
      for (resistor = resistorList; resistor != NULL; resistor = resistor->rr_nextResistor)
      {
      	  resistor->rr_status &= ~RES_REACHED_RESISTOR;
      }
-     
+
      /* Check 1- Are the resistors and nodes all connected?  */
      while (!StackEmpty(resSanityStack))
      {
@@ -83,7 +83,7 @@ ResSanityChecks(nodename,resistorList,nodeList,devlist)
 	       resistor = rcell->re_thisEl;
 	       if (resistor->rr_status & RES_REACHED_RESISTOR) continue;
 	       resistor->rr_status |= RES_REACHED_RESISTOR;
-	       if (resistor->rr_connection1 != node && 
+	       if (resistor->rr_connection1 != node &&
 	           resistor->rr_connection2 != node)
 		   {
 		   	TxError("Stray resElement pointer- node %s, pointer %d\n",nodename,rcell);

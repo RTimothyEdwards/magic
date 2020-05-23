@@ -5,16 +5,16 @@
  *	is used for things like displaying all the wiring in a net,
  *	or for displaying splotches around labels with a given name.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -54,7 +54,7 @@ static CellDef *nmscRootDef = NULL;	/* NULL means no cell currently
 
 static CellUse *nmscShowUse = NULL;
 static CellDef *nmscShowDef = NULL;
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -99,10 +99,10 @@ NMRedrawCell(window, plane)
      * is at a reasonably high magnification, then use a paler stipple
      * so that the material type is easy to see through the highlighting.
      */
-    
+
     if (window->w_scale > SUBPIXEL)
 	GrSetStuff(STYLE_PALEHIGHLIGHTS);
-    else 
+    else
 	GrSetStuff(STYLE_SOLIDHIGHLIGHTS);
 
     /* Find all paint on all layers in the area where we may have to
@@ -142,7 +142,7 @@ nmscAlways1()
 {
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -171,7 +171,7 @@ NMUnsetCell()
     nmscRootDef = NULL;
     DBWHLRedraw(oldDef, &nmscUse->cu_def->cd_bbox, TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -209,7 +209,7 @@ NMShowCell(use, rootDef)
     nmscUse = use;
     DBWHLRedraw(nmscRootDef, &nmscUse->cu_def->cd_bbox, FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -244,7 +244,7 @@ nmGetShowCell()
     DBSetTrans(nmscShowUse, &GeoIdentityTransform);
     nmscShowUse->cu_expandMask = CU_DESCEND_SPECIAL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -286,7 +286,7 @@ NMShowUnderBox()
     /* Expand the box area by one so we'll get everything that even
      * touches it.
      */
-    
+
     GEO_EXPAND(&scx.scx_area, 1, &scx.scx_area);
     rootDef = scx.scx_use->cu_def;
 
@@ -299,7 +299,7 @@ NMShowUnderBox()
 	&DBAllButSpaceBits);
     NMShowCell(nmscShowUse, rootDef);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -354,7 +354,7 @@ NMShowRoutedNet(netName)
     NMShowCell(nmscShowUse, EditCellUse->cu_def);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -380,7 +380,7 @@ nmShowRoutedNetFunc(name, clientData)
     (void) DBSrLabelLoc((CellUse *) clientData, name, nmSRNFunc, clientData);
     return(0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -407,11 +407,11 @@ nmSRNFunc(rect, name, label, cdarg)
     ClientData cdarg;
 {
     SearchContext scx;
-    
+
     /* Expand the box area by one so we'll get everything that even
      * touches it.  Search on layers connected to the layer of the label.
      */
-    
+
     scx.scx_area = *rect;
     GEO_EXPAND(&scx.scx_area, 1, &scx.scx_area);
     scx.scx_use = (CellUse *) cdarg;

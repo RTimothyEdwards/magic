@@ -27,11 +27,11 @@
 #include <errno.h>
 
 #include "tcltk/tclmagic.h"
-#include "utils/main.h"   
-#include "utils/magic.h"   
+#include "utils/main.h"
+#include "utils/magic.h"
 #include "utils/geometry.h"
-#include "tiles/tile.h"  
-#include "utils/hash.h"  
+#include "tiles/tile.h"
+#include "utils/hash.h"
 #include "utils/dqueue.h"
 #include "database/database.h"
 #include "windows/windows.h"
@@ -41,7 +41,7 @@
 #include "textio/txcommands.h"
 #include "utils/signals.h"
 #include "graphics/graphics.h"
-#include "utils/malloc.h" 
+#include "utils/malloc.h"
 #include "dbwind/dbwind.h"
 
 /*
@@ -124,7 +124,7 @@ TagCallback(interp, tkpath, argc, argv)
     if (postcmd)
     {
 	/* The Tag callback should not increase the command number	*/
-	/* sequence, so save it now and restore it before returning.	*/ 
+	/* sequence, so save it now and restore it before returning.	*/
 	cmdnum = TxCommandNumber;
 
 	substcmd = (char *)mallocMagic(strlen(postcmd) + 1);
@@ -153,7 +153,7 @@ TagCallback(interp, tkpath, argc, argv)
 		    /* path has been passed in the argument.  If not, get */
 		    /* the window path if there is only one window.       */
 		    /* Otherwise, the window is unknown so we substitute  */
-		    /* a null list "{}".				  */ 
+		    /* a null list "{}".				  */
 
 		    if (tkpath == NULL)
 		    {
@@ -268,7 +268,7 @@ AddCommandTag(ClientData clientData,
 	return TCL_ERROR;
 
     entry = HashFind(&txTclTagTable, argv[1]);
- 
+
     if (entry == NULL) return TCL_ERROR;
 
     hstring = (char *)HashGetValue(entry);
@@ -302,7 +302,7 @@ static int
 _tcl_dispatch(ClientData clientData,
         Tcl_Interp *interp, int argc, char *argv[])
 {
-    int wval; 
+    int wval;
     int result, idx;
     Tcl_Obj *objv0;
     char *argv0, *tkwind;
@@ -341,7 +341,7 @@ _tcl_dispatch(ClientData clientData,
     {
 	int i;
 	Tcl_Obj **objv = (Tcl_Obj **)Tcl_Alloc(argc * sizeof(Tcl_Obj *));
-	
+
 	/* Create a Tcl_Obj array suitable for calling Tcl_EvalObjv.	*/
 	/* The first argument is changed from the magic command name to	*/
 	/* "tcl" + the command name.  This assumes that all conflicting	*/
@@ -502,7 +502,7 @@ MakeWindowCommand(char *wname, MagWindow *mw)
 /*------------------------------------------------------*/
 /* Main startup procedure				*/
 /*------------------------------------------------------*/
- 
+
 static int
 _magic_initialize(ClientData clientData,
         Tcl_Interp *interp, int argc, char *argv[])
@@ -632,7 +632,7 @@ _magic_flags(ClientData clientData,
 		"true", "1", (char *)NULL};
 
     if ((objc != 2) && (objc != 3)) {
-	Tcl_WrongNumArgs(interp, 1, objv, "flag ?value?"); 
+	Tcl_WrongNumArgs(interp, 1, objv, "flag ?value?");
 	return TCL_ERROR;
     }
     if (Tcl_GetIndexFromObj(interp, objv[1], (CONST84 char **)flagOptions,
@@ -841,7 +841,7 @@ extern char txPromptChar;
 void
 TxSetPrompt(ch)
     char ch;
-{   
+{
     Tcl_SavedResult state;
     char promptline[16];
 
@@ -852,7 +852,7 @@ TxSetPrompt(ch)
 	Tcl_EvalEx(consoleinterp, promptline, 15, 0);
 	Tcl_RestoreResult(consoleinterp, &state);
     }
-}   
+}
 
 /*--------------------------------------------------------------*/
 /* Get a line from stdin (Tcl replacement for Tx function)	*/
@@ -1046,7 +1046,7 @@ Tcl_printf(FILE *f, char *fmt, va_list args_in)
 
     if (escapes > 0)
     {
-	/* "+ 4" required to process "$$...$$"; haven't figured out why. */ 
+	/* "+ 4" required to process "$$...$$"; haven't figured out why. */
 	finalstr = Tcl_Alloc(nchars + escapes + 26 + 4);
 	strncpy(finalstr, outptr, 24);
 	escapes = 0;
@@ -1081,7 +1081,7 @@ Tcl_printf(FILE *f, char *fmt, va_list args_in)
 
     return result;
 }
-    
+
 /*--------------------------------------------------------------*/
 /* Tcl_escape() takes a string as input and produces a string	*/
 /* in which characters are escaped as necessary to make them	*/
@@ -1181,7 +1181,7 @@ TerminalInputProc(instanceData, buf, toRead, errorCodePtr)
 	if (errno != EINTR) break;
     }
     *errorCodePtr = errno;
-	
+
     return -1;
 }
 
@@ -1239,7 +1239,7 @@ Tclmagic_Init(interp)
 
 int
 Tclmagic_SafeInit(interp)
-    Tcl_Interp *interp; 
+    Tcl_Interp *interp;
 {
     return Tclmagic_Init(interp);
 }

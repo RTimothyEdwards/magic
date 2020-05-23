@@ -3,16 +3,16 @@
  *	This file contains routines that respond to button pushes
  *	in database windows when the netlist button handler is active.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -45,7 +45,7 @@ char *NMCurNetName = NULL;
 /* Maximimum amount of storage to hold terminal name: */
 
 #define MAXTERMLENGTH 200
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -84,7 +84,7 @@ NMButtonNetList(window, cmd, nmButton, point)
 	NMNewNetlist(newName);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -161,7 +161,7 @@ nmButtonSetup()
     }
     return termName;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -200,14 +200,14 @@ NMButtonRight(w, cmd)
     }
 
     /* See if this terminal is already in the current net. */
-    
+
     if (NMEnumTerms(name, nmButCheckFunc, (ClientData) NMCurNetName))
     {
 	/* In the net already.  Delete it from the net.  But first,
 	 * find another terminal in the net to use as a reference
 	 * for the current net.  If not, then null out the current net.
 	 */
-	
+
 	if (strcmp(name, NMCurNetName) == 0)
 	{
 	    NMSelectNet((char *) NULL);
@@ -225,7 +225,7 @@ NMButtonRight(w, cmd)
 	 * the terminal is already in a net.  If it is, then remove
 	 * it from that net.
 	 */
-	
+
 	if (NMTermInList(name) != NULL)
 	{
 	    char *netName = name;
@@ -324,7 +324,7 @@ nmNewRefFunc(name, oldRef)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -382,7 +382,7 @@ nmSelNetFunc(name)
     if (!exists) TxPrintf("%s: not in circuit!\n", name);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -420,7 +420,7 @@ NMButtonLeft(w, cmd)
     if (NMTermInList(name) == NULL) (void) NMAddTerm(name, name);
     NMSelectNet(name);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -461,14 +461,14 @@ NMButtonMiddle(w, cmd)
      * join the nets.  Note:  if the terminal isn't in any net
      * at all, make a new terminal.
      */
-    
+
     if (NMTermInList(name) == NULL) (void) NMAddTerm(name, name);
     (void) NMEnumTerms(name, nmSelNetFunc, (ClientData) NULL);
     NMJoinNets(name, NMCurNetName);
 
     TxPrintf("Merging net \"%s\" into current net.\n", name);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

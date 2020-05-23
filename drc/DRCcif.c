@@ -2,23 +2,23 @@
  * DRCcif.c --
  *
  ******************************************************************************
- * Copyright (C) 1989 Digital Equipment Corporation                           
- * Permission to use, copy, modify, and distribute this              
- * software and its documentation for any purpose and without       
- * fee is hereby granted, provided that the above copyright        
- * notice appear in all copies.  Digital Equipment Corporation    
- * makes no representations about the suitability of this        
- * software for any purpose.  It is provided "as is" without    
- * express or implied warranty.  
- *                                                               
- * THE SOFTWARE IS PROVIDED "AS IS" AND DIGITAL EQUIPMENT CORP. DISCLAIMS ALL  
+ * Copyright (C) 1989 Digital Equipment Corporation
+ * Permission to use, copy, modify, and distribute this
+ * software and its documentation for any purpose and without
+ * fee is hereby granted, provided that the above copyright
+ * notice appear in all copies.  Digital Equipment Corporation
+ * makes no representations about the suitability of this
+ * software for any purpose.  It is provided "as is" without
+ * express or implied warranty.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND DIGITAL EQUIPMENT CORP. DISCLAIMS ALL
  * WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS.   IN NO EVENT SHALL DIGITAL EQUIPMENT         
- * CORPORATION BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL 
- * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR    
- * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS 
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS 
- * SOFTWARE. 
+ * MERCHANTABILITY AND FITNESS.   IN NO EVENT SHALL DIGITAL EQUIPMENT
+ * CORPORATION BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
  ****************************************************************************
  *
  */
@@ -148,7 +148,7 @@ drcCifWarning()
 /*
  * ----------------------------------------------------------------------------
  *
- * drcCifWidth -- same this as drcCifWidth, except that it works on 
+ * drcCifWidth -- same this as drcCifWidth, except that it works on
  *	cif layers
  *
  * Results:
@@ -180,8 +180,8 @@ drcCifWidth(argc, argv)
     for (i = 0; i < drcCifStyle->cs_nLayers;i++)
     {
     	 CIFLayer	*layer = drcCifStyle->cs_layers[i];
-	 
-	 if (strcmp(layer->cl_name,layername) == 0) 
+
+	 if (strcmp(layer->cl_name,layername) == 0)
 	 {
 	      thislayer = i;
 	      break;
@@ -209,7 +209,7 @@ drcCifWidth(argc, argv)
 /*
  * ----------------------------------------------------------------------------
  *
- * drcCifSpacing -- same this as drcSpacing, except that it works on cif 
+ * drcCifSpacing -- same this as drcSpacing, except that it works on cif
  * 	layers.
  *
  * Results:
@@ -240,7 +240,7 @@ drcCifSpacing(argc, argv)
 
     layers[0] = argv[1];
     layers[1] = argv[2];
-    
+
     if (drcCifStyle == NULL)
 	return drcCifWarning();
 
@@ -249,12 +249,12 @@ drcCifSpacing(argc, argv)
          for (i = 0; i < drcCifStyle->cs_nLayers;i++)
          {
     	      CIFLayer	*l = drcCifStyle->cs_layers[i];
-	 
+
 	      if (strcmp(l->cl_name,layers[k]) == 0)
 	      {
 	      	   layer[k]=i;
 	           break;
-	      } 
+	      }
          }
          if (i == drcCifStyle->cs_nLayers || layer[k] == -1)
          {
@@ -285,7 +285,7 @@ drcCifSpacing(argc, argv)
 	TechError("Badly formed drc spacing line\n");
 	return (0);
     }
-    
+
     scalefactor = drcCifStyle->cs_scaleFactor;
     centidistance *= drcCifStyle->cs_expander;		// BSI
     dpnext = drcCifRules[layer[0]][DRC_CIF_SOLID];
@@ -301,7 +301,7 @@ drcCifSpacing(argc, argv)
     drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits,
     		&cmask, why, centidistance, DRC_REVERSE, layer[1], 0);
     drcCifRules[layer[0]][DRC_CIF_SPACE] = dpnew;
-    
+
     if (needReverse)
     {
 	 // This is not so much "reverse" as it is just the
@@ -320,7 +320,7 @@ drcCifSpacing(argc, argv)
 	 drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
 		why, centidistance, DRC_REVERSE|DRC_BOTHCORNERS, layer[0], 0);
 	 drcCifRules[layer[1]][DRC_CIF_SPACE] = dpnew;
-    
+
 	 if (layer[0] == layer[1])
 	 {
               dpnext = drcCifRules[layer[1]][DRC_CIF_SPACE];
@@ -329,7 +329,7 @@ drcCifSpacing(argc, argv)
 			&cmask, why, centidistance, DRC_REVERSE | DRC_BOTHCORNERS,
 			layer[0], 0);
                  drcCifRules[layer[1]][DRC_CIF_SPACE] = dpnew;
-	 
+
               dpnext = drcCifRules[layer[0]][DRC_CIF_SPACE];
               dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
               drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
@@ -353,7 +353,7 @@ drcCifSpacing(argc, argv)
 			why, scalefactor, DRC_FORWARD, layer[1], 0);
          drcCifRules[layer[0]][DRC_CIF_SPACE] = dpnew;
     }
-    
+
     return ((centidistance+scalefactor-1)/scalefactor);
 }
 
@@ -459,7 +459,7 @@ drcCifFinal()
     for (i = 0; i != MAXCIFLAYERS; i++)
     {
         DRCCookie *dp;
-     	  
+
 	for (dp = drcCifRules[i][DRC_CIF_SPACE]; dp; dp = dp->drcc_next)
 	{
 	    drcCifValid = TRUE;
@@ -486,7 +486,7 @@ drcCifFinal()
  *
  * Side effects:
  *	Error paint, CIF layer generation, lots of stuff going on.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -546,11 +546,11 @@ drcCifCheck(arg)
     {
         for (j = 0; j != 2; j++)
 	{
-	    for (drcCifCur = drcCifRules[i][j]; 
+	    for (drcCifCur = drcCifRules[i][j];
 	       		drcCifCur; drcCifCur = drcCifCur->drcc_next)
             {
 	  	TileTypeBitMask	*mask;
-	  
+
 		arg->dCD_plane = i;
 	        DBSrPaintArea((Tile *) NULL, CIFPlanes[i], &cifrect,
 			(j == DRC_CIF_SOLID) ? &DBSpaceBits : &CIFSolidBits,
@@ -868,7 +868,7 @@ drcCifTile (tile, arg)
 			    /* Nothing */;
 		    if (TTMaskHasType(&cptr->drcc_corner, TiGetLeftType(tp)))
 		    {
-			errRect.r_xtop += cptr->drcc_cdist; 	
+			errRect.r_xtop += cptr->drcc_cdist;
 			if (DRCEuclidean)
 			    arg->dCD_radial |= 0x4000;
 		    }
@@ -883,7 +883,7 @@ drcCifTile (tile, arg)
 			    /* Nothing */;
 			if (TTMaskHasType(&cptr->drcc_corner, TiGetRightType(tp)))
 			{
-			    errRect.r_xbot -= cptr->drcc_cdist; 	
+			    errRect.r_xbot -= cptr->drcc_cdist;
 			    if (DRCEuclidean)
 				arg->dCD_radial |= 0x1000;
 			}
@@ -972,7 +972,7 @@ drcCifTile (tile, arg)
 /*
  * ----------------------------------------------------------------------------
  *
- * areaCifCheck -- 
+ * areaCifCheck --
  *
  * Call the function passed down from DRCBasicCheck() if the current tile
  * violates the rule in the given DRCCookie.  If the rule's connectivity
@@ -992,7 +992,7 @@ drcCifTile (tile, arg)
  */
 
 int
-areaCifCheck(tile, arg) 
+areaCifCheck(tile, arg)
     Tile *tile;
     struct drcClientData *arg;
 {
@@ -1078,8 +1078,8 @@ drcCifArea(argc, argv)
     for (i = 0; i < drcCifStyle->cs_nLayers;i++)
     {
     	 CIFLayer	*layer = drcCifStyle->cs_layers[i];
-	 
-	 if (strcmp(layer->cl_name,layers) == 0) 
+
+	 if (strcmp(layer->cl_name,layers) == 0)
 	 {
 	      thislayer = i;
 	      break;
@@ -1140,8 +1140,8 @@ drcCifMaxwidth(argc, argv)
     for (i = 0; i < drcCifStyle->cs_nLayers;i++)
     {
     	 CIFLayer	*layer = drcCifStyle->cs_layers[i];
-	 
-	 if (strcmp(layer->cl_name,layers) == 0) 
+
+	 if (strcmp(layer->cl_name,layers) == 0)
 	 {
 	      thislayer = i;
 	      break;
@@ -1160,7 +1160,7 @@ drcCifMaxwidth(argc, argv)
     	 TechError("unknown bend option %s\n",bends);
 	 return (0);
     }
-    
+
     scalefactor = drcCifStyle->cs_scaleFactor;
     centidistance *= drcCifStyle->cs_expander;		// BSI
     dpnext = drcCifRules[thislayer][DRC_CIF_SPACE];
@@ -1177,7 +1177,7 @@ drcCifMaxwidth(argc, argv)
  *
  * drcCifCheckArea--
  *
- *	checks to see that a collection of cif tiles 
+ *	checks to see that a collection of cif tiles
  *	have more than a minimum area.
  *
  * Results:
@@ -1201,7 +1201,7 @@ drcCheckCifArea(starttile, arg, cptr)
      Tile		*tile,*tp;
      Rect		*cliprect = arg->dCD_rect;
      int 		scale = drcCifStyle->cs_scaleFactor;
-     
+
     arg->dCD_cptr = (DRCCookie *)cptr;
     if (DRCstack == (Stack *) NULL)
 	DRCstack = StackNew(64);
@@ -1253,7 +1253,7 @@ drcCheckCifArea(starttile, arg, cptr)
 		 arg->dCD_cptr, arg->dCD_clientData);
 	     (*(arg->dCD_errors))++;
 	 }
-	 
+
      }
 forgetit:
      /* reset the tiles */
@@ -1327,7 +1327,7 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
     TileTypeBitMask	*oktypes = &cptr->drcc_mask;
     Tile		*tile,*tp;
     int 		scale = drcCifStyle->cs_scaleFactor;
-     
+
     arg->dCD_cptr = (DRCCookie *)cptr;
     if (DRCstack == (Stack *) NULL)
 	DRCstack = StackNew(64);
@@ -1363,7 +1363,7 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
     {
 	tile = (Tile *) STACKPOP(DRCstack);
 	if (tile->ti_client != (ClientData)DRC_PENDING) continue;
-	
+
 	if (boundrect.r_xbot > LEFT(tile)) boundrect.r_xbot = LEFT(tile);
 	if (boundrect.r_xtop < RIGHT(tile)) boundrect.r_xtop = RIGHT(tile);
 	if (boundrect.r_ybot > BOTTOM(tile)) boundrect.r_ybot = BOTTOM(tile);
@@ -1391,7 +1391,7 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
      }
 
      if (boundrect.r_xtop - boundrect.r_xbot > edgelimit &&
-             boundrect.r_ytop - boundrect.r_ybot > edgelimit) 
+             boundrect.r_ytop - boundrect.r_ybot > edgelimit)
      {
 	 Rect	rect;
 	 TiToRect(starttile,&rect);
@@ -1407,7 +1407,7 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
 		  (*(arg->dCD_errors))++;
 	      }
 	 }
-	 
+
      }
      /* reset the tiles */
      starttile->ti_client = (ClientData)DRC_UNPROCESSED;

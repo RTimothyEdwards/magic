@@ -185,10 +185,10 @@ lispprinttile (tile,cxp)
 	return 0;
 
   TITORECT(tile, &targetRect);
-  
+
   /* Transform to target coordinates */
   GEOTRANSRECT(&scx->scx_trans, &targetRect, &sourceRect);
-  
+
   /* Clip against the target area */
   arg = (Rect *) cxp->tc_filter->tf_arg;
 
@@ -197,7 +197,7 @@ lispprinttile (tile,cxp)
   /* go to edit coordinates from root coordinates */
   GEOTRANSRECT (&RootToEditTransform, &sourceRect, &targetRect);
 
-  sprintf (getpaint_buf, "((\"%s\" %d %d %d %d))", 
+  sprintf (getpaint_buf, "((\"%s\" %d %d %d %d))",
 	   DBTypeShortName (type),
 	   targetRect.r_xbot, targetRect.r_ybot,
 	   targetRect.r_xtop, targetRect.r_ytop);
@@ -206,7 +206,7 @@ lispprinttile (tile,cxp)
   _internal_list = l;
   return 0;
 }
-     
+
 
 LispObj *
 LispGetPaint (name,s,f)
@@ -245,7 +245,7 @@ LispGetPaint (name,s,f)
 	}
     }
   if (CmdParseLayers (LSTR(ARG1(s)), &mask)) {
-    if (TTMaskEqual (&mask, &DBSpaceBits)) 
+    if (TTMaskEqual (&mask, &DBSpaceBits))
       CmdParseLayers ("*,label", &mask);
     TTMaskClearType(&mask,TT_SPACE);
   }
@@ -261,9 +261,9 @@ LispGetPaint (name,s,f)
   LTYPE(_internal_list) = S_LIST;
   LLIST(_internal_list) = NULL;
 
-  (void) DBTreeSrTiles(&scx, &mask, xMask, lispprinttile, 
+  (void) DBTreeSrTiles(&scx, &mask, xMask, lispprinttile,
 		       (ClientData) &scx.scx_area);
-		       
+
   return _internal_list;
 }
 
@@ -298,7 +298,7 @@ LispGetSelPaint (name,s,f)
   }
   bzero (&scx, sizeof(SearchContext));
   if (CmdParseLayers (LSTR(ARG1(s)), &mask)) {
-    if (TTMaskEqual (&mask, &DBSpaceBits)) 
+    if (TTMaskEqual (&mask, &DBSpaceBits))
       CmdParseLayers ("*,label", &mask);
     TTMaskClearType(&mask,TT_SPACE);
   }
@@ -317,7 +317,7 @@ LispGetSelPaint (name,s,f)
   _internal_list = LispNewObj ();
   LTYPE(_internal_list) = S_LIST;
   LLIST(_internal_list) = NULL;
-  (void) DBTreeSrTiles(&scx, &mask, 0, lispprinttile, 
+  (void) DBTreeSrTiles(&scx, &mask, 0, lispprinttile,
 		       (ClientData) &scx.scx_area);
   return _internal_list;
 }
@@ -375,7 +375,7 @@ lispprintlabel (scx, label, tpath, cdarg)
 
   /* go to edit coords from root coords */
   GEOTRANSRECT (&RootToEditTransform, &sourceRect, &targetRect);
-  
+
   sprintf (buf, "((\"%s\" \"%s\" %d %d %d %d))",
 	   nm,
 	   DBTypeShortName (label->lab_type),
@@ -388,7 +388,7 @@ lispprintlabel (scx, label, tpath, cdarg)
   _internal_list = l;
   return 0;
 }
-     
+
 LispObj *
 LispGetLabel (name,s,f)
      char *name;
@@ -434,7 +434,7 @@ LispGetLabel (name,s,f)
   LTYPE(_internal_list) = S_LIST;
   LLIST(_internal_list) = NULL;
 
-  (void) DBSearchLabel (&scx, &mask, xMask, LSTR(ARG1(s)), 
+  (void) DBSearchLabel (&scx, &mask, xMask, LSTR(ARG1(s)),
 			lispprintlabel, (ClientData) &scx.scx_area);
 
   return _internal_list;
@@ -485,7 +485,7 @@ LispGetSelLabel (name,s,f)
   LTYPE(_internal_list) = S_LIST;
   LLIST(_internal_list) = NULL;
 
-  (void) DBSearchLabel (&scx, &mask, 0, LSTR(ARG1(s)), 
+  (void) DBSearchLabel (&scx, &mask, 0, LSTR(ARG1(s)),
 			lispprintlabel, (ClientData) &scx.scx_area);
 
   return _internal_list;
@@ -521,9 +521,9 @@ int lispprintcell (use,cdarg)
 	   use->cu_xlo, use->cu_xhi,
 	   use->cu_ylo, use->cu_yhi,
 	   use->cu_xsep, use->cu_ysep);
-  
+
   l = LispParseString (cellbuffer);
-  
+
   CDR(LLIST(l)) = _internal_list;
   _internal_list = l;
   return 0;
@@ -538,19 +538,19 @@ LispGetCellNames (name,s,f)
 {
   static char cellbuffer[1024];
   LispObj *l;
-  
+
   if (ARG1P(s)) {
     TxPrintf ("Usage: (%s)\n", name);
     RETURN;
   }
-  
+
   _internal_list = LispNewObj ();
   LTYPE(_internal_list) = S_LIST;
   LLIST(_internal_list) = NULL;
 
   (void) DBCellEnum (EditCellUse ?  EditCellUse->cu_def :  EditRootDef,
 		     lispprintcell, (ClientData) NULL);
-  
+
   return _internal_list;
 }
 

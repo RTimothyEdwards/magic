@@ -1,16 +1,16 @@
 /*
  * pathvisit.c
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains several procedures to implement a means of scanning
@@ -32,7 +32,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/pathvisit.h"
 #include "utils/utils.h"
 
-
+
 /*
  * -------------------------------------------------------------------
  *
@@ -60,7 +60,7 @@ PaVisitInit()
     pv->pv_first = pv->pv_last = (PaVisitClient *) NULL;
     return (pv);
 }
-
+
 /*
  * -------------------------------------------------------------------
  *
@@ -92,7 +92,7 @@ PaVisitFree(pv)
 
     freeMagic((char *) pv);
 }
-
+
 /*
  * -------------------------------------------------------------------
  *
@@ -147,7 +147,7 @@ PaVisitAddClient(pv, keyword, proc, cdata)
 	pv->pv_first = pv->pv_last = pvc;
     }
 }
-
+
 /*
  * -------------------------------------------------------------------
  *

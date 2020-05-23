@@ -2,16 +2,16 @@
  *
  *	Code to handle channels and the obstacles within them.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -53,7 +53,7 @@ Plane *RtrChannelPlane;
 /* List of channels created from decomposed tile plane */
 GCRChannel *RtrChannelList = NULL;
 
-/* Multiplier for when to make end connections */ 
+/* Multiplier for when to make end connections */
 #ifndef	lint
 float RtrEndConst = 1.0;
 #else
@@ -64,7 +64,7 @@ float RtrEndConst;	/* Sun lint brain death */
 extern int rtrChannelObstacleMark();
 extern void rtrChannelObstaclePins();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -189,7 +189,7 @@ bottom:
     *pCount += errs1;
     RtrMilestonePrint();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -248,7 +248,7 @@ RtrChannelBounds(loc, pLength, pWidth, origin)
     }
     *pWidth = (hi - lo) / RtrGridSpacing + 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -316,7 +316,7 @@ RtrChannelObstacles(use, ch)
 
     rtrChannelObstaclePins(ch);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -381,7 +381,7 @@ rtrChannelObstaclePins(ch)
 	else if (!CLEAR(res[col][end])) ch->gcr_tPins[col].gcr_pFlags = GCROBST;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -485,7 +485,7 @@ rtrChannelObstacleMark(tile, cxp)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -562,7 +562,7 @@ RtrChannelDensity(ch)
 	if (*vdens > density) density = *vdens;
     ch->gcr_dMaxByRow = density;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

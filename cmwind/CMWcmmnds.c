@@ -3,16 +3,16 @@
  *
  * Commands for the color map editor.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -64,7 +64,7 @@ bool cmwWatchButtonUp;
 
 bool cmwModified = FALSE;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -194,7 +194,7 @@ cmwButtonDown(w, p, button)
     /* See if the cursor is over the current color area.  If so, remember
      * the fact and wait for the button to be released.
      */
-    
+
     if (GEO_ENCLOSE(&surfacePoint, &cmwCurrentColorArea))
     {
 	cmwWindow = w;
@@ -237,7 +237,7 @@ cmwButtonUp(w, p, button)
      * (the one displaying the current color), then we ignore the
      * button release.
      */
-    
+
     if (!cmwWatchButtonUp) return;
     cmwWatchButtonUp = FALSE;
 
@@ -246,7 +246,7 @@ cmwButtonUp(w, p, button)
      * color values from the pixel underneath the cursor to the current
      * color.
      */
-    
+
     /* Read the pixel from the window that was underneath the cursor when
      * the button was released.
      */
@@ -426,10 +426,10 @@ cmwColor(w, cmd)
 	}
 	CMWloadWindow(w, color);
     }
-    else 
+    else
 	TxError("Usage: color [#|next|last|get|rgb]\n");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -473,7 +473,7 @@ cmwSave(w, cmd)
     }
     if (ok) cmwModified = FALSE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -514,7 +514,7 @@ cmwLoad(w, cmd)
     else (void) GrReadCMap(DBWStyleType, (char *) NULL,
 	   MainMonType, ".", SysLibPath);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

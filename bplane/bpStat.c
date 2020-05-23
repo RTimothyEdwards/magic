@@ -1,28 +1,28 @@
 // ************************************************************************
-// 
+//
 // Copyright (c) 1995-2002 Juniper Networks, Inc. All rights reserved.
-// 
+//
 // Permission is hereby granted, without written agreement and without
 // license or royalty fees, to use, copy, modify, and distribute this
 // software and its documentation for any purpose, provided that the
 // above copyright notice and the following three paragraphs appear in
 // all copies of this software.
-// 
+//
 // IN NO EVENT SHALL JUNIPER NETWORKS, INC. BE LIABLE TO ANY PARTY FOR
 // DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
 // ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF
 // JUNIPER NETWORKS, INC. HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
-// 
+//
 // JUNIPER NETWORKS, INC. SPECIFICALLY DISCLAIMS ANY WARRANTIES,
 // INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
 // NON-INFRINGEMENT.
-// 
+//
 // THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND JUNIPER
 // NETWORKS, INC. HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-// 
+//
 // ************************************************************************
 
 
@@ -49,11 +49,11 @@
  * Returns size of list.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 int bpCount(Element *e)
 {
   int i = 0;
- 
+
   while(e)
   {
     i++;
@@ -69,13 +69,13 @@ int bpCount(Element *e)
  *
  * compute bin array statistics.
  * (includes sub-arrays)
- * 
+ *
  *
  * Returns memory used by bplane (excluding elements)
  *
  * ----------------------------------------------------------------------------
- */		 
-unsigned int bpStatBA(BinArray *ba, 
+ */
+unsigned int bpStatBA(BinArray *ba,
 		      int *totCount,        /* total number of elements */
 		      int *totBins,         /* ret tot num of bins */
 		      int *emptyBins,       /* ret num of empty bins */
@@ -91,12 +91,12 @@ unsigned int bpStatBA(BinArray *ba,
   int numBins = ba->ba_numBins;
   int dimX = ba->ba_dimX;
   int dimY = numBins/dimX;
-  int w = GEO_WIDTH(bbox); 
+  int w = GEO_WIDTH(bbox);
   int h = GEO_HEIGHT(bbox);
-  
+
   /* initial statistics */
   unsigned int mem = 0;
-  int tot = 0; 
+  int tot = 0;
   int bins = 0;
   int emptys = 0;
   int binArrays = 1;
@@ -112,13 +112,13 @@ unsigned int bpStatBA(BinArray *ba,
   /* add bins in this array */
   bins += numBins;
 
-  /* add memory usage for this array (sub arrays already tabulated) */ 
+  /* add memory usage for this array (sub arrays already tabulated) */
   if(ba) mem += sizeof(BinArray) + numBins*sizeof(void*);
 
   /* gather stats bin by bin */
   for(i=0;i<numBins;i++)
   {
-    if(bpBinType(ba,i) != BT_ARRAY)    
+    if(bpBinType(ba,i) != BT_ARRAY)
     {
       /* simple bin */
       int count = bpCount(bpBinList(ba,i));
@@ -160,7 +160,7 @@ unsigned int bpStatBA(BinArray *ba,
   /* oversized */
   if(bpBinType(ba,numBins) != BT_ARRAY)
   {
-    /* oversized unbinned */ 
+    /* oversized unbinned */
     int over = bpCount(bpBinList(ba,numBins));
     tot += over;
     unbinned += over;
@@ -215,8 +215,8 @@ unsigned int bpStatBA(BinArray *ba,
  * Returns memory used by bplane (excluding elements)
  *
  * ----------------------------------------------------------------------------
- */		 
-unsigned int BPStat(BPlane *bp, 
+ */
+unsigned int BPStat(BPlane *bp,
 		      int *totCount,        /* total number of elements */
 		      int *inBox,           /* ret num of elements in inBox */
 		      int *totBins,         /* ret tot num of bins */
@@ -246,7 +246,7 @@ unsigned int BPStat(BPlane *bp,
     mem += bpStatBA(bp->bp_rootNode,
 		    &tot,        /* total number of elements */
 		    &bins,       /* ret tot num of bins */
-		    &emptys,     /* ret tot num of empty bins */  
+		    &emptys,     /* ret tot num of empty bins */
 		    &binArrays,  /* ret tot num of bin arrays */
 		    &maxEff,     /* ret max effective list length */
 		    &maxCount,   /* ret max count for regular bin */
@@ -260,9 +260,9 @@ unsigned int BPStat(BPlane *bp,
   maxEff += in;
   unbinned += in;
 
-  /* add in memory usage for bplane */ 
+  /* add in memory usage for bplane */
   mem += sizeof(BPlane);
-  mem += IHashStats2(bp->bp_hashTable,NULL,NULL); 
+  mem += IHashStats2(bp->bp_hashTable,NULL,NULL);
 
   /* set results */
   if(totCount) *totCount = tot;
@@ -277,28 +277,28 @@ unsigned int BPStat(BPlane *bp,
 
   return mem;
 }
-    
+
 
 /*
  * ----------------------------------------------------------------------------
  * BPStatMemory --
  *
- * returns memory usage of BPlane in bytes 
+ * returns memory usage of BPlane in bytes
  * (exclusive of elements contained by the BPlane)
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 unsigned int BPStatMemory(BPlane *bp)
 {
-  return BPStat(bp, 
-		NULL, 
-		NULL, 
-		NULL, 
+  return BPStat(bp,
 		NULL,
-		NULL, 
-		NULL, 
-		NULL, 
 		NULL,
-		NULL);  
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL);
 }
 

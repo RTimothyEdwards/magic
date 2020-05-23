@@ -4,16 +4,16 @@
  * Procedures to flatten the hierarchical description built
  * by efReadDef().
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -67,7 +67,7 @@ int efAddOneConn(HierContext *, char *, char *, Connection *, bool);
 #define FLATNODE_STDCELL    0x01
 #define FLATNODE_DOWARN	    0x02
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -233,7 +233,7 @@ EFFlatBuildOneLevel(def, flags)
 
     return &efFlatContext;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -268,7 +268,7 @@ EFFlatDone()
     HashKill(&efHNUseHashTable);
     return;
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -477,7 +477,7 @@ efAddNodes(hc, stdcell)
 
 	// If called with "hierarchy on", all local node caps and adjustments
 	// have been output and should be ignored.
-	
+
 	newnode->efnode_cap = (!stdcell) ? node->efnode_cap : (EFCapValue)0.0;
 	newnode->efnode_client = (ClientData) NULL;
 	newnode->efnode_flags = node->efnode_flags;
@@ -602,7 +602,7 @@ efAddConns(hc, doWarn)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -660,7 +660,7 @@ efAddOneConn(hc, name1, name2, conn, doWarn)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -871,7 +871,7 @@ efFlatGlobHash(hierName)
 {
     return hierName->hn_hash;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -915,7 +915,7 @@ efFlatKills(hc)
 
     return (0);
 }
-
+
 
 /*----
  * WIP
@@ -1007,7 +1007,7 @@ efFlatCaps(hc)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1042,7 +1042,7 @@ efFlatSingleCap(hc, name1, name2, conn)
     static char msg0[] = "cap(1)";
     static char msg1[] = "cap(2)";
     char *msg;
-    
+
     /* Connections that are below threshold (ext2spice hierarchy only)	*/
     /* will be missing.  Do not generate errors for these.		*/
 
@@ -1080,7 +1080,7 @@ efFlatSingleCap(hc, name1, name2, conn)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1167,14 +1167,14 @@ HashEntry *he;
  * CapHashSetValue()
  *       if the pointer is null, allocate a EFCapValue and point to it.
  *        Then copy in the new value.
- * 
+ *
  * need to pass doubles regardless of what CapValue is because of
  * argument promotion in ANSI C
  *
  */
 void
 CapHashSetValue(he, c)
-HashEntry *he; 
+HashEntry *he;
 double c;
 {
 	EFCapValue *capp = (EFCapValue *)HashGetValue(he);

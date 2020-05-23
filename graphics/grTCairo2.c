@@ -30,7 +30,7 @@ extern   char        *DBWStyleType;
 extern   Display     *grXdpy;
 
 extern cairo_pattern_t *currentStipple;
-
+
 /*---------------------------------------------------------
  * GrTCairoSetCMap --
  *
@@ -85,7 +85,7 @@ int nb;
 	cairo_stroke(tcairodata->context);
 	cairo_restore(tcairodata->context);
 }
-
+
 /*---------------------------------------------------------
  * grtcairoDrawLine:
  *  This routine draws a line.
@@ -124,7 +124,7 @@ int x2, y2;         /* Screen coordinates of second point. */
 		grtcairoNbDiagonal++;
 	}
 }
-
+
 /*---------------------------------------------------------
  * grtcairoFillRects:
  *  This routine draws a bunch of solid rectangles.
@@ -147,7 +147,7 @@ int nb;
 	cairo_save(tcairodata->context);
 	for (i = 0; i < nb; i++)
 	{
-		cairo_rectangle(tcairodata->context, 
+		cairo_rectangle(tcairodata->context,
 						rects[i].r_ll.p_x, rects[i].r_ll.p_y,
 		        		rects[i].r_ur.p_x-rects[i].r_ll.p_x, rects[i].r_ur.p_y-rects[i].r_ll.p_y);
 		// TxPrintf("%d %d %d %d \n", rects[i].r_ll.p_x, rects[i].r_ll.p_y, rects[i].r_ur.p_x-rects[i].r_ll.p_x, rects[i].r_ur.p_y-rects[i].r_ll.p_y);
@@ -156,7 +156,7 @@ int nb;
 	cairo_mask(tcairodata->context, currentStipple);
 	cairo_restore(tcairodata->context);
 }
-
+
 /*---------------------------------------------------------
  * grtcairoFillRect:
  *  This routine draws a solid rectangle.

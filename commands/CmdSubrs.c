@@ -4,16 +4,16 @@
  * The functions in this file are local to the commands module
  * and not intended to be used by its clients.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -262,7 +262,7 @@ CmdInit()
     CmdYMAllButSpace = DBAllButSpaceBits;
     TTMaskClearType(&CmdYMAllButSpace, L_CELL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -326,7 +326,7 @@ cmdFlushCell(def)
 	    &parentUse->cu_bbox);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -443,7 +443,7 @@ CmdParseLayers(s, mask)
 			    	|| (window->w_client != DBWclientID))
 			    return (FALSE);
 			crec = (DBWclientRec *) window->w_clientData;
-			DBSeeTypesAll(((CellUse *)window->w_surfaceID), 
+			DBSeeTypesAll(((CellUse *)window->w_surfaceID),
 				&rootRect, crec->dbw_bitmask, &newmask);
 			TTMaskAndMask(&newmask, &crec->dbw_visibleLayers);
 			tempmask = DBAllButSpaceAndDRCBits;
@@ -512,7 +512,7 @@ printTypes:
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -551,7 +551,7 @@ cmdMaskToType(mask)
 	return (TT_SPACE);
     return (type);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -583,7 +583,7 @@ cmdSaveCell(cellDef, newName, noninteractive, tryRename)
 			 * saved.  May be NULL, in which case the name from
 			 * the CellDef is taken.
 			 */
-    bool noninteractive;/* If true, try hard but don't ask the user 
+    bool noninteractive;/* If true, try hard but don't ask the user
 			 * questions.
 			 */
     bool tryRename;	/* We should rename the cell to the name of the
@@ -602,7 +602,7 @@ cmdSaveCell(cellDef, newName, noninteractive, tryRename)
      * cell changes to the name of the file in which it was
      * saved.
      */
-    
+
     if (strcmp(cellDef->cd_name, UNNAMED) == 0)
     {
 	if (newName == NULL)
@@ -660,7 +660,7 @@ cmdSaveCell(cellDef, newName, noninteractive, tryRename)
 	 * We want to find all windows for which this is
 	 * the root cell and update their captions.
 	 */
-	(void) WindSearch(DBWclientID, (ClientData) NULL, (Rect *) NULL, 
+	(void) WindSearch(DBWclientID, (ClientData) NULL, (Rect *) NULL,
 		cmdSaveWindSet, (ClientData) cellDef);
     }
 
@@ -669,7 +669,7 @@ cleanup:
 	freeMagic(fileName);
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -773,7 +773,7 @@ again:
     }
     return (returnname);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -814,7 +814,7 @@ cmdSaveWindSet(window, def)
     WindCaption(window, caption);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -860,10 +860,10 @@ CmdSetWindCaption(newEditUse, rootDef)
 
     newEditDef = (newEditUse) ? newEditUse->cu_def : NULL;
     newRootDef = rootDef;
-    (void) WindSearch(DBWclientID, (ClientData) NULL, (Rect *) NULL, 
+    (void) WindSearch(DBWclientID, (ClientData) NULL, (Rect *) NULL,
 	    cmdWindSet, (ClientData) 0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -901,7 +901,7 @@ cmdWindSet(window)
     if (wDef != newRootDef)
 	(void) sprintf(caption, "%s [NOT BEING EDITED]", wDef->cd_name);
     else {
-	(void) sprintf(caption, "%s EDITING %s", wDef->cd_name, 
+	(void) sprintf(caption, "%s EDITING %s", wDef->cd_name,
 		newEditDef->cd_name);
 #ifdef SCHEME_INTERPRETER
         /* Add a binding to scheme variable "edit-cell" */
@@ -914,7 +914,7 @@ cmdWindSet(window)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -951,7 +951,7 @@ CmdGetRootPoint(point, rect)
 
     return (window);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -991,7 +991,7 @@ CmdGetEditPoint(point, rect)
 
     return (window);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1027,7 +1027,7 @@ CmdWarnWrite()
     prompt = TxPrintString("%d Magic cell%s been modified.\n  Do you"
 		" want to exit magic and lose %s? ", count,
 		count == 1 ? " has" : "s have",
-		count == 1 ? "it" : "them");		
+		count == 1 ? "it" : "them");
     code = TxDialog(prompt, yesno, 0);
     return (code) ? TRUE : FALSE;
 }
@@ -1041,12 +1041,12 @@ cmdWarnWriteFunc(cellDef, pcount)
 	(*pcount)++;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * cmdExpandOneLevel --
  *
- *	Expand (unexpand) a cell, and unexpand all of its children.  This is 
+ *	Expand (unexpand) a cell, and unexpand all of its children.  This is
  *	called by commands such as getcell, expand current cell, and load.
  *	Don't bother to unexpand children if we are unexpanding this cell.
  *
@@ -1082,7 +1082,7 @@ cmdExpand1func(cu, bitmask)
     DBExpand(cu, (int) bitmask, FALSE);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1134,7 +1134,7 @@ cmdGetSelFunc(selUse, realUse, transform, pResult)
 	*cmdSelTrans = *transform;
     return 1;			/* Skip any other selected cells. */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

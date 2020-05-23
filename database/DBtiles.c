@@ -5,16 +5,16 @@
  * This includes area searching and all other primitives that
  * need to know what lives in a tile body.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -133,7 +133,7 @@ nm_enum:
 	if (SigInterruptPending)
 	    return (1);
 
-	/* Check if the tile is in the (nonmanhattan) area, and continue */ 
+	/* Check if the tile is in the (nonmanhattan) area, and continue */
 	/* the tile enumeration if it is not.				 */
 	/* Watch for calculations involving (M)INFINITY in tile (tp)!	 */
 
@@ -200,7 +200,7 @@ nm_enum:
 		    /* Ignore sub-integer slivers */
 		    if (f4 != DLONG_MAX) f4 -= rmax;
 		    if (f3 != DLONG_MAX) f3 += rmax;
-		    
+
 		    if (ttype & TT_DIRECTION)
 		    {
 			if ((f2 < f3) && (f1 > f4))
@@ -219,7 +219,7 @@ nm_enum:
 		    /* Ignore sub-integer slivers */
 		    if (f4 != DLONG_MAX) f4 += rmax;
 		    if (f3 != DLONG_MAX) f3 -= rmax;
-		    
+
 		    if (ttype & TT_DIRECTION)
 		    {
 			if ((f2 > f3) && (f1 < f4))
@@ -289,12 +289,12 @@ enum_next:
 		tp = tpnew;
 		goto nm_enum;
 	    }
-	} 
+	}
 
 	/* Each iteration returns one tile further to the left */
 	while (LEFT(tp) > rect->r_xbot)
 	{
-	    if (BOTTOM(tp) <= rect->r_ybot) 
+	    if (BOTTOM(tp) <= rect->r_ybot)
 		return (0);
 	    tpnew = LB(tp);
 	    tp = BL(tp);
@@ -312,7 +312,7 @@ enum_next:
     return (0);
 }
 
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -448,12 +448,12 @@ enumerate:
 		tp = tpnew;
 		goto enumerate;
 	    }
-	} 
+	}
 
 	/* Each iteration returns one tile further to the left */
 	while (LEFT(tp) > rect->r_xbot)
 	{
-	    if (BOTTOM(tp) <= rect->r_ybot) 
+	    if (BOTTOM(tp) <= rect->r_ybot)
 		return (0);
 	    tpnew = LB(tp);
 	    tp = BL(tp);
@@ -471,7 +471,7 @@ enumerate:
     return (0);
 }
 
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -633,7 +633,7 @@ enumerate:
     }
     return (0);
 }
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -700,7 +700,7 @@ enumerate:
 	    /* Nothing */;
     }
 }
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -717,14 +717,14 @@ enumerate:
  *	None.
  *
  * Side effects:
- *	Deallocates a lot of memory.  
+ *	Deallocates a lot of memory.
  *
  *			*** WARNING ***
  *
- * This procedure uses a carfully constructed non-recursive area 
+ * This procedure uses a carfully constructed non-recursive area
  * enumeration algorithm.  Care is taken to not access a tile that has
  * been deallocated.  The only exception is for a tile that has just been
- * passed to free(), but no more calls to free() or malloc() have been made.  
+ * passed to free(), but no more calls to free() or malloc() have been made.
  * Magic's malloc allows this.
  *
  * --------------------------------------------------------------------
@@ -762,7 +762,7 @@ enumerate:
 	/* Each iteration returns one tile further to the right */
 	while (RIGHT(tp) < rect->r_xtop)
 	{
-	    TiFree(tp); 
+	    TiFree(tp);
 	    tpnew = RT(tp);
 	    tp = TR(tp);
 	    if (CLIP_TOP(tpnew) <= CLIP_TOP(tp) && BOTTOM(tpnew) < rect->r_ytop)
@@ -772,7 +772,7 @@ enumerate:
 	    }
 	}
 
-	TiFree(tp); 
+	TiFree(tp);
 	/* At right edge -- walk up to next tile along the right edge */
 	tp = RT(tp);
 	if (BOTTOM(tp) < rect->r_ytop) {
@@ -780,7 +780,7 @@ enumerate:
 	}
     }
 }
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -793,7 +793,7 @@ enumerate:
  *	None.
  *
  * Side effects:
- *	Deallocates a lot of memory.  
+ *	Deallocates a lot of memory.
  *
  * --------------------------------------------------------------------
  */
@@ -844,7 +844,7 @@ int dbDeleteCellUse(CellUse *use, ClientData arg)
 	if (defuses == use)
 	{
 	    if (lastuse)
-		lastuse->cu_nextuse = defuses->cu_nextuse; 
+		lastuse->cu_nextuse = defuses->cu_nextuse;
 	    else
 		use->cu_def->cd_parents = defuses->cu_nextuse;
 	    defuses->cu_nextuse = (CellUse *)NULL;
@@ -858,7 +858,7 @@ int dbDeleteCellUse(CellUse *use, ClientData arg)
     return 0;
 }
 
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -966,7 +966,7 @@ dbCheckMaxHFunc(tile, dbc)
 
     return (0);
 }
-
+
 /*
  * --------------------------------------------------------------------
  *

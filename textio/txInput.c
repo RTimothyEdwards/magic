@@ -3,16 +3,16 @@
  *
  * 	Handles 'stdin' and terminal driver settings.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -132,23 +132,23 @@ static struct cmd_spec {
   { "see*", LAYER_COMPL, {(char *)NULL} },
   { "paint", LAYER_COMPL, {(char *)NULL} },
 
-  { "*extract", ARGS_COMPL, {"clrdebug", "clrlength", "driver", "interactions", 
-                             "intercount", "parents", "receiver", "setdebug", 
-                             "showdebug", "showparents", "showtech", "stats", 
+  { "*extract", ARGS_COMPL, {"clrdebug", "clrlength", "driver", "interactions",
+                             "intercount", "parents", "receiver", "setdebug",
+                             "showdebug", "showparents", "showtech", "stats",
                              "step", "times", (char *)NULL} },
 
   { "*garoute", ARGS_COMPL, {"clrdebug", "setdebug", "showdebug", (char *)NULL} },
-  { "*groute", ARGS_COMPL, {"clrdebug", "onlynet", "setdebug", "showdebug", 
+  { "*groute", ARGS_COMPL, {"clrdebug", "onlynet", "setdebug", "showdebug",
                             "sides", (char *)NULL} },
   { "*iroute", ARGS_COMPL, {"debug", "help", "parms", (char *)NULL} },
   { "*malloc", ARGS_COMPL, {"all", "off", "on", "only", "watch", "unwatch", (char *)NULL} },
-  { "*mzroute", ARGS_COMPL, {"debug", "dumpEstimates", "dumpTags", "help", 
+  { "*mzroute", ARGS_COMPL, {"debug", "dumpEstimates", "dumpTags", "help",
                              "numberLine", "parms", "plane", "version", (char *)NULL} },
 
-  { "*plow", ARGS_COMPL, {"help", "clrdebug", "jogreduce", "lwidth", "lshadow", 
-                          "mergedown", "mergeup", "move", "outline", "plow", 
-                          "print", "random", "setdebug", "shadow", "showdebug", 
-                          "split", "techshow", "trail", "whenbot", "whentop", 
+  { "*plow", ARGS_COMPL, {"help", "clrdebug", "jogreduce", "lwidth", "lshadow",
+                          "mergedown", "mergeup", "move", "outline", "plow",
+                          "print", "random", "setdebug", "shadow", "showdebug",
+                          "split", "techshow", "trail", "whenbot", "whentop",
                           "width", (char *)NULL} },
   { "*plow lwidth", LAYER_COMPL, { (char *)NULL } },
   { "*plow width", LAYER_COMPL, { (char *)NULL } },
@@ -162,12 +162,12 @@ static struct cmd_spec {
   { "*watch", PLANE_COMPL, {(char *)NULL} },
   { "*watch*", ARGS_COMPL, {"demo", "types", (char *)NULL} },
 
-  { "calma", ARGS_COMPL, {"help", "flatten", "labels", "lower", "noflatten", 
+  { "calma", ARGS_COMPL, {"help", "flatten", "labels", "lower", "noflatten",
                           "nolabels", "nolower", "read", "write", (char *)NULL} },
   { "calma read", FILE_COMPL, { (char *)NULL } },
   { "calma write", FILE_COMPL, { (char *)NULL } },
 
-  { "cif", ARGS_COMPL, {"help", "arealabels", "idcell", "istyle", "prefix", 
+  { "cif", ARGS_COMPL, {"help", "arealabels", "idcell", "istyle", "prefix",
                         "ostyle", "read", "see", "statistics", "write", "flat", (char *)NULL} },
   { "cif read", FILE_COMPL, { (char *)NULL } },
   { "cif flat", FILE_COMPL, { (char *)NULL } },
@@ -183,46 +183,46 @@ static struct cmd_spec {
   { "move", DIRECT_COMPL, { (char *)NULL } },
   { "stretch", DIRECT_COMPL, { (char *)NULL } },
 
-  { "drc", ARGS_COMPL, {"help", "catchup", "check", "count", "find", "off", 
+  { "drc", ARGS_COMPL, {"help", "catchup", "check", "count", "find", "off",
                         "on", "printrules", "rulestats", "statistics", "why", (char *)NULL} },
   { "drc printrules", FILE_COMPL, { (char *)NULL } },
 
-  { "ext", ARGS_COMPL, {"help", "all", "cell", "do", "length", "no", "parents", 
+  { "ext", ARGS_COMPL, {"help", "all", "cell", "do", "length", "no", "parents",
                         "showparents", "style", "unique", "warn", (char *)NULL} },
   { "ext style", OSTYLE_COMPL, { (char *)NULL } },
 
-  { "feedback", ARGS_COMPL, {"help", "add", "clear", "count", "find", "save", 
+  { "feedback", ARGS_COMPL, {"help", "add", "clear", "count", "find", "save",
                              "why", "fill", (char *)NULL} },
   { "feedback save", FILE_COMPL, { (char *)NULL } },
 
-  { "garoute", ARGS_COMPL, {"help", "channel", "generate", "nowarn", "route", 
+  { "garoute", ARGS_COMPL, {"help", "channel", "generate", "nowarn", "route",
                             "reset", "warn", (char *)NULL} },
   { "getnode", ARGS_COMPL, {"alias", "fast", "abort", (char *)NULL} },
 
-  { "iroute", ARGS_COMPL, {"help", "contacts", "layers", "route", 
-                           "saveParameters", "search", "spacings", "verbosity", 
+  { "iroute", ARGS_COMPL, {"help", "contacts", "layers", "route",
+                           "saveParameters", "search", "spacings", "verbosity",
                            "version", "wizard", (char *)NULL} },
-  { "iroute help", ARGS_COMPL, {"contacts", "layers", "route", 
-                           "saveParameters", "search", "spacings", "verbosity", 
+  { "iroute help", ARGS_COMPL, {"contacts", "layers", "route",
+                           "saveParameters", "search", "spacings", "verbosity",
                            "version", "wizard", (char *)NULL} },
 
-  { "plot", ARGS_COMPL, {"help", "postscript", "gremlin", "versatec", "pnm", 
+  { "plot", ARGS_COMPL, {"help", "postscript", "gremlin", "versatec", "pnm",
                          "parameters", (char *)NULL} },
   { "plot postscript", FILE_COMPL, { (char *)NULL } },
   { "plot gremlin", FILE_COMPL, { (char *)NULL } },
   { "plot versatec", FILE_COMPL, { (char *)NULL } },
   { "plot pnm", FILE_COMPL, { (char *)NULL } },
 
-  { "plow", ARGS_COMPL, {"help", "boundary", "horizon", "jogs", "selection", 
+  { "plow", ARGS_COMPL, {"help", "boundary", "horizon", "jogs", "selection",
                          "straighten", "noboundary", "nojogs", "nostraighten", (char *)NULL} },
   { "plow selection", DIRECT_COMPL, { (char *)NULL } },
 
-  { "route", ARGS_COMPL, {"help", "end", "jog", "metal", "netlist", "obstacle", 
-                          "origin", "stats", "settings", "steady", "tech", 
+  { "route", ARGS_COMPL, {"help", "end", "jog", "metal", "netlist", "obstacle",
+                          "origin", "stats", "settings", "steady", "tech",
                           "vias", "viamin", (char *)NULL} },
   { "route netlist", FILE_COMPL, { (char *)NULL } },
 
-  { "select", ARGS_COMPL, {"help", "more", "less", "area", "visible", "cell", 
+  { "select", ARGS_COMPL, {"help", "more", "less", "area", "visible", "cell",
                            "clear", "save", "box", (char *)NULL} },
   { "select save", FILE_COMPL, { (char *)NULL } },
   { "select more", ARGS_COMPL, { "area", "visible", "cell", "box", (char *)NULL } },
@@ -236,14 +236,14 @@ static struct cmd_spec {
   { "select more box", LAYER_COMPL, { (char *)NULL } },
   { "select less box", LAYER_COMPL, { (char *)NULL } },
 
-  { "send", ARGS_COMPL, {"netlist", "color", "layout", 
+  { "send", ARGS_COMPL, {"netlist", "color", "layout",
 #ifdef THREE_D
 	"wind3d",
 #endif
 		 (char *)NULL} },
   { "snap", ARGS_COMPL, {"on", "off", (char *)NULL} },
   { "tool", ARGS_COMPL, {"box", "wiring", "netlist", "rsim", (char *)NULL} },
-  { "wire", ARGS_COMPL, {"help", "horizontal", "leg", "switch", "type", 
+  { "wire", ARGS_COMPL, {"help", "horizontal", "leg", "switch", "type",
                          "vertical", (char *)NULL} },
   { "wire type", LAYER_COMPL, { (char *)NULL } },
   { "wire switch", LAYER_COMPL, { (char *)NULL } },
@@ -349,7 +349,7 @@ TxDialog(prompt, responses, deflt)
     return code;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxSetPrompt --
@@ -373,7 +373,7 @@ TxSetPrompt(ch)
 
 #endif
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxPrompt --
@@ -409,7 +409,7 @@ TxPrompt()
     lastPromptChar = txPromptChar;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxRestorePrompt --
@@ -434,12 +434,12 @@ TxRestorePrompt()
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxUnPrompt --
  *
- *	Erase the prompt.  
+ *	Erase the prompt.
  *
  * Results:
  *	None.
@@ -511,7 +511,7 @@ TxGetChar()
 	ASSERT(event != NULL, "TxGetChar");
 	txLastEvent = *event;
 	if (event->txe_button == TX_EOF) {
-	    ch = EOF; 
+	    ch = EOF;
 	    goto gotone;
 	}
 	if (event->txe_button == TX_CHARACTER) {
@@ -535,7 +535,7 @@ gotone:
  *	Instantiation of the readline function *rl_pre_input_hook(), executed
  *	between the prompt and the input (readline v4.1).  Prepends the text
  *	of an interactive macro (if non-NULL) to the command line.
- * 
+ *
  * ----------------------------------------------------------------------------
  */
 int
@@ -652,7 +652,7 @@ magic_completion_function(char *text, int start, int end)
 		    break;
 	    }
 	}
-    
+
 	for (i = 0; i < num_tokens; i++)
 	    free(tokens[i]);
 
@@ -1077,7 +1077,7 @@ TxGetLinePrompt(dest, maxChars, prompt)
 
 #ifndef MAGIC_WRAPPER
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxGetLinePfix:
@@ -1086,13 +1086,13 @@ TxGetLinePrompt(dest, maxChars, prompt)
  *
  * Results:
  *	A char pointer to the string is returned.
- *	If an end-of-file is typed, returns (char *) NULL and 
+ *	If an end-of-file is typed, returns (char *) NULL and
  *	stores in the string any characters recieved up to that point.
  *
  * Side effects:
  *	The input stream is read, and 'dest' is filled in with up to maxChars-1
  *	characters.  Up to maxChars of the 'dest' may be changed during the
- *	input process, however, since a '\0' is added at the end.  There is no 
+ *	input process, however, since a '\0' is added at the end.  There is no
  *	newline at the end of 'dest'.
  * ----------------------------------------------------------------------------
  */
@@ -1190,7 +1190,7 @@ TxGetLine(dest, maxChars)
     return TxGetLinePfix(dest, maxChars, NULL);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * txGetTermState:
@@ -1228,7 +1228,7 @@ txGetTermState(buf)
 }
 #endif /* SYSV */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * txSetTermState:
@@ -1261,7 +1261,7 @@ txSetTermState(buf)
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * txInitTermRec:
@@ -1299,7 +1299,7 @@ txInitTermRec(buf)
 #endif /* SYSV */
 }
 
-
+
 
 #if defined(SYSV) || defined(CYGWIN)
 struct termio closeTermState;
@@ -1315,7 +1315,7 @@ static bool haveCloseState = FALSE;
  *
  * 	Save the terminal characteristics so they can be restored when
  *	magic leaves.
- *	
+ *
  *
  * Results:
  *	none.
@@ -1351,7 +1351,7 @@ txSaveTerm()
 #endif /* SYSV */
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxSetTerminal:
@@ -1390,7 +1390,7 @@ TxSetTerminal()
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxResetTerminal:

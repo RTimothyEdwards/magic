@@ -3,16 +3,16 @@
  *	This file contains Magic command routines for those commands
  *	that are valid in all windows.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -190,7 +190,7 @@ windCaptionCmd(w, cmd)
 	TxError("Usage: %s [on|off]\n", cmd->tx_argv[0]);
 	return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -209,7 +209,7 @@ windCaptionCmd(w, cmd)
  *
  * Side effects:
  *	The view in the window underneath the cursor is changed
- *	to center the point underneath the cursor.  
+ *	to center the point underneath the cursor.
  *
  * ----------------------------------------------------------------------------
  */
@@ -298,7 +298,7 @@ windCenterCmd(w, cmd)
     WindMove(w, &newArea);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windCloseCmd --
@@ -363,7 +363,7 @@ windCloseCmd(w, cmd)
  *	None.
  *
  * Side effects:
- *	
+ *
  *
  * ----------------------------------------------------------------------------
  */
@@ -421,7 +421,7 @@ windCrashCmd(w, cmd)
     TxFlush();
     niceabort();
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -507,7 +507,7 @@ windCursorCmd(w, cmd)
 	    ToolSnapToGrid(w, &p_out, (Rect *)NULL);
     }
 
-    /* Transform the result to declared units with option "lambda" or "grid" */ 
+    /* Transform the result to declared units with option "lambda" or "grid" */
     switch (resulttype) {
 	case -2:
 	case -1:
@@ -538,7 +538,7 @@ windCursorCmd(w, cmd)
 
 #ifdef MAGIC_WRAPPER
     listxy = Tcl_NewListObj(0, NULL);
-    if ((cursx == round(cursx)) && (cursy == round(cursy))) 
+    if ((cursx == round(cursx)) && (cursy == round(cursy)))
     {
 	Tcl_ListObjAppendElement(magicinterp, listxy, Tcl_NewIntObj((int)cursx));
 	Tcl_ListObjAppendElement(magicinterp, listxy, Tcl_NewIntObj((int)cursy));
@@ -575,14 +575,14 @@ windDebugCmd(w, cmd)
 {
     if (cmd->tx_argc != 1) goto usage;
     windPrintCommands = !windPrintCommands;
-    TxError("Window command debugging set to %s\n", 
+    TxError("Window command debugging set to %s\n",
 	(windPrintCommands ? "TRUE" : "FALSE"));
     return;
 
 usage:
     TxError("Usage:  *winddebug\n");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * windDumpCmd --
@@ -606,7 +606,7 @@ windDumpCmd(w, cmd)
 }
 
 #ifndef MAGIC_WRAPPER
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -640,7 +640,7 @@ windEchoCmd(w, cmd)
 	else
 	    TxPrintf("%s", cmd->tx_argv[i]);
     }
-    
+
     if (newline)
 	TxPrintf("\n");
     TxFlush();
@@ -648,7 +648,7 @@ windEchoCmd(w, cmd)
 
 #endif
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -695,7 +695,7 @@ windFilesCmd(w, cmd)
 		case S_IFSOCK: {type = "socket"; break;}
 		default: {type = "unknown"; break;}
 	    }
-	    TxError("file descriptor %d: open  (type: '%s', inode number %ld)\n", 
+	    TxError("file descriptor %d: open  (type: '%s', inode number %ld)\n",
 		fd, type, buf.st_ino);
 	    open++;
 	}
@@ -703,7 +703,7 @@ windFilesCmd(w, cmd)
     TxError("%d open files, %d unopened file descriptors left\n", open, unopen);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -734,7 +734,7 @@ windGrowCmd(w, cmd)
     WindFullScreen(w);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windGrstatsCmd --
@@ -767,7 +767,7 @@ windGrstatsCmd(w, cmd)
 	return;
     }
 
-    if (!StrIsInt(cmd->tx_argv[1]) || 
+    if (!StrIsInt(cmd->tx_argv[1]) ||
 	(cmd->tx_argc == 3 && !StrIsInt(cmd->tx_argv[2])))
     {
 	TxError("Count & style must be numeric\n");
@@ -832,14 +832,14 @@ windGrstatsCmd(w, cmd)
     us = tdelta.tms_utime * (1000000 / 60);
     usPerRect = us / MAX(1, GrNumClipBoxes);
     rectsPerSec = 1000000 / MAX(1, usPerRect);
-    TxPrintf("[%s]\n%d rectangles, %d uS, %d uS/rectangle, %d rects/sec\n", 
+    TxPrintf("[%s]\n%d rectangles, %d uS, %d uS/rectangle, %d rects/sec\n",
 	rstatp, GrNumClipBoxes, us, usPerRect, rectsPerSec);
 
     if (style >= 0)
 	GrUnlock(w);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windHelpCmd --
@@ -895,7 +895,7 @@ windLogCommandsCmd(w, cmd)
 
     update = FALSE;
 
-    if (cmd->tx_argc == 1) 
+    if (cmd->tx_argc == 1)
 	fileName = NULL;
     else
 	fileName = cmd->tx_argv[1];
@@ -1207,7 +1207,7 @@ windDoMacro(w, cmd, interactive)
 	    MacroDefineHelp(wc, ct, cmd->tx_argv[argstart]);
 	else if (interactive)
 	    MacroDefine(wc, ct, cmd->tx_argv[argstart], NULL, TRUE);
-	else 
+	else
 	    MacroDefine(wc, ct, cmd->tx_argv[argstart], NULL, FALSE);
 	return;
     }

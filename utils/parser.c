@@ -3,16 +3,16 @@
  *
  * Handles textual parsing.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  */
@@ -29,7 +29,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #define ISEND(ch)	((ch == '\0') || (ch == ';'))
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * ParsSplit:
@@ -89,7 +89,7 @@ ParsSplit(str, maxArgc, argc, argv, remainder)
 	  *newstrp++ = *strp++;
 	  strp++;
 	}
-	/* 
+	/*
 	 * rajit@cs.caltech.edu
 	 * keep " " around strings to distinguish symbols from strings.
 	 * the lisp evaluator strips these quotes after parsing the
@@ -145,7 +145,7 @@ ParsSplit(str, maxArgc, argc, argv, remainder)
 	    {
 		*++largv = newstrp;
 	    }
-	    else 
+	    else
 	    {
 		TxError("Too many arguments.\n");
 		*remainder = NULL;
@@ -153,7 +153,7 @@ ParsSplit(str, maxArgc, argc, argv, remainder)
 	    }
 	}
     }
-    
+
     ASSERT(remainder != (char **) NULL, "ParsSplit");
 
     if (terminator != '\0')

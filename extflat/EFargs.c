@@ -4,16 +4,16 @@
  * General command-line argument processing and overall initialization
  * for the .ext file flattener.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -81,7 +81,7 @@ bool efScaleChanged = FALSE;	/* TRUE if .ext scales mismatch */
 extern int  efLoadPathFunc();
 extern void efLoadSearchPath();
 #endif
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -160,7 +160,7 @@ EFArgs(argc, argv, err_result, argsProc, cdata)
     HierName *hierName;
     FILE *f;
 
-    char usage_text[] = 
+    char usage_text[] =
 	"Standard arguments: [-R] [-C] [-r rthresh] [-c cthresh] [-v]\n"
 		"[-p searchpath] [-s sym=value] [-S symfile] [-t trimchars]\n"
 #ifdef MAGIC_WRAPPER
@@ -341,7 +341,7 @@ usage:
 }
 
 #ifndef MAGIC_WRAPPER
-
+
 /*
  * ----------------------------------------------------------------------------
  *

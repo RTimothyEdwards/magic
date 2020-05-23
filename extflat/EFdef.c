@@ -5,16 +5,16 @@
  * There is a single Def for each .ext file in a hierarchically
  * extracted circuit.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -46,7 +46,7 @@ HashTable efFreeHashTable;
 
 /* Hash table used for keeping subcircuit parameter names for a device */
 HashTable efDevParamTable;
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -75,7 +75,7 @@ EFInit()
     HashInit(&efDevParamTable, 8, HT_STRINGKEYS);
     efSymInit();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -166,7 +166,7 @@ EFDone()
     /* Final cleanup */
     HashKill(&efDefHashTable);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -198,7 +198,7 @@ efDefLook(name)
 
     return ((Def *) HashGetValue(he));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

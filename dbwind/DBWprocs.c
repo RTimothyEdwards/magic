@@ -4,16 +4,16 @@
  *	Procedures to interface the database with the window package
  *	for the purposes of window creation, deletion, and modification.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -58,13 +58,13 @@ extern void DBWredisplay();		/* Defined in DBWdisplay.c */
  */
 
 static int (*dbwButtonHandler)() = NULL;
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * DBWcreate
  *
- *	A new window has been created, create and initialize the needed 
+ *	A new window has been created, create and initialize the needed
  *	structures.
  *
  * Results:
@@ -95,7 +95,7 @@ DBWcreate(window, argc, argv)
      */
 
     newBitMask = (dbwBitMask + 1) | dbwBitMask;
-    if (newBitMask > MAX_BITMASK) 
+    if (newBitMask > MAX_BITMASK)
 	return FALSE;
     bitMask = newBitMask ^ dbwBitMask;
     dbwBitMask = newBitMask;
@@ -135,7 +135,7 @@ DBWcreate(window, argc, argv)
 	/* Zoom in on the box, leaving a 10% border or at least 2 units
 	 * on each side.
 	 */
-	
+
 	expand = (box.r_xtop - box.r_xbot)/20;
 	if (expand < 2) expand = 2;
 	box.r_xtop += expand;
@@ -153,7 +153,7 @@ DBWcreate(window, argc, argv)
     return TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * DBWdelete --
@@ -184,7 +184,7 @@ DBWdelete(window)
     return TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -215,14 +215,14 @@ dbwLoadFunc(w, clientData)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * DBWreload --
  *
  * Re-load all windows to contain the named cell as a root.
- * This is intended to be called during startup or when restarting a saved 
+ * This is intended to be called during startup or when restarting a saved
  * image of Magic.
  *
  * Results:
@@ -252,7 +252,7 @@ dbwReloadFunc(w, name)
     DBWloadWindow(w, name, TRUE, FALSE, FALSE);
     return (0);
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -493,7 +493,7 @@ DBWloadWindow(window, name, ignoreTech, expand, dereference)
 	}
 
 	/* enforce a minimum size of 60 and a border of 10% around the sides */
-	xadd = MAX(0, (60 - (loadBox.r_xtop - loadBox.r_xbot)) / 2) + 
+	xadd = MAX(0, (60 - (loadBox.r_xtop - loadBox.r_xbot)) / 2) +
 		(loadBox.r_xtop - loadBox.r_xbot + 1) / 10;
 	yadd = MAX(0, (60 - (loadBox.r_ytop - loadBox.r_ybot)) / 2) +
 		(loadBox.r_ytop - loadBox.r_ybot + 1) / 10;
@@ -541,7 +541,7 @@ UnexpandFunc(use, windowMask)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * DBWexit --
@@ -562,7 +562,7 @@ DBWexit()
 {
     return (CmdWarnWrite() == 1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -610,7 +610,7 @@ DBWcommands(w, cmd)
 
     DBFixMismatch();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -630,7 +630,7 @@ DBWcommands(w, cmd)
  *	From now on, all button pushes within database windows are
  *	passed to buttonProc, in the following form:
  *
- *	    int 
+ *	    int
  *	    buttonProc(w, cmd)
  *		MagWindow *w;
  *		TxCommand *cmd;
@@ -649,7 +649,7 @@ int (*(DBWNewButtonHandler(buttonProc)))()
     dbwButtonHandler = buttonProc;
     return result;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * DBWupdate--
@@ -672,7 +672,7 @@ DBWupdate()
     DBWFeedbackShow();
     DBWHLUpdate();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * DBWinit --
@@ -683,7 +683,7 @@ DBWupdate()
  *	None.
  *
  * Side effects:
- *	A client is added, and an initial empty window is made 
+ *	A client is added, and an initial empty window is made
  * ----------------------------------------------------------------------------
  */
 
@@ -703,7 +703,7 @@ DBWinit()
 	"    releasing the initial button.\n";
 
     /* Initialize */
-    DBWclientID = WindAddClient("layout", DBWcreate, DBWdelete, 
+    DBWclientID = WindAddClient("layout", DBWcreate, DBWdelete,
 	    DBWredisplay, DBWcommands, DBWupdate, DBWexit,
 	    (void (*)()) NULL,
 	    (GrGlyph *) NULL);

@@ -3,16 +3,16 @@
  *
  * Defines and retrieves macros
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -313,7 +313,7 @@ MacroSubstitute(macrostr, searchstr, replacestr)
 	return macrostr;
 }
 
-
+
 /*---------------------------------------------------------
  * MacroDelete:
  *	This procedure deletes a macro.
@@ -360,7 +360,7 @@ MacroDelete(client, xc)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * MacroName --
@@ -446,7 +446,7 @@ MacroName(xc)
     return(vis);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * MacroKey:
@@ -539,7 +539,7 @@ MacroKey(str, verbose)
 	    /* single ASCII character handling */
 
 	    char tc = *vis;
-	   
+
 	    /* Revert Control and Shift characters to ASCII	*/
 	    /* unless other modifiers are present. Always make	*/
 	    /* characters with Control and Shift uppercase.	*/
@@ -606,7 +606,7 @@ MacroKey(str, verbose)
     return(0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * CommandLineTranslate

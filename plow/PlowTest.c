@@ -4,16 +4,16 @@
  * Plowing.
  * Debugging and testing.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -70,7 +70,7 @@ Point plowWhenTopPoint, plowWhenBotPoint;
 
 /* Imports */
 extern CellDef *plowSpareDef;
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -389,7 +389,7 @@ PlowTest(w, cmd)
 	    break;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -431,7 +431,7 @@ plowGetCommand(cmd)
 
     return (plowCmds[plowIndex].p_cmd);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -472,7 +472,7 @@ plowDebugInit()
     for (n = 0; debug[n].di_name; n++)
 	*(debug[n].di_id) = DebugAddFlag(plowDebugID, debug[n].di_name);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -508,7 +508,7 @@ plowShowShadow(edge, def)
     edgeArea.r_ytop = edge->e_ytop * scaleFactor;
     DBWFeedbackAdd(&edgeArea, mesg, def, scaleFactor, STYLE_SOLIDHIGHLIGHTS);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -582,7 +582,7 @@ plowTestJog(def, area)
     DBWAreaChanged(def, area, DBW_ALLWINDOWS, &DBAllButSpaceBits);
     DRCCheckThis(def, TT_CHECKPAINT, area);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -657,7 +657,7 @@ plowDebugEdge(edge, rtePtr, mesg)
     DBWFeedbackClear(NULL);
     WindUpdate();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -693,7 +693,7 @@ again:
 	goto again;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -789,7 +789,7 @@ plowShowOutline(outline, clipArea)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

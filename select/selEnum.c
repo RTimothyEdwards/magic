@@ -6,16 +6,16 @@
  * also in the edit cell.  The procedures here are used as basic
  * building blocks for the selection commands like copy or delete.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -80,7 +80,7 @@ struct searg
 				 * selection with a possibly limited number
 				 * of named types.
 				 */
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -153,7 +153,7 @@ SelEnumPaint(layers, editOnly, foundNonEdit, func, clientData)
      * layers.  Use the same procedure as "dbCellUniqueTileSrFunc()"
      * so that contacts are not double-counted.
      */
-    
+
     for (plane = PL_SELECTBASE; plane < DBNumPlanes; plane++)
     {
 	arg.sea_plane = plane;
@@ -193,7 +193,7 @@ selEnumPFunc1(tile, arg)
 	else
 	    loctype = SplitLeftType(tile);
     }
-    else 
+    else
 	loctype = TiGetType(tile);
 
     if (IsSplit(tile))
@@ -204,7 +204,7 @@ selEnumPFunc1(tile, arg)
     /* If the paint doesn't have to be in the edit cell, life's pretty
      * simple:  just call the client and quit.
      */
-    
+
     if (!(arg->sea_flags & SEA_EDIT_ONLY))
     {
 	if ((*arg->sea_func)(&arg->sea_rect, arg->sea_type, arg->sea_cdarg) != 0)
@@ -266,7 +266,7 @@ selEnumPFunc1(tile, arg)
 
 int
 selEnumPFunc2(tile, arg)
-    Tile *tile;			/* Tile found in the edit cell */ 
+    Tile *tile;			/* Tile found in the edit cell */
     struct searg *arg;		/* Describes our search */
 {
     ExtRectList *lr;
@@ -368,7 +368,7 @@ selEnumPFunc2(tile, arg)
 	if (!IsSplit(tile))
 	{
 	    /* Things get messy here.  Clip against the select triangle	*/
-	    /* and decompose the result into rectangles and triangles.	*/ 
+	    /* and decompose the result into rectangles and triangles.	*/
 
 	    GrClipTriangle(&arg->sea_rect, &lr->r_r, TRUE, arg->sea_type, points, &np);
 
@@ -488,7 +488,7 @@ splitdone:
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -593,7 +593,7 @@ selEnumCFunc1(scx, arg)
      * handle it specially:  just look for any use that's a top-level
      * use, then call the client for it.
      */
-    
+
     if (scx->scx_use->cu_def == SelectRootDef)
     {
 	CellUse *parent;
@@ -605,7 +605,7 @@ selEnumCFunc1(scx, arg)
 	    if (arg->sea_nonEdit != NULL) *(arg->sea_nonEdit) = TRUE;
 	    return 2;
 	}
-	
+
 	/* Find a top-level use (one with no parent). */
 
 	for (parent = SelectRootDef->cd_parents;
@@ -637,7 +637,7 @@ selEnumCFunc1(scx, arg)
      * we can't use DBTreeSrCells for this, because we don't want to
      * look at expanded/unexpanded information.
      */
-    
+
     scx2.scx_use = &dummy;
     dummy.cu_def = SelectRootDef;
     dummy.cu_id = NULL;
@@ -711,7 +711,7 @@ selEnumCFunc2(scx, arg)
 	    || (use->cu_array.ar_xsep != selUse->cu_array.ar_xsep)
 	    || (use->cu_array.ar_ysep != selUse->cu_array.ar_ysep))
 	goto checkChildren;
-    
+
     arg->sea_foundUse = use;
     arg->sea_foundTrans = scx->scx_trans;
     return 1;
@@ -723,7 +723,7 @@ selEnumCFunc2(scx, arg)
 	return 1;
     else return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -794,7 +794,7 @@ SelEnumLabels(layers, editOnly, foundNonEdit, func, clientData)
 	if (!TTMaskHasType(layers, selLabel->lab_type)) continue;
 
 	/* Find the label corresponding to this one in the design. */
-	
+
 	scx.scx_use = &dummy;
 	dummy.cu_def = SelectRootDef;
 	dummy.cu_id = NULL;
@@ -822,7 +822,7 @@ SelEnumLabels(layers, editOnly, foundNonEdit, func, clientData)
 	/* If only edit-cell labels are wanted, check this label's
 	 * parentage.
 	 */
-	
+
 	if (editOnly && (arg.sea_foundUse->cu_def != EditCellUse->cu_def))
 	{
 	    if (foundNonEdit != NULL) *foundNonEdit = TRUE;

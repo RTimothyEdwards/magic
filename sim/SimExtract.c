@@ -5,16 +5,16 @@
  *	Magic circuit.  Some of this code is based on the Magic extract
  *	module.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  * of California.
  */
@@ -109,7 +109,7 @@ PlaneMask	SimFetPlanes;
  *
  *----------------------------------------------------------------
  */
- 
+
 void
 SimAddDefList(newdef)
     CellDef *newdef;
@@ -119,7 +119,7 @@ SimAddDefList(newdef)
     /* check to see if the cell def is already in our list */
 
     for (d = DefList; d != (DefListElt *) NULL; d = d->dl_next) {
-	if (d->dl_def == newdef) {	
+	if (d->dl_def == newdef) {
 	    return;
 	}
     }
@@ -163,7 +163,7 @@ void
 SimInitDefList()
 {
     DefListElt *p, *q;
-     
+
     p = q = DefList;
     while (p != (DefListElt *) NULL) {
 	q = p;
@@ -220,7 +220,7 @@ void
 SimFreeNodeRegs()
 {
     NodeRegion *p, *q;
-     
+
     if( NodeRegList != (NodeRegion *) NULL )		/* sanity */
 	ExtFreeLabRegions((LabRegion *) NodeRegList );
 
@@ -408,7 +408,7 @@ int SimTransTerms( bp, trans )
 	    {
 		if( LEFT(tile) < term->pos.p_x )
 		    term->pos = tile->ti_ll;
-		else if( LEFT(tile) == term->pos.p_x && 
+		else if( LEFT(tile) == term->pos.p_x &&
 		  BOTTOM(tile) < term->pos.p_y )
 		    term->pos.p_y = BOTTOM(tile);
 	    }
@@ -751,7 +751,7 @@ SimGetNodeName(sx, tp, path)
 	}
     }
 
-    /* Check whether or not to print out node name aliases.  Each alias 
+    /* Check whether or not to print out node name aliases.  Each alias
      * found is hashed in a table in order to suppress printing of
      * duplicate aliases.
      */
@@ -781,7 +781,7 @@ SimGetNodeName(sx, tp, path)
 			strcpy(buff, nname);
 		    }
 		    if (SimGetnodeAlias && SimIsGetnode) {
-			if (HashLookOnly(&SimGNAliasTbl, nodename) 
+			if (HashLookOnly(&SimGNAliasTbl, nodename)
 			    == (HashEntry *) NULL) {
 			    HashFind(&SimGNAliasTbl, nodename);
 #ifdef MAGIC_WRAPPER
@@ -807,7 +807,7 @@ SimGetNodeName(sx, tp, path)
  *
  *	This procedure is called to clean up the data structures and the
  *	tile database after a node name is extracted.
- * 
+ *
  * Results:
  *	None.
  *

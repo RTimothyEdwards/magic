@@ -3,16 +3,16 @@
  *
  * Circuit extraction timing.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -114,7 +114,7 @@ int  extCountTiles();
 
 extern int extDefInitFunc();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -260,7 +260,7 @@ ExtTimes(rootUse, f)
 
     (void) fclose(extDevNull);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -308,7 +308,7 @@ extTimesInitFunc(use)
     (void) DBCellEnum(def, extTimesInitFunc, (ClientData) 0);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -394,7 +394,7 @@ extCountTiles(tile, cs)
     cs->cs_rects++;
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -449,7 +449,7 @@ extTimesIncrFunc(cs)
      */
     (void) extTimesFlatFunc(cs->cs_def, cs);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -556,7 +556,7 @@ extTimesSummaryFunc(cs, f)
     extCumAdd(&cumClippedArea, (double) cs->cs_cliparea);
     extCumAdd(&cumIncrTime, tincr);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -609,7 +609,7 @@ extTimesParentFunc(def, cs)
 	if (parent->cu_parent)
 	    extTimesParentFunc(parent->cu_parent, cs);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -673,7 +673,7 @@ extTimesHierUse(use, cs)
 {
     return (extTimesHierFunc(use->cu_def, cs));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -740,7 +740,7 @@ extTimesFlatUse(use, cs)
     cs->cs_frects += dummyCS.cs_frects * nel;
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -809,7 +809,7 @@ extTimeProc(proc, def, tv)
     }
 #endif
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -836,7 +836,7 @@ extPaintOnly(def)
     if (reg) ExtFreeLabRegions((LabRegion *) reg);
     ExtResetTiles(def, extUnInit);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -860,7 +860,7 @@ extHierCell(def)
 {
     extCellFile(def, extDevNull, FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -887,7 +887,7 @@ extCumInit(cum)
     cum->cums_sos = 0.0;
     cum->cums_n = 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -920,17 +920,17 @@ extCumOutput(str, cum, f)
     }
 
     fprintf(f, "%s", str);
-    if (cum->cums_min < INFINITY) 
+    if (cum->cums_min < INFINITY)
 	fprintf(f, " %8.2f", cum->cums_min);
     else
 	fprintf(f, "   <none>");
-    if (cum->cums_max > MINFINITY) 
+    if (cum->cums_max > MINFINITY)
 	fprintf(f, " %8.2f", cum->cums_max);
     else
 	fprintf(f, "   <none>");
     fprintf(f, " %8.2f %8.2f\n", mean, sqrt(var));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -959,7 +959,7 @@ extCumAdd(cum, v)
     cum->cums_sos += v*v;
     cum->cums_n++;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -988,7 +988,7 @@ extGetStats(def)
 
     return ((struct cellStats *) HashGetValue(he));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

@@ -2,18 +2,18 @@
  * txCommands.c --
  *
  * 	Reads commands from devices and sends them to the window package,
- *	which sends them to a particular window. 
+ *	which sends them to a particular window.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -68,7 +68,7 @@ static int txLastInputEntry = -1;
 /* The current point -- reset by the 'setpoint' command and for each
  * interactive command.  Calls to TxClearPoint clear previous setpoints,
  *
- * Each input point is associated with a window, as windows may use 
+ * Each input point is associated with a window, as windows may use
  * different coordinate systems.
  *
  * Also, keep around the last input event.
@@ -80,7 +80,7 @@ TxInputEvent txLastEvent;
 
 
 /* Input queues.  We have an input queue for low-level input events, and
- * a queue for assembled interactive commands and file commands.  Also, there 
+ * a queue for assembled interactive commands and file commands.  Also, there
  * are free lists for these structures.
  */
 
@@ -103,12 +103,12 @@ DQueue txFreeCommands;
 static struct timeval txZeroTime;
 
 
-/* Mask of buttons down, as of the last command in the queue (not the last 
+/* Mask of buttons down, as of the last command in the queue (not the last
  * command executed).
  */
-int TxCurButtons = 0;  
+int TxCurButtons = 0;
 
-/* 
+/*
  * Commands are numbered sequentially starting at zero.  This number says
  * which command we are collecting or executing.
  */
@@ -132,7 +132,7 @@ static TxCommand *lisp_cur_cmd = NULL;
  */
 
 bool
-FD_IsZero(fdmask) 
+FD_IsZero(fdmask)
     fd_set fdmask;
 {
     int i;
@@ -142,7 +142,7 @@ FD_IsZero(fdmask)
 }
 
 void
-FD_OrSet(fdmask, dst) 
+FD_OrSet(fdmask, dst)
     fd_set fdmask;
     fd_set *dst;
 {
@@ -381,7 +381,7 @@ TxNewCommand()
 {
     TxCommand *command;
     command = (TxCommand *) DQPopFront(&txFreeCommands);
-    if (command == NULL) 
+    if (command == NULL)
 	command = (TxCommand *) mallocMagic(sizeof(TxCommand));
     command->tx_button = TX_CHARACTER;
     return command;
@@ -455,7 +455,7 @@ TxAddInputDevice(fdmask, inputProc, cdata)
     void (*inputProc)();	/* A routine to call.  This routine will
 				 * be passed a single file descriptor that
 				 * is ready, and should read that file and
-				 * add events(s) by calling TxNewEvent() 
+				 * add events(s) by calling TxNewEvent()
 				 * followed by TxAddEvent().
 				 */
     ClientData cdata;		/* Will be passed back to the proc whenever
@@ -478,9 +478,9 @@ TxAddInputDevice(fdmask, inputProc, cdata)
 
 void
 TxAdd1InputDevice(fd, inputProc, cdata)
-    int fd;		
-    void (*inputProc)();	
-    ClientData cdata;		
+    int fd;
+    void (*inputProc)();
+    ClientData cdata;
 {
     fd_set fs;
     FD_ZERO(&fs);
@@ -516,7 +516,7 @@ TxDeleteInputDevice(fdmask)
 
 void
 TxDelete1InputDevice(fd)
-    int fd;		
+    int fd;
 {
     int i, j;
 
@@ -632,7 +632,7 @@ TxLogCommands(fileName, update)
     char *fileName;
     bool update;	/* Request a screen update after each command */
 {
-    if (txLogFile != NULL) 
+    if (txLogFile != NULL)
     {
 	(void) fclose(txLogFile);
 	txLogFile = NULL;
@@ -641,7 +641,7 @@ TxLogCommands(fileName, update)
 
     txLogUpdate = update;
     txLogFile = fopen(fileName, "w");
-    if (txLogFile == NULL) 
+    if (txLogFile == NULL)
 	TxError("Could not open file '%s' for writing.\n", fileName);
 }
 
@@ -681,11 +681,11 @@ txLogCommand(cmd)
 
     if (cmd->tx_wid >= 0) {
 	/* Command has a window associated with it. */
-	fprintf(txLogFile, ":setpoint %d %d %d\n", 
+	fprintf(txLogFile, ":setpoint %d %d %d\n",
 	    cmd->tx_p.p_x, cmd->tx_p.p_y, cmd->tx_wid);
     } else {
 	/* No window associated with the command. */
-	fprintf(txLogFile, ":setpoint %d %d\n", 
+	fprintf(txLogFile, ":setpoint %d %d\n",
 	    cmd->tx_p.p_x, cmd->tx_p.p_y);
     }
 
@@ -717,8 +717,8 @@ txLogCommand(cmd)
 	    case TX_BUTTON_UP: { act = 1; break; };
 	    default: {ASSERT(FALSE, "txLogCommand"); break; };
 	}
-	    
-	fprintf(txLogFile, ":pushbutton %s %s\n", 
+
+	fprintf(txLogFile, ":pushbutton %s %s\n",
 		txButTable[but], txActTable[act]);
     }
     if (txLogUpdate)
@@ -776,7 +776,7 @@ TxGetInputEvent(block, returnOnSigWinch)
 	{
 	    if (returnOnSigWinch && SigGotSigWinch) return gotSome;
 	    inputs = txInputDescriptors;
-	    numReady = select(TX_MAX_OPEN_FILES, &inputs, (fd_set *)NULL, 
+	    numReady = select(TX_MAX_OPEN_FILES, &inputs, (fd_set *)NULL,
 		(fd_set *)NULL, waitTime);
 	    if (numReady <= 0) FD_ZERO(&inputs);	/* no fd is ready */
 	} while ((numReady <= 0) && (errno == EINTR));
@@ -792,7 +792,7 @@ TxGetInputEvent(block, returnOnSigWinch)
 	     * it so that it can add events to the input queue.
 	     */
 	    for (fd = 0; fd < TX_MAX_OPEN_FILES; fd++) {
-		if (FD_ISSET(fd, &inputs) && 
+		if (FD_ISSET(fd, &inputs) &&
 			    FD_ISSET(fd, &(txInputDevice[i].tx_fdmask))) {
 		    lastNum = txNumInputEvents;
 		    (*(txInputDevice[i].tx_inputProc))
@@ -805,7 +805,7 @@ TxGetInputEvent(block, returnOnSigWinch)
 	}
 	/*
 	 * At this point we have handled all the bits in 'inputs' -- almost.
-	 * It is possible for an input handler to remove or add other handlers 
+	 * It is possible for an input handler to remove or add other handlers
 	 * via calls to TxDeleteDevice or TxAddDevice.  Therefore, there may be
 	 * bits in inputs that haven't been turned off.
 	 */
@@ -837,7 +837,7 @@ void
 TxParseString(str, q, event)
     char *str;			/* The string to be parsed. */
     DQueue *q;			/* Add to the tail of this queue. */
-    TxInputEvent *event;	/* An event to supply the point, window ID, 
+    TxInputEvent *event;	/* An event to supply the point, window ID,
 				 * etc. .  If NULL, we will use the last
 				 * event processed.
 				 */
@@ -854,7 +854,7 @@ TxParseString(str, q, event)
 	strncpy(cmd->tx_argstring, remainder, TX_MAX_CMDLEN);
 	cmd->tx_argstring[TX_MAX_CMDLEN - 1] = '\0';
 
-	if (ParsSplit(cmd->tx_argstring, TX_MAXARGS, 
+	if (ParsSplit(cmd->tx_argstring, TX_MAXARGS,
 	    &(cmd->tx_argc), cmd->tx_argv, &remainder) )
 	    {
 		if (event == NULL) event = &txLastEvent;
@@ -865,7 +865,7 @@ TxParseString(str, q, event)
 	    }
 	    else
 	    {
-		TxError("Unable to completely parse command line '%s'\n", 
+		TxError("Unable to completely parse command line '%s'\n",
 		    str);
 		TxFreeCommand(cmd);
 		return;
@@ -879,7 +879,7 @@ TxParseString(str, q, event)
  * ----------------------------------------------------------------------------
  * txGetInteractiveCommand:
  *
- *	Get one or more commands from one of the interactive input devices, 
+ *	Get one or more commands from one of the interactive input devices,
  *	and put it into the input queue.
  *
  * Results:
@@ -1238,7 +1238,7 @@ TxDispatch(f)
     bool inFile;
     DQueue inputCommands;	/* A queue of commands from our input
 				 * sources.
-				 */ 
+				 */
 
     DQInit(&inputCommands, 4);
 
@@ -1248,7 +1248,7 @@ TxDispatch(f)
     {
 	if (!inFile)
 	{
-	    /* Update the screen info of the window package and all of 
+	    /* Update the screen info of the window package and all of
 	     * its clients.  If there's already input waiting, skip this...
 	     * it can get done at the end, after all pending commands have
 	     * been processed.
@@ -1259,7 +1259,7 @@ TxDispatch(f)
 	    if (DQIsEmpty(&inputCommands))
 	    {
 		WindUpdate();
-		if (SigInterruptPending) 
+		if (SigInterruptPending)
 		    TxPrintf("[Redisplay Interrupted]\n");
 		txGetInteractiveCommand(FALSE, &inputCommands);
 	    }
@@ -1274,7 +1274,7 @@ TxDispatch(f)
 
 		    /*  Call background DRC.
 		     *  It will return if it is not enabled, there is no work to
-		     *  be done, or it learns that the user has entered a 
+		     *  be done, or it learns that the user has entered a
 		     *  command.
 		     */
 		    SigIOReady = FALSE;
@@ -1295,7 +1295,7 @@ TxDispatch(f)
 		TxPrompt();
 		(void) GrEnableTablet();
 		GrFlush();
-		
+
 		txGetInteractiveCommand(TRUE, &inputCommands);
 
 		TxUnPrompt();
@@ -1308,7 +1308,7 @@ TxDispatch(f)
 	else
 	{
 	    if (feof(f)) goto done;
-	    if (SigInterruptPending && inFile) 
+	    if (SigInterruptPending && inFile)
 	    {
 		TxPrintf("[Read-in of command file aborted]\n");
 		goto done;
@@ -1348,7 +1348,7 @@ TxDispatch(f)
 	    };
 
 	    /****
-	    ASSERT(cmd->tx_argc >= 0 && cmd->tx_argc <= TX_MAXARGS, 
+	    ASSERT(cmd->tx_argc >= 0 && cmd->tx_argc <= TX_MAXARGS,
 		"TxDispatch");
 	    if (cmd->tx_argc != 0) {
 		ASSERT(cmd->tx_button == TX_CHARACTER, "TxDispatch");
@@ -1365,7 +1365,7 @@ TxDispatch(f)
 	    };
 	    ****/
 	    if (!inFile && (txLogFile != NULL)) txLogCommand(cmd);
-	    
+
 	    /*
 	     *  Add lisp interpreter here. We trap the character
 	     *  commands and call the lisp interpreter that traps
@@ -1438,7 +1438,7 @@ txCommandsInit()
 /*
  * ----------------------------------------------------------------------------
  *
- * txLispDispatch -- 
+ * txLispDispatch --
  *
  *	Send command to magic window.
  *

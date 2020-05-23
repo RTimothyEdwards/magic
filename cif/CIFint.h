@@ -4,16 +4,16 @@
  * Defines things shared internally by the cif module of Magic,
  * but not generally needed outside the cif module.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid "$Header: /usr/cvsroot/magic-8.0/cif/CIFint.h,v 1.3 2008/12/04 17:10:29 tim Exp $"
@@ -198,7 +198,7 @@ typedef struct
 				 */
     int min_width;		/* the minimum width rule in centi-microns
 				 * for the layer. This is used by Grow Sliver
-				 * to generate drc correct parent slivers	
+				 * to generate drc correct parent slivers
 				 */
 #ifdef THREE_D
     int	   cl_renderStyle;	/* Style to render CIF layer with */
@@ -258,7 +258,7 @@ typedef struct cifstyle
 				 * file more readable).  Default of 1.
 				 * Unused for GDS input/output.
 				 */
-    int cs_expander;		/* cs_scaleFactor / cs_expander = scale in 
+    int cs_expander;		/* cs_scaleFactor / cs_expander = scale in
 				 * centimicrons.  Default of 1.  Value 10
 				 * means cs_scaleFactor is measured in
 				 * nanometers (millimicrons)

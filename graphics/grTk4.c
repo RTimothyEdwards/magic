@@ -23,14 +23,14 @@
 #include "grTkInt.h"
 #include "grTkCommon.h"
 
-
+
 /*---------------------------------------------------------
  * GrTkDisableTablet:
  *	Turns off the cursor.
  *
  * Results:	None.
  *
- * Side Effects:    None.		
+ * Side Effects:    None.
  *---------------------------------------------------------
  */
 
@@ -39,12 +39,12 @@ GrTkDisableTablet ()
 {
 }
 
-
+
 /*---------------------------------------------------------
  * GrTkEnableTablet:
  *	This routine enables the graphics tablet.
  *
- * Results: 
+ * Results:
  *   	None.
  *
  * Side Effects:
@@ -57,7 +57,7 @@ GrTkEnableTablet ()
 {
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * grtkGetCursorPos:
@@ -83,7 +83,7 @@ grtkGetCursorPos (mw, p)
     Window win1, win2;
 
     if (mw == NULL) mw = grCurrent.mw;
-    
+
     XQueryPointer(grXdpy, Tk_WindowId((Tk_Window)mw->w_grdata),
 		  &win1, &win2, &x1, &y1,
 		  &x, &y, &buttons);
@@ -118,7 +118,7 @@ grtkGetCursorRootPos (mw, p)
     Window win1, win2;
 
     if (mw == NULL) mw = grCurrent.mw;
-    
+
     XQueryPointer(grXdpy, Tk_WindowId((Tk_Window)mw->w_grdata),
 		  &win1, &win2, &x1, &y1,
 		  &x, &y, &buttons);

@@ -55,7 +55,7 @@ proc magic::add_toolkit_button {framename button_text gencell_type library} {
 #-----------------------------------------------------
 
 proc magic::gen_params {} {
-    
+
     # Find selected item  (to-do:  handle multiple selections)
     set wlist [what -list]
     set clist [lindex $wlist 2]
@@ -193,7 +193,7 @@ proc magic::gencell_draw {gname gencell_type library} {
 }
 
 #-----------------------------------------------------
-#  Add a standard parameter to the gencell window 
+#  Add a standard parameter to the gencell window
 #-----------------------------------------------------
 
 proc magic::add_param {gname pname ptext default_value} {
@@ -206,7 +206,7 @@ proc magic::add_param {gname pname ptext default_value} {
       set value [cellname property $gname $pname]
    }
    if {$value == {}} {set value $default_value}
-   
+
    set numrows [lindex [grid size .params.edits] 0]
    label .params.edits.${pname}_lab -text $ptext
    entry .params.edits.${pname}_ent -background white
@@ -216,7 +216,7 @@ proc magic::add_param {gname pname ptext default_value} {
 }
 
 #-----------------------------------------------------
-# Update the properties of a cell 
+# Update the properties of a cell
 #-----------------------------------------------------
 
 proc magic::update_params {gname ptext default_value} {

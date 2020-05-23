@@ -1,19 +1,19 @@
 /* grOGL3.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains additional functions to manipulate an X window system
- * color display.  Included here are device-dependent routines to draw and 
+ * color display.  Included here are device-dependent routines to draw and
  * erase text and draw a grid.
  *
  */
@@ -48,7 +48,7 @@ static XFontStruct *grXFonts[4];
 GLuint	grXBases[4];
 
 
-
+
 /*---------------------------------------------------------
  * groglDrawGrid:
  *	groglDrawGrid adds a grid to the grid layer, using the current
@@ -84,12 +84,12 @@ groglDrawGrid (prect, outline, clip)
 	return FALSE;
     if (GRID_TOO_SMALL(xsize, ysize))
 	return FALSE;
-    
+
     xstart = prect->r_xbot % xsize;
     while (xstart < clip->r_xbot << SUBPIXELBITS) xstart += xsize;
     ystart = prect->r_ybot % ysize;
     while (ystart < clip->r_ybot << SUBPIXELBITS) ystart += ysize;
-    
+
     groglSetLineStyle(outline);
 
     glBegin(GL_LINES);
@@ -120,7 +120,7 @@ groglDrawGrid (prect, outline, clip)
     return TRUE;
 }
 
-
+
 /*---------------------------------------------------------
  * groglPreLoadFont
  *	This local routine loads the X fonts used by Magic.
@@ -170,7 +170,7 @@ groglPreLoadFont()
     return TRUE;
 }
 
-
+
 /*---------------------------------------------------------
  * groglLoadFont
  *	This local routine transfers the X font bitmaps
@@ -206,7 +206,7 @@ groglLoadFont()
     return TRUE;
 }
 
-
+
 /*---------------------------------------------------------
  * groglSetCharSize:
  *	This local routine sets the character size in the display,
@@ -246,12 +246,12 @@ groglSetCharSize (size)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrOGLTextSize --
  *
- *	Determine the size of a text string. 
+ *	Determine the size of a text string.
  *
  * Results:
  *	None.
@@ -272,7 +272,7 @@ GrOGLTextSize(text, size, r)
     XCharStruct overall;
     XFontStruct *font;
     int dir,fa,fd;
-    
+
     switch (size) {
     case GR_TEXT_DEFAULT:
     case GR_TEXT_SMALL:
@@ -301,7 +301,7 @@ GrOGLTextSize(text, size, r)
     r->r_xbot = -overall.lbearing - 1;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrOGLReadPixel --
@@ -326,7 +326,7 @@ GrOGLReadPixel (w, x, y)
    return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrOGLBitBlt --
@@ -371,7 +371,7 @@ myCombine(GLdouble coords[3], GLdouble *vertex_data[4],
     new[1] = coords[1];
     *outData = new;
     /* Diagnostic */
-    TxError("Intersecting polygon in char \"%c\" at %g %g!\n", 
+    TxError("Intersecting polygon in char \"%c\" at %g %g!\n",
 	*((char *)dataptr), coords[0], coords[1]);
 }
 
@@ -458,7 +458,7 @@ groglDrawCharacter(clist, tc, pixsize)
  *
  *	For speed, we should be transferring the font
  *	vectors into OpenGL display lists!
- *	
+ *
  *---------------------------------------------------------
  */
 
@@ -470,7 +470,7 @@ groglFontText(text, font, size, rotate, pos, clip, obscure)
     int	  rotate;		/* Text rotation */
     Point *pos;			/* Text base position */
     Rect  *clip;		/* Clipping area */
-    LinkedRect *obscure;	/* List of obscuring areas */ 
+    LinkedRect *obscure;	/* List of obscuring areas */
 {
     char *tptr;
     Point *coffset;		/* vector to next character */
@@ -551,7 +551,7 @@ groglFreeBackingStore(MagWindow *window)
  *
  * Side effects:
  *	memory Allocated.
- * 
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -599,7 +599,7 @@ groglCreateBackingStore(MagWindow *w)
  *
  * Side effects:
  *	Data copied into Pixmap memory.
- * 
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -648,7 +648,7 @@ groglGetBackingStore(MagWindow *w, Rect *area)
  *
  * Side effects:
  *	Data shifted in Pixmap memory.
- * 
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -745,7 +745,7 @@ groglPutBackingStore(MagWindow *w, Rect *area)
     /* TxPrintf("groglPutBackingStore %d %d %d %d\n",
 		area->r_xbot, area->r_ybot, area->r_xtop, area->r_ytop); */
 }
-
+
 
 /*---------------------------------------------------------
  * groglPutText:
@@ -756,11 +756,11 @@ groglPutBackingStore(MagWindow *w, Rect *area)
  *	the screen -- no clipping is done except to the obscuring rectangle
  *	list and the clip rectangle.
  *
- * Results:	
+ * Results:
  *	none.
  *
  * Side Effects:
- *	The text is drawn on the screen.  
+ *	The text is drawn on the screen.
  *
  *---------------------------------------------------------
  */
@@ -800,7 +800,7 @@ groglPutText (text, pos, clip, obscure)
 	    grOGLGeoSub(&location, &overlap);
 	}
     }
- 
+
     overlap = location;
     GeoClip(&overlap, clip);
 

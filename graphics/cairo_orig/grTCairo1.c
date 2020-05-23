@@ -73,7 +73,7 @@ extern int  GrTCairoWindowId();
 extern char *GrTkWindowName();
 
 extern void tcairoSetProjection();
-
+
 /*---------------------------------------------------------
  * grtcairoSetWMandC:
  *	This is a local routine that resets the value of the current
@@ -116,7 +116,7 @@ int c;			/* New value for current color */
 	oldMask = mask;
 }
 
-
+
 /*---------------------------------------------------------
  * grtcairoSetLineStyle:
  *	This local routine sets the current line style.
@@ -136,7 +136,7 @@ int style;			/* New stipple pattern for lines. */
 	// unimplemented for cairo
 }
 
-
+
 /*---------------------------------------------------------
  * grtcairoSetSPattern:
  *	tcairoSetSPattern associates a stipple pattern with a given
@@ -181,7 +181,7 @@ int numstipples;			/* Number of stipples */
 	}
 }
 
-
+
 /*---------------------------------------------------------
  * grtcairoSetStipple:
  *	This routine sets the Xs current stipple number.
@@ -214,7 +214,7 @@ int stipple;			/* The stipple number to be used. */
 	}
 }
 
-
+
 /*------------------------------------------------------------------------
  * GrTCairoInit:
  *	GrTCairoInit initializes the graphics display and clears its screen.
@@ -283,7 +283,7 @@ GrTCairoInit ()
 
 	return grTkLoadFont();
 }
-
+
 /*---------------------------------------------------------
  * GrTCairoClose:
  *
@@ -304,7 +304,7 @@ GrTCairoClose ()
 	/* do XCloseDisplay()		 */
 }
 
-
+
 /*---------------------------------------------------------
  * GrTCairoFlush:
  * 	Flush output to display.
@@ -348,7 +348,7 @@ int llx, lly, width, height;
 	cairo_scale(grCairoContext, 1.0, -1.0);
 }
 
-
+
 /*
  * ---------------------------------------------------------------------------
  *
@@ -794,7 +794,7 @@ keys_and_buttons:
 	}
 }
 
-
+
 
 /*---------------------------------------------------------
  * cairoSetDisplay:
@@ -916,7 +916,7 @@ char *mouseFileName;
 }
 
 extern void MakeWindowCommand();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1067,7 +1067,7 @@ char *name;
 
 	return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1097,7 +1097,7 @@ MagWindow *w;
 	Tcl_DeleteCommand(magicinterp, Tk_PathName(xw));
 	Tk_DestroyWindow(xw);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1124,7 +1124,7 @@ MagWindow *w;
 	                    w->w_frameArea.r_xtop - w->w_frameArea.r_xbot,
 	                    w->w_frameArea.r_ytop - w->w_frameArea.r_ybot);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1152,7 +1152,7 @@ MagWindow *w;
 	tkwind = (Tk_Window)w->w_grdata;
 	Tk_RestackWindow(tkwind, Above, NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1180,7 +1180,7 @@ MagWindow *w;
 	tkwind = (Tk_Window)w->w_grdata;
 	Tk_RestackWindow(tkwind, Below, NULL);
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -1226,7 +1226,7 @@ bool flag;
 		                    w->w_allArea.r_ytop - w->w_allArea.r_ybot);
 	}
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1251,7 +1251,7 @@ MagWindow *w;
 	GrTCairoFlush();
 	grSimpleUnlock(w);
 }
-
+
 
 /*
  *-------------------------------------------------------------------------

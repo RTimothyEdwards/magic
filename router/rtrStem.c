@@ -6,16 +6,16 @@
  *	non-grid-aligned terminals in cells and grid lines at the
  *	edges of channels.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -83,7 +83,7 @@ bool rtrSrArea();
 bool rtrStemMask();
 bool RtrComputeJogs();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -202,7 +202,7 @@ RtrStemProcessAll(use, netList, doWarn, func)
 out:
     RtrMilestoneDone();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -346,11 +346,11 @@ RtrStemAssignExt(use, doWarn, loc, term, net)
     }
 
     /*
-     * Overall algorithm: find the nearest channel in 
+     * Overall algorithm: find the nearest channel in
      * allowable directions and try to assign a stem tip
      * in that direction.
      */
-    
+
     pins = 0;
     loc->nloc_chan == (GCRChannel *) NULL;
     for ( dr = dirs; dr->dr_dir; dr++)
@@ -425,7 +425,7 @@ rtrStemExpandFunc(Tile *t, TreeContext *cxp)
 	return 0;	/* Probably should report an error and stop */
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -495,7 +495,7 @@ rtrStemTip(loc, si, use)
     }
     return ((GCRPin *) NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -518,7 +518,7 @@ rtrAbort(tile)
 {
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -597,7 +597,7 @@ rtrStemTryPin(loc, dir, p, use)
      * Verify stem extending to channel will not overlap
      * material in the edit cell or nested subcells.
      */
-    
+
     if ( rtrTreeSrArea(loc, dir, p, use) )
 	return (GCRPin *) NULL;
 
@@ -623,7 +623,7 @@ rtrStemTryPin(loc, dir, p, use)
     loc->nloc_pin = pin;
     return (pin);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -711,7 +711,7 @@ rtrTreeSrArea(loc, dir, p, use)
 
     return FALSE;
 }
-
+
 bool
 rtrSrArea(dir,use,tmp,delta)
     int	dir;
@@ -783,7 +783,7 @@ rtrSrArea(dir,use,tmp,delta)
     {
 	if (DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0, rtrAbort, (ClientData)0) )
             return TRUE;
-	return FALSE; 
+	return FALSE;
     }
 }
 
@@ -874,7 +874,7 @@ rtrStemRange(loc, dir, si)
 	    break;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -909,7 +909,7 @@ rtrStemContactLine(lo, hi, origin)
 
     return (center);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -971,7 +971,7 @@ rtrStemSearch(center, dir, point)
 
     return (ch);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1214,7 +1214,7 @@ rtrStemTypes(startMask, finalMask, startType, finalType)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1282,7 +1282,7 @@ RtrComputeJogs(loc, stem, dir, contact, jog, start, width)
 	    start->p_x = jog->p_x;
 	    start->p_y = area->r_ybot - width;
 	    break;
-	
+
 	case GEO_EAST:
 	    contact->p_x = RTR_GRIDDOWN(stem->p_x, RtrOrigin.p_x);
 	    contact->p_y = stem->p_y;
@@ -1294,7 +1294,7 @@ RtrComputeJogs(loc, stem, dir, contact, jog, start, width)
 	    start->p_y = jog->p_y;
 	    start->p_x = area->r_xtop;
 	    break;
-	
+
 	case GEO_WEST:
 	    contact->p_x = RTR_GRIDUP(stem->p_x, RtrOrigin.p_x);
 	    contact->p_y = stem->p_y;
@@ -1306,7 +1306,7 @@ RtrComputeJogs(loc, stem, dir, contact, jog, start, width)
 	    start->p_y = jog->p_y;
 	    start->p_x = area->r_xbot - width;
 	    break;
-	
+
 	default:
 	    return TRUE;
     }

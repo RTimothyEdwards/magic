@@ -3,16 +3,16 @@
  *
  * Internal definitions for the graphics module.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  *
@@ -25,11 +25,11 @@
 #include "windows/windows.h"
 #include "utils/magic.h"
 
-
+
 extern int grNumBitPlanes;
 extern int grBitPlaneMask;
 
-
+
 /* procedures */
 extern void (*grPutTextPtr)();
 extern void (*grFontTextPtr)();		/* Vector-drawn text */
@@ -48,7 +48,7 @@ extern void (*grFillPolygonPtr)();
 extern char *grFgets();
 extern void grSimpleLock(), grSimpleUnlock();
 extern void grNoLock();
-#define	GR_CHECK_LOCK()	{if (grLockedWindow == NULL) grNoLock();} 
+#define	GR_CHECK_LOCK()	{if (grLockedWindow == NULL) grNoLock();}
 
 /* The size of the crosses drawn for degenerate box outlines: */
 #define GR_CROSSSIZE 5
@@ -82,7 +82,7 @@ extern int grNumStipples;
 extern bool grDriverInformed;
 extern void grInformDriver();
 
-/* Macro to check for a bogusly small grid. 
+/* Macro to check for a bogusly small grid.
  * Turn off grid if gridlines are less than 4 pixels apart.
  */
 #define GRID_TOO_SMALL(x,y) ( \

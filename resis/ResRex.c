@@ -121,7 +121,7 @@ ExtResisForDef(celldef, resisdata)
 	    ResCheckPorts(celldef);
 
 	/* Extract networks for nets that require it. */
-	if (!(ResOptionsFlags & ResOpt_FastHenry) || 
+	if (!(ResOptionsFlags & ResOpt_FastHenry) ||
 			DBIsSubcircuit(celldef))
 	    ResCheckSimNodes(celldef, resisdata);
 
@@ -163,7 +163,7 @@ ExtResisForDef(celldef, resisdata)
     }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -201,7 +201,7 @@ CmdExtResis(win, cmd)
 	NULL
     };
 
-    static char *cmdExtresisCmd[] = 
+    static char *cmdExtresisCmd[] =
     {
 	"tolerance [value]    set ratio between resistor and device tol.",
 	"all 		       extract all the nets",
@@ -272,7 +272,7 @@ typedef enum {
     {
 	 case RES_TOL:
 	    ResOptionsFlags |=  ResOpt_ExplicitRtol;
-	    if (cmd->tx_argc > 2) 
+	    if (cmd->tx_argc > 2)
 	    {
 		tolerance = MagAtof(cmd->tx_argv[2]);
 		if (tolerance <= 0)
@@ -333,7 +333,7 @@ typedef enum {
 		value = Lookup(cmd->tx_argv[2], onOff);
 
 		if (value)
-	      	   ResOptionsFlags |= ResOpt_Blackbox; 
+	      	   ResOptionsFlags |= ResOpt_Blackbox;
 		else
 	      	   ResOptionsFlags &= ~ResOpt_Blackbox;
 	    }
@@ -350,7 +350,7 @@ typedef enum {
 		value = Lookup(cmd->tx_argv[2], onOff);
 
 		if (value)
-	      	   ResOptionsFlags |= ResOpt_Simplify | ResOpt_Tdi; 
+	      	   ResOptionsFlags |= ResOpt_Simplify | ResOpt_Tdi;
 		else
 	      	   ResOptionsFlags &= ~(ResOpt_Simplify | ResOpt_Tdi);
 	    }
@@ -405,7 +405,7 @@ typedef enum {
 	    return;
 
 	case RES_SKIP:
-	    if (cmd->tx_argc > 2) 
+	    if (cmd->tx_argc > 2)
 	    {
 		j = DBTechNoisyNameType(cmd->tx_argv[2]);
 		if (j >= 0)
@@ -468,7 +468,7 @@ typedef enum {
 				LaplaceMissCount,LaplaceMatchCount);
 		}
 #endif
-		   
+
 		ResOptionsFlags = oldoptions;
 		return;
 	    }
@@ -477,7 +477,7 @@ typedef enum {
 	    if (selectedUse == NULL)
 	    {
 		TxError("No cell selected\n");
-		return;  
+		return;
 	    }
 	    mainDef = selectedUse->cu_def;
 	    ResOptionsFlags &= ~ResOpt_ExtractAll;
@@ -502,7 +502,7 @@ typedef enum {
 	default:
 	    return;
     }
-    
+
 #ifdef LAPLACE
     LaplaceMatchCount = 0;
     LaplaceMissCount = 0;
@@ -563,7 +563,7 @@ typedef enum {
  *
  * Side Effects:
  *	Does resistance extraction for an entire cell.
- *	
+ *
  *-------------------------------------------------------------------------
  */
 
@@ -581,7 +581,7 @@ resSubcircuitFunc(cellDef, rdata)
     return 0;
 }
 
-
+
 
 /*
  *-------------------------------------------------------------------------
@@ -679,7 +679,7 @@ resPortFunc(scx, lab, tpath, result)
  *	for extresist to process.  If the port use is "ground" or
  *	"power", then don't process the node.  If the port class is
  *	"output", then make this node a (forced) driver.
- *	
+ *
  * Results: 0 if one or more nodes was created, 1 otherwise
  *
  * Side Effects: Adds driving nodes to the extresis network database.
@@ -723,7 +723,7 @@ ResCheckBlackbox(cellDef)
  *	into the subcircuit and declare them to be "driving" nodes so
  *	the extresis algorithm will treat them as being part of valid
  *	networks.
- *	
+ *
  * Results: 0 if one or more nodes was created, 1 otherwise
  *
  * Side Effects: Adds driving nodes to the extresis network database.
@@ -798,14 +798,14 @@ ResCheckPorts(cellDef)
     }
     return result;
 }
- 
+
 /*
  *-------------------------------------------------------------------------
  *
  * ResCheckSimNodes-- check to see if lumped resistance is greater than the
- *		      device resistance; if it is, Extract the net 
+ *		      device resistance; if it is, Extract the net
  *		      resistance. If the maximum point to point resistance
- *		      in the extracted net is still creater than the 
+ *		      in the extracted net is still creater than the
  *		      tolerance, then output the extracted net.
  *
  * Results: none
@@ -858,7 +858,7 @@ ResCheckSimNodes(celldef, resisdata)
     {
      	ResFHFile = NULL;
     }
-  
+
     if (ResExtFile == NULL && (ResOptionsFlags & ResOpt_DoExtFile)
          || (ResOptionsFlags & ResOpt_DoLumpFile) && ResLumpFile == NULL
          || (ResOptionsFlags & ResOpt_FastHenry) && ResFHFile == NULL)
@@ -882,7 +882,7 @@ ResCheckSimNodes(celldef, resisdata)
 
      /*
       *	Write reference plane (substrate) definition and end statement
-      * to the FastHenry geometry file.	
+      * to the FastHenry geometry file.
       */
     if (ResOptionsFlags & ResOpt_FastHenry)
     {
@@ -900,13 +900,13 @@ ResCheckSimNodes(celldef, resisdata)
 	    last4 = node->name+strlen(node->name)-4;
 	    last3 = node->name+strlen(node->name)-3;
 
-	    if ((strncmp(last4,"Vdd!",4) == 0 || 
+	    if ((strncmp(last4,"Vdd!",4) == 0 ||
 	          strncmp(last4,"VDD!",4) == 0 ||
 	          strncmp(last4,"vdd!",4) == 0 ||
 	          strncmp(last4,"Gnd!",4) == 0 ||
 	          strncmp(last4,"gnd!",4) == 0 ||
 	          strncmp(last4,"GND!",4) == 0 ||
-	          strncmp(last3,"Vdd",3) == 0 || 
+	          strncmp(last3,"Vdd",3) == 0 ||
 	          strncmp(last3,"VDD",3) == 0 ||
 	          strncmp(last3,"vdd",3) == 0 ||
 	          strncmp(last3,"Gnd",3) == 0 ||
@@ -918,14 +918,14 @@ ResCheckSimNodes(celldef, resisdata)
 	/* Has this node been merged away or is it marked as skipped? */
 	/* If so, skip it */
 	if ((node->status & (FORWARD | REDUNDANT)) ||
-		((node->status & SKIP) && 
+		((node->status & SKIP) &&
 	  	(ResOptionsFlags & ResOpt_ExtractAll) == 0))
 	    continue;
 	total++;
-	  
+
      	ResSortByGate(&node->firstDev);
 	/* Find largest SD device connected to node.	*/
-	  
+
 	minRes = FLT_MAX;
 	gparams.rg_devloc = (Point *) NULL;
 	gparams.rg_status = FALSE;
@@ -1026,8 +1026,8 @@ ResCheckSimNodes(celldef, resisdata)
 	    rctolerance = minRes/rctol;
 	}
 
-	/* 
-	 *   Is the device resistance greater than the lumped node 
+	/*
+	 *   Is the device resistance greater than the lumped node
 	 *   resistance? If so, extract net.
 	 */
 
@@ -1052,8 +1052,8 @@ ResCheckSimNodes(celldef, resisdata)
 		{
 		    ResWriteLumpFile(node);
 		}
-		if (gparams.rg_maxres >= ftolerance  || 
-		        gparams.rg_maxres >= rctolerance || 
+		if (gparams.rg_maxres >= ftolerance  ||
+		        gparams.rg_maxres >= rctolerance ||
 			(ResOptionsFlags & ResOpt_ExtractAll))
 		{
 		    resNodeNum = 0;
@@ -1067,8 +1067,8 @@ ResCheckSimNodes(celldef, resisdata)
 	    ResCleanUpEverything();
 	}
     }
-     
-    /* 
+
+    /*
      * Print out all device which have had at least one terminal changed
      * by resistance extraction.
      */
@@ -1079,7 +1079,7 @@ ResCheckSimNodes(celldef, resisdata)
     }
 
     /*
-     *	Write end statement to the FastHenry geometry file.	
+     *	Write end statement to the FastHenry geometry file.
      * (Frequency range should be user-specified. . .)
      */
 
@@ -1123,7 +1123,7 @@ ResCheckSimNodes(celldef, resisdata)
 
     /* close output files */
 
-    if (ResExtFile != NULL) 
+    if (ResExtFile != NULL)
     {
      	(void) fclose(ResExtFile);
     }
@@ -1136,12 +1136,12 @@ ResCheckSimNodes(celldef, resisdata)
 	(void) fclose(ResFHFile);
     }
 }
-
+
 
 /*
  *-------------------------------------------------------------------------
  *
- * ResFixUpConnections-- Changes the connection to  a terminal of the sim 
+ * ResFixUpConnections-- Changes the connection to  a terminal of the sim
  *	device.  The new name is formed by appending .t# to the old name.
  *	The new name is added to the hash table of node names.
  *
@@ -1164,7 +1164,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
     static char	newname[MAXNAME], oldnodename[MAXNAME];
     int		notdecremented;
     resNode	*gate, *source, *drain;
-     
+
     /* If we aren't doing output (i.e. this is just a statistical run) */
     /* don't patch up networks.  This cuts down on memory use.		*/
 
@@ -1184,7 +1184,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
     }
     (void)sprintf(newname,"%s%s%d",nodename,".t",resNodeNum++);
     notdecremented = TRUE;
-     
+
     if (simDev->gate == simNode)
     {
 	if ((gate=layoutDev->rd_fet_gate) != NULL)
@@ -1195,7 +1195,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	    {
 	       	resNodeNum--;
 		notdecremented = FALSE;
-	    }  
+	    }
 
 	    ResFixDevName(newname,GATE,simDev,gate);
 	    gate->rn_name = simDev->gate->name;
@@ -1210,14 +1210,14 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
     {
      	if (simDev->drain == simNode)
 	{
-	    if ((source=layoutDev->rd_fet_source) && 
+	    if ((source=layoutDev->rd_fet_source) &&
 	       	   (drain=layoutDev->rd_fet_drain))
 	    {
 	        if (source->rn_name != NULL && notdecremented)
 		{
 		    resNodeNum--;
 		    notdecremented = FALSE;
-		}  
+		}
 	        ResFixDevName(newname,SOURCE,simDev,source);
 	        source->rn_name = simDev->source->name;
 		(void)sprintf(newname,"%s%s%d",nodename,".t",resNodeNum++);
@@ -1265,11 +1265,11 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		    {
 			resNodeNum--;
 			notdecremented = FALSE;
-		    }  
+		    }
 	            ResFixDevName(newname,SOURCE,simDev,source);
 	            source->rn_name = simDev->source->name;
 		}
-		    
+
 	    }
 	    else
 	    {
@@ -1305,7 +1305,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		{
 		    resNodeNum--;
 		    notdecremented = FALSE;
-		}  
+		}
 	        ResFixDevName(newname, DRAIN, simDev, drain);
 	        drain->rn_name = simDev->drain->name;
 	    }
@@ -1315,7 +1315,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		{
 		    resNodeNum--;
 		    notdecremented = FALSE;
-		}  
+		}
 		ResFixDevName(newname,DRAIN,simDev,source);
 		source->rn_name = simDev->drain->name;
 	    }
@@ -1331,7 +1331,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
     }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -1356,12 +1356,12 @@ ResFixDevName(line,type,device,layoutnode)
     HashEntry		*entry;
     ResSimNode		*node;
     devPtr		*tptr;
-     
+
     if (layoutnode->rn_name != NULL)
     {
         entry = HashFind(&ResNodeTable,layoutnode->rn_name);
         node = ResInitializeNode(entry);
-     	  
+
     }
     else
     {
@@ -1393,13 +1393,13 @@ ResFixDevName(line,type,device,layoutnode)
     }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
  *  ResSortByGate--sorts device pointers whose terminal field is either
  *	drain or source by gate node number, then by drain (source) number.
- *	This places devices with identical connections next to one 
+ *	This places devices with identical connections next to one
  *	another.
  *
  * Results: none
@@ -1416,7 +1416,7 @@ ResSortByGate(DevpointerList)
     int		changed=TRUE;
     int		localchange=TRUE;
     devPtr	*working, *last=NULL, *current, *gatelist=NULL;
-     
+
     working = *DevpointerList;
     while (working != NULL)
     {
@@ -1457,17 +1457,17 @@ ResSortByGate(DevpointerList)
 		localchange = TRUE;
 	    }
 	    else if (w->gate == c->gate &&
-			(working->terminal == SOURCE && 
-			current->terminal == SOURCE && 
+			(working->terminal == SOURCE &&
+			current->terminal == SOURCE &&
 			w->drain > c->drain    ||
-			working->terminal == SOURCE && 
-			current->terminal == DRAIN && 
+			working->terminal == SOURCE &&
+			current->terminal == DRAIN &&
 			w->drain > c->source    ||
-			working->terminal == DRAIN && 
-			current->terminal == SOURCE && 
+			working->terminal == DRAIN &&
+			current->terminal == SOURCE &&
 			w->source > c->drain    ||
-			working->terminal == DRAIN && 
-			current->terminal == DRAIN && 
+			working->terminal == DRAIN &&
+			current->terminal == DRAIN &&
 			w->source >  c->source))
 	    {
 		changed = TRUE;
@@ -1512,7 +1512,7 @@ ResSortByGate(DevpointerList)
 	}
     }
 }
-
+
 
 /*
  *-------------------------------------------------------------------------
@@ -1550,7 +1550,7 @@ ResWriteLumpFile(node)
     }
     fprintf(ResLumpFile,"R %s %d\n", node->name, lumpedres);
 }
-
+
 
 /*
  *-------------------------------------------------------------------------
@@ -1633,7 +1633,7 @@ ResWriteExtFile(celldef, node, tol, rctol, nidx, eidx)
     char	*cp, newname[MAXNAME];
     devPtr	*ptr;
     resDevice	*layoutDev, *ResGetDevice();
-     
+
     RCdev = gparams.rg_bigdevres * gparams.rg_nodecap;
 
     if (tol == 0.0 ||(node->status & FORCE) ||
@@ -1645,7 +1645,7 @@ ResWriteExtFile(celldef, node, tol, rctol, nidx, eidx)
 	(void)sprintf(newname,"%s",node->name);
         cp = newname+strlen(newname)-1;
         if (*cp == '!' || *cp == '#') *cp = '\0';
-	if ((rctol+1)*RCdev < rctol*gparams.rg_Tdi || 
+	if ((rctol+1)*RCdev < rctol*gparams.rg_Tdi ||
 	  			(ResOptionsFlags & ResOpt_Tdi) == 0)
 	{
 	    if ((ResOptionsFlags & (ResOpt_RunSilent|ResOpt_Tdi)) == ResOpt_Tdi)

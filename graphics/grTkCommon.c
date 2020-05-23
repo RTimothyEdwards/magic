@@ -87,11 +87,11 @@ grTkLoadFont()
     	s = XGetDefault(grXdpy, "magic", optionnames[i]);
 	if (s) fontnames[i] = s;
         if ((grTkFonts[i] = Tk_GetFont(magicinterp,
-			tkwind, fontnames[i])) == NULL) 
+			tkwind, fontnames[i])) == NULL)
         {
 	    TxError("%s %s\n", unable, fontnames[i]);
             if ((grTkFonts[i] = Tk_GetFont(magicinterp,
-			tkwind, TK_DEFAULT_FONT)) == NULL) 
+			tkwind, TK_DEFAULT_FONT)) == NULL)
 	    {
 	        TxError("%s %s\n", unable, TK_DEFAULT_FONT);
 		return FALSE;
@@ -191,7 +191,7 @@ grTkDefineCursor(glyphs)
     oldClip = grCurClip;
     grCurClip = GrScreenRect;
     grCurClip.r_ytop += 16;
-    
+
     /* enter the glyphs */
     for (glyphnum = 0; glyphnum < glyphs->gr_num; glyphnum++) {
 	int i, *p, fgstyle;
@@ -209,7 +209,7 @@ grTkDefineCursor(glyphs)
         glyphcache = (CursorCache *)mallocMagic(sizeof(CursorCache));
 	g->gr_cache = (ClientData)glyphcache;
 	g->gr_free = freeMagic;
-	
+
 	/* Find the foreground and background colors of the glyph */
 
 	p = &(g->gr_pixels[0]);
@@ -260,7 +260,7 @@ grTkDefineCursor(glyphs)
 	for (y = 0; y < 32; y++) {
 	    i = (y & 1) ? (32 - y) : (30 - y);
 	    glyphcache->source[i] = glyphcache->mask[i] = 0;
-	    for (x = 0; x < 8; x++) 
+	    for (x = 0; x < 8; x++)
 	    {
 		if (*p == fgstyle)
 		     glyphcache->source[i] |= (1 << x);
@@ -294,18 +294,18 @@ grTkDefineCursor(glyphs)
  * Side Effects:
  *	None.
  *-------------------------------------------------------------------------
- */ 
-  
+ */
+
 char *
 GrTkWindowName(mw)
     MagWindow *mw;
-{    
+{
     Tk_Window tkwind;
     char *tkname;
- 
+
     tkwind = (Tk_Window) mw->w_grdata;
     return Tk_PathName(tkwind);
-}  
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -341,7 +341,7 @@ grtkFreeBackingStore(MagWindow *window)
  *
  * Side effects:
  *	memory Allocated.
- * 
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -383,7 +383,7 @@ grtkCreateBackingStore(MagWindow *w)
  *
  * Side effects:
  *	Data copied into Pixmap memory.
- * 
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -450,7 +450,7 @@ grtkGetBackingStore(MagWindow *w, Rect *area)
  *
  * Side effects:
  *	Data shifted in Pixmap memory.
- * 
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -749,7 +749,7 @@ static int		ImgLayerCreate _ANSI_ARGS_((Tcl_Interp *interp,
 static ClientData	ImgLayerGet _ANSI_ARGS_((Tk_Window tkwin,
 			    ClientData clientData));
 static void		ImgLayerDisplay _ANSI_ARGS_((ClientData clientData,
-			    Display *display, Drawable drawable, 
+			    Display *display, Drawable drawable,
 			    int imageX, int imageY, int width, int height,
 			    int drawableX, int drawableY));
 static void		ImgLayerFree _ANSI_ARGS_((ClientData clientData,
@@ -800,7 +800,7 @@ static void		ImgLayerConfigureInstance _ANSI_ARGS_((
 static int		ImgLayerConfigureMaster _ANSI_ARGS_((
 			    LayerMaster *masterPtr, int argc, Tcl_Obj *CONST objv[],
 			    int flags));
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -852,7 +852,7 @@ ImgLayerCreate(interp, name, argc, argv, typePtr, master, clientDataPtr)
     *clientDataPtr = (ClientData) masterPtr;
     return TCL_OK;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -919,7 +919,7 @@ ImgLayerConfigureMaster(masterPtr, objc, objv, flags)
  * grDrawOffScreenBox --
  *	Draw a box on an off-screen drawable (convenience function for
  *	the following procedure ImgLayerConfigureInstance()
- * 
+ *
  * Results:
  *	None.
  *
@@ -943,7 +943,7 @@ grDrawOffScreenBox(rect)
 			rect->r_ytop - 1);
 }
 
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1038,7 +1038,7 @@ ImgLayerConfigureInstance(instancePtr)
 
 	if (layer < 0)
 	{
-	    layer = (*GrWindowIdPtr)(masterPtr->layerString); 
+	    layer = (*GrWindowIdPtr)(masterPtr->layerString);
 
 	    if (layer >= 0)
 		special = LAYER_LAYOUT;
@@ -1121,7 +1121,7 @@ ImgLayerConfigureInstance(instancePtr)
 	    mask = DBWStyleToTypes(i);
 	    if (TTMaskHasType(mask, layer))
 	    {
-		GrSetStuff(i + TECHBEGINSTYLES + 
+		GrSetStuff(i + TECHBEGINSTYLES +
 			((masterPtr->layerOff == 0) ? 0 : DBWNumStyles));
 		grInformDriver();
 
@@ -1143,7 +1143,7 @@ ImgLayerConfigureInstance(instancePtr)
 		}
 	    }
 	}
-	
+
 	switch(special) {
 	    case LAYER_LABELS:
 		GrSetStuff(STYLE_LABEL);
@@ -1180,7 +1180,7 @@ error:
 
     if (instancePtr->gc != None)
 	Tk_FreeGC(grXdpy, instancePtr->gc);
-    instancePtr->gc = None; 
+    instancePtr->gc = None;
 
     Tcl_AddErrorInfo(masterPtr->interp, "\n    (while configuring image \"");
     Tcl_AddErrorInfo(masterPtr->interp, Tk_NameOfImage(masterPtr->tkMaster));
@@ -1188,7 +1188,7 @@ error:
     Tcl_BackgroundError(masterPtr->interp);
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -1255,7 +1255,7 @@ ImgLayerCmd(clientData, interp, objc, objv)
     }
     return TCL_OK;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1324,7 +1324,7 @@ ImgLayerGet(tkwin, masterData)
 
     return (ClientData) instancePtr;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1367,7 +1367,7 @@ ImgLayerDisplay(clientData, display, drawable, imageX, imageY, width,
 	    imageX, imageY, (unsigned) width, (unsigned) height,
 	    drawableX, drawableY);
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1426,7 +1426,7 @@ ImgLayerFree(clientData, display)
     }
     Tcl_Free((char *) instancePtr);
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1461,7 +1461,7 @@ ImgLayerDelete(masterData)
     Tk_FreeOptions(configSpecs, (char *) masterPtr, (Display *) NULL, 0);
     Tcl_Free((char *) masterPtr);
 }
-
+
 /*
  *----------------------------------------------------------------------
  *

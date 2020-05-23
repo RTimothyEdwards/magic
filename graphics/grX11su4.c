@@ -1,15 +1,15 @@
 /* grX11su4.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains functions to manage the graphics tablet associated
@@ -31,14 +31,14 @@
 #include "textio/txcommands.h"
 #include "grX11Int.h"
 
-
+
 /*---------------------------------------------------------
  * GrXDisableTablet:
  *	Turns off the cursor.
  *
  * Results:	None.
  *
- * Side Effects:    None.		
+ * Side Effects:    None.
  *---------------------------------------------------------
  */
 
@@ -47,12 +47,12 @@ GrX11DisableTablet()
 {
 }
 
-
+
 /*---------------------------------------------------------
  * GrXEnableTablet:
  *	This routine enables the graphics tablet.
  *
- * Results: 
+ * Results:
  *   	None.
  *
  * Side Effects:
@@ -65,7 +65,7 @@ GrX11EnableTablet()
 {
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * grx11GetCursorPos:
@@ -89,7 +89,7 @@ grx11GetCursorPos (mw, p)
     int x, y, x1, y1;
     unsigned int buttons;
     Window win1, win2;
-    
+
     if (mw == (MagWindow *)NULL) mw = grCurrent.mw;
 
     XQueryPointer(grXdpy, (Window)mw->w_grdata,
@@ -124,7 +124,7 @@ grx11GetCursorRootPos (mw, p)
     int x, y, x1, y1;
     unsigned int buttons;
     Window win1, win2;
-    
+
     if (mw == (MagWindow *)NULL) mw = grCurrent.mw;
 
     XQueryPointer(grXdpy, (Window)mw->w_grdata,

@@ -105,7 +105,7 @@ ResFixPoint		*ResFixList;
 
 extern void ResSimProcessDrivePoints();
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -128,7 +128,7 @@ ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
      char line[MAXLINE][MAXTOKEN];
      int	result,fettype,extfile;
      FILE *fp, *fopen();
-     
+
          fp = PaOpen(simfile,"r",".sim",".",(char *) NULL, (char **) NULL);
          if (fp == NULL)
          {
@@ -143,11 +143,11 @@ ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
 	       fettype = MINFINITY;
 	       switch(line[0][0])
 	       {
-	       	    case '|': 	
+	       	    case '|':
 		    		if (strcmp(line[NODEUNITS],"units:") == 0)
 				{
 				    resscale = (float)atof(line[NODELAMBDA]);
-				    if (resscale == 0.0) resscale = 1.0; 
+				    if (resscale == 0.0) resscale = 1.0;
 				}
 				result=0;
 				break;
@@ -167,7 +167,7 @@ ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
 		    		break;
 		    case '=':   if (mergeproc)result = (*mergeproc)(line);
 		    		break;
-		    case 'A':	if (attrproc) result = 
+		    case 'A':	if (attrproc) result =
 		    			(*attrproc)(line[ATTRIBUTENODENAME],
 						    line[ATTRIBUTEVALUE],
 						    simfile, &extfile);
@@ -203,7 +203,7 @@ ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
      return(result);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -220,7 +220,7 @@ ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
 int
 ResReadNode(nodefile)
 	char	*nodefile;
- 
+
 {
     char line[MAXLINE][MAXTOKEN];
     FILE *fp, *fopen();
@@ -235,7 +235,7 @@ ResReadNode(nodefile)
      * change between output and readback.
      */
     lambda = (float)ExtCurStyle->exts_unitsPerLambda;
-     
+
     fp = PaOpen(nodefile,"r",".nodes",".", (char *) NULL, (char **) NULL);
     if (fp == NULL)
     {
@@ -246,10 +246,10 @@ ResReadNode(nodefile)
     {
 	entry = HashFind(&ResNodeTable,line[NODENODENAME]);
 	node = ResInitializeNode(entry);
-	      
+
 	node->location.p_x = (int)((float)atof(line[NODENODEX]) / lambda);
 	node->location.p_y = (int)((float)atof(line[NODENODEY]) / lambda);
-#ifdef ARIEL	      
+#ifdef ARIEL
 	node->rs_bbox.r_xbot = (int)((float)atof(line[NODE_BBOX_LL_X]) / lambda);
 	node->rs_bbox.r_ybot = (int)((float)atof(line[NODE_BBOX_LL_Y]) / lambda);
 	node->rs_bbox.r_xtop = (int)((float)atof(line[NODE_BBOX_UR_X]) / lambda);
@@ -269,12 +269,12 @@ ResReadNode(nodefile)
     (void)fclose(fp);
     return(0);
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
  * getline-- Gets a  line from the current input file and breaks it into
- *	tokens. 
+ *	tokens.
  *
  * Results:returns the number of tokens in the current line
  *
@@ -291,7 +291,7 @@ gettokens(line,fp)
 {
      int i=0,j=0;
      int c;
-     
+
      while ((c = getc(fp)) != EOF && c != '\n')
      {
      	  switch(c)
@@ -316,7 +316,7 @@ gettokens(line,fp)
      return(i);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -341,7 +341,7 @@ ResSimDevice(line,rpersquare,ttype)
      char		*newattr,tmpattr[MAXTOKEN];
      static int		nowarning = TRUE;
      float		lambda;
-     
+
      device = (RDev *) mallocMagic((unsigned) (sizeof(RDev)));
      if ((line[RDEV_WIDTH][0] == '\0') || (line[RDEV_LENGTH][0] == '\0'))
      {
@@ -369,7 +369,7 @@ ResSimDevice(line,rpersquare,ttype)
      device->rs_sattr=RDEV_NOATTR;
      device->rs_dattr=RDEV_NOATTR;
      device->rs_ttype = ttype;
-     
+
      /* sim attributes look like g=a1,a2   	 */
      /* ext attributes are "a1","a2"	   	 */
      /* do conversion from one to the other here */
@@ -410,11 +410,11 @@ ResSimDevice(line,rpersquare,ttype)
      rvalue = ResSimNewNode(line[GATE],GATE,device) +
      	      ResSimNewNode(line[SOURCE],SOURCE,device) +
      	      ResSimNewNode(line[DRAIN],DRAIN,device);
-     
+
      return(rvalue);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -437,7 +437,7 @@ ResSimNewNode(line,type,device)
      HashEntry		*entry;
      ResSimNode		*node;
      devPtr		*tptr;
-     
+
      if (line[0] == '\0')
      {
      	  TxError("Missing device connection\n");
@@ -464,12 +464,12 @@ ResSimNewNode(line,type,device)
      return(0);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
  *  ResSimCapacitor-- Adds the capacitance  from a C line to the appropriate
- *	node. Coupling capacitors are added twice, moving the capacitance 
+ *	node. Coupling capacitors are added twice, moving the capacitance
  *	to the substrate.
  *
  *  Results:
@@ -487,7 +487,7 @@ ResSimCapacitor(line)
 {
      HashEntry		*entry1,*entry2;
      ResSimNode		*node1,*node2;
-     
+
      if (line[COUPLETERMINAL1][0] == 0 || line[COUPLETERMINAL2][0] == 0)
      {
      	  TxError("Bad Capacitor\n");
@@ -498,7 +498,7 @@ ResSimCapacitor(line)
      if (ResOptionsFlags & ResOpt_Signal)
      {
           node1->capacitance += MagAtof(line[COUPLEVALUE]);
-          if (strcmp(line[COUPLETERMINAL2],"GND") == 0 || 
+          if (strcmp(line[COUPLETERMINAL2],"GND") == 0 ||
      	  strcmp(line[COUPLETERMINAL2],"Vdd") == 0)
           {
                return(0);
@@ -533,15 +533,15 @@ ResSimCapacitor(line)
      node1->cap_couple += MagAtof(line[COUPLEVALUE]);
      node2->cap_couple += MagAtof(line[COUPLEVALUE]);
      return(0);
-     
+
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
  *  ResSimResistor-- Adds the capacitance  from a R line to the appropriate
- *	node. 
+ *	node.
  *
  *  Results
  *	Return 0 to keep search going, 1 to abort
@@ -558,7 +558,7 @@ ResSimResistor(line)
 {
      HashEntry		*entry;
      ResSimNode		*node;
-     
+
      if (line[RESNODENAME][0] == 0)
      {
      	  TxError("Bad Resistor\n");
@@ -576,11 +576,11 @@ ResSimResistor(line)
 }
 
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
- *  ResSimAttribute--checks to see if a node attribute is a resistance 
+ *  ResSimAttribute--checks to see if a node attribute is a resistance
  *	attribute. If it is, add it to the correct node's status flag.
  *	Only works with 5.0 1/line attributes
  *
@@ -603,7 +603,7 @@ ResSimAttribute(aname,avalue,rootname,readextfile)
      char		digit[MAXDIGIT];
      int		i;
      static int		notwarned=TRUE;
-     
+
      if (aname[0] == 0)
      {
      	  TxError("Bad Resistor\n");
@@ -619,7 +619,7 @@ ResSimAttribute(aname,avalue,rootname,readextfile)
 	  }
 	  else
 	  {
-	       node->status |= SKIP;	
+	       node->status |= SKIP;
 	  }
      }
      else if (strncmp(avalue,"res:force",9) == 0)
@@ -630,10 +630,10 @@ ResSimAttribute(aname,avalue,rootname,readextfile)
 	  }
 	  else
 	  {
-	       node->status |= FORCE;	
+	       node->status |= FORCE;
 	  }
      }
-     else if (strncmp(avalue,"res:min=",8) == 0)     	  
+     else if (strncmp(avalue,"res:min=",8) == 0)
      {
 	 node->status |= MINSIZE;
 	 for(i=0,avalue += 8; *avalue != '\0' && *avalue != ','; avalue++)
@@ -652,7 +652,7 @@ ResSimAttribute(aname,avalue,rootname,readextfile)
 	       *readextfile = 1;
 	  }
 	  /* is the attribute in root.ext?    */
-	  if (node->drivepoint.p_x != INFINITY) 
+	  if (node->drivepoint.p_x != INFINITY)
 	  {
 	       node->status |= DRIVELOC;
 	  }
@@ -664,7 +664,7 @@ ResSimAttribute(aname,avalue,rootname,readextfile)
 	  }
      }
 #ifdef ARIEL
-     else if (strncmp(avalue,"res:fix",7) == 0 && 
+     else if (strncmp(avalue,"res:fix",7) == 0 &&
      	      (ResOptionsFlags & ResOpt_Power))
      {
 	  if (*readextfile == 0)
@@ -674,14 +674,14 @@ ResSimAttribute(aname,avalue,rootname,readextfile)
 	  }
      }
 #endif
-     if (avalue = strchr(avalue,',')) 
+     if (avalue = strchr(avalue,','))
      {
           (void) ResSimAttribute(aname,avalue+1,rootname,readextfile);
      }
      return(0);
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -689,7 +689,7 @@ ResSimAttribute(aname,avalue,rootname,readextfile)
  *	and we are doing a signal extraction,
  *	we need to search through the .ext file looking for attr labels that
  *	contain this text. For efficiency, the .ext file is only parsed when
- *	the first res:drive is encountered.  res:drive labels only work if 
+ *	the first res:drive is encountered.  res:drive labels only work if
  *	they are in the root cell.
  *
  * Results:
@@ -709,7 +709,7 @@ ResSimProcessDrivePoints(filename)
      FILE	*fp;
      HashEntry	*entry;
      ResSimNode	*node;
-     
+
      fp = PaOpen(filename,"r",".ext",".",(char *) NULL,(char **) NULL);
      if (fp == NULL)
      {
@@ -720,7 +720,7 @@ ResSimProcessDrivePoints(filename)
      {
      	  if (strncmp(line[RES_EXT_ATTR],"attr",4) != 0 ||
 	      strncmp(line[RES_EXT_ATTR_TEXT],"\"res:drive\"",11) != 0) continue;
-	  
+
 	 entry = HashFind(&ResNodeTable,line[RES_EXT_ATTR_NAME]);
 	 node = ResInitializeNode(entry);
 	 node->drivepoint.p_x = atoi(line[RES_EXT_ATTR_X]);
@@ -729,12 +729,12 @@ ResSimProcessDrivePoints(filename)
      }
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
- * ResSimProcessFixPoints -- if the sim file contains a "res:fix:name" label 
- *	and we are checking for power supply noise, then we have to 
+ * ResSimProcessFixPoints -- if the sim file contains a "res:fix:name" label
+ *	and we are checking for power supply noise, then we have to
  *	parse the .ext file looking for the fix label locations.  This
  *	is only done after the first res:fix label is encountered.
  *
@@ -755,7 +755,7 @@ ResSimProcessFixPoints(filename)
      char	line[MAXLINE][MAXTOKEN],*label,*c;
      FILE	*fp;
      ResFixPoint	*thisfix;
-     
+
      fp = PaOpen(filename,"r",".ext",".",(char *) NULL,(char **) NULL);
      if (fp == NULL)
      {
@@ -771,7 +771,7 @@ ResSimProcessFixPoints(filename)
 	  if (*label == ':') label++;
 	  if ((c=strrchr(label,'"')) != NULL) *c='\0';
 	  else if (*label == '\0');
-	  else 
+	  else
 	  {
 	       TxError("Bad res:fix attribute label %s\n",
 	       			line[RES_EXT_ATTR_TEXT]);
@@ -788,7 +788,7 @@ ResSimProcessFixPoints(filename)
      }
 }
 
-
+
  /*
  *-------------------------------------------------------------------------
  *
@@ -810,7 +810,7 @@ ResSimMerge(line)
 {
      ResSimNode		*node;
      devPtr		*ptr;
-     
+
      if ((line[ALIASNAME][0] == '\0') || (line[REALNAME][0] == '\0'))
      {
      	  TxError("Bad node alias line\n");
@@ -830,7 +830,7 @@ ResSimMerge(line)
      }
      return(0);
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *

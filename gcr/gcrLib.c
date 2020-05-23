@@ -3,16 +3,16 @@
  *
  *	Miscellaneous stuff for the greedy router.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -31,7 +31,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* Forward declarations */
 void gcrUnlinkTrack();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -80,7 +80,7 @@ gcrBlocked(col, i, net, last)
     /* All clear */
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -212,7 +212,7 @@ gcrMoveTrack(column, net, from, to)
 	    column[to].gcr_hi=column[from].gcr_hi;
 	    if(column[from].gcr_hi!= EMPTY)
 		column[column[from].gcr_hi].gcr_lo=to;
-	    if(column[from].gcr_lo<to) 
+	    if(column[from].gcr_lo<to)
 	    {
 		column[to].gcr_lo=column[from].gcr_lo;
 		if(column[from].gcr_lo!= EMPTY)
@@ -231,7 +231,7 @@ gcrMoveTrack(column, net, from, to)
     column[from].gcr_v=net;	/*Paint a vertical segment	*/
     column[  to].gcr_v=net;
 
-/* Don't free a track that is needed for a right or left edge connection 
+/* Don't free a track that is needed for a right or left edge connection
  */
     if(column[from].gcr_wanted!=net)
     {
@@ -241,7 +241,7 @@ gcrMoveTrack(column, net, from, to)
 	column[from].gcr_hi=column[from].gcr_lo= EMPTY;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -274,7 +274,7 @@ gcrUnlinkTrack(col, toUnlink)
     colPtr->gcr_lo = colPtr->gcr_hi = EMPTY;
     colPtr->gcr_h = (GCRNet *) NULL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -325,7 +325,7 @@ gcrShellSort(v, n, isUp)
 	    }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -368,14 +368,14 @@ gcrVertClear(col, from, to)
 	if((flags & GCRCE) && (i!=to))
 	    return(FALSE);		/* Column ended			*/
 	else
-	if( (flags & (GCRBLKP|GCRBLKM|GCRX|GCRCC)) && 
+	if( (flags & (GCRBLKP|GCRBLKM|GCRX|GCRCC)) &&
 		(col[i].gcr_h!=net) && (col[i].gcr_h!=(GCRNet *) NULL) )
 	    return(FALSE);		/* Poly and metal blocked	*/
     }
 
     return(TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -406,7 +406,7 @@ gcrCopyCol(col, size)
 	result[i] = col[i];
     return (result);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

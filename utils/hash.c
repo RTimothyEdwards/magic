@@ -1,15 +1,15 @@
 /* hash.c --
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This module contains routines to manipulate a hash table.
@@ -39,13 +39,13 @@ void rebuild();
 static int rebuildLimit = 3;
 
 /*
- * An invalid pointer, guaranteed to cause a coredump if 
+ * An invalid pointer, guaranteed to cause a coredump if
  * we try to indirect through it.  This should help catch
  * attempts to indirect through stale pointers.
  */
 #define NIL ((HashEntry *) (1<<29))
 
-
+
 /*---------------------------------------------------------
  *
  * HashInit --
@@ -133,7 +133,7 @@ static int rebuildLimit = 3;
  *	Free a key that had been allocated with (*copyFn)().
  *	If NULL, then nothing is done.
  *
- *      int	
+ *      int
  *	(*killFn)(key)
  *	    char *key;
  *	{
@@ -193,7 +193,7 @@ HashInitClient(table, nBuckets, ptrKeys, compareFn, copyFn, hashFn, killFn)
     for (i = 0; i < table->ht_size; i++)
 	*ptr++ = NIL;
 }
-
+
 /*---------------------------------------------------------
  *
  * hash --
@@ -261,7 +261,7 @@ hash(table, key)
     /* Randomize! */
     return ((i*1103515245 + 12345) >> table->ht_downShift) & table->ht_mask;
 }
-
+
 /*---------------------------------------------------------
  *
  * HashLookOnly --
@@ -330,7 +330,7 @@ next:
     /* The desired entry isn't there */
     return ((HashEntry *) NULL);
 }
-
+
 /*---------------------------------------------------------
  *
  * HashFind --
@@ -456,7 +456,7 @@ next:
     *(table->ht_table + bucket) = h;
     return h;
 }
-
+
 /*---------------------------------------------------------
  *
  * rebuild --
@@ -517,7 +517,7 @@ rebuild(table)
 
     freeMagic((char *) oldTable);
 }
-
+
 /*---------------------------------------------------------
  *
  * HashStats --
@@ -603,7 +603,7 @@ HashRemove(table, key)
     }
 }
 
-
+
 /*---------------------------------------------------------
  *
  * HashStartSearch --
@@ -628,7 +628,7 @@ HashStartSearch(hs)
     hs->hs_nextIndex = 0;
     hs->hs_h = NIL;
 }
-
+
 /*---------------------------------------------------------
  *
  * HashNext --
@@ -665,7 +665,7 @@ HashNext(table, hs)
     hs->hs_h = h->h_next;
     return h;
 }
-
+
 /*---------------------------------------------------------
  *
  * HashKill --
@@ -708,11 +708,11 @@ HashKill(table)
 /*---------------------------------------------------------
  *
  * HashFreeKill ---
- * 
+ *
  * This routine removes everything from a hash table
  * and frees up the memory space it occupied along with
  * the stuff pointed by h_pointer
- * 
+ *
  * Results:
  *      None.
  *

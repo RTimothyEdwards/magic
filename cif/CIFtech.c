@@ -4,16 +4,16 @@
  *	files pertaining to CIF, and builds the tables
  *	used by the CIF generator.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -188,7 +188,7 @@ cifTechStyleInit()
 	CIFCurStyle->cs_layers[i] = NULL;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -284,7 +284,7 @@ okpaint:
 	/* Make sure that there's exactly one match among cif and
 	 * paint layers together.
 	 */
-	
+
 	if ((paintType == -1)
 	    || ((paintType >= 0) && !TTMaskEqual(&curCifMask, &DBZeroTypeBits)))
 	{
@@ -310,7 +310,7 @@ okpaint:
 			if (TTMaskHasType(rMask, paintType))
 			    TTMaskSetType(paintMask, rtype);
 		    }
-	    } 
+	    }
 	}
 	else if (!TTMaskEqual(&curCifMask, &DBZeroTypeBits))
 	{
@@ -332,7 +332,7 @@ okpaint:
 	}
     }
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -498,7 +498,7 @@ CIFParseScale(true_scale, expander)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -541,7 +541,7 @@ CIFTechLine(sectionName, argc, argv)
      * sure that the current (maybe default?) CIF style has
      * a name.
      */
-    
+
     if (strcmp(argv[0], "style") == 0)
     {
 	if (argc != 2)
@@ -557,7 +557,7 @@ CIFTechLine(sectionName, argc, argv)
 		return TRUE;
 	    }
 	}
-	for (newStyle = CIFStyleList; newStyle != NULL; 
+	for (newStyle = CIFStyleList; newStyle != NULL;
 		newStyle = newStyle->cs_next)
 	{
 	    /* Here we're only establishing existence;		*/
@@ -614,7 +614,7 @@ CIFTechLine(sectionName, argc, argv)
 			for (p = CIFStyleList; p->cs_next; p = p->cs_next);
 			p->cs_next = newStyle;
 		    }
-		    
+
 		    if (cptr == NULL)
 			break;
 		    else
@@ -769,7 +769,7 @@ CIFTechLine(sectionName, argc, argv)
 	while (*tptr != '\0')
 	{
 	    cptr = strchr(tptr, ',');
-	    if (cptr != NULL) 
+	    if (cptr != NULL)
 	    {
 		*cptr = '\0';
 		for (j = 1; isspace(*(cptr - j)); j++)
@@ -790,7 +790,7 @@ CIFTechLine(sectionName, argc, argv)
 		    return TRUE;
 		}
 	    }
-	
+
 	    if (cptr == NULL)
 		break;
 	    else
@@ -843,9 +843,9 @@ CIFTechLine(sectionName, argc, argv)
 	cifGotLabels = FALSE;
 
 	/* Handle a special case of a list of layer names on the layer
-	 * line.  Turn them into an OR operation. 
+	 * line.  Turn them into an OR operation.
 	 */
-	
+
 	if (argc == 3)
 	{
 	    cifCurOp = (CIFOp *) mallocMagic(sizeof(CIFOp));
@@ -976,7 +976,7 @@ CIFTechLine(sectionName, argc, argv)
         return TRUE;
     }
 
-    /* 
+    /*
      * miscellaneous cif/calma-writing boolean options
      */
 
@@ -1003,7 +1003,7 @@ CIFTechLine(sectionName, argc, argv)
     /* Anything below here is a geometric operation, so we can
      * do some set-up that is common to all the operations.
      */
-    
+
     if (cifCurLayer == NULL)
     {
 	TechError("Must define layer before specifying operation.\n");
@@ -1070,7 +1070,7 @@ CIFTechLine(sectionName, argc, argv)
 	    cifParseLayers(argv[1], CIFCurStyle, &newOp->co_paintMask,
 		&newOp->co_cifMask,FALSE);
 	    break;
-	
+
 	case CIFOP_GROW:
 	case CIFOP_GROWMIN:
 	case CIFOP_GROW_G:
@@ -1084,7 +1084,7 @@ CIFTechLine(sectionName, argc, argv)
 		goto errorReturn;
 	    }
 	    break;
-	
+
 	case CIFOP_BLOATALL:
 	    if (argc != 3) goto wrongNumArgs;
 	    cifParseLayers(argv[1], CIFCurStyle, &newOp->co_paintMask,
@@ -1108,7 +1108,7 @@ CIFTechLine(sectionName, argc, argv)
 		if (TTMaskHasType(&mask, i))
 		    bloats->bl_distance[i] = 1;
 	    goto bloatCheck;
-		
+
 	case CIFOP_BLOAT:
 	case CIFOP_BLOATMIN:
 	case CIFOP_BLOATMAX:
@@ -1138,7 +1138,7 @@ CIFTechLine(sectionName, argc, argv)
 		}
 		if (!TTMaskEqual(&tempMask, &DBZeroTypeBits))
 		    TechError("Can't use templayers in bloat statement.\n");
-		
+
 		distance = atoi(bloatArg[1]);
 		if ((distance < 0) && (newOp->co_opcode == CIFOP_BLOAT))
 		{
@@ -1165,7 +1165,7 @@ bloatCheck:
 	    /* Make sure that all the layers specified in the statement
 	     * fall in a single plane.
 	     */
-	
+
 	    for (i = 0; i < PL_MAXTYPES; i++)
 	    {
 		tempMask = bloatLayers;
@@ -1218,7 +1218,7 @@ bloatCheck:
 
 	case CIFOP_SQUARES_G:
 	case CIFOP_SQUARES:
-	
+
 	    squares = (SquaresData *)mallocMagic(sizeof(SquaresData));
 	    newOp->co_client = (ClientData)squares;
 
@@ -1303,7 +1303,7 @@ bloatCheck:
 	    break;
 
 	case CIFOP_SLOTS:
-	
+
 	    slots = (SlotsData *)mallocMagic(sizeof(SlotsData));
 	    newOp->co_client = (ClientData)slots;
 
@@ -1434,13 +1434,13 @@ cifCheckCalmaNum(str)
 
     while (*str) {
 	char ch = *str++;
-	if (ch < '0' || ch > '9') 
+	if (ch < '0' || ch > '9')
 	    return (FALSE);
     }
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1478,7 +1478,7 @@ cifComputeRadii(layer, des)
 	/* If CIF layers are used, switch to the max of current
 	 * distances and those of the layers used.
 	 */
-	
+
 	if (!TTMaskEqual(&op->co_cifMask, &DBZeroTypeBits))
 	{
 	    for (i=0; i < des->cs_nLayers; i++)
@@ -1508,11 +1508,11 @@ cifComputeRadii(layer, des)
 	    case CIFOP_GROW_G:
 		grow += op->co_distance;
 		break;
-	    
+
 	    case CIFOP_SHRINK:
 		shrink += op->co_distance;
 		break;
-	    
+
 	    /* For bloats use the largest distances (negative values are
 	     * for shrinks).
 	     */
@@ -1530,7 +1530,7 @@ cifComputeRadii(layer, des)
 		grow += curGrow;
 		shrink += curShrink;
 		break;
-	    
+
 	    case CIFOP_SQUARES: break;
 	    case CIFOP_SQUARES_G: break;
 	}
@@ -1582,8 +1582,8 @@ cifComputeHalo(style)
      *  style->cs_name, style->cs_radius);
      */
 }
-	
-
+
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1637,7 +1637,7 @@ CIFTechFinal()
     /* Allow the case where there's no CIF at all.  This is indicated
      * by a NULL CIFCurStyle.
      */
-    
+
     if (!style) return;
 
     if ((cifCurLayer != NULL) && (cifCurOp == NULL) && !cifGotLabels)
@@ -2088,7 +2088,7 @@ CIFGetContactSize(type, edge, spacing, border)
  *   represented by integers.
  *
  *   Note that because contacts may be placed at 1/2 grid spacing to
- *   center them, the size and spacing of contacts as given in the 
+ *   center them, the size and spacing of contacts as given in the
  *   "squares" function must *always* be an even number.  To ensure this,
  *   we check for odd numbers in these positions.  If there are any, and
  *   "d" is also an odd number, then we multiply both "n" and "d" by 2.

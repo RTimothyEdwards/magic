@@ -3,16 +3,16 @@
  *
  *	Print out the window package's internal data structures.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -31,7 +31,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windPrintWindow --
@@ -48,7 +48,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 void
 windPrintWindow(w)
-    MagWindow *w;	
+    MagWindow *w;
 {
     LinkedRect *lr;
 
@@ -75,13 +75,13 @@ windPrintWindow(w)
 		lr->r_r.r_xtop, lr->r_r.r_ytop);
     }
 
-    TxPrintf("  Surface area (%d, %d) (%d, %d) \n", 
+    TxPrintf("  Surface area (%d, %d) (%d, %d) \n",
 	    w->w_surfaceArea.r_xbot, w->w_surfaceArea.r_ybot,
 	    w->w_surfaceArea.r_xtop, w->w_surfaceArea.r_ytop);
     TxPrintf("  Origin (%d, %d)\n", w->w_origin.p_x, w->w_origin.p_y);
     TxPrintf("  Scale %d\n", w->w_scale);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * windDump --
@@ -103,10 +103,10 @@ windDump()
     clientRec *rc;
 
     TxPrintf("\n\n------------ Clients ----------\n");
-    for (rc = windFirstClientRec; rc != (clientRec * ) NULL; 
+    for (rc = windFirstClientRec; rc != (clientRec * ) NULL;
 	rc = rc->w_nextClient)
     {
-	TxPrintf("'%10s'  %x %x %x %x\n", rc->w_clientName, 
+	TxPrintf("'%10s'  %x %x %x %x\n", rc->w_clientName,
 	    rc->w_create, rc->w_delete,
 	    rc->w_redisplay, rc->w_command);
     }
@@ -116,10 +116,10 @@ windDump()
     {
 	windPrintWindow(w);
     }
-    
+
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windPrintCommand --

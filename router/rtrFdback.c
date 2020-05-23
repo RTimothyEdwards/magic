@@ -6,16 +6,16 @@
  *	feedback from these attempts until it knows which version of the
  *	routing is the real one, whose errors should appear in the layout.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -59,7 +59,7 @@ typedef struct rtrFb
 RtrFB * rtrFList[] = {(RtrFB *) NULL, (RtrFB *) NULL}; /* Lists of feedback */
 int     rtrFNum; /* Says which list is active */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -116,7 +116,7 @@ RtrChannelError(ch, col, track, msg, net)
 
     (void) rtrFBAdd(&box, buff);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -152,7 +152,7 @@ rtrFBClear()
     }
     rtrFNum=0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -183,7 +183,7 @@ rtrFBAdd(r, t)
     new->rtr_Fnext=rtrFList[rtrFNum];
     rtrFList[rtrFNum]=new;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -211,7 +211,7 @@ RtrFBPaint(num)
 		1, STYLE_PALEHIGHLIGHTS);
     rtrFBClear();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

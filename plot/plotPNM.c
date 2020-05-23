@@ -4,16 +4,16 @@
  * This file contains procedures that generate PNM format files
  * to describe a section of layout.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 2000 Cornell University                             *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  Cornell University                  * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  Cornell University                  *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * R. Timothy Edwards
@@ -64,7 +64,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 typedef struct _pnmcolor {
     unsigned char r, g, b;
-} pnmcolor;   
+} pnmcolor;
 
 pnmcolor *PNMcolors = NULL;
 static int ncolors = 0;
@@ -207,7 +207,7 @@ pnmRenderRegion(scale, scale_over_2, normal, temp, func, arg)
     pnmcolor *color;
     float r, g, b;
     unsigned char *linebuffer, *lineptr;
-  
+
     jmax = MIN(y_pixels, im_yoffset + 1);
     ds_over_2 = scale_over_2 >> PlotPNMdownsample;
 
@@ -290,7 +290,7 @@ pnmRenderRegion(scale, scale_over_2, normal, temp, func, arg)
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -320,10 +320,10 @@ pnmBBOX (tile,cxp)
     if (!IsSplit(tile))
 	if ((type = TiGetType(tile)) == TT_SPACE)
 	    return 0;
-  
+
     /* grab rectangle from tile */
     TITORECT(tile, &targetRect);
-  
+
     /* coordinate transform */
     GEOTRANSRECT(&scx->scx_trans, &targetRect, &sourceRect);
 
@@ -381,10 +381,10 @@ pnmTile (tile, cxp)
     /* undefined type; paint nothing */
     if (!IsSplit(tile))
 	if (PaintStyles[type].wmask == 0) return 0;
-  
+
     /* grab rectangle from tile */
     TITORECT(tile, &targetRect);
-  
+
     /* coordinate transform */
     GEOTRANSRECT(&scx->scx_trans, &targetRect, &sourceRect);
 
@@ -611,7 +611,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
     }
 
     /* image:
-     *    -----     
+     *    -----
      *   | xxx |
      *   | xxx |
      *   | xxx |
@@ -624,10 +624,10 @@ PlotPNM(fileName, scx, layers, xMask, width)
     /* Rendering Tile:
      *
      *    0.. bbox size + 2 * scale_over_2.
-     *   
+     *
      * To sample, pixel (i,j) will be at:
      *     (scale_over_2 + scale*i, scale_over_2 + scale*j)
-     * 
+     *
      * Given an initial pixel position at (i,j), we sample from
      *     -scale_over_2 to scale_over_2
      */
@@ -669,7 +669,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
 	return;
     }
 
-    /* 
+    /*
      * Compute memory requirements; a single pixel line needs a tile
      * that has size "xsize" by "scale." To keep inter-tile overlap low,
      * we insist that a single tile must have at least 3*scale pixels in
@@ -686,13 +686,13 @@ PlotPNM(fileName, scx, layers, xMask, width)
     {
 	TxPrintf ("%dX downsampling forced by memory size requirements.\n",
 		PlotPNMdownsample);
-	TxPrintf ("Current: %d KB; Required for non-downsampled image: %d KB\n", 
+	TxPrintf ("Current: %d KB; Required for non-downsampled image: %d KB\n",
 		PlotPNMmaxmem, (int) (1023 + ((3 * scale + 2 * scale_over_2)
 		* PIXELSZ * tile_xsize) / 1024) / (1 << (save_ds * 2)));
 	TxPrintf ("Use \"plot parameter pnmmaxmem\" to increase allocation.\n");
     }
 
-    /* 
+    /*
      * Compute the maximum y size for a tile.
      */
 
@@ -810,7 +810,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
 	    TxError ("Could not open file `%s' for writing\n", fileName);
 	    goto done;
 	}
-  
+
 	fprintf (fp, "P6\n");
 	fprintf (fp, "%d %d\n", im_x, im_y);
 	fprintf (fp, "255\n");
@@ -938,7 +938,7 @@ done:
  * lanczos_kernel --
  *
  * 	Compute the value of the lanczos kernel at the given position.
- *	
+ *
  *
  * Results:
  *	Returns kernel value at arg x.
@@ -984,11 +984,11 @@ PNMColorBlend(c_have, c_put)
     pnmcolor loccolor;
     short r, g, b;
 
-    /* "127" is half the background color (which should be derived) */ 
+    /* "127" is half the background color (which should be derived) */
 
     r = (short)c_put->r - 127 + (short)c_have->r / 2;
     g = (short)c_put->g - 127 + (short)c_have->g / 2;
-    b = (short)c_put->b - 127 + (short)c_have->b / 2; 
+    b = (short)c_put->b - 127 + (short)c_have->b / 2;
 
     loccolor.r = (r < 0) ? 0 : (unsigned char)r;
     loccolor.g = (g < 0) ? 0 : (unsigned char)g;
@@ -1021,7 +1021,7 @@ PNMColorIndexAndBlend(c_have, cidx)
 	b = (short)ib;
     }
 
-    /* "127" is half the background color (which should be derived) */ 
+    /* "127" is half the background color (which should be derived) */
 
     r += (short)c_have->r / 2 - 127;
     g += (short)c_have->g / 2 - 127;
@@ -1040,7 +1040,7 @@ PNMColorIndexAndBlend(c_have, cidx)
  * PlotPNMTechInit --
  *
  * 	Called when magic starts up.
- *	
+ *
  *
  * Results:
  *	None.
@@ -1069,7 +1069,7 @@ PlotPNMTechInit()
 	PaintStyles[i].color.g = 0xff;
 	PaintStyles[i].color.b = 0xff;
     }
-   
+
     Init_Error = 0;
 
      /* Initialize Lanczos kernel */
@@ -1078,7 +1078,7 @@ PlotPNMTechInit()
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *

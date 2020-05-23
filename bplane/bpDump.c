@@ -1,35 +1,35 @@
 // ************************************************************************
-// 
+//
 // Copyright (c) 1995-2002 Juniper Networks, Inc. All rights reserved.
-// 
+//
 // Permission is hereby granted, without written agreement and without
 // license or royalty fees, to use, copy, modify, and distribute this
 // software and its documentation for any purpose, provided that the
 // above copyright notice and the following three paragraphs appear in
 // all copies of this software.
-// 
+//
 // IN NO EVENT SHALL JUNIPER NETWORKS, INC. BE LIABLE TO ANY PARTY FOR
 // DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
 // ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF
 // JUNIPER NETWORKS, INC. HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
-// 
+//
 // JUNIPER NETWORKS, INC. SPECIFICALLY DISCLAIMS ANY WARRANTIES,
 // INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
 // NON-INFRINGEMENT.
-// 
+//
 // THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND JUNIPER
 // NETWORKS, INC. HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-// 
+//
 // ************************************************************************
 
 
 
 /* bpDump.c
  *
- * routines to dump bin system (for debugging) 
+ * routines to dump bin system (for debugging)
  *
  */
 
@@ -49,8 +49,8 @@ static int bpDumpFlags; /* set by bpDump, used by subroutines */
  * tab over n spaces on stderr
  *
  * ----------------------------------------------------------------------------
- */	
-static void bpIndent(int n)	
+ */
+static void bpIndent(int n)
 {
   int i;
 
@@ -60,11 +60,11 @@ static void bpIndent(int n)
 /*
  * ----------------------------------------------------------------------------
  * bpDumpRect --
- * 
+ *
  * list rects.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 void bpDumpRect(Rect *r)
 {
   if(bpDumpFlags & BPD_INTERNAL_UNITS)
@@ -98,16 +98,16 @@ void bpDumpRect(Rect *r)
 /*
  * ----------------------------------------------------------------------------
  * bpDumpElements --
- * 
+ *
  * list rects.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 void bpDumpElements(Element *list, int indent)
 {
   Element *e;
 
-  for(e = list; e; e=e->e_link) 
+  for(e = list; e; e=e->e_link)
   {
     bpIndent(indent);
     fprintf(stderr,"{element ");
@@ -127,11 +127,11 @@ void bpDumpElements(Element *list, int indent)
 /*
  * ----------------------------------------------------------------------------
  * bpDumpEnums --
- * 
+ *
  * list active enumerations
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 void bpDumpEnums(BPEnum *bpe, int indent)
 {
   for(; bpe; bpe=bpe->bpe_next)
@@ -146,10 +146,10 @@ void bpDumpEnums(BPEnum *bpe, int indent)
  * ----------------------------------------------------------------------------
  * bpBinArrayDump --
  *
- * recursively dump hierarchical bin system 
+ * recursively dump hierarchical bin system
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 static void bpBinArrayDump(BinArray *ba, int indent)
 {
 
@@ -207,7 +207,7 @@ static void bpBinArrayDump(BinArray *ba, int indent)
       /* open bin */
       bpIndent(indent+2);
       fprintf(stderr,"{bin {number %d} {  bbox ",
-	    i); 
+	    i);
       bpDumpRect(&area);
       fprintf(stderr,"  }\n");
 
@@ -269,7 +269,7 @@ static void bpBinArrayDump(BinArray *ba, int indent)
  * dump bplane (for debugging)
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 void bpDump(BPlane *bp, int flags)
 {
   fprintf(stderr, "======= BPLANE DUMP ======\n");
@@ -277,7 +277,7 @@ void bpDump(BPlane *bp, int flags)
   bpDumpFlags = flags;
 
   /* open bplane */
-  fprintf(stderr,"{bplane {count %d} {bbox ", 
+  fprintf(stderr,"{bplane {count %d} {bbox ",
 	  bp->bp_count);
   bpDumpRect(&bp->bp_bbox);
   fprintf(stderr,"}\n");
@@ -292,7 +292,7 @@ void bpDump(BPlane *bp, int flags)
 
   /*** bins ***/
   bpIndent(2);
-  fprintf(stderr,"{binned {area "); 
+  fprintf(stderr,"{binned {area ");
   bpDumpRect(&bp->bp_binArea);
   fprintf(stderr,"}\n");
 
@@ -302,8 +302,8 @@ void bpDump(BPlane *bp, int flags)
 
   /*** enums ***/
   bpIndent(2);
-  fprintf(stderr,"{enums\n"); 
-  
+  fprintf(stderr,"{enums\n");
+
   bpDumpEnums(bp->bp_enums,4);
 
   bpIndent(2);

@@ -4,17 +4,17 @@
  * Code for making initial legs of route within the blocked areas ajacent to
  * start areas.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 #ifndef lint
@@ -65,13 +65,13 @@ mzFindSamenodeFunc(Tile *tile, Point *point)
     return 1;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzStart --
  *
- * Establish initial path segments from start term, considering inital 
+ * Establish initial path segments from start term, considering inital
  * contacts and leading out of any SAMENODE blocks
  * present at start point.
  *
@@ -98,7 +98,7 @@ mzStart(term)
     Point point;
     int result;
     Rect srect;
-    
+
     /* Find routelayer corresponding to type */
     for(rL = mzActiveRLs; rL != NULL; rL = rL->rl_nextActive)
     {
@@ -111,7 +111,7 @@ mzStart(term)
     srect = term->cr_rect;
     srect.r_xbot--;
     srect.r_ybot--;
-    
+
     /* Added by Tim 8/2/06---for start terminals on contact layers, */
     /* run mzExtendInitPath for layer1 and set rL to layer2.	    */
 
@@ -182,13 +182,13 @@ mzStart(term)
     return returnCode;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzExtendInitPath --
  *
- * Central routine for recursively building up initial path inside 
+ * Central routine for recursively building up initial path inside
  * SAMENODE.  Adds specified point to an initial path, if resulting
  * path end is outside block, mzAddPoint() is called to add init path
  * to appropriate queue.
@@ -231,7 +231,7 @@ mzExtendInitPath(path, rL, point, cost, length, directions)
     if (path == NULL)
 	returnCode = mzAddInitialContacts(rL, point);
 
-    /* If no SAMENODE block, call mzAddPoint() to and initial path to 
+    /* If no SAMENODE block, call mzAddPoint() to and initial path to
      * appropriate queue.
      */
 
@@ -248,15 +248,15 @@ mzExtendInitPath(path, rL, point, cost, length, directions)
 	case TT_LEFT_WALK:
 	    extendCode = EC_WALKRIGHT;
 	    break;
-			
+
 	case TT_RIGHT_WALK:
 	    extendCode = EC_WALKLEFT;
 	    break;
-			
+
 	case TT_TOP_WALK:
 	    extendCode = EC_WALKDOWN;
 	    break;
-			
+
 	case TT_BOTTOM_WALK:
 	    extendCode = EC_WALKUP;
 	    break;
@@ -265,12 +265,12 @@ mzExtendInitPath(path, rL, point, cost, length, directions)
 	case TT_BELOW_LR_WALK:
 	    extendCode = EC_WALKLRCONTACT;
 	    break;
-			
+
 	case TT_ABOVE_UD_WALK:
 	case TT_BELOW_UD_WALK:
 	    extendCode = EC_WALKUDCONTACT;
 	    break;
-			
+
 	case TT_DEST_AREA:
 	    TxError("Zero length route!\n");
 	    extendCode = EC_COMPLETE;
@@ -293,7 +293,7 @@ mzExtendInitPath(path, rL, point, cost, length, directions)
     }
     else if (path->rp_entry.p_x == point.p_x)
  	orient = 'V';
-    else 
+    else
     {
 	ASSERT(path->rp_entry.p_y==point.p_y,"mzExtendInitPath");
 	orient = 'H';
@@ -374,9 +374,9 @@ mzAddInitialContacts(rL, point)
 		initPath = NEWPATH();
 		initPath->rp_rLayer = rL;
 		initPath->rp_entry = point;
-		initPath->rp_orient = 'O'; 
+		initPath->rp_orient = 'O';
 		initPath->rp_cost = 0;
-		initPath->rp_back = NULL;   
+		initPath->rp_back = NULL;
 
 		/* Extend thru new point */
 		returnCode = mzExtendInitPath(initPath, newRLayer, point,
@@ -403,9 +403,9 @@ mzAddInitialContacts(rL, point)
 	initPath = NEWPATH();
 	initPath->rp_rLayer = rL;
 	initPath->rp_entry = point;
-	initPath->rp_orient = 'X'; 
+	initPath->rp_orient = 'X';
 	initPath->rp_cost = 0;
-	initPath->rp_back = NULL;   
+	initPath->rp_back = NULL;
 
 	/* Extend thru new point */
 	returnCode = mzExtendInitPath(initPath, newRLayer, point, conCost,

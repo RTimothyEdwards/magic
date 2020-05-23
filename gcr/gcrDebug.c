@@ -2,16 +2,16 @@
  *
  * The greedy router, debug routines.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -48,7 +48,7 @@ bool gcrMakeChannel();
 void gcrPrintCol(GCRChannel *, int, int);
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -112,7 +112,7 @@ GCRRouteFromFile(fname)
     gcrShowMap(ch);
     return (ch);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -261,7 +261,7 @@ gcrMakePinLR(fp, x, size)
 
     return (result);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -343,7 +343,7 @@ gcrSaveChannel(ch)
     fprintf(fp, "\n");
     (void) fclose(fp);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -426,7 +426,7 @@ gcrPrDensity(ch, chanDensity)
     if (fp != stdout)
 	(void) fclose(fp);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -483,7 +483,7 @@ gcrDumpPins(ch)
 	pinArray[i].gcr_pNext, pinArray[i].gcr_pPrev, pinArray[i].gcr_pId);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -514,7 +514,7 @@ gcrDumpPinList(pin, dir)
 	else gcrDumpPinList(pin->gcr_pPrev, dir);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -548,7 +548,7 @@ gcrDumpCol(col, size)
 	    col[i].gcr_h, col[i].gcr_v,
 	    col[i].gcr_wanted, col[i].gcr_flags);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -773,7 +773,7 @@ void  gcrPrintCol(ch, i, showResult)
     }
     TxPrintf(":\n");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -853,7 +853,7 @@ gcrStats(ch)
     TxPrintf("Hwire  :  %d\n", hWire);
     TxPrintf("Vwire  :  %d\n", vWire);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -908,7 +908,7 @@ gcrCheckCol(ch, c, where)
 	       niceabort();
 	}
 	if(col[i].gcr_h!=(GCRNet *) NULL)
-	
+
 	/* Look upward from the track for the next higher track assigned to
 	 * the net, if any.  Just take the first one, breaking afterwards.
 	 */
@@ -947,7 +947,7 @@ gcrCheckCol(ch, c, where)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

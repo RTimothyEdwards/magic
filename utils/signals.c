@@ -3,16 +3,16 @@
  *
  * Handles signals, such as stop, start, interrupt.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -96,13 +96,13 @@ global bool SigIOReady = FALSE;
 global char SigInterruptOnSigIO;
 
 /*
- * Set to true when we recieve a SIGWINCH/SIGWINDOW signal 
+ * Set to true when we recieve a SIGWINCH/SIGWINDOW signal
  * (indicating that a window has changed size or otherwise needs attention).
  */
 global bool SigGotSigWinch = FALSE;
 
 
-/* 
+/*
  * Local data structures
  */
 static bool sigInterruptReceived = FALSE;
@@ -125,7 +125,7 @@ void
 SigSetTimer(int secs)
 {
     struct itimerval subsecond;	/* one-quarter second interval */
- 
+
     /*
     if (GrDisplayStatus == DISPLAY_IDLE)
 	fprintf(stderr, "Timer start\n");
@@ -133,7 +133,7 @@ SigSetTimer(int secs)
 	fprintf(stderr, "Timer repeat\n");
     fflush(stderr);
     */
-   
+
     subsecond.it_interval.tv_sec = 0;
     subsecond.it_interval.tv_usec = 0;
     subsecond.it_value.tv_sec = secs;
@@ -150,7 +150,7 @@ void
 SigRemoveTimer()
 {
     struct itimerval zero;	/* zero time to stop the timer */
-   
+
     /* fprintf(stderr, "Timer stop\n"); fflush(stderr); */
 
     zero.it_value.tv_sec = 0;
@@ -212,14 +212,14 @@ sigOnStop(int signo)
     /* restore the default action and resend the signal */
 
     sigSetAction(SIGTSTP, SIG_DFL);
-    kill(getpid(), 
+    kill(getpid(),
 #ifdef linux
     	SIGSTOP
 #else
     	SIGTSTP
 #endif
-	); 
-    
+	);
+
     /* -- we stop here -- */
 
     /* NOTE:  The following code really belongs in a routine that is
@@ -316,7 +316,7 @@ SigDisableInterrupts()
  * ----------------------------------------------------------------------------
  * SigWatchFile --
  *
- *	Take interrupts on a given IO stream.  
+ *	Take interrupts on a given IO stream.
  *
  * Results:
  *	None.
@@ -355,17 +355,17 @@ SigWatchFile(filenum, filename)
 	if (!iswindow)
 	{
 	    if (fcntl(filenum, F_SETOWN, -getpid()) == -1)
-		perror("(Magic) SigWatchFile2"); 
+		perror("(Magic) SigWatchFile2");
 	}
 #endif
 #endif /* SYSV */
 #ifdef FASYNC
-	if (fcntl(filenum, F_SETFL, flags | FASYNC) == -1) 
+	if (fcntl(filenum, F_SETFL, flags | FASYNC) == -1)
 	    perror("(Magic) SigWatchFile3");
 #else
 # ifdef FIOASYNC
 	flags = 1;
-	if (ioctl(filenum, FIOASYNC, &flags) == -1) 
+	if (ioctl(filenum, FIOASYNC, &flags) == -1)
 	    perror("(Magic) SigWatchFile3a");
 # endif
 #endif
@@ -374,12 +374,12 @@ SigWatchFile(filenum, filename)
     {
 #ifdef FASYNC
 	/* turn off FASYNC */
-	if (fcntl(filenum, F_SETFL, flags & (~FASYNC)) == -1) 
+	if (fcntl(filenum, F_SETFL, flags & (~FASYNC)) == -1)
 	    perror("(Magic) SigWatchFile4");
 #else
 # ifdef FIOASYNC
 	flags = 0;
-	if (ioctl(filenum, FIOASYNC, &flags) == -1) 
+	if (ioctl(filenum, FIOASYNC, &flags) == -1)
 	    perror("(Magic) SigWatchFile3b");
 # endif
 #endif
@@ -391,13 +391,13 @@ SigWatchFile(filenum, filename)
  * ----------------------------------------------------------------------------
  * SigUnWatchFile --
  *
- *	Do not take interrupts on a given IO stream.  
+ *	Do not take interrupts on a given IO stream.
  *
  * Results:
  *	None.
  *
  * Side effects:
- *	SigIOReady will be not set when the IO stream becomes ready.  
+ *	SigIOReady will be not set when the IO stream becomes ready.
  * ----------------------------------------------------------------------------
  */
  /*ARGSUSED*/
@@ -421,12 +421,12 @@ SigUnWatchFile(filenum, filename)
 
 #ifdef FASYNC
     /* turn off FASYNC */
-    if (fcntl(filenum, F_SETFL, flags & (~FASYNC)) == -1) 
+    if (fcntl(filenum, F_SETFL, flags & (~FASYNC)) == -1)
 	perror("(Magic) SigUnWatchFile4");
 #else
 # ifdef FIOASYNC
     flags = 0;
-    if (ioctl(filenum, FIOASYNC, &flags) == -1) 
+    if (ioctl(filenum, FIOASYNC, &flags) == -1)
 	perror("(Magic) SigWatchFile3");
 # endif
 #endif

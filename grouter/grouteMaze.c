@@ -8,16 +8,16 @@
  * the search strongly toward the destination rather than
  * propagating isotropically from the starting points.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -65,7 +65,7 @@ void glMazePropNormal();
 void glMazeTile();
 bool glMazeCheckLoop();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -162,7 +162,7 @@ glMazeFindPath(loc, bestCost)
 
     return lastPt;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -208,7 +208,7 @@ glMazePropFinal(inPt, loc)
     HeapAddInt(&glMazeHeap, cost, (char *) outPt);
     glCrossingsAdded++;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -281,7 +281,7 @@ glMazePropRiver(inPt)
     glCrossingsAdded++;
 
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -335,7 +335,7 @@ glMazePropNormal(inPt)
 	if (NOTBLOCKEDH(tp))
 	    glMazeTile(inPt, tp, GEO_EAST);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -446,7 +446,7 @@ glMazeTile(inPt, tile, dir)
 	    break;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -511,7 +511,7 @@ glMazeTileFunc(inPt, tp, pin)
 
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -539,7 +539,7 @@ glMazeCheckLoop(path, tp)
 
     return FALSE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

@@ -1,28 +1,28 @@
 // ************************************************************************
-// 
+//
 // Copyright (c) 1995-2002 Juniper Networks, Inc. All rights reserved.
-// 
+//
 // Permission is hereby granted, without written agreement and without
 // license or royalty fees, to use, copy, modify, and distribute this
 // software and its documentation for any purpose, provided that the
 // above copyright notice and the following three paragraphs appear in
 // all copies of this software.
-// 
+//
 // IN NO EVENT SHALL JUNIPER NETWORKS, INC. BE LIABLE TO ANY PARTY FOR
 // DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
 // ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF
 // JUNIPER NETWORKS, INC. HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
-// 
+//
 // JUNIPER NETWORKS, INC. SPECIFICALLY DISCLAIMS ANY WARRANTIES,
 // INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
 // NON-INFRINGEMENT.
-// 
+//
 // THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND JUNIPER
 // NETWORKS, INC. HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-// 
+//
 // ************************************************************************
 
 
@@ -47,8 +47,8 @@
 
 /* Tcl linked Parameters */
 int bpMinBAPop = 10;  /* don't sub(bin) when count less than this */
-double bpMinAvgBinPop = 1.0;  /* try to keep average bin pop at or 
-			       * below this 
+double bpMinAvgBinPop = 1.0;  /* try to keep average bin pop at or
+			       * below this
 			       */
 
 /*
@@ -73,10 +73,10 @@ static __inline__ int roundUp(int i, int res)
  * bpBinArrayNew -- allocate new bin array.
  *
  * ----------------------------------------------------------------------------
- */		 
-static BinArray *bpBinArrayNew(int dx,      /* x diameter of bins */ 
+ */
+static BinArray *bpBinArrayNew(int dx,      /* x diameter of bins */
 			       int dy,      /* y diameter of bins */
-			       Rect *bbox)  /* area covered */ 
+			       Rect *bbox)  /* area covered */
 
 {
   BinArray *new;
@@ -92,7 +92,7 @@ static BinArray *bpBinArrayNew(int dx,      /* x diameter of bins */
   numBins = dimX*dimY;
 
   /* allocate array */
-  size = sizeof(BinArray) + numBins*(sizeof(void *)); 
+  size = sizeof(BinArray) + numBins*(sizeof(void *));
   new = (BinArray *)callocMagic(size);
 
   /* initial */
@@ -100,7 +100,7 @@ static BinArray *bpBinArrayNew(int dx,      /* x diameter of bins */
   new->ba_dx = dx;
   new->ba_dy = dy;
   new->ba_dimX = dimX;
-  new->ba_numBins = numBins; 
+  new->ba_numBins = numBins;
 
   /* pull bbox back one from top-edge, right-edge, to simplify index
    * computation in bpEnumPush
@@ -119,11 +119,11 @@ static BinArray *bpBinArrayNew(int dx,      /* x diameter of bins */
  * bpBinAdd -- add element to bin array
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 void bpBinAdd(BinArray *ba,
 	      Element *e)
 {
-  int i; /* bin index */ 
+  int i; /* bin index */
 
   /* compute bin index */
   if(GEO_WIDTH(&e->e_rect) >= ba->ba_dx ||
@@ -170,7 +170,7 @@ void bpBinAdd(BinArray *ba,
  * Returns: (singly linked) list of elements formerly in the array
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 static Element *bpBinArrayUnbuild(BinArray *ba)
 {
   Element *elements = NULL;
@@ -206,7 +206,7 @@ static Element *bpBinArrayUnbuild(BinArray *ba)
 
   /* free the array */
   freeMagic((char *)ba);
-      
+
   return elements;
 }
 
@@ -216,15 +216,15 @@ static Element *bpBinArrayUnbuild(BinArray *ba)
  * ----------------------------------------------------------------------------
  * bpListExceedsQ --
  *
- * check if element list exceeds given length 
+ * check if element list exceeds given length
  *
  * Returns size of list.
  *
  * ----------------------------------------------------------------------------
- */		 
-static __inline__ int 
+ */
+static __inline__ int
 bpListExceedsQ(Element *e,   /* list */
-	       int n)        /* length to check against */  
+	       int n)        /* length to check against */
 {
   n++;
 
@@ -243,21 +243,21 @@ bpListExceedsQ(Element *e,   /* list */
  * bpBinArraySizeIt -- choose bin sizes for new bin array.
  *
  * RESULT:
- * 
+ *
  * normally returns TRUE,
  * returns FALSE on failure: could not come up with binning that
  * makes progress.
  *
- * NOTE: the various 'return' parameters are not set on failure. 
+ * NOTE: the various 'return' parameters are not set on failure.
  *
  * ----------------------------------------------------------------------------
- */		 
-static __inline__ bool 
+ */
+static __inline__ bool
 bpBinArraySizeIt(Rect *bbox,            /* bin array bbox */
 		 Element *elements,     /* initial elements */
 		 int *dxp,              /* return bin x-diameter here */
 		 int *dyp,              /* return bin y-diameter here */
-		 int *maxDXp,     
+		 int *maxDXp,
 		 int *maxDYp,
 		 int *numBinsp,         /* return number of bins here */
 		 int *countp)           /* return number of elements here */
@@ -269,15 +269,15 @@ bpBinArraySizeIt(Rect *bbox,            /* bin array bbox */
   int w = GEO_WIDTH(bbox);
 
   int dx,dy;                       /* individual bin diameter */
-  int maxEX, maxEY;                /* max element dimensions */  
+  int maxEX, maxEY;                /* max element dimensions */
   int maxDX, maxDY;                /* max bin diameter allowed */
   int xDim, yDim;                  /* array dimensions */
 
   int maxBins;                     /* max number of bins
-				    * (due to bpMinAvgBinPop)  
+				    * (due to bpMinAvgBinPop)
 				    */
 
-  /* compute max element dimensions 
+  /* compute max element dimensions
    * (would like bins coarser than max dimensisons)
    */
   {
@@ -298,15 +298,15 @@ bpBinArraySizeIt(Rect *bbox,            /* bin array bbox */
       count++;
     }
   }
-  
+
   /* if too few elements, don't bother with binning */
   if(count < bpMinBAPop) return FALSE;
 
-  /* if too tiny don't subbin, 
+  /* if too tiny don't subbin,
    * avoid nasty corner-cases in code below
    */
   if(h<2 || w<2) return FALSE;
-  
+
   /* tentatively choose bin size to fit all elements */
   dx = maxEX+1;
   dy = maxEY+1;
@@ -380,7 +380,7 @@ bpBinArraySizeIt(Rect *bbox,            /* bin array bbox */
 	dx = maxDX;
 	dy = h+1;
       }
-      else 
+      else
       {
 	/* are we making progress? */
 	if(yOver == count) return FALSE;
@@ -423,16 +423,16 @@ bpBinArraySizeIt(Rect *bbox,            /* bin array bbox */
       dx = (w+1) / MAX(xDimTarget,1);
       dx = MIN(dx,maxDX);
     }
-    else 
-    { 
+    else
+    {
       /* try for square bins */
       double area = h * (w + 0.0);
       int d = MAX(sqrt(area/maxBins),1);
 
-      if(d<dx) 
+      if(d<dx)
       {
 	/* target d too small in x-dim
-	 * leave xdim fixed and just increase y-dim  
+	 * leave xdim fixed and just increase y-dim
 	 */
 	int yDimTarget = maxBins/xDim;
 
@@ -442,13 +442,13 @@ bpBinArraySizeIt(Rect *bbox,            /* bin array bbox */
       else if (d<dy)
       {
 	/* target d too small in y-dim
-	 * leave xdim fixed and just increase y-dim  
+	 * leave xdim fixed and just increase y-dim
 	 */
 	int xDimTarget = maxBins/yDim;
 
 	dx = (w+1) / MAX(xDimTarget,1);
 	dx = MIN(dx,maxDX);
-      } 
+      }
       else if(d>maxDX)
       {
 	/* d too big for x-dim
@@ -473,7 +473,7 @@ bpBinArraySizeIt(Rect *bbox,            /* bin array bbox */
       }
       else
       {
-	/* we're cool, create square bins */ 
+	/* we're cool, create square bins */
 	dx = d;
 	dy = d;
       }
@@ -485,7 +485,7 @@ bpBinArraySizeIt(Rect *bbox,            /* bin array bbox */
     numBins = xDim*yDim;
 
   }
-	
+
   /* DEBUG */
   if(BPD)
   {
@@ -518,15 +518,15 @@ bpBinArraySizeIt(Rect *bbox,            /* bin array bbox */
  * Returns: pointer to new bin array.
  *
  * ----------------------------------------------------------------------------
- */		 
-static BinArray *bpBinArrayBuild1(Rect *bbox, 
+ */
+static BinArray *bpBinArrayBuild1(Rect *bbox,
 				  Element *elements, /* initial elements */
 				  int dx,   /* bin diameter */
 				  int dy)
-				  
-{ 
+
+{
   BinArray *ba;
-  
+
   /* build bin array */
   ba = bpBinArrayNew(dx, dy, bbox);
 
@@ -538,10 +538,10 @@ static BinArray *bpBinArrayBuild1(Rect *bbox,
     /* pop list */
     e = elements;
     elements = e->e_link;
-    
+
     bpBinAdd(ba, e);
   }
-  
+
   return ba;
 }
 
@@ -550,20 +550,20 @@ static BinArray *bpBinArrayBuild1(Rect *bbox,
  *
  * bpBinArrayBuild -- build and populate bin array of given area,
  *
- * NOTE:  optimal bin size determined by trial and error. 
- *        oversized subbinned, as indicated. 
+ * NOTE:  optimal bin size determined by trial and error.
+ *        oversized subbinned, as indicated.
  *
  * Returns: pointer to new bin array, NULL on failure.
  *
  * ----------------------------------------------------------------------------
- */		 
-BinArray *bpBinArrayBuild(Rect bbox, 
+ */
+BinArray *bpBinArrayBuild(Rect bbox,
 			  Element *elements, /* initial elements */
 			  bool subbin) /* subbin as needed */
 {
   BinArray *ba;
   int dx,dy;      /* individual bin diameter */
-  int maxDX, maxDY; 
+  int maxDX, maxDY;
   int numBins;
   int count;
 
@@ -594,13 +594,13 @@ BinArray *bpBinArrayBuild(Rect bbox,
     {
       BinArray *sub;
 
-      sub = bpBinArrayBuild(bpBinArea(ba,i), 
+      sub = bpBinArrayBuild(bpBinArea(ba,i),
 			    bpBinList(ba, i),
 			    TRUE);
 
       if(sub)
       {
-	ba->ba_bins[i] = 
+	ba->ba_bins[i] =
 	  (void *) ((pointertype) sub | BT_ARRAY);
       }
     }
@@ -609,14 +609,14 @@ BinArray *bpBinArrayBuild(Rect bbox,
   /* sub-bin oversized */
   {
     BinArray *sub;
-	
+
     sub = bpBinArrayBuild(bbox,
 			  bpBinList(ba, numBins),
 			  TRUE);
 
     if(sub)
     {
-      ba->ba_bins[numBins] = 
+      ba->ba_bins[numBins] =
 	(void *) ((pointertype) sub | BT_ARRAY);
     }
   }
@@ -637,7 +637,7 @@ BinArray *bpBinArrayBuild(Rect bbox,
  * Called prior to enumerations.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 int bpBinLife = 0;
 void bpBinsUpdate(BPlane *bp)
 {
@@ -651,7 +651,7 @@ void bpBinsUpdate(BPlane *bp)
 
   /* do bins already exist ? */
   oldBins = (bp->bp_rootNode != 0);
-  
+
   /* if bins exist, dissolve them */
   if(oldBins)
   {
@@ -668,7 +668,7 @@ void bpBinsUpdate(BPlane *bp)
       e->e_link = elist;
       elist = e;
     }
-    
+
     bp->bp_inBox = elist;
   }
 
@@ -703,8 +703,8 @@ void bpBinsUpdate(BPlane *bp)
   bp->bp_inAdds = 0;
   /*  if(BPD) bpDump(bp, 0); */
 }
-  
-  
+
+
 
 
 

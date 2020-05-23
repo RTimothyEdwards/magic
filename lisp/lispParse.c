@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- *  lispParse.c -- 
+ *  lispParse.c --
  *
  *   This module contains the mini-scheme command-line parser (ugh).
  *
@@ -52,7 +52,7 @@
  *-----------------------------------------------------------------------------
  */
 
-/* 
+/*
    strip whitespace from left: returns new string pointer
 */
 static char *
@@ -71,7 +71,7 @@ HashTable Strings;
 
 
 /*-----------------------------------------------------------------------------
- * 
+ *
  *  LispNewString --
  *
  *    Returns a unique string pointer corresponding to string "s"
@@ -86,7 +86,7 @@ char *LispNewString (s)
 
   if (nstrings == 0)
     HashInit (&Strings, STRINGTAB, HT_STRINGKEYS);
-  
+
   h = HashLookOnly (&Strings, s);
   if (h)
     i = (int) HashGetValue(h);
@@ -167,7 +167,7 @@ LispAtomParse (pstr,quoted)
     return l;
   }
   if ((isdigit(*str) || *str == '.' || *str == '-' || *str == '+') &&
-      (isdigit(str[1]) || str[1] == '.' || str[1] == '-' || str[1] == '+' 
+      (isdigit(str[1]) || str[1] == '.' || str[1] == '-' || str[1] == '+'
        || ISEND(str[1]))) {
     /* eat leading sign */
     q = str;
@@ -226,7 +226,7 @@ LispAtomParse (pstr,quoted)
     *str = '\"';
     str++;
   }
-  else if (!quoted && str[0] == '#' && (str[1] == 't'|| str[1] == 'f') && 
+  else if (!quoted && str[0] == '#' && (str[1] == 't'|| str[1] == 'f') &&
 	   ISEND(str[2])) {
     LTYPE(l) = S_BOOL;
     LBOOL(l) = (str[1] == 't') ? 1 : 0;

@@ -4,17 +4,17 @@
  * This file defines the interface provided by the maze router
  * module to the rest of Magic.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid $Header: /usr/cvsroot/magic-8.0/mzrouter/mzrouter.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
@@ -31,7 +31,7 @@
  * by other modules (such as the irouter and the garouter) via procedure
  * calls.
  *
- * NOTE: a wizard command interface (`*mzroute') IS provided for testing.  
+ * NOTE: a wizard command interface (`*mzroute') IS provided for testing.
  * (see mzTestCmd.c)
  */
 
@@ -49,7 +49,7 @@
  *
  */
 
-typedef struct 
+typedef struct
 routetype
 {
     /* IDENTIFICATION */
@@ -64,7 +64,7 @@ routetype
     int rt_length;			/* Length of contact or minimum */
 					/* length of a path to satisfy	*/
 					/* minimum area requirements	*/
-    int rt_spacing[TT_MAXTYPES + 1]; 	/* spacings to various types 
+    int rt_spacing[TT_MAXTYPES + 1]; 	/* spacings to various types
   				           last entry is SUBCELL spacing */
 
     /* DERIVATIVE DESIGN RULES - computed from DESIGN RULES above.
@@ -75,11 +75,11 @@ routetype
      * bloatTop = spacing
      * bloatBot = spacing + width - 1
      */
-    int rt_effWidth;			/* *DERIVED* - for contact, 
+    int rt_effWidth;			/* *DERIVED* - for contact,
 					 * max of component width */
-    int rt_bloatBot[TT_MAXTYPES + 1];   /* *DERIVED* - bloat distance 
+    int rt_bloatBot[TT_MAXTYPES + 1];   /* *DERIVED* - bloat distance
 					 * to bottom and left */
-    int rt_bloatTop[TT_MAXTYPES + 1];   /* *DERIVED* - bloat distance to 
+    int rt_bloatTop[TT_MAXTYPES + 1];   /* *DERIVED* - bloat distance to
 					 * top and right */
 
     /* BLOCKAGE PLANES */
@@ -88,13 +88,13 @@ routetype
     Plane *rt_vBlock;	/* Blockage plane for layer organized into maximal
 			   vertical strips */
 
-    struct routetype *rt_next;	/* For convenience, all route types are 
+    struct routetype *rt_next;	/* For convenience, all route types are
 				 * threaded
 				 * together.  (This threading is in addition
-				 * to the routeLayers list and the 
+				 * to the routeLayers list and the
 				 * routeContacts list.
 				 */
-    struct routetype *rt_nextActive;  /* *DERIVED* - This list built in 
+    struct routetype *rt_nextActive;  /* *DERIVED* - This list built in
 				       * MZInitRoute() */
 } RouteType;
 
@@ -130,12 +130,12 @@ typedef struct routelayer
 
     /* NEXT ROUTE LAYER */
     struct routelayer *rl_next;
-    struct routelayer *rl_nextActive;  /* *DERIVED* - Only accurate after 
+    struct routelayer *rl_nextActive;  /* *DERIVED* - Only accurate after
 					* MZInitRoute() */
 } RouteLayer;
 
 /*---------------------------- RouteContact ------------------------------*/
-/* 
+/*
  * This sturcture describes a type of contact to be used during routing.
  * Contacts connect two route layers.
  */
@@ -160,12 +160,12 @@ typedef struct routecontact
 
 /* ----------------------------- Paths  ----------------------------------- */
 
-/* 
+/*
  * Zero-width path segment structure.  Paths and partial-paths built from
- * these structures during search. 
+ * these structures during search.
  *
  * Can be flushed out to paint via MZPaintPath().
- * 
+ *
  */
 typedef struct rpath
 {
@@ -201,10 +201,10 @@ typedef struct rpath
 
 /*----------------------- Soft Floating Point ----------------------------- */
 /* (Floating Point Format for our own software-implemented floating-point.
- *  Used for the penalty factor for costs outside the window.) 
+ *  Used for the penalty factor for costs outside the window.)
  */
 
-/* Note: nExponent must be >=0 
+/* Note: nExponent must be >=0
  * 	To multiply dlong by routeFloat, first multiply by mantissa, then
  *	shift right nExponent number of bits.
  */
@@ -216,7 +216,7 @@ typedef struct routeFloat
 
 /*---------------------------- MazeParameters ------------------------------*/
 
-/* 
+/*
  * This sturcture contains all maze router parameters, including design rules.
  */
 typedef struct mazeparameters
@@ -263,24 +263,24 @@ typedef struct mazeparameters
 				 * area.
 				 * NOTE: IF SET IT IS THE USERS RESPONSIBILITY
 				 *       TO CONTAIN THE ROUTE WITHIN THIS AREA
-				 *       VIA FENCES - ELSE BIZARRE BEHAVIOUR 
+				 *       VIA FENCES - ELSE BIZARRE BEHAVIOUR
 				 *       IS POSSIBLE.
 				 */
 
     int mp_verbosity;		/* amount of messages printed:
 				 *    0 = errors and warnings only,
-				 *    1 = brief 
+				 *    1 = brief
 				 *    2 = lots of statistics.
 				 */
 
     int mp_bloomLimit;		/* if positive, puts upper limit on number of
 				 * blooms in maze search before router
 				 * terminates.
-				 * 
+				 *
 				 * If negative or 0, no limit is imposed.
 				 */
 } MazeParameters;
-#define VERB_WARNONLY	0 
+#define VERB_WARNONLY	0
 #define VERB_BRIEF	1
 #define	VERB_STATS	2
 
@@ -312,7 +312,7 @@ extern MazeParameters *MZCopyParms();	/* Create new MazeParameters */
 extern void MZInitRoute();	/* Initialize route */
 extern void MZAddStart();       /* After MzInitRoute, to add start points */
 extern void MZAddDest();	/* After MZInitRoute, to add dest area */
-extern RoutePath *MZRoute();	/* After MZAddStart, and MZAddDest 
+extern RoutePath *MZRoute();	/* After MZAddStart, and MZAddDest
 				 * to do search */
 extern CellUse *MZPaintPath();	/* Turns path into actual paint */
 extern void MZClean();		/* Reclaim storage */

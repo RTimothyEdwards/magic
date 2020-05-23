@@ -152,7 +152,7 @@ lefFileOpen(def, file, suffix, mode, prealfile)
 	return NULL;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *

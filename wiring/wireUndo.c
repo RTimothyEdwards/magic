@@ -4,16 +4,16 @@
  * This file contains procedures that implement undo for wiring procedures
  * such as setting the current wire width.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -64,7 +64,7 @@ static TileType wireOldType = TT_SPACE;	/* Last type that we remembered. */
 static int wireOldWidth = 2;		/* Last width that we remembered. */
 static int wireOldDir = GEO_NORTH;		/* Last direction */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	WireUndoInit --
@@ -90,7 +90,7 @@ WireUndoInit()
     if (WireUndoClientID < (UndoType) 0)
 	TxError("Couldn't add wiring as an undo client!\n");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	WireRememberForUndo --
@@ -125,7 +125,7 @@ WireRememberForUndo()
     wue->wue_oldDir = wireOldDir;
     wue->wue_newDir = wireOldDir = WireLastDir;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	WireUndoForw --

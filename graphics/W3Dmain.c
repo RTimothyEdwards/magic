@@ -94,7 +94,7 @@ w3dUnlock(w)
 {
     glFlush();
     glFinish();
-    
+
     glDisable(GL_CULL_FACE);
 
     glDisable(GL_COLOR_MATERIAL);
@@ -260,7 +260,7 @@ w3dFillOps(trans, tile, cliprect, ztop, zbot)
 	    GeoClip(&r, cliprect);
 
 	GrClipTriangle(&fullr, &r, cliprect != NULL, dinfo, p, &np);
-	
+
 	if (np > 0)
 	{
 	    w3dFillPolygon(p, np, ztop, TRUE);
@@ -393,7 +393,7 @@ w3dRenderVolume(tile, trans, cliprect)
     zbot = ztop - (fthk * crec->scale_z);
 
     GR_CHECK_LOCK();
-    if (!grDriverInformed)	
+    if (!grDriverInformed)
 	grInformDriver();
 
     if ((grCurFill == GR_STSOLID) || (grCurFill == GR_STSTIPPLE))
@@ -425,7 +425,7 @@ w3dRenderCIF(tile, layer, trans)
     zbot = ztop - (fthk * crec->scale_z);
 
     GR_CHECK_LOCK();
-    if (!grDriverInformed)	
+    if (!grDriverInformed)
 	grInformDriver();
 
     if ((grCurFill == GR_STSOLID) || (grCurFill == GR_STSTIPPLE))
@@ -489,7 +489,7 @@ w3dSetProjection(w)
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_POLYGON_SMOOTH);
     }
-    
+
     /* Need to look into dealing properly with double-buffered graphics */
     glDrawBuffer(GL_FRONT);
     /* glDrawBuffer(GL_BACK); */
@@ -722,9 +722,9 @@ w3dCutBox(w, cmd)
 	}
 	else
 	{
-	    if (StrIsInt(cmd->tx_argv[1]) &&	
-			StrIsInt(cmd->tx_argv[2]) &&	
-			StrIsInt(cmd->tx_argv[3]) &&	
+	    if (StrIsInt(cmd->tx_argv[1]) &&
+			StrIsInt(cmd->tx_argv[2]) &&
+			StrIsInt(cmd->tx_argv[3]) &&
 			StrIsInt(cmd->tx_argv[4]))
 	    {
 		crec->clipped = TRUE;
@@ -829,7 +829,7 @@ w3dClose(w, cmd)
 void
 w3dRescale(crec, scalefactor)
     W3DclientRec *crec;
-    float scalefactor; 
+    float scalefactor;
 {
     crec->scale_xy /= scalefactor;
     crec->prescale_z /= scalefactor;
@@ -1416,7 +1416,7 @@ W3DloadWindow(window, name)
  *
  * W3Dcreate --
  *
- * A new window has been created.  Create and initialize the needed 
+ * A new window has been created.  Create and initialize the needed
  * structures.
  *
  * Results:
@@ -1436,7 +1436,7 @@ W3Dcreate(window, argc, argv)
 {
     W3DclientRec *crec;
     Tk_Window tkwind, tktop;
-    Window wind;    
+    Window wind;
     Colormap colormap;
     HashEntry *entry;
     CellDef *boxDef;
@@ -1458,12 +1458,12 @@ W3Dcreate(window, argc, argv)
 
     if (!GrIsDisplay(MainDisplayType, "OGL"))
     {
-	TxError("Display type is \"%s\".  OpenGL is required for the 3D display.\n",	
+	TxError("Display type is \"%s\".  OpenGL is required for the 3D display.\n",
 		MainDisplayType);
 	TxError("Please restart magic with option \"-d OGL\".\n");
 	return FALSE;
     }
- 
+
     crec = (W3DclientRec *) mallocMagic(sizeof(W3DclientRec));
 
     /* The MagWindow structure and frameArea indicates the cross-sectional */
@@ -1471,7 +1471,7 @@ W3Dcreate(window, argc, argv)
 
     /* Need to parse the argument list here. . .  At least one argument	*/
     /* should allow the Tk path name to be passed to the routine, as	*/
-    /* it is for the standard layout window in the Tk interface.	*/ 
+    /* it is for the standard layout window in the Tk interface.	*/
 
     /* Set surface area, etc. of the MagWindow. . . ? */
 
@@ -1526,7 +1526,7 @@ W3Dcreate(window, argc, argv)
 		grVisualInfo->visual, AllocNone);
 
     if (!(tktop = Tk_MainWindow(magicinterp))) return FALSE;
-	
+
     /* Check for a Tk pathname for the window;  allows window to be	*/
     /* by a Tk GUI script.						*/
     if (argc > 1) name = argv[1];
@@ -1569,7 +1569,7 @@ W3Dcreate(window, argc, argv)
 
 	/* Use Tcl to pass commands to the window */
 	MakeWindowCommand((name == NULL) ? ".magic3d" : name, window);
-	
+
 	/* Now that a cell is loaded, set default values for the	*/
 	/* client record based on the cell bounding box.		*/
 
@@ -1691,7 +1691,7 @@ W3Dredisplay(w, rootArea, clipArea)
 	}
     }
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -1855,7 +1855,7 @@ W3Dinit()
 	"defaults		revert to defaults",
 	w3dDefaults, FALSE);
     WindAddCommand(W3DclientID,
-	"closewindow		close the 3D display",	
+	"closewindow		close the 3D display",
 	w3dClose, FALSE);
     WindAddCommand(W3DclientID,
 	"render name [height thick [style]]\n"

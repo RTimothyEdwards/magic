@@ -3,7 +3,7 @@
  * Copyright 2003 Open Circuit Design, Inc., for MultiGiG Ltd.
  *
  * This file contains additional functions to manipulate an X window system
- * color display.  Included here are device-dependent routines to draw and 
+ * color display.  Included here are device-dependent routines to draw and
  * erase text and draw a grid.
  *
  */
@@ -42,7 +42,7 @@ typedef struct {
    GLuint renderbuffer;
 } RenderFrame;
 
-
+
 /*---------------------------------------------------------
  * grtoglDrawGrid:
  *	grxDrawGrid adds a grid to the grid layer, using the current
@@ -76,12 +76,12 @@ grtoglDrawGrid (prect, outline, clip)
     ysize = prect->r_ytop - prect->r_ybot;
     if (!xsize || !ysize || GRID_TOO_SMALL(xsize, ysize))
 	return FALSE;
-    
+
     xstart = prect->r_xbot % xsize;
     while (xstart < clip->r_xbot << SUBPIXELBITS) xstart += xsize;
     ystart = prect->r_ybot % ysize;
     while (ystart < clip->r_ybot << SUBPIXELBITS) ystart += ysize;
-    
+
     grtoglSetLineStyle(outline);
 
     glBegin(GL_LINES);
@@ -111,7 +111,7 @@ grtoglDrawGrid (prect, outline, clip)
     return TRUE;
 }
 
-
+
 /*---------------------------------------------------------
  * grtoglLoadFont
  *	This local routine transfers the X font bitmaps
@@ -143,7 +143,7 @@ grtoglLoadFont()
     return TRUE;
 }
 
-
+
 /*---------------------------------------------------------
  * grtoglSetCharSize:
  *	This local routine sets the character size in the display,
@@ -182,12 +182,12 @@ grtoglSetCharSize (size)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTOGLTextSize --
  *
- *	Determine the size of a text string. 
+ *	Determine the size of a text string.
  *
  * Results:
  *	None.
@@ -208,7 +208,7 @@ GrTOGLTextSize(text, size, r)
     Tk_FontMetrics overall;
     Tk_Font font;
     int width;
-    
+
     switch (size) {
     case GR_TEXT_DEFAULT:
     case GR_TEXT_SMALL:
@@ -429,7 +429,7 @@ grtoglPutBackingStore(MagWindow *w, Rect *area)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTOGLReadPixel --
@@ -453,7 +453,7 @@ GrTOGLReadPixel (w, x, y)
     return 0;		/* OpenGL has no such function, so return 0 */
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTOGLBitBlt --
@@ -498,7 +498,7 @@ myCombine(GLdouble coords[3], GLdouble *vertex_data[4],
     new[1] = coords[1];
     *outData = new;
     /* Diagnostic */
-    TxError("Intersecting polygon in char \"%c\" at %g %g!\n", 
+    TxError("Intersecting polygon in char \"%c\" at %g %g!\n",
 	*((char *)dataptr), coords[0], coords[1]);
 }
 
@@ -585,7 +585,7 @@ grtoglDrawCharacter(clist, tc, pixsize)
  *
  *	For speed, we should be transferring the font
  *	vectors into OpenGL display lists!
- *	
+ *
  *---------------------------------------------------------
  */
 
@@ -597,7 +597,7 @@ grtoglFontText(text, font, size, rotate, pos, clip, obscure)
     int	  rotate;		/* Text rotation */
     Point *pos;			/* Text base position */
     Rect  *clip;		/* Clipping area */
-    LinkedRect *obscure;	/* List of obscuring areas */ 
+    LinkedRect *obscure;	/* List of obscuring areas */
 {
     char *tptr;
     Point *coffset;		/* vector to next character */
@@ -650,11 +650,11 @@ grtoglFontText(text, font, size, rotate, pos, clip, obscure)
  *	the screen -- no clipping is done except to the obscuring rectangle
  *	list and the clip rectangle.
  *
- * Results:	
+ * Results:
  *	none.
  *
  * Side Effects:
- *	The text is drawn on the screen.  
+ *	The text is drawn on the screen.
  *
  *---------------------------------------------------------
  */
@@ -694,7 +694,7 @@ grtoglPutText (text, pos, clip, obscure)
 	    grTOGLGeoSub(&location, &overlap);
 	}
     }
- 
+
     overlap = location;
     GeoClip(&overlap, clip);
 

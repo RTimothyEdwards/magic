@@ -2,16 +2,16 @@
  *
  *	Parse and read in the display style file.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * Portions of this code are Copyright (C) 2003 Open Circuit Design, Inc.,
@@ -51,7 +51,7 @@ extern void (*grDefineCursorPtr)();
 /* Define a linked-list record to keep track of styles prior    */
 /* to allocating the fixed array GrStyleTable.                  */
 
-typedef struct _dstylelink {  
+typedef struct _dstylelink {
     GR_STYLE_LINE       style;
     char		shortname;
     struct _dstylelink  *next;
@@ -76,7 +76,7 @@ char *fillStyles[] = {
 	"grid",
 	NULL };
 
-
+
 
 /* Internal constants for each section of the style file. */
 /* These are bitmask-mapped so the display style reader	  */
@@ -96,7 +96,7 @@ char *fillStyles[] = {
 int GrStyleNames[128];		/* short names for styles */
 GR_STYLE_LINE *GrStyleTable;
 
-
+
 
 bool
 GrDrawGlyphNum(num, xoff, yoff)
@@ -139,7 +139,7 @@ GrGetStyleFromName(stylename)
     for (style = 0; style < maxstyles; style++)
         if (GrStyleTable[style].longname != NULL)
             if (!strcmp(stylename, GrStyleTable[style].longname))
-                break;                          
+                break;
 
     return (style == maxstyles) ? -1 : style;
 }
@@ -177,7 +177,7 @@ GrResetStyles()
     DBWNumStyles = 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * styleBuildDisplayStyle:
@@ -257,7 +257,7 @@ styleBuildDisplayStyle(line, version)
     return(res);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * styleBuildStippleStyle:
@@ -289,8 +289,8 @@ styleBuildStipplesStyle(line, version)
     res = TRUE;
 
     if (sscanf(line, scanline,
-	    &ord, &(row[0]), &(row[1]), &(row[2]), &(row[3]), 
-	    &(row[4]), &(row[5]), &(row[6]), &(row[7]) ) != 9) 
+	    &ord, &(row[0]), &(row[1]), &(row[2]), &(row[3]),
+	    &(row[4]), &(row[5]), &(row[6]), &(row[7]) ) != 9)
     {
 	res = FALSE;
     }
@@ -328,7 +328,7 @@ styleBuildStipplesStyle(line, version)
     return(res);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrLoadCursors --
@@ -366,13 +366,13 @@ char *libPath;
 
     if (grDefineCursorPtr == NULL)
 	TxError("Display does not have a programmable cursor.\n");
-    else 
+    else
 	(*grDefineCursorPtr)(grCursorGlyphs);
 
-    return TRUE;  
+    return TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrLoadStyles:
@@ -445,7 +445,7 @@ char *libPath;
 	{
 	    sres = fgets(line, STRLEN, inp);
 	    if (sres == NULL) break;
-	    if (StrIsWhite(line, FALSE)) 
+	    if (StrIsWhite(line, FALSE))
 		newSection = TRUE;
 	    else if (line[0] == '#')
 	    {
@@ -455,7 +455,7 @@ char *libPath;
 	    {
 		if (sscanf(line, "%s", sectionName) != 1)
 		{
-		    TxError("File contained format error: " 
+		    TxError("File contained format error: "
 			    "unable to read section name.\n");
 		    res = -1;
 		}

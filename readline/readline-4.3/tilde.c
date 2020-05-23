@@ -34,7 +34,7 @@
 #  include <string.h>
 #else /* !HAVE_STRING_H */
 #  include <strings.h>
-#endif /* !HAVE_STRING_H */  
+#endif /* !HAVE_STRING_H */
 
 #if defined (HAVE_STDLIB_H)
 #  include <stdlib.h>
@@ -377,7 +377,7 @@ tilde_expand_word (filename)
   return (dirname);
 }
 
-
+
 #if defined (TEST)
 #undef NULL
 #include <stdio.h>

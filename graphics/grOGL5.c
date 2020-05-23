@@ -1,15 +1,15 @@
 /* grOGL5.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  *	Manipulate the programable cursor on the graphics display.
@@ -61,7 +61,7 @@ GrOGLDrawGlyph (gl, p)
     Rect bBox;
     bool anyObscure;
     LinkedRect *ob;
-    
+
     GR_CHECK_LOCK();
 
     /* We're going to change the graphics state without affecting */
@@ -116,7 +116,7 @@ GrOGLDrawGlyph (gl, p)
 	    if ( (yloc <= grCurClip.r_ytop) && (yloc >= grCurClip.r_ybot) ) {
 		int laststartx;
 		laststartx = bBox.r_xbot - 1;
-		for (startx = bBox.r_xbot; startx <= bBox.r_xtop; 
+		for (startx = bBox.r_xbot; startx <= bBox.r_xtop;
 			startx = endx + 1) {
 		    int *pixelp;
 
@@ -125,7 +125,7 @@ GrOGLDrawGlyph (gl, p)
 
 		    if (anyObscure) {
 			for (ob = grCurObscure; ob != NULL; ob = ob->r_next) {
-			    if ( (ob->r_r.r_ybot <= yloc) && 
+			    if ( (ob->r_r.r_ybot <= yloc) &&
 				 (ob->r_r.r_ytop >= yloc) ) {
 				if (ob->r_r.r_xbot <= startx)
 				    startx = MAX(startx, ob->r_r.r_xtop + 1);
@@ -136,7 +136,7 @@ GrOGLDrawGlyph (gl, p)
 		    }
 
 		    /* stop if we aren't advancing */
-		    if (startx == laststartx) break;  
+		    if (startx == laststartx) break;
 		    laststartx = startx;
 		    if (startx > endx) continue;
 
@@ -165,7 +165,7 @@ GrOGLDrawGlyph (gl, p)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * groglDefineCursor:
@@ -190,7 +190,7 @@ groglDefineCursor(glyphs)
     int red, green, blue;
     Pixmap source,mask;
     XColor curcolor;
-    
+
 
     if (glyphs->gr_num <= 0) return;
 
@@ -205,7 +205,7 @@ groglDefineCursor(glyphs)
     oldClip = grCurClip;
     grCurClip = GrScreenRect;
     grCurClip.r_ytop += 16;
-    
+
     /* what color should the cursor be?  The following makes it the
        opposite of what the background "mostly" is.
     */
@@ -234,13 +234,13 @@ groglDefineCursor(glyphs)
 	GrGlyph *g;
 	int x, y;
 	unsigned char curs[32];
-	
+
 	g = glyphs->gr_glyph[glyphnum];
 	if ((g->gr_xsize != 16) || (g->gr_ysize != 16)) {
 	    TxError("Cursors for the X must be 16 X 16 pixels.\n");
 	    return;
 	}
-	
+
 	/* Perform transposition on the glyph matrix since X displays
 	 * the least significant bit on the left hand side.
 	 */
@@ -249,20 +249,20 @@ groglDefineCursor(glyphs)
 	    int i;
 
 	    curs[i = 31 - y - 1] = 0;
-	    for (x = 0; x < 8; x++) 
+	    for (x = 0; x < 8; x++)
 	    {
 		if (GrStyleTable[*p].color != 0)
 		{
-		     curs[i] |= 1 << x; 
+		     curs[i] |= 1 << x;
 		}
 		p++;
 	    }
 	    curs[i += 1] = 0;
-	    for (x = 0; x < 8; x++) 
+	    for (x = 0; x < 8; x++)
 	    {
 		if (GrStyleTable[*p].color != 0)
 		{
-		     curs[i] |= 1 << x; 
+		     curs[i] |= 1 << x;
 		}
 		p++;
 	    }
@@ -282,7 +282,7 @@ groglDefineCursor(glyphs)
     GrUnlock(GR_LOCK_SCREEN);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrOGLSetCursor:
@@ -313,7 +313,7 @@ int cursorNum;		/* The cursor number as defined in the display
     }
 
     oglCurrent.cursor = grCursors[cursorNum];
-    
+
     HashStartSearch(&hs);
     while (entry = HashNext(&grOGLWindowTable, &hs))
 	if (HashGetValue(entry))

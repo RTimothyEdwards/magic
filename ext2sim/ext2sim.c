@@ -97,12 +97,12 @@ struct {
 } fetInfo[MAXDEVTYPES];
 
 typedef struct {
-	long    visitMask:MAXDEVTYPES; 
+	long    visitMask:MAXDEVTYPES;
 } nodeClient;
 
 typedef struct {
 	HierName *lastPrefix;
-	long    visitMask:MAXDEVTYPES; 
+	long    visitMask:MAXDEVTYPES;
 } nodeClientHier;
 
 #define NO_RESCLASS	-1
@@ -225,7 +225,7 @@ Exttosim_Init(interp)
 
 #endif /* EXT2SIM_AUTO */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -257,7 +257,7 @@ CmdExtToSim(w, cmd)
     int value;
     int option = EXTTOSIM_RUN;
     int argc = cmd->tx_argc;
-    char **argv = cmd->tx_argv; 
+    char **argv = cmd->tx_argv;
     char **msg;
     bool err_result;
 
@@ -371,7 +371,7 @@ CmdExtToSim(w, cmd)
 		LocCapThreshold = INFINITE_THRESHOLD_F;
 	    else if (StrIsNumeric(cmd->tx_argv[2]))
 		LocCapThreshold = atoCap(cmd->tx_argv[2]);
-	    else 
+	    else
 		TxError("exttosim: numeric value or \"infinite\" expected.\n");
 	    break;
 	case EXTTOSIM_RTHRESH:
@@ -389,7 +389,7 @@ CmdExtToSim(w, cmd)
 		LocResistThreshold = atoi(cmd->tx_argv[2]);
 	    else if (!strncmp(cmd->tx_argv[2], "inf", 3))
 		LocResistThreshold = INFINITE_THRESHOLD;
-	    else 
+	    else
 		TxError("exttosim: integer value or \"infinite\" expected.\n");
 	    break;
 	case EXTTOSIM_FORMAT:
@@ -439,7 +439,7 @@ CmdExtToSim(w, cmd)
 		    break;
 	    }
 	    break;
-	    
+
 	case EXTTOSIM_DEFAULT:
 	    LocCapThreshold = 2;
 	    LocResistThreshold = 10;
@@ -492,7 +492,7 @@ runexttosim:
     if (inName == NULL)
     {
 	/* Assume that we want to do exttospice on the currently loaded cell */
-	
+
 	if (w == (MagWindow *) NULL)
 	    windCheckOnlyWindow(&w, DBWclientID);
 
@@ -601,7 +601,7 @@ runexttosim:
     /* Write the output file */
 
     fprintf(esSimF, "| units: %g tech: %s format: %s\n", EFScale, EFTech,
-		   (esFormat == MIT) ? "MIT" :  
+		   (esFormat == MIT) ? "MIT" :
 		      ( (esFormat == LBL) ? "LBL" : "SU" ) );
 
     /* Convert the hierarchical description to a flat one */
@@ -730,7 +730,7 @@ main(argc, argv)
     }
 
     fprintf(esSimF, "| units: %g tech: %s format: %s\n", EFScale, EFTech,
-		   (esFormat == MIT) ? "MIT" :  
+		   (esFormat == MIT) ? "MIT" :
 		      ( (esFormat == LBL) ? "LBL" : "SU" ) );
 
     /* Convert the hierarchical description to a flat one */
@@ -769,7 +769,7 @@ main(argc, argv)
 }
 
 #endif		/* MAGIC_WRAPPER */
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -891,8 +891,8 @@ simmainArgs(pargc, pargv)
 	    fetInfo[ndx].resClassSub = rClassSub;
 	    fetInfo[ndx].defSubs = (char *) mallocMagic((unsigned) (strlen(subsNode)+1));
 	    strcpy(fetInfo[ndx].defSubs,subsNode);
-	    TxError("Info: fet %s(%d) sdRclass=%d subRclass=%d dSub=%s\n", 
-	    	cp, ndx, fetInfo[ndx].resClassSD, fetInfo[ndx].resClassSub, 
+	    TxError("Info: fet %s(%d) sdRclass=%d subRclass=%d dSub=%s\n",
+	    	cp, ndx, fetInfo[ndx].resClassSD, fetInfo[ndx].resClassSub,
             	fetInfo[ndx].defSubs);
 	    break;
 	    }
@@ -924,7 +924,7 @@ usage:
     exit (1);
 #endif
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -949,7 +949,7 @@ HierName *suffix;
 	return(((EFNodeName *) HashGetValue(he))->efnn_node);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1062,13 +1062,13 @@ simdevVisit(dev, hierName, scale, trans)
     if (dev->dev_class == DEV_BJT && subnode)
     {
         sprintf(name, "fet");
-        simdevOutNode(hierName, subnode->efnode_name->efnn_hier, name, esSimF); 
+        simdevOutNode(hierName, subnode->efnode_name->efnn_hier, name, esSimF);
     }
     else if ((dev->dev_class == DEV_DIODE || dev->dev_class == DEV_PDIODE ||
 		dev->dev_class == DEV_NDIODE) && dev->dev_nterm == 1 && subnode)
     {
         sprintf(name, "fet");
-        simdevOutNode(hierName, subnode->efnode_name->efnn_hier, name, esSimF); 
+        simdevOutNode(hierName, subnode->efnode_name->efnn_hier, name, esSimF);
     }
     else if (dev->dev_nterm > 2)
         simdevOutNode(hierName, drain->dterm_node->efnode_name->efnn_hier, name, esSimF);
@@ -1091,7 +1091,7 @@ simdevVisit(dev, hierName, scale, trans)
 	* comparator will deal with any problem arising from
 	* swapping L and W.
 	*/
-	
+
 	int n;
 	double cl, cw;
 	double chp = 0.0;
@@ -1158,7 +1158,7 @@ simdevVisit(dev, hierName, scale, trans)
 	   if ( esFormat == SU ) {
 	       fprintf(esSimF, "%s", (source->dterm_attrs) ? "," : " s=" );
 	       if (hierS)
-	         simnAPHier(source, hierName, fetInfo[dev->dev_type].resClassSD, 
+	         simnAPHier(source, hierName, fetInfo[dev->dev_type].resClassSD,
 		      scale, esSimF);
 	       else {
 	         snode= SimGetNode(hierName,
@@ -1175,13 +1175,13 @@ simdevVisit(dev, hierName, scale, trans)
 	   }
 	   if ( esFormat == SU ) {
 	       fprintf(esSimF, "%s", (drain->dterm_attrs) ? "," : " d=" );
-	       if (hierD) 
-	         simnAPHier(drain, hierName, fetInfo[dev->dev_type].resClassSD, 
+	       if (hierD)
+	         simnAPHier(drain, hierName, fetInfo[dev->dev_type].resClassSD,
 		      scale, esSimF);
 	       else {
 	         dnode = SimGetNode(hierName,
 			      drain->dterm_node->efnode_name->efnn_hier);
-	         simnAP(dnode, fetInfo[dev->dev_type].resClassSD, 
+	         simnAP(dnode, fetInfo[dev->dev_type].resClassSD,
 		      scale, esSimF);
 	       }
 	   }
@@ -1251,7 +1251,7 @@ FILE *outf;
  *
  * simnAP, simnAPHier --
  *
- * Output the area perimeter of the node with type type if it has not 
+ * Output the area perimeter of the node with type type if it has not
  * been visited.
  * The simnAPHier version outputs the area and perimeter only within the
  * local subcell with hierarchical name hierName.
@@ -1262,7 +1262,7 @@ FILE *outf;
  *
  * ----------------------------------------------------------------------------
  */
- 
+
 bool simnAP(node, resClass, scale, outf)
 EFNode *node;
 int  resClass;
@@ -1271,7 +1271,7 @@ FILE *outf;
 {
 	int a, p;
 
-	if ( node->efnode_client == (ClientData) NULL ) 
+	if ( node->efnode_client == (ClientData) NULL )
 		initNodeClient(node);
 	if ( resClass == NO_RESCLASS ||
 	     beenVisited((nodeClient *)node->efnode_client, resClass) ) {
@@ -1298,7 +1298,7 @@ bool simnAPHier(dterm, hierName, resClass, scale, outf)
 	nodeClientHier   *nc ;
 	int a, p;
 
-	if ( node->efnode_client == (ClientData) NULL ) 
+	if ( node->efnode_client == (ClientData) NULL )
 		initNodeClientHier(node);
 	nc = (nodeClientHier *)node->efnode_client;
 	if ( nc->lastPrefix != hierName ) {
@@ -1319,7 +1319,7 @@ bool simnAPHier(dterm, hierName, resClass, scale, outf)
 	return TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1365,7 +1365,7 @@ simdevOutNode(prefix, suffix, name, outf)
 	initNodeClient(nn->efnn_node);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1407,7 +1407,7 @@ int simcapVisit(hierName1, hierName2, cap)
     fprintf(esSimF, esCapFormat, cap);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1447,7 +1447,7 @@ simresistVisit(hierName1, hierName2, res)
     fprintf(esSimF, " %g\n", res / 1000.);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1626,7 +1626,7 @@ Dev    *dev;
 	} \
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1673,11 +1673,11 @@ Transform *trans;	/* Coordinate transform (not used) */
 	dnode = SimGetNode (hierName, drain->dterm_node->efnode_name->efnn_hier);
 
 	EFGetLengthAndWidth(dev, &l, &w);
-	fp = simmkDevMerge((int)(l*scale), (int)(w*scale), gnode, snode, 
+	fp = simmkDevMerge((int)(l*scale), (int)(w*scale), gnode, snode,
 			dnode, subnode, hierName, dev);
 
 	/*
-	 * run the list of devs. compare the current one with 
+	 * run the list of devs. compare the current one with
 	 * each one in the list. if they fullfill the matching requirements
 	 * merge them.
 	 */
@@ -1689,14 +1689,14 @@ Transform *trans;	/* Coordinate transform (not used) */
 		cg = &cfp->dev->dev_terms[0];
 		cs = cd = &cfp->dev->dev_terms[1];
 		if (cfp->dev->dev_nterm >= 3) {
-			if ( pmode == PARALLEL ) 
+			if ( pmode == PARALLEL )
 				cd = &cfp->dev->dev_terms[2];
-			else if ( pmode == PARALLEL_R ) 
+			else if ( pmode == PARALLEL_R )
 				cs = &cfp->dev->dev_terms[2];
 		}
-		
+
 		m = esFMult[cfp->esFMIndex] + ((float)fp->w/(float)cfp->w);
-		setDevMult(fp->esFMIndex, DEV_KILLED); 
+		setDevMult(fp->esFMIndex, DEV_KILLED);
 		setDevMult(cfp->esFMIndex, m);
 		esDevsMerged++;
 		freeMagic(fp);

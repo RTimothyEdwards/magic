@@ -6,16 +6,16 @@
  * CellDef.  Maybe in the future properties will be added to other database
  * objects.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -31,7 +31,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "utils/malloc.h"
 
-
+
 /* ----------------------------------------------------------------------------
  *
  *DBPropPut --
@@ -48,8 +48,8 @@ void
 DBPropPut(cellDef, name, value)
     CellDef *cellDef;	/* Pointer to definition of cell. */
     char *name;		/* The name of the property desired. */
-    ClientData value;	/* MUST point to a malloc'ed structure, or NULL. 
-			 * This will be freed when the CellDef is freed. 
+    ClientData value;	/* MUST point to a malloc'ed structure, or NULL.
+			 * This will be freed when the CellDef is freed.
 			 */
 
 {
@@ -60,7 +60,7 @@ DBPropPut(cellDef, name, value)
     /* Honor the NOEDIT flag */
     if (cellDef->cd_flags & CDNOEDIT) return;
 
-    if (cellDef->cd_props == (ClientData) NULL) 
+    if (cellDef->cd_props == (ClientData) NULL)
     {
 	cellDef->cd_props = (ClientData) mallocMagic(sizeof(HashTable));
 	HashInit( (HashTable *) cellDef->cd_props, 8, 0);
@@ -75,7 +75,7 @@ DBPropPut(cellDef, name, value)
 	else
 	    cellDef->cd_flags |= CDFIXEDBBOX;
     }
-    
+
     entry = HashFind(htab, name);
     oldvalue = (char *)HashGetValue(entry);
     if (oldvalue != NULL) freeMagic(oldvalue);
@@ -84,7 +84,7 @@ DBPropPut(cellDef, name, value)
     else
 	HashSetValue(entry, value);
 }
-
+
 /* ----------------------------------------------------------------------------
  *
  * DBPropGet --
@@ -127,7 +127,7 @@ done:
     if (found != (bool *) NULL) *found = haveit;
     return result;
 }
-
+
 /* ----------------------------------------------------------------------------
  *
  * DBPropEnum --
@@ -153,7 +153,7 @@ DBPropEnum(cellDef, func, cdata)
 			 *	    ClientData value;
 			 *	    ClientData cdata;
 			 *	{
-			 *	    -- return 0 to continue, 
+			 *	    -- return 0 to continue,
 			 *	    -- nonzero to abort.
 			 *	    return result;
 			 *	}
@@ -178,7 +178,7 @@ DBPropEnum(cellDef, func, cdata)
     return 0;
 }
 
-
+
 /* ----------------------------------------------------------------------------
  *
  * DBPropClearAll --

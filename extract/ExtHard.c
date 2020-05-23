@@ -6,16 +6,16 @@
  * extraction, when no label for that node could be found in the
  * interaction area.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -246,7 +246,7 @@ success:
 done:
     return (ret);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -335,7 +335,7 @@ extHardSetLabel(scx, reg, arg)
 	      	   /* forget it; we're never going to find the damn thing */
 		   r=oldlab->lab_rect;
 	      }
-	      
+
 	 }
     }
     GeoTransRect(&scx->scx_trans, &r, &newlab->lab_rect);
@@ -360,7 +360,7 @@ extHardSetLabel(scx, reg, arg)
 	TxPrintf("Hard way: found label = \"%s\"\n", newlab->lab_text);
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -452,7 +452,7 @@ extHardGenerateLabel(scx, reg, arg)
 	TxPrintf("Hard way: generated label = \"%s\"\n", newlab->lab_text);
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

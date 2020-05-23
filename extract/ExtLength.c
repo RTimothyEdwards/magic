@@ -8,16 +8,16 @@
  * line mode, where delay is proportional to the driver-to-receiver
  * distance.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *		      Lawrence Livermore National Laboratory
  */
@@ -123,7 +123,7 @@ void extPathPairDistance();
 void extPathFlood();
 void extPathFloodTile();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -161,7 +161,7 @@ ExtSetReceiver(name)
     he = HashFind(&extReceiverHash, name);
     HashSetValue(he, 0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -185,7 +185,7 @@ ExtLengthClear()
     HashKill(&extReceiverHash);
     extLengthInit();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -209,7 +209,7 @@ extLengthInit()
     HashInit(&extDriverHash, INITHASHSIZE, 0);
     HashInit(&extReceiverHash, INITHASHSIZE, 0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -314,7 +314,7 @@ extLength(rootUse, f)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -402,7 +402,7 @@ extLengthYank(use, labList)
 
     return (extLengthLabelList);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -449,7 +449,7 @@ extLengthLabels(tile, rootUse)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -513,7 +513,7 @@ extLengthLabelsFunc(scx, label, tpath)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -547,7 +547,7 @@ extPathLabel(use, text)
 	TxError("Can't find terminal \"%s\"\n", text);
     return (lab);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -592,7 +592,7 @@ extPathLabelFunc(rect, text, childLab, pLabList)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -690,7 +690,7 @@ extPathResetClient(tile)
     tile->ti_client = (ClientData) CLIENTDEFAULT;
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -738,7 +738,7 @@ extPathPairFunc(tile, epa)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -848,7 +848,7 @@ extPathFlood(tile, p, distance, epa)
 	    if (PlaneMaskHasPlane(pMask, pNum))
 	    {
 		Plane *plane = extPathDef->cd_planes[pNum];
-		 
+
 		/* Find the point on the new plane */
 		tp = plane->pl_hint;
 		GOTOPOINT(tp, &tile->ti_ll);
@@ -935,7 +935,7 @@ extPathFloodFunc(dstTile, epfa)
     extPathFlood(dstTile, p, dstDist, epfa->epfa_epa);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -985,7 +985,7 @@ extPathFloodTile(srcTile, srcPoint, srcDist, dstTile, epa)
     /* Recurse */
     extPathFlood(dstTile, &dstPoint, dstDist, epa);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

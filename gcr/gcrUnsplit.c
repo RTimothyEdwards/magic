@@ -4,16 +4,16 @@
  *		* Raising rising nets and lowering falling nets.
  *		* Vacating tracks needed at the end of the channel.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -34,7 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 void gcrMakeRuns();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	gcrVacate --
@@ -120,7 +120,7 @@ gcrVacate(ch, column)
 	gcrMakeRuns(ch, column, list, count, FALSE);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	gcrLook --
@@ -254,7 +254,7 @@ gcrLook(ch, track, canCover)
     else
 	return(bestUp);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	gcrClassify --
@@ -333,7 +333,7 @@ gcrClassify(ch, count)
     gcrShellSort(result, *count, FALSE);
     return(result);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -371,7 +371,7 @@ gcrRealDist(col, i, dist)
     }
     return(abs(dist-last));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	gcrClass --
@@ -414,7 +414,7 @@ gcrClass(net, track)
     }
     return(dist);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	gcrMakeRuns --
@@ -507,7 +507,7 @@ gcrMakeRuns(ch, column, list, count, riseFall)
     }
     freeMagic((char *) list);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -542,7 +542,7 @@ gcrTryRun(ch, net, from, to, column)
     runTo	= EMPTY;
     firstFlag	= col[from].gcr_flags;
     covered	= (firstFlag & (GCRBLKM | GCRBLKP)) ? TRUE : FALSE;
-    sourceEnds  = (firstFlag & GCRTE) ? TRUE : FALSE; 
+    sourceEnds  = (firstFlag & GCRTE) ? TRUE : FALSE;
     for(i=from; (up && (i<=to)) || (!up && (i>=to)); i=i + ((from>to) ? -1 : 1))
     {
 	flag=col[i].gcr_flags;

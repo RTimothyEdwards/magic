@@ -2,16 +2,16 @@
  *
  *	Display the borders of the window, including the caption area.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -66,7 +66,7 @@ bool windSomeSeparateRedisplay = FALSE;
  *
  * windCheckOnlyWindow --
  *
- * Check if the TopWindow is the only window---if so, we shouldn't 
+ * Check if the TopWindow is the only window---if so, we shouldn't
  * generate bothersome messages about the cursor not being in a window,
  * because there is no confusion.
  *
@@ -99,7 +99,7 @@ windCheckOnlyWindow(MagWindow **w, WindClient client)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windFreeList --
@@ -120,7 +120,7 @@ windFreeList(llr)
 {
     LinkedRect *lr, *freelr;
 
-    lr = *llr; 
+    lr = *llr;
     while (lr != (LinkedRect *) NULL)
     {
 	freelr = lr;
@@ -132,7 +132,7 @@ windFreeList(llr)
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windReClip --
@@ -175,7 +175,7 @@ windReClip()
 	 * windows.
 	 */
 	if (WindPackageType == WIND_MAGIC_WINDOWS) {
-	    for (w2 = w1->w_prevWindow; w2 != (MagWindow *) NULL; 
+	    for (w2 = w1->w_prevWindow; w2 != (MagWindow *) NULL;
 		    w2 = w2->w_prevWindow)
 	    {
 		if ( GEO_TOUCH( &(w1->w_frameArea), &(w2->w_frameArea) ))
@@ -197,7 +197,7 @@ windReClip()
  * WindSeparateRedisplay --
  *
  *	Tells the window manager to record redisplay areas for this window
- *	separately -- probably because the window has its own separate 
+ *	separately -- probably because the window has its own separate
  *	coordinate system.  (Used on the Sun with Suntools or X.)
  *
  * Results:
@@ -218,7 +218,7 @@ WindSeparateRedisplay(w)
     w->w_redrawAreas = (ClientData) DBNewPlane((ClientData) TT_SPACE);
 }
 
- 
+
 /*
  * ----------------------------------------------------------------------------
  * WindIconChanged --
@@ -241,7 +241,7 @@ WindIconChanged(w)
     w->w_flags |= WIND_REDRAWICON;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindAreaChanged --
@@ -283,7 +283,7 @@ WindAreaChanged(w, area)
 	} else
 	    windCurRedrawPlane = windRedisplayArea;
     } else {
-	if (w->w_redrawAreas != (ClientData)NULL) 
+	if (w->w_redrawAreas != (ClientData)NULL)
 	    windCurRedrawPlane = (Plane *) w->w_redrawAreas;
 	else
 	    windCurRedrawPlane = windRedisplayArea;
@@ -310,7 +310,7 @@ WindAreaChanged(w, area)
      * hacks in WindUpdate and windBackgroundFunc, little slivers
      * get left lying around.
      */
-    
+
     biggerArea = *area;
     biggerArea.r_xtop += 1;
     biggerArea.r_ytop += 1;
@@ -351,7 +351,7 @@ windChangedFunc(area, next)
      * tile to mark what's to be redisplayed.  Otherwise,
      * clip against the next obscuring area.
      */
-    
+
     if (next == NULL)
 	DBPaintPlane(windCurRedrawPlane, area,
 	    DBStdPaintTbl(TT_ERROR_P, PL_DRC_ERROR), (PaintUndoInfo *) NULL);
@@ -362,7 +362,7 @@ windChangedFunc(area, next)
 
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windBarLocations --
@@ -390,7 +390,7 @@ windBarLocations(w, leftBar, botBar, up, down, right, left, zoom)
 			 * bar itself).
 			 */
     Rect *botBar;	/* The location of the bottom scrollbar area. */
-    Rect *up;		/* The location of the 'up arrow' icon above the 
+    Rect *up;		/* The location of the 'up arrow' icon above the
 			 * left scroll bar.
 			 */
     Rect *down;		/* The location of the 'down arrow' icon below the
@@ -408,7 +408,7 @@ windBarLocations(w, leftBar, botBar, up, down, right, left, zoom)
 {
     /* left scroll bar area */
     leftBar->r_xbot = w->w_allArea.r_xbot + THIN_LINE;
-    leftBar->r_ybot = w->w_allArea.r_ybot + THIN_LINE + WindScrollBarWidth + 
+    leftBar->r_ybot = w->w_allArea.r_ybot + THIN_LINE + WindScrollBarWidth +
 	BOT_BORDER(w);
     leftBar->r_xtop = leftBar->r_xbot + WindScrollBarWidth - GrPixelCorrect;
     leftBar->r_ytop = w->w_allArea.r_ytop - THIN_LINE - WindScrollBarWidth -
@@ -416,7 +416,7 @@ windBarLocations(w, leftBar, botBar, up, down, right, left, zoom)
 
     /* bottom scroll bar area */
     botBar->r_ybot = w->w_allArea.r_ybot + THIN_LINE;
-    botBar->r_xbot = w->w_allArea.r_xbot + THIN_LINE + WindScrollBarWidth + 
+    botBar->r_xbot = w->w_allArea.r_xbot + THIN_LINE + WindScrollBarWidth +
 	LEFT_BORDER(w);
     botBar->r_ytop = botBar->r_ybot + WindScrollBarWidth - GrPixelCorrect;
     botBar->r_xtop = w->w_allArea.r_xtop - THIN_LINE - WindScrollBarWidth -
@@ -443,7 +443,7 @@ windBarLocations(w, leftBar, botBar, up, down, right, left, zoom)
     zoom->r_ytop = zoom->r_ybot + WindScrollBarWidth - 1;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindDrawBorder --
@@ -484,7 +484,7 @@ WindDrawBorder(w, clip)
 	if (w->w_flags & WIND_BORDER)
 	    GrClipBox(&capr, STYLE_BORDER);
 	if ((w->w_flags & WIND_CAPTION) && (w->w_caption != NULL)) {
-	    (void) GrPutText(w->w_caption, STYLE_CAPTION, &capp, 
+	    (void) GrPutText(w->w_caption, STYLE_CAPTION, &capp,
 			GEO_CENTER, GR_TEXT_DEFAULT, FALSE, &capr,
 			(Rect *) NULL);
 	}
@@ -568,7 +568,7 @@ WindDrawBorder(w, clip)
 	r.r_ytop = leftBar.r_ybot - GrPixelCorrect;
 	if (GEO_TOUCH(&r, clip)) GrClipBox(&r, STYLE_BORDER);
 	r.r_ybot = leftBar.r_ytop + GrPixelCorrect;
-	r.r_ytop = leftBar.r_ytop + THIN_LINE; 
+	r.r_ytop = leftBar.r_ytop + THIN_LINE;
 	if (GEO_TOUCH(&r, clip)) GrClipBox(&r, STYLE_BORDER);
 
 
@@ -609,7 +609,7 @@ leave:
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindCaption --
@@ -647,7 +647,7 @@ WindCaption(w, caption)
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windNewView --
@@ -676,7 +676,7 @@ windNewView(w)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindRedisplay --
@@ -698,7 +698,7 @@ WindRedisplay(w)
 {
     WindAreaChanged(w, &(w->w_allArea));
 }
- 
+
 /*
  * ----------------------------------------------------------------------------
  * windRedrawIcon --
@@ -746,7 +746,7 @@ windRedrawIcon(w)
     GrUnlock(w);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindUpdate --
@@ -826,10 +826,10 @@ WindUpdate()
 		r.r_xtop += 1;
 		r.r_ytop += 1;
 		DBPaintPlane(windRedisplayArea, &r,
-		    DBStdEraseTbl(TT_ERROR_P, PL_DRC_ERROR), 
+		    DBStdEraseTbl(TT_ERROR_P, PL_DRC_ERROR),
 		    (PaintUndoInfo *) NULL);
 	    } else {
-		/* We are finished with this window's redisplay plane.  Clear 
+		/* We are finished with this window's redisplay plane.  Clear
 		 * any remaining redisplay tiles, as we may have interrupted
 		 * the redislay and don't want this stuff any more.
 		 */
@@ -852,11 +852,11 @@ WindUpdate()
 	 */
 	DBClearPaintPlane(windRedisplayArea);
     };
-    
+
     UndoEnable();
 
     /* Now give the clients a chance to update anything that they wish */
-    for (cr = windFirstClientRec; cr != (clientRec *) NULL; 
+    for (cr = windFirstClientRec; cr != (clientRec *) NULL;
 	    cr = cr->w_nextClient)
     {
 	if (cr->w_update != NULL)
@@ -872,7 +872,7 @@ WindUpdate()
     /* See comment in windows.h */
     if (WindAnotherUpdatePlease) WindUpdate();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -925,7 +925,7 @@ windUpdateFunc(tile, w)
     };
 
     /* Now call the client to redisplay the interior of the window. */
-    if (GEO_TOUCH(&(w->w_screenArea), &area)) 
+    if (GEO_TOUCH(&(w->w_screenArea), &area))
     {
 	Rect clientArea;
 
@@ -939,7 +939,7 @@ windUpdateFunc(tile, w)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

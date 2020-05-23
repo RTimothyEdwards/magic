@@ -62,14 +62,14 @@ private:
 	int high_;
 
 protected:
-		
+
 	virtual int_type showmanyc() const { return high_ - low_; }
-		
+
 	virtual streamsize xsgetn( char_type* buf, streamsize n ) {
 		int rd = n > (high_ - low_)? (high_ - low_) : n;
 		memcpy( buf, line_, rd );
 		low_ += rd;
-			
+
 		if ( rd < n ) {
 			low_ = high_ = 0;
 			free( line_ ); // free( NULL ) is a noop
@@ -80,10 +80,10 @@ protected:
 				rd += xsgetn( buf + rd, n - rd );
 			}
 		}
-			
-		return rd; 
+
+		return rd;
 	}
-		
+
 	virtual int_type underflow() {
 		if ( high_ == low_ ) {
 			low_ = high_ = 0;
@@ -94,17 +94,17 @@ protected:
 				if ( history_ && high_ ) add_history( line_ );
 			}
 		}
-			
+
 		if ( low_ < high_ ) return line_[low_];
 		else return eof;
 	}
-		
+
 	virtual int_type uflow() {
 		int_type c = underflow();
 		if ( c != eof ) ++low_;
 		return c;
 	}
-		
+
 	virtual int_type pbackfail( int_type c = eof ) {
 		if ( low_ > 0 )	--low_;
 		else if ( c != eof ) {
@@ -125,15 +125,15 @@ protected:
 
 		return not_eof;
 	}
- 		
+
 public:
-	readlinebuf( const char* prompt = NULL, bool history = true ) 
+	readlinebuf( const char* prompt = NULL, bool history = true )
 		: prompt_( prompt ), history_( history ),
 		  line_( NULL ), low_( 0 ), high_( 0 ) {
 		setbuf( 0, 0 );
 	}
-		
-		
+
+
 };
 
 #endif

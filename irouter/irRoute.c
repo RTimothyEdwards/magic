@@ -3,17 +3,17 @@
  *
  * Sets up route and calls maze router to do it.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1987, 1990 Michael H. Arnold, Walter S. Scott, and  *
  *     * the Regents of the University of California.                      *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -48,7 +48,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "irouter/irouter.h"
 #include "irouter/irInternal.h"
 
-/* --- Routines local to this file that are referenced before they are 
+/* --- Routines local to this file that are referenced before they are
  *     defined --- */
 List *irChooseEndPtLayers();
 
@@ -70,7 +70,7 @@ typedef struct labelSearchData
 #define LSR_NOTUNIQUE	20
 #define LSR_FOUND	30
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -89,7 +89,7 @@ typedef struct labelSearchData
  */
 
 int
-irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers, 
+irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
 		destType, argDestRect, argDestLabel, argDestLayers)
     MagWindow *cmdWindow;	/* window route command issued to */
     int startType;	/* how start is specified */
@@ -102,7 +102,7 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
     List *argDestLayers;	/* OK route layers to end route on */
 {
     CellUse *routeUse;		/* Toplevel cell visible during routing */
-    int expansionMask;		/* Subcell expansion modes to use during 
+    int expansionMask;		/* Subcell expansion modes to use during
 				 * routing */
     Point startPt; 		/* start and dest terminals */
     List *startLayers = NULL;
@@ -140,25 +140,25 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
 	    return mzResult;
 	}
 
-	/* Set expansion mask to window route cmd issued to.  Used 
+	/* Set expansion mask to window route cmd issued to.  Used
 	 * during searches.  Subcells are treated as expanded if expanded in
 	 * window cmd issued to.
 	 */
         expansionMask = ((DBWclientRec *)(window->w_clientData))->dbw_bitmask;
 
-	/* Set routeUse to rootuse of reference window - 
-	 *  everything "visible" in 
+	/* Set routeUse to rootuse of reference window -
+	 *  everything "visible" in
 	 *  the reference window is visible
-	 *  during routing.  
+	 *  during routing.
 	 * But resulting route
 	 * is painted into edit cell.  This distinction is important only
 	 * in the case of a subedit.  If the user subedits a cell, the
-	 * context of the parent(s) will guide the route, but the route 
+	 * context of the parent(s) will guide the route, but the route
 	 * will be painted into the edit cell.
 	 */
 	routeUse = (CellUse *) (window->w_surfaceID);
 
-	/* make sure cmd issued from window in which edit cell 
+	/* make sure cmd issued from window in which edit cell
 	 * is being edited */
 	if (!EditCellUse || EditRootDef != routeUse->cu_def)
 	{
@@ -174,8 +174,8 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
     {
 	Point irGetStartPoint();
 
-	startPt = irGetStartPoint(startType, 
-				  argStartPt, 
+	startPt = irGetStartPoint(startType,
+				  argStartPt,
 				  argStartLabel,
 				  &startLayer,
 				  routeUse);
@@ -197,19 +197,19 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
 	 */
 	{
 	    RouteLayer *rL;
-		
+
 	    for (rL = irRouteLayers; rL != NULL; rL = rL->rl_next)
 	    {
 		if(rL->rl_routeType.rt_active)
 		{
-		    /* set dest area for each selected tile 
+		    /* set dest area for each selected tile
 		     * of type connecting to rL
 		     */
 		    SelEnumPaint(
 				 &(DBConnectTbl[rL->rl_routeType.rt_tileType]),
 				 FALSE,	/* TRUE = restricted to edit cell */
 				 NULL, /* not used */
-				 irSelectedTileFunc, 
+				 irSelectedTileFunc,
 				 (ClientData *) rL /* type of destarea */
 				 );
 		}
@@ -226,14 +226,14 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
 
 		if(rL->rl_routeType.rt_active)
 		{
-		    /* set dest area for each selected tile 
+		    /* set dest area for each selected tile
 		     * of type connecting to rL
 		     */
 		    SelEnumPaint(
 				 &(DBConnectTbl[rL->rl_routeType.rt_tileType]),
 				 FALSE,	/* TRUE = restricted to edit cell */
 				 NULL, /* not used */
-				 irSelectedTileFunc, 
+				 irSelectedTileFunc,
 				 (ClientData *) rL /* type of destarea */
 				 );
 		}
@@ -246,8 +246,8 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
 	Rect irGetDestRect();
 	TileType destLayer = TT_SPACE;
 
-	destRect = irGetDestRect(destType, 
-				 argDestRect, 
+	destRect = irGetDestRect(destType,
+				 argDestRect,
 				 argDestLabel,
 				 &destLayer,
 				 routeUse);
@@ -279,7 +279,7 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
 	{
 	    /* no layer arg specified, permit all active route layers */
 	    RouteLayer *rL;
-	    
+
 	    for (rL = irRouteLayers; rL != NULL; rL = rL->rl_next)
 	    {
 		if(rL->rl_routeType.rt_active)
@@ -292,18 +292,18 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
 	/* permit only layers that are both specified and active */
 	{
 	    List *l;
-	    
+
 	    for(l=argDestLayers; l!=NULL; l=LIST_TAIL(l))
 	    {
 		RouteLayer *rL = (RouteLayer *) LIST_FIRST(l);
-		
+
 		if(rL->rl_routeType.rt_active)
 		{
 		    MZAddDest(&destRect,rL->rl_routeType.rt_tileType);
-		    
+
 		}
 	    }
-	}	    
+	}
     }
 
     if (startLayer != TT_SPACE)
@@ -331,8 +331,8 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
 	List *l;
 
 	startLayers = irChooseEndPtLayers(
-					  routeUse, 
-					  expansionMask, 
+					  routeUse,
+					  expansionMask,
 					  &startPt,
 					  argStartLayers,
 					  "start");
@@ -378,9 +378,9 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
     }
 
     /* paint route back into edit cell */
-    if (path) 
+    if (path)
     {
-	
+
 	RouteLayer *finalRL = path->rp_rLayer;
 	CellUse *resultUse;
 
@@ -432,7 +432,7 @@ irRoute(cmdWindow, startType, argStartPt, argStartLabel, argStartLayers,
 			   &DBAllButSpaceBits);
 	}
 
-	/* Notify dbwind module (for redisplay), and DRC module 
+	/* Notify dbwind module (for redisplay), and DRC module
 	 * of changed area */
 	{
 	    Rect changedArea;
@@ -476,7 +476,7 @@ abort:
     return mzResult;
 }
 
-
+
 /*
  * ---------------------------------------------------------------------
  *
@@ -496,7 +496,7 @@ abort:
 Point
 irGetStartPoint(startType, argStartPt, argStartLabel, startLayerPtr, routeUse)
     int startType;		/* how start is specified */
-    Point *argStartPt;		/* location to route from 
+    Point *argStartPt;		/* location to route from
 				 * (in edit cell coords) */
     char *argStartLabel;	/* label to route from */
     TileType *startLayerPtr;	/* layer type (returned value) */
@@ -528,7 +528,7 @@ irGetStartPoint(startType, argStartPt, argStartLabel, startLayerPtr, routeUse)
 		goto abort;
 	    }
 
-	    if (routeUse->cu_def  != 
+	    if (routeUse->cu_def  !=
 		((CellUse *)pointWindow->w_surfaceID)->cu_def)
 	    {
 		TxError("Can not use cursor as start:");
@@ -540,7 +540,7 @@ irGetStartPoint(startType, argStartPt, argStartLabel, startLayerPtr, routeUse)
 
 	case ST_LABEL:
 	/* label name given */
-	{   
+	{
 	    int irSelLabelsFunc();
 	    int irAllLabelsFunc();
 	    LabelSearchData lSD;
@@ -565,12 +565,12 @@ irGetStartPoint(startType, argStartPt, argStartLabel, startLayerPtr, routeUse)
 	    {
 
 		(void) DBSrLabelLoc(routeUse,
-				    argStartLabel, 
-				    irAllLabelsFunc, 
+				    argStartLabel,
+				    irAllLabelsFunc,
 				    (ClientData) &lSD);
 
 		if(SigInterruptPending) goto abort;
-	
+
 		if (lSD.lsd_result == LSR_NOTUNIQUE)
 		{
 		    TxError("Warning: Start label '%s' not unique.\n", argStartLabel);
@@ -604,7 +604,7 @@ abort:
     return startPt;
 }
 
-
+
 /*
  * ---------------------------------------------------------------------
  *
@@ -624,7 +624,7 @@ abort:
 Rect
 irGetDestRect(destType, argDestRect, argDestLabel, destLayerPtr, routeUse)
     int destType;		/* how dest is specified */
-    Rect *argDestRect;		/* location to route to 
+    Rect *argDestRect;		/* location to route to
 				 * (in edit cell coords) */
     char *argDestLabel;		/* label to route to */
     TileType *destLayerPtr;	/* layer type (returned value) */
@@ -644,7 +644,7 @@ irGetDestRect(destType, argDestRect, argDestLabel, destLayerPtr, routeUse)
 
 	case DT_LABEL:
 	/* dest rect given as label */
-	{   
+	{
 	    int irSelLabelsFunc();
 	    int irAllLabelsFunc();
 	    LabelSearchData lSD;
@@ -667,8 +667,8 @@ irGetDestRect(destType, argDestRect, argDestLabel, destLayerPtr, routeUse)
 	    {
 		/* No selected label matched, so search all labels */
 		(void) DBSrLabelLoc(routeUse,
-				    argDestLabel, 
-				    irAllLabelsFunc, 
+				    argDestLabel,
+				    irAllLabelsFunc,
 				    (ClientData) &lSD);
 		if(SigInterruptPending) goto abort;
 
@@ -730,7 +730,7 @@ abort:
     destRect.r_ytop = MINFINITY;
     return destRect;
 }
-
+
 /*
  * ---------------------------------------------------------------------
  *
@@ -780,7 +780,7 @@ irSelLabelsFunc(label, cellUse, transform, clientData)
     }
 }
 
-
+
 /*
  * ---------------------------------------------------------------------
  *
@@ -825,7 +825,7 @@ irAllLabelsFunc(rect, name, label, clientData)
     }
 }
 
-
+
 /*
  * ---------------------------------------------------------------------
  *
@@ -851,22 +851,22 @@ irSelectedTileFunc(rect, type, c)
 {
     RouteLayer *rL = (RouteLayer *) c;
     MZAddDest(rect, rL->rl_routeType.rt_tileType);
-    
+
     /* return 0 to continue search */
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * LayerInTouchingContact --
  *
- * A Predicate.  Checks whether the given routeLayer is a component of a 
+ * A Predicate.  Checks whether the given routeLayer is a component of a
  * contact type in touchingTypes.  Used by irChooseEndPtLayers below.
  *
  * Results:
- *	TRUE if the RouteLayer is a component of a contact type in 
+ *	TRUE if the RouteLayer is a component of a contact type in
  *	touchingTypes, else FALSE.
  *
  * Side effects:
@@ -892,7 +892,7 @@ LayerInTouchingContact(rL,touchingTypes)
     return(FALSE);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -969,7 +969,7 @@ irChooseEndPtLayers(routeUse,expansionMask,endPt,argLayers,endPtName)
     {
 	TileTypeBitMask touchingTypes;
 	RouteContact *rC;
-	
+
 	touchingTypes = TouchingTypes(routeUse, expansionMask, endPt);
 
         /* Make list of present and active contacts */
@@ -996,9 +996,9 @@ irChooseEndPtLayers(routeUse,expansionMask,endPt,argLayers,endPtName)
 	    MZPrintRLListNames(presentContactLayers);
 	}
 
-	    
+
 	/* make list of present layers that are not constituents of contacts
-	 * above.  If a contact is touching the endpt but one of 
+	 * above.  If a contact is touching the endpt but one of
 	 * its constituent layers in not active, the other constituent
 	 * layer is treated as a presentLayer.
 	 */
@@ -1046,11 +1046,11 @@ irChooseEndPtLayers(routeUse,expansionMask,endPt,argLayers,endPtName)
 	    ListDealloc(presentContacts);
 	    ListDealloc(presentContactLayers);
 
-	    return(presentLayers); 
+	    return(presentLayers);
 	}
 	else if(numLayers == 0 && numContacts == 1)
 	{
-	    /* Just one active contact under endpoint, 
+	    /* Just one active contact under endpoint,
 	     * return layers connecting to that contact.
 	     */
 	    List *l;
@@ -1084,13 +1084,13 @@ irChooseEndPtLayers(routeUse,expansionMask,endPt,argLayers,endPtName)
 	    for(l=presentContacts; l!=NULL; l=LIST_TAIL(l))
 	    {
 		rC=(RouteContact *) LIST_FIRST(l);
-		TxPrintf("  %s", 
+		TxPrintf("  %s",
 			DBTypeLongNameTbl[rC->rc_routeType.rt_tileType]);
 	    }
 	    for(l=presentLayers; l!=NULL; l=LIST_TAIL(l))
 	    {
 		rL=(RouteLayer *) LIST_FIRST(l);
-		TxPrintf("  %s", 
+		TxPrintf("  %s",
 			DBTypeLongNameTbl[rL->rl_routeType.rt_tileType]);
 	    }
 	    TxPrintf("\n");
@@ -1108,7 +1108,7 @@ irChooseEndPtLayers(routeUse,expansionMask,endPt,argLayers,endPtName)
 		    /* ask user */
 		    TxPrintf("Connect to %s? [yes] ",
 			    DBTypeLongNameTbl[rC->rc_routeType.rt_tileType]);
-		    if (TxGetLine(answer, sizeof answer) == NULL || 
+		    if (TxGetLine(answer, sizeof answer) == NULL ||
 			    answer[0] == '\0')
 			(void) strcpy(answer,"yes");
 
@@ -1148,7 +1148,7 @@ irChooseEndPtLayers(routeUse,expansionMask,endPt,argLayers,endPtName)
 		    /* Ask user */
 		    TxPrintf("Connect to %s? [yes] ",
 			    DBTypeLongNameTbl[rL->rl_routeType.rt_tileType]);
-		    if (TxGetLine(answer, sizeof answer) == NULL || 
+		    if (TxGetLine(answer, sizeof answer) == NULL ||
 			    answer[0] == '\0')
 			(void) strcpy(answer,"yes");
 

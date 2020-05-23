@@ -6,16 +6,16 @@
  * is done so that the channel can be routed in the easiest
  * direction.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -31,7 +31,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "gcr/gcr.h"
 #include "utils/malloc.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -145,7 +145,7 @@ GCRNewChannel(length, width)
 
     return (ch);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -195,7 +195,7 @@ GCRFreeChannel(ch)
     freeMagic((char *) ch->gcr_result);
     freeMagic((char *) ch);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -304,7 +304,7 @@ GCRFlipLeftRight(src, dst)
     dst->gcr_area = src->gcr_area;
     dst->gcr_type = src->gcr_type;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -404,7 +404,7 @@ GCRFlipXY(src, dst)
     bcopy((char *) src->gcr_iColsByRow, (char *) dst->gcr_iRowsByCol,
 		sizeof (short) * widWds);
 #endif	/* IDENSITY */
-    
+
 	/* Lastly, make a new transform */
     GeoTransTrans(&flipxy, &src->gcr_transform, &dst->gcr_transform);
     dst->gcr_origin = src->gcr_origin;
@@ -416,7 +416,7 @@ GCRFlipXY(src, dst)
 	default:		dst->gcr_type = CHAN_NORMAL; break;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

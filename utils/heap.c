@@ -3,16 +3,16 @@
  *
  *	Routines to create and manipulate heaps.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -84,7 +84,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 extern void heapify();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -154,7 +154,7 @@ HeapInitType(heap, size, descending, stringIds, keyType)
 		* sizeof (HeapEntry)));
     ASSERT(heap->he_list != NULL, "Malloc failed in HeapInit");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -190,7 +190,7 @@ HeapKill(heap, func)
     freeMagic((char *) heap->he_list);
     heap->he_list = NULL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -216,7 +216,7 @@ HeapFreeIdFunc(heap, i)
     if (heap->he_stringId)
 	freeMagic(heap->he_list[i].he_id);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -256,7 +256,7 @@ HeapRemoveTop(heap, entry)
     heapify(heap, 1);
     return entry;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -268,7 +268,7 @@ HeapRemoveTop(heap, entry)
  *	Pointer to the top heap element, or NULL if heap is empty.
  *
  * Side effects:
- *	If the heap has been touched, restore the heap property before 
+ *	If the heap has been touched, restore the heap property before
  *      returning the top element.
  *
  * ----------------------------------------------------------------------------
@@ -290,7 +290,7 @@ HeapLookAtTop(heap)
     heap->he_built = heap->he_used;
     return &heap->he_list[1];
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -348,7 +348,7 @@ heapify(heap, root)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -487,7 +487,7 @@ HeapAddDLong(heap, data, id)
 void
 HeapAddFloat(heap, data, id)
     Heap *heap;
-    float data; 
+    float data;
     char *id;
 {
     union heUnion pKey;
@@ -512,7 +512,7 @@ HeapAddDouble(heap, data, id)
     HeapAdd(heap, &pKey, id);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *

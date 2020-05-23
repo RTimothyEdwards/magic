@@ -3,17 +3,17 @@
  *
  * Routines for debugging.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -47,8 +47,8 @@ extern void mzPrintRT();
 extern void mzPrintRC();
 extern void mzPrintRP();
 extern void mzPrintPathHead();
- 
-
+
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -82,7 +82,7 @@ MZPrintRCListNames(l)
     TxPrintf("\n");
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -116,7 +116,7 @@ MZPrintRLListNames(l)
     TxPrintf("\n");
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -147,7 +147,7 @@ MZPrintRLs(rL)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -171,14 +171,14 @@ mzPrintRL(rL)
     List *cL;
 
     TxPrintf("ROUTE LAYER:\n");
-    mzPrintRT(&(rL->rl_routeType)); 
-    TxPrintf("\tplaneNum = %d (%s)\n",rL->rl_planeNum, 
+    mzPrintRT(&(rL->rl_routeType));
+    TxPrintf("\tplaneNum = %d (%s)\n",rL->rl_planeNum,
 	DBPlaneLongNameTbl[rL->rl_planeNum]);
 
     TxPrintf("\tcontactL = ");
     for (cL=rL->rl_contactL; cL!=NULL; cL=LIST_TAIL(cL))
     {
-	TxPrintf("%s", 
+	TxPrintf("%s",
 	    DBTypeLongNameTbl[
 		((RouteContact*) LIST_FIRST(cL))->
 		    rc_routeType.rt_tileType]);
@@ -193,7 +193,7 @@ mzPrintRL(rL)
 	       rc_rLayer1->rl_routeType.rt_tileType]);
     }
     TxPrintf("\n");
-     
+
     TxPrintf("\thCost = %d\n",
 	     rL->rl_hCost);
     TxPrintf("\tvCost = %d\n",
@@ -201,11 +201,11 @@ mzPrintRL(rL)
     TxPrintf("\tjogCost = %d\n",
 	     rL->rl_jogCost);
     TxPrintf("\thintCost = %d\n",rL->rl_hintCost);
-    
+
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -232,7 +232,7 @@ mzPrintRT(rT)
     TxPrintf("\t\ttileType = %s\n", DBTypeLongNameTbl[rT->rt_tileType]);
     TxPrintf("\t\tactive = %s\n", (rT->rt_active ? "TRUE" : "FALSE"));
     TxPrintf("\t\twidth = %d\n",rT->rt_width);
-    
+
     TxPrintf("\t\tspacing = ");
     for (i=0;i<TT_MAXTYPES;i++)
 	if(rT->rt_spacing[i]>=0)
@@ -257,13 +257,13 @@ mzPrintRT(rT)
 	TxPrintf("%s(%d) ","SUBCELL",rT->rt_bloatTop[TT_SUBCELL]);
     TxPrintf("\n");
 
-    TxPrintf("\t\tnext = %s\n", 
+    TxPrintf("\t\tnext = %s\n",
 	(rT->rt_next ? DBTypeLongNameTbl[rT->rt_next->rt_tileType] : "(nil)"));
 
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -293,7 +293,7 @@ MZPrintRCs(rC)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -317,9 +317,9 @@ mzPrintRC(rC)
     TxPrintf("ROUTE CONTACT:\n");
     mzPrintRT(&(rC->rc_routeType));
 
-    TxPrintf("\trLayer1 = %s\n", 
+    TxPrintf("\trLayer1 = %s\n",
 	DBTypeLongNameTbl[rC->rc_rLayer1->rl_routeType.rt_tileType]);
-    TxPrintf("\trLayer2 = %s\n", 
+    TxPrintf("\trLayer2 = %s\n",
 	DBTypeLongNameTbl[rC->rc_rLayer2->rl_routeType.rt_tileType]);
 
     TxPrintf("\tcost = %d\n",
@@ -329,7 +329,7 @@ mzPrintRC(rC)
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -358,7 +358,7 @@ mzPrintRPs(path)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -383,7 +383,7 @@ mzPrintRP(path)
     TxPrintf("  layer = %s",
 	DBTypeLongNameTbl[path->rp_rLayer->rl_routeType.rt_tileType]);
     TxPrintf(" entry = (%d, %d)", path->rp_entry.p_x, path->rp_entry.p_y);
-    TxPrintf(" cost = %.0f", 
+    TxPrintf(" cost = %.0f",
 	    							 (double)(path->rp_cost));
     TxPrintf(" extCode = { ");
     if (path->rp_extendCode & EC_RIGHT)
@@ -413,7 +413,7 @@ mzPrintRP(path)
 }
 
 /* mzPrintPathHead -- */
-void 
+void
 mzPrintPathHead(path)
     RoutePath *path;
 {
@@ -424,7 +424,7 @@ mzPrintPathHead(path)
     }
     else
     {
-	TxPrintf("  point=(%d,%d), layer=%s, orient = '%c'", 
+	TxPrintf("  point=(%d,%d), layer=%s, orient = '%c'",
 		 path->rp_entry.p_x,
 		 path->rp_entry.p_y,
 		 DBTypeLongNameTbl[path->rp_rLayer->rl_routeType.rt_tileType],
@@ -460,18 +460,18 @@ mzPrintPathHead(path)
     }
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
- * mzDumpTags -- 
+ * mzDumpTags --
  *
  * Dump tags on data tiles (for debugging).
  *
- * Results:  
+ * Results:
  *	None.
  *
- * Side effects:  
+ * Side effects:
  *	info written to file or via TxPrintf()
  *
  * ----------------------------------------------------------------------------
@@ -496,18 +496,18 @@ mzDumpTags(area)
     scx.scx_area = *area;
     scx.scx_trans = GeoIdentityTransform;
     scx.scx_use = mzRouteUse;
-    
+
     (void) DBTreeSrTiles(
-	&scx, 
-	&DBAllTypeBits, 
+	&scx,
+	&DBAllTypeBits,
 	0, 	/* look inside all subcells */
-	mzDumpTagsFunc, 
+	mzDumpTagsFunc,
 	(ClientData) NULL);
 
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -535,7 +535,7 @@ mzDumpTagsFunc(tile, cxp)
     /* if tile has no client data attached, skip it */
     if (tile->ti_client == (ClientData)CLIENTDEFAULT)
         return 0;
-	
+
     /* Get boundary of tile */
     TITORECT(tile, &r);
 
@@ -549,15 +549,15 @@ mzDumpTagsFunc(tile, cxp)
         for(l=(List *) (tile->ti_client); l!=NULL; l=LIST_TAIL(l))
         {
 	    Rect *rTerm = (Rect *) LIST_FIRST(l);
-	    
+
 	    TxPrintf("\tattached dest area (x: %d to %d, y: %d to %d)\n",
-		     rTerm->r_xbot, 
-		     rTerm->r_xtop, 
-		     rTerm->r_ybot, 
+		     rTerm->r_xbot,
+		     rTerm->r_xtop,
+		     rTerm->r_ybot,
 		     rTerm->r_ytop);
 	}
     }
-		
+
     /* continue search */
     return 0;
 }

@@ -5,16 +5,16 @@
  * Extract interactions between elements of an array.
  * The routines in this file are not re-entrant.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -71,7 +71,7 @@ void extArrayHardSearch();
 
 #if 0
 
-/* 
+/*
  * ----------------------------------------------------------------------------
  * extOutputGeneratedLabels ---
  *
@@ -178,7 +178,7 @@ extArray(parentUse, f)
     extOutputConns(&ha.ha_connHash, f);
     HashKill(&ha.ha_connHash);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -329,7 +329,7 @@ extArrayFunc(scx, ha)
 
     return (2);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -392,7 +392,7 @@ done:
     if (extArrayPrimary) extHierFreeOne(extArrayPrimary);
     extArrayPrimary = (ExtTree *) NULL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -466,7 +466,7 @@ extArrayPrimaryFunc(use, trans, x, y, ha)
 
     return (1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -633,7 +633,7 @@ extArrayInterFunc(use, trans, x, y, ha)
 	    extFindCoupling(cumDef, &ha->ha_cumFlat.et_coupleHash,
 			&ha->ha_clipArea);
 	extArrayAdjust(ha, oneFlat, extArrayPrimary);
-	if (ExtOptions & EXT_DOCOUPLING) 
+	if (ExtOptions & EXT_DOCOUPLING)
 	    extCapHashKill(&ha->ha_cumFlat.et_coupleHash);
     }
 
@@ -717,7 +717,7 @@ extArrayNodeName(np, ha, et1, et2)
 
     return ("(none)");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -855,7 +855,7 @@ done:
     *dstp = '\0';
     return (name);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -892,7 +892,7 @@ extArrayRange(dstp, lo, hi, prevRange, followRange)
     *dstp = '\0';
     return (dstp);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -976,7 +976,7 @@ extArrayHardNode(tp, pNum, def, ha)
 
     return ((LabRegion *) NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

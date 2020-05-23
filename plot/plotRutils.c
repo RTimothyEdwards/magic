@@ -7,16 +7,16 @@
  * the procedures draw stippled areas and raster-ize text strings
  * using fonts.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -103,7 +103,7 @@ static unsigned int singleBit[32] =
 RasterFont *PlotFontList;	/* Linked list of all fonts that have
 				 * been read in so far.
 				 */
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -135,7 +135,7 @@ PlotRastInit()
     }
 #endif /* WORDS_BIGENDIAN */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -173,7 +173,7 @@ PlotNewRaster(height, width)
 
     return new;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -200,7 +200,7 @@ PlotFreeRaster(raster)
     freeMagic((char *) raster->ras_bits);
     freeMagic((char *) raster);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -239,7 +239,7 @@ PlotClearRaster(raster, area)
      * to be cleared, and the rightmost word in the topmost line to
      * be cleared.
      */
-    
+
     left = raster->ras_bits +
 	((raster->ras_height-1) - area->r_ytop)*raster->ras_intsPerLine;
     right = left + area->r_xtop/32;
@@ -253,12 +253,12 @@ PlotClearRaster(raster, area)
      * words will be cleared.  There's a special case when the left
      * and right ends are in the same word.
      */
-    
+
     leftMask = rightBits[area->r_xbot&037];
     rightMask = leftBits[area->r_xtop&037];
     if (left == right)
 	leftMask &= rightMask;
-    
+
     /* Clear the area one raster line at a time, top to bottom. */
 
     for (line = area->r_ytop; line >= area->r_ybot; line -= 1)
@@ -273,7 +273,7 @@ PlotClearRaster(raster, area)
 
 	    for (cur = left+1; cur < right; cur += 1)
 		*cur = 0;
-	    
+
 	    /* Clear the rightmost word on this line. */
 
 	    *cur &= ~rightMask;
@@ -332,7 +332,7 @@ PlotPolyRaster(raster, tileArea, clipArea, dinfo, stipple)
     /* Ensure that we have not been clipped out of existence */
     if (area.r_xbot > area.r_xtop) return;
     if (area.r_ybot >= area.r_ytop) return;
-    
+
     rasleft = raster->ras_bits +
 	((raster->ras_height-1) - area.r_ytop)*raster->ras_intsPerLine;
     width = tileArea->r_xtop - tileArea->r_xbot;
@@ -368,7 +368,7 @@ PlotPolyRaster(raster, tileArea, clipArea, dinfo, stipple)
 	{
 	    if (dinfo & TT_DIRECTION)
 		locright = tileArea->r_xbot + (((tileArea->r_ytop - line) * width)
-			/ height);  
+			/ height);
 	    else
 		locright = tileArea->r_xbot + (((line - tileArea->r_ybot) * width)
 			/ height);
@@ -381,7 +381,7 @@ PlotPolyRaster(raster, tileArea, clipArea, dinfo, stipple)
 	rightMask = leftBits[locright & 037];
 	if (left == right)
 	    leftMask &= rightMask;
-    
+
 	curStipple = stipple[(-line)&017];
 
 	/* Fill the leftmost word on this line. */
@@ -394,7 +394,7 @@ PlotPolyRaster(raster, tileArea, clipArea, dinfo, stipple)
 
 	    for (cur = left+1; cur < right; cur += 1)
 		*cur |= curStipple;
-	    
+
 	    /* Fill the rightmost word on this line. */
 
 	    *cur |= curStipple & rightMask;
@@ -445,7 +445,7 @@ PlotFillRaster(raster, area, stipple)
      * to be filled, and the rightmost word in the topmost line to
      * be filled.
      */
-    
+
     left = raster->ras_bits +
 	((raster->ras_height-1) - area->r_ytop)*raster->ras_intsPerLine;
     right = left + area->r_xtop/32;
@@ -459,12 +459,12 @@ PlotFillRaster(raster, area, stipple)
      * words will be modified.  There's a special case when the left
      * and right ends are in the same word.
      */
-    
+
     leftMask = rightBits[area->r_xbot&037];
     rightMask = leftBits[area->r_xtop&037];
     if (left == right)
 	leftMask &= rightMask;
-    
+
     /* Process the stippled area one raster line at a time, top to bottom. */
 
     for (line = area->r_ytop; line >= area->r_ybot; line -= 1)
@@ -481,7 +481,7 @@ PlotFillRaster(raster, area, stipple)
 
 	    for (cur = left+1; cur < right; cur += 1)
 		*cur |= curStipple;
-	    
+
 	    /* Fill the rightmost word on this line. */
 
 	    *cur |= curStipple & rightMask;
@@ -491,7 +491,7 @@ PlotFillRaster(raster, area, stipple)
 	right += raster->ras_intsPerLine;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -529,7 +529,7 @@ PlotDumpRaster(raster, file)
     rasFileByteCount += count;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -595,7 +595,7 @@ PlotLoadFont(name)
 	new->fo_hdr.maxx = (PlotSwapShort(new->fo_hdr.maxx));
 	new->fo_hdr.maxy = (PlotSwapShort(new->fo_hdr.maxy));
 	new->fo_hdr.xtend = (PlotSwapShort(new->fo_hdr.xtend));
-    } 
+    }
     else if (new->fo_hdr.magic != 0436)
     {
 	TxError("Bad magic number in font file \"%s\".\n", name);
@@ -644,7 +644,7 @@ PlotLoadFont(name)
 	    TxError("Character 'd' in font '%s' is at addr 0x%x, bytes %d, width %d\n",
 		 new->fo_name, d->addr, d->nbytes, d->width);
 	    count = 0;
-	    for (fontcp = new->fo_bits + d->addr; 
+	    for (fontcp = new->fo_bits + d->addr;
 	      fontcp < new->fo_bits + d->addr + d->nbytes; fontcp++)
 	    {
 		int i;
@@ -673,7 +673,7 @@ PlotLoadFont(name)
     PlotFontList = new;
     return new;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -705,7 +705,7 @@ PlotTextSize(font, string, area)
     area->r_xbot = area->r_xtop = 0;
     area->r_ybot = area->r_ytop = 0;
     x = 0;
-    
+
     for ( ; *string != 0; string ++)
     {
 	if ((*string == ' ') || (*string == '\t'))
@@ -724,7 +724,7 @@ PlotTextSize(font, string, area)
     }
     area->r_ybot = -area->r_ybot;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -761,7 +761,7 @@ PlotRasterText(raster, clip, font, string, point)
 {
     int xOrig;			/* X-origin for current character. */
 
-    
+
     /* Outer loop:  process each character. */
 
     xOrig = point->p_x;
@@ -782,7 +782,7 @@ PlotRasterText(raster, clip, font, string, point)
 	 * time, from top to bottom.  Skip rows that are outside the
 	 * area of the raster.
 	 */
-	
+
 	d = &font->fo_chars[*string];
 	cBytesPerLine = (d->left + d->right + 7) >> 3;
 	for (i = 0; i < d->up + d->down; i++)
@@ -799,7 +799,7 @@ PlotRasterText(raster, clip, font, string, point)
 	     * to skip areas that fall outside the raster to the
 	     * left or right.
 	     */
-	    
+
 	    for (j = -d->left,
 		     charBitPtr = font->fo_bits + d->addr + i*cBytesPerLine;
 	         j < d->right;
@@ -823,7 +823,7 @@ PlotRasterText(raster, clip, font, string, point)
 		 * may be off the edge of the raster, in which case
 		 * it must be skipped.
 		 */
-		
+
 		if (x >= 0)
 		    *rPtr |= charBits >> (x & 0x7);
 		rPtr += 1;
@@ -838,7 +838,7 @@ PlotRasterText(raster, clip, font, string, point)
 	xOrig += d->width;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -871,7 +871,7 @@ PlotRastPoint(raster, x, y)
     raster->ras_bits[((y*raster->ras_intsPerLine) + (x>>5))]
 	    |= singleBit[x&037];
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -968,7 +968,7 @@ PlotRastLine(raster, src, dst)
     }
     PlotRastPoint(raster, x, y);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1039,7 +1039,7 @@ PlotRastFatLine(raster, src, dst, widen)
 	PlotRastLine(raster, &newSrc, &newDst);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1096,7 +1096,7 @@ PlotSwapShort(value)
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1105,13 +1105,13 @@ PlotSwapShort(value)
  * 	Dump a color preamble in vdmpc format for the color Versatec.  See
  *	the vdmpc(5) man page for details on the format.
  *
- *	Format:  
+ *	Format:
  *	    preamble is a 1K block
  *	    first word is 0xA5CF4DFB (a magic number)
  *	    second word gives the number of scan lines
  *	    third word gives width of the plot in pixels (must be multiple of 8)
  *	    rest of the words are zero
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -1121,7 +1121,7 @@ unsigned int VersHeader[VERSATEC_BLOCK/sizeof(unsigned int)] = {VERSATEC_MAGIC_W
 
 int
 PlotDumpColorPreamble(color, file, lines, columns)
-    VersatecColor color;	/* The color that the following raster will 
+    VersatecColor color;	/* The color that the following raster will
 				 * be printed in.
 				 */
     FILE *file;			/* file in which to place header */

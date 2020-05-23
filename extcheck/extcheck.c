@@ -9,16 +9,16 @@
  * Flattens the tree rooted at file.ext, reading in additional .ext
  * files as specified by "use" lines in file.ext.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -51,7 +51,7 @@ int ecNumNodeResists;
 
 /* Forward declarations */
 int nodeVisit(), devVisit(), capVisit(), resistVisit();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -105,7 +105,7 @@ main(argc, argv)
 	    ecNumResists, ecNumThreshResists);
     exit (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -129,7 +129,7 @@ main(argc, argv)
 int
 nodeVisit(node, res, cap)
     EFNode *node;
-    int res; 
+    int res;
     double cap;
 {
     cap = (cap + 500) / 1000;

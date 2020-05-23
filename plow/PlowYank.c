@@ -5,16 +5,16 @@
  * Incremental yanking, and painting the results back into the
  * original cell when done.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -72,7 +72,7 @@ extern CellUse *plowDummyUse;
 int plowYankUpdateCell();
 int plowYankUpdatePaint();
 int plowCheckLabel();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -156,7 +156,7 @@ plowYankMore(area, halo, back)
      *
      * Run without undo since we're mucking with yank cells.
      */
-    
+
 	/* Yank the larger area into the spare cell */
     UndoDisable();
     scx.scx_use = plowDummyUse;
@@ -199,7 +199,7 @@ plowYankMore(area, halo, back)
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -257,7 +257,7 @@ plowYankUpdateCell(yankChildUse)
     TxError("Couldn't find use %s in spare yank buffer\n", yankChildUse->cu_id);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -322,7 +322,7 @@ plowYankUpdatePaint(yankTp, pNum)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -420,7 +420,7 @@ plowCheckLabel(tile, lu)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -509,7 +509,7 @@ plowUpdateCell(use, origDef)
 			DBW_ALLWINDOWS, (TileTypeBitMask *) NULL);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -557,6 +557,6 @@ plowUpdatePaintTile(tile, ui)
 			&rtrans, DBWriteResultTbl[type], ui);
 	}
     }
-	
+
     return (0);
 }

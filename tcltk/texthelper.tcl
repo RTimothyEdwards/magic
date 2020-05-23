@@ -9,7 +9,7 @@ set textdefaults [dict create \
 	offset "0 0" \
 	port "0" \
 ]
-	
+
 proc magic::make_texthelper { mgrpath } {
    global typedflt typesticky typeport
    toplevel ${mgrpath}
@@ -64,7 +64,7 @@ proc magic::make_texthelper { mgrpath } {
 
    menubutton ${mgrpath}.just.btn -text "default" -menu ${mgrpath}.just.btn.menu
    menubutton ${mgrpath}.font.btn -text "default" -menu ${mgrpath}.font.btn.menu
-   
+
    button ${mgrpath}.buttonbar.cancel -text "Cancel" -command "wm withdraw ${mgrpath}"
    button ${mgrpath}.buttonbar.apply -text "Apply"
    button ${mgrpath}.buttonbar.okay -text "Okay"
@@ -361,7 +361,7 @@ proc magic::update_texthelper {} {
    # Reduce list to what's editable
    set slist []
    foreach sitem $splist {
-      set scell [lindex $sitem 2] 
+      set scell [lindex $sitem 2]
       if {$scell == {}} {
          lappend slist $sitem
       }

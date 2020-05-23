@@ -6,16 +6,16 @@
  * procedures for setting, examining, and testing debugging flags.
  * Also measurement code.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid $Header: /usr/cvsroot/magic-8.0/debug/debug.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
@@ -41,7 +41,7 @@ struct debugFlag
 };
 
 /* A histogram counts of the number of data items in each of
- * a number of ranges.  It is defined by a low value, a bin size, and 
+ * a number of ranges.  It is defined by a low value, a bin size, and
  * the number of bins.  Items falling in the range hi_lo..hi_lo+n*hi_step-1
  * go into hi_data[n], for n=1 to the number of bins.  Values outside the
  * range are stored in locations 0 and n+1.

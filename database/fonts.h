@@ -26,7 +26,7 @@ typedef struct fontchar
     Point       *fc_points;
     FontCharPtr  fc_next;
 } FontChar;
- 
+
 typedef struct
 {
     char     *mf_name;

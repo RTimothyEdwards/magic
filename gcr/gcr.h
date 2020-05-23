@@ -3,16 +3,16 @@
  *
  * Routines to implement a modified version of Rivest's Greedy Router.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  *
@@ -210,7 +210,7 @@ typedef struct chan
     ClientData	 gcr_client;	/* For hire */
     int		 gcr_orient;	/* Channel orientation */
 } GCRChannel;
-
+
 /* Macros that look like procedures */
 
 /************************************************************************
@@ -300,7 +300,7 @@ typedef struct chan
 
     /* The metal maximizer sets these bits */
 #define GCRVM   0x0800	/* 1 if vertical poly changed to metal */
-#define GCRXX   0x1000	/* 1 if via not deleted */               
+#define GCRXX   0x1000	/* 1 if via not deleted */
 
     /* The hazard generation code uses these bits */
 #define GCRVR	0x2000	/* 1 if hazard to nets entering from the right */

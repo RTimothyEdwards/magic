@@ -2,16 +2,16 @@
  *
  *	Top level routing code, and glue that doesn't belong elsewhere.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -57,7 +57,7 @@ void RtrMilestoneDone();
  * Set by the "route origin" command.
  */
 Point RtrOrigin = { 0, 0 };
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -143,7 +143,7 @@ done:
     /* Clean up global routing information */
     NLFree(&netList);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -206,7 +206,7 @@ rtrMakeChannel(tile, clipBox)
 
     return(0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -249,7 +249,7 @@ RtrRunStats()
     TxFlush();
 }
 
-void 
+void
 RtrMilestoneStart(event)
     char *event;
 {

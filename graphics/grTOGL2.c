@@ -27,7 +27,7 @@ extern   char	     *DBWStyleType;
 extern   GLXContext  grXcontext;
 extern   Display     *grXdpy;
 
-
+
 /*---------------------------------------------------------
  * GrOGLSetCMap --
  *
@@ -90,7 +90,7 @@ grtoglDrawLines(lines, nb)
 
 #endif
 }
-
+
 /*---------------------------------------------------------
  * grtoglDrawLine:
  *	This routine draws a line.
@@ -130,7 +130,7 @@ grtoglDrawLine (x1, y1, x2, y2)
 	grtoglNbDiagonal++;
     }
 }
-
+
 /*---------------------------------------------------------
  * grtoglFillRects:
  *	This routine draws a bunch of solid rectangles.
@@ -165,7 +165,7 @@ grtoglFillRects(rects, nb)
 
 #endif
 }
-
+
 /*---------------------------------------------------------
  * grtoglFillRect:
  *	This routine draws a solid rectangle.

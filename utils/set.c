@@ -4,16 +4,16 @@
  *      parameter values.  Error messages are printed for invalid
  *      input strings.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -32,14 +32,14 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "utils/list.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * SetNoisy<type> --
  *
  * Set parameter and print current value.
- * 
+ *
  * Results:
  *	None.  SetNoisyBool() now returns -2 on error, -1 ambiguous
  *	(but what's ambiguous about true/false??), 0 on success.  All
@@ -55,7 +55,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *
  *      If file is null, parameter value is written to magic text window via
  *      TxPrintf
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -116,14 +116,14 @@ SetNoisyBool(parm,valueS,file)
 	"off",		FALSE,
 	0
     };
-    
+
     /* If value not null, set parm */
     if (valueS)
     {
 	/* Lookup value string in boolString table */
 	which = LookupStruct(
-	    valueS, 
-	    (LookupTable *) boolStrings, 
+	    valueS,
+	    (LookupTable *) boolStrings,
 	    sizeof boolStrings[0]);
 
         /* Process result of lookup */
@@ -136,11 +136,11 @@ SetNoisyBool(parm,valueS,file)
 	else if (which == -1)
 	{
 	    /* ambiguous boolean value - complain */
-	    TxError("Ambiguous boolean value: \"%s\"\n", 
+	    TxError("Ambiguous boolean value: \"%s\"\n",
 		valueS);
 	    result = -1;
 	}
-	else 
+	else
 	{
 	    TxError("Unrecognized boolean value: \"%s\"\n", valueS);
 	    TxError("Valid values are:  ");
@@ -150,7 +150,7 @@ SetNoisyBool(parm,valueS,file)
 	    result = -2;
 	}
     }
-    
+
     /* Print parm value */
     if(file)
 	fprintf(file,"%8.8s ", *parm ? "YES" : "NO");
@@ -182,7 +182,7 @@ SetNoisyDI(parm,valueS,file)
 	    *parm = (dlong)atoi(valueS);
 	}
     }
-    
+
     /* Print parm value */
     {
 	if(file)

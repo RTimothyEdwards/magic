@@ -2,20 +2,20 @@
  * mzSearch.c --
  *
  * Search strategy for maze router.
- * Low level of Maze router (finding next interesting point) is done in 
- * mzSearchRight.c etc. 
+ * Low level of Maze router (finding next interesting point) is done in
+ * mzSearchRight.c etc.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * SEARCH STRATEGY:
@@ -23,7 +23,7 @@
  * Partial paths are expanded one interesting point at a time - that is a
  * path is expanded to the next interesting point left, right, up and down
  * and vias to neighboring layers are considered, then a new (though possibly
- * one of the extensions just created) path is selected for expansion.  
+ * one of the extensions just created) path is selected for expansion.
  *
  * The "search strategy" employed determines which partial-path is
  * chosen for exansion at each stage.
@@ -33,7 +33,7 @@
  * are divided into three groups: those farther from the goal than the
  * window, those within the window, and those nearer to the goal than the
  * window.  The window begins at the start point and is slowly shifted
- * toward the goal over time. Normally the partial-path of least 
+ * toward the goal over time. Normally the partial-path of least
  * estimated-total-cost WITHIN
  * the window is chosen for expansion, although a further path (i.e. one
  * beyond the window) that has exceptionally low estimated-total-cost is
@@ -55,39 +55,39 @@
  * much better.
  *
  * The search strategy is implemented with three heaps and four stacks:
- * 
+ *
  * mzMaxToGoHeap - keeps partial paths NEARER the goal than the window.
  *                 these paths are not yet eligible for expansion.
  *                 Whenever the window is moved, the top elements of
  *                 this heap (i.e. those furthest from the goal) are
  *                 moved onto the mzMinCostHeap (i.e. into the window).
  *
- * mzMinCostHeap - keeps partial paths inside the window.  the top of this 
+ * mzMinCostHeap - keeps partial paths inside the window.  the top of this
  *                 heap, i.e. the least cost path inside
  *                 the window, is compared with the least (penalized) cost of
  *                 the paths beyond the window, and the lesser of these
  *	           two is chosen for expansion.
  *
- * mzMinAdjCostHeap - keeps partial paths that are further from the goal 
- *                    than the 
+ * mzMinAdjCostHeap - keeps partial paths that are further from the goal
+ *                    than the
  *                    window.  These paths are sorted by adjusted cost.
  *                    Adjusted cost is estimated-total-cost plus a penalty
  *                    proportial to the distance of the path from the window.
  *                    The ordering of the paths is independent of the current
  *                    window position - so a "reference position" is used to
- *                    avoid recomputing adjusted costs for these paths 
+ *                    avoid recomputing adjusted costs for these paths
  *                    everytime the window moves.  The adjusted cost of the
  *                    top (least cost) element is normalized to the current
  *                    window position before comparison with the least cost
  *                    path on the mzMinCostHeap.  The idea behind the
  *                    mzMinAdjCostHeap is
  *                    to discourage searching of paths beyond the window, but
- *                    to do so in a gentle and flexible way, so that 
+ *                    to do so in a gentle and flexible way, so that
  *                    behaviour will degrade gracefully under unusual
  *                    circumstances rather than fail catastrophically.
  *                    For example, if the window moves too fast and all the
  *                    reasonable paths are left behind, the search will
- *                    degenerate to a simple cost-based search biased towards 
+ *                    degenerate to a simple cost-based search biased towards
  *                    paths nearer to completion - a startegy that is
  *                    adequate in many situations.
  *
@@ -109,7 +109,7 @@
  * expanded until the estimated cost increases.
  *
  * Next the straight stack is processed.  The purpose of this stack is to
- * consider straight extensions in all directions to some given minimum 
+ * consider straight extensions in all directions to some given minimum
  * distance.
  *
  * Next the bloom stack itself is processed.  All extensions derived from
@@ -117,7 +117,7 @@
  * is exceeded (in practice a small increment is used, thus the local focus
  * is only extended in straight lines, and then downhill).
  *
- * If all the stacks are empty, a new focus is pickd from the heaps and 
+ * If all the stacks are empty, a new focus is pickd from the heaps and
  * the bloom stack is initialized with it.
  *
  */
@@ -154,7 +154,7 @@ extern void mzBloomInit();
 extern void mzMakeStatReport();
 extern void mzExtendPath(RoutePath *);
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -202,7 +202,7 @@ mzSearch(mzResult)
 	TxPrintf("\tmzBloomDeltaCost = %.0f\n", (double)(mzBloomDeltaCost));
     }
 
-    while (morePartialPaths && 
+    while (morePartialPaths &&
 	   !windowSweepDoneAndCompletePathFound &&
 	   !bloomLimitHit &&
 	   !SigInterruptPending)
@@ -220,18 +220,18 @@ mzSearch(mzResult)
 	{
 	    mzPathSource = SOURCE_WALK;
 	    path = (RoutePath *) ListPop(&mzWalkStack);
-	 	
+
 	    if (DebugIsSet(mzDebugID, mzDebMaze))
 	    {
 		TxPrintf("POPPING TOP OF WALK STACK for extension.\n");
 		mzPrintPathHead(path);
 	    }
-	}   
+	}
 	else if(mzDownHillStack != NULL)
 	{
 	    mzPathSource = SOURCE_DOWNHILL;
 	    path = (RoutePath *) ListPop(&mzDownHillStack);
-	
+
 	    if (DebugIsSet(mzDebugID, mzDebMaze))
 	    {
 		TxPrintf("POPPING TOP OF DOWNHILL STACK for extension.\n");
@@ -242,7 +242,7 @@ mzSearch(mzResult)
 	{
 	    mzPathSource = SOURCE_STRAIGHT;
 	    path = (RoutePath *) ListPop(&mzStraightStack);
-	
+
 	    if (DebugIsSet(mzDebugID, mzDebMaze))
 	    {
 		TxPrintf("POPPING TOP OF STRAIGHT STACK for extension.\n");
@@ -265,7 +265,7 @@ mzSearch(mzResult)
 	if(path)
 	{
 	    /* Check hashtable to see if path already obsolete,
-	     * (i.e. cheaper path to its enpt found.) 
+	     * (i.e. cheaper path to its enpt found.)
 	     */
 	    {
 		HashEntry *he;
@@ -290,8 +290,8 @@ mzSearch(mzResult)
 		    {
 			TxPrintf("HASH LOOKUP reveals better path, REJECT path.\n");
 		    }
-		    
-		    /* better path to this pt already exists, 
+
+		    /* better path to this pt already exists,
 		     * skip to next path
 		     */
 		    continue;
@@ -336,7 +336,7 @@ mzSearch(mzResult)
 		    }
 		}
 	    }
-	
+
 	    /* DEBUG - if single-stepping, print data, show path end visually,
 	     *	and pause.
 	     */
@@ -352,7 +352,7 @@ mzSearch(mzResult)
 
 		    /* path # */
 		    TxPrintf("READY TO EXTEND PATH ");
-		    TxPrintf("(blooms: %d, points-processed: %d):\n", 
+		    TxPrintf("(blooms: %d, points-processed: %d):\n",
 			     mzNumBlooms,
 			     mzNumPaths);
 		    mzPrintPathHead(path);
@@ -363,7 +363,7 @@ mzSearch(mzResult)
 		    i++;
 		    TxPrintf("  (%d segments in path)\n", i);
 		}
-	    
+
 		/* move box to path end-point */
 		if(ToolGetBox(&boxDef,&box))
 		{
@@ -397,7 +397,7 @@ mzSearch(mzResult)
 	{
 	    HeapEntry maxToGoTopBuf, minCostTopBuf, buf;
 	    HeapEntry *maxToGoTop, *minCostTop, *minAdjCostTop;
-	    
+
 	    if (DebugIsSet(mzDebugID, mzDebMaze))
 	    {
 		TxPrintf("BLOOM STACK EMPTY.  ");
@@ -405,7 +405,7 @@ mzSearch(mzResult)
 	    }
 
 	    /* If the bloom limit has been exceeded, stop searching */
-	    if(mzBloomLimit >0 && 
+	    if(mzBloomLimit >0 &&
 	       mzNumBlooms > mzBloomLimit)
 	    {
 		if(mzVerbosity>=VERB_BRIEF)
@@ -467,18 +467,18 @@ mzSearch(mzResult)
 		continue;
 	    }
 
-	    /* Move points that meet the minTogo threshold to window 
+	    /* Move points that meet the minTogo threshold to window
 	    * (Points are moved from the MaxToGo heap to the minCost heap)
 	    */
 	    {
 		if (DebugIsSet(mzDebugID, mzDebMaze))
 		{
-		    TxPrintf("Moving paths into window "); 
+		    TxPrintf("Moving paths into window ");
 		    TxPrintf("(maxTogoHeap -> minCostHeap):  \n");
 		}
 
 		while((maxToGoTop=HeapRemoveTop(&mzMaxToGoHeap,
-			  &maxToGoTopBuf)) != NULL && 
+			  &maxToGoTopBuf)) != NULL &&
 		      (maxToGoTop->he_union.hu_dlong >= mzWindowMinToGo))
 		{
 		    if (DebugIsSet(mzDebugID, mzDebMaze))
@@ -486,14 +486,14 @@ mzSearch(mzResult)
 			mzPrintPathHead((RoutePath*)(maxToGoTop->he_id));
 		    }
 
-		    HeapAddDLong(&mzMinCostHeap, 
-			      ((RoutePath *)(maxToGoTop->he_id))->rp_cost, 
+		    HeapAddDLong(&mzMinCostHeap,
+			      ((RoutePath *)(maxToGoTop->he_id))->rp_cost,
 			      (char *) (maxToGoTop->he_id));
 		}
 		if(maxToGoTop!=NULL)
 		{
 		    HeapAddDLong(&mzMaxToGoHeap,
-			      maxToGoTop->he_union.hu_dlong, 
+			      maxToGoTop->he_union.hu_dlong,
 			      (char *) (maxToGoTop->he_id));
 		}
 	    }
@@ -536,19 +536,19 @@ mzSearch(mzResult)
 		if(minCostTop!=NULL)
 		{
 		    HeapAddDLong(&mzMinCostHeap,
-			      minCostTop->he_union.hu_dlong, 
+			      minCostTop->he_union.hu_dlong,
 			      (char *) (minCostTop->he_id));
 		}
 	    }
 
-	    /* Peek at tops of heaps 
+	    /* Peek at tops of heaps
 	     * (equal cost elements might have got shuffled above when
 	     * we placed the last poped element back on the heap.)
 	     */
 	    minAdjCostTop = HeapLookAtTop(&mzMinAdjCostHeap);
 	    maxToGoTop = HeapLookAtTop(&mzMaxToGoHeap);
 	    minCostTop = HeapLookAtTop(&mzMinCostHeap);
-	   
+
 	    /* Print tops of maxToGo, minCost and minAdjCost heaps */
 	    if (DebugIsSet(mzDebugID, mzDebMaze))
 	    {
@@ -573,7 +573,7 @@ mzSearch(mzResult)
 		TxPrintf("Min adjcost top:\n");
 		if(minAdjCostTop)
 		{
-		    TxPrintf("  Heap-key adjCost:  %.0f\n", 
+		    TxPrintf("  Heap-key adjCost:  %.0f\n",
 			     (double)(minAdjCostTop->he_union.hu_dlong));
 		}
 		else
@@ -599,7 +599,7 @@ mzSearch(mzResult)
 		adjCost = adjCost >> mzPenalty.rf_nExponent;
 		adjCost += cost;
 		if (DebugIsSet(mzDebugID, mzDebMaze))
-		{		
+		{
 		    TxPrintf("WINDOW-CORRECTED ADJCOST:  %.0f\n",
 			 	(double)(adjCost));
 		}
@@ -649,7 +649,7 @@ mzSearch(mzResult)
 		mzNumOutsideBlooms++;
 	    }
 	    else
-	    /* minCost and minAdjCost heaps empty, 
+	    /* minCost and minAdjCost heaps empty,
 	     * bloom from top of TOGO heap */
 	    {
 		if(maxToGoTop)
@@ -708,7 +708,7 @@ mzSearch(mzResult)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -794,7 +794,7 @@ mzExtendPath(path)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -816,7 +816,7 @@ mzExtendViaLRContacts(path)
     RoutePath *path;
 {
     Point p = path->rp_entry, *lastCpos = NULL;
-    RouteLayer *rLayer = path->rp_rLayer; 
+    RouteLayer *rLayer = path->rp_rLayer;
     RouteContact *rC;
     List *cL;
     RouteLayer *newRLayer;
@@ -1013,7 +1013,7 @@ mzExtendViaUDContacts(path)
     RoutePath *path;
 {
     Point p = path->rp_entry, *lastCpos = NULL;
-    RouteLayer *rLayer = path->rp_rLayer; 
+    RouteLayer *rLayer = path->rp_rLayer;
     RouteContact *rC;
     List *cL;
     RouteLayer *newRLayer;
@@ -1188,13 +1188,13 @@ mzExtendViaUDContacts(path)
 
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * mzAddPoint --
  *
- * Process interesting point.  If point within bounds and not redundant, 
+ * Process interesting point.  If point within bounds and not redundant,
  * link to previous path, update cost, and add to heap.
  *
  *
@@ -1211,7 +1211,7 @@ mzAddPoint(path, p, rLayer, orient, extendCode, costptr)
     RoutePath *path;	/* path that new point extends */
     Point *p;		/* new point */
     RouteLayer *rLayer;	/* Route Layer of new point */
-    int orient;		/* 'H' = endpt of hor seg, 'V' = endpt of vert seg, 
+    int orient;		/* 'H' = endpt of hor seg, 'V' = endpt of vert seg,
 			 * 'O' = LR contact, 'X' = UD contact,
 			 * 'B' = first point in path and blocked
 			 */
@@ -1253,7 +1253,7 @@ mzAddPoint(path, p, rLayer, orient, extendCode, costptr)
 
 	/* Add jogcost if appropriate */
 
-	if (path != NULL && 
+	if (path != NULL &&
 	   path->rp_rLayer == rLayer &&
 	   path->rp_orient != 'O' && path->rp_orient != 'X' &&
 	   path->rp_orient != orient)
@@ -1261,7 +1261,7 @@ mzAddPoint(path, p, rLayer, orient, extendCode, costptr)
 	    cost += rLayer->rl_jogCost;
 	}
 
-	/* Add estimated total cost prior to new point, 
+	/* Add estimated total cost prior to new point,
 	 * (or cost so far in the case of initial paths).
 	 */
 	if (path != NULL)
@@ -1286,7 +1286,7 @@ mzAddPoint(path, p, rLayer, orient, extendCode, costptr)
     pk.pk_orient = orient;
 #if SIZEOF_VOID_P == 8
     pk.pk_buffer = 0;       /* Otherwise the hash function screws up */
-#endif          
+#endif
 
     he = HashFind(&mzPointHash, (char *) &pk);
     hashedPath = (RoutePath *) HashGetValue(he);
@@ -1338,13 +1338,13 @@ mzAddPoint(path, p, rLayer, orient, extendCode, costptr)
 	    TxPrintf("PATH COMPLETE (WALKED IN).  Add to complete heap.\n");
 	}
 
-	HeapAddDLong(&mzMinCostCompleteHeap, newPath->rp_cost, 
+	HeapAddDLong(&mzMinCostCompleteHeap, newPath->rp_cost,
 		  (char *) newPath);
 
 	/* compute stats and make completed path report */
-	{		    
+	{
 	    mzNumComplete++;
-	    
+
 	    if(mzVerbosity>=VERB_STATS)
 	    {
 		dlong cost, excessCost;
@@ -1353,7 +1353,7 @@ mzAddPoint(path, p, rLayer, orient, extendCode, costptr)
 		mzMakeStatReport();
 
 		TxPrintf("PATH #%d  ", mzNumComplete);
-		
+
 
 		cost = newPath->rp_cost;
 		TxPrintf("cst:%.0f, ", (double)(newPath->rp_cost));
@@ -1366,7 +1366,7 @@ mzAddPoint(path, p, rLayer, orient, extendCode, costptr)
 		    excessCost = cost - mzInitialEstimate;
 		    excessPercent = 100.0 * (double)(excessCost)/
 														    (double)(mzInitialEstimate);
-		    
+
 		    TxPrintf("overrun: %.0f%%", excessPercent);
 		}
 
@@ -1441,7 +1441,7 @@ mzAddPoint(path, p, rLayer, orient, extendCode, costptr)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1490,7 +1490,7 @@ mzBloomInit(path)
 void
 mzMakeStatReport()
 {
-    
+
     /* if we aren't being verbose, skip this */
     if(mzVerbosity<VERB_STATS) 	return;
 
@@ -1511,7 +1511,7 @@ mzMakeStatReport()
 
     TxPrintf("(%.0f/icst)",
 	     (double)mzBlockGenArea/(double)(mzInitialEstimate));
-    
+
     TxPrintf("\n");
     return;
 }

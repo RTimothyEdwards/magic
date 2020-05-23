@@ -3,16 +3,16 @@
  *
  * Global signal router.  Code to do crossing placement.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *		      Lawrence Livermore National Laboratory
  */
@@ -60,7 +60,7 @@ GlPoint *glCrossAdjust();
 int glCrossChoose();
 void glCrossTakePin();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -141,7 +141,7 @@ glCrossMark(rootUse, path, pNetId)
 	glCrossTakePin(rootUse, dstPin, markNetId);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -212,7 +212,7 @@ glCrossTakePin(rootUse, pin, netid)
 	else TxError("%s\n", c);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -242,7 +242,7 @@ glCrossUnreserve(net)
     NLTermLoc *loc;
     NLTerm *term;
     GCRPin *pin;
- 
+
     /* De-reserve the pins taken by each terminal location in this net */
     for (term = net->nnet_terms; term; term = term->nterm_next)
         for (loc = term->nterm_locs; loc; loc = loc->nloc_next)
@@ -253,7 +253,7 @@ glCrossUnreserve(net)
 	    pin->gcr_pSeg = 0;
         }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -343,7 +343,7 @@ glCrossEnum(inPt, tp, func, cdata)
      *
      *	lo' = pin with least coordinate >= lo
      *	hi' = pin with greatest coordinate < hi
-     * 
+     *
      * The range of pins shared should be non-NULL; if it's not,
      * something is wrong (most likely the channel is too small).
      * The pins range from lo to hi, inclusive, and should not
@@ -430,7 +430,7 @@ glCrossEnum(inPt, tp, func, cdata)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -548,7 +548,7 @@ glCrossAdjust(lookAhead, path)
 
     return newPath;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -609,7 +609,7 @@ glCrossChoose(newRest, tp, pin, newPath)
     /* Keep looking at more crossing points */
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -760,7 +760,7 @@ glCrossCost(lookAhead, exitPt, entryPt)
 
     return cost;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

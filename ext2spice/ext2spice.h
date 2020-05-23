@@ -79,9 +79,9 @@ extern int	 esSpiceDevsMerged;
 extern devMerge *devMergeList;
 
 /*
- * The following hash table and associated functions are used only if 
- * the format is hspice, to keep the translation between the hierarchical 
- * prefix of a node and the x num that we use to output valid hspice 
+ * The following hash table and associated functions are used only if
+ * the format is hspice, to keep the translation between the hierarchical
+ * prefix of a node and the x num that we use to output valid hspice
  * which also are meaningful.
  */
 extern HashTable subcktNameTable ; /* the hash table itself */
@@ -100,9 +100,9 @@ extern fetInfoList esFetInfo[MAXDEVTYPES];
                                 names even of the most complicated design */
 
 /* Node clients for figuring out areas and perimeters of sources and drains */
-typedef struct { 
-	long	_duml:MAXDEVTYPES; 
-} _dum; /* if you get an error here you should change 
+typedef struct {
+	long	_duml:MAXDEVTYPES;
+} _dum; /* if you get an error here you should change
            the data structures and visitMask */
 
 typedef union {
@@ -133,7 +133,7 @@ typedef struct {
 
 /*
  * Used to mark the nodes which are connected to devs. initMask  is set to
- * DEV_CONNECT_MASK only when we are in visitDevs 
+ * DEV_CONNECT_MASK only when we are in visitDevs
  */
 #define	DEV_CONNECT_MASK	((unsigned long)1<<(sizeof(long)*BITSPERCHAR-1))
 
@@ -152,7 +152,7 @@ typedef struct {
 }
 
 
-
+
 /* attributes controlling the Area/Perimeter extraction of dev terminals */
 #define ATTR_FLATAP	"*[Ee][Xx][Tt]:[Aa][Pp][Ff]*"
 #define ATTR_HIERAP	"*[Ee][Xx][Tt]:[Aa][Pp][Hh]*"
@@ -169,11 +169,11 @@ typedef struct {
 #define PARALLEL        1
 #define ANTIPARALLEL    2
 
-/* 
+/*
  *---------------------------------------------------------
- * Variables used for merging parallel devs       
- * The merging of devs is based on the fact that spcdevVisit 
- * visits the devs in the same order all the time so the 
+ * Variables used for merging parallel devs
+ * The merging of devs is based on the fact that spcdevVisit
+ * visits the devs in the same order all the time so the
  * value of esFMult[i] keeps the multiplier for the ith dev
  *---------------------------------------------------------
  */

@@ -2,16 +2,16 @@
  *
  *	Initialization for the greedy router.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -47,7 +47,7 @@ float GCRObstDist;	/* Sun lint brain death */
 /* Forward declarations */
 void gcrLinkPin();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -98,7 +98,7 @@ gcrSetEndDist(ch)
     GCREndDist = (multiTotal/2 + rightTotal/4) * RtrEndConst;
     if (GCREndDist < 1) GCREndDist = 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -144,7 +144,7 @@ gcrBuildNets(ch)
 
     HashKill(&ht);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -212,7 +212,7 @@ gcrLinkPin(pin, ht, ch)
     pin->gcr_pId = net;
     pin->gcr_pNext = (GCRPin *) NULL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -244,7 +244,7 @@ gcrUnlinkPin(pin)
 	    pin->gcr_pNext->gcr_pPrev = pin->gcr_pPrev;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -320,7 +320,7 @@ gcrDensity(ch)
 
     return (maxVal);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

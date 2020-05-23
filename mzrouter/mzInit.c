@@ -4,17 +4,17 @@
  * Initialization code for maze router module.
  * Called after technology file readin.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -81,13 +81,13 @@ CellUse *mzEstimateUse = (CellUse *) NULL;
 /* Forward declarations */
 extern void mzBuildPlanes();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * MZInit --
  *
- * This procedure is called when Magic starts up, after 
+ * This procedure is called when Magic starts up, after
  * technology initialization.
  *
  * Results:
@@ -96,7 +96,7 @@ extern void mzBuildPlanes();
  * Side effects:
  *	Register ourselves with debug module
  *	Setup datastructures.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -170,7 +170,7 @@ MZAttachHintPlanes()
     mzVBoundsPlane = mzVBoundsDef->cd_planes[PL_M_HINT];
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -183,7 +183,7 @@ MZAttachHintPlanes()
  *
  * Side effects:
  *	Internal cells allocated.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -202,9 +202,9 @@ mzBuildPlanes()
     /* (Blockage planes indicate where the router is allowed to route on
      *  each route-type.  0-width routes are made and then flushed out
      *  to design rule correct paths after routing completes).  There are
-     *  two blockage planes for each routing layer or and routing 
+     *  two blockage planes for each routing layer or and routing
      *  contact - one organized into maximal vertical strips, and one into
-     *  horizontal strips).  
+     *  horizontal strips).
      */
 
     /* Setup paint table for blockage planes */
@@ -215,7 +215,7 @@ mzBuildPlanes()
 
         /* Blockage painting is governed by strict priority order:
 	 * you always get the higher numbered type,
-	 * EXCEPT that painting space always gives space. 
+	 * EXCEPT that painting space always gives space.
 	 */
         for (r = 0; r < TT_MAXROUTETYPES; r++)
 	{
@@ -233,7 +233,7 @@ mzBuildPlanes()
 	}
     }
 
-    /* Create dummy cell for displaying blockage planes 
+    /* Create dummy cell for displaying blockage planes
      * (see *mzroute showblock command in mzTest.c)
      */
     DBNewYank("__BLOCK", &mzBlockUse,&mzBlockDef);
@@ -266,8 +266,8 @@ mzBuildPlanes()
 
         /* Indices are "paint", "have".  The entry value designates "result" */
 
-        /* (Want TT_INBLOCK to persist when TT_GENBLOCK painted on top, 
-	 *  so that 
+        /* (Want TT_INBLOCK to persist when TT_GENBLOCK painted on top,
+	 *  so that
 	 * after painting TT_GENBLOCK over region to be expanded TT_GENBLOCK
 	 * tiles give subregions that haven't already been expanded.
 	 */
@@ -283,9 +283,9 @@ mzBuildPlanes()
 	        mzBoundsPaintTbl[r][TT_INBOUNDS] = TT_INBOUNDS;
     }
 
-    /* Create global bounds planes - 
+    /* Create global bounds planes -
      * and attach to dummy cells for display during debugging */
-    
+
     DBNewYank("__HBOUNDS", &mzHBoundsUse,&mzHBoundsDef);
     DBNewYank("__VBOUNDS", &mzVBoundsUse,&mzVBoundsDef);
 
@@ -311,7 +311,7 @@ mzBuildPlanes()
 
         /* Estimate painting is governed by priority order:
 	 * you always get the higher numbered type,
-	 * EXCEPT that painting space always gives space 
+	 * EXCEPT that painting space always gives space
 	 */
         for (r = 0; r < TT_MAXROUTETYPES; r++)
 	{
@@ -329,7 +329,7 @@ mzBuildPlanes()
 	}
     }
 
-    /* Create global estimate plane 
+    /* Create global estimate plane
      * and attach to dummy cells for display during debugging */
 
     DBNewYank("__ESTIMATE", &mzEstimateUse,&mzEstimateDef);
@@ -345,7 +345,7 @@ mzBuildPlanes()
     DBNewYank("__HHINT", &mzHHintUse,&mzHHintDef);
     DBNewYank("__VHINT", &mzVHintUse,&mzVHintDef);
 
-    /* --------------- Fence Plane ---------------------------------- 
+    /* --------------- Fence Plane ----------------------------------
      * (Global fence plane gives location of all fences visible to router -
      *  unencumbered by cell structure and hint and rotate regions.)*/
 
@@ -354,12 +354,12 @@ mzBuildPlanes()
 
     DBNewYank("__HFENCE", &mzHFenceUse,&mzHFenceDef);
 
-    /* --------------- Rotate Planes ------------------------------- 
-     * (Global rotate plane gives location of all rotate regions visible 
+    /* --------------- Rotate Planes -------------------------------
+     * (Global rotate plane gives location of all rotate regions visible
      *  to router -
      *  unencumbered by cell structure and hint and rotate regions.) */
 
-    /* Create global rotate planes 
+    /* Create global rotate planes
      * and attach to dummy cells for display during debugging */
 
     DBNewYank("__HROTATE", &mzHRotateUse,&mzHRotateDef);

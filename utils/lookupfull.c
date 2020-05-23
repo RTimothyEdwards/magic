@@ -1,16 +1,16 @@
 /*
  * lookupfull.c --
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  * Full rights reserved.
  *
@@ -27,7 +27,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include "utils/magic.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * LookupFull --
@@ -72,7 +72,7 @@ LookupFull(name, table)
 
     return (-1);
 }
-
+
 /*---------------------------------------------------------
  *
  * LookupStructFull --
@@ -108,7 +108,7 @@ int
 LookupStructFull(str, table, size)
     char str[];		/* Pointer to a string to be looked up */
     char **table;	/* Pointer to an array of structs containing string
-			 * pointers to valid commands.  
+			 * pointers to valid commands.
 			 * The last table entry should have a NULL
 			 * string pointer.
 			 */
@@ -121,7 +121,7 @@ LookupStructFull(str, table, size)
     if( strcmp(str, *entry) == 0 ) {
       return pos;
     }
-    entry = (char **)((long)entry + (long)size); 
+    entry = (char **)((long)entry + (long)size);
   }
 
   return -1;

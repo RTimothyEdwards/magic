@@ -2,7 +2,7 @@
 /*
  *-------------------------------------------------------------------------
  *
- * Write.c -- Dumps network 
+ * Write.c -- Dumps network
  *
  *
  *-------------------------------------------------------------------------
@@ -48,10 +48,10 @@ ResPrintNetwork(filename, reslist)
 
 {
     char	bigname[255],name1[255],name2[255];
-     
+
     FILE	*fp;
     int	i=1;
-     
+
     sprintf(bigname,"%s.%s",filename,"res");
     fp = fopen(bigname,"w");
     if (fp != NULL)
@@ -105,9 +105,9 @@ ResPrintCurrents(filename,extension,node)
      char	bigname[255];
      FILE	*fp;
      int	resCurrentPrintFunc();
-     
+
      sprintf(bigname,"%s.%d",filename,abs((int)(extension)));
-     
+
      fp = fopen(bigname,"w");
      if (fp != NULL)
      {
@@ -116,9 +116,9 @@ ResPrintCurrents(filename,extension,node)
      }
      fclose(fp);
 }
-	
 
-
+
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -138,7 +138,7 @@ resCurrentPrintFunc(node,resistor,filename)
 {
      tElement	 *workingDev;
      float	i_sum=0.0;
-     
+
      for (workingDev = node->rn_te; workingDev != NULL;
      				workingDev=workingDev->te_nextt)
      {
@@ -151,7 +151,7 @@ resCurrentPrintFunc(node,resistor,filename)
      	  if (node->rn_why == RES_NODE_ORIGIN)
 	  {
 	       fprintf(filename,"i gnd %f\n",i_sum);
-	       
+
 	  }
 	  else
 	  {
@@ -160,7 +160,7 @@ resCurrentPrintFunc(node,resistor,filename)
 	  }
      }
 
-}
+}
 
 void
 ResDeviceCounts()
@@ -176,7 +176,7 @@ ResDeviceCounts()
          TxError("n=%d t=%d r=%d\n",i,j,k);
 	 TxFlushErr();
 }
-
+
 
 void
 ResWriteECLFile(filename,reslist,nodelist)
@@ -192,7 +192,7 @@ ResWriteECLFile(filename,reslist,nodelist)
      strcpy(newname,filename);
      if (per = strrchr(newname,'.')) *per = '\0';
      strcat(newname,".res");
-     
+
      if ((fp = fopen(newname,"w")) == NULL)
      {
      	  TxError("Can't open %s\n",newname);
@@ -218,12 +218,12 @@ ResWriteECLFile(filename,reslist,nodelist)
      }
      for (;reslist;reslist = reslist->rr_nextResistor)
      {
-	  
+
      	  fprintf(fp,"r %s %s %f %s %d\n",
 	  	reslist->rr_node[0]->rn_name,reslist->rr_node[1]->rn_name,
 		 /* /1000.0 gets ohms from milliohms */
 		(float)(reslist->rr_value)/1000.0,
-		DBTypeShortName(reslist->rr_tt),reslist->rr_csArea); 
+		DBTypeShortName(reslist->rr_tt),reslist->rr_csArea);
      }
      fclose(fp);
 }

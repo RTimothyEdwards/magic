@@ -3,17 +3,17 @@
  *
  * Builds global hint fence and rotate planes from hint info in mask data.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * There are two global hint planes.  One is merged into
@@ -45,11 +45,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "mzrouter/mzrouter.h"
 #include "mzrouter/mzInternal.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
- * mzBuildHFR -- 
+ * mzBuildHFR --
  *
  * Traverse cells in database, building global Hint, Fence and Rotate
  * planes.  This serves two functions:
@@ -80,8 +80,8 @@ mzBuildHFR(srcUse, area)
 	DBClearPaintPlane(mzHHintPlane);
 	DBClearPaintPlane(mzVHintPlane);
 
-	/* Clear Fence Plane 
-	 * (only one plane since this info is converted to info in blockage 
+	/* Clear Fence Plane
+	 * (only one plane since this info is converted to info in blockage
 	 *  planes prior to maze routing) */
 	DBClearPaintPlane(mzHFencePlane);
 
@@ -97,32 +97,32 @@ mzBuildHFR(srcUse, area)
 
     /* clip search area to bounding box to avoid overflow during transfroms */
     GEOCLIP(&(scx.scx_area),&(srcUse->cu_def->cd_bbox));
-    
+
     if(mzTopHintsOnly)
     /* Search the TOP LEVEL cell ONLY, processing each tile on hint plane */
     {
-	(void) DBNoTreeSrTiles(&scx, 
-			       &mzHintTypesMask,	
+	(void) DBNoTreeSrTiles(&scx,
+			       &mzHintTypesMask,
 			       mzCellExpansionMask,
 			       mzBuildHFRFunc,
 			       (ClientData) NULL);
     }
     else
-    /* Search the cell tree, processing each tile on hint plane 
+    /* Search the cell tree, processing each tile on hint plane
      * in expanded cell.
      */
     {
-    	(void) DBTreeSrTiles(&scx, 
-			     &mzHintTypesMask,	
+    	(void) DBTreeSrTiles(&scx,
+			     &mzHintTypesMask,
 			     mzCellExpansionMask,
-			     mzBuildHFRFunc, 
+			     mzBuildHFRFunc,
 			     (ClientData) NULL);
     }
 
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -157,11 +157,11 @@ mzBuildHFRFunc(tile, cxp)
     {
 	/* Paint into global hint planes */
 	DBPaintPlane(mzHHintPlane,
-	    &rDest, 
+	    &rDest,
 	    DBStdPaintTbl(TT_MAGNET, PL_M_HINT),
 	    (PaintUndoInfo *) NULL);
 	DBPaintPlaneVert(mzVHintPlane,
-	    &rDest, 
+	    &rDest,
 	    DBStdPaintTbl(TT_MAGNET, PL_M_HINT),
 	    (PaintUndoInfo *) NULL);
     }
@@ -172,25 +172,25 @@ mzBuildHFRFunc(tile, cxp)
 	 * translated to blocks in blockage planes)
 	 */
 	DBPaintPlane(mzHFencePlane,
-	    &rDest, 
+	    &rDest,
 	    DBStdPaintTbl(TT_FENCE, PL_F_HINT),
 	    (PaintUndoInfo *) NULL);
     }
-    else 
+    else
     {
         ASSERT(TiGetType(tile)==TT_ROTATE,"mzBuildHFRFunc");
 
 	/* Paint into global rotate planes */
 	DBPaintPlane(mzHRotatePlane,
-	    &rDest, 
+	    &rDest,
 	    DBStdPaintTbl(TT_ROTATE, PL_R_HINT),
 	    (PaintUndoInfo *) NULL);
 	DBPaintPlaneVert(mzVRotatePlane,
-	    &rDest, 
+	    &rDest,
 	    DBStdPaintTbl(TT_ROTATE, PL_R_HINT),
 	    (PaintUndoInfo *) NULL);
     }
-   
+
     /* return 0 - to continue search */
     return(0);
 }

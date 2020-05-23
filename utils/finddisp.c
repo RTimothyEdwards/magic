@@ -1,16 +1,16 @@
 /*
  * finddisplay.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains a single routine that will find the correct
@@ -34,7 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 extern char *ttyname();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	FindDisplay --
@@ -80,7 +80,7 @@ FindDisplay(tty, file, path, pDisplayPort, pTabletPort, pDisType, pMonType)
     char **pDisplayPort;	/* Will be filled in with the name of the
 				 * port for the graphics display.
 				 */
-    char **pTabletPort;		/* Will be filled in with the name of the 
+    char **pTabletPort;		/* Will be filled in with the name of the
 				 * tablet. */
     char **pDisType;		/* Will be filled in with the display type. */
     char **pMonType;		/* Will be filled in with the monitor type. */

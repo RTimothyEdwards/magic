@@ -27,7 +27,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "resis/resis.h"
 
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -37,7 +37,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *
  * Results:none
  *
- * Side Effects: determines to which terminal (source or drain) node 
+ * Side Effects: determines to which terminal (source or drain) node
  * is connected. Makes new node if node hasn't already been created .
  * Allocates breakpoint in current tile for device.
  *
@@ -55,7 +55,7 @@ ResNewSDDevice(tile,tp,xj,yj,direction,PendingList)
 	tElement	*tcell;
 	int		newnode;
 	tileJunk	*j;
-	
+
 	newnode = FALSE;
 	j = (tileJunk *) tp->ti_client;
 	resDev = j->deviceList;
@@ -96,13 +96,13 @@ ResNewSDDevice(tile,tp,xj,yj,direction,PendingList)
 	}
 	NEWBREAK(resptr,tile,xj,yj,NULL);
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
  * ResProcessJunction-- Called whenever a tile  connecting to the tile being
  *	worked on is found. If a junction is already present, its address is
- *      returned. Otherwise, a new junction is made. 
+ *      returned. Otherwise, a new junction is made.
  *
  * Results: None.
  *
@@ -151,7 +151,7 @@ ResProcessJunction(tile, tp, xj, yj, NodeList)
 	j0->junctionList = junction;
 	junction->rj_nextjunction[1] = j2->junctionList;
 	j2->junctionList = junction;
-	     
+
 	NEWBREAK(junction->rj_jnode,tile,
      			junction->rj_loc.p_x,junction->rj_loc.p_y,NULL);
 

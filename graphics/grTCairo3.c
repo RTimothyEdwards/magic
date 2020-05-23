@@ -38,7 +38,7 @@ static GC grXcopyGC = (GC)NULL;
 
 /* locals */
 
-
+
 /*---------------------------------------------------------
  * grtcairoDrawGrid:
  *  grxDrawGrid adds a grid to the grid layer, using the current
@@ -104,7 +104,7 @@ Rect *clip;         /* a clipping rectangle */
 	return TRUE;
 }
 
-
+
 /*---------------------------------------------------------
  * grtcairoLoadFont
  *  This local routine loads the default ("toy API")
@@ -124,7 +124,7 @@ grtcairoLoadFont()
 	return TRUE;
 }
 
-
+
 /*---------------------------------------------------------
  * grtcairoSetCharSize:
  *  This local routine sets the character size in the display,
@@ -165,7 +165,7 @@ int size;       /* Width of characters, in pixels (6 or 8). */
 	}
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTCairoTextSize --
@@ -411,7 +411,7 @@ grtcairoPutBackingStore(MagWindow *w, Rect *area)
 	cairo_restore(tcairodata->backing_context);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTCairoReadPixel --
@@ -435,7 +435,7 @@ int x, y;       /* the location of a pixel in screen coords */
 	return 0;       /* (unimplemented) */
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTCairoBitBlt --

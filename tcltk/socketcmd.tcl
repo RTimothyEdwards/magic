@@ -20,7 +20,7 @@ proc handleComm {chan} {
 }
 
 proc acceptComm {chan addr port} {
-    fconfigure $chan -blocking 0 -buffering line -translation crlf 
+    fconfigure $chan -blocking 0 -buffering line -translation crlf
     fileevent $chan readable [list handleComm $chan]
 }
 

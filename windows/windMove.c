@@ -4,16 +4,16 @@
  *	the screen.  It does not contain the functions that change the
  *	contents of the windows.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -59,7 +59,7 @@ int windWindowMask = 0;  /* One bit per window ID */
 int windMaxWindows = 32; /* May be decreased via the WIND_MAX_WINDOWS() macro */
 int windCurNumWindows = 0;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windUnlink --
@@ -108,7 +108,7 @@ windUnlink(w)
     w->w_nextWindow = (MagWindow *) NULL;
     w->w_prevWindow = (MagWindow *) NULL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -141,13 +141,13 @@ windFree(w)
     }
     freeMagic( (char *) w);
 }
- 
+
 /*
  * ----------------------------------------------------------------------------
  * WindSetWindowAreas --
  *
  *	Given the location of the window on the screen, compute w->w_allArea
- *	and w->w_screenArea in the window's own coordinate system.  
+ *	and w->w_screenArea in the window's own coordinate system.
  *
  * Results:
  *	None.
@@ -169,7 +169,7 @@ WindSetWindowAreas(w)
 	    w->w_allArea.r_xtop = w->w_frameArea.r_xtop - w->w_frameArea.r_xbot;
 	    w->w_allArea.r_ytop = w->w_frameArea.r_ytop - w->w_frameArea.r_ybot;
 	    break;
-	
+
 	default:
 	    /* Windows are all in the same coordinate system */
 	    w->w_allArea = w->w_frameArea;
@@ -177,7 +177,7 @@ WindSetWindowAreas(w)
     WindOutToIn(w, &w->w_allArea, &w->w_screenArea);
 }
 
- 
+
 /*
  * ----------------------------------------------------------------------------
  * windSetWindowPosition --
@@ -197,7 +197,7 @@ windSetWindowPosition(w)
     MagWindow *w;
 {
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindDelete --
@@ -208,7 +208,7 @@ windSetWindowPosition(w)
  *	TRUE if the window was deleted, FALSE otherwise.
  *
  * Side effects:
- *	The window disappears from the sreen.  The window's client is notified 
+ *	The window disappears from the sreen.  The window's client is notified
  *	that this is about to happen, and it may refuse to let it happen.
  * ----------------------------------------------------------------------------
  */
@@ -235,7 +235,7 @@ WindDelete(w)
 	return FALSE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindCreate --
@@ -256,7 +256,7 @@ MagWindow *
 WindCreate(client, frameArea, isHint, argc, argv)
     WindClient client;		/* The client that will control this window */
     Rect *frameArea;		/* The area that the window is to occupy */
-    bool isHint;		/* TRUE if the above rectangle is only a 
+    bool isHint;		/* TRUE if the above rectangle is only a
 				 * hint and it is OK for a window package to
 				 * override it to maintain a consistent
 				 * user interface.
@@ -313,7 +313,7 @@ WindCreate(client, frameArea, isHint, argc, argv)
 		w->w_frameArea.r_ybot =
 		    (GrScreenRect.r_ytop - GrScreenRect.r_ybot) / 2;
 		break;
-	    
+
 	    default:
 		w->w_frameArea = GrScreenRect;
 	}
@@ -362,7 +362,7 @@ WindCreate(client, frameArea, isHint, argc, argv)
 
     return w;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -418,13 +418,13 @@ void WindInToOut(w, in, out)
     out->r_ytop += TOP_BORDER(w);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindUnder --
  *
  *	Move a window underneath the rest.
- *	
+ *
  * Results:
  *	None.
  *
@@ -451,7 +451,7 @@ WindUnder(w)
 	    /* Mark for redisplay all the areas that this window
 	     * currently obscures.
 	     */
-	    
+
 	    for (w2 = w->w_nextWindow; w2 != NULL; w2 = w2->w_nextWindow)
 	    {
 		area = w2->w_allArea;
@@ -475,7 +475,7 @@ WindUnder(w)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindOver --
@@ -504,12 +504,12 @@ WindOver(w)
 	    if ( GrOverWindowPtr )
 		(*GrOverWindowPtr)(w);
 	    break;
-	
+
 	default:
 	    /* Mark for redisplay all of the areas of the screen that
 	     * currently obscure this window.
 	     */
-	    
+
 	    for (r = w->w_clipAgainst; r != NULL; r = r->r_next)
 	    {
 		area = r->r_r;
@@ -532,7 +532,7 @@ WindOver(w)
 	    windReClip();
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -571,11 +571,11 @@ windFindUnobscured(area, okArea)
 	return FALSE;
     }
     sharedW = w->w_prevWindow;
-    (void) GeoDisjoint(area, &w->w_frameArea, 
+    (void) GeoDisjoint(area, &w->w_frameArea,
 	windFindUnobscured, (ClientData) okArea);
     return FALSE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindReframe --
@@ -614,7 +614,7 @@ WindReframe(w, r, inside, move)
 
     cr = (clientRec *) w->w_client;
 
-    /* Ensure that the new window size is not inside out and has some size to 
+    /* Ensure that the new window size is not inside out and has some size to
      * it.  Compute the new w_frameArea (in newFrameArea).
      */
 
@@ -623,9 +623,9 @@ WindReframe(w, r, inside, move)
 
     if ((w->w_flags & WIND_ISICONIC) == 0) {
 	/* Not iconic -- enforce a minimum size */
-	newFrameArea.r_xtop = MAX(newFrameArea.r_xtop, 
+	newFrameArea.r_xtop = MAX(newFrameArea.r_xtop,
 	    newFrameArea.r_xbot + WIND_MIN_WIDTH);
-	newFrameArea.r_ytop = MAX(newFrameArea.r_ytop, 
+	newFrameArea.r_ytop = MAX(newFrameArea.r_ytop,
 	newFrameArea.r_ybot + WIND_MIN_HEIGHT);
     }
 
@@ -653,7 +653,7 @@ WindReframe(w, r, inside, move)
     {
 	case WIND_X_WINDOWS:
 	    break;
-	
+
 	default:
 	    /* Now comes the tricky part:  figuring out what to redisplay.
 	     * The simple way out is to force redisplay at both the old and
@@ -668,7 +668,7 @@ WindReframe(w, r, inside, move)
 
 	     if (!move)
 	     {
-		/* Compute the intersection of the old and new areas in 
+		/* Compute the intersection of the old and new areas in
 		 * dontRedisplay.  Mark old areas outside of this common area as
 		 * needing to be redisplayed.
 		 */
@@ -685,7 +685,7 @@ WindReframe(w, r, inside, move)
 		dontRedisplay = w->w_allArea;
 	    }
     }
-	
+
     /* At this point, we've recorded any old area that needs to be
      * redisplayed.
      */
@@ -704,10 +704,10 @@ WindReframe(w, r, inside, move)
 			(!(w->w_flags & WIND_OBSCURED)))
 		(*GrCreateBackingStorePtr)(w);
 	    break;
-	
+
 	default:
 	    /* Now that the window has been moved, record any of the new area that
-	     * has to be redisplayed. 
+	     * has to be redisplayed.
 	     */
 
 	    (void) GeoDisjoint(&w->w_allArea, &dontRedisplay, windReframeFunc,
@@ -729,7 +729,7 @@ windReframeFunc(area, w)
     WindAreaChanged(w, area);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -772,8 +772,8 @@ WindFullScreen(w)
     if (cr->w_reposition != NULL)
 	(*(cr->w_reposition))(w, &newFrameArea, FALSE);
 
-    /* 
-     * Now, actually modify the window and its position. 
+    /*
+     * Now, actually modify the window and its position.
      */
 
     /* Compute new stuff. */
@@ -829,9 +829,9 @@ WindFullScreen(w)
 	    w->w_nextWindow = w2->w_nextWindow;
 	    w->w_prevWindow = w2;
 	    w2->w_nextWindow = w;
-	    if (w->w_nextWindow == NULL) 
+	    if (w->w_nextWindow == NULL)
 		windBottomWindow = w;
-	    else 
+	    else
 		w->w_nextWindow->w_prevWindow = w;
 	    windReClip();
 	}

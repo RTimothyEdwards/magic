@@ -1,28 +1,28 @@
 // ************************************************************************
-// 
+//
 // Copyright (c) 1995-2002 Juniper Networks, Inc. All rights reserved.
-// 
+//
 // Permission is hereby granted, without written agreement and without
 // license or royalty fees, to use, copy, modify, and distribute this
 // software and its documentation for any purpose, provided that the
 // above copyright notice and the following three paragraphs appear in
 // all copies of this software.
-// 
+//
 // IN NO EVENT SHALL JUNIPER NETWORKS, INC. BE LIABLE TO ANY PARTY FOR
 // DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
 // ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF
 // JUNIPER NETWORKS, INC. HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
-// 
+//
 // JUNIPER NETWORKS, INC. SPECIFICALLY DISCLAIMS ANY WARRANTIES,
 // INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
 // NON-INFRINGEMENT.
-// 
+//
 // THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND JUNIPER
 // NETWORKS, INC. HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-// 
+//
 // ************************************************************************
 
 
@@ -45,7 +45,7 @@
 #include "cifInt.h"
 
 
-/* 
+/*
  * elements used by test code.
  */
 typedef struct rectc
@@ -57,26 +57,26 @@ typedef struct rectc
 
 /*
  * ----------------------------------------------------------------------------
- * bpRand -- 
+ * bpRand --
  *    generate a random int in given range.
  *
  *    side effects:  sets coords of input rect.
  * ----------------------------------------------------------------------------
- */		 
+ */
 int bpRand(int min, int max)
 {
   double f = rand()/ (double) RAND_MAX;     /* random number in unit interval */
   return min + (int) ((max-min+1)*f);
 }
-  
+
 /*
  * ----------------------------------------------------------------------------
- * bpTestRandRect -- 
+ * bpTestRandRect --
  *    generate a random unit rectangle inside bbox
  *
  *    side effects:  sets coords of input rect.
  * ----------------------------------------------------------------------------
- */		 
+ */
 static void bpTestRandRect(Rect *r, Rect *bbox)
 {
   r->r_xbot = bpRand(bbox->r_xbot,bbox->r_xtop-1);
@@ -91,11 +91,11 @@ static void bpTestRandRect(Rect *r, Rect *bbox)
 
 /*
  * ----------------------------------------------------------------------------
- * bpTestIntersectGold -- 
- *    
+ * bpTestIntersectGold --
+ *
  *    check whether rc intersects list
  * ----------------------------------------------------------------------------
- */		 
+ */
 static bool bpTestIntersectGold(RectC *rc, RectC *list)
 {
   while(list)
@@ -108,20 +108,20 @@ static bool bpTestIntersectGold(RectC *rc, RectC *list)
 
 /*
  * ----------------------------------------------------------------------------
- * bpTestSnowGold -- 
- *    populate square of dimension 'size' with non-overlapping random unit 
+ * bpTestSnowGold --
+ *    populate square of dimension 'size' with non-overlapping random unit
  *    rectangles.  Keep adding rectangles until failures exceed successes.
  *    (stop when maxFailures reached.)
  *
  *    coded with simple linked list.
  *
- * ---------------------------------------------------------------------------- */		 
+ * ---------------------------------------------------------------------------- */
 void bpTestSnowGold(int size, bool trace)
 {
   int failures = 0;
   int successes = 0;
   int i = 0;
-  int crc = 0;      
+  int crc = 0;
   RectC *result = NULL;
   RectC *rc = NULL;
   Rect area;
@@ -143,9 +143,9 @@ void bpTestSnowGold(int size, bool trace)
 
     if(!bpTestIntersectGold(rc,result))
     {
-      if(trace) DumpRect("success ",&rc->rc_rect); 
+      if(trace) DumpRect("success ",&rc->rc_rect);
       crc ^= i+ 3*rc->rc_rect.r_xbot+ 5*rc->rc_rect.r_ybot;
-      
+
       rc->rc_links[0] = result;
       result = rc;
       rc = NULL;
@@ -154,7 +154,7 @@ void bpTestSnowGold(int size, bool trace)
     }
     else
     {
-      if(trace) DumpRect("failure ",&rc->rc_rect); 
+      if(trace) DumpRect("failure ",&rc->rc_rect);
 
       failures++;
     }
@@ -179,20 +179,20 @@ void bpTestSnowGold(int size, bool trace)
 }
 
 /* ====== bplane snow test.
- */ 
+ */
 
 /*
  * ----------------------------------------------------------------------------
- * bpTestIntersect -- 
- *    
+ * bpTestIntersect --
+ *
  *    check whether rc intersects list
  * ----------------------------------------------------------------------------
- */		 
+ */
 static bool bpTestIntersect(RectC *rc, BPlane *bp)
 {
   BPEnum bpe;
   int result;
-  
+
   BPEnumInit(&bpe,bp, &rc->rc_rect, BPE_TOUCH,"bpTestIntersect");
   result = (BPEnumNext(&bpe)!=NULL);
   BPEnumTerm(&bpe);
@@ -202,19 +202,19 @@ static bool bpTestIntersect(RectC *rc, BPlane *bp)
 
 /*
  * ----------------------------------------------------------------------------
- * bpTestSnow -- 
- *    populate area with non-overlapping random unit rectangles. 
+ * bpTestSnow --
+ *    populate area with non-overlapping random unit rectangles.
  *
  *    using bplane.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 BPlane *bpTestSnow(int size, bool trace)
 {
   int failures = 0;
   int successes = 0;
   int i = 0;
-  int crc = 0;      
+  int crc = 0;
   RectC *result = NULL;
   RectC *rc = NULL;
   BPlane *bp = BPNew();
@@ -227,7 +227,7 @@ BPlane *bpTestSnow(int size, bool trace)
   area.r_ybot = 0;
   area.r_xtop = size;
   area.r_ytop = size;
-  
+
   while(failures<=successes)
   {
     i++;
@@ -237,9 +237,9 @@ BPlane *bpTestSnow(int size, bool trace)
 
     if(!bpTestIntersect(rc,bp))
     {
-      if(trace) DumpRect("success ",&rc->rc_rect); 
+      if(trace) DumpRect("success ",&rc->rc_rect);
       crc ^= i+ 3*rc->rc_rect.r_xbot+ 5*rc->rc_rect.r_ybot;
-      
+
       BPAdd(bp,rc);
       rc = NULL;
 
@@ -247,7 +247,7 @@ BPlane *bpTestSnow(int size, bool trace)
     }
     else
     {
-      if(trace) DumpRect("failure ",&rc->rc_rect); 
+      if(trace) DumpRect("failure ",&rc->rc_rect);
       failures++;
     }
   }
@@ -257,7 +257,7 @@ BPlane *bpTestSnow(int size, bool trace)
 	  failures,
 	  successes,
 	  crc);
-	  
+
   return bp;
 }
 
@@ -266,14 +266,14 @@ BPlane *bpTestSnow(int size, bool trace)
 
 /*
  * ----------------------------------------------------------------------------
- * bpTestIntersectTile -- 
- *    
+ * bpTestIntersectTile --
+ *
  *    check whether r intersects existing tiles
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 
-int bpTestIntersectTileFunc(Tile *tile, ClientData cd) 
+int bpTestIntersectTileFunc(Tile *tile, ClientData cd)
 {
   return 1;
 }
@@ -290,7 +290,7 @@ static bool bpTestIntersectTile(Rect *r, Plane *plane)
   area.r_xtop += 1;
   area.r_ytop += 1;
 
-  return DBPlaneEnumAreaPaint((Tile *) NULL, 
+  return DBPlaneEnumAreaPaint((Tile *) NULL,
 			      plane,
 			      &area,
 			      &DBAllButSpaceBits,
@@ -300,19 +300,19 @@ static bool bpTestIntersectTile(Rect *r, Plane *plane)
 
 /*
  * ----------------------------------------------------------------------------
- * bpTestSnowTile -- 
- *    populate area with non-overlapping random unit rectangles. 
- *    
+ * bpTestSnowTile --
+ *    populate area with non-overlapping random unit rectangles.
+ *
  *    using tile plane
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 Plane *bpTestSnowTile(int size, bool trace)
 {
   int failures = 0;
   int successes = 0;
   int i = 0;
-  int crc = 0;      
+  int crc = 0;
   RectC *result = NULL;
   RectC *rc = NULL;
   Plane *plane = DBPlaneNew((ClientData) TT_SPACE);
@@ -325,7 +325,7 @@ Plane *bpTestSnowTile(int size, bool trace)
   area.r_ybot = 0;
   area.r_xtop = size;
   area.r_ytop = size;
-  
+
   while(failures<=successes)
   {
     Rect r;
@@ -335,9 +335,9 @@ Plane *bpTestSnowTile(int size, bool trace)
 
     if(!bpTestIntersectTile(&r,plane))
     {
-      if(trace) DumpRect("success ",&r); 
+      if(trace) DumpRect("success ",&r);
       crc ^= i+ 3*r.r_xbot + 5*r.r_ybot;
-      
+
       DBPaintPlane(plane, &r, CIFPaintTable, (PaintUndoInfo *) NULL);
       rc = NULL;
 
@@ -345,7 +345,7 @@ Plane *bpTestSnowTile(int size, bool trace)
     }
     else
     {
-      if(trace) DumpRect("failure ",&r); 
+      if(trace) DumpRect("failure ",&r);
       failures++;
     }
   }

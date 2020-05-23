@@ -4,16 +4,16 @@
  * Plowing rules.
  * These are applied by plowProcessEdge() for each edge that is to be moved.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -41,7 +41,7 @@ int plowSliverBotExtent(), plowSliverBotMove();
 int plowApplyRule();
 int plowPenumbraRule();
 bool plowSliverApplyRules();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -89,7 +89,7 @@ prClearUmbra(edge)
     (void) plowSrShadow(edge->e_pNum, &edge->e_rect,
 		rhsTypes, plowApplyRule, (ClientData) &ar);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -141,7 +141,7 @@ prUmbra(edge, rules)
 			pr->pr_oktypes, plowApplyRule, (ClientData) &ar);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -262,7 +262,7 @@ prPenumbraBot(edge, rules)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -456,7 +456,7 @@ plowPenumbraRule(impactedEdge, ar)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -586,7 +586,7 @@ prSliverBot(edge, rules)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -681,7 +681,7 @@ plowSliverBotMove(outline, ar)
     /* Keep going */
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -922,7 +922,7 @@ plowSliverBotExtent(outline, ar)
 	ar->ar_mustmove = xmove;
     return (ret);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -973,7 +973,7 @@ plowSliverApplyRules(ar, far, farDist)
 	    return (TRUE);
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

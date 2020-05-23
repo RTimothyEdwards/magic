@@ -6,16 +6,16 @@
  *	re-orienting label text, and incrementing numbers inside
  *	of labels.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -61,7 +61,7 @@ int nmNum2 = -1;
 char nmNum1String[12];		/* String equivalents of nmNum1 and nmNum2. */
 char nmNum2String[12];
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -115,7 +115,7 @@ nmGetNums(string, num1, num2)
 	if (*p == 0) return;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -159,7 +159,7 @@ nmPutNums(src, num1, num2)
      * result area if there isn't enough space.  The space computation
      * is a bit conservative, but simpler that way.
      */
-    
+
     (void) sprintf(num1String, "%d", num1);
     (void) sprintf(num2String, "%d", num2);
     spaceNeeded = strlen(num1String) + strlen(num2String) + strlen(src) + 1;
@@ -173,7 +173,7 @@ nmPutNums(src, num1, num2)
     /* Now scan through the source string.  Copy everything up
      * to the first number into the result.
      */
-    
+
     pSrc = src;
     pResult = result;
     while (!isdigit(*pSrc))
@@ -183,7 +183,7 @@ nmPutNums(src, num1, num2)
      * the original string.  Or, if num1 is less than zero,
      * then just copy the number from src.
      */
-    
+
     if (num1 < 0)
     {
 	while (isdigit(*pSrc)) *pResult++ = *pSrc++;
@@ -199,7 +199,7 @@ nmPutNums(src, num1, num2)
 
     while (!isdigit(*pSrc))
 	if ((*pResult++ = *pSrc++) == 0) return result;
-    
+
     /* Copy the second number. */
 
     if (num2 < 0)
@@ -218,7 +218,7 @@ nmPutNums(src, num1, num2)
     while (TRUE)
 	if ((*pResult++ = *pSrc++) == 0) return result;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -248,7 +248,7 @@ nmSetCurrentLabel()
     /* Set up the menu buttons to refer to this information, and
      * redisplay relevant stuff.
      */
-    
+
     NMLabelButton.nmb_text = nmLabelArray[nmCurLabel];
     NMNum1Button.nmb_text = nmNum1String;
     NMNum2Button.nmb_text = nmNum2String;
@@ -259,7 +259,7 @@ nmSetCurrentLabel()
 	(void) NMredisplay(NMWindow, &NMNum2Button.nmb_area, (Rect *) NULL);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -295,7 +295,7 @@ NMGetLabels()
 	    /* All done.  If we got any labels at all, null out all
 	     * the remaining old labels.
 	     */
-	    
+
 	    if (i == 0)
 	    {
 		TxPrintf("No new labels given, so I'll keep the old ones.\n");
@@ -313,7 +313,7 @@ NMGetLabels()
     nmCurLabel = 0;
     nmSetCurrentLabel();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -362,7 +362,7 @@ NMPrevLabel()
     else nmCurLabel -= 1;
     nmSetCurrentLabel();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -422,7 +422,7 @@ NMChangeNum(window,cmd, nmButton, point)
 	nmPutNums(nmLabelArray[nmCurLabel], nmNum1, nmNum2));
     nmSetCurrentLabel();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -461,7 +461,7 @@ nmGetPos(button, point)
     /* Divide the button area into thirds in x and y, and figure out
      * which sector contains the point.
      */
-    
+
     tmp = (button->nmb_area.r_xtop - button->nmb_area.r_xbot + 1)/3;
     if (point->p_x <= button->nmb_area.r_xbot + tmp) x = 0;
     else if (point->p_x >= button->nmb_area.r_xtop - tmp) x = 2;
@@ -473,7 +473,7 @@ nmGetPos(button, point)
     return GeoTransPos(&RootToEditTransform, pos[3*y + x]);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -515,7 +515,7 @@ NMPutLabel(window, cmd, nmButton, point)
     pos = nmGetPos(nmButton, point);
     CmdLabelProc(text, -1, 1, 0, 0, 0, pos, 0, (TileType)-1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -551,7 +551,7 @@ NMReOrientLabel(window, cmd, nmButton, point)
     pos = nmGetPos(nmButton, point);
     DBReOrientLabel(EditCellUse->cu_def, &editArea, pos);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -582,7 +582,7 @@ NMFindLabel()
     }
     NMShowLabel(pattern, (TileTypeBitMask *) NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

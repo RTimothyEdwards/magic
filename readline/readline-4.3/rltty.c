@@ -544,7 +544,7 @@ set_tty_settings (tty, tiop)
 {
   if (_set_tty_settings (tty, tiop) < 0)
     return -1;
-    
+
 #if 0
 
 #if defined (TERMIOS_TTY_DRIVER)
@@ -702,7 +702,7 @@ rl_deprep_terminal ()
 
   release_sigint ();
 }
-
+
 /* **************************************************************** */
 /*								    */
 /*			Bogus Flow Control      		    */

@@ -3,7 +3,7 @@
  * Copyright 2003 Open Circuit Design, Inc., for MultiGiG Ltd.
  *
  * This file contains additional functions to manipulate an X window system
- * color display.  Included here are device-dependent routines to draw and 
+ * color display.  Included here are device-dependent routines to draw and
  * erase text and draw a grid.
  *
  */
@@ -29,7 +29,7 @@
 #include "graphics/grTkCommon.h"
 #include "database/fonts.h"
 
-
+
 /*---------------------------------------------------------
  * grtkDrawGrid:
  *	grxDrawGrid adds a grid to the grid layer, using the current
@@ -66,12 +66,12 @@ grtkDrawGrid (prect, outline, clip)
     ysize = prect->r_ytop - prect->r_ybot;
     if (!xsize || !ysize || GRID_TOO_SMALL(xsize, ysize))
 	return FALSE;
-    
+
     xstart = prect->r_xbot % xsize;
     while (xstart < clip->r_xbot << SUBPIXELBITS) xstart += xsize;
     ystart = prect->r_ybot % ysize;
     while (ystart < clip->r_ybot << SUBPIXELBITS) ystart += ysize;
-    
+
     grtkSetLineStyle(outline);
 
     snum = 0;
@@ -114,7 +114,7 @@ grtkDrawGrid (prect, outline, clip)
     return TRUE;
 }
 
-
+
 /*---------------------------------------------------------
  * grtkSetCharSize:
  *	This local routine sets the character size in the display,
@@ -153,12 +153,12 @@ grtkSetCharSize (size)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTkTextSize --
  *
- *	Determine the size of a text string. 
+ *	Determine the size of a text string.
  *
  * Results:
  *	None.
@@ -179,7 +179,7 @@ GrTkTextSize(text, size, r)
     Tk_FontMetrics overall;
     Tk_Font font;
     int width;
-    
+
     switch (size) {
     case GR_TEXT_DEFAULT:
     case GR_TEXT_SMALL:
@@ -208,7 +208,7 @@ GrTkTextSize(text, size, r)
     r->r_xbot = 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTkReadPixel --
@@ -241,7 +241,7 @@ GrTkReadPixel (w, x, y)
     return (value & (1 << grDisplay.depth) - 1);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTkBitBlt --
@@ -269,7 +269,7 @@ GrTkBitBlt(r, p)
 	      p->p_x, grMagicToX(p->p_y));
 }
 
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -459,11 +459,11 @@ grtkFontText(text, font, size, rotate, pos, clip, obscure)
  *	the screen -- no clipping is done except to the obscuring rectangle
  *	list and the clip rectangle.
  *
- * Results:	
+ * Results:
  *	none.
  *
  * Side Effects:
- *	The text is drawn on the screen.  
+ *	The text is drawn on the screen.
  *
  *---------------------------------------------------------
  */
@@ -503,7 +503,7 @@ grtkPutText (text, pos, clip, obscure)
 	    grtkGeoSub(&location, &overlap);
 	}
     }
- 
+
     overlap = location;
     GeoClip(&overlap, clip);
 
@@ -534,7 +534,7 @@ grtkPutText (text, pos, clip, obscure)
  *
  * Side effects:
  *	Source rectangle "r" is modified.
- *		
+ *
  *---------------------------------------------------------
  */
 

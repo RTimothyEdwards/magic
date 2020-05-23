@@ -4,16 +4,16 @@
  * Computation of the penalties to be assigned for each net using
  * certain congested regions.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -49,7 +49,7 @@ NetSet *glPenFindCrossingNets();
 CZone *glPenScanDens();
 CZone *glPenFindCZones();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -108,7 +108,7 @@ glPenClearPerChan(net)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -240,7 +240,7 @@ glPenCompute(chanList, netList)
     }
 #endif	/* notdef */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -277,7 +277,7 @@ glPenFindCZones(chanList)
 
     return czList;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -352,7 +352,7 @@ glPenScanDens(czList, ch, dm, type)
 
     return czList;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -486,7 +486,7 @@ glPenSortNetSet(ns1, ns2)
     if ((*ns1)->ns_cost < (*ns2)->ns_cost) return -1;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -539,7 +539,7 @@ glPenFindCrossingNets(cz, netList)
 
     return rcc.rcc_set;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -575,7 +575,7 @@ glPenFindCrossingFunc(cz, srcPin, dstPin, rcc)
     rcc->rcc_set = ns;
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -650,7 +650,7 @@ glPenEnumCross(cz, rp, func, cdata)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -711,7 +711,7 @@ glPenRouteCost(rootUse, bestPath, pNetId, pCost)
     *pCost += bestPath->gl_cost;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -796,7 +796,7 @@ glPenDeleteFunc(cz, srcPin, dstPin, dm)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -826,7 +826,7 @@ glPenCleanNet(net)
     ListDealloc(list);
     nc->nc_paths = (List *) NULL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -860,7 +860,7 @@ glPenSavePath(rootUse, path, pNetId)
     newpath = glPathCopyPerm(path);
     LIST_ADD(newpath, nc->nc_paths);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

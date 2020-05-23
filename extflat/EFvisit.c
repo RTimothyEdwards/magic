@@ -4,16 +4,16 @@
  * Procedures to traverse and output flattened nodes, capacitors,
  * transistors, resistors, and Distances.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -45,7 +45,7 @@ extern void efDevFixLW();
 extern void efHNOutPrefix();
 
 bool efDevKilled();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -311,7 +311,7 @@ efVisitDevs(hc, ca)
 
     scale = (efScaleChanged && def->def_scale != 1.0) ? def->def_scale : 1.0;
     t = hc->hc_trans;
-  
+
     /* Visit our own devices */
 
     HashStartSearch(&hs);
@@ -326,7 +326,7 @@ efVisitDevs(hc, ca)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -366,7 +366,7 @@ efDevKilled(dev, prefix)
 
     return FALSE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -439,7 +439,7 @@ skip:
 	    /* Nothing */;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -530,7 +530,7 @@ efVisitResists(hc, ca)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -567,7 +567,7 @@ efVisitSingleResist(hc, name1, name2, res, ca)
 	return 0;
 
     if ((he = EFHNLook(hc->hc_hierName, name2, "resist(2)")) == NULL)
-	return 0; 
+	return 0;
     n2 = ((EFNodeName *) HashGetValue(he))->efnn_node;
     if (n2->efnode_flags & EF_KILLED)
 	return 0;
@@ -580,7 +580,7 @@ efVisitSingleResist(hc, name1, name2, res, ca)
 		n2->efnode_name->efnn_hier,
 		res->conn_res, ca->ca_cdata);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -632,7 +632,7 @@ EFVisitCaps(capProc, cdata)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -714,7 +714,7 @@ EFVisitNodes(nodeProc, cdata)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -794,7 +794,7 @@ EFNodeResist(node)
     }
     return (resist);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -839,7 +839,7 @@ EFLookDist(hn1, hn2, pMinDist, pMaxDist)
     *pMaxDist = dist->dist_max;
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -869,14 +869,14 @@ EFHNOut(hierName, outf)
     if (hierName->hn_parent) efHNOutPrefix(hierName->hn_parent, outf);
     if (EFTrimFlags)
     {
-	cp = hierName->hn_name; 
+	cp = hierName->hn_name;
 	trimGlob = (EFTrimFlags & EF_TRIMGLOB);
 	trimLocal = (EFTrimFlags & EF_TRIMLOCAL);
 	convComma = (EFTrimFlags & EF_CONVERTCOMMA);
 	convBrackets = (EFTrimFlags & EF_CONVERTBRACKETS);
 	while (c = *cp++)
 	{
-	    if (*cp) 
+	    if (*cp)
 	    {
 		if (c == ',')
 		{

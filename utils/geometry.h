@@ -1,15 +1,15 @@
 /* geometry.h --
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This module contains the basic definitions for geometrical
@@ -99,7 +99,7 @@ typedef struct
 #define GEO_WEST	7
 #define GEO_NORTHWEST	8
 
-
+
 /* See if two points are equal */
 #define GEO_SAMEPOINT(p1, p2) ((p1).p_x == (p2).p_x && (p1).p_y == (p2).p_y)
 
@@ -109,7 +109,7 @@ typedef struct
 
 /*-------------------------------------------------------------------
  *	The following macros are predicates to see if two
- *	rectangles overlap or touch.  
+ *	rectangles overlap or touch.
  *-------------------------------------------------------------------
  */
 
@@ -144,7 +144,7 @@ typedef struct
 #define GEO_ENCLOSE(p, r)	\
     ( ((p)->p_x <= (r)->r_xtop) && ((p)->p_x >= (r)->r_xbot) &&  \
       ((p)->p_y <= (r)->r_ytop) && ((p)->p_y >= (r)->r_ybot) )
-    
+
 /* See if a label is in a given area */
 #define GEO_LABEL_IN_AREA(lab,area) \
     (GEO_SURROUND(area, lab) || \

@@ -3,16 +3,16 @@
  *
  * Technology initialization for the DRC module.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -112,7 +112,7 @@ CoincidentPlanes(typeMask, pmask)
 
     return planes;
 }
- 
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -428,7 +428,7 @@ drcFindBucket(i, j, distance)
  * ----------------------------------------------------------------------------
  *
  * drcLoadStyle --
- * 
+ *
  * Re-read the technology file to load the specified technology DRC style
  * into structure DRCCurStyle.  It incurs a complete reading of the tech
  * file on startup and every time the extraction style is changed, but we
@@ -469,7 +469,7 @@ drcLoadStyle(stylename)
  *
  * Side Effects:
  *	DRC rule database is deleted and regenerated.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -609,7 +609,7 @@ DRCTechStyleInit()
      * get one of the layers, and it doesn't matter which is painted
      * on top of which.
      */
-    
+
     for (plane = 0; plane < DBNumPlanes; plane++)
 	for (i = 0; i < DBNumTypes; i++)
 	    for (j = 0; j < DBNumTypes; j++)
@@ -629,7 +629,7 @@ DRCTechStyleInit()
 		{
 		    DRCCurStyle->DRCPaintTable[plane][i][j] = result;
 		}
-			
+
 		else if ((!TTMaskHasType(&DBLayerTypeMaskTbl[i], result)
 			&& !TTMaskHasType(&DBLayerTypeMaskTbl[j], result))
 			|| ((result != DBPaintResultTbl[plane][j][i])
@@ -736,7 +736,7 @@ DRCTechLine(sectionName, argc, argv)
 
 		    /* Remember the 1st variant as the default */
 		    if (saveStyle == NULL) saveStyle = newStyle;
-	
+
 		    /* Append to end of style list */
 		    if (DRCStyleList == NULL)
 			DRCStyleList = newStyle;
@@ -812,7 +812,7 @@ DRCTechLine(sectionName, argc, argv)
     if (DRCStyleList == NULL)
     {
 	char *locargv[2][10] = {"style", "default"};
-	
+
 	if (DRCTechLine(sectionName, 2, locargv) == FALSE)
 	    return FALSE;
     }
@@ -840,7 +840,7 @@ DRCTechLine(sectionName, argc, argv)
 	int scaleN, scaleD;
 
 	if (argc != 2 && argc != 3) goto wrongNumArgs;
-	
+
 	scaleN = atof(argv[1]);
 
 	if (argc == 3)
@@ -1147,7 +1147,7 @@ drcExtend(argc, argv)
 
     ptest = DBTechNoisyNameMask(layers1, &set1);
     pMask1 = CoincidentPlanes(&set1, ptest);
-    
+
     if (pMask1 == 0)
     {
 	TechError("All layers in first set for \"extend\" must be on "
@@ -1205,7 +1205,7 @@ drcExtend(argc, argv)
 			dpnew = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
 			drcAssign(dpnew, distance, dp->drcc_next, &setM, &setZ, why,
 				    0, DRC_REVERSE, plane, plane);
-	
+
 			dp->drcc_next = dpnew;
 
 			if (exact)
@@ -1222,7 +1222,7 @@ drcExtend(argc, argv)
 			    dpnew = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
 			    drcAssign(dpnew, distance, dp->drcc_next, &setN, &setZ, why,
 				    0, DRC_REVERSE | DRC_OUTSIDE, plane, plane);
-	
+
 			    dp->drcc_next = dpnew;
 			}
 		    }
@@ -1420,7 +1420,7 @@ drcArea(argc, argv)
 		    dpnew = (DRCCookie *) mallocMagic(sizeof (DRCCookie));
 		    drcAssign(dpnew, horizon, dp->drcc_next, &set, &set, why,
 			    distance, DRC_AREA|DRC_FORWARD, plane, plane);
-	
+
 		    dp->drcc_next = dpnew;
 		}
 	    }
@@ -1450,7 +1450,7 @@ drcArea(argc, argv)
  *	maxwidth pmc 4 bend_illegal "poly contact area must be no wider than 4"
  *	maxwidth trench 4 bend_ok "trench width must be exactly 4"
  *
- *      bend_illegal - means that one_dimension must be distance for any 
+ *      bend_illegal - means that one_dimension must be distance for any
  *  		point in the region.  This is used for emitters and contacts
  *		that are rectangular (so we can't generate them with the
  *		squares command) and some exact width in one direction.
@@ -1462,8 +1462,8 @@ drcArea(argc, argv)
  *			X   X		XXXXXX
  *			X   X		X    X
  *			XXXXX		XXXXXX
- *			
- *			 OK		 BAD		
+ *
+ *			 OK		 BAD
  *
  * Results:
  *	Returns distance.
@@ -1544,7 +1544,7 @@ drcMaxwidth(argc, argv)
 		    dpnew = (DRCCookie *) mallocMagic(sizeof (DRCCookie));
 		    drcAssign(dpnew, distance, dp->drcc_next, &set, &set, why,
 				    distance, DRC_MAXWIDTH | bend, plane, plane);
-	
+
 		    dp->drcc_next = dpnew;
 		}
 	    }
@@ -1717,7 +1717,7 @@ drcSpacing3(argc, argv)
  *
  * Side effects:
  *	Adds rules to the DRC rule table.
- *	
+ *
  *-------------------------------------------------------------------
  */
 
@@ -1804,10 +1804,10 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 
     if (touchingok)
     {
-	/* In "touching_ok rules, spacing to set2  is be checked in FORWARD 
+	/* In "touching_ok rules, spacing to set2  is be checked in FORWARD
 	 * direction at edges between set1 and  (setR = ~set1 AND ~set2).
 	 *
-	 * In addition, spacing to set1 is checked in FORWARD direction 
+	 * In addition, spacing to set1 is checked in FORWARD direction
 	 * at edges between set2 and (setRreverse = ~set1 AND ~set2).
 	 *
 	 * If set1 and set2 are different, above are checked in REVERSE as
@@ -1818,7 +1818,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 	 */
 
 	tmp1 = *set1;
-	tmp2 = *set2; 
+	tmp2 = *set2;
 
 	/* Restrict planes to those that are coincident */
 	pmask1 &= pmask2;
@@ -1836,7 +1836,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
     else
     {
 	/* In "touching_illegal" rules, spacing to set2 will be checked
-	 * in FORWARD direction at edges between set1 and (setR=~set1). 
+	 * in FORWARD direction at edges between set1 and (setR=~set1).
 	 *
 	 * In addition, spacing to set1 will be checked in FORWARD direction
 	 * at edges between set2 and (setRreverse=  ~set2).
@@ -1897,7 +1897,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 		    else if (needtrigger)
 		    {
 			DRCCookie *dptrig;
-			
+
 			/* Create two contiguous spacing rules */
 
 			drcAssign(dpnew, distance, dp->drcc_next, &tmp1, &tmp2,
@@ -1923,12 +1923,12 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 
 		    if (needReverse)
 		    {
-			/* Add check in reverse direction, 
+			/* Add check in reverse direction,
 			 * NOTE:  am assuming single plane rule here (since reverse
-			 * rules only used with touching_ok which must be 
+			 * rules only used with touching_ok which must be
 			 * single plane)
 			 */
-			 
+
 			/* find bucket preceding new one we wish to insert */
 			dp = drcFindBucket(j, i, distance);
 			dpnew = (DRCCookie *)mallocMagic(sizeof (DRCCookie));
@@ -1951,7 +1951,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 			else if (needtrigger)
 			{
 			    DRCCookie *dptrig;
-			
+
 			    /* Create two contiguous spacing rules */
 
 			    drcAssign(dpnew, distance, dp->drcc_next, &tmp1, &tmp2,
@@ -1968,7 +1968,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 			else
 			{
 			    drcAssign(dpnew,distance,dp->drcc_next,
-					&tmp1, &tmp2, why, wwidth, 
+					&tmp1, &tmp2, why, wwidth,
 					DRC_REVERSE | DRC_BOTHCORNERS, plane2, plane);
 			    dp->drcc_next = dpnew;
 		 	}
@@ -2003,7 +2003,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 		    if (needtrigger)
 		    {
 			DRCCookie *dptrig;
-			
+
 			/* Create two contiguous spacing rules */
 
 		        drcAssign(dpnew, distance, dp->drcc_next, &tmp1, &tmp2,
@@ -2019,7 +2019,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 		    {
 			drcAssign(dpnew, distance, dp->drcc_next, &tmp1, &tmp2,
 					why, distance, DRC_FORWARD, plane2, plane);
-			dp->drcc_next = dpnew;		    
+			dp->drcc_next = dpnew;
 		    }
 
 		    if (needReverse)
@@ -2027,19 +2027,19 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 
 		    if (needReverse)
 		    {
-			/* Add check in reverse direction, 
+			/* Add check in reverse direction,
 			 * NOTE:  am assuming single plane rule here (since reverse
-			 * rules only used with touching_ok which must be 
+			 * rules only used with touching_ok which must be
 			 * single plane)
 			 */
 			/* find bucket preceding new one we wish to insert */
 			dp = drcFindBucket(j, i, distance);
 			dpnew = (DRCCookie *) mallocMagic(sizeof (DRCCookie));
-			 
+
 			if (needtrigger)
 			{
 			    DRCCookie *dptrig;
-			
+
 			    /* Create two contiguous spacing rules */
 
 		            drcAssign(dpnew, distance, dp->drcc_next, &tmp1, &tmp2,
@@ -2054,7 +2054,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 			else
 			{
 			    drcAssign(dpnew, distance, dp->drcc_next,
-					&tmp1, &tmp2, why, distance, 
+					&tmp1, &tmp2, why, distance,
 					DRC_REVERSE | DRC_BOTHCORNERS, plane2, plane);
 			    dp->drcc_next = dpnew;
 			}
@@ -2066,11 +2066,11 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 	     * are not present just to right of edges with setR on LHS
 	     * and set1 on RHS.  This check is necessary to make sure
 	     * that a set1 rectangle doesn't coincide exactly with a
-	     * set2 rectangle.  
+	     * set2 rectangle.
 	     * (This check added by Michael Arnold on 4/10/86.)
 	     */
 
-	    if (needtrigger) continue; 
+	    if (needtrigger) continue;
 
 	    if (pset = (DBTypesOnSamePlane(i, j) & pmask1))
 	    {
@@ -2098,7 +2098,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 		    plane2 = LowestMaskBit(pmask2);
 
 		    /* filter out checks that are not cross plane */
-		    if (i == TT_SPACE) 
+		    if (i == TT_SPACE)
 		    {
 			if (DBTypeOnPlane(j, plane2))
 			    continue;
@@ -2384,7 +2384,7 @@ drcEdge(argc, argv)
     ptest = DBTechNoisyNameMask(layers2, &set2);
     pMask1 &= CoincidentPlanes(&set2, ptest);
 
-    if (pMask1 == 0) 
+    if (pMask1 == 0)
     {
 	TechError("All edges in edge rule must lie in shared planes.\n");
 	return (0);
@@ -2415,7 +2415,7 @@ drcEdge(argc, argv)
 
     ptest = DBTechNoisyNameMask(okTypes, &setM);
     pMaskM = CoincidentPlanes(&setM, ptest);
- 
+
     if (pMaskM == 0 || pMaskM == DBTypePlaneMaskTbl[TT_SPACE])
     {
 	/* Technically it should be illegal to specify simply "space"
@@ -3066,7 +3066,7 @@ drcNoOverlap(argc, argv)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3119,9 +3119,9 @@ drcExactOverlap(argc, argv)
  *	rectangle layers maxwidth [even|odd|any] why
  *
  * The rule checks to make sure that the region is rectangular and that the
- * width and length are even or odd, as specified.  These two criteria ensure 
- * that the squares rule of the cifout section can properly produce via 
- * holes without misaligning them between cells and without putting the via 
+ * width and length are even or odd, as specified.  These two criteria ensure
+ * that the squares rule of the cifout section can properly produce via
+ * holes without misaligning them between cells and without putting the via
  * holes off grid.  The maxwidth is required to make the extent of this rule
  * a finite size, so that we can set the DRChalo to something finite.
  *
@@ -3185,8 +3185,8 @@ drcRectangle(argc, argv)
 
 		    plane = LowestMaskBit(pset);
 
-		    /* 
-		     * A rule that checks rectangle-ness. 
+		    /*
+		     * A rule that checks rectangle-ness.
 		     *   left:  oktypes, right: other types
 		     * This rule needs to be checked in all 4 directions
 		     */
@@ -3195,21 +3195,21 @@ drcRectangle(argc, argv)
 		    /* Find bucket preceding the new one we wish to insert */
 		    dp = drcFindBucket(i, j, distance);
 		    dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
-		    drcAssign(dpnew, distance, dp->drcc_next, 
-				&nottypes, &DBAllTypeBits, why, distance, 
+		    drcAssign(dpnew, distance, dp->drcc_next,
+				&nottypes, &DBAllTypeBits, why, distance,
 				DRC_FORWARD, plane, plane);
 		    dp->drcc_next = dpnew;
 
 		    /* Find bucket preceding the new one we wish to insert */
 		    dp = drcFindBucket(j, i, distance); /* note: j, i not i, j */
 		    dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
-		    drcAssign(dpnew, distance, dp->drcc_next, 
-		    		&nottypes, &DBAllTypeBits, why, distance, 
+		    drcAssign(dpnew, distance, dp->drcc_next,
+		    		&nottypes, &DBAllTypeBits, why, distance,
 		    		DRC_REVERSE, plane, plane);
 		    dp->drcc_next = dpnew;
 
 		    if (maxwidth > 0) {
-			/* 
+			/*
 		 	 * A rule that checks size.
 		 	 *   left:  other types, right: oktypes
 		 	 */
@@ -3222,8 +3222,8 @@ drcRectangle(argc, argv)
 				dp = dp->drcc_next); /* null body */
 
 			dpnew = (DRCCookie *)mallocMagic(sizeof (DRCCookie));
-			drcAssign(dpnew, distance, dp->drcc_next, 
-				&types, &DBZeroTypeBits, why, even, 
+			drcAssign(dpnew, distance, dp->drcc_next,
+				&types, &DBZeroTypeBits, why, even,
 				DRC_RECTSIZE, plane, plane);
 			dp->drcc_next = dpnew;
 		    }
@@ -3525,7 +3525,7 @@ drcTechFinalStyle(style)
 
     /* A reasonable chunk size for design-rule checking is about
      * 16 times the maximum design-rule interaction distance.  This
-     * results in a halo overhead of about 27%.  If there's no DRC  
+     * results in a halo overhead of about 27%.  If there's no DRC
      * information at all (TechHalo is zero), just pick any size.
      * (Update 1/13/09:  "any size" needs a bit of modification,
      * because 64 will be way too small for a layout with a small
@@ -3554,7 +3554,7 @@ drcTechFinalStyle(style)
 	    dpp = &(style->DRCRulesTbl [i][j]);
 	    dummy = *dpp;
 	    *dpp = dummy->drcc_next;
-	    freeMagic((char *) dummy); 
+	    freeMagic((char *) dummy);
 	}
     }
     drcCifFinal();
@@ -3564,13 +3564,13 @@ drcTechFinalStyle(style)
     /* Check for edges that are completely illegal.  Where this is the
      * case, eliminate all of the edge's rules except one.
      */
-    
+
     for (i = 0; i < DBNumTypes; i++)
     {
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    DRCCookie *keep = NULL, *dptest, *dptemp, *dpnew;
-	    
+
 	    for (dp = style->DRCRulesTbl[i][j]; dp != NULL; dp = dp->drcc_next)
 	    {
 		if (dp->drcc_flags & (DRC_NONSTANDARD || DRC_OUTSIDE)) continue;
@@ -3609,7 +3609,7 @@ drcTechFinalStyle(style)
 		/* This edge is illegal.  Throw away all rules except the one
 		 * needed that is always violated.
 		 */
-	    
+
 		dptest = style->DRCRulesTbl[i][j];
 		while (dptest != NULL)
 		{
@@ -3669,7 +3669,7 @@ drcTechFinalStyle(style)
 		}
 		else
 		    dptrig = NULL;
-		
+
 		/*
 		 * Check following buckets to see if any is a superset.
 		 */
@@ -3754,7 +3754,7 @@ drcTechFinalStyle(style)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3784,7 +3784,7 @@ DRCTechRuleStats()
     /* Count up the total number of edge rules, and histogram them
      * by the number of rules per edge.
      */
-    
+
     edgeRules = 0;
     overflow = 0;
     for (i=0; i<=MAXBIN; i++) counts[i] = 0;
@@ -3800,7 +3800,7 @@ DRCTechRuleStats()
 	    if (thisCount <= MAXBIN) counts[thisCount] += 1;
 	    else overflow += 1;
 	}
-    
+
     /* Print out the results. */
 
     TxPrintf("Total number of rules specifed in tech file: %d\n",

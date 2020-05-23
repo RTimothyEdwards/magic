@@ -4,16 +4,16 @@
  * Circuit extraction.
  * Extract a single cell.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -61,7 +61,7 @@ FILE *extFileOpen();
 void extCellFile();
 void extHeader();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -130,7 +130,7 @@ ExtCell(def, outName, doLength)
 	TxPrintf("\n");
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -218,7 +218,7 @@ extFileOpen(def, file, mode, doLocal, prealfile)
     }
     return (PaOpen(name, mode, ".ext", ".", ".", prealfile));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -275,7 +275,7 @@ extCellFile(def, f, doLength)
 
     UndoEnable();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -354,7 +354,7 @@ extHeader(def, f)
     /* Output all calls on subcells */
     (void) DBCellEnum(def, extOutputUsesFunc, (ClientData) f);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

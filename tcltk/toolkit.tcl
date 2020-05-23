@@ -150,7 +150,7 @@ proc magic::gencell {gencell_name {instname {}} args} {
     }
     set argpar [dict create {*}$args]
 
-    if {$gencell_name == {}} { 
+    if {$gencell_name == {}} {
 	# Find selected item  (to-do:  handle multiple selections)
 
 	set wlist [what -list]
@@ -204,7 +204,7 @@ proc magic::gencell {gencell_name {instname {}} args} {
 		if {[dict exists $parameters nocell]} {
 		    set arcount [array -list count]
 		    set arpitch [array -list pitch]
-	
+
 		    dict set parameters nx [lindex $arcount 1]
 		    dict set parameters ny [lindex $arcount 3]
 		    dict set parameters pitchx $delx
@@ -385,7 +385,7 @@ proc magic::get_gencell_name {gencell_type} {
 	    set pint [expr 48 + int(rand() * 36)]
 	    if {$pint > 57} {set pint [expr $pint + 39]}
 	    append postfix [format %c $pint]
-	}   
+	}
 	if {[cellname list exists ${gencell_type}_$postfix] == 0} {break}
     }
     return ${gencell_type}_$postfix
@@ -457,7 +457,7 @@ proc magic::gencell_create {gencell_type library parameters} {
 	if {[catch {${library}::${gencell_type}_draw $parameters} drawerr]} {
 	    puts stderr $drawerr
 	}
-	property library $library 
+	property library $library
 	property gencell $gencell_type
 	property parameters $parameters
 	popstack
@@ -476,7 +476,7 @@ proc magic::gencell_create {gencell_type library parameters} {
 }
 
 #-----------------------------------------------------
-#  Add a standard entry parameter to the gencell window 
+#  Add a standard entry parameter to the gencell window
 #-----------------------------------------------------
 
 proc magic::add_entry {pname ptext parameters} {
@@ -486,7 +486,7 @@ proc magic::add_entry {pname ptext parameters} {
    } else {
        set value ""
    }
-   
+
    set numrows [lindex [grid size .params.edits] 1]
    label .params.edits.${pname}_lab -text $ptext
    entry .params.edits.${pname}_ent -background white -textvariable magic::${pname}_val
@@ -499,8 +499,8 @@ proc magic::add_entry {pname ptext parameters} {
 }
 
 #----------------------------------------------------------
-# Default entry callback, without any dependencies.  Each 
-# parameter changed 
+# Default entry callback, without any dependencies.  Each
+# parameter changed
 #----------------------------------------------------------
 
 proc magic::add_check_callbacks {gencell_type library} {
@@ -589,7 +589,7 @@ proc magic::update_dialog {callback pname gencell_type library} {
 }
 
 #----------------------------------------------------------
-#  Add a standard checkbox parameter to the gencell window 
+#  Add a standard checkbox parameter to the gencell window
 #----------------------------------------------------------
 
 proc magic::add_checkbox {pname ptext parameters} {
@@ -599,7 +599,7 @@ proc magic::add_checkbox {pname ptext parameters} {
    } else {
        set value ""
    }
-   
+
    set numrows [lindex [grid size .params.edits] 1]
    label .params.edits.${pname}_lab -text $ptext
    checkbutton .params.edits.${pname}_chk -variable magic::${pname}_val
@@ -622,7 +622,7 @@ proc magic::add_message {pname ptext parameters {color blue}} {
    } else {
       set value ""
    }
-   
+
    set numrows [lindex [grid size .params.edits] 1]
    label .params.edits.${pname}_lab -text $ptext
    label .params.edits.${pname}_txt -text $value \
@@ -632,7 +632,7 @@ proc magic::add_message {pname ptext parameters {color blue}} {
 }
 
 #----------------------------------------------------------
-#  Add a selectable-list parameter to the gencell window 
+#  Add a selectable-list parameter to the gencell window
 #----------------------------------------------------------
 
 proc magic::add_selectlist {pname ptext all_values parameters {itext ""}} {
@@ -646,7 +646,7 @@ proc magic::add_selectlist {pname ptext all_values parameters {itext ""}} {
    set numrows [lindex [grid size .params.edits] 1]
    label .params.edits.${pname}_lab -text $ptext
    menubutton .params.edits.${pname}_sel -menu .params.edits.${pname}_sel.menu \
-		-relief groove -text ${value} 
+		-relief groove -text ${value}
    grid .params.edits.${pname}_lab -row $numrows -column 0 -sticky ens
    grid .params.edits.${pname}_sel -row $numrows -column 1 -sticky wns
    menu .params.edits.${pname}_sel.menu -tearoff 0
@@ -659,7 +659,7 @@ proc magic::add_selectlist {pname ptext all_values parameters {itext ""}} {
 }
 
 #----------------------------------------------------------
-#  Add a selectable-list parameter to the gencell window 
+#  Add a selectable-list parameter to the gencell window
 #  Unlike the routine above, it returns the index of the
 #  selection, not the selection itself.  This is useful for
 #  keying the selection to other parameter value lists.

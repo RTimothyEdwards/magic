@@ -4,26 +4,26 @@
  * This file defines data structures and constantds and declares
  * variables INTERNAL TO THE GAROUTER.
  * but shard by two or more soruce files.
- * * 
+ * *
  * Structures etc. that are exported by the irouter are defined in
  * irouter.h.
  *
- * Structures etc. that are local to a given source 
+ * Structures etc. that are local to a given source
  * file are declared at the top of that source file.
  *
- * Structures, etc.,  specific to a given function are usually defined at 
+ * Structures, etc.,  specific to a given function are usually defined at
  * the head of that function.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid $Header: /usr/cvsroot/magic-8.0/garouter/gaInternal.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $

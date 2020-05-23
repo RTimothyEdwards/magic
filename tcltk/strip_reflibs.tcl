@@ -18,7 +18,7 @@
 # Note that if all cells are treated as library references, then the
 # GDS file itself does not need to exist.
 
-foreach fname [glob *.mag] { 
+foreach fname [glob *.mag] {
    if [catch {open $fname r} fIn] {
       puts stdout "Error: can't open file $fname"
    } else {

@@ -1,5 +1,5 @@
 /*
- * defRead.c --      
+ * defRead.c --
  *
  * This module incorporates the LEF/DEF format for standard-cell place and
  * route.
@@ -9,7 +9,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/defRead.c,v 1.2 2008/06/01 18:37:43 tim Exp $";            
+static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/defRead.c,v 1.2 2008/06/01 18:37:43 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -161,7 +161,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 
 	    if (routeLayer < 0)
 	    {
-		LefError(DEF_ERROR, "Unknown layer type \"%s\" for NEW route\n", token); 
+		LefError(DEF_ERROR, "Unknown layer type \"%s\" for NEW route\n", token);
 		continue;
 	    }
 	    paintLayer = routeLayer;
@@ -265,7 +265,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 	    }
 	    else
 	    {
-		LefError(DEF_ERROR, "Cannot parse X coordinate in RECT.\n"); 
+		LefError(DEF_ERROR, "Cannot parse X coordinate in RECT.\n");
 		goto endCoord;
 	    }
 
@@ -276,7 +276,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 	    }
 	    else
 	    {
-		LefError(DEF_ERROR, "Cannot parse Y coordinate in RECT.\n"); 
+		LefError(DEF_ERROR, "Cannot parse Y coordinate in RECT.\n");
 		goto endCoord;
 	    }
 
@@ -287,7 +287,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 	    }
 	    else
 	    {
-		LefError(DEF_ERROR, "Cannot parse X coordinate in RECT.\n"); 
+		LefError(DEF_ERROR, "Cannot parse X coordinate in RECT.\n");
 		goto endCoord;
 	    }
 	    token = LefNextToken(f, TRUE);	/* read ury */
@@ -297,13 +297,13 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 	    }
 	    else
 	    {
-		LefError(DEF_ERROR, "Cannot parse Y coordinate in RECT.\n"); 
+		LefError(DEF_ERROR, "Cannot parse Y coordinate in RECT.\n");
 		goto endCoord;
 	    }
 	    token = LefNextToken(f, TRUE);	/* read closing parens */
 	    if (*token != ')')
 	    {
-		LefError(DEF_ERROR, "Bad coordinates in RECT.\n"); 
+		LefError(DEF_ERROR, "Bad coordinates in RECT.\n");
 		goto endCoord;
 	    }
 	    GeoCanonicalRect(&locarea, &newRoute->r_r);
@@ -364,7 +364,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 			addRoute->r_r.r_ybot >>= 1;
 			addRoute->r_r.r_xtop >>= 1;
 			addRoute->r_r.r_ytop >>= 1;
-	
+
 			if (routeTop)
 			    routeList->r_next = addRoute;
 			else
@@ -372,7 +372,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 
 			routeList = addRoute;
 		    }
-			
+
 		    paintLayer = lefl->type;
 
 		    newRoute->r_r.r_xbot = refp.p_x + lefl->info.via.area.r_xbot;
@@ -454,7 +454,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 	    {
 		if (valid == FALSE)
 		{
-		    LefError(DEF_ERROR, "No reference point for \"*\" wildcard\n"); 
+		    LefError(DEF_ERROR, "No reference point for \"*\" wildcard\n");
 		    goto endCoord;
 		}
 	    }
@@ -464,7 +464,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 	    }
 	    else
 	    {
-		LefError(DEF_ERROR, "Cannot parse X coordinate.\n"); 
+		LefError(DEF_ERROR, "Cannot parse X coordinate.\n");
 		goto endCoord;
 	    }
 	    token = LefNextToken(f, TRUE);	/* read Y */
@@ -472,7 +472,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 	    {
 		if (valid == FALSE)
 		{
-		    LefError(DEF_ERROR, "No reference point for \"*\" wildcard\n"); 
+		    LefError(DEF_ERROR, "No reference point for \"*\" wildcard\n");
 		    freeMagic(newRoute);
 		    newRoute = NULL;
 		    goto endCoord;
@@ -484,7 +484,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 	    }
 	    else
 	    {
-		LefError(DEF_ERROR, "Cannot parse Y coordinate.\n"); 
+		LefError(DEF_ERROR, "Cannot parse Y coordinate.\n");
 		goto endCoord;
 	    }
 
@@ -683,7 +683,7 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, total)
 	NULL
     };
 
-    defLayerMap = defMakeInverseLayerMap(); 
+    defLayerMap = defMakeInverseLayerMap();
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
@@ -1013,7 +1013,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 
 		/* Update the record of the number of pins		*/
 		/* processed and spit out a message for every 5% done.	*/
- 
+
 		LefEstimate(processed++, total, "pins");
 
 		/* Get pin name */
@@ -1134,7 +1134,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 	LefError(DEF_WARNING, "Number of pins read (%d) does not match "
 		"the number declared (%d).\n", processed, total);
 }
- 
+
 /*
  *------------------------------------------------------------
  *
@@ -1217,7 +1217,7 @@ DefReadVias(f, sname, oscale, total)
 
 		/* Update the record of the number of vias		*/
 		/* processed and spit out a message for every 5% done.	*/
- 
+
 		LefEstimate(processed++, total, "vias");
 
 		/* If not otherwise specified, rows and columns default to 1 */
@@ -1417,7 +1417,7 @@ DefReadVias(f, sname, oscale, total)
 	LefError(DEF_WARNING, "Number of vias read (%d) does not match "
 		"the number declared (%d).\n", processed, total);
 }
- 
+
 /*
  *------------------------------------------------------------
  *
@@ -1497,7 +1497,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 
 		/* Update the record of the number of components	*/
 		/* processed and spit out a message for every 5% done.	*/
- 
+
 		LefEstimate(processed++, total, "subcell instances");
 
 		/* Get use and macro names */
@@ -1520,7 +1520,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		/* specific syntax [xlo:xsep:xhi][ylo:ysep:yhi] and */
 		/* is easy enough to distinguish.		    */
 
-		/* 
+		/*
 		    dptr = strchr(usename, '[');
 		    if (dptr != NULL) {
 			*dptr = '_';

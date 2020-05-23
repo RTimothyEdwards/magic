@@ -3,16 +3,16 @@
  *
  * Commands with names beginning with the letters T through Z.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -85,7 +85,7 @@ checkForPaintFunc(cellDef, arg)
 {
     int numPlanes = *((int *)arg);
     int pNum, result;
-   
+
     if (cellDef->cd_flags & CDINTERNAL) return 0;
 
     for (pNum = PL_SELECTBASE; pNum < numPlanes; pNum++)
@@ -158,7 +158,7 @@ CmdCheckForPaintFunc()
 #define TECH_LAYERS	7
 #define TECH_DRC	8
 #define TECH_LOCK	9
-#define TECH_UNLOCK	10	
+#define TECH_UNLOCK	10
 #define TECH_REVERT	11
 
 void
@@ -177,14 +177,14 @@ CmdTech(w, cmd)
 	{ "no", "yes", 0 };
 
     static char *cmdTechOption[] =
-    {	
+    {
 	"load filename [-noprompt][-[no]override]\n\
 				Load a new technology",
 	"help			Display techinfo command options",
 	"name			Show current technology name",
 	"filename		Show current technology filename",
 	"version		Show current technology version",
-	"lambda			Show internal units per lambda", 
+	"lambda			Show internal units per lambda",
 	"planes			Show defined planes",
 	"layers	[<layer...>]	Show defined layers",
 	"drc <rule> <layer...>	Query DRC ruleset",
@@ -451,7 +451,7 @@ CmdTech(w, cmd)
 		if (!strncmp(cmd->tx_argv[2], "width", 5))
 		{
 		    tresult = DRCGetDefaultLayerWidth(t1);
-#ifdef MAGIC_WRAPPER		
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(tresult));
 #else
 		    TxPrintf("Minimum width is %d\n", tresult);
@@ -470,7 +470,7 @@ CmdTech(w, cmd)
 		    else
 			t2 = t1;
 		    tresult = DRCGetDefaultLayerSpacing(t1, t2);
-#ifdef MAGIC_WRAPPER		
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(tresult));
 #else
 		    TxPrintf("Minimum spacing is %d\n", tresult);
@@ -493,7 +493,7 @@ CmdTech(w, cmd)
 		    }
 
 		    tresult = DRCGetDefaultLayerSurround(t1, t2);
-#ifdef MAGIC_WRAPPER		
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(tresult));
 #else
 		    TxPrintf("Minimum surround is %d\n", tresult);
@@ -572,7 +572,7 @@ CmdTech(w, cmd)
 #endif
 		break;
 	    }
-	
+
 	    if (!TechLoad(cmd->tx_argv[2], 0))
 	    {
 #ifdef MAGIC_WRAPPER
@@ -647,7 +647,7 @@ CmdTool(w, cmd)
 	DBWPrintButtonDoc();
     else (void) DBWChangeButtonHandler(cmd->tx_argv[1]);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -682,7 +682,7 @@ CmdUnexpand(w, cmd)
 	TxError("Usage: %s\n", cmd->tx_argv[0]);
 	return;
     }
-    
+
     windCheckOnlyWindow(&w, DBWclientID);
     if (w == (MagWindow *) NULL)
     {
@@ -716,7 +716,7 @@ cmdUnexpandFunc(use, windowMask)
 	    (TileTypeBitMask *) NULL);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -736,7 +736,7 @@ cmdUnexpandFunc(use, windowMask)
  *
  * ----------------------------------------------------------------------------
  */
-    
+
 void
 CmdUpsidedown(w, cmd)
     MagWindow *w;
@@ -752,12 +752,12 @@ CmdUpsidedown(w, cmd)
 	return;
     }
     if (!ToolGetEditBox((Rect *)NULL)) return;
-    
+
     /* To flip the selection upside down, first flip it around the
      * x-axis, then move it back so its lower-left corner is in
      * the same place that it used to be.
      */
-    
+
     GeoTransRect(&GeoUpsideDownTransform, &SelectDef->cd_bbox, &bbox);
     GeoTranslateTrans(&GeoUpsideDownTransform,
 	SelectDef->cd_bbox.r_xbot - bbox.r_xbot,
@@ -768,7 +768,7 @@ CmdUpsidedown(w, cmd)
     /* Flip the box, if it exists and is in the same window as the
      * selection.
      */
-    
+
     if (ToolGetBox(&rootDef, &rootBox) && (rootDef == SelectRootDef))
     {
 	Rect newBox;
@@ -888,7 +888,7 @@ CmdWhat(w, cmd)
     extern int cmdWhatLabelPreFunc(), orderLabelFunc();
 
     locargc = cmd->tx_argc;
-    
+
 #ifdef MAGIC_WRAPPER
     if ((locargc == 2) && !strncmp(cmd->tx_argv[locargc - 1], "-list", 5))
     {
@@ -898,7 +898,7 @@ CmdWhat(w, cmd)
 	paintobj = Tcl_NewListObj(0, NULL);
 	labelobj = Tcl_NewListObj(0, NULL);
 	cellobj = Tcl_NewListObj(0, NULL);
-    }	
+    }
     if (locargc > 1)
     {
 	TxError("Usage: what [-list]\n");
@@ -999,7 +999,7 @@ CmdWhat(w, cmd)
 
     moreLabelEntries = 0;
     labelEntryCount = 0;
-    labelBlockTop = NULL; 
+    labelBlockTop = NULL;
     (void) SelEnumLabels(&DBAllTypeBits, FALSE, (bool *) NULL,
 	    cmdWhatLabelPreFunc, (ClientData) &foundAny);
     foundAny = FALSE;
@@ -1121,7 +1121,7 @@ cmdWhatLabelPreFunc(label, cellUse, transform, foundAny)
         labelEntry = &labelBlockTop[labelEntryCount];
 	moreLabelEntries = 100;
     }
-	/* store the pointers for sorting later */	
+	/* store the pointers for sorting later */
     labelEntry->lab_type = label->lab_type;
     labelEntry->lab_text = label->lab_text;
     if (!cellUse->cu_id)
@@ -1136,7 +1136,7 @@ cmdWhatLabelPreFunc(label, cellUse, transform, foundAny)
     labelEntryCount++;
     return 0;
 }
-	
+
 
 int
 cmdWhatLabelFunc(entry, foundAny)
@@ -1176,13 +1176,13 @@ cmdWhatLabelFunc(entry, foundAny)
 	if (counts > 1)
 		TxPrintf(" (%i instances)", counts);
         TxPrintf("\n    \"%s\" is attached to %s in cell %s %s", entry->lab_text,
-		DBTypeLongName(entry->lab_type), 
+		DBTypeLongName(entry->lab_type),
 		(isDef) ? "def" : "use", entry->cell_name);
         last_type = entry->lab_type;
         last_cell = entry->cell_name;
         last_name = entry->lab_text;
 	counts = 1;
-    } else 
+    } else
 	counts++;
     return counts;
 }
@@ -1308,7 +1308,7 @@ CmdWire(w, cmd)
 #endif
 
     static char *cmdWireOption[] =
-    {	
+    {
 	"decrement layer|width 	decrement the wire layer or width",
 	"help                   print this help information",
 	"horizontal             add a new horizontal wire leg",
@@ -1434,11 +1434,11 @@ CmdWire(w, cmd)
 		TxPrintf("    %s\n", *msg);
 	    }
 	    return;
-	
+
 	case HORIZONTAL:
 	    WireAddLeg((Rect *) NULL, (Point *) NULL, WIRE_HORIZONTAL);
 	    return;
-	
+
 	case LEG:
 	    WireAddLeg((Rect *) NULL, (Point *) NULL, WIRE_CHOOSE);
 	    return;
@@ -1639,7 +1639,7 @@ CmdWire(w, cmd)
 			    if (*xptr == '\0' || *yptr == '\0')
 			    {
 				TxError("Bad coordinate pair at %s line %d\n",
-					cmd->tx_argv[4], i + 1); 
+					cmd->tx_argv[4], i + 1);
 				freeMagic(plist);
 				return;
 			    }
@@ -1701,7 +1701,7 @@ CmdWire(w, cmd)
 	    break;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1832,7 +1832,7 @@ cmdWriteallFunc(def, cmd)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1929,7 +1929,7 @@ CmdXor(w, cmd)
     void		(*curPlaneSave)();
 
     int p, t, h;
-     
+
     destname = cmd->tx_argv[cmd->tx_argc - 1];
     xMask = CU_DESCEND_ALL;
     dolabels = TRUE;
@@ -1986,7 +1986,7 @@ CmdXor(w, cmd)
     DBSetTrans(newuse, &GeoIdentityTransform);
     newuse->cu_expandMask = CU_DESCEND_SPECIAL;
     flatDestUse = newuse;
-    
+
     if (EditCellUse)
 	scx.scx_use  = EditCellUse;
     else
@@ -2028,7 +2028,7 @@ CmdXor(w, cmd)
 
     if (xMask != CU_DESCEND_ALL)
 	DBCellCopyAllCells(&scx, xMask, flatDestUse, (Rect *)NULL);
-    
+
     DBNewPaintTable(curPaintSave);
     DBNewPaintPlane(curPlaneSave);
 

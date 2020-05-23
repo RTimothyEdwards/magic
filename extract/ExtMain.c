@@ -4,16 +4,16 @@
  * Circuit extraction.
  * Command interface.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -88,7 +88,7 @@ void extExtractStack();
 bool extContainsGeometry();
 bool extContainsCellFunc();
 bool extTimestampMisMatch();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -153,7 +153,7 @@ ExtInit()
     /* Initialize the hash tables used in ExtLength.c */
     extLengthInit();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -228,7 +228,7 @@ extDefPushFunc(use)
     (void) DBCellEnum(def, extDefPushFunc, (ClientData) 0);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -288,7 +288,7 @@ ExtUnique(rootUse, option)
     if (nwarn)
 	TxError("%d uncorrected errors (see the feedback info)\n", nwarn);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -366,7 +366,7 @@ extDefParentFunc(def)
 	if (parent->cu_parent)
 	    extDefParentFunc(parent->cu_parent);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -501,7 +501,7 @@ extContainsPaintFunc()
 {
     return (1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -603,7 +603,7 @@ closeit:
     (void) fclose(extFile);
     return (ret);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

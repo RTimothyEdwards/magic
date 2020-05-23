@@ -4,17 +4,17 @@
  * Code for Completing final legs of route within the blocked areas ajacent to
  * dest areas.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 #ifndef lint
@@ -37,7 +37,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header:";
 #include "mzrouter/mzrouter.h"
 #include "mzrouter/mzInternal.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -123,7 +123,7 @@ mzWalkRight(path)
 		lowPt.p_y - BOTTOM(tp) : -1;
 
 		/* delta = distance to nearest hint */
-		if (deltaUp < 0) 
+		if (deltaUp < 0)
 		{
 		    if (deltaDown < 0)
 		    delta = 0;
@@ -155,7 +155,7 @@ mzWalkRight(path)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -244,7 +244,7 @@ mzWalkLeft(path)
 		    lowPt.p_y - BOTTOM(tp) : -1;
 
 		/* delta = distance to nearest hint */
-		if (deltaUp < 0) 
+		if (deltaUp < 0)
 		{
 		    if (deltaDown < 0)
 			delta = 0;
@@ -276,7 +276,7 @@ mzWalkLeft(path)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -362,7 +362,7 @@ mzWalkUp(path)
 				lowPt.p_x - LEFT(tp) : -1;
 
 		/* delta = distance to nearest hint */
-		if (deltaRight < 0) 
+		if (deltaRight < 0)
 		{
 		    if (deltaLeft < 0)
 			delta = 0;
@@ -394,7 +394,7 @@ mzWalkUp(path)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -482,7 +482,7 @@ mzWalkDown(path)
 		    lowPt.p_x - LEFT(tp) : -1;
 
 		/* delta = distance to nearest hint */
-		if (deltaRight < 0) 
+		if (deltaRight < 0)
 		{
 		    if (deltaLeft < 0)
 			delta = 0;
@@ -514,7 +514,7 @@ mzWalkDown(path)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -537,7 +537,7 @@ mzWalkLRContact(path)
     Point pOrg;		/* point to extend from */
     int extendCode;	/* Interesting directions to extend in */
     RouteContact *rC;   /* Route contact to make connection with */
-    RouteLayer *newRL;	/* Route layer of dest area */ 
+    RouteLayer *newRL;	/* Route layer of dest area */
     dlong conCost;	/* Cost of final contact */
     int walkType;	/* TT_ABOVE_LR_WALK or TT_BELOW_LR_WALK */
     Tile *tpThis;	/* Tile containing org point */
@@ -568,7 +568,7 @@ mzWalkLRContact(path)
 
 	if((walkType == TT_ABOVE_LR_WALK) && (rC->rc_rLayer2 != path->rp_rLayer))
 	    continue;
- 
+
 	/* if contact blocked, skip it */
 	tpCont = TiSrPointNoHint(rC->rc_routeType.rt_hBlock, &pOrg);
 	if (TiGetType(tpCont) == TT_BLOCKED)
@@ -624,7 +624,7 @@ mzWalkUDContact(path)
     Point pOrg;		/* point to extend from */
     int extendCode;	/* Interesting directions to extend in */
     RouteContact *rC;   /* Route contact to make connection with */
-    RouteLayer *newRL;	/* Route layer of dest area */ 
+    RouteLayer *newRL;	/* Route layer of dest area */
     dlong conCost;	/* Cost of final contact */
     int walkType;	/* TT_ABOVE_UD_WALK or TT_BELOW_UD_WALK */
     Tile *tpThis;	/* Tile containing org point */
@@ -655,7 +655,7 @@ mzWalkUDContact(path)
 
 	if((walkType == TT_ABOVE_UD_WALK) && (rC->rc_rLayer2 != path->rp_rLayer))
 	    continue;
- 
+
 	/* if contact blocked, skip it */
 	tpCont = TiSrPointNoHint(rC->rc_routeType.rt_vBlock, &pOrg);
 	if (TiGetType(tpCont) == TT_BLOCKED)

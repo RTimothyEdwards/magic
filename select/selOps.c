@@ -4,16 +4,16 @@
  * This file contains top-level procedures to manipulate the selection,
  * e.g. to delete it, move it, etc.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -69,7 +69,7 @@ typedef struct stretchArea
 } StretchArea;
 
 static StretchArea *selStretchList;	/* List of areas to paint. */
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -149,12 +149,12 @@ selDelPaintFunc(rect, type)
     if (type & TT_DIAGONAL)
     {
 	dinfo = DBTransformDiagonal(type, &RootToEditTransform);
-	TTMaskSetOnlyType(&tmask, type & TT_LEFTMASK);   
+	TTMaskSetOnlyType(&tmask, type & TT_LEFTMASK);
     }
     else
     {
 	dinfo = 0;
-	TTMaskSetOnlyType(&tmask, type);   
+	TTMaskSetOnlyType(&tmask, type);
     }
 
     GeoTransRect(&RootToEditTransform, rect, &editRect);
@@ -192,7 +192,7 @@ selDelLabelFunc(label)
 		label->lab_text);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -665,7 +665,7 @@ donesrch:
     }
     return 0;
 }
-    
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -720,7 +720,7 @@ SelectShort(char *lab1, char *lab2)
     if (srclab == NULL || destlab == NULL) return NULL;
 
     /* Must be able to find tiles associated with each label */
-    
+
     pmask = DBTypePlaneMaskTbl[srclab->lab_type];
     for (pnum = PL_TECHDEPBASE; pnum < DBNumPlanes; pnum++)
     {
@@ -759,7 +759,7 @@ SelectShort(char *lab1, char *lab2)
     return rlist;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -900,7 +900,7 @@ selTransLabelFunc(label, cellUse, defTransform, transform)
 	    label->lab_text, label->lab_type, label->lab_flags);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -937,7 +937,7 @@ SelectTransform(transform)
     SelectDelete("modified", TRUE);
     SelectAndCopy2(EditRootDef);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1007,7 +1007,7 @@ selExpandFunc(selUse, use, transform, mask)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1038,7 +1038,7 @@ SelectArray(arrayInfo)
      * selection, then copy everything back from Select2Def and
      * select it.
      */
-    
+
     UndoDisable();
     DBCellClearDef(Select2Def);
     (void) SelEnumPaint(&DBAllButSpaceAndDRCBits, TRUE, (bool *) NULL,
@@ -1053,7 +1053,7 @@ SelectArray(arrayInfo)
     /* Now just delete the selection and recreate it from Select2Def,
      * copying into the edit cell along the way.
      */
-    
+
     SelectDelete("arrayed", TRUE);
     SelectAndCopy2(EditRootDef);
 }
@@ -1128,11 +1128,11 @@ selArrayCFunc(selUse, use, transform, arrayInfo)
     DBMakeArray(newUse, &tinv, arrayInfo->ar_xlo,
 	arrayInfo->ar_ylo, arrayInfo->ar_xhi, arrayInfo->ar_yhi,
 	arrayInfo->ar_xsep, arrayInfo->ar_ysep);
-    
+
     /* Set the array's transform so that its lower-left corner is in
      * the same place that it used to be.
      */
-    
+
     GeoInvertTrans(&use->cu_transform, &tinv);
     GeoTransRect(&tinv, &use->cu_bbox, &tmp);
     GeoTransRect(transform, &tmp, &oldBbox);
@@ -1253,7 +1253,7 @@ SelectStretch(x, y)
     /* First of all, copy from SelectDef to Select2Def, moving the
      * selection along the way.
      */
-    
+
     GeoTranslateTrans(&GeoIdentityTransform, x, y, &transform);
     selTransTo2(&transform);
 
@@ -1273,7 +1273,7 @@ SelectStretch(x, y)
     /* Next, delete all the material in front of each piece of paint in
      * the selection.
      */
-    
+
     selStretchX = x;
     selStretchY = y;
     for (plane = PL_SELECTBASE; plane < DBNumPlanes; plane++)
@@ -1319,7 +1319,7 @@ SelectStretch(x, y)
      * select it again, and tell DRC and display about what we
      * changed.
      */
-    
+
     SelectAndCopy2(EditRootDef);
     DBWAreaChanged(EditCellUse->cu_def, &editModified, DBW_ALLWINDOWS,
 	(TileTypeBitMask *) NULL);
@@ -1381,7 +1381,7 @@ selStretchEraseFunc(tile, plane)
      */
 
     GeoTransRect(&RootToEditTransform, &area, &editArea);
- 
+
     /* We need to erase all types that interact with "type", *not* all	*/
     /* types on "plane", due to the way stacked contacts are handled.	*/
     /* Contacts on different planes may stretch across one another	*/
@@ -1430,7 +1430,7 @@ selStretchEraseFunc(tile, plane)
      */
 
     TTMaskZero(&tmpmask);
-    	
+
     selStretchEraseTbl[TT_SPACE] = (PaintResultType)TT_SPACE;
     for (t = TT_SPACE + 1; t < DBNumUserLayers; t++)
     {
@@ -1520,7 +1520,7 @@ selStretchFillFunc(tile, plane)
      * stretch direction) for space in the selection and non-space in
      * the edit cell.
      */
-    
+
     if (selStretchX > 0)
     {
 	area.r_xtop = area.r_xbot;
@@ -1566,7 +1566,7 @@ selStretchFillFunc(tile, plane)
     (void) DBSrPaintArea((Tile *) NULL,
 	    Select2Def->cd_planes[*plane], &area,
 	    &DBSpaceBits, selStretchFillFunc2, (ClientData) &area);
-    
+
     return 0;
 }
 
@@ -1666,7 +1666,7 @@ selStretchFillFunc3(tile, area)
     /* Compute the material to be painted.  Be careful:  for contacts,
      * must use the master image.
      */
-    
+
     if (IsSplit(tile))
     {
 	if (selStretchX > 0)
@@ -1739,7 +1739,7 @@ selStretchFillFunc3(tile, area)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

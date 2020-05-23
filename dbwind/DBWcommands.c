@@ -3,16 +3,16 @@
  *
  * 	This file contains the dispatch tables for layout commands.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -134,7 +134,7 @@ extern void CmdAutoLef();
 
 /*
  * Wrapper commands for ext2spice and ext2sim
- */ 
+ */
 
 #ifdef MAGIC_WRAPPER
 #ifdef EXT2SIM_AUTO
@@ -158,7 +158,7 @@ extern void CmdHistory();
 #endif
 
 /*
- * Commands only in the Lawrence Livermore Version 
+ * Commands only in the Lawrence Livermore Version
  */
 
 #ifdef	LLNL
@@ -264,10 +264,10 @@ DBWInitCommands()
 	"crash save|recover [file]\n"
 	"			recover the crash file \"file\", or the first\n"
 	"			crash file discovered.",
-	CmdCrash, FALSE);		
+	CmdCrash, FALSE);
     WindAddCommand(DBWclientID,
 	"crosshair x y | off	enable and move or disable the screen crosshair",
-	CmdCrosshair, FALSE);		
+	CmdCrosshair, FALSE);
     WindAddCommand(DBWclientID,
 	"delete			delete everything in selection",
 	CmdDelete, FALSE);
@@ -500,7 +500,7 @@ DBWInitCommands()
     WindAddCommand(DBWclientID,
 	"spliterase dir [layer]	erase layers from diagonal corner dir of the\n\
 			edit box",
-	CmdSplitErase, FALSE);   
+	CmdSplitErase, FALSE);
 
 #ifdef MAGIC_WRAPPER
     /* Add the Tcl commands for exttospice, exttosim, and aliases ext2spice, ext2sim */
@@ -586,7 +586,7 @@ DBWInitCommands()
     WindAddCommand(DBWclientID,
 	"plot type [args]	hardcopy plotting; type \"plot help\"\n\
 			for information on types and args",
-	CmdPlot, FALSE);  
+	CmdPlot, FALSE);
 
 #endif
 #ifdef PLOT_AUTO

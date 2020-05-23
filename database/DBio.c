@@ -3,16 +3,16 @@
  *
  * Reading and writing of cells
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -92,7 +92,7 @@ bool dbReadUse();
 /*
  * ----------------------------------------------------------------------------
  *
- *   file_is_not_writeable -- 
+ *   file_is_not_writeable --
  *
  *  Check to see if file is not writeable. (wen-king@cs.caltech.edu)
  *  Modified to deal with changed semantics of access() (rajit@cs.caltech.edu)
@@ -205,7 +205,7 @@ file_is_not_writeable(name)
  *	the direction of the corner made by the right triangle.
  *	If the split tile contains more than one type, separate entries
  *	are output for each.
- *	
+ *
  *	6. Zero or more groups of lines describing cell uses.  Each group
  *	is of the form
  *		use <filename> <id> [<path>]
@@ -345,7 +345,7 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
 	}
 	if (dbFgets(line, sizeof line, f) == NULL)
 	    goto badfile;
-	
+
 	if (line[0] == 'm')
 	{
 	    if (!strncmp(line, "magscale", 8))
@@ -356,13 +356,13 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
 		    n = d = 1;
 		}
 	    }
-		
+
 	    /* For backward compatibility, accept (and throw away) lines
 	     * whose first word is "maxlabscale".
 	     */
 	    else if (!strncmp(line, "maxlabscale", 11))
 		TxError("Deprecated keyword \"maxlabscale\" in input file.\n");
-	    else 
+	    else
 		TxError("Expected magscale but got: %s", line);
 	    if (dbFgets(line, sizeof line, f) == NULL)
 		goto badfile;
@@ -409,9 +409,9 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
     }
     if (n > 1)
     {
-	TxPrintf("Scaled magic input cell %s geometry by factor of %d", 
+	TxPrintf("Scaled magic input cell %s geometry by factor of %d",
 		cellDef->cd_name, n);
-	if (d > 1) 
+	if (d > 1)
 	{
 	    TxPrintf("/ %d\n", d);
 	    TxError("Warning:  Geometry may be lost because internal grid"
@@ -481,7 +481,7 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
 	/*
 	 * Record presence of material in cell.
 	 */
-	    
+
 	if (DBPlane(type) > 0)
 	{
 	    if (type < DBNumUserLayers)
@@ -520,7 +520,7 @@ nextrect:
 			((((dir & 0x2) >> 1) ^ (dir & 0x1)) ?
 			TT_DIRECTION : 0);
 	    }
-            else  
+            else
 	    {
 		dinfo = 0;
 		if (!GetRect(f, 4, rp, n, d)) goto badfile;
@@ -659,7 +659,7 @@ badfile:
  *	If DBbackupFile is non-NULL, then memory is freed, and the backup
  *	file is removed from the filesystem temp directory.  Otherwise,
  *	nothing happens.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -755,8 +755,8 @@ DBFileRecovery(filename)
 			recent = sbuf.st_ctime;
 			DBbackupFile = StrDup(&DBbackupFile, tempname);
 		    }
-		}  
-	    } 
+		}
+	    }
 	}
 	closedir(cwd);
     }
@@ -1178,7 +1178,7 @@ DBTestOpen(name, fullPath)
     return FALSE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1490,7 +1490,7 @@ badTransform:
 	    StrDup(&subCellDef->cd_file, path);
 	}
     }
-    
+
     subCellUse = DBCellNewUse(subCellDef, (useid[0]) ?
 		((locked) ? useid + 1 : useid) : (char *) NULL);
 
@@ -1539,7 +1539,7 @@ nextLine:
     return (dbFgets(line, len, f) != NULL);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2147,7 +2147,7 @@ nextlabel:
     return (TRUE);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2259,7 +2259,7 @@ DBCellFindScale(cellDef)
     }
 
     /* Finally, cell uses */
-	
+
     if (DBCellEnum(cellDef, dbFindCellGCFFunc, (ClientData) &ggcf))
 	return 1;
 
@@ -2283,7 +2283,7 @@ dbFindGCFFunc(tile, ggcf)
 	*ggcf = FindGCF(r.r_ytop, *ggcf);
     if (r.r_ybot % (*ggcf) != 0)
 	*ggcf = FindGCF(r.r_ybot, *ggcf);
-   
+
     return (*ggcf == 1) ? 1 : 0;
 }
 
@@ -2326,7 +2326,7 @@ dbFindCellGCFFunc(cellUse, ggcf)
 
     return (*ggcf == 1) ? 1 : 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2552,7 +2552,7 @@ DBCellWriteFile(cellDef, f)
 		    }
 		}
 		strcat(lstring, "\n");
-		FPRINTF(f, lstring); 
+		FPRINTF(f, lstring);
 	    }
 	}
     }
@@ -2658,7 +2658,7 @@ dbWritePropFunc(key, value, cdata)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2668,7 +2668,7 @@ dbWritePropFunc(key, value, cdata)
  * Mark the cell as having been written out.  Before calling this
  * procedure, the caller should make sure that timestamps have been
  * updated where appropriate.
- * 
+ *
  * This code is fairly tricky to ensure that we never destroy the
  * original contents of a cell in the event of an I/O error.  We
  * try the following approaches in order.
@@ -2845,7 +2845,7 @@ DBCellWrite(cellDef, fileName)
 	    close(cellDef->cd_fd);
 	    cellDef->cd_fd = -1;
 	}
-#endif  
+#endif
 
 	/*
 	 * The temp file is in good shape -- rename it to the real name,
@@ -2871,7 +2871,7 @@ DBCellWrite(cellDef, fileName)
 	    /* Re-aquire the lock on the new file by opening it. */
 	    DBCellRead(cellDef, NULL, TRUE, dereference, NULL);
 	}
-#endif  
+#endif
 
     }
     else if (exists)
@@ -2974,7 +2974,7 @@ cleanup:
     freeMagic(tmpname);
     return result;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3007,8 +3007,8 @@ dbWritePaintFunc(tile, cdarg)
 
     int dir;
 
-    if (IsSplit(tile))      
-    { 
+    if (IsSplit(tile))
+    {
 	lMask = DBResidueMask(SplitLeftType(tile));
 	rMask = DBResidueMask(SplitRightType(tile));
 
@@ -3062,7 +3062,7 @@ dbWritePaintFunc(tile, cdarg)
     FPRINTR(arg->wa_file,pstring);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3205,7 +3205,7 @@ dbWriteCellFunc(cellUse, cdarg)
     FPRINTR(arg->wa_file,cstring)
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3382,7 +3382,7 @@ dbWriteBackupFunc(def, f)
     if (name == NULL) name = def->cd_name;
 
     fprintf(f, "file %s\n", name);
-    
+
     /* Save/restore flags such that the crash recovery file write does	*/
     /* *not* clear the CDMODIFIED, et al., bits				*/
 

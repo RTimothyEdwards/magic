@@ -20,16 +20,16 @@
  *   The Tcl/Tk version of magic makes use of Tcl_Alloc() and Tcl_Free()
  *   which allows the Tcl/Tk version to trace memory using Tcl's methods.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -60,7 +60,7 @@ extern char *TxGetLine();
 /*
  * Magic may reference an object after it is free'ed, but only one object.
  * This is a change from previous versions of Magic, which needed to reference
- * an arbitrary number of objects before the next call to malloc.  Only then 
+ * an arbitrary number of objects before the next call to malloc.  Only then
  * would no further references would be made to free'ed storage.
  */
 
@@ -95,7 +95,7 @@ mallocMagic(nbytes)
     size_t nbytes;
 {
     void *p;
-    
+
     if (freeDelayedItem)
     {
 	/* fprintf(stderr, "freed 0x%x (delayed)\n", freeDelayedItem); fflush(stderr); */
@@ -104,7 +104,7 @@ mallocMagic(nbytes)
 	freeDelayedItem=NULL;
     }
 
-    if ((p = (void *)MallocRoutine(nbytes)) != NULL) 
+    if ((p = (void *)MallocRoutine(nbytes)) != NULL)
     {
 	/* fprintf(stderr, "alloc'd %u bytes at 0x%x\n", nbytes, p); fflush(stderr); */
 

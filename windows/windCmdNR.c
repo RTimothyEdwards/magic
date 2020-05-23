@@ -3,16 +3,16 @@
  *	This file contains Magic command routines for those commands
  *	that are valid in all windows.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -45,7 +45,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "dbwind/dbwind.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windOpenCmd --
@@ -86,14 +86,14 @@ windOpenCmd(w, cmd)
     wc = WindGetClient(DEFAULT_CLIENT, TRUE);
     ASSERT(wc != (WindClient) NULL, "windOpenCmd");
 
-    if (WindCreate(wc, &area, TRUE, cmd->tx_argc - 1, cmd->tx_argv + 1) == 
+    if (WindCreate(wc, &area, TRUE, cmd->tx_argc - 1, cmd->tx_argv + 1) ==
 	    (MagWindow *) NULL)
     {
 	TxError("Could not create window\n");
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windOverCmd --
@@ -125,7 +125,7 @@ windOverCmd(w, cmd)
     WindOver(w);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -153,7 +153,7 @@ windPauseCmd(w, cmd)
     int i;
     static char ssline[TX_MAX_CMDLEN];
 
-    WindUpdate();	
+    WindUpdate();
     GrFlush();
 
     for (i = 1; i < cmd->tx_argc; i++)
@@ -162,12 +162,12 @@ windPauseCmd(w, cmd)
 	TxPrintf(" ");
 	if (i+1 == cmd->tx_argc) TxPrintf(" ");
     }
-    
+
     TxPrintf("Pausing: type <cr> to continue: ");
     (void) TxGetLine(ssline, 98);
 }
 
-
+
 char *butTable[] =
 {
     "left",
@@ -241,7 +241,7 @@ badusage:
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindQuitCmd --
@@ -269,7 +269,7 @@ windQuitCmd(w, cmd)
 	    checkfirst = FALSE;
 
     if (checkfirst)
-	for (cr = windFirstClientRec; cr != (clientRec *) NULL; 
+	for (cr = windFirstClientRec; cr != (clientRec *) NULL;
 		cr = cr->w_nextClient)
 	    if (cr->w_exit != NULL)
 		if (!(*(cr->w_exit))())
@@ -278,7 +278,7 @@ windQuitCmd(w, cmd)
     MainExit(0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -360,7 +360,7 @@ windRedoCmd(w, cmd)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windRedrawCmd --
@@ -383,7 +383,7 @@ windRedrawCmd(w, cmd)
    WindAreaChanged((MagWindow *) NULL, (Rect *) NULL);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windResetCmd --

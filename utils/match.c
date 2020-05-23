@@ -2,16 +2,16 @@
  *
  *	String matching operations.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -23,7 +23,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include "utils/magic.h"
 #include "textio/textio.h"
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -56,7 +56,7 @@ Match(pattern, string)
 	 * so, we succeeded.  If we're at the end of pattern, but not
 	 * of string, we failed.
 	 */
-	
+
 	if (*pattern == 0)
 	{
 	    if (*string == 0) return TRUE;
@@ -69,7 +69,7 @@ Match(pattern, string)
 	 * recursively for each postfix of string, until either we
 	 * match or we reach the end of the string.
 	 */
-	
+
 	if (*pattern == '*')
 	{
 	    pattern += 1;
@@ -81,7 +81,7 @@ Match(pattern, string)
 	    }
 	    return FALSE;
 	}
-    
+
 	/* Check for a "?" as the next pattern character.  It matches
 	 * any single character.
 	 */
@@ -92,7 +92,7 @@ Match(pattern, string)
 	 * by a list of characters that are acceptable, or by a range
 	 * (two characters separated by "-").
 	 */
-	
+
 	if (*pattern == '[')
 	{
 	    pattern += 1;
@@ -113,11 +113,11 @@ Match(pattern, string)
 	    while ((*pattern != ']') && (*pattern != 0)) pattern += 1;
 	    goto thisCharOK;
 	}
-    
+
 	/* If the next pattern character is '\', just strip off the '\'
 	 * so we do exact matching on the character that follows.
 	 */
-	
+
 	if (*pattern == '\\')
 	{
 	    pattern += 1;
@@ -127,7 +127,7 @@ Match(pattern, string)
 	/* There's no special character.  Just make sure that the next
 	 * characters of each string match.
 	 */
-	
+
 	if (*pattern != *string) return FALSE;
 
 	thisCharOK: pattern += 1;

@@ -4,16 +4,16 @@
  * Input of Calma GDS-II stream format.
  * Low-level input.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -49,7 +49,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 bool calmaReadR8();
 bool calmaSkipBytes();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -180,7 +180,7 @@ calmaReadTransform(ptrans, name)
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -226,7 +226,7 @@ eof:
     CalmaReadError("Unexpected EOF.\n");
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -271,7 +271,7 @@ eof:
     CalmaReadError("Unexpected EOF.\n");
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -320,7 +320,7 @@ eof:
     CalmaReadError("Unexpected EOF.\n");
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -387,7 +387,7 @@ calmaReadR8(pd)
     *pd = d;
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -433,7 +433,7 @@ skipit:
 	(void) calmaSkipBytes(nbytes - CALMAHEADERLENGTH);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -481,7 +481,7 @@ eof:
     CalmaReadError("Unexpected EOF.\n");
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -515,7 +515,7 @@ calmaSkipTo(what)
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

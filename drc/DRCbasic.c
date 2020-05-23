@@ -6,16 +6,16 @@
  * find all of the rule violations and call a client procedure for
  * each one.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -114,11 +114,11 @@ point_to_segment(px, py, s1x, s1y, s2x, s2y)
 #define RADIAL_SW	0x2000
 #define RADIAL_SE	0x4000
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
- * areaCheck -- 
+ * areaCheck --
  *
  * Call the function passed down from DRCBasicCheck() if the current tile
  * violates the rule in the given DRCCookie.  If the rule's connectivity
@@ -138,7 +138,7 @@ point_to_segment(px, py, s1x, s1y, s2x, s2y)
  */
 
 int
-areaCheck(tile, arg) 
+areaCheck(tile, arg)
     Tile *tile;
     struct drcClientData *arg;
 {
@@ -157,7 +157,7 @@ areaCheck(tile, arg)
     if ((rect.r_xbot >= rect.r_xtop) || (rect.r_ybot >= rect.r_ytop))
 	return 0;
 
-    /* 
+    /*
      * When Euclidean distance checks are enabled, check for error tiles
      * outside of the perimeter of the circle in the corner extension area
      * that extends "sdist" from the corner of the edge.
@@ -173,7 +173,7 @@ areaCheck(tile, arg)
 	int sqx, sqy;
 	int sdist = arg->dCD_radial & 0xfff;
 	long sstest, ssdist = sdist * sdist;
-	
+
 	if ((arg->dCD_radial & RADIAL_NW) != 0)
 	{
 	    if (((sqx = arg->dCD_constraint->r_xbot + sdist
@@ -267,7 +267,7 @@ areaCheck(tile, arg)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -350,7 +350,7 @@ DRCBasicCheck (celldef, checkRect, clipRect, function, cdata)
     if (arg.dCD_rlist != NULL) freeMagic(arg.dCD_rlist);
     return (errors);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -400,7 +400,7 @@ drcTile (tile, arg)
      * overlap between things in adjacent cells.  This means that
      * there's an automatic violation over the area of the tile.
      */
-    
+
     if (TiGetType(tile) == TT_ERROR_S)
     {
 	TiToRect(tile, &errRect);
@@ -592,7 +592,7 @@ drcTile (tile, arg)
 			{
 			    lr = &mrd->rlist[i];
 			    GeoClip(lr, arg->dCD_clip);
-			    if (!GEO_RECTNULL(lr))  
+			    if (!GEO_RECTNULL(lr))
 			    {
 				(*(arg->dCD_function)) (arg->dCD_celldef,
 					lr, cptr, arg->dCD_clientData);
@@ -622,7 +622,7 @@ drcTile (tile, arg)
 		}
 
 		result = 0;
-		arg->dCD_radial = 0; 
+		arg->dCD_radial = 0;
 		arg->dCD_entries = 0;
 		do {
 		    if (triggered)
@@ -973,12 +973,12 @@ checkbottom:
 			{
 			    lr = &mrd->rlist[i];
 			    GeoClip(lr, arg->dCD_clip);
-			    if (!GEO_RECTNULL(lr))  
+			    if (!GEO_RECTNULL(lr))
 			     {
 				(*(arg->dCD_function)) (arg->dCD_celldef,
 					lr, cptr, arg->dCD_clientData);
 				(*(arg->dCD_errors))++;
-			    }           
+			    }
 			}
 		    }
 		    continue;
@@ -992,7 +992,7 @@ checkbottom:
 		}
 
 		result = 0;
-		arg->dCD_radial = 0; 
+		arg->dCD_radial = 0;
 		arg->dCD_entries = 0;
 		do {
 		    if (triggered)

@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- *  lispInt.h -- 
+ *  lispInt.h --
  *
  *   Internals of the lisp module.
  *
@@ -98,14 +98,14 @@ typedef struct LispObj {
     char *s;
   } u;
 } LispObj;
-       
+
 typedef struct Sexp {
   struct Sexp *n;
   LispObj *l[2];
 } Sexp;
 
 /*
- * Internal commands 
+ * Internal commands
  */
 extern void LispDispatch();
 

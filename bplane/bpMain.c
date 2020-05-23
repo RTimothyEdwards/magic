@@ -1,28 +1,28 @@
 // ************************************************************************
-// 
+//
 // Copyright (c) 1995-2002 Juniper Networks, Inc. All rights reserved.
-// 
+//
 // Permission is hereby granted, without written agreement and without
 // license or royalty fees, to use, copy, modify, and distribute this
 // software and its documentation for any purpose, provided that the
 // above copyright notice and the following three paragraphs appear in
 // all copies of this software.
-// 
+//
 // IN NO EVENT SHALL JUNIPER NETWORKS, INC. BE LIABLE TO ANY PARTY FOR
 // DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
 // ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF
 // JUNIPER NETWORKS, INC. HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
-// 
+//
 // JUNIPER NETWORKS, INC. SPECIFICALLY DISCLAIMS ANY WARRANTIES,
 // INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
 // NON-INFRINGEMENT.
-// 
+//
 // THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND JUNIPER
 // NETWORKS, INC. HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-// 
+//
 // ************************************************************************
 
 
@@ -51,7 +51,7 @@
  * Return newly created BPlane.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 BPlane *BPNew(void)
 {
   BPlane *new;
@@ -92,7 +92,7 @@ BPlane *BPNew(void)
  * free (empty) BPlane
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 void BPFree(BPlane *bp)
 {
   ASSERT(bp->bp_count == 0,"BPFree");
@@ -109,7 +109,7 @@ void BPFree(BPlane *bp)
  * NOTE: e_rect better be canonical!
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 void BPAdd(BPlane *bp, void *element)
 {
   int size;
@@ -126,8 +126,8 @@ void BPAdd(BPlane *bp, void *element)
   ASSERT(!bp->bp_enums,
 	 "BPAdd, attempted during active enumerations");
 
-  /* element rect must be canonical! */ 
-#ifdef PARANOID  
+  /* element rect must be canonical! */
+#ifdef PARANOID
   ASSERT(GeoIsCanonicalRect(r),"BPAdd, rect must be canonical.");
 #endif
 
@@ -145,7 +145,7 @@ void BPAdd(BPlane *bp, void *element)
   {
     GeoIncludeRectInBBox(r,&bp->bp_bbox);
   }
-    
+
   /* no bins? */
   if(!bp->bp_rootNode) goto inBox;
 
@@ -175,10 +175,10 @@ void BPAdd(BPlane *bp, void *element)
  * remove element from bplane
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 void BPDelete(BPlane *bp, void *element)
 {
-  Element *e = element; 
+  Element *e = element;
 
   ASSERT(e,"BPDelete");
   if (bp->bp_count == 0)
@@ -219,7 +219,7 @@ void BPDelete(BPlane *bp, void *element)
     }
   }
 
-  IHashDelete(bp->bp_hashTable, e);    
+  IHashDelete(bp->bp_hashTable, e);
 
   /* next pointer of prev element */
   *e->e_linkp = e->e_link;
@@ -234,11 +234,11 @@ void BPDelete(BPlane *bp, void *element)
  *
  * Get current bplane bbox.
  *
- * returns: current bplane bbox 
- *          (returns an inverted rect, if bplane is empty)   
+ * returns: current bplane bbox
+ *          (returns an inverted rect, if bplane is empty)
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 Rect BPBBox(BPlane *bp)
 {
 
@@ -261,7 +261,7 @@ Rect BPBBox(BPlane *bp)
     e = BPEnumNext(&bpe);
     bp->bp_bbox = e->e_rect;
 
-    while(e = BPEnumNext(&bpe)) 
+    while(e = BPEnumNext(&bpe))
     {
       GeoIncludeRectInBBox(&e->e_rect, &bp->bp_bbox);
     }

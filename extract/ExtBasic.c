@@ -4,16 +4,16 @@
  * Circuit extraction.
  * Flat extraction of a single CellDef.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -337,7 +337,7 @@ extBasic(def, outFile)
 	modelname = NULL;
 	subsnode = NULL;
 	propvalue = NULL;
-	
+
 	if (propfound)
 	{
 	    /* Sanity checking on syntax of property line, plus	*/
@@ -521,7 +521,7 @@ extBasic(def, outFile)
     ExtFreeLabRegions((LabRegion *) transList);
     return (nodeList);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -737,7 +737,7 @@ extOutputNodes(nodeList, outFile)
 	    }
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -824,7 +824,7 @@ extFindDuplicateLabels(def, nreg)
     if (hashInitialized)
 	HashKill(&labelHash);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -865,7 +865,7 @@ extNodeName(node)
     extMakeNodeNumPrint(namebuf, node->lreg_pnum, node->lreg_ll);
     return (namebuf);
 }
-
+
 /*
  * ---------------------------------------------------------------------
  *
@@ -925,18 +925,18 @@ ExtSortTerminals(tran, ll)
 	    tran->tr_termnode[nsd] = tran->tr_termnode[nsd+1];
 	    tran->tr_termpos[nsd] = tran->tr_termpos[nsd+1];
 	    tran->tr_termlen[nsd] = tran->tr_termlen[nsd+1];
-	    
+
 	    tran->tr_termnode[nsd+1] = tmp_node;
 	    tran->tr_termpos[nsd+1] = tmp_pos;
 	    tran->tr_termlen[nsd+1] = tmp_len;
-	   /* Need to SWAP the indices in the labRegion too. 
-            * These for loops within the  bubblesort in here are kinda slow 
-            *  but S,D attributes are not that common so it should not matter 
+	   /* Need to SWAP the indices in the labRegion too.
+            * These for loops within the  bubblesort in here are kinda slow
+            *  but S,D attributes are not that common so it should not matter
             * that much -- Stefanos 5/96 */
-            for ( lp = ll ; lp ; lp = lp->ll_next ) 
+            for ( lp = ll ; lp ; lp = lp->ll_next )
 		if ( lp->ll_attr == nsd ) lp->ll_attr = LL_SORTATTR ;
 		else if ( lp->ll_attr == nsd+1 ) lp->ll_attr = nsd ;
-            for ( lp = ll ; lp ; lp = lp->ll_next ) 
+            for ( lp = ll ; lp ; lp = lp->ll_next )
 		 if ( lp->ll_attr == LL_SORTATTR ) lp->ll_attr = nsd+1;
 	}
      }
@@ -1028,7 +1028,7 @@ extComputeEffectiveLW(rlengthptr, rwidthptr, numregions, chop)
 
     /* First, check for MOScap-connected transistors.  In such
      * cases, one or more extSpecialBounds[] is NULL.  Try to
-     * separate the existing extSpecialBounds[] vectors into 
+     * separate the existing extSpecialBounds[] vectors into
      * independent (non-connecting) vectors.
      */
 
@@ -1182,7 +1182,7 @@ extComputeEffectiveLW(rlengthptr, rwidthptr, numregions, chop)
 		width *= loclength;
 		width /= length;
 		length = loclength;
-	    } 
+	    }
 	    isComplex = TRUE;
 	}
 
@@ -1220,7 +1220,7 @@ extComputeEffectiveLW(rlengthptr, rwidthptr, numregions, chop)
 			testwid = segc - sege;
 			if (testwid > loclength) testwid = loclength;
 			if (testwid > 0) cornerw += testwid;
-			
+
 			/* corner extend bottom */
 			segc = MIN(lb2->r.r_ybot, lb->r.r_ybot);
 			sege = MIN(segp, segn);
@@ -1246,7 +1246,7 @@ extComputeEffectiveLW(rlengthptr, rwidthptr, numregions, chop)
 			testwid = segc - sege;
 			if (testwid > loclength) testwid = loclength;
 			if (testwid > 0) cornerw += testwid;
-			
+
 			/* corner extend left */
 			segc = MIN(lb2->r.r_xbot, lb->r.r_xbot);
 			sege = MIN(segp, segn);
@@ -1289,7 +1289,7 @@ extComputeEffectiveLW(rlengthptr, rwidthptr, numregions, chop)
 			" all widths to length %d\n", length);
     }
 }
-	
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1471,7 +1471,7 @@ extOutputParameters(def, transList, outFile)
 			if (plist->pl_param[1] != '\0')
 			{
 			    if (plist->pl_scale != 1.0)
-				fprintf(outFile, " %c%c=%s*%g", 
+				fprintf(outFile, " %c%c=%s*%g",
 					plist->pl_param[0], plist->pl_param[1],
 					plist->pl_name, plist->pl_scale);
 			    else
@@ -1481,13 +1481,13 @@ extOutputParameters(def, transList, outFile)
 			else
 			{
 			    if (plist->pl_scale != 1.0)
-				fprintf(outFile, " %c=%s*%g", 
+				fprintf(outFile, " %c=%s*%g",
 					plist->pl_param[0],
 					plist->pl_name, plist->pl_scale);
 			    else
 				fprintf(outFile, " %c=%s", plist->pl_param[0],
 					plist->pl_name);
-			
+
 			}
 		    }
 		    fprintf(outFile, "\n");
@@ -1758,7 +1758,7 @@ extOutputDevices(def, transList, outFile)
 		node = extTransRec.tr_termnode[extTransRec.tr_nterm - 1];
 		(void) strcat(mesg, ";\n connecting remainder to node ");
 		(void) strcat(mesg, extNodeName((LabRegion *) node));
-		while (extTransRec.tr_nterm < nsd) 
+		while (extTransRec.tr_nterm < nsd)
 		{
 		    extTransRec.tr_termlen[extTransRec.tr_nterm] = 0;
 		    extTransRec.tr_termnode[extTransRec.tr_nterm++] = node;
@@ -1772,7 +1772,7 @@ extOutputDevices(def, transList, outFile)
 	    /* parts of devices are split into different cells.		*/
 
 	    if ((extTransRec.tr_nterm == 0) || (node == NULL))
-		continue;	   
+		continue;
 	}
 	else if (extTransRec.tr_nterm > nsd)
 	{
@@ -1830,7 +1830,7 @@ extOutputDevices(def, transList, outFile)
 			devptr->exts_deviceName);
 
 	fprintf(outFile, " %d %d %d %d",
-		reg->treg_ll.p_x, reg->treg_ll.p_y, 
+		reg->treg_ll.p_x, reg->treg_ll.p_y,
 		reg->treg_ll.p_x + 1, reg->treg_ll.p_y + 1);
 
 	/* NOTE:  The following code makes unreasonable simplifying	*/
@@ -1847,7 +1847,7 @@ extOutputDevices(def, transList, outFile)
 	{
 	    case DEV_FET:	/* old style, perimeter & area */
 		fprintf(outFile, " %d %d \"%s\"",
-		    reg->treg_area, extTransRec.tr_perim, 
+		    reg->treg_area, extTransRec.tr_perim,
 				(subsName == NULL) ? "None" : subsName);
 		break;
 
@@ -1968,7 +1968,7 @@ extOutputDevices(def, transList, outFile)
 		hasModel = strcmp(devptr->exts_deviceName, "None");
 		length = extTransRec.tr_perim;
 		isAnnular = FALSE;
-	
+
 		/* Boundary perimeter scan for resistors with more than */
 		/* one tile.						*/
 
@@ -2007,10 +2007,10 @@ extOutputDevices(def, transList, outFile)
 		    {
 			extSeparateBounds(n - 1);
 			if (isAnnular)
-			    extComputeEffectiveLW(&length, &width, n, 
+			    extComputeEffectiveLW(&length, &width, n,
 					ExtCurStyle->exts_cornerChop[t]);
 			else
-			    extComputeEffectiveLW(&width, &length, n, 
+			    extComputeEffectiveLW(&width, &length, n,
 					ExtCurStyle->exts_cornerChop[t]);
 		    }
 		    else
@@ -2204,7 +2204,7 @@ extOutputDevices(def, transList, outFile)
 	/* permute, and the terminal order is fixed.			*/
 
 	if (TTMaskIsZero(&devptr->exts_deviceSDTypes[1]))
-	    ExtSortTerminals(&extTransRec, ll); 
+	    ExtSortTerminals(&extTransRec, ll);
 
 	/* each non-gate terminal */
 	for (nsd = 0; nsd < extTransRec.tr_nterm; nsd++)
@@ -2447,8 +2447,8 @@ extTransTileFunc(tile, pNum, arg)
 	if (ll->ll_attr != LL_NOATTR) continue;
 	lab = ll->ll_label;
 	TITORECT(tile, &r);
-	if (GEO_TOUCH(&r, &lab->lab_rect) && 
-		extLabType(lab->lab_text, LABTYPE_GATEATTR))  
+	if (GEO_TOUCH(&r, &lab->lab_rect) &&
+		extLabType(lab->lab_text, LABTYPE_GATEATTR))
 	{
 	     ll->ll_attr = LL_GATEATTR;
 	}
@@ -2719,7 +2719,7 @@ extTransPerimFunc(bp)
 		    {
 			if( LEFT(otile) < pos->pt.p_x )
 			    pos->pt = otile->ti_ll;
-			else if( LEFT(otile) == pos->pt.p_x && 
+			else if( LEFT(otile) == pos->pt.p_x &&
 				BOTTOM(otile) < pos->pt.p_y )
 			    pos->pt.p_y = BOTTOM(otile);
 		    }
@@ -3099,11 +3099,11 @@ extSpecialPerimFunc(bp, sense)
 			{
 			    lb->b_next = lastlb->b_next;
 			    break;
-			}   
+			}
 		    }
 		}
 		freeMagic((char *)lastlb);
-	
+
 		/* New segment cannot extend more than two existing segments */
 		break;
 	    }
@@ -3121,7 +3121,7 @@ extSpecialPerimFunc(bp, sense)
     return (0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3162,7 +3162,7 @@ extTransOutTerminal(lreg, ll, whichTerm, len, outFile)
 
 
     fprintf(outFile, " \"%s\" %d", extNodeName(lreg), len);
-    for (fmt = ' '; ll; ll = ll->ll_next) 
+    for (fmt = ' '; ll; ll = ll->ll_next)
 	if (ll->ll_attr == whichTerm)
 	{
 	    fprintf(outFile, "%c\"", fmt);
@@ -3178,7 +3178,7 @@ extTransOutTerminal(lreg, ll, whichTerm, len, outFile)
     if (fmt == ' ')
 	fprintf(outFile, " 0");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3211,7 +3211,7 @@ extTransBad(def, tp, mesg)
     }
     extNumWarnings++;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3252,7 +3252,7 @@ extLabType(text, typeMask)
     }
     /*NOTREACHED*/
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -3431,7 +3431,7 @@ extTransEach(tile, pNum, arg)
     /* The following is non-ideal.  It assumes that the lowest plane of	*/
     /* types connected to a device is the plane of the device itself.	*/
     /* Otherwise, the area of the device will be miscalculated.		*/
-    
+
     if (pNum < reg->treg_pnum) reg->treg_area = 0;
 
     extSetNodeNum((LabRegion *) reg, pNum, tile);
@@ -3601,7 +3601,7 @@ extSubsFunc(tile, arg)
     Tile *tile;
     FindRegion *arg;
 {
-    int pNum; 
+    int pNum;
     Rect tileArea;
     TileType type;
     TileTypeBitMask *smask;
@@ -3636,7 +3636,7 @@ extSubsFunc2(tile, arg)
     Tile *tile;
     FindRegion *arg;
 {
-    int pNum; 
+    int pNum;
     Rect tileArea;
     TileTypeBitMask *smask;
     int extSubsFunc3();
@@ -3659,7 +3659,7 @@ extSubsFunc2(tile, arg)
     pNum = ExtCurStyle->exts_globSubstratePlane;
 
     if (DBSrPaintArea((Tile *) NULL, arg->fra_def->cd_planes[pNum],
-		&tileArea, &DBAllButSpaceBits, 
+		&tileArea, &DBAllButSpaceBits,
 		extSubsFunc3, (ClientData)NULL) == 0)
     {
 	/* Mark this tile as pending and push it */
@@ -3743,11 +3743,11 @@ extNodeAreaFunc(tile, arg)
 	    extShowTile(tile, "neighbor", 1);
 
         if (IsSplit(tile))
-        {           
+        {
             type = (SplitSide(tile)) ? SplitRightType(tile):
                         SplitLeftType(tile);
-        }           
-        else        
+        }
+        else
             type = TiGetTypeExact(tile);
 
 	/* Contacts are replaced by their residues when calculating */
@@ -4020,7 +4020,7 @@ donesides:
 
 		    /* tp and tile should have the same geometry for a contact */
 		    if (IsSplit(tile) && IsSplit(tp))
-		    {           
+		    {
 			if (SplitSide(tile))
 			{
 			    t = SplitRightType(tp);
@@ -4037,7 +4037,7 @@ donesides:
 				PUSHTILELEFT(tp, pNum);
 			    }
 			}
-		    }           
+		    }
 		    else if (IsSplit(tp))
 		    {
 			/* Need to test both sides of the tile */
@@ -4101,7 +4101,7 @@ donesides:
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -4113,7 +4113,7 @@ donesides:
  * ----------------------------------------------------------------------------
  */
 
-void 
+void
 extSetCapValue(he, value)
     HashEntry *he;
     CapValue value;
@@ -4123,7 +4123,7 @@ extSetCapValue(he, value)
     *( (CapValue *) HashGetValue(he)) = value;
 }
 
-CapValue 
+CapValue
 extGetCapValue(he)
     HashEntry *he;
 {
@@ -4131,7 +4131,7 @@ extGetCapValue(he)
 	extSetCapValue(he, (CapValue) 0);
     return *( (CapValue *) HashGetValue(he));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -4157,7 +4157,7 @@ extCapHashKill(ht)
     HashStartSearch(&hs);
     while (he = HashNext(ht, &hs))
     {
-	if (HashGetValue(he) != NULL) 
+	if (HashGetValue(he) != NULL)
 	{
 	    freeMagic(HashGetValue(he));  /* Free a malloc'ed CapValue */
 	    HashSetValue(he, (ClientData) NULL);

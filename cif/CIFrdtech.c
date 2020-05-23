@@ -4,16 +4,16 @@
  *	pertain to reading CIF files, and builds the tables used by
  *	the CIF-reading code.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -142,7 +142,7 @@ CIFReadNameToType(name, newOK)
 	/* Only accept this layer if it's in the current CIF style or
 	 * it's OK to add new layers to the current style.
 	 */
-	
+
 	if (!TTMaskHasType(&cifCurReadStyle->crs_cifLayers, i) && !newOK)
 	    continue;
 	if (strcmp(cifReadLayers[i], name) == 0)
@@ -173,7 +173,7 @@ CIFReadNameToType(name, newOK)
     cifNReadLayers += 1;
     return cifNReadLayers-1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -226,7 +226,7 @@ CIFCalmaLayerToCifLayer(layer, datatype, calmaStyle)
     /* No luck */
     return (-1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -264,7 +264,7 @@ CIFParseReadLayers(string, mask)
 	p = strchr(string, ',');
 	if (p != NULL)
 	    *p = 0;
-	
+
 	i = CIFReadNameToType(string, TRUE);
 	if (i >= 0)
 	    TTMaskSetType(mask, i);
@@ -286,7 +286,7 @@ CIFParseReadLayers(string, mask)
 	for (string = p; *string == ','; string += 1) /* do nothing */;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -369,7 +369,7 @@ cifReadStyleInit()
 	cifCurReadStyle->crs_layers[i] = NULL;
     }
 }
-
+
 /*
  *
  * ----------------------------------------------------------------------------
@@ -392,17 +392,17 @@ void
 CIFReadTechInit()
 {
     CIFReadKeep *style;
-            
+
     /* Cleanup any old info. */
- 
+
     cifNewReadStyle();
     freeMagic(cifCurReadStyle);
     cifCurReadStyle = NULL;
- 
+
     /* forget the list of styles */
- 
+
     for (style = cifReadStyleList; style != NULL; style = style->crs_next)
-    {   
+    {
         freeMagic(style->crs_name);
         freeMagic(style);
     }
@@ -434,7 +434,7 @@ CIFReadTechStyleInit()
     cifCurReadOp = NULL;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -474,7 +474,7 @@ CIFReadTechLine(sectionName, argc, argv)
      * make sure there's already a style around, and create one if
      * there isn't.
      */
-    
+
     if (strcmp(argv[0], "style") == 0)
     {
 	if (argc != 2)
@@ -490,7 +490,7 @@ CIFReadTechLine(sectionName, argc, argv)
 		return TRUE;
 	    }
 	}
-	for (newStyle = cifReadStyleList; newStyle != NULL; 
+	for (newStyle = cifReadStyleList; newStyle != NULL;
 		newStyle = newStyle->crs_next)
 	{
 	    if (!strncmp(newStyle->crs_name, argv[1], l))
@@ -544,7 +544,7 @@ CIFReadTechLine(sectionName, argc, argv)
 			for (p = cifReadStyleList; p->crs_next; p = p->crs_next);
 			p->crs_next = newStyle;
 		    }
-		    
+
 		    if (cptr == NULL)
 			break;
 		    else
@@ -553,7 +553,7 @@ CIFReadTechLine(sectionName, argc, argv)
 		newStyle = saveStyle;
 	    }
 	}
-	
+
 	if (cifCurReadStyle == NULL)
 	{
 	    cifNewReadStyle();
@@ -605,7 +605,7 @@ CIFReadTechLine(sectionName, argc, argv)
     if (cifCurReadStyle == NULL) return FALSE;
     if ((cifCurReadStyle->crs_status != TECH_PENDING) &&
 		(cifCurReadStyle->crs_status != TECH_SUSPENDED)) return TRUE;
-    
+
     /* Process scalefactor lines next. */
 
     if (strcmp(argv[0], "scalefactor") == 0)
@@ -637,7 +637,7 @@ CIFReadTechLine(sectionName, argc, argv)
     }
 
     /* Process "gridlimit" lines. */
-    
+
     if (strncmp(argv[0], "grid", 4) == 0)
     {
         if (StrIsInt(argv[1]))
@@ -695,7 +695,7 @@ CIFReadTechLine(sectionName, argc, argv)
 		    return TRUE;
 		}
 	    }
-	
+
 	    if (cptr == NULL)
 		break;
 	    else
@@ -737,7 +737,7 @@ CIFReadTechLine(sectionName, argc, argv)
 	/* Handle a special case of a list of layer names on the
 	 * layer line.  Turn them into an OR operation.
 	 */
-	
+
 	if (argc == 3)
 	{
 	    cifCurReadOp = (CIFOp *) mallocMagic(sizeof(CIFOp));
@@ -787,7 +787,7 @@ CIFReadTechLine(sectionName, argc, argv)
 	/* Handle a special case of a list of layer names on the
 	 * layer line.  Turn them into an OR operation.
 	 */
-	
+
 	if (argc == 3)
 	{
 	    cifCurReadOp = (CIFOp *) mallocMagic(sizeof(CIFOp));
@@ -836,7 +836,7 @@ CIFReadTechLine(sectionName, argc, argv)
     /* Figure out which Magic layer should get labels from which
      * CIF layers.
      */
-    
+
     if (strcmp(argv[0], "labels") == 0)
     {
 	TileTypeBitMask mask;
@@ -884,7 +884,7 @@ CIFReadTechLine(sectionName, argc, argv)
      * will cause the layers to be ignored when encountered in
      * cells.
      */
-    
+
     if (strcmp(argv[0], "ignore") == 0)
     {
 	TileTypeBitMask mask;
@@ -921,11 +921,11 @@ CIFReadTechLine(sectionName, argc, argv)
 	}
 	return TRUE;
     }
-    
+
     /* Anything below here is a geometric operation, so we can
      * do some set-up that is common to all the operations.
      */
-    
+
     if (cifCurReadLayer == NULL)
     {
 	TechError("Must define layer before specifying operations.\n");
@@ -1001,7 +1001,7 @@ CIFReadTechLine(sectionName, argc, argv)
     return TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1081,7 +1081,7 @@ CIFReadLoadStyle(stylename)
     /* CIFReadTechFinal(); */  /* Taken care of by TechLoad() */
     CIFTechInputScale(DBLambda[0], DBLambda[1], TRUE);
 }
-    
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1246,7 +1246,7 @@ CIFPrintReadStyle(dolist, doforall, docurrent)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1304,7 +1304,7 @@ CIFSetReadStyle(name)
     TxError("\"%s\" is not one of the CIF input styles Magic knows.\n", name);
     CIFPrintReadStyle(FALSE, TRUE, TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

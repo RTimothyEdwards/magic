@@ -4,16 +4,16 @@
  *	Interface definitions for Magic's window manager.  This
  *	package manages a set of overlapping windows.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid $Header: /usr/cvsroot/magic-8.0/windows/windows.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
@@ -47,14 +47,14 @@ typedef ClientData WindClient;	/* A unique ID of a client of the
  * by a client of the window package.  The client is responsible for redrawing
  * the surface when requested.  The window package maintains the transform
  * from surface coordinates to screen coordinates and also controls which
- * portion of the surface is currently visable in the window.  See the 
+ * portion of the surface is currently visable in the window.  See the
  * comments in windMain.c and above the proc 'WindAddClient' for more info.
  *
- * To see an example of a simple window client, look at the colormap window 
+ * To see an example of a simple window client, look at the colormap window
  * located in 'cmwind/CMWmain.c'.  A more complex window is the layout window,
  * located in 'dbwind/DBWprocs.c'.
  *
- * The following key letters in parens after a field indicate who should 
+ * The following key letters in parens after a field indicate who should
  * read & write it:
  *
  *	P - Private (window package use only).
@@ -68,7 +68,7 @@ typedef ClientData WindClient;	/* A unique ID of a client of the
  *
  * The comments below often mention a procedure that sets a given field.  This
  * is the normal procedure used to set the field, but there may be other seldom
- * used procs in the window package that set the field.  
+ * used procs in the window package that set the field.
  */
 typedef struct WIND_S1 {
     struct WIND_S1 *w_nextWindow; /* A doubly-linked list (P) */
@@ -83,7 +83,7 @@ typedef struct WIND_S1 {
 				 * Set via WindLoad().
 				 */
     Rect w_allArea;		/* The entire area of the window in the screen
-				 * coordinates for the window, including the 
+				 * coordinates for the window, including the
 				 * border and obscured areas. (R)
 				 *
 				 * If we are using Magic's window package,
@@ -98,8 +98,8 @@ typedef struct WIND_S1 {
 				 * This field is recomputed by WindReframe().
 				 */
     Rect w_frameArea;		/* The location of the window on the screen (C)
-				 * If a window's create proc modifies this, it 
-				 * needs to set w_allArea and w_screenArea by 
+				 * If a window's create proc modifies this, it
+				 * needs to set w_allArea and w_screenArea by
 				 * calling WindSetWindowAreas().
 				 *
 				 * Also, see comments for w_allArea.
@@ -133,16 +133,16 @@ typedef struct WIND_S1 {
 				 * transform between surface and screen
 				 * coordinates. (R)
 				 */
-    LinkedRect *w_clipAgainst;  /* A linked list of areas which obscure 
+    LinkedRect *w_clipAgainst;  /* A linked list of areas which obscure
 				 * portions of this window. (R)
-				 * Normally clients just pass this down to the 
+				 * Normally clients just pass this down to the
 				 * graphics package.
 				 * Changed via WindOver(), WindUnder(), and
 				 * WindFullScreen().
 				 */
     Point w_stippleOrigin;	/* A point that serves as the origin (in screen
 				 * coordinates) of stipple patterns within
-				 * this window. (R) 
+				 * this window. (R)
 				 * This field is maintained for the benifit of
 				 * device drivers, but is often unused.
 				 */
@@ -172,8 +172,8 @@ typedef struct WIND_S1 {
 				 * its old depth on the list of windows, so
 				 * it can be put back where it came from. (P)
 				 */
-    Rect *w_bbox;		/* A pointer to the bounding box of the stuff 
-				 * in this window.  Used for WindView() and for 
+    Rect *w_bbox;		/* A pointer to the bounding box of the stuff
+				 * in this window.  Used for WindView() and for
 				 * scroll bars. (L)
 				 * This MUST be set if WIND_SCROLLABLE is set.
 				 */
@@ -198,7 +198,7 @@ typedef struct WIND_S1 {
     char *w_iconname;		/* Short name for the icon. */
     ClientData w_redrawAreas;	/* List of areas that need to be redrawn. (P)
 				 * Set by WindAreaChanged(), cleared by
-				 * WindUpdate().  Initialized by 
+				 * WindUpdate().  Initialized by
 				 * WindSeparateRedisplay().
 				 */
 } MagWindow;
@@ -231,7 +231,7 @@ typedef struct WIND_S1 {
  * also accept one of these flags instead.
  */
 #define WIND_UNKNOWN_WINDOW	-2	/* We should pick one by looking at
-					 * the location of the point. 
+					 * the location of the point.
 					 */
 #define WIND_NO_WINDOW		-3	/* Use NULL for the window */
 
@@ -313,7 +313,7 @@ extern bool WindAnotherUpdatePlease; /* Set by a client during redisplay if it
 #define WIND_MAX_WINDOWS(x)	(windMaxWindows = MIN(windMaxWindows, (x)))
 extern int windMaxWindows;  	/* Use above macro, never increase this! */
 
-/* The type of windows that we will implement.  This variable must be set by 
+/* The type of windows that we will implement.  This variable must be set by
  * the graphics package before WindInit() is called.
  */
 extern int WindPackageType;

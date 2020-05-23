@@ -3,16 +3,16 @@
  *
  * Interface to the undo package for the color map editor.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -57,7 +57,7 @@ void cmwUndoStart(), cmwUndoDone();
  * of an undo/redo command.
  */
 bool cmwColorsChanged[256];
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -83,7 +83,7 @@ CMWundoInit()
 				cmwUndoForw, cmwUndoBack, "color map");
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -116,7 +116,7 @@ cmwUndoBack(up)
     (void) GrPutColor(up->cue_color, up->old_r, up->old_g, up->old_b);
     cmwColorsChanged[up->cue_color] = TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -153,7 +153,7 @@ cmwUndoColor(color, oldr, oldg, oldb, newr, newg, newb)
     up->new_g = newg;
     up->new_b = newb;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -178,7 +178,7 @@ cmwUndoStart()
     for (i = 0; i < 256; i++)
 	cmwColorsChanged[i] = FALSE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

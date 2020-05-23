@@ -5,16 +5,16 @@
  *	giving, for example, the layers to use for routing, their
  *	widths, and so on.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -64,7 +64,7 @@ int RtrPaintSepsUp[TT_MAXTYPES], RtrPaintSepsDown[TT_MAXTYPES];
 
 int RtrMetalSeps[TT_MAXTYPES], RtrPolySeps[TT_MAXTYPES];
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -107,7 +107,7 @@ RtrTechInit()
 	RtrPaintSepsDown[i] = 0;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -286,7 +286,7 @@ RtrTechLine(sectionName, argc, argv)
     TechError("Unknown router statement \"%s\".\n", argv[0]);
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -317,7 +317,7 @@ RtrTechFinal()
      * down (since this works better if the two routing layers are different
      * widths).
      */
-    
+
     i = RtrMetalWidth;
     if (RtrPolyWidth > i) i = RtrPolyWidth;
     RtrContactOffset = - (RtrContactWidth + 1 - i)/2;
@@ -327,7 +327,7 @@ RtrTechFinal()
      * material, and where routing material goes relative to the
      * grid line.
      */
-    
+
     RtrSubcellSepUp = RtrSubcellSepDown = 0;
 
     /* Compute how far above and below grid lines the routing layers run,

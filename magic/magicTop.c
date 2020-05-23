@@ -5,18 +5,18 @@
  *	This top level is purposely very short and is located directly in
  *	the directory used to remake Magic.  This is so that other
  *	programs may use all of Magic as a library but still provide their
- *	own 'main' procedure.  
+ *	own 'main' procedure.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -36,7 +36,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *	Top level of Magic.  Do NOT add code to this routine, as all code
  *	should go into `main.c' in the `main' directory.
  *
- * Results:	
+ * Results:
  *	None.
  *
  * Side Effects:
@@ -55,7 +55,7 @@ main(argc, argv)
 }
 
 /* String containing the version number of magic.  Don't change the string
- * here, nor its format.  It is updated by the Makefile in this directory. 
+ * here, nor its format.  It is updated by the Makefile in this directory.
  *
  * The version string originates at the top of scripts/config.
  */

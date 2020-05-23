@@ -33,7 +33,7 @@
 extern void CmdRoute(), CmdIRoute(), CmdGaRoute();
 extern void CmdChannel(), CmdSeeFlags();
 extern void CmdGARouterTest(), CmdGRouterTest();
-extern void CmdIRouterTest(), CmdMZRouterTest(); 
+extern void CmdIRouterTest(), CmdMZRouterTest();
 
 /*
  * ----------------------------------------------------------------------------

@@ -5,16 +5,16 @@
  * The definitions in this file are all that is visible to
  * the Ti (tile) modules.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid "$Header: /usr/cvsroot/magic-8.0/tiles/tile.h,v 1.3 2010/06/24 12:37:57 tim Exp $"
@@ -224,7 +224,7 @@ extern Tile *TiSrPoint(Tile *, Plane *, Point *);
 #define SplitDirection(tp)	((TileType)(spointertype)((tp)->ti_body) & TT_DIRECTION ? 1 : 0)
 #define SplitSide(tp)		((TileType)(spointertype)((tp)->ti_body) & TT_SIDE ? 1 : 0)
 #define IsSplit(tp)		((TileType)(spointertype)((tp)->ti_body) & TT_DIAGONAL ? TRUE : FALSE)
-   
+
 #define SplitLeftType(tp)	((TileType)(spointertype)((tp)->ti_body) & TT_LEFTMASK)
 #define SplitRightType(tp)	(((TileType)(spointertype)((tp)->ti_body) & TT_RIGHTMASK) >> 14)
 #define SplitTopType(tp)	(((TileType)(spointertype)((tp)->ti_body) & TT_DIRECTION) ? \
@@ -236,7 +236,7 @@ extern Tile *TiSrPoint(Tile *, Plane *, Point *);
 #define TiGetRightType(tp)	((IsSplit(tp)) ? SplitRightType(tp) : TiGetType(tp))
 #define TiGetTopType(tp)	((IsSplit(tp)) ? SplitTopType(tp) : TiGetType(tp))
 #define TiGetBottomType(tp)	((IsSplit(tp)) ? SplitBottomType(tp) : TiGetType(tp))
- 
+
 #define	TiGetBody(tp)		((tp)->ti_body)
 /* See diagnostic subroutine version in tile.c */
 #define	TiSetBody(tp, b)	((tp)->ti_body = (ClientData)(pointertype) (b))
@@ -256,10 +256,10 @@ void TiFree(Tile *);
 					 (BOTTOM(tile) <= (point)->p_y ) && \
 					 ((point)->p_y  <=  TOP(tile)  ))
 
-/* The four macros below are for finding next tile RIGHT, UP, LEFT or DOWN 
+/* The four macros below are for finding next tile RIGHT, UP, LEFT or DOWN
  * from current tile at a given coordinate value.
  *
- * For example, NEXT_TILE_RIGHT points tResult to tile to right of t 
+ * For example, NEXT_TILE_RIGHT points tResult to tile to right of t
  * at y-coordinate y.
  */
 
@@ -274,7 +274,7 @@ void TiFree(Tile *);
 #define NEXT_TILE_LEFT(tResult, t, y) \
     for ((tResult) = BL(t); TOP(tResult) <= (y); (tResult) = RT(tResult)) \
         /* Nothing */;
- 
+
 #define NEXT_TILE_DOWN(tResult, t, x) \
     for ((tResult) = LB(t); RIGHT(tResult) <= (x); (tResult) = TR(tResult)) \
         /* Nothing */;

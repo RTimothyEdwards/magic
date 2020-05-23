@@ -4,16 +4,16 @@
  * This file contains procedures that generate PS-format files
  * to describe a section of layout.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -152,7 +152,7 @@ PSReset()
     curx1 = curx2 = cury1 = cury2 = -2;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotPSTechInit --
@@ -203,7 +203,7 @@ PlotPSTechInit()
     if (!PlotPSLabelFont)
 	StrDup(&PlotPSLabelFont, defaultFont);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotPSTechLine --
@@ -231,7 +231,7 @@ PlotPSTechLine(sectionName, argc, argv)
     PSColor *newcolor;
     PSPattern *newpattern;
     int i, color, stipple;
-    
+
     if (argc != 9 && argc != 5 && argc != 3)
     {
 	TechError("\"ps\" lines must have either 9, 5, or 3 arguments.\n");
@@ -356,7 +356,7 @@ plotPSFlushLine()
 	fprintf(file, "%d %d %d %d ml\n", curx1, cury1, curx2, cury2);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -419,7 +419,7 @@ plotPSLine(p1, p2)
     if (((x1 == x2) && (x1 == curx1) && (x2 == curx2)
 		&& ((tmptf = (y1 == cury2)) || (y2 == cury1))))
     {
-	if (tmptf) cury2 = y2; 
+	if (tmptf) cury2 = y2;
 	else cury1 = y1;
     }
     else if (((y1 == y2) && (y1 == cury1) && (y2 == cury2)
@@ -437,7 +437,7 @@ plotPSLine(p1, p2)
 	cury2 = y2;
     }
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -477,7 +477,7 @@ plotPSRect(rect, style)
 		(style == SOLID) ? 's' : 'r');
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -510,7 +510,7 @@ plotPSPaint(tile, cxp)
     TileType ntype;
 
     /* First transform tile coords to root coords */
-    
+
     TiToRect(tile, &tileArea);
     GeoTransRect(&scx->scx_trans, &tileArea, &rootArea);
 
@@ -602,9 +602,9 @@ plotPSPaint(tile, cxp)
 			+ curheight)) || (ybot + height == curybot)))
 	{
 	    curheight += height;
-	    if (!tmptf) curybot = ybot; 
+	    if (!tmptf) curybot = ybot;
 	}
-	else if ((height == curheight) && (ybot == curybot) && ((tmptf = (xbot	
+	else if ((height == curheight) && (ybot == curybot) && ((tmptf = (xbot
 		== curxbot + curwidth)) || (xbot + width == curxbot)))
 	{
 	    curwidth += width;
@@ -635,7 +635,7 @@ plotPSPaint(tile, cxp)
      *
      * (This code is essentially a duplicate of selRedisplayFunc())
      */
-    
+
     if (IsSplit(tile) && (!(SplitSide(tile) ^ SplitDirection(tile))))
         goto searchleft;        /* nothing on bottom of split */
 
@@ -729,7 +729,7 @@ searchright:
 
     return 0;
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -785,7 +785,7 @@ plotPSLabelPosition(scx, label, x, y, p)
 	case GEO_EAST:
 	    *y = (rootArea.r_ytop + rootArea.r_ybot) / 2 - bbox.r_ybot;
 	    break;
-	
+
 	case GEO_SOUTH:
 	case GEO_SOUTHEAST:
 	case GEO_SOUTHWEST:
@@ -801,13 +801,13 @@ plotPSLabelPosition(scx, label, x, y, p)
 	    *x = (rootArea.r_xbot - bbox.r_xbot);
 	    *x -= delta;
 	    break;
-	
+
 	case GEO_CENTER:
 	case GEO_NORTH:
 	case GEO_SOUTH:
 	    *x = (rootArea.r_xtop + rootArea.r_xbot) / 2 - bbox.r_xbot;
 	    break;
-	
+
 	case GEO_EAST:
 	case GEO_NORTHEAST:
 	case GEO_SOUTHEAST:
@@ -855,7 +855,7 @@ plotPSLabelBounds(scx, label)
     llx = (int)((float)(bbox.r_xbot - llx) / fscale);
     lly = (int)((float)(bbox.r_ybot - lly) / fscale);
     ls = strlen(label->lab_text);
-  
+
     psxsize = ls * (int)((float)PlotPSLabelSize * AVGCHARWIDTH);
     psysize = (int)((float)PlotPSLabelSize * CHARHEIGHT);
 
@@ -903,7 +903,7 @@ plotPSLabelBounds(scx, label)
 	    llx += psxsize / 2;
 	    break;
     }
- 
+
     if (xpmargin < urx) xpmargin = urx;
     if (ypmargin < ury) ypmargin = ury;
     if (xnmargin < llx) xnmargin = llx;
@@ -938,7 +938,7 @@ plotPSLabelBox(scx, label)
      * done depending on whether the label is a point, a line, or an
      * area.
      */
-    
+
     if (curLineWidth != PS_MEDIUM) {
 	fprintf(file, "l2\n");
 	curLineWidth = PS_MEDIUM;
@@ -1003,7 +1003,7 @@ plotPSLabel(scx, label)
      * of the area we're plotting (a large label could overlap a
      * bit of the area but stick out way off-screen too).
      */
-    
+
     if ((x >= -delta) && (y >= -delta) &&
 	    (x <= (bbox.r_xtop - bbox.r_xbot) + delta) &&
 	    (y <= (bbox.r_ytop - bbox.r_ybot) + delta))
@@ -1012,7 +1012,7 @@ plotPSLabel(scx, label)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1034,7 +1034,7 @@ int
 plotPSCell(scx)
     SearchContext *scx;		/* Describes cell whose bbox is to
 				 * be plotted.
-				 */	
+				 */
 {
     extern bool PlotShowCellNames;
     char idName[100];
@@ -1088,7 +1088,7 @@ plotPSCell(scx)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1143,7 +1143,7 @@ PlotPS(fileName, scx, layers, xMask)
     /* Compute a scale factor between our coordinates and PS
      * coordinates.
      */
-    
+
     GeoTransRect(&scx->scx_trans, &scx->scx_area, &bbox);
     xsize = bbox.r_xtop - bbox.r_xbot;
     ysize = bbox.r_ytop - bbox.r_ybot;
@@ -1257,7 +1257,7 @@ PlotPS(fileName, scx, layers, xMask)
     /* For each PS style, find all the paint layers that belong
      * to that style and put plot information into the file.
      */
-    
+
     for (curStyle = plotPSStyles; curStyle != NULL;
 	 curStyle = curStyle->grs_next)
     {

@@ -9,16 +9,16 @@
  * The current state may be rewound back toward the time the editing
  * session began, and it may be replayed forward as well.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -33,7 +33,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/utils.h"
 #include "utils/malloc.h"
 #include "utils/undo.h"
-
+
 /* ------------------------------------------------------------------------ */
 
 /*
@@ -186,7 +186,7 @@ extern internalUndoEvent *undoGetForw();
 extern internalUndoEvent *undoGetBack();
 extern void undoFreeHead();
 extern void undoMemTruncate();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -249,7 +249,7 @@ UndoInit(logFileName, mode)
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -344,7 +344,7 @@ UndoAddClient(init, done, readEvent, writeEvent, forwEvent, backEvent, name)
 
     return (undoNumClients++);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -379,7 +379,7 @@ UndoFlush()
     undoNumCommands = 0;
     undoNumRecentEvents = 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -404,7 +404,7 @@ UndoDisable()
 {
     UndoDisableCount++;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -428,7 +428,7 @@ UndoEnable()
     if (UndoDisableCount > 0)
 	UndoDisableCount--;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -573,7 +573,7 @@ UndoBackward(n)
     /* DRCContinuous routine is implicated.  Can't find the	*/
     /* error source, but refusing to execute the undo command	*/
     /* appears to prevent it.					*/
- 
+
     if (UndoDisableCount > 0)
     {
 	TxError("Attempted undo with undo disabled. . . abort function.\n");
@@ -622,7 +622,7 @@ UndoBackward(n)
 	    (*undoClientTable[client].uc_done)();
     return (count);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -686,7 +686,7 @@ done:
 	    (*undoClientTable[client].uc_done)();
     return (count);
 }
-
+
 /*
  * ============================================================================
  *
@@ -696,7 +696,7 @@ done:
  * ============================================================================
  */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -746,7 +746,7 @@ undoGetForw(iup)
 
     return ((internalUndoEvent *) NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -775,7 +775,7 @@ undoGetBack(iup)
     if (iup->iue_back != (internalUndoEvent *) NULL) return (iup->iue_back);
     return ((internalUndoEvent *) NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -824,7 +824,7 @@ undoFreeHead()
     undoLogHead = undoLogHead->iue_forw;
     undoLogHead->iue_back = (internalUndoEvent *) NULL;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

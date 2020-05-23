@@ -3,16 +3,16 @@
  *
  * Routines to create and maintain heaps.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid "$Header: /usr/cvsroot/magic-8.0/utils/heap.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
@@ -38,7 +38,7 @@
  *	    Heap * h;
  *	    HeapEntry * e;
  *	    int key;
- *	
+ *
  *	    HeapInit(&h, 1024, 0, FALSE);
  *	    HeapAdd(&h, 0, 0);
  *	    HeapDump(&h);
@@ -60,7 +60,7 @@
  *	    HeapKill(&h, NULL);
  *	}
  */
-
+
 
 #ifndef _HEAP_H
 #define _HEAP_H
@@ -108,7 +108,7 @@ typedef struct
 /* A heap is an array with size set to some power of 2.  Links are implicit:
  * the left child of a node n is 2n, and the right child is 2n+1.  'build'
  * keeps track of the last child participating in a rebuild operation.  If
- * entries have been added since the last rebuild, then process those children. 
+ * entries have been added since the last rebuild, then process those children.
  * The he_stringId flag enables automatically copies character string id's
  * during calls to HeapAdd.  If the id is actually a pointer to a struct, you
  * must pass a pointer to a copy and set he_stringId to FALSE.

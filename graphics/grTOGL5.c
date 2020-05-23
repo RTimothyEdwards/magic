@@ -29,7 +29,7 @@ extern Display	*grXdpy;
 extern int	 grXscrn;
 extern HashTable grTOGLWindowTable;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTOGLDrawGlyph --
@@ -52,7 +52,7 @@ GrTOGLDrawGlyph (gl, p)
     Rect bBox;
     bool anyObscure;
     LinkedRect *ob;
-    
+
     GR_CHECK_LOCK();
 
     /* We're going to change the graphics state without affecting */
@@ -64,7 +64,7 @@ GrTOGLDrawGlyph (gl, p)
     bBox.r_xtop = p->p_x + gl->gr_xsize - 1;
     bBox.r_ytop = p->p_y + gl->gr_ysize - 1;
 
-    anyObscure = FALSE; 
+    anyObscure = FALSE;
     for (ob = grCurObscure; ob != NULL; ob = ob->r_next) {
 	if (GEO_TOUCH( &(ob->r_r), &bBox)) {
 	    anyObscure = TRUE;
@@ -84,13 +84,13 @@ GrTOGLDrawGlyph (gl, p)
 	    y1 = bBox.r_ybot + y;
 	    for (x = 0; x < gl->gr_xsize; x++) {
 		lastp = thisp;
-		thisp = *pixelp++;		
+		thisp = *pixelp++;
 		if (thisp != 0)
 		{
 		    /* Note: mask has traditionally been 0-127 */
 		    if (thisp != lastp) {
 			if (lastp != -1) glEnd();
-			
+
 			mask = GrStyleTable[thisp].mask << 1;
 			color = GrStyleTable[thisp].color;
 			GrGetColor(color, &red, &green, &blue);
@@ -114,7 +114,7 @@ GrTOGLDrawGlyph (gl, p)
 	    if ( (yloc <= grCurClip.r_ytop) && (yloc >= grCurClip.r_ybot) ) {
 		int laststartx;
 		laststartx = bBox.r_xbot - 1;
-		for (startx = bBox.r_xbot; startx <= bBox.r_xtop; 
+		for (startx = bBox.r_xbot; startx <= bBox.r_xtop;
 			startx = endx + 1) {
 		    int *pixelp;
 
@@ -123,7 +123,7 @@ GrTOGLDrawGlyph (gl, p)
 
 		    if (anyObscure) {
 			for (ob = grCurObscure; ob != NULL; ob = ob->r_next) {
-			    if ( (ob->r_r.r_ybot <= yloc) && 
+			    if ( (ob->r_r.r_ybot <= yloc) &&
 				 (ob->r_r.r_ytop >= yloc) ) {
 				if (ob->r_r.r_xbot <= startx)
 				    startx = MAX(startx, ob->r_r.r_xtop + 1);
@@ -134,7 +134,7 @@ GrTOGLDrawGlyph (gl, p)
 		    }
 
 		    /* stop if we aren't advancing */
-		    if (startx == laststartx) break;  
+		    if (startx == laststartx) break;
 		    laststartx = startx;
 		    if (startx > endx) continue;
 
@@ -164,7 +164,7 @@ GrTOGLDrawGlyph (gl, p)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTOGLSetCursor:
@@ -196,7 +196,7 @@ GrTOGLSetCursor(cursorNum)
     }
 
     toglCurrent.cursor = grCursors[cursorNum];
-    
+
     HashStartSearch(&hs);
     while (entry = HashNext(&grTOGLWindowTable,&hs))
     {

@@ -4,16 +4,16 @@
  *	Procedures for undoing/redoing operations associated
  *	with the dbwind module.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -84,7 +84,7 @@ typedef struct
     Rect bue_newArea;
 } BoxUndoEvent;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -113,12 +113,12 @@ dbwUndoInit()
     dbwUndoIDNewEdit = UndoAddClient(nullProc, nullProc,
 	    (UndoEvent *(*)()) NULL, (int (*)()) NULL, dbwUndoChangeEdit,
 	    nullProc, "change edit cell");
-    
+
     dbwUndoIDBox = UndoAddClient(nullProc, nullProc,
 	    (UndoEvent *(*)()) NULL, (int (*)()) NULL, dbwUndoBoxForw,
 	    dbwUndoBoxBack, "box change");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -179,7 +179,7 @@ DBWUndoNewEdit(editUse, editRootDef, editToRootTrans, rootToEditTrans)
     ep->e_parentDef = editUse->cu_parent;
     (void) strcpy(ep->e_useId, useid);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -244,7 +244,7 @@ dbwUndoChangeEdit(ep)
     DBWAreaChanged(EditRootDef, &area, DBW_ALLWINDOWS, &DBAllButSpaceBits);
     CmdSetWindCaption(EditCellUse, EditRootDef);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -278,7 +278,7 @@ DBWUndoBox(oldDef, oldArea, newDef, newArea)
     bue->bue_newDef = newDef;
     bue->bue_newArea = *newArea;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

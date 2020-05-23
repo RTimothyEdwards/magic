@@ -1,15 +1,15 @@
 /* grCmap.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file provides routines that manipulate the color map on behalf
@@ -38,7 +38,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 static colorEntry *colorMap = NULL;	/* Storage for the color map. */
 int GrNumColors = 0;			/* Number of colors */
 
-
+
 /*-----------------------------------------------------------------------------
  *
  * GrResetCMap --
@@ -74,7 +74,7 @@ GrResetCMap()
     GrNumColors = 0;
 }
 
-
+
 /*-----------------------------------------------------------------------------
  * GrReadCmap:
  *
@@ -137,7 +137,7 @@ char *libPath;			/* a library search path */
 
     f = PaOpen(fullName, "r", ".cmap", path, libPath, (char **) NULL);
     if (f == NULL)
-    { 
+    {
 	/* Check for original ".cmap1" file (prior to magic v. 7.2.27) */
 	f = PaOpen(fullName, "r", ".cmap1", path, libPath, (char **) NULL);
 	if (f == NULL)
@@ -221,7 +221,7 @@ char *libPath;			/* a library search path */
     return TRUE;
 }
 
-
+
 /*-----------------------------------------------------------------------------
  * GrSaveCMap
  *
@@ -362,7 +362,7 @@ GrGetColor(color, red, green, blue)
     return TRUE;
 }
 
-
+
 /*-----------------------------------------------------------------------------
  *  GrPutColor --
  *	 modifies the color map values for a single layer spec.
@@ -398,7 +398,7 @@ GrPutColor(color, red, green, blue)
     return TRUE;
 }
 
-
+
 /*-----------------------------------------------------------------------------
  * GrPutManyColors --
  *
@@ -425,7 +425,7 @@ GrPutManyColors(color, red, green, blue, opaqueBit)
    int color;			/* A specification of colors to be modified. */
    int red, green, blue;	/* New intensity values. */
    int opaqueBit;		/* The opaque/transparent bit.  It is assumed
-				 * that the opaque layer colors or 
+				 * that the opaque layer colors or
 				 * transparent layer bits lie to the right
 				 * of the opaque/transparent bit.
 				 */

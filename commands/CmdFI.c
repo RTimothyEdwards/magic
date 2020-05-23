@@ -3,16 +3,16 @@
  *
  * Commands with names beginning with the letters F through I.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -301,7 +301,7 @@ CmdFeedback(w, cmd)
 		    fpargs.style = style;
 		    fpargs.text = cmd->tx_argv[2];
 
-		    for (i = 0, j = pstart; i < points; i++) 
+		    for (i = 0, j = pstart; i < points; i++)
 		    {
 			plist[i].p_x = cmdScaleCoord(w, cmd->tx_argv[j++],
 				FALSE, TRUE, FEEDMAGNIFY);
@@ -347,7 +347,7 @@ CmdFeedback(w, cmd)
 			}
 		    }
 		    freeMagic(plist);
-		}	
+		}
 	    }
 	    else
 	    {
@@ -357,7 +357,7 @@ CmdFeedback(w, cmd)
 		DBWFeedbackAdd(&box, cmd->tx_argv[2], rootDef, 1, style);
 	    }
 	    break;
-	
+
 	case CLEAR:
 	    if (cmd->tx_argc == 3)
 	        DBWFeedbackClear(cmd->tx_argv[2]);
@@ -367,12 +367,12 @@ CmdFeedback(w, cmd)
 		goto badusage;
 	    nth = 0;
 	    break;
-	
+
 	case COUNT:
 	    if (cmd->tx_argc != 2) goto badusage;
 	    TxPrintf("There are %d feedback areas.\n", DBWFeedbackCount);
 	    break;
-	
+
 	case FIND:
 	    if (cmd->tx_argc > 3) goto badusage;
 	    if (DBWFeedbackCount == 0)
@@ -400,7 +400,7 @@ CmdFeedback(w, cmd)
 	    ToolMoveCorner(TOOL_TR, &box.r_ur, FALSE, rootDef);
 	    TxPrintf("Feedback #%d: %s\n", nth, text);
 	    break;
-	
+
 	case FEED_HELP:
 	    if (cmd->tx_argc > 2) goto badusage;
 	    TxPrintf("Feedback commands have the form \"feedback option\",\n");
@@ -408,7 +408,7 @@ CmdFeedback(w, cmd)
 	    for (msg = cmdFeedbackOptions; *msg != NULL; msg++)
 		TxPrintf("%s\n", *msg);
 	    break;
-	
+
 	case SAVE:
 	    if (cmd->tx_argc != 3) goto badusage;
 	    f = PaOpen(cmd->tx_argv[2], "w", (char *) NULL, ".",
@@ -446,7 +446,7 @@ CmdFeedback(w, cmd)
 	    }
 	    (void) fclose(f);
 	    break;
-	
+
 	case WHY:
 	    if (cmd->tx_argc > 2) goto badusage;
 	    w = ToolGetBoxWindow(&box, (int *) NULL);
@@ -469,7 +469,7 @@ CmdFeedback(w, cmd)
 	    break;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -479,7 +479,7 @@ CmdFeedback(w, cmd)
  * of the box, and paint it across to the other side of the box.  Can
  * operate in any of four directions.
  *
- * Usage: 
+ * Usage:
  *	fill direction [layers]
  *
  * Results:
@@ -629,7 +629,7 @@ cmdFillFunc(tile, cxp)
     cmdFillList = cfa;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -672,12 +672,12 @@ CmdFindBox(w, cmd)
 
     if (boxDef != (((CellUse *) w->w_surfaceID)->cu_def))
     {
-	TxError("The box is not in the same coordinate %s", 
+	TxError("The box is not in the same coordinate %s",
 		"system as the window.\n");
 	return;
     };
 
-    if (cmd->tx_argc == 1) 
+    if (cmd->tx_argc == 1)
     {
 	/* center view on box */
 	Point rootPoint;
@@ -721,7 +721,7 @@ CmdFindBox(w, cmd)
 usage:
     TxError("Usage: findbox [zoom]\n");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -743,7 +743,7 @@ usage:
  * ----------------------------------------------------------------------------
  */
 
-int cmdFindLabelFunc(rect, name, label, cdarg) 
+int cmdFindLabelFunc(rect, name, label, cdarg)
     Rect *rect;
     char *name;
     Label *label;
@@ -785,7 +785,7 @@ CmdFindLabel(w, cmd)
 
     if (boxDef != (((CellUse *) w->w_surfaceID)->cu_def))
     {
-	TxError("The box is not in the same coordinate %s", 
+	TxError("The box is not in the same coordinate %s",
 		"system as the window.\n");
 	return;
     };
@@ -814,9 +814,9 @@ CmdFindLabel(w, cmd)
 	found = DBSrLabelLoc(labUse, labname, cmdFindLabelFunc,
 		(ClientData) &cmdFindLabelRect);
 	if (found) {
-	    if (cmdFindLabelRect.r_xbot == cmdFindLabelRect.r_xtop) 
+	    if (cmdFindLabelRect.r_xbot == cmdFindLabelRect.r_xtop)
 		cmdFindLabelRect.r_xtop++;
-	    if (cmdFindLabelRect.r_ybot == cmdFindLabelRect.r_ytop) 
+	    if (cmdFindLabelRect.r_ybot == cmdFindLabelRect.r_ytop)
 		cmdFindLabelRect.r_ytop++;
 	    ToolMoveBox(TOOL_BL,&cmdFindLabelRect.r_ll,FALSE,labUse->cu_def);
 	    ToolMoveCorner(TOOL_TR,&cmdFindLabelRect.r_ur,FALSE,labUse->cu_def);
@@ -856,7 +856,7 @@ dbListLabels(scx, label, tpath, cdarg)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -927,7 +927,7 @@ CmdFlush(w, cmd)
     TxPrintf("[Flushed]\n");
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1015,7 +1015,7 @@ CmdGetcell(w, cmd)
 
 }
 #ifndef NO_SIM_MODULE
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1052,10 +1052,10 @@ CmdGetnode(w, cmd)
     /* check arguments to command */
 
     switch (cmd->tx_argc) {
-	case 1 : 
+	case 1 :
 	    break;
 
-	case 2 : 
+	case 2 :
 	    if (strcmp("abort", cmd->tx_argv[1]) == 0) {
 		if (!SimInitGetnode) {
 		    HashKill(&SimGetnodeTbl);
@@ -1082,7 +1082,7 @@ CmdGetnode(w, cmd)
 	    }
 	    break;
 
-	case 3 : 
+	case 3 :
 	    if (strcmp("alias", cmd->tx_argv[1]) == 0) {
 		if (strcmp("on", cmd->tx_argv[2]) == 0) {
 		    if (!SimGetnodeAlias) {
@@ -1159,7 +1159,7 @@ badusage:
     TxError("   or: getnode fast\n");
 }
 #endif
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1242,9 +1242,9 @@ CmdGrid(w, cmd)
 		crec->dbw_gridRect.r_xbot, crec->dbw_gridRect.r_ybot,
 		crec->dbw_gridRect.r_xtop, crec->dbw_gridRect.r_ytop);
 	    Tcl_SetResult(magicinterp, boxvalues, TCL_DYNAMIC);
-	
+
 #else
-	    TxPrintf("Grid unit box is (%d, %d) to (%d, %d)\n", 
+	    TxPrintf("Grid unit box is (%d, %d) to (%d, %d)\n",
 		crec->dbw_gridRect.r_xbot, crec->dbw_gridRect.r_ybot,
 		crec->dbw_gridRect.r_xtop, crec->dbw_gridRect.r_ytop);
 #endif
@@ -1256,7 +1256,7 @@ CmdGrid(w, cmd)
 	    Tcl_SetObjResult(magicinterp,
 			Tcl_NewBooleanObj(crec->dbw_flags & DBW_GRID));
 #else
-	    TxPrintf("Grid is %s\n", 
+	    TxPrintf("Grid is %s\n",
 			(crec->dbw_flags & DBW_GRID) ? "on" : "off");
 #endif
 	    return;
@@ -1417,7 +1417,7 @@ CmdHistory(w, cmd)
 }
 #endif
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1545,7 +1545,7 @@ CmdFindNetProc(nodename, use, rect, warn_not_found)
 	{
 	    if (warn_not_found)
 		TxError("Couldn't find use %s\n", s);
-	    return TT_SPACE; 
+	    return TT_SPACE;
 	}
 	GeoTransTrans(DBGetArrayTransform(use, scx2.scx_x, scx2.scx_y),
 	  		&use->cu_transform, &tmp);
@@ -1570,7 +1570,7 @@ CmdFindNetProc(nodename, use, rect, warn_not_found)
 	bool isNeg = FALSE;
 
         /* The characters up to the leading '_' should match one of the	*/
-	/* "short names" for a plane in this technology.		*/ 
+	/* "short names" for a plane in this technology.		*/
 
 	*xstr = '\0';
 	for (pnum = PL_TECHDEPBASE; pnum < DBNumPlanes; pnum++)
@@ -1604,7 +1604,7 @@ CmdFindNetProc(nodename, use, rect, warn_not_found)
 		        localrect.r_ybot = ypos;
 		        localrect.r_xtop = xpos + 1;
 		        localrect.r_ytop = ypos + 1;
-			/* TxPrintf("Node is on the plane \"%s\"\n", 
+			/* TxPrintf("Node is on the plane \"%s\"\n",
 					DBPlaneLongNameTbl[pnum]); */
 		        locvalid = TRUE;
 		    }
@@ -1635,7 +1635,7 @@ CmdFindNetProc(nodename, use, rect, warn_not_found)
 	Plane *plane = targetdef->cd_planes[pnum];
 
 	ttype = TT_SPACE;	/* revert to space in case of failure */
-	
+
 	/* Find the tile type of the tile at the specified point which	*/
 	/* exists on the plane pnum.					*/
 
@@ -1708,7 +1708,7 @@ CmdGoto(w, cmd)
     int		locargc;
     bool	nocomplain = FALSE;
     TileType	ttype;
-     
+
     windCheckOnlyWindow(&w, DBWclientID);
     if ((w == (MagWindow *) NULL) || (w->w_client != DBWclientID))
     {
@@ -1740,7 +1740,7 @@ CmdGoto(w, cmd)
     ToolMoveCorner(TOOL_TR, &rect.r_ur, FALSE, use->cu_def);
 
     /* Return the tile type so we know what we're looking at if there	*/
-    /* are multiple layers drawn at the indicated point.		*/ 
+    /* are multiple layers drawn at the indicated point.		*/
 
 #ifdef MAGIC_WRAPPER
     Tcl_SetResult(magicinterp, DBTypeLongName(ttype), NULL);
@@ -1762,8 +1762,8 @@ findTile(tile, rtype)
 {
     TileType ttype;
 
-    if (IsSplit(tile))  
-    {   
+    if (IsSplit(tile))
+    {
 	if (SplitSide(tile))
 	    ttype = SplitRightType(tile);
 	else
@@ -1776,7 +1776,7 @@ findTile(tile, rtype)
 }
 
 /*
- * The following are from DBcellcopy.c; slightly modified for present 
+ * The following are from DBcellcopy.c; slightly modified for present
  * purposes.
  */
 
@@ -1786,13 +1786,13 @@ void
 FlatCopyAllLabels(scx, mask, xMask, targetUse)
     SearchContext *scx;
     TileTypeBitMask *mask;
-    int xMask;		
+    int xMask;
     CellUse *targetUse;
 {
     int flatCopyAllLabels();
     char pathstring[FLATTERMSIZE];
     TerminalPath	tpath;
-    
+
     pathstring[0] = '\0';
     tpath.tp_first = tpath.tp_next = pathstring;
     tpath.tp_last = pathstring + FLATTERMSIZE;
@@ -1880,7 +1880,7 @@ CmdFlatten(w, cmd)
      CellUse		*newuse;
      SearchContext	scx;
      CellUse		*flatDestUse;
-     
+
     destname = cmd->tx_argv[cmd->tx_argc - 1];
     xMask = CU_DESCEND_ALL;
     dolabels = TRUE;
@@ -1953,7 +1953,7 @@ CmdFlatten(w, cmd)
     newuse->cu_expandMask = CU_DESCEND_SPECIAL;
     UndoDisable();
     flatDestUse = newuse;
-    
+
     if (EditCellUse)
 	scx.scx_use  = EditCellUse;
     else
@@ -1975,7 +1975,7 @@ CmdFlatten(w, cmd)
 
     if (xMask != CU_DESCEND_ALL)
 	DBCellCopyAllCells(&scx, xMask, flatDestUse, (Rect *)NULL);
-    
+
     UndoEnable();
 }
 

@@ -31,7 +31,7 @@ proc magic::makeglyphimages {} {
     if {![catch {set Glyph(up)}]} {return}
 
     # Glyph images
-   
+
     set gsize [expr {int($Opts(scale) * 13)}]
     set gscale [expr {int($Opts(scale))}]
 
@@ -245,7 +245,7 @@ proc magic::drcstate { status } {
       set framename [winfo parent $lwin]
       if {$framename == "."} {return}
       switch $status {
-         idle { 
+         idle {
 		set dct [*bypass drc list count total]
 		if {$dct > 0} {
 	           ${framename}.titlebar.drcbutton configure -selectcolor red
@@ -413,7 +413,7 @@ proc magic::techmanager {{option "update"}} {
       menu .techmgr.cif1.lstyle.menu -tearoff 0
       menu .techmgr.extract.lstyle.menu -tearoff 0
       menu .techmgr.drc.lstyle.menu -tearoff 0
-    
+
    }
 
    if {$option == "init"} {
@@ -800,7 +800,7 @@ proc magic::maketoolbar { framename } {
       button ${framename}.toolbar.b$layername -image img_$layername -command \
 		"$win see $layername"
 
-      # Bindings:  Entering the button puts the canonical layer name in the 
+      # Bindings:  Entering the button puts the canonical layer name in the
       # message window.
       bind ${framename}.toolbar.b$layername <Enter> \
 		[subst {focus %W ; ${framename}.titlebar.message configure \
@@ -1113,7 +1113,7 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
    global Glyph
    global Opts
    global Winopts
-   
+
    # Disallow scrollbars and title caption on windows---we'll do these ourselves
 
    if {$lwindow == 0} {
@@ -1123,11 +1123,11 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
    }
 
    if {$framename == ""} {
-      incr lwindow 
+      incr lwindow
       set framename .layout${lwindow}
    }
    set winname ${framename}.pane.top.magic
-   
+
    toplevel $framename
    tkwait visibility $framename
 
@@ -1551,7 +1551,7 @@ proc magic::closewrapper { framename } {
       if {$tk_version >= 8.5} {
 	 if {![catch {wm state .cellmgr}]} {
 	    .cellmgr.target.list configure -text "default"
-         } 
+         }
       }
    }
 
@@ -1631,7 +1631,7 @@ proc magic::render3d {{cell ""}} {
 	-command [subst { if { \$Opts(cutbox) } { .render.magic cutbox box \
 	} else { \
 	.render.magic cutbox none } }]
-	
+
    if {$cell == ""} {set cell default}
    label .render.title.msg -text "3D Rendering window  Cell: $cell" \
 	-foreground white -background sienna4 -anchor w -padx 15

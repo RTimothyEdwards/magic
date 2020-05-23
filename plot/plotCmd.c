@@ -3,16 +3,16 @@
  *
  * Commands for the plot module only.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -41,7 +41,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "commands/commands.h"
 #include "plot/plotInt.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -102,9 +102,9 @@ CmdPlot(w, cmd)
 #endif
 
     static char *cmdPlotOption[] =
-    {	
+    {
 	"postscript file [layers]    generate PostScript file for what's\n\
-                                     underneath the box",				
+                                     underneath the box",
 	"pnm file [width [layers]]   generate PNM file for what's\n\
 		                     underneath the box",
 #ifdef HAVE_LIBCAIRO
@@ -167,7 +167,7 @@ CmdPlot(w, cmd)
 	    if ((window == (MagWindow *) NULL) || (window->w_client != DBWclientID))
 	    {
 		TxError("The cursor must be over a layout window to plot.\n");
-		return; 
+		return;
 	    }
 	}
 	crec = (DBWclientRec *) window->w_clientData;
@@ -222,7 +222,7 @@ CmdPlot(w, cmd)
 	    PlotGremlin(cmd->tx_argv[2], &scx, &mask, crec->dbw_bitmask);
 	    return;
 #endif /* GREMLIN */
-	    
+
 	case HELP:
 	    TxPrintf("The \"plot\" commands are:\n");
 	    for (msg = &(cmdPlotOption[0]); *msg != NULL; msg++)
@@ -230,7 +230,7 @@ CmdPlot(w, cmd)
 		TxPrintf("    plot %s\n", *msg);
 	    }
 	    return;
-	
+
 	case PARAMETERS:
 	    if (cmd->tx_argc == 2)
 		PlotPrintParams();
@@ -242,7 +242,7 @@ CmdPlot(w, cmd)
 			cmdPlotOption[PARAMETERS]);
 	    }
 	    return;
-	
+
 #ifdef VERSATEC
 	case STYLE_VERSATEC:
 	    if (cmd->tx_argc > 4)
@@ -274,7 +274,7 @@ CmdPlot(w, cmd)
 	    GrTCairoPlotSVG(cmd->tx_argv[2], window);
 	    return;
 #endif
-	    
+
 	case PLOTPNM:
 	    if (cmd->tx_argc > 5)
 	    {
@@ -315,7 +315,7 @@ CmdPlot(w, cmd)
 		return;
 	    }
 #endif
-	    else 
+	    else
 		iwidth = 1000;		/* Default value */
 
 	    if (cmd->tx_argc == 5)
@@ -324,7 +324,7 @@ CmdPlot(w, cmd)
 
 	    PlotPNM(cmd->tx_argv[2], &scx, &mask, crec->dbw_bitmask, iwidth);
 	    return;
-    
+
 #ifdef	LLNL
 	case PIXELS:
 	    if (cmd->tx_argc > 4)

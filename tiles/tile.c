@@ -3,16 +3,16 @@
  *
  * Basic tile manipulation
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -69,7 +69,7 @@ static void *_block_end = NULL;
 
 #endif /* HAVE_SYS_MMAN_H */
 
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -162,7 +162,7 @@ TiNewPlane(tile)
     newplane->pl_hint = tile;
     return (newplane);
 }
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -190,7 +190,7 @@ TiFreePlane(plane)
     TiFree(plane->pl_bottom);
     freeMagic((char *) plane);
 }
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -217,7 +217,7 @@ TiToRect(tile, rect)
     rect->r_ybot = BOTTOM(tile);
     rect->r_ytop = TOP(tile);
 }
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -289,7 +289,7 @@ TiSplitX(tile, x)
 
     return (newtile);
 }
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -361,7 +361,7 @@ TiSplitY(tile, y)
 
     return (newtile);
 }
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -424,7 +424,7 @@ TiSplitX_Left(tile, x)
 
     return (newtile);
 }
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -487,7 +487,7 @@ TiSplitY_Bottom(tile, y)
 
     return (newtile);
 }
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -572,7 +572,7 @@ TiJoinX(tile1, tile2, plane)
 	plane->pl_hint = tile1;
     TiFree(tile2);
 }
-
+
 /*
  * --------------------------------------------------------------------
  *
@@ -666,7 +666,7 @@ mmapTileStore()
 {
     int prot = PROT_READ | PROT_WRITE;
     int flags = MAP_ANON | MAP_PRIVATE;
-    unsigned long map_len = TILE_STORE_BLOCK_SIZE; 	
+    unsigned long map_len = TILE_STORE_BLOCK_SIZE;
 
     _block_begin = mmap(NULL, map_len, prot, flags, -1, 0);
     if (_block_begin == MAP_FAILED)
@@ -689,7 +689,7 @@ getTileFromTileStore()
 	mmapTileStore();
     }
 
-    /* Check if we can get the tile from the 
+    /* Check if we can get the tile from the
      * Free list
      */
 
@@ -702,13 +702,13 @@ getTileFromTileStore()
 
     /* Get it from the mmap */
 
-    if (((unsigned long)_current_ptr + sizeof(Tile)) 
+    if (((unsigned long)_current_ptr + sizeof(Tile))
 		 > (unsigned long)_block_end)
     {
 	 mmapTileStore();
     }
     _current_ptr  = (void *)((unsigned long)_current_ptr + sizeof(Tile));
-	
+
     if ((unsigned long)_current_ptr > (unsigned long) _block_end)
     {
 	fprintf(stderr,"TileStore: internal assertion failure...");

@@ -83,7 +83,7 @@ KEYMAP_ENTRY_ARRAY emacs_standard_keymap = {
   { ISFUNC, rl_insert },		/* - */
   { ISFUNC, rl_insert },		/* . */
   { ISFUNC, rl_insert },		/* / */
-	
+
 	  /* Regular digits. */
   { ISFUNC, rl_insert },		/* 0 */
   { ISFUNC, rl_insert },		/* 1 */

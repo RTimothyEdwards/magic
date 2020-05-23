@@ -3,16 +3,16 @@
  *
  * Computation of boundaries of a database tile plane.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -25,7 +25,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/geometry.h"
 #include "database/database.h"
 #include "tiles/tile.h"
-
+
 
 typedef struct dbcellboundstruct
 {
@@ -49,7 +49,7 @@ DBBoundCellPlane(def, extended, rect)
     DBCellBoundStruct cbs;
     int dbCellBoundFunc();
     Plane *plane;
-    
+
     filter.tf_func = NULL;
     filter.tf_arg = (ClientData)&cbs;
 
@@ -171,7 +171,7 @@ DBBoundPlane(plane, rect)
 
     return (TRUE);
 }
-
+
 /*
  * --------------------------------------------------------------------
  *

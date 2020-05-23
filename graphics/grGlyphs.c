@@ -3,16 +3,16 @@
  *
  *	Handle glyphs -- reading and display.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -38,7 +38,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 extern void (*grFreeCursorPtr)();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrFreeGlyphs --
@@ -76,7 +76,7 @@ GrFreeGlyphs(g)
     freeMagic( (char *) g);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrReadGlyphs --
@@ -97,7 +97,7 @@ bool
 GrReadGlyphs(filename, path, libPath, gl)
     char *filename;
     char *path, *libPath;	/* paths to search in for the file */
-    GrGlyphs **gl;		/* To be filled in with a malloc'ed structure 
+    GrGlyphs **gl;		/* To be filled in with a malloc'ed structure
 				 * This structure must be freed by the caller
 				 * if it is not to live forever.
 				 */
@@ -148,7 +148,7 @@ GrReadGlyphs(filename, path, libPath, gl)
 		    glyphnum++;
 		    if (glyphnum > glyphnummax)
 		    {
-			TxError("Extra lines at end of glyph file '%s'\n", 
+			TxError("Extra lines at end of glyph file '%s'\n",
 			    fullname);
 			result = TRUE;
 			goto endit;
@@ -168,7 +168,7 @@ GrReadGlyphs(filename, path, libPath, gl)
 			result = FALSE;
 			goto endit;
 		    }
-		    ourgl->gr_glyph[glyphnum]->gr_pixels[x + (xmax+1) * y] = 
+		    ourgl->gr_glyph[glyphnum]->gr_pixels[x + (xmax+1) * y] =
 			    GrStyleNames[ (*cp) & 127 ];
 
 		    cp++;
@@ -184,7 +184,7 @@ GrReadGlyphs(filename, path, libPath, gl)
 			cp++;
 			if ((trailingChar == '\0') || (*cp == '\0'))
 			{
-			    TxError("Error in glyph file '%s', %s\n ", 
+			    TxError("Error in glyph file '%s', %s\n ",
 				fullname, "line is too short.");
 			    TxError("Line in error is '%s'\n", line);
 			    result = FALSE;
@@ -196,7 +196,7 @@ GrReadGlyphs(filename, path, libPath, gl)
 	    else
 	    {
 		int i;
-		if (sscanf(line, "size %d %d %d\n", 
+		if (sscanf(line, "size %d %d %d\n",
 			&glyphnummax, &xmax, &ymax) != 3)
 		{
 		    TxError("Format error in  file '%s'\n", fullname);
@@ -210,7 +210,7 @@ GrReadGlyphs(filename, path, libPath, gl)
 		glyphnum = 0;
 		x = 0;
 		y = ymax + 1;
-		ourgl = (GrGlyphs *) mallocMagic((unsigned) (sizeof(GrGlyphs) + 
+		ourgl = (GrGlyphs *) mallocMagic((unsigned) (sizeof(GrGlyphs) +
 			((glyphnummax + 1) * sizeof(GrGlyph *))) );
 		ourgl->gr_num = glyphnummax + 1;
 		for (i = 0; i <= glyphnummax; i++)

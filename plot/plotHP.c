@@ -44,7 +44,7 @@ PlotHPRTLHeader(width, height, density, hpfile)
     fprintf(hpfile, "\033*b2M");	   /* Mode 2 row compression */
     fprintf(hpfile, "\033*t%dR", density); /* Plotting density in DPI. */
     fprintf(hpfile, "\033*r0A");	   /* Start raster data. */
-} 
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -56,7 +56,7 @@ PlotHPRTLHeader(width, height, density, hpfile)
  * ----------------------------------------------------------------------------
  */
 
-#define	LABEL_SPACER 200	/* Height of the label area, in pixels	  */ 
+#define	LABEL_SPACER 200	/* Height of the label area, in pixels	  */
 #define IN_TO_HPGL  1016	/* HPGL2 coordinates are in 0.025mm units */
 #define THIN_MARGIN   40	/* thin spacer (1mm) in HPGL2 coordinates */
 
@@ -167,22 +167,22 @@ PlotHPGL2Trailer(hpfile)
  * packbits for me.  I was sorely disappointed to find a large (225 lines)
  * routine that will do this, but replys heavily on the internal data
  * structures used by the rest of the libtiff library.
- * 
+ *
  * So, I wrote my own.  Here is a much simpler pair of routines to do the same
  * thing.  These were tested on both the PaintJet-300XL and DesignJet 650C,
  * having been compiled using an HP9000s800.  If anyone is actually interested
  * in the driver program that converts a PPM image for use on these printers, I
  * could probably post that as well.
- * 
+ *
  * Noel (ngorelic@speclab.cr.usgs.gov)
  *-----------------------------------------------------------------------
  */
 
-/* 
+/*
  *-----------------------------------------------------------------------
  *
  * PlotRTLCompress --
- *  
+ *
  * This routine encodes a string using the TIFF packbits encoding
  * scheme.  This encoding method is used by several HP peripherals to
  * reduce the size of incoming raster images.  Both routines convert s1
@@ -196,7 +196,7 @@ PlotHPGL2Trailer(hpfile)
  *
  * Side effects:
  *	Output data placed in s2, which must be large enough to hold it.
- * 
+ *
  *-----------------------------------------------------------------------
  */
 
@@ -304,7 +304,7 @@ PlotDumpHPRTL(hpfile, kRaster, cRaster, mRaster, yRaster)
 
     ipl = kRaster->ras_intsPerLine;
     bpl = kRaster->ras_bytesPerLine;
-    
+
     c = cRaster->ras_bits;
     m = mRaster->ras_bits;
     y = yRaster->ras_bits;

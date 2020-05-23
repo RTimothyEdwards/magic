@@ -83,7 +83,7 @@ proc magic::crashbackups {{option start}} {
 #--------------------------------------------------------------------------
 
 proc magic::pushstack {{name ""}} {
-   global editstack  
+   global editstack
    if {$name == ""} {
       # no cell selected, so see if we can select one
       set selected [what -list]
@@ -121,8 +121,8 @@ proc magic::popstack {} {
    } else {
       set ltag [tag load]
       tag load {}
-      load [lindex $editstack end]             
-      view [lindex $editstack end-1]             
+      load [lindex $editstack end]
+      view [lindex $editstack end-1]
       tag load $ltag
       set editstack [lrange $editstack 0 end-2]
       catch {magic::cellmanager}
@@ -467,7 +467,7 @@ proc magic::enable_tools {} {
    # Set keystrokes for push and pop
    magic::macro XK_greater {magic::pushstack [cellname list self]}
    magic::macro XK_less {magic::popstack}
- 
+
    # Set keystrokes for the "tool" command.
    magic::macro space		{magic::tool}
    magic::macro Shift_space	{magic::tool box}
@@ -660,7 +660,7 @@ proc magic::tool {{type next}} {
 	 macro  Shift_Button3    "wire decr type ; wire show"
 	 macro  Button4 "wire incr width ; wire show"
 	 macro  Button5 "wire decr width ; wire show"
-	
+
       }
       netlist {
 	 puts stdout {Switching to NETLIST tool.}

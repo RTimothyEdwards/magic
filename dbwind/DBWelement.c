@@ -8,7 +8,7 @@
  *	and arcs).  These operate very similarly to feedback regions,
  *	in that they are persistant until destroyed, and do not
  *	interact with the layout in any way.
- * 
+ *
  * Copyright (C) 2003 Open Circuit Design, Inc., for MultiGiG, Ltd.
  */
 
@@ -45,7 +45,7 @@ typedef struct _style
     int style;
     styleptr next;
 } stylestruct;
-    
+
 /* Each element is stored in a record that looks like this: */
 
 typedef struct _element
@@ -183,7 +183,7 @@ DBWPrintElements(cellDef, flagmask, reducer)
 
     /* These must match the order of text sizes in graphics/graphics.h */
     static char *textSizes[] = {"small", "medium", "large", "xlarge",
-	"default", NULL}; 
+	"default", NULL};
 
     /* These must match the order of element type definitions above! */
     char *etypes[] = {"rectangle", "line", "text"};
@@ -194,7 +194,7 @@ DBWPrintElements(cellDef, flagmask, reducer)
 	if (elem = (DBWElement *)HashGetValue(he))
 	{
 	    if ((elem->rootDef == cellDef) && (elem->flags & flagmask))
-	    { 
+	    {
 		/* print element type */
 		AppendString(&rstr, etypes[elem->type], " ");
 		/* print element name */
@@ -300,7 +300,7 @@ DBWScaleElements(n, d)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -497,7 +497,7 @@ dbwElementUndraw(mw, elem)
 
     if (mw == NULL) return;	/* No window; can't undraw */
     windowRoot = ((CellUse *) (mw->w_surfaceID))->cu_def;
-  
+
     GrLock(mw, TRUE);
 
     /* Deal with half-point-offset flags for the line element	*/
@@ -541,7 +541,7 @@ dbwElementUndraw(mw, elem)
     GrUnlock(mw, TRUE);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -693,7 +693,7 @@ DBWElementInbox(area)
 #endif
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -735,7 +735,7 @@ DBWElementAdd(w, name, area, cellDef, style)
      * transform the area.  If the root isn't an ancestor, just
      * return.
      */
-    
+
     if (!DBSrRoots(cellDef, &GeoIdentityTransform,
 		dbwelemGetTransform, (ClientData) &transform))
 	if (w != NULL)
@@ -744,7 +744,7 @@ DBWElementAdd(w, name, area, cellDef, style)
     /* SigInterruptPending screws up DBSrRoots */
     if (SigInterruptPending)
 	return NULL;
-  
+
     /* If there is already an entry by this name, delete it */
     DBWElementDelete(w, name);
 
@@ -816,7 +816,7 @@ DBWElementAddText(w, name, x, y, text, cellDef, style)
 {
     DBWElement *elem;
     Rect area;
- 
+
     area.r_xbot = x;
     area.r_xtop = x;
     area.r_ybot = y;
@@ -888,11 +888,11 @@ DBWElementText(MagWindow *w, char *ename, char *text)
     HashEntry *entry;
 
     entry = HashFind(&elementTable, ename);
-    if (entry == NULL) 
+    if (entry == NULL)
     {
 	TxError("No such element %s\n", ename);
 	return;
-    }	
+    }
 
     elem = (DBWElement *)HashGetValue(entry);
     if (elem == NULL) return;
@@ -947,15 +947,15 @@ DBWElementParseFlags(MagWindow *w, char *ename, char *flagstr)
 		"arrowleft", "arrowbottom", "arrowright", "arrowtop",
 		"plainleft", "plainbottom", "plainright", "plaintop", NULL};
     static char *textSizes[] = {"small", "medium", "large", "xlarge",
-	"default", NULL}; 
-    static char *genFlags[] = {"persistent", "temporary", NULL}; 
+	"default", NULL};
+    static char *genFlags[] = {"persistent", "temporary", NULL};
 
     entry = HashFind(&elementTable, ename);
     if (entry == NULL)
     {
 	TxError("No such element %s\n", ename);
 	return;
-    }	
+    }
 
     elem = (DBWElement *)HashGetValue(entry);
     if (elem == NULL) return;
@@ -1096,7 +1096,7 @@ DBWElementStyle(MagWindow *w, char *ename, int style, bool add)
     {
 	TxError("No such element %s\n", ename);
 	return;
-    }	
+    }
 
     elem = (DBWElement *)HashGetValue(entry);
     if (elem == NULL) return;
@@ -1124,7 +1124,7 @@ DBWElementStyle(MagWindow *w, char *ename, int style, bool add)
 	    /* add style */
 	    for (sptr = elem->stylelist; sptr != NULL && sptr->next != NULL;
 			sptr = sptr->next);
-	    
+
 	    newstyle = (styleptr)mallocMagic(sizeof(stylestruct));
 	    newstyle->style = style;
 	    newstyle->next = NULL;
@@ -1202,7 +1202,7 @@ DBWElementPos(MagWindow *w, char *ename, Rect *crect)
     {
 	TxError("No such element %s\n", ename);
 	return;
-    }	
+    }
 
     elem = (DBWElement *)HashGetValue(entry);
     if (elem == NULL) return;

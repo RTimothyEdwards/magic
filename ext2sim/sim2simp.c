@@ -60,7 +60,7 @@ char *typ, *g, *s, *d, *l, *w, *x, *y, *ga, *sa, *da;
 	int as, ps, ad, pd;
 
 	ln = (float) atof(l); wn = (float) atof(w);
-	if ( ga == NULL ) 
+	if ( ga == NULL )
 		as = ps = ad = pd = 0 ;
 	else {
 		parseAttr(sa, &as, &ps);
@@ -94,7 +94,7 @@ char *typ, *g, *s, *d, *l, *w, *x, *y, *ga, *sa, *da;
 	iptr->g = strsave(g); iptr->s = strsave(s); iptr->d = strsave(d);
 	iptr->l = ln ; iptr->w = wn;
 	if ( x != NULL ) {
-		iptr->x = (int) atoi(x); 
+		iptr->x = (int) atoi(x);
 		iptr->y = (int) atoi(y);
 		iptr->as = as ; iptr->ps = ps ;
 		iptr->ad = ad ; iptr->pd = pd ;
@@ -115,7 +115,7 @@ main ()
 
 
         while (fgets (str, STRLEN - 1, stdin)) {
-		if ( *str == 'p' || *str == 'n' || 
+		if ( *str == 'p' || *str == 'n' ||
 		     *str == 'e' || *str == 'd' ) {
 				typ = strtok(str, " ");
 				g = strtok(NULL, " ");
@@ -133,21 +133,21 @@ main ()
 					da = strtok(NULL, " ");
 				}
 				addMos(typ, g, s, d, l, w, x, y, ga, sa, da);
-          	} 
+          	}
 		else	puts(str);
         }
 	fprintf(stderr,"| %d parallel devices\n", par);
-	for ( i = 0 ; i < ndx ; i ++ ) 
+	for ( i = 0 ; i < ndx ; i ++ )
 	  /*if ( mosFets[i].ga )*/
 	if (1)
-		printf("%c %s %s %s %g %g %d %d %s s=A_%d,P_%d d=A_%d,P_%d\n", 
+		printf("%c %s %s %s %g %g %d %d %s s=A_%d,P_%d d=A_%d,P_%d\n",
 			mosFets[i].typ, mosFets[i].g, mosFets[i].s,
 			mosFets[i].d, mosFets[i].l, mosFets[i].w,
 			mosFets[i].x, mosFets[i].y,mosFets[i].ga,
 			mosFets[i].as,mosFets[i].ps,
 			mosFets[i].ad,mosFets[i].pd);
 	   else
-		printf("%c %s %s %s %g %g %d %d\n", 
+		printf("%c %s %s %s %g %g %d %d\n",
 			mosFets[i].typ, mosFets[i].g, mosFets[i].s,
 			mosFets[i].d, mosFets[i].l, mosFets[i].w,
 			mosFets[i].x, mosFets[i].y);

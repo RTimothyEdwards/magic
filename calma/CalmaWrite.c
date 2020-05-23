@@ -3,16 +3,16 @@
  *
  * Output of Calma GDS-II stream format.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -118,7 +118,7 @@ typedef struct BT1 {
     int bt_points;		/* Number of points in this list */
     struct BT1 *bt_next;	/* Next polygon record */
 } BoundaryTop;
-    
+
 /*--------------------------------------------------------------*/
 
 /* Number assigned to each cell */
@@ -146,7 +146,7 @@ HashTable calmaPrefixHash;
 /* Imports */
 extern time_t time();
 
-
+
 /* -------------------------------------------------------------------- */
 
 /*
@@ -238,7 +238,7 @@ static char calmaMapTablePermissive[] =
     'x',  'y',  'z',  '{',  '|',  '}',  '~',    0,	/* x   - DEL */
 };
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -340,7 +340,7 @@ CalmaWrite(rootDef, f)
 	TxPrintf("%d problems occurred.  See feedback entries.\n", problems);
 
     /*
-     * Destroy all contact cell definitions 
+     * Destroy all contact cell definitions
      */
     if (CalmaContactArrays) calmaDelContacts();
 
@@ -348,7 +348,7 @@ CalmaWrite(rootDef, f)
     HashKill(&calmaPrefixHash);
     return (good);
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -498,7 +498,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
     /* for handling any AREF or SREF names, which need name	*/
     /* checks.							*/
 
-    while (1) 
+    while (1)
     {
 	int datatype;
 
@@ -785,7 +785,7 @@ calmaProcessDef(def, outf)
      * not, or if there is any problem obtaining the original cell
      * definition, resort to writing out magic's version of the def,
      * and print a warning message.
-     * 
+     *
      * Treat the lack of a GDS_START property as an indication
      * that we should treat this cell like a reference-only
      * cell.  That is, the instance will be called but no
@@ -912,7 +912,7 @@ calmaProcessDef(def, outf)
     return (0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1315,7 +1315,7 @@ calmaWriteUseFunc(use, f)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1346,7 +1346,7 @@ calmaOutStructName(type, def, f)
     int calmanum;
     char *table;
 
-    if (CIFCurStyle->cs_flags & CWF_PERMISSIVE_LABELS) 
+    if (CIFCurStyle->cs_flags & CWF_PERMISSIVE_LABELS)
     {
 	table = calmaMapTablePermissive;
     } else {
@@ -1545,7 +1545,7 @@ calmaWriteContacts(f)
     /* the proper contact cut drawn.  It is turned on again at the end	*/
     /* of the routine.  Note that this routine is not called unless	*/
     /* CalmaContactArrays is TRUE.					*/
-    
+
     CalmaContactArrays = FALSE;
 
     DBEnumerateTypes(&tMask);
@@ -1649,7 +1649,7 @@ calmaDelContacts()
  *	this should be most efficient.
  *
  * Side effects:
- *	May allocate memory. 
+ *	May allocate memory.
  * ---------------------------------------------------------------------------
  */
 
@@ -1756,7 +1756,7 @@ calmaRemoveDegenerate(blist)
 
 		    freeMagic(curseg->lb_next);
 		    freeMagic(curseg);
-	    
+
 		    /* Make sure record doesn't point to a free'd segment */
 		    bounds->bt_first = lastseg;
 		    bounds->bt_points -= 2;
@@ -1806,7 +1806,7 @@ calmaRemoveColinear(blist)
 		(lastseg->lb_start.p_y == curseg->lb_next->lb_start.p_y)))
 	    {
 		lastseg->lb_next = curseg->lb_next;
-	    
+
 		/* Make sure record doesn't point to a free'd segment */
 		if (curseg == bounds->bt_first) bounds->bt_first = lastseg;
 
@@ -1872,7 +1872,7 @@ calmaRemoveColinear(blist)
  *    Still, each segment is never checked against more than 200 points,
  *    because when a boundary reaches this number (the maximum for GDS
  *    boundary records), the record will tend to be skipped (it should
- *    probably be output here. . .) 
+ *    probably be output here. . .)
  *
  * Results:
  *	None.
@@ -1885,7 +1885,7 @@ calmaRemoveColinear(blist)
 
 void
 calmaMergeSegments(edge, blist, num_points)
-    LinkedBoundary *edge;    
+    LinkedBoundary *edge;
     BoundaryTop **blist;
     int num_points;
 {
@@ -1933,7 +1933,7 @@ calmaMergeSegments(edge, blist, num_points)
 
 		    freeMagic(compseg);
 		    freeMagic(curseg);
-	
+
 		    /* Make sure the record doesn't point to the free'd segment */
 		    if (compseg == bounds->bt_first) bounds->bt_first = complast;
 		    bounds->bt_points += num_points - 2;
@@ -1944,7 +1944,7 @@ calmaMergeSegments(edge, blist, num_points)
     }
 
     /* If still no connecting edge was found, or if we overflowed the GDS max	*/
-    /* number of records for a boundary, then start a new entry.		*/ 
+    /* number of records for a boundary, then start a new entry.		*/
 
 make_new_bound:
 
@@ -2029,7 +2029,7 @@ calmaProcessBoundary(blist, cos)
 	{
 	    if (lbref != listtop)
 		TxPrintf("->");
-	    else 
+	    else
 		lbstop = listtop;
 
 	    switch(lbref->lb_type)
@@ -2343,7 +2343,7 @@ done_searches:
 	    /* tiles, we may have expanded it.  This could use a LOT of	*/
 	    /* optimizing.  1) remove colinear points in calmaAddSegment */
 	    /* when both subsegments are external paths, and 2) here,	*/
-	    /* take the shortest path to making "edge" exactly 4 points.*/	
+	    /* take the shortest path to making "edge" exactly 4 points.*/
 	    /* Note that in non-Manhattan mode, num_points may be 3.	*/
 
 	    if (num_points != 4)
@@ -2484,7 +2484,7 @@ calmaWritePaintFunc(tile, cos)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2648,7 +2648,7 @@ calmaWriteLabelFunc(lab, type, f)
 	calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2704,7 +2704,7 @@ calmaOutHeader(rootDef, f)
     if (CIFCurStyle->cs_flags & CWF_ANGSTROMS) mum = 1e-10;
     calmaOutR8(mum, f);		/* Meters per database unit */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2737,7 +2737,7 @@ calmaOutDate(t, f)
     calmaOutI2(datep->tm_min, f);
     calmaOutI2(datep->tm_sec, f);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2769,7 +2769,7 @@ calmaOutStringRecord(type, str, f)
     char *table, *locstr, *origstr = NULL;
     char *locstrprv; 	/* Added by BSI */
 
-    if(CIFCurStyle->cs_flags & CWF_PERMISSIVE_LABELS) 
+    if(CIFCurStyle->cs_flags & CWF_PERMISSIVE_LABELS)
     {
 	table = calmaMapTablePermissive;
     } else {
@@ -2917,7 +2917,7 @@ calmaOutR8(d, f)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *

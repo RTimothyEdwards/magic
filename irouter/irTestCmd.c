@@ -4,17 +4,17 @@
  * Code to process the `*iroute' command.
  * `*iroute' is a wizard command for debugging and testing.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1987, 1990 Michael H. Arnold, Walter S. Scott, and  *
  *     * the Regents of the University of California.                      *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -56,7 +56,7 @@ typedef struct
 } TestCmdTableE;
 extern TestCmdTableE irTestCommands[];
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -69,7 +69,7 @@ extern TestCmdTableE irTestCommands[];
  *
  * Side effects:
  *	Modify debug flags.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -108,7 +108,7 @@ irDebugTstCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -122,7 +122,7 @@ irDebugTstCmd(w, cmd)
  *
  * Side effects:
  *	See above.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -150,8 +150,8 @@ irHelpTstCmd(w, cmd)
     {
 	/* Lookup subcommand in table, and printed associated help info */
 	which = LookupStruct(
-	    cmd->tx_argv[2], 
-	    (char **) irTestCommands, 
+	    cmd->tx_argv[2],
+	    (char **) irTestCommands,
 	    sizeof irTestCommands[0]);
 
         /* Process result of lookup */
@@ -172,7 +172,7 @@ irHelpTstCmd(w, cmd)
 	else
 	{
 	    /* unrecognized subcommand - complain */
-	    TxError("Unrecognized iroute subcommand: \"%s\"\n", 
+	    TxError("Unrecognized iroute subcommand: \"%s\"\n",
 		    cmd->tx_argv[2]);
 	    TxError("Valid *iroute subcommands are:  ");
 	    for (n = 0; irTestCommands[n].sC_name; n++)
@@ -184,7 +184,7 @@ irHelpTstCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -198,7 +198,7 @@ irHelpTstCmd(w, cmd)
  *
  * Side effects:
  *	Dump routelayers and routecontacts.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -232,7 +232,7 @@ TestCmdTableE irTestCommands[] = {
 	0
     }, *irTestCmdP;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -280,8 +280,8 @@ IRTest(w, cmd)
     {
 	/* Lookup subcommand in table */
 	which = LookupStruct(
-	    cmd->tx_argv[1], 
-	    (char **) irTestCommands, 
+	    cmd->tx_argv[1],
+	    (char **) irTestCommands,
 	    sizeof irTestCommands[0]);
 
         /* Process result of lookup */

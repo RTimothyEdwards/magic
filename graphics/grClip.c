@@ -1,15 +1,15 @@
 /* grClip.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains additional functions to manipulate a
@@ -100,7 +100,7 @@ GrSetStuff(style)
  *
  *	Inform the driver about the last GrSetStuff call.
  *
- * Results:	
+ * Results:
  *	None.
  *
  * Side Effects:
@@ -119,7 +119,7 @@ grInformDriver()
     grDriverInformed = TRUE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * grClipAgainst --
@@ -137,7 +137,7 @@ grInformDriver()
 
 void
 grClipAgainst(startllr, clip)
-    LinkedRect **startllr;	/* A pointer to the pointer that heads 
+    LinkedRect **startllr;	/* A pointer to the pointer that heads
 				 * the list .
 				 */
     Rect *clip;		  	/* The rectangle to clip against */
@@ -152,7 +152,7 @@ grClipAgainst(startllr, clip)
 	    lr = *llr;
 	    *llr = lr->r_next;
 	    /* this will modify the list that we are traversing! */
-	    (void) GrDisjoint(&lr->r_r, clip, grClipAddFunc, 
+	    (void) GrDisjoint(&lr->r_r, clip, grClipAddFunc,
 		    (ClientData) &llr);
 	    freeMagic( (char *) lr);
 	}
@@ -166,7 +166,7 @@ grClipAgainst(startllr, clip)
  * our pointer into the list
  */
 
-bool grClipAddFunc(box, cd)  
+bool grClipAddFunc(box, cd)
     Rect *box;
     ClientData cd;
 {
@@ -217,7 +217,7 @@ grObsBox(r)
     }
 }
 
-
+
 /*---------------------------------------------------------
  * grClipPoints:
  *	This routine computes the 0, 1, or 2 intersection points
@@ -271,7 +271,7 @@ grClipPoints(line, box, p1, p1OK, p2, p2OK)
 	dely = -dely;
 	delyneg = TRUE;
     }
-    else 
+    else
 	delyneg = FALSE;
     /* we know that delx is nonnegative if this is a real (non-empty) line */
     if (delx < 0) return FALSE;
@@ -284,7 +284,7 @@ grClipPoints(line, box, p1, p1OK, p2, p2OK)
 	else y1 += tmp;
 	x1 = box->r_xbot;
     }
-    else 
+    else
 	if (x1 > box->r_xtop) return FALSE;
 
     if (x2 > box->r_xtop)
@@ -295,7 +295,7 @@ grClipPoints(line, box, p1, p1OK, p2, p2OK)
 	else y2 -= tmp;
 	x2 = box->r_xtop;
     }
-    else 
+    else
 	if (x2 < box->r_xbot) return FALSE;
 
     if (y2 > y1)
@@ -352,12 +352,12 @@ grClipPoints(line, box, p1, p1OK, p2, p2OK)
 	ok2 = TRUE;
     }
     /* is part of the line in the box? */
-    return ok1 || ok2 || 
+    return ok1 || ok2 ||
 	    ((x1 >= box->r_xbot) && (x1 <= box->r_xtop) && (y1 >= box->r_ybot)
 	    && (y1 <= box->r_ytop));
 }
 
-
+
 #define NEWAREA(lr,x1,y1,x2,y2)	{LinkedRect *tmp; \
     tmp = (LinkedRect *) mallocMagic((unsigned) (sizeof (LinkedRect))); \
     tmp->r_r.r_xbot = x1; tmp->r_r.r_xtop = x2; \
@@ -448,13 +448,13 @@ GrClipLine(x1, y1, x2, y2)
 		     goto deleteit;
 		}
 
-		if (ok1 && 
+		if (ok1 &&
 		   ( ((l->r_xbot == p1.p_x) && (l->r_ybot == p1.p_y)) ||
 		     ((l->r_xtop == p1.p_x) && (l->r_ytop == p1.p_y)) ) )
 		{
 		    ok1 = FALSE;  /* do not split or clip at an endpoint */
 		}
-		if (ok2 && 
+		if (ok2 &&
 		   ( ((l->r_xbot == p2.p_x) && (l->r_ybot == p2.p_y)) ||
 		     ((l->r_xtop == p2.p_x) && (l->r_ytop == p2.p_y)) ) )
 		{
@@ -824,14 +824,14 @@ GrBox(MagWindow *mw, Transform *trans, Tile *tile)
 
 	GrClipTriangle(&fullr, &clipr, needClip, dinfo, polyp, &np);
 
-	if ((grCurFill == GR_STSOLID) || 
+	if ((grCurFill == GR_STSOLID) ||
 	(grCurFill == GR_STSTIPPLE) || (grCurFill == GR_STGRID) )
 	{
 	    if (needObscure)
 		grObsBox(&clipr);
 	    else if (grFillPolygonPtr)
 		(void) (*grFillPolygonPtr)(polyp, np);
-	} 
+	}
     }
     else
     {
@@ -848,7 +848,7 @@ GrBox(MagWindow *mw, Transform *trans, Tile *tile)
 		grObsBox(&clipr);
 	    else
 		(void) (*grFillRectPtr)(&clipr);
-	} 
+	}
     }
 
     /* return if outline is too small to be worth drawing */
@@ -970,7 +970,7 @@ GrBox(MagWindow *mw, Transform *trans, Tile *tile)
  *	Usually this is called as GrFastBox, defined as GrDrawFastBox(p, 0).
  *	The "scale" is only used to reduce the size of crosses drawn at
  *	point positions, to prevent point labels from dominating a layout
- *	in top-level views. 
+ *	in top-level views.
  *
  * Results:	None.
  *
@@ -1018,7 +1018,7 @@ GrDrawFastBox(prect, scale)
 	needObscure |= GEO_TOUCH(r, &(ob->r_r));
 
     /* do solid areas */
-    if ( (grCurFill == GR_STSOLID) || 
+    if ( (grCurFill == GR_STSOLID) ||
 	(grCurFill == GR_STSTIPPLE) || (grCurFill == GR_STGRID) )
     {
 	Rect clipr;
@@ -1035,7 +1035,7 @@ GrDrawFastBox(prect, scale)
 	    else
 		(void) (*grFillRectPtr)(&clipr);
 	}
-    } 
+    }
 
     /* return if rectangle is too small to see */
     if ((r->r_xtop - r->r_xbot < GR_THRESH)
@@ -1060,7 +1060,7 @@ GrDrawFastBox(prect, scale)
 	    }
 
 	    /* turn the outline into a cross */
-	    if (needClip || needObscure) 
+	    if (needClip || needObscure)
 		goto clipit;
 	    else
 	    {
@@ -1078,7 +1078,7 @@ GrDrawFastBox(prect, scale)
 		for (ob = grCurObscure; ob != NULL; ob = ob->r_next)
 		    crossObscure |= GEO_TOUCH(&crossBox, &(ob->r_r));
 
-		if (crossClip || crossObscure) 
+		if (crossClip || crossObscure)
 		    goto clipit;
 		else
 		    goto noclipit;
@@ -1098,7 +1098,7 @@ GrDrawFastBox(prect, scale)
 		    r->r_xtop + crossSize - 1 + GrPixelCorrect, r->r_ytop);
 
 	    endit:  ;
-	} 
+	}
 	else
 	{
 	    if (needClip || needObscure)
@@ -1190,7 +1190,7 @@ GrClipTriangle(r, c, clipped, dinfo, points, np)
     *np = 3;
 
     /* Clip the triangle to the clipping rectangle.  Result is	*/
-    /* a 3- to 5-sided polygon, or empty.			*/ 
+    /* a 3- to 5-sided polygon, or empty.			*/
 
     if (clipped)
     {
@@ -1426,11 +1426,11 @@ GrDrawTriangleEdge(r, dinfo)
     GrClipTriangle(r, &grCurClip, TRUE, dinfo, tpoints, &tnum);
 
     for (i = 0; i < tnum; i++)
-    { 
+    {
 	j = (i + 1) % tnum;
-	if (tpoints[i].p_x != tpoints[j].p_x &&  
+	if (tpoints[i].p_x != tpoints[j].p_x &&
 		tpoints[i].p_y != tpoints[j].p_y)
-	{   
+	{
 	    GrClipLine(tpoints[i].p_x, tpoints[i].p_y,
 			tpoints[j].p_x, tpoints[j].p_y);
 	    break;
@@ -1501,18 +1501,18 @@ GrDiagonal(prect, dinfo)
     GrClipTriangle(&fullr, &clipr, needClip, dinfo, polyp, &np);
 
     /* do solid areas */
-    if ( (grCurFill == GR_STSOLID) || 
+    if ( (grCurFill == GR_STSOLID) ||
 	(grCurFill == GR_STSTIPPLE) || (grCurFill == GR_STGRID) )
     {
 	if (needObscure)
 	    grObsBox(&clipr);
 	else if (grFillPolygonPtr)
 	    (void) (*grFillPolygonPtr)(polyp, np);
-    } 
+    }
 
     /* return if rectangle is too small to see */
 
-    if ((r->r_xtop - r->r_xbot < GR_THRESH) && 
+    if ((r->r_xtop - r->r_xbot < GR_THRESH) &&
 	    (r->r_ytop - r->r_ybot < GR_THRESH) && (grCurFill != GR_STOUTLINE))
 	return;
 
@@ -1548,7 +1548,7 @@ GrFillPolygon(polyp, np)
     }
 }
 
-
+
 /*---------------------------------------------------------
  * GrClipBox:
  *	GrClipBox will draw a rectangle on the screen in one
@@ -1574,7 +1574,7 @@ GrClipBox(prect, style)
     GrFastBox(prect);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	GrDisjoint --
@@ -1625,7 +1625,7 @@ GrDisjoint(area, clipBox, func, cdarg)
      * into one piece that is DEFINITELY outside clipBox, and one
      * piece left to check some more.
      */
-    
+
     /* Top edge of clipBox: */
 
     rArea = *area;

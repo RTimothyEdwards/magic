@@ -3,16 +3,16 @@
  *
  *	Internal definitions for the window package.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid $Header: /usr/cvsroot/magic-8.0/windows/windInt.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
@@ -62,7 +62,7 @@ extern MagWindow *windSearchPoint();
 /* the width of window borders */
 extern int windCaptionPixels;
 #define THIN_LINE	((((w == NULL) ? WindDefaultFlags \
-	: (w)->w_flags) & WIND_BORDER) ? 2 : 0)	
+	: (w)->w_flags) & WIND_BORDER) ? 2 : 0)
 #define TOP_BORDER(w)	((((w == NULL) ? WindDefaultFlags \
 	: (w)->w_flags) & WIND_CAPTION) \
 	? windCaptionPixels : 2*THIN_LINE)

@@ -4,16 +4,16 @@
  *	things into a special cell named "__SELECT__".  It is based
  *	on code in the select module.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  * of California
  */
@@ -65,11 +65,11 @@ typedef struct def_list_elt
 
 static SimDefListElt *SimCellLabList = (SimDefListElt *) NULL;
 				/* list of all the cell defs we have
-				 * put RSIM labels in 
+				 * put RSIM labels in
 				 */
 
 /* Data structure for node names extracted from the current selection.  For
- * each node, save the node name, a tile which lies in the node, and 
+ * each node, save the node name, a tile which lies in the node, and
  * the text for the label corresponding to the node's rsim value.
  */
 
@@ -114,7 +114,7 @@ bool	  SimRsimRunning = FALSE;	/* Always false if there's no rsim module */
  * Side effects:
  *	Starting from material of type "type" under scx, this procedure
  *	finds all material in all expanded cells that are electrically-
- *	connected to the starting material through a chain of expanded 
+ *	connected to the starting material through a chain of expanded
  *	cells.
  *
  * ----------------------------------------------------------------------------
@@ -154,8 +154,8 @@ SimSelectNode(scx, type, xMask, buffer)
 
     if (!SimIgnoreGlobals)
     {
-	strptr = buffer + strlen(buffer) - 1; 
-	if (*strptr == '!') {		
+	strptr = buffer + strlen(buffer) - 1;
+	if (*strptr == '!') {
 	    *strptr = '\0';
 	    while (strptr != buffer) {
 		if (*strptr == '/') {
@@ -246,7 +246,7 @@ simFreeNodeEntry(list, entry)
  *
  * Side Effects:
  *	The tiles of the selection cell definition are first marked in the
- *	search algorithm.  After finishing the search, these marks are 
+ *	search algorithm.  After finishing the search, these marks are
  *	erased.
  *
  * ----------------------------------------------------------------------------
@@ -299,14 +299,14 @@ SimSelectArea(Rect *rect)
  * 	This procedure is called for each tile in the current selection.
  *	It first checks to see if the node the tile belongs to has not
  *	yet been visited.  If it has not been visited, then the node name
- *	is extracted and all other tiles in the selection which belong to 
+ *	is extracted and all other tiles in the selection which belong to
  *	this node are marked.
  *
  * Results:
  *	Return 0 to keep the search going.
  *
  * Side effects:
- *	The tiles in the selection cell definition are left marked.  
+ *	The tiles in the selection cell definition are left marked.
  *	It is the responsibility of the calling function to erase these
  *	tile marks when finished.
  * ----------------------------------------------------------------------------
@@ -339,7 +339,7 @@ SimSelectFunc(tile, pHead)
     {
 	type = (SplitSide(tile)) ? SplitRightType(tile):
 			SplitLeftType(tile);
-    }  
+    }
     else
 	type = TiGetTypeExact(tile);
 
@@ -377,7 +377,7 @@ SimSelectFunc(tile, pHead)
 
     /* mark all other tiles in the selection that are part of this node */
 
-    SimSrConnect(SelectDef, &scx.scx_area, &DBAllButSpaceAndDRCBits, 
+    SimSrConnect(SelectDef, &scx.scx_area, &DBAllButSpaceAndDRCBits,
             DBConnectTbl, &TiPlaneRect, NullFunc, (ClientData) NULL);
 
     /* Pick a tile type to use for selection. */
@@ -440,7 +440,7 @@ SimSelection(cmd)
     char 		*replyLine;
     char		*strPtr;
     bool		goodReply;
-    
+
     extern 		RsimErrorMsg();
 
     timeString[0] = 0;
@@ -481,7 +481,7 @@ the selection.\n");
 
 	if (!replyLine) {
 	    /* Rsim's reponse to the command was just a prompt.  We are done
-	     * with the current node, so process the next node in the 
+	     * with the current node, so process the next node in the
 	     * selection.
 	     */
 	    continue;
@@ -551,9 +551,9 @@ the selection.\n");
 		    break;
 	    }
 	}
-	  
+
 	/* read all lines of the Rsim reply */
-	  
+
 	goodReply = TRUE;
 	for (;replyLine; goodReply = SimGetReplyLine(&replyLine)) {
 	    if (!goodReply) {
@@ -589,13 +589,13 @@ the selection.\n");
  * SimAddLabels
  *
  *	This procedure adds the node value labels to the Magic database
- *	so they will be displayed in the layout.  
+ *	so they will be displayed in the layout.
  *
  * Results:
  *	None.
  *
  * Side effects:
- *	The cell modified flags are deliberately not set when these labels 
+ *	The cell modified flags are deliberately not set when these labels
  *	are added to the database.
  *
  * ----------------------------------------------------------------------------
@@ -621,7 +621,7 @@ SimAddLabels(SelectNodeList, rootuse)
 	    continue;
 	}
 	TiToRect(current->tl_nodeTile, &selectBox);
-	pos = SimPutLabel(rootuse, &selectBox, GEO_CENTER, 
+	pos = SimPutLabel(rootuse, &selectBox, GEO_CENTER,
 		current->tl_simLabel, TT_SPACE);
 	DBReComputeBbox(rootuse);
 	DBWLabelChanged(rootuse, current->tl_simLabel, &selectBox,
@@ -667,7 +667,7 @@ SimRsimMouse(w)
     /* check to see if the cell def is already in our list */
     sawcell = FALSE;
     for (dummy = SimCellLabList; dummy; dummy = dummy->dl_next) {
-	if (dummy->dl_def == cu->cu_def) {	
+	if (dummy->dl_def == cu->cu_def) {
 	    sawcell = TRUE;
 	    break;
 	}
@@ -734,7 +734,7 @@ SimGetnode()
 	return;
     }
 
-    for (; current != (TileListElt *) NULL; current = current->tl_next) 
+    for (; current != (TileListElt *) NULL; current = current->tl_next)
     {
 #ifdef MAGIC_WRAPPER
 	/* Return the node name as the result of the command */
@@ -779,7 +779,7 @@ SimGetsnode()
 	return;
     }
 
-    for (; current != (TileListElt *) NULL; current = current->tl_next) 
+    for (; current != (TileListElt *) NULL; current = current->tl_next)
     {
 #ifdef MAGIC_WRAPPER
 	/* Return the node short name as the result of the command */

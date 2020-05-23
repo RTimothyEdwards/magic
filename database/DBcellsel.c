@@ -3,16 +3,16 @@
  *
  * Cell selection.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -55,7 +55,7 @@ struct selectArg
 
 /* Forward declarations */
 int dbSelectCellSr();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -251,7 +251,7 @@ dbSelectCellSr(scx, arg)
 	/* compute lastArea (using long long to avoid overflow). */
 	{
 	    int xDiff, yDiff;
-	  
+
 	    xDiff = pbx->r_xtop - pbx->r_xbot;
 	    yDiff = pbx->r_ytop - pbx->r_ybot;
 	    /* BY NP */
@@ -281,7 +281,7 @@ dbSelectCellSr(scx, arg)
 	    n = arg->csa_bestpath->tp_last - arg->csa_bestpath->tp_next;
 	    strncpy(arg->csa_bestpath->tp_next, cpath->tp_first, n);
 	    arg->csa_bestpath->tp_next[n] = '\0';
-	
+
 	    /* Pop last component of current path */
 	    cpath->tp_next = savenext;
 	    *savenext = '\0';
@@ -308,7 +308,7 @@ dbSelectCellSr(scx, arg)
 	    /* compute bestArea (using long long to avoid overflow). */
 	    {
 	        int xDiff, yDiff;
-	  
+
 		xDiff = pbx->r_xtop - pbx->r_xbot;
 		yDiff = pbx->r_ytop - pbx->r_ybot;
 		bestArea = (dlong)xDiff * (dlong)yDiff;

@@ -2,22 +2,22 @@
  * irCommand.c --
  *
  * Command interface for interactive router.  This file processes command
- * lines beginning with the `iroute' command.  
- * 
- * (The "wizard" command, `*iroute', for testing, debugging, etc., 
+ * lines beginning with the `iroute' command.
+ *
+ * (The "wizard" command, `*iroute', for testing, debugging, etc.,
  *  is processed in irTestCmd.c.)
- * 
- *     ********************************************************************* 
+ *
+ *     *********************************************************************
  *     * Copyright (C) 1987, 1990 Michael H. Arnold, Walter S. Scott, and  *
- *     * the Regents of the University of California.                      * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * the Regents of the University of California.                      *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  */
@@ -65,9 +65,9 @@ typedef struct
     char 	*sC_usage;		/* command syntax */
 
 } SubCmdTableE;
-extern SubCmdTableE irSubcommands[]; 
+extern SubCmdTableE irSubcommands[];
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -91,7 +91,7 @@ extern SubCmdTableE irSubcommands[];
  *      TxPrintf
  *
  *	If file is (FILE *)1, parameter value is returned as a Tcl object
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -113,7 +113,7 @@ irSetNoisyAutoInt(parm, valueS, file)
 	"automatic",	V_AUTOMATIC,
 	0
     };
-    
+
     /* If value non-null set parm */
     if(valueS!=NULL)
     {
@@ -122,7 +122,7 @@ irSetNoisyAutoInt(parm, valueS, file)
     	/* check if special value */
 	which = LookupStruct(
 	    valueS,
-	    (char **) specialValues, 
+	    (char **) specialValues,
 	    sizeof specialValues[0]);
 
 	if(which == -1)
@@ -179,13 +179,13 @@ irSetNoisyAutoInt(parm, valueS, file)
 	else
 	{
 	    TxPrintf("%8d ",*parm);
-	}   
+	}
     }
 
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -200,7 +200,7 @@ irSetNoisyAutoInt(parm, valueS, file)
  *	Call low level routine of appropriate type to set/display parameter.
  *	Value of parm can be displayed either in Magic text window (file is
  *      NULL) or to a file.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -257,7 +257,7 @@ irLSetHCost(rL,s,file)
     SetNoisyInt(&(rL->rl_hCost),s,file);
     return NULL;
 }
-	
+
 /* irLSetVCost -- */
 Tcl_Obj *
 irLSetVCost(rL,s,file)
@@ -351,7 +351,7 @@ irLSetHCost(rL,s,file)
 {
     SetNoisyInt(&(rL->rl_hCost),s,file);
 }
-	
+
 /* irLSetVCost -- */
 void
 irLSetVCost(rL,s,file)
@@ -372,7 +372,7 @@ irLSetJogCost(rL,s,file)
     SetNoisyInt(&(rL->rl_jogCost),s,file);
 }
 
- 
+
 /* irLSetHintCost  -- */
 void
 irLSetHintCost(rL,s,file)
@@ -395,7 +395,7 @@ irLSetOverCost(rL,s,file)
 
 #endif
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -410,10 +410,10 @@ irLSetOverCost(rL,s,file)
  *	Call low level routine of appropriate type to set/display parameter.
  *	Value of parm can be displayed either in Magic text window (file is
  *      NULL) or to a file.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
-	
+
 #ifdef MAGIC_WRAPPER
 
 /* irCSetActive -- */
@@ -441,7 +441,7 @@ irCSetWidth(rC,s,file)
     SetNoisyInt(&(rC->rc_routeType.rt_width),s,file);
     return NULL;
 }
-	
+
 /* irCSetLength--  */
 Tcl_Obj *
 irCSetLength(rC,s,file)
@@ -489,7 +489,7 @@ irCSetWidth(rC,s,file)
 {
     SetNoisyInt(&(rC->rc_routeType.rt_width),s,file);
 }
-	
+
 /* irCSetLength --  */
 void
 irCSetLength(rC,s,file)
@@ -499,7 +499,7 @@ irCSetLength(rC,s,file)
 {
     SetNoisyInt(&(rC->rc_routeType.rt_length),s,file);
 }
-	
+
 /* irCSetCost -- */
 void
 irCSetCost(rC,s,file)
@@ -513,7 +513,7 @@ irCSetCost(rC,s,file)
 
 #endif
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -528,11 +528,11 @@ irCSetCost(rC,s,file)
  *	Call low level routine of appropriate type to set/display parameter.
  *	Value of parm can be displayed either in Magic text window (file is
  *      NULL) or to a file.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
-
+
 /* irSrSetRate -- */
 void
 irSrSetRate(s,file)
@@ -551,7 +551,7 @@ irSrSetWidth(s,file)
     SetNoisyDI(&(irMazeParms->mp_wWidth),s,file);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -566,7 +566,7 @@ irSrSetWidth(s,file)
  *	Call low level routine of appropriate type to set/display parameter.
  *	Value of parm can be displayed either in Magic text window (file is
  *      NULL) or to a file.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -627,7 +627,7 @@ irWzdSetPenalty(s, file)
 	float value;
 	if(sscanf(s,"%f",&value)==1)
 	{
-	    irMazeParms->mp_penalty.rf_mantissa = 
+	    irMazeParms->mp_penalty.rf_mantissa =
 		    (int) (value * (1<<irMazeParms->mp_penalty.rf_nExponent));
 	}
 	else
@@ -690,7 +690,7 @@ FILE *file;
 	/* check if special arg */
 	which = LookupStruct(
 	    s,
-	    (char **) specialArgs, 
+	    (char **) specialArgs,
 	    sizeof specialArgs[0]);
 
 	if(which == -1)
@@ -754,11 +754,11 @@ FILE *file;
 	    TxPrintf("%d",irRouteWid);
 	}
     }
-    
+
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -771,7 +771,7 @@ FILE *file;
  *
  * Side effects:
  *	Modify contact parameters and display them.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -822,11 +822,11 @@ irContactsCmd(w, cmd)
 #endif
 
     nV_i = argc - 1;
-    
+
     /* Process by case */
     if(argc == 2 ||
 	(argc == 3 && (strcmp(cmd->tx_argv[2],"*")==0)) ||
-	(argc >= 4 && 
+	(argc >= 4 &&
 	    (strcmp(cmd->tx_argv[2],"*")==0) &&
 	    (strcmp(cmd->tx_argv[3],"*")==0)))
     {
@@ -891,9 +891,9 @@ irContactsCmd(w, cmd)
 	/* PROCESS ALL PARMS ASSOCIATED WITH CONTACT */
 	/* convert layer string to tileType */
 	tileType = DBTechNameType(cmd->tx_argv[2]);
-	if(tileType<0) 
+	if(tileType<0)
 	{
-	    TxError("Unrecognized layer (type): \"%.20s\"\n", 
+	    TxError("Unrecognized layer (type): \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
@@ -924,9 +924,9 @@ irContactsCmd(w, cmd)
 	    }
 	    TxPrintf("\n");
 	}
-	else 
+	else
 	{
-	    TxError("Unrecognized route-contact: \"%.20s\"\n", 
+	    TxError("Unrecognized route-contact: \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
@@ -934,18 +934,18 @@ irContactsCmd(w, cmd)
     else if(argc>=4 && strcmp(cmd->tx_argv[2],"*")==0)
     {
 	/* PROCESS A COLUMN (THE VALUES OF A PARAMETER FOR ALL CONTACTS) */
-     
+
 	/* Lookup parameter name in contact parm table */
 	which = LookupStruct(
-	    cmd->tx_argv[3], 
-	    (char **) cParms, 
+	    cmd->tx_argv[3],
+	    (char **) cParms,
 	    sizeof cParms[0]);
 
 	/* Process table lookup */
 	if (which == -1)
 	{
 	    /* AMBIGUOUS PARAMETER */
-	    TxError("Ambiguous parameter: \"%s\"\n", 
+	    TxError("Ambiguous parameter: \"%s\"\n",
 		cmd->tx_argv[3]);
 	    return;
 	}
@@ -960,7 +960,7 @@ irContactsCmd(w, cmd)
 	    return;
 	}
 
-	else 
+	else
 	{
 	    /* CONTACT PARAMETER FOUND */
 
@@ -989,9 +989,9 @@ irContactsCmd(w, cmd)
 	/* PROCESS PARAMETER ASSOCIATED WITH CONTACT */
 	/* convert layer string to tileType */
 	tileType = DBTechNameType(cmd->tx_argv[2]);
-	if(tileType<0) 
+	if(tileType<0)
 	{
-	    TxError("Unrecognized layer (type): \"%.20s\"\n", 
+	    TxError("Unrecognized layer (type): \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
@@ -1000,14 +1000,14 @@ irContactsCmd(w, cmd)
 	{
 	    /* Lookup contact parameter name in table */
 	    which = LookupStruct(
-		cmd->tx_argv[3], 
-		(char **) cParms, 
+		cmd->tx_argv[3],
+		(char **) cParms,
 		sizeof cParms[0]);
 
 	    /* Process result of lookup */
 	    if (which >= 0)
 	    {
-		/* parameter found - call proc that processes it 
+		/* parameter found - call proc that processes it
 		 * NULL second arg means display only
 		 */
 		(*cParms[which].cP_proc)(rC,NEXTVALUE,NULL);
@@ -1016,7 +1016,7 @@ irContactsCmd(w, cmd)
 	    else if (which == -1)
 	    {
 		/* ambiguous parameter - complain */
-		TxError("Ambiguous parameter: \"%s\"\n", 
+		TxError("Ambiguous parameter: \"%s\"\n",
 		    cmd->tx_argv[3]);
 		return;
 	    }
@@ -1031,9 +1031,9 @@ irContactsCmd(w, cmd)
 		return;
 	    }
 	}
-	else 
+	else
 	{
-	    TxError("Unrecognized route-contact: \"%.20s\"\n", 
+	    TxError("Unrecognized route-contact: \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
@@ -1049,7 +1049,7 @@ irContactsCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1063,7 +1063,7 @@ irContactsCmd(w, cmd)
  *
  * Side effects:
  *	Display requested help info.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -1093,8 +1093,8 @@ irHelpCmd(w, cmd)
     {
 	/* Lookup subcommand in table, and printed associated help info */
 	which = LookupStruct(
-	    cmd->tx_argv[2], 
-	    (char **) irSubcommands, 
+	    cmd->tx_argv[2],
+	    (char **) irSubcommands,
 	    sizeof irSubcommands[0]);
 
         /* Process result of lookup */
@@ -1115,7 +1115,7 @@ irHelpCmd(w, cmd)
 	else
 	{
 	    /* unrecognized subcommand - complain */
-	    TxError("Unrecognized iroute subcommand: \"%s\"\n", 
+	    TxError("Unrecognized iroute subcommand: \"%s\"\n",
 		    cmd->tx_argv[2]);
 	    TxError("Valid iroute irSubcommands are:  ");
 	    for (n = 0; irSubcommands[n].sC_name; n++)
@@ -1127,7 +1127,7 @@ irHelpCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1140,7 +1140,7 @@ irHelpCmd(w, cmd)
  *
  * Side effects:
  *	Modify contact parameters and display them.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -1172,7 +1172,7 @@ static struct
     (nV_i >= argc-1) ? cmd->tx_argv[nV_i=4] : cmd->tx_argv[++nV_i] \
 )
 
-    /*ARGSUSED*/	
+    /*ARGSUSED*/
 void
 irLayersCmd(w, cmd)
     MagWindow *w;
@@ -1196,11 +1196,11 @@ irLayersCmd(w, cmd)
 #endif
 
     nV_i = argc - 1;
-    
+
     /* Process by case */
     if(argc == 2 ||
 	(argc == 3 && (strcmp(cmd->tx_argv[2],"*")==0)) ||
-	(argc >= 4 && 
+	(argc >= 4 &&
 	    (strcmp(cmd->tx_argv[2],"*")==0) &&
 	    (strcmp(cmd->tx_argv[3],"*")==0)))
     {
@@ -1249,7 +1249,7 @@ irLayersCmd(w, cmd)
 	    /* Process parms for each route layer */
 	    for (rL=irRouteLayers; rL!= NULL; rL=rL->rl_next)
 	    {
-		TxPrintf("%-12.12s ", 
+		TxPrintf("%-12.12s ",
 			DBTypeLongNameTbl[rL->rl_routeType.rt_tileType]);
 		for(n=0; lParms[n].lP_name; n++)
 		{
@@ -1265,9 +1265,9 @@ irLayersCmd(w, cmd)
 	/* PROCESS ALL PARMS ASSOCIATED WITH ROUTE LAYER */
 	/* convert layer string to tileType */
 	tileType = DBTechNameType(cmd->tx_argv[2]);
-	if(tileType<0) 
+	if(tileType<0)
 	{
-	    TxError("Unrecognized layer (type): \"%.20s\"\n", 
+	    TxError("Unrecognized layer (type): \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
@@ -1290,7 +1290,7 @@ irLayersCmd(w, cmd)
 	    TxPrintf("\n");
 
 	    /* Process parms for route layer */
-	    TxPrintf("%-12.12s ", 
+	    TxPrintf("%-12.12s ",
 		DBTypeLongNameTbl[rL->rl_routeType.rt_tileType]);
 	    for(n=0; lParms[n].lP_name; n++)
 	    {
@@ -1298,9 +1298,9 @@ irLayersCmd(w, cmd)
 	    }
 	    TxPrintf("\n");
 	}
-	else 
+	else
 	{
-	    TxError("Unrecognized route layer or contact: \"%.20s\"\n", 
+	    TxError("Unrecognized route layer or contact: \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
@@ -1308,18 +1308,18 @@ irLayersCmd(w, cmd)
     else if(argc>=4 && strcmp(cmd->tx_argv[2],"*")==0)
     {
 	/* PROCESS A COLUMN (THE VALUES OF A PARAMETER FOR ALL LAYERS) */
-     
+
 	/* Lookup parameter name in layer parm table */
 	which = LookupStruct(
-	    cmd->tx_argv[3], 
-	    (char **) lParms, 
+	    cmd->tx_argv[3],
+	    (char **) lParms,
 	    sizeof lParms[0]);
 
 	/* Process table lookup */
 	if (which == -1)
 	{
 	    /* AMBIGUOUS PARAMETER */
-	    TxError("Ambiguous parameter: \"%s\"\n", 
+	    TxError("Ambiguous parameter: \"%s\"\n",
 		cmd->tx_argv[3]);
 	    return;
 	}
@@ -1345,14 +1345,14 @@ irLayersCmd(w, cmd)
 	    TxPrintf("\n");
 
 	    TxPrintf("%-12.12s ", irRepeatChar(strlen("layer"),'-'));
-	    TxPrintf("%8.8s ", 
+	    TxPrintf("%8.8s ",
 		irRepeatChar(strlen(lParms[which].lP_name),'-'));
 	    TxPrintf("\n");
 
 	    /* Process parm for each route layer */
 	    for (rL=irRouteLayers; rL!= NULL; rL=rL->rl_next)
 	    {
-		TxPrintf("%-12.12s ", 
+		TxPrintf("%-12.12s ",
 		    DBTypeLongNameTbl[rL->rl_routeType.rt_tileType]);
 		(*lParms[which].lP_proc)(rL,NEXTVALUE,NULL);
 		TxPrintf("\n");
@@ -1365,9 +1365,9 @@ irLayersCmd(w, cmd)
 	/* PROCESS PARAMETER ASSOCIATED WITH ROUTE LAYER */
 	/* convert layer string to tileType */
 	tileType = DBTechNameType(cmd->tx_argv[2]);
-	if(tileType<0) 
+	if(tileType<0)
 	{
-	    TxError("Unrecognized layer (type): \"%.20s\"\n", 
+	    TxError("Unrecognized layer (type): \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
@@ -1376,14 +1376,14 @@ irLayersCmd(w, cmd)
 	{
 	    /* Lookup route layer parameter name in table */
 	    which = LookupStruct(
-		cmd->tx_argv[3], 
-		(char **) lParms, 
+		cmd->tx_argv[3],
+		(char **) lParms,
 		sizeof lParms[0]);
 
 	    /* Process result of lookup */
 	    if (which >= 0)
 	    {
-		/* parameter found - call proc that processes it 
+		/* parameter found - call proc that processes it
 		 * NULL second arg means display only
 		 */
 		(*lParms[which].lP_proc)(rL,NEXTVALUE,NULL);
@@ -1392,7 +1392,7 @@ irLayersCmd(w, cmd)
 	    else if (which == -1)
 	    {
 		/* ambiguous parameter - complain */
-		TxError("Ambiguous parameter: \"%s\"\n", 
+		TxError("Ambiguous parameter: \"%s\"\n",
 		    cmd->tx_argv[3]);
 		return;
 	    }
@@ -1407,9 +1407,9 @@ irLayersCmd(w, cmd)
 		return;
 	    }
 	}
-	else 
+	else
 	{
-	    TxError("Unrecognized layer: \"%.20s\"\n", 
+	    TxError("Unrecognized layer: \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
@@ -1424,20 +1424,20 @@ irLayersCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * irRouteCmd --
  *
- * Irouter subcommand to actually do a route. 
+ * Irouter subcommand to actually do a route.
  *
  * Results:
  *	None.
  *
  * Side effects:
  *	Compute a route and paint it into edit cell.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -1492,7 +1492,7 @@ irRouteCmd(w, cmd)
     while(i<argc)
     {
 	int which = Lookup(argv[i],&(rOptions[0]));
-	switch (which) 
+	switch (which)
 	{
 	    case -2:
 		/* not found */
@@ -1590,7 +1590,7 @@ irRouteCmd(w, cmd)
 		destRect.r_ytop = cmdParseCoord(w, argv[i], FALSE, FALSE);
 
 		destRectArg = &destRect;
-		break;	    
+		break;
 	    case 4:
 		/* dSelection */
 		destType = DT_SELECTION;
@@ -1724,7 +1724,7 @@ leaveClean:
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1737,7 +1737,7 @@ leaveClean:
  *
  * Side effects:
  *	Modify search parameters and display them.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -1757,7 +1757,7 @@ irSearchCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    
+
     /* Process by case */
     if(cmd->tx_argc == 2)
     /* print values of all parms */
@@ -1766,7 +1766,7 @@ irSearchCmd(w, cmd)
 
 	for(n=0; srParms[n].srP_name; n++)
 	{
-	    TxPrintf("  %s=", srParms[n].srP_name); 
+	    TxPrintf("  %s=", srParms[n].srP_name);
 	    (*srParms[n].srP_proc)(NULL,NULL);
 	}
 	TxPrintf("\n");
@@ -1778,15 +1778,15 @@ irSearchCmd(w, cmd)
 
 	/* Lookup parameter name in contact parm table */
 	which = LookupStruct(
-	    cmd->tx_argv[2], 
-	    (char **) srParms, 
+	    cmd->tx_argv[2],
+	    (char **) srParms,
 	    sizeof srParms[0]);
 
 	/* Process table lookup */
 	if (which == -1)
 	/* parameter ambiguous */
 	{
-	    TxError("Ambiguous parameter: \"%s\"\n", 
+	    TxError("Ambiguous parameter: \"%s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
@@ -1802,7 +1802,7 @@ irSearchCmd(w, cmd)
 	    TxError("\n");
 	    return;
 	}
-	else 
+	else
 	/* parameter found - process it */
 	{
 	    char *arg;
@@ -1818,7 +1818,7 @@ irSearchCmd(w, cmd)
 		arg = cmd->tx_argv[3];
 	    }
 
-	    TxPrintf("  %s=", srParms[which].srP_name); 
+	    TxPrintf("  %s=", srParms[which].srP_name);
 	    (*srParms[which].srP_proc)(arg,NULL);
 	    TxPrintf("\n");
 	}
@@ -1833,22 +1833,22 @@ irSearchCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * irSpacingsCmd --
  *
- * Irouter subcommand to set and display minimum spacings between 
- * routetypes. 
- * 
+ * Irouter subcommand to set and display minimum spacings between
+ * routetypes.
+ *
  *
  * Results:
  *	None.
  *
  * Side effects:
- *	Modify and display spacing parameters. 
- *	
+ *	Modify and display spacing parameters.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -1893,7 +1893,7 @@ irSpacingsCmd(w, cmd)
 	/* Print spacings for each route type */
 	for (rT=irRouteTypes; rT!= NULL; rT=rT->rt_next)
 	{
-	    TxPrintf("%s:  ", 
+	    TxPrintf("%s:  ",
 	        DBTypeLongNameTbl[rT->rt_tileType]);
 	    for (i=0;i<TT_MAXTYPES;i++)
 		if(rT->rt_spacing[i]>=0)
@@ -1921,9 +1921,9 @@ irSpacingsCmd(w, cmd)
 
 	    /* convert layer string to tileType */
 	    tileType = DBTechNameType(cmd->tx_argv[2]);
-	    if(tileType<0) 
+	    if(tileType<0)
 	    {
-		TxError("Unrecognized layer (type): \"%.20s\"\n", 
+		TxError("Unrecognized layer (type): \"%.20s\"\n",
 		    cmd->tx_argv[2]);
 		return;
 	    }
@@ -1931,7 +1931,7 @@ irSpacingsCmd(w, cmd)
 	    if (rT=irFindRouteType(tileType))
 	    {
 
-		TxPrintf("%s:  ", 
+		TxPrintf("%s:  ",
 		    DBTypeLongNameTbl[rT->rt_tileType]);
 		for (i=0;i<TT_MAXTYPES;i++)
 		    if(rT->rt_spacing[i]>=0)
@@ -1941,9 +1941,9 @@ irSpacingsCmd(w, cmd)
 		    TxPrintf("%s=%d ","SUBCELL",rT->rt_spacing[TT_SUBCELL]);
 		TxPrintf("\n\n");
 	    }
-	    else 
+	    else
 	    {
-		TxError("Unrecognized route layer or contact: \"%.20s\"\n", 
+		TxError("Unrecognized route layer or contact: \"%.20s\"\n",
 		    cmd->tx_argv[2]);
 		return;
 	    }
@@ -1952,26 +1952,26 @@ irSpacingsCmd(w, cmd)
     else if(cmd->tx_argc==4)
     {
 	/* PRINT VALUE OF GIVEN SPACING */
-     
+
 	/* convert layer string to tileType */
 	tileType = DBTechNameType(cmd->tx_argv[2]);
-	if(tileType<0) 
+	if(tileType<0)
 	{
-	    TxError("Unrecognized layer (type): \"%.20s\"\n", 
+	    TxError("Unrecognized layer (type): \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
 
 	if ((rT=irFindRouteType(tileType))==NULL)
 	{
-	    TxError("Unrecognized route layer or contact: \"%.20s\"\n", 
+	    TxError("Unrecognized route layer or contact: \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
 
 	/* convert type-string spacing is "to" to tiletype */
 	tileType = DBTechNameType(cmd->tx_argv[3]);
-	if(tileType<0) 
+	if(tileType<0)
 	{
 	    /* if not a real type, check to see if "SUBCELL" */
 	    which = LookupStruct(
@@ -1981,9 +1981,9 @@ irSpacingsCmd(w, cmd)
 	    if ( which>= 0)
 	        tileType = TT_SUBCELL;
 	}
-	if(tileType<0) 
+	if(tileType<0)
 	{
-	    TxError("Unrecognized layer (type): \"%.20s\"\n", 
+	    TxError("Unrecognized layer (type): \"%.20s\"\n",
 		cmd->tx_argv[3]);
 	    return;
 	}
@@ -2003,19 +2003,19 @@ irSpacingsCmd(w, cmd)
     else
     {
 	/* SET SPACINGS */
-     
+
 	/* convert layer string to tileType */
 	tileType = DBTechNameType(cmd->tx_argv[2]);
-	if(tileType<0) 
+	if(tileType<0)
 	{
-	    TxError("Unrecognized layer (type): \"%.20s\"\n", 
+	    TxError("Unrecognized layer (type): \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
 
 	if ((rT=irFindRouteType(tileType))==NULL)
 	{
-	    TxError("Unrecognized route layer or contact: \"%.20s\"\n", 
+	    TxError("Unrecognized route layer or contact: \"%.20s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
@@ -2028,7 +2028,7 @@ irSpacingsCmd(w, cmd)
 	{
 	    /* convert type-string spacing is "to" to tiletype */
 	    tileType = DBTechNameType(cmd->tx_argv[argI]);
-	    if(tileType<0) 
+	    if(tileType<0)
 	    {
 		/* if not a real type, check to see if "SUBCELL" */
 		which = LookupStruct(
@@ -2038,9 +2038,9 @@ irSpacingsCmd(w, cmd)
 		if ( which>= 0)
 	        tileType = TT_SUBCELL;
 	    }
-	    if(tileType<0) 
+	    if(tileType<0)
 	    {
-		TxError("\nUnrecognized layer (type): \"%.20s\"\n", 
+		TxError("\nUnrecognized layer (type): \"%.20s\"\n",
 		    cmd->tx_argv[argI]);
 		continue;
 	    }
@@ -2065,8 +2065,8 @@ irSpacingsCmd(w, cmd)
 	    {
 		/* Lookup in special value table */
 		which = LookupStruct(
-		    s, 
-		    (char **) sValue, 
+		    s,
+		    (char **) sValue,
 		    sizeof sValue[0]);
 
 		/* Process result of lookup */
@@ -2100,12 +2100,12 @@ irSpacingsCmd(w, cmd)
 	    /* Print new value */
 	    if(rT->rt_spacing[tileType] != -1)
 		TxPrintf(" %s=%d",
-		    (tileType == TT_SUBCELL ? 
+		    (tileType == TT_SUBCELL ?
 			"SUBCELL" : DBTypeLongNameTbl[tileType]),
 			rT->rt_spacing[tileType]);
 	    else
 		TxPrintf(" %s=NIL",
-		    (tileType==TT_SUBCELL ? 
+		    (tileType==TT_SUBCELL ?
 			"SUBCELL" : DBTypeLongNameTbl[tileType]));
 	}
 	TxPrintf("\n");
@@ -2114,7 +2114,7 @@ irSpacingsCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2127,7 +2127,7 @@ irSpacingsCmd(w, cmd)
  *
  * Side effects:
  *	Sets verbosity parameter
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -2141,7 +2141,7 @@ irVerbosityCmd(w, cmd)
 	TxError("'iroute verbosity' only takes one arg!\n");
 	return;
     }
-    
+
     if(cmd->tx_argc == 3)
     {
 	int i;
@@ -2165,21 +2165,21 @@ irVerbosityCmd(w, cmd)
 	case 0:
 	/* shhhhh! we're in silent mode */
 	break;
-	    
+
 	case 1:
 	TxPrintf("\t1 (Brief messages)\n");
 	break;
-	    
+
 	default:
 	ASSERT(irMazeParms->mp_verbosity>=2,"irVerbosityCmd");
 	TxPrintf("\t%d (Lots of statistics)\n",
 		 irMazeParms->mp_verbosity);
     }
-    
+
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2192,7 +2192,7 @@ irVerbosityCmd(w, cmd)
  *
  * Side effects:
  *	Displays version string.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -2215,7 +2215,7 @@ irVersionCmd(w, cmd)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2228,7 +2228,7 @@ irVersionCmd(w, cmd)
  *
  * Side effects:
  *	See above.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -2254,7 +2254,7 @@ irWizardCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    
+
     /* Process by case */
     if(cmd->tx_argc == 2)
     /* print values of all parms */
@@ -2263,7 +2263,7 @@ irWizardCmd(w, cmd)
 
 	for(n=0; wzdParms[n].wzdP_name; n++)
 	{
-	    TxPrintf("  %s=", wzdParms[n].wzdP_name); 
+	    TxPrintf("  %s=", wzdParms[n].wzdP_name);
 	    (*wzdParms[n].wzdP_proc)(NULL,NULL);
 	    TxPrintf("\n");
 	}
@@ -2275,15 +2275,15 @@ irWizardCmd(w, cmd)
 
 	/* Lookup parameter name in contact parm table */
 	which = LookupStruct(
-	    cmd->tx_argv[2], 
-	    (char **) wzdParms, 
+	    cmd->tx_argv[2],
+	    (char **) wzdParms,
 	    sizeof wzdParms[0]);
 
 	/* Process table lookup */
 	if (which == -1)
 	/* parameter ambiguous */
 	{
-	    TxError("Ambiguous parameter: \"%s\"\n", 
+	    TxError("Ambiguous parameter: \"%s\"\n",
 		cmd->tx_argv[2]);
 	    return;
 	}
@@ -2299,7 +2299,7 @@ irWizardCmd(w, cmd)
 	    TxError("\n");
 	    return;
 	}
-	else 
+	else
 	/* parameter found - process it */
 	{
 	    char *arg;
@@ -2315,7 +2315,7 @@ irWizardCmd(w, cmd)
 		arg = cmd->tx_argv[3];
 	    }
 
-	    TxPrintf("  %s=", wzdParms[which].wzdP_name); 
+	    TxPrintf("  %s=", wzdParms[which].wzdP_name);
 	    (*wzdParms[which].wzdP_proc)(arg,NULL);
 	    TxPrintf("\n");
 	}
@@ -2344,10 +2344,10 @@ irWizardCmd(w, cmd)
  *
  * Side effects:
  *	Write file of Magic commands to set parms. to current values.
- *	
+ *
  * NOTE:
- *      Note defined after all other commands, so it can make use of 
- *      datastructures defined just in front of other commands, 
+ *      Note defined after all other commands, so it can make use of
+ *      datastructures defined just in front of other commands,
  *      such as the search parameter table.
  * ----------------------------------------------------------------------------
  */
@@ -2373,7 +2373,7 @@ irSaveParametersCmd(w, cmd)
 
     /* open save file */
     saveFile = fopen(cmd->tx_argv[2], "w");
-    if (saveFile == NULL) 
+    if (saveFile == NULL)
     {
 	TxError("Could not open file '%s' for writing.\n", cmd->tx_argv[2]);
 	return;
@@ -2392,7 +2392,7 @@ irSaveParametersCmd(w, cmd)
      * gibberish when the file is sourced.
      */
     fprintf(saveFile,":iroute verbosity 0\n");
-	    
+
     /* save CONTACT parameters */
     for (rC=irRouteContacts; rC!= NULL; rC=rC->rc_next)
     {
@@ -2412,7 +2412,7 @@ irSaveParametersCmd(w, cmd)
     {
 	int n;
 
-	fprintf(saveFile,":iroute layer %s * ", 
+	fprintf(saveFile,":iroute layer %s * ",
 	    DBTypeLongNameTbl[rL->rl_routeType.rt_tileType]);
 	for(n=0; lParms[n].lP_name; n++)
 	{
@@ -2427,8 +2427,8 @@ irSaveParametersCmd(w, cmd)
 
 	for(n=0; srParms[n].srP_name; n++)
 	{
-	    fprintf(saveFile,":iroute search %s ", 
-			   srParms[n].srP_name); 
+	    fprintf(saveFile,":iroute search %s ",
+			   srParms[n].srP_name);
 	    (*srParms[n].srP_proc)(NULL,saveFile);
 	    fprintf(saveFile,"\n");
 	}
@@ -2444,12 +2444,12 @@ irSaveParametersCmd(w, cmd)
 	{
 	    for (i=0;i<TT_MAXTYPES;i++)
 		if(rT->rt_spacing[i]>=0)
-		    fprintf(saveFile,":iroute spacings %s %s %d\n", 
+		    fprintf(saveFile,":iroute spacings %s %s %d\n",
 				   DBTypeLongNameTbl[rT->rt_tileType],
 				   DBTypeLongNameTbl[i],
 				   rT->rt_spacing[i]);
 	    if(rT->rt_spacing[TT_SUBCELL]>=0)
-		fprintf(saveFile,":iroute spacings %s %s %d\n", 
+		fprintf(saveFile,":iroute spacings %s %s %d\n",
 			       DBTypeLongNameTbl[rT->rt_tileType],
 			       "SUBCELL",
 			       rT->rt_spacing[TT_SUBCELL]);
@@ -2462,8 +2462,8 @@ irSaveParametersCmd(w, cmd)
 
 	for(n=0; wzdParms[n].wzdP_name; n++)
 	{
-	    fprintf(saveFile,":iroute wizard %s ", 
-			   wzdParms[n].wzdP_name); 
+	    fprintf(saveFile,":iroute wizard %s ",
+			   wzdParms[n].wzdP_name);
 	    (*wzdParms[n].wzdP_proc)(NULL,saveFile);
 	    fprintf(saveFile,"\n");
 	}
@@ -2472,12 +2472,12 @@ irSaveParametersCmd(w, cmd)
     /* save VERBOSITY parameter (done last so :source is silent) */
     fprintf(saveFile,":iroute verbosity %d\n",
 	    irMazeParms->mp_verbosity);
-    
+
     (void) fclose(saveFile);
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2497,7 +2497,7 @@ irSaveParametersCmd(w, cmd)
  *	and call it to do the work of implementing the subcommand.  Each
  *	such procedure is of the following form:
  *
- *	int	
+ *	int
  *	proc(argc, argv)
  *	    int argc;
  *	    char *argv[];
@@ -2603,7 +2603,7 @@ IRCommand(w, cmd)
 	 * NULL below.
 	 */
 	irResult = irRoute(w, ST_CURSOR,
-		(Point*)NULL, (char*)NULL, (List*)NULL,     
+		(Point*)NULL, (char*)NULL, (List*)NULL,
 		DT_BOX, (Point*)NULL, (char*)NULL, (List*)NULL);
 
 #ifdef MAGIC_WRAPPER
@@ -2636,8 +2636,8 @@ IRCommand(w, cmd)
     {
 	/* Lookup subcommand in table */
 	which = LookupStruct(
-	    cmd->tx_argv[1], 
-	    (char **) irSubcommands, 
+	    cmd->tx_argv[1],
+	    (char **) irSubcommands,
 	    sizeof irSubcommands[0]);
 
         /* Process result of lookup */
@@ -2655,7 +2655,7 @@ IRCommand(w, cmd)
 	else
 	{
 	    /* unrecognized subcommand - complain */
-	    TxError("Unrecognized iroute subcommand: \"%s\"\n", 
+	    TxError("Unrecognized iroute subcommand: \"%s\"\n",
 		    cmd->tx_argv[1]);
 	    TxError("Valid iroute irSubcommands are:  ");
 	    for (n = 0; irSubcommands[n].sC_name; n++)

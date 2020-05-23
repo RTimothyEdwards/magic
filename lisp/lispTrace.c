@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- *  lispTrace.c -- 
+ *  lispTrace.c --
  *
  *   This module manipulates the stack trace information used for
  *   error reporting.
@@ -64,7 +64,7 @@ StackFree (t)
   t->n = freeQ;
   freeQ = t;
 }
-    
+
 
 /*------------------------------------------------------------------------
  *

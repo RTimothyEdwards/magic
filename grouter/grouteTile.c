@@ -2,16 +2,16 @@
  *
  *	Global signal router code for tile and channel related things.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -43,7 +43,7 @@ bool GlDebugCrossings = FALSE;
 
 #define isSpaceTile(tile) (TiGetBody(tile) == NULL)
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -93,7 +93,7 @@ glAdjacentChannel(ch, point)
 
     return (glTileToChannel(TiSrPointNoHint(RtrChannelPlane, &p)));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -131,7 +131,7 @@ glBadChannel(oldCh, newCh, entryPt)
 
     return (FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -177,7 +177,7 @@ glDebug(point, text, value, size)
 	GlDebugCrossings = FALSE;
     TxPrintf("\n");
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -199,7 +199,7 @@ glDebug(point, text, value, size)
 
 GCRChannel *
 glPointToChannel(point, dir)
-    Point *point;	/* The point from which the channel is found */ 
+    Point *point;	/* The point from which the channel is found */
     int dir;		/* The direction in which the search goes */
 {
     Point p;
@@ -222,7 +222,7 @@ glPointToChannel(point, dir)
     }
     return (glTileToChannel(TiSrPointNoHint(RtrChannelPlane, &p)));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -267,7 +267,7 @@ glPointToSide(ch, pt)
     ASSERT(FALSE, "glPointToSide point not on edge");
     return (GEO_CENTER);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -362,7 +362,7 @@ glSide(point)
     }
     return(GEO_CENTER);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

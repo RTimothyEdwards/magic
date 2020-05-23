@@ -3,16 +3,16 @@
  *
  * Definitions internal to the database module.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * Needs to include: magic.h, tile.h, database.h
@@ -139,7 +139,7 @@ extern DefaultType dbTechDefaultTypes[];	/* Builtin types */
  * be painted with the type when that contact is painted over empty
  * space.
  *
- * The LayerInfo structure is used primarily to store information about 
+ * The LayerInfo structure is used primarily to store information about
  * the various types of contacts, although it contains degenerate information
  * about non-contact types as well.
  */
@@ -149,7 +149,7 @@ typedef struct
     TileType		 l_type;	/* Back-index into dbLayerInfo[] */
     bool		 l_isContact;	/* TRUE if this layer has images */
 
-    /* Residues of this contact on its contacted planes. */ 
+    /* Residues of this contact on its contacted planes. */
     TileTypeBitMask	 l_residues;
 
     /* Mask of connected planes, including this one */

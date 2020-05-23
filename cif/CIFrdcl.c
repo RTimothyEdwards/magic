@@ -5,16 +5,16 @@
  *	both definitions and calls, and user-defined features
  *	like labels.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -103,7 +103,7 @@ typedef struct {
  */
 
 char *cifSubcellId = NULL;
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -150,7 +150,7 @@ CIFReadCellInit(ptrkeys)
  * cifForgetCell --
  *
  * 	This local procedure is used to find a cell in the subcell
- *	table and remove its CellDef entry. 
+ *	table and remove its CellDef entry.
  *
  * Results:
  *	FALSE if no such entry was found, otherwise TRUE.
@@ -234,7 +234,7 @@ cifUniqueCell(cifNum)
 
     CIFReadError("Warning: cell definition %d reused.\n", cifNum);
 }
-	
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -346,7 +346,7 @@ CIFScalePlanes(scalen, scaled, planearray)
  *
  * ----------------------------------------------------------------------------
  */
- 
+
 void
 CIFInputRescale(n, d)
     int n, d;
@@ -418,7 +418,7 @@ bool
 CIFParseStart()
 {
     int		number;
-    
+
     if (cifSubcellBeingRead)
     {
 	CIFReadError("definition start inside other definition; ignored.\n");
@@ -489,7 +489,7 @@ CIFParseStart()
     cifCurReadPlanes = cifSubcellPlanes;
     return TRUE;
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -573,7 +573,7 @@ CIFPaintCurrent(filetype)
 
 	plane = CIFGenLayer(cifCurReadStyle->crs_layers[i]->crl_ops,
 	    &TiPlaneRect, (CellDef *) NULL, cifCurReadPlanes);
-	
+
 	/* Generate a paint/erase table, then paint from the CIF
 	 * plane into the current Magic cell.
 	 */
@@ -607,7 +607,7 @@ CIFPaintCurrent(filetype)
 		 * is set in flags.  This condition has occurred, though, and
 		 * needs to be debugged.
 		 */
-		if ((cifReadCellDef->cd_flags & CDFLATGDS) && 
+		if ((cifReadCellDef->cd_flags & CDFLATGDS) &&
 				(cifReadCellDef->cd_client != (ClientData)CLIENTDEFAULT))
 		    parray = (Plane **)cifReadCellDef->cd_client;
 		else
@@ -672,7 +672,7 @@ CIFPaintCurrent(filetype)
 	    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
 			&CIFSolidBits, cifPaintCurrentFunc,
 			(ClientData)type);
-	}	
+	}
 
 	/* Recycle the plane, which was dynamically allocated. */
 
@@ -827,7 +827,7 @@ cifPaintCurrentFunc(tile, type)
 
     return  0;		/* To keep the search alive. */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -855,12 +855,12 @@ CIFParseFinish()
 	CIFSkipToSemi();
 	return FALSE;
     }
-    if (cifSubcellId != NULL) 
+    if (cifSubcellId != NULL)
     {
 	CIFReadError("pending call identifier %s discarded.\n", cifSubcellId);
 	(void) StrDup(&cifSubcellId, (char *) NULL);
     }
-	
+
     /* Take the `F'. */
 
     TAKE();
@@ -869,7 +869,7 @@ CIFParseFinish()
      * the appropriate cell of the database.  Then restore the saved
      * layer info.
      */
-    
+
     CIFPaintCurrent(FILE_CIF);
 
     DBAdjustLabels(cifReadCellDef, &TiPlaneRect);
@@ -882,7 +882,7 @@ CIFParseFinish()
     cifCurReadPlanes = cifEditCellPlanes;
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -922,7 +922,7 @@ CIFParseDelete()
     CIFSkipToSemi();
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -954,7 +954,7 @@ cifParseName()
 
     for (ch = PEEK() ; ch == ' ' || ch == '\t' ; ch = PEEK())
 	TAKE();
-    
+
     /* Read the string. */
 
     bufferp = &buffer[0];
@@ -965,7 +965,7 @@ cifParseName()
     *bufferp = '\0';
     return buffer;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -998,7 +998,7 @@ cifParseUser9()
     }
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1024,7 +1024,7 @@ CIFParseCall()
     Transform	transform;
     CellUse 	*use;
     CellDef	*def;
-    
+
     /* Take the `C'. */
 
     TAKE();
@@ -1063,7 +1063,7 @@ CIFParseCall()
     (void) StrDup(&cifSubcellId, (char *) NULL);
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1095,7 +1095,7 @@ cifParseUser91()
     (void) StrDup(&cifSubcellId, cifParseName());
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1148,7 +1148,7 @@ cifParseUser94()
      * current cell.  Tricky business: in order for the default
      * label location to be computed
      */
-    
+
     CIFSkipBlanks();
     if (PEEK() != ';')
     {
@@ -1185,7 +1185,7 @@ cifParseUser94()
     freeMagic(name);
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1224,12 +1224,12 @@ cifParseUser95()
 	CIFSkipToSemi();
 	return FALSE;
     }
-    
+
     savescale = cifCurReadStyle->crs_scaleFactor;
 
     /* The center coordinates returned are in CIF units *2              */
     /* the values will be halved later before conversion to magic units */
-    
+
     if (! CIFParsePoint(&center, 2))
     {
 	CIFReadError("95 command, but no location; ignored.\n");
@@ -1253,10 +1253,10 @@ cifParseUser95()
 
     lowerleft.p_x = center.p_x - size.p_x;
     lowerleft.p_y = center.p_y - size.p_y;
-    
+
     upperright.p_x = center.p_x + size.p_x;
     upperright.p_y = center.p_y + size.p_y;
-    
+
     if ((lowerleft.p_x % 2 == 0) && (lowerleft.p_y % 2 == 0)) {
 
       /* if possible convert values to CIF units by dividing by two */
@@ -1274,9 +1274,9 @@ cifParseUser95()
       CIFInputRescale(2, 1);
 
     }
-    
+
     /* now scale each of the co-ordinates in turn */
-    
+
     lowerleft.p_x = CIFScaleCoord(lowerleft.p_x, COORD_ANY);
     savescale = cifCurReadStyle->crs_scaleFactor;
 
@@ -1347,7 +1347,7 @@ cifParseUser95()
     freeMagic(name);
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1395,7 +1395,7 @@ CIFParseUser()
 		return FALSE;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

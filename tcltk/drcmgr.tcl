@@ -220,7 +220,7 @@ proc magic::drc_save_report {{cellname ""} {outfile ""}} {
 	set origname [cellname list self]
 	puts stdout "loading $cellname\n"
 	flush stdout
-   
+
 	load $cellname
 	select top cell
     }

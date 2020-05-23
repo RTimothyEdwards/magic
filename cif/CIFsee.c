@@ -3,16 +3,16 @@
  *	This file provides procedures for displaying CIF layers on
  *	the screen using the highlight facilities.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -311,7 +311,7 @@ CIFSeeLayer(rootDef, area, layer)
     }
     UndoEnable();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -358,7 +358,7 @@ CIFSeeHierLayer(rootDef, area, layer, arrays, subcells)
 	CIFGenSubcells(rootDef, area, CIFPlanes);
     if (arrays)
 	CIFGenArrays(rootDef, area, CIFPlanes);
-    
+
     /* Report any errors that occurred. */
 
     if (DBWFeedbackCount != oldCount)
@@ -366,7 +366,7 @@ CIFSeeHierLayer(rootDef, area, layer, arrays, subcells)
 	TxPrintf("%d problems occurred.  See feedback entries.\n",
 	    DBWFeedbackCount - oldCount);
     }
-    
+
     (void) sprintf(msg, "CIF layer \"%s\"", layer);
     cifSeeDef = rootDef;
     sld.text = msg;
@@ -442,7 +442,7 @@ CIFCoverageLayer(rootDef, area, layer)
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
     CIFGen(CIFComponentDef, area, CIFPlanes, &depend, TRUE, TRUE);
     DBCellClearDef(CIFComponentDef);
-    
+
     cstats.coverage = 0;
     cstats.bounds.r_xbot = cstats.bounds.r_xtop = 0;
     cstats.bounds.r_ybot = cstats.bounds.r_ytop = 0;

@@ -119,7 +119,7 @@ delete_from_list (pid)
      int pid;
 {
   struct Wait_List *l, *prev;
-  
+
   prev = NULL;
   l = wl;
   while (l) {
@@ -136,7 +136,7 @@ delete_from_list (pid)
   }
 }
 
-     
+
 
 /*------------------------------------------------------------------------
  *

@@ -28,14 +28,14 @@
 
 extern Display *grXdpy;
 
-
+
 /*---------------------------------------------------------
  * GrTCairoDisableTablet:
  *	Turns off the cursor.
  *
  * Results:	None.
  *
- * Side Effects:    None.		
+ * Side Effects:    None.
  *---------------------------------------------------------
  */
 
@@ -45,12 +45,12 @@ GrTCairoDisableTablet ()
     /* (Unimplemented) */
 }
 
-
+
 /*---------------------------------------------------------
  * GrTCairoEnableTablet:
  *	This routine enables the graphics tablet.
  *
- * Results: 
+ * Results:
  *   	None.
  *
  * Side Effects:
@@ -64,7 +64,7 @@ GrTCairoEnableTablet ()
     /* (Unimplemented) */
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * grtcairoGetCursorPos:
@@ -90,7 +90,7 @@ grtcairoGetCursorPos (mw, p)
     Window win1, win2;
 
     if (mw == (MagWindow *)NULL) mw = tcairoCurrent.mw;
-    
+
     XQueryPointer(grXdpy, Tk_WindowId((Tk_Window)(mw->w_grdata)),
 		  &win1, &win2, &x1, &y1,
 		  &x, &y, &buttons);
@@ -126,7 +126,7 @@ grtcairoGetCursorRootPos (mw, p)
     Window win1, win2;
 
     if (mw == (MagWindow *)NULL) mw = tcairoCurrent.mw;
-    
+
     XQueryPointer(grXdpy, Tk_WindowId((Tk_Window)(mw->w_grdata)),
 		  &win1, &win2, &x1, &y1,
 		  &x, &y, &buttons);

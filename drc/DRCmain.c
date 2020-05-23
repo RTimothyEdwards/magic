@@ -5,16 +5,16 @@
  * command-level.  They do things like give information about
  * errors and print statistics.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -125,7 +125,7 @@ static int drcTotalVRulesHisto[DRC_MAXRULESHISTO];
 static int drcTotalHRulesHisto[DRC_MAXRULESHISTO];
 #endif	/* DRCRULESHISTO */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * drcPaintError --
@@ -199,7 +199,7 @@ drcSubstitute (cptr)
     whylen = strlen(whyptr) + 20 * subscnt;
     if (why_out != NULL) freeMagic(why_out);
     why_out = (char *)mallocMagic(whylen * sizeof(char));
-    strcpy(why_out, whyptr);	
+    strcpy(why_out, whyptr);
 
     oscale = CIFGetOutputScale(1000);	/* 1000 for conversion to um */
     wptr = why_out;
@@ -243,7 +243,7 @@ drcSubstitute (cptr)
     return why_out;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * drcPrintError --
@@ -344,7 +344,7 @@ drcListallError (celldef, rect, cptr, scx)
     lobj = (Tcl_Obj *) HashGetValue(h);
     if (lobj == NULL)
        lobj = Tcl_NewListObj(0, NULL);
-    
+
     pobj = Tcl_NewListObj(0, NULL);
 
     Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(r.r_xbot));
@@ -361,7 +361,7 @@ drcListallError (celldef, rect, cptr, scx)
 #define drcListError drcPrintError
 
 #endif
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -438,7 +438,7 @@ DRCPrintStats()
     }
 #endif	/* DRCRULESHISTO */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -497,11 +497,11 @@ DRCWhy(dolist, use, area)
 
     /* Delete the error list */
     freeMagic(DRCErrorList);
-    
+
     /* Redisplay the DRC yank definition in case anyone is looking
      * at it.
      */
-    
+
     DBReComputeBbox(DRCdef);
     (void) GeoInclude(&DRCdef->cd_bbox, &box);
     DBWAreaChanged(DRCdef, &box, DBW_ALLWINDOWS, &DBAllButSpaceBits);
@@ -550,14 +550,14 @@ DRCWhyAll(use, area, fout)
     /* Generate results */
 
     robj = Tcl_NewListObj(0, NULL);
-    
+
     HashStartSearch(&hs);
     while ((he = HashNext(&DRCErrorTable, &hs)) != (HashEntry *)NULL)
     {
 	lobj = (Tcl_Obj *)HashGetValue(he);
 	if (lobj != NULL)
 	{
-	    Tcl_ListObjAppendElement(magicinterp, robj, 
+	    Tcl_ListObjAppendElement(magicinterp, robj,
 			Tcl_NewStringObj((char *)he->h_key.h_name, -1));
 	    Tcl_ListObjAppendElement(magicinterp, robj, lobj);
 	}
@@ -570,7 +570,7 @@ DRCWhyAll(use, area, fout)
     /* Redisplay the DRC yank definition in case anyone is looking
      * at it.
      */
-    
+
     DBReComputeBbox(DRCdef);
     (void) GeoInclude(&DRCdef->cd_bbox, &box);
     DBWAreaChanged(DRCdef, &box, DBW_ALLWINDOWS, &DBAllButSpaceBits);
@@ -609,14 +609,14 @@ drcWhyFunc(scx, cdarg)
     bool dolist = (bool)((pointertype)cdarg);
 
     /* Check paint and interactions in this subcell. */
-    
+
     (void) DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
 		(dolist) ? drcListError : drcPrintError,
 		(ClientData) scx);
     (void) DRCArrayCheck(def, &scx->scx_area,
 		(dolist) ? drcListError : drcPrintError,
 		(ClientData) scx);
-    
+
     /* New behavior:  Don't search children, instead propagate errors up. */
     /* (void) DBCellSrArea(scx, drcWhyFunc, (ClientData)cdarg); */
 
@@ -633,12 +633,12 @@ drcWhyAllFunc(scx, cdarg)
     CellDef *def = scx->scx_use->cu_def;
 
     /* Check paint and interactions in this subcell. */
-    
+
     (void) DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
 		drcListallError, (ClientData)scx);
     (void) DRCArrayCheck(def, &scx->scx_area,
 		drcListallError, (ClientData)scx);
-    
+
     /* New behavior:  Don't search children, instead propagate errors up. */
     /* (void) DBCellSrArea(scx, drcWhyAllFunc, (ClientData)cdarg); */
 
@@ -718,12 +718,12 @@ drcCheckFunc(scx, cdarg)
     /* As a special performance hack, if the complete cell area is
      * handled here, don't bother to look at any more array elements.
      */
-    
+
     if (GEO_SURROUND(&cellArea, &def->cd_bbox))
 	return 2;
     else return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -758,7 +758,7 @@ DRCCount(use, area, recurse)
     extern int drcCountFunc();
 
     /* Shouldn't happen? */
-    if (!(use->cu_def->cd_flags & CDAVAILABLE)) return NULL;	
+    if (!(use->cu_def->cd_flags & CDAVAILABLE)) return NULL;
 
     /* Use a hash table to make sure that we don't output information
      * for any cell more than once.
@@ -888,7 +888,7 @@ DRCCatchUp()
     DRCContinuous();
     DRCBackGround = background;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -928,7 +928,7 @@ DRCFind(use, area, rect, indx)
 {
     SearchContext scx;
     Sindx finddata;
-    Rect trect;	
+    Rect trect;
     int result;
     int drcFindFunc();
     HashTable defTable;
@@ -989,7 +989,7 @@ drcFindFunc(scx, finddata)
 	finddata->trans = scx->scx_trans;
 	return 1;
     }
-    
+
     /* New behavior:  Don't search children, instead propagate errors up. */
     /* return DBCellSrArea(scx, drcFindFunc, (ClientData)finddata); */
     return 0;

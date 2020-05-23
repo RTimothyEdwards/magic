@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- *  lisp.h -- 
+ *  lisp.h --
  *
  *   This module defines things that are exported by the
  *   mini-scheme interpreter command line language to the rest

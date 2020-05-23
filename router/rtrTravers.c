@@ -6,16 +6,16 @@
  *	modified to maintain a traversal path using
  *	the C runtime stack.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -56,7 +56,7 @@ int	rtrDelta;			/* Change in layer width		*/
  * of information that must be passed through multiple
  * levels of search function.
  */
-	
+
 struct conSrArg
 {
     CellDef *csa_def;			/* Definition being searched. */
@@ -84,7 +84,7 @@ struct	rtrTileStack
     struct rtrTileStack *ts_link;	/* Pointer to previous stack entry */
     struct conSrArg *ts_csa;		/* Pointer to search arguments */
 };
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -100,7 +100,7 @@ struct	rtrTileStack
  *	the stack and recognize patterns of material
  *	in the connection path.  Since the connection path
  *	is a tree, a stack is convenient data structure for
- *	recording a particular path originating from a single node. 
+ *	recording a particular path originating from a single node.
  *
  * Results:
  *	0 is returned if the search finished normally.  1 is returned
@@ -125,7 +125,7 @@ struct	rtrTileStack
  *	1 then the search is aborted.
  *
  *				*** WARNING ***
- *	
+ *
  *	Func should not modify any paint during the search, since this
  *	will mess up pointers kept by these procedures and likely cause
  *	a core-dump.
@@ -224,7 +224,7 @@ rtrSrTraverseStartFunc(tile, pTile)
     *pTile = tile;
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -233,7 +233,7 @@ rtrSrTraverseStartFunc(tile, pTile)
  * 	This search function gets called by DBSrPaintArea as part
  *	of rtrSrTraverse, and also recursively by itself.  Each invocation
  *	is made to process a single tile that is of interest.
- *	This function is copied from dbSrConnectFunc and differs by 
+ *	This function is copied from dbSrConnectFunc and differs by
  *	maintaining a stack (on the C-run time stack) of the search
  *	path.
  *
@@ -309,7 +309,7 @@ rtrSrTraverseFunc(tile, ts)
      * connected tiles.  For each one found, call ourselves
      * recursively.
      */
-    
+
     connectMask = &csa->csa_connect[ttype];
 
     /* Left side: */
@@ -377,7 +377,7 @@ rtrSrTraverseFunc(tile, ts)
     /* Lastly, check to see if this tile connects to anything on
      * other planes.  If so, search those planes.
      */
-    
+
     planes = DBConnPlanes[ttype];
     planes &= ~(csa->csa_pNum);
     if (planes != 0)
@@ -399,7 +399,7 @@ rtrSrTraverseFunc(tile, ts)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -427,20 +427,20 @@ rtrExamineTile(tile, cdata)
 {
     if ( TiGetType(tile) == rtrTarget )
 	return 1;
-    
-    if ( (tile != (Tile *) cdata) && 
+
+    if ( (tile != (Tile *) cdata) &&
 	 (TiGetType(tile) == rtrReplace) )
 	    return 1;
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * rtrExamineStack --
  *
- *	Examine a segment of the traversal path 
+ *	Examine a segment of the traversal path
  *	and identify segments of replacement material
  *	connected by vias at both ends and not overlapped
  *	or electrically connected to other routing material.

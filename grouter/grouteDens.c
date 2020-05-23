@@ -3,16 +3,16 @@
  *
  * Procedures for manipulating DensMap structures.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -38,7 +38,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "utils/styles.h"
 #include "debug/debug.h"
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -168,7 +168,7 @@ glDensAdjust(dens, srcPin, dstPin, netid)
     dens[CZ_COL].dm_max = maxhd;
     return densChanged;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -196,7 +196,7 @@ glDMAlloc(dm, top, cap)
     dm->dm_cap = cap;
     dm->dm_value = (short *) callocMagic((unsigned) (sizeof (short) * dm->dm_size));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -225,7 +225,7 @@ glDMCopy(dm1, dm2)
     bcopy((char *) dm1->dm_value, (char *) dm2->dm_value,
 	    sizeof (short) * dm1->dm_size);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -248,7 +248,7 @@ glDMFree(dm)
 {
     freeMagic((char *) dm->dm_value);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -284,7 +284,7 @@ glDMMaxInRange(dm, lo, hi)
 
     return (max);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

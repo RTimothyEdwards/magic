@@ -3,16 +3,16 @@
  *
  * Global definitions for all MAGIC modules
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid="$Header"
@@ -170,7 +170,7 @@ extern char AbortMessage[];
 #endif
 
 /*
- * Irix 
+ * Irix
  */
 #ifdef sgi
 #define vfork fork
@@ -180,7 +180,7 @@ extern char AbortMessage[];
 /*
  * Select system call
  *
- * 	Note:  Errors here may be caused by not including <sys/types.h> 
+ * 	Note:  Errors here may be caused by not including <sys/types.h>
  *	before "magic.h" (deprecated; more modern usage is <sys/select.h>
  */
 #include <sys/select.h>

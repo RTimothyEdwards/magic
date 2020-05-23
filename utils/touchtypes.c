@@ -1,20 +1,20 @@
 /* touchingtypes.c --
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *		      Lawrence Livermore National Laboratory
  *		      All rights reserved.
  *
- * Function to return mask of all tiletypes touching a given point. 
+ * Function to return mask of all tiletypes touching a given point.
  */
 
 #ifndef lint
@@ -38,17 +38,17 @@ typedef struct touchingfuncparms
     TileTypeBitMask	tfp_types;
 } TouchingFuncParms;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * TouchingTypes --
- * 
- * Generate mask of all types touching or covering a given point. 
+ *
+ * Generate mask of all types touching or covering a given point.
  *
  * Results:
  *	Mask of all types touching or covering a given point in cellUse or
- *      expanded subcell.  If an unexpanded subcell is 
+ *      expanded subcell.  If an unexpanded subcell is
  *      covering or touching point TT_SUBCELL is included in the result as
  *	well.
  *
@@ -57,7 +57,7 @@ typedef struct touchingfuncparms
  *
  * ----------------------------------------------------------------------------
  */
-TileTypeBitMask 
+TileTypeBitMask
 TouchingTypes(cellUse, expansionMask, point)
     CellUse *cellUse;
     int expansionMask;
@@ -66,9 +66,9 @@ TouchingTypes(cellUse, expansionMask, point)
     int touchingTypesFunc();
     int touchingSubcellsFunc();
     TouchingFuncParms parms;
-	    
+
     /* Search unit radius rectangle around point for paint tiles
-     * (in cellUse or subcells expanded in cmd window) containing or 
+     * (in cellUse or subcells expanded in cmd window) containing or
      * touching point
      */
     {
@@ -108,7 +108,7 @@ TouchingTypes(cellUse, expansionMask, point)
 
 	scx.scx_trans = GeoIdentityTransform;
 	scx.scx_use = cellUse;
-    
+
 	DBTreeSrCells(
 		      &scx,
 		      expansionMask,
@@ -119,7 +119,7 @@ TouchingTypes(cellUse, expansionMask, point)
     return(parms.tfp_types);
 }
 
-
+
 /*
  * ---------------------------------------------------------------------
  *
@@ -158,7 +158,7 @@ touchingTypesFunc(tile, cxp)
     return(0);
 }
 
-
+
 /*
  * ---------------------------------------------------------------------
  *

@@ -250,7 +250,7 @@ LispTruncate (name,s,f)
   }
   l = LispNewObj ();
   LTYPE(l) = S_INT;
-  if (LTYPE(ARG1(s)) == S_FLOAT) 
+  if (LTYPE(ARG1(s)) == S_FLOAT)
     LINTEGER(l) = (int)LFLOAT(ARG1(s));
   else
     LBOOL(l) = LINTEGER(ARG1(s));
@@ -287,7 +287,7 @@ LispZeroQ (name,s,f)
   }
   l = LispNewObj ();
   LTYPE(l) = S_BOOL;
-  if (LTYPE(ARG1(s)) == S_FLOAT) 
+  if (LTYPE(ARG1(s)) == S_FLOAT)
     LBOOL(l) = LFLOAT(ARG1(s)) == 0 ? 1 : 0;
   else
     LBOOL(l) = LINTEGER(ARG1(s)) == 0 ? 1 : 0;
@@ -324,7 +324,7 @@ LispPositiveQ (name,s,f)
   }
   l = LispNewObj ();
   LTYPE(l) = S_BOOL;
-  if (LTYPE(ARG1(s)) == S_FLOAT) 
+  if (LTYPE(ARG1(s)) == S_FLOAT)
     LBOOL(l) = LFLOAT(ARG1(s)) > 0 ? 1 : 0;
   else
     LBOOL(l) = LINTEGER(ARG1(s)) > 0 ? 1 : 0;
@@ -361,7 +361,7 @@ LispNegativeQ (name,s,f)
   }
   l = LispNewObj ();
   LTYPE(l) = S_BOOL;
-  if (LTYPE(ARG1(s)) == S_FLOAT) 
+  if (LTYPE(ARG1(s)) == S_FLOAT)
     LBOOL(l) = LFLOAT(ARG1(s)) < 0 ? 1 : 0;
   else
     LBOOL(l) = LINTEGER(ARG1(s)) < 0 ? 1 : 0;

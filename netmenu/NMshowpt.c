@@ -4,16 +4,16 @@
  *	to display information about particular points.  Currently,
  *	this is used to highlight selected terminals in nets.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -52,7 +52,7 @@ static int nmspArrayUsed = 0;		/* Number of entries actually used. */
 #define MAXPIXELS 14
 #define THICKNESS 3
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -120,7 +120,7 @@ NMRedrawPoints(window, plane)
 	 * solid.  Otherwise, draw it with a hollow center (i.e. as
 	 * four boxes).
 	 */
-	
+
 	if (((screen.r_xtop - screen.r_xbot) < 2*THICKNESS)
 	    || ((screen.r_ytop - screen.r_ybot) < 2*THICKNESS))
 	{
@@ -151,7 +151,7 @@ nmspAlways1()
 {
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -192,7 +192,7 @@ NMAddPoint(point)
     /* Make sure there's enough space in the array.  Make it
      * bigger if necessary.
      */
-    
+
     if (nmspArrayUsed == nmspArraySize)
     {
 	nmspArraySize *= 2;
@@ -217,7 +217,7 @@ NMAddPoint(point)
     area.r_ytop = point->p_y + MAXLAMBDAS/2;
     DBWHLRedraw(EditRootDef, &area, FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -266,7 +266,7 @@ NMDeletePoint(point)
     area.r_ytop = area.r_ybot + MAXLAMBDAS;
     DBWHLRedraw(EditRootDef, &area, TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

@@ -1,15 +1,15 @@
 /* grOGL4.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains functions to manage the graphics tablet associated
@@ -34,14 +34,14 @@
 extern Display	*grXdpy;
 extern int	*grXscrn;
 
-
+
 /*---------------------------------------------------------
  * GrOGLDisableTablet:
  *	Turns off the cursor.
  *
  * Results:	None.
  *
- * Side Effects:    None.		
+ * Side Effects:    None.
  *---------------------------------------------------------
  */
 
@@ -50,12 +50,12 @@ GrOGLDisableTablet()
 {
 }
 
-
+
 /*---------------------------------------------------------
  * GrOGLEnableTablet:
  *	This routine enables the graphics tablet.
  *
- * Results: 
+ * Results:
  *   	None.
  *
  * Side Effects:
@@ -68,7 +68,7 @@ GrOGLEnableTablet()
 {
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * groglGetCursorPos:
@@ -94,7 +94,7 @@ groglGetCursorPos (mw, p)
     Window win1, win2;
 
     if (mw == (MagWindow *)NULL) mw = oglCurrent.mw;
-    
+
     XQueryPointer(grXdpy, (Window)mw->w_grdata,
 		  &win1, &win2, &x1, &y1,
 		  &x, &y, &buttons);
@@ -106,7 +106,7 @@ groglGetCursorPos (mw, p)
 /*
  * ----------------------------------------------------------------------------
  * groglGetCursorRootPos:
- * 	Read the cursor position in screen root coordinates 
+ * 	Read the cursor position in screen root coordinates
  *
  * Results:
  *	TRUE is returned if the coordinates were succesfully read, FALSE
@@ -128,7 +128,7 @@ groglGetCursorRootPos (mw, p)
     Window win1, win2;
 
     if (mw == (MagWindow *)NULL) mw = oglCurrent.mw;
-    
+
     XQueryPointer(grXdpy, (Window)mw->w_grdata,
 		  &win1, &win2, &x1, &y1,
 		  &x, &y, &buttons);

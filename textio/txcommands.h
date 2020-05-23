@@ -3,16 +3,16 @@
  *
  * 	Declarations for textio command routines.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid $Header: /usr/cvsroot/magic-8.0/textio/txcommands.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
@@ -24,8 +24,8 @@
 #include "utils/magic.h"
 #include "utils/geometry.h"
 
-/* Structure of one Magic command.  All commands are in the same format. 
- * Commands are tagged with the point and window at which the command was 
+/* Structure of one Magic command.  All commands are in the same format.
+ * Commands are tagged with the point and window at which the command was
  * invoked.
  */
 
@@ -41,12 +41,12 @@ typedef struct {		/* A command -- either a button push or
 				 * a textual command.
 				 */
     Point tx_p;			/* The location of the pointing device
-				 * when this command was invoked. 
+				 * when this command was invoked.
 				 */
     int tx_button;		/* The event type (button number).
 				 * See below.
 				 */
-    int tx_buttonAction;	/* The action of the button (if any), such as 
+    int tx_buttonAction;	/* The action of the button (if any), such as
 				 * TX_BUTTON_UP, DOWN
 				 */
     int tx_argc;		/* The number of textual command words,
@@ -62,7 +62,7 @@ typedef struct {		/* A command -- either a button push or
 				 * (See windows.h for window IDs.)
 				 */
     char tx_argstring[TX_MAX_CMDLEN];
-		 		/* The storage used for the command line.  
+		 		/* The storage used for the command line.
 				 * Tx_argv[] points into this.
 				 */
 } TxCommand;
@@ -72,11 +72,11 @@ typedef struct {		/* A command -- either a button push or
  * character typed.
  */
 
-typedef struct {		
+typedef struct {
     Point txe_p;		/* The point at which this action took place.*/
-    int txe_wid;		/* The window that the event occured in (see 
+    int txe_wid;		/* The window that the event occured in (see
 				 * windows.h for details, may be defaulted to
-				 * WIND_UNKNOWN_WINDOW by some low-level 
+				 * WIND_UNKNOWN_WINDOW by some low-level
 				 * device drivers).
 				 */
     int txe_button;		/* The event type. */
@@ -84,8 +84,8 @@ typedef struct {
     int txe_ch;			/* The character typed, if a character. */
 } TxInputEvent;
 
-/* Event types (button numbers) in the above structures, carefully chosen so 
- * there is 1 bit per event (as they are used elsewhere in masks). 
+/* Event types (button numbers) in the above structures, carefully chosen so
+ * there is 1 bit per event (as they are used elsewhere in masks).
  */
 #define TX_CHARACTER		0x00
 #define TX_NO_BUTTON		0x00	/* for backward compat. only */
@@ -110,7 +110,7 @@ extern TxCommand TxCurCommand;
 
 /* Button actions for the above structures.
  */
-#define TX_BUTTON_DOWN	0 
+#define TX_BUTTON_DOWN	0
 #define TX_BUTTON_UP	1
 #define TX_KEY_DOWN	2
 
@@ -120,8 +120,8 @@ extern TxCommand *TxDeviceStdin();
 extern TxCommand *TxButtonMaskToCommand();
 extern void TxAddInputDevice();		/* Can read multiple file desc. */
 extern void TxAdd1InputDevice();	/* Can read only 1 file desc. */
-extern void TxDeleteInputDevice();	
-extern void TxDelete1InputDevice();	
+extern void TxDeleteInputDevice();
+extern void TxDelete1InputDevice();
 
 /* Routines to manipulate the current point.  Only really used for command
  * scripts.

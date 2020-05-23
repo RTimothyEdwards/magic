@@ -25,7 +25,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "resis/resis.h"
 
 int resSubDevFunc();
-
+
 /*
  *--------------------------------------------------------------------------
  *
@@ -116,7 +116,7 @@ resAllPortNodes(tile, list)
  *   sinks including contacts, devices, and junctions.  Once this
  *   list is made, calculate the resistor nextwork for the tile.
  *
- *  Results: returns TRUE or FALSE depending on whether a node was 
+ *  Results: returns TRUE or FALSE depending on whether a node was
  *           involved in a merge.
  *
  *  Side Effects: creates Nodes, devices, junctions, and breakpoints.
@@ -140,7 +140,7 @@ ResEachTile(tile, startpoint)
     tElement	*tcell;
     tileJunk	*tstructs= (tileJunk *)(tile->ti_client);
     ExtDevice   *devptr;
-      
+
     ResTileCount++;
 
     /* Process startpoint, if any. */
@@ -168,7 +168,7 @@ ResEachTile(tile, startpoint)
 
     if TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t1)
     {
-	/* 
+	/*
 	 * The device is put in the center of the tile. This is fine
 	 * for single tile device, but not as good for multiple ones.
 	 */
@@ -196,12 +196,12 @@ ResEachTile(tile, startpoint)
 	    }
 	}
     }
-		
+
 #ifdef ARIEL
     if (i = ExtCurStyle->exts_plugSignalNum[t1])
     {
 	tcell = (tElement *) mallocMagic((unsigned)(sizeof(tElement)));
-	   
+
 	tcell->te_thist= ResImageAddPlug(tile, i, resCurrentNode);
 	tcell->te_nextt = resCurrentNode->rn_te;
 	resCurrentNode->rn_te = tcell;
@@ -218,8 +218,8 @@ ResEachTile(tile, startpoint)
         {
 	    if (TTMaskIntersect(&DBPlaneTypes[pNum], mask))
 	    {
-	        (void)DBSrPaintArea((Tile *) NULL, 
-		  	ResUse->cu_def->cd_planes[pNum], 
+	        (void)DBSrPaintArea((Tile *) NULL,
+		  	ResUse->cu_def->cd_planes[pNum],
 		        &tileArea, mask, resSubDevFunc, (ClientData) tile);
 	    }
         }
@@ -240,13 +240,13 @@ ResEachTile(tile, startpoint)
 	ce = ce->ce_nextc;
 	freeMagic((char *)oldce);
     }
-    tstructs->contactList = NULL;     
+    tstructs->contactList = NULL;
 
-    /* 
+    /*
      * Walk the four sides of the tile looking for adjoining connecting
      * materials.
      */
-       
+
     /* left */
     for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp=RT(tp))
     {
@@ -337,7 +337,7 @@ ResEachTile(tile, startpoint)
 	}
     }
     tstructs->tj_status |= RES_TILE_DONE;
-      
+
     resAllPortNodes(tile, &ResNodeQueue);
 
     merged = ResCalcTileResistance(tile, tstructs, &ResNodeQueue,
@@ -345,7 +345,7 @@ ResEachTile(tile, startpoint)
 
     return(merged);
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -362,7 +362,7 @@ ResEachTile(tile, startpoint)
 int
 resSubDevFunc(tile,tp)
 	Tile	*tile,*tp;
-	
+
 
 {
      tileJunk	*junk = (tileJunk *)(tile->ti_client);

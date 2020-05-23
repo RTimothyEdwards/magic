@@ -3,28 +3,28 @@
  *
  * This file defines data structures and constants and declares
  * variables INTERNAL TO THE IROUTER
- * but shared by two or more source files.  
- * 
+ * but shared by two or more source files.
+ *
  * Structures etc. that are exported by the irouter are defined in
  * irouter.h.
  *
- * Structures etc. that are local to a given source 
+ * Structures etc. that are local to a given source
  * file are declared at the top of that source file.
  *
- * Structures, etc.,  specific to a given function are usually defined at 
+ * Structures, etc.,  specific to a given function are usually defined at
  * the head of that function.
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1987, 1990 Michael H. Arnold, Walter S. Scott, and  *
  *     * the Regents of the University of California.                      *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid $Header: /usr/cvsroot/magic-8.0/irouter/irInternal.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
@@ -55,7 +55,7 @@ extern MazeParameters *irMazeParms;
 
 /* irRouteLayer, Contact, and Type pointers should be identical to
  * corresponding fields in irMazeParms.  They are referenced directly
- * instead of through parms struc for historical reasons 
+ * instead of through parms struc for historical reasons
  */
 extern RouteLayer *irRouteLayers;
 extern RouteContact *irRouteContacts;

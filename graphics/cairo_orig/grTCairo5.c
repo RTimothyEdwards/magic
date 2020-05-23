@@ -30,7 +30,7 @@ extern int	 grXscrn;
 extern HashTable grTCairoWindowTable;
 extern cairo_t *grCairoContext;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTCairoDrawGlyph --
@@ -166,7 +166,7 @@ Point *p;			/* screen pos of lower left corner */
 	}
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTCairoSetCursor:

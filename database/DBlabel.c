@@ -3,16 +3,16 @@
  *
  * Label manipulation primitives.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -73,11 +73,11 @@ DBIsSubcircuit(cellDef)
     for (lab = cellDef->cd_labels; lab != NULL; lab = lab->lab_next)
 	if (lab->lab_flags & PORT_DIR_MASK)
 	    return TRUE;
- 
+
     return FALSE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -156,7 +156,7 @@ DBPutFontLabel(cellDef, rect, font, size, rot, offset, align, text, type, flags)
      * from the boundary, so it won't stick out past the edge of
      * the cell boundary.
      */
-    
+
 #define BORDER 5
     if (align < 0)
     {
@@ -224,15 +224,15 @@ DBPutFontLabel(cellDef, rect, font, size, rot, offset, align, text, type, flags)
     cellDef->cd_flags |= CDMODIFIED|CDGETNEWSTAMP;
     return lab;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * DBEraseLabel --
  *
  * Delete labels attached to tiles of the indicated types that
- * are in the given area (as determined by the macro GEO_LABEL_IN_AREA).  
- * If this procedure is called as part of a command that also modifies paint, 
+ * are in the given area (as determined by the macro GEO_LABEL_IN_AREA).
+ * If this procedure is called as part of a command that also modifies paint,
  * then the paint modifications should be done BEFORE calling here.
  *
  * Results:
@@ -422,7 +422,7 @@ DBEraseLabelsByContent(def, rect, type, text)
 	else goto nextCheck;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -483,7 +483,7 @@ DBEraseLabelsByFunction(def, func)
 	else goto nextCheck;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -525,7 +525,7 @@ DBReOrientLabel(cellDef, area, newPos)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -560,7 +560,7 @@ DBAdjustLabels(def, area)
     /* First, find each label that crosses the area we're
      * interested in.
      */
-    
+
     for (lab = def->cd_labels; lab != NULL; lab = lab->lab_next)
     {
 	if (!GEO_TOUCH(&lab->lab_rect, area)) continue;
@@ -583,7 +583,7 @@ DBAdjustLabels(def, area)
 
 
 /*
- * Extended version of DBAdjustLabels.  If noreconnect==0, 
+ * Extended version of DBAdjustLabels.  If noreconnect==0,
  * this is supposed to be the same as DBAdjustlabels() above.
  */
 void
@@ -601,7 +601,7 @@ DBAdjustLabelsNew(def, area, noreconnect)
     /* First, find each label that crosses the area we're
      * interested in.
      */
-    
+
     labPrev = NULL;
     lab = def->cd_labels;
     while (lab != NULL)
@@ -614,15 +614,15 @@ DBAdjustLabelsNew(def, area, noreconnect)
 	    newType = DBPickLabelLayer(def, lab, locnoreconnect);
 	    if (newType == lab->lab_type) {
 		    goto nextLab;
-	    } 
+	    }
 	    if(newType < 0 && !(lab->lab_flags & LABEL_STICKY)) {
 		    TxPrintf("Deleting ambiguous-layer label \"%s\" from %s in cell %s.\n",
 			     lab->lab_text, DBTypeLongName(lab->lab_type),
 			     def->cd_name);
-	    
+
 		    if (labPrev == NULL)
 			    def->cd_labels = lab->lab_next;
-		    else 
+		    else
 			    labPrev->lab_next = lab->lab_next;
 		    if (def->cd_lastLabel == lab)
 			    def->cd_lastLabel = labPrev;
@@ -643,7 +643,7 @@ DBAdjustLabelsNew(def, area, noreconnect)
 		    DBUndoPutLabel(def, lab);
 		    modified = TRUE;
 	    }
-    nextLab: 
+    nextLab:
 	    labPrev = lab;
 	    lab = lab->lab_next;
     }
@@ -651,7 +651,7 @@ DBAdjustLabelsNew(def, area, noreconnect)
     if (modified) DBCellSetModified(def, TRUE);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -726,7 +726,7 @@ DBPickLabelLayer(def, lab, noreconnect)
 	 * left and one on the right.  For each side, compute
 	 * the type arrays separately.  Then merge them together.
 	 */
-	
+
 	check1 = lab->lab_rect;
 	check2 = lab->lab_rect;
 	check1.r_xbot -= 1;
@@ -759,7 +759,7 @@ DBPickLabelLayer(def, lab, noreconnect)
 	 * top and one on the bottom.  Use the code from above
 	 * to handle.
 	 */
-	
+
 	check1 = lab->lab_rect;
 	check2 = lab->lab_rect;
 	check1.r_ybot -= 1;
@@ -771,7 +771,7 @@ DBPickLabelLayer(def, lab, noreconnect)
 	/* This is a rectangular label.  Same thing as for line labels,
 	 * except there's only one area to search.
 	 */
-	
+
 	types[0] = DBAllButSpaceAndDRCBits;
 	types[1] = DBAllButSpaceAndDRCBits;
 	TTMaskZero(&types[2]);
@@ -804,11 +804,11 @@ DBPickLabelLayer(def, lab, noreconnect)
      * the criteria above.  This avoids weirdnesses caused by declaring
      * types out of order in the techfile.
      */
-    
+
     if (TTMaskHasType(&types[0], lab->lab_type)) return lab->lab_type;
     plane = DBPlane(lab->lab_type);
     choice1 = choice2 = choice3 = choice4 = choice5 = choice6 = TT_SPACE;
-    
+
     for (j = PL_SELECTBASE; j < DBNumPlanes; j++)
     {
 	for (i = TT_SELECTBASE; i < DBNumUserLayers; i += 1)
@@ -874,7 +874,7 @@ DBPickLabelLayer(def, lab, noreconnect)
     else if (noreconnect) {
 #ifdef notdef
 	TxPrintf("DBPickLabelLayer \"%s\" (on %s at %d,%d) choice4=%s choice5=%s choice6=%s.\n",
-		     lab->lab_text, 
+		     lab->lab_text,
 		     DBTypeLongName(lab->lab_type),
 		     lab->lab_rect.r_xbot,
 		     lab->lab_rect.r_ytop,
@@ -905,7 +905,7 @@ dbPickFunc1(tile, mask)
 {
     TileType type;
 
-    if (IsSplit(tile)) 
+    if (IsSplit(tile))
 	type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
     else
 	type = TiGetType(tile);
@@ -932,7 +932,7 @@ dbPickFunc2(tile, mask)
     TileType type;
     TileTypeBitMask tmp, *rMask;
 
-    if (IsSplit(tile)) 
+    if (IsSplit(tile))
 	type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
     else
 	type = TiGetType(tile);
@@ -1005,7 +1005,7 @@ DBFontInitCurves()
  *
  *  Note:  This routine does not take into account the curvature, and therefore
  *  does not optimize for the minimum number of line segments needed to
- *  represent the curve within a fixed margin of error. 
+ *  represent the curve within a fixed margin of error.
  *
  * ----------------------------------------------------------------------------
  */
@@ -1046,7 +1046,7 @@ CalcBezierPoints(fp, bp)
 	    newPath->fp_point.p_x = tmpx;
 	    newPath->fp_point.p_y = tmpy;
 	    curPath->fp_next = newPath;
-	    curPath = newPath; 
+	    curPath = newPath;
 	}
     }
 
@@ -1115,7 +1115,7 @@ dbGetToken(ff)
  *	units of (database / 8) for a finer resolution, and measured
  *	relative to the label rectangle's origin so we don't run out of
  *	bits in computing the corner positions.
- *	
+ *
  *	This routine needs to be run whenever a font label changes
  *	properties (including when the font label is created).
  *
@@ -1550,7 +1550,7 @@ DBLoadFont(fontfile, scale)
 		/* If the first and last points are the same, remove the last one */
 		if (!GEO_SAMEPOINT(curPath->fp_point, pathStart->fp_point))
 		    newChar->fc_numpoints++;
-		
+
 		newChar->fc_points = (Point *)mallocMagic(i * sizeof(Point));
 		newChar->fc_next = NULL;
 		for (i = 0, curPath = pathStart; i < newChar->fc_numpoints;

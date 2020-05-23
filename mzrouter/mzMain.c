@@ -2,23 +2,23 @@
  * mzMain.c --
  *
  * Global Data Definitions and interface procedures for the Maze Router.
- * 
+ *
  * OTHER ENTRY POINTS (not in this file):
  *    Technology readin - mzTech.c
- *    Initialization (after tech readin) - mzInit.c  
+ *    Initialization (after tech readin) - mzInit.c
  *    Test command interface - TestCmd.c
- * 
- *     ********************************************************************* 
+ *
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -66,7 +66,7 @@ int mzDebStep;
 MazeStyle *mzStyles = NULL;
 
 /* Toplevel cell visible to the router */
-CellUse *mzRouteUse;	
+CellUse *mzRouteUse;
 
 /* Route types */
 /* (Specifies what types are permitted during routing, and related design
@@ -84,12 +84,12 @@ Rect mzBoundingRect;
 /* Expansion mask - defines which subcells to treat as expanded */
 int mzCellExpansionMask;
 
-/* If reset, degenerate estimation plane used (just 4 tiles - one for each 
+/* If reset, degenerate estimation plane used (just 4 tiles - one for each
  * quadrant with respect to destination point).
  */
 int mzEstimate;
 
-/* If set dest areas are expanded to include all electrically 
+/* If set dest areas are expanded to include all electrically
  * connected geometry.
  */
 int mzExpandEndpoints;
@@ -102,7 +102,7 @@ int mzTopHintsOnly;
  */
 int mzMaxWalkLength;
 
-/* if nonnull, limits area of search for performance.  
+/* if nonnull, limits area of search for performance.
  * (NOTE: USER MUST LIMIT ROUTE TO THIS AREA WITH FENCES - OTHERWISE
  *        RESULT IS UNPREDICTABLE).
  */
@@ -113,7 +113,7 @@ int mzVerbosity;
 /* if positive, upper bound on number of blooms */
 int mzBloomLimit;
 
-/* maskdata unexpanded subcells, marked because they are part of 
+/* maskdata unexpanded subcells, marked because they are part of
  * dest. nodes. */
 List *mzMarkedCellsList;
 
@@ -128,7 +128,7 @@ CellUse *mzDestAreasUse = (CellUse *) NULL;
 bool mzInsideFence;
 
 /* largest design rule distance - used during incremental blockage gen. */
-int mzContextRadius; 
+int mzContextRadius;
 
 /* Internal cell for completed route */
 CellDef *mzResultDef = (CellDef *) NULL;
@@ -188,18 +188,18 @@ int mzNumBlooms;
 int mzNumOutsideBlooms;	/* num blooms from outside window */
 int mzNumComplete;	/* number of complete paths so far */
 int mzBlockGenCalls;	/* # of calls to blockage gen. code */
-double mzBlockGenArea;   /* area over which blockage planes 
+double mzBlockGenArea;   /* area over which blockage planes
 			    have been gened. */
 int mzNumPathsGened;	/* number of partial paths added to heap */
 int mzNumPaths;		/* number of paths processed */
-int mzReportInterval;    /* frequency that # of paths etc. 
+int mzReportInterval;    /* frequency that # of paths etc.
 				 * is reported. */
 int mzPathsTilReport;	/* counts down to next path report */
 
 /* Variables controlling search */
 dlong mzWInitialMinToGo;
 dlong mzWInitialMaxToGo;
-dlong mzBloomMaxCost;	
+dlong mzBloomMaxCost;
 
 /* Search status */
 dlong mzWindowMinToGo; /* Window location */
@@ -249,7 +249,7 @@ if (TRUE) \
   } \
 } else
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -270,7 +270,7 @@ if (TRUE) \
 MazeParameters *
 MZCopyParms(oldParms)
     MazeParameters *oldParms;	/* Maze routing parameters */
-{    
+{
     MazeParameters *newParms;
     HashTable aT;	/* Address translation hash table */
 
@@ -279,7 +279,7 @@ MZCopyParms(oldParms)
     {
 	return NULL;
     }
-	
+
     /* Initialize address translation table */
     HashInit(&aT, 1000, HT_WORDKEYS);
 
@@ -293,12 +293,12 @@ MZCopyParms(oldParms)
     {
 	RouteLayer *rLOld;
 
-	for(rLOld = oldParms->mp_rLayers; 
-	    rLOld != NULL; 
+	for(rLOld = oldParms->mp_rLayers;
+	    rLOld != NULL;
 	    rLOld = rLOld->rl_next)
 	{
 	    RouteLayer *rLNew;
-	    
+
 	    /* allocate and equivalence new rL and its rT */
 	    {
 		rLNew = (RouteLayer *) mallocMagic((unsigned)(sizeof(RouteLayer)));
@@ -322,12 +322,12 @@ MZCopyParms(oldParms)
     {
 	RouteContact *rCOld;
 
-	for(rCOld = oldParms->mp_rContacts; 
-	    rCOld != NULL; 
+	for(rCOld = oldParms->mp_rContacts;
+	    rCOld != NULL;
 	    rCOld = rCOld->rc_next)
 	{
 	    RouteContact *rCNew;
-	    
+
 	    /* allocate and equivalence new rC and its rT */
 	    {
 		rCNew = (RouteContact *) mallocMagic((unsigned)(sizeof(RouteContact)));
@@ -352,8 +352,8 @@ MZCopyParms(oldParms)
     {
 	RouteLayer *rLOld;
 
-	for(rLOld = oldParms->mp_rLayers; 
-	    rLOld != NULL; 
+	for(rLOld = oldParms->mp_rLayers;
+	    rLOld != NULL;
 	    rLOld = rLOld->rl_next)
 	{
 	    RouteLayer *rLNew = rLOld;
@@ -361,7 +361,7 @@ MZCopyParms(oldParms)
 
 	    ADDR_TBL(RouteLayer *, rLNew->rl_next);
 	    ADDR_TBL(RouteType *, rLNew->rl_routeType.rt_next);
-	    
+
 	    /* translate RouteContact addresses in contact list */
 	    {
 		List *l;
@@ -378,8 +378,8 @@ MZCopyParms(oldParms)
     {
 	RouteContact *rCOld;
 
-	for(rCOld = oldParms->mp_rContacts; 
-	    rCOld != NULL; 
+	for(rCOld = oldParms->mp_rContacts;
+	    rCOld != NULL;
 	    rCOld = rCOld->rc_next)
 	{
 	    RouteContact *rCNew =rCOld;
@@ -391,12 +391,12 @@ MZCopyParms(oldParms)
 	    ADDR_TBL(RouteType *, rCNew->rc_routeType.rt_next);
 	}
     }
-	    
+
     HashKill(&aT);
     return newParms;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -416,9 +416,9 @@ MZCopyParms(oldParms)
 MazeParameters *
 MZFindStyle(name)
 char *name;	/* name of style we are looking for */
-{    
+{
     MazeStyle *style = mzStyles;
-    
+
     while(style!=NULL && strcmp(name,style->ms_name)!=0)
     {
 	style = style->ms_next;
@@ -434,7 +434,7 @@ char *name;	/* name of style we are looking for */
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -450,7 +450,7 @@ char *name;	/* name of style we are looking for */
  *	See above.
  *
  * NOTE: RouteUse supplied as parm to MZInitRoute is toplevel cell visible
- * to router.  However resulting route is painted to current edit cell. 
+ * to router.  However resulting route is painted to current edit cell.
  *
  * ----------------------------------------------------------------------------
  */
@@ -463,7 +463,7 @@ MZInitRoute(parms, routeUse, expansionMask)
 				 * maze router interpets a 0 mask to mean
 				 * all cells are expanded
 				 */
-{    
+{
     /* Disable undo to avoid overhead on paint operations to internal planes */
     UndoDisable();
 
@@ -520,7 +520,7 @@ MZInitRoute(parms, routeUse, expansionMask)
     mzRouteUse = routeUse;
 
     /* set expansion mask */
-    mzCellExpansionMask = expansionMask; 
+    mzCellExpansionMask = expansionMask;
 
     /* Build hint fence and rotate planes */
     mzBuildHFR(mzRouteUse, &mzBoundingRect);
@@ -529,7 +529,7 @@ MZInitRoute(parms, routeUse, expansionMask)
     {
 	RouteType *rT;
 
-	/* Clear bounds planes = regions for which blockage 
+	/* Clear bounds planes = regions for which blockage
            has been generated */
 	DBClearPaintPlane(mzHBoundsPlane);
 	DBClearPaintPlane(mzVBoundsPlane);
@@ -556,7 +556,7 @@ MZInitRoute(parms, routeUse, expansionMask)
  * MZAddStart --
  *
  * Add a starting terminal for the maze router.
- * 
+ *
  * Results:
  *	None.
  *
@@ -648,8 +648,8 @@ MZAddStart(point, type)
  *
  * MZAddDest --
  *
- * Add a destination terminal.  
- * 
+ * Add a destination terminal.
+ *
  * Results:
  *	none.
  *
@@ -657,10 +657,10 @@ MZAddStart(point, type)
  *      Paints dest area into mzDestAreasDef.
  *
  *	Marks mask data tiles connected to supplied dest area (rect and type
- *      passed to this func), also keeps list of marked tiles for cleanup. 
+ *      passed to this func), also keeps list of marked tiles for cleanup.
  *
- *      Tiles are marked with TRUE on the clientdata field.  The default 
- *      clientdata value of CLIENTDEFAULT should be restored by the router 
+ *      Tiles are marked with TRUE on the clientdata field.  The default
+ *      clientdata value of CLIENTDEFAULT should be restored by the router
  *      before it returns.
  *
  * ----------------------------------------------------------------------------
@@ -708,13 +708,13 @@ MZAddDest(rect, type)
  * MZRoute --
  *
  * Do the route.
- * 
+ *
  * Results:
  *	Zero-width route path.  NOTE: route path is allocated from temporary
  *      storage that will be reused for next route.
  *
  * Side effects:
- *	
+ *
  *
  * ----------------------------------------------------------------------------
  */
@@ -757,7 +757,7 @@ MZRoute(mzResult)
 	goto abort;
     }
 
-    /* Build Estimate Plane. 
+    /* Build Estimate Plane.
      * (allowing for end points in unexpanded subcells)
      */
     mzBuildEstimate();
@@ -791,7 +791,7 @@ MZRoute(mzResult)
     HashInit(&mzPointHash, INITHASHSIZE, HashSize(sizeof (PointKey)));
 
     /* Build blockage planes at start points and create initial
-     * partial paths 
+     * partial paths
      */
 
     /* set bloom threshold to zero, so that initial points are placed
@@ -806,7 +806,7 @@ MZRoute(mzResult)
     {
 	term = (ColoredRect *) LIST_FIRST(terms);
 	mzExtendBlockBounds(&(term->cr_rect.r_ll));
-	
+
 	if (mzStart(term) == FALSE)
 	{
 	    if (mzResult) *mzResult = MZ_ALREADY_ROUTED;
@@ -828,7 +828,7 @@ MZRoute(mzResult)
     /* Do the route */
     path = mzSearch(mzResult);
 			/* On interruption mzSearch returns best complete path
-			 * found prior to interruption 
+			 * found prior to interruption
 			 */
 
     UndoEnable();
@@ -895,7 +895,7 @@ MZCleanupPath(pathList)
 		((n1path->rp_orient == 'H') && (path->rp_orient == 'H'))))
 	{
 	    /* NOTE:  Route paths are allocated by a special procedure;	*/
-	    /* DON'T use freeMagic() on them!				*/ 
+	    /* DON'T use freeMagic() on them!				*/
 	    path->rp_back = n1path->rp_back;
 	    n1path = path->rp_back;
 	}
@@ -944,7 +944,7 @@ MZCleanupPath(pathList)
 			    spath->rp_orient = 'C';
 			else
 			    n1path->rp_orient = 'C';
-				
+
 			break;
 		    }
 		    hdist += rC1->rc_routeType.rt_width;
@@ -993,7 +993,7 @@ MZCleanupPath(pathList)
 		rT = &(n1path->rp_rLayer->rl_routeType);
 		rC = MZGetContact(n2path, n3path);
 		ctype = rC->rc_routeType.rt_tileType;
-	
+
 		if (n1path->rp_orient == 'V')
 		{
 		    if (n1path->rp_entry.p_y > n2path->rp_entry.p_y)
@@ -1008,7 +1008,7 @@ MZCleanupPath(pathList)
 					path->rp_entry.p_x, path->rp_entry.p_y,
 					pathlength);
 			}
-		    } 
+		    }
 		    else
 		    {
 			/* Case 3a.2: route up to contact */
@@ -1037,7 +1037,7 @@ MZCleanupPath(pathList)
 					path->rp_entry.p_x, path->rp_entry.p_y,
 					pathlength);
 			}
-		    } 
+		    }
 		    else
 		    {
 			/* Case 3a.4: route right to contact */
@@ -1079,7 +1079,7 @@ MZCleanupPath(pathList)
 					path->rp_entry.p_x, path->rp_entry.p_y,
 					pathlength);
 			}
-		    } 
+		    }
 		    else
 		    {
 			/* Case 3b.2: route up from contact */
@@ -1108,7 +1108,7 @@ MZCleanupPath(pathList)
 					path->rp_entry.p_x, path->rp_entry.p_y,
 					pathlength);
 			}
-		    } 
+		    }
 		    else
 		    {
 			/* Case 3b.4: route right from contact */
@@ -1128,7 +1128,7 @@ MZCleanupPath(pathList)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1164,8 +1164,8 @@ MZPaintPath(pathList)
      * Each segment of the path contains no bends, so is
      * either horizontal, vertical, or a contact.
      */
-    for (path = pathList; 
-	 (prev = path->rp_back)!= NULL && !SigInterruptPending; 
+    for (path = pathList;
+	 (prev = path->rp_back)!= NULL && !SigInterruptPending;
 	 path = prev)
     {
 	RouteLayer *rL;
@@ -1233,7 +1233,7 @@ MZPaintPath(pathList)
 
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1278,7 +1278,7 @@ MZClean()
 	    for(l=mzMarkedCellsList; l!=NULL; l=LIST_TAIL(l))
 	    {
 		CellUse *cu = (CellUse *) LIST_FIRST(l);
-		
+
 		/* Restore celluse client field to its "unmarked" value */
 		cu->cu_client = (ClientData) CLIENTDEFAULT;
 	    }
@@ -1305,7 +1305,7 @@ MZClean()
 
 	    /* Reclaims route path entries */
 	    mzFreeAllRPaths();
-	    
+
 	    /* reset flag */
 	    mzPathsDirty = FALSE;
 	}

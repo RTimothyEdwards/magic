@@ -6,16 +6,16 @@
  *	and one	that operates hierarchically, across cell boundaries
  *	(DBTreeCopyConnect).
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -47,7 +47,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * of information that must be passed through multiple
  * levels of search function (used by dbSrConnectFunc).
  */
-	
+
 struct conSrArg
 {
     CellDef *csa_def;			/* Definition being searched. */
@@ -67,7 +67,7 @@ struct conSrArg
  * of information that must be passed through multiple
  * levels of search function (used by dbcConnectFunc).
  */
-	
+
 typedef struct
 {
     Rect		area;		/* Area to process */
@@ -117,7 +117,7 @@ DBTransformDiagonal(oldtype, trans)
 {
     TileType dinfo;
     int o1, o2, o3, dir, side;
-	
+
     o1 = ((trans->t_e > 0) || (trans->t_d > 0)) ? 1 : 0;
     o2 = ((trans->t_a > 0) || (trans->t_b > 0)) ? 1 : 0;
     o3 = (trans->t_a != 0) ? 1 : 0;
@@ -169,7 +169,7 @@ DBInvTransformDiagonal(oldtype, trans)
     return dinfo;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -201,7 +201,7 @@ DBInvTransformDiagonal(oldtype, trans)
  *	1 then the search is aborted.
  *
  *				*** WARNING ***
- *	
+ *
  *	Func should not modify any paint during the search, since this
  *	will mess up pointers kept by these procedures and likely cause
  *	a core-dump.
@@ -262,7 +262,7 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     if (startTile == NULL) return 0;
     /* The following lets us call DBSrConnect recursively */
     else if (startTile->ti_client == (ClientData)1) return 0;
-   
+
 
     /* Pass 1.  During this pass the client function gets called. */
 
@@ -353,7 +353,7 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     if (startTile == NULL) return 0;
     /* The following lets us call DBSrConnect recursively */
     else if (startTile->ti_client == (ClientData)1) return 0;
-   
+
 
     /* Pass 1.  During this pass the client function gets called. */
 
@@ -367,7 +367,7 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     return result;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -442,7 +442,7 @@ dbSrConnectFunc(tile, csa)
      * connected tiles.  For each one found, call ourselves
      * recursively.
      */
-    
+
     if (IsSplit(tile))
     {
 	if (SplitSide(tile))
@@ -575,7 +575,7 @@ donesides:
     /* Lastly, check to see if this tile connects to anything on
      * other planes.  If so, search those planes.
      */
-    
+
     planes = DBConnPlanes[loctype];
     planes &= ~(PlaneNumToMaskBit(csa->csa_plane));
     if (planes != 0)
@@ -606,7 +606,7 @@ donesides:
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -632,11 +632,11 @@ int
 dbcUnconnectFunc(tile, clientData)
     Tile *tile;				/* Current tile	*/
     ClientData clientData;		/* Unused.	*/
-    
+
 {
     return 1;
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -786,7 +786,7 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
     }
     return 0;
 }
-			
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -852,7 +852,7 @@ dbcConnectFunc(tile, cx)
     /* Clip the current area down to something that overlaps the
      * area of interest.
      */
-	
+
     csa2 = (struct conSrArg2 *)cx->tc_filter->tf_arg;
     GeoClip(&newarea, csa2->csa2_bounds);
     if (GEO_RECTNULL(&newarea)) return 0;
@@ -868,7 +868,7 @@ dbcConnectFunc(tile, cx)
      * If so, then there's no need to process the current area,
      * since any processing that is needed was already done before.
      */
-	
+
     connectMask = &csa2->csa2_connect[loctype];
 
     /* In the case of contact bits, the types underneath
@@ -920,7 +920,7 @@ dbcConnectFunc(tile, cx)
      */
 
     /* Only extend those sides bordering the diagonal tile */
-	  
+
     if (dinfo & TT_DIAGONAL)
     {
 	if (dinfo & TT_SIDE)			/* right */
@@ -967,7 +967,7 @@ dbcConnectFunc(tile, cx)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1106,6 +1106,6 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
     /* Recompute the bounding box of the destination and record its area
      * for redisplay.
      */
-    
+
     DBReComputeBbox(destUse->cu_def);
 }

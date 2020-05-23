@@ -3,16 +3,16 @@
  *
  * Commands with names beginning with the letters C through D.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -65,7 +65,7 @@ struct cmdCornerArea
 int cmdDumpFunc();
 bool cmdDumpParseArgs();
 #ifdef CALMA_MODULE
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -124,7 +124,7 @@ CmdCalma(w, cmd)
     static char *cmdCalmaWarnOptions[] = { "default", "none", "align",
 		"limit", "redirect", "help", 0 };
     static char *cmdCalmaOption[] =
-    {	
+    {
 	"help		print this help information",
 	"arrays [yes|no]	output arrays as individual subuses (like in CIF)",
 	"contacts [yes|no]	optimize output by arraying contacts as subcells",
@@ -605,7 +605,7 @@ CmdCellname(w, cmd)
     CellDef *newDef, *cellDef;
 
     static char *cmdCellOption[] =
-    {	
+    {
 	"children 	list children of selected or named cell",
 	"parents 	list parents of selected or named cell",
 	"exists 	true if loaded, false if not, or name of selected",
@@ -672,7 +672,7 @@ CmdCellname(w, cmd)
 	}
     }
 
-    if (func != DBUsePrint) 
+    if (func != DBUsePrint)
     {
 	/* These functions only work with cell uses (instances) */
 	switch (option) {
@@ -683,7 +683,7 @@ CmdCellname(w, cmd)
 		return;
 	}
     }
-    else 
+    else
     {
 	/* These functions only work with cell definitions */
 	switch (option) {
@@ -765,7 +765,7 @@ CmdCellname(w, cmd)
 		SelectClear();
 	        DBCellDelete(cellname, FALSE);
 	    }
-	    else 
+	    else
 		TxError("Delete cell command missing cellname\n");
 	    break;
 
@@ -913,7 +913,7 @@ CmdCellname(w, cmd)
 		    if (cellDef->cd_file != NULL)
 			freeMagic(cellDef->cd_file);
 
-		    cellDef->cd_file = fullpath;	
+		    cellDef->cd_file = fullpath;
 		}
 	    }
 	    break;
@@ -1052,7 +1052,7 @@ CmdCif(w, cmd)
     static char *cmdCifYesNo[] = { "no", "yes", 0 };
     static char *cmdCifInOut[] = { "input", "output", 0 };
     static char *cmdCifOption[] =
-    {	
+    {
 	"*array layer		display CIF layer under box (array only)",
 	"*hier layer		display CIF layer under box (hier only)",
 	"arealabels yes|no	enable/disable us of area label extension",
@@ -1087,7 +1087,7 @@ CmdCif(w, cmd)
 	option = CIF_WRITE;
     else
     {
-	if (!strncmp(argv[1], "list", 4))	
+	if (!strncmp(argv[1], "list", 4))
 	{
 	    dolist = TRUE;
 	    if (!strncmp(argv[1], "listall", 7))
@@ -1166,7 +1166,7 @@ CmdCif(w, cmd)
 	    }
 	    CIFSeeHierLayer(rootDef, &box, argv[2], TRUE, FALSE);
 	    return;
-	
+
 	case HIER:
 	    if (argc == 4) {
 	        if (!strncmp(argv[2], "write", 5))
@@ -1303,7 +1303,7 @@ CmdCif(w, cmd)
 	    TxPrintf ("Output of CIF cell ID labels is now %s\n",
 		CIFDoCellIdLabels ? "enabled" : "disabled");
 	    return;
-	
+
 	case ISTYLE:
 	    if (argc == 3)
 		CIFSetReadStyle(argv[2]);
@@ -1363,7 +1363,7 @@ CmdCif(w, cmd)
 		StrDup (&CIFPathPrefix, argv[2]);
 	    else goto wrongNumArgs;
 	    return;
-	
+
 	case OSTYLE:
 	    if (argc == 3)
 		CIFSetStyle(argv[2]);
@@ -1384,7 +1384,7 @@ CmdCif(w, cmd)
 	    CIFReadFile(f);
 	    (void) fclose(f);
 	    return;
-	
+
 	case RESCALE:
 	    if (argc == 2)
 	    {
@@ -1406,7 +1406,7 @@ CmdCif(w, cmd)
 	    if (!CIFRescaleAllow)
 		CIFWarningLevel = CIF_WARN_LIMIT;
 	    return;
-	
+
 	case CIF_DRC_CHECK:
 	    if (argc == 2)
 	    {
@@ -1426,7 +1426,7 @@ CmdCif(w, cmd)
 		goto wrongNumArgs;
 	    CIFNoDRCCheck = !yesno;
 	    return;
-	
+
 	case SEE:
 	    if (argc != 3) goto wrongNumArgs;
 	    if (!ToolGetBox(&rootDef, &box))
@@ -1469,7 +1469,7 @@ CmdCif(w, cmd)
 		DRCCheckThis(paintDef, TT_CHECKPAINT, &box);
 	    }
 	    return;
-	
+
 	case STATS:
 	    CIFPrintStats();
 	    return;
@@ -1532,7 +1532,7 @@ CmdCif(w, cmd)
 	{
 	    TxError("I/O error in writing file %s.\n", namep);
 	    TxError("File may be incompletely written.\n");
-    
+
 	}
     }
     else
@@ -1541,13 +1541,13 @@ CmdCif(w, cmd)
 	{
 	    TxError("I/O error in writing file %s.\n", namep);
 	    TxError("File may be incompletely written.\n");
-    
+
 	}
     }
     (void) fclose(f);
 }
 #endif
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1630,7 +1630,7 @@ CmdClockwise(w, cmd)
      * then move it so its lower-left corner is at the same place
      * that it used to be.
      */
-    
+
     if (noAdjust)
     {
 	GeoTransRect(&t2, &SelectDef->cd_bbox, &bbox);
@@ -1648,7 +1648,7 @@ CmdClockwise(w, cmd)
     /* Rotate the box, if it exists and is in the same window as the
      * selection.
      */
-    
+
     if (ToolGetBox(&rootDef, &rootBox) && (rootDef == SelectRootDef))
     {
 	Rect newBox;
@@ -1954,7 +1954,7 @@ CmdCopy(w, cmd)
 	/* Use the displacement between the box lower-left corner and
 	 * the point as the transform.
 	 */
-	
+
 	MagWindow *window;
 
 	window = ToolGetPoint(&rootPoint, (Rect *) NULL);
@@ -2158,7 +2158,7 @@ CmdCorner(w, cmd)
 	    PaintResultType  *resultTbl =
 			DBStdPaintTbl(cmdPathList.pathlist->pathtype, pNum);
 	    Plane *plane = EditRootDef->cd_planes[pNum];
-	
+
 	    ui.pu_def = EditRootDef;
 	    ui.pu_pNum = pNum;
 
@@ -2204,7 +2204,7 @@ CmdCorner(w, cmd)
     DBWAreaChanged(EditCellUse->cu_def, &editBox, DBW_ALLWINDOWS, &maskBits);
     DBReComputeBbox(EditCellUse->cu_def);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2983,7 +2983,7 @@ CmdCrosshair(w, cmd)
     DBWSetCrosshair(w, &pos);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3017,7 +3017,7 @@ CmdDelete(w, cmd)
     badusage:
     TxError("Usage: %s\n", cmd->tx_argv[0]);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3066,16 +3066,16 @@ CmdDown(w, cmd)
      * only in windows where the edit cell is displayed differently from
      * other cells.
      */
-    
+
     GeoTransRect(&EditToRootTransform, &(EditCellUse->cu_def->cd_bbox), &area);
     (void) WindSearch(DBWclientID, (ClientData) NULL,
 	    (Rect *) NULL, cmdEditRedisplayFunc, (ClientData) &area);
-	
+
     /* Use the position of the point to select one of the currently-selected
      * cells (if there are more than one).  If worst comes to worst, just
      * select any selected cell.
      */
-    
+
     (void) ToolGetPoint((Point *) NULL, &pointArea);
     cmdFoundNewDown = FALSE;
     (void) SelEnumCells(FALSE, (bool *) NULL, (SearchContext *) NULL,
@@ -3131,7 +3131,7 @@ cmdDownEnumFunc(selUse, use, transform, area)
     if (!GEO_OVERLAP(&useArea, &use->cu_bbox)) return 0;
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3199,7 +3199,7 @@ CmdDrc(w, cmd)
 #endif
 
     static char *cmdDrcOption[] =
-    {	
+    {
 	"*flatcheck             check box area by flattening",
 	"*halo [d]		limit error checking to areas of d units",
 	"*showint radius        show interaction area under box",
@@ -3273,7 +3273,7 @@ CmdDrc(w, cmd)
 	    rootUse = (CellUse *) window->w_surfaceID;
 	    DRCFlatCheck(rootUse, &rootArea);
 	    break;
-	
+
 	case SHOWINT:
 	    if (argc != 3) goto badusage;
 	    radius = cmdParseCoord(w, argv[2], TRUE, FALSE);
@@ -3301,7 +3301,7 @@ CmdDrc(w, cmd)
 	    else
 		DRCSetStyle(argv[2]);
 	    break;
-	
+
 	case CATCHUP:
 	    DRCCatchUp();
 	    break;
@@ -3312,7 +3312,7 @@ CmdDrc(w, cmd)
 	    rootUse = (CellUse *) window->w_surfaceID;
 	    DRCCheck(rootUse, &rootArea);
 	    break;
-	
+
 	case COUNT:
 	    count_total = -1;
 	    if (argc == 3)
@@ -3403,7 +3403,7 @@ CmdDrc(w, cmd)
 		    DRCEuclidean = FALSE;
 	    }
 	    break;
-	
+
 	case FIND:
 	    if ((window = w) == NULL)
 	    {
@@ -3464,7 +3464,7 @@ CmdDrc(w, cmd)
 		TxPrintf("There are no errors in %s.\n", rootDef->cd_name);
 	    }
 	    break;
-	
+
 	case DRC_HALO:
 	    if (argc == 3)
 	    {
@@ -3517,7 +3517,7 @@ CmdDrc(w, cmd)
 		TxPrintf("    %s\n", *msg);
 	    }
 	    break;
-	
+
 	case DRC_OFF:
 	    DRCBackGround = DRC_SET_OFF;
 #ifdef MAGIC_WRAPPER
@@ -3526,7 +3526,7 @@ CmdDrc(w, cmd)
 #endif
 		TxSetPrompt('%');		/* Return prompt to "normal" */
 	    break;
-	
+
 	case DRC_ON:
 	    /* Don't allow overriding of DRC_NOT_SET */
 	    if (DRCBackGround == DRC_SET_OFF) DRCBackGround = DRC_SET_ON;
@@ -3542,7 +3542,7 @@ CmdDrc(w, cmd)
 			"off" : "on");
 #endif
 	    break;
-	
+
 	case PRINTRULES:
 	    if (argc > 3) goto badusage;
 	    if (argc < 3)
@@ -3556,11 +3556,11 @@ CmdDrc(w, cmd)
 	    if (fp != stdout)
 		(void) fclose(fp);
 	    break;
-	
+
 	case RULESTATS:
 	    DRCTechRuleStats();
 	    break;
-	
+
 	case STATISTICS:
 	    DRCPrintStats();
 	    break;
@@ -3605,7 +3605,7 @@ CmdDrc(w, cmd)
     }
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3643,7 +3643,7 @@ CmdDump(w, cmd)
     if (cmdDumpParseArgs("dump", w, cmd, &dummy, &scx))
 	SelectDump(&scx);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

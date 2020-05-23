@@ -103,7 +103,7 @@ extern bool GrTkInit();
 extern bool GrTkEventPending(), GrTkCreate(), grtkGetCursorPos();
 extern int  GrTkWindowId();
 extern char *GrTkWindowName();
-
+
 
 /*---------------------------------------------------------
  * grtkSetWMandC:
@@ -147,7 +147,7 @@ grtkSetWMandC (mask, c)
     oldM = mask;
 }
 
-
+
 /*---------------------------------------------------------
  * grtkSetLineStyle:
  *	This local routine sets the current line style.
@@ -242,7 +242,7 @@ grtkSetLineStyle (style)
 #endif
 }
 
-
+
 /*---------------------------------------------------------
  * grtkSetSPattern:
  *	xSetSPattern associates a stipple pattern with a given
@@ -295,7 +295,7 @@ grtkSetSPattern (sttable, numstipples)
     }
 }
 
-
+
 /*---------------------------------------------------------
  * grtkSetStipple:
  *	This routine sets the Xs current stipple number.
@@ -325,7 +325,7 @@ grtkSetStipple (stipple)
     }
 }
 
-
+
 /*---------------------------------------------------------
  * GrTkInit:
  *
@@ -404,7 +404,7 @@ GrTkInit(dispType)
      * to set.  The top colors will remain identical to those
      * in the default colormap.
      */
-	
+
     grXcmap = XDefaultColormap(grXdpy,grXscrn);
 
     /* Discover properties of Server.  */
@@ -412,7 +412,7 @@ GrTkInit(dispType)
     grVisual = XDefaultVisual(grXdpy, grXscrn);
     defpsvid = XVisualIDFromVisual(grVisual);
     grtemplate.screen = grXscrn;
-    grtemplate.depth = 0; 
+    grtemplate.depth = 0;
     grvisual_get = XGetVisualInfo(grXdpy, VisualScreenMask, &grtemplate, &gritems);
     if (grvisual_get == NULL)
     {
@@ -501,7 +501,7 @@ GrTkInit(dispType)
 	    color_reserved = (int)atoi(env_str);
 	else
 	    color_reserved = X_COLORMAP_RESERVED;
-	 
+
 	gritems = -1;
 	if (log_color != NULL)
 	{
@@ -560,9 +560,9 @@ GrTkInit(dispType)
     {
 	status = 0;
 	if (grClass != 4)
-	    status= XAllocColorCells(grXdpy, grXcmap, TRUE, grDisplay.planes,	
-			grDisplay.planeCount, &grDisplay.basepixel, 1); 
-	if (status == 0) 
+	    status= XAllocColorCells(grXdpy, grXcmap, TRUE, grDisplay.planes,
+			grDisplay.planeCount, &grDisplay.basepixel, 1);
+	if (status == 0)
 	{
 	  /*
 	   * Ok, we tried to be nice; now lets whack the default colormap
@@ -579,7 +579,7 @@ GrTkInit(dispType)
 	    if (xwind == 0)
 	    {
 		xwind = Tk_WindowId(Tk_MainWindow(magicinterp));
-		if (xwind == 0)  
+		if (xwind == 0)
 		    xwind = DefaultRootWindow(grXdpy);
 	    }
 
@@ -618,8 +618,8 @@ GrTkInit(dispType)
 		grDisplay.colorCount = grDisplay.realColors;
 	    }
 	}
-	     			
-	if (grXcmap == 0 || status ==0) 
+
+	if (grXcmap == 0 || status ==0)
 	{
 	    TxError( "Tk/X11 setup: Unable to allocate %d planes\n",
 		grDisplay.planeCount);
@@ -658,7 +658,7 @@ GrTkInit(dispType)
     rstatus = grTkLoadFont();
     return rstatus;
 }
-
+
 /*---------------------------------------------------------
  * GrTkClose:
  *
@@ -687,7 +687,7 @@ GrTkClose ()
 				  /* do XCloseDisplay()			*/
 }
 
-
+
 /*---------------------------------------------------------
  * GrTkFlush:
  * 	Flush output to display.
@@ -707,7 +707,7 @@ GrTkFlush ()
     GR_TK_FLUSH_BATCH();
 }
 
-
+
 /*
  * ---------------------------------------------------------------------------
  *
@@ -742,7 +742,7 @@ MagicEventProc(clientData, xevent)
      * keys to the terminal/console.
      */
 
-    switch (xevent->type) 
+    switch (xevent->type)
     {
 	case ButtonPress:
 	    {
@@ -865,9 +865,9 @@ keys_and_buttons:
 
 		    /* Allow buttons to bypass the console and be	*/
 		    /* treated as macros.				*/
- 
+
 		    if (LocRedirect == TX_INPUT_REDIRECTED)
-		    {  
+		    {
 			switch (keysym)
 			{
 			    case XK_Pointer_Button1:
@@ -943,7 +943,7 @@ keys_and_buttons:
 		    }
 		    else if (LocRedirect == TX_INPUT_REDIRECTED)
 		    {
-			int tl;	
+			int tl;
 			if (TxBuffer == NULL)
 			{
 			    TxBuffer = Tcl_Alloc(2);
@@ -1066,7 +1066,7 @@ keys_and_buttons:
 			}
 		    }
 		}
-	    } 
+	    }
 	    break;
 	case VisibilityNotify:
 	    {
@@ -1110,7 +1110,7 @@ keys_and_buttons:
 		screenRect.r_xbot = ExposeEvent->x;
             	screenRect.r_xtop = ExposeEvent->x+ExposeEvent->width;
             	screenRect.r_ytop = mw->w_allArea.r_ytop-ExposeEvent->y;
-            	screenRect.r_ybot = mw->w_allArea.r_ytop - 
+            	screenRect.r_ybot = mw->w_allArea.r_ytop -
 				(ExposeEvent->y + ExposeEvent->height);
 
 		if (mw->w_backingStore != (ClientData)NULL)
@@ -1133,7 +1133,7 @@ keys_and_buttons:
 		XConfigureEvent *ConfigureEvent = (XConfigureEvent*) xevent;
 		Rect screenRect;
 		bool need_resize;
-		    
+
 		entry = HashLookOnly(&grTkWindowTable, (char *)wind);
 		mw = (entry)?(MagWindow *)HashGetValue(entry):0;
 	        grCurrent.window = wind;
@@ -1169,7 +1169,7 @@ keys_and_buttons:
     }
 }
 
-
+
 /*---------------------------------------------------------
  * x11SetDisplay:
  *	This routine sets the appropriate parameters so that
@@ -1228,7 +1228,7 @@ x11SetDisplay (dispType, outFileName, mouseFileName)
     GrConfigureWindowPtr = GrTkConfigure;
     GrOverWindowPtr = GrTkRaise;
     GrUnderWindowPtr = GrTkLower;
-    GrUpdateIconPtr = GrTkIconUpdate; 
+    GrUpdateIconPtr = GrTkIconUpdate;
     GrEventPendingPtr = GrTkEventPending;
     GrWindowIdPtr = GrTkWindowId;
     GrWindowNamePtr = GrTkWindowName;
@@ -1256,7 +1256,7 @@ x11SetDisplay (dispType, outFileName, mouseFileName)
     GrGetBackingStorePtr = grtkGetBackingStore;
     GrPutBackingStorePtr = grtkPutBackingStore;
     GrScrollBackingStorePtr = grtkScrollBackingStore;
-    
+
     if (execFailed) {
 	TxError("Execution failed!\n");
 	return FALSE;
@@ -1277,7 +1277,7 @@ x11SetDisplay (dispType, outFileName, mouseFileName)
 
 extern void MakeWindowCommand();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1381,7 +1381,7 @@ GrTkCreate(w, name)
 
 	/* set the window attributes, since Tk doesn't do this in the	*/
 	/* Tk_CreateWindowFromPath() function.				*/
-	
+
 	Tk_ChangeWindowAttributes(tkwind, attribmask, &grAttributes);
 
 	/* ensure that the visual is what we wanted, if possible to change */
@@ -1411,7 +1411,7 @@ GrTkCreate(w, name)
 
 	XSetPlaneMask(grXdpy, grGCGlyph, AllPlanes);
         Tk_DefineCursor(tkwind, grCurrent.cursor);
-	GrTkIconUpdate(w, w->w_caption); 
+	GrTkIconUpdate(w, w->w_caption);
 
 	/*----------------------------------------------------------------------*/
 	/* If we're using TkCon in a PseudoColor visual, we need to set the	*/
@@ -1502,7 +1502,7 @@ GrTkCreate(w, name)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1533,7 +1533,7 @@ GrTkDelete(w)
 
     Tk_DestroyWindow(xw);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1560,7 +1560,7 @@ GrTkConfigure(w)
 		w->w_frameArea.r_xtop - w->w_frameArea.r_xbot,
 		    w->w_frameArea.r_ytop - w->w_frameArea.r_ybot);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1588,7 +1588,7 @@ GrTkRaise(w)
     tkwind = (Tk_Window)w->w_grdata;
     Tk_RestackWindow(tkwind, Above, NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1616,7 +1616,7 @@ GrTkLower(w)
     tkwind = (Tk_Window)w->w_grdata;
     Tk_RestackWindow(tkwind, Below, NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1655,7 +1655,7 @@ GrTkLock(w, flag)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1679,7 +1679,7 @@ GrTkUnlock(w)
     GR_TK_FLUSH_BATCH();
     grSimpleUnlock(w);
 }
-
+
 
 /*
  *-------------------------------------------------------------------------
@@ -1709,7 +1709,7 @@ GrTkEventPending()
 
    retval = XCheckWindowEvent(grXdpy, wind, ExposureMask
 		| StructureNotifyMask | ButtonPressMask
-		| KeyPressMask, &genEvent); 
+		| KeyPressMask, &genEvent);
    if (retval) XPutBackEvent(grXdpy, &genEvent);
    return retval;
 }
@@ -1735,7 +1735,7 @@ GrTkIconUpdate(w, text)		/* See Blt code */
     Window	wind;
     XClassHint	class;
     char	*brack;
-     
+
     if (w->w_flags & WIND_OFFSCREEN) return;
 
     tkwind = (Tk_Window)(w->w_grdata);

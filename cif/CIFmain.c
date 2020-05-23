@@ -3,16 +3,16 @@
  *	This file contains global information for the CIF module,
  *	such as performance statistics.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -76,7 +76,7 @@ static int cifTotalHierRects = 0;
 global CellDef *CIFErrorDef;	/* Definition in which to record errors. */
 global int CIFErrorLayer;	/* Index of CIF layer associated with errors.*/
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -128,7 +128,7 @@ CIFPrintStats()
  * Results:
  *	Internal units-to-(nanometers * convert) conversion factor (float).
  *	Use convert = 1000 for centimicrons-to-microns conversion
- *  
+ *
  * Side effects:
  *	None.
  *
@@ -212,7 +212,7 @@ CIFPrintStyle(dolist, doforall, docurrent)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -269,7 +269,7 @@ CIFSetStyle(name)
     TxError("\"%s\" is not one of the CIF output styles Magic knows.\n", name);
     CIFPrintStyle(FALSE, TRUE, TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -346,7 +346,7 @@ CIFNameToMask(name, result, depend)
     TxError(".\n");
     return FALSE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -385,7 +385,7 @@ CIFError(area, message)
     DBWFeedbackAdd(area, msg, CIFErrorDef, CIFCurStyle->cs_scaleFactor,
 	STYLE_PALEHIGHLIGHTS);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

@@ -75,7 +75,7 @@ invert_case_line (count, key)
     }
   else
     direction = 1;
-      
+
   /* Find the end of the range to modify. */
   end = start + (count * direction);
 

@@ -28,7 +28,7 @@ extern unsigned long grPlanes[256];
 extern XColor colors[256 * 3];
 extern Colormap grXcmap;
 
-
+
 /*---------------------------------------------------------------------
  * GrXSetCMap:
  *
@@ -51,7 +51,7 @@ GrTkSetCMap()
     int red_shift, green_shift, blue_shift;
     unsigned long grCompleteMask;
 
-    /* grCompleteMask is a mask of all the planes not used by this 
+    /* grCompleteMask is a mask of all the planes not used by this
      * technology.  It is OR'd in with the mask that magic supplies
      * to ensure that unused bits of the pixel are cleared.
      */
@@ -128,7 +128,7 @@ GrTkSetCMap()
 	}
     }
     else	/* grDisplay.planeCount <= 8 */
-    { 
+    {
 	grCompleteMask = 0;
 	for (i=0; i < grDisplay.planeCount; i++)
 	{
@@ -145,13 +145,13 @@ GrTkSetCMap()
 		{
 		    grPixels[i] |= grDisplay.planes[j];
 		    grPlanes[i] |= grDisplay.planes[j];
-	        } 
+	        }
 	}
     }
 
     if (grDisplay.depth)
     {
-	for (i = 0; i < grDisplay.realColors; i++) 
+	for (i = 0; i < grDisplay.realColors; i++)
 	{
 	    if (!(GrGetColor(i, &red, &green, &blue))) break;
 	    colors[i].pixel = grPixels[i];
@@ -200,7 +200,7 @@ grtkDrawLines(lines, nb)
 	      lines, nb);
 }
 
-
+
 /*---------------------------------------------------------
  * grtkDrawLine:
  *	This routine draws a line.
@@ -226,7 +226,7 @@ grtkDrawLine (x1, y1, x2, y2)
     grtkNbLines++;
 }
 
-
+
 /*---------------------------------------------------------
  * grtkFillRects:
  *	This routine draws a bunch of solid rectangles.
@@ -246,7 +246,7 @@ grtkFillRects(rects, nb)
     XFillRectangles(grXdpy, grCurrent.windowid, grGCFill, rects, nb);
 }
 
-
+
 /*---------------------------------------------------------
  * grtkFillRect:
  *	This routine draws a solid rectangle.

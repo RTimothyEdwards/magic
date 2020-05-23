@@ -6,16 +6,16 @@
  * as possible.  Communication to and from clients is by means
  * of objects, allocated by the undo package, known as UndoEvents.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid "$Header: /usr/cvsroot/magic-8.0/utils/undo.h,v 1.2 2009/09/10 20:32:55 tim Exp $"
@@ -47,7 +47,7 @@ typedef char	 UndoEvent;	/* Externally visible undo event */
  *	UndoNewEvent	-- returns a new UndoEvent which the client may load
  *			   with its own data.  The event is appended to the
  *			   undo log.  The client should not retain this
- *			   new event past the next call to the undo package.  
+ *			   new event past the next call to the undo package.
  *			   If undoing is disabled, returns NULL.
  *	UndoNext	-- used by a client to inform the undo package that
  *			   all events since the last call to UndoNext are
@@ -70,7 +70,7 @@ extern int UndoBackward(int), UndoForward(int);
 extern void UndoDisable(void), UndoEnable(void);
 extern void UndoFlush(void);
 extern void UndoStackTrace(int);
-
+
 /*
  * ----------------------------------------------------------------------------
  *

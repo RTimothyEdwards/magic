@@ -4,16 +4,16 @@
  * Plowing rules.
  * These are applied by plowProcessEdge() for each edge that is to be moved.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -42,7 +42,7 @@ int plowCellDragPaint(), plowCellPushPaint();
 int plowCoverTopProc(), plowCoverBotProc();
 int plowIllegalTopProc(), plowIllegalBotProc();
 int plowDragEdgeProc();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -170,7 +170,7 @@ restart:
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -266,7 +266,7 @@ prFixedPenumbraBot(edge)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -322,7 +322,7 @@ restart:
 			plowDragEdgeProc, (ClientData) edge);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -391,7 +391,7 @@ plowDragEdgeProc(lhsEdge, movingEdge)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -445,7 +445,7 @@ prContactRHS(edge)
 				plowPropagateProcPtr, (ClientData) NULL);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -542,7 +542,7 @@ prCoverBot(edge)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -619,7 +619,7 @@ prIllegalBot(edge)
 		plowCoverBotProc, (ClientData) &ar);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -712,7 +712,7 @@ plowCoverBotProc(outline, ar)
 
     return (ret);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -834,7 +834,7 @@ found_bad:
     ar->ar_clip.p_y = movingEdge->e_ybot - width;
     return (1);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -869,7 +869,7 @@ prFindCells(edge)
     (void) DBSrCellPlaneArea(cellPlane, &searchArea, plowFoundCell,
 		(ClientData) &ar);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -939,7 +939,7 @@ prCell(edge)
 		&cellArea, plowFoundCell,
 		(ClientData) &ar);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -993,7 +993,7 @@ plowCellDragPaint(tile, ar)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1035,7 +1035,7 @@ plowCellPushPaint(impactedEdge, ar)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

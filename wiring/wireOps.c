@@ -5,16 +5,16 @@
  * interface for Magic.  The procedures do things like select a wiring
  * material and thickness, add a leg to a wire, etc.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -53,7 +53,7 @@ int WireLastDir;		/* Last direction in which a wire was run. */
  */
 
 static CellDef *wireDesiredDef;
-
+
 /*
  * ----------------------------------------------------------------------------
  *	wireFindRootUse --
@@ -104,7 +104,7 @@ wireFindRootFunc(window, cellUsePtr)
     *cellUsePtr = use;
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	WirePickType --
@@ -185,7 +185,7 @@ WirePickType(type, width)
     }
 
     /* Now select a chunk underneath the cursor of the particular type. */
-    
+
     SelectClear();
     SelectChunk(&scx, WireType, crec->dbw_bitmask, &chunk, FALSE);
     WireWidth = chunk.r_xtop - chunk.r_xbot;
@@ -195,7 +195,7 @@ WirePickType(type, width)
     /* Set the box and the selection to a square chunk that indicates the
      * wire width.
      */
-    
+
     if (WireWidth & 1)
     {
 	GEO_EXPAND(&scx.scx_area, WireWidth/2, &box);
@@ -234,7 +234,7 @@ WirePickType(type, width)
     DBWSetBox(scx.scx_use->cu_def, &box);
     TxPrintf("Using %s wires %d units wide.\n",
 	    DBTypeLongName(WireType), WireWidth);
-    
+
     WireLastDir = -1;
     WireRememberForUndo();
 }
@@ -379,11 +379,11 @@ WireAddLeg(rect, point, direction)
 	if (rect->r_ytop - rect->r_ybot != WireWidth)
 	{
 	    int rmid = (rect->r_ytop + rect->r_ybot) / 2;
-	    rect->r_ybot = rmid - hwidth; 
+	    rect->r_ybot = rmid - hwidth;
 	    rect->r_ytop = rect->r_ybot + WireWidth;
 
 	    rmid = (rect->r_xtop + rect->r_xbot) / 2;
-	    rect->r_xbot = rmid - hwidth; 
+	    rect->r_xbot = rmid - hwidth;
 	    rect->r_xtop = rect->r_xbot + WireWidth;
 	}
 
@@ -425,11 +425,11 @@ WireAddLeg(rect, point, direction)
 	if (rect->r_xtop - rect->r_xbot != WireWidth)
 	{
 	    int rmid = (rect->r_xtop + rect->r_xbot) / 2;
-	    rect->r_xbot = rmid - hwidth; 
+	    rect->r_xbot = rmid - hwidth;
 	    rect->r_xtop = rect->r_xbot + WireWidth;
 
 	    rmid = (rect->r_ytop + rect->r_ybot) / 2;
-	    rect->r_ybot = rmid - hwidth; 
+	    rect->r_ybot = rmid - hwidth;
 	    rect->r_ytop = rect->r_ybot + WireWidth;
 	}
 
@@ -472,7 +472,7 @@ WireAddLeg(rect, point, direction)
     /* Select the new wire leg, if the edit cell is visible in any
      * windows.
      */
-    
+
     scx.scx_use = wireFindRootUse(EditRootDef);
     if (scx.scx_use != NULL)
     {
@@ -735,7 +735,7 @@ WireAddContact(newType, newWidth)
     /* First of all, find out the location of the last wire leg,
      * which is marked by the box.
      */
-    
+
     if (!ToolGetBox(&boxRootDef, &oldLeg))
     {
 	TxError("No box!  To place a contact, you must first use\n");
@@ -1009,7 +1009,7 @@ WireAddContact(newType, newWidth)
     GEO_EXPAND(&tmp, newOverlap, &tmp2);
     DBWSetBox(EditRootDef, &tmp2);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1040,7 +1040,7 @@ WireButtonProc(w, cmd)
 
     if (cmd->tx_buttonAction != TX_BUTTON_DOWN)
 	return;
-    
+
     switch (cmd->tx_button)
     {
 	case TX_LEFT_BUTTON:
@@ -1054,7 +1054,7 @@ WireButtonProc(w, cmd)
 	    break;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

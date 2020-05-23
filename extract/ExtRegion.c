@@ -5,16 +5,16 @@
  * This file contains the code to trace out connected Regions
  * in a layout, and to build up or tear down lists of Regions.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -35,7 +35,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "extract/extract.h"
 #include "extract/extractInt.h"
 #include "utils/signals.h"
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -80,7 +80,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *
  * Non-interruptible.  It is the caller's responsibility to check
  * for interrupts.
- *	
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -126,7 +126,7 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
 
     return (arg.fra_region);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -167,7 +167,7 @@ extRegionAreaFunc(tile, arg)
     (void) ExtFindNeighbors(tile, arg->fra_pNum, arg);
     return (0);
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -279,13 +279,13 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 		for (n = 0; n < nclasses; n++)
 		    newNode->nreg_pa[n].pa_perim = newNode->nreg_pa[n].pa_area = 0;
 		newNode->nreg_labels = ll;
-		
+
 		*nodeList = newNode;
 	    }
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -353,7 +353,7 @@ ExtLabelOneRegion(def, connTo, reg)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -386,7 +386,7 @@ ExtResetTiles(def, resetTo)
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	DBResetTilePlane(def->cd_planes[pNum], resetTo);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

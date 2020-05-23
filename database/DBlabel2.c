@@ -3,16 +3,16 @@
  *
  * Label searching primitives.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -64,7 +64,7 @@ typedef struct {
 extern void DBTreeFindUse();
 
 bool dbParseArray();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -140,7 +140,7 @@ DBSearchLabel(scx, mask, xMask, pattern, func, cdarg)
 	return 1;
     else return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -174,7 +174,7 @@ dbSrLabelFunc(scx, label, tpath, labsr)
 	    return 1;
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -253,7 +253,7 @@ DBSrLabelLoc(rootUse, name, func, cdarg)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -353,7 +353,7 @@ DBTreeFindUse(name, use, scx)
 
     scx->scx_use = use;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -473,7 +473,7 @@ dbParseArray(cp, use, scx)
     scx->scx_trans = trans2;
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -549,11 +549,11 @@ DBNearestLabel(cellUse, area, point, xMask, labelArea, labelName, length)
 		dbNearestLabelFunc, (ClientData) &funcData);
 
     if (name) freeMagic(name);
-    
+
     if (!funcData.nld_gotLabel) return FALSE;
     else return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -610,6 +610,6 @@ dbNearestLabelFunc(scx, label, tpath, funcData)
 	}
 	*dst = 0;
     }
-    
+
     return 0;
 }

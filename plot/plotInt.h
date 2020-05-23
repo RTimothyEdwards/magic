@@ -4,16 +4,16 @@
  * Contains definitions for things that are used internally by the
  * plot module but not exported.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid $Header: /usr/cvsroot/magic-8.0/plot/plotInt.h,v 1.2 2010/03/08 13:33:33 tim Exp $
@@ -63,7 +63,7 @@ typedef struct
 				 */
     int ras_intsPerLine;	/* How much to add to the address of an
 				 * integer containing a pixel to find the
-				 * address of the integer containing the 
+				 * address of the integer containing the
 				 * pixel just underneath it.
 				 */
     int ras_height;		/* Raster height (y-dimension).  For proper
@@ -83,8 +83,8 @@ typedef struct
 
 /* This structure is also used for raster output, but to "deep"
  * devices such as frame buffers and Dicomend cameras.  It defines a
- * rectangular raster area in which to fill bits for printing. Each byte 
- * of the pix_pixels array holds one pixel; for an RGB image, three 
+ * rectangular raster area in which to fill bits for printing. Each byte
+ * of the pix_pixels array holds one pixel; for an RGB image, three
  * PixRasters will be needed.
  */
 

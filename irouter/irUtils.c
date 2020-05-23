@@ -4,17 +4,17 @@
  * Misc. utility routines for irouter.
  *
  *
- *     ********************************************************************* 
+ *     *********************************************************************
  *     * Copyright (C) 1987, 1990 Michael H. Arnold, Walter S. Scott, and  *
  *     * the Regents of the University of California.                      *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -34,7 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "irouter/irouter.h"
 #include "irouter/irInternal.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -56,8 +56,8 @@ irFindRouteType(type)
     RouteType *rT;
 
     /* Search list of routetypes for one with appropriate type */
-    for (rT = irRouteTypes; 
-	rT && rT->rt_tileType!=type; 
+    for (rT = irRouteTypes;
+	rT && rT->rt_tileType!=type;
 	rT=rT->rt_next)
 	;
 
@@ -65,7 +65,7 @@ irFindRouteType(type)
     return(rT);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -86,8 +86,8 @@ irFindRouteLayer(type)
     RouteLayer *rL;
 
     /* Search list of routelayers for one with appropriate type */
-    for (rL = irRouteLayers; 
-	rL && rL->rl_routeType.rt_tileType!=type; 
+    for (rL = irRouteLayers;
+	rL && rL->rl_routeType.rt_tileType!=type;
 	rL=rL->rl_next)
 	;
 
@@ -95,7 +95,7 @@ irFindRouteLayer(type)
     return(rL);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -116,8 +116,8 @@ irFindRouteContact(type)
     RouteContact *rC;
 
     /* Search list of routecontacts for one with appropriate type */
-    for (rC = irRouteContacts; 
-	rC && rC->rc_routeType.rt_tileType!=type; 
+    for (rC = irRouteContacts;
+	rC && rC->rc_routeType.rt_tileType!=type;
 	rC=rC->rc_next)
 	;
 
@@ -125,7 +125,7 @@ irFindRouteContact(type)
     return(rC);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -137,7 +137,7 @@ irFindRouteContact(type)
  *	Pointer to temporary string.
  *
  * Side effects:
- *	RepeatString set to desired string.  
+ *	RepeatString set to desired string.
  *
  * Note:
  *	A call to this procedure destroys old strings previously built

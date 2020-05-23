@@ -19,7 +19,7 @@
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
 
-/* 
+/*
  * Portability stuff
  */
 
@@ -28,7 +28,7 @@
 #endif
 
 /* Some machines have signal handlers returning an int, while other machines
- * have it returning a void.  If you have a machine that requires ints put 
+ * have it returning a void.  If you have a machine that requires ints put
  * it in the list of machines in utils/magic.h.
  */
 #ifdef	SIG_RETURNS_INT
@@ -91,7 +91,7 @@ main (argc, argv)
 
 /*     sigSetAction(SIGINT,  SIG_IGN); */
 /*     sigSetAction(SIGQUIT, SIG_IGN); */
-    sigSetAction(SIGTERM, MapWindow); 
+    sigSetAction(SIGTERM, MapWindow);
 #ifdef SIGTSTP
     sigSetAction(SIGTSTP, SIG_IGN);
 #endif
@@ -113,7 +113,7 @@ main (argc, argv)
  *   Pass XEvents on to the magic main process by writing into the
  *   connecting pipe.  Keystrokes must be handled such that magic
  *   can treat untranslated keyboard input from stdin the same way
- *   that it treats translated keyboard input through X11.  
+ *   that it treats translated keyboard input through X11.
  *   Use XLookupString() to get an ASCII character out of the
  *   keycode, but also pass back the event structure so we can
  *   pull out key modifier information in grX11Stdin().
@@ -127,7 +127,7 @@ void
 ParseEvent (event)
     XEvent *event;
 {
-    if (event->type == KeyPress) 
+    if (event->type == KeyPress)
     {
 	XKeyPressedEvent *KeyPressedEvent = (XKeyPressedEvent *) event;
 	char inChar[10], c, *p;
@@ -193,7 +193,7 @@ ParseEvent (event)
 		if ((c = *p++) == 3)	/* Ctrl-C interrupt */
 		{
 		    kill(parentID, SIGINT);
-		} 
+		}
 		else
 		{
 		    /* When Control modifier is present, use the capital */
@@ -279,7 +279,7 @@ TimeOut(int signo)
     }
     SetTimeOut(); 	/* Renew the timer and signal handler */
 }
- 
+
 /*
  * MapWindow():
  *   On startup of any new magic window, magic writes the X11 window ID

@@ -3,16 +3,16 @@
  *	Send button pushes and commands to the window's command
  *	interpreters.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -62,7 +62,7 @@ extern void WindGrabInput();
 extern void WindReleaseInput();
 extern void windHelp();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindSendCommand --
@@ -116,7 +116,7 @@ WindSendCommand(w, cmd, quiet)
     }
 
     inside = FALSE;
-    ASSERT( (cmd->tx_button == TX_NO_BUTTON) || (cmd->tx_argc == 0), 
+    ASSERT( (cmd->tx_button == TX_NO_BUTTON) || (cmd->tx_argc == 0),
 	"WindSendCommand");
 
     WindOldButtons = WindNewButtons;
@@ -155,7 +155,7 @@ WindSendCommand(w, cmd, quiet)
 	    w = WindSearchWid(cmd->tx_wid);
     }
 
-    if (w != (MagWindow *) NULL) 
+    if (w != (MagWindow *) NULL)
     {
 	inside = GEO_ENCLOSE(&cmd->tx_p, &w->w_screenArea);
 	if ((!inside) && (w->w_flags & WIND_COMMANDS))
@@ -185,7 +185,7 @@ WindSendCommand(w, cmd, quiet)
     WindCurrentCmd = cmd;
     WindCurrentWindow = w;
 
-    if (cmd->tx_button == TX_NO_BUTTON) 
+    if (cmd->tx_button == TX_NO_BUTTON)
     {
 	clientCmdNum = Lookup(cmd->tx_argv[0], rc->w_commandTable);
 
@@ -204,13 +204,13 @@ WindSendCommand(w, cmd, quiet)
 	    {
 		TxError("Unknown command:");
 		windPrintCommand(cmd);
-		if (WindNewButtons != 0) 
+		if (WindNewButtons != 0)
 		{
 		    char *bname = "unknown";
 		    if (WindNewButtons & TX_LEFT_BUTTON) bname = "left";
 		    else if (WindNewButtons & TX_RIGHT_BUTTON) bname = "right";
 		    else if (WindNewButtons & TX_MIDDLE_BUTTON) bname = "middle";
-		 
+
 		    TxError( "'%s' window is waiting for %s button to be released.\n",
 		    		rc->w_clientName, bname);
 		}
@@ -229,8 +229,8 @@ WindSendCommand(w, cmd, quiet)
 	}
 
 	/* intercept 'help' */
-	if ((windCmdNum >= 0) &&  
-		(strncmp(windClient->w_commandTable[windCmdNum], 
+	if ((windCmdNum >= 0) &&
+		(strncmp(windClient->w_commandTable[windCmdNum],
 		"help", 4) == 0) )
 	{
 	    TxUseMore();
@@ -316,7 +316,7 @@ WindSendCommand(w, cmd, quiet)
 
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindGrabInput --
@@ -342,7 +342,7 @@ WindGrabInput(client)
 }
 
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindReleaseInput --
@@ -365,7 +365,7 @@ WindReleaseInput(client)
       windGrabber = (WindClient) StackPop(windGrabberStack);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windHelp --
@@ -412,7 +412,7 @@ windHelp(cmd, name, table)
 	TxPrintf("Wizard %s Commands\n", capName);
 	TxPrintf("----------------------\n");
     }
-    else 
+    else
     {
 	if (cmd->tx_argc == 2)
 	{

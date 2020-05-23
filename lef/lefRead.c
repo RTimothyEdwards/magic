@@ -1,5 +1,5 @@
 /*
- * lefRead.c --      
+ * lefRead.c --
  *
  * This module incorporates the LEF/DEF format for standard-cell place and
  * route.
@@ -14,7 +14,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/lefRead.c,v 1.2 2008/12/17 18:40:04 tim Exp $";            
+static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/lefRead.c,v 1.2 2008/12/17 18:40:04 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -152,7 +152,7 @@ LefEstimate(processed, total, item_name)
 	gettimeofday(&tv_start, &tz);
 	last_time = 0.0;
     }
-	
+
     if (processed > check_interval)
     {
 	gettimeofday(&tv, &tz);
@@ -300,7 +300,7 @@ LefNextToken(f, ignore_eol)
 
 void
 LefError(int type, char *fmt, ...)
-{  
+{
     static int errors = 0, warnings = 0, messages = 0;
     va_list args;
 
@@ -615,7 +615,7 @@ LefLower(token)
  * Results:
  *	Pointer to a lefLayer, which may or may not be the
  *	same one presented to the subroutine.
- *	
+ *
  * Side Effects:
  *	May add an entry to the list of LEF layers.
  *
@@ -924,7 +924,7 @@ LefReadRect(f, curlayer, oscale)
     {
 	/* Scale coordinates (microns to magic internal units)	*/
 	/* Need to scale grid if necessary!			*/
-		
+
 	lefrect.r_xbot = (int)roundf(llx / oscale);
 	lefrect.r_ybot = (int)roundf(lly / oscale);
 	lefrect.r_xtop = (int)roundf(urx / oscale);
@@ -954,7 +954,7 @@ parse_error:
  * LefReadPolygon --
  *
  *	Read a LEF "POLYGON" record from the file, and
- *	return a linked point structure.  
+ *	return a linked point structure.
  *
  * Results:
  *	Returns a pointer to a Rect containing the magic
@@ -1034,8 +1034,8 @@ LefReadPolygon(f, curlayer, oscale, ppoints)
 	freeMagic(lr);
 	lpoints++;
 	lr = lr->r_next;
-    }	
-    return plist;	
+    }
+    return plist;
 }
 
 /*
@@ -1043,7 +1043,7 @@ LefReadPolygon(f, curlayer, oscale, ppoints)
  * LefPaintPolygon --
  *
  *	Paint a polygon into the CellDef indicated by lefMacro.
- * 
+ *
  *------------------------------------------------------------
  */
 
@@ -1556,7 +1556,7 @@ LefReadMacro(f, mname, oscale, importForeign)
     FILE *f;			/* LEF file being read	*/
     char *mname;		/* name of the macro 	*/
     float oscale;		/* scale factor um->magic units */
-    bool importForeign;		/* Whether we should try to read 
+    bool importForeign;		/* Whether we should try to read
 				 * in a cell.
 				 */
 {
@@ -1854,8 +1854,8 @@ void LefGrowVia(curlayer, currect, lefl)
 	contSize = CIFGetContactSize(curlayer, &edgeSize, NULL, NULL);
 
 	/* All internal LEF via geometry values are doubled */
-	contSize <<= 1;	
-	edgeSize <<= 1;	
+	contSize <<= 1;
+	edgeSize <<= 1;
 
         if (contSize % CIFCurStyle->cs_scaleFactor == 0)
 	   contSize /= CIFCurStyle->cs_scaleFactor;
@@ -1982,7 +1982,7 @@ LefGenViaGeometry(f, lefl, sizex, sizey, spacex, spacey,
 	    lefl->info.via.lr = viaLR;
 	    viaLR->r_type = clayer;
 	    viaLR->r_r = rect;
-	    
+
 	    y += sizey + spacey;
 	}
 	x += sizex + spacex;
@@ -2032,7 +2032,7 @@ LefAddViaGeometry(f, lefl, curlayer, oscale)
 	lefl->info.via.area = *currect;
 	lefl->type = curlayer;
     }
-    else 
+    else
     {
 	viaLR = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
 	viaLR->r_next = lefl->info.via.lr;

@@ -29,7 +29,7 @@ extern Display	*grXdpy;
 extern int	 grXscrn;
 extern HashTable grTCairoWindowTable;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTCairoDrawGlyph --
@@ -165,7 +165,7 @@ Point *p;			/* screen pos of lower left corner */
 	}
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrTCairoSetCursor:

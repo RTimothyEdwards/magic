@@ -7,16 +7,16 @@
  *	Feedback is used for things like displaying CIF, and for errors
  *	in CIF-generation and routing.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -47,7 +47,7 @@ typedef struct rcstring
     int refcount;
     char *string;
 } RCString;
-    
+
 
 /* Each feedback area is stored in a record that looks like this: */
 
@@ -91,7 +91,7 @@ static CellDef *dbwfbRootDef;		/* To pass root cell definition from
 					 * DBWFeedbackAdd.
 					 */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -139,7 +139,7 @@ DBWFeedbackRedraw(window, plane)
     {
 	/* We expect that most of the feedbacks will have the same
 	 * style and scale, so compute information with the current
-	 * values, and recompute only when the values change.  
+	 * values, and recompute only when the values change.
 	 */
 	if (fb->fb_scale != curScale)
 	{
@@ -205,7 +205,7 @@ DBWFeedbackRedraw(window, plane)
 
 	newStyle = fb->fb_style & (TT_LEFTMASK | TT_RIGHTMASK);
 
-	/* Another little trick:  when the feedback area is very small ("very 
+	/* Another little trick:  when the feedback area is very small ("very
 	 * small" is a hand-tuned constant), change all stippled styles to
 	 * solid.
 	 * (The usefulness of this trick is questionable, as it generally
@@ -250,7 +250,7 @@ dbwFeedbackAlways1()
 {
     return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -410,7 +410,7 @@ DBWFeedbackAdd(area, text, cellDef, scaleFactor, style)
      * transform the area.  If the root isn't an ancestor, just
      * return.
      */
-    
+
     if (!DBSrRoots(cellDef, &GeoIdentityTransform,
 	dbwfbGetTransform, (ClientData) &transform)) return;
 
@@ -422,7 +422,7 @@ DBWFeedbackAdd(area, text, cellDef, scaleFactor, style)
      * this transform are in Magic coordinates, not feedback
      * coordinates.  Scale them into feedback coordinates.
      */
-    
+
     transform.t_c *= scaleFactor;
     transform.t_f *= scaleFactor;
     GeoTransRect(&transform, area, &tmp2);
@@ -432,7 +432,7 @@ DBWFeedbackAdd(area, text, cellDef, scaleFactor, style)
      * not, make a new array, copy the old to the new, then delete
      * the old array.  Use memcpy() to make sure this happens very fast.
      */
-    
+
     if (DBWFeedbackCount == dbwfbSize)
     {
 	Feedback *new;
@@ -545,7 +545,7 @@ dbwFeedbackInit()
     DBWHLAddClient(DBWFeedbackRedraw);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -594,7 +594,7 @@ DBWFeedbackShow()
 	DBWHLRedraw(currentRoot, &area, FALSE);
     dbwfbNextToShow = DBWFeedbackCount;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

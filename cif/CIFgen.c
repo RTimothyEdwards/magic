@@ -4,16 +4,16 @@
  *	tile information, using one of the styles read from the
  *	technology file.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -135,7 +135,7 @@ cifPaintFunc(tile, table)
  *	needed for implants on FET gates to maintain the implant width for
  *	small gates, the "rect_only" requirement is not particularly
  *	constraining.
- *	    
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -352,7 +352,7 @@ cifGrowGridFunc(tile, table)
  *	create a euclidean distance to the edge of growDistance while
  *	keeping corner points on-grid.  This requires a substantially
  *	different algorithm from cifGrowFunc.
- *	
+ *
  * Results:
  *	Always returns 0 to keep the search alive.
  *
@@ -733,7 +733,7 @@ cifBloatFunc(tile, clientData)
     cifArea.r_ytop *= cifScale;
 
     /* This is a modified version of the nonmanhattan grow function.	*/
-    /* We grow only in the direction of the diagonal.			*/			
+    /* We grow only in the direction of the diagonal.			*/
     /* This will not work in all situations!  Corner extensions are not	*/
     /* considered (but should be, for completeness).			*/
 
@@ -839,7 +839,7 @@ cifBloatFunc(tile, clientData)
      * Start with the left side, and output the bloats along that
      * side, if any.
      */
-    
+
     tilestop = tileArea.r_ytop;
     cifstop = cifArea.r_ytop;
     type = oldType;
@@ -1144,7 +1144,7 @@ cifBloatAllFunc(tile, bls)
 	t = (Tile *) STACKPOP(BloatStack);
 	if (t->ti_client != (ClientData)CIF_PENDING) continue;
         t->ti_client = (ClientData)CIF_PROCESSED;
-	
+
 	/* Get the tile into CIF coordinates. */
 
 	TiToRect(t, &area);
@@ -1441,7 +1441,7 @@ cifSquaresStripFunc(tile, stripsData)
     if ((height < stripsData->size) || (height >=
 		(stripsData->size + stripsData->pitch)))
 	return 0;
-	
+
     /* Ignore strips that are part of a larger	*/
     /* collection of non-manhattan geometry.	*/
 
@@ -1487,7 +1487,7 @@ cifSquaresStripFunc(tile, stripsData)
 			TTMaskHasType(&DBSpaceBits, TiGetBottomType(tp)))
 		tp = BL(tp);
 	    segstart = MAX(LEFT(tile), RIGHT(tp));
-	    if (segend <= segstart) break; 
+	    if (segend <= segstart) break;
 
 	    /* Find matching segments along the bottom of the  tile */
 
@@ -1504,7 +1504,7 @@ cifSquaresStripFunc(tile, stripsData)
 				TTMaskHasType(&DBSpaceBits, TiGetTopType(tp2)))
 		    tp2 = TR(tp2);
 		matchend = MIN(LEFT(tp2), segend);
-		if (matchend <= matchstart) break; 
+		if (matchend <= matchstart) break;
 
 		/* Process the strip */
 
@@ -1615,14 +1615,14 @@ cifRectBoundingBox(op, cellDef, plane)
 	simple = TRUE;
 	tile = plane->pl_hint;
 	TiToRect(tile, &bbox);
-	
+
 	PUSHTILE(tile, BoxStack);
 	while (!StackEmpty(BoxStack))
 	{
 	    t = (Tile *) STACKPOP(BoxStack);
 	    if (t->ti_client != (ClientData)CIF_PENDING) continue;
             t->ti_client = (ClientData)CIF_PROCESSED;
-	
+
 	    /* Adjust bounding box */
 	    TiToRect(t, &area);
 	    GeoInclude(&area, &bbox);
@@ -1739,7 +1739,7 @@ cifRectBoundingBox(op, cellDef, plane)
  *	tile-based contact cut generation by collecting all connected tiles
  *	in an area, and placing cuts relative to that area's bounding box.
  *	A tile search is used to select the parts of any non-rectangular area
- *	inside the bounding box that allow contact cuts, which lets cuts 
+ *	inside the bounding box that allow contact cuts, which lets cuts
  *	be placed across tile boundaries and inside non-manhattan tiles.
  *	It also allows contacts to be placed inside complex structures such
  *	as (possibly intersecting) guardrings.
@@ -1802,7 +1802,7 @@ cifSquaresFillArea(op, cellDef, plane)
     while (stripList != NULL)
     {
 	Rect stripLess = stripList->area;
-	
+
 	if (diff > 0)
 	{
 	    if (stripList->vertical)
@@ -1888,14 +1888,14 @@ cifSquaresFillArea(op, cellDef, plane)
 	simple = TRUE;
 	tile = plane->pl_hint;
 	TiToRect(tile, &bbox);
-	
+
 	PUSHTILE(tile, CutStack);
 	while (!StackEmpty(CutStack))
 	{
 	    t = (Tile *) STACKPOP(CutStack);
 	    if (t->ti_client != (ClientData)CIF_PENDING) continue;
             t->ti_client = (ClientData)CIF_PROCESSED;
-	
+
 	    /* Adjust bounding box */
 	    TiToRect(t, &area);
 	    GeoInclude(&area, &bbox);
@@ -2139,7 +2139,7 @@ cifSlotsFillArea(op, cellDef, plane)
     while (stripList != NULL)
     {
 	Rect stripLess = stripList->area;
-	
+
 	if (diff > 0)
 	{
 	    if (stripList->vertical)
@@ -2230,14 +2230,14 @@ cifSlotsFillArea(op, cellDef, plane)
 	simple = TRUE;
 	tile = plane->pl_hint;
 	TiToRect(tile, &bbox);
-	
+
 	PUSHTILE(tile, CutStack);
 	while (!StackEmpty(CutStack))
 	{
 	    t = (Tile *) STACKPOP(CutStack);
 	    if (t->ti_client != (ClientData)CIF_PENDING) continue;
             t->ti_client = (ClientData)CIF_PROCESSED;
-	
+
 	    /* Adjust bounding box */
 	    TiToRect(t, &area);
 	    GeoInclude(&area, &bbox);
@@ -2478,7 +2478,7 @@ cifBloatMaxFunc(tile, op)
     if (op->co_opcode == CIFOP_BLOATMAX) bloat = -10000000;
     else bloat = 10000000;
     for (t = BL(tile); BOTTOM(t) < TOP(tile); t = RT(t))
-    {    
+    {
 	otherType = TiGetType(t);
 	if (otherType == type) continue;
 	tmp = bloats->bl_distance[otherType];
@@ -2496,7 +2496,7 @@ cifBloatMaxFunc(tile, op)
     if (op->co_opcode == CIFOP_BLOATMAX) bloat = -10000000;
     else bloat = 10000000;
     for (t = RT(tile); RIGHT(t) > LEFT(tile); t = BL(t))
-    {    
+    {
 	otherType = TiGetType(t);
 	if (otherType == type) continue;
 	tmp = bloats->bl_distance[otherType];
@@ -2510,11 +2510,11 @@ cifBloatMaxFunc(tile, op)
 	area.r_ytop += bloat;
 
     /* Now the right side. */
- 
+
     if (op->co_opcode == CIFOP_BLOATMAX) bloat = -10000000;
     else bloat = 10000000;
     for (t = TR(tile); TOP(t) > BOTTOM(tile); t = LB(t))
-    {    
+    {
 	otherType = TiGetType(t);
 	if (otherType == type) continue;
 	tmp = bloats->bl_distance[otherType];
@@ -2532,7 +2532,7 @@ cifBloatMaxFunc(tile, op)
     if (op->co_opcode == CIFOP_BLOATMAX) bloat = -10000000;
     else bloat = 10000000;
     for (t = LB(tile); LEFT(t) < RIGHT(tile); t = TR(t))
-    {    
+    {
 	otherType = TiGetType(t);
 	if (otherType == type) continue;
 	tmp = bloats->bl_distance[otherType];
@@ -3004,7 +3004,7 @@ cifSquareGridFunc(area, op, rows, columns, cut)
 	*rows = 0;
 	return 0;
     }
-    
+
     *rows = (locarea.r_ytop - bottom + squares->sq_sep) / pitch;
     if (*rows == 0) return 0;
 
@@ -3023,7 +3023,7 @@ cifSquareGridFunc(area, op, rows, columns, cut)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3104,7 +3104,7 @@ cifSrTiles(cifOp, area, cellDef, temps, func, cdArg)
 	    (void) DBSrPaintArea((Tile *) NULL, *temps, &TiPlaneRect,
 		&CIFSolidBits, func, (ClientData) cdArg);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3191,7 +3191,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		    &DBSpaceBits, cifPaintFunc,
 		    (ClientData) CIFEraseTable);
 		break;
-	    
+
 	    /* For OR, just use cifPaintFunc to OR the areas of all
 	     * relevant tiles into plane.  HOWEVER, if the co_client
 	     * record is non-NULL and CalmaContactArrays is TRUE,
@@ -3269,7 +3269,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		    	(ClientData) CIFPaintTable);
 		}
 		break;
-	    
+
 	    /* For ANDNOT, do exactly the same thing as OR, except erase
 	     * instead of paint.
 	     */
@@ -3279,12 +3279,12 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		cifSrTiles(op, area, cellDef, temps, cifPaintFunc,
 		    (ClientData) CIFEraseTable);
 		break;
-	    
+
 	    /* For GROW, just find all solid tiles in the current plane,
 	     * and paint a larger version into a new plane.  The switch
 	     * the current and new planes.
 	     */
-	
+
 	    case CIFOP_GROW:
 		growDistance = op->co_distance;
 		DBClearPaintPlane(nextPlane);
@@ -3324,7 +3324,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		curPlane = nextPlane;
 		nextPlane = temp;
 		break;
-	    
+
 	    /* SHRINK is just like grow except work from the space tiles. */
 
 	    case CIFOP_SHRINK:
@@ -3340,7 +3340,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		curPlane = nextPlane;
 		nextPlane = temp;
 		break;
-	    
+
 	    case CIFOP_CLOSE:
 		growDistance = op->co_distance;
 		DBClearPaintPlane(nextPlane);
@@ -3362,7 +3362,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		cifSrTiles(op, area, cellDef, temps,
 		    cifBloatFunc, op->co_client);
 		break;
-	    
+
 	    case CIFOP_BLOATMAX:
 	    case CIFOP_BLOATMIN:
 		cifPlane = curPlane;
@@ -3377,7 +3377,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		cifSrTiles(op, area, cellDef, temps,
 		    cifBloatAllFunc, (ClientData)&bls);
 		break;
-	    
+
 	    case CIFOP_SQUARES:
 		if (CalmaContactArrays == FALSE)
 		{
@@ -3458,7 +3458,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		    bbox.r_ybot *= cifScale;
 		    bbox.r_ytop *= cifScale;
 		    DBNMPaintPlane(cifPlane, CIF_SOLIDTYPE, &bbox,
-				CIFPaintTable, (PaintUndoInfo *)NULL); 
+				CIFPaintTable, (PaintUndoInfo *)NULL);
 		}
 		break;
 
@@ -3493,7 +3493,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		bbox.r_ybot *= cifScale;
 		bbox.r_ytop *= cifScale;
 		DBNMPaintPlane(curPlane, CIF_SOLIDTYPE, &bbox,
-			CIFPaintTable, (PaintUndoInfo *)NULL); 
+			CIFPaintTable, (PaintUndoInfo *)NULL);
 		break;
 
 	    default:
@@ -3503,7 +3503,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 
     return curPlane;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3621,7 +3621,7 @@ CIFGen(cellDef, area, planes, layers, replace, genAllPlanes, clientdata)
 	else planes[i] = new[i];
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3670,7 +3670,7 @@ cifClipPlane(plane, clip)
 	DBPaintPlane(plane, &r, CIFEraseTable, (PaintUndoInfo *) NULL);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3725,7 +3725,7 @@ cifGenClip(area, expanded, clip)
     }
     else clip->r_ytop = expanded->r_ytop = area->r_ytop;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

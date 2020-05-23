@@ -3,16 +3,16 @@
  *
  * 	Handles 'stdout' and 'stderr' output.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -53,7 +53,7 @@ FILE * TxMoreFile = NULL;
 static int txMorePid;
 static bool txPrintFlag = TRUE;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * txFprintfBasic:
@@ -69,11 +69,11 @@ static bool txPrintFlag = TRUE;
  * Side effects:
  *	text appears on stdout on the text terminal
  *
- * Note: 
+ * Note:
  *	Many thanks to Paul Chow at Stanford for getting this to run on
  *	a Pyramid machine.
  * ----------------------------------------------------------------------------
- */ 
+ */
 
 void
 txFprintfBasic(FILE *f, ...)
@@ -87,7 +87,7 @@ txFprintfBasic(FILE *f, ...)
     va_end(args);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxPrintf:
@@ -103,11 +103,11 @@ txFprintfBasic(FILE *f, ...)
  * Side effects:
  *	text appears on stdout on the text terminal
  *
- * Note: 
+ * Note:
  *	Many thanks to Paul Chow at Stanford for getting this to run on
  *	a Pyramid machine.
  * ----------------------------------------------------------------------------
- */ 
+ */
 
 void
 TxPrintf(char *fmt, ...)
@@ -117,7 +117,7 @@ TxPrintf(char *fmt, ...)
 
     if (txPrintFlag)
     {
-	if (TxMoreFile != NULL) 
+	if (TxMoreFile != NULL)
 	{
 	    f = TxMoreFile;
 	}
@@ -134,7 +134,7 @@ TxPrintf(char *fmt, ...)
 	    va_end(args);
 	    TxPrompt();
 	}
-	else 
+	else
 	{
 	    va_start(args, fmt);
 	    Vfprintf(f, fmt, args);
@@ -158,7 +158,7 @@ TxPrintf(char *fmt, ...)
  *	None.
  *
  * ----------------------------------------------------------------------------
- */ 
+ */
 
 char *
 TxPrintString(char *fmt, ...)
@@ -193,7 +193,7 @@ TxPrintString(char *fmt, ...)
     return outstr;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxPrintOn --
@@ -204,7 +204,7 @@ TxPrintString(char *fmt, ...)
  *	Previous value of flag.
  *
  * ----------------------------------------------------------------------------
- */ 
+ */
 
 bool
 TxPrintOn()
@@ -212,11 +212,11 @@ TxPrintOn()
     bool oldValue = txPrintFlag;
 
     txPrintFlag = TRUE;
-    
+
     return oldValue;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxPrintOff --
@@ -227,7 +227,7 @@ TxPrintOn()
  *	Previous value of flag.
  *
  * ----------------------------------------------------------------------------
- */ 
+ */
 
 bool
 TxPrintOff()
@@ -241,7 +241,7 @@ TxPrintOff()
 
 #ifndef MAGIC_WRAPPER
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxFlush --
@@ -252,7 +252,7 @@ TxPrintOff()
  *	None.
  *
  * ----------------------------------------------------------------------------
- */ 
+ */
 
 void
 TxFlushErr()
@@ -279,7 +279,7 @@ TxFlush()
 
 #endif
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * TxError:
@@ -295,7 +295,7 @@ TxFlush()
  * Side effects:
  *	text appears on stderr on the text terminal
  *
- * Note: 
+ * Note:
  *	Many thanks to Paul Chow at Stanford for getting this to run on
  *	a Pyramid machine.
  * ----------------------------------------------------------------------------
@@ -308,7 +308,7 @@ TxError(char *fmt, ...)
     FILE *f;
 
     TxFlushOut();
-    if (TxMoreFile != NULL) 
+    if (TxMoreFile != NULL)
 	f = TxMoreFile;
     else
 	f = stderr;
@@ -328,7 +328,7 @@ TxError(char *fmt, ...)
 
 #ifndef MAGIC_WRAPPER
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -396,7 +396,7 @@ TxUseMore()
 	char *argv[100];
 	close(pipeEnds[1]);
 	dup2(pipeEnds[0], 0);
-	if ((pagername = strrchr(pagerpath, '/')) != (char *) 0) 
+	if ((pagername = strrchr(pagerpath, '/')) != (char *) 0)
 	    pagername++;
 	else
 	    pagername = pagerpath;
@@ -410,7 +410,7 @@ TxUseMore()
     /* This is the parent process.  Close the input descriptor and make
      * an official FILE for the output descriptor.
      */
-    
+
     close(pipeEnds[0]);
     TxMoreFile = fdopen(pipeEnds[1], "w");
 
@@ -418,7 +418,7 @@ done:
     if (useenv == NULL) freeMagic(pagerpath);
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -452,7 +452,7 @@ TxStopMore()
      * created for other purposes at the same time, but I can't see
      * any way around it.
      */
-  
+
     WaitPid (txMorePid, 0);
     txMorePid = 0;
 }

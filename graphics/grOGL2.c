@@ -1,15 +1,15 @@
 /* grOGL2.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains additional functions to manipulate an X
@@ -34,9 +34,9 @@ char *getenv();
 
 extern char *DBWStyleType;
 
-
+
 /* GROGLSetCMap (pmap)
- *	
+ *
  *	OpenGL uses R,G,B values explicitly, so there is no
  *	need to install or record colors in a colormap.
  *
@@ -94,7 +94,7 @@ groglDrawLines(lines, nb)
 
 #endif
 }
-
+
 /*---------------------------------------------------------
  * groglDrawLine:
  *	This routine queues a line for batch drawing.
@@ -121,7 +121,7 @@ groglDrawLine (x1, y1, x2, y2)
     groglNbLines++;
 }
 
-
+
 /*---------------------------------------------------------
  * groglFillRects:
  *	This routine draws a bunch of solid rectangles.
@@ -147,14 +147,14 @@ groglFillRects(rects, nb)
     		rects[i].r_ur.p_x, rects[i].r_ur.p_y);
 
 #else
-    
+
     glVertexPointer(2, GL_INT, 0, (GLvoid *)rects);
     /* Use (nb << 2) because there are 4 vertices per rect */
     glDrawArrays(GL_QUADS, 0, nb << 2);
 
 #endif
 }
-
+
 /*---------------------------------------------------------
  * groglFillRect:
  *	This routine queues a solid rectangle for batch drawing.
@@ -183,12 +183,12 @@ groglFillRect(r)
 #ifndef OGL_SERVER_SIDE_ONLY
     groglRects[groglNbRects].r_ul.p_x = r->r_ll.p_x;
     groglRects[groglNbRects].r_ul.p_y = r->r_ur.p_y;
-    
+
     groglRects[groglNbRects].r_lr.p_x = r->r_ur.p_x;
     groglRects[groglNbRects].r_lr.p_y = r->r_ll.p_y;
 #endif
-    
-    groglNbRects++;  
+
+    groglNbRects++;
 }
 
 /*---------------------------------------------------------

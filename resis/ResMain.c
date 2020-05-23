@@ -46,13 +46,13 @@ extern ResSimNode	*ResInitializeNode();
 extern HashTable	ResNodeTable;
 
 
-
+
 /*
  *--------------------------------------------------------------------------
  *
  * ResInitializeConn--
  *
- *  Sets up mask by Source/Drain type of devices. This is 
+ *  Sets up mask by Source/Drain type of devices. This is
  *  exts_deviceSDtypes turned inside out.
  *
  *  Results: none
@@ -68,7 +68,7 @@ ResInitializeConn()
     TileType dev, diff;
     char *dev_name;
     ExtDevice *devptr;
- 	
+
     for (dev = TT_TECHDEPBASE; dev < TT_MAXTYPES; dev++)
     {
 	devptr = ExtCurStyle->exts_device[dev];
@@ -116,14 +116,14 @@ ResGetReCell()
 	ResDef = DBCellNewDef("__RESIS__");
 	ASSERT (ResDef != (CellDef *) NULL, "ResGetReCell");
 	DBCellSetAvail(ResDef);
-	ResDef->cd_flags |= CDINTERNAL;   
+	ResDef->cd_flags |= CDINTERNAL;
     }
     ResUse = DBCellNewUse(ResDef, (char *) NULL);
     DBSetTrans(ResUse, &GeoIdentityTransform);
     ResUse->cu_expandMask = CU_DESCEND_SPECIAL;
 
 }
- 
+
 /*
  *--------------------------------------------------------------------------
  *
@@ -131,7 +131,7 @@ ResGetReCell()
  *
  *  results:  none
  *
- *  Side Effects:  All contacts in the design are broken into their 
+ *  Side Effects:  All contacts in the design are broken into their
  *    constituent
  *    layers.  There should be no contacts in ResDef after this procedure
  *    runs.
@@ -157,7 +157,7 @@ ResDissolveContacts(contacts)
 	    TxError("Error in Contact Dissolving for %s \n",ResCurrentNode);
 	}
 #endif
-	
+
 	DBFullResidueMask(oldtype, &residues);
 
 	DBErase(ResUse->cu_def, &(contacts->cp_rect), oldtype);
@@ -167,7 +167,7 @@ ResDissolveContacts(contacts)
 	    {
 		if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, t))
 		    continue;
-		DBPaint(ResUse->cu_def, &(contacts->cp_rect), t);	
+		DBPaint(ResUse->cu_def, &(contacts->cp_rect), t);
 	    }
 	}
 
@@ -233,7 +233,7 @@ ResMakePortBreakpoints(def)
  *  breakpoints in the "tileJunk" field of their respective tiles in
  *  ResUse.  This ensures (among other things) that pins of a top level
  *  cell will be retained and become the endpoint of a net.
- *  
+ *
  *----------------------------------------------------------------------------
  */
 void
@@ -265,7 +265,7 @@ ResMakeLabelBreakpoints(def)
 	TTMaskSetOnlyType(&mask, slab->lab_type);
 	(void) DBSrPaintArea((Tile *) NULL, plane, rect, &mask,
 			ResAddBreakpointFunc, (ClientData)node);
-	
+
     }
 }
 
@@ -274,7 +274,7 @@ ResMakeLabelBreakpoints(def)
  *
  * ResAddBreakpointFunc --
  *
- *	Add a breakpoint to the "tileJunk" structure of the tile 
+ *	Add a breakpoint to the "tileJunk" structure of the tile
  *
  *----------------------------------------------------------------------------
  */
@@ -290,11 +290,11 @@ ResAddBreakpointFunc(tile, node)
 	return 0;
 
     NEWPORT(node, tile);
-    
+
     return 0;
 }
 
-
+
 /*
  *---------------------------------------------------------------------------
  *
@@ -303,7 +303,7 @@ ResAddBreakpointFunc(tile, node)
  *
  *  Results:  none
  *
- *  Side Effects:  dissolving contacts eliminated the tiles that 
+ *  Side Effects:  dissolving contacts eliminated the tiles that
  *  contacts->nextcontact pointed to. This procedure finds the tile now under
  *  center and sets that tile's ti_client field to point to the contact.  The
  *  old value of clientdata is set to nextTilecontact.
@@ -318,7 +318,7 @@ ResFindNewContactTiles(contacts)
      int pNum;
      Tile *tile;
      TileTypeBitMask mask;
-     
+
      for (; contacts != (ResContactPoint *) NULL; contacts = contacts->cp_nextcontact)
      {
 	  DBFullResidueMask(contacts->cp_type, &mask);
@@ -337,7 +337,7 @@ ResFindNewContactTiles(contacts)
 		  {
 		       tileJunk	*j = (tileJunk *)tile->ti_client;
 		       cElement *ce;
-		       
+
 		       ce = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
 		       contacts->cp_tile[contacts->cp_currentcontact] = tile;
 		       ce->ce_thisc = contacts;
@@ -354,7 +354,7 @@ ResFindNewContactTiles(contacts)
 #endif
      }
 }
-
+
 /*
  *--------------------------------------------------------------------------
  *
@@ -365,7 +365,7 @@ ResFindNewContactTiles(contacts)
  *
  *  Results:  Return 1 if any error occurred, 0 otherwise.
  *
- *  Side Effects: Cleans extraneous linked lists from nodes. 
+ *  Side Effects: Cleans extraneous linked lists from nodes.
  *
  *--------------------------------------------------------------------------
  */
@@ -384,7 +384,7 @@ ResProcessTiles(goodies, origin)
      ResFixPoint	*fix;
      resNode		*resptr;
      int		(*tilefunc)();
-     
+
 #ifdef LAPLACE
      tilefunc = (ResOptionsFlags & ResOpt_DoLaplace)?ResLaplaceTile:ResEachTile;
 #else
@@ -412,7 +412,7 @@ ResProcessTiles(goodies, origin)
 		   if (TiGetTypeExact(tile) != TT_SPACE)
 		   {
 		   	fix->fp_tile = tile;
-		   } 
+		   }
 		   else
 		   {
 		   	tile = NULL;
@@ -435,7 +435,7 @@ ResProcessTiles(goodies, origin)
 	 {
       	      Tile	*tile = fix->fp_tile;
 
-	      if (tile != NULL && (((tileJunk *)tile->ti_client)->tj_status & 
+	      if (tile != NULL && (((tileJunk *)tile->ti_client)->tj_status &
 			RES_TILE_DONE) == 0)
 	      {
 	           resCurrentNode = fix->fp_node;
@@ -455,17 +455,17 @@ ResProcessTiles(goodies, origin)
 
     while (ResNodeQueue != NULL)
     {
-	 /* 
+	 /*
 	  * merged keeps track of whether another node gets merged into
 	  * the current one.  If it does, then the node must be processed
 	  * because additional junctions or contacts were added
 	  */
-	 
+
 	 resptr2 = ResNodeQueue;
 	 merged = FALSE;
 
 	 /* Process all junctions associated with node */
-	 
+
 	 for (workingj = resptr2->rn_je; workingj != NULL; workingj = workingj->je_nextj)
 	 {
 	      ResJunction	*rj = workingj->je_thisj;
@@ -475,7 +475,7 @@ ResProcessTiles(goodies, origin)
 		   {
 	      	        Tile	*tile = rj->rj_Tile[tilenum];
 			tileJunk *j = (tileJunk *) tile->ti_client;
-			
+
 			if ((j->tj_status & RES_TILE_DONE) == 0)
 			{
 			     resCurrentNode = resptr2;
@@ -522,12 +522,12 @@ ResProcessTiles(goodies, origin)
 	      }
 	 }
 
-	 /* 
+	 /*
 	  * If nothing new has been added via a merge, then the node is
 	  * finished. It is removed from the pending queue, added to the
 	  * done list, cleaned up, and passed to ResDoneWithNode
 	  */
-	 
+
 	 if (merged == FALSE)
 	 {
 		 ResRemoveFromQueue(resptr2,&ResNodeQueue);
@@ -550,10 +550,10 @@ ResProcessTiles(goodies, origin)
      }
      return(0);
 }
-
+
 /*-------------------------------------------------------------------------
  *
- * ResExtractNet-- extracts the resistance net at the specified 
+ * ResExtractNet-- extracts the resistance net at the specified
  *	rn_loc. If the resulting net is greater than the tolerance,
  *	simplify and return the resulting network.
  *
@@ -566,7 +566,7 @@ ResProcessTiles(goodies, origin)
  */
 
 bool
-ResExtractNet(startlist,goodies,cellname) 
+ResExtractNet(startlist,goodies,cellname)
     ResFixPoint		*startlist;
     ResGlobalParams	*goodies;
     char		*cellname;
@@ -580,7 +580,7 @@ ResExtractNet(startlist,goodies,cellname)
     static int		first = 1;
 
     /* Make sure all global network variables are reset */
-    
+
     ResResList=NULL;
     ResNodeList=NULL;
     ResDevList=NULL;
@@ -589,15 +589,15 @@ ResExtractNet(startlist,goodies,cellname)
     ResOriginNode = NULL;
 
     /* Pass back network pointers	*/
-    
+
     goodies->rg_maxres = 0;
     goodies->rg_tilecount = 0;
 
     /*set up internal stuff if this is the first time through */
 
-    if (first) 
+    if (first)
     {
-    	 ResInitializeConn(); 
+    	 ResInitializeConn();
          first = 0;
          ResGetReCell();
     }
@@ -625,10 +625,10 @@ ResExtractNet(startlist,goodies,cellname)
 	    return TRUE;
 	}
 	scx.scx_use = (CellUse *) w->w_surfaceID;
-	scx.scx_trans = GeoIdentityTransform;   
+	scx.scx_trans = GeoIdentityTransform;
     }
 
-    DBCellClearDef(ResUse->cu_def);  
+    DBCellClearDef(ResUse->cu_def);
 
 
     /* Copy Paint     */
@@ -659,7 +659,7 @@ ResExtractNet(startlist,goodies,cellname)
 	         			ResCopyMask, &TiPlaneRect, ResUse);
 
 	 for (tmp = newdevtiles; tmp && tmp->nextDev; tmp = tmp->nextDev);
-	 if (newdevtiles) 
+	 if (newdevtiles)
 	 {
 	      if (DevTiles)
 	      {
@@ -680,17 +680,17 @@ ResExtractNet(startlist,goodies,cellname)
     ResContactList = (ResContactPoint *) ExtFindRegions(ResUse->cu_def,
 				     &(ResUse->cu_def->cd_bbox),
 				     &DBAllButSpaceAndDRCBits,
-				     ResConnectWithSD, extUnInit, ResFirst, 
+				     ResConnectWithSD, extUnInit, ResFirst,
 				     ResEach);
     ExtResetTiles(ResUse->cu_def,extUnInit);
-    
-    /* 
-     * dissolve the contacts and find which tiles now cover the point 
+
+    /*
+     * dissolve the contacts and find which tiles now cover the point
      * where the tile used to be.
      */
 
     ResDissolveContacts(ResContactList);
-    
+
     /* Add "junk" fields to tiles */
 
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
@@ -705,7 +705,7 @@ ResExtractNet(startlist,goodies,cellname)
     }
 
     /* Finish preprocessing.		*/
-    
+
     ResMakePortBreakpoints(ResUse->cu_def);
     ResMakeLabelBreakpoints(ResUse->cu_def);
     ResFindNewContactTiles(ResContactList);
@@ -740,7 +740,7 @@ ResExtractNet(startlist,goodies,cellname)
     return FALSE;
 }
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -772,7 +772,7 @@ ResCleanUpEverything()
 	 		&(ResUse->cu_def->cd_bbox),&DBAllButSpaceAndDRCBits,
 			(ClientData) CLIENTDEFAULT,ResRemovePlumbing,
 			(ClientData) NULL);
-			
+
     }
 
     while (ResNodeList != NULL)
@@ -802,11 +802,11 @@ ResCleanUpEverything()
 	 }
     }
 
-    DBCellClearDef(ResUse->cu_def);  
+    DBCellClearDef(ResUse->cu_def);
 }
 
 
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -833,7 +833,7 @@ FindStartTile(goodies, SourcePoint)
     Tile	*tile, *tp;
     int		pnum, t1, t2;
     ExtDevice   *devptr;
-     
+
     /* If the drive point is on a contact, check for the contact residues   */
     /* first, then the contact type itself.				    */
 
@@ -895,7 +895,7 @@ FindStartTile(goodies, SourcePoint)
 			goodies->rg_devloc->p_x, goodies->rg_devloc->p_y);
 	return NULL;
     }
-     
+
     tile = ResUse->cu_def->cd_planes[pnum]->pl_hint;
     GOTOPOINT(tile, &workingPoint);
 
@@ -981,7 +981,7 @@ FindStartTile(goodies, SourcePoint)
     }
     return((Tile *) NULL);
 }
-
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -1005,10 +1005,10 @@ ResGetDevice(pt)
      Point	workingPoint;
      Tile	*tile;
      int	pnum;
-     
+
      workingPoint.p_x = (*pt).p_x;
      workingPoint.p_y = (*pt).p_y;
-     
+
      for (pnum= PL_TECHDEPBASE; pnum < DBNumPlanes; pnum++)
      {
      	  if (TTMaskIntersect(&ExtCurStyle->exts_deviceMask,&DBPlaneTypes[pnum]) == 0)

@@ -3,16 +3,16 @@
  *
  * Testing code for the gate-array router.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -69,7 +69,7 @@ int gaSplitType;
 
 void GAInit();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -137,7 +137,7 @@ badCmd:
     }
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -148,7 +148,7 @@ badCmd:
  * or chanType (either CHAN_HRIVER or CHAN_VRIVER) for channels over
  * existing subcells.  The output is a collection of "garoute channel"
  * commands on the file 'f'.
- * 
+ *
  * Results:
  *	None.
  *
@@ -233,7 +233,7 @@ GAGenChans(chanType, area, f)
     (void) DBSrPaintArea((Tile *) NULL, plane, &gaSplitArea, &DBAllTypeBits,
 		gaSplitOut, (ClientData) f);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -243,7 +243,7 @@ GAGenChans(chanType, area, f)
  * above.  Outputs each tile as the appropriate type of channel (space
  * tiles are CHAN_NORMAL, non-space are either CHAN_HRIVER or CHAN_VRIVER)
  * after first clipping to the area gaSplitArea.
- * 
+ *
  * Results:
  *	Always returns 0.
  *
@@ -272,7 +272,7 @@ gaSplitOut(tile, f)
     fprintf(f, "\n");
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -290,7 +290,7 @@ gaSplitOut(tile, f)
  *	If producing CHAN_VRIVER channels, we extend the box to the
  *	left and right of gaSplitArea, and bloat it to the top and
  *	bottom to the next farthest-out line between two grid lines.
- * 
+ *
  * Results:
  *	Always returns 0.
  *
@@ -360,7 +360,7 @@ gaSplitFunc(scx, plane)
 		(PaintUndoInfo *) NULL, PAINT_NORMAL);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

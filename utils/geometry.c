@@ -1,15 +1,15 @@
 /* geometry.c --
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains a bunch of utility routines for manipulating
@@ -78,7 +78,7 @@ global Rect  GeoNullRect = { 0, 0, 0, 0 };
 global Rect  GeoInvertedRect = { 0, 0, -1, -1 };
 global Point GeoOrigin = { 0, 0 };
 
-
+
 /*-------------------------------------------------------------------
  *	GeoTransPoint --
  *	Transforms a point from one coordinate system to another.
@@ -188,7 +188,7 @@ GeoTransAngle(t, a)
     return a;
 }
 
-
+
 /*-------------------------------------------------------------------
  *	GeoTransRect --
  *	Transforms a rectangle from one coordinate system to another.
@@ -243,7 +243,7 @@ GeoTransRect(t, r1, r2)
 	r2->r_ytop = y1;
     }
 }
-
+
 /*-------------------------------------------------------------------
  *	GeoTranslateTrans --
  *	Translate a transform by the indicated (x, y) amount.
@@ -270,7 +270,7 @@ GeoTranslateTrans(trans1, x, y, trans2)
     trans2->t_c = trans1->t_c + x;
     trans2->t_f = trans1->t_f + y;
 }
-
+
 /*-------------------------------------------------------------------
  *	GeoTransTranslate --
  *	Transform a translation by the indicated (x, y) amount.
@@ -304,7 +304,7 @@ GeoTransTranslate(x, y, trans1, trans2)
     trans2->t_f = x*trans1->t_d + y*trans1->t_e + trans1->t_f;
 }
 
-
+
 /*-------------------------------------------------------------------
  *	GeoTransTrans --
  *	This routine transforms a transform.
@@ -332,7 +332,7 @@ GeoTransTrans(first, second, net)
     net->t_f = first->t_c*second->t_d + first->t_f*second->t_e + second->t_f;
 }
 
-
+
 /*-------------------------------------------------------------------
  *	GeoNameToPos --
  *	Map the name of a position into an integer position parameter.
@@ -443,7 +443,7 @@ GeoNameToPos(name, manhattan, verbose)
     return (pos);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -478,7 +478,7 @@ GeoPosToName(pos)
 	default:            return("*ILLEGAL*");
     }
 }
-
+
 /*-------------------------------------------------------------------
  *	GeoTransPos --
  *	This routine computes the transform of a relative position.
@@ -530,7 +530,7 @@ GeoTransPos(t, pos)
     return pos;
 }
 
-
+
 /*-------------------------------------------------------------------
  *	GeoInvertTrans --
  *	This routine computes the inverse of a transform.
@@ -564,7 +564,7 @@ GeoInvertTrans(t, inverse)
     GeoTransTrans(&t2, &t3, inverse);
 }
 
-
+
 /*-------------------------------------------------------------------
  *	GeoInclude --
  *	This routine includes one rectangle into another by expanding
@@ -591,7 +591,7 @@ GeoInclude(src, dst)
 	*dst = *src;
 	return TRUE;
     }
-    
+
     value = FALSE;
     if (dst->r_xbot > src->r_xbot)
     {
@@ -616,7 +616,7 @@ GeoInclude(src, dst)
     return value;
 }
 
-
+
 /*-------------------------------------------------------------------
  *	GeoIncludeAll --
  *	This routine includes one rectangle into another by expanding
@@ -649,7 +649,7 @@ GeoIncludeAll(src, dst)
 
     if ((src->r_xbot > src->r_xtop) || (src->r_ybot > src->r_ytop))
 	return FALSE;
-    
+
     value = FALSE;
     if (dst->r_xbot > src->r_xbot)
     {
@@ -674,7 +674,7 @@ GeoIncludeAll(src, dst)
     return value;
 }
 
-
+
 /*-------------------------------------------------------------------
  *	GeoIncludePoint --
  *	This routine includes a point into a rectangle by expanding
@@ -733,7 +733,7 @@ GeoIncludeRectInBBox(r, bbox)
     bbox->r_ytop = MAX(bbox->r_ytop,r->r_ytop);
 }
 
-
+
 /*-------------------------------------------------------------------
  *	GeoClip --
  *	clips one rectangle against another.
@@ -760,7 +760,7 @@ GeoClip(r, area)
     if (r->r_xtop > area->r_xtop) r->r_xtop = area->r_xtop;
     if (r->r_ytop > area->r_ytop) r->r_ytop = area->r_ytop;
 }
-
+
 /*-------------------------------------------------------------------
  *	GeoClipPoint --
  *	Clips one point against a rectangle, moving the point into
@@ -783,7 +783,7 @@ GeoClipPoint(p, area)
     if (p->p_x > area->r_xtop) p->p_x = area->r_xtop;
     if (p->p_y > area->r_ytop) p->p_y = area->r_ytop;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	GeoDisjoint --
@@ -834,7 +834,7 @@ GeoDisjoint(area, clipBox, func, cdarg)
      * into one piece that is DEFINITELY outside clipBox, and one
      * piece left to check some more.
      */
-    
+
     /* Top edge of clipBox: */
 
     rArea = *area;
@@ -889,7 +889,7 @@ GeoDummyFunc(box, cdarg)
     return TRUE;
 }
 
-
+
 /*-------------------------------------------------------------------
  *	GeoCanonicalRect --
  *	Turns a rectangle into a canonical form in which the
@@ -929,7 +929,7 @@ GeoCanonicalRect(r, rnew)
 	rnew->r_ytop = r->r_ytop;
     }
 }
-
+
 /*-------------------------------------------------------------------
  *	GeoScale --
  *
@@ -986,7 +986,7 @@ GeoScaleTrans(trans1, m, trans2)
     trans2->t_f = trans1->t_f * m;
 }
 
-
+
 /*-------------------------------------------------------------------
  *	GeoRectPointSide --
  *
@@ -1015,7 +1015,7 @@ GeoRectPointSide(r, p)
     else
 	return(GEO_CENTER);
 }
-
+
 /*-------------------------------------------------------------------
  *	GeoRectRectSide --
  *
@@ -1047,7 +1047,7 @@ GeoRectRectSide(r0, r1)
     else
 	return(GEO_CENTER);
 }
-
+
 /* ----------------------------------------------------------------------------
  *
  * GeoDecomposeTransform --
@@ -1068,7 +1068,7 @@ GeoRectRectSide(r0, r1)
 void
 GeoDecomposeTransform(t, upsidedown, angle)
     Transform *t;
-    bool *upsidedown;		/* Set to TRUE iff we should flip upsidedown 
+    bool *upsidedown;		/* Set to TRUE iff we should flip upsidedown
 				 * before rotating.
 				 */
     int *angle;			/* Amount to rotate.
@@ -1087,15 +1087,15 @@ GeoDecomposeTransform(t, upsidedown, angle)
     /* Compute rotations and flips. */
     *upsidedown = ((notrans.t_a == 0) ^
 	(notrans.t_b == notrans.t_d) ^ (notrans.t_a == notrans.t_e));
-    if (*upsidedown) 
+    if (*upsidedown)
 	GeoTransTrans(&notrans, &GeoUpsideDownTransform, &rotonly);
     else
 	rotonly = notrans;
     /* Verify no flipping. */
-    ASSERT(rotonly.t_a == rotonly.t_e, "GeoDecomposeTransform");	  
+    ASSERT(rotonly.t_a == rotonly.t_e, "GeoDecomposeTransform");
 
     *angle = 0;
-    if (rotonly.t_b != 0) 
+    if (rotonly.t_b != 0)
     {
 	*angle += 90;
 	if (*upsidedown) *angle += 180;

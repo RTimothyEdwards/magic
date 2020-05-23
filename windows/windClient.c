@@ -3,16 +3,16 @@
  *	Send button pushes and commands to the window's command
  *	interpreters.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -86,7 +86,7 @@ static int windCorner = WIND_ILG;	/* Nearest corner when button went
 					 * down.
 					 */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	windButtonSetCursor --
@@ -137,7 +137,7 @@ windButtonSetCursor(button, corner)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windGetCorner --
@@ -146,7 +146,7 @@ windButtonSetCursor(button, corner)
  *
  * Results:
  *	An integer value is returned, indicating the corner closest to
- *	the given screen location.  
+ *	the given screen location.
  *
  * Side effects:
  *	None.
@@ -172,14 +172,14 @@ windGetCorner(screenPoint, screenRect)
     {
 	if (screenPoint->p_y < ((r.r_ybot + r.r_ytop)/2))
 	    return WIND_BL;
-	else 
+	else
 	    return WIND_TL;
     }
     else
     {
 	if (screenPoint->p_y < ((r.r_ybot + r.r_ytop)/2))
 	    return WIND_BR;
-	else 
+	else
 	    return WIND_TR;
     }
 }
@@ -195,7 +195,7 @@ windGetCorner(screenPoint, screenRect)
  *
  * Side effects:
  *	The rectangle is changed so that the given corner is at the
- *	given position.  
+ *	given position.
  * ----------------------------------------------------------------------------
  */
 
@@ -271,7 +271,7 @@ windMoveRect(wholeRect, corner, p, rect)
 	/* If the movement turned the box inside out, turn it right
 	 * side out again.
 	 */
-	
+
 	if (rect->r_xbot > rect->r_xtop)
 	{
 	    tmp = rect->r_xtop;
@@ -288,7 +288,7 @@ windMoveRect(wholeRect, corner, p, rect)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * Button Routines --
@@ -327,12 +327,12 @@ windFrameDown(w, cmd)
     {
 	windCorner = windGetCorner(&(cmd->tx_p), &(windFrameWindow->w_frameArea));
     }
-    else if (cmd->tx_button == TX_LEFT_BUTTON) 
+    else if (cmd->tx_button == TX_LEFT_BUTTON)
     {
 	windCorner = WIND_BL;
 	windButtonSetCursor(windButton, windCorner);
     }
-    else if (cmd->tx_button == TX_RIGHT_BUTTON) 
+    else if (cmd->tx_button == TX_RIGHT_BUTTON)
     {
 	windCorner = WIND_TR;
 	windButtonSetCursor(windButton, windCorner);
@@ -412,8 +412,8 @@ windFrameButtons(w, cmd)
 	    {
 		/* move elevator */
 		p.p_x = 0;
-		p.p_y = w->w_bbox->r_ybot + 
-			((w->w_bbox->r_ytop - w->w_bbox->r_ybot) * 
+		p.p_y = w->w_bbox->r_ybot +
+			((w->w_bbox->r_ytop - w->w_bbox->r_ybot) *
 			(cmd->tx_p.p_y - leftBar.r_ybot))
 			/ (leftBar.r_ytop - leftBar.r_ybot) -
 			(w->w_surfaceArea.r_ytop + w->w_surfaceArea.r_ybot)/2;
@@ -424,7 +424,7 @@ windFrameButtons(w, cmd)
 	    {
 		/* move elevator */
 		p.p_y = 0;
-		p.p_x = w->w_bbox->r_xbot + 
+		p.p_x = w->w_bbox->r_xbot +
 			((w->w_bbox->r_xtop - w->w_bbox->r_xbot) *
 			(cmd->tx_p.p_x - botBar.r_xbot))
 			/ (botBar.r_xtop - botBar.r_xbot) -
@@ -532,7 +532,7 @@ windClientButtons(w, cmd)
 	/* Handle 'grow' for our window package. */
 	if (WindPackageType == WIND_MAGIC_WINDOWS)
 	{
-	    if ((cmd->tx_button == TX_MIDDLE_BUTTON) && 
+	    if ((cmd->tx_button == TX_MIDDLE_BUTTON) &&
 				GEO_ENCLOSE(&cmd->tx_p, &caption))
 	    {
 		WindFullScreen(w);
@@ -540,7 +540,7 @@ windClientButtons(w, cmd)
 	    }
 	}
 	if (windFrameButtons(w, cmd)) return;
-	    
+
 	/* Otherwise, continue onward */
     }
 
@@ -554,13 +554,13 @@ windClientButtons(w, cmd)
     {
 	case WIND_X_WINDOWS:
 	    break;
-	
+
 	default:
 	    /* Magic Windows */
-	    if (cmd->tx_button == TX_MIDDLE_BUTTON) 
+	    if (cmd->tx_button == TX_MIDDLE_BUTTON)
 		return;
-	    if ((cmd->tx_buttonAction == TX_BUTTON_UP) && 
-		(windFrameWindow == NULL)) 
+	    if ((cmd->tx_buttonAction == TX_BUTTON_UP) &&
+		(windFrameWindow == NULL))
 		return;
 
 	    /* no special area or else an up push -- reframe window */
@@ -587,7 +587,7 @@ windClientButtons(w, cmd)
  *	the window frame area (zoom and scroll) by calling windFrameButtons()
  *	if it appears to be appropriate for this MagWindow structure.
  *	This bypasses the key macro handler, thus hard-coding the button
- *	actions for the frame.  
+ *	actions for the frame.
  *
  * Results:
  *	TRUE if the button was pushed in the frame and handled by one
@@ -617,7 +617,7 @@ WindButtonInFrame(w, x, y, b)
     return FALSE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -661,7 +661,7 @@ windCmdInterp(w, cmd)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *  windCmdInit --
@@ -680,7 +680,7 @@ void
 windClientInit()
 {
     windClientID = WindAddClient(WINDOW_CLIENT, ( bool (*)() ) NULL,
-	( bool (*)() ) NULL, ( void (*)() ) NULL, windCmdInterp, 
+	( bool (*)() ) NULL, ( void (*)() ) NULL, windCmdInterp,
 	( void (*)() ) NULL, ( bool (*)() ) NULL, ( void (*)() ) NULL,
 	(GrGlyph *) NULL);
 
@@ -793,10 +793,10 @@ windClientInit()
 	"view [get]              zoom window out so everything is visible",
 	windViewCmd, FALSE);
     WindAddCommand(windClientID,
-	"windowborder [on|off]	toggle border drawing for new windows",	
+	"windowborder [on|off]	toggle border drawing for new windows",
 	windBorderCmd, FALSE);
     WindAddCommand(windClientID,
-	"windowcaption [on|off]	toggle title caption for new windows",	
+	"windowcaption [on|off]	toggle title caption for new windows",
 	windCaptionCmd, FALSE);
     WindAddCommand(windClientID,
 	"windowscrollbars [on|off]\n\

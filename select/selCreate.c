@@ -3,16 +3,16 @@
  *	This file provides routines to make selections by copying
  *	things into a special cell named "__SELECT__".
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -71,7 +71,7 @@ CellDef *SelectRootDef = NULL;
 
 global CellUse *selectLastUse = NULL;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -135,7 +135,7 @@ SelectInit()
 
     SelUndoInit();
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -253,7 +253,7 @@ selClearFunc(scx)
     else return 2;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -344,7 +344,7 @@ SelectArea(scx, types, xMask)
 	&DBAllButSpaceBits);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -460,7 +460,7 @@ selFindChunk(plane, wrongTypes, searchArea, containedArea, bestMin,
     else goto tryY;  /* Bad material overlaps containedArea in x. */
     selFindChunk(plane, wrongTypes, &smaller, containedArea,
 	    bestMin, bestMax, bestChunk, level + 1);
-    
+
 
     /* Also try reducing the y-range to see if that works better. */
 
@@ -488,7 +488,7 @@ selSplitFunc(tile, cxp)
 
     if (IsSplit(tile))
     {
-        TiToRect(tile, &locarea);  
+        TiToRect(tile, &locarea);
 	GeoTransRect(&scx->scx_trans, &locarea, area);
         return 1;
     }
@@ -509,13 +509,13 @@ selChunkFunc(tile, wrong)
     return 1;			/* Abort the search. */
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * SelectChunk --
  *
- * 	This procedure selects a single rectangular chunk of 
+ * 	This procedure selects a single rectangular chunk of
  *	homogeneous material.
  *
  * Results:
@@ -629,7 +629,7 @@ SelectChunk(scx, type, xMask, pArea, less)
 	/* If the chunk is completely inside the area we yanked, then we're
 	 * done.
 	 */
-	
+
 	if (GEO_SURROUND_STRONG(&newscx.scx_area, &bestChunk)) break;
 
 	/* The chunk extends to the edge of the area.  Any place that the
@@ -637,7 +637,7 @@ SelectChunk(scx, type, xMask, pArea, less)
 	 * Any place it doesn't touch, move the edge in to be just one
 	 * unit out from the chunk.
 	 */
-	
+
 	width = newscx.scx_area.r_xtop - newscx.scx_area.r_xbot;
 	height = newscx.scx_area.r_ytop - newscx.scx_area.r_ybot;
 
@@ -680,7 +680,7 @@ chunkdone:
 
     if (pArea != NULL) *pArea = bestChunk;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -755,7 +755,7 @@ SelectRegion(scx, type, xMask, pArea, less)
     /* Now transfer what we found into the main selection cell.  Pick
      * up all the labels that correspond to the selected material.
      */
-    
+
     SelRememberForUndo(TRUE, (CellDef *) NULL, (Rect *) NULL);
     if (less)
       {
@@ -785,7 +785,7 @@ SelectRegion(scx, type, xMask, pArea, less)
 
     if (pArea != NULL) *pArea = Select2Def->cd_extended;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -859,7 +859,7 @@ SelectNet(scx, type, xMask, pArea, less)
     /* Now transfer what we found into the main selection cell.  Pick
      * up all the labels that correspond to the selected material.
      */
-    
+
     UndoDisable();
     if (less)
     {
@@ -881,7 +881,7 @@ SelectNet(scx, type, xMask, pArea, less)
     /* unselect it.						*/
 
     SelectUse->cu_flags |= CU_SELECT_NET;
-    UndoEnable(); 
+    UndoEnable();
 
     DBReComputeBbox(SelectDef);
     DBComputeUseBbox(SelectUse);
@@ -892,7 +892,7 @@ SelectNet(scx, type, xMask, pArea, less)
 
     if (pArea != NULL) *pArea = Select2Def->cd_extended;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1025,7 +1025,7 @@ SelectAndCopy1()
     /* Just copy the information in Select2Def twice, once into the
      * edit cell and once into the main selection cell.
      */
-    
+
     scx.scx_use = SelectUse;
     scx.scx_area = SelectUse->cu_bbox;
     GeoTransTrans(&SelectUse->cu_transform, &RootToEditTransform, &scx.scx_trans);
@@ -1081,7 +1081,7 @@ SelectAndCopy2(newSourceDef)
     /* Just copy the information in Select2Def twice, once into the
      * edit cell and once into the main selection cell.
      */
-    
+
     scx.scx_use = Select2Use;
     scx.scx_area = Select2Use->cu_bbox;
     scx.scx_trans = RootToEditTransform;
@@ -1113,7 +1113,7 @@ SelectAndCopy2(newSourceDef)
      * use Select2Def to figure out what areas of what planes to put into
      * SelectUse, but use the actual tile types from the edit cell.
      */
-    
+
     for (plane = PL_SELECTBASE; plane < DBNumPlanes; plane++)
     {
 	(void) DBSrPaintArea((Tile *) NULL, Select2Def->cd_planes[plane],
@@ -1139,7 +1139,7 @@ SelectAndCopy2(newSourceDef)
 
     DBReComputeBbox(SelectDef);
     DBComputeUseBbox(SelectUse);
-    
+
     /* A little hack here:  don't do explicit redisplay of the selection,
      * or record a very large redisplay area for undo-ing.  It's not
      * necessary since the layout redisplay also redisplays the highlights.
@@ -1199,7 +1199,7 @@ selACPaintFunc(tile, plane)
  * tile and editClip into SelectDef.
  *
  * This function is like dbCopyAllPaint() but differs just enough
- * that a separate function is required.  However, much of the code 
+ * that a separate function is required.  However, much of the code
  * could be shared between the two functions if it were properly
  * broken out into subroutines.
  */

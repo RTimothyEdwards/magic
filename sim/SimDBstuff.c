@@ -2,23 +2,23 @@
 /* SimDBstuff.c -
  *
  *	This file contains routines that extract electrically connected
- *	regions of a layout for Magic.   This extractor operates 
+ *	regions of a layout for Magic.   This extractor operates
  *	hierarchically, across cell boundaries (SimTreeCopyConnect), as
  *	well as within a single cell (SimSrConnect).
  *
  *	This also contains routines corresponding to those in the DBWind
  *	module.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  * University of California
  */
@@ -49,7 +49,7 @@
  * of information that must be passed through multiple
  * levels of search function.
  */
-	
+
 struct conSrArg
 {
     CellDef *csa_def;			/* Definition being searched. */
@@ -103,7 +103,7 @@ extern void SimMakePathname();
 
 static char 		bestName[256];
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -170,7 +170,7 @@ SimConnectFunc(tile, cx)
     /* Clip the current area down to something that overlaps the
      * area of interest.
      */
-	
+
     csa2 = (struct conSrArg2 *)cx->tc_filter->tf_arg;
     GeoClip(&newarea, csa2->csa2_bounds);
     if (GEO_RECTNULL(&newarea)) return 0;
@@ -185,7 +185,7 @@ SimConnectFunc(tile, cx)
 	char c = *n;
 
 	SigDisableInterrupts();
-	strcpy(nodeName, SimGetNodeName(cx->tc_scx, tile, tpath->tp_first)); 
+	strcpy(nodeName, SimGetNodeName(cx->tc_scx, tile, tpath->tp_first));
 	SigEnableInterrupts();
 
 	*n = c;
@@ -199,7 +199,7 @@ SimConnectFunc(tile, cx)
     loctype = TiGetTypeExact(tile);
 
     /* Resolve geometric transformations on diagonally-split tiles */
-   
+
     if (IsSplit(tile))
     {
 	dinfo = DBTransformDiagonal(loctype, &scx->scx_trans);
@@ -222,7 +222,7 @@ SimConnectFunc(tile, cx)
 
 	TTMaskSetOnlyType(&notConnectMask, loctype);
 
-	/* Differenct contact types may share residues (6/18/04) */     
+	/* Differenct contact types may share residues (6/18/04) */
 	for (ctype = TT_TECHDEPBASE; ctype < DBNumUserLayers; ctype++)
 	{
 	    if (DBIsContact(ctype))
@@ -234,7 +234,7 @@ SimConnectFunc(tile, cx)
 	}
 
 	/* The mask of contact types must include all stacked contacts */
-	for (ctype = DBNumUserLayers; ctype < DBNumTypes; ctype++)   
+	for (ctype = DBNumUserLayers; ctype < DBNumTypes; ctype++)
 	{
 	    cMask = DBResidueMask(ctype);
 	    if TTMaskHasType(cMask, loctype)
@@ -255,7 +255,7 @@ SimConnectFunc(tile, cx)
 	return 0;
 
     /* Paint this tile into the destination cell. */
-	
+
     DBNMPaintPlane(def->cd_planes[pNum], dinfo, &newarea,
 		DBStdPaintTbl(loctype, pNum), (PaintUndoInfo *) NULL);
 
@@ -290,7 +290,7 @@ SimConnectFunc(tile, cx)
 	newarea.r_ytop += 1;
     }
 
-    /* Abort the name search if the name is in the abort name search table 
+    /* Abort the name search if the name is in the abort name search table
      * or if the name is global and the SimIgnoreGlobals flag is not set.
      */
 
@@ -332,7 +332,7 @@ SimConnectFunc(tile, cx)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -413,7 +413,7 @@ SimTreeCopyConnect(scx, mask, xMask, connect, area, destUse, Node_Name)
     csa2.csa2_top = -1;
 
     tpath.tp_first = tpath.tp_next = pathName;
-    tpath.tp_last = pathName + MAXPATHNAME; 
+    tpath.tp_last = pathName + MAXPATHNAME;
 
     pathName[0] = '\0';
     bestName[0] = '\0';
@@ -439,7 +439,7 @@ SimTreeCopyConnect(scx, mask, xMask, connect, area, destUse, Node_Name)
     /* Recompute the bounding box of the destination and record
      * its area for redisplay.
      */
-    
+
     strcpy(Node_Name, bestName);
     DBReComputeBbox(destUse->cu_def);
 }
@@ -504,7 +504,7 @@ efPreferredName(name1, name2)
     	    if (np1 - name1 > np2 - name2) return (FALSE);
 
 	    /* same # of pathname components; same length; use lex order */
-	    if (strcmp(name1, name2) > 0) 
+	    if (strcmp(name1, name2) > 0)
 		return(TRUE);
 	    else
 		return(FALSE);
@@ -528,7 +528,7 @@ efPreferredName(name1, name2)
     if (np1 - name1 > np2 - name2) return (FALSE);
 
     /* same # of pathname components; same length; use lex ordering */
-    if (strcmp(name1, name2) > 0) 
+    if (strcmp(name1, name2) > 0)
 	return(TRUE);
     else
 	return(FALSE);
@@ -570,10 +570,10 @@ efPreferredName(name1, name2)
  *	1 then the search is aborted.
  *
  *				*** WARNING ***
- *	
+ *
  *	Func should not modify any paint during the search, since this
  *	will mess up pointers kept by these procedures and likely cause
- *	a core-dump.  
+ *	a core-dump.
  *
  * ----------------------------------------------------------------------------
  */
@@ -863,7 +863,7 @@ cleanup:
     return (result);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -914,7 +914,7 @@ SimPutLabel(cellDef, rect, align, text, type)
      * from the boundary, so it won't stick out past the edge of
      * the cell boundary.
      */
-    
+
 #define BORDER 5
     if (align < 0)
     {

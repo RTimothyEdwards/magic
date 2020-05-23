@@ -3,16 +3,16 @@
  *
  * Input of Calma GDS-II stream format.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -115,7 +115,7 @@ HashTable calmaDefInitHash;
 
 /* Common stuff to ignore */
 int calmaElementIgnore[] = { CALMA_ELFLAGS, CALMA_PLEX, -1 };
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -144,7 +144,7 @@ CalmaReadFile(file, filename)
     static int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
 			     CALMA_REFLIBS, CALMA_FONTS, CALMA_ATTRTABLE,
 			     CALMA_STYPTABLE, CALMA_GENERATIONS, -1 };
-    static int skipBeforeLib[] = { CALMA_LIBDIRSIZE, CALMA_SRFNAME, 
+    static int skipBeforeLib[] = { CALMA_LIBDIRSIZE, CALMA_SRFNAME,
 				   CALMA_LIBSECUR, -1 };
 
     /* We will use full cell names as keys in this hash table */
@@ -181,7 +181,7 @@ CalmaReadFile(file, filename)
     if (version < 600)
 	TxPrintf("Library written using GDS-II Release %d.0\n", version);
     else
-	TxPrintf("Library written using GDS-II Release %d.%d\n", 
+	TxPrintf("Library written using GDS-II Release %d.%d\n",
 	    version / 100, version % 100);
     if (!calmaSkipExact(CALMA_BGNLIB)) goto done;
     calmaSkipSet(skipBeforeLib);
@@ -326,7 +326,7 @@ calmaParseUnits()
 
     return (TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -359,7 +359,7 @@ CalmaReadError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
     if (CIFWarningLevel == CIF_WARN_NONE) return;
 
     if ((calmaTotalErrors < 100) || (CIFWarningLevel != CIF_WARN_LIMIT))
-    {   
+    {
 	filepos = ftello(calmaInputFile);
 
         if (CIFWarningLevel == CIF_WARN_REDIRECT)
@@ -370,7 +370,7 @@ CalmaReadError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
                                 cifReadCellDef->cd_name);
 		fprintf(calmaErrorFile, "(byte position %"DLONG_PREFIX"ld): ",
 				(dlong)filepos);
-                fprintf(calmaErrorFile, format, a1, a2, a3, a4, a5, a6, a7, 
+                fprintf(calmaErrorFile, format, a1, a2, a3, a4, a5, a6, a7,
                                 a8, a9, a10);
             }
         }
@@ -386,7 +386,7 @@ CalmaReadError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
         TxError("Error limit set:  Remaining errors will not be reported.\n");
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -429,7 +429,7 @@ calmaUnexpected(wanted, got)
 	    }
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -478,7 +478,7 @@ calmaRecordName(rtype)
 
     return (calmaRecordNames[rtype]);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

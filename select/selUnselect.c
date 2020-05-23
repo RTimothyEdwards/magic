@@ -23,7 +23,7 @@
 #include "utils/malloc.h"
 #include "textio/textio.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -50,13 +50,13 @@ selUnselFunc(tile, arg)
 {
   TileType type;
   Rect rect;
-  
+
   if ((type = TiGetType(tile)) >= DBNumUserLayers) return 0;
   TiToRect(tile, &rect);
   DBErase(SelectDef, &rect, type);
   return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -94,7 +94,7 @@ selRemoveCellFunc(scx, cdarg)
   if (++selNRemove >= MAXUNSELUSES) return 1;
   else return 2;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -158,7 +158,7 @@ SelRemoveArea(area, mask)
       while (TRUE)
 	{
 	  int i;
-	  
+
 	  selNRemove = 0;
 	  (void) DBCellSrArea(&scx, selRemoveCellFunc, (ClientData) &bbox);
 	  for (i = 0; i < selNRemove; i++)
@@ -183,7 +183,7 @@ SelRemoveArea(area, mask)
   DBReComputeBbox(SelectDef);
   DBWAreaChanged(SelectDef, &bbox, DBW_ALLWINDOWS, (TileTypeBitMask *) NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -215,7 +215,7 @@ selRemoveLabelPaintFunc(tile, label)
 
   return 1;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -286,7 +286,7 @@ SelRemoveSel2()
     DBEraseLabelsByContent(SelectDef, &label->lab_rect, -1, label->lab_text);
   return 0;
 }
-
+
 typedef struct
 {
   CellUse *ed_use, *sel_use;
@@ -341,7 +341,7 @@ SelRemoveCellSearchFunc(scx, cdarg)
     }
   return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

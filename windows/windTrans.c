@@ -4,16 +4,16 @@
  *	Routines to transform from screen coords to surface coords and the
  *	other way.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -28,7 +28,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "graphics/glyphs.h"
 #include "windows/windInt.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindScreenToSurface --
@@ -52,7 +52,7 @@ WindScreenToSurface(w, screen, surface)
     Rect *screen;		/* A rectangle in screen coordinates */
     Rect *surface;		/* A pointer to a rectangle to be filled
 				 * in with a rectangle in surface coords that
-				 * is big enough to contain everything 
+				 * is big enough to contain everything
 				 * displayed within the screen rectangle.
 				 */
 {
@@ -62,7 +62,7 @@ WindScreenToSurface(w, screen, surface)
     surface->r_ur = r.r_ur;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * WindPointToSurface --
@@ -105,7 +105,7 @@ WindPointToSurface(w, screenPoint, surfacePoint, surfaceBox)
     /* Do the inverse transformation twice, once with rounding for
      * the point and once with truncation for the box.
      */
-    
+
     unitsPerPixel = SUBPIXEL/w->w_scale;
 
     if (surfaceBox != NULL)
@@ -114,7 +114,7 @@ WindPointToSurface(w, screenPoint, surfacePoint, surfaceBox)
 	if (tmp < 0) tmp -= w->w_scale-1;
 	surfaceBox->r_xbot = w->w_surfaceArea.r_xbot + tmp/w->w_scale;
 	surfaceBox->r_xtop = surfaceBox->r_xbot + unitsPerPixel + 1;
-    
+
 	tmp = (SUBPIXEL*screenPoint->p_y) - w->w_origin.p_y;
 	if (tmp < 0) tmp -= w->w_scale-1;
 	surfaceBox->r_ybot = w->w_surfaceArea.r_ybot + tmp/w->w_scale;
@@ -135,7 +135,7 @@ WindPointToSurface(w, screenPoint, surfacePoint, surfaceBox)
 	surfacePoint->p_y = w->w_surfaceArea.r_ybot + tmp/w->w_scale;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -187,7 +187,7 @@ WindSurfaceToScreen(w, surface, screen)
     int tmp;
 
     /* Do the four coordinates one at a time. */
-    
+
     /* The apparently redundant clipping (also done later by the box	*/
     /* drawing routine) is necessary for two reasons:  1) it prevents	*/
     /* having to do a multiply and shift function for any box extending	*/
@@ -204,7 +204,7 @@ WindSurfaceToScreen(w, surface, screen)
 	    screen->r_xbot = w->w_screenArea.r_xbot - 1;
         else screen->r_xbot = (w->w_origin.p_x + (tmp * w->w_scale)) >> SUBPIXELBITS;
     }
-    
+
     tmp = surface->r_ybot;
     if (tmp > w->w_surfaceArea.r_ytop)
 	screen->r_ybot = w->w_screenArea.r_ytop + 1;
@@ -215,7 +215,7 @@ WindSurfaceToScreen(w, surface, screen)
 	    screen->r_ybot = w->w_screenArea.r_ybot - 1;
         else screen->r_ybot = (w->w_origin.p_y + (tmp * w->w_scale)) >> SUBPIXELBITS;
     }
-    
+
     tmp = surface->r_xtop;
     if (tmp > w->w_surfaceArea.r_xtop)
 	screen->r_xtop = w->w_screenArea.r_xtop + 1;
@@ -226,7 +226,7 @@ WindSurfaceToScreen(w, surface, screen)
 	    screen->r_xtop = w->w_screenArea.r_xbot - 1;
         else screen->r_xtop = (w->w_origin.p_x + (tmp * w->w_scale)) >> SUBPIXELBITS;
     }
-    
+
     tmp = surface->r_ytop;
     if (tmp > w->w_surfaceArea.r_ytop)
 	screen->r_ytop = w->w_screenArea.r_ytop + 1;
@@ -239,7 +239,7 @@ WindSurfaceToScreen(w, surface, screen)
     }
 }
 
-/*     
+/*
  * ----------------------------------------------------------------------------
  *
  * WindSurfaceToScreenNoClip --
@@ -263,7 +263,7 @@ WindSurfaceToScreen(w, surface, screen)
  *
  * ----------------------------------------------------------------------------
  */
- 
+
 void
 WindSurfaceToScreenNoClip(w, surface, screen)
     MagWindow *w;
@@ -286,7 +286,7 @@ WindSurfaceToScreenNoClip(w, surface, screen)
     screen->r_ytop = (int)(dval >> SUBPIXELBITS);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -318,14 +318,14 @@ WindPointToScreen(w, surface, screen)
     int tmp;
 
     /* Do the coordinates one at a time. */
-    
+
     tmp = surface->p_x;
     if (tmp > w->w_surfaceArea.r_xtop)
 	tmp = w->w_surfaceArea.r_xtop;
     tmp -= w->w_surfaceArea.r_xbot;
     if (tmp < 0) tmp = 0;
     screen->p_x = (w->w_origin.p_x + (tmp*w->w_scale)) >> SUBPIXELBITS;
-    
+
     tmp = surface->p_y;
     if (tmp > w->w_surfaceArea.r_ytop)
 	tmp = w->w_surfaceArea.r_ytop;
@@ -333,7 +333,7 @@ WindPointToScreen(w, surface, screen)
     if (tmp < 0) tmp = 0;
     screen->p_y = (w->w_origin.p_y + (tmp*w->w_scale)) >> SUBPIXELBITS;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -366,7 +366,7 @@ windScreenToFrame(w, screen, frame)
 	    frame->p_x = screen->p_x + w->w_frameArea.r_xbot;
 	    frame->p_y = screen->p_y + w->w_frameArea.r_ybot;
 	    break;
-	
+
 	default:
 	    /* WIND_MAGIC_WINDOWS */
 	    *frame = *screen;

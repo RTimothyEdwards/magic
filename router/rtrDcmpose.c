@@ -16,16 +16,16 @@
  * the original plane and horizontal edges defining channels.  This
  * is done in the new, generated plane--not in the original plane.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -79,7 +79,7 @@ extern void rtrMarkChannel();
 extern void rtrMerge();
 
 bool rtrUseCorner();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -132,7 +132,7 @@ RtrDecomposeName(routeUse, area, name)
 
     return (def);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -246,7 +246,7 @@ RtrDecompose(routeUse, area, netList)
 
     return (cdTo);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -280,7 +280,7 @@ RtrFindChannelDef()
 
     return (def);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -338,7 +338,7 @@ rtrSrCells(scx, targetDef)
 		DBStdWriteTbl(CELLTILE), (PaintUndoInfo *) NULL);
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -403,7 +403,7 @@ rtrRoundRect(r, sepUp, sepDown, doRoundUp)
 	r->r_ytop -= halfGrid;
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -433,7 +433,7 @@ rtrHashKill(ht)
 	GCRFreeChannel((GCRChannel *) HashGetValue(he));
     HashKill(ht);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -499,7 +499,7 @@ rtrSplitToArea(area, def)
 	p.p_y = TOP(tile);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -524,7 +524,7 @@ rtrSrClear(tile, area)
     Rect *area;
 {
     /* Clear all */
-    rtrCLEAR(tile, -1);	
+    rtrCLEAR(tile, -1);
 
     if (TiGetBody(tile) == (ClientData) NULL)
     {
@@ -557,7 +557,7 @@ rtrSrClear(tile, area)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -590,7 +590,7 @@ rtrSrFunc(tile, plane)
 
     /*
      * Check each corner of this cell tile to see if it is convex,
-     * and no marked boundary is incident upon it. 
+     * and no marked boundary is incident upon it.
      */
     p = tile->ti_ll;
     if (rtrUseCorner(&p, rtrSW, plane, tiles))
@@ -610,7 +610,7 @@ rtrSrFunc(tile, plane)
 
     return (0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -698,7 +698,7 @@ rtrUseCorner(point, corner, plane, tiles)
     }
     return(FALSE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -821,7 +821,7 @@ rtrMarkChannel(plane, tiles, point, corner)
         rtrMerge(RT(tile), tile, plane);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -929,7 +929,7 @@ rtrYDist(tiles, point, up, plane)
 	return (yStart - p.p_y);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -961,7 +961,7 @@ rtrXDist(tiles, x, isRight)
 
     return (MIN(l0, l1));
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

@@ -4,16 +4,16 @@
  * Input of Calma GDS-II stream format.
  * Processing of paint (paths, boxes, and boundaries) and text.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -184,7 +184,7 @@ calmaReadPoint(p, iscale)
     p->p_y /= calmaReadScale2;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -233,7 +233,7 @@ calmaElementBoundary()
 	plane = cifCurReadPlanes[ciftype];
 
     /* Read the path itself, building up a path structure */
-    if (!calmaReadPath(&pathheadp, (plane == NULL) ? 0 : 1)) 
+    if (!calmaReadPath(&pathheadp, (plane == NULL) ? 0 : 1))
     {
 	if (plane != NULL)
 	    CalmaReadError("Error while reading path for boundary/box; ignored.\n");
@@ -347,7 +347,7 @@ calmaElementBoundary()
 	DBPlaceCell(use, cifReadCellDef);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -502,10 +502,10 @@ calmaElementPath()
      * Allow zero-width paths; we will ignore them later.
      */
     width = 0;
-    PEEKRH(nbytes, rtype) 
+    PEEKRH(nbytes, rtype)
     if (nbytes > 0 && rtype == CALMA_WIDTH)
     {
-	if (!calmaReadI4Record(CALMA_WIDTH, &width)) 
+	if (!calmaReadI4Record(CALMA_WIDTH, &width))
 	{
 	    CalmaReadError("Error in reading WIDTH in calmaElementPath()\n") ;
 	    return;
@@ -558,7 +558,7 @@ calmaElementPath()
 
     /* Read the points in the path */
     savescale = calmaReadScale1;
-    if (!calmaReadPath(&pathheadp, 2)) 
+    if (!calmaReadPath(&pathheadp, 2))
     {
 	CalmaReadError("Improper path; ignored.\n");
 	return;
@@ -714,7 +714,7 @@ calmaElementText()
     cifnum = CIFCalmaLayerToCifLayer(layer, textt, cifCurReadStyle);
     if (cifnum < 0)
     {
-	if (cifCurReadStyle->crs_flags & CRF_IGNORE_UNKNOWNLAYER_LABELS) 
+	if (cifCurReadStyle->crs_flags & CRF_IGNORE_UNKNOWNLAYER_LABELS)
 	    type = -1;
 	else {
 	    calmaLayerError("Label on unknown layer/datatype", layer, textt);
@@ -781,7 +781,7 @@ calmaElementText()
 	int width;
 
 	/* Use WIDTH value to set the font size */
-	if (!calmaReadI4Record(CALMA_WIDTH, &width)) 
+	if (!calmaReadI4Record(CALMA_WIDTH, &width))
 	{
 	    CalmaReadError("Error in reading WIDTH in calmaElementText()\n") ;
 	    return;
@@ -865,7 +865,7 @@ calmaElementText()
      * a flag for that in the "cifoutput" section of the techfile.
      */
 
-#if 0 
+#if 0
 
     {
 	static bool algmsg = FALSE;
@@ -874,7 +874,7 @@ calmaElementText()
 	char *savstring;
 	for (cp = textbody; *cp; cp++)
 	{
-	    if (*cp <= ' ' | *cp > '~') 
+	    if (*cp <= ' ' | *cp > '~')
 	    {
 		if (!changed)
 		{
@@ -883,7 +883,7 @@ calmaElementText()
 		}
 		if (*cp == '\r' && *(cp+1) == '\0')
 		    *cp = '\0';
-		else if (*cp == '\r') 
+		else if (*cp == '\r')
 		    *cp = '_';
 		else if (*cp == ' ')
 		    *cp = '_';
@@ -1006,7 +1006,7 @@ calmaElementText()
     /* done with textbody */
     if (textbody != NULL) freeMagic(textbody);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1113,7 +1113,7 @@ calmaReadPath(pathheadpp, iscale)
     }
     return (*pathheadpp != NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

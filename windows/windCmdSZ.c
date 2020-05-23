@@ -3,16 +3,16 @@
  *	This file contains Magic command routines for those commands
  *	that are valid in all windows.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -43,7 +43,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "dbwind/dbwind.h"
 #include "graphics/graphics.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -63,7 +63,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *	parsed as a fractional scroll amount, "units" *must* be declared
  *	as "w".  Otherwise, no units implies that "amount" is an absolute
  *	value.
- *	
+ *
  *
  * ----------------------------------------------------------------------------
  */
@@ -190,7 +190,7 @@ windScrollCmd(w, cmd)
 
     return;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * windSetpointCmd --
@@ -218,7 +218,7 @@ windSetpointCmd(w, cmd)
     char *ptstr;
 #endif
 
-    if ((cmd->tx_argc != 4) && (cmd->tx_argc != 3) && (cmd->tx_argc != 1)) 
+    if ((cmd->tx_argc != 4) && (cmd->tx_argc != 3) && (cmd->tx_argc != 1))
 	goto usage;
     if ((cmd->tx_argc != 1) && !
 	(StrIsInt(cmd->tx_argv[1]) && StrIsInt(cmd->tx_argv[2])) )
@@ -247,7 +247,7 @@ windSetpointCmd(w, cmd)
 
     if (cmd->tx_argc == 1)
     {
-	if (w != (MagWindow *) NULL) 
+	if (w != (MagWindow *) NULL)
 	{
 	    WindPointToSurface(w, &cmd->tx_p, &rootPoint, (Rect *) NULL);
 
@@ -272,7 +272,7 @@ windSetpointCmd(w, cmd)
 
 	yval = atoi(cmd->tx_argv[2]);
 
-	/* Reinterpret coordinates according to the graphics package */ 
+	/* Reinterpret coordinates according to the graphics package */
 	switch (WindPackageType)
 	{
 	    case WIND_X_WINDOWS:
@@ -297,7 +297,7 @@ windSetPrintProc(name, val)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windSleepCmd --
@@ -319,7 +319,7 @@ windSleepCmd(w, cmd)
 {
     int time;
 
-    if (cmd->tx_argc != 2) 
+    if (cmd->tx_argc != 2)
     {
 	TxError("Usage: %s seconds\n", cmd->tx_argv[0]);
 	return;
@@ -335,7 +335,7 @@ windSleepCmd(w, cmd)
 
 #ifndef MAGIC_WRAPPER
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -369,7 +369,7 @@ windSourceCmd(w, cmd)
 	return;
     }
 
-    f = PaOpen(cmd->tx_argv[1], "r", (char *) NULL, ".", 
+    f = PaOpen(cmd->tx_argv[1], "r", (char *) NULL, ".",
 	    SysLibPath, (char **) NULL);
     if (f == NULL)
 	TxError("Couldn't read from %s.\n", cmd->tx_argv[1]);
@@ -415,7 +415,7 @@ windSpecialOpenCmd(w, cmd)
 	(cmd->tx_argc < 6) ||
 	!StrIsInt(cmd->tx_argv[2]) ||
 	!StrIsInt(cmd->tx_argv[3]) ||
-	!StrIsInt(cmd->tx_argv[4]) 
+	!StrIsInt(cmd->tx_argv[4])
 	)) goto usage;
     if (haveCoords)
 	client = cmd->tx_argv[5];
@@ -572,7 +572,7 @@ windNamesCmd(w, cmd)
 #endif /* !MAGIC_WRAPPER */
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windUnderCmd --
@@ -604,7 +604,7 @@ windUnderCmd(w, cmd)
     WindUnder(w);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -693,7 +693,7 @@ windUndoCmd(w, cmd)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * windUpdateCmd --
@@ -768,7 +768,7 @@ windVersionCmd(w, cmd)
     TxPrintf("Version %s revision %s.  Compiled on %s.\n",
 		MagicVersion, MagicRevision, MagicCompileTime);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -811,14 +811,14 @@ windViewCmd(w, cmd)
     {
 #ifdef MAGIC_WRAPPER
 	Tcl_Obj *listxy, *fval;
-	
+
 	listxy = Tcl_NewListObj(0, NULL);
 #endif
 
 	if (!strncmp(cmd->tx_argv[1], "get", 3))
 	{
 #ifndef MAGIC_WRAPPER
-	    TxPrintf("(%d, %d) to (%d, %d)\n", 
+	    TxPrintf("(%d, %d) to (%d, %d)\n",
 			w->w_surfaceArea.r_xbot, w->w_surfaceArea.r_ybot,
 			w->w_surfaceArea.r_xtop, w->w_surfaceArea.r_ytop);
 #else
@@ -836,7 +836,7 @@ windViewCmd(w, cmd)
 	else if (!strncmp(cmd->tx_argv[1], "bbox", 4))
 	{
 #ifndef MAGIC_WRAPPER
-	    TxPrintf("(%d, %d) to (%d, %d)\n", 
+	    TxPrintf("(%d, %d) to (%d, %d)\n",
 			w->w_bbox->r_xbot, w->w_bbox->r_ybot,
 			w->w_bbox->r_xtop, w->w_bbox->r_ytop);
 #else
@@ -897,7 +897,7 @@ windViewCmd(w, cmd)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -961,7 +961,7 @@ ViewUnexpandFunc(use, windowMask)
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1014,7 +1014,7 @@ windScrollBarsCmd(w, cmd)
 
 #ifndef MAGIC_WRAPPER
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1051,7 +1051,7 @@ windSendCmd(w, cmd)
     client = WindGetClient(cmd->tx_argv[1], FALSE);
     if (client == (WindClient) NULL) goto usage;
     toWindow = (MagWindow *) NULL;
-    (void) WindSearch(client, (ClientData) NULL, (Rect *) NULL, 
+    (void) WindSearch(client, (ClientData) NULL, (Rect *) NULL,
 	windSendCmdFunc, (ClientData) &toWindow);
     {
 	int i;
@@ -1091,8 +1091,8 @@ typedef struct _cdwpos {
     FILE *file;
     bool doFrame;
 } cdwpos;
-   
-
+
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1147,11 +1147,11 @@ windPositionsCmd(w, cmd)
 	    return;
 	};
     }
-    (void) WindSearch((WindClient) NULL, (ClientData) NULL, (Rect *) NULL, 
+    (void) WindSearch((WindClient) NULL, (ClientData) NULL, (Rect *) NULL,
 	windPositionsFunc, (ClientData) &windpos);
     if (filename) (void) fclose(windpos.file);
     return;
-    
+
 usage:
     TxError("Usage:  windowpositions [file]\n");
     return;
@@ -1187,18 +1187,18 @@ windPositionsFunc(w, cdata)
 	Tcl_SetObjResult(magicinterp, lobj);
     }
 #else
-	TxPrintf("specialopen %d %d %d %d %s\n", 
+	TxPrintf("specialopen %d %d %d %d %s\n",
 		r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop,
 		((clientRec *) w->w_client)->w_clientName);
 #endif
     else
-	fprintf((FILE *)cdata, "specialopen %d %d %d %d %s\n", 
+	fprintf((FILE *)cdata, "specialopen %d %d %d %d %s\n",
 		r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop,
 		((clientRec *) w->w_client)->w_clientName);
     return 0;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *

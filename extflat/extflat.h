@@ -4,16 +4,16 @@
  * Internal definitions for the procedures to flatten hierarchical
  * (.ext) circuit extraction files.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * rcsid $Header: /usr/cvsroot/magic-8.0/extflat/extflat.h,v 1.2 2008/12/03 14:12:09 tim Exp $
@@ -343,7 +343,7 @@ extern int EFGetPortMax();
 /* ------------------------- constants used by clients -------------- */
 /* This gives us a 32 or 64 dev types which should be ok */
 #define	BITSPERCHAR	8
-#define MAXDEVTYPES (sizeof(long)*BITSPERCHAR) 
+#define MAXDEVTYPES (sizeof(long)*BITSPERCHAR)
 
 /*
  * ANSI C definitions of arguments to EFvisit procedures

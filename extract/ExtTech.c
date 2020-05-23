@@ -5,16 +5,16 @@
  * Code to read and process the sections of a technology file
  * that are specific to circuit extraction.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -177,7 +177,7 @@ static keydesc keyTable[] = {
 
     0
 };
-
+
 
 /*
  * Table used for parsing the "device" keyword types
@@ -286,7 +286,7 @@ ExtCompareStyle(stylename)
  *	inefficient, but keeps the netlist generator separated from
  *	the extractor.  Some of this code is seriously schizophrenic,
  *	and should not be investigated too closely.
- * 
+ *
  * Results:
  *	Return FALSE if no device corresponds to index "idx".  TRUE
  *	otherwise.
@@ -475,7 +475,7 @@ ExtGetDiffTypesMask(mask)
  * ----------------------------------------------------------------------------
  *
  * ExtGetZAxis --
- * 
+ *
  *	Get the height and thickness parameters for a layer (used by the
  *	graphics module which does not have access to internal variables
  *	in the extract section).
@@ -629,7 +629,7 @@ ExtSetStyle(name)
     TxError("\"%s\" is not one of the extraction styles Magic knows.\n", name);
     ExtPrintStyle(FALSE, TRUE, TRUE);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -788,7 +788,7 @@ extTechStyleInit(style)
     TTMaskZero(&style->exts_globSubstrateShieldTypes);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -850,7 +850,7 @@ aToCap(str)
  * Re-read the technology file to load the specified technology extraction
  * style into structure ExtCurStyle.  This is much more memory-efficient than
  * keeping a separate (and huge!) ExtStyle structure for each extraction style.
- * It incurs a complete reading of the tech file on startup and every time the 
+ * It incurs a complete reading of the tech file on startup and every time the
  * extraction style is changed, but we can assume that this does not happen
  * often.  The first style in the technology file is assumed to be default, so
  * that re-reading the tech file is not necessary on startup unless the default
@@ -920,7 +920,7 @@ ExtTechInit()
  *	Parse the techfile line for the "defaultareacap" keyword.
  *	This is equivalent to the "areacap" line but also applies
  *	to "overlap" of types on the second plane (if specified) and
- *	all planes below it, with appropriate intervening types. 
+ *	all planes below it, with appropriate intervening types.
  *
  * Usage:
  *	defaultareacap types plane [[subtypes] subplane] value
@@ -954,7 +954,7 @@ ExtTechSimpleAreaCap(argc, argv)
     int plane1, plane2, plane3, pnum1, pnum2, pnum3;
     PlaneMask pshield;
 
-    if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder) 
+    if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder)
     {
 	TechError("Cannot parse area cap line without plane ordering!\n");
 	return;
@@ -1083,7 +1083,7 @@ ExtTechSimplePerimCap(argc, argv)
     PlaneMask pshield;
     EdgeCap *cnew;
 
-    if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder) 
+    if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder)
     {
 	TechError("Cannot parse area cap line without plane ordering!\n");
 	return;
@@ -1309,7 +1309,7 @@ ExtTechSimpleOverlapCap(argv)
     int plane1, plane2, plane3, pnum1, pnum2, pnum3;
     PlaneMask pshield;
 
-    if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder) 
+    if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder)
     {
 	TechError("Cannot parse area cap line without plane ordering!\n");
 	return;
@@ -1404,7 +1404,7 @@ ExtTechSimpleSideOverlapCap(argv)
     PlaneMask pshield;
     EdgeCap *cnew;
 
-    if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder) 
+    if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder)
     {
 	TechError("Cannot parse area cap line without plane ordering!\n");
 	return;
@@ -1767,7 +1767,7 @@ ExtTechLine(sectionName, argc, argv)
 			for (es = ExtAllStyles; es->exts_next; es = es->exts_next);
 			es->exts_next = newStyle;
 		    }
-		    
+
 		    if (cptr == NULL)
 			break;
 		    else
@@ -1781,7 +1781,7 @@ ExtTechLine(sectionName, argc, argv)
 	/* style encountered.  Otherwise, if we are changing styles, 	*/
 	/* load this style only if the name matches that in ExtCurStyle.*/
 
-	if (ExtCurStyle == NULL) 
+	if (ExtCurStyle == NULL)
 	{
 	    ExtCurStyle = extTechStyleNew();
 	    ExtCurStyle->exts_name = newStyle->exts_name;
@@ -1850,7 +1850,7 @@ ExtTechLine(sectionName, argc, argv)
 	while (*tptr != '\0')
 	{
 	    cptr = strchr(tptr, ',');
-	    if (cptr != NULL) 
+	    if (cptr != NULL)
 	    {
 		*cptr = '\0';
 		for (j = 1; isspace(*(cptr - j)); j++)
@@ -1871,7 +1871,7 @@ ExtTechLine(sectionName, argc, argv)
 		    return TRUE;
 		}
 	    }
-	
+
 	    if (cptr == NULL)
 		break;
 	    else
@@ -1959,8 +1959,8 @@ ExtTechLine(sectionName, argc, argv)
 	    subsName = argv[5];
 
 	    // From magic version 8.1, subs name can be a nonfunctional
-	    // throwaway (e.g., "error"), so don't throw a warning. 
-	
+	    // throwaway (e.g., "error"), so don't throw a warning.
+
 	    cp = strchr(subsName, '!');
 	    if (cp == NULL || cp[1] != '\0')
 	    {
@@ -2186,7 +2186,7 @@ ExtTechLine(sectionName, argc, argv)
 		    else
 		    {
 			/* Normal symmetric device with swappable source/drain */
-			
+
 			DBTechNoisyNameMask(argv[4], &termtypes[0]); /* source/drain */
 			termtypes[1] = DBZeroTypeBits;
 			if (strcmp(argv[5], "None"))
@@ -2277,7 +2277,7 @@ ExtTechLine(sectionName, argc, argv)
 			nterm = argc - 4;
 			iterm = 4;
 		    }
-		    
+
 		    /* terminals */
 		    for (i = iterm; i < iterm + nterm; i++)
 			DBTechNoisyNameMask(argv[iterm], &termtypes[i - iterm]);
@@ -2320,7 +2320,7 @@ ExtTechLine(sectionName, argc, argv)
 		    for (i = 0; !TTMaskIsZero(&termtypes[i]); i++);
 		    devptr->exts_deviceSDTypes = (TileTypeBitMask *)
 					mallocMagic((i + 1) * sizeof(TileTypeBitMask));
-			
+
 		    for (i = 0; !TTMaskIsZero(&termtypes[i]); i++)
 			devptr->exts_deviceSDTypes[i] = termtypes[i];
 		    devptr->exts_deviceSDTypes[i] = DBZeroTypeBits;
@@ -2836,9 +2836,9 @@ ExtTechLine(sectionName, argc, argv)
 	    ExtCurStyle->exts_globSubstratePlane = DBTechNoisyNamePlane(argv[2]);
 	    break;
 	case NOPLANEORDER: {
-	     if ( ExtCurStyle->exts_planeOrderStatus == seenPlaneOrder ) 
+	     if ( ExtCurStyle->exts_planeOrderStatus == seenPlaneOrder )
 		TechError("\"noplaneordering\" specified after \"planeorder\".\n");
-	     else 
+	     else
 		ExtCurStyle->exts_planeOrderStatus = noPlaneOrder ;
 	    }
 	    break ;
@@ -2850,10 +2850,10 @@ ExtTechLine(sectionName, argc, argv)
 		TechError("\"planeorder\" specified after \"noplaneordering\".\n");
 	    }
 	    ExtCurStyle->exts_planeOrderStatus = seenPlaneOrder ;
-	    if (pnum < 0) 
+	    if (pnum < 0)
 		TechError("Unknown planeorder plane %s\n", argv[1]);
 	    else if (pos < 0 || pos >= DBNumPlanes-PL_TECHDEPBASE)
-		TechError("Planeorder index must be [0..%d]\n", 
+		TechError("Planeorder index must be [0..%d]\n",
 		    DBNumPlanes-PL_TECHDEPBASE-1);
 	    else
 		ExtCurStyle->exts_planeOrder[pnum] = pos;
@@ -2872,7 +2872,7 @@ diffplane:
 		"\tdifferent plane from intypes and outtypes.\n");
     return (TRUE);
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -2987,7 +2987,7 @@ extTechFinalStyle(style)
 
 	    for (q = TT_TECHDEPBASE; q < DBNumUserLayers; q++)
 	    {
-		if (TTMaskHasType(&style->exts_overlapOtherTypes[q], r)) 
+		if (TTMaskHasType(&style->exts_overlapOtherTypes[q], r))
 		    TTMaskSetType(&style->exts_overlapOtherTypes[q], s);
 
 	        for (t = TT_TECHDEPBASE; t < DBNumUserLayers; t++)
@@ -3000,7 +3000,7 @@ extTechFinalStyle(style)
 		/* must count from TT_SPACE, not TT_TECHDEPBASE.		*/
 
 	        for (t = TT_SPACE; t < DBNumUserLayers; t++)
-		    if (TTMaskHasType(&style->exts_sideOverlapOtherTypes[q][t], r)) 
+		    if (TTMaskHasType(&style->exts_sideOverlapOtherTypes[q][t], r))
 			TTMaskSetType(&style->exts_sideOverlapOtherTypes[q][t], s);
 	    }
 	}
@@ -3043,9 +3043,9 @@ extTechFinalStyle(style)
 
 	for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 	{
-	    TTMaskAndMask(&style->exts_overlapShieldTypes[s][t], 
+	    TTMaskAndMask(&style->exts_overlapShieldTypes[s][t],
 			&style->exts_activeTypes);
-	    TTMaskAndMask(&style->exts_sideOverlapOtherTypes[s][t], 
+	    TTMaskAndMask(&style->exts_sideOverlapOtherTypes[s][t],
 			&style->exts_activeTypes);
 	    TTMaskAndMask(&style->exts_sideCoupleOtherEdges[s][t],
 			&style->exts_activeTypes);
@@ -3058,7 +3058,7 @@ extTechFinalStyle(style)
 	TTMaskAndMask(&style->exts_sideTypes[p], &style->exts_activeTypes);
     }
 
-    if ( style->exts_planeOrderStatus == noPlaneOrder ) 
+    if ( style->exts_planeOrderStatus == noPlaneOrder )
     	return /* no need to check */ ;
     /* Else Check to make sure the plane order is a permutation of the
        numbers 0..DBNumPlanes-DBNumPlanes-1 */
@@ -3077,7 +3077,7 @@ extTechFinalStyle(style)
 	if (indicis[p1] < 1) missing = TRUE ;
     }
     if (!conflict && !missing)		/* Everything was ok */
-	goto zinit; 	
+	goto zinit;
 
     TxError ("\nWarning: Extraction Style %s\n", style -> exts_name);
     if (conflict) {
@@ -3155,7 +3155,7 @@ zinit:
 		// a specific distance, the value (run / separation)
 		// is unscaled, so the capacitance does not get
 		// modified by the scalefactor.  However, the lambda
-		// reference for sidewall cap is 2 lambda, so if 
+		// reference for sidewall cap is 2 lambda, so if
 		// the reference is to be interpreted as 1 micron,
 		// the value needs to be divided by 2 (the factor of
 		// 2 is made up by the fact that the sidewall is

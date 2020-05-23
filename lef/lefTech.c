@@ -1,5 +1,5 @@
 /*
- * lefTech.c --      
+ * lefTech.c --
  *
  * This module incorporates the LEF/DEF format for standard-cell place and
  * route.  Defines technology file layer mapping between LEF and magic layer
@@ -132,7 +132,7 @@ LefTechInit()
  *
  * Side effects:
  *	Memory freed in the hash table.
- * 
+ *
  *-----------------------------------------------------------------------------
  */
 
@@ -395,7 +395,7 @@ LefTechLine(sectionName, argc, argv)
  *  LefTechScale --
  *
  *	Change parameters of the LEF section as required when
- *	redefining magic's internal grid relative to the technology lambda. 
+ *	redefining magic's internal grid relative to the technology lambda.
  *
  * ----------------------------------------------------------------------------
  */

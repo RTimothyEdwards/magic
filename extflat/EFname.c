@@ -3,16 +3,16 @@
  *
  * Procedures for manipulating HierNames.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -34,7 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
 
-#ifdef MAGIC_WRAPPER 
+#ifdef MAGIC_WRAPPER
 #define PrintErr TxError
 #else
 #define PrintErr printf
@@ -59,7 +59,7 @@ extern void EFHNFree();
 extern void efHNInit();
 extern void efHNRecord();
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -67,7 +67,7 @@ extern void efHNRecord();
  *
  * Determine whether a HierName is of the format of a global name,
  * i.e, it ends in a '!'.
- * 
+ *
  * The Tcl version of magic further refines this to include names
  * which are defined in the global Tcl variable space.  (7.3.94):
  * also check if the array variable "globals" contains the name as
@@ -104,7 +104,7 @@ EFHNIsGlob(hierName)
  * EFHNIsGND --
  *
  * Determine whether a HierName is the same as the global signal GND.
- * 
+ *
  * The Tcl version of magic expands this to include names which are
  * equal to the global Tcl variable $GND, if it is set.
  *
@@ -139,7 +139,7 @@ EFHNIsGND(hierName)
     return (strcmp(hierName->hn_name, "GND!") == 0);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -184,7 +184,7 @@ EFHNConcat(prefix, suffix)
 
     return firstNew;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -247,7 +247,7 @@ EFStrToHN(prefix, suffixStr)
 
     return hierName;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -318,7 +318,7 @@ efHNToStrFunc(hierName, dstp)
 
     return --dstp;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -378,7 +378,7 @@ EFHNLook(prefix, suffixStr, errorStr)
 
     return he;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -430,7 +430,7 @@ EFHNConcatLook(prefix, suffix, errorStr)
     hn->hn_parent = (HierName *) NULL;
     return he;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -468,7 +468,7 @@ EFHNFree(hierName, prefix, type)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -539,7 +539,7 @@ EFHNBest(hierName1, hierName2)
 
     return (efHNLexOrder(hierName1, hierName2) > 0);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -577,7 +577,7 @@ efHNLexOrder(hierName1, hierName2)
 
     return strcmp(hierName1->hn_name, hierName2->hn_name);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -667,7 +667,7 @@ efHNFromUse(hc, prefix)
 
     return hierName;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -710,7 +710,7 @@ efHNUseHash(hierName)
 {
     return hierName->hn_hash + (spointertype) hierName->hn_parent;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -758,7 +758,7 @@ efHNInit(hierName, cp, endp)
 
     hierName->hn_hash = hashsum;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -818,7 +818,7 @@ efHNHash(hierName)
 
     return n;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -888,7 +888,7 @@ efHNDistKill(dist)
 
     freeMagic((char *) dist);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -930,7 +930,7 @@ efHNBuildDistKey(prefix, dist, distKey)
     distKey->dist_min = dist->dist_min;
     distKey->dist_max = dist->dist_max;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

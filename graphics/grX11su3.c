@@ -1,19 +1,19 @@
 /* grX11su3.c -
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
  * This file contains additional functions to manipulate an X window system
- * color display.  Included here are device-dependent routines to draw and 
+ * color display.  Included here are device-dependent routines to draw and
  * erase text and draw a grid.
  *
  */
@@ -45,7 +45,7 @@ static XFontStruct *grXFonts[4];
 #define	grXLargeFont	grXFonts[3]
 
 
-
+
 /*---------------------------------------------------------
  * grxDrawGrid:
  *	grxDrawGrid adds a grid to the grid layer, using the current
@@ -87,7 +87,7 @@ grx11DrawGrid (prect, outline, clip)
     while (xstart < clip->r_xbot << SUBPIXELBITS) xstart += xsize;
     ystart = prect->r_ybot % ysize;
     while (ystart < clip->r_ybot << SUBPIXELBITS) ystart += ysize;
-    
+
     grx11SetLineStyle(outline);
 
     snum = 0;
@@ -130,7 +130,7 @@ grx11DrawGrid (prect, outline, clip)
     return TRUE;
 }
 
-
+
 /*---------------------------------------------------------
  * grxLoadFont
  *	This local routine loads the X fonts used by Magic.
@@ -162,10 +162,10 @@ grx11LoadFont()
     {
     	 char	*s = XGetDefault(grXdpy,"magic",optionnames[i]);
 	 if (s) fontnames[i] = s;
-         if ((grXFonts[i] = XLoadQueryFont(grXdpy, fontnames[i])) == NULL) 
+         if ((grXFonts[i] = XLoadQueryFont(grXdpy, fontnames[i])) == NULL)
          {
 	      TxError("%s %s\n",unable,fontnames[i]);
-              if ((grXFonts[i]= XLoadQueryFont(grXdpy,GR_DEFAULT_FONT))==NULL) 
+              if ((grXFonts[i]= XLoadQueryFont(grXdpy,GR_DEFAULT_FONT))==NULL)
 	      {
 	           TxError("%s %s\n",unable,GR_DEFAULT_FONT);
 		   return FALSE;
@@ -175,7 +175,7 @@ grx11LoadFont()
     return TRUE;
 }
 
-
+
 /*---------------------------------------------------------
  * grxSetCharSize:
  *	This local routine sets the character size in the display,
@@ -214,12 +214,12 @@ grx11SetCharSize (size)
     }
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrXTextSize --
  *
- *	Determine the size of a text string. 
+ *	Determine the size of a text string.
  *
  * Results:
  *	None.
@@ -240,7 +240,7 @@ GrX11TextSize(text, size, r)
     XCharStruct overall;
     XFontStruct *font;
     int dir,fa,fd;
-    
+
     switch (size) {
     case GR_TEXT_DEFAULT:
     case GR_TEXT_SMALL:
@@ -268,7 +268,7 @@ GrX11TextSize(text, size, r)
     r->r_xbot = -overall.lbearing - 1;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrXReadPixel --
@@ -303,7 +303,7 @@ GrX11ReadPixel (w, x, y)
     return (value & (1 << grDisplay.depth) - 1);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  * GrXBitBlt --
@@ -368,7 +368,7 @@ grx11FreeBackingStore(MagWindow *window)
  *
  * Side effects:
  *	memory Allocated.
- * 
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -387,7 +387,7 @@ grx11CreateBackingStore(MagWindow *w)
 
     /* deferred */
     if (w->w_grdata == (Window)NULL) return;
-	
+
     width = w->w_screenArea.r_xtop - w->w_screenArea.r_xbot;
     height = w->w_screenArea.r_ytop - w->w_screenArea.r_ybot;
 
@@ -421,7 +421,7 @@ grx11CreateBackingStore(MagWindow *w)
  *
  * Side effects:
  *	Data copied into Pixmap memory.
- * 
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -470,7 +470,7 @@ grx11GetBackingStore(MagWindow *w, Rect *area)
  *
  * Side effects:
  *	Data shifted in Pixmap memory.
- * 
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -757,11 +757,11 @@ grx11FontText(text, font, size, rotate, pos, clip, obscure)
  *	the screen -- no clipping is done except to the obscuring rectangle
  *	list and the clip rectangle.
  *
- * Results:	
+ * Results:
  *	none.
  *
  * Side Effects:
- *	The text is drawn on the screen.  
+ *	The text is drawn on the screen.
  *
  *---------------------------------------------------------
  */
@@ -801,7 +801,7 @@ grx11PutText (text, pos, clip, obscure)
 	    grX11suGeoSub(&location, &overlap);
 	}
     }
- 
+
     overlap = location;
     GeoClip(&overlap, clip);
 
@@ -825,7 +825,7 @@ grx11PutText (text, pos, clip, obscure)
  * grX11suGeoSub --
  *	return the tallest sub-rectangle of r not obscured by area
  *	area must be within r.
- * 
+ *
  * Results:
  *	None.
  *

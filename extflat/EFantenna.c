@@ -7,7 +7,7 @@
  *
  * Flattens the tree rooted at file.ext, reading in additional .ext
  * files as specified by "use" lines in file.ext.
- * 
+ *
  */
 
 #include <stdio.h>
@@ -40,12 +40,12 @@ int antennacheckArgs();
 int antennacheckVisit();
 
 typedef struct {
-	long    visitMask:MAXDEVTYPES; 
+	long    visitMask:MAXDEVTYPES;
 } nodeClient;
 
 typedef struct {
 	HierName *lastPrefix;
-	long    visitMask:MAXDEVTYPES; 
+	long    visitMask:MAXDEVTYPES;
 } nodeClientHier;
 
 #define NO_RESCLASS	-1
@@ -100,7 +100,7 @@ typedef struct _ams {
     CellDef *def;	/* CellDef for adding feedback */
 } AntennaMarkStruct;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -126,7 +126,7 @@ CmdAntennaCheck(w, cmd)
     int option = ANTENNACHECK_RUN;
     int value;
     int argc = cmd->tx_argc;
-    char **argv = cmd->tx_argv; 
+    char **argv = cmd->tx_argv;
     char **msg;
     bool err_result;
 
@@ -195,7 +195,7 @@ runantennacheck:
     if (inName == NULL)
     {
 	/* Assume that we want to do exttospice on the currently loaded cell */
-	
+
 	if (w == (MagWindow *) NULL)
 	    windCheckOnlyWindow(&w, DBWclientID);
 
@@ -243,7 +243,7 @@ runantennacheck:
     efAntennaDebug = FALSE;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -361,7 +361,7 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
     extern int  areaAccumFunc(), antennaAccumFunc(), areaMarkFunc();
 
     antennaarea = (dlong *)mallocMagic(DBNumTypes * sizeof(dlong));
-    
+
     switch(dev->dev_class)
     {
 	case DEV_FET:
@@ -559,10 +559,10 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 			    TxError("Effective antenna ratio %g > limit %g\n",
 				    saveRatio * (float)anttotal / (float)gatearea,
 				    saveRatio);
-			    TxError("Gate rect (%d %d) to (%d %d)\n", 
+			    TxError("Gate rect (%d %d) to (%d %d)\n",
 				    gdas.r.r_xbot, gdas.r.r_ybot,
 				    gdas.r.r_xtop, gdas.r.r_ytop);
-			    TxError("Antenna rect (%d %d) to (%d %d)\n", 
+			    TxError("Antenna rect (%d %d) to (%d %d)\n",
 				    aas.r.r_xbot, aas.r.r_ybot,
 				    aas.r.r_xtop, aas.r.r_ytop);
 			}
@@ -594,10 +594,10 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 			    TxError("Effective antenna ratio %g > limit %g\n",
 				    saveRatio * (float)anttotal / (float)gatearea,
 				    saveRatio);
-			    TxError("Gate rect (%d %d) to (%d %d)\n", 
+			    TxError("Gate rect (%d %d) to (%d %d)\n",
 				    gdas.r.r_xbot, gdas.r.r_ybot,
 				    gdas.r.r_xtop, gdas.r.r_ytop);
-			    TxError("Antenna rect (%d %d) to (%d %d)\n", 
+			    TxError("Antenna rect (%d %d) to (%d %d)\n",
 				    aas.r.r_xbot, aas.r.r_ybot,
 				    aas.r.r_xtop, aas.r.r_ytop);
 			}

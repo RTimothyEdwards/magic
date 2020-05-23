@@ -70,7 +70,7 @@ extern char *GrTkWindowName();
 
 extern void toglSetProjection();
 
-
+
 /*---------------------------------------------------------
  * grtoglSetWMandC:
  *	This is a local routine that resets the value of the current
@@ -129,12 +129,12 @@ grtoglSetWMandC (mask, c)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
     glColor4f(fr, fb, fg, aval);
-	
+
     oldColor = c;
     oldMask = mask;
 }
 
-
+
 /*---------------------------------------------------------
  * grtoglSetLineStyle:
  *	This local routine sets the current line style.
@@ -172,7 +172,7 @@ grtoglSetLineStyle (style)
     }
 }
 
-
+
 /*---------------------------------------------------------
  * grtoglSetSPattern:
  *	toglSetSPattern associates a stipple pattern with a given
@@ -209,7 +209,7 @@ grtoglSetSPattern (sttable, numstipples)
     }
 }
 
-
+
 /*---------------------------------------------------------
  * grtoglSetStipple:
  *	This routine sets the Xs current stipple number.
@@ -239,7 +239,7 @@ grtoglSetStipple (stipple)
     }
 }
 
-
+
 /*------------------------------------------------------------------------
  * GrTOGLInit:
  *	GrTOGLInit initializes the graphics display and clears its screen.
@@ -249,7 +249,7 @@ grtoglSetStipple (stipple)
  *
  * Notes: When 3D rendering is compiled in, we search for a double-buffered
  *	configuration first, because it generates the smoothest graphics,
- *	and fall back on a single-buffered configuration if necessary. 
+ *	and fall back on a single-buffered configuration if necessary.
  *	For normal, 2D-only rendering, we look for a single-buffered
  *	configuration first because we don't use the back buffer, so a
  *	double-buffered configuration just wastes space.
@@ -318,7 +318,7 @@ GrTOGLInit ()
     /* determine from OpenGL attributes if indirect rendering	*/
     /* is allowed, and handle automatically.			*/
 
-#ifdef X11_BACKING_STORE  
+#ifdef X11_BACKING_STORE
     grXcontext = glXCreateContext(grXdpy, grVisualInfo, NULL, GL_FALSE);
 #else
     grXcontext = glXCreateContext(grXdpy, grVisualInfo, NULL, GL_TRUE);
@@ -342,7 +342,7 @@ GrTOGLInit ()
 
     return grTkLoadFont();
 }
-
+
 /*---------------------------------------------------------
  * GrTOGLClose:
  *
@@ -357,14 +357,14 @@ GrTOGLClose ()
 {
     if (grXdpy == NULL) return;
     if (grVisualInfo != NULL) XFree(grVisualInfo);
- 
+
     grTkFreeFonts();
 
     /* Pop down Tk window but let Tcl/Tk */
     /* do XCloseDisplay()		 */
 }
 
-
+
 /*---------------------------------------------------------
  * GrTOGLFlush:
  * 	Flush output to display.
@@ -465,7 +465,7 @@ toglSetProjection(llx, lly, width, height)
     glLoadIdentity();
 }
 
-
+
 /*
  * ---------------------------------------------------------------------------
  *
@@ -502,7 +502,7 @@ TOGLEventProc(clientData, xevent)
      * keys to the terminal or console.
      */
 
-    switch (xevent->type) 
+    switch (xevent->type)
     {
 	case ButtonPress:
 	    {
@@ -811,7 +811,7 @@ keys_and_buttons:
 			}
 		    }
 		}
-	    } 
+	    }
 	    break;
 	case ConfigureNotify:
 	    {
@@ -819,7 +819,7 @@ keys_and_buttons:
 		Rect	screenRect;
 		int width, height;
 		bool result, need_resize;
-		    
+
 		width = ConfigureEvent->width;
 		height = ConfigureEvent->height;
 
@@ -882,7 +882,7 @@ keys_and_buttons:
 		screenRect.r_xbot = ExposeEvent->x;
             	screenRect.r_xtop = ExposeEvent->x+ExposeEvent->width;
             	screenRect.r_ytop = mw->w_allArea.r_ytop-ExposeEvent->y;
-            	screenRect.r_ybot = mw->w_allArea.r_ytop - 
+            	screenRect.r_ybot = mw->w_allArea.r_ytop -
 				(ExposeEvent->y + ExposeEvent->height);
 
 		if (mw->w_backingStore != (ClientData)NULL)
@@ -913,7 +913,7 @@ keys_and_buttons:
     }
 }
 
-
+
 
 /* Set for on-screen display */
 
@@ -993,7 +993,7 @@ oglSetDisplay (dispType, outFileName, mouseFileName)
     GrConfigureWindowPtr = GrTOGLConfigure;
     GrOverWindowPtr = GrTOGLRaise;
     GrUnderWindowPtr = GrTOGLLower;
-    GrUpdateIconPtr = GrTOGLIconUpdate; 
+    GrUpdateIconPtr = GrTOGLIconUpdate;
     GrEventPendingPtr = GrTOGLEventPending;
     GrWindowIdPtr = GrTOGLWindowId;
     GrWindowNamePtr = GrTkWindowName;		/* from grTkCommon.c */
@@ -1031,7 +1031,7 @@ oglSetDisplay (dispType, outFileName, mouseFileName)
     GrPutBackingStorePtr = grtoglPutBackingStore;
     GrScrollBackingStorePtr = grtoglScrollBackingStore;
 #endif
-    
+
     if (execFailed) {
 	TxError("Execution failed!\n");
 	return FALSE;
@@ -1051,7 +1051,7 @@ oglSetDisplay (dispType, outFileName, mouseFileName)
 }
 
 extern void MakeWindowCommand();
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1151,7 +1151,7 @@ GrTOGLCreate(w, name)
 	toglCurrent.mw = w;
 
 	w->w_grdata = (ClientData) tkwind;
-	
+
 	entry = HashFind(&grTOGLWindowTable, (char *)tkwind);
 	HashSetValue(entry,w);
 
@@ -1174,7 +1174,7 @@ GrTOGLCreate(w, name)
 	glXMakeCurrent(grXdpy, (GLXDrawable)wind, grXcontext);
 
         Tk_DefineCursor(tkwind, toglCurrent.cursor);
-	GrTOGLIconUpdate(w, w->w_caption); 
+	GrTOGLIconUpdate(w, w->w_caption);
 
 	WindowNumber++;
 
@@ -1188,7 +1188,7 @@ GrTOGLCreate(w, name)
 		| ButtonPressMask | KeyPressMask | VisibilityChangeMask,
 		 (Tk_EventProc *)TOGLEventProc, (ClientData) tkwind);
 
-	/* set up commands to be passed expressly to this window */  
+	/* set up commands to be passed expressly to this window */
 
 	MakeWindowCommand((name == NULL) ? windowname : name, w);
 
@@ -1201,7 +1201,7 @@ GrTOGLCreate(w, name)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1231,7 +1231,7 @@ GrTOGLDelete(w)
     Tcl_DeleteCommand(magicinterp, Tk_PathName(xw));
     Tk_DestroyWindow(xw);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1258,7 +1258,7 @@ GrTOGLConfigure(w)
 		w->w_frameArea.r_xtop - w->w_frameArea.r_xbot,
 		    w->w_frameArea.r_ytop - w->w_frameArea.r_ybot);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1286,7 +1286,7 @@ GrTOGLRaise(w)
     tkwind = (Tk_Window)w->w_grdata;
     Tk_RestackWindow(tkwind, Above, NULL);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1314,7 +1314,7 @@ GrTOGLLower(w)
     tkwind = (Tk_Window)w->w_grdata;
     Tk_RestackWindow(tkwind, Below, NULL);
 }
-
+
 
 /*
  * ----------------------------------------------------------------------------
@@ -1376,7 +1376,7 @@ GrTOGLLock(w, flag)
 			w->w_allArea.r_ytop - w->w_allArea.r_ybot);
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1462,10 +1462,10 @@ GrTOGLUnlock(w)
     }
     grSimpleUnlock(w);
 }
-
 
 
-/*           
+
+/*
  *-------------------------------------------------------------------------
  * GrTOGLEventPending --
  *	check for pending graphics events.
@@ -1480,22 +1480,22 @@ GrTOGLUnlock(w)
  *	None, hopefully (put back the event!)
  *
  *-------------------------------------------------------------------------
- */     
-     
+ */
+
 bool
 GrTOGLEventPending()
-{ 
+{
    Window       wind = toglCurrent.windowid;
    XEvent       genEvent;
    bool         retval;
 
    XSync(grXdpy, FALSE); /* Necessary, or it won't catch mouse/key events */
-   retval = XCheckWindowEvent(grXdpy, wind, ExposureMask  
+   retval = XCheckWindowEvent(grXdpy, wind, ExposureMask
                 | StructureNotifyMask | ButtonPressMask
                 | KeyPressMask, &genEvent);
-   if (retval) XPutBackEvent(grXdpy, &genEvent); 
+   if (retval) XPutBackEvent(grXdpy, &genEvent);
    return retval;
-}   
+}
 
 /*
  *-------------------------------------------------------------------------
@@ -1520,7 +1520,7 @@ GrTOGLIconUpdate(w,text)		/* See Blt code */
     char	*brack;
 
     if (w->w_flags & WIND_OFFSCREEN) return;
-     
+
     tkwind = (Tk_Window)(w->w_grdata);
     if (tkwind == NULL) {
 	tkwind = Tk_MainWindow(magicinterp);
@@ -1565,20 +1565,20 @@ GrTOGLIconUpdate(w,text)		/* See Blt code */
  */
 
 int
-GrTOGLWindowId(tkname)   
+GrTOGLWindowId(tkname)
     char *tkname;
 {
     Tk_Window tkwind;
     MagWindow *mw;
     HashEntry *entry;
     int id = 0;
-    
+
     tkwind = Tk_NameToWindow(magicinterp, tkname, Tk_MainWindow(magicinterp));
     if (tkwind != NULL)
-    {   
+    {
 	entry = HashLookOnly(&grTOGLWindowTable, (char *)tkwind);
 	mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
 	if (mw) id = mw->w_wid;
-    }       
+    }
     return id;
-}   
+}

@@ -6,16 +6,16 @@
  * elements.  Note:  the routines in this file are NOT generally
  * re-entrant.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -58,7 +58,7 @@ static int drcArrayCount;		/* Count of number of errors found. */
 static void (*drcArrayErrorFunc)();	/* Function to call on violations. */
 static ClientData drcArrayClientData;	/* Extra parameter to pass to func. */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -120,11 +120,11 @@ drcArrayFunc(scx, area)
 
     if ((use->cu_xlo == use->cu_xhi) && (use->cu_ylo == use->cu_yhi))
 	return 2;
-    
+
     /* Set up the client data that will be passed down during
      * checks for exact overlaps.
      */
-    
+
     arg.dCD_celldef = DRCdef;
     arg.dCD_errors = &drcArrayCount;
     arg.dCD_clip = &errorArea;
@@ -136,7 +136,7 @@ drcArrayFunc(scx, area)
      * of the parend.  If the array is 1-dimensional, we set the
      * corresponding spacing to an impossibly large distance.
      */
-    
+
     tmp.r_xbot = 0;
     tmp.r_ybot = 0;
     if (use->cu_xlo == use->cu_xhi)
@@ -159,7 +159,7 @@ drcArrayFunc(scx, area)
      * Skip some or all of the areas if the cell isn't arrayed in
      * that direction or if the instances are widely spaced.
      */
-    
+
     if (ysep < ysize + DRCTechHalo)
     {
 	/* A */
@@ -237,10 +237,10 @@ drcArrayFunc(scx, area)
 		(ClientData) &arg);
 	}
     }
-    
+
     return 2;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  * DRCArrayCheck --
@@ -308,7 +308,7 @@ DRCArrayCheck(def, area, func, cdarg)
     return drcArrayCount;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -344,7 +344,7 @@ drcArrayYankFunc(use, transform, x, y, yankArea)
     (void) DBCellCopyAllPaint(&scx, &DBAllButSpaceBits, 0, DRCuse);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

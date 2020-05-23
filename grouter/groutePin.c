@@ -4,16 +4,16 @@
  *	Global signal router code to implement operations on pins at
  *	the boundaries of channels.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -39,7 +39,7 @@ static char sccsid[] = "@(#)groutePin.c	4.9 MAGIC (Berkeley) 12/8/85";
 #include "grouter/grouter.h"
 #include "textio/textio.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -100,7 +100,7 @@ glPointToPin(ch, side, point)
     ASSERT(FALSE, "Pin not on side of channel in glPointToPin");
     return &ch->gcr_lPins[0];
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -243,7 +243,7 @@ glPinArrayInit(ch, side, pins, nPins)
 	}
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -258,7 +258,7 @@ glPinArrayInit(ch, side, pins, nPins)
  *
  * Also propagate obstacle flags for pins.  If a pin's obstacle flags
  * contain GCROBST, then set this bit in gcr_linked's flags as well.
- * 
+ *
  * Results:
  *	TRUE if the blockage state of any pins changed, FALSE
  *	otherwise.  The caller should iterate over all channels
@@ -332,7 +332,7 @@ glPinArrayBlock(ch, pins, opins, nPins)
 
     return changed;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -342,7 +342,7 @@ glPinArrayBlock(ch, pins, opins, nPins)
  * list headed by the zero-th pin along that side.  Usable pins (for purposes
  * of global routing) are those that are unassigned (gcr_pId == 0) and that
  * have gcr_linked != NULL.
- * 
+ *
  * Results:
  *	None.
  *
@@ -429,7 +429,7 @@ glShowPin(pin)
     nrShowRect(EditCellUse->cu_def, &r, STYLE_ERASEHIGHLIGHTS);
 #endif	/* notdef */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -439,7 +439,7 @@ glShowPin(pin)
  * actually used during global routing.  The unused ones have gcr_pSeg
  * equal to GCR_STEMSEGID and must be unmarked here (otherwise the channel
  * router will try to route them!).
- * 
+ *
  * Results:
  *	None.
  *

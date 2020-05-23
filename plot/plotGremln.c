@@ -4,16 +4,16 @@
  * This file contains procedures that generate Gremlin-format files
  * to describe a section of layout.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -98,7 +98,7 @@ static Rect bbox;		/* Bounding box, in root coordinates, of
 				 */
 #endif /* GREMLIN */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotGremlinTechInit --
@@ -135,7 +135,7 @@ PlotGremlinTechInit()
 {}
 
 #endif /* GREMLIN */
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotGremlinTechLine --
@@ -307,7 +307,7 @@ plotGremlinLine(p1, p2, lineStyle)
     fprintf(file, "%.3f %.3f\n%.3f %.3f\n", x1, y1, x2, y2);
     fprintf(file, "*\n%d 0\n0 \n", lineStyle);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -341,7 +341,7 @@ plotGremlinRect(rect, lineStyle)
     plotGremlinLine(&rect->r_ur, &p, lineStyle);
     plotGremlinLine(&p, &rect->r_ll, lineStyle);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -371,7 +371,7 @@ plotGremlinPaint(tile, cxp)
     Tile *neighbor;
 
     /* First transform tile coords to root coords */
-    
+
     TiToRect(tile, &tileArea);
     GeoTransRect(&cxp->tc_scx->scx_trans, &tileArea, &rootArea);
 
@@ -419,7 +419,7 @@ plotGremlinPaint(tile, cxp)
      * have the wrong types.  First, search the tile's bottom border
      * (unless it is at infinity).
      */
-    
+
     if (tileArea.r_ybot > TiPlaneRect.r_ybot)
     {
 	edge.r_ybot = edge.r_ytop = tileArea.r_ybot;
@@ -493,7 +493,7 @@ plotGremlinPaint(tile, cxp)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -569,7 +569,7 @@ plotGremlinLabel(scx, label)
 	case GEO_EAST:
 	    y = (rootArea.r_ytop + rootArea.r_ybot - 2*bbox.r_ybot)*scale/2;
 	    break;
-	
+
 	case GEO_SOUTH:
 	case GEO_SOUTHEAST:
 	case GEO_SOUTHWEST:
@@ -585,13 +585,13 @@ plotGremlinLabel(scx, label)
 	    x = (rootArea.r_xbot - bbox.r_xbot) * scale;
 	    x -= delta;
 	    break;
-	
+
 	case GEO_CENTER:
 	case GEO_NORTH:
 	case GEO_SOUTH:
 	    x = (rootArea.r_xtop + rootArea.r_xbot - 2*bbox.r_xbot)*scale/2;
 	    break;
-	
+
 	case GEO_EAST:
 	case GEO_NORTHEAST:
 	case GEO_SOUTHEAST:
@@ -604,7 +604,7 @@ plotGremlinLabel(scx, label)
      * of the area we're plotting (a large label could overlap a
      * bit of the area but stick out way off-screen too).
      */
-    
+
     if ((x >= -delta) && (y >= -delta) &&
 	    (x <= ((bbox.r_xtop - bbox.r_xbot) * scale) + delta) &&
 	    (y <= ((bbox.r_ytop - bbox.r_ybot) * scale) + delta))
@@ -619,7 +619,7 @@ plotGremlinLabel(scx, label)
      * done depending on whether the label is a point, a line, or an
      * area.
      */
-    
+
     if ((rootArea.r_xbot == rootArea.r_xtop) &&
 	    (rootArea.r_ybot == rootArea.r_ytop))
     {
@@ -653,7 +653,7 @@ plotGremlinLabel(scx, label)
     }
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -675,7 +675,7 @@ int
 plotGremlinCell(scx)
     SearchContext *scx;		/* Describes cell whose bbox is to
 				 * be plotted.
-				 */	
+				 */
 {
     extern bool PlotShowCellNames;
     char idName[100];
@@ -726,7 +726,7 @@ plotGremlinCell(scx)
 
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -774,7 +774,7 @@ PlotGremlin(fileName, scx, layers, xMask)
      * coordinates.  Pick an even power of two that will make all
      * the Gremlin units fall between 0 and 512.
      */
-    
+
     GeoTransRect(&scx->scx_trans, &scx->scx_area, &bbox);
     size = bbox.r_xtop - bbox.r_xbot;
     tmp = bbox.r_ytop - bbox.r_ybot;
@@ -782,7 +782,7 @@ PlotGremlin(fileName, scx, layers, xMask)
     scale = 64.0;
     while (scale*size > 512)
 	scale /= 2.0;
-    
+
     /* Open the Gremlin file and output header information. */
 
     file = PaOpen(fileName, "w", (char *) NULL, ".", (char *) NULL,
@@ -798,7 +798,7 @@ PlotGremlin(fileName, scx, layers, xMask)
     /* For each Gremlin style, find all the paint layers that belong
      * to that style and put plot information into the file.
      */
-    
+
     for (curStyle = plotGremlinStyles; curStyle != NULL;
 	 curStyle = curStyle->grs_next)
     {

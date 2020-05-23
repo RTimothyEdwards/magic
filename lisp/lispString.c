@@ -427,7 +427,7 @@ LispSubString (name,s,f)
   l = LispNewObj ();
   LTYPE(l) = S_STRING;
   LSTR(l) = (char*) mallocMagic((unsigned) (LINTEGER(ARG3(s))-LINTEGER(ARG2(s))+1));
-  strncpy (LSTR(l), LSTR(ARG1(s))+LINTEGER(ARG2(s)), 
+  strncpy (LSTR(l), LSTR(ARG1(s))+LINTEGER(ARG2(s)),
 	   LINTEGER(ARG3(s))-LINTEGER(ARG2(s)));
   LSTR(l)[LINTEGER(ARG3(s))-LINTEGER(ARG2(s))] = '\0';
   return l;

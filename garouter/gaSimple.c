@@ -1,20 +1,20 @@
 /*
  * gaSimple.c -
  *
- * Code to try very simple stems 
- * (straight line connection from pin to terminal 
+ * Code to try very simple stems
+ * (straight line connection from pin to terminal
  *  with a possible contact at or near each end)
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -56,16 +56,16 @@ extern int gaMetalClear;
 extern int gaPolyClear;
 extern int gaContactClear;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * gaStemSimpleInit --
  *
- * Initialize the SimpleStem struct to contain information on what 
+ * Initialize the SimpleStem struct to contain information on what
  * simple routes are possible.
  *
- * Simple routes are grid aligned straight routes from the terminal 
+ * Simple routes are grid aligned straight routes from the terminal
  * to the pin, with a possible contact at the terminal and another near
  * the pin on the grid line just before the channel edge.
  *
@@ -133,7 +133,7 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
     }
 
     /* Misc initialization */
-    {	
+    {
 	simple->ss_dir = pinSide;
 	simple->ss_pinPoint = *pinPoint;
 	simple->ss_termArea = term->nloc_rect;
@@ -143,30 +143,30 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
 	sPoly->sw_type = RtrPolyType;
     }
 
-    /* Determine which types connect to terminal directly 
-     * (without adding a contact) 
+    /* Determine which types connect to terminal directly
+     * (without adding a contact)
      */
     if (simple->ss_termType == RtrContactType)
     {
 	TTMaskSetOnlyType(&(simple->ss_termMask), RtrMetalType);
 	TTMaskSetType(&(simple->ss_termMask), RtrPolyType);
     }
-    else 
+    else
     {
 	TTMaskSetOnlyType(&(simple->ss_termMask), simple->ss_termType);
     }
 
     /*
      * Compute contact and wire areas.
-     * Defn of areas:  
+     * Defn of areas:
      *    - long wires run from terminal to pin,
-     *    - short wires run from terminal to contact near pin, 
+     *    - short wires run from terminal to contact near pin,
      *    - pinStubs run from pinContact to pin.
      */
     {
 	switch (pinSide)
 	{
-	    case GEO_NORTH:	
+	    case GEO_NORTH:
 	    /* pin is directly above terminal */
 	    {
 		/* compute terminal contact location */
@@ -177,8 +177,8 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
 
 		/* compute pin contact location */
 		cPin->r_xbot = pinPoint->p_x + RtrContactOffset;
-		cPin->r_ybot = (RTR_GRIDDOWN(pinPoint->p_y, RtrOrigin.p_y) 
-			      + RtrContactOffset); 
+		cPin->r_ybot = (RTR_GRIDDOWN(pinPoint->p_y, RtrOrigin.p_y)
+			      + RtrContactOffset);
 		cPin->r_xtop = cPin->r_xbot + RtrContactWidth;
 		cPin->r_ytop = cPin->r_ybot + RtrContactWidth;
 
@@ -216,18 +216,18 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
 		break;
 	    }
 
-	    case GEO_SOUTH: 
+	    case GEO_SOUTH:
 	    /* pin is directly below terminal */
 	    {
 		/* compute terminal contact location */
 		cTerm->r_xbot = pinPoint->p_x + RtrContactOffset;
-		cTerm->r_ybot = termLoc->r_ybot; 
+		cTerm->r_ybot = termLoc->r_ybot;
 		cTerm->r_xtop = cTerm->r_xbot + RtrContactWidth;
 		cTerm->r_ytop = cTerm->r_ybot + RtrContactWidth;
 
 		/* compute pin contact location */
 		cPin->r_xbot = pinPoint->p_x + RtrContactOffset;
-		cPin->r_ybot = (RTR_GRIDUP(pinPoint->p_y, RtrOrigin.p_y) 
+		cPin->r_ybot = (RTR_GRIDUP(pinPoint->p_y, RtrOrigin.p_y)
 			      + RtrContactOffset);
 		cPin->r_xtop = cPin->r_xbot + RtrContactWidth;
 		cPin->r_ytop = cPin->r_ybot + RtrContactWidth;
@@ -267,7 +267,7 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
 		break;
 	    }
 
-	    case GEO_EAST:	
+	    case GEO_EAST:
 	    /* pin is directly to right of terminal */
 	    {
 		/* compute terminal contact location */
@@ -317,7 +317,7 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
 		break;
 	    }
 
-	    case GEO_WEST: 
+	    case GEO_WEST:
 	    /* pin is directly to left of terminal */
 	    {
 		/* compute terminal contact location */
@@ -327,7 +327,7 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
 		cTerm->r_ytop = cTerm->r_ybot + RtrContactWidth;
 
 		/* compute pin contact location */
-		cPin->r_xbot = (RTR_GRIDUP(pinPoint->p_x, RtrOrigin.p_x) 
+		cPin->r_xbot = (RTR_GRIDUP(pinPoint->p_x, RtrOrigin.p_x)
 			      + RtrContactOffset);
 		cPin->r_ybot = pinPoint->p_y + RtrContactOffset;
 		cPin->r_xtop = cPin->r_xbot + RtrContactWidth;
@@ -396,7 +396,7 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
 	 * material at the connection points.
 	 *
 	 * (NOTE the terminal contact area is not trimmed, but will
-	 *  only be checked on the layer (if any) that is not part 
+	 *  only be checked on the layer (if any) that is not part
 	 *  of the terminal)
 	 */
 	{
@@ -454,14 +454,14 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
 	    {
 		if(!TTMaskHasType(&simple->ss_termMask, RtrMetalType))
 		{
-		    simple->ss_cTermOK = gaIsClear(routeUse, 
-						   &rTerm, 
+		    simple->ss_cTermOK = gaIsClear(routeUse,
+						   &rTerm,
 						   &RtrMetalObstacles);
 		}
 		if(!TTMaskHasType(&simple->ss_termMask, RtrPolyType))
 		{
-		    simple->ss_cTermOK = gaIsClear(routeUse, 
-						   &rTerm, 
+		    simple->ss_cTermOK = gaIsClear(routeUse,
+						   &rTerm,
 						   &RtrPolyObstacles);
 		}
 	    }
@@ -474,12 +474,12 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
 		simple->ss_cPinOK = gaIsClear(routeUse, &rPin, &allObs);
 	    }
 
-	    /* short metal wire 
+	    /* short metal wire
 	     * (a short wire is only ok if both the short wire itself and
              * the complementary stub are clear)
 	     */
-	    sMetal->sw_shortOK = (gaIsClear(routeUse, 
-					    &rShortMetal, 
+	    sMetal->sw_shortOK = (gaIsClear(routeUse,
+					    &rShortMetal,
 					    &RtrMetalObstacles)
 				  &&
 				  gaIsClear(routeUse,
@@ -488,12 +488,12 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
 
 
 	    /* long metal wire */
-	    sMetal->sw_longOK = gaIsClear(routeUse, 
-					  &rLongMetal, 
+	    sMetal->sw_longOK = gaIsClear(routeUse,
+					  &rLongMetal,
 					  &RtrMetalObstacles);
 
 	    /* short poly wire */
-	    sPoly->sw_shortOK = (gaIsClear(routeUse, 
+	    sPoly->sw_shortOK = (gaIsClear(routeUse,
 					  &rShortPoly,
 					  &RtrPolyObstacles)
 				 &&
@@ -502,8 +502,8 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
 					   &RtrMetalObstacles));
 
 	    /* long poly wire */
-	    sPoly->sw_longOK = gaIsClear(routeUse, 
-					 &rLongPoly, 
+	    sPoly->sw_longOK = gaIsClear(routeUse,
+					 &rLongPoly,
 					 &RtrPolyObstacles);
 	}
     }
@@ -511,13 +511,13 @@ gaStemSimpleInit(routeUse, term, pinPoint, pinSide, simple)
     return (TRUE);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
  * gaIsClear --
  *
- * 
+ *
  * Check that r is clear of all material of types in mask.
  *
  * Results:
@@ -559,7 +559,7 @@ gaIsClear(use, r, mask)
  * gaIsClearFunc --
  *
  * Called for tiles whose type matches 'mask' underneath the area
- * 'r' in gaIsClear() above.  
+ * 'r' in gaIsClear() above.
  *
  * Results:
  *	Always returns 1 since we only need a single obstacle to not have
@@ -579,7 +579,7 @@ gaIsClearFunc(tile, cxp)
     return 1;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -639,7 +639,7 @@ gaStemSimpleRoute(simple, pinLayer, def)
 	}
 	/* contact at pin only */
 	else if (TTMaskHasType(&simple->ss_termMask, wOther->sw_type) &&
-		 wOther->sw_shortOK && 
+		 wOther->sw_shortOK &&
 		 simple->ss_cPinOK)
 	{
 	    if(def)

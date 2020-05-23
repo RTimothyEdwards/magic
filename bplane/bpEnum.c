@@ -1,28 +1,28 @@
 // ************************************************************************
-// 
+//
 // Copyright (c) 1995-2002 Juniper Networks, Inc. All rights reserved.
-// 
+//
 // Permission is hereby granted, without written agreement and without
 // license or royalty fees, to use, copy, modify, and distribute this
 // software and its documentation for any purpose, provided that the
 // above copyright notice and the following three paragraphs appear in
 // all copies of this software.
-// 
+//
 // IN NO EVENT SHALL JUNIPER NETWORKS, INC. BE LIABLE TO ANY PARTY FOR
 // DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
 // ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF
 // JUNIPER NETWORKS, INC. HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 // DAMAGE.
-// 
+//
 // JUNIPER NETWORKS, INC. SPECIFICALLY DISCLAIMS ANY WARRANTIES,
 // INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
 // NON-INFRINGEMENT.
-// 
+//
 // THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND JUNIPER
 // NETWORKS, INC. HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-// 
+//
 // ************************************************************************
 
 
@@ -47,11 +47,11 @@
  * set up search.
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 void BPEnumInit(BPEnum *bpe,   /* enum to initialize */
-		BPlane *bp,    
+		BPlane *bp,
 		Rect *area,    /* search area */
-		int match,     
+		int match,
 		char *id)      /* for debugging */
 {
   bool inside = FALSE;
@@ -79,7 +79,7 @@ void BPEnumInit(BPEnum *bpe,   /* enum to initialize */
     /* don't need to setup stack, just return */
     return;
 
-  case BPE_ALL:    
+  case BPE_ALL:
     /* If we start 'INSIDE', no match checks will be done */
     bpe->bpe_top->bps_state = BPS_BINS_INSIDE;
     inside = TRUE;
@@ -94,7 +94,7 @@ void BPEnumInit(BPEnum *bpe,   /* enum to initialize */
     }
     else
     {
-      bpe->bpe_top->bps_state = BPS_BINS;	  
+      bpe->bpe_top->bps_state = BPS_BINS;
       bpe->bpe_subBinMinX = GEO_WIDTH(&bpe->bpe_srchArea)/2;
       bpe->bpe_subBinMinY = GEO_HEIGHT(&bpe->bpe_srchArea)/2;
       bpBinsUpdate(bp);
@@ -111,7 +111,7 @@ void BPEnumInit(BPEnum *bpe,   /* enum to initialize */
     }
     else
     {
-      bpe->bpe_top->bps_state = BPS_BINS;	  
+      bpe->bpe_top->bps_state = BPS_BINS;
       bpe->bpe_subBinMinX = GEO_WIDTH(&bpe->bpe_srchArea)/2;
       bpe->bpe_subBinMinY = GEO_HEIGHT(&bpe->bpe_srchArea)/2;
       bpBinsUpdate(bp);
@@ -119,14 +119,14 @@ void BPEnumInit(BPEnum *bpe,   /* enum to initialize */
     break;
 
   default:
-    ASSERT(FALSE,"BPEnumInit, bad match value"); 
+    ASSERT(FALSE,"BPEnumInit, bad match value");
   }
 
   /* push rootnode */
   if(bp->bp_rootNode)
   {
     bpEnumPush(bpe, bp->bp_rootNode, inside);
-    bpe->bpe_nextElement = NULL; 
+    bpe->bpe_nextElement = NULL;
   }
   else
   {
@@ -143,7 +143,7 @@ void BPEnumInit(BPEnum *bpe,   /* enum to initialize */
  * terminate enumeration
  *
  * ----------------------------------------------------------------------------
- */		 
+ */
 void BPEnumTerm(BPEnum *bpe)
 {
   BPEnum **linkp;

@@ -7,16 +7,16 @@
  *	redisplay, and for top-level command interpretation.
  *	All the REAL work of commands goes on in other files.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -48,7 +48,7 @@ global WindClient NMClientID;
 
 extern void nmNotDefined();
 
-    
+
 /* The declarations below define the layout of the netlist
  * window.  Everything is defined in "surface" coordinates,
  * not screen coordinates.  Within each of the three categories,
@@ -113,7 +113,7 @@ Rect nmScreenArea = {0, 0, 140, 190};
 
 MagWindow *NMWindow = NULL;
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -154,7 +154,7 @@ NMcreate(window, argc, argv)
     WindMove(window, &nmSurfaceArea);
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -183,7 +183,7 @@ NMdelete(window)
     NMClearPoints();
     return TRUE;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -219,7 +219,7 @@ NMreposition(window, newScreenArea, final)
     if (final) WindMove(window, &nmSurfaceArea);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -256,7 +256,7 @@ NMredisplay(w, rootArea, clipArea)
     /* Make sure that there's really a netlist window!  (This procedure
      * can be called before the window exists).
      */
-    
+
     if (NMWindow == (MagWindow *) NULL) return 0;
 
     GrLock(w, TRUE);
@@ -296,7 +296,7 @@ NMredisplay(w, rootArea, clipArea)
 		screenR.r_ybot += 1;
 		screenR.r_xtop -= 1;
 		screenR.r_ytop -= 1;
-		GrClipTo(&GrScreenRect); 
+		GrClipTo(&GrScreenRect);
 		GrPutText(nb->nmb_text, STYLE_BBOX, &screenP,
 		    GEO_CENTER, GR_TEXT_MEDIUM, TRUE, &screenR, (Rect *) NULL);
 		GrClipTo(&clip);
@@ -306,7 +306,7 @@ NMredisplay(w, rootArea, clipArea)
 
     /* Redisplay each of the decorative labels. */
 
-    GrClipTo(&GrScreenRect); 
+    GrClipTo(&GrScreenRect);
     for (nl = nmLabels; nl->nml_style >= 0; nl++)
     {
 	if (GEO_TOUCH(&nl->nml_area, rootArea))
@@ -338,7 +338,7 @@ NMredisplay(w, rootArea, clipArea)
     GrUnlock(w);
     return 0;
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -382,7 +382,7 @@ NMcommand(w, cmd)
      * response to buttons and in response to typed commands,
      * fake the presence of a single command keyword.
      */
-    
+
     cmd->tx_argc = 1;
     cmd->tx_argv[0] = "";
 
@@ -436,8 +436,8 @@ NMcommand(w, cmd)
     UndoNext();
     return 0;
 }
-	    
-
+
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -548,7 +548,7 @@ NMinit()
 	NMCmdWriteall, FALSE);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *

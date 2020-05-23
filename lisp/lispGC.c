@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- *  lispGC.c -- 
+ *  lispGC.c --
  *
  *   This module contains the garbage collector.
  *   (N.B. This is really inefficient!)
@@ -234,16 +234,16 @@ LispCopySexp (s)
  *
  *
  * The garbage collector is rather interesting. It has two modes of
- * operation. When evaluation has not executed any "define", "set!", 
+ * operation. When evaluation has not executed any "define", "set!",
  * "set-car!", or "set-cdr!" commands (the only ones which have side-effects),
  * everything allocated during the last evaluation is collected without
  * running a marking algorithm. As a result, normal magic commands will
  * be executed with O(1) garbage collection overhead. Note that strings
  * are free'd when the object is reused.
- * 
+ *
  * Scheme functions without side-effects will also execute with O(1)
  * garbage collection overhead.
- * 
+ *
  * The full mark/collect algorithm is executed once every 50 times the
  * real garbage collector is called :P This "constant-factor"
  * speedup actually makes a big difference in practice.
@@ -309,7 +309,7 @@ mark_sw (l)
   while (l != NULL) {
     GC_SWMARK(LispObj *, l->n, 1);
     GC_SWMARK(Sexp *, LLIST(l)->n, GC_MARKVAL (LLIST(l)->n)+1);
-    if (GC_MARKVAL(LLIST(l)->n) == 3 || 
+    if (GC_MARKVAL(LLIST(l)->n) == 3 ||
 	(!NIL(CAR(LLIST(l))) &&  GC_MARKVAL(LLIST(CAR(LLIST(l)))->n) == 0)) {
       t0=l; t1=CAR(LLIST(l)); t2=CDR(LLIST(l)); t3=m;
       CAR(LLIST(l))=t2; CDR(LLIST(l))=t3; m=t0; l=t1;
@@ -322,7 +322,7 @@ mark_sw (l)
   }
 }
 
-static 
+static
 void
 collect_sw ()
 {
@@ -396,7 +396,7 @@ collect_sw ()
     LispObjMainAllocQTail->n = NULL;
   LispObjAllocQ = NULL;
 }
-  
+
 
 /*-----------------------------------------------------------------------------
  *
@@ -420,7 +420,7 @@ LispGC (fl)
      LispObj *fl;
 {
   LispObj *l;
-  
+
   if (LispCollectAllocQ) {
     /*
      * The last evaluation did not have any side-effects.
@@ -504,7 +504,7 @@ LispCollectGarbage (name,s,f)
 {
   LispObj *l;
   extern LispObj *LispMainFrameObj;
-  
+
   if (ARG1P(s)) {
     TxPrintf ("Usage: (%s)\n", name);
     RETURN;
@@ -546,7 +546,7 @@ void LispGCAddSexp (s)
   LTYPE(CAR(t)) = S_LIST;
   LLIST(CAR(t)) = s;
   CDR(t) = LispMainFrameObj;
-  
+
   LispMainFrameObj = LispNewObj ();
   LTYPE(LispMainFrameObj) = S_LIST;
   LLIST(LispMainFrameObj) = t;
@@ -574,7 +574,7 @@ void LispGCRemoveSexp (s)
 {
   extern LispObj *LispMainFrameObj;
   LispObj *l;
-  
+
   if (LLIST(CAR(LLIST(LispMainFrameObj))) != s) {
     TxError ("Fatal internal error. Proceed at your own risk!\n");
     return;

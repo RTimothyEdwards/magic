@@ -5,16 +5,16 @@
  * that define the various styles of plotting that are available, and
  * also contains central technology-file reading routines.
  *
- *     ********************************************************************* 
- *     * Copyright (C) 1985, 1990 Regents of the University of California. * 
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     *********************************************************************
+ *     * Copyright (C) 1985, 1990 Regents of the University of California. *
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -126,7 +126,7 @@ bool PlotShowCellNames = TRUE;		/* TRUE if cell names and use-ids
 					 * drawn.
 					 */
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotTechInit --
@@ -157,7 +157,7 @@ PlotTechInit()
 	    (*(plotInitProcs[i]))();
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotTechLine --
@@ -216,7 +216,7 @@ PlotTechLine(sectionName, argc, argv)
     /* Not a new style.  Just farm out this line to the handler for the
      * current style.
      */
-    
+
     if (plotCurStyle == -1)
     {
 	TechError("Must declare a plot style before anything else.\n");
@@ -225,12 +225,12 @@ PlotTechLine(sectionName, argc, argv)
     }
     else if (plotCurStyle == -2)
 	return TRUE;
-    
+
     if (plotLineProcs[plotCurStyle] == NULL)
 	return TRUE;
     return (*(plotLineProcs[plotCurStyle]))(sectionName, argc, argv);
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *	PlotTechFinal --
@@ -258,7 +258,7 @@ PlotTechFinal()
 	    (*(plotFinalProcs[i]))();
     }
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -325,7 +325,7 @@ PlotPrintParams()
     TxPrintf("    pixwidth:         %d\n", PlotPixWidth);
 #endif /* LLNL */
 }
-
+
 /*
  * ----------------------------------------------------------------------------
  *

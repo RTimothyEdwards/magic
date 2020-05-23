@@ -21,7 +21,7 @@ main()
 	int i;
 
 	TxPrintf("-->");
-	TxGetLine(str, 99);	
+	TxGetLine(str, 99);
 	TxPrintf("Line is '%s'\n", str);
 	if (!ParsSplit(str, 3, &argCount, args))
 	    TxError("Parser failed\n");

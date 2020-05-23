@@ -4,18 +4,18 @@
  * Implements datastructure that permits division of line into intervals
  * (end points) are integers, and given any interger, allows (quick) access to
  * the interval containing that integer.
- * 
- *     ********************************************************************* 
+ *
+ *     *********************************************************************
  *     * Copyright (C) 1988, 1990 Michael H. Arnold and the Regents of the *
  *     * University of California.                                         *
- *     * Permission to use, copy, modify, and distribute this              * 
- *     * software and its documentation for any purpose and without        * 
- *     * fee is hereby granted, provided that the above copyright          * 
- *     * notice appear in all copies.  The University of California        * 
- *     * makes no representations about the suitability of this            * 
- *     * software for any purpose.  It is provided "as is" without         * 
- *     * express or implied warranty.  Export of this software outside     * 
- *     * of the United States of America may require an export license.    * 
+ *     * Permission to use, copy, modify, and distribute this              *
+ *     * software and its documentation for any purpose and without        *
+ *     * fee is hereby granted, provided that the above copyright          *
+ *     * notice appear in all copies.  The University of California        *
+ *     * makes no representations about the suitability of this            *
+ *     * software for any purpose.  It is provided "as is" without         *
+ *     * express or implied warranty.  Export of this software outside     *
+ *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  */
 
@@ -45,7 +45,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "mzrouter/mzrouter.h"
 #include "mzrouter/mzInternal.h"
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -57,8 +57,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *     None.
  *
  * Side effects:
- *      Allocs entires array and sets number line to the single interval 
- *      from MINFINITY to INFINITY. 
+ *      Allocs entires array and sets number line to the single interval
+ *      from MINFINITY to INFINITY.
  *
  * ----------------------------------------------------------------------------
  */
@@ -83,7 +83,7 @@ mzNLInit(nL, size)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -118,7 +118,7 @@ mzNLInsert(nL,x)
 	{
 	    int newI = lowI + (highI - lowI)/2;
 	    int newV = nL->nl_entries[newI];
-	    
+
 	    if(newV <= x)
 	    {
 		lowI = newI;
@@ -129,7 +129,7 @@ mzNLInsert(nL,x)
 	    }
 	}
     }
-	
+
     /* if x is  already an entry, just return */
     if(lowI == highI)
     {
@@ -170,7 +170,7 @@ mzNLInsert(nL,x)
 	int * sentinel = &((nL->nl_entries)[lowI]);
 	int * target = &((nL->nl_entries)[nL->nl_sizeUsed]);
 	int * source = target-1;
-	
+
 	while(source!=sentinel)
 	{
 	    *(target--) = *(source--);
@@ -187,7 +187,7 @@ mzNLInsert(nL,x)
     return;
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -221,7 +221,7 @@ mzNLGetContainingInterval(nL,x)
 	{
 	    int newI = lowI + (highI - lowI)/2;
 	    int newV = nL->nl_entries[newI];
-	    
+
 	    if(newV <= x)
 	    {
 		lowI = newI;
@@ -237,7 +237,7 @@ mzNLGetContainingInterval(nL,x)
     return &((nL->nl_entries)[lowI]);
 }
 
-
+
 /*
  * ----------------------------------------------------------------------------
  *
