@@ -48,6 +48,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define IN0 "  "
 #define IN1 "    "
 #define IN2 "      "
+#define IN3 "        "
 
 /* ---------------------------------------------------------------------*/
 
@@ -558,7 +559,7 @@ lefWriteGeometry(tile, cdata)
     if (ttype != lefdata->lastType)
 	if (lefMagicToLefLayer[ttype].lefInfo != NULL)
 	{
-	    fprintf(f, "         LAYER %s ;\n",
+	    fprintf(f, IN2 "LAYER %s ;\n",
 				lefMagicToLefLayer[ttype].lefName);
 	    lefdata->lastType = ttype;
 	}
@@ -567,7 +568,7 @@ lefWriteGeometry(tile, cdata)
 	if (otype & TT_SIDE)
 	{
 	    if (otype & TT_DIRECTION)
-		fprintf(f, IN2 "POLYGON " POINT " " POINT " " POINT " ;\n",
+		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -575,7 +576,7 @@ lefWriteGeometry(tile, cdata)
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
 			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
 	    else
-		fprintf(f, IN2 "POLYGON " POINT " " POINT " " POINT " ;\n",
+		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -586,7 +587,7 @@ lefWriteGeometry(tile, cdata)
 	else
 	{
 	    if (otype & TT_DIRECTION)
-		fprintf(f, IN2 "POLYGON " POINT " " POINT " " POINT " ;\n",
+		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -594,7 +595,7 @@ lefWriteGeometry(tile, cdata)
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
 	    else
-		fprintf(f, IN2 "POLYGON " POINT " " POINT " " POINT " ;\n",
+		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
 			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 			scale * (float)(TOP(tile) - lefdata->origin.p_y),
 			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
@@ -603,7 +604,7 @@ lefWriteGeometry(tile, cdata)
 			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
 	}
     else
-	fprintf(f, IN2 "RECT " POINT " " POINT " ;\n",
+	fprintf(f, IN3 "RECT " POINT " " POINT " ;\n",
 		scale * (float)(LEFT(tile) - lefdata->origin.p_x),
 		scale * (float)(BOTTOM(tile) - lefdata->origin.p_y),
 		scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
