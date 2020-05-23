@@ -370,7 +370,11 @@ CmdFeedback(w, cmd)
 
 	case COUNT:
 	    if (cmd->tx_argc != 2) goto badusage;
+#ifdef MAGIC_WRAPPER
+	    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(DBWFeedbackCount));
+#else
 	    TxPrintf("There are %d feedback areas.\n", DBWFeedbackCount);
+#endif
 	    break;
 
 	case FIND:
