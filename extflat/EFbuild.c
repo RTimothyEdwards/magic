@@ -457,10 +457,14 @@ efBuildEquiv(def, nodeName1, nodeName2)
 			EFStrToHN((HierName *) NULL, nodeName2));
 	return;
     }
+    else if (nn2->efnn_node == (EFNode *)NULL)
+	return;		/* Repeated "equiv" statement */
 
     /* If both names exist and are for different nodes, merge them */
     if (nn1)
     {
+	if (nn1->efnn_node == (EFNode *)NULL)
+	    return;		/* Repeated "equiv" statement */
 	if (nn1->efnn_node != nn2->efnn_node)
 	{
 	    if (efWarn)
