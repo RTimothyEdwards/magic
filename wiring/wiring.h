@@ -16,7 +16,7 @@
  *     * of the United States of America may require an export license.    *
  *     *********************************************************************
  *
- * rcsid $Header: /usr/cvsroot/magic-8.0/wiring/wiring.h,v 1.2 2008/09/05 13:56:25 tim Exp $
+ * rcsid $Header$
  */
 
 #ifndef _WIRING_H
