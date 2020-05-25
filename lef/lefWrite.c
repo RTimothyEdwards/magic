@@ -537,9 +537,11 @@ lefYankContacts(tile, cdata)
     /* Ignore marked tiles */
     if (tile->ti_client != (ClientData)CLIENTDEFAULT) return 0;
 
-    ttype = TiGetTypeExact(tile);
+    /* Ignore split tiles */
+    if (IsSplit(tile)) return 0;
 
     /* Output geometry only for defined contact layers, on their home plane */
+    ttype = TiGetType(tile);
     if (!DBIsContact(ttype)) return 0;
 
     /* If this is a stacked contact, find any residue contact type with	a   */
