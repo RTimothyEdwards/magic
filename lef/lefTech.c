@@ -308,6 +308,13 @@ LefTechLine(sectionName, argc, argv)
 		}
 		newlefl->canonName = (char *)he->h_key.h_name;
 
+		/* "isObstruction" records whether the type is an	*/
+		/* obstruction or not.  So recast the option to a route	*/
+		/* or a contact	and handle accordingly.			*/
+
+		if (option == LEFTECH_OBS)
+		    option = (isContact) ? LEFTECH_CONTACT : LEFTECH_ROUTE;
+
 		/* Fill in default values per type */
 
 		switch (option)
@@ -331,7 +338,6 @@ LefTechLine(sectionName, argc, argv)
 			break;
 		    case LEFTECH_ROUTE:
 		    case LEFTECH_ROUTING:
-		    case LEFTECH_OBS:
 			newlefl->lefClass = CLASS_ROUTE;
 			newlefl->info.route.width = DRCGetDefaultLayerWidth(mtype);
 			if (newlefl->info.route.width == 0)
@@ -365,23 +371,12 @@ LefTechLine(sectionName, argc, argv)
 	{
 	    if ((lefl->obsType == -1) && isObstruction)
 	    {
-//		if (DBIsContact(lefl->type) != isContact)
-//		    TechError("Error: Cannot mix layer and via types\n");
-//		else
-		{
-		    lefl->obsType = mtype;
-		    if (lefl->lefClass == CLASS_VIA)
+		lefl->obsType = mtype;
+		if (lefl->lefClass == CLASS_VIA)
 			lefl->info.via.obsType = mtype2;
-		}
 	    }
 	    else if ((lefl->type == -1) && !isObstruction)
-	    {
-//		if (DBIsContact(lefl->obsType) != isContact)
-//		    TechError("Error: Cannot mix layer and via types\n");
-//		else
-		    lefl->type = mtype;
-
-	    }
+		lefl->type = mtype;
 	    else
 		TechError("LEF name %s already used for magic type %s\n",
 				argv[i], DBTypeLongNameTbl[lefl->type]);

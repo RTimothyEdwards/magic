@@ -294,6 +294,8 @@ lefWriteHeader(def, f, lefTech)
 
 #define LEF_MODE_PORT		0
 #define LEF_MODE_OBSTRUCT	1
+#define LEF_MODE_CONTACT	2
+#define LEF_MODE_OBS_CONTACT	3
 
 typedef struct
 {
@@ -312,16 +314,25 @@ typedef struct
     bool	needHeader;	/* TRUE if PIN record header needs to be written */
     int		lefMode;	/* can be LEF_MODE_PORT when searching
 				 * connections into ports, or
-				 * LEF_MODE_OBSTRUCT when generating
-				 * obstruction geometry.  LEF polyons
-				 * must be manhattan, so if we find a
-				 * split tile, LEF_MODE_PORT ignores it,
-				 * and LEF_MODE_OBSTRUCT outputs the
-				 * whole tile.
+				 * LEF_MODE_OBSTRUCT when generating obstruction
+				 * geometry.  LEF polyons must be manhattan, so
+				 * if we find a split tile, LEF_MODE_PORT ignores
+				 * it, and LEF_MODE_OBSTRUCT outputs the whole
+				 * tile.  LEF_MODE_CONTACT and LEF_MODE_OBS_CONTACT
+				 * are equivalent modes for handling contacts.
 				 */
 } lefClient;
 
 /*
+ * ----------------------------------------------------------------------------
+ *
+ * lefEraseGeometry --
+ *
+ *	Remove geometry that has been output from the lefFlat cell so that it
+ *	will be ignored on subsequent output.  This is how pin areas are
+ *	separated from obstruction areas in the output:  Each pin network is
+ *	selected and output, then its geometry is erased from lefFlat.  The
+ *	remaining geometry after all pins have been written are the obstructions.
  * ----------------------------------------------------------------------------
  *
  */
@@ -411,8 +422,10 @@ lefAccumulateArea(tile, cdata)
  *
  * lefYankGeometry --
  *
- * Function called from SimSrConnect() that copies geometry from
+ * Function called from lefWriteMacro() that copies geometry from
  * the cell into a yank buffer cell, one pin connection at a time.
+ * This cell removes contacts so that the following call to lefWriteGeometry
+ * will not be cut up into tiles around contacts.
  *
  * Return 0 to keep the search going.
  * ----------------------------------------------------------------------------
@@ -499,9 +512,76 @@ lefYankGeometry(tile, cdata)
 /*
  * ----------------------------------------------------------------------------
  *
+ * lefYankContacts --
+ *
+ * Function similar to lefYankGeometry (see above) that handles contacts.
+ * Contacts are yanked separately so that the tiles around contact cuts
+ * are not broken up into pieces, and the contacts can be handled as cuts.
+ *
+ * Return 0 to keep the search going.
+ * ----------------------------------------------------------------------------
+ */
+
+int
+lefYankContacts(tile, cdata)
+    Tile *tile;
+    ClientData cdata;
+{
+    lefClient *lefdata = (lefClient *)cdata;
+    Rect area;
+    TileType ttype, ptype, stype;
+    LefMapping *lefMagicToLefLayer;
+    TileTypeBitMask sMask, *lrmask;
+    bool iscut;
+
+    /* Ignore marked tiles */
+    if (tile->ti_client != (ClientData)CLIENTDEFAULT) return 0;
+
+    ttype = TiGetTypeExact(tile);
+
+    /* Output geometry only for defined contact layers, on their home plane */
+    if (!DBIsContact(ttype)) return 0;
+
+    /* If this is a stacked contact, find any residue contact type with	a   */
+    /* home plane on lefdata->pNum.					    */
+
+    if (ttype >= DBNumUserLayers)
+    {
+	lrmask = DBResidueMask(ttype);
+	for (stype = TT_TECHDEPBASE; stype < DBNumUserLayers; stype++)
+	    if (TTMaskHasType(lrmask, stype))
+		if (DBPlane(stype) == lefdata->pNum)
+		{
+		    ttype = stype;
+		    break;
+		}
+	if (stype == DBNumUserLayers) return 0;	    /* Should not happen */
+    }
+    else
+	if (DBPlane(ttype) != lefdata->pNum) return 0;
+
+    /* Ignore non-Manhattan tiles */
+    if (IsSplit(tile)) return 0;
+
+    TiToRect(tile, &area);
+
+    lefMagicToLefLayer = lefdata->lefMagicMap;
+    if (lefMagicToLefLayer[ttype].lefInfo != NULL)
+    {
+	/* Paint into yank buffer */
+	DBNMPaintPlane(lefdata->lefYank->cd_planes[lefdata->pNum],
+			ttype, &area, DBStdPaintTbl(ttype, lefdata->pNum),
+			(PaintUndoInfo *)NULL);
+    }
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * lefWriteGeometry --
  *
- * Function called from SimSrConnect() that outputs a RECT
+ * Function called from lefWritemacro() that outputs a RECT
  * record for each tile called.  Note that LEF does not define
  * nonmanhattan geometry (see above, comments in lefClient typedef).
  *
@@ -534,8 +614,15 @@ lefWriteGeometry(tile, cdata)
     else
 	ttype = otype;
 
-    /* Only LEF routing layer types will be in the yank buffer */
+    /* Unmarked non-contact tiles are created by tile splitting when	*/
+    /* yanking contacts.  These get marked but are otherwise ignored,	*/
+    /* because they are duplicates of areas already output.		*/
+    if (!DBIsContact(ttype))
+	if (lefdata->lefMode == LEF_MODE_CONTACT ||
+		    lefdata->lefMode == LEF_MODE_OBS_CONTACT)
+	    return 0;
 
+    /* Only LEF routing layer types will be in the yank buffer */
     if (!TTMaskHasType(&lefdata->rmask, ttype)) return 0;
 
     if (lefdata->needHeader)
@@ -549,7 +636,7 @@ lefWriteGeometry(tile, cdata)
 
     if (lefdata->numWrites == 0)
     {
-	if (lefdata->lefMode == LEF_MODE_PORT)
+	if (lefdata->lefMode == LEF_MODE_PORT || lefdata->lefMode == LEF_MODE_CONTACT)
 	    fprintf(f, IN1 "PORT\n");
 	else
 	    fprintf(f, IN0 "OBS\n");
@@ -1028,6 +1115,8 @@ lefWriteMacro(def, f, scale, hide)
 	/* Query pin geometry for SHAPE (to be done?) */
 
 	/* Generate port layout geometry using SimSrConnect()		*/
+	/* (through the call to SelectNet())				*/
+	/*								*/
 	/* Selects all electrically-connected material into the		*/
 	/* select def.  Output all the layers and geometries of		*/
 	/* the select def.						*/
@@ -1162,6 +1251,18 @@ lefWriteMacro(def, f, scale, hide)
 		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
 			lefEraseGeometry, (ClientData) &lc);
+
+		/* Second round yank & write, for contacts only */
+
+	        lc.lefMode = LEF_MODE_CONTACT;
+		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
+			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
+			lefYankContacts, (ClientData) &lc);
+
+		DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
+	    		&TiPlaneRect, &lc.rmask,
+	    		lefWriteGeometry, (ClientData) &lc);
+	        lc.lefMode = LEF_MODE_PORT;
 	    }
 	    DBCellClearDef(lc.lefYank);
 	    lab->lab_flags |= PORT_VISITED;
@@ -1288,9 +1389,23 @@ lefWriteMacro(def, f, scale, hide)
 
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
+	lc.pNum = pNum;
 	DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
 		&TiPlaneRect, &lc.rmask,
 		lefWriteGeometry, (ClientData) &lc);
+
+	/* Additional yank & write for contacts (although ignore contacts for -hide) */
+	if (!hide)
+	{
+	    lc.lefMode = LEF_MODE_OBS_CONTACT;
+	    DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum],
+			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
+			lefYankContacts, (ClientData) &lc);
+	    DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
+			&TiPlaneRect, &lc.rmask,
+			lefWriteGeometry, (ClientData) &lc);
+	    lc.lefMode = LEF_MODE_OBSTRUCT;
+	}
     }
 
     if (lc.numWrites > 0)
