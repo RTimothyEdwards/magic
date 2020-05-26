@@ -95,9 +95,9 @@ defWriteHeader(def, f, oscale, units)
     TxPrintf("Diagnostic:  Write DEF header for cell %s\n", def->cd_name);
 
     /* NOTE:  This routine corresponds to Envisia LEF/DEF Language	*/
-    /* Reference version 5.3 (May 31, 2000)				*/
+    /* Reference version 5.7 (November, 2009)				*/
 
-    fprintf(f, "VERSION 5.3 ;\n");
+    fprintf(f, "VERSION 5.7 ;\n");
     fprintf(f, "   NAMESCASESENSITIVE ON ;\n");
     fprintf(f, "   DIVIDERCHAR \"/\" ;\n");
 

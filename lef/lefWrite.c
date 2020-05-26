@@ -184,9 +184,9 @@ lefWriteHeader(def, f, lefTech)
     TxPrintf("Diagnostic:  Write LEF header for cell %s\n", def->cd_name);
 
     /* NOTE:  This routine corresponds to Envisia LEF/DEF Language	*/
-    /* Reference version 5.3 (May 31, 2000)				*/
+    /* Reference version 5.7 (November 2009).				*/
 
-    fprintf(f, "VERSION 5.3 ;\n");
+    fprintf(f, "VERSION 5.7 ;\n");
     fprintf(f, IN0 "NAMESCASESENSITIVE ON ;\n");
     fprintf(f, IN0 "NOWIREEXTENSIONATPIN ON ;\n");
     fprintf(f, IN0 "DIVIDERCHAR \"/\" ;\n");
