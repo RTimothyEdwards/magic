@@ -1284,7 +1284,7 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, oscale, lanno)
 
     while (rectList != NULL)
     {
-	if (pinNum >= 0)
+	if ((pinNum >= 0) || (lanno != NULL))
 	{
 	    /* Label this area */
 	    if (lanno != NULL)
@@ -1292,6 +1292,30 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, oscale, lanno)
 		/* Modify an existing label */
 		lanno->lab_rect = rectList->r_r;
 		lanno->lab_type = rectList->r_type;
+
+		/* Pin number is not meaninful in LEF files, so keep	*/
+		/* any existing pin number.  If original label was not	*/
+		/* a port, then find a non-conflicting port number for	*/
+		/* it.							*/
+
+		if (lanno->lab_flags & PORT_DIR_MASK)
+		    pinNum = lanno->lab_flags & PORT_NUM_MASK;
+		else
+		{
+		    Label *sl;
+		    int idx;
+
+		    pinNum = -1;
+		    for (sl = lefMacro->cd_labels; sl != NULL; sl = sl->lab_next)
+		    {
+			if (sl->lab_flags & PORT_DIR_MASK)
+			{
+			    idx = sl->lab_flags & PORT_NUM_MASK;
+			    if (idx > pinNum) pinNum = idx;
+			}
+		    }
+		    pinNum++;
+		}
 	    }
 	    else
 		/* Create a new label (non-rendered) */
