@@ -327,7 +327,23 @@ CIFNameToMask(name, result, depend)
 		{
 		    cl = CIFCurStyle->cs_layers[j];
 		    for (op = cl->cl_ops; op != NULL; op = op->co_next)
+		    {
 			TTMaskSetMask(depend, &op->co_cifMask);
+
+			/* Bloat layers may depend on CIF layers    */
+			/* Currently supported only with bloat-all  */
+
+			if (op->co_opcode == CIFOP_BLOATALL)
+			{
+		            BloatData *bloats = (BloatData *)op->co_client;
+			    TileType ttype;
+
+			    if (bloats->bl_isCif == TRUE)
+		                for (ttype = 0; ttype < TT_MAXTYPES; ttype++)
+		                    if (bloats->bl_distance[ttype] > 0)
+					TTMaskSetType(depend, ttype);
+			}
+		    }
 		}
 	}
 	return TRUE;

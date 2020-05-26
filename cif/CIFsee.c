@@ -163,7 +163,8 @@ CIFPaintLayer(rootDef, area, cifLayer, magicLayer, paintDef)
     (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
     oldCount = DBWFeedbackCount;
-    CIFGen(CIFComponentDef, area, CIFPlanes, &depend, TRUE, TRUE);
+
+    CIFGen(CIFComponentDef, rootDef, area, CIFPlanes, &depend, TRUE, TRUE);
     DBCellClearDef(CIFComponentDef);
 
     /* Report any errors that occurred. */
@@ -277,7 +278,7 @@ CIFSeeLayer(rootDef, area, layer)
     (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
     oldCount = DBWFeedbackCount;
-    CIFGen(CIFComponentDef, area, CIFPlanes, &depend, TRUE, TRUE);
+    CIFGen(CIFComponentDef, rootDef, area, CIFPlanes, &depend, TRUE, TRUE);
     DBCellClearDef(CIFComponentDef);
 
     /* Report any errors that occurred. */
@@ -440,7 +441,7 @@ CIFCoverageLayer(rootDef, area, layer)
     scx.scx_trans = GeoIdentityTransform;
     (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
-    CIFGen(CIFComponentDef, area, CIFPlanes, &depend, TRUE, TRUE);
+    CIFGen(CIFComponentDef, rootDef, area, CIFPlanes, &depend, TRUE, TRUE);
     DBCellClearDef(CIFComponentDef);
 
     cstats.coverage = 0;

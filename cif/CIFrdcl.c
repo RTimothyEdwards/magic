@@ -572,7 +572,7 @@ CIFPaintCurrent(filetype)
 	CIFOp *op;
 
 	plane = CIFGenLayer(cifCurReadStyle->crs_layers[i]->crl_ops,
-	    &TiPlaneRect, (CellDef *) NULL, cifCurReadPlanes);
+	    &TiPlaneRect, (CellDef *)NULL, (CellDef *)NULL, cifCurReadPlanes);
 
 	/* Generate a paint/erase table, then paint from the CIF
 	 * plane into the current Magic cell.

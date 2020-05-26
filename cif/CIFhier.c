@@ -316,7 +316,7 @@ cifHierCellFunc(scx)
     newscx = *scx;
     GEO_EXPAND(&scx->scx_area, CIFCurStyle->cs_radius, &newscx.scx_area);
     (void) DBTreeSrTiles(&newscx, &CIFCurStyle->cs_yankLayers, 0,
-	cifHierCopyFunc, (ClientData) CIFComponentDef);
+	    cifHierCopyFunc, (ClientData) CIFComponentDef);
 
     /* Set CIFErrorDef to NULL to ignore errors here... these will
      * get reported anyway when the cell is CIF'ed non-hierarchically,
@@ -325,8 +325,8 @@ cifHierCellFunc(scx)
 
     CIFErrorDef = (CellDef *) NULL;
     GeoTransRect(&scx->scx_trans, &scx->scx_area, &rootArea);
-    CIFGen(CIFComponentDef, &rootArea, CIFComponentPlanes,
-	    &CIFCurStyle->cs_hierLayers, FALSE, TRUE);
+    CIFGen(CIFComponentDef, scx->scx_use->cu_def, &rootArea,
+	    CIFComponentPlanes, &CIFCurStyle->cs_hierLayers, FALSE, TRUE);
     return 0;
 }
 
@@ -575,7 +575,7 @@ CIFGenSubcells(def, area, output)
 	    (void) DBTreeSrTiles(&scx, &CIFCurStyle->cs_yankLayers, 0,
 		cifHierCopyFunc, (ClientData) CIFTotalDef);
 	    CIFErrorDef = def;
-	    CIFGen(CIFTotalDef, &interaction, CIFTotalPlanes,
+	    CIFGen(CIFTotalDef, def, &interaction, CIFTotalPlanes,
 		    &CIFCurStyle->cs_hierLayers, TRUE, TRUE);
 
 	    /* Now go through all the subcells overlapping the area
@@ -592,7 +592,7 @@ CIFGenSubcells(def, area, output)
 	     */
 
 	    CIFErrorDef = (CellDef *) NULL;
-	    CIFGen(def, &interaction, CIFComponentPlanes,
+	    CIFGen(def, def, &interaction, CIFComponentPlanes,
 		    &CIFCurStyle->cs_hierLayers, FALSE, TRUE);
 
 	    /* Make sure everything in the pieces is also in the overall
@@ -679,7 +679,7 @@ cifHierElementFunc(use, transform, x, y, checkArea)
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
 
     CIFErrorDef = (CellDef *) NULL;
-    CIFGen(CIFComponentDef, checkArea, CIFComponentPlanes,
+    CIFGen(CIFComponentDef, use->cu_def, checkArea, CIFComponentPlanes,
 	    &CIFCurStyle->cs_hierLayers, FALSE, TRUE);
 
     return 0;
@@ -920,8 +920,8 @@ cifHierArrayFunc(scx, output)
 	(void) DBArraySr(use, &expandedArea, cifHierElementFunc,
 		(ClientData) &A);
 	CIFErrorDef = use->cu_parent;
-	CIFGen(CIFTotalDef, &A, CIFTotalPlanes, &CIFCurStyle->cs_hierLayers,
-		FALSE, TRUE);
+	CIFGen(CIFTotalDef, use->cu_def, &A, CIFTotalPlanes,
+		&CIFCurStyle->cs_hierLayers, FALSE, TRUE);
 	anyInteractions = TRUE;
     }
 
@@ -937,8 +937,8 @@ cifHierArrayFunc(scx, output)
 	(void) DBArraySr(use, &expandedArea, cifHierElementFunc,
 		(ClientData) &C);
 	CIFErrorDef = use->cu_parent;
-	CIFGen(CIFTotalDef, &C, CIFTotalPlanes, &CIFCurStyle->cs_hierLayers,
-		FALSE, TRUE);
+	CIFGen(CIFTotalDef, use->cu_def, &C, CIFTotalPlanes,
+		&CIFCurStyle->cs_hierLayers, FALSE, TRUE);
 	anyInteractions = TRUE;
     }
 
@@ -954,8 +954,8 @@ cifHierArrayFunc(scx, output)
 	(void) DBArraySr(use, &expandedArea, cifHierElementFunc,
 		(ClientData) &B);
 	CIFErrorDef = use->cu_parent;
-	CIFGen(CIFTotalDef, &B, CIFTotalPlanes, &CIFCurStyle->cs_hierLayers,
-		FALSE, TRUE);
+	CIFGen(CIFTotalDef, use->cu_def, &B, CIFTotalPlanes,
+		&CIFCurStyle->cs_hierLayers, FALSE, TRUE);
 
 	/* D */
 
@@ -967,8 +967,8 @@ cifHierArrayFunc(scx, output)
 	(void) DBArraySr(use, &expandedArea, cifHierElementFunc,
 		(ClientData) &D);
 	CIFErrorDef = use->cu_parent;
-	CIFGen(CIFTotalDef, &D, CIFTotalPlanes, &CIFCurStyle->cs_hierLayers,
-		FALSE, TRUE);
+	CIFGen(CIFTotalDef, use->cu_def, &D, CIFTotalPlanes,
+		&CIFCurStyle->cs_hierLayers, FALSE, TRUE);
     }
 
     if (anyInteractions)

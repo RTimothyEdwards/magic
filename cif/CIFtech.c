@@ -210,7 +210,7 @@ cifTechStyleInit()
  */
 
 void
-cifParseLayers(string, style, paintMask, cifMask,spaceOK)
+cifParseLayers(string, style, paintMask, cifMask, spaceOK)
     char *string;		/* List of layers. */
     CIFStyle *style;		/* Gives CIF style for parsing string.*/
     TileTypeBitMask *paintMask;	/* Place to store mask of paint layers.  If
@@ -524,7 +524,7 @@ CIFTechLine(sectionName, argc, argv)
     int argc;			/* Number of fields on line. */
     char *argv[];		/* Values of fields. */
 {
-    TileTypeBitMask mask, tempMask, bloatLayers;
+    TileTypeBitMask mask, tempMask, cifMask, bloatLayers;
     int i, j, l, distance;
     CIFLayer *newLayer;
     CIFOp *newOp = NULL;
@@ -851,7 +851,7 @@ CIFTechLine(sectionName, argc, argv)
 	    cifCurOp = (CIFOp *) mallocMagic(sizeof(CIFOp));
 	    cifCurOp->co_opcode = CIFOP_OR;
 	    cifParseLayers(argv[2], CIFCurStyle, &cifCurOp->co_paintMask,
-		&cifCurOp->co_cifMask,FALSE);
+		&cifCurOp->co_cifMask, FALSE);
 	    cifCurOp->co_distance = 0;
 	    cifCurOp->co_next = NULL;
 	    cifCurOp->co_client = (ClientData)NULL;
@@ -1093,32 +1093,49 @@ CIFTechLine(sectionName, argc, argv)
 	    for (i = 0; i < TT_MAXTYPES; i++)
 		bloats->bl_distance[i] = 0;
 	    newOp->co_client = (ClientData)bloats;
-	    cifParseLayers(argv[2], CIFCurStyle, &mask, &tempMask, TRUE);
+	    cifParseLayers(argv[2], CIFCurStyle, &mask, &cifMask, TRUE);
+
+	    /* 5/25/2020:  Lifting restriction that bloatLayers types	*/
+	    /* cannot be CIF or temp layers.  However, CIF/temp layers	*/
+	    /* and magic database layers may not be mixed.		*/
+
+	    if (!TTMaskIsZero(&mask) && !TTMaskIsZero(&cifMask))
+		TechError("Can't mix CIF and magic layers in bloat statement.\n");
 
 	    /* 10/15/2019:  Lifting restriction that the types that	*/
 	    /* trigger the bloating must be in the same plane as the	*/
 	    /* types that are bloated into.				*/
 
 	    TTMaskZero(&bloatLayers);
-	    TTMaskSetMask(&bloatLayers, &mask);
-	    if (!TTMaskEqual(&tempMask, &DBZeroTypeBits))
-		TechError("Can't use templayers in bloat statement.\n");
-
-	    for (i = 0; i < TT_MAXTYPES;  i++)
-		if (TTMaskHasType(&mask, i))
-		    bloats->bl_distance[i] = 1;
-	    goto bloatCheck;
+	    if (!TTMaskIsZero(&mask))
+	    {
+		bloats->bl_isCif = FALSE;
+		TTMaskSetMask(&bloatLayers, &mask);
+		for (i = 0; i < TT_MAXTYPES;  i++)
+		    if (TTMaskHasType(&mask, i))
+			bloats->bl_distance[i] = 1;
+	    }
+	    else
+	    {
+		bloats->bl_isCif = TRUE;
+		TTMaskSetMask(&bloatLayers, &cifMask);
+		for (i = 0; i < TT_MAXTYPES;  i++)
+		    if (TTMaskHasType(&cifMask, i))
+			bloats->bl_distance[i] = 1;
+	    }
+	    break;
 
 	case CIFOP_BLOAT:
 	case CIFOP_BLOATMIN:
 	case CIFOP_BLOATMAX:
 	    if (argc < 4) goto wrongNumArgs;
 	    cifParseLayers(argv[1], CIFCurStyle, &newOp->co_paintMask,
-		(TileTypeBitMask *) NULL,FALSE);
+		    (TileTypeBitMask *)NULL, FALSE);
 	    argc -= 2;
 	    bloatArg = argv + 2;
 	    bloatLayers = newOp->co_paintMask;
 	    bloats = (BloatData *)mallocMagic(sizeof(BloatData));
+	    bloats->bl_isCif = FALSE;
 	    for (i = 0; i < TT_MAXTYPES; i++)
 		bloats->bl_distance[i] = 0;
 	    newOp->co_client = (ClientData)bloats;
@@ -1133,7 +1150,7 @@ CIFTechLine(sectionName, argc, argv)
 		}
 		else
 		{
-		    cifParseLayers(*bloatArg, CIFCurStyle, &mask, &tempMask,TRUE);
+		    cifParseLayers(*bloatArg, CIFCurStyle, &mask, &tempMask, TRUE);
 		    TTMaskSetMask(&bloatLayers, &mask);
 		}
 		if (!TTMaskEqual(&tempMask, &DBZeroTypeBits))
@@ -1859,7 +1876,12 @@ CIFTechFinal()
 		    for (j = 0; j < TT_MAXTYPES; j++)
 		    {
 			if (bloats->bl_distance[j] != bloats->bl_distance[TT_SPACE])
-			    TTMaskSetType(&ourYank, j);
+			{
+			    if (bloats->bl_isCif)
+				TTMaskSetType(&ourDepend, j);
+			    else
+				TTMaskSetType(&ourYank, j);
+			}
 		    }
 		    needThisLayer = TRUE;
 		    break;

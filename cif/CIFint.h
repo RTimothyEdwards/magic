@@ -45,6 +45,7 @@
 
 typedef struct bloat_data
 {
+    bool bl_isCif;		/* TRUE if types of bl_distance are CIF types */
     int bl_plane;		/* Plane on which a bloat or squares
 				 * operation is valid.
 				 */

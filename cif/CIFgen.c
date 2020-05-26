@@ -1051,6 +1051,7 @@ cifFoundFunc(tile, BloatStackPtr)
 typedef struct _bloatStruct {
     CIFOp	*op;
     CellDef	*def;
+    Plane       **temps;
 } BloatStruct;
 
 /*
@@ -1080,21 +1081,24 @@ cifBloatAllFunc(tile, bls)
     Rect area;
     TileTypeBitMask connect;
     Tile *t, *tp;
-    TileType type;
+    TileType type, ttype;
     BloatData *bloats;
     int i, locScale;
     PlaneMask pmask;
     CIFOp *op;
     CellDef *def;
+    Plane **temps;
     static Stack *BloatStack = (Stack *)NULL;
 
     op = bls->op;
     def = bls->def;
+    temps = bls->temps;
     bloats = (BloatData *)op->co_client;
 
     /* Create a mask of all connecting types (these must be in a single
      * plane), then call a search function to find all connecting material
-     * of these types.
+     * of these types (if the bloat types are temp layers, then this mask
+     * is not used).
      */
 
     TTMaskZero(&connect);
@@ -1117,7 +1121,10 @@ cifBloatAllFunc(tile, bls)
     if (type == CIF_SOLIDTYPE)
     {
 	pmask = 0;
-	locScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
+	if (bloats->bl_isCif == TRUE)
+	    locScale = 1;
+	else
+	    locScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
 
 	/* Get the tile into magic database coordinates if it's in CIF coords */
 	TiToRect(tile, &area);
@@ -1129,13 +1136,40 @@ cifBloatAllFunc(tile, bls)
     else
     {
 	int pNum = DBPlane(type);
-	pmask = CoincidentPlanes(&connect, PlaneNumToMaskBit(pNum));
+	pmask = (bloats->bl_isCif == TRUE) ? 0 :
+		CoincidentPlanes(&connect, PlaneNumToMaskBit(pNum));
 	if (pmask == 0) TiToRect(tile, &area);
-	locScale = cifScale;
+	if (bloats->bl_isCif == TRUE)
+	{
+	    /* Get the tile into CIF database coordinates if it's in magic coords */
+	    area.r_xbot *= cifScale;
+	    area.r_xtop *= cifScale;
+	    area.r_ybot *= cifScale;
+	    area.r_ytop *= cifScale;
+	    locScale = 1;
+	}
+	else
+	{
+	    locScale = cifScale;
+	}
     }
     if (pmask == 0)
-	DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &area,
-		&connect, cifFoundFunc, (ClientData)(&BloatStack));
+    {
+	if (bloats->bl_isCif)
+	{
+	    /* This expands the area to the OR of all temp layers specified */
+	    /* which may or may not be useful;  normally one would expand   */
+	    /* into a single layer if a temp layer is specified.	    */
+
+	    for (ttype = 0; ttype < TT_MAXTYPES; ttype++, temps++)
+		if (bloats->bl_distance[ttype] > 0)
+		    (void) DBSrPaintArea((Tile *)NULL, *temps, &area,
+				&CIFSolidBits, cifFoundFunc, (ClientData)(&BloatStack));
+	}
+	else
+	    DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &area,
+		    &connect, cifFoundFunc, (ClientData)(&BloatStack));
+    }
     else
 	PUSHTILE(t, BloatStack);
 
@@ -3127,7 +3161,7 @@ cifSrTiles(cifOp, area, cellDef, temps, func, cdArg)
  */
 
 Plane *
-CIFGenLayer(op, area, cellDef, temps, clientdata)
+CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
     CIFOp *op;			/* List of CIFOps telling how to make layer. */
     Rect *area;			/* Area to consider when generating CIF.  Only
 				 * material in this area will be considered, so
@@ -3136,6 +3170,9 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 				 */
     CellDef *cellDef;		/* CellDef to search when paint layers are
 				 * needed for operation.
+				 */
+    CellDef *origDef;		/* Original CellDef for which output is being
+				 * generated (cellDef may be derived from this).
 				 */
     Plane *temps[];		/* Temporary layers to be used when needed
 				 * for operation.
@@ -3374,6 +3411,7 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 		cifPlane = curPlane;
 		bls.op = op;
 		bls.def = cellDef;
+		bls.temps = temps;
 		cifSrTiles(op, area, cellDef, temps,
 		    cifBloatAllFunc, (ClientData)&bls);
 		break;
@@ -3442,12 +3480,13 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
 	    case CIFOP_BOUNDARY:
 		cifPlane = curPlane;
 		/* This function for cifoutput only.  cifinput handled separately. */
-		if (cellDef && (cellDef->cd_flags & CDFIXEDBBOX))
+
+		if (origDef && (origDef->cd_flags & CDFIXEDBBOX))
 		{
 		    char *propvalue;
 		    bool found;
 
-		    propvalue = (char *)DBPropGet(cellDef, "FIXED_BBOX", &found);
+		    propvalue = (char *)DBPropGet(origDef, "FIXED_BBOX", &found);
 		    if (!found) break;
 		    if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
 				&bbox.r_xtop, &bbox.r_ytop) != 4) break;
@@ -3527,8 +3566,9 @@ CIFGenLayer(op, area, cellDef, temps, clientdata)
  */
 
 void
-CIFGen(cellDef, area, planes, layers, replace, genAllPlanes, clientdata)
+CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, clientdata)
     CellDef *cellDef;		/* Cell for which CIF is to be generated. */
+    CellDef *origDef;		/* Original cell, if different from cellDef */
     Rect *area;			/* Any CIF overlapping this area (in coords
 				 * of cellDef) will be generated.  The CIF
 				 * will be clipped to this area.
@@ -3574,7 +3614,7 @@ CIFGen(cellDef, area, planes, layers, replace, genAllPlanes, clientdata)
 	{
 	    CIFErrorLayer = i;
 	    new[i] = CIFGenLayer(CIFCurStyle->cs_layers[i]->cl_ops,
-		    &expanded, cellDef, new, clientdata);
+		    &expanded, cellDef, origDef, new, clientdata);
 
 	    /* Clean up the non-manhattan geometry in the plane */
 	    if (CIFUnfracture) DBMergeNMTiles(new[i], &expanded,

@@ -998,7 +998,7 @@ calmaOutFunc(def, f, cliprect)
     /* Output all the tiles associated with this cell; skip temporary layers */
     GEO_EXPAND(&def->cd_bbox, CIFCurStyle->cs_radius, &bigArea);
     CIFErrorDef = def;
-    CIFGen(def, &bigArea, CIFPlanes, &DBAllTypeBits, TRUE, TRUE, (ClientData) f);
+    CIFGen(def, def, &bigArea, CIFPlanes, &DBAllTypeBits, TRUE, TRUE, (ClientData) f);
     if (!CIFHierWriteDisable)
 	CIFGenSubcells(def, &bigArea, CIFPlanes);
     if (!CIFArrayWriteDisable)

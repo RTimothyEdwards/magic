@@ -378,7 +378,7 @@ cifOutFunc(def, f)
 
     GEO_EXPAND(&def->cd_bbox, CIFCurStyle->cs_radius, &bigArea);
     CIFErrorDef = def;
-    CIFGen(def, &bigArea, CIFPlanes, &DBAllTypeBits, TRUE, TRUE);
+    CIFGen(def, def, &bigArea, CIFPlanes, &DBAllTypeBits, TRUE, TRUE);
     if (!CIFHierWriteDisable)
 	CIFGenSubcells(def, &bigArea, CIFPlanes);
     if (!CIFArrayWriteDisable)
