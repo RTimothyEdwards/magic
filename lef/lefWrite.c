@@ -1043,10 +1043,12 @@ lefWriteMacro(def, f, scale, hide)
     }
 
     /* Write position and size information */
+    /* Note:  Using "0.0 - X" prevents fprintf from generating "negative    */
+    /* zeros" in the output.						    */
 
     fprintf(f, IN0 "ORIGIN " POINT " ;\n",
-		-lc.oscale * (float)boundary.r_xbot,
-		-lc.oscale * (float)boundary.r_ybot);
+		0.0 - lc.oscale * (float)boundary.r_xbot,
+		0.0 - lc.oscale * (float)boundary.r_ybot);
 
     fprintf(f, IN0 "SIZE " FP " BY " FP " ;\n",
 		lc.oscale * (float)(boundary.r_xtop - boundary.r_xbot),
