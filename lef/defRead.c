@@ -1356,18 +1356,6 @@ DefReadVias(f, sname, oscale, total)
 			    break;
 			case DEF_VIAS_PROP_ENCLOSURE:
 			    token = LefNextToken(f, TRUE);
-			    if (sscanf(token, "%d", &enctx) != 1)
-			    {
-				LefError(DEF_ERROR, "Invalid syntax for ENCLOSURE.\n");
-				/* To do:  Get cut enclosures from DRC ruleset */
-			    }
-			    token = LefNextToken(f, TRUE);
-			    if (sscanf(token, "%d", &encty) != 1)
-			    {
-				LefError(DEF_ERROR, "Invalid syntax for ENCLOSURE.\n");
-				/* To do:  Get cut enclosures from DRC ruleset */
-			    }
-			    token = LefNextToken(f, TRUE);
 			    if (sscanf(token, "%d", &encbx) != 1)
 			    {
 				LefError(DEF_ERROR, "Invalid syntax for ENCLOSURE.\n");
@@ -1375,6 +1363,18 @@ DefReadVias(f, sname, oscale, total)
 			    }
 			    token = LefNextToken(f, TRUE);
 			    if (sscanf(token, "%d", &encby) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for ENCLOSURE.\n");
+				/* To do:  Get cut enclosures from DRC ruleset */
+			    }
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &enctx) != 1)
+			    {
+				LefError(DEF_ERROR, "Invalid syntax for ENCLOSURE.\n");
+				/* To do:  Get cut enclosures from DRC ruleset */
+			    }
+			    token = LefNextToken(f, TRUE);
+			    if (sscanf(token, "%d", &encty) != 1)
 			    {
 				LefError(DEF_ERROR, "Invalid syntax for ENCLOSURE.\n");
 				/* To do:  Get cut enclosures from DRC ruleset */
