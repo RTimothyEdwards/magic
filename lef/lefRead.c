@@ -1481,6 +1481,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		    /* there may be multiple instances of the label.	*/
 		    /* However, if the label is a point label, then	*/
 		    /* replace it with the geometry from the LEF file.	*/
+
 		    for (lab = lefMacro->cd_labels; lab; lab = lab->lab_next)
 		    {
 			if (!strcmp(lab->lab_text, pinname))
@@ -1489,6 +1490,25 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 				break;
 			    else
 			    {
+				if (lab->lab_flags & PORT_DIR_MASK)
+				    pinNum = lab->lab_flags & PORT_NUM_MASK;
+				else
+				{
+				    Label *sl;
+				    int idx;
+
+				    pinNum = -1;
+				    for (sl = lefMacro->cd_labels; sl != NULL;
+						sl = sl->lab_next)
+				    {
+					if (sl->lab_flags & PORT_DIR_MASK)
+					{
+					    idx = sl->lab_flags & PORT_NUM_MASK;
+					    if (idx > pinNum) pinNum = idx;
+					}
+				    }
+				    pinNum++;
+				}
 				needRect = FALSE;
 				lab->lab_flags &= ~(PORT_USE_MASK | PORT_DIR_MASK |
 					PORT_CLASS_MASK);
