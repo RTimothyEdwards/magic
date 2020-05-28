@@ -392,10 +392,6 @@ catch {source ${CAD_ROOT}/magic/tcl/drcmgr.tcl}
 
 catch {source ${CAD_ROOT}/magic/tcl/texthelper.tcl}
 
-# Add the readspice command for port annotation
-
-catch {source ${CAD_ROOT}/magic/tcl/readspice.tcl}
-
 # Create or redisplay the technology manager
 
 proc magic::techmanager {{option "update"}} {
