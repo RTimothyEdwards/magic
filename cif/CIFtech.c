@@ -1109,19 +1109,21 @@ CIFTechLine(sectionName, argc, argv)
 	    TTMaskZero(&bloatLayers);
 	    if (!TTMaskIsZero(&mask))
 	    {
-		bloats->bl_isCif = FALSE;
 		TTMaskSetMask(&bloatLayers, &mask);
 		for (i = 0; i < TT_MAXTYPES;  i++)
 		    if (TTMaskHasType(&mask, i))
 			bloats->bl_distance[i] = 1;
+
+		goto bloatCheck;
 	    }
 	    else
 	    {
-		bloats->bl_isCif = TRUE;
 		TTMaskSetMask(&bloatLayers, &cifMask);
 		for (i = 0; i < TT_MAXTYPES;  i++)
 		    if (TTMaskHasType(&cifMask, i))
 			bloats->bl_distance[i] = 1;
+
+		bloats->bl_plane = -1;	/* Indicates CIF types */
 	    }
 	    break;
 
@@ -1135,7 +1137,6 @@ CIFTechLine(sectionName, argc, argv)
 	    bloatArg = argv + 2;
 	    bloatLayers = newOp->co_paintMask;
 	    bloats = (BloatData *)mallocMagic(sizeof(BloatData));
-	    bloats->bl_isCif = FALSE;
 	    for (i = 0; i < TT_MAXTYPES; i++)
 		bloats->bl_distance[i] = 0;
 	    newOp->co_client = (ClientData)bloats;
@@ -1877,7 +1878,7 @@ CIFTechFinal()
 		    {
 			if (bloats->bl_distance[j] != bloats->bl_distance[TT_SPACE])
 			{
-			    if (bloats->bl_isCif)
+			    if (bloats->bl_plane < 0)
 				TTMaskSetType(&ourDepend, j);
 			    else
 				TTMaskSetType(&ourYank, j);

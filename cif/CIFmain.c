@@ -338,7 +338,7 @@ CIFNameToMask(name, result, depend)
 		            BloatData *bloats = (BloatData *)op->co_client;
 			    TileType ttype;
 
-			    if (bloats->bl_isCif == TRUE)
+			    if (bloats->bl_plane < 0)	 /* Use CIF types */
 		                for (ttype = 0; ttype < TT_MAXTYPES; ttype++)
 		                    if (bloats->bl_distance[ttype] > 0)
 					TTMaskSetType(depend, ttype);

@@ -28,6 +28,7 @@ TCL_FILES = \
 	toolkit_rev0.tcl \
 	bsitools.tcl \
 	socketcmd.tcl \
+	readspice.tcl \
 	magic.tcl
 
 BIN_FILES = \

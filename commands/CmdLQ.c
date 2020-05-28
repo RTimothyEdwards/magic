@@ -1131,7 +1131,9 @@ portFindLabel(editDef, port, unique, nonEdit)
     Rect editBox;
 
     /*
-     * Check for unique label in box area
+     * Check for unique label in box area.  Note that GEO_OVERLAP
+     * requires non-zero overlap area, so also check GEO_SURROUND to
+     * catch zero-area label rectangles.
      */
 
     ToolGetEditBox(&editBox);
@@ -1140,7 +1142,8 @@ portFindLabel(editDef, port, unique, nonEdit)
     lab = NULL;
     for (sl = editDef->cd_labels; sl != NULL; sl = sl->lab_next)
     {
-	if (GEO_OVERLAP(&editBox, &sl->lab_rect))
+	if (GEO_OVERLAP(&editBox, &sl->lab_rect) ||
+			GEO_SURROUND(&editBox, &sl->lab_rect))
 	{
 	    if (found > 0)
 	    {
@@ -1369,7 +1372,10 @@ CmdPort(w, cmd)
 		}
 		if (lab == NULL)
 		{
-		    TxError("No label found with that name\n.");
+		    if (StrIsInt(cmd->tx_argv[1]))
+			TxError("No label found with name %s.\n", cmd->tx_argv[1]);
+		    else
+			TxError("No port found with index %s.\n", cmd->tx_argv[1]);
 		    return;
 		}
 		argstart = 2;
@@ -1414,7 +1420,10 @@ CmdPort(w, cmd)
 	{
 	    /* Let "port remove" fail without complaining. */
 	    if (option != PORT_REMOVE)
+	    {
 		TxError("Exactly one label may be present under the cursor box.\n");
+		TxError("Use \"port <name> ...\" to specify a uniqe port.\n");
+	    }
 
 	    return;
 	}

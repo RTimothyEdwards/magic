@@ -1121,7 +1121,7 @@ cifBloatAllFunc(tile, bls)
     if (type == CIF_SOLIDTYPE)
     {
 	pmask = 0;
-	if (bloats->bl_isCif == TRUE)
+	if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
 	    locScale = 1;
 	else
 	    locScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
@@ -1136,10 +1136,10 @@ cifBloatAllFunc(tile, bls)
     else
     {
 	int pNum = DBPlane(type);
-	pmask = (bloats->bl_isCif == TRUE) ? 0 :
+	pmask = (bloats->bl_plane < 0) ? 0 :
 		CoincidentPlanes(&connect, PlaneNumToMaskBit(pNum));
 	if (pmask == 0) TiToRect(tile, &area);
-	if (bloats->bl_isCif == TRUE)
+	if (bloats->bl_plane < 0)
 	{
 	    /* Get the tile into CIF database coordinates if it's in magic coords */
 	    area.r_xbot *= cifScale;
@@ -1155,7 +1155,7 @@ cifBloatAllFunc(tile, bls)
     }
     if (pmask == 0)
     {
-	if (bloats->bl_isCif)
+	if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
 	{
 	    /* This expands the area to the OR of all temp layers specified */
 	    /* which may or may not be useful;  normally one would expand   */
