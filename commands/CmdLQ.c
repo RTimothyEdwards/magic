@@ -1540,8 +1540,16 @@ CmdPort(w, cmd)
 		    }
 		    else
 		    {
-		        lab->lab_flags &= (~PORT_CLASS_MASK);
-			lab->lab_flags |= (PORT_CLASS_MASK & cmdClassToBitmask[type]);
+			for (sl = lab; sl; sl = sl->lab_next)
+			{
+			    if (((sl->lab_flags & PORT_DIR_MASK) != 0) &&
+					!strcmp(sl->lab_text, lab->lab_text))
+			    {
+				sl->lab_flags &= (~PORT_CLASS_MASK);
+				sl->lab_flags |= (PORT_CLASS_MASK &
+					    cmdClassToBitmask[type]);
+			    }
+			}
 			editDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
 		    }
 		}
@@ -1577,8 +1585,15 @@ CmdPort(w, cmd)
 		    }
 		    else
 		    {
-		        lab->lab_flags &= (~PORT_USE_MASK);
-			lab->lab_flags |= (PORT_USE_MASK & cmdUseToBitmask[type]);
+			for (sl = lab; sl; sl = sl->lab_next)
+			{
+			    if (((sl->lab_flags & PORT_DIR_MASK) != 0) &&
+					!strcmp(sl->lab_text, lab->lab_text))
+			    {
+				sl->lab_flags &= (~PORT_USE_MASK);
+				sl->lab_flags |= (PORT_USE_MASK & cmdUseToBitmask[type]);
+			    }
+			}
 			editDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
 		    }
 		}
@@ -1602,8 +1617,15 @@ CmdPort(w, cmd)
 		        TxError("Usage:  port index <integer>\n");
 		    else
 		    {
-		        lab->lab_flags &= (~PORT_NUM_MASK);
-			lab->lab_flags |= atoi(cmd->tx_argv[argstart + 1]);
+			for (sl = lab; sl; sl = sl->lab_next)
+			{
+			    if (((sl->lab_flags & PORT_DIR_MASK) != 0) &&
+					!strcmp(sl->lab_text, lab->lab_text))
+			    {
+				sl->lab_flags &= (~PORT_NUM_MASK);
+				sl->lab_flags |= atoi(cmd->tx_argv[argstart + 1]);
+			    }
+			}
 			editDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
 		    }
 		}
