@@ -753,7 +753,7 @@ DBFileRecovery(filename)
 				continue;
 
 			recent = sbuf.st_ctime;
-			DBbackupFile = StrDup(&DBbackupFile, tempname);
+			StrDup(&DBbackupFile, tempname);
 		    }
 		}
 	    }
@@ -762,7 +762,7 @@ DBFileRecovery(filename)
     }
     else
     {
-	DBbackupFile = StrDup(&DBbackupFile, filename);
+	StrDup(&DBbackupFile, filename);
 	recent = 1;
     }
 
@@ -1066,7 +1066,7 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 
 		/* Write the new path to cd_file or else magic will	*/
 		/* generate another error later.			*/
-		cellDef->cd_file = StrDup(&cellDef->cd_file, filename);
+		StrDup(&cellDef->cd_file, filename);
 
 		TxError("The cell exists in the search paths at %s.\n", filename);
 		TxError("The discovered version will be used.\n");
@@ -1098,7 +1098,7 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 	    realname = (char *) mallocMagic((unsigned) (strlen(cellDef->cd_name)
 			+ strlen(DBSuffix) + 1));
 	    (void) sprintf(realname, "%s%s", cellDef->cd_name, DBSuffix);
-	    cellDef->cd_file = StrDup(&cellDef->cd_file, realname);
+	    StrDup(&cellDef->cd_file, realname);
 	}
 	if (errptr) TxError("%s\n", strerror(*errptr));
 
@@ -2736,7 +2736,7 @@ DBCellWrite(cellDef, fileName)
     /* surprises can occur after saving a file as a different	    */
     /* filename.						    */
 
-    cellDef->cd_file = StrDup(&cellDef->cd_file, fileName);
+    StrDup(&cellDef->cd_file, fileName);
 
     /* The cd_file should not have the .mag suffix, but make sure   */
     /* it doesn't before adding one.				    */
@@ -3322,7 +3322,7 @@ DBWriteBackup(filename)
 		return FALSE;
 	    }
 	    close(fd);
-	    DBbackupFile = StrDup(&DBbackupFile, template);
+	    StrDup(&DBbackupFile, template);
 	    freeMagic(template);
 	    TxPrintf("Created database crash recovery file %s\n", DBbackupFile);
 	}
@@ -3332,10 +3332,10 @@ DBWriteBackup(filename)
     {
 	if (strlen(filename) == 0)
 	{
-	    DBbackupFile = StrDup(&DBbackupFile, (char *)NULL);
+	    StrDup(&DBbackupFile, (char *)NULL);
 	    return TRUE;
 	}
-	DBbackupFile = StrDup(&DBbackupFile, filename);
+	StrDup(&DBbackupFile, filename);
 	TxPrintf("Created database crash recovery file %s\n", DBbackupFile);
     }
 

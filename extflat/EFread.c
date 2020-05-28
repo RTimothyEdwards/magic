@@ -555,7 +555,7 @@ resistChanged:
 		}
 #endif
 		else
-		    EFStyle = StrDup(&EFStyle, argv[1]);
+		    StrDup(&EFStyle, argv[1]);
 		break;
 
 	    /* version version-number */

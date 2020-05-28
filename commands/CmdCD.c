@@ -3758,12 +3758,12 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 		}
 		TxError("Renaming cell to \"%s\" to avoid conflict.", newcellname);
 		def = DBCellNewDef(cellnameptr);
-		def->cd_file = StrDup(&def->cd_file, fullpathname);
+		StrDup(&def->cd_file, fullpathname);
 		freeMagic(newcellname);
 	    }
 	}
 	else
-	    def->cd_file = StrDup(&def->cd_file, fullpathname);
+	    StrDup(&def->cd_file, fullpathname);
 	freeMagic(fullpathname);
     }
 
