@@ -14,10 +14,16 @@
 global Opts
 
 proc readspice {netfile} {
+   if {[file ext $netfile] == ".cdl"} {
+      is_cdl = true
+   } else {
+      is_cdl = false
+   }
+
    if [catch {open  $netfile r} fnet] {
       set netname [file rootname $netfile]
 
-      # Check for standard extensions (.spi, .spc, .spice, .sp, .ckt)
+      # Check for standard extensions (.spi, .spc, .spice, .sp, .ckt, .cdl)
 
       set testnetfile ${netname}.spi
       if [catch {open  ${testnetfile} r} fnet] {
@@ -29,8 +35,13 @@ proc readspice {netfile} {
                if [catch {open  ${testnetfile} r} fnet] {
                   set testnetfile ${netname}.ckt
                   if [catch {open  ${testnetfile} r} fnet] {
-                     puts stderr "Error:  Can't read netlist file $netfile"
-	             return 1;
+                     set testnetfile ${netname}.cdl
+                     if [catch {open  ${testnetfile} r} fnet] {
+                        puts stderr "Error:  Can't read netlist file $netfile"
+	                return 1;
+		     } else {
+			is_cdl = true
+		     }
 		  }
 	       }
 	    }
