@@ -1555,12 +1555,16 @@ lefGetProperties(stackItem, i, clientData)
 	    if (*psrch == '\0') break;
 	    if (*psrch == '\"')
 	    {
+		psrch++;
 		while (*psrch != '\"' && *psrch != '\0') psrch++;
 		if (*psrch == '\0') break;
 		psrch++;
 	    }
 	    else
+	    {
+		psrch++;
 		while (*psrch != ' ' && *psrch != '\0') psrch++;
+	    }
 	    if (*psrch == '\0') break;
 	    psrch++;
 	}
