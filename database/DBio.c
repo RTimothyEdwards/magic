@@ -2736,7 +2736,8 @@ DBCellWrite(cellDef, fileName)
     /* surprises can occur after saving a file as a different	    */
     /* filename.						    */
 
-    StrDup(&cellDef->cd_file, fileName);
+    if (fileName != cellDef->cd_file)
+	StrDup(&cellDef->cd_file, fileName);
 
     /* The cd_file should not have the .mag suffix, but make sure   */
     /* it doesn't before adding one.				    */
