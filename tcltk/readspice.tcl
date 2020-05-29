@@ -117,11 +117,11 @@ proc readspice {netfile} {
 		  # is by no means exhaustive.
 
 		  if {$pinidx == ""} {
-		      set testpin [string map {\[ < \] >]} $pin
+		      set testpin [string map {\[ < \] >]} $pin]
 		      set pinidx [port $testpin index]
 		  }
 		  if {$pinidx == ""} {
-		      set testpin [string map {< \[ > \]} $pin
+		      set testpin [string map {< \[ > \]} $pin]
 		      set pinidx [port $testpin index]
 		  }
 
