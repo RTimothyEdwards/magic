@@ -174,12 +174,16 @@ lefFileOpen(def, file, suffix, mode, prealfile)
  */
 
 void
-lefWriteHeader(def, f, lefTech)
-    CellDef *def;	/* Def for which to generate LEF output */
-    FILE *f;		/* Output to this file */
-    bool lefTech;	/* If TRUE, write layer information */
+lefWriteHeader(def, f, lefTech, propTable)
+    CellDef *def;	    /* Def for which to generate LEF output */
+    FILE *f;		    /* Output to this file */
+    bool lefTech;	    /* If TRUE, write layer information */
+    HashTable *propTable;   /* Hash table of property definitions */
 {
     TileType type;
+    HashSearch hs;
+    HashEntry *he;
+    int nprops;
 
     TxPrintf("Diagnostic:  Write LEF header for cell %s\n", def->cd_name);
 
@@ -200,6 +204,19 @@ lefWriteHeader(def, f, lefTech)
     fprintf(f, IN0 "DATABASE MICRONS 1000 ;\n");
     fprintf(f, "END UNITS\n");
     fprintf(f, "\n");
+
+    HashStartSearch(&hs);
+    nprops = 0;
+    while (he = HashNext(propTable, &hs))
+    {
+	if (nprops == 0) fprintf(f, IN0 "PROPERTYDEFINITIONS\n");
+	nprops++;
+    
+	/* NOTE: Type (e.g., "STRING") may be kept in hash value.   */
+	/* This has not been implemented;  only string types are supported */
+	fprintf(f, IN1 "MACRO %s STRING ;\n", (char *)he->h_key.h_name);
+    }
+    if (nprops > 0) fprintf(f, IN0 "END PROPERTYDEFINITIONS\n");
 
     if (!lefTech) return;
 
@@ -1492,6 +1509,68 @@ lefWriteMacro(def, f, scale, hide)
 /*
  *------------------------------------------------------------
  *
+ * lefGetProperties ---
+ *
+ *	Pull property definitions from multiple cells into
+ *	a list of unique entries to be written to the
+ *	PROPERTYDEFINITIONS block in an output LEF file.
+ *
+ *------------------------------------------------------------
+ */
+int
+lefGetProperties(stackItem, i, clientData)
+    ClientData stackItem;
+    int i;
+    ClientData clientData;
+{
+    CellDef *def = (CellDef *)stackItem;
+    HashTable *lefPropTbl = (HashTable *)clientData;
+    HashEntry *he;
+    bool propfound;
+    char *propvalue;
+
+    propvalue = (char *)DBPropGet(def, "LEFproperties", &propfound);
+    if (propfound)
+    {
+	char *key;
+	char *psrch;
+	char *value;
+
+	psrch = propvalue;
+	while (*psrch != '\0')
+	{
+	    key = psrch;
+	    while (*psrch != ' ' && *psrch != '\0') psrch++;
+	    if (*psrch == '\0') break;
+	    *psrch = '\0';
+	    he = HashFind(lefPropTbl, key);
+
+	    /* Potentially to do:  Handle INT and REAL types */
+	    /* For now, only STRING properties are handled.  */
+
+	    *psrch = ' ';
+	    psrch++;
+	    while (*psrch == ' ' && *psrch != '\0') psrch++;
+	    value = psrch;
+	    if (*psrch == '\0') break;
+	    if (*psrch == '\"')
+	    {
+		while (*psrch != '\"' && *psrch != '\0') psrch++;
+		if (*psrch == '\0') break;
+		psrch++;
+	    }
+	    else
+		while (*psrch != ' ' && *psrch != '\0') psrch++;
+	    if (*psrch == '\0') break;
+	    psrch++;
+	}
+    }
+    return 0;
+}
+
+/*
+ *------------------------------------------------------------
+ *
  * LefWriteAll --
  *
  *	Write LEF-format output for each cell, beginning with
@@ -1514,6 +1593,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
     bool lefHide;
     bool recurse;
 {
+    HashTable propHashTbl;
     CellDef *def, *rootdef;
     FILE *f;
     char *filename;
@@ -1557,9 +1637,15 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
 	return;
     }
 
+    /* For all cells, collect any properties */
+    HashInit(&propHashTbl, 4, HT_WORDKEYS);
+    StackEnum(lefDefStack, lefGetProperties, &propHashTbl);
+
     /* Now generate LEF output for all the cells we just found */
 
-    lefWriteHeader(rootdef, f, lefTech);
+    lefWriteHeader(rootdef, f, lefTech, &propHashTbl);
+
+    HashKill(&propHashTbl);
 
     while (def = (CellDef *) StackPop(lefDefStack))
     {
@@ -1657,7 +1743,14 @@ LefWriteCell(def, outName, isRoot, lefTech, lefHide)
     }
 
     if (isRoot)
-	lefWriteHeader(def, f, lefTech);
+    {
+	HashTable propHashTbl;
+
+	HashInit(&propHashTbl, 4, HT_WORDKEYS);
+	lefGetProperties((ClientData)def, 0, (ClientData)&propHashTbl);
+	lefWriteHeader(def, f, lefTech, &propHashTbl);
+	HashKill(&propHashTbl);
+    }
     lefWriteMacro(def, f, scale, lefHide);
     fclose(f);
 }
