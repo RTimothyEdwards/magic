@@ -1746,7 +1746,7 @@ LefWriteCell(def, outName, isRoot, lefTech, lefHide)
     {
 	HashTable propHashTbl;
 
-	HashInit(&propHashTbl, 4, HT_WORDKEYS);
+	HashInit(&propHashTbl, 4, HT_STRINGKEYS);
 	lefGetProperties((ClientData)def, 0, (ClientData)&propHashTbl);
 	lefWriteHeader(def, f, lefTech, &propHashTbl);
 	HashKill(&propHashTbl);
