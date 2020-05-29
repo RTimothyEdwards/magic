@@ -1254,7 +1254,7 @@ lefWriteMacro(def, f, scale, hide)
 	    		lefWriteGeometry, (ClientData) &lc) == 1)
 		{
 		    /* needHeader was set and there was something to write, */
-		    /* so write the headr and then re-run the search.	    */
+		    /* so write the header and then re-run the search.	    */
 
 		    ispwrrail = LefWritePinHeader(f, lab);
 		    if (ispwrrail == FALSE)

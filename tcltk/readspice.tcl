@@ -87,6 +87,9 @@ proc readspice {netfile} {
 	       set n 1
 	       set changed false
 	       foreach pin [lrange $ftokens 2 end] {
+		  # Tcl "split" will not group spaces and tabs but leaves
+		  # empty strings.
+		  if {$pin == {}} {continue}
 
 		  # NOTE:  Should probably check for CDL-isms, global bang
 		  # characters, case insensitive matches, etc.  This routine
@@ -98,9 +101,34 @@ proc readspice {netfile} {
 		  # name, only the one triggered by "goto" will be made into
 		  # a port.
 
-		  set pinidx [port $pin index]
+		  set testpin $pin
+		  set pinidx [port $testpin index]
+
+		  # Test a few common delimiter translations.  This list
+		  # is by no means exhaustive.
+
+		  if {$pinidx == ""} {
+		      set testpin [string map {\[ < \] >]} $pin
+		      set pinidx [port $testpin index]
+		  }
+		  if {$pinidx == ""} {
+		      set testpin [string map {< \[ > \]} $pin
+		      set pinidx [port $testpin index]
+		  }
+
+		  # Also test some case sensitivity issues (also not exhaustive)
+
+		  if {$pinidx == ""} {
+		      set testpin [string tolower $pin]
+		      set pinidx [port $testpin index]
+		  }
+		  if {$pinidx == ""} {
+		      set testpin [string toupper $pin]
+		      set pinidx [port $testpin index]
+		  }
+
                   if {$pinidx != ""} {
-		      port $pin index $n
+		      port $testpin index $n
 		      if {$pinidx != $n} {
 			  set changed true
 		      }
