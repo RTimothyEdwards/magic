@@ -1873,7 +1873,7 @@ dbReadLabels(cellDef, line, len, f, scalen, scaled)
     int scalen;		/* Scale up by this factor */
     int scaled;		/* Scale down by this factor */
 {
-    char layername[50], text[1024], port_use[50], port_class[50];
+    char layername[50], text[1024], port_use[50], port_class[50], port_shape[50];
     TileType type;
     int ntok, orient, size, rotate, font, flags;
     Point offset;
@@ -1982,9 +1982,9 @@ dbReadLabels(cellDef, line, len, f, scalen, scaled)
 
 	    if (((lab = cellDef->cd_lastLabel) == NULL) ||
 			(lab->lab_flags & PORT_DIR_MASK) ||
-			(((ntok = sscanf(line, "port %d %4s %49s %49s",
-				&idx, ppos, port_use, port_class)) != 2) &&
-			(ntok != 4)))
+			(((ntok = sscanf(line, "port %d %4s %49s %49s %49s",
+				&idx, ppos, port_use, port_class, port_shape)) != 2) &&
+			(ntok != 4) && (ntok != 5)))
 	    {
 		TxError("Skipping bad \"port\" line: %s", line);
 		goto nextlabel;
@@ -2009,7 +2009,7 @@ dbReadLabels(cellDef, line, len, f, scalen, scaled)
 			break;
 		}
 	    }
-	    if (ntok == 4)
+	    if (ntok >= 4)
 	    {
 		switch(port_use[0])
 		{
@@ -2060,7 +2060,26 @@ dbReadLabels(cellDef, line, len, f, scalen, scaled)
 			TxError("Ignoring unknown \"port\" use: %s", port_use);
 			break;
 		}
-
+		if (ntok == 5) {
+		    switch(port_shape[0])
+		    {
+			case 'a':
+			    lab->lab_flags |= PORT_SHAPE_ABUT;
+			    break;
+			case 'r':
+			    lab->lab_flags |= PORT_SHAPE_RING;
+			    break;
+			case 'f':
+			    lab->lab_flags |= PORT_SHAPE_THRU;
+			    break;
+			case 'd':
+			    lab->lab_flags |= PORT_SHAPE_DEFAULT;
+			    break;
+			default:
+			    TxError("Ignoring unknown \"port\" shape: %s", port_shape);
+			    break;
+		    }
+		}
 	    }
 	    goto nextlabel;
 	}
@@ -2505,7 +2524,7 @@ DBCellWriteFile(cellDef, f)
 		sprintf(lstring, "port %d %s", lab->lab_flags & PORT_NUM_MASK,
 			ppos);
 
-		if (lab->lab_flags & (PORT_USE_MASK | PORT_CLASS_MASK))
+		if (lab->lab_flags & (PORT_USE_MASK | PORT_CLASS_MASK | PORT_SHAPE_MASK))
 		{
 		    switch (lab->lab_flags & PORT_USE_MASK)
 		    {
@@ -2548,6 +2567,19 @@ DBCellWriteFile(cellDef, f)
 			    break;
 			case PORT_CLASS_DEFAULT:
 			    strcat(lstring, " default");
+			    break;
+		    }
+
+		    switch (lab->lab_flags & PORT_SHAPE_MASK)
+		    {
+			case PORT_SHAPE_ABUT:
+			    strcat(lstring, " abutment");
+			    break;
+			case PORT_SHAPE_RING:
+			    strcat(lstring, " ring");
+			    break;
+			case PORT_SHAPE_THRU:
+			    strcat(lstring, " feedthrough");
 			    break;
 		    }
 		}

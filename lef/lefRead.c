@@ -1269,11 +1269,11 @@ LefReadGeometry(lefMacro, f, oscale, do_list)
  */
 
 void
-LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, oscale, lanno)
+LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, pinShape, oscale, lanno)
     CellDef *lefMacro;
     FILE *f;
     char *pinName;
-    int pinNum, pinDir, pinUse;
+    int pinNum, pinDir, pinUse, pinShape;
     float oscale;
     Label *lanno;
 {
@@ -1333,8 +1333,8 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, oscale, lanno)
 		else
 		    /* Make this a port, and make it a sticky label so that */
 		    /* it is guaranteed to be on the layer on which it is defined */
-		    newlab->lab_flags = pinNum | pinUse | pinDir | PORT_DIR_MASK |
-			    LABEL_STICKY;
+		    newlab->lab_flags = pinNum | pinUse | pinDir | pinShape |
+			    PORT_DIR_MASK | LABEL_STICKY;
 	    }
 	    /* If lanno is non-NULL then the first rectangle in the LEF	    */
 	    /* port list is used to modify it.  All other LEF port geometry */
@@ -1382,6 +1382,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
     int keyword, subkey;
     int pinDir = PORT_CLASS_DEFAULT;
     int pinUse = PORT_USE_DEFAULT;
+    int pinShape = PORT_SHAPE_DEFAULT;
 
     static char *pin_keys[] = {
 	"DIRECTION",
@@ -1440,6 +1441,21 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 	PORT_USE_CLOCK
     };
 
+    static char *pin_shapes[] = {
+	"DEFAULT",
+	"ABUTMENT",
+	"RING",
+	"FEEDTHRU",
+	NULL
+    };
+
+    static int lef_shape_to_bitmask[] = {
+	PORT_SHAPE_DEFAULT,
+	PORT_SHAPE_ABUT,
+	PORT_SHAPE_RING,
+	PORT_SHAPE_THRU
+    };
+
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
 	keyword = Lookup(token, pin_keys);
@@ -1468,6 +1484,15 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		    LefError(LEF_ERROR, "Improper USE statement\n");
 		else
 		    pinUse = lef_use_to_bitmask[subkey];
+		LefEndStatement(f);
+		break;
+	    case LEF_SHAPE:
+		token = LefNextToken(f, TRUE);
+		subkey = Lookup(token, pin_shapes);
+		if (subkey < 0)
+		    LefError(LEF_ERROR, "Improper SHAPE statement\n");
+		else
+		    pinShape = lef_shape_to_bitmask[subkey];
 		LefEndStatement(f);
 		break;
 	    case LEF_PORT:
@@ -1511,8 +1536,8 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 				}
 				needRect = FALSE;
 				lab->lab_flags &= ~(PORT_USE_MASK | PORT_DIR_MASK |
-					PORT_CLASS_MASK);
-				lab->lab_flags = pinNum | pinUse | pinDir |
+					PORT_CLASS_MASK | PORT_SHAPE_MASK);
+				lab->lab_flags = pinNum | pinUse | pinDir | pinShape |
 					PORT_DIR_MASK;
 			    }
 			}
@@ -1522,14 +1547,14 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 			if (lab == NULL)
 			    DBEraseLabelsByContent(lefMacro, NULL, -1, pinname);
 			LefReadPort(lefMacro, f, pinname, pinNum, pinDir, pinUse,
-				oscale, lab);
+				pinShape, oscale, lab);
 		    }
 		    else
 			LefSkipSection(f, NULL);
 		}
 		else
-		    LefReadPort(lefMacro, f, pinname, pinNum, pinDir, pinUse, oscale,
-			    NULL);
+		    LefReadPort(lefMacro, f, pinname, pinNum, pinDir, pinUse,
+			    pinShape, oscale, NULL);
 		break;
 	    case LEF_CAPACITANCE:
 	    case LEF_ANTENNADIFF:
@@ -1540,7 +1565,6 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 	    case LEF_ANTENNAPARCUT:
 	    case LEF_ANTENNAMAX:
 	    case LEF_ANTENNAMAXSIDE:
-	    case LEF_SHAPE:
 	    case LEF_NETEXPR:
 		LefEndStatement(f);	/* Ignore. . . */
 		break;

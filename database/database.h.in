@@ -283,19 +283,24 @@ typedef struct label
 #define PORT_CLASS_FEEDTHROUGH	 0x50000 /* Port touches no active	*/
 					 /*    devices			*/
 
-#define PORT_USE_MASK	   0x700000	/* Mask of all port uses	*/
-#define PORT_USE_DEFAULT   0x000000	/* Port takes default use	*/
-#define PORT_USE_SIGNAL	   0x100000	/* Port is a digital signal	*/
-#define PORT_USE_ANALOG	   0x200000	/* Port is an analog signal	*/
-#define PORT_USE_POWER	   0x300000	/* Port is a power rail		*/
-#define PORT_USE_GROUND    0x400000	/* Port is a ground rail	*/
-#define PORT_USE_CLOCK     0x500000	/* Port is a digital clock	*/
+#define PORT_USE_MASK	   0x0700000	/* Mask of all port uses	*/
+#define PORT_USE_DEFAULT   0x0000000	/* Port takes default use	*/
+#define PORT_USE_SIGNAL	   0x0100000	/* Port is a digital signal	*/
+#define PORT_USE_ANALOG	   0x0200000	/* Port is an analog signal	*/
+#define PORT_USE_POWER	   0x0300000	/* Port is a power rail		*/
+#define PORT_USE_GROUND    0x0400000	/* Port is a ground rail	*/
+#define PORT_USE_CLOCK     0x0500000	/* Port is a digital clock	*/
 					/*    signal			*/
-#define PORT_VISITED	   0x800000	/* Bit for checking if a port	*/
+#define PORT_SHAPE_MASK	   0x1800000	/* Mask of all port shapes	*/
+#define PORT_SHAPE_DEFAULT 0x0000000	/* Port takes default shape	*/
+#define PORT_SHAPE_ABUT	   0x0800000	/* Port is an abutment shape	*/
+#define PORT_SHAPE_RING	   0x1000000	/* Port is a ring shape		*/
+#define PORT_SHAPE_THRU	   0x1800000	/* Port is a feedthrough shape	*/
+#define PORT_VISITED	   0x2000000	/* Bit for checking if a port	*/
 					/* has been previously visited.	*/
 
-#define LABEL_STICKY	   0x1000000	/* Label does not change layers	*/
-#define LABEL_GENERATE	   0x2000000	/* Auto-generated label		*/
+#define LABEL_STICKY	   0x4000000	/* Label does not change layers	*/
+#define LABEL_GENERATE	   0x8000000	/* Auto-generated label		*/
 
 /*
  * Macros for dealing with label rectangles.

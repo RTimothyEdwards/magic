@@ -1209,7 +1209,7 @@ portFindLabel(editDef, port, unique, nonEdit)
  * Usage:
  *	port make|makeall [num] [connect_direction(s)]
  * or
- *	port [name|num] class|use|index [value]
+ *	port [name|num] class|use|shape|index [value]
  *
  * num is the index of the port, usually beginning with 1.  This indicates
  *	the order in which ports should be written to a subcircuit record
@@ -1238,16 +1238,17 @@ portFindLabel(editDef, port, unique, nonEdit)
 
 #define PORT_CLASS	0
 #define PORT_USE	1
-#define PORT_INDEX	2
-#define PORT_EQUIV	3
-#define PORT_EXISTS	4
-#define PORT_CONNECT	5
-#define PORT_LAST	6
-#define PORT_MAKE	7
-#define PORT_MAKEALL	8
-#define PORT_NAME	9
-#define PORT_REMOVE	10
-#define PORT_HELP	11
+#define PORT_SHAPE	2
+#define PORT_INDEX	3
+#define PORT_EQUIV	4
+#define PORT_EXISTS	5
+#define PORT_CONNECT	6
+#define PORT_LAST	7
+#define PORT_MAKE	8
+#define PORT_MAKEALL	9
+#define PORT_NAME	10
+#define PORT_REMOVE	11
+#define PORT_HELP	12
 
 void
 CmdPort(w, cmd)
@@ -1268,6 +1269,7 @@ CmdPort(w, cmd)
     {
 	"class	[type]		get [set] port class type",
 	"use	[type]		get [set] port use type",
+	"shape	[type]		get [set] port shape type",
 	"index	[number]	get [set] port number",
 	"equivalent [number]	make port equivalent to another port",
 	"exists			report if a label is a port or not",
@@ -1327,6 +1329,25 @@ CmdPort(w, cmd)
 	PORT_USE_POWER,
 	PORT_USE_GROUND,
 	PORT_USE_CLOCK
+    };
+
+    static char *cmdPortShapeTypes[] =
+    {
+	"default",
+	"abutment",
+	"ring",
+	"feedthrough",
+	"feedthru",
+	NULL
+    };
+
+    static int cmdShapeToBitmask[] =
+    {
+	PORT_SHAPE_DEFAULT,
+	PORT_SHAPE_ABUT,
+	PORT_SHAPE_RING,
+	PORT_SHAPE_THRU,
+	PORT_SHAPE_THRU
     };
 
     argstart = 1;
@@ -1592,6 +1613,51 @@ CmdPort(w, cmd)
 			    {
 				sl->lab_flags &= (~PORT_USE_MASK);
 				sl->lab_flags |= (PORT_USE_MASK & cmdUseToBitmask[type]);
+			    }
+			}
+			editDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
+		    }
+		}
+		else
+		    goto portWrongNumArgs;
+		break;
+
+	    case PORT_SHAPE:
+		if (argc == 2)
+		{
+		    type = lab->lab_flags & PORT_SHAPE_MASK;
+		    for (idx = 0; cmdPortShapeTypes[idx] != NULL; idx++)
+			if (cmdShapeToBitmask[idx] == type)
+			{
+#ifdef MAGIC_WRAPPER
+			    Tcl_AppendResult(magicinterp, cmdPortShapeTypes[idx],
+					NULL);
+#else
+			    TxPrintf("Shape = %s\n", cmdPortShapeTypes[idx]);
+#endif
+			    break;
+			}
+		}
+		else if (argc == 3)
+		{
+		    type = Lookup(cmd->tx_argv[argstart + 1], cmdPortShapeTypes);
+		    if (type < 0)
+		    {
+		        TxError("Usage:  port shape <type>, where <type> is one of:\n");
+			for (msg = &(cmdPortShapeTypes[0]); *msg != NULL; msg++)
+			{
+                	    TxError("    %s\n", *msg);
+			}
+		    }
+		    else
+		    {
+			for (sl = lab; sl; sl = sl->lab_next)
+			{
+			    if (((sl->lab_flags & PORT_DIR_MASK) != 0) &&
+					!strcmp(sl->lab_text, lab->lab_text))
+			    {
+				sl->lab_flags &= (~PORT_SHAPE_MASK);
+				sl->lab_flags |= (PORT_SHAPE_MASK & cmdShapeToBitmask[type]);
 			    }
 			}
 			editDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
