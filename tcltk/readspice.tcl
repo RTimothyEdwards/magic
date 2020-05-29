@@ -16,33 +16,33 @@ global Opts
 proc readspice {netfile} {
    if [catch {open  $netfile r} fnet] {
       set netname [file rootname $netfile]
-      if [catch {open  ${netfile} r} fnet] {
 
-         # Check for standard extensions (.spi, .spc, .spice, .sp, .ckt)
+      # Check for standard extensions (.spi, .spc, .spice, .sp, .ckt)
 
-         set testnetfile ${netfile}.spi
+      set testnetfile ${netname}.spi
+      if [catch {open  ${testnetfile} r} fnet] {
+         set testnetfile ${netname}.spc
          if [catch {open  ${testnetfile} r} fnet] {
-            set testnetfile ${netfile}.spc
+            set testnetfile ${netname}.spice
             if [catch {open  ${testnetfile} r} fnet] {
-               set testnetfile ${netfile}.spice
+               set testnetfile ${netname}.sp
                if [catch {open  ${testnetfile} r} fnet] {
-                  set testnetfile ${netfile}.sp
+                  set testnetfile ${netname}.ckt
                   if [catch {open  ${testnetfile} r} fnet] {
-                     set testnetfile ${netfile}.ckt
-                     if [catch {open  ${testnetfile} r} fnet] {
-                        puts stderr "Can't read netlist file $netfile"
-	                return 1;
-		     }
+                     puts stderr "Error:  Can't read netlist file $netfile"
+	             return 1;
 		  }
 	       }
 	    }
 	 }
       }
+      set netfile $testnetfile
    }
 
    # Read data from file.  Remove comment lines and concatenate
    # continuation lines.
 
+   puts stderr "Annotating port orders from $netfile"
    set fdata {}
    set lastline ""
    while {[gets $fnet line] >= 0} {
