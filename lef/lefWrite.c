@@ -833,23 +833,6 @@ LefWritePinHeader(f, lab)
 	}
 	fprintf(f, " ;\n");
     }
-    if (lab->lab_flags & PORT_SHAPE_MASK)
-    {
-	fprintf(f, IN1 "SHAPE ");
-	switch(lab->lab_flags & PORT_SHAPE_MASK)
-	{
-	    case PORT_SHAPE_ABUT:
-		fprintf(f, "ABUTMENT");
-		break;
-	    case PORT_SHAPE_RING:
-		fprintf(f, "RING");
-		break;
-	    case PORT_SHAPE_THRU:
-		fprintf(f, "FEEDTHRU");
-		break;
-	}
-	fprintf(f, " ;\n");
-    }
 #ifdef MAGIC_WRAPPER
     else
     {
@@ -871,6 +854,23 @@ LefWritePinHeader(f, lab)
 	}
     }
 #endif
+    if (lab->lab_flags & PORT_SHAPE_MASK)
+    {
+	fprintf(f, IN1 "SHAPE ");
+	switch(lab->lab_flags & PORT_SHAPE_MASK)
+	{
+	    case PORT_SHAPE_ABUT:
+		fprintf(f, "ABUTMENT");
+		break;
+	    case PORT_SHAPE_RING:
+		fprintf(f, "RING");
+		break;
+	    case PORT_SHAPE_THRU:
+		fprintf(f, "FEEDTHRU");
+		break;
+	}
+	fprintf(f, " ;\n");
+    }
     return ispwrrail;
 }
 
