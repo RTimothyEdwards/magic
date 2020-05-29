@@ -78,6 +78,15 @@ proc readspice {netfile} {
    foreach line $fdata {
        set ftokens [split $line]
        set keyword [string tolower [lindex $ftokens 0]]
+
+       # Handle SPECTRE model format
+       if {$keyword == "inline"} {
+	   if {[string tolower [lindex $ftokens 1]] == "subckt"} {
+	       set ftokens [lrange [split $line " \t()"] 1 end]
+	       set keyword ".subckt"
+	   }
+       }
+
        if {$keyword == ".subckt"} {
 	   set cell [lindex $ftokens 1]
 	   set status [cellname list exists $cell]

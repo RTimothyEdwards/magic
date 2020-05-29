@@ -1432,6 +1432,49 @@ lefWriteMacro(def, f, scale, hide)
     if (lc.numWrites > 0)
 	fprintf(f, IN0 "END\n");	/* end of obstruction geometries */
 
+    /* If there are any properties saved in LEFproperties, write them out */
+
+    propvalue = (char *)DBPropGet(def, "LEFproperties", &propfound);
+    if (propfound)
+    {
+	char *delim;
+	char *propfind = propvalue;
+	bool endfound = FALSE;
+
+	/* Properties are in space-separated key:value pairs.	*/
+	/* The value is in quotes and may contain spaces.	*/
+	/* One PROPERTY line is written per key:value pair.	*/
+
+	while (*propfind != '\0')
+	{
+	    char dsave;
+
+	    delim = propfind;
+	    while (*delim != ' ' && *delim != '\0') delim++;
+	    if (*delim == '\0') break;
+	    while (*delim == ' ' && *delim != '\0') delim++;
+	    if (*delim == '\0') break;
+	    if (*delim == '\"')
+	    {
+		delim++;
+		while (*delim != '\"' && *delim != '\0') delim++;
+		if (*delim == '\0') break;
+		delim++;
+	    }
+	    else
+		while (*delim != ' ' && *delim != '\0') delim++;
+
+	    if (*delim == '\0') endfound = TRUE;
+	    dsave = *delim;
+	    *delim = '\0';
+	    fprintf(f, IN0 "PROPERTY %s ;\n", propfind);
+	    *delim = dsave;
+	    if (endfound) break;
+	    while (*delim == ' ' && *delim != '\0') delim++;
+	    propfind = delim;
+	}
+    }
+
     fprintf(f, "END %s\n", def->cd_name);	/* end of macro */
 
     SigDisableInterrupts();

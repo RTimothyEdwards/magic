@@ -1697,7 +1697,7 @@ LefEndStatement(f)
 
 enum lef_macro_keys {LEF_CLASS = 0, LEF_SIZE, LEF_ORIGIN,
 	LEF_SYMMETRY, LEF_SOURCE, LEF_SITE, LEF_PIN, LEF_OBS,
-	LEF_TIMING, LEF_FOREIGN, LEF_MACRO_END};
+	LEF_TIMING, LEF_FOREIGN, LEF_PROPERTY, LEF_MACRO_END};
 
 void
 LefReadMacro(f, mname, oscale, importForeign)
@@ -1712,9 +1712,9 @@ LefReadMacro(f, mname, oscale, importForeign)
     HashEntry *he;
 
     char *token, tsave[128], *propval;
-    int keyword, pinNum;
+    int keyword, pinNum, propsize;
     float x, y;
-    bool has_size, is_imported = FALSE;
+    bool has_size, is_imported = FALSE, propfound;
     Rect lefBBox;
 
     static char *macro_keys[] = {
@@ -1728,6 +1728,7 @@ LefReadMacro(f, mname, oscale, importForeign)
 	"OBS",
 	"TIMING",
 	"FOREIGN",
+	"PROPERTY",
 	"END",
 	NULL
     };
@@ -1854,6 +1855,31 @@ origin_error:
 		token = LefNextToken(f, TRUE);
 		if (*token != '\n')
 		    DBPropPut(lefMacro, "LEFsite", StrDup((char **)NULL, token));
+		LefEndStatement(f);
+		break;
+	    case LEF_PROPERTY:
+		/* Append property key:value pairs to the cell property LEFproperties */
+		propval = (char *)DBPropGet(lefMacro, "LEFproperties", &propfound);
+		if (propfound)
+		    propsize = strlen(propval);
+		else
+		    propsize = 0;
+
+		token = LefNextToken(f, TRUE);
+		if (*token != '\n')
+		{
+		    char *propext;
+		    sprintf(tsave, "%.127s", token);
+		    token = LefNextToken(f, TRUE);
+		    propext = (char *)mallocMagic(propsize + strlen(tsave) +
+			    strlen(token) + 4);
+		    if (propsize > 0)
+			sprintf(propext, "%s %s %s", propval, tsave, token);
+		    else
+			sprintf(propext, "%s %s", tsave, token);
+		    
+		    DBPropPut(lefMacro, "LEFproperties", StrDup((char **)NULL, propext));
+		}
 		LefEndStatement(f);
 		break;
 	    case LEF_PIN:
@@ -2464,7 +2490,7 @@ enum lef_sections {LEF_VERSION = 0,
 	LEF_PROPERTYDEFS, LEF_UNITS, LEF_SECTION_LAYER,
 	LEF_SECTION_VIA, LEF_SECTION_VIARULE, LEF_SECTION_NONDEFAULTRULE,
 	LEF_NOWIREEXTENSIONATPIN, LEF_SECTION_SPACING, LEF_SECTION_SITE,
-	LEF_PROPERTY, LEF_NOISETABLE, LEF_CORRECTIONTABLE, LEF_IRDROP,
+	LEF_NOISETABLE, LEF_CORRECTIONTABLE, LEF_IRDROP,
 	LEF_ARRAY, LEF_SECTION_TIMING, LEF_EXTENSION, LEF_MACRO,
 	LEF_END};
 
@@ -2499,7 +2525,6 @@ LefRead(inName, importForeign)
 	"NOWIREEXTENSIONATPIN",
 	"SPACING",
 	"SITE",
-	"PROPERTY",
 	"NOISETABLE",
 	"CORRECTIONTABLE",
 	"IRDROP",
@@ -2675,9 +2700,6 @@ LefRead(inName, importForeign)
 		LefError(LEF_INFO, "Defines site %s (ignored)\n", token);
 		sprintf(tsave, "%.127s", token);
 		LefSkipSection(f, tsave);
-		break;
-	    case LEF_PROPERTY:
-		LefSkipSection(f, NULL);
 		break;
 	    case LEF_NOISETABLE:
 		LefSkipSection(f, sections[LEF_NOISETABLE]);
