@@ -70,6 +70,7 @@ proc readspice {netfile} {
        }
    }
    lappend fdata $lastline
+   close $fnet
 
    # Now look for all ".subckt" lines
 
