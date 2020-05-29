@@ -209,14 +209,14 @@ lefWriteHeader(def, f, lefTech, propTable)
     nprops = 0;
     while (he = HashNext(propTable, &hs))
     {
-	if (nprops == 0) fprintf(f, IN0 "PROPERTYDEFINITIONS\n");
+	if (nprops == 0) fprintf(f, "PROPERTYDEFINITIONS\n");
 	nprops++;
     
 	/* NOTE: Type (e.g., "STRING") may be kept in hash value.   */
 	/* This has not been implemented;  only string types are supported */
-	fprintf(f, IN1 "MACRO %s STRING ;\n", (char *)he->h_key.h_name);
+	fprintf(f, IN0 "MACRO %s STRING ;\n", (char *)he->h_key.h_ptr);
     }
-    if (nprops > 0) fprintf(f, IN0 "END PROPERTYDEFINITIONS\n");
+    if (nprops > 0) fprintf(f, "END PROPERTYDEFINITIONS\n");
 
     if (!lefTech) return;
 
@@ -1638,7 +1638,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
     }
 
     /* For all cells, collect any properties */
-    HashInit(&propHashTbl, 4, HT_WORDKEYS);
+    HashInit(&propHashTbl, 4, HT_STRINGKEYS);
     StackEnum(lefDefStack, lefGetProperties, &propHashTbl);
 
     /* Now generate LEF output for all the cells we just found */
