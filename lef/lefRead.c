@@ -1379,10 +1379,12 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
    bool is_imported;
 {
     char *token;
+    char *testpin = pinname;
     int keyword, subkey;
     int pinDir = PORT_CLASS_DEFAULT;
     int pinUse = PORT_USE_DEFAULT;
     int pinShape = PORT_SHAPE_DEFAULT;
+    Label *firstlab;
 
     static char *pin_keys[] = {
 	"DIRECTION",
@@ -1456,6 +1458,72 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 	PORT_SHAPE_THRU
     };
 
+
+    /* If LEF file is being imported to annotate an existing layout, then
+     * find the first label in the layout that matches the PIN record.
+     * If there are no matches, then test for various issues with
+     * delimiter translation and case sensitivity.
+     */
+
+    if (is_imported)
+    {
+	/* Find the first matching label */
+
+	for (firstlab = lefMacro->cd_labels; firstlab; firstlab = firstlab->lab_next)
+	    if (!strcmp(firstlab->lab_text, testpin))
+		break;
+
+	/* If no match was found, look for common issues    */
+	/* such as bus delimiter translations or case	    */
+	/* sensitivity.					    */
+
+	if (firstlab == NULL)
+	{
+	    char *delim;
+
+	    testpin = (char *)mallocMagic(strlen(pinname) + 1);
+	    strcpy(testpin, pinname);
+
+	    if ((delim = strchr(testpin, '<')) != NULL)
+	    {
+		*delim = '[';
+		if ((delim = strchr(testpin, '>')) != NULL)
+		    *delim = ']';
+	    }
+	    else if ((delim = strchr(testpin, '[')) != NULL)
+	    {
+		*delim = '<';
+		if ((delim = strchr(testpin, ']')) != NULL)
+		    *delim = '>';
+	    }
+	    for (firstlab = lefMacro->cd_labels; firstlab; firstlab = firstlab->lab_next)
+		if (!strcmp(firstlab->lab_text, testpin))
+		    break;
+
+	    if (firstlab == NULL)    /* No luck, so return to original */
+	    {
+		freeMagic(testpin);
+		testpin = pinname;
+	    }
+	}
+
+	if (firstlab == NULL)
+	{
+	    for (firstlab = lefMacro->cd_labels; firstlab; firstlab = firstlab->lab_next)
+		if (!strcasecmp(firstlab->lab_text, testpin))
+		    break;
+
+	    if (firstlab != NULL)    /* Case matching succeeded */
+	    {
+		if (testpin == pinname)
+		    testpin = (char *)mallocMagic(strlen(pinname) + 1);
+		strcpy(testpin, firstlab->lab_text);
+	    }
+	}
+
+	if (firstlab == NULL) firstlab = lefMacro->cd_labels;
+    }
+
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
 	keyword = Lookup(token, pin_keys);
@@ -1507,9 +1575,9 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		    /* However, if the label is a point label, then	*/
 		    /* replace it with the geometry from the LEF file.	*/
 
-		    for (lab = lefMacro->cd_labels; lab; lab = lab->lab_next)
+		    for (lab = firstlab; lab; lab = lab->lab_next)
 		    {
-			if (!strcmp(lab->lab_text, pinname))
+			if (!strcmp(lab->lab_text, testpin))
 			{
 			    if (GEO_RECTNULL(&lab->lab_rect))
 				break;
@@ -1542,18 +1610,20 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 			    }
 			}
 		    }
+		    firstlab = (lab == NULL) ? NULL : lab->lab_next;
+
 		    if (needRect)
 		    {
 			if (lab == NULL)
-			    DBEraseLabelsByContent(lefMacro, NULL, -1, pinname);
-			LefReadPort(lefMacro, f, pinname, pinNum, pinDir, pinUse,
+			    DBEraseLabelsByContent(lefMacro, NULL, -1, testpin);
+			LefReadPort(lefMacro, f, testpin, pinNum, pinDir, pinUse,
 				pinShape, oscale, lab);
 		    }
 		    else
 			LefSkipSection(f, NULL);
 		}
 		else
-		    LefReadPort(lefMacro, f, pinname, pinNum, pinDir, pinUse,
+		    LefReadPort(lefMacro, f, testpin, pinNum, pinDir, pinUse,
 			    pinShape, oscale, NULL);
 		break;
 	    case LEF_CAPACITANCE:
@@ -1569,7 +1639,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		LefEndStatement(f);	/* Ignore. . . */
 		break;
 	    case LEF_PIN_END:
-		if (LefParseEndStatement(f, pinname) == 0)
+		if (LefParseEndStatement(f, testpin) == 0)
 		{
 		    LefError(LEF_ERROR, "Pin END statement missing.\n");
 		    keyword = -1;
@@ -1577,6 +1647,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		break;
 	}
 	if (keyword == LEF_PIN_END) break;
+	if (testpin != pinname) freeMagic(testpin);
     }
 }
 
