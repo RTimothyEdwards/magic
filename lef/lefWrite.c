@@ -214,7 +214,7 @@ lefWriteHeader(def, f, lefTech, propTable)
     
 	/* NOTE: Type (e.g., "STRING") may be kept in hash value.   */
 	/* This has not been implemented;  only string types are supported */
-	fprintf(f, IN0 "MACRO %s STRING ;\n", (char *)he->h_key.h_ptr);
+	fprintf(f, IN0 "MACRO %s STRING ;\n", (char *)he->h_key.h_name);
     }
     if (nprops > 0) fprintf(f, "END PROPERTYDEFINITIONS\n");
 
