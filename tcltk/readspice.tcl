@@ -15,9 +15,9 @@ global Opts
 
 proc readspice {netfile} {
    if {[file ext $netfile] == ".cdl"} {
-      is_cdl = true
+      set is_cdl true
    } else {
-      is_cdl = false
+      set is_cdl false
    }
 
    if [catch {open  $netfile r} fnet] {
@@ -40,7 +40,7 @@ proc readspice {netfile} {
                         puts stderr "Error:  Can't read netlist file $netfile"
 	                return 1;
 		     } else {
-			is_cdl = true
+			set is_cdl true
 		     }
 		  }
 	       }
