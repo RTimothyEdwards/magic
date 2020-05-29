@@ -1648,7 +1648,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		LefEndStatement(f);	/* Ignore. . . */
 		break;
 	    case LEF_PIN_END:
-		if (LefParseEndStatement(f, testpin) == 0)
+		if (LefParseEndStatement(f, pinname) == 0)
 		{
 		    LefError(LEF_ERROR, "Pin END statement missing.\n");
 		    keyword = -1;
@@ -1656,8 +1656,8 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		break;
 	}
 	if (keyword == LEF_PIN_END) break;
-	if (testpin != pinname) freeMagic(testpin);
     }
+    if (testpin != pinname) freeMagic(testpin);
 }
 
 /*
