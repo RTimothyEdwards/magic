@@ -31,6 +31,7 @@
 #include "dbwind/dbwind.h"
 #include "textio/txcommands.h"
 #include "extflat/extflat.h"
+#include "extflat/EFint.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
 #include "utils/malloc.h"
@@ -335,9 +336,9 @@ HierName *suffix;
  */
 
 int
-antennacheckVisit(dev, hierName, scale, trans, editUse)
+antennacheckVisit(dev, hc, scale, trans, editUse)
     Dev *dev;		/* Device being output */
-    HierName *hierName;	/* Hierarchical path down to this device */
+    HierContext *hc;	/* Hierarchical context down to this device */
     float scale;	/* Scale transform for output */
     Transform *trans;	/* Coordinate transform */
     CellUse *editUse;	/* ClientData is edit cell use */
@@ -354,6 +355,7 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
     SearchContext scx;
     TileTypeBitMask gatemask, saveConMask;
     bool antennaError;
+    HierName *hierName = hc->hc_hierName;
 
     extern CellDef *extPathDef;	    /* see extract/ExtLength.c */
     extern CellUse *extPathUse;	    /* see extract/ExtLength.c */
@@ -554,6 +556,7 @@ antennacheckVisit(dev, hierName, scale, trans, editUse)
 			antennaError = TRUE;
 			if (efAntennaDebug == TRUE)
 			{
+			    TxError("Cell: %s\n", hc->hc_use->use_id);
 			    TxError("Antenna violation detected at plane %s\n",
 				    DBPlaneLongNameTbl[pNum2]);
 			    TxError("Effective antenna ratio %g > limit %g\n",

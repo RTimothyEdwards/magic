@@ -2220,9 +2220,9 @@ getCurDevMult()
  */
 
 int
-spcdevVisit(dev, hierName, scale, trans)
+spcdevVisit(dev, hc, scale, trans)
     Dev *dev;		/* Dev being output */
-    HierName *hierName;	/* Hierarchical path down to this dev */
+    HierContext *hc;	/* Hierarchical context down to this dev */
     float scale;	/* Scale transform for output */
     Transform *trans;	/* (unused) */
 {
@@ -2234,6 +2234,7 @@ spcdevVisit(dev, hierName, scale, trans)
     float sdM;
     char name[12], devchar;
     bool has_model = TRUE;
+    HierName *hierName = hc->hc_hierName;
 
     sprintf(name, "output");
 
@@ -3712,9 +3713,9 @@ mergeAttr(a1, a2)
  */
 
 int
-devMergeVisit(dev, hierName, scale, trans)
+devMergeVisit(dev, hc, scale, trans)
     Dev *dev;			/* Dev to examine */
-    HierName *hierName;		/* Hierarchical path down to this dev */
+    HierContext *hc;		/* Hierarchical context down to this dev */
     float scale;		/* Scale transform */
     Transform *trans;		/* (unused) */
 {
@@ -3726,9 +3727,10 @@ devMergeVisit(dev, hierName, scale, trans)
     bool     hS, hD, chS, chD;
     devMerge *fp, *cfp;
     float m;
+    HierName *hierName = hc->hc_hierName;
 
     if (esDistrJunct)
-	devDistJunctVisit(dev, hierName, scale, trans);
+	devDistJunctVisit(dev, hc, scale, trans);
 
     if (dev->dev_nterm < 2)
     {
@@ -3913,15 +3915,16 @@ update_w(resClass, w,  n)
  */
 
 int
-devDistJunctVisit(dev, hierName, scale, trans)
+devDistJunctVisit(dev, hc, scale, trans)
     Dev *dev;			/* Dev to examine */
-    HierName *hierName;		/* Hierarchical path down to this dev */
+    HierContext *hc;		/* Hierarchical path down to this dev */
     float scale;		/* Scale transform */
     Transform *trans;		/* (unused) */
 {
     EFNode  *n;
     int      i;
     int l, w;
+    HierName *hierName = hc->hc_hierName;
 
     if (dev->dev_nterm < 2)
     {

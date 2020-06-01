@@ -37,6 +37,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #endif
 #include "extflat/extflat.h"
+#include "extflat/EFint.h"
 #include "extract/extract.h"	/* for extDevTable */
 #include "utils/runstats.h"
 #include "utils/malloc.h"
@@ -981,9 +982,9 @@ HierName *suffix;
  */
 
 int
-simdevVisit(dev, hierName, scale, trans)
+simdevVisit(dev, hc, scale, trans)
     Dev *dev;		/* Device being output */
-    HierName *hierName;	/* Hierarchical path down to this device */
+    HierContext *hc;	/* Hierarchical context down to this device */
     float scale;	/* Scale transform for output */
     Transform *trans;	/* Coordinate transform */
 {
@@ -992,6 +993,7 @@ simdevVisit(dev, hierName, scale, trans)
     int l, w;
     Rect r;
     char name[12];
+    HierName *hierName = hc->hc_hierName;
 
     sprintf(name, "output");
 
@@ -1643,9 +1645,9 @@ Dev    *dev;
  * ----------------------------------------------------------------------------
  */
 int
-simmergeVisit(dev, hierName, scale, trans)
+simmergeVisit(dev, hc, scale, trans)
 Dev *dev;		/* Dev to examine */
-HierName *hierName;	/* Hierarchical path down to this dev */
+HierContext *hc;	/* Hierarchical context down to this dev */
 float scale;		/* Scale transform */
 Transform *trans;	/* Coordinate transform (not used) */
 {
@@ -1656,6 +1658,7 @@ Transform *trans;	/* Coordinate transform (not used) */
 	int      pmode, l, w;
 	float	 m;
 	devMerge *fp, *cfp;
+	HierName *hierName = hc->hc_hierName;
 
 	if (dev->dev_nterm < 2) {
 		TxError("outPremature\n");

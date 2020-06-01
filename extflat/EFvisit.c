@@ -321,7 +321,7 @@ efVisitDevs(hc, ca)
 	if (efDevKilled(dev, hc->hc_hierName))
 	    continue;
 
-	if ((*ca->ca_proc)(dev, hc->hc_hierName, scale, &t, ca->ca_cdata))
+	if ((*ca->ca_proc)(dev, hc, scale, &t, ca->ca_cdata))
 	    return 1;
     }
     return 0;
