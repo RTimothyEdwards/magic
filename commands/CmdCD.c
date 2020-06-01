@@ -579,6 +579,8 @@ outputCalma:
  *	cellname [list] filepath [path|"default"]
  * or
  *	cellname property [name] [property_key [property_value]]
+ * or
+ *	instance orientation [name] [-def]
  *
  * Results:
  *	None.
@@ -597,7 +599,9 @@ CmdCellname(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    bool is_cellname;
     bool dolist = FALSE;
+    bool dodef = FALSE;
     int option;
     int locargc = cmd->tx_argc;
     char *cellname = NULL;
@@ -623,6 +627,7 @@ CmdCellname(w, cmd)
 	"lock		lock the named cell (prevent changes to cell use)",
 	"unlock		unlock the named cell (allow changes to cell use)",
 	"property	list or set cell definition properties",
+	"orientation	list or set instance orientation",
 	"rename		rename the indicated cell",
 	"writeable	make the cell definition read-only or read-write",
 	"modified	true if modified, false if not",
@@ -632,13 +637,15 @@ CmdCellname(w, cmd)
 		   IDX_INSTANCE, IDX_CHILDINST, IDX_CELLDEF, IDX_ALLCELLS,
 		   IDX_TOPCELLS, IDX_IN_WINDOW, IDX_CREATE,
 		   IDX_DELETE, IDX_FILEPATH, IDX_FLAGS, IDX_LOCK, IDX_UNLOCK,
-		   IDX_PROPERTY, IDX_RENAME, IDX_READWRITE,
-		   IDX_MODIFIED } optionType;
+		   IDX_PROPERTY, IDX_ORIENTATION, IDX_RENAME,
+		   IDX_READWRITE, IDX_MODIFIED } optionType;
 
     if (strstr(cmd->tx_argv[0], "in"))
-	func = DBUsePrint;
+	is_cellname = FALSE;
     else
-	func = DBCellPrint;
+	is_cellname = TRUE;
+
+    func = (is_cellname) ? DBCellPrint : DBUsePrint;
 
     if (locargc > 1)
     {
@@ -647,6 +654,21 @@ CmdCellname(w, cmd)
 	    locargc--;
 	}
     }
+    
+    /* Check for option at end of option list */
+
+    if (*cmd->tx_argv[cmd->tx_argc - 1] == '-') {
+	char *option = cmd->tx_argv[cmd->tx_argc - 1] + 1;
+	if (!strcmp(option, "list")) {
+	    dolist = TRUE;
+	    locargc--;
+	}
+	else if (!strcmp(option, "def")) {
+	    dodef = TRUE;
+	    locargc--;
+	}
+    }
+
     if (locargc > 5 || locargc < 2) goto badusage;
 
     option = Lookup(cmd->tx_argv[1 + ((dolist) ? 1 : 0)], cmdCellOption);
@@ -672,7 +694,7 @@ CmdCellname(w, cmd)
 	}
     }
 
-    if (func != DBUsePrint)
+    if (is_cellname)
     {
 	/* These functions only work with cell uses (instances) */
 	switch (option) {
@@ -680,6 +702,10 @@ CmdCellname(w, cmd)
 	    case IDX_UNLOCK:
 		TxError("Cell definitions cannot be locked.  Use \"instance\"?\n");
 		TxError("  or do you mean \"cellname writeable\"?\n");
+		return;
+	    case IDX_ORIENTATION:
+		TxError("Cell definitions do not have orientations."
+			"  Use \"instance\"?\n");
 		return;
 	}
     }
@@ -721,16 +747,16 @@ CmdCellname(w, cmd)
 	    (*func)(cellname, SELF, dolist);
 	    break;
 	case IDX_CELLDEF:
-	    (*func)(cellname, ((func == DBUsePrint) ? OTHER : SELF), dolist);
+	    (*func)(cellname, ((is_cellname == FALSE) ? OTHER : SELF), dolist);
 	    break;
 	case IDX_INSTANCE:
-	    (*func)(cellname, ((func == DBUsePrint) ? SELF : OTHER), dolist);
+	    (*func)(cellname, ((is_cellname == FALSE) ? SELF : OTHER), dolist);
 	    break;
 	case IDX_CHILDREN:
 	    (*func)(cellname, CHILDREN, dolist);
 	    break;
 	case IDX_CHILDINST:
-	    (*func)(cellname, ((func == DBUsePrint) ? CHILDREN : CHILDINST), dolist);
+	    (*func)(cellname, ((is_cellname == FALSE) ? CHILDREN : CHILDINST), dolist);
 	    break;
 	case IDX_PARENTS:
 	    (*func)(cellname, PARENTS, dolist);
@@ -957,6 +983,9 @@ CmdCellname(w, cmd)
 		newDef = DBCellNewDef(cellname);
 		DBCellSetAvail(newDef);
 	    }
+	    break;
+	case IDX_ORIENTATION:
+	    DBOrientUse(cellname, dodef);
 	    break;
 	case IDX_LOCK:
 	    DBLockUse(cellname, TRUE);

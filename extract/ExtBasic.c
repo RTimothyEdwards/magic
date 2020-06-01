@@ -321,7 +321,7 @@ extBasic(def, outFile)
 
     /* Output each node, along with its resistance and capacitance to substrate */
     if (!SigInterruptPending)
-	extOutputNodes(nodeList, outFile);
+	extOutputNodes(nodeList, outFile, glob_subsnode);
 
     /* Output coupling capacitances */
     if (!SigInterruptPending && (ExtOptions&EXT_DOCOUPLING) && (!propfound))
@@ -862,6 +862,28 @@ extNodeName(node)
 	if (extLabType(ll->ll_label->lab_text, LABTYPE_NAME))
 	    return (ll->ll_label->lab_text);
 
+    /* If the techfile specifies a global name for the substrate, use	*/
+    /* that in preference to the default "p_x_y#" name.			*/
+
+    if ((NodeRegion *)node == glob_subsnode)
+    {    
+	if (ExtCurStyle->exts_globSubstrateName != NULL)
+	{
+	    if (ExtCurStyle->exts_globSubstrateName[0] == '$' &&
+		 ExtCurStyle->exts_globSubstrateName[1] != '$')
+	    {
+		// If subsName is a Tcl variable (begins with "$"), make the
+		// variable substitution, if one exists.  Ignore double-$.
+
+		char *varsub = (char *)Tcl_GetVar(magicinterp,
+			&ExtCurStyle->exts_globSubstrateName[1],
+			TCL_GLOBAL_ONLY);
+		return (varsub != NULL) ? varsub : ExtCurStyle->exts_globSubstrateName;
+	    }
+	    else
+		return ExtCurStyle->exts_globSubstrateName;
+	}
+    }
     extMakeNodeNumPrint(namebuf, node->lreg_pnum, node->lreg_ll);
     return (namebuf);
 }

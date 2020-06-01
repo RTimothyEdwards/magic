@@ -1154,7 +1154,7 @@ DBLockUse(UseName, bval)
     CellDef *celldef;
     CellUse *celluse;
 
-    int dbUseLockFunc();
+    int dbLockUseFunc();
 
    /*
     *
@@ -1197,6 +1197,169 @@ DBLockUse(UseName, bval)
 	else
 	    dbLockUseFunc(NULL, scx.scx_use, NULL, (ClientData)&bval);
     }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBOrientUse --
+ *
+ * 	This routine sets or reports a cell instance's orientation
+ *	UseName is the name of a specific CellUse.  If NULL, then the
+ *	operation applies to all selected cell uses.  "orient" is a
+ *	string in the form used by "getcell" (e.g., "180", "270v",
+ *	etc.), unless "dodef" is true, in which case the output is
+ *	given in the form used by DEF ("N", "FN", etc.).
+ *	reported.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	cu_transform changed for indicated cell use.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBOrientUse(UseName, dodef)
+    char *UseName;
+    bool dodef;
+{
+    int found;
+    HashSearch hs;
+    HashEntry *entry;
+    CellDef *celldef;
+    CellUse *celluse;
+
+    int dbOrientUseFunc();
+
+   /*
+    *
+    * Check to see if a cell name was specified. If not, then search
+    * for selected cells.
+    *
+    */
+
+    if (UseName == NULL)
+    {
+	if (EditCellUse == NULL)
+	    TxError("Cannot set orientation of a non-edit cell!\n");
+	else
+	    SelEnumCells(TRUE, (int *)NULL, (SearchContext *)NULL,
+			dbOrientUseFunc, (ClientData)&dodef);
+    }
+    else
+    {
+	SearchContext scx;
+
+	bzero(&scx, sizeof(SearchContext));
+	found = 0;
+
+	HashStartSearch(&hs);
+	while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
+	{
+	    celldef = (CellDef *) HashGetValue(entry);
+	    if (celldef != (CellDef *) NULL)
+	    {
+		celluse = celldef->cd_parents;   /* only need one */
+		if (celluse != (CellUse *)NULL) {
+		    DBTreeFindUse(UseName, celluse, &scx);
+		    if (scx.scx_use != NULL) break;
+		}
+	    }
+	}
+
+	if (scx.scx_use == NULL)
+	    TxError("Cell %s is not currently loaded.\n", UseName);
+	else
+	    dbOrientUseFunc(NULL, scx.scx_use, NULL, (ClientData)&dodef);
+    }
+}
+
+/*
+ *  dbOrientUseFunc()
+ */
+
+/* For corresponding enumerations, see GeoTransOrient() */
+enum def_orient {ORIENT_NORTH, ORIENT_SOUTH, ORIENT_EAST, ORIENT_WEST,
+        ORIENT_FLIPPED_NORTH, ORIENT_FLIPPED_SOUTH, ORIENT_FLIPPED_EAST,
+        ORIENT_FLIPPED_WEST};
+
+int
+dbOrientUseFunc(selUse, use, transform, data)
+    CellUse *selUse;	/* Use from selection cell */
+    CellUse *use;	/* Use from layout corresponding to selection */
+    Transform *transform;
+    ClientData data;
+{
+    bool *dodef = (bool *)data;
+
+    if (EditCellUse && !DBIsChild(use, EditCellUse))
+    {
+	TxError("Cell %s (%s) isn't a child of the edit cell.\n",
+		use->cu_id, use->cu_def->cd_name);
+	return 0;
+    }
+
+    if (selUse != NULL)
+    {
+	switch (GeoTransOrient(&selUse->cu_transform)) {
+#ifdef MAGIC_WRAPPER
+	    case ORIENT_NORTH:
+		Tcl_AppendElement(magicinterp, (*dodef) ? "N" : "0");
+		break;
+	    case ORIENT_EAST:
+		Tcl_AppendElement(magicinterp, (*dodef) ? "E" : "90");
+		break;
+	    case ORIENT_SOUTH:
+		Tcl_AppendElement(magicinterp, (*dodef) ? "S" : "180");
+		break;
+	    case ORIENT_WEST:
+		Tcl_AppendElement(magicinterp, (*dodef) ? "W" : "270");
+		break;
+	    case ORIENT_FLIPPED_NORTH:
+		Tcl_AppendElement(magicinterp, (*dodef) ? "FN" : "0h");
+		break;
+	    case ORIENT_FLIPPED_EAST:
+		Tcl_AppendElement(magicinterp, (*dodef) ? "FE" : "90h");
+		break;
+	    case ORIENT_FLIPPED_SOUTH:
+		Tcl_AppendElement(magicinterp, (*dodef) ? "FS" : "180h");
+		break;
+	    case ORIENT_FLIPPED_WEST:
+		Tcl_AppendElement(magicinterp, (*dodef) ? "FW" : "270h");
+		break;
+#else
+	    case ORIENT_NORTH:
+		TxPrintf((*dodef) ? "N" : "0");
+		break;
+	    case ORIENT_EAST:
+		TxPrintf((*dodef) ? "E" : "90");
+		break;
+	    case ORIENT_SOUTH:
+		TxPrintf((*dodef) ? "S" : "180");
+		break;
+	    case ORIENT_WEST:
+		TxPrintf((*dodef) ? "W" : "270");
+		break;
+	    case ORIENT_FLIPPED_NORTH:
+		TxPrintf((*dodef) ? "FN" : "0h");
+		break;
+	    case ORIENT_FLIPPED_EAST:
+		TxPrintf((*dodef) ? "FE" : "90h");
+		break;
+	    case ORIENT_FLIPPED_SOUTH:
+		TxPrintf((*dodef) ? "FS" : "180h");
+		break;
+	    case ORIENT_FLIPPED_WEST:
+		TxPrintf((*dodef) ? "FW" : "270h");
+		break;
+#endif
+	}
+	
+    }
+    return 0;
 }
 
 /*

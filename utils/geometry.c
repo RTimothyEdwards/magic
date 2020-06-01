@@ -530,6 +530,64 @@ GeoTransPos(t, pos)
     return pos;
 }
 
+/*-------------------------------------------------------------------
+ *	GeoTransOrient --
+ *	This routine returns the orientation corresponding to a transform.
+ *
+ *	Results:
+ *	The return value is an orientation as defined by the enumeration
+ *	below (which is also used by the LEF read routine).  It has to
+ *	agree with the enumeration used by dbOrientUseFunc.
+ *
+ *	Side Effects:	None.
+ *-------------------------------------------------------------------
+ */
+
+enum def_orient {ORIENT_NORTH, ORIENT_SOUTH, ORIENT_EAST, ORIENT_WEST,
+        ORIENT_FLIPPED_NORTH, ORIENT_FLIPPED_SOUTH, ORIENT_FLIPPED_EAST,
+        ORIENT_FLIPPED_WEST};
+
+int
+GeoTransOrient(t)
+    Transform *t;		/* Transform to be applied. */
+
+{
+    int pidx;
+
+    if ((t->t_b == 0) && (t->t_d == 0))
+    {
+	pidx = ((t->t_a) > 0) ? 1 : 0;
+	pidx += ((t->t_e) > 0) ? 2 : 0;
+
+	switch (pidx) {
+	    case 0:
+		return ORIENT_SOUTH;
+	    case 1:
+		return ORIENT_FLIPPED_SOUTH;
+	    case 2:
+		return ORIENT_FLIPPED_NORTH;
+	    case 3:
+		return ORIENT_NORTH;
+	}
+    }
+    else if ((t->t_a == 0) && (t->t_e == 0))
+    {
+	pidx = ((t->t_b) > 0) ? 1 : 0;
+	pidx += ((t->t_d) > 0) ? 2 : 0;
+
+	switch (pidx) {
+	    case 0:
+		return ORIENT_FLIPPED_EAST;
+	    case 1:
+		return ORIENT_EAST;
+	    case 2:
+		return ORIENT_WEST;
+	    case 3:
+		return ORIENT_FLIPPED_WEST;
+	}
+    }
+}
+
 
 /*-------------------------------------------------------------------
  *	GeoInvertTrans --

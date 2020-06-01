@@ -772,6 +772,9 @@ extern int DBCellSrDefs();
 extern CellUse *DBCellNewUse();
 extern bool DBCellDeleteUse();
 extern CellUse *DBCellFindDup();
+extern void DBLockUse();
+extern void DBUnlockUse();
+extern void DBOrientUse();
 
     /* Cell selection */
 extern CellUse *DBSelectCell();

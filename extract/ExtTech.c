@@ -166,8 +166,8 @@ static keydesc keyTable[] = {
     "style",		STYLE,		2,	4,
 "stylename",
 
-    "substrate",	SUBSTRATE,	3,	4,
-"types plane",
+    "substrate",	SUBSTRATE,	3,	5,
+"types plane [subs-node]",
 
     "units",		UNITS,		2,	2,
 "lambda|microns",
@@ -786,6 +786,7 @@ extTechStyleInit(style)
     style->exts_globSubstratePlane = -1;
     TTMaskZero(&style->exts_globSubstrateTypes);
     TTMaskZero(&style->exts_globSubstrateShieldTypes);
+    style->exts_globSubstrateName = (char *)NULL;
 }
 
 
@@ -2834,6 +2835,11 @@ ExtTechLine(sectionName, argc, argv)
 	    TTMaskSetMask(&ExtCurStyle->exts_globSubstrateTypes, &types1);
 	    ExtCurStyle->exts_globSubstrateShieldTypes = idTypes;
 	    ExtCurStyle->exts_globSubstratePlane = DBTechNoisyNamePlane(argv[2]);
+
+	    /* Handle optional substrate node name */
+	    if (argc == 4)
+		ExtCurStyle->exts_globSubstrateName = StrDup((char **)NULL, argv[3]);
+
 	    break;
 	case NOPLANEORDER: {
 	     if ( ExtCurStyle->exts_planeOrderStatus == seenPlaneOrder )
