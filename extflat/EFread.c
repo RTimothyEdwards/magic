@@ -177,7 +177,8 @@ efReadDef(def, dosubckt, resist, noscale, toplevel)
     int argc, ac, n;
     CellDef *dbdef;
     EFCapValue cap;
-    char line[1024], *argv[128], *name, *attrs;
+    char *line = NULL, *argv[128], *name, *attrs;
+    int size = 0;
     int rscale = 1;	/* Multiply resistances by this */
     int cscale = 1;	/* Multiply capacitances by this */
     float lscale = 1.0;	/* Multiply lambda by this */
@@ -237,7 +238,7 @@ efReadDef(def, dosubckt, resist, noscale, toplevel)
 
 readfile:
     efReadLineNum = 0;
-    while ((argc = efReadLine(line, sizeof line, inf, argv)) >= 0)
+    while ((argc = efReadLine(&line, &size, inf, argv)) >= 0)
     {
 	n = LookupStruct(argv[0], (LookupTable *) keyTable, sizeof keyTable[0]);
 	if (n < 0)
@@ -605,6 +606,7 @@ resistChanged:
 	}
     }
     (void) fclose(inf);
+    if (line != NULL) freeMagic(line);
 
     /* Is there an "extresist" extract file? */
     if (DoResist)
@@ -660,37 +662,58 @@ resistChanged:
  */
 
 int
-efReadLine(line, size, file, argv)
-    char *line;			/* Character array into which line is read */
-    int size;			/* Size of character array */
-    FILE *file;	/* Open .ext file */
-    char *argv[];		/* Vector of tokens built by efReadLine() */
+efReadLine(lineptr, sizeptr, file, argv)
+    char **lineptr;	/* Pointer to character array into which line is read */
+    int *sizeptr;	/* Pointer to size of character array */
+    FILE *file;		/* Open .ext file */
+    char *argv[];	/* Vector of tokens built by efReadLine() */
 {
     char *get, *put;
     bool inquote;
     int argc = 0;
 
+    if (*sizeptr == 0)
+    {
+	*sizeptr = 1024;
+	*lineptr = (char *)mallocMagic(*sizeptr);
+    }
+    int size = *sizeptr;
+
     /* Read one line into the buffer, joining lines when they end in '\' */
 start:
-     get = line;
-     while (size > 0)
+     get = *lineptr;
+     while (TRUE)
      {
-	efReadLineNum += 1;
+	efReadLineNum++;
 	if (fgets(get, size, file) == NULL) return (-1);
-	for (put = get; *put != '\n'; put++) size -= 1;
-	if ((put != get) && (*(put-1) == '\\'))
+	for (put = get; *put != '\n' && *put != '\0'; put++) size--;
+	if ((put != get) && (*(put - 1) == '\\'))
 	{
-	    get = put-1;
+	    get = put - 1;
 	    continue;
 	}
-	*put= '\0';
-	break;
+	*put = '\0';
+
+	if (size <= 1)
+	{
+	    char *newline;
+	    int i;
+
+	    *sizeptr += 1024;	/* Increase buffer size in 1024 byte increments */
+	    newline = (char *)mallocMagic(*sizeptr);
+	    strcpy(newline, *lineptr);
+	    put = (put - (*lineptr)) + newline;
+	    get = put;
+	    freeMagic(*lineptr);
+	    *lineptr = newline;
+	    size = 1024;
+	    efReadLineNum--;
+	}
+	else break;
     }
-    if (size == 0) efReadError("long line truncated\n");
+    get = put = *lineptr;
 
-    get = put = line;
-
-    if (*line == '#') goto start;	/* Ignore comments */
+    if (*(*lineptr) == '#') goto start;	/* Ignore comments */
 
     while (*get != '\0')
     {
@@ -756,7 +779,7 @@ start:
 	argc++;
     }
 
-    if ((argc == 0) && (size > 0))
+    if (argc == 0)
 	goto start;
 
     return (argc);
