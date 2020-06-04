@@ -756,7 +756,7 @@ start:
 	argc++;
     }
 
-    if (argc == 0)
+    if ((argc == 0) && (size > 0))
 	goto start;
 
     return (argc);
