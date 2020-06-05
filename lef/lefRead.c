@@ -1496,14 +1496,6 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		*delim = '<';
 		if ((delim2 = strchr(testpin, ']')) != NULL)
 		    *delim2 = '>';
-
-		/* In case the LEF file escapes the bracket, remove the backslashes */
-		if ((delim > testpin) && (*(delim - 1) == '\\'))
-		{
-		    memmove(delim - 1, delim, strlen(delim) + 1);
-		    if (delim2 > delim)
-			memmove(delim2 - 2, delim2 - 1, strlen(delim2 - 1) + 1);
-		}
 	    }
 	    for (firstlab = lefMacro->cd_labels; firstlab; firstlab = firstlab->lab_next)
 		if (!strcmp(firstlab->lab_text, testpin))
