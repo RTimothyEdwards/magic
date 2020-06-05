@@ -1784,8 +1784,6 @@ findTile(tile, rtype)
  * purposes.
  */
 
-#define FLATTERMSIZE	1024
-
 void
 FlatCopyAllLabels(scx, mask, xMask, targetUse)
     SearchContext *scx;

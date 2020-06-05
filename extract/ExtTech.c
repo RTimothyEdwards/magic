@@ -810,8 +810,14 @@ ExtStyle *
 extTechStyleNew()
 {
     ExtStyle *style;
+    TileType r;
 
     style = extTechStyleAlloc();
+
+    /* This entry in ExtStyle is allocated and must be initialized */
+    for (r = 0; r < NT; r++)
+	style->exts_device[r] = NULL;
+
     extTechStyleInit(style);
     return style;
 }

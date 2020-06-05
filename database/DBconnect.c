@@ -661,9 +661,6 @@ dbcUnconnectFunc(tile, clientData)
  * ----------------------------------------------------------------------------
  */
 
-/* To do:  Make the tpath entries dynamically allocated */
-#define FLATTERMSIZE 1024
-
 int
 dbcConnectLabelFunc(scx, lab, tpath, csa2)
     SearchContext *scx;
@@ -690,12 +687,16 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 
     if (scx->scx_use != csa2->csa2_topscx->scx_use)
     {
-	int newllen = tpath->tp_next - tpath->tp_first;
-	newlabtext[0] = '\0';
-	if (newllen > 0)
-	    strncpy(newlabtext, tpath->tp_first, newllen);
-	sprintf(newlabtext + newllen, "%s", lab->lab_text);
-	newlabptr = newlabtext;
+	if (tpath)
+	{
+	    int newllen = tpath->tp_next - tpath->tp_first;
+	    newlabtext[0] = '\0';
+	    if (newllen > 0)
+		strncpy(newlabtext, tpath->tp_first, newllen);
+	    sprintf(newlabtext + newllen, "%s", lab->lab_text);
+	    newlabptr = newlabtext;
+	}
+	else return 0;
     }
     else
 	newlabptr = lab->lab_text;

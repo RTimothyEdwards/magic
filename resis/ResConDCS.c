@@ -103,6 +103,8 @@ dbcConnectFuncDCS(tile, cx)
     int			pNum;
     CellDef		*def;
     ExtDevice		*devptr;
+    TerminalPath	tpath;
+    char pathstring[FLATTERMSIZE];
 
     TiToRect(tile, &tileArea);
     srArea = &scx->scx_area;
@@ -112,8 +114,6 @@ dbcConnectFuncDCS(tile, cx)
 		((tileArea.r_ybot >= srArea->r_ytop-1) ||
 		(tileArea.r_ytop <= srArea->r_ybot+1)))
 	return 0;
-
-
 
     t1 = TiGetType(tile);
     if TTMaskHasType(&DiffTypeBitMask,t1)
@@ -264,7 +264,12 @@ dbcConnectFuncDCS(tile, cx)
 
     scx2 = *csa2->csa2_topscx;
     scx2.scx_area = newarea;
-    DBTreeSrLabels(&scx2, connectMask, csa2->csa2_xMask, NULL,
+
+    pathstring[0] = '\0';
+    tpath.tp_first = tpath.tp_next = pathstring;
+    tpath.tp_last = pathstring + FLATTERMSIZE;
+
+    DBTreeSrLabels(&scx2, connectMask, csa2->csa2_xMask, &tpath,
     		TF_LABEL_ATTACH, dbcConnectLabelFunc,
     		(ClientData)csa2);
     // DBCellCopyLabels(&scx2, connectMask, csa2->csa2_xMask, csa2->csa2_use, NULL);

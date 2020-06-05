@@ -606,7 +606,6 @@ resistChanged:
 	}
     }
     (void) fclose(inf);
-    if (line != NULL) freeMagic(line);
 
     /* Is there an "extresist" extract file? */
     if (DoResist)
@@ -616,6 +615,7 @@ resistChanged:
 	if (inf != NULL)
 	    goto readfile;
     }
+    if (line != NULL) freeMagic(line);
 
     /* If we are considering standard cells, only the first level of	*/
     /* subcircuits is meaningful.					*/

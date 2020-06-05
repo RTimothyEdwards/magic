@@ -651,6 +651,9 @@ typedef struct treeFilter
 #define TF_LABEL_ATTACH_NOT_SW	0x20	/* Same as above, ignore tile SW corner */
 #define TF_LABEL_ATTACH_CORNER	0x3C	/* Mask of the four types above */
 
+/* To do:  Make the tpath entries dynamically allocated */
+#define FLATTERMSIZE 1024		/* Used for generating flattened labels */
+
 /* -------------- Undo information passed to DBPaintPlane ------------- */
 
 typedef struct
