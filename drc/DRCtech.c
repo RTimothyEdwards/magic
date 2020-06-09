@@ -2816,16 +2816,17 @@ drcSurround(argc, argv)
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    if (i == j) continue;	/* Ignore false edges */
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask2))
+	    
+	    if (isDirectional)
 	    {
-		if (isDirectional)
-		{
+		if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	    	{
 		    /* Directional surround is done entirely differently */
 
 		    if (TTMaskHasType(&setM, i) && TTMaskHasType(&invM, j))
 		    {
-			plane1 = LowestMaskBit(pmask);
-			plane2 = LowestMaskBit(pset);
+			plane1 = LowestMaskBit(pset);
+			plane2 = LowestMaskBit(pmask2);
 
 			/* Find bucket preceding the new one we wish to insert */
 			dp = drcFindBucket(i, j, distance);
@@ -2836,12 +2837,12 @@ drcSurround(argc, argv)
 				&DBAllTypeBits,
 				why, distance,
 				DRC_REVERSE | DRC_BOTHCORNERS,
-				plane1, plane2);
+				plane2, plane1);
 			dptrig = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
 			drcAssign(dptrig, distance, dpnew, &set2,
 				&DBZeroTypeBits, why, 0,
 				DRC_FORWARD | DRC_TRIGGER,
-				plane1, plane2);
+				plane2, plane1);
 			dp->drcc_next = dptrig;
 
 			/* And the other direction. . . */
@@ -2853,17 +2854,20 @@ drcSurround(argc, argv)
 				&DBAllTypeBits,
 				why, distance,
 				DRC_FORWARD | DRC_BOTHCORNERS,
-				plane1, plane2);
+				plane2, plane1);
 			dptrig = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
 			drcAssign(dptrig, distance, dpnew, &set2,
 				&DBZeroTypeBits, why, 0,
 				DRC_REVERSE | DRC_TRIGGER,
-				plane1, plane2);
+				plane2, plane1);
 			dp->drcc_next = dptrig;
 		    }
 		}
-		else
-		{
+	    }
+	    else
+	    {
+		if (pset = (DBTypesOnSamePlane(i, j) & pmask2))
+	    	{
 		    if (TTMaskHasType(&set1, i) && TTMaskHasType(&set2, j))
 		    {
 			plane1 = LowestMaskBit(pmask);
