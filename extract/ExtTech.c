@@ -1410,6 +1410,7 @@ ExtTechSimpleSideOverlapCap(argv)
     int plane1, plane2, plane3, pnum1, pnum2, pnum3;
     PlaneMask pshield;
     EdgeCap *cnew;
+    bool forward;
 
     if (ExtCurStyle->exts_planeOrderStatus != seenPlaneOrder)
     {
@@ -1442,6 +1443,19 @@ ExtTechSimpleSideOverlapCap(argv)
     pnum1 = ExtCurStyle->exts_planeOrder[plane1];
     pnum2 = ExtCurStyle->exts_planeOrder[plane2];
 
+    if (pnum1 == pnum2)
+    {
+	TechError("Cannot have fringing capacitance between "
+		"types on the same plane\n");
+	return;
+    }
+
+    /* Fringing cap works both directions.  Consider the case plane1 <	*/
+    /* plane2 as the "forward" case, and plane1 > plane2 as the		*/
+    /* "reverse" case.							*/
+
+    forward = (plane1 < plane2) ? TRUE : FALSE;
+
     /* Find all types in or below plane2 (i.e., ~(space)/plane2)	   */
     /* Shield planes are the ones between plane1 and plane2 */
 
@@ -1450,7 +1464,12 @@ ExtTechSimpleSideOverlapCap(argv)
     for (plane3 = PL_TECHDEPBASE; plane3 < DBNumPlanes; plane3++)
     {
 	pnum3 = ExtCurStyle->exts_planeOrder[plane3];
-	if (pnum3 > pnum2 && pnum3 < pnum1)
+	if ((forward == TRUE) && (pnum3 > pnum2 && pnum3 < pnum1))
+	{
+	    TTMaskSetMask(&shields, &DBPlaneTypes[plane3]);
+	    pshield |= PlaneNumToMaskBit(plane3);
+	}
+	else if ((forward == FALSE) && (pnum3 < pnum2 && pnum3 > pnum1))
 	{
 	    TTMaskSetMask(&shields, &DBPlaneTypes[plane3]);
 	    pshield |= PlaneNumToMaskBit(plane3);
@@ -1500,36 +1519,10 @@ ExtTechSimpleSideOverlapCap(argv)
 	    }
 	}
 
-	/* Reverse case (swap "types" and "ov") */
-
-#if 0
-	if (TTMaskHasType(&ov, s))
-	{
-	    ExtCurStyle->exts_sidePlanes |= PlaneNumToMaskBit(plane2);
-	    TTMaskSetType(&ExtCurStyle->exts_sideTypes[plane2], s);
-	    TTMaskSetMask(&ExtCurStyle->exts_sideEdges[s], &notov);
-	    for (t = TT_SPACE; t < DBNumTypes; t++)
-	    {
-		if (!TTMaskHasType(&notov, t)) continue;
-  		if (DBIsContact(t)) continue;
-
-		TTMaskSetMask(&ExtCurStyle->exts_sideOverlapOtherTypes[s][t], &types);
-		ExtCurStyle->exts_sideOverlapOtherPlanes[s][t] |=
-				PlaneNumToMaskBit(plane1);
-		cnew = (EdgeCap *) mallocMagic((unsigned) (sizeof (EdgeCap)));
-		cnew->ec_cap = capVal;
-		cnew->ec_far = shields;		/* Types that shield */
-		cnew->ec_near = types;		/* Types we create cap with */
-		cnew->ec_pmask = PlaneNumToMaskBit(plane1);
-		cnew->ec_next = ExtCurStyle->exts_sideOverlapCap[s][t];
-		ExtCurStyle->exts_sideOverlapCap[s][t] = cnew;
-
-		for (r = TT_TECHDEPBASE; r < DBNumTypes; r++)
-		    if (TTMaskHasType(&types, r))
-			ExtCurStyle->exts_sideOverlapShieldPlanes[s][r] |= pshield;
-	    }
-	}
-#endif /* 0 */
+	/* There is no "reverse case".  Overlap from A->B will be different */
+	/* than B->A because it depends on the thickness of A and B.  For   */
+	/* the reverse case, the defaultsideoverlap statement must be	    */
+	/* repeated with the correct capacitance.			    */
     }
 }
 
