@@ -1254,6 +1254,627 @@ cifBloatAllFunc(tile, bls)
     return 0;	/* Keep the search alive. . . */
 }
 
+/* Data structure to pass plane and minimum width to the callback function */
+typedef struct _bridgeStruct {
+    Plane       *plane;
+    BridgeData	*bridge;
+} BridgeStruct;
+
+/* Bridge Check data structure */
+typedef struct _bridgeCheckStruct {
+   Tile *tile;		/* Tile that triggered search (ignore this tile) */
+   int	direction;	/* What outside corner to look for */
+   Tile *violator;	/* Return the violator tile in this space */
+   TileType checktype;	/* Type to check for, either TT_SPACE or CIF_SOLIDTYPE */
+} BridgeCheckStruct;
+
+/* Direction flags */
+#define BRIDGE_NW	1
+#define BRIDGE_SW	2
+#define BRIDGE_SE	3
+#define BRIDGE_NE	4
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * Function that returns the Euclidean distance corresponding to a manhattan
+ * distance of the given width, at 45 degrees.
+ *
+ * This is used by the bridging method to keep the amount of extra material
+ * added to a minimum.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+GetEuclideanWidthGrid(width)
+    int width;
+{
+    int weuclid;
+    int delta;
+
+    weuclid = (int)(ceil((double)width * 0.70711));
+    if (CIFCurStyle && (CIFCurStyle->cs_gridLimit > 1))
+    {
+	delta = weuclid % CIFCurStyle->cs_gridLimit;
+	if (delta > 0)
+	{
+	    weuclid -= delta;
+	    weuclid += CIFCurStyle->cs_gridLimit;
+	}
+    }
+    return weuclid;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifBridgeFunc1 --
+ *
+ * 	Called for each relevant tile during bridge operations.  The
+ *	bridge operation is responsible for preventing a grow-shrink
+ *	pair of operations from leaving width or spacing DRC errors,
+ *	which happens when tiles are in a catecorner position from
+ *	each other.  The bridge operation adds a bridge of material
+ *	between the two tiles that solves spacing requirements between
+ *      the two tiles while satisfying the minimum width requirements,
+ *	adding a minimum amount of material to do so.
+ *
+ *	The current version of this routine adds material on a stair-step
+ *	pattern;  preferably this should be extended to create material
+ *	at allowed angles, where the allowed angles (90, 45, or any) are
+ *	specified as an option to the bridge statement in the tech file.
+ *
+ *	GrowDistance is equal to the spacing rule distance needing to be
+ *	satisfied.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	Paints into cifNewPlane.  Tiles in old plane are tagged with
+ *	a static value in ClientData, which does not need to be reset
+ *	since the old plane will be free'd.
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifBridgeFunc1(tile, brs)
+    Tile *tile;
+    BridgeStruct *brs;
+{
+    Plane *plane = brs->plane;
+    Rect area;
+    Tile *tp1, *tp2, *tpx;
+    int width = brs->bridge->br_width;
+    int spacing = growDistance;
+    int weuclid;
+    BridgeCheckStruct brcs;
+    int cifBridgeCheckFunc();	/* Forward reference */
+
+    /* If tile is marked, then it has been handled, so ignore it */
+    if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
+
+    /* Find each tile outside corner (up to four) */
+
+    /* Check for NE outside corner */
+    tp1 = TR(tile);  /* Tile on right side at the top of this tile */
+    tp2 = RT(tile);  /* Tile on top side at the right of this tile */
+    if ((TiGetLeftType(tp1) == TT_SPACE) &&
+	    (TiGetBottomType(tp2) == TT_SPACE))
+    {
+	/* Set search box */
+	area.r_xbot = RIGHT(tile) - width;
+	area.r_xtop = RIGHT(tile) + spacing;
+	area.r_ybot = TOP(tile) - width;
+	area.r_ytop = TOP(tile) + spacing;
+
+	/* Find violator tiles */
+	brcs.tile = tile;
+	brcs.direction = BRIDGE_SW;
+	brcs.checktype = TT_SPACE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &CIFSolidBits, cifBridgeCheckFunc, (ClientData)&brcs) == 1)
+	{
+	    tpx = brcs.violator;
+	    /* Resize box to satisfy width requirement on both ends	 */
+	    weuclid = GetEuclideanWidthGrid(width);
+
+	    area.r_xtop = MAX(RIGHT(tile), LEFT(tpx) + weuclid);
+	    area.r_ytop = MAX(TOP(tile), BOTTOM(tpx) + weuclid);
+
+	    area.r_xbot = MIN(LEFT(tpx), RIGHT(tile) - weuclid);
+	    area.r_ybot = MIN(BOTTOM(tpx), TOP(tile) - weuclid);
+
+	    /* Trivial implementation: fill box */
+	    /* (to do: use stairstep to avoid filling unnecessary areas) */
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	}
+    }
+
+    /* Check for SW outside corner */
+    tp1 = BL(tile);  /* Tile on left side at the bottom of this tile */
+    tp2 = LB(tile);  /* Tile on bottom side at the left of this tile */
+    if ((TiGetRightType(tp1) == TT_SPACE) &&
+	    (TiGetTopType(tp2) == TT_SPACE))
+    {
+	/* Set search box */
+	area.r_xbot = LEFT(tile) - spacing;
+	area.r_xtop = LEFT(tile) + width;
+	area.r_ybot = BOTTOM(tile) - spacing;
+	area.r_ytop = BOTTOM(tile) + width;
+
+	/* Find violator tiles */
+	brcs.tile = tile;
+	brcs.direction = BRIDGE_NE;
+	brcs.checktype = TT_SPACE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &CIFSolidBits, cifBridgeCheckFunc, (ClientData)&brcs) == 1)
+	{
+	    tpx = brcs.violator;
+	    /* Resize box to satisfy width requirement on both ends	 */
+	    weuclid = GetEuclideanWidthGrid(width);
+
+	    area.r_xbot = MIN(LEFT(tile), RIGHT(tpx) - weuclid);
+	    area.r_ybot = MIN(BOTTOM(tile), TOP(tpx) - weuclid);
+
+	    area.r_xtop = MAX(RIGHT(tpx), LEFT(tile) + weuclid);
+	    area.r_ytop = MAX(TOP(tpx), BOTTOM(tile) + weuclid);
+
+	    /* Trivial implementation: fill box */
+	    /* (to do: use stairstep to avoid filling unnecessary areas) */
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	}
+    }
+
+    /* Check for SE outside corner */
+    for (tp1 = TR(tile); BOTTOM(tp1) > BOTTOM(tile); tp1 = LB(tp1));
+    for (tp2 = LB(tile); RIGHT(tp1) < RIGHT(tile); tp2 = TR(tp2));
+    if ((TiGetLeftType(tp1) == TT_SPACE) &&
+	    (TiGetTopType(tp2) == TT_SPACE))
+    {
+	/* Set search box */
+	area.r_xbot = RIGHT(tile) - width;
+	area.r_xtop = RIGHT(tile) + spacing;
+	area.r_ybot = BOTTOM(tile) - spacing;
+	area.r_ytop = BOTTOM(tile) + width;
+
+	/* Find violator tiles */
+	brcs.tile = tile;
+	brcs.direction = BRIDGE_NW;
+	brcs.checktype = TT_SPACE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &CIFSolidBits, cifBridgeCheckFunc, (ClientData)&brcs) == 1)
+	{
+	    tpx = brcs.violator;
+	    /* Resize box to satisfy width requirement on both ends	 */
+	    weuclid = GetEuclideanWidthGrid(width);
+
+	    area.r_xtop = MAX(RIGHT(tile), LEFT(tpx) + weuclid);
+	    area.r_ybot = MIN(BOTTOM(tile), TOP(tpx) - weuclid);
+
+	    area.r_xbot = MIN(LEFT(tpx), RIGHT(tile) - weuclid);
+	    area.r_ytop = MAX(TOP(tpx), BOTTOM(tile) + weuclid);
+
+	    /* Trivial implementation: fill box */
+	    /* (to do: use stairstep to avoid filling unnecessary areas) */
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	}
+    }
+
+    /* Check for NW outside corner */
+    for (tp1 = BL(tile); TOP(tp1) < TOP(tile); tp1 = RT(tp1));
+    for (tp2 = RT(tile); LEFT(tp1) > LEFT(tile); tp2 = BL(tp1));
+    if ((TiGetRightType(tp1) == TT_SPACE) &&
+	    (TiGetBottomType(tp2) == TT_SPACE))
+    {
+	/* Set search box */
+	area.r_xbot = LEFT(tile) - spacing;
+	area.r_xtop = LEFT(tile) + width;
+	area.r_ybot = TOP(tile) - width;
+	area.r_ytop = TOP(tile) + spacing;
+
+	/* Find violator tiles */
+	brcs.tile = tile;
+	brcs.direction = BRIDGE_SE;
+	brcs.checktype = TT_SPACE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &CIFSolidBits, cifBridgeCheckFunc, (ClientData)&brcs) == 1)
+	{
+	    tpx = brcs.violator;
+	    /* Resize box to satisfy width requirement on both ends	 */
+	    weuclid = GetEuclideanWidthGrid(width);
+
+	    area.r_xbot = MIN(LEFT(tile), RIGHT(tpx) - weuclid);
+	    area.r_ytop = MAX(TOP(tile), BOTTOM(tpx) + weuclid);
+
+	    area.r_xtop = MAX(RIGHT(tpx), LEFT(tile) + weuclid);
+	    area.r_ybot = MIN(BOTTOM(tpx), TOP(tile) - weuclid);
+
+	    /* Trivial implementation: fill box */
+	    /* (to do: use stairstep to avoid filling unnecessary areas) */
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	}
+    }
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * SetMinBoxGrid ---
+ *
+ *	Adjust the given area by expanding evenly on both sides so that it
+ *	has a width and heigth no less than the given width.  Then further
+ *	expand the box to ensure that it falls on the CIF minimum grid.
+ *
+ *  Returns:  Nothing
+ *
+ *  Side Effects:  Point to Rect "area" may be modified.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+SetMinBoxGrid(area, width)
+    Rect *area;
+    int width;
+{
+    int wtest;
+    int wtot;
+    int delta;
+
+    wtest = (area->r_xtop - area->r_xbot);
+    wtot = area->r_xtop + area->r_xbot;
+    if (wtest < width)
+    {
+	area->r_xbot = (wtot - width) / 2;
+	area->r_xtop = (wtot + width) / 2;
+    }
+    wtest = (area->r_ytop - area->r_ybot);
+    wtot = area->r_ytop + area->r_ybot;
+    if (wtest < width)
+    {
+	area->r_ybot = (wtot - width) / 2;
+	area->r_ytop = (wtot + width) / 2;
+    }
+
+    if (CIFCurStyle && (CIFCurStyle->cs_gridLimit > 1))
+    {
+	delta = abs(area->r_xbot) % CIFCurStyle->cs_gridLimit;
+	if (delta > 0)
+	{
+	    if (area->r_xbot < 0)
+	    {
+		area->r_xbot += delta;
+		area->r_xbot -= CIFCurStyle->cs_gridLimit;
+	    }
+	    else
+		area->r_xbot -= delta;
+	}
+
+	delta = abs(area->r_xtop) % CIFCurStyle->cs_gridLimit;
+	if (delta > 0)
+	{
+	    if (area->r_xtop < 0)
+		area->r_xtop += delta;
+	    else
+	    {
+		area->r_xtop -= delta;
+		area->r_xtop += CIFCurStyle->cs_gridLimit;
+	    }
+	}
+
+	delta = abs(area->r_ybot) % CIFCurStyle->cs_gridLimit;
+	if (delta > 0)
+	{
+	    if (area->r_ybot < 0)
+	    {
+		area->r_ybot += delta;
+		area->r_ybot -= CIFCurStyle->cs_gridLimit;
+	    }
+	    else
+		area->r_ybot -= delta;
+	}
+
+	delta = abs(area->r_ytop) % CIFCurStyle->cs_gridLimit;
+	if (delta > 0)
+	{
+	    if (area->r_ytop < 0)
+		area->r_ytop += delta;
+	    else
+	    {
+		area->r_ytop -= delta;
+		area->r_ytop += CIFCurStyle->cs_gridLimit;
+	    }
+	}
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifBridgeFunc2 --
+ *
+ * 	Called for each relevant tile during bridge operations.  The
+ *	bridge operation is responsible for preventing a grow-shrink
+ *	pair of operations from leaving width or spacing DRC errors,
+ *	which happens when tiles are overlapping at a corner with the
+ *	overlap failing to meet the minimum width requirement.  The
+ *	bridge operation adds a bridge of material over the pinch
+ *	point that solves the minimum width requirement, adding a
+ *	minimum amount of material to do so.
+ *
+ *	The current version of this routine adds material on a stair-step
+ *	pattern;  preferably this should be extended to create material
+ *	at allowed angles, where the allowed angles (90, 45, or any) are
+ *	specified as an option to the bridge statement in the tech file.
+ *
+ *	growDistance is equal to the spacing rule distance needing to be
+ *	satisfied.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	Paints into cifNewPlane.  Tiles in old plane are tagged with
+ *	a static value in ClientData, which does not need to be reset
+ *	since the old plane will be free'd.
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifBridgeFunc2(tile, brs)
+    Tile *tile;
+    BridgeStruct *brs;
+{
+    Plane *plane = brs->plane;
+    Rect area;
+    Tile *tp1, *tp2, *tpx;
+    int width = brs->bridge->br_width;
+    int weuclid, wtest;
+    int spacing = growDistance;
+    BridgeCheckStruct brcs;
+    int cifBridgeCheckFunc();	/* Forward reference */
+
+    /* If tile is marked, then it has been handled, so ignore it */
+    if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
+
+    /* Find each tile outside corner (up to four) */
+
+    /* Check for NE outside corner */
+    tp1 = TR(tile);  /* Tile on right side at the top of this tile */
+    tp2 = RT(tile);  /* Tile on top side at the right of this tile */
+    if ((TiGetLeftType(tp1) == CIF_SOLIDTYPE) &&
+	    (TiGetBottomType(tp2) == CIF_SOLIDTYPE))
+    {
+	/* Set search box */
+	area.r_xbot = RIGHT(tile) - spacing;
+	area.r_xtop = RIGHT(tile) + width;
+	area.r_ybot = TOP(tile) - spacing;
+	area.r_ytop = TOP(tile) + width;
+
+	/* Find violator tiles */
+	brcs.tile = tile;
+	brcs.direction = BRIDGE_SW;
+	brcs.checktype = TT_SPACE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &DBSpaceBits, cifBridgeCheckFunc, (ClientData)&brcs) == 1)
+	{
+	    tpx = brcs.violator;
+	    /* Resize box to satisfy width requirement on both ends	 */
+	    weuclid = GetEuclideanWidthGrid(width);
+
+	    area.r_xbot = LEFT(tpx) - weuclid;
+	    area.r_ytop = TOP(tile) + weuclid;
+
+	    area.r_xtop = RIGHT(tile) + weuclid;
+	    area.r_ybot = BOTTOM(tpx) - weuclid;
+
+	    /* Box must meet width and height requirements */
+	    SetMinBoxGrid(&area, width);
+
+	    /* Trivial implementation: fill box */
+	    /* (to do: use stairstep to avoid filling unnecessary areas) */
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	}
+    }
+
+    /* Check for SW outside corner */
+    tp1 = BL(tile);  /* Tile on left side at the bottom of this tile */
+    tp2 = LB(tile);  /* Tile on bottom side at the left of this tile */
+    if ((TiGetRightType(tp1) == CIF_SOLIDTYPE) &&
+	    (TiGetTopType(tp2) == CIF_SOLIDTYPE))
+    {
+	/* Set search box */
+	area.r_xbot = LEFT(tile) - width;
+	area.r_xtop = LEFT(tile) + spacing;
+	area.r_ybot = BOTTOM(tile) - width;
+	area.r_ytop = BOTTOM(tile) + spacing;
+
+	/* Find violator tiles */
+	brcs.tile = tile;
+	brcs.direction = BRIDGE_NE;
+	brcs.checktype = CIF_SOLIDTYPE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &DBSpaceBits, cifBridgeCheckFunc, (ClientData)&brcs) == 1)
+	{
+	    tpx = brcs.violator;
+	    /* Resize box to satisfy width requirement on both ends	 */
+	    weuclid = GetEuclideanWidthGrid(width);
+
+	    area.r_xbot = LEFT(tile) - weuclid;
+	    area.r_ytop = TOP(tpx) + weuclid;
+
+	    area.r_xtop = RIGHT(tpx) + weuclid;
+	    area.r_ybot = BOTTOM(tile) - weuclid;
+
+	    /* Box must meet width and height requirements */
+	    SetMinBoxGrid(&area, width);
+
+	    /* Trivial implementation: fill box */
+	    /* (to do: use stairstep to avoid filling unnecessary areas) */
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	}
+    }
+
+    /* Check for SE outside corner */
+    for (tp1 = TR(tile); BOTTOM(tp1) > BOTTOM(tile); tp1 = LB(tp1));
+    for (tp2 = LB(tile); RIGHT(tp2) < RIGHT(tile); tp2 = TR(tp2));
+    if ((TiGetLeftType(tp1) == CIF_SOLIDTYPE) &&
+	    (TiGetTopType(tp2) == CIF_SOLIDTYPE))
+    {
+	/* Set search box */
+	area.r_xbot = RIGHT(tile) - spacing;
+	area.r_xtop = RIGHT(tile) + width;
+	area.r_ybot = BOTTOM(tile) - width;
+	area.r_ytop = BOTTOM(tile) + spacing;
+
+	/* Find violator tiles */
+	brcs.tile = tile;
+	brcs.direction = BRIDGE_NW;
+	brcs.checktype = CIF_SOLIDTYPE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &DBSpaceBits, cifBridgeCheckFunc, (ClientData)&brcs) == 1)
+	{
+	    tpx = brcs.violator;
+	    /* Resize box to satisfy width requirement on both ends	 */
+	    weuclid = GetEuclideanWidthGrid(width);
+
+	    area.r_xbot = LEFT(tpx) - weuclid;
+	    area.r_ytop = TOP(tpx) + weuclid;
+
+	    area.r_xtop = RIGHT(tile) + weuclid;
+	    area.r_ybot = BOTTOM(tile) - weuclid;
+
+	    /* Box must meet width and height requirements */
+	    SetMinBoxGrid(&area, width);
+
+	    /* Trivial implementation: fill box */
+	    /* (to do: use stairstep to avoid filling unnecessary areas) */
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	}
+    }
+
+    /* Check for NW outside corner */
+    for (tp1 = BL(tile); TOP(tp1) < TOP(tile); tp1 = RT(tp1));
+    for (tp2 = RT(tile); LEFT(tp2) > LEFT(tile); tp2 = BL(tp2));
+    if ((TiGetRightType(tp1) == CIF_SOLIDTYPE) &&
+	    (TiGetBottomType(tp2) == CIF_SOLIDTYPE))
+    {
+	/* Set search box */
+	area.r_xbot = LEFT(tile) - width;
+	area.r_xtop = LEFT(tile) + spacing;
+	area.r_ybot = TOP(tile) - spacing;
+	area.r_ytop = TOP(tile) + width;
+
+	/* Find violator tiles */
+	brcs.tile = tile;
+	brcs.direction = BRIDGE_SE;
+	brcs.checktype = CIF_SOLIDTYPE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &DBSpaceBits, cifBridgeCheckFunc, (ClientData)&brcs) == 1)
+	{
+	    tpx = brcs.violator;
+	    weuclid = GetEuclideanWidthGrid(width);
+
+	    /* Resize box to satisfy width requirement on both ends	 */
+	    area.r_xbot = LEFT(tile) - weuclid;
+	    area.r_ytop = TOP(tile) + weuclid;
+
+	    area.r_xtop = RIGHT(tpx) + weuclid;
+	    area.r_ybot = BOTTOM(tpx) - weuclid;
+
+	    /* Box must meet width and height requirements */
+	    SetMinBoxGrid(&area, width);
+
+	    /* Trivial implementation: fill box */
+	    /* (to do: use stairstep to avoid filling unnecessary areas) */
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	}
+    }
+
+    return 0;
+}
+
+/*
+ *-----------------------------------------------------------------------
+ * Callback function for cifBridgeFunc1 and cifBridgeFunc2 to find if
+ * there are violator cells in the search area.	 If a violator cell is
+ * found, then put the tile pointer in the BridgeCheckStruct and return
+ * value 1 to stop the search.	Otherwise return 0 to keep going.
+ *-----------------------------------------------------------------------
+ */
+
+int
+cifBridgeCheckFunc(tile, brcs)
+    Tile *tile;
+    BridgeCheckStruct *brcs;
+{
+    int dir = brcs->direction;
+    Tile *self = brcs->tile;
+    Tile *tp1, *tp2;
+    TileType checktype = brcs->checktype;
+
+    if (self == tile) return 0;	    /* Ignore the triggering tile */
+
+    switch (dir) {
+	case BRIDGE_NW:
+	    /* Ignore tile if split, and SE corner is clipped */
+	    if (TiGetRightType(tile) == checktype || TiGetBottomType(tile) == checktype)
+		break;
+	    for (tp1 = RT(tile); LEFT(tp1) > LEFT(tile); tp1 = BL(tp1));
+	    for (tp2 = BL(tile); TOP(tp2) < TOP(tile); tp2 = RT(tp2));
+	    if ((TiGetBottomType(tp1) == checktype) &&
+		    (TiGetRightType(tp2) == checktype))
+	    {
+		brcs->violator = tile;
+		return 1;	/* Violator found */
+	    }
+	    break;
+	case BRIDGE_NE:
+	    /* Ignore tile if split, and SW corner is clipped */
+	    if (TiGetLeftType(tile) == checktype || TiGetBottomType(tile) == checktype)
+		break;
+	    tp1 = RT(tile);
+	    tp2 = TR(tile);
+	    if ((TiGetBottomType(tp1) == checktype) &&
+		    (TiGetLeftType(tp2) == checktype))
+	    {
+		brcs->violator = tile;
+		return 1;	/* Violator found */
+	    }
+	    break;
+	case BRIDGE_SW:
+	    /* Ignore tile if split, and NE corner is clipped */
+	    if (TiGetRightType(tile) == checktype || TiGetTopType(tile) == checktype)
+		break;
+	    tp1 = LB(tile);
+	    tp2 = BL(tile);
+	    if ((TiGetTopType(tp1) == checktype) &&
+		    (TiGetRightType(tp2) == checktype))
+	    {
+		brcs->violator = tile;
+		return 1;	/* Violator found */
+	    }
+	    break;
+	case BRIDGE_SE:
+	    /* Ignore tile if split, and NW corner is clipped */
+	    if (TiGetLeftType(tile) == checktype || TiGetTopType(tile) == checktype)
+		break;
+	    for (tp1 = LB(tile); RIGHT(tp1) < RIGHT(tile); tp1 = TR(tp1));
+	    for (tp2 = TR(tile); BOTTOM(tp2) > BOTTOM(tile); tp2 = LB(tp2));
+	    if ((TiGetTopType(tp1) == checktype) &&
+		    (TiGetLeftType(tp2) == checktype))
+	    {
+		brcs->violator = tile;
+		return 1;	/* Violator found */
+	    }
+	    break;
+    }
+    return 0;	/* Nothing found here, so keep going */
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3191,6 +3812,8 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
     TileType ttype;
     char *netname;
     BloatStruct bls;
+    BridgeStruct brs;
+    BridgeData *bridge;
     int (*cifGrowFuncPtr)() = (CIFCurStyle->cs_flags & CWF_GROW_EUCLIDEAN) ?
 		cifGrowEuclideanFunc : cifGrowFunc;
 
@@ -3389,6 +4012,26 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 
 		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
 		    &DBSpaceBits, cifCloseFunc, (ClientData)&curPlane);
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
+		break;
+
+	    case CIFOP_BRIDGE:
+		growDistance = op->co_distance;
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifScale = 1;
+		/* First copy the existing paint into the target plane */
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &CIFSolidBits, cifPaintFunc, (ClientData)CIFPaintTable);
+
+		brs.plane = curPlane;
+		brs.bridge = (BridgeData *)op->co_client;
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &CIFSolidBits, cifBridgeFunc1, (ClientData)&brs);
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &DBSpaceBits, cifBridgeFunc2, (ClientData)&brs);
 		temp = curPlane;
 		curPlane = nextPlane;
 		nextPlane = temp;

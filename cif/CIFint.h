@@ -52,6 +52,11 @@ typedef struct bloat_data
     int bl_distance[TT_MAXTYPES];
 } BloatData;
 
+typedef struct bridge_data
+{
+    int br_width;		/* Minimum width rule for bridge */
+} BridgeData;
+
 typedef struct squares_data
 {
     int sq_border;
@@ -81,8 +86,9 @@ typedef struct cifop
 				 * below for the legal ones.
 				 */
     int co_distance;		/* Grow or shrink distance (if needed). */
-    ClientData co_client;	/* Pointer to a BloatData, SquaresData, or
-				 * SlotsData structure, or NULL.
+    ClientData co_client;	/* Pointer to a BloatData, SquaresData,
+				 * SlotsData, or BridgeData structure,
+				 * or NULL.
 				 */
     struct cifop *co_next;	/* Next in list of operations to perform. */
 } CIFOp;
@@ -134,6 +140,7 @@ typedef struct cifop
  *			which will be painted into parent cells instead of the
  *			current cell.  This replaces the "fault" method.
  * CIFOP_CLOSE -	Added 11/25/19---close up areas smaller than indicated
+ * CIFOP_BRIDGE -	Added 6/11/20---Bridge across catecorner gaps
  */
 
 #define CIFOP_AND	1
@@ -156,6 +163,7 @@ typedef struct cifop
 #define CIFOP_MAXRECT	18
 #define CIFOP_COPYUP	19
 #define CIFOP_CLOSE	20
+#define CIFOP_BRIDGE	21
 
 /* Added by Tim 10/21/2004 */
 /* The following structure is used to pass information on how to draw

@@ -531,6 +531,7 @@ CIFTechLine(sectionName, argc, argv)
     CIFKeep *newStyle, *p;
     char **bloatArg;
     BloatData *bloats;
+    BridgeData *bridge;
     SquaresData *squares;
     SlotsData *slots;
 
@@ -1055,6 +1056,8 @@ CIFTechLine(sectionName, argc, argv)
 	newOp->co_opcode = CIFOP_BOUNDARY;
     else if (strcmp(argv[0], "close") == 0)
 	newOp->co_opcode = CIFOP_CLOSE;
+    else if (strcmp(argv[0], "bridge") == 0)
+	newOp->co_opcode = CIFOP_BRIDGE;
     else
     {
 	TechError("Unknown statement \"%s\".\n", argv[0]);
@@ -1083,6 +1086,25 @@ CIFTechLine(sectionName, argc, argv)
 		TechError("Grow/shrink distance must be greater than zero.\n");
 		goto errorReturn;
 	    }
+	    break;
+
+	case CIFOP_BRIDGE:
+	    if (argc != 3) goto wrongNumArgs;
+	    newOp->co_distance = atoi(argv[1]);
+	    if (newOp->co_distance <= 0)
+	    {
+		TechError("Bridge distance must be greater than zero.\n");
+		goto errorReturn;
+	    }
+	    bridge = (BridgeData *)mallocMagic(sizeof(BridgeData));
+	    bridge->br_width = atoi(argv[2]);
+	    if (bridge->br_width <= 0)
+	    {
+		TechError("Bridge width must be greater than zero.\n");
+		freeMagic(bridge);
+		goto errorReturn;
+	    }
+	    newOp->co_client = (ClientData)bridge;
 	    break;
 
 	case CIFOP_BLOATALL:
@@ -1549,6 +1571,7 @@ cifComputeRadii(layer, des)
 		shrink += curShrink;
 		break;
 
+	    case CIFOP_BRIDGE: break;
 	    case CIFOP_SQUARES: break;
 	    case CIFOP_SQUARES_G: break;
 	}
@@ -1717,6 +1740,7 @@ CIFTechFinal()
 	    if (op->co_client)
 	    {
 		BloatData *bloats;
+		BridgeData *bridge;
 		SquaresData *squares;
 		SlotsData *slots;
 		if (op->co_opcode == CIFOP_SLOTS)
@@ -1807,6 +1831,12 @@ CIFTechFinal()
 			case CIFOP_MAXRECT:
 			case CIFOP_NET:
 			    break;
+			case CIFOP_BRIDGE:
+			    bridge = (BridgeData *)op->co_client;
+			    c = FindGCF(style->cs_scaleFactor,
+						bridge->br_width);
+			    if (c < minReduce) minReduce = c;
+			    break;
 			default:
 			    bloats = (BloatData *)op->co_client;
 			    for (j = 0; j < TT_MAXTYPES; j++)
@@ -1890,6 +1920,8 @@ CIFTechFinal()
 		case CIFOP_AND:
 		case CIFOP_ANDNOT:
 		case CIFOP_SHRINK:
+		case CIFOP_CLOSE:
+		case CIFOP_BRIDGE:
 		    needThisLayer = TRUE;
 		    break;
 	    }
@@ -2140,6 +2172,7 @@ CIFTechOutputScale(n, d)
     SquaresData *squares;
     SlotsData *slots;
     BloatData *bloats;
+    BridgeData *bridge;
     bool has_odd_space = FALSE;
 
     if (ostyle == NULL) return;
@@ -2294,6 +2327,13 @@ CIFTechOutputScale(n, d)
 			case CIFOP_MAXRECT:
 			case CIFOP_NET:
 			    break;
+			case CIFOP_BRIDGE:
+			    bridge = (BridgeData *)op->co_client;
+			    bridge->br_width *= d;
+		            lgcf = FindGCF(abs(bridge->br_width),
+					ostyle->cs_expander);
+			    lexpand = FindGCF(lexpand, lgcf);
+			    break;
 			default:
 			    bloats = (BloatData *)op->co_client;
 			    for (j = 0; j < TT_MAXTYPES; j++)
@@ -2390,6 +2430,10 @@ CIFTechOutputScale(n, d)
 			for (j = 0; j < TT_MAXTYPES; j++)
 			    if (bloats->bl_distance[j] != 0)
 				bloats->bl_distance[j] /= lexpand;
+			break;
+		    case CIFOP_BRIDGE:
+			bridge = (BridgeData *)op->co_client;
+			bridge->br_width /= lexpand;
 			break;
 		    default:
 			/* op->co_opcode in CIFOP_OR is a pointer copy	*/
