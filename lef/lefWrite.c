@@ -1358,13 +1358,11 @@ lefWriteMacro(def, f, scale, hide)
 		    if (ispwrrail == FALSE)
 		    {
 			if (antgatearea > 0)
-			    fprintf(f, IN1 "ANTENNAGATEAREA " FP " ;\n",
-				    lefPrint(lc.oscale * lc.oscale
-						* (float)antgatearea));
+			    fprintf(f, IN1 "ANTENNAGATEAREA %f ;\n",
+				    lc.oscale * lc.oscale * (float)antgatearea);
 			if (antdiffarea > 0)
-			    fprintf(f, IN1 "ANTENNADIFFAREA " FP " ;\n",
-				    lefPrint(lc.oscale * lc.oscale
-						* (float)antdiffarea));
+			    fprintf(f, IN1 "ANTENNADIFFAREA %f ;\n",
+				    lc.oscale * lc.oscale * (float)antdiffarea);
 		    }
 		    lc.needHeader = FALSE;
 		}
