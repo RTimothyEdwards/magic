@@ -20,6 +20,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>   /* for truncf() function */
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -40,10 +41,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "utils/undo.h"
 #include "drc/drc.h"
 #include "cif/cif.h"
+#include "cif/CIFint.h"
 #include "lef/lefInt.h"
 
 
-#define FP "%.6f"
+#define FP "%s"
 #define POINT FP " " FP
 #define IN0 "  "
 #define IN1 "    "
@@ -55,6 +57,69 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 /* Stack of cell definitions */
 Stack *lefDefStack;
 
+/* Keep the database units around for calculations */
+int LEFdbUnits = 1000;
+
+/*
+ * ---------------------------------------------------------------------
+ *
+ * lefPrint --
+ *
+ * Print a measurement value to LEF output in appropriate units.  Since
+ * the minimum LEF database unit is 1/20 nanometer, the number of digits
+ * is adjusted accordingly for the output in units of microns, according
+ * to the grid limit (current grid limit in magic is 1 angstrom, so the
+ * maximum number of digits behind the decimal is 4).
+ *
+ * Results:
+ *	Returns a pointer to a static character string containing the
+ *	formatted value.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ---------------------------------------------------------------------
+ */
+
+char *
+lefPrint(float invalue)
+{
+    static char leffmt[10];
+    float value, r, l;
+
+    r = (invalue < 0.0) ? -0.5 : 0.5;
+    l = (float)LEFdbUnits;
+
+    /* Truncate to units or half units to the precision indicated by LEFdbUnits */
+
+    switch (LEFdbUnits)
+    {
+	case 100:
+	    value = (float)(truncf((invalue * l) + r) / l);
+	    sprintf(leffmt, "%.2f", value);
+	    break;
+	case 200:
+	case 1000:
+	    value = (float)(truncf((invalue * l) + r) / l);
+	    sprintf(leffmt, "%.3f", value);
+	    break;
+	case 2000:
+	case 10000:
+	    value = (float)(truncf((invalue * l) + r) / l);
+	    sprintf(leffmt, "%.4f", value);
+	    break;
+	case 20000:
+	    value = (float)(truncf((invalue * l) + r) / l);
+	    sprintf(leffmt, "%.5", value);
+	    break;
+	default:
+	    value = (float)(truncf((invalue * 100000.) + r) / 100000.);
+	    sprintf(leffmt, "%.5f", value);
+	    break;
+    }
+    return leffmt;
+}
+ 
 /*
  * ---------------------------------------------------------------------
  *
@@ -196,12 +261,28 @@ lefWriteHeader(def, f, lefTech, propTable)
     fprintf(f, IN0 "DIVIDERCHAR \"/\" ;\n");
     fprintf(f, IN0 "BUSBITCHARS \"[]\" ;\n");
 
-    /* As I understand it, this refers to the scalefactor of the GDS	*/
-    /* file output.  Magic does all GDS in nanometers, so the LEF	*/
-    /* scalefactor (conversion to microns) is always 1000.		*/
+    /* Database units are normally 1000 (magic outputs GDS in nanometers)   */
+    /* but if "gridlimit" is set to something other than 1, then divide it  */
+    /* down (due to LEF format limitations, grid limit can only be 1, 5, or */
+    /* 10).  If the CWF_ANGSTROMS flag is set, then multiply up by ten.	    */
+
+    LEFdbUnits = 1000;
+    if (CIFCurStyle)
+    {
+	if (CIFCurStyle->cs_flags & CWF_ANGSTROMS) LEFdbUnits *= 10;
+	switch (CIFCurStyle->cs_gridLimit)
+	{
+	    case 1:
+	    case 5:
+	    case 10:
+		LEFdbUnits /= CIFCurStyle->cs_gridLimit;
+		break;
+	    /* Otherwise leave as-is */
+	}
+    }
 
     fprintf(f, "UNITS\n");
-    fprintf(f, IN0 "DATABASE MICRONS 1000 ;\n");
+    fprintf(f, IN0 "DATABASE MICRONS %d ;\n", LEFdbUnits);
     fprintf(f, "END UNITS\n");
     fprintf(f, "\n");
 
@@ -675,46 +756,46 @@ lefWriteGeometry(tile, cdata)
 	{
 	    if (otype & TT_DIRECTION)
 		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
-			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
-			scale * (float)(TOP(tile) - lefdata->origin.p_y),
-			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
-			scale * (float)(TOP(tile) - lefdata->origin.p_y),
-			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
-			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
+			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
+			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
+			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)));
 	    else
 		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
-			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
-			scale * (float)(TOP(tile) - lefdata->origin.p_y),
-			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
-			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y),
-			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
-			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
+			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
+			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)),
+			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)));
 	}
 	else
 	{
 	    if (otype & TT_DIRECTION)
 		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
-			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
-			scale * (float)(TOP(tile) - lefdata->origin.p_y),
-			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
-			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y),
-			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
-			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
+			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
+			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)),
+			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)));
 	    else
 		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
-			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
-			scale * (float)(TOP(tile) - lefdata->origin.p_y),
-			scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
-			scale * (float)(TOP(tile) - lefdata->origin.p_y),
-			scale * (float)(LEFT(tile) - lefdata->origin.p_x),
-			scale * (float)(BOTTOM(tile) - lefdata->origin.p_y));
+			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
+			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
+			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
+			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)));
 	}
     else
 	fprintf(f, IN3 "RECT " POINT " " POINT " ;\n",
-		scale * (float)(LEFT(tile) - lefdata->origin.p_x),
-		scale * (float)(BOTTOM(tile) - lefdata->origin.p_y),
-		scale * (float)(RIGHT(tile) - lefdata->origin.p_x),
-		scale * (float)(TOP(tile) - lefdata->origin.p_y));
+		lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
+		lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)),
+		lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
+		lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)));
 
     return 0;
 }
@@ -1081,12 +1162,12 @@ lefWriteMacro(def, f, scale, hide)
     /* zeros" in the output.						    */
 
     fprintf(f, IN0 "ORIGIN " POINT " ;\n",
-		0.0 - lc.oscale * (float)boundary.r_xbot,
-		0.0 - lc.oscale * (float)boundary.r_ybot);
+		lefPrint(0.0 - lc.oscale * (float)boundary.r_xbot),
+		lefPrint(0.0 - lc.oscale * (float)boundary.r_ybot));
 
     fprintf(f, IN0 "SIZE " FP " BY " FP " ;\n",
-		lc.oscale * (float)(boundary.r_xtop - boundary.r_xbot),
-		lc.oscale * (float)(boundary.r_ytop - boundary.r_ybot));
+		lefPrint(lc.oscale * (float)(boundary.r_xtop - boundary.r_xbot)),
+		lefPrint(lc.oscale * (float)(boundary.r_ytop - boundary.r_ybot)));
 
     lc.origin.p_x = 0;
     lc.origin.p_y = 0;
@@ -1278,10 +1359,12 @@ lefWriteMacro(def, f, scale, hide)
 		    {
 			if (antgatearea > 0)
 			    fprintf(f, IN1 "ANTENNAGATEAREA " FP " ;\n",
-				    lc.oscale * lc.oscale * (float)antgatearea);
+				    lefPrint(lc.oscale * lc.oscale
+						* (float)antgatearea));
 			if (antdiffarea > 0)
 			    fprintf(f, IN1 "ANTENNADIFFAREA " FP " ;\n",
-				    lc.oscale * lc.oscale * (float)antdiffarea);
+				    lefPrint(lc.oscale * lc.oscale
+						* (float)antdiffarea));
 		    }
 		    lc.needHeader = FALSE;
 		}
