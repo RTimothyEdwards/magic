@@ -865,7 +865,7 @@ extNodeName(node)
     /* If the techfile specifies a global name for the substrate, use	*/
     /* that in preference to the default "p_x_y#" name.			*/
 
-    if ((NodeRegion *)node == glob_subsnode)
+    if (((NodeRegion *)node == glob_subsnode) || ((NodeRegion *)node == temp_subsnode))
     {    
 	if (ExtCurStyle->exts_globSubstrateName != NULL)
 	{
