@@ -81,10 +81,9 @@ int LEFdbUnits = 1000;
  * ---------------------------------------------------------------------
  */
 
-char *
-lefPrint(float invalue)
+const char *
+lefPrint(char *leffmt, float invalue)
 {
-    static char leffmt[10];
     float value, r, l;
 
     r = (invalue < 0.0) ? -0.5 : 0.5;
@@ -110,7 +109,7 @@ lefPrint(float invalue)
 	    break;
 	case 20000:
 	    value = (float)(truncf((invalue * l) + r) / l);
-	    sprintf(leffmt, "%.5", value);
+	    sprintf(leffmt, "%.5f", value);
 	    break;
 	default:
 	    value = (float)(truncf((invalue * 100000.) + r) / 100000.);
@@ -697,6 +696,7 @@ lefWriteGeometry(tile, cdata)
     lefClient *lefdata = (lefClient *)cdata;
     FILE *f = lefdata->file;
     float scale = lefdata->oscale;
+    char leffmt[6][10];
     TileType ttype, otype = TiGetTypeExact(tile);
     LefMapping *lefMagicToLefLayer = lefdata->lefMagicMap;
 
@@ -756,46 +756,70 @@ lefWriteGeometry(tile, cdata)
 	{
 	    if (otype & TT_DIRECTION)
 		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
-			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
-			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
-			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)));
+			lefPrint(leffmt[0], scale * (float)(LEFT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[1], scale * (float)(TOP(tile)
+				    - lefdata->origin.p_y)),
+			lefPrint(leffmt[2], scale * (float)(RIGHT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[3], scale * (float)(TOP(tile)
+				    - lefdata->origin.p_y)),
+			lefPrint(leffmt[4], scale * (float)(RIGHT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[5], scale * (float)(BOTTOM(tile)
+				    - lefdata->origin.p_y)));
 	    else
 		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
-			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
-			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)),
-			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)));
+			lefPrint(leffmt[0], scale * (float)(RIGHT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[1], scale * (float)(TOP(tile)
+				    - lefdata->origin.p_y)),
+			lefPrint(leffmt[2], scale * (float)(RIGHT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[3], scale * (float)(BOTTOM(tile)
+				    - lefdata->origin.p_y)),
+			lefPrint(leffmt[4], scale * (float)(LEFT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[5], scale * (float)(BOTTOM(tile)
+				    - lefdata->origin.p_y)));
 	}
 	else
 	{
 	    if (otype & TT_DIRECTION)
 		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
-			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
-			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)),
-			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)));
+			lefPrint(leffmt[0], scale * (float)(LEFT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[1], scale * (float)(TOP(tile)
+				    - lefdata->origin.p_y)),
+			lefPrint(leffmt[2], scale * (float)(RIGHT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[3], scale * (float)(BOTTOM(tile)
+				    - lefdata->origin.p_y)),
+			lefPrint(leffmt[4], scale * (float)(LEFT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[5], scale * (float)(BOTTOM(tile)
+				    - lefdata->origin.p_y)));
 	    else
 		fprintf(f, IN3 "POLYGON " POINT " " POINT " " POINT " ;\n",
-			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
-			lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)),
-			lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
-			lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)));
+			lefPrint(leffmt[0], scale * (float)(LEFT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[1], scale * (float)(TOP(tile)
+				    - lefdata->origin.p_y)),
+			lefPrint(leffmt[2], scale * (float)(RIGHT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[3], scale * (float)(TOP(tile)
+				    - lefdata->origin.p_y)),
+			lefPrint(leffmt[4], scale * (float)(LEFT(tile)
+				    - lefdata->origin.p_x)),
+			lefPrint(leffmt[5], scale * (float)(BOTTOM(tile)
+				    - lefdata->origin.p_y)));
 	}
     else
 	fprintf(f, IN3 "RECT " POINT " " POINT " ;\n",
-		lefPrint(scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
-		lefPrint(scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)),
-		lefPrint(scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
-		lefPrint(scale * (float)(TOP(tile) - lefdata->origin.p_y)));
+		lefPrint(leffmt[0], scale * (float)(LEFT(tile) - lefdata->origin.p_x)),
+		lefPrint(leffmt[1], scale * (float)(BOTTOM(tile) - lefdata->origin.p_y)),
+		lefPrint(leffmt[2], scale * (float)(RIGHT(tile) - lefdata->origin.p_x)),
+		lefPrint(leffmt[3], scale * (float)(TOP(tile) - lefdata->origin.p_y)));
 
     return 0;
 }
@@ -1008,6 +1032,7 @@ lefWriteMacro(def, f, scale, hide)
     TileType ttype;
     lefClient lc;
     int idx, pNum, maxport, curport;
+    char leffmt[2][10];
     char *LEFtext;
     HashSearch hs;
     HashEntry *he;
@@ -1162,12 +1187,14 @@ lefWriteMacro(def, f, scale, hide)
     /* zeros" in the output.						    */
 
     fprintf(f, IN0 "ORIGIN " POINT " ;\n",
-		lefPrint(0.0 - lc.oscale * (float)boundary.r_xbot),
-		lefPrint(0.0 - lc.oscale * (float)boundary.r_ybot));
+		lefPrint(leffmt[0], 0.0 - lc.oscale * (float)boundary.r_xbot),
+		lefPrint(leffmt[1], 0.0 - lc.oscale * (float)boundary.r_ybot));
 
     fprintf(f, IN0 "SIZE " FP " BY " FP " ;\n",
-		lefPrint(lc.oscale * (float)(boundary.r_xtop - boundary.r_xbot)),
-		lefPrint(lc.oscale * (float)(boundary.r_ytop - boundary.r_ybot)));
+		lefPrint(leffmt[0], lc.oscale * (float)(boundary.r_xtop
+				- boundary.r_xbot)),
+		lefPrint(leffmt[1], lc.oscale * (float)(boundary.r_ytop
+				- boundary.r_ybot)));
 
     lc.origin.p_x = 0;
     lc.origin.p_y = 0;
