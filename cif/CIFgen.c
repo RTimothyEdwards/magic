@@ -1101,10 +1101,19 @@ cifBloatAllFunc(tile, bls)
      * is not used).
      */
 
-    TTMaskZero(&connect);
-    for (i = 0; i < TT_MAXTYPES; i++)
-	if (bloats->bl_distance[i] != 0)
-	    TTMaskSetType(&connect, i);
+    if (bloats->bl_plane < 0)
+    {
+	/* bl_plane == -1 indicates bloating into a CIF templayer, and	*/
+	/* so the only connecting type should be CIF_SOLIDTYPE.		*/
+	TTMaskSetType(&connect, CIF_SOLIDTYPE);
+    }
+    else
+    {
+	TTMaskZero(&connect);
+	for (i = 0; i < TT_MAXTYPES; i++)
+	    if (bloats->bl_distance[i] != 0)
+		TTMaskSetType(&connect, i);
+    }
 
     /* This search function is based on drcCheckArea */
 
