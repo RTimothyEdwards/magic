@@ -1960,6 +1960,27 @@ CIFTechFinal()
 	    TTMaskSetType(&style->cs_hierLayers, i);
     }
 
+    /* Added by Tim, 6/17/20:  Do not set dependencies of BOUNDARY  */
+    /* or BBOX because these are unable to be represented in a	    */
+    /* hierarchy without producing conflicting parent/child mask    */
+    /* geometry.  Generally, BOUNDARY and BBOX operations are	    */
+    /* intended to be restricted to the child cell and should not   */
+    /* interact hierarchically.  Possibly it would be useful to	    */
+    /* provide some method to preserve the bounding box information */
+    /* when flattening?						    */
+
+    for (i = 0; i < style->cs_nLayers; i++)
+    {
+	for (op = style->cs_layers[i]->cl_ops; op != NULL; op = op->co_next)
+	{
+	    if (op->co_opcode == CIFOP_BOUNDARY || op->co_opcode == CIFOP_BBOX)
+	    {
+		TTMaskClearType(&style->cs_hierLayers, i);
+		break;
+	    }
+	}
+    }
+
     /* Added by Tim, 10/18/04					*/
 
     /* Go through the layer operators looking for those that	*/
