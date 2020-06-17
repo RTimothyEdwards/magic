@@ -2687,12 +2687,6 @@ LefRead(inName, importForeign)
 	    case LEF_SECTION_SPACING:
 		LefSkipSection(f, sections[LEF_SECTION_SPACING]);
 		break;
-	    case LEF_SECTION_SITE:
-		token = LefNextToken(f, TRUE);
-		LefError(LEF_INFO, "Defines site %s (ignored)\n", token);
-		sprintf(tsave, "%.127s", token);
-		LefSkipSection(f, tsave);
-		break;
 	    case LEF_NOISETABLE:
 		LefSkipSection(f, sections[LEF_NOISETABLE]);
 		break;
@@ -2711,6 +2705,7 @@ LefRead(inName, importForeign)
 	    case LEF_EXTENSION:
 		LefSkipSection(f, sections[LEF_EXTENSION]);
 		break;
+	    case LEF_SECTION_SITE:
 	    case LEF_MACRO:
 		token = LefNextToken(f, TRUE);
 		/* Diagnostic */

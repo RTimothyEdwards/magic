@@ -4148,6 +4148,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		    bbox.r_xtop *= cifScale;
 		    bbox.r_ybot *= cifScale;
 		    bbox.r_ytop *= cifScale;
+		    cifScale = 1;
 		    DBNMPaintPlane(cifPlane, CIF_SOLIDTYPE, &bbox,
 				CIFPaintTable, (PaintUndoInfo *)NULL);
 		}
@@ -4183,6 +4184,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		bbox.r_xtop *= cifScale;
 		bbox.r_ybot *= cifScale;
 		bbox.r_ytop *= cifScale;
+		cifScale = 1;
 		DBNMPaintPlane(curPlane, CIF_SOLIDTYPE, &bbox,
 			CIFPaintTable, (PaintUndoInfo *)NULL);
 		break;

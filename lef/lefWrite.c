@@ -238,11 +238,12 @@ lefFileOpen(def, file, suffix, mode, prealfile)
  */
 
 void
-lefWriteHeader(def, f, lefTech, propTable)
+lefWriteHeader(def, f, lefTech, propTable, siteTable)
     CellDef *def;	    /* Def for which to generate LEF output */
     FILE *f;		    /* Output to this file */
     bool lefTech;	    /* If TRUE, write layer information */
     HashTable *propTable;   /* Hash table of property definitions */
+    HashTable *siteTable;   /* Hash table of sites used */
 {
     TileType type;
     HashSearch hs;
@@ -296,7 +297,55 @@ lefWriteHeader(def, f, lefTech, propTable)
 	/* This has not been implemented;  only string types are supported */
 	fprintf(f, IN0 "MACRO %s STRING ;\n", (char *)he->h_key.h_name);
     }
-    if (nprops > 0) fprintf(f, "END PROPERTYDEFINITIONS\n");
+    if (nprops > 0) fprintf(f, "END PROPERTYDEFINITIONS\n\n");
+
+    HashStartSearch(&hs);
+    while (he = HashNext(siteTable, &hs))
+    {
+	/* Output the SITE as a macro */
+	CellDef *siteDef;
+	float scale;
+	char leffmt[2][10];
+	bool propfound;
+	char *propvalue;
+	Rect boundary;
+
+	siteDef = DBCellLookDef((char *)he->h_key.h_name);
+	if (siteDef)
+	{
+	    fprintf(f, "SITE %s\n", siteDef->cd_name);
+
+	    propvalue = (char *)DBPropGet(siteDef, "LEFsymmetry", &propfound);
+	    if (propfound)
+		fprintf(f, IN0 "SYMMETRY %s ;\n", propvalue);
+	    else
+		/* Usually core cells have symmetry Y only. */
+		fprintf(f, IN0 "SYMMETRY Y ;\n");
+
+	    propvalue = (char *)DBPropGet(siteDef, "LEFclass", &propfound);
+	    if (propfound)
+		fprintf(f, IN0 "CLASS %s ;\n", propvalue);
+	    else
+		/* Needs a class of some kind.  Use CORE as default if not defined */
+		fprintf(f, IN0 "CLASS CORE ;\n");
+
+	    boundary = siteDef->cd_bbox;
+	    if (siteDef->cd_flags & CDFIXEDBBOX)
+	    {
+		propvalue = (char *)DBPropGet(def, "FIXED_BBOX", &propfound);
+		if (propfound)
+		    sscanf(propvalue, "%d %d %d %d", &boundary.r_xbot,
+			    &boundary.r_ybot, &boundary.r_xtop, &boundary.r_ytop);
+	    }
+
+	    scale = CIFGetOutputScale(1000);	/* conversion to microns */
+	    fprintf(f, IN0 "SIZE " FP " BY " FP " ;\n",
+		lefPrint(leffmt[0], scale * (float)(boundary.r_xtop - boundary.r_xbot)),
+		lefPrint(leffmt[1], scale * (float)(boundary.r_ytop - boundary.r_ybot)));
+
+	    fprintf(f, "END %s\n\n", siteDef->cd_name);
+	}
+    }
 
     if (!lefTech) return;
 
@@ -1617,6 +1666,36 @@ lefWriteMacro(def, f, scale, hide)
 /*
  *------------------------------------------------------------
  *
+ * lefGetSites ---
+ *
+ *	Pull SITE instances from multiple cells into a list of
+ *	unique entries to be written to the LEF header of an
+ *	output LEF file.
+ *
+ *------------------------------------------------------------
+ */
+int
+lefGetSites(stackItem, i, clientData)
+    ClientData stackItem;
+    int i;
+    ClientData clientData;
+{
+    CellDef *def = (CellDef *)stackItem;
+    HashTable *lefSiteTbl = (HashTable *)clientData;
+    HashEntry *he;
+    bool propfound;
+    char *propvalue;
+
+    propvalue = (char *)DBPropGet(def, "LEFsite", &propfound);
+    if (propfound)
+	he = HashFind(lefSiteTbl, propvalue);
+
+    return 0;
+}
+
+/*
+ *------------------------------------------------------------
+ *
  * lefGetProperties ---
  *
  *	Pull property definitions from multiple cells into
@@ -1705,7 +1784,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
     bool lefHide;
     bool recurse;
 {
-    HashTable propHashTbl;
+    HashTable propHashTbl, siteHashTbl;
     CellDef *def, *rootdef;
     FILE *f;
     char *filename;
@@ -1753,11 +1832,16 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
     HashInit(&propHashTbl, 4, HT_STRINGKEYS);
     StackEnum(lefDefStack, lefGetProperties, &propHashTbl);
 
+    /* For all cells, collect any sites */
+    HashInit(&siteHashTbl, 4, HT_STRINGKEYS);
+    StackEnum(lefDefStack, lefGetSites, &siteHashTbl);
+
     /* Now generate LEF output for all the cells we just found */
 
-    lefWriteHeader(rootdef, f, lefTech, &propHashTbl);
+    lefWriteHeader(rootdef, f, lefTech, &propHashTbl, &siteHashTbl);
 
     HashKill(&propHashTbl);
+    HashKill(&siteHashTbl);
 
     while (def = (CellDef *) StackPop(lefDefStack))
     {
@@ -1856,12 +1940,15 @@ LefWriteCell(def, outName, isRoot, lefTech, lefHide)
 
     if (isRoot)
     {
-	HashTable propHashTbl;
+	HashTable propHashTbl, siteHashTbl;
 
 	HashInit(&propHashTbl, 4, HT_STRINGKEYS);
 	lefGetProperties((ClientData)def, 0, (ClientData)&propHashTbl);
-	lefWriteHeader(def, f, lefTech, &propHashTbl);
+	HashInit(&siteHashTbl, 4, HT_STRINGKEYS);
+	lefGetSites((ClientData)def, 0, (ClientData)&siteHashTbl);
+	lefWriteHeader(def, f, lefTech, &propHashTbl, &siteHashTbl);
 	HashKill(&propHashTbl);
+	HashKill(&siteHashTbl);
     }
     lefWriteMacro(def, f, scale, lefHide);
     fclose(f);

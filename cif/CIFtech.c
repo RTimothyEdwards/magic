@@ -1902,11 +1902,18 @@ CIFTechFinal()
 		case CIFOP_BLOAT:
 		case CIFOP_BLOATMAX:
 		case CIFOP_BLOATMIN:
+		    bloats = (BloatData *)op->co_client;
+		    for (j = 0; j < TT_MAXTYPES; j++)
+			if (bloats->bl_distance[j] != bloats->bl_distance[TT_SPACE])
+			    TTMaskSetType(&ourYank, j);
+		    needThisLayer = TRUE;
+		    break;
+
 		case CIFOP_BLOATALL:
 		    bloats = (BloatData *)op->co_client;
 		    for (j = 0; j < TT_MAXTYPES; j++)
 		    {
-			if (bloats->bl_distance[j] != bloats->bl_distance[TT_SPACE])
+			if (bloats->bl_distance[j] != 0)
 			{
 			    if (bloats->bl_plane < 0)
 				TTMaskSetType(&ourDepend, j);
