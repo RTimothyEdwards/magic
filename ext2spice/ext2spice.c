@@ -2328,7 +2328,7 @@ spcdevVisit(dev, hc, scale, trans)
 	case DEV_FET:
 	    if (source == drain)
 	    {
-		if (esFormat == NGSPICE) fprintf(esSpiceF, "; ");
+		if (esFormat == NGSPICE) fprintf(esSpiceF, "$ ");
 		fprintf(esSpiceF, "** SOURCE/DRAIN TIED\n");
 	    }
 	    break;
@@ -2336,7 +2336,7 @@ spcdevVisit(dev, hc, scale, trans)
 	default:
 	    if (gate == source)
 	    {
-		if (esFormat == NGSPICE) fprintf(esSpiceF, "; ");
+		if (esFormat == NGSPICE) fprintf(esSpiceF, "$ ");
 		fprintf(esSpiceF, "** SHORTED DEVICE\n");
 	    }
 	    break;
@@ -3203,7 +3203,7 @@ spcnodeVisit(node, res, cap)
 	static char ntmp[MAX_STR_SIZE];
 
 	EFHNSprintf(ntmp, hierName);
-	if (esFormat == NGSPICE) fprintf(esSpiceF, "; ");
+	if (esFormat == NGSPICE) fprintf(esSpiceF, "$ ");
 	fprintf(esSpiceF, "** %s == %s\n", ntmp, nsn);
     }
     cap = cap  / 1000;
@@ -3211,12 +3211,12 @@ spcnodeVisit(node, res, cap)
     {
 	fprintf(esSpiceF, esSpiceCapFormat, esCapNum++, nsn, cap,
 			(isConnected) ?  "\n" :
-			(esFormat == NGSPICE) ? " ; **FLOATING\n" :
+			(esFormat == NGSPICE) ? " $ **FLOATING\n" :
 			" **FLOATING\n");
     }
     if (node->efnode_attrs && !esNoAttrs)
     {
-	if (esFormat == NGSPICE) fprintf(esSpiceF, " ; ");
+	if (esFormat == NGSPICE) fprintf(esSpiceF, " $ ");
 	fprintf(esSpiceF, "**nodeattr %s :",nsn );
 	for (fmt = " %s", ap = node->efnode_attrs; ap; ap = ap->efa_next)
 	{
