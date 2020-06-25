@@ -3302,6 +3302,8 @@ makeName:
        EFHNSprintf(esTempName, node->efnode_name->efnn_hier);
        if ( esFormat == HSPICE ) /* more processing */
 	nodeHspiceName(esTempName);
+       if ( esFormat == NGSPICE ) /* more processing */
+	nodeNgspiceName(esTempName);
     }
    ((nodeClient *) (node->efnode_client))->spiceNodeName =
 	    StrDup(NULL, esTempName);
@@ -3399,6 +3401,103 @@ char *efHNSprintfPrefix(hierName, str)
     }
     *str = '/';
     return ++str;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * nodeNgspiceName --
+ *
+ * Convert the hierarchical node name to Ngspice format
+ *
+ * Arguments: a pointer to a string containing a node name to be
+ *            considered
+ *
+ * Returns: 0
+ *
+ * Description: A hierarchical name in magic may have the form:
+ *              <instname>/<nodename> 
+ *              where the <instname>, and subinstance names, 
+ *              if present, do not have the leading "X" character.
+ *
+ *              This function detects if a node is hierachical and if
+ *              so, converts it to the form:
+ *              X<instname>.<nodename>
+ *              It also converts the subinstance names as well.
+ *
+ *              If the node name is not hierarchical, i.e. does not
+ *              contain the slash character '/', then no action is
+ *              taken and the function returns. 
+ *
+ *              Although <instname>/<nodename> is a legal Ngspice
+ *              node name, the slash character '/' has no special meaning
+ *              and the entire string is treated as a unique node.
+ *
+ *              The hierachy separator in Ngspice is the period character, '.'
+ *              Instance names must be prefixed with 'X'.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int nodeNgspiceName(s)
+    char *s;
+{
+   char *token;
+   char *pnn;
+   const char slash[2] = "/";
+   int i, count, len;
+   char *str = NULL;
+
+   // check to see if the node name is hierarchical, i.e. has 
+   // a slash '/' in it.  If so, prepend an X to the inst names,
+   // and replace the slashes with a period '.'
+   pnn = strchr(s, '/');
+   if(pnn) {
+      // figure out length of new string
+      // it will be the length of the old string plus
+      // the number of slashes found in the string
+      // to account for the X character preprended to
+      // the instance names
+      count = 0;  
+      for (i = 0; s[i]; i++) {
+         if (s[i] == '\0') {
+            break;
+         }
+         if(s[i] == '/')
+            count++;
+      }
+
+      len = strlen(s) + count + 1;  // + 1 for '\0' character
+      str = (char *) mallocMagic( sizeof(char) * len );
+
+      if(str == NULL) {
+         TxError("malloc returned NULL, node name will not be modified\n");
+      } else {
+         // assemble the replacement for s
+         str[0] = '\0';  
+         token = strtok(s, slash);
+
+         // For each level of hierarchy, prepend a X
+         // "." is the hierarchy deliminator
+         // the last field is the local node name
+         while (token != NULL) {
+            if (count > 0) {
+               strcat(str, "X");
+               strcat(str, token);
+               strcat(str, ".");
+            } else {
+               strcat(str, token);
+            }
+            count--;
+            token = strtok(NULL, slash);
+         }
+         // substitute in the newly assemble str 
+         strcpy(s, str); 
+         freeMagic(str);
+         str = NULL;
+     }
+   }
+   return 0;
 }
 
 /*
