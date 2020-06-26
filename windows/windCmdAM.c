@@ -1104,7 +1104,7 @@ windDoMacro(w, cmd, interactive)
 	    if (interactive && !cMacro->interactive) continue;
 
 	    if (do_help)
-		cp = cMacro->helptext;
+		cp = (cMacro->helptext == NULL) ? cMacro->macrotext : cMacro->helptext;
 	    else
 		cp = cMacro->macrotext;
 
@@ -1135,10 +1135,11 @@ windDoMacro(w, cmd, interactive)
 	    else
 	    {
 	        if (cMacro->interactive)
-		    TxPrintf("Interactive macro '%s' contains \"%s\"\n",
-			     cn, cp);
+		    TxPrintf("Interactive macro '%s' %s \"%s\"\n",
+			     cn, (do_help) ? "" : "contains", cp);
 		else
-		    TxPrintf("Macro '%s' contains \"%s\"\n", cn, cp);
+		    TxPrintf("Macro '%s' %s \"%s\"\n",
+			     cn, (do_help) ? "" : "contains", cp);
 	    }
 	    freeMagic(cn);
 	    any = TRUE;
