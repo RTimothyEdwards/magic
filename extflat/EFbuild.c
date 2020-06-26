@@ -163,6 +163,11 @@ efBuildNode(def, isSubsnode, nodeName, nodeCap, x, y, layerName, av, ac)
 	    newnode->efnode_pa[n].pa_area += atoi(*av++);
 	    newnode->efnode_pa[n].pa_perim += atoi(*av++);
 	}
+
+	/* If this node is identified as substrate, update the flag */
+	if (isSubsnode == TRUE)
+	    newnode->efnode_flags |= EF_SUBS_NODE;
+
 	return;
     }
 
