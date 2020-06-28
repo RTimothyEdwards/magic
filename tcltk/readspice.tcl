@@ -57,8 +57,8 @@ proc readspice {netfile} {
    set fdata {}
    set lastline ""
    while {[gets $fnet line] >= 0} {
-       if {[lindex $line 0] != "*"} {
-           if {[lindex $line 0] == "+"} {
+       if {[string index $line 0] != "*"} {
+           if {[string index $line 0] == "+"} {
                if {[string range $line end end] != " "} {
                   append lastline " "
 	       }
