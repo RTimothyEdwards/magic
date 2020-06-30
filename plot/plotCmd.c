@@ -98,6 +98,7 @@ CmdPlot(w, cmd)
     int iwidth, scale;
 
 #ifdef HAVE_LIBCAIRO
+    int flags;
     extern void GrTCairoPlotSVG();
 #endif
 
@@ -271,7 +272,13 @@ CmdPlot(w, cmd)
 			cmdPlotOption[PLOTSVG]);
 		return;
 	    }
+	    flags = window->w_flags;
+	    /* In case this is called from a non-GUI wrapper window, remove */
+	    /* the window border widgets from the rendered display.	    */
+	    window->w_flags &= ~(WIND_SCROLLABLE | WIND_SCROLLBARS | WIND_CAPTION
+			| WIND_BORDER);
 	    GrTCairoPlotSVG(cmd->tx_argv[2], window);
+	    window->w_flags = flags;
 	    return;
 #endif
 
