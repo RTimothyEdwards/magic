@@ -106,6 +106,10 @@ proc readspice {netfile} {
 	       set n 1
 	       set changed false
 	       foreach pin [lrange $ftokens 2 end] {
+		  # If "=" is in the name, then we have finished the pins
+		  # and are looking at parameters, and so parsing is done.
+		  if {[string first = $pin] >= 0} {break}
+
 		  # Tcl "split" will not group spaces and tabs but leaves
 		  # empty strings.
 		  if {$pin == {}} {continue}
@@ -177,11 +181,14 @@ proc readspice {netfile} {
 		   set infopair [split $pininfo :]
 		   set pinname [lindex $infopair 0]
 		   set pindir [lindex $infopair 1]
-		   set pin [dict get $pindict $pinname]
-		   case $pindir {
-		      B {port $pin class inout}
-		      I {port $pin class input}
-		      O {port $pin class output}
+		   if {![catch {set pin [dict get $pindict $pinname]}]} {
+		      case $pindir {
+		         B {port $pin class inout}
+		         I {port $pin class input}
+		         O {port $pin class output}
+		      }
+		   } elseif {$pinname != ""} {
+		      puts stderr ".PININFO error:  Pin $pinname not found."
 		   }
 	       }
 	   }
