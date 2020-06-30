@@ -57,6 +57,12 @@ proc readspice {netfile} {
    set fdata {}
    set lastline ""
    while {[gets $fnet line] >= 0} {
+       # Handle CDL format *.PININFO (convert to .PININFO ...)
+       if {$is_cdl && ([string range $line 0 1] == "*.")} {
+	   if {[string tolower [string range $line 2 8]] == "pininfo"} {
+	       set line [string range $line 1 end]
+	   }
+       }
        if {[string index $line 0] != "*"} {
            if {[string index $line 0] == "+"} {
                if {[string range $line end end] != " "} {
@@ -74,6 +80,9 @@ proc readspice {netfile} {
 
    # Now look for all ".subckt" lines
 
+   set cell ""
+   set status 0
+
    suspendall
    foreach line $fdata {
        set ftokens [split $line]
@@ -90,6 +99,7 @@ proc readspice {netfile} {
        if {$keyword == ".subckt"} {
 	   set cell [lindex $ftokens 1]
 	   set status [cellname list exists $cell]
+	   set pindict [dict create]
 	   if {$status != 0} {
 	       load $cell
 	       box values 0 0 0 0
@@ -142,6 +152,8 @@ proc readspice {netfile} {
 			  set changed true
 		      }
 		      incr n
+		      # Record the original and modified pin names
+		      dict set pindict $pin $testpin
 		  } else {
 		      set layer [goto $pin]
 		      if {$layer != ""} {
@@ -149,6 +161,8 @@ proc readspice {netfile} {
 			 incr n
 			 set changed true
 		      }
+		      # Record the pin name as unmodified
+		      dict set pindict $pin $pin
 		  }
 	       }
 	       if {$changed} {
@@ -157,6 +171,23 @@ proc readspice {netfile} {
 	   } else {
 	       puts stdout "Cell $cell in netlist has not been loaded."
 	   }
+       } elseif {$keyword == ".pininfo"} {
+	   if {($cell != "") && ($status != 0)} {
+	       foreach pininfo [lrange $ftokens 1 end] {
+		   set infopair [split $pininfo :]
+		   set pinname [lindex $infopair 0]
+		   set pindir [lindex $infopair 1]
+		   set pin [dict get $pindict $pinname]
+		   case $pindir {
+		      B {port $pin class inout}
+		      I {port $pin class input}
+		      O {port $pin class output}
+		   }
+	       }
+	   }
+       } elseif {$keyword == ".ends"} {
+	   set cell ""
+	   set status 0
        }
    }
    resumeall
