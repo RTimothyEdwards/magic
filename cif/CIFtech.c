@@ -1075,7 +1075,6 @@ CIFTechLine(sectionName, argc, argv)
 	    break;
 
 	case CIFOP_GROW:
-	case CIFOP_GROWMIN:
 	case CIFOP_GROW_G:
 	case CIFOP_SHRINK:
 	case CIFOP_CLOSE:
@@ -1087,23 +1086,32 @@ CIFTechLine(sectionName, argc, argv)
 		goto errorReturn;
 	    }
 	    break;
+		    
+        case CIFOP_GROWMIN:
+            if (argc != 3) goto wrongNumArgs;
 
 	case CIFOP_BRIDGE:
-	    if (argc != 3) goto wrongNumArgs;
-	    newOp->co_distance = atoi(argv[1]);
-	    if (newOp->co_distance <= 0)
-	    {
-		TechError("Bridge distance must be greater than zero.\n");
-		goto errorReturn;
-	    }
-	    bridge = (BridgeData *)mallocMagic(sizeof(BridgeData));
-	    bridge->br_width = atoi(argv[2]);
-	    if (bridge->br_width <= 0)
-	    {
-		TechError("Bridge width must be greater than zero.\n");
-		freeMagic(bridge);
-		goto errorReturn;
-	    }
+            if (newOp->co_opcode == CIFOP_BRIDGE && argc != 4) goto wrongNumArgs;
+            newOp->co_distance = atoi(argv[1]);
+            if (newOp->co_distance <= 0)
+            {
+                TechError("Bridge/Grow distance must be greater than zero.\n");
+                goto errorReturn;
+            }
+            bridge = (BridgeData *)mallocMagic(sizeof(BridgeData));
+            if (newOp->co_opcode == CIFOP_BRIDGE)
+            {
+                bridge->br_width = atoi(argv[2]);
+                if (bridge->br_width <= 0)
+                {
+                        TechError("Bridge width must be greater than zero.\n");
+                        freeMagic(bridge);
+                        goto errorReturn;
+                }
+                cifParseLayers(argv[3], CIFCurStyle, &bridge->co_paintMask, &bridge->co_cifMask,FALSE);
+            } else
+                cifParseLayers(argv[2], CIFCurStyle, &bridge->co_paintMask, &bridge->co_cifMask,FALSE);
+
 	    newOp->co_client = (ClientData)bridge;
 	    break;
 
