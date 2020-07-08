@@ -1552,7 +1552,6 @@ cifComputeRadii(layer, des)
 	    case CIFOP_OR: break;
 
 	    case CIFOP_GROW:
-	    case CIFOP_GROWMIN:
 	    case CIFOP_GROW_G:
 		grow += op->co_distance;
 		break;
@@ -1578,7 +1577,7 @@ cifComputeRadii(layer, des)
 		grow += curGrow;
 		shrink += curShrink;
 		break;
-
+	    case CIFOP_GROWMIN:
 	    case CIFOP_BRIDGE: break;
 	    case CIFOP_SQUARES: break;
 	    case CIFOP_SQUARES_G: break;
@@ -1839,6 +1838,7 @@ CIFTechFinal()
 			case CIFOP_MAXRECT:
 			case CIFOP_NET:
 			    break;
+			case CIFOP_GROWMIN:
 			case CIFOP_BRIDGE:
 			    bridge = (BridgeData *)op->co_client;
 			    c = FindGCF(style->cs_scaleFactor,
@@ -1936,6 +1936,7 @@ CIFTechFinal()
 		case CIFOP_ANDNOT:
 		case CIFOP_SHRINK:
 		case CIFOP_CLOSE:
+		case CIFOP_GROWMIN:
 		case CIFOP_BRIDGE:
 		    needThisLayer = TRUE;
 		    break;
@@ -2363,6 +2364,7 @@ CIFTechOutputScale(n, d)
 			case CIFOP_MAXRECT:
 			case CIFOP_NET:
 			    break;
+			case CIFOP_GROWMIN:
 			case CIFOP_BRIDGE:
 			    bridge = (BridgeData *)op->co_client;
 			    bridge->br_width *= d;
@@ -2467,6 +2469,7 @@ CIFTechOutputScale(n, d)
 			    if (bloats->bl_distance[j] != 0)
 				bloats->bl_distance[j] /= lexpand;
 			break;
+		    case CIFOP_GROWMIN:
 		    case CIFOP_BRIDGE:
 			bridge = (BridgeData *)op->co_client;
 			bridge->br_width /= lexpand;
