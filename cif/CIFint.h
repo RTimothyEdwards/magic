@@ -55,6 +55,8 @@ typedef struct bloat_data
 typedef struct bridge_data
 {
     int br_width;		/* Minimum width rule for bridge */
+    TileTypeBitMask co_paintMask;/* Zero or more paint layers to consider. */
+    TileTypeBitMask co_cifMask;  /* Zero or more other CIF layers. */
 } BridgeData;
 
 typedef struct squares_data
