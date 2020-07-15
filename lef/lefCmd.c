@@ -87,6 +87,10 @@ CmdLef(w, cmd)
 					 * the macro other than pin area
 					 * immediately surrounding labels.
 					 */
+    bool lefTopLayer = False;		/* If TRUE, only output the topmost
+					 * layer used by a pin, and make
+					 * all layers below it obstructions.
+					 */
     bool recurse = FALSE;		/* If TRUE, recurse on all subcells
 					 * during "writeall".  By default,
 					 * only the immediate children of the
@@ -208,13 +212,16 @@ CmdLef(w, cmd)
 			    lefTech = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-hide", 5))
 			    lefHide = TRUE;
+			else if (!strncmp(cmd->tx_argv[i], "-toplayer", 9))
+			    lefTopLayer = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-all", 4))
 			    recurse = TRUE;
 			else goto wrongNumArgs;
 		    }
 		    else goto wrongNumArgs;
 		}
-		LefWriteAll(selectedUse, lefTopCell, lefTech, lefHide, recurse);
+		LefWriteAll(selectedUse, lefTopCell, lefTech, lefHide, lefTopLayer,
+			    recurse);
 	    }
 	    break;
 	case LEF_WRITE:
@@ -244,6 +251,13 @@ CmdLef(w, cmd)
 			    lefHide = TRUE;
 			else
 			    TxPrintf("The \"-hide\" option is only for lef write\n");
+		    }
+		    else if (!strncmp(cmd->tx_argv[i], "-toplayer", 9))
+		    {
+			if (is_lef)
+			    lefTopLayer = TRUE;
+			else
+			    TxPrintf("The \"-toplayer\" option is only for lef write\n");
 		    }
 		    else if (!strncmp(cmd->tx_argv[i], "-units", 5))
 		    {
@@ -284,7 +298,7 @@ CmdLef(w, cmd)
 		DefWriteCell(selectedUse->cu_def, namep, allSpecial, units);
 	    else
 		LefWriteCell(selectedUse->cu_def, namep, selectedUse->cu_def
-			== EditRootDef, lefTech, lefHide);
+			== EditRootDef, lefTech, lefHide, lefTopLayer);
 	    break;
 	case LEF_HELP:
 wrongNumArgs:

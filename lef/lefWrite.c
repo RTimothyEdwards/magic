@@ -503,7 +503,12 @@ lefEraseGeometry(tile, cdata)
 	ttype = otype;
 
     /* Erase the tile area out of lefFlat */
-    DBErase(flatDef, &area, ttype);
+    /* Use DBNMPaintPlane, NOT DBErase().  This erases contacts one	*/
+    /* plane at a time, which normally is bad, but since every plane	*/
+    /* gets erased eventually during "lef write", this is okay.		*/
+    /* DBErase(flatDef, &area, ttype); */
+    DBNMPaintPlane(flatDef->cd_planes[lefdata->pNum], otype, &area,
+	    DBStdEraseTbl(ttype, lefdata->pNum), NULL);
 
     return 0;
 }
@@ -561,6 +566,25 @@ lefAccumulateArea(tile, cdata)
     *area += (rarea.r_xtop - rarea.r_xbot) * (rarea.r_ytop - rarea.r_ybot);
 
     return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * lefFindTopmost --
+ *
+ * Function called to find the topmost layer used by a pin network
+ *
+ * Return 0 to keep the search going.
+ * ----------------------------------------------------------------------------
+ */
+
+int
+lefFindTopmost(tile, cdata)
+    Tile *tile;
+    ClientData cdata;
+{
+    return 1;	    /* Stop processing on the first tile found */
 }
 
 /*
@@ -630,7 +654,7 @@ lefYankGeometry(tile, cdata)
     while (ttype < DBNumUserLayers)
     {
 	lefMagicToLefLayer = lefdata->lefMagicMap;
-	if (lefMagicToLefLayer[ttype].lefInfo != NULL)
+	if (lefMagicToLefLayer[ttype].lefName != NULL)
 	{
 	    if (IsSplit(tile))
 		// Set only the side being yanked
@@ -793,7 +817,7 @@ lefWriteGeometry(tile, cdata)
     lefdata->numWrites++;
 
     if (ttype != lefdata->lastType)
-	if (lefMagicToLefLayer[ttype].lefInfo != NULL)
+	if (lefMagicToLefLayer[ttype].lefName != NULL)
 	{
 	    fprintf(f, IN2 "LAYER %s ;\n",
 				lefMagicToLefLayer[ttype].lefName);
@@ -1064,11 +1088,12 @@ LefWritePinHeader(f, lab)
  */
 
 void
-lefWriteMacro(def, f, scale, hide)
+lefWriteMacro(def, f, scale, hide, toplayer)
     CellDef *def;	/* Def for which to generate LEF output */
     FILE *f;		/* Output to this file */
     float scale;	/* Output distance units conversion factor */
     bool hide;		/* If TRUE, hide all detail except pins */
+    bool toplayer;	/* If TRUE, only output topmost layer of pins */
 {
     bool propfound, ispwrrail;
     char *propvalue, *class = NULL;
@@ -1080,7 +1105,7 @@ lefWriteMacro(def, f, scale, hide)
     TileTypeBitMask lmask, boundmask, *lrmask, gatetypemask, difftypemask;
     TileType ttype;
     lefClient lc;
-    int idx, pNum, maxport, curport;
+    int idx, pNum, pTop, maxport, curport;
     char leffmt[2][10];
     char *LEFtext;
     HashSearch hs;
@@ -1410,6 +1435,17 @@ lefWriteMacro(def, f, scale, hide)
 		if (antdiffarea > 0) break;
 	    }
 
+	    if (toplayer)
+	    {
+		for (pTop = DBNumPlanes - 1; pTop >= PL_TECHDEPBASE; pTop--)
+		{
+		    if (DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pTop],
+			    &TiPlaneRect, &DBAllButSpaceAndDRCBits,
+			    lefFindTopmost, (ClientData)NULL) == 1)
+			break;
+		}
+	    }
+
 	    // For all geometry in the selection, write LEF records,
 	    // and mark the corresponding tiles in lefFlatDef as
 	    // visited.
@@ -1418,6 +1454,11 @@ lefWriteMacro(def, f, scale, hide)
 	    lc.lastType = TT_SPACE;
 	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	    {
+		/* Option to output only the topmost layer of a network	*/
+		/* as PIN geometry.  All layers below it are considered	*/
+		/* obstructions.					*/
+		if (toplayer) pNum = pTop;
+
 		lc.pNum = pNum;
 		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
@@ -1458,6 +1499,8 @@ lefWriteMacro(def, f, scale, hide)
 	    		&TiPlaneRect, &lc.rmask,
 	    		lefWriteGeometry, (ClientData) &lc);
 	        lc.lefMode = LEF_MODE_PORT;
+
+		if (toplayer) break;	/* Stop after processing topmost layer */
 	    }
 	    DBCellClearDef(lc.lefYank);
 	    lab->lab_flags |= PORT_VISITED;
@@ -1777,11 +1820,12 @@ lefGetProperties(stackItem, i, clientData)
  */
 
 void
-LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
+LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefTopLayer, recurse)
     CellUse *rootUse;
     bool writeTopCell;
     bool lefTech;
     bool lefHide;
+    bool lefTopLayer;
     bool recurse;
 {
     HashTable propHashTbl, siteHashTbl;
@@ -1847,7 +1891,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
     {
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)
-	    lefWriteMacro(def, f, scale, lefHide);
+	    lefWriteMacro(def, f, scale, lefHide, lefTopLayer);
     }
 
     /* End the LEF file */
@@ -1911,12 +1955,13 @@ lefDefPushFunc(use, recurse)
  */
 
 void
-LefWriteCell(def, outName, isRoot, lefTech, lefHide)
+LefWriteCell(def, outName, isRoot, lefTech, lefHide, lefTopLayer)
     CellDef *def;		/* Cell being written */
     char *outName;		/* Name of output file, or NULL. */
     bool isRoot;		/* Is this the root cell? */
     bool lefTech;		/* Output layer information if TRUE */
     bool lefHide;		/* Hide detail other than pins if TRUE */
+    bool lefTopLayer;		/* Use only topmost layer of pin if TRUE */
 {
     char *filename;
     FILE *f;
@@ -1950,7 +1995,7 @@ LefWriteCell(def, outName, isRoot, lefTech, lefHide)
 	HashKill(&propHashTbl);
 	HashKill(&siteHashTbl);
     }
-    lefWriteMacro(def, f, scale, lefHide);
+    lefWriteMacro(def, f, scale, lefHide, lefTopLayer);
     fclose(f);
 }
 

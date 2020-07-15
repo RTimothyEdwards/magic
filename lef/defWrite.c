@@ -902,7 +902,7 @@ defNetGeometryFunc(tile, plane, defdata)
     /* Layer names are taken from the LEF database. */
 
     lefName = MagicToLefTable[ttype].lefName;
-    ASSERT(lefName, "Valid ttype");
+    if (lefName == NULL) return 0;	/* Do not write types not in LEF definition */
     lefType = MagicToLefTable[ttype].lefInfo;
 
     orient = GEO_EAST;
@@ -1393,6 +1393,7 @@ defCountViaFunc(tile, cviadata)
     /* Generate a via name from the layer name and tile size */
 
     lname = MagicToLefTable[ctype].lefName;
+    if (lname == NULL) return 0;    /* Do not output undefined LEF layers */
     TiToRect(tile, &r);
 
     /* Boundary search.  WARNING:  This code is quite naive.  The	*/
@@ -1551,7 +1552,8 @@ defGetType(ttype, lefptr)
 	while (he = HashNext(&LefInfo, &hs))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
-	    if (lefl && (contact == lefl->lefClass))
+	    if (lefl && ((contact == lefl->lefClass) ||
+			((contact == CLASS_ROUTE) && (lefl->lefClass == CLASS_MASTER))))
 		if ((lefl->type == ttype) || (lefl->obsType == ttype))
 		{
 		    if (lefptr) *lefptr = lefl;
@@ -1560,9 +1562,9 @@ defGetType(ttype, lefptr)
 	}
     }
 
-    /* If we got here, there is no entry;  use the database name */
+    /* If we got here, there is no entry;  return NULL. */
     if (lefptr) *lefptr = (lefLayer *)NULL;
-    return DBTypeLongNameTbl[ttype];
+    return NULL;
 }
 
 /*
