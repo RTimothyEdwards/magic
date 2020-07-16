@@ -95,15 +95,16 @@ bool cmdDumpParseArgs();
 #define	CALMA_FLATTEN	4
 #define CALMA_ORDERING	5
 #define	CALMA_LABELS	6
-#define	CALMA_LOWER	7
-#define CALMA_MERGE	8
-#define CALMA_READ	9
-#define CALMA_READONLY	10
-#define CALMA_RESCALE	11
-#define CALMA_WARNING	12
-#define CALMA_WRITE	13
-#define CALMA_POLYS	14
-#define CALMA_PATHS	15
+#define	CALMA_LIBRARY	7
+#define	CALMA_LOWER	8
+#define CALMA_MERGE	9
+#define CALMA_READ	10
+#define CALMA_READONLY	11
+#define CALMA_RESCALE	12
+#define CALMA_WARNING	13
+#define CALMA_WRITE	14
+#define CALMA_POLYS	15
+#define CALMA_PATHS	16
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -132,6 +133,7 @@ CmdCalma(w, cmd)
 	"flatten [yes|no|limit]	flatten simple cells (e.g., contacts) on input",
 	"ordering [on|off]	cause cells to be read in post-order",
 	"labels [yes|no]	cause labels to be output when writing GDS-II",
+	"library [yes|no]	do not output the top level, only subcells",
 	"lower [yes|no]		allow both upper and lower case in labels",
 	"merge [yes|no]		merge tiles into polygons in the output",
 	"read file		read Calma GDS-II format from \"file\"\n"
@@ -225,6 +227,26 @@ CmdCalma(w, cmd)
 	    if (option < 0)
 		goto wrongNumArgs;
 	    CalmaDoLabels = (option < 3) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_LIBRARY:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaDoLibrary));
+#else
+		TxPrintf("The top-level cell will %sbe output to the GDS file.\n",
+			(CalmaDoLibrary) ?  "not " : "");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaDoLibrary = (option < 3) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_CONTACTS:

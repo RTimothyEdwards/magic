@@ -28,6 +28,7 @@
 extern bool CalmaSubcellPolygons;
 extern bool CalmaSubcellPaths;
 extern bool CalmaDoLabels;
+extern bool CalmaDoLibrary;
 extern bool CalmaDoLower;
 extern bool CalmaMergeTiles;
 extern bool CalmaFlattenArrays;

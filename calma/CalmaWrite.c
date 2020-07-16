@@ -53,6 +53,7 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 #include "utils/stack.h"
 
     /* Exports */
+bool CalmaDoLibrary = FALSE;	 /* If TRUE, do not output the top level */
 bool CalmaDoLabels = TRUE;	 /* If FALSE, don't output labels with GDS-II */
 bool CalmaDoLower = TRUE;	 /* If TRUE, allow lowercase labels. */
 bool CalmaFlattenArrays = FALSE; /* If TRUE, output arrays as individual uses */
@@ -328,7 +329,7 @@ CalmaWrite(rootDef, f)
      * to insure that each child cell is output before it is used.  The
      * root cell is output last.
      */
-    (void) calmaProcessDef(rootDef, f);
+    (void) calmaProcessDef(rootDef, f, CalmaDoLibrary);
 
     /* Finish up by outputting the end-of-library marker */
     calmaOutRH(4, CALMA_ENDLIB, CALMA_NODATA, f);
@@ -741,13 +742,14 @@ calmaProcessUse(use, outf)
     CellUse *use;	/* Process use->cu_def */
     FILE *outf;		/* Stream file */
 {
-    return (calmaProcessDef(use->cu_def, outf));
+    return (calmaProcessDef(use->cu_def, outf, FALSE));
 }
 
 int
-calmaProcessDef(def, outf)
+calmaProcessDef(def, outf, do_library)
     CellDef *def;	/* Output this def's children, then the def itself */
     FILE *outf;		/* Stream file */
+    bool do_library;	/* If TRUE, output only children of def, but not def */
 {
     char *filename;
     bool isReadOnly, oldStyle, hasContent, isAbstract, hasGDSEnd;
@@ -907,7 +909,8 @@ calmaProcessDef(def, outf)
 
     /* Output this cell definition from the Magic database */
     if (!isReadOnly)
-	calmaOutFunc(def, outf, &TiPlaneRect);
+	if (!do_library)
+	    calmaOutFunc(def, outf, &TiPlaneRect);
 
     return (0);
 }
