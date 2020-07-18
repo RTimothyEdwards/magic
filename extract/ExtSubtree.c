@@ -766,6 +766,8 @@ extSubtreeFunc(scx, ha)
 
 	    for (lab = cumDef->cd_labels; lab ; lab = lab->lab_next)
 	    {
+		if (!(lab->lab_flags & LABEL_STICKY)) continue;
+		
 		n = sizeof (Label) + strlen(lab->lab_text)
 			- sizeof lab->lab_text + 1;
 
