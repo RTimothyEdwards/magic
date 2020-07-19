@@ -291,7 +291,7 @@ extHierConnectFunc1(oneTile, ha)
     // node only describes a single point.
 
     for (lab = cumDef->cd_labels;  lab;  lab = lab->lab_next)
-
+    {
 	// All sticky labels are at the front of the list in cumDef, so
 	// stop when we see the first non-sticky label.
 	if (!(lab->lab_flags & LABEL_STICKY)) break;
@@ -355,6 +355,7 @@ extHierConnectFunc1(oneTile, ha)
 #endif
 	    }
 
+    }
     return (0);
 }
 
