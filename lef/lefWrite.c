@@ -186,6 +186,11 @@ lefFileOpen(def, file, suffix, mode, prealfile)
     {
 	if (strcmp(endp, suffix))
 	{
+	    /* Try once as-is, with the given extension.  That takes care   */
+	    /* of some less-usual extensions like ".tlef".		    */
+	    if ((rfile = PaOpen(name, mode, NULL, Path, CellLibPath, prealfile)) != NULL)
+		return rfile;
+
 	    len = endp - name;
 	    if (len > sizeof namebuf - 1) len = sizeof namebuf - 1;
 	    (void) strncpy(namebuf, name, len);
