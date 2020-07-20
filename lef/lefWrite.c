@@ -1900,7 +1900,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefTopLayer, recurse)
     }
 
     /* End the LEF file */
-    fprintf(f, "END LIBRARY ;\n");
+    fprintf(f, "END LIBRARY\n\n");
 
     fclose(f);
     StackFree(lefDefStack);
@@ -2001,6 +2001,10 @@ LefWriteCell(def, outName, isRoot, lefTech, lefHide, lefTopLayer)
 	HashKill(&siteHashTbl);
     }
     lefWriteMacro(def, f, scale, lefHide, lefTopLayer);
+
+    /* End the LEF file */
+    fprintf(f, "END LIBRARY\n\n");
+
     fclose(f);
 }
 
