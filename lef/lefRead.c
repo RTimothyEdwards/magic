@@ -1839,8 +1839,8 @@ origin_error:
 		break;
 	    case LEF_SOURCE:
 		token = LefNextToken(f, TRUE);
-		if (*token != '\n')
-		    DBPropPut(lefMacro, "LEFsource", StrDup((char **)NULL, token));
+		/* Ignore "SOURCE" as it is deprecated from LEF 5.6, and    */
+		/* magic will write LEF version 5.7.			    */
 		LefEndStatement(f);
 		break;
 	    case LEF_SITE:

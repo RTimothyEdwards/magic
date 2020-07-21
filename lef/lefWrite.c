@@ -1224,10 +1224,6 @@ lefWriteMacro(def, f, scale, hide, toplayer)
 	fprintf(f, IN0 "CLASS BLOCK ;\n");
     }
 
-    propvalue = (char *)DBPropGet(def, "LEFsource", &propfound);
-    if (propfound)
-	fprintf(f, IN0 "SOURCE %s ;\n", propvalue);
-
     fprintf(f, IN0 "FOREIGN %s ;\n", def->cd_name);
 
     /* If a boundary class was declared in the LEF section, then use	*/
