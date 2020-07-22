@@ -261,7 +261,6 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
     /* Reference version 5.7 (November 2009).				*/
 
     fprintf(f, "VERSION 5.7 ;\n");
-    fprintf(f, IN0 "NAMESCASESENSITIVE ON ;\n");
     fprintf(f, IN0 "NOWIREEXTENSIONATPIN ON ;\n");
     fprintf(f, IN0 "DIVIDERCHAR \"/\" ;\n");
     fprintf(f, IN0 "BUSBITCHARS \"[]\" ;\n");
