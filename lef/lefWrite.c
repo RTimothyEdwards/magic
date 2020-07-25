@@ -285,10 +285,13 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
 	}
     }
 
-    fprintf(f, "UNITS\n");
-    fprintf(f, IN0 "DATABASE MICRONS %d ;\n", LEFdbUnits);
-    fprintf(f, "END UNITS\n");
-    fprintf(f, "\n");
+    if (lefTech)
+    {
+	fprintf(f, "UNITS\n");
+	fprintf(f, IN0 "DATABASE MICRONS %d ;\n", LEFdbUnits);
+	fprintf(f, "END UNITS\n");
+	fprintf(f, "\n");
+    }
 
     HashStartSearch(&hs);
     nprops = 0;
