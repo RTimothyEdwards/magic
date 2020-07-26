@@ -1196,6 +1196,28 @@ portFindLabel(editDef, port, unique, nonEdit)
 
     return lab;
 }
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * complabel() --
+ *
+ * qsort() callback routine used by CmdPort when renumbering ports.
+ * Simply do a string comparison on the two labels.  There is no special
+ * meaning to the lexigraphic ordering;  it is meant only to enforce a
+ * consistent and repeatable port order.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+complabel(const void *one, const void *two)
+{
+    Label *l1 = *((Label **)one);
+    Label *l2 = *((Label **)two);
+    return strcmp(l1->lab_text, l2->lab_text);
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1207,7 +1229,9 @@ portFindLabel(editDef, port, unique, nonEdit)
  * usage, below).
  *
  * Usage:
- *	port make|makeall [num] [connect_direction(s)]
+ *	port make [num] [connect_direction(s)]
+ * or
+ *	port makeall|renumber [connect_direction(s)]
  * or
  *	port [name|num] class|use|shape|index [value]
  *
@@ -1248,7 +1272,8 @@ portFindLabel(editDef, port, unique, nonEdit)
 #define PORT_MAKEALL	9
 #define PORT_NAME	10
 #define PORT_REMOVE	11
-#define PORT_HELP	12
+#define PORT_RENUMBER	12
+#define PORT_HELP	13
 
 void
 CmdPort(w, cmd)
@@ -1279,6 +1304,7 @@ CmdPort(w, cmd)
 	"makeall [index] [dir]	turn all labels into ports",
 	"name			report the port name",
 	"remove			turn a port back into a label",
+	"renumber		renumber all ports",
 	"help			print this help information",
 	NULL
     };
@@ -1437,7 +1463,8 @@ CmdPort(w, cmd)
 	    }
 
 	}
-	if ((option != PORT_LAST) && (option != PORT_MAKEALL) && (lab == NULL))
+	if ((option != PORT_LAST) && (option != PORT_MAKEALL)
+		&& (option != PORT_RENUMBER) && (lab == NULL))
 	{
 	    /* Let "port remove" fail without complaining. */
 	    if (option != PORT_REMOVE)
@@ -1452,7 +1479,8 @@ CmdPort(w, cmd)
 	/* Check for options that require label to be a port */
 
 	if ((option != PORT_MAKE) && (option != PORT_MAKEALL)
-		&& (option != PORT_EXISTS) && (option != PORT_LAST))
+		&& (option != PORT_EXISTS) && (option != PORT_RENUMBER)
+		&& (option != PORT_LAST))
 	{
 	    /* label "lab" must already be a port */
 	    if (!(lab->lab_flags & PORT_DIR_MASK))
@@ -1466,8 +1494,9 @@ CmdPort(w, cmd)
 	/* Check for options that cannot operate on a non-edit cell label */
 	if (nonEdit)
 	{
-	    if ((option == PORT_MAKE) || (option == PORT_MAKEALL) ||
-		(option == PORT_REMOVE) || (argc == 3))
+	    if ((option == PORT_MAKE) || (option == PORT_MAKEALL)
+		    || (option == PORT_REMOVE) || (option == PORT_RENUMBER)
+		    || (argc == 3))
 	    {
 		TxError("Cannot modify a port in an non-edit cell.\n");
 		return;
@@ -1730,6 +1759,55 @@ CmdPort(w, cmd)
 		DBWLabelChanged(editDef, lab, DBW_ALLWINDOWS);
 		lab->lab_rect = tmpArea;
 		editDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
+		break;
+
+	    case PORT_RENUMBER:
+		/* Renumber ports in canonical order (by alphabetical
+		 * order of the label text).
+		 */
+		{
+		    int numlabels, n, p;
+		    Label **slablist, *tlab, *lastlab;
+		    extern int complabel();
+
+		    /* Create a sortable list of labels */
+		    numlabels = 0;
+		    for (lab = editDef->cd_labels; lab; lab = lab->lab_next)
+			numlabels++;
+
+		    slablist = (Label **)mallocMagic(numlabels * sizeof(Label *));
+		    numlabels = 0;
+		    for (lab = editDef->cd_labels; lab; lab = lab->lab_next)
+		    {
+			*(slablist + numlabels) = lab;
+			numlabels++;
+		    }
+
+		    /* Sort the list */
+		    qsort(slablist, numlabels, sizeof(Label *), complabel);
+
+		    /* Number the ports by sorted order */
+		    p = 0;
+		    lastlab = NULL;
+		    for (n = 0; n < numlabels; n++)
+		    {
+			tlab = *(slablist + n);
+			if (tlab->lab_flags & PORT_DIR_MASK)
+			{
+			    if (lastlab)
+				if (!strcmp(lastlab->lab_text, tlab->lab_text))
+				    p--;
+
+			    tlab->lab_flags &= ~PORT_NUM_MASK;
+			    tlab->lab_flags |= p;
+			    lastlab = tlab;
+			    p++;
+			}
+		    }
+
+		    /* Clean up */
+		    freeMagic((char *)slablist);
+		}
 		break;
 
 	    case PORT_MAKEALL:
