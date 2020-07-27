@@ -777,6 +777,37 @@ again:
 /*
  * ----------------------------------------------------------------------------
  *
+ * nameEllipsis ---
+ *
+ *  Truncate a string an append an ellipsis ("...") to the end if the string
+ *  will overflow a fixed array length.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+static char *
+nameEllipsis(name, maxlen, prefix)
+    char *name;
+    int maxlen;
+    char **prefix;
+{
+    int l = strlen(name);
+
+    if (l < maxlen)
+    {
+	*prefix = "";
+	return name;
+    }
+    else
+    {
+	*prefix = "...";
+	return &name[l - maxlen + 3];
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * cmdSaveWindSet --
  *
  * Filter function for cmdSaveCell() above.
@@ -804,12 +835,14 @@ cmdSaveWindSet(window, def)
 {
     char caption[200];
     CellDef *rootDef;
+    char *name, *name_pfx;
 
     rootDef = ((CellUse *) window->w_surfaceID)->cu_def;
     if (rootDef != def)
 	return 0;
 
-    (void) sprintf(caption, "%s [NOT BEING EDITED]", def->cd_name);
+    name = nameEllipsis(def->cd_name, 175, &name_pfx);
+    (void) snprintf(caption, sizeof(caption), "%s%s [NOT BEING EDITED]", name_pfx, name);
     (void) StrDup(&window->w_iconname, def->cd_name);
     WindCaption(window, caption);
     return 0;
@@ -896,13 +929,22 @@ cmdWindSet(window)
 {
     char caption[200];
     CellDef *wDef;
+    char *name[2], *name_pfx[2];
 
     wDef = ((CellUse *) window->w_surfaceID)->cu_def;
-    if (wDef != newRootDef)
-	(void) sprintf(caption, "%s [NOT BEING EDITED]", wDef->cd_name);
-    else {
-	(void) sprintf(caption, "%s EDITING %s", wDef->cd_name,
-		newEditDef->cd_name);
+
+
+
+    if (wDef != newRootDef) {
+	name[0] = nameEllipsis(wDef->cd_name, 175, &name_pfx[0]);
+	(void) snprintf(caption, sizeof(caption), "%s%s [NOT BEING EDITED]",
+		    name_pfx[0], name[0]);
+    } else {
+	name[0] = nameEllipsis(wDef->cd_name, 90, &name_pfx[0]);
+	name[1] = nameEllipsis(newEditDef->cd_name, 90, &name_pfx[1]);
+	(void) snprintf(caption, sizeof(caption), "%s%s EDITING %s%s",
+		name_pfx[0], name[0], name_pfx[1], name[1]);
+
 #ifdef SCHEME_INTERPRETER
         /* Add a binding to scheme variable "edit-cell" */
         LispSetEdit (newEditDef->cd_name);
