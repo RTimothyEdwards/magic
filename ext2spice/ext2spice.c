@@ -2443,11 +2443,11 @@ spcdevVisit(dev, hc, scale, trans)
 
 	case DEV_MSUBCKT:
 
-	    /* MOS-like subcircuit is "Xnnn source gate [drain [sub]]"	*/
+	    /* MOS-like subcircuit is "Xnnn drain gate [source [sub]]"	*/
 	    /* to more conveniently handle cases where MOS devices are	*/
 	    /* modeled by subcircuits with the same pin ordering.	*/
 
-	    spcdevOutNode(hierName, source->dterm_node->efnode_name->efnn_hier,
+	    spcdevOutNode(hierName, drain->dterm_node->efnode_name->efnn_hier,
 			name, esSpiceF);
 
 	    /* Drop through to below (no break statement) */
@@ -2468,12 +2468,21 @@ spcdevVisit(dev, hc, scale, trans)
 	    /* except that the "gate" node is treated as an identifier	*/
 	    /* only and is not output.					*/
 
-	    if ((dev->dev_nterm > 1) && (dev->dev_class != DEV_MSUBCKT))
-		spcdevOutNode(hierName, source->dterm_node->efnode_name->efnn_hier,
-			name, esSpiceF);
-	    if (dev->dev_nterm > 2)
-		spcdevOutNode(hierName, drain->dterm_node->efnode_name->efnn_hier,
-			name, esSpiceF);
+	    if (dev->dev_class != DEV_MSUBCKT)
+	    {
+		if (dev->dev_nterm > 1)
+		    spcdevOutNode(hierName, source->dterm_node->efnode_name->efnn_hier,
+				name, esSpiceF);
+		if (dev->dev_nterm > 2)
+		    spcdevOutNode(hierName, drain->dterm_node->efnode_name->efnn_hier,
+				name, esSpiceF);
+	    }
+	    else    /* class DEV_MSUBCKT */
+	    {
+		if (dev->dev_nterm > 2)
+		    spcdevOutNode(hierName, source->dterm_node->efnode_name->efnn_hier,
+				name, esSpiceF);
+	    }
 
 	    /* The following only applies to DEV_SUBCKT*, which may define as	*/
 	    /* many terminal types as it wants.					*/
