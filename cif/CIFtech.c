@@ -2143,7 +2143,11 @@ CIFGetContactSize(type, edge, spacing, border)
 
 		    /* Anything other than an OR function will break	*/
 		    /* the relationship between magic layers and cuts.	*/
-		    else if (sop->co_opcode != CIFOP_OR)
+		    /* NOTE:  Making an exception for AND_NOT, which is	*/
+		    /* used to distinguish between small and large via	*/
+		    /* areas.						*/
+		    else if ((sop->co_opcode != CIFOP_OR) &&
+				(sop->co_opcode != CIFOP_ANDNOT))
 			break;
 		}
     }
