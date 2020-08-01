@@ -1134,11 +1134,27 @@ lefWriteMacro(def, f, scale, hide, toplayer)
     lefFlatUse.cu_id = StrDup((char **)NULL, "Flattened cell");
     lefFlatUse.cu_expandMask = CU_DESCEND_SPECIAL;
     lefFlatUse.cu_def = lefFlatDef;
+    lefFlatUse.cu_parent = (CellDef *)NULL;
+    lefFlatUse.cu_xlo = 0;
+    lefFlatUse.cu_ylo = 0;
+    lefFlatUse.cu_xhi = 0;
+    lefFlatUse.cu_yhi = 0;
+    lefFlatUse.cu_xsep = 0;
+    lefFlatUse.cu_ysep = 0;
+    lefFlatUse.cu_client = (ClientData)CLIENTDEFAULT;
     DBSetTrans(&lefFlatUse, &GeoIdentityTransform);
 
     lefSourceUse.cu_id = StrDup((char **)NULL, "Source cell");
     lefSourceUse.cu_expandMask = CU_DESCEND_ALL;
     lefSourceUse.cu_def = def;
+    lefSourceUse.cu_parent = (CellDef *)NULL;
+    lefSourceUse.cu_xlo = 0;
+    lefSourceUse.cu_ylo = 0;
+    lefSourceUse.cu_xhi = 0;
+    lefSourceUse.cu_yhi = 0;
+    lefSourceUse.cu_xsep = 0;
+    lefSourceUse.cu_ysep = 0;
+    lefSourceUse.cu_client = (ClientData)CLIENTDEFAULT;
     DBSetTrans(&lefSourceUse, &GeoIdentityTransform);
 
     scx.scx_use = &lefSourceUse;
