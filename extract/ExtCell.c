@@ -308,6 +308,8 @@ extHeader(def, f)
     bool propfound;
     char *propvalue;
 
+    ASSERT(DBTechName != NULL, "extHeader");
+
     /* Output a timestamp (should be first) */
     fprintf(f, "timestamp %d\n", def->cd_timestamp);
 
