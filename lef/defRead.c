@@ -1025,6 +1025,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 		    break;
 		}
 		pending = FALSE;
+		curlayer = -1;
 
 		/* Now do a search through the line for "+" entries	*/
 		/* And process each.					*/
