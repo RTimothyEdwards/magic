@@ -2204,24 +2204,25 @@ swapDrainSource(dev, source, drain)
     DevParam *plist;
     
     /* swap drain/source ordering */
-    *drain = &dev->dev_terms[1];
-    *source = &dev->dev_terms[2];
+    if (drain) *drain = &dev->dev_terms[1];
+    if (source) *source = &dev->dev_terms[2];
     
-    /* swap drain/source-related parameters */
+    /* Swap drain/source-related parameters.  Note that the parameter	*/
+    /* *definitions* are swapped, so if this is done, it must be	*/
+    /* reverted before the next device is processed.			*/
+
     plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
     while (plist != NULL)
     {
-        TxPrintf("  * param: %s; type: %c%c\n", plist->parm_name, plist->parm_type[0], plist->parm_type[1]);
+	// Diagnostic
+        // TxPrintf("  * param: %s; type: %c%c\n", plist->parm_name, plist->parm_type[0], plist->parm_type[1]);
         
-        /* swap drain/source parameters only */
-        if (!(strcmp(plist->parm_name, "as")) || !(strcmp(plist->parm_name, "ps")))
-        {
+        /* Swap drain/source parameters only */
+        if (!(strcmp(plist->parm_type, "a1")) || !(strcmp(plist->parm_type, "p1")))
             plist->parm_type[1] = '0' + 2;
-        }
-        else if (!(strcmp(plist->parm_name, "ad")) || !(strcmp(plist->parm_name, "pd")))
-        {
+
+        else if (!(strcmp(plist->parm_type, "a2")) || !(strcmp(plist->parm_type, "p2")))
             plist->parm_type[1] = '0' + 1;
-        }
         
         /* move pointer */
         plist = plist->parm_next;
@@ -2275,7 +2276,7 @@ spcdevVisit(dev, hc, scale, trans)
     DevTerm *gate, *source, *drain;
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
     int l, w, i, parmval;
-    bool subAP= FALSE, hierS, hierD, extHierSDAttr() ;
+    bool subAP= FALSE, hierS, hierD, extHierSDAttr(), swapped = FALSE ;
     float sdM;
     char name[12], devchar;
     bool has_model = TRUE;
@@ -2308,8 +2309,8 @@ spcdevVisit(dev, hc, scale, trans)
 		(dev->dev_terms[2].dterm_attrs &&
 		!strcmp(dev->dev_terms[2].dterm_attrs, "S")))
 	{
-	    /* If D/S should be swapped, also parameters must be swapped */
-        swapDrainSource(dev, &source, &drain);
+	    swapDrainSource(dev, &source, &drain);
+	    swapped = True;
 	}
 	else
 	    drain = &dev->dev_terms[2];
@@ -2817,6 +2818,10 @@ spcdevVisit(dev, hc, scale, trans)
 	    break;
     }
     fprintf(esSpiceF, "\n");
+
+    /* If S/D parameters on a subcircuit were swapped, put them back */
+    if (swapped) swapDrainSource(dev, NULL, NULL);
+
     return 0;
 }
 

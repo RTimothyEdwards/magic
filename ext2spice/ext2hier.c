@@ -439,8 +439,6 @@ subcktHierVisit(use, hierName, is_top)
 	return subcktVisit(use, hierName, is_top);
 }
 
-extern void swapDrainSource();
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -487,7 +485,7 @@ spcdevHierVisit(hc, dev, scale)
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
     int l, w, i, parmval;
     Rect r;
-    bool subAP= FALSE, hierS, hierD, extHierSDAttr() ;
+    bool subAP = FALSE, hierS, hierD, extHierSDAttr(), swapped = FALSE;
     float sdM;
     char devchar;
     bool has_model = TRUE;
@@ -517,9 +515,10 @@ spcdevHierVisit(hc, dev, scale)
                 !strcmp(dev->dev_terms[1].dterm_attrs, "D")) ||
                 (dev->dev_terms[2].dterm_attrs &&
                 !strcmp(dev->dev_terms[2].dterm_attrs, "S")))
-        {
+	{
             swapDrainSource(dev, &source, &drain);
-        }
+	    swapped = TRUE;
+	}
         else
             drain = &dev->dev_terms[2];
     }
@@ -1009,6 +1008,10 @@ spcdevHierVisit(hc, dev, scale)
 	        break;
     }
     fprintf(esSpiceF, "\n");
+
+    /* If S/D parameters were swapped, then put them back */
+    if (swapped) swapDrainSource(dev, NULL, NULL);
+
     return 0;
 }
 

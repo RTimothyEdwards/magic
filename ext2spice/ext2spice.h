@@ -29,6 +29,7 @@ extern EFNode *spcdevSubstrate();
 extern char *nodeSpiceName();
 extern int nodeVisitDebug();
 extern void topVisit();
+extern void swapDrainSource();
 extern int _ext2spice_start();
 
 extern EFNode *spcdevHierSubstrate();
