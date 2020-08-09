@@ -2184,6 +2184,51 @@ getCurDevMult()
     return (esFMult && (esFMIndex > 0)) ? esFMult[esFMIndex-1] : (float)1.0;
 }
 
+
+/* 
+ * swapDrainSource
+ * 
+ * Swap drain and source ordering and the related stuff
+ * including the drain/source area parameters
+ * 
+ * This is typycally called if any terminal is marked with attribute "D" or "S"
+ * (label "D$" or "S$" at poly-diffusion interface),
+ * then swap order of source and drain compared to the default ordering.	
+ *
+ */
+void
+swapDrainSource(dev, source, drain) 
+    Dev *dev;
+    DevTerm **source, **drain;
+{
+    DevParam *plist;
+    
+    /* swap drain/source ordering */
+    *drain = &dev->dev_terms[1];
+    *source = &dev->dev_terms[2];
+    
+    /* swap drain/source-related parameters */
+    plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
+    while (plist != NULL)
+    {
+        TxPrintf("  * param: %s; type: %c%c\n", plist->parm_name, plist->parm_type[0], plist->parm_type[1]);
+        
+        /* swap drain/source parameters only */
+        if (!(strcmp(plist->parm_name, "as")) || !(strcmp(plist->parm_name, "ps")))
+        {
+            plist->parm_type[1] = '0' + 2;
+        }
+        else if (!(strcmp(plist->parm_name, "ad")) || !(strcmp(plist->parm_name, "pd")))
+        {
+            plist->parm_type[1] = '0' + 1;
+        }
+        
+        /* move pointer */
+        plist = plist->parm_next;
+    }
+}
+
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -2263,8 +2308,8 @@ spcdevVisit(dev, hc, scale, trans)
 		(dev->dev_terms[2].dterm_attrs &&
 		!strcmp(dev->dev_terms[2].dterm_attrs, "S")))
 	{
-	    drain = &dev->dev_terms[1];
-	    source = &dev->dev_terms[2];
+	    /* If D/S should be swapped, also parameters must be swapped */
+        swapDrainSource(dev, &source, &drain);
 	}
 	else
 	    drain = &dev->dev_terms[2];
