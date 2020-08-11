@@ -2197,11 +2197,15 @@ getCurDevMult()
  * (label "D$" or "S$" at poly-diffusion interface),
  * then swap order of source and drain compared to the default ordering.	
  *
+ * Note:
+ *   before calling this function, ensure that: dev->dev_nterm >= 3
+ * 
  * Results:
  *   none
  * 
  * Side effects: 
- *   none (?)
+ *   source (dev->dev_terms[1]) and drain (dev->dev_terms[2]) terminals are swapped;
+ *   no unwanted (?)
  * 
  * ----------------------------------------------------------------------------
  */
@@ -2211,23 +2215,10 @@ swapDrainSource(dev)
 {
     DevTerm tmpTerm;
     
-    tmpTerm.dterm_node   = dev->dev_terms[1].dterm_node;
-    tmpTerm.dterm_attrs  = dev->dev_terms[1].dterm_attrs; 
-    tmpTerm.dterm_length = dev->dev_terms[1].dterm_length;
-    tmpTerm.dterm_perim  = dev->dev_terms[1].dterm_perim;
-    tmpTerm.dterm_area   = dev->dev_terms[1].dterm_area; 
-    
-    dev->dev_terms[1].dterm_node   = dev->dev_terms[2].dterm_node;
-    dev->dev_terms[1].dterm_attrs  = dev->dev_terms[2].dterm_attrs;  
-    dev->dev_terms[1].dterm_length = dev->dev_terms[2].dterm_length;
-    dev->dev_terms[1].dterm_perim  = dev->dev_terms[2].dterm_perim;
-    dev->dev_terms[1].dterm_area   = dev->dev_terms[2].dterm_area;  
-    
-    dev->dev_terms[2].dterm_node   = tmpTerm.dterm_node;  
-    dev->dev_terms[2].dterm_attrs  = tmpTerm.dterm_attrs;
-    dev->dev_terms[2].dterm_length = tmpTerm.dterm_length;
-    dev->dev_terms[2].dterm_perim  = tmpTerm.dterm_perim; 
-    dev->dev_terms[2].dterm_area   = tmpTerm.dterm_area;  
+    /* swap original terminals */
+    memcpy(&tmpTerm, &(dev->dev_terms[1]), sizeof(DevTerm));
+    memcpy(&(dev->dev_terms[1]), &(dev->dev_terms[2]), sizeof(DevTerm));
+    memcpy(&(dev->dev_terms[2]), &tmpTerm, sizeof(DevTerm));
 }
 
 
