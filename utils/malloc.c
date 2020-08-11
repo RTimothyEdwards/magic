@@ -74,8 +74,16 @@ static char *freeDelayedItem = NULL;
 #define MallocRoutine(a) ckalloc(a)
 #define FreeRoutine(a) ckfree(a)
 #else
-#define MallocRoutine(a) Tcl_Alloc(a)
-#define FreeRoutine(a) Tcl_Free(a)
+/* DO NOT USE:  Tcl_Alloc is defined with argument (unsigned int) NOT
+ * (size_t) and therefore limits memory allocation to the size of a
+ * 32-bit integer.  Just use the normal malloc() and free().  Left as-is
+ * with TCL_MEM_DEBUG with the caveat that one should not use this to
+ * debug a huge design.  Valgrind works better anyway.
+ */
+/* #define MallocRoutine(a) Tcl_Alloc(a) */
+/* #define FreeRoutine(a) Tcl_Free(a) */
+#define MallocRoutine(a) malloc(a)
+#define FreeRoutine(a) free(a)
 #endif
 #else
 #define MallocRoutine(a) malloc(a)
