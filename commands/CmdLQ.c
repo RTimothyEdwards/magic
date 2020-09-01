@@ -1267,13 +1267,15 @@ complabel(const void *one, const void *two)
 #define PORT_EQUIV	4
 #define PORT_EXISTS	5
 #define PORT_CONNECT	6
-#define PORT_LAST	7
-#define PORT_MAKE	8
-#define PORT_MAKEALL	9
-#define PORT_NAME	10
-#define PORT_REMOVE	11
-#define PORT_RENUMBER	12
-#define PORT_HELP	13
+#define PORT_FIRST	7
+#define PORT_NEXT	8
+#define PORT_LAST	9
+#define PORT_MAKE	10
+#define PORT_MAKEALL	11
+#define PORT_NAME	12
+#define PORT_REMOVE	13
+#define PORT_RENUMBER	14
+#define PORT_HELP	15
 
 void
 CmdPort(w, cmd)
@@ -1282,7 +1284,7 @@ CmdPort(w, cmd)
 {
     char **msg;
     int argstart;
-    int i, idx, pos, type, option, argc;
+    int i, refidx, idx, pos, type, option, argc;
     unsigned short dirmask;
     bool found;
     bool nonEdit = FALSE;
@@ -1299,6 +1301,8 @@ CmdPort(w, cmd)
 	"equivalent [number]	make port equivalent to another port",
 	"exists			report if a label is a port or not",
 	"connections [dir...]	get [set] port connection directions",
+	"first			report the lowest port number used",
+	"next [number]		report the next port number used",
 	"last			report the highest port number used",
 	"make [index] [dir...]	turn a label into a port",
 	"makeall [index] [dir]	turn all labels into ports",
@@ -1440,7 +1444,7 @@ CmdPort(w, cmd)
     {
 	/* Check for options that require only one selected port */
 
-	if (option != PORT_LAST)
+	if (option != PORT_LAST && option != PORT_FIRST)
 	{
 	    if (lab == NULL)
 		lab = portFindLabel(editDef, TRUE, TRUE, &nonEdit);
@@ -1463,8 +1467,9 @@ CmdPort(w, cmd)
 	    }
 
 	}
-	if ((option != PORT_LAST) && (option != PORT_MAKEALL)
-		&& (option != PORT_RENUMBER) && (lab == NULL))
+	if ((option != PORT_LAST) && (option != PORT_FIRST) &&
+		(option != PORT_MAKEALL) && (option != PORT_RENUMBER)
+		&& (lab == NULL))
 	{
 	    /* Let "port remove" fail without complaining. */
 	    if (option != PORT_REMOVE)
@@ -1480,7 +1485,7 @@ CmdPort(w, cmd)
 
 	if ((option != PORT_MAKE) && (option != PORT_MAKEALL)
 		&& (option != PORT_EXISTS) && (option != PORT_RENUMBER)
-		&& (option != PORT_LAST))
+		&& (option != PORT_LAST) && (option != PORT_FIRST))
 	{
 	    /* label "lab" must already be a port */
 	    if (!(lab->lab_flags & PORT_DIR_MASK))
@@ -1517,6 +1522,44 @@ CmdPort(w, cmd)
 		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(i));
 #else
 		TxPrintf("%d\n", i);
+#endif
+		break;
+
+	    case PORT_FIRST:
+		i = PORT_NUM_MASK + 1;
+		for (sl = editDef->cd_labels; sl != NULL; sl = sl->lab_next)
+		{
+		    if (sl->lab_flags & PORT_DIR_MASK)
+		    {
+		    	idx = sl->lab_flags & PORT_NUM_MASK;
+		    	if (idx < i) i = idx;
+		    }
+		}
+		if (i == PORT_NUM_MASK + 1) i = -1;
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(i));
+#else
+		TxPrintf("%d\n", i);
+#endif
+		break;
+
+	    case PORT_NEXT:
+		refidx = lab->lab_flags & PORT_NUM_MASK;
+		i = PORT_NUM_MASK + 1;
+		for (sl = editDef->cd_labels; sl != NULL; sl = sl->lab_next)
+		{
+		    if (sl->lab_flags & PORT_DIR_MASK)
+		    {
+		    	idx = sl->lab_flags & PORT_NUM_MASK;
+		    	if (idx > refidx)
+		            if (idx < i) i = idx;
+		    }
+		}
+		if (i == PORT_NUM_MASK + 1) i = -1;
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(i));
+#else
+		TxPrintf("Index = %d\n", i);
 #endif
 		break;
 

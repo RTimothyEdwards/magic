@@ -443,6 +443,16 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
 	    continue;
 	}
 
+	struct timespec t;
+
+	t.tv_sec = 0;
+	t.tv_nsec = 900000000;
+	TxError("x\n");
+	nanosleep(&t, NULL);
+	TxError("y\n");
+	usleep(900000);
+	TxError("z\n");
+
 	TTMaskZero(&typemask);
 	rmask = &typemask;
 	type = DBTechNameType(layername);

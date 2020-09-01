@@ -105,6 +105,25 @@ proc readspice {netfile} {
 	       box values 0 0 0 0
 	       set n 1
 	       set changed false
+
+	       # Make sure pins aren't duplicated by first moving all pin
+	       # indexes above the number of pins to check.
+
+	       set npins [expr {[llength $ftokens] - 1}]
+	       set highport [port last]
+	       set outport $highport
+	       if {$outport < $npins} {set outport $npins}
+	       set p [port first]
+	       while {$p != -1 && $p <= $highport} {
+		   set p1 [port $p next]
+		   set testpin [port $p name]
+		   if {$testpin != ""} {
+		       port $p index $outport
+		       incr outport
+		   }
+		   set p $p1
+	       }
+
 	       foreach pin [lrange $ftokens 2 end] {
 		  # If "=" is in the name, then we have finished the pins
 		  # and are looking at parameters, and so parsing is done.
@@ -127,9 +146,6 @@ proc readspice {netfile} {
 		  set testpin $pin
 		  set pinidx [port $testpin index]
 
-		  # Test a few common delimiter translations.  This list
-		  # is by no means exhaustive.
-
 		  if {$pinidx == ""} {
 		      set testpin [string map {\[ < \] >]} $pin]
 		      set pinidx [port $testpin index]
@@ -139,15 +155,37 @@ proc readspice {netfile} {
 		      set pinidx [port $testpin index]
 		  }
 
-		  # Also test some case sensitivity issues (also not exhaustive)
+		  # Handle issues with case insensitivity by getting
+                  # a list of ports and doing a case comparison.
 
 		  if {$pinidx == ""} {
-		      set testpin [string tolower $pin]
-		      set pinidx [port $testpin index]
+		      set highport [port last]
+		      for {set p 0} {$p <= $highport} {incr p} {
+			  set testpin [port $p name]
+			  if {[string tolower $testpin] == [string tolower $pin]} {
+			      set pinidx [port $testpin index]
+			      break
+			  }
+		      }
 		  }
+
+		  # Finally, check if there is a bare label that matches the
+		  # port name.  If so, convert it into a port
+
 		  if {$pinidx == ""} {
-		      set testpin [string toupper $pin]
-		      set pinidx [port $testpin index]
+		      select top cell
+		      select area labels
+		      set all [lindex [what -list] 1]
+		      select clear
+		      foreach labrec $all {
+			  set testpin [lindex $labrec 0]
+			  if {[string tolower $testpin] == [string tolower $pin]} {
+ 			      goto $testpin
+			      set pinidx -1
+			      port make $n
+			      break
+			  }
+		      }
 		  }
 
                   if {$pinidx != ""} {
