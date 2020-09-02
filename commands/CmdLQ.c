@@ -1205,7 +1205,8 @@ portFindLabel(editDef, port, unique, nonEdit)
  * qsort() callback routine used by CmdPort when renumbering ports.
  * Simply do a string comparison on the two labels.  There is no special
  * meaning to the lexigraphic ordering;  it is meant only to enforce a
- * consistent and repeatable port order.
+ * consistent and repeatable port order.  However, note that since SPICE
+ * is case-insensitive, case-insensitive string comparison is used.
  *
  * ----------------------------------------------------------------------------
  */
@@ -1215,7 +1216,7 @@ complabel(const void *one, const void *two)
 {
     Label *l1 = *((Label **)one);
     Label *l2 = *((Label **)two);
-    return strcmp(l1->lab_text, l2->lab_text);
+    return strcasecmp(l1->lab_text, l2->lab_text);
 }
 
 /*
@@ -1806,7 +1807,9 @@ CmdPort(w, cmd)
 
 	    case PORT_RENUMBER:
 		/* Renumber ports in canonical order (by alphabetical
-		 * order of the label text).
+		 * order of the label text).  NOTE:  Because SPICE is
+		 * case-insensitive, case-insensitive alphabetical order
+		 * is used.
 		 */
 		{
 		    int numlabels, n, p;
