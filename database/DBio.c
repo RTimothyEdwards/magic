@@ -3174,10 +3174,12 @@ dbWriteCellFunc(cellUse, cdarg)
 	    else
 		break;
 
-	    /* If there are no common components, then restore the leading '/' */
-	    if ((*pathorigin == '/') && (pathstart == pathorigin + 1))
-		pathstart = pathorigin;
 	}
+
+	/* If there are no common components, then restore the leading '/' */
+	if ((*pathorigin == '/') && (pathstart == pathorigin + 1))
+	    pathstart = pathorigin;
+
 	if (pathend != NULL)
 	{
 	    *pathend = '\0';
