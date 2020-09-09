@@ -2280,7 +2280,7 @@ ExtTechLine(sectionName, argc, argv)
 
 		    /* terminals */
 		    for (i = iterm; i < iterm + nterm; i++)
-			DBTechNoisyNameMask(argv[iterm], &termtypes[i - iterm]);
+			DBTechNoisyNameMask(argv[i], &termtypes[i - iterm]);
 		    termtypes[nterm] = DBZeroTypeBits;
 
 		    if (nterm == 0) i++;
