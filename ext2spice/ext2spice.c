@@ -239,8 +239,7 @@ CmdExtToSpice(w, cmd)
     char *substr = NULL;
     bool err_result, locDoSubckt;
 
-    short sd_rclass;
-    short sub_rclass;
+    short s_rclass, d_rclass, sub_rclass;
     char *devname;
     char *subname;
     int idx, idx2;
@@ -729,7 +728,8 @@ runexttospice:
        the command line arguments */
 
     for ( i = 0 ; i < MAXDEVTYPES ; i++ ) {
-	esFetInfo[i].resClassSD = NO_RESCLASS;
+	esFetInfo[i].resClassSource = NO_RESCLASS;
+	esFetInfo[i].resClassDrain = NO_RESCLASS;
 	esFetInfo[i].resClassSub = NO_RESCLASS;
 	esFetInfo[i].defSubs = NULL;
     }
@@ -739,7 +739,7 @@ runexttospice:
     /* command)								 */
 
     idx = 0;
-    while (ExtGetDevInfo(idx++, &devname, &sd_rclass, &sub_rclass, &subname))
+    while (ExtGetDevInfo(idx++, &devname, &s_rclass, &d_rclass, &sub_rclass, &subname))
     {
 	if (idx == MAXDEVTYPES)
 	{
@@ -751,7 +751,8 @@ runexttospice:
 	    esNoModelType = i;
 	if (EFStyle != NULL)
 	{
-	    esFetInfo[i].resClassSD = sd_rclass;
+	    esFetInfo[i].resClassSource = s_rclass;
+	    esFetInfo[i].resClassDrain = d_rclass;
 	    esFetInfo[i].resClassSub = sub_rclass;
 	    esFetInfo[i].defSubs = subname;
 	}
@@ -992,24 +993,25 @@ main(argc, argv)
     /* create default devinfo entries (MOSIS) which can be overriden by
        the command line arguments */
     for ( i = 0 ; i < MAXDEVTYPES ; i++ ) {
-	esFetInfo[i].resClassSD = NO_RESCLASS;
+	esFetInfo[i].resClassSource = NO_RESCLASS;
+	esFetInfo[i].resClassDrain = NO_RESCLASS;
 	esFetInfo[i].resClassSub = NO_RESCLASS;
 	esFetInfo[i].defSubs = NULL;
     }
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "ndev");
-    esFetInfo[i].resClassSD = 0 ;
+    esFetInfo[i].resClassSource = esFetInfo[i].resClassDrain = 0 ;
     esFetInfo[i].resClassSub = NO_RESCLASS ;
     esFetInfo[i].defSubs = "Gnd!";
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "pdev");
-    esFetInfo[i].resClassSD = 1 ;
+    esFetInfo[i].resClassSource = esFetInfo[i].resClassDrain = 1 ;
     esFetInfo[i].resClassSub = 8 ;
     esFetInfo[i].defSubs = "Vdd!";
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "nmos");
-    esFetInfo[i].resClassSD = 0 ;
+    esFetInfo[i].resClassSource = esFetInfo[i].resClassDrain = 0 ;
     esFetInfo[i].resClassSub = NO_RESCLASS ;
     esFetInfo[i].defSubs = "Gnd!";
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "pmos");
-    esFetInfo[i].resClassSD = 1 ;
+    esFetInfo[i].resClassSource = esFetInfo[i].resClassDrain = 1 ;
     esFetInfo[i].resClassSub = 8 ;
     esFetInfo[i].defSubs = "Vdd!";
     /* Process command line arguments */
@@ -1237,7 +1239,7 @@ spcmainArgs(pargc, pargv)
 	    	if ( sscanf(rp, "%d/%s",  &rClass, subsNode) != 2 ) goto usage;
 	    }
 	    ndx = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, cp);
-	    esFetInfo[ndx].resClassSD = rClass;
+	    esFetInfo[ndx].resClassSource = esFetInfo[ndx].resClassDrain = rClass;
 	    esFetInfo[ndx].resClassSub = rClassSub;
 	    if ( ((1<<rClass) & DEV_CONNECT_MASK) ||
 	         ((1<<rClass) & DEV_CONNECT_MASK)   ) {
@@ -1249,9 +1251,9 @@ spcmainArgs(pargc, pargv)
 	    }
 	    esFetInfo[ndx].defSubs = (char *)mallocMagic((unsigned)(strlen(subsNode)+1));
 	    strcpy(esFetInfo[ndx].defSubs,subsNode);
-	    TxError("info: dev %s(%d) sdRclass=%d subRclass=%d dSub=%s\n",
-	    cp, ndx, esFetInfo[ndx].resClassSD, esFetInfo[ndx].resClassSub,
-            esFetInfo[ndx].defSubs);
+	    TxError("info: dev %s(%d) srcRclass=%d drnRclass=%d subRclass=%d dSub=%s\n",
+	    cp, ndx, esFetInfo[ndx].resClassSource, esFetInfo[ndx].resClassDrain,
+	    esFetInfo[ndx].resClassSub, esFetInfo[ndx].defSubs);
 	    break;
 	    }
 #endif			/* MAGIC_WRAPPER */
@@ -1882,12 +1884,15 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		}
 		else
 		{
-		    int pn;
+		    int pn, resclass;
 
 		    pn = plist->parm_type[1] - '0';
 		    if (pn >= dev->dev_nterm) pn = dev->dev_nterm - 1;
 
 		    hierD = extHierSDAttr(&dev->dev_terms[pn]);
+
+		    resclass == (pn > 1) ? esFetInfo[dev->dev_type].resClassDrain :
+				esFetInfo[dev->dev_type].resClassSource;
 
 		    // For parameter a<n> followed by parameter p<n>,
 		    // process both at the same time.
@@ -1898,16 +1903,14 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		    {
 			if (hierD)
 			    spcnAPHier(&dev->dev_terms[pn], hierName,
-				esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_type,
+				resclass, scale, plist->parm_type,
 				plist->parm_next->parm_type,
 				sdM, esSpiceF);
 			else
 			{
 			    dnode = SpiceGetNode(hierName,
 			 	dev->dev_terms[pn].dterm_node->efnode_name->efnn_hier);
-			    spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_name,
+			    spcnAP(dnode, resclass, scale, plist->parm_name,
 				plist->parm_next->parm_name,
 				sdM, esSpiceF, w);
 		 	}
@@ -1917,15 +1920,13 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		    {
 			if (hierD)
 			    spcnAPHier(&dev->dev_terms[pn], hierName,
-				esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_type, NULL,
+				resclass, scale, plist->parm_type, NULL,
 				sdM, esSpiceF);
 			else
 			{
 			    dnode = SpiceGetNode(hierName,
 			    	dev->dev_terms[pn].dterm_node->efnode_name->efnn_hier);
-			    spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_name, NULL,
+			    spcnAP(dnode, resclass, scale, plist->parm_name, NULL,
 				sdM, esSpiceF, w);
 			}
 		    }
@@ -1948,10 +1949,13 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		}
 		else
 		{
-		    int pn;
+		    int pn, resclass;
 
 		    pn = plist->parm_type[1] - '0';
 		    if (pn >= dev->dev_nterm) pn = dev->dev_nterm - 1;
+
+		    resclass == (pn > 1) ? esFetInfo[dev->dev_type].resClassDrain :
+				esFetInfo[dev->dev_type].resClassSource;
 
 		    hierD = extHierSDAttr(&dev->dev_terms[pn]);
 
@@ -1964,15 +1968,13 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		    {
 			if (hierD)
 			    spcnAPHier(&dev->dev_terms[pn], hierName,
-				esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_next->parm_type,
+				resclass, scale, plist->parm_next->parm_type,
 				plist->parm_type, sdM, esSpiceF);
 			else
 			{
 			    dnode = SpiceGetNode(hierName,
 			 	dev->dev_terms[pn].dterm_node->efnode_name->efnn_hier);
-			    spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_next->parm_name,
+			    spcnAP(dnode, resclass, scale, plist->parm_next->parm_name,
 				plist->parm_name, sdM, esSpiceF, w);
 		 	}
 			plist = plist->parm_next;
@@ -1981,15 +1983,13 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		    {
 			if (hierD)
 			    spcnAPHier(&dev->dev_terms[pn], hierName,
-				esFetInfo[dev->dev_type].resClassSD,
-				scale, NULL, plist->parm_type,
+				resclass, scale, NULL, plist->parm_type,
 				sdM, esSpiceF);
 			else
 			{
 			    dnode = SpiceGetNode(hierName,
 			    	dev->dev_terms[pn].dterm_node->efnode_name->efnn_hier);
-			    spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, NULL, plist->parm_name,
+			    spcnAP(dnode, resclass, scale, NULL, plist->parm_name,
 				sdM, esSpiceF, w);
 			}
 		    }
@@ -2771,20 +2771,20 @@ spcdevVisit(dev, hc, scale, trans)
 
 	    fprintf(esSpiceF, "\n+ ");
 	    if (hierD)
-        	spcnAPHier(drain, hierName, esFetInfo[dev->dev_type].resClassSD,
+        	spcnAPHier(drain, hierName, esFetInfo[dev->dev_type].resClassDrain,
 			scale, "ad", "pd", sdM, esSpiceF);
 	    else
 	    {
 		dnode = SpiceGetNode(hierName, drain->dterm_node->efnode_name->efnn_hier);
-        	spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD, scale,
+        	spcnAP(dnode, esFetInfo[dev->dev_type].resClassDrain, scale,
 			"ad", "pd", sdM, esSpiceF, w);
 	    }
 	    if (hierS)
-		spcnAPHier(source, hierName, esFetInfo[dev->dev_type].resClassSD,
+		spcnAPHier(source, hierName, esFetInfo[dev->dev_type].resClassSource,
 			scale, "as", "ps", sdM, esSpiceF);
 	    else {
 		snode= SpiceGetNode(hierName, source->dterm_node->efnode_name->efnn_hier);
-		spcnAP(snode, esFetInfo[dev->dev_type].resClassSD, scale,
+		spcnAP(snode, esFetInfo[dev->dev_type].resClassSource, scale,
 			"as", "ps", sdM, esSpiceF, w);
 	    }
 	    if (subAP)
@@ -3998,7 +3998,10 @@ devDistJunctVisit(dev, hc, scale, trans)
     {
 	n = SpiceGetNode(hierName,
 		dev->dev_terms[i].dterm_node->efnode_name->efnn_hier);
-	update_w(esFetInfo[dev->dev_type].resClassSD, w, n);
+	if (i == 1)
+	    update_w(esFetInfo[dev->dev_type].resClassSource, w, n);
+	else
+	    update_w(esFetInfo[dev->dev_type].resClassDrain, w, n);
     }
     return 0;
 }

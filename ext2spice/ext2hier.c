@@ -172,9 +172,11 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		}
 		else
 		{
-		    int pn;
+		    int pn, resclass;
 		    pn = plist->parm_type[1] - '0';
 		    if (pn >= dev->dev_nterm) pn = dev->dev_nterm - 1;
+		    resclass = (pn > 1) ? esFetInfo[dev->dev_type].resClassDrain :
+			    esFetInfo[dev->dev_type].resClassSource;
 
 		    dnode = GetHierNode(hc,
 			dev->dev_terms[pn].dterm_node->efnode_name->efnn_hier);
@@ -186,16 +188,14 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				'p' && plist->parm_next->parm_type[1] ==
 				plist->parm_type[1])
 		    {
-			spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_name,
+			spcnAP(dnode, resclass, scale, plist->parm_name,
 				plist->parm_next->parm_name, sdM,
 				esSpiceF, w);
 			plist = plist->parm_next;
 		    }
 		    else
 		    {
-			spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_name, NULL, sdM,
+			spcnAP(dnode, resclass, scale, plist->parm_name, NULL, sdM,
 				esSpiceF, w);
 		    }
 		}
@@ -218,9 +218,11 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		}
 		else
 		{
-		    int pn;
+		    int pn, resclass;
 		    pn = plist->parm_type[1] - '0';
 		    if (pn >= dev->dev_nterm) pn = dev->dev_nterm - 1;
+		    resclass = (pn > 1) ? esFetInfo[dev->dev_type].resClassDrain :
+			    esFetInfo[dev->dev_type].resClassSource;
 
 		    dnode = GetHierNode(hc,
 			dev->dev_terms[pn].dterm_node->efnode_name->efnn_hier);
@@ -232,15 +234,13 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				'a' && plist->parm_next->parm_type[1] ==
 				plist->parm_type[1])
 		    {
-			spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_next->parm_name,
+			spcnAP(dnode, resclass, scale, plist->parm_next->parm_name,
 				plist->parm_name, sdM, esSpiceF, w);
 			plist = plist->parm_next;
 		    }
 		    else
 		    {
-			spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, NULL, plist->parm_name, sdM,
+			spcnAP(dnode, resclass, scale, NULL, plist->parm_name, sdM,
 				esSpiceF, w);
 		    }
 		}
@@ -965,10 +965,10 @@ spcdevHierVisit(hc, dev, scale)
 
 	    fprintf(esSpiceF, "\n+ ");
 	    dnode = GetHierNode(hc, drain->dterm_node->efnode_name->efnn_hier);
-            spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD, scale,
+            spcnAP(dnode, esFetInfo[dev->dev_type].resClassDrain, scale,
 			"ad", "pd", sdM, esSpiceF, w);
 	    snode= GetHierNode(hc, source->dterm_node->efnode_name->efnn_hier);
-	    spcnAP(snode, esFetInfo[dev->dev_type].resClassSD, scale,
+	    spcnAP(snode, esFetInfo[dev->dev_type].resClassSource, scale,
 			"as", "ps", sdM, esSpiceF, w);
 	    if (subAP)
 	    {
@@ -1538,7 +1538,10 @@ devDistJunctHierVisit(hc, dev, scale)
     for (i = 1; i<dev->dev_nterm; i++)
     {
 	n = GetHierNode(hc, dev->dev_terms[i].dterm_node->efnode_name->efnn_hier);
-	update_w(esFetInfo[dev->dev_type].resClassSD, w, n);
+	if (i == 1)
+	    update_w(esFetInfo[dev->dev_type].resClassSource, w, n);
+	else
+	    update_w(esFetInfo[dev->dev_type].resClassDrain, w, n);
     }
     return 0;
 }

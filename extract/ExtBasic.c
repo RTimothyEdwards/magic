@@ -1743,7 +1743,7 @@ extOutputDevices(def, transList, outFile)
 			break;
 		    }
 		    extTransRec.tr_devmatch |= (MATCH_TERM << termcount);
-		    extTransRec.tr_termnode[termcount++] = node;
+		    extTransRec.tr_termnode[termcount] = node;
 		}
 		else if (TTMaskHasType(tmask, TT_SPACE)) {
 		    /* Device node is specified as being the substrate */
