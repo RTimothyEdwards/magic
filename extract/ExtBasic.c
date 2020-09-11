@@ -1724,7 +1724,14 @@ extOutputDevices(def, transList, outFile)
 		    continue;   /* This terminal already found by perimeter search */
 
 		tmask = &devptr->exts_deviceSDTypes[termcount];
-		if (TTMaskIsZero(tmask)) break;	/* End of SD terminals */
+		if (TTMaskIsZero(tmask)) {
+		    if (termcount < nsd) {
+			/* See if there is another matching device record with	*/
+			/* a different number of terminals, and try again.	*/
+			devptr = extDevFindMatch(devptr, t);
+		    } 
+		    break;	/* End of SD terminals */
+		}
 		else if (!TTMaskIntersect(tmask, &DBPlaneTypes[reg->treg_pnum]))
 		{
 		    node = NULL;
@@ -2749,6 +2756,7 @@ extTransPerimFunc(bp)
 		else
 		{
 		    TxError("Error:  Asymmetric device with multiple terminals!\n");
+		    break;
 		}
 
 		/* Add the length to this terminal's perimeter */
