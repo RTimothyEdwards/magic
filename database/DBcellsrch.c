@@ -1868,6 +1868,7 @@ dbScaleCell(cellDef, scalen, scaled)
     {
 	if (cellDef->cd_planes[pNum] == NULL) continue;
 	newplane = DBNewPlane((ClientData) TT_SPACE);
+	newplane->pl_policy = DBPlaneDirection[pNum];
 	DBClearPaintPlane(newplane);
 	if (dbScalePlane(cellDef->cd_planes[pNum], newplane, pNum,
 		scalen, scaled, FALSE))

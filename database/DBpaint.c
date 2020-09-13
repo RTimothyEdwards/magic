@@ -49,8 +49,7 @@ extern UndoType dbUndoIDPaint, dbUndoIDSplit, dbUndoIDJoin;
 
 /* ----------------------- Forward declarations ----------------------- */
 
-Tile *dbPaintMerge();
-Tile *dbMergeType();
+Tile *dbPaintMergeHorz();
 Tile *dbPaintMergeVert();
 
 bool TiNMSplitX();
@@ -263,6 +262,10 @@ DBPaintPlane0(plane, area, resultTbl, undo, method)
 
     if (area->r_xtop <= area->r_xbot || area->r_ytop <= area->r_ybot)
 	return;
+
+    /* Check tile policy and call the appropriate subroutine */
+    // if (plane->pl_policy == MAX_VERT_STRIPS)
+    //	return DBPaintPlaneVert(plane, area, resultTbl, undo, method);
 
     /*
      * The following is a modified version of the area enumeration
@@ -530,14 +533,14 @@ clipdone:
 	 * already been visited.  Note that if we clipped in a particular
 	 * direction we avoid merging in that direction.
 	 *
-	 * We avoid calling dbPaintMerge if at all possible.
+	 * We avoid calling dbPaintMergeHorz if at all possible.
 	 */
 	if (mergeFlags & MRG_LEFT)
 	{
 	    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 		if (TiGetTypeExact(tp) == newType)
 		{
-		    tile = dbPaintMerge(tile, newType, area, plane, mergeFlags,
+		    tile = dbPaintMergeHorz(tile, newType, area, plane, mergeFlags,
 					undo, (method == (unsigned char)PAINT_MARK)
 					? TRUE : FALSE);
 		    goto paintdone;
@@ -549,7 +552,7 @@ clipdone:
 	    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 		if (TiGetTypeExact(tp) == newType)
 		{
-		    tile = dbPaintMerge(tile, newType, area, plane, mergeFlags,
+		    tile = dbPaintMergeHorz(tile, newType, area, plane, mergeFlags,
 					undo, (method == (unsigned char)PAINT_MARK)
 					? TRUE : FALSE);
 		    goto paintdone;
@@ -1839,7 +1842,7 @@ dbMarkClient(tile, clip)
 /*
  * ----------------------------------------------------------------------------
  *
- * dbPaintMerge --
+ * dbPaintMergeHorz --
  *
  * The tile 'tp' is to be changed to type 'newtype'.  To maintain
  * maximal horizontal strips, it may be necessary to merge the new
@@ -1872,7 +1875,7 @@ dbMarkClient(tile, clip)
  */
 
 Tile *
-dbPaintMerge(tile, newType, area, plane, mergeFlags, undo, mark)
+dbPaintMergeHorz(tile, newType, area, plane, mergeFlags, undo, mark)
     Tile *tile;	/* Tile to be merged with its neighbors */
     TileType newType;	/* Type to which we will change 'tile' */
     Rect *area;			/* Original area painted, needed for marking */
@@ -2034,496 +2037,6 @@ dbPaintMerge(tile, newType, area, plane, mergeFlags, undo, mark)
 /*
  * ----------------------------------------------------------------------------
  *
- * DBPaintType --
- *
- * Paint a rectangular area ('area') of type ('newType') on plane ('plane').
- * Merge only with neighbors of the same type and client data.
- *
- * If undo is desired, 'undo' should point to a PaintUndoInfo struct
- * that contains everything needed to build an undo record.  Otherwise,
- * 'undo' can be NULL.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *	Modifies the database plane that contains the given tile.
- *
- * REMINDER:
- *	Callers should remember to set the CDMODIFIED and CDGETNEWSTAMP
- *	bits in the cell definition containing the plane being painted.
- *
- * ----------------------------------------------------------------------------
- */
-
-void
-DBPaintType(plane, area, resultTbl, client, undo, tileMask)
-    Plane *plane;		/* Plane whose paint is to be modified */
-    Rect *area;	/* Area to be changed */
-    PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
-				 * present in the plane, giving the type to
-				 * which the existing tile must change as a
-				 * result of this paint operation.
-				 */
-    ClientData client;		/* ClientData for tile	*/
-    PaintUndoInfo *undo;	/* Record containing everything needed to
-				 * save undo entries for this operation.
-				 * If NULL, the undo package is not used.
-				 */
-    TileTypeBitMask *tileMask;	/* Mask of un-mergable tile types */
-{
-    Point start;
-    int clipTop, mergeFlags;
-    TileType oldType;
-    Tile *tile, *tpnew;	/* Used for area search */
-    Tile *newtile, *tp;	/* Used for paint */
-    TileType newType;			/* Type of new tile to be painted */
-
-
-    if (area->r_xtop <= area->r_xbot || area->r_ytop <= area->r_ybot)
-	return;
-
-    /*
-     * The following is a modified version of the area enumeration
-     * algorithm.  It expects the in-line paint code below to leave
-     * 'tile' pointing to the tile from which we should continue the
-     * search.
-     */
-
-    start.p_x = area->r_xbot;
-    start.p_y = area->r_ytop - 1;
-    tile = plane->pl_hint;
-    GOTOPOINT(tile, &start);
-
-    /* Each iteration visits another tile on the LHS of the search area */
-    while (TOP(tile) > area->r_ybot)
-    {
-	/***
-	 *** AREA SEARCH.
-	 *** Each iteration enumerates another tile.
-	 ***/
-enumerate:
-
-	clipTop = TOP(tile);
-	if (clipTop > area->r_ytop) clipTop = area->r_ytop;
-
-#ifdef	PAINTDEBUG
-	if (dbPaintDebug)
-	    dbPaintShowTile(tile, undo, "area enum");
-#endif	/* PAINTDEBUG */
-
-	/***
-	 *** ---------- THE FOLLOWING IS IN-LINE PAINT CODE ----------
-	 ***/
-
-	/*
-	 * Set up the directions in which we will have to
-	 * merge initially.  Clipping can cause some of these
-	 * to be turned off.
-	 */
-	mergeFlags = MRG_TOP | MRG_LEFT;
-	if (RIGHT(tile) >= area->r_xtop) mergeFlags |= MRG_RIGHT;
-	if (BOTTOM(tile) <= area->r_ybot) mergeFlags |= MRG_BOTTOM;
-
-	/*
-	 * Map tile types using the *resultTbl* table.
-	 * If the client field of the existing tile differs
-	 * from the given client, ignore the type of the existing
-	 * tile and treat as painting over space.
-	 */
-
-	oldType = TiGetTypeExact(tile);
-	if ( TiGetClient(tile) == client )
-	    newType = resultTbl[oldType];
-	else
-	{
-	    if ( oldType != TT_SPACE )
-		/*DEBUG*/ TxPrintf("Overwrite tile type %d\n",oldType);
-	    newType = resultTbl[TT_SPACE];
-	}
-
-	if (oldType != newType)
-	{
-	    /*
-	     * Clip the tile against the clipping rectangle.
-	     * Merging is only necessary if we clip to the left or to
-	     * the right, and then only to the top or the bottom.
-	     * We do the merge in-line for efficiency.
-	     */
-
-	    /* Clip up */
-	    if (TOP(tile) > area->r_ytop)
-	    {
-		newtile = TiSplitY(tile, area->r_ytop);
-		TiSetBody(newtile, TiGetBody(tile));
-		TiSetClient(newtile, TiGetClient(tile));
-		mergeFlags &= ~MRG_TOP;
-	    }
-
-	    /* Clip down */
-	    if (BOTTOM(tile) < area->r_ybot)
-	    {
-		newtile = tile, tile = TiSplitY(tile, area->r_ybot);
-		TiSetBody(tile, TiGetBody(newtile));
-		TiSetClient(tile, TiGetClient(newtile));
-		mergeFlags &= ~MRG_BOTTOM;
-	    }
-
-	    /* Clip right */
-	    if (RIGHT(tile) > area->r_xtop)
-	    {
-		TISPLITX(newtile, tile, area->r_xtop);
-		TiSetBody(newtile, TiGetBody(tile));
-		TiSetClient(newtile, TiGetClient(tile));
-		mergeFlags &= ~MRG_RIGHT;
-
-		/* Merge the outside tile to its top */
-		tp = RT(newtile);
-		if (CANMERGE_Y(newtile, tp) &&
-			( (TiGetClient(tp) == TiGetClient(newtile)) ||
-			( ! TTMaskHasType(tileMask, TiGetTypeExact(tp)) ) ) )
-			    TiJoinY(newtile, tp, plane);
-
-		/* Merge the outside tile to its bottom */
-		tp = LB(newtile);
-		if (CANMERGE_Y(newtile, tp) &&
-			( (TiGetClient(tp) == TiGetClient(newtile)) ||
-			( ! TTMaskHasType(tileMask, TiGetTypeExact(tp)) ) ) )
-			    TiJoinY(newtile, tp, plane);
-	    }
-
-	    /* Clip left */
-	    if (LEFT(tile) < area->r_xbot)
-	    {
-		newtile = tile;
-		TISPLITX(tile, tile, area->r_xbot);
-		TiSetBody(tile, TiGetBody(newtile));
-		TiSetClient(tile, TiGetClient(newtile));
-		mergeFlags &= ~MRG_LEFT;
-
-		/* Merge the outside tile to its top */
-		tp = RT(newtile);
-		if (CANMERGE_Y(newtile, tp) &&
-			( (TiGetClient(tp) == TiGetClient(newtile)) ||
-			( ! TTMaskHasType(tileMask, TiGetTypeExact(tp)) ) ) )
-			TiJoinY(newtile, tp, plane);
-
-		/* Merge the outside tile to its bottom */
-		tp = LB(newtile);
-		if (CANMERGE_Y(newtile, tp) &&
-			( (TiGetClient(tp) == TiGetClient(newtile)) ||
-			( ! TTMaskHasType(tileMask, TiGetTypeExact(tp)) ) ) )
-			TiJoinY(newtile, tp, plane);
-	    }
-
-#ifdef	PAINTDEBUG
-	    if (dbPaintDebug)
-		dbPaintShowTile(tile, undo, "after clip");
-#endif	/* PAINTDEBUG */
-	}
-
-	/*
-	 * Merge the tile back into the parts of the plane that have
-	 * already been visited.  Note that if we clipped in a particular
-	 * direction we avoid merging in that direction.
-	 *
-	 * We avoid calling dbPaintMerge if at all possible.
-	 */
-	if (mergeFlags & MRG_LEFT)
-	{
-	    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
-		if ( (TiGetTypeExact(tp) == newType) && (tp->ti_client == client) )
-		{
-		    tile = dbMergeType(tile, newType, plane, mergeFlags, undo, client);
-		    goto paintdone;
-		}
-	    mergeFlags &= ~MRG_LEFT;
-	}
-	if (mergeFlags & MRG_RIGHT)
-	{
-	    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-		if ( (TiGetTypeExact(tp) == newType) && (tp->ti_client == client) )
-		{
-		    tile = dbMergeType(tile, newType, plane, mergeFlags, undo, client);
-		    goto paintdone;
-		}
-	    mergeFlags &= ~MRG_RIGHT;
-	}
-
-	/*
-	 * Cheap and dirty merge -- we don't have to merge to the
-	 * left or right, so the top/bottom merge is very fast.
-	 *
-	 * Now it's safe to change the type of this tile, and
-	 * record the event on the undo list.
-	 */
-	if (undo && oldType != newType && UndoIsEnabled())
-	    DBPAINTUNDO(tile, newType, undo);
-
-	TiSetBody(tile, newType);
-	TiSetClient(tile, client);
-
-#ifdef	PAINTDEBUG
-	if (dbPaintDebug)
-	    dbPaintShowTile(tile, undo, "changed type");
-#endif	/* PAINTDEBUG */
-
-	if (mergeFlags & MRG_TOP)
-	{
-	    tp = RT(tile);
-	    if (CANMERGE_Y(tile, tp) && (tp->ti_client == client))
-		TiJoinY(tile, tp, plane);
-#ifdef	PAINTDEBUG
-	    if (dbPaintDebug)
-		dbPaintShowTile(tile, undo, "merged up (CHEAP)");
-#endif	/* PAINTDEBUG */
-	}
-	if (mergeFlags & MRG_BOTTOM)
-	{
-	    tp = LB(tile);
-	    if (CANMERGE_Y(tile, tp) && (tp->ti_client == client))
-		TiJoinY(tile, tp, plane);
-#ifdef	PAINTDEBUG
-	    if (dbPaintDebug)
-		dbPaintShowTile(tile, undo, "merged down (CHEAP)");
-#endif	/* PAINTDEBUG */
-	}
-
-
-	/***
-	 ***		END OF PAINT CODE
-	 *** ---------- BACK TO AREA SEARCH ----------
-	 ***/
-paintdone:
-	/* Move right if possible */
-	tpnew = TR(tile);
-	if (LEFT(tpnew) < area->r_xtop)
-	{
-	    /* Move back down into clipping area if necessary */
-	    while (BOTTOM(tpnew) >= clipTop) tpnew = LB(tpnew);
-	    if (BOTTOM(tpnew) >= BOTTOM(tile) || BOTTOM(tile) <= area->r_ybot)
-	    {
-		tile = tpnew;
-		goto enumerate;
-	    }
-	}
-
-	/* Each iteration returns one tile further to the left */
-	while (LEFT(tile) > area->r_xbot)
-	{
-	    /* Move left if necessary */
-	    if (BOTTOM(tile) <= area->r_ybot)
-		goto done;
-
-	    /* Move down if possible; left otherwise */
-	    tpnew = LB(tile); tile = BL(tile);
-	    if (BOTTOM(tpnew) >= BOTTOM(tile) || BOTTOM(tile) <= area->r_ybot)
-	    {
-		tile = tpnew;
-		goto enumerate;
-	    }
-	}
-	/* At left edge -- walk down to next tile along the left edge */
-	for (tile = LB(tile); RIGHT(tile) <= area->r_xbot; tile = TR(tile))
-	    /* Nothing */;
-    }
-
-done:
-    plane->pl_hint = tile;
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * dbMergeType --
- *
- * The tile 'tp' is to be changed to type 'newtype'.  To maintain
- * maximal horizontal strips, it may be necessary to merge the new
- * 'tp' with its neighbors.
- *
- * This procedure splits off the biggest segment along the top of the
- * tile 'tp' that can be merged with its neighbors to the left and right
- * (depending on which of MRG_LEFT and MRG_RIGHT are set in the merge flags),
- * then changes the type of 'tp' to 'newtype' and merges to the left, right,
- * top, and bottom (in that order).
- *
- * Results:
- *	Returns a pointer to the topmost tile resulting from any splits
- *	and merges of the original tile 'tp'.  By the maximal horizontal
- *	strip property and the fact that the original tile 'tp' gets
- *	painted a single color, we know that this topmost resulting tile
- *	extends across the entire top of the area occupied by 'tp'.
- *
- *	NOTE: the only tile whose type is changed is 'tp'.  Any tiles
- *	resulting from splits below this tile will not have had their
- *	types changed.
- *
- * Side effects:
- *	Modifies the database plane that contains the given tile.
- *
- * THIS IS SLOW, SO SHOULD BE AVOIDED IF AT ALL POSSIBLE.
- * THE CODE ABOVE GOES TO GREAT LENGTHS TO DO SO.
- *
- * ----------------------------------------------------------------------------
- */
-
-Tile *
-dbMergeType(tile, newType, plane, mergeFlags, undo, client)
-    Tile *tile;	/* Tile to be merged with its neighbors */
-    TileType newType;	/* Type to which we will change 'tile' */
-    Plane *plane;		/* Plane on which this resides */
-    int mergeFlags;		/* Specify which directions to merge */
-    PaintUndoInfo *undo;	/* See DBPaintPlane() above */
-    ClientData client;
-{
-    Tile *tp, *tpLast;
-    int ysplit;
-
-    ysplit = BOTTOM(tile);
-    if (mergeFlags & MRG_LEFT)
-    {
-	/*
-	 * Find the split point along the LHS of tile.
-	 * If the topmost tile 'tp' along the LHS is of type 'newType'
-	 * the split point will be no lower than the bottom of 'tp'.
-	 * If the topmost tile is NOT of type 'newType', then the split
-	 * point will be no lower than the top of the first tile along
-	 * the LHS that is of type 'newType'.
-	 */
-	for (tpLast = NULL, tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
-	    if ((TiGetTypeExact(tp) == newType) && (tp->ti_client == client) )
-		tpLast = tp;
-
-	/* If the topmost LHS tile is not of type 'newType', we don't merge */
-	if (tpLast == NULL || TOP(tpLast) < TOP(tile))
-	{
-	    mergeFlags &= ~MRG_LEFT;
-	    if (tpLast && TOP(tpLast) > ysplit) ysplit = TOP(tpLast);
-	}
-	else if (BOTTOM(tpLast) > ysplit) ysplit = BOTTOM(tpLast);
-    }
-
-    if (mergeFlags & MRG_RIGHT)
-    {
-	/*
-	 * Find the split point along the RHS of 'tile'.
-	 * If the topmost tile 'tp' along the RHS is of type 'newType'
-	 * the split point will be no lower than the bottom of 'tp'.
-	 * If the topmost tile is NOT of type 'newType', then the split
-	 * point will be no lower than the top of the first tile along
-	 * the RHS that is of type 'newType'.
-	 */
-	tp = TR(tile);
-	if ((TiGetTypeExact(tp) == newType) && (tp->ti_client == client))
-	{
-	    if (BOTTOM(tp) > ysplit) ysplit = BOTTOM(tp);
-	}
-	else
-	{
-	    /* Topmost RHS tile is not of type 'newType', so don't merge */
-	    do
-		tp = LB(tp);
-	    while (TiGetTypeExact(tp) != newType && TOP(tp) > ysplit);
-	    if (TOP(tp) > ysplit) ysplit = TOP(tp);
-	    mergeFlags &= ~MRG_RIGHT;
-	}
-    }
-
-    /*
-     * If 'tile' must be split horizontally, do so.
-     * Any merging to the bottom will be delayed until the split-off
-     * bottom tile is processed on a subsequent iteration of the area
-     * enumeration loop in DBPaintPlane().
-     */
-    if (ysplit > BOTTOM(tile))
-    {
-	mergeFlags &= ~MRG_BOTTOM;
-	tp = TiSplitY(tile, ysplit);
-	TiSetBody(tp, TiGetTypeExact(tile));
-	TiSetClient(tp, TiGetClient(tile));
-	tile = tp;
-#ifdef	PAINTDEBUG
-	if (dbPaintDebug)
-	    dbPaintShowTile(tile, undo, "(DBMERGE) after split");
-#endif	/* PAINTDEBUG */
-    }
-
-    /*
-     * Set the type of the new tile.
-     * Record any undo information.
-     */
-    if (undo && TiGetTypeExact(tile) != newType && UndoIsEnabled())
-	DBPAINTUNDO(tile, newType, undo);
-    TiSetBody(tile, newType);
-    TiSetClient(tile, client);
-#ifdef	PAINTDEBUG
-    if (dbPaintDebug)
-	dbPaintShowTile(tile, undo, "(DBMERGE) changed type");
-#endif	/* PAINTDEBUG */
-
-    /*
-     * Do the merging.
-     * We are guaranteed that at most one tile abuts 'tile' on
-     * any side that we will merge to, and that this tile is
-     * of type 'newType'.
-     */
-    if (mergeFlags & MRG_LEFT)
-    {
-	tp = BL(tile);
-	if (TOP(tp) > TOP(tile))
-	{
-	    tpLast = TiSplitY(tp, TOP(tile));
-	    TiSetBody(tpLast, newType);
-	    TiSetClient(tpLast, client);
-	}
-	if (BOTTOM(tp) < BOTTOM(tile)) tp = TiSplitY(tp, BOTTOM(tile));
-	TiJoinX(tile, tp, plane);
-#ifdef	PAINTDEBUG
-	if (dbPaintDebug)
-	    dbPaintShowTile(tile, undo, "(DBMERGE) merged left");
-#endif	/* PAINTDEBUG */
-    }
-    if (mergeFlags & MRG_RIGHT)
-    {
-	tp = TR(tile);
-	if (TOP(tp) > TOP(tile))
-	{
-	    tpLast = TiSplitY(tp, TOP(tile));
-	    TiSetBody(tpLast, newType);
-	    TiSetClient(tpLast, client);
-	}
-	if (BOTTOM(tp) < BOTTOM(tile)) tp = TiSplitY(tp, BOTTOM(tile));
-	TiJoinX(tile, tp, plane);
-#ifdef	PAINTDEBUG
-	if (dbPaintDebug)
-	    dbPaintShowTile(tile, undo, "(DBMERGE) merged right");
-#endif	/* PAINTDEBUG */
-    }
-    if (mergeFlags&MRG_TOP)
-    {
-	tp = RT(tile);
-	if (CANMERGE_Y(tp, tile) && (tp->ti_client == client)) TiJoinY(tile, tp, plane);
-#ifdef	PAINTDEBUG
-	if (dbPaintDebug)
-	    dbPaintShowTile(tile, undo, "(DBMERGE) merged up");
-#endif	/* PAINTDEBUG */
-    }
-    if (mergeFlags&MRG_BOTTOM)
-    {
-	tp = LB(tile);
-	if (CANMERGE_Y(tp, tile) && (tp->ti_client == client)) TiJoinY(tile, tp, plane);
-#ifdef	PAINTDEBUG
-	if (dbPaintDebug)
-	    dbPaintShowTile(tile, undo, "(DBMERGE) merged down");
-#endif	/* PAINTDEBUG */
-    }
-
-    return (tile);
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
  * DBPaintPlaneVert --
  *
  * Paint a rectangular area ('area') on a single tile plane ('plane').
@@ -2548,7 +2061,7 @@ dbMergeType(tile, newType, plane, mergeFlags, undo, client)
  */
 
 void
-DBPaintPlaneVert(plane, area, resultTbl, undo)
+DBPaintPlaneVert(plane, area, resultTbl, undo, method)
     Plane *plane;		/* Plane whose paint is to be modified */
     Rect *area;	/* Area to be changed */
     PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
@@ -2560,12 +2073,16 @@ DBPaintPlaneVert(plane, area, resultTbl, undo)
 				 * save undo entries for this operation.
 				 * If NULL, the undo package is not used.
 				 */
+    unsigned char method;	/* If PAINT_MARK, the routine marks tiles as it
+				 * goes to avoid processing tiles twice.
+				 */
 {
     Point start;
     int clipTop, mergeFlags;
     TileType oldType, newType;
     Tile *tile, *tpnew;	/* Used for area search */
     Tile *newtile, *tp;	/* Used for paint */
+    bool haschanged;
 
     if (area->r_xtop <= area->r_xbot || area->r_ytop <= area->r_ybot)
 	return;
@@ -2595,6 +2112,12 @@ enumerate:
 
 	clipTop = TOP(tile);
 	if (clipTop > area->r_ytop) clipTop = area->r_ytop;
+
+	/* Skip processed tiles, if the "method" option was PAINT_MARK */
+	if (method == (unsigned char)PAINT_MARK)
+	    if (tile->ti_client != (ClientData) CLIENTDEFAULT)
+		goto paintdone;
+
 	oldType = TiGetTypeExact(tile);
 
 #ifdef	PAINTDEBUG
@@ -2619,7 +2142,19 @@ enumerate:
 	 * Determine new type of this tile.
 	 * Change the type if necessary.
 	 */
-	newType = resultTbl[oldType];
+	haschanged = FALSE;
+
+	/* If the source tile is split, apply table to each side */
+
+	if (method == (unsigned char)PAINT_XOR)
+	    newType = *resultTbl;
+	else if (!IsSplit(tile))
+	    newType = resultTbl[oldType];
+	else
+	    newType = resultTbl[SplitLeftType(tile)]
+		| (resultTbl[SplitRightType(tile)] << 14)
+		| (oldType & (TT_DIAGONAL | TT_DIRECTION | TT_SIDE));
+
 	if (oldType != newType)
 	{
 	    /*
@@ -2635,51 +2170,158 @@ enumerate:
 	    /* Clip right */
 	    if (RIGHT(tile) > area->r_xtop)
 	    {
-		TISPLITX(newtile, tile, area->r_xtop);
-		TiSetBody(newtile, TiGetBody(tile));
+		if (IsSplit(tile))
+		{
+		    haschanged |= TiNMSplitX(&tile, &newtile, area->r_xtop, 1, undo);
+		    if (!IsSplit(tile))
+		    {
+			oldType = TiGetTypeExact(tile);
+			newType = (method == (unsigned char)PAINT_XOR) ?
+				*resultTbl : resultTbl[oldType];
+
+			tile = TiNMMergeLeft(tile, plane);
+			TiNMMergeRight(LB(newtile), plane);
+		    }
+		    else
+		    {
+			TiNMMergeRight(newtile, plane);
+			TiNMMergeLeft(LB(tile), plane);
+		    }
+		}
+		else
+		{
+		    newtile = TiSplitX(tile, area->r_xtop);
+		    TiSetBody(newtile, TiGetBody(tile));
+		}
 		mergeFlags &= ~MRG_RIGHT;
 	    }
+
+	    /* Clipping diagonals can cause the new tile to no longer	*/
+	    /* be in the search path!					*/
+	    if (BOTTOM(tile) >= area->r_ytop || RIGHT(tile) <= area->r_xbot)
+		goto paintdone;
+	    if (oldType == newType) goto clipdone;
 
 	    /* Clip left */
 	    if (LEFT(tile) < area->r_xbot)
 	    {
-		newtile = tile;
-		TISPLITX(tile, tile, area->r_xbot);
-		TiSetBody(tile, TiGetBody(newtile));
+		if (IsSplit(tile))
+		{
+		    haschanged |= TiNMSplitX(&tile, &newtile, area->r_xbot, 0, undo);
+		    if (!IsSplit(tile))
+		    {
+			oldType = TiGetTypeExact(tile);
+			newType = (method == (unsigned char)PAINT_XOR) ?
+				*resultTbl : resultTbl[oldType];
+
+			TiNMMergeLeft(LB(newtile), plane);
+		    }
+		    else
+		    {
+			TiNMMergeLeft(newtile, plane);
+		    }
+		}
+		else
+		{
+		    newtile = tile;
+		    tile = TiSplitX(tile, area->r_xbot);
+		    TiSetBody(tile, TiGetBody(newtile));
+		}
 		mergeFlags &= ~MRG_LEFT;
 	    }
+
+	    /* Clipping diagonals can cause the new tile to no longer	*/
+	    /* be in the search path!					*/
+
+	    if (BOTTOM(tile) >= area->r_ytop)
+		goto paintdone;
+	    if (oldType == newType) goto clipdone;
 
 	    /* Clip up */
 	    if (TOP(tile) > area->r_ytop)
 	    {
-		newtile = TiSplitY(tile, area->r_ytop);
-		TiSetBody(newtile, TiGetBody(tile));
+		if (IsSplit(tile))
+		{
+		    haschanged |= TiNMSplitY(&tile, &newtile, area->r_ytop, 1, undo);
+		    if (!IsSplit(tile))
+		    {
+			oldType = TiGetTypeExact(tile);
+			newType = (method == (unsigned char)PAINT_XOR) ?
+				*resultTbl : resultTbl[oldType];
+
+			tile = TiNMMergeLeft(tile, plane);
+			TiNMMergeRight(TR(newtile), plane);
+		    }
+		    else
+		    {
+			TiNMMergeLeft(newtile, plane);
+			TiNMMergeRight(TR(tile), plane);
+		    }
+		}
+		else
+		{
+		    newtile = TiSplitY(tile, area->r_ytop);
+		    TiSetBody(newtile, TiGetBody(tile));
+
+		    /* Merge the outside tile to its left */
+		    tp = BL(newtile);
+		    if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
+
+		    /* Merge the outside tile to its right */
+		    tp = TR(newtile);
+		    if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
+		}
 		mergeFlags &= ~MRG_TOP;
-
-		/* Merge the outside tile to its left */
-		tp = BL(newtile);
-		if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
-
-		/* Merge the outside tile to its right */
-		tp = TR(newtile);
-		if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
 	    }
+
+	    /* Clipping diagonals can cause the new tile to */
+	    /* no longer be in the search path!		    */
+	    if (RIGHT(tile) <= area->r_xbot)
+		goto paintdone;
+	    if (oldType == newType) goto clipdone;
 
 	    /* Clip down */
 	    if (BOTTOM(tile) < area->r_ybot)
 	    {
-		newtile = tile, tile = TiSplitY(tile, area->r_ybot);
-		TiSetBody(tile, TiGetBody(newtile));
+		if (IsSplit(tile))
+		{
+		    haschanged |= TiNMSplitY(&tile, &newtile, area->r_ybot, 0, undo);
+		    if (!IsSplit(tile))
+		    {
+			oldType = TiGetTypeExact(tile);
+			newType = (method == (unsigned char)PAINT_XOR) ?
+				*resultTbl : resultTbl[oldType];
+
+			tile = TiNMMergeLeft(tile, plane);
+			TiNMMergeRight(TR(newtile), plane);
+		    }
+		    else
+		    {
+			TiNMMergeLeft(newtile, plane);
+			TiNMMergeRight(TR(tile), plane);
+		    }
+		}
+		else
+		{
+		    newtile = tile;
+		    tile = TiSplitY(tile, area->r_ybot);
+		    TiSetBody(tile, TiGetBody(newtile));
+
+		    /* Merge the outside tile to its left */
+		    tp = BL(newtile);
+		    if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
+
+		    /* Merge the outside tile to its right */
+		    tp = TR(newtile);
+		    if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
+		}
 		mergeFlags &= ~MRG_BOTTOM;
-
-		/* Merge the outside tile to its left */
-		tp = BL(newtile);
-		if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
-
-		/* Merge the outside tile to its right */
-		tp = TR(newtile);
-		if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
 	    }
+
+	    /* Clipping diagonals can cause the new tile to */
+	    /* no longer be in the search path!		    */
+	    if (RIGHT(tile) <= area->r_xbot)
+		goto paintdone;
 
 #ifdef	PAINTDEBUG
 	    if (dbPaintDebug)
@@ -2687,12 +2329,33 @@ enumerate:
 #endif	/* PAINTDEBUG */
 	}
 
+clipdone:
+
+	if (newType & TT_DIAGONAL)
+	{
+	    /* If left and right types of a diagonal tile are	*/
+	    /* the same, revert back to a rectangular tile.	*/
+
+	    if ((newType & TT_LEFTMASK) == ((newType & TT_RIGHTMASK) >> 14))
+	    {
+		newType &= TT_LEFTMASK;
+		if (undo && UndoIsEnabled())
+		    DBPAINTUNDO(tile, newType, undo);
+		TiSetBody(tile, newType);
+		/* Reinstate the ?? and ?? merge requirements */
+		mergeFlags |= MRG_LEFT;
+		if (RIGHT(tile) >= area->r_xtop) mergeFlags |= MRG_RIGHT;
+	    }
+	    else
+		mergeFlags = 0;
+	}
+
 	/*
 	 * Merge the tile back into the parts of the plane that have
 	 * already been visited.  Note that if we clipped in a particular
 	 * direction we avoid merging in that direction.
 	 *
-	 * We avoid calling dbPaintMerge if at all possible.
+	 * We avoid calling dbPaintMergeVert if at all possible.
 	 */
 	if (mergeFlags & MRG_BOTTOM)
 	{
@@ -2700,7 +2363,8 @@ enumerate:
 		if (TiGetTypeExact(tp) == newType)
 		{
 		    tile = dbPaintMergeVert(tile, newType, plane, mergeFlags,
-						undo);
+					undo, (method == (unsigned char)PAINT_MARK)
+					? TRUE : FALSE);
 		    goto paintdone;
 		}
 	    mergeFlags &= ~MRG_BOTTOM;
@@ -2711,7 +2375,8 @@ enumerate:
 		if (TiGetTypeExact(tp) == newType)
 		{
 		    tile = dbPaintMergeVert(tile, newType, plane, mergeFlags,
-						undo);
+					undo, (method == (unsigned char)PAINT_MARK)
+					? TRUE : FALSE);
 		    goto paintdone;
 		}
 	    mergeFlags &= ~MRG_TOP;
@@ -2724,9 +2389,12 @@ enumerate:
 	 * Now it's safe to change the type of this tile, and
 	 * record the event on the undo list.
 	 */
-	if (undo && oldType != newType && UndoIsEnabled())
-	    DBPAINTUNDO(tile, newType, undo);
+	if (undo && UndoIsEnabled())
+	    if (haschanged || (oldType != newType))
+		DBPAINTUNDO(tile, newType, undo);
+
 	TiSetBody(tile, newType);
+	if (method == (unsigned char)PAINT_MARK) tile->ti_client = (ClientData)1;
 
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
@@ -2792,6 +2460,68 @@ paintdone:
     }
 
 done:
+
+    if (method == (unsigned char)PAINT_MARK)
+    {
+	/* Now unmark the processed tiles with the same search algorithm */
+	/* Expand the area by one to catch tiles that were clipped at	 */
+	/* the area boundary.						 */
+
+	area->r_xbot -= 1;
+	area->r_ybot -= 1;
+	area->r_xtop += 1;
+	area->r_ytop += 1;
+	start.p_x = area->r_xbot;
+	start.p_y = area->r_ytop - 1;
+
+	tile = plane->pl_hint;
+	GOTOPOINT(tile, &start);
+
+	while (TOP(tile) > area->r_ybot)
+	{
+enum2:
+	    clipTop = TOP(tile);
+	    if (clipTop > area->r_ytop) clipTop = area->r_ytop;
+
+	    tile->ti_client = (ClientData)CLIENTDEFAULT;
+
+	    /* Move right if possible */
+	    tpnew = TR(tile);
+	    if (LEFT(tpnew) < area->r_xtop)
+	    {
+		/* Move back down into clipping area if necessary */
+		while (BOTTOM(tpnew) >= clipTop) tpnew = LB(tpnew);
+		if (BOTTOM(tpnew) >= BOTTOM(tile) || BOTTOM(tile) <= area->r_ybot)
+		{
+		    tile = tpnew;
+		    goto enum2;
+		}
+	    }
+
+	    /* Each iteration returns one tile further to the left */
+	    while (LEFT(tile) > area->r_xbot)
+	    {
+		/* Move left if necessary */
+		if (BOTTOM(tile) <= area->r_ybot)
+		    goto done2;
+
+		/* Move down if possible; left otherwise */
+		tpnew = LB(tile); tile = BL(tile);
+		if (BOTTOM(tpnew) >= BOTTOM(tile) || BOTTOM(tile) <= area->r_ybot)
+		{
+		    tile = tpnew;
+		    goto enum2;
+		}
+		tile->ti_client = (ClientData)CLIENTDEFAULT;
+	    }
+	    /* At left edge -- walk down to next tile along the left edge */
+	    for (tile = LB(tile); RIGHT(tile) <= area->r_xbot; tile = TR(tile))
+		tile->ti_client = (ClientData)CLIENTDEFAULT;
+	}
+	tile->ti_client = (ClientData)CLIENTDEFAULT;
+    }
+
+done2:
     plane->pl_hint = tile;
 }
 
@@ -2837,12 +2567,14 @@ done:
  */
 
 Tile *
-dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
+dbPaintMergeVert(tile, newType, area, plane, mergeFlags, undo, mark)
     Tile *tile;	/* Tile to be merged with its neighbors */
     TileType newType;	/* Type to which we will change 'tile' */
+    Rect *area;			/* Original area painted, needed for marking */
     Plane *plane;		/* Plane on which this resides */
     int mergeFlags;		/* Specify which directions to merge */
     PaintUndoInfo *undo;	/* See DBPaintPlane() above */
+    bool mark;			/* Mark tiles that were processed */
 {
     Tile *tp, *tpLast;
     int xsplit;
@@ -2921,6 +2653,8 @@ dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
     if (undo && TiGetTypeExact(tile) != newType && UndoIsEnabled())
 	DBPAINTUNDO(tile, newType, undo);
     TiSetBody(tile, newType);
+    if (mark) dbMarkClient(tile, area);
+
 #ifdef	PAINTDEBUG
     if (dbPaintDebug)
 	dbPaintShowTile(tile, undo, "(DBMERGE) changed type");
@@ -2937,7 +2671,11 @@ dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
 	tp = RT(tile);
 	if (LEFT(tp) < LEFT(tile)) tp = TiSplitX(tp, LEFT(tile));
 	if (RIGHT(tp) > RIGHT(tile))
-	    tpLast = TiSplitX(tp, RIGHT(tile)), TiSetBody(tpLast, newType);
+	{
+	    tpLast = TiSplitX(tp, RIGHT(tile));
+	    TiSetBody(tpLast, newType);
+	    if (mark) dbMarkClient(tile, area);
+	}
 	TiJoinY(tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
@@ -2950,7 +2688,11 @@ dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
 	tp = LB(tile);
 	if (LEFT(tp) < LEFT(tile)) tp = TiSplitX(tp, LEFT(tile));
 	if (RIGHT(tp) > RIGHT(tile))
-	    tpLast = TiSplitX(tp, RIGHT(tile)), TiSetBody(tpLast, newType);
+	{
+	    tpLast = TiSplitX(tp, RIGHT(tile));
+	    TiSetBody(tpLast, newType);
+	    if (mark) dbMarkClient(tile, area);
+	}
 	TiJoinY(tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)

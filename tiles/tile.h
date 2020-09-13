@@ -100,6 +100,9 @@ extern Tile *TileStoreFreeList_end;
 #define	TR(tp)		((tp)->ti_tr)
 #define	RT(tp)		((tp)->ti_rt)
 
+/* Per-plane tile database policy */
+#define MAX_HORIZ_STRIPS    FALSE
+#define MAX_VERT_STRIPS	    TRUE
 
 /* ----------------------- Tile planes -------------------------------- */
 
@@ -130,6 +133,7 @@ extern Tile *TileStoreFreeList_end;
 
 typedef struct
 {
+    bool	pl_policy;	/* MAX_HORIZ_STRIPS or MAX_VERT_STRIPS */
     Tile	*pl_left;	/* Left pseudo-tile */
     Tile	*pl_top;	/* Top pseudo-tile */
     Tile	*pl_right;	/* Right pseudo-tile */

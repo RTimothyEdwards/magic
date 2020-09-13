@@ -47,7 +47,7 @@ HashTable DBTypeAliasTable;
 int DBNumPlanes;
 char *DBPlaneLongNameTbl[PL_MAXTYPES];
 NameList dbPlaneNameLists = {NULL, NULL, NULL, (ClientData)0, FALSE};
-
+bool DBPlaneDirection[PL_MAXTYPES];
 
     /*
      * Sets of types.
@@ -270,6 +270,7 @@ DBTechAddPlane(sectionName, argc, argv)
     char *argv[];
 {
     char *cp;
+    bool policy = MAX_HORIZ_STRIPS;
 
     if (DBNumPlanes >= PL_MAXTYPES)
     {
@@ -277,7 +278,19 @@ DBTechAddPlane(sectionName, argc, argv)
 	return FALSE;
     }
 
-    if (argc != 1)
+    if (argc == 2)
+    {
+	if (!strncmp(argv[1], "vert", 4))
+	    policy = MAX_VERT_STRIPS;
+	else if (!strncmp(argv[1], "hor", 3))
+	    policy = MAX_VERT_STRIPS;
+	else
+	{
+	    TechError("Unknown tile policy;  must be \"horizontal\" or \"vertical\"\n");
+	    return FALSE;
+	}
+    }
+    else if (argc != 1)
     {
 	TechError("Line must contain names for plane\n");
 	return FALSE;
@@ -286,6 +299,7 @@ DBTechAddPlane(sectionName, argc, argv)
     cp = dbTechNameAdd(argv[0], (ClientData) DBNumPlanes, &dbPlaneNameLists, FALSE);
     if (cp == NULL)
 	return FALSE;
+    DBPlaneDirection[DBNumPlanes] = policy;
     DBPlaneLongNameTbl[DBNumPlanes++] = cp;
     return TRUE;
 }

@@ -265,6 +265,7 @@ changePlanesFunc(cellDef, arg)
 	for (pNum = oldnumplanes; pNum < DBNumPlanes; pNum++)
 	{
 	    cellDef->cd_planes[pNum] = DBNewPlane((ClientData) TT_SPACE);
+	    cellDef->cd_planes[pNum]->pl_policy = DBPlaneDirection[pNum];
 	}
     }
     else

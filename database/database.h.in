@@ -693,6 +693,7 @@ extern void DBPaint();
 extern void DBErase();
 extern int  DBSrPaintArea();
 extern void DBPaintPlane0();
+extern void DBPaintPlaneVert();
 extern void DBPaintPlaneActive();
 extern void DBPaintPlaneWrapper();
 extern void DBPaintPlaneMark();
@@ -952,6 +953,9 @@ extern TileTypeBitMask	DBPlaneTypes[NP];
      * Effectively, the reverse lookup of DBPlane(type) (DBTypePlaneTbl[type]).
      */
 extern TileTypeBitMask  DBHomePlaneTypes[NP];
+
+    /* List of plane tile layout policies (horizontal or vertical) */
+extern bool DBPlaneDirection[NP];
 
     /* Gives a TileTypeBitMask for everything that connects to a type.
      * Bit x is set in mask DBConnectTbl[y] if any image of x connects

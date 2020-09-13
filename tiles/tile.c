@@ -99,6 +99,7 @@ TiNewPlane(tile)
     static Tile *infinityTile = (Tile *) NULL;
 
     newplane = (Plane *) mallocMagic((unsigned) (sizeof (Plane)));
+    newplane->pl_policy = MAX_HORIZ_STRIPS;
     newplane->pl_top = TiAlloc();
     newplane->pl_right = TiAlloc();
     newplane->pl_bottom = TiAlloc();

@@ -315,6 +315,9 @@ MZCopyParms(oldParms)
 	    /* allocate new blockage planes */
 	    rLNew->rl_routeType.rt_hBlock = DBNewPlane((ClientData) TT_SPACE);
 	    rLNew->rl_routeType.rt_vBlock = DBNewPlane((ClientData) TT_SPACE);
+
+	    /* Change tile policy for vertical plane */
+	    rLNew->rl_routeType.rt_vBlock->pl_policy = MAX_VERT_STRIPS;
 	}
     }
 
@@ -340,6 +343,9 @@ MZCopyParms(oldParms)
 
 	    rCNew->rc_routeType.rt_hBlock = DBNewPlane((ClientData) TT_SPACE);
 	    rCNew->rc_routeType.rt_vBlock = DBNewPlane((ClientData) TT_SPACE);
+
+	    /* Change tile policy for vertical plane */
+	    rCNew->rc_routeType.rt_vBlock->pl_policy = MAX_VERT_STRIPS;
 	}
     }
 

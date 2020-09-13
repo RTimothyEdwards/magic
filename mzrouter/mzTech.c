@@ -1257,6 +1257,9 @@ mzInitRouteType(rT,tileType)
     rT->rt_hBlock = DBNewPlane((ClientData) TT_SPACE);
     rT->rt_vBlock = DBNewPlane((ClientData) TT_SPACE);
 
+    /* Change tile policy for vertical plane */
+    rT->rt_vBlock->pl_policy = MAX_VERT_STRIPS;
+
     /* Add to RouteType list */
     rT->rt_next = mzRouteTypes;
     mzRouteTypes = rT;

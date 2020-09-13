@@ -471,7 +471,7 @@ mzPaintBlockType(r, type, buildArea, blockType)
 		    DBPaintPlane(rT->rt_hBlock, &rblock,
 				mzBlockPaintTbl[blockType],
 				(PaintUndoInfo *) NULL);
-		    DBPaintPlaneVert(rT->rt_vBlock, &rblock,
+		    DBPaintPlane(rT->rt_vBlock, &rblock,
 		 		mzBlockPaintTbl[blockType],
 		 		(PaintUndoInfo *) NULL);
 		}
@@ -493,7 +493,7 @@ mzPaintBlockType(r, type, buildArea, blockType)
 		DBPaintPlane(rT->rt_hBlock, &rblock,
 				mzBlockPaintTbl[locBlockType],
 				(PaintUndoInfo *) NULL);
-		DBPaintPlaneVert(rT->rt_vBlock, &rblock,
+		DBPaintPlane(rT->rt_vBlock, &rblock,
 		 		mzBlockPaintTbl[locBlockType],
 		 		(PaintUndoInfo *) NULL);
 	    }
@@ -615,7 +615,7 @@ mzBuildFenceBlocksFunc(tile, buildArea)
 		     &rAdjusted,
 		     mzBlockPaintTbl[TT_BLOCKED],
 		     (PaintUndoInfo *) NULL);
-	DBPaintPlaneVert(rT->rt_vBlock,
+	DBPaintPlane(rT->rt_vBlock,
 	 		 &rAdjusted,
 	 		 mzBlockPaintTbl[TT_BLOCKED],
 	 		 (PaintUndoInfo *) NULL);
@@ -693,7 +693,7 @@ mzExtendBlockBoundsR(rect)
 	    &area,
 	    mzBoundsPaintTbl[TT_INBOUNDS],
 	    (PaintUndoInfo *) NULL);
-    DBPaintPlaneVert(mzVBoundsPlane,
+    DBPaintPlane(mzVBoundsPlane,
  	    &area,
  	    mzBoundsPaintTbl[TT_INBOUNDS],
  	    (PaintUndoInfo *) NULL);
@@ -901,7 +901,7 @@ mzBuildDestAreaBlocks()
 			 mzBlockPaintTbl[walk->w_type],
 			 (PaintUndoInfo *) NULL);
 
-	    DBPaintPlaneVert(walk->w_rT->rt_vBlock,
+	    DBPaintPlane(walk->w_rT->rt_vBlock,
 			     &(walk->w_rect),
 			     mzBlockPaintTbl[walk->w_type],
 			     (PaintUndoInfo *) NULL);
@@ -969,7 +969,7 @@ mzDestAreaFunc(tile, cxp)
     DBPaintPlane(rT->rt_hBlock, &r, mzBlockPaintTbl[TT_DEST_AREA],
 			(PaintUndoInfo *) NULL);
 
-    DBPaintPlaneVert(rT->rt_vBlock, &r, mzBlockPaintTbl[TT_DEST_AREA],
+    DBPaintPlane(rT->rt_vBlock, &r, mzBlockPaintTbl[TT_DEST_AREA],
 			(PaintUndoInfo *) NULL);
 
     r.r_xtop = rect.r_xtop;
@@ -981,7 +981,7 @@ mzDestAreaFunc(tile, cxp)
     DBPaintPlane(rT->rt_hBlock, &r, mzBlockPaintTbl[TT_DEST_AREA],
 			(PaintUndoInfo *) NULL);
 
-    DBPaintPlaneVert(rT->rt_vBlock, &r, mzBlockPaintTbl[TT_DEST_AREA],
+    DBPaintPlane(rT->rt_vBlock, &r, mzBlockPaintTbl[TT_DEST_AREA],
 			(PaintUndoInfo *) NULL);
 
     /* continue with next dest area */

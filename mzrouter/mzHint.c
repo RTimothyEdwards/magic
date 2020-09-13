@@ -160,7 +160,7 @@ mzBuildHFRFunc(tile, cxp)
 	    &rDest,
 	    DBStdPaintTbl(TT_MAGNET, PL_M_HINT),
 	    (PaintUndoInfo *) NULL);
-	DBPaintPlaneVert(mzVHintPlane,
+	DBPaintPlane(mzVHintPlane,
 	    &rDest,
 	    DBStdPaintTbl(TT_MAGNET, PL_M_HINT),
 	    (PaintUndoInfo *) NULL);
@@ -185,7 +185,7 @@ mzBuildHFRFunc(tile, cxp)
 	    &rDest,
 	    DBStdPaintTbl(TT_ROTATE, PL_R_HINT),
 	    (PaintUndoInfo *) NULL);
-	DBPaintPlaneVert(mzVRotatePlane,
+	DBPaintPlane(mzVRotatePlane,
 	    &rDest,
 	    DBStdPaintTbl(TT_ROTATE, PL_R_HINT),
 	    (PaintUndoInfo *) NULL);

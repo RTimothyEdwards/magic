@@ -1494,7 +1494,10 @@ DBCellDefAlloc()
     cellDef->cd_cellPlane = BPNew();
     cellDef->cd_planes[PL_ROUTER] = DBNewPlane((ClientData) NULL);
     for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
+    {
 	cellDef->cd_planes[pNum] = DBNewPlane((ClientData) TT_SPACE);
+	cellDef->cd_planes[pNum]->pl_policy = DBPlaneDirection[pNum];
+    }
 
     /* Definitively zero out all other plane entries */
     for (pNum = DBNumPlanes; pNum < MAXPLANES; pNum++)
