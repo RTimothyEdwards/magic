@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "utils/main.h"
+#include "utils/utils.h"
 #include "textio/txcommands.h"
 #include "commands/commands.h"
 
@@ -83,9 +84,9 @@ CmdLef(w, cmd)
 					 * will be output along with the
 					 * lef macro.
 					 */
-    bool lefHide = FALSE;		/* If TRUE, hide all details of
-					 * the macro other than pin area
-					 * immediately surrounding labels.
+    int lefHide = -1;			/* If >= 0, hide all details of the macro
+					 * other than pin area surrounding labels,
+					 * with the indicated setback distance.
 					 */
     bool lefTopLayer = False;		/* If TRUE, only output the topmost
 					 * layer used by a pin, and make
@@ -106,11 +107,13 @@ CmdLef(w, cmd)
 	"read [filename]		read a LEF file filename[.lef]\n"
 	"    read [filename] -import	read a LEF file; import cells from .mag files",
 	"write [filename] [-tech]	write LEF for current cell\n"
-	"    write [filename] -hide	hide all details other than ports",
+	"    write [filename] -hide	hide all details other than ports\n",
+	"    write [filename] -hide <d>	hide details in area set back distance <d>",
 	"writeall			write all cells including the top-level cell\n"
 	"    writeall -notop		write all children of the top-level cell\n"
 	"    writeall -all		recurse on all subcells of the top-level cell\n",
-	"    writeall -hide		hide all details other than ports",
+	"    writeall -hide		hide all details other than ports\n",
+	"    writeall -hide [dist]	hide details in area set back distance dist",
 	"help                   	print this help information",
 	NULL
     };
@@ -211,7 +214,16 @@ CmdLef(w, cmd)
 			else if (!strncmp(cmd->tx_argv[i], "-tech", 5))
 			    lefTech = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-hide", 5))
-			    lefHide = TRUE;
+			{
+			    lefHide = 0;
+			    if ((i < (cmd->tx_argc - 1)) &&
+				    StrIsNumeric(cmd->tx_argv[i + 1]))
+			    {
+				lefHide = cmdParseCoord(w, cmd->tx_argv[i + 1],
+					    FALSE, TRUE);
+				i++;
+			    }
+			}
 			else if (!strncmp(cmd->tx_argv[i], "-toplayer", 9))
 			    lefTopLayer = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-all", 4))
@@ -248,7 +260,17 @@ CmdLef(w, cmd)
 		    else if (!strncmp(cmd->tx_argv[i], "-hide", 5))
 		    {
 			if (is_lef)
-			    lefHide = TRUE;
+			{
+			    lefHide = 0;
+			    if ((i < (cmd->tx_argc - 1)) &&
+				    StrIsNumeric(cmd->tx_argv[i + 1]))
+			    {
+				lefHide = cmdParseCoord(w, cmd->tx_argv[i + 1],
+					    FALSE, TRUE);
+				cargs--;
+				i++;
+			    }
+			}
 			else
 			    TxPrintf("The \"-hide\" option is only for lef write\n");
 		    }
