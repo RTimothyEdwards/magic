@@ -707,7 +707,7 @@ drcCheckTile(tile, arg)
     DBPaintPlane(celldef->cd_planes[PL_DRC_CHECK], &erasebox,
 	DBStdEraseTbl(TiGetType(tile), PL_DRC_CHECK),
 	(PaintUndoInfo *) NULL);
-    DBPaintPlane(celldef->cd_planes[PL_DRC_ERROR], &checkbox,
+    DBPaintPlane(celldef->cd_planes[PL_DRC_ERROR], &erasebox,
 	DBStdEraseTbl(TT_ERROR_P, PL_DRC_ERROR),
 	(PaintUndoInfo *) NULL);
     DBPaintPlane(celldef->cd_planes[PL_DRC_ERROR], &checkbox,
