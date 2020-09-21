@@ -3032,7 +3032,26 @@ extSpecialPerimFunc(bp, sense)
 	if (toutside == TT_SPACE)
 	    if (glob_subsnode != NULL)
 		diffNode = glob_subsnode;
+    }
 
+    /* Check for terminal on different plane than the device */
+    if (!needSurvey)
+    {
+	for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
+	{
+	    PlaneMask pmask = DBTechTypesToPlanes(&devptr->exts_deviceSDTypes[i]);
+
+	    if (!PlaneMaskHasPlane(pmask, DBPlane(tinside)))
+	    {
+		diffNode = extTransRec.tr_termnode[i];
+		needSurvey = TRUE;
+		break;
+	    }
+	}
+    }
+
+    if (!sense || needSurvey)
+    {
 	/*
 	 * Since we're repeating the search, all terminals should be there.
 	 */
