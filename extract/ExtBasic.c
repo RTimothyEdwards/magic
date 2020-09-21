@@ -1849,6 +1849,7 @@ extOutputDevices(def, transList, outFile)
 	    if (varsub != NULL) subsName = varsub;
 	}
 #endif
+	extTransRec.tr_devrec = devptr;
 
 	/* Original-style FET record backward compatibility */
 	if (devptr->exts_deviceClass != DEV_FET)
@@ -1948,6 +1949,7 @@ extOutputDevices(def, transList, outFile)
 		    arg.fra_uninit = (ClientData) extTransRec.tr_gatenode;
 		    arg.fra_region = (Region *) reg;
 		    arg.fra_each = extAnnularTileFunc;
+
 		    (void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 
 		    extSeparateBounds(n - 1);	/* Handle MOScaps (if necessary) */
