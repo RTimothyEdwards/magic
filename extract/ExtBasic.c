@@ -2262,7 +2262,7 @@ extTransFindSubs(tile, t, mask, def, sn, layerptr)
     NodeRegion **sn;
     TileType *layerptr;
 {
-    Rect tileArea;
+    Rect tileArea, tileAreaPlus;
     int pNum;
     int extTransFindSubsFunc1();	/* Forward declaration */
     NodeAndType noderec;
@@ -2271,11 +2271,16 @@ extTransFindSubs(tile, t, mask, def, sn, layerptr)
     noderec.layer = TT_SPACE;
 
     TiToRect(tile, &tileArea);
+
+    /* Expand tile area by 1 in all directions.  This catches terminals */
+    /* on certain extended drain MOSFET devices.			*/
+    GEO_EXPAND(&tileArea, 1, &tileAreaPlus);
+
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
 	if (TTMaskIntersect(&DBPlaneTypes[pNum], mask))
 	{
-	    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[pNum], &tileArea,
+	    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[pNum], &tileAreaPlus,
 		    mask, extTransFindSubsFunc1, (ClientData)&noderec))
 	    {
 		*sn = noderec.region;
@@ -3041,7 +3046,12 @@ extSpecialPerimFunc(bp, sense)
     {
 	for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
 	{
-	    PlaneMask pmask = DBTechTypesToPlanes(&devptr->exts_deviceSDTypes[i]);
+	    TileTypeBitMask mmask;
+	    PlaneMask pmask;
+
+	    mmask = devptr->exts_deviceSDTypes[i];
+	    if (toutside != TT_SPACE) TTMaskClearType(&mmask, TT_SPACE);
+	    pmask = DBTechTypesToPlanes(&mmask);
 
 	    if (!PlaneMaskHasPlane(pmask, DBPlane(tinside)))
 	    {
