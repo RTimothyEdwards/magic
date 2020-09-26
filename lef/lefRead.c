@@ -1568,7 +1568,22 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		if (is_imported)
 		{
 		    bool needRect = TRUE;
+		    bool hasPort = FALSE;
 		    Label *lab;
+
+		    /* Conflicting interests: One purpose of annotation */
+		    /* is to make ports where none existed.  But if the	*/
+		    /* cell has both port and non-port labels with the	*/
+		    /* same string, then don't mess with the non-port	*/
+		    /* label.						*/
+
+		    for (lab = firstlab; lab; lab = lab->lab_next)
+			if (lab->lab_flags & PORT_DIR_MASK)
+			    if (!strcmp(lab->lab_text, testpin))
+			    {
+				hasPort = TRUE;
+				break;
+			    }
 
 		    /* Skip the port geometry but find the pin name and	*/
 		    /* annotate with the use and direction.  Note that	*/
@@ -1576,11 +1591,17 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		    /* However, if the label is a point label, then	*/
 		    /* replace it with the geometry from the LEF file.	*/
 
-		    for (lab = firstlab; lab; lab = lab->lab_next)
+		    if (hasPort == FALSE) lab = firstlab;
+		    for (; lab; lab = lab->lab_next)
 		    {
 			if (!strcmp(lab->lab_text, testpin))
 			{
-			    if (GEO_RECTNULL(&lab->lab_rect))
+			    /* If there is at least one port label with this	*/
+			    /* name, then ignore all non-port labels with the	*/
+			    /* same name.					*/
+			    if ((hasPort) && (!(lab->lab_flags & PORT_DIR_MASK)))
+				break;
+			    else if (GEO_RECTNULL(&lab->lab_rect))
 				break;
 			    else
 			    {

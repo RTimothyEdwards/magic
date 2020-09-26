@@ -1407,7 +1407,7 @@ CmdPort(w, cmd)
 			if (sl && ((sl->lab_flags & PORT_DIR_MASK) != 0))
 			    if ((sl->lab_flags & PORT_NUM_MASK) == portidx)
 			    {
-				lab = sl;
+			    	lab = sl;
 				break;
 			    }
 		}
@@ -1419,7 +1419,8 @@ CmdPort(w, cmd)
 			if (!strcmp(portname, sl->lab_text))
 			{
 			    lab = sl;
-			    break;
+			    if (sl && ((sl->lab_flags & PORT_DIR_MASK) != 0))
+			    	break;
 			}
 		}
 		if (lab == NULL)
