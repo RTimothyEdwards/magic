@@ -402,6 +402,8 @@ AC_ARG_WITH(tcllibs,    [  --with-tcllibs=DIR      Find Tcl library in DIR],
   magic_with_tcl_libraries=$withval)
 AC_ARG_WITH(tklibs,     [  --with-tklibs=DIR       Find Tk library in DIR],
   magic_with_tk_libraries=$withval)
+AC_ARG_WITH(wish,       [  --with-wish=EXE         Use wish binary at EXE],
+  magic_with_wish_binary=$withval)
 
 # -----------------------------------------------------------------------
 # Find the Tcl build configuration file "tclConfig.sh"
@@ -704,33 +706,37 @@ if test $usingTcl ; then
 # Find the version of "wish" that corresponds to TCL_EXEC_PREFIX
 # We really ought to run "ldd" to confirm that the linked libraries match.
 
-  AC_MSG_CHECKING([for wish executable])
-  for dir in \
-   ${TK_EXEC_PREFIX}/bin \
-   ${TK_EXEC_PREFIX}
-  do
-    for wishexe in \
-      wish-X11 \
-      wish \
-      wish${TK_VERSION} \
-      wish.exe \
-      wish${TK_VERSION}.exe
+  if text "x${magic_with_wish_binary}" = "x" ; then
+    AC_MSG_CHECKING([for wish executable])
+    for dir in \
+    ${TK_EXEC_PREFIX}/bin \
+    ${TK_EXEC_PREFIX}
     do
-      if test -r "$dir/$wishexe" ; then
-        WISH_EXE=$dir/$wishexe
+      for wishexe in \
+        wish-X11 \
+        wish \
+        wish${TK_VERSION} \
+        wish.exe \
+        wish${TK_VERSION}.exe
+      do
+        if test -r "$dir/$wishexe" ; then
+          WISH_EXE=$dir/$wishexe
+          break
+        fi
+      done
+      if test "x${WISH_EXE}" != "x" ; then
         break
       fi
     done
-    if test "x${WISH_EXE}" != "x" ; then
-      break
+    if test "x${WISH_EXE}" = "x" ; then
+      echo "Warning: Can't find executable for \"wish\".  You may have to"
+      echo "manually set the value for WISH_EXE in the magic startup script."
+      AC_MSG_RESULT(no)
+    else
+      AC_MSG_RESULT([${WISH_EXE}])
     fi
-  done
-  if test "x${WISH_EXE}" = "x" ; then
-    echo "Warning: Can't find executable for \"wish\".  You may have to"
-    echo "manually set the value for WISH_EXE in the magic startup script." 
-    AC_MSG_RESULT(no)
   else
-    AC_MSG_RESULT([${WISH_EXE}])
+    WISH_EXE=${magic_with_wish_binary}
   fi
 
 # Find the version of "tclsh" that corresponds to TCL_EXEC_PREFIX
