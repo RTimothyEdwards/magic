@@ -1224,7 +1224,7 @@ Tclmagic_Init(interp)
     /* Set $CAD_ROOT as a Tcl variable */
 
     cadroot = getenv("CAD_ROOT");
-    if (cadroot == NULL) cadroot = CAD_DIR;
+    if (cadroot == NULL) cadroot = Tcl_GetVar(interp, "CAD_ROOT_DEFAULT", TCL_GLOBAL_ONLY);
 
     Tcl_SetVar(interp, "CAD_ROOT", cadroot, TCL_GLOBAL_ONLY);
 

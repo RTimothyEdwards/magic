@@ -63,7 +63,7 @@ magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak ${MAGICDIR}/VERSION
 	sed -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g  \
 	    -e /MAGIC_VERSION/s%MAGIC_VERSION%${MAGIC_VERSION}%g \
 	    -e /MAGIC_REVISION/s%MAGIC_REVISION%${MAGIC_REVISION}%g \
-            -e /SHDLIB_EXT/s%SHDLIB_EXT%${SHDLIB_EXT}%g magic.tcl.in > magic.tcl
+	    -e /SHDLIB_EXT/s%SHDLIB_EXT%${SHDLIB_EXT}%g magic.tcl.in > magic.tcl
 
 magic.sh: magic.sh.in ${MAGICDIR}/defs.mak
 	sed -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g \
