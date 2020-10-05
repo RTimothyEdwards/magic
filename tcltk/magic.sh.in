@@ -11,6 +11,12 @@
 # Parse for the argument "-c[onsole]".  If it exists, run magic
 # with the TkCon console.  Strip this argument from the argument list.
 
+TCL_REL_OR_ABS=TCL_DIR_REL_OR_ABS
+if [ "${TCL_REL_OR_ABS:0:1}" = "/" ]; then
+TCL_DIR=$TCL_REL_OR_ABS
+else
+TCL_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))/$TCL_REL_OR_ABS
+fi
 TKCON=true
 DNULL=
 MAGIC_WISH=WISH_EXE
@@ -37,12 +43,12 @@ done
 if [ $TKCON ]; then
 
    if [ $DNULL ]; then
-      exec TCL_DIR/tkcon.tcl -eval "source TCL_DIR/console.tcl" \
-	   -slave "set argc $#; set argv [list $*]; source TCL_DIR/magic.tcl"
+      exec $TCL_DIR/tkcon.tcl -eval "source $TCL_DIR/console.tcl" \
+	   -slave "set argc $#; set argv [list $*]; source $TCL_DIR/magic.tcl"
    else
-      exec TCL_DIR/tkcon.tcl -eval "source TCL_DIR/console.tcl" \
+      exec $TCL_DIR/tkcon.tcl -eval "source $TCL_DIR/console.tcl" \
 	   -slave "package require Tk; set argc $#; set argv [list $arglist]; \
-	   source TCL_DIR/magic.tcl"
+	   source $TCL_DIR/magic.tcl"
    fi
 
 else
@@ -57,8 +63,8 @@ else
 # only, efficient for running in batch mode).
 #
    if [ $DNULL ]; then
-      exec TCL_DIR/magicdnull -nowrapper "$@"
+      exec $TCL_DIR/magicdnull -nowrapper "$@"
    else
-      exec TCL_DIR/magicexec -- "$@"
+      exec $TCL_DIR/magicexec -- "$@"
    fi
 fi

@@ -14,8 +14,14 @@ for i in $@; do
       *) esargs="$esargs $i" ;;
    esac
 done
+TCL_REL_OR_ABS=TCL_DIR_REL_OR_ABS
+if [ "${TCL_REL_OR_ABS:0:1}" = "/" ]; then
+TCL_DIR=$TCL_REL_OR_ABS
+else
+TCL_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))/$TCL_REL_OR_ABS
+fi
 #
-eval TCL_DIR/magicdnull -dnull -noconsole -nowrapper $mgargs <<EOF
+eval ${TCL_DIR}/magicdnull -dnull -noconsole -nowrapper $mgargs <<EOF
 drc off
 box 0 0 0 0
 ext2spice $esargs
