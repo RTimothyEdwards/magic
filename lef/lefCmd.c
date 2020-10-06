@@ -88,9 +88,12 @@ CmdLef(w, cmd)
 					 * other than pin area surrounding labels,
 					 * with the indicated setback distance.
 					 */
-    bool lefTopLayer = False;		/* If TRUE, only output the topmost
+    bool lefTopLayer = FALSE;		/* If TRUE, only output the topmost
 					 * layer used by a pin, and make
 					 * all layers below it obstructions.
+					 */
+    bool lefDoMaster = TRUE;		/* If TRUE, output masterslice layers;
+					 * If FALSE, ignore masterslice layers.
 					 */
     bool recurse = FALSE;		/* If TRUE, recurse on all subcells
 					 * during "writeall".  By default,
@@ -226,6 +229,8 @@ CmdLef(w, cmd)
 			}
 			else if (!strncmp(cmd->tx_argv[i], "-toplayer", 9))
 			    lefTopLayer = TRUE;
+			else if (!strncmp(cmd->tx_argv[i], "-nomaster", 9))
+			    lefDoMaster = FALSE;
 			else if (!strncmp(cmd->tx_argv[i], "-all", 4))
 			    recurse = TRUE;
 			else goto wrongNumArgs;
@@ -233,7 +238,7 @@ CmdLef(w, cmd)
 		    else goto wrongNumArgs;
 		}
 		LefWriteAll(selectedUse, lefTopCell, lefTech, lefHide, lefTopLayer,
-			    recurse);
+			    lefDoMaster, recurse);
 	    }
 	    break;
 	case LEF_WRITE:
@@ -281,6 +286,13 @@ CmdLef(w, cmd)
 			else
 			    TxPrintf("The \"-toplayer\" option is only for lef write\n");
 		    }
+		    else if (!strncmp(cmd->tx_argv[i], "-nomaster", 9))
+		    {
+			if (is_lef)
+			    lefDoMaster = FALSE;
+			else
+			    TxPrintf("The \"-nomaster\" option is only for lef write\n");
+		    }
 		    else if (!strncmp(cmd->tx_argv[i], "-units", 5))
 		    {
 			if (is_lef)
@@ -320,7 +332,7 @@ CmdLef(w, cmd)
 		DefWriteCell(selectedUse->cu_def, namep, allSpecial, units);
 	    else
 		LefWriteCell(selectedUse->cu_def, namep, selectedUse->cu_def
-			== EditRootDef, lefTech, lefHide, lefTopLayer);
+			== EditRootDef, lefTech, lefHide, lefTopLayer, lefDoMaster);
 	    break;
 	case LEF_HELP:
 wrongNumArgs:

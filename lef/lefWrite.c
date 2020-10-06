@@ -1095,12 +1095,13 @@ LefWritePinHeader(f, lab)
  */
 
 void
-lefWriteMacro(def, f, scale, setback, toplayer)
+lefWriteMacro(def, f, scale, setback, toplayer, domaster)
     CellDef *def;	/* Def for which to generate LEF output */
     FILE *f;		/* Output to this file */
     float scale;	/* Output distance units conversion factor */
     int setback;	/* If >= 0, hide all detail except pins inside setback */
     bool toplayer;	/* If TRUE, only output topmost layer of pins */
+    bool domaster;	/* If TRUE, write masterslice layers */
 {
     bool propfound, ispwrrail;
     char *propvalue, *class = NULL;
@@ -1193,7 +1194,8 @@ lefWriteMacro(def, f, scale, setback, toplayer)
     while (he = HashNext(&LefInfo, &hs))
     {
 	lefLayer *lefl = (lefLayer *)HashGetValue(he);
-	if (lefl && (lefl->lefClass == CLASS_ROUTE || lefl->lefClass == CLASS_VIA))
+	if (lefl && (lefl->lefClass == CLASS_ROUTE || lefl->lefClass == CLASS_VIA
+		    || (domaster && lefl->lefClass == CLASS_MASTER)))
 	    if (lefl->type != -1)
 	    {
 		TTMaskSetType(&lc.rmask, lefl->type);
@@ -1946,12 +1948,13 @@ lefGetProperties(stackItem, i, clientData)
  */
 
 void
-LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefTopLayer, recurse)
+LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefTopLayer, lefDoMaster, recurse)
     CellUse *rootUse;
     bool writeTopCell;
     bool lefTech;
     int lefHide;
     bool lefTopLayer;
+    bool lefDoMaster;
     bool recurse;
 {
     HashTable propHashTbl, siteHashTbl;
@@ -2017,7 +2020,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefTopLayer, recurse)
     {
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)
-	    lefWriteMacro(def, f, scale, lefHide, lefTopLayer);
+	    lefWriteMacro(def, f, scale, lefHide, lefTopLayer, lefDoMaster);
     }
 
     /* End the LEF file */
@@ -2081,13 +2084,14 @@ lefDefPushFunc(use, recurse)
  */
 
 void
-LefWriteCell(def, outName, isRoot, lefTech, lefHide, lefTopLayer)
+LefWriteCell(def, outName, isRoot, lefTech, lefHide, lefTopLayer, lefDoMaster)
     CellDef *def;		/* Cell being written */
     char *outName;		/* Name of output file, or NULL. */
     bool isRoot;		/* Is this the root cell? */
     bool lefTech;		/* Output layer information if TRUE */
     int  lefHide;		/* Hide detail other than pins if >= 0 */
     bool lefTopLayer;		/* Use only topmost layer of pin if TRUE */
+    bool lefDoMaster;		/* Write masterslice layers if TRUE */
 {
     char *filename;
     FILE *f;
@@ -2121,7 +2125,7 @@ LefWriteCell(def, outName, isRoot, lefTech, lefHide, lefTopLayer)
 	HashKill(&propHashTbl);
 	HashKill(&siteHashTbl);
     }
-    lefWriteMacro(def, f, scale, lefHide, lefTopLayer);
+    lefWriteMacro(def, f, scale, lefHide, lefTopLayer, lefDoMaster);
 
     /* End the LEF file */
     fprintf(f, "END LIBRARY\n\n");
