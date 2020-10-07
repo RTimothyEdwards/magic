@@ -1512,7 +1512,7 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
 		{
 		    if (domaster & (pmask != 0))
 		    {
-			if (!PlaneMaskHashPlane(&pmask, pNum))
+			if (!PlaneMaskHasPlane(pmask, pNum))
 			    continue;
 		    }
 		    else continue;
