@@ -1115,6 +1115,7 @@ cmdPortLabelFunc2(scx, label, tpath, cdata)
 /* Find a label in the cell editDef.					*/
 /*									*/
 /* If "port" is true, then search only for labels that are ports.	*/
+/*    If false, then search only for labels that are not ports.		*/
 /* If "unique" is true, then return a label only if exactly one label	*/
 /* is found in the edit box.						*/
 /*----------------------------------------------------------------------*/
@@ -1123,10 +1124,10 @@ Label *
 portFindLabel(editDef, port, unique, nonEdit)
     CellDef *editDef;
     bool unique;
-    bool port;
+    bool port;		// If TRUE, only look for labels that are ports
     bool *nonEdit;	// TRUE if label is not in the edit cell
 {
-    int found;
+    int found, wrongkind;
     Label *lab, *sl;
     Rect editBox;
 
@@ -1138,10 +1139,19 @@ portFindLabel(editDef, port, unique, nonEdit)
 
     ToolGetEditBox(&editBox);
     found = 0;
+    wrongkind = FALSE;
     if (nonEdit) *nonEdit = FALSE;
     lab = NULL;
     for (sl = editDef->cd_labels; sl != NULL; sl = sl->lab_next)
     {
+	/* Ignore labels based on whether label is or is not a port */
+	if (((port == TRUE) && !(sl->lab_flags & PORT_DIR_MASK)) ||
+		    ((port == FALSE) && (sl->lab_flags & PORT_DIR_MASK)))
+	{
+	    wrongkind = TRUE;	/* Found at least one label of the wrong kind */
+	    continue;
+	}
+
 	if (GEO_OVERLAP(&editBox, &sl->lab_rect) ||
 			GEO_SURROUND(&editBox, &sl->lab_rect))
 	{
@@ -1167,11 +1177,13 @@ portFindLabel(editDef, port, unique, nonEdit)
 	    if (nonEdit) *nonEdit = FALSE;
 	}
     }
+    if ((found == 0) && (wrongkind == TRUE)) return NULL;
 
     /* If no label was found, then search the hierarchy under the box.	*/
     /* The calling routine may determine whether a label that is not in	*/
     /* the edit cell may be valid for the command (e.g., if querying	*/
-    /* but not changing values).					*/
+    /* but not changing values).  NOTE:  Currently this does not apply	*/
+    /* the "port" option.						*/
 
     if (found == 0)
     {
