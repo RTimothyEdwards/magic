@@ -1107,6 +1107,7 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
     char *propvalue, *class = NULL;
     Label *lab, *tlab, *reflab;
     Rect boundary, labr;
+    PlaneMask pmask;
     SearchContext scx;
     CellDef *lefFlatDef;
     CellUse lefFlatUse, lefSourceUse;
@@ -1181,6 +1182,7 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
     TTMaskZero(&lc.rmask);
     TTMaskZero(&boundmask);
     TTMaskZero(&lmask);
+    pmask = 0;
 
     /* Any layer which has a port label attached to it should by	*/
     /* necessity be considered a routing layer.	 Usually this will not	*/
@@ -1196,6 +1198,7 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
 	lefLayer *lefl = (lefLayer *)HashGetValue(he);
 	if (lefl && (lefl->lefClass == CLASS_ROUTE || lefl->lefClass == CLASS_VIA
 		    || (domaster && lefl->lefClass == CLASS_MASTER)))
+	{
 	    if (lefl->type != -1)
 	    {
 		TTMaskSetType(&lc.rmask, lefl->type);
@@ -1209,6 +1212,10 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
 	    }
 	    if (lefl->obsType != -1)
 		TTMaskSetType(&lc.rmask, lefl->obsType);
+
+	    if (domaster && lefl->lefClass == CLASS_MASTER)
+		pmask |= DBTypePlaneMaskTbl[lefl->type];
+	}
 
 	if (lefl && (lefl->lefClass == CLASS_BOUND))
 	    if (lefl->type != -1)
@@ -1497,8 +1504,19 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
 	    {
 		/* Option to output only the topmost layer of a network	*/
 		/* as PIN geometry.  All layers below it are considered	*/
-		/* obstructions.					*/
-		if (toplayer) pNum = pTop;
+		/* obstructions.  Masterslice layers are considered an	*/
+		/* exception, as they are often needed for ensuring	*/
+		/* connectivity between power supply and wells.		*/
+
+		if (toplayer && (pNum != pTop))
+		{
+		    if (domaster & (pmask != 0))
+		    {
+			if (!PlaneMaskHashPlane(&pmask, pNum))
+			    continue;
+		    }
+		    else continue;
+		}
 
 		lc.pNum = pNum;
 		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
@@ -1540,8 +1558,6 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
 	    		&TiPlaneRect, &lc.rmask,
 	    		lefWriteGeometry, (ClientData) &lc);
 	        lc.lefMode = LEF_MODE_PORT;
-
-		if (toplayer) break;	/* Stop after processing topmost layer */
 	    }
 	    DBCellClearDef(lc.lefYank);
 	    lab->lab_flags |= PORT_VISITED;
