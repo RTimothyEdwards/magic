@@ -545,6 +545,7 @@ selGetArrayFunc(selUse, use, trans, arg)
  *	box size [width height]
  *	box position [llx lly] [-edit]
  *	box values [llx lly urx ury] [-edit]
+ *	box select
  *
  *	box <direction> <distance> | cursor
  *
@@ -580,13 +581,14 @@ selGetArrayFunc(selUse, use, trans, arg)
 #define BOX_SIZE	2
 #define BOX_POSITION	3
 #define BOX_VALUES	4
-#define BOX_MOVE	5
-#define BOX_GROW	6
-#define BOX_SHRINK	7
-#define BOX_CORNER	8
-#define BOX_EXISTS	9
-#define BOX_HELP	10
-#define BOX_DEFAULT	11
+#define BOX_SELECT	5
+#define BOX_MOVE	6
+#define BOX_GROW	7
+#define BOX_SHRINK	8
+#define BOX_CORNER	9
+#define BOX_EXISTS	10
+#define BOX_HELP	11
+#define BOX_DEFAULT	12
 
 void
 CmdBox(w, cmd)
@@ -599,6 +601,7 @@ CmdBox(w, cmd)
 	"size		[width height]		set or return box size",
 	"position		[llx lly] [-edit]	set or return box position",
 	"values		[llx lly urx ury] [-edit]	set or return box coordinates",
+	"select					set box to selection bounding box",
 	"move		<direction> <distance> 	move box position",
 	"grow		<direction> <distance>	expand box size",
 	"shrink		<direction> <distance>  shrink box size",
@@ -905,6 +908,19 @@ CmdBox(w, cmd)
 	    boxptr->r_ybot = ll.p_y;
 	    boxptr->r_xtop = boxptr->r_xbot + width;
 	    boxptr->r_ytop = boxptr->r_ybot + height;
+	    break;
+
+	case BOX_SELECT:
+	    if (argc == 2)
+	    {
+		Rect selarea;
+		GeoTransRect(&SelectUse->cu_transform, &SelectDef->cd_bbox, &selarea);
+		boxptr->r_xbot = selarea.r_xbot;
+		boxptr->r_ybot = selarea.r_ybot;
+		boxptr->r_xtop = selarea.r_xtop;
+		boxptr->r_ytop = selarea.r_ytop;
+	    }
+	    else goto badusage;
 	    break;
 
 	case BOX_VALUES:

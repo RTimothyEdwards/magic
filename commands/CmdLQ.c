@@ -1449,7 +1449,12 @@ CmdPort(w, cmd)
 	if (option != PORT_LAST && option != PORT_FIRST)
 	{
 	    if (lab == NULL)
-		lab = portFindLabel(editDef, TRUE, TRUE, &nonEdit);
+	    {
+		if (option == PORT_MAKE)
+		    lab = portFindLabel(editDef, FALSE, TRUE, &nonEdit);
+		else
+		    lab = portFindLabel(editDef, TRUE, TRUE, &nonEdit);
+	    }
 
 	    if (option == PORT_EXISTS)
 	    {
@@ -1467,7 +1472,6 @@ CmdPort(w, cmd)
 #endif
 		return;
 	    }
-
 	}
 	if ((option != PORT_LAST) && (option != PORT_FIRST) &&
 		(option != PORT_MAKEALL) && (option != PORT_RENUMBER)
