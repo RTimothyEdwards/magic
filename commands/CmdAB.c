@@ -545,6 +545,7 @@ selGetArrayFunc(selUse, use, trans, arg)
  *	box size [width height]
  *	box position [llx lly] [-edit]
  *	box values [llx lly urx ury] [-edit]
+ *	box remove
  *	box select
  *
  *	box <direction> <distance> | cursor
@@ -581,14 +582,15 @@ selGetArrayFunc(selUse, use, trans, arg)
 #define BOX_SIZE	2
 #define BOX_POSITION	3
 #define BOX_VALUES	4
-#define BOX_SELECT	5
-#define BOX_MOVE	6
-#define BOX_GROW	7
-#define BOX_SHRINK	8
-#define BOX_CORNER	9
-#define BOX_EXISTS	10
-#define BOX_HELP	11
-#define BOX_DEFAULT	12
+#define BOX_REMOVE	5
+#define BOX_SELECT	6
+#define BOX_MOVE	7
+#define BOX_GROW	8
+#define BOX_SHRINK	9
+#define BOX_CORNER	10
+#define BOX_EXISTS	11
+#define BOX_HELP	12
+#define BOX_DEFAULT	13
 
 void
 CmdBox(w, cmd)
@@ -601,6 +603,7 @@ CmdBox(w, cmd)
 	"size		[width height]		set or return box size",
 	"position		[llx lly] [-edit]	set or return box position",
 	"values		[llx lly urx ury] [-edit]	set or return box coordinates",
+	"remove					remove cursor box from display",
 	"select					set box to selection bounding box",
 	"move		<direction> <distance> 	move box position",
 	"grow		<direction> <distance>	expand box size",
@@ -660,6 +663,12 @@ CmdBox(w, cmd)
     }
 
     windCheckOnlyWindow(&w, DBWclientID);
+
+    if (option == BOX_REMOVE)
+    {
+	DBWSetBox((CellDef *)NULL, &GeoNullRect);
+	return;
+    }
 
     /*----------------------------------------------------------*/
     /* Check for the command options which do not require a box	*/

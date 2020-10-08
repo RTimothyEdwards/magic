@@ -176,11 +176,11 @@ CmdPlot(w, cmd)
 	if ((!ToolGetBox(&boxRootDef, &scx.scx_area)) ||
 		(scx.scx_use->cu_def != boxRootDef))
 	{
-	    TxError("The box and cursor must appear in the same window\n");
-	    TxError("    for plotting.  The box indicates the area to\n");
-	    TxError("    plot, and the cursor's window tells which\n");
-	    TxError("    cells are expanded and unexpanded).\n");
-	    return;
+	    /* If no box is specified, then use the cell in the layout	*/
+	    /* window, and plot the entire cell using the cell bounding	*/
+	    /* box as the area to plot.					*/
+
+	    scx.scx_area = scx.scx_use->cu_def->cd_bbox;
 	}
 	scx.scx_trans = GeoIdentityTransform;
 	mask = crec->dbw_visibleLayers;
