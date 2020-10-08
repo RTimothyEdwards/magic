@@ -277,7 +277,9 @@ CmdPlot(w, cmd)
 	    /* the window border widgets from the rendered display.	    */
 	    window->w_flags &= ~(WIND_SCROLLABLE | WIND_SCROLLBARS | WIND_CAPTION
 			| WIND_BORDER);
+	    DBWHLRemoveClient(DBWDrawBox);	// Prevent drawing the cursor box
 	    GrTCairoPlotSVG(cmd->tx_argv[2], window);
+	    DBWHLAddClient(DBWDrawBox);	    // Restore drawing the cursor box
 	    window->w_flags = flags;
 	    return;
 #endif
