@@ -57,6 +57,7 @@ bool CalmaDoLibrary = FALSE;	 /* If TRUE, do not output the top level */
 bool CalmaDoLabels = TRUE;	 /* If FALSE, don't output labels with GDS-II */
 bool CalmaDoLower = TRUE;	 /* If TRUE, allow lowercase labels. */
 bool CalmaFlattenArrays = FALSE; /* If TRUE, output arrays as individual uses */
+bool CalmaAddendum = FALSE;	 /* If TRUE, do not output readonly cell defs */
 
     /* Experimental stuff---not thoroughly tested (as of Sept. 2007)! */
 bool CalmaContactArrays = FALSE; /* If TRUE, output contacts as subcell arrays */
@@ -775,13 +776,6 @@ calmaProcessDef(def, outf, do_library)
     }
 
     /*
-     * Output the definitions for any of our descendants that have
-     * not already been output.  Numbers are assigned to the subcells
-     * as they are output.
-     */
-    (void) DBCellEnum(def, calmaProcessUse, (ClientData) outf);
-
-    /*
      * Check if this is a read-only file that is supposed to be copied
      * verbatim from input to output.  If so, do the direct copy.  If
      * not, or if there is any problem obtaining the original cell
@@ -798,6 +792,19 @@ calmaProcessDef(def, outf, do_library)
     DBPropGet(def, "GDS_START", &hasContent);
     DBPropGet(def, "GDS_END", &hasGDSEnd);
     filename = (char *)DBPropGet(def, "GDS_FILE", &isReadOnly);
+
+    /* When used with "calma addendum true", don't output the read-only	*/
+    /* cells.  This makes the library incomplete and dependent on the	*/
+    /* vendor libraries, so use with caution.				*/
+
+    if (isReadOnly && hasContent && CalmaAddendum) return (0);
+
+    /*
+     * Output the definitions for any of our descendants that have
+     * not already been output.  Numbers are assigned to the subcells
+     * as they are output.
+     */
+    (void) DBCellEnum(def, calmaProcessUse, (ClientData) outf);
 
     if (isReadOnly && hasContent)
     {

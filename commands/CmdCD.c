@@ -89,22 +89,23 @@ bool cmdDumpParseArgs();
  */
 
 #define CALMA_HELP	0
-#define CALMA_ARRAYS	1
-#define CALMA_CONTACTS	2
-#define CALMA_DRCCHECK	3
-#define	CALMA_FLATTEN	4
-#define CALMA_ORDERING	5
-#define	CALMA_LABELS	6
-#define	CALMA_LIBRARY	7
-#define	CALMA_LOWER	8
-#define CALMA_MERGE	9
-#define CALMA_READ	10
-#define CALMA_READONLY	11
-#define CALMA_RESCALE	12
-#define CALMA_WARNING	13
-#define CALMA_WRITE	14
-#define CALMA_POLYS	15
-#define CALMA_PATHS	16
+#define CALMA_ADDENDUM	1
+#define CALMA_ARRAYS	2
+#define CALMA_CONTACTS	3
+#define CALMA_DRCCHECK	4
+#define	CALMA_FLATTEN	5
+#define CALMA_ORDERING	6
+#define	CALMA_LABELS	7
+#define	CALMA_LIBRARY	8
+#define	CALMA_LOWER	9
+#define CALMA_MERGE	10
+#define CALMA_READ	11
+#define CALMA_READONLY	12
+#define CALMA_RESCALE	13
+#define CALMA_WARNING	14
+#define CALMA_WRITE	15
+#define CALMA_POLYS	16
+#define CALMA_PATHS	17
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -127,6 +128,7 @@ CmdCalma(w, cmd)
     static char *cmdCalmaOption[] =
     {
 	"help		print this help information",
+	"addendum [yes|no]	output only cells that are not type \"readonly\"",
 	"arrays [yes|no]	output arrays as individual subuses (like in CIF)",
 	"contacts [yes|no]	optimize output by arraying contacts as subcells",
 	"drccheck [yes|no]	mark all cells as needing DRC checking",
@@ -247,6 +249,26 @@ CmdCalma(w, cmd)
 	    if (option < 0)
 		goto wrongNumArgs;
 	    CalmaDoLibrary = (option < 3) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_ADDENDUM:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaAddendum));
+#else
+		TxPrintf("Read-only cell defs will %sbe output to the GDS file.\n",
+			(CalmaAddendum) ?  "not " : "");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaAddendum = (option < 3) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_CONTACTS:
