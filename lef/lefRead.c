@@ -1713,12 +1713,15 @@ enum lef_macro_keys {LEF_CLASS = 0, LEF_SIZE, LEF_ORIGIN,
 	LEF_TIMING, LEF_FOREIGN, LEF_PROPERTY, LEF_MACRO_END};
 
 void
-LefReadMacro(f, mname, oscale, importForeign)
+LefReadMacro(f, mname, oscale, importForeign, doAnnotate)
     FILE *f;			/* LEF file being read	*/
     char *mname;		/* name of the macro 	*/
     float oscale;		/* scale factor um->magic units */
     bool importForeign;		/* Whether we should try to read
 				 * in a cell.
+				 */
+    bool doAnnotate;		/* If true, ignore all macros that are
+				 * not already CellDefs.
 				 */
 {
     CellDef *lefMacro;
@@ -1764,6 +1767,12 @@ LefReadMacro(f, mname, oscale, importForeign)
         lefMacro = DBCellLookDef(newname);
         if (lefMacro == NULL)
 	{
+	    if (doAnnotate)
+	    {
+		/* Ignore any macro that does not correspond to an existing cell */
+		LefSkipSection(f, "MACRO");
+		return;
+	    }
 	    lefMacro = lefFindCell(newname);
 	    DBCellClearDef(lefMacro);
 	    DBCellSetAvail(lefMacro);
@@ -2508,9 +2517,10 @@ enum lef_sections {LEF_VERSION = 0,
 	LEF_END};
 
 void
-LefRead(inName, importForeign)
+LefRead(inName, importForeign, doAnnotate)
     char *inName;
     bool importForeign;
+    bool doAnnotate;
 {
     FILE *f;
     char *filename;
@@ -2734,7 +2744,7 @@ LefRead(inName, importForeign)
 		TxPrintf("LEF file:  Defines new cell %s\n", token);
 		*/
 		sprintf(tsave, "%.127s", token);
-		LefReadMacro(f, tsave, oscale, importForeign);
+		LefReadMacro(f, tsave, oscale, importForeign, doAnnotate);
 		break;
 	    case LEF_END:
 		if (LefParseEndStatement(f, "LIBRARY") == 0)

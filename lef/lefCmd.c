@@ -72,6 +72,10 @@ CmdLef(w, cmd)
 					 * when the FOREIGN statement
 					 * is encountered in a macro.
 					 */
+    bool lefAnnotate = FALSE;		/* Indicates that no celldefs should be
+					 * created from any LEF files, which
+					 * will be used for annotation only.
+					 */
     bool lefTopCell = TRUE;		/* Indicates whether or not we
 					 * write the top-level cell to
 					 * LEF, or just the subcells.
@@ -108,7 +112,8 @@ CmdLef(w, cmd)
     static char *cmdLefOption[] =
     {
 	"read [filename]		read a LEF file filename[.lef]\n"
-	"    read [filename] -import	read a LEF file; import cells from .mag files",
+	"    read [filename] -import	read a LEF file; import cells from .mag files\n",
+	"    read [filename] -annotate	read a LEF file for cell annotation only.",
 	"write [filename] [-tech]	write LEF for current cell\n"
 	"    write [filename] -hide	hide all details other than ports\n",
 	"    write [filename] -hide <d>	hide details in area set back distance <d>",
@@ -181,6 +186,8 @@ CmdLef(w, cmd)
 		    {
 			if (!strncmp(cmd->tx_argv[i], "-import", 7))
 			    lefImport = TRUE;
+			else if (!strncmp(cmd->tx_argv[i], "-anno", 5))
+			    lefAnnotate = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-label", 6))
 			{
 			    if (is_lef)
@@ -196,7 +203,7 @@ CmdLef(w, cmd)
 
             namep = cmd->tx_argv[2];
 	    if (is_lef)
-		LefRead(namep, lefImport);
+		LefRead(namep, lefImport, lefAnnotate);
 	    else
 		DefRead(namep, defLabelNets);
 	    break;
