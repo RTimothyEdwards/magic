@@ -35,7 +35,7 @@ typedef struct drccookie
     unsigned char     drcc_cmod;	/* Fractional part of drcc_cdist */
     TileTypeBitMask   drcc_mask;	/* Legal types on RHS */
     TileTypeBitMask   drcc_corner;	/* Types that trigger corner check */
-    unsigned char     drcc_flags;	/* Miscellaneous flags, see below. */
+    unsigned short    drcc_flags;	/* Miscellaneous flags, see below. */
     int		      drcc_edgeplane;	/* Plane of edge */
     int		      drcc_plane;	/* Index of plane on which to check
 					 * legal types. */
@@ -73,6 +73,9 @@ typedef struct drccookie
 #define		DRC_RECTSIZE		0x40
 #define		DRC_ANGLES		0x80
 #define 	DRC_NONSTANDARD		(DRC_AREA|DRC_MAXWIDTH|DRC_RECTSIZE|DRC_ANGLES)
+
+/* More flags for indicating what the rule type represents */
+#define		DRC_CIFRULE		0x100
 
 #define	DRC_PENDING			0
 #define DRC_UNPROCESSED 		CLIENTDEFAULT

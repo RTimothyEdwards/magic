@@ -200,7 +200,7 @@ drcCifWidth(argc, argv)
     dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
     drcCifAssign(dpnew, centidistance, dpnext, &CIFSolidBits,
     		&CIFSolidBits, why, centidistance,
-		DRC_FORWARD, thislayer, 0);
+		DRC_FORWARD | DRC_CIFRULE, thislayer, 0);
     drcCifRules[thislayer][DRC_CIF_SPACE] = dpnew;
 
     return ((centidistance+scalefactor-1)/scalefactor);
@@ -291,7 +291,7 @@ drcCifSpacing(argc, argv)
     dpnext = drcCifRules[layer[0]][DRC_CIF_SOLID];
     dpnew = (DRCCookie *) mallocMagic((unsigned) sizeof (DRCCookie));
     drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits,
-    		&cmask, why, centidistance, DRC_FORWARD, layer[1], 0);
+    		&cmask, why, centidistance, DRC_FORWARD | DRC_CIFRULE, layer[1], 0);
     drcCifRules[layer[0]][DRC_CIF_SOLID] = dpnew;
     if (needReverse) dpnew->drcc_flags |= DRC_BOTHCORNERS;
 
@@ -299,7 +299,7 @@ drcCifSpacing(argc, argv)
     dpnext = drcCifRules[layer[0]][DRC_CIF_SPACE];
     dpnew = (DRCCookie *) mallocMagic((unsigned) sizeof (DRCCookie));
     drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits,
-    		&cmask, why, centidistance, DRC_REVERSE, layer[1], 0);
+    		&cmask, why, centidistance, DRC_REVERSE | DRC_CIFRULE, layer[1], 0);
     drcCifRules[layer[0]][DRC_CIF_SPACE] = dpnew;
 
     if (needReverse)
@@ -311,14 +311,16 @@ drcCifSpacing(argc, argv)
          dpnext = drcCifRules[layer[1]][DRC_CIF_SOLID];
          dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
          drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
-		why, centidistance, DRC_FORWARD|DRC_BOTHCORNERS, layer[0], 0);
+		why, centidistance, DRC_FORWARD|DRC_BOTHCORNERS | DRC_CIFRULE,
+		layer[0], 0);
          drcCifRules[layer[1]][DRC_CIF_SOLID] = dpnew;
 
 	 // Add rule in reverse direction
 	 dpnext = drcCifRules[layer[1]][DRC_CIF_SPACE];
 	 dpnew = (DRCCookie *) mallocMagic((unsigned) sizeof (DRCCookie));
 	 drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
-		why, centidistance, DRC_REVERSE|DRC_BOTHCORNERS, layer[0], 0);
+		why, centidistance, DRC_REVERSE|DRC_BOTHCORNERS | DRC_CIFRULE,
+		layer[0], 0);
 	 drcCifRules[layer[1]][DRC_CIF_SPACE] = dpnew;
 
 	 if (layer[0] == layer[1])
@@ -326,14 +328,16 @@ drcCifSpacing(argc, argv)
               dpnext = drcCifRules[layer[1]][DRC_CIF_SPACE];
               dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
               drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits,
-			&cmask, why, centidistance, DRC_REVERSE | DRC_BOTHCORNERS,
+			&cmask, why, centidistance,
+			DRC_REVERSE | DRC_BOTHCORNERS | DRC_CIFRULE,
 			layer[0], 0);
                  drcCifRules[layer[1]][DRC_CIF_SPACE] = dpnew;
 
               dpnext = drcCifRules[layer[0]][DRC_CIF_SPACE];
               dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
               drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
-			why, centidistance, DRC_REVERSE | DRC_BOTHCORNERS,
+			why, centidistance,
+			DRC_REVERSE | DRC_BOTHCORNERS | DRC_CIFRULE,
 			layer[1], 0);
                  drcCifRules[layer[0]][DRC_CIF_SPACE] = dpnew;
 	 }
@@ -344,13 +348,13 @@ drcCifSpacing(argc, argv)
          dpnext = drcCifRules[layer[1]][DRC_CIF_SPACE];
          dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
          drcCifAssign(dpnew, scalefactor, dpnext, &DBSpaceBits, &DBZeroTypeBits,
-			why, scalefactor, DRC_FORWARD, layer[0], 0);
+			why, scalefactor, DRC_FORWARD | DRC_CIFRULE, layer[0], 0);
          drcCifRules[layer[1]][DRC_CIF_SPACE] = dpnew;
 
          dpnext = drcCifRules[layer[0]][DRC_CIF_SPACE];
          dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
          drcCifAssign(dpnew, scalefactor, dpnext, &DBSpaceBits, &DBZeroTypeBits,
-			why, scalefactor, DRC_FORWARD, layer[1], 0);
+			why, scalefactor, DRC_FORWARD | DRC_CIFRULE, layer[1], 0);
          drcCifRules[layer[0]][DRC_CIF_SPACE] = dpnew;
     }
 
@@ -1097,7 +1101,7 @@ drcCifArea(argc, argv)
     dpnext = drcCifRules[thislayer][DRC_CIF_SPACE];
     dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
     drcCifAssign(dpnew, centihorizon, dpnext, &CIFSolidBits, &CIFSolidBits,
-		why, centiarea, DRC_AREA | DRC_FORWARD, thislayer, 0);
+		why, centiarea, DRC_AREA | DRC_FORWARD | DRC_CIFRULE, thislayer, 0);
     drcCifRules[thislayer][DRC_CIF_SPACE] = dpnew;
 
 
@@ -1167,7 +1171,7 @@ drcCifMaxwidth(argc, argv)
     dpnext = drcCifRules[thislayer][DRC_CIF_SPACE];
     dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
     drcCifAssign(dpnew, centidistance, dpnext, &CIFSolidBits, &CIFSolidBits,
-		why, centidistance, DRC_MAXWIDTH | bend, thislayer, 0);
+		why, centidistance, DRC_MAXWIDTH | DRC_CIFRULE | bend, thislayer, 0);
     drcCifRules[thislayer][DRC_CIF_SPACE] = dpnew;
 
     return ((centidistance+scalefactor-1)/scalefactor);

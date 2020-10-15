@@ -201,7 +201,10 @@ drcSubstitute (cptr)
     why_out = (char *)mallocMagic(whylen * sizeof(char));
     strcpy(why_out, whyptr);
 
-    oscale = CIFGetOutputScale(1000);	/* 1000 for conversion to um */
+    if (cptr->drcc_flags & DRC_CIFRULE)
+	oscale = CIFGetScale(100);	/* 100 = microns to centimicrons */
+    else
+	oscale = CIFGetOutputScale(1000);   /* 1000 for conversion to um */
     wptr = why_out;
 
     while ((sptr = strchr(whyptr, '%')) != NULL)
