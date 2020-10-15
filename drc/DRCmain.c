@@ -37,6 +37,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "drc/drc.h"
+#include "cif/cif.h"
 #include "utils/undo.h"
 
 /* The global variables defined below are parameters between
