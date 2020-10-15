@@ -1762,7 +1762,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 	    {
 		needtrigger = TRUE;
 		touchingok = FALSE;
-
+		needReverse = TRUE;
 	    }
 	    else
 	    {
