@@ -47,6 +47,7 @@ typedef struct drccookie
 #define DRC_ARRAY_OVERLAP_TAG	1
 #define DRC_OVERLAP_TAG		2
 #define DRC_SUBCELL_OVERLAP_TAG	3
+#define DRC_IN_SUBCELL_TAG	4
 
 /* *This is size "int" because it holds an area for DRC_AREA rules,	  */
 /* and therefore may have twice the bit length of a normal rule distance. */
@@ -266,6 +267,7 @@ extern DRCCountList *DRCCount();
 extern int DRCFind();
 extern void DRCCatchUp();
 extern bool DRCFindInteractions();
+extern int  DRCBasicCheck();
 
 extern void DRCPrintStyle();
 extern void DRCSetStyle();

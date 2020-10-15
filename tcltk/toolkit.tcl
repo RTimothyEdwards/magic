@@ -363,6 +363,8 @@ proc magic::gencell_change {instname gencell_type library parameters} {
     eval "box values $savebox"
     snap $snaptype
     resumeall
+    puts stdout "Done."
+    drc check
     redraw
 }
 
@@ -472,6 +474,8 @@ proc magic::gencell_create {gencell_type library parameters} {
     snap $snaptype
     resumeall
     redraw
+    puts stdout "Done."
+    drc check
     return $instname
 }
 

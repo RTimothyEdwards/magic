@@ -197,10 +197,13 @@ DRCCheckThis (celldef, operation, area)
 					 *  of CellDefs waiting for DRC
 					 */
 
-    /* Ignore read-only, internal, and vendor GDS cells.  None of these	*/
-    /* can contain DRC errors that could be fixed in magic.		*/
+    /* Ignore internal GDS cells. */
+    /* Note that this rescinds the former behavior of ignoring DRC on	*/
+    /* vendor and read-only cells.  Such cells will be flattened in	*/
+    /* interaction areas and show errors anyway, so not showing errors	*/
+    /* in the cell is just confusing.					*/
 
-    if (celldef->cd_flags & (CDVENDORGDS | CDNOEDIT | CDINTERNAL)) return;
+    if (celldef->cd_flags & CDINTERNAL) return;
 
     /* Insert celldef into list of Defs waiting to be checked, unless	*/
     /* it is already there.						*/
@@ -683,7 +686,7 @@ drcCheckTile(tile, arg)
 
     DRCErrorType = TT_ERROR_S;
     (void) DRCInteractionCheck(celldef, &square, &erasebox,
-		drcPaintError, (ClientData) drcTempPlane);
+		drcPaintError, (ClientData)drcTempPlane);
 
     /* Check #3:  check for array formation errors in the area. */
 
