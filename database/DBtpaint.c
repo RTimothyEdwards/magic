@@ -600,6 +600,7 @@ dbTechAddPaintErase(type, sectionName, argc, argv)
     int pNum;
     PlaneMask pMask, rMask;
     TileType t1, t2, tres;
+    TileTypeBitMask tMask;
 
     if (argc < 3)
     {
@@ -609,7 +610,13 @@ dbTechAddPaintErase(type, sectionName, argc, argv)
 
     if ((t1 = DBTechNoisyNameType(argv[0])) < 0) return FALSE;
     if ((t2 = DBTechNoisyNameType(argv[1])) < 0) return FALSE;
-    if ((tres = DBTechNoisyNameType(argv[2])) < 0) return FALSE;
+
+    /* Modified 9/22/2020 to allow multiple types to paint, for example	*/
+    /* to replace a contact type with types on both residue planes.	*/
+
+    rMask = DBTechNoisyNameMask(argv[2], &tMask);
+    if (TTMaskIsZero(&tMask)) return FALSE;
+
     if (argc == 3)
     {
 	if (t1 == TT_SPACE)
@@ -629,50 +636,45 @@ dbTechAddPaintErase(type, sectionName, argc, argv)
 	else
 	    pMask = PlaneNumToMaskBit(pNum);
     }
-    rMask = LayerPlaneMask(tres);
-
-    /* (The plane mask of "tres" may be a subset of t1, but NOT vice	*/
-    /* versa. Otherwise we will end up creating rules that are not	*/
-    /* dependent on t1 in some planes.)					*/
-
-    /* This restriction lifted 5/11/04 with code in DBPaint() that	*/
-    /* recursively paints image types onto planes where they may be	*/
-    /* missed by the inability to generate the correct paint table for	*/
-    /* the operation.							*/
-
-//  if (rMask & ~pMask)
-//  {
-//	TechError("Planes of result type must be a subset of those of have-type\n");
-//	return FALSE;
-//  }
 
     pMask &= ~rMask;
 
+    for (tres = 0; tres < DBNumTypes; tres++)
+    {
+	if (TTMaskHasType(&tMask, tres))
+	{
+	    if (type == RULE_PAINT)
+	    {
+		/* Apply to all planes of rMask. */
+
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		    if (PlaneMaskHasPlane(rMask, pNum))
+			if (DBTypeOnPlane(tres, pNum))
+			    dbSetPaintEntry(t1, t2, pNum, tres);
+	    }
+	    else	/* (type == RULE_ERASE) */
+	    {
+		/* Apply to all planes of rMask. */
+
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		    if (PlaneMaskHasPlane(rMask, pNum))
+			if (DBTypeOnPlane(tres, pNum))
+			    dbSetEraseEntry(t1, t2, pNum, tres);
+	    }
+	}
+    }
+
     if (type == RULE_PAINT)
     {
-	/* Apply to all planes of rMask. */
-
-	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-	    if (PlaneMaskHasPlane(rMask, pNum))
-		dbSetPaintEntry(t1, t2, pNum, tres);
-
 	/* For all planes of pMask which are not in rMask, result is space */
-
 
 	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	    if (PlaneMaskHasPlane(pMask, pNum))
-		dbSetPaintEntry(t1, t2, pNum, TT_SPACE);
+		    dbSetPaintEntry(t1, t2, pNum, TT_SPACE);
     }
     else	/* (type == RULE_ERASE) */
     {
-	/* Apply to all planes of rMask. */
-
-	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-	    if (PlaneMaskHasPlane(rMask, pNum))
-		dbSetEraseEntry(t1, t2, pNum, tres);
-
 	/* For all planes of pMask which are not in rMask, result is space */
-
 
 	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	    if (PlaneMaskHasPlane(pMask, pNum))

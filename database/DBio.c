@@ -2986,7 +2986,7 @@ DBCellWrite(cellDef, fileName)
 	if (realf == NULL)
 	{
 	    cellDef->cd_flags |= CDMODIFIED;
-	    TxError("Warning: Cannot open file for writing!\n");
+	    TxError("Warning: Cannot open file \"%s\" for writing!\n", expandname);
 	}
 	else
 	{
@@ -2994,7 +2994,7 @@ DBCellWrite(cellDef, fileName)
 	    if (thestat.st_size != DBFileOffset)
 	    {
 		cellDef->cd_flags |= CDMODIFIED;
-		TxError("Warning: I/O error in writing file\n");
+		TxError("Warning: I/O error in writing file \"%s\"\n", expandname);
 	    }
 	    fclose(realf);
 	}
@@ -3173,7 +3173,13 @@ dbWriteCellFunc(cellUse, cdarg)
 	    }
 	    else
 		break;
+
 	}
+
+	/* If there are no common components, then restore the leading '/' */
+	if ((*pathorigin == '/') && (pathstart == pathorigin + 1))
+	    pathstart = pathorigin;
+
 	if (pathend != NULL)
 	{
 	    *pathend = '\0';

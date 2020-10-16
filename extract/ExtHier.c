@@ -291,7 +291,12 @@ extHierConnectFunc1(oneTile, ha)
     // node only describes a single point.
 
     for (lab = cumDef->cd_labels;  lab;  lab = lab->lab_next)
-	if (GEO_TOUCH(&r, &lab->lab_rect) && (lab->lab_flags & LABEL_STICKY))
+    {
+	// All sticky labels are at the front of the list in cumDef, so
+	// stop when we see the first non-sticky label.
+	if (!(lab->lab_flags & LABEL_STICKY)) break;
+
+	if (GEO_TOUCH(&r, &lab->lab_rect))
 	    if (TTMaskHasType(connected, lab->lab_type))
 	    {
 		HashTable *table = &ha->ha_connHash;
@@ -350,6 +355,7 @@ extHierConnectFunc1(oneTile, ha)
 #endif
 	    }
 
+    }
     return (0);
 }
 

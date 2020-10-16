@@ -29,6 +29,7 @@ extern EFNode *spcdevSubstrate();
 extern char *nodeSpiceName();
 extern int nodeVisitDebug();
 extern void topVisit();
+extern void swapDrainSource();
 extern int _ext2spice_start();
 
 extern EFNode *spcdevHierSubstrate();
@@ -89,7 +90,8 @@ extern DQueue    subcktNameQueue ; /* q used to print it sorted at the end*/
 
 
 typedef struct {
-   short resClassSD ;  /* the resistance class of the src/drn of the dev */
+   short resClassSource ;  /* the resistance class of the source of the dev */
+   short resClassDrain ;  /* the resistance class of the drain of the dev */
    short resClassSub ; /* the resistance class of the substrate of the dev */
    char  *defSubs ;    /* the default substrate node */
 } fetInfoList;

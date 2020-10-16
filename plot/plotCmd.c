@@ -98,6 +98,7 @@ CmdPlot(w, cmd)
     int iwidth, scale;
 
 #ifdef HAVE_LIBCAIRO
+    int flags;
     extern void GrTCairoPlotSVG();
 #endif
 
@@ -175,11 +176,11 @@ CmdPlot(w, cmd)
 	if ((!ToolGetBox(&boxRootDef, &scx.scx_area)) ||
 		(scx.scx_use->cu_def != boxRootDef))
 	{
-	    TxError("The box and cursor must appear in the same window\n");
-	    TxError("    for plotting.  The box indicates the area to\n");
-	    TxError("    plot, and the cursor's window tells which\n");
-	    TxError("    cells are expanded and unexpanded).\n");
-	    return;
+	    /* If no box is specified, then use the cell in the layout	*/
+	    /* window, and plot the entire cell using the cell bounding	*/
+	    /* box as the area to plot.					*/
+
+	    scx.scx_area = scx.scx_use->cu_def->cd_bbox;
 	}
 	scx.scx_trans = GeoIdentityTransform;
 	mask = crec->dbw_visibleLayers;
@@ -271,7 +272,15 @@ CmdPlot(w, cmd)
 			cmdPlotOption[PLOTSVG]);
 		return;
 	    }
+	    flags = window->w_flags;
+	    /* In case this is called from a non-GUI wrapper window, remove */
+	    /* the window border widgets from the rendered display.	    */
+	    window->w_flags &= ~(WIND_SCROLLABLE | WIND_SCROLLBARS | WIND_CAPTION
+			| WIND_BORDER);
+	    DBWHLRemoveClient(DBWDrawBox);	// Prevent drawing the cursor box
 	    GrTCairoPlotSVG(cmd->tx_argv[2], window);
+	    DBWHLAddClient(DBWDrawBox);	    // Restore drawing the cursor box
+	    window->w_flags = flags;
 	    return;
 #endif
 

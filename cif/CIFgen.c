@@ -3444,7 +3444,10 @@ calcX:
 	delta = abs(*sxbot) % CIFCurStyle->cs_gridLimit;
 	if (delta > 0)
 	{
-	    *axtop -= 2 * delta;
+	    if (*sxbot >= 0)
+		*axtop -= 2 * delta;
+	    else
+		*axtop += 2 * delta;
 	    goto calcX;
 	}
     }
@@ -3471,7 +3474,10 @@ calcY:
 	    delta = abs(*sybot) % CIFCurStyle->cs_gridLimit;
 	    if (delta > 0)
 	    {
-		*aytop -= 2 * delta;
+		if (*sybot >= 0)
+		    *aytop -= 2 * delta;
+		else
+		    *aytop += 2 * delta;
 		goto calcY;
 	    }
 	}

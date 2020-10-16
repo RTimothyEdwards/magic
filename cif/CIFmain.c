@@ -148,6 +148,28 @@ CIFGetOutputScale(convert)
 /*
  * ----------------------------------------------------------------------------
  *
+ * CIFGetScale --
+ *
+ *  Same as the above routine, but provides the scalefactor to get CIF
+ *  units from centimicrons (which generally means just returning the
+ *  expander value to show if units have been declared in nanometers or
+ *  angstroms).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+float
+CIFGetScale(convert)
+   int convert;
+{
+    if (CIFCurStyle == NULL) return 1.0;
+
+    return (1.0 / (float)(CIFCurStyle->cs_expander * convert));
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * CIFPrintStyle --
  *
  * 	This procedure prints the current CIF output style or list

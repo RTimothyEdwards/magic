@@ -940,7 +940,7 @@ mainInitFinal()
 	    }
 	}
 
-        if (getcwd(cwd, 512) == NULL || strcmp(cwd, home))
+        if (getcwd(cwd, 512) == NULL || strcmp(cwd, home) || (RCFileName[0] == '/'))
 	{
 	    /* Read in the .magicrc file from the current directory, if	*/
 	    /* different from HOME.					*/
@@ -1153,7 +1153,7 @@ mainInitFinal()
 		    break;
 #ifdef LEF_MODULE
 		case FN_LEF_FILE:
-		    LefRead(temporary->fn, FALSE);
+		    LefRead(temporary->fn, FALSE, FALSE);
 		    break;
 		case FN_DEF_FILE:
 		    DefRead(temporary->fn, FALSE);

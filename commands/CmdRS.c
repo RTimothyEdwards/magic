@@ -680,12 +680,13 @@ CmdSelect(w, cmd)
 #define SEL_PICK	 8
 #define SEL_SAVE	 9
 #define SEL_FEEDBACK	10
-#define SEL_BOX		11
-#define SEL_CHUNK	12
-#define SEL_REGION	13
-#define SEL_NET		14
-#define SEL_SHORT	15
-#define SEL_DEFAULT	16
+#define SEL_BBOX	11
+#define SEL_BOX		12
+#define SEL_CHUNK	13
+#define SEL_REGION	14
+#define SEL_NET		15
+#define SEL_SHORT	16
+#define SEL_DEFAULT	17
 
     static char *cmdSelectOption[] =
     {
@@ -700,6 +701,7 @@ CmdSelect(w, cmd)
 	"pick",
 	"save",
 	"feedback",
+	"bbox",
 	"box",
 	"chunk",
 	"region",
@@ -724,6 +726,7 @@ CmdSelect(w, cmd)
 	"pick                            delete selection from layout",
 	"save file                       save selection on disk in file.mag",
 	"feedback [style]		 copy selection to feedback",
+	"bbox				 return the bounding box of the selection",
 	"[more | less] box | chunk | region | net [layers]\n"
 	"				 [de]select chunk/region/net specified by\n"
 	"				 the lower left corner of the current box",
@@ -775,6 +778,7 @@ CmdSelect(w, cmd)
     bool more = FALSE, less = FALSE, samePlace = TRUE;
 #ifdef MAGIC_WRAPPER
     char *tclstr;
+    Tcl_Obj *lobj;
 #endif
 
 /* How close two clicks must be to be considered the same point: */
@@ -931,6 +935,32 @@ CmdSelect(w, cmd)
 	    TxPrintf("Selection commands are:\n");
 	    for (msg = &(cmdSelectMsg[0]); *msg != NULL; msg++)
 		TxPrintf("    select %s\n", *msg);
+	    return;
+
+	/*--------------------------------------------------------------------
+	 * Print or return the bounding box of the selection
+	 *--------------------------------------------------------------------
+	 */
+
+	case SEL_BBOX:
+	    GeoTransRect(&SelectUse->cu_transform, &SelectDef->cd_bbox, &selarea);
+
+#ifdef MAGIC_WRAPPER
+	    lobj = Tcl_NewListObj(0, NULL);
+	    Tcl_ListObjAppendElement(magicinterp, lobj,
+			Tcl_NewIntObj(selarea.r_xbot));
+	    Tcl_ListObjAppendElement(magicinterp, lobj,
+			Tcl_NewIntObj(selarea.r_ybot));
+	    Tcl_ListObjAppendElement(magicinterp, lobj,
+			Tcl_NewIntObj(selarea.r_xtop));
+	    Tcl_ListObjAppendElement(magicinterp, lobj,
+			Tcl_NewIntObj(selarea.r_ytop));
+	    Tcl_SetObjResult(magicinterp, lobj);
+#else
+	    TxPrintf("Select bounding box: %d %d %d %d\n",
+		    selarea.r_xbot, selarea.r_ybot,
+		    selarea.r_xtop, selarea.r_ytop);
+#endif
 	    return;
 
 	/*--------------------------------------------------------------------

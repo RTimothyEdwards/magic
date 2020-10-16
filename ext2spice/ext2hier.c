@@ -172,9 +172,11 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		}
 		else
 		{
-		    int pn;
+		    int pn, resclass;
 		    pn = plist->parm_type[1] - '0';
 		    if (pn >= dev->dev_nterm) pn = dev->dev_nterm - 1;
+		    resclass = (pn > 1) ? esFetInfo[dev->dev_type].resClassDrain :
+			    esFetInfo[dev->dev_type].resClassSource;
 
 		    dnode = GetHierNode(hc,
 			dev->dev_terms[pn].dterm_node->efnode_name->efnn_hier);
@@ -186,16 +188,14 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				'p' && plist->parm_next->parm_type[1] ==
 				plist->parm_type[1])
 		    {
-			spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_name,
+			spcnAP(dnode, resclass, scale, plist->parm_name,
 				plist->parm_next->parm_name, sdM,
 				esSpiceF, w);
 			plist = plist->parm_next;
 		    }
 		    else
 		    {
-			spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_name, NULL, sdM,
+			spcnAP(dnode, resclass, scale, plist->parm_name, NULL, sdM,
 				esSpiceF, w);
 		    }
 		}
@@ -218,9 +218,11 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		}
 		else
 		{
-		    int pn;
+		    int pn, resclass;
 		    pn = plist->parm_type[1] - '0';
 		    if (pn >= dev->dev_nterm) pn = dev->dev_nterm - 1;
+		    resclass = (pn > 1) ? esFetInfo[dev->dev_type].resClassDrain :
+			    esFetInfo[dev->dev_type].resClassSource;
 
 		    dnode = GetHierNode(hc,
 			dev->dev_terms[pn].dterm_node->efnode_name->efnn_hier);
@@ -232,15 +234,13 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				'a' && plist->parm_next->parm_type[1] ==
 				plist->parm_type[1])
 		    {
-			spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, plist->parm_next->parm_name,
+			spcnAP(dnode, resclass, scale, plist->parm_next->parm_name,
 				plist->parm_name, sdM, esSpiceF, w);
 			plist = plist->parm_next;
 		    }
 		    else
 		    {
-			spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD,
-				scale, NULL, plist->parm_name, sdM,
+			spcnAP(dnode, resclass, scale, NULL, plist->parm_name, sdM,
 				esSpiceF, w);
 		    }
 		}
@@ -485,7 +485,7 @@ spcdevHierVisit(hc, dev, scale)
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
     int l, w, i, parmval;
     Rect r;
-    bool subAP= FALSE, hierS, hierD, extHierSDAttr() ;
+    bool subAP = FALSE, hierS, hierD, extHierSDAttr(), swapped = FALSE;
     float sdM;
     char devchar;
     bool has_model = TRUE;
@@ -515,10 +515,10 @@ spcdevHierVisit(hc, dev, scale)
                 !strcmp(dev->dev_terms[1].dterm_attrs, "D")) ||
                 (dev->dev_terms[2].dterm_attrs &&
                 !strcmp(dev->dev_terms[2].dterm_attrs, "S")))
-        {
-            drain = &dev->dev_terms[1];
-            source = &dev->dev_terms[2];
-        }
+	{
+            swapDrainSource(dev, &source, &drain);
+	    swapped = TRUE;
+	}
         else
             drain = &dev->dev_terms[2];
     }
@@ -553,7 +553,7 @@ spcdevHierVisit(hc, dev, scale)
 	case DEV_FET:
 	    if (source == drain)
 	    {
-		if (esFormat == NGSPICE) fprintf(esSpiceF, "; ");
+		if (esFormat == NGSPICE) fprintf(esSpiceF, "$ ");
 		fprintf(esSpiceF, "** SOURCE/DRAIN TIED\n");
 	    }
 	    break;
@@ -561,7 +561,7 @@ spcdevHierVisit(hc, dev, scale)
 	default:
 	    if (gate == source)
 	    {
-		if (esFormat == NGSPICE) fprintf(esSpiceF, "; ");
+		if (esFormat == NGSPICE) fprintf(esSpiceF, "$ ");
 		fprintf(esSpiceF, "** SHORTED DEVICE\n");
 	    }
 	    break;
@@ -666,12 +666,12 @@ spcdevHierVisit(hc, dev, scale)
 	    break;
 
 	case DEV_MSUBCKT:
-	    /* msubcircuit is "Xnnn source gate [drain [sub]]]"		*/
+	    /* msubcircuit is "Xnnn drain gate [source [sub]]]"		*/
 	    /* to more conveniently handle situations where MOSFETs	*/
 	    /* are modeled by subcircuits with the same pin ordering.	*/
 
 	    spcdevOutNode(hc->hc_hierName,
-			source->dterm_node->efnode_name->efnn_hier,
+			drain->dterm_node->efnode_name->efnn_hier,
 			"subckt", esSpiceF);
 
 	    /* Drop through to below (no break statement) */
@@ -693,15 +693,21 @@ spcdevHierVisit(hc, dev, scale)
 	    /* except that the "gate" node is treated as an identifier	*/
 	    /* only and is not output.					*/
 
-	    if ((dev->dev_nterm > 1) && (dev->dev_class != DEV_MSUBCKT))
-		spcdevOutNode(hc->hc_hierName,
-			source->dterm_node->efnode_name->efnn_hier,
-			"subckt", esSpiceF);
-	    if (dev->dev_nterm > 2)
-		spcdevOutNode(hc->hc_hierName,
-			drain->dterm_node->efnode_name->efnn_hier,
-			"subckt", esSpiceF);
-
+        if (dev->dev_class != DEV_MSUBCKT)
+	    {
+		if (dev->dev_nterm > 1)
+		    spcdevOutNode(hc->hc_hierName, source->dterm_node->efnode_name->efnn_hier,
+				"subckt", esSpiceF);
+		if (dev->dev_nterm > 2)
+		    spcdevOutNode(hc->hc_hierName, drain->dterm_node->efnode_name->efnn_hier,
+				"subckt", esSpiceF);
+	    }
+	    else    /* class DEV_MSUBCKT */
+	    {
+		if (dev->dev_nterm > 2)
+		    spcdevOutNode(hc->hc_hierName, source->dterm_node->efnode_name->efnn_hier,
+				"subckt", esSpiceF);
+	    }
 	    /* The following only applies to DEV_SUBCKT*, which may define as	*/
 	    /* many terminal types as it wants.					*/
 
@@ -959,10 +965,10 @@ spcdevHierVisit(hc, dev, scale)
 
 	    fprintf(esSpiceF, "\n+ ");
 	    dnode = GetHierNode(hc, drain->dterm_node->efnode_name->efnn_hier);
-            spcnAP(dnode, esFetInfo[dev->dev_type].resClassSD, scale,
+            spcnAP(dnode, esFetInfo[dev->dev_type].resClassDrain, scale,
 			"ad", "pd", sdM, esSpiceF, w);
 	    snode= GetHierNode(hc, source->dterm_node->efnode_name->efnn_hier);
-	    spcnAP(snode, esFetInfo[dev->dev_type].resClassSD, scale,
+	    spcnAP(snode, esFetInfo[dev->dev_type].resClassSource, scale,
 			"as", "ps", sdM, esSpiceF, w);
 	    if (subAP)
 	    {
@@ -979,22 +985,33 @@ spcdevHierVisit(hc, dev, scale)
 		else
 		    fprintf(esSpiceF, "asub=0 psub=0");
 	    }
-
-	    /* Now output attributes, if present */
-	    if (!esNoAttrs)
-	    {
-		if (gate->dterm_attrs || source->dterm_attrs || drain->dterm_attrs)
-		    fprintf(esSpiceF,"\n**devattr");
-		if (gate->dterm_attrs)
-		    fprintf(esSpiceF, " g=%s", gate->dterm_attrs);
-		if (source->dterm_attrs)
-		    fprintf(esSpiceF, " s=%s", source->dterm_attrs);
-		if (drain->dterm_attrs)
-		    fprintf(esSpiceF, " d=%s", drain->dterm_attrs);
-	    }
-	    break;
+    }
+    
+    /* Output attributes, if present - it looks more convenient here, as other device types may be added */
+    switch (dev->dev_class)
+    {
+        case DEV_FET:
+	    case DEV_MOSFET:
+	    case DEV_ASYMMETRIC:
+        case DEV_MSUBCKT:
+	        if (!esNoAttrs)
+	        {
+		    if (gate->dterm_attrs || source->dterm_attrs || drain->dterm_attrs)
+		        fprintf(esSpiceF,"\n**devattr");
+		    if (gate->dterm_attrs)
+		        fprintf(esSpiceF, " g=%s", gate->dterm_attrs);
+		    if (source->dterm_attrs)
+		        fprintf(esSpiceF, " s=%s", source->dterm_attrs);
+		    if (drain->dterm_attrs)
+		        fprintf(esSpiceF, " d=%s", drain->dterm_attrs);
+	        }
+	        break;
     }
     fprintf(esSpiceF, "\n");
+
+    /* If S/D parameters were swapped, then put them back */
+    if (swapped) swapDrainSource(dev, NULL, NULL);
+
     return 0;
 }
 
@@ -1254,7 +1271,7 @@ spcnodeHierVisit(hc, node, res, cap)
 	static char ntmp[MAX_STR_SIZE];
 
 	EFHNSprintf(ntmp, hierName);
-	if (esFormat == NGSPICE) fprintf(esSpiceF, " ; ");
+	if (esFormat == NGSPICE) fprintf(esSpiceF, " $ ");
 	fprintf(esSpiceF, "** %s == %s\n", ntmp, nsn);
     }
     cap = cap  / 1000;
@@ -1262,12 +1279,12 @@ spcnodeHierVisit(hc, node, res, cap)
     {
 	fprintf(esSpiceF, esSpiceCapFormat, esCapNum++, nsn, cap,
 			(isConnected) ?  "" :
-			(esFormat == NGSPICE) ? " ; **FLOATING" :
+			(esFormat == NGSPICE) ? " $ **FLOATING" :
 			" **FLOATING");
     }
     if (node->efnode_attrs && !esNoAttrs)
     {
-	if (esFormat == NGSPICE) fprintf(esSpiceF, " ; ");
+	if (esFormat == NGSPICE) fprintf(esSpiceF, " $ ");
 	fprintf(esSpiceF, "**nodeattr %s :",nsn );
 	for (fmt = " %s", ap = node->efnode_attrs; ap; ap = ap->efa_next)
 	{
@@ -1521,7 +1538,10 @@ devDistJunctHierVisit(hc, dev, scale)
     for (i = 1; i<dev->dev_nterm; i++)
     {
 	n = GetHierNode(hc, dev->dev_terms[i].dterm_node->efnode_name->efnn_hier);
-	update_w(esFetInfo[dev->dev_type].resClassSD, w, n);
+	if (i == 1)
+	    update_w(esFetInfo[dev->dev_type].resClassSource, w, n);
+	else
+	    update_w(esFetInfo[dev->dev_type].resClassDrain, w, n);
     }
     return 0;
 }

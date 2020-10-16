@@ -37,6 +37,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "drc/drc.h"
+#include "cif/cif.h"
 #include "utils/undo.h"
 
 /* The global variables defined below are parameters between
@@ -201,7 +202,10 @@ drcSubstitute (cptr)
     why_out = (char *)mallocMagic(whylen * sizeof(char));
     strcpy(why_out, whyptr);
 
-    oscale = CIFGetOutputScale(1000);	/* 1000 for conversion to um */
+    if (cptr->drcc_flags & DRC_CIFRULE)
+	oscale = CIFGetScale(100);	/* 100 = microns to centimicrons */
+    else
+	oscale = CIFGetOutputScale(1000);   /* 1000 for conversion to um */
     wptr = why_out;
 
     while ((sptr = strchr(whyptr, '%')) != NULL)
@@ -611,11 +615,9 @@ drcWhyFunc(scx, cdarg)
     /* Check paint and interactions in this subcell. */
 
     (void) DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
-		(dolist) ? drcListError : drcPrintError,
-		(ClientData) scx);
+		(dolist) ? drcListError : drcPrintError, (ClientData) scx);
     (void) DRCArrayCheck(def, &scx->scx_area,
-		(dolist) ? drcListError : drcPrintError,
-		(ClientData) scx);
+		(dolist) ? drcListError : drcPrintError, (ClientData) scx);
 
     /* New behavior:  Don't search children, instead propagate errors up. */
     /* (void) DBCellSrArea(scx, drcWhyFunc, (ClientData)cdarg); */
@@ -635,9 +637,9 @@ drcWhyAllFunc(scx, cdarg)
     /* Check paint and interactions in this subcell. */
 
     (void) DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
-		drcListallError, (ClientData)scx);
+		drcListallError, (Plane *)NULL, (ClientData)scx);
     (void) DRCArrayCheck(def, &scx->scx_area,
-		drcListallError, (ClientData)scx);
+		drcListallError, (Plane *)NULL, (ClientData)scx);
 
     /* New behavior:  Don't search children, instead propagate errors up. */
     /* (void) DBCellSrArea(scx, drcWhyAllFunc, (ClientData)cdarg); */

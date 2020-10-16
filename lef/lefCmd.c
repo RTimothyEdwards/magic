@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "utils/main.h"
+#include "utils/utils.h"
 #include "textio/txcommands.h"
 #include "commands/commands.h"
 
@@ -71,6 +72,10 @@ CmdLef(w, cmd)
 					 * when the FOREIGN statement
 					 * is encountered in a macro.
 					 */
+    bool lefAnnotate = FALSE;		/* Indicates that no celldefs should be
+					 * created from any LEF files, which
+					 * will be used for annotation only.
+					 */
     bool lefTopCell = TRUE;		/* Indicates whether or not we
 					 * write the top-level cell to
 					 * LEF, or just the subcells.
@@ -83,9 +88,16 @@ CmdLef(w, cmd)
 					 * will be output along with the
 					 * lef macro.
 					 */
-    bool lefHide = FALSE;		/* If TRUE, hide all details of
-					 * the macro other than pin area
-					 * immediately surrounding labels.
+    int lefHide = -1;			/* If >= 0, hide all details of the macro
+					 * other than pin area surrounding labels,
+					 * with the indicated setback distance.
+					 */
+    bool lefTopLayer = FALSE;		/* If TRUE, only output the topmost
+					 * layer used by a pin, and make
+					 * all layers below it obstructions.
+					 */
+    bool lefDoMaster = TRUE;		/* If TRUE, output masterslice layers;
+					 * If FALSE, ignore masterslice layers.
 					 */
     bool recurse = FALSE;		/* If TRUE, recurse on all subcells
 					 * during "writeall".  By default,
@@ -100,13 +112,16 @@ CmdLef(w, cmd)
     static char *cmdLefOption[] =
     {
 	"read [filename]		read a LEF file filename[.lef]\n"
-	"    read [filename] -import	read a LEF file; import cells from .mag files",
+	"    read [filename] -import	read a LEF file; import cells from .mag files\n",
+	"    read [filename] -annotate	read a LEF file for cell annotation only.",
 	"write [filename] [-tech]	write LEF for current cell\n"
-	"    write [filename] -hide	hide all details other than ports",
+	"    write [filename] -hide	hide all details other than ports\n",
+	"    write [filename] -hide <d>	hide details in area set back distance <d>",
 	"writeall			write all cells including the top-level cell\n"
 	"    writeall -notop		write all children of the top-level cell\n"
 	"    writeall -all		recurse on all subcells of the top-level cell\n",
-	"    writeall -hide		hide all details other than ports",
+	"    writeall -hide		hide all details other than ports\n",
+	"    writeall -hide [dist]	hide details in area set back distance dist",
 	"help                   	print this help information",
 	NULL
     };
@@ -171,6 +186,8 @@ CmdLef(w, cmd)
 		    {
 			if (!strncmp(cmd->tx_argv[i], "-import", 7))
 			    lefImport = TRUE;
+			else if (!strncmp(cmd->tx_argv[i], "-anno", 5))
+			    lefAnnotate = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-label", 6))
 			{
 			    if (is_lef)
@@ -186,7 +203,7 @@ CmdLef(w, cmd)
 
             namep = cmd->tx_argv[2];
 	    if (is_lef)
-		LefRead(namep, lefImport);
+		LefRead(namep, lefImport, lefAnnotate);
 	    else
 		DefRead(namep, defLabelNets);
 	    break;
@@ -207,14 +224,28 @@ CmdLef(w, cmd)
 			else if (!strncmp(cmd->tx_argv[i], "-tech", 5))
 			    lefTech = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-hide", 5))
-			    lefHide = TRUE;
+			{
+			    lefHide = 0;
+			    if ((i < (cmd->tx_argc - 1)) &&
+				    StrIsNumeric(cmd->tx_argv[i + 1]))
+			    {
+				lefHide = cmdParseCoord(w, cmd->tx_argv[i + 1],
+					    FALSE, TRUE);
+				i++;
+			    }
+			}
+			else if (!strncmp(cmd->tx_argv[i], "-toplayer", 9))
+			    lefTopLayer = TRUE;
+			else if (!strncmp(cmd->tx_argv[i], "-nomaster", 9))
+			    lefDoMaster = FALSE;
 			else if (!strncmp(cmd->tx_argv[i], "-all", 4))
 			    recurse = TRUE;
 			else goto wrongNumArgs;
 		    }
 		    else goto wrongNumArgs;
 		}
-		LefWriteAll(selectedUse, lefTopCell, lefTech, lefHide, recurse);
+		LefWriteAll(selectedUse, lefTopCell, lefTech, lefHide, lefTopLayer,
+			    lefDoMaster, recurse);
 	    }
 	    break;
 	case LEF_WRITE:
@@ -241,9 +272,33 @@ CmdLef(w, cmd)
 		    else if (!strncmp(cmd->tx_argv[i], "-hide", 5))
 		    {
 			if (is_lef)
-			    lefHide = TRUE;
+			{
+			    lefHide = 0;
+			    if ((i < (cmd->tx_argc - 1)) &&
+				    StrIsNumeric(cmd->tx_argv[i + 1]))
+			    {
+				lefHide = cmdParseCoord(w, cmd->tx_argv[i + 1],
+					    FALSE, TRUE);
+				cargs--;
+				i++;
+			    }
+			}
 			else
 			    TxPrintf("The \"-hide\" option is only for lef write\n");
+		    }
+		    else if (!strncmp(cmd->tx_argv[i], "-toplayer", 9))
+		    {
+			if (is_lef)
+			    lefTopLayer = TRUE;
+			else
+			    TxPrintf("The \"-toplayer\" option is only for lef write\n");
+		    }
+		    else if (!strncmp(cmd->tx_argv[i], "-nomaster", 9))
+		    {
+			if (is_lef)
+			    lefDoMaster = FALSE;
+			else
+			    TxPrintf("The \"-nomaster\" option is only for lef write\n");
 		    }
 		    else if (!strncmp(cmd->tx_argv[i], "-units", 5))
 		    {
@@ -284,7 +339,7 @@ CmdLef(w, cmd)
 		DefWriteCell(selectedUse->cu_def, namep, allSpecial, units);
 	    else
 		LefWriteCell(selectedUse->cu_def, namep, selectedUse->cu_def
-			== EditRootDef, lefTech, lefHide);
+			== EditRootDef, lefTech, lefHide, lefTopLayer, lefDoMaster);
 	    break;
 	case LEF_HELP:
 wrongNumArgs:

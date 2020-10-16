@@ -92,7 +92,8 @@ FILE *esLabF = NULL;
 static unsigned short esFormat = MIT ;
 
 struct {
-   short resClassSD ;  /* the resistance class of the src/drn of the dev */
+   short resClassSource ;  /* the resistance class of the source of the dev */
+   short resClassDrain ;  /* the resistance class of the drain of the dev */
    short resClassSub ; /* the resistance class of the substrate of the dev */
    char  *defSubs ;    /* the default substrate node */
 } fetInfo[MAXDEVTYPES];
@@ -262,8 +263,7 @@ CmdExtToSim(w, cmd)
     char **msg;
     bool err_result;
 
-    short sd_rclass;
-    short sub_rclass;
+    short s_rclass, d_rclass, sub_rclass;
     char *devname;
     char *subname;
     int idx;
@@ -572,7 +572,8 @@ runexttosim:
 
     for ( i = 0 ; i < MAXDEVTYPES ; i++ )
     {
-	fetInfo[i].resClassSD = NO_RESCLASS;
+	fetInfo[i].resClassSource = NO_RESCLASS;
+	fetInfo[i].resClassDrain = NO_RESCLASS;
 	fetInfo[i].resClassSub = NO_RESCLASS;
 	fetInfo[i].defSubs = NULL;
     }
@@ -582,7 +583,7 @@ runexttosim:
     /* command)								 */
 
     idx = 0;
-    while (ExtGetDevInfo(idx++, &devname, &sd_rclass, &sub_rclass, &subname))
+    while (ExtGetDevInfo(idx++, &devname, &s_rclass, &d_rclass, &sub_rclass, &subname))
     {
 	if (idx == MAXDEVTYPES)
 	{
@@ -593,7 +594,8 @@ runexttosim:
 
 	if (EFStyle != NULL)
 	{
-	    fetInfo[i].resClassSD = sd_rclass;
+	    fetInfo[i].resClassSource = s_rclass;
+	    fetInfo[i].resClassDrain = d_rclass;
 	    fetInfo[i].resClassSub = sub_rclass;
 	    fetInfo[i].defSubs = subname;
 	}
@@ -670,24 +672,25 @@ main(argc, argv)
     /* create default fetinfo entries (MOSIS) which can be overriden by
        the command line arguments */
     for ( i = 0 ; i < MAXDEVTYPES ; i++ ) {
-	fetInfo[i].resClassSD = NO_RESCLASS;
+	fetInfo[i].resClassSource = NO_RESCLASS;
+	fetInfo[i].resClassDrain = NO_RESCLASS;
 	fetInfo[i].resClassSub = NO_RESCLASS;
 	fetInfo[i].defSubs = NULL;
     }
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "nfet");
-    fetInfo[i].resClassSD = 0 ;
+    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 0 ;
     fetInfo[i].resClassSub = NO_RESCLASS ;
     fetInfo[i].defSubs = "Gnd!";
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "pfet");
-    fetInfo[i].resClassSD = 1 ;
+    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 1 ;
     fetInfo[i].resClassSub = 6 ;
     fetInfo[i].defSubs = "Vdd!";
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "nmos");
-    fetInfo[i].resClassSD = 0 ;
+    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 0 ;
     fetInfo[i].resClassSub = NO_RESCLASS ;
     fetInfo[i].defSubs = "Gnd!";
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "pmos");
-    fetInfo[i].resClassSD = 1 ;
+    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 1 ;
     fetInfo[i].resClassSub = 6 ;
     fetInfo[i].defSubs = "Vdd!";
     /* Process command line arguments */
@@ -888,7 +891,8 @@ simmainArgs(pargc, pargv)
 	    	if ( sscanf(rp, "%d/%s",  &rClass, subsNode) != 2 ) goto usage;
 	    }
 	    ndx = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, cp);
-	    fetInfo[ndx].resClassSD = rClass;
+	    fetInfo[ndx].resClassSource = rClass;
+	    fetInfo[ndx].resClassDrain = rClass;
 	    fetInfo[ndx].resClassSub = rClassSub;
 	    fetInfo[ndx].defSubs = (char *) mallocMagic((unsigned) (strlen(subsNode)+1));
 	    strcpy(fetInfo[ndx].defSubs,subsNode);
@@ -1160,12 +1164,12 @@ simdevVisit(dev, hc, scale, trans)
 	   if ( esFormat == SU ) {
 	       fprintf(esSimF, "%s", (source->dterm_attrs) ? "," : " s=" );
 	       if (hierS)
-	         simnAPHier(source, hierName, fetInfo[dev->dev_type].resClassSD,
+	         simnAPHier(source, hierName, fetInfo[dev->dev_type].resClassSource,
 		      scale, esSimF);
 	       else {
 	         snode= SimGetNode(hierName,
 			     source->dterm_node->efnode_name->efnn_hier);
-	         simnAP(snode, fetInfo[dev->dev_type].resClassSD, scale, esSimF);
+	         simnAP(snode, fetInfo[dev->dev_type].resClassSource, scale, esSimF);
 	       }
 	   }
 	   if (drain->dterm_attrs) {
@@ -1178,12 +1182,12 @@ simdevVisit(dev, hc, scale, trans)
 	   if ( esFormat == SU ) {
 	       fprintf(esSimF, "%s", (drain->dterm_attrs) ? "," : " d=" );
 	       if (hierD)
-	         simnAPHier(drain, hierName, fetInfo[dev->dev_type].resClassSD,
+	         simnAPHier(drain, hierName, fetInfo[dev->dev_type].resClassDrain,
 		      scale, esSimF);
 	       else {
 	         dnode = SimGetNode(hierName,
 			      drain->dterm_node->efnode_name->efnn_hier);
-	         simnAP(dnode, fetInfo[dev->dev_type].resClassSD,
+	         simnAP(dnode, fetInfo[dev->dev_type].resClassDrain,
 		      scale, esSimF);
 	       }
 	   }

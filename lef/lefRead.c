@@ -1568,7 +1568,22 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		if (is_imported)
 		{
 		    bool needRect = TRUE;
+		    bool hasPort = FALSE;
 		    Label *lab;
+
+		    /* Conflicting interests: One purpose of annotation */
+		    /* is to make ports where none existed.  But if the	*/
+		    /* cell has both port and non-port labels with the	*/
+		    /* same string, then don't mess with the non-port	*/
+		    /* label.						*/
+
+		    for (lab = firstlab; lab; lab = lab->lab_next)
+			if (lab->lab_flags & PORT_DIR_MASK)
+			    if (!strcmp(lab->lab_text, testpin))
+			    {
+				hasPort = TRUE;
+				break;
+			    }
 
 		    /* Skip the port geometry but find the pin name and	*/
 		    /* annotate with the use and direction.  Note that	*/
@@ -1576,11 +1591,17 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		    /* However, if the label is a point label, then	*/
 		    /* replace it with the geometry from the LEF file.	*/
 
-		    for (lab = firstlab; lab; lab = lab->lab_next)
+		    if (hasPort == FALSE) lab = firstlab;
+		    for (; lab; lab = lab->lab_next)
 		    {
 			if (!strcmp(lab->lab_text, testpin))
 			{
-			    if (GEO_RECTNULL(&lab->lab_rect))
+			    /* If there is at least one port label with this	*/
+			    /* name, then ignore all non-port labels with the	*/
+			    /* same name.					*/
+			    if ((hasPort) && (!(lab->lab_flags & PORT_DIR_MASK)))
+				break;
+			    else if (GEO_RECTNULL(&lab->lab_rect))
 				break;
 			    else
 			    {
@@ -1692,12 +1713,15 @@ enum lef_macro_keys {LEF_CLASS = 0, LEF_SIZE, LEF_ORIGIN,
 	LEF_TIMING, LEF_FOREIGN, LEF_PROPERTY, LEF_MACRO_END};
 
 void
-LefReadMacro(f, mname, oscale, importForeign)
+LefReadMacro(f, mname, oscale, importForeign, doAnnotate)
     FILE *f;			/* LEF file being read	*/
     char *mname;		/* name of the macro 	*/
     float oscale;		/* scale factor um->magic units */
     bool importForeign;		/* Whether we should try to read
 				 * in a cell.
+				 */
+    bool doAnnotate;		/* If true, ignore all macros that are
+				 * not already CellDefs.
 				 */
 {
     CellDef *lefMacro;
@@ -1743,6 +1767,12 @@ LefReadMacro(f, mname, oscale, importForeign)
         lefMacro = DBCellLookDef(newname);
         if (lefMacro == NULL)
 	{
+	    if (doAnnotate)
+	    {
+		/* Ignore any macro that does not correspond to an existing cell */
+		LefSkipSection(f, "MACRO");
+		return;
+	    }
 	    lefMacro = lefFindCell(newname);
 	    DBCellClearDef(lefMacro);
 	    DBCellSetAvail(lefMacro);
@@ -1839,8 +1869,8 @@ origin_error:
 		break;
 	    case LEF_SOURCE:
 		token = LefNextToken(f, TRUE);
-		if (*token != '\n')
-		    DBPropPut(lefMacro, "LEFsource", StrDup((char **)NULL, token));
+		/* Ignore "SOURCE" as it is deprecated from LEF 5.6, and    */
+		/* magic will write LEF version 5.7.			    */
 		LefEndStatement(f);
 		break;
 	    case LEF_SITE:
@@ -2487,9 +2517,10 @@ enum lef_sections {LEF_VERSION = 0,
 	LEF_END};
 
 void
-LefRead(inName, importForeign)
+LefRead(inName, importForeign, doAnnotate)
     char *inName;
     bool importForeign;
+    bool doAnnotate;
 {
     FILE *f;
     char *filename;
@@ -2713,7 +2744,7 @@ LefRead(inName, importForeign)
 		TxPrintf("LEF file:  Defines new cell %s\n", token);
 		*/
 		sprintf(tsave, "%.127s", token);
-		LefReadMacro(f, tsave, oscale, importForeign);
+		LefReadMacro(f, tsave, oscale, importForeign, doAnnotate);
 		break;
 	    case LEF_END:
 		if (LefParseEndStatement(f, "LIBRARY") == 0)

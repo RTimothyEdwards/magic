@@ -614,6 +614,10 @@ proc magic::repaintwrapper { win } {
 proc magic::boxview {win {cmdstr ""}} {
    if {${cmdstr} == "exists" || ${cmdstr} == "help" || ${cmdstr} == ""} {
       # do nothing. . . informational only, no change to the box
+   } elseif {${cmdstr} == "remove"} {
+      set framename [winfo parent $win]
+      if {$framename == "."} {return}
+      ${framename}.titlebar.pos configure -text "no box"
    } elseif {[info level] <= 1} {
       # For NULL window, find all layout windows and apply update to each.
       if {$win == {}} {

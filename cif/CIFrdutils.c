@@ -60,6 +60,7 @@ FILE *cifErrorFile;
 int cifLineNumber;		/* Number of current line. */
 int cifTotalWarnings;		/* Number of warnings detected */
 int cifTotalErrors;		/* Number of errors detected */
+bool cifSeenSnapWarning;	/* Track this to prevent excessive messaging */
 
 /* The variables used below hold general information about what
  * we're currently working on.
@@ -218,8 +219,10 @@ CIFScaleCoord(cifCoord, snap_type)
 	switch (snap_type)
 	{
 	    case COORD_EXACT:
-		CIFReadWarning("Input off lambda grid by %d/%d; grid redefined.\n",
+		if (!cifSeenSnapWarning)
+		    CIFReadWarning("Input off lambda grid by %d/%d; grid redefined.\n",
 			remain, denom);
+		cifSeenSnapWarning = TRUE;
 
 		CIFTechInputScale(1, denom, FALSE);
 		CIFTechOutputScale(1, denom);
@@ -243,8 +246,10 @@ CIFScaleCoord(cifCoord, snap_type)
 	    case COORD_HALF_U: case COORD_HALF_L:
 		if (denom > 2)
 		{
-		    CIFReadWarning("Input off lambda grid by %d/%d; grid redefined.\n",
-				remain, denom);
+		    if (!cifSeenSnapWarning)
+			CIFReadWarning("Input off lambda grid by %d/%d; "
+				"grid redefined.\n", remain, denom);
+		    cifSeenSnapWarning = TRUE;
 
 		    /* scale to nearest half-lambda */
 		    if (!(denom & 0x1)) denom >>= 1;
@@ -277,8 +282,10 @@ CIFScaleCoord(cifCoord, snap_type)
 
 		break;
 	    case COORD_ANY:
-		CIFReadWarning("Input off lambda grid by %d/%d; snapped to grid.\n",
-			abs(remain), abs(denom));
+		if (!cifSeenSnapWarning)
+		    CIFReadWarning("Input off lambda grid by %d/%d; snapped to grid.\n",
+				abs(remain), abs(denom));
+		cifSeenSnapWarning = TRUE;
 
 		/* Careful:  must round down a bit more for negative numbers, in
 		 * order to ensure that a point exactly halfway between Magic units
@@ -1591,6 +1598,7 @@ CIFReadFile(file)
     cifTotalWarnings = 0;
     cifTotalErrors = 0;
     CifPolygonCount = 0;
+    cifSeenSnapWarning = FALSE;
 
     cifInputFile = file;
     cifReadScale1 = 1;

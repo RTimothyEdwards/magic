@@ -61,6 +61,19 @@ static DRCCookie drcSubcellCookie = {
     (DRCCookie *) NULL
 };
 
+/* The cookie below is dummied up to provide an error message for
+ * errors that are in a subcell non-interaction area and have been
+ * copied up into the parent without flattening
+ */
+
+static DRCCookie drcInSubCookie = {
+    0, 0, 0, 0,
+    { 0 }, { 0 },
+    0, 0, 0,
+    DRC_IN_SUBCELL_TAG,
+    (DRCCookie *) NULL
+};
+
 extern int DRCErrorType;
 
 /*
@@ -94,6 +107,33 @@ drcFindOtherCells(use, area)
     return 0;
 }
 
+/* For each tile found in drcCopyErrorsFunc(), translate the	*/
+/* tile position into the coordinate system of the parent cell	*/
+/* (represented by the drcTemp plane in ClientData) and		*/
+/* copy (paint) into it.					*/
+
+int
+drcSubCopyErrors(tile, cxp)
+    Tile *tile;
+    TreeContext *cxp;
+{
+    Rect area;
+    Rect destArea;
+    struct drcClientData *arg = (struct drcClientData *)cxp->tc_filter->tf_arg;
+
+    // DBTreeSrTiles() checks its own tiles, which we want to ignore.
+    if (arg->dCD_celldef == cxp->tc_scx->scx_use->cu_def) return 0;
+
+    TiToRect(tile, &area);
+    GeoClip(&area, &cxp->tc_scx->scx_area);
+    GeoTransRect(&cxp->tc_scx->scx_trans, &area, &destArea);
+
+    (*(arg->dCD_function))(arg->dCD_celldef, &destArea, arg->dCD_cptr,
+		arg->dCD_clientData);
+    (*(arg->dCD_errors))++;
+    
+    return 0;
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -146,12 +186,24 @@ drcSubcellFunc(subUse, propagate)
     /* all cells are checked and errors propagate to the top level.	*/
 
     subIntArea = GeoNullRect;
+
+#if (0)
+    /* NOTE:  DRC errors inside a subcell should be ignored for	*/
+    /* the purpose of finding interactions.  Errors should only	*/
+    /* be copied up into the parent when in a non-interaction	*/
+    /* area.  This is done below in DRCFindInteractions().	*/
+    /* (Method added by Tim, 10/15/2020)			*/
+
+    /* Maybe S and PS errors should be pulled here? */
+
     DBSrPaintArea((Tile *) NULL, subUse->cu_def->cd_planes[PL_DRC_ERROR],
 		&TiPlaneRect, &DBAllButSpaceBits, drcIncludeArea,
 		(ClientData) &subIntArea);
 
     GeoTransRect(&(subUse->cu_transform), &subIntArea, &locIntArea);
     GeoInclude(&locIntArea, &intArea);
+#endif
+
     if (!GEO_RECTNULL(&subIntArea)) *propagate = TRUE;
 
     drcCurSub = subUse;
@@ -555,11 +607,16 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
     void (*savedPaintPlane)();
     struct drcClientData arg;
     SearchContext scx;
+    TileTypeBitMask drcMask;
 
     drcSubFunc = func;
     drcSubClientData = cdarg;
     oldTiles = DRCstatTiles;
     count = 0;
+
+    /* Create a mask with only TT_ERROR_P in it */
+    TTMaskZero(&drcMask);
+    TTMaskSetType(&drcMask, TT_ERROR_P);
 
     /* Divide the area to be checked up into squares.  Process each
      * square separately.
@@ -585,6 +642,16 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
             cliparea = square;
 	    GeoClip(&cliparea, area);
 
+	    /* Prepare for subcell search */
+	    DRCDummyUse->cu_def = def;
+	    scx.scx_use = DRCDummyUse;
+	    scx.scx_trans = GeoIdentityTransform;
+	    arg.dCD_celldef = def;
+	    arg.dCD_errors = &count;
+	    arg.dCD_cptr = &drcInSubCookie;
+	    arg.dCD_function = func;
+	    arg.dCD_clientData = cdarg;
+
 	    /* Find all the interactions in the square, and clip to the error
 	     * area we're interested in. */
 
@@ -600,6 +667,11 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		errorSaveType = DRCErrorType;
 		DRCErrorType = TT_ERROR_P;	// Basic check is always ERROR_P
                 DRCBasicCheck(def, &intArea, &subArea, func, cdarg);
+
+		/* Copy errors up from all non-interacting children	*/
+		scx.scx_area = subArea;
+		DBTreeSrTiles(&scx, &drcMask, 0, drcSubCopyErrors, &arg);
+
 		DRCErrorType = errorSaveType;
 		continue;
 	    }
@@ -632,6 +704,9 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		    subArea.r_ybot = intArea.r_ytop;
 		    GEO_EXPAND(&subArea, DRCTechHalo, &eraseHalo);
                     DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
+		    /* Copy errors up from all non-interacting children	*/
+		    scx.scx_area = subArea;
+		    DBTreeSrTiles(&scx, &drcMask, 0, drcSubCopyErrors, &arg);
 		}
 		/* check below */
 		if (intArea.r_ybot > eraseClip.r_ybot)
@@ -640,6 +715,9 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		    subArea.r_ytop = intArea.r_ybot;
 		    GEO_EXPAND(&subArea, DRCTechHalo, &eraseHalo);
                     DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
+		    /* Copy errors up from all non-interacting children	*/
+		    scx.scx_area = subArea;
+		    DBTreeSrTiles(&scx, &drcMask, 0, drcSubCopyErrors, &arg);
 		}
 		subArea.r_ytop = intArea.r_ytop;
 		subArea.r_ybot = intArea.r_ybot;
@@ -650,6 +728,9 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		    subArea.r_xbot = intArea.r_xtop;
 		    GEO_EXPAND(&subArea, DRCTechHalo, &eraseHalo);
                     DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
+		    /* Copy errors up from all non-interacting children	*/
+		    scx.scx_area = subArea;
+		    DBTreeSrTiles(&scx, &drcMask, 0, drcSubCopyErrors, &arg);
 		}
 		/* check left */
 		if (intArea.r_xbot > eraseClip.r_xbot)
@@ -658,6 +739,9 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		    subArea.r_xbot = eraseClip.r_xbot;
 		    GEO_EXPAND(&subArea, DRCTechHalo, &eraseHalo);
                     DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
+		    /* Copy errors up from all non-interacting children	*/
+		    scx.scx_area = subArea;
+		    DBTreeSrTiles(&scx, &drcMask, 0, drcSubCopyErrors, &arg);
 		}
 		DRCErrorType = errorSaveType;
 	    }
@@ -672,9 +756,6 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 
 	    DRCstatInteractions += 1;
 	    GEO_EXPAND(&intArea, DRCTechHalo, &scx.scx_area);
-	    DRCDummyUse->cu_def = def;
-	    scx.scx_use = DRCDummyUse;
-	    scx.scx_trans = GeoIdentityTransform;
 	    DBCellClearDef(DRCdef);
 
 	    savedPaintTable = DBNewPaintTable(DRCCurStyle->DRCPaintTable);
@@ -696,15 +777,10 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 
 	    /* Check for illegal partial overlaps. */
 
-	    scx.scx_use = DRCDummyUse;
 	    scx.scx_area = intArea;
-	    scx.scx_trans = GeoIdentityTransform;
-	    arg.dCD_celldef = DRCdef;
 	    arg.dCD_clip = &intArea;
-	    arg.dCD_errors = &count;
+	    arg.dCD_celldef = DRCdef;
 	    arg.dCD_cptr = &drcSubcellCookie;
-	    arg.dCD_function = func;
-	    arg.dCD_clientData = cdarg;
 	    (void) DBTreeSrUniqueTiles(&scx, &DRCCurStyle->DRCExactOverlapTypes,
 			0, drcExactOverlapTile, (ClientData) &arg);
 	}

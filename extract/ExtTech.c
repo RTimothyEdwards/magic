@@ -293,14 +293,22 @@ ExtCompareStyle(stylename)
  *
  * Side Effects:
  *	Fills values in the argument list.
+ *
+ * Notes:
+ *	The original sd_rclassptr has been expanded to s_rclassptr and
+ *	d_rclassptr to capture asymmetric devices, bipolars, etc.  Note
+ *	that this is not a general-purpose method extending beyond two
+ *	(non-gate) terminals, and should be updated.
+ *	
  * ----------------------------------------------------------------------------
  */
 
 bool
-ExtGetDevInfo(idx, devnameptr, sd_rclassptr, sub_rclassptr, subnameptr)
+ExtGetDevInfo(idx, devnameptr, s_rclassptr, d_rclassptr, sub_rclassptr, subnameptr)
     int idx;
     char **devnameptr;
-    short *sd_rclassptr;	/* First SD type only---needs to be updated! */
+    short *s_rclassptr;	    /* Source (1st terminal) type only */
+    short *d_rclassptr;	    /* Drain (2nd terminal) type only */
     short *sub_rclassptr;
     char **subnameptr;
 {
@@ -348,15 +356,36 @@ ExtGetDevInfo(idx, devnameptr, sd_rclassptr, sub_rclassptr, subnameptr)
     *subnameptr = devptr->exts_deviceSubstrateName;
 
     tmask = &devptr->exts_deviceSDTypes[0];
-    *sd_rclassptr = (short)(-1);	/* NO_RESCLASS */
+    *s_rclassptr = (short)(-1);	/* NO_RESCLASS */
 
     for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
     {
 	rmask = &ExtCurStyle->exts_typesByResistClass[n];
 	if (TTMaskIntersect(rmask, tmask))
 	{
-	    *sd_rclassptr = (short)n;
+	    *s_rclassptr = (short)n;
 	    break;
+	}
+    }
+
+    tmask = &devptr->exts_deviceSDTypes[1];
+    if (TTMaskIsZero(tmask))
+    {
+	/* Set source and drain resistance classes to be the same */
+	*d_rclassptr = (short)n;
+    }
+    else
+    {
+	*d_rclassptr = (short)(-1);	/* NO_RESCLASS */
+
+	for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
+	{
+	    rmask = &ExtCurStyle->exts_typesByResistClass[n];
+	    if (TTMaskIntersect(rmask, tmask))
+	    {
+		*d_rclassptr = (short)n;
+		break;
+	    }
 	}
     }
 
@@ -2280,7 +2309,7 @@ ExtTechLine(sectionName, argc, argv)
 
 		    /* terminals */
 		    for (i = iterm; i < iterm + nterm; i++)
-			DBTechNoisyNameMask(argv[iterm], &termtypes[i - iterm]);
+			DBTechNoisyNameMask(argv[i], &termtypes[i - iterm]);
 		    termtypes[nterm] = DBZeroTypeBits;
 
 		    if (nterm == 0) i++;

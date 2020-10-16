@@ -104,7 +104,7 @@ DBDescendSubcell(use, xMask)
  *
  * Copies the contents of the CellDef pointed to by sourceDef into the
  * CellDef pointed to by destDef.  Only the planes, labels, flags,
- * use-id hash table, and bounding box are copied.
+ * cell plane, use-id hash table, and bounding box are copied.
  *
  * Results:
  *	None.
@@ -130,6 +130,8 @@ DBCellCopyDefBody(sourceDef, destDef)
     destDef->cd_idHash = sourceDef->cd_idHash;
     for (i = 0; i < MAXPLANES; i++)
 	destDef->cd_planes[i] = sourceDef->cd_planes[i];
+
+    destDef->cd_cellPlane = sourceDef->cd_cellPlane;
 
     /* Be careful to update parent pointers in the children of dest.
      * Don't allow interrupts to wreck this.

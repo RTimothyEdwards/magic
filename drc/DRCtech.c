@@ -582,6 +582,11 @@ DRCTechStyleInit()
     /* (see DRCsubcell.c).					     */
     drcWhyCreate("This layer can't abut or partially overlap between subcells");
 
+    /* Fourth DRC entry is associated with the statically-allocated  */
+    /* drcSubcellCookie and has a tag of DRC_IN_SUBCELL_TAG = 4      */
+    /* (see DRCsubcell.c).					     */
+    drcWhyCreate("See error definition in the subcell");
+
     DRCTechHalo = 0;
 
     /* Put a dummy rule at the beginning of the rules table for each entry */
@@ -1762,7 +1767,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 	    {
 		needtrigger = TRUE;
 		touchingok = FALSE;
-
+		needReverse = TRUE;
 	    }
 	    else
 	    {
@@ -2000,6 +2005,9 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 		    TTMaskClearMask3(&tmp1, &DBPlaneTypes[plane2], set1);
 		    TTMaskAndMask3(&tmp2, &DBPlaneTypes[plane], &setRreverse);
 
+		    /* NOTE:  This is needed for some situation, but I	*/
+		    /* do not recall the exact nature of it.  In other	*/
+		    /* cases only the simple rule check is needed.	*/
 		    if (needtrigger)
 		    {
 			DRCCookie *dptrig;
@@ -2036,6 +2044,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 			dp = drcFindBucket(j, i, distance);
 			dpnew = (DRCCookie *) mallocMagic(sizeof (DRCCookie));
 
+			/* See above */
 			if (needtrigger)
 			{
 			    DRCCookie *dptrig;

@@ -35,7 +35,7 @@ typedef struct drccookie
     unsigned char     drcc_cmod;	/* Fractional part of drcc_cdist */
     TileTypeBitMask   drcc_mask;	/* Legal types on RHS */
     TileTypeBitMask   drcc_corner;	/* Types that trigger corner check */
-    unsigned char     drcc_flags;	/* Miscellaneous flags, see below. */
+    unsigned short    drcc_flags;	/* Miscellaneous flags, see below. */
     int		      drcc_edgeplane;	/* Plane of edge */
     int		      drcc_plane;	/* Index of plane on which to check
 					 * legal types. */
@@ -47,6 +47,7 @@ typedef struct drccookie
 #define DRC_ARRAY_OVERLAP_TAG	1
 #define DRC_OVERLAP_TAG		2
 #define DRC_SUBCELL_OVERLAP_TAG	3
+#define DRC_IN_SUBCELL_TAG	4
 
 /* *This is size "int" because it holds an area for DRC_AREA rules,	  */
 /* and therefore may have twice the bit length of a normal rule distance. */
@@ -73,6 +74,9 @@ typedef struct drccookie
 #define		DRC_RECTSIZE		0x40
 #define		DRC_ANGLES		0x80
 #define 	DRC_NONSTANDARD		(DRC_AREA|DRC_MAXWIDTH|DRC_RECTSIZE|DRC_ANGLES)
+
+/* More flags for indicating what the rule type represents */
+#define		DRC_CIFRULE		0x100
 
 #define	DRC_PENDING			0
 #define DRC_UNPROCESSED 		CLIENTDEFAULT
@@ -263,6 +267,7 @@ extern DRCCountList *DRCCount();
 extern int DRCFind();
 extern void DRCCatchUp();
 extern bool DRCFindInteractions();
+extern int  DRCBasicCheck();
 
 extern void DRCPrintStyle();
 extern void DRCSetStyle();

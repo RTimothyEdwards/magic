@@ -155,23 +155,37 @@ efBuildNode(def, isSubsnode, nodeName, nodeCap, x, y, layerName, av, ac)
 	if (efWarn)
 	    efReadError("Warning: duplicate node name %s\n", nodeName);
 
-	/* Just add to C, perim, area of existing node */
-	newnode = newname->efnn_node;
-	newnode->efnode_cap += (EFCapValue) nodeCap;
-	for (n = 0; n < efNumResistClasses && ac > 1; n++, ac -= 2)
+	/* newnode should exist if newname does.  Having a NULL node	*/
+	/* may be caused by detached labels "connected" to space.	*/
+
+	if ((newnode = newname->efnn_node) != NULL)
 	{
-	    newnode->efnode_pa[n].pa_area += atoi(*av++);
-	    newnode->efnode_pa[n].pa_perim += atoi(*av++);
+	    /* Just add to C, perim, area of existing node */
+	    newnode->efnode_cap += (EFCapValue) nodeCap;
+	    for (n = 0; n < efNumResistClasses && ac > 1; n++, ac -= 2)
+	    {
+		newnode->efnode_pa[n].pa_area += atoi(*av++);
+		newnode->efnode_pa[n].pa_perim += atoi(*av++);
+	    }
+
+	    /* If this node is identified as substrate, ensure that */
+	    /* the flag is set.					    */
+	    if (isSubsnode == TRUE)
+		newnode->efnode_flags |= EF_SUBS_NODE;
+    
+	    return;
 	}
-	return;
     }
 
-    /* Allocate a new node with 'nodeName' as its single name */
-    newname = (EFNodeName *) mallocMagic((unsigned)(sizeof (EFNodeName)));
-    newname->efnn_hier = EFStrToHN((HierName *) NULL, nodeName);
-    newname->efnn_port = -1;	/* No port assignment */
-    newname->efnn_next = NULL;
-    HashSetValue(he, (char *) newname);
+    if (!newname)
+    {
+	/* Allocate a new node with 'nodeName' as its single name */
+	newname = (EFNodeName *) mallocMagic((unsigned)(sizeof (EFNodeName)));
+	newname->efnn_hier = EFStrToHN((HierName *) NULL, nodeName);
+	newname->efnn_port = -1;	/* No port assignment */
+	newname->efnn_next = NULL;
+	HashSetValue(he, (char *) newname);
+    }
 
     /* New node itself */
     size = sizeof (EFNode) + (efNumResistClasses - 1) * sizeof (EFPerimArea);

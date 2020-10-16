@@ -28,6 +28,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include <stdio.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -42,6 +43,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "debug/debug.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
+#include "graphics/graphics.h"
 #include "utils/signals.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
@@ -168,6 +170,10 @@ extSubtree(parentUse, reg, f)
     float pdone, plast;
     SearchContext scx;
 
+    /* Use the display timer to force a 5-second progress check */
+    GrDisplayStatus = DISPLAY_IN_PROGRESS;
+    SigSetTimer(5);		    /* Print at 5-second intervals */
+
     if ((ExtOptions & (EXT_DOCOUPLING|EXT_DOADJUST))
 		   != (EXT_DOCOUPLING|EXT_DOADJUST))
 	halo = 1;
@@ -264,9 +270,16 @@ extSubtree(parentUse, reg, f)
 	    cuts++;
 	    pdone = 100.0 * ((float)cuts / (float)totcuts);
 	    if ((((pdone - plast) > 5.0) || (cuts == totcuts)) && (cuts > 1)) {
-		TxPrintf("Completed %d%%\n", (int)(pdone + 0.5));
-		plast = pdone;
-		TxFlushOut();
+		/* Only print something if the 5-second timer has expired */
+		if (GrDisplayStatus == DISPLAY_BREAK_PENDING)
+		{
+		    TxPrintf("Completed %d%%\n", (int)(pdone + 0.5));
+		    plast = pdone;
+		    TxFlushOut();
+
+		    GrDisplayStatus = DISPLAY_IN_PROGRESS;
+		    SigSetTimer(5);
+		}
 
 #ifdef MAGIC_WRAPPER
 		/* We need to let Tk paint the console display */
@@ -313,6 +326,8 @@ done:
     /* Output connections and node adjustments */
     extOutputConns(&ha.ha_connHash, f);
     HashKill(&ha.ha_connHash);
+    GrDisplayStatus = DISPLAY_IDLE;
+    SigRemoveTimer();
 
     /* Clear the CU_SUB_EXTRACTED flag from all children instances */
     DBCellEnum(def, extClearUseFlags, (ClientData)NULL);
@@ -766,6 +781,8 @@ extSubtreeFunc(scx, ha)
 
 	    for (lab = cumDef->cd_labels; lab ; lab = lab->lab_next)
 	    {
+		if (!(lab->lab_flags & LABEL_STICKY)) continue;
+		
 		n = sizeof (Label) + strlen(lab->lab_text)
 			- sizeof lab->lab_text + 1;
 

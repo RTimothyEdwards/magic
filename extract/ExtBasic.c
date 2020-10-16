@@ -1724,7 +1724,14 @@ extOutputDevices(def, transList, outFile)
 		    continue;   /* This terminal already found by perimeter search */
 
 		tmask = &devptr->exts_deviceSDTypes[termcount];
-		if (TTMaskIsZero(tmask)) break;	/* End of SD terminals */
+		if (TTMaskIsZero(tmask)) {
+		    if (termcount < nsd) {
+			/* See if there is another matching device record with	*/
+			/* a different number of terminals, and try again.	*/
+			devptr = extDevFindMatch(devptr, t);
+		    } 
+		    break;	/* End of SD terminals */
+		}
 		else if (!TTMaskIntersect(tmask, &DBPlaneTypes[reg->treg_pnum]))
 		{
 		    node = NULL;
@@ -1736,7 +1743,7 @@ extOutputDevices(def, transList, outFile)
 			break;
 		    }
 		    extTransRec.tr_devmatch |= (MATCH_TERM << termcount);
-		    extTransRec.tr_termnode[termcount++] = node;
+		    extTransRec.tr_termnode[termcount] = node;
 		}
 		else if (TTMaskHasType(tmask, TT_SPACE)) {
 		    /* Device node is specified as being the substrate */
@@ -1842,6 +1849,7 @@ extOutputDevices(def, transList, outFile)
 	    if (varsub != NULL) subsName = varsub;
 	}
 #endif
+	extTransRec.tr_devrec = devptr;
 
 	/* Original-style FET record backward compatibility */
 	if (devptr->exts_deviceClass != DEV_FET)
@@ -1941,6 +1949,7 @@ extOutputDevices(def, transList, outFile)
 		    arg.fra_uninit = (ClientData) extTransRec.tr_gatenode;
 		    arg.fra_region = (Region *) reg;
 		    arg.fra_each = extAnnularTileFunc;
+
 		    (void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 
 		    extSeparateBounds(n - 1);	/* Handle MOScaps (if necessary) */
@@ -2253,7 +2262,7 @@ extTransFindSubs(tile, t, mask, def, sn, layerptr)
     NodeRegion **sn;
     TileType *layerptr;
 {
-    Rect tileArea;
+    Rect tileArea, tileAreaPlus;
     int pNum;
     int extTransFindSubsFunc1();	/* Forward declaration */
     NodeAndType noderec;
@@ -2262,11 +2271,16 @@ extTransFindSubs(tile, t, mask, def, sn, layerptr)
     noderec.layer = TT_SPACE;
 
     TiToRect(tile, &tileArea);
+
+    /* Expand tile area by 1 in all directions.  This catches terminals */
+    /* on certain extended drain MOSFET devices.			*/
+    GEO_EXPAND(&tileArea, 1, &tileAreaPlus);
+
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
 	if (TTMaskIntersect(&DBPlaneTypes[pNum], mask))
 	{
-	    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[pNum], &tileArea,
+	    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[pNum], &tileAreaPlus,
 		    mask, extTransFindSubsFunc1, (ClientData)&noderec))
 	    {
 		*sn = noderec.region;
@@ -2749,6 +2763,7 @@ extTransPerimFunc(bp)
 		else
 		{
 		    TxError("Error:  Asymmetric device with multiple terminals!\n");
+		    break;
 		}
 
 		/* Add the length to this terminal's perimeter */
@@ -3024,7 +3039,31 @@ extSpecialPerimFunc(bp, sense)
 	if (toutside == TT_SPACE)
 	    if (glob_subsnode != NULL)
 		diffNode = glob_subsnode;
+    }
 
+    /* Check for terminal on different plane than the device */
+    if (!needSurvey)
+    {
+	for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
+	{
+	    TileTypeBitMask mmask;
+	    PlaneMask pmask;
+
+	    mmask = devptr->exts_deviceSDTypes[i];
+	    if (toutside != TT_SPACE) TTMaskClearType(&mmask, TT_SPACE);
+	    pmask = DBTechTypesToPlanes(&mmask);
+
+	    if (!PlaneMaskHasPlane(pmask, DBPlane(tinside)))
+	    {
+		diffNode = extTransRec.tr_termnode[i];
+		needSurvey = TRUE;
+		break;
+	    }
+	}
+    }
+
+    if (!sense || needSurvey)
+    {
 	/*
 	 * Since we're repeating the search, all terminals should be there.
 	 */

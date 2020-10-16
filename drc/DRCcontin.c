@@ -197,13 +197,23 @@ DRCCheckThis (celldef, operation, area)
 					 *  of CellDefs waiting for DRC
 					 */
 
-    /* Ignore read-only, internal, and vendor GDS cells.  None of these	*/
-    /* can contain DRC errors that could be fixed in magic.		*/
+    /* Ignore internal GDS cells. */
+    /* Note that this rescinds the former behavior of ignoring DRC on	*/
+    /* vendor and read-only cells.  Such cells will be flattened in	*/
+    /* interaction areas and show errors anyway, so not showing errors	*/
+    /* in the cell is just confusing.					*/
 
-    if (celldef->cd_flags & (CDVENDORGDS | CDNOEDIT | CDINTERNAL)) return;
+    if (celldef->cd_flags & CDINTERNAL) return;
 
     /* Insert celldef into list of Defs waiting to be checked, unless	*/
     /* it is already there.						*/
+
+#if (0)
+
+    /* The switch to copying up DRC errors from non-interacting	    */
+    /* child cells means that the child cells must be processed	    */
+    /* first.  So this routine changes from prepending the cell	    */
+    /* to the list to appending it.				    */
 
     pback = &DRCPendingRoot;
     p = DRCPendingRoot;
@@ -225,6 +235,33 @@ DRCCheckThis (celldef, operation, area)
     }
     p->dpc_next = DRCPendingRoot;
     DRCPendingRoot = p;
+
+#endif
+    /* Append new cell to check to the pending list */
+    if (DRCPendingRoot == NULL)
+    {
+	p = (DRCPendingCookie *) mallocMagic(sizeof (DRCPendingCookie));
+	p->dpc_def = celldef;
+	p->dpc_next = NULL;
+	DRCPendingRoot = p;
+    }
+    else
+    {
+	DRCPendingCookie *plast;
+	plast = DRCPendingRoot;
+	while (plast->dpc_next != NULL)
+	{
+	    if (plast->dpc_def == celldef) break;
+	    plast = plast->dpc_next;
+	}
+	if (plast->dpc_next == NULL)
+	{
+	    p = (DRCPendingCookie *) mallocMagic(sizeof (DRCPendingCookie));
+	    p->dpc_def = celldef;
+	    p->dpc_next = NULL;
+	    plast->dpc_next = p;
+	}
+    }
 
     /* Mark the area in this celldef (but don't worry about this stuff
      * for undo purposes).  Also, it's important to disable interrupts
@@ -683,7 +720,7 @@ drcCheckTile(tile, arg)
 
     DRCErrorType = TT_ERROR_S;
     (void) DRCInteractionCheck(celldef, &square, &erasebox,
-		drcPaintError, (ClientData) drcTempPlane);
+		drcPaintError, (ClientData)drcTempPlane);
 
     /* Check #3:  check for array formation errors in the area. */
 
@@ -707,7 +744,7 @@ drcCheckTile(tile, arg)
     DBPaintPlane(celldef->cd_planes[PL_DRC_CHECK], &erasebox,
 	DBStdEraseTbl(TiGetType(tile), PL_DRC_CHECK),
 	(PaintUndoInfo *) NULL);
-    DBPaintPlane(celldef->cd_planes[PL_DRC_ERROR], &checkbox,
+    DBPaintPlane(celldef->cd_planes[PL_DRC_ERROR], &erasebox,
 	DBStdEraseTbl(TT_ERROR_P, PL_DRC_ERROR),
 	(PaintUndoInfo *) NULL);
     DBPaintPlane(celldef->cd_planes[PL_DRC_ERROR], &checkbox,

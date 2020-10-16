@@ -107,7 +107,7 @@ distclean:
 	${RM} ${MAGICDIR}/scripts/default.conf
 	${RM} ${MAGICDIR}/scripts/config.log ${MAGICDIR}/scripts/config.status
 	${RM} scripts/magic.spec magic-`cat VERSION` magic-`cat VERSION`.tgz
-	${RM} *.log
+	${RM} *.log */Depend
 
 dist:
 	${RM} scripts/magic.spec magic-`cat VERSION` magic-`cat VERSION`.tgz

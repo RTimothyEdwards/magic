@@ -186,6 +186,11 @@ lefFileOpen(def, file, suffix, mode, prealfile)
     {
 	if (strcmp(endp, suffix))
 	{
+	    /* Try once as-is, with the given extension.  That takes care   */
+	    /* of some less-usual extensions like ".tlef".		    */
+	    if ((rfile = PaOpen(name, mode, NULL, Path, CellLibPath, prealfile)) != NULL)
+		return rfile;
+
 	    len = endp - name;
 	    if (len > sizeof namebuf - 1) len = sizeof namebuf - 1;
 	    (void) strncpy(namebuf, name, len);
@@ -256,7 +261,6 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
     /* Reference version 5.7 (November 2009).				*/
 
     fprintf(f, "VERSION 5.7 ;\n");
-    fprintf(f, IN0 "NAMESCASESENSITIVE ON ;\n");
     fprintf(f, IN0 "NOWIREEXTENSIONATPIN ON ;\n");
     fprintf(f, IN0 "DIVIDERCHAR \"/\" ;\n");
     fprintf(f, IN0 "BUSBITCHARS \"[]\" ;\n");
@@ -281,10 +285,13 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
 	}
     }
 
-    fprintf(f, "UNITS\n");
-    fprintf(f, IN0 "DATABASE MICRONS %d ;\n", LEFdbUnits);
-    fprintf(f, "END UNITS\n");
-    fprintf(f, "\n");
+    if (lefTech)
+    {
+	fprintf(f, "UNITS\n");
+	fprintf(f, IN0 "DATABASE MICRONS %d ;\n", LEFdbUnits);
+	fprintf(f, "END UNITS\n");
+	fprintf(f, "\n");
+    }
 
     HashStartSearch(&hs);
     nprops = 0;
@@ -503,7 +510,12 @@ lefEraseGeometry(tile, cdata)
 	ttype = otype;
 
     /* Erase the tile area out of lefFlat */
-    DBErase(flatDef, &area, ttype);
+    /* Use DBNMPaintPlane, NOT DBErase().  This erases contacts one	*/
+    /* plane at a time, which normally is bad, but since every plane	*/
+    /* gets erased eventually during "lef write", this is okay.		*/
+    /* DBErase(flatDef, &area, ttype); */
+    DBNMPaintPlane(flatDef->cd_planes[lefdata->pNum], otype, &area,
+	    DBStdEraseTbl(ttype, lefdata->pNum), NULL);
 
     return 0;
 }
@@ -561,6 +573,25 @@ lefAccumulateArea(tile, cdata)
     *area += (rarea.r_xtop - rarea.r_xbot) * (rarea.r_ytop - rarea.r_ybot);
 
     return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * lefFindTopmost --
+ *
+ * Function called to find the topmost layer used by a pin network
+ *
+ * Return 0 to keep the search going.
+ * ----------------------------------------------------------------------------
+ */
+
+int
+lefFindTopmost(tile, cdata)
+    Tile *tile;
+    ClientData cdata;
+{
+    return 1;	    /* Stop processing on the first tile found */
 }
 
 /*
@@ -630,7 +661,7 @@ lefYankGeometry(tile, cdata)
     while (ttype < DBNumUserLayers)
     {
 	lefMagicToLefLayer = lefdata->lefMagicMap;
-	if (lefMagicToLefLayer[ttype].lefInfo != NULL)
+	if (lefMagicToLefLayer[ttype].lefName != NULL)
 	{
 	    if (IsSplit(tile))
 		// Set only the side being yanked
@@ -793,7 +824,7 @@ lefWriteGeometry(tile, cdata)
     lefdata->numWrites++;
 
     if (ttype != lefdata->lastType)
-	if (lefMagicToLefLayer[ttype].lefInfo != NULL)
+	if (lefMagicToLefLayer[ttype].lefName != NULL)
 	{
 	    fprintf(f, IN2 "LAYER %s ;\n",
 				lefMagicToLefLayer[ttype].lefName);
@@ -1064,23 +1095,26 @@ LefWritePinHeader(f, lab)
  */
 
 void
-lefWriteMacro(def, f, scale, hide)
+lefWriteMacro(def, f, scale, setback, toplayer, domaster)
     CellDef *def;	/* Def for which to generate LEF output */
     FILE *f;		/* Output to this file */
     float scale;	/* Output distance units conversion factor */
-    bool hide;		/* If TRUE, hide all detail except pins */
+    int setback;	/* If >= 0, hide all detail except pins inside setback */
+    bool toplayer;	/* If TRUE, only output topmost layer of pins */
+    bool domaster;	/* If TRUE, write masterslice layers */
 {
     bool propfound, ispwrrail;
     char *propvalue, *class = NULL;
     Label *lab, *tlab, *reflab;
     Rect boundary, labr;
+    PlaneMask pmask;
     SearchContext scx;
     CellDef *lefFlatDef;
     CellUse lefFlatUse, lefSourceUse;
     TileTypeBitMask lmask, boundmask, *lrmask, gatetypemask, difftypemask;
     TileType ttype;
     lefClient lc;
-    int idx, pNum, maxport, curport;
+    int idx, pNum, pTop, maxport, curport;
     char leffmt[2][10];
     char *LEFtext;
     HashSearch hs;
@@ -1102,11 +1136,27 @@ lefWriteMacro(def, f, scale, hide)
     lefFlatUse.cu_id = StrDup((char **)NULL, "Flattened cell");
     lefFlatUse.cu_expandMask = CU_DESCEND_SPECIAL;
     lefFlatUse.cu_def = lefFlatDef;
+    lefFlatUse.cu_parent = (CellDef *)NULL;
+    lefFlatUse.cu_xlo = 0;
+    lefFlatUse.cu_ylo = 0;
+    lefFlatUse.cu_xhi = 0;
+    lefFlatUse.cu_yhi = 0;
+    lefFlatUse.cu_xsep = 0;
+    lefFlatUse.cu_ysep = 0;
+    lefFlatUse.cu_client = (ClientData)CLIENTDEFAULT;
     DBSetTrans(&lefFlatUse, &GeoIdentityTransform);
 
     lefSourceUse.cu_id = StrDup((char **)NULL, "Source cell");
     lefSourceUse.cu_expandMask = CU_DESCEND_ALL;
     lefSourceUse.cu_def = def;
+    lefSourceUse.cu_parent = (CellDef *)NULL;
+    lefSourceUse.cu_xlo = 0;
+    lefSourceUse.cu_ylo = 0;
+    lefSourceUse.cu_xhi = 0;
+    lefSourceUse.cu_yhi = 0;
+    lefSourceUse.cu_xsep = 0;
+    lefSourceUse.cu_ysep = 0;
+    lefSourceUse.cu_client = (ClientData)CLIENTDEFAULT;
     DBSetTrans(&lefSourceUse, &GeoIdentityTransform);
 
     scx.scx_use = &lefSourceUse;
@@ -1132,6 +1182,7 @@ lefWriteMacro(def, f, scale, hide)
     TTMaskZero(&lc.rmask);
     TTMaskZero(&boundmask);
     TTMaskZero(&lmask);
+    pmask = 0;
 
     /* Any layer which has a port label attached to it should by	*/
     /* necessity be considered a routing layer.	 Usually this will not	*/
@@ -1145,7 +1196,9 @@ lefWriteMacro(def, f, scale, hide)
     while (he = HashNext(&LefInfo, &hs))
     {
 	lefLayer *lefl = (lefLayer *)HashGetValue(he);
-	if (lefl && (lefl->lefClass == CLASS_ROUTE || lefl->lefClass == CLASS_VIA))
+	if (lefl && (lefl->lefClass == CLASS_ROUTE || lefl->lefClass == CLASS_VIA
+		    || (domaster && lefl->lefClass == CLASS_MASTER)))
+	{
 	    if (lefl->type != -1)
 	    {
 		TTMaskSetType(&lc.rmask, lefl->type);
@@ -1159,6 +1212,10 @@ lefWriteMacro(def, f, scale, hide)
 	    }
 	    if (lefl->obsType != -1)
 		TTMaskSetType(&lc.rmask, lefl->obsType);
+
+	    if (domaster && lefl->lefClass == CLASS_MASTER)
+		pmask |= DBTypePlaneMaskTbl[lefl->type];
+	}
 
 	if (lefl && (lefl->lefClass == CLASS_BOUND))
 	    if (lefl->type != -1)
@@ -1194,10 +1251,6 @@ lefWriteMacro(def, f, scale, hide)
 	fprintf(f, IN0 "CLASS BLOCK ;\n");
     }
 
-    propvalue = (char *)DBPropGet(def, "LEFsource", &propfound);
-    if (propfound)
-	fprintf(f, IN0 "SOURCE %s ;\n", propvalue);
-
     fprintf(f, IN0 "FOREIGN %s ;\n", def->cd_name);
 
     /* If a boundary class was declared in the LEF section, then use	*/
@@ -1229,6 +1282,14 @@ lefWriteMacro(def, f, scale, hide)
 	if (found)
 	    sscanf(propvalue, "%d %d %d %d", &boundary.r_xbot,
 		    &boundary.r_ybot, &boundary.r_xtop, &boundary.r_ytop);
+    }
+
+    /* Check if (boundry less setback) is degenerate.  If so, then	*/
+    /* there is no effect of the "-hide" option.			*/
+    if (setback > 0)
+    {
+	if ((boundary.r_xtop - boundary.r_xbot) < (2 * setback)) setback = -1;
+	if ((boundary.r_ytop - boundary.r_ybot) < (2 * setback)) setback = -1;
     }
 
     /* Write position and size information */
@@ -1355,7 +1416,7 @@ lefWriteMacro(def, f, scale, hide)
 	    scx.scx_area = labr;
 	    SelectClear();
 
-	    if (hide)
+	    if (setback == 0)
 	    {
 		Rect carea;
 		labelLinkedList *newlll;
@@ -1378,6 +1439,18 @@ lefWriteMacro(def, f, scale, hide)
 		newlll->lll_area = carea;
 		newlll->lll_next = lll;
 		lll = newlll;
+	    }
+	    else if (setback > 0)
+	    {
+		Rect carea;
+
+		/* For -hide with setback, select the entire net and then   */
+		/* remove the part inside the setback area.  Note that this */
+		/* does not check if this causes the label to disappear.    */
+
+		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
+		GEO_EXPAND(&boundary, -setback, &carea);
+		SelRemoveArea(&carea, &DBAllButSpaceAndDRCBits);
 	    }
 	    else
 		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
@@ -1410,6 +1483,17 @@ lefWriteMacro(def, f, scale, hide)
 		if (antdiffarea > 0) break;
 	    }
 
+	    if (toplayer)
+	    {
+		for (pTop = DBNumPlanes - 1; pTop >= PL_TECHDEPBASE; pTop--)
+		{
+		    if (DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pTop],
+			    &TiPlaneRect, &DBAllButSpaceAndDRCBits,
+			    lefFindTopmost, (ClientData)NULL) == 1)
+			break;
+		}
+	    }
+
 	    // For all geometry in the selection, write LEF records,
 	    // and mark the corresponding tiles in lefFlatDef as
 	    // visited.
@@ -1418,6 +1502,22 @@ lefWriteMacro(def, f, scale, hide)
 	    lc.lastType = TT_SPACE;
 	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	    {
+		/* Option to output only the topmost layer of a network	*/
+		/* as PIN geometry.  All layers below it are considered	*/
+		/* obstructions.  Masterslice layers are considered an	*/
+		/* exception, as they are often needed for ensuring	*/
+		/* connectivity between power supply and wells.		*/
+
+		if (toplayer && (pNum != pTop))
+		{
+		    if (domaster & (pmask != 0))
+		    {
+			if (!PlaneMaskHasPlane(pmask, pNum))
+			    continue;
+		    }
+		    else continue;
+		}
+
 		lc.pNum = pNum;
 		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
@@ -1516,7 +1616,7 @@ lefWriteMacro(def, f, scale, hide)
 
     /* Restrict to routing planes only */
 
-    if (hide)
+    if (setback >= 0)
     {
 	/* If details of the cell are to be hidden, then first paint	*/
 	/* all route layers with an obstruction rectangle the size of	*/
@@ -1536,6 +1636,7 @@ lefWriteMacro(def, f, scale, hide)
 	for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
 	    if (TTMaskHasType(&lmask, ttype))
 	    {
+		Rect r;
 		layerBound.r_xbot = layerBound.r_xtop = 0;
 		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 		    if (TTMaskHasType(&DBPlaneTypes[pNum], ttype))
@@ -1545,6 +1646,10 @@ lefWriteMacro(def, f, scale, hide)
 				lefGetBound, (ClientData)(&layerBound));
 		    }
 
+		/* Clip layerBound to setback boundary */
+		GEO_EXPAND(&boundary, -setback, &r);
+		GeoClip(&layerBound, &r);
+		
 		DBPaint(lc.lefYank, &layerBound, ttype);
 	    }
 
@@ -1568,6 +1673,43 @@ lefWriteMacro(def, f, scale, hide)
 	    DBErase(lc.lefYank, &thislll->lll_area, lab->lab_type);
 	    freeMagic(thislll);
 	}
+
+	if (setback > 0)
+	{
+	    /* For -hide with setback, yank everything in the area outside  */
+	    /* the setback.						    */
+
+	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	    {
+		Rect r;
+		lc.pNum = pNum;
+
+		r = def->cd_bbox;
+		r.r_ytop = boundary.r_ybot + setback;
+		DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum],
+			&r, &DBAllButSpaceAndDRCBits,
+			lefYankGeometry, (ClientData) &lc);
+		r = def->cd_bbox;
+		r.r_ybot = boundary.r_ytop - setback;
+		DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum],
+			&r, &DBAllButSpaceAndDRCBits,
+			lefYankGeometry, (ClientData) &lc);
+		r = def->cd_bbox;
+		r.r_ybot = boundary.r_ybot + setback;
+		r.r_ytop = boundary.r_ytop - setback;
+		r.r_xtop = boundary.r_xbot + setback;
+		DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum],
+			&r, &DBAllButSpaceAndDRCBits,
+			lefYankGeometry, (ClientData) &lc);
+		r = def->cd_bbox;
+		r.r_ybot = boundary.r_ybot + setback;
+		r.r_ytop = boundary.r_ytop - setback;
+		r.r_xbot = boundary.r_xtop - setback;
+		DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum],
+			&r, &DBAllButSpaceAndDRCBits,
+			lefYankGeometry, (ClientData) &lc);
+	    }
+	}
     }
     else
     {
@@ -1590,7 +1732,7 @@ lefWriteMacro(def, f, scale, hide)
 		lefWriteGeometry, (ClientData) &lc);
 
 	/* Additional yank & write for contacts (although ignore contacts for -hide) */
-	if (!hide)
+	if (setback < 0)
 	{
 	    lc.lefMode = LEF_MODE_OBS_CONTACT;
 	    DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum],
@@ -1599,6 +1741,51 @@ lefWriteMacro(def, f, scale, hide)
 	    DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
 			&TiPlaneRect, &lc.rmask,
 			lefWriteGeometry, (ClientData) &lc);
+	    lc.lefMode = LEF_MODE_OBSTRUCT;
+	}
+	else if (setback > 0)
+	{
+	    Rect r;
+
+	    /* Apply only to area outside setback. */
+	    lc.lefMode = LEF_MODE_OBS_CONTACT;
+
+	    r = def->cd_bbox;
+	    r.r_ytop = boundary.r_ybot + setback;
+	    DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum],
+			&r, &DBAllButSpaceAndDRCBits,
+			lefYankContacts, (ClientData) &lc);
+	    DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
+			&r, &lc.rmask, lefWriteGeometry, (ClientData) &lc);
+
+	    r = def->cd_bbox;
+	    r.r_ybot = boundary.r_ytop - setback;
+	    DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum],
+			&r, &DBAllButSpaceAndDRCBits,
+			lefYankContacts, (ClientData) &lc);
+	    DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
+			&r, &lc.rmask, lefWriteGeometry, (ClientData) &lc);
+	    
+	    r = def->cd_bbox;
+	    r.r_ybot = boundary.r_ybot + setback;
+	    r.r_ytop = boundary.r_ytop - setback;
+	    r.r_xtop = boundary.r_xbot + setback;
+	    DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum],
+			&r, &DBAllButSpaceAndDRCBits,
+			lefYankContacts, (ClientData) &lc);
+	    DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
+			&r, &lc.rmask, lefWriteGeometry, (ClientData) &lc);
+
+	    r = def->cd_bbox;
+	    r.r_ybot = boundary.r_ybot + setback;
+	    r.r_ytop = boundary.r_ytop - setback;
+	    r.r_xbot = boundary.r_xtop - setback;
+	    DBSrPaintArea((Tile *)NULL, lefFlatDef->cd_planes[pNum],
+			&r, &DBAllButSpaceAndDRCBits,
+			lefYankContacts, (ClientData) &lc);
+	    DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
+			&r, &lc.rmask, lefWriteGeometry, (ClientData) &lc);
+
 	    lc.lefMode = LEF_MODE_OBSTRUCT;
 	}
     }
@@ -1777,11 +1964,13 @@ lefGetProperties(stackItem, i, clientData)
  */
 
 void
-LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
+LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefTopLayer, lefDoMaster, recurse)
     CellUse *rootUse;
     bool writeTopCell;
     bool lefTech;
-    bool lefHide;
+    int lefHide;
+    bool lefTopLayer;
+    bool lefDoMaster;
     bool recurse;
 {
     HashTable propHashTbl, siteHashTbl;
@@ -1847,11 +2036,11 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, recurse)
     {
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)
-	    lefWriteMacro(def, f, scale, lefHide);
+	    lefWriteMacro(def, f, scale, lefHide, lefTopLayer, lefDoMaster);
     }
 
     /* End the LEF file */
-    fprintf(f, "END LIBRARY ;\n");
+    fprintf(f, "END LIBRARY\n\n");
 
     fclose(f);
     StackFree(lefDefStack);
@@ -1911,12 +2100,14 @@ lefDefPushFunc(use, recurse)
  */
 
 void
-LefWriteCell(def, outName, isRoot, lefTech, lefHide)
+LefWriteCell(def, outName, isRoot, lefTech, lefHide, lefTopLayer, lefDoMaster)
     CellDef *def;		/* Cell being written */
     char *outName;		/* Name of output file, or NULL. */
     bool isRoot;		/* Is this the root cell? */
     bool lefTech;		/* Output layer information if TRUE */
-    bool lefHide;		/* Hide detail other than pins if TRUE */
+    int  lefHide;		/* Hide detail other than pins if >= 0 */
+    bool lefTopLayer;		/* Use only topmost layer of pin if TRUE */
+    bool lefDoMaster;		/* Write masterslice layers if TRUE */
 {
     char *filename;
     FILE *f;
@@ -1950,7 +2141,11 @@ LefWriteCell(def, outName, isRoot, lefTech, lefHide)
 	HashKill(&propHashTbl);
 	HashKill(&siteHashTbl);
     }
-    lefWriteMacro(def, f, scale, lefHide);
+    lefWriteMacro(def, f, scale, lefHide, lefTopLayer, lefDoMaster);
+
+    /* End the LEF file */
+    fprintf(f, "END LIBRARY\n\n");
+
     fclose(f);
 }
 

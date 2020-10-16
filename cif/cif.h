@@ -66,6 +66,7 @@ extern void CIFReadTechFinal();
 /* Externally-visible procedures: */
 
 extern float CIFGetOutputScale();
+extern float CIFGetScale();
 extern float CIFGetInputScale();
 extern int CIFGetDefaultContactSize();
 
