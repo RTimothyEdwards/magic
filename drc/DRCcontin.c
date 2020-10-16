@@ -208,6 +208,13 @@ DRCCheckThis (celldef, operation, area)
     /* Insert celldef into list of Defs waiting to be checked, unless	*/
     /* it is already there.						*/
 
+#if (0)
+
+    /* The switch to copying up DRC errors from non-interacting	    */
+    /* child cells means that the child cells must be processed	    */
+    /* first.  So this routine changes from prepending the cell	    */
+    /* to the list to appending it.				    */
+
     pback = &DRCPendingRoot;
     p = DRCPendingRoot;
 
@@ -228,6 +235,33 @@ DRCCheckThis (celldef, operation, area)
     }
     p->dpc_next = DRCPendingRoot;
     DRCPendingRoot = p;
+
+#endif
+    /* Append new cell to check to the pending list */
+    if (DRCPendingRoot == NULL)
+    {
+	p = (DRCPendingCookie *) mallocMagic(sizeof (DRCPendingCookie));
+	p->dpc_def = celldef;
+	p->dpc_next = NULL;
+	DRCPendingRoot = p;
+    }
+    else
+    {
+	DRCPendingCookie *plast;
+	plast = DRCPendingRoot;
+	while (plast->dpc_next != NULL)
+	{
+	    if (plast->dpc_def == celldef) break;
+	    plast = plast->dpc_next;
+	}
+	if (plast->dpc_next == NULL)
+	{
+	    p = (DRCPendingCookie *) mallocMagic(sizeof (DRCPendingCookie));
+	    p->dpc_def = celldef;
+	    p->dpc_next = NULL;
+	    plast->dpc_next = p;
+	}
+    }
 
     /* Mark the area in this celldef (but don't worry about this stuff
      * for undo purposes).  Also, it's important to disable interrupts
