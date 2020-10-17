@@ -1726,9 +1726,15 @@ extOutputDevices(def, transList, outFile)
 		tmask = &devptr->exts_deviceSDTypes[termcount];
 		if (TTMaskIsZero(tmask)) {
 		    if (termcount < nsd) {
+			ExtDevice *devcheck;
 			/* See if there is another matching device record with	*/
 			/* a different number of terminals, and try again.	*/
-			devptr = extDevFindMatch(devptr, t);
+			devcheck = extDevFindMatch(devptr, t);
+			if (devcheck != NULL) devptr = devcheck;
+
+			/* Not finding another device record just means that	*/
+			/* terminals are tied together on the same net, such as	*/
+			/* with a MOS cap.  Accept this fact and move on.	*/
 		    } 
 		    break;	/* End of SD terminals */
 		}
