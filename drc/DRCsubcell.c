@@ -107,10 +107,22 @@ drcFindOtherCells(use, area)
     return 0;
 }
 
-/* For each tile found in drcCopyErrorsFunc(), translate the	*/
-/* tile position into the coordinate system of the parent cell	*/
-/* (represented by the drcTemp plane in ClientData) and		*/
-/* copy (paint) into it.					*/
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * drcSubCopyErrors ---
+ *
+ *  For each tile found in drcCopyErrorsFunc(), translate the tile position
+ *  into the coordinate system of the parent cell (represented by the drcTemp
+ *  plane in ClientData) and apply the function passed in the filter, which is
+ *  whatever function handles DRC errors inside an error tile (which is
+ *  different for "drc why" commands than for "drc check".
+ *
+ *  Returns:
+ *	0 to keep the search going.
+ *
+ * ----------------------------------------------------------------------------
+ */
 
 int
 drcSubCopyErrors(tile, cxp)
@@ -121,9 +133,6 @@ drcSubCopyErrors(tile, cxp)
     Rect destArea;
     struct drcClientData *arg = (struct drcClientData *)cxp->tc_filter->tf_arg;
 
-    // DBTreeSrTiles() checks its own tiles, which we want to ignore.
-    if (arg->dCD_celldef == cxp->tc_scx->scx_use->cu_def) return 0;
-
     TiToRect(tile, &area);
     GeoClip(&area, &cxp->tc_scx->scx_area);
     GeoTransRect(&cxp->tc_scx->scx_trans, &area, &destArea);
@@ -133,6 +142,40 @@ drcSubCopyErrors(tile, cxp)
     (*(arg->dCD_errors))++;
     
     return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * drcSubCopyFunc ---
+ *
+ *  This routine is applied for each subcell of a parent def.  It calls
+ *  DBNoTreeSrTiles() with the above routine drcSubCopyErrors(), which
+ *  copies all TT_ERROR_P tiles from the child cell up into the parent.
+ *  This is used only within areas found to be non-interacting with the
+ *  parent, such that any error found in the child cell is guaranteed to
+ *  be a real error, and not one that might be resolved by additional
+ *  material found in the parent or a sibling cell.
+ *
+ *  Returns:
+ *	Whatever DBNoTreeSrTiles() returns.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+drcSubCopyFunc(scx, fp)
+    SearchContext *scx;
+    TreeFilter *fp;
+{
+    TileTypeBitMask drcMask;
+
+    /* Create a mask with only TT_ERROR_P in it */
+    TTMaskZero(&drcMask);
+    TTMaskSetType(&drcMask, TT_ERROR_P);
+
+    /* Use DBNoTreeSrTiles() because we want to search only one level down */
+    return DBNoTreeSrTiles(scx, &drcMask, 0, drcSubCopyErrors, fp->tf_arg);
 }
 
 /*
@@ -607,16 +650,11 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
     void (*savedPaintPlane)();
     struct drcClientData arg;
     SearchContext scx;
-    TileTypeBitMask drcMask;
 
     drcSubFunc = func;
     drcSubClientData = cdarg;
     oldTiles = DRCstatTiles;
     count = 0;
-
-    /* Create a mask with only TT_ERROR_P in it */
-    TTMaskZero(&drcMask);
-    TTMaskSetType(&drcMask, TT_ERROR_P);
 
     /* Divide the area to be checked up into squares.  Process each
      * square separately.
@@ -670,7 +708,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 
 		/* Copy errors up from all non-interacting children	*/
 		scx.scx_area = subArea;
-		DBTreeSrTiles(&scx, &drcMask, 0, drcSubCopyErrors, &arg);
+		DBCellSrArea(&scx, drcSubCopyFunc, &arg);
 
 		DRCErrorType = errorSaveType;
 		continue;
@@ -706,7 +744,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
                     DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
 		    /* Copy errors up from all non-interacting children	*/
 		    scx.scx_area = subArea;
-		    DBTreeSrTiles(&scx, &drcMask, 0, drcSubCopyErrors, &arg);
+		    DBCellSrArea(&scx, drcSubCopyFunc, &arg);
 		}
 		/* check below */
 		if (intArea.r_ybot > eraseClip.r_ybot)
@@ -717,7 +755,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
                     DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
 		    /* Copy errors up from all non-interacting children	*/
 		    scx.scx_area = subArea;
-		    DBTreeSrTiles(&scx, &drcMask, 0, drcSubCopyErrors, &arg);
+		    DBCellSrArea(&scx, drcSubCopyFunc, &arg);
 		}
 		subArea.r_ytop = intArea.r_ytop;
 		subArea.r_ybot = intArea.r_ybot;
@@ -730,7 +768,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
                     DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
 		    /* Copy errors up from all non-interacting children	*/
 		    scx.scx_area = subArea;
-		    DBTreeSrTiles(&scx, &drcMask, 0, drcSubCopyErrors, &arg);
+		    DBCellSrArea(&scx, drcSubCopyFunc, &arg);
 		}
 		/* check left */
 		if (intArea.r_xbot > eraseClip.r_xbot)
@@ -741,7 +779,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
                     DRCBasicCheck(def, &eraseHalo, &subArea, func, cdarg);
 		    /* Copy errors up from all non-interacting children	*/
 		    scx.scx_area = subArea;
-		    DBTreeSrTiles(&scx, &drcMask, 0, drcSubCopyErrors, &arg);
+		    DBCellSrArea(&scx, drcSubCopyFunc, &arg);
 		}
 		DRCErrorType = errorSaveType;
 	    }
