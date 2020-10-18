@@ -451,6 +451,9 @@ DBTechPrintTypes(mask, dolist)
 	for (p = dbTypeNameLists.sn_next; p != &dbTypeNameLists;
 		p = p->sn_next)
 	{
+	    /* Ignore aliases */
+	    if (p->sn_alias) continue;
+
 	    if (((TileType)(spointertype) p->sn_value) == i)
 	    {
 		if (dolist)
