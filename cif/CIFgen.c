@@ -1027,6 +1027,27 @@ endbloat:
 /*
  *-------------------------------------------------------
  *
+ * cifProcessResetFunc --
+ *
+ *	Unmark tiles
+ *
+ * Results:	Return 0 to keep the search going.
+ *
+ *-------------------------------------------------------
+ */
+
+int
+cifProcessResetFunc(tile, clientData)
+    Tile *tile;
+    ClientData clientData;	/* unused */
+{
+    tile->ti_client = (ClientData) CIF_UNPROCESSED;
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------
+ *
  * cifFoundFunc --
  *
  *	Find the first tile in the given area.
@@ -1260,6 +1281,21 @@ cifBloatAllFunc(tile, bls)
 		STACKPUSH(tp, BloatStack);
 	    }
     }
+
+    /* Reset marked tiles */
+
+    if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
+    {
+    	temps = bls->temps;
+	for (ttype = 0; ttype < TT_MAXTYPES; ttype++, temps++)
+	    if (bloats->bl_distance[ttype] > 0)
+		(void) DBSrPaintArea((Tile *)NULL, *temps, &TiPlaneRect,
+			&CIFSolidBits, cifProcessResetFunc, (ClientData)NULL);
+    }
+    else
+    	DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &TiPlaneRect,
+		    &connect, cifProcessResetFunc, (ClientData)NULL);
+
     return 0;	/* Keep the search alive. . . */
 }
 
@@ -2188,28 +2224,6 @@ cifSquaresStripFunc(tile, stripsData)
     return 0;
 }
 
-
-/*
- *-------------------------------------------------------
- *
- * cifSquaresResetFunc --
- *
- *	Unmark tiles
- *
- * Results:	Return 0 to keep the search going.
- *
- *-------------------------------------------------------
- */
-
-int
-cifSquaresResetFunc(tile, clientData)
-    Tile *tile;
-    ClientData clientData;	/* unused */
-{
-    tile->ti_client = (ClientData) CIF_UNPROCESSED;
-    return 0;
-}
-
 /*
  *-------------------------------------------------------
  *
@@ -2387,10 +2401,6 @@ cifRectBoundingBox(op, cellDef, plane)
 		}
 	}
     }
-
-    /* Clear all the tiles that were processed */
-    DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect, &CIFSolidBits,
-		cifSquaresResetFunc, (ClientData)NULL);
 }
 
 /*
@@ -2725,7 +2735,7 @@ cifSquaresFillArea(op, cellDef, plane)
 
     /* Clear all the tiles that were processed */
     DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect, &CIFSolidBits,
-		cifSquaresResetFunc, (ClientData)NULL);
+		cifProcessResetFunc, (ClientData)NULL);
 }
 
 /*
@@ -3088,7 +3098,7 @@ cifSlotsFillArea(op, cellDef, plane)
 
     /* Clear all the tiles that were processed */
     DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect, &CIFSolidBits,
-		cifSquaresResetFunc, (ClientData)NULL);
+		cifProcessResetFunc, (ClientData)NULL);
 }
 
 /*
@@ -4848,11 +4858,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		cifPlane = nextPlane;
 		cifScale = 1;
 		/* First copy the existing paint into the target plane */
-		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
-		    &CIFSolidBits, cifPaintFunc, (ClientData)CIFPaintTable);
+		DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    	&CIFSolidBits, cifPaintFunc, (ClientData)CIFPaintTable);
+		DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    	&DBSpaceBits, cifCloseFunc, (ClientData)&curPlane);
 
-		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
-		    &DBSpaceBits, cifCloseFunc, (ClientData)&curPlane);
 		temp = curPlane;
 		curPlane = nextPlane;
 		nextPlane = temp;
