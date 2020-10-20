@@ -242,6 +242,7 @@ CmdExtToSpice(w, cmd)
     short s_rclass, d_rclass, sub_rclass;
     char *devname;
     char *subname;
+    TileType devtype;
     int idx, idx2;
     globalList *glist = NULL;
 
@@ -739,7 +740,8 @@ runexttospice:
     /* command)								 */
 
     idx = 0;
-    while (ExtGetDevInfo(idx++, &devname, &s_rclass, &d_rclass, &sub_rclass, &subname))
+    while (ExtGetDevInfo(idx++, &devname, &devtype, &s_rclass, &d_rclass,
+		&sub_rclass, &subname))
     {
 	if (idx == MAXDEVTYPES)
 	{
