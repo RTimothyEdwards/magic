@@ -164,9 +164,9 @@ drcSubCopyErrors(tile, cxp)
  */
 
 int
-drcSubCopyFunc(scx, fp)
+drcSubCopyFunc(scx, cdarg)
     SearchContext *scx;
-    TreeFilter *fp;
+    ClientData cdarg;
 {
     TileTypeBitMask drcMask;
 
@@ -175,7 +175,7 @@ drcSubCopyFunc(scx, fp)
     TTMaskSetType(&drcMask, TT_ERROR_P);
 
     /* Use DBNoTreeSrTiles() because we want to search only one level down */
-    return DBNoTreeSrTiles(scx, &drcMask, 0, drcSubCopyErrors, fp->tf_arg);
+    return DBNoTreeSrTiles(scx, &drcMask, 0, drcSubCopyErrors, cdarg);
 }
 
 /*
