@@ -1857,6 +1857,14 @@ extOutputDevices(def, transList, outFile)
 #endif
 	extTransRec.tr_devrec = devptr;
 
+	/* Model type "Ignore" in the techfile indicates a device   */
+	/* to be ignored (i.e., a specific combination of layers    */
+	/* does not form an extractable device, or overlaps another */
+	/* device type that should take precedence).		    */
+
+	if (!strcmp(devptr->exts_deviceName, "Ignore"))
+	    continue;
+
 	/* Original-style FET record backward compatibility */
 	if (devptr->exts_deviceClass != DEV_FET)
 	    fprintf(outFile, "device ");
