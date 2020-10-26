@@ -1487,7 +1487,6 @@ extOutputParameters(def, transList, outFile)
 		/* Do not output parameters for ignored devices */
 		if (!strcmp(devptr->exts_deviceName, "Ignore")) continue;
 
-		fprintf(outFile, "parameters %s", devptr->exts_deviceName);
 		plist = devptr->exts_deviceParams;
 		if (plist != (ParamList *)NULL)
 		{
