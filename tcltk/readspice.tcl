@@ -220,10 +220,14 @@ proc readspice {netfile} {
 		   set pinname [lindex $infopair 0]
 		   set pindir [lindex $infopair 1]
 		   if {![catch {set pin [dict get $pindict $pinname]}]} {
-		      case $pindir {
-		         B {port $pin class inout}
-		         I {port $pin class input}
-		         O {port $pin class output}
+		      # Only set pin class if the pin class is currently default
+		      set pinclass [port $pin class]
+		      if {$pinclass == "default"} {
+		         case $pindir {
+		            B {port $pin class inout}
+		            I {port $pin class input}
+		            O {port $pin class output}
+			 }
 		      }
 		   } elseif {$pinname != ""} {
 		      puts stderr ".PININFO error:  Pin $pinname not found."
