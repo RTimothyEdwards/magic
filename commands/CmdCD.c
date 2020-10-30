@@ -624,7 +624,8 @@ outputCalma:
  * or
  *	cellname property [name] [property_key [property_value]]
  * or
- *	instance orientation [name] [-def]
+ *	instance orientation [name] [-def] [orient]
+ *	instance abutment [name]
  *
  * Results:
  *	None.
@@ -648,7 +649,7 @@ CmdCellname(w, cmd)
     bool dodef = FALSE;
     int option;
     int locargc = cmd->tx_argc;
-    char *cellname = NULL;
+    char *cellname = NULL, *orient = NULL;
     void (*func)();
     CellDef *newDef, *cellDef;
 
@@ -671,6 +672,7 @@ CmdCellname(w, cmd)
 	"lock		lock the named cell (prevent changes to cell use)",
 	"unlock		unlock the named cell (allow changes to cell use)",
 	"property	list or set cell definition properties",
+	"abutment	list instance abutment coordinates",
 	"orientation	list or set instance orientation",
 	"rename		rename the indicated cell",
 	"writeable	make the cell definition read-only or read-write",
@@ -681,7 +683,7 @@ CmdCellname(w, cmd)
 		   IDX_INSTANCE, IDX_CHILDINST, IDX_CELLDEF, IDX_ALLCELLS,
 		   IDX_TOPCELLS, IDX_IN_WINDOW, IDX_CREATE,
 		   IDX_DELETE, IDX_FILEPATH, IDX_FLAGS, IDX_LOCK, IDX_UNLOCK,
-		   IDX_PROPERTY, IDX_ORIENTATION, IDX_RENAME,
+		   IDX_PROPERTY, IDX_ABUTMENT, IDX_ORIENTATION, IDX_RENAME,
 		   IDX_READWRITE, IDX_MODIFIED } optionType;
 
     if (strstr(cmd->tx_argv[0], "in"))
@@ -720,7 +722,7 @@ CmdCellname(w, cmd)
 
     if ((locargc > 3) && (option != IDX_RENAME) && (option != IDX_DELETE) &&
 		(option != IDX_READWRITE) && (option != IDX_PROPERTY) &&
-		(option != IDX_FILEPATH))
+		(option != IDX_FILEPATH) && (option != IDX_ORIENTATION))
 	goto badusage;
 
     if ((locargc > 4) && (option != IDX_PROPERTY))
@@ -750,6 +752,10 @@ CmdCellname(w, cmd)
 	    case IDX_ORIENTATION:
 		TxError("Cell definitions do not have orientations."
 			"  Use \"instance\"?\n");
+		return;
+	    case IDX_ABUTMENT:
+		TxError("Use \"property get FIXED_BBOX\" to get the cell "
+			"abutment box.\n");
 		return;
 	}
     }
@@ -1029,7 +1035,16 @@ CmdCellname(w, cmd)
 	    }
 	    break;
 	case IDX_ORIENTATION:
-	    DBOrientUse(cellname, dodef);
+	    orient = (locargc == 4) ? cmd->tx_argv[3 + ((dolist) ? 1 : 0)] : NULL;
+	    if ((cellname != NULL) && (orient != NULL))
+	    {
+		TxError("Cannot set orientation by name.  Use selection.\n");
+		break;
+	    }
+	    DBOrientUse(cellname, dodef, orient);
+	    break;
+	case IDX_ABUTMENT:
+	    DBAbutmentUse(cellname, dolist);
 	    break;
 	case IDX_LOCK:
 	    DBLockUse(cellname, TRUE);
@@ -1647,7 +1662,7 @@ CmdCif(w, cmd)
  *	the interpreter to uniquely identify it.
  *
  *	The "-origin" option has been added to allow rotating stuff
- *	relative to the origin, insteadd of the lower-left corner.
+ *	relative to the origin, instead of the lower-left corner.
  *
  * ----------------------------------------------------------------------------
  */
@@ -3897,9 +3912,9 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     hasChild = hasRoot = hasTrans = FALSE;
     while (ac > 0)
     {
-	static char *kwdNames[] = { "child", "parent", "90", "180", "270",
-					    "v", "90v", "180v", "270v",
-					    "h", "90h", "180h", "270h", 0 };
+	static char *kwdNames[] = { "child", "parent", "0", "90", "180", "270",
+					    "v", "0v", "90v", "180v", "270v",
+					    "h", "0h", "90h", "180h", "270h", 0 };
 	static char *refPointNames[] = { "ll", "lr", "ul", "ur", 0 };
 	Label *lab;
 	int n,p;
@@ -4043,8 +4058,8 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 		}
 		hasRoot = TRUE;
 		break;
-	    case  2:	/* 90 */
-		tx_cell = &Geo90Transform;
+	    case  2:	/* 0 */
+		tx_cell = &GeoIdentityTransform;
 transform_cell:
 		if (ac < 2 )
 		{
@@ -4127,34 +4142,39 @@ default_action:
 		}
 		hasTrans = TRUE;
 		break;
-	    case  3:	/* 180 */
+	    case  3:	/* 90 */
+		tx_cell = &Geo90Transform;
+		goto transform_cell;
+	    case  4:	/* 180 */
 		tx_cell = &Geo180Transform;
 		goto transform_cell;
-	    case  4:	/* 270 */
+	    case  5:	/* 270 */
 		tx_cell = &Geo270Transform;
 		goto transform_cell;
-	    case  5:	/* v */
+	    case  6:	/* v */
+	    case  7:	/* 0v */
 		tx_cell = &GeoUpsideDownTransform;
 		goto transform_cell;
-	    case  6:	/* 90v */
+	    case  8:	/* 90v */
 		tx_cell = &GeoRef45Transform;
 		goto transform_cell;
-	    case  7:	/* 180v */
+	    case  9:	/* 180v */
 		tx_cell = &GeoSidewaysTransform;
 		goto transform_cell;
-	    case  8:	/* 270v */
+	    case  10:	/* 270v */
 		tx_cell = &GeoRef135Transform;
 		goto transform_cell;
-	    case  9:	/* h */
+	    case  11:	/* h */
+	    case  12:	/* 0h */
 		tx_cell = &GeoSidewaysTransform;
 		goto transform_cell;
-	    case 10:	/* 90h */
+	    case 13:	/* 90h */
 		tx_cell = &GeoRef135Transform;
 		goto transform_cell;
-	    case 11:	/* 180h */
+	    case 14:	/* 180h */
 		tx_cell = &GeoUpsideDownTransform;
 		goto transform_cell;
-	    case 12:	/* 270h */
+	    case 15:	/* 270h */
 		tx_cell = &GeoRef45Transform;
 		goto transform_cell;
 	}

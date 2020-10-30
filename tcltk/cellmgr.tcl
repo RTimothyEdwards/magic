@@ -10,7 +10,7 @@ if {$::tk_version >= 8.5} {
 
 set Opts(cellmgr) 0
 
-magic::tag select   "magic::mgrselect %R"
+magic::tag select   "magic::mgrselect %r"
 magic::tag load     "catch {magic::clearstack}; magic::cellmanager"
 magic::tag getcell  "magic::cellmanager"
 

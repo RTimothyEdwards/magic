@@ -778,6 +778,7 @@ extern CellUse *DBCellFindDup();
 extern void DBLockUse();
 extern void DBUnlockUse();
 extern void DBOrientUse();
+extern void DBAbutmentUse();
 
     /* Cell selection */
 extern CellUse *DBSelectCell();

@@ -6,6 +6,8 @@
 # Revision 0
 # December 15, 2016
 # Revision 1
+# October 29, 2020
+# Revision 2	(names are hashed from properties)
 #--------------------------------------------------------------
 # Sets up the environment for a toolkit.  The toolkit must
 # supply a namespace that is the "library name".  For each
@@ -238,6 +240,36 @@ proc magic::gencell {gencell_name {instname {}} args} {
 }
 
 #-------------------------------------------------------------
+# gencell_makecell
+#
+# This is a variation of magic::gencell and is used to generate
+# a cell and return the cell name without creating or placing
+# an instance.
+#-------------------------------------------------------------
+
+proc magic::gencell_makecell {gencell_fullname args} {
+
+    set argpar [dict create {*}$args]
+    set gencell_basename [namespace tail $gencell_fullname]
+    set library [namespace qualifiers $gencell_fullname]
+    set parameters [magic::gencell_defaults $gencell_basename $library $argpar]
+    set gsuffix [magic::get_gencell_hash ${parameters}]
+    set gname ${gencell_basename}_${gsuffix}
+    suspendall
+    cellname create $gname
+    pushstack $gname
+    if {[catch {${library}::${gencell_basename}_draw $parameters} drawerr]} {
+        puts stderr $drawerr
+    }
+    property library $library
+    property gencell $gencell_basename
+    property parameters $parameters
+    popstack
+    resumeall
+    return $gname
+}
+
+#-------------------------------------------------------------
 # gencell_getparams
 #
 #   Go through the parameter window and collect all of the
@@ -271,6 +303,9 @@ proc magic::gencell_setparams {parameters} {
    if {[catch {set state [wm state .params]}]} {return}
    set slist [grid slaves .params.edits]
    foreach s $slist {
+      # ignore .params.edits.gencell_sel, as that does not exist in the
+      # parameters dictionary
+      if {$s == ".params.edits.gencell_sel"} {continue}
       if {[regexp {^.params.edits.(.*)_ent$} $s valid pname] != 0} {
 	 set value [dict get $parameters $pname]
          set magic::${pname}_val $value
@@ -293,10 +328,141 @@ proc magic::gencell_setparams {parameters} {
 #-------------------------------------------------------------
 # gencell_change
 #
-#   Redraw a gencell with new parameters.
+#   Recreate a gencell with new parameters.  Note that because
+#   each cellname is uniquely identified by the (hashed) set
+#   of parameters, changing parameters effectively means
+#   creating a new cell.  If the original cell has parents
+#   other than the parent of the instance being changed, then
+#   it is retained;  otherwise, it is deleted.  The instance
+#   being edited gets replaced by an instance of the new cell.
+#   If the instance name was the cellname + suffix, then the
+#   instance name is regenerated.  Otherwise, the instance
+#   name is retained.
 #-------------------------------------------------------------
 
 proc magic::gencell_change {instname gencell_type library parameters} {
+    global Opts
+    suspendall
+
+    set newinstname $instname
+    if {$parameters == {}} {
+        # Get device defaults
+	set pdefaults [${library}::${gencell_type}_defaults]
+        # Pull user-entered values from dialog
+        set parameters [dict merge $pdefaults [magic::gencell_getparams]]
+	set newinstname [.params.title.ient get]
+	if {$newinstname == "(default)"} {set newinstname $instname}
+	if {$newinstname == $instname} {set newinstname $instname}
+	if {[instance list exists $newinstname] != ""} {set newinstname $instname}
+    }
+    if {[dict exists $parameters gencell]} {
+        # Setting special parameter "gencell" forces the gencell to change type
+	set gencell_type [dict get $parameters gencell]
+    }
+    if {[catch {set parameters [${library}::${gencell_type}_check $parameters]} \
+		checkerr]} {
+	puts stderr $checkerr
+    }
+    magic::gencell_setparams $parameters
+    if {[dict exists $parameters gencell]} {
+	set parameters [dict remove $parameters gencell]
+    }
+
+    set old_gname [instance list celldef $instname]
+    set gsuffix [magic::get_gencell_hash ${parameters}]
+    set gname ${gencell_type}_${gsuffix}
+
+    # Guard against instance having been deleted.  Also, if parameters have not
+    # changed as evidenced by the cell suffix not changing, then nothing further
+    # needs to be done.
+    if {$gname == "" || $gname == $old_gname} {
+	resumeall
+        return
+    }
+
+    set snaptype [snap list]
+    snap internal
+    set savebox [box values]
+
+    catch {setpoint 0 0 $Opts(focus)}
+    if [dict exists $parameters nocell] {
+        select cell $instname
+	set abox [instance list abutment]
+	delete
+	if {$abox != ""} {box values {*}$abox}
+	if {[catch {set newinst [${library}::${gencell_type}_draw $parameters]} \
+		drawerr]} {
+	    puts stderr $drawerr
+	}
+        select cell $newinst
+    } elseif {[cellname list exists $gname] != 0} {
+	# If there is already a cell of this type then it is only required to
+	# remove the instance and replace it with an instance of the cell
+        select cell $instname
+	# check rotate/flip before replacing and replace with same
+	set orient [instance list orientation]
+	set abox [instance list abutment]
+	delete
+
+	if {$abox != ""} {box values {*}$abox}
+	set newinstname [getcell $gname $orient]
+        select cell $newinstname
+	expand
+
+	# If the old instance name was not formed from the old cell name,
+	# then keep the old instance name.
+	if {[string first $old_gname $instname] != 0} {
+	    set newinstname $instname
+	}
+
+	if {[cellname list parents $old_gname] == []} {
+	    # If the original cell has no intances left, delete it.  It can
+	    # be regenerated if and when necessary.
+	    cellname delete $old_gname
+	}
+
+    } else {
+        select cell $instname
+	set orient [instance list orientation]
+	set abox [instance list abutment]
+	delete
+
+	# There is no cell of this name, so generate one and instantiate it.
+	if {$abox != ""} {box values {*}$abox}
+	set newinstname [magic::gencell_create $gencell_type $library $parameters $orient]
+	select cell $newinstname
+
+	# If the old instance name was not formed from the old cell name,
+	# then keep the old instance name.
+	if {[string first $old_gname $instname] != 0} {
+	    set newinstname $instname
+	}
+    }
+    identify $newinstname
+    eval "box values $savebox"
+    snap $snaptype
+
+    # Update window
+    if {$gname != $old_gname} {
+        catch {.params.title.glab configure -text "$gname"}
+    }
+    if {$instname != $newinstname} {
+        catch {.params.title.ient delete 0 end}
+        catch {.params.title.ient insert 0 "$newinstname"}
+    }
+
+    resumeall
+    redraw
+}
+
+#-------------------------------------------------------------
+# gencell_change_orig
+#
+#   Original version:  Redraw a gencell with new parameters,
+#   without changing the cell itself.
+#-------------------------------------------------------------
+
+proc magic::gencell_change_orig {instname gencell_type library parameters} {
     global Opts
     suspendall
 
@@ -391,6 +557,51 @@ proc magic::get_gencell_name {gencell_type} {
     return ${gencell_type}_$postfix
 }
 
+#----------------------------------------------------------------
+# get_gencell_hash
+#
+#   A better approach to the above.  Take the parameter
+#   dictionary, and run all the values through a hash function
+#   to generate a 30-bit value, then convert to base32.  This
+#   gives a result that is repeatable for the same set of
+#   parameter values with a very low probability of a collision.
+#
+#   The hash function is similar to elfhash but reduced from 32
+#   to 30 bits so that the result can form a 6-character value
+#   in base32 with all characters being valid for a SPICE subcell
+#   name (e.g., alphanumeric only and case-insensitive).
+#----------------------------------------------------------------
+
+proc magic::get_gencell_hash {parameters} {
+    set hash 0
+    # Apply hash
+    dict for {key value} $parameters {
+	foreach s [split $value {}] {
+	    set hash [expr {($hash << 4) + [scan $s %c]}]
+	    set high [expr {$hash & 0x03c0000000}]
+	    set hash [expr {$hash ^ ($high >> 30)}]
+	    set hash [expr {$hash & (~$high)}]
+	}
+    }
+    # Divide hash up into 5 bit values and convert to base32
+    # using letters A-Z less I and O, and digits 2-9.
+    set cvals ""
+    for {set i 0} {$i < 6} {incr i} {
+	set oval [expr {($hash >> ($i * 5)) & 0x1f}]
+        if {$oval < 8} {
+	    set bval [expr {$oval + 50}]
+	} elseif {$oval < 16} {
+	    set bval [expr {$oval + 57}]
+	} elseif {$oval < 21} {
+	    set bval [expr {$oval + 58}]
+	} else {
+	    set bval [expr {$oval + 59}]
+	}
+	append cvals [binary format c* $bval]
+    }
+    return $cvals
+}
+
 #-------------------------------------------------------------
 # gencell_create
 #
@@ -402,7 +613,7 @@ proc magic::get_gencell_name {gencell_type} {
 #   the drawing routine is going to do to the stack!
 #-------------------------------------------------------------
 
-proc magic::gencell_create {gencell_type library parameters} {
+proc magic::gencell_create {gencell_type library parameters {orient 0}} {
     global Opts
     suspendall
 
@@ -451,7 +662,8 @@ proc magic::gencell_create {gencell_type library parameters} {
 	set gname [instance list celldef $instname]
 	eval "box values $savebox"
     } else {
-        set gname [magic::get_gencell_name ${gencell_type}]
+        set gsuffix [magic::get_gencell_hash ${parameters}]
+        set gname ${gencell_type}_${gsuffix}
 	cellname create $gname
 	pushstack $gname
 	if {[catch {${library}::${gencell_type}_draw $parameters} drawerr]} {
@@ -462,7 +674,7 @@ proc magic::gencell_create {gencell_type library parameters} {
 	property parameters $parameters
 	popstack
 	eval "box values $savebox"
-	set instname [getcell $gname]
+	set instname [getcell $gname $orient]
 	expand
     }
     if {$newinstname != ""} {

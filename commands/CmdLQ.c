@@ -2276,3 +2276,158 @@ CmdNetlist(w, cmd)
 	    break;
     }
 }
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * CmdOrient --
+ *
+ * Implement the "orient" command.  Set the orientation of the selection and
+ * according to the orientation string, which can be in Magic's format
+ * (using number of degrees, and "h" for horizontal flip or "v" for vertical
+ * flip) or DEF format ("N", "S", "FN", etc.).  The cursor box is rotated to
+ * match.
+ *
+ * Usage:
+ *	orient [orientation] [-origin]
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Modifies the edit cell.
+ *
+ * Notes:
+ *	The "-origin" option sets the orientation relative to the origin,
+ *	instead of the lower-left corner.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+CmdOrient(w, cmd)
+    MagWindow *w;
+    TxCommand *cmd;
+{
+    Transform trans, t2;
+    int orientidx, locargc;
+    char *orientstr;
+    Rect rootBox,  bbox;
+    CellDef *rootDef;
+    bool noAdjust = FALSE;
+
+    static char *orientNames[] = {      "0", "90", "180", "270",
+                                        "v", "0v", "90v", "180v", "270v",
+                                        "h", "0h", "90h", "180h", "270h",
+                                        "N", "E", "S", "W",
+                                        "FN", "FE", "FS", "FW",
+                                        0 };
+
+    typedef enum { IDX_ORIENT_0, IDX_ORIENT_90, IDX_ORIENT_180, IDX_ORIENT_270,
+            IDX_ORIENT_V, IDX_ORIENT_0V, IDX_ORIENT_90V, IDX_ORIENT_180V,
+            IDX_ORIENT_270V, IDX_ORIENT_H, IDX_ORIENT_0H, IDX_ORIENT_90H,
+            IDX_ORIENT_180H, IDX_ORIENT_270H, IDX_ORIENT_N, IDX_ORIENT_E,
+            IDX_ORIENT_S, IDX_ORIENT_W, IDX_ORIENT_FN, IDX_ORIENT_FE,
+            IDX_ORIENT_FS, IDX_ORIENT_FW } orientType;
+
+    locargc = cmd->tx_argc;
+    if (!strncmp(cmd->tx_argv[locargc - 1], "-orig", 5))
+    {
+	noAdjust = TRUE;
+	locargc--;
+    }
+
+    if (!ToolGetEditBox((Rect *)NULL)) return;
+
+    if (locargc == 2)
+	orientstr = cmd->tx_argv[1];
+    else
+	goto badusage;
+
+    orientidx = Lookup(orientstr, orientNames);
+
+    switch (orientidx)
+    {
+        case IDX_ORIENT_0:
+        case IDX_ORIENT_N:
+            /* ORIENT_NORTH */
+            t2 = GeoIdentityTransform;
+            break;
+        case IDX_ORIENT_S:
+        case IDX_ORIENT_180:
+            /* ORIENT_SOUTH */
+            t2 = Geo180Transform;
+            break;
+        case IDX_ORIENT_E:
+        case IDX_ORIENT_90:
+            /* ORIENT_EAST */
+            t2 = Geo90Transform;
+            break;
+        case IDX_ORIENT_W:
+        case IDX_ORIENT_270:
+            /* ORIENT_WEST */
+            t2 = Geo270Transform;
+            break;
+        case IDX_ORIENT_FN:
+        case IDX_ORIENT_H:
+        case IDX_ORIENT_0H:
+            /* ORIENT_FLIPPED_NORTH */
+            t2 = GeoSidewaysTransform;
+            break;
+        case IDX_ORIENT_FS:
+        case IDX_ORIENT_180H:
+        case IDX_ORIENT_V:
+        case IDX_ORIENT_0V:
+            /* ORIENT_FLIPPED_SOUTH */
+            t2 = GeoUpsideDownTransform;
+            break;
+        case IDX_ORIENT_FE:
+        case IDX_ORIENT_90H:
+        case IDX_ORIENT_270V:
+            /* ORIENT_FLIPPED_EAST */
+            t2 = GeoRef135Transform;
+            break;
+        case IDX_ORIENT_FW:
+        case IDX_ORIENT_270H:
+        case IDX_ORIENT_90V:
+            /* ORIENT_FLIPPED_WEST */
+            t2 = GeoRef45Transform;
+            break;
+	default:
+	    goto badusage;
+    }
+
+    /* To orient the selection, first orient it relative to the origin
+     * then move it so its lower-left corner is at the same place
+     * that it used to be.  If the "-origin" option was selected, then
+     * only orient relative to the origin.
+     */
+
+    GeoTransRect(&t2, &SelectDef->cd_bbox, &bbox);
+    if (noAdjust)
+	trans = t2;
+    else
+    {
+	GeoTranslateTrans(&t2, SelectDef->cd_bbox.r_xbot - bbox.r_xbot,
+		SelectDef->cd_bbox.r_ybot - bbox.r_ybot, &trans);
+    }
+
+    SelectTransform(&trans);
+
+    /* Rotate the box, if it exists and is in the same window as the
+     * selection.
+     */
+
+    if (ToolGetBox(&rootDef, &rootBox) && (rootDef == SelectRootDef))
+    {
+	Rect newBox;
+
+	GeoTransRect(&trans, &rootBox, &newBox);
+	DBWSetBox(rootDef, &newBox);
+    }
+
+    return;
+
+    badusage:
+    TxError("Usage: %s [orientation]\n", cmd->tx_argv[0]);
+}
