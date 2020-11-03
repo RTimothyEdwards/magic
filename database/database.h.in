@@ -729,7 +729,7 @@ extern void DBFontLabelSetBBox();
 extern bool DBEraseLabel();
 extern void DBEraseLabelAll();
 extern void DBEraseLabelsByContent();
-extern void DBEraseLabelsByFunction();
+extern void DBRemoveLabel();
 extern void DBReOrientLabel();
 extern void DBAdjustLabels();
 

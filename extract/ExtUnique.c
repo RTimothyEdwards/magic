@@ -260,7 +260,7 @@ makeUnique:
 
 	    lab = ll2->ll_label;
 	    saveLab = *lab;
-	    DBEraseLabelsByContent(def, &lab->lab_rect, lab->lab_type, lab->lab_text);
+	    DBRemoveLabel(def, lab);
 	    (void) DBPutFontLabel(def, &saveLab.lab_rect,
 		 	saveLab.lab_font, saveLab.lab_size, saveLab.lab_rotate,
 			&saveLab.lab_offset, saveLab.lab_just, name2,

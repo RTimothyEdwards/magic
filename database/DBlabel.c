@@ -426,9 +426,9 @@ DBEraseLabelsByContent(def, rect, type, text)
 /*
  * ----------------------------------------------------------------------------
  *
- * DBEraseLabelsByFunction --
+ * DBRemoveLabel --
  *
- * Erase any labels found on the label list for which the function returns
+ * Erase a labels by reference.
  * TRUE.
  *
  * Results:
@@ -443,19 +443,9 @@ DBEraseLabelsByContent(def, rect, type, text)
  */
 
 void
-DBEraseLabelsByFunction(def, func)
+DBRemoveLabel(def, refLab)
     CellDef *def;		/* Where to look for label to delete. */
-    bool (*func)();		/* Function to call for each label.  If it
-				 * returns TRUE, we delete the label.
-				 *
-				 * Function should be of the form:
-				 *
-				 *	bool func(lab)
-				 *	    Label *lab;
-				 *	{
-				 *	    return XXX;
-				 *	}
-				 */
+    Label *refLab;
 {
     Label *lab, *labPrev;
 
@@ -464,7 +454,7 @@ DBEraseLabelsByFunction(def, func)
 	    labPrev = lab, lab = lab->lab_next)
     {
 	nextCheck:
-	if (!(*func)(lab)) continue;
+	if (lab != refLab) continue;
 	DBUndoEraseLabel(def, lab);
 	DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
 	if (labPrev == NULL)
