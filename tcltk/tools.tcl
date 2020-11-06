@@ -15,6 +15,7 @@ proc magic::suspendall {} {
    global Winopts
    if {[info commands winfo] != ""} {
       foreach window [magic::windownames layout] {
+	 if {$window == 0} {continue}
          set framename [winfo toplevel $window]
          if {$framename == "."} {
 	    set framename $window
@@ -30,6 +31,7 @@ proc magic::resumeall {} {
    global Winopts
    if {[info commands winfo] != ""} {
       foreach window [magic::windownames layout] {
+	 if {$window == 0} {continue}
          set framename [winfo toplevel $window]
          if {$framename == "."} {
 	    set framename $window
