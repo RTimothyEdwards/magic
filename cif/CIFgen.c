@@ -1027,6 +1027,27 @@ endbloat:
 /*
  *-------------------------------------------------------
  *
+ * cifProcessResetFunc --
+ *
+ *	Unmark tiles
+ *
+ * Results:	Return 0 to keep the search going.
+ *
+ *-------------------------------------------------------
+ */
+
+int
+cifProcessResetFunc(tile, clientData)
+    Tile *tile;
+    ClientData clientData;	/* unused */
+{
+    tile->ti_client = (ClientData) CIF_UNPROCESSED;
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------
+ *
  * cifFoundFunc --
  *
  *	Find the first tile in the given area.
@@ -1260,6 +1281,21 @@ cifBloatAllFunc(tile, bls)
 		STACKPUSH(tp, BloatStack);
 	    }
     }
+
+    /* Reset marked tiles */
+
+    if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
+    {
+    	temps = bls->temps;
+	for (ttype = 0; ttype < TT_MAXTYPES; ttype++, temps++)
+	    if (bloats->bl_distance[ttype] > 0)
+		(void) DBSrPaintArea((Tile *)NULL, *temps, &TiPlaneRect,
+			&CIFSolidBits, cifProcessResetFunc, (ClientData)NULL);
+    }
+    else
+    	DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &TiPlaneRect,
+		    &connect, cifProcessResetFunc, (ClientData)NULL);
+
     return 0;	/* Keep the search alive. . . */
 }
 
@@ -2188,28 +2224,6 @@ cifSquaresStripFunc(tile, stripsData)
     return 0;
 }
 
-
-/*
- *-------------------------------------------------------
- *
- * cifSquaresResetFunc --
- *
- *	Unmark tiles
- *
- * Results:	Return 0 to keep the search going.
- *
- *-------------------------------------------------------
- */
-
-int
-cifSquaresResetFunc(tile, clientData)
-    Tile *tile;
-    ClientData clientData;	/* unused */
-{
-    tile->ti_client = (ClientData) CIF_UNPROCESSED;
-    return 0;
-}
-
 /*
  *-------------------------------------------------------
  *
@@ -2387,10 +2401,6 @@ cifRectBoundingBox(op, cellDef, plane)
 		}
 	}
     }
-
-    /* Clear all the tiles that were processed */
-    DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect, &CIFSolidBits,
-		cifSquaresResetFunc, (ClientData)NULL);
 }
 
 /*
@@ -2725,7 +2735,7 @@ cifSquaresFillArea(op, cellDef, plane)
 
     /* Clear all the tiles that were processed */
     DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect, &CIFSolidBits,
-		cifSquaresResetFunc, (ClientData)NULL);
+		cifProcessResetFunc, (ClientData)NULL);
 }
 
 /*
@@ -3088,7 +3098,7 @@ cifSlotsFillArea(op, cellDef, plane)
 
     /* Clear all the tiles that were processed */
     DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect, &CIFSolidBits,
-		cifSquaresResetFunc, (ClientData)NULL);
+		cifProcessResetFunc, (ClientData)NULL);
 }
 
 /*
@@ -3775,6 +3785,831 @@ cifSrTiles(cifOp, area, cellDef, temps, func, cdArg)
 		&CIFSolidBits, func, (ClientData) cdArg);
 }
 
+/* Data structure to pass plane and minimum width to the callback function */
+typedef struct _bridgeLimStruct {
+    Plane       *plane;
+    BridgeData	*bridge;
+    CellDef     *def;
+    Plane       **temps;
+    TileTypeBitMask co_paintMask;/* Zero or more paint layers to consider. */
+    TileTypeBitMask co_cifMask;  /* Zero or more other CIF layers. */
+} BridgeLimStruct;
+
+static int xOverlap, yOverlap;
+
+/* Bridge-lim Check data structure */
+typedef struct _bridgeLimCheckStruct {
+   Tile *tile;		/* Tile that triggered search (ignore this tile) */
+   int	direction;	/* What outside corner to look for */
+   Tile *violator;	/* Return the violator tile in this space */
+   TileType checktype;	/* Type to check for, either TT_SPACE or CIF_SOLIDTYPE */
+   long sqdistance;     /* Square of the minimum distance */
+} BridgeLimCheckStruct;
+/*
+ *-----------------------------------------------------------------------
+ * Callback function for bridgeLimSrTiles used when a limiting layer tile
+ * was found in the specified area. If calcOverlap is TRUE then the xOverlap
+ * and yOverlap are updated and return 0 to continue searching. Otherwise
+ * return 1 to stop the search.
+ *-----------------------------------------------------------------------
+ */
+int
+bridgeLimFound(tile, calcOverlap)
+    Tile *tile;
+    bool calcOverlap;
+{
+    if (calcOverlap)
+    {
+        if (RIGHT(tile) > xOverlap)
+                xOverlap = RIGHT(tile);
+        if (TOP(tile) > yOverlap)
+                yOverlap = TOP(tile);
+        return 0;       // continue searching
+    } else
+        return 1;       // tile found, stop the search
+}
+
+/*
+ *------------------------------------------------------------------------
+ * Callback function used in bridge-lim operations to find if the specified
+ * area contains tiles of the limiting layers.
+ *------------------------------------------------------------------------
+ */
+int
+bridgeLimSrTiles(brlims, area, calcOverlap)
+    BridgeLimStruct *brlims;    /* Bridge-Lim structure. */
+    Rect *area;                 /* Area of Magic paint to consider. */
+    bool calcOverlap;           /* TRUE to calculate the overlap of the limiting tiles in the specified area. */
+{
+    TileTypeBitMask maskBits;
+    TileType t;
+    int i;
+    Plane **temps = brlims->temps;
+    xOverlap = area->r_xbot;
+    yOverlap = area->r_ybot;
+
+    for (i = PL_DRC_CHECK; i < DBNumPlanes; i++)
+    {
+	maskBits = DBPlaneTypes[i];
+	TTMaskAndMask(&maskBits, &brlims->co_paintMask);
+	if (!TTMaskEqual(&maskBits, &DBZeroTypeBits))
+	    if (DBSrPaintArea((Tile *) NULL, brlims->def->cd_planes[i], area, &brlims->co_paintMask, bridgeLimFound, calcOverlap))
+		return 0;
+    }
+
+    for (t = 0; t < TT_MAXTYPES; t++, temps++)
+        if (TTMaskHasType(&brlims->co_cifMask, t))
+           if (DBSrPaintArea((Tile *) NULL, *temps, area, &CIFSolidBits, bridgeLimFound, calcOverlap))
+                return 0;
+
+    if (( xOverlap != area->r_xbot) || (yOverlap != area->r_ybot))
+        return 0;       //Constraint tile found
+    else
+        return 1;       //Nothing found
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifBridgeLimFunc0 --
+ *
+ * 	Called for each relevant tile during bridge-lim operations.  The
+ *	bridge-lim operation is similar to the bridge operation with the
+ *	difference that the material created to meet the minimum spacing/width
+ *	rules do not overlap the limiting layers.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	May paint into cifNewPlane
+ *
+ * Algorithm (based on maximum horizontal stripes rule):
+ * This function grows dimentions of tiles to meet a minimimum width rule (only
+ * applies to vertical or horizontal directions). This is done in two steps:
+ * 	1. Adjust tile width to accomplish the minimimum width rule, limited by
+ *	the constraint layers.
+ *	2. Search top and bottom tiles of same type, for each segment verify if
+ *	height meets the minimimum value, if not, adjust the segment height
+ *	but do not paint over limiting layer tiles.
+ * ----------------------------------------------------------------------------
+ */
+int
+cifBridgeLimFunc0(tile, brlims)
+    Tile *tile;
+    BridgeLimStruct *brlims;
+{
+    Plane *plane = brlims->plane;
+    Rect area, parea;
+    int minDistance = brlims->bridge->br_width;
+    int width, height, ybot0, tp2lim;
+    Tile *tp, *tp2;
+
+    TiToRect(tile, &area);
+
+    /* Check whole tile for minimum width */
+    width = area.r_xtop - area.r_xbot;
+    if (width < minDistance)
+    {
+	area.r_xbot = area.r_xtop - minDistance;
+        if (!bridgeLimSrTiles(brlims, &area, TRUE))
+	{
+            area.r_xbot = MIN(LEFT(tile), xOverlap);
+	    area.r_xtop = area.r_xbot + minDistance;
+	}
+    }
+
+	/* If there is another tile on top or bottom, and the height is	*/
+	/* less than minimum, then extend height in the direction of	*/
+	/* the bordering tile.  Otherwise, if the height is less than	*/
+	/* minimum, then grow considering the limiting layers.	*/
+
+	height = area.r_ytop - area.r_ybot;
+	if (height < minDistance)
+	{
+         for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+            {
+            tp2lim = MAX(LEFT(tp), area.r_xbot);
+            for (tp2 = RT(tile); RIGHT(tp2) > tp2lim; tp2 = BL(tp2))
+                if (LEFT(tp2) < RIGHT(tp))
+                {
+                   parea.r_xbot = MAX(LEFT(tp2), tp2lim);
+                   parea.r_xtop = MIN(MIN(RIGHT(tp2), RIGHT(tp)), area.r_xtop);
+                   if (TiGetBottomType(tp2) == TiGetTopType(tile))
+                        parea.r_ytop = TOP(tp2);
+                   else
+                        parea.r_ytop = area.r_ytop;
+                   if (TiGetTopType(tp) == TiGetBottomType(tile))
+                        ybot0 = BOTTOM(tp);
+                   else
+                        ybot0 = area.r_ybot;
+                   height = parea.r_ytop - ybot0;
+                   if (height < minDistance)
+                   {
+                        parea.r_ybot = parea.r_ytop - minDistance;
+                        if (!bridgeLimSrTiles(brlims, &parea, TRUE))
+                        {
+                           parea.r_ybot = MIN(ybot0 , yOverlap);
+                           parea.r_ytop = parea.r_ybot + minDistance;
+                        }
+                        DBPaintPlane(cifPlane, &parea, CIFPaintTable, (PaintUndoInfo *) NULL);
+                   }
+                }
+            }
+        }
+    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+    return 0;
+}
+
+/*
+ *-----------------------------------------------------------------------
+ * Callback function for cifBridgeLimFunc1 and cifBridgeLimFunc2 to find if
+ * there are violator cells in the search area.	 If a violator cell is
+ * found, then put the tile pointer in the BridgeCheckStruct and return
+ * value 1 to stop the search.	Otherwise return 0 to keep going.
+ *-----------------------------------------------------------------------
+ */
+int
+bridgeLimCheckFunc(tile, brlimcs)
+    Tile *tile;
+    BridgeLimCheckStruct *brlimcs;
+{
+    int dir = brlimcs->direction;
+    Tile *self = brlimcs->tile;
+    Tile *tp1, *tp2;
+    TileType checktype = brlimcs->checktype;
+    long sqdistance = brlimcs->sqdistance;
+    int dx, dy;
+    long sqcheck;
+
+    if (self == tile) return 0;	    /* Ignore the triggering tile */
+
+    switch (dir) {
+	case BRIDGE_NW:
+	    /* Ignore tile if split, and SE corner is clipped */
+	    if (TiGetRightType(tile) == checktype || TiGetBottomType(tile) == checktype)
+		break;
+	    for (tp1 = RT(tile); LEFT(tp1) > LEFT(tile); tp1 = BL(tp1));
+	    for (tp2 = BL(tile); TOP(tp2) < TOP(tile); tp2 = RT(tp2));
+	    if ((TiGetBottomType(tp1) == checktype) &&
+		    (TiGetRightType(tp2) == checktype))
+	    {
+		dx = LEFT(tile) - RIGHT(self);
+		dy = BOTTOM(self) - TOP(tile);
+		if ((dx > 0) && (dy > 0))
+		{
+		   sqcheck = (long)dx*dx + (long)dy*dy; 
+		   if (sqcheck >= sqdistance)
+			return 0;
+		}
+		brlimcs->violator = tile;
+		return 1;	/* Violator found */
+	    }
+	    break;
+	case BRIDGE_NE:
+	    /* Ignore tile if split, and SW corner is clipped */
+	    if (TiGetLeftType(tile) == checktype || TiGetBottomType(tile) == checktype)
+		break;
+	    tp1 = RT(tile);
+	    tp2 = TR(tile);
+	    if ((TiGetBottomType(tp1) == checktype) &&
+		    (TiGetLeftType(tp2) == checktype))
+	    {
+		dx = LEFT(self) - RIGHT(tile);
+		dy = BOTTOM(self) - TOP(tile);
+		if ((dx > 0) && (dy > 0))
+		{
+		   sqcheck = (long)dx*dx + (long)dy*dy; 
+		   if (sqcheck >= sqdistance)
+			return 0;
+		}
+		brlimcs->violator = tile;
+		return 1;	/* Violator found */
+	    }
+	    break;
+	case BRIDGE_SW:
+	    /* Ignore tile if split, and NE corner is clipped */
+	    if (TiGetRightType(tile) == checktype || TiGetTopType(tile) == checktype)
+		break;
+	    tp1 = LB(tile);
+	    tp2 = BL(tile);
+	    if ((TiGetTopType(tp1) == checktype) &&
+		    (TiGetRightType(tp2) == checktype))
+	    {
+		dx = LEFT(tile) - RIGHT(self);
+		dy = BOTTOM(tile) - TOP(self);
+		if ((dx > 0) && (dy > 0))
+		{
+		   sqcheck = (long)dx*dx + (long)dy*dy; 
+		   if (sqcheck >= sqdistance)
+			return 0;
+		}
+		brlimcs->violator = tile;
+		return 1;	/* Violator found */
+	    }
+	    break;
+	case BRIDGE_SE:
+	    /* Ignore tile if split, and NW corner is clipped */
+	    if (TiGetLeftType(tile) == checktype || TiGetTopType(tile) == checktype)
+		break;
+	    for (tp1 = LB(tile); RIGHT(tp1) < RIGHT(tile); tp1 = TR(tp1));
+	    for (tp2 = TR(tile); BOTTOM(tp2) > BOTTOM(tile); tp2 = LB(tp2));
+	    if ((TiGetTopType(tp1) == checktype) &&
+		    (TiGetLeftType(tp2) == checktype))
+	    {
+		dx = LEFT(self) - RIGHT(tile);
+		dy = BOTTOM(tile) - TOP(self);
+		if ((dx > 0) && (dy > 0))
+		{
+		   sqcheck = (long)dx*dx + (long)dy*dy; 
+		   if (sqcheck >= sqdistance)
+			return 0;
+		}
+		brlimcs->violator = tile;
+		return 1;	/* Violator found */
+	    }
+	    break;
+    }
+    return 0;	/* Nothing found here, so keep going */
+}
+
+/*
+ *-----------------------------------------------------------------------
+ * Callback function used in bridge-lim operations to do not paint areas 
+ * where new bridge overlaps the limiting layer tiles.
+ *-----------------------------------------------------------------------
+ */
+int
+bridgeErase(brlims, area)
+    BridgeLimStruct *brlims;    /* Bridge-lim structure. */
+    Rect *area;                 /* Area of Magic paint to consider. */
+{
+    TileTypeBitMask maskBits;
+    TileType t;
+    int i;
+    Plane **temps = brlims->temps;
+
+    for (i = PL_DRC_CHECK; i < DBNumPlanes; i++)
+    {
+	maskBits = DBPlaneTypes[i];
+	TTMaskAndMask(&maskBits, &brlims->co_paintMask);
+	if (!TTMaskEqual(&maskBits, &DBZeroTypeBits))
+	    if (DBSrPaintArea((Tile *) NULL, brlims->def->cd_planes[i], area, &brlims->co_paintMask, cifPaintFunc, CIFEraseTable))
+		return 0;
+    }
+
+    for (t = 0; t < TT_MAXTYPES; t++, temps++)
+        if (TTMaskHasType(&brlims->co_cifMask, t))
+           if (DBSrPaintArea((Tile *) NULL, *temps, area, &CIFSolidBits, cifPaintFunc, CIFEraseTable))
+                return 0;
+	
+        return 1;       //Nothing found
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifBridgeLimFunc1 --
+ *
+ * 	Called for each relevant tile during bridge-lim operations.  The
+ *	bridge-lim operation is similar to the bridge operation with the
+ *	difference that the material created to meet the minimum spacing/width
+ *	rules do not overlap the limiting layers.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	May paint into cifNewPlane
+ * ----------------------------------------------------------------------------
+ */
+int
+cifBridgeLimFunc1(tile, brlims)
+    Tile *tile;
+    BridgeLimStruct *brlims;
+{
+    Plane *plane = brlims->plane;
+    Rect area;
+    Tile *tp1, *tp2, *tpx;
+    int width = brlims->bridge->br_width;
+    int spacing = growDistance;
+    BridgeLimCheckStruct brlimcs;
+    brlimcs.sqdistance = (long) spacing * spacing;
+
+    /* If tile is marked, then it has been handled, so ignore it */
+    if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
+
+    /* Find each tile outside corner (up to four) */
+
+    /* Check for NE outside corner */
+    tp1 = TR(tile);  /* Tile on right side at the top of this tile */
+    tp2 = RT(tile);  /* Tile on top side at the right of this tile */
+    if ((TiGetLeftType(tp1) == TT_SPACE) &&
+	    (TiGetBottomType(tp2) == TT_SPACE))
+    {
+	/* Set search box */
+	area.r_xbot = RIGHT(tile);
+	area.r_xtop = RIGHT(tile) + spacing;
+	area.r_ybot = TOP(tile);
+	area.r_ytop = TOP(tile) + spacing;
+
+	/* Find violator tiles */
+	brlimcs.tile = tile;
+	brlimcs.direction = BRIDGE_SW;
+	brlimcs.checktype = TT_SPACE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &CIFSolidBits, bridgeLimCheckFunc, (ClientData)&brlimcs) == 1)
+	{
+	    tpx = brlimcs.violator;
+	    area.r_xtop = MAX(RIGHT(tile), LEFT(tpx) + width);
+	    area.r_ytop = MAX(TOP(tile), BOTTOM(tpx));
+	    area.r_xbot = MIN(LEFT(tpx), RIGHT(tile));
+	    area.r_ybot = MIN(BOTTOM(tpx), TOP(tile) - width);
+	    if (bridgeLimSrTiles(brlims, &area, FALSE))
+	    {
+		/* First option of bridge can be implemented (there are not limiting tiles in the area)*/
+		area.r_ytop = TOP(tile);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+		area.r_xbot = LEFT(tpx);
+		area.r_ytop = MAX(TOP(tile), BOTTOM(tpx));
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    }
+	    else
+	    {
+	    area.r_xtop = MAX(RIGHT(tile), LEFT(tpx));
+	    area.r_ytop = MAX(TOP(tile), BOTTOM(tpx) + width);
+	    area.r_xbot = MIN(LEFT(tpx), RIGHT(tile) - width);
+	    area.r_ybot = MIN(BOTTOM(tpx), TOP(tile));
+	    if (bridgeLimSrTiles(brlims, &area, FALSE))
+		{
+		/* Second option of bridge can be implemented (there are not limiting tiles in the area)*/
+		area.r_ybot = BOTTOM(tpx);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+		area.r_xtop = RIGHT(tile);
+	    	area.r_ybot = MIN(BOTTOM(tpx), TOP(tile));
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+		}
+		else
+		{
+		/* Last option (Limiting tiles are present on both sides, those areas must be excluded from the bridge)*/
+	    	area.r_xtop = MAX(RIGHT(tile), LEFT(tpx) + width);
+	    	area.r_ytop = MAX(TOP(tile), BOTTOM(tpx) + width);
+	    	area.r_xbot = MIN(LEFT(tpx), RIGHT(tile) - width);
+	    	area.r_ybot = MIN(BOTTOM(tpx), TOP(tile) - width);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    	bridgeErase(brlims, &area);
+		}
+	    }
+	}
+    }
+
+    /* Check for SW outside corner */
+    tp1 = BL(tile);  /* Tile on left side at the bottom of this tile */
+    tp2 = LB(tile);  /* Tile on bottom side at the left of this tile */
+    if ((TiGetRightType(tp1) == TT_SPACE) &&
+	    (TiGetTopType(tp2) == TT_SPACE))
+    {
+	/* Set search box */
+	area.r_xbot = LEFT(tile) - spacing;
+	area.r_xtop = LEFT(tile);
+	area.r_ybot = BOTTOM(tile) - spacing;
+	area.r_ytop = BOTTOM(tile);
+
+	/* Find violator tiles */
+	brlimcs.tile = tile;
+	brlimcs.direction = BRIDGE_NE;
+	brlimcs.checktype = TT_SPACE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &CIFSolidBits, bridgeLimCheckFunc, (ClientData)&brlimcs) == 1)
+	{
+	    tpx = brlimcs.violator;
+	    area.r_xtop = MAX(RIGHT(tpx), LEFT(tile) + width);
+	    area.r_ytop = MAX(TOP(tpx), BOTTOM(tile));
+	    area.r_xbot = MIN(LEFT(tile), RIGHT(tpx));
+	    area.r_ybot = MIN(BOTTOM(tile), TOP(tpx) - width);
+	    if (bridgeLimSrTiles(brlims, &area, FALSE))
+	    {
+		/* First option of bridge can be implemented (there are not limiting tiles in the area)*/
+		area.r_ytop = TOP(tpx);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+		area.r_xbot = LEFT(tile);
+	    	area.r_ytop = MAX(TOP(tpx), BOTTOM(tile));
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    }
+	    else
+	    {
+	    area.r_xtop = MAX(RIGHT(tpx), LEFT(tile));
+	    area.r_ytop = MAX(TOP(tpx), BOTTOM(tile) + width);
+	    area.r_xbot = MIN(LEFT(tile), RIGHT(tpx) - width);
+	    area.r_ybot = MIN(BOTTOM(tile), TOP(tpx));
+	    if (bridgeLimSrTiles(brlims, &area, FALSE))
+		{
+		/* Second option of bridge can be implemented (there are not limiting tiles in the area)*/
+		area.r_ybot = BOTTOM(tile);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+		area.r_xtop = RIGHT(tpx);
+	    	area.r_ybot = MIN(BOTTOM(tile), TOP(tpx));
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+		}
+		else
+		{
+		/* Last option (Limiting tiles are present on both sides, those areas must be excluded from the bridge)*/
+		area.r_xtop = MAX(RIGHT(tpx), LEFT(tile) + width);
+		area.r_ytop = MAX(TOP(tpx), BOTTOM(tile) + width);
+		area.r_xbot = MIN(LEFT(tile), RIGHT(tpx) - width);
+		area.r_ybot = MIN(BOTTOM(tile), TOP(tpx) - width);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    	bridgeErase(brlims, &area);
+		}
+	    }
+	}
+    }
+
+    /* Check for SE outside corner */
+    for (tp1 = TR(tile); BOTTOM(tp1) > BOTTOM(tile); tp1 = LB(tp1));
+    for (tp2 = LB(tile); RIGHT(tp1) < RIGHT(tile); tp2 = TR(tp2));
+    if ((TiGetLeftType(tp1) == TT_SPACE) &&
+	    (TiGetTopType(tp2) == TT_SPACE))
+    {
+	/* Set search box */
+	area.r_xbot = RIGHT(tile);
+	area.r_xtop = RIGHT(tile) + spacing;
+	area.r_ybot = BOTTOM(tile) - spacing;
+	area.r_ytop = BOTTOM(tile);
+
+	/* Find violator tiles */
+	brlimcs.tile = tile;
+	brlimcs.direction = BRIDGE_NW;
+	brlimcs.checktype = TT_SPACE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &CIFSolidBits, bridgeLimCheckFunc, (ClientData)&brlimcs) == 1)
+	{
+	    tpx = brlimcs.violator;
+	    area.r_xtop = MAX(RIGHT(tile), LEFT(tpx));
+	    area.r_ybot = MIN(BOTTOM(tile), TOP(tpx) - width);
+	    area.r_xbot = MIN(LEFT(tpx), RIGHT(tile) - width);
+	    area.r_ytop = MAX(TOP(tpx), BOTTOM(tile));
+	    if (bridgeLimSrTiles(brlims, &area, FALSE))
+	    {
+		/* First option of bridge can be implemented (there are not limiting tiles in the area)*/
+		area.r_xtop = RIGHT(tile);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    	area.r_xtop = MAX(RIGHT(tile), LEFT(tpx));
+		area.r_ytop = TOP(tpx);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    }
+	    else
+	    {
+	    area.r_xtop = MAX(RIGHT(tile), LEFT(tpx) + width);
+	    area.r_ybot = MIN(BOTTOM(tile), TOP(tpx));
+	    area.r_xbot = MIN(LEFT(tpx), RIGHT(tile));
+	    area.r_ytop = MAX(TOP(tpx), BOTTOM(tile) + width);
+	    if (bridgeLimSrTiles(brlims, &area, FALSE))
+		{
+		/* Second option of bridge can be implemented (there are not limiting tiles in the area)*/
+		area.r_xbot = LEFT(tpx);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    	area.r_xbot = MIN(LEFT(tpx), RIGHT(tile));
+		area.r_ybot = BOTTOM(tile);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+		}
+		else
+		{
+		/* Last option (Limiting tiles are present on both sides, those areas must be excluded from the bridge)*/
+		area.r_xtop = MAX(RIGHT(tile), LEFT(tpx) + width);
+		area.r_ybot = MIN(BOTTOM(tile), TOP(tpx) - width);
+		area.r_xbot = MIN(LEFT(tpx), RIGHT(tile) - width);
+		area.r_ytop = MAX(TOP(tpx), BOTTOM(tile) + width);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    	bridgeErase(brlims, &area);
+		}
+	    }
+	}
+    }
+
+    /* Check for NW outside corner */
+    for (tp1 = BL(tile); TOP(tp1) < TOP(tile); tp1 = RT(tp1));
+    for (tp2 = RT(tile); LEFT(tp1) > LEFT(tile); tp2 = BL(tp1));
+    if ((TiGetRightType(tp1) == TT_SPACE) &&
+	    (TiGetBottomType(tp2) == TT_SPACE))
+    {
+	/* Set search box */
+	area.r_xbot = LEFT(tile) - spacing;
+	area.r_xtop = LEFT(tile);
+	area.r_ybot = TOP(tile);
+	area.r_ytop = TOP(tile) + spacing;
+
+	/* Find violator tiles */
+	brlimcs.tile = tile;
+	brlimcs.direction = BRIDGE_SE;
+	brlimcs.checktype = TT_SPACE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &CIFSolidBits, bridgeLimCheckFunc, (ClientData)&brlimcs) == 1)
+	{
+	    tpx = brlimcs.violator;
+	    area.r_xtop = MAX(RIGHT(tpx), LEFT(tile));
+	    area.r_ybot = MIN(BOTTOM(tpx), TOP(tile) - width);
+	    area.r_xbot = MIN(LEFT(tile), RIGHT(tpx) - width);
+	    area.r_ytop = MAX(TOP(tile), BOTTOM(tpx));
+	    if (bridgeLimSrTiles(brlims, &area, FALSE))
+	    {
+		/* First option of bridge can be implemented (there are not limiting tiles in the area)*/
+		area.r_xtop = RIGHT(tpx);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    	area.r_xtop = MAX(RIGHT(tpx), LEFT(tile));
+		area.r_ytop = TOP(tile);		
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    }
+	    else
+	    {
+	    area.r_xtop = MAX(RIGHT(tpx), LEFT(tile) + width);
+	    area.r_ybot = MIN(BOTTOM(tpx), TOP(tile));
+	    area.r_xbot = MIN(LEFT(tile), RIGHT(tpx));
+	    area.r_ytop = MAX(TOP(tile), BOTTOM(tpx) + width);
+	    if (bridgeLimSrTiles(brlims, &area, FALSE))
+		{
+		/* Second option of bridge can be implemented (there are not limiting tiles in the area)*/
+		area.r_xbot = LEFT(tile);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    	area.r_xbot = MIN(LEFT(tile), RIGHT(tpx));
+		area.r_ybot = BOTTOM(tpx);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+		}
+		else
+		{
+		/* Last option (Limiting tiles are present on both sides, those areas must be excluded from the bridge)*/
+		area.r_xtop = MAX(RIGHT(tpx), LEFT(tile) + width);
+		area.r_ybot = MIN(BOTTOM(tpx), TOP(tile) - width);
+		area.r_xbot = MIN(LEFT(tile), RIGHT(tpx) - width);
+		area.r_ytop = MAX(TOP(tile), BOTTOM(tpx) + width);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    	bridgeErase(brlims, &area);
+		}
+	    }
+	}
+    }
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * cifBridgeLimFunc2 --
+ *
+ * 	Called for each relevant tile during bridge-lim operations.  The
+ *	bridge-lim operation is similar to the bridge operation with the
+ *	difference that the material created to meet the minimum spacing/width
+ *	rules do not overlap the limiting layers.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	May paint into cifNewPlane
+ * ----------------------------------------------------------------------------
+ */
+int
+cifBridgeLimFunc2(tile, brlims)
+    Tile *tile;
+    BridgeLimStruct *brlims;
+{
+    Plane *plane = brlims->plane;
+    Rect area;
+    Tile *tp1, *tp2, *tpx;
+    int width = brlims->bridge->br_width;
+    int thirdOption;
+    int spacing = growDistance;
+    BridgeLimCheckStruct brlimcs;
+    brlimcs.sqdistance = (long) width * width;
+
+    /* If tile is marked, then it has been handled, so ignore it */
+    if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
+
+    /* Find each tile outside corner (up to four) */
+
+    /* Check for NE outside corner */
+    tp1 = TR(tile);  /* Tile on right side at the top of this tile */
+    tp2 = RT(tile);  /* Tile on top side at the right of this tile */
+    if ((TiGetLeftType(tp1) == CIF_SOLIDTYPE) &&
+	    (TiGetBottomType(tp2) == CIF_SOLIDTYPE))
+    {
+	/* Set search box */
+	area.r_xbot = RIGHT(tile);
+	area.r_xtop = RIGHT(tile) + width;
+	area.r_ybot = TOP(tile);
+	area.r_ytop = TOP(tile) + width;
+
+	/* Find violator tiles */
+	brlimcs.tile = tile;
+	brlimcs.direction = BRIDGE_SW;
+	brlimcs.checktype = CIF_SOLIDTYPE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &DBSpaceBits, bridgeLimCheckFunc, (ClientData)&brlimcs) == 1)
+	{
+	    tpx = brlimcs.violator;
+	    area.r_xtop = RIGHT(tile);
+	    area.r_ytop = TOP(tile);
+	    area.r_xbot = LEFT(tpx) - width;
+	    area.r_ybot = BOTTOM(tpx) - width;
+
+	    thirdOption = 0;
+	    if (!bridgeLimSrTiles(brlims, &area, FALSE))
+	    {
+	    	area.r_xtop = RIGHT(tile) + width;
+	    	area.r_ytop = TOP(tile) + width;
+	    	area.r_xbot = LEFT(tpx);
+	    	area.r_ybot = BOTTOM(tpx);
+	        if (!bridgeLimSrTiles(brlims, &area, FALSE))
+		{
+	    	   area.r_xbot = LEFT(tpx) - width;
+		   area.r_ybot = BOTTOM(tpx) - width;
+	    	   thirdOption = 1;
+		}
+	    }
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    if (thirdOption)
+	    	bridgeErase(brlims, &area);
+	}
+    }
+
+    /* Check for SW outside corner */
+    tp1 = BL(tile);  /* Tile on left side at the bottom of this tile */
+    tp2 = LB(tile);  /* Tile on bottom side at the left of this tile */
+    if ((TiGetRightType(tp1) == CIF_SOLIDTYPE) &&
+	    (TiGetTopType(tp2) == CIF_SOLIDTYPE))
+    {
+	/* Set search box */
+	area.r_xbot = LEFT(tile) - width;
+	area.r_xtop = LEFT(tile);
+	area.r_ybot = BOTTOM(tile) - width;
+	area.r_ytop = BOTTOM(tile);
+
+	/* Find violator tiles */
+	brlimcs.tile = tile;
+	brlimcs.direction = BRIDGE_NE;
+	brlimcs.checktype = CIF_SOLIDTYPE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &DBSpaceBits, bridgeLimCheckFunc, (ClientData)&brlimcs) == 1)
+	{
+	    tpx = brlimcs.violator;
+	    area.r_xtop = RIGHT(tpx);
+	    area.r_ytop = TOP(tpx);
+	    area.r_xbot = LEFT(tile) - width;
+	    area.r_ybot = BOTTOM(tile) - width;
+
+	    thirdOption = 0;
+	    if (!bridgeLimSrTiles(brlims, &area, FALSE))
+	    {
+	    	area.r_xtop = RIGHT(tpx) + width;
+	    	area.r_ytop = TOP(tpx) + width;
+	    	area.r_xbot = LEFT(tile);
+	    	area.r_ybot = BOTTOM(tile);
+	        if (!bridgeLimSrTiles(brlims, &area, FALSE))
+		{
+	    	   area.r_xbot = LEFT(tile) - width;
+		   area.r_ybot = BOTTOM(tile) - width;
+	    	   thirdOption = 1;
+		}
+	    }
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    if (thirdOption)
+	    	bridgeErase(brlims, &area);
+	}
+    }
+
+    /* Check for SE outside corner */
+    for (tp1 = TR(tile); BOTTOM(tp1) > BOTTOM(tile); tp1 = LB(tp1));
+    for (tp2 = LB(tile); RIGHT(tp2) < RIGHT(tile); tp2 = TR(tp2));
+    if ((TiGetLeftType(tp1) == CIF_SOLIDTYPE) &&
+	    (TiGetTopType(tp2) == CIF_SOLIDTYPE))
+    {
+	/* Set search box */
+	area.r_xbot = RIGHT(tile);
+	area.r_xtop = RIGHT(tile) + width;
+	area.r_ybot = BOTTOM(tile) - width;
+	area.r_ytop = BOTTOM(tile);
+
+	/* Find violator tiles */
+	brlimcs.tile = tile;
+	brlimcs.direction = BRIDGE_NW;
+	brlimcs.checktype = CIF_SOLIDTYPE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &DBSpaceBits, bridgeLimCheckFunc, (ClientData)&brlimcs) == 1)
+	{
+	    tpx = brlimcs.violator;
+	    area.r_xtop = RIGHT(tile) + width;
+	    area.r_ytop = TOP(tpx);
+	    area.r_xbot = LEFT(tpx);
+	    area.r_ybot = BOTTOM(tile) - width;
+
+	    thirdOption = 0;
+	    if (!bridgeLimSrTiles(brlims, &area, FALSE))
+	    {
+	    	area.r_xtop = RIGHT(tile);
+	    	area.r_ytop = TOP(tpx) + width;
+	    	area.r_xbot = LEFT(tpx) - width;
+	    	area.r_ybot = BOTTOM(tile);
+	        if (!bridgeLimSrTiles(brlims, &area, FALSE))
+		{
+	    	   area.r_xtop = RIGHT(tile) + width;
+		   area.r_ybot = BOTTOM(tile) - width;
+	    	   thirdOption = 1;
+		}
+	    }
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    if (thirdOption)
+	    	bridgeErase(brlims, &area);
+	}
+    }
+
+    /* Check for NW outside corner */
+    for (tp1 = BL(tile); TOP(tp1) < TOP(tile); tp1 = RT(tp1));
+    for (tp2 = RT(tile); LEFT(tp2) > LEFT(tile); tp2 = BL(tp2));
+    if ((TiGetRightType(tp1) == CIF_SOLIDTYPE) &&
+	    (TiGetBottomType(tp2) == CIF_SOLIDTYPE))
+    {
+	/* Set search box */
+	area.r_xbot = LEFT(tile) - width;
+	area.r_xtop = LEFT(tile);
+	area.r_ybot = TOP(tile);
+	area.r_ytop = TOP(tile) + width;
+
+	/* Find violator tiles */
+	brlimcs.tile = tile;
+	brlimcs.direction = BRIDGE_SE;
+	brlimcs.checktype = CIF_SOLIDTYPE;
+	if (DBSrPaintArea((Tile *) NULL, plane, &area,
+		    &DBSpaceBits, bridgeLimCheckFunc, (ClientData)&brlimcs) == 1)
+	{
+	    tpx = brlimcs.violator;
+	    area.r_xtop = RIGHT(tpx) + width;
+	    area.r_ytop = TOP(tile);
+	    area.r_xbot = LEFT(tile);
+	    area.r_ybot = BOTTOM(tpx) - width;
+
+	    thirdOption = 0;
+	    if (!bridgeLimSrTiles(brlims, &area, FALSE))
+	    {
+	    	area.r_xtop = RIGHT(tpx);
+	    	area.r_ytop = TOP(tile) + width;
+	    	area.r_xbot = LEFT(tile) - width;
+	    	area.r_ybot = BOTTOM(tpx);
+	        if (!bridgeLimSrTiles(brlims, &area, FALSE))
+		{
+	    	   area.r_xtop = RIGHT(tpx) + width;
+		   area.r_ybot = BOTTOM(tpx) - width;
+	    	   thirdOption = 1;
+		}
+	    }
+	    DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    if (thirdOption)
+	    	bridgeErase(brlims, &area);
+	}
+    }
+
+    return 0;
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3828,6 +4663,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
     char *netname;
     BloatStruct bls;
     BridgeStruct brs;
+    BridgeLimStruct brlims;
     BridgeData *bridge;
     int (*cifGrowFuncPtr)() = (CIFCurStyle->cs_flags & CWF_GROW_EUCLIDEAN) ?
 		cifGrowEuclideanFunc : cifGrowFunc;
@@ -4022,11 +4858,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		cifPlane = nextPlane;
 		cifScale = 1;
 		/* First copy the existing paint into the target plane */
-		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
-		    &CIFSolidBits, cifPaintFunc, (ClientData)CIFPaintTable);
+		DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    	&CIFSolidBits, cifPaintFunc, (ClientData)CIFPaintTable);
+		DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    	&DBSpaceBits, cifCloseFunc, (ClientData)&curPlane);
 
-		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
-		    &DBSpaceBits, cifCloseFunc, (ClientData)&curPlane);
 		temp = curPlane;
 		curPlane = nextPlane;
 		nextPlane = temp;
@@ -4048,6 +4884,32 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
 		    &DBSpaceBits, cifBridgeFunc2, (ClientData)&brs);
 		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
+		break;
+
+	    case CIFOP_BRIDGELIM:
+		growDistance = op->co_distance;
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifScale = 1;
+		
+                brlims.bridge = (BridgeData *)op->co_client;
+                brlims.def = cellDef;
+                brlims.temps = temps;
+		brlims.co_paintMask = op->co_paintMask;
+		brlims.co_cifMask = op->co_cifMask;
+
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &CIFSolidBits, cifBridgeLimFunc0, (ClientData)&brlims);
+		temp = curPlane;
+                curPlane = nextPlane;
+		brlims.plane = curPlane;
+
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &CIFSolidBits, cifBridgeLimFunc1, (ClientData)&brlims);
+		(void) DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    &DBSpaceBits, cifBridgeLimFunc2, (ClientData)&brlims);
 		curPlane = nextPlane;
 		nextPlane = temp;
 		break;

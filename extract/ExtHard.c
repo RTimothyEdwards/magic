@@ -427,9 +427,9 @@ extHardGenerateLabel(scx, reg, arg)
     len = strlen(gen) + prefixlen;
     newlab = (Label *) mallocMagic((unsigned) (sizeof (Label) + len - 3));
     r.r_ll = reg->treg_tile->ti_ll;
-    GEOCLIP(&r,&scx->scx_area);
     r.r_ur.p_x = r.r_ll.p_x+1;
     r.r_ur.p_y = r.r_ll.p_y+1;
+    GEOCLIP(&r,&scx->scx_area);
     GeoTransRect(&scx->scx_trans, &r, &newlab->lab_rect);
     newlab->lab_type = TiGetType(reg->treg_tile);
 

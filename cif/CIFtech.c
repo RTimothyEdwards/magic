@@ -1058,6 +1058,8 @@ CIFTechLine(sectionName, argc, argv)
 	newOp->co_opcode = CIFOP_CLOSE;
     else if (strcmp(argv[0], "bridge") == 0)
 	newOp->co_opcode = CIFOP_BRIDGE;
+    else if (strcmp(argv[0], "bridge-lim") == 0)
+	newOp->co_opcode = CIFOP_BRIDGELIM;
     else
     {
 	TechError("Unknown statement \"%s\".\n", argv[0]);
@@ -1104,6 +1106,26 @@ CIFTechLine(sectionName, argc, argv)
 		freeMagic(bridge);
 		goto errorReturn;
 	    }
+	    newOp->co_client = (ClientData)bridge;
+	    break;
+
+	case CIFOP_BRIDGELIM:
+	    if (argc != 4) goto wrongNumArgs;
+	    newOp->co_distance = atoi(argv[1]);
+	    if (newOp->co_distance <= 0)
+	    {
+		TechError("Bridge distance must be greater than zero.\n");
+		goto errorReturn;
+	    }
+	    bridge = (BridgeData *)mallocMagic(sizeof(BridgeData));
+	    bridge->br_width = atoi(argv[2]);
+	    if (bridge->br_width <= 0)
+	    {
+		TechError("Bridge width must be greater than zero.\n");
+		freeMagic(bridge);
+		goto errorReturn;
+	    }
+	    cifParseLayers(argv[3], CIFCurStyle, &newOp->co_paintMask, &newOp->co_cifMask,FALSE);
 	    newOp->co_client = (ClientData)bridge;
 	    break;
 
@@ -1572,6 +1594,7 @@ cifComputeRadii(layer, des)
 		break;
 
 	    case CIFOP_BRIDGE: break;
+	    case CIFOP_BRIDGELIM: break;
 	    case CIFOP_SQUARES: break;
 	    case CIFOP_SQUARES_G: break;
 	}
@@ -1831,6 +1854,7 @@ CIFTechFinal()
 			case CIFOP_MAXRECT:
 			case CIFOP_NET:
 			    break;
+			case CIFOP_BRIDGELIM:
 			case CIFOP_BRIDGE:
 			    bridge = (BridgeData *)op->co_client;
 			    c = FindGCF(style->cs_scaleFactor,
@@ -1928,6 +1952,7 @@ CIFTechFinal()
 		case CIFOP_ANDNOT:
 		case CIFOP_SHRINK:
 		case CIFOP_CLOSE:
+		case CIFOP_BRIDGELIM:
 		case CIFOP_BRIDGE:
 		    needThisLayer = TRUE;
 		    break;
@@ -2359,6 +2384,7 @@ CIFTechOutputScale(n, d)
 			case CIFOP_MAXRECT:
 			case CIFOP_NET:
 			    break;
+			case CIFOP_BRIDGELIM:
 			case CIFOP_BRIDGE:
 			    bridge = (BridgeData *)op->co_client;
 			    bridge->br_width *= d;
@@ -2463,6 +2489,7 @@ CIFTechOutputScale(n, d)
 			    if (bloats->bl_distance[j] != 0)
 				bloats->bl_distance[j] /= lexpand;
 			break;
+		    case CIFOP_BRIDGELIM:
 		    case CIFOP_BRIDGE:
 			bridge = (BridgeData *)op->co_client;
 			bridge->br_width /= lexpand;

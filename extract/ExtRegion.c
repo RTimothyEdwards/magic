@@ -218,13 +218,14 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	for (quad = 0; quad < 4; quad++)
 	{
 	    /*
-	     * Visit each of the four quadrants surrounding
-	     * the lower-left corner of the label, searching
-	     * for a tile whose type matches that of the label
-	     * or connects to it.
+	     * Visit each of the four quadrants surrounding the center
+	     * point of the label, searching for a tile whose type matches
+	     * that of the label or connects to it.
 	     */
-	    p.p_x = lab->lab_rect.r_xbot + offsets[quad].p_x;
-	    p.p_y = lab->lab_rect.r_ybot + offsets[quad].p_y;
+	    p.p_x = ((lab->lab_rect.r_xbot + lab->lab_rect.r_xtop) >> 1)
+			+ offsets[quad].p_x;
+	    p.p_y = ((lab->lab_rect.r_ybot + lab->lab_rect.r_ytop) >> 1)
+			+ offsets[quad].p_y;
 	    tp = def->cd_planes[pNum]->pl_hint;
 	    GOTOPOINT(tp, &p);
 	    def->cd_planes[pNum]->pl_hint = tp;

@@ -639,7 +639,14 @@ dbTechAddPaintErase(type, sectionName, argc, argv)
 
     pMask &= ~rMask;
 
-    for (tres = 0; tres < DBNumTypes; tres++)
+    /* 10/30/2020:  Changed from DBNumTypes to DBNumUserLayers,	    */
+    /* because DBTechNoisyNameMask() was modified to add stacking   */
+    /* contact types, and it is not correct for tMask to have more  */
+    /* than one type in the mask that share the same plane.	    */
+    /* NOTE:  Paint rules for stacked contacts probably have to be  */
+    /* handled too, but in a separate way.			    */
+    
+    for (tres = 0; tres < DBNumUserLayers; tres++)
     {
 	if (TTMaskHasType(&tMask, tres))
 	{

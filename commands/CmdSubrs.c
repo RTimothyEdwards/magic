@@ -734,8 +734,9 @@ again:
     }
 
     /* Remove any ".mag" file extension from the name */
-    if (!strcmp(returnname + strlen(returnname) - 4, ".mag"))
-	*(returnname + strlen(returnname) - 4) = '\0';
+    if (strlen(returnname) > 4)
+	if (!strcmp(returnname + strlen(returnname) - 4, ".mag"))
+	    *(returnname + strlen(returnname) - 4) = '\0';
 
     if (strcmp(returnname, def->cd_name) != 0)
     {

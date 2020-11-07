@@ -112,15 +112,15 @@ CmdLef(w, cmd)
     static char *cmdLefOption[] =
     {
 	"read [filename]		read a LEF file filename[.lef]\n"
-	"    read [filename] -import	read a LEF file; import cells from .mag files\n",
-	"    read [filename] -annotate	read a LEF file for cell annotation only.",
+	"    read [filename] -import	read a LEF file; import cells from .mag files\n"
+	"    read [filename] -annotate	read a LEF file for cell annotation only."
 	"write [filename] [-tech]	write LEF for current cell\n"
-	"    write [filename] -hide	hide all details other than ports\n",
+	"    write [filename] -hide	hide all details other than ports\n"
 	"    write [filename] -hide <d>	hide details in area set back distance <d>",
 	"writeall			write all cells including the top-level cell\n"
 	"    writeall -notop		write all children of the top-level cell\n"
-	"    writeall -all		recurse on all subcells of the top-level cell\n",
-	"    writeall -hide		hide all details other than ports\n",
+	"    writeall -all		recurse on all subcells of the top-level cell\n"
+	"    writeall -hide		hide all details other than ports\n"
 	"    writeall -hide [dist]	hide details in area set back distance dist",
 	"help                   	print this help information",
 	NULL

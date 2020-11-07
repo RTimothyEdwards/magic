@@ -81,6 +81,7 @@ typedef struct namelist
     char		*sn_name;	/* Text of name */
     ClientData		 sn_value;	/* Value (TileType or plane number) */
     bool		 sn_primary;	/* If TRUE, this is the primary name */
+    bool		 sn_alias;	/* If TRUE, this is an alias name */
 } NameList;
 
 typedef struct
