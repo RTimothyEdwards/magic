@@ -729,7 +729,7 @@ extern void DBFontLabelSetBBox();
 extern bool DBEraseLabel();
 extern void DBEraseLabelAll();
 extern void DBEraseLabelsByContent();
-extern void DBEraseLabelsByFunction();
+extern void DBRemoveLabel();
 extern void DBReOrientLabel();
 extern void DBAdjustLabels();
 
@@ -778,6 +778,7 @@ extern CellUse *DBCellFindDup();
 extern void DBLockUse();
 extern void DBUnlockUse();
 extern void DBOrientUse();
+extern void DBAbutmentUse();
 
     /* Cell selection */
 extern CellUse *DBSelectCell();

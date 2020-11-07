@@ -157,6 +157,13 @@ drcCifWarning()
  * Side effects:
  *	Updates the DRC technology variables.
  *
+ * Notes:  "centidistance" is by default in centimicrons, but it is really in
+ * whatever units are declared in the cifoutput section;  so if cifoutput
+ * declares nanometers, then units are in nanometers.  This may be in
+ * different units from the non-CIF part of the DRC section.  The escape
+ * sequence substitution in the "Why" text will make sure that the correct
+ * physical dimensions are presented to the end user.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -194,7 +201,7 @@ drcCifWidth(argc, argv)
     }
 
     scalefactor = drcCifStyle->cs_scaleFactor;
-    centidistance *= drcCifStyle->cs_expander;		// BSI
+    // centidistance *= drcCifStyle->cs_expander;		// BSI
 
     dpnext = drcCifRules[thislayer][DRC_CIF_SPACE];
     dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
@@ -287,7 +294,7 @@ drcCifSpacing(argc, argv)
     }
 
     scalefactor = drcCifStyle->cs_scaleFactor;
-    centidistance *= drcCifStyle->cs_expander;		// BSI
+    // centidistance *= drcCifStyle->cs_expander;		// BSI
     dpnext = drcCifRules[layer[0]][DRC_CIF_SOLID];
     dpnew = (DRCCookie *) mallocMagic((unsigned) sizeof (DRCCookie));
     drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits,
@@ -1167,7 +1174,7 @@ drcCifMaxwidth(argc, argv)
     }
 
     scalefactor = drcCifStyle->cs_scaleFactor;
-    centidistance *= drcCifStyle->cs_expander;		// BSI
+    // centidistance *= drcCifStyle->cs_expander;		// BSI
     dpnext = drcCifRules[thislayer][DRC_CIF_SPACE];
     dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
     drcCifAssign(dpnew, centidistance, dpnext, &CIFSolidBits, &CIFSolidBits,

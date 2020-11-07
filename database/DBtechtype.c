@@ -760,7 +760,7 @@ dbTechNameAdd(name, cdata, ptable, alias)
 	*cp = '\0';
 	if (*(cp = onename))
 	{
-	    if ((current = dbTechNameAddOne(cp, cdata, FALSE, ptable)) == NULL)
+	    if ((current = dbTechNameAddOne(cp, cdata, FALSE, alias, ptable)) == NULL)
 		return (NULL);
 	    if (first == NULL)
 		first = current->sn_name;
@@ -793,10 +793,11 @@ dbTechNameAdd(name, cdata, ptable, alias)
  */
 
 NameList *
-dbTechNameAddOne(name, cdata, isPrimary, ptable)
+dbTechNameAddOne(name, cdata, isPrimary, isAlias, ptable)
     char *name;	/* Name to be added */
     ClientData cdata;		/* Client value associated with this name */
     bool isPrimary;		/* TRUE if this is the primary abbreviation */
+    bool isAlias;		/* TRUE if this name is an alias */
     NameList *ptable;		/* Table of names to which we're adding this */
 {
     int cmp;
@@ -817,6 +818,7 @@ dbTechNameAddOne(name, cdata, isPrimary, ptable)
     new->sn_name = StrDup((char **) NULL, name);
     new->sn_value = cdata;
     new->sn_primary = isPrimary;
+    new->sn_alias = isAlias;
 
     /* Link this entry in to the list before 'tbl' */
     new->sn_next = tbl;

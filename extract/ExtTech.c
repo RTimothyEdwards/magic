@@ -304,9 +304,11 @@ ExtCompareStyle(stylename)
  */
 
 bool
-ExtGetDevInfo(idx, devnameptr, s_rclassptr, d_rclassptr, sub_rclassptr, subnameptr)
+ExtGetDevInfo(idx, devnameptr, devtypeptr, s_rclassptr, d_rclassptr,
+		sub_rclassptr, subnameptr)
     int idx;
-    char **devnameptr;
+    char **devnameptr;	    /* Name of extracted device model */
+    TileType *devtypeptr;   /* Magic tile type of device */
     short *s_rclassptr;	    /* Source (1st terminal) type only */
     short *d_rclassptr;	    /* Drain (2nd terminal) type only */
     short *sub_rclassptr;
@@ -354,6 +356,7 @@ ExtGetDevInfo(idx, devnameptr, s_rclassptr, d_rclassptr, sub_rclassptr, subnamep
 
     *devnameptr = locdname;
     *subnameptr = devptr->exts_deviceSubstrateName;
+    *devtypeptr = t;
 
     tmask = &devptr->exts_deviceSDTypes[0];
     *s_rclassptr = (short)(-1);	/* NO_RESCLASS */

@@ -141,6 +141,7 @@ typedef struct cifop
  *			current cell.  This replaces the "fault" method.
  * CIFOP_CLOSE -	Added 11/25/19---close up areas smaller than indicated
  * CIFOP_BRIDGE -	Added 6/11/20---Bridge across catecorner gaps
+ * CIFOP_BRIDGELIM -	Added 27/07/20---Bridge across catecorner gaps, but with limiting layers
  */
 
 #define CIFOP_AND	1
@@ -164,6 +165,8 @@ typedef struct cifop
 #define CIFOP_COPYUP	19
 #define CIFOP_CLOSE	20
 #define CIFOP_BRIDGE	21
+#define CIFOP_BRIDGELIM 22
+
 
 /* Added by Tim 10/21/2004 */
 /* The following structure is used to pass information on how to draw

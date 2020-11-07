@@ -92,10 +92,11 @@ FILE *esLabF = NULL;
 static unsigned short esFormat = MIT ;
 
 struct {
-   short resClassSource ;  /* the resistance class of the source of the dev */
-   short resClassDrain ;  /* the resistance class of the drain of the dev */
-   short resClassSub ; /* the resistance class of the substrate of the dev */
-   char  *defSubs ;    /* the default substrate node */
+   short resClassSource ;   /* The resistance class of the source of the dev */
+   short resClassDrain ;    /* The resistance class of the drain of the dev */
+   short resClassSub ;	    /* The resistance class of the substrate of the dev */
+   TileType devType ;	    /* Magic tile type of the device */
+   char  *defSubs ;	    /* The default substrate node */
 } fetInfo[MAXDEVTYPES];
 
 typedef struct {
@@ -266,6 +267,7 @@ CmdExtToSim(w, cmd)
     short s_rclass, d_rclass, sub_rclass;
     char *devname;
     char *subname;
+    TileType devtype;
     int idx;
 
     static EFCapValue LocCapThreshold = 2;
@@ -576,6 +578,7 @@ runexttosim:
 	fetInfo[i].resClassDrain = NO_RESCLASS;
 	fetInfo[i].resClassSub = NO_RESCLASS;
 	fetInfo[i].defSubs = NULL;
+	fetInfo[i].devType = TT_SPACE;
     }
 
     /* Get fetInfo information from the current extraction style 	 */
@@ -583,7 +586,8 @@ runexttosim:
     /* command)								 */
 
     idx = 0;
-    while (ExtGetDevInfo(idx++, &devname, &s_rclass, &d_rclass, &sub_rclass, &subname))
+    while (ExtGetDevInfo(idx++, &devname, &devtype, &s_rclass, &d_rclass,
+		&sub_rclass, &subname))
     {
 	if (idx == MAXDEVTYPES)
 	{
@@ -598,6 +602,7 @@ runexttosim:
 	    fetInfo[i].resClassDrain = d_rclass;
 	    fetInfo[i].resClassSub = sub_rclass;
 	    fetInfo[i].defSubs = subname;
+	    fetInfo[i].devType = devtype;
 	}
     }
 
@@ -676,6 +681,7 @@ main(argc, argv)
 	fetInfo[i].resClassDrain = NO_RESCLASS;
 	fetInfo[i].resClassSub = NO_RESCLASS;
 	fetInfo[i].defSubs = NULL;
+	fetInfo[i].devType = TT_SPACE;
     }
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "nfet");
     fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 0 ;
@@ -895,6 +901,7 @@ simmainArgs(pargc, pargv)
 	    fetInfo[ndx].resClassDrain = rClass;
 	    fetInfo[ndx].resClassSub = rClassSub;
 	    fetInfo[ndx].defSubs = (char *) mallocMagic((unsigned) (strlen(subsNode)+1));
+	    fetInfo[ndx].devType = TT_SPACE;
 	    strcpy(fetInfo[ndx].defSubs,subsNode);
 	    TxError("Info: fet %s(%d) sdRclass=%d subRclass=%d dSub=%s\n",
 	    	cp, ndx, fetInfo[ndx].resClassSD, fetInfo[ndx].resClassSub,
@@ -1046,6 +1053,41 @@ simdevVisit(dev, hc, scale, trans)
 	case DEV_CAP:
 	case DEV_CAPREV:
 	    fprintf(esSimF, "c");	/* sim format extension */
+	    break;
+	case DEV_FET:
+	case DEV_MOSFET:
+	case DEV_ASYMMETRIC:
+	case DEV_MSUBCKT:
+	    /* The sim file format only understands "n" and "p" for FETs.   */
+	    /* The extraction method says nothing about which is which.	    */
+	    /* The EFDevTypes[] should ideally start with "n" or "p".  If   */
+	    /* it doesn't, then dev->dev_type should.  If neither does,	    */
+	    /* then use EFDevTypes[] but flag an error.			    */
+
+	    if (EFDevTypes[dev->dev_type][0] == 'n' ||
+		    EFDevTypes[dev->dev_type][0] == 'p')
+	    {
+		fprintf(esSimF, "%c", EFDevTypes[dev->dev_type][0]);
+	    }
+	    else
+	    {
+		TileType ttype = fetInfo[dev->dev_type].devType;
+
+		if (DBTypeLongNameTbl[ttype][0] == 'n' ||
+			    DBTypeLongNameTbl[ttype][0] == 'p')
+		{
+		    fprintf(esSimF, "%c", DBTypeLongNameTbl[ttype][0]);
+		}
+		else
+		{
+		    TxError("Error: MOSFET device type \"%s\" does not start with "
+			    "\"n\" or \"p\" as required for the .sim format\n",
+			    EFDevTypes[dev->dev_type]);
+
+		    /* Default to "n" */
+		    fprintf(esSimF, "n");
+		}
+	    }
 	    break;
 	default:
 	    fprintf(esSimF, "%c", EFDevTypes[dev->dev_type][0]);

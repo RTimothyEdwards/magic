@@ -47,8 +47,8 @@ extern void CmdEdit(), CmdElement(), CmdErase(), CmdExpand(), CmdExtract();
 extern void CmdFeedback(), CmdFill(), CmdFindBox(), CmdFindLabel(), CmdFlush();
 extern void CmdGetcell(), CmdGrid(), CmdIdentify();
 extern void CmdLabel(), CmdLoad();
-extern void CmdMove(), CmdNetlist(), CmdPaint(), CmdPath(), CmdPlow();
-extern void CmdPolygon(), CmdPort(), CmdProperty();
+extern void CmdMove(), CmdNetlist(), CmdOrient(), CmdPaint(), CmdPath();
+extern void CmdPlow(), CmdPolygon(), CmdPort(), CmdProperty();
 extern void CmdSave(), CmdScaleGrid(), CmdSee();
 extern void CmdSelect(), CmdSetLabel(), CmdSideways();
 extern void CmdShell(), CmdSnap();
@@ -378,6 +378,9 @@ DBWInitCommands()
 			for information on options",
 	CmdNetlist, FALSE);
 
+    WindAddCommand(DBWclientID,
+	"orient [orientation]		orient selection and box",
+	CmdOrient, FALSE);
     WindAddCommand(DBWclientID,
 	"paint layers|cursor		paint mask information",
 	CmdPaint, FALSE);

@@ -1204,19 +1204,20 @@ DBLockUse(UseName, bval)
  *
  * DBOrientUse --
  *
- * 	This routine sets or reports a cell instance's orientation
+ * 	This routine reports a cell instance's orientation.
  *	UseName is the name of a specific CellUse.  If NULL, then the
- *	operation applies to all selected cell uses.  "orient" is a
- *	string in the form used by "getcell" (e.g., "180", "270v",
- *	etc.), unless "dodef" is true, in which case the output is
- *	given in the form used by DEF ("N", "FN", etc.).
- *	reported.
+ *	operation applies to all selected cell uses.
  *
  * Results:
  *	None.
  *
  * Side effects:
- *	cu_transform changed for indicated cell use.
+ *	In the Tcl/Tk implementation, the result is set in the interpreter.
+ *
+ * Notes:
+ *	This routine only reports orientation.  Setting orientation must
+ *	be done through the selection interface (i.e., commands "sideways",
+ *	"upsidedown", "clockwise" ("rotate"), or "orient" (added 10/30/2020)).
  *
  * ----------------------------------------------------------------------------
  */
@@ -1294,6 +1295,7 @@ dbOrientUseFunc(selUse, use, transform, data)
     ClientData data;
 {
     bool *dodef = (bool *)data;
+    int orient;
 
     if (EditCellUse && !DBIsChild(use, EditCellUse))
     {
@@ -1302,9 +1304,16 @@ dbOrientUseFunc(selUse, use, transform, data)
 	return 0;
     }
 
+    orient = -1;
+
     if (selUse != NULL)
+	orient = GeoTransOrient(&selUse->cu_transform);
+    else if (use != NULL)
+	orient = GeoTransOrient(&use->cu_transform);
+
+    if (orient != -1)
     {
-	switch (GeoTransOrient(&selUse->cu_transform)) {
+	switch (orient) {
 #ifdef MAGIC_WRAPPER
 	    case ORIENT_NORTH:
 		Tcl_AppendElement(magicinterp, (*dodef) ? "N" : "0");
@@ -1359,6 +1368,140 @@ dbOrientUseFunc(selUse, use, transform, data)
 	}
 	
     }
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBAbutmentUse --
+ *
+ * 	This routine reports the cell instance's abutment box in the
+ *	coordinate system of the parent (edit) cell.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBAbutmentUse(UseName, dolist)
+    char *UseName;
+    bool dolist;
+{
+    int found;
+    HashSearch hs;
+    HashEntry *entry;
+    CellDef *celldef;
+    CellUse *celluse;
+
+    int dbAbutmentUseFunc();
+
+   /*
+    *
+    * Check to see if a cell name was specified. If not, then search
+    * for selected cells.
+    *
+    */
+
+    if (UseName == NULL)
+    {
+	SelEnumCells(TRUE, (int *)NULL, (SearchContext *)NULL,
+			dbAbutmentUseFunc, (ClientData)&dolist);
+    }
+    else
+    {
+	SearchContext scx;
+
+	bzero(&scx, sizeof(SearchContext));
+	found = 0;
+
+	HashStartSearch(&hs);
+	while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
+	{
+	    celldef = (CellDef *) HashGetValue(entry);
+	    if (celldef != (CellDef *) NULL)
+	    {
+		celluse = celldef->cd_parents;   /* only need one */
+		if (celluse != (CellUse *)NULL) {
+		    DBTreeFindUse(UseName, celluse, &scx);
+		    if (scx.scx_use != NULL) break;
+		}
+	    }
+	}
+
+	if (scx.scx_use == NULL)
+	    TxError("Cell %s is not currently loaded.\n", UseName);
+	else
+	    dbAbutmentUseFunc(NULL, scx.scx_use, NULL, (ClientData)&dolist);
+    }
+}
+
+/*
+ *  dbAbutmentUseFunc()
+ */
+
+int
+dbAbutmentUseFunc(selUse, use, transform, data)
+    CellUse *selUse;	/* Use from selection cell */
+    CellUse *use;	/* Use from layout corresponding to selection */
+    Transform *transform;
+    ClientData data;
+{
+    Rect bbox, refbox;
+    Transform *trans;
+    char *propvalue;
+    bool found;
+    bool *dolist = (bool *)data;
+
+#ifdef MAGIC_WRAPPER
+    Tcl_Obj *pobj;
+#endif
+
+    if (EditCellUse && !DBIsChild(use, EditCellUse))
+    {
+	TxError("Cell %s (%s) isn't a child of the edit cell.\n",
+		use->cu_id, use->cu_def->cd_name);
+	return 0;
+    }
+
+    if (use == NULL)
+    {
+	TxError("No instance in selection!\n");
+	return 0;
+    }
+
+    trans = &use->cu_transform;
+    propvalue = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+    if (!found)
+	bbox = use->cu_def->cd_bbox;
+    else
+    {
+	if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		&bbox.r_xtop, &bbox.r_ytop) != 4)
+	    bbox = use->cu_def->cd_bbox;
+    }
+    GeoTransRect(trans, &bbox, &refbox);
+
+#ifdef MAGIC_WRAPPER
+    if (*dolist)
+    {
+	pobj = Tcl_NewListObj(0, NULL);
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(refbox.r_xbot));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(refbox.r_ybot));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(refbox.r_xtop));
+	Tcl_ListObjAppendElement(magicinterp, pobj, Tcl_NewIntObj(refbox.r_ytop));
+	Tcl_SetObjResult(magicinterp, pobj);
+    }
+    else
+#endif
+    TxPrintf("Abutment box:  %d %d %d %d\n", refbox.r_xbot, refbox.r_ybot,
+	    refbox.r_xtop, refbox.r_ytop);
+	
     return 0;
 }
 

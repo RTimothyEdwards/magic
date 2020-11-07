@@ -1484,6 +1484,9 @@ extOutputParameters(def, transList, outFile)
 
 	    for (devptr = ExtCurStyle->exts_device[t]; devptr; devptr = devptr->exts_next)
 	    {
+		/* Do not output parameters for ignored devices */
+		if (!strcmp(devptr->exts_deviceName, "Ignore")) continue;
+
 		plist = devptr->exts_deviceParams;
 		if (plist != (ParamList *)NULL)
 		{
@@ -1726,9 +1729,15 @@ extOutputDevices(def, transList, outFile)
 		tmask = &devptr->exts_deviceSDTypes[termcount];
 		if (TTMaskIsZero(tmask)) {
 		    if (termcount < nsd) {
+			ExtDevice *devcheck;
 			/* See if there is another matching device record with	*/
 			/* a different number of terminals, and try again.	*/
-			devptr = extDevFindMatch(devptr, t);
+			devcheck = extDevFindMatch(devptr, t);
+			if (devcheck != NULL) devptr = devcheck;
+
+			/* Not finding another device record just means that	*/
+			/* terminals are tied together on the same net, such as	*/
+			/* with a MOS cap.  Accept this fact and move on.	*/
 		    } 
 		    break;	/* End of SD terminals */
 		}
@@ -1850,6 +1859,14 @@ extOutputDevices(def, transList, outFile)
 	}
 #endif
 	extTransRec.tr_devrec = devptr;
+
+	/* Model type "Ignore" in the techfile indicates a device   */
+	/* to be ignored (i.e., a specific combination of layers    */
+	/* does not form an extractable device, or overlaps another */
+	/* device type that should take precedence).		    */
+
+	if (!strcmp(devptr->exts_deviceName, "Ignore"))
+	    continue;
 
 	/* Original-style FET record backward compatibility */
 	if (devptr->exts_deviceClass != DEV_FET)

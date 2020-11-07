@@ -2774,7 +2774,7 @@ DBCellWrite(cellDef, fileName)
     /* The cd_file should not have the .mag suffix, but make sure   */
     /* it doesn't before adding one.				    */
 
-    if (strcmp(fileName + strlen(fileName) - 4, DBSuffix))
+    if ((strlen(fileName) < 4) || (strcmp(fileName + strlen(fileName) - 4, DBSuffix)))
     {
 	realname = (char *) mallocMagic(strlen(fileName) + strlen(DBSuffix) + 1);
 	(void) sprintf(realname, "%s%s", fileName, DBSuffix);
