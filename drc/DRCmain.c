@@ -637,9 +637,9 @@ drcWhyAllFunc(scx, cdarg)
     /* Check paint and interactions in this subcell. */
 
     (void) DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
-		drcListallError, (Plane *)NULL, (ClientData)scx);
+		drcListallError, (ClientData)scx);
     (void) DRCArrayCheck(def, &scx->scx_area,
-		drcListallError, (Plane *)NULL, (ClientData)scx);
+		drcListallError, (ClientData)scx);
 
     /* New behavior:  Don't search children, instead propagate errors up. */
     /* (void) DBCellSrArea(scx, drcWhyAllFunc, (ClientData)cdarg); */
