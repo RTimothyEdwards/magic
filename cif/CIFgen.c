@@ -2012,8 +2012,22 @@ cifGatherFunc(tile, atotal, mode)
     }
     else if (mode == CLOSE_FILL)
     {
-	DBNMPaintPlane(cifPlane, TiGetTypeExact(tile), &area, CIFPaintTable,
-		(PaintUndoInfo *)NULL);
+	TileType dinfo = TiGetTypeExact(tile);
+
+	/* The recursive call to cifGatherFunc() below means that the	*/
+	/* tile type cannot be depended on to have the TT_SIDE bit set	*/
+	/* for the side of the tile that is TT_SPACE.  So set the	*/
+	/* side bit manually.						*/
+
+	if (IsSplit(tile))
+	{
+	    if (TiGetLeftType(tile) == TT_SPACE)
+		dinfo &= ~TT_SIDE;
+	    else
+		dinfo |= TT_SIDE;
+	}
+
+	DBNMPaintPlane(cifPlane, dinfo, &area, CIFPaintTable, (PaintUndoInfo *)NULL);
 	CIFTileOps++;
     }
 
