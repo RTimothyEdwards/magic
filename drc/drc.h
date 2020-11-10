@@ -246,6 +246,9 @@ extern int DRCGetDefaultLayerSpacing();
 extern int DRCGetDefaultWideLayerSpacing();
 extern int DRCGetDefaultLayerSurround();
 
+extern int DRCInteractionCheck();
+extern int DRCArrayCheck();
+
 extern void DRCTechInit();
 extern bool DRCTechLine();
 extern bool DRCTechAddRule();
