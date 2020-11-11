@@ -51,6 +51,7 @@ bool esDoHierarchy = FALSE;
 bool esDoBlackBox = FALSE;
 bool esDoRenumber = FALSE;
 bool esDoResistorTee = FALSE;
+bool esDoDevcap2Subckt = FALSE;
 int  esDoSubckt = AUTO;
 bool esDevNodesOnly = FALSE;
 bool esMergeNames = TRUE;
@@ -97,6 +98,7 @@ bool esMergeDevsC = FALSE; /* conservative merging of devs L1=L2 and W1=W2 */
 			   /* used with the hspice multiplier */
 bool esDistrJunct = FALSE;
 
+char *substr = NULL;
 /*
  *---------------------------------------------------------
  * Variables & macros used for merging parallel devs
@@ -218,8 +220,9 @@ Exttospice_Init(interp)
 #define EXTTOSPC_BLACKBOX	11
 #define EXTTOSPC_RENUMBER	12
 #define EXTTOSPC_MERGENAMES	13
-#define EXTTOSPC_LVS		14
-#define EXTTOSPC_HELP		15
+#define EXTTOSPC_DEVCAP2SUBCKT	14
+#define EXTTOSPC_LVS		15
+#define EXTTOSPC_HELP		16
 
 void
 CmdExtToSpice(w, cmd)
@@ -236,7 +239,6 @@ CmdExtToSpice(w, cmd)
     char **argv = cmd->tx_argv;
     char **msg;
     char *resstr = NULL;
-    char *substr = NULL;
     bool err_result, locDoSubckt;
 
     short s_rclass, d_rclass, sub_rclass;
@@ -271,6 +273,7 @@ CmdExtToSpice(w, cmd)
 	"renumber [on|off]	on = number instances X1, X2, etc.\n"
 	"			off = keep instance ID names",
 	"global [on|off]	on = merge unconnected global nets by name",
+        "devcap2subckt [on|off] transform device capacitors to a subcircuit instance",
 	"lvs    		apply typical default settings for LVS",
 	"help			print help information",
 	NULL
@@ -356,6 +359,20 @@ CmdExtToSpice(w, cmd)
 	    if (idx < 0) goto usage;
 	    else if (idx < 3) esDoResistorTee = TRUE;
 	    else esDoResistorTee = FALSE;
+	    break;
+
+        case EXTTOSPC_DEVCAP2SUBCKT:
+	    if (cmd->tx_argc == 2)
+	    {
+		Tcl_SetResult(magicinterp, (esDoDevcap2Subckt) ? "on" : "off", NULL);
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto usage;
+	    idx = Lookup(cmd->tx_argv[2], yesno);
+	    if (idx < 0) goto usage;
+	    else if (idx < 3) esDoDevcap2Subckt = TRUE;
+	    else esDoDevcap2Subckt = FALSE;
 	    break;
 
 	case EXTTOSPC_SCALE:
@@ -910,6 +927,11 @@ runexttospice:
 
 	initMask = ( esDistrJunct  ) ? (unsigned long)0 : DEV_CONNECT_MASK;
 
+	/* Visit nodes to find the substrate node */
+	EFVisitNodes(spcsubVisit, (ClientData)&substr);
+	if (substr == NULL)
+	    substr = StrDup((char **)NULL, "0");
+
 	if (esMergeDevsA || esMergeDevsC)
 	{
 	    devMerge *p;
@@ -933,11 +955,6 @@ runexttospice:
 	}
 	EFVisitResists(spcresistVisit, (ClientData) NULL);
 	EFVisitSubcircuits(subcktVisit, (ClientData) NULL);
-
-	/* Visit nodes to find the substrate node */
-	EFVisitNodes(spcsubVisit, (ClientData)&substr);
-	if (substr == NULL)
-	    substr = StrDup((char **)NULL, "0");
 
 	(void) sprintf( esSpiceCapFormat, "C%%d %%s %s %%.%dlffF%%s",
 			substr, esCapAccuracy);
@@ -2411,7 +2428,10 @@ spcdevVisit(dev, hc, scale, trans)
 	    break;
 	case DEV_CAP:
 	case DEV_CAPREV:
-	    devchar = 'C';
+	    if (esDoDevcap2Subckt)
+	       devchar = 'X';
+            else
+	       devchar = 'C';
 	    break;
 	case DEV_SUBCKT:
 	case DEV_RSUBCKT:
@@ -2448,7 +2468,10 @@ spcdevVisit(dev, hc, scale, trans)
 		break;
 	    case DEV_CAP:
 	    case DEV_CAPREV:
-		fprintf(esSpiceF, "%d", esCapNum++);
+	        if (esDoDevcap2Subckt)
+		   fprintf(esSpiceF, "%d", esSbckNum++);
+                else
+		   fprintf(esSpiceF, "%d", esCapNum++);
 		break;
 	    case DEV_SUBCKT:
 	    case DEV_RSUBCKT:
@@ -2648,6 +2671,9 @@ spcdevVisit(dev, hc, scale, trans)
 			name, esSpiceF);
 	    spcdevOutNode(hierName, source->dterm_node->efnode_name->efnn_hier,
 			name, esSpiceF);
+
+	    if (has_model && esDoDevcap2Subckt)
+		  fprintf(esSpiceF, " %s", substr);
 
 	    sdM = getCurDevMult();
 
