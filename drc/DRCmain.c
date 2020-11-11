@@ -616,12 +616,6 @@ drcWhyFunc(scx, cdarg)
 
     (void) DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
 		(dolist) ? drcListError : drcPrintError, (ClientData) scx);
-    (void) DRCArrayCheck(def, &scx->scx_area,
-		(dolist) ? drcListError : drcPrintError, (ClientData) scx);
-
-    /* New behavior:  Don't search children, instead propagate errors up. */
-    /* (void) DBCellSrArea(scx, drcWhyFunc, (ClientData)cdarg); */
-
     return 0;
 }
 
@@ -638,12 +632,6 @@ drcWhyAllFunc(scx, cdarg)
 
     (void) DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
 		drcListallError, (ClientData)scx);
-    (void) DRCArrayCheck(def, &scx->scx_area,
-		drcListallError, (ClientData)scx);
-
-    /* New behavior:  Don't search children, instead propagate errors up. */
-    /* (void) DBCellSrArea(scx, drcWhyAllFunc, (ClientData)cdarg); */
-
     return 0;
 }
 

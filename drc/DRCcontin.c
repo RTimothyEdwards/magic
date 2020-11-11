@@ -696,8 +696,6 @@ drcCheckTile(tile, arg)
     (void) DBSrPaintArea((Tile *) NULL, celldef->cd_planes[PL_DRC_ERROR],
 	&square, &DBAllButSpaceBits, drcXorFunc, (ClientData) NULL);
 
-    /* Check #1:  recheck the paint of the cell, ignoring subcells. */
-
     DRCErrorType = TT_ERROR_P;
     DBClearPaintPlane(drcTempPlane);
 
@@ -707,10 +705,7 @@ drcCheckTile(tile, arg)
      * computed within DRCInteractionCheck()).
      */
 
-    /* DRCBasicCheck (celldef, &checkbox, &erasebox, drcPaintError,
-		(ClientData) drcTempPlane); */
-
-    /* Check #2:  check interactions between paint and subcells, and
+    /* Check interactions between paint and subcells, and
      * also between subcells and other subcells.  If any part of a
      * square is rechecked for interactions, the whole thing has to
      * be rechecked.  We use TT_ERROR_S tiles for this so that we
@@ -721,12 +716,6 @@ drcCheckTile(tile, arg)
     DRCErrorType = TT_ERROR_S;
     (void) DRCInteractionCheck(celldef, &square, &erasebox,
 		drcPaintError, (ClientData)drcTempPlane);
-
-    /* Check #3:  check for array formation errors in the area. */
-
-    DRCErrorType = TT_ERROR_P;
-    (void) DRCArrayCheck(celldef, &erasebox, drcPaintError,
-	(ClientData) drcTempPlane);
 
     /* If there was an interrupt, return without modifying the cell
      * at all.
