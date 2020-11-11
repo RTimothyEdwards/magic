@@ -148,6 +148,8 @@ cifGrowMinFunc(tile, table)
     int locDist, width, height, h;
     TileType type, tptype;
     Tile *tp, *tp2;
+    void SetMinBoxGrid();		/* Forward reference */
+
 
     TiToRect(tile, &area);
 
