@@ -218,6 +218,10 @@ cifGrowMinFunc(tile, table)
 	    }
 	}
     }
+
+    /* Ensure grid limit is not violated */
+    SetMinBoxGrid(&area, growDistance);
+
     DBPaintPlane(cifPlane, &area, table, (PaintUndoInfo *) NULL);
 
     area = parea;
@@ -274,6 +278,8 @@ cifGrowMinFunc(tile, table)
 		    parea.r_ytop = area.r_ytop;
 		}
 		if ((width < growDistance) || (height < growDistance))
+    		    /* Ensure grid limit is not violated */
+		    SetMinBoxGrid(&parea, growDistance);
 		    DBPaintPlane(cifPlane, &parea, table, (PaintUndoInfo *) NULL);
 	    }
     }
