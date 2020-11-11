@@ -1627,7 +1627,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 				needRect = FALSE;
 				lab->lab_flags &= ~(PORT_USE_MASK | PORT_DIR_MASK |
 					PORT_CLASS_MASK | PORT_SHAPE_MASK);
-				lab->lab_flags = pinNum | pinUse | pinDir | pinShape |
+				lab->lab_flags |= pinNum | pinUse | pinDir | pinShape |
 					PORT_DIR_MASK;
 			    }
 			}
