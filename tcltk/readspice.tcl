@@ -124,6 +124,12 @@ proc readspice {netfile} {
 		   set p $p1
 	       }
 
+	       # Get the complete set of labels in the top cell and make a list
+	       select top cell
+	       select area labels
+	       set all [lindex [what -list] 1]
+	       select clear
+
 	       foreach pin [lrange $ftokens 2 end] {
 		  # If "=" is in the name, then we have finished the pins
 		  # and are looking at parameters, and so parsing is done.
@@ -173,10 +179,6 @@ proc readspice {netfile} {
 		  # port name.  If so, convert it into a port
 
 		  if {$pinidx == ""} {
-		      select top cell
-		      select area labels
-		      set all [lindex [what -list] 1]
-		      select clear
 		      foreach labrec $all {
 			  set testpin [lindex $labrec 0]
 			  if {[string tolower $testpin] == [string tolower $pin]} {
