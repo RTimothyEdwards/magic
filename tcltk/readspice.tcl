@@ -182,7 +182,7 @@ proc readspice {netfile} {
 			  if {[string tolower $testpin] == [string tolower $pin]} {
  			      goto $testpin
 			      set pinidx -1
-			      port make $n
+			      port $testpin make $n
 			      break
 			  }
 		      }
@@ -199,7 +199,7 @@ proc readspice {netfile} {
 		  } else {
 		      set layer [goto $pin]
 		      if {$layer != ""} {
-		         port make $n
+		         port $pin make $n
 			 incr n
 			 set changed true
 		      }
