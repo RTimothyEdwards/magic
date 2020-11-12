@@ -552,7 +552,7 @@ drcCifCheck(arg)
     oldTiles = DRCstatTiles;
 
     CIFGen(arg->dCD_celldef, arg->dCD_celldef, checkRect, CIFPlanes,
-	    &DBAllTypeBits, TRUE, TRUE);
+	    &DBAllTypeBits, TRUE, TRUE, FALSE, (ClientData)NULL);
 
     for (i = 0; i < drcCifStyle->cs_nLayers; i++)
     {

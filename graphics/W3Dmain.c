@@ -1739,7 +1739,8 @@ W3DCIFredisplay(w, rootArea, clipArea)
     scx.scx_trans = GeoIdentityTransform;
     (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
-    CIFGen(CIFComponentDef, cellDef, &clipRect, CIFPlanes, &DBAllTypeBits, TRUE, TRUE);
+    CIFGen(CIFComponentDef, cellDef, &clipRect, CIFPlanes, &DBAllTypeBits, TRUE,
+		TRUE, FALSE, (ClientData)NULL);
     DBCellClearDef(CIFComponentDef);
 
     w3dClear();

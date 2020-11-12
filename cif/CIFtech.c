@@ -1537,6 +1537,12 @@ cifComputeRadii(layer, des)
 
     for (op = layer->cl_ops; op != NULL; op = op->co_next)
     {
+	/* BBOX and NET operators should never be used hierarchically	*/
+	/* so ignore any grow/shrink operators that come after them.	*/
+
+	if (op->co_opcode == CIFOP_BBOX || op->co_opcode == CIFOP_NET)
+	    break;
+
 	/* If CIF layers are used, switch to the max of current
 	 * distances and those of the layers used.
 	 */
@@ -1597,6 +1603,7 @@ cifComputeRadii(layer, des)
 	    case CIFOP_BRIDGELIM: break;
 	    case CIFOP_SQUARES: break;
 	    case CIFOP_SQUARES_G: break;
+
 	}
     }
 

@@ -4656,7 +4656,7 @@ cifBridgeLimFunc2(tile, brlims)
  */
 
 Plane *
-CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
+CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
     CIFOp *op;			/* List of CIFOps telling how to make layer. */
     Rect *area;			/* Area to consider when generating CIF.  Only
 				 * material in this area will be considered, so
@@ -4672,6 +4672,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
     Plane *temps[];		/* Temporary layers to be used when needed
 				 * for operation.
 				 */
+    bool hier;			/* TRUE if called from CIFGenSubcell or CIFGenArray */
     ClientData clientdata;	/*
 				 * Data that may be passed to the CIF operation
 				 * function.
@@ -4689,6 +4690,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
     BridgeStruct brs;
     BridgeLimStruct brlims;
     BridgeData *bridge;
+    bool hstop = FALSE;
     int (*cifGrowFuncPtr)() = (CIFCurStyle->cs_flags & CWF_GROW_EUCLIDEAN) ?
 		cifGrowEuclideanFunc : cifGrowFunc;
 
@@ -4703,6 +4705,10 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 
     /* Go through the geometric operations and process them one
      * at a time.
+     *
+     * NOTE:  Some opcodes (and whatever follows them) should never
+     * be run during hierarchical processing.  That includes BOUNDARY,
+     * SQUARES/SLOTS, BBOX, and NET.
      */
 
     for ( ; op != NULL; op = op->co_next)
@@ -4961,6 +4967,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_SQUARES:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		if (CalmaContactArrays == FALSE)
 		{
 		    DBClearPaintPlane(nextPlane);
@@ -4973,6 +4984,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_SQUARES_G:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		DBClearPaintPlane(nextPlane);
 		cifPlane = nextPlane;
 		cifSquaresFillArea(op, cellDef, curPlane);
@@ -4982,6 +4998,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_SLOTS:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		DBClearPaintPlane(nextPlane);
 		cifPlane = nextPlane;
 		cifSlotsFillArea(op, cellDef, curPlane);
@@ -5002,6 +5023,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_NET:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		netname = (char *)op->co_client;
 		cifPlane = curPlane;
 		ttype = CmdFindNetProc(netname, CIFDummyUse, &bbox, FALSE);
@@ -5022,6 +5048,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_BOUNDARY:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		cifPlane = curPlane;
 		/* This function for cifoutput only.  cifinput handled separately. */
 
@@ -5047,6 +5078,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_BBOX:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		if (CIFErrorDef == NULL) break;
 
 		/* co_client contains the flag (1) for top-level only */
@@ -5084,6 +5120,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 	    default:
 		continue;
 	}
+	if (hstop) break;	/* Don't process any further rules */
     }
 
     return curPlane;
@@ -5112,7 +5149,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
  */
 
 void
-CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, clientdata)
+CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, hier, clientdata)
     CellDef *cellDef;		/* Cell for which CIF is to be generated. */
     CellDef *origDef;		/* Original cell, if different from cellDef */
     Rect *area;			/* Any CIF overlapping this area (in coords
@@ -5135,6 +5172,7 @@ CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, clientdata
 				 * those layers not specified as being
 				 * generated in the 'layers' mask above.
 				 */
+    bool hier;			/* TRUE if called from CIFGenSubcell or CIFGenArray */
     ClientData clientdata;	/* Data that may be passed along to the
 				 * CIF operation functions.
 				 */
@@ -5160,7 +5198,7 @@ CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, clientdata
 	{
 	    CIFErrorLayer = i;
 	    new[i] = CIFGenLayer(CIFCurStyle->cs_layers[i]->cl_ops,
-		    &expanded, cellDef, origDef, new, clientdata);
+		    &expanded, cellDef, origDef, new, hier, clientdata);
 
 	    /* Clean up the non-manhattan geometry in the plane */
 	    if (CIFUnfracture) DBMergeNMTiles(new[i], &expanded,

@@ -27,6 +27,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include <stdio.h>
 
+#include "tcltk/tclmagic.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "tiles/tile.h"
@@ -35,6 +36,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "cif/CIFint.h"
 #include "cif/cif.h"
 #include "drc/drc.h"
+#include "graphics/graphics.h"
 #include "textio/textio.h"
 #include "utils/undo.h"
 #include "utils/malloc.h"
@@ -326,7 +328,8 @@ cifHierCellFunc(scx)
     CIFErrorDef = (CellDef *) NULL;
     GeoTransRect(&scx->scx_trans, &scx->scx_area, &rootArea);
     CIFGen(CIFComponentDef, scx->scx_use->cu_def, &rootArea,
-	    CIFComponentPlanes, &CIFCurStyle->cs_hierLayers, FALSE, TRUE);
+	    CIFComponentPlanes, &CIFCurStyle->cs_hierLayers, FALSE,
+	    TRUE, TRUE, (ClientData)NULL);
     return 0;
 }
 
@@ -523,6 +526,8 @@ CIFGenSubcells(def, area, output)
     int stepSize, x, y, i, radius, oldTileOps, oldTileOps2;
     Rect totalArea, square, interaction;
     SearchContext scx;
+    int cuts, totcuts;
+    float pdone, plast;
 
     UndoDisable();
     CIFInitCells();
@@ -536,6 +541,16 @@ CIFGenSubcells(def, area, output)
     CIFDummyUse->cu_def = def;
     scx.scx_use = CIFDummyUse;
     scx.scx_trans = GeoIdentityTransform;
+
+    /* This routine can take a long time, so use the display
+     * timer to force a 5-second progress check (like is done
+     * with extract)
+     */
+    GrDisplayStatus = DISPLAY_IN_PROGRESS;
+    SigSetTimer(5);			/* Print at 5-second intervals */
+    cuts = 0;
+    pdone = 0.0;
+    plast = 0.0;
 
     /* Any tile operations processed here get billed to hierarchy
      * in addition to being added to the total.
@@ -551,6 +566,12 @@ CIFGenSubcells(def, area, output)
 
     totalArea = *area;
     GeoClip(&totalArea, &def->cd_bbox);
+
+    totcuts = (totalArea.r_ytop - totalArea.r_ybot + stepSize - 1)
+			/ stepSize;
+    totcuts *= ((totalArea.r_xtop - totalArea.r_xbot + stepSize - 1)
+			/ stepSize);
+
     for (y = totalArea.r_ybot; y < totalArea.r_ytop; y += stepSize)
 	for (x = totalArea.r_xbot; x < totalArea.r_xtop; x += stepSize)
 	{
@@ -576,7 +597,8 @@ CIFGenSubcells(def, area, output)
 		cifHierCopyFunc, (ClientData) CIFTotalDef);
 	    CIFErrorDef = def;
 	    CIFGen(CIFTotalDef, def, &interaction, CIFTotalPlanes,
-		    &CIFCurStyle->cs_hierLayers, TRUE, TRUE);
+		    &CIFCurStyle->cs_hierLayers, TRUE, TRUE, TRUE,
+		    (ClientData)NULL);
 
 	    /* Now go through all the subcells overlapping the area
 	     * and generate CIF for each subcell individually.  OR this
@@ -593,7 +615,8 @@ CIFGenSubcells(def, area, output)
 
 	    CIFErrorDef = (CellDef *) NULL;
 	    CIFGen(def, def, &interaction, CIFComponentPlanes,
-		    &CIFCurStyle->cs_hierLayers, FALSE, TRUE);
+		    &CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
+		    (ClientData)NULL);
 
 	    /* Make sure everything in the pieces is also in the overall
 	     * CIF, then erase the piece stuff from the overall, and
@@ -618,9 +641,33 @@ CIFGenSubcells(def, area, output)
 	    CIFHierRects += CIFTileOps - oldTileOps2;
 
 	    cifHierCleanup();
+
+	    cuts++;
+	    pdone = 100.0 * ((float)cuts / (float)totcuts);
+	    if ((((pdone - plast) > 1.0) || (cuts == totcuts)) && (cuts > 1))
+	    {
+		/* Only print something if the 5-second timer has expired */
+		if (GrDisplayStatus == DISPLAY_BREAK_PENDING)
+		{
+		    TxPrintf("Completed %d%%\n", (int)(pdone + 0.5));
+		    plast = pdone;
+		    TxFlushOut();
+
+		    GrDisplayStatus = DISPLAY_IN_PROGRESS;
+		    SigSetTimer(5);
+		}
+#ifdef MAGIC_WRAPPER
+		/* We need to let Tk paint the console display */
+		while (Tcl_DoOneEvent(TCL_DONT_WAIT) != 0);
+#endif
+	    }
 	}
 
     CIFHierTileOps += CIFTileOps - oldTileOps;
+
+    GrDisplayStatus = DISPLAY_IDLE;
+    SigRemoveTimer();
+
     UndoEnable();
 }
 
@@ -680,7 +727,8 @@ cifHierElementFunc(use, transform, x, y, checkArea)
 
     CIFErrorDef = (CellDef *) NULL;
     CIFGen(CIFComponentDef, use->cu_def, checkArea, CIFComponentPlanes,
-	    &CIFCurStyle->cs_hierLayers, FALSE, TRUE);
+	    &CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
+	    (ClientData)NULL);
 
     return 0;
 }
@@ -921,7 +969,8 @@ cifHierArrayFunc(scx, output)
 		(ClientData) &A);
 	CIFErrorDef = use->cu_parent;
 	CIFGen(CIFTotalDef, use->cu_def, &A, CIFTotalPlanes,
-		&CIFCurStyle->cs_hierLayers, FALSE, TRUE);
+		&CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
+		(ClientData)NULL);
 	anyInteractions = TRUE;
     }
 
@@ -938,7 +987,8 @@ cifHierArrayFunc(scx, output)
 		(ClientData) &C);
 	CIFErrorDef = use->cu_parent;
 	CIFGen(CIFTotalDef, use->cu_def, &C, CIFTotalPlanes,
-		&CIFCurStyle->cs_hierLayers, FALSE, TRUE);
+		&CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
+		(ClientData)NULL);
 	anyInteractions = TRUE;
     }
 
@@ -955,7 +1005,8 @@ cifHierArrayFunc(scx, output)
 		(ClientData) &B);
 	CIFErrorDef = use->cu_parent;
 	CIFGen(CIFTotalDef, use->cu_def, &B, CIFTotalPlanes,
-		&CIFCurStyle->cs_hierLayers, FALSE, TRUE);
+		&CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
+		(ClientData)NULL);
 
 	/* D */
 
@@ -968,7 +1019,8 @@ cifHierArrayFunc(scx, output)
 		(ClientData) &D);
 	CIFErrorDef = use->cu_parent;
 	CIFGen(CIFTotalDef, use->cu_def, &D, CIFTotalPlanes,
-		&CIFCurStyle->cs_hierLayers, FALSE, TRUE);
+		&CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
+		(ClientData)NULL);
     }
 
     if (anyInteractions)
