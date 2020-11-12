@@ -4672,7 +4672,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
     Plane *temps[];		/* Temporary layers to be used when needed
 				 * for operation.
 				 */
-    bool hier;			/* TRUE if called from CIFGenSubcell or CIFGenArray */
+    bool hier;			/* TRUE if called from CIFGenSubcells or CIFGenArrays */
     ClientData clientdata;	/*
 				 * Data that may be passed to the CIF operation
 				 * function.
@@ -5172,7 +5172,7 @@ CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, hier, clie
 				 * those layers not specified as being
 				 * generated in the 'layers' mask above.
 				 */
-    bool hier;			/* TRUE if called from CIFGenSubcell or CIFGenArray */
+    bool hier;			/* TRUE if called from CIFGenSubcells or CIFGenArrays */
     ClientData clientdata;	/* Data that may be passed along to the
 				 * CIF operation functions.
 				 */
