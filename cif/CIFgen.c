@@ -148,8 +148,8 @@ cifGrowMinFunc(tile, table)
     int locDist, width, height, h;
     TileType type, tptype;
     Tile *tp, *tp2;
+    bool changed;
     void SetMinBoxGrid();		/* Forward reference */
-
 
     TiToRect(tile, &area);
 
@@ -159,6 +159,7 @@ cifGrowMinFunc(tile, table)
     area.r_ytop *= cifScale;
 
     parea = area;
+    changed = FALSE;
 
     /* Check whole tile for minimum width */
     width = area.r_xtop - area.r_xbot;
@@ -205,6 +206,7 @@ cifGrowMinFunc(tile, table)
 			    0.25 * (double)((growDistance + width) *
 			    (growDistance + width)) + 0.5);
 		area.r_ybot -= h;
+		changed = TRUE;
 	    }
 	    else if (freeTop == FALSE && freeBot == TRUE)
 	    {
@@ -212,17 +214,19 @@ cifGrowMinFunc(tile, table)
 			    0.25 * (double)((growDistance + width) *
 			    (growDistance + width)) + 0.5);
 		area.r_ytop += h;
+		changed = TRUE;
 	    }
 	    else {
 		locDist = (growDistance - height) / 2;
 		area.r_ybot -= locDist;
 		area.r_ytop += locDist;
+		changed = TRUE;
 	    }
 	}
     }
 
     /* Ensure grid limit is not violated */
-    SetMinBoxGrid(&area, growDistance);
+    if (changed) SetMinBoxGrid(&area, growDistance);
 
     DBPaintPlane(cifPlane, &area, table, (PaintUndoInfo *) NULL);
 
@@ -280,9 +284,11 @@ cifGrowMinFunc(tile, table)
 		    parea.r_ytop = area.r_ytop;
 		}
 		if ((width < growDistance) || (height < growDistance))
+		{
     		    /* Ensure grid limit is not violated */
 		    SetMinBoxGrid(&parea, growDistance);
 		    DBPaintPlane(cifPlane, &parea, table, (PaintUndoInfo *) NULL);
+		}
 	    }
     }
 
