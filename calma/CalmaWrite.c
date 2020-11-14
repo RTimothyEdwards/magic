@@ -799,6 +799,9 @@ calmaProcessDef(def, outf, do_library)
 
     if (isReadOnly && hasContent && CalmaAddendum) return (0);
 
+    /* Give some feedback to the user */
+    TxPrintf("   Writing cell %s\n", def->cd_name);
+
     /*
      * Output the definitions for any of our descendants that have
      * not already been output.  Numbers are assigned to the subcells
@@ -1008,7 +1011,8 @@ calmaOutFunc(def, f, cliprect)
     /* Output all the tiles associated with this cell; skip temporary layers */
     GEO_EXPAND(&def->cd_bbox, CIFCurStyle->cs_radius, &bigArea);
     CIFErrorDef = def;
-    CIFGen(def, def, &bigArea, CIFPlanes, &DBAllTypeBits, TRUE, TRUE, (ClientData) f);
+    CIFGen(def, def, &bigArea, CIFPlanes, &DBAllTypeBits, TRUE, TRUE, FALSE,
+		(ClientData)f);
     if (!CIFHierWriteDisable)
 	CIFGenSubcells(def, &bigArea, CIFPlanes);
     if (!CIFArrayWriteDisable)

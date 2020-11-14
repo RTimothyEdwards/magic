@@ -148,6 +148,8 @@ cifGrowMinFunc(tile, table)
     int locDist, width, height, h;
     TileType type, tptype;
     Tile *tp, *tp2;
+    bool changed;
+    void SetMinBoxGrid();		/* Forward reference */
 
     TiToRect(tile, &area);
 
@@ -157,6 +159,7 @@ cifGrowMinFunc(tile, table)
     area.r_ytop *= cifScale;
 
     parea = area;
+    changed = FALSE;
 
     /* Check whole tile for minimum width */
     width = area.r_xtop - area.r_xbot;
@@ -203,6 +206,7 @@ cifGrowMinFunc(tile, table)
 			    0.25 * (double)((growDistance + width) *
 			    (growDistance + width)) + 0.5);
 		area.r_ybot -= h;
+		changed = TRUE;
 	    }
 	    else if (freeTop == FALSE && freeBot == TRUE)
 	    {
@@ -210,14 +214,20 @@ cifGrowMinFunc(tile, table)
 			    0.25 * (double)((growDistance + width) *
 			    (growDistance + width)) + 0.5);
 		area.r_ytop += h;
+		changed = TRUE;
 	    }
 	    else {
 		locDist = (growDistance - height) / 2;
 		area.r_ybot -= locDist;
 		area.r_ytop += locDist;
+		changed = TRUE;
 	    }
 	}
     }
+
+    /* Ensure grid limit is not violated */
+    if (changed) SetMinBoxGrid(&area, growDistance);
+
     DBPaintPlane(cifPlane, &area, table, (PaintUndoInfo *) NULL);
 
     area = parea;
@@ -274,7 +284,11 @@ cifGrowMinFunc(tile, table)
 		    parea.r_ytop = area.r_ytop;
 		}
 		if ((width < growDistance) || (height < growDistance))
+		{
+    		    /* Ensure grid limit is not violated */
+		    SetMinBoxGrid(&parea, growDistance);
 		    DBPaintPlane(cifPlane, &parea, table, (PaintUndoInfo *) NULL);
+		}
 	    }
     }
 
@@ -2004,6 +2018,7 @@ cifGatherFunc(tile, atotal, mode)
 	if ((*atotal != INFINITY) && (*atotal < growDistance))
 	    locarea = (dlong)(area.r_xtop - area.r_xbot)
 			* (dlong)(area.r_ytop - area.r_ybot);
+	    if (IsSplit(tile)) locarea /= 2;
 	    if (locarea > (dlong)INFINITY)
 		*atotal = INFINITY;
 	    else
@@ -2011,7 +2026,22 @@ cifGatherFunc(tile, atotal, mode)
     }
     else if (mode == CLOSE_FILL)
     {
-	DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *)NULL);
+	TileType dinfo = TiGetTypeExact(tile);
+
+	/* The recursive call to cifGatherFunc() below means that the	*/
+	/* tile type cannot be depended on to have the TT_SIDE bit set	*/
+	/* for the side of the tile that is TT_SPACE.  So set the	*/
+	/* side bit manually.						*/
+
+	if (IsSplit(tile))
+	{
+	    if (TiGetLeftType(tile) == TT_SPACE)
+		dinfo &= ~TT_SIDE;
+	    else
+		dinfo |= TT_SIDE;
+	}
+
+	DBNMPaintPlane(cifPlane, dinfo, &area, CIFPaintTable, (PaintUndoInfo *)NULL);
 	CIFTileOps++;
     }
 
@@ -2024,25 +2054,25 @@ cifGatherFunc(tile, atotal, mode)
     /* Check top */
     if (area.r_ytop != TiPlaneRect.r_ytop)
         for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+	    if (tp->ti_client == cdata && TiGetBottomType(tp) == TT_SPACE)
 		cifGatherFunc(tp, atotal, mode);
 
     /* Check bottom */
     if (area.r_ybot != TiPlaneRect.r_ybot)
         for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
-	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+	    if (tp->ti_client == cdata && TiGetTopType(tp) == TT_SPACE)
 		cifGatherFunc(tp, atotal, mode);
 
     /* Check left */
     if (area.r_xbot != TiPlaneRect.r_xbot)
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
-	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+	    if (tp->ti_client == cdata && TiGetRightType(tp) == TT_SPACE)
 		cifGatherFunc(tp, atotal, mode);
 
     /* Check right */
     if (area.r_xtop != TiPlaneRect.r_xtop)
 	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-	    if (tp->ti_client == cdata && TiGetType(tp) == TT_SPACE)
+	    if (tp->ti_client == cdata && TiGetLeftType(tp) == TT_SPACE)
 		cifGatherFunc(tp, atotal, mode);
 
     return 0;
@@ -4632,7 +4662,7 @@ cifBridgeLimFunc2(tile, brlims)
  */
 
 Plane *
-CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
+CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
     CIFOp *op;			/* List of CIFOps telling how to make layer. */
     Rect *area;			/* Area to consider when generating CIF.  Only
 				 * material in this area will be considered, so
@@ -4648,6 +4678,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
     Plane *temps[];		/* Temporary layers to be used when needed
 				 * for operation.
 				 */
+    bool hier;			/* TRUE if called from CIFGenSubcells or CIFGenArrays */
     ClientData clientdata;	/*
 				 * Data that may be passed to the CIF operation
 				 * function.
@@ -4665,6 +4696,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
     BridgeStruct brs;
     BridgeLimStruct brlims;
     BridgeData *bridge;
+    bool hstop = FALSE;
     int (*cifGrowFuncPtr)() = (CIFCurStyle->cs_flags & CWF_GROW_EUCLIDEAN) ?
 		cifGrowEuclideanFunc : cifGrowFunc;
 
@@ -4679,6 +4711,10 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 
     /* Go through the geometric operations and process them one
      * at a time.
+     *
+     * NOTE:  Some opcodes (and whatever follows them) should never
+     * be run during hierarchical processing.  That includes BOUNDARY,
+     * SQUARES/SLOTS, BBOX, and NET.
      */
 
     for ( ; op != NULL; op = op->co_next)
@@ -4937,6 +4973,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_SQUARES:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		if (CalmaContactArrays == FALSE)
 		{
 		    DBClearPaintPlane(nextPlane);
@@ -4949,6 +4990,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_SQUARES_G:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		DBClearPaintPlane(nextPlane);
 		cifPlane = nextPlane;
 		cifSquaresFillArea(op, cellDef, curPlane);
@@ -4958,6 +5004,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_SLOTS:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		DBClearPaintPlane(nextPlane);
 		cifPlane = nextPlane;
 		cifSlotsFillArea(op, cellDef, curPlane);
@@ -4978,6 +5029,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_NET:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		netname = (char *)op->co_client;
 		cifPlane = curPlane;
 		ttype = CmdFindNetProc(netname, CIFDummyUse, &bbox, FALSE);
@@ -4998,6 +5054,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_BOUNDARY:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		cifPlane = curPlane;
 		/* This function for cifoutput only.  cifinput handled separately. */
 
@@ -5023,6 +5084,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 		break;
 
 	    case CIFOP_BBOX:
+		if (hier)
+		{
+		    hstop = TRUE;	/* Stop hierarchical processing */
+		    break;
+		}
 		if (CIFErrorDef == NULL) break;
 
 		/* co_client contains the flag (1) for top-level only */
@@ -5060,6 +5126,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
 	    default:
 		continue;
 	}
+	if (hstop) break;	/* Don't process any further rules */
     }
 
     return curPlane;
@@ -5088,7 +5155,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, clientdata)
  */
 
 void
-CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, clientdata)
+CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, hier, clientdata)
     CellDef *cellDef;		/* Cell for which CIF is to be generated. */
     CellDef *origDef;		/* Original cell, if different from cellDef */
     Rect *area;			/* Any CIF overlapping this area (in coords
@@ -5111,6 +5178,7 @@ CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, clientdata
 				 * those layers not specified as being
 				 * generated in the 'layers' mask above.
 				 */
+    bool hier;			/* TRUE if called from CIFGenSubcells or CIFGenArrays */
     ClientData clientdata;	/* Data that may be passed along to the
 				 * CIF operation functions.
 				 */
@@ -5136,7 +5204,7 @@ CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, clientdata
 	{
 	    CIFErrorLayer = i;
 	    new[i] = CIFGenLayer(CIFCurStyle->cs_layers[i]->cl_ops,
-		    &expanded, cellDef, origDef, new, clientdata);
+		    &expanded, cellDef, origDef, new, hier, clientdata);
 
 	    /* Clean up the non-manhattan geometry in the plane */
 	    if (CIFUnfracture) DBMergeNMTiles(new[i], &expanded,
