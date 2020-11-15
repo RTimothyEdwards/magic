@@ -157,6 +157,9 @@ drcSubCopyErrors(tile, cxp)
  *  be a real error, and not one that might be resolved by additional
  *  material found in the parent or a sibling cell.
  *
+ *  Added 11/10/2020:  Moved drcArrayFunc() here; this limits the array
+ *  checks to non-interaction areas in the parent cell.
+ *
  *  Returns:
  *	Whatever DBNoTreeSrTiles() returns.
  *
@@ -708,7 +711,9 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 
 		/* Copy errors up from all non-interacting children	*/
 		scx.scx_area = subArea;
+	    	arg.dCD_clip = &subArea;
 		DBCellSrArea(&scx, drcSubCopyFunc, &arg);
+		DBCellSrArea(&scx, drcArrayFunc, &arg);
 
 		DRCErrorType = errorSaveType;
 		continue;
@@ -735,6 +740,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		eraseClip = *erasebox;
 		GeoClip(&eraseClip, &cliparea);
 		subArea = eraseClip;
+	    	arg.dCD_clip = &subArea;
 
 		/* check above */
 		if (intArea.r_ytop < eraseClip.r_ytop)
@@ -745,6 +751,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		    /* Copy errors up from all non-interacting children	*/
 		    scx.scx_area = subArea;
 		    DBCellSrArea(&scx, drcSubCopyFunc, &arg);
+		    DBCellSrArea(&scx, drcArrayFunc, &arg);
 		}
 		/* check below */
 		if (intArea.r_ybot > eraseClip.r_ybot)
@@ -756,6 +763,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		    /* Copy errors up from all non-interacting children	*/
 		    scx.scx_area = subArea;
 		    DBCellSrArea(&scx, drcSubCopyFunc, &arg);
+		    DBCellSrArea(&scx, drcArrayFunc, &arg);
 		}
 		subArea.r_ytop = intArea.r_ytop;
 		subArea.r_ybot = intArea.r_ybot;
@@ -769,6 +777,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		    /* Copy errors up from all non-interacting children	*/
 		    scx.scx_area = subArea;
 		    DBCellSrArea(&scx, drcSubCopyFunc, &arg);
+		    DBCellSrArea(&scx, drcArrayFunc, &arg);
 		}
 		/* check left */
 		if (intArea.r_xbot > eraseClip.r_xbot)
@@ -780,6 +789,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 		    /* Copy errors up from all non-interacting children	*/
 		    scx.scx_area = subArea;
 		    DBCellSrArea(&scx, drcSubCopyFunc, &arg);
+		    DBCellSrArea(&scx, drcArrayFunc, &arg);
 		}
 		DRCErrorType = errorSaveType;
 	    }

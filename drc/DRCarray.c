@@ -50,14 +50,6 @@ static DRCCookie drcArrayCookie = {
     (DRCCookie *) NULL
 };
 
-/* Static variables used to pass information between DRCArrayCheck
- * and drcArrayFunc:
- */
-
-static int drcArrayCount;		/* Count of number of errors found. */
-static void (*drcArrayErrorFunc)();	/* Function to call on violations. */
-static ClientData drcArrayClientData;	/* Extra parameter to pass to func. */
-
 
 /*
  * ----------------------------------------------------------------------------
@@ -106,31 +98,45 @@ static ClientData drcArrayClientData;	/* Extra parameter to pass to func. */
  */
 
 int
-drcArrayFunc(scx, area)
+drcArrayFunc(scx, arg)
     SearchContext *scx;		/* Information about the search. */
-    Rect *area;			/* Area in which errors are to be
-				 * regenerated.
-				 */
+    struct drcClientData *arg;	/* Information used in overlap */
 {
     int xsep, ysep;
     int xsize, ysize;
+    int rval, oldTiles;
     Rect errorArea, yankArea, tmp, tmp2;
+    DRCCookie *save_cptr;
     CellUse *use = scx->scx_use;
-    struct drcClientData arg;
+    Rect *area;
+    int drcArrayCount;			/* Count of number of errors found. */
+    void (*drcArrayErrorFunc)();	/* Function to call on violations. */
+    ClientData drcArrayClientData;	/* Extra parameter to pass to func. */
+    PaintResultType (*savedPaintTable)[NT][NT];
+    PaintResultType (*savedEraseTable)[NT][NT];
+    void (*savedPaintPlane)();
 
     if ((use->cu_xlo == use->cu_xhi) && (use->cu_ylo == use->cu_yhi))
 	return 2;
+
+    oldTiles = DRCstatTiles;
+
+    /* During array processing, switch the paint table to catch
+     * illegal overlaps.
+     */
+    savedPaintTable = DBNewPaintTable(DRCCurStyle->DRCPaintTable);
+    savedPaintPlane = DBNewPaintPlane(DBPaintPlaneMark);
 
     /* Set up the client data that will be passed down during
      * checks for exact overlaps.
      */
 
-    arg.dCD_celldef = DRCdef;
-    arg.dCD_errors = &drcArrayCount;
-    arg.dCD_clip = &errorArea;
-    arg.dCD_cptr = &drcArrayCookie;
-    arg.dCD_function = drcArrayErrorFunc;
-    arg.dCD_clientData = drcArrayClientData;
+    save_cptr = arg->dCD_cptr;
+    arg->dCD_cptr = &drcArrayCookie;
+    area = arg->dCD_clip;
+    drcArrayCount = *arg->dCD_errors;
+    drcArrayErrorFunc = arg->dCD_function;
+    drcArrayClientData = arg->dCD_clientData;
 
     /* Compute the sizes and separations of elements, in coordinates
      * of the parend.  If the array is 1-dimensional, we set the
@@ -178,7 +184,7 @@ drcArrayFunc(scx, area)
 	    drcArrayCount += DRCBasicCheck(DRCdef, &yankArea, &errorArea,
 		drcArrayErrorFunc, drcArrayClientData);
 	    (void) DBArraySr(use, &errorArea, drcArrayOverlapFunc,
-		(ClientData) &arg);
+		(ClientData) arg);
 	}
 
 	/* C */
@@ -195,7 +201,7 @@ drcArrayFunc(scx, area)
 	    drcArrayCount += DRCBasicCheck(DRCdef, &yankArea, &errorArea,
 		drcArrayErrorFunc, drcArrayClientData);
 	    (void) DBArraySr(use, &errorArea, drcArrayOverlapFunc,
-		(ClientData) &arg);
+		(ClientData) arg);
 	}
     }
 
@@ -217,7 +223,7 @@ drcArrayFunc(scx, area)
 	    drcArrayCount += DRCBasicCheck(DRCdef, &yankArea, &errorArea,
 		drcArrayErrorFunc, drcArrayClientData);
 	    (void) DBArraySr(use, &errorArea, drcArrayOverlapFunc,
-		(ClientData) &arg);
+		(ClientData) arg);
 	}
 
 	/* D */
@@ -234,80 +240,20 @@ drcArrayFunc(scx, area)
 	    drcArrayCount += DRCBasicCheck(DRCdef, &yankArea, &errorArea,
 		drcArrayErrorFunc, drcArrayClientData);
 	    (void) DBArraySr(use, &errorArea, drcArrayOverlapFunc,
-		(ClientData) &arg);
+		(ClientData) arg);
 	}
     }
 
-    return 2;
-}
-
-/*
- * ----------------------------------------------------------------------------
- * DRCArrayCheck --
- *
- *	This procedure finds all DRC errors in a given area of
- *	a given cell that stem from array formation errors in
- *	children of that cell.  Func is called for each violation
- *	found.  Func should have the same form as in DRCBasicCheck.
- *	Note: the def passed to func is the dummy DRC definition,
- *	and the errors are all expressed in coordinates of celluse.
- *
- * Results:
- *	The number of errors found.
- *
- * Side effects:
- *      Whatever is done by func.
- *
- * ----------------------------------------------------------------------------
- */
-
-int
-DRCArrayCheck(def, area, func, cdarg)
-    CellDef *def;		/* Parent cell containing the arrays to
-				 * be rechecked.
-				 */
-    Rect *area;			/* Area, in def's coordinates, where all
-				 * array violations are to be regenerated.
-				 */
-    void (*func)();		/* Function to call for each error. */
-    ClientData cdarg;		/* Client data to be passed to func. */
-
-{
-    SearchContext scx;
-    int oldTiles;
-    PaintResultType (*savedPaintTable)[NT][NT];
-    PaintResultType (*savedEraseTable)[NT][NT];
-    void (*savedPaintPlane)();
-
-    /* Use DRCDummyUse to fake up a celluse for searching purposes. */
-
-    DRCDummyUse->cu_def = def;
-
-    drcArrayErrorFunc = func;
-    drcArrayClientData = cdarg;
-    drcArrayCount = 0;
-    oldTiles = DRCstatTiles;
-
-    scx.scx_area = *area;
-    scx.scx_use = DRCDummyUse;
-    scx.scx_trans = GeoIdentityTransform;
-
-    /* During array processing, switch the paint table to catch
-     * illegal overlaps.
-     */
-
-    savedPaintTable = DBNewPaintTable(DRCCurStyle->DRCPaintTable);
-    savedPaintPlane = DBNewPaintPlane(DBPaintPlaneMark);
-    (void) DBCellSrArea(&scx, drcArrayFunc, (ClientData) area);
     (void) DBNewPaintTable(savedPaintTable);
     (void) DBNewPaintPlane(savedPaintPlane);
 
     /* Update count of array tiles processed. */
-
     DRCstatArrayTiles += DRCstatTiles - oldTiles;
-    return drcArrayCount;
-}
 
+    /* Restore original DRC cookie pointer in the argument */
+    arg->dCD_cptr = save_cptr;
+    return 2;
+}
 
 /*
  * ----------------------------------------------------------------------------

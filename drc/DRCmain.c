@@ -616,12 +616,6 @@ drcWhyFunc(scx, cdarg)
 
     (void) DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
 		(dolist) ? drcListError : drcPrintError, (ClientData) scx);
-    (void) DRCArrayCheck(def, &scx->scx_area,
-		(dolist) ? drcListError : drcPrintError, (ClientData) scx);
-
-    /* New behavior:  Don't search children, instead propagate errors up. */
-    /* (void) DBCellSrArea(scx, drcWhyFunc, (ClientData)cdarg); */
-
     return 0;
 }
 
@@ -637,13 +631,7 @@ drcWhyAllFunc(scx, cdarg)
     /* Check paint and interactions in this subcell. */
 
     (void) DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
-		drcListallError, (Plane *)NULL, (ClientData)scx);
-    (void) DRCArrayCheck(def, &scx->scx_area,
-		drcListallError, (Plane *)NULL, (ClientData)scx);
-
-    /* New behavior:  Don't search children, instead propagate errors up. */
-    /* (void) DBCellSrArea(scx, drcWhyAllFunc, (ClientData)cdarg); */
-
+		drcListallError, (ClientData)scx);
     return 0;
 }
 
