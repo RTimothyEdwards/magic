@@ -274,7 +274,7 @@ drcCheckMaxwidth(starttile,arg,cptr)
 	    if (TTMaskHasType(oktypes, TiGetLeftType(tp))) PUSHTILE(tp);
     }
 
-    if (boundrect.r_xtop - boundrect.r_xbot > edgelimit &&
+    if (boundrect.r_xtop - boundrect.r_xbot > edgelimit ||
              boundrect.r_ytop - boundrect.r_ybot > edgelimit)
     {
 	Rect	rect;
