@@ -1086,6 +1086,7 @@ cifFoundFunc(tile, BloatStackPtr)
 typedef struct _bloatStruct {
     CIFOp	*op;
     CellDef	*def;
+    TileTypeBitMask connect;
     Plane       **temps;
 } BloatStruct;
 
@@ -1114,7 +1115,7 @@ cifBloatAllFunc(tile, bls)
     BloatStruct *bls;
 {
     Rect area;
-    TileTypeBitMask connect;
+    TileTypeBitMask *connect;
     Tile *t, *tp;
     TileType type, ttype;
     BloatData *bloats;
@@ -1128,27 +1129,8 @@ cifBloatAllFunc(tile, bls)
     op = bls->op;
     def = bls->def;
     temps = bls->temps;
+    connect = &bls->connect;
     bloats = (BloatData *)op->co_client;
-
-    /* Create a mask of all connecting types (these must be in a single
-     * plane), then call a search function to find all connecting material
-     * of these types (if the bloat types are temp layers, then this mask
-     * is not used).
-     */
-
-    if (bloats->bl_plane < 0)
-    {
-	/* bl_plane == -1 indicates bloating into a CIF templayer, and	*/
-	/* so the only connecting type should be CIF_SOLIDTYPE.		*/
-	TTMaskSetType(&connect, CIF_SOLIDTYPE);
-    }
-    else
-    {
-	TTMaskZero(&connect);
-	for (i = 0; i < TT_MAXTYPES; i++)
-	    if (bloats->bl_distance[i] != 0)
-		TTMaskSetType(&connect, i);
-    }
 
     /* This search function is based on drcCheckArea */
 
@@ -1181,7 +1163,7 @@ cifBloatAllFunc(tile, bls)
     {
 	int pNum = DBPlane(type);
 	pmask = (bloats->bl_plane < 0) ? 0 :
-		CoincidentPlanes(&connect, PlaneNumToMaskBit(pNum));
+		CoincidentPlanes(connect, PlaneNumToMaskBit(pNum));
 	if (pmask == 0) TiToRect(tile, &area);
 	if (bloats->bl_plane < 0)
 	{
@@ -1212,7 +1194,7 @@ cifBloatAllFunc(tile, bls)
 	}
 	else
 	    DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &area,
-		    &connect, cifFoundFunc, (ClientData)(&BloatStack));
+		    connect, cifFoundFunc, (ClientData)(&BloatStack));
     }
     else
 	PUSHTILE(t, BloatStack);
@@ -1236,22 +1218,22 @@ cifBloatAllFunc(tile, bls)
 
 	/* Top */
 	for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
-	    if (TTMaskHasType(&connect, TiGetBottomType(tp)))
+	    if (TTMaskHasType(connect, TiGetBottomType(tp)))
 		PUSHTILE(tp, BloatStack);
 
 	/* Left */
 	for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
-	    if (TTMaskHasType(&connect, TiGetRightType(tp)))
+	    if (TTMaskHasType(connect, TiGetRightType(tp)))
 		PUSHTILE(tp, BloatStack);
 
 	/* Bottom */
 	for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
-	    if (TTMaskHasType(&connect, TiGetTopType(tp)))
+	    if (TTMaskHasType(connect, TiGetTopType(tp)))
 		PUSHTILE(tp, BloatStack);
 
 	/* Right */
 	for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
-	    if (TTMaskHasType(&connect, TiGetLeftType(tp)))
+	    if (TTMaskHasType(connect, TiGetLeftType(tp)))
 		PUSHTILE(tp, BloatStack);
     }
 
@@ -1295,20 +1277,6 @@ cifBloatAllFunc(tile, bls)
 		STACKPUSH(tp, BloatStack);
 	    }
     }
-
-    /* Reset marked tiles */
-
-    if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
-    {
-    	temps = bls->temps;
-	for (ttype = 0; ttype < TT_MAXTYPES; ttype++, temps++)
-	    if (bloats->bl_distance[ttype] > 0)
-		(void) DBSrPaintArea((Tile *)NULL, *temps, &TiPlaneRect,
-			&CIFSolidBits, cifProcessResetFunc, (ClientData)NULL);
-    }
-    else
-    	DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &TiPlaneRect,
-		    &connect, cifProcessResetFunc, (ClientData)NULL);
 
     return 0;	/* Keep the search alive. . . */
 }
@@ -4696,6 +4664,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
     BridgeStruct brs;
     BridgeLimStruct brlims;
     BridgeData *bridge;
+    BloatData *bloats;
     bool hstop = FALSE;
     int (*cifGrowFuncPtr)() = (CIFCurStyle->cs_flags & CWF_GROW_EUCLIDEAN) ?
 		cifGrowEuclideanFunc : cifGrowFunc;
@@ -4968,8 +4937,47 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 		bls.op = op;
 		bls.def = cellDef;
 		bls.temps = temps;
-		cifSrTiles(op, area, cellDef, temps,
-		    cifBloatAllFunc, (ClientData)&bls);
+
+	        /* Create a mask of all connecting types (these must be in a single
+	         * plane), then call a search function to find all connecting material
+	         * of these types (if the bloat types are temp layers, then this mask
+	         * is not used).
+	         */
+
+	        bloats = (BloatData *)op->co_client;
+	        if (bloats->bl_plane < 0)
+	        {
+		   /* bl_plane == -1 indicates bloating into a CIF templayer,	*/
+		   /* so the only connecting type should be CIF_SOLIDTYPE.	*/
+		   TTMaskSetOnlyType(&bls.connect, CIF_SOLIDTYPE);
+	        }
+	        else
+	        {
+		    int i;
+		    TTMaskZero(&bls.connect);
+		    for (i = 0; i < TT_MAXTYPES; i++)
+			if (bloats->bl_distance[i] != 0)
+			  TTMaskSetType(&bls.connect, i);
+	        }
+
+		cifSrTiles(op, area, cellDef, temps, cifBloatAllFunc, (ClientData)&bls);
+
+	        /* Reset marked tiles */
+
+	        if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
+	        {
+		    bls.temps = temps;
+		    for (ttype = 0; ttype < TT_MAXTYPES; ttype++, bls.temps++)
+			if (bloats->bl_distance[ttype] > 0)
+			    (void) DBSrPaintArea((Tile *)NULL, bls.temps, &TiPlaneRect,
+				    &CIFSolidBits, cifProcessResetFunc,
+				    (ClientData)NULL);
+	        }
+	        else
+		    DBSrPaintArea((Tile *)NULL, cellDef->cd_planes[bloats->bl_plane],
+			    &TiPlaneRect, &bls.connect, cifProcessResetFunc,
+			    (ClientData)NULL);
+
 		break;
 
 	    case CIFOP_SQUARES:
