@@ -4969,7 +4969,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 		    bls.temps = temps;
 		    for (ttype = 0; ttype < TT_MAXTYPES; ttype++, bls.temps++)
 			if (bloats->bl_distance[ttype] > 0)
-			    (void) DBSrPaintArea((Tile *)NULL, bls.temps, &TiPlaneRect,
+			    (void) DBSrPaintArea((Tile *)NULL, *bls.temps, &TiPlaneRect,
 				    &CIFSolidBits, cifProcessResetFunc,
 				    (ClientData)NULL);
 	        }
