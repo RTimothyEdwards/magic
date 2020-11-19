@@ -424,6 +424,44 @@ cifHierCheckFunc(tile, plane)
 /*
  * ----------------------------------------------------------------------------
  *
+ * cifHierTempCheckFunc --
+ *
+ * 	This function is like cifHierCheckFunc() (see above), but is used
+ *	for "templayers", where any parent/child disagreement should be
+ *	considered a non-issue as far as output is concerned.  Only the
+ *	actual mask layer will report any problems.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	Error messages may be output.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifHierTempCheckFunc(tile, plane)
+    Tile *tile;			/* Tile containing CIF. */
+    Plane *plane;		/* Plane to check against and modify. */
+{
+    Rect area;
+
+    TiToRect(tile, &area);
+
+    if (IsSplit(tile))
+	DBNMPaintPlane(plane, TiGetTypeExact(tile), &area, CIFEraseTable,
+		(PaintUndoInfo *) NULL);
+    else
+        DBPaintPlane(plane, &area, CIFEraseTable, (PaintUndoInfo *) NULL);
+
+    CIFTileOps++;
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * cifHierPaintFunc --
  *
  * 	Called to transfer information from one CIF plane to another.
@@ -490,9 +528,14 @@ cifCheckAndErase(style)
     {
 	CIFErrorLayer = i;
 	if (CIFComponentPlanes[i] == NULL) continue;
-	(void) DBSrPaintArea((Tile *) NULL, CIFComponentPlanes[i],
-	    &TiPlaneRect, &CIFSolidBits, cifHierCheckFunc,
-	    (ClientData) CIFTotalPlanes[i]);
+	if (CIFCurStyle->cs_layers[i]->cl_flags & CIF_TEMP)
+	    (void) DBSrPaintArea((Tile *) NULL, CIFComponentPlanes[i],
+	    	&TiPlaneRect, &CIFSolidBits, cifHierTempCheckFunc,
+	    	(ClientData) CIFTotalPlanes[i]);
+	else
+	    (void) DBSrPaintArea((Tile *) NULL, CIFComponentPlanes[i],
+	    	&TiPlaneRect, &CIFSolidBits, cifHierCheckFunc,
+	    	(ClientData) CIFTotalPlanes[i]);
     }
 }
 
