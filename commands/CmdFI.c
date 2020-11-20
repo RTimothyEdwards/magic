@@ -729,6 +729,45 @@ usage:
 /*
  * ----------------------------------------------------------------------------
  *
+ * cmdFindLabelFunc --
+ *
+ * Callback function from CmdFindLabel.  Return 1 to stop the search on the
+ * Nth instance of the label named "label", where N is passed through the
+ * client data as lsr_occur.
+ *
+ * The client data record lsr_rect is left pointing to the label location
+ * when the Nth label instance is found.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+typedef struct _labsearchrec
+{
+    Rect lsr_rect;
+    int  lsr_occur;
+} LabSearchRec;
+
+
+int cmdFindLabelFunc(rect, name, label, cdarg)
+    Rect *rect;
+    char *name;
+    Label *label;
+    LabSearchRec *cdarg;
+{
+    if (cdarg->lsr_occur == 0)
+    {
+    	cdarg->lsr_rect = *rect;
+    	return 1;
+    }
+    else
+	cdarg->lsr_occur--;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * CmdFindLabel --
  *
  * Find a label and set the box to it.
@@ -747,16 +786,6 @@ usage:
  * ----------------------------------------------------------------------------
  */
 
-int cmdFindLabelFunc(rect, name, label, cdarg)
-    Rect *rect;
-    char *name;
-    Label *label;
-    Rect *cdarg;
-{
-    *cdarg = *rect;
-    return 1;
-}
-
 void
 CmdFindLabel(w, cmd)
     MagWindow *w;
@@ -764,16 +793,29 @@ CmdFindLabel(w, cmd)
 {
     CellDef *boxDef;
     CellUse *labUse;
-    Rect box, cmdFindLabelRect;
+    Rect box;
     char *labname;
-    int found;
+    int found, occur, plainargs;
     bool doglob = FALSE;   /* csh-style glob matching (see utils/match.c) */
+    LabSearchRec lsr;
     int dbListLabels();	   /* forward declaration */
 
-    if ((cmd->tx_argc == 3) && !strncmp(cmd->tx_argv[1], "-glob", 5))
+    plainargs = cmd->tx_argc;
+    if ((plainargs > 2) && !strncmp(cmd->tx_argv[1], "-glob", 5))
+    {
+	plainargs--;
 	doglob = TRUE;
-    else if (cmd->tx_argc != 2)
+    }
+    if ((plainargs != 2) && (plainargs != 3))
 	goto usage;
+
+    occur = 0;
+    if (plainargs == 3)
+    {
+	char *occurstr = cmd->tx_argv[plainargs - 1];
+	if (StrIsInt(occurstr))
+	    occur = atoi(occurstr);
+    }
 
     if (w == NULL)
     {
@@ -794,7 +836,7 @@ CmdFindLabel(w, cmd)
 	return;
     };
 
-    labname = (cmd->tx_argc == 3) ? cmd->tx_argv[2] : cmd->tx_argv[1];
+    labname = cmd->tx_argv[1 + (doglob) ? 1 : 0];
     labUse = EditCellUse;
     if (labUse == NULL) labUse = (CellUse *)w->w_surfaceID;
 
@@ -815,15 +857,17 @@ CmdFindLabel(w, cmd)
     {
 	/* Exact-match label search (corrected by Nishit, 10/14/04) */
 
+	lsr.lsr_occur = occur;
+
 	found = DBSrLabelLoc(labUse, labname, cmdFindLabelFunc,
-		(ClientData) &cmdFindLabelRect);
+		(ClientData) &lsr);
 	if (found) {
-	    if (cmdFindLabelRect.r_xbot == cmdFindLabelRect.r_xtop)
-		cmdFindLabelRect.r_xtop++;
-	    if (cmdFindLabelRect.r_ybot == cmdFindLabelRect.r_ytop)
-		cmdFindLabelRect.r_ytop++;
-	    ToolMoveBox(TOOL_BL,&cmdFindLabelRect.r_ll,FALSE,labUse->cu_def);
-	    ToolMoveCorner(TOOL_TR,&cmdFindLabelRect.r_ur,FALSE,labUse->cu_def);
+	    if (lsr.lsr_rect.r_xbot == lsr.lsr_rect.r_xtop)
+		lsr.lsr_rect.r_xtop++;
+	    if (lsr.lsr_rect.r_ybot == lsr.lsr_rect.r_ytop)
+		lsr.lsr_rect.r_ytop++;
+	    ToolMoveBox(TOOL_BL, &lsr.lsr_rect.r_ll, FALSE, labUse->cu_def);
+	    ToolMoveCorner(TOOL_TR, &lsr.lsr_rect.r_ur, FALSE, labUse->cu_def);
 	} else {
 	    TxError("Couldn't find label %s\n", labname);
 	}
