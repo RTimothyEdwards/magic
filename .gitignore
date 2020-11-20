@@ -27,3 +27,4 @@ tcltk/magicdnull
 tcltk/magicexec
 tcltk/ext2spice.sh
 tcltk/ext2sim.sh
+.travisCI/testcases/*/designs/*/test/*/
