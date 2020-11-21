@@ -78,6 +78,7 @@ bool CalmaPostOrder = FALSE;		/* If TRUE, forces the GDS parser to
 					 * Added by Nishit 8/16/2004
 					 */
 extern void calmaUnexpected();
+extern int calmaWriteInitFunc();
 
 bool calmaParseUnits();
 
@@ -171,6 +172,12 @@ CalmaReadFile(file, filename)
     calmaTotalErrors = 0;
     CalmaPolygonCount = 0;
     CalmaPathCount = 0;
+
+    /* Reset cd_client pointers (using init function from CalmaWrite.c) */
+    /* This is in case a cell already in memory is being referenced;	*/
+    /* it is probably better to avoid those kinds of naming collisions	*/
+    /* though. . . 							*/
+    (void) DBCellSrDefs(0, calmaWriteInitFunc, (ClientData) NULL);
 
     HashInit(&calmaDefInitHash, 32, 0);
     calmaLApresent = FALSE;

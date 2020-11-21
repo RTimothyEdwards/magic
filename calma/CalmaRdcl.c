@@ -417,7 +417,7 @@ calmaParseStructure(filename)
 	/* If CDFLATGDS is already set, may need to remove	*/
 	/* existing planes and free memory.			*/
 
-	if ((cifReadCellDef->cd_client != (ClientData)CLIENTDEFAULT) &&
+	if ((cifReadCellDef->cd_client != (ClientData)0) &&
 		(cifReadCellDef->cd_flags & CDFLATGDS))
 	{
 	    Plane **cifplanes = (Plane **)cifReadCellDef->cd_client;
@@ -432,7 +432,7 @@ calmaParseStructure(filename)
                 }
             }
             freeMagic((char *)cifReadCellDef->cd_client);
-            cifReadCellDef->cd_client = (ClientData)CLIENTDEFAULT;
+            cifReadCellDef->cd_client = (ClientData)0;
 	}
 
 	TxPrintf("Saving contents of cell %s\n", cifReadCellDef->cd_name);
@@ -917,8 +917,7 @@ calmaElementSref(filename)
 
 	    for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
 	    {
-		if ((def->cd_client != (ClientData)CLIENTDEFAULT) &&
-			(gdsplanes[pNum] != NULL))
+		if ((def->cd_client != (ClientData)0) && (gdsplanes[pNum] != NULL))
 		{
 		    gdsCopyRec.plane = cifCurReadPlanes[pNum];
 		    if (isArray)

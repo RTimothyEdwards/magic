@@ -603,13 +603,13 @@ CIFPaintCurrent(filetype)
 		Plane **parray;
 		extern char *(cifReadLayers[MAXCIFRLAYERS]);
 
-		/* NOTE:  There should be no need to check for cd_client
-		 * here as cd_client should not be CLIENTDEFAULT if CDFLATGDS
-		 * is set in flags.  This condition has occurred, though, and
-		 * needs to be debugged.
+		/* NOTE:  The condition cd_client == 0 when CDFLATGDS
+		 * indicates that the cell was already in memory when the
+		 * GDS was read.  This condition should be properly caught
+		 * and handled.
 		 */
 		if ((cifReadCellDef->cd_flags & CDFLATGDS) &&
-				(cifReadCellDef->cd_client != (ClientData)CLIENTDEFAULT))
+				(cifReadCellDef->cd_client != (ClientData)0))
 		    parray = (Plane **)cifReadCellDef->cd_client;
 		else
 		{
@@ -1499,7 +1499,7 @@ CIFReadCellCleanup(filetype)
 	    UndoDisable();
 
 	    /* cifplanes should be valid, but don't crash magic if not */
-	    if (cifplanes != (Plane **)CLIENTDEFAULT)
+	    if (cifplanes != (Plane **)0)
 	    {
 
 		for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
@@ -1512,7 +1512,7 @@ CIFReadCellCleanup(filetype)
 		}
 		freeMagic((char *)def->cd_client);
 	    }
-	    def->cd_client = (ClientData)CLIENTDEFAULT;
+	    def->cd_client = (ClientData)0;
 
 #if 0
 	    /* If the CDFLATTENED flag was not set, then this geometry	*/

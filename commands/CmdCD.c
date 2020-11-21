@@ -3454,7 +3454,7 @@ CmdDrc(w, cmd)
 	    }
 
 #ifdef MAGIC_WRAPPER
-	    if (count_total >= 0)
+	    if ((count_total >= 0) || (!dolist))
 	    {
 		if (dolist)
 		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(count_total));
