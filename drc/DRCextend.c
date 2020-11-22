@@ -217,11 +217,14 @@ forgetit:
  */
 
 int
-drcCheckMaxwidth(starttile,arg,cptr)
+drcCheckMaxwidth(starttile,arg,cptr,both)
     Tile	*starttile;
     struct drcClientData	*arg;
     DRCCookie	*cptr;
+    bool both;
 {
+    int			width;
+    int			height;
     int			edgelimit;
     int			retval = 0;
     Rect		boundrect;
@@ -274,8 +277,11 @@ drcCheckMaxwidth(starttile,arg,cptr)
 	    if (TTMaskHasType(oktypes, TiGetLeftType(tp))) PUSHTILE(tp);
     }
 
-    if (boundrect.r_xtop - boundrect.r_xbot > edgelimit &&
-             boundrect.r_ytop - boundrect.r_ybot > edgelimit)
+    width = boundrect.r_xtop - boundrect.r_xbot;
+    height = boundrect.r_ytop - boundrect.r_ybot;
+
+    if ( (width > edgelimit && height > edgelimit) ||
+          ( both == TRUE && (width > edgelimit || height > edgelimit)) )
     {
 	Rect	rect;
 	TiToRect(starttile,&rect);
