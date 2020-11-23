@@ -1385,6 +1385,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
     int pinUse = PORT_USE_DEFAULT;
     int pinShape = PORT_SHAPE_DEFAULT;
     Label *firstlab;
+    bool firstport = TRUE;
 
     static char *pin_keys[] = {
 	"DIRECTION",
@@ -1636,13 +1637,14 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 
 		    if (needRect)
 		    {
-			if (lab == NULL)
+			if ((lab == NULL) && (firstport == TRUE))
 			    DBEraseLabelsByContent(lefMacro, NULL, -1, testpin);
 			LefReadPort(lefMacro, f, testpin, pinNum, pinDir, pinUse,
 				pinShape, oscale, lab);
 		    }
 		    else
 			LefSkipSection(f, NULL);
+		    firstport = FALSE;
 		}
 		else
 		    LefReadPort(lefMacro, f, testpin, pinNum, pinDir, pinUse,
