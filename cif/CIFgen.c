@@ -1972,11 +1972,12 @@ cifGatherFunc(tile, atotal, mode)
 
     TiToRect(tile, &area);
 
-    /* Boundary tiles indicate an unclosed area, so set the area total to   */
-    /* INFINITY and don't try to run calculations on it.		    */
+    /* Boundary tiles indicate an unclosed area, so set the area total to   	*/
+    /* INFINITY and don't try to run calculations on it.  NOTE:  TiPlaneRect	*/
+    /* is slightly smaller than the plane boundaries on all sides.		*/
 
-    if ((area.r_xbot == TiPlaneRect.r_xbot) || (area.r_ybot == TiPlaneRect.r_ybot) ||
-	    (area.r_xtop == TiPlaneRect.r_xtop) || (area.r_ytop == TiPlaneRect.r_ytop))
+    if ((area.r_xbot <= TiPlaneRect.r_xbot) || (area.r_ybot <= TiPlaneRect.r_ybot) ||
+	    (area.r_xtop >= TiPlaneRect.r_xtop) || (area.r_ytop >= TiPlaneRect.r_ytop))
 	*atotal = INFINITY;
 
     /* Stop accumulating if already larger than growDistance to avoid the   */
