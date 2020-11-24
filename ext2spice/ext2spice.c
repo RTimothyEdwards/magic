@@ -1635,6 +1635,11 @@ subcktUndef(use, hierName, is_top)
  *	subcircuit, and implicit substrate connections should not be
  *	output.
  *
+ * NOTE: The cookie-cutter method for extraction can result in multiple
+ * connections to the same port if the net spans multiple extraction regions.
+ * Because of this, it is necessary to make sure that the same port name is
+ * not output twice.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -1646,12 +1651,15 @@ topVisit(def, doStub)
     EFNode *snode, *basenode;
     EFNodeName *sname, *nodeName;
     HashSearch hs;
-    HashEntry *he;
+    HashEntry *he, *hep;
+    HashTable portNameTable;
     int portorder, portmax, tchars;
     DevParam *plist, *pptr;
     char *instname;
     char *subcktname;
     char *pname;
+
+    HashInit(&portNameTable, 32, HT_STRINGKEYS);
 
     /* SPICE subcircuit names must begin with A-Z.  This will also be	*/
     /* enforced when writing X subcircuit calls.			*/
@@ -1698,19 +1706,24 @@ topVisit(def, doStub)
 	    if (snode->efnode_flags & EF_PORT)
 	    {
 		pname = nodeSpiceName(snode->efnode_name->efnn_hier, &basenode);
-		if (basenode->efnode_name->efnn_port < 0)
+		if (HashLookOnly(&portNameTable, pname) == NULL)
 		{
-		    if (tchars > 80)
+		    hep = HashFind(&portNameTable, pname);
+		    if (basenode->efnode_name->efnn_port < 0)
 		    {
-			/* Line continuation */
-			fprintf(esSpiceF, "\n+");
-			tchars = 1;
+		    	if (tchars > 80)
+		    	{
+			    /* Line continuation */
+			    fprintf(esSpiceF, "\n+");
+			    tchars = 1;
+		    	}
+		    	fprintf(esSpiceF, " %s", pname);
+		    	tchars += strlen(pname) + 1;
+		    	basenode->efnode_name->efnn_port = portorder++;
 		    }
-		    fprintf(esSpiceF, " %s", pname);
-		    tchars += strlen(pname) + 1;
-		    basenode->efnode_name->efnn_port = portorder++;
+		    snode->efnode_name->efnn_port = basenode->efnode_name->efnn_port;
+		    HashSetValue(hep, (ClientData)snode->efnode_name->efnn_port);
 		}
-		snode->efnode_name->efnn_port = basenode->efnode_name->efnn_port;
 	    }
 	}
     }
@@ -1757,8 +1770,23 @@ topVisit(def, doStub)
 			}
 			else
 			    pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
-			fprintf(esSpiceF, " %s", pname);
-			tchars += strlen(pname) + 1;
+
+			if (HashLookOnly(&portNameTable, pname) == NULL)
+			{
+			    hep = HashFind(&portNameTable, pname);
+			    HashSetValue(hep, (ClientData)nodeName->efnn_port);
+			    fprintf(esSpiceF, " %s", pname);
+			    tchars += strlen(pname) + 1;
+			}
+			else
+			{
+			    // Node that was unassigned has been found to be
+			    // a repeat (see NOTE at top), so make sure its
+			    // port number is set correctly.
+
+			    hep = HashFind(&portNameTable, pname);
+			    nodeName->efnn_port = (int)HashGetValue(hep);
+			}
 			break;
 		    }
 		    else if (portidx < 0)
@@ -1779,6 +1807,7 @@ topVisit(def, doStub)
 	    portorder++;
 	}
     }
+    HashKill(&portNameTable);
 
     /* Add all implicitly-defined local substrate node names */
 

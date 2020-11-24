@@ -606,7 +606,12 @@ extArrayInterFunc(use, trans, x, y, ha)
     extHierConnections(ha, extArrayPrimary, oneFlat);
 
     /* Process substrate connection */
-    extHierSubstrate(ha, use, x, y);
+    if (use->cu_xlo == use->cu_xhi)
+	extHierSubstrate(ha, use, -1, y);
+    else if (use->cu_ylo == use->cu_yhi)
+	extHierSubstrate(ha, use, x, -1);
+    else
+	extHierSubstrate(ha, use, x, y);
 
     ha->ha_cumFlat.et_nodes = (NodeRegion *) NULL;
     if (ExtOptions & EXT_DOADJUST)

@@ -51,7 +51,7 @@ extern FILE *extFileOpen();
     /*
      * See extract.h for the bit flags that may be set in the following.
      * If any are set, the corresponding warnings get generated, leaving
-     * feedback messages.  If this word is zero, only fatal errors are
+     * feedback messages.  If this word is zero, only errors are
      * reported.
      */
 int ExtDoWarn = EXTWARN_DUP|EXTWARN_FETS;
@@ -663,7 +663,7 @@ extExtractStack(stack, doExtract, rootDef)
     else
     {
 	if (fatal > 0)
-	    TxError("Total of %d fatal error%s.\n",
+	    TxError("Total of %d error%s (check feedback entries).\n",
 		    fatal, fatal != 1 ? "s" : "");
 	if (warnings > 0)
 	    TxError("Total of %d warning%s.\n",

@@ -1557,6 +1557,7 @@ devDistJunctHierVisit(hc, dev, scale)
  *	for each connection to it.  Note that this generates an arbitrary
  *	port order for each cell.  To have a specific port order, it is
  *	necessary to generate ports for each cell.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -1570,6 +1571,7 @@ esMakePorts(hc, cdata)
     Use *use;
     HashEntry *he;
     EFNodeName *nn;
+
     char *name, *portname, *tptr, *aptr, *locname;
     int j;
 
