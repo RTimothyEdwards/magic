@@ -702,8 +702,8 @@ drcCheckFunc(scx, cdarg)
 
     DRCCheckThis(def, TT_CHECKPAINT, (Rect *) NULL);
 
-    /* New behavior:  Don't search children, instead propagate errors up. */
-    /* (void) DBCellSrArea(scx, drcCheckFunc, (ClientData) NULL); */
+    /* Search children */
+    (void) DBCellSrArea(scx, drcCheckFunc, (ClientData) NULL);
 
     /* As a special performance hack, if the complete cell area is
      * handled here, don't bother to look at any more array elements.
