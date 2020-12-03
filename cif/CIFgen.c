@@ -1947,9 +1947,13 @@ cifCloseFunc(tile, plane)
     /* tile areas into the destination plane.				    */
 
     if ((atotal != INFINITY) && (atotal < growDistance))
+    {
 	cifGatherFunc(tile, &atotal, CLOSE_FILL);
+    }
     else
+    {
 	cifGatherFunc(tile, &atotal, CLOSE_DONE);
+    }
 
     return 0;
 }
@@ -1985,6 +1989,7 @@ cifGatherFunc(tile, atotal, mode)
     if (mode == CLOSE_SEARCH)
     {
 	if ((*atotal != INFINITY) && (*atotal < growDistance))
+	{
 	    locarea = (dlong)(area.r_xtop - area.r_xbot)
 			* (dlong)(area.r_ytop - area.r_ybot);
 	    if (IsSplit(tile)) locarea /= 2;
@@ -1992,6 +1997,7 @@ cifGatherFunc(tile, atotal, mode)
 		*atotal = INFINITY;
 	    else
 		*atotal += (int)locarea;
+	}
     }
     else if (mode == CLOSE_FILL)
     {
