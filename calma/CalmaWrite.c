@@ -826,7 +826,8 @@ calmaProcessDef(def, outf, do_library)
 	    /* This is a rare error, but if the subcell is inside	*/
 	    /* another vendor GDS, it would not normally be output.	*/
 
-	    DBPropGet(def->cd_parents->cu_parent, "GDS_FILE", &isReadOnly);
+	    DBPropGet((def->cd_parents->cu_parent == NULL) ? def :
+			def->cd_parents->cu_parent, "GDS_FILE", &isReadOnly);
 	    if (!isReadOnly || isAbstract)
 		TxError("Calma output error:  Can't find GDS file \"%s\" "
 				"for vendor cell \"%s\".  Using magic's "
