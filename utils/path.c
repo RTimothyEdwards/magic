@@ -119,7 +119,7 @@ PaExpand(psource, pdest, size)
 {
     char *ps, *pd;
     struct passwd *passwd, *getpwnam();
-    char expandName[100], *string, *newEntry;
+    char expandName[512], *string, *newEntry;
     HashEntry *h;
     int i, length;
 
@@ -135,7 +135,7 @@ PaExpand(psource, pdest, size)
 	    *pd = *++ps;
 	    if (isspace(*pd) || (*pd=='\0') || (*pd=='/') || (*pd==':'))
 		break;
-	    if (i < 99) pd++;
+	    if (i < 511) pd++;
 	}
 	*pd = '\0';
 
@@ -196,7 +196,7 @@ PaExpand(psource, pdest, size)
 	    *pd = *++ps;
 	    if (isspace(*pd) || (*pd=='\0') || (*pd=='/') || (*pd==':'))
 		break;
-	    if (i < 99) pd++;
+	    if ((i < 511) && (*pd != '{') && (*pd != '}')) pd++;
 	}
 	saveChar = *pd;
 	*pd = '\0';
