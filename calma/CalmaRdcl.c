@@ -290,6 +290,7 @@ calmaParseStructure(filename)
     off_t filepos;
     bool was_called;
     bool was_initialized;
+    bool predefined;
     CellDef *def;
 
     /* Make sure this is a structure; if not, let the caller know we're done */
@@ -299,6 +300,7 @@ calmaParseStructure(filename)
 
     /* Read the structure name */
     was_initialized = FALSE;
+    predefined = FALSE;
     if (!calmaSkipExact(CALMA_BGNSTR)) goto syntaxerror;
     if (!calmaReadStringRecord(CALMA_STRNAME, &strname)) goto syntaxerror;
     TxPrintf("Reading \"%s\".\n", strname);
@@ -345,7 +347,12 @@ calmaParseStructure(filename)
 	    freeMagic(newname);
 	}
     }
-    cifReadCellDef = calmaFindCell(strname, &was_called);
+    cifReadCellDef = calmaFindCell(strname, &was_called, &predefined);
+    if (predefined == TRUE)
+    {
+	calmaNextCell();
+	return TRUE;
+    }
     DBCellClearDef(cifReadCellDef);
     DBCellSetAvail(cifReadCellDef);
     HashSetValue(he, cifReadCellDef);
@@ -666,7 +673,7 @@ calmaElementSref(filename)
 	{
 	    TxPrintf("Cell definition %s does not exist!\n", sname);
 	    fseek(calmaInputFile, originalFilePos, SEEK_SET);
-	    def = calmaFindCell(sname, NULL);
+	    def = calmaFindCell(sname, NULL, NULL);
 	    /* Cell flags set to "dereferenced" in case there is no	*/
 	    /* definition in the GDS file.  If there is a definition	*/
 	    /* made after the instance, then the flag will be cleared.	*/
@@ -674,7 +681,7 @@ calmaElementSref(filename)
 	}
     }
 
-    if (!def) def = calmaFindCell(sname, NULL);
+    if (!def) def = calmaFindCell(sname, NULL, NULL);
 
     if (DBIsAncestor(def, cifReadCellDef))
     {
@@ -1031,12 +1038,15 @@ gdsCopyPaintFunc(tile, gdsCopyRec)
  */
 
 CellDef *
-calmaFindCell(name, was_called)
+calmaFindCell(name, was_called, predefined)
     char *name;		/* Name of desired cell */
     bool *was_called;	/* If this cell is in the hash table, then it
 			 * was instanced before it was defined.  We
 			 * need to know this so as to avoid flattening
 			 * the cell if requested.
+			 */
+    bool *predefined;	/* If this cell was in memory before the GDS
+			 * file was read, then this flag gets set.
 			 */
 
 {
@@ -1058,6 +1068,16 @@ calmaFindCell(name, was_called)
 	     * then it will cause a core dump.
 	     */
 	     DBReComputeBbox(def);
+	}
+	else
+	{
+	    TxPrintf("Warning:  cell %s already existed before reading GDS!\n",
+			name);
+	    if (CalmaNoDuplicates)
+	    {
+		if (predefined) *predefined = TRUE;
+	    	TxPrintf("Using pre-existing cell definition\n");
+	    }
 	}
 	HashSetValue(h, def);
 	if (was_called) *was_called = FALSE;

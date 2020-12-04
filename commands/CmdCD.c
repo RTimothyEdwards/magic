@@ -99,13 +99,14 @@ bool cmdDumpParseArgs();
 #define	CALMA_LIBRARY	8
 #define	CALMA_LOWER	9
 #define CALMA_MERGE	10
-#define CALMA_READ	11
-#define CALMA_READONLY	12
-#define CALMA_RESCALE	13
-#define CALMA_WARNING	14
-#define CALMA_WRITE	15
-#define CALMA_POLYS	16
-#define CALMA_PATHS	17
+#define CALMA_NO_DUP	11
+#define CALMA_READ	12
+#define CALMA_READONLY	13
+#define CALMA_RESCALE	14
+#define CALMA_WARNING	15
+#define CALMA_WRITE	16
+#define CALMA_POLYS	17
+#define CALMA_PATHS	18
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -138,6 +139,7 @@ CmdCalma(w, cmd)
 	"library [yes|no]	do not output the top level, only subcells",
 	"lower [yes|no]		allow both upper and lower case in labels",
 	"merge [yes|no]		merge tiles into polygons in the output",
+	"noduplicates [yes|no]	do not read cells that exist before reading GDS",
 	"read file		read Calma GDS-II format from \"file\"\n"
 	"		into edit cell",
 	"readonly [yes|no]	set cell as read-only and generate output from GDS file",
@@ -449,6 +451,26 @@ CmdCalma(w, cmd)
 	    if (option < 0)
 		goto wrongNumArgs;
 	    CalmaSubcellPolygons = (option < 3) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_NO_DUP:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaNoDuplicates));
+#else
+		TxPrintf("Cell defs that exist before reading GDS will not be paresd.\n",
+			(CalmaNoDuplicates) ?  "not " : "");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaNoDuplicates = (option < 3) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_PATHS:

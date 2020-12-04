@@ -77,6 +77,11 @@ bool CalmaPostOrder = FALSE;		/* If TRUE, forces the GDS parser to
 					 * flatten cells that are contact cuts.
 					 * Added by Nishit 8/16/2004
 					 */
+bool CalmaNoDuplicates = FALSE;		/* If TRUE, then if a cell exists in
+					 * memory with the same name as a cell	
+					 * in the GDS file, then the cell in
+					 * the GDS file is skipped.
+					 */
 extern void calmaUnexpected();
 extern int calmaWriteInitFunc();
 

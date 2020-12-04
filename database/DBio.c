@@ -45,6 +45,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <paths.h>
 #endif
 
+#include "tcltk/tclmagic.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "tiles/tile.h"
@@ -1373,7 +1374,7 @@ badTransform:
     else if (DBIsAncestor(subCellDef, cellDef))
     {
 	/*
-	 * Watchout for attempts to create circular structures.
+	 * Watch out for attempts to create circular structures.
 	 * If this happens, disregard the subcell.
 	 */
 	TxPrintf("Subcells are used circularly!\n");
@@ -1381,6 +1382,33 @@ badTransform:
 	    cellDef->cd_name);
 	goto nextLine;
     }
+
+#ifdef MAGIC_WRAPPER
+    /* If path starts with '$' then check for a possible Tcl variable	*/
+    /* replacement.							*/
+
+    if (*pathptr == '$')
+    {
+	char *varstart, *varend, savechar, *tvar;
+
+	varstart = pathptr + 1;
+	if (*varstart == '{') varstart++;
+	varend = varstart + 1;
+	while (*varend != '\0' && *varend != '}' && *varend != '/'
+			&& *varend != '\n' && *varend != ' ') varend++;
+	savechar = *varend;
+	*varend = '\0';
+
+	tvar = (char *)Tcl_GetVar(magicinterp, varstart, TCL_GLOBAL_ONLY);
+	*varend = savechar;
+	if (savechar == '}') varend++;
+	if (tvar)
+	{
+	    memmove(pathptr + strlen(tvar), varend, strlen(varend) + 1);
+	    memmove(pathptr, tvar, strlen(tvar));
+	}
+    }
+#endif
 
     /* Relative path handling:  If path does not have a leading "/"	*/
     /* or "~" and cellDef->cd_file has path components, then the path	*/
@@ -3146,6 +3174,7 @@ dbWriteCellFunc(cellUse, cdarg)
     struct writeArg *arg = (struct writeArg *) cdarg;
     Transform *t;
     Rect *b;
+    bool subbed = FALSE;
     char     cstring[256], *pathend, *pathstart, *parent;
 
     t = &(cellUse->cu_transform);
@@ -3197,25 +3226,90 @@ dbWriteCellFunc(cellUse, cdarg)
     }
     else
     {
-	/* If path starts with home path, then replace with "~"	*/
-	/* to make IP semi-portable between home directories	*/
-	/* with the same file structure.			*/
+#ifdef MAGIC_WRAPPER
+	char *tvar;
 
-	char *homedir = getenv("HOME");
+	/* Check for the leading component of the file path being equal to	*/
+	/* one of several common variable names for the PDK location, and	*/
+	/* if there is a match, then substitute the variable name for the	*/
+	/* matching leading path component.					*/
 
-	if (!strncmp(cellUse->cu_def->cd_file, homedir, strlen(homedir))
-		&& (*(cellUse->cu_def->cd_file + strlen(homedir)) == '/'))
+	if (subbed == FALSE)
 	{
-	    sprintf(cstring, "use %s %c%s ~%s\n", cellUse->cu_def->cd_name,
+	    tvar = (char *)Tcl_GetVar(magicinterp, "PDK_PATH", TCL_GLOBAL_ONLY);
+	    if (tvar)
+		if (!strncmp(pathstart, tvar, strlen(tvar)))
+		{
+	    	    sprintf(cstring, "use %s %c%s $PDK_PATH%s\n",
+				cellUse->cu_def->cd_name,
+				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
+				cellUse->cu_id, pathstart + strlen(tvar));
+		    subbed = TRUE;
+		}
+	}
+	if (subbed == FALSE)
+	{
+	    tvar = (char *)Tcl_GetVar(magicinterp, "PDKPATH", TCL_GLOBAL_ONLY);
+	    if (tvar)
+		if (!strncmp(pathstart, tvar, strlen(tvar)))
+		{
+	    	    sprintf(cstring, "use %s %c%s $PDKPATH%s\n",
+				cellUse->cu_def->cd_name,
+				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
+				cellUse->cu_id, pathstart + strlen(tvar));
+		    subbed = TRUE;
+		}
+	}
+	if (subbed == FALSE)
+	{
+	    tvar = (char *)Tcl_GetVar(magicinterp, "PDK_ROOT", TCL_GLOBAL_ONLY);
+	    if (tvar)
+		if (!strncmp(pathstart, tvar, strlen(tvar)))
+		{
+	    	    sprintf(cstring, "use %s %c%s $PDK_ROOT%s\n",
+				cellUse->cu_def->cd_name,
+				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
+				cellUse->cu_id, pathstart + strlen(tvar));
+		    subbed = TRUE;
+		}
+	}
+	if (subbed == FALSE)
+	{
+	    tvar = (char *)Tcl_GetVar(magicinterp, "PDKROOT", TCL_GLOBAL_ONLY);
+	    if (tvar)
+		if (!strncmp(pathstart, tvar, strlen(tvar)))
+		{
+	    	    sprintf(cstring, "use %s %c%s $PDKROOT%s\n",
+				cellUse->cu_def->cd_name,
+				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
+				cellUse->cu_id, pathstart + strlen(tvar));
+		    subbed = TRUE;
+		}
+	}
+#endif
+
+	if (subbed == FALSE)
+	{
+	    /* If path starts with home path, then replace with "~"	*/
+	    /* to make IP semi-portable between home directories	*/
+	    /* with the same file structure.			*/
+
+	    char *homedir = getenv("HOME");
+
+	    if (!strncmp(cellUse->cu_def->cd_file, homedir, strlen(homedir))
+			&& (*(cellUse->cu_def->cd_file + strlen(homedir)) == '/'))
+	    {
+	    	sprintf(cstring, "use %s %c%s ~%s\n", cellUse->cu_def->cd_name,
 			(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
 			cellUse->cu_id, cellUse->cu_def->cd_file +
 			strlen(homedir));
-	}
-	else
-	{
-	    sprintf(cstring, "use %s %c%s %s\n", cellUse->cu_def->cd_name,
+	    }
+	    else
+	    {
+	        sprintf(cstring, "use %s %c%s %s\n", cellUse->cu_def->cd_name,
 			(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
 			cellUse->cu_id, pathstart);
+	    }
 	}
     }
     FPRINTR(arg->wa_file, cstring);
