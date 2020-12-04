@@ -182,7 +182,7 @@ typedef struct lreg
 typedef struct
 {
     int		 pa_perim;
-    int		 pa_area;
+    unsigned int	 pa_area;
 } PerimArea;
 
 typedef struct nreg
