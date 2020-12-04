@@ -683,7 +683,7 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, total)
 	NULL
     };
 
-    defLayerMap = defMakeInverseLayerMap();
+    defLayerMap = defMakeInverseLayerMap(LAYER_MAP_VIAS);
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {

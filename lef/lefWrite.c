@@ -1171,7 +1171,7 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
 
     lc.file = f;
     lc.oscale = scale;
-    lc.lefMagicMap = defMakeInverseLayerMap();
+    lc.lefMagicMap = defMakeInverseLayerMap(LAYER_MAP_NO_VIAS);
     lc.lastType = TT_SPACE;
     lc.lefFlat = lefFlatDef;
 
