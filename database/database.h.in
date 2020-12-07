@@ -265,42 +265,46 @@ typedef struct label
  * Label flags bit fields
  */
 
-#define PORT_NUM_MASK	0x0fff		/* Mask of port number (up to 4096) */
+#define PORT_NUM_MASK	0x003fff	/* Mask of port number (up to 16384) */
 
-#define PORT_DIR_MASK	0xf000		/* Mask of all port directions 	   */
-#define PORT_DIR_NORTH	0x1000		/* Port allows connection to north */
-#define PORT_DIR_EAST	0x2000		/* Port allows connection to east  */
-#define PORT_DIR_SOUTH	0x4000		/* Port allows connection to south */
-#define PORT_DIR_WEST	0x8000		/* Port allows connection to west  */
+#define PORT_DIR_MASK	0x03c000	/* Mask of all port directions 	   */
+#define PORT_DIR_NORTH	0x004000	/* Port allows connection to north */
+#define PORT_DIR_EAST	0x008000	/* Port allows connection to east  */
+#define PORT_DIR_SOUTH	0x010000	/* Port allows connection to south */
+#define PORT_DIR_WEST	0x020000	/* Port allows connection to west  */
 
-#define PORT_CLASS_MASK		 0x70000 /* Mask of all port classes	*/
-#define PORT_CLASS_DEFAULT	 0x00000 /* Port takes default class	*/
-#define PORT_CLASS_INPUT	 0x10000 /* Port is a digital input	*/
-#define PORT_CLASS_OUTPUT	 0x20000 /* Port is a digital output	*/
-#define PORT_CLASS_TRISTATE	 0x30000 /* Port is a tri-state output	*/
-#define PORT_CLASS_BIDIRECTIONAL 0x40000 /* Port is analog or digital	*/
-					 /*    bidirectional		*/
-#define PORT_CLASS_FEEDTHROUGH	 0x50000 /* Port touches no active	*/
-					 /*    devices			*/
+#define PORT_CLASS_MASK		 0x1c0000 /* Mask of all port classes	*/
+#define PORT_CLASS_DEFAULT	 0x000000 /* Port takes default class	*/
+#define PORT_CLASS_INPUT	 0x040000 /* Port is a digital input	*/
+#define PORT_CLASS_OUTPUT	 0x080000 /* Port is a digital output	*/
+#define PORT_CLASS_TRISTATE	 0x0c0000 /* Port is a tri-state output	*/
+#define PORT_CLASS_BIDIRECTIONAL 0x100000 /* Port is analog or digital	*/
+					  /*    bidirectional		*/
+#define PORT_CLASS_FEEDTHROUGH	 0x140000 /* Port touches no active	*/
+					  /*    devices			*/
 
-#define PORT_USE_MASK	   0x0700000	/* Mask of all port uses	*/
-#define PORT_USE_DEFAULT   0x0000000	/* Port takes default use	*/
-#define PORT_USE_SIGNAL	   0x0100000	/* Port is a digital signal	*/
-#define PORT_USE_ANALOG	   0x0200000	/* Port is an analog signal	*/
-#define PORT_USE_POWER	   0x0300000	/* Port is a power rail		*/
-#define PORT_USE_GROUND    0x0400000	/* Port is a ground rail	*/
-#define PORT_USE_CLOCK     0x0500000	/* Port is a digital clock	*/
-					/*    signal			*/
-#define PORT_SHAPE_MASK	   0x1800000	/* Mask of all port shapes	*/
-#define PORT_SHAPE_DEFAULT 0x0000000	/* Port takes default shape	*/
-#define PORT_SHAPE_ABUT	   0x0800000	/* Port is an abutment shape	*/
-#define PORT_SHAPE_RING	   0x1000000	/* Port is a ring shape		*/
-#define PORT_SHAPE_THRU	   0x1800000	/* Port is a feedthrough shape	*/
-#define PORT_VISITED	   0x2000000	/* Bit for checking if a port	*/
+#define PORT_USE_MASK	   0x03c00000	/* Mask of all port uses	*/
+#define PORT_USE_DEFAULT   0x00000000	/* Port takes default use	*/
+#define PORT_USE_SIGNAL	   0x00400000	/* Port is a digital signal	*/
+#define PORT_USE_ANALOG	   0x00800000	/* Port is an analog signal	*/
+#define PORT_USE_POWER	   0x00c00000	/* Port is a power rail		*/
+#define PORT_USE_GROUND    0x01000000	/* Port is a ground rail	*/
+#define PORT_USE_CLOCK     0x01400000	/* Port is a digital clock	*/
+#define PORT_USE_RESET	   0x01800000	/* Port is a digital reset	*/
+#define PORT_USE_SCAN	   0x01c00000	/* Port is a digital scan	*/
+#define PORT_USE_TIEOFF	   0x02000000	/* Port is a tie-off		*/
+
+#define PORT_SHAPE_MASK	   0x0c000000	/* Mask of all port shapes	*/
+#define PORT_SHAPE_DEFAULT 0x00000000	/* Port takes default shape	*/
+#define PORT_SHAPE_ABUT	   0x04000000	/* Port is an abutment shape	*/
+#define PORT_SHAPE_RING	   0x08000000	/* Port is a ring shape		*/
+#define PORT_SHAPE_THRU	   0x0c000000	/* Port is a feedthrough shape	*/
+
+#define PORT_VISITED	   0x10000000	/* Bit for checking if a port	*/
 					/* has been previously visited.	*/
 
-#define LABEL_STICKY	   0x4000000	/* Label does not change layers	*/
-#define LABEL_GENERATE	   0x8000000	/* Auto-generated label		*/
+#define LABEL_STICKY	   0x20000000	/* Label does not change layers	*/
+#define LABEL_GENERATE	   0x40000000	/* Auto-generated label		*/
 
 /*
  * Macros for dealing with label rectangles.
