@@ -27,3 +27,6 @@ tcltk/magicdnull
 tcltk/magicexec
 tcltk/ext2spice.sh
 tcltk/ext2sim.sh
+magic/tclmagic.dylib
+tcltk/magicdnull.dSYM/
+tcltk/magicexec.dSYM/
