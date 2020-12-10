@@ -1818,7 +1818,7 @@ cmdWriteallFunc(def, cmd)
 	    cmdSaveCell(def, (char *) NULL, FALSE, TRUE);
 	    break;
 	case 1:		/* Flush */
-	    cmdFlushCell(def);
+	    cmdFlushCell(def, FALSE);
 	    break;
 	case 2:		/* Skip */
 	    break;

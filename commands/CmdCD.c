@@ -881,16 +881,13 @@ CmdCellname(w, cmd)
 		else
 		    cellDef = DBCellLookDef(cellname);
 
-		/* Force dereferencing */
-		cellDef->cd_flags |= CDDEREFERENCE;
-		freeMagic(cellDef->cd_file);
-		cellDef->cd_file = NULL;
-
-		/* Reload cell */
-		cmdFlushCell(cellDef);
-
-		/* Clear dereferencing */
-		cellDef->cd_flags &= ~CDDEREFERENCE;
+		/* Reload cell with dereferencing */
+		if (cellDef == NULL)
+		{
+		    TxError("No such cell \"%s\"\n", cellname);
+		    break;
+		}
+		cmdFlushCell(cellDef, TRUE);
 		SelectClear();
 	    }
 	    else
