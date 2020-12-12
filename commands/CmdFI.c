@@ -913,10 +913,12 @@ dbListLabels(scx, label, tpath, cdarg)
  * Implement the "flush" command.
  * Throw away all changes made within magic to the specified cell,
  * and re-read it from disk.  If no cell is specified, the default
- * is the current edit cell.
+ * is the current edit cell.  If "-dereference" is specified as an
+ * option, then re-read the cell from the search path instead of
+ * the file path that has been associated with the cell.
  *
  * Usage:
- *	flush [cellname]
+ *	flush [cellname] [-dereference]
  *
  * Results:
  *	None.
@@ -937,10 +939,17 @@ CmdFlush(w, cmd)
     int action;
     static char *actionNames[] = { "no", "yes", 0 };
     char *prompt;
+    bool dereference = FALSE;
+
+    if (!strncmp(cmd->tx_argv[cmd->tx_argc - 1], "-deref", 6))
+    {
+	dereference = TRUE;
+	cmd->tx_argc--;
+    }
 
     if (cmd->tx_argc > 2)
     {
-	TxError("Usage: flush [cellname]\n");
+	TxError("Usage: flush [cellname] [dereference]\n");
 	return;
     }
 
@@ -970,7 +979,7 @@ CmdFlush(w, cmd)
 	    return;
     }
 
-    cmdFlushCell(def);
+    cmdFlushCell(def, dereference);
     SelectClear();
     TxPrintf("[Flushed]\n");
 }

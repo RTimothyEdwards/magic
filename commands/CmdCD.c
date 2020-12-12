@@ -689,6 +689,7 @@ CmdCellname(w, cmd)
 	"window		list top-level cell of a layout window",
 	"create		create a new cell definition",
 	"delete		delete the named cell definition",
+	"dereference	reload the named cell from the search paths",
 	"filepath	list the full path of the file for the cell",
 	"flags		list option flags of the indicated cell definition",
 	"lock		lock the named cell (prevent changes to cell use)",
@@ -703,10 +704,10 @@ CmdCellname(w, cmd)
     };
     typedef enum { IDX_CHILDREN, IDX_PARENTS, IDX_EXISTS, IDX_SELF,
 		   IDX_INSTANCE, IDX_CHILDINST, IDX_CELLDEF, IDX_ALLCELLS,
-		   IDX_TOPCELLS, IDX_IN_WINDOW, IDX_CREATE,
-		   IDX_DELETE, IDX_FILEPATH, IDX_FLAGS, IDX_LOCK, IDX_UNLOCK,
-		   IDX_PROPERTY, IDX_ABUTMENT, IDX_ORIENTATION, IDX_RENAME,
-		   IDX_READWRITE, IDX_MODIFIED } optionType;
+		   IDX_TOPCELLS, IDX_IN_WINDOW, IDX_CREATE, IDX_DELETE,
+		   IDX_DEREFERENCE, IDX_FILEPATH, IDX_FLAGS, IDX_LOCK,
+		   IDX_UNLOCK, IDX_PROPERTY, IDX_ABUTMENT, IDX_ORIENTATION,
+		   IDX_RENAME, IDX_READWRITE, IDX_MODIFIED } optionType;
 
     if (strstr(cmd->tx_argv[0], "in"))
 	is_cellname = FALSE;
@@ -743,8 +744,9 @@ CmdCellname(w, cmd)
     if (option < 0) goto badusage;
 
     if ((locargc > 3) && (option != IDX_RENAME) && (option != IDX_DELETE) &&
-		(option != IDX_READWRITE) && (option != IDX_PROPERTY) &&
-		(option != IDX_FILEPATH) && (option != IDX_ORIENTATION))
+		(option != IDX_DEREFERENCE) && (option != IDX_READWRITE) &&
+		(option != IDX_PROPERTY) && (option != IDX_FILEPATH) &&
+		(option != IDX_ORIENTATION))
 	goto badusage;
 
     if ((locargc > 4) && (option != IDX_PROPERTY))
@@ -790,6 +792,7 @@ CmdCellname(w, cmd)
 		return;
 	    case IDX_IN_WINDOW: case IDX_READWRITE: case IDX_FLAGS:
 	    case IDX_PROPERTY: case IDX_FILEPATH: case IDX_MODIFIED:
+	    case IDX_DEREFERENCE:
 		TxError("Function unimplemented for instances.\n");
 		return;
 	    case IDX_DELETE:
@@ -865,6 +868,30 @@ CmdCellname(w, cmd)
 	    }
 	    else
 		TxError("Delete cell command missing cellname\n");
+	    break;
+
+	case IDX_DEREFERENCE:
+	    /* Unload the cell definition and re-read with search paths */
+	    if (locargc == 3)
+	    {
+		void cmdFlushCell();
+
+		if (cellname == NULL)
+		    cellDef = EditRootDef;
+		else
+		    cellDef = DBCellLookDef(cellname);
+
+		/* Reload cell with dereferencing */
+		if (cellDef == NULL)
+		{
+		    TxError("No such cell \"%s\"\n", cellname);
+		    break;
+		}
+		cmdFlushCell(cellDef, TRUE);
+		SelectClear();
+	    }
+	    else
+		TxError("Dereference cell command missing cellname\n");
 	    break;
 
 	case IDX_READWRITE:

@@ -197,12 +197,7 @@ DRCCheckThis (celldef, operation, area)
 					 *  of CellDefs waiting for DRC
 					 */
 
-    /* Ignore internal GDS cells. */
-    /* Note that this rescinds the former behavior of ignoring DRC on	*/
-    /* vendor and read-only cells.  Such cells will be flattened in	*/
-    /* interaction areas and show errors anyway, so not showing errors	*/
-    /* in the cell is just confusing.					*/
-
+    /* Ignore internal cells. */
     if (celldef->cd_flags & CDINTERNAL) return;
 
     /* Insert celldef into list of Defs waiting to be checked, unless	*/

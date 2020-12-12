@@ -666,7 +666,7 @@ calmaElementSref(filename)
 		    scalen = 1;
 		    scaled = cifCurReadStyle->crs_multiplier / crsMultiplier;
 		}
-		CIFScalePlanes(scalen, scaled, cifCurReadPlanes);
+		CIFScalePlanes(scaled, scalen, cifCurReadPlanes);
 	    }
 	}
 	else
