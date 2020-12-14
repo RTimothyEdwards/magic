@@ -4673,6 +4673,9 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
     BridgeData *bridge;
     BloatData *bloats;
     bool hstop = FALSE;
+    char *propvalue;
+    bool found;
+
     int (*cifGrowFuncPtr)() = (CIFCurStyle->cs_flags & CWF_GROW_EUCLIDEAN) ?
 		cifGrowEuclideanFunc : cifGrowFunc;
 
@@ -5079,9 +5082,6 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 
 		if (origDef && (origDef->cd_flags & CDFIXEDBBOX))
 		{
-		    char *propvalue;
-		    bool found;
-
 		    propvalue = (char *)DBPropGet(origDef, "FIXED_BBOX", &found);
 		    if (!found) break;
 		    if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
@@ -5136,6 +5136,58 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 		cifScale = 1;
 		DBNMPaintPlane(curPlane, CIF_SOLIDTYPE, &bbox,
 			CIFPaintTable, (PaintUndoInfo *)NULL);
+		break;
+
+	    /* The CIFOP_MASKHINTS operator checks the current cell for	*/
+	    /* a property with "MASKHINTS_" followed by the name saved	*/
+	    /* in the co_client record.  If there is such a property,	*/
+	    /* then the property value is parsed for geometry in	*/
+	    /* internal units, grouped in sets of four values llx lly	*/
+	    /* urx ury.							*/
+
+	    case CIFOP_MASKHINTS:
+		{
+		    int j, numfound;
+		    char propname[512];
+		    char *propptr;
+		    char *layername = (char *)op->co_client;
+
+		    sprintf(propname, "MASKHINTS_%s", layername);
+		    
+		    propvalue = (char *)DBPropGet(origDef, propname, &found);
+		    if (!found) break;	    /* No mask hints available */
+		    propptr = propvalue;
+		    while (TRUE)
+		    {
+			numfound = sscanf(propptr, "%d %d %d %d",
+				&bbox.r_xbot, &bbox.r_ybot,
+				&bbox.r_xtop, &bbox.r_ytop);
+
+			if (numfound != 4)
+			{
+			    /* To do:  Allow keyword "rect", "tri", or "poly"
+			     * at the start of the list and parse accordingly.
+			     * For now, this only flags an error.
+			     */
+			    TxError("MASKHINTS_%s:  Cannot read rectangle values.\n",
+				    propname);
+			    break;
+			}
+			cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
+			bbox.r_xbot *= cifScale;
+			bbox.r_xtop *= cifScale;
+			bbox.r_ybot *= cifScale;
+			bbox.r_ytop *= cifScale;
+			cifScale = 1;
+			DBNMPaintPlane(cifPlane, CIF_SOLIDTYPE, &bbox,
+				CIFPaintTable, (PaintUndoInfo *)NULL);
+			for (j = 0; j < 4; j++)
+			{
+			    while (*propptr && isspace(*propptr)) propptr++;
+			    while (*propptr && !isspace(*propptr)) propptr++;
+			}
+		    }
+		}
 		break;
 
 	    default:

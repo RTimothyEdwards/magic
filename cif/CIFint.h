@@ -142,6 +142,7 @@ typedef struct cifop
  * CIFOP_CLOSE -	Added 11/25/19---close up areas smaller than indicated
  * CIFOP_BRIDGE -	Added 6/11/20---Bridge across catecorner gaps
  * CIFOP_BRIDGELIM -	Added 27/07/20---Bridge across catecorner gaps, but with limiting layers
+ * CIFOP_MASKHINTS -	Added 12/14/20---Add geometry from cell properties, if any.
  */
 
 #define CIFOP_AND	1
@@ -166,6 +167,7 @@ typedef struct cifop
 #define CIFOP_CLOSE	20
 #define CIFOP_BRIDGE	21
 #define CIFOP_BRIDGELIM 22
+#define CIFOP_MASKHINTS 23
 
 
 /* Added by Tim 10/21/2004 */
@@ -224,12 +226,9 @@ typedef struct
  *
  * CIF_TEMP:	Means that this is a temporary layer used to build
  *		up CIF information.  It isn't output in the CIF file.
- * CIF_BBOX_TOP:  Indicates that the bounding box rectangle should
- *		only be generated if the cell is a top-level cell.
  */
 
 #define CIF_TEMP 		1
-#define CIF_BBOX_TOP		2
 
 /* The following data structure describes a complete set of CIF
  * layers.  The number of CIF layers (MAXCIFLAYERS) must not be

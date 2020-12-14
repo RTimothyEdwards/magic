@@ -1054,6 +1054,8 @@ CIFTechLine(sectionName, argc, argv)
 	newOp->co_opcode = CIFOP_MAXRECT;
     else if (strcmp(argv[0], "boundary") == 0)
 	newOp->co_opcode = CIFOP_BOUNDARY;
+    else if (strcmp(argv[0], "mask-hints") == 0)
+	newOp->co_opcode = CIFOP_MASKHINTS;
     else if (strcmp(argv[0], "close") == 0)
 	newOp->co_opcode = CIFOP_CLOSE;
     else if (strcmp(argv[0], "bridge") == 0)
@@ -1245,6 +1247,11 @@ bloatCheck:
 	    newOp->co_client = (ClientData)StrDup((char **)NULL, argv[1]);
 	    cifParseLayers(argv[2], CIFCurStyle, &newOp->co_paintMask,
 		&newOp->co_cifMask, FALSE);
+	    break;
+
+	case CIFOP_MASKHINTS:
+	    if (argc != 2) goto wrongNumArgs;
+	    newOp->co_client = (ClientData)StrDup((char **)NULL, argv[1]);
 	    break;
 
 	case CIFOP_MAXRECT:
@@ -1537,10 +1544,12 @@ cifComputeRadii(layer, des)
 
     for (op = layer->cl_ops; op != NULL; op = op->co_next)
     {
-	/* BBOX and NET operators should never be used hierarchically	*/
-	/* so ignore any grow/shrink operators that come after them.	*/
+	/* BBOX, NET, and MASKHINTS operators should never be used	*/
+	/* hierarchically so ignore any grow/shrink operators that	*/
+	/* come after them.						*/
 
-	if (op->co_opcode == CIFOP_BBOX || op->co_opcode == CIFOP_NET)
+	if (op->co_opcode == CIFOP_BBOX || op->co_opcode == CIFOP_NET ||
+		    op->co_opcode == CIFOP_MASKHINTS)
 	    break;
 
 	/* If CIF layers are used, switch to the max of current
@@ -1565,11 +1574,11 @@ cifComputeRadii(layer, des)
 
 	switch (op->co_opcode)
 	{
-	    case CIFOP_AND: break;
-
-	    case CIFOP_ANDNOT: break;
-
-	    case CIFOP_OR: break;
+	    case CIFOP_AND:
+	    case CIFOP_ANDNOT:
+	    case CIFOP_OR:
+	    case CIFOP_MASKHINTS:
+		break;
 
 	    case CIFOP_GROW:
 	    case CIFOP_GROWMIN:
@@ -1850,13 +1859,15 @@ CIFTechFinal()
 		/* Presence of op->co_opcode in CIFOP_OR indicates a copy */
 		/* of the SquaresData pointer from a following operator	  */
 		/* CIFOP_BBOX and CIFOP_MAXRECT uses the co_client field  */
-		/* as a flag field, while CIFOP_NET uses it for a string. */
+		/* as a flag field, while CIFOP_NET and CIFOP_MASKHINTS	  */
+		/* uses it for a string.				  */
 		else
 		{
 		    switch (op->co_opcode)
 		    {
 			case CIFOP_OR:
 			case CIFOP_BBOX:
+			case CIFOP_MASKHINTS:
 			case CIFOP_BOUNDARY:
 			case CIFOP_MAXRECT:
 			case CIFOP_NET:
@@ -2388,6 +2399,7 @@ CIFTechOutputScale(n, d)
 			case CIFOP_OR:
 			case CIFOP_BBOX:
 			case CIFOP_BOUNDARY:
+			case CIFOP_MASKHINTS:
 			case CIFOP_MAXRECT:
 			case CIFOP_NET:
 			    break;
@@ -2502,9 +2514,10 @@ CIFTechOutputScale(n, d)
 			bridge->br_width /= lexpand;
 			break;
 		    default:
-			/* op->co_opcode in CIFOP_OR is a pointer copy	*/
-			/* and in CIFOP_BBOX and CIFOP_MAXRECT is a	*/
-			/* flag, and in CIFOP_NET is a string.		*/
+			/* op->co_opcode in CIFOP_OR is a pointer copy,	*/
+			/* in CIFOP_BBOX and CIFOP_MAXRECT is a	flag,	*/
+			/* and in CIFOP_NET and CIFOP_MASKHINTS is a	*/
+			/* string.					*/
 			break;
 		}
 	    }

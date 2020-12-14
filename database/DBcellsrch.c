@@ -1775,6 +1775,100 @@ DBSrCellUses(cellDef, func, arg)
     return retval;
 }
 
+/* Structure used by dbScaleProp() and dbMoveProp() */
+typedef struct _cellpropstruct {
+    Point cps_point;
+    CellDef *cps_def;
+} CellPropStruct;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbScaleProp --
+ *
+ *  Callback function for dbScaleCell.  Finds properties that represent
+ *  internal geometry (FIXED_BBOX and MASKHINTS_*) and scale the values
+ *  by the numerator / denominator values passed as a pointer to a Point
+ *  structure, where p_x is the numerator value and p_y is the denominator
+ *  value.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int dbScaleProp(name, value, cps)
+    char *name;
+    char *value;
+    CellPropStruct *cps;
+{
+    int scalen, scaled;
+    char *newvalue;
+    Rect r;
+
+    if (!strcmp(name, "FIXED_BBOX") || !strncmp(name, "MASKHINTS_", 10))
+    {
+	if (sscanf(value, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
+			&r.r_xtop, &r.r_ytop) == 4)
+	{
+	    /* Scale numerator held in point X value, */
+	    /* scale denominator held in point Y value */
+
+	    scalen = cps->cps_point.p_x;
+	    scaled = cps->cps_point.p_y;
+
+	    DBScalePoint(&r.r_ll, scalen, scaled);
+	    DBScalePoint(&r.r_ur, scalen, scaled);
+
+	    newvalue = (char *)mallocMagic(40);
+	    sprintf(newvalue, "%d %d %d %d", r.r_xbot, r.r_ybot,
+			r.r_xtop, r.r_ytop);
+	    DBPropPut(cps->cps_def, name, newvalue);
+	}
+    }
+    return 0;	/* Keep enumerating through properties */
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbMoveProp --
+ *
+ *  Callback function for ??.  Finds properties that represent
+ *  internal geometry (FIXED_BBOX and MASKHINTS_*) and modifies the values
+ *  by the X, Y values passed as a pointer to a Point structure in ClientData.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int dbMoveProp(name, value, cps)
+    char *name;
+    char *value;
+    CellPropStruct *cps;
+{
+    int origx, origy;
+    char *newvalue;
+    Rect r;
+
+    if (!strcmp(name, "FIXED_BBOX") || !strncmp(name, "MASKHINTS_", 10))
+    {
+	if (sscanf(value, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
+			&r.r_xtop, &r.r_ytop) == 4)
+	{
+	    origx = cps->cps_point.p_x;
+	    origy = cps->cps_point.p_y;
+
+	    DBMovePoint(&r.r_ll, origx, origy);
+	    DBMovePoint(&r.r_ur, origx, origy);
+
+	    newvalue = (char *)mallocMagic(40);
+	    sprintf(newvalue, "%d %d %d %d", r.r_xbot, r.r_ybot,
+			r.r_xtop, r.r_ytop);
+	    DBPropPut(cps->cps_def, name, newvalue);
+	}
+    }
+    return 0;	/* Keep enumerating through properties */
+}
+
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1799,6 +1893,7 @@ dbScaleCell(cellDef, scalen, scaled)
     LinkedCellUse *luhead, *lu;
     Plane *newplane;
     BPlane *cellPlane, *cellPlaneOrig;
+    CellPropStruct cps;
 
     /* DBCellEnum() attempts to read unavailable celldefs.  We don't	*/
     /* want to do that here, so check CDAVAILABLE flag first.	  	*/
@@ -1936,6 +2031,18 @@ donecell:
 	    }
 	}
     }
+
+    /* Check all properties for ones with keys beginning with "MASKHINTS_"
+     * or the key "FIXED_BBOX", and scale them by the same amount as all
+     * the geometry.
+     */
+
+
+    cps.cps_point.p_x = scalen;
+    cps.cps_point.p_y = scaled;
+    cps.cps_def = cellDef;
+    DBPropEnum(cellDef, dbScaleProp, &cps);
+
     return 0;
 }
 
@@ -2023,6 +2130,7 @@ DBMoveCell(cellDef, origx, origy)
     LinkedCellUse *luhead, *lu;
     Plane *newplane;
     BPlane *cellPlane, *cellPlaneOrig;
+    CellPropStruct cps;
 
     /* Unlike dbScaleCell(), this routine is only run on valid edit defs */
 
@@ -2120,31 +2228,15 @@ donecell:
     DBMovePoint(&cellDef->cd_extended.r_ll, origx, origy);
     DBMovePoint(&cellDef->cd_extended.r_ur, origx, origy);
 
-    /* If the cell is an abstract view with a fixed bounding box, then  */
-    /* adjust the bounding box property to match the new scale.         */
+    /* Check all properties for ones with keys beginning with "MASKHINTS_"
+     * or the key "FIXED_BBOX", and move them by the same amount as all
+     * the geometry.
+     */
 
-    if ((cellDef->cd_flags & CDFIXEDBBOX) != 0)
-    {
-	Rect r;
-	bool found;
-	char *propval;
-
-	propval = (char *)DBPropGet(cellDef, "FIXED_BBOX", &found);
-	if (found)
-	{
-	    if (sscanf(propval, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
-			&r.r_xtop, &r.r_ytop) == 4)
-	    {
-		DBMovePoint(&r.r_ll, origx, origy);
-		DBMovePoint(&r.r_ur, origx, origy);
-
-		propval = (char *)mallocMagic(40);
-		sprintf(propval, "%d %d %d %d", r.r_xbot, r.r_ybot,
-			r.r_xtop, r.r_ytop);
-		DBPropPut(cellDef, "FIXED_BBOX", propval);
-	    }
-	}
-    }
+    cps.cps_point.p_x = origx;
+    cps.cps_point.p_y = origy;
+    cps.cps_def = cellDef;
+    DBPropEnum(cellDef, dbMoveProp, &cps);
     return 0;
 }
 
