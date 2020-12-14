@@ -245,9 +245,8 @@ cifHierCopyFunc(tile, cxp)
     if (cxp->tc_scx->scx_use->cu_def->cd_flags & CDVENDORGDS)
     {
 	if (!CIFCurStyle)
-	    return 0;
-	else if (!(CIFCurStyle->cs_flags & CWF_SEE_VENDOR))
-	    return 0;
+	    if (!(CIFCurStyle->cs_flags & CWF_SEE_NO_VENDOR))
+		return 0;
     }
 
     /* Ignore space tiles, since they won't do anything anyway. */

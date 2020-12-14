@@ -991,8 +991,8 @@ CIFTechLine(sectionName, argc, argv)
 		CIFCurStyle->cs_flags |= CWF_PERMISSIVE_LABELS;
 	    else if (strcmp(argv[i], "grow-euclidean") == 0)
 		CIFCurStyle->cs_flags |= CWF_GROW_EUCLIDEAN;
-	    else if (strcmp(argv[i], "see-vendor") == 0)
-		CIFCurStyle->cs_flags |= CWF_SEE_VENDOR;
+	    else if (strcmp(argv[i], "see-no-vendor") == 0)
+		CIFCurStyle->cs_flags |= CWF_SEE_NO_VENDOR;
 	    else if (strcmp(argv[i], "no-errors") == 0)
 		CIFCurStyle->cs_flags |= CWF_NO_ERRORS;
 	    else if (strcmp(argv[i], "string-limit") == 0)

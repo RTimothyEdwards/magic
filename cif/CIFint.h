@@ -306,8 +306,8 @@ typedef struct cifstyle
 #define CWF_GROW_SLIVERS	0x02
 #define CWF_ANGSTROMS 		0x04
 #define CWF_GROW_EUCLIDEAN	0x08
-#define CWF_SEE_VENDOR		0x10	/* Override vendor GDS flag in cells */
-#define CWF_NO_ERRORS		0x20	/* Do not generate error msgs and fdbk */
+#define CWF_SEE_NO_VENDOR	0x10	/* Hide magic's GDS from vendor cells	*/
+#define CWF_NO_ERRORS		0x20	/* Do not generate error msgs and fdbk	*/
 #define CWF_STRING_LIMIT	0x40	/* Use older Calma format character limit */
 
 /* procedures */
