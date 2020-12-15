@@ -99,14 +99,15 @@ bool cmdDumpParseArgs();
 #define	CALMA_LIBRARY	8
 #define	CALMA_LOWER	9
 #define CALMA_MERGE	10
-#define CALMA_NO_DUP	11
-#define CALMA_READ	12
-#define CALMA_READONLY	13
-#define CALMA_RESCALE	14
-#define CALMA_WARNING	15
-#define CALMA_WRITE	16
-#define CALMA_POLYS	17
-#define CALMA_PATHS	18
+#define CALMA_NO_STAMP	11
+#define CALMA_NO_DUP	12
+#define CALMA_READ	13
+#define CALMA_READONLY	14
+#define CALMA_RESCALE	15
+#define CALMA_WARNING	16
+#define CALMA_WRITE	17
+#define CALMA_POLYS	18
+#define CALMA_PATHS	19
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -123,7 +124,8 @@ CmdCalma(w, cmd)
     extern int CalmaFlattenLimit;
 
     static char *gdsExts[] = {".gds", ".gds2", ".strm", "", NULL};
-    static char *cmdCalmaYesNo[] = { "no", "false", "off", "yes", "true", "on", 0 };
+    static char *cmdCalmaYesNo[] = {
+		"no", "false", "off", "0", "yes", "true", "on", "1", 0 };
     static char *cmdCalmaWarnOptions[] = { "default", "none", "align",
 		"limit", "redirect", "help", 0 };
     static char *cmdCalmaOption[] =
@@ -140,6 +142,7 @@ CmdCalma(w, cmd)
 	"lower [yes|no]		allow both upper and lower case in labels",
 	"merge [yes|no]		merge tiles into polygons in the output",
 	"noduplicates [yes|no]	do not read cells that exist before reading GDS",
+	"nodatestamp [yes|no]	write a zero value creation date stamp",
 	"read file		read Calma GDS-II format from \"file\"\n"
 	"		into edit cell",
 	"readonly [yes|no]	set cell as read-only and generate output from GDS file",
@@ -222,15 +225,16 @@ CmdCalma(w, cmd)
 	    else if (cmd->tx_argc != 3)
 	    {
 		wrongNumArgs:
-		TxError("Wrong number of arguments in \"gds\" command.");
-		TxError("  Try \":gds help\" for help.\n");
+		TxError("Wrong number of arguments in \"%s\" command.",
+			cmd->tx_argv[0]);
+		TxError("  Try \":%s help\" for help.\n", cmd->tx_argv[0]);
 		return;
 	    }
 
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaDoLabels = (option < 3) ? FALSE : TRUE;
+	    CalmaDoLabels = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_LIBRARY:
@@ -250,7 +254,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaDoLibrary = (option < 3) ? FALSE : TRUE;
+	    CalmaDoLibrary = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_ADDENDUM:
@@ -270,7 +274,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaAddendum = (option < 3) ? FALSE : TRUE;
+	    CalmaAddendum = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_CONTACTS:
@@ -292,7 +296,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaContactArrays = (option < 3) ? FALSE : TRUE;
+	    CalmaContactArrays = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_DRCCHECK:
@@ -312,7 +316,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaNoDRCCheck = (option < 3) ? TRUE : FALSE;
+	    CalmaNoDRCCheck = (option < 4) ? TRUE : FALSE;
 	    return;
 
 	case CALMA_FLATTEN:
@@ -343,7 +347,7 @@ CmdCalma(w, cmd)
 		    goto wrongNumArgs;
 	    }
 	    else
-		CalmaFlattenUses = (option < 3) ? FALSE : TRUE;
+		CalmaFlattenUses = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_ORDERING:
@@ -366,7 +370,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaPostOrder = (option < 3) ? FALSE : TRUE;
+	    CalmaPostOrder = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_ARRAYS:
@@ -386,7 +390,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaFlattenArrays = (option < 3) ? FALSE : TRUE;
+	    CalmaFlattenArrays = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_LOWER:
@@ -406,7 +410,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaDoLower = (option < 3) ? FALSE : TRUE;
+	    CalmaDoLower = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_MERGE:
@@ -428,7 +432,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaMergeTiles = (option < 3) ? FALSE : TRUE;
+	    CalmaMergeTiles = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_POLYS:
@@ -450,7 +454,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[3], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaSubcellPolygons = (option < 3) ? FALSE : TRUE;
+	    CalmaSubcellPolygons = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_NO_DUP:
@@ -470,7 +474,27 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaNoDuplicates = (option < 3) ? FALSE : TRUE;
+	    CalmaNoDuplicates = (option < 4) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_NO_STAMP:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaNoDateStamp));
+#else
+		TxPrintf("Structures will contain a %s header creation date stamp.\n",
+			(CalmaNoDateStamp) ?  "zero" : "valid");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaNoDateStamp = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_PATHS:
@@ -492,7 +516,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[3], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaSubcellPaths = (option < 3) ? FALSE : TRUE;
+	    CalmaSubcellPaths = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_READONLY:
@@ -512,7 +536,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaReadOnly = (option < 3) ? FALSE : TRUE;
+	    CalmaReadOnly = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_RESCALE:
@@ -532,7 +556,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CIFRescaleAllow = (option < 3) ? FALSE : TRUE;
+	    CIFRescaleAllow = (option < 4) ? FALSE : TRUE;
 	    if (!CIFRescaleAllow)
 		CIFWarningLevel = CIF_WARN_LIMIT;
 	    return;

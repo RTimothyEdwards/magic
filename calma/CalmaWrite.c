@@ -58,6 +58,7 @@ bool CalmaDoLabels = TRUE;	 /* If FALSE, don't output labels with GDS-II */
 bool CalmaDoLower = TRUE;	 /* If TRUE, allow lowercase labels. */
 bool CalmaFlattenArrays = FALSE; /* If TRUE, output arrays as individual uses */
 bool CalmaAddendum = FALSE;	 /* If TRUE, do not output readonly cell defs */
+bool CalmaNoDateStamp = FALSE;	 /* If TRUE, output zero for creation date stamp */
 
     /* Experimental stuff---not thoroughly tested (as of Sept. 2007)! */
 bool CalmaContactArrays = FALSE; /* If TRUE, output contacts as subcell arrays */
@@ -396,7 +397,10 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 
     /* Output structure begin */
     calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, outf);
-    calmaOutDate(def->cd_timestamp, outf);
+    if (CalmaNoDateStamp)
+    	calmaOutDate(time((time_t *) 0), outf);
+    else
+    	calmaOutDate(def->cd_timestamp, outf);
     calmaOutDate(time((time_t *) 0), outf);
 
     /* Find the structure's unique prefix, in case structure calls subcells */
@@ -868,7 +872,10 @@ calmaProcessDef(def, outf, do_library)
 
 		/* Output structure header */
 		calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, outf);
-		calmaOutDate(def->cd_timestamp, outf);
+    		if (CalmaNoDateStamp)
+		    calmaOutDate(time((time_t *) 0), outf);
+		else
+		    calmaOutDate(def->cd_timestamp, outf);
 		calmaOutDate(time((time_t *) 0), outf);
 
 		/* Name structure the same as the magic cellname */
@@ -965,7 +972,10 @@ calmaOutFunc(def, f, cliprect)
 
     /* Output structure begin */
     calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, f);
-    calmaOutDate(def->cd_timestamp, f);
+    if (CalmaNoDateStamp)
+    	calmaOutDate(time((time_t *) 0), f);
+    else
+	calmaOutDate(def->cd_timestamp, f);
     calmaOutDate(time((time_t *) 0), f);
 
     /* Output structure name */
@@ -2694,7 +2704,10 @@ calmaOutHeader(rootDef, f)
 
     /* Beginning of library */
     calmaOutRH(28, CALMA_BGNLIB, CALMA_I2, f);
-    calmaOutDate(rootDef->cd_timestamp, f);
+    if (CalmaNoDateStamp)
+    	calmaOutDate(time((time_t *) 0), f);
+    else
+    	calmaOutDate(rootDef->cd_timestamp, f);
     calmaOutDate(time((time_t *) 0), f);
 
     /* Library name (name of root cell) */

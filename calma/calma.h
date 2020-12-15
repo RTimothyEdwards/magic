@@ -32,6 +32,7 @@ extern bool CalmaDoLibrary;
 extern bool CalmaDoLower;
 extern bool CalmaAddendum;
 extern bool CalmaNoDuplicates;
+extern bool CalmaNoDateStamp;
 extern bool CalmaMergeTiles;
 extern bool CalmaFlattenArrays;
 extern bool CalmaNoDRCCheck;
