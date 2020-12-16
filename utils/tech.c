@@ -272,9 +272,12 @@ changePlanesFunc(cellDef, arg)
 	/* Old planes to be subtracted */
 	for (pNum = DBNumPlanes; pNum < oldnumplanes; pNum++)
 	{
-	    DBFreePaintPlane(cellDef->cd_planes[pNum]);
-	    TiFreePlane(cellDef->cd_planes[pNum]);
-	    cellDef->cd_planes[pNum] = (Plane *) NULL;
+	    if (cellDef->cd_planes[pNum] != NULL)
+	    {
+		DBFreePaintPlane(cellDef->cd_planes[pNum]);
+		TiFreePlane(cellDef->cd_planes[pNum]);
+		cellDef->cd_planes[pNum] = (Plane *) NULL;
+	    }
 	}
     }
     return 0;

@@ -1298,7 +1298,7 @@ CmdPort(w, cmd)
     char **msg;
     int argstart;
     int i, refidx, idx, pos, type, option, argc;
-    unsigned short dirmask;
+    unsigned int dirmask;
     bool found;
     bool nonEdit = FALSE;
     Label *lab, *sl;

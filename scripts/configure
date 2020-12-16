@@ -626,8 +626,6 @@ INSTALL_TARGET
 ALL_TARGET
 OA_LIBS
 OA
-MAGIC_REVISION
-MAGIC_VERSION
 MSED
 MCPP
 LD_RUN_PATH
@@ -2596,17 +2594,6 @@ test -n "$target_alias" &&
 
 
 PACKAGE=magic
-
-MAGIC_VERSION=`cat ../VERSION | cut -d. -f1-2`
-MAGIC_REVISION=`cat ../VERSION | cut -d. -f3`
-cat >>confdefs.h <<_ACEOF
-#define MAGIC_VERSION "${MAGIC_VERSION}"
-_ACEOF
-
-cat >>confdefs.h <<_ACEOF
-#define MAGIC_REVISION "${MAGIC_REVISION}"
-_ACEOF
-
 
 ALL_TARGET="standard"
 INSTALL_TARGET="install-magic"
@@ -8186,9 +8173,6 @@ fi
 if test "$GCC" = "yes" ; then
    DEPEND_FLAG="-MM"
 fi
-
-
-
 
 
 

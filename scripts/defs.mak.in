@@ -68,15 +68,15 @@ LIB_SPECS	       = @LIB_SPECS@
 LIB_SPECS_NOSTUB       = @LIB_SPECS_NOSTUB@
 WISH_EXE	       = @WISH_EXE@
 TCL_LIB_DIR	       = @TCL_LIB_DIR@
-MAGIC_VERSION	       = @MAGIC_VERSION@
-MAGIC_REVISION	       = @MAGIC_REVISION@
+MAGIC_VERSION	       = `cat ../VERSION | cut -d. -f1-2`
+MAGIC_REVISION	       = `cat ../VERSION | cut -d. -f3`
 
 CC                     = @CC@
 CPP                    = @CPP@
 CXX		       = @CXX@
 
 CPPFLAGS               = -I. -I${MAGICDIR} @CPPFLAGS@
-DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ -DGCORE=\"@GCORE@\"
+DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DGCORE=\"@GCORE@\"
 DFLAGS		      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" -DNDEBUG
 DFLAGS_NOSTUB	       = @extra_defs@ @DEFS@ -DGCORE=\"@GCORE@\"
 DFLAGS_NOSTUB	      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" -DNDEBUG

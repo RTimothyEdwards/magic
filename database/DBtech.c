@@ -204,9 +204,57 @@ DBTechSetVersion(sectionName, argc, argv)
 	}
 	return TRUE;
     }
+    if (strcmp(argv[0], "requires") == 0)
+    {
+	/* Version requirement check.  If the techfile has "requires" followed
+	 * by a magic version number in the form [magic-]<major>.<minor>.<revision>,
+	 * then the version of magic is checked against this, and the tech
+	 * loading will fail if there is a version incompatibility.
+	 */
+
+	int major, minor, rev;
+	int rmajor, rminor, rrev;
+	bool goodversion = FALSE;
+	char *vstring;
+
+	vstring = argv[1];
+	while ((*vstring != '\0') && !isdigit(*vstring)) vstring++;
+
+	major = minor = rev = 0;
+	rmajor = rminor = rrev = 0;
+	
+	if (sscanf(vstring, "%d.%d.%d", &rmajor, &rminor, &rrev) == 0)
+	{
+	    TechError("Badly formed magic version string, should be major.minor.rev\n");
+	    return FALSE;
+	}
+	sscanf(MagicVersion, "%d.%d", &major, &minor);
+	sscanf(MagicRevision, "%d", &rev);
+	if (major > rmajor)
+	    goodversion = TRUE;
+	else if (major == rmajor)
+	{
+	    if (minor > rminor)
+		goodversion = TRUE;
+	    else if (minor == rminor)
+	    {
+		if (rev >= rrev)
+		    goodversion = TRUE;
+	    }
+	}
+	if (goodversion == FALSE)
+	{
+	    TechError("Error:  Magic version %d.%d.%d is required by this "
+		    "techfile, but this version of magic is %d.%d.%d.\n",
+		    rmajor, rminor, rrev, major, minor, rev);
+	    return FALSE;
+	}
+	return TRUE;
+    }
 
 usage:
-    TechError("Badly formed version line\nUsage: {version text}|{description text}\n");
+    TechError("Badly formed version line\n"
+	    "Usage: {version text}|{description text}|{requires text}\n");
     return FALSE;
 }
 
