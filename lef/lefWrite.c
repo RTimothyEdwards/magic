@@ -1674,7 +1674,7 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
 	    freeMagic(thislll);
 	}
 
-	if (setback > 0)
+	if (setback >= 0)
 	{
 	    /* For -hide with setback, yank everything in the area outside  */
 	    /* the setback.						    */
