@@ -1741,7 +1741,8 @@ extOutputDevices(def, transList, outFile)
 		    } 
 		    break;	/* End of SD terminals */
 		}
-		else if (!TTMaskIntersect(tmask, &DBPlaneTypes[reg->treg_pnum]))
+		else if (!TTMaskIntersect(tmask, &DBPlaneTypes[reg->treg_pnum])
+			|| (TTMaskHasType(tmask, TT_SPACE)))
 		{
 		    node = NULL;
 		    extTransFindSubs(reg->treg_tile, t, tmask, def, &node, NULL);
@@ -1755,8 +1756,20 @@ extOutputDevices(def, transList, outFile)
 		    extTransRec.tr_termnode[termcount] = node;
 		}
 		else if (TTMaskHasType(tmask, TT_SPACE)) {
-		    /* Device node is specified as being the substrate */
-		    if (glob_subsnode == NULL) {
+		    /* Device node is possibly the substrate.  But:  Note that	*/
+		    /* TT_SPACE in the mask covers all planes, and it is not	*/
+		    /* possible to specify TT_SPACE in a single plane.  So it	*/
+		    /* is necessary to check for any shielding types that	*/
+		    /* block the substrate.					*/
+
+		    node = NULL;
+		    if (!TTMaskIsZero(&ExtCurStyle->exts_globSubstrateShieldTypes))
+		    {
+		    	extTransFindSubs(reg->treg_tile, t, 
+				&ExtCurStyle->exts_globSubstrateShieldTypes,
+				def, &node, NULL);
+		    }
+		    if ((glob_subsnode == NULL) || (node != NULL)) {
 			/* See if there is another matching device record	*/
 			/* with a different terminal type, and try again.	*/
 			devptr = extDevFindMatch(devptr, t);
