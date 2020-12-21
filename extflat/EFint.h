@@ -286,6 +286,7 @@ extern Def *EFRootDef();
     /* HierName manipulation */
 extern HierName *efHNFromUse();
 extern char *efHNToStrFunc();
+extern bool EFHNBest();
 
     /* Functions for hashing of HierNames */
 extern int efHNCompare();
