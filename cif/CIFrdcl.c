@@ -490,6 +490,72 @@ CIFParseStart()
     return TRUE;
 }
 
+/* Structures used by cifCheckComposeFunc to pass information about subcells */
+
+typedef struct _uselist {
+    CellUse *cccul_use;
+    struct _uselist *cccul_next;
+} CifCheckComposeUseList;
+
+typedef struct _cifcheckcomposedata {
+    ComposeData *cccd_data;
+    TileTypeBitMask cccd_mask;
+    Rect cccd_area;
+    CifCheckComposeUseList cccd_uses;
+} CifCheckComposeData;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int drcCheckOverlapPaint(use, cccd)
+    CellUse *use;
+    CifCheckComposeData *cccd;
+{
+    int pNum;
+
+    for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
+    XXX WIP XXX
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * cifCheckComposeFunc ---
+ *
+ *	Callback function for CIFOP_COMPOSE.  It checks children of the
+ *	current edit cell in the area of the tile (transformed to the
+ *	coordinate system of the child of the edit cell) for types in the
+ *	cm_haveType list in the ComposeData pointer (passed in clientData).
+ *	If any are found, then there is an unresolved overlap error.  The
+ *	child cell is replaced with a copy, and material in the cm_haveType
+ *	list is replaced with the corresponding material in the cm_putType
+ *	list.
+ * ----------------------------------------------------------------------------
+ */
+
+int cifCheckComposeFunc(tile, clientData)
+    Tile *tile;
+    ClientData clientData;
+{
+    CifCheckComposeData *cccd = (CifCheckComposeData *)clientData;
+
+    TiToRect(tile, &cccd->cccd_area);
+
+    cccd->cccd_area.r_xtop = CIFScaleCoord(cccd->cccd_area.r_xtop, COORD_ANY);
+    cccd->cccd_area.r_xbot = CIFScaleCoord(cccd->cccd_area.r_xbot, COORD_ANY);
+    cccd->cccd_area.r_ytop = CIFScaleCoord(cccd->cccd_area.r_ytop, COORD_ANY);
+    cccd->cccd_area.r_ybot = CIFScaleCoord(cccd->cccd_area.r_ybot, COORD_ANY);
+
+    DBSrCellPlaneArea(cifReadCellDef->cd_cellPlane, &rect,
+	    drcCheckOverlapPaint, (ClientData)cccd);
+
+
+    XXX WIP XXX
+
+    return 0;
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -582,85 +648,128 @@ CIFPaintCurrent(filetype)
 
 	if (cifCurReadStyle->crs_layers[i]->crl_flags & CIFR_TEMPLAYER)
 	{
-	    op = cifCurReadStyle->crs_layers[i]->crl_ops;
-	    while (op)
-	    {
-		if (op->co_opcode == CIFOP_COPYUP) break;
-		op = op->co_next;
-	    }
+	    int haspaint = 0;
 
-	    /* Quick check to see if anything was generated	*/
-	    /* on this layer.					*/
+	    /* Quick check to see if anything was generated on this layer.  */
+	    /* Do this only once, and only if there is an opcode that	    */
+	    /* requires it.						    */
 
-	    if (op && (DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
-			&DBAllButSpaceBits, cifCheckPaintFunc,
-			(ClientData)NULL) == 1))
-	    {
-		/* Copy-up function */
-
-		int pNum;
-		Plane *newplane;
-		Plane **parray;
-		extern char *(cifReadLayers[MAXCIFRLAYERS]);
-
-		/* NOTE:  The condition cd_client == 0 when CDFLATGDS
-		 * indicates that the cell was already in memory when the
-		 * GDS was read.  This condition should be properly caught
-		 * and handled.
-		 */
-		if ((cifReadCellDef->cd_flags & CDFLATGDS) &&
-				(cifReadCellDef->cd_client != (ClientData)0))
-		    parray = (Plane **)cifReadCellDef->cd_client;
-		else
+	    for (op = cifCurReadStyle->crs_layers[i]->crl_ops; op; op = op->co_next)
+		if ((op->co_opcode == CIFOP_COPYUP) ||
+			(op->co_opcode == CIFOP_BOUNDARY) ||
+			(op->co_opcode == CIFOP_COMPOSE))
 		{
-		    parray = (Plane **)mallocMagic(MAXCIFRLAYERS * sizeof(Plane *));
-		    cifReadCellDef->cd_flags |= CDFLATGDS;
-		    cifReadCellDef->cd_flags &= ~CDFLATTENED;
-		    cifReadCellDef->cd_client = (ClientData)parray;
-		    for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
-			parray[pNum] = NULL;
+		    haspaint = DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
+			    &DBAllButSpaceBits, cifCheckPaintFunc,
+			    (ClientData)NULL);
+		    break;
 		}
 
-		for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
+	    for (op = cifCurReadStyle->crs_layers[i]->crl_ops; op; op = op->co_next)
+	    {
+		if ((op->co_opcode == CIFOP_COPYUP) && (haspaint == 1))
 		{
-		    if (TTMaskHasType(&op->co_cifMask, pNum))
+		    /* Handle copy-up function */
+
+		    int pNum;
+		    Plane *newplane;
+		    Plane **parray;
+		    extern char *(cifReadLayers[MAXCIFRLAYERS]);
+
+		    /* NOTE:  The condition cd_client == 0 when CDFLATGDS
+		     * indicates that the cell was already in memory when the
+		     * GDS was read.  This condition should be properly caught
+		     * and handled.
+		     */
+		    if ((cifReadCellDef->cd_flags & CDFLATGDS) &&
+				(cifReadCellDef->cd_client != (ClientData)0))
+			parray = (Plane **)cifReadCellDef->cd_client;
+		    else
 		    {
-			CIFCopyRec cifCopyRec;
+			parray = (Plane **)mallocMagic(MAXCIFRLAYERS * sizeof(Plane *));
+			cifReadCellDef->cd_flags |= CDFLATGDS;
+			cifReadCellDef->cd_flags &= ~CDFLATTENED;
+			cifReadCellDef->cd_client = (ClientData)parray;
+			for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
+			    parray[pNum] = NULL;
+		    }
 
-			newplane = parray[pNum];
-			if (newplane == NULL)
-		 	{
-			    newplane = DBNewPlane((ClientData) TT_SPACE);
-			    DBClearPaintPlane(newplane);
+		    for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
+		    {
+			if (TTMaskHasType(&op->co_cifMask, pNum))
+			{
+			    CIFCopyRec cifCopyRec;
+
+			    newplane = parray[pNum];
+			    if (newplane == NULL)
+			    {
+				newplane = DBNewPlane((ClientData) TT_SPACE);
+				DBClearPaintPlane(newplane);
+			    }
+
+			    cifCopyRec.plane = newplane;
+			    cifCopyRec.trans = NULL;
+
+			    DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
+				    &DBAllButSpaceBits, cifCopyPaintFunc,
+				    &cifCopyRec);
+
+			    parray[pNum] = newplane;
 			}
-
-			cifCopyRec.plane = newplane;
-			cifCopyRec.trans = NULL;
-
-			DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
-				&DBAllButSpaceBits, cifCopyPaintFunc,
-				&cifCopyRec);
-
-			parray[pNum] = newplane;
 		    }
 		}
-	    }
-	    else if (op == NULL)
-	    {
-		/* Handle boundary layer */
-
-		op = cifCurReadStyle->crs_layers[i]->crl_ops;
-		while (op)
+		else if ((op->co_opcode == CIFOP_BOUNDARY) && (haspaint == 1))
 		{
-		    if (op->co_opcode == CIFOP_BOUNDARY) break;
-		    op = op->co_next;
-		}
-
-		if (op && (DBSrPaintArea((Tile *)NULL, plane, &TiPlaneRect,
-			&DBAllButSpaceBits, cifCheckPaintFunc,
-			(ClientData)NULL) == 1))
+		    /* Handle boundary function */
 		    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
-			&CIFSolidBits, cifMakeBoundaryFunc, (ClientData)filetype);
+			    &CIFSolidBits, cifMakeBoundaryFunc, (ClientData)filetype);
+		}
+		else if ((op->co_opcode == CIFOP_COMPOSE) && (haspaint == 1))
+		{
+		    CifCheckComposeData cccd;
+		    TileType type;
+
+		    /* Handle compose function.  Search the area under any part	*/
+		    /* of the templayer for any types in cm_haveType that	*/
+		    /* appear in any subcell of the edit cell.  If there are	*/
+		    /* any, then make a copy of the subcell and do a type	*/
+		    /* replacement of types in cm_haveType with the		*/
+		    /* corresponding type in cm_putType.  Then replace the	*/
+		    /* subcell with the new subcell.				*/
+
+		    /* The purpose of this function is to resolve derived types	*/
+		    /* that are composed of material in two differernt cells.	*/
+		    /* It is the inverse of "copyup".  In "copyup", a layer in	*/
+		    /* a subcell that is part of a derived type is copied up to	*/
+		    /* the parent to resolve the derived type.  In "compose", a	*/
+		    /* layer in the parent cell that is part of a derived type	*/
+		    /* is copied into the child cell to resolve the derived	*/
+		    /* type.  There are distinct situations where each is	*/
+		    /* needed, depending on what layer determines the derived	*/
+		    /* type.  For example, THKOX determines if a transistor is	*/
+		    /* low voltage or high voltage.  THKOX in a subcell that	*/
+		    /* modifies a transistor in the parent cell requires	*/
+		    /* "copyup",  while THKOX in the parent cell that modifies 	*/
+		    /* a transistor in a child cell requires "compose".		*/
+
+		    /* Due to the complexity of duplicating hierarchy, this	*/
+		    /* function only looks at cells that are children of the	*/
+		    /* edit cell, and does not look further down in the		*/
+		    /* hierarchy.  This routine could be expanded to handle	*/
+		    /* such deep nesting.					*/
+
+		    cccd.cccd_data = (ComposeData *)op->co_client;
+		    cccd.cccd_area = TiPlaneRect;
+
+		    /* Compute type mask for type composing */
+		    TTMaskZero(&cccd.cccd_mask);
+		    for (i = 0; i < cccd.cccd_data->cm_numPairs; i++)
+			TTMaskSetType(&cccd.cccd_mask, cccd.cccd_data->cm_haveType[i]);
+
+		    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
+			    &CIFSolidBits, cifCheckComposeFunc,
+			    (ClientData)&cccd);
+		}
 	    }
 
 	    /* Swap planes */

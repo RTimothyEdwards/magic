@@ -323,7 +323,20 @@ cifNewReadStyle()
 	    if (layer != NULL)
 	    {
 		for (op = layer->crl_ops; op != NULL; op = op->co_next)
+		{
+		    /* CIFOP_COMPOSE is the only cifinput record to */
+		    /* allocate data in the co_client record.	    */
+		    if (op->co_opcode == CIFOP_COMPOSE)
+		    {
+			ComposeData *comps;
+
+			comps = (ComposeData *)op->co_client;
+			freeMagic(comps->cm_haveType);
+			freeMagic(comps->cm_putType);
+			freeMagic(comps);
+		    }
 		    freeMagic((char *)op);
+		}
 		freeMagic((char *)layer);
 	    }
 	}
@@ -463,8 +476,9 @@ CIFReadTechLine(sectionName, argc, argv)
     CIFReadKeep *newStyle, *p;
     HashEntry *he;
     CalmaLayerType clt;
+    ComposeData *comps;
     int calmaLayers[CALMA_LAYER_MAX], calmaTypes[CALMA_LAYER_MAX];
-    int nCalmaLayers, nCalmaTypes, l, t, j;
+    int nCalmaLayers, nCalmaTypes, l, t, j, i, nTypes;
     int calmaLabelType = LABEL_TYPE_NONE;
 
     if (argc <= 0) return TRUE;
@@ -955,6 +969,8 @@ CIFReadTechLine(sectionName, argc, argv)
 	newOp->co_opcode = CIFOP_COPYUP;
     else if (strcmp(argv[0], "boundary") == 0)
 	newOp->co_opcode = CIFOP_BOUNDARY;
+    else if (strcmp(argv[0], "compose") == 0)
+	newOp->co_opcode = CIFOP_COMPOSE;
     else
     {
 	TechError("Unknown statement \"%s\".\n", argv[0]);
@@ -981,7 +997,49 @@ CIFReadTechLine(sectionName, argc, argv)
 		goto errorReturn;
 	    }
 	    break;
+	case CIFOP_COMPOSE:
+	    if ((argc < 2) || ((argc & 1) != 0)) goto wrongNumArgs;
+
+	    /* If there were previous compose statements, then merge them */
+	    if (cifCurReadOp && (cifCurReadOp->co_opcode == CIFOP_COMPOSE))
+	    {
+		freeMagic(newOp);
+		newOp = cifCurReadOp;
+
+		// Create space for new type pairs and copy the existing
+		// compose records into it.
+		comps = (ComposeData *)newOp->co_client;
+		nTypes = comps->cm_numPairs;
+		comps->cm_numPairs = nTypes + argc >> 1;
+		newtypes = (TileType *)mallocMagic(comps->cm_numPairs * sizeof(TileType));
+		for (i = 0; i < nTypes; i++) newtypes[i] = comps->cm_haveType[i];
+		freeMagic(comps->cm_haveType);
+		comps->cm_haveType = newtypes;
+		newtypes = (TileType *)mallocMagic(comps->cm_numPairs * sizeof(TileType));
+		for (i = 0; i < nTypes; i++) newtypes[i] = comps->cm_putType[i];
+		freeMagic(comps->cm_putType);
+		comps->cm_putType = newtypes;
+	    }
+	    else
+	    {
+		comps = (ComposeData *)mallocMagic(sizeof(ComposeData));
+		nTypes = argc >> 1;
+		newOp->co_client = (clientData)comps;
+		comps->cm_haveType = (TileType *)mallocMagic(nTypes * sizeof(TileType));
+		comps->cm_putType = (TileType *)mallocMagic(nTypes * sizeof(TileType));
+		i = 0;
+	    }
+
+	    for (j = 0; j < argc; j += 2)
+	    {
+		CIFParseReadLayers(argv[j], &comps->cm_haveType[i + j]);
+		CIFParseReadLayers(argv[j + 1], &comps->cm_putType[i + j + 1]);
+	    }
+	    break;
     }
+
+    /* If there was a merged "compose" record, then we're done. */
+    if (cifCurReadOp == newOp) return TRUE;
 
     /* Link the new CIFOp onto the list. */
 

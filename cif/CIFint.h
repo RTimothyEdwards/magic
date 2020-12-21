@@ -78,6 +78,13 @@ typedef struct slots_data
     int sl_start;
 } SlotsData;
 
+typedef struct compose_data
+{
+    int cm_numPairs;		/* Number of compose pairs	 */
+    TileType *cm_haveType;	/* List of types to search for	 */
+    TileType *cm_putType;	/* List of types to replace with */
+} ComposeData;
+
 typedef struct cifop
 {
     TileTypeBitMask co_paintMask;/* Zero or more paint layers to consider. */
@@ -87,8 +94,8 @@ typedef struct cifop
 				 */
     int co_distance;		/* Grow or shrink distance (if needed). */
     ClientData co_client;	/* Pointer to a BloatData, SquaresData,
-				 * SlotsData, or BridgeData structure,
-				 * or NULL.
+				 * SlotsData, BridgeData, ComposeData
+				 * structure, or NULL.
 				 */
     struct cifop *co_next;	/* Next in list of operations to perform. */
 } CIFOp;
@@ -143,6 +150,7 @@ typedef struct cifop
  * CIFOP_BRIDGE -	Added 6/11/20---Bridge across catecorner gaps
  * CIFOP_BRIDGELIM -	Added 27/07/20---Bridge across catecorner gaps, but with limiting layers
  * CIFOP_MASKHINTS -	Added 12/14/20---Add geometry from cell properties, if any.
+ * CIFOP_COMPOSE -	Added 12/20/20---Composition rules (inverse of "copyup")
  */
 
 #define CIFOP_AND	1
@@ -168,6 +176,7 @@ typedef struct cifop
 #define CIFOP_BRIDGE	21
 #define CIFOP_BRIDGELIM 22
 #define CIFOP_MASKHINTS 23
+#define CIFOP_COMPOSE   24
 
 
 /* Added by Tim 10/21/2004 */
