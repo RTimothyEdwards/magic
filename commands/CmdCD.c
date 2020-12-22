@@ -94,20 +94,21 @@ bool cmdDumpParseArgs();
 #define CALMA_CONTACTS	3
 #define CALMA_DRCCHECK	4
 #define	CALMA_FLATTEN	5
-#define CALMA_ORDERING	6
-#define	CALMA_LABELS	7
-#define	CALMA_LIBRARY	8
-#define	CALMA_LOWER	9
-#define CALMA_MERGE	10
-#define CALMA_NO_STAMP	11
-#define CALMA_NO_DUP	12
-#define CALMA_READ	13
-#define CALMA_READONLY	14
-#define CALMA_RESCALE	15
-#define CALMA_WARNING	16
-#define CALMA_WRITE	17
-#define CALMA_POLYS	18
-#define CALMA_PATHS	19
+#define	CALMA_FLATGLOB  6
+#define CALMA_ORDERING	7
+#define	CALMA_LABELS	8
+#define	CALMA_LIBRARY	9
+#define	CALMA_LOWER	10
+#define CALMA_MERGE	11
+#define CALMA_NO_STAMP	12
+#define CALMA_NO_DUP	13
+#define CALMA_READ	14
+#define CALMA_READONLY	15
+#define CALMA_RESCALE	16
+#define CALMA_WARNING	17
+#define CALMA_WRITE	18
+#define CALMA_POLYS	19
+#define CALMA_PATHS	20
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -136,6 +137,7 @@ CmdCalma(w, cmd)
 	"contacts [yes|no]	optimize output by arraying contacts as subcells",
 	"drccheck [yes|no]	mark all cells as needing DRC checking",
 	"flatten [yes|no|limit]	flatten simple cells (e.g., contacts) on input",
+	"flatglob [<name>|none]	flatten cells by name with glob patterning",
 	"ordering [on|off]	cause cells to be read in post-order",
 	"labels [yes|no]	cause labels to be output when writing GDS-II",
 	"library [yes|no]	do not output the top level, only subcells",
@@ -348,6 +350,102 @@ CmdCalma(w, cmd)
 	    }
 	    else
 		CalmaFlattenUses = (option < 4) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_FLATGLOB:
+
+	    if (cmd->tx_argc == 2)
+	    {
+		if (CalmaFlattenUsesByName != NULL)
+		{
+		    int i = 0;
+		    char *pattern;
+#ifdef MAGIC_WRAPPER
+		    Tcl_Obj *lobj = Tcl_NewListObj(0, NULL);
+		    while (TRUE)
+		    {
+			pattern = CalmaFlattenUsesByName[i];
+			if (pattern == NULL) break;
+			i++;
+			Tcl_ListObjAppendElement(magicinterp, lobj,
+				Tcl_NewStringObj(pattern, -1));
+		    }
+		    Tcl_SetObjResult(magicinterp, lobj);
+#else
+		    TxPrintf("Glob patterns for cells to flatten:\n");
+		    while (TRUE)
+		    {
+			pattern = CalmaFlattenUsesByName[i];
+			if (pattern == NULL) break;
+			i++;
+			TxPrintf("   \"%s\"\n", pattern);
+		    }
+#endif
+		}
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    if (!strcasecmp(cmd->tx_argv[2], "none"))
+	    {
+		int i = 0;
+		if (CalmaFlattenUsesByName == (char **)NULL) return;
+		while (TRUE)
+		{
+		    char *pattern = CalmaFlattenUsesByName[i];
+		    if (pattern == NULL) break;
+		    freeMagic(pattern);
+		    i++;
+		}
+		freeMagic(CalmaFlattenUsesByName);
+		CalmaFlattenUsesByName = (char **)NULL;
+	    }
+	    else
+	    {
+		char **newpatterns;
+		char *pattern;
+		int i = 0;
+
+		if (CalmaFlattenUsesByName == (char **)NULL)
+		    i = 1;
+		else
+		{
+		    while (TRUE)
+		    {
+			pattern = CalmaFlattenUsesByName[i++];
+			if (pattern == NULL) break;
+		    }
+		}
+		newpatterns = (char **)mallocMagic((i + 1) * sizeof(char *));
+		i = 0;
+		if (CalmaFlattenUsesByName != (char **)NULL)
+		{
+		    while (TRUE)
+		    {
+		    	pattern = CalmaFlattenUsesByName[i];
+		    	if (pattern == NULL) break;
+		    	newpatterns[i] = StrDup((char **)NULL, pattern);
+		    	i++;
+		    }
+		}
+		newpatterns[i++] = StrDup((char **)NULL, cmd->tx_argv[2]);
+		newpatterns[i] = (char *)NULL;
+
+		i = 0;
+		if (CalmaFlattenUsesByName != (char **)NULL)
+		{
+		    while (TRUE)
+		    {
+			pattern = CalmaFlattenUsesByName[i];
+			if (pattern == NULL) break;
+			freeMagic(pattern);
+			i++;
+		    }
+		    freeMagic(CalmaFlattenUsesByName);
+		}
+		CalmaFlattenUsesByName = newpatterns;
+	    }
 	    return;
 
 	case CALMA_ORDERING:

@@ -63,6 +63,11 @@ bool CalmaFlattenUses = FALSE;		/* If TRUE, small cells in the input
 					 * performance when handling contacts
 					 * saved as subcell arrays.
 					 */
+char **CalmaFlattenUsesByName = NULL;	/* NULL-terminated list of strings
+					 * to do glob-style pattern matching
+					 * to determine what cells to flatten
+					 * by cellname.
+					 */
 bool CalmaReadOnly = FALSE;		/* Set files to read-only and
 					 * retain file position information
 					 * so cells can be written verbatim.
