@@ -1730,10 +1730,6 @@ extOutputDevices(def, transList, outFile)
 		if (TTMaskIsZero(tmask)) {
 		    if (termcount < nsd) {
 			ExtDevice *devcheck;
-			/* See if there is another matching device record with	*/
-			/* a different number of terminals, and try again.	*/
-			devcheck = extDevFindMatch(devptr, t);
-			if (devcheck != NULL) devptr = devcheck;
 
 			/* Not finding another device record just means that	*/
 			/* terminals are tied together on the same net, such as	*/
