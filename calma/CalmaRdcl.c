@@ -411,7 +411,7 @@ calmaParseStructure(filename)
     /* Check if the cell name matches the pattern list of cells to flatten */
 
     do_flatten = FALSE;
-    if ((CalmaFlattenUsesByName != NULL) && (!was_called) && (nsrefs == 0))
+    if ((CalmaFlattenUsesByName != NULL) && (!was_called))
     {
 	int i = 0;
 	char *pattern;
