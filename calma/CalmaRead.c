@@ -385,7 +385,7 @@ CalmaReadError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
             {
                 fprintf(calmaErrorFile, "Error while reading cell \"%s\" ",
                                 cifReadCellDef->cd_name);
-		fprintf(calmaErrorFile, "(byte position %"DLONG_PREFIX"ld): ",
+		fprintf(calmaErrorFile, "(byte position %"DLONG_PREFIX"d): ",
 				(dlong)filepos);
                 fprintf(calmaErrorFile, format, a1, a2, a3, a4, a5, a6, a7,
                                 a8, a9, a10);
