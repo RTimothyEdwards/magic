@@ -5157,7 +5157,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 		    propvalue = (char *)DBPropGet(origDef, propname, &found);
 		    if (!found) break;	    /* No mask hints available */
 		    propptr = propvalue;
-		    while (TRUE)
+		    while (*propptr)
 		    {
 			numfound = sscanf(propptr, "%d %d %d %d",
 				&bbox.r_xbot, &bbox.r_ybot,
@@ -5169,8 +5169,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 			     * at the start of the list and parse accordingly.
 			     * For now, this only flags an error.
 			     */
-			    TxError("MASKHINTS_%s:  Cannot read rectangle values.\n",
-				    propname);
+			    TxError("%s:  Cannot read rectangle values.\n", propname);
 			    break;
 			}
 			cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
