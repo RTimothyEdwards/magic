@@ -397,6 +397,7 @@ efHierDevKilled(hc, dev, prefix)
 
     for (n = 0; n < dev->dev_nterm; n++)
     {
+	if (dev->dev_terms[n].dterm_node == NULL) continue;
 	suffix = dev->dev_terms[n].dterm_node->efnode_name->efnn_hier;
 	he = HashLookOnly(&efNodeHashTable, (char *)suffix);
 	if (he  && (nn = (EFNodeName *) HashGetValue(he))

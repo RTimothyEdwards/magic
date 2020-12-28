@@ -405,6 +405,7 @@ subcktHierVisit(use, hierName, is_top)
     EFNode *snode;
     EFNodeName *nodeName;
     bool hasports = FALSE;
+    bool isStub;
 
     /* Avoid generating records for circuits that have no ports.	*/
     /* These are already absorbed into the parent.  All other		*/
@@ -430,6 +431,13 @@ subcktHierVisit(use, hierName, is_top)
 	    hasports = TRUE;
 	    break;
 	}
+
+    /* Same considerations as at line 1831 for determining if the cell	*/
+    /* has been folded into the parent and should not be output.	*/
+
+    isStub = ((def->def_flags & DEF_ABSTRACT) && esDoBlackBox) ?  TRUE : FALSE;
+    if ((!is_top) && (def->def_flags & DEF_NODEVICES) && (!isStub))
+        return 0;
 
     if (hasports || is_top)
 	return subcktVisit(use, hierName, is_top);

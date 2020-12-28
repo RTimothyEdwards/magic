@@ -1847,6 +1847,9 @@ cifBridgeCheckFunc(tile, brcs)
 
     switch (dir) {
 	case BRIDGE_NW:
+	    /* Ignore tile if it is not in the SE direction */
+	    if (LEFT(tile) < RIGHT(brcs->tile) && TOP(tile) > BOTTOM(brcs->tile))
+		break;
 	    /* Ignore tile if split, and SE corner is clipped */
 	    if (TiGetRightType(tile) == checktype || TiGetBottomType(tile) == checktype)
 		break;
@@ -1860,6 +1863,9 @@ cifBridgeCheckFunc(tile, brcs)
 	    }
 	    break;
 	case BRIDGE_NE:
+	    /* Ignore tile if it is not in the SW direction */
+	    if (RIGHT(tile) > LEFT(brcs->tile) && TOP(tile) > BOTTOM(brcs->tile))
+		break;
 	    /* Ignore tile if split, and SW corner is clipped */
 	    if (TiGetLeftType(tile) == checktype || TiGetBottomType(tile) == checktype)
 		break;
@@ -1873,6 +1879,9 @@ cifBridgeCheckFunc(tile, brcs)
 	    }
 	    break;
 	case BRIDGE_SW:
+	    /* Ignore tile if it is not in the NE direction */
+	    if (LEFT(tile) < RIGHT(brcs->tile) && BOTTOM(tile) < TOP(brcs->tile))
+		break;
 	    /* Ignore tile if split, and NE corner is clipped */
 	    if (TiGetRightType(tile) == checktype || TiGetTopType(tile) == checktype)
 		break;
@@ -1886,6 +1895,9 @@ cifBridgeCheckFunc(tile, brcs)
 	    }
 	    break;
 	case BRIDGE_SE:
+	    /* Ignore tile if it is not in the NW direction */
+	    if (RIGHT(tile) > LEFT(brcs->tile) && BOTTOM(tile) < TOP(brcs->tile))
+		break;
 	    /* Ignore tile if split, and NW corner is clipped */
 	    if (TiGetLeftType(tile) == checktype || TiGetTopType(tile) == checktype)
 		break;
