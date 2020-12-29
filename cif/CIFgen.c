@@ -1290,6 +1290,7 @@ typedef struct _bridgeStruct {
 /* Bridge Check data structure */
 typedef struct _bridgeCheckStruct {
    Tile *tile;		/* Tile that triggered search (ignore this tile) */
+   Rect *area;		/* Area of search */
    int	direction;	/* What outside corner to look for */
    Tile *violator;	/* Return the violator tile in this space */
    TileType checktype;	/* Type to check for, either TT_SPACE or CIF_SOLIDTYPE */
@@ -1398,6 +1399,7 @@ cifBridgeFunc1(tile, brs)
 
 	/* Find violator tiles */
 	brcs.tile = tile;
+	brcs.area = &area;
 	brcs.direction = BRIDGE_SW;
 	brcs.checktype = TT_SPACE;
 	if (DBSrPaintArea((Tile *) NULL, plane, &area,
@@ -1433,6 +1435,7 @@ cifBridgeFunc1(tile, brs)
 
 	/* Find violator tiles */
 	brcs.tile = tile;
+	brcs.area = &area;
 	brcs.direction = BRIDGE_NE;
 	brcs.checktype = TT_SPACE;
 	if (DBSrPaintArea((Tile *) NULL, plane, &area,
@@ -1468,6 +1471,7 @@ cifBridgeFunc1(tile, brs)
 
 	/* Find violator tiles */
 	brcs.tile = tile;
+	brcs.area = &area;
 	brcs.direction = BRIDGE_NW;
 	brcs.checktype = TT_SPACE;
 	if (DBSrPaintArea((Tile *) NULL, plane, &area,
@@ -1503,6 +1507,7 @@ cifBridgeFunc1(tile, brs)
 
 	/* Find violator tiles */
 	brcs.tile = tile;
+	brcs.area = &area;
 	brcs.direction = BRIDGE_SE;
 	brcs.checktype = TT_SPACE;
 	if (DBSrPaintArea((Tile *) NULL, plane, &area,
@@ -1683,6 +1688,7 @@ cifBridgeFunc2(tile, brs)
 
 	/* Find violator tiles */
 	brcs.tile = tile;
+	brcs.area = &area;
 	brcs.direction = BRIDGE_SW;
 	brcs.checktype = TT_SPACE;
 	if (DBSrPaintArea((Tile *) NULL, plane, &area,
@@ -1721,6 +1727,7 @@ cifBridgeFunc2(tile, brs)
 
 	/* Find violator tiles */
 	brcs.tile = tile;
+	brcs.area = &area;
 	brcs.direction = BRIDGE_NE;
 	brcs.checktype = CIF_SOLIDTYPE;
 	if (DBSrPaintArea((Tile *) NULL, plane, &area,
@@ -1759,6 +1766,7 @@ cifBridgeFunc2(tile, brs)
 
 	/* Find violator tiles */
 	brcs.tile = tile;
+	brcs.area = &area;
 	brcs.direction = BRIDGE_NW;
 	brcs.checktype = CIF_SOLIDTYPE;
 	if (DBSrPaintArea((Tile *) NULL, plane, &area,
@@ -1797,6 +1805,7 @@ cifBridgeFunc2(tile, brs)
 
 	/* Find violator tiles */
 	brcs.tile = tile;
+	brcs.area = &area;
 	brcs.direction = BRIDGE_SE;
 	brcs.checktype = CIF_SOLIDTYPE;
 	if (DBSrPaintArea((Tile *) NULL, plane, &area,
@@ -1847,8 +1856,8 @@ cifBridgeCheckFunc(tile, brcs)
 
     switch (dir) {
 	case BRIDGE_NW:
-	    /* Ignore tile if it is not in the SE direction */
-	    if (LEFT(tile) < RIGHT(brcs->tile) && TOP(tile) > BOTTOM(brcs->tile))
+	    /* Ignore tile if NW corner is not in the search area */
+	    if (LEFT(tile) <= brcs->area->r_xbot || TOP(tile) >= brcs->area->r_ytop)
 		break;
 	    /* Ignore tile if split, and SE corner is clipped */
 	    if (TiGetRightType(tile) == checktype || TiGetBottomType(tile) == checktype)
@@ -1863,8 +1872,8 @@ cifBridgeCheckFunc(tile, brcs)
 	    }
 	    break;
 	case BRIDGE_NE:
-	    /* Ignore tile if it is not in the SW direction */
-	    if (RIGHT(tile) > LEFT(brcs->tile) && TOP(tile) > BOTTOM(brcs->tile))
+	    /* Ignore tile if NE corner is not in the search area */
+	    if (RIGHT(tile) >= brcs->area->r_xtop || TOP(tile) >= brcs->area->r_ytop)
 		break;
 	    /* Ignore tile if split, and SW corner is clipped */
 	    if (TiGetLeftType(tile) == checktype || TiGetBottomType(tile) == checktype)
@@ -1879,8 +1888,8 @@ cifBridgeCheckFunc(tile, brcs)
 	    }
 	    break;
 	case BRIDGE_SW:
-	    /* Ignore tile if it is not in the NE direction */
-	    if (LEFT(tile) < RIGHT(brcs->tile) && BOTTOM(tile) < TOP(brcs->tile))
+	    /* Ignore tile if SW corner is not in the search area */
+	    if (LEFT(tile) <= brcs->area->r_xbot || BOTTOM(tile) <= brcs->area->r_ybot)
 		break;
 	    /* Ignore tile if split, and NE corner is clipped */
 	    if (TiGetRightType(tile) == checktype || TiGetTopType(tile) == checktype)
@@ -1895,8 +1904,8 @@ cifBridgeCheckFunc(tile, brcs)
 	    }
 	    break;
 	case BRIDGE_SE:
-	    /* Ignore tile if it is not in the NW direction */
-	    if (RIGHT(tile) > LEFT(brcs->tile) && BOTTOM(tile) < TOP(brcs->tile))
+	    /* Ignore tile if SE corner is not in the search area */
+	    if (RIGHT(tile) >= brcs->area->r_xtop || BOTTOM(tile) <= brcs->area->r_ybot)
 		break;
 	    /* Ignore tile if split, and NW corner is clipped */
 	    if (TiGetLeftType(tile) == checktype || TiGetTopType(tile) == checktype)
