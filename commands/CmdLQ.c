@@ -309,6 +309,10 @@ CmdLabel(w, cmd)
     CmdLabelProc(p, font, size, rotate, offx, offy, pos, sticky, type);
 }
 
+#define LOAD_NOWINDOW	  0
+#define LOAD_DEREFERENCE  1
+#define LOAD_FORCE	  2
+#define LOAD_QUIET	  3
 
 /*
  * ----------------------------------------------------------------------------
@@ -318,7 +322,7 @@ CmdLabel(w, cmd)
  * Implement the "load" command.
  *
  * Usage:
- *	load [name [scaled n [d]]] [-force] [-nowindow] [-dereference]
+ *	load [name [scaled n [d]]] [-force] [-nowindow] [-dereference] [-quiet]
  *
  * If name is supplied, then the window containing the point tool is
  * remapped so as to edit the cell with the given name.
@@ -354,29 +358,52 @@ CmdLoad(w, cmd)
 {
     int n = 1;
     int d = 1;
+    int option;
     int locargc = cmd->tx_argc;
     bool ignoreTech = FALSE;
     bool noWindow = FALSE;
     bool dereference = FALSE;
+    bool beQuiet = FALSE;
+    bool saveVerbose;
     int keepGoing();			/* forward declaration */
+    extern bool DBVerbose;		/* from DBio.c */
+
+    saveVerbose = DBVerbose;
+
+    static char *cmdLoadOption[] =
+    {
+	"-nowindow	load file but do not display in the layout window",
+	"-dereference	use search paths and ignore embedded cell paths in file",
+	"-force 	load file even if tech in header does not match",
+	"-quiet		no alert if file does not exist",
+	NULL
+    };
+
+    while (cmd->tx_argv[locargc - 1][0] == '-')
+    {
+    	option = Lookup(cmd->tx_argv[locargc - 1], cmdLoadOption);
+	switch (option)
+	{
+	    case LOAD_NOWINDOW:
+	    	noWindow = TRUE;
+		break;
+	    case LOAD_DEREFERENCE:
+	    	dereference = TRUE;
+		break;
+	    case LOAD_FORCE:
+	    	ignoreTech = TRUE;
+		break;
+	    case LOAD_QUIET:
+	    	beQuiet = TRUE;
+		break;
+	    default:
+		TxError("No such option \"%s\".\n", cmd->tx_argv[locargc - 1]);
+	}
+	locargc--;
+    }
 
     if (locargc > 2)
     {
-	if (!strncmp(cmd->tx_argv[locargc - 1], "-nowindow", 8))
-	{
-	    locargc--;
-	    noWindow = TRUE;
-	}
-	if (!strncmp(cmd->tx_argv[locargc - 1], "-deref", 5))
-	{
-	    locargc--;
-	    dereference = TRUE;
-	}
-	if (!strncmp(cmd->tx_argv[locargc - 1], "-force", 6))
-	{
-	    locargc--;
-	    ignoreTech = TRUE;
-	}
 	if ((locargc >= 4) && !strncmp(cmd->tx_argv[2], "scale", 5) &&
 		StrIsInt(cmd->tx_argv[3]))
 	{
@@ -397,7 +424,7 @@ CmdLoad(w, cmd)
 	else if (!ignoreTech && !noWindow && !dereference)
 	{
 	    TxError("Usage: %s name [scaled n [d]] [-force] "
-			    "[-nowindow] [-dereference]\n",
+			    "[-nowindow] [-dereference] [-quiet]\n",
 			    cmd->tx_argv[0]);
 	    return;
 	}
@@ -422,8 +449,10 @@ CmdLoad(w, cmd)
 	    *(cmd->tx_argv[1] + strlen(cmd->tx_argv[1]) - 1) = '\0';
 	}
 #endif
+	DBVerbose = !beQuiet;
 	DBWloadWindow((noWindow == TRUE) ? NULL : w, cmd->tx_argv[1],
 			ignoreTech, FALSE, dereference);
+	DBVerbose = saveVerbose;
 
 	if ((n > 1) || (d > 1))
 	{
@@ -456,7 +485,12 @@ CmdLoad(w, cmd)
 	    ReduceFraction(&DBLambda[0], &DBLambda[1]);
 	}
     }
-    else DBWloadWindow(w, (char *) NULL, TRUE, FALSE, FALSE);
+    else
+    {
+	DBVerbose = !beQuiet;
+	DBWloadWindow(w, (char *) NULL, TRUE, FALSE, FALSE);
+	DBVerbose = saveVerbose;
+    }
 }
 
 /*
