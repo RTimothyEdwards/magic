@@ -804,7 +804,7 @@ calmaProcessDef(def, outf, do_library)
     if (isReadOnly && hasContent && CalmaAddendum) return (0);
 
     /* Give some feedback to the user */
-    TxPrintf("   Writing cell %s\n", def->cd_name);
+    TxPrintf("   Generating output for cell %s\n", def->cd_name);
 
     /*
      * Output the definitions for any of our descendants that have
