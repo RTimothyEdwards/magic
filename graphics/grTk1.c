@@ -527,6 +527,7 @@ GrTkInit(dispType)
 	    TxPrintf("None of TrueColor 15, 16 or 24, or PseudoColor 8 found. "
 			"Cannot initialize DISPLAY %s\n", getenv("DISPLAY"));
 	    XFree(grvisual_get);
+	    GrClosePtr = NULL;
 	    MainExit(1);
 	}
 	else
