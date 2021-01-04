@@ -1191,7 +1191,7 @@ int
 Tclmagic_Init(interp)
     Tcl_Interp *interp;
 {
-    char *cadroot;
+    const char *cadroot;
 
     /* Sanity check! */
     if (interp == NULL) return TCL_ERROR;
@@ -1229,7 +1229,7 @@ Tclmagic_Init(interp)
     cadroot = Tcl_GetVar(interp, "CAD_ROOT", TCL_GLOBAL_ONLY);
     if (cadroot == NULL)
     {
-	cadroot = getenv("CAD_ROOT");
+	cadroot = (const char *)getenv("CAD_ROOT");
 	if (cadroot == NULL) cadroot = CAD_DIR;
 	Tcl_SetVar(interp, "CAD_ROOT", cadroot, TCL_GLOBAL_ONLY);
     }
