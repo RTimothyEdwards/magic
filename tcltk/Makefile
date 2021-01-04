@@ -5,6 +5,7 @@
 MODULE   = tcltk
 MAGICDIR = ..
 SRCS = tclmagic.c
+OBJS = $(subst .c,.o,${SRCS})
 
 include ${MAGICDIR}/defs.mak
 
@@ -58,7 +59,7 @@ magicdnull: magicdnull.c ${MAGICDIR}/defs.mak
 		-o magicdnull ${LD_RUN_PATH} ${LIB_SPECS_NOSTUB} ${LIBS} \
 		${GR_LIBS}
 
-magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak
+magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak ${MAGICDIR}/VERSION
 	sed -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g  \
 	    -e /MAGIC_VERSION/s%MAGIC_VERSION%${MAGIC_VERSION}%g \
 	    -e /MAGIC_REVISION/s%MAGIC_REVISION%${MAGIC_REVISION}%g \
@@ -93,5 +94,8 @@ $(DESTDIR)${INSTALL_BINDIR}/ext2sim.sh: ext2sim.sh
 	${RM} $(DESTDIR)${INSTALL_BINDIR}/ext2sim
 	${CP} ext2sim.sh $(DESTDIR)${INSTALL_BINDIR}/ext2sim
 	(cd $(DESTDIR)${INSTALL_BINDIR}; chmod 0755 ext2sim)
+
+# An additional dependency on the VERSION file
+${OBJS}: ${MAGICDIR}/VERSION
 
 include ${MAGICDIR}/rules.mak
