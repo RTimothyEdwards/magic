@@ -13,9 +13,9 @@
 
 TCL_REL_OR_ABS=TCL_DIR_REL_OR_ABS
 if [ "${TCL_REL_OR_ABS:0:1}" = "/" ]; then
-TCL_DIR=$TCL_REL_OR_ABS
+   TCL_DIR=$TCL_REL_OR_ABS
 else
-TCL_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))/$TCL_REL_OR_ABS
+   TCL_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))/$TCL_REL_OR_ABS
 fi
 TKCON=true
 DNULL=

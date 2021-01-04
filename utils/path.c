@@ -226,7 +226,11 @@ PaExpand(psource, pdest, size)
 	if (string == NULL)
 	{
 	    /* Check for CAD_ROOT = CAD_DIR, the only internal variable */
-	    /* recognized (this is passed down from the Makefile)	*/
+	    /* recognized (this is passed down from the Makefile).	*/
+	    /* Note that in the MAGIC_WRAPPER version, CAD_ROOT was set	*/
+	    /* as a Tcl variable in tcltk/tclmagic.c, such that if	*/
+	    /* expandName == "CAD_ROOT", then string should not be NULL	*/
+	    /* here.							*/
 
 	    if (!strcmp(expandName, "CAD_ROOT"))
 		string = CAD_DIR;

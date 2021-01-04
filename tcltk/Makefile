@@ -65,10 +65,9 @@ magicdnull: magicdnull.c ${MAGICDIR}/defs.mak
 		${GR_LIBS}
 
 magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak ${MAGICDIR}/VERSION
-	sed -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g  \
-	    -e /MAGIC_VERSION/s%MAGIC_VERSION%${MAGIC_VERSION}%g \
+	sed -e /MAGIC_VERSION/s%MAGIC_VERSION%${MAGIC_VERSION}%g \
 	    -e /MAGIC_REVISION/s%MAGIC_REVISION%${MAGIC_REVISION}%g \
-	    -e /SHDLIB_EXT/s%SHDLIB_EXT%${SHDLIB_EXT}%g magic.tcl.in > magic.tcl
+	    magic.tcl.in > magic.tcl
 
 magic.sh: magic.sh.in ${MAGICDIR}/defs.mak
 	sed -e /TCL_DIR_REL_OR_ABS/s%TCL_DIR_REL_OR_ABS%${TCL_DIR_REL_OR_ABS}%g \
@@ -76,10 +75,12 @@ magic.sh: magic.sh.in ${MAGICDIR}/defs.mak
 	    -e /WISH_EXE/s%WISH_EXE%${WISH_EXE}%g magic.sh.in > magic.sh
 
 ext2spice.sh: ext2spice.sh.in ${MAGICDIR}/defs.mak
-	sed -e /TCL_DIR_REL_OR_ABS/s%TCL_DIR_REL_OR_ABS%${TCL_DIR_REL_OR_ABS}%g ext2spice.sh.in > ext2spice.sh
+	sed -e /TCL_DIR_REL_OR_ABS/s%TCL_DIR_REL_OR_ABS%${TCL_DIR_REL_OR_ABS}%g \
+	    ext2spice.sh.in > ext2spice.sh
 
 ext2sim.sh: ext2sim.sh.in ${MAGICDIR}/defs.mak
-	sed -e /TCL_DIR_REL_OR_ABS/s%TCL_DIR_REL_OR_ABS%${TCL_DIR_REL_OR_ABS}%g ext2sim.sh.in > ext2sim.sh
+	sed -e /TCL_DIR_REL_OR_ABS/s%TCL_DIR_REL_OR_ABS%${TCL_DIR_REL_OR_ABS}%g \
+	    ext2sim.sh.in > ext2sim.sh
 
 $(DESTDIR)${INSTALL_TCLDIR}/%: %
 	${RM} $(DESTDIR)${INSTALL_TCLDIR}/$*
