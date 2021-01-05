@@ -18,7 +18,7 @@ TCL_REL_OR_ABS=TCL_DIR_REL_OR_ABS
 if [ "${TCL_REL_OR_ABS:0:1}" = "/" ]; then
    TCL_DIR=$TCL_REL_OR_ABS
 else
-   TCL_DIR=$(dirname $(readlink -f ${BASH_SOURCE[0]}))/$TCL_REL_OR_ABS
+   TCL_DIR=$(cd $(dirname ${BASH_SOURCE[0]})/$TCL_REL_OR_ABS; pwd -P)
 fi
 #
 eval ${TCL_DIR}/magicdnull -dnull -noconsole -nowrapper $mgargs <<EOF
