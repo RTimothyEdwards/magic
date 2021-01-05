@@ -67,7 +67,8 @@ char *extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
      * used to compute the resistance of each node.  Each is
      * indexed by sheet resistivity class.
      */
-int extResistPerim[NT], extResistArea[NT];
+int extResistPerim[NT];
+dlong extResistArea[NT];
 
     /*
      * The following structure is used in extracting transistors.
@@ -575,7 +576,8 @@ void
 extSetResist(reg)
     NodeRegion *reg;
 {
-    int n, perim, area;
+    int n, perim;
+    dlong area;
     float s, fperim, v;
 
     for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
@@ -704,7 +706,7 @@ extOutputNodes(nodeList, outFile)
 
 	/* Output its area and perimeter for each resistivity class */
 	for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
-	    fprintf(outFile, " %d %d", reg->nreg_pa[n].pa_area,
+	    fprintf(outFile, " %"DLONG_PREFIX"d %d", reg->nreg_pa[n].pa_area,
 				reg->nreg_pa[n].pa_perim);
 	(void) putc('\n', outFile);
 
@@ -3768,7 +3770,8 @@ extNodeAreaFunc(tile, arg)
     Tile *tile;
     FindRegion *arg;
 {
-    int tilePlaneNum, pNum, len, area, resistClass, n, nclasses;
+    int tilePlaneNum, pNum, len, resistClass, n, nclasses;
+    dlong area;
     PlaneMask pMask;
     CapValue capval;
     TileTypeBitMask *mask, *resMask;
@@ -3864,9 +3867,9 @@ extNodeAreaFunc(tile, arg)
 	{
 	    TITORECT(tile, &r);
 	    GEOCLIP(&r, extNodeClipArea);
-	    area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+	    area = (dlong)(r.r_xtop - r.r_xbot) * (dlong)(r.r_ytop - r.r_ybot);
 	}
-	else area = TILEAREA(tile);
+	else area = (dlong)TILEAREA(tile);
 
 	if (IsSplit(tile)) area /= 2;	/* Split tiles are 1/2 area! */
 
