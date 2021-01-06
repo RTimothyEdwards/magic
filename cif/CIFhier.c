@@ -324,7 +324,7 @@ cifFlatMaskHints(name, value, mhd)
 		    strcpy(newval, lastval);
 		else
 		    *newval = '\0';
-		sprintf(newval + lastlen, "%s%d %d %d %d", (lastval) ? "" : " ",
+		sprintf(newval + lastlen, "%s%d %d %d %d", (lastval) ? " " : "",
 			newr.r_xbot, newr.r_ybot, newr.r_xtop, newr.r_ytop);
 		if (lastval) freeMagic(lastval);
 

@@ -1863,7 +1863,7 @@ int dbScaleProp(name, value, cps)
 		else
 		    *newvalue = '\0';
 
-		sprintf(newvalue + lastlen, "%s%d %d %d %d", (lastval) ? "" : " ",
+		sprintf(newvalue + lastlen, "%s%d %d %d %d", (lastval) ? " " : "",
 			r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop);
 		if (lastval) freeMagic(lastval);
 
