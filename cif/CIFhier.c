@@ -201,6 +201,123 @@ cifHierCleanup()
     SigEnableInterrupts();
 }
 
+/* Structure used by cifFlatMaskHints */
+
+typedef struct _maskHintsData
+{
+    Transform *mh_trans;
+    CellDef *mh_def;
+} MaskHintsData;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifFlatMaskHints --
+ *
+ *	Copy a mask hint into a flattened cell by transforming it into the
+ *	coordinate system of the flattened cell, and adding it to the
+ *	property list of the flattened cell.
+ *
+ * Returns:
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	Modifies properties of the cell def passed in MaskHintsData.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+cifFlatMaskHints(name, value, mhd)
+    char *name;
+    char *value;
+    MaskHintsData *mhd;
+{
+    Rect r, newr;
+    char *vptr, *newval, *lastval, *propvalue;
+    bool propfound;
+    int lastlen;
+
+    if (!strncmp(name, "MASKHINTS_", 10))
+    {
+	newval = (char *)NULL;
+	vptr = value;
+	while (*vptr != '\0')
+	{
+	    if (sscanf(vptr, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
+			&r.r_xtop, &r.r_ytop) == 4)
+	    {
+		/* Transform rectangle to top level coordinates */
+		GeoTransRect(mhd->mh_trans, &r, &newr);
+		lastval = newval;
+		lastlen = (lastval) ? strlen(lastval) : 0;
+		newval = mallocMagic(40 + lastlen);
+		if (lastval)
+		    strcpy(newval, lastval);
+		else
+		    *newval = '\0';
+		sprintf(newval + lastlen, "%s%d %d %d %d", (lastval) ? "" : " ",
+			newr.r_xbot, newr.r_ybot, newr.r_xtop, newr.r_ytop);
+		if (lastval) freeMagic(lastval);
+
+		/* Parse through the four values and check if there's more */
+		while (*vptr && !isspace(*vptr)) vptr++;
+		while (*vptr && isspace(*vptr)) vptr++;
+		while (*vptr && !isspace(*vptr)) vptr++;
+		while (*vptr && isspace(*vptr)) vptr++;
+		while (*vptr && !isspace(*vptr)) vptr++;
+		while (*vptr && isspace(*vptr)) vptr++;
+		while (*vptr && !isspace(*vptr)) vptr++;
+		while (*vptr && isspace(*vptr)) vptr++;
+	    }
+	}
+
+	/* Check if name exists already in the flattened cell */
+	propvalue = (char *)DBPropGet(mhd->mh_def, name, &propfound);
+	if (propfound)
+	{
+	    /* Append newval to the property */
+	    lastval = newval;
+	    newval = mallocMagic(strlen(lastval) + strlen(propvalue) + 2);
+	    sprintf(newval, "%s %s", propvalue, lastval);
+	    freeMagic(lastval);
+	}
+	DBPropPut(mhd->mh_def, name, newval);
+    }
+    return 0;
+}
+
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifHierCopyMaskHints --
+ *
+ *	Callback function to copy mask hints from a subcell into a flattened
+ *	cell, which is passed in the clientData record.
+ * 
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	May modify properties in the flattened cell.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifHierCopyMaskHints(scx, clientData)
+    SearchContext *scx;
+    ClientData clientData;
+{
+    MaskHintsData mhd;
+
+    mhd.mh_trans = &scx->scx_trans;
+    mhd.mh_def = (CellDef *)clientData;
+
+    DBPropEnum(scx->scx_use->cu_def, cifFlatMaskHints, &mhd);
+    return 0;
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -318,6 +435,10 @@ cifHierCellFunc(scx)
     GEO_EXPAND(&scx->scx_area, CIFCurStyle->cs_radius, &newscx.scx_area);
     (void) DBTreeSrTiles(&newscx, &CIFCurStyle->cs_yankLayers, 0,
 	    cifHierCopyFunc, (ClientData) CIFComponentDef);
+
+    /* Flatten mask hints in the area of interest */
+    DBTreeSrCells(&newscx, 0, cifHierCopyMaskHints,
+		(ClientData)CIFComponentDef);
 
     /* Set CIFErrorDef to NULL to ignore errors here... these will
      * get reported anyway when the cell is CIF'ed non-hierarchically,
@@ -637,6 +758,10 @@ CIFGenSubcells(def, area, output)
 	    GEO_EXPAND(&interaction, CIFCurStyle->cs_radius, &scx.scx_area);
 	    (void) DBTreeSrTiles(&scx, &CIFCurStyle->cs_yankLayers, 0,
 		cifHierCopyFunc, (ClientData) CIFTotalDef);
+	    /* Flatten mask hints in the area of interest */
+	    DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
+                	(ClientData)CIFTotalDef);
+
 	    CIFErrorDef = def;
 	    CIFGen(CIFTotalDef, def, &interaction, CIFTotalPlanes,
 		    &CIFCurStyle->cs_hierLayers, TRUE, TRUE, TRUE,
@@ -762,10 +887,14 @@ cifHierElementFunc(use, transform, x, y, checkArea)
     scx.scx_use = use;
     (void) DBTreeSrTiles(&scx, &CIFCurStyle->cs_yankLayers, 0,
 	cifHierCopyFunc, (ClientData) CIFTotalDef);
+    DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
+                (ClientData)CIFTotalDef);
 
     DBCellClearDef(CIFComponentDef);
     (void) DBTreeSrTiles(&scx, &CIFCurStyle->cs_yankLayers, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
+    DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
+                (ClientData)CIFComponentDef);
 
     CIFErrorDef = (CellDef *) NULL;
     CIFGen(CIFComponentDef, use->cu_def, checkArea, CIFComponentPlanes,

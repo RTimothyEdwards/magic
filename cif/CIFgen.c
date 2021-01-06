@@ -5175,7 +5175,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 
 		    sprintf(propname, "MASKHINTS_%s", layername);
 		    
-		    propvalue = (char *)DBPropGet(origDef, propname, &found);
+		    propvalue = (char *)DBPropGet(cellDef, propname, &found);
 		    if (!found) break;	    /* No mask hints available */
 		    propptr = propvalue;
 		    while (*propptr)

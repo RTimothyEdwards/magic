@@ -848,9 +848,8 @@ dbTreeCellSrFunc(scx, fp)
 
     if ((fp->tf_xmask == CU_DESCEND_NO_LOCK) && (use->cu_flags & CU_LOCKED))
 	return 2;
-    else if ((!DBDescendSubcell(use, fp->tf_xmask)) ||
-		(fp->tf_xmask == CU_DESCEND_ALL))
-	result = (*fp->tf_func)(scx, fp->tf_arg);
+    else if (!DBDescendSubcell(use, fp->tf_xmask))
+	return (*fp->tf_func)(scx, fp->tf_arg);
     else
     {
 	if ((use->cu_def->cd_flags & CDAVAILABLE) == 0)
@@ -859,9 +858,15 @@ dbTreeCellSrFunc(scx, fp)
 	    if (!DBCellRead(use->cu_def, (char *) NULL, TRUE, dereference, NULL))
 		return 0;
 	}
-	result = DBCellSrArea(scx, dbTreeCellSrFunc, (ClientData) fp);
     }
-    return result;
+    if (fp->tf_xmask == CU_DESCEND_ALL)
+    {
+	result = (*fp->tf_func)(scx, fp->tf_arg);
+	if (result != 0) return result;
+    }
+
+    /* Run recursively on children in search area */
+    return DBCellSrArea(scx, dbTreeCellSrFunc, (ClientData) fp);
 }
 
 /*
