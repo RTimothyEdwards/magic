@@ -201,7 +201,76 @@ cifHierCleanup()
     SigEnableInterrupts();
 }
 
-/* Structure used by cifFlatMaskHints */
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifMaskHints --
+ *
+ *	Copy a mask hint into a target cell by adding it to the
+ *	property list of the target cell.  If the target cell already
+ *	has the same mask hint key, then the mask hint value is
+ *	appended to the property in the target cell def.
+ *
+ * Returns:
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	Modifies properties of the target cell def.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+cifMaskHints(name, value, targetDef)
+    char *name;
+    char *value;
+    CellDef *targetDef;
+{
+    char *propvalue, *newval;
+    bool propfound;
+
+    if (!strncmp(name, "MASKHINTS_", 10))
+    {
+	/* Check if name exists already in the flattened cell */
+	propvalue = (char *)DBPropGet(targetDef, name, &propfound);
+	if (propfound)
+	{
+	    /* Append value to the property */
+	    newval = mallocMagic(strlen(value) + strlen(propvalue) + 2);
+	    sprintf(newval, "%s %s", propvalue, value);
+	}
+	else
+	    newval = StrDup((char **)NULL, value);
+
+	DBPropPut(targetDef, name, newval);
+    }
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * CIFCopyMaskHints --
+ *
+ *	Callback function to copy mask hints from one cell into another.
+ * 
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	May modify properties in the target cell.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+CIFCopyMaskHints(sourceDef, targetDef)
+    CellDef *sourceDef;
+    CellDef *targetDef;
+{
+    DBPropEnum(sourceDef, cifMaskHints, targetDef);
+}
+
+/* Structure used by cifFlatMaskHints, below */
 
 typedef struct _maskHintsData
 {
@@ -285,7 +354,6 @@ cifFlatMaskHints(name, value, mhd)
     }
     return 0;
 }
-
 
 /*
  * ----------------------------------------------------------------------------
@@ -437,6 +505,7 @@ cifHierCellFunc(scx)
 	    cifHierCopyFunc, (ClientData) CIFComponentDef);
 
     /* Flatten mask hints in the area of interest */
+    CIFCopyMaskHints(scx->scx_use->cu_def, CIFComponentDef);
     DBTreeSrCells(&newscx, 0, cifHierCopyMaskHints,
 		(ClientData)CIFComponentDef);
 
@@ -759,6 +828,7 @@ CIFGenSubcells(def, area, output)
 	    (void) DBTreeSrTiles(&scx, &CIFCurStyle->cs_yankLayers, 0,
 		cifHierCopyFunc, (ClientData) CIFTotalDef);
 	    /* Flatten mask hints in the area of interest */
+    	    CIFCopyMaskHints(def, CIFTotalDef);
 	    DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
                 	(ClientData)CIFTotalDef);
 
@@ -887,12 +957,14 @@ cifHierElementFunc(use, transform, x, y, checkArea)
     scx.scx_use = use;
     (void) DBTreeSrTiles(&scx, &CIFCurStyle->cs_yankLayers, 0,
 	cifHierCopyFunc, (ClientData) CIFTotalDef);
+    CIFCopyMaskHints(use->cu_def, CIFTotalDef);
     DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
                 (ClientData)CIFTotalDef);
 
     DBCellClearDef(CIFComponentDef);
     (void) DBTreeSrTiles(&scx, &CIFCurStyle->cs_yankLayers, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
+    CIFCopyMaskHints(use->cu_def, CIFComponentDef);
     DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
                 (ClientData)CIFComponentDef);
 

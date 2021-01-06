@@ -34,7 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* ----------------------------------------------------------------------------
  *
- *DBPropPut --
+ * DBPropPut --
  *
  * Put a property onto a celldef.
  *
