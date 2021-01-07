@@ -207,7 +207,7 @@ extMakeUnique(def, ll, lreg, lregList, labelHash, option)
 		nwarn++;
 		r.r_ll = r.r_ur = ll2->ll_label->lab_rect.r_ll;
 		GEO_EXPAND(&r, 1, &r);
-		extMakeNodeNumPrint(name, lp2->lreg_pnum, lp2->lreg_ll);
+		extMakeNodeNumPrint(name, lp2);
 		(void) sprintf(message, badmesg, text, name);
 		DBWFeedbackAdd(&r, message, def, 1, STYLE_MEDIUMHIGHLIGHTS);
 	    }

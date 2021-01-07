@@ -1618,8 +1618,8 @@ CmdFindNetProc(nodename, use, rect, warn_not_found)
     /* go to that point (transformed to the top level of the design  */
     /* hierarchy).						     */
 
-    /* see extract/extractInt.h for the format of the node, found in */
-    /* extMakeNodeNumPrint(), which is a macro, not a subroutine.    */
+    /* see extract/extBasic.c for the format of the node, found */
+    /* in extMakeNodeNumPrint().				*/
 
     locvalid = FALSE;
     if ((xstr = strchr(s, '_')) != NULL)
