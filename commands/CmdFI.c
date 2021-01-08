@@ -1869,6 +1869,9 @@ flatCopyAllLabels(scx, lab, tpath, targetUse)
     char	labelname[1024];
     char *n, *f, c;
 
+    /* Ignore null labels */
+    if (*lab->lab_text == '\0') return 0;
+
     def = targetUse->cu_def;
     if (!GEO_LABEL_IN_AREA(&lab->lab_rect, &(scx->scx_area))) return 0;
     GeoTransRect(&scx->scx_trans, &lab->lab_rect, &labTargetRect);

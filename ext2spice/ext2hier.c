@@ -350,6 +350,13 @@ esOutputHierResistor(hc, dev, scale, term1, term2, has_model, l, w, dscale)
     /* term1=gate term2=source by the above code.	 */
     /* extracted units are Ohms; output is in Ohms 	 */
 
+    if ((term1->dterm_node == NULL) || (term2->dterm_node == NULL))
+    {
+	TxError("Error:  Resistor %s missing terminal node!\n",
+			EFDevTypes[dev->dev_type]);
+	return;
+    }
+
     spcdevOutNode(hc->hc_hierName, term1->dterm_node->efnode_name->efnn_hier,
 		"res_top", esSpiceF);
     spcdevOutNode(hc->hc_hierName, term2->dterm_node->efnode_name->efnn_hier,
