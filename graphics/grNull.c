@@ -281,5 +281,8 @@ nullSetDisplay(dispType, outFileName, mouseFileName)
     GrScreenRect.r_xtop = 511;
     GrScreenRect.r_ytop = 483;
 
+    /* Set GrDisplayStatus to force graphics updates to be suspended */
+    GrDisplayStatus = DISPLAY_SUSPEND;
+
     return TRUE;
 }
