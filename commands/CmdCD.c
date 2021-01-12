@@ -1304,6 +1304,7 @@ CmdCif(w, cmd)
     bool doforall = FALSE;
     float curscale;
     int argc = cmd->tx_argc;
+    int argshift;
     char **argv = cmd->tx_argv;
 
     static char *cmdCifWarnOptions[] = { "default", "none", "align",
@@ -1459,10 +1460,10 @@ CmdCif(w, cmd)
 		    TxError("Box requested but no cursor box exists\n");
 		    return;
 		}
-		CIFCoverageLayer(rootDef, &box, argv[2]);
+		CIFCoverageLayer(rootDef, &box, argv[2], dolist);
 	    }
 	    else if (argc == 3)
-		CIFCoverageLayer(rootDef, &rootDef->cd_bbox, argv[2]);
+		CIFCoverageLayer(rootDef, &rootDef->cd_bbox, argv[2], dolist);
 	    else
 		goto wrongNumArgs;
 
