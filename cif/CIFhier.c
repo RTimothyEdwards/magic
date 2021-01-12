@@ -26,6 +26,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -220,6 +221,7 @@ cifHierCleanup()
  * ----------------------------------------------------------------------------
  */
 
+int
 cifMaskHints(name, value, targetDef)
     char *name;
     char *value;
@@ -296,6 +298,7 @@ typedef struct _maskHintsData
  * ----------------------------------------------------------------------------
  */
 
+int
 cifFlatMaskHints(name, value, mhd)
     char *name;
     char *value;
