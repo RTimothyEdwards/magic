@@ -1701,7 +1701,7 @@ enum def_sections {DEF_VERSION = 0, DEF_NAMESCASESENSITIVE,
 	DEF_HISTORY, DEF_DIEAREA, DEF_COMPONENTS, DEF_VIAS,
 	DEF_PINS, DEF_PINPROPERTIES, DEF_SPECIALNETS,
 	DEF_NETS, DEF_IOTIMINGS, DEF_SCANCHAINS,
-	DEF_CONSTRAINTS, DEF_GROUPS, DEF_EXTENSION,
+	DEF_CONSTRAINTS, DEF_GROUPS, DEF_EXTENSION, DEF_BLOCKAGES,
 	DEF_END};
 
 void
@@ -1743,6 +1743,7 @@ DefRead(inName, dolabels)
 	"CONSTRAINTS",
 	"GROUPS",
 	"BEGINEXT",
+	"BLOCKAGES",
 	"END",
 	NULL
     };
@@ -1907,6 +1908,9 @@ DefRead(inName, dolabels)
 		break;
 	    case DEF_EXTENSION:
 		LefSkipSection(f, sections[DEF_EXTENSION]);
+		break;
+	    case DEF_BLOCKAGES:
+		LefSkipSection(f, sections[DEF_BLOCKAGES]);
 		break;
 	    case DEF_END:
 		if (!LefParseEndStatement(token, "DESIGN"))
