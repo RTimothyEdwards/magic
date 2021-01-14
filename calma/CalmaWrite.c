@@ -53,12 +53,13 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 #include "utils/stack.h"
 
     /* Exports */
-bool CalmaDoLibrary = FALSE;	 /* If TRUE, do not output the top level */
-bool CalmaDoLabels = TRUE;	 /* If FALSE, don't output labels with GDS-II */
-bool CalmaDoLower = TRUE;	 /* If TRUE, allow lowercase labels. */
-bool CalmaFlattenArrays = FALSE; /* If TRUE, output arrays as individual uses */
-bool CalmaAddendum = FALSE;	 /* If TRUE, do not output readonly cell defs */
-bool CalmaNoDateStamp = FALSE;	 /* If TRUE, output zero for creation date stamp */
+bool CalmaDoLibrary = FALSE;	  /* If TRUE, do not output the top level */
+bool CalmaDoLabels = TRUE;	  /* If FALSE, don't output labels with GDS-II */
+bool CalmaDoLower = TRUE;	  /* If TRUE, allow lowercase labels. */
+bool CalmaFlattenArrays = FALSE;  /* If TRUE, output arrays as individual uses */
+bool CalmaAddendum = FALSE;	  /* If TRUE, do not output readonly cell defs */
+bool CalmaNoDateStamp = FALSE;	  /* If TRUE, output zero for creation date stamp */
+bool CalmaAllowUndefined = FALSE; /* If TRUE, allow calls to undefined cells */
 
     /* Experimental stuff---not thoroughly tested (as of Sept. 2007)! */
 bool CalmaContactArrays = FALSE; /* If TRUE, output contacts as subcell arrays */
@@ -305,7 +306,12 @@ CalmaWrite(rootDef, f)
      */
 
     dummy.cu_def = rootDef;
-    DBCellReadArea(&dummy, &rootDef->cd_bbox);
+    if (DBCellReadArea(&dummy, &rootDef->cd_bbox, !CalmaAllowUndefined))
+    {
+	TxError("Failure to read entire subtree of the cell.\n");
+	return FALSE;
+    }
+
     DBFixMismatch();
 
     /*

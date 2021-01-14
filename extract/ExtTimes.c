@@ -169,7 +169,11 @@ ExtTimes(rootUse, f)
     HashEntry *he;
 
     /* Make sure this cell is read in */
-    DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox);
+    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    {
+	TxError("Failure to read entire subtree of cell.\n");
+	return;
+    }
 
     /* Initialize cumulative statistics */
     extCumInit(&cumFetsPerSecPaint);
@@ -1020,7 +1024,11 @@ ExtInterCount(rootUse, halo, f)
     double inter;
 
     /* Make sure this cell is read in */
-    DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox);
+    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    {
+	TxError("Failure to read entire subtree of cell.\n");
+	return;
+    }
 
     /* Initialize cumulative statistics */
     extCumInit(&cumPercentInteraction);

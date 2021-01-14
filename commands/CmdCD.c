@@ -109,6 +109,7 @@ bool cmdDumpParseArgs();
 #define CALMA_WRITE	18
 #define CALMA_POLYS	19
 #define CALMA_PATHS	20
+#define CALMA_UNDEFINED	21
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -127,6 +128,7 @@ CmdCalma(w, cmd)
     static char *gdsExts[] = {".gds", ".gds2", ".strm", "", NULL};
     static char *cmdCalmaYesNo[] = {
 		"no", "false", "off", "0", "yes", "true", "on", "1", 0 };
+    static char *cmdCalmaAllowDisallow[] = {"disallow", "0", "allow", "1", 0};
     static char *cmdCalmaWarnOptions[] = { "default", "none", "align",
 		"limit", "redirect", "help", 0 };
     static char *cmdCalmaOption[] =
@@ -156,6 +158,8 @@ CmdCalma(w, cmd)
 	"		put non-Manhattan polygons into subcells",
 	"path subcells [yes|no]\n"
 	"		put wire paths into individual subcells",
+	"undefined [allow|disallow]\n"
+	"		[dis]allow writing of GDS with calls to undefined cells",
 	NULL
     };
 
@@ -277,6 +281,26 @@ CmdCalma(w, cmd)
 	    if (option < 0)
 		goto wrongNumArgs;
 	    CalmaAddendum = (option < 4) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_UNDEFINED:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaAllowUndefined));
+#else
+		TxPrintf("Writing of GDS file with undefined cells is %sallowed.\n",
+			(CalmaAllowUndefined) ?  "" : "dis");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaAllowDisallow);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaAllowUndefined = (option < 2) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_CONTACTS:

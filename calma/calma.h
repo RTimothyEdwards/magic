@@ -41,6 +41,7 @@ extern char **CalmaFlattenUsesByName;
 extern bool CalmaReadOnly;
 extern bool CalmaContactArrays;
 extern bool CalmaPostOrder;
+extern bool CalmaAllowUndefined;
 
 /* Externally-visible procedures: */
 extern bool CalmaWrite();

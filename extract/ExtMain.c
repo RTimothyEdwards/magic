@@ -179,7 +179,11 @@ ExtAll(rootUse)
     CellUse *rootUse;
 {
     /* Make sure the entire subtree is read in */
-    DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox);
+    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    {
+	TxError("Failure to read entire subtree of cell.\n");
+	return;
+    }
 
     /* Fix up bounding boxes if they've changed */
     DBFixMismatch();
@@ -264,7 +268,11 @@ ExtUnique(rootUse, option)
     int nwarn;
 
     /* Make sure the entire subtree is read in */
-    DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox);
+    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    {
+	TxError("Failure to read entire subtree of cell.\n");
+	return;
+    }
 
     /* Fix up bounding boxes if they've changed */
     DBFixMismatch();
@@ -526,7 +534,11 @@ ExtIncremental(rootUse)
     CellUse *rootUse;
 {
     /* Make sure the entire subtree is read in */
-    DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox);
+    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    {
+	TxError("Failure to read entire subtree of cell.\n");
+	return;
+    }
 
     /* Fix up bounding boxes if they've changed */
     DBFixMismatch();

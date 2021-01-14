@@ -201,7 +201,7 @@ GAGenChans(chanType, area, f)
     }
 
     /* Make sure everything in 'area' is read */
-    (void) DBCellReadArea(EditCellUse, area);
+    (void) DBCellReadArea(EditCellUse, area, FALSE);
     DBFixMismatch();
 
     /* Start with a clean slate */
