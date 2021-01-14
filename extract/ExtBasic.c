@@ -3938,7 +3938,7 @@ extNodeAreaFunc(tile, arg)
 	    GEOCLIP(&r, extNodeClipArea);
 	    area = (dlong)(r.r_xtop - r.r_xbot) * (dlong)(r.r_ytop - r.r_ybot);
 	}
-	else area = (dlong)TILEAREA(tile);
+	else area = (dlong)(TOP(tile) - BOTTOM(tile)) * (dlong)(RIGHT(tile) - LEFT(tile));
 
 	if (IsSplit(tile)) area /= 2;	/* Split tiles are 1/2 area! */
 
