@@ -2947,7 +2947,10 @@ DBCellWrite(cellDef, fileName)
 	{
 	    bool dereference = (cellDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
 	    /* Re-aquire the lock on the new file by opening it. */
-	    DBCellRead(cellDef, NULL, TRUE, dereference, NULL);
+	    if (DBCellRead(cellDef, NULL, TRUE, dereference, NULL) == FALSE)
+            {
+                return FALSE;
+            }
 	}
 #endif
 

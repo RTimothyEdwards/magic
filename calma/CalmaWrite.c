@@ -305,7 +305,8 @@ CalmaWrite(rootDef, f)
      */
 
     dummy.cu_def = rootDef;
-    DBCellReadArea(&dummy, &rootDef->cd_bbox);
+    if (DBCellReadArea(&dummy, &rootDef->cd_bbox))
+	    return FALSE;
     DBFixMismatch();
 
     /*

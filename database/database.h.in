@@ -720,7 +720,7 @@ extern bool DBCellRead();
 extern bool DBTestOpen();
 extern char *DBGetTech();
 extern bool DBCellWrite();
-extern void DBCellReadArea();
+extern int DBCellReadArea();
 extern void DBFileRecovery();
 extern bool DBWriteBackup();
 extern bool DBReadBackup();

@@ -284,7 +284,7 @@ dbUnexpandFunc(scx, arg)
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 DBCellReadArea(rootUse, rootRect)
     CellUse *rootUse;	/* Root cell use from which search begins */
     Rect *rootRect;	/* Area to be read, in root coordinates */
@@ -295,7 +295,10 @@ DBCellReadArea(rootUse, rootRect)
     scontext.scx_use = rootUse;
     scontext.scx_trans = GeoIdentityTransform;
     scontext.scx_area = *rootRect;
-    (void) dbReadAreaFunc(&scontext);
+    if (dbReadAreaFunc(&scontext) == -1)
+        return 1;
+
+    return 0;
 }
 
 int
@@ -311,14 +314,17 @@ dbReadAreaFunc(scx)
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	(void) DBCellRead(def, (char *) NULL, TRUE, dereference, NULL);
+	if (DBCellRead(def, (char *) NULL, TRUE, dereference, NULL) == FALSE)
+            return -1;
 	/* Note: we don't have to invoke DBReComputeBbox here because
 	 * if the bbox changed then there was a timestamp mismatch and
 	 * the timestamp code will take care of the bounding box later.
 	 */
     }
 
-    (void) DBCellSrArea(scx, dbReadAreaFunc, (ClientData) NULL);
+    if (DBCellSrArea(scx, dbReadAreaFunc, (ClientData) NULL))
+        return -1;
+
 
     /* Be clever about handling arrays:  if the search area covers this
      * whole definition, then there's no need to look at any other
