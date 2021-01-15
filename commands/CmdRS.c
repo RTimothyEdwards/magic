@@ -24,6 +24,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -53,6 +54,61 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 extern void DisplayWindow();
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * CmdRandom
+ *
+ * 	Generate a random integer or set the random seed.  This is mainly
+ *	used for seeding the random number generator for the GDS write
+ *	routine when GDS write is assigning a random prefix to ensure
+ *	uniqueness of names in a GDS library read from a file instead of
+ *	generated from the database.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+CmdRandom(w, cmd)
+    MagWindow *w;
+    TxCommand *cmd;
+{
+    int value;
+
+    if (cmd->tx_argc == 1)
+    {
+	/* Return a random number */
+
+#ifdef MAGIC_WRAPPER
+	Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(random()));
+#else
+	TxPrintf("%d", random());
+#endif
+    }
+    else if ((cmd->tx_argc >= 2) && (!strcmp(cmd->tx_argv[1], "seed")))
+    {
+	if (cmd->tx_argc == 3)
+	{
+	    value = atoi(cmd->tx_argv[2]);
+	}
+	else
+	{
+	    value = (int)time(NULL);
+	}
+	srandom(value);
+    }
+    else
+    {
+	TxPrintf("usage: random [seed [<value>]]\n");
+	return;
+    }
+}
 
 #if !defined(NO_SIM_MODULE) && defined(RSIM_MODULE)
 /*

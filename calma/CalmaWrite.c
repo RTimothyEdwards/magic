@@ -817,7 +817,7 @@ calmaProcessDef(def, outf, do_library)
      * not already been output.  Numbers are assigned to the subcells
      * as they are output.
      */
-    (void) DBCellEnum(def, calmaProcessUse, (ClientData) outf);
+    if (DBCellEnum(def, calmaProcessUse, (ClientData) outf) != 0) return 1;
 
     if (isReadOnly && hasContent)
     {
@@ -838,13 +838,20 @@ calmaProcessDef(def, outf, do_library)
 
 	    DBPropGet((def->cd_parents->cu_parent == NULL) ? def :
 			def->cd_parents->cu_parent, "GDS_FILE", &isReadOnly);
-	    if (!isReadOnly || isAbstract)
-		TxError("Calma output error:  Can't find GDS file \"%s\" "
-				"for vendor cell \"%s\".  Using magic's "
-				"internal definition\n", filename,
-				def->cd_name);
 	    if (isReadOnly)
+	    {
 		def->cd_flags |= CDVENDORGDS;
+		return 0;	/* Ignore without raising an error */
+	    }
+
+	    TxError("Calma output error:  Can't find GDS file \"%s\" "
+				"for vendor cell \"%s\".  It will not be output.\n",
+				filename, def->cd_name);
+
+	    if (CalmaAllowUndefined)
+		return 0;
+	    else
+		return 1;
 	}
 	else if (isAbstract || (!hasGDSEnd))
 	{
@@ -936,7 +943,7 @@ calmaProcessDef(def, outf, do_library)
 	if (!do_library)
 	    calmaOutFunc(def, outf, &TiPlaneRect);
 
-    return (0);
+    return 0;
 }
 
 

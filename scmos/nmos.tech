@@ -1,0 +1,473 @@
+# 
+#  nmos.tech --
+# 
+#  Defines the MOSIS 4.0 micron NMOS technology for Magic.  Some
+#  of the characteristics of this technology are:
+# 
+#  1. 1 level of metal.
+#  2. Buried contacts.
+#  3. No butting contacts.
+# 
+#  Copyright (C) 1985 Regents of the University of California
+#  All rights reserved.
+# 
+#  sccsid @(#)nmos.tech	3.73 MAGIC (Berkeley) 11/22/85
+#  
+
+tech
+    format 35
+    nmos
+end
+
+version
+    version 0
+    description "MOSIS 4.0 micron NMOS"
+    requires magic-8.3.0
+end
+
+planes
+    active,diff,poly_diff
+    metal
+end
+
+types
+    active	polysilicon,poly,red
+    active	diffusion,diff,green
+    metal	metal,blue
+    active	poly_metal_contact,pmc
+    active	diff_metal_contact,dmc
+    active	enhancement_fet,efet
+    active	depletion_fet,dfet
+    active	depletion_capacitor,dcap
+    active	buried_contact,bc
+    metal	glass_contact,glass
+end
+
+styles
+    styletype mos
+
+    polysilicon			1	
+    diffusion			2	
+    metal			20
+    enhancement_fet		6
+    enhancement_fet		7
+    depletion_fet		6
+    depletion_fet		10
+    depletion_capacitor		6
+    depletion_capacitor		11
+    buried_contact		6
+    buried_contact		33
+    poly_metal_contact		1	
+    poly_metal_contact		20
+    poly_metal_contact		32
+    diff_metal_contact		2	
+    diff_metal_contact		20
+    diff_metal_contact		32
+    glass_contact		20
+    glass_contact		34
+
+    error_s			42
+    error_p			42
+    error_ps			42
+
+    # Hint layers
+    magnet			39
+    fence			38
+    rotate			37
+end
+
+contact
+    pmc		poly	metal
+    dmc		diff	metal
+end
+
+aliases
+
+ allDiff    diff,dmc,bc,efet,dfet,dcap
+ allPoly    poly,pmc,bc,efet,dfet,dcap
+ tran	    efet,dfet
+ allMetal   metal,pmc,dmc,glass
+ spP	    (space,poly,pmc)/a
+ sdD	    (space,diff,dmc)/a
+ notDmc	    space,metal,pmc,glass
+ notPmc	    space,metal,dmc,glass
+ allButFet  (space,diff,poly,dmc,pmc,bc)/a
+ allpdTypes (space,diff,poly,dmc,pmc,bc,dfet,dcap,efet)/a
+
+end
+
+compose
+#  The following rule allows transistors to be built up of poly and diff */
+    compose	efet	poly diff
+
+#  The following rules allow poly or diff to be erased from fets or bcs */
+    decompose	dfet	poly diff
+    decompose	dcap	poly diff
+    decompose	bc	poly diff
+
+#  The following lets us erase metal from a glass_contact to get space */
+    erase	glass	metal	space
+end
+
+# 
+#  Electrical connectivity.  Each tile in the group on the left
+#  is considered to be connected to each tile in the group on
+#  the right.  Tiles within the groups are not necessarily
+#  connected to each other.
+#
+
+connect
+    poly	pmc,efet,dfet,dcap,bc
+    diff	bc,dmc
+    efet	pmc,dmc,bc,dfet,dcap
+    dfet	pmc,dmc,bc,dcap
+    dcap	pmc,dmc,bc
+    pmc		dmc,bc
+    dmc		bc
+    metal	glass,pmc,dmc
+    glass	pmc,dmc
+end
+
+#  Information used to generate CIF files.  The only tricky business
+#  is to merge necks between adjacent implants or buried windows.
+#  The grow-shrink does this.  Also, note that labels on Magic layers
+#  get attached to the first CIF layer containing that Magic layer
+#  in an "or" or "bloat-or" statement.  This makes order important
+#  (for example, we want transistor labels to attach to the poly gate).
+#  
+
+cifoutput
+style lambda=2
+    scalefactor 200 100
+    layer NP poly,pmc,efet,dfet,dcap,bc
+	labels poly,efet,dfet,dcap,bc
+	calma 1 1
+    layer ND diff,dmc,efet,dfet,dcap,bc
+	labels diff
+	calma 2 1
+    layer NM metal,pmc,dmc,glass
+	labels metal,pmc,dmc,glass
+	calma 3 1
+    layer NI
+	bloat-or dfet,dcap * 200 diff,bc 400
+	grow 100
+	shrink 100
+	calma 4 1
+    layer NC dmc
+	squares 400
+	calma 5 1
+    layer NC pmc
+	squares 400
+	calma 6 1
+    layer NG glass
+	calma 7 1
+    layer NB
+	bloat-or bc * 200 diff,dmc 400 dfet 0
+	grow 100
+	shrink 100
+	calma 8 1
+end
+
+#  Information on how to read CIF files.  Read in all the CIF layers,
+#  then perform geometric operations to get the Magic layers.  The
+#  order in which the Magic layers are generated is important!
+#
+
+cifinput
+style lambda=2
+    scalefactor 200
+    layer poly NP
+	labels NP
+    layer diff ND
+	labels ND
+    layer metal NM
+	labels NM
+    layer efet NP
+	and ND
+    layer dfet NI
+	and NP
+	and ND
+    layer pmc NC
+	grow 200
+	and NM
+	and NP
+    layer dmc NC
+	grow 200
+	and NM
+	and ND
+    #  Buried contacts must be generated after transistors, since they
+    #  override transistors.
+    #
+    layer bc NB
+	and NP
+	and ND
+    layer glass NG
+end
+
+mzrouter
+ style irouter
+   layer    metal   32	32  256	1
+   layer    poly    64	64  256	1
+   contact  pmc	    metal   poly    1024
+end
+
+# 
+#  DRC information
+#     Width, spacing and edge rules are "compiled" into rules table entries.
+# 
+#  width: types in the mask, taken collectively, must have the given width
+# 
+#  spacing: types in mask1 must be separated by distance from types in mask2
+# 
+#  edge: explict entries for the rules table --
+#        LHS   RHS   distance   types allowed on RHS   corner mask  reason
+# 
+#        All combinations of single elements of the LHS and RHS masks
+#        are used to form a rule.
+# 
+
+drc
+width	allDiff		2	"Diffusion width must be at least 2"
+width	dmc		4	"Metal_diff contact width must be at least 4"
+width	allPoly		2	"Polysilicon width must be at least 2"
+width	pmc	  	4	"Metal_poly contact width must be at least 4"
+width	bc	  	2   	"Buried contact width must be at least 2"
+width	efet		2	"Enhancement FET width must be at least 2"
+width	dfet		2 	"Depletion FET width must be at least 2"
+width	dcap		2	"Depletion capacitor width must be at least 2"
+width	allMetal	3	"Metal width must be at least 3"
+
+spacing	allDiff	allDiff	3	touching_ok \
+    "Diff-diff separation must be at least 3"
+spacing	allPoly	allPoly	2	touching_ok \
+    "Poly-poly separation must be at least 2"
+spacing	tran	pmc,dmc  1	touching_illegal \
+    "Transistor-contact separation must be at least 1"
+spacing	efet	dfet,dcap 3	touching_illegal \
+    "Enhancement-depletion transistor separation must be at least 3"
+spacing	allMetal allMetal 3	touching_ok \
+    "Metal-metal separation must be at least 3"
+	# 
+	#  Diff and poly cannot be adjacent, except at corners where
+	#  the intermediate material is "bc", "efet", "dfet", or "dcap".
+	#  Thus, there is no need for rules with RHS equal to "Bef".
+	#  But corner extension applies if the intermediate material is "s".
+	#  For this reason, the first edge rule CANNOT be rewritten as
+	#        "edge diff pP 1 0 pP 1".
+        # 
+edge	diff	spP	1	(space)/a	spP	1 \
+    "Diff-poly separation must be at least 1"
+edge	poly	sdD	1	(space)/a	sdD	1 \
+    "Diff-poly separation must be at least 1"
+	# 
+	# Allow dmc and pmc to be adjacent since they are electrically shorted.
+	#
+edge    dmc     (space,poly)/a	1	(space)/a	(space,poly)/a  1 \
+    "Diff-poly separation must be at least 1"
+edge	pmc	(space,diff)/a	1	(space)/a	(space,diff)/a 	1 \
+    "Diff-poly separation must be at least 1"
+
+	# 
+	# Don't let pmc and dmc have convex shapes, since this may interfere
+	# with the via-generation process.  The corner check in the rules
+	# below does this.  Also don't let contacts overlap between cells
+	# unless they do so exactly.
+	#
+
+edge4way  dmc	notDmc	1	notDmc	notDmc,dmc	1 \
+    "Diffusion-metal contacts must be rectangular"
+edge4way  pmc	notPmc	1	notPmc	notPmc,pmc	1 \
+    "Poly-metal contacts must be rectangular"
+exact_overlap pmc,dmc
+	# 
+	# Transistors cannot touch space, except in corners.
+	# The corner mask is set to 0 to prevent checking there.
+        #
+edge	tran	(space)/a	1	0	0	0 \
+    "Transistor overhang is missing"
+edge	(space)/a	tran	1	0	0	0 \
+    "Transistor overhang is missing"
+	# 
+	#  Buried contacts must be 3 lambda from efets in all cases,
+	#  and 4 lambda in some.  Depends on the orientation of the
+	#  buried contact implant.  The 4x3 corner checks ON BOTH
+	#  SIDES solve the problem.  Buried contacts may abut
+	#  depletion transistors, but only if the transistors are
+	#  fairly long (otherwise, a misalignment in the buried
+	#  window mask may make a huge difference in the transistor's
+	#  effective length).
+	#
+spacing	 bc	efet	 3	touching_illegal \
+    "Buried contact-transistor separation must be at least 3"
+spacing  bc	dfet 	 3	touching_ok \
+    "Buried contact-transistor separation must be at least 3"
+edge4way bc	diff,dmc 4	allButFet allpdTypes 3 \
+    "Buried contact-transistor separation must be at least 4 on diff side"
+edge4way bc	dfet	 4	dfet	0	0 \
+    "Transistors next to buried contacts must be at least 4 long"
+
+	# 
+	# WARNING: The above rules don't take care of poly approaching
+	# the buried contact on the diffusion side.  Unfortunately, the
+	# only fix is a rule that is ridiculously conservative.  So
+	# for now, buyer beware!
+	#
+
+	# 
+	#  3 by 2 shape of buried contact next to dfet.
+	#  No corner check.
+	#
+edge4way dfet	bc	3	bc	0	0 \
+    "Buried contact next to depletion transistor must be at least 3x2"
+	# 
+	#  Poly and diffusion must overhang transistors by 2.
+	#
+	#  Corner checks are necessary for L or S shaped transistors.
+	#
+	#  Don't worry about dfet -- buried_contact boundaries here.
+	#
+edge4way tran	poly	2	poly,pmc   poly	2 \
+    "Polysilicon must overhang transistor by at least 2"
+edge4way tran	diff	2	diff,dmc   diff	2 \
+    "Diffusion must overhang transistor by at least 2"
+
+	#  Cannot change transistors as a result of cell overlaps */
+no_overlap	efet,dfet	efet,dfet
+end
+
+# 
+# Parameters for circuit extraction.
+# A type may appear both as a node and as a transistor.  When it
+# appears as a node, we are describing the gate, and when it appears
+# as a transistor, we are describing the channel.
+#
+
+extract
+    style default
+    #  scale factor: output units (centimicrons) per lambda */
+    lambda		200
+
+    #  chunk size for hierarchical extraction, in lambda */
+    step		100
+
+    planeorder active	0
+    planeorder metal	1
+
+    #  sheet resistivity				milli-ohms per square */
+    resist		poly,pmc/poly,efet,dfet,bc	30000
+    resist		diff,dmc/poly			10000
+    resist		metal,glass			   30
+
+    #  area capacitance				atto-farads/lambda**2 */
+    areacap		poly,efet,dfet			  200
+    areacap		metal,glass			  120
+    areacap		diff				  400
+    areacap		bc				  600
+    areacap		dmc/poly			  520
+    areacap		pmc/poly			  320
+
+    #  sidewall capacitance				atto-farads/lambda */
+    perimc		diff,dmc/poly,bc  space,dfet,efet  200
+
+    #  transistors  terms   #terms	name  substr  gs-cap  gc-cap */
+    fet	efet	diff	  2	efet  GND!   	 0		0
+    fet	dfet	diff,bc	  2	dfet  GND!	 0		0
+    fet	dcap	diff,bc	  1	dcap  GND!	 0		0
+#  End of style "default" */
+end
+
+#  Information for the wiring interface */
+wiring
+    contact pmc 4 metal 0 poly 0
+    contact dmc 4 metal 0 diff 0
+    contact bc  2 poly  0 diff 0
+end
+
+#  Information to control the router */
+router
+    layer1 metal 3 metal,pmc/metal,dmc/metal,glass 3
+    layer2 poly 2 poly,efet,dfet,dcap,pmc,bc 2 diff,dmc 1
+    contacts pmc 4
+    gridspacing 7
+end
+
+#  Information for plowing */
+plowing
+    fixed efet,dfet,dcap,bc,glass
+    covered efet,dfet,dcap,bc
+    drag efet,dfet,dcap,bc
+end
+
+plot
+    style versatec
+
+	#  Same as Gremlin stipple 9: */
+	dfet,dcap \
+	    07c0 0f80 1f00 3e00 \
+	    7c00 f800 f001 e003 \
+	    c007 800f 001f 003e \
+	    00c7 00f8 01f0 03e0
+	
+	#  Same as Gremlin stipple 10: */
+	efet,dcap \
+	    1f00 0f80 07c0 03e0 \
+	    01f0 00f8 007c 003e \
+	    001f 800f c007 e003 \
+	    f001 f800 7c00 3e00
+	
+	#  Same as Gremlin stipple 11: */
+	bc \
+	    c3c3 c3c3 0000 0000 \
+	    0000 0000 c3c3 c3c3 \
+	    c3c3 c3c3 0000 0000 \
+	    0000 0000 c3c3 c3c3
+	
+	#  Same as Gremlin stipple 12: */
+	glass \
+	    0040 0080 0100 0200 \
+	    0400 0800 1000 2000 \
+	    4000 8000 0001 0002 \
+	    0004 0008 0010 0020
+	
+	#  Same as Gremlin stipple 17: */
+	diff,dmc/active,efet,dfet,dcap,bc \
+	    0000 4242 6666 0000 \
+	    0000 2424 6666 0000 \
+	    0000 4242 6666 0000 \
+	    0000 2424 6666 0000
+	
+	#  Same as Gremlin stipple 19: */
+	poly,pmc/active,efet,dfet,dcap,bc \
+	    0808 0400 0202 0101 \
+	    8080 4000 2020 1010 \
+	    0808 0004 0202 0101 \
+	    8080 0040 2020 1010
+	
+	#  Same as Gremlin stipple 22: */
+	metal,dmc/metal,pmc/metal,glass \
+	    8080 0000 0000 0000 \
+	    0808 0000 0000 0000 \
+	    8080 0000 0000 0000 \
+	    0808 0000 0000 0000
+	
+	#  Same as Gremlin stipple 23: */
+	glass \
+	    0000 0000 1c1c 3e3e \
+	    3636 3e3e 1c1c 0000 \
+	    0000 0000 1c1c 3e3e \
+	    3636 3e3e 1c1c 0000
+
+	pmc,dmc  X
+	bc       B
+    
+    style gremlin
+	dfet,dcap				9
+	efet,dcap				10
+	bc					11
+	glass					12
+	diff,dmc/active,efet,dfet,dcap,bc	17
+	poly,pmc/active,efet,dfet,dcap,bc	19
+	metal,dmc,pmc,glass			22
+	pmc,dmc					 X
+	bc					 B
+end
