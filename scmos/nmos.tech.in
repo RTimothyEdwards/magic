@@ -354,8 +354,8 @@ extract
     planeorder metal	1
 
     #  sheet resistivity				milli-ohms per square */
-    resist		poly,pmc/poly,efet,dfet,bc	30000
     resist		diff,dmc/poly			10000
+    resist		poly,pmc/poly,efet,dfet,bc	30000
     resist		metal,glass			   30
 
     #  area capacitance				atto-farads/lambda**2 */
