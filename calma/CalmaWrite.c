@@ -815,9 +815,13 @@ calmaProcessDef(def, outf, do_library)
     /*
      * Output the definitions for any of our descendants that have
      * not already been output.  Numbers are assigned to the subcells
-     * as they are output.
+     * as they are output.  If the cell will get a "full dump" (by
+     * having GDS_START but no GDS_END), then do not output any subcells,
+     * as they are expected to be in the referenced GDS file.
      */
-    if (DBCellEnum(def, calmaProcessUse, (ClientData) outf) != 0) return 1;
+    if (!hasContent || hasGDSEnd)
+	if (DBCellEnum(def, calmaProcessUse, (ClientData) outf) != 0)
+	    return 1;
 
     if (isReadOnly && hasContent)
     {
