@@ -2437,7 +2437,7 @@ CIFTechOutputScale(n, d)
     /* Reduce the scale and all distances by the greatest common	*/
     /* factor of everything.						*/
 
-    /* fprintf(stderr, "All CIF units divisible by %d\n", lexpand);	*/
+    /* fprintf(stderr, "All CIF units divisible by %d\n", lexpand); */
     /* fflush(stderr); */
 
     lgcf = FindGCF(ostyle->cs_scaleFactor, ostyle->cs_expander);
