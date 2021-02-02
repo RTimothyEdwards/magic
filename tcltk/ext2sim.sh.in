@@ -14,14 +14,12 @@ for i in $@; do
       *) esargs="$esargs $i" ;;
    esac
 done
-TCL_REL_OR_ABS=TCL_DIR_REL_OR_ABS
-if [ "${TCL_REL_OR_ABS:0:1}" = "/" ]; then
-   TCL_DIR=$TCL_REL_OR_ABS
-else
-   TCL_DIR=$(cd $(dirname ${BASH_SOURCE[0]})/$TCL_REL_OR_ABS; pwd -P)
+TCL_MAG_DIR=${CAD_ROOT}/magic/tcl
+if [ "${TCL_MAG_DIR}" = "/magic/tcl" ]; then
+   TCL_MAG_DIR=TCL_DIR
 fi
 #
-eval ${TCL_DIR}/magicdnull -dnull -noconsole -nowrapper $mgargs <<EOF
+eval ${TCL_MAG_DIR}/magicdnull -dnull -noconsole -nowrapper $mgargs <<EOF
 drc off
 box 0 0 0 0
 ext2sim $esargs
