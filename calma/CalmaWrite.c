@@ -809,9 +809,6 @@ calmaProcessDef(def, outf, do_library)
 
     if (isReadOnly && hasContent && CalmaAddendum) return (0);
 
-    /* Give some feedback to the user */
-    TxPrintf("   Generating output for cell %s\n", def->cd_name);
-
     /*
      * Output the definitions for any of our descendants that have
      * not already been output.  Numbers are assigned to the subcells
@@ -822,6 +819,9 @@ calmaProcessDef(def, outf, do_library)
     if (!hasContent || hasGDSEnd)
 	if (DBCellEnum(def, calmaProcessUse, (ClientData) outf) != 0)
 	    return 1;
+
+    /* Give some feedback to the user */
+    TxPrintf("   Generating output for cell %s\n", def->cd_name);
 
     if (isReadOnly && hasContent)
     {
