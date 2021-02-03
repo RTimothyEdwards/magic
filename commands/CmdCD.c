@@ -838,6 +838,7 @@ CmdCellname(w, cmd)
 	"dereference	reload the named cell from the search paths",
 	"filepath	list the full path of the file for the cell",
 	"flags		list option flags of the indicated cell definition",
+	"timestamp 	list the cell timestamp",
 	"lock		lock the named cell (prevent changes to cell use)",
 	"unlock		unlock the named cell (allow changes to cell use)",
 	"property	list or set cell definition properties",
@@ -851,9 +852,10 @@ CmdCellname(w, cmd)
     typedef enum { IDX_CHILDREN, IDX_PARENTS, IDX_EXISTS, IDX_SELF,
 		   IDX_INSTANCE, IDX_CHILDINST, IDX_CELLDEF, IDX_ALLCELLS,
 		   IDX_TOPCELLS, IDX_IN_WINDOW, IDX_CREATE, IDX_DELETE,
-		   IDX_DEREFERENCE, IDX_FILEPATH, IDX_FLAGS, IDX_LOCK,
-		   IDX_UNLOCK, IDX_PROPERTY, IDX_ABUTMENT, IDX_ORIENTATION,
-		   IDX_RENAME, IDX_READWRITE, IDX_MODIFIED } optionType;
+		   IDX_DEREFERENCE, IDX_FILEPATH, IDX_FLAGS, IDX_TIMESTAMP,
+		   IDX_LOCK, IDX_UNLOCK, IDX_PROPERTY, IDX_ABUTMENT,
+		   IDX_ORIENTATION, IDX_RENAME, IDX_READWRITE,
+		   IDX_MODIFIED } optionType;
 
     if (strstr(cmd->tx_argv[0], "in"))
 	is_cellname = FALSE;
@@ -892,7 +894,7 @@ CmdCellname(w, cmd)
     if ((locargc > 3) && (option != IDX_RENAME) && (option != IDX_DELETE) &&
 		(option != IDX_DEREFERENCE) && (option != IDX_READWRITE) &&
 		(option != IDX_PROPERTY) && (option != IDX_FILEPATH) &&
-		(option != IDX_ORIENTATION))
+		(option != IDX_ORIENTATION) && (option != IDX_TIMESTAMP))
 	goto badusage;
 
     if ((locargc > 4) && (option != IDX_PROPERTY))
@@ -938,7 +940,7 @@ CmdCellname(w, cmd)
 		return;
 	    case IDX_IN_WINDOW: case IDX_READWRITE: case IDX_FLAGS:
 	    case IDX_PROPERTY: case IDX_FILEPATH: case IDX_MODIFIED:
-	    case IDX_DEREFERENCE:
+	    case IDX_DEREFERENCE: case IDX_TIMESTAMP:
 		TxError("Function unimplemented for instances.\n");
 		return;
 	    case IDX_DELETE:
@@ -1185,6 +1187,35 @@ CmdCellname(w, cmd)
 			freeMagic(cellDef->cd_file);
 
 		    cellDef->cd_file = fullpath;
+		}
+	    }
+	    break;
+
+	case IDX_TIMESTAMP:
+	    if (cellname == NULL)
+		cellDef = EditRootDef;
+	    else
+		cellDef = DBCellLookDef(cellname);
+	    if (cellDef == (CellDef *) NULL)
+	    {
+		TxError("Unknown cell %s\n", cellname);
+		break;
+	    }
+	    if ((locargc == 3) || (locargc == 2 && cellname == NULL))
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(cellDef->cd_timestamp));
+#else
+	    	TxPrintf("Timestamp for cell %s = %d\n", cellname, cellDef->cd_timestamp);
+#endif
+	    }
+	    else if (locargc == 4 || (locargc == 3 && cellname == NULL))
+	    {
+		int timestamp = atoi(cmd->tx_argv[2 + ((cellname == NULL) ? 0 : 1)]);
+		if (timestamp != cellDef->cd_timestamp)
+		{
+		    cellDef->cd_timestamp = timestamp;
+		    cellDef->cd_flags &= ~CDGETNEWSTAMP;
 		}
 	    }
 	    break;
