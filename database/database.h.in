@@ -696,13 +696,13 @@ typedef struct
 extern void DBPaint();
 extern void DBErase();
 extern int  DBSrPaintArea();
-extern void DBPaintPlane0();
-extern void DBPaintPlaneActive();
-extern void DBPaintPlaneWrapper();
-extern void DBPaintPlaneMark();
-extern void DBPaintPlaneXor();
-extern void DBPaintPlaneByProc();
-extern void DBPaintPlaneMergeOnce();
+extern int  DBPaintPlane0();
+extern int  DBPaintPlaneActive();
+extern int  DBPaintPlaneWrapper();
+extern int  DBPaintPlaneMark();
+extern int  DBPaintPlaneXor();
+extern int  DBPaintPlaneByProc();
+extern int  DBPaintPlaneMergeOnce();
 extern void DBPaintMask();
 extern void DBEraseMask();
 extern void DBClearPaintPlane();
@@ -712,7 +712,7 @@ extern void DBUnlockContact();
 #define DBPaintPlane(a, b, c, d)  DBPaintPlane0(a, b, c, d, PAINT_NORMAL)
 #define DBMergeNMTiles(a, b, c)      DBMergeNMTiles0(a, b, c, FALSE)
 
-extern void DBNMPaintPlane0();
+extern int DBNMPaintPlane0();
 #define DBNMPaintPlane(a, b, c, d, e)  DBNMPaintPlane0(a, b, c, d, e, PAINT_NORMAL)
 
     /* I/O */
@@ -816,6 +816,7 @@ extern char *DBPrintUseId();
     /* Massive copying */
 extern void DBCellCopyPaint();
 extern void DBCellCopyAllPaint();
+extern void DBCellCheckCopyAllPaint();
 extern void DBCellCopyLabels();
 extern void DBCellCopyAllLabels();
 extern void DBCellCopyCells();
@@ -845,8 +846,8 @@ extern void DBEnumerateTypes();
 extern Plane *DBNewPlane();
 
 extern PaintResultType (*DBNewPaintTable())[TT_MAXTYPES][TT_MAXTYPES];
-typedef void (*VoidProc)();
-VoidProc DBNewPaintPlane();
+typedef int (*IntProc)();
+IntProc DBNewPaintPlane();
 
     /* Diagnostic */
 extern void DBTechPrintTypes();
