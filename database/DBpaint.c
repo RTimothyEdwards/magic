@@ -215,7 +215,7 @@ dbJoinUndo(tile, splitx, undo)
  * 'undo' can be NULL.
  *
  * Results:
- *	None.
+ *	Always return 0.
  *
  * Side effects:
  *	Modifies the database plane that contains the given tile.
@@ -236,7 +236,7 @@ dbJoinUndo(tile, splitx, undo)
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 DBPaintPlane0(plane, area, resultTbl, undo, method)
     Plane *plane;		/* Plane whose paint is to be modified */
     Rect *area;			/* Area to be changed */
@@ -262,7 +262,7 @@ DBPaintPlane0(plane, area, resultTbl, undo, method)
     bool haschanged;
 
     if (area->r_xtop <= area->r_xbot || area->r_ytop <= area->r_ybot)
-	return;
+	return 0;
 
     /*
      * The following is a modified version of the area enumeration
@@ -697,6 +697,7 @@ enum2:
 
 done2:
     plane->pl_hint = tile;
+    return 0;
 }
 
 /*
@@ -1442,7 +1443,7 @@ typedef struct
  * paint quadrangular (clipped triangle) areas.
  *
  * Results:
- *	None.
+ *	0 on success, 1 on error splitting a non-manhattan tile
  *
  * Side Effects:
  *	Plane is painted with a diagonal.  The plane may be hacked up
@@ -1452,7 +1453,7 @@ typedef struct
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
     Plane *plane;		/* Plane whose paint is to be modified */
     TileType exacttype;		/* diagonal info for tile to be changed */
@@ -1478,6 +1479,7 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
     int xc, yc, width, height;
     dlong xref, yref;		/* xref, yref can easily exceed 32 bits */
     int resstate;
+    int result = 0;
 
     if (exacttype & TT_DIAGONAL)
     {
@@ -1532,7 +1534,7 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
 		    if (resultTbl[oldType] == oldType)
 		    {
 			freeMagic((char *) lr);
-			return;
+			return 0;
 		    }
 		}
 
@@ -1544,7 +1546,7 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
 		if (newType == oldType)
 		{
 		    freeMagic((char *) lr);
-	            return;
+	            return 0;
 		}
 
 		/* Watch for the worst-case scenario of attempting to	*/
@@ -1560,9 +1562,9 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
 		{
 		    if ((width == 1) || (height == 1))
 		    {
-			DBPaintPlane(plane, &(lr->r_r), resultTbl, undo);
+			result = DBPaintPlane(plane, &(lr->r_r), resultTbl, undo);
 			freeMagic((char *) lr);
-			return;
+			return 1;	/* Flag the error by returning 1 */
 		    }
 
 		    /* lr->r_r is drawn & quartered */
@@ -1605,7 +1607,7 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
 
 		    if (newType & TT_DIAGONAL)
 		    {
-			DBPaintPlane(plane, &(lr->r_r), DBSpecialPaintTbl,
+			result = DBPaintPlane(plane, &(lr->r_r), DBSpecialPaintTbl,
 				(PaintUndoInfo *)NULL);
 			tile = plane->pl_hint;
 			GOTOPOINT(tile, &(lr->r_r.r_ll));
@@ -1620,14 +1622,14 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
 		    {
 			PaintResultType tempTbl;
 			tempTbl = newType;
-			DBPaintPlane0(plane, &(lr->r_r), &tempTbl, undo, method);
+			result = DBPaintPlane0(plane, &(lr->r_r), &tempTbl,
+				undo, method);
 		    }
 		    else
-			DBPaintPlane(plane, &(lr->r_r), resultTbl, undo);
+			result = DBPaintPlane(plane, &(lr->r_r), resultTbl, undo);
 
 		    freeMagic((char *) lr);
-		    /* goto nmmerge; */
-	            return;
+	            return result;
 		}
 	    }
 
@@ -1755,11 +1757,12 @@ paintrect:
 	    if (resstate == RES_DIAG)
 	    {
 		/* Recursive call to self on sub-area */
-		DBNMPaintPlane0(plane, exacttype, &(lr->r_r), resultTbl, undo, method);
+		result |= DBNMPaintPlane0(plane, exacttype, &(lr->r_r), resultTbl,
+			undo, method);
 	    }
 	    else if ((resstate == RES_LEFT && !dinfo.side) ||
 		     (resstate == RES_RIGHT && dinfo.side)) {
-		DBPaintPlane(plane, &(lr->r_r), resultTbl, undo);
+		result |= DBPaintPlane(plane, &(lr->r_r), resultTbl, undo);
 	    }
 	    /* else: Rectangle does not contain type and should be ignored. */
 nextrect:
@@ -1774,8 +1777,10 @@ nextrect:
 	}
     }
     else
-	DBPaintPlane0(plane, area, resultTbl, undo, (method == PAINT_MARK) ?
+	result = DBPaintPlane0(plane, area, resultTbl, undo, (method == PAINT_MARK) ?
 		method : PAINT_NORMAL);
+
+    return result;
 }
 
 /*
@@ -2547,7 +2552,7 @@ dbMergeType(tile, newType, plane, mergeFlags, undo, client)
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 DBPaintPlaneVert(plane, area, resultTbl, undo)
     Plane *plane;		/* Plane whose paint is to be modified */
     Rect *area;	/* Area to be changed */

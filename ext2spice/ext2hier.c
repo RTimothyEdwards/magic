@@ -350,6 +350,13 @@ esOutputHierResistor(hc, dev, scale, term1, term2, has_model, l, w, dscale)
     /* term1=gate term2=source by the above code.	 */
     /* extracted units are Ohms; output is in Ohms 	 */
 
+    if ((term1->dterm_node == NULL) || (term2->dterm_node == NULL))
+    {
+	TxError("Error:  Resistor %s missing terminal node!\n",
+			EFDevTypes[dev->dev_type]);
+	return;
+    }
+
     spcdevOutNode(hc->hc_hierName, term1->dterm_node->efnode_name->efnn_hier,
 		"res_top", esSpiceF);
     spcdevOutNode(hc->hc_hierName, term2->dterm_node->efnode_name->efnn_hier,
@@ -405,6 +412,7 @@ subcktHierVisit(use, hierName, is_top)
     EFNode *snode;
     EFNodeName *nodeName;
     bool hasports = FALSE;
+    bool isStub;
 
     /* Avoid generating records for circuits that have no ports.	*/
     /* These are already absorbed into the parent.  All other		*/
@@ -430,6 +438,13 @@ subcktHierVisit(use, hierName, is_top)
 	    hasports = TRUE;
 	    break;
 	}
+
+    /* Same considerations as at line 1831 for determining if the cell	*/
+    /* has been folded into the parent and should not be output.	*/
+
+    isStub = ((def->def_flags & DEF_ABSTRACT) && esDoBlackBox) ?  TRUE : FALSE;
+    if ((!is_top) && (def->def_flags & DEF_NODEVICES) && (!isStub))
+        return 0;
 
     if (hasports || is_top)
 	return subcktVisit(use, hierName, is_top);

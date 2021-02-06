@@ -24,7 +24,7 @@ FILES = mos.7bit.dstyle mos.7bit.std.cmap \
 	mos.7bit.mraster_dstyle mos.7bit.mraster.cmap \
 	mos.OpenGL.dstyle mos.OpenGL.std.cmap
 TECHFILES = minimum.tech gdsquery.tech scmos.tech scmos-tm.tech \
-	scmos-sub.tech scmosWR.tech
+	scmos-sub.tech scmosWR.tech nmos.tech
 
 CIFin   = cif_template/objs/CIFin
 CIFout  = cif_template/objs/CIFout
@@ -86,6 +86,9 @@ minimum.tech: minimum.tech.in
 
 gdsquery.tech: gdsquery.tech.in
 	$(SC_PP) gdsquery.tech.in > gdsquery.tech
+
+nmos.tech: nmos.tech.in
+	$(CP) nmos.tech.in nmos.tech
 
 $(CIFin):
 $(CIFout):

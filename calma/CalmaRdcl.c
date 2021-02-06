@@ -291,6 +291,7 @@ calmaParseStructure(filename)
     bool was_called;
     bool was_initialized;
     bool predefined;
+    bool do_flatten;
     CellDef *def;
 
     /* Make sure this is a structure; if not, let the caller know we're done */
@@ -359,9 +360,6 @@ calmaParseStructure(filename)
     cifCurReadPlanes = cifSubcellPlanes;
     cifReadCellDef->cd_flags &= ~CDDEREFERENCE;
 
-    /* Done with strname */
-    if (strname != NULL) freeMagic(strname);
-
     /* For read-only cells, set flag in def */
     if (CalmaReadOnly)
 	cifReadCellDef->cd_flags |= CDVENDORGDS;
@@ -410,7 +408,36 @@ calmaParseStructure(filename)
 	/* cifReadCellDef->cd_flags |= CDNOEDIT; */
     }
 
-    /* Make sure it ends with an ENDSTR record */
+    /* Check if the cell name matches the pattern list of cells to flatten */
+
+    do_flatten = FALSE;
+    if ((CalmaFlattenUsesByName != NULL) && (!was_called))
+    {
+	int i = 0;
+	char *pattern;
+
+	while (TRUE)
+	{
+	    pattern = CalmaFlattenUsesByName[i];
+	    if (pattern == NULL) break;
+	    i++;
+
+	    /* Check pattern against strname */
+	    if (Match(pattern, strname))
+	    {
+		do_flatten = TRUE;
+		break;
+	    }
+	}
+    }
+    if (CalmaFlattenUses && (!was_called) && (npaths < CalmaFlattenLimit)
+                && (nsrefs == 0))
+	do_flatten = TRUE;
+
+    /* Done with strname */
+    if (strname != NULL) freeMagic(strname);
+
+    /* Make sure the structure ends with an ENDSTR record */
     if (!calmaSkipExact(CALMA_ENDSTR)) goto syntaxerror;
 
     /*
@@ -418,8 +445,8 @@ calmaParseStructure(filename)
      * cell by painting when instanced.  But---if this cell was
      * instanced before it was defined, then it can't be flattened.
      */
-    if (CalmaFlattenUses && (!was_called) && (npaths < CalmaFlattenLimit)
-		&& (nsrefs == 0))
+
+    if (do_flatten)
     {
 	/* If CDFLATGDS is already set, may need to remove	*/
 	/* existing planes and free memory.			*/
@@ -617,7 +644,7 @@ calmaElementSref(filename)
      */
 
     def = calmaLookCell(sname);
-    if (!def && (CalmaPostOrder || CalmaFlattenUses))
+    if (!def && (CalmaPostOrder || CalmaFlattenUses || (CalmaFlattenUsesByName != NULL)))
     {
 	/* Force the GDS parser to read the cell definition in
 	 * post-order.  If cellname "sname" is not defined before

@@ -34,7 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* ----------------------------------------------------------------------------
  *
- *DBPropPut --
+ * DBPropPut --
  *
  * Put a property onto a celldef.
  *
@@ -57,8 +57,15 @@ DBPropPut(cellDef, name, value)
     HashEntry *entry;
     char *oldvalue;
 
-    /* Honor the NOEDIT flag */
-    if (cellDef->cd_flags & CDNOEDIT) return;
+    /* Honor the NOEDIT flag.  Note that the caller always assumes that */
+    /* the value would be saved in the hash table, so if it is not	*/
+    /* being used, then it must be freed here.				*/
+
+    if (cellDef->cd_flags & CDNOEDIT)
+    {
+	freeMagic((char *)value);
+	return;
+    }
 
     if (cellDef->cd_props == (ClientData) NULL)
     {

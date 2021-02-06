@@ -406,22 +406,7 @@ extHardGenerateLabel(scx, reg, arg)
     Rect r;
     Point p;
 
-    // Modification 9/9/2014 by Tim:
-    // Convert the treg_ll value up to top-level coordinates.
-    // Otherwise you end up with a node that is apparently in
-    // "canonical coordinates", but if you try to find the
-    // location of the node using the name, you'll end up in
-    // a random place.  It also allows the low-probability
-    // but possible conflict between this node and another with
-    // the same name in the parent cell.
-    //
-    // Reverted 10/30/2014:  Apparently this causes worse
-    // problems.
-    //
-    // GeoTransPoint(&scx->scx_trans, &reg->treg_ll, &r.r_ll);
-    // extMakeNodeNumPrint(gen, reg->treg_pnum, r.r_ll);
-
-    extMakeNodeNumPrint(gen, reg->treg_pnum, reg->treg_ll);
+    extMakeNodeNumPrint(gen, (LabRegion *)reg);
 
     prefixlen = tpath->tp_next - tpath->tp_first;
     len = strlen(gen) + prefixlen;

@@ -74,7 +74,22 @@ static DRCCookie drcInSubCookie = {
     (DRCCookie *) NULL
 };
 
+/* The following DRC cookie is used when flattening non-Manhattan
+ * shapes results in a non-integer coordinate.  Because the non-
+ * integer coordinate cannot be represented in magic, the position
+ * is flagged as a DRC error.
+ */
+
+static DRCCookie drcOffGridCookie = {
+    0, 0, 0, 0,
+    { 0 }, { 0 },
+    0, 0, 0,
+    DRC_OFFGRID_TAG,
+    (DRCCookie *) NULL
+};
+
 extern int DRCErrorType;
+extern CellDef *DRCErrorDef;
 
 /*
  * ----------------------------------------------------------------------------
@@ -607,6 +622,37 @@ drcExactOverlapTile(tile, cxp)
 /*
  * ----------------------------------------------------------------------------
  *
+ * DRCOffGridError ---
+ *
+ * Function to call when a call to DBCellCheckCopyAllPaint() flags an error
+ * indicating that a subcell overlap of non-Manhattan geometry resolves to
+ * an off-grid intersection point.  Note that this is different from the
+ * DRC off-grid check, which checks for geometry that does not match the
+ * manufacturing grid pitch.  This checks for the case of geometry that
+ * is finer than the underlying database grid, which can only happen for
+ * two non-Manhattan shapes interacting between two different cells, and
+ * can only be caught during the process of flattening the cell contents.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Creates a DRC error or prints the DRC error message, depending on
+ *	the value of drcSubFunc.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DRCOffGridError(rect)
+    Rect      *rect;            /* Area of error */
+{
+    (*drcSubFunc)(DRCErrorDef, rect, &drcOffGridCookie, drcSubClientData);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DRCInteractionCheck --
  *
  * 	This is the top-level procedure that performs subcell interaction
@@ -809,7 +855,8 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 	    savedPaintTable = DBNewPaintTable(DRCCurStyle->DRCPaintTable);
 	    savedPaintPlane = DBNewPaintPlane(DBPaintPlaneMark);
 
-	    (void) DBCellCopyAllPaint(&scx, &DBAllButSpaceBits, 0, DRCuse);
+	    (void) DBCellCheckCopyAllPaint(&scx, &DBAllButSpaceBits, 0,
+			DRCuse, func);
 
 	    (void) DBNewPaintTable(savedPaintTable);
 	    (void) DBNewPaintPlane(savedPaintPlane);

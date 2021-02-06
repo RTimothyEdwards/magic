@@ -1722,7 +1722,8 @@ topVisit(def, doStub)
 		    	basenode->efnode_name->efnn_port = portorder++;
 		    }
 		    snode->efnode_name->efnn_port = basenode->efnode_name->efnn_port;
-		    HashSetValue(hep, (ClientData)snode->efnode_name->efnn_port);
+		    HashSetValue(hep,
+			    (ClientData)(pointertype)snode->efnode_name->efnn_port);
 		}
 	    }
 	}
@@ -1774,7 +1775,8 @@ topVisit(def, doStub)
 			if (HashLookOnly(&portNameTable, pname) == NULL)
 			{
 			    hep = HashFind(&portNameTable, pname);
-			    HashSetValue(hep, (ClientData)nodeName->efnn_port);
+			    HashSetValue(hep,
+				    (ClientData)(pointertype)nodeName->efnn_port);
 			    fprintf(esSpiceF, " %s", pname);
 			    tchars += strlen(pname) + 1;
 			}
@@ -1785,7 +1787,7 @@ topVisit(def, doStub)
 			    // port number is set correctly.
 
 			    hep = HashFind(&portNameTable, pname);
-			    nodeName->efnn_port = (int)HashGetValue(hep);
+			    nodeName->efnn_port = (int)(pointertype)HashGetValue(hep);
 			}
 			break;
 		    }

@@ -259,7 +259,8 @@ CIFSetStyle(name)
 				 * print out the valid styles.
 				 */
 {
-    CIFKeep *style, *match;
+    CIFKeep *style, *match, *exactmatch;
+    bool ambiguous = FALSE;
     int length;
 
     if (name == NULL) return;
@@ -269,16 +270,23 @@ CIFSetStyle(name)
 
     for (style = CIFStyleList; style != NULL; style = style->cs_next)
     {
-	if (strncmp(name, style->cs_name, length) == 0)
+	if (!strcmp(name, style->cs_name)) {
+	    match = style;
+	    ambiguous = FALSE;
+	    break;
+	}
+	else if (!strncmp(name, style->cs_name, length))
 	{
-	    if (match != NULL)
-	    {
-		TxError("CIF output style \"%s\" is ambiguous.\n", name);
-		CIFPrintStyle(FALSE, TRUE, TRUE);
-		return;
-	    }
+	    if (match != NULL) ambiguous = TRUE;
 	    match = style;
 	}
+    }
+
+    if (ambiguous)
+    {
+	TxError("CIF output style \"%s\" is ambiguous.\n", name);
+	CIFPrintStyle(FALSE, TRUE, TRUE);
+	return;
     }
 
     if (match != NULL)
