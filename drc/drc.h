@@ -48,6 +48,7 @@ typedef struct drccookie
 #define DRC_OVERLAP_TAG		2
 #define DRC_SUBCELL_OVERLAP_TAG	3
 #define DRC_IN_SUBCELL_TAG	4
+#define DRC_OFFGRID_TAG		5
 
 /* *This is size "int" because it holds an area for DRC_AREA rules,	  */
 /* and therefore may have twice the bit length of a normal rule distance. */
@@ -63,21 +64,23 @@ typedef struct drccookie
  * edge processing.
  */
 
-#define		DRC_FORWARD		0x00
-#define		DRC_REVERSE		0x01
-#define		DRC_BOTHCORNERS		0x02
-#define		DRC_MAXWIDTH_BOTH       0x02    // Note: Shared with DRC_BOTHCORNERS
-#define		DRC_TRIGGER		0x04
-#define		DRC_BENDS		0x08
-#define		DRC_OUTSIDE		0x08	// Note: Shared with DRC_BENDS
-#define		DRC_AREA		0x10
-#define		DRC_MAXWIDTH		0x20
-#define		DRC_RECTSIZE		0x40
-#define		DRC_ANGLES		0x80
-#define 	DRC_NONSTANDARD		(DRC_AREA|DRC_MAXWIDTH|DRC_RECTSIZE|DRC_ANGLES)
+#define		DRC_FORWARD		0x000
+#define		DRC_REVERSE		0x001
+#define		DRC_BOTHCORNERS		0x002
+#define		DRC_MAXWIDTH_BOTH       0x002    // Note: Shared with DRC_BOTHCORNERS
+#define		DRC_TRIGGER		0x004
+#define		DRC_BENDS		0x008
+#define		DRC_OUTSIDE		0x010
+#define		DRC_AREA		0x020
+#define		DRC_OFFGRID		0x040
+#define		DRC_MAXWIDTH		0x080
+#define		DRC_RECTSIZE		0x100
+#define		DRC_ANGLES		0x200
+#define 	DRC_NONSTANDARD		(DRC_AREA|DRC_MAXWIDTH|DRC_RECTSIZE\
+					 |DRC_ANGLES|DRC_OFFGRID)
 
 /* More flags for indicating what the rule type represents */
-#define		DRC_CIFRULE		0x100
+#define		DRC_CIFRULE		0x400
 
 #define	DRC_PENDING			0
 #define DRC_UNPROCESSED 		CLIENTDEFAULT
@@ -166,7 +169,7 @@ typedef struct drcstyle
     int			DRCScaleFactorD; /* Multiply dist by this to get magic units */
     int			DRCTechHalo;	/* largest action distance of design rules */
     int			DRCStepSize;	/* chunk size for decomposing large areas */
-    char		DRCFlags;	/* Option flags */
+    unsigned short	DRCFlags;	/* Option flags */
     char		**DRCWhyList;	/* Indexed list of "why" text strings */
     int			DRCWhySize;	/* Length of DRCWhyList */
     PaintResultType	DRCPaintTable[NP][NT][NT];
@@ -272,6 +275,7 @@ extern int DRCFind();
 extern void DRCCatchUp();
 extern bool DRCFindInteractions();
 extern int  DRCBasicCheck();
+extern void DRCOffGridError();
 
 extern void DRCPrintStyle();
 extern void DRCSetStyle();

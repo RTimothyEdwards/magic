@@ -1171,7 +1171,7 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
 
     lc.file = f;
     lc.oscale = scale;
-    lc.lefMagicMap = defMakeInverseLayerMap();
+    lc.lefMagicMap = defMakeInverseLayerMap(LAYER_MAP_NO_VIAS);
     lc.lastType = TT_SPACE;
     lc.lefFlat = lefFlatDef;
 
@@ -1674,7 +1674,7 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
 	    freeMagic(thislll);
 	}
 
-	if (setback > 0)
+	if (setback >= 0)
 	{
 	    /* For -hide with setback, yank everything in the area outside  */
 	    /* the setback.						    */
@@ -1982,7 +1982,11 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefTopLayer, lefDoMaster, r
     rootdef = rootUse->cu_def;
 
     /* Make sure the entire subtree is read in */
-    DBCellReadArea(rootUse, &rootdef->cd_bbox);
+    if (DBCellReadArea(rootUse, &rootdef->cd_bbox, TRUE))
+    {
+	TxError("Could not read entire subtree of the cell.\n");
+	return;
+    }
 
     /* Fix up bounding boxes if they've changed */
     DBFixMismatch();

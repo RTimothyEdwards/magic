@@ -21,9 +21,13 @@ scmos/scmos-sub.tech
 scmos/scmos-tm.tech
 scmos/scmos.tech
 scmos/scmosWR.tech
+scmos/nmos.tech
 tcltk/magic.sh
 tcltk/magic.tcl
 tcltk/magicdnull
 tcltk/magicexec
 tcltk/ext2spice.sh
 tcltk/ext2sim.sh
+magic/tclmagic.dylib
+tcltk/magicdnull.dSYM/
+tcltk/magicexec.dSYM/

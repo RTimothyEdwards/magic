@@ -73,6 +73,50 @@ drcCheckAngles(tile, arg, cptr)
 /*
  *-------------------------------------------------------------------------
  *
+ * drcCheckOffGrid- checks to see that an edge is on the specified
+ *	grid pitch.
+ *
+ * Results: none
+ *
+ * Side Effects: may cause errors to be painted.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+drcCheckOffGrid(edgeRect, arg, cptr)
+	Rect	*edgeRect;
+	struct drcClientData	*arg;
+	DRCCookie	*cptr;
+{
+    Rect rect;
+    int gtest;
+
+    if (cptr->drcc_dist <= 1) return;	/* No error by definition */
+
+    rect = *edgeRect;
+    GeoClip(&rect, arg->dCD_clip);
+
+    /* Expand rect to nearest pitch */
+    gtest = (rect.r_xbot / cptr->drcc_dist) * cptr->drcc_dist;
+    if (gtest < rect.r_xbot) rect.r_xbot = gtest;
+    gtest = (rect.r_xtop / cptr->drcc_dist) * cptr->drcc_dist;
+    if (gtest > rect.r_xtop) rect.r_xtop = gtest;
+    gtest = (rect.r_ybot / cptr->drcc_dist) * cptr->drcc_dist;
+    if (gtest < rect.r_ybot) rect.r_ybot = gtest;
+    gtest = (rect.r_ytop / cptr->drcc_dist) * cptr->drcc_dist;
+    if (gtest > rect.r_ytop) rect.r_ytop = gtest;
+
+    if (!GEO_RECTNULL(&rect)) {
+	(*(arg->dCD_function)) (arg->dCD_celldef, &rect,
+		 arg->dCD_cptr, arg->dCD_clientData);
+	(*(arg->dCD_errors))++;
+    }
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * drcCheckArea- checks to see that a collection of tiles of a given
  *	type have more than a minimum area.
  *
@@ -144,10 +188,6 @@ drcCheckArea(starttile,arg,cptr)
 	 if (!GEO_RECTNULL(&rect)) {
 	     (*(arg->dCD_function)) (arg->dCD_celldef, &rect,
 		 arg->dCD_cptr, arg->dCD_clientData);
-	     /***
-	     DBWAreaChanged(arg->dCD_celldef,&rect, DBW_ALLWINDOWS,
-						    &DBAllButSpaceBits);
-	     ***/
 	     (*(arg->dCD_errors))++;
 	 }
      }

@@ -1143,7 +1143,8 @@ defNetGeometryFunc(tile, plane, defdata)
 		/* residue of the contact as the route layer	*/
 		/* type.					*/
 
-		rName = defGetType((rtype == TT_SPACE) ? r2type : rtype, NULL);
+		rName = defGetType((rtype == TT_SPACE) ? r2type : rtype, NULL,
+				LAYER_MAP_VIAS);
 
 		/* The first layer in a record may not be a via name */
 
@@ -1534,9 +1535,10 @@ defCountViaFunc(tile, cviadata)
  */
 
 char *
-defGetType(ttype, lefptr)
+defGetType(ttype, lefptr, do_vias)
     TileType ttype;
     lefLayer **lefptr;
+    bool do_vias;
 {
     HashSearch hs;
     HashEntry *he;
@@ -1552,6 +1554,10 @@ defGetType(ttype, lefptr)
 	while (he = HashNext(&LefInfo, &hs))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
+	    if (lefl && (do_vias == FALSE) && (contact == CLASS_VIA) &&
+			(lefl->info.via.lr != NULL))
+		continue;	/* Skip VIA definitions if do_vias is FALSE */
+	    
 	    if (lefl && ((contact == lefl->lefClass) ||
 			((contact == CLASS_ROUTE) && (lefl->lefClass == CLASS_MASTER))))
 		if ((lefl->type == ttype) || (lefl->obsType == ttype))
@@ -1870,7 +1876,8 @@ defComponentFunc(cellUse, defdata)
  */
 
 LefMapping *
-defMakeInverseLayerMap()
+defMakeInverseLayerMap(do_vias)
+    bool do_vias;
 {
     LefMapping *lefMagicToLefLayer;
     lefLayer *lefl;
@@ -1882,7 +1889,7 @@ defMakeInverseLayerMap()
     memset(lefMagicToLefLayer, 0, sizeof(LefMapping) * TT_TECHDEPBASE);
     for (i = TT_TECHDEPBASE; i < DBNumTypes; i++)
     {
-	lefname = defGetType(i, &lefl);
+	lefname = defGetType(i, &lefl, do_vias);
 	lefMagicToLefLayer[i].lefName = lefname;
 	lefMagicToLefLayer[i].lefInfo = lefl;
     }
@@ -1969,7 +1976,7 @@ DefWriteCell(def, outName, allSpecial, units)
 
     defWriteHeader(def, f, scale, units);
 
-    lefMagicToLefLayer = defMakeInverseLayerMap();
+    lefMagicToLefLayer = defMakeInverseLayerMap(LAYER_MAP_VIAS);
 
     /* Vias---magic contact areas are reported as vias. */
     total = defCountVias(def, lefMagicToLefLayer, scale);

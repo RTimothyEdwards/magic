@@ -49,7 +49,7 @@ extern void CmdGetcell(), CmdGrid(), CmdIdentify();
 extern void CmdLabel(), CmdLoad();
 extern void CmdMove(), CmdNetlist(), CmdOrient(), CmdPaint(), CmdPath();
 extern void CmdPlow(), CmdPolygon(), CmdPort(), CmdProperty();
-extern void CmdSave(), CmdScaleGrid(), CmdSee();
+extern void CmdRandom(), CmdSave(), CmdScaleGrid(), CmdSee();
 extern void CmdSelect(), CmdSetLabel(), CmdSideways();
 extern void CmdShell(), CmdSnap();
 extern void CmdStretch(), CmdStraighten();
@@ -407,6 +407,9 @@ DBWInitCommands()
     WindAddCommand(DBWclientID,
 	"rotate [+/-][deg]	rotate selection and box (counter)clockwise",
 	CmdClockwise, FALSE);		/* "rotate" is alias for "clockwise" */
+    WindAddCommand(DBWclientID,
+	"random [seed [value]]		generate random number or set random seed",
+	CmdRandom, FALSE);
     WindAddCommand(DBWclientID,
 	"save [filename]		save edit cell on disk",
 	CmdSave, FALSE);

@@ -290,6 +290,8 @@ calmaParseStructure(filename)
     off_t filepos;
     bool was_called;
     bool was_initialized;
+    bool predefined;
+    bool do_flatten;
     CellDef *def;
 
     /* Make sure this is a structure; if not, let the caller know we're done */
@@ -299,6 +301,7 @@ calmaParseStructure(filename)
 
     /* Read the structure name */
     was_initialized = FALSE;
+    predefined = FALSE;
     if (!calmaSkipExact(CALMA_BGNSTR)) goto syntaxerror;
     if (!calmaReadStringRecord(CALMA_STRNAME, &strname)) goto syntaxerror;
     TxPrintf("Reading \"%s\".\n", strname);
@@ -345,15 +348,17 @@ calmaParseStructure(filename)
 	    freeMagic(newname);
 	}
     }
-    cifReadCellDef = calmaFindCell(strname, &was_called);
+    cifReadCellDef = calmaFindCell(strname, &was_called, &predefined);
+    if (predefined == TRUE)
+    {
+	calmaNextCell();
+	return TRUE;
+    }
     DBCellClearDef(cifReadCellDef);
     DBCellSetAvail(cifReadCellDef);
     HashSetValue(he, cifReadCellDef);
     cifCurReadPlanes = cifSubcellPlanes;
     cifReadCellDef->cd_flags &= ~CDDEREFERENCE;
-
-    /* Done with strname */
-    if (strname != NULL) freeMagic(strname);
 
     /* For read-only cells, set flag in def */
     if (CalmaReadOnly)
@@ -403,7 +408,36 @@ calmaParseStructure(filename)
 	/* cifReadCellDef->cd_flags |= CDNOEDIT; */
     }
 
-    /* Make sure it ends with an ENDSTR record */
+    /* Check if the cell name matches the pattern list of cells to flatten */
+
+    do_flatten = FALSE;
+    if ((CalmaFlattenUsesByName != NULL) && (!was_called))
+    {
+	int i = 0;
+	char *pattern;
+
+	while (TRUE)
+	{
+	    pattern = CalmaFlattenUsesByName[i];
+	    if (pattern == NULL) break;
+	    i++;
+
+	    /* Check pattern against strname */
+	    if (Match(pattern, strname))
+	    {
+		do_flatten = TRUE;
+		break;
+	    }
+	}
+    }
+    if (CalmaFlattenUses && (!was_called) && (npaths < CalmaFlattenLimit)
+                && (nsrefs == 0))
+	do_flatten = TRUE;
+
+    /* Done with strname */
+    if (strname != NULL) freeMagic(strname);
+
+    /* Make sure the structure ends with an ENDSTR record */
     if (!calmaSkipExact(CALMA_ENDSTR)) goto syntaxerror;
 
     /*
@@ -411,8 +445,8 @@ calmaParseStructure(filename)
      * cell by painting when instanced.  But---if this cell was
      * instanced before it was defined, then it can't be flattened.
      */
-    if (CalmaFlattenUses && (!was_called) && (npaths < CalmaFlattenLimit)
-		&& (nsrefs == 0))
+
+    if (do_flatten)
     {
 	/* If CDFLATGDS is already set, may need to remove	*/
 	/* existing planes and free memory.			*/
@@ -610,7 +644,7 @@ calmaElementSref(filename)
      */
 
     def = calmaLookCell(sname);
-    if (!def && (CalmaPostOrder || CalmaFlattenUses))
+    if (!def && (CalmaPostOrder || CalmaFlattenUses || (CalmaFlattenUsesByName != NULL)))
     {
 	/* Force the GDS parser to read the cell definition in
 	 * post-order.  If cellname "sname" is not defined before
@@ -659,14 +693,14 @@ calmaElementSref(filename)
 		    scalen = 1;
 		    scaled = cifCurReadStyle->crs_multiplier / crsMultiplier;
 		}
-		CIFScalePlanes(scalen, scaled, cifCurReadPlanes);
+		CIFScalePlanes(scaled, scalen, cifCurReadPlanes);
 	    }
 	}
 	else
 	{
 	    TxPrintf("Cell definition %s does not exist!\n", sname);
 	    fseek(calmaInputFile, originalFilePos, SEEK_SET);
-	    def = calmaFindCell(sname, NULL);
+	    def = calmaFindCell(sname, NULL, NULL);
 	    /* Cell flags set to "dereferenced" in case there is no	*/
 	    /* definition in the GDS file.  If there is a definition	*/
 	    /* made after the instance, then the flag will be cleared.	*/
@@ -674,7 +708,7 @@ calmaElementSref(filename)
 	}
     }
 
-    if (!def) def = calmaFindCell(sname, NULL);
+    if (!def) def = calmaFindCell(sname, NULL, NULL);
 
     if (DBIsAncestor(def, cifReadCellDef))
     {
@@ -1031,12 +1065,15 @@ gdsCopyPaintFunc(tile, gdsCopyRec)
  */
 
 CellDef *
-calmaFindCell(name, was_called)
+calmaFindCell(name, was_called, predefined)
     char *name;		/* Name of desired cell */
     bool *was_called;	/* If this cell is in the hash table, then it
 			 * was instanced before it was defined.  We
 			 * need to know this so as to avoid flattening
 			 * the cell if requested.
+			 */
+    bool *predefined;	/* If this cell was in memory before the GDS
+			 * file was read, then this flag gets set.
 			 */
 
 {
@@ -1058,6 +1095,16 @@ calmaFindCell(name, was_called)
 	     * then it will cause a core dump.
 	     */
 	     DBReComputeBbox(def);
+	}
+	else
+	{
+	    TxPrintf("Warning:  cell %s already existed before reading GDS!\n",
+			name);
+	    if (CalmaNoDuplicates)
+	    {
+		if (predefined) *predefined = TRUE;
+	    	TxPrintf("Using pre-existing cell definition\n");
+	    }
 	}
 	HashSetValue(h, def);
 	if (was_called) *was_called = FALSE;

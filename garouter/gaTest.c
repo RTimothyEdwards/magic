@@ -164,7 +164,7 @@ GAGenChans(chanType, area, f)
     Rect *area;
     FILE *f;
 {
-    extern void DBPaintPlane0(), DBPaintPlaneVert();
+    extern int DBPaintPlane0(), DBPaintPlaneVert();
     int gaSplitFunc(), gaSplitOut();
     static CellDef *genDef = (CellDef *) NULL;
     static CellUse *genUse = (CellUse *) NULL;
@@ -201,7 +201,7 @@ GAGenChans(chanType, area, f)
     }
 
     /* Make sure everything in 'area' is read */
-    (void) DBCellReadArea(EditCellUse, area);
+    (void) DBCellReadArea(EditCellUse, area, FALSE);
     DBFixMismatch();
 
     /* Start with a clean slate */

@@ -2202,10 +2202,13 @@ ExtTechLine(sectionName, argc, argv)
 			    termtypes[1] = DBZeroTypeBits;	/* Make it symmetric */
 			else if (!TTMaskIsZero(&termtypes[2]))
 			{
+			    class = DEV_ASYMMETRIC;
 			    TechError("Device mosfet %s has overlapping drain"
 				" and source types!\n", transName);
 			    /* Should this device be disabled? */
 			}
+			else
+			    class = DEV_ASYMMETRIC;
 			termtypes[2] = DBZeroTypeBits;
 			if (strcmp(argv[6], "None"))
 		    	DBTechNoisyNameMask(argv[6], &subsTypes);   /* substrate */
@@ -2213,7 +2216,6 @@ ExtTechLine(sectionName, argc, argv)
 			if (argc > 8) gscap = aToCap(argv[8]);
 			if (argc > 9) gccap = aToCap(argv[9]);
 			nterm = 2;
-			class = DEV_ASYMMETRIC;
 		    }
 		    else
 		    {

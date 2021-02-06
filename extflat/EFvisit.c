@@ -66,7 +66,7 @@ bool efDevKilled();
  * 	(*subProc)(use, hierName, is_top)
  *	    Use *use;
  *	    HierName *hierName;
- *	    Boolean is_top;
+ *	    bool is_top;
  *	{
  *	}
  *

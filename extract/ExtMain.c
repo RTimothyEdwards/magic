@@ -51,7 +51,7 @@ extern FILE *extFileOpen();
     /*
      * See extract.h for the bit flags that may be set in the following.
      * If any are set, the corresponding warnings get generated, leaving
-     * feedback messages.  If this word is zero, only fatal errors are
+     * feedback messages.  If this word is zero, only errors are
      * reported.
      */
 int ExtDoWarn = EXTWARN_DUP|EXTWARN_FETS;
@@ -179,7 +179,11 @@ ExtAll(rootUse)
     CellUse *rootUse;
 {
     /* Make sure the entire subtree is read in */
-    DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox);
+    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    {
+	TxError("Failure to read entire subtree of cell.\n");
+	return;
+    }
 
     /* Fix up bounding boxes if they've changed */
     DBFixMismatch();
@@ -264,7 +268,11 @@ ExtUnique(rootUse, option)
     int nwarn;
 
     /* Make sure the entire subtree is read in */
-    DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox);
+    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    {
+	TxError("Failure to read entire subtree of cell.\n");
+	return;
+    }
 
     /* Fix up bounding boxes if they've changed */
     DBFixMismatch();
@@ -526,7 +534,11 @@ ExtIncremental(rootUse)
     CellUse *rootUse;
 {
     /* Make sure the entire subtree is read in */
-    DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox);
+    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    {
+	TxError("Failure to read entire subtree of cell.\n");
+	return;
+    }
 
     /* Fix up bounding boxes if they've changed */
     DBFixMismatch();
@@ -663,7 +675,7 @@ extExtractStack(stack, doExtract, rootDef)
     else
     {
 	if (fatal > 0)
-	    TxError("Total of %d fatal error%s.\n",
+	    TxError("Total of %d error%s (check feedback entries).\n",
 		    fatal, fatal != 1 ? "s" : "");
 	if (warnings > 0)
 	    TxError("Total of %d warning%s.\n",

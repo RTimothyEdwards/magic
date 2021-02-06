@@ -664,7 +664,11 @@ DRCCheck(use, area)
     SearchContext scx;
     extern int drcCheckFunc();	/* Forward reference. */
 
-    DBCellReadArea(use, area);
+    if (DBCellReadArea(use, area, TRUE))
+    {
+	TxError("Failure to read in entire subtree of cell.\n");
+	return;
+    }
 
     scx.scx_use = use;
     scx.scx_x = use->cu_xlo;
@@ -702,8 +706,8 @@ drcCheckFunc(scx, cdarg)
 
     DRCCheckThis(def, TT_CHECKPAINT, (Rect *) NULL);
 
-    /* New behavior:  Don't search children, instead propagate errors up. */
-    /* (void) DBCellSrArea(scx, drcCheckFunc, (ClientData) NULL); */
+    /* Search children */
+    (void) DBCellSrArea(scx, drcCheckFunc, (ClientData) NULL);
 
     /* As a special performance hack, if the complete cell area is
      * handled here, don't bother to look at any more array elements.

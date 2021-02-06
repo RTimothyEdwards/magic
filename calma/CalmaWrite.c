@@ -53,11 +53,13 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 #include "utils/stack.h"
 
     /* Exports */
-bool CalmaDoLibrary = FALSE;	 /* If TRUE, do not output the top level */
-bool CalmaDoLabels = TRUE;	 /* If FALSE, don't output labels with GDS-II */
-bool CalmaDoLower = TRUE;	 /* If TRUE, allow lowercase labels. */
-bool CalmaFlattenArrays = FALSE; /* If TRUE, output arrays as individual uses */
-bool CalmaAddendum = FALSE;	 /* If TRUE, do not output readonly cell defs */
+bool CalmaDoLibrary = FALSE;	  /* If TRUE, do not output the top level */
+bool CalmaDoLabels = TRUE;	  /* If FALSE, don't output labels with GDS-II */
+bool CalmaDoLower = TRUE;	  /* If TRUE, allow lowercase labels. */
+bool CalmaFlattenArrays = FALSE;  /* If TRUE, output arrays as individual uses */
+bool CalmaAddendum = FALSE;	  /* If TRUE, do not output readonly cell defs */
+bool CalmaNoDateStamp = FALSE;	  /* If TRUE, output zero for creation date stamp */
+bool CalmaAllowUndefined = FALSE; /* If TRUE, allow calls to undefined cells */
 
     /* Experimental stuff---not thoroughly tested (as of Sept. 2007)! */
 bool CalmaContactArrays = FALSE; /* If TRUE, output contacts as subcell arrays */
@@ -304,7 +306,12 @@ CalmaWrite(rootDef, f)
      */
 
     dummy.cu_def = rootDef;
-    DBCellReadArea(&dummy, &rootDef->cd_bbox);
+    if (DBCellReadArea(&dummy, &rootDef->cd_bbox, !CalmaAllowUndefined))
+    {
+	TxError("Failure to read entire subtree of the cell.\n");
+	return FALSE;
+    }
+
     DBFixMismatch();
 
     /*
@@ -396,7 +403,10 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 
     /* Output structure begin */
     calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, outf);
-    calmaOutDate(def->cd_timestamp, outf);
+    if (CalmaNoDateStamp)
+    	calmaOutDate(time((time_t *) 0), outf);
+    else
+    	calmaOutDate(def->cd_timestamp, outf);
     calmaOutDate(time((time_t *) 0), outf);
 
     /* Find the structure's unique prefix, in case structure calls subcells */
@@ -799,15 +809,19 @@ calmaProcessDef(def, outf, do_library)
 
     if (isReadOnly && hasContent && CalmaAddendum) return (0);
 
-    /* Give some feedback to the user */
-    TxPrintf("   Writing cell %s\n", def->cd_name);
-
     /*
      * Output the definitions for any of our descendants that have
      * not already been output.  Numbers are assigned to the subcells
-     * as they are output.
+     * as they are output.  If the cell will get a "full dump" (by
+     * having GDS_START but no GDS_END), then do not output any subcells,
+     * as they are expected to be in the referenced GDS file.
      */
-    (void) DBCellEnum(def, calmaProcessUse, (ClientData) outf);
+    if (!hasContent || hasGDSEnd)
+	if (DBCellEnum(def, calmaProcessUse, (ClientData) outf) != 0)
+	    return 1;
+
+    /* Give some feedback to the user */
+    TxPrintf("   Generating output for cell %s\n", def->cd_name);
 
     if (isReadOnly && hasContent)
     {
@@ -826,14 +840,22 @@ calmaProcessDef(def, outf, do_library)
 	    /* This is a rare error, but if the subcell is inside	*/
 	    /* another vendor GDS, it would not normally be output.	*/
 
-	    DBPropGet(def->cd_parents->cu_parent, "GDS_FILE", &isReadOnly);
-	    if (!isReadOnly || isAbstract)
-		TxError("Calma output error:  Can't find GDS file \"%s\" "
-				"for vendor cell \"%s\".  Using magic's "
-				"internal definition\n", filename,
-				def->cd_name);
+	    DBPropGet((def->cd_parents->cu_parent == NULL) ? def :
+			def->cd_parents->cu_parent, "GDS_FILE", &isReadOnly);
 	    if (isReadOnly)
+	    {
 		def->cd_flags |= CDVENDORGDS;
+		return 0;	/* Ignore without raising an error */
+	    }
+
+	    TxError("Calma output error:  Can't find GDS file \"%s\" "
+				"for vendor cell \"%s\".  It will not be output.\n",
+				filename, def->cd_name);
+
+	    if (CalmaAllowUndefined)
+		return 0;
+	    else
+		return 1;
 	}
 	else if (isAbstract || (!hasGDSEnd))
 	{
@@ -867,7 +889,10 @@ calmaProcessDef(def, outf, do_library)
 
 		/* Output structure header */
 		calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, outf);
-		calmaOutDate(def->cd_timestamp, outf);
+    		if (CalmaNoDateStamp)
+		    calmaOutDate(time((time_t *) 0), outf);
+		else
+		    calmaOutDate(def->cd_timestamp, outf);
 		calmaOutDate(time((time_t *) 0), outf);
 
 		/* Name structure the same as the magic cellname */
@@ -922,7 +947,7 @@ calmaProcessDef(def, outf, do_library)
 	if (!do_library)
 	    calmaOutFunc(def, outf, &TiPlaneRect);
 
-    return (0);
+    return 0;
 }
 
 
@@ -964,7 +989,10 @@ calmaOutFunc(def, f, cliprect)
 
     /* Output structure begin */
     calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, f);
-    calmaOutDate(def->cd_timestamp, f);
+    if (CalmaNoDateStamp)
+    	calmaOutDate(time((time_t *) 0), f);
+    else
+	calmaOutDate(def->cd_timestamp, f);
     calmaOutDate(time((time_t *) 0), f);
 
     /* Output structure name */
@@ -2693,7 +2721,10 @@ calmaOutHeader(rootDef, f)
 
     /* Beginning of library */
     calmaOutRH(28, CALMA_BGNLIB, CALMA_I2, f);
-    calmaOutDate(rootDef->cd_timestamp, f);
+    if (CalmaNoDateStamp)
+    	calmaOutDate(time((time_t *) 0), f);
+    else
+    	calmaOutDate(rootDef->cd_timestamp, f);
     calmaOutDate(time((time_t *) 0), f);
 
     /* Library name (name of root cell) */

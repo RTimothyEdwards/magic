@@ -94,18 +94,22 @@ bool cmdDumpParseArgs();
 #define CALMA_CONTACTS	3
 #define CALMA_DRCCHECK	4
 #define	CALMA_FLATTEN	5
-#define CALMA_ORDERING	6
-#define	CALMA_LABELS	7
-#define	CALMA_LIBRARY	8
-#define	CALMA_LOWER	9
-#define CALMA_MERGE	10
-#define CALMA_READ	11
-#define CALMA_READONLY	12
-#define CALMA_RESCALE	13
-#define CALMA_WARNING	14
-#define CALMA_WRITE	15
-#define CALMA_POLYS	16
-#define CALMA_PATHS	17
+#define	CALMA_FLATGLOB  6
+#define CALMA_ORDERING	7
+#define	CALMA_LABELS	8
+#define	CALMA_LIBRARY	9
+#define	CALMA_LOWER	10
+#define CALMA_MERGE	11
+#define CALMA_NO_STAMP	12
+#define CALMA_NO_DUP	13
+#define CALMA_READ	14
+#define CALMA_READONLY	15
+#define CALMA_RESCALE	16
+#define CALMA_WARNING	17
+#define CALMA_WRITE	18
+#define CALMA_POLYS	19
+#define CALMA_PATHS	20
+#define CALMA_UNDEFINED	21
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -122,7 +126,9 @@ CmdCalma(w, cmd)
     extern int CalmaFlattenLimit;
 
     static char *gdsExts[] = {".gds", ".gds2", ".strm", "", NULL};
-    static char *cmdCalmaYesNo[] = { "no", "false", "off", "yes", "true", "on", 0 };
+    static char *cmdCalmaYesNo[] = {
+		"no", "false", "off", "0", "yes", "true", "on", "1", 0 };
+    static char *cmdCalmaAllowDisallow[] = {"disallow", "0", "allow", "1", 0};
     static char *cmdCalmaWarnOptions[] = { "default", "none", "align",
 		"limit", "redirect", "help", 0 };
     static char *cmdCalmaOption[] =
@@ -133,11 +139,14 @@ CmdCalma(w, cmd)
 	"contacts [yes|no]	optimize output by arraying contacts as subcells",
 	"drccheck [yes|no]	mark all cells as needing DRC checking",
 	"flatten [yes|no|limit]	flatten simple cells (e.g., contacts) on input",
+	"flatglob [<name>|none]	flatten cells by name with glob patterning",
 	"ordering [on|off]	cause cells to be read in post-order",
 	"labels [yes|no]	cause labels to be output when writing GDS-II",
 	"library [yes|no]	do not output the top level, only subcells",
 	"lower [yes|no]		allow both upper and lower case in labels",
 	"merge [yes|no]		merge tiles into polygons in the output",
+	"noduplicates [yes|no]	do not read cells that exist before reading GDS",
+	"nodatestamp [yes|no]	write a zero value creation date stamp",
 	"read file		read Calma GDS-II format from \"file\"\n"
 	"		into edit cell",
 	"readonly [yes|no]	set cell as read-only and generate output from GDS file",
@@ -149,6 +158,8 @@ CmdCalma(w, cmd)
 	"		put non-Manhattan polygons into subcells",
 	"path subcells [yes|no]\n"
 	"		put wire paths into individual subcells",
+	"undefined [allow|disallow]\n"
+	"		[dis]allow writing of GDS with calls to undefined cells",
 	NULL
     };
 
@@ -220,15 +231,16 @@ CmdCalma(w, cmd)
 	    else if (cmd->tx_argc != 3)
 	    {
 		wrongNumArgs:
-		TxError("Wrong number of arguments in \"gds\" command.");
-		TxError("  Try \":gds help\" for help.\n");
+		TxError("Wrong number of arguments in \"%s\" command.",
+			cmd->tx_argv[0]);
+		TxError("  Try \":%s help\" for help.\n", cmd->tx_argv[0]);
 		return;
 	    }
 
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaDoLabels = (option < 3) ? FALSE : TRUE;
+	    CalmaDoLabels = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_LIBRARY:
@@ -248,7 +260,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaDoLibrary = (option < 3) ? FALSE : TRUE;
+	    CalmaDoLibrary = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_ADDENDUM:
@@ -268,7 +280,27 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaAddendum = (option < 3) ? FALSE : TRUE;
+	    CalmaAddendum = (option < 4) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_UNDEFINED:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaAllowUndefined));
+#else
+		TxPrintf("Writing of GDS file with undefined cells is %sallowed.\n",
+			(CalmaAllowUndefined) ?  "" : "dis");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaAllowDisallow);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaAllowUndefined = (option < 2) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_CONTACTS:
@@ -290,7 +322,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaContactArrays = (option < 3) ? FALSE : TRUE;
+	    CalmaContactArrays = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_DRCCHECK:
@@ -310,7 +342,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaNoDRCCheck = (option < 3) ? TRUE : FALSE;
+	    CalmaNoDRCCheck = (option < 4) ? TRUE : FALSE;
 	    return;
 
 	case CALMA_FLATTEN:
@@ -341,7 +373,103 @@ CmdCalma(w, cmd)
 		    goto wrongNumArgs;
 	    }
 	    else
-		CalmaFlattenUses = (option < 3) ? FALSE : TRUE;
+		CalmaFlattenUses = (option < 4) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_FLATGLOB:
+
+	    if (cmd->tx_argc == 2)
+	    {
+		if (CalmaFlattenUsesByName != NULL)
+		{
+		    int i = 0;
+		    char *pattern;
+#ifdef MAGIC_WRAPPER
+		    Tcl_Obj *lobj = Tcl_NewListObj(0, NULL);
+		    while (TRUE)
+		    {
+			pattern = CalmaFlattenUsesByName[i];
+			if (pattern == NULL) break;
+			i++;
+			Tcl_ListObjAppendElement(magicinterp, lobj,
+				Tcl_NewStringObj(pattern, -1));
+		    }
+		    Tcl_SetObjResult(magicinterp, lobj);
+#else
+		    TxPrintf("Glob patterns for cells to flatten:\n");
+		    while (TRUE)
+		    {
+			pattern = CalmaFlattenUsesByName[i];
+			if (pattern == NULL) break;
+			i++;
+			TxPrintf("   \"%s\"\n", pattern);
+		    }
+#endif
+		}
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    if (!strcasecmp(cmd->tx_argv[2], "none"))
+	    {
+		int i = 0;
+		if (CalmaFlattenUsesByName == (char **)NULL) return;
+		while (TRUE)
+		{
+		    char *pattern = CalmaFlattenUsesByName[i];
+		    if (pattern == NULL) break;
+		    freeMagic(pattern);
+		    i++;
+		}
+		freeMagic(CalmaFlattenUsesByName);
+		CalmaFlattenUsesByName = (char **)NULL;
+	    }
+	    else
+	    {
+		char **newpatterns;
+		char *pattern;
+		int i = 0;
+
+		if (CalmaFlattenUsesByName == (char **)NULL)
+		    i = 1;
+		else
+		{
+		    while (TRUE)
+		    {
+			pattern = CalmaFlattenUsesByName[i++];
+			if (pattern == NULL) break;
+		    }
+		}
+		newpatterns = (char **)mallocMagic((i + 1) * sizeof(char *));
+		i = 0;
+		if (CalmaFlattenUsesByName != (char **)NULL)
+		{
+		    while (TRUE)
+		    {
+		    	pattern = CalmaFlattenUsesByName[i];
+		    	if (pattern == NULL) break;
+		    	newpatterns[i] = StrDup((char **)NULL, pattern);
+		    	i++;
+		    }
+		}
+		newpatterns[i++] = StrDup((char **)NULL, cmd->tx_argv[2]);
+		newpatterns[i] = (char *)NULL;
+
+		i = 0;
+		if (CalmaFlattenUsesByName != (char **)NULL)
+		{
+		    while (TRUE)
+		    {
+			pattern = CalmaFlattenUsesByName[i];
+			if (pattern == NULL) break;
+			freeMagic(pattern);
+			i++;
+		    }
+		    freeMagic(CalmaFlattenUsesByName);
+		}
+		CalmaFlattenUsesByName = newpatterns;
+	    }
 	    return;
 
 	case CALMA_ORDERING:
@@ -364,7 +492,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaPostOrder = (option < 3) ? FALSE : TRUE;
+	    CalmaPostOrder = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_ARRAYS:
@@ -384,7 +512,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaFlattenArrays = (option < 3) ? FALSE : TRUE;
+	    CalmaFlattenArrays = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_LOWER:
@@ -404,7 +532,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaDoLower = (option < 3) ? FALSE : TRUE;
+	    CalmaDoLower = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_MERGE:
@@ -426,7 +554,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaMergeTiles = (option < 3) ? FALSE : TRUE;
+	    CalmaMergeTiles = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_POLYS:
@@ -448,7 +576,47 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[3], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaSubcellPolygons = (option < 3) ? FALSE : TRUE;
+	    CalmaSubcellPolygons = (option < 4) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_NO_DUP:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaNoDuplicates));
+#else
+		TxPrintf("Cell defs that exist before reading GDS will not be paresd.\n",
+			(CalmaNoDuplicates) ?  "not " : "");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaNoDuplicates = (option < 4) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_NO_STAMP:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaNoDateStamp));
+#else
+		TxPrintf("Structures will contain a %s header creation date stamp.\n",
+			(CalmaNoDateStamp) ?  "zero" : "valid");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaNoDateStamp = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_PATHS:
@@ -470,7 +638,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[3], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaSubcellPaths = (option < 3) ? FALSE : TRUE;
+	    CalmaSubcellPaths = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_READONLY:
@@ -490,7 +658,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaReadOnly = (option < 3) ? FALSE : TRUE;
+	    CalmaReadOnly = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_RESCALE:
@@ -510,7 +678,7 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CIFRescaleAllow = (option < 3) ? FALSE : TRUE;
+	    CIFRescaleAllow = (option < 4) ? FALSE : TRUE;
 	    if (!CIFRescaleAllow)
 		CIFWarningLevel = CIF_WARN_LIMIT;
 	    return;
@@ -667,8 +835,10 @@ CmdCellname(w, cmd)
 	"window		list top-level cell of a layout window",
 	"create		create a new cell definition",
 	"delete		delete the named cell definition",
+	"dereference	reload the named cell from the search paths",
 	"filepath	list the full path of the file for the cell",
 	"flags		list option flags of the indicated cell definition",
+	"timestamp 	list the cell timestamp",
 	"lock		lock the named cell (prevent changes to cell use)",
 	"unlock		unlock the named cell (allow changes to cell use)",
 	"property	list or set cell definition properties",
@@ -681,10 +851,11 @@ CmdCellname(w, cmd)
     };
     typedef enum { IDX_CHILDREN, IDX_PARENTS, IDX_EXISTS, IDX_SELF,
 		   IDX_INSTANCE, IDX_CHILDINST, IDX_CELLDEF, IDX_ALLCELLS,
-		   IDX_TOPCELLS, IDX_IN_WINDOW, IDX_CREATE,
-		   IDX_DELETE, IDX_FILEPATH, IDX_FLAGS, IDX_LOCK, IDX_UNLOCK,
-		   IDX_PROPERTY, IDX_ABUTMENT, IDX_ORIENTATION, IDX_RENAME,
-		   IDX_READWRITE, IDX_MODIFIED } optionType;
+		   IDX_TOPCELLS, IDX_IN_WINDOW, IDX_CREATE, IDX_DELETE,
+		   IDX_DEREFERENCE, IDX_FILEPATH, IDX_FLAGS, IDX_TIMESTAMP,
+		   IDX_LOCK, IDX_UNLOCK, IDX_PROPERTY, IDX_ABUTMENT,
+		   IDX_ORIENTATION, IDX_RENAME, IDX_READWRITE,
+		   IDX_MODIFIED } optionType;
 
     if (strstr(cmd->tx_argv[0], "in"))
 	is_cellname = FALSE;
@@ -721,8 +892,9 @@ CmdCellname(w, cmd)
     if (option < 0) goto badusage;
 
     if ((locargc > 3) && (option != IDX_RENAME) && (option != IDX_DELETE) &&
-		(option != IDX_READWRITE) && (option != IDX_PROPERTY) &&
-		(option != IDX_FILEPATH) && (option != IDX_ORIENTATION))
+		(option != IDX_DEREFERENCE) && (option != IDX_READWRITE) &&
+		(option != IDX_PROPERTY) && (option != IDX_FILEPATH) &&
+		(option != IDX_ORIENTATION) && (option != IDX_TIMESTAMP))
 	goto badusage;
 
     if ((locargc > 4) && (option != IDX_PROPERTY))
@@ -768,6 +940,7 @@ CmdCellname(w, cmd)
 		return;
 	    case IDX_IN_WINDOW: case IDX_READWRITE: case IDX_FLAGS:
 	    case IDX_PROPERTY: case IDX_FILEPATH: case IDX_MODIFIED:
+	    case IDX_DEREFERENCE: case IDX_TIMESTAMP:
 		TxError("Function unimplemented for instances.\n");
 		return;
 	    case IDX_DELETE:
@@ -843,6 +1016,30 @@ CmdCellname(w, cmd)
 	    }
 	    else
 		TxError("Delete cell command missing cellname\n");
+	    break;
+
+	case IDX_DEREFERENCE:
+	    /* Unload the cell definition and re-read with search paths */
+	    if (locargc == 3)
+	    {
+		void cmdFlushCell();
+
+		if (cellname == NULL)
+		    cellDef = EditRootDef;
+		else
+		    cellDef = DBCellLookDef(cellname);
+
+		/* Reload cell with dereferencing */
+		if (cellDef == NULL)
+		{
+		    TxError("No such cell \"%s\"\n", cellname);
+		    break;
+		}
+		cmdFlushCell(cellDef, TRUE);
+		SelectClear();
+	    }
+	    else
+		TxError("Dereference cell command missing cellname\n");
 	    break;
 
 	case IDX_READWRITE:
@@ -994,6 +1191,35 @@ CmdCellname(w, cmd)
 	    }
 	    break;
 
+	case IDX_TIMESTAMP:
+	    if (cellname == NULL)
+		cellDef = EditRootDef;
+	    else
+		cellDef = DBCellLookDef(cellname);
+	    if (cellDef == (CellDef *) NULL)
+	    {
+		TxError("Unknown cell %s\n", cellname);
+		break;
+	    }
+	    if ((locargc == 3) || (locargc == 2 && cellname == NULL))
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(cellDef->cd_timestamp));
+#else
+	    	TxPrintf("Timestamp for cell %s = %d\n", cellname, cellDef->cd_timestamp);
+#endif
+	    }
+	    else if (locargc == 4 || (locargc == 3 && cellname == NULL))
+	    {
+		int timestamp = atoi(cmd->tx_argv[2 + ((cellname == NULL) ? 0 : 1)]);
+		if (timestamp != cellDef->cd_timestamp)
+		{
+		    cellDef->cd_timestamp = timestamp;
+		    cellDef->cd_flags &= ~CDGETNEWSTAMP;
+		}
+	    }
+	    break;
+
 	case IDX_FLAGS:
 	    if (cellname == NULL)
 		cellDef = EditRootDef;
@@ -1133,6 +1359,7 @@ CmdCif(w, cmd)
     bool doforall = FALSE;
     float curscale;
     int argc = cmd->tx_argc;
+    int argshift;
     char **argv = cmd->tx_argv;
 
     static char *cmdCifWarnOptions[] = { "default", "none", "align",
@@ -1288,10 +1515,10 @@ CmdCif(w, cmd)
 		    TxError("Box requested but no cursor box exists\n");
 		    return;
 		}
-		CIFCoverageLayer(rootDef, &box, argv[2]);
+		CIFCoverageLayer(rootDef, &box, argv[2], dolist);
 	    }
 	    else if (argc == 3)
-		CIFCoverageLayer(rootDef, &rootDef->cd_bbox, argv[2]);
+		CIFCoverageLayer(rootDef, &rootDef->cd_bbox, argv[2], dolist);
 	    else
 		goto wrongNumArgs;
 

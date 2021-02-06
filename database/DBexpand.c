@@ -275,7 +275,8 @@ dbUnexpandFunc(scx, arg)
  * the given rectangle.
  *
  * Results:
- *	None.
+ *	If "halt_on_error" is TRUE, then return 1 if any subcell could not
+ *	be read.  Otherwise, return 0.
  *
  * Side effects:
  *	May make new cells known to the database.  Sets the CDAVAILABLE
@@ -284,10 +285,11 @@ dbUnexpandFunc(scx, arg)
  * ----------------------------------------------------------------------------
  */
 
-void
-DBCellReadArea(rootUse, rootRect)
+int
+DBCellReadArea(rootUse, rootRect, halt_on_error)
     CellUse *rootUse;	/* Root cell use from which search begins */
     Rect *rootRect;	/* Area to be read, in root coordinates */
+    bool halt_on_error;	/* If TRUE, failure to find a cell causes a halt */
 {
     int dbReadAreaFunc();
     SearchContext scontext;
@@ -295,30 +297,39 @@ DBCellReadArea(rootUse, rootRect)
     scontext.scx_use = rootUse;
     scontext.scx_trans = GeoIdentityTransform;
     scontext.scx_area = *rootRect;
-    (void) dbReadAreaFunc(&scontext);
+    if (dbReadAreaFunc(&scontext, halt_on_error) == 1)
+	return 1;
+
+    return 0;
 }
 
 int
-dbReadAreaFunc(scx)
+dbReadAreaFunc(scx, halt_on_error)
     SearchContext *scx;	/* Pointer to context specifying
 					 * the cell use to be read in, and
 					 * an area to be recursively read in
 					 * coordinates of the cell use's def.
 					 */
+    bool halt_on_error;	/* If TURE, failure to find a cell causes a halt */
 {
     CellDef *def = scx->scx_use->cu_def;
 
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	(void) DBCellRead(def, (char *) NULL, TRUE, dereference, NULL);
+	if (DBCellRead(def, (char *)NULL, TRUE, dereference, NULL) == FALSE)
+	    if (halt_on_error)
+		return 1;
+
 	/* Note: we don't have to invoke DBReComputeBbox here because
 	 * if the bbox changed then there was a timestamp mismatch and
 	 * the timestamp code will take care of the bounding box later.
 	 */
     }
 
-    (void) DBCellSrArea(scx, dbReadAreaFunc, (ClientData) NULL);
+    if (DBCellSrArea(scx, dbReadAreaFunc, (ClientData)halt_on_error))
+	if (halt_on_error)
+	    return 1;
 
     /* Be clever about handling arrays:  if the search area covers this
      * whole definition, then there's no need to look at any other
@@ -328,5 +339,6 @@ dbReadAreaFunc(scx)
 
     if (GEO_SURROUND(&scx->scx_area, &scx->scx_use->cu_def->cd_bbox))
 	return 2;
+
     return 0;
 }

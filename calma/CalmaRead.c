@@ -63,6 +63,11 @@ bool CalmaFlattenUses = FALSE;		/* If TRUE, small cells in the input
 					 * performance when handling contacts
 					 * saved as subcell arrays.
 					 */
+char **CalmaFlattenUsesByName = NULL;	/* NULL-terminated list of strings
+					 * to do glob-style pattern matching
+					 * to determine what cells to flatten
+					 * by cellname.
+					 */
 bool CalmaReadOnly = FALSE;		/* Set files to read-only and
 					 * retain file position information
 					 * so cells can be written verbatim.
@@ -76,6 +81,11 @@ bool CalmaPostOrder = FALSE;		/* If TRUE, forces the GDS parser to
 					 * necessary, e.g., when we need to
 					 * flatten cells that are contact cuts.
 					 * Added by Nishit 8/16/2004
+					 */
+bool CalmaNoDuplicates = FALSE;		/* If TRUE, then if a cell exists in
+					 * memory with the same name as a cell	
+					 * in the GDS file, then the cell in
+					 * the GDS file is skipped.
 					 */
 extern void calmaUnexpected();
 extern int calmaWriteInitFunc();
@@ -375,7 +385,7 @@ CalmaReadError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
             {
                 fprintf(calmaErrorFile, "Error while reading cell \"%s\" ",
                                 cifReadCellDef->cd_name);
-		fprintf(calmaErrorFile, "(byte position %"DLONG_PREFIX"ld): ",
+		fprintf(calmaErrorFile, "(byte position %"DLONG_PREFIX"d): ",
 				(dlong)filepos);
                 fprintf(calmaErrorFile, format, a1, a2, a3, a4, a5, a6, a7,
                                 a8, a9, a10);

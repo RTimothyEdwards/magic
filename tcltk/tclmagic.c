@@ -1191,7 +1191,7 @@ int
 Tclmagic_Init(interp)
     Tcl_Interp *interp;
 {
-    char *cadroot;
+    const char *cadroot;
 
     /* Sanity check! */
     if (interp == NULL) return TCL_ERROR;
@@ -1221,12 +1221,18 @@ Tclmagic_Init(interp)
 
     Tcl_Eval(interp, "lappend auto_path " TCL_DIR );
 
-    /* Set $CAD_ROOT as a Tcl variable */
+    /* Get $CAD_ROOT from a Tcl variable, if it exists, and if not, then */
+    /* set CAD_ROOT from the environment variable of the same name, if	 */
+    /* it exists, and finally fall back on the CAD_DIR set at compile	 */
+    /* time.								 */
 
-    cadroot = getenv("CAD_ROOT");
-    if (cadroot == NULL) cadroot = CAD_DIR;
-
-    Tcl_SetVar(interp, "CAD_ROOT", cadroot, TCL_GLOBAL_ONLY);
+    cadroot = Tcl_GetVar(interp, "CAD_ROOT", TCL_GLOBAL_ONLY);
+    if (cadroot == NULL)
+    {
+	cadroot = (const char *)getenv("CAD_ROOT");
+	if (cadroot == NULL) cadroot = CAD_DIR;
+	Tcl_SetVar(interp, "CAD_ROOT", cadroot, TCL_GLOBAL_ONLY);
+    }
 
     Tcl_PkgProvide(interp, "Tclmagic", MAGIC_VERSION);
     return TCL_OK;

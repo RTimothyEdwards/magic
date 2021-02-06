@@ -628,6 +628,16 @@ drcTile (tile, arg)
 			drcCheckRectSize(tile, arg, cptr);
 		    continue;
 		}
+		/* Off-grid checks apply only to edge */
+		if (cptr->drcc_flags & DRC_OFFGRID)
+		{
+		    errRect.r_ytop = edgeTop;
+		    errRect.r_ybot = edgeBot;
+		    errRect.r_xtop = errRect.r_xbot = edgeX;
+		    arg->dCD_cptr = cptr;
+		    drcCheckOffGrid(&errRect, arg, cptr);
+		    continue;
+		}
 
 		result = 0;
 		arg->dCD_radial = 0;
@@ -991,11 +1001,20 @@ checkbottom:
 		    }
 		    continue;
 		}
-		else if (cptr->drcc_flags & (DRC_AREA | DRC_RECTSIZE
-				| DRC_MAXWIDTH))
+		else if (cptr->drcc_flags & (DRC_AREA | DRC_RECTSIZE | DRC_MAXWIDTH))
 		{
 		    /* only have to do these checks in one direction */
 		    if (trigpending) cptr = cptr->drcc_next;
+		    continue;
+		}
+		/* Off-grid checks apply only to edge */
+		if (cptr->drcc_flags & DRC_OFFGRID)
+		{
+		    errRect.r_xtop = edgeRight;
+		    errRect.r_xbot = edgeLeft;
+		    errRect.r_ytop = errRect.r_ybot = edgeY;
+		    arg->dCD_cptr = cptr;
+		    drcCheckOffGrid(&errRect, arg, cptr);
 		    continue;
 		}
 

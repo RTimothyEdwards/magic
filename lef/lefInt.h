@@ -35,6 +35,10 @@ typedef struct
 #define DO_SPECIAL  1
 #define ALL_SPECIAL 2	/* treat all nets as SPECIALNETS */
 
+/* Used with defMakeInverseLayerMap() */
+#define LAYER_MAP_NO_VIAS	FALSE
+#define LAYER_MAP_VIAS		TRUE
+
 /* For a linked list of rectangular areas, use the LinkedRect structure	*/
 /* defined in utils/geometry.h.						*/
 
