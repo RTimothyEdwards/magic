@@ -48,7 +48,7 @@ static PaintResultType (*dbCurPaintTbl)[NT][NT] = DBPaintResultTbl;
  * such as the design-rule checker that need to use, for example,
  * DBPaintPlaneMark instead of the standard version.
  */
-static void (*dbCurPaintPlane)() = DBPaintPlaneWrapper;
+static int (*dbCurPaintPlane)() = DBPaintPlaneWrapper;
 
     /* Structure passed to DBTreeSrTiles() */
 struct copyAllArg
@@ -56,6 +56,7 @@ struct copyAllArg
     TileTypeBitMask	*caa_mask;	/* Mask of tile types to be copied */
     Rect		 caa_rect;	/* Clipping rect in target coords */
     CellUse		*caa_targetUse;	/* Use to which tiles are copied */
+    void		(*caa_func)();	/* Callback function for off-grid points */
     Rect		*caa_bbox;	/* Bbox of material copied (in
 					 * targetUse coords).  Used only when
 					 * copying cells.
@@ -96,7 +97,7 @@ struct copyLabelArg
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 DBPaintPlaneWrapper(def, pNum, type, area, undo)
     CellDef *def;
     int pNum;
@@ -106,12 +107,14 @@ DBPaintPlaneWrapper(def, pNum, type, area, undo)
 {
     TileType loctype = type & TT_LEFTMASK;
     Rect expand;
+    int result;
 
     undo->pu_pNum = pNum;
-    DBNMPaintPlane(def->cd_planes[pNum], type, area,
+    result = DBNMPaintPlane(def->cd_planes[pNum], type, area,
 		dbCurPaintTbl[pNum][loctype], undo);
     GEO_EXPAND(area, 1, &expand);
     DBMergeNMTiles(def->cd_planes[pNum], &expand, undo);
+    return result;
 }
 
 /*
@@ -126,7 +129,7 @@ DBPaintPlaneWrapper(def, pNum, type, area, undo)
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 DBPaintPlaneMark(def, pNum, type, area, undo)
     CellDef *def;
     int pNum;
@@ -137,7 +140,7 @@ DBPaintPlaneMark(def, pNum, type, area, undo)
     TileType loctype = type & TT_LEFTMASK;
 
     undo->pu_pNum = pNum;
-    DBNMPaintPlane0(def->cd_planes[pNum], type, area,
+    return DBNMPaintPlane0(def->cd_planes[pNum], type, area,
 		dbCurPaintTbl[pNum][loctype], undo, (unsigned char)PAINT_MARK);
 }
 
@@ -147,7 +150,7 @@ DBPaintPlaneMark(def, pNum, type, area, undo)
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 DBPaintPlaneXor(def, pNum, type, area, undo)
     CellDef *def;
     int pNum;
@@ -158,7 +161,7 @@ DBPaintPlaneXor(def, pNum, type, area, undo)
     TileType loctype = type & TT_LEFTMASK;
 
     undo->pu_pNum = pNum;
-    DBNMPaintPlane0(def->cd_planes[pNum], type, area,
+    return DBNMPaintPlane0(def->cd_planes[pNum], type, area,
 		dbCurPaintTbl[pNum][loctype], undo, (unsigned char)PAINT_XOR);
 }
 
@@ -175,7 +178,7 @@ DBPaintPlaneXor(def, pNum, type, area, undo)
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 DBPaintPlaneActive(def, pNum, type, area, undo)
     CellDef *def;
     int pNum;
@@ -200,11 +203,13 @@ DBPaintPlaneActive(def, pNum, type, area, undo)
 			DBPaintPlaneWrapper(def, pNum, t | (type &
 				(TT_SIDE | TT_DIRECTION | TT_DIAGONAL)),
 				area, undo);
-	    return;
+	    return 0;
 	}
     }
     if (TTMaskHasType(&DBActiveLayerBits, loctype))
-	DBPaintPlaneWrapper(def, pNum, type, area, undo);
+	return DBPaintPlaneWrapper(def, pNum, type, area, undo);
+    else
+	return 0;
 }
 
 /*
@@ -241,6 +246,7 @@ DBCellCopyManhattanPaint(scx, mask, xMask, targetUse)
 
     arg.caa_mask = mask;
     arg.caa_targetUse = targetUse;
+    arg.caa_func = NULL;
     GEOTRANSRECT(&scx->scx_trans, &scx->scx_area, &arg.caa_rect);
 
     (void) DBTreeSrTiles(scx, mask, xMask, dbCopyManhattanPaint, (ClientData) &arg);
@@ -281,6 +287,52 @@ DBCellCopyAllPaint(scx, mask, xMask, targetUse)
 
     arg.caa_mask = mask;
     arg.caa_targetUse = targetUse;
+    arg.caa_func = NULL;
+    GEOTRANSRECT(&scx->scx_trans, &scx->scx_area, &arg.caa_rect);
+
+    /* Add any stacking types for the search (but not to mask passed as arg!) */
+    locMask = *mask;
+    DBMaskAddStacking(&locMask);
+
+    DBTreeSrTiles(scx, &locMask, xMask, dbCopyAllPaint, (ClientData) &arg);
+}
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * DBCellCheckCopyAllPaint --
+ *
+ * Copy paint from the tree rooted at scx->scx_use to the paint planes
+ * of targetUse, transforming according to the transform in scx.
+ * Only the types specified by typeMask are copied.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Updates the paint planes in targetUse.
+ *
+ *-----------------------------------------------------------------------------
+ */
+
+void
+DBCellCheckCopyAllPaint(scx, mask, xMask, targetUse, func)
+    SearchContext *scx;		/* Describes root cell to search, area to
+				 * copy, transform from root cell to coords
+				 * of targetUse.
+				 */
+    TileTypeBitMask *mask;	/* Types of tiles to be yanked/stuffed */
+    int xMask;			/* Expansion state mask to be used in search */
+    CellUse *targetUse;		/* Cell into which material is to be stuffed */
+    void (*func)();		/* Function to call on tile split error */
+{
+    TileTypeBitMask locMask;
+    struct copyAllArg arg;
+    int dbCopyAllPaint();
+
+    arg.caa_mask = mask;
+    arg.caa_targetUse = targetUse;
+    arg.caa_func = func;
     GEOTRANSRECT(&scx->scx_trans, &scx->scx_area, &arg.caa_rect);
 
     /* Add any stacking types for the search (but not to mask passed as arg!) */
@@ -441,7 +493,7 @@ DBCellCopyPaint(scx, mask, xMask, targetUse)
     for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
 	if (PlaneMaskHasPlane(planeMask, pNum))
 	{
-	    cxp.tc_plane = pNum; /* not used? */
+	    cxp.tc_plane = pNum;
 	    (void) DBSrPaintArea((Tile *) NULL,
 		scx->scx_use->cu_def->cd_planes[pNum], &scx->scx_area,
 		mask, dbCopyAllPaint, (ClientData) &cxp);
@@ -590,6 +642,7 @@ dbCopyAllPaint(tile, cxp)
     CellDef *def;
     TileType type = TiGetTypeExact(tile);
     int pNum = cxp->tc_plane;
+    int result;
     TileTypeBitMask *typeMask;
 
     /*
@@ -752,7 +805,12 @@ topbottom:
 
 splitdone:
 
-    (*dbCurPaintPlane)(def, pNum, dinfo | type, &targetRect, &ui);
+    result = (*dbCurPaintPlane)(def, pNum, dinfo | type, &targetRect, &ui);
+    if ((result != 0) && (arg->caa_func != NULL))
+    {
+	/* result == 1 used exclusively for DRC off-grid error flagging */
+	DRCOffGridError(&targetRect);
+    }
 
     return (0);
 }
@@ -1013,11 +1071,11 @@ DBNewPaintTable(newTable))[NT][NT]
  * ----------------------------------------------------------------------------
  */
 
-VoidProc
+IntProc
 DBNewPaintPlane(newProc)
-    void (*newProc)();		/* Address of new procedure */
+    int (*newProc)();		/* Address of new procedure */
 {
-    void (*oldProc)() = dbCurPaintPlane;
+    int (*oldProc)() = dbCurPaintPlane;
     dbCurPaintPlane = newProc;
     return (oldProc);
 }

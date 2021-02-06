@@ -119,7 +119,7 @@ PaExpand(psource, pdest, size)
 {
     char *ps, *pd;
     struct passwd *passwd, *getpwnam();
-    char expandName[100], *string, *newEntry;
+    char expandName[512], *string, *newEntry;
     HashEntry *h;
     int i, length;
 
@@ -135,7 +135,7 @@ PaExpand(psource, pdest, size)
 	    *pd = *++ps;
 	    if (isspace(*pd) || (*pd=='\0') || (*pd=='/') || (*pd==':'))
 		break;
-	    if (i < 99) pd++;
+	    if (i < 511) pd++;
 	}
 	*pd = '\0';
 
@@ -196,7 +196,7 @@ PaExpand(psource, pdest, size)
 	    *pd = *++ps;
 	    if (isspace(*pd) || (*pd=='\0') || (*pd=='/') || (*pd==':'))
 		break;
-	    if (i < 99) pd++;
+	    if ((i < 511) && (*pd != '{') && (*pd != '}')) pd++;
 	}
 	saveChar = *pd;
 	*pd = '\0';
@@ -226,7 +226,11 @@ PaExpand(psource, pdest, size)
 	if (string == NULL)
 	{
 	    /* Check for CAD_ROOT = CAD_DIR, the only internal variable */
-	    /* recognized (this is passed down from the Makefile)	*/
+	    /* recognized (this is passed down from the Makefile).	*/
+	    /* Note that in the MAGIC_WRAPPER version, CAD_ROOT was set	*/
+	    /* as a Tcl variable in tcltk/tclmagic.c, such that if	*/
+	    /* expandName == "CAD_ROOT", then string should not be NULL	*/
+	    /* here.							*/
 
 	    if (!strcmp(expandName, "CAD_ROOT"))
 		string = CAD_DIR;

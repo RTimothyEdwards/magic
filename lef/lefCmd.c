@@ -113,7 +113,7 @@ CmdLef(w, cmd)
     {
 	"read [filename]		read a LEF file filename[.lef]\n"
 	"    read [filename] -import	read a LEF file; import cells from .mag files\n"
-	"    read [filename] -annotate	read a LEF file for cell annotation only."
+	"    read [filename] -annotate	read a LEF file for cell annotation only.",
 	"write [filename] [-tech]	write LEF for current cell\n"
 	"    write [filename] -hide	hide all details other than ports\n"
 	"    write [filename] -hide <d>	hide details in area set back distance <d>",
@@ -129,7 +129,7 @@ CmdLef(w, cmd)
     static char *cmdDefOption[] =
     {
 	"read [filename]		read a DEF file filename[.def]",
-	"write [cell] [-allspecial]	write DEF for current or indicated cell\n",
+	"write [cell] [-allspecial]	write DEF for current or indicated cell\n"
 	"write -labels			label every net in NETS with the net name",
 	"writeall			(use \"flatten -nosubckt\" + \"def"
 					" write\" instead)",

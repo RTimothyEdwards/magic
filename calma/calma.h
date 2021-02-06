@@ -31,13 +31,17 @@ extern bool CalmaDoLabels;
 extern bool CalmaDoLibrary;
 extern bool CalmaDoLower;
 extern bool CalmaAddendum;
+extern bool CalmaNoDuplicates;
+extern bool CalmaNoDateStamp;
 extern bool CalmaMergeTiles;
 extern bool CalmaFlattenArrays;
 extern bool CalmaNoDRCCheck;
 extern bool CalmaFlattenUses;
+extern char **CalmaFlattenUsesByName;
 extern bool CalmaReadOnly;
 extern bool CalmaContactArrays;
 extern bool CalmaPostOrder;
+extern bool CalmaAllowUndefined;
 
 /* Externally-visible procedures: */
 extern bool CalmaWrite();

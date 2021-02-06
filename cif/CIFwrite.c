@@ -132,14 +132,18 @@ CIFWrite(rootDef, f)
      */
 
     dummy.cu_def = rootDef;
-    DBCellReadArea(&dummy, &rootDef->cd_bbox);
+    if (DBCellReadArea(&dummy, &rootDef->cd_bbox, TRUE))
+    {
+	TxError("Failure to read in entire subtree of the cell.\n");
+	return (FALSE);
+    }
     DBFixMismatch();
 
     if (CIFCurStyle->cs_reducer == 0)
     {
 	TxError("The current CIF output style can only be used for writing\n");
 	TxError("Calma output.  Try picking another output style.\n");
-	return (TRUE);
+	return (FALSE);
     }
 
     /*

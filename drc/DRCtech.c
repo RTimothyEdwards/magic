@@ -73,7 +73,7 @@ static int DRCtag = 0;
 int drcWidth(), drcSpacing(), drcEdge(), drcNoOverlap();
 int drcExactOverlap(), drcExtend();
 int drcSurround(), drcRectOnly(), drcOverhang();
-int drcStepSize(), drcOption();
+int drcStepSize(), drcOption(), drcOffGrid();
 int drcMaxwidth(), drcArea(), drcRectangle(), drcAngles();
 int drcCifSetStyle(), drcCifWidth(), drcCifSpacing();
 int drcCifMaxwidth(), drcCifArea();
@@ -587,6 +587,11 @@ DRCTechStyleInit()
     /* (see DRCsubcell.c).					     */
     drcWhyCreate("See error definition in the subcell");
 
+    /* Fifth DRC entry is associated with the statically-allocated   */
+    /* drcOffGridCookie and has a tag of DRC_OFFGRID_TAG = 5	     */
+    /* (see DRCsubcell.c).					     */
+    drcWhyCreate("This position does not align with the manufacturing grid");
+
     DRCTechHalo = 0;
 
     /* Put a dummy rule at the beginning of the rules table for each entry */
@@ -922,7 +927,8 @@ drcCifAssign(cookie, dist, next, mask, corner, tag, cdist, flags, planeto, plane
     int dist, cdist;
     TileTypeBitMask *mask, *corner;
     int tag;
-    int flags, planeto, planefrom;
+    unsigned short flags;
+    int planeto, planefrom;
 {
     (cookie)->drcc_dist = dist;
     (cookie)->drcc_next = next;
@@ -946,7 +952,8 @@ drcAssign(cookie, dist, next, mask, corner, why, cdist, flags, planeto, planefro
     int dist, cdist;
     TileTypeBitMask *mask, *corner;
     int why;
-    int flags, planeto, planefrom;
+    unsigned short flags;
+    int planeto, planefrom;
 {
     /* Diagnostic */
     if (planeto >= DBNumPlanes)
@@ -1040,6 +1047,8 @@ DRCTechAddRule(sectionName, argc, argv)
     "layers1 width layers2 separation adjacency why",
         "area",		 5,	5,	drcArea,
     "layers area horizon why",
+        "off_grid",	 4,	4,	drcOffGrid,
+    "layers pitch why",
         "maxwidth",	 4,	5,	drcMaxwidth,
     "layers maxwidth bends why",
 	"cifstyle",	 2,	2,	drcCifSetStyle,
@@ -1432,6 +1441,85 @@ drcArea(argc, argv)
 	}
     }
     return (horizon);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * drcOffGrid --
+ *
+ * Process an off-grid rule.
+ * This is of the form:
+ *
+ *	off_grid layers pitch why
+ *
+ * e.g,
+ *
+ *	off_grid m1 5 "metal shapes must be on %d grid"
+ *
+ * "pitch" is the grid pitch that shapes must be aligned to.
+ *
+ * Results:
+ *	Returns pitch (the halo for detecting off-grid errors).
+ *
+ * Side effects:
+ *	Updates the DRC technology variables.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+drcOffGrid(argc, argv)
+    int argc;
+    char *argv[];
+{
+    char *layers = argv[1];
+    int pitch = atoi(argv[2]);
+    int why = drcWhyCreate(argv[3]);
+    TileTypeBitMask set, setC;
+    DRCCookie *dp, *dpnew;
+    TileType i, j;
+    PlaneMask pset;
+    int plane;
+
+    DBTechNoisyNameMask(layers, &set);
+    TTMaskCom2(&setC, &set);
+
+    for (i = 0; i < DBNumTypes; i++)
+    {
+	for (j = 0; j < DBNumTypes; j++)
+	{
+	    if (i == j) continue;
+	    /*
+	     * Must have types in 'set' for at least 'distance'
+	     * to the right of any edge between a type in '~set'
+	     * and a type in 'set'.
+	     */
+	    if (pset = (DBTypesOnSamePlane(i, j)))
+	    {
+		if (TTMaskHasType(&setC, i) && TTMaskHasType(&set, j))
+		{
+		    plane = LowestMaskBit(pset);
+
+		    /* find bucket preceding the new one we wish to insert */
+		    dp = drcFindBucket(i, j, pitch);
+		    dpnew = (DRCCookie *) mallocMagic(sizeof (DRCCookie));
+		    drcAssign(dpnew, pitch, dp->drcc_next, &set, &set, why,
+			    0, DRC_OFFGRID|DRC_FORWARD, plane, plane);
+		    dp->drcc_next = dpnew;
+
+		    /* opposite edge also needs to be checked */
+		    dp = drcFindBucket(j, i, pitch);
+		    dpnew = (DRCCookie *) mallocMagic(sizeof (DRCCookie));
+		    drcAssign(dpnew, pitch, dp->drcc_next, &set, &set, why,
+			    0, DRC_OFFGRID|DRC_REVERSE, plane, plane);
+		    dp->drcc_next = dpnew;
+
+		}
+	    }
+	}
+    }
+    return (pitch);
 }
 
 /*

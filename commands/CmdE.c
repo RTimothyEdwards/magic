@@ -951,7 +951,7 @@ CmdExtract(w, cmd)
 	"style [stylename]	set current extraction parameter style",
 	"unique [option]	generate unique names when different nodes\n\
 			have the same name",
-	"warn [ [no] option]	enable/disable reporting of non-fatal errors",
+	"warn [ [no] option]	enable/disable reporting of non-serious errors",
 	NULL
     };
 

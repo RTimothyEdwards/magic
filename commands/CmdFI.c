@@ -729,6 +729,45 @@ usage:
 /*
  * ----------------------------------------------------------------------------
  *
+ * cmdFindLabelFunc --
+ *
+ * Callback function from CmdFindLabel.  Return 1 to stop the search on the
+ * Nth instance of the label named "label", where N is passed through the
+ * client data as lsr_occur.
+ *
+ * The client data record lsr_rect is left pointing to the label location
+ * when the Nth label instance is found.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+typedef struct _labsearchrec
+{
+    Rect lsr_rect;
+    int  lsr_occur;
+} LabSearchRec;
+
+
+int cmdFindLabelFunc(rect, name, label, cdarg)
+    Rect *rect;
+    char *name;
+    Label *label;
+    LabSearchRec *cdarg;
+{
+    if (cdarg->lsr_occur == 0)
+    {
+    	cdarg->lsr_rect = *rect;
+    	return 1;
+    }
+    else
+	cdarg->lsr_occur--;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * CmdFindLabel --
  *
  * Find a label and set the box to it.
@@ -747,16 +786,6 @@ usage:
  * ----------------------------------------------------------------------------
  */
 
-int cmdFindLabelFunc(rect, name, label, cdarg)
-    Rect *rect;
-    char *name;
-    Label *label;
-    Rect *cdarg;
-{
-    *cdarg = *rect;
-    return 1;
-}
-
 void
 CmdFindLabel(w, cmd)
     MagWindow *w;
@@ -764,16 +793,29 @@ CmdFindLabel(w, cmd)
 {
     CellDef *boxDef;
     CellUse *labUse;
-    Rect box, cmdFindLabelRect;
+    Rect box;
     char *labname;
-    int found;
+    int found, occur, plainargs;
     bool doglob = FALSE;   /* csh-style glob matching (see utils/match.c) */
+    LabSearchRec lsr;
     int dbListLabels();	   /* forward declaration */
 
-    if ((cmd->tx_argc == 3) && !strncmp(cmd->tx_argv[1], "-glob", 5))
+    plainargs = cmd->tx_argc;
+    if ((plainargs > 2) && !strncmp(cmd->tx_argv[1], "-glob", 5))
+    {
+	plainargs--;
 	doglob = TRUE;
-    else if (cmd->tx_argc != 2)
+    }
+    if ((plainargs != 2) && (plainargs != 3))
 	goto usage;
+
+    occur = 0;
+    if (plainargs == 3)
+    {
+	char *occurstr = cmd->tx_argv[plainargs - 1];
+	if (StrIsInt(occurstr))
+	    occur = atoi(occurstr);
+    }
 
     if (w == NULL)
     {
@@ -794,7 +836,7 @@ CmdFindLabel(w, cmd)
 	return;
     };
 
-    labname = (cmd->tx_argc == 3) ? cmd->tx_argv[2] : cmd->tx_argv[1];
+    labname = cmd->tx_argv[1 + (doglob) ? 1 : 0];
     labUse = EditCellUse;
     if (labUse == NULL) labUse = (CellUse *)w->w_surfaceID;
 
@@ -815,15 +857,17 @@ CmdFindLabel(w, cmd)
     {
 	/* Exact-match label search (corrected by Nishit, 10/14/04) */
 
+	lsr.lsr_occur = occur;
+
 	found = DBSrLabelLoc(labUse, labname, cmdFindLabelFunc,
-		(ClientData) &cmdFindLabelRect);
+		(ClientData) &lsr);
 	if (found) {
-	    if (cmdFindLabelRect.r_xbot == cmdFindLabelRect.r_xtop)
-		cmdFindLabelRect.r_xtop++;
-	    if (cmdFindLabelRect.r_ybot == cmdFindLabelRect.r_ytop)
-		cmdFindLabelRect.r_ytop++;
-	    ToolMoveBox(TOOL_BL,&cmdFindLabelRect.r_ll,FALSE,labUse->cu_def);
-	    ToolMoveCorner(TOOL_TR,&cmdFindLabelRect.r_ur,FALSE,labUse->cu_def);
+	    if (lsr.lsr_rect.r_xbot == lsr.lsr_rect.r_xtop)
+		lsr.lsr_rect.r_xtop++;
+	    if (lsr.lsr_rect.r_ybot == lsr.lsr_rect.r_ytop)
+		lsr.lsr_rect.r_ytop++;
+	    ToolMoveBox(TOOL_BL, &lsr.lsr_rect.r_ll, FALSE, labUse->cu_def);
+	    ToolMoveCorner(TOOL_TR, &lsr.lsr_rect.r_ur, FALSE, labUse->cu_def);
 	} else {
 	    TxError("Couldn't find label %s\n", labname);
 	}
@@ -869,10 +913,12 @@ dbListLabels(scx, label, tpath, cdarg)
  * Implement the "flush" command.
  * Throw away all changes made within magic to the specified cell,
  * and re-read it from disk.  If no cell is specified, the default
- * is the current edit cell.
+ * is the current edit cell.  If "-dereference" is specified as an
+ * option, then re-read the cell from the search path instead of
+ * the file path that has been associated with the cell.
  *
  * Usage:
- *	flush [cellname]
+ *	flush [cellname] [-dereference]
  *
  * Results:
  *	None.
@@ -893,10 +939,17 @@ CmdFlush(w, cmd)
     int action;
     static char *actionNames[] = { "no", "yes", 0 };
     char *prompt;
+    bool dereference = FALSE;
+
+    if (!strncmp(cmd->tx_argv[cmd->tx_argc - 1], "-deref", 6))
+    {
+	dereference = TRUE;
+	cmd->tx_argc--;
+    }
 
     if (cmd->tx_argc > 2)
     {
-	TxError("Usage: flush [cellname]\n");
+	TxError("Usage: flush [cellname] [dereference]\n");
 	return;
     }
 
@@ -926,7 +979,7 @@ CmdFlush(w, cmd)
 	    return;
     }
 
-    cmdFlushCell(def);
+    cmdFlushCell(def, dereference);
     SelectClear();
     TxPrintf("[Flushed]\n");
 }
@@ -1565,8 +1618,8 @@ CmdFindNetProc(nodename, use, rect, warn_not_found)
     /* go to that point (transformed to the top level of the design  */
     /* hierarchy).						     */
 
-    /* see extract/extractInt.h for the format of the node, found in */
-    /* extMakeNodeNumPrint(), which is a macro, not a subroutine.    */
+    /* see extract/extBasic.c for the format of the node, found */
+    /* in extMakeNodeNumPrint().				*/
 
     locvalid = FALSE;
     if ((xstr = strchr(s, '_')) != NULL)
@@ -1816,6 +1869,9 @@ flatCopyAllLabels(scx, lab, tpath, targetUse)
     char	labelname[1024];
     char *n, *f, c;
 
+    /* Ignore null labels */
+    if (*lab->lab_text == '\0') return 0;
+
     def = targetUse->cu_def;
     if (!GEO_LABEL_IN_AREA(&lab->lab_rect, &(scx->scx_area))) return 0;
     GeoTransRect(&scx->scx_trans, &lab->lab_rect, &labTargetRect);
@@ -1876,7 +1932,7 @@ CmdFlatten(w, cmd)
     TxCommand *cmd;
 {
      int		rval, xMask;
-     bool		dolabels, toplabels, invert;
+     bool		dolabels, dobox, toplabels, invert;
      char		*destname;
      CellDef		*newdef;
      CellUse		*newuse;
@@ -1887,6 +1943,7 @@ CmdFlatten(w, cmd)
     xMask = CU_DESCEND_ALL;
     dolabels = TRUE;
     toplabels = FALSE;
+    dobox = FALSE;
 
     rval = 0;
     if (cmd->tx_argc > 2)
@@ -1912,6 +1969,9 @@ CmdFlatten(w, cmd)
 	    {
 		switch(cmd->tx_argv[i][3])
 		{
+		    case 'b':
+			dobox = (invert) ? FALSE : TRUE;
+			break;
 		    case 'l':
 			dolabels = (invert) ? FALSE : TRUE;
 			break;
@@ -1926,7 +1986,7 @@ CmdFlatten(w, cmd)
 			break;
 		    default:
 			TxError("options are: -nolabels, -nosubcircuits "
-				"-novendor, -dotoplabels\n");
+				"-novendor, -dotoplabels, -dobox\n");
 			break;
 		}
 	    }
@@ -1953,7 +2013,6 @@ CmdFlatten(w, cmd)
     (void) StrDup(&(newuse->cu_id), "Flattened cell");
     DBSetTrans(newuse, &GeoIdentityTransform);
     newuse->cu_expandMask = CU_DESCEND_SPECIAL;
-    UndoDisable();
     flatDestUse = newuse;
 
     if (EditCellUse)
@@ -1961,8 +2020,27 @@ CmdFlatten(w, cmd)
     else
 	scx.scx_use = (CellUse *)w->w_surfaceID;
 
-    scx.scx_area = scx.scx_use->cu_def->cd_bbox;
+    if (dobox)
+    {
+	CellDef *boxDef;
+
+    	if (!ToolGetBox(&boxDef, &scx.scx_area))
+	{
+	    TxError("Put the box in a window first.\n");
+	    return;
+	}
+	else if (boxDef != scx.scx_use->cu_def)
+	{
+	    TxError("The box is not in the edit cell!\n");
+	    return;
+	}
+    }
+    else
+	scx.scx_area = scx.scx_use->cu_def->cd_bbox;
+
     scx.scx_trans = GeoIdentityTransform;
+
+    UndoDisable();
 
     DBCellCopyAllPaint(&scx, &DBAllButSpaceAndDRCBits, xMask, flatDestUse);
     if (dolabels)
@@ -1980,5 +2058,3 @@ CmdFlatten(w, cmd)
 
     UndoEnable();
 }
-
-

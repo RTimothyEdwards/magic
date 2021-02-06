@@ -21,6 +21,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include "tcltk/tclmagic.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "tiles/tile.h"
@@ -162,6 +163,10 @@ CIFPaintLayer(rootDef, area, cifLayer, magicLayer, paintDef)
     scx.scx_trans = GeoIdentityTransform;
     (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
+    CIFCopyMaskHints(rootDef, CIFComponentDef);
+    DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
+                (ClientData)CIFComponentDef);
+
     oldCount = DBWFeedbackCount;
 
     CIFGen(CIFComponentDef, rootDef, area, CIFPlanes, &depend, TRUE, TRUE, FALSE,
@@ -278,6 +283,10 @@ CIFSeeLayer(rootDef, area, layer)
     scx.scx_trans = GeoIdentityTransform;
     (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
+    CIFCopyMaskHints(rootDef, CIFComponentDef);
+    DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
+                (ClientData)CIFComponentDef);
+
     oldCount = DBWFeedbackCount;
     CIFGen(CIFComponentDef, rootDef, area, CIFPlanes, &depend, TRUE, TRUE,
 		FALSE, (ClientData)NULL);
@@ -414,10 +423,11 @@ typedef struct {
 } coverstats;
 
 void
-CIFCoverageLayer(rootDef, area, layer)
+CIFCoverageLayer(rootDef, area, layer, dolist)
     CellDef *rootDef;		/* Def in which to compute CIF coverage */
     Rect *area;			/* Area in which to compute coverage */
     char *layer;		/* CIF layer for coverage computation. */
+    bool dolist;		/* If TRUE, report only the value, in decimal */
 {
     coverstats cstats;
     int i, scale;
@@ -443,6 +453,10 @@ CIFCoverageLayer(rootDef, area, layer)
     scx.scx_trans = GeoIdentityTransform;
     (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
+    CIFCopyMaskHints(rootDef, CIFComponentDef);
+    DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
+                (ClientData)CIFComponentDef);
+
     CIFGen(CIFComponentDef, rootDef, area, CIFPlanes, &depend, TRUE, TRUE,
 		FALSE, (ClientData)NULL);
     DBCellClearDef(CIFComponentDef);
@@ -470,12 +484,26 @@ CIFCoverageLayer(rootDef, area, layer)
     atotal = (long long)(cstats.bounds.r_xtop - cstats.bounds.r_xbot);
     atotal *= (long long)(cstats.bounds.r_ytop - cstats.bounds.r_ybot);
 
-    TxPrintf("%s Area = %lld CIF units^2\n", doBox ?  "Cursor Box" :
+    if (dolist)
+    {
+#ifdef MAGIC_WRAPPER
+	Tcl_Obj *pobj;
+
+	pobj = Tcl_NewDoubleObj((double)fcover);
+	Tcl_SetObjResult(magicinterp, pobj);
+#else
+    	TxPrintf("%g\n", fcover);
+#endif
+    }
+    else
+    {
+    	TxPrintf("%s Area = %lld CIF units^2\n", doBox ?  "Cursor Box" :
 		"Cell", btotal);
-    TxPrintf("Layer Bounding Area = %lld CIF units^2\n", atotal);
-    TxPrintf("Layer Total Area = %lld CIF units^2\n", cstats.coverage);
-    TxPrintf("Coverage in %s = %1.1f%%\n", doBox ? "box" :
+    	TxPrintf("Layer Bounding Area = %lld CIF units^2\n", atotal);
+    	TxPrintf("Layer Total Area = %lld CIF units^2\n", cstats.coverage);
+    	TxPrintf("Coverage in %s = %1.1f%%\n", doBox ? "box" :
 		"cell", 100.0 * fcover);
+    }
 }
 
 int

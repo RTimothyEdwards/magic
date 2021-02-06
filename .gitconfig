@@ -1,5 +1,0 @@
-[filter "header"]
-	smudge = ./.git-expand-header %f
-	clean = sed -e's/\\$Header:[^$]*\\$/\\$Header\\$/g'
-[diff "gds"]
-        textconv = hexdump -v -C

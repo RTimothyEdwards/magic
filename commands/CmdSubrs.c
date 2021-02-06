@@ -285,11 +285,14 @@ CmdInit()
  */
 
 void
-cmdFlushCell(def)
+cmdFlushCell(def, force_deref)
     CellDef *def;
+    bool force_deref;
 {
     CellUse *parentUse;
     bool dereference;
+
+    if (def == NULL) return;
 
     /* Disallow flushing a cell that contains the edit cell as a child */
     if (EditCellUse && (EditCellUse->cu_parent == def))
@@ -300,6 +303,15 @@ cmdFlushCell(def)
     }
 
     UndoFlush();
+
+    if (force_deref)
+    {
+	/* Force dereferencing */
+	def->cd_flags |= CDDEREFERENCE;
+	freeMagic(def->cd_file);
+	def->cd_file = NULL;
+    }
+
     DBWAreaChanged(def, &def->cd_bbox, DBW_ALLWINDOWS,
 	(TileTypeBitMask *) NULL);
     for (parentUse = def->cd_parents; parentUse != NULL;

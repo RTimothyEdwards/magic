@@ -182,7 +182,7 @@ typedef struct lreg
 typedef struct
 {
     int		 pa_perim;
-    int		 pa_area;
+    dlong	 pa_area;
 } PerimArea;
 
 typedef struct nreg
@@ -238,28 +238,6 @@ typedef struct {
     CapValue	subcap_final;
     CapValue	subcap_adjust;
 } SubCapAdjust;
-
-/*
- * The following constructs a node name from the plane number 'n'
- * and lower left Point l, and places it in the string 's' (which must
- * be large enough).
- */
-#define	extMakeNodeNumPrint(buf, plane, coord) \
-    (void) sprintf((buf), "%s_%s%d_%s%d#", DBPlaneShortName(plane), \
-	((coord).p_x < 0) ? "n": "", abs((coord).p_x), \
-	((coord).p_y < 0) ? "n": "", abs((coord).p_y))
-
-/* Old way:  cryptic numbers, but a bit shorter
- *
- * #define extMakeNodeNumPrint(s, n, l) \
- * (void) sprintf((s), "%d_%d_%d#", (n), extCoord((l).p_x), extCoord((l).p_y))
- *
- * The following is used to map the full coordinate space into
- * the positive integers, for constructing internally generated
- * node names.
- *
- * #define	extCoord(x)	(((x) < 0) ? (1 - ((x) << 1)) : ((x) << 1))
- */
 
 /*
  * Argument passed to filter functions for finding regions.
@@ -1076,6 +1054,7 @@ extern NodeRegion *extFindNodes();
 extern ExtTree *extHierNewOne();
 extern int extNbrPushFunc();
 extern TileType extGetDevType();
+extern void extMakeNodeNumPrint();
 
 /* --------------------- Miscellaneous globals ------------------------ */
 

@@ -98,8 +98,8 @@ calmaInputRescale(n, d)
 	{
 	    /* Scale the GDS planes in this cell's cd_client record */
 	    Plane **gdsplanes = (Plane **)def->cd_client;
-	    /* Should not happen, but punt if client record is not set */
-	    if (def->cd_client != (ClientData)CLIENTDEFAULT)
+	    /* Should not happen, but punt if client record is not set; */
+	    if (def->cd_client != (ClientData)0)
 		CIFScalePlanes(n, d, gdsplanes);
 	}
     }

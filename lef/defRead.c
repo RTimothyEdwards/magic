@@ -683,7 +683,7 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, total)
 	NULL
     };
 
-    defLayerMap = defMakeInverseLayerMap();
+    defLayerMap = defMakeInverseLayerMap(LAYER_MAP_VIAS);
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
@@ -942,6 +942,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
     int keyword, subkey, values, flags;
     int processed = 0;
     int pinDir = PORT_CLASS_DEFAULT;
+    int pinUse = PORT_USE_DEFAULT;
     int pinNum = 0;
     TileType curlayer = -1;
     Rect *currect, topRect;
@@ -978,6 +979,19 @@ DefReadPins(f, rootDef, sname, oscale, total)
 	NULL
     };
 
+    static char *pin_uses[] = {
+	"DEFAULT",
+	"SIGNAL",
+	"POWER",
+	"GROUND",
+	"CLOCK",
+	"RESET",
+	"ANALOG",
+	"SCAN",
+	"TIEOFF",
+	NULL
+    };
+
     static int lef_class_to_bitmask[] = {
 	PORT_CLASS_DEFAULT,
 	PORT_CLASS_INPUT,
@@ -986,6 +1000,20 @@ DefReadPins(f, rootDef, sname, oscale, total)
 	PORT_CLASS_BIDIRECTIONAL,
 	PORT_CLASS_FEEDTHROUGH
     };
+
+    static int lef_use_to_bitmask[] = {
+	PORT_USE_DEFAULT,
+	PORT_USE_SIGNAL,
+	PORT_USE_POWER,
+	PORT_USE_GROUND,
+	PORT_USE_CLOCK,
+	PORT_USE_RESET,
+	PORT_USE_ANALOG,
+	PORT_USE_SCAN,
+	PORT_USE_TIEOFF
+    };
+
+    flags = 0;
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
@@ -1058,6 +1086,13 @@ DefReadPins(f, rootDef, sname, oscale, total)
 			    hasports = TRUE;
 			    break;
 			case DEF_PINS_PROP_USE:
+			    token = LefNextToken(f, TRUE);
+			    subkey = Lookup(token, pin_uses);
+			    if (subkey < 0)
+				LefError(DEF_ERROR, "Unknown pin use \"%s\"\n", token);
+			    else
+				pinUse = lef_use_to_bitmask[subkey];
+			    break;
 			case DEF_PINS_PROP_NET:
 			    /* Get the net name, but ignore it */
 			    token = LefNextToken(f, TRUE);
@@ -1066,7 +1101,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 			    token = LefNextToken(f, TRUE);
 			    subkey = Lookup(token, pin_classes);
 			    if (subkey < 0)
-				LefError(DEF_ERROR, "Unknown pin class\n");
+				LefError(DEF_ERROR, "Unknown pin class \"%s\"\n", token);
 			    else
 				pinDir = lef_class_to_bitmask[subkey];
 			    break;
@@ -1086,7 +1121,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				GeoTransRect(&t, currect, &topRect);
 				DBPaint(rootDef, &topRect, curlayer);
 				DBPutLabel(rootDef, &topRect, -1, pinname, curlayer,
-					pinNum | pinDir | flags);
+					pinNum | pinDir | pinUse | flags);
 				pending = FALSE;
 				pinNum++;
 			    }
@@ -1109,7 +1144,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				GeoTransRect(&t, currect, &topRect);
 				DBPaint(rootDef, &topRect, curlayer);
 				DBPutLabel(rootDef, &topRect, -1, pinname, curlayer,
-					pinNum | pinDir | flags);
+					pinNum | pinDir | pinUse | flags);
 				pinNum++;
 			    }
 			    break;
@@ -1666,7 +1701,7 @@ enum def_sections {DEF_VERSION = 0, DEF_NAMESCASESENSITIVE,
 	DEF_HISTORY, DEF_DIEAREA, DEF_COMPONENTS, DEF_VIAS,
 	DEF_PINS, DEF_PINPROPERTIES, DEF_SPECIALNETS,
 	DEF_NETS, DEF_IOTIMINGS, DEF_SCANCHAINS,
-	DEF_CONSTRAINTS, DEF_GROUPS, DEF_EXTENSION,
+	DEF_CONSTRAINTS, DEF_GROUPS, DEF_EXTENSION, DEF_BLOCKAGES,
 	DEF_END};
 
 void
@@ -1708,6 +1743,7 @@ DefRead(inName, dolabels)
 	"CONSTRAINTS",
 	"GROUPS",
 	"BEGINEXT",
+	"BLOCKAGES",
 	"END",
 	NULL
     };
@@ -1872,6 +1908,9 @@ DefRead(inName, dolabels)
 		break;
 	    case DEF_EXTENSION:
 		LefSkipSection(f, sections[DEF_EXTENSION]);
+		break;
+	    case DEF_BLOCKAGES:
+		LefSkipSection(f, sections[DEF_BLOCKAGES]);
 		break;
 	    case DEF_END:
 		if (!LefParseEndStatement(token, "DESIGN"))
