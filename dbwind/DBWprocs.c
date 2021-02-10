@@ -127,10 +127,10 @@ DBWcreate(window, argc, argv)
 
     window->w_clientData = (ClientData) crec;
     if (argc > 0)
-	DBWloadWindow(window, argv[0], TRUE, FALSE, FALSE);
+	DBWloadWindow(window, argv[0], DBW_LOAD_IGNORE_TECH);
     else if (ToolGetBox(&boxDef, &box))
     {
-	DBWloadWindow(window, boxDef->cd_name, TRUE, FALSE, FALSE);
+	DBWloadWindow(window, boxDef->cd_name, DBW_LOAD_IGNORE_TECH);
 
 	/* Zoom in on the box, leaving a 10% border or at least 2 units
 	 * on each side.
@@ -148,7 +148,7 @@ DBWcreate(window, argc, argv)
     }
     else
     {
-	DBWloadWindow(window, (char *) NULL, TRUE, FALSE, FALSE);
+	DBWloadWindow(window, (char *) NULL, DBW_LOAD_IGNORE_TECH);
     }
     return TRUE;
 }
@@ -249,10 +249,9 @@ dbwReloadFunc(w, name)
     MagWindow *w;
     char *name;
 {
-    DBWloadWindow(w, name, TRUE, FALSE, FALSE);
+    DBWloadWindow(w, name, DBW_LOAD_IGNORE_TECH);
     return (0);
 }
-
 
 /*
  * ----------------------------------------------------------------------------
@@ -273,21 +272,19 @@ dbwReloadFunc(w, name)
  *	to the topmost cell in the new window.  Otherwise, the edit
  *	cell doesn't change.
  *
+ * Flags:
  *	If "expand" is true, unexpands all subcells of the root cell.
  *	If "dereference" is true, ignore path reference in the input file.
+ *	If "fail" is true, do not create a new cell if no file is found.
  *
  * ----------------------------------------------------------------------------
  */
 
 void
-DBWloadWindow(window, name, ignoreTech, expand, dereference)
-    MagWindow *window;	/* Identifies window to which cell is to be bound */
-    char *name;		/* Name of new cell to be bound to this window */
-    bool ignoreTech;	/* If FALSE, indicates that the technology of
-			 * the layout must match the current technology.
-			 */
-    bool expand;	/* Indicates whether or not to expand the cell */
-    bool dereference;	/* If TRUE, ignore path references in the input */
+DBWloadWindow(window, name, flags)
+    MagWindow *window;		/* Identifies window to which cell is to be bound */
+    char *name;			/* Name of new cell to be bound to this window */
+    unsigned char flags;	/* See flags below */
 {
     CellDef *newEditDef, *deleteDef;
     CellUse *newEditUse;
@@ -299,12 +296,26 @@ DBWloadWindow(window, name, ignoreTech, expand, dereference)
     bool isUnnamed;
     int UnexpandFunc();		/* forward declaration */
 
+    bool ignoreTech;	/* If FALSE, indicates that the technology of
+			 * the layout must match the current technology.
+			 */
+    bool expand;	/* Indicates whether or not to expand the cell */
+    bool dereference;	/* If TRUE, ignore path references in the input */
+    bool dofail;	/* If TRUE, do not create a cell if file not found */
+    bool beQuiet;	/* If TRUE, do not print messages during load */
+
+    ignoreTech = ((flags & DBW_LOAD_IGNORE_TECH) == 0) ? FALSE : TRUE;
+    expand = ((flags & DBW_LOAD_EXPAND) == 0) ? FALSE : TRUE;
+    dereference = ((flags & DBW_LOAD_DEREFERENCE) == 0) ? FALSE : TRUE;
+    dofail = ((flags & DBW_LOAD_FAIL) == 0) ? FALSE : TRUE;
+    beQuiet = ((flags & DBW_LOAD_QUIET) == 0) ? FALSE : TRUE;
+
     loadBox.r_xbot = loadBox.r_ybot = 0;
     loadBox.r_xtop = loadBox.r_ytop = 1;
 
     /* See if we're to change the edit cell */
     newEdit = !WindSearch((WindClient) DBWclientID, (ClientData) NULL,
-			    (Rect *) NULL, dbwLoadFunc, (ClientData) window);
+			(Rect *) NULL, dbwLoadFunc, (ClientData) window);
 
     /* The (UNNAMED) cell generally gets in the way, so delete it if	*/
     /* any new cell is loaded and (UNNAMED) has no contents.		*/
@@ -392,12 +403,28 @@ DBWloadWindow(window, name, ignoreTech, expand, dereference)
 
 	    if (newEditDef == NULL)
 	    {
+		if (dofail)
+		{
+		    if (!beQuiet)
+			TxError("No file \"%s\" found or readable.\n", name);
+		    return;
+		}
 		rootname = name;
 		newEditDef = DBCellLookDef(rootname);
 	    }
 	}
 	if (newEditDef == (CellDef *) NULL)
+	{
+	    /* "-fail" option:  If no file is readable, then do not	*/
+	    /* create a new cell.					*/
+	    if (dofail)
+	    {
+		if (!beQuiet)
+		    TxError("No file \"%s\" found or readable.\n", name);
+		return;
+	    }
 	    newEditDef = DBCellNewDef(rootname);
+	}
 
 	if (dereference) newEditDef->cd_flags |= CDDEREFERENCE;
 
@@ -405,7 +432,8 @@ DBWloadWindow(window, name, ignoreTech, expand, dereference)
 	{
 	    if (error_val == ENOENT)
 	    {
-		TxPrintf("Creating new cell\n");
+		if (!beQuiet)
+		    TxPrintf("Creating new cell\n");
 		DBCellSetAvail(newEditDef);
 	    }
 	    else
