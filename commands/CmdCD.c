@@ -3403,7 +3403,7 @@ CmdDown(w, cmd)
     GeoTransRect(&EditToRootTransform, &(EditCellUse->cu_def->cd_bbox), &area);
     (void) WindSearch(DBWclientID, (ClientData) NULL,
 	    (Rect *) NULL, cmdEditRedisplayFunc, (ClientData) &area);
-    DBWloadWindow(w, EditCellUse->cu_def->cd_name, TRUE, FALSE, FALSE);
+    DBWloadWindow(w, EditCellUse->cu_def->cd_name, DBW_LOAD_IGNORE_TECH);
 }
 
 /* Search function to find the new edit cell:  look for a cell use

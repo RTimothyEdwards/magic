@@ -313,6 +313,7 @@ CmdLabel(w, cmd)
 #define LOAD_DEREFERENCE  1
 #define LOAD_FORCE	  2
 #define LOAD_QUIET	  3
+#define LOAD_FAIL	  4
 
 /*
  * ----------------------------------------------------------------------------
@@ -322,7 +323,7 @@ CmdLabel(w, cmd)
  * Implement the "load" command.
  *
  * Usage:
- *	load [name [scaled n [d]]] [-force] [-nowindow] [-dereference] [-quiet]
+ *	load [name [scaled n [d]]] [-force] [-nowindow] [-dereference] [-quiet] [-fail]
  *
  * If name is supplied, then the window containing the point tool is
  * remapped so as to edit the cell with the given name.
@@ -364,7 +365,9 @@ CmdLoad(w, cmd)
     bool noWindow = FALSE;
     bool dereference = FALSE;
     bool beQuiet = FALSE;
+    bool failNotFound = FALSE;
     bool saveVerbose;
+    unsigned char flags;
     int keepGoing();			/* forward declaration */
     extern bool DBVerbose;		/* from DBio.c */
 
@@ -376,6 +379,7 @@ CmdLoad(w, cmd)
 	"-dereference	use search paths and ignore embedded cell paths in file",
 	"-force 	load file even if tech in header does not match",
 	"-quiet		no alert if file does not exist",
+	"-fail		if file does not exist, do not create a new cell",
 	NULL
     };
 
@@ -395,6 +399,9 @@ CmdLoad(w, cmd)
 		break;
 	    case LOAD_QUIET:
 	    	beQuiet = TRUE;
+		break;
+	    case LOAD_FAIL:
+	    	failNotFound = TRUE;
 		break;
 	    default:
 		TxError("No such option \"%s\".\n", cmd->tx_argv[locargc - 1]);
@@ -424,7 +431,7 @@ CmdLoad(w, cmd)
 	else if (!ignoreTech && !noWindow && !dereference)
 	{
 	    TxError("Usage: %s name [scaled n [d]] [-force] "
-			    "[-nowindow] [-dereference] [-quiet]\n",
+			    "[-nowindow] [-dereference] [-quiet] [-fail]\n",
 			    cmd->tx_argv[0]);
 	    return;
 	}
@@ -450,8 +457,13 @@ CmdLoad(w, cmd)
 	}
 #endif
 	DBVerbose = !beQuiet;
-	DBWloadWindow((noWindow == TRUE) ? NULL : w, cmd->tx_argv[1],
-			ignoreTech, FALSE, dereference);
+	flags = 0;
+	if (ignoreTech) flags |= DBW_LOAD_IGNORE_TECH;
+	if (dereference) flags |= DBW_LOAD_DEREFERENCE;
+	if (failNotFound) flags |= DBW_LOAD_FAIL;
+	if (beQuiet) flags |= DBW_LOAD_QUIET;
+
+	DBWloadWindow((noWindow == TRUE) ? NULL : w, cmd->tx_argv[1], flags);
 	DBVerbose = saveVerbose;
 
 	if ((n > 1) || (d > 1))
@@ -488,7 +500,7 @@ CmdLoad(w, cmd)
     else
     {
 	DBVerbose = !beQuiet;
-	DBWloadWindow(w, (char *) NULL, TRUE, FALSE, FALSE);
+	DBWloadWindow(w, (char *) NULL, DBW_LOAD_IGNORE_TECH);
 	DBVerbose = saveVerbose;
     }
 }

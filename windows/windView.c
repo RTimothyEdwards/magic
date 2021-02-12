@@ -30,6 +30,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "graphics/graphics.h"
 #include "windows/windInt.h"
 #include "textio/textio.h"
+#include "dbwind/dbwind.h"
 
 extern void windNewView();
 
@@ -95,7 +96,7 @@ WindUnload(surfaceID)
 
     for (mw = windTopWindow; mw != NULL; mw = mw->w_nextWindow)
 	if (mw->w_surfaceID == surfaceID)
-	    DBWloadWindow(mw, (char *)NULL, TRUE, FALSE, FALSE);
+	    DBWloadWindow(mw, (char *)NULL, DBW_LOAD_IGNORE_TECH);
 }
 
 /*
