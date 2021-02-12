@@ -146,6 +146,14 @@ extern char *DBWChangeButtonHandler();
 extern void DBWPrintButtonDoc();
 extern void DBWBoxHandler();
 
+/* The following values are flags passed to DBWloadWindow() */
+
+#define DBW_LOAD_IGNORE_TECH 1	/* Force load even if tech line does not match */
+#define DBW_LOAD_EXPAND	     2	/* Expand cell after loading	*/
+#define DBW_LOAD_DEREFERENCE 4	/* Dereference instance file paths when loading */
+#define DBW_LOAD_FAIL	     8	/* Do not create new cell if file is not loadable */
+#define DBW_LOAD_QUIET	     16	/* Suppress error messages during load */
+
 /* The following defines are used to indicate corner positions
  * of the box:
  */

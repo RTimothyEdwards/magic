@@ -244,7 +244,7 @@ done:
 	if (mw != NULL)
 	{
 	    if (calmaLookCell(libname, NULL) != (CellDef *)NULL)
-		DBWloadWindow(mw, libname, FALSE, FALSE);
+		DBWloadWindow(mw, libname, 0);
 	}
 	freeMagic(libname);
     }

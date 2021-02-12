@@ -1885,9 +1885,9 @@ CmdXload(w, cmd)
     {
 	if (CmdIllegalChars(cmd->tx_argv[1], "[],", "Cell name"))
 	    return;
-	DBWloadWindow(w, cmd->tx_argv[1], FALSE, TRUE, FALSE);
+	DBWloadWindow(w, cmd->tx_argv[1], DBW_LOAD_EXPAND);
     }
-    else DBWloadWindow(w, (char *) NULL, FALSE, TRUE, FALSE);
+    else DBWloadWindow(w, (char *) NULL, DBW_LOAD_EXPAND);
 }
 
 /*
