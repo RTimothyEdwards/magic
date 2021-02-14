@@ -2573,7 +2573,7 @@ DBPaintPlaneVert(plane, area, resultTbl, undo)
     Tile *newtile, *tp;	/* Used for paint */
 
     if (area->r_xtop <= area->r_xbot || area->r_ytop <= area->r_ybot)
-	return;
+	return 0;
 
     /*
      * The following is a modified version of the area enumeration
@@ -2798,6 +2798,7 @@ paintdone:
 
 done:
     plane->pl_hint = tile;
+    return 0;
 }
 
 /*
