@@ -647,6 +647,7 @@ void
 DRCOffGridError(rect)
     Rect      *rect;            /* Area of error */
 {
+    if (drcSubFunc == NULL) return;
     (*drcSubFunc)(DRCErrorDef, rect, &drcOffGridCookie, drcSubClientData);
 }
 
