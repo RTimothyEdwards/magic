@@ -500,7 +500,7 @@ spcdevHierVisit(hc, dev, scale)
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
     int l, w, i, parmval;
     Rect r;
-    bool subAP = FALSE, hierS, hierD, extHierSDAttr(), swapped = FALSE;
+    bool subAP = FALSE, hierS, hierD, extHierSDAttr();
     float sdM;
     char devchar;
     bool has_model = TRUE;
@@ -522,6 +522,8 @@ spcdevHierVisit(hc, dev, scale)
 	source = drain = &dev->dev_terms[1];
     if (dev->dev_nterm >= 3)
     {
+        drain = &dev->dev_terms[2];
+
         /* If any terminal is marked with attribute "D" or "S"  */
         /* (label "D$" or "S$" at poly-diffusion interface),    */
         /* then force order of source and drain accordingly.    */
@@ -531,11 +533,8 @@ spcdevHierVisit(hc, dev, scale)
                 (dev->dev_terms[2].dterm_attrs &&
                 !strcmp(dev->dev_terms[2].dterm_attrs, "S")))
 	{
-            swapDrainSource(dev, &source, &drain);
-	    swapped = TRUE;
+            swapDrainSource(dev);
 	}
-        else
-            drain = &dev->dev_terms[2];
     }
     else if (dev->dev_nterm == 1)	// Is a device with one terminal an error?
 	source = drain = &dev->dev_terms[0];
@@ -1023,10 +1022,6 @@ spcdevHierVisit(hc, dev, scale)
 	        break;
     }
     fprintf(esSpiceF, "\n");
-
-    /* If S/D parameters were swapped, then put them back */
-    if (swapped) swapDrainSource(dev, NULL, NULL);
-
     return 0;
 }
 

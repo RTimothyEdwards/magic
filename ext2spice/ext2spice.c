@@ -2219,47 +2219,39 @@ getCurDevMult()
 
 
 /* 
+ *-----------------------------------------------------------------------------
  * swapDrainSource
  * 
  * Swap drain and source ordering and the related stuff
  * including the drain/source area parameters
  * 
- * This is typycally called if any terminal is marked with attribute "D" or "S"
+ * This is typically called if any terminal is marked with attribute "D" or "S"
  * (label "D$" or "S$" at poly-diffusion interface),
  * then swap order of source and drain compared to the default ordering.	
+ * 
+ * Note:
+ *	Before calling this function, ensure that dev->dev_nterm >= 3
  *
+ * Results:
+ *	None
+ *
+ * Side effects:
+ *	Soure (dev->dev_terms[1]) and drain (dev->dev_terms[2]) terminals
+ *	are swapped.
+ *
+ *-----------------------------------------------------------------------------
  */
+
 void
-swapDrainSource(dev, source, drain) 
+swapDrainSource(dev)
     Dev *dev;
-    DevTerm **source, **drain;
 {
-    DevParam *plist;
-    
-    /* swap drain/source ordering */
-    if (drain) *drain = &dev->dev_terms[1];
-    if (source) *source = &dev->dev_terms[2];
-    
-    /* Swap drain/source-related parameters.  Note that the parameter	*/
-    /* *definitions* are swapped, so if this is done, it must be	*/
-    /* reverted before the next device is processed.			*/
+    DevTerm tmpTerm;
 
-    plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
-    while (plist != NULL)
-    {
-	// Diagnostic
-        // TxPrintf("  * param: %s; type: %c%c\n", plist->parm_name, plist->parm_type[0], plist->parm_type[1]);
-        
-        /* Swap drain/source parameters only */
-        if (!(strcmp(plist->parm_type, "a1")) || !(strcmp(plist->parm_type, "p1")))
-            plist->parm_type[1] = '0' + 2;
-
-        else if (!(strcmp(plist->parm_type, "a2")) || !(strcmp(plist->parm_type, "p2")))
-            plist->parm_type[1] = '0' + 1;
-        
-        /* move pointer */
-        plist = plist->parm_next;
-    }
+    /* swap original terminals */
+    memcpy(&tmpTerm, &(dev->dev_terms[1]), sizeof(DevTerm));
+    memcpy(&(dev->dev_terms[1]), &(dev->dev_terms[2]), sizeof(DevTerm));
+    memcpy(&(dev->dev_terms[2]), &tmpTerm, sizeof(DevTerm));
 }
 
 
@@ -2309,7 +2301,7 @@ spcdevVisit(dev, hc, scale, trans)
     DevTerm *gate, *source, *drain;
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
     int l, w, i, parmval;
-    bool subAP= FALSE, hierS, hierD, extHierSDAttr(), swapped = FALSE ;
+    bool subAP= FALSE, hierS, hierD, extHierSDAttr();
     float sdM;
     char name[12], devchar;
     bool has_model = TRUE;
@@ -2331,8 +2323,11 @@ spcdevVisit(dev, hc, scale, trans)
     gate = &dev->dev_terms[0];
     if (dev->dev_nterm >= 2)
 	source = drain = &dev->dev_terms[1];
+
     if (dev->dev_nterm >= 3)
     {
+	drain = &dev->dev_terms[2];
+
 	/* If any terminal is marked with attribute "D" or "S"	*/
  	/* (label "D$" or "S$" at poly-diffusion interface),	*/
 	/* then force order of source and drain accordingly.	*/
@@ -2342,11 +2337,8 @@ spcdevVisit(dev, hc, scale, trans)
 		(dev->dev_terms[2].dterm_attrs &&
 		!strcmp(dev->dev_terms[2].dterm_attrs, "S")))
 	{
-	    swapDrainSource(dev, &source, &drain);
-	    swapped = True;
+	    swapDrainSource(dev);
 	}
-	else
-	    drain = &dev->dev_terms[2];
     }
     subnode = dev->dev_subsnode;
 
@@ -2851,9 +2843,6 @@ spcdevVisit(dev, hc, scale, trans)
 	    break;
     }
     fprintf(esSpiceF, "\n");
-
-    /* If S/D parameters on a subcircuit were swapped, put them back */
-    if (swapped) swapDrainSource(dev, NULL, NULL);
 
     return 0;
 }
