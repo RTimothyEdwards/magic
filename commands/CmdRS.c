@@ -819,7 +819,7 @@ CmdSelect(w, cmd)
 				 * also used to step through multiple uses.
 				 */
     static bool lessCycle = FALSE, lessCellCycle = FALSE;
-    char path[200], *printPath, **msg, **optionArgs, *feedtext;
+    char path[200], *printPath, **msg, **optionArgs, *feedtext, *pstr;
     TerminalPath tpath;
     CellUse *use;
     CellDef *rootBoxDef;
@@ -1526,6 +1526,13 @@ Okay:
 	    DBWSetBox(scx.scx_use->cu_def, &r);
 
 #ifdef MAGIC_WRAPPER
+	    /* Remove any backslash escapes so that Tcl_escape() doesn't
+	     * double-escape them.
+	     */
+	    for (pstr = printPath; *pstr != '\0';)
+		if ((*pstr == '\\') && ((*(pstr + 1) == '[') || (*(pstr + 1) == ']')))
+		    memmove(pstr, pstr + 1, 1 + strlen(pstr + 1));
+		else pstr++;
 	    tclstr = Tcl_escape(printPath);
 	    Tcl_SetResult(magicinterp, tclstr, TCL_DYNAMIC);
 #else
