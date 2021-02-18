@@ -1926,7 +1926,7 @@ CmdXor(w, cmd)
 
     PaintResultType	DBXORResultTbl[NP][NT][NT];
     PaintResultType	(*curPaintSave)[NT][NT];
-    void		(*curPlaneSave)();
+    int			(*curPlaneSave)();
 
     int p, t, h;
 

@@ -1074,7 +1074,7 @@ SelectAndCopy2(newSourceDef)
     SearchContext scx;
     Rect editArea, labelArea, expanded;
     int plane;
-    void (*savedPaintPlane)();
+    int (*savedPaintPlane)();
     extern int selACPaintFunc();	/* Forward reference. */
     extern int selACCellFunc();
 

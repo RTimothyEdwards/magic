@@ -114,7 +114,7 @@ drcArrayFunc(scx, arg)
     ClientData drcArrayClientData;	/* Extra parameter to pass to func. */
     PaintResultType (*savedPaintTable)[NT][NT];
     PaintResultType (*savedEraseTable)[NT][NT];
-    void (*savedPaintPlane)();
+    int (*savedPaintPlane)();
 
     if ((use->cu_xlo == use->cu_xhi) && (use->cu_ylo == use->cu_yhi))
 	return 2;

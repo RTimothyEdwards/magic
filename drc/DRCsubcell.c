@@ -697,7 +697,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
     int oldTiles, count, x, y, errorSaveType;
     Rect intArea, square, cliparea, subArea;
     PaintResultType (*savedPaintTable)[NT][NT];
-    void (*savedPaintPlane)();
+    int (*savedPaintPlane)();
     struct drcClientData arg;
     SearchContext scx;
 
@@ -897,7 +897,7 @@ DRCFlatCheck(use, area)
     SearchContext scx;
     void drcIncCount();
     PaintResultType (*savedPaintTable)[NT][NT];
-    void (*savedPaintPlane)();
+    int (*savedPaintPlane)();
     int drcFlatCount = 0;
 
     UndoDisable();
