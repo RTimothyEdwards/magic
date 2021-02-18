@@ -145,8 +145,8 @@ CmdCalma(w, cmd)
 	"library [yes|no]	do not output the top level, only subcells",
 	"lower [yes|no]		allow both upper and lower case in labels",
 	"merge [yes|no]		merge tiles into polygons in the output",
-	"noduplicates [yes|no]	do not read cells that exist before reading GDS",
 	"nodatestamp [yes|no]	write a zero value creation date stamp",
+	"noduplicates [yes|no]	do not read cells that exist before reading GDS",
 	"read file		read Calma GDS-II format from \"file\"\n"
 	"		into edit cell",
 	"readonly [yes|no]	set cell as read-only and generate output from GDS file",
