@@ -604,9 +604,17 @@ drcTile (tile, arg)
 		}
 		else if (cptr->drcc_flags & DRC_MAXWIDTH)
 		{
-		    /* bends_illegal option only */
-		    if (firsttile)
-			drcCheckMaxwidth(tile, arg, cptr);
+		    if (cptr->drcc_flags & DRC_MAXWIDTH_BOTH)
+		    {
+		        if (firsttile)
+			    drcCheckMaxwidth(tile, arg, cptr, TRUE);
+		    }
+		    else
+		    {
+		        /* bends_illegal option only */
+		        if (firsttile)
+			    drcCheckMaxwidth(tile, arg, cptr, FALSE);
+		    }
 		    continue;
 		}
 

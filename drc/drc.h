@@ -73,8 +73,9 @@ typedef struct drccookie
 #define		DRC_AREA		0x020
 #define		DRC_OFFGRID		0x040
 #define		DRC_MAXWIDTH		0x080
-#define		DRC_RECTSIZE		0x100
-#define		DRC_ANGLES		0x200
+#define		DRC_MAXWIDTH_BOTH       0x100
+#define		DRC_RECTSIZE		0x200
+#define		DRC_ANGLES		0x400
 #define 	DRC_NONSTANDARD		(DRC_AREA|DRC_MAXWIDTH|DRC_RECTSIZE\
 					 |DRC_ANGLES|DRC_OFFGRID)
 

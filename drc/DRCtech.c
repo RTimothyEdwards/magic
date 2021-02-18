@@ -1550,6 +1550,7 @@ drcOffGrid(argc, argv)
  *	bend_ok - Used mainly for wide metal rules where metal greater than
  *		some given width must be slotted.  Also, used for things
  *		like trench, where the width is some fixed value:
+ *      both - implies bend_illegal and both directions are checked
  *
  *			XXXXX		XXXXXX
  *			X   X		XXXXXX
@@ -1608,6 +1609,7 @@ drcMaxwidth(argc, argv)
     {
 	if (strcmp(bends,"bend_illegal") == 0) bend = 0;
 	else if (strcmp(bends,"bend_ok") == 0) bend = DRC_BENDS;
+	else if (strcmp(bends,"both") == 0) bend = DRC_MAXWIDTH_BOTH;
 	else
 	{
 	    TechError("unknown bend option %s\n",bends);
