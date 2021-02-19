@@ -613,7 +613,7 @@ calmaFullDump(def, fi, outf, filename)
     FILE *outf;
     char *filename;
 {
-    int version, rval, i;
+    int version, rval;
     char *libname = NULL, uniqlibname[4];
     char *sptr, *viewopts;
     bool isAbstract;
@@ -657,24 +657,29 @@ calmaFullDump(def, fi, outf, filename)
     viewopts = (char *)DBPropGet(def, "LEFview", &isAbstract);
     if ((!isAbstract) || (strcasecmp(viewopts, "no_prefix")))
     {
-
 	/* Generate a SHORT name for this cell (else it is easy to run into the
 	 * GDS 32-character cellname limit).  Save it in the hash record.  The
 	 * chance of generating the same prefix for a library that has items
 	 * with conflicting names is vanishingly small, but to be pedantic, store
 	 * the prefix in a hash table and check to make sure that uniqueness is
-	 * ensured.
+	 * ensured.  NOTE:  The first character of a SPICE name cannot be a
+	 * number.  Therefore the first character is alphabetical, and the second
+	 * is alphanumeric.  There are only 936 possible combinations, but this
+	 * is only meant to distinguish cells in large IP blocks of unknown
+	 * origin, of which only a limited number would be expected.  Beware
+	 * the implications for LVS, as the prefixed names from layout would
+	 * need to be compared to un-prefixed names from another netlist.
 	 */
 	while (TRUE)
 	{
 	    HashEntry *he2;
 
-	    for (i = 0; i < 2; i++) {
-		rval = random() % 62;
-		rval = (rval < 26) ? ('A' + rval) : ((rval < 52) ? ('a' + rval - 26) :
-			('0' + rval - 52));
-		uniqlibname[i] = (char)(rval & 127);
-	    }
+	    rval = random() % 26;
+	    rval = 'A' + rval;
+	    uniqlibname[0] = (char)(rval & 127);
+	    rval = random() % 36;
+	    rval = (rval < 26) ? ('A' + rval) : ('0' + rval - 26);
+	    uniqlibname[1] = (char)(rval & 127);
 	    uniqlibname[2] = '_';
 	    uniqlibname[3] = '\0';
 	    he2 = HashLookOnly(&calmaPrefixHash, uniqlibname);
