@@ -436,6 +436,14 @@ proc magic::gencell_change {instname gencell_type library parameters} {
 	# then keep the old instance name.
 	if {[string first $old_gname $instname] != 0} {
 	    set newinstname $instname
+	} else {
+	    # The buttons "Apply" and "Okay" need to be changed for the new
+	    # instance name
+	    catch {.params.buttons.apply config -command \
+			"magic::gencell_change $newinstname $gencell_type $library {}"}
+	    catch {.params.buttons.okay config -command \
+			"magic::gencell_change $newinstname $gencell_type $library {} ;\
+			destroy .params"}
 	}
     }
     identify $newinstname
