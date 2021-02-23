@@ -1145,6 +1145,98 @@ efBuildAddStr(table, pMax, size, str)
 /*
  * ----------------------------------------------------------------------------
  *
+ * efNeedsCleanName --
+ *
+ * Determine if a name needs to be cleaned by efMakeCleanName, to avoid
+ * excessive and unnecessary string allocation and copying .
+ *
+ * "level" is 0 or 1, defined as it is for efMakeCleanName() (see below).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+efNeedsCleanName(str, level)
+    char *str;
+    int level;
+{ 
+    char *s;
+    bool seenOne = FALSE;
+    bool needsCleaning = FALSE;
+
+    for (s = str; *s; s++)
+	if (*s == '/')
+	    if ((s == str) || (*(s - 1) != '\\'))
+	    {
+		if ((level == 0) || seenOne)
+		{
+		    needsCleaning = TRUE;
+		    break;
+		}
+		seenOne = TRUE;
+	    }
+
+    return needsCleaning;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * efMakeCleanName --
+ *
+ * Generate a copy of a name like StrDup(), but cleanse the name of slash
+ * characters by backslash-escaping them.  This lets ext2spice differentiate
+ * between slashes that are part of an instance name and the hierarchical
+ * name for a node, which is built up internally with slash characters.
+ *
+ * "level" is the number of slashes at the end which are part of the
+ * hierarchy and not part of the name.  "use" lines in the .ext file should
+ * have a level of 0, while "merge" lines have a level of 1.  No other values
+ * of "level" are supported.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+efMakeCleanName(str, level)
+    char *str;
+    int level;
+{
+    char *rstr;
+    char *s, *p, *ssave;
+    int escapes;
+
+    /* Count unescaped slashes in the string */
+    escapes = 0;
+    ssave = NULL;
+    for (s = str; *s; s++)
+	if (*s == '/')
+	    if ((s == str) || (*(s - 1) != '\\'))
+	    {
+		ssave = s;
+		escapes++;
+	    }
+
+    if (escapes > 0)
+	escapes -= level;
+
+    rstr = (char *)mallocMagic(strlen(str) + 1 + escapes);
+    
+    for (s = str, p = rstr; *s; s++, p++)
+    {
+	if (*s == '/')
+	    if ((s == str) || (*(s - 1) != '\\'))
+		if ((level == 0) || (s != ssave))
+		    *p++ = '\\';
+	*p = *s;
+    }
+    *p = *s;		/* Copy final NULL */
+    return rstr;
+}
+ 
+/*
+ * ----------------------------------------------------------------------------
+ *
  * efBuildUse --
  *
  * Process a "use" line from a .ext file.
@@ -1213,12 +1305,12 @@ efBuildUse(def, subDefName, subUseId, ta, tb, tc, td, te, tf)
 		    &newuse->use_ylo, &newuse->use_yhi, &newuse->use_ysep)) == 6)
 	{
 	    *cp = '\0';
-	    newuse->use_id = StrDup((char **) NULL, subUseId);
+	    newuse->use_id = efMakeCleanName(subUseId, 0);
 	    *cp = '[';
 	}
 	else
 	{
-	    newuse->use_id = StrDup((char **) NULL, subUseId);
+	    newuse->use_id = efMakeCleanName(subUseId, 0);
 	    newuse->use_xlo = newuse->use_xhi = 0;
 	    newuse->use_ylo = newuse->use_yhi = 0;
 	    newuse->use_xsep = newuse->use_ysep = 0;
@@ -1260,13 +1352,20 @@ efBuildConnect(def, nodeName1, nodeName2, deltaC, av, ac)
     int ac;		/* Number of strings in av */
 {
     int n;
+    char *locName1, *locName2;
     Connection *conn;
     unsigned size = sizeof (Connection)
 		    + (efNumResistClasses - 1) * sizeof (EFPerimArea);
 
     conn = (Connection *) mallocMagic((unsigned)(size));
 
-    if (efConnInitSubs(conn, nodeName1, nodeName2))
+    locName1 = nodeName1;
+    if (efNeedsCleanName(nodeName1)) locName1 = efMakeCleanName(nodeName1, 1);
+
+    locName2 = nodeName2;
+    if (efNeedsCleanName(nodeName2)) locName2 = efMakeCleanName(nodeName2, 1);
+
+    if (efConnInitSubs(conn, locName1, locName2))
     {
 	conn->conn_cap = (EFCapValue) deltaC;
 	conn->conn_next = def->def_conns;
@@ -1280,6 +1379,9 @@ efBuildConnect(def, nodeName1, nodeName2, deltaC, av, ac)
 	    conn->conn_pa[n].pa_area = conn->conn_pa[n].pa_perim = 0;
 	def->def_conns = conn;
     }
+
+    if (locName1 != nodeName1) freeMagic(locName1);
+    if (locName2 != nodeName2) freeMagic(locName2);
 }
 
 /*

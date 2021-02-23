@@ -225,7 +225,8 @@ EFStrToHN(prefix, suffixStr)
 
     /*
      * Convert the relative name into a HierName path, with one HierName
-     * created for each slash-separated segment of suffixStr.
+     * created for each slash-separated segment of suffixStr.  Backslash-
+     * escaped slashes are not part of a path and are ignored.
      */
     cp = slashPtr = suffixStr;
     for (;;)
@@ -242,6 +243,7 @@ EFStrToHN(prefix, suffixStr)
 	    slashPtr = cp;
 	    prefix = hierName;
 	}
+	else if ((*cp == '\\') && (*(cp + 1) == '/')) cp += 2;
 	else cp++;
     }
 
