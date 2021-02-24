@@ -48,6 +48,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 int calmaNonManhattan;
 int CalmaFlattenLimit = 10;
+int NameConvertErrors = 0;
 
 extern HashTable calmaDefInitHash;
 
@@ -836,8 +837,24 @@ calmaElementSref(filename)
 	    READI2(propAttrType);
 	    if (propAttrType == CALMA_PROP_USENAME)
 	    {
+		char *s;
+
 		if (!calmaReadStringRecord(CALMA_PROPVALUE, &useid))
 		    return -1;
+
+		/* Magic prohibits comma and slash from use names */
+		for (s = useid; *s; s++)
+		    if (*s == '/' || *s == ',')
+		    {
+			if (NameConvertErrors < 100)
+			    TxPrintf("\"%c\" character cannot be used in instance name; "
+					"converting to underscore\n", *s);
+			else if (NameConvertErrors == 100)
+			    TxPrintf("More than 100 character changes; not reporting"
+					" further errors.\n");
+			*s = '_';
+			NameConvertErrors++;
+		    }
 	    }
 	    else if (propAttrType == CALMA_PROP_ARRAY_LIMITS)
 	    {
