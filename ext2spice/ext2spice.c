@@ -3359,7 +3359,6 @@ char *nodeSpiceName(hname, rnode)
     EFNodeName *nn;
     HashEntry *he;
     EFNode *node;
-    char *p, *s;
 
     if (rnode) *rnode = (EFNode *)NULL;
     he = EFHNLook(hname, (char *) NULL, "nodeName");
@@ -3385,21 +3384,8 @@ makeName:
        if ( esFormat == HSPICE ) /* more processing */
 	nodeHspiceName(esTempName);
     }
-
-    /* Strip any escaped-slash hiearchy dividers or array delimiters	*/
-    /* out of the name, as they have been put there to prevent magic	*/
-    /* from interpeting them as hierarchy divers or array delimiters.	*/
-
-    for (s = p = esTempName; *s; p++, s++)
-    {
-	if ((*s == '\\') && ((*(s + 1) == '/') || (*(s + 1) == '[')
-			|| (*(s + 1) == ']')))
-	    s++;
-	if (p != s) *p = *s;
-    }
-    if (p != s) *p = *s;	/* Copy trailing NULL */
-
-    ((nodeClient *)(node->efnode_client))->spiceNodeName = StrDup(NULL, esTempName);
+   ((nodeClient *) (node->efnode_client))->spiceNodeName =
+	    StrDup(NULL, esTempName);
 
 retName:
     return ((nodeClient *) (node->efnode_client))->spiceNodeName;
@@ -3413,8 +3399,7 @@ retName:
  * Create a hierarchical node name.
  * The flags in EFTrimFlags control whether global (!) or local (#)
  * suffixes are to be trimmed. Also substitutes \. with \@ if the
- * format is hspice.  Backslash-escaped slashes are converted back
- * to the original character.
+ * format is hspice.
  *
  * Results:
  *	None.
@@ -3431,34 +3416,36 @@ EFHNSprintf(str, hierName)
     HierName *hierName;
 {
     bool trimGlob, trimLocal, convertComma, convertEqual, convertBrackets;
-    char *cp, c;
+    char *s, *cp, c;
     char *efHNSprintfPrefix(HierName *, char *);
 
+    s = str;
     if (hierName->hn_parent) str = efHNSprintfPrefix(hierName->hn_parent, str);
-
-    cp = hierName->hn_name;
-    trimGlob = (EFTrimFlags & EF_TRIMGLOB);
-    trimLocal = (EFTrimFlags & EF_TRIMLOCAL);
-    convertComma = (EFTrimFlags & EF_CONVERTCOMMA);
-    convertEqual = (EFTrimFlags & EF_CONVERTEQUAL);
-    convertBrackets = (EFTrimFlags & EF_CONVERTBRACKETS);
-    while (c = *cp++)
+    if (EFTrimFlags)
     {
-	switch (c)
+	cp = hierName->hn_name;
+	trimGlob = (EFTrimFlags & EF_TRIMGLOB);
+	trimLocal = (EFTrimFlags & EF_TRIMLOCAL);
+	convertComma = (EFTrimFlags & EF_CONVERTCOMMA);
+	convertEqual = (EFTrimFlags & EF_CONVERTEQUAL);
+	convertBrackets = (EFTrimFlags & EF_CONVERTBRACKETS);
+	while (c = *cp++)
 	{
-	    case '!':	if (!trimGlob) *str++ = c; break;
-	    case '.':	*str++ = (esFormat == HSPICE)?'@':'.'; break;
-	    case '=':	if (convertEqual) *str++ = ':'; break;
-	    case ',':	if (convertComma) *str++ = '|'; break;
-	    case '[':	*str++ = (convertBrackets) ? '_' : '['; break;
-	    case ']':	*str++ = (convertBrackets) ? '_' : ']'; break;
-	    case '\\':	if (*(cp + 1) == '/') str++; break;
-	    case '#':	if (trimLocal) break;	// else fall through
-	    default:	*str++ = c; break;
+	    switch (c)
+	    {
+		case '!':	if (!trimGlob) *str++ = c; break;
+		case '.':	*str++ = (esFormat == HSPICE)?'@':'.'; break;
+		case '=':	if (convertEqual) *str++ = ':'; break;
+		case ',':	if (convertComma) *str++ = '|'; break;
+		case '[':	*str++ = (convertBrackets) ? '_' : '['; break;
+		case ']':	*str++ = (convertBrackets) ? '_' : ']'; break;
+		case '#':	if (trimLocal) break;	// else fall through
+		default:	*str++ = c; break;
+	    }
 	}
+	*str++ = '\0';
     }
-    *str++ = '\0';
-
+    else strcpy(str, hierName->hn_name);
     return 0;
 }
 
