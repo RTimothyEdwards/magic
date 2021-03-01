@@ -204,7 +204,7 @@ EFFlatBuildOneLevel(def, flags)
     efFlatRootUse.use_def = efFlatRootDef;
 
     /* Record all nodes down the hierarchy from here */
-    flatnodeflags = FLATNODE_STDCELL;	/* No FLATDNODE_DOWARN flag */
+    flatnodeflags = 0;    /* No FLATNODE_DOWARN */
     efFlatNodes(&efFlatContext, (ClientData)flatnodeflags);
 
     /* Expand all subcells that contain connectivity information but	*/
@@ -218,10 +218,6 @@ EFFlatBuildOneLevel(def, flags)
 
     if ((usecount == 0) && (HashGetNumEntries(&efFlatRootUse.use_def->def_devs) == 0))
 	efFlatRootUse.use_def->def_flags |= DEF_NODEVICES;
-
-    /* Record all local nodes */
-    efAddNodes(&efFlatContext, FALSE);
-    efAddConns(&efFlatContext, TRUE);
 
     efFlatKills(&efFlatContext);
     if (!(flags & EF_NONAMEMERGE))
@@ -297,6 +293,9 @@ EFFlatDone()
  *	Adds node names to the table of flattened node names efNodeHashTable.
  *	May merge nodes from the list efNodeList as per the connection
  *	list hc->hc_use->use_def->def_conns.
+ * 
+ * Note:
+ *	stdcell = TRUE is only used when writing DEF files.
  *
  * ----------------------------------------------------------------------------
  */
@@ -499,14 +498,14 @@ efAddNodes(hc, stdcell)
 	newnode->efnode_loc.r_ybot = (int)((float)(newnode->efnode_loc.r_ybot) * scale);
 	newnode->efnode_loc.r_ytop = (int)((float)(newnode->efnode_loc.r_ytop) * scale);
 
+	/* Add each name for this node to the hash table */
+	newnode->efnode_name = (EFNodeName *) NULL;
+
 	/* Prepend to global node list */
 	newnode->efnode_next = efNodeList.efnode_next;
 	newnode->efnode_prev = (EFNodeHdr *) &efNodeList;
 	efNodeList.efnode_next->efnhdr_prev = (EFNodeHdr *) newnode;
 	efNodeList.efnode_next = (EFNodeHdr *) newnode;
-
-	/* Add each name for this node to the hash table */
-	newnode->efnode_name = (EFNodeName *) NULL;
 
 	for (nn = node->efnode_name; nn; nn = nn->efnn_next)
 	{
@@ -557,6 +556,7 @@ efAddNodes(hc, stdcell)
 		newnode->efnode_name = newname;
 	    }
 	}
+
     }
     return 0;
 }

@@ -81,6 +81,7 @@ ESGenerateHierarchy(inName, flags)
     hc.hc_hierName = NULL;
     hc.hc_trans = GeoIdentityTransform;
     hc.hc_x = hc.hc_y = 0;
+
     EFHierSrDefs(&hc, esMakePorts, NULL);
     EFHierSrDefs(&hc, NULL, NULL);	/* Clear processed */
 
@@ -1637,8 +1638,11 @@ esMakePorts(hc, cdata)
 		*tptr = '/';
 		portname = tptr + 1;
 
-		// Find the net of portname in the subcell and
-		// make it a port if it is not already.
+		/* Find the net of portname in the subcell and make it a
+		 * port if it is not already.  It is possible that the
+		 * preferred node name is in the merge list, so the merging
+		 * code may need to replace it with another name.
+		 */
 
 		if (portdef)
 		{
