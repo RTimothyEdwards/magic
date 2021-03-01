@@ -3973,7 +3973,7 @@ update_w(resClass, w,  n)
     {
 	(nc->m_w.widths) = (float *)mallocMagic((unsigned)sizeof(float)
 		* efNumResistClasses);
-	for (i = 0; i < EFDevNumTypes; i++)
+	for (i = 0; i < efNumResistClasses; i++)
 	    nc->m_w.widths[i] = 0.0;
     }
     nc->m_w.widths[resClass] += (float)w;

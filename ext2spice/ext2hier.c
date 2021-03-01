@@ -1896,6 +1896,8 @@ esHierVisit(hc, cdata)
 		freeMagic(p);
 	    devMergeList = NULL;
 	}
+	else if (esDistrJunct)
+	    EFHierVisitDevs(hcf, devDistJunctHierVisit, (ClientData)NULL);
 
 	/* Output devices */
 	EFHierVisitDevs(hcf, spcdevHierVisit, (ClientData)NULL);
