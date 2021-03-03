@@ -115,6 +115,10 @@ proc readspice {netfile} {
 	       if {$outport < $npins} {set outport $npins}
 	       set p [port first]
 	       while {$p != -1 && $p <= $highport} {
+		   if {$p == ""} {
+		       puts stderr "Error:  $cellname port numbering failed."
+		       break
+		   }
 		   set p1 [port $p next]
 		   set testpin [port $p name]
 		   if {$testpin != ""} {
