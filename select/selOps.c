@@ -47,6 +47,7 @@ static int selStretchX, selStretchY;	/* Stretch distances.  Only one should
 					 * ever be non-zero.
 					 */
 static TileType selStretchType;		/* Type of material being stretched. */
+unsigned char SelectDoLabels = SEL_DO_LABELS;	/* Whether or not to select subcell labels */
 
 typedef struct planeAndArea
 {

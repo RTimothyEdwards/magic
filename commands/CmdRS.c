@@ -728,27 +728,29 @@ CmdSelect(w, cmd)
 #define SEL_AREA	 0
 #define SEL_VISIBLE	 1
 #define SEL_CELL	 2
-#define SEL_CLEAR	 3
-#define SEL_FLAT	 4
-#define SEL_HELP	 5
-#define SEL_KEEP	 6
-#define SEL_MOVE	 7
-#define SEL_PICK	 8
-#define SEL_SAVE	 9
-#define SEL_FEEDBACK	10
-#define SEL_BBOX	11
-#define SEL_BOX		12
-#define SEL_CHUNK	13
-#define SEL_REGION	14
-#define SEL_NET		15
-#define SEL_SHORT	16
-#define SEL_DEFAULT	17
+#define SEL_LABELS	 3
+#define SEL_CLEAR	 4
+#define SEL_FLAT	 5
+#define SEL_HELP	 6
+#define SEL_KEEP	 7
+#define SEL_MOVE	 8
+#define SEL_PICK	 9
+#define SEL_SAVE	10
+#define SEL_FEEDBACK	11
+#define SEL_BBOX	12
+#define SEL_BOX		13
+#define SEL_CHUNK	14
+#define SEL_REGION	15
+#define SEL_NET		16
+#define SEL_SHORT	17
+#define SEL_DEFAULT	18
 
     static char *cmdSelectOption[] =
     {
 	"area",
 	"visible",
 	"cell",
+	"labels",
 	"clear",
 	"flat",
 	"help",
@@ -774,6 +776,7 @@ CmdSelect(w, cmd)
 	"[more | less] area [layers]     [de]select all info under box in layers",
 	"[more | less] visible [layers]  [de]select all visible info under box in layers",
 	"[more | less | top] cell [name] [de]select cell under cursor, or \"name\"",
+	"[do | no] labels		 [do not] select subcell labels",
 	"clear                           clear selection",
 	"flat				 flatten the contents of the selection",
 	"help                            print this message",
@@ -832,6 +835,7 @@ CmdSelect(w, cmd)
     bool layerspec;
     bool degenerate;
     bool more = FALSE, less = FALSE, samePlace = TRUE;
+    unsigned char labelpolicy = SEL_DO_LABELS;
 #ifdef MAGIC_WRAPPER
     char *tclstr;
     Tcl_Obj *lobj;
@@ -851,7 +855,7 @@ CmdSelect(w, cmd)
 
     /* See if "more" was given.  If so, just strip off the "more" from
      * the argument list and set the "more" flag.  Similarly for options
-     * "less", "nocycle", "top", and "cell".
+     * "less", "do", "no", "nocycle", "top", and "cell".
      */
 
     if (cmd->tx_argc >= 2)
@@ -876,6 +880,7 @@ CmdSelect(w, cmd)
 	else if (!strncmp(cmd->tx_argv[1], "nocycle", arg1len))
 	{
 	    samePlace = FALSE;
+	    labelpolicy = SEL_NO_LABELS;
 	    more = FALSE;
 	    less = FALSE;
 	    type = TT_SELECTBASE - 1;	   /* avoid cycling between types */
@@ -887,6 +892,24 @@ CmdSelect(w, cmd)
 	    /* Force this to be the same as the last selection command,	*/
 	    /* even if there were other commands in between.		*/
 	    lastCommand = TxCommandNumber - 1;
+	    optionArgs = &cmd->tx_argv[2];
+	    cmd->tx_argc--;
+	}
+	else if (!strncmp(cmd->tx_argv[1], "do", arg1len))
+	{
+	    labelpolicy = SEL_DO_LABELS;
+	    optionArgs = &cmd->tx_argv[2];
+	    cmd->tx_argc--;
+	}
+	else if (!strncmp(cmd->tx_argv[1], "no", arg1len))
+	{
+	    labelpolicy = SEL_NO_LABELS;
+	    optionArgs = &cmd->tx_argv[2];
+	    cmd->tx_argc--;
+	}
+	else if (!strncmp(cmd->tx_argv[1], "simple", arg1len))
+	{
+	    labelpolicy = SEL_SIMPLE_LABELS;
 	    optionArgs = &cmd->tx_argv[2];
 	    cmd->tx_argc--;
 	}
@@ -980,6 +1003,14 @@ CmdSelect(w, cmd)
 	case SEL_CLEAR:
 	    if ((more) || (less) || (cmd->tx_argc > 2)) goto usageError;
 	    SelectClear();
+	    return;
+
+	case SEL_LABELS:
+	    SelectDoLabels = labelpolicy;
+	    if (SelectDoLabels)
+		TxPrintf("Selection includes subcell labels\n");
+	    else
+		TxPrintf("Selection ignores subcell labels\n");
 	    return;
 
 	/*--------------------------------------------------------------------

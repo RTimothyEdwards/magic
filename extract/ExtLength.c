@@ -45,6 +45,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/signals.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
+#include "select/select.h"
 #include "utils/styles.h"
 #include "utils/stack.h"
 #include "utils/main.h"
@@ -368,7 +369,7 @@ extLengthYank(use, labList)
 	scx.scx_trans = GeoIdentityTransform;
 	GEO_EXPAND(&lab->lab_rect, 1, &scx.scx_area);
 	DBTreeCopyConnect(&scx, &DBConnectTbl[lab->lab_type], 0,
-		DBConnectTbl, &TiPlaneRect, TRUE, extPathUse);
+		DBConnectTbl, &TiPlaneRect, SEL_DO_LABELS, extPathUse);
     }
 
     if (DebugIsSet(extDebugID, extDebLength))

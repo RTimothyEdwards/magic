@@ -31,6 +31,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/hash.h"
 #include "database/database.h"
 #include "database/databaseInt.h"
+#include "select/select.h"
 #include "utils/signals.h"
 #include "utils/malloc.h"
 
@@ -691,10 +692,15 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 	{
 	    int newllen = tpath->tp_next - tpath->tp_first;
 	    newlabtext[0] = '\0';
-	    if (newllen > 0)
-		strncpy(newlabtext, tpath->tp_first, newllen);
-	    sprintf(newlabtext + newllen, "%s", lab->lab_text);
-	    newlabptr = newlabtext;
+	    if (tpath->tp_first == NULL)
+		newlabptr = lab->lab_text;
+	    else
+	    {
+		if (newllen > 0)
+		    strncpy(newlabtext, tpath->tp_first, newllen);
+		sprintf(newlabtext + newllen, "%s", lab->lab_text);
+		newlabptr = newlabtext;
+	    }
 	}
 	else return 0;
     }
@@ -1019,9 +1025,10 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 					 * clipped to this area.  Pass
 					 * TiPlaneRect to get everything.
 					 */
-    bool doLabels;			/* If TRUE, copy connected labels
-					 * and paint.  If FALSE, copy only
-					 * connected paint.
+    unsigned char doLabels;		/* If SEL_DO_LABELS, copy connected labels
+					 * and paint.  If SEL_NO_LABELS, copy only
+					 * connected paint.  If SEL_SIMPLE_LABELS,
+					 * copy only root of labels in subcircuits.
 					 */
     CellUse *destUse;			/* Result use in which to place
 					 * anything connected to material of
@@ -1098,7 +1105,8 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 	        searchtype |= TF_LABEL_ATTACH_NOT_SE;
 	    }
 	}
-	if (doLabels)
+	if (doLabels == SEL_SIMPLE_LABELS) tpath.tp_first = NULL;
+	if (doLabels != SEL_NO_LABELS)
 	    DBTreeSrLabels(scx, newmask, xMask, &tpath, searchtype,
 			dbcConnectLabelFunc, (ClientData) &csa2);
     }

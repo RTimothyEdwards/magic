@@ -56,6 +56,15 @@ extern void SelectStretch();
 extern void SelectArray();
 extern void SelectDump();
 
+/* Flag to indicate whether selection captures subcell labels */
+
+extern unsigned char SelectDoLabels;
+
+/* Flag values for SelectDoLabels:  */
+#define SEL_NO_LABELS	    0
+#define SEL_DO_LABELS	    1
+#define SEL_SIMPLE_LABELS   2
+
 /* The following is the root cell that contains the current selection. */
 
 extern CellDef *SelectRootDef;
