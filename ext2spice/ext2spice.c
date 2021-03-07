@@ -1553,10 +1553,15 @@ subcktVisit(use, hierName, is_top)
 	}
     }
 
-    /* SPICE subcircuit names must begin with A-Z.  This will also be   */
-    /* enforced when writing X subcircuit calls.                        */
+    /* SPICE subcircuit names must begin with A-Z. */
     subcktname = def->def_name;
-    while (!isalpha(*subcktname)) subcktname++;
+    if (!isalpha(*subcktname))
+    {
+	subcktname = mallocMagic(2 + strlen(def->def_name));
+	sprintf(subcktname, "x%s", def->def_name);
+	freeMagic(def->def_name);
+	def->def_name = subcktname;
+    }
 
     if (tchars > 80) fprintf(esSpiceF, "\n+");
     fprintf(esSpiceF, " %s", subcktname);	/* subcircuit model name */
@@ -1664,7 +1669,13 @@ topVisit(def, doStub)
     /* SPICE subcircuit names must begin with A-Z.  This will also be	*/
     /* enforced when writing X subcircuit calls.			*/
     subcktname = def->def_name;
-    while (!isalpha(*subcktname)) subcktname++;
+    if (!isalpha(*subcktname))
+    {
+	subcktname = mallocMagic(2 + strlen(def->def_name));
+	sprintf(subcktname, "x%s", def->def_name);
+	freeMagic(def->def_name);
+	def->def_name = subcktname;
+    }
 
     fprintf(esSpiceF, ".subckt %s", subcktname);
     tchars = 8 + strlen(subcktname);
