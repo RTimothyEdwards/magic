@@ -274,9 +274,11 @@ proc magic::generate_layout_add {subname subpins complist library} {
 	    lappend outparts [lindex $param 1]
 	}
 
-	if {[catch {[eval [join $outparts]]}]} {
+	if {[catch {eval [join $outparts]}]} {
+	    # Assume this is not a gencell, and get an instance.
 	    magic::get_and_move_inst $devtype $instname $mult
 	} else {
+	    # Move forward for next gencell
 	    magic::move_forward_by_width $instname
 	}
     }
@@ -462,6 +464,11 @@ proc magic::gencell {gencell_name {instname {}} args} {
 	    set gencell_type $gencell_name
 	}
 
+    	# Check that the device exists as a gencell, or else return an error
+    	if {[namespace eval ::${library} info commands ${gencell_type}_convert] == ""} {
+	    error "No import routine for ${library} library cell ${gencell_type}!"
+    	}
+
 	if {$instname == {}} {
 	    # Case:  Interactive, new device with parameters in args (if any)
 	    if {$spicemode == 1} {
@@ -515,6 +522,7 @@ proc magic::gencell {gencell_name {instname {}} args} {
 	    }
 	}
     }
+    return 0
 }
 
 #-------------------------------------------------------------
