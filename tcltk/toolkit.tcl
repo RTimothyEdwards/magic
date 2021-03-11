@@ -199,6 +199,10 @@ proc magic::generate_layout_add {subname subpins complist library} {
 	set pinlist {}
 	set paramlist {}
 
+	# NOTE:  This routine deals with subcircuit calls and devices
+	# with models.  It needs to determine when a device is instantiated
+	# without a model, and ignore such devices.
+
 	# Parse SPICE line into pins, device name, and parameters.  Make
 	# sure parameters incorporate quoted expressions as {} or ''.
 
@@ -342,6 +346,7 @@ proc magic::netlist_to_layout {netfile library} {
    close $fnet
 
    set insub false
+   set incmd false
    set subname ""
    set subpins ""
    set complist {} 
@@ -349,19 +354,33 @@ proc magic::netlist_to_layout {netfile library} {
 
    # suspendall
 
+   set ignorekeys {.global .ic .option .end}
+
    # Parse the file
    foreach line $fdata {
-      if {! $insub} {
+      if {$incmd} {
+	 if {[regexp -nocase {^[ \t]*\.endc} $line]} {
+	    set incmd false
+	 }
+      } elseif {! $insub} {
          set ftokens [split $line]
          set keyword [string tolower [lindex $ftokens 0]]
 
-         if {$keyword == ".subckt"} {
+         if {[lsearch $ignorekeys $keyword] != -1} { 
+	    continue
+         } elseif {$keyword == ".command"} {
+	    set incmd true
+         } elseif {$keyword == ".subckt"} {
 	    set subname [lindex $ftokens 1]
 	    set subpins [lrange $ftokens 2 end]
 	    set insub true
-         } elseif {[regexp -nocase {[xmcrbdivq]([^ \t]+)[ \t](.*)$} $line \
+         } elseif {[regexp -nocase {^[xmcrdq]([^ \t]+)[ \t](.*)$} $line \
 		    valid instname rest]} {
 	    lappend toplist $line
+         } elseif {[regexp -nocase {^[ivbe]([^ \t]+)[ \t](.*)$} $line \
+		    valid instname rest]} {
+	    # These are testbench devices and should be ignored
+	    continue
          }
       } else {
 	 if {[regexp -nocase {^[ \t]*\.ends} $line]} {
@@ -370,9 +389,13 @@ proc magic::netlist_to_layout {netfile library} {
 	    set subname ""
 	    set subpins ""
 	    set complist {}
-         } elseif {[regexp -nocase {[xmcrbdivq]([^ \t]+)[ \t](.*)$} $line \
+         } elseif {[regexp -nocase {^[xmcrdq]([^ \t]+)[ \t](.*)$} $line \
 		    valid instname rest]} {
 	    lappend complist $line
+         } elseif {[regexp -nocase {^[ivbe]([^ \t]+)[ \t](.*)$} $line \
+		    valid instname rest]} {
+	    # These are testbench devices and should be ignored
+	    continue
 	 }
       }
    }
