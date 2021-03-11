@@ -215,13 +215,13 @@ proc magic::generate_layout_add {subname subpins complist library} {
 	}
 
 	while {$rest != ""} {
-	    if {[regexp -nocase {([^= \t]+)=\'([^\']+)\'[ \t]*(.*)} $rest \
+	    if {[regexp -nocase {^([^= \t]+)=\'([^\']+)\'[ \t]*(.*)} $rest \
 			valid pname value rest]} {
 		lappend paramlist [list $pname "{$value}"]
-	    } elseif {[regexp -nocase {([^= \t]+)=\{([^\}]+)\}[ \t]*(.*)} $rest \
+	    } elseif {[regexp -nocase {^([^= \t]+)=\{([^\}]+)\}[ \t]*(.*)} $rest \
 			valid pname value rest]} {
 		lappend paramlist [list $pname "{$value}"]
-	    } elseif {[regexp -nocase {([^= \t]+)=([^= \t]+)[ \t]*(.*)} $rest \
+	    } elseif {[regexp -nocase {^([^= \t]+)=([^= \t]+)[ \t]*(.*)} $rest \
 			valid pname value rest]} {
 		lappend paramlist [list $pname $value]
 	    } else {
