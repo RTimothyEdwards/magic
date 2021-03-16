@@ -50,6 +50,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 void CmdPaintEraseButton();
 
+/* See the SetLabel command */
+
+extern Label *DefaultLabel;
 
 /*
  * ----------------------------------------------------------------------------
@@ -169,8 +172,8 @@ CmdLabel(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    TileType type;
-    int pos, font = -1, size = 0, rotate = 0, offx = 0, offy = 0;
+    TileType type = (TileType)(-1);
+    int pos = -1, font = -1, size = 0, rotate = 0, offx = 0, offy = 0;
     bool sticky = FALSE;
     int option;
     char *p;
@@ -184,6 +187,22 @@ CmdLabel(w, cmd)
     }
 
     p = cmd->tx_argv[1];
+
+    /*
+     * If the "setlabel" command has been used to set defaults, pick up
+     * the default values from DefaultLabel.
+     */
+    if (DefaultLabel != NULL)
+    {
+	pos = DefaultLabel->lab_just;
+	font = DefaultLabel->lab_font;
+	size = DefaultLabel->lab_size;
+	rotate = DefaultLabel->lab_rotate;
+	offx = DefaultLabel->lab_offset.p_x;
+	offy = DefaultLabel->lab_offset.p_y;
+	sticky = (DefaultLabel->lab_flags & LABEL_STICKY) ? 1 : 0;
+	type = DefaultLabel->lab_type;
+    }
 
     /*
      * Find and check validity of position.
@@ -220,13 +239,14 @@ CmdLabel(w, cmd)
 	else
 	    pos = GeoTransPos(&RootToEditTransform, pos);
     }
-    else pos = -1;
 
     if (font >= 0)
     {
 	char *yp = NULL;
 
-	size = DBLambda[1];
+    	if (DefaultLabel == NULL)
+	    size = DBLambda[1];
+
 	if (cmd->tx_argc > 3)
 	    if (StrIsNumeric(cmd->tx_argv[3]))
 		size = cmdScaleCoord(w, cmd->tx_argv[3], TRUE, TRUE, 8);
@@ -304,7 +324,7 @@ CmdLabel(w, cmd)
 	    TxError("Unknown layer: %s\n", cmd->tx_argv[cmd->tx_argc - 1]);
 	    return;
 	}
-    } else type = -1;
+    }
 
     CmdLabelProc(p, font, size, rotate, offx, offy, pos, sticky, type);
 }
