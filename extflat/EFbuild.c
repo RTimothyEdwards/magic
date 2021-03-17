@@ -486,6 +486,14 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	    efNodeMerge(&nn1->efnn_node, &nn2->efnn_node);
 	    if (nn1->efnn_port > 0) nn2->efnn_port = nn1->efnn_port;
 	    else if (nn2->efnn_port > 0) nn1->efnn_port = nn2->efnn_port;
+
+	    /* If a node has been merged away, make sure that its name	*/
+	    /* points to the merged name's hash.			*/
+
+	    if (nn1->efnn_node == NULL)
+    		HashSetValue(he1, (char *)nn2);
+	    else if (nn2->efnn_node == NULL)
+    		HashSetValue(he2, (char *)nn1);
 	}
 	return;
     }
