@@ -183,6 +183,7 @@ efBuildNode(def, isSubsnode, nodeName, nodeCap, x, y, layerName, av, ac)
 	newname = (EFNodeName *) mallocMagic((unsigned)(sizeof (EFNodeName)));
 	newname->efnn_hier = EFStrToHN((HierName *) NULL, nodeName);
 	newname->efnn_port = -1;	/* No port assignment */
+	newname->efnn_refc = 0;		/* Only reference is self */
 	newname->efnn_next = NULL;
 	HashSetValue(he, (char *) newname);
     }
@@ -491,9 +492,15 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	    /* points to the merged name's hash.			*/
 
 	    if (nn1->efnn_node == NULL)
+	    {
     		HashSetValue(he1, (char *)nn2);
+		nn2->efnn_refc += nn1->efnn_refc + 1;
+	    }
 	    else if (nn2->efnn_node == NULL)
+	    {
     		HashSetValue(he2, (char *)nn1);
+		nn1->efnn_refc += nn2->efnn_refc + 1;
+	    }
 	}
 	return;
     }
@@ -1561,6 +1568,7 @@ efNodeAddName(node, he, hn)
     newnn->efnn_node = node;
     newnn->efnn_hier = hn;
     newnn->efnn_port = -1;
+    newnn->efnn_refc = 0;
     HashSetValue(he, (char *) newnn);
 
     /* If the node is a port of the top level cell, denoted by flag	*/
@@ -1869,7 +1877,15 @@ efFreeNodeTable(table)
 	{
 	    for (hn = nn->efnn_hier; hn; hn = hn->hn_parent)
 		(void) HashFind(&efFreeHashTable, (char *) hn);
-	    freeMagic((char *) nn);
+
+	    /* Node equivalences made by "equiv" statements are	handled	*/
+	    /* by reference count.  Don't free the node structure until	*/
+	    /* all references have been seen.				*/
+
+	    if (nn->efnn_refc > 0)
+		nn->efnn_refc--;
+	    else
+		freeMagic((char *) nn);
 	}
 }
 

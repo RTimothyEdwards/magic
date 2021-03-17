@@ -545,6 +545,7 @@ efAddNodes(hc, stdcell)
 	    newname->efnn_node = newnode;
 	    newname->efnn_hier = hierName;
 	    newname->efnn_port = -1;
+	    newname->efnn_refc = 0;
 	    if (newnode->efnode_name)
 	    {
 		newname->efnn_next = newnode->efnode_name->efnn_next;
