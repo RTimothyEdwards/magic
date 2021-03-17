@@ -411,7 +411,7 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
     int cellStamp = 0, rectCount = 0, rectReport = 10000;
     char line[2048], tech[50], layername[50];
     PaintResultType *ptable;
-    bool result = TRUE, scaleLimit = FALSE;
+    bool result = TRUE, scaleLimit = FALSE, has_mismatch;
     Rect *rp;
     int c;
     TileType type, rtype, loctype;
@@ -844,6 +844,7 @@ done:
      * timestamp, then force the cell to be written out with a
      * correct timestamp.
      */
+    has_mismatch = FALSE;
     if ((cellDef->cd_timestamp != cellStamp) || (cellStamp == 0))
     {
 	CellUse *cu;
@@ -852,12 +853,13 @@ done:
 	    if (cu->cu_parent != NULL)
 	    {
 		DBStampMismatch(cellDef, &cellDef->cd_bbox);
+		has_mismatch = TRUE;
 		break;
 	    }
 	}
     }
     /* Update timestamp flags */
-    DBFlagMismatches(cellDef);
+    if (has_mismatch) DBFlagMismatches(cellDef);
 
     cellDef->cd_timestamp = cellStamp;
     if (cellStamp == 0)
@@ -869,7 +871,8 @@ done:
     }
 
     UndoEnable();
-    DRCCheckThis(cellDef, TT_CHECKPAINT, (Rect *) NULL);
+    /* Disabled 3/16/2021.  Let <<checkpaint>> in file force a DRC check */
+    /* DRCCheckThis(cellDef, TT_CHECKPAINT, (Rect *) NULL); */
     SigEnableInterrupts();
     return (result);
 

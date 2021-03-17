@@ -790,7 +790,9 @@ extern CellUse *DBFindUse();
 
     /* Insertion/deletion of cell uses into the cell tile plane of a parent */
 extern void DBPlaceCell();
+extern void DBPlaceCellNoModify();
 extern void DBDeleteCell();
+extern void DBDeleteCellNoModify();
 extern void DBClearCellPlane();
 
     /* Insertion/deletion of cell uses into the name space of a parent */
