@@ -727,13 +727,17 @@ extOutputNodes(nodeList, outFile)
 		fprintf(outFile, "\"\n");
 	    }
 
-	/* Output the alternate names for the node */
+	/* Output the alternate names for the node.  Avoid generating	*/
+	/* unnecessary "equiv A A" entries for labels on disconnected	*/
+	/* nets.							*/
+
 	for (ll = reg->nreg_labels; ll; ll = ll->ll_next)
 	    if (ll->ll_label->lab_text == text)
 	    {
 		for (ll = ll->ll_next; ll; ll = ll->ll_next)
 		     if (extLabType(ll->ll_label->lab_text, LABTYPE_NAME))
-			fprintf(outFile, "equiv \"%s\" \"%s\"\n",
+			if (strcmp(text, ll->ll_label->lab_text))
+			    fprintf(outFile, "equiv \"%s\" \"%s\"\n",
 					    text, ll->ll_label->lab_text);
 		break;
 	    }

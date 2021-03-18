@@ -454,6 +454,8 @@ efBuildEquiv(def, nodeName1, nodeName2)
     nn1 = (EFNodeName *) HashGetValue(he1);
     nn2 = (EFNodeName *) HashGetValue(he2);
 
+    if (nn1 == nn2) return;	/* These nodes already merged */
+
     if (nn2 == (EFNodeName *) NULL)
     {
 	/* Create nodeName1 if it doesn't exist */
@@ -482,6 +484,10 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	    return;		/* Repeated "equiv" statement */
 	if (nn1->efnn_node != nn2->efnn_node)
 	{
+	    struct efnode *node1 = nn1->efnn_node;
+	    struct efnode *node2 = nn2->efnn_node;
+    	    HashSearch hs;
+
 	    if (efWarn)
 		efReadError("Merged nodes %s and %s\n", nodeName1, nodeName2);
 	    efNodeMerge(&nn1->efnn_node, &nn2->efnn_node);
@@ -489,17 +495,23 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	    else if (nn2->efnn_port > 0) nn1->efnn_port = nn2->efnn_port;
 
 	    /* If a node has been merged away, make sure that its name	*/
-	    /* points to the merged name's hash.			*/
+	    /* and all aliases point to the merged name's hash.		*/
 
 	    if (nn1->efnn_node == NULL)
 	    {
-    		HashSetValue(he1, (char *)nn2);
 		nn2->efnn_refc += nn1->efnn_refc + 1;
+    		HashStartSearch(&hs);
+    		while (he1 = HashNext(&def->def_nodes, &hs))
+		    if ((EFNodeName *)HashGetValue(he1) == nn1)
+			HashSetValue(he1, (char *)nn2);
 	    }
 	    else if (nn2->efnn_node == NULL)
 	    {
-    		HashSetValue(he2, (char *)nn1);
 		nn1->efnn_refc += nn2->efnn_refc + 1;
+    		HashStartSearch(&hs);
+    		while (he2 = HashNext(&def->def_nodes, &hs))
+		    if ((EFNodeName *)HashGetValue(he2) == nn2)
+			HashSetValue(he2, (char *)nn1);
 	    }
 	}
 	return;
