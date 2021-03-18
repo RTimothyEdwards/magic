@@ -1935,7 +1935,7 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 
 		    hierD = extHierSDAttr(&dev->dev_terms[pn]);
 
-		    resclass == (pn > 1) ? esFetInfo[dev->dev_type].resClassDrain :
+		    resclass = (pn > 1) ? esFetInfo[dev->dev_type].resClassDrain :
 				esFetInfo[dev->dev_type].resClassSource;
 
 		    // For parameter a<n> followed by parameter p<n>,
@@ -1998,7 +1998,7 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		    pn = plist->parm_type[1] - '0';
 		    if (pn >= dev->dev_nterm) pn = dev->dev_nterm - 1;
 
-		    resclass == (pn > 1) ? esFetInfo[dev->dev_type].resClassDrain :
+		    resclass = (pn > 1) ? esFetInfo[dev->dev_type].resClassDrain :
 				esFetInfo[dev->dev_type].resClassSource;
 
 		    hierD = extHierSDAttr(&dev->dev_terms[pn]);
