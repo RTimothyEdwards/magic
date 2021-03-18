@@ -595,6 +595,25 @@ calmaParseElement(filename, pnsrefs, pnpaths)
 /*
  * ----------------------------------------------------------------------------
  *
+ * Callback procedure for enumerating any paint in a cell.  Used to find if
+ * a cell needs to be retained after being flattened into the parent cell.
+ *
+ * Returns 1 always.  Only called if a non-space tile was encountered.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+calmaEnumFunc(tile, plane)
+    Tile *tile;
+    int *plane;
+{
+    return 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * calmaElementSref --
  *
  * Process a structure reference (either CALMA_SREF or CALMA_AREF).
@@ -998,9 +1017,38 @@ calmaElementSref(filename)
 	    }
 	}
 
-	/* If cell has children in addition to paint to be flattened,	*/
-	/* then also generate an instance of the cell.			*/
+	/* When not reading with VENDORGDS, if a cell has contents	*/
+	/* other than the paint to be flattened, then also generate an	*/
+	/* instance of the cell.  Otherwise (with VENDORGDS), always 	*/
+	/* generate cell instances.  Note that only paint and cells	*/
+	/* are counted, not labels (see below).				*/
 
+	else if (!(def->cd_flags & CDVENDORGDS))
+	{
+	    int plane;
+	    for (plane = PL_TECHDEPBASE; plane < DBNumPlanes; plane++)
+		if (DBSrPaintArea((Tile *)NULL, def->cd_planes[plane], &TiPlaneRect,
+			&DBAllButSpaceAndDRCBits, calmaEnumFunc, (ClientData)NULL))
+		    break;
+
+	    if ((plane < DBNumPlanes) || DBCellEnum(def, gdsHasUses, (ClientData)NULL))
+	    {
+		use = DBCellNewUse(def, (useid) ? useid : (char *) NULL);
+		if (isArray)
+		    DBMakeArray(use, &GeoIdentityTransform, xlo, ylo, xhi, yhi, xsep, ysep);
+		DBSetTrans(use, &trans);
+		DBPlaceCell(use, cifReadCellDef);
+		madeinst = TRUE;
+	    }
+	    else
+	    {
+		/* (To do:  Copy labels from flattened cells, with hierarchical	*/
+		/* names.  Whether to do this or not should be an option.)	*/
+		TxPrintf("Removing instances of flattened cell %s in %s\n",
+			def->cd_name, cifReadCellDef->cd_name);
+		madeinst = TRUE;
+	    }
+	}
 	else
 	{
 	    use = DBCellNewUse(def, (useid) ? useid : (char *) NULL);
