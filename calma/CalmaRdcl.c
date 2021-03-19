@@ -1044,8 +1044,8 @@ calmaElementSref(filename)
 	    {
 		/* (To do:  Copy labels from flattened cells, with hierarchical	*/
 		/* names.  Whether to do this or not should be an option.)	*/
-		TxPrintf("Removing instances of flattened cell %s in %s\n",
-			def->cd_name, cifReadCellDef->cd_name);
+		/* TxPrintf("Removing instances of flattened cell %s in %s\n",
+			def->cd_name, cifReadCellDef->cd_name); */
 		madeinst = TRUE;
 	    }
 	}
