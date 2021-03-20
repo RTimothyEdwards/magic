@@ -847,6 +847,41 @@ static LabelStore *labelBlockTop, *labelEntry;
 /*
  * ----------------------------------------------------------------------------
  *
+ * cmdFindWhatTileFunc ---
+ *
+ *  Callback function for CmdWhat().  Given a tile found in the current
+ *  selection, searches the database to find what cell or cells that type
+ *  belongs to.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cmdFindWhatTileFunc(Tile *tile, ClientData clientData)
+{
+    struct linked_id **lid = (struct linked_id **)clientData;
+    SearchContext scx;
+    TileTypeBitMask tmask;
+    TileType type;
+
+    TiToRect(tile, &scx.scx_area);
+    scx.scx_use = EditCellUse;
+    scx.scx_trans = GeoIdentityTransform;
+
+    if (SplitSide(tile))
+	type = SplitRightType(tile);
+    else
+	type = SplitLeftType(tile);
+    TTMaskSetOnlyType(&tmask, type);
+
+    DBTreeSrTiles(&scx, &tmask, 0, cmdWhatPrintCell, (ClientData)lid);
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * CmdWhat --
  *
  * 	Print out information about what's selected.
@@ -875,9 +910,7 @@ CmdWhat(w, cmd)
     bool foundAny;
     bool doList = FALSE;
     TileTypeBitMask layers, maskBits, *rMask;
-    SearchContext scx;
     CellUse *CheckUse;
-    struct linked_id *lid;
 
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj, *paintobj, *labelobj, *cellobj;
@@ -959,29 +992,44 @@ CmdWhat(w, cmd)
 	    }
 	    if ((CheckUse != NULL) && (CheckUse->cu_def == SelectRootDef))
 	    {
-		scx.scx_use = CheckUse;
-		scx.scx_area = SelectUse->cu_bbox;	// BSI
-		scx.scx_trans = GeoIdentityTransform;	// BSI
+		CellUse *saveUse = EditCellUse;
+		struct linked_id *lid;
+		int pNum;
+
+		EditCellUse = CheckUse;
 
 		TxPrintf("Selected mask layers:\n");
 		for (i = TT_SELECTBASE; i < DBNumUserLayers; i++)
 		{
 		    if (TTMaskHasType(&layers, i))
 		    {
-			lid = NULL;
-			TxPrintf("    %-8s (", DBTypeLongName(i));
 			TTMaskSetOnlyType(&maskBits, i);
 			if (DBIsContact(i)) DBMaskAddStacking(&maskBits);
-			DBTreeSrTiles(&scx, &maskBits, 0, cmdWhatPrintCell,
-				(ClientData)&lid);
-			TxPrintf(")\n");
-			while (lid != NULL)
-			{
-			    freeMagic(lid);
-			    lid = lid->lid_next;
+
+			/* Search selection for tiles of this type, then    */
+			/* call cmdFindWhatTileFunc() to search the cell    */
+			/* def in the area of that tile to determine what   */
+			/* cell or subcell that tile belongs to.	    */
+
+			lid = NULL;
+		        TxPrintf("    %-8s (", DBTypeLongName(i));
+			for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+			    if (TTMaskHasType(&DBPlaneTypes[pNum], i))
+			    {
+				DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
+					&SelectUse->cu_bbox, &maskBits,
+					cmdFindWhatTileFunc, (ClientData)&lid);
+			    }
+
+		        TxPrintf(")\n");
+		        while (lid != NULL)
+		        {
+			   freeMagic(lid);
+			   lid = lid->lid_next;
 			}
 		    }
 		}
+		EditCellUse = saveUse;
 	    }
 	    else
 	    {
