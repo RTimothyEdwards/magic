@@ -767,7 +767,8 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
     		    /* Check if any of the last 5 entries has the same type and	*/
     		    /* area.  If so, don't duplicate the existing entry.	*/
 
-		    for (i = csa2->csa2_lasttop; i > csa2->csa2_lasttop - 5; i--)
+		    for (i = csa2->csa2_lasttop; (i >= 0) &&
+					(i > csa2->csa2_lasttop - 5); i--)
 			if (connectMask == csa2->csa2_list[i].connectMask)
 			    if (GEO_SURROUND(&csa2->csa2_list[i].area, &newarea))
 				return 0;
@@ -965,7 +966,7 @@ dbcConnectFunc(tile, cx)
     /* (NOTE:  Connect masks are all from the same table, so	*/
     /* they can be compared by address, no need for TTMaskEqual)*/
 
-    for (i = csa2->csa2_lasttop; i > csa2->csa2_lasttop - 5; i--)
+    for (i = csa2->csa2_lasttop; (i >= 0) && (i > csa2->csa2_lasttop - 5); i--)
 	if (connectMask == csa2->csa2_list[i].connectMask)
 	    if (GEO_SURROUND(&csa2->csa2_list[i].area, &newarea))
 		return 0;
@@ -1000,6 +1001,118 @@ dbcConnectFunc(tile, cx)
     return 0;
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbcCheckConnectFunc(tile, cx)
+    Tile *tile;			/* Tile found. */
+    TreeContext *cx;		/* Describes context of search.  The client
+				 * data is a pointer to a conSrArg2 record
+				 * containing various required information.
+				 */
+{
+    struct conSrArg2 *csa2;
+    Rect tileArea, newarea;
+    TileTypeBitMask *connectMask, notConnectMask;
+    Rect *srArea;
+    SearchContext *scx = cx->tc_scx;
+    SearchContext scx2;
+    TileType loctype = TiGetTypeExact(tile);
+    TileType dinfo = 0;
+    int i, pNum = cx->tc_plane;
+    CellDef *def;
+
+    TiToRect(tile, &tileArea);
+    srArea = &scx->scx_area;
+
+    GeoTransRect(&scx->scx_trans, &tileArea, &newarea);
+
+    /* Clip the current area down to something that overlaps the
+     * area of interest.
+     */
+
+    csa2 = (struct conSrArg2 *)cx->tc_filter->tf_arg;
+    GeoClip(&newarea, csa2->csa2_bounds);
+    if (GEO_RECTNULL(&newarea)) return 1;
+
+    if (IsSplit(tile))
+    {
+	dinfo = DBTransformDiagonal(loctype, &scx->scx_trans);
+	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+    }
+
+    connectMask = &csa2->csa2_connect[loctype];
+
+    if (DBIsContact(loctype))
+    {
+	/* The mask of contact types must include all stacked contacts */
+
+	TTMaskZero(&notConnectMask);
+	TTMaskSetMask(&notConnectMask, &DBNotConnectTbl[loctype]);
+    }
+    else
+	TTMaskCom2(&notConnectMask, connectMask);
+
+    /* Only check those tiles in the destination (select)	*/
+    /* which have not already been painted.			*/
+
+    def = csa2->csa2_use->cu_def;
+    if (DBSrPaintNMArea((Tile *) NULL, def->cd_planes[pNum],
+		dinfo, &newarea, &notConnectMask, dbcUnconnectFunc,
+		(ClientData) NULL) == 0)
+	return 1;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbPruneEntries(scx, xMask, csa2)
+    SearchContext *scx;
+    int xMask;
+    struct conSrArg2 *csa2;
+{
+    int i, j, result;
+    TileTypeBitMask *newmask;
+    TileType newtype;
+
+    for (i = 0, j = 0; i < csa2->csa2_top; i++)
+    {
+	newmask = csa2->csa2_list[i].connectMask;
+	scx->scx_area = csa2->csa2_list[i].area;
+	newtype = csa2->csa2_list[i].dinfo;
+
+	if (newtype & TT_DIAGONAL)
+	    result = DBTreeSrNMTiles(scx, newtype, newmask, xMask, dbcCheckConnectFunc,
+			(ClientData) csa2);
+	else
+	    result = DBTreeSrTiles(scx, newmask, xMask, dbcCheckConnectFunc,
+			(ClientData) csa2);
+
+	if (result == 0)
+	{
+	    if (i > j)
+	    {
+		csa2->csa2_list[j].connectMask = newmask;
+		csa2->csa2_list[j].area = scx->scx_area;
+		csa2->csa2_list[j].dinfo = newtype;
+	    }
+	    j++;
+	}
+    }
+    if (j == i)
+	return 1;
+
+    csa2->csa2_top = j;
+    return 0;
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -1108,9 +1221,15 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 
 	if (result != 0)
 	{
-	    TxError("Connectivity search exceeded memory limit and stopped;"
-			"  incomplete result.\n");
-	    break;
+	    result = dbPruneEntries(scx, xMask, &csa2);
+	    if (result == 1)
+	    {
+	    	TxError("Connectivity search exceeded memory limit and stopped;"
+				"  incomplete result.\n");
+	    	break;
+	    }
+	    else
+		continue;
 	}
 
 	/* Check the source def for any labels belonging to this        */
