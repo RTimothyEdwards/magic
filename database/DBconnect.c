@@ -88,6 +88,7 @@ struct conSrArg2
 
     conSrArea		*csa2_list;	/* List of areas to process */
     int			csa2_top;	/* Index of next area to process */
+    int			csa2_lasttop;	/* Previous top index */
     int			csa2_size;	/* Max. number bins in area list */
 };
 
@@ -654,7 +655,7 @@ dbcUnconnectFunc(tile, clientData)
  *	connectivity between them.
  *
  * Results:
- *	Always 0.
+ *	Return 0 normally, 1 if list size exceeds integer bounds.
  *
  * Side effects:
  *	Adds a label to the destination definition "def".
@@ -740,7 +741,7 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 		if ((slab->lab_flags & PORT_NUM_MASK) == lidx)
 		{
 		    Rect newarea;
-		    int pNum;
+		    int i, pNum;
 
 		    // Do NOT go searching on labels connected to space!
 		    if (slab->lab_type == TT_SPACE) continue;
@@ -763,24 +764,34 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 		    newarea.r_ybot--;
 		    newarea.r_ytop++;
 
+    		    /* Check if any of the last 5 entries has the same type and	*/
+    		    /* area.  If so, don't duplicate the existing entry.	*/
+
+		    for (i = csa2->csa2_lasttop; i > csa2->csa2_lasttop - 5; i--)
+			if (connectMask == csa2->csa2_list[i].connectMask)
+			    if (GEO_SURROUND(&csa2->csa2_list[i].area, &newarea))
+				return 0;
+
 		    /* Register the area and connection mask as needing to be processed */
 
 		    if (++csa2->csa2_top == csa2->csa2_size)
 		    {
+			conSrArea *newlist;
+			int newSize, newTotal;
+
 			/* Reached list size limit---need to enlarge the list	   */
 			/* Double the size of the list every time we hit the limit */
 
-			conSrArea *newlist;
-			int i, lastsize = csa2->csa2_size;
+			newSize = csa2->csa2_size * 2;
+			newTotal = newSize * sizeof(conSrArea);
+			if (newTotal <= 0) return 1;
 
-			csa2->csa2_size *= 2;
-
-			newlist = (conSrArea *)mallocMagic(csa2->csa2_size
-					* sizeof(conSrArea));
+			newlist = (conSrArea *)mallocMagic((size_t)newTotal);
 			memcpy((void *)newlist, (void *)csa2->csa2_list,
-					(size_t)lastsize * sizeof(conSrArea));
+					(size_t)csa2->csa2_size * sizeof(conSrArea));
 			freeMagic((char *)csa2->csa2_list);
 			csa2->csa2_list = newlist;
+			csa2->csa2_size = newSize;
 		    }
 
 		    csa2->csa2_list[csa2->csa2_top].area = newarea;
@@ -811,7 +822,8 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
  *	catecorner tiles from being considered as connected.
  *
  * Results:
- *	Always returns 0 to keep the search from aborting.
+ *	Returns 0 normally to keep the search from aborting;  returns 1
+ *	if allocation of list failed due to exceeding integer bounds.
  *
  * Side effects:
  *	Adds paint to the destination definition.
@@ -835,7 +847,7 @@ dbcConnectFunc(tile, cx)
     SearchContext scx2;
     TileType loctype = TiGetTypeExact(tile);
     TileType dinfo = 0;
-    int pNum = cx->tc_plane;
+    int i, pNum = cx->tc_plane;
     CellDef *def;
 
     TiToRect(tile, &tileArea);
@@ -948,6 +960,16 @@ dbcConnectFunc(tile, cx)
 	newarea.r_xtop += 1;
     }
 
+    /* Check if any of the last 5 entries has the same type and	*/
+    /* area.  If so, don't duplicate the existing entry.	*/
+    /* (NOTE:  Connect masks are all from the same table, so	*/
+    /* they can be compared by address, no need for TTMaskEqual)*/
+
+    for (i = csa2->csa2_lasttop; i > csa2->csa2_lasttop - 5; i--)
+	if (connectMask == csa2->csa2_list[i].connectMask)
+	    if (GEO_SURROUND(&csa2->csa2_list[i].area, &newarea))
+		return 0;
+
     /* Register the area and connection mask as needing to be processed */
 
     if (++csa2->csa2_top == csa2->csa2_size)
@@ -956,15 +978,19 @@ dbcConnectFunc(tile, cx)
 	/* Double the size of the list every time we hit the limit */
 
 	conSrArea *newlist;
-	int i, lastsize = csa2->csa2_size;
+	int newSize, newTotal;
 
-	csa2->csa2_size *= 2;
+	newSize = csa2->csa2_size * 2;
+	newTotal = newSize * sizeof(conSrArea);
 
-	newlist = (conSrArea *)mallocMagic((size_t)(csa2->csa2_size) * sizeof(conSrArea));
+	if (newTotal <= 0) return 1;	/* Exceeded integer bounds */
+
+	newlist = (conSrArea *)mallocMagic((size_t)newTotal);
 	memcpy((void *)newlist, (void *)csa2->csa2_list,
-			(size_t)lastsize * sizeof(conSrArea));
+			(size_t)csa2->csa2_size * sizeof(conSrArea));
 	freeMagic((char *)csa2->csa2_list);
 	csa2->csa2_list = newlist;
+	csa2->csa2_size = newSize;
     }
 
     csa2->csa2_list[csa2->csa2_top].area = newarea;
@@ -1054,10 +1080,12 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
     csa2.csa2_list = (conSrArea *)mallocMagic(CSA2_LIST_START_SIZE
 			* sizeof(conSrArea));
     csa2.csa2_top = -1;
+    csa2.csa2_lasttop = -1;
 
     DBTreeSrTiles(scx, mask, xMask, dbcConnectFunc, (ClientData) &csa2);
     while (csa2.csa2_top >= 0)
     {
+	int result;
         char pathstring[FLATTERMSIZE];
         TerminalPath tpath;
 
@@ -1069,12 +1097,21 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 	scx->scx_area = csa2.csa2_list[csa2.csa2_top].area;
 	newtype = csa2.csa2_list[csa2.csa2_top].dinfo;
 	csa2.csa2_top--;
+	csa2.csa2_lasttop = csa2.csa2_top;
 
 	if (newtype & TT_DIAGONAL)
-	    DBTreeSrNMTiles(scx, newtype, newmask, xMask, dbcConnectFunc,
+	    result = DBTreeSrNMTiles(scx, newtype, newmask, xMask, dbcConnectFunc,
 			(ClientData) &csa2);
 	else
-	    DBTreeSrTiles(scx, newmask, xMask, dbcConnectFunc, (ClientData) &csa2);
+	    result = DBTreeSrTiles(scx, newmask, xMask, dbcConnectFunc,
+			(ClientData) &csa2);
+
+	if (result != 0)
+	{
+	    TxError("Connectivity search exceeded memory limit and stopped;"
+			"  incomplete result.\n");
+	    break;
+	}
 
 	/* Check the source def for any labels belonging to this        */
 	/* tile area and plane, and add them to the destination.        */
@@ -1107,8 +1144,12 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 	}
 	if (doLabels == SEL_SIMPLE_LABELS) tpath.tp_first = NULL;
 	if (doLabels != SEL_NO_LABELS)
-	    DBTreeSrLabels(scx, newmask, xMask, &tpath, searchtype,
-			dbcConnectLabelFunc, (ClientData) &csa2);
+	    if (DBTreeSrLabels(scx, newmask, xMask, &tpath, searchtype,
+			dbcConnectLabelFunc, (ClientData) &csa2) != 0)
+	    {
+		TxError("Connection search hit memory limit and stopped.\n");
+		break;
+	    }
     }
     freeMagic((char *)csa2.csa2_list);
 
