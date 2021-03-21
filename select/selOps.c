@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -715,6 +716,43 @@ SelectShort(char *lab1, char *lab2)
 
 	if ((destlab == NULL) && Match(lab2, selLabel->lab_text))
 	    destlab = selLabel;
+    }
+
+    /* Was nothing selected?  Then run the equivalent of "goto lab1 ; select net */
+    if (srclab == NULL && destlab == NULL)
+    {
+	CellUse *use;
+	TileType ttype;
+	Rect rect;
+	SearchContext scx;
+	MagWindow *window;
+	DBWclientRec *crec;
+	int windowMask;
+
+	window = ToolGetBoxWindow(&rect, &windowMask);
+	if (!window) return NULL;
+
+	use = (CellUse *)window->w_surfaceID;
+	ttype = CmdFindNetProc(lab1, use, &rect, FALSE);
+	if (ttype == TT_SPACE) return NULL;
+
+	bzero(&scx, sizeof(SearchContext));
+	scx.scx_use = use;
+	scx.scx_trans = GeoIdentityTransform;
+	scx.scx_area = rect;
+	crec = (DBWclientRec *)window->w_clientData;
+
+	SelectNet(&scx, ttype, crec->dbw_bitmask, (Rect *)NULL, FALSE);
+
+    	for (selLabel = SelectDef->cd_labels; selLabel != NULL; selLabel =
+			selLabel->lab_next)
+    	{
+	    if ((srclab == NULL) && Match(lab1, selLabel->lab_text))
+	    	srclab = selLabel;
+
+	    if ((destlab == NULL) && Match(lab2, selLabel->lab_text))
+	    	destlab = selLabel;
+    	}
     }
 
     /* Must be able to find both labels */
