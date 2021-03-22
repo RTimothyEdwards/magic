@@ -84,7 +84,6 @@ struct conSrArg2
 					 * to what.
 					 */
     SearchContext	*csa2_topscx;	/* Original top-level search context */
-    int			 csa2_xMask;	/* Cell window mask for search */
     Rect		*csa2_bounds;	/* Area that limits the search */
 
     Stack		*csa2_stack;	/* Stack of full csa2_list entries */
@@ -1053,7 +1052,6 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
     unsigned char searchtype;
 
     csa2.csa2_use = destUse;
-    csa2.csa2_xMask = xMask;
     csa2.csa2_bounds = area;
     csa2.csa2_connect = connect;
     csa2.csa2_topscx = scx;
