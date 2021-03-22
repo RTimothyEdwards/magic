@@ -29,6 +29,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/geometry.h"
 #include "tiles/tile.h"
 #include "utils/hash.h"
+#include "utils/stack.h"
 #include "database/database.h"
 #include "database/databaseInt.h"
 #include "select/select.h"
@@ -86,13 +87,13 @@ struct conSrArg2
     int			 csa2_xMask;	/* Cell window mask for search */
     Rect		*csa2_bounds;	/* Area that limits the search */
 
+    Stack		*csa2_stack;	/* Stack of full csa2_list entries */
     conSrArea		*csa2_list;	/* List of areas to process */
     int			csa2_top;	/* Index of next area to process */
     int			csa2_lasttop;	/* Previous top index */
-    int			csa2_size;	/* Max. number bins in area list */
 };
 
-#define CSA2_LIST_START_SIZE 256
+#define CSA2_LIST_SIZE 65536		/* Number of entries per list */
 
 /*
  *-----------------------------------------------------------------
@@ -775,24 +776,17 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 
 		    /* Register the area and connection mask as needing to be processed */
 
-		    if (++csa2->csa2_top == csa2->csa2_size)
+		    if (++csa2->csa2_top == CSA2_LIST_SIZE)
 		    {
+			/* Reached list size limit---need to push the list and	*/
+			/* start a new one.					*/
+
 			conSrArea *newlist;
-			int newSize, newTotal;
 
-			/* Reached list size limit---need to enlarge the list	   */
-			/* Double the size of the list every time we hit the limit */
-
-			newSize = csa2->csa2_size * 2;
-			newTotal = newSize * sizeof(conSrArea);
-			if (newTotal <= 0) return 1;
-
-			newlist = (conSrArea *)mallocMagic((size_t)newTotal);
-			memcpy((void *)newlist, (void *)csa2->csa2_list,
-					(size_t)csa2->csa2_size * sizeof(conSrArea));
-			freeMagic((char *)csa2->csa2_list);
+			newlist = (conSrArea *)mallocMagic(CSA2_LIST_SIZE *
+				sizeof(conSrArea));
+			StackPush((ClientData)csa2->csa2_list, csa2->csa2_stack);
 			csa2->csa2_list = newlist;
-			csa2->csa2_size = newSize;
 		    }
 
 		    csa2->csa2_list[csa2->csa2_top].area = newarea;
@@ -973,144 +967,23 @@ dbcConnectFunc(tile, cx)
 
     /* Register the area and connection mask as needing to be processed */
 
-    if (++csa2->csa2_top == csa2->csa2_size)
+    if (++csa2->csa2_top == CSA2_LIST_SIZE)
     {
-	/* Reached list size limit---need to enlarge the list	   */
-	/* Double the size of the list every time we hit the limit */
+	/* Reached list size limit---need to push the list and	*/
+	/* start a new one.					*/
 
 	conSrArea *newlist;
-	int newSize, newTotal;
 
-	newSize = csa2->csa2_size * 2;
-	newTotal = newSize * sizeof(conSrArea);
-
-	if (newTotal <= 0) return 1;	/* Exceeded integer bounds */
-
-	newlist = (conSrArea *)mallocMagic((size_t)newTotal);
-	memcpy((void *)newlist, (void *)csa2->csa2_list,
-			(size_t)csa2->csa2_size * sizeof(conSrArea));
-	freeMagic((char *)csa2->csa2_list);
+	newlist = (conSrArea *)mallocMagic(CSA2_LIST_SIZE * sizeof(conSrArea));
+	StackPush((ClientData)csa2->csa2_list, csa2->csa2_stack);
 	csa2->csa2_list = newlist;
-	csa2->csa2_size = newSize;
+	csa2->csa2_top = 0;
     }
 
     csa2->csa2_list[csa2->csa2_top].area = newarea;
     csa2->csa2_list[csa2->csa2_top].connectMask = connectMask;
     csa2->csa2_list[csa2->csa2_top].dinfo = dinfo;
 
-    return 0;
-}
-
-/*
- * ----------------------------------------------------------------------------
- * ----------------------------------------------------------------------------
- */
-
-int
-dbcCheckConnectFunc(tile, cx)
-    Tile *tile;			/* Tile found. */
-    TreeContext *cx;		/* Describes context of search.  The client
-				 * data is a pointer to a conSrArg2 record
-				 * containing various required information.
-				 */
-{
-    struct conSrArg2 *csa2;
-    Rect tileArea, newarea;
-    TileTypeBitMask *connectMask, notConnectMask;
-    Rect *srArea;
-    SearchContext *scx = cx->tc_scx;
-    SearchContext scx2;
-    TileType loctype = TiGetTypeExact(tile);
-    TileType dinfo = 0;
-    int i, pNum = cx->tc_plane;
-    CellDef *def;
-
-    TiToRect(tile, &tileArea);
-    srArea = &scx->scx_area;
-
-    GeoTransRect(&scx->scx_trans, &tileArea, &newarea);
-
-    /* Clip the current area down to something that overlaps the
-     * area of interest.
-     */
-
-    csa2 = (struct conSrArg2 *)cx->tc_filter->tf_arg;
-    GeoClip(&newarea, csa2->csa2_bounds);
-    if (GEO_RECTNULL(&newarea)) return 1;
-
-    if (IsSplit(tile))
-    {
-	dinfo = DBTransformDiagonal(loctype, &scx->scx_trans);
-	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
-    }
-
-    connectMask = &csa2->csa2_connect[loctype];
-
-    if (DBIsContact(loctype))
-    {
-	/* The mask of contact types must include all stacked contacts */
-
-	TTMaskZero(&notConnectMask);
-	TTMaskSetMask(&notConnectMask, &DBNotConnectTbl[loctype]);
-    }
-    else
-	TTMaskCom2(&notConnectMask, connectMask);
-
-    /* Only check those tiles in the destination (select)	*/
-    /* which have not already been painted.			*/
-
-    def = csa2->csa2_use->cu_def;
-    if (DBSrPaintNMArea((Tile *) NULL, def->cd_planes[pNum],
-		dinfo, &newarea, &notConnectMask, dbcUnconnectFunc,
-		(ClientData) NULL) == 0)
-	return 1;
-
-    return 0;
-}
-
-/*
- * ----------------------------------------------------------------------------
- * ----------------------------------------------------------------------------
- */
-
-int
-dbPruneEntries(scx, xMask, csa2)
-    SearchContext *scx;
-    int xMask;
-    struct conSrArg2 *csa2;
-{
-    int i, j, result;
-    TileTypeBitMask *newmask;
-    TileType newtype;
-
-    for (i = 0, j = 0; i < csa2->csa2_top; i++)
-    {
-	newmask = csa2->csa2_list[i].connectMask;
-	scx->scx_area = csa2->csa2_list[i].area;
-	newtype = csa2->csa2_list[i].dinfo;
-
-	if (newtype & TT_DIAGONAL)
-	    result = DBTreeSrNMTiles(scx, newtype, newmask, xMask, dbcCheckConnectFunc,
-			(ClientData) csa2);
-	else
-	    result = DBTreeSrTiles(scx, newmask, xMask, dbcCheckConnectFunc,
-			(ClientData) csa2);
-
-	if (result == 0)
-	{
-	    if (i > j)
-	    {
-		csa2->csa2_list[j].connectMask = newmask;
-		csa2->csa2_list[j].area = scx->scx_area;
-		csa2->csa2_list[j].dinfo = newtype;
-	    }
-	    j++;
-	}
-    }
-    if (j == i)
-	return 1;
-
-    csa2->csa2_top = j;
     return 0;
 }
 
@@ -1189,16 +1062,15 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
     /* malloc calls by maintaining a small list and expanding it only	*/
     /* when necessary.							*/
 
-    csa2.csa2_size = CSA2_LIST_START_SIZE;
-    csa2.csa2_list = (conSrArea *)mallocMagic(CSA2_LIST_START_SIZE
-			* sizeof(conSrArea));
+    csa2.csa2_list = (conSrArea *)mallocMagic(CSA2_LIST_SIZE * sizeof(conSrArea));
     csa2.csa2_top = -1;
     csa2.csa2_lasttop = -1;
+
+    csa2.csa2_stack = StackNew(100);
 
     DBTreeSrTiles(scx, mask, xMask, dbcConnectFunc, (ClientData) &csa2);
     while (csa2.csa2_top >= 0)
     {
-	int result;
         char pathstring[FLATTERMSIZE];
         TerminalPath tpath;
 
@@ -1209,28 +1081,28 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 	newmask = csa2.csa2_list[csa2.csa2_top].connectMask;
 	scx->scx_area = csa2.csa2_list[csa2.csa2_top].area;
 	newtype = csa2.csa2_list[csa2.csa2_top].dinfo;
-	csa2.csa2_top--;
+	if (csa2.csa2_top == 0)
+	{
+	    if (StackLook(csa2.csa2_stack) != (ClientData)NULL)
+	    {
+	    	freeMagic(csa2.csa2_list);
+	    	csa2.csa2_list = (conSrArea *)StackPop(csa2.csa2_stack);
+	    	csa2.csa2_top = CSA2_LIST_SIZE - 1;
+	    }
+	    else
+		csa2.csa2_top--;
+	}
+	else
+	    csa2.csa2_top--;
+
 	csa2.csa2_lasttop = csa2.csa2_top;
 
 	if (newtype & TT_DIAGONAL)
-	    result = DBTreeSrNMTiles(scx, newtype, newmask, xMask, dbcConnectFunc,
+	    DBTreeSrNMTiles(scx, newtype, newmask, xMask, dbcConnectFunc,
 			(ClientData) &csa2);
 	else
-	    result = DBTreeSrTiles(scx, newmask, xMask, dbcConnectFunc,
+	    DBTreeSrTiles(scx, newmask, xMask, dbcConnectFunc,
 			(ClientData) &csa2);
-
-	if (result != 0)
-	{
-	    result = dbPruneEntries(scx, xMask, &csa2);
-	    if (result == 1)
-	    {
-	    	TxError("Connectivity search exceeded memory limit and stopped;"
-				"  incomplete result.\n");
-	    	break;
-	    }
-	    else
-		continue;
-	}
 
 	/* Check the source def for any labels belonging to this        */
 	/* tile area and plane, and add them to the destination.        */
@@ -1271,6 +1143,7 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 	    }
     }
     freeMagic((char *)csa2.csa2_list);
+    StackFree(csa2.csa2_stack);
 
     /* Recompute the bounding box of the destination and record its area
      * for redisplay.
