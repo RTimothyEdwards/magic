@@ -432,7 +432,7 @@ SimTreeCopyConnect(scx, mask, xMask, connect, area, destUse, Node_Name)
 	newtype = csa2.csa2_list[csa2.csa2_top].dinfo;
 	if (csa2.csa2_top == 0)
 	{
-	    if (StckLook(csa2.csa2_stack) != (ClientData)NULL)
+	    if (StackLook(csa2.csa2_stack) != (ClientData)NULL)
 	    {
 		freeMagic(csa2.csa2_list);
 		csa2.csa2_list = (conSrArea *)StackPop(csa2.csa2_stack);
