@@ -633,10 +633,70 @@ cmdSelectArea(layers, less, option)
 		TTMaskClearType(&mask, i);
 	}
     }
-    if (option == SEL_INTERSECT)
-	SelectIntersect(&scx, &mask, crec->dbw_bitmask);
     else
 	SelectArea(&scx, &mask, crec->dbw_bitmask);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cmdIntersectArea --
+ *
+ * 	This is a utility procedure used by CmdSelect to do area
+ *	selection itersect.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	The selection is pared down to contain only the part of the
+ *	original selection that intersects with the type "layer".
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+cmdIntersectArea(layer)
+    char *layer;		/* The layer to intersect with */
+{
+    TileType ttype;
+    SearchContext scx;
+    int windowMask, xMask;
+    DBWclientRec *crec;
+    MagWindow *window;
+
+    bzero(&scx, sizeof(SearchContext));
+    window = ToolGetBoxWindow(&scx.scx_area, &windowMask);
+    if (window == NULL)
+    {
+	TxPrintf("The box isn't in a window.\n");
+	return;
+    }
+
+    /* Since the box may actually be in multiple windows, we have to
+     * be a bit careful.  If the box is only in one window, then there's
+     * no problem.  If it's in more than window, the cursor must
+     * disambiguate the windows.
+     */
+
+    xMask = ((DBWclientRec *) window->w_clientData)->dbw_bitmask;
+    if ((windowMask & ~xMask) != 0)
+    {
+	window = CmdGetRootPoint((Point *) NULL, (Rect *) NULL);
+        xMask = ((DBWclientRec *) window->w_clientData)->dbw_bitmask;
+	if ((windowMask & xMask) == 0)
+	{
+	    TxPrintf("The box is in more than one window;  use the cursor\n");
+	    TxPrintf("to select the one you want to select from.\n");
+	    return;
+	}
+    }
+
+    scx.scx_use = (CellUse *) window->w_surfaceID;
+    scx.scx_trans = GeoIdentityTransform;
+    crec = (DBWclientRec *) window->w_clientData;
+    ttype = DBTechNoisyNameType(layer);
+    SelectIntersect(&scx, ttype, crec->dbw_bitmask);
 }
 
 /*
@@ -935,10 +995,7 @@ CmdSelect(w, cmd)
 
 	case SEL_INTERSECT:
 	    if (cmd->tx_argc > 3) goto usageError;
-	    if (!(more || less)) SelectClear();
-	    if (cmd->tx_argc == 3)
-		cmdSelectArea(optionArgs[1], less, option);
-	    else cmdSelectArea("*,label,subcell", less, option);
+	    cmdIntersectArea(optionArgs[1]);
 	    return;
 
 	/*--------------------------------------------------------------------

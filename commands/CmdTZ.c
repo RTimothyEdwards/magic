@@ -1040,12 +1040,13 @@ CmdWhat(w, cmd)
 			{
 			    Tcl_ListObjAppendElement(magicinterp, paintobj,
 				    Tcl_NewStringObj(DBTypeLongName(i), -1));
-			    Tcl_ListObjAppendElement(magicinterp, paintobj,
-				    paintcellobj);
 
 			    for (lidp = lid; lidp; lidp = lidp->lid_next)
 				Tcl_ListObjAppendElement(magicinterp, paintcellobj,
 					Tcl_NewStringObj(lidp->lid_name, -1));
+
+			    Tcl_ListObjAppendElement(magicinterp, paintobj,
+				    paintcellobj);
 			}
 
 		        while (lid != NULL)
