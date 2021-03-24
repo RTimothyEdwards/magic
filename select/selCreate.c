@@ -253,6 +253,205 @@ selClearFunc(scx)
     else return 2;
 }
 
+/* Structure used by selIntersectPaintFunc() */
+
+struct selIntersectData {
+    Rect *sid_rect;
+    TileType sid_type;
+};
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * selDupPaintFunc --
+ *
+ *	Copy paint from tile area in Select2Def into SelectDef as all types
+ *	in rMask.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+selDupPaintFunc(tile, rMask)
+    Tile *tile;			/* The tile to get the area to copy paint. */
+    TileTypeBitMask *rMask;	/* Paint types to copy to. */
+{
+    Rect r;
+
+    TiToRect(tile, &r);
+    DBPaintMask(SelectDef, &r, rMask);
+
+    return 0;			    /* Keep the search going. */
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * selIntersectPaintFunc2 ---
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+selIntersectPaintFunc2(tile, sid)
+    Tile *tile;		/* The tile to copy paint from. */
+    struct selIntersectData *sid;
+{
+    Rect r;
+    int p;
+
+    TiToRect(tile, &r);
+    GEOCLIP(&r, sid->sid_rect);    /* Clip out the intersection area */
+
+    DBPaint(Select2Def, &r, sid->sid_type);	/* Paint back into Select2Def */
+
+    return 0;			    /* Keep the search going. */
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * selIntersectPaintFunc --
+ *
+ *	Erase paint of types in rMask from the area of the tile.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+selIntersectPaintFunc(tile, type)
+    Tile *tile;			/* The tile to copy paint from. */
+    TileType	type;		/* The type of tile to keep */
+{
+    TileTypeBitMask tMask;
+    Rect r;
+    int plane;
+    struct selIntersectData sid;
+
+    TiToRect(tile, &r);
+
+    TTMaskSetOnlyType(&tMask, type);
+    plane = DBPlane(type);
+    
+    sid.sid_type = TiGetTypeExact(tile);
+    sid.sid_rect = &r;
+
+    DBSrPaintArea((Tile *)NULL, Select2Def->cd_planes[plane], &r,
+		    &tMask, selIntersectPaintFunc2, (ClientData)&sid);
+
+    return 0;			    /* Keep the search going. */
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * SelectIntersect --
+ *
+ * 	This procedure selects all information that falls in a given area
+ *	and contains the intersection of all the supplied types.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	The indicated information is added to the select cell, and
+ *	outlined on the screen.  Only information of particular
+ *	types, and in expanded cells (according to xMask) is
+ *	selected.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+SelectIntersect(scx, types, xMask)
+    SearchContext *scx;		/* Describes the area in which material
+				 * is to be selected.  The resulting
+				 * coordinates should map to the coordinates
+				 * of EditRootDef.  The cell use should be
+				 * the root of a window.
+				 */
+    TileTypeBitMask *types;	/* Indicates which intersecting layers to
+				 * select.  May not include labels or cells.
+				 */
+    int xMask;			/* Indicates window (or windows) where cells
+				 * must be expanded for their contents to be
+				 * considered.  0 means treat everything as
+				 * expanded.
+				 */
+{
+    TileTypeBitMask tMask, rMask;
+    TileType s, t;
+    int plane;
+
+    /* If the source definition is changing, clear the old selection. */
+
+    if (SelectRootDef != scx->scx_use->cu_def)
+    {
+	if (SelectRootDef != NULL)
+	    SelectClear();
+	SelectRootDef = scx->scx_use->cu_def;
+	SelSetDisplay(SelectUse, SelectRootDef);
+    }
+
+    SelRememberForUndo(TRUE, (CellDef *) NULL, (Rect *) NULL);
+
+    /* Select all paint of types in "types" mask and copy into Select2Def */
+
+    DBCellClearDef(Select2Def);
+    (void) DBCellCopyAllPaint(scx, types, xMask, Select2Use);
+
+    /* Find the first type in the list.  This will be used as the reference */
+
+    for (t = 0; t < DBNumUserLayers; t++)
+	if (TTMaskHasType(types, t))
+	    break;
+
+    if (t == DBNumUserLayers) return;
+
+    /* Compute the type mask of the reference type */
+    TTMaskSetOnlyType(&tMask, t);
+    plane = DBPlane(t);
+
+    /* For each other type in "types", do the following */
+
+    for (s = t + 1; s < DBNumUserLayers; s++)
+    {
+	if (TTMaskHasType(types, s))
+	{
+	    /* Copy the reference paint type from Select2Def into SelectDef */
+	    DBSrPaintArea((Tile *)NULL, Select2Def->cd_planes[plane], &scx->scx_area,
+			&tMask, selDupPaintFunc, (ClientData)&tMask);
+
+	    /* Erase the reference paint type from Select2Def */
+	    DBEraseMask(Select2Def, &TiPlaneRect, &tMask);
+
+	    /* Scan Select2Def for all geometry of type s inside the areas of   */
+	    /* the reference type, and copy back to Select2Def as the reference */
+	    /* type								*/
+	    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[plane],
+		    &scx->scx_area, &tMask, selIntersectPaintFunc, (ClientData)s);
+
+	    /* Erase the reference paint type from SelectDef */
+	    DBEraseMask(SelectDef, &TiPlaneRect, &tMask);
+	}
+    }
+
+    /* Copy any remaining paint in the reference layer in Select2Def to	    */
+    /* SelectDef as all the intersection types.				    */
+
+    DBSrPaintArea((Tile *)NULL, Select2Def->cd_planes[plane], &scx->scx_area,
+	    &tMask, selDupPaintFunc, (ClientData)types);
+
+    SelectDef->cd_types = *types;	/* Remember what types were requested */
+
+    /* Display the new selection. */
+
+    SelRememberForUndo(FALSE, SelectRootDef, &scx->scx_area);
+    DBReComputeBbox(SelectDef);
+    DBWHLRedraw(SelectRootDef, &scx->scx_area, TRUE);
+    DBWAreaChanged(SelectDef, &SelectDef->cd_extended, DBW_ALLWINDOWS,
+	    &DBAllButSpaceBits);
+}
 
 /*
  * ----------------------------------------------------------------------------

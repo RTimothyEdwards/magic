@@ -528,6 +528,26 @@ CmdSee(w, cmd)
     return;
 }
 
+#define SEL_AREA	 0
+#define SEL_VISIBLE	 1
+#define SEL_CELL	 2
+#define SEL_LABELS	 3
+#define SEL_INTERSECT	 4
+#define SEL_CLEAR	 5
+#define SEL_FLAT	 6
+#define SEL_HELP	 7
+#define SEL_KEEP	 8
+#define SEL_MOVE	 9
+#define SEL_PICK	10
+#define SEL_SAVE	11
+#define SEL_FEEDBACK	12
+#define SEL_BBOX	13
+#define SEL_BOX		14
+#define SEL_CHUNK	15
+#define SEL_REGION	16
+#define SEL_NET		17
+#define SEL_SHORT	18
+#define SEL_DEFAULT	19
 
 /*
  * ----------------------------------------------------------------------------
@@ -550,9 +570,10 @@ CmdSee(w, cmd)
 
 	/* ARGSUSED */
 void
-cmdSelectArea(layers, less)
+cmdSelectArea(layers, less, option)
     char *layers;			/* Which layers are to be selected. */
     bool less;
+    int option;				/* Option from defined list above */
 {
     SearchContext scx;
     TileTypeBitMask mask;
@@ -603,83 +624,7 @@ cmdSelectArea(layers, less)
     scx.scx_use = (CellUse *) window->w_surfaceID;
     scx.scx_trans = GeoIdentityTransform;
     crec = (DBWclientRec *) window->w_clientData;
-    SelectArea(&scx, &mask, crec->dbw_bitmask);
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * cmdSelectVisible --
- *
- * 	This is a utility procedure used by CmdSelect to do area
- *	selection of visible paint.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *	The selection is augmented to contain all the information on
- *	layers that is visible under the box, including paint, labels,
- *	and expanded subcells.
- *
- * ----------------------------------------------------------------------------
- */
-
-	/* ARGSUSED */
-void
-cmdSelectVisible(layers, less)
-    char *layers;			/* Which layers are to be selected. */
-    bool less;
-{
-    SearchContext scx;
-    TileTypeBitMask mask;
-    int windowMask, xMask;
-    DBWclientRec *crec;
-    MagWindow *window;
-
-    bzero(&scx, sizeof(SearchContext));
-    window = ToolGetBoxWindow(&scx.scx_area, &windowMask);
-    if (window == NULL)
-    {
-	TxPrintf("The box isn't in a window.\n");
-	return;
-    }
-
-    /* Since the box may actually be in multiple windows, we have to
-     * be a bit careful.  If the box is only in one window, then there's
-     * no problem.  If it's in more than window, the cursor must
-     * disambiguate the windows.
-     */
-
-    xMask = ((DBWclientRec *) window->w_clientData)->dbw_bitmask;
-    if ((windowMask & ~xMask) != 0)
-    {
-	window = CmdGetRootPoint((Point *) NULL, (Rect *) NULL);
-        xMask = ((DBWclientRec *) window->w_clientData)->dbw_bitmask;
-	if ((windowMask & xMask) == 0)
-	{
-	    TxPrintf("The box is in more than one window;  use the cursor\n");
-	    TxPrintf("to select the one you want to select from.\n");
-	    return;
-	}
-    }
-    if (CmdParseLayers(layers, &mask))
-    {
-	if (TTMaskEqual(&mask, &DBSpaceBits))
-	    (void) CmdParseLayers("*,label", &mask);
-	TTMaskClearType(&mask, TT_SPACE);
-    }
-    else return;
-
-    if (less)
-      {
-	(void) SelRemoveArea(&scx.scx_area, &mask);
-	return;
-      }
-
-    scx.scx_use = (CellUse *) window->w_surfaceID;
-    scx.scx_trans = GeoIdentityTransform;
-    crec = (DBWclientRec *) window->w_clientData;
+    if (option == SEL_VISIBLE)
     {
 	int i;
 	for (i = 0; i < DBNumUserLayers; i++)
@@ -688,7 +633,10 @@ cmdSelectVisible(layers, less)
 		TTMaskClearType(&mask, i);
 	}
     }
-    SelectArea(&scx, &mask, crec->dbw_bitmask);
+    if (option == SEL_INTERSECT)
+	SelectIntersect(&scx, &mask, crec->dbw_bitmask);
+    else
+	SelectArea(&scx, &mask, crec->dbw_bitmask);
 }
 
 /*
@@ -728,32 +676,13 @@ CmdSelect(w, cmd)
      * second table, due to a help message for ":select" with no arguments.
      */
 
-#define SEL_AREA	 0
-#define SEL_VISIBLE	 1
-#define SEL_CELL	 2
-#define SEL_LABELS	 3
-#define SEL_CLEAR	 4
-#define SEL_FLAT	 5
-#define SEL_HELP	 6
-#define SEL_KEEP	 7
-#define SEL_MOVE	 8
-#define SEL_PICK	 9
-#define SEL_SAVE	10
-#define SEL_FEEDBACK	11
-#define SEL_BBOX	12
-#define SEL_BOX		13
-#define SEL_CHUNK	14
-#define SEL_REGION	15
-#define SEL_NET		16
-#define SEL_SHORT	17
-#define SEL_DEFAULT	18
-
     static char *cmdSelectOption[] =
     {
 	"area",
 	"visible",
 	"cell",
 	"labels",
+	"intersection",
 	"clear",
 	"flat",
 	"help",
@@ -780,6 +709,7 @@ CmdSelect(w, cmd)
 	"[more | less] visible [layers]  [de]select all visible info under box in layers",
 	"[more | less | top] cell [name] [de]select cell under cursor, or \"name\"",
 	"[do | no] labels		 [do not] select subcell labels",
+	"[more | less] intersection [layers]	[de]select intersection of layers",
 	"clear                           clear selection",
 	"flat				 flatten the contents of the selection",
 	"help                            print this message",
@@ -980,7 +910,7 @@ CmdSelect(w, cmd)
 	    }
 	    if (!(more || less)) SelectClear();
 	    if (cmd->tx_argc == 3)
-		cmdSelectArea(optionArgs[1], less);
+		cmdSelectArea(optionArgs[1], less, option);
 	    else cmdSelectArea("*,label,subcell", less);
 	    return;
 
@@ -994,8 +924,21 @@ CmdSelect(w, cmd)
 	    if (cmd->tx_argc > 3) goto usageError;
 	    if (!(more || less)) SelectClear();
 	    if (cmd->tx_argc == 3)
-		cmdSelectVisible(optionArgs[1], less);
-	    else cmdSelectVisible("*,label,subcell", less);
+		cmdSelectArea(optionArgs[1], less, option);
+	    else cmdSelectArea("*,label,subcell", less, option);
+	    return;
+
+	/*--------------------------------------------------------------------
+	 * Select area that is the intersection of all the specified layers
+	 *--------------------------------------------------------------------
+	 */
+
+	case SEL_INTERSECT:
+	    if (cmd->tx_argc > 3) goto usageError;
+	    if (!(more || less)) SelectClear();
+	    if (cmd->tx_argc == 3)
+		cmdSelectArea(optionArgs[1], less, option);
+	    else cmdSelectArea("*,label,subcell", less, option);
 	    return;
 
 	/*--------------------------------------------------------------------

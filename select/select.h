@@ -35,6 +35,7 @@ extern void SelectRegion();
 extern void SelectInit();
 extern void SelectClear();
 extern void SelectCell();
+extern void SelectIntersect();
 extern void SelRemoveArea();
 extern int  SelRemoveSel2();
 extern int  SelectRemoveCellUse();
