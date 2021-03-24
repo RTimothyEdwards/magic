@@ -1007,7 +1007,7 @@ CmdWhat(w, cmd)
 
 		EditCellUse = CheckUse;
 
-		TxPrintf("Selected mask layers:\n");
+		if (!doListAll) TxPrintf("Selected mask layers:\n");
 		for (i = TT_SELECTBASE; i < DBNumUserLayers; i++)
 		{
 		    if (TTMaskHasType(&layers, i))
@@ -1044,9 +1044,6 @@ CmdWhat(w, cmd)
 			    for (lidp = lid; lidp; lidp = lidp->lid_next)
 				Tcl_ListObjAppendElement(magicinterp, paintcellobj,
 					Tcl_NewStringObj(lidp->lid_name, -1));
-
-			    Tcl_ListObjAppendElement(magicinterp, paintobj,
-				    paintcellobj);
 			}
 
 		        while (lid != NULL)
@@ -1057,6 +1054,9 @@ CmdWhat(w, cmd)
 		    }
 		}
 		EditCellUse = saveUse;
+		if (doListAll)
+		    Tcl_ListObjAppendElement(magicinterp, paintobj, paintcellobj);
+
 	    }
 	    else
 	    {
