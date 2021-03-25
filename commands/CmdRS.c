@@ -663,6 +663,8 @@ cmdIntersectArea(layer)
     int windowMask, xMask;
     DBWclientRec *crec;
     MagWindow *window;
+    char *lptr;
+    bool negate = FALSE;
 
     bzero(&scx, sizeof(SearchContext));
     window = ToolGetBoxWindow(&scx.scx_area, &windowMask);
@@ -694,8 +696,23 @@ cmdIntersectArea(layer)
     scx.scx_use = (CellUse *) window->w_surfaceID;
     scx.scx_trans = GeoIdentityTransform;
     crec = (DBWclientRec *) window->w_clientData;
-    ttype = DBTechNoisyNameType(layer);
-    SelectIntersect(&scx, ttype, crec->dbw_bitmask);
+
+    /* Special behavior:  "!" or "~" in front of layer name intersects	*/
+    /* with NOT(layer).							*/
+
+    lptr = layer;
+    if ((*lptr == '~') || (*lptr == '!'))
+    {
+	negate = TRUE;
+	lptr++;
+    }
+    
+    ttype = DBTechNameType(lptr);
+    if (ttype < 0) {
+	TxError("Cannot parse layer type \"%s\".\n", layer);
+	return;
+    }
+    SelectIntersect(&scx, ttype, crec->dbw_bitmask, negate);
 }
 
 /*

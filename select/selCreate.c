@@ -324,7 +324,7 @@ selIntersectPaintFunc(tile)
  */
 
 void
-SelectIntersect(scx, type, xMask)
+SelectIntersect(scx, type, xMask, negate)
     SearchContext *scx;		/* Describes the area in which material
 				 * is to be selected.  The resulting
 				 * coordinates should map to the coordinates
@@ -339,6 +339,7 @@ SelectIntersect(scx, type, xMask)
 				 * considered.  0 means treat everything as
 				 * expanded.
 				 */
+    bool negate;		/* If true, search on NOT(type) */
 {
     TileTypeBitMask tMask, rMask;
     TileType s, t;
@@ -363,14 +364,22 @@ SelectIntersect(scx, type, xMask)
 
     /* Select all paint of type "type" and copy into SelectDef */
     TTMaskSetOnlyType(&tMask, type);
-    plane = DBPlane(t);
+
+    plane = DBPlane(type);
     (void) DBCellCopyAllPaint(scx, &tMask, xMask, SelectUse);
 
     /* Scan Select2Def for all geometry inside the area of "type", and  */
     /* copy back to SelectDef as "type"					*/
 
+    if (negate)
+    {
+	TTMaskCom(&tMask);
+	TTMaskAndMask(&tMask, &DBPlaneTypes[plane]);
+    }
     DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[plane],
 	    &scx->scx_area, &tMask, selIntersectPaintFunc, (ClientData)NULL);
+
+    if (negate) TTMaskSetOnlyType(&tMask, type);    /* Restore original mask */
 
     DBEraseMask(SelectDef, &TiPlaneRect, &tMask);
 

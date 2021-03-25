@@ -3955,6 +3955,9 @@ int cmdDropPaintCell(tile, cxp)
 
     TiToRect(tile, &area);
 
+    /* Clip to search area */
+    GEOCLIP(&area, &cxp->tc_scx->scx_area);
+
     DBPaintMask(cellDef, &area, lMask);
 
     return 0;
@@ -4078,6 +4081,7 @@ CmdDrop(w, cmd)
     TileTypeBitMask lMask, tMask;
     CellUse *checkUse;
     int pNum;
+    Rect editBox;
 
     if (cmd->tx_argc != 2)
     {
@@ -4085,7 +4089,7 @@ CmdDrop(w, cmd)
 	return;
     }
 
-    if (!ToolGetEditBox((Rect *)NULL)) return;
+    if (!ToolGetEditBox(&editBox)) return;
     if (!CmdParseLayers(cmd->tx_argv[1], &lMask))
 	return;
 
@@ -4121,6 +4125,10 @@ CmdDrop(w, cmd)
 			    cmdDropFunc, (ClientData)&lMask);
 	}
     }
+
+    DRCCheckThis(EditCellUse->cu_def, TT_CHECKPAINT, &editBox);
+    DBWAreaChanged(EditCellUse->cu_def, &editBox, DBW_ALLWINDOWS, &tMask);
+    DBReComputeBbox(EditCellUse->cu_def);
 }
 
 /*
