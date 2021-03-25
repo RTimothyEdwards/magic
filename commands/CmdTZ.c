@@ -913,7 +913,7 @@ CmdWhat(w, cmd)
     CellUse *CheckUse;
 
 #ifdef MAGIC_WRAPPER
-    Tcl_Obj *lobj, *paintobj, *paintcellobj, *labelobj, *cellobj;
+    Tcl_Obj *lobj, *paintobj, *paintcellobj, *celllistobj, *labelobj, *cellobj;
     extern int cmdWhatCellListFunc();
 #endif
 
@@ -928,10 +928,7 @@ CmdWhat(w, cmd)
 	if (!strncmp(cmd->tx_argv[locargc - 1], "-list", 5))
 	{
 	    if (!strncmp(cmd->tx_argv[locargc - 1], "-listall", 8))
-	    {
 		doListAll = TRUE;
-		paintcellobj = Tcl_NewListObj(0, NULL);
-	    }
 	    else
 		doList = TRUE;
 	    locargc--;
@@ -1015,6 +1012,8 @@ CmdWhat(w, cmd)
 			TTMaskSetOnlyType(&maskBits, i);
 			if (DBIsContact(i)) DBMaskAddStacking(&maskBits);
 
+			if (doListAll) paintcellobj = Tcl_NewListObj(0, NULL);
+
 			/* Search selection for tiles of this type, then    */
 			/* call cmdFindWhatTileFunc() to search the cell    */
 			/* def in the area of that tile to determine what   */
@@ -1038,12 +1037,16 @@ CmdWhat(w, cmd)
 			}
 			else
 			{
-			    Tcl_ListObjAppendElement(magicinterp, paintobj,
+			    Tcl_ListObjAppendElement(magicinterp, paintcellobj,
 				    Tcl_NewStringObj(DBTypeLongName(i), -1));
 
+			    celllistobj = Tcl_NewListObj(0, NULL);
 			    for (lidp = lid; lidp; lidp = lidp->lid_next)
-				Tcl_ListObjAppendElement(magicinterp, paintcellobj,
+				Tcl_ListObjAppendElement(magicinterp, celllistobj,
 					Tcl_NewStringObj(lidp->lid_name, -1));
+
+			    Tcl_ListObjAppendElement(magicinterp, paintcellobj,
+				    celllistobj);
 			}
 
 		        while (lid != NULL)
@@ -1051,11 +1054,12 @@ CmdWhat(w, cmd)
 			   freeMagic(lid);
 			   lid = lid->lid_next;
 			}
+			if (doListAll)
+			    Tcl_ListObjAppendElement(magicinterp, paintobj,
+					paintcellobj);
 		    }
 		}
 		EditCellUse = saveUse;
-		if (doListAll)
-		    Tcl_ListObjAppendElement(magicinterp, paintobj, paintcellobj);
 
 	    }
 	    else

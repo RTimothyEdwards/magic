@@ -633,8 +633,7 @@ cmdSelectArea(layers, less, option)
 		TTMaskClearType(&mask, i);
 	}
     }
-    else
-	SelectArea(&scx, &mask, crec->dbw_bitmask);
+    SelectArea(&scx, &mask, crec->dbw_bitmask);
 }
 
 /*
