@@ -3924,6 +3924,208 @@ CmdDrc(w, cmd)
 /*
  * ----------------------------------------------------------------------------
  *
+ * cmdDropPaintCell ---
+ *
+ *	Callback function used by cmdDropFunc.  Called for each tile found in
+ *	the edit cell hierarchy that matches paint that was in the selection.
+ *	Paints layers from lMask (clientData) into the subcell containing the
+ *	tile, within the area of the tile.
+ *
+ * Returns:
+ *	Always returns zero to keep the search going.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int cmdDropPaintCell(tile, cxp)
+    Tile *tile;
+    TreeContext *cxp;
+{
+    CellDef *cellDef = cxp->tc_scx->scx_use->cu_def;
+    TileTypeBitMask *lMask = (TileTypeBitMask *)cxp->tc_filter->tf_arg;
+    int pNum;
+    TileType type;
+    Rect area;
+
+    if (SplitSide(tile))
+        type = SplitRightType(tile);
+    else
+        type = SplitLeftType(tile);
+    pNum = DBPlane(type);
+
+    TiToRect(tile, &area);
+
+    DBPaintMask(cellDef, &area, lMask);
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cmdDropFunc ---
+ *
+ *	Callback function used by CmdDrop.  Called for each tile found in the
+ *	selection.
+ *
+ * Returns:
+ *	Always returns zero to keep the search going.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cmdDropFunc(Tile *tile, ClientData clientData)
+{
+    TileTypeBitMask tMask, *lMask = (TileTypeBitMask *)clientData;
+    SearchContext scx;
+    TileType type;
+
+    TiToRect(tile, &scx.scx_area);
+    scx.scx_use = EditCellUse;
+    scx.scx_trans = GeoIdentityTransform;
+
+    if (SplitSide(tile))
+	type = SplitRightType(tile);
+    else
+	type = SplitLeftType(tile);
+    TTMaskSetOnlyType(&tMask, type);
+
+    DBTreeSrTiles(&scx, &tMask, 0, cmdDropPaintCell, (ClientData)lMask);
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cmdDropPaintFunc --
+ *
+ *	Callback function to SelEnumPaint() from CmdDrop().  Sets a bit in
+ *	the type mask passed as clientData for the type of the tile found
+ *	in the selection.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cmdDropPaintFunc(rect, type, mask)
+    Rect *rect;                 /* Not used. */
+    TileType type;              /* Type of this piece of paint. */
+    TileTypeBitMask *mask;      /* Place to OR in type's bit. */
+{
+    if (type & TT_DIAGONAL)
+	type = (type & TT_SIDE) ? (type & TT_RIGHTMASK) >> 14 :
+		(type & TT_LEFTMASK);
+    TTMaskSetType(mask, type);
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * CmdDrop --
+ *
+ *	Implement the ":drop" command.
+ *
+ * Usage:
+ *	drop <layers>
+ *
+ * where <layers> is a list of paint layers.  The command requires an
+ * existing selection, with the expectation that the selection contains
+ * paint material that exists in subcells of the current edit cell.  The
+ * "drop" command will copy the types in <layers> into every subcell in
+ * the hierarchy of the current edit cell that contains selected material.
+ *
+ * The purpose of this command is to deal with issues arising from layers
+ * in a vendor GDS file that must be in the same cell as a device layer
+ * in order for the device to be extracted properly, but instead is placed
+ * in a cell further up in the hierarchy.  A typical example is the deep
+ * nwell layer, which isolates the transistor bulk terminal from the
+ * substrate.  Without the deep nwell layer in the same cell as the
+ * transistor, the transistor will be extracted with the bulk terminal
+ * connected to the substrate.
+ *
+ * Note that the act of copying material down into a subcell means that
+ * material is then present in all instances of the subcell.  There is
+ * no implementation as yet to handle the case where some instances of the
+ * same subcell require <layers> and some don't, which would necessitate
+ * splitting the subcell into (at least) two different subcells, one
+ * containing <layers> and one not.  This needs to be implemented.  A
+ * possible implementation would be:  1st pass:  Find all subcells that
+ * will be modified.  Make a list of the instances that will be modified.
+ * After the first pass, check if the list of instances contains all
+ * instances of the cell def.  If so, then just modify the cell def.  If
+ * not, then make a copy the cell def and split off the instances that
+ * get the modification to point to that cell def, then modify that cell
+ * def.  2nd pass:  Run the "drop" command as before.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Subcells are modified by adding paint.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+CmdDrop(w, cmd)
+    MagWindow *w;
+    TxCommand *cmd;
+{
+    TileType i;
+    TileTypeBitMask lMask, tMask;
+    CellUse *checkUse;
+    int pNum;
+
+    if (cmd->tx_argc != 2)
+    {
+	TxError("Usage: %s layers\n", cmd->tx_argv[0]);
+	return;
+    }
+
+    if (!ToolGetEditBox((Rect *)NULL)) return;
+    if (!CmdParseLayers(cmd->tx_argv[1], &lMask))
+	return;
+
+    checkUse = NULL;
+    if (EditRootDef == SelectRootDef)
+	checkUse = EditCellUse;
+    if (checkUse == NULL)
+    {
+	if (w == (MagWindow *)NULL)
+	    windCheckOnlyWindow(&w, DBWclientID);
+	if (w) checkUse = (CellUse *)w->w_surfaceID;
+    }
+    if ((checkUse == NULL) || (checkUse->cu_def != SelectRootDef))
+    {
+	TxError("The selection does not match the edit cell.\n");
+	return;
+    }
+
+    TTMaskZero(&tMask);
+    SelEnumPaint(&DBAllButSpaceAndDRCBits, FALSE, (bool *)NULL,
+	    cmdDropPaintFunc, (ClientData)&tMask);
+
+    if (TTMaskIsZero(&tMask)) return;	/* Nothing selected */
+	
+    for (i = TT_SELECTBASE; i < DBNumUserLayers; i++)
+    {
+	if (TTMaskHasType(&tMask, i))
+	{
+	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		if (TTMaskHasType(&DBPlaneTypes[pNum], i))
+		    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
+			    &SelectUse->cu_bbox, &tMask,
+			    cmdDropFunc, (ClientData)&lMask);
+	}
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * CmdDump --
  *
  *	Implement the ":dump" command.
