@@ -1514,12 +1514,15 @@ CmdPort(w, cmd)
 			    	break;
 			}
 		}
-		if ((lab == NULL) & (!doQuiet))
+		if (lab == NULL)
 		{
-		    if (StrIsInt(cmd->tx_argv[1]))
-			TxError("No label found with index %s.\n", cmd->tx_argv[1]);
-		    else
-			TxError("No port found with name %s.\n", cmd->tx_argv[1]);
+		    if (!doQuiet)
+		    {
+			if (StrIsInt(cmd->tx_argv[1]))
+			    TxError("No label found with index %s.\n", cmd->tx_argv[1]);
+			else
+			    TxError("No port found with name %s.\n", cmd->tx_argv[1]);
+		    }
 		    return;
 		}
 		argstart = 2;
