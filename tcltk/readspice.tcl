@@ -123,7 +123,7 @@ proc readspice {netfile} {
 		       break
 		   }
 		   set p1 [port $p next]
-		   set testpin [port $p name]
+		   set testpin [port $p name -quiet]
 		   if {$testpin != ""} {
 		       port $p index $outport
 		       incr outport
@@ -157,15 +157,15 @@ proc readspice {netfile} {
 		  # a port.
 
 		  set testpin $pin
-		  set pinidx [port $testpin index]
+		  set pinidx [port $testpin index -quiet]
 
 		  if {$pinidx == ""} {
 		      set testpin [string map {\[ < \] >]} $pin]
-		      set pinidx [port $testpin index]
+		      set pinidx [port $testpin index -quiet]
 		  }
 		  if {$pinidx == ""} {
 		      set testpin [string map {< \[ > \]} $pin]
-		      set pinidx [port $testpin index]
+		      set pinidx [port $testpin index -quiet]
 		  }
 
 		  # Handle issues with case insensitivity by getting
@@ -174,9 +174,9 @@ proc readspice {netfile} {
 		  if {$pinidx == ""} {
 		      set highport [port last]
 		      for {set p 0} {$p <= $highport} {incr p} {
-			  set testpin [port $p name]
+			  set testpin [port $p name -quiet]
 			  if {[string tolower $testpin] == [string tolower $pin]} {
-			      set pinidx [port $testpin index]
+			      set pinidx [port $testpin index -quiet]
 			      break
 			  }
 		      }

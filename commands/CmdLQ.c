@@ -1312,7 +1312,7 @@ complabel(const void *one, const void *two)
  * or
  *	port makeall|renumber [connect_direction(s)]
  * or
- *	port [name|num] class|use|shape|index [value]
+ *	port [name|num] class|use|shape|index|name [value] [-quiet]
  *
  * num is the index of the port, usually beginning with 1.  This indicates
  *	the order in which ports should be written to a subcircuit record
@@ -1329,6 +1329,9 @@ complabel(const void *one, const void *two)
  *
  * "value" is a value string representing one of the valid port classes
  *	or uses.
+ *
+ * The "-quiet" option causes magic to fail quietly and return (in Tcl)
+ *	an empty string if the value requested does not exist.
  *
  * Results:
  *	None.
@@ -1366,7 +1369,7 @@ CmdPort(w, cmd)
     int i, refidx, idx, pos, type, option, argc;
     unsigned int dirmask;
     bool found;
-    bool nonEdit = FALSE;
+    bool nonEdit = FALSE, doQuiet = FALSE;
     Label *lab, *sl;
     Rect editBox, tmpArea;
     CellDef *editDef = EditCellUse->cu_def;
@@ -1461,6 +1464,16 @@ CmdPort(w, cmd)
 
     argstart = 1;
     argc = cmd->tx_argc;
+
+    if (argc > 1)
+    {
+	if (!strcmp(cmd->tx_argv[argc - 1], "-quiet"))
+	{
+	    doQuiet = TRUE;
+	    argc--;
+	}
+    }
+
     if (argc > 6 || argc == 1)
         goto portWrongNumArgs;
     else
@@ -1501,7 +1514,7 @@ CmdPort(w, cmd)
 			    	break;
 			}
 		}
-		if (lab == NULL)
+		if ((lab == NULL) & (!doQuiet))
 		{
 		    if (StrIsInt(cmd->tx_argv[1]))
 			TxError("No label found with index %s.\n", cmd->tx_argv[1]);
@@ -1574,7 +1587,7 @@ CmdPort(w, cmd)
 	    /* label "lab" must already be a port */
 	    if (!(lab->lab_flags & PORT_DIR_MASK))
 	    {
-		if (option != PORT_REMOVE)
+		if ((option != PORT_REMOVE) && (!doQuiet))
 		    TxError("The selected label is not a port.\n");
 		return;
 	    }
@@ -1966,8 +1979,11 @@ parseindex:
     if ((option != PORT_MAKEALL) && (lab->lab_flags & PORT_DIR_MASK))
     {
 	/* For this syntax, the label must not already be a port */
-	TxError("The selected label is already a port.\n");
-	TxError("Do \"port help\" to get a list of options.\n");
+	if (!doQuiet)
+	{
+	    TxError("The selected label is already a port.\n");
+	    TxError("Do \"port help\" to get a list of options.\n");
+	}
 	return;
     }
 
