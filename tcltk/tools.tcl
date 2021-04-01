@@ -156,12 +156,17 @@ proc magic::popstack {} {
    } else {
       set ltag [tag load]
       tag load {}
+      suspendall
       load [lindex $editstack end]
+      set snaptype [snap]
+      snap internal
       view [lindex $editstack end-1]
-      tag load $ltag
-      set editstack [lrange $editstack 0 end-2]
+      snap $snaptype
       catch {magic::cellmanager}
       catch {magic::captions}
+      resumeall
+      tag load $ltag
+      set editstack [lrange $editstack 0 end-2]
    }
    return
 }
