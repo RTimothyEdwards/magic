@@ -60,16 +60,34 @@ int extHierConnectFunc2();
 int extHierConnectFunc3();
 Node *extHierNewNode();
 
+/*----------------------------------------------------------------------*/
+/* extHierSubShieldFunc --						*/
+/*									*/
+/*	Simple callback function for extHierSubstrate() that halts the	*/
+/*	search if any substrate shield type is found in the search area	*/
+/*									*/
+/*----------------------------------------------------------------------*/
 
-/*----------------------------------------------*/
-/* extHierSubstrate				*/
-/*						*/
-/* Find the substrate node of a child cell and	*/
-/* make a connection between parent and child	*/
-/* substrates.  If either of the substrate 	*/
-/* nodes is already in the hash table, then the	*/
-/* table will be updated as necessary.		*/
-/*----------------------------------------------*/
+int
+extHierSubShieldFunc(tile)
+    Tile *tile;
+{
+    return 1;
+}
+
+/*----------------------------------------------------------------------*/
+/* extHierSubstrate --							*/	
+/*									*/
+/* 	Find the substrate node of a child cell and make a connection	*/
+/*	between parent and child substrates.  If either of the		*/
+/*	substrate nodes is already in the hash table, then the table	*/
+/*	will be updated as necessary.					*/
+/*									*/
+/*	This function also determines if a child cell's substrate is	*/
+/*	isolated by a substrate shield type, in which case no merge is	*/
+/*	done.								*/
+/*									*/
+/*----------------------------------------------------------------------*/
 
 void
 extHierSubstrate(ha, use, x, y)
@@ -84,6 +102,8 @@ extHierSubstrate(ha, use, x, y)
     Node *node1, *node2;
     char *name1, *name2, *childname;
     CellDef *def;
+    Rect subArea;
+    int pNum;
 
     NodeRegion *extFindNodes();
 
@@ -107,6 +127,44 @@ extHierSubstrate(ha, use, x, y)
 
     /* Find the child's substrate node */
     nodeList = extFindNodes(use->cu_def, (Rect *) NULL, TRUE);
+    if (nodeList == NULL) return;
+
+    /* Check if the child's substrate node is covered by any substrate	*/
+    /* shield type (e.g., deep nwell).  This is a stupid-simple check	*/
+    /* on the node's lower left point.  This will fail if (1) only	*/
+    /* space exists on the substrate plane in the child cell, or (2) if	*/
+    /* some but not all devices in the child are covered by a shield	*/
+    /* type.  Item (1) is handled by checking if the region point is	*/
+    /* outside the cell bound and using the cell bound as the search	*/
+    /* area if so.  However, it really should look for a device in the	*/
+    /* subcell that connects to the substrate.	Item (2) is up to the	*/
+    /* designer to avoid (but should be flagged as an extraction	*/
+    /* error).								*/
+
+    if (GEO_ENCLOSE(&nodeList->nreg_ll, &use->cu_def->cd_bbox))
+    {
+	GeoTransPoint(&use->cu_transform, &nodeList->nreg_ll, &subArea.r_ll);
+	subArea.r_ur.p_x = subArea.r_ll.p_x + 1;
+	subArea.r_ur.p_y = subArea.r_ll.p_y + 1;
+    }
+    else
+	subArea = ha->ha_subArea;
+  
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+    {
+        if (TTMaskIntersect(&DBPlaneTypes[pNum],
+			&ExtCurStyle->exts_globSubstrateShieldTypes))
+        {
+    	    if (DBSrPaintArea((Tile *) NULL,
+			def->cd_planes[pNum], &subArea,
+			&ExtCurStyle->exts_globSubstrateShieldTypes,
+			extHierSubShieldFunc, (ClientData)NULL) != 0)
+    	    {
+    		freeMagic(nodeList);
+		return;
+	    }
+	}
+    }
 
     /* Make sure substrate labels are represented */
     ExtLabelRegions(use->cu_def, ExtCurStyle->exts_nodeConn, &nodeList,
