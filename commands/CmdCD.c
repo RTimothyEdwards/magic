@@ -1084,13 +1084,11 @@ CmdCellname(w, cmd)
 		    if (cellDef->cd_fd == -1)
 			dbReadOpen(cellDef, NULL, TRUE, NULL);
 
-		    if (cellDef->cd_fd != -1)
-			cellDef->cd_flags &= ~CDNOEDIT;
-		    else
-			TxError("Advisory lock held on cell %s\n", cellDef->cd_name);
-#else
-		    cellDef->cd_flags &= ~CDNOEDIT;
+		    if (cellDef->cd_fd == -1)
+			TxError("Warning:  Cell %s is not writeable\n", cellDef->cd_name);
 #endif
+
+		    cellDef->cd_flags &= ~CDNOEDIT;
 		    WindAreaChanged(w, &w->w_screenArea);
 		    CmdSetWindCaption(EditCellUse, EditRootDef);
 		}
