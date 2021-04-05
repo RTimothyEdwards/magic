@@ -484,7 +484,10 @@ extHardFreeAll(def, tReg)
 
 	/* Free all LabelLists and then the region */
 	for (ll = reg->treg_labels; ll; ll = ll->ll_next)
+	{
+	    if (ll->ll_label->lab_flags & LABEL_GENERATE) freeMagic(ll->ll_label);
 	    freeMagic((char *) ll);
+	}
 	freeMagic((char *) reg);
     }
 }

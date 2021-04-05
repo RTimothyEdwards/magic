@@ -819,6 +819,8 @@ extern char *DBPrintUseId();
 extern void DBCellCopyPaint();
 extern void DBCellCopyAllPaint();
 extern void DBCellCheckCopyAllPaint();
+extern void DBCellCopySubstrate();
+extern Plane *DBCellCanonicalSubstrate();
 extern void DBCellCopyLabels();
 extern void DBCellCopyAllLabels();
 extern void DBCellCopyCells();
