@@ -170,11 +170,6 @@ extSubtree(parentUse, reg, f)
     float pdone, plast;
     SearchContext scx;
 
-    TileType subType;
-    TileTypeBitMask subMask, notSubMask;
-    Plane *subPlane, *savePlane;
-    bool hasSubDef = FALSE;
-
     /* Use the display timer to force a 5-second progress check */
     GrDisplayStatus = DISPLAY_IN_PROGRESS;
     SigSetTimer(5);		    /* Print at 5-second intervals */
@@ -199,54 +194,6 @@ extSubtree(parentUse, reg, f)
     ha.ha_nodename = extSubtreeTileToNode;
     ha.ha_cumFlat.et_use = extYuseCum;
     HashInit(&ha.ha_connHash, 32, 0);
-
-    /* Determine if substrate copying is required. */
-
-    hasSubDef = (ExtCurStyle->exts_globSubstratePlane != -1) ? TRUE : FALSE;
-    if (hasSubDef)
-    {
-	/* Find a type to use for the substrate, and the mask of all types      */
-	/* in the same plane as the substrate that are not connected to the     */
-	/* substrate.  If there is not a simple type representing the substrate */
-	/* then do not attempt to resolve substrate regions.                    */
-
-	TTMaskZero(&subMask);
-	TTMaskSetMask(&subMask, &ExtCurStyle->exts_globSubstrateTypes);
-
-	for (subType = TT_TECHDEPBASE; subType < DBNumUserLayers; subType++)
-	    if (TTMaskHasType(&subMask, subType))
-		if (DBPlane(subType) == ExtCurStyle->exts_globSubstratePlane)
-		    break;
-
-	TTMaskCom2(&notSubMask, &subMask);
-	TTMaskAndMask(&notSubMask, &DBPlaneTypes[ExtCurStyle->exts_globSubstratePlane]);
-
-	if (subType == DBNumUserLayers) hasSubDef = FALSE;
-    }
-
-    /* Generate the full flattened substrate into ha->ha_cumFlat (which	*/
-    /* was empty initially).  This adds layer geometry for the		*/
-    /* substrate in the typical case where the substrate may be space	*/
-    /* (implicitly defined substrate).					*/ 
-    if (hasSubDef)
-    {
-	int pNum;
-
-	scx.scx_trans = GeoIdentityTransform;
-	scx.scx_area = def->cd_bbox;
-	scx.scx_use = parentUse;
-
-	subPlane = DBCellCanonicalSubstrate(&scx, subType, &notSubMask,
-			&ExtCurStyle->exts_globSubstrateShieldTypes, parentUse);
-	if (subPlane != NULL)
-	{
-	    pNum = ExtCurStyle->exts_globSubstratePlane;
-	    savePlane = parentUse->cu_def->cd_planes[pNum];
-	    parentUse->cu_def->cd_planes[pNum] = subPlane;
-	}
-	else
-	    hasSubDef = FALSE;	/* CellDef has no isolated substrate regions */
-    }
 
 #ifndef	exactinteractions
     /*
@@ -384,17 +331,6 @@ done:
 
     /* Clear the CU_SUB_EXTRACTED flag from all children instances */
     DBCellEnum(def, extClearUseFlags, (ClientData)NULL);
-
-    /* Replace the modified substrate plane with the original */
-    if (hasSubDef)
-    {
-	int pNum;
-
-	pNum = ExtCurStyle->exts_globSubstratePlane;
-	parentUse->cu_def->cd_planes[pNum] = savePlane;
-	DBFreePaintPlane(subPlane);
-	TiFreePlane(subPlane);
-    }
 }
 
 #ifdef	exactinteractions
@@ -497,10 +433,6 @@ extSubtreeInteraction(ha)
     scx.scx_area = ha->ha_interArea;
     scx.scx_use = ha->ha_parentUse;
 
-/*
-    if (hasSubDef)
-	DBCellCopySubstrate(&scx, subType, &notSubMask, ha->ha_cumFlat.et_use);
-*/
     /* Copy parent paint into ha->ha_cumFlat */
     DBCellCopyPaint(&scx, &DBAllButSpaceBits, 0, ha->ha_cumFlat.et_use);
 
@@ -511,10 +443,6 @@ extSubtreeInteraction(ha)
      */
     oneFlat = extHierNewOne();
     oneDef = oneFlat->et_use->cu_def;
-/*
-    if (hasSubDef)
-    	DBCellCopySubstrate(&scx, subType, &notSubMask, oneFlat->et_use);
-*/
     DBCellCopyPaint(&scx, &DBAllButSpaceBits, 0, oneFlat->et_use);
 
     oneFlat->et_nodes = extFindNodes(oneDef, &ha->ha_clipArea, FALSE);
@@ -637,7 +565,6 @@ extSubtreeInteraction(ha)
     ha->ha_cumFlat.et_nodes = (NodeRegion *) NULL;
     extHierFreeLabels(cumDef);
     DBCellClearDef(cumDef);
-
 }
 
 /*
@@ -801,18 +728,6 @@ extSubtreeFunc(scx, ha)
     /* Record information for finding node names the hard way later */
     ha->ha_subUse = use;
 
-    /* Copy the substrate into the oneFlat target */
-/*
-    if (ha->ha_subType != -1)
-    {
-    	newscx.scx_use = ha->ha_cumFlat.et_use;
-	newscx.scx_area = use->cu_bbox;
-    	GEOCLIP(&newscx.scx_area, &ha->ha_interArea);
-	newscx.scx_trans = GeoIdentityTransform;
-    	DBCellCopySubstrate(&newscx, ha->ha_subType, ha->ha_notSubMask, oneFlat->et_use);
-    }
-*/
-
     /*
      * Yank all array elements of this subcell that lie in the interaction
      * area.  Transform to parent coordinates.  Prefix is true, meaning that
@@ -880,17 +795,6 @@ extSubtreeFunc(scx, ha)
 		cumUse->cu_def->cd_labels = newlab;
 	    }
 	}
-
-/*
-	ha->ha_cumFlat.et_nodes =
-	    (NodeRegion *) ExtFindSubstrateRegions(cumUse->cu_def,
-				&TiPlaneRect,
-				&ExtCurStyle->exts_activeTypes,
-				ExtCurStyle->exts_nodeConn,
-				extUnInit, extHierLabFirst, (int (*)()) NULL);
-	ExtLabelRegions(cumUse->cu_def, ExtCurStyle->exts_nodeConn,
-			&(ha->ha_cumFlat.et_nodes), &TiPlaneRect);
-*/
     }
     else
     {
