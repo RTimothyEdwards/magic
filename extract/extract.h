@@ -75,7 +75,8 @@ extern void ExtTechInit();
 extern void ExtTechFinal();
 extern void ExtSetStyle();
 extern void ExtPrintStyle();
-extern void ExtCell();
+extern void ExtRevertSubstrate();
+extern Plane *ExtCell();
 
 extern int ExtGetGateTypesMask();
 extern int ExtGetDiffTypesMask();

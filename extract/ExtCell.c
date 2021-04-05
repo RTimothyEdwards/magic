@@ -58,7 +58,7 @@ ClientData extUnInit = (ClientData) CLIENTDEFAULT;
 int extOutputUsesFunc();
 FILE *extFileOpen();
 
-void extCellFile();
+Plane* extCellFile();
 void extHeader();
 
 
@@ -83,7 +83,7 @@ void extHeader();
  * ----------------------------------------------------------------------------
  */
 
-void
+Plane *
 ExtCell(def, outName, doLength)
     CellDef *def;	/* Cell being extracted */
     char *outName;	/* Name of output file; if NULL, derive from def name */
@@ -95,6 +95,7 @@ ExtCell(def, outName, doLength)
 {
     char *filename;
     FILE *f;
+    Plane *savePlane;
     bool doLocal;
 
     doLocal = (ExtOptions & EXT_DOLOCAL) ? TRUE : FALSE;
@@ -115,7 +116,7 @@ ExtCell(def, outName, doLength)
     }
 
     extNumFatal = extNumWarnings = 0;
-    extCellFile(def, f, doLength);
+    savePlane = extCellFile(def, f, doLength);
     (void) fclose(f);
 
     if (extNumFatal > 0 || extNumWarnings > 0)
@@ -129,6 +130,7 @@ ExtCell(def, outName, doLength)
 		extNumWarnings, extNumWarnings != 1 ? "s" : "");
 	TxPrintf("\n");
     }
+    return savePlane;
 }
 
 /*
@@ -315,7 +317,7 @@ extPrepSubstrate(def)
 /*
  * ----------------------------------------------------------------------------
  *
- * extRevertSubstrate ---
+ * ExtRevertSubstrate ---
  *
  * This routine swaps the substrate plane of CellDef "def" with the plane
  * structure provided in the argument "savePlane".  It should be called at
@@ -336,7 +338,7 @@ extPrepSubstrate(def)
 
 
 void
-extRevertSubstrate(def, savePlane)
+ExtRevertSubstrate(def, savePlane)
     CellDef *def;
     Plane *savePlane;
 {
@@ -371,7 +373,7 @@ extRevertSubstrate(def, savePlane)
  * ----------------------------------------------------------------------------
  */
 
-void
+Plane *
 extCellFile(def, f, doLength)
     CellDef *def;	/* Def to be extracted */
     FILE *f;		/* Output to this file */
@@ -408,10 +410,8 @@ extCellFile(def, f, doLength)
     if (!SigInterruptPending && doLength && (ExtOptions & EXT_DOLENGTH))
 	extLength(extParentUse, f);
 
-    /* Revert the substrate plane, if it was altered */
-    if (saveSub) extRevertSubstrate(def, saveSub);
-
     UndoEnable();
+    return saveSub;
 }
 
 /*

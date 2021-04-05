@@ -148,6 +148,8 @@ ExtractTest(w, cmd)
 
     if (cmd->tx_argc == 1)
     {
+	Plane *savePlane;
+
 	selectedCell = CmdGetSelectedCell((Transform *) NULL);
 	if (selectedCell == NULL)
 	{
@@ -156,7 +158,8 @@ ExtractTest(w, cmd)
 	}
 
 	extDispInit(selectedCell->cu_def, w);
-	ExtCell(selectedCell->cu_def, selectedCell->cu_def->cd_name, FALSE);
+	savePlane = ExtCell(selectedCell->cu_def, selectedCell->cu_def->cd_name, FALSE);
+	ExtRevertSubstrate(selectedCell->cu_def, savePlane);
 	return;
     }
 

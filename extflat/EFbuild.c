@@ -32,6 +32,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "utils/malloc.h"
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
+#include "tiles/tile.h"
 #include "extract/extract.h"	/* for device class list */
 
 /*

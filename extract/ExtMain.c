@@ -616,6 +616,16 @@ closeit:
     return (ret);
 }
 
+/* Linked list structure to use to store the substrate plane from each	*/ 
+/* extracted CellDef so that they can be returned to the original after	*/
+/* extraction.								*/
+
+struct saveList {
+    Plane *sl_plane;
+    CellDef *sl_def;
+    struct saveList *sl_next;
+};
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -645,7 +655,9 @@ extExtractStack(stack, doExtract, rootDef)
 {
     int fatal = 0, warnings = 0;
     bool first = TRUE;
+    Plane *savePlane;
     CellDef *def;
+    struct saveList *newsl, *sl = (struct saveList *)NULL;
 
     while (def = (CellDef *) StackPop(stack))
     {
@@ -654,7 +666,16 @@ extExtractStack(stack, doExtract, rootDef)
 	{
 	    if (doExtract)
 	    {
-		ExtCell(def, (char *) NULL, (def == rootDef));
+		savePlane = ExtCell(def, (char *) NULL, (def == rootDef));
+		if (savePlane != NULL)
+		{
+		    newsl = (struct saveList *)mallocMagic(sizeof(struct saveList));
+		    newsl->sl_plane = savePlane;
+		    newsl->sl_def = def;
+		    newsl->sl_next = sl;
+		    sl = newsl;
+		}
+		
 		fatal += extNumFatal;
 		warnings += extNumWarnings;
 	    }
@@ -666,6 +687,13 @@ extExtractStack(stack, doExtract, rootDef)
 		first = FALSE;
 	    }
 	}
+    }
+
+    /* Replace any modified substrate planes */
+    for (; sl; sl = sl->sl_next)
+    {
+	ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
+	freeMagic(sl);
     }
 
     if (!doExtract)
