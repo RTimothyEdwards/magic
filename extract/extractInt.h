@@ -1016,7 +1016,6 @@ extern ClientData extUnInit;
 /* ------------------------- Region finding --------------------------- */
 
 extern Region *ExtFindRegions();
-extern Region *ExtFindSubstrateRegions();
 
 /* Filter functions for ExtFindRegions() */
 extern Region *extTransFirst();		extern int extTransEach();

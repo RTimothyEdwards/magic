@@ -437,8 +437,7 @@ extSubtreeInteraction(ha)
     DBCellCopyPaint(&scx, &DBAllButSpaceBits, 0, ha->ha_cumFlat.et_use);
 
     /*
-     * First element on the subtree list will be parent mask info,
-     * including the full flattened substrate.
+     * First element on the subtree list will be parent mask info.
      * Extract nodes and capacitors.  Node names come from parent.
      */
     oneFlat = extHierNewOne();

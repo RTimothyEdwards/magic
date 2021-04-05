@@ -129,69 +129,6 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
 
 /*
  * ----------------------------------------------------------------------------
- * ExtFindSubstrateRegions --
- *
- *	This is a subset of ExtFindRegions that looks only at the substrate
- *	plane.  It is called on the first pass, when only the parent paint
- *	has been added to the cumulative def.
- *
- * ----------------------------------------------------------------------------
- */
-
-Region *
-ExtFindSubstrateRegions(def, area, mask, connectsTo, uninit, first, each)
-    CellDef *def;		/* Cell definition being searched */
-    Rect *area;			/* Area to search initially for tiles */
-    TileTypeBitMask *mask;	/* In the initial area search, only visit
-				 * tiles whose types are in this mask.
-				 */
-    TileTypeBitMask *connectsTo;/* Connectivity table for determining regions.
-				 * If t1 and t2 are the types of adjacent
-				 * tiles, then t1 and t2 belong to the same
-				 * region iff:
-				 *	TTMaskHasType(&connectsTo[t1], t2)
-				 *
-				 * We assume that connectsTo[] is symmetric,
-				 * so this is the same as:
-				 *	TTMaskHasType(&connectsTo[t2], t1)
-				 */
-    ClientData uninit;		/* Contents of a ti_client field indicating
-				 * that the tile has not yet been visited.
-				 */
-    Region * (*first)();	/* Applied to first tile in region */
-    int (*each)();		/* Applied to each tile in region */
-{
-    FindRegion arg;
-    TileTypeBitMask subMask;
-    int extRegionAreaFunc();
-
-    ASSERT(first != NULL, "ExtFindRegions");
-
-    arg.fra_pNum = ExtCurStyle->exts_globSubstratePlane;
-    if (arg.fra_pNum < 0) return NULL;
-
-    arg.fra_connectsTo = connectsTo;
-    arg.fra_def = def;
-    arg.fra_uninit = uninit;
-    arg.fra_first = first;
-    arg.fra_each = each;
-    arg.fra_region = (Region *) NULL;
-
-    SigDisableInterrupts();
-
-    TTMaskZero(&subMask);
-    TTMaskSetMask(&subMask, mask);
-    TTMaskAndMask(&subMask, &ExtCurStyle->exts_globSubstrateTypes);
-
-    DBSrPaintClient((Tile *) NULL, def->cd_planes[arg.fra_pNum],
-		area, &subMask, uninit, extRegionAreaFunc, (ClientData) &arg);
-    SigEnableInterrupts();
-
-    return (arg.fra_region);
-}
-
-/*
- * ----------------------------------------------------------------------------
  *
  * extRegionAreaFunc --
  *
