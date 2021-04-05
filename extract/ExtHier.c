@@ -127,7 +127,11 @@ extHierSubstrate(ha, use, x, y)
 
     /* Find the child's substrate node */
     nodeList = extFindNodes(use->cu_def, (Rect *) NULL, TRUE);
-    if (nodeList == NULL) return;
+    if (nodeList == NULL)
+    {
+    	ExtResetTiles(use->cu_def, extUnInit);
+	return;
+    }
 
     /* Check if the child's substrate node is covered by any substrate	*/
     /* shield type (e.g., deep nwell).  This is a stupid-simple check	*/
@@ -161,6 +165,7 @@ extHierSubstrate(ha, use, x, y)
 			extHierSubShieldFunc, (ClientData)NULL) != 0)
     	    {
     		freeMagic(nodeList);
+    		ExtResetTiles(use->cu_def, extUnInit);
 		return;
 	    }
 	}

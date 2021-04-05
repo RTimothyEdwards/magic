@@ -1821,26 +1821,8 @@ extOutputDevices(def, transList, outFile)
 		    extTransFindSubs(reg->treg_tile, t, tmask, def, &node, NULL);
 
 		    if ((node == NULL) && (TTMaskHasType(tmask, TT_SPACE))) {
-			/* Device node is possibly the substrate.  But:  Note	*/
-			/* that TT_SPACE in the mask covers all planes, and it	*/
-			/* is not possible to specify TT_SPACE in a single	*/
-			/* plane.  So it is necessary to check for any		*/
-			/* shielding types that	block the substrate.		*/
-
-			if (!TTMaskIsZero(&ExtCurStyle->exts_globSubstrateShieldTypes))
-			{
-			    extTransFindSubs(reg->treg_tile, t, 
-					&ExtCurStyle->exts_globSubstrateShieldTypes,
-					def, &node, NULL);
-			}
-			if ((glob_subsnode == NULL) || (node != NULL)) {
-			    /* See if there is another matching device record	*/
-			    /* with a different terminal type, and try again.	*/
-			    devptr = extDevFindMatch(devptr, t);
-			    break;
-			}
-			else if ((node == NULL) && (glob_subsnode != NULL))
-			    node = glob_subsnode;
+			/* Device node is the global substrate. */
+			node = glob_subsnode;
 		    }
 		    else if (node == NULL) {
 			/* See if there is another matching device record	*/
