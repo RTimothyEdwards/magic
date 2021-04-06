@@ -692,7 +692,10 @@ extExtractStack(stack, doExtract, rootDef)
     /* Replace any modified substrate planes */
     for (; sl; sl = sl->sl_next)
     {
-	ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
+	// ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
+        DBFreePaintPlane(sl->sl_plane);
+        TiFreePlane(sl->sl_plane);
+
 	freeMagic(sl);
     }
 

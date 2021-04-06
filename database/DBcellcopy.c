@@ -439,12 +439,14 @@ dbPaintSubFunc(tile, cxp)
     Tile *tile;			/* Pointer to source tile with shield type */
     TreeContext *cxp;		/* Context from DBTreeSrTiles */
 {
-    Rect rect;
+    SearchContext *scx;
+    Rect sourceRect, targetRect;
     int pNum;
     TileType type, loctype, subType;
     Plane *plane;
     struct dbCopySubData *csd;	/* Client data */
 
+    scx = cxp->tc_scx;
     csd = (struct dbCopySubData *)cxp->tc_filter->tf_arg;
     plane = csd->csd_plane;
     pNum = csd->csd_pNum;
@@ -457,10 +459,14 @@ dbPaintSubFunc(tile, cxp)
     }
 
     /* Construct the rect for the tile */
-    TITORECT(tile, &rect);
+    TITORECT(tile, &sourceRect);
+
+    /* Transform to target coordinates */
+    GEOTRANSRECT(&scx->scx_trans, &sourceRect, &targetRect);
+
     csd->csd_modified = TRUE;
 
-    return DBNMPaintPlane(plane, type, &rect, DBStdPaintTbl(subType, pNum),
+    return DBNMPaintPlane(plane, type, &targetRect, DBStdPaintTbl(subType, pNum),
 		(PaintUndoInfo *)NULL);
 }
 
@@ -497,8 +503,6 @@ dbEraseNonSub(tile, cxp)
 	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (loctype == TT_SPACE) return 0;
     }
-    else
-	loctype = type;
 
     /* Construct the rect for the tile */
     TITORECT(tile, &sourceRect);
@@ -507,7 +511,7 @@ dbEraseNonSub(tile, cxp)
     GEOTRANSRECT(&scx->scx_trans, &sourceRect, &targetRect);
 
     /* Erase the substrate type from the area of this tile in the target plane. */
-    return DBNMPaintPlane(plane, loctype, &targetRect, DBStdEraseTbl(subType, pNum),
+    return DBNMPaintPlane(plane, type, &targetRect, DBStdEraseTbl(subType, pNum),
 		(PaintUndoInfo *)NULL);
 }
 
