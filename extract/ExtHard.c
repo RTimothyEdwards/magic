@@ -200,7 +200,7 @@ extHardProc(scx, arg)
      */
     labRegList = (TransRegion *) ExtFindRegions(def, &scx->scx_area,
 		    &arg->hw_mask, ExtCurStyle->exts_nodeConn, extUnInit,
-		    extLabFirst, extLabEach);
+		    extLabFirst, extLabEach, FALSE);
     if (labRegList)
     {
 	/*

@@ -69,50 +69,6 @@ void extArrayProcess();
 void extArrayAdjust();
 void extArrayHardSearch();
 
-#if 0
-
-/*
- * ----------------------------------------------------------------------------
- * extOutputGeneratedLabels ---
- *
- * Write to the .ext file output "node" lines for labels generated in
- * the parent cell where paint in the subcell is not otherwise
- * represented by a node in the parent.  These nodes have no material
- * in the parent, and therefore have no capacitance or resistance
- * associated with them.
- *
- * ----------------------------------------------------------------------------
- */
-
-void
-extOutputGeneratedLabels(parentUse, f)
-    CellUse *parentUse;
-    FILE *f;
-{
-    CellDef *parentDef;
-    Label *lab;
-    int n;
-
-    parentDef = parentUse->cu_def;
-
-    while ((lab = parentDef->cd_labels) != NULL)
-    {
-	if ((lab->lab_flags & LABEL_GENERATE) == 0) return;
-
-	fprintf(f, "node \"%s\" 0 0 %d %d %s",
-		lab->lab_text, lab->lab_rect.r_xbot,
-		lab->lab_rect.r_ybot,
-		DBTypeShortName(lab->lab_type));
-	for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
-	    fprintf(f, " 0 0");
-	putc('\n', f);
-	freeMagic(lab);
-	parentDef->cd_labels = lab->lab_next;
-    }
-}
-
-#endif
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -168,11 +124,6 @@ extArray(parentUse, f)
     scx.scx_trans = GeoIdentityTransform;
     scx.scx_area = TiPlaneRect;
     (void) DBCellSrArea(&scx, extArrayFunc, (ClientData) &ha);
-
-#if 0
-    /* Output generated labels and remove them from the parent */
-    extOutputGeneratedLabels(parentUse, f);
-#endif
 
     /* Output connections and node adjustments */
     extOutputConns(&ha.ha_connHash, f);
@@ -604,14 +555,6 @@ extArrayInterFunc(use, trans, x, y, ha)
 
     /* Process connections */
     extHierConnections(ha, extArrayPrimary, oneFlat);
-
-    /* Process substrate connection */
-    if (use->cu_xlo == use->cu_xhi)
-	extHierSubstrate(ha, use, -1, y);
-    else if (use->cu_ylo == use->cu_yhi)
-	extHierSubstrate(ha, use, x, -1);
-    else
-	extHierSubstrate(ha, use, x, y);
 
     ha->ha_cumFlat.et_nodes = (NodeRegion *) NULL;
     if (ExtOptions & EXT_DOADJUST)

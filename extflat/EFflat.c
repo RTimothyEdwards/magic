@@ -918,9 +918,20 @@ efFlatKills(hc)
 }
 
 
-/*----
- * WIP
- *----
+/*
+ * ----------------------------------------------------------------------------
+ * 
+ * efFlatCapsDeviceless ---
+ *
+ * Recursively flatten uses that have no active devices.
+ *
+ * Results:
+ *	Always return 0
+ *
+ * Side effects:
+ *	Adds capacitances to the connectivity tables.
+ *
+ * ----------------------------------------------------------------------------
  */
 
 int

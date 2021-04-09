@@ -97,11 +97,17 @@ extUniqueCell(def, option)
     TxPrintf("Processing %s\n", def->cd_name);
     TxFlush();
 
+    /* Generate the reference plane of substrate regions (see extCellFile()) */
+    ExtSubsPlane = ExtPrepSubstrate(def);
+    ExtTagSubstrate(def);
+    ExtSubsRegionList = (Region **)mallocMagic((ExtNumSubs + 1) * sizeof(Region *));
+
     /* Build up a list of nodes and assign them to tiles */
     lregList = (LabRegion *) ExtFindRegions(def, &TiPlaneRect,
 				&ExtCurStyle->exts_activeTypes,
 				ExtCurStyle->exts_nodeConn,
-				extUnInit, extHierLabFirst, (int (*)()) NULL);
+				extUnInit, extHierLabFirst, (int (*)()) NULL,
+				FALSE);
 
     /* Assign the labels to their associated regions */
     ExtLabelRegions(def, ExtCurStyle->exts_nodeConn, &lregList, &TiPlaneRect);
@@ -156,6 +162,7 @@ extUniqueCell(def, option)
     HashKill(&labelHash);
     ExtFreeLabRegions((LabRegion *) lregList);
     ExtResetTiles(def, extUnInit);
+    ExtFreeSubstrate();
     if (nwarn)
 	TxError("%s: %d warnings\n", def->cd_name, nwarn);
     return (nwarn);

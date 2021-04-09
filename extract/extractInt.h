@@ -261,6 +261,7 @@ typedef struct
 					  * region.  May be set by fra_first
 					  * and used by fra_each.
 					  */
+    bool		fra_continue;	 /* If TRUE, do not make a new node */
 } FindRegion;
 
 #define	TILEAREA(tp)	((TOP(tp) - BOTTOM(tp)) * (RIGHT(tp) - LEFT(tp)))
@@ -959,9 +960,15 @@ typedef struct node
  */
 extern ClientData extUnInit;
 
+/*
+ * Global values pertaining to the substrate region extraction
+ */
+extern Plane *ExtSubsPlane;    /* Plane with extracted isolated substrate regions */
+extern int ExtNumSubs;         /* (Maximum) number of isolated substrate regions */
+extern Region **ExtSubsRegionList;     /* List of substrate regions */
+
 #define extGetRegion(tp)	( (tp)->ti_client )
 #define extHasRegion(tp,und)	( (tp)->ti_client != (und) )
-
 
 /* For non-recursive flooding algorithm */
 #define	VISITPENDING	((ClientData) NULL)	/* Marks tiles on stack */
@@ -1049,6 +1056,10 @@ extern Tile *extNodeToTile();
 /* -------------------- Miscellaneous procedures ---------------------- */
 
 extern char *extNodeName();
+extern char *ExtSubsName();
+extern Plane *ExtPrepSubstrate();
+extern void ExtTagSubstrate();
+extern void ExtFreeSubstrate();
 extern NodeRegion *extBasic();
 extern NodeRegion *extFindNodes();
 extern ExtTree *extHierNewOne();
@@ -1062,9 +1073,6 @@ extern int extNumFatal;		/* Number fatal errors encountered so far */
 extern int extNumWarnings;	/* Number warning messages so far */
 extern CellUse *extParentUse;	/* Dummy use for def being extracted */
 extern ClientData extNbrUn;	/* Ditto */
-
-extern NodeRegion *glob_subsnode;	/* Substrate node for cell def */
-extern NodeRegion *temp_subsnode;	/* Substrate connection to subcell */
 
     /*
      * This is really a (Stack *), but we use the struct tag to avoid

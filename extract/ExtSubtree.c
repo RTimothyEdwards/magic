@@ -99,23 +99,117 @@ void extSubtreeHardSearch();
 /*
  * ----------------------------------------------------------------------------
  *
- * extClearUseFlags --
+ * extSubstrateFunc --
  *
- *  Callback function to clear the CU_SUB_EXTRACTED flag from each child
- *  use of a CellDef.
+ * Subcells which do not have any interactions with the parent cell
+ * according to ExtFindInteractions still interact through the
+ * substrate.  For each non-interacting subcell, make a hierarchical
+ * connection between the global substrate node of the subcell and
+ * whatever local substrate node of the parent is underneath the
+ * subcell.
+ *
+ * Results:
+ *	Always return 0 to keep the search going, unless the technology
+ *	file does not define a substrate type, in which case it returns
+ *	1 to stop searching immediately.
+ *
+ * Side effects:
+ *	Makes additional entries in the hierarchy connection tables.
  *
  * ----------------------------------------------------------------------------
  */
 
 int
-extClearUseFlags(use, clientData)
-    CellUse *use;
-    ClientData clientData;
+extSubstrateFunc(scx, ha)
+    SearchContext *scx;
+    HierExtractArg *ha;
 {
-    use->cu_flags &= ~CU_SUB_EXTRACTED;
+    CellUse *use = scx->scx_use;
+    NodeRegion *subsNodes1, *subsNodes2;
+    char *name1, *name2;
+    HashTable *table = &ha->ha_connHash;
+    HashEntry *he;
+    NodeName *nn;
+    Node *node1, *node2;
+    char childname[4096], *sptr;
+
+    /* Backwards compatibility with tech files that don't	*/
+    /* define a substrate plane or substrate connections.	*/
+    if (ExtCurStyle->exts_globSubstratePlane == -1) return 1;
+
+    /* Record information for finding node names the hard way */
+    ha->ha_subUse = use;
+    ha->ha_subArea = use->cu_bbox;
+    GEOCLIP(&ha->ha_subArea, &ha->ha_interArea);
+
+    /* WIP */
+
+    /* In the parent, there should only be one substrate region in */
+    /* the area of the child cell, or zero if the parent has no    */
+    /* geometry at all connected to the substrate.		   */	
+
+    subsNodes1 =
+        (NodeRegion *) ExtFindRegions(ha->ha_parentUse->cu_def,
+			&ha->ha_subArea, &ExtCurStyle->exts_activeTypes,
+                        ExtCurStyle->exts_nodeConn,
+                        extUnInit, extHierLabFirst, (int (*)()) NULL,
+                        TRUE);
+    if (subsNodes1 == NULL)
+	name1 = ExtSubsName(NULL);
+    else
+    {
+	ExtLabelRegions(ha->ha_parentUse->cu_def, ExtCurStyle->exts_nodeConn,
+			&subsNodes1, &TiPlaneRect);
+	name1 = extNodeName(subsNodes1);
+	ExtResetTiles(ha->ha_parentUse->cu_def, extUnInit);
+    }
+    he = HashFind(table, name1);
+    nn = (NodeName *) HashGetValue(he);
+    node1 = (nn) ? nn->nn_node : extHierNewNode(he);
+
+    /* In the child, there may be multiple substrate regions but   */
+    /* only the global region connects to the parent.		   */
+
+    subsNodes2 =
+        (NodeRegion *) ExtFindRegions(use->cu_def, &TiPlaneRect,
+                        &ExtCurStyle->exts_activeTypes,
+                        ExtCurStyle->exts_nodeConn,
+                        extUnInit, extHierLabFirst, (int (*)()) NULL,
+                        TRUE);
+    if (subsNodes2 == NULL)
+	name2 = ExtSubsName(NULL);
+    else
+    {
+    	ExtLabelRegions(use->cu_def, ExtCurStyle->exts_nodeConn,
+			&subsNodes2, &TiPlaneRect);
+    	name2 = extNodeName(ExtSubsRegionList[0]);
+	ExtResetTiles(use->cu_def, extUnInit);
+    }
+
+    sptr = DBPrintUseId(scx, childname, 4096, FALSE);
+    sprintf(sptr, "/%s", name2);
+
+    he = HashFind(table, childname);
+    nn = (NodeName *) HashGetValue(he);
+    node2 = (nn) ? nn->nn_node : extHierNewNode(he);
+
+    if (node1 != node2)
+    {
+	/*
+ 	 * Both sets of names will now point to node1.
+	 */
+	for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
+	    nn->nn_node = node1;
+	nn->nn_node = node1;
+	nn->nn_next = node1->node_names;
+	node1->node_names = node2->node_names;
+	freeMagic((char *)node2);
+    }
+
+    ExtFreeLabRegions(subsNodes1);
+    ExtFreeLabRegions(subsNodes2);
     return 0;
 }
-
 
 /*
  * ----------------------------------------------------------------------------
@@ -328,9 +422,6 @@ done:
     HashKill(&ha.ha_connHash);
     GrDisplayStatus = DISPLAY_IDLE;
     SigRemoveTimer();
-
-    /* Clear the CU_SUB_EXTRACTED flag from all children instances */
-    DBCellEnum(def, extClearUseFlags, (ClientData)NULL);
 }
 
 #ifdef	exactinteractions
@@ -434,9 +525,6 @@ extSubtreeInteraction(ha)
     scx.scx_area = ha->ha_interArea;
     scx.scx_use = ha->ha_parentUse;
     DBCellCopyPaint(&scx, &DBAllButSpaceBits, 0, ha->ha_cumFlat.et_use);
-#ifdef	notdef
-    extCopyPaint(ha->ha_parentUse->cu_def, &ha->ha_interArea, cumDef);
-#endif	/* notdef */
 
     /*
      * First element on the subtree list will be parent mask info.
@@ -446,9 +534,6 @@ extSubtreeInteraction(ha)
     oneDef = oneFlat->et_use->cu_def;
     DBCellCopyPaint(&scx, &DBAllButSpaceBits, 0, oneFlat->et_use);
 
-#ifdef	notdef
-    extCopyPaint(ha->ha_parentUse->cu_def, &ha->ha_interArea, oneDef);
-#endif	/* notdef */
     oneFlat->et_nodes = extFindNodes(oneDef, &ha->ha_clipArea, FALSE);
     if ((ExtOptions & (EXT_DOCOUPLING|EXT_DOADJUST))
 		   == (EXT_DOCOUPLING|EXT_DOADJUST))
@@ -723,7 +808,7 @@ extSubtreeFunc(scx, ha)
     SearchContext newscx;
     ExtTree *oneFlat;
     HierYank hy;
-    int x, y;
+    int x, y, i;
 
     /* Allocate a new ExtTree to hold the flattened, extracted subtree */
     oneFlat = extHierNewOne();
@@ -796,53 +881,26 @@ extSubtreeFunc(scx, ha)
 		cumUse->cu_def->cd_labels = newlab;
 	    }
 	}
-	extFirstPass = FALSE;
     }
-    else
-    {
-	/*
-	 * We don't care about the lreg_ll or lreg_pNum for these
-	 * nodes (we're only interested in the label list associated
-	 * with each node), so we don't pass extHierLabEach() to
-	 * ExtFindRegions().
-	 */
-	ha->ha_cumFlat.et_nodes =
-	    (NodeRegion *) ExtFindRegions(cumUse->cu_def, &TiPlaneRect,
-				&ExtCurStyle->exts_activeTypes,
-				ExtCurStyle->exts_nodeConn,
-				extUnInit, extHierLabFirst, (int (*)()) NULL);
-	ExtLabelRegions(cumUse->cu_def, ExtCurStyle->exts_nodeConn,
+
+    /*
+     * We don't care about the lreg_ll or lreg_pNum for these
+     * nodes (we're only interested in the label list associated
+     * with each node), so we don't pass extHierLabEach() to
+     * ExtFindRegions().
+     */
+    ha->ha_cumFlat.et_nodes =
+        (NodeRegion *) ExtFindRegions(cumUse->cu_def, &TiPlaneRect,
+			&ExtCurStyle->exts_activeTypes,
+			ExtCurStyle->exts_nodeConn,
+			extUnInit, extHierLabFirst, (int (*)()) NULL,
+			extFirstPass);
+    ExtLabelRegions(cumUse->cu_def, ExtCurStyle->exts_nodeConn,
 			&(ha->ha_cumFlat.et_nodes), &TiPlaneRect);
-    }
+    extFirstPass = FALSE;
 
     /* Process connections; this updates ha->ha_connHash */
     extHierConnections(ha, &ha->ha_cumFlat, oneFlat);
-
-    /* Process substrate connection.  All substrates should be	*/
-    /* connected together in the cell def, so in the case of an	*/
-    /* array, just make sure that the first array entry is	*/
-    /* connected.						*/
-
-    if (use->cu_xhi == use->cu_xlo && use->cu_yhi == use->cu_ylo)
-	extHierSubstrate(ha, use, -1, -1);
-    else if (use->cu_xhi == use->cu_xlo && use->cu_yhi > use->cu_ylo)
-    {
-	for (y = use->cu_ylo; y <= use->cu_yhi; y++)
-	    extHierSubstrate(ha, use, -1, y);
-    }
-    else if (use->cu_xhi > use->cu_xlo && use->cu_yhi == use->cu_ylo)
-    {
-	for (x = use->cu_xlo; x <= use->cu_xhi; x++)
-	extHierSubstrate(ha, use, x, -1);
-    }
-    else
-    {
-	for (x = use->cu_xlo; x <= use->cu_xhi; x++)
-	    for (y = use->cu_ylo; y <= use->cu_yhi; y++)
-		extHierSubstrate(ha, use, x, y);
-    }
-    /* Mark substrate as having been extracted for this use. */
-    use->cu_flags |= CU_SUB_EXTRACTED;
 
     /* Free the cumulative node list we extracted above */
     if (ha->ha_cumFlat.et_nodes)
@@ -861,9 +919,6 @@ extSubtreeFunc(scx, ha)
     newscx.scx_area = ha->ha_subArea;
     newscx.scx_trans = GeoIdentityTransform;
     DBCellCopyPaint(&newscx, &DBAllButSpaceBits, 0, cumUse);
-#ifdef	notdef
-    extCopyPaint(oneFlat->et_use->cu_def, &ha->ha_subArea, cumUse->cu_def);
-#endif	/* notdef */
     extHierCopyLabels(oneFlat->et_use->cu_def, cumUse->cu_def);
 
     /* Prepend this tree to the list of trees we've processed so far */
@@ -872,64 +927,6 @@ extSubtreeFunc(scx, ha)
 
     return (2);
 }
-
-
-/*
- * ----------------------------------------------------------------------------
- *
- * extSubstrateFunc
- *
- * This contains just the part of extSubtreeFunc() dealing with the
- * substrate, so that substrate extraction can occur in cells not
- * otherwise having extraction interactions, without incurring the
- * overhead of all the other items handled by extHierSubtreeFunc().
- *
- * Results:
- *	Always returns 2, to avoid further elements in arrays.
- *
- * ----------------------------------------------------------------------------
- */
-
-int
-extSubstrateFunc(scx, ha)
-    SearchContext *scx;
-    HierExtractArg *ha;
-{
-    CellUse *use = scx->scx_use;
-    int x, y;
-
-    /* Record information for finding node names the hard way */
-    ha->ha_subUse = use;
-    ha->ha_subArea = use->cu_bbox;
-    GEOCLIP(&ha->ha_subArea, &ha->ha_interArea);
-
-    /* Process substrate connection.  All substrates should be	*/
-    /* connected together in the cell def, so in the case of an	*/
-    /* array, just make sure that the first array entry is	*/
-    /* connected.						*/
-
-    if (use->cu_xhi == use->cu_xlo && use->cu_yhi == use->cu_ylo)
-	extHierSubstrate(ha, use, -1, -1);
-    else if (use->cu_xhi == use->cu_xlo && use->cu_yhi > use->cu_ylo)
-    {
-	for (y = use->cu_ylo; y <= use->cu_yhi; y++)
-	    extHierSubstrate(ha, use, -1, y);
-    }
-    else if (use->cu_xhi > use->cu_xlo && use->cu_yhi == use->cu_ylo)
-    {
-	for (x = use->cu_xlo; x <= use->cu_xhi; x++)
-	extHierSubstrate(ha, use, x, -1);
-    }
-    else
-    {
-	for (x = use->cu_xlo; x <= use->cu_xhi; x++)
-	    for (y = use->cu_ylo; y <= use->cu_yhi; y++)
-		extHierSubstrate(ha, use, x, y);
-    }
-    use->cu_flags |= CU_SUB_EXTRACTED;
-    return (2);
-}
-
 
 /*
  * ----------------------------------------------------------------------------

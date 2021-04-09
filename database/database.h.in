@@ -516,11 +516,6 @@ typedef struct celluse
  */  
 #define CU_SELECT_NET	0x02
 #define CU_SELECT_CHUNK	0x04
-/* CU_SUB_EXTRACTED is a temporary flag indicating that the substrate
- *		    of the use has been extracted and the extraction
- *		    does not need to be repeated for this use.
- */
-#define CU_SUB_EXTRACTED 0x08
 
 /* Character prefix used to denote a locked cell use in a .mag file */
 #define CULOCKCHAR	'*'
@@ -823,6 +818,7 @@ extern void DBCellCopyLabels();
 extern void DBCellCopyAllLabels();
 extern void DBCellCopyCells();
 extern void DBCellCopyAllCells();
+extern Plane *DBCellGenerateSubstrate();
 
     /* Contact image handling */
 extern TileType DBPlaneToResidue();

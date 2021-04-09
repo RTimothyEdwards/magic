@@ -60,99 +60,6 @@ int extHierConnectFunc2();
 int extHierConnectFunc3();
 Node *extHierNewNode();
 
-
-/*----------------------------------------------*/
-/* extHierSubstrate				*/
-/*						*/
-/* Find the substrate node of a child cell and	*/
-/* make a connection between parent and child	*/
-/* substrates.  If either of the substrate 	*/
-/* nodes is already in the hash table, then the	*/
-/* table will be updated as necessary.		*/
-/*----------------------------------------------*/
-
-void
-extHierSubstrate(ha, use, x, y)
-    HierExtractArg *ha; 	// Contains parent def and hash table
-    CellUse *use;		// Child use
-    int x, y;			// Array subscripts, or -1 if not an array
-{
-    NodeRegion *nodeList;
-    HashTable *table = &ha->ha_connHash;
-    HashEntry *he;
-    NodeName *nn;
-    Node *node1, *node2;
-    char *name1, *name2, *childname;
-    CellDef *def;
-
-    NodeRegion *extFindNodes();
-
-    /* Backwards compatibility with tech files that don't */
-    /* define a substrate plane or substrate connections. */
-    if (glob_subsnode == NULL) return;
-
-    /* If the substrate has already been extracted for this use	*/
-    /* then there is no need to do it again.			*/
-    if (use->cu_flags & CU_SUB_EXTRACTED) return;
-
-    def = (CellDef *)ha->ha_parentUse->cu_def;
-
-    /* Register the name of the parent's substrate */
-    /* The parent def's substrate node is in glob_subsnode */
-
-    name1 = extNodeName(glob_subsnode);
-    he = HashFind(table, name1);
-    nn = (NodeName *) HashGetValue(he);
-    node1 = nn ? nn->nn_node : extHierNewNode(he);
-
-    /* Find the child's substrate node */
-    nodeList = extFindNodes(use->cu_def, (Rect *) NULL, TRUE);
-
-    /* Make sure substrate labels are represented */
-    ExtLabelRegions(use->cu_def, ExtCurStyle->exts_nodeConn, &nodeList,
-			&TiPlaneRect);
-    ExtResetTiles(use->cu_def, extUnInit);
-
-    name2 = extNodeName(temp_subsnode);
-
-    if (x >= 0 && y >= 0)
-    {
-	/* Process array information */
-	childname = mallocMagic(strlen(name2) + strlen(use->cu_id) + 14);
-	sprintf(childname, "%s[%d,%d]/%s", use->cu_id, y, x, name2);
-    }
-    else if (x >= 0 || y >= 0)
-    {
-	childname = mallocMagic(strlen(name2) + strlen(use->cu_id) + 9);
-	sprintf(childname, "%s[%d]/%s", use->cu_id, ((x >= 0) ? x : y),
-			name2);
-    }
-    else
-    {
-	childname = mallocMagic(strlen(name2) + strlen(use->cu_id) + 2);
-	sprintf(childname, "%s/%s", use->cu_id, name2);
-    }
-    he = HashFind(table, childname);
-    nn = (NodeName *) HashGetValue(he);
-    node2 = nn ? nn->nn_node : extHierNewNode(he);
-
-    freeMagic(childname);
-
-    if (node1 != node2)
-    {
-       /*
-        * Both sets of names will now point to node1.
-        */
-	for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
-		nn->nn_node = node1;
-	nn->nn_node = node1;
-	nn->nn_next = node1->node_names;
-	node1->node_names = node2->node_names;
-	freeMagic((char *) node2);
-    }
-    freeMagic(nodeList);
-}
-
 /*
  * ----------------------------------------------------------------------------
  *
@@ -216,6 +123,7 @@ extHierConnections(ha, cumFlat, oneFlat)
 }
 
 /*
+ * ----------------------------------------------------------------------------
  * extHierConnectFunc1 --
  *
  * Called for each tile 'oneTile' in the ExtTree 'oneFlat' above
@@ -226,6 +134,7 @@ extHierConnections(ha, cumFlat, oneFlat)
  *
  * Side effects:
  *	None here, but see extHierConnectFunc2().
+ * ----------------------------------------------------------------------------
  */
 
 int
@@ -240,6 +149,8 @@ extHierConnectFunc1(oneTile, ha)
     Label *lab, *newlab;
     int i;
     unsigned n;
+    int extHierSubsFunc();
+    int extHierSubConnectFunc();
 
     /*
      * Find all tiles that connect to 'srcTile', but in the
@@ -276,6 +187,45 @@ extHierConnectFunc1(oneTile, ha)
 			((i == ha->hierPNum) ? &ExtCurStyle->exts_activeTypes
 			: connected), extHierConnectFunc2, (ClientData) ha);
 	}
+    }
+
+    /* Where the type connects to substrate, and the substrate region	*/
+    /* under the tile is the default (global) substrate, then the tile	*/
+    /* will connect to anything in cumDef that is also connected to the	*/
+    /* default substrate.  This is where a "substrate halo" could be	*/
+    /* applied to restrict the distance at which a substrate region is	*/
+    /* considered to be connected (but would have to ignore identifier	*/
+    /* types like "pwell" that are part of the substrate itself).	*/
+
+    if ((ExtSubsPlane != NULL) &&
+		TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, ha->hierType))
+    {
+	Region *region, *saveRegion;
+	TileTypeBitMask subMaskNonSpace;
+	
+	TTMaskZero(&subMaskNonSpace);
+	TTMaskSetMask(&subMaskNonSpace, &ExtCurStyle->exts_globSubstrateTypes);
+	TTMaskClearType(&subMaskNonSpace, TT_SPACE);
+
+	if (DBSrPaintArea((Tile *)NULL, ExtSubsPlane, &r, &subMaskNonSpace,
+			extHierSubsFunc, (ClientData)&region) == 0)
+	    region = ExtSubsRegionList[0];
+
+	/* This tile connects to a substrate region, so search		*/
+	/* cumDef for any tile also connected to the same region.	*/
+
+	saveRegion = ha->ha_parentReg;
+	ha->ha_parentReg = region;
+    	for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
+	{
+	    ha->hierPNumBelow = i;
+	    TTMaskAndMask3(&mask, connected, &DBPlaneTypes[i]);
+	    if (!TTMaskIsZero(&mask))
+		DBSrPaintArea((Tile *) NULL, cumDef->cd_planes[i],
+			&TiPlaneRect, &subMaskNonSpace,
+			extHierSubConnectFunc, (ClientData)ha);
+	}
+	ha->ha_parentReg = saveRegion;
     }
 
     /* Where labels have been saved from the parent cell, look for any	*/
@@ -330,36 +280,42 @@ extHierConnectFunc1(oneTile, ha)
 		    node1->node_names = node2->node_names;
 		    freeMagic((char *) node2);
 		}
-
-#if 0
-		/* Copy this label to the parent def with a	*/
-		/* special flag, so we can output it as a node	*/
-	 	/* and then delete it.  Don't duplicate labels	*/
-		/* that are already in the parent.		*/
-
-		for (newlab = ha->ha_parentUse->cu_def->cd_labels;
-				newlab; newlab = newlab->lab_next)
-		    if (!strcmp(newlab->lab_text, lab->lab_text))
-			break;
-
-		if (newlab == NULL)
-		{
-		    n = sizeof(Label) + strlen(lab->lab_text)
-				- sizeof lab->lab_text + 1;
-		    newlab = (Label *)mallocMagic((unsigned)n);
-		    bcopy((char *)lab, (char *)newlab, (int)n);
-
-		    newlab->lab_next = ha->ha_parentUse->cu_def->cd_labels;
-		    ha->ha_parentUse->cu_def->cd_labels = newlab;
-		}
-#endif
 	    }
-
     }
     return (0);
 }
 
 /*
+ * ----------------------------------------------------------------------------
+ * extHierSubsFunc --
+ *
+ * Callback function to find a non-space tile in ExtSubsPlane.  If found,
+ * get the region associated with the tile by lookup in the list
+ * ExtSubsRegionList.
+ *
+ * Results:
+ *	Return 1 to stop the search.
+ *
+ * Side effects:
+ *	Fills the Region * value pointed to by regionPtr
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extHierSubsFunc(tile, regionPtr)
+    Tile *tile;
+    Region **regionPtr;
+{
+    int regIdx = (int)tile->ti_client;
+
+    if (regIdx > ExtNumSubs) return 0;	/* Invalid condition */
+    *regionPtr = ExtSubsRegionList[regIdx];
+    return 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
  * extHierConnectFunc2 --
  *
  * Called once for each tile 'cum' in extHierCumFlat->et_use->cu_def
@@ -375,6 +331,7 @@ extHierConnectFunc1(oneTile, ha)
  *	if the types of ha->hierOneTile and 'cum' connect.
  *	Otherwise, if the tiles actually overlap (as opposed
  *	to merely abut), mark it with feedback as an error.
+ * ----------------------------------------------------------------------------
  */
 
 int
@@ -387,7 +344,7 @@ extHierConnectFunc2(cum, ha)
     TileType ttype;
     HashEntry *he;
     NodeName *nn;
-    char *name;
+    char *name1, *name2;
     Rect r;
 
     /* Compute the overlap area */
@@ -414,14 +371,14 @@ extHierConnectFunc2(cum, ha)
 
     if (extConnectsTo(ha->hierType, ttype, ExtCurStyle->exts_nodeConn))
     {
-	name = (*ha->ha_nodename)(cum, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
-	he = HashFind(table, name);
+	name1 = (*ha->ha_nodename)(cum, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
+	he = HashFind(table, name1);
 	nn = (NodeName *) HashGetValue(he);
 	node1 = nn ? nn->nn_node : extHierNewNode(he);
 
-	name = (*ha->ha_nodename)(ha->hierOneTile, ha->hierPNum, extHierOneFlat,
+	name2 = (*ha->ha_nodename)(ha->hierOneTile, ha->hierPNum, extHierOneFlat,
 		ha, TRUE);
-	he = HashFind(table, name);
+	he = HashFind(table, name2);
 	nn = (NodeName *) HashGetValue(he);
 	node2 = nn ? nn->nn_node : extHierNewNode(he);
 
@@ -452,6 +409,8 @@ extHierConnectFunc2(cum, ha)
 }
 
 /*
+ * ----------------------------------------------------------------------------
+ *
  * extHierConnectFunc3 --
  *
  * Called once for each tile 'cum' in extHierCumFlat->et_use->cu_def
@@ -459,6 +418,8 @@ extHierConnectFunc2(cum, ha)
  * parent cell that does not necessarily have associated geometry.
  * Value passed in ha_oneTile is the label (recast for convenience;
  * need to use a union type in HierExtractArg).
+ *
+ * ----------------------------------------------------------------------------
  */
 
 int
@@ -533,6 +494,80 @@ extHierConnectFunc3(cum, ha)
 
     return (0);
 }
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extHierSubConnectFunc --
+ *
+ * Called for all tiles 'cum' in extHierCumFlat->et_use->cu_def
+ * that connect to substrate types.  Checks if the tile is marked
+ * with the substrate region that has been saved in the
+ * ha->ha_parentReg record.  If so, then processes the connection.
+ * Only one such connection needs to be processed, so return 1 to
+ * stop the search.
+ *
+ * Results:
+ *	Returns 1 always to stop the search, as only one tile
+ *	with the substrate region needs to be processed.
+ *
+ * Side Effects:
+ *	Makes a connection between the nodes of the two tiles
+ *	if the types of ha->hierOneTile and 'cum' connect.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extHierSubConnectFunc(cum, ha)
+    Tile *cum;		/* Comes from extHierCumFlat->et_use->cu_def */
+    HierExtractArg *ha;	/* Extraction context */
+{
+    HashTable *table = &ha->ha_connHash;
+    Node *node1, *node2;
+    TileType ttype;
+    HashEntry *he;
+    NodeName *nn;
+    char *name1, *name2;
+
+    /* If Tile "cum" is not marked with the global substrate region,	*/
+    /* then ignore it (return 0 to keep the search going)		*/
+
+    if ((NodeRegion *)cum->ti_client != ha->ha_parentReg) return 0;
+
+    ttype = TiGetTypeExact(cum);
+
+    if (IsSplit(cum))
+	ttype = (ttype & TT_SIDE) ? SplitRightType(cum) : SplitLeftType(cum);
+
+    name1 = (*ha->ha_nodename)(cum, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
+    he = HashFind(table, name1);
+    nn = (NodeName *) HashGetValue(he);
+    node1 = nn ? nn->nn_node : extHierNewNode(he);
+
+    name2 = (*ha->ha_nodename)(ha->hierOneTile, ha->hierPNum, extHierOneFlat,
+		ha, TRUE);
+    he = HashFind(table, name2);
+    nn = (NodeName *) HashGetValue(he);
+    node2 = nn ? nn->nn_node : extHierNewNode(he);
+
+    if (node1 != node2)
+    {
+	/*
+	 * Both sets of names will now point to node1.
+	 * We don't need to update node_cap since it
+	 * hasn't been computed yet.
+	 */
+	for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
+	    nn->nn_node = node1;
+	nn->nn_node = node1;
+	nn->nn_next = node1->node_names;
+	node1->node_names = node2->node_names;
+	freeMagic((char *) node2);
+    }
+    return 1;	/* No need to process any other tiles */
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -808,6 +843,7 @@ extHierLabFirst(tile, arg)
     new->lreg_next = (LabRegion *) NULL;
     new->lreg_labels = (LabelList *) NULL;
     new->lreg_pnum = DBNumPlanes;
+    new->lreg_type = 0;
 
     /* Prepend it to the region list */
     new->lreg_next = (LabRegion *) arg->fra_region;

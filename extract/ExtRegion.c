@@ -85,7 +85,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 Region *
-ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
+ExtFindRegions(def, area, mask, connectsTo, uninit, first, each, subsOnly)
     CellDef *def;		/* Cell definition being searched */
     Rect *area;			/* Area to search initially for tiles */
     TileTypeBitMask *mask;	/* In the initial area search, only visit
@@ -106,9 +106,16 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
 				 */
     Region * (*first)();	/* Applied to first tile in region */
     int (*each)();		/* Applied to each tile in region */
+    bool subsOnly;		/* If TRUE, only find substrate regions */
 {
     FindRegion arg;
+    bool space_is_substrate;
+    TileTypeBitMask subsTypesNonSpace;
+    int pNum;
+
+
     int extRegionAreaFunc();
+    int extRegionSubsFunc();
 
     ASSERT(first != NULL, "ExtFindRegions");
     arg.fra_connectsTo = connectsTo;
@@ -119,12 +126,148 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
     arg.fra_region = (Region *) NULL;
 
     SigDisableInterrupts();
-    for (arg.fra_pNum=PL_TECHDEPBASE; arg.fra_pNum<DBNumPlanes; arg.fra_pNum++)
-	(void) DBSrPaintClient((Tile *) NULL, def->cd_planes[arg.fra_pNum],
-		area, mask, uninit, extRegionAreaFunc, (ClientData) &arg);
+
+    TTMaskZero(&subsTypesNonSpace);
+    TTMaskSetMask(&subsTypesNonSpace, &ExtCurStyle->exts_globSubstrateTypes);
+    TTMaskClearType(&subsTypesNonSpace, TT_SPACE);
+    TTMaskAndMask(&subsTypesNonSpace, mask);
+
+    /* No need to search the substrate plane unless substrate types are in	*/
+    /* the mask passed as argument.						*/
+
+    if (!TTMaskIsZero(&subsTypesNonSpace))
+    {
+	/* Like extFindNodes(), first process the substrate plane so that	*/
+	/* that connections can be made through isolated substrate regions	*/
+	/* or through the global substrate.					*/
+
+	if (TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, TT_SPACE))
+            space_is_substrate = TRUE;
+	else
+            space_is_substrate = FALSE;
+
+	/* Clear out the isolated substrate region list before rebuilding it */
+	extClearSubsRegionList();
+
+	pNum = ExtCurStyle->exts_globSubstratePlane;
+	/* Does the type set of this plane intersect the substrate types? */
+	if (TTMaskIntersect(&DBPlaneTypes[pNum], &subsTypesNonSpace))
+	{
+            arg.fra_pNum = pNum;
+            DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
+                        &TiPlaneRect, &subsTypesNonSpace, uninit,
+                        extRegionSubsFunc, (ClientData) &arg);
+	}
+
+	/* If substrate does not define a space type, then all geometry */
+	/* connecting to the substrate will have been found by scanning */
+	/* the substrate plane.                                         */
+
+	if (space_is_substrate)
+	{
+            for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+            {
+        	if (pNum == ExtCurStyle->exts_globSubstratePlane) continue;
+
+        	/* Does the type set of this plane intersect the substrate types? */
+
+        	if (TTMaskIntersect(&DBPlaneTypes[pNum], &subsTypesNonSpace))
+                    DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
+                        	&TiPlaneRect, &subsTypesNonSpace, uninit,
+                        	extRegionSubsFunc, (ClientData) &arg);
+	    }
+        }
+    }
+
+    if (!subsOnly)
+	for (arg.fra_pNum=PL_TECHDEPBASE; arg.fra_pNum<DBNumPlanes; arg.fra_pNum++)
+	    (void) DBSrPaintClient((Tile *) NULL, def->cd_planes[arg.fra_pNum],
+			area, mask, uninit, extRegionAreaFunc, (ClientData) &arg);
     SigEnableInterrupts();
 
     return (arg.fra_region);
+}
+
+int
+extRegionSubsFunc(tile, arg)
+    Tile *tile;
+    FindRegion *arg;
+{
+    TileType type;
+    Rect tileArea;
+    NodeRegion *reg;
+    int result, subTag;
+    TileTypeBitMask subsNonSpaceTypes;
+    Region * (*saveFirst)();
+    int extRegionAreaFunc();
+    int extRegionSubsFunc2();
+
+    if (IsSplit(tile))
+    {
+        type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+        if (type == TT_SPACE) return 0;         /* Should not happen */
+    }
+
+    if (ExtSubsPlane != NULL)
+    {
+    	/* Search for (non-space) substrate types in the substrate region map */
+    	TTMaskZero(&subsNonSpaceTypes);
+    	TTMaskSetMask(&subsNonSpaceTypes, &ExtCurStyle->exts_globSubstrateTypes);
+    	TTMaskClearType(&subsNonSpaceTypes, TT_SPACE); 
+
+    	/* Run second search in the area of the tile on the substrate plane */
+    	/* to get the substrate region that this tile connects to.  Then    */
+    	/* set the tile region and call extNodeAreaFunc to find the rest of */
+    	/* the node by connectivity.                                        */
+
+    	TiToRect(tile, &tileArea);
+    	result = DBSrPaintArea((Tile *) NULL, ExtSubsPlane,
+                &tileArea, &subsNonSpaceTypes,
+                extRegionSubsFunc2, (ClientData)tile);
+    }
+    else
+	result = 0;
+
+    if (result == 0)
+	subTag = 0;	/* Default (global) substrate node */
+    else
+	/* Get the index of the substrate region, set by extRegionSubsFunc2() */
+	subTag = (int)tile->ti_client;
+
+    if (ExtSubsRegionList[subTag] != 0)
+    {
+	/* Region has been seen before, so look up the region */
+	tile->ti_client = (ClientData)ExtSubsRegionList[subTag];
+
+	/* Clear fra_first so that extRegionAreaFunc doesn't allocate a new	*/
+	/* region record, and restore it afterward.				*/
+
+	saveFirst = arg->fra_first;
+	arg->fra_first = NULL;
+	result = extRegionAreaFunc(tile, arg);
+	arg->fra_first = saveFirst;
+    }
+    else
+    {
+	/* First time in region, so let extRegionAreaFunc() get a	*/
+	/* new region, and then update the region list with it.	*/
+	tile->ti_client = (ClientData)arg->fra_uninit;
+    	result = extRegionAreaFunc(tile, arg);
+	ExtSubsRegionList[subTag] = (Region *)tile->ti_client;
+    }
+    return result;
+}
+
+int
+extRegionSubsFunc2(tile, sourceTile)
+    Tile *tile;
+    Tile *sourceTile;
+{
+    /* Set the source tile's client record to the region attached to this tile */
+    sourceTile->ti_client = tile->ti_client;
+
+    /* Stops the search because something that was not space was found */
+    return 1;
 }
 
 /*
@@ -159,6 +302,9 @@ extRegionAreaFunc(tile, arg)
     /* Allocate a new region */
     if (arg->fra_first)
 	(void) (*arg->fra_first)(tile, arg);
+    else
+	/* Called for substrate connectivity */
+	arg->fra_region = (Region *)tile->ti_client;
 
     if (DebugIsSet(extDebugID, extDebAreaEnum))
 	extShowTile(tile, "area enum", 0);

@@ -353,7 +353,7 @@ extTimesCellFunc(cs)
     /* Count the number of transistors */
     transList = (TransRegion *) ExtFindRegions(def, &TiPlaneRect,
 		    &ExtCurStyle->exts_deviceMask, ExtCurStyle->exts_deviceConn,
-		    extUnInit, extTransFirst, extTransEach);
+		    extUnInit, extTransFirst, extTransEach, FALSE);
     ExtResetTiles(def, extUnInit);
     for (tl = transList; tl; tl = tl->treg_next)
 	cs->cs_fets++;

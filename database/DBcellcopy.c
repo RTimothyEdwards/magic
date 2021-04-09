@@ -342,6 +342,143 @@ DBCellCheckCopyAllPaint(scx, mask, xMask, targetUse, func)
     DBTreeSrTiles(scx, &locMask, xMask, dbCopyAllPaint, (ClientData) &arg);
 }
 
+/* Client data structure used by DBCellGenerateSubstrate() */
+
+struct dbCopySubData {
+    Plane *csd_plane;
+    TileType csd_subtype;
+    int csd_pNum;
+};
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * DBCellGenerateSubstrate --
+ *
+ * This function is used by the extraction code in ExtSubtree.c.
+ * Paint isolated substrate regions into a new plane structure.
+ * This is done by first finding all areas of types that shield the
+ * substrate (such as deep nwell), and copying them into the plane as
+ * the substrate type;  then erase all areas occupied in the source by
+ * non-substrate types on the substrate plane (such as nwell).  The
+ * remaining non-space areas in the plane are then the isolated substrate
+ * regions.
+ *
+ * Returns:
+ *      The modified plane, so that it can be used by the extraction code
+ *	for making and keeping a record of local substrate regions.
+ *
+ * Side Effects:
+ *	All modifications are restricted to the generated plane.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+Plane *
+DBCellGenerateSubstrate(scx, subType, notSubMask, shieldMask)
+    SearchContext *scx;			/* Contains the source use */
+    TileType subType;                   /* Substrate type */
+    TileTypeBitMask *notSubMask;        /* Mask of types that are not substrate */
+    TileTypeBitMask *shieldMask;        /* Mask of types that shield substrate */
+{
+    struct dbCopySubData csd;
+    Plane *tempPlane;
+    int plane;
+    Rect rect;
+    int dbPaintSubFunc();
+    int dbEraseNonSubFunc();
+
+    GEOTRANSRECT(&scx->scx_trans, &scx->scx_area, &rect);
+    /* Clip to bounding box of the top level cell */
+    GEOCLIP(&rect, &scx->scx_use->cu_def->cd_bbox);
+
+    plane = DBPlane(subType);
+
+    tempPlane = DBNewPlane((ClientData) TT_SPACE);
+    DBClearPaintPlane(tempPlane);
+
+    csd.csd_subtype = subType;
+    csd.csd_plane = tempPlane;
+    csd.csd_pNum = plane;
+
+    /* Copy the destination plane contents onto tempPlane */
+    DBTreeSrTiles(scx, shieldMask, 0, dbPaintSubFunc, (ClientData)&csd);
+
+    /* Erase all areas that are non-substrate types in the source tree */
+    DBTreeSrTiles(scx, notSubMask, 0, dbEraseNonSubFunc, (ClientData)&csd);
+
+    return tempPlane;
+}
+
+int
+dbPaintSubFunc(tile, cxp)
+    Tile *tile;         /* Pointer to source tile with substrate shield type */
+    TreeContext *cxp;   /* Context from DBTreeSrTiles */
+{
+    SearchContext *scx;
+    Rect sourceRect, targetRect;
+    int pNum;
+    TileType type, loctype, subType;
+    Plane *plane;
+    struct dbCopySubData *csd;  /* Client data */
+
+    scx = cxp->tc_scx;
+    csd = (struct dbCopySubData *)cxp->tc_filter->tf_arg;
+    plane = csd->csd_plane;
+    pNum = csd->csd_pNum;
+    subType = csd->csd_subtype;
+    type = TiGetTypeExact(tile);
+    if (IsSplit(tile))
+    {
+        loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+        if (loctype == TT_SPACE) return 0;
+    }
+
+    /* Construct the rect for the tile */
+    TITORECT(tile, &sourceRect);
+
+    /* Transform to target coordinates */
+    GEOTRANSRECT(&scx->scx_trans, &sourceRect, &targetRect);
+
+    return DBNMPaintPlane(plane, type, &targetRect, DBStdPaintTbl(subType, pNum),
+                (PaintUndoInfo *)NULL);
+}
+
+
+int
+dbEraseNonSubFunc(tile, cxp)
+    Tile *tile;         /* Pointer to source tile with non-substrate type */
+    TreeContext *cxp;   /* Context from DBTreeSrTiles */
+{
+    SearchContext *scx;
+    Rect sourceRect, targetRect;
+    int pNum;
+    TileType type, loctype, subType;
+    Plane *plane;
+    struct dbCopySubData *csd;  /* Client data */
+
+    scx = cxp->tc_scx;
+    csd = (struct dbCopySubData *)cxp->tc_filter->tf_arg;
+    plane = csd->csd_plane;
+    pNum = csd->csd_pNum;
+    subType = csd->csd_subtype;
+    type = TiGetTypeExact(tile);
+    if (IsSplit(tile))
+    {
+        loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+        if (loctype == TT_SPACE) return 0;
+    }
+
+    /* Construct the rect for the tile */
+    TITORECT(tile, &sourceRect);
+
+    /* Transform to target coordinates */
+    GEOTRANSRECT(&scx->scx_trans, &sourceRect, &targetRect);
+
+    return DBNMPaintPlane(plane, type, &targetRect, DBStdEraseTbl(subType, pNum),
+                (PaintUndoInfo *)NULL);
+}
+
 /*
  *-----------------------------------------------------------------------------
  *

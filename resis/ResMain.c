@@ -681,7 +681,7 @@ ResExtractNet(startlist,goodies,cellname)
 				     &(ResUse->cu_def->cd_bbox),
 				     &DBAllButSpaceAndDRCBits,
 				     ResConnectWithSD, extUnInit, ResFirst,
-				     ResEach);
+				     ResEach, FALSE);
     ExtResetTiles(ResUse->cu_def,extUnInit);
 
     /*
