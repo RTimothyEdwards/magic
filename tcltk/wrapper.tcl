@@ -1138,10 +1138,10 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
    # set.  On standard displays, an "M" in the Sans font is usually 10
    # pixels wide, and 22 on high resolution displays, so this maps to
    # a scale of 1 on standard displays and a scale of 2 on high resolution
-   # displays.
+   # displays.  Make sure scale doesn't go to zero or bad things happen.
  
    if [catch {set Opts(scale)}] {
-	set Opts(scale) [expr {int([font measure TkDefaultFont M] / 10)}]
+	set Opts(scale) [expr {max(1, int([font measure TkDefaultFont M] / 10))}]
    }
 
    # Resize the window
