@@ -814,6 +814,13 @@ calmaProcessDef(def, outf, do_library)
 
     if (isReadOnly && hasContent && CalmaAddendum) return (0);
 
+    /* Give a strongly-worded statement about writing abstract views */
+
+    if (isAbstract && !isReadOnly)
+	TxError("Warning:  Writing abstract view of \"%s\" to GDS.  This is"
+			" probably not what you want to do.\n",
+			def->cd_name);
+		
     /*
      * Output the definitions for any of our descendants that have
      * not already been output.  Numbers are assigned to the subcells
