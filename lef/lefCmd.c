@@ -92,6 +92,9 @@ CmdLef(w, cmd)
 					 * other than pin area surrounding labels,
 					 * with the indicated setback distance.
 					 */
+    bool lefPinOnly = FALSE;		/* If TRUE, make pins only where labels
+					 * are defined, not the whole net.
+					 */
     bool lefTopLayer = FALSE;		/* If TRUE, only output the topmost
 					 * layer used by a pin, and make
 					 * all layers below it obstructions.
@@ -234,6 +237,8 @@ CmdLef(w, cmd)
 				i++;
 			    }
 			}
+			else if (!strncmp(cmd->tx_argv[i], "-pinonly", 8))
+			    lefPinOnly = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-toplayer", 9))
 			    lefTopLayer = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-nomaster", 9))
@@ -244,8 +249,8 @@ CmdLef(w, cmd)
 		    }
 		    else goto wrongNumArgs;
 		}
-		LefWriteAll(selectedUse, lefTopCell, lefTech, lefHide, lefTopLayer,
-			    lefDoMaster, recurse);
+		LefWriteAll(selectedUse, lefTopCell, lefTech, lefHide, lefPinOnly,
+			    lefTopLayer, lefDoMaster, recurse);
 	    }
 	    break;
 	case LEF_WRITE:
@@ -285,6 +290,13 @@ CmdLef(w, cmd)
 			}
 			else
 			    TxPrintf("The \"-hide\" option is only for lef write\n");
+		    }
+		    else if (!strncmp(cmd->tx_argv[i], "-pinonly", 8))
+		    {
+			if (is_lef)
+			    lefPinOnly = TRUE;
+			else
+			    TxPrintf("The \"-pinonly\" option is only for lef write\n");
 		    }
 		    else if (!strncmp(cmd->tx_argv[i], "-toplayer", 9))
 		    {
@@ -339,7 +351,8 @@ CmdLef(w, cmd)
 		DefWriteCell(selectedUse->cu_def, namep, allSpecial, units);
 	    else
 		LefWriteCell(selectedUse->cu_def, namep, selectedUse->cu_def
-			== EditRootDef, lefTech, lefHide, lefTopLayer, lefDoMaster);
+			== EditRootDef, lefTech, lefHide, lefPinOnly,
+			lefTopLayer, lefDoMaster);
 	    break;
 	case LEF_HELP:
 wrongNumArgs:

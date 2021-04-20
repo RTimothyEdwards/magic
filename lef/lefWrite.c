@@ -1095,11 +1095,12 @@ LefWritePinHeader(f, lab)
  */
 
 void
-lefWriteMacro(def, f, scale, setback, toplayer, domaster)
+lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
     CellDef *def;	/* Def for which to generate LEF output */
     FILE *f;		/* Output to this file */
     float scale;	/* Output distance units conversion factor */
     int setback;	/* If >= 0, hide all detail except pins inside setback */
+    bool pinonly;	/* If TRUE, only place pins where labels are defined */
     bool toplayer;	/* If TRUE, only output topmost layer of pins */
     bool domaster;	/* If TRUE, write masterslice layers */
 {
@@ -1416,13 +1417,18 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
 	    scx.scx_area = labr;
 	    SelectClear();
 
-	    if (setback == 0)
+	    if ((pinonly == TRUE) || (setback == 0))
 	    {
 		Rect carea;
 		labelLinkedList *newlll;
 
-		SelectChunk(&scx, lab->lab_type, 0, &carea, FALSE);
-		if (GEO_RECTNULL(&carea)) carea = labr;
+		if (pinonly == TRUE)
+		    carea = labr;
+		else
+		{
+		   SelectChunk(&scx, lab->lab_type, 0, &carea, FALSE);
+		   if (GEO_RECTNULL(&carea)) carea = labr;
+		}
 
 		/* Note that a sticky label could be placed over multiple   */
 		/* tile types, which would cause SelectChunk to fail.  So   */
@@ -1445,12 +1451,18 @@ lefWriteMacro(def, f, scale, setback, toplayer, domaster)
 		Rect carea;
 
 		/* For -hide with setback, select the entire net and then   */
-		/* remove the part inside the setback area.  Note that this */
-		/* does not check if this causes the label to disappear.    */
+		/* remove the part inside the setback area.		    */
 
 		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
 		GEO_EXPAND(&boundary, -setback, &carea);
 		SelRemoveArea(&carea, &DBAllButSpaceAndDRCBits);
+
+		/* Paint over the label area so that labels do not simply   */
+		/* disappear by being inside the setback area.		    */
+
+		pNum = DBPlane(lab->lab_type);
+		DBPaintPlane(SelectDef->cd_planes[pNum], &labr,
+			DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
 	    }
 	    else
 		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
@@ -1964,11 +1976,13 @@ lefGetProperties(stackItem, i, clientData)
  */
 
 void
-LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefTopLayer, lefDoMaster, recurse)
+LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefPinOnly, lefTopLayer,
+	    lefDoMaster, recurse)
     CellUse *rootUse;
     bool writeTopCell;
     bool lefTech;
     int lefHide;
+    bool lefPinOnly;
     bool lefTopLayer;
     bool lefDoMaster;
     bool recurse;
@@ -2040,7 +2054,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefTopLayer, lefDoMaster, r
     {
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)
-	    lefWriteMacro(def, f, scale, lefHide, lefTopLayer, lefDoMaster);
+	    lefWriteMacro(def, f, scale, lefHide, lefPinOnly, lefTopLayer, lefDoMaster);
     }
 
     /* End the LEF file */
@@ -2104,12 +2118,14 @@ lefDefPushFunc(use, recurse)
  */
 
 void
-LefWriteCell(def, outName, isRoot, lefTech, lefHide, lefTopLayer, lefDoMaster)
+LefWriteCell(def, outName, isRoot, lefTech, lefHide, lefPinOnly, lefTopLayer,
+	    lefDoMaster)
     CellDef *def;		/* Cell being written */
     char *outName;		/* Name of output file, or NULL. */
     bool isRoot;		/* Is this the root cell? */
     bool lefTech;		/* Output layer information if TRUE */
     int  lefHide;		/* Hide detail other than pins if >= 0 */
+    bool lefPinOnly;		/* Only generate pins on label areas */
     bool lefTopLayer;		/* Use only topmost layer of pin if TRUE */
     bool lefDoMaster;		/* Write masterslice layers if TRUE */
 {
@@ -2145,7 +2161,7 @@ LefWriteCell(def, outName, isRoot, lefTech, lefHide, lefTopLayer, lefDoMaster)
 	HashKill(&propHashTbl);
 	HashKill(&siteHashTbl);
     }
-    lefWriteMacro(def, f, scale, lefHide, lefTopLayer, lefDoMaster);
+    lefWriteMacro(def, f, scale, lefHide, lefPinOnly, lefTopLayer, lefDoMaster);
 
     /* End the LEF file */
     fprintf(f, "END LIBRARY\n\n");
