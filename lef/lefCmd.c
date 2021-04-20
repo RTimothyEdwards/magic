@@ -92,8 +92,10 @@ CmdLef(w, cmd)
 					 * other than pin area surrounding labels,
 					 * with the indicated setback distance.
 					 */
-    bool lefPinOnly = FALSE;		/* If TRUE, make pins only where labels
-					 * are defined, not the whole net.
+    int lefPinOnly = -1;		/* If >= 0, make pins only where labels
+					 * are defined, not the whole net.  Values
+					 * > 0 limit how far pins can extend into
+					 * the interior of the cell.
 					 */
     bool lefTopLayer = FALSE;		/* If TRUE, only output the topmost
 					 * layer used by a pin, and make
@@ -238,7 +240,16 @@ CmdLef(w, cmd)
 			    }
 			}
 			else if (!strncmp(cmd->tx_argv[i], "-pinonly", 8))
-			    lefPinOnly = TRUE;
+			{
+			    lefPinOnly = 0;
+			    if ((i < (cmd->tx_argc - 1)) &&
+				    StrIsNumeric(cmd->tx_argv[i + 1]))
+			    {
+				lefPinOnly = cmdParseCoord(w, cmd->tx_argv[i + 1],
+					    FALSE, TRUE);
+				i++;
+			    }
+			}
 			else if (!strncmp(cmd->tx_argv[i], "-toplayer", 9))
 			    lefTopLayer = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-nomaster", 9))
@@ -294,7 +305,17 @@ CmdLef(w, cmd)
 		    else if (!strncmp(cmd->tx_argv[i], "-pinonly", 8))
 		    {
 			if (is_lef)
-			    lefPinOnly = TRUE;
+			{
+			    lefPinOnly = 0;
+			    if ((i < (cmd->tx_argc - 1)) &&
+				    StrIsNumeric(cmd->tx_argv[i + 1]))
+			    {
+				lefPinOnly = cmdParseCoord(w, cmd->tx_argv[i + 1],
+					    FALSE, TRUE);
+				cargs--;
+				i++;
+			    }
+			}
 			else
 			    TxPrintf("The \"-pinonly\" option is only for lef write\n");
 		    }
