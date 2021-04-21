@@ -293,6 +293,7 @@ typedef struct rdev
      struct ressimnode	*gate;		/* Terminals of transistor.	  */
      struct ressimnode	*source;
      struct ressimnode	*drain;
+     struct ressimnode	*subs;		/* Used with subcircuit type only  */
      Point		location;	/* Location of lower left point of */
      					/* device.			   */
      float		resistance;     /* "Resistance" of device.	   */
@@ -519,6 +520,7 @@ typedef struct capval
 #define		GATE 1
 #define		SOURCE 2
 #define		DRAIN 3
+#define		SUBS 4
 
 #define 	DRIVEONLY	0x00001000
 #define 	ORIGIN 		0x00000008
@@ -610,6 +612,7 @@ extern int	      		ResSimCapacitor();
 extern int	      		ResSimResistor();
 extern int	      		ResSimAttribute();
 extern int			ResSimMerge();
+extern int			ResSimSubckt();
 extern int 			dbSrConnectStartFunc();
 extern int			ResEach(),ResAddPlumbing(),ResRemovePlumbing();
 extern float			ResCalculateChildCapacitance();

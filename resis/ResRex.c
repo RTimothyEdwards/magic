@@ -105,8 +105,8 @@ ExtResisForDef(celldef, resisdata)
     HashInit(&ResNodeTable, INITFLATSIZE, HT_STRINGKEYS);
     /* read in .sim file */
     result = (ResReadSim(celldef->cd_name,
-	      	ResSimDevice,ResSimCapacitor,ResSimResistor,
-		ResSimAttribute,ResSimMerge) == 0);
+	      	ResSimDevice, ResSimCapacitor, ResSimResistor,
+		ResSimAttribute, ResSimMerge, ResSimSubckt) == 0);
 
     if (result)
 	/* read in .nodes file   */
