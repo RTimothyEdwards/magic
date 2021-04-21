@@ -1624,9 +1624,8 @@ int simnodeVisit(node, res, cap)
 
     if (esLabF)
     {
-	fprintf(esLabF, "94 ");
 	EFHNOut(hierName, esLabF);
-	fprintf(esLabF, " %d %d %s;\n",
+	fprintf(esLabF, " %d %d %s\n",
 		    node->efnode_loc.r_xbot, node->efnode_loc.r_ybot,
 		    EFLayerNames[node->efnode_type]);
     }

@@ -45,55 +45,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * is used to clear the markings again.
  */
 
-/* The following structure is used to hold several pieces
- * of information that must be passed through multiple
- * levels of search function (used by dbSrConnectFunc).
- */
-
-struct conSrArg
-{
-    CellDef *csa_def;			/* Definition being searched. */
-    int csa_plane;			/* Index of current plane being searched. */
-    TileTypeBitMask *csa_connect;	/* Table indicating what connects
-					 * to what.
-					 */
-    int (*csa_clientFunc)();		/* Client function to call. */
-    ClientData csa_clientData;		/* Argument for clientFunc. */
-    bool csa_clear;			/* FALSE means pass 1, TRUE
-					 * means pass 2.
-					 */
-    Rect csa_bounds;			/* Area that limits search. */
-};
-
-/* The following structure is used to hold several pieces
- * of information that must be passed through multiple
- * levels of search function (used by dbcConnectFunc).
- */
-
-typedef struct
-{
-    Rect		area;		/* Area to process */
-    TileTypeBitMask	*connectMask;	/* Connection mask for search */
-    TileType		dinfo;		/* Info about triangular search areas */
-} conSrArea;
-
-struct conSrArg2
-{
-    CellUse		*csa2_use;	/* Destination use */
-    TileTypeBitMask	*csa2_connect;	/* Table indicating what connects
-					 * to what.
-					 */
-    SearchContext	*csa2_topscx;	/* Original top-level search context */
-    Rect		*csa2_bounds;	/* Area that limits the search */
-
-    Stack		*csa2_stack;	/* Stack of full csa2_list entries */
-    conSrArea		*csa2_list;	/* List of areas to process */
-    int			csa2_top;	/* Index of next area to process */
-    int			csa2_lasttop;	/* Previous top index */
-};
-
-#define CSA2_LIST_SIZE 65536		/* Number of entries per list */
-
 /*
  *-----------------------------------------------------------------
  * DBTransformDiagonal --
@@ -257,6 +208,7 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     startTile = NULL;
     for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
     {
+    	csa.csa_pNum = startPlane;
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
 	    dbSrConnectStartFunc, (ClientData) &startTile) != 0) break;
@@ -272,7 +224,6 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clientData = clientData;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
-    csa.csa_plane = startPlane;
     if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
 
     /* Pass 2.  Don't call any client function, just clear the marks.
@@ -282,7 +233,6 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     SigDisableInterrupts();
     csa.csa_clientFunc = NULL;
     csa.csa_clear = TRUE;
-    csa.csa_plane = startPlane;
     (void) dbSrConnectFunc(startTile, &csa);
     SigEnableInterrupts();
 
@@ -348,6 +298,7 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     startTile = NULL;
     for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
     {
+    	csa.csa_pNum = startPlane;
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
 	    dbSrConnectStartFunc, (ClientData) &startTile) != 0) break;
@@ -363,7 +314,6 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clientData = clientData;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
-    csa.csa_plane = startPlane;
     if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
 
     return result;
@@ -436,7 +386,7 @@ dbSrConnectFunc(tile, csa)
 
     if (csa->csa_clientFunc != NULL)
     {
-	if ((*csa->csa_clientFunc)(tile, csa->csa_plane, csa->csa_clientData) != 0)
+	if ((*csa->csa_clientFunc)(tile, csa->csa_pNum, csa->csa_clientData) != 0)
 	    return 1;
     }
 
@@ -579,7 +529,7 @@ donesides:
      */
 
     planes = DBConnPlanes[loctype];
-    planes &= ~(PlaneNumToMaskBit(csa->csa_plane));
+    planes &= ~(PlaneNumToMaskBit(csa->csa_pNum));
     if (planes != 0)
     {
         struct conSrArg newcsa;
@@ -591,7 +541,7 @@ donesides:
 	for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
 	{
 	    if (!PlaneMaskHasPlane(planes, i)) continue;
-	    newcsa.csa_plane = i;
+	    newcsa.csa_pNum = i;
 	    if (IsSplit(tile))
 	    {
 		if (DBSrPaintNMArea((Tile *) NULL, csa->csa_def->cd_planes[i],
@@ -786,6 +736,7 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 				sizeof(conSrArea));
 			StackPush((ClientData)csa2->csa2_list, csa2->csa2_stack);
 			csa2->csa2_list = newlist;
+			csa2->csa2_top = 0;
 		    }
 
 		    csa2->csa2_list[csa2->csa2_top].area = newarea;

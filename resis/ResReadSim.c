@@ -50,11 +50,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define		COUPLEVALUE	3
 #define		REALNAME	1
 #define		ALIASNAME	2
-#define		NODECIFCOMMAND	0
-#define		NODENODENAME	1
-#define		NODENODEX	2
-#define		NODENODEY	3
-#define		NODETYPE	4
+#define		NODES_NODENAME	0
+#define		NODES_NODEX	1
+#define		NODES_NODEY	2
+#define		NODES_NODETYPE	3
 #define		NODE_BBOX_LL_X	5
 #define		NODE_BBOX_LL_Y	6
 #define		NODE_BBOX_UR_X	7
@@ -236,13 +235,6 @@ ResReadNode(nodefile)
     char *cp;
     float lambda;
 
-    /* NOTE:  Units from the .nodes file are in centimicrons.
-     * Divide by the extract scale (exts_unitsPerLambda) to get back
-     * to database units.  This assumes that exts_unitsPerLambda doesn't
-     * change between output and readback.
-     */
-    lambda = (float)ExtCurStyle->exts_unitsPerLambda;
-
     fp = PaOpen(nodefile,"r",".nodes",".", (char *) NULL, (char **) NULL);
     if (fp == NULL)
     {
@@ -251,19 +243,19 @@ ResReadNode(nodefile)
     }
     while (gettokens(line,fp) != 0)
     {
-	entry = HashFind(&ResNodeTable,line[NODENODENAME]);
+	entry = HashFind(&ResNodeTable,line[NODES_NODENAME]);
 	node = ResInitializeNode(entry);
 
-	node->location.p_x = (int)((float)atof(line[NODENODEX]) / lambda);
-	node->location.p_y = (int)((float)atof(line[NODENODEY]) / lambda);
+	node->location.p_x = atoi(line[NODES_NODEX]);
+	node->location.p_y = atoi(line[NODES_NODEY]);
 #ifdef ARIEL
-	node->rs_bbox.r_xbot = (int)((float)atof(line[NODE_BBOX_LL_X]) / lambda);
-	node->rs_bbox.r_ybot = (int)((float)atof(line[NODE_BBOX_LL_Y]) / lambda);
-	node->rs_bbox.r_xtop = (int)((float)atof(line[NODE_BBOX_UR_X]) / lambda);
-	node->rs_bbox.r_ytop = (int)((float)atof(line[NODE_BBOX_UR_Y]) / lambda);
+	node->rs_bbox.r_xbot = atoi(line[NODE_BBOX_LL_X]);
+	node->rs_bbox.r_ybot = atoi(line[NODE_BBOX_LL_Y]);
+	node->rs_bbox.r_xtop = atoi(line[NODE_BBOX_UR_X]);
+	node->rs_bbox.r_ytop = atoi(line[NODE_BBOX_UR_Y]);
 #endif
-	if (cp = strchr(line[NODETYPE], ';')) *cp = '\0';
-	node->type = DBTechNameType(line[NODETYPE]);
+	if (cp = strchr(line[NODES_NODETYPE], ';')) *cp = '\0';
+	node->type = DBTechNameType(line[NODES_NODETYPE]);
 
 	if (node->type == -1)
 	{

@@ -30,31 +30,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "resis/resis.h"
 
-typedef struct
-{
-    Rect		area;		/* Area to process */
-    TileTypeBitMask	*connectMask;	/* Connection mask for search */
-    TileType		dinfo;		/* Info about triangular search areas */
-} conSrArea;
-
-struct conSrArg2
-{
-    CellUse             *csa2_use;      /* Destination use */
-    TileTypeBitMask     *csa2_connect;  /* Table indicating what connects
-                                         * to what.
-                                         */
-    SearchContext	*csa2_topscx;	/* Original top-level search context */
-    int			 csa2_xMask;	/* Cell window mask for search */
-    Rect                *csa2_bounds;   /* Area that limits the search */
-
-    Stack		*csa2_stack;	/* Stack of full csa2_list entries */
-    conSrArea		*csa2_list;	/* List of areas to process */
-    int			csa2_top;	/* Index of next area to process */
-    int			csa2_lasttop;	/* Previous top index */
-};
-
-#define CSA2_LIST_SIZE 65536		/* Number of entries per list */
-
 extern int dbcUnconnectFunc();
 extern int dbcConnectLabelFunc();
 extern int dbcConnectFuncDCS();
@@ -68,7 +43,6 @@ TileTypeBitMask	ResSubsTypeBitMask;
 
 /* Forward declarations */
 extern void ResCalcPerimOverlap();
-
 
 /*
  * ----------------------------------------------------------------------------

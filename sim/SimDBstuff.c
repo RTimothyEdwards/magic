@@ -46,55 +46,6 @@
 #include "utils/styles.h"
 #include "graphics/graphics.h"
 
-/* The following structure is used to hold several pieces
- * of information that must be passed through multiple
- * levels of search function.
- */
-
-struct conSrArg
-{
-    CellDef *csa_def;			/* Definition being searched. */
-    Plane *csa_plane;			/* Current plane being searched. */
-    TileTypeBitMask *csa_connect;	/* Table indicating what connects
-					 * to what.
-					 */
-    int (*csa_clientFunc)();		/* Client function to call. */
-    ClientData csa_clientData;		/* Argument for clientFunc. */
-    bool csa_clear;			/* FALSE means pass 1, TRUE
-					 * means pass 2.
-					 */
-    Rect csa_bounds;			/* Area that limits search. */
-};
-
-/* For SimTreeSrConnect, the extraction proceeds in one pass, copying
- * all connected stuff from a hierarchy into a single cell.  A list
- * is kept to record areas that still have to be searched for
- * hierarchical stuff.
- */
-
-typedef struct
-{
-    Rect		area;		/* Area to process */
-    TileTypeBitMask	*connectMask;	/* Connection mask for search */
-    TileType		dinfo;		/* Info about triangular search areas */
-} conSrArea;
-
-struct conSrArg2
-{
-    CellUse		*csa2_use;	/* Destination use */
-    TileTypeBitMask	*csa2_connect;	/* Table indicating what connects
-					 * to what.
-					 */
-    Rect		*csa2_bounds;	/* Area that limits the search */
-
-    Stack		*csa2_stack;	/* Stack of full csa2_list entries */
-    conSrArea		*csa2_list;	/* List of areas to process */
-    int			csa2_top;	/* Index of next area to process */
-    int			csa2_lasttop;	/* Previous top index */
-};
-
-#define CSA2_LIST_SIZE 65536		/* Number of entries per list */
-
 /* Forward declarations */
 
 extern char *DBPrintUseId();
@@ -656,7 +607,7 @@ SimSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clientData = clientData;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
-    csa.csa_plane = def->cd_planes[startPlane];
+    csa.csa_pNum = startPlane;
     if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
 
     return result;

@@ -52,26 +52,6 @@ int	rtrDelta;			/* Change in layer width		*/
  * is used to clear the markings again.
  */
 
-/* The following structure is used to hold several pieces
- * of information that must be passed through multiple
- * levels of search function.
- */
-
-struct conSrArg
-{
-    CellDef *csa_def;			/* Definition being searched. */
-    int csa_pNum;			/* Index of plane being searched. */
-    TileTypeBitMask *csa_connect;	/* Table indicating what connects
-					 * to what.
-					 */
-    int (*csa_clientFunc)();		/* Client function to call. */
-    ClientData csa_clientData;		/* Argument for clientFunc. */
-    bool csa_clear;			/* FALSE means pass 1, TRUE
-					 * means pass 2.
-					 */
-    Rect csa_bounds;			/* Area that limits search. */
-};
-
 /*
  * The search path is maintained on the C runtime stack
  * with rtrTileStack sructures.  Each entry on the stack

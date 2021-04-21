@@ -440,12 +440,10 @@ efAddNodes(hc, stdcell)
     EFNode *node, *newnode;
     EFAttr *ap, *newap;
     HierName *hierName;
-    float scale;
     int size, asize;
     HashEntry *he;
     bool is_subcircuit = (def->def_flags & DEF_SUBCIRCUIT) ? TRUE : FALSE;
 
-    scale = def->def_scale;
     size = sizeof (EFNode) + (efNumResistClasses-1) * sizeof (EFPerimArea);
 
     for (node = (EFNode *) def->def_firstn.efnode_next;
@@ -464,10 +462,6 @@ efAddNodes(hc, stdcell)
 	    newap = (EFAttr *) mallocMagic((unsigned)(asize));
 	    (void) strcpy(newap->efa_text, ap->efa_text);
 	    GeoTransRect(&hc->hc_trans, &ap->efa_loc, &newap->efa_loc);
-	    newap->efa_loc.r_xbot = (int)((float)(newap->efa_loc.r_xbot) * scale);
-	    newap->efa_loc.r_xtop = (int)((float)(newap->efa_loc.r_xtop) * scale);
-	    newap->efa_loc.r_ybot = (int)((float)(newap->efa_loc.r_ybot) * scale);
-	    newap->efa_loc.r_ytop = (int)((float)(newap->efa_loc.r_ytop) * scale);
 
 	    newap->efa_type = ap->efa_type;
 	    newap->efa_next = newnode->efnode_attrs;
@@ -489,14 +483,6 @@ efAddNodes(hc, stdcell)
 	    bzero((char *) newnode->efnode_pa,
 			efNumResistClasses * sizeof (EFPerimArea));
 	GeoTransRect(&hc->hc_trans, &node->efnode_loc, &newnode->efnode_loc);
-
-	/* Scale the result by "scale" --- hopefully we end up with an integer	*/
-	/* We don't scale the transform because the scale may be non-integer	*/
-	/* and the Transform type has integers only.				*/
-	newnode->efnode_loc.r_xbot = (int)((float)(newnode->efnode_loc.r_xbot) * scale);
-	newnode->efnode_loc.r_xtop = (int)((float)(newnode->efnode_loc.r_xtop) * scale);
-	newnode->efnode_loc.r_ybot = (int)((float)(newnode->efnode_loc.r_ybot) * scale);
-	newnode->efnode_loc.r_ytop = (int)((float)(newnode->efnode_loc.r_ytop) * scale);
 
 	/* Add each name for this node to the hash table */
 	newnode->efnode_name = (EFNodeName *) NULL;
