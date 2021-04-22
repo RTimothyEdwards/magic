@@ -857,6 +857,9 @@ CmdCellname(w, cmd)
 		   IDX_ORIENTATION, IDX_RENAME, IDX_READWRITE,
 		   IDX_MODIFIED } optionType;
 
+    static char *cmdCellnameYesNo[] = {
+		"no", "false", "off", "0", "yes", "true", "on", "1", 0 };
+
     if (strstr(cmd->tx_argv[0], "in"))
 	is_cellname = FALSE;
     else
@@ -1072,7 +1075,10 @@ CmdCellname(w, cmd)
 	    }
 	    else if (locargc == 4)
 	    {
-		if (tolower(*cmd->tx_argv[3 + ((dolist) ? 1 : 0)]) == 't')
+	    	int subopt = Lookup(cmd->tx_argv[3 + ((dolist) ? 1 : 0)],
+					cmdCellnameYesNo);
+	    	if (subopt < 0) goto badusage;
+		else if (subopt >= 4)
 		{
 		    /* Check if file is already read-write */
 		    if (!(cellDef->cd_flags & CDNOEDIT))
