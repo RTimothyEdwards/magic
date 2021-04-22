@@ -1165,18 +1165,17 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
     /* don't patch up networks.  This cuts down on memory use.		*/
 
     if ((ResOptionsFlags & (ResOpt_DoRsmFile | ResOpt_DoExtFile)) == 0)
-    {
 	return;
-    }
+
     if (simDev->layout == NULL)
     {
 	layoutDev->rd_status |= RES_DEV_SAVE;
 	simDev->layout = layoutDev;
     }
     simDev->status |= TRUE;
-    if (strcmp(nodename,oldnodename) != 0)
+    if (strcmp(nodename, oldnodename) != 0)
     {
-	strcpy(oldnodename,nodename);
+	strcpy(oldnodename, nodename);
     }
     sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
     notdecremented = TRUE;
@@ -1204,8 +1203,8 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
     {
      	if (simDev->drain == simNode)
 	{
-	    if ((source = layoutDev->rd_fet_source) &&
-	       	   (drain = layoutDev->rd_fet_drain))
+	    if (((source = layoutDev->rd_fet_source) != NULL) &&
+	       	   ((drain = layoutDev->rd_fet_drain) != NULL))
 	    {
 	        if (source->rn_name != NULL && notdecremented)
 		{

@@ -166,7 +166,10 @@ ResPrintExtDev(outextfile, devices)
 			break;
 		}
 
-		fprintf(outextfile, " \"%s\"", subsName);
+		if (devices->subs != NULL)
+		    fprintf(outextfile, " \"%s\"", devices->subs->name);
+		else
+		    fprintf(outextfile, " \"%s\"", subsName);
 
 		fprintf(outextfile, " \"%s\" %d %s \"%s\" %d %s \"%s\" %d %s\n",
 			devices->gate->name,
