@@ -3408,6 +3408,103 @@ dbClearCellFunc(cellUse, cdarg)
 /*
  * ----------------------------------------------------------------------------
  *
+ * DBPathSubstitute --
+ *
+ * Replace the leading part of a file path string according to the following
+ * criteria:
+ *
+ *	1) If the filename starts with a string equal to the contents of
+ *	   Tcl variables PDK_PATH, PDKPATH, PDK_ROOT, or PDKROOT, then
+ *	   replace the string with the variable name.  The "PATH" names are
+ *	   more specific than "ROOT" and so are checked first.
+ *	2) If the filename starts with a string equal to the contents of
+ *	   environment variable HOME, then replace the string with "~".
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Writes into the string "cstring".
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBPathSubstitute(pathstart, cstring, cellDef)
+    char *pathstart;
+    char *cstring;
+    CellDef *cellDef;
+{
+    bool subbed = FALSE;
+#ifdef MAGIC_WRAPPER
+    char *tvar;
+
+    /* Check for the leading component of the file path being equal to	*/
+    /* one of several common variable names for the PDK location, and	*/
+    /* if there is a match, then substitute the variable name for the	*/
+    /* matching leading path component.					*/
+
+    if (subbed == FALSE)
+    {
+	tvar = (char *)Tcl_GetVar(magicinterp, "PDK_PATH", TCL_GLOBAL_ONLY);
+	if (tvar)
+	    if (!strncmp(pathstart, tvar, strlen(tvar)))
+	    {
+	    	sprintf(cstring, "$PDK_PATH%s", pathstart + strlen(tvar));
+		subbed = TRUE;
+	    }
+    }
+    if (subbed == FALSE)
+    {
+	tvar = (char *)Tcl_GetVar(magicinterp, "PDKPATH", TCL_GLOBAL_ONLY);
+	if (tvar)
+	    if (!strncmp(pathstart, tvar, strlen(tvar)))
+	    {
+	    	sprintf(cstring, "$PDKPATH%s", pathstart + strlen(tvar));
+		subbed = TRUE;
+	    }
+    }
+    if (subbed == FALSE)
+    {
+	tvar = (char *)Tcl_GetVar(magicinterp, "PDK_ROOT", TCL_GLOBAL_ONLY);
+	if (tvar)
+	    if (!strncmp(pathstart, tvar, strlen(tvar)))
+	    {
+	    	sprintf(cstring, "$PDK_ROOT%s", pathstart + strlen(tvar));
+		subbed = TRUE;
+	    }
+    }
+    if (subbed == FALSE)
+    {
+	tvar = (char *)Tcl_GetVar(magicinterp, "PDKROOT", TCL_GLOBAL_ONLY);
+	if (tvar)
+	    if (!strncmp(pathstart, tvar, strlen(tvar)))
+	    {
+	    	sprintf(cstring, "$PDKROOT%s", pathstart + strlen(tvar));
+		subbed = TRUE;
+	    }
+    }
+#endif
+
+    if (subbed == FALSE)
+    {
+	/* If path starts with home path, then replace with "~"	*/
+	/* to make IP semi-portable between home directories	*/
+	/* with the same file structure.			*/
+
+	char *homedir = getenv("HOME");
+
+	if (!strncmp(cellDef->cd_file, homedir, strlen(homedir))
+			&& (*(cellDef->cd_file + strlen(homedir)) == '/'))
+	    sprintf(cstring, "~%s", cellDef->cd_file + strlen(homedir));
+	else
+	    sprintf(cstring, "%s", pathstart);
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * dbWriteCellFunc --
  *
  * Filter function used to write out a single cell use in the
@@ -3430,8 +3527,7 @@ dbWriteCellFunc(cellUse, cdarg)
     struct writeArg *arg = (struct writeArg *) cdarg;
     Transform *t;
     Rect *b;
-    bool subbed = FALSE;
-    char     cstring[256], *pathend, *pathstart, *parent;
+    char     cstring[1024], *pathend, *pathstart, *parent;
 
     t = &(cellUse->cu_transform);
     b = &(cellUse->cu_def->cd_bbox);
@@ -3482,92 +3578,13 @@ dbWriteCellFunc(cellUse, cdarg)
     }
     else
     {
-#ifdef MAGIC_WRAPPER
-	char *tvar;
-
-	/* Check for the leading component of the file path being equal to	*/
-	/* one of several common variable names for the PDK location, and	*/
-	/* if there is a match, then substitute the variable name for the	*/
-	/* matching leading path component.					*/
-
-	if (subbed == FALSE)
-	{
-	    tvar = (char *)Tcl_GetVar(magicinterp, "PDK_PATH", TCL_GLOBAL_ONLY);
-	    if (tvar)
-		if (!strncmp(pathstart, tvar, strlen(tvar)))
-		{
-	    	    sprintf(cstring, "use %s %c%s $PDK_PATH%s\n",
-				cellUse->cu_def->cd_name,
-				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-				cellUse->cu_id, pathstart + strlen(tvar));
-		    subbed = TRUE;
-		}
-	}
-	if (subbed == FALSE)
-	{
-	    tvar = (char *)Tcl_GetVar(magicinterp, "PDKPATH", TCL_GLOBAL_ONLY);
-	    if (tvar)
-		if (!strncmp(pathstart, tvar, strlen(tvar)))
-		{
-	    	    sprintf(cstring, "use %s %c%s $PDKPATH%s\n",
-				cellUse->cu_def->cd_name,
-				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-				cellUse->cu_id, pathstart + strlen(tvar));
-		    subbed = TRUE;
-		}
-	}
-	if (subbed == FALSE)
-	{
-	    tvar = (char *)Tcl_GetVar(magicinterp, "PDK_ROOT", TCL_GLOBAL_ONLY);
-	    if (tvar)
-		if (!strncmp(pathstart, tvar, strlen(tvar)))
-		{
-	    	    sprintf(cstring, "use %s %c%s $PDK_ROOT%s\n",
-				cellUse->cu_def->cd_name,
-				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-				cellUse->cu_id, pathstart + strlen(tvar));
-		    subbed = TRUE;
-		}
-	}
-	if (subbed == FALSE)
-	{
-	    tvar = (char *)Tcl_GetVar(magicinterp, "PDKROOT", TCL_GLOBAL_ONLY);
-	    if (tvar)
-		if (!strncmp(pathstart, tvar, strlen(tvar)))
-		{
-	    	    sprintf(cstring, "use %s %c%s $PDKROOT%s\n",
-				cellUse->cu_def->cd_name,
-				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-				cellUse->cu_id, pathstart + strlen(tvar));
-		    subbed = TRUE;
-		}
-	}
-#endif
-
-	if (subbed == FALSE)
-	{
-	    /* If path starts with home path, then replace with "~"	*/
-	    /* to make IP semi-portable between home directories	*/
-	    /* with the same file structure.			*/
-
-	    char *homedir = getenv("HOME");
-
-	    if (!strncmp(cellUse->cu_def->cd_file, homedir, strlen(homedir))
-			&& (*(cellUse->cu_def->cd_file + strlen(homedir)) == '/'))
-	    {
-	    	sprintf(cstring, "use %s %c%s ~%s\n", cellUse->cu_def->cd_name,
-			(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-			cellUse->cu_id, cellUse->cu_def->cd_file +
-			strlen(homedir));
-	    }
-	    else
-	    {
-	        sprintf(cstring, "use %s %c%s %s\n", cellUse->cu_def->cd_name,
-			(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-			cellUse->cu_id, pathstart);
-	    }
-	}
+    	sprintf(cstring, "use %s %c%s ", cellUse->cu_def->cd_name,
+		(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
+		cellUse->cu_id);
+    	DBPathSubstitute(pathstart, cstring + strlen(cstring), cellUse->cu_def);
+	strcat(cstring, "\n");
     }
+
     FPRINTR(arg->wa_file, cstring);
 
     cellUse->cu_def->cd_flags |= CDVISITED;

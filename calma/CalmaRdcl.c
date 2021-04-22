@@ -307,8 +307,8 @@ calmaParseStructure(filename)
     if (!calmaReadStringRecord(CALMA_STRNAME, &strname)) goto syntaxerror;
     TxPrintf("Reading \"%s\".\n", strname);
 
-    if (CalmaReadOnly)
-	filepos = ftello(calmaInputFile);
+    /* Used for read-only and annotated LEF views */
+    filepos = ftello(calmaInputFile);
 
     /* Set up the cell definition */
     he = HashFind(&calmaDefInitHash, strname);
@@ -350,50 +350,74 @@ calmaParseStructure(filename)
 	}
     }
     cifReadCellDef = calmaFindCell(strname, &was_called, &predefined);
+
     if (predefined == TRUE)
     {
-	calmaNextCell();
-	return TRUE;
+	bool isAbstract;
+
+	/* If the cell was predefined, the "noduplicates" option was
+	 * invoked, and the existing cell is an abstract view, then
+	 * annotate the cell with the GDS file pointers to the cell
+	 * data, and the GDS filename.
+	 */
+	DBPropGet(cifReadCellDef, "LEFview", &isAbstract);
+	if (!isAbstract)
+	{
+	    calmaNextCell();
+	    return TRUE;
+	}
+	calmaSkipTo(CALMA_ENDSTR);
     }
-    DBCellClearDef(cifReadCellDef);
-    DBCellSetAvail(cifReadCellDef);
-    HashSetValue(he, cifReadCellDef);
-    cifCurReadPlanes = cifSubcellPlanes;
-    cifReadCellDef->cd_flags &= ~CDDEREFERENCE;
-
-    /* For read-only cells, set flag in def */
-    if (CalmaReadOnly)
-	cifReadCellDef->cd_flags |= CDVENDORGDS;
-
-    /* Skip CALMA_STRCLASS or CALMA_STRTYPE */
-    calmaSkipSet(structs);
-
-    /* Initialize the hash table for layer errors */
-    HashInit(&calmaLayerHash, 32, sizeof (CalmaLayerType) / sizeof (unsigned));
-    was_initialized = TRUE;
-
-    /* Body of structure: a sequence of elements */
-    osrefs = nsrefs = 0;
-    npaths = 0;
-    calmaNonManhattan = 0;
-    while (calmaParseElement(filename, &nsrefs, &npaths))
+    else
     {
-	if (SigInterruptPending)
-	    goto done;
-	if (nsrefs > osrefs && (nsrefs % 100) == 0)
-	    TxPrintf("    %d uses\n", nsrefs);
-	osrefs = nsrefs;
+	DBCellClearDef(cifReadCellDef);
+	DBCellSetAvail(cifReadCellDef);
+	HashSetValue(he, cifReadCellDef);
+	cifCurReadPlanes = cifSubcellPlanes;
+	cifReadCellDef->cd_flags &= ~CDDEREFERENCE;
+
+	/* For read-only cells, set flag in def */
+	if (CalmaReadOnly)
+	    cifReadCellDef->cd_flags |= CDVENDORGDS;
+
+	/* Skip CALMA_STRCLASS or CALMA_STRTYPE */
+	calmaSkipSet(structs);
+
+	/* Initialize the hash table for layer errors */
+	HashInit(&calmaLayerHash, 32, sizeof (CalmaLayerType) / sizeof (unsigned));
+	was_initialized = TRUE;
+
+	/* Body of structure: a sequence of elements */
+	osrefs = nsrefs = 0;
+	npaths = 0;
 	calmaNonManhattan = 0;
+
+	while (calmaParseElement(filename, &nsrefs, &npaths))
+    	{
+	    if (SigInterruptPending)
+	    	goto done;
+	    if (nsrefs > osrefs && (nsrefs % 100) == 0)
+	   	TxPrintf("    %d uses\n", nsrefs);
+	    osrefs = nsrefs;
+	    calmaNonManhattan = 0;
+	}
     }
 
-    if (CalmaReadOnly)
+    if (CalmaReadOnly || predefined)
     {
+	char cstring[1024];
+
 	/* Writing the file position into a string is slow, but */
 	/* it prevents requiring special handling when printing	*/
 	/* out the properties.					*/
 
 	char *fpcopy = (char *)mallocMagic(20);
-	char *fncopy = StrDup(NULL, filename);
+	char *fncopy;
+
+	/* Substitute variable for PDK path or ~ for home directory	*/
+	/* the same way that cell references are handled in .mag files.	*/
+	DBPathSubstitute(filename, cstring, cifReadCellDef);
+	fncopy = StrDup(NULL, cstring);
 	sprintf(fpcopy, "%"DLONG_PREFIX"d", (dlong) filepos);
 	DBPropPut(cifReadCellDef, "GDS_START", (ClientData)fpcopy);
 
@@ -404,9 +428,11 @@ calmaParseStructure(filename)
 
 	DBPropPut(cifReadCellDef, "GDS_FILE", (ClientData)fncopy);
 
-	/* Do not lock the cell, or else we can't save the	*/
-	/* magic cell with its GDS pointers to disk. . .	*/
-	/* cifReadCellDef->cd_flags |= CDNOEDIT; */
+    	if (predefined)
+    	{
+    	    if (strname != NULL) freeMagic(strname);
+	    return TRUE;
+        }
     }
 
     /* Check if the cell name matches the pattern list of cells to flatten */
