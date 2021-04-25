@@ -3494,7 +3494,9 @@ DBPathSubstitute(pathstart, cstring, cellDef)
 
 	char *homedir = getenv("HOME");
 
-	if (!strncmp(cellDef->cd_file, homedir, strlen(homedir))
+	if (cellDef->cd_file == NULL)
+	    sprintf(cstring, "%s", pathstart);
+	else if (!strncmp(cellDef->cd_file, homedir, strlen(homedir))
 			&& (*(cellDef->cd_file + strlen(homedir)) == '/'))
 	    sprintf(cstring, "~%s", cellDef->cd_file + strlen(homedir));
 	else

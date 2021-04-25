@@ -189,6 +189,7 @@ extern void ToolMoveBox(), ToolMoveCorner();
 extern int ToolGetCorner();
 extern void DBWloadWindow(), DBWxloadWindow();
 extern void DBWSetBox();
+extern void DBWResetBox();
 extern void DBWUndoOldEdit();
 extern void DBWUndoNewEdit();
 

@@ -273,6 +273,7 @@ DBCellDelete(cellname, force)
     }
     celldef->cd_parents = (CellUse *)NULL;
 
+    DBWResetBox(celldef);
     result = DBCellDeleteDef(celldef);
 
     if (result == FALSE)
@@ -281,8 +282,6 @@ DBCellDelete(cellname, force)
     UndoEnable();
     return result;
 }
-
-
 
 /*
  * ----------------------------------------------------------------------------
