@@ -880,6 +880,7 @@ cmdExpandFunc(use, windowMask)
 #define	DOLENGTH	4
 #define	DOLOCAL		5
 #define	DORESISTANCE	6
+#define	DOLABELCHECK	7
 
 #define	LENCLEAR	0
 #define	LENDRIVER	1
@@ -922,6 +923,7 @@ CmdExtract(w, cmd)
 	"length			compute driver-receiver pathlengths",
 	"local			put all generated files in the current directory",
 	"resistance		estimate resistance",
+	"labelcheck		check for connections through sticky labels",
 	NULL
     };
     static char *cmdExtLength[] =
@@ -1141,6 +1143,7 @@ CmdExtract(w, cmd)
 		TxPrintf("%s length\n", OPTSET(EXT_DOLENGTH));
 		TxPrintf("%s local\n", OPTSET(EXT_DOLOCAL));
 		TxPrintf("%s resistance\n", OPTSET(EXT_DORESISTANCE));
+		TxPrintf("%s label check\n", OPTSET(EXT_DOLABELCHECK));
 		return;
 #undef	OPTSET
 	    }
@@ -1169,6 +1172,7 @@ CmdExtract(w, cmd)
 		case DOLENGTH:		option = EXT_DOLENGTH; break;
 		case DOLOCAL:		option = EXT_DOLOCAL; break;
 		case DORESISTANCE:	option = EXT_DORESISTANCE; break;
+		case DOLABELCHECK:	option = EXT_DOLABELCHECK; break;
 	    }
 	    if (no) ExtOptions &= ~option;
 	    else ExtOptions |= option;

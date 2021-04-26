@@ -67,6 +67,7 @@ extern char *extDevTable[];
 #define	EXT_DOLENGTH		0x10	/* Extract pathlengths */
 #define	EXT_DOALL		0x1f	/* ALL OF THE ABOVE */
 #define	EXT_DOLOCAL		0x20	/* Write to local directory only */
+#define	EXT_DOLABELCHECK	0x40	/* Check for connections by label */
 
 extern int ExtOptions;		/* Bitmask of above */
 
