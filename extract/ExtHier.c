@@ -259,6 +259,8 @@ extHierConnections(ha, cumFlat, oneFlat)
     /* Look for sticky labels in the child cell that are not	*/
     /* connected to any geometry.				*/
 
+    if (!(ExtOptions & EXT_DOLABELCHECK)) return;
+
     for (lab = sourceDef->cd_labels;  lab;  lab = lab->lab_next)
     {
 	CellDef *cumDef = cumFlat->et_use->cu_def;
