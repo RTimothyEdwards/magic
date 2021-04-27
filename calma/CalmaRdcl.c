@@ -1166,7 +1166,10 @@ calmaUniqueCell(sname)
     int snum = 0;
 
     h = HashLookOnly(&CifCellTable, sname);
-    if ((h == NULL) || HashGetValue(h) == 0) return;
+
+    /* Existing entry with zero value indicates that the existing   */
+    /* cell came from the same GDS file, so don't change anything.  */
+    if ((h != NULL) && HashGetValue(h) == 0) return;
 
     def = DBCellLookDef(sname);
     if (def == (CellDef *)NULL)
