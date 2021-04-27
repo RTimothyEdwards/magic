@@ -55,6 +55,7 @@ extern HashTable calmaDefInitHash;
 /* forward declarations */
 int  calmaElementSref();
 bool calmaParseElement();
+void calmaUniqueCell();
 
 /* Structure used when flattening the GDS hierarchy on read-in */
 
@@ -349,6 +350,7 @@ calmaParseStructure(filename)
 	    freeMagic(newname);
 	}
     }
+    if (CalmaUnique) calmaUniqueCell(strname);	/* Ensure uniqueness */
     cifReadCellDef = calmaFindCell(strname, &was_called, &predefined);
 
     if (predefined == TRUE)
@@ -1134,6 +1136,62 @@ gdsCopyPaintFunc(tile, gdsCopyRec)
 		(PaintUndoInfo *)NULL);
 
     return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaUniqueCell --
+ *
+ *	Attempt to find a cell in the GDS subcell name hash table.
+ *	If one exists, rename its definition so that it will not
+ *	be overwritten when the cell is redefined.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+calmaUniqueCell(sname)
+    char *sname;
+{
+    HashEntry *h;
+    CellDef *def, *testdef;
+    char *newname;
+    int snum = 0;
+
+    h = HashLookOnly(&CifCellTable, sname);
+    if ((h == NULL) || HashGetValue(h) == 0) return;
+
+    def = DBCellLookDef(sname);
+    if (def == (CellDef *)NULL)
+	return;
+
+    /* Cell may have been called but not yet defined---this is okay. */
+    else if ((def->cd_flags & CDAVAILABLE) == 0)
+        return;
+
+    testdef = def;
+    newname = (char *)mallocMagic(10 + strlen(sname));
+     
+    while (testdef != NULL)
+    {
+	/* Keep appending suffix indexes until we find one not used */
+	sprintf(newname, "%s_%d", sname, ++snum);
+	testdef = DBCellLookDef(newname);
+    }
+    DBCellRenameDef(def, newname);
+
+    h = HashFind(&CifCellTable, (char *)sname);
+    HashSetValue(h, 0);
+
+    CalmaReadError("Warning: cell definition \"%s\" reused.\n", sname);
+    freeMagic(newname);
 }
 
 /*

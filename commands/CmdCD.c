@@ -110,6 +110,7 @@ bool cmdDumpParseArgs();
 #define CALMA_POLYS	19
 #define CALMA_PATHS	20
 #define CALMA_UNDEFINED	21
+#define CALMA_UNIQUE	22
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -160,6 +161,7 @@ CmdCalma(w, cmd)
 	"		put wire paths into individual subcells",
 	"undefined [allow|disallow]\n"
 	"		[dis]allow writing of GDS with calls to undefined cells",
+	"unique [yes|no]	rename any cells with names duplicated in the GDS",
 	NULL
     };
 
@@ -597,6 +599,26 @@ CmdCalma(w, cmd)
 	    if (option < 0)
 		goto wrongNumArgs;
 	    CalmaNoDuplicates = (option < 4) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_UNIQUE:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaUnique));
+#else
+		TxPrintf("Cell defs that exist before reading GDS will be renamed.\n",
+			(CalmaUnique) ?  "not " : "");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaUnique = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_NO_STAMP:
