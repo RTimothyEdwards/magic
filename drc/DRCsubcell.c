@@ -539,13 +539,23 @@ drcExactOverlapTile(tile, cxp)
 
     type = TiGetType(tile);
     TTMaskSetOnlyType(&typeMask, type);
-    for (t = DBNumUserLayers; t < DBNumTypes; t++)
+    if (type < DBNumUserLayers)
     {
-	rmask = DBResidueMask(t);
-	if (TTMaskHasType(rmask, type))
-	    TTMaskSetType(&typeMask, t);
+	for (t = DBNumUserLayers; t < DBNumTypes; t++)
+	{
+	    rmask = DBResidueMask(t);
+	    if (TTMaskHasType(rmask, type))
+		TTMaskSetType(&typeMask, t);
+	}
+	TTMaskCom2(&invMask, &typeMask);
     }
-    TTMaskCom2(&invMask, &typeMask);
+    else
+    {
+	rmask = DBResidueMask(type);
+	TTMaskSetMask(&typeMask, rmask);    // Add residue types for inverse only
+	TTMaskCom2(&invMask, &typeMask);
+	TTMaskSetOnlyType(&typeMask, type); // Restore original type mask
+    }
 
     for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
     {

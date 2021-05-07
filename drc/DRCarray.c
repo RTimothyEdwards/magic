@@ -105,7 +105,7 @@ drcArrayFunc(scx, arg)
     int xsep, ysep;
     int xsize, ysize;
     int rval, oldTiles;
-    Rect errorArea, yankArea, tmp, tmp2;
+    Rect errorArea, yankArea, tmp, tmp2, saveClip;
     DRCCookie *save_cptr;
     CellUse *use = scx->scx_use;
     Rect *area;
@@ -183,6 +183,8 @@ drcArrayFunc(scx, arg)
 		(ClientData) &yankArea);
 	    drcArrayCount += DRCBasicCheck(DRCdef, &yankArea, &errorArea,
 		drcArrayErrorFunc, drcArrayClientData);
+	    *arg->dCD_clip = *area;
+	    GeoClip(arg->dCD_clip, &yankArea);
 	    (void) DBArraySr(use, &errorArea, drcArrayOverlapFunc,
 		(ClientData) arg);
 	}
@@ -200,6 +202,8 @@ drcArrayFunc(scx, arg)
 		(ClientData) &yankArea);
 	    drcArrayCount += DRCBasicCheck(DRCdef, &yankArea, &errorArea,
 		drcArrayErrorFunc, drcArrayClientData);
+	    *arg->dCD_clip = *area;
+	    GeoClip(arg->dCD_clip, &yankArea);
 	    (void) DBArraySr(use, &errorArea, drcArrayOverlapFunc,
 		(ClientData) arg);
 	}
@@ -222,6 +226,8 @@ drcArrayFunc(scx, arg)
 		(ClientData) &yankArea);
 	    drcArrayCount += DRCBasicCheck(DRCdef, &yankArea, &errorArea,
 		drcArrayErrorFunc, drcArrayClientData);
+	    *arg->dCD_clip = *area;
+	    GeoClip(arg->dCD_clip, &yankArea);
 	    (void) DBArraySr(use, &errorArea, drcArrayOverlapFunc,
 		(ClientData) arg);
 	}
@@ -239,10 +245,15 @@ drcArrayFunc(scx, arg)
 		(ClientData) &yankArea);
 	    drcArrayCount += DRCBasicCheck(DRCdef, &yankArea, &errorArea,
 		drcArrayErrorFunc, drcArrayClientData);
+	    *arg->dCD_clip = *area;
+	    GeoClip(arg->dCD_clip, &yankArea);
 	    (void) DBArraySr(use, &errorArea, drcArrayOverlapFunc,
 		(ClientData) arg);
 	}
     }
+
+    /* Restore original clip rect */
+    *arg->dCD_clip = *area;
 
     (void) DBNewPaintTable(savedPaintTable);
     (void) DBNewPaintPlane(savedPaintPlane);
