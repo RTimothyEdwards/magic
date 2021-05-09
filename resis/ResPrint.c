@@ -48,51 +48,51 @@ extern ResSimNode *ResInitializeNode();
  */
 
 void
-ResPrintExtRes(outextfile,resistors,nodename)
-	FILE	*outextfile;
-	resResistor *resistors;
-	char	*nodename;
+ResPrintExtRes(outextfile, resistors, nodename)
+    FILE	*outextfile;
+    resResistor *resistors;
+    char	*nodename;
 
 {
-     int	nodenum=0;
-     char	newname[MAXNAME];
-     HashEntry  *entry;
-     ResSimNode *node,*ResInitializeNode();
+    int	        nodenum=0;
+    char	newname[MAXNAME];
+    HashEntry  *entry;
+    ResSimNode *node, *ResInitializeNode();
 
-     for (; resistors != NULL; resistors=resistors->rr_nextResistor)
-     {
-	  /*
-	     These names shouldn't be null; they should either be set by
-	     the device name or by the node printing routine.  This
-	     code is included in case the resistor network is printed
-	     before the nodes.
-	  */
-	  if (resistors->rr_connection1->rn_name == NULL)
-	  {
-     	       (void)sprintf(newname,"%s%s%d",nodename,".r",nodenum++);
-     	       entry = HashFind(&ResNodeTable,newname);
-	       node = ResInitializeNode(entry);
-	       resistors->rr_connection1->rn_name = node->name;
-	       node->oldname = nodename;
-	  }
-	  if (resistors->rr_connection2->rn_name == NULL)
-	  {
-     	       (void)sprintf(newname,"%s%s%d",nodename,".r",nodenum++);
-     	       entry = HashFind(&ResNodeTable,newname);
-	       node = ResInitializeNode(entry);
-	       resistors->rr_connection2->rn_name = node->name;
-	       node->oldname = nodename;
-	  }
-	  if (ResOptionsFlags & ResOpt_DoExtFile)
-	  {
-     	       fprintf(outextfile, "resist \"%s\" \"%s\" %g\n",
+    for (; resistors != NULL; resistors = resistors->rr_nextResistor)
+    {
+	/*
+	 * These names shouldn't be null; they should either be set by
+	 * the device name or by the node printing routine.  This
+	 * code is included in case the resistor network is printed
+	 * before the nodes.
+	 */
+
+	if (resistors->rr_connection1->rn_name == NULL)
+	{
+     	    (void)sprintf(newname, "%s%s%d", nodename, ".r", nodenum++);
+     	    entry = HashFind(&ResNodeTable, newname);
+	    node = ResInitializeNode(entry);
+	    resistors->rr_connection1->rn_name = node->name;
+	    node->oldname = nodename;
+	}
+	if (resistors->rr_connection2->rn_name == NULL)
+	{
+     	    (void)sprintf(newname, "%s%s%d", nodename, ".r", nodenum++);
+     	    entry = HashFind(&ResNodeTable, newname);
+	    node = ResInitializeNode(entry);
+	    resistors->rr_connection2->rn_name = node->name;
+	    node->oldname = nodename;
+	}
+	if (ResOptionsFlags & ResOpt_DoExtFile)
+	{
+     	    fprintf(outextfile, "resist \"%s\" \"%s\" %g\n",
 		    resistors->rr_connection1->rn_name,
 		    resistors->rr_connection2->rn_name,
 		    resistors->rr_value / (float)ExtCurStyle->exts_resistScale);
-	  }
-     }
+	}
+    }
 }
-
 
 /*
  *-------------------------------------------------------------------------
@@ -205,64 +205,63 @@ ResPrintExtNode(outextfile, nodelist, nodename)
 	FILE	*outextfile;
 	resNode	*nodelist;
 	char	*nodename;
-
 {
-     int	nodenum=0;
-     char	newname[MAXNAME],tmpname[MAXNAME],*cp;
-     HashEntry  *entry;
-     ResSimNode *node,*ResInitializeNode();
-     bool	DoKillNode = TRUE;
-     resNode	*snode = nodelist;
+    int		nodenum = 0;
+    char	newname[MAXNAME], tmpname[MAXNAME], *cp;
+    HashEntry  *entry;
+    ResSimNode *node, *ResInitializeNode();
+    bool	DoKillNode = TRUE;
+    resNode	*snode = nodelist;
 
-     /* If any of the subnode names match the original node name, then	*/
-     /* we don't want to rip out that node with a "killnode" statement.	*/
+    /* If any of the subnode names match the original node name, then	*/
+    /* we don't want to rip out that node with a "killnode" statement.	*/
 
-     for (; nodelist != NULL; nodelist = nodelist->rn_more)
+    for (; nodelist != NULL; nodelist = nodelist->rn_more)
+    {
 	if (nodelist->rn_name != NULL)
 	    if (!strcmp(nodelist->rn_name, nodename))
 	    {
 		DoKillNode = FALSE;
 		break;
 	    }
+    }
 
-     if ((ResOptionsFlags & ResOpt_DoExtFile) && DoKillNode)
-     {
-          fprintf(outextfile,"killnode \"%s\"\n",nodename);
-     }
+    if ((ResOptionsFlags & ResOpt_DoExtFile) && DoKillNode)
+    {
+          fprintf(outextfile, "killnode \"%s\"\n", nodename);
+    }
 
-     /* Create "rnode" entries for each subnode */
+    /* Create "rnode" entries for each subnode */
 
-     for (; snode != NULL; snode = snode->rn_more)
-     {
-	  if (snode->rn_name == NULL)
-	  {
-	       (void)sprintf(tmpname,"%s",nodename);
+    for (; snode != NULL; snode = snode->rn_more)
+    {
+	if (snode->rn_name == NULL)
+	{
+	    (void)sprintf(tmpname,"%s",nodename);
 
-	       cp = tmpname + strlen(tmpname) - 1;
-               if (*cp == '!' || *cp == '#') *cp = '\0';
+	    cp = tmpname + strlen(tmpname) - 1;
+            if (*cp == '!' || *cp == '#') *cp = '\0';
 
-     	       (void)sprintf(newname,"%s%s%d",tmpname,".n",nodenum++);
-     	       entry = HashFind(&ResNodeTable,newname);
-	       node = ResInitializeNode(entry);
-	       snode->rn_name = node->name;
-	       node->oldname = nodename;
-	  }
+     	    (void)sprintf(newname, "%s%s%d", tmpname, ".n", nodenum++);
+     	    entry = HashFind(&ResNodeTable, newname);
+	    node = ResInitializeNode(entry);
+	    snode->rn_name = node->name;
+	    node->oldname = nodename;
+	}
 
-	  if (ResOptionsFlags & ResOpt_DoExtFile)
-	  {
-	       /* rnode name R C x y  type (R is always 0) */
-     	       fprintf(outextfile, "rnode \"%s\" 0 %g %d %d %d\n",
+	if (ResOptionsFlags & ResOpt_DoExtFile)
+	{
+	    /* rnode name R C x y  type (R is always 0) */
+     	    fprintf(outextfile, "rnode \"%s\" 0 %g %d %d %d\n",
 		    snode->rn_name,
-		    (snode->rn_float.rn_area/
-		    		ExtCurStyle->exts_capScale),
+		    (snode->rn_float.rn_area / ExtCurStyle->exts_capScale),
 		    snode->rn_loc.p_x,
 		    snode->rn_loc.p_y,
 		    /* the following is TEMPORARILY set to 0 */
 		    0);
-	  }
-     }
+	}
+    }
 }
-
 
 /*
  *-------------------------------------------------------------------------
@@ -279,39 +278,39 @@ ResPrintExtNode(outextfile, nodelist, nodename)
  */
 
 void
-ResPrintStats(goodies,name)
-	ResGlobalParams	*goodies;
-	char	*name;
+ResPrintStats(goodies, name)
+    ResGlobalParams	*goodies;
+    char		*name;
 {
-     static int	totalnets=0,totalnodes=0,totalresistors=0;
-     int nodes,resistors;
-     resNode	*node;
-     resResistor *res;
+    static int	totalnets = 0, totalnodes = 0, totalresistors = 0;
+    int nodes, resistors;
+    resNode	*node;
+    resResistor *res;
 
-     if (goodies == NULL)
-     {
+    if (goodies == NULL)
+    {
      	  TxError("nets:%d nodes:%d resistors:%d\n",
-	  	  totalnets,totalnodes,totalresistors);
-	  totalnets=0;
-	  totalnodes=0;
-	  totalresistors=0;
-	  return;
-     }
-     nodes=0;
-     resistors=0;
-     totalnets++;
-     for (node = ResNodeList; node != NULL; node=node->rn_more)
+	  	  totalnets, totalnodes, totalresistors);
+	totalnets = 0;
+	totalnodes = 0;
+	totalresistors = 0;
+	return;
+    }
+    nodes = 0;
+    resistors = 0;
+    totalnets++;
+    for (node = ResNodeList; node != NULL; node=node->rn_more)
 
-     {
-     	  nodes++;
-	  totalnodes++;
-     }
-     for (res = ResResList; res != NULL; res=res->rr_nextResistor)
-     {
-     	  resistors++;
-	  totalresistors++;
-     }
-     TxError("%s %d %d\n",name,nodes,resistors);
+    {
+     	nodes++;
+	totalnodes++;
+    }
+    for (res = ResResList; res != NULL; res=res->rr_nextResistor)
+    {
+     	resistors++;
+	totalresistors++;
+    }
+    TxError("%s %d %d\n", name, nodes, resistors);
 }
 
 /*
@@ -326,8 +325,8 @@ ResPrintStats(goodies,name)
 
 void
 resWriteNodeName(fp, nodeptr)
-    FILE	*fp;
-    resNode	*nodeptr;
+   FILE		*fp;
+   resNode	*nodeptr;
 {
     if (nodeptr->rn_name == NULL)
 	fprintf(fp, "N%d", nodeptr->rn_id);
