@@ -217,6 +217,18 @@ ResMakePortBreakpoints(def)
 	    plane = def->cd_planes[DBPlane(node->rs_ttype)];
 	    rect  = &(node->rs_bbox);
 
+	    /* Beware of zero-area ports */
+	    if (rect->r_xbot == rect->r_xtop)
+	    {
+		rect->r_xbot--;
+		rect->r_xtop++;
+	    }
+	    if (rect->r_ybot == rect->r_ytop)
+	    {
+		rect->r_ybot--;
+		rect->r_ytop++;
+	    }
+
 	    TTMaskSetOnlyType(&mask, node->rs_ttype);
 	    (void) DBSrPaintArea((Tile *) NULL, plane, rect, &mask,
 			ResAddBreakpointFunc, (ClientData)node);
