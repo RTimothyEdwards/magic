@@ -352,6 +352,7 @@ calmaParseStructure(filename)
     }
     if (CalmaUnique) calmaUniqueCell(strname);	/* Ensure uniqueness */
     cifReadCellDef = calmaFindCell(strname, &was_called, &predefined);
+    HashSetValue(he, cifReadCellDef);
 
     if (predefined == TRUE)
     {
@@ -374,7 +375,6 @@ calmaParseStructure(filename)
     {
 	DBCellClearDef(cifReadCellDef);
 	DBCellSetAvail(cifReadCellDef);
-	HashSetValue(he, cifReadCellDef);
 	cifCurReadPlanes = cifSubcellPlanes;
 	cifReadCellDef->cd_flags &= ~CDDEREFERENCE;
 
