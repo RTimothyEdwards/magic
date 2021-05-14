@@ -26,6 +26,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>		// for memcpy()
+#include <math.h>		// for sqrt() for diagonal check
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "tiles/tile.h"
@@ -271,6 +272,47 @@ areaCheck(tile, arg)
 /*
  * ----------------------------------------------------------------------------
  *
+ * areaNMCheck ---
+ *
+ *  Check for errors in triangular area of a tile
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+areaNMCheck(tile, arg)
+    Tile *tile;
+    struct drcClientData *arg;
+{
+    Rect rect;		/* Area where error is to be recorded. */
+
+    /* Ignore the tile that initiates the check, because the error area	*/
+    /* of a non-Manhattan check may fall inside of it.			*/
+    if (tile == arg->dCD_initial) return 0;
+
+    TiToRect(tile, &rect);
+
+    /* Only consider the portion of the suspicious tile that overlaps
+     * the clip area for errors, unless this is a trigger rule.
+     */
+
+    if (!(arg->dCD_cptr->drcc_flags & DRC_TRIGGER))
+	GeoClip(&rect, arg->dCD_clip);
+
+    GeoClip(&rect, arg->dCD_constraint);
+    if ((rect.r_xbot >= rect.r_xtop) || (rect.r_ybot >= rect.r_ytop))
+	return 0;
+
+    (*(arg->dCD_function))(arg->dCD_celldef, &rect, arg->dCD_cptr,
+			arg->dCD_clientData);
+    (*(arg->dCD_errors))++;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DRCBasicCheck --
  *
  * This is the top-level routine for basic design-rule checking.
@@ -412,8 +454,11 @@ drcTile (tile, arg)
 
     if (IsSplit(tile))
     {
+	int deltax, deltay;
+	TileType tt, to;
+
 	/* Check rules for DRC_ANGLES rule and process */
-	TileType tt = TiGetLeftType(tile);
+	tt = TiGetLeftType(tile);
 	if (tt != TT_SPACE)
 	{
 	    for (cptr = DRCCurStyle->DRCRulesTbl[TT_SPACE][tt];
@@ -436,8 +481,98 @@ drcTile (tile, arg)
 		}
 	}
 
-        /* This drc is only for the left edge of the tile */
-	if (SplitSide(tile)) goto checkbottom;
+	/* Full check of edge rules along the diagonal. */
+	if (SplitSide(tile))
+	{
+	    tt = TiGetRightType(tile);	/* inside type */
+	    to = TiGetLeftType(tile);	/* outside type */
+	}
+	else
+	{
+	    tt = TiGetLeftType(tile);	/* inside type */
+	    to = TiGetRightType(tile);	/* outside type */
+	}
+
+	for (cptr = DRCCurStyle->DRCRulesTbl[to][tt]; cptr != (DRCCookie *) NULL;
+			cptr = cptr->drcc_next)
+	{
+	    int deltax, deltay, w, h;
+	    double r;
+	    TileType dinfo, dsplit;
+
+	    /* Work to be done:  Handle triggering rules for non-Manhattan  */
+	    /* edges;  especially important for the wide-spacing rule.	    */
+
+	    if (cptr->drcc_flags & DRC_TRIGGER)
+	    {
+		cptr = cptr->drcc_next; // Skip both triggering and triggered rules
+		continue;
+	    }
+
+	    /* Note:  Triggered wide-spacing rule will require handling	*/
+	    /* the DRC_MAXWIDTH rule on non-Manhattan edges.		*/
+
+	    if (cptr->drcc_flags & (DRC_ANGLES | DRC_AREA | DRC_MAXWIDTH
+		    | DRC_RECTSIZE | DRC_OFFGRID))
+		continue;
+
+	    TiToRect(tile, &errRect);
+
+	    /* Find the rule distances according to the scale factor */
+	    dist = cptr->drcc_dist;
+
+	    /* drcc_edgeplane is used to avoid checks on edges	*/
+	    /* in more than one plane				*/
+
+	    if (arg->dCD_plane != cptr->drcc_edgeplane) continue;
+
+	    DRCstatRules++;
+
+	    DRCstatSlow++;
+	    arg->dCD_cptr = cptr;
+	    arg->dCD_entries = 0;
+	    TTMaskCom2(&tmpMask, &cptr->drcc_mask);
+	    TTMaskClearType(&tmpMask, TT_ERROR_S);
+	    arg->dCD_initial = tile;
+
+	    /* Compute position that is the rule distance away from */
+	    /* the tile's diagonal edge, by Euclidean measure	    */
+	    /* (rounded down if fractional).  Use the forward	    */
+	    /* position, and negate if reversed.		    */
+
+	    w = RIGHT(tile) - LEFT(tile);
+	    h = TOP(tile) - BOTTOM(tile);
+	    r = 1.0 / (1.0 + ((double)(w * w) / (double)(h * h)));
+	    deltax = (int)((double)cptr->drcc_dist * sqrt(r));
+	    deltay = (deltax * w) / h;
+
+	    if (SplitSide(tile) == 1) deltax = -deltax;
+	    if (SplitDirection(tile) == SplitSide(tile)) deltay = -deltay;
+
+	    dinfo = TiGetTypeExact(tile) & (TT_DIAGONAL | TT_DIRECTION | TT_SIDE);
+	    if (!(cptr->drcc_flags & DRC_REVERSE))
+	    {
+		/* Forward case is behind the triangle */
+		deltax = -deltax;
+		deltay = -deltay;
+		/* Split side changes in the reverse case */
+		if (SplitSide(tile))
+		    dinfo &= (~TT_SIDE);
+		else
+		    dinfo |= TT_SIDE;
+	    }
+
+	    /* errRect is the tile area offset by (deltax, deltay) */
+	    errRect.r_xbot += deltax;
+	    errRect.r_ybot += deltay;
+	    errRect.r_xtop += deltax;
+	    errRect.r_ytop += deltay;
+
+	    DBSrPaintNMArea((Tile *) NULL,
+			arg->dCD_celldef->cd_planes[cptr->drcc_plane], dinfo,
+			&errRect, &tmpMask, areaNMCheck, (ClientData) arg);
+	}
+	DRCstatEdges++;
     }
 
     /*
@@ -679,8 +814,8 @@ drcTile (tile, arg)
 			else tpl = tpleft;
 
 			/* Make sure the edge stops at edgeBot */
-			if ((TiGetTopType(tpl) != TiGetBottomType(tpleft)) ||
-				(TiGetTopType(tpr) != TiGetBottomType(tile)))
+			if ((TiGetRightType(tpl) != TiGetRightType(tpleft)) ||
+				(TiGetLeftType(tpr) != TiGetLeftType(tile)))
 			{
 			    if (TTMaskHasType(&cptr->drcc_corner, TiGetTopType(tpr)))
 		 	    {
@@ -706,8 +841,8 @@ drcTile (tile, arg)
 			    else tpl = tpleft;
 
 			    /* Make sure the edge stops at edgeTop */
-			    if ((TiGetBottomType(tpl) != TiGetTopType(tpleft)) ||
-					(TiGetBottomType(tpr) != TiGetTopType(tile)))
+			    if ((TiGetRightType(tpl) != TiGetRightType(tpleft)) ||
+					(TiGetLeftType(tpr) != TiGetLeftType(tile)))
 			    {
 			        if (TTMaskHasType(&cptr->drcc_corner,
 					TiGetBottomType(tpr)))
@@ -753,8 +888,8 @@ drcTile (tile, arg)
 			else tpr = tile;
 
 			/* Make sure the edge stops at edgeTop */
-			if ((TiGetBottomType(tpl) != TiGetTopType(tpleft)) ||
-				(TiGetBottomType(tpr) != TiGetTopType(tile)))
+			if ((TiGetRightType(tpl) != TiGetRightType(tpleft)) ||
+				(TiGetLeftType(tpr) != TiGetLeftType(tile)))
 			{
 			    if (TTMaskHasType(&cptr->drcc_corner, TiGetBottomType(tpl)))
 			    {
@@ -780,8 +915,8 @@ drcTile (tile, arg)
 			    else tpr = tile;
 
 			    /* Make sure the edge stops at edgeBot */
-			    if ((TiGetTopType(tpl) != TiGetBottomType(tpleft)) ||
-					(TiGetTopType(tpr) != TiGetBottomType(tile)))
+			    if ((TiGetRightType(tpl) != TiGetRightType(tpleft)) ||
+					(TiGetLeftType(tpr) != TiGetLeftType(tile)))
 			    {
 				if (TTMaskHasType(&cptr->drcc_corner, TiGetTopType(tpl)))
 				{
@@ -841,12 +976,6 @@ drcTile (tile, arg)
 	    firsttile = FALSE;
         }
     }
-
-    /* This drc is only for the bottom edge of the tile */
-
-checkbottom:
-    if (IsSplit(tile))
-	if (SplitSide(tile) == SplitDirection(tile)) return 0;
 
     /*
      * Check design rules along a horizontal boundary between two tiles.
@@ -1052,7 +1181,7 @@ checkbottom:
 			    for (tpx = TR(tile); BOTTOM(tpx) > edgeY; tpx = LB(tpx));
 			else tpx = tile;
 
-		 	if (TTMaskHasType(&cptr->drcc_corner, TiGetLeftType(tpx)))
+		 	if (TTMaskHasType(&cptr->drcc_corner, TiGetBottomType(tpx)))
 			{
 			    errRect.r_xtop += cdist;
 			    if (DRCEuclidean)
@@ -1069,7 +1198,7 @@ checkbottom:
 			    if (LEFT(tile) >= errRect.r_xbot) tpx = BL(tile);
 			    else tpx = tile;
 
-			    if (TTMaskHasType(&cptr->drcc_corner, TiGetRightType(tpx)))
+			    if (TTMaskHasType(&cptr->drcc_corner, TiGetBottomType(tpx)))
 			    {
 				errRect.r_xbot -= cdist;
 				if (DRCEuclidean)
@@ -1106,7 +1235,7 @@ checkbottom:
 			    for (tpx = BL(tpbot); TOP(tpx) < edgeY; tpx = RT(tpx));
 			else tpx = tpbot;
 
-			if (TTMaskHasType(&cptr->drcc_corner, TiGetRightType(tpx)))
+			if (TTMaskHasType(&cptr->drcc_corner, TiGetTopType(tpx)))
 			{
 			    errRect.r_xbot -= cdist;
 			    if (DRCEuclidean)
@@ -1122,7 +1251,7 @@ checkbottom:
 			    if (RIGHT(tpbot) <= errRect.r_xtop) tpx = TR(tpbot);
 			    else tpx = tpbot;
 
-			    if (TTMaskHasType(&cptr->drcc_corner, TiGetLeftType(tpx)))
+			    if (TTMaskHasType(&cptr->drcc_corner, TiGetTopType(tpx)))
 			    {
 				errRect.r_xtop += cdist;
 				if (DRCEuclidean)
