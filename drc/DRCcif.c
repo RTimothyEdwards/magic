@@ -613,6 +613,14 @@ drcCifTile (tile, arg)
     if (SigInterruptPending) return 1;
     DRCstatTiles++;
 
+    /* For non-Manhattan tiles, if the left side of tile is not the */
+    /* type that is declared by the rule, then skip the left-right  */
+    /* check.							    */
+
+    if (IsSplit(tile))
+	if (SplitSide(tile))
+	    goto tbcheck;
+
     /*
      * Check design rules along a vertical boundary between two tiles.
      *
@@ -801,6 +809,15 @@ drcCifTile (tile, arg)
         }
     }
 
+tbcheck:
+
+    /* For non-Manhattan tiles, if the bottom side of tile is not   */
+    /* the type that is declared by the rule, then skip the top-    */
+    /* bottom check.						    */
+
+    if (IsSplit(tile))
+	if (SplitSide(tile) == SplitDirection(tile))
+	    return 0;
 
     /*
      * Check design rules along a horizontal boundary between two tiles.
