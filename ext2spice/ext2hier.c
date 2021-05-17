@@ -81,6 +81,7 @@ ESGenerateHierarchy(inName, flags)
     hc.hc_hierName = NULL;
     hc.hc_trans = GeoIdentityTransform;
     hc.hc_x = hc.hc_y = 0;
+
     EFHierSrDefs(&hc, esMakePorts, NULL);
     EFHierSrDefs(&hc, NULL, NULL);	/* Clear processed */
 
@@ -500,7 +501,7 @@ spcdevHierVisit(hc, dev, scale)
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
     int l, w, i, parmval;
     Rect r;
-    bool subAP = FALSE, hierS, hierD, extHierSDAttr(), swapped = FALSE;
+    bool subAP = FALSE, hierS, hierD, extHierSDAttr();
     float sdM;
     char devchar;
     bool has_model = TRUE;
@@ -522,6 +523,8 @@ spcdevHierVisit(hc, dev, scale)
 	source = drain = &dev->dev_terms[1];
     if (dev->dev_nterm >= 3)
     {
+        drain = &dev->dev_terms[2];
+
         /* If any terminal is marked with attribute "D" or "S"  */
         /* (label "D$" or "S$" at poly-diffusion interface),    */
         /* then force order of source and drain accordingly.    */
@@ -531,11 +534,8 @@ spcdevHierVisit(hc, dev, scale)
                 (dev->dev_terms[2].dterm_attrs &&
                 !strcmp(dev->dev_terms[2].dterm_attrs, "S")))
 	{
-            swapDrainSource(dev, &source, &drain);
-	    swapped = TRUE;
+            swapDrainSource(dev);
 	}
-        else
-            drain = &dev->dev_terms[2];
     }
     else if (dev->dev_nterm == 1)	// Is a device with one terminal an error?
 	source = drain = &dev->dev_terms[0];
@@ -1023,10 +1023,6 @@ spcdevHierVisit(hc, dev, scale)
 	        break;
     }
     fprintf(esSpiceF, "\n");
-
-    /* If S/D parameters were swapped, then put them back */
-    if (swapped) swapDrainSource(dev, NULL, NULL);
-
     return 0;
 }
 
@@ -1642,8 +1638,11 @@ esMakePorts(hc, cdata)
 		*tptr = '/';
 		portname = tptr + 1;
 
-		// Find the net of portname in the subcell and
-		// make it a port if it is not already.
+		/* Find the net of portname in the subcell and make it a
+		 * port if it is not already.  It is possible that the
+		 * preferred node name is in the merge list, so the merging
+		 * code may need to replace it with another name.
+		 */
 
 		if (portdef)
 		{
@@ -1897,6 +1896,8 @@ esHierVisit(hc, cdata)
 		freeMagic(p);
 	    devMergeList = NULL;
 	}
+	else if (esDistrJunct)
+	    EFHierVisitDevs(hcf, devDistJunctHierVisit, (ClientData)NULL);
 
 	/* Output devices */
 	EFHierVisitDevs(hcf, spcdevHierVisit, (ClientData)NULL);

@@ -58,10 +58,30 @@ proc magic::makecrashbackup {} {
    global Opts
 
    *bypass crash save
-   if {$Opts(backupinterval) > 0} {
-      after $Opts(backupinterval) magic::makecrashbackup
+   if {![catch set Opts(backupinterval)]} {
+      if {$Opts(backupinterval) > 0} {
+         after $Opts(backupinterval) magic::makecrashbackup
+      }
    }
 }
+
+#----------------------------------------------------------------
+# magic::crashbackups ---
+#
+# Create periodic backups.  Options are:
+#
+#   start:	Begin periodic backups.  If interval is not
+#		specified, then set interval to 10 minutes.
+#
+#   resume:	Resume periodic backups if started and stopped,
+#		but not if disabled or never started.
+#
+#   stop:	Stop periodic backups.
+#
+#   disable:	Disable periodic backups;  set to state of
+#		never having been started.
+#
+#----------------------------------------------------------------
 
 proc magic::crashbackups {{option start}} {
    global Opts
@@ -71,11 +91,24 @@ proc magic::crashbackups {{option start}} {
          if {[catch set Opts(backupinterval)]} {
             set Opts(backupinterval) 600000
          }
-         after $Opts(backupinterval) magic::makecrashbackup
+	 if {$Opts(backupinterval) > 0} {
+	    after $Opts(backupinterval) magic::makecrashbackup
+	 }
+      }
+      resume {
+         if {![catch set Opts(backupinterval)]} {
+	    if {$Opts(backupinterval) > 0} {
+	       after $Opts(backupinterval) magic::makecrashbackup
+	    }
+	 }
       }
       stop -
       cancel {
          after cancel magic::makecrashbackup
+      }
+      disable {
+         after cancel magic::makecrashbackup
+	 unset Opts(backupinterval)
       }
    }
 }
@@ -123,12 +156,17 @@ proc magic::popstack {} {
    } else {
       set ltag [tag load]
       tag load {}
+      suspendall
       load [lindex $editstack end]
+      set snaptype [snap]
+      snap internal
       view [lindex $editstack end-1]
-      tag load $ltag
-      set editstack [lrange $editstack 0 end-2]
+      snap $snaptype
       catch {magic::cellmanager}
       catch {magic::captions}
+      resumeall
+      tag load $ltag
+      set editstack [lrange $editstack 0 end-2]
    }
    return
 }

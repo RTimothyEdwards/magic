@@ -425,7 +425,8 @@ DBTechFinalConnect()
     for (n = 0; n < dbNumContacts; n++)
     {
 	lp = dbContactInfo[n];
-	TTMaskSetOnlyType(&DBNotConnectTbl[lp->l_type], lp->l_type);
+	TTMaskZero(&DBNotConnectTbl[lp->l_type]);
+	TTMaskSetMask(&DBNotConnectTbl[lp->l_type], &DBConnectTbl[lp->l_type]);
 	rMask = DBResidueMask(lp->l_type);
 
 	/* Different contact types may share residues.		*/

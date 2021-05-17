@@ -29,8 +29,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/geometry.h"
 #include "tiles/tile.h"
 #include "utils/hash.h"
+#include "utils/stack.h"
 #include "database/database.h"
 #include "database/databaseInt.h"
+#include "select/select.h"
 #include "utils/signals.h"
 #include "utils/malloc.h"
 
@@ -42,55 +44,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * avoid infinite searches on circular structures.  The second pass
  * is used to clear the markings again.
  */
-
-/* The following structure is used to hold several pieces
- * of information that must be passed through multiple
- * levels of search function (used by dbSrConnectFunc).
- */
-
-struct conSrArg
-{
-    CellDef *csa_def;			/* Definition being searched. */
-    int csa_plane;			/* Index of current plane being searched. */
-    TileTypeBitMask *csa_connect;	/* Table indicating what connects
-					 * to what.
-					 */
-    int (*csa_clientFunc)();		/* Client function to call. */
-    ClientData csa_clientData;		/* Argument for clientFunc. */
-    bool csa_clear;			/* FALSE means pass 1, TRUE
-					 * means pass 2.
-					 */
-    Rect csa_bounds;			/* Area that limits search. */
-};
-
-/* The following structure is used to hold several pieces
- * of information that must be passed through multiple
- * levels of search function (used by dbcConnectFunc).
- */
-
-typedef struct
-{
-    Rect		area;		/* Area to process */
-    TileTypeBitMask	*connectMask;	/* Connection mask for search */
-    TileType		dinfo;		/* Info about triangular search areas */
-} conSrArea;
-
-struct conSrArg2
-{
-    CellUse		*csa2_use;	/* Destination use */
-    TileTypeBitMask	*csa2_connect;	/* Table indicating what connects
-					 * to what.
-					 */
-    SearchContext	*csa2_topscx;	/* Original top-level search context */
-    int			 csa2_xMask;	/* Cell window mask for search */
-    Rect		*csa2_bounds;	/* Area that limits the search */
-
-    conSrArea		*csa2_list;	/* List of areas to process */
-    int			csa2_top;	/* Index of next area to process */
-    int			csa2_size;	/* Max. number bins in area list */
-};
-
-#define CSA2_LIST_START_SIZE 256
 
 /*
  *-----------------------------------------------------------------
@@ -255,6 +208,7 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     startTile = NULL;
     for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
     {
+    	csa.csa_pNum = startPlane;
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
 	    dbSrConnectStartFunc, (ClientData) &startTile) != 0) break;
@@ -270,7 +224,6 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clientData = clientData;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
-    csa.csa_plane = startPlane;
     if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
 
     /* Pass 2.  Don't call any client function, just clear the marks.
@@ -280,7 +233,6 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     SigDisableInterrupts();
     csa.csa_clientFunc = NULL;
     csa.csa_clear = TRUE;
-    csa.csa_plane = startPlane;
     (void) dbSrConnectFunc(startTile, &csa);
     SigEnableInterrupts();
 
@@ -346,6 +298,7 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     startTile = NULL;
     for (startPlane = PL_TECHDEPBASE; startPlane < DBNumPlanes; startPlane++)
     {
+    	csa.csa_pNum = startPlane;
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
 	    dbSrConnectStartFunc, (ClientData) &startTile) != 0) break;
@@ -361,7 +314,6 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clientData = clientData;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
-    csa.csa_plane = startPlane;
     if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
 
     return result;
@@ -434,7 +386,7 @@ dbSrConnectFunc(tile, csa)
 
     if (csa->csa_clientFunc != NULL)
     {
-	if ((*csa->csa_clientFunc)(tile, csa->csa_plane, csa->csa_clientData) != 0)
+	if ((*csa->csa_clientFunc)(tile, csa->csa_pNum, csa->csa_clientData) != 0)
 	    return 1;
     }
 
@@ -577,7 +529,7 @@ donesides:
      */
 
     planes = DBConnPlanes[loctype];
-    planes &= ~(PlaneNumToMaskBit(csa->csa_plane));
+    planes &= ~(PlaneNumToMaskBit(csa->csa_pNum));
     if (planes != 0)
     {
         struct conSrArg newcsa;
@@ -589,7 +541,7 @@ donesides:
 	for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
 	{
 	    if (!PlaneMaskHasPlane(planes, i)) continue;
-	    newcsa.csa_plane = i;
+	    newcsa.csa_pNum = i;
 	    if (IsSplit(tile))
 	    {
 		if (DBSrPaintNMArea((Tile *) NULL, csa->csa_def->cd_planes[i],
@@ -653,7 +605,7 @@ dbcUnconnectFunc(tile, clientData)
  *	connectivity between them.
  *
  * Results:
- *	Always 0.
+ *	Return 0 normally, 1 if list size exceeds integer bounds.
  *
  * Side effects:
  *	Adds a label to the destination definition "def".
@@ -691,10 +643,15 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 	{
 	    int newllen = tpath->tp_next - tpath->tp_first;
 	    newlabtext[0] = '\0';
-	    if (newllen > 0)
-		strncpy(newlabtext, tpath->tp_first, newllen);
-	    sprintf(newlabtext + newllen, "%s", lab->lab_text);
-	    newlabptr = newlabtext;
+	    if (tpath->tp_first == NULL)
+		newlabptr = lab->lab_text;
+	    else
+	    {
+		if (newllen > 0)
+		    strncpy(newlabtext, tpath->tp_first, newllen);
+		sprintf(newlabtext + newllen, "%s", lab->lab_text);
+		newlabptr = newlabtext;
+	    }
 	}
 	else return 0;
     }
@@ -734,7 +691,7 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 		if ((slab->lab_flags & PORT_NUM_MASK) == lidx)
 		{
 		    Rect newarea;
-		    int pNum;
+		    int i, pNum;
 
 		    // Do NOT go searching on labels connected to space!
 		    if (slab->lab_type == TT_SPACE) continue;
@@ -757,24 +714,29 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 		    newarea.r_ybot--;
 		    newarea.r_ytop++;
 
+    		    /* Check if any of the last 5 entries has the same type and	*/
+    		    /* area.  If so, don't duplicate the existing entry.	*/
+
+		    for (i = csa2->csa2_lasttop; (i >= 0) &&
+					(i > csa2->csa2_lasttop - 5); i--)
+			if (connectMask == csa2->csa2_list[i].connectMask)
+			    if (GEO_SURROUND(&csa2->csa2_list[i].area, &newarea))
+				return 0;
+
 		    /* Register the area and connection mask as needing to be processed */
 
-		    if (++csa2->csa2_top == csa2->csa2_size)
+		    if (++csa2->csa2_top == CSA2_LIST_SIZE)
 		    {
-			/* Reached list size limit---need to enlarge the list	   */
-			/* Double the size of the list every time we hit the limit */
+			/* Reached list size limit---need to push the list and	*/
+			/* start a new one.					*/
 
 			conSrArea *newlist;
-			int i, lastsize = csa2->csa2_size;
 
-			csa2->csa2_size *= 2;
-
-			newlist = (conSrArea *)mallocMagic(csa2->csa2_size
-					* sizeof(conSrArea));
-			memcpy((void *)newlist, (void *)csa2->csa2_list,
-					(size_t)lastsize * sizeof(conSrArea));
-			freeMagic((char *)csa2->csa2_list);
+			newlist = (conSrArea *)mallocMagic(CSA2_LIST_SIZE *
+				sizeof(conSrArea));
+			StackPush((ClientData)csa2->csa2_list, csa2->csa2_stack);
 			csa2->csa2_list = newlist;
+			csa2->csa2_top = 0;
 		    }
 
 		    csa2->csa2_list[csa2->csa2_top].area = newarea;
@@ -805,7 +767,8 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
  *	catecorner tiles from being considered as connected.
  *
  * Results:
- *	Always returns 0 to keep the search from aborting.
+ *	Returns 0 normally to keep the search from aborting;  returns 1
+ *	if allocation of list failed due to exceeding integer bounds.
  *
  * Side effects:
  *	Adds paint to the destination definition.
@@ -829,7 +792,7 @@ dbcConnectFunc(tile, cx)
     SearchContext scx2;
     TileType loctype = TiGetTypeExact(tile);
     TileType dinfo = 0;
-    int pNum = cx->tc_plane;
+    int i, pNum = cx->tc_plane;
     CellDef *def;
 
     TiToRect(tile, &tileArea);
@@ -942,23 +905,29 @@ dbcConnectFunc(tile, cx)
 	newarea.r_xtop += 1;
     }
 
+    /* Check if any of the last 5 entries has the same type and	*/
+    /* area.  If so, don't duplicate the existing entry.	*/
+    /* (NOTE:  Connect masks are all from the same table, so	*/
+    /* they can be compared by address, no need for TTMaskEqual)*/
+
+    for (i = csa2->csa2_lasttop; (i >= 0) && (i > csa2->csa2_lasttop - 5); i--)
+	if (connectMask == csa2->csa2_list[i].connectMask)
+	    if (GEO_SURROUND(&csa2->csa2_list[i].area, &newarea))
+		return 0;
+
     /* Register the area and connection mask as needing to be processed */
 
-    if (++csa2->csa2_top == csa2->csa2_size)
+    if (++csa2->csa2_top == CSA2_LIST_SIZE)
     {
-	/* Reached list size limit---need to enlarge the list	   */
-	/* Double the size of the list every time we hit the limit */
+	/* Reached list size limit---need to push the list and	*/
+	/* start a new one.					*/
 
 	conSrArea *newlist;
-	int i, lastsize = csa2->csa2_size;
 
-	csa2->csa2_size *= 2;
-
-	newlist = (conSrArea *)mallocMagic((size_t)(csa2->csa2_size) * sizeof(conSrArea));
-	memcpy((void *)newlist, (void *)csa2->csa2_list,
-			(size_t)lastsize * sizeof(conSrArea));
-	freeMagic((char *)csa2->csa2_list);
+	newlist = (conSrArea *)mallocMagic(CSA2_LIST_SIZE * sizeof(conSrArea));
+	StackPush((ClientData)csa2->csa2_list, csa2->csa2_stack);
 	csa2->csa2_list = newlist;
+	csa2->csa2_top = 0;
     }
 
     csa2->csa2_list[csa2->csa2_top].area = newarea;
@@ -967,7 +936,6 @@ dbcConnectFunc(tile, cx)
 
     return 0;
 }
-
 
 /*
  * ----------------------------------------------------------------------------
@@ -1019,9 +987,10 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 					 * clipped to this area.  Pass
 					 * TiPlaneRect to get everything.
 					 */
-    bool doLabels;			/* If TRUE, copy connected labels
-					 * and paint.  If FALSE, copy only
-					 * connected paint.
+    unsigned char doLabels;		/* If SEL_DO_LABELS, copy connected labels
+					 * and paint.  If SEL_NO_LABELS, copy only
+					 * connected paint.  If SEL_SIMPLE_LABELS,
+					 * copy only root of labels in subcircuits.
 					 */
     CellUse *destUse;			/* Result use in which to place
 					 * anything connected to material of
@@ -1034,7 +1003,6 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
     unsigned char searchtype;
 
     csa2.csa2_use = destUse;
-    csa2.csa2_xMask = xMask;
     csa2.csa2_bounds = area;
     csa2.csa2_connect = connect;
     csa2.csa2_topscx = scx;
@@ -1043,10 +1011,11 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
     /* malloc calls by maintaining a small list and expanding it only	*/
     /* when necessary.							*/
 
-    csa2.csa2_size = CSA2_LIST_START_SIZE;
-    csa2.csa2_list = (conSrArea *)mallocMagic(CSA2_LIST_START_SIZE
-			* sizeof(conSrArea));
+    csa2.csa2_list = (conSrArea *)mallocMagic(CSA2_LIST_SIZE * sizeof(conSrArea));
     csa2.csa2_top = -1;
+    csa2.csa2_lasttop = -1;
+
+    csa2.csa2_stack = StackNew(100);
 
     DBTreeSrTiles(scx, mask, xMask, dbcConnectFunc, (ClientData) &csa2);
     while (csa2.csa2_top >= 0)
@@ -1061,13 +1030,28 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 	newmask = csa2.csa2_list[csa2.csa2_top].connectMask;
 	scx->scx_area = csa2.csa2_list[csa2.csa2_top].area;
 	newtype = csa2.csa2_list[csa2.csa2_top].dinfo;
-	csa2.csa2_top--;
+	if (csa2.csa2_top == 0)
+	{
+	    if (StackLook(csa2.csa2_stack) != (ClientData)NULL)
+	    {
+	    	freeMagic(csa2.csa2_list);
+	    	csa2.csa2_list = (conSrArea *)StackPop(csa2.csa2_stack);
+	    	csa2.csa2_top = CSA2_LIST_SIZE - 1;
+	    }
+	    else
+		csa2.csa2_top--;
+	}
+	else
+	    csa2.csa2_top--;
+
+	csa2.csa2_lasttop = csa2.csa2_top;
 
 	if (newtype & TT_DIAGONAL)
 	    DBTreeSrNMTiles(scx, newtype, newmask, xMask, dbcConnectFunc,
 			(ClientData) &csa2);
 	else
-	    DBTreeSrTiles(scx, newmask, xMask, dbcConnectFunc, (ClientData) &csa2);
+	    DBTreeSrTiles(scx, newmask, xMask, dbcConnectFunc,
+			(ClientData) &csa2);
 
 	/* Check the source def for any labels belonging to this        */
 	/* tile area and plane, and add them to the destination.        */
@@ -1098,11 +1082,17 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 	        searchtype |= TF_LABEL_ATTACH_NOT_SE;
 	    }
 	}
-	if (doLabels)
-	    DBTreeSrLabels(scx, newmask, xMask, &tpath, searchtype,
-			dbcConnectLabelFunc, (ClientData) &csa2);
+	if (doLabels == SEL_SIMPLE_LABELS) tpath.tp_first = NULL;
+	if (doLabels != SEL_NO_LABELS)
+	    if (DBTreeSrLabels(scx, newmask, xMask, &tpath, searchtype,
+			dbcConnectLabelFunc, (ClientData) &csa2) != 0)
+	    {
+		TxError("Connection search hit memory limit and stopped.\n");
+		break;
+	    }
     }
     freeMagic((char *)csa2.csa2_list);
+    StackFree(csa2.csa2_stack);
 
     /* Recompute the bounding box of the destination and record its area
      * for redisplay.

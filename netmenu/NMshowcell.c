@@ -35,6 +35,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/styles.h"
 #include "textio/textio.h"
 #include "utils/main.h"
+#include "select/select.h"
 #include "netmenu/nmInt.h"
 
 /* The following owns describe the cell currently being highlighted,
@@ -294,7 +295,7 @@ NMShowUnderBox()
 	&DBAllButSpaceBits);
     DBCellClearDef(nmscShowUse->cu_def);
     DBTreeCopyConnect(&scx, &DBAllButSpaceAndDRCBits, 0,
-	    DBConnectTbl, &TiPlaneRect, TRUE, nmscShowUse);
+	    DBConnectTbl, &TiPlaneRect, SEL_DO_LABELS, nmscShowUse);
     DBWAreaChanged(nmscShowDef, &nmscShowDef->cd_bbox, DBW_ALLWINDOWS,
 	&DBAllButSpaceBits);
     NMShowCell(nmscShowUse, rootDef);
@@ -418,6 +419,6 @@ nmSRNFunc(rect, name, label, cdarg)
     scx.scx_trans = GeoIdentityTransform;
 
     DBTreeCopyConnect(&scx, &DBConnectTbl[label->lab_type], 0,
-	    DBConnectTbl, &TiPlaneRect, TRUE, nmscShowUse);
+	    DBConnectTbl, &TiPlaneRect, SEL_DO_LABELS, nmscShowUse);
     return(0);
 }

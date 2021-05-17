@@ -58,7 +58,7 @@ ClientData extUnInit = (ClientData) CLIENTDEFAULT;
 int extOutputUsesFunc();
 FILE *extFileOpen();
 
-void extCellFile();
+Plane* extCellFile();
 void extHeader();
 
 
@@ -83,7 +83,7 @@ void extHeader();
  * ----------------------------------------------------------------------------
  */
 
-void
+Plane *
 ExtCell(def, outName, doLength)
     CellDef *def;	/* Cell being extracted */
     char *outName;	/* Name of output file; if NULL, derive from def name */
@@ -95,6 +95,7 @@ ExtCell(def, outName, doLength)
 {
     char *filename;
     FILE *f;
+    Plane *savePlane;
     bool doLocal;
 
     doLocal = (ExtOptions & EXT_DOLOCAL) ? TRUE : FALSE;
@@ -115,7 +116,7 @@ ExtCell(def, outName, doLength)
     }
 
     extNumFatal = extNumWarnings = 0;
-    extCellFile(def, f, doLength);
+    savePlane = extCellFile(def, f, doLength);
     (void) fclose(f);
 
     if (extNumFatal > 0 || extNumWarnings > 0)
@@ -129,6 +130,7 @@ ExtCell(def, outName, doLength)
 		extNumWarnings, extNumWarnings != 1 ? "s" : "");
 	TxPrintf("\n");
     }
+    return savePlane;
 }
 
 /*
@@ -222,6 +224,137 @@ extFileOpen(def, file, mode, doLocal, prealfile)
 /*
  * ----------------------------------------------------------------------------
  *
+ * extPrepSubstrate ---
+ *
+ * Prepare a replacement plane for the plane representing the substrate, as
+ * defined in ExtCurStyle->exts_globSubstratePlane.  The target CellDef is
+ * searched for types that shield (i.e., isolate) a section of the layout
+ * from the global substrate.  The tile type that represents the substrate
+ * is painted into the isolated regions.
+ *
+ * The purpose of this method is to deal with the common methodology in
+ * which the substrate is not represented by any tile type, because no mask
+ * is defined for the substrate.  Typically, an entire cell such as a digital
+ * standard cell may be placed on the default substrate or in a deep nwell
+ * region.  It is therefore necessary to be able to detect what is underneath
+ * a cell on the plane representing the substrate to determine if the area is
+ * the default substrate or an isolated region.  If an isolated region, it
+ * must be painted with a tile type so that the extraction code can tag the
+ * tiles with a Region and assign it a node.  This code creates the substrate
+ * paint in the isolated regions for the duration of the extration, then
+ * reverts back to the original plane afterward.
+ *
+ * Results:
+ *	Returns a Plane structure that is the original substrate plane from
+ *	CellDef "def", with isolated substrate regions filled with the
+ *	substrate tile type.  If there are no isolated substrate regions,
+ *	or if a substrate plane or substrate type is not defined by the
+ *	technology, then the routine returns NULL.
+ *
+ * Side effects:
+ *	All modifications are limited to the returned plane structure.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+Plane *
+extPrepSubstrate(def)
+    CellDef *def;
+{
+    SearchContext scx;
+    CellUse dummy;
+    TileType subType;
+    TileTypeBitMask subMask, notSubMask;
+    Plane *subPlane, *savePlane;
+    int pNum;
+
+    /* Determine if substrate copying is required. */
+
+    if (ExtCurStyle->exts_globSubstratePlane == -1) return NULL;
+
+    /* Find a type to use for the substrate, and the mask of all types      */
+    /* in the same plane as the substrate that are not connected to the     */
+    /* substrate.  If there is not a simple type representing the substrate */
+    /* then do not attempt to resolve substrate regions.                    */
+
+    TTMaskZero(&subMask);
+    TTMaskSetMask(&subMask, &ExtCurStyle->exts_globSubstrateTypes);
+
+    for (subType = TT_TECHDEPBASE; subType < DBNumUserLayers; subType++)
+	if (TTMaskHasType(&subMask, subType))
+	    if (DBPlane(subType) == ExtCurStyle->exts_globSubstratePlane)
+		break;
+
+    TTMaskCom2(&notSubMask, &subMask);
+    TTMaskAndMask(&notSubMask, &DBPlaneTypes[ExtCurStyle->exts_globSubstratePlane]);
+
+    if (subType == DBNumUserLayers) return NULL;
+
+    /* Generate the full flattened substrate into ha->ha_cumFlat (which */
+    /* was empty initially).  This adds layer geometry for the          */
+    /* substrate in the typical case where the substrate may be space   */
+    /* (implicitly defined substrate).                                  */
+
+    scx.scx_trans = GeoIdentityTransform;
+    scx.scx_area = def->cd_bbox;
+    scx.scx_use = &dummy;
+    dummy.cu_def = def;
+    dummy.cu_id = NULL;
+
+    subPlane = DBCellGenerateSubstrate(&scx, subType, &notSubMask,
+		&ExtCurStyle->exts_globSubstrateShieldTypes, def);
+    if (subPlane != NULL)
+    {
+	pNum = ExtCurStyle->exts_globSubstratePlane;
+	savePlane = def->cd_planes[pNum];
+	def->cd_planes[pNum] = subPlane;
+	return savePlane;
+    }
+    else
+        return NULL;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ExtRevertSubstrate ---
+ *
+ * This routine swaps the substrate plane of CellDef "def" with the plane
+ * structure provided in the argument "savePlane".  It should be called at
+ * the end of extraction.  "savePlane" should be the pointer to the substrate
+ * plane of "def" before it was swapped out for the modified plane created by
+ * the routine "extPrepSubstrate", above.  The calling routine is responsible
+ * for knowing if extPrepSubstrate returned NULL in which case there is
+ * nothing to revert.
+ *
+ * Returns:
+ *	Nothing.
+ *
+ * Side effects:
+ *	The CellDef "def" has its substrate plane swapped out for "savePlane",
+ *	and the original substrate plane and its contents are freed.
+ * ----------------------------------------------------------------------------
+ */
+
+
+void
+ExtRevertSubstrate(def, savePlane)
+    CellDef *def;
+    Plane *savePlane;
+{
+    int pNum;
+    Plane *subPlane;
+
+    pNum = ExtCurStyle->exts_globSubstratePlane;
+    subPlane = def->cd_planes[pNum];
+    def->cd_planes[pNum] = savePlane;
+    DBFreePaintPlane(subPlane);
+    TiFreePlane(subPlane);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * extCellFile --
  *
  * Internal interface for extracting a single cell.
@@ -240,7 +373,7 @@ extFileOpen(def, file, mode, doLocal, prealfile)
  * ----------------------------------------------------------------------------
  */
 
-void
+Plane *
 extCellFile(def, f, doLength)
     CellDef *def;	/* Def to be extracted */
     FILE *f;		/* Output to this file */
@@ -250,8 +383,12 @@ extCellFile(def, f, doLength)
 			 */
 {
     NodeRegion *reg;
+    Plane *saveSub;
 
     UndoDisable();
+
+    /* Prep any isolated substrate areas */
+    saveSub = extPrepSubstrate(def);
 
     /* Output the header: timestamp, technology, calls on cell uses */
     if (!SigInterruptPending) extHeader(def, f);
@@ -274,6 +411,7 @@ extCellFile(def, f, doLength)
 	extLength(extParentUse, f);
 
     UndoEnable();
+    return saveSub;
 }
 
 /*

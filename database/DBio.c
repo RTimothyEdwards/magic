@@ -138,6 +138,132 @@ file_is_not_writeable(name)
 /*
  * ----------------------------------------------------------------------------
  *
+ * DBSearchForTech --
+ *
+ *	Helper function for automatically discovering a technology used in a
+ *	.mag file when reading.  This function will recursively search all
+ *	directories rooted at "pathroot" looking for a file "techname" which
+ *	must include the ".tech" extension.  If found, the path name is returned.
+ *
+ * Results:
+ *	Pointer to a string containing the path name.  This is allocated so as
+ *	not to be lost, and must be freed by the caller.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+char *
+DBSearchForTech(techname, pathroot, level)
+    char *techname;
+    char *pathroot;
+    int level;
+{
+    char *newpath, *found;
+    struct dirent *tdent;
+    DIR *tdir;
+
+    /* Avoid potential infinite looping.  Any tech file should not be very  */
+    /* far down the path.  10 levels is already excessive.		    */
+    if (level > 10) return NULL;
+
+    tdir = opendir(pathroot);
+    if (tdir) {
+
+	/* Read the directory contents of tdir */
+	while ((tdent = readdir(tdir)) != NULL)
+	{
+	    if (tdent->d_type != DT_DIR)
+	    {
+		if (!strcmp(tdent->d_name, techname))
+		    return pathroot;
+	    }
+	    else if (strcmp(tdent->d_name, ".") && strcmp(tdent->d_name, ".."))
+	    {
+		newpath = mallocMagic(strlen(pathroot) + strlen(tdent->d_name) + 3);
+		sprintf(newpath, "%s/%s", pathroot, tdent->d_name);
+		found = DBSearchForTech(techname, newpath, level + 1);
+		if (found != newpath) freeMagic(newpath);
+		if (found) return found;
+	    }
+	}
+	closedir(tdir);
+    }
+    else
+	return NULL;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBAddStandardCellPaths --
+ *
+ *	Search for .mag files in any directory below "pathptr", for any
+ *	directory found containing .mag files, add that path to the search
+ *	path for cells.
+ *
+ * Results:
+ *	Number of paths added to CellLibPath.
+ *
+ * Side effects:
+ *	May add paths to the CellLibPath.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+DBAddStandardCellPaths(pathptr, level)
+   char *pathptr;
+   int level;
+{
+    int paths = 0;
+    struct dirent *tdent;
+    char *newpath;
+    DIR *tdir;
+    bool magfound = FALSE;
+
+    /* Avoid potential infinite looping.  Any tech file should not be very  */
+    /* far down the path.  10 levels is already excessive.		    */
+    if (level > 10) return 0;
+
+    tdir = opendir(pathptr);
+    if (tdir) {
+
+	while ((tdent = readdir(tdir)) != NULL)
+	{
+	    if ((tdent->d_type == DT_DIR) &&
+		    (strcmp(tdent->d_name, ".") && strcmp(tdent->d_name, "..")))
+	    {
+		/* Scan the directory contents of tdir for more subdirectories */
+		newpath = mallocMagic(strlen(pathptr) + strlen(tdent->d_name) + 3);
+		sprintf(newpath, "%s/%s", pathptr, tdent->d_name);
+		paths += DBAddStandardCellPaths(newpath, level + 1);
+		freeMagic(newpath);
+	    }
+	    else if (tdent->d_type != DT_DIR)
+	    {
+		/* Scan the directory contents of tdir for .mag files */
+		if (!strcmp(tdent->d_name + strlen(tdent->d_name) - 4, ".mag"))
+		{
+		    if (magfound == FALSE)
+		    {
+			PaAppend(&CellLibPath, pathptr);
+			paths++;
+			magfound = TRUE;
+		    }
+		}
+	    }
+	}
+	closedir(tdir);
+    }
+    return paths;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * dbCellReadDef --
  *
  *
@@ -285,7 +411,7 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
     int cellStamp = 0, rectCount = 0, rectReport = 10000;
     char line[2048], tech[50], layername[50];
     PaintResultType *ptable;
-    bool result = TRUE, scaleLimit = FALSE;
+    bool result = TRUE, scaleLimit = FALSE, has_mismatch;
     Rect *rp;
     int c;
     TileType type, rtype, loctype;
@@ -335,13 +461,122 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
 		TxPrintf("Will attempt to read cell anyway.\n");
 	    else
 	    {
-		TxError("Use command \"tech load\" if you want to switch"
-			" technologies, or use\n");
-		TxError("\"cellname delete %s\" and \"load %s -force\" to"
-			" force the cell to load as technology %s\n",
-			cellDef->cd_name, cellDef->cd_name, DBTechName);
-		SigEnableInterrupts();
-		return (FALSE);
+		/* If no cells are currently in memory, then make an
+		 * attempt to find the technology associated with the
+		 * layout and load it.
+		 */
+
+		if (!CmdCheckForPaintFunc())
+		{
+		    /* Places to check for a technology:  In the PDK_ROOT
+		     * (PDKROOT) directory, PDK_PATH (PDKPATH) from environment
+		     * variables, and CAD_ROOT from Tcl variables;  the open_pdks
+		     * default install path /usr/share/pdk/, and magic's install
+		     * path.  For CAD_ROOT the variable is expected to point to
+		     * a path containing the techfile.  For PDK_PATH and PDK_ROOT,
+		     * search the directory tree for any subdirectory called
+		     * magic/ and look for a compatible techfile there.
+		     */
+		    char *found = NULL;
+		    char *string, *techfullname;
+    
+		    techfullname = mallocMagic(strlen(tech) + 6);
+		    sprintf(techfullname, "%s.tech", tech);
+
+		    string = getenv("PDK_PATH");
+		    if (string)
+			found = DBSearchForTech(techfullname, string, 0);
+		    if (!found)
+		    {
+			string = getenv("PDKPATH");
+			if (string)
+			    found = DBSearchForTech(techfullname, string, 0);
+		    }
+		    if (!found)
+		    {
+			string = getenv("PDK_ROOT");
+			if (string)
+			    found = DBSearchForTech(techfullname, string, 0);
+		    }
+		    if (!found)
+		    {
+			string = getenv("PDKROOT");
+			if (string)
+			    found = DBSearchForTech(techfullname, string, 0);
+		    }
+		    if (!found)
+		    {
+			found = DBSearchForTech(techfullname, "/usr/share/pdk", 0);
+		    }
+#ifdef MAGIC_WRAPPER
+		    /* Additional checks for PDK_PATH, etc., as Tcl variables.	*/
+		    /* This is unlikely, as they would have to be set in a	*/
+		    /* startup file, and a startup file is likely to just load	*/
+		    /* the technology itself.					*/
+		    if (!found)
+		    {
+			string = (char *)Tcl_GetVar(magicinterp, "PDK_ROOT",
+				    TCL_GLOBAL_ONLY);
+			if (string)
+			    found = DBSearchForTech(techfullname, string, 0);
+		    }
+		    if (!found)
+		    {
+			string = (char *)Tcl_GetVar(magicinterp, "PDKROOT",
+				    TCL_GLOBAL_ONLY);
+			if (string)
+			    found = DBSearchForTech(techfullname, string, 0);
+		    }
+		    if (!found)
+		    {
+			string = (char *)Tcl_GetVar(magicinterp, "PDK_PATH",
+				    TCL_GLOBAL_ONLY);
+			if (string)
+			    found = DBSearchForTech(techfullname, string, 0);
+		    }
+		    if (!found)
+		    {
+			string = (char *)Tcl_GetVar(magicinterp, "PDKPATH",
+				    TCL_GLOBAL_ONLY);
+			if (string)
+			    found = DBSearchForTech(techfullname, string, 0);
+		    }
+		
+#endif
+		    freeMagic(techfullname);
+		    if (found)
+		    {
+			char *sptr;
+			PaAppend(&SysLibPath, found);
+
+			TxError("Loading technology %s\n", tech);
+			if (!TechLoad(tech, 0))
+			    TxError("Error in loading technology file\n");
+			else if ((sptr = strstr(found, "libs.tech")) != NULL)
+			{
+			    int paths = 0;
+			    /* Additional automatic handling of open_pdks-  */
+			    /* style PDKs.  Append the libs.ref libraries   */
+			    /* to the cell search path.			    */
+			    
+			    strcpy(sptr + 5, "ref");
+			    paths = DBAddStandardCellPaths(found, 0);
+			    if (paths > 0)
+				TxPrintf("Cell path is now \"%s\"\n", CellLibPath);
+			}
+			freeMagic(found);
+		    }
+		}
+		if (strcmp(DBTechName, tech))
+		{
+		    TxError("Use command \"tech load\" if you want to switch"
+			    " technologies, or use\n");
+		    TxError("\"cellname delete %s\" and \"load %s -force\" to"
+			    " force the cell to load as technology %s\n",
+			    cellDef->cd_name, cellDef->cd_name, DBTechName);
+		    SigEnableInterrupts();
+		    return (FALSE);
+		}
 	    }
 	}
 	if (dbFgets(line, sizeof line, f) == NULL)
@@ -609,6 +844,7 @@ done:
      * timestamp, then force the cell to be written out with a
      * correct timestamp.
      */
+    has_mismatch = FALSE;
     if ((cellDef->cd_timestamp != cellStamp) || (cellStamp == 0))
     {
 	CellUse *cu;
@@ -617,12 +853,13 @@ done:
 	    if (cu->cu_parent != NULL)
 	    {
 		DBStampMismatch(cellDef, &cellDef->cd_bbox);
+		has_mismatch = TRUE;
 		break;
 	    }
 	}
     }
     /* Update timestamp flags */
-    DBFlagMismatches(cellDef);
+    if (has_mismatch) DBFlagMismatches(cellDef);
 
     cellDef->cd_timestamp = cellStamp;
     if (cellStamp == 0)
@@ -634,7 +871,8 @@ done:
     }
 
     UndoEnable();
-    DRCCheckThis(cellDef, TT_CHECKPAINT, (Rect *) NULL);
+    /* Disabled 3/16/2021.  Let <<checkpaint>> in file force a DRC check */
+    /* DRCCheckThis(cellDef, TT_CHECKPAINT, (Rect *) NULL); */
     SigEnableInterrupts();
     return (result);
 
@@ -3170,6 +3408,105 @@ dbClearCellFunc(cellUse, cdarg)
 /*
  * ----------------------------------------------------------------------------
  *
+ * DBPathSubstitute --
+ *
+ * Replace the leading part of a file path string according to the following
+ * criteria:
+ *
+ *	1) If the filename starts with a string equal to the contents of
+ *	   Tcl variables PDK_PATH, PDKPATH, PDK_ROOT, or PDKROOT, then
+ *	   replace the string with the variable name.  The "PATH" names are
+ *	   more specific than "ROOT" and so are checked first.
+ *	2) If the filename starts with a string equal to the contents of
+ *	   environment variable HOME, then replace the string with "~".
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Writes into the string "cstring".
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBPathSubstitute(pathstart, cstring, cellDef)
+    char *pathstart;
+    char *cstring;
+    CellDef *cellDef;
+{
+    bool subbed = FALSE;
+#ifdef MAGIC_WRAPPER
+    char *tvar;
+
+    /* Check for the leading component of the file path being equal to	*/
+    /* one of several common variable names for the PDK location, and	*/
+    /* if there is a match, then substitute the variable name for the	*/
+    /* matching leading path component.					*/
+
+    if (subbed == FALSE)
+    {
+	tvar = (char *)Tcl_GetVar(magicinterp, "PDK_PATH", TCL_GLOBAL_ONLY);
+	if (tvar)
+	    if (!strncmp(pathstart, tvar, strlen(tvar)))
+	    {
+	    	sprintf(cstring, "$PDK_PATH%s", pathstart + strlen(tvar));
+		subbed = TRUE;
+	    }
+    }
+    if (subbed == FALSE)
+    {
+	tvar = (char *)Tcl_GetVar(magicinterp, "PDKPATH", TCL_GLOBAL_ONLY);
+	if (tvar)
+	    if (!strncmp(pathstart, tvar, strlen(tvar)))
+	    {
+	    	sprintf(cstring, "$PDKPATH%s", pathstart + strlen(tvar));
+		subbed = TRUE;
+	    }
+    }
+    if (subbed == FALSE)
+    {
+	tvar = (char *)Tcl_GetVar(magicinterp, "PDK_ROOT", TCL_GLOBAL_ONLY);
+	if (tvar)
+	    if (!strncmp(pathstart, tvar, strlen(tvar)))
+	    {
+	    	sprintf(cstring, "$PDK_ROOT%s", pathstart + strlen(tvar));
+		subbed = TRUE;
+	    }
+    }
+    if (subbed == FALSE)
+    {
+	tvar = (char *)Tcl_GetVar(magicinterp, "PDKROOT", TCL_GLOBAL_ONLY);
+	if (tvar)
+	    if (!strncmp(pathstart, tvar, strlen(tvar)))
+	    {
+	    	sprintf(cstring, "$PDKROOT%s", pathstart + strlen(tvar));
+		subbed = TRUE;
+	    }
+    }
+#endif
+
+    if (subbed == FALSE)
+    {
+	/* If path starts with home path, then replace with "~"	*/
+	/* to make IP semi-portable between home directories	*/
+	/* with the same file structure.			*/
+
+	char *homedir = getenv("HOME");
+
+	if (cellDef->cd_file == NULL)
+	    sprintf(cstring, "%s", pathstart);
+	else if (!strncmp(cellDef->cd_file, homedir, strlen(homedir))
+			&& (*(cellDef->cd_file + strlen(homedir)) == '/'))
+	    sprintf(cstring, "~%s", cellDef->cd_file + strlen(homedir));
+	else
+	    sprintf(cstring, "%s", pathstart);
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * dbWriteCellFunc --
  *
  * Filter function used to write out a single cell use in the
@@ -3192,8 +3529,7 @@ dbWriteCellFunc(cellUse, cdarg)
     struct writeArg *arg = (struct writeArg *) cdarg;
     Transform *t;
     Rect *b;
-    bool subbed = FALSE;
-    char     cstring[256], *pathend, *pathstart, *parent;
+    char     cstring[1024], *pathend, *pathstart, *parent;
 
     t = &(cellUse->cu_transform);
     b = &(cellUse->cu_def->cd_bbox);
@@ -3244,92 +3580,13 @@ dbWriteCellFunc(cellUse, cdarg)
     }
     else
     {
-#ifdef MAGIC_WRAPPER
-	char *tvar;
-
-	/* Check for the leading component of the file path being equal to	*/
-	/* one of several common variable names for the PDK location, and	*/
-	/* if there is a match, then substitute the variable name for the	*/
-	/* matching leading path component.					*/
-
-	if (subbed == FALSE)
-	{
-	    tvar = (char *)Tcl_GetVar(magicinterp, "PDK_PATH", TCL_GLOBAL_ONLY);
-	    if (tvar)
-		if (!strncmp(pathstart, tvar, strlen(tvar)))
-		{
-	    	    sprintf(cstring, "use %s %c%s $PDK_PATH%s\n",
-				cellUse->cu_def->cd_name,
-				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-				cellUse->cu_id, pathstart + strlen(tvar));
-		    subbed = TRUE;
-		}
-	}
-	if (subbed == FALSE)
-	{
-	    tvar = (char *)Tcl_GetVar(magicinterp, "PDKPATH", TCL_GLOBAL_ONLY);
-	    if (tvar)
-		if (!strncmp(pathstart, tvar, strlen(tvar)))
-		{
-	    	    sprintf(cstring, "use %s %c%s $PDKPATH%s\n",
-				cellUse->cu_def->cd_name,
-				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-				cellUse->cu_id, pathstart + strlen(tvar));
-		    subbed = TRUE;
-		}
-	}
-	if (subbed == FALSE)
-	{
-	    tvar = (char *)Tcl_GetVar(magicinterp, "PDK_ROOT", TCL_GLOBAL_ONLY);
-	    if (tvar)
-		if (!strncmp(pathstart, tvar, strlen(tvar)))
-		{
-	    	    sprintf(cstring, "use %s %c%s $PDK_ROOT%s\n",
-				cellUse->cu_def->cd_name,
-				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-				cellUse->cu_id, pathstart + strlen(tvar));
-		    subbed = TRUE;
-		}
-	}
-	if (subbed == FALSE)
-	{
-	    tvar = (char *)Tcl_GetVar(magicinterp, "PDKROOT", TCL_GLOBAL_ONLY);
-	    if (tvar)
-		if (!strncmp(pathstart, tvar, strlen(tvar)))
-		{
-	    	    sprintf(cstring, "use %s %c%s $PDKROOT%s\n",
-				cellUse->cu_def->cd_name,
-				(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-				cellUse->cu_id, pathstart + strlen(tvar));
-		    subbed = TRUE;
-		}
-	}
-#endif
-
-	if (subbed == FALSE)
-	{
-	    /* If path starts with home path, then replace with "~"	*/
-	    /* to make IP semi-portable between home directories	*/
-	    /* with the same file structure.			*/
-
-	    char *homedir = getenv("HOME");
-
-	    if (!strncmp(cellUse->cu_def->cd_file, homedir, strlen(homedir))
-			&& (*(cellUse->cu_def->cd_file + strlen(homedir)) == '/'))
-	    {
-	    	sprintf(cstring, "use %s %c%s ~%s\n", cellUse->cu_def->cd_name,
-			(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-			cellUse->cu_id, cellUse->cu_def->cd_file +
-			strlen(homedir));
-	    }
-	    else
-	    {
-	        sprintf(cstring, "use %s %c%s %s\n", cellUse->cu_def->cd_name,
-			(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
-			cellUse->cu_id, pathstart);
-	    }
-	}
+    	sprintf(cstring, "use %s %c%s ", cellUse->cu_def->cd_name,
+		(cellUse->cu_flags & CU_LOCKED) ? CULOCKCHAR : ' ',
+		cellUse->cu_id);
+    	DBPathSubstitute(pathstart, cstring + strlen(cstring), cellUse->cu_def);
+	strcat(cstring, "\n");
     }
+
     FPRINTR(arg->wa_file, cstring);
 
     cellUse->cu_def->cd_flags |= CDVISITED;

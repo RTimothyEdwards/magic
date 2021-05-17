@@ -429,14 +429,12 @@ extSubtreeInteraction(ha)
     NodeRegion *reg;
     SearchContext scx;
 
-    /* Copy parent paint into ha->ha_cumFlat (which was initially empty) */
     scx.scx_trans = GeoIdentityTransform;
     scx.scx_area = ha->ha_interArea;
     scx.scx_use = ha->ha_parentUse;
+
+    /* Copy parent paint into ha->ha_cumFlat */
     DBCellCopyPaint(&scx, &DBAllButSpaceBits, 0, ha->ha_cumFlat.et_use);
-#ifdef	notdef
-    extCopyPaint(ha->ha_parentUse->cu_def, &ha->ha_interArea, cumDef);
-#endif	/* notdef */
 
     /*
      * First element on the subtree list will be parent mask info.
@@ -446,9 +444,6 @@ extSubtreeInteraction(ha)
     oneDef = oneFlat->et_use->cu_def;
     DBCellCopyPaint(&scx, &DBAllButSpaceBits, 0, oneFlat->et_use);
 
-#ifdef	notdef
-    extCopyPaint(ha->ha_parentUse->cu_def, &ha->ha_interArea, oneDef);
-#endif	/* notdef */
     oneFlat->et_nodes = extFindNodes(oneDef, &ha->ha_clipArea, FALSE);
     if ((ExtOptions & (EXT_DOCOUPLING|EXT_DOADJUST))
 		   == (EXT_DOCOUPLING|EXT_DOADJUST))
@@ -743,6 +738,7 @@ extSubtreeFunc(scx, ha)
     hy.hy_area = &ha->ha_subArea;
     hy.hy_target = oneFlat->et_use;
     hy.hy_prefix = TRUE;
+
     (void) DBArraySr(use, &ha->ha_subArea, extHierYankFunc, (ClientData) &hy);
 
     /*
@@ -767,6 +763,8 @@ extSubtreeFunc(scx, ha)
      */
     if (extFirstPass)
     {
+	extFirstPass = FALSE;
+
 	// On the first pass, run through et_lookName's label list.
 	// Copy any sticky labels to cumUse->cu_def, so that the labels
 	// can be found even when there is no geometry underneath in
@@ -796,7 +794,6 @@ extSubtreeFunc(scx, ha)
 		cumUse->cu_def->cd_labels = newlab;
 	    }
 	}
-	extFirstPass = FALSE;
     }
     else
     {
@@ -861,9 +858,6 @@ extSubtreeFunc(scx, ha)
     newscx.scx_area = ha->ha_subArea;
     newscx.scx_trans = GeoIdentityTransform;
     DBCellCopyPaint(&newscx, &DBAllButSpaceBits, 0, cumUse);
-#ifdef	notdef
-    extCopyPaint(oneFlat->et_use->cu_def, &ha->ha_subArea, cumUse->cu_def);
-#endif	/* notdef */
     extHierCopyLabels(oneFlat->et_use->cu_def, cumUse->cu_def);
 
     /* Prepend this tree to the list of trees we've processed so far */
@@ -1215,7 +1209,6 @@ extSubtreeHardSearch(et, arg)
 {
     HierExtractArg *ha = arg->hw_ha;
     ExtTree *oneFlat;
-
 
     arg->hw_proc = extHardProc;
     if (et == &ha->ha_cumFlat)

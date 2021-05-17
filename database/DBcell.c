@@ -118,6 +118,7 @@ DBCellFindDup(use, parent)
  * ----------------------------------------------------------------------------
  *
  * DBPlaceCell --
+ * DBPlaceCellNoModify --
  *
  * Add a CellUse to the subcell tile plane of a CellDef.
  * Assumes prior check that the new CellUse is not an exact duplicate
@@ -162,11 +163,47 @@ DBPlaceCell (use, def)
     SigEnableInterrupts();
 }
 
+/* Like DBPlaceCell(), but don't change the flags of the parent cell.	*/
+/* This is needed by the bounding box recalculation routine, which may	*/
+/* cause the cell to be deleted and replaced for the purpose of		*/
+/* capturing the bounding box information in the BPlane structure, but	*/
+/* this does not mean that anything in the parent cell has changed.	*/
+
+void
+DBPlaceCellNoModify (use, def)
+    CellUse   * use;	/* new celluse to add to subcell tile plane */
+    CellDef   * def;    /* parent cell's definition */
+{
+    Rect             rect;    /* argument to DBSrCellPlaneArea(), placeCellFunc() */
+    BPlane          *bplane;  /* argument to DBSrCellPlaneArea(), placeCellFunc() */
+    struct searchArg arg;     /* argument to placeCellFunc() */
+
+    ASSERT(use != (CellUse *) NULL, "DBPlaceCell");
+    ASSERT(def, "DBPlaceCell");
+
+    /* To do:  Check non-duplicate placement, check non-duplicate ID */
+
+    use->cu_parent = def;
+
+    /* Be careful not to permit interrupts during this, or the
+     * database could be left in a trashed state.
+     */
+
+    SigDisableInterrupts();
+    BPAdd(def->cd_cellPlane, use);
+    if (UndoIsEnabled())
+	DBUndoCellUse(use, UNDO_CELL_PLACE);
+    SigEnableInterrupts();
+}
+
 /*
  * ----------------------------------------------------------------------------
  * DBDeleteCell --
  *
  * Remove a CellUse from the subcell tile plane of a CellDef.
+ * If "nomodify" is TRUE, then don't set the parent cell's CDMODIFIED flag.
+ * This is needed when recomputing the bounding box, which should not by
+ * itself change the modified state.
  *
  * Results:
  *	None.
@@ -197,3 +234,39 @@ DBDeleteCell (use)
     SigEnableInterrupts();
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ * DBDeleteCellNoModify --
+ *
+ * Remove a CellUse from the subcell tile plane of a CellDef, as above,
+ * but don't set the parent cell's CDMODIFIED flag.  This is needed when
+ * recomputing the bounding box, which should not by itself change the
+ * modified state.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Modifies the subcell tile plane of the CellDef, sets the
+ * 	parent pointer of the deleted CellUse to NULL.
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBDeleteCellNoModify (use)
+    CellUse * use;
+{
+    ASSERT(use != (CellUse *) NULL, "DBDeleteCell");
+
+    /* It's important that this code run with interrupts disabled,
+     * or else we could leave the subcell tile plane in a weird
+     * state.
+     */
+
+    SigDisableInterrupts();
+    dbInstanceUnplace(use);
+    if (UndoIsEnabled())
+	DBUndoCellUse(use, UNDO_CELL_DELETE);
+    use->cu_parent = (CellDef *) NULL;
+    SigEnableInterrupts();
+}

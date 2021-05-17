@@ -83,6 +83,15 @@ DBPropPut(cellDef, name, value)
 	    cellDef->cd_flags |= CDFIXEDBBOX;
     }
 
+    /* Special handling of GDS_FILE, which uses CDVENDORGDS as a quick lookup */
+    if (!strcmp(name, "GDS_FILE"))
+    {
+	if (value == (ClientData)NULL)
+	    cellDef->cd_flags &= ~CDVENDORGDS;
+	else
+	    cellDef->cd_flags |= CDVENDORGDS;
+    }
+
     entry = HashFind(htab, name);
     oldvalue = (char *)HashGetValue(entry);
     if (oldvalue != NULL) freeMagic(oldvalue);

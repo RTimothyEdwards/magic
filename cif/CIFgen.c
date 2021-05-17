@@ -34,6 +34,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "calma/calma.h"	/* for CalmaContactArrays */
 #include "commands/commands.h"	/* for CmdFindNetProc()	*/
 #include "select/selInt.h"	/* for select use and def */
+#include "select/select.h"
 #include "utils/stack.h"
 #include "utils/malloc.h"
 #include "utils/maxrect.h"
@@ -4786,7 +4787,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 		    scx.scx_use = CIFDummyUse;
 		    scx.scx_trans = GeoIdentityTransform;
 		    DBTreeCopyConnect(&scx, &DBConnectTbl[ttype], 0,
-				DBConnectTbl, &TiPlaneRect, FALSE, Select2Use);
+				DBConnectTbl, &TiPlaneRect, SEL_NO_LABELS, Select2Use);
 		    cifSrTiles(op, area, Select2Def, temps, cifPaintFunc,
 				(ClientData) CIFPaintTable);
 		    DBCellClearDef(Select2Def);

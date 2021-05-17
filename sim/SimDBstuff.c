@@ -31,6 +31,7 @@
 #include "utils/geofast.h"
 #include "tiles/tile.h"
 #include "utils/hash.h"
+#include "utils/stack.h"
 #include "database/database.h"
 #include "database/databaseInt.h"
 #include "textio/textio.h"
@@ -44,54 +45,6 @@
 #include "textio/txcommands.h"
 #include "utils/styles.h"
 #include "graphics/graphics.h"
-
-/* The following structure is used to hold several pieces
- * of information that must be passed through multiple
- * levels of search function.
- */
-
-struct conSrArg
-{
-    CellDef *csa_def;			/* Definition being searched. */
-    Plane *csa_plane;			/* Current plane being searched. */
-    TileTypeBitMask *csa_connect;	/* Table indicating what connects
-					 * to what.
-					 */
-    int (*csa_clientFunc)();		/* Client function to call. */
-    ClientData csa_clientData;		/* Argument for clientFunc. */
-    bool csa_clear;			/* FALSE means pass 1, TRUE
-					 * means pass 2.
-					 */
-    Rect csa_bounds;			/* Area that limits search. */
-};
-
-/* For SimTreeSrConnect, the extraction proceeds in one pass, copying
- * all connected stuff from a hierarchy into a single cell.  A list
- * is kept to record areas that still have to be searched for
- * hierarchical stuff.
- */
-
-typedef struct
-{
-    Rect		area;		/* Area to process */
-    TileTypeBitMask	*connectMask;	/* Connection mask for search */
-    TileType		dinfo;		/* Info about triangular search areas */
-} conSrArea;
-
-struct conSrArg2
-{
-    CellUse		*csa2_use;	/* Destination use */
-    TileTypeBitMask	*csa2_connect;	/* Table indicating what connects
-					 * to what.
-					 */
-    Rect		*csa2_bounds;	/* Area that limits the search */
-
-    conSrArea		*csa2_list;	/* List of areas to process */
-    int			csa2_top;	/* Index of next area to process */
-    int			csa2_size;	/* Max. number bins in area list */
-};
-
-#define CSA2_LIST_START_SIZE 256
 
 /* Forward declarations */
 
@@ -303,27 +256,29 @@ SimConnectFunc(tile, cx)
 	    return 1;
     }
 
+    /* Check if any of the last 5 entries has the same type and */
+    /* area.  If so, don't duplicate the existing entry.        */
+    /* (NOTE:  Connect masks are all from the same table, so    */
+    /* they can be compared by address, no need for TTMaskEqual)*/
+
+    for (i = csa2->csa2_lasttop; (i >= 0) && (i > csa2->csa2_lasttop - 5); i--)
+        if (connectMask == csa2->csa2_list[i].connectMask)
+            if (GEO_SURROUND(&csa2->csa2_list[i].area, &newarea))
+                return 0;
+
     /* Register the area and connection mask as needing to be processed */
 
-    if (++csa2->csa2_top == csa2->csa2_size)
+    if (++csa2->csa2_top == CSA2_LIST_SIZE)
     {
 	/* Reached list size limit---need to enlarge the list	   */
 	/* Double the size of the list every time we hit the limit */
 
 	conSrArea *newlist;
-	int i, lastsize = csa2->csa2_size;
 
-	csa2->csa2_size *= 2;
-
-	newlist = (conSrArea *)mallocMagic(csa2->csa2_size * sizeof(conSrArea));
-	for (i = 0; i < lastsize; i++)
-	{
-	    newlist[i].area = csa2->csa2_list[i].area;
-	    newlist[i].connectMask = csa2->csa2_list[i].connectMask;
-	    newlist[i].dinfo = csa2->csa2_list[i].dinfo;
-	}
-	freeMagic((char *)csa2->csa2_list);
+	newlist = (conSrArea *)mallocMagic(CSA2_LIST_SIZE * sizeof(conSrArea));
+	StackPush((ClientData)csa2->csa2_list, csa2->csa2_stack);
 	csa2->csa2_list = newlist;
+	csa2->csa2_top = 0;
     }
 
     csa2->csa2_list[csa2->csa2_top].area = newarea;
@@ -407,10 +362,11 @@ SimTreeCopyConnect(scx, mask, xMask, connect, area, destUse, Node_Name)
     csa2.csa2_bounds = area;
     csa2.csa2_connect = connect;
 
-    csa2.csa2_size = CSA2_LIST_START_SIZE;
-    csa2.csa2_list = (conSrArea *)mallocMagic(CSA2_LIST_START_SIZE
-			* sizeof(conSrArea));
+    csa2.csa2_list = (conSrArea *)mallocMagic(CSA2_LIST_SIZE * sizeof(conSrArea));
     csa2.csa2_top = -1;
+    csa2.csa2_lasttop = -1;
+
+    csa2.csa2_stack = StackNew(100);
 
     tpath.tp_first = tpath.tp_next = pathName;
     tpath.tp_last = pathName + MAXPATHNAME;
@@ -425,7 +381,21 @@ SimTreeCopyConnect(scx, mask, xMask, connect, area, destUse, Node_Name)
 	newmask = csa2.csa2_list[csa2.csa2_top].connectMask;
 	scx->scx_area = csa2.csa2_list[csa2.csa2_top].area;
 	newtype = csa2.csa2_list[csa2.csa2_top].dinfo;
-	csa2.csa2_top--;
+	if (csa2.csa2_top == 0)
+	{
+	    if (StackLook(csa2.csa2_stack) != (ClientData)NULL)
+	    {
+		freeMagic(csa2.csa2_list);
+		csa2.csa2_list = (conSrArea *)StackPop(csa2.csa2_stack);
+		csa2.csa2_top = CSA2_LIST_SIZE - 1;
+	    }
+	    else
+		csa2.csa2_top--;
+	}
+	else
+	    csa2.csa2_top--;
+
+	csa2.csa2_lasttop = csa2.csa2_top;
 
 	if (newtype & TT_DIAGONAL)
 	    SimTreeSrNMTiles(scx, newtype, newmask, xMask, &tpath,
@@ -435,6 +405,7 @@ SimTreeCopyConnect(scx, mask, xMask, connect, area, destUse, Node_Name)
 			(ClientData) &csa2);
     }
     freeMagic((char *)csa2.csa2_list);
+    StackFree(csa2.csa2_stack);
 
     /* Recompute the bounding box of the destination and record
      * its area for redisplay.
@@ -636,7 +607,7 @@ SimSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clientData = clientData;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
-    csa.csa_plane = def->cd_planes[startPlane];
+    csa.csa_pNum = startPlane;
     if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
 
     return result;

@@ -21,7 +21,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdlib.h>		/* for qsort() */
 #include <string.h>
+#include <ctype.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -271,6 +273,7 @@ DBCellDelete(cellname, force)
     }
     celldef->cd_parents = (CellUse *)NULL;
 
+    DBWResetBox(celldef);
     result = DBCellDeleteDef(celldef);
 
     if (result == FALSE)
@@ -279,8 +282,6 @@ DBCellDelete(cellname, force)
     UndoEnable();
     return result;
 }
-
-
 
 /*
  * ----------------------------------------------------------------------------
@@ -600,6 +601,67 @@ DBTopPrint(mw, dolist)
 
 /*
  * ----------------------------------------------------------------------------
+ * Simple natural sort routine
+ * https://stackoverflow.com/questions/34518/natural-sorting-algorithm
+ * By Norman Ramsey, edited for style.
+ * ----------------------------------------------------------------------------
+ */
+
+int strcmpbynum(const char *s1, const char *s2)
+{
+    /* Like strcmp() but compare sequences of digits numerically */
+    for (;;)
+    {
+	if (*s2 == '\0')
+	    return *s1 != '\0';
+	else if (*s1 == '\0')
+	    return 1;
+	else if (!(isdigit(*s1) && isdigit(*s2)))
+	{
+	    if (*s1 != *s2)
+		return (int)*s1 - (int)*s2;
+	    else
+	    {
+		++s1;
+		++s2;
+	    }
+	}
+	else
+	{
+	    char *lim1, *lim2;
+	    unsigned long n1 = strtoul(s1, &lim1, 10);
+	    unsigned long n2 = strtoul(s2, &lim2, 10);
+	    if (n1 > n2)
+		return 1;
+	    else if (n1 < n2)
+		return -1;
+	    s1 = lim1;
+	    s2 = lim2;
+	}
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * Sort routine for qsort() to be used by DBCellPrint().  Sorts in alphabetical
+ * order using the natural sort routine above.  List is reverse sorted since
+ * the code below prints from the end to the beginning of the list.
+ * ----------------------------------------------------------------------------
+ */
+
+int
+qcompare(const void *one, const void *two)
+{
+    int cval;
+
+    char *s1 = *((char **)one);
+    char *s2 = *((char **)two);
+    cval = strcmpbynum(s1, s2);
+    return -cval;
+}
+
+/*
+ * ----------------------------------------------------------------------------
  *
  * DBCellPrint --
  *
@@ -625,11 +687,12 @@ DBCellPrint(CellName, who, dolist)
     int who;
     bool dolist;
 {
-    int found;
+    int found, numcells;
     HashSearch hs;
     HashEntry *entry;
     CellDef *celldef;
     CellUse *celluse;
+    char **celllist;
 
     if (!dolist)
     {
@@ -657,6 +720,11 @@ DBCellPrint(CellName, who, dolist)
 	     * CDMODIFIED flag set.
 	     */
 
+	    numcells = dbCellDefTable.ht_nEntries;
+	    if (numcells == 0) numcells = 1;
+	    celllist = (char **)mallocMagic(numcells * sizeof(char *));
+	    numcells = 0;
+
 	    HashStartSearch(&hs);
 	    while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
 	    {
@@ -666,27 +734,38 @@ DBCellPrint(CellName, who, dolist)
 		    if (((celldef->cd_flags & CDINTERNAL) != CDINTERNAL) &&
 				((who != MODIFIED) ||
 				(celldef->cd_flags & CDMODIFIED)))
-		    {
 			if (celldef->cd_name != NULL)
-			{
-			    if (dolist)
-#ifdef MAGIC_WRAPPER
-			        Tcl_AppendElement(magicinterp, celldef->cd_name);
-#else
-			        TxPrintf("%s ", celldef->cd_name);
-#endif
-			    else
-			        TxPrintf("    %s\n", celldef->cd_name);
-		        }
-		    }
+			    celllist[numcells++] = celldef->cd_name;
+
 	        }
 	    }
+
+	    qsort(celllist, numcells, sizeof(char *), qcompare);
+
+	    while (--numcells >= 0)
+	    {
+	        if (dolist)
+#ifdef MAGIC_WRAPPER
+	            Tcl_AppendElement(magicinterp, celllist[numcells]);
+#else
+	            TxPrintf("%s ", celllist[numcells]);
+#endif
+	        else
+	            TxPrintf("    %s\n", celllist[numcells]);
+	    }
+	
+	    freeMagic(celllist);
 	    break;
 
 	case TOPCELLS:
 	    /*
-	     * Print the name of all the 'top' cells.
+	     * Print the name of all the 'top' cells.  Sort alphabetically.
 	     */
+
+	    numcells = dbCellDefTable.ht_nEntries;
+	    if (numcells == 0) numcells = 1;
+	    celllist = (char **)mallocMagic(numcells * sizeof(char *));
+	    numcells = 0;
 
 	    HashStartSearch(&hs);
 	    while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
@@ -712,19 +791,25 @@ DBCellPrint(CellName, who, dolist)
 			    }
 		        }
 		        if ( (found == 0) && (celldef->cd_name != NULL) )
-		        {
-			    if (dolist)
-#ifdef MAGIC_WRAPPER
-			        Tcl_AppendElement(magicinterp, celldef->cd_name);
-#else
-			        TxPrintf("%s ", celldef->cd_name);
-#endif
-			    else
-			        TxPrintf("    %s\n", celldef->cd_name);
-		        }
+			    celllist[numcells++] = celldef->cd_name;
 		    }
 	        }
 	    }
+
+	    qsort(celllist, numcells, sizeof(char *), qcompare);
+
+	    while (--numcells >= 0)
+	    {
+		if (dolist)
+#ifdef MAGIC_WRAPPER
+		    Tcl_AppendElement(magicinterp, celllist[numcells]);
+#else
+		    TxPrintf("%s ", celllist[numcells]);
+#endif
+		else
+		    TxPrintf("    %s\n", celllist[numcells]);
+	    }
+	    freeMagic(celllist);
 	    break;
 
 	default:

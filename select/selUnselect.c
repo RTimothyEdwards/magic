@@ -372,7 +372,6 @@ SelectRemoveCellUse(use, trans)
 
 {
   SearchContext scx;
-  CellUse selectedUse;
   SelRemoveCellArgs args;
 
   /* The search context is the area covered by the cell's bounding box in

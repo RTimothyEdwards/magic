@@ -204,7 +204,7 @@ EFFlatBuildOneLevel(def, flags)
     efFlatRootUse.use_def = efFlatRootDef;
 
     /* Record all nodes down the hierarchy from here */
-    flatnodeflags = FLATNODE_STDCELL;	/* No FLATDNODE_DOWARN flag */
+    flatnodeflags = 0;    /* No FLATNODE_DOWARN */
     efFlatNodes(&efFlatContext, (ClientData)flatnodeflags);
 
     /* Expand all subcells that contain connectivity information but	*/
@@ -218,10 +218,6 @@ EFFlatBuildOneLevel(def, flags)
 
     if ((usecount == 0) && (HashGetNumEntries(&efFlatRootUse.use_def->def_devs) == 0))
 	efFlatRootUse.use_def->def_flags |= DEF_NODEVICES;
-
-    /* Record all local nodes */
-    efAddNodes(&efFlatContext, FALSE);
-    efAddConns(&efFlatContext, TRUE);
 
     efFlatKills(&efFlatContext);
     if (!(flags & EF_NONAMEMERGE))
@@ -297,6 +293,9 @@ EFFlatDone()
  *	Adds node names to the table of flattened node names efNodeHashTable.
  *	May merge nodes from the list efNodeList as per the connection
  *	list hc->hc_use->use_def->def_conns.
+ * 
+ * Note:
+ *	stdcell = TRUE is only used when writing DEF files.
  *
  * ----------------------------------------------------------------------------
  */
@@ -441,12 +440,10 @@ efAddNodes(hc, stdcell)
     EFNode *node, *newnode;
     EFAttr *ap, *newap;
     HierName *hierName;
-    float scale;
     int size, asize;
     HashEntry *he;
     bool is_subcircuit = (def->def_flags & DEF_SUBCIRCUIT) ? TRUE : FALSE;
 
-    scale = def->def_scale;
     size = sizeof (EFNode) + (efNumResistClasses-1) * sizeof (EFPerimArea);
 
     for (node = (EFNode *) def->def_firstn.efnode_next;
@@ -465,10 +462,6 @@ efAddNodes(hc, stdcell)
 	    newap = (EFAttr *) mallocMagic((unsigned)(asize));
 	    (void) strcpy(newap->efa_text, ap->efa_text);
 	    GeoTransRect(&hc->hc_trans, &ap->efa_loc, &newap->efa_loc);
-	    newap->efa_loc.r_xbot = (int)((float)(newap->efa_loc.r_xbot) * scale);
-	    newap->efa_loc.r_xtop = (int)((float)(newap->efa_loc.r_xtop) * scale);
-	    newap->efa_loc.r_ybot = (int)((float)(newap->efa_loc.r_ybot) * scale);
-	    newap->efa_loc.r_ytop = (int)((float)(newap->efa_loc.r_ytop) * scale);
 
 	    newap->efa_type = ap->efa_type;
 	    newap->efa_next = newnode->efnode_attrs;
@@ -491,22 +484,14 @@ efAddNodes(hc, stdcell)
 			efNumResistClasses * sizeof (EFPerimArea));
 	GeoTransRect(&hc->hc_trans, &node->efnode_loc, &newnode->efnode_loc);
 
-	/* Scale the result by "scale" --- hopefully we end up with an integer	*/
-	/* We don't scale the transform because the scale may be non-integer	*/
-	/* and the Transform type has integers only.				*/
-	newnode->efnode_loc.r_xbot = (int)((float)(newnode->efnode_loc.r_xbot) * scale);
-	newnode->efnode_loc.r_xtop = (int)((float)(newnode->efnode_loc.r_xtop) * scale);
-	newnode->efnode_loc.r_ybot = (int)((float)(newnode->efnode_loc.r_ybot) * scale);
-	newnode->efnode_loc.r_ytop = (int)((float)(newnode->efnode_loc.r_ytop) * scale);
+	/* Add each name for this node to the hash table */
+	newnode->efnode_name = (EFNodeName *) NULL;
 
 	/* Prepend to global node list */
 	newnode->efnode_next = efNodeList.efnode_next;
 	newnode->efnode_prev = (EFNodeHdr *) &efNodeList;
 	efNodeList.efnode_next->efnhdr_prev = (EFNodeHdr *) newnode;
 	efNodeList.efnode_next = (EFNodeHdr *) newnode;
-
-	/* Add each name for this node to the hash table */
-	newnode->efnode_name = (EFNodeName *) NULL;
 
 	for (nn = node->efnode_name; nn; nn = nn->efnn_next)
 	{
@@ -546,6 +531,7 @@ efAddNodes(hc, stdcell)
 	    newname->efnn_node = newnode;
 	    newname->efnn_hier = hierName;
 	    newname->efnn_port = -1;
+	    newname->efnn_refc = 0;
 	    if (newnode->efnode_name)
 	    {
 		newname->efnn_next = newnode->efnode_name->efnn_next;
@@ -557,6 +543,7 @@ efAddNodes(hc, stdcell)
 		newnode->efnode_name = newname;
 	    }
 	}
+
     }
     return 0;
 }

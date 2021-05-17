@@ -539,13 +539,23 @@ drcExactOverlapTile(tile, cxp)
 
     type = TiGetType(tile);
     TTMaskSetOnlyType(&typeMask, type);
-    for (t = DBNumUserLayers; t < DBNumTypes; t++)
+    if (type < DBNumUserLayers)
     {
-	rmask = DBResidueMask(t);
-	if (TTMaskHasType(rmask, type))
-	    TTMaskSetType(&typeMask, t);
+	for (t = DBNumUserLayers; t < DBNumTypes; t++)
+	{
+	    rmask = DBResidueMask(t);
+	    if (TTMaskHasType(rmask, type))
+		TTMaskSetType(&typeMask, t);
+	}
+	TTMaskCom2(&invMask, &typeMask);
     }
-    TTMaskCom2(&invMask, &typeMask);
+    else
+    {
+	rmask = DBResidueMask(type);
+	TTMaskSetMask(&typeMask, rmask);    // Add residue types for inverse only
+	TTMaskCom2(&invMask, &typeMask);
+	TTMaskSetOnlyType(&typeMask, type); // Restore original type mask
+    }
 
     for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
     {
@@ -647,6 +657,7 @@ void
 DRCOffGridError(rect)
     Rect      *rect;            /* Area of error */
 {
+    if (drcSubFunc == NULL) return;
     (*drcSubFunc)(DRCErrorDef, rect, &drcOffGridCookie, drcSubClientData);
 }
 
@@ -696,7 +707,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
     int oldTiles, count, x, y, errorSaveType;
     Rect intArea, square, cliparea, subArea;
     PaintResultType (*savedPaintTable)[NT][NT];
-    void (*savedPaintPlane)();
+    int (*savedPaintPlane)();
     struct drcClientData arg;
     SearchContext scx;
 
@@ -896,7 +907,7 @@ DRCFlatCheck(use, area)
     SearchContext scx;
     void drcIncCount();
     PaintResultType (*savedPaintTable)[NT][NT];
-    void (*savedPaintPlane)();
+    int (*savedPaintPlane)();
     int drcFlatCount = 0;
 
     UndoDisable();

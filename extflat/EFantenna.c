@@ -34,6 +34,7 @@
 #include "extflat/EFint.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
+#include "select/select.h"
 #include "utils/malloc.h"
 
 /* Forward declarations */
@@ -505,7 +506,7 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 		/* To do:  Mark tiles so area count can be progressive */
 
 		DBTreeCopyConnect(&scx, &DBConnectTbl[t], 0,
-			DBConnectTbl, &TiPlaneRect, FALSE, extPathUse);
+			DBConnectTbl, &TiPlaneRect, SEL_NO_LABELS, extPathUse);
 
 		/* Search planes of tie types and accumulate all tiedown areas */
 		gdas.accum = (dlong)0;

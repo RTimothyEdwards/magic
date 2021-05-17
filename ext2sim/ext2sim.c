@@ -999,11 +999,12 @@ simdevVisit(dev, hc, scale, trans)
     float scale;	/* Scale transform for output */
     Transform *trans;	/* Coordinate transform */
 {
-    DevTerm *gate, *source, *drain;
+    DevTerm *gate, *source, *drain, *term;
     EFNode  *subnode, *snode, *dnode;
     int l, w;
     Rect r;
     char name[12];
+    bool is_subckt = FALSE;
     HierName *hierName = hc->hc_hierName;
 
     sprintf(name, "output");
@@ -1057,7 +1058,6 @@ simdevVisit(dev, hc, scale, trans)
 	case DEV_FET:
 	case DEV_MOSFET:
 	case DEV_ASYMMETRIC:
-	case DEV_MSUBCKT:
 	    /* The sim file format only understands "n" and "p" for FETs.   */
 	    /* The extraction method says nothing about which is which.	    */
 	    /* The EFDevTypes[] should ideally start with "n" or "p".  If   */
@@ -1089,6 +1089,19 @@ simdevVisit(dev, hc, scale, trans)
 		}
 	    }
 	    break;
+	case DEV_MSUBCKT:
+	case DEV_CSUBCKT:
+	case DEV_RSUBCKT:
+	case DEV_SUBCKT:
+	    /* Use the 'x' type in .sim format.  This is implemented in the */
+	    /* IRSIM "user subcircuit" package, so it has a valid syntax.   */
+	    /* It is used by the extresist code in magic as a way to work   */
+	    /* around the lack of substrate and lack of device names in the */
+	    /* .sim format.						    */
+	    is_subckt = TRUE;
+	    fprintf(esSimF, "x");
+	    break;
+
 	default:
 	    fprintf(esSimF, "%c", EFDevTypes[dev->dev_type][0]);
 	    break;
@@ -1121,8 +1134,31 @@ simdevVisit(dev, hc, scale, trans)
     else if (dev->dev_nterm > 2)
         simdevOutNode(hierName, drain->dterm_node->efnode_name->efnn_hier, name, esSimF);
 
+    if (dev->dev_nterm > 3)	/* For subcircuit support ('x' device) */
+    {
+	int i;
+
+        sprintf(name, "subckt");
+	for (i = 3; i < dev->dev_nterm; i++)
+	{
+	    term = &dev->dev_terms[i];
+	    simdevOutNode(hierName, term->dterm_node->efnode_name->efnn_hier,
+			name, esSimF);
+	}
+    }
+
+    if (is_subckt && subnode)
+    {
+	/* As a general policy on subcircuits supporting extresist, */
+	/* output the subcircuit node as the last port of the	    */
+	/* subcircuit definition.				    */
+	putc(' ', esSimF);
+	simdevSubstrate(hierName, subnode->efnode_name->efnn_hier,
+	             dev->dev_type, 0.0, FALSE, esSimF);
+    }
+
     /* Support gemini's substrate comparison */
-    if (esFormat == LBL && subnode)
+    else if (esFormat == LBL && subnode)
     {
 	putc(' ', esSimF);
 	simdevSubstrate(hierName, subnode->efnode_name->efnn_hier,
@@ -1164,6 +1200,15 @@ simdevVisit(dev, hc, scale, trans)
     }
     else if (dev->dev_class == DEV_CAPREV) {	/* generate a capacitor */
        fprintf(esSimF, " %f", (double)(dev->dev_cap));
+    }
+    else if (is_subckt)
+    {
+	/* Output length, width, and position as attributes */
+        fprintf(esSimF, " l=%g w=%g x=%g y=%g",
+		l * scale, w * scale, r.r_xbot * scale, r.r_ybot * scale);
+
+	/* Output tile type as an attribute for quick lookup by ResReadSim */
+        fprintf(esSimF, " t=%d", fetInfo[dev->dev_type].devType);
     }
     else if ((dev->dev_class != DEV_DIODE) && (dev->dev_class != DEV_PDIODE)
 		&& (dev->dev_class != DEV_NDIODE)) {
@@ -1235,6 +1280,13 @@ simdevVisit(dev, hc, scale, trans)
 	   }
        }
     }
+
+    if (is_subckt)
+    {
+	/* Last token on a subcircuit 'x' line is the subcircuit name */
+	fprintf(esSimF, " %s", EFDevTypes[dev->dev_type]);
+    }
+
     fprintf(esSimF, "\n");
 
     return 0;
@@ -1572,9 +1624,8 @@ int simnodeVisit(node, res, cap)
 
     if (esLabF)
     {
-	fprintf(esLabF, "94 ");
 	EFHNOut(hierName, esLabF);
-	fprintf(esLabF, " %d %d %s;\n",
+	fprintf(esLabF, " %d %d %s\n",
 		    node->efnode_loc.r_xbot, node->efnode_loc.r_ybot,
 		    EFLayerNames[node->efnode_type]);
     }

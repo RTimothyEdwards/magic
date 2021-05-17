@@ -37,9 +37,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Time constants are produced by multiplying attofarads by milliohms,  */
 /* giving zeptoseconds (yes, really.  Look it up).  This constant 	*/
-/* converts zeptoseconds to nanoseconds.				*/
+/* converts zeptoseconds to picoseconds.				*/
 
-#define Z_TO_N		1e12
+#define Z_TO_P		1e9
 
 /* ResSimNode is a node read in from a sim file */
 
@@ -105,8 +105,8 @@ ExtResisForDef(celldef, resisdata)
     HashInit(&ResNodeTable, INITFLATSIZE, HT_STRINGKEYS);
     /* read in .sim file */
     result = (ResReadSim(celldef->cd_name,
-	      	ResSimDevice,ResSimCapacitor,ResSimResistor,
-		ResSimAttribute,ResSimMerge) == 0);
+	      	ResSimDevice, ResSimCapacitor, ResSimResistor,
+		ResSimAttribute, ResSimMerge, ResSimSubckt) == 0);
 
     if (result)
 	/* read in .nodes file   */
@@ -766,12 +766,12 @@ ResCheckPorts(cellDef)
 	    result = 0;
 	    if ((node = (ResSimNode *) HashGetValue(entry)) != NULL)
 	    {
-		TxError("Port: name = %s exists, forcing drivepoint\n",
+		TxPrintf("Port: name = %s exists, forcing drivepoint\n",
 			lab->lab_text);
-		TxError("Location is (%d, %d); drivepoint (%d, %d)\n",
+		TxPrintf("Location is (%d, %d); drivepoint (%d, %d)\n",
 			node->location.p_x, node->location.p_y,
 			portloc.p_x, portloc.p_y);
-		TxFlushErr();
+		TxFlush();
 		node->drivepoint = portloc;
 		node->status |= FORCE;
 	    }
@@ -782,9 +782,9 @@ ResCheckPorts(cellDef)
 		/* and a drivepoint.					*/
 
 		node = ResInitializeNode(entry);
-		TxError("Port: name = %s is new node 0x%x\n",
+		TxPrintf("Port: name = %s is new node 0x%x\n",
 			lab->lab_text, node);
-		TxError("Location is (%d, %d); drivepoint (%d, %d)\n",
+		TxPrintf("Location is (%d, %d); drivepoint (%d, %d)\n",
 			portloc.p_x, portloc.p_y,
 			portloc.p_x, portloc.p_y);
 		node->location = portloc;
@@ -1111,37 +1111,33 @@ ResCheckSimNodes(celldef, resisdata)
 
     if (total)
     {
-        TxError("Total Nets: %d\nNets extracted: "
+        TxPrintf("Total Nets: %d\nNets extracted: "
 		"%d (%f)\nNets output: %d (%f)\n", total, failed1,
 		(float)failed1 / (float)total, failed3,
 		(float)failed3 / (float)total);
     }
     else
     {
-        TxError("Total Nodes: %d\n",total);
+        TxPrintf("Total Nodes: %d\n",total);
     }
 
     /* close output files */
 
     if (ResExtFile != NULL)
-    {
      	(void) fclose(ResExtFile);
-    }
+
     if (ResLumpFile != NULL)
-    {
      	(void) fclose(ResLumpFile);
-    }
+
     if (ResFHFile != NULL)
-    {
 	(void) fclose(ResFHFile);
-    }
 }
 
 
 /*
  *-------------------------------------------------------------------------
  *
- * ResFixUpConnections-- Changes the connection to  a terminal of the sim
+ * ResFixUpConnections-- Changes the connection to a terminal of the sim
  *	device.  The new name is formed by appending .t# to the old name.
  *	The new name is added to the hash table of node names.
  *
@@ -1169,27 +1165,26 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
     /* don't patch up networks.  This cuts down on memory use.		*/
 
     if ((ResOptionsFlags & (ResOpt_DoRsmFile | ResOpt_DoExtFile)) == 0)
-    {
 	return;
-    }
+
     if (simDev->layout == NULL)
     {
 	layoutDev->rd_status |= RES_DEV_SAVE;
 	simDev->layout = layoutDev;
     }
     simDev->status |= TRUE;
-    if (strcmp(nodename,oldnodename) != 0)
+    if (strcmp(nodename, oldnodename) != 0)
     {
-	strcpy(oldnodename,nodename);
+	strcpy(oldnodename, nodename);
     }
-    (void)sprintf(newname,"%s%s%d",nodename,".t",resNodeNum++);
+    sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
     notdecremented = TRUE;
 
     if (simDev->gate == simNode)
     {
 	if ((gate=layoutDev->rd_fet_gate) != NULL)
 	{
-	    /* cosmetic addition: If the layout device already has a      */
+	    /* Cosmetic addition: If the layout device already has a      */
 	    /* name, the new one won't be used, so we decrement resNodeNum */
 	    if (gate->rn_name != NULL)
 	    {
@@ -1197,45 +1192,41 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		notdecremented = FALSE;
 	    }
 
-	    ResFixDevName(newname,GATE,simDev,gate);
+	    ResFixDevName(newname, GATE, simDev, gate);
 	    gate->rn_name = simDev->gate->name;
-     	    (void)sprintf(newname,"%s%s%d",nodename,".t",resNodeNum++);
+     	    sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
 	}
 	else
-	{
 	    TxError("Missing gate connection\n");
-	}
     }
     if (simDev->source == simNode)
     {
      	if (simDev->drain == simNode)
 	{
-	    if ((source=layoutDev->rd_fet_source) &&
-	       	   (drain=layoutDev->rd_fet_drain))
+	    if (((source = layoutDev->rd_fet_source) != NULL) &&
+	       	   ((drain = layoutDev->rd_fet_drain) != NULL))
 	    {
 	        if (source->rn_name != NULL && notdecremented)
 		{
 		    resNodeNum--;
 		    notdecremented = FALSE;
 		}
-	        ResFixDevName(newname,SOURCE,simDev,source);
+	        ResFixDevName(newname, SOURCE, simDev, source);
 	        source->rn_name = simDev->source->name;
-		(void)sprintf(newname,"%s%s%d",nodename,".t",resNodeNum++);
+		(void)sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
 	        if (drain->rn_name != NULL)  resNodeNum--;
-	        ResFixDevName(newname,DRAIN,simDev,drain);
+	        ResFixDevName(newname, DRAIN, simDev, drain);
 	        drain->rn_name = simDev->drain->name;
 	       	/* one to each */
 	    }
 	    else
-	    {
 	        TxError("Missing SD connection\n");
-	    }
 	}
 	else
 	{
-	    if (source=layoutDev->rd_fet_source)
+	    if ((source = layoutDev->rd_fet_source) != NULL)
 	    {
-		if (drain=layoutDev->rd_fet_drain)
+		if ((drain = layoutDev->rd_fet_drain) != NULL)
 		{
 		    if (source != drain)
 		    {
@@ -1256,7 +1247,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		    }
 		    layoutDev->rd_fet_drain = (resNode *)NULL;
 	            if (source->rn_name != NULL)  resNodeNum--;
-	            ResFixDevName(newname,SOURCE,simDev,source);
+	            ResFixDevName(newname, SOURCE, simDev, source);
 	            source->rn_name = simDev->source->name;
 		}
 		else
@@ -1266,22 +1257,20 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 			resNodeNum--;
 			notdecremented = FALSE;
 		    }
-	            ResFixDevName(newname,SOURCE,simDev,source);
+	            ResFixDevName(newname, SOURCE, simDev, source);
 	            source->rn_name = simDev->source->name;
 		}
 
 	    }
 	    else
-	    {
 	       	TxError("missing SD connection\n");
-	    }
 	}
     }
     else if (simDev->drain == simNode)
     {
-	if (source=layoutDev->rd_fet_source)
+	if ((source = layoutDev->rd_fet_source) != NULL)
 	{
-	    if (drain=layoutDev->rd_fet_drain)
+	    if ((drain = layoutDev->rd_fet_drain) != NULL)
 	    {
 		if (drain != source)
 		{
@@ -1321,14 +1310,10 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	    }
 	}
 	else
-	{
 	    TxError("missing SD connection\n");
-	}
     }
     else
-    {
 	resNodeNum--;
-    }
 }
 
 
@@ -1346,7 +1331,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
  */
 
 void
-ResFixDevName(line,type,device,layoutnode)
+ResFixDevName(line, type, device, layoutnode)
     char 	line[];
     int		type;
     RDev	*device;
@@ -1359,13 +1344,13 @@ ResFixDevName(line,type,device,layoutnode)
 
     if (layoutnode->rn_name != NULL)
     {
-        entry = HashFind(&ResNodeTable,layoutnode->rn_name);
+        entry = HashFind(&ResNodeTable, layoutnode->rn_name);
         node = ResInitializeNode(entry);
 
     }
     else
     {
-        entry = HashFind(&ResNodeTable,line);
+        entry = HashFind(&ResNodeTable, line);
         node = ResInitializeNode(entry);
     }
     tptr = (devPtr *) mallocMagic((unsigned) (sizeof(devPtr)));
@@ -1397,7 +1382,7 @@ ResFixDevName(line,type,device,layoutnode)
 /*
  *-------------------------------------------------------------------------
  *
- *  ResSortByGate--sorts device pointers whose terminal field is either
+ *  ResSortByGate -- sorts device pointers whose terminal field is either
  *	drain or source by gate node number, then by drain (source) number.
  *	This places devices with identical connections next to one
  *	another.
@@ -1448,8 +1433,8 @@ ResSortByGate(DevpointerList)
 	last = NULL;
 	while (working != NULL && (current = working->nextDev) != NULL)
 	{
-	    RDev	*w = working->thisDev;
-	    RDev	*c = current->thisDev;
+	    RDev *w = working->thisDev;
+	    RDev *c = current->thisDev;
 
 	    if (w->gate > c->gate)
 	    {
@@ -1503,16 +1488,11 @@ ResSortByGate(DevpointerList)
     else
     {
      	if (working->nextDev != NULL)
-	{
 	    TxError("Bad Device pointer in sort\n");
-	}
 	else
-	{
 	    working->nextDev = gatelist;
-	}
     }
 }
-
 
 /*
  *-------------------------------------------------------------------------
@@ -1536,13 +1516,11 @@ ResWriteLumpFile(node)
     {
 	if (gparams.rg_nodecap != 0)
 	{
-	    lumpedres = (int)((gparams.rg_Tdi/gparams.rg_nodecap
-			-(float)(gparams.rg_bigdevres))/OHMSTOMILLIOHMS);
+	    lumpedres = (int)((gparams.rg_Tdi / gparams.rg_nodecap
+			- (float)(gparams.rg_bigdevres)) / OHMSTOMILLIOHMS);
 	}
 	else
-	{
 	    lumpedres = 0;
-	}
     }
     else
     {
@@ -1636,35 +1614,35 @@ ResWriteExtFile(celldef, node, tol, rctol, nidx, eidx)
 
     RCdev = gparams.rg_bigdevres * gparams.rg_nodecap;
 
-    if (tol == 0.0 ||(node->status & FORCE) ||
-		(ResOptionsFlags & ResOpt_ExtractAll)||
-		(ResOptionsFlags & ResOpt_Simplify)==0||
-		(rctol+1)*RCdev < rctol*gparams.rg_Tdi)
+    if (tol == 0.0 || (node->status & FORCE) ||
+		(ResOptionsFlags & ResOpt_ExtractAll) ||
+		(ResOptionsFlags & ResOpt_Simplify) == 0 ||
+		(rctol + 1) * RCdev < rctol * gparams.rg_Tdi)
     {
-	ASSERT(gparams.rg_Tdi != -1,"ResWriteExtFile");
-	(void)sprintf(newname,"%s",node->name);
-        cp = newname+strlen(newname)-1;
+	ASSERT(gparams.rg_Tdi != -1, "ResWriteExtFile");
+	(void)sprintf(newname,"%s", node->name);
+        cp = newname + strlen(newname)-1;
         if (*cp == '!' || *cp == '#') *cp = '\0';
-	if ((rctol+1)*RCdev < rctol*gparams.rg_Tdi ||
+	if ((rctol + 1) * RCdev < rctol * gparams.rg_Tdi ||
 	  			(ResOptionsFlags & ResOpt_Tdi) == 0)
 	{
-	    if ((ResOptionsFlags & (ResOpt_RunSilent|ResOpt_Tdi)) == ResOpt_Tdi)
+	    if ((ResOptionsFlags & (ResOpt_RunSilent | ResOpt_Tdi)) == ResOpt_Tdi)
 	    {
-		TxError("Adding  %s; Tnew = %.2fns,Told = %.2fns\n",
-		     	    node->name,gparams.rg_Tdi/Z_TO_N, RCdev/Z_TO_N);
+		TxPrintf("Adding  %s; Tnew = %.2fns, Told = %.2fns\n",
+		     	    node->name, gparams.rg_Tdi / Z_TO_P, RCdev / Z_TO_P);
 	    }
         }
         for (ptr = node->firstDev; ptr != NULL; ptr=ptr->nextDev)
         {
 	    if (layoutDev = ResGetDevice(&ptr->thisDev->location))
 	    {
-		ResFixUpConnections(ptr->thisDev,layoutDev,node,newname);
+		ResFixUpConnections(ptr->thisDev, layoutDev, node, newname);
 	    }
 	}
         if (ResOptionsFlags & ResOpt_DoExtFile)
         {
-	    ResPrintExtNode(ResExtFile,ResNodeList,node->name);
-      	    ResPrintExtRes(ResExtFile,ResResList,newname);
+	    ResPrintExtNode(ResExtFile, ResNodeList, node->name);
+      	    ResPrintExtRes(ResExtFile, ResResList, newname);
         }
 	if (ResOptionsFlags & ResOpt_FastHenry)
 	{

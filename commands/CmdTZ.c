@@ -825,7 +825,6 @@ int cmdWhatPrintCell(tile, cxp)
     }
     if (curlid == NULL)
     {
-	TxPrintf(" %s ", CurrCellName);
 	curlid = (struct linked_id *)mallocMagic(sizeof(struct linked_id));
 	curlid->lid_name = CurrCellName;
 	curlid->lid_next = *lid;
@@ -847,12 +846,47 @@ static LabelStore *labelBlockTop, *labelEntry;
 /*
  * ----------------------------------------------------------------------------
  *
+ * cmdFindWhatTileFunc ---
+ *
+ *  Callback function for CmdWhat().  Given a tile found in the current
+ *  selection, searches the database to find what cell or cells that type
+ *  belongs to.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cmdFindWhatTileFunc(Tile *tile, ClientData clientData)
+{
+    struct linked_id **lid = (struct linked_id **)clientData;
+    SearchContext scx;
+    TileTypeBitMask tmask;
+    TileType type;
+
+    TiToRect(tile, &scx.scx_area);
+    scx.scx_use = EditCellUse;
+    scx.scx_trans = GeoIdentityTransform;
+
+    if (SplitSide(tile))
+	type = SplitRightType(tile);
+    else
+	type = SplitLeftType(tile);
+    TTMaskSetOnlyType(&tmask, type);
+
+    DBTreeSrTiles(&scx, &tmask, 0, cmdWhatPrintCell, (ClientData)lid);
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * CmdWhat --
  *
  * 	Print out information about what's selected.
  *
  * Usage:
- *	what [-list]
+ *	what [-list[all]]
  *
  * Results:
  *	None.
@@ -861,7 +895,8 @@ static LabelStore *labelBlockTop, *labelEntry;
  *	Information gets printed to identify the kinds of paint, plus
  *	labels and subcells, that are selected.
  *	In the TCL version, the "-list" option puts the result in a
- *	nested TCL list.
+ *	nested TCL list.  The "-listall" variant gives more information
+ *	about what cell(s) each type exists in, in the type list.
  *
  * ----------------------------------------------------------------------------
  */
@@ -873,14 +908,12 @@ CmdWhat(w, cmd)
 {
     int i, locargc;
     bool foundAny;
-    bool doList = FALSE;
+    bool doList = FALSE, doListAll = FALSE;
     TileTypeBitMask layers, maskBits, *rMask;
-    SearchContext scx;
     CellUse *CheckUse;
-    struct linked_id *lid;
 
 #ifdef MAGIC_WRAPPER
-    Tcl_Obj *lobj, *paintobj, *labelobj, *cellobj;
+    Tcl_Obj *lobj, *paintobj, *paintcellobj, *celllistobj, *labelobj, *cellobj;
     extern int cmdWhatCellListFunc();
 #endif
 
@@ -890,14 +923,20 @@ CmdWhat(w, cmd)
     locargc = cmd->tx_argc;
 
 #ifdef MAGIC_WRAPPER
-    if ((locargc == 2) && !strncmp(cmd->tx_argv[locargc - 1], "-list", 5))
+    if (locargc == 2)
     {
-	doList = TRUE;
-	locargc--;
-	lobj = Tcl_NewListObj(0, NULL);
-	paintobj = Tcl_NewListObj(0, NULL);
-	labelobj = Tcl_NewListObj(0, NULL);
-	cellobj = Tcl_NewListObj(0, NULL);
+	if (!strncmp(cmd->tx_argv[locargc - 1], "-list", 5))
+	{
+	    if (!strncmp(cmd->tx_argv[locargc - 1], "-listall", 8))
+		doListAll = TRUE;
+	    else
+		doList = TRUE;
+	    locargc--;
+	    lobj = Tcl_NewListObj(0, NULL);
+	    paintobj = Tcl_NewListObj(0, NULL);
+	    labelobj = Tcl_NewListObj(0, NULL);
+	    cellobj = Tcl_NewListObj(0, NULL);
+	}
     }
     if (locargc > 1)
     {
@@ -959,29 +998,69 @@ CmdWhat(w, cmd)
 	    }
 	    if ((CheckUse != NULL) && (CheckUse->cu_def == SelectRootDef))
 	    {
-		scx.scx_use = CheckUse;
-		scx.scx_area = SelectUse->cu_bbox;	// BSI
-		scx.scx_trans = GeoIdentityTransform;	// BSI
+		CellUse *saveUse = EditCellUse;
+		struct linked_id *lid, *lidp;
+		int pNum;
 
-		TxPrintf("Selected mask layers:\n");
+		EditCellUse = CheckUse;
+
+		if (!doListAll) TxPrintf("Selected mask layers:\n");
 		for (i = TT_SELECTBASE; i < DBNumUserLayers; i++)
 		{
 		    if (TTMaskHasType(&layers, i))
 		    {
-			lid = NULL;
-			TxPrintf("    %-8s (", DBTypeLongName(i));
 			TTMaskSetOnlyType(&maskBits, i);
 			if (DBIsContact(i)) DBMaskAddStacking(&maskBits);
-			DBTreeSrTiles(&scx, &maskBits, 0, cmdWhatPrintCell,
-				(ClientData)&lid);
-			TxPrintf(")\n");
-			while (lid != NULL)
+
+			if (doListAll) paintcellobj = Tcl_NewListObj(0, NULL);
+
+			/* Search selection for tiles of this type, then    */
+			/* call cmdFindWhatTileFunc() to search the cell    */
+			/* def in the area of that tile to determine what   */
+			/* cell or subcell that tile belongs to.	    */
+
+			lid = NULL;
+			for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+			    if (TTMaskHasType(&DBPlaneTypes[pNum], i))
+			    {
+				DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
+					&SelectUse->cu_bbox, &maskBits,
+					cmdFindWhatTileFunc, (ClientData)&lid);
+			    }
+
+			if (!doListAll)
 			{
-			    freeMagic(lid);
-			    lid = lid->lid_next;
+			    TxPrintf("    %-8s (", DBTypeLongName(i));
+			    for (lidp = lid; lidp; lidp = lidp->lid_next)
+				TxPrintf(" %s ", lidp->lid_name);
+			    TxPrintf(")\n");
 			}
+			else
+			{
+			    Tcl_ListObjAppendElement(magicinterp, paintcellobj,
+				    Tcl_NewStringObj(DBTypeLongName(i), -1));
+
+			    celllistobj = Tcl_NewListObj(0, NULL);
+			    for (lidp = lid; lidp; lidp = lidp->lid_next)
+				Tcl_ListObjAppendElement(magicinterp, celllistobj,
+					Tcl_NewStringObj(lidp->lid_name, -1));
+
+			    Tcl_ListObjAppendElement(magicinterp, paintcellobj,
+				    celllistobj);
+			}
+
+		        while (lid != NULL)
+		        {
+			   freeMagic(lid);
+			   lid = lid->lid_next;
+			}
+			if (doListAll)
+			    Tcl_ListObjAppendElement(magicinterp, paintobj,
+					paintcellobj);
 		    }
 		}
+		EditCellUse = saveUse;
+
 	    }
 	    else
 	    {
@@ -1008,7 +1087,7 @@ CmdWhat(w, cmd)
 	qsort(labelBlockTop, labelEntryCount, sizeof(LabelStore), orderLabelFunc);
 
 #ifdef MAGIC_WRAPPER
-	if (doList)
+	if (doList || doListAll)
 	{
 	    Tcl_Obj *newtriple;
 	    for (labelEntry = labelBlockTop; labelEntryCount-- > 0; labelEntry++)
@@ -1052,7 +1131,7 @@ CmdWhat(w, cmd)
 
     foundAny = FALSE;
 #ifdef MAGIC_WRAPPER
-    if (doList)
+    if (doList || doListAll)
 	SelEnumCells(FALSE, (bool *) NULL, (SearchContext *) NULL,
 		cmdWhatCellListFunc, (ClientData) cellobj);
     else
@@ -1061,7 +1140,7 @@ CmdWhat(w, cmd)
 		cmdWhatCellFunc, (ClientData) &foundAny);
 
 #ifdef MAGIC_WRAPPER
-    if (doList)
+    if (doList || doListAll)
     {
 	Tcl_ListObjAppendElement(magicinterp, lobj, paintobj);
 	Tcl_ListObjAppendElement(magicinterp, lobj, labelobj);
@@ -1926,7 +2005,7 @@ CmdXor(w, cmd)
 
     PaintResultType	DBXORResultTbl[NP][NT][NT];
     PaintResultType	(*curPaintSave)[NT][NT];
-    void		(*curPlaneSave)();
+    int			(*curPlaneSave)();
 
     int p, t, h;
 

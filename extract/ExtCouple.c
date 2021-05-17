@@ -897,6 +897,9 @@ extSideOverlap(tp, esws)
 	    subcap = (ExtCurStyle->exts_perimCap[ta][outtype] *
 			MIN(areaAccountedFor, length));
 	    rbp->nreg_cap -= subcap;
+	    /* Ignore residual error at ~zero zeptoFarads.  Probably	*/
+	    /* there should be better handling of round-off here.	*/
+	    if ((rbp->nreg_cap > -0.001) && (rbp->nreg_cap < 0.001)) rbp->nreg_cap = 0;
 	    if (CAP_DEBUG)
 		extNregAdjustCap(rbp, -subcap, "obsolete_perimcap");
 	} else if (CAP_DEBUG)

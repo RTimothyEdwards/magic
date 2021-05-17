@@ -87,6 +87,12 @@ bool CalmaNoDuplicates = FALSE;		/* If TRUE, then if a cell exists in
 					 * in the GDS file, then the cell in
 					 * the GDS file is skipped.
 					 */
+bool CalmaUnique = FALSE;		/* If TRUE, then if a cell exists in
+					 * memory with the same name as a cell
+					 * in the GDS file, then the cell in
+					 * memory is renamed to a unique
+					 * identifier with a _N suffix.
+					 */
 extern void calmaUnexpected();
 extern int calmaWriteInitFunc();
 

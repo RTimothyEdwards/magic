@@ -538,7 +538,8 @@ PlotSetParam(name, value)
 	    {
 		int j;
 
-		TxError("%s is not a supported plot type.  Plot types are:\n");
+		TxError("%s is not a supported plot type.  Plot types are:\n",
+				value);
 		for (j = 0 ; plotTypeNames[j] != NULL; j++)
 		{
 		    TxError("\t%s\n", plotTypeNames[j]);

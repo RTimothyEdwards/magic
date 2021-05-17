@@ -26,8 +26,17 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <signal.h>
 #include <unistd.h>	/* for getpid() */
 #include <sys/time.h>
+#include <fcntl.h>
 
+#include "tcltk/tclmagic.h"
 #include "utils/main.h"
+#include "utils/magic.h"
+#include "utils/magsgtty.h"
+#include "textio/textio.h"
+#include "utils/geometry.h"
+#include "utils/signals.h"
+#include "windows/windows.h"
+#include "graphics/graphics.h"
 
 #ifndef	SIGEMT
 #define	SIGEMT	7	/* EMT instruction (SIGUNUSED) */
@@ -56,17 +65,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define SIGSYS SIGUSR2
 #endif
 #endif
-
-#include <fcntl.h>
-
-#include "utils/magic.h"
-#include "utils/magsgtty.h"
-#include "textio/textio.h"
-#include "utils/geometry.h"
-#include "utils/signals.h"
-#include "windows/windows.h"
-#include "graphics/graphics.h"
-
 
 #ifndef FASYNC
 #  define	FASYNC	00100	/* kludge for SUN2s */

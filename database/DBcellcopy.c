@@ -342,6 +342,214 @@ DBCellCheckCopyAllPaint(scx, mask, xMask, targetUse, func)
     DBTreeSrTiles(scx, &locMask, xMask, dbCopyAllPaint, (ClientData) &arg);
 }
 
+/* Client data structure used by DBCellGenerateSubstrate() */
+
+struct dbCopySubData {
+    Plane *csd_plane;
+    TileType csd_subtype;
+    int csd_pNum;
+    bool csd_modified;
+};
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * DBCellGenerateSubstrate --
+ *
+ * This function is used by the extraction code in ExtSubtree.c.
+ * Paint substrate into the target use.  Similar to DBCellCopyAllPaint(),
+ * but it finds space tiles on the substrate plane and converts them to
+ * a substrate type in the target, clipped to the cell boundary.  This
+ * allows the extraction to find and record all substrate regions, both
+ * common (global substrate) and local (isolated substrate), without
+ * requiring a physical substrate type to be drawn into all cells.
+ *
+ * Unlike normal paint copying, this can only be done by painting the
+ * substrate type over the entire cell area and then erasing all areas
+ * belonging to not-substrate types in the source.
+ *
+ * Returns:
+ *	Nothing.
+ *
+ * Side Effects:
+ *	Paints into the targetUse's CellDef.  This only happens if two
+ *	conditions are met:
+ *	(1) The techfile has defined "substrate"
+ *	(2) The techfile defines a type corresponding to the substrate
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+Plane *
+DBCellGenerateSubstrate(scx, subType, notSubMask, subShieldMask, targetDef)
+    SearchContext *scx;
+    TileType subType;			/* Substrate paint type */
+    TileTypeBitMask *notSubMask;	/* Mask of types that are not substrate */
+    TileTypeBitMask *subShieldMask;	/* Mask of types that shield substrate */
+    CellDef *targetDef;
+{
+    struct dbCopySubData csd;
+    Plane *tempPlane;
+    int plane;
+    Rect rect;
+    int dbPaintSubFunc();
+    int dbEraseNonSub();
+    int dbCopySubFunc();
+
+    GEOTRANSRECT(&scx->scx_trans, &scx->scx_area, &rect);
+
+    /* Clip to bounding box of the top level cell */
+    GEOCLIP(&rect, &scx->scx_use->cu_def->cd_bbox);
+
+    plane = DBPlane(subType);
+
+    tempPlane = DBNewPlane((ClientData) TT_SPACE);
+    DBClearPaintPlane(tempPlane);
+
+    csd.csd_subtype = subType;
+    csd.csd_plane = tempPlane;
+    csd.csd_pNum = plane;
+    csd.csd_modified = FALSE;
+
+    /* First paint the substrate type in the temporary plane over the	*/
+    /* area of all substrate shield types.				*/
+    /* Note: xMask is always zero, as this is only called from extract routines */
+    DBTreeSrTiles(scx, subShieldMask, 0, dbPaintSubFunc, (ClientData)&csd);
+    if (csd.csd_modified == FALSE) return NULL;
+
+    /* Now erase all areas that are non-substrate types in the source */
+    DBTreeSrTiles(scx, notSubMask, 0, dbEraseNonSub, (ClientData)&csd);
+
+    /* Finally, copy the destination plane contents onto tempPlane */
+    DBSrPaintArea((Tile *)NULL, targetDef->cd_planes[plane], &TiPlaneRect,
+		&DBAllButSpaceBits, dbCopySubFunc, (ClientData)&csd);
+
+    return tempPlane;
+}
+
+/*
+ * Callback function for DBCellGenerateSubstrate()
+ * Finds tiles in the source def that belong to the list of types that
+ * shield the substrate (e.g., deep nwell), and paint the substrate type
+ * into the target plane over the same area.
+ */
+
+int
+dbPaintSubFunc(tile, cxp)
+    Tile *tile;			/* Pointer to source tile with shield type */
+    TreeContext *cxp;		/* Context from DBTreeSrTiles */
+{
+    SearchContext *scx;
+    Rect sourceRect, targetRect;
+    int pNum;
+    TileType type, loctype, subType;
+    Plane *plane;
+    struct dbCopySubData *csd;	/* Client data */
+
+    scx = cxp->tc_scx;
+    csd = (struct dbCopySubData *)cxp->tc_filter->tf_arg;
+    plane = csd->csd_plane;
+    pNum = csd->csd_pNum;
+    subType = csd->csd_subtype;
+    type = TiGetTypeExact(tile);
+    if (IsSplit(tile))
+    {
+	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	if (loctype == TT_SPACE) return 0;
+    }
+
+    /* Construct the rect for the tile */
+    TITORECT(tile, &sourceRect);
+
+    /* Transform to target coordinates */
+    GEOTRANSRECT(&scx->scx_trans, &sourceRect, &targetRect);
+
+    csd->csd_modified = TRUE;
+
+    return DBNMPaintPlane(plane, type, &targetRect, DBStdPaintTbl(subType, pNum),
+		(PaintUndoInfo *)NULL);
+}
+
+/*
+ * Callback function for DBCellGenerateSubstrate()
+ * Finds tiles on the substrate plane in the source def that are not the
+ * substrate type, and erases those areas from the target.  This reduces
+ * the geometry in the target plane to areas that form isolated substrate
+ * regions.  Regions belonging to the common global substrate are ignored.
+ */
+
+int
+dbEraseNonSub(tile, cxp)
+    Tile *tile;			/* Pointer to tile to erase from target */
+    TreeContext *cxp;		/* Context from DBTreeSrTiles */
+{
+    SearchContext *scx;
+    Rect sourceRect, targetRect;
+    Plane *plane;		/* Plane of target data */
+    TileType type, loctype, subType;
+    struct dbCopySubData *csd;
+    int pNum;
+
+    csd = (struct dbCopySubData *)cxp->tc_filter->tf_arg;
+    plane = csd->csd_plane;
+    subType = csd->csd_subtype;
+    pNum = csd->csd_pNum;
+
+    scx = cxp->tc_scx;
+
+    type = TiGetTypeExact(tile);
+    if (IsSplit(tile))
+    {
+	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	if (loctype == TT_SPACE) return 0;
+    }
+
+    /* Construct the rect for the tile */
+    TITORECT(tile, &sourceRect);
+
+    /* Transform to target coordinates */
+    GEOTRANSRECT(&scx->scx_trans, &sourceRect, &targetRect);
+
+    /* Erase the substrate type from the area of this tile in the target plane. */
+    return DBNMPaintPlane(plane, type, &targetRect, DBStdEraseTbl(subType, pNum),
+		(PaintUndoInfo *)NULL);
+}
+
+/*
+ * Callback function for DBCellGenerateSubstrate()
+ * Simple paint function to copy all paint from the substrate plane of the
+ * source def into the target plane containing the isolated substrate
+ * regions.
+ */
+
+int
+dbCopySubFunc(tile, csd)
+    Tile *tile;			/* Pointer to tile to erase from target */
+    struct dbCopySubData *csd;	/* Client data */
+{
+    Rect rect;
+    int pNum;
+    TileType type, loctype;
+    Plane *plane;
+
+    plane = csd->csd_plane;
+    pNum = csd->csd_pNum;
+    type = TiGetTypeExact(tile);
+    if (IsSplit(tile))
+    {
+	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+	if (loctype == TT_SPACE) return 0;
+    }
+    else
+	loctype = type;
+
+    /* Construct the rect for the tile */
+    TITORECT(tile, &rect);
+
+    return DBNMPaintPlane(plane, type, &rect, DBStdPaintTbl(loctype, pNum),
+		(PaintUndoInfo *)NULL);
+}
+
 /*
  *-----------------------------------------------------------------------------
  *
@@ -480,6 +688,7 @@ DBCellCopyPaint(scx, mask, xMask, targetUse)
 
     arg.caa_mask = mask;
     arg.caa_targetUse = targetUse;
+    arg.caa_func = NULL;
     GeoTransRect(&scx->scx_trans, &scx->scx_area, &arg.caa_rect);
 
     /* Build dummy TreeContext */

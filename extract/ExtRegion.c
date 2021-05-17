@@ -245,7 +245,7 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 		break;
 	    }
 	}
-	if ((found == FALSE) && (nodeList != NULL))
+	if ((found == FALSE) && (nodeList != NULL) && (ExtOptions & EXT_DOLABELCHECK))
 	{
 	    // Unconnected node label.  This may be a "sticky label".
 	    // If it is not connected to TT_SPACE, then create a new

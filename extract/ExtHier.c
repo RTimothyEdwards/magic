@@ -60,16 +60,34 @@ int extHierConnectFunc2();
 int extHierConnectFunc3();
 Node *extHierNewNode();
 
+/*----------------------------------------------------------------------*/
+/* extHierSubShieldFunc --						*/
+/*									*/
+/*	Simple callback function for extHierSubstrate() that halts the	*/
+/*	search if any substrate shield type is found in the search area	*/
+/*									*/
+/*----------------------------------------------------------------------*/
 
-/*----------------------------------------------*/
-/* extHierSubstrate				*/
-/*						*/
-/* Find the substrate node of a child cell and	*/
-/* make a connection between parent and child	*/
-/* substrates.  If either of the substrate 	*/
-/* nodes is already in the hash table, then the	*/
-/* table will be updated as necessary.		*/
-/*----------------------------------------------*/
+int
+extHierSubShieldFunc(tile)
+    Tile *tile;
+{
+    return 1;
+}
+
+/*----------------------------------------------------------------------*/
+/* extHierSubstrate --							*/	
+/*									*/
+/* 	Find the substrate node of a child cell and make a connection	*/
+/*	between parent and child substrates.  If either of the		*/
+/*	substrate nodes is already in the hash table, then the table	*/
+/*	will be updated as necessary.					*/
+/*									*/
+/*	This function also determines if a child cell's substrate is	*/
+/*	isolated by a substrate shield type, in which case no merge is	*/
+/*	done.								*/
+/*									*/
+/*----------------------------------------------------------------------*/
 
 void
 extHierSubstrate(ha, use, x, y)
@@ -84,6 +102,8 @@ extHierSubstrate(ha, use, x, y)
     Node *node1, *node2;
     char *name1, *name2, *childname;
     CellDef *def;
+    Rect subArea;
+    int pNum;
 
     NodeRegion *extFindNodes();
 
@@ -107,6 +127,49 @@ extHierSubstrate(ha, use, x, y)
 
     /* Find the child's substrate node */
     nodeList = extFindNodes(use->cu_def, (Rect *) NULL, TRUE);
+    if (nodeList == NULL)
+    {
+    	ExtResetTiles(use->cu_def, extUnInit);
+	return;
+    }
+
+    /* Check if the child's substrate node is covered by any substrate	*/
+    /* shield type (e.g., deep nwell).  This is a stupid-simple check	*/
+    /* on the node's lower left point.  This will fail if (1) only	*/
+    /* space exists on the substrate plane in the child cell, or (2) if	*/
+    /* some but not all devices in the child are covered by a shield	*/
+    /* type.  Item (1) is handled by checking if the region point is	*/
+    /* outside the cell bound and using the cell bound as the search	*/
+    /* area if so.  However, it really should look for a device in the	*/
+    /* subcell that connects to the substrate.	Item (2) is up to the	*/
+    /* designer to avoid (but should be flagged as an extraction	*/
+    /* error).								*/
+
+    if (GEO_ENCLOSE(&nodeList->nreg_ll, &use->cu_def->cd_bbox))
+    {
+	GeoTransPoint(&use->cu_transform, &nodeList->nreg_ll, &subArea.r_ll);
+	subArea.r_ur.p_x = subArea.r_ll.p_x + 1;
+	subArea.r_ur.p_y = subArea.r_ll.p_y + 1;
+    }
+    else
+	subArea = ha->ha_subArea;
+  
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+    {
+        if (TTMaskIntersect(&DBPlaneTypes[pNum],
+			&ExtCurStyle->exts_globSubstrateShieldTypes))
+        {
+    	    if (DBSrPaintArea((Tile *) NULL,
+			def->cd_planes[pNum], &subArea,
+			&ExtCurStyle->exts_globSubstrateShieldTypes,
+			extHierSubShieldFunc, (ClientData)NULL) != 0)
+    	    {
+    		freeMagic(nodeList);
+    		ExtResetTiles(use->cu_def, extUnInit);
+		return;
+	    }
+	}
+    }
 
     /* Make sure substrate labels are represented */
     ExtLabelRegions(use->cu_def, ExtCurStyle->exts_nodeConn, &nodeList,
@@ -196,6 +259,8 @@ extHierConnections(ha, cumFlat, oneFlat)
     /* Look for sticky labels in the child cell that are not	*/
     /* connected to any geometry.				*/
 
+    if (!(ExtOptions & EXT_DOLABELCHECK)) return;
+
     for (lab = sourceDef->cd_labels;  lab;  lab = lab->lab_next)
     {
 	CellDef *cumDef = cumFlat->et_use->cu_def;
@@ -283,6 +348,8 @@ extHierConnectFunc1(oneTile, ha)
     /* This allows the extractor to catch "sticky" labels that are not	*/
     /* attached to a physical layer in the parent cell.			*/
 
+    if (!(ExtOptions & EXT_DOLABELCHECK)) return 0;
+
     // NOTE by Tim, 9/10/2014:  This generates phantom nodes when the
     // labels are created by the "hard" node search;  I think this code
     // should be restricted to sticky labels only.  But not certain.
@@ -330,31 +397,7 @@ extHierConnectFunc1(oneTile, ha)
 		    node1->node_names = node2->node_names;
 		    freeMagic((char *) node2);
 		}
-
-#if 0
-		/* Copy this label to the parent def with a	*/
-		/* special flag, so we can output it as a node	*/
-	 	/* and then delete it.  Don't duplicate labels	*/
-		/* that are already in the parent.		*/
-
-		for (newlab = ha->ha_parentUse->cu_def->cd_labels;
-				newlab; newlab = newlab->lab_next)
-		    if (!strcmp(newlab->lab_text, lab->lab_text))
-			break;
-
-		if (newlab == NULL)
-		{
-		    n = sizeof(Label) + strlen(lab->lab_text)
-				- sizeof lab->lab_text + 1;
-		    newlab = (Label *)mallocMagic((unsigned)n);
-		    bcopy((char *)lab, (char *)newlab, (int)n);
-
-		    newlab->lab_next = ha->ha_parentUse->cu_def->cd_labels;
-		    ha->ha_parentUse->cu_def->cd_labels = newlab;
-		}
-#endif
 	    }
-
     }
     return (0);
 }

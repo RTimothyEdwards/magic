@@ -1865,6 +1865,7 @@ flatCopyAllLabels(scx, lab, tpath, targetUse)
 {
     Rect labTargetRect;
     int targetPos;
+    int flags = 0;
     CellDef *def;
     char	labelname[1024];
     char *n, *f, c;
@@ -1894,6 +1895,8 @@ flatCopyAllLabels(scx, lab, tpath, targetUse)
      * not a port; possibly we should retain ports taken from the
      * top level cell, but certainly not any others.
      */
+    if (tpath && (*tpath->tp_first) == '\0')
+	flags = lab->lab_flags;
 
     /* To-do Feb. 2008:  Translate target rotation and offset */
 
@@ -1903,7 +1906,7 @@ flatCopyAllLabels(scx, lab, tpath, targetUse)
     strcpy(n, lab->lab_text);
     DBPutFontLabel(def, &labTargetRect, lab->lab_font, lab->lab_size,
 		lab->lab_rotate, &lab->lab_offset, targetPos,
-		f, lab->lab_type, 0);
+		f, lab->lab_type, flags);
     *n = c;
 
     return 0;
@@ -1932,7 +1935,7 @@ CmdFlatten(w, cmd)
     TxCommand *cmd;
 {
      int		rval, xMask;
-     bool		dolabels, dobox, toplabels, invert;
+     bool		dolabels, dobox, toplabels, invert, doports;
      char		*destname;
      CellDef		*newdef;
      CellUse		*newuse;
@@ -1944,6 +1947,7 @@ CmdFlatten(w, cmd)
     dolabels = TRUE;
     toplabels = FALSE;
     dobox = FALSE;
+    doports = TRUE;
 
     rval = 0;
     if (cmd->tx_argc > 2)
@@ -1978,6 +1982,9 @@ CmdFlatten(w, cmd)
 		    case 't':
 			toplabels = (invert) ? FALSE : TRUE;
 			break;
+		    case 'p':
+			doports = (invert) ? FALSE : TRUE;
+			break;
 		    case 's':
 			xMask = (invert) ? CU_DESCEND_NO_SUBCKT : CU_DESCEND_ALL;
 			break;
@@ -1985,7 +1992,7 @@ CmdFlatten(w, cmd)
 			xMask = (invert) ? CU_DESCEND_NO_VENDOR : CU_DESCEND_ALL;
 			break;
 		    default:
-			TxError("options are: -nolabels, -nosubcircuits "
+			TxError("options are: -nolabels, -nosubcircuits, -noports, "
 				"-novendor, -dotoplabels, -dobox\n");
 			break;
 		}

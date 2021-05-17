@@ -253,6 +253,144 @@ selClearFunc(scx)
     else return 2;
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * selIntersectPaintFunc2 ---
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+selIntersectPaintFunc2(tile, rect)
+    Tile *tile;		/* The tile to copy paint from. */
+    Rect *rect;		/* Area to clip to */
+{
+    Rect r;
+
+    TiToRect(tile, &r);
+    GEOCLIP(&r, rect);    /* Clip out the intersection area */
+    DBPaint(SelectDef, &r, TiGetTypeExact(tile));	/* Paint back into SelectDef */
+    return 0;			    /* Keep the search going. */
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * selIntersectPaintFunc --
+ *
+ *	Erase paint of types in rMask from the area of the tile.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+selIntersectPaintFunc(tile)
+    Tile *tile;			/* The tile to copy paint from. */
+{
+    TileTypeBitMask tMask;
+    Rect r;
+    int pNum;
+
+    TiToRect(tile, &r);
+
+    for (pNum = 0; pNum < DBNumPlanes; pNum++)
+    {
+	DBSrPaintArea((Tile *)NULL, Select2Def->cd_planes[pNum], &r,
+		    &DBAllButSpaceAndDRCBits, selIntersectPaintFunc2,
+		    (ClientData)&r);
+    }
+    return 0;			    /* Keep the search going. */
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * SelectIntersect --
+ *
+ * 	This procedure selects all information that falls in a given area
+ *	and contains the intersection of all the supplied types.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	The indicated information is added to the select cell, and
+ *	outlined on the screen.  Only information of particular
+ *	types, and in expanded cells (according to xMask) is
+ *	selected.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+SelectIntersect(scx, type, xMask, negate)
+    SearchContext *scx;		/* Describes the area in which material
+				 * is to be selected.  The resulting
+				 * coordinates should map to the coordinates
+				 * of EditRootDef.  The cell use should be
+				 * the root of a window.
+				 */
+    TileType type;		/* Indicates which layer to intersect with
+				 * the current selection.
+				 */
+    int xMask;			/* Indicates window (or windows) where cells
+				 * must be expanded for their contents to be
+				 * considered.  0 means treat everything as
+				 * expanded.
+				 */
+    bool negate;		/* If true, search on NOT(type) */
+{
+    TileTypeBitMask tMask, rMask;
+    TileType s, t;
+    int plane;
+    SearchContext scx2;
+
+    /* The source definition may not change */
+    if (SelectRootDef != scx->scx_use->cu_def) return;
+
+    SelRememberForUndo(TRUE, (CellDef *) NULL, (Rect *) NULL);
+
+    /* Copy SelectDef contents (paint only) into Select2Def */
+    DBCellClearDef(Select2Def);
+    scx2.scx_use = SelectUse;
+    scx2.scx_area = SelectUse->cu_bbox;
+    GeoTransTrans(&GeoIdentityTransform, &SelectUse->cu_transform, &scx2.scx_trans);
+    DBCellCopyAllPaint(&scx2, &DBAllButSpaceAndDRCBits, CU_DESCEND_NO_LOCK,
+                Select2Use);
+
+    /* Clear the original selection */
+    DBCellClearDef(SelectDef);
+
+    /* Select all paint of type "type" and copy into SelectDef */
+    TTMaskSetOnlyType(&tMask, type);
+
+    plane = DBPlane(type);
+    (void) DBCellCopyAllPaint(scx, &tMask, xMask, SelectUse);
+
+    /* Scan Select2Def for all geometry inside the area of "type", and  */
+    /* copy back to SelectDef as "type"					*/
+
+    if (negate)
+    {
+	TTMaskCom(&tMask);
+	TTMaskAndMask(&tMask, &DBPlaneTypes[plane]);
+    }
+    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[plane],
+	    &scx->scx_area, &tMask, selIntersectPaintFunc, (ClientData)NULL);
+
+    if (negate) TTMaskSetOnlyType(&tMask, type);    /* Restore original mask */
+
+    DBEraseMask(SelectDef, &TiPlaneRect, &tMask);
+
+    /* Display the new selection. */
+
+    SelRememberForUndo(FALSE, SelectRootDef, &scx->scx_area);
+    DBReComputeBbox(SelectDef);
+    DBWHLRedraw(SelectRootDef, &scx->scx_area, TRUE);
+    DBWAreaChanged(SelectDef, &SelectDef->cd_extended, DBW_ALLWINDOWS,
+	    &DBAllButSpaceBits);
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -749,7 +887,7 @@ SelectRegion(scx, type, xMask, pArea, less)
     UndoDisable();
     DBCellClearDef(Select2Def);
     DBTreeCopyConnect(scx, &connections[type], xMask, connections,
-	    &TiPlaneRect, TRUE, Select2Use);
+	    &TiPlaneRect, SelectDoLabels, Select2Use);
     UndoEnable();
 
     /* Now transfer what we found into the main selection cell.  Pick
@@ -850,7 +988,7 @@ SelectNet(scx, type, xMask, pArea, less)
     UndoDisable();
     DBCellClearDef(Select2Def);
     DBTreeCopyConnect(scx, &mask, xMask, DBConnectTbl,
-	    &TiPlaneRect, TRUE, Select2Use);
+	    &TiPlaneRect, SelectDoLabels, Select2Use);
     UndoEnable();
 
     /* Network undo method added by Nishit and Tim, July 8-10, 2004 */
@@ -1074,7 +1212,7 @@ SelectAndCopy2(newSourceDef)
     SearchContext scx;
     Rect editArea, labelArea, expanded;
     int plane;
-    void (*savedPaintPlane)();
+    int (*savedPaintPlane)();
     extern int selACPaintFunc();	/* Forward reference. */
     extern int selACCellFunc();
 

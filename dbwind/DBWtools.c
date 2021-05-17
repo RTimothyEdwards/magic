@@ -792,6 +792,31 @@ DBWSetBox(rootDef, rect)
 
 /*
  * ----------------------------------------------------------------------------
+ * DBWResetBox() ---
+ *
+ *	Make sure that boxRootDef is set to NULL if it is equal to the
+ *	specified CellDef.  This is used by the cell delete function to
+ *	make sure that if an edit cell is deleted, the boxRootDef is not
+ *	pointing to an invalid area of memory.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Global variable boxRootDef may be set to NULL.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBWResetBox(CellDef *def)
+{
+    if (def == boxRootDef)
+	boxRootDef = NULL;
+}
+
+/*
+ * ----------------------------------------------------------------------------
  *	ToolMoveBox --
  *
  * 	Repositions the box by one of its corners.

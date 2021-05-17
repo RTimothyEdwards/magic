@@ -54,6 +54,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 extern void DisplayWindow();
 
+/* Used by CmdSetLabel() */
+Label *DefaultLabel;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -525,6 +528,26 @@ CmdSee(w, cmd)
     return;
 }
 
+#define SEL_AREA	 0
+#define SEL_VISIBLE	 1
+#define SEL_CELL	 2
+#define SEL_LABELS	 3
+#define SEL_INTERSECT	 4
+#define SEL_CLEAR	 5
+#define SEL_FLAT	 6
+#define SEL_HELP	 7
+#define SEL_KEEP	 8
+#define SEL_MOVE	 9
+#define SEL_PICK	10
+#define SEL_SAVE	11
+#define SEL_FEEDBACK	12
+#define SEL_BBOX	13
+#define SEL_BOX		14
+#define SEL_CHUNK	15
+#define SEL_REGION	16
+#define SEL_NET		17
+#define SEL_SHORT	18
+#define SEL_DEFAULT	19
 
 /*
  * ----------------------------------------------------------------------------
@@ -547,9 +570,10 @@ CmdSee(w, cmd)
 
 	/* ARGSUSED */
 void
-cmdSelectArea(layers, less)
+cmdSelectArea(layers, less, option)
     char *layers;			/* Which layers are to be selected. */
     bool less;
+    int option;				/* Option from defined list above */
 {
     SearchContext scx;
     TileTypeBitMask mask;
@@ -600,83 +624,7 @@ cmdSelectArea(layers, less)
     scx.scx_use = (CellUse *) window->w_surfaceID;
     scx.scx_trans = GeoIdentityTransform;
     crec = (DBWclientRec *) window->w_clientData;
-    SelectArea(&scx, &mask, crec->dbw_bitmask);
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * cmdSelectVisible --
- *
- * 	This is a utility procedure used by CmdSelect to do area
- *	selection of visible paint.
- *
- * Results:
- *	None.
- *
- * Side effects:
- *	The selection is augmented to contain all the information on
- *	layers that is visible under the box, including paint, labels,
- *	and expanded subcells.
- *
- * ----------------------------------------------------------------------------
- */
-
-	/* ARGSUSED */
-void
-cmdSelectVisible(layers, less)
-    char *layers;			/* Which layers are to be selected. */
-    bool less;
-{
-    SearchContext scx;
-    TileTypeBitMask mask;
-    int windowMask, xMask;
-    DBWclientRec *crec;
-    MagWindow *window;
-
-    bzero(&scx, sizeof(SearchContext));
-    window = ToolGetBoxWindow(&scx.scx_area, &windowMask);
-    if (window == NULL)
-    {
-	TxPrintf("The box isn't in a window.\n");
-	return;
-    }
-
-    /* Since the box may actually be in multiple windows, we have to
-     * be a bit careful.  If the box is only in one window, then there's
-     * no problem.  If it's in more than window, the cursor must
-     * disambiguate the windows.
-     */
-
-    xMask = ((DBWclientRec *) window->w_clientData)->dbw_bitmask;
-    if ((windowMask & ~xMask) != 0)
-    {
-	window = CmdGetRootPoint((Point *) NULL, (Rect *) NULL);
-        xMask = ((DBWclientRec *) window->w_clientData)->dbw_bitmask;
-	if ((windowMask & xMask) == 0)
-	{
-	    TxPrintf("The box is in more than one window;  use the cursor\n");
-	    TxPrintf("to select the one you want to select from.\n");
-	    return;
-	}
-    }
-    if (CmdParseLayers(layers, &mask))
-    {
-	if (TTMaskEqual(&mask, &DBSpaceBits))
-	    (void) CmdParseLayers("*,label", &mask);
-	TTMaskClearType(&mask, TT_SPACE);
-    }
-    else return;
-
-    if (less)
-      {
-	(void) SelRemoveArea(&scx.scx_area, &mask);
-	return;
-      }
-
-    scx.scx_use = (CellUse *) window->w_surfaceID;
-    scx.scx_trans = GeoIdentityTransform;
-    crec = (DBWclientRec *) window->w_clientData;
+    if (option == SEL_VISIBLE)
     {
 	int i;
 	for (i = 0; i < DBNumUserLayers; i++)
@@ -686,6 +634,85 @@ cmdSelectVisible(layers, less)
 	}
     }
     SelectArea(&scx, &mask, crec->dbw_bitmask);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cmdIntersectArea --
+ *
+ * 	This is a utility procedure used by CmdSelect to do area
+ *	selection itersect.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	The selection is pared down to contain only the part of the
+ *	original selection that intersects with the type "layer".
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+cmdIntersectArea(layer)
+    char *layer;		/* The layer to intersect with */
+{
+    TileType ttype;
+    SearchContext scx;
+    int windowMask, xMask;
+    DBWclientRec *crec;
+    MagWindow *window;
+    char *lptr;
+    bool negate = FALSE;
+
+    bzero(&scx, sizeof(SearchContext));
+    window = ToolGetBoxWindow(&scx.scx_area, &windowMask);
+    if (window == NULL)
+    {
+	TxPrintf("The box isn't in a window.\n");
+	return;
+    }
+
+    /* Since the box may actually be in multiple windows, we have to
+     * be a bit careful.  If the box is only in one window, then there's
+     * no problem.  If it's in more than window, the cursor must
+     * disambiguate the windows.
+     */
+
+    xMask = ((DBWclientRec *) window->w_clientData)->dbw_bitmask;
+    if ((windowMask & ~xMask) != 0)
+    {
+	window = CmdGetRootPoint((Point *) NULL, (Rect *) NULL);
+        xMask = ((DBWclientRec *) window->w_clientData)->dbw_bitmask;
+	if ((windowMask & xMask) == 0)
+	{
+	    TxPrintf("The box is in more than one window;  use the cursor\n");
+	    TxPrintf("to select the one you want to select from.\n");
+	    return;
+	}
+    }
+
+    scx.scx_use = (CellUse *) window->w_surfaceID;
+    scx.scx_trans = GeoIdentityTransform;
+    crec = (DBWclientRec *) window->w_clientData;
+
+    /* Special behavior:  "!" or "~" in front of layer name intersects	*/
+    /* with NOT(layer).							*/
+
+    lptr = layer;
+    if ((*lptr == '~') || (*lptr == '!'))
+    {
+	negate = TRUE;
+	lptr++;
+    }
+    
+    ttype = DBTechNameType(lptr);
+    if (ttype < 0) {
+	TxError("Cannot parse layer type \"%s\".\n", layer);
+	return;
+    }
+    SelectIntersect(&scx, ttype, crec->dbw_bitmask, negate);
 }
 
 /*
@@ -725,30 +752,13 @@ CmdSelect(w, cmd)
      * second table, due to a help message for ":select" with no arguments.
      */
 
-#define SEL_AREA	 0
-#define SEL_VISIBLE	 1
-#define SEL_CELL	 2
-#define SEL_CLEAR	 3
-#define SEL_FLAT	 4
-#define SEL_HELP	 5
-#define SEL_KEEP	 6
-#define SEL_MOVE	 7
-#define SEL_PICK	 8
-#define SEL_SAVE	 9
-#define SEL_FEEDBACK	10
-#define SEL_BBOX	11
-#define SEL_BOX		12
-#define SEL_CHUNK	13
-#define SEL_REGION	14
-#define SEL_NET		15
-#define SEL_SHORT	16
-#define SEL_DEFAULT	17
-
     static char *cmdSelectOption[] =
     {
 	"area",
 	"visible",
 	"cell",
+	"labels",
+	"intersection",
 	"clear",
 	"flat",
 	"help",
@@ -774,6 +784,8 @@ CmdSelect(w, cmd)
 	"[more | less] area [layers]     [de]select all info under box in layers",
 	"[more | less] visible [layers]  [de]select all visible info under box in layers",
 	"[more | less | top] cell [name] [de]select cell under cursor, or \"name\"",
+	"[do | no] labels		 [do not] select subcell labels",
+	"[more | less] intersection [layers]	[de]select intersection of layers",
 	"clear                           clear selection",
 	"flat				 flatten the contents of the selection",
 	"help                            print this message",
@@ -819,7 +831,7 @@ CmdSelect(w, cmd)
 				 * also used to step through multiple uses.
 				 */
     static bool lessCycle = FALSE, lessCellCycle = FALSE;
-    char path[200], *printPath, **msg, **optionArgs, *feedtext;
+    char path[200], *printPath, **msg, **optionArgs, *feedtext, *pstr;
     TerminalPath tpath;
     CellUse *use;
     CellDef *rootBoxDef;
@@ -832,6 +844,7 @@ CmdSelect(w, cmd)
     bool layerspec;
     bool degenerate;
     bool more = FALSE, less = FALSE, samePlace = TRUE;
+    unsigned char labelpolicy = SEL_DO_LABELS;
 #ifdef MAGIC_WRAPPER
     char *tclstr;
     Tcl_Obj *lobj;
@@ -851,7 +864,7 @@ CmdSelect(w, cmd)
 
     /* See if "more" was given.  If so, just strip off the "more" from
      * the argument list and set the "more" flag.  Similarly for options
-     * "less", "nocycle", "top", and "cell".
+     * "less", "do", "no", "nocycle", "top", and "cell".
      */
 
     if (cmd->tx_argc >= 2)
@@ -876,6 +889,7 @@ CmdSelect(w, cmd)
 	else if (!strncmp(cmd->tx_argv[1], "nocycle", arg1len))
 	{
 	    samePlace = FALSE;
+	    labelpolicy = SEL_NO_LABELS;
 	    more = FALSE;
 	    less = FALSE;
 	    type = TT_SELECTBASE - 1;	   /* avoid cycling between types */
@@ -887,6 +901,24 @@ CmdSelect(w, cmd)
 	    /* Force this to be the same as the last selection command,	*/
 	    /* even if there were other commands in between.		*/
 	    lastCommand = TxCommandNumber - 1;
+	    optionArgs = &cmd->tx_argv[2];
+	    cmd->tx_argc--;
+	}
+	else if (!strncmp(cmd->tx_argv[1], "do", arg1len))
+	{
+	    labelpolicy = SEL_DO_LABELS;
+	    optionArgs = &cmd->tx_argv[2];
+	    cmd->tx_argc--;
+	}
+	else if (!strncmp(cmd->tx_argv[1], "no", arg1len))
+	{
+	    labelpolicy = SEL_NO_LABELS;
+	    optionArgs = &cmd->tx_argv[2];
+	    cmd->tx_argc--;
+	}
+	else if (!strncmp(cmd->tx_argv[1], "simple", arg1len))
+	{
+	    labelpolicy = SEL_SIMPLE_LABELS;
 	    optionArgs = &cmd->tx_argv[2];
 	    cmd->tx_argc--;
 	}
@@ -954,7 +986,7 @@ CmdSelect(w, cmd)
 	    }
 	    if (!(more || less)) SelectClear();
 	    if (cmd->tx_argc == 3)
-		cmdSelectArea(optionArgs[1], less);
+		cmdSelectArea(optionArgs[1], less, option);
 	    else cmdSelectArea("*,label,subcell", less);
 	    return;
 
@@ -968,8 +1000,18 @@ CmdSelect(w, cmd)
 	    if (cmd->tx_argc > 3) goto usageError;
 	    if (!(more || less)) SelectClear();
 	    if (cmd->tx_argc == 3)
-		cmdSelectVisible(optionArgs[1], less);
-	    else cmdSelectVisible("*,label,subcell", less);
+		cmdSelectArea(optionArgs[1], less, option);
+	    else cmdSelectArea("*,label,subcell", less, option);
+	    return;
+
+	/*--------------------------------------------------------------------
+	 * Select area that is the intersection of all the specified layers
+	 *--------------------------------------------------------------------
+	 */
+
+	case SEL_INTERSECT:
+	    if (cmd->tx_argc > 3) goto usageError;
+	    cmdIntersectArea(optionArgs[1]);
 	    return;
 
 	/*--------------------------------------------------------------------
@@ -980,6 +1022,14 @@ CmdSelect(w, cmd)
 	case SEL_CLEAR:
 	    if ((more) || (less) || (cmd->tx_argc > 2)) goto usageError;
 	    SelectClear();
+	    return;
+
+	case SEL_LABELS:
+	    SelectDoLabels = labelpolicy;
+	    if (SelectDoLabels)
+		TxPrintf("Selection includes subcell labels\n");
+	    else
+		TxPrintf("Selection ignores subcell labels\n");
 	    return;
 
 	/*--------------------------------------------------------------------
@@ -1526,6 +1576,13 @@ Okay:
 	    DBWSetBox(scx.scx_use->cu_def, &r);
 
 #ifdef MAGIC_WRAPPER
+	    /* Remove any backslash escapes so that Tcl_escape() doesn't
+	     * double-escape them.
+	     */
+	    for (pstr = printPath; *pstr != '\0';)
+		if ((*pstr == '\\') && ((*(pstr + 1) == '[') || (*(pstr + 1) == ']')))
+		    memmove(pstr, pstr + 1, 1 + strlen(pstr + 1));
+		else pstr++;
 	    tclstr = Tcl_escape(printPath);
 	    Tcl_SetResult(magicinterp, tclstr, TCL_DYNAMIC);
 #else
@@ -1854,8 +1911,7 @@ cmdLabelFontFunc(label, cellUse, transform, font)
  * Query or change properties of a (selected) label in the edit cell
  *
  * Usage:
- *	setlabel option [name]
- *
+ *	setlabel [-default] option [name]
  *
  * Option may be one of:
  *	text
@@ -1874,6 +1930,11 @@ cmdLabelFontFunc(label, cellUse, transform, font)
  *	information if the requested font is not already in the font list.
  *	"setlabel font <name>" can be used without any select to load fonts
  *	from a startup script.
+ *
+ *	Use with "-default" causes the DefaultLabel structure to be created
+ *	(if not existing already) and set with the given value.  Subsequent
+ *	use of the "label" command will start with the given defaults, then
+ *	apply whatever non-default values are specified in the command.
  *
  * ----------------------------------------------------------------------------
  */
@@ -1895,10 +1956,12 @@ CmdSetLabel(w, cmd)
     TxCommand *cmd;
 {
     int pos = -1, font = -1, size = 0, rotate = 0, flags = 0;
+    int locargc, argstart = 1;
     char **msg;
     Point offset;
     TileType ttype;
     int option;
+    bool doDefault = FALSE;
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj;
 #endif
@@ -1921,10 +1984,34 @@ CmdSetLabel(w, cmd)
 	NULL
     };
 
-    if (cmd->tx_argc < 2 || cmd->tx_argc > 4)
+    locargc = cmd->tx_argc;
+    if (locargc > 2)
+    {
+	if (!strncmp(cmd->tx_argv[1], "-def", 4))
+	{
+	    if (DefaultLabel == NULL)
+	    {
+		DefaultLabel = (Label *)mallocMagic(sizeof(Label));
+		/* Set default defaults (lab_text is ignored) */
+		DefaultLabel->lab_just = -1;
+		DefaultLabel->lab_size = 0;
+		DefaultLabel->lab_font = -1;
+		DefaultLabel->lab_rotate = 0;
+		DefaultLabel->lab_flags = 0;
+		DefaultLabel->lab_offset.p_x = 0;
+		DefaultLabel->lab_offset.p_y = 0;
+		DefaultLabel->lab_type = (TileType)(-1);
+	    }
+	    doDefault = TRUE;
+	    locargc--;
+	    argstart++;
+	}
+    }
+
+    if (locargc < 2 || locargc > 4)
 	option = SETLABEL_HELP;
     else
-	option = Lookup(cmd->tx_argv[1], cmdLabelSetOption);
+	option = Lookup(cmd->tx_argv[argstart], cmdLabelSetOption);
 
     switch (option)
     {
@@ -1943,20 +2030,27 @@ CmdSetLabel(w, cmd)
 	    break;
 
 	case SETLABEL_TEXT:
-	    if (EditCellUse)
+	    if (doDefault)
+	    {
+		TxError("Cannot set a default label text.\n");
+	    }
+	    else if (EditCellUse)
 	    {
 		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelTextFunc, (cmd->tx_argc == 3) ?
-			(ClientData)cmd->tx_argv[2] : (ClientData)NULL);
+			cmdLabelTextFunc, (locargc == 3) ?
+			(ClientData)cmd->tx_argv[argstart + 1] : (ClientData)NULL);
 	    }
 	    break;
 
 	case SETLABEL_FONT:
-	    if (cmd->tx_argc >= 2 && cmd->tx_argc <= 4)
+	    if (locargc >= 2 && locargc <= 4)
 	    {
-		if ((cmd->tx_argc == 3) && StrIsInt(cmd->tx_argv[2]))
+		/* This option is used to see the font name corresponding
+		 * to a font number.
+		 */
+		if ((locargc == 3) && StrIsInt(cmd->tx_argv[argstart + 1]))
 		{
-		    int font = atoi(cmd->tx_argv[2]);
+		    int font = atoi(cmd->tx_argv[argstart + 1]);
 		    if (font < -1 || font >= DBNumFonts)
 		    {
 			if (DBNumFonts == 0)
@@ -1970,67 +2064,118 @@ CmdSetLabel(w, cmd)
 		    else
 			TxPrintf("%s\n", DBFontList[font]->mf_name);
 		}
-		else if ((cmd->tx_argc == 3 || cmd->tx_argc == 4) &&
-				!StrIsInt(cmd->tx_argv[2]))
+		else if ((locargc == 3 || locargc == 4) &&
+				!StrIsInt(cmd->tx_argv[argstart + 1]))
 		{
-		    font = DBNameToFont(cmd->tx_argv[2]);
+		    font = DBNameToFont(cmd->tx_argv[argstart + 1]);
 		    if (font < -1)
 		    {
 			float scale = 1.0;
-			if ((cmd->tx_argc == 4) && StrIsNumeric(cmd->tx_argv[3]))
-			    scale = (float)atof(cmd->tx_argv[3]);
-			if (DBLoadFont(cmd->tx_argv[2], scale) != 0)
-			    TxError("Error loading font \"%s\"\n", cmd->tx_argv[2]);
-			font = DBNameToFont(cmd->tx_argv[2]);
+			if ((locargc == 4) && StrIsNumeric(cmd->tx_argv[argstart + 2]))
+			    scale = (float)atof(cmd->tx_argv[argstart + 2]);
+			if (DBLoadFont(cmd->tx_argv[argstart + 1], scale) != 0)
+			    TxError("Error loading font \"%s\"\n", cmd->tx_argv[argstart + 1]);
+			font = DBNameToFont(cmd->tx_argv[argstart + 1]);
 			if (font < -1) break;
 		    }
 		}
 
-		if (EditCellUse)
+		if (doDefault)
+		{
+		    if (locargc == 2)
+		    {
+		    	font = DefaultLabel->lab_font;
+			if (font == -1)
+#ifdef MAGIC_WRAPPER
+		            Tcl_SetResult(magicinterp, "default", TCL_VOLATILE);
+#else
+		    	    TxPrintf("default\n");
+#endif
+			else
+#ifdef MAGIC_WRAPPER
+			    Tcl_SetObjResult(magicinterp,
+				Tcl_NewStringObj(DBFontList[font]->mf_name, -1));
+#else
+			    TxPrintf("%s\n", DBFontList[font]->mf_name);
+#endif
+		    }
+		    else
+			DefaultLabel->lab_font = font;
+		}
+		else if (EditCellUse)
 		{
 		    SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
-				cmdLabelFontFunc, (cmd->tx_argc == 3) ?
+				cmdLabelFontFunc, (locargc == 3) ?
 				(ClientData)&font : (ClientData)NULL);
 		}
 	    }
 	    break;
 
 	case SETLABEL_JUSTIFY:
-	    if (cmd->tx_argc == 3)
+	    if (locargc == 3)
 	    {
-		pos = GeoNameToPos(cmd->tx_argv[2], FALSE, TRUE);
+		pos = GeoNameToPos(cmd->tx_argv[argstart + 1], FALSE, TRUE);
 		if (pos < 0) break;
 	    }
-	    if (EditCellUse)
+	    if (doDefault)
+	    {
+		if (locargc == 2)
+		{
+#ifdef MAGIC_WRAPPER
+		    Tcl_SetObjResult(magicinterp,
+				Tcl_NewStringObj(GeoPosToName(DefaultLabel->lab_just),
+				-1));
+#else
+		    TxPrintf("%s\n", GeoPosToName(DefaultLabel->lab_just));
+#endif
+		}
+		else
+		    DefaultLabel->lab_just = pos;
+	    }
+	    else if (EditCellUse)
 	    {
 		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelJustFunc, (cmd->tx_argc == 3) ?
+			cmdLabelJustFunc, (locargc == 3) ?
 			(ClientData)&pos : (ClientData)NULL);
 	    }
 	    break;
 
 	case SETLABEL_SIZE:
-	    if (cmd->tx_argc == 3)
+	    if (locargc == 3)
 	    {
-		if (StrIsNumeric(cmd->tx_argv[2]))
-		    size = cmdScaleCoord(w, cmd->tx_argv[2], TRUE, TRUE, 8);
+		if (StrIsNumeric(cmd->tx_argv[argstart + 1]))
+		    size = cmdScaleCoord(w, cmd->tx_argv[argstart + 1], TRUE, TRUE, 8);
 		if (size <= 0) break;
 	    }
-	    if (EditCellUse)
+	    if (doDefault)
+	    {
+		if (locargc == 2)
+		{
+#ifdef MAGIC_WRAPPER
+		    Tcl_SetObjResult(magicinterp,
+				Tcl_NewIntObj(DefaultLabel->lab_size));
+#else
+		    TxPrintf("%d\n", DefaultLabel->lab_size);
+#endif
+		}
+		else
+		    DefaultLabel->lab_size = size;
+	    }
+	    else if (EditCellUse)
 	    {
 		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelSizeFunc, (cmd->tx_argc == 3) ?
+			cmdLabelSizeFunc, (locargc == 3) ?
 			(ClientData)&size : (ClientData)NULL);
 	    }
 	    break;
 
 	case SETLABEL_OFFSET:
-	    if (cmd->tx_argc == 3)
+	    if (locargc == 3)
 	    {
 		char *yp;
-		if ((yp = strchr(cmd->tx_argv[2], ' ')) != NULL)
+		if ((yp = strchr(cmd->tx_argv[argstart + 1], ' ')) != NULL)
 		{
-		    offset.p_x = cmdScaleCoord(w, cmd->tx_argv[2], TRUE, TRUE, 8);
+		    offset.p_x = cmdScaleCoord(w, cmd->tx_argv[argstart + 1], TRUE, TRUE, 8);
 		    offset.p_y = cmdScaleCoord(w, yp, TRUE, FALSE, 8);
 		}
 		else
@@ -2039,67 +2184,138 @@ CmdSetLabel(w, cmd)
 		    return;
 		}
 	    }
-	    else if (cmd->tx_argc == 4)
+	    else if (locargc == 4)
 	    {
-		offset.p_x = cmdScaleCoord(w, cmd->tx_argv[2], TRUE, TRUE, 8);
-		offset.p_y = cmdScaleCoord(w, cmd->tx_argv[3], TRUE, FALSE, 8);
+		offset.p_x = cmdScaleCoord(w, cmd->tx_argv[argstart + 1], TRUE, TRUE, 8);
+		offset.p_y = cmdScaleCoord(w, cmd->tx_argv[argstart + 2], TRUE, FALSE, 8);
 	    }
-	    if (EditCellUse)
+	    if (doDefault)
+	    {
+		if (locargc == 2)
+		{
+#ifdef MAGIC_WRAPPER
+	 	    Tcl_Obj *lobj;
+		    Tcl_NewListObj(0, NULL);
+	    	    Tcl_ListObjAppendElement(magicinterp, lobj,
+				Tcl_NewIntObj(DefaultLabel->lab_offset.p_x));
+	    	    Tcl_ListObjAppendElement(magicinterp, lobj,
+				Tcl_NewIntObj(DefaultLabel->lab_offset.p_y));
+		    Tcl_SetObjResult(magicinterp, lobj);
+#else
+		    TxPrintf("%d %d\n", DefaultLabel->lab_offset.p_x,
+				DefaultLabel->lab_offset.p_y);
+#endif
+		}
+		else
+		    DefaultLabel->lab_offset = offset;
+	    }
+	    else if (EditCellUse)
 	    {
 		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelOffsetFunc, (cmd->tx_argc != 2) ?
+			cmdLabelOffsetFunc, (locargc != 2) ?
 			(ClientData)&offset : (ClientData)NULL);
 	    }
 	    break;
 
 	case SETLABEL_ROTATE:
-	    if (cmd->tx_argc == 3)
+	    if (locargc == 3)
 	    {
-		if (StrIsInt(cmd->tx_argv[2]))
-		    rotate = atoi(cmd->tx_argv[2]);
+		if (StrIsInt(cmd->tx_argv[argstart + 1]))
+		    rotate = atoi(cmd->tx_argv[argstart + 1]);
 	    }
-	    if (EditCellUse)
+	    if (doDefault)
+	    {
+		if (locargc == 2)
+		{
+#ifdef MAGIC_WRAPPER
+		    Tcl_SetObjResult(magicinterp,
+				Tcl_NewIntObj(DefaultLabel->lab_rotate));
+#else
+		    TxPrintf("%d\n", DefaultLabel->lab_rotate);
+#endif
+		}
+		else
+		    DefaultLabel->lab_rotate = rotate;
+	    }
+	    else if (EditCellUse)
 	    {
 		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelRotateFunc, (cmd->tx_argc == 3) ?
+			cmdLabelRotateFunc, (locargc == 3) ?
 			(ClientData)&rotate : (ClientData)NULL);
 	    }
 	    break;
 
 	case SETLABEL_STICKY:
-	    if (cmd->tx_argc == 3)
+	    if (locargc == 3)
 	    {
-		option = Lookup(cmd->tx_argv[2], cmdLabelYesNo);
+		option = Lookup(cmd->tx_argv[argstart + 1], cmdLabelYesNo);
 		if (option < 0)
 		{
-		    TxError("Unknown sticky option \"%s\"\n", cmd->tx_argv[2]);
+		    TxError("Unknown sticky option \"%s\"\n", cmd->tx_argv[argstart + 1]);
 		    break;
 		}
 		flags = (option <= 3) ? 0 : LABEL_STICKY;
 	    }
-	    if (EditCellUse)
+	    if (doDefault)
+	    {
+		if (locargc == 2)
+		{
+#ifdef MAGIC_WRAPPER
+		    Tcl_SetObjResult(magicinterp,
+				Tcl_NewBooleanObj((DefaultLabel->lab_flags &
+				LABEL_STICKY) ? TRUE : FALSE));
+#else
+		    TxPrintf("%d\n", (DefaultLabel->lab_flags & LABEL_STICKY) ? 1 : 0);
+#endif
+		}
+		else
+		    DefaultLabel->lab_flags = flags;
+	    }
+	    else if (EditCellUse)
 	    {
 		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelStickyFunc, (cmd->tx_argc == 3) ?
+			cmdLabelStickyFunc, (locargc == 3) ?
 			(ClientData)&flags : (ClientData)NULL);
 	    }
 	    break;
 
 	case SETLABEL_LAYER:
-	    if (cmd->tx_argc == 3)
+	    if (locargc == 3)
 	    {
-		if (!strcasecmp(cmd->tx_argv[2], "default"))
+		if (!strcasecmp(cmd->tx_argv[argstart + 1], "default"))
 		    ttype = -1;
 		else
 		{
-		    ttype = DBTechNoisyNameType(cmd->tx_argv[2]);
+		    ttype = DBTechNoisyNameType(cmd->tx_argv[argstart + 1]);
 		    if (ttype < 0) break;
 		}
 	    }
-	    if (EditCellUse)
+	    if (doDefault)
+	    {
+		if (locargc == 2)
+		{
+		    if (DefaultLabel->lab_type == (TileType)(-1))
+#ifdef MAGIC_WRAPPER
+		        Tcl_SetResult(magicinterp, "default", TCL_VOLATILE);
+#else
+		    	TxPrintf("default\n");
+#endif
+		    else
+#ifdef MAGIC_WRAPPER
+		        Tcl_SetResult(magicinterp,
+				DBTypeLongNameTbl[DefaultLabel->lab_type],
+				TCL_VOLATILE);
+#else
+		    	TxPrintf("%s\n", DBTypeLongNameTbl[DefaultLabel->lab_type]);
+#endif
+		}
+		else
+		    DefaultLabel->lab_type = ttype;
+	    }
+	    else if (EditCellUse)
 	    {
 		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
-			cmdLabelLayerFunc, (cmd->tx_argc == 3) ?
+			cmdLabelLayerFunc, (locargc == 3) ?
 			(ClientData)&ttype : (ClientData)NULL);
 	    }
 	    break;
@@ -2113,7 +2329,7 @@ CmdSetLabel(w, cmd)
 	    break;
 
 	default:
-	    TxError("Unknown setlabel option \"%s\"\n", cmd->tx_argv[1]);
+	    TxError("Unknown setlabel option \"%s\"\n", cmd->tx_argv[argstart]);
 	    break;
     }
 }

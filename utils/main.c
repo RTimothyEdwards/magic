@@ -770,6 +770,12 @@ mainInitAfterArgs()
     return 0;
 }
 
+void tcl_exit_hook(ClientData clientData)
+{
+    TxResetTerminal();
+    exit(0);
+}
+
 /*
  * ----------------------------------------------------------------------------
  * mainInitFinal:
@@ -793,6 +799,9 @@ mainInitFinal()
     FILE *f;
     char *rname;
     int result;
+
+    /* Reset terminal if exit is called inside a TCL script */
+    Tcl_SetExitProc(tcl_exit_hook);
 
 #ifdef MAGIC_WRAPPER
 
@@ -1186,6 +1195,8 @@ mainInitFinal()
      */
     UndoFlush();
     TxClearPoint();
+
+    Tcl_SetExitProc(NULL);
 
     return 0;
 }

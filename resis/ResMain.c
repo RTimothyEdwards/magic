@@ -37,10 +37,10 @@ resNode			*ResNodeQueue=NULL;	/* Pending nodes	  */
 resNode			*ResOriginNode=NULL;	/* node where R=0	  */
 resNode			*resCurrentNode;
 int			ResTileCount=0;		/* Number of tiles rn_status */
-extern Region 			*ResFirst();
+extern Region 		*ResFirst();
 extern Tile		*FindStartTile();
-extern int			ResEachTile();
-extern int			ResLaplaceTile();
+extern int		ResEachTile();
+extern int		ResLaplaceTile();
 extern ResSimNode	*ResInitializeNode();
 
 extern HashTable	ResNodeTable;
@@ -216,6 +216,18 @@ ResMakePortBreakpoints(def)
 	{
 	    plane = def->cd_planes[DBPlane(node->rs_ttype)];
 	    rect  = &(node->rs_bbox);
+
+	    /* Beware of zero-area ports */
+	    if (rect->r_xbot == rect->r_xtop)
+	    {
+		rect->r_xbot--;
+		rect->r_xtop++;
+	    }
+	    if (rect->r_ybot == rect->r_ytop)
+	    {
+		rect->r_ybot--;
+		rect->r_ytop++;
+	    }
 
 	    TTMaskSetOnlyType(&mask, node->rs_ttype);
 	    (void) DBSrPaintArea((Tile *) NULL, plane, rect, &mask,
@@ -561,19 +573,18 @@ ResProcessTiles(goodies, origin)
  *
  * Side effects: Produces a resistance network for the node.
  *
- *
  *-------------------------------------------------------------------------
  */
 
 bool
-ResExtractNet(startlist,goodies,cellname)
+ResExtractNet(startlist, goodies, cellname)
     ResFixPoint		*startlist;
     ResGlobalParams	*goodies;
     char		*cellname;
 {
     SearchContext 	scx;
     int			pNum;
-    ResDevTile		*DevTiles,*lasttile;
+    ResDevTile		*DevTiles, *lasttile;
     TileTypeBitMask	FirstTileMask;
     Point		startpoint;
     ResFixPoint		*fix;
@@ -581,10 +592,10 @@ ResExtractNet(startlist,goodies,cellname)
 
     /* Make sure all global network variables are reset */
 
-    ResResList=NULL;
-    ResNodeList=NULL;
-    ResDevList=NULL;
-    ResNodeQueue=NULL;
+    ResResList = NULL;
+    ResNodeList = NULL;
+    ResDevList = NULL;
+    ResNodeQueue = NULL;
     ResContactList = NULL;
     ResOriginNode = NULL;
 
@@ -630,17 +641,16 @@ ResExtractNet(startlist,goodies,cellname)
 
     DBCellClearDef(ResUse->cu_def);
 
-
-    /* Copy Paint     */
+    /* Copy Paint */
     DevTiles = NULL;
     lasttile = NULL;
-    for (fix = startlist; fix != NULL;fix=fix->fp_next)
+    for (fix = startlist; fix != NULL; fix = fix->fp_next)
     {
-	 ResDevTile	*newdevtiles,*tmp;
+	 ResDevTile *newdevtiles, *tmp;
 
 #ifdef ARIEL
 	 if ((ResOptionsFlags & ResOpt_Power) &&
-	 		strcmp(fix->fp_name,goodies->rg_name) != 0) continue;
+	 		strcmp(fix->fp_name, goodies->rg_name) != 0) continue;
 #endif
 
          scx.scx_area.r_ll.p_x = fix->fp_loc.p_x-2;
@@ -649,10 +659,10 @@ ResExtractNet(startlist,goodies,cellname)
          scx.scx_area.r_ur.p_y = fix->fp_loc.p_y+2;
 	 startpoint = fix->fp_loc;
 
-	 // Because fix->fp_ttype might come from a label with a sticky type
-	 // that does not correspond exactly to the layer underneath, include
-	 // all connecting types.
-	 /* TTMaskSetOnlyType(&FirstTileMask,fix->fp_ttype); */
+	 /* Because fix->fp_ttype might come from a label with a sticky type
+	  * that does not correspond exactly to the layer underneath, include
+	  * all connecting types.
+	  */
 	 TTMaskSetMask(&FirstTileMask, &DBConnectTbl[fix->fp_ttype]);
 
          newdevtiles = DBTreeCopyConnectDCS(&scx, &FirstTileMask, 0,
@@ -662,13 +672,9 @@ ResExtractNet(startlist,goodies,cellname)
 	 if (newdevtiles)
 	 {
 	      if (DevTiles)
-	      {
 	      	   lasttile->nextDev = newdevtiles;
-	      }
 	      else
-	      {
 	      	   DevTiles = newdevtiles;
-	      }
 	      lasttile = tmp;
 	 }
     }
@@ -682,7 +688,7 @@ ResExtractNet(startlist,goodies,cellname)
 				     &DBAllButSpaceAndDRCBits,
 				     ResConnectWithSD, extUnInit, ResFirst,
 				     ResEach);
-    ExtResetTiles(ResUse->cu_def,extUnInit);
+    ExtResetTiles(ResUse->cu_def, extUnInit);
 
     /*
      * dissolve the contacts and find which tiles now cover the point
@@ -697,7 +703,7 @@ ResExtractNet(startlist,goodies,cellname)
     {
     	 Plane	*plane = ResUse->cu_def->cd_planes[pNum];
 	 Rect	*rect  = &ResUse->cu_def->cd_bbox;
-	 ResFracture(plane,rect);
+	 ResFracture(plane, rect);
 	 (void) DBSrPaintClient((Tile *) NULL,plane,rect,
 	 		&DBAllButSpaceAndDRCBits,
 			(ClientData) CLIENTDEFAULT, ResAddPlumbing,

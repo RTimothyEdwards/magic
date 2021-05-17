@@ -53,7 +53,8 @@ proc readspice {netfile} {
    # Read data from file.  Remove comment lines and concatenate
    # continuation lines.
 
-   puts stderr "Annotating port orders from $netfile"
+   puts stdout "Annotating port orders from $netfile"
+   flush stdout
    set fdata {}
    set lastline ""
    while {[gets $fnet line] >= 0} {
@@ -109,14 +110,20 @@ proc readspice {netfile} {
 	       # Make sure pins aren't duplicated by first moving all pin
 	       # indexes above the number of pins to check.
 
+	       puts stdout "Annotating cell $cell"
+   	       flush stdout
 	       set npins [expr {[llength $ftokens] - 1}]
 	       set highport [port last]
 	       set outport $highport
 	       if {$outport < $npins} {set outport $npins}
 	       set p [port first]
 	       while {$p != -1 && $p <= $highport} {
+		   if {$p == ""} {
+		       puts stderr "Error:  $cell port numbering failed."
+		       break
+		   }
 		   set p1 [port $p next]
-		   set testpin [port $p name]
+		   set testpin [port $p name -quiet]
 		   if {$testpin != ""} {
 		       port $p index $outport
 		       incr outport
@@ -150,15 +157,15 @@ proc readspice {netfile} {
 		  # a port.
 
 		  set testpin $pin
-		  set pinidx [port $testpin index]
+		  set pinidx [port $testpin index -quiet]
 
 		  if {$pinidx == ""} {
 		      set testpin [string map {\[ < \] >]} $pin]
-		      set pinidx [port $testpin index]
+		      set pinidx [port $testpin index -quiet]
 		  }
 		  if {$pinidx == ""} {
 		      set testpin [string map {< \[ > \]} $pin]
-		      set pinidx [port $testpin index]
+		      set pinidx [port $testpin index -quiet]
 		  }
 
 		  # Handle issues with case insensitivity by getting
@@ -167,9 +174,9 @@ proc readspice {netfile} {
 		  if {$pinidx == ""} {
 		      set highport [port last]
 		      for {set p 0} {$p <= $highport} {incr p} {
-			  set testpin [port $p name]
+			  set testpin [port $p name -quiet]
 			  if {[string tolower $testpin] == [string tolower $pin]} {
-			      set pinidx [port $testpin index]
+			      set pinidx [port $testpin index -quiet]
 			      break
 			  }
 		      }

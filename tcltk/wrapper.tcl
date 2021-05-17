@@ -554,7 +554,6 @@ set Opts(crosshair) 0
 set Opts(hidelocked) 0
 set Opts(hidespecial) 0
 set Opts(toolbar) 0
-set Opts(scale) 1.0
 set Opts(toolscale) 1.0
 set Opts(drc) 1
 set Opts(autobuttontext) 1
@@ -1134,6 +1133,16 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
 
    toplevel $framename
    tkwait visibility $framename
+
+   # Get scale from the TkDefaultFont size, unless Opts(scale) is already
+   # set.  On standard displays, an "M" in the Sans font is usually 10
+   # pixels wide, and 22 on high resolution displays, so this maps to
+   # a scale of 1 on standard displays and a scale of 2 on high resolution
+   # displays.  Make sure scale doesn't go to zero or bad things happen.
+ 
+   if [catch {set Opts(scale)}] {
+	set Opts(scale) [expr {max(1, int([font measure TkDefaultFont M] / 10))}]
+   }
 
    # Resize the window
    if {[catch {wm geometry ${framename} $Winopts(${framename},geometry)}]} {

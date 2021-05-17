@@ -42,7 +42,7 @@ extern void CmdAddPath(), CmdAntennaCheck(), CmdArray();
 extern void CmdBox(), CmdCellname(), CmdClockwise();
 extern void CmdContact(), CmdCopy(), CmdCorner();
 extern void CmdCrash(), CmdCrosshair();
-extern void CmdDelete(), CmdDown(), CmdDrc(), CmdDump();
+extern void CmdDelete(), CmdDown(), CmdDrc(), CmdDrop(), CmdDump();
 extern void CmdEdit(), CmdElement(), CmdErase(), CmdExpand(), CmdExtract();
 extern void CmdFeedback(), CmdFill(), CmdFindBox(), CmdFindLabel(), CmdFlush();
 extern void CmdGetcell(), CmdGrid(), CmdIdentify();
@@ -278,6 +278,10 @@ DBWInitCommands()
 	"drc option		design rule checker; type \"drc help\"\n"
 	"			for information on options",
 	CmdDrc, FALSE);
+    WindAddCommand(DBWclientID,
+	"drop layers		copy layers from edit cell into\n"
+	"			subcells containing selected paint",
+	CmdDrop, FALSE);
     WindAddCommand(DBWclientID,
 	"dump cell [child refPointC] [parent refPointP]\n\
 			copy contents of cell into edit cell, so that\n\

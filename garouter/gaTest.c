@@ -61,7 +61,7 @@ int gaDebNoClean = 0;
 
 /* Used in the "*garoute split" command */
 PlaneMask gaSplitPlaneMask;
-void (*gaSplitPaintPlane)();
+int (*gaSplitPaintPlane)();
 Rect gaSplitArea;
 int gaSplitType;
 

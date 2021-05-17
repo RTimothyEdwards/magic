@@ -723,7 +723,7 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
 	     */
 
 	    parent = use->cu_parent;
-	    DBDeleteCell(use);
+	    DBDeleteCellNoModify(use);
 	    use->cu_parent = parent;
 	}
 
@@ -751,7 +751,7 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
 	if ((parent = use->cu_parent) != (CellDef *) NULL)
 	{
 	    parent->cd_flags |= CDBOXESCHANGED;
-	    DBPlaceCell(use, parent);
+	    DBPlaceCellNoModify(use, parent);
 	    if (last != parent)
 	    {
 		if (last != NULL) (*recurseProc)(last);

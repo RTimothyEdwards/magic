@@ -33,6 +33,10 @@
 #include "utils/hash.h"
 #endif	/* _HASH_H */
 
+#ifndef	_STACK_H
+#include "utils/stack.h"
+#endif	/* _STACK_H */
+
 #ifndef _BPLANE_H
 #include "bplane/bplane.h"
 #endif /* _BPLANE_H */
@@ -658,6 +662,54 @@ typedef struct treeFilter
 /* To do:  Make the tpath entries dynamically allocated */
 #define FLATTERMSIZE 4096		/* Used for generating flattened labels */
 
+/* ------------ Information used in connectivity searches --------------*/
+
+/* The following structure is used to hold several pieces of information
+ * that must be passed through multiple levels of search function.  This
+ * structure is used by DBSrConnect, DBTreeCopyConnect, SimTreeCopyConnect,
+ * and DBTreeCopyConnectDCS.
+ */
+
+struct conSrArg
+{
+    CellDef *csa_def;                   /* Definition being searched. */
+    int csa_pNum;			/* Index of plane being searched */
+    TileTypeBitMask *csa_connect;       /* Table indicating what connects
+                                         * to what.
+                                         */
+    int (*csa_clientFunc)();            /* Client function to call. */
+    ClientData csa_clientData;          /* Argument for clientFunc. */
+    bool csa_clear;                     /* FALSE means pass 1, TRUE
+                                         * means pass 2.
+                                         */
+    Rect csa_bounds;                    /* Area that limits search. */
+};
+
+typedef struct
+{
+    Rect                area;           /* Area to process */
+    TileTypeBitMask     *connectMask;   /* Connection mask for search */
+    TileType            dinfo;          /* Info about triangular search areas */
+} conSrArea;
+
+struct conSrArg2
+{
+    CellUse             *csa2_use;      /* Destination use */
+    TileTypeBitMask     *csa2_connect;  /* Table indicating what connects
+                                         * to what.
+                                         */
+    SearchContext       *csa2_topscx;   /* Original top-level search context */
+    int                  csa2_xMask;    /* Cell window mask for search */
+    Rect                *csa2_bounds;   /* Area that limits the search */
+
+    Stack               *csa2_stack;    /* Stack of full csa2_list entries */
+    conSrArea           *csa2_list;     /* List of areas to process */
+    int                 csa2_top;       /* Index of next area to process */
+    int                 csa2_lasttop;   /* Previous top index */
+};
+
+#define CSA2_LIST_SIZE 65536            /* Number of entries per list */
+
 /* -------------- Undo information passed to DBPaintPlane ------------- */
 
 typedef struct
@@ -725,6 +777,7 @@ extern void DBFileRecovery();
 extern bool DBWriteBackup();
 extern bool DBReadBackup();
 extern void DBRemoveBackup();
+extern void DBPathSubstitute();
 
     /* Labels */
 extern Label *DBPutLabel();
@@ -790,7 +843,9 @@ extern CellUse *DBFindUse();
 
     /* Insertion/deletion of cell uses into the cell tile plane of a parent */
 extern void DBPlaceCell();
+extern void DBPlaceCellNoModify();
 extern void DBDeleteCell();
+extern void DBDeleteCellNoModify();
 extern void DBClearCellPlane();
 
     /* Insertion/deletion of cell uses into the name space of a parent */
@@ -821,6 +876,7 @@ extern void DBCellCopyLabels();
 extern void DBCellCopyAllLabels();
 extern void DBCellCopyCells();
 extern void DBCellCopyAllCells();
+extern Plane *DBCellGenerateSubstrate();
 
     /* Contact image handling */
 extern TileType DBPlaneToResidue();

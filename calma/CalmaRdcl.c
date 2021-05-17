@@ -48,12 +48,14 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 int calmaNonManhattan;
 int CalmaFlattenLimit = 10;
+int NameConvertErrors = 0;
 
 extern HashTable calmaDefInitHash;
 
 /* forward declarations */
 int  calmaElementSref();
 bool calmaParseElement();
+void calmaUniqueCell();
 
 /* Structure used when flattening the GDS hierarchy on read-in */
 
@@ -306,8 +308,8 @@ calmaParseStructure(filename)
     if (!calmaReadStringRecord(CALMA_STRNAME, &strname)) goto syntaxerror;
     TxPrintf("Reading \"%s\".\n", strname);
 
-    if (CalmaReadOnly)
-	filepos = ftello(calmaInputFile);
+    /* Used for read-only and annotated LEF views */
+    filepos = ftello(calmaInputFile);
 
     /* Set up the cell definition */
     he = HashFind(&calmaDefInitHash, strname);
@@ -348,51 +350,76 @@ calmaParseStructure(filename)
 	    freeMagic(newname);
 	}
     }
+    if (CalmaUnique) calmaUniqueCell(strname);	/* Ensure uniqueness */
     cifReadCellDef = calmaFindCell(strname, &was_called, &predefined);
+    HashSetValue(he, cifReadCellDef);
+
     if (predefined == TRUE)
     {
-	calmaNextCell();
-	return TRUE;
+	bool isAbstract;
+
+	/* If the cell was predefined, the "noduplicates" option was
+	 * invoked, and the existing cell is an abstract view, then
+	 * annotate the cell with the GDS file pointers to the cell
+	 * data, and the GDS filename.
+	 */
+	DBPropGet(cifReadCellDef, "LEFview", &isAbstract);
+	if (!isAbstract)
+	{
+	    calmaNextCell();
+	    return TRUE;
+	}
+	calmaSkipTo(CALMA_ENDSTR);
     }
-    DBCellClearDef(cifReadCellDef);
-    DBCellSetAvail(cifReadCellDef);
-    HashSetValue(he, cifReadCellDef);
-    cifCurReadPlanes = cifSubcellPlanes;
-    cifReadCellDef->cd_flags &= ~CDDEREFERENCE;
-
-    /* For read-only cells, set flag in def */
-    if (CalmaReadOnly)
-	cifReadCellDef->cd_flags |= CDVENDORGDS;
-
-    /* Skip CALMA_STRCLASS or CALMA_STRTYPE */
-    calmaSkipSet(structs);
-
-    /* Initialize the hash table for layer errors */
-    HashInit(&calmaLayerHash, 32, sizeof (CalmaLayerType) / sizeof (unsigned));
-    was_initialized = TRUE;
-
-    /* Body of structure: a sequence of elements */
-    osrefs = nsrefs = 0;
-    npaths = 0;
-    calmaNonManhattan = 0;
-    while (calmaParseElement(filename, &nsrefs, &npaths))
+    else
     {
-	if (SigInterruptPending)
-	    goto done;
-	if (nsrefs > osrefs && (nsrefs % 100) == 0)
-	    TxPrintf("    %d uses\n", nsrefs);
-	osrefs = nsrefs;
+	DBCellClearDef(cifReadCellDef);
+	DBCellSetAvail(cifReadCellDef);
+	cifCurReadPlanes = cifSubcellPlanes;
+	cifReadCellDef->cd_flags &= ~CDDEREFERENCE;
+
+	/* For read-only cells, set flag in def */
+	if (CalmaReadOnly)
+	    cifReadCellDef->cd_flags |= CDVENDORGDS;
+
+	/* Skip CALMA_STRCLASS or CALMA_STRTYPE */
+	calmaSkipSet(structs);
+
+	/* Initialize the hash table for layer errors */
+	HashInit(&calmaLayerHash, 32, sizeof (CalmaLayerType) / sizeof (unsigned));
+	was_initialized = TRUE;
+
+	/* Body of structure: a sequence of elements */
+	osrefs = nsrefs = 0;
+	npaths = 0;
 	calmaNonManhattan = 0;
+
+	while (calmaParseElement(filename, &nsrefs, &npaths))
+    	{
+	    if (SigInterruptPending)
+	    	goto done;
+	    if (nsrefs > osrefs && (nsrefs % 100) == 0)
+	   	TxPrintf("    %d uses\n", nsrefs);
+	    osrefs = nsrefs;
+	    calmaNonManhattan = 0;
+	}
     }
 
-    if (CalmaReadOnly)
+    if (CalmaReadOnly || predefined)
     {
+	char cstring[1024];
+
 	/* Writing the file position into a string is slow, but */
 	/* it prevents requiring special handling when printing	*/
 	/* out the properties.					*/
 
 	char *fpcopy = (char *)mallocMagic(20);
-	char *fncopy = StrDup(NULL, filename);
+	char *fncopy;
+
+	/* Substitute variable for PDK path or ~ for home directory	*/
+	/* the same way that cell references are handled in .mag files.	*/
+	DBPathSubstitute(filename, cstring, cifReadCellDef);
+	fncopy = StrDup(NULL, cstring);
 	sprintf(fpcopy, "%"DLONG_PREFIX"d", (dlong) filepos);
 	DBPropPut(cifReadCellDef, "GDS_START", (ClientData)fpcopy);
 
@@ -403,9 +430,11 @@ calmaParseStructure(filename)
 
 	DBPropPut(cifReadCellDef, "GDS_FILE", (ClientData)fncopy);
 
-	/* Do not lock the cell, or else we can't save the	*/
-	/* magic cell with its GDS pointers to disk. . .	*/
-	/* cifReadCellDef->cd_flags |= CDNOEDIT; */
+    	if (predefined)
+    	{
+    	    if (strname != NULL) freeMagic(strname);
+	    return TRUE;
+        }
     }
 
     /* Check if the cell name matches the pattern list of cells to flatten */
@@ -589,6 +618,25 @@ calmaParseElement(filename, pnsrefs, pnpaths)
     }
 
     return (calmaSkipTo(CALMA_ENDEL));
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * Callback procedure for enumerating any paint in a cell.  Used to find if
+ * a cell needs to be retained after being flattened into the parent cell.
+ *
+ * Returns 1 always.  Only called if a non-space tile was encountered.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+calmaEnumFunc(tile, plane)
+    Tile *tile;
+    int *plane;
+{
+    return 1;
 }
 
 /*
@@ -836,8 +884,24 @@ calmaElementSref(filename)
 	    READI2(propAttrType);
 	    if (propAttrType == CALMA_PROP_USENAME)
 	    {
+		char *s;
+
 		if (!calmaReadStringRecord(CALMA_PROPVALUE, &useid))
 		    return -1;
+
+		/* Magic prohibits comma and slash from use names */
+		for (s = useid; *s; s++)
+		    if (*s == '/' || *s == ',')
+		    {
+			if (NameConvertErrors < 100)
+			    TxPrintf("\"%c\" character cannot be used in instance name; "
+					"converting to underscore\n", *s);
+			else if (NameConvertErrors == 100)
+			    TxPrintf("More than 100 character changes; not reporting"
+					" further errors.\n");
+			*s = '_';
+			NameConvertErrors++;
+		    }
 	    }
 	    else if (propAttrType == CALMA_PROP_ARRAY_LIMITS)
 	    {
@@ -981,9 +1045,38 @@ calmaElementSref(filename)
 	    }
 	}
 
-	/* If cell has children in addition to paint to be flattened,	*/
-	/* then also generate an instance of the cell.			*/
+	/* When not reading with VENDORGDS, if a cell has contents	*/
+	/* other than the paint to be flattened, then also generate an	*/
+	/* instance of the cell.  Otherwise (with VENDORGDS), always 	*/
+	/* generate cell instances.  Note that only paint and cells	*/
+	/* are counted, not labels (see below).				*/
 
+	else if (!(def->cd_flags & CDVENDORGDS))
+	{
+	    int plane;
+	    for (plane = PL_TECHDEPBASE; plane < DBNumPlanes; plane++)
+		if (DBSrPaintArea((Tile *)NULL, def->cd_planes[plane], &TiPlaneRect,
+			&DBAllButSpaceAndDRCBits, calmaEnumFunc, (ClientData)NULL))
+		    break;
+
+	    if ((plane < DBNumPlanes) || DBCellEnum(def, gdsHasUses, (ClientData)NULL))
+	    {
+		use = DBCellNewUse(def, (useid) ? useid : (char *) NULL);
+		if (isArray)
+		    DBMakeArray(use, &GeoIdentityTransform, xlo, ylo, xhi, yhi, xsep, ysep);
+		DBSetTrans(use, &trans);
+		DBPlaceCell(use, cifReadCellDef);
+		madeinst = TRUE;
+	    }
+	    else
+	    {
+		/* (To do:  Copy labels from flattened cells, with hierarchical	*/
+		/* names.  Whether to do this or not should be an option.)	*/
+		/* TxPrintf("Removing instances of flattened cell %s in %s\n",
+			def->cd_name, cifReadCellDef->cd_name); */
+		madeinst = TRUE;
+	    }
+	}
 	else
 	{
 	    use = DBCellNewUse(def, (useid) ? useid : (char *) NULL);
@@ -1043,6 +1136,65 @@ gdsCopyPaintFunc(tile, gdsCopyRec)
 		(PaintUndoInfo *)NULL);
 
     return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaUniqueCell --
+ *
+ *	Attempt to find a cell in the GDS subcell name hash table.
+ *	If one exists, rename its definition so that it will not
+ *	be overwritten when the cell is redefined.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+calmaUniqueCell(sname)
+    char *sname;
+{
+    HashEntry *h;
+    CellDef *def, *testdef;
+    char *newname;
+    int snum = 0;
+
+    h = HashLookOnly(&CifCellTable, sname);
+
+    /* Existing entry with zero value indicates that the existing   */
+    /* cell came from the same GDS file, so don't change anything.  */
+    if ((h != NULL) && HashGetValue(h) == 0) return;
+
+    def = DBCellLookDef(sname);
+    if (def == (CellDef *)NULL)
+	return;
+
+    /* Cell may have been called but not yet defined---this is okay. */
+    else if ((def->cd_flags & CDAVAILABLE) == 0)
+        return;
+
+    testdef = def;
+    newname = (char *)mallocMagic(10 + strlen(sname));
+     
+    while (testdef != NULL)
+    {
+	/* Keep appending suffix indexes until we find one not used */
+	sprintf(newname, "%s_%d", sname, ++snum);
+	testdef = DBCellLookDef(newname);
+    }
+    DBCellRenameDef(def, newname);
+
+    h = HashFind(&CifCellTable, (char *)sname);
+    HashSetValue(h, 0);
+
+    CalmaReadError("Warning: cell definition \"%s\" reused.\n", sname);
+    freeMagic(newname);
 }
 
 /*

@@ -32,6 +32,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "utils/malloc.h"
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
+#include "tiles/tile.h"
 #include "extract/extract.h"	/* for device class list */
 
 /*
@@ -183,6 +184,7 @@ efBuildNode(def, isSubsnode, nodeName, nodeCap, x, y, layerName, av, ac)
 	newname = (EFNodeName *) mallocMagic((unsigned)(sizeof (EFNodeName)));
 	newname->efnn_hier = EFStrToHN((HierName *) NULL, nodeName);
 	newname->efnn_port = -1;	/* No port assignment */
+	newname->efnn_refc = 0;		/* Only reference is self */
 	newname->efnn_next = NULL;
 	HashSetValue(he, (char *) newname);
     }
@@ -453,6 +455,8 @@ efBuildEquiv(def, nodeName1, nodeName2)
     nn1 = (EFNodeName *) HashGetValue(he1);
     nn2 = (EFNodeName *) HashGetValue(he2);
 
+    if (nn1 == nn2) return;	/* These nodes already merged */
+
     if (nn2 == (EFNodeName *) NULL)
     {
 	/* Create nodeName1 if it doesn't exist */
@@ -481,11 +485,35 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	    return;		/* Repeated "equiv" statement */
 	if (nn1->efnn_node != nn2->efnn_node)
 	{
+	    struct efnode *node1 = nn1->efnn_node;
+	    struct efnode *node2 = nn2->efnn_node;
+    	    HashSearch hs;
+
 	    if (efWarn)
 		efReadError("Merged nodes %s and %s\n", nodeName1, nodeName2);
 	    efNodeMerge(&nn1->efnn_node, &nn2->efnn_node);
 	    if (nn1->efnn_port > 0) nn2->efnn_port = nn1->efnn_port;
 	    else if (nn2->efnn_port > 0) nn1->efnn_port = nn2->efnn_port;
+
+	    /* If a node has been merged away, make sure that its name	*/
+	    /* and all aliases point to the merged name's hash.		*/
+
+	    if (nn1->efnn_node == NULL)
+	    {
+		nn2->efnn_refc += nn1->efnn_refc + 1;
+    		HashStartSearch(&hs);
+    		while (he1 = HashNext(&def->def_nodes, &hs))
+		    if ((EFNodeName *)HashGetValue(he1) == nn1)
+			HashSetValue(he1, (char *)nn2);
+	    }
+	    else if (nn2->efnn_node == NULL)
+	    {
+		nn1->efnn_refc += nn2->efnn_refc + 1;
+    		HashStartSearch(&hs);
+    		while (he2 = HashNext(&def->def_nodes, &hs))
+		    if ((EFNodeName *)HashGetValue(he2) == nn2)
+			HashSetValue(he2, (char *)nn1);
+	    }
 	}
 	return;
     }
@@ -1553,6 +1581,7 @@ efNodeAddName(node, he, hn)
     newnn->efnn_node = node;
     newnn->efnn_hier = hn;
     newnn->efnn_port = -1;
+    newnn->efnn_refc = 0;
     HashSetValue(he, (char *) newnn);
 
     /* If the node is a port of the top level cell, denoted by flag	*/
@@ -1861,7 +1890,15 @@ efFreeNodeTable(table)
 	{
 	    for (hn = nn->efnn_hier; hn; hn = hn->hn_parent)
 		(void) HashFind(&efFreeHashTable, (char *) hn);
-	    freeMagic((char *) nn);
+
+	    /* Node equivalences made by "equiv" statements are	handled	*/
+	    /* by reference count.  Don't free the node structure until	*/
+	    /* all references have been seen.				*/
+
+	    if (nn->efnn_refc > 0)
+		nn->efnn_refc--;
+	    else
+		freeMagic((char *) nn);
 	}
 }
 

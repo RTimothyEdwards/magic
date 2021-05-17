@@ -27,12 +27,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
+#include "extflat/extflat.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "utils/utils.h"
 #include "utils/tech.h"
 #include "textio/txcommands.h"
-#include	"resis/resis.h"
+#include "resis/resis.h"
 
 
 /* constants defining where various fields can be found in .sim files. */
@@ -49,11 +50,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define		COUPLEVALUE	3
 #define		REALNAME	1
 #define		ALIASNAME	2
-#define		NODECIFCOMMAND	0
-#define		NODENODENAME	1
-#define		NODENODEX	2
-#define		NODENODEY	3
-#define		NODETYPE	4
+#define		NODES_NODENAME	0
+#define		NODES_NODEX	1
+#define		NODES_NODEY	2
+#define		NODES_NODETYPE	3
 #define		NODE_BBOX_LL_X	5
 #define		NODE_BBOX_LL_Y	6
 #define		NODE_BBOX_UR_X	7
@@ -119,10 +119,10 @@ extern void ResSimProcessDrivePoints();
  */
 
 int
-ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
+ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
      char	*simfile;
-     int	(*fetproc)(),(*capproc)(),(*resproc)();
-     int	(*attrproc)(),(*mergeproc)();
+     int	(*fetproc)(), (*capproc)(), (*resproc)();
+     int	(*attrproc)(), (*mergeproc)(), (*subproc)();
 
 {
      char line[MAXLINE][MAXTOKEN];
@@ -172,6 +172,8 @@ ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
 						    line[ATTRIBUTEVALUE],
 						    simfile, &extfile);
 		    		break;
+		    case 'x':	fettype = DBNumTypes;
+				break;
 		    case 'D':
 		    case 'c':
 		    case 'r':	break;
@@ -183,6 +185,10 @@ ResReadSim(simfile,fetproc,capproc,resproc,attrproc,mergeproc)
 	       {
 	       	    TxError("Error in Reading device line of sim file.\n");
 		    result = 1;
+	       }
+	       else if (fettype == DBNumTypes)
+	       {
+		    result = (*subproc)(line);
 	       }
 	       else if (fettype != MINFINITY)
 	       {
@@ -229,13 +235,6 @@ ResReadNode(nodefile)
     char *cp;
     float lambda;
 
-    /* NOTE:  Units from the .nodes file are in centimicrons.
-     * Divide by the extract scale (exts_unitsPerLambda) to get back
-     * to database units.  This assumes that exts_unitsPerLambda doesn't
-     * change between output and readback.
-     */
-    lambda = (float)ExtCurStyle->exts_unitsPerLambda;
-
     fp = PaOpen(nodefile,"r",".nodes",".", (char *) NULL, (char **) NULL);
     if (fp == NULL)
     {
@@ -244,19 +243,19 @@ ResReadNode(nodefile)
     }
     while (gettokens(line,fp) != 0)
     {
-	entry = HashFind(&ResNodeTable,line[NODENODENAME]);
+	entry = HashFind(&ResNodeTable,line[NODES_NODENAME]);
 	node = ResInitializeNode(entry);
 
-	node->location.p_x = (int)((float)atof(line[NODENODEX]) / lambda);
-	node->location.p_y = (int)((float)atof(line[NODENODEY]) / lambda);
+	node->location.p_x = atoi(line[NODES_NODEX]);
+	node->location.p_y = atoi(line[NODES_NODEY]);
 #ifdef ARIEL
-	node->rs_bbox.r_xbot = (int)((float)atof(line[NODE_BBOX_LL_X]) / lambda);
-	node->rs_bbox.r_ybot = (int)((float)atof(line[NODE_BBOX_LL_Y]) / lambda);
-	node->rs_bbox.r_xtop = (int)((float)atof(line[NODE_BBOX_UR_X]) / lambda);
-	node->rs_bbox.r_ytop = (int)((float)atof(line[NODE_BBOX_UR_Y]) / lambda);
+	node->rs_bbox.r_xbot = atoi(line[NODE_BBOX_LL_X]);
+	node->rs_bbox.r_ybot = atoi(line[NODE_BBOX_LL_Y]);
+	node->rs_bbox.r_xtop = atoi(line[NODE_BBOX_UR_X]);
+	node->rs_bbox.r_ytop = atoi(line[NODE_BBOX_UR_Y]);
 #endif
-	if (cp = strchr(line[NODETYPE], ';')) *cp = '\0';
-	node->type = DBTechNameType(line[NODETYPE]);
+	if (cp = strchr(line[NODES_NODETYPE], ';')) *cp = '\0';
+	node->type = DBTechNameType(line[NODES_NODETYPE]);
 
 	if (node->type == -1)
 	{
@@ -320,6 +319,130 @@ gettokens(line,fp)
 /*
  *-------------------------------------------------------------------------
  *
+ *  ResSimSubckt-- Processes a subcircuit line from a sim file.
+ *	    This uses the "user subcircuit" extension defined in
+ *	    IRSIM, although it is mostly intended as a way to work
+ *	    around the device type limitations of the .sim format
+ *	    when using extresist.
+ *
+ * Results: returns 0 if line was added correctly.
+ *
+ * Side Effects: Allocates devices and adds nodes to the node hash table.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+ResSimSubckt(line)
+    char line[][MAXTOKEN];
+{
+    RDev	*device;
+    int		rvalue, i, j, k;
+    static int	nowarning = TRUE;
+    float	lambda;
+    TileType	ttype = TT_SPACE;
+    char	*lptr = NULL, *wptr = NULL;
+
+    device = (RDev *) mallocMagic((unsigned) (sizeof(RDev)));
+
+    device->status = FALSE;
+    device->nextDev = ResRDevList;
+
+    lambda = (float)ExtCurStyle->exts_unitsPerLambda / resscale;
+    device->location.p_x = 0;
+    device->location.p_y = 0;
+
+    device->rs_gattr=RDEV_NOATTR;
+    device->rs_sattr=RDEV_NOATTR;
+    device->rs_dattr=RDEV_NOATTR;
+
+    ResRDevList = device;
+    device->layout = NULL;
+
+    /* The last argument is the name of the device */
+    for (i = 1; line[i][0] != '\0'; i++);
+    i--;
+
+    for (j = 0; j < EFDevNumTypes; j++)
+	if (!strcmp(EFDevTypes[j], line[i]))
+	    break;
+
+    /* Read attributes, especially to pick up values for L, W, X, and Y,
+     * that are critical for use by extresist.
+     */
+    for (k = 1; line[k][0] != '\0'; k++)
+    {
+	char *eqptr;
+	eqptr = strchr(line[k], '=');
+	if (eqptr != NULL)
+	{
+	    if (k < i) i = k;
+	    eqptr++;
+	    switch (line[k][0]) {
+		case 'l':
+		    lptr = eqptr;
+		    break;
+		case 'w':
+		    wptr = eqptr;
+		    break;
+		case 'x':
+		    device->location.p_x = (int)((float)atof(eqptr) / lambda);
+		    break;
+		case 'y':
+		    device->location.p_y = (int)((float)atof(eqptr) / lambda);
+		    break;
+		case 't':
+		    ttype = (int)(atoi(eqptr));
+		    break;
+	    }
+	}
+    }
+
+    /* This should not be needed, as ext2sim should encode device type	*/
+    /* in the attributes list.						*/
+    if (ttype == TT_SPACE)
+    {
+	if (j == EFDevNumTypes)
+	{
+	    TxError("Failure to find device type %s\n", line[i]);
+	    return 1;
+	}
+	ttype = extGetDevType(EFDevTypes[j]);
+    }
+
+    device->rs_ttype = ttype;
+
+    if (lptr != NULL && wptr != NULL)
+    {
+	float rpersquare;
+	ExtDevice *devptr;
+
+	devptr = ExtCurStyle->exts_device[ttype];
+	rpersquare =(float)devptr->exts_linearResist;
+	device->resistance = MagAtof(lptr) * rpersquare/MagAtof(wptr);
+    }
+    else
+	device->resistance = 0;
+
+    rvalue = 0;
+    for (k = 1; k < i; k++)
+    {
+	if (k > SUBS)
+	{
+	    TxError("Device %s has more than 4 ports (not handled).\n", line[i]);
+	    break;	    /* No method to handle more ports than this */
+	}
+	rvalue += ResSimNewNode(line[k], k, device);
+    }
+
+    return rvalue;
+}
+
+
+
+/*
+ *-------------------------------------------------------------------------
+ *
  *  ResSimDevice-- Processes a device line from a sim file.
  *
  * Results: returns 0 if line was added correctly.
@@ -330,7 +453,7 @@ gettokens(line,fp)
  */
 
 int
-ResSimDevice(line,rpersquare,ttype)
+ResSimDevice(line, rpersquare, ttype)
 	char line[][MAXTOKEN];
 	float	rpersquare;
 	TileType	ttype;
@@ -428,7 +551,7 @@ ResSimDevice(line,rpersquare,ttype)
  */
 
 int
-ResSimNewNode(line,type,device)
+ResSimNewNode(line, type, device)
 	char 		line[];
 	int		type;
 	RDev		*device;
@@ -443,7 +566,7 @@ ResSimNewNode(line,type,device)
      	  TxError("Missing device connection\n");
 	  return(1);
      }
-     entry = HashFind(&ResNodeTable,line);
+     entry = HashFind(&ResNodeTable, line);
      node = ResInitializeNode(entry);
      tptr = (devPtr *) mallocMagic((unsigned) (sizeof(devPtr)));
      tptr->thisDev = device;
@@ -457,6 +580,8 @@ ResSimNewNode(line,type,device)
      	  case SOURCE: device->source = node;
 	  	       break;
      	  case DRAIN:  device->drain = node;
+	  	       break;
+     	  case SUBS:   device->subs = node;
 	  	       break;
 	  default:  TxError("Bad Terminal Specifier\n");
 	  		break;

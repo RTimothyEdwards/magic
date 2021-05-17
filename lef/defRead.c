@@ -1546,24 +1546,20 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		    break;
 		}
 
-		/* Does use name contain brackets?  If so, this can */
-		/* interfere with magic's use of arrays.	    */
-		/* NOTE:  This has been commented out.  I think	    */
-		/* the only confusion is in ext2spice and can be    */
-		/* avoided by allowing any bracket notation in an   */
-		/* instance name other than that used by the .ext   */
-		/* file for dealing with arrays, which uses the	    */
-		/* specific syntax [xlo:xsep:xhi][ylo:ysep:yhi] and */
-		/* is easy enough to distinguish.		    */
+		/* Magic prohibits slashes and commas in use names	*/
+		/* when using the "identify" command.  Removing these	*/
+		/* restrictions (at least the slash) is quite complex,	*/
+		/* but really should be taken care of, since no other	*/
+		/* tools consider this an illegal use, that I'm aware	*/
+		/* of.							*/
 
-		/*
-		    dptr = strchr(usename, '[');
-		    if (dptr != NULL) {
+		for (dptr = usename; *dptr; dptr++)
+		    if ((*dptr == '/') || (*dptr == ','))
+		    {
+			LefError(DEF_WARNING, "Character in instance name "
+				"converted to underscore.\n");
 			*dptr = '_';
-			dptr = strchr(dptr + 1, ']');
-			if (dptr != NULL) *dptr = '_';
 		    }
-		*/
 
 		token = LefNextToken(f, TRUE);
 

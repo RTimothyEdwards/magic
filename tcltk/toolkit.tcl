@@ -8,6 +8,8 @@
 # Revision 1
 # October 29, 2020
 # Revision 2	(names are hashed from properties)
+# March 9, 2021
+# Added spice-to-layout procedure
 #--------------------------------------------------------------
 # Sets up the environment for a toolkit.  The toolkit must
 # supply a namespace that is the "library name".  For each
@@ -105,6 +107,307 @@ magic::macro ^P "magic::gencell {} ; raise .params"
 
 magic::tag select "[magic::tag select]; magic::gencell_update %1"
 
+#--------------------------------------------------------------
+# Supporting procedures for netlist_to_layout procedure
+#--------------------------------------------------------------
+
+# move_forward_by_width --
+#
+#    Given an instance name, find the instance and position the
+#    cursor box at the right side of the instance.
+
+proc magic::move_forward_by_width {instname} {
+    select cell $instname
+    set anum [lindex [array -list count] 1]
+    set xpitch [lindex [array -list pitch] 0]
+    set bbox [box values]
+    set posx [lindex $bbox 0]
+    set posy [lindex $bbox 1]
+    set width [expr [lindex $bbox 2] - $posx]
+    set posx [expr $posx + $width + $xpitch * $anum]
+    box position ${posx}i ${posy}i
+    return [lindex $bbox 3]
+}
+
+# get_and_move_inst --
+#
+#    Given a cell name, creat an instance of the cell named "instname"
+#    at the current cursor box position.  If option "anum" is given
+#    and > 1, then array the cell.
+
+proc magic::get_and_move_inst {cellname instname {anum 1}} {
+    set newinst [getcell $cellname]
+    select cell $newinst
+    if {$newinst == ""} {return}
+    identify $instname
+    if {$anum > 1} {array 1 $anum}
+    set bbox [box values]
+    set posx [lindex $bbox 2]
+    set posy [lindex $bbox 1]
+    box position ${posx}i ${posy}i
+    return [lindex $bbox 3]
+}
+
+# create_new_pin --
+#
+#    Create a new pin of size 1um x 1um at the current cursor box
+#    location.  If "layer" is given, then create the pin on the
+#    given layer.  Otherwise, the pin is created on the m1 layer.
+
+proc magic::create_new_pin {pinname portnum {layer m1}} {
+    box size 1um 1um
+    paint $layer
+    label $pinname FreeSans 16 0 0 0 c $layer
+    port make $portnum
+    box move s 2um
+}
+
+# generate_layout_add --
+#
+#    Add a new subcircuit to a layout and seed it with components
+#    as found in the list "complist", and add pins according to the
+#    pin names in "subpins".  Each entry in "complist" is a single
+#    device line from a SPICE file.
+
+proc magic::generate_layout_add {subname subpins complist library} {
+    global PDKNAMESPACE
+
+    # Create a new subcircuit
+    load $subname -quiet
+    box 0 0 0 0
+
+    # Generate pins
+    if {[llength $subpins] > 0} {
+	set pinlist [split $subpins]
+	set i 0
+	foreach pin $pinlist {
+	    # Escape [ and ] in pin name
+	    set pin_esc [string map {\[ \\\[ \] \\\]} $pin]
+	    magic::create_new_pin $pin_esc $i
+	    incr i
+	}
+    }
+
+    # Set initial position for importing cells
+    box size 0 0
+    set posx 0
+    set posy [expr {round(3 / [cif scale out])}]
+    box position ${posx}i ${posy}i
+
+    # Seed layout with components
+    foreach comp $complist {
+	set pinlist {}
+	set paramlist {}
+
+	# NOTE:  This routine deals with subcircuit calls and devices
+	# with models.  It needs to determine when a device is instantiated
+	# without a model, and ignore such devices.
+
+	# Parse SPICE line into pins, device name, and parameters.  Make
+	# sure parameters incorporate quoted expressions as {} or ''.
+
+	set rest $comp
+	while {$rest != ""} {
+	    if {[regexp -nocase {^[ \t]*[^= \t]+=[^=]+} $rest]} {
+		break
+	    } elseif {[regexp -nocase {^[ \t]*([^ \t]+)[ \t]*(.*)$} $rest \
+			valid token rest]} {
+		lappend pinlist $token
+	    } else {
+		set rest ""
+	    }
+	}
+
+	while {$rest != ""} {
+	    if {[regexp -nocase {^([^= \t]+)=\'([^\']+)\'[ \t]*(.*)} $rest \
+			valid pname value rest]} {
+		lappend paramlist [list $pname "{$value}"]
+	    } elseif {[regexp -nocase {^([^= \t]+)=\{([^\}]+)\}[ \t]*(.*)} $rest \
+			valid pname value rest]} {
+		lappend paramlist [list $pname "{$value}"]
+	    } elseif {[regexp -nocase {^([^= \t]+)=([^= \t]+)[ \t]*(.*)} $rest \
+			valid pname value rest]} {
+		lappend paramlist [list $pname $value]
+	    } else {
+		puts stderr "Error parsing line \"$comp\""
+		puts stderr "at:  \"$rest\""
+		set rest ""
+	    }
+	}
+
+	if {[llength $pinlist] < 2} {
+	    puts stderr "Error:  No device type found in line \"$comp\""
+	    puts stderr "Tokens found are: \"$pinlist\""
+	    continue
+	}
+
+	set instname [lindex $pinlist 0]
+	set devtype [lindex $pinlist end]
+	set pinlist [lrange $pinlist 0 end-1]
+
+	set mult 1
+	foreach param $paramlist {
+	    set parmname [lindex $param 0]
+	    set parmval [lindex $param 1]
+	    if {[string toupper $parmname] == "M"} {
+		if {[catch {set mult [expr {int($parmval)}]}]} {
+		    set mult [expr [string trim $parmval "'"]]
+		}
+	    }
+	}
+
+        # devtype is assumed to be in library.  If not, it will attempt to
+	# use 'getcell' on devtype.  Note that this code depends on the
+	# PDK setting varible PDKNAMESPACE.
+
+	if {$library != ""} {
+	    set libdev ${library}::${devtype}
+	} else {
+	    set libdev ${PDKNAMESPACE}::${devtype}
+	}
+
+	set outparts {}
+	lappend outparts "magic::gencell $libdev $instname"
+
+	# Output all parameters.  Parameters not used by the toolkit are
+	# ignored by the toolkit.
+
+	lappend outparts "-spice"
+	foreach param $paramlist {
+	    lappend outparts [string tolower [lindex $param 0]]
+	    lappend outparts [lindex $param 1]
+	}
+
+	if {[catch {eval [join $outparts]}]} {
+	    # Assume this is not a gencell, and get an instance.
+	    magic::get_and_move_inst $devtype $instname $mult
+	} else {
+	    # Move forward for next gencell
+	    magic::move_forward_by_width $instname
+	}
+    }
+    save $subname
+}
+
+#--------------------------------------------------------------
+# Wrapper for generating an initial layout from a SPICE netlist
+# using the defined PDK toolkit procedures
+#
+#    "netfile" is the name of a SPICE netlist
+#    "library" is the name of the PDK library namespace
+#--------------------------------------------------------------
+
+proc magic::netlist_to_layout {netfile library} {
+
+   if {![file exists $netfile]} {
+      puts stderr "No such file $netfile"
+      return
+   }
+
+   # Read data from file.  Remove comment lines and concatenate
+   # continuation lines.
+
+   set topname [file rootname [file tail $netfile]]
+   puts stdout "Creating layout from [file tail $netfile]"
+
+   if {[file ext $netfile] == ".cdl"} {
+      set is_cdl true
+   } else {
+      set is_cdl false
+   }
+
+   if [catch {open $netfile r} fnet] {
+      puts stderr "Error:  Cannot open file \"$netfile\" for reading."
+      return
+   }
+
+   set fdata {}
+   set lastline ""
+   while {[gets $fnet line] >= 0} {
+       # Handle CDL format *.PININFO (convert to .PININFO ...)
+       if {$is_cdl && ([string range $line 0 1] == "*.")} {
+           if {[string tolower [string range $line 2 8]] == "pininfo"} {
+               set line [string range $line 1 end]
+           }
+       }
+       if {[string index $line 0] != "*"} {
+           if {[string index $line 0] == "+"} {
+               if {[string range $line end end] != " "} {
+                  append lastline " "
+               }
+               append lastline [string range $line 1 end]
+           } else {
+               lappend fdata $lastline
+               set lastline $line
+           }
+       }
+   }
+   lappend fdata $lastline
+   close $fnet
+
+   set insub false
+   set incmd false
+   set subname ""
+   set subpins ""
+   set complist {} 
+   set toplist {}
+
+   # suspendall
+
+   set ignorekeys {.global .ic .option .end}
+
+   # Parse the file
+   foreach line $fdata {
+      if {$incmd} {
+	 if {[regexp -nocase {^[ \t]*\.endc} $line]} {
+	    set incmd false
+	 }
+      } elseif {! $insub} {
+         set ftokens [split $line]
+         set keyword [string tolower [lindex $ftokens 0]]
+
+         if {[lsearch $ignorekeys $keyword] != -1} { 
+	    continue
+         } elseif {$keyword == ".command"} {
+	    set incmd true
+         } elseif {$keyword == ".subckt"} {
+	    set subname [lindex $ftokens 1]
+	    set subpins [lrange $ftokens 2 end]
+	    set insub true
+         } elseif {[regexp -nocase {^[xmcrdq]([^ \t]+)[ \t](.*)$} $line \
+		    valid instname rest]} {
+	    lappend toplist $line
+         } elseif {[regexp -nocase {^[ivbe]([^ \t]+)[ \t](.*)$} $line \
+		    valid instname rest]} {
+	    # These are testbench devices and should be ignored
+	    continue
+         }
+      } else {
+	 if {[regexp -nocase {^[ \t]*\.ends} $line]} {
+	    set insub false
+	    magic::generate_layout_add $subname $subpins $complist $library
+	    set subname ""
+	    set subpins ""
+	    set complist {}
+         } elseif {[regexp -nocase {^[xmcrdq]([^ \t]+)[ \t](.*)$} $line \
+		    valid instname rest]} {
+	    lappend complist $line
+         } elseif {[regexp -nocase {^[ivbe]([^ \t]+)[ \t](.*)$} $line \
+		    valid instname rest]} {
+	    # These are testbench devices and should be ignored
+	    continue
+	 }
+      }
+   }
+
+   # Add in any top-level components (not in subcircuits)
+   if {[llength $toplist] > 0} {
+      magic::generate_layout_add $topname "" $toplist $library
+   }
+
+   # resumeall
+}
+
 #-------------------------------------------------------------
 # gencell
 #
@@ -184,6 +487,11 @@ proc magic::gencell {gencell_name {instname {}} args} {
 	    set gencell_type $gencell_name
 	}
 
+    	# Check that the device exists as a gencell, or else return an error
+    	if {[namespace eval ::${library} info commands ${gencell_type}_convert] == ""} {
+	    error "No import routine for ${library} library cell ${gencell_type}!"
+    	}
+
 	if {$instname == {}} {
 	    # Case:  Interactive, new device with parameters in args (if any)
 	    if {$spicemode == 1} {
@@ -237,6 +545,7 @@ proc magic::gencell {gencell_name {instname {}} args} {
 	    }
 	}
     }
+    return 0
 }
 
 #-------------------------------------------------------------
@@ -436,6 +745,14 @@ proc magic::gencell_change {instname gencell_type library parameters} {
 	# then keep the old instance name.
 	if {[string first $old_gname $instname] != 0} {
 	    set newinstname $instname
+	} else {
+	    # The buttons "Apply" and "Okay" need to be changed for the new
+	    # instance name
+	    catch {.params.buttons.apply config -command \
+			"magic::gencell_change $newinstname $gencell_type $library {}"}
+	    catch {.params.buttons.okay config -command \
+			"magic::gencell_change $newinstname $gencell_type $library {} ;\
+			destroy .params"}
 	}
     }
     identify $newinstname

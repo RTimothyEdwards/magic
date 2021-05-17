@@ -91,6 +91,7 @@ PlowRandomTest(def)
     static char *dirnames[] = { "up", "down", "right", "left" };
     Rect plowRect;
     int dir, plowDir;
+    Plane *savePlane;
 
 #ifdef	notdef
     strcpy(goodName, tempgood);
@@ -101,7 +102,8 @@ PlowRandomTest(def)
     sprintf(tempExt, "%s.ext", tempName);
 
     /* Generate "good" extracted file */
-    ExtCell(def, goodName, FALSE);
+    savePlane = ExtCell(def, goodName, FALSE);
+    ExtRevertSubstrate(def, savePlane);
     (void) sprintf(command, "sedplow %s", goodExt);
     system(command);
 #endif	/* notdef */
@@ -136,7 +138,8 @@ PlowRandomTest(def)
 
 #ifdef	notdef
 	/* Extract to the temp file */
-	ExtCell(def, tempName, FALSE);
+	savePlane = ExtCell(def, tempName, FALSE);
+	ExtRevertSubstrate(def, savePlane);
 	(void) sprintf(command, "sedplow %s", tempExt);
 	system(command);
 
