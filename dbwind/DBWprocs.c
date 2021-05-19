@@ -549,8 +549,14 @@ DBWloadWindow(window, name, flags)
     /* If the cell before loading was (UNNAMED) and it was	*/
     /* never modified, then delete it now.			*/
 
+    /* Caveat: The (UNNAMED) cell could be on a push stack;	*/
+    /* that is not fatal but should be avoided.  Since the most	*/
+    /* common use is from the toolkit scripts, then make sure	*/
+    /* this doesn't happen within suspendall ... resumeall.	*/
+
     if (deleteDef != NULL)
-	DBCellDelete(deleteDef->cd_name, TRUE);
+	if (GrDisplayStatus != DISPLAY_SUSPEND)
+	    DBCellDelete(deleteDef->cd_name, TRUE);
 }
 
 /* This function is called for each cell whose expansion status changed.
