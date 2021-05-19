@@ -688,6 +688,7 @@ DBCellCopyPaint(scx, mask, xMask, targetUse)
 
     arg.caa_mask = mask;
     arg.caa_targetUse = targetUse;
+    arg.caa_func = NULL;
     GeoTransRect(&scx->scx_trans, &scx->scx_area, &arg.caa_rect);
 
     /* Build dummy TreeContext */
