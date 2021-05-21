@@ -663,6 +663,7 @@ ResExtractNet(startlist, goodies, cellname)
 	  * that does not correspond exactly to the layer underneath, include
 	  * all connecting types.
 	  */
+	 TTMaskZero(&FirstTileMask);
 	 TTMaskSetMask(&FirstTileMask, &DBConnectTbl[fix->fp_ttype]);
 
          newdevtiles = DBTreeCopyConnectDCS(&scx, &FirstTileMask, 0,
@@ -849,10 +850,10 @@ FindStartTile(goodies, SourcePoint)
 	TileType savtype = goodies->rg_ttype;
 	TileType rtype;
 
-	savtype = goodies->rg_ttype;
 	for (rtype = TT_TECHDEPBASE; rtype < DBNumUserLayers; rtype++)
 	    if (TTMaskHasType(rmask, rtype))
 	    {
+		goodies->rg_ttype = rtype;
 		if ((tile = FindStartTile(goodies, SourcePoint)) != NULL)
 		{
 		    goodies->rg_ttype = savtype;

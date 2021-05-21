@@ -354,54 +354,63 @@ ExtGetDevInfo(idx, devnameptr, devtypeptr, s_rclassptr, d_rclassptr,
     if (t == DBNumTypes) return FALSE;
     if (devptr == NULL) return FALSE;
 
-    *devnameptr = locdname;
-    *subnameptr = devptr->exts_deviceSubstrateName;
-    *devtypeptr = t;
+    if (devnameptr) *devnameptr = locdname;
+    if (subnameptr) *subnameptr = devptr->exts_deviceSubstrateName;
+    if (devtypeptr) *devtypeptr = t;
 
     tmask = &devptr->exts_deviceSDTypes[0];
-    *s_rclassptr = (short)(-1);	/* NO_RESCLASS */
-
-    for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
+    if (s_rclassptr)
     {
-	rmask = &ExtCurStyle->exts_typesByResistClass[n];
-	if (TTMaskIntersect(rmask, tmask))
-	{
-	    *s_rclassptr = (short)n;
-	    break;
-	}
-    }
-
-    tmask = &devptr->exts_deviceSDTypes[1];
-    if (TTMaskIsZero(tmask))
-    {
-	/* Set source and drain resistance classes to be the same */
-	*d_rclassptr = (short)n;
-    }
-    else
-    {
-	*d_rclassptr = (short)(-1);	/* NO_RESCLASS */
+        *s_rclassptr = (short)(-1);	/* NO_RESCLASS */
 
 	for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
 	{
 	    rmask = &ExtCurStyle->exts_typesByResistClass[n];
 	    if (TTMaskIntersect(rmask, tmask))
 	    {
-		*d_rclassptr = (short)n;
+		*s_rclassptr = (short)n;
 		break;
 	    }
 	}
     }
 
-    tmask = &devptr->exts_deviceSubstrateTypes;
-    *sub_rclassptr = (short)(-1);	/* NO_RESCLASS */
-
-    for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
+    if (d_rclassptr)
     {
-        rmask = &ExtCurStyle->exts_typesByResistClass[n];
-	if (TTMaskIntersect(rmask, tmask))
+	tmask = &devptr->exts_deviceSDTypes[1];
+	if (TTMaskIsZero(tmask))
 	{
-	    *sub_rclassptr = (short)(n);
-	    break;
+	    /* Set source and drain resistance classes to be the same */
+	    *d_rclassptr = (short)n;
+	}
+	else
+	{
+	    *d_rclassptr = (short)(-1);	/* NO_RESCLASS */
+
+	    for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
+	    {
+		rmask = &ExtCurStyle->exts_typesByResistClass[n];
+		if (TTMaskIntersect(rmask, tmask))
+		{
+		    *d_rclassptr = (short)n;
+		    break;
+		}
+	    }
+	}
+    }
+
+    if (sub_rclassptr)
+    {
+	tmask = &devptr->exts_deviceSubstrateTypes;
+	*sub_rclassptr = (short)(-1);	/* NO_RESCLASS */
+
+	for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
+	{
+	    rmask = &ExtCurStyle->exts_typesByResistClass[n];
+	    if (TTMaskIntersect(rmask, tmask))
+	    {
+		*sub_rclassptr = (short)(n);
+		break;
+	    }
 	}
     }
 

@@ -419,7 +419,12 @@ ResSimSubckt(line)
 
 	devptr = ExtCurStyle->exts_device[ttype];
 	rpersquare =(float)devptr->exts_linearResist;
-	device->resistance = MagAtof(lptr) * rpersquare/MagAtof(wptr);
+	/* Subcircuit types may not have a length or width value, in which  */
+	/* case it is zero.  Don't induce a divide-by-zero error.	    */
+	if (MagAtof(wptr) == 0)
+	    device->resistance = 0;
+	else
+	    device->resistance = MagAtof(lptr) * rpersquare/MagAtof(wptr);
     }
     else
 	device->resistance = 0;
@@ -479,7 +484,10 @@ ResSimDevice(line, rpersquare, ttype)
 		TxError("All driven nodes will be extracted\n");
 		nowarning = FALSE;
 	   }
-	   device->resistance = MagAtof(line[RDEV_LENGTH]) * rpersquare/MagAtof(line[RDEV_WIDTH]);
+	   if (MagAtof(line[RDEV_WIDTH]) != 0)
+	       device->resistance = MagAtof(line[RDEV_LENGTH]) * rpersquare/MagAtof(line[RDEV_WIDTH]);
+	   else
+	       device->resistance = 0;
      }
      device->status = FALSE;
      device->nextDev = ResRDevList;

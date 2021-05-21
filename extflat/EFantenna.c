@@ -228,9 +228,21 @@ runantennacheck:
     TxPrintf("Building flattened netlist.\n");
     EFFlatBuild(inName, flatFlags);
 
+    /* Get device information from the current extraction style */
+    idx = 0;
+    while (ExtGetDevInfo(idx++, &devname, NULL, NULL, NULL, NULL, NULL))
+    {
+        if (idx == MAXDEVTYPES)
+        {
+            TxError("Error:  Ran out of space for device types!\n");
+            break;
+        }
+        efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, devname);
+    }
+
     /* Build device lookup table */
-    EFDeviceTypes = (TileType *)mallocMagic(MAXDEVTYPES * sizeof(TileType));
-    for (i = 0; i < MAXDEVTYPES; i++)
+    EFDeviceTypes = (TileType *)mallocMagic(EFDevNumTypes * sizeof(TileType));
+    for (i = 0; i < EFDevNumTypes; i++)
 	if (EFDevTypes[i])
 	    EFDeviceTypes[i] = extGetDevType(EFDevTypes[i]);
 

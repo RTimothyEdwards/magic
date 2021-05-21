@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
+#include "extflat/extflat.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "utils/utils.h"
@@ -97,16 +98,33 @@ ExtResisForDef(celldef, resisdata)
     HashEntry	*entry;
     devPtr	*tptr,*oldtptr;
     ResSimNode  *node;
-    int		result;
+    int		result, idx;
+    char	*devname;
 
     ResRDevList = NULL;
     ResOriginalNodes = NULL;
+
+    /* Get device information from the current extraction style */
+    idx = 0;
+    while (ExtGetDevInfo(idx++, &devname, NULL, NULL, NULL, NULL, NULL))
+    {
+        if (idx == MAXDEVTYPES)
+        {
+            TxError("Error:  Ran out of space for device types!\n");
+            break;
+        }
+        efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, devname);
+    }
 
     HashInit(&ResNodeTable, INITFLATSIZE, HT_STRINGKEYS);
     /* read in .sim file */
     result = (ResReadSim(celldef->cd_name,
 	      	ResSimDevice, ResSimCapacitor, ResSimResistor,
 		ResSimAttribute, ResSimMerge, ResSimSubckt) == 0);
+
+    /* Clean up the EFDevTypes table */
+    for (idx = 0; idx < EFDevNumTypes; idx++) freeMagic(EFDevTypes[idx]);
+    EFDevNumTypes = 0;
 
     if (result)
 	/* read in .nodes file   */
