@@ -342,6 +342,7 @@ ResSimSubckt(line)
     float	lambda;
     TileType	ttype = TT_SPACE;
     char	*lptr = NULL, *wptr = NULL;
+    ExtDevice	*devptr;
 
     device = (RDev *) mallocMagic((unsigned) (sizeof(RDev)));
 
