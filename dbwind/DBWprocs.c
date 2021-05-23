@@ -326,6 +326,7 @@ DBWloadWindow(window, name, flags)
     {
 	deleteDef = ((CellUse *)window->w_surfaceID)->cu_def;
 	if (strcmp(deleteDef->cd_name, "(UNNAMED)") ||
+		(GrDisplayStatus == DISPLAY_SUSPEND) ||
 		deleteDef->cd_flags & (CDMODIFIED|CDBOXESCHANGED|CDSTAMPSCHANGED))
 	    deleteDef = NULL;
     }
@@ -497,7 +498,7 @@ DBWloadWindow(window, name, flags)
 
 	if (newEdit)
 	{
-	    if (EditCellUse && EditRootDef)
+	    if ((EditCellUse && EditRootDef) && (deleteDef == NULL))
 	    {
 		DBWUndoOldEdit(EditCellUse, EditRootDef,
 			&EditToRootTransform, &RootToEditTransform);
@@ -555,8 +556,7 @@ DBWloadWindow(window, name, flags)
     /* this doesn't happen within suspendall ... resumeall.	*/
 
     if (deleteDef != NULL)
-	if (GrDisplayStatus != DISPLAY_SUSPEND)
-	    DBCellDelete(deleteDef->cd_name, TRUE);
+	DBCellDelete(deleteDef->cd_name, TRUE);
 }
 
 /* This function is called for each cell whose expansion status changed.
