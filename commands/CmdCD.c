@@ -4396,15 +4396,10 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 		    TxError("Keyword must be followed by a reference point\n");
 		    goto usage;
 	        }
-		if (StrIsInt(av[1]))
+		else if (ac == 3)
 		{
-		    childPoint.p_x = atoi(av[1]);
-		    if (ac < 3 || !StrIsInt(av[2]))
-		    {
-			TxError("Must provide two coordinates\n");
-			goto usage;
-		    }
-		    childPoint.p_y = atoi(av[2]);
+		    childPoint.p_x = cmdParseCoord(w, av[1], TRUE, TRUE);
+		    childPoint.p_y = cmdParseCoord(w, av[2], TRUE, FALSE);
 		    av += 3;
 		    ac -= 3;
 		}
@@ -4455,15 +4450,10 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 		    TxError("Keyword must be followed by a reference point\n");
 		    goto usage;
 	        }
-		if (StrIsInt(av[1]))
+		else if (ac == 3)
 		{
-		    editPoint.p_x = atoi(av[1]);
-		    if (ac < 3 || !StrIsInt(av[2]))
-		    {
-			TxError("Must provide two coordinates\n");
-			goto usage;
-		    }
-		    editPoint.p_y = atoi(av[2]);
+		    editPoint.p_x = cmdParseCoord(w, av[1], TRUE, TRUE);
+		    editPoint.p_y = cmdParseCoord(w, av[2], TRUE, FALSE);
 		    av += 3;
 		    ac -= 3;
 		    GeoTransPoint(&EditToRootTransform, &editPoint,
