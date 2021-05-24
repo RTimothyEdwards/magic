@@ -4261,6 +4261,11 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 	cellnameptr++;
 	fullpathname = (char *)mallocMagic(strlen(cmd->tx_argv[1]) + 2);
 	strcpy(fullpathname, cmd->tx_argv[1]);
+
+    	/* If the name still has ".mag" attached, then strip it. */
+    	clen = strlen(fullpathname);
+    	if ((clen > 4) && !strcmp(fullpathname + clen - 4, ".mag"))
+	    *(fullpathname + clen - 4) = '\0';
     }
     else
     {
@@ -4272,11 +4277,6 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     clen = strlen(cellnameptr);
     if ((clen > 4) && !strcmp(cellnameptr + clen - 4, ".mag"))
 	*(cellnameptr + clen - 4) = '\0';
-
-    /* Same for fullpathname */
-    clen = strlen(fullpathname);
-    if ((clen > 4) && !strcmp(fullpathname + clen - 4, ".mag"))
-	*(fullpathname + clen - 4) = '\0';
 
     /* Check for illegal characters in the cellname */
     if (CmdIllegalChars(cellnameptr, "", "Cell name"))
