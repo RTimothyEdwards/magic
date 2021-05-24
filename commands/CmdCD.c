@@ -4273,6 +4273,11 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     if ((clen > 4) && !strcmp(cellnameptr + clen - 4, ".mag"))
 	*(cellnameptr + clen - 4) = '\0';
 
+    /* Same for fullpathname */
+    clen = strlen(fullpathname);
+    if ((clen > 4) && !strcmp(fullpathname + clen - 4, ".mag"))
+	*(fullpathname + clen - 4) = '\0';
+
     /* Check for illegal characters in the cellname */
     if (CmdIllegalChars(cellnameptr, "", "Cell name"))
     {
@@ -4307,8 +4312,8 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 		    def = DBCellLookDef(newcellname);
 		    uniqchar++;
 		}
-		TxError("Renaming cell to \"%s\" to avoid conflict.", newcellname);
-		def = DBCellNewDef(cellnameptr);
+		TxError("Renaming cell to \"%s\" to avoid conflict.\n", newcellname);
+		def = DBCellNewDef(newcellname);
 		StrDup(&def->cd_file, fullpathname);
 		freeMagic(newcellname);
 	    }
