@@ -776,7 +776,7 @@ lefWriteGeometry(tile, cdata)
     lefClient *lefdata = (lefClient *)cdata;
     FILE *f = lefdata->file;
     float scale = lefdata->oscale;
-    char leffmt[6][10];
+    char leffmt[6][16];
     TileType ttype, otype = TiGetTypeExact(tile);
     LefMapping *lefMagicToLefLayer = lefdata->lefMagicMap;
 
