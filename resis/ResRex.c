@@ -203,7 +203,7 @@ CmdExtResis(win, cmd)
 	TxCommand *cmd;
 {
     int		i, j, k, option, value, saveFlags;
-    static int	init=1;
+    static int	init = 1;
     static float tolerance, tdiTolerance, fhFrequency;
     CellDef	*mainDef;
     CellUse	*selectedUse;
@@ -263,6 +263,17 @@ typedef enum {
 	fhFrequency = 10e6;	/* 10 MHz default */
 	init = 0;
     }
+
+    /* Initialize ResGlobalParams */
+    gparams.rg_ttype = TT_SPACE;
+    gparams.rg_Tdi = 0.0;
+    gparams.rg_nodecap = 0.0;
+    gparams.rg_maxres = 0.0;
+    gparams.rg_bigdevres = 0;
+    gparams.rg_tilecount = 0;
+    gparams.rg_status = 0;
+    gparams.rg_devloc = NULL;
+    gparams.rg_name = NULL;
 
     option = (cmd->tx_argc > 1) ? Lookup(cmd->tx_argv[1], cmdExtresisCmd)
 		: RES_RUN;
@@ -979,7 +990,7 @@ ResCheckSimNodes(celldef, resisdata)
 			     t1->drain  != t2->source)) break;
 
 		    /* do parallel combination  */
-		    if (cumRes != 0.0 && t2->resistance != 0.0)
+		    if ((cumRes != 0.0) && (t2->resistance != 0.0))
 		    {
 			cumRes = (cumRes * t2->resistance) /
 			      	       (cumRes + t2->resistance);
@@ -1016,32 +1027,32 @@ ResCheckSimNodes(celldef, resisdata)
 	       	gparams.rg_devloc = &node->drivepoint;
 		gparams.rg_status |= DRIVEONLY;
 	    }
-	    if (node->status  & PORTNODE)
+	    if (node->status & PORTNODE)
 	    {
 		/* The node is a port, not a device, so make    */
-		/* sure rg_ttype is set accordingly.		    */
+		/* sure rg_ttype is set accordingly.		*/
 		gparams.rg_ttype = node->rs_ttype;
 	    }
 	}
-	if (gparams.rg_devloc == NULL && node->status & FORCE)
+	if ((gparams.rg_devloc == NULL) && (node->status & FORCE))
 	{
     	    TxError("Node %s has force label but no drive point or "
 			"driving device\n",node->name);
 	}
-	if (minRes == FLT_MAX || gparams.rg_devloc == NULL)
+	if ((minRes == FLT_MAX) || (gparams.rg_devloc == NULL))
 	{
 	    continue;
 	}
-	gparams.rg_bigdevres = (int)minRes*OHMSTOMILLIOHMS;
-	if (rctol == 0.0 || tol == 0.0)
+	gparams.rg_bigdevres = (int)minRes * OHMSTOMILLIOHMS;
+	if ((rctol == 0.0) || (tol == 0.0))
 	{
 	    ftolerance = 0.0;
 	    rctolerance = 0.0;
 	}
 	else
 	{
-	    ftolerance =  minRes/tol;
-	    rctolerance = minRes/rctol;
+	    ftolerance =  minRes / tol;
+	    rctolerance = minRes / rctol;
 	}
 
 	/*
@@ -1049,7 +1060,7 @@ ResCheckSimNodes(celldef, resisdata)
 	 *   resistance? If so, extract net.
 	 */
 
-	if (node->resistance > ftolerance || node->status & FORCE ||
+	if ((node->resistance > ftolerance) || (node->status & FORCE) ||
 		(ResOpt_ExtractAll & ResOptionsFlags))
 	{
 	    ResFixPoint	fp;
@@ -1200,7 +1211,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 
     if (simDev->gate == simNode)
     {
-	if ((gate=layoutDev->rd_fet_gate) != NULL)
+	if ((gate = layoutDev->rd_fet_gate) != NULL)
 	{
 	    /* Cosmetic addition: If the layout device already has a      */
 	    /* name, the new one won't be used, so we decrement resNodeNum */

@@ -171,16 +171,25 @@ ResPrintExtDev(outextfile, devices)
 		else
 		    fprintf(outextfile, " \"%s\"", subsName);
 
-		fprintf(outextfile, " \"%s\" %d %s \"%s\" %d %s \"%s\" %d %s\n",
-			devices->gate->name,
-			devices->layout->rd_length * 2,
-			devices->rs_gattr,
-			devices->source->name,
-			devices->layout->rd_width,
-			devices->rs_sattr,
-			devices->drain->name,
-			devices->layout->rd_width,
-			devices->rs_dattr);
+		if (devices->gate != NULL)
+		    fprintf(outextfile, " \"%s\" %d %s",
+			    devices->gate->name,
+			    devices->layout->rd_length * 2,
+			    devices->rs_gattr);
+
+		if (devices->source != NULL)
+		    fprintf(outextfile, " \"%s\" %d %s",
+			    devices->source->name,
+			    devices->layout->rd_width,
+			    devices->rs_sattr);
+
+		if (devices->drain != NULL)
+		    fprintf(outextfile, " \"%s\" %d %s",
+			    devices->drain->name,
+			    devices->layout->rd_width,
+			    devices->rs_dattr);
+
+		fprintf(outextfile, "\n");
 	    }
 	}
     }
