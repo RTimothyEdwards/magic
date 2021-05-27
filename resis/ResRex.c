@@ -109,12 +109,12 @@ ExtResisForDef(celldef, resisdata)
     idx = 0;
     while (ExtGetDevInfo(idx++, &devname, NULL, NULL, NULL, NULL, NULL))
     {
-        if (idx == MAXDEVTYPES)
+        if (idx == TT_MAXTYPES)
         {
             TxError("Error:  Ran out of space for device types!\n");
             break;
         }
-        efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, devname);
+        efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, devname);
     }
 
     HashInit(&ResNodeTable, INITFLATSIZE, HT_STRINGKEYS);

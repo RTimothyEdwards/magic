@@ -49,7 +49,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #define	MAXTYPES	100
 
 /* Table of transistor types */
-char *EFDevTypes[MAXDEVTYPES];
+char *EFDevTypes[TT_MAXTYPES];
 int   EFDevNumTypes;
 
 /* Table of Magic layers */
@@ -802,7 +802,7 @@ efBuildDevice(def, class, type, r, argc, argv)
 
     nterminals = (argc - argstart) / 3;
 
-    dev_type = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, type);
+    dev_type = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, type);
 
     /* Determine if this device has been seen before */
     /* NOTE:  This is done by tile type, not name, because the extresist

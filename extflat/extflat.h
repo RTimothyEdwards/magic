@@ -342,9 +342,6 @@ extern char *EFHNToStr();
 extern int EFGetPortMax();
 
 /* ------------------------- constants used by clients -------------- */
-/* This gives us a 32 or 64 dev types which should be ok */
-#define	BITSPERCHAR	8
-#define MAXDEVTYPES (sizeof(long)*BITSPERCHAR)
 
 /*
  * ANSI C definitions of arguments to EFvisit procedures
