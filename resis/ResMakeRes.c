@@ -311,7 +311,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
      */
 
     p1 = junk->breakList;
-    if   (p1->br_next == NULL)
+    if (p1->br_next == NULL)
     {
 	p1->br_this->rn_float.rn_area += width * (TOP(tile) - BOTTOM(tile));
      	freeMagic((char *)p1);

@@ -53,9 +53,10 @@ extern ResSimNode	*ResOriginalNodes;	/*Linked List of Nodes		  */
 int		resNodeNum;
 
 #ifdef LAPLACE
-int	ResOptionsFlags = ResOpt_Simplify|ResOpt_Tdi|ResOpt_DoExtFile|ResOpt_CacheLaplace;
+int	ResOptionsFlags = ResOpt_Simplify | ResOpt_Tdi | ResOpt_DoExtFile
+		| ResOpt_CacheLaplace;
 #else
-int	ResOptionsFlags = ResOpt_Simplify|ResOpt_Tdi|ResOpt_DoExtFile;
+int	ResOptionsFlags = ResOpt_Simplify | ResOpt_Tdi | ResOpt_DoExtFile;
 #endif
 char	*ResCurrentNode;
 
@@ -478,9 +479,10 @@ typedef enum {
 		gparams.rg_ttype = tt;
 		gparams.rg_status = DRIVEONLY;
 		oldoptions = ResOptionsFlags;
-		ResOptionsFlags = ResOpt_DoSubstrate|ResOpt_Signal|ResOpt_Box;
+		ResOptionsFlags = ResOpt_DoSubstrate | ResOpt_Signal | ResOpt_Box;
 #ifdef LAPLACE
-		ResOptionsFlags |= (oldoptions & (ResOpt_CacheLaplace|ResOpt_DoLaplace));
+		ResOptionsFlags |= (oldoptions &
+			    (ResOpt_CacheLaplace | ResOpt_DoLaplace));
 		LaplaceMatchCount = 0;
 		LaplaceMissCount = 0;
 #endif
@@ -488,13 +490,13 @@ typedef enum {
 		fp.fp_loc = rect.r_ll;
 		fp.fp_next = NULL;
 		if (ResExtractNet(&fp, &gparams, NULL) != 0) return;
-		ResPrintResistorList(stdout,ResResList);
-		ResPrintDeviceList(stdout,ResRDevList);
+		ResPrintResistorList(stdout, ResResList);
+		ResPrintDeviceList(stdout, ResRDevList);
 #ifdef LAPLACE
 		if (ResOptionsFlags & ResOpt_DoLaplace)
 		{
 		    TxPrintf("Laplace   solved: %d matched %d\n",
-				LaplaceMissCount,LaplaceMatchCount);
+				LaplaceMissCount, LaplaceMatchCount);
 		}
 #endif
 
@@ -521,11 +523,11 @@ typedef enum {
 	    return;
 #endif
 	case RES_AMBIG:
-  	    TxPrintf("Ambiguous option: %s\n",cmd->tx_argv[1]);
+  	    TxPrintf("Ambiguous option: %s\n", cmd->tx_argv[1]);
 	    TxFlushOut();
 	    return;
 	case RES_BAD:
-  	    TxPrintf("Unknown option: %s\n",cmd->tx_argv[1]);
+  	    TxPrintf("Unknown option: %s\n", cmd->tx_argv[1]);
 	    TxFlushOut();
 	    return;
 	default:
@@ -548,7 +550,7 @@ typedef enum {
     }
     ResOptionsFlags |= ResOpt_Signal;
 #ifdef ARIEL
-    ResOptionsFlags &= 	~ResOpt_Power;
+    ResOptionsFlags &= ~ResOpt_Power;
 #endif
 
     resisdata.tolerance = tolerance;
@@ -609,8 +611,6 @@ resSubcircuitFunc(cellDef, rdata)
 	    ExtResisForDef(cellDef, rdata);
     return 0;
 }
-
-
 
 /*
  *-------------------------------------------------------------------------
@@ -870,7 +870,7 @@ ResCheckSimNodes(celldef, resisdata)
     }
     if (ResOptionsFlags & ResOpt_DoLumpFile)
     {
-        ResLumpFile = PaOpen(outfile,"w",".res.lump",".",(char *) NULL, (char **) NULL);
+        ResLumpFile = PaOpen(outfile, "w", ".res.lump", ".", (char *)NULL, (char **)NULL);
     }
     else
     {
@@ -879,7 +879,7 @@ ResCheckSimNodes(celldef, resisdata)
     if (ResOptionsFlags & ResOpt_FastHenry)
     {
 	char *geofilename;
-        ResFHFile = PaOpen(outfile,"w",".fh",".",(char *) NULL, &geofilename);
+        ResFHFile = PaOpen(outfile, "w", ".fh", ".", (char *)NULL, &geofilename);
 	TxPrintf("Writing FastHenry-format geometry file \"%s\"\n", geofilename);
 	ResPortIndex = 0;
     }
@@ -1071,8 +1071,8 @@ ResCheckSimNodes(celldef, resisdata)
 	    fp.fp_next = NULL;
 	    if (ResExtractNet(&fp, &gparams, outfile) != 0)
 	    {
-	       	TxError("Error in extracting node %s\n",node->name);
-		// break;	// Don't stop for one error. . .
+		/* On error, don't output this net, but keep going */
+	       	TxError("Error in extracting node %s\n", node->name);
 	    }
 	    else
 	    {
@@ -1091,7 +1091,7 @@ ResCheckSimNodes(celldef, resisdata)
 		}
 	    }
 #ifdef PARANOID
-	    ResSanityChecks(node->name,ResResList,ResNodeList,ResDevList);
+	    ResSanityChecks(node->name, ResResList, ResNodeList, ResDevList);
 #endif
 	    ResCleanUpEverything();
 	}
@@ -1104,7 +1104,7 @@ ResCheckSimNodes(celldef, resisdata)
 
     if (ResOptionsFlags & ResOpt_DoExtFile)
     {
-	ResPrintExtDev(ResExtFile,ResRDevList);
+	ResPrintExtDev(ResExtFile, ResRDevList);
     }
 
     /*
@@ -1427,9 +1427,10 @@ void
 ResSortByGate(DevpointerList)
     devPtr	**DevpointerList;
 {
-    int		changed=TRUE;
-    int		localchange=TRUE;
-    devPtr	*working, *last=NULL, *current, *gatelist=NULL;
+    int		changed = TRUE;
+    int		localchange = TRUE;
+    devPtr	*working, *current;
+    devPtr	*last = NULL, *gatelist = NULL;
 
     working = *DevpointerList;
     while (working != NULL)
@@ -1555,7 +1556,7 @@ ResWriteLumpFile(node)
     {
 	lumpedres = gparams.rg_maxres;
     }
-    fprintf(ResLumpFile,"R %s %d\n", node->name, lumpedres);
+    fprintf(ResLumpFile, "R %s %d\n", node->name, lumpedres);
 }
 
 

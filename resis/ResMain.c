@@ -574,18 +574,18 @@ ResProcessTiles(goodies, origin)
  */
 
 bool
-ResExtractNet(startlist, goodies, cellname)
-    ResFixPoint		*startlist;
+ResExtractNet(fix, goodies, cellname)
+    ResFixPoint		*fix;
     ResGlobalParams	*goodies;
     char		*cellname;
 {
     SearchContext 	scx;
     int			pNum;
-    ResDevTile		*DevTiles, *lasttile;
+    ResDevTile		*DevTiles;
     TileTypeBitMask	FirstTileMask;
     Point		startpoint;
-    ResFixPoint		*fix;
     static int		first = 1;
+    ResDevTile		*newdevtiles, *tmp;
 
     /* Make sure all global network variables are reset */
 
@@ -601,7 +601,7 @@ ResExtractNet(startlist, goodies, cellname)
     goodies->rg_maxres = 0;
     goodies->rg_tilecount = 0;
 
-    /*set up internal stuff if this is the first time through */
+    /* Set up internal stuff if this is the first time through */
 
     if (first)
     {
@@ -640,42 +640,27 @@ ResExtractNet(startlist, goodies, cellname)
 
     /* Copy Paint */
     DevTiles = NULL;
-    lasttile = NULL;
-    for (fix = startlist; fix != NULL; fix = fix->fp_next)
-    {
-	ResDevTile *newdevtiles, *tmp;
 
 #ifdef ARIEL
-	if ((ResOptionsFlags & ResOpt_Power) &&
+    if ((ResOptionsFlags & ResOpt_Power) &&
 	 		strcmp(fix->fp_name, goodies->rg_name) != 0) continue;
 #endif
 
-        scx.scx_area.r_ll.p_x = fix->fp_loc.p_x-2;
-        scx.scx_area.r_ll.p_y = fix->fp_loc.p_y-2;
-        scx.scx_area.r_ur.p_x = fix->fp_loc.p_x+2;
-        scx.scx_area.r_ur.p_y = fix->fp_loc.p_y+2;
-	startpoint = fix->fp_loc;
+    scx.scx_area.r_ll.p_x = fix->fp_loc.p_x-2;
+    scx.scx_area.r_ll.p_y = fix->fp_loc.p_y-2;
+    scx.scx_area.r_ur.p_x = fix->fp_loc.p_x+2;
+    scx.scx_area.r_ur.p_y = fix->fp_loc.p_y+2;
+    startpoint = fix->fp_loc;
 
-	/* Because fix->fp_ttype might come from a label with a sticky type
-	 * that does not correspond exactly to the layer underneath, include
-	 * all connecting types.
-	 */
-	TTMaskZero(&FirstTileMask);
-	TTMaskSetMask(&FirstTileMask, &DBConnectTbl[fix->fp_ttype]);
+    /* Because fix->fp_ttype might come from a label with a sticky type
+     * that does not correspond exactly to the layer underneath, include
+     * all connecting types.
+     */
+    TTMaskZero(&FirstTileMask);
+    TTMaskSetMask(&FirstTileMask, &DBConnectTbl[fix->fp_ttype]);
 
-        newdevtiles = DBTreeCopyConnectDCS(&scx, &FirstTileMask, 0,
+    DevTiles = DBTreeCopyConnectDCS(&scx, &FirstTileMask, 0,
 	         			ResCopyMask, &TiPlaneRect, ResUse);
-
-	for (tmp = newdevtiles; tmp && tmp->nextDev; tmp = tmp->nextDev);
-	if (newdevtiles)
-	{
-	    if (DevTiles)
-	      	lasttile->nextDev = newdevtiles;
-	    else
-	      	DevTiles = newdevtiles;
-	    lasttile = tmp;
-	}
-    }
 
     ExtResetTiles(scx.scx_use->cu_def, extUnInit);
 

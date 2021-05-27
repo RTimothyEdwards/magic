@@ -43,111 +43,113 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-ResSanityChecks(nodename,resistorList,nodeList,devlist)
-	char		*nodename;
-	resResistor	*resistorList;
-	resNode		*nodeList;
-	resDevice	*devlist;
+ResSanityChecks(nodename, resistorList, nodeList, devlist)
+    char	*nodename;
+    resResistor	*resistorList;
+    resNode	*nodeList;
+    resDevice	*devlist;
 
 {
-     resResistor	*resistor;
-     resNode		*node;
-     resDevice		*dev;
-     resElement		*rcell;
-     static	Stack	*resSanityStack = NULL;
-     int		reached,foundorigin;
+    resResistor	*resistor;
+    resNode	*node;
+    resDevice	*dev;
+    resElement	*rcell;
+    static	Stack	*resSanityStack = NULL;
+    int		reached, foundorigin;
 
-     if (resSanityStack == NULL)
-     {
-     	  resSanityStack = StackNew(64);
-     }
-     for (node = nodeList; node != NULL; node=node->rn_more)
-     {
-     	  node->rn_status &= ~RES_REACHED_NODE;
-	  if (node->rn_why == RES_NODE_ORIGIN)
+    if (resSanityStack == NULL)
+    {
+     	resSanityStack = StackNew(64);
+    }
+    for (node = nodeList; node != NULL; node=node->rn_more)
+    {
+     	node->rn_status &= ~RES_REACHED_NODE;
+	if (node->rn_why == RES_NODE_ORIGIN)
 	  		STACKPUSH((ClientData) node, resSanityStack);
-     }
-     for (resistor = resistorList; resistor != NULL; resistor = resistor->rr_nextResistor)
-     {
-     	  resistor->rr_status &= ~RES_REACHED_RESISTOR;
-     }
+    }
+    for (resistor = resistorList; resistor != NULL; resistor = resistor->rr_nextResistor)
+    {
+    	resistor->rr_status &= ~RES_REACHED_RESISTOR;
+    }
 
-     /* Check 1- Are the resistors and nodes all connected?  */
-     while (!StackEmpty(resSanityStack))
-     {
-     	  node = (resNode *)STACKPOP(resSanityStack);
-	  if (node->rn_status & RES_REACHED_NODE) continue;
-	  node->rn_status |= RES_REACHED_NODE;
-	  for (rcell = node->rn_re; rcell != NULL; rcell=rcell->re_nextEl)
-	  {
-	       resistor = rcell->re_thisEl;
-	       if (resistor->rr_status & RES_REACHED_RESISTOR) continue;
-	       resistor->rr_status |= RES_REACHED_RESISTOR;
-	       if (resistor->rr_connection1 != node &&
+    /* Check:  Are the resistors and nodes all connected? */
+    while (!StackEmpty(resSanityStack))
+    {
+     	node = (resNode *)STACKPOP(resSanityStack);
+	if (node->rn_status & RES_REACHED_NODE) continue;
+	node->rn_status |= RES_REACHED_NODE;
+	for (rcell = node->rn_re; rcell != NULL; rcell = rcell->re_nextEl)
+	{
+	    resistor = rcell->re_thisEl;
+	    if (resistor->rr_status & RES_REACHED_RESISTOR) continue;
+	    resistor->rr_status |= RES_REACHED_RESISTOR;
+	    if (resistor->rr_connection1 != node &&
 	           resistor->rr_connection2 != node)
-		   {
-		   	TxError("Stray resElement pointer- node %s, pointer %d\n",nodename,rcell);
-			continue;
-		   }
-	       if ((resistor->rr_connection1->rn_status & RES_REACHED_NODE) == 0)
-	       {
-	       	    STACKPUSH((ClientData)resistor->rr_connection1,resSanityStack);
-	       }
-	       if ((resistor->rr_connection2->rn_status & RES_REACHED_NODE) == 0)
-	       {
-	       	    STACKPUSH((ClientData)resistor->rr_connection2,resSanityStack);
-	       }
-	  }
-     }
-     for (resistor = resistorList; resistor != NULL; resistor = resistor->rr_nextResistor)
-     {
-     	  if ((resistor->rr_status & RES_REACHED_RESISTOR) == 0)
-	  {
-	       TxError("Unreached resistor in %s\n",nodename);
-	  }
-	  resistor->rr_status &= ~RES_REACHED_RESISTOR;
+	    {
+		TxError("Stray resElement pointer- node %s, pointer %d\n",
+			    nodename, rcell);
+		continue;
+	    }
+	    if ((resistor->rr_connection1->rn_status & RES_REACHED_NODE) == 0)
+	    {
+	       	STACKPUSH((ClientData)resistor->rr_connection1, resSanityStack);
+	    }
+	    if ((resistor->rr_connection2->rn_status & RES_REACHED_NODE) == 0)
+	    {
+	       	STACKPUSH((ClientData)resistor->rr_connection2, resSanityStack);
+	    }
+	}
+    }
+    for (resistor = resistorList; resistor != NULL; resistor = resistor->rr_nextResistor)
+    {
+     	if ((resistor->rr_status & RES_REACHED_RESISTOR) == 0)
+	{
+	    TxError("Unreached resistor in %s\n", nodename);
+	}
+	resistor->rr_status &= ~RES_REACHED_RESISTOR;
      }
      for (dev = devlist; dev != NULL; dev = dev->rd_nextDev)
      {
-     	  int	i;
+     	int i;
 
-	  if (dev->rd_status & RES_DEV_PLUG) continue;
-	  reached = FALSE;
-	  for (i=0;i != dev->rd_nterms;i++)
-	  {
-	       if (dev->rd_terminals[i] != NULL)
-	       {
-	            reached = TRUE;
-	            if ((dev->rd_terminals[i]->rn_status & RES_REACHED_NODE) == 0)
-	            {
-	       	         TxError("Device node %d unreached in %s\n",i,nodename);
-	            }
-	       }
-	  }
-	  if (reached == 0)
-	  {
-	       TxError("Unreached device in %s at %d %d\n",
-					nodename,
-	       				dev->rd_inside.r_xbot,
-	       				dev->rd_inside.r_ybot);
-	  }
-     }
-     foundorigin = 0;
-     for (node = nodeList; node != NULL; node=node->rn_more)
-     {
-     	  if ((node->rn_status & RES_REACHED_NODE) == 0)
-	  {
-	       TxError("Unreached node in %s at %d, %d\n",nodename,node->rn_loc.p_x,node->rn_loc.p_y);
-	  }
-	  node->rn_status &= ~RES_REACHED_NODE;
-	  if (node->rn_why & RES_NODE_ORIGIN)
-	  {
-	       foundorigin = 1;
-	  }
-     }
-     if (foundorigin == 0)
-     {
-	  TxError("Starting node not found in %s\n",nodename);
-     }
+	if (dev->rd_status & RES_DEV_PLUG) continue;
+	reached = FALSE;
+	for (i = 0; i != dev->rd_nterms; i++)
+	{
+	    if (dev->rd_terminals[i] != NULL)
+	    {
+	        reached = TRUE;
+	        if ((dev->rd_terminals[i]->rn_status & RES_REACHED_NODE) == 0)
+	        {
+	       	    TxError("Device node %d unreached in %s\n", i, nodename);
+	        }
+	    }
+	}
+	if (reached == 0)
+	{
+	     TxError("Unreached device in %s at %d %d\n",
+				nodename,
+	       			dev->rd_inside.r_xbot,
+	       			dev->rd_inside.r_ybot);
+	}
+    }
+    foundorigin = 0;
+    for (node = nodeList; node != NULL; node=node->rn_more)
+    {
+     	if ((node->rn_status & RES_REACHED_NODE) == 0)
+	{
+	    TxError("Unreached node in %s at %d, %d\n", nodename,
+			node->rn_loc.p_x, node->rn_loc.p_y);
+	}
+	node->rn_status &= ~RES_REACHED_NODE;
+	if (node->rn_why & RES_NODE_ORIGIN)
+	{
+	    foundorigin = 1;
+	}
+    }
+    if (foundorigin == 0)
+    {
+	TxError("Starting node not found in %s\n", nodename);
+    }
 }
 #endif

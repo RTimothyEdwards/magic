@@ -46,17 +46,16 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 void
-ResPrintNodeList(fp,list)
-	FILE *fp;
-	resNode *list;
-
+ResPrintNodeList(fp, list)
+    FILE *fp;
+    resNode *list;
 {
 
-     for (; list != NULL; list = list->rn_more)
-     {
-	  fprintf(fp, "node %p: (%d %d) r= %d\n",
-	  	list,list->rn_loc.p_x,list->rn_loc.p_y,list->rn_noderes);
-     }
+    for (; list != NULL; list = list->rn_more)
+    {
+	fprintf(fp, "node %p: (%d %d) r= %d\n",
+	  	list, list->rn_loc.p_x, list->rn_loc.p_y, list->rn_noderes);
+    }
 }
 
 /*
@@ -73,7 +72,7 @@ ResPrintNodeList(fp,list)
  *-------------------------------------------------------------------------
  */
 void
-ResPrintResistorList(fp,list)
+ResPrintResistorList(fp, list)
     FILE *fp;
     resResistor *list;
 
@@ -112,9 +111,9 @@ ResPrintResistorList(fp,list)
  */
 
 void
-ResPrintDeviceList(fp,list)
-	FILE *fp;
-	resDevice *list;
+ResPrintDeviceList(fp, list)
+    FILE *fp;
+    resDevice *list;
 
 {
     static char termtype[] = {'g','s','d','c'};
