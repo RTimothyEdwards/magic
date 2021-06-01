@@ -4896,13 +4896,14 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 			    TxError("%s:  Cannot read rectangle values.\n", propname);
 			    break;
 			}
+			cifPlane = curPlane;
 			cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
 			bbox.r_xbot *= cifScale;
 			bbox.r_xtop *= cifScale;
 			bbox.r_ybot *= cifScale;
 			bbox.r_ytop *= cifScale;
 			cifScale = 1;
-			DBNMPaintPlane(cifPlane, CIF_SOLIDTYPE, &bbox,
+			DBNMPaintPlane(curPlane, CIF_SOLIDTYPE, &bbox,
 				CIFPaintTable, (PaintUndoInfo *)NULL);
 			for (j = 0; j < 4; j++)
 			{
