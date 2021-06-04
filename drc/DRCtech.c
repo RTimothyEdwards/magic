@@ -1836,6 +1836,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
     bool needtrigger = FALSE;
     bool touchingok = TRUE;
     bool cornerok = FALSE;
+    bool surroundok = FALSE;
 
     if (!strcmp(adjacency, "surround_ok"))
     {
@@ -1858,6 +1859,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 		needtrigger = TRUE;
 		touchingok = FALSE;
 		needReverse = TRUE;
+		surroundok = TRUE;
 	    }
 	    else
 	    {
@@ -2077,10 +2079,11 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 
 	    /*
 	     * Now, if set1 and set2 are distinct apply the rule for LHS in set1
-	     * and RHS in set2.
+	     * and RHS in set2.  HOWEVER, "surround_ok" rules are asymmetrically
+	     * triggered and cannot be reversed between set1 and set2.
 	     */
 
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask2))
+	    if ((!surroundok) && (pset = (DBTypesOnSamePlane(i, j) & pmask2)))
 	    {
 		plane = LowestMaskBit(pset);
 
