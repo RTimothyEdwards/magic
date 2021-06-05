@@ -164,6 +164,12 @@ CalmaReadFile(file, filename)
     static int skipBeforeLib[] = { CALMA_LIBDIRSIZE, CALMA_SRFNAME,
 				   CALMA_LIBSECUR, -1 };
 
+    if (EditCellUse == (CellUse *)NULL)
+    {
+	TxError("Cannot read GDS:  There is no edit cell.\n");
+	return
+    }
+
     /* We will use full cell names as keys in this hash table */
     CIFReadCellInit(0);
 
