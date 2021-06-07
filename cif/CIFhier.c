@@ -914,6 +914,52 @@ CIFGenSubcells(def, area, output)
 /*
  * ----------------------------------------------------------------------------
  *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifHierElementFuncLow(use, transform, x, y, checkArea)
+    CellUse *use;			/* CellUse being array-checked. */
+    Transform *transform;		/* Transform from this instance to
+					 * the parent.
+					 */
+    int x, y;				/* Indices of this instance. */
+    Rect *checkArea;			/* Area (in parent coords) to be
+					 * CIF-generated.
+					 */
+{
+    if (((x - use->cu_xlo) < 2) && ((y - use->cu_ylo) < 2))
+	return cifHierElementFunc(use, transform, x, y, checkArea);
+    else
+	return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifHierElementFuncHigh(use, transform, x, y, checkArea)
+    CellUse *use;			/* CellUse being array-checked. */
+    Transform *transform;		/* Transform from this instance to
+					 * the parent.
+					 */
+    int x, y;				/* Indices of this instance. */
+    Rect *checkArea;			/* Area (in parent coords) to be
+					 * CIF-generated.
+					 */
+{
+    if (((use->cu_xhi - x) < 2) && ((use->cu_yhi - y) < 2))
+	return cifHierElementFunc(use, transform, x, y, checkArea);
+    else
+	return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * cifHierElementFunc --
  *
  * 	This function is called once for each time an array element
@@ -1139,7 +1185,6 @@ cifHierArrayFunc(scx, output)
     Rect childArea, parentArea, A, B, C, D, expandedArea;
     CellUse *use;
     int radius, xsep, ysep, xsize, ysize, nx, ny, i, oldTileOps;
-    int xhi, yhi;
     bool anyInteractions = FALSE;
 
     use = scx->scx_use;
@@ -1147,17 +1192,9 @@ cifHierArrayFunc(scx, output)
     if ((use->cu_xlo == use->cu_xhi) && (use->cu_ylo == use->cu_yhi))
 	return 2;
 
-    /* We only want interactions between neighboring cells, so reduce	*/
-    /* the array size to at most 2x2, process, then restore the		*/
-    /* original array count.						*/
-
-    xhi = use->cu_xhi;
-    yhi = use->cu_yhi;
-
-    if (use->cu_xlo != use->cu_xhi)
-	use->cu_xhi = use->cu_xlo + ((use->cu_xlo < use->cu_xhi) ? 1 : -1);
-    if (use->cu_ylo != use->cu_yhi)
-	use->cu_yhi = use->cu_ylo + ((use->cu_ylo < use->cu_yhi) ? 1 : -1);
+    /* We only want interactions between neighboring cells, so only	*/
+    /* look at the bottom-left 2x2 set when calculating A and B, and	*/
+    /* only look at the top-right 2x2 set when calculating C and D.	*/
 
     /* Compute the sizes and separations of elements, in coordinates
      * of the parent.  If the array is 1-dimensional, we set the
@@ -1200,6 +1237,12 @@ cifHierArrayFunc(scx, output)
      * into CIFTotalPlanes.  Note:  in each case we have to yank a larger
      * area than we check, in order to include material that will be
      * bloated or shrunk.
+     *
+     * (Updated 6/7/2021) A and B should be calculated and processed
+     * completely independently of C and D, or else if the array is
+     * small and the radius is large, then results from one will get
+     * picked up when making copies of the other, resulting in things
+     * getting painted out-of-bounds.
      */
 
     /* A */
@@ -1211,28 +1254,10 @@ cifHierArrayFunc(scx, output)
 	A.r_ybot = use->cu_bbox.r_ybot + ysep - radius;
 	A.r_ytop = use->cu_bbox.r_ybot + ysize + radius;
 	GEO_EXPAND(&A, CIFCurStyle->cs_radius, &expandedArea);
-	(void) DBArraySr(use, &expandedArea, cifHierElementFunc,
+	(void) DBArraySr(use, &expandedArea, cifHierElementFuncLow,
 		(ClientData) &A);
 	CIFErrorDef = use->cu_parent;
 	CIFGen(CIFTotalDef, use->cu_def, &A, CIFTotalPlanes,
-		&CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
-		(ClientData)NULL);
-	anyInteractions = TRUE;
-    }
-
-    /* C */
-
-    if (xsep < xsize + radius)
-    {
-	C.r_xbot = use->cu_bbox.r_xtop - xsize - radius;
-	C.r_xtop = use->cu_bbox.r_xtop - xsep + radius;
-	C.r_ybot = use->cu_bbox.r_ytop - ysize - radius;
-	C.r_ytop = use->cu_bbox.r_ytop + radius;
-	GEO_EXPAND(&C, CIFCurStyle->cs_radius, &expandedArea);
-	(void) DBArraySr(use, &expandedArea, cifHierElementFunc,
-		(ClientData) &C);
-	CIFErrorDef = use->cu_parent;
-	CIFGen(CIFTotalDef, use->cu_def, &C, CIFTotalPlanes,
 		&CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
 		(ClientData)NULL);
 	anyInteractions = TRUE;
@@ -1247,31 +1272,16 @@ cifHierArrayFunc(scx, output)
 	B.r_ybot = use->cu_bbox.r_ybot - radius;
 	B.r_ytop = use->cu_bbox.r_ybot + ysep - radius;
 	GEO_EXPAND(&B, CIFCurStyle->cs_radius, &expandedArea);
-	(void) DBArraySr(use, &expandedArea, cifHierElementFunc,
+	(void) DBArraySr(use, &expandedArea, cifHierElementFuncLow,
 		(ClientData) &B);
 	CIFErrorDef = use->cu_parent;
 	CIFGen(CIFTotalDef, use->cu_def, &B, CIFTotalPlanes,
-		&CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
-		(ClientData)NULL);
-
-	/* D */
-
-	D.r_xbot = use->cu_bbox.r_xtop - xsep + radius;
-	D.r_xtop = use->cu_bbox.r_xtop + radius;
-	D.r_ybot = use->cu_bbox.r_ytop - ysize - radius;
-	D.r_ytop = use->cu_bbox.r_ytop - ysep + radius;
-	GEO_EXPAND(&D, CIFCurStyle->cs_radius, &expandedArea);
-	(void) DBArraySr(use, &expandedArea, cifHierElementFunc,
-		(ClientData) &D);
-	CIFErrorDef = use->cu_parent;
-	CIFGen(CIFTotalDef, use->cu_def, &D, CIFTotalPlanes,
 		&CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
 		(ClientData)NULL);
     }
 
     if (anyInteractions)
     {
-
 	/* Remove redundant CIF that's already in the children, and
 	 * make sure everything in the kids is in the parent too.
 	 */
@@ -1308,6 +1318,155 @@ cifHierArrayFunc(scx, output)
 			(ClientData) NULL);
 	    }
 
+	    if ((nx > 1) && (ny > 1) && (xsep < xsize + radius)
+	    		&& (ysep < ysize + radius))
+	    {
+		/* The bottom edge of the array (from B). */
+
+		cifHierXSpacing = xsep * scale;
+		cifHierYSpacing = 0;
+		cifHierXCount = nx-1;
+		cifHierYCount = 1;
+		SCALE(&B, scale, &cifArea);
+		(void) DBSrPaintArea((Tile *) NULL, CIFTotalPlanes[i],
+			&cifArea, &CIFSolidBits, cifHierPaintArrayFunc,
+			(ClientData) NULL);
+
+		/* The core of the array (copied from A and B).  Copy area
+		 * from A, but not to exceed 1/2 Y array separation, into the
+		 * inside area of the array.  If the expanded area is > 1/2
+		 * the array separation, then there is no need to copy from
+		 * area B.  Otherwise, copy area from B, extending up to
+		 * the bottom of the area just copied, and not to exceed
+		 * 1/2 the X array separation.
+		 */
+
+		cifHierXSpacing = xsep * scale;
+		cifHierYSpacing = ysep * scale;
+		cifHierXCount = nx-1;
+		cifHierYCount = ny-1;
+
+		/* Find top edge of cell */
+		A.r_xbot = use->cu_bbox.r_xbot;
+		A.r_xtop = use->cu_bbox.r_xbot + xsep;
+		A.r_ybot = use->cu_bbox.r_ybot + ysep;
+		A.r_ytop = use->cu_bbox.r_ybot + ysize;
+		/* Expand up/down but not by more than 1/2 ysep */
+		if ((2 * radius) > ysep)
+		{
+		    A.r_ybot -= (ysep >> 1);
+		    A.r_ytop += (ysep >> 1);
+		}
+		else
+		{
+		    A.r_ybot -= radius;
+		    A.r_ytop += radius;
+		}
+		SCALE(&A, scale, &cifArea);
+		(void) DBSrPaintArea((Tile *) NULL, CIFTotalPlanes[i],
+			&cifArea, &CIFSolidBits, cifHierPaintArrayFunc,
+			(ClientData) NULL);
+
+		/* If the radius is more than half of ysep then there	*/
+		/* is nothing left that needs to be copied.		*/
+
+		if ((2 * radius) < ysep)
+		{
+		    /* Find right edge of cell */
+		    B.r_ybot = use->cu_bbox.r_ybot;
+		    B.r_ytop = use->cu_bbox.r_ybot + ysep;
+
+		    if (B.r_ytop > A.r_ybot) B.r_ytop = A.r_ybot;
+
+		    B.r_xbot = use->cu_bbox.r_xbot + xsep;
+		    B.r_xtop = use->cu_bbox.r_xbot + xsize;
+		    /* Expand left/right but not by more than 1/2 xsep */
+		    if ((2 * radius) > xsep)
+		    {
+			B.r_xbot -= (xsep >> 1);
+			B.r_xtop += (xsep >> 1);
+		    }
+		    else
+		    {
+			B.r_xbot -= radius;
+			B.r_xtop += radius;
+		    }
+		    SCALE(&B, scale, &cifArea);
+		    (void) DBSrPaintArea((Tile *) NULL, CIFTotalPlanes[i],
+				&cifArea, &CIFSolidBits, cifHierPaintArrayFunc,
+				(ClientData) NULL);
+		}
+	    }
+	}
+	CIFHierRects += CIFTileOps - oldTileOps;
+    }
+
+    /* Clean up from areas A and B */
+    cifHierCleanup();
+    anyInteractions = FALSE;
+
+    /* Now do areas C and D */
+
+    /* C */
+
+    if (xsep < xsize + radius)
+    {
+	C.r_xbot = use->cu_bbox.r_xtop - xsize - radius;
+	C.r_xtop = use->cu_bbox.r_xtop - xsep + radius;
+	C.r_ybot = use->cu_bbox.r_ytop - ysize - radius;
+	C.r_ytop = use->cu_bbox.r_ytop + radius;
+	GEO_EXPAND(&C, CIFCurStyle->cs_radius, &expandedArea);
+	(void) DBArraySr(use, &expandedArea, cifHierElementFuncHigh,
+		(ClientData) &C);
+	CIFErrorDef = use->cu_parent;
+	CIFGen(CIFTotalDef, use->cu_def, &C, CIFTotalPlanes,
+		&CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
+		(ClientData)NULL);
+	anyInteractions = TRUE;
+    }
+
+    if ((xsep < xsize + radius) && (ysep < ysize + radius))
+    {
+	/* D */
+
+	D.r_xbot = use->cu_bbox.r_xtop - xsep + radius;
+	D.r_xtop = use->cu_bbox.r_xtop + radius;
+	D.r_ybot = use->cu_bbox.r_ytop - ysize - radius;
+	D.r_ytop = use->cu_bbox.r_ytop - ysep + radius;
+	GEO_EXPAND(&D, CIFCurStyle->cs_radius, &expandedArea);
+	(void) DBArraySr(use, &expandedArea, cifHierElementFuncHigh,
+		(ClientData) &D);
+	CIFErrorDef = use->cu_parent;
+	CIFGen(CIFTotalDef, use->cu_def, &D, CIFTotalPlanes,
+		&CIFCurStyle->cs_hierLayers, FALSE, TRUE, TRUE,
+		(ClientData)NULL);
+    }
+
+    if (anyInteractions)
+    {
+
+	/* Remove redundant CIF that's already in the children, and
+	 * make sure everything in the kids is in the parent too.
+	 */
+
+	CIFErrorDef = use->cu_parent;
+	cifCheckAndErase(CIFCurStyle);
+
+	/* Lastly, paint everything back from our local planes into
+	 * the planes of the caller.  In doing this, stuff has to
+	 * be replicated many times over to cover each of the array
+	 * interaction areas.
+	 */
+
+	oldTileOps = CIFTileOps;
+	for (i=0; i<CIFCurStyle->cs_nLayers; i++)
+	{
+	    int scale = CIFCurStyle->cs_scaleFactor;
+	    Rect cifArea;
+
+	    cifHierCurPlane = output[i];
+	    CurCifLayer = CIFCurStyle->cs_layers[i]; /* for growSliver */
+
 	    /* The top edge of the array (from C). */
 
 	    if ((nx > 1) && (xsep < xsize + radius))
@@ -1325,17 +1484,6 @@ cifHierArrayFunc(scx, output)
 	    if ((nx > 1) && (ny > 1) && (xsep < xsize + radius)
 	    		&& (ysep < ysize + radius))
 	    {
-		/* The bottom edge of the array (from B). */
-
-		cifHierXSpacing = xsep * scale;
-		cifHierYSpacing = 0;
-		cifHierXCount = nx-1;
-		cifHierYCount = 1;
-		SCALE(&B, scale, &cifArea);
-		(void) DBSrPaintArea((Tile *) NULL, CIFTotalPlanes[i],
-			&cifArea, &CIFSolidBits, cifHierPaintArrayFunc,
-			(ClientData) NULL);
-
 		/* The right edge of the array (from D). */
 
 		cifHierXSpacing = 0;
@@ -1346,36 +1494,12 @@ cifHierArrayFunc(scx, output)
 		(void) DBSrPaintArea((Tile *) NULL, CIFTotalPlanes[i],
 			&cifArea, &CIFSolidBits, cifHierPaintArrayFunc,
 			(ClientData) NULL);
-
-		/* The core of the array (from A and B).  This code is a bit
-		 * tricky in order to work correctly even for arrays where
-		 * radius < ysep.  The "if" statement handles this case.
-		 */
-
-		cifHierXSpacing = xsep * scale;
-		cifHierYSpacing = ysep * scale;
-		cifHierXCount = nx-1;
-		cifHierYCount = ny-1;
-		parentArea.r_xbot = A.r_xtop - xsep;
-		parentArea.r_ybot = A.r_ytop - ysep;
-		if (parentArea.r_ybot > B.r_ytop) parentArea.r_ybot = B.r_ytop;
-		parentArea.r_xtop = A.r_xtop;
-		parentArea.r_ytop = A.r_ytop;
-		SCALE(&parentArea, scale, &cifArea);
-		(void) DBSrPaintArea((Tile *) NULL, CIFTotalPlanes[i],
-			&cifArea, &CIFSolidBits, cifHierPaintArrayFunc,
-			(ClientData) NULL);
 	    }
 	}
 	CIFHierRects += CIFTileOps - oldTileOps;
     }
 
     cifHierCleanup();
-
-    /* Restore the array bounds of the array */
-    use->cu_xhi = xhi;
-    use->cu_yhi = yhi;
-
     return 2;
 }
 
