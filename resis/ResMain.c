@@ -20,6 +20,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "utils/tech.h"
+#include "select/select.h"
 #include "textio/txcommands.h"
 #include "resis/resis.h"
 
@@ -560,7 +561,103 @@ ResProcessTiles(goodies, origin)
     return(0);
 }
 
-/*-------------------------------------------------------------------------
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResCalcPerimOverlap ---
+ *
+ *  Given a device tile, compute simple perimeter and overlap of the device
+ *  by the net under consideration.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	The ResDevTile structure is updated with the overlap and perimeter
+ *	values.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResCalcPerimOverlap(tile, dev)
+    Tile	*tile;
+    ResDevTile	*dev;
+{
+    Tile	    *tp;
+    int		    t1;
+    int		    overlap;
+    TileTypeBitMask *omask;
+
+    dev->perim = (TOP(tile) - BOTTOM(tile) - LEFT(tile) + RIGHT(tile)) << 1;
+    overlap = 0;
+
+    t1 = TiGetType(tile);
+    omask = &(ExtCurStyle->exts_nodeConn[t1]);
+
+    /* left */
+    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+    {
+	if TTMaskHasType(omask, TiGetType(tp))
+	    overlap += MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
+    }
+
+    /* right */
+    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
+    {
+	if TTMaskHasType(omask, TiGetType(tp))
+	    overlap += MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
+    }
+
+    /* top */
+    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+    {
+	if TTMaskHasType(omask, TiGetType(tp))
+	    overlap += MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
+    }
+
+    /* bottom */
+    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
+    {
+	if TTMaskHasType(omask, TiGetType(tp))
+	      overlap += MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
+    }
+    dev->overlap = overlap;
+}
+/*
+ *-------------------------------------------------------------------------
+ *
+ * resMakeDevFunc --
+ *
+ *  Callback function from ResExtractNet.  For each device in a node's
+ *  device list pulled from the .sim file, find the tile corresponding
+ *  to the device in the source tree, and fill out the complete device
+ *  record (namely the full device area).
+ *
+ * Result:
+ *	Return 1 to stop the search because the device has been found.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+resMakeDevFunc(tile, cx)
+    Tile	*tile;
+    TreeContext *cx;
+{
+    ResDevTile	*thisDev = (ResDevTile *)cx->tc_filter->tf_arg;
+    Rect	devArea;
+
+    TiToRect(tile, &devArea);
+    GeoTransRect(&cx->tc_scx->scx_trans, &devArea, &thisDev->area);
+    ResCalcPerimOverlap(tile, thisDev);
+
+    return 1;
+}
+
+ 
+/*
+ *-------------------------------------------------------------------------
  *
  * ResExtractNet-- extracts the resistance net at the specified
  *	rn_loc. If the resulting net is greater than the tolerance,
@@ -574,18 +671,20 @@ ResProcessTiles(goodies, origin)
  */
 
 bool
-ResExtractNet(fix, goodies, cellname)
-    ResFixPoint		*fix;
+ResExtractNet(node, goodies, cellname)
+    ResSimNode		*node;
     ResGlobalParams	*goodies;
     char		*cellname;
 {
     SearchContext 	scx;
     int			pNum;
-    ResDevTile		*DevTiles;
     TileTypeBitMask	FirstTileMask;
     Point		startpoint;
     static int		first = 1;
-    ResDevTile		*newdevtiles, *tmp;
+    ResDevTile		*DevTiles, *thisDev;
+    ResFixPoint		*fix;
+    devPtr		*tptr;
+    int			resMakeDevFunc();
 
     /* Make sure all global network variables are reset */
 
@@ -638,29 +737,55 @@ ResExtractNet(fix, goodies, cellname)
 
     DBCellClearDef(ResUse->cu_def);
 
-    /* Copy Paint */
-    DevTiles = NULL;
-
 #ifdef ARIEL
     if ((ResOptionsFlags & ResOpt_Power) &&
-	 		strcmp(fix->fp_name, goodies->rg_name) != 0) continue;
+	 		strcmp(node->name, goodies->rg_name) != 0) continue;
 #endif
 
-    scx.scx_area.r_ll.p_x = fix->fp_loc.p_x-2;
-    scx.scx_area.r_ll.p_y = fix->fp_loc.p_y-2;
-    scx.scx_area.r_ur.p_x = fix->fp_loc.p_x+2;
-    scx.scx_area.r_ur.p_y = fix->fp_loc.p_y+2;
-    startpoint = fix->fp_loc;
+    /* Copy Paint */
 
-    /* Because fix->fp_ttype might come from a label with a sticky type
+    scx.scx_area.r_ll.p_x = node->location.p_x - 2;
+    scx.scx_area.r_ll.p_y = node->location.p_y - 2;
+    scx.scx_area.r_ur.p_x = node->location.p_x + 2;
+    scx.scx_area.r_ur.p_y = node->location.p_y + 2;
+    startpoint = node->location;
+
+    /* Because node->type might come from a label with a sticky type
      * that does not correspond exactly to the layer underneath, include
      * all connecting types.
      */
     TTMaskZero(&FirstTileMask);
-    TTMaskSetMask(&FirstTileMask, &DBConnectTbl[fix->fp_ttype]);
+    TTMaskSetMask(&FirstTileMask, &DBConnectTbl[node->type]);
 
-    DevTiles = DBTreeCopyConnectDCS(&scx, &FirstTileMask, 0,
-	         			ResCopyMask, &TiPlaneRect, ResUse);
+    /* DevTiles = DBTreeCopyConnectDCS(&scx, &FirstTileMask, 0,
+	         			ResCopyMask, &TiPlaneRect, ResUse); */
+    DBTreeCopyConnect(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
+					SEL_DO_LABELS, ResUse);
+
+    /* Add devices to ResUse from list in node */
+    DevTiles = NULL;
+    for (tptr = node->firstDev; tptr; tptr = tptr->nextDev)
+    {
+	TileTypeBitMask devMask;
+
+	TTMaskSetOnlyType(&devMask, tptr->thisDev->rs_ttype);
+	thisDev = (ResDevTile *)mallocMagic(sizeof(ResDevTile));
+	thisDev->devptr = tptr->thisDev->rs_devptr;
+	thisDev->type = tptr->thisDev->rs_ttype;
+	scx.scx_area.r_ll.p_x = tptr->thisDev->location.p_x;
+	scx.scx_area.r_ll.p_y = tptr->thisDev->location.p_y;
+	scx.scx_area.r_xtop = scx.scx_area.r_xbot + 1;
+	scx.scx_area.r_ytop = scx.scx_area.r_ybot + 1;
+	DBTreeSrTiles(&scx, &devMask, 0, resMakeDevFunc, (ClientData)thisDev);
+	thisDev->nextDev = DevTiles;
+	DevTiles = thisDev;
+
+	/* Paint the type into ResUse */
+	pNum = DBPlane(thisDev->type);
+	DBPaintPlane(ResUse->cu_def->cd_planes[pNum], &thisDev->area,
+		DBStdPaintTbl(thisDev->type, pNum), (PaintUndoInfo *)NULL);
+    }
+    DBReComputeBbox(ResUse->cu_def);
 
     ExtResetTiles(scx.scx_use->cu_def, extUnInit);
 

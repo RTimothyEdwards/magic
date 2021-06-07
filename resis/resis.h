@@ -247,6 +247,7 @@ typedef struct resdevtile
      struct resdevtile	*nextDev;
      Rect		area;
      TileType		type;
+     ExtDevice		*devptr;
      int		perim;
      int		overlap;
 } ResDevTile;
@@ -297,7 +298,8 @@ typedef struct rdev
      Point		location;	/* Location of lower left point of */
      					/* device.			   */
      float		resistance;     /* "Resistance" of device.	   */
-     int		rs_ttype;	/* device type			   */
+     TileType		rs_ttype;	/* tile type for device		   */
+     ExtDevice		*rs_devptr;	/* device extraction record	   */
      char               *rs_gattr;      /* Gate attributes, if any         */
      char               *rs_sattr;
      char               *rs_dattr;

@@ -13,6 +13,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "utils/malloc.h"
 #include "textio/textio.h"
+#include "extract/extractInt.h"
 #include "resis/resis.h"
 
 TileTypeBitMask	ResNoMergeMask[NT];

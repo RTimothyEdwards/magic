@@ -46,6 +46,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 #include "calma/calmaInt.h"
 #include "commands/commands.h"		/* for CmdGetRootPoint */
+#include "utils/main.h"			/* for EditCellUse */
 #include "utils/undo.h"
 
 /* Globals for Calma reading */
@@ -167,7 +168,7 @@ CalmaReadFile(file, filename)
     if (EditCellUse == (CellUse *)NULL)
     {
 	TxError("Cannot read GDS:  There is no edit cell.\n");
-	return
+	return;
     }
 
     /* We will use full cell names as keys in this hash table */

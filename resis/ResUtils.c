@@ -545,7 +545,7 @@ ResRemovePlumbing(tile, arg)
 /*
  *-------------------------------------------------------------------------
  *
- * ResPreprocessDevices-- Given a list of all the device tiles and
+ * ResPreProcessDevices-- Given a list of all the device tiles and
  * a list of all the devices, this procedure calculates the width and
  * length.  The width is set equal to the sum of all edges that touch
  * diffusion divided by 2. The length is the remaining perimeter divided by
@@ -603,8 +603,9 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 	tt = TiGetType(tile);
 	tstruct = (tileJunk *) tile->ti_client;
 
-	if (!TTMaskHasType(&ExtCurStyle->exts_deviceMask, tt) ||
-				tstruct->deviceList == NULL)
+	if ((tstruct == (tileJunk *)CLIENTDEFAULT) ||
+		    (tstruct->deviceList == NULL) ||
+		    !TTMaskHasType(&ExtCurStyle->exts_deviceMask, tt))
 	{
 	    TxError("Bad Device Location at %d,%d\n",
 			TileList->area.r_ll.p_x,
@@ -626,7 +627,7 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 	freeMagic((char *)oldTile);
     }
 
-    for (; DeviceList != NULL;DeviceList = DeviceList->rd_nextDev)
+    for (; DeviceList != NULL; DeviceList = DeviceList->rd_nextDev)
     {
      	int width  = DeviceList->rd_perim;
 	int length = DeviceList->rd_length;

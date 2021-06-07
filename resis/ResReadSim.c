@@ -207,7 +207,7 @@ ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
 
 	    devptr = ExtCurStyle->exts_device[fettype];
 	    sheetr = (float)devptr->exts_linearResist;
-	    result = (*fetproc)(line, sheetr, fettype);
+	    result = (*fetproc)(line, sheetr, devptr);
 	}
 	if (result != 0)
 	{
@@ -374,6 +374,8 @@ ResSimSubckt(line)
     for (i = 1; line[i][0] != '\0'; i++);
     i--;
 
+    /* To do:  Replace this search with a pre-prepared hash	*/
+    /* table to key off of the device name.			*/
     for (j = 0; j < EFDevNumTypes; j++)
 	if (!strcmp(EFDevTypes[j], line[i]))
 	    break;
@@ -402,33 +404,29 @@ ResSimSubckt(line)
 		case 'y':
 		    device->location.p_y = (int)((float)atof(eqptr) / lambda);
 		    break;
-		case 't':
-		    ttype = (int)(atoi(eqptr));
-		    break;
 	    }
 	}
     }
 
-    /* This should not be needed, as ext2sim should encode device type	*/
-    /* in the attributes list.						*/
-    if (ttype == TT_SPACE)
+    if (j == EFDevNumTypes)
     {
-	if (j == EFDevNumTypes)
-	{
-	    TxError("Failure to find device type %s\n", line[i]);
-	    return 1;
-	}
-	ttype = extGetDevType(EFDevTypes[j]);
+	TxError("Failure to find device type %s\n", line[i]);
+	return 1;
     }
+    ttype = extGetDevType(EFDevTypes[j]);
 
+    /* Find the device record that corresponds to the device name */
+    for (devptr = ExtCurStyle->exts_device[ttype]; devptr; devptr = devptr->exts_next)
+	if (!strcmp(devptr->exts_deviceName, EFDevTypes[j]))
+	    break;
+
+    device->rs_devptr = devptr;
     device->rs_ttype = ttype;
 
     if (lptr != NULL && wptr != NULL)
     {
 	float rpersquare;
-	ExtDevice *devptr;
 
-	devptr = ExtCurStyle->exts_device[ttype];
 	rpersquare =(float)devptr->exts_linearResist;
 	/* Subcircuit types may not have a length or width value, in which  */
 	/* case it is zero.  Don't induce a divide-by-zero error.	    */
@@ -454,8 +452,6 @@ ResSimSubckt(line)
     return rvalue;
 }
 
-
-
 /*
  *-------------------------------------------------------------------------
  *
@@ -469,10 +465,10 @@ ResSimSubckt(line)
  */
 
 int
-ResSimDevice(line, rpersquare, ttype)
+ResSimDevice(line, rpersquare, devptr)
     char	line[][MAXTOKEN];
     float	rpersquare;
-    TileType	ttype;
+    ExtDevice	*devptr;
 
 {
     RDev	*device;
@@ -511,7 +507,7 @@ ResSimDevice(line, rpersquare, ttype)
     device->rs_gattr=RDEV_NOATTR;
     device->rs_sattr=RDEV_NOATTR;
     device->rs_dattr=RDEV_NOATTR;
-    device->rs_ttype = ttype;
+    device->rs_devptr = devptr;
 
     device->gate = device->source = device->drain = device->subs = NULL;
 

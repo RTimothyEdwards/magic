@@ -1206,9 +1206,6 @@ simdevVisit(dev, hc, scale, trans)
 	/* Output length, width, and position as attributes */
         fprintf(esSimF, " l=%g w=%g x=%g y=%g",
 		l * scale, w * scale, r.r_xbot * scale, r.r_ybot * scale);
-
-	/* Output tile type as an attribute for quick lookup by ResReadSim */
-        fprintf(esSimF, " t=%d", fetInfo[dev->dev_type].devType);
     }
     else if ((dev->dev_class != DEV_DIODE) && (dev->dev_class != DEV_PDIODE)
 		&& (dev->dev_class != DEV_NDIODE)) {

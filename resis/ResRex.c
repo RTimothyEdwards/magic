@@ -464,7 +464,7 @@ typedef enum {
 		CellDef		*def;
 		Rect		rect;
 		int		oldoptions;
-		ResFixPoint	fp;
+		ResSimNode	lnode;
 
 		if (ToolGetBoxWindow((Rect *) NULL, (int *) NULL) == NULL)
 		{
@@ -486,10 +486,9 @@ typedef enum {
 		LaplaceMatchCount = 0;
 		LaplaceMissCount = 0;
 #endif
-		fp.fp_ttype = tt;
-		fp.fp_loc = rect.r_ll;
-		fp.fp_next = NULL;
-		if (ResExtractNet(&fp, &gparams, NULL) != 0) return;
+		lnode.location = rect.r_ll;
+		lnode.type = tt;
+		if (ResExtractNet(&lnode, &gparams, NULL) != 0) return;
 		ResPrintResistorList(stdout, ResResList);
 		ResPrintDeviceList(stdout, ResRDevList);
 #ifdef LAPLACE
@@ -1066,10 +1065,7 @@ ResCheckSimNodes(celldef, resisdata)
 	    ResFixPoint	fp;
 
 	    failed1++;
-	    fp.fp_loc = node->location;
-	    fp.fp_ttype = node->type;
-	    fp.fp_next = NULL;
-	    if (ResExtractNet(&fp, &gparams, outfile) != 0)
+	    if (ResExtractNet(node, &gparams, outfile) != 0)
 	    {
 		/* On error, don't output this net, but keep going */
 	       	TxError("Error in extracting node %s\n", node->name);
