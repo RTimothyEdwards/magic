@@ -132,7 +132,8 @@ typedef struct {
 #define initNodeClient(node) \
 { \
 	(node)->efnode_client = (ClientData) mallocMagic((unsigned) (sizeof(nodeClient))); \
-	 (( nodeClient *)(node)->efnode_client)->spiceNodeName = NULL; \
+	(( nodeClient *)(node)->efnode_client)->spiceNodeName = NULL; \
+	TTMaskZero (&((nodeClient *) (node)->efnode_client)->m_w.visitMask); \
 	TTMaskSetMask(&(((nodeClient *)(node)->efnode_client)->m_w.visitMask), &initMask);\
 }
 
