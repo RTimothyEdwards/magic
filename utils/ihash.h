@@ -50,6 +50,7 @@ static __inline__ int IHashAlignedSize(int size)
     int result;
     /* Expand size to be double-word (64 bit) aligned */
     result = ((size + 7) / 8) * 8;
+    return result;
 }
 
 /* The IHashTable struct should not be manipulated directly by clients */
