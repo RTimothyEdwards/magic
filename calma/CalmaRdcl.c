@@ -882,7 +882,8 @@ calmaElementSref(filename)
 	if (rtype == CALMA_PROPATTR)
 	{
 	    READI2(propAttrType);
-	    if (propAttrType == CALMA_PROP_USENAME)
+	    if (propAttrType == CALMA_PROP_USENAME ||
+		 propAttrType == CALMA_PROP_USENAME_STD)
 	    {
 		char *s;
 

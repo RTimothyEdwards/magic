@@ -1346,7 +1346,7 @@ calmaWriteUseFunc(use, f)
 	if (!calmaIsUseNameDefault(use->cu_def->cd_name, use->cu_id))
 	{
 	    calmaOutRH(6, CALMA_PROPATTR, CALMA_I2, f);
-	    calmaOutI2(CALMA_PROP_USENAME, f);
+	    calmaOutI2(CALMA_PROP_USENAME_STD, f);
 	    calmaOutStringRecord(CALMA_PROPVALUE, use->cu_id, f);
 	}
 
