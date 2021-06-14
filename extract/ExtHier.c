@@ -211,8 +211,8 @@ extHierSubstrate(ha, use, x, y)
 	    for (nn = node1->node_names; nn->nn_next; nn = nn->nn_next)
 		nn->nn_node = node2;
 	    nn->nn_node = node2;
-	    nn->nn_next = node2->node_names;
-	    node2->node_names = node1->node_names;
+	    nn->nn_next = node2->node_names->nn_next;
+	    node2->node_names->nn_next = node1->node_names;
 	    node2->node_len += node1->node_len;
 	    freeMagic((char *)node1);
 	}
@@ -412,8 +412,8 @@ extHierConnectFunc1(oneTile, ha)
 		    	for (nn = node1->node_names; nn->nn_next; nn = nn->nn_next)
 			    nn->nn_node = node2;
 		    	nn->nn_node = node2;
-		    	nn->nn_next = node2->node_names;
-		    	node2->node_names = node1->node_names;
+	    		nn->nn_next = node2->node_names->nn_next;
+	    		node2->node_names->nn_next = node1->node_names;
 			node2->node_len += node1->node_len;
 		    	freeMagic((char *) node1);
 		    }
@@ -516,8 +516,8 @@ extHierConnectFunc2(cum, ha)
 	    	for (nn = node1->node_names; nn->nn_next; nn = nn->nn_next)
 		    nn->nn_node = node2;
 	        nn->nn_node = node2;
-	        nn->nn_next = node2->node_names;
-	        node2->node_names = node1->node_names;
+	    	nn->nn_next = node2->node_names->nn_next;
+	    	node2->node_names->nn_next = node1->node_names;
 	        node2->node_len += node1->node_len;
 	        freeMagic((char *) node1);
 	    }
@@ -618,8 +618,8 @@ extHierConnectFunc3(cum, ha)
 	    	for (nn = node1->node_names; nn->nn_next; nn = nn->nn_next)
 		    nn->nn_node = node2;
 	    	nn->nn_node = node2;
-	    	nn->nn_next = node2->node_names;
-	    	node2->node_names = node1->node_names;
+	    	nn->nn_next = node2->node_names->nn_next;
+	    	node2->node_names->nn_next = node1->node_names;
 	    	node2->node_len += node1->node_len;
 	    	freeMagic((char *) node1);
 	    }
