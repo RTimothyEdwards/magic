@@ -203,15 +203,32 @@ extHierSubstrate(ha, use, x, y)
 
     if (node1 != node2)
     {
-       /*
-        * Both sets of names will now point to node1.
-        */
-	for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
+        if (node1->node_len < node2->node_len)
+	{
+            /*
+             * Both sets of names will now point to node2.
+             */
+	    for (nn = node1->node_names; nn->nn_next; nn = nn->nn_next)
+		nn->nn_node = node2;
+	    nn->nn_node = node2;
+	    nn->nn_next = node2->node_names;
+	    node2->node_names = node1->node_names;
+	    node2->node_len += node1->node_len;
+	    freeMagic((char *)node1);
+	}
+	else
+	{
+            /*
+             * Both sets of names will now point to node1.
+             */
+	    for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
 		nn->nn_node = node1;
-	nn->nn_node = node1;
-	nn->nn_next = node1->node_names;
-	node1->node_names = node2->node_names;
-	freeMagic((char *) node2);
+	    nn->nn_node = node1;
+	    nn->nn_next = node1->node_names;
+	    node1->node_names = node2->node_names;
+	    node1->node_len += node2->node_len;
+	    freeMagic((char *)node2);
+	}
     }
     freeMagic(nodeList);
 }
@@ -385,17 +402,36 @@ extHierConnectFunc1(oneTile, ha)
 
 		if (node1 != node2)
 		{
-		    /*
-		     * Both sets of names will now point to node1.
-		     * We don't need to update node_cap since it
-		     * hasn't been computed yet.
-		     */
-		    for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
-			nn->nn_node = node1;
-		    nn->nn_node = node1;
-		    nn->nn_next = node1->node_names;
-		    node1->node_names = node2->node_names;
-		    freeMagic((char *) node2);
+        	    if (node1->node_len < node2->node_len)
+		    {
+		    	/*
+		     	 * Both sets of names will now point to node2.
+		     	 * We don't need to update node_cap since it
+		     	 * hasn't been computed yet.
+		     	 */
+		    	for (nn = node1->node_names; nn->nn_next; nn = nn->nn_next)
+			    nn->nn_node = node2;
+		    	nn->nn_node = node2;
+		    	nn->nn_next = node2->node_names;
+		    	node2->node_names = node1->node_names;
+			node2->node_len += node1->node_len;
+		    	freeMagic((char *) node1);
+		    }
+		    else
+		    {
+		    	/*
+		     	 * Both sets of names will now point to node1.
+		     	 * We don't need to update node_cap since it
+		     	 * hasn't been computed yet.
+		     	 */
+		    	for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
+			    nn->nn_node = node1;
+		    	nn->nn_node = node1;
+		    	nn->nn_next = node1->node_names;
+		    	node1->node_names = node2->node_names;
+			node1->node_len += node2->node_len;
+		    	freeMagic((char *) node2);
+		    }
 		}
 	    }
     }
@@ -470,17 +506,36 @@ extHierConnectFunc2(cum, ha)
 
 	if (node1 != node2)
 	{
-	    /*
-	     * Both sets of names will now point to node1.
-	     * We don't need to update node_cap since it
-	     * hasn't been computed yet.
-	     */
-	    for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
-		nn->nn_node = node1;
-	    nn->nn_node = node1;
-	    nn->nn_next = node1->node_names;
-	    node1->node_names = node2->node_names;
-	    freeMagic((char *) node2);
+	    if (node1->node_len < node2->node_len)
+	    {
+	    	/*
+	    	 * Both sets of names will now point to node2.
+	    	 * We don't need to update node_cap since it
+	    	 * hasn't been computed yet.
+	    	 */
+	    	for (nn = node1->node_names; nn->nn_next; nn = nn->nn_next)
+		    nn->nn_node = node2;
+	        nn->nn_node = node2;
+	        nn->nn_next = node2->node_names;
+	        node2->node_names = node1->node_names;
+	        node2->node_len += node1->node_len;
+	        freeMagic((char *) node1);
+	    }
+	    else
+	    {
+	    	/*
+	    	 * Both sets of names will now point to node1.
+	    	 * We don't need to update node_cap since it
+	    	 * hasn't been computed yet.
+	    	 */
+	    	for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
+		    nn->nn_node = node1;
+	        nn->nn_node = node1;
+	        nn->nn_next = node1->node_names;
+	        node1->node_names = node2->node_names;
+	        node1->node_len += node2->node_len;
+	        freeMagic((char *) node2);
+	    }
 	}
     }
     else if (r.r_xtop > r.r_xbot && r.r_ytop > r.r_ybot)
@@ -553,17 +608,36 @@ extHierConnectFunc3(cum, ha)
 
 	if (node1 != node2)
 	{
-	    /*
-	     * Both sets of names will now point to node1.
-	     * We don't need to update node_cap since it
-	     * hasn't been computed yet.
-	     */
-	    for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
-		nn->nn_node = node1;
-	    nn->nn_node = node1;
-	    nn->nn_next = node1->node_names;
-	    node1->node_names = node2->node_names;
-	    freeMagic((char *) node2);
+	    if (node1->node_len < node2->node_len)
+	    {
+	    	/*
+	    	 * Both sets of names will now point to node2.
+	    	 * We don't need to update node_cap since it
+	    	 * hasn't been computed yet.
+	    	 */
+	    	for (nn = node1->node_names; nn->nn_next; nn = nn->nn_next)
+		    nn->nn_node = node2;
+	    	nn->nn_node = node2;
+	    	nn->nn_next = node2->node_names;
+	    	node2->node_names = node1->node_names;
+	    	node2->node_len += node1->node_len;
+	    	freeMagic((char *) node1);
+	    }
+	    else
+	    {
+	    	/*
+	    	 * Both sets of names will now point to node1.
+	    	 * We don't need to update node_cap since it
+	    	 * hasn't been computed yet.
+	    	 */
+	    	for (nn = node2->node_names; nn->nn_next; nn = nn->nn_next)
+		    nn->nn_node = node1;
+	    	nn->nn_node = node1;
+	    	nn->nn_next = node1->node_names;
+	    	node1->node_names = node2->node_names;
+	    	node1->node_len += node2->node_len;
+	    	freeMagic((char *) node2);
+	    }
 	}
     }
     else if (r.r_xtop > r.r_xbot && r.r_ytop > r.r_ybot)
@@ -810,6 +884,7 @@ extHierNewNode(he)
     nn->nn_name = he->h_key.h_name;
     node->node_names = nn;
     node->node_cap = (CapValue) 0;
+    node->node_len = 1;
     for (n = 0; n < nclasses; n++)
 	node->node_pa[n].pa_perim = node->node_pa[n].pa_area = 0;
     HashSetValue(he, (char *) nn);

@@ -943,6 +943,7 @@ typedef struct node
     NodeName	*node_names;	/* List of names for this node.  The first name
 				 * in the list is the "official" node name.
 				 */
+    int		 node_len;	/* Number of entries in node_names */
     CapValue	 node_cap;	/* Capacitance to substrate */
     PerimArea	 node_pa[1];	/* Dummy; each node actually has
 				 * ExtCurStyle->exts_numResistClasses
