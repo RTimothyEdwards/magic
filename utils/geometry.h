@@ -190,7 +190,8 @@ extern int GeoRectPointSide(Rect *, Point *);
 extern int GeoRectRectSide(Rect *, Rect *);
 extern void GeoIncludePoint(Point *, Rect *);
 extern void GeoDecomposeTransform(Transform *, bool *, int *);
-extern void GeoIncludeRectInBBox(Rect *, Rect *bbox);
+extern void GeoIncludeRectInBBox(Rect *, Rect *);
+extern void GeoCanonicalRect(Rect *, Rect *);
 
 /*
  *-------------------------------------------------------------------
