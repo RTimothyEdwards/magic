@@ -1612,8 +1612,9 @@ DBCellLookDef(cellName)
 {
     HashEntry *entry;
 
-    entry = HashFind(&dbCellDefTable, cellName);
-    return ((CellDef *) HashGetValue(entry));
+    entry = HashLookOnly(&dbCellDefTable, cellName);
+    if (entry == (HashEntry *)NULL) return (CellDef *)NULL;
+    return (CellDef *)HashGetValue(entry);
 }
 
 

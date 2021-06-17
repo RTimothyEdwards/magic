@@ -26,6 +26,7 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 #include <string.h>
 #include <ctype.h>
 #include <sys/types.h>
+#include <arpa/inet.h>	/* for htons() */
 #ifdef	SYSV
 #include <time.h>
 #else
@@ -146,6 +147,7 @@ int calmaPaintLayerType;
  */
 HashTable calmaLibHash;
 HashTable calmaPrefixHash;
+HashTable calmaUndefHash;
 
 /* Imports */
 extern time_t time();
@@ -285,6 +287,8 @@ CalmaWrite(rootDef, f)
     int oldCount = DBWFeedbackCount, problems;
     bool good;
     CellUse dummy;
+    HashEntry *he;
+    HashSearch hs;
 
     /*
      * Do not attempt to write anything if a CIF/GDS output style
@@ -298,6 +302,7 @@ CalmaWrite(rootDef, f)
 
     HashInit(&calmaLibHash, 32, 0);
     HashInit(&calmaPrefixHash, 32, 0);
+    HashInit(&calmaUndefHash, 32, 0);
 
     /*
      * Make sure that the entire hierarchy rooted at rootDef is
@@ -355,6 +360,22 @@ CalmaWrite(rootDef, f)
 
     HashFreeKill(&calmaLibHash);
     HashKill(&calmaPrefixHash);
+
+    /*
+     * Check for any cells that were instanced in the output definition
+     * (by dumping a GDS file from a read-only view) but were never
+     * defined (because the dumped GDS contained undefined references).
+     */
+    HashStartSearch(&hs);
+    while ((he = HashNext(&calmaUndefHash, &hs)) != NULL)
+    {
+	char *refname = (char *)HashGetValue(he);
+        if (refname && (refname[0] == '0'))
+	    TxError("Error:  Cell %s is not defined in the output file!\n",
+			refname + 1);
+    }
+
+    HashFreeKill(&calmaUndefHash);
     return (good);
 }
 
@@ -409,14 +430,47 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
     	calmaOutDate(def->cd_timestamp, outf);
     calmaOutDate(time((time_t *) 0), outf);
 
-    /* Find the structure's unique prefix, in case structure calls subcells */
-    /* that are not yet defined.					    */
+    /* Do a quick check of the calmaUndefHash table to see if this cell	*/
+    /* was previously used in a GDS file that does not define it (a GDS	*/
+    /* addendum library).						*/
 
-    he2 = HashFind(&calmaLibHash, filename);
-    if (he2 == NULL)
-	TxError("Fatal error:  Library %s not recorded!\n", filename);
+    he = HashLookOnly(&calmaUndefHash, strname);
+    if (he != NULL)
+    {
+	HashSearch hs;
+	char *undefname = (char *)HashGetValue(he);
+
+    	HashStartSearch(&hs);
+    	while ((he2 = HashNext(&calmaLibHash, &hs)) != NULL)
+	{
+	    prefix = (char *)HashGetValue(he2);
+	    if (!strncmp(prefix, undefname + 1, strlen(prefix)))
+		break;
+	}
+	if (he2 == NULL)
+	{
+	    prefix = (char *)NULL;
+	    TxError("Error:  Unreferenced cell %s prefix is unrecorded!\n",
+			undefname);
+	} 
+	else
+	{
+	    /* Remove this entry from the hash table */
+	    freeMagic(undefname);
+	    HashRemove(&calmaUndefHash, strname);
+	}
+    }
     else
-	prefix = (char *)HashGetValue(he2);
+    {
+    	/* Find the structure's unique prefix, in case structure calls	*/
+    	/* subcells that are not yet defined.				*/
+
+    	he2 = HashFind(&calmaLibHash, filename);
+    	if (he2 == NULL)
+	    TxError("Fatal error:  Library %s not recorded!\n", filename);
+    	else
+	    prefix = (char *)HashGetValue(he2);
+    }
 
     /* Prefix structure name with def name, and output new structure name */
     he = HashFind(calmaDefHash, strname);
@@ -456,16 +510,20 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 	if (edef != NULL)
 	{
 	    bool isAbstract, isReadOnly;
-	    char *chklibname, *dotptr;
+	    char *chklibname, *filenamesubbed = NULL;
 
 	    /* Is view abstract? */
 	    DBPropGet(edef, "LEFview", &isAbstract);
 	    chklibname = (char *)DBPropGet(edef, "GDS_FILE", &isReadOnly);
-	    dotptr = strrchr(filename, '.');
-	    if (dotptr) *dotptr = '\0';
 
-	    /* Is the library name the same as the filename (less extension)? */
-	    if (isAbstract && isReadOnly && !strcmp(filename, chklibname))
+	    if (isAbstract && isReadOnly)
+	    {
+		filenamesubbed = StrDup(NULL, filename);
+		DBPathSubstitute(filename, filenamesubbed, edef);
+	    }
+
+	    /* Is the library name the same as the filename? */
+	    if (isAbstract && isReadOnly && !strcmp(filenamesubbed, chklibname))
 	    {
 		/* Same library, so keep the cellname and mark the cell */
 		/* as having been written to GDS.			*/
@@ -487,7 +545,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		    HashSetValue(he, (char *)newnameptr);
 		}
 	    }
-	    if (dotptr) *dotptr = '.';
+	    if (filenamesubbed) freeMagic(filenamesubbed);
 	}
 	else
 	{
@@ -614,11 +672,12 @@ calmaFullDump(def, fi, outf, filename)
     char *filename;
 {
     int version, rval;
-    char *libname = NULL, uniqlibname[4];
+    char *libname = NULL, *testlib, uniqlibname[4];
     char *sptr, *viewopts;
     bool isAbstract;
     HashTable calmaDefHash;
-    HashEntry *he;
+    HashSearch hs;
+    HashEntry *he, *he2;
 
     static int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
 		CALMA_REFLIBS, CALMA_FONTS, CALMA_ATTRTABLE,
@@ -645,6 +704,11 @@ calmaFullDump(def, fi, outf, filename)
 
     // Record the GDS library so it will not be processed again.
     he = HashFind(&calmaLibHash, filename);
+    if ((char *)HashGetValue(he) != NULL)
+    {
+    	TxPrintf("Library %s has already been processed\n", libname);
+	return;
+    }
 
     /* If property LEFview is defined as "no_prefix" instead of "TRUE",
      * then do not create a unique prefix for subcells.  This is generally
@@ -672,8 +736,6 @@ calmaFullDump(def, fi, outf, filename)
 	 */
 	while (TRUE)
 	{
-	    HashEntry *he2;
-
 	    rval = random() % 26;
 	    rval = 'A' + rval;
 	    uniqlibname[0] = (char)(rval & 127);
@@ -700,6 +762,24 @@ calmaFullDump(def, fi, outf, filename)
     calmaSkipExact(CALMA_ENDLIB);
 
 done:
+
+    /* Check that all references were resolved.  If not, then it is
+     * probably because a library was an "addendum"-type library
+     * referencing things in other libraries.  Move those cell
+     * references to the calmaUndefHash before killing calmaDefHash.
+     */
+
+    HashStartSearch(&hs);
+    while ((he = HashNext(&calmaDefHash, &hs)) != NULL)
+    {
+	char *refname = (char *)HashGetValue(he);
+        if (refname[0] == '0')
+	{
+	    he2 = HashFind(&calmaUndefHash, (char *)he->h_key.h_name);
+	    HashSetValue(he2, StrDup(NULL, refname));
+	}
+    }
+
     HashFreeKill(&calmaDefHash);
     if (libname != NULL) freeMagic(libname);
     return;
