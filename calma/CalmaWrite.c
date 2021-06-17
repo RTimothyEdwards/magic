@@ -342,7 +342,31 @@ CalmaWrite(rootDef, f)
      * to insure that each child cell is output before it is used.  The
      * root cell is output last.
      */
-    (void) calmaProcessDef(rootDef, f, CalmaDoLibrary);
+    calmaProcessDef(rootDef, f, CalmaDoLibrary);
+
+    /*
+     * Check for any cells that were instanced in the output definition
+     * (by dumping a GDS file from a read-only view) but were never
+     * defined (because the dumped GDS contained undefined references).
+     * If these are in the database but were not part of the tree of
+     * rootDef, then output them at the end.
+     */
+    HashStartSearch(&hs);
+    while ((he = HashNext(&calmaUndefHash, &hs)) != NULL)
+    {
+	char *refname = (char *)HashGetValue(he);
+        if (refname && (refname[0] == '0'))
+	{
+	    CellDef *extraDef;
+
+	    extraDef = DBCellLookDef((char *)he->h_key.h_name);
+	    if (extraDef != NULL)
+		calmaProcessDef(extraDef, f, FALSE);
+	    else
+	    	TxError("Error:  Cell %s is not defined in the output file!\n",
+				refname + 1);
+	}
+    }
 
     /* Finish up by outputting the end-of-library marker */
     calmaOutRH(4, CALMA_ENDLIB, CALMA_NODATA, f);
@@ -360,21 +384,6 @@ CalmaWrite(rootDef, f)
 
     HashFreeKill(&calmaLibHash);
     HashKill(&calmaPrefixHash);
-
-    /*
-     * Check for any cells that were instanced in the output definition
-     * (by dumping a GDS file from a read-only view) but were never
-     * defined (because the dumped GDS contained undefined references).
-     */
-    HashStartSearch(&hs);
-    while ((he = HashNext(&calmaUndefHash, &hs)) != NULL)
-    {
-	char *refname = (char *)HashGetValue(he);
-        if (refname && (refname[0] == '0'))
-	    TxError("Error:  Cell %s is not defined in the output file!\n",
-			refname + 1);
-    }
-
     HashFreeKill(&calmaUndefHash);
     return (good);
 }
