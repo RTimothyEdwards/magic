@@ -514,6 +514,7 @@ typedef struct capval
 #define RIGHTEDGE 4
 #define TOPEDGE 8
 #define BOTTOMEDGE 16
+#define OTHERPLANE 32
 
 #define RN_MAXTDI 0x00001000
 

@@ -46,7 +46,6 @@ extern ResSimNode	*ResInitializeNode();
 
 extern HashTable	ResNodeTable;
 
-
 /*
  *--------------------------------------------------------------------------
  *
@@ -757,8 +756,6 @@ ResExtractNet(node, goodies, cellname)
     TTMaskZero(&FirstTileMask);
     TTMaskSetMask(&FirstTileMask, &DBConnectTbl[node->type]);
 
-    /* DevTiles = DBTreeCopyConnectDCS(&scx, &FirstTileMask, 0,
-	         			ResCopyMask, &TiPlaneRect, ResUse); */
     DBTreeCopyConnect(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
 					SEL_DO_LABELS, ResUse);
 

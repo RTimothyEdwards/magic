@@ -149,7 +149,7 @@ TechSectionGetMask(sectionName, depend)
 	{
 	    invid |= tsp->ts_thisSect;
 	    if (tsp->ts_prevSects & thissect->ts_thisSect)
-		if (depend != NULL) *depend != tsp->ts_thisSect;
+		if (depend != NULL) *depend = tsp->ts_thisSect;
 	}
     }
     return invid;

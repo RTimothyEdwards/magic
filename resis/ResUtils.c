@@ -200,79 +200,91 @@ ResAddPlumbing(tile, arg)
 	    junk2->deviceList =  resDev;
 	    junk2->tj_status |= RES_TILE_DEV;
 
-	    source = NULL;
-	    /* find diffusion (if present) to be source contact */
-
-	    /* top */
-	    for (tp2 = RT(tile); RIGHT(tp2) > LEFT(tile); tp2 = BL(tp2))
+	    for (i = 0; i < nterms - 2; i++)
 	    {
-	      	 if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+		source = NULL;
+		/* find diffusion (if present) to be source contact */
+
+		/* top */
+		for (tp2 = RT(tile); RIGHT(tp2) > LEFT(tile); tp2 = BL(tp2))
+		{
+		    if TTMaskHasType(&(devptr->exts_deviceSDTypes[i]),
 				TiGetBottomType(tp2))
-		 {
-		    junk2->sourceEdge |= TOPEDGE;
-		    source = tp2;
-		    Junk = resAddField(source);
-		    Junk->tj_status |= RES_TILE_SD;
-		    break;
-		 }
-	    }
+		    {
+			junk2->sourceEdge |= TOPEDGE;
+			source = tp2;
+			Junk = resAddField(source);
+			Junk->tj_status |= RES_TILE_SD;
+			break;
+		    }
+		}
 
-	    /* bottom */
-	    if (source == NULL)
-	    for (tp2 = LB(tile); LEFT(tp2) < RIGHT(tile); tp2 = TR(tp2))
-	    {
-	      	if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+		/* bottom */
+		if (source == NULL)
+		for (tp2 = LB(tile); LEFT(tp2) < RIGHT(tile); tp2 = TR(tp2))
+		{
+		    if TTMaskHasType(&(devptr->exts_deviceSDTypes[i]),
 				TiGetTopType(tp2))
-		{
-		    junk2->sourceEdge |= BOTTOMEDGE;
-		    source = tp2;
-		    Junk = resAddField(source);
-		    Junk->tj_status |= RES_TILE_SD;
-		    break;
+		    {
+			junk2->sourceEdge |= BOTTOMEDGE;
+			source = tp2;
+			Junk = resAddField(source);
+			Junk->tj_status |= RES_TILE_SD;
+			break;
+		    }
 		}
-	    }
 
-	    /* right */
-	    if (source == NULL)
-	    for (tp2 = TR(tile); TOP(tp2) > BOTTOM(tile); tp2 = LB(tp2))
-	    {
-	      	if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+		/* right */
+		if (source == NULL)
+		for (tp2 = TR(tile); TOP(tp2) > BOTTOM(tile); tp2 = LB(tp2))
+		{
+		    if TTMaskHasType(&(devptr->exts_deviceSDTypes[i]),
 				TiGetLeftType(tp2))
-		{
-		    junk2->sourceEdge |= RIGHTEDGE;
-		    source = tp2;
-		    Junk = resAddField(source);
-		    Junk->tj_status |= RES_TILE_SD;
-		    break;
+		    {
+			junk2->sourceEdge |= RIGHTEDGE;
+			source = tp2;
+			Junk = resAddField(source);
+			Junk->tj_status |= RES_TILE_SD;
+			break;
+		    }
 		}
-	    }
 
-	    /* left */
-	    if (source == NULL)
-	    for (tp2 = BL(tile); BOTTOM(tp2) < TOP(tile); tp2 = RT(tp2))
-	    {
-	      	if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
+		/* left */
+		if (source == NULL)
+		for (tp2 = BL(tile); BOTTOM(tp2) < TOP(tile); tp2 = RT(tp2))
+		{
+		    if TTMaskHasType(&(devptr->exts_deviceSDTypes[i]),
 				TiGetRightType(tp2))
-		{
-		    source = tp2;
-		    Junk = resAddField(source);
-		    Junk->tj_status |= RES_TILE_SD;
-		    junk2->sourceEdge |= LEFTEDGE;
-		    break;
+		    {
+			source = tp2;
+			Junk = resAddField(source);
+			Junk->tj_status |= RES_TILE_SD;
+			junk2->sourceEdge |= LEFTEDGE;
+			break;
+		    }
 		}
-	    }
+		/* other plane (in ResUse) */
+		if (source == NULL)
+		{
+		    int pNum;
+		    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		    {
+			/* XXX */
+		    }
+		}
 
-	    /* We need to know whether a given diffusion tile connects to
-	     * the source or to the drain of a device.  A single
-	     * diffusion tile is marked, and all connecting diffusion tiles
-	     * are enumerated and called the source.  Any other SD tiles
-	     * are assumed to be the drain.  BUG: this does not work
-	     * correctly with multi SD structures.
-	     */
+		/* We need to know whether a given diffusion tile connects to
+		 * the source or to the drain of a device.  A single
+		 * diffusion tile is marked, and all connecting diffusion tiles
+		 * are enumerated and called the source.  Any other SD tiles
+		 * are assumed to be the drain.  BUG: this does not work
+		 * correctly with multi SD structures.
+		 */
 
-	    if (source != (Tile *) NULL)
-	    {
-	        STACKPUSH((ClientData)source, resDevStack);
+		if (source != (Tile *) NULL)
+		{
+		    STACKPUSH((ClientData)source, resDevStack);
+		}
 	    }
 	    while (!StackEmpty(resDevStack))
 	    {
@@ -303,7 +315,7 @@ ResAddPlumbing(tile, arg)
 		{
 		    if (TiGetTopType(tp2) == t1)
 		    {
-		        tileJunk *j= resAddField(tp2);
+		        tileJunk *j = resAddField(tp2);
 			if ((j->tj_status & RES_TILE_SD) == 0)
 			{
 			    j->tj_status |= RES_TILE_SD;
@@ -316,7 +328,7 @@ ResAddPlumbing(tile, arg)
 		{
 		    if (TiGetLeftType(tp2) == t1)
 		    {
-		        tileJunk *j= resAddField(tp2);
+		        tileJunk *j = resAddField(tp2);
 			if ((j->tj_status & RES_TILE_SD) == 0)
 			{
 			    j->tj_status |= RES_TILE_SD;
@@ -329,7 +341,7 @@ ResAddPlumbing(tile, arg)
 		{
 		    if (TiGetRightType(tp2) == t1)
 		    {
-		        tileJunk *j= resAddField(tp2);
+		        tileJunk *j = resAddField(tp2);
 			if ((j->tj_status & RES_TILE_SD) == 0)
 			{
 			    j->tj_status |= RES_TILE_SD;
@@ -365,7 +377,7 @@ ResAddPlumbing(tile, arg)
 		    {
      	  		Junk = resAddField(tp2);
 			STACKPUSH((ClientData)tp2, resDevStack);
-	       		Junk->deviceList =  resDev;
+	       		Junk->deviceList = resDev;
 	       		Junk->tj_status |= RES_TILE_DEV;
 
 		    }
@@ -465,7 +477,7 @@ ResAddPlumbing(tile, arg)
 			if (j2->tj_status & RES_TILE_SD)
 			{
 			    j2->tj_status &= ~RES_TILE_SD;
-	            	    STACKPUSH((ClientData)tp2 ,resDevStack);
+	            	    STACKPUSH((ClientData)tp2, resDevStack);
 			}
 		    }
 		}
