@@ -1264,10 +1264,10 @@ spcnodeHierVisit(hc, node, res, cap)
 
     if (node->efnode_client)
     {
-	isConnected = (esDistrJunct) ?
-		(((nodeClient *)node->efnode_client)->m_w.widths != NULL) :
-        	((((nodeClient *)node->efnode_client)->m_w.visitMask
-		& DEV_CONNECT_MASK) != 0);
+	if (esDistrJunct)
+	    isConnected = (((nodeClient *)node->efnode_client)->m_w.widths != NULL);
+	else
+	    isConnected = !TTMaskIsZero(&((nodeClient *)node->efnode_client)->m_w.visitMask);
     }
     if (!isConnected && esDevNodesOnly)
 	return 0;

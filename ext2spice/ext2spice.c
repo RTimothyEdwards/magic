@@ -79,7 +79,7 @@ int esNoModelType;  /* index for device type "None" (model-less device) */
 HashTable subcktNameTable ; /* the hash table itself */
 DQueue    subcktNameQueue ; /* q used to print it sorted at the end*/
 
-fetInfoList esFetInfo[MAXDEVTYPES];
+fetInfoList esFetInfo[TT_MAXTYPES];
 
 /* Record for keeping a list of global names */
 
@@ -90,7 +90,7 @@ typedef struct GLL {
     char *gll_name;
 } globalList;
 
-unsigned long	initMask = 0;
+TileTypeBitMask initMask;   /* Used for device types, not tile types */
 
 bool esMergeDevsA = FALSE; /* aggressive merging of devs L1=L2 merge them */
 bool esMergeDevsC = FALSE; /* conservative merging of devs L1=L2 and W1=W2 */
@@ -728,7 +728,7 @@ runexttospice:
     /* create default devinfo entries (MOSIS) which can be overridden by
        the command line arguments */
 
-    for ( i = 0 ; i < MAXDEVTYPES ; i++ ) {
+    for ( i = 0 ; i < TT_MAXTYPES ; i++ ) {
 	esFetInfo[i].resClassSource = NO_RESCLASS;
 	esFetInfo[i].resClassDrain = NO_RESCLASS;
 	esFetInfo[i].resClassSub = NO_RESCLASS;
@@ -743,12 +743,12 @@ runexttospice:
     while (ExtGetDevInfo(idx++, &devname, &devtype, &s_rclass, &d_rclass,
 		&sub_rclass, &subname))
     {
-	if (idx == MAXDEVTYPES)
+	if (idx == TT_MAXTYPES)
 	{
 	    TxError("Error:  Ran out of space for device types!\n");
 	    break;
 	}
-	i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, devname);
+	i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, devname);
 	if (!strcmp(devname, "None"))
 	    esNoModelType = i;
 	if (EFStyle != NULL)
@@ -908,7 +908,9 @@ runexttospice:
 	if (!esDoPorts)
 	    EFVisitSubcircuits(subcktUndef, (ClientData) NULL);
 
-	initMask = ( esDistrJunct  ) ? (unsigned long)0 : DEV_CONNECT_MASK;
+	TTMaskZero(&initMask);
+	if (!esDistrJunct)
+	    TTMaskCom(&initMask);
 
 	if (esMergeDevsA || esMergeDevsC)
 	{
@@ -924,7 +926,7 @@ runexttospice:
 	else if (esDistrJunct)
      	    EFVisitDevs(devDistJunctVisit, (ClientData) NULL);
 	EFVisitDevs(spcdevVisit, (ClientData) NULL);
-	initMask = (unsigned long) 0;
+	TTMaskZero(&initMask);
 	if (flatFlags & EF_FLATCAPS)
 	{
 	    (void) sprintf( esSpiceCapFormat,  "C%%d %%s %%s %%.%dlffF\n",
@@ -994,25 +996,25 @@ main(argc, argv)
     EFResistThreshold = INFINITE_THRESHOLD ;
     /* create default devinfo entries (MOSIS) which can be overriden by
        the command line arguments */
-    for ( i = 0 ; i < MAXDEVTYPES ; i++ ) {
+    for ( i = 0 ; i < TT_MAXTYPES ; i++ ) {
 	esFetInfo[i].resClassSource = NO_RESCLASS;
 	esFetInfo[i].resClassDrain = NO_RESCLASS;
 	esFetInfo[i].resClassSub = NO_RESCLASS;
 	esFetInfo[i].defSubs = NULL;
     }
-    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "ndev");
+    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "ndev");
     esFetInfo[i].resClassSource = esFetInfo[i].resClassDrain = 0 ;
     esFetInfo[i].resClassSub = NO_RESCLASS ;
     esFetInfo[i].defSubs = "Gnd!";
-    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "pdev");
+    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "pdev");
     esFetInfo[i].resClassSource = esFetInfo[i].resClassDrain = 1 ;
     esFetInfo[i].resClassSub = 8 ;
     esFetInfo[i].defSubs = "Vdd!";
-    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "nmos");
+    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "nmos");
     esFetInfo[i].resClassSource = esFetInfo[i].resClassDrain = 0 ;
     esFetInfo[i].resClassSub = NO_RESCLASS ;
     esFetInfo[i].defSubs = "Gnd!";
-    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "pmos");
+    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "pmos");
     esFetInfo[i].resClassSource = esFetInfo[i].resClassDrain = 1 ;
     esFetInfo[i].resClassSub = 8 ;
     esFetInfo[i].defSubs = "Vdd!";
@@ -1078,7 +1080,9 @@ main(argc, argv)
     if (!esDoPorts)
 	EFVisitSubcircuits(subcktUndef, (ClientData) NULL);
 
-    initMask = ( esDistrJunct  ) ? (unsigned long)0 : DEV_CONNECT_MASK ;
+    TTMaskZero(&initMask);
+    if (!esDistrJunct)
+	TTMaskCom(&initMask);
 
     if ( esMergeDevsA || esMergeDevsC ) {
      	EFVisitDevs(devMergeVisit, (ClientData) NULL);
@@ -1092,7 +1096,7 @@ main(argc, argv)
     } else if ( esDistrJunct )
      	EFVisitDevs(devDistJunctVisit, (ClientData) NULL);
     EFVisitDevs(spcdevVisit, (ClientData) NULL);
-    initMask = (unsigned long) 0;
+    TTMaskZero(&initMask);
     if (flatFlags & EF_FLATCAPS) {
 	(void) sprintf( esSpiceCapFormat,  "C%%d %%s %%s %%.%dlffF\n",esCapAccuracy);
 	EFVisitCaps(spccapVisit, (ClientData) NULL);
@@ -1240,17 +1244,9 @@ spcmainArgs(pargc, pargv)
 		rClassSub = -1 ;
 	    	if ( sscanf(rp, "%d/%s",  &rClass, subsNode) != 2 ) goto usage;
 	    }
-	    ndx = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, cp);
+	    ndx = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, cp);
 	    esFetInfo[ndx].resClassSource = esFetInfo[ndx].resClassDrain = rClass;
 	    esFetInfo[ndx].resClassSub = rClassSub;
-	    if ( ((1<<rClass) & DEV_CONNECT_MASK) ||
-	         ((1<<rClass) & DEV_CONNECT_MASK)   ) {
-	        TxError("Oops it seems that you have 31\n");
-	        TxError("resistance classes. You will need to recompile");
-	        TxError("the extflat package and change ext2sim/spice\n");
-	        TxError("DEV_CONNECT_MASK and or nodeClient\n");
-		exit (1);
-	    }
 	    esFetInfo[ndx].defSubs = (char *)mallocMagic((unsigned)(strlen(subsNode)+1));
 	    strcpy(esFetInfo[ndx].defSubs,subsNode);
 	    TxError("info: dev %s(%d) srcRclass=%d drnRclass=%d subRclass=%d dSub=%s\n",
@@ -2910,8 +2906,10 @@ FILE *outf;
 	    initNodeClientHier(nn->efnn_node);
 
 	if (!esDistrJunct)
-	    ((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask |=
-			DEV_CONNECT_MASK;
+	{
+	    TTMaskZero(&((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask);
+	    TTMaskCom(&((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask);
+	}
         return nn->efnn_node;
    }
 }
@@ -3126,7 +3124,10 @@ spcdevOutNode(prefix, suffix, name, outf)
 
     /* Mark node as visited */
     if (!esDistrJunct)
-	((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask |= DEV_CONNECT_MASK;
+    {
+	TTMaskZero(&((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask);
+	TTMaskCom(&((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask);
+    }
 
     return (1 + strlen(nname));
 }
@@ -3279,8 +3280,7 @@ spcnodeVisit(node, res, cap)
     {
 	isConnected = (esDistrJunct) ?
 		(((nodeClient *)node->efnode_client)->m_w.widths != NULL) :
-        	((((nodeClient *)node->efnode_client)->m_w.visitMask
-		& DEV_CONNECT_MASK) != 0);
+		(!TTMaskIsZero(&((nodeClient *)node->efnode_client)->m_w.visitMask));
     }
     if (!isConnected && esDevNodesOnly)
 	return 0;

@@ -112,7 +112,7 @@ ExtCell(def, outName, doLength)
 	TxError("Cannot open output file: ");
 	perror(filename);
 #endif
-	return;
+	return NULL;
     }
 
     extNumFatal = extNumWarnings = 0;

@@ -20,23 +20,24 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "utils/tech.h"
+#include "select/select.h"
 #include "textio/txcommands.h"
 #include "resis/resis.h"
 
-CellUse 		*ResUse=NULL;		/* Our use and def */
-CellDef 		*ResDef=NULL;
+CellUse 		*ResUse = NULL;		/* Our use and def */
+CellDef 		*ResDef = NULL;
 TileTypeBitMask 	ResConnectWithSD[NT];	/* A mask that goes from  */
 						/* SD's to devices.	  */
 TileTypeBitMask 	ResCopyMask[NT];	/* Indicates which tiles  */
 						/* are to be copied.      */
-resResistor 		*ResResList=NULL;	/* Resistor list	  */
-resNode     		*ResNodeList=NULL;	/* Processed Nodes 	  */
-resDevice 		*ResDevList=NULL;	/* Devices		  */
-ResContactPoint		*ResContactList=NULL;	/* Contacts		  */
-resNode			*ResNodeQueue=NULL;	/* Pending nodes	  */
-resNode			*ResOriginNode=NULL;	/* node where R=0	  */
+resResistor 		*ResResList = NULL;	/* Resistor list	  */
+resNode     		*ResNodeList = NULL;	/* Processed Nodes 	  */
+resDevice 		*ResDevList = NULL;	/* Devices		  */
+ResContactPoint		*ResContactList = NULL;	/* Contacts		  */
+resNode			*ResNodeQueue = NULL;	/* Pending nodes	  */
+resNode			*ResOriginNode = NULL;	/* node where R=0	  */
 resNode			*resCurrentNode;
-int			ResTileCount=0;		/* Number of tiles rn_status */
+int			ResTileCount = 0;	/* Number of tiles rn_status */
 extern Region 		*ResFirst();
 extern Tile		*FindStartTile();
 extern int		ResEachTile();
@@ -44,8 +45,6 @@ extern int		ResLaplaceTile();
 extern ResSimNode	*ResInitializeNode();
 
 extern HashTable	ResNodeTable;
-
-
 
 /*
  *--------------------------------------------------------------------------
@@ -78,13 +77,13 @@ ResInitializeConn()
 	    for (diff = TT_TECHDEPBASE; diff < TT_MAXTYPES; diff++)
 	    {
 		if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), diff)
-		    TTMaskSetType(&ResConnectWithSD[diff],dev);
+		    TTMaskSetType(&ResConnectWithSD[diff], dev);
 
-		if TTMaskHasType(&(devptr->exts_deviceSubstrateTypes),diff)
-		    TTMaskSetType(&ResConnectWithSD[diff],dev);
+		if TTMaskHasType(&(devptr->exts_deviceSubstrateTypes), diff)
+		    TTMaskSetType(&ResConnectWithSD[diff], dev);
 	    }
 	}
-	TTMaskSetMask(&ResConnectWithSD[dev],&DBConnectTbl[dev]);
+	TTMaskSetMask(&ResConnectWithSD[dev], &DBConnectTbl[dev]);
     }
 }
 
@@ -121,7 +120,6 @@ ResGetReCell()
     ResUse = DBCellNewUse(ResDef, (char *) NULL);
     DBSetTrans(ResUse, &GeoIdentityTransform);
     ResUse->cu_expandMask = CU_DESCEND_SPECIAL;
-
 }
 
 /*
@@ -172,7 +170,7 @@ ResDissolveContacts(contacts)
 	}
 
 	tp = ResDef->cd_planes[DBPlane(contacts->cp_type)]->pl_hint;
-	GOTOPOINT(tp,&(contacts->cp_rect.r_ll));
+	GOTOPOINT(tp, &(contacts->cp_rect.r_ll));
 #ifdef PARANOID
 	if (TiGetTypeExact(tp) == contacts->cp_type)
 	{
@@ -325,46 +323,46 @@ ResAddBreakpointFunc(tile, node)
 
 void
 ResFindNewContactTiles(contacts)
-	ResContactPoint *contacts;
+    ResContactPoint *contacts;
 {
-     int pNum;
-     Tile *tile;
-     TileTypeBitMask mask;
+    int pNum;
+    Tile *tile;
+    TileTypeBitMask mask;
 
-     for (; contacts != (ResContactPoint *) NULL; contacts = contacts->cp_nextcontact)
-     {
-	  DBFullResidueMask(contacts->cp_type, &mask);
-     	  for (pNum=PL_TECHDEPBASE; pNum<DBNumPlanes; pNum++)
-	  {
-		  tile = ResDef->cd_planes[pNum]->pl_hint;
-		  GOTOPOINT(tile, &(contacts->cp_center));
+    for (; contacts != (ResContactPoint *) NULL; contacts = contacts->cp_nextcontact)
+    {
+	DBFullResidueMask(contacts->cp_type, &mask);
+     	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	{
+	    tile = ResDef->cd_planes[pNum]->pl_hint;
+	    GOTOPOINT(tile, &(contacts->cp_center));
 #ifdef PARANOID
-		  if (tile == (Tile *) NULL)
-		  {
-		       TxError("Error: setting contact tile to null\n");
-		  }
+	    if (tile == (Tile *) NULL)
+	    {
+		TxError("Error: setting contact tile to null\n");
+	    }
 #endif
-		  if ((IsSplit(tile) && TTMaskHasType(&mask, TiGetRightType(tile)))
+	    if ((IsSplit(tile) && TTMaskHasType(&mask, TiGetRightType(tile)))
 			|| TTMaskHasType(&mask, TiGetType(tile)))
-		  {
-		       tileJunk	*j = (tileJunk *)tile->ti_client;
-		       cElement *ce;
+	    {
+		tileJunk *j = (tileJunk *)tile->ti_client;
+		cElement *ce;
 
-		       ce = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
-		       contacts->cp_tile[contacts->cp_currentcontact] = tile;
-		       ce->ce_thisc = contacts;
-		       ce->ce_nextc = j->contactList;
-		       (contacts->cp_currentcontact) += 1;
-		       j->contactList = ce;
-		  }
-	  }
+		ce = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
+		contacts->cp_tile[contacts->cp_currentcontact] = tile;
+		ce->ce_thisc = contacts;
+		ce->ce_nextc = j->contactList;
+		(contacts->cp_currentcontact) += 1;
+		j->contactList = ce;
+	    }
+	}
 #ifdef PARANOID
-	  if (contacts->cp_currentcontact > LAYERS_PER_CONTACT)
-	  {
-	       TxError("Error: Not enough space allocated for contact nodes\n");
-	  }
+	if (contacts->cp_currentcontact > LAYERS_PER_CONTACT)
+	{
+	    TxError("Error: Not enough space allocated for contact nodes\n");
+	}
 #endif
-     }
+    }
 }
 
 /*
@@ -388,78 +386,77 @@ ResProcessTiles(goodies, origin)
     ResGlobalParams	*goodies;
 
 {
-     Tile 		*startTile;
-     int 		tilenum,merged;
-     resNode		*resptr2;
-     jElement	*workingj;
-     cElement	*workingc;
-     ResFixPoint	*fix;
-     resNode		*resptr;
-     int		(*tilefunc)();
+    Tile 	*startTile;
+    int 	tilenum, merged;
+    resNode	*resptr2;
+    jElement	*workingj;
+    cElement	*workingc;
+    ResFixPoint	*fix;
+    resNode	*resptr;
+    int		(*tilefunc)();
 
 #ifdef LAPLACE
-     tilefunc = (ResOptionsFlags & ResOpt_DoLaplace)?ResLaplaceTile:ResEachTile;
+    tilefunc = (ResOptionsFlags & ResOpt_DoLaplace) ? ResLaplaceTile : ResEachTile;
 #else
-     tilefunc = ResEachTile;
+    tilefunc = ResEachTile;
 #endif
 
     if (ResOptionsFlags & ResOpt_Signal)
     {
-         startTile = FindStartTile(goodies, origin);
-         if (startTile == NULL) return(1);
-	 resCurrentNode = NULL;
-	 (void) (*tilefunc)(startTile, origin);
+        startTile = FindStartTile(goodies, origin);
+        if (startTile == NULL) return(1);
+	resCurrentNode = NULL;
+	(void) (*tilefunc)(startTile, origin);
     }
 #ifdef ARIEL
     else if (ResOptionsFlags & ResOpt_Power)
     {
-    	 for (fix = ResFixList; fix != NULL;fix=fix->fp_next)
-	 {
-      	      Tile	*tile = fix->fp_tile;
-	      if (tile == NULL)
-	      {
+    	for (fix = ResFixList; fix != NULL; fix = fix->fp_next)
+	{
+      	    Tile *tile = fix->fp_tile;
+	    if (tile == NULL)
+	    {
+		tile = ResDef->cd_planes[DBPlane(fix->fp_ttype)]->pl_hint;
+		GOTOPOINT(tile, &(fix->fp_loc));
+		if (TiGetTypeExact(tile) != TT_SPACE)
+		{
+		    fix->fp_tile = tile;
+		}
+		else
+		{
+		    tile = NULL;
+		}
+	    }
+	    if (tile != NULL)
+	    {
+	        int x = fix->fp_loc.p_x;
+	        int y = fix->fp_loc.p_y;
+		resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
+		InitializeNode(resptr, x, y, RES_NODE_ORIGIN);
+	        resptr->rn_status = TRUE;
+	        resptr->rn_noderes = 0;
+	        ResAddToQueue(resptr, &ResNodeQueue);
+		fix->fp_node = resptr;
+		NEWBREAK(resptr, tile, x, y, NULL);
+	    }
+	}
+    	for (fix = ResFixList; fix != NULL; fix = fix->fp_next)
+	{
+      	    Tile    *tile = fix->fp_tile;
 
-		   tile = ResDef->cd_planes[DBPlane(fix->fp_ttype)]->pl_hint;
-		   GOTOPOINT(tile, &(fix->fp_loc));
-		   if (TiGetTypeExact(tile) != TT_SPACE)
-		   {
-		   	fix->fp_tile = tile;
-		   }
-		   else
-		   {
-		   	tile = NULL;
-		   }
-	      }
-	      if (tile != NULL)
-	      {
-	           int x = fix->fp_loc.p_x;
-	           int y = fix->fp_loc.p_y;
-		   resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
-		   InitializeNode(resptr, x, y, RES_NODE_ORIGIN);
-	           resptr->rn_status = TRUE;
-	           resptr->rn_noderes = 0;
-	           ResAddToQueue(resptr, &ResNodeQueue);
-		   fix->fp_node = resptr;
-		   NEWBREAK(resptr, tile, x, y, NULL);
-	      }
-	 }
-    	 for (fix = ResFixList; fix != NULL; fix = fix->fp_next)
-	 {
-      	      Tile	*tile = fix->fp_tile;
-
-	      if (tile != NULL && (((tileJunk *)tile->ti_client)->tj_status &
+	    if (tile != NULL && (((tileJunk *)tile->ti_client)->tj_status &
 			RES_TILE_DONE) == 0)
-	      {
-	           resCurrentNode = fix->fp_node;
-	      	   (void) (*tilefunc)(tile, (Point *)NULL);
-	      }
-	 }
+	    {
+	        resCurrentNode = fix->fp_node;
+	      	(void) (*tilefunc)(tile, (Point *)NULL);
+	    }
+	}
     }
 #endif
 #ifdef PARANOID
     else
     {
-    	 TxError("Unknown analysis type in ResProcessTiles\n");
+    	TxError("Unknown analysis type in ResProcessTiles\n");
     }
 #endif
 
@@ -467,103 +464,199 @@ ResProcessTiles(goodies, origin)
 
     while (ResNodeQueue != NULL)
     {
-	 /*
-	  * merged keeps track of whether another node gets merged into
-	  * the current one.  If it does, then the node must be processed
-	  * because additional junctions or contacts were added
-	  */
+	/*
+	 * merged keeps track of whether another node gets merged into
+	 * the current one.  If it does, then the node must be processed
+	 * because additional junctions or contacts were added
+	 */
 
-	 resptr2 = ResNodeQueue;
-	 merged = FALSE;
+	resptr2 = ResNodeQueue;
+	merged = FALSE;
 
-	 /* Process all junctions associated with node */
+	/* Process all junctions associated with node */
 
-	 for (workingj = resptr2->rn_je; workingj != NULL; workingj = workingj->je_nextj)
-	 {
-	      ResJunction	*rj = workingj->je_thisj;
-	      if (rj->rj_status == FALSE)
-	      {
-		   for (tilenum = 0; tilenum < TILES_PER_JUNCTION; tilenum++)
-		   {
-	      	        Tile	*tile = rj->rj_Tile[tilenum];
-			tileJunk *j = (tileJunk *) tile->ti_client;
+	for (workingj = resptr2->rn_je; workingj != NULL; workingj = workingj->je_nextj)
+	{
+	    ResJunction	*rj = workingj->je_thisj;
+	    if (rj->rj_status == FALSE)
+	    {
+		for (tilenum = 0; tilenum < TILES_PER_JUNCTION; tilenum++)
+		{
+	      	    Tile *tile = rj->rj_Tile[tilenum];
+		    tileJunk *j = (tileJunk *)tile->ti_client;
 
-			if ((j->tj_status & RES_TILE_DONE) == 0)
+		    if ((j->tj_status & RES_TILE_DONE) == 0)
+		    {
+			resCurrentNode = resptr2;
+			merged |= (*tilefunc)(tile,(Point *)NULL);
+		    }
+		    if (merged & ORIGIN) break;
+		}
+		if (merged & ORIGIN) break;
+		rj->rj_status = TRUE;
+	    }
+	}
+
+	/* Next, Process all contacts. */
+
+	for (workingc = resptr2->rn_ce;workingc != NULL;workingc = workingc->ce_nextc)
+	{
+	    ResContactPoint	*cp = workingc->ce_thisc;
+
+	    if (merged & ORIGIN) break;
+	    if (cp->cp_status == FALSE)
+	    {
+		int newstatus = TRUE;
+		for (tilenum = 0; tilenum < cp->cp_currentcontact; tilenum++)
+		{
+	      	    Tile *tile = cp->cp_tile[tilenum];
+		    tileJunk *j = (tileJunk *) tile->ti_client;
+
+		    if ((j->tj_status & RES_TILE_DONE) == 0)
+		    {
+			if (cp->cp_cnode[tilenum] == resptr2)
 			{
-			     resCurrentNode = resptr2;
-			     merged |= (*tilefunc)(tile,(Point *)NULL);
+			    resCurrentNode = resptr2;
+			    merged |= (*tilefunc)(tile,(Point *)NULL);
 			}
-		        if (merged & ORIGIN) break;
-		   }
-		   if (merged & ORIGIN) break;
-		   rj->rj_status = TRUE;
-	      }
-	 }
-
-	 /* Next, Process all contacts.  */
-
-	 for (workingc = resptr2->rn_ce;workingc != NULL;workingc = workingc->ce_nextc)
-	 {
-	      ResContactPoint	*cp = workingc->ce_thisc;
-
-	      if (merged & ORIGIN) break;
-	      if (cp->cp_status == FALSE)
-	      {
-		   int newstatus = TRUE;
-		   for (tilenum = 0; tilenum < cp->cp_currentcontact; tilenum++)
-		   {
-	      	        Tile	 *tile = cp->cp_tile[tilenum];
-			tileJunk *j    = (tileJunk *) tile->ti_client;
-
-			if ((j->tj_status & RES_TILE_DONE) == 0)
+			else
 			{
-			     if (cp->cp_cnode[tilenum] == resptr2)
-			     {
-			          resCurrentNode = resptr2;
-			     	  merged |= (*tilefunc)(tile,(Point *)NULL);
-			     }
-			     else
-			     {
-			     	  newstatus = FALSE;
-			     }
+			    newstatus = FALSE;
 			}
-			if (merged & ORIGIN) break;
-		   }
-		   if (merged & ORIGIN) break;
-		   cp->cp_status = newstatus;
-	      }
-	 }
+		    }
+		    if (merged & ORIGIN) break;
+		}
+		if (merged & ORIGIN) break;
+		cp->cp_status = newstatus;
+	    }
+	}
 
-	 /*
-	  * If nothing new has been added via a merge, then the node is
-	  * finished. It is removed from the pending queue, added to the
-	  * done list, cleaned up, and passed to ResDoneWithNode
-	  */
+	/*
+	 * If nothing new has been added via a merge, then the node is
+	 * finished. It is removed from the pending queue, added to the
+	 * done list, cleaned up, and passed to ResDoneWithNode
+	 */
 
-	 if (merged == FALSE)
-	 {
-		 ResRemoveFromQueue(resptr2,&ResNodeQueue);
-		 resptr2->rn_more = ResNodeList;
-		 resptr2->rn_less = NULL;
-		 resptr2->rn_status &= ~PENDING;
-		 resptr2->rn_status |= FINISHED | MARKED;
-		 if (ResNodeList != NULL)
-		 {
-		    ResNodeList->rn_less = resptr2;
-		 }
-		 if (resptr2->rn_noderes == 0)
-		 {
-		      ResOriginNode=resptr2;
-		 }
-		 ResNodeList = resptr2;
-	     	 ResCleanNode(resptr2, FALSE, &ResNodeList, &ResNodeQueue);
-		 ResDoneWithNode(resptr2);
-	 }
-     }
-     return(0);
+	if (merged == FALSE)
+	{
+	    ResRemoveFromQueue(resptr2, &ResNodeQueue);
+	    resptr2->rn_more = ResNodeList;
+	    resptr2->rn_less = NULL;
+	    resptr2->rn_status &= ~PENDING;
+	    resptr2->rn_status |= FINISHED | MARKED;
+	    if (ResNodeList != NULL)
+	    {
+		ResNodeList->rn_less = resptr2;
+	    }
+	    if (resptr2->rn_noderes == 0)
+	    {
+		ResOriginNode=resptr2;
+	    }
+	    ResNodeList = resptr2;
+	    ResCleanNode(resptr2, FALSE, &ResNodeList, &ResNodeQueue);
+	    ResDoneWithNode(resptr2);
+	}
+    }
+    return(0);
 }
 
-/*-------------------------------------------------------------------------
+/*
+ *-------------------------------------------------------------------------
+ *
+ * ResCalcPerimOverlap ---
+ *
+ *  Given a device tile, compute simple perimeter and overlap of the device
+ *  by the net under consideration.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	The ResDevTile structure is updated with the overlap and perimeter
+ *	values.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResCalcPerimOverlap(tile, dev)
+    Tile	*tile;
+    ResDevTile	*dev;
+{
+    Tile	    *tp;
+    int		    t1;
+    int		    overlap;
+    TileTypeBitMask *omask;
+
+    dev->perim = (TOP(tile) - BOTTOM(tile) - LEFT(tile) + RIGHT(tile)) << 1;
+    overlap = 0;
+
+    t1 = TiGetType(tile);
+    omask = &(ExtCurStyle->exts_nodeConn[t1]);
+
+    /* left */
+    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+    {
+	if TTMaskHasType(omask, TiGetType(tp))
+	    overlap += MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
+    }
+
+    /* right */
+    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
+    {
+	if TTMaskHasType(omask, TiGetType(tp))
+	    overlap += MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
+    }
+
+    /* top */
+    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+    {
+	if TTMaskHasType(omask, TiGetType(tp))
+	    overlap += MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
+    }
+
+    /* bottom */
+    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
+    {
+	if TTMaskHasType(omask, TiGetType(tp))
+	      overlap += MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
+    }
+    dev->overlap = overlap;
+}
+/*
+ *-------------------------------------------------------------------------
+ *
+ * resMakeDevFunc --
+ *
+ *  Callback function from ResExtractNet.  For each device in a node's
+ *  device list pulled from the .sim file, find the tile corresponding
+ *  to the device in the source tree, and fill out the complete device
+ *  record (namely the full device area).
+ *
+ * Result:
+ *	Return 1 to stop the search because the device has been found.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+resMakeDevFunc(tile, cx)
+    Tile	*tile;
+    TreeContext *cx;
+{
+    ResDevTile	*thisDev = (ResDevTile *)cx->tc_filter->tf_arg;
+    Rect	devArea;
+
+    TiToRect(tile, &devArea);
+    GeoTransRect(&cx->tc_scx->scx_trans, &devArea, &thisDev->area);
+    ResCalcPerimOverlap(tile, thisDev);
+
+    return 1;
+}
+
+ 
+/*
+ *-------------------------------------------------------------------------
  *
  * ResExtractNet-- extracts the resistance net at the specified
  *	rn_loc. If the resulting net is greater than the tolerance,
@@ -577,18 +670,20 @@ ResProcessTiles(goodies, origin)
  */
 
 bool
-ResExtractNet(startlist, goodies, cellname)
-    ResFixPoint		*startlist;
+ResExtractNet(node, goodies, cellname)
+    ResSimNode		*node;
     ResGlobalParams	*goodies;
     char		*cellname;
 {
     SearchContext 	scx;
     int			pNum;
-    ResDevTile		*DevTiles, *lasttile;
     TileTypeBitMask	FirstTileMask;
     Point		startpoint;
-    ResFixPoint		*fix;
     static int		first = 1;
+    ResDevTile		*DevTiles, *thisDev;
+    ResFixPoint		*fix;
+    devPtr		*tptr;
+    int			resMakeDevFunc();
 
     /* Make sure all global network variables are reset */
 
@@ -599,18 +694,18 @@ ResExtractNet(startlist, goodies, cellname)
     ResContactList = NULL;
     ResOriginNode = NULL;
 
-    /* Pass back network pointers	*/
+    /* Pass back network pointers */
 
     goodies->rg_maxres = 0;
     goodies->rg_tilecount = 0;
 
-    /*set up internal stuff if this is the first time through */
+    /* Set up internal stuff if this is the first time through */
 
     if (first)
     {
-    	 ResInitializeConn();
-         first = 0;
-         ResGetReCell();
+    	ResInitializeConn();
+        first = 0;
+        ResGetReCell();
     }
 
     /* Initialize Cell */
@@ -618,7 +713,7 @@ ResExtractNet(startlist, goodies, cellname)
     if (cellname)
     {
 	CellDef *def = DBCellLookDef(cellname);
-	if (def == (CellDef *) NULL)
+	if (def == (CellDef *)NULL)
 	{
 	    TxError("Error:  No such cell \"%s\"\n", cellname);
 	    return TRUE;
@@ -629,8 +724,8 @@ ResExtractNet(startlist, goodies, cellname)
     }
     else
     {
-	MagWindow *w = ToolGetBoxWindow(&scx.scx_area, (int *) NULL);
-	if (w == (MagWindow *) NULL)
+	MagWindow *w = ToolGetBoxWindow(&scx.scx_area, (int *)NULL);
+	if (w == (MagWindow *)NULL)
 	{
 	    TxError("Sorry, the box must appear in one of the windows.\n");
 	    return TRUE;
@@ -641,49 +736,59 @@ ResExtractNet(startlist, goodies, cellname)
 
     DBCellClearDef(ResUse->cu_def);
 
-    /* Copy Paint */
-    DevTiles = NULL;
-    lasttile = NULL;
-    for (fix = startlist; fix != NULL; fix = fix->fp_next)
-    {
-	 ResDevTile *newdevtiles, *tmp;
-
 #ifdef ARIEL
-	 if ((ResOptionsFlags & ResOpt_Power) &&
-	 		strcmp(fix->fp_name, goodies->rg_name) != 0) continue;
+    if ((ResOptionsFlags & ResOpt_Power) &&
+	 		strcmp(node->name, goodies->rg_name) != 0) continue;
 #endif
 
-         scx.scx_area.r_ll.p_x = fix->fp_loc.p_x-2;
-         scx.scx_area.r_ll.p_y = fix->fp_loc.p_y-2;
-         scx.scx_area.r_ur.p_x = fix->fp_loc.p_x+2;
-         scx.scx_area.r_ur.p_y = fix->fp_loc.p_y+2;
-	 startpoint = fix->fp_loc;
+    /* Copy Paint */
 
-	 /* Because fix->fp_ttype might come from a label with a sticky type
-	  * that does not correspond exactly to the layer underneath, include
-	  * all connecting types.
-	  */
-	 TTMaskSetMask(&FirstTileMask, &DBConnectTbl[fix->fp_ttype]);
+    scx.scx_area.r_ll.p_x = node->location.p_x - 2;
+    scx.scx_area.r_ll.p_y = node->location.p_y - 2;
+    scx.scx_area.r_ur.p_x = node->location.p_x + 2;
+    scx.scx_area.r_ur.p_y = node->location.p_y + 2;
+    startpoint = node->location;
 
-         newdevtiles = DBTreeCopyConnectDCS(&scx, &FirstTileMask, 0,
-	         			ResCopyMask, &TiPlaneRect, ResUse);
+    /* Because node->type might come from a label with a sticky type
+     * that does not correspond exactly to the layer underneath, include
+     * all connecting types.
+     */
+    TTMaskZero(&FirstTileMask);
+    TTMaskSetMask(&FirstTileMask, &DBConnectTbl[node->type]);
 
-	 for (tmp = newdevtiles; tmp && tmp->nextDev; tmp = tmp->nextDev);
-	 if (newdevtiles)
-	 {
-	      if (DevTiles)
-	      	   lasttile->nextDev = newdevtiles;
-	      else
-	      	   DevTiles = newdevtiles;
-	      lasttile = tmp;
-	 }
+    DBTreeCopyConnect(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
+					SEL_DO_LABELS, ResUse);
+
+    /* Add devices to ResUse from list in node */
+    DevTiles = NULL;
+    for (tptr = node->firstDev; tptr; tptr = tptr->nextDev)
+    {
+	TileTypeBitMask devMask;
+
+	TTMaskSetOnlyType(&devMask, tptr->thisDev->rs_ttype);
+	thisDev = (ResDevTile *)mallocMagic(sizeof(ResDevTile));
+	thisDev->devptr = tptr->thisDev->rs_devptr;
+	thisDev->type = tptr->thisDev->rs_ttype;
+	scx.scx_area.r_ll.p_x = tptr->thisDev->location.p_x;
+	scx.scx_area.r_ll.p_y = tptr->thisDev->location.p_y;
+	scx.scx_area.r_xtop = scx.scx_area.r_xbot + 1;
+	scx.scx_area.r_ytop = scx.scx_area.r_ybot + 1;
+	DBTreeSrTiles(&scx, &devMask, 0, resMakeDevFunc, (ClientData)thisDev);
+	thisDev->nextDev = DevTiles;
+	DevTiles = thisDev;
+
+	/* Paint the type into ResUse */
+	pNum = DBPlane(thisDev->type);
+	DBPaintPlane(ResUse->cu_def->cd_planes[pNum], &thisDev->area,
+		DBStdPaintTbl(thisDev->type, pNum), (PaintUndoInfo *)NULL);
     }
+    DBReComputeBbox(ResUse->cu_def);
 
     ExtResetTiles(scx.scx_use->cu_def, extUnInit);
 
-    /* find all contacts in design and  note their position */
+    /* Find all contacts in design and note their position */
 
-    ResContactList = (ResContactPoint *) ExtFindRegions(ResUse->cu_def,
+    ResContactList = (ResContactPoint *)ExtFindRegions(ResUse->cu_def,
 				     &(ResUse->cu_def->cd_bbox),
 				     &DBAllButSpaceAndDRCBits,
 				     ResConnectWithSD, extUnInit, ResFirst,
@@ -701,16 +806,16 @@ ResExtractNet(startlist, goodies, cellname)
 
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
-    	 Plane	*plane = ResUse->cu_def->cd_planes[pNum];
-	 Rect	*rect  = &ResUse->cu_def->cd_bbox;
-	 ResFracture(plane, rect);
-	 (void) DBSrPaintClient((Tile *) NULL,plane,rect,
+    	Plane	*plane = ResUse->cu_def->cd_planes[pNum];
+	Rect	*rect  = &ResUse->cu_def->cd_bbox;
+	ResFracture(plane, rect);
+	(void) DBSrPaintClient((Tile *) NULL, plane, rect,
 	 		&DBAllButSpaceAndDRCBits,
 			(ClientData) CLIENTDEFAULT, ResAddPlumbing,
 			(ClientData) &ResDevList);
     }
 
-    /* Finish preprocessing.		*/
+    /* Finish preprocessing. */
 
     ResMakePortBreakpoints(ResUse->cu_def);
     ResMakeLabelBreakpoints(ResUse->cu_def);
@@ -720,24 +825,24 @@ ResExtractNet(startlist, goodies, cellname)
 #ifdef LAPLACE
     if (ResOptionsFlags & ResOpt_DoLaplace)
     {
-         for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-         {
-    	      Plane	*plane = ResUse->cu_def->cd_planes[pNum];
-	      Rect	*rect  = &ResUse->cu_def->cd_bbox;
-	      Res1d(plane,rect);
-         }
+        for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+        {
+    	    Plane   *plane = ResUse->cu_def->cd_planes[pNum];
+	    Rect    *rect  = &ResUse->cu_def->cd_bbox;
+	    Res1d(plane, rect);
+        }
     }
 #endif
 
 #ifdef ARIEL
     if (ResOptionsFlags & ResOpt_Power)
     {
-    	 for (fix = startlist; fix != NULL;fix=fix->fp_next)
-	 {
-     	      fix->fp_tile = ResUse->cu_def->cd_planes[DBPlane(fix->fp_ttype)]->pl_hint;
-	      GOTOPOINT(fix->fp_tile,&fix->fp_loc);
-	      if (TiGetTypeExact(fix->fp_tile) == TT_SPACE) fix->fp_tile = NULL;
-	 }
+    	for (fix = startlist; fix != NULL; fix = fix->fp_next)
+	{
+     	    fix->fp_tile = ResUse->cu_def->cd_planes[DBPlane(fix->fp_ttype)]->pl_hint;
+	    GOTOPOINT(fix->fp_tile, &fix->fp_loc);
+	    if (TiGetTypeExact(fix->fp_tile) == TT_SPACE) fix->fp_tile = NULL;
+	}
     }
 #endif
 
@@ -765,25 +870,24 @@ void
 ResCleanUpEverything()
 {
 
-    int		pNum;
-    resResistor *oldRes;
-    resDevice   *oldDev;
-    ResContactPoint	*oldCon;
+    int		    pNum;
+    resResistor	    *oldRes;
+    resDevice	    *oldDev;
+    ResContactPoint *oldCon;
 
-    /* check integrity of internal database. Free up lists. */
+    /* Check integrity of internal database. Free up lists. */
 
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
-    	 (void) DBSrPaintClient((Tile *) NULL,ResUse->cu_def->cd_planes[pNum],
-	 		&(ResUse->cu_def->cd_bbox),&DBAllButSpaceAndDRCBits,
-			(ClientData) CLIENTDEFAULT,ResRemovePlumbing,
-			(ClientData) NULL);
-
+    	(void) DBSrPaintClient((Tile *)NULL, ResUse->cu_def->cd_planes[pNum],
+	 		&(ResUse->cu_def->cd_bbox), &DBAllButSpaceAndDRCBits,
+			(ClientData)CLIENTDEFAULT, ResRemovePlumbing,
+			(ClientData)NULL);
     }
 
     while (ResNodeList != NULL)
     {
-	ResCleanNode(ResNodeList,TRUE,&ResNodeList,&ResNodeQueue);
+	ResCleanNode(ResNodeList, TRUE, &ResNodeList, &ResNodeQueue);
     }
     while (ResContactList != NULL)
     {
@@ -807,11 +911,8 @@ ResCleanUpEverything()
 	      freeMagic((char *)oldDev);
 	 }
     }
-
     DBCellClearDef(ResUse->cu_def);
 }
-
-
 
 /*
  *-------------------------------------------------------------------------
@@ -849,10 +950,10 @@ FindStartTile(goodies, SourcePoint)
 	TileType savtype = goodies->rg_ttype;
 	TileType rtype;
 
-	savtype = goodies->rg_ttype;
 	for (rtype = TT_TECHDEPBASE; rtype < DBNumUserLayers; rtype++)
 	    if (TTMaskHasType(rmask, rtype))
 	    {
+		goodies->rg_ttype = rtype;
 		if ((tile = FindStartTile(goodies, SourcePoint)) != NULL)
 		{
 		    goodies->rg_ttype = savtype;
@@ -934,54 +1035,55 @@ FindStartTile(goodies, SourcePoint)
 	t1 = TiGetType(tile);
 
     devptr = ExtCurStyle->exts_device[t1];
+
     /* left */
-    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp=RT(tp))
+    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
     {
 	t2 = TiGetRightType(tp);
-	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t2))
+	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t2))
 	{
 	    SourcePoint->p_x = LEFT(tile);
-	    SourcePoint->p_y = (MIN(TOP(tile),TOP(tp))+
-		   			MAX(BOTTOM(tile),BOTTOM(tp)))>>1;
+	    SourcePoint->p_y = (MIN(TOP(tile),TOP(tp)) +
+		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
 	    return(tp);
 	}
     }
 
     /* right */
-    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
+    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
     {
 	t2 = TiGetLeftType(tp);
-	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t2))
+	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t2))
 	{
 	    SourcePoint->p_x = RIGHT(tile);
-	    SourcePoint->p_y = (MIN(TOP(tile),TOP(tp))+
-		   			MAX(BOTTOM(tile),BOTTOM(tp)))>>1;
+	    SourcePoint->p_y = (MIN(TOP(tile), TOP(tp))+
+		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
 	    return(tp);
 	}
     }
 
     /* top */
-    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp=BL(tp))
+    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
     {
 	t2 = TiGetBottomType(tp);
-	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t2))
+	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t2))
 	{
 	    SourcePoint->p_y = TOP(tile);
-	    SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp))+
-		   			MAX(LEFT(tile),LEFT(tp)))>>1;
+	    SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp)) +
+		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
 	    return(tp);
 	}
     }
 
     /* bottom */
-    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
+    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
     {
 	t2 = TiGetTopType(tp);
-	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),t2))
+	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t2))
 	{
 	    SourcePoint->p_y = BOTTOM(tile);
-	    SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp))+
-		   			MAX(LEFT(tile),LEFT(tp)))>>1;
+	    SourcePoint->p_x = (MIN(RIGHT(tile), RIGHT(tp)) +
+		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
 	    return(tp);
 	}
     }
@@ -1005,36 +1107,36 @@ FindStartTile(goodies, SourcePoint)
 
 resDevice *
 ResGetDevice(pt)
-	Point	*pt;
+    Point	*pt;
 
 {
-     Point	workingPoint;
-     Tile	*tile;
-     int	pnum;
+    Point   workingPoint;
+    Tile    *tile;
+    int	    pnum;
 
-     workingPoint.p_x = (*pt).p_x;
-     workingPoint.p_y = (*pt).p_y;
+    workingPoint.p_x = (*pt).p_x;
+    workingPoint.p_y = (*pt).p_y;
 
-     for (pnum= PL_TECHDEPBASE; pnum < DBNumPlanes; pnum++)
-     {
-     	  if (TTMaskIntersect(&ExtCurStyle->exts_deviceMask,&DBPlaneTypes[pnum]) == 0)
-	  {
-	       continue;
-	  }
-	  /*start at hint tile for device plane */
-	  tile = ResUse->cu_def->cd_planes[pnum]->pl_hint;
-	  GOTOPOINT(tile,&workingPoint);
+    for (pnum = PL_TECHDEPBASE; pnum < DBNumPlanes; pnum++)
+    {
+     	if (TTMaskIntersect(&ExtCurStyle->exts_deviceMask, &DBPlaneTypes[pnum]) == 0)
+	    continue;
 
-	  if (IsSplit(tile))
-	  {
-              if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetLeftType(tile))
+	/* Start at hint tile for device plane */
+
+	tile = ResUse->cu_def->cd_planes[pnum]->pl_hint;
+	GOTOPOINT(tile, &workingPoint);
+
+	if (IsSplit(tile))
+	{
+            if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetLeftType(tile))
               	   || TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetRightType(tile)))
-                  return(((tileJunk *)tile->ti_client)->deviceList);
-	  }
-	  else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetType(tile)))
-          {
-               return(((tileJunk *)tile->ti_client)->deviceList);
-          }
-     }
-     return (NULL);
+                return (((tileJunk *)tile->ti_client)->deviceList);
+	}
+	else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetType(tile)))
+        {
+            return (((tileJunk *)tile->ti_client)->deviceList);
+        }
+    }
+    return NULL;
 }

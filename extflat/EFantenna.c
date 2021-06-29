@@ -42,36 +42,36 @@ int antennacheckArgs();
 int antennacheckVisit();
 
 typedef struct {
-	long    visitMask:MAXDEVTYPES;
+	TileTypeBitMask visitMask;
 } nodeClient;
 
 typedef struct {
 	HierName *lastPrefix;
-	long    visitMask:MAXDEVTYPES;
+	TileTypeBitMask visitMask;
 } nodeClientHier;
 
 #define NO_RESCLASS	-1
 
 #define markVisited(client, rclass) \
-  { (client)->visitMask |= (1<<rclass); }
+  { TTMaskSetType(&((client)->visitMask), rclass); }
 
 #define clearVisited(client) \
-   { (client)->visitMask = (long)0; }
+   { TTMaskZero(&((client)->visitMask); }
 
 #define beenVisited(client, rclass)  \
-   ( (client)->visitMask & (1<<rclass))
+  ( TTMaskHasType(&((client)->visitMask), rclass) )
 
 #define initNodeClient(node) \
 { \
 	(node)->efnode_client = (ClientData) mallocMagic((unsigned) (sizeof(nodeClient))); \
-	(( nodeClient *)(node)->efnode_client)->visitMask = (long) 0; \
+	TTMaskZero(&(( nodeClient *)(node)->efnode_client)->visitMask); \
 }
 
 
 #define initNodeClientHier(node) \
 { \
 	(node)->efnode_client = (ClientData) mallocMagic((unsigned) (sizeof(nodeClientHier))); \
-	((nodeClientHier *) (node)->efnode_client)->visitMask = (long) 0; \
+	TTMaskZero(&(( nodeClientHier *)(node)->efnode_client)->visitMask); \
 }
 
 /* Diagnostic */
@@ -228,9 +228,21 @@ runantennacheck:
     TxPrintf("Building flattened netlist.\n");
     EFFlatBuild(inName, flatFlags);
 
+    /* Get device information from the current extraction style */
+    idx = 0;
+    while (ExtGetDevInfo(idx++, &devname, NULL, NULL, NULL, NULL, NULL))
+    {
+        if (idx == TT_MAXTYPES)
+        {
+            TxError("Error:  Ran out of space for device types!\n");
+            break;
+        }
+        efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, devname);
+    }
+
     /* Build device lookup table */
-    EFDeviceTypes = (TileType *)mallocMagic(MAXDEVTYPES * sizeof(TileType));
-    for (i = 0; i < MAXDEVTYPES; i++)
+    EFDeviceTypes = (TileType *)mallocMagic(EFDevNumTypes * sizeof(TileType));
+    for (i = 0; i < EFDevNumTypes; i++)
 	if (EFDevTypes[i])
 	    EFDeviceTypes[i] = extGetDevType(EFDevTypes[i]);
 

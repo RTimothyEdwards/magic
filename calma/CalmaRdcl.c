@@ -882,7 +882,8 @@ calmaElementSref(filename)
 	if (rtype == CALMA_PROPATTR)
 	{
 	    READI2(propAttrType);
-	    if (propAttrType == CALMA_PROP_USENAME)
+	    if (propAttrType == CALMA_PROP_USENAME ||
+		 propAttrType == CALMA_PROP_USENAME_STD)
 	    {
 		char *s;
 
@@ -1262,7 +1263,19 @@ calmaFindCell(name, was_called, predefined)
 	if (was_called) *was_called = FALSE;
     }
     else
-	if (was_called) *was_called = TRUE;
+    {
+	if (was_called)
+	{
+	    if (*was_called == TRUE)
+	    {
+		def = DBCellLookDef(name);
+		if ((def != NULL) && (def->cd_flags & CDAVAILABLE))
+	    	    if (CalmaNoDuplicates)
+			if (predefined) *predefined = TRUE;
+	    }
+	    *was_called = TRUE;
+	}
+    }
     return (CellDef *) HashGetValue(h);
 }
 

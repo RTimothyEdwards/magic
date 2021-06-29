@@ -81,31 +81,30 @@ enumerate:
 	if (SigInterruptPending)
 	    return (1);
 
-	if ((tt=TiGetType(resSrTile)) != TT_SPACE)
+	if ((tt = TiGetType(resSrTile)) != TT_SPACE)
 	{
-	     resTopTile = RT(resSrTile);
-	     while (RIGHT(resTopTile) > LEFT(resSrTile))
-	     {
-	     	  TileType ntt = TiGetType(resTopTile);
+	    resTopTile = RT(resSrTile);
+	    while (RIGHT(resTopTile) > LEFT(resSrTile))
+	    {
+	     	TileType ntt = TiGetType(resTopTile);
 
-		  if (ntt != tt)
-		  {
-		       resTopTile=BL(resTopTile);
-		       continue;
-		  }
-		  /* ok, we may have found a concave corner */
-		  ResCheckConcavity(resSrTile,resTopTile,tt);
-		  if (resTopTile  == NULL) break;
-		  if (BOTTOM(resTopTile) != TOP(resSrTile))
-		  {
-		       resTopTile = RT(resSrTile);
-		  }
-		  else
-		  {
-		       resTopTile=BL(resTopTile);
-		  }
-	     }
-
+		if (ntt != tt)
+		{
+		    resTopTile = BL(resTopTile);
+		    continue;
+		}
+		/* ok, we may have found a concave corner */
+		ResCheckConcavity(resSrTile, resTopTile, tt);
+		if (resTopTile == NULL) break;
+		if (BOTTOM(resTopTile) != TOP(resSrTile))
+		{
+		    resTopTile = RT(resSrTile);
+		}
+		else
+		{
+		    resTopTile=BL(resTopTile);
+		}
+	    }
 	}
 
 	tpnew = TR(resSrTile);
@@ -134,7 +133,8 @@ enumerate:
 	}
 
 	/* At left edge -- walk down to next tile along the left edge */
-	for (resSrTile = LB(resSrTile); RIGHT(resSrTile) <= rect->r_xbot; resSrTile = TR(resSrTile))
+	for (resSrTile = LB(resSrTile); RIGHT(resSrTile) <= rect->r_xbot;
+		    resSrTile = TR(resSrTile))
 	    /* Nothing */;
     }
     return (0);
@@ -157,88 +157,96 @@ enumerate:
  */
 
 void
-ResCheckConcavity(bot,top,tt)
-	Tile	*bot,*top;
-	TileType	tt;
+ResCheckConcavity(bot, top, tt)
+    Tile	*bot, *top;
+    TileType	tt;
 
 {
-     Tile	*tp;
-     int	xlen,ylen;
-     /* corner #1:
-	  XXXXXXX
-       YYYYYYY
-              ^--here
-    */
-     if (RIGHT(top) > RIGHT(bot) && TiGetType(TR(bot)) != tt)
-     {
-	    	 int	xpos = RIGHT(bot);
-		 int	ypos = BOTTOM(top);
-		 xlen = xpos - resWalkleft(top,tt,xpos,ypos,NULL);
-		 ylen = resWalkup(top,tt,xpos,ypos,NULL)   - ypos;
-		 if (xlen > ylen)
-		 {
-		      (void) resWalkup(top,tt,xpos,ypos,ResSplitX);
-		 }
-     }
-     if (resTopTile == NULL) return;
-     /* corner #2:
-                 v--here
-	  XXXXXXX
-       	      YYYYYYY
-    */
-     if (RIGHT(top) < RIGHT(bot))
-     {
-	    for (tp = TR(top);BOTTOM(tp) > BOTTOM(top);tp=LB(tp));
-	    if (TiGetType(tp) != tt)
-	    {
-	    	 int	xpos = RIGHT(top);
-		 int	ypos = BOTTOM(top);
-		 xlen = xpos-resWalkleft(top,tt,xpos,ypos,NULL);
-		 ylen = ypos-resWalkdown(bot,tt,xpos,ypos,NULL);
-		 if (xlen > ylen)
-		 {
-		      (void) resWalkdown(bot,tt,xpos,ypos,ResSplitX);
-		 }
-	    }
-     }
-     if (resTopTile == NULL) return;
-     /* corner #3:
-	  XXXXXXX
-       	       YYYYYYY
-              ^--here
-    */
-     if (LEFT(top) < LEFT(bot))
-     {
-	    for (tp = BL(bot);TOP(tp) < TOP(bot);tp=RT(tp));
-	    if (TiGetType(tp) != tt)
-	    {
-	    	 int	xpos = LEFT(bot);
-		 int	ypos = BOTTOM(top);
-		 xlen = resWalkright(top,tt,xpos,ypos,NULL)- xpos;
-		 ylen = resWalkup(top,tt,xpos,ypos,NULL)   - ypos;
-		 if (xlen > ylen)
-		 {
-		      (void) resWalkup(top,tt,xpos,ypos,ResSplitX);
-		 }
-	    }
-     }
-     if (resTopTile == NULL) return;
-     /* corner #4:
-          v--here
-	   XXXXXXX
-       	YYYYYYY
+    Tile    *tp;
+    int	    xlen, ylen;
+
+    /* corner #1:
+     *	  XXXXXXX
+     * YYYYYYY
+     *        ^--here
      */
-     if (LEFT(top) > LEFT(bot) && TiGetType(BL(top)) != tt)
-     {
-	    	 int	xpos = LEFT(top);
-		 int	ypos = BOTTOM(top);
-		 xlen = resWalkright(top,tt,xpos,ypos,NULL)- xpos;
-		 ylen = ypos-resWalkdown(bot,tt,xpos,ypos,NULL);
-		 if (xlen > ylen)
-		 {
-		      (void) resWalkdown(bot,tt,xpos,ypos,ResSplitX);
-		 }
-     }
+
+    if (RIGHT(top) > RIGHT(bot) && TiGetType(TR(bot)) != tt)
+    {
+	int xpos = RIGHT(bot);
+	int ypos = BOTTOM(top);
+	xlen = xpos - resWalkleft(top, tt, xpos, ypos, NULL);
+	ylen = resWalkup(top, tt, xpos, ypos, NULL) - ypos;
+	if (xlen > ylen)
+	{
+	    (void) resWalkup(top, tt, xpos, ypos, ResSplitX);
+	}
+    }
+    if (resTopTile == NULL) return;
+
+     /* corner #2:
+      *          v--here
+      *	  XXXXXXX
+      *	      YYYYYYY
+      */
+
+    if (RIGHT(top) < RIGHT(bot))
+    {
+	for (tp = TR(top); BOTTOM(tp) > BOTTOM(top); tp = LB(tp));
+	if (TiGetType(tp) != tt)
+	{
+	    int	xpos = RIGHT(top);
+	    int	ypos = BOTTOM(top);
+	    xlen = xpos - resWalkleft(top, tt, xpos, ypos, NULL);
+	    ylen = ypos - resWalkdown(bot, tt, xpos, ypos, NULL);
+	    if (xlen > ylen)
+	    {
+		(void) resWalkdown(bot,tt,xpos,ypos,ResSplitX);
+	    }
+	}
+    }
+    if (resTopTile == NULL) return;
+
+     /* corner #3:
+      *	  XXXXXXX
+      *	       YYYYYYY
+      *       ^--here
+      */
+
+    if (LEFT(top) < LEFT(bot))
+    {
+	for (tp = BL(bot); TOP(tp) < TOP(bot); tp = RT(tp));
+	if (TiGetType(tp) != tt)
+	{
+	    int	xpos = LEFT(bot);
+	    int	ypos = BOTTOM(top);
+	    xlen = resWalkright(top, tt, xpos, ypos, NULL) - xpos;
+	    ylen = resWalkup(top, tt, xpos, ypos, NULL) - ypos;
+	    if (xlen > ylen)
+	    {
+		(void) resWalkup(top, tt, xpos, ypos, ResSplitX);
+	    }
+	}
+    }
+    if (resTopTile == NULL) return;
+
+     /* corner #4:
+      *   v--here
+      *	   XXXXXXX
+      *	YYYYYYY
+      */
+
+    if (LEFT(top) > LEFT(bot) && TiGetType(BL(top)) != tt)
+    {
+	int	xpos = LEFT(top);
+	int	ypos = BOTTOM(top);
+	xlen = resWalkright(top, tt, xpos, ypos, NULL) - xpos;
+	ylen = ypos - resWalkdown(bot, tt, xpos, ypos, NULL);
+	if (xlen > ylen)
+	{
+	    (void) resWalkdown(bot, tt, xpos, ypos, ResSplitX);
+	}
+    }
 }
 
 /*
@@ -259,151 +267,151 @@ ResCheckConcavity(bot,top,tt)
  */
 
 int
-resWalkup(tile,tt,xpos,ypos,func)
-	Tile		*tile;
-	TileType	tt;
-	int		xpos,ypos;
-	Tile *		(*func)();
+resWalkup(tile, tt, xpos, ypos, func)
+    Tile	*tile;
+    TileType	tt;
+    int		xpos,ypos;
+    Tile *	(*func)();
 
 {
-     Point	pt;
-     Tile	*tp;
+    Point	pt;
+    Tile	*tp;
 
-     pt.p_x = xpos;
-     while (TiGetType(tile) == tt)
-     {
-	  if (xpos == LEFT(tile))
-	  {
-	       /* walk up left edge */
-	       for (tp = BL(tile);TOP(tp) <= ypos;tp=RT(tp));
-	       for (;BOTTOM(tp) < TOP(tile);tp=RT(tp))
-	       {
-	       	    if (TiGetType(tp) != tt) return(BOTTOM(tp));
-	       }
-	  }
-	  else
-	  {
-	       if (func) tile = (*func)(tile,xpos);
-	  }
-          pt.p_y = TOP(tile);
-          GOTOPOINT(tile,&pt);
-     }
-     return(BOTTOM(tile));
+    pt.p_x = xpos;
+    while (TiGetType(tile) == tt)
+    {
+	if (xpos == LEFT(tile))
+	{
+	    /* walk up left edge */
+	    for (tp = BL(tile); TOP(tp) <= ypos; tp = RT(tp));
+	    for (; BOTTOM(tp) < TOP(tile); tp = RT(tp))
+	    {
+	       	if (TiGetType(tp) != tt) return(BOTTOM(tp));
+	    }
+	}
+	else
+	{
+	    if (func) tile = (*func)(tile,xpos);
+	}
+        pt.p_y = TOP(tile);
+        GOTOPOINT(tile, &pt);
+    }
+    return(BOTTOM(tile));
 }
 
 int
-resWalkdown(tile,tt,xpos,ypos,func)
-	Tile		*tile;
-	TileType	tt;
-	int		xpos,ypos;
-	Tile *		(*func)();
+resWalkdown(tile, tt, xpos, ypos, func)
+    Tile	*tile;
+    TileType	tt;
+    int		xpos, ypos;
+    Tile *	(*func)();
 
 {
-     Point	pt;
-     Tile	*tp;
-     Tile	*endt;
+    Point	pt;
+    Tile	*tp;
+    Tile	*endt;
 
-     pt.p_x = xpos;
-     while (TiGetType(tile) == tt)
-     {
-	  if (xpos == LEFT(tile))
-	  {
-	       /* walk up left edge */
-	       endt = NULL;
-	       for (tp = BL(tile);BOTTOM(tp) < TOP(tile);tp=RT(tp))
-	       {
-	       	    if (TiGetType(tp) != tt)
-		    {
-		    	 if (BOTTOM(tp) < ypos) endt = tp;
-		    }
-	       }
-	       if (endt)
-	       {
-	       	    return TOP(endt);
-	       }
-	  }
-	  else
-	  {
-	       if (func) tile = (*func)(tile,xpos);
-	  }
-          pt.p_y = BOTTOM(tile)-1;
-          GOTOPOINT(tile,&pt);
-     }
-     return(TOP(tile));
+    pt.p_x = xpos;
+    while (TiGetType(tile) == tt)
+    {
+	if (xpos == LEFT(tile))
+	{
+	    /* walk up left edge */
+	    endt = NULL;
+	    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+	    {
+	       	if (TiGetType(tp) != tt)
+		{
+		    if (BOTTOM(tp) < ypos) endt = tp;
+		}
+	    }
+	    if (endt)
+	    {
+	       	return TOP(endt);
+	    }
+	}
+	else
+	{
+	    if (func) tile = (*func)(tile, xpos);
+	}
+        pt.p_y = BOTTOM(tile) - 1;
+        GOTOPOINT(tile, &pt);
+    }
+    return(TOP(tile));
 }
 
 int
-resWalkright(tile,tt,xpos,ypos,func)
-	Tile		*tile;
-	TileType	tt;
-	int		xpos,ypos;
-	Tile *		(*func)();
+resWalkright(tile, tt, xpos, ypos, func)
+    Tile	*tile;
+    TileType	tt;
+    int		xpos, ypos;
+    Tile *	(*func)();
 
 {
-     Point	pt;
-     Tile	*tp;
+    Point	pt;
+    Tile	*tp;
 
-     pt.p_y = ypos;
-     while (TiGetType(tile) == tt)
-     {
-	  if (ypos == BOTTOM(tile))
-	  {
-	       /* walk along bottom edge */
-	       for (tp = LB(tile);LEFT(tp) < xpos;tp=TR(tp));
-	       for (;LEFT(tp) < RIGHT(tile);tp=TR(tp))
-	       {
-	       	    if (TiGetType(tp) != tt) return(LEFT(tp));
-	       }
-	  }
-	  else
-	  {
-	       if (func) tile = (*func)(tile,ypos);
-	  }
-          pt.p_x = RIGHT(tile);
-          GOTOPOINT(tile,&pt);
-     }
-     return(LEFT(tile));
+    pt.p_y = ypos;
+    while (TiGetType(tile) == tt)
+    {
+	if (ypos == BOTTOM(tile))
+	{
+	    /* walk along bottom edge */
+	    for (tp = LB(tile); LEFT(tp) < xpos; tp = TR(tp));
+	    for (; LEFT(tp) < RIGHT(tile); tp = TR(tp))
+	    {
+	       	 if (TiGetType(tp) != tt) return(LEFT(tp));
+	    }
+	}
+	else
+	{
+	    if (func) tile = (*func)(tile, ypos);
+	}
+        pt.p_x = RIGHT(tile);
+        GOTOPOINT(tile, &pt);
+    }
+    return(LEFT(tile));
 }
 
 int
-resWalkleft(tile,tt,xpos,ypos,func)
-	Tile		*tile;
-	TileType	tt;
-	int		xpos,ypos;
-	Tile *		(*func)();
+resWalkleft(tile, tt, xpos, ypos, func)
+    Tile	*tile;
+    TileType	tt;
+    int		xpos, ypos;
+    Tile *	(*func)();
 
 {
-     Point	pt;
-     Tile	*tp;
-     Tile	*endt;
+    Point	pt;
+    Tile	*tp;
+    Tile	*endt;
 
-     pt.p_y = ypos;
-     while (TiGetType(tile) == tt)
-     {
-	  if (ypos == BOTTOM(tile))
-	  {
-	       /* walk along bottom edge */
-	       endt = NULL;
-	       for (tp = LB(tile);LEFT(tp) < RIGHT(tile);tp=TR(tp))
-	       {
-	       	    if (TiGetType(tp) != tt)
-		    {
-		    	 if (LEFT(tp) < xpos) endt = tp;
-		    }
-	       }
-	       if (endt)
-	       {
-	       	    return RIGHT(endt);
-	       }
-	  }
-	  else
-	  {
-	       if (func) tile = (*func)(tile,ypos);
-	  }
-          pt.p_x = LEFT(tile)-1;
-          GOTOPOINT(tile,&pt);
-     }
-     return(RIGHT(tile));
+    pt.p_y = ypos;
+    while (TiGetType(tile) == tt)
+    {
+	if (ypos == BOTTOM(tile))
+	{
+	    /* walk along bottom edge */
+	    endt = NULL;
+	    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+	    {
+	       	if (TiGetType(tp) != tt)
+		{
+		    if (LEFT(tp) < xpos) endt = tp;
+		}
+	    }
+	    if (endt)
+	    {
+	       	return RIGHT(endt);
+	    }
+	}
+	else
+	{
+	    if (func) tile = (*func)(tile, ypos);
+	}
+        pt.p_x = LEFT(tile) - 1;
+        GOTOPOINT(tile, &pt);
+    }
+    return(RIGHT(tile));
 }
 
 /*
@@ -419,59 +427,60 @@ resWalkleft(tile,tt,xpos,ypos,func)
  *
  *-------------------------------------------------------------------------
  */
+
 Tile *
-ResSplitX(tile,x)
-	Tile	*tile;
-	int	x;
+ResSplitX(tile, x)
+    Tile    *tile;
+    int	    x;
 
 {
-     TileType	tt = TiGetType(tile);
-     Tile	*tp = TiSplitX(tile,x);
-     Tile	*tp2;
+    TileType	tt = TiGetType(tile);
+    Tile	*tp = TiSplitX(tile, x);
+    Tile	*tp2;
 
-     TiSetBody(tp,tt);
-     /* check to see if we can combine with the tiles above or below us */
-     tp2 = RT(tile);
-     if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tile) && RIGHT(tp2) == RIGHT(tile))
-     {
-     	  if (tp2 == resSrTile)
-	  {
-	       if (resTopTile == tile) resTopTile = NULL;
-	       TiJoinY(tp2,tile,resFracPlane);
-	       tile = tp2;
-	  }
-	  else
-	  {
-	       if (resTopTile == tp2) resTopTile = NULL;
-	       TiJoinY(tile,tp2,resFracPlane);
-	  }
-     }
-     tp2 = LB(tile);
-     if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tile) && RIGHT(tp2) == RIGHT(tile))
-     {
-     	  if (tp2 == resSrTile)
-	  {
-	       if (resTopTile == tile) resTopTile = NULL;
-	       TiJoinY(tp2,tile,resFracPlane);
-	       tile = tp2;
-	  }
-	  else
-	  {
-	       if (resTopTile == tp2) resTopTile = NULL;
-	       TiJoinY(tile,tp2,resFracPlane);
-	  }
-     }
-     /* do the same checks with the newly created tile */
-     tp2 = RT(tp);
-     if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tp) && RIGHT(tp2) == RIGHT(tp))
-     {
-     	  TiJoinY(tp2,tp,resFracPlane);
-	  tp = tp2;
-     }
-     tp2 = LB(tp);
-     if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tp) && RIGHT(tp2) == RIGHT(tp))
-     {
-     	  TiJoinY(tp2,tp,resFracPlane);
-     }
-     return tile;
+    TiSetBody(tp,tt);
+    /* check to see if we can combine with the tiles above or below us */
+    tp2 = RT(tile);
+    if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tile) && RIGHT(tp2) == RIGHT(tile))
+    {
+     	if (tp2 == resSrTile)
+	{
+	    if (resTopTile == tile) resTopTile = NULL;
+	    TiJoinY(tp2, tile, resFracPlane);
+	    tile = tp2;
+	}
+	else
+	{
+	    if (resTopTile == tp2) resTopTile = NULL;
+	    TiJoinY(tile, tp2, resFracPlane);
+	}
+    }
+    tp2 = LB(tile);
+    if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tile) && RIGHT(tp2) == RIGHT(tile))
+    {
+     	if (tp2 == resSrTile)
+	{
+	    if (resTopTile == tile) resTopTile = NULL;
+	    TiJoinY(tp2, tile, resFracPlane);
+	    tile = tp2;
+	}
+	else
+	{
+	    if (resTopTile == tp2) resTopTile = NULL;
+	    TiJoinY(tile, tp2, resFracPlane);
+	}
+    }
+    /* do the same checks with the newly created tile */
+    tp2 = RT(tp);
+    if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tp) && RIGHT(tp2) == RIGHT(tp))
+    {
+     	TiJoinY(tp2, tp, resFracPlane);
+	tp = tp2;
+    }
+    tp2 = LB(tp);
+    if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tp) && RIGHT(tp2) == RIGHT(tp))
+    {
+     	TiJoinY(tp2, tp, resFracPlane);
+    }
+    return tile;
 }

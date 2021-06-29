@@ -30,9 +30,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "utils/hash.h"
 #include "utils/utils.h"
 #include "utils/malloc.h"
+#include "tiles/tile.h"
+#include "database/database.h"	/* for TileType definition */
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
-#include "tiles/tile.h"
 #include "extract/extract.h"	/* for device class list */
 
 /*
@@ -48,7 +49,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #define	MAXTYPES	100
 
 /* Table of transistor types */
-char *EFDevTypes[MAXDEVTYPES];
+char *EFDevTypes[TT_MAXTYPES];
 int   EFDevNumTypes;
 
 /* Table of Magic layers */
@@ -656,6 +657,8 @@ efBuildDevice(def, class, type, r, argc, argv)
     DevTerm *term;
     Dev *newdev, devtmp;
     DevParam *newparm, *devp, *sparm;
+    TileType ttype;
+    int dev_type;
     char ptype, *pptr, **av;
     char devhash[64];
     int argstart = 1;	/* start of terminal list in argv[] */
@@ -799,9 +802,18 @@ efBuildDevice(def, class, type, r, argc, argv)
 
     nterminals = (argc - argstart) / 3;
 
-    /* Determine if this device has been seen before */
+    dev_type = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, type);
 
-    sprintf(devhash, "%dx%d%s", r->r_xbot, r->r_ybot, type);
+    /* Determine if this device has been seen before */
+    /* NOTE:  This is done by tile type, not name, because the extresist
+     * device extraction is less sophisticated than the standard extraction
+     * and does not differentiate between different device names belonging
+     * to the same tile type.  The extGetDevType() function is not efficient,
+     * and all of this needs to be done better.
+     */
+    
+    ttype = extGetDevType(type);
+    sprintf(devhash, "%dx%d_%d", r->r_xbot, r->r_ybot, ttype);
     he = HashFind(&def->def_devs, devhash);
     newdev = (Dev *)HashGetValue(he);
     if (newdev)
@@ -813,10 +825,14 @@ efBuildDevice(def, class, type, r, argc, argv)
 	 *
 	 * Check that the device is actually the same device type and number
 	 * of terminals.  If not, throw an error and abandon the new device.
+	 *
+	 * NOTE:  Quick check is made on dev_type, but for the reason stated
+	 * above for the calculation of ttype, only the tile types need to
+	 * match, so make an additional (expensive) check on tile type.
 	 */
 
-        if ((newdev->dev_class != class) ||
-		    (strcmp(EFDevTypes[newdev->dev_type], type)))
+        if ((newdev->dev_class != class) || ((newdev->dev_type != dev_type)
+		 && (ttype != extGetDevType(EFDevTypes[newdev->dev_type]))))
 	{
 	    TxError("Device %s %s at (%d, %d) overlaps incompatible device %s %s!\n",
 		    extDevTable[class], type, r->r_xbot, r->r_ybot,
@@ -849,7 +865,7 @@ efBuildDevice(def, class, type, r, argc, argv)
 
         newdev->dev_nterm = nterminals;
         newdev->dev_rect = *r;
-        newdev->dev_type = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, type);
+        newdev->dev_type = dev_type;
         newdev->dev_class = class;
 
         switch (class)

@@ -2008,14 +2008,18 @@ CmdFlatten(w, cmd)
 	return;
     }
     /* create the new def */
-    if (newdef = DBCellLookDef(destname))
+    newdef = DBCellLookDef(destname);
+    if ((newdef != NULL) && (dobox == FALSE))
     {
     	 TxError("%s already exists\n",destname);
 	 return;
     }
-    newdef = DBCellNewDef(destname);
-    ASSERT(newdef, "CmdFlatten");
-    DBCellSetAvail(newdef);
+    else if (newdef == NULL)
+    {
+	newdef = DBCellNewDef(destname);
+	ASSERT(newdef, "CmdFlatten");
+	DBCellSetAvail(newdef);
+    }
     newuse = DBCellNewUse(newdef, (char *) NULL);
     (void) StrDup(&(newuse->cu_id), "Flattened cell");
     DBSetTrans(newuse, &GeoIdentityTransform);
@@ -2063,5 +2067,6 @@ CmdFlatten(w, cmd)
     if (xMask != CU_DESCEND_ALL)
 	DBCellCopyAllCells(&scx, xMask, flatDestUse, (Rect *)NULL);
 
+    DBCellDeleteUse(flatDestUse);
     UndoEnable();
 }

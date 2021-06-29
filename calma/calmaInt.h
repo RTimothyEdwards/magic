@@ -99,6 +99,7 @@
 #define	CALMA_NUMRECORDTYPES	60	/* Number of above types */
 
 /* Property types defined for magic */
+#define CALMA_PROP_USENAME_STD	61	/* To record non-default cell use ids */
 #define CALMA_PROP_USENAME	98	/* To record non-default cell use ids */
 #define CALMA_PROP_ARRAY_LIMITS	99	/* To record non-default array limits */
 

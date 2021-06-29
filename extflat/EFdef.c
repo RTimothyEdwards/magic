@@ -135,6 +135,7 @@ EFDone()
 
     /* Misc cleanup */
     for (n = 0; n < EFDevNumTypes; n++) freeMagic(EFDevTypes[n]);
+    EFDevNumTypes = 0;
 
     /* Changed from n = 0 to n = 1; First entry "space" is predefined,	*/
     /* not malloc'd.  ---Tim 9/3/02					*/

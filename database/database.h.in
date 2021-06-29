@@ -816,6 +816,7 @@ extern void DBTechInitContact();
 extern void DBTechFinalContact();
 extern void DBTechFinalConnect();
 extern void DBTechInitConnect();
+extern bool DBIsContact();
 
     /* Cell symbol table */
 extern void DBCellInit();

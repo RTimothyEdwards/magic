@@ -46,6 +46,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 #include "calma/calmaInt.h"
 #include "commands/commands.h"		/* for CmdGetRootPoint */
+#include "utils/main.h"			/* for EditCellUse */
 #include "utils/undo.h"
 
 /* Globals for Calma reading */
@@ -163,6 +164,12 @@ CalmaReadFile(file, filename)
 			     CALMA_STYPTABLE, CALMA_GENERATIONS, -1 };
     static int skipBeforeLib[] = { CALMA_LIBDIRSIZE, CALMA_SRFNAME,
 				   CALMA_LIBSECUR, -1 };
+
+    if (EditCellUse == (CellUse *)NULL)
+    {
+	TxError("Cannot read GDS:  There is no edit cell.\n");
+	return;
+    }
 
     /* We will use full cell names as keys in this hash table */
     CIFReadCellInit(0);

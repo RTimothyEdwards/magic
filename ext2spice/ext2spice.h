@@ -60,7 +60,7 @@ extern FILE *esSpiceF;
 extern float esScale;	/* negative if hspice the EFScale/100 otherwise */
 
 extern unsigned short esFormat;
-extern unsigned long initMask;
+extern TileTypeBitMask initMask;
 
 extern int esCapNum, esDevNum, esResNum, esDiodeNum;
 extern int esNodeNum;  /* just in case we're extracting spice2 */
@@ -96,19 +96,15 @@ typedef struct {
    char  *defSubs ;    /* the default substrate node */
 } fetInfoList;
 
-extern fetInfoList esFetInfo[MAXDEVTYPES];
+extern fetInfoList esFetInfo[TT_MAXTYPES];
 
 #define MAX_STR_SIZE (1<<11) /* 2K should be enough for keeping temp
                                 names even of the most complicated design */
 
 /* Node clients for figuring out areas and perimeters of sources and drains */
-typedef struct {
-	long	_duml:MAXDEVTYPES;
-} _dum; /* if you get an error here you should change
-           the data structures and visitMask */
 
 typedef union {
-	long	visitMask; /* mask for normal visits */
+	TileTypeBitMask	visitMask; /* mask for normal visits */
 	float	*widths; /* width used for distributing area perim */
 } maskOrWidth ;
 
@@ -125,32 +121,27 @@ typedef struct {
 #define	NO_RESCLASS	-1
 
 #define markVisited(client, rclass) \
-  { (client)->m_w.visitMask |= (1<<rclass); }
+  { TTMaskSetType(&((client)->m_w.visitMask), rclass); }
 
 #define clearVisited(client) \
-   { (client)->m_w.visitMask = (long)0; }
+   { TTMaskZero(&((client)->m_w.visitMask)); }
 
 #define beenVisited(client, rclass)  \
-   ( (client)->m_w.visitMask & (1<<rclass))
-
-/*
- * Used to mark the nodes which are connected to devs. initMask  is set to
- * DEV_CONNECT_MASK only when we are in visitDevs
- */
-#define	DEV_CONNECT_MASK	((unsigned long)1<<(sizeof(long)*BITSPERCHAR-1))
+   ( TTMaskHasType(&((client)->m_w.visitMask), rclass) )
 
 #define initNodeClient(node) \
 { \
 	(node)->efnode_client = (ClientData) mallocMagic((unsigned) (sizeof(nodeClient))); \
-	 (( nodeClient *)(node)->efnode_client)->spiceNodeName = NULL; \
-	(( nodeClient *)(node)->efnode_client)->m_w.visitMask = (unsigned long)initMask; \
+	(( nodeClient *)(node)->efnode_client)->spiceNodeName = NULL; \
+	TTMaskZero (&((nodeClient *) (node)->efnode_client)->m_w.visitMask); \
+	TTMaskSetMask(&(((nodeClient *)(node)->efnode_client)->m_w.visitMask), &initMask);\
 }
 
 
 #define initNodeClientHier(node) \
 { \
 	(node)->efnode_client = (ClientData) mallocMagic((unsigned)(sizeof(nodeClientHier))); \
-	((nodeClientHier *) (node)->efnode_client)->m_w.visitMask = (unsigned long) 0; \
+	TTMaskZero (&((nodeClientHier *) (node)->efnode_client)->m_w.visitMask); \
 }
 
 

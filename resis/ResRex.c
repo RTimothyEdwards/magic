@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
+#include "extflat/extflat.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "utils/utils.h"
@@ -52,9 +53,10 @@ extern ResSimNode	*ResOriginalNodes;	/*Linked List of Nodes		  */
 int		resNodeNum;
 
 #ifdef LAPLACE
-int	ResOptionsFlags = ResOpt_Simplify|ResOpt_Tdi|ResOpt_DoExtFile|ResOpt_CacheLaplace;
+int	ResOptionsFlags = ResOpt_Simplify | ResOpt_Tdi | ResOpt_DoExtFile
+		| ResOpt_CacheLaplace;
 #else
-int	ResOptionsFlags = ResOpt_Simplify|ResOpt_Tdi|ResOpt_DoExtFile;
+int	ResOptionsFlags = ResOpt_Simplify | ResOpt_Tdi | ResOpt_DoExtFile;
 #endif
 char	*ResCurrentNode;
 
@@ -97,16 +99,33 @@ ExtResisForDef(celldef, resisdata)
     HashEntry	*entry;
     devPtr	*tptr,*oldtptr;
     ResSimNode  *node;
-    int		result;
+    int		result, idx;
+    char	*devname;
 
     ResRDevList = NULL;
     ResOriginalNodes = NULL;
+
+    /* Get device information from the current extraction style */
+    idx = 0;
+    while (ExtGetDevInfo(idx++, &devname, NULL, NULL, NULL, NULL, NULL))
+    {
+        if (idx == TT_MAXTYPES)
+        {
+            TxError("Error:  Ran out of space for device types!\n");
+            break;
+        }
+        efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, devname);
+    }
 
     HashInit(&ResNodeTable, INITFLATSIZE, HT_STRINGKEYS);
     /* read in .sim file */
     result = (ResReadSim(celldef->cd_name,
 	      	ResSimDevice, ResSimCapacitor, ResSimResistor,
 		ResSimAttribute, ResSimMerge, ResSimSubckt) == 0);
+
+    /* Clean up the EFDevTypes table */
+    for (idx = 0; idx < EFDevNumTypes; idx++) freeMagic(EFDevTypes[idx]);
+    EFDevNumTypes = 0;
 
     if (result)
 	/* read in .nodes file   */
@@ -185,7 +204,7 @@ CmdExtResis(win, cmd)
 	TxCommand *cmd;
 {
     int		i, j, k, option, value, saveFlags;
-    static int	init=1;
+    static int	init = 1;
     static float tolerance, tdiTolerance, fhFrequency;
     CellDef	*mainDef;
     CellUse	*selectedUse;
@@ -245,6 +264,17 @@ typedef enum {
 	fhFrequency = 10e6;	/* 10 MHz default */
 	init = 0;
     }
+
+    /* Initialize ResGlobalParams */
+    gparams.rg_ttype = TT_SPACE;
+    gparams.rg_Tdi = 0.0;
+    gparams.rg_nodecap = 0.0;
+    gparams.rg_maxres = 0.0;
+    gparams.rg_bigdevres = 0;
+    gparams.rg_tilecount = 0;
+    gparams.rg_status = 0;
+    gparams.rg_devloc = NULL;
+    gparams.rg_name = NULL;
 
     option = (cmd->tx_argc > 1) ? Lookup(cmd->tx_argv[1], cmdExtresisCmd)
 		: RES_RUN;
@@ -434,7 +464,7 @@ typedef enum {
 		CellDef		*def;
 		Rect		rect;
 		int		oldoptions;
-		ResFixPoint	fp;
+		ResSimNode	lnode;
 
 		if (ToolGetBoxWindow((Rect *) NULL, (int *) NULL) == NULL)
 		{
@@ -449,23 +479,23 @@ typedef enum {
 		gparams.rg_ttype = tt;
 		gparams.rg_status = DRIVEONLY;
 		oldoptions = ResOptionsFlags;
-		ResOptionsFlags = ResOpt_DoSubstrate|ResOpt_Signal|ResOpt_Box;
+		ResOptionsFlags = ResOpt_DoSubstrate | ResOpt_Signal | ResOpt_Box;
 #ifdef LAPLACE
-		ResOptionsFlags |= (oldoptions & (ResOpt_CacheLaplace|ResOpt_DoLaplace));
+		ResOptionsFlags |= (oldoptions &
+			    (ResOpt_CacheLaplace | ResOpt_DoLaplace));
 		LaplaceMatchCount = 0;
 		LaplaceMissCount = 0;
 #endif
-		fp.fp_ttype = tt;
-		fp.fp_loc = rect.r_ll;
-		fp.fp_next = NULL;
-		if (ResExtractNet(&fp, &gparams, NULL) != 0) return;
-		ResPrintResistorList(stdout,ResResList);
-		ResPrintDeviceList(stdout,ResRDevList);
+		lnode.location = rect.r_ll;
+		lnode.type = tt;
+		if (ResExtractNet(&lnode, &gparams, NULL) != 0) return;
+		ResPrintResistorList(stdout, ResResList);
+		ResPrintDeviceList(stdout, ResRDevList);
 #ifdef LAPLACE
 		if (ResOptionsFlags & ResOpt_DoLaplace)
 		{
 		    TxPrintf("Laplace   solved: %d matched %d\n",
-				LaplaceMissCount,LaplaceMatchCount);
+				LaplaceMissCount, LaplaceMatchCount);
 		}
 #endif
 
@@ -492,11 +522,11 @@ typedef enum {
 	    return;
 #endif
 	case RES_AMBIG:
-  	    TxPrintf("Ambiguous option: %s\n",cmd->tx_argv[1]);
+  	    TxPrintf("Ambiguous option: %s\n", cmd->tx_argv[1]);
 	    TxFlushOut();
 	    return;
 	case RES_BAD:
-  	    TxPrintf("Unknown option: %s\n",cmd->tx_argv[1]);
+  	    TxPrintf("Unknown option: %s\n", cmd->tx_argv[1]);
 	    TxFlushOut();
 	    return;
 	default:
@@ -519,7 +549,7 @@ typedef enum {
     }
     ResOptionsFlags |= ResOpt_Signal;
 #ifdef ARIEL
-    ResOptionsFlags &= 	~ResOpt_Power;
+    ResOptionsFlags &= ~ResOpt_Power;
 #endif
 
     resisdata.tolerance = tolerance;
@@ -580,8 +610,6 @@ resSubcircuitFunc(cellDef, rdata)
 	    ExtResisForDef(cellDef, rdata);
     return 0;
 }
-
-
 
 /*
  *-------------------------------------------------------------------------
@@ -841,7 +869,7 @@ ResCheckSimNodes(celldef, resisdata)
     }
     if (ResOptionsFlags & ResOpt_DoLumpFile)
     {
-        ResLumpFile = PaOpen(outfile,"w",".res.lump",".",(char *) NULL, (char **) NULL);
+        ResLumpFile = PaOpen(outfile, "w", ".res.lump", ".", (char *)NULL, (char **)NULL);
     }
     else
     {
@@ -850,7 +878,7 @@ ResCheckSimNodes(celldef, resisdata)
     if (ResOptionsFlags & ResOpt_FastHenry)
     {
 	char *geofilename;
-        ResFHFile = PaOpen(outfile,"w",".fh",".",(char *) NULL, &geofilename);
+        ResFHFile = PaOpen(outfile, "w", ".fh", ".", (char *)NULL, &geofilename);
 	TxPrintf("Writing FastHenry-format geometry file \"%s\"\n", geofilename);
 	ResPortIndex = 0;
     }
@@ -961,7 +989,7 @@ ResCheckSimNodes(celldef, resisdata)
 			     t1->drain  != t2->source)) break;
 
 		    /* do parallel combination  */
-		    if (cumRes != 0.0 && t2->resistance != 0.0)
+		    if ((cumRes != 0.0) && (t2->resistance != 0.0))
 		    {
 			cumRes = (cumRes * t2->resistance) /
 			      	       (cumRes + t2->resistance);
@@ -998,32 +1026,32 @@ ResCheckSimNodes(celldef, resisdata)
 	       	gparams.rg_devloc = &node->drivepoint;
 		gparams.rg_status |= DRIVEONLY;
 	    }
-	    if (node->status  & PORTNODE)
+	    if (node->status & PORTNODE)
 	    {
 		/* The node is a port, not a device, so make    */
-		/* sure rg_ttype is set accordingly.		    */
+		/* sure rg_ttype is set accordingly.		*/
 		gparams.rg_ttype = node->rs_ttype;
 	    }
 	}
-	if (gparams.rg_devloc == NULL && node->status & FORCE)
+	if ((gparams.rg_devloc == NULL) && (node->status & FORCE))
 	{
     	    TxError("Node %s has force label but no drive point or "
 			"driving device\n",node->name);
 	}
-	if (minRes == FLT_MAX || gparams.rg_devloc == NULL)
+	if ((minRes == FLT_MAX) || (gparams.rg_devloc == NULL))
 	{
 	    continue;
 	}
-	gparams.rg_bigdevres = (int)minRes*OHMSTOMILLIOHMS;
-	if (rctol == 0.0 || tol == 0.0)
+	gparams.rg_bigdevres = (int)minRes * OHMSTOMILLIOHMS;
+	if ((rctol == 0.0) || (tol == 0.0))
 	{
 	    ftolerance = 0.0;
 	    rctolerance = 0.0;
 	}
 	else
 	{
-	    ftolerance =  minRes/tol;
-	    rctolerance = minRes/rctol;
+	    ftolerance =  minRes / tol;
+	    rctolerance = minRes / rctol;
 	}
 
 	/*
@@ -1031,19 +1059,16 @@ ResCheckSimNodes(celldef, resisdata)
 	 *   resistance? If so, extract net.
 	 */
 
-	if (node->resistance > ftolerance || node->status & FORCE ||
+	if ((node->resistance > ftolerance) || (node->status & FORCE) ||
 		(ResOpt_ExtractAll & ResOptionsFlags))
 	{
 	    ResFixPoint	fp;
 
 	    failed1++;
-	    fp.fp_loc = node->location;
-	    fp.fp_ttype = node->type;
-	    fp.fp_next = NULL;
-	    if (ResExtractNet(&fp, &gparams, outfile) != 0)
+	    if (ResExtractNet(node, &gparams, outfile) != 0)
 	    {
-	       	TxError("Error in extracting node %s\n",node->name);
-		// break;	// Don't stop for one error. . .
+		/* On error, don't output this net, but keep going */
+	       	TxError("Error in extracting node %s\n", node->name);
 	    }
 	    else
 	    {
@@ -1062,7 +1087,7 @@ ResCheckSimNodes(celldef, resisdata)
 		}
 	    }
 #ifdef PARANOID
-	    ResSanityChecks(node->name,ResResList,ResNodeList,ResDevList);
+	    ResSanityChecks(node->name, ResResList, ResNodeList, ResDevList);
 #endif
 	    ResCleanUpEverything();
 	}
@@ -1075,7 +1100,7 @@ ResCheckSimNodes(celldef, resisdata)
 
     if (ResOptionsFlags & ResOpt_DoExtFile)
     {
-	ResPrintExtDev(ResExtFile,ResRDevList);
+	ResPrintExtDev(ResExtFile, ResRDevList);
     }
 
     /*
@@ -1182,7 +1207,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 
     if (simDev->gate == simNode)
     {
-	if ((gate=layoutDev->rd_fet_gate) != NULL)
+	if ((gate = layoutDev->rd_fet_gate) != NULL)
 	{
 	    /* Cosmetic addition: If the layout device already has a      */
 	    /* name, the new one won't be used, so we decrement resNodeNum */
@@ -1398,9 +1423,10 @@ void
 ResSortByGate(DevpointerList)
     devPtr	**DevpointerList;
 {
-    int		changed=TRUE;
-    int		localchange=TRUE;
-    devPtr	*working, *last=NULL, *current, *gatelist=NULL;
+    int		changed = TRUE;
+    int		localchange = TRUE;
+    devPtr	*working, *current;
+    devPtr	*last = NULL, *gatelist = NULL;
 
     working = *DevpointerList;
     while (working != NULL)
@@ -1526,7 +1552,7 @@ ResWriteLumpFile(node)
     {
 	lumpedres = gparams.rg_maxres;
     }
-    fprintf(ResLumpFile,"R %s %d\n", node->name, lumpedres);
+    fprintf(ResLumpFile, "R %s %d\n", node->name, lumpedres);
 }
 
 

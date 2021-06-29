@@ -417,11 +417,12 @@ HeapAdd(heap, pKey, id)
 	    {
 		/* If odd then new entry is the right half of a pair */
 		cmp = i;
-		if (i & 1)
+		if ((i & 1) && (i != 1))
 		    KEY_LE_COND(keyType, list, i, i-1, cmp = i-1);
 
 		/* Find parent.  If 0 then at the root so quit */
 		if ((i >>= 1) == 0) return;
+
 		KEY_LE_COND(keyType, list, cmp, i, return);
 		list[0] = list[cmp]; list[cmp] = list[i]; list[i] = list[0];
 		heapify(heap, cmp);
@@ -434,11 +435,12 @@ HeapAdd(heap, pKey, id)
 	    {
 		/* If odd then new entry is the right half of a pair */
 		cmp = i;
-		if (i & 1)
+		if ((i & 1) && (i != 1))
 		    KEY_GE_COND(keyType, list, i, i-1, cmp = i-1);
 
 		/* Find parent.  If 0 then at the root so quit */
 		if ((i >>= 1) == 0) return;
+
 		KEY_GE_COND(keyType, list, cmp, i, return);
 		list[0] = list[cmp]; list[cmp] = list[i]; list[i] = list[0];
 		heapify(heap, cmp);

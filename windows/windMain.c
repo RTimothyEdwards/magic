@@ -49,6 +49,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>	/* for isalnum() */
 
 #include "utils/magic.h"
 #include "utils/geometry.h"

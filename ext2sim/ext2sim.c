@@ -97,39 +97,39 @@ struct {
    short resClassSub ;	    /* The resistance class of the substrate of the dev */
    TileType devType ;	    /* Magic tile type of the device */
    char  *defSubs ;	    /* The default substrate node */
-} fetInfo[MAXDEVTYPES];
+} fetInfo[TT_MAXTYPES];
 
 typedef struct {
-	long    visitMask:MAXDEVTYPES;
+	TileTypeBitMask visitMask;
 } nodeClient;
 
 typedef struct {
 	HierName *lastPrefix;
-	long    visitMask:MAXDEVTYPES;
+	TileTypeBitMask visitMask;
 } nodeClientHier;
 
 #define NO_RESCLASS	-1
 
 #define markVisited(client, rclass) \
-  { (client)->visitMask |= (1<<rclass); }
+  { TTMaskSetType(&((client)->visitMask), rclass); }
 
 #define clearVisited(client) \
-   { (client)->visitMask = (long)0; }
+  { TTMaskZero(&((client)->visitMask)); }
 
 #define beenVisited(client, rclass)  \
-   ( (client)->visitMask & (1<<rclass))
+  ( TTMaskHasType(&((client)->visitMask), rclass) )
 
 #define initNodeClient(node) \
 { \
 	(node)->efnode_client = (ClientData) mallocMagic((unsigned) (sizeof(nodeClient))); \
-	(( nodeClient *)(node)->efnode_client)->visitMask = (long) 0; \
+	TTMaskZero(&(( nodeClient *)(node)->efnode_client)->visitMask); \
 }
 
 
 #define initNodeClientHier(node) \
 { \
 	(node)->efnode_client = (ClientData) mallocMagic((unsigned) (sizeof(nodeClientHier))); \
-	((nodeClientHier *) (node)->efnode_client)->visitMask = (long) 0; \
+	TTMaskZero(&(( nodeClientHier *)(node)->efnode_client)->visitMask); \
 }
 
 
@@ -572,7 +572,7 @@ runexttosim:
     /* create default fetinfo entries (MOSIS) which can be overriden by
        the command line arguments */
 
-    for ( i = 0 ; i < MAXDEVTYPES ; i++ )
+    for ( i = 0 ; i < TT_MAXTYPES ; i++ )
     {
 	fetInfo[i].resClassSource = NO_RESCLASS;
 	fetInfo[i].resClassDrain = NO_RESCLASS;
@@ -589,12 +589,12 @@ runexttosim:
     while (ExtGetDevInfo(idx++, &devname, &devtype, &s_rclass, &d_rclass,
 		&sub_rclass, &subname))
     {
-	if (idx == MAXDEVTYPES)
+	if (idx == TT_MAXTYPES)
 	{
 	    TxError("Error:  Ran out of space for device types!\n");
 	    break;
 	}
-	i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, devname);
+	i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, devname);
 
 	if (EFStyle != NULL)
 	{
@@ -676,26 +676,26 @@ main(argc, argv)
     EFInit();
     /* create default fetinfo entries (MOSIS) which can be overriden by
        the command line arguments */
-    for ( i = 0 ; i < MAXDEVTYPES ; i++ ) {
+    for ( i = 0 ; i < TT_MAXTYPES ; i++ ) {
 	fetInfo[i].resClassSource = NO_RESCLASS;
 	fetInfo[i].resClassDrain = NO_RESCLASS;
 	fetInfo[i].resClassSub = NO_RESCLASS;
 	fetInfo[i].defSubs = NULL;
 	fetInfo[i].devType = TT_SPACE;
     }
-    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "nfet");
+    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "nfet");
     fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 0 ;
     fetInfo[i].resClassSub = NO_RESCLASS ;
     fetInfo[i].defSubs = "Gnd!";
-    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "pfet");
+    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "pfet");
     fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 1 ;
     fetInfo[i].resClassSub = 6 ;
     fetInfo[i].defSubs = "Vdd!";
-    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "nmos");
+    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "nmos");
     fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 0 ;
     fetInfo[i].resClassSub = NO_RESCLASS ;
     fetInfo[i].defSubs = "Gnd!";
-    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, "pmos");
+    i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "pmos");
     fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 1 ;
     fetInfo[i].resClassSub = 6 ;
     fetInfo[i].defSubs = "Vdd!";
@@ -896,7 +896,7 @@ simmainArgs(pargc, pargv)
 		rClassSub = NO_RESCLASS ;
 	    	if ( sscanf(rp, "%d/%s",  &rClass, subsNode) != 2 ) goto usage;
 	    }
-	    ndx = efBuildAddStr(EFDevTypes, &EFDevNumTypes, MAXDEVTYPES, cp);
+	    ndx = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, cp);
 	    fetInfo[ndx].resClassSource = rClass;
 	    fetInfo[ndx].resClassDrain = rClass;
 	    fetInfo[ndx].resClassSub = rClassSub;
@@ -1206,9 +1206,6 @@ simdevVisit(dev, hc, scale, trans)
 	/* Output length, width, and position as attributes */
         fprintf(esSimF, " l=%g w=%g x=%g y=%g",
 		l * scale, w * scale, r.r_xbot * scale, r.r_ybot * scale);
-
-	/* Output tile type as an attribute for quick lookup by ResReadSim */
-        fprintf(esSimF, " t=%d", fetInfo[dev->dev_type].devType);
     }
     else if ((dev->dev_class != DEV_DIODE) && (dev->dev_class != DEV_PDIODE)
 		&& (dev->dev_class != DEV_NDIODE)) {
@@ -1402,7 +1399,7 @@ bool simnAPHier(dterm, hierName, resClass, scale, outf)
 		initNodeClientHier(node);
 	nc = (nodeClientHier *)node->efnode_client;
 	if ( nc->lastPrefix != hierName ) {
-		nc->visitMask = 0;
+		TTMaskZero(&(nc->visitMask));
 		nc->lastPrefix = hierName;
 	}
 	if ( resClass == NO_RESCLASS ||
