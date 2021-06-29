@@ -2606,6 +2606,7 @@ LefRead(inName, importForeign, doAnnotate)
 	    case LEF_DIVIDERCHAR:
 	    case LEF_CLEARANCEMEASURE:
 	    case LEF_MANUFACTURINGGRID:
+	    case LEF_USEMINSPACING:
 		LefEndStatement(f);
 		break;
 	    case LEF_NAMESCASESENSITIVE:
