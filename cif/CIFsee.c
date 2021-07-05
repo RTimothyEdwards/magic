@@ -515,7 +515,7 @@ cifCoverageFunc(tile, arg)
     Rect r;
 
     TiToRect(tile, &r);
-    cstats->coverage += (long long)((r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot));
+    cstats->coverage += (long long)(r.r_xtop - r.r_xbot) * (long long)(r.r_ytop - r.r_ybot);
     GeoInclude(&r, &cstats->bounds);
 
     return(0);
