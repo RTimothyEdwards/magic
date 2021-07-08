@@ -413,7 +413,16 @@ mainDoArgs(argc, argv)
 #endif
 #ifdef MAGIC_WRAPPER
 		    if (!strcasecmp(c, ".tcl"))
+		    {
 			CurrentName->fn_type = FN_TCL_SCRIPT;
+			/* Behavior:  If a .tcl file is passed on the
+			 * command line, then all following arguments
+			 * are assumed to be arguments of the script,
+			 * and not to be processed as additional
+			 * input file types.
+			 */
+			break;
+		    }
 #endif
 		}
 	    }
