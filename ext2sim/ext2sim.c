@@ -446,7 +446,7 @@ CmdExtToSim(w, cmd)
 	case EXTTOSIM_DEFAULT:
 	    LocCapThreshold = 2;
 	    LocResistThreshold = 10;
-	    EFTrimFlags = 0;
+	    EFOutputFlags = 0;
 	    EFScale = 0.0;
 	    if (EFArgTech)
 	    {
@@ -1307,8 +1307,8 @@ FILE *outf;
     suf = EFHNToStr(suffix);
     if (fetInfo[type].defSubs && strcasecmp(suf,fetInfo[type].defSubs) == 0) {
     	l = strlen(suf) - 1;
-	if (  ( EFTrimFlags & EF_TRIMGLOB ) && suf[l] =='!' ||
-	      ( EFTrimFlags & EF_TRIMLOCAL ) && suf[l] == '#'  )
+	if (  ( EFOutputFlags & EF_TRIMGLOB ) && suf[l] =='!' ||
+	      ( EFOutputFlags & EF_TRIMLOCAL ) && suf[l] == '#'  )
 	      suf[l] = '\0' ;
 	if ( esFormat == SU )
 		fprintf(outf, "S_");

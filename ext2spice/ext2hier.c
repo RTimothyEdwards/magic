@@ -555,7 +555,8 @@ spcdevHierVisit(hc, dev, scale)
 	case DEV_RES:
 	case DEV_CAP:
 	case DEV_CAPREV:
-	    if (dev->dev_type == esNoModelType)
+	    if ((dev->dev_type == esNoModelType) ||
+		    !strcmp(EFDevTypes[dev->dev_type], "None"))
 		has_model = FALSE;
 	    break;
     }
@@ -601,6 +602,9 @@ spcdevHierVisit(hc, dev, scale)
 	case DEV_RES:
 	    devchar = 'R';
 	    break;
+	case DEV_VOLT:
+	    devchar = 'V';
+	    break;
 	case DEV_CAP:
 	case DEV_CAPREV:
 	    devchar = 'C';
@@ -637,6 +641,9 @@ spcdevHierVisit(hc, dev, scale)
 	    case DEV_CAP:
 	    case DEV_CAPREV:
 		fprintf(esSpiceF, "%d", esCapNum++);
+		break;
+	    case DEV_VOLT:
+		fprintf(esSpiceF, "%d", esVoltNum++);
 		break;
 	    case DEV_SUBCKT:
 	    case DEV_RSUBCKT:
@@ -790,6 +797,21 @@ spcdevHierVisit(hc, dev, scale)
 		esOutputHierResistor(hc, dev, scale, source, drain, has_model,
 			l, w, 1);
 	    }
+	    break;
+
+	case DEV_VOLT:
+	    /* Voltage source is "Vnnn term1 term2 0.0".  It is used only to
+	     * separate port names that have been shorted.
+	     */
+	    if (dev->dev_nterm > 1)
+		spcdevOutNode(hc->hc_hierName,
+			source->dterm_node->efnode_name->efnn_hier,
+			"plus", esSpiceF);
+	    if (dev->dev_nterm > 2)
+		spcdevOutNode(hc->hc_hierName,
+			drain->dterm_node->efnode_name->efnn_hier,
+			"minus", esSpiceF);
+	    fprintf(esSpiceF, " 0.0");
 	    break;
 
 	case DEV_DIODE:
@@ -1083,7 +1105,8 @@ spcdevHierMergeVisit(hc, dev, scale)
 		    break;
 		case DEV_RSUBCKT:
 		case DEV_RES:
-		    if (fp->dev->dev_type == esNoModelType)
+		    if ((fp->dev->dev_type == esNoModelType) ||
+			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
 			m = esFMult[cfp->esFMIndex] + (fp->dev->dev_res
 				/ cfp->dev->dev_res);
 		    else
@@ -1092,7 +1115,8 @@ spcdevHierMergeVisit(hc, dev, scale)
 		case DEV_CSUBCKT:
 		case DEV_CAP:
 		case DEV_CAPREV:
-		    if (fp->dev->dev_type == esNoModelType)
+		    if ((fp->dev->dev_type == esNoModelType) ||
+			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
 			m = esFMult[cfp->esFMIndex] + (fp->dev->dev_cap
 				/ cfp->dev->dev_cap);
 		    else
@@ -1481,7 +1505,8 @@ mergeThem:
 		    break;
 		case DEV_RSUBCKT:
 		case DEV_RES:
-		    if (fp->dev->dev_type == esNoModelType)
+		    if ((fp->dev->dev_type == esNoModelType) ||
+			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
 		        m = esFMult[cfp->esFMIndex] + (fp->dev->dev_res
 				/ cfp->dev->dev_res);
 		    else
@@ -1490,7 +1515,8 @@ mergeThem:
 		case DEV_CSUBCKT:
 		case DEV_CAP:
 		case DEV_CAPREV:
-		    if (fp->dev->dev_type == esNoModelType)
+		    if ((fp->dev->dev_type == esNoModelType) ||
+			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
 		        m = esFMult[cfp->esFMIndex] + (fp->dev->dev_cap
 				/ cfp->dev->dev_cap);
 		    else

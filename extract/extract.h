@@ -46,13 +46,14 @@ extern int ExtDoWarn;		/* Bitmask of above */
 #define DEV_RES         4		/* Resistor */
 #define DEV_CAP         5		/* Capacitor */
 #define DEV_CAPREV      6		/* Capacitor, terminals reversed */
-#define DEV_DIODE	7		/* Diode */
-#define DEV_PDIODE	8		/* pDiode, same as Diode	*/
-#define DEV_NDIODE	9		/* nDiode, terminals reversed	*/
-#define DEV_SUBCKT     10		/* general-purpose subcircuit	*/
-#define DEV_RSUBCKT    11		/* Resistor-like subcircuit.	*/
-#define DEV_MSUBCKT    12		/* MOSFET-like subcircuit.	*/
-#define DEV_CSUBCKT    13		/* Capacitor-like subcircuit.	*/
+#define DEV_VOLT        7		/* Voltage source (used for shorts) */
+#define DEV_DIODE	8		/* Diode */
+#define DEV_PDIODE	9		/* pDiode, same as Diode	*/
+#define DEV_NDIODE     10		/* nDiode, terminals reversed	*/
+#define DEV_SUBCKT     11		/* general-purpose subcircuit	*/
+#define DEV_RSUBCKT    12		/* Resistor-like subcircuit.	*/
+#define DEV_MSUBCKT    13		/* MOSFET-like subcircuit.	*/
+#define DEV_CSUBCKT    14		/* Capacitor-like subcircuit.	*/
 
 /* Device names for .ext file output (new in version 7.2)	*/
 /* (defined in extract/ExtBasic.c *and* extflat/EFread.c)	*/
@@ -60,14 +61,15 @@ extern int ExtDoWarn;		/* Bitmask of above */
 extern char *extDevTable[];
 
 /* Extractor options */
-#define	EXT_DOADJUST		0x01	/* Extract hierarchical adjustments */
-#define	EXT_DOCAPACITANCE	0x02	/* Extract capacitance */
-#define	EXT_DOCOUPLING		0x04	/* Extract coupling capacitance */
-#define	EXT_DORESISTANCE	0x08	/* Extract resistance */
-#define	EXT_DOLENGTH		0x10	/* Extract pathlengths */
-#define	EXT_DOALL		0x1f	/* ALL OF THE ABOVE */
-#define	EXT_DOLOCAL		0x20	/* Write to local directory only */
-#define	EXT_DOLABELCHECK	0x40	/* Check for connections by label */
+
+#define	EXT_DOADJUST		0x001	/* Extract hierarchical adjustments */
+#define	EXT_DOCAPACITANCE	0x002	/* Extract capacitance */
+#define	EXT_DOCOUPLING		0x004	/* Extract coupling capacitance */
+#define	EXT_DORESISTANCE	0x008	/* Extract resistance */
+#define	EXT_DOLENGTH		0x010	/* Extract pathlengths */
+#define	EXT_DOALL		0x01f	/* ALL OF THE ABOVE */
+#define	EXT_DOLOCAL		0x020	/* Write to local directory only */
+#define	EXT_DOLABELCHECK	0x040	/* Check for connections by label */
 
 extern int ExtOptions;		/* Bitmask of above */
 

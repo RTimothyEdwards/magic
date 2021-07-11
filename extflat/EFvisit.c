@@ -847,7 +847,7 @@ EFLookDist(hn1, hn2, pMinDist, pMaxDist)
  * EFHNOut --
  *
  * Output a hierarchical node name.
- * The flags in EFTrimFlags control whether global (!) or local (#)
+ * The flags in EFOutputFlags control whether global (!) or local (#)
  * suffixes are to be trimmed.
  *
  * Results:
@@ -868,13 +868,13 @@ EFHNOut(hierName, outf)
     char *cp, c;
 
     if (hierName->hn_parent) efHNOutPrefix(hierName->hn_parent, outf);
-    if (EFTrimFlags)
+    if (EFOutputFlags)
     {
 	cp = hierName->hn_name;
-	trimGlob = (EFTrimFlags & EF_TRIMGLOB);
-	trimLocal = (EFTrimFlags & EF_TRIMLOCAL);
-	convComma = (EFTrimFlags & EF_CONVERTCOMMA);
-	convBrackets = (EFTrimFlags & EF_CONVERTBRACKETS);
+	trimGlob = (EFOutputFlags & EF_TRIMGLOB);
+	trimLocal = (EFOutputFlags & EF_TRIMLOCAL);
+	convComma = (EFOutputFlags & EF_CONVERTCOMMA);
+	convBrackets = (EFOutputFlags & EF_CONVERTBRACKETS);
 	while (c = *cp++)
 	{
 	    if (*cp)

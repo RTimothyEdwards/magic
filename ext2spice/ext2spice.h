@@ -62,7 +62,7 @@ extern float esScale;	/* negative if hspice the EFScale/100 otherwise */
 extern unsigned short esFormat;
 extern TileTypeBitMask initMask;
 
-extern int esCapNum, esDevNum, esResNum, esDiodeNum;
+extern int esCapNum, esDevNum, esResNum, esDiodeNum, esVoltNum;
 extern int esNodeNum;  /* just in case we're extracting spice2 */
 extern int esSbckNum; 	/* used in hspice node name shortening   */
 extern int esNoModelType;  /* index for device type "None" (model-less device) */
@@ -143,8 +143,6 @@ typedef struct {
 	(node)->efnode_client = (ClientData) mallocMagic((unsigned)(sizeof(nodeClientHier))); \
 	TTMaskZero (&((nodeClientHier *) (node)->efnode_client)->m_w.visitMask); \
 }
-
-
 
 /* attributes controlling the Area/Perimeter extraction of dev terminals */
 #define ATTR_FLATAP	"*[Ee][Xx][Tt]:[Aa][Pp][Ff]*"

@@ -65,7 +65,7 @@ float esScale = -1.0 ; /* negative if hspice the EFScale/100 otherwise */
 
 unsigned short esFormat = SPICE3 ;
 
-int esCapNum, esDevNum, esResNum, esDiodeNum;
+int esCapNum, esDevNum, esResNum, esDiodeNum, esVoltNum;
 int esNodeNum;  /* just in case we're extracting spice2 */
 int esSbckNum; 	/* used in hspice node name shortening   */
 int esNoModelType;  /* index for device type "None" (model-less device) */
@@ -137,20 +137,20 @@ esFormatSubs(outf, suf)
     if (outf)
     {
 	l = strlen(suf) - 1;
-	if ((EFTrimFlags & EF_TRIMGLOB ) && suf[l] == '!' ||
-	         (EFTrimFlags & EF_TRIMLOCAL) && suf[l] == '#')
+	if ((EFOutputFlags & EF_TRIMGLOB ) && suf[l] == '!' ||
+	         (EFOutputFlags & EF_TRIMLOCAL) && suf[l] == '#')
 	    suf[l] = '\0' ;
-	if (EFTrimFlags & EF_CONVERTCOMMA)
+	if (EFOutputFlags & EF_CONVERTCOMMA)
 	    while ((specchar = strchr(suf, ',')) != NULL)
 		*specchar = '|';
-	if (EFTrimFlags & EF_CONVERTBRACKETS)
+	if (EFOutputFlags & EF_CONVERTBRACKETS)
 	{
 	    while ((specchar = strchr(suf, '[')) != NULL)
 		*specchar = '_';
 	    while ((specchar = strchr(suf, ']')) != NULL)
 		*specchar = '_';
 	}
-	if (EFTrimFlags & EF_CONVERTEQUAL)
+	if (EFOutputFlags & EF_CONVERTEQUAL)
 	    while ((specchar = strchr(suf, '=')) != NULL)
 		*specchar = ':';
 	fprintf(outf, "%s", suf);
@@ -213,13 +213,14 @@ Exttospice_Init(interp)
 #define EXTTOSPC_EXTRESIST	6
 #define EXTTOSPC_RESISTORTEE	7
 #define EXTTOSPC_SCALE		8
-#define EXTTOSPC_SUBCIRCUITS	9
-#define EXTTOSPC_HIERARCHY	10
-#define EXTTOSPC_BLACKBOX	11
-#define EXTTOSPC_RENUMBER	12
-#define EXTTOSPC_MERGENAMES	13
-#define EXTTOSPC_LVS		14
-#define EXTTOSPC_HELP		15
+#define EXTTOSPC_SHORT		9
+#define EXTTOSPC_SUBCIRCUITS	10
+#define EXTTOSPC_HIERARCHY	11
+#define EXTTOSPC_BLACKBOX	12
+#define EXTTOSPC_RENUMBER	13
+#define EXTTOSPC_MERGENAMES	14
+#define EXTTOSPC_LVS		15
+#define EXTTOSPC_HELP		16
 
 void
 CmdExtToSpice(w, cmd)
@@ -264,6 +265,8 @@ CmdExtToSpice(w, cmd)
 	"extresist [on|off]	incorporate information from extresist",
 	"resistor tee [on|off]	model resistor capacitance as a T-network",
 	"scale [on|off]		use .option card for scaling",
+	"short [voltage|resistor|none]\n"
+	"			set method for handling shorted ports",
 	"subcircuits [top|descend] [on|off|auto]\n"
 	"			standard cells become subcircuit calls",
 	"hierarchy [on|off]	output hierarchical spice for LVS",
@@ -283,6 +286,12 @@ CmdExtToSpice(w, cmd)
 	NULL
     };
 
+    static char *cmdShortTypes[] = {
+	"none			merge shorted ports",
+	"resistor		separate shorted ports with 0 ohm resistor",
+	"voltage		separate shorted ports with 0 volt source",
+	NULL
+    };
     static char *cmdExtToSpcFormat[] = {
 	"spice2",
 	"spice3",
@@ -311,6 +320,13 @@ CmdExtToSpice(w, cmd)
 	"automatic",
 	"top",
 	"descend",
+	NULL
+    };
+
+    static char *shorttypes[] = {
+	"none",
+	"resistor",
+	"voltage",
 	NULL
     };
 
@@ -426,6 +442,36 @@ CmdExtToSpice(w, cmd)
 		esMergeNames = TRUE;
 	    else	 /* no */
 		esMergeNames = FALSE;
+	    break;
+
+	case EXTTOSPC_SHORT:
+	    if (cmd->tx_argc == 2)
+	    {
+		if ((EFOutputFlags & EF_SHORT_MASK) == EF_SHORT_NONE)
+		    Tcl_SetResult(magicinterp, "none", NULL);
+		else if ((EFOutputFlags & EF_SHORT_MASK) == EF_SHORT_R)
+		    Tcl_SetResult(magicinterp, "resistor", NULL);
+		else if ((EFOutputFlags & EF_SHORT_MASK) == EF_SHORT_V)
+		    Tcl_SetResult(magicinterp, "voltage source", NULL);
+		return;
+	    }
+	    idx = Lookup(cmd->tx_argv[2], cmdShortTypes);
+	    if (idx < 0) goto usage;
+	    else switch (idx)
+	    {
+		case 0:
+		    EFOutputFlags &= ~EF_SHORT_MASK;
+		    EFOutputFlags |= EF_SHORT_NONE;
+		    break;
+		case 1:
+		    EFOutputFlags &= ~EF_SHORT_MASK;
+		    EFOutputFlags |= EF_SHORT_R;
+		    break;
+		case 2:
+		    EFOutputFlags &= ~EF_SHORT_MASK;
+		    EFOutputFlags |= EF_SHORT_V;
+		    break;
+	    }
 	    break;
 
 	case EXTTOSPC_LVS:
@@ -615,7 +661,7 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_DEFAULT:
 	    LocCapThreshold = 2;
 	    LocResistThreshold = INFINITE_THRESHOLD;
-	    EFTrimFlags = EF_CONVERTCOMMA | EF_CONVERTEQUAL;
+	    EFOutputFlags = EF_CONVERTCOMMA | EF_CONVERTEQUAL;
 	    EFScale = 0.0;
 	    if (EFArgTech)
 	    {
@@ -647,6 +693,7 @@ runexttospice:
 
     /* Reset the device indices */
     esCapNum  = 0;
+    esVoltNum  = 0;
     esDevNum = 1000;
     esResNum = 0;
     esDiodeNum = 0;
@@ -832,10 +879,10 @@ runexttospice:
 
     // This forces options TRIMGLOB and CONVERTEQUAL, not sure that's such a
     // good idea. . .
-    EFTrimFlags |= EF_TRIMGLOB | EF_CONVERTEQUAL | EF_CONVERTCOMMA;
+    EFOutputFlags |= EF_TRIMGLOB | EF_CONVERTEQUAL | EF_CONVERTCOMMA;
     if (IS_FINITE_F(EFCapThreshold)) flatFlags |= EF_FLATCAPS;
     if (esFormat == HSPICE)
-	EFTrimFlags |= EF_TRIMLOCAL;
+	EFOutputFlags |= EF_TRIMLOCAL;
 
     /* Write globals under a ".global" card */
 
@@ -1054,10 +1101,10 @@ main(argc, argv)
 
     /* Convert the hierarchical description to a flat one */
     flatFlags = EF_FLATNODES;
-    EFTrimFlags |= EF_TRIMGLOB ;
+    EFOutputFlags |= EF_TRIMGLOB ;
     if (IS_FINITE_F(EFCapThreshold)) flatFlags |= EF_FLATCAPS;
     if (esFormat == HSPICE) {
-	EFTrimFlags |= EF_TRIMLOCAL ;
+	EFOutputFlags |= EF_TRIMLOCAL ;
 	HashInit(&subcktNameTable, 32, HT_STRINGKEYS);
 #ifndef UNSORTED_SUBCKT
 	DQInit(&subcktNameQueue, 64);
@@ -1392,14 +1439,14 @@ subcktVisit(use, hierName, is_top)
     }
     else
     {
-	int savflags = EFTrimFlags;
-	EFTrimFlags = EF_CONVERTCOMMA;	// Only substitute commas on subcircuit names
+	int savflags = EFOutputFlags;
+	EFOutputFlags = EF_CONVERTCOMMA;	// Only substitute commas on subcircuit names
 
 	/* Use full hierarchical decomposition for name */
 	/* (not just use->use_id.  hierName already has use->use_id at end) */
 	EFHNSprintf(stmp, hierName);
 	fprintf(esSpiceF, "X%s", stmp);
-	EFTrimFlags = savflags;
+	EFOutputFlags = savflags;
 	tchars = 1 + strlen(stmp);
     }
 
@@ -2393,7 +2440,8 @@ spcdevVisit(dev, hc, scale, trans)
 	case DEV_CAPREV:
 	    if (dev->dev_nterm < 1)
 		return 0;
-	    if (dev->dev_type == esNoModelType)
+	    if ((dev->dev_type == esNoModelType) ||
+		    !strcmp(EFDevTypes[dev->dev_type], "None"))
 		has_model = FALSE;
 	    break;
     }
@@ -2439,6 +2487,9 @@ spcdevVisit(dev, hc, scale, trans)
 	case DEV_RES:
 	    devchar = 'R';
 	    break;
+	case DEV_VOLT:
+	    devchar = 'V';
+	    break;
 	case DEV_CAP:
 	case DEV_CAPREV:
 	    devchar = 'C';
@@ -2479,6 +2530,9 @@ spcdevVisit(dev, hc, scale, trans)
 	    case DEV_CAP:
 	    case DEV_CAPREV:
 		fprintf(esSpiceF, "%d", esCapNum++);
+		break;
+	    case DEV_VOLT:
+		fprintf(esSpiceF, "%d", esVoltNum++);
 		break;
 	    case DEV_SUBCKT:
 	    case DEV_RSUBCKT:
@@ -2629,6 +2683,19 @@ spcdevVisit(dev, hc, scale, trans)
 		esOutputResistor(dev, hierName, scale, source, drain, has_model,
 			l, w, 1);
 	    }
+	    break;
+
+	case DEV_VOLT:
+	    /* The voltage source is "Vnnn term1 term2 0.0" and is used
+	     * only to separate shorted port names.
+	     */
+	    if (dev->dev_nterm > 1)
+		spcdevOutNode(hierName, source->dterm_node->efnode_name->efnn_hier,
+			name, esSpiceF);
+	    if (dev->dev_nterm > 1)
+		spcdevOutNode(hierName, drain->dterm_node->efnode_name->efnn_hier,
+			name, esSpiceF);
+	    fprintf(esSpiceF, " 0.0");
 	    break;
 
 	case DEV_DIODE:
@@ -3408,7 +3475,7 @@ retName:
  * EFHNSprintf --
  *
  * Create a hierarchical node name.
- * The flags in EFTrimFlags control whether global (!) or local (#)
+ * The flags in EFOutputFlags control whether global (!) or local (#)
  * suffixes are to be trimmed. Also substitutes \. with \@ if the
  * format is hspice.
  *
@@ -3432,14 +3499,14 @@ EFHNSprintf(str, hierName)
 
     s = str;
     if (hierName->hn_parent) str = efHNSprintfPrefix(hierName->hn_parent, str);
-    if (EFTrimFlags)
+    if (EFOutputFlags)
     {
 	cp = hierName->hn_name;
-	trimGlob = (EFTrimFlags & EF_TRIMGLOB);
-	trimLocal = (EFTrimFlags & EF_TRIMLOCAL);
-	convertComma = (EFTrimFlags & EF_CONVERTCOMMA);
-	convertEqual = (EFTrimFlags & EF_CONVERTEQUAL);
-	convertBrackets = (EFTrimFlags & EF_CONVERTBRACKETS);
+	trimGlob = (EFOutputFlags & EF_TRIMGLOB);
+	trimLocal = (EFOutputFlags & EF_TRIMLOCAL);
+	convertComma = (EFOutputFlags & EF_CONVERTCOMMA);
+	convertEqual = (EFOutputFlags & EF_CONVERTEQUAL);
+	convertBrackets = (EFOutputFlags & EF_CONVERTBRACKETS);
 	while (c = *cp++)
 	{
 	    switch (c)
@@ -3465,9 +3532,9 @@ char *efHNSprintfPrefix(hierName, str)
     char *str;
 {
     char *cp, c;
-    bool convertEqual = (EFTrimFlags & EF_CONVERTEQUAL) ? TRUE : FALSE;
-    bool convertComma = (EFTrimFlags & EF_CONVERTCOMMA) ? TRUE : FALSE;
-    bool convertBrackets = (EFTrimFlags & EF_CONVERTBRACKETS) ? TRUE : FALSE;
+    bool convertEqual = (EFOutputFlags & EF_CONVERTEQUAL) ? TRUE : FALSE;
+    bool convertComma = (EFOutputFlags & EF_CONVERTCOMMA) ? TRUE : FALSE;
+    bool convertBrackets = (EFOutputFlags & EF_CONVERTBRACKETS) ? TRUE : FALSE;
 
     if (hierName->hn_parent)
 	str = efHNSprintfPrefix(hierName->hn_parent, str);
@@ -3749,6 +3816,9 @@ parallelDevs(f1, f2)
 	case DEV_SUBCKT:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
+	    break;
+
+	case DEV_VOLT:
 	    break;
     }
     return NOT_PARALLEL;

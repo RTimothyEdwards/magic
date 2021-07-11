@@ -55,8 +55,8 @@ static char sccsid[] = "@(#)ExtBasic.c	4.13 MAGIC (Berkeley) 12/5/85";
 
 #ifdef MAGIC_WRAPPER
 char *extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
-	"devcap", "devcaprev", "diode", "pdiode", "ndiode", "subckt",
-	"rsubckt", "msubckt", "csubckt", NULL};
+	"devcap", "devcaprev", "vsource", "diode", "pdiode", "ndiode",
+	"subckt", "rsubckt", "msubckt", "csubckt", NULL};
 #endif
 
 /* --------------------- Data local to this file ---------------------- */

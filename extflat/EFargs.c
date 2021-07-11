@@ -43,7 +43,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
     /* Command-line flags */
 EFCapValue EFCapThreshold = 2;  /* -c/-C: (fF) smallest interesting C */
 int EFResistThreshold = 10;	/* -r/-R: (Ohms) smallest interesting R */
-int EFTrimFlags = 0;		/* -t: output of nodename trailing #!'s */
+int EFOutputFlags = 0;		/* -t: output of nodename trailing #!'s */
 char *EFSearchPath = NULL;	/* -p: Search path for .ext files */
 char *EFArgTech = NULL;		/* -T: Tech specified on command line */
 
@@ -216,12 +216,12 @@ EFArgs(argc, argv, err_result, argsProc, cdata)
 	    case 't':
 		if ((cp = ArgStr(&argc, &argv, "trim characters")) == NULL)
 		    goto usage;
-		if (strchr(cp, '!')) EFTrimFlags |= EF_TRIMGLOB;
-		if (strchr(cp, '#')) EFTrimFlags |= EF_TRIMLOCAL;
-		if (strchr(cp, ',')) EFTrimFlags |= EF_CONVERTCOMMA;
-		if (strchr(cp, '=')) EFTrimFlags |= EF_CONVERTEQUAL;
-		if (strchr(cp, '[')) EFTrimFlags |= EF_CONVERTBRACKETS;
-		if (strchr(cp, ']')) EFTrimFlags |= EF_CONVERTBRACKETS;
+		if (strchr(cp, '!')) EFOutputFlags |= EF_TRIMGLOB;
+		if (strchr(cp, '#')) EFOutputFlags |= EF_TRIMLOCAL;
+		if (strchr(cp, ',')) EFOutputFlags |= EF_CONVERTCOMMA;
+		if (strchr(cp, '=')) EFOutputFlags |= EF_CONVERTEQUAL;
+		if (strchr(cp, '[')) EFOutputFlags |= EF_CONVERTBRACKETS;
+		if (strchr(cp, ']')) EFOutputFlags |= EF_CONVERTBRACKETS;
 		break;
 	    case 'C':
 		EFCapThreshold = (EFCapValue)INFINITE_THRESHOLD_F;

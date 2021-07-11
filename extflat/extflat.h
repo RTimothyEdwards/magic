@@ -37,12 +37,17 @@ typedef unsigned char U_char;
 #define	EF_NONAMEMERGE		0x20	/* Don't merge unconnected nets	*/
 					/* with the same name.		*/
 
-/* Flags to control output of node names.  Stored in EFTrimFlags */
+/* Flags to control output of node names.  Stored in EFOutputFlags */
 #define	EF_TRIMGLOB		0x01	/* Delete trailing '!' from names */
 #define	EF_TRIMLOCAL		0x02	/* Delete trailing '#' from names */
 #define EF_CONVERTCOMMA		0x04	/* Change ',' to '|' in names, else remove */
 #define EF_CONVERTEQUAL		0x08	/* Change '=' to ':' in names, else remove */
 #define EF_CONVERTBRACKETS	0x10	/* Change '[' and ']' to '_' in names */
+
+#define EF_SHORT_MASK		0x30	/* Mask for handling port shorts */
+#define EF_SHORT_NONE		0x00	/* Shorted ports are merged */
+#define EF_SHORT_R		0x10	/* Shorted ports separated with 0 ohm resistor */
+#define EF_SHORT_V		0x20	/* Shorted ports separated with 0 volt source */
 
 /*
  * capacitance type now set to float
@@ -327,7 +332,7 @@ extern char *EFLayerNames[];
 extern int EFLayerNumNames;
 
     /* Output control flags */
-extern int EFTrimFlags;
+extern int EFOutputFlags;
 
 /* -------------------------- Exported procedures --------------------- */
 

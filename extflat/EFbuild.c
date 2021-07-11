@@ -479,6 +479,35 @@ efBuildEquiv(def, nodeName1, nodeName2)
     else if (nn2->efnn_node == (EFNode *)NULL)
 	return;		/* Repeated "equiv" statement */
 
+    /* If both names exist and are for different ports, then keep   */
+    /* them separate and add a zero ohm resistor or a zero volt	    */
+    /* source between them, based on the method set by "ext2spice   */
+    /* shorts".							    */
+
+    if (nn1 && nn2 && (nn1->efnn_port >= 0) && (nn2->efnn_port >= 0) &&
+	    (nn1->efnn_port != nn2->efnn_port))
+    {
+	if ((EFOutputFlags & EF_SHORT_MASK) != EF_SHORT_NONE)
+	{
+	    int i;
+	    int sdev;
+	    char *argv[7], zeroarg[] = "0";
+
+	    if ((EFOutputFlags & EF_SHORT_MASK) == EF_SHORT_R)
+		sdev = DEV_RES;
+	    else
+		sdev = DEV_VOLT;
+
+	    for (i = 0; i < 10; i++) argv[i] = zeroarg;
+	    argv[4] = StrDup((char **)NULL, nodeName1);
+	    argv[7] = StrDup((char **)NULL, nodeName2);
+	    efBuildDevice(def, sdev, "None", &GeoNullRect, 10, argv);
+	    freeMagic(argv[4]);
+	    freeMagic(argv[7]);
+	    return;
+	}
+    }
+
     /* If both names exist and are for different nodes, merge them */
     if (nn1)
     {
@@ -813,9 +842,24 @@ efBuildDevice(def, class, type, r, argc, argv)
      */
     
     ttype = extGetDevType(type);
+    if (ttype < 0)
+    {
+	/* For zero-ohm resistors used to separate ports on the same	*/
+	/* net, generate a unique devhash.				*/
+	ttype = DBNumTypes;
+	while (1)
+	{
+	    sprintf(devhash, "%dx%d_%d", r->r_xbot, r->r_ybot, ttype);
+	    he = HashLookOnly(&def->def_devs, devhash);
+	    if (he == NULL) break;
+	    ttype++;
+	}
+    }
+
     sprintf(devhash, "%dx%d_%d", r->r_xbot, r->r_ybot, ttype);
     he = HashFind(&def->def_devs, devhash);
     newdev = (Dev *)HashGetValue(he);
+
     if (newdev)
     {
 	/* Duplicate device.  Duplicates will only appear in res.ext files
