@@ -661,7 +661,9 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_DEFAULT:
 	    LocCapThreshold = 2;
 	    LocResistThreshold = INFINITE_THRESHOLD;
-	    EFOutputFlags = EF_CONVERTCOMMA | EF_CONVERTEQUAL;
+	    /* Clear EFOutputFlags but preserve "short" behavior */
+	    EFOutputFlags &= ~EF_TRIM_MASK;
+	    EFOutputFlags |= EF_CONVERTCOMMA | EF_CONVERTEQUAL;
 	    EFScale = 0.0;
 	    if (EFArgTech)
 	    {
@@ -1440,7 +1442,8 @@ subcktVisit(use, hierName, is_top)
     else
     {
 	int savflags = EFOutputFlags;
-	EFOutputFlags = EF_CONVERTCOMMA;	// Only substitute commas on subcircuit names
+	EFOutputFlags &= ~EF_TRIM_MASK;
+	EFOutputFlags |= EF_CONVERTCOMMA;  // Only substitute commas on subcircuit names
 
 	/* Use full hierarchical decomposition for name */
 	/* (not just use->use_id.  hierName already has use->use_id at end) */
@@ -3499,7 +3502,7 @@ EFHNSprintf(str, hierName)
 
     s = str;
     if (hierName->hn_parent) str = efHNSprintfPrefix(hierName->hn_parent, str);
-    if (EFOutputFlags)
+    if (EFOutputFlags & EF_TRIM_MASK)
     {
 	cp = hierName->hn_name;
 	trimGlob = (EFOutputFlags & EF_TRIMGLOB);
