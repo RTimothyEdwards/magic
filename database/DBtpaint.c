@@ -150,7 +150,7 @@ DBTechInitCompose()
     */
 
 #if TT_MAXTYPES <= 256
-    /* For single-byte values, memset() is fastest.
+    /* For single-byte values, memset() is fastest. */
 
     dtype = &(DBWriteResultTbl[0][0]);
     for (q = 0; q < TT_MAXTYPES; q++)
