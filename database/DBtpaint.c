@@ -88,7 +88,7 @@ bool dbTechSaveCompose();
 void
 DBTechInitCompose()
 {
-    TileType s, t, r;
+    TileType q, s, t, r;
     int ps;
     PaintResultType *stype, *dtype;
     TileTypeBitMask *ttype;
