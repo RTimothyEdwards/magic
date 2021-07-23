@@ -212,6 +212,12 @@ ResMakePortBreakpoints(def)
 	node=(ResSimNode *) HashGetValue(entry);
 	if (node->status & PORTNODE)
 	{
+	    if (node->rs_ttype <= 0)
+	    {
+		TxError("Warning:  Label \"%s\" is unconnected.\n", node->name);
+		continue;
+	    }
+
 	    plane = def->cd_planes[DBPlane(node->rs_ttype)];
 	    rect  = &(node->rs_bbox);
 
