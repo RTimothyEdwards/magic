@@ -1704,7 +1704,8 @@ topVisit(def, doStub)
     HashSearch hs;
     HashEntry *he, *hep;
     HashTable portNameTable;
-    int portorder, portmax, tchars;
+    int portorder, portmax, tchars, implicit;
+    bool explicit;
     DevParam *plist, *pptr;
     char *instname;
     char *subcktname;
@@ -1731,6 +1732,7 @@ topVisit(def, doStub)
 
     HashStartSearch(&hs);
     portmax = -1;
+    implicit = 0;
 
     while (he = HashNext(&def->def_nodes, &hs))
     {
@@ -1738,11 +1740,14 @@ topVisit(def, doStub)
 	if (sname == NULL) continue;
 	snode = sname->efnn_node;
 	if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
+        explicit = FALSE;
 	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	{
 	    portorder = nodeName->efnn_port;
 	    if (portorder > portmax) portmax = portorder;
+	    if (portorder != -1) explicit = TRUE;
 	}
+	if (explicit == FALSE) implicit++;
     }
 
     if (portmax < 0)
@@ -1791,7 +1796,7 @@ topVisit(def, doStub)
 	/* They will be printed in numerical order.              */
 
 	portorder = 0;
-	while (portorder <= portmax)
+	while (portorder <= portmax + implicit)
 	{
 	    HashStartSearch(&hs);
 	    while (he = HashNext(&def->def_nodes, &hs))
@@ -1860,7 +1865,11 @@ topVisit(def, doStub)
 		    // and "ext2spice blackbox on" is in effect.
 
 		    if (esDoBlackBox == FALSE || !(def->def_flags & DEF_ABSTRACT))
+		    {
 			unnumbered->efnn_port = ++portmax;
+			implicit--;
+			portorder--;	/* Will loop again */
+		    }
 		}
 	    }
 	    portorder++;
