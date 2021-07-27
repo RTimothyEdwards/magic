@@ -4418,6 +4418,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
      * NOTE:  Some opcodes (and whatever follows them) should never
      * be run during hierarchical processing.  That includes BOUNDARY,
      * SQUARES/SLOTS, BBOX, and NET.
+     *
+     * Caveat:  SQUARES/SLOTS followed by GROW can be used to define
+     * an etch area around a contact;  this should be considered a
+     * special case that requires hierarchical processing on SQUARES/
+     * SLOTS.
      */
 
     for ( ; op != NULL; op = op->co_next)
@@ -4717,8 +4722,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 	    case CIFOP_SQUARES:
 		if (hier)
 		{
-		    hstop = TRUE;	/* Stop hierarchical processing */
-		    break;
+		    if ((op->co_next == NULL) || (op->co_next->co_opcode != CIFOP_GROW))
+		    {
+		    	hstop = TRUE;	/* Stop hierarchical processing */
+		    	break;
+		    }
 		}
 		if (CalmaContactArrays == FALSE)
 		{
@@ -4734,8 +4742,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 	    case CIFOP_SQUARES_G:
 		if (hier)
 		{
-		    hstop = TRUE;	/* Stop hierarchical processing */
-		    break;
+		    if ((op->co_next == NULL) || (op->co_next->co_opcode != CIFOP_GROW))
+		    {
+		    	hstop = TRUE;	/* Stop hierarchical processing */
+		    	break;
+		    }
 		}
 		DBClearPaintPlane(nextPlane);
 		cifPlane = nextPlane;
@@ -4748,8 +4759,11 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 	    case CIFOP_SLOTS:
 		if (hier)
 		{
-		    hstop = TRUE;	/* Stop hierarchical processing */
-		    break;
+		    if ((op->co_next == NULL) || (op->co_next->co_opcode != CIFOP_GROW))
+		    {
+		    	hstop = TRUE;	/* Stop hierarchical processing */
+		    	break;
+		    }
 		}
 		DBClearPaintPlane(nextPlane);
 		cifPlane = nextPlane;
