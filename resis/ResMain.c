@@ -652,11 +652,29 @@ resMakeDevFunc(tile, cx)
 {
     ResDevTile	*thisDev = (ResDevTile *)cx->tc_filter->tf_arg;
     Rect	devArea;
+    TileType	ttype;
 
     TiToRect(tile, &devArea);
     GeoTransRect(&cx->tc_scx->scx_trans, &devArea, &thisDev->area);
     ResCalcPerimOverlap(tile, thisDev);
 
+    if (IsSplit(tile))
+	ttype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
+    else
+	ttype = TiGetType(tile);
+
+    /* If more than one tile type extracts to the same device, then */
+    /* the device type may be different from what was recorded when */
+    /* the sim file was read.  Restricted to the plane of the	    */
+    /* original type to avoid conflict with completely different    */
+    /* devices (like transistors vs. MiM caps).			    */
+
+    if (ttype != thisDev->type)
+    {
+	if (DBPlane(ttype) != DBPlane(thisDev->type))
+	    return 0;	/* Completely different device? */
+	thisDev->type = ttype;
+    }
     return 1;
 }
 
@@ -769,9 +787,8 @@ ResExtractNet(node, goodies, cellname)
     DevTiles = NULL;
     for (tptr = node->firstDev; tptr; tptr = tptr->nextDev)
     {
-	TileTypeBitMask devMask;
+	int result;
 
-	TTMaskSetOnlyType(&devMask, tptr->thisDev->rs_ttype);
 	thisDev = (ResDevTile *)mallocMagic(sizeof(ResDevTile));
 	thisDev->devptr = tptr->thisDev->rs_devptr;
 	thisDev->type = tptr->thisDev->rs_ttype;
@@ -779,7 +796,17 @@ ResExtractNet(node, goodies, cellname)
 	scx.scx_area.r_ll.p_y = tptr->thisDev->location.p_y;
 	scx.scx_area.r_xtop = scx.scx_area.r_xbot + 1;
 	scx.scx_area.r_ytop = scx.scx_area.r_ybot + 1;
-	DBTreeSrTiles(&scx, &devMask, 0, resMakeDevFunc, (ClientData)thisDev);
+	result = DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0,
+		    resMakeDevFunc, (ClientData)thisDev);
+	if (result == 0)
+	{
+	    freeMagic(thisDev);
+	    TxError("No device of type %s found at location %d,%d\n",
+		    DBTypeLongNameTbl[thisDev->type],
+		    tptr->thisDev->location.p_x,
+		    tptr->thisDev->location.p_y);
+	    continue;
+	}
 	thisDev->nextDev = DevTiles;
 	DevTiles = thisDev;
 

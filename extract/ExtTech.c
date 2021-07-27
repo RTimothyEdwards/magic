@@ -431,6 +431,11 @@ ExtGetDevInfo(idx, devnameptr, devtypeptr, s_rclassptr, d_rclassptr,
  * Results:
  *	Tile type that represents the device "devname" in the magic database.
  *
+ * Notes:
+ *	It is possible for the extract section to define multiple tile types
+ *	that produce the same extracted device name, so the returned TileType
+ *	is not guaranteed to be unique to the device name.
+ *
  * ----------------------------------------------------------------------------
  */
 
