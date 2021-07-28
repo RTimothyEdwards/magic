@@ -1840,12 +1840,15 @@ cifBridgeCheckFunc(tile, brcs)
     switch (dir) {
 	case BRIDGE_NW:
 	    /* Ignore tile if NW corner is not in the search area */
+	    for (tp1 = RT(tile); LEFT(tp1) > LEFT(tile); tp1 = BL(tp1));
 	    if (LEFT(tile) <= brcs->area->r_xbot || TOP(tile) >= brcs->area->r_ytop)
+		break;
+	    /* Check that this is not a false corner */
+	    else if (TiGetBottomType(tp1) == TiGetTopType(tile))
 		break;
 	    /* Ignore tile if split, and SE corner is clipped */
 	    if (TiGetRightType(tile) == checktype || TiGetBottomType(tile) == checktype)
 		break;
-	    for (tp1 = RT(tile); LEFT(tp1) > LEFT(tile); tp1 = BL(tp1));
 	    for (tp2 = BL(tile); TOP(tp2) < TOP(tile); tp2 = RT(tp2));
 	    if ((TiGetBottomType(tp1) == checktype) &&
 		    (TiGetRightType(tp2) == checktype))
@@ -1856,12 +1859,15 @@ cifBridgeCheckFunc(tile, brcs)
 	    break;
 	case BRIDGE_SW:
 	    /* Ignore tile if SW corner is not in the search area */
+	    tp1 = LB(tile);
 	    if (LEFT(tile) <= brcs->area->r_xbot || BOTTOM(tile) <= brcs->area->r_ybot)
+		break;
+	    /* Check that this is not a false corner */
+	    else if (TiGetTopType(tp1) == TiGetBottomType(tile))
 		break;
 	    /* Ignore tile if split, and NE corner is clipped */
 	    if (TiGetRightType(tile) == checktype || TiGetTopType(tile) == checktype)
 		break;
-	    tp1 = LB(tile);
 	    tp2 = BL(tile);
 	    if ((TiGetTopType(tp1) == checktype) ||
 		    (TiGetRightType(tp2) == checktype))
