@@ -398,7 +398,7 @@ calmaParseStructure(filename)
     	{
 	    if (SigInterruptPending)
 	    	goto done;
-	    if (nsrefs > osrefs && (nsrefs % 100) == 0)
+	    if (nsrefs > osrefs && (nsrefs % 5000) == 0)
 	   	TxPrintf("    %d uses\n", nsrefs);
 	    osrefs = nsrefs;
 	    calmaNonManhattan = 0;
