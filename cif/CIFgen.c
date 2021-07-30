@@ -1949,85 +1949,105 @@ cifGatherFunc(tile, atotal, mode)
     ClientData cdata = (mode == CLOSE_SEARCH) ? (ClientData)CIF_UNPROCESSED :
 	    (ClientData)CIF_PENDING;
 
-    /* Ignore if tile has already been processed */
-    if (tile->ti_client != cdata) return 0;
+    static Stack *GatherStack = (Stack *)NULL;
 
-    TiToRect(tile, &area);
+    if (GatherStack == (Stack *)NULL)
+	GatherStack = StackNew(64);
 
-    /* Boundary tiles indicate an unclosed area, so set the area total to   	*/
-    /* INFINITY and don't try to run calculations on it.  NOTE:  TiPlaneRect	*/
-    /* is slightly smaller than the plane boundaries on all sides.		*/
-
-    if ((area.r_xbot <= TiPlaneRect.r_xbot) || (area.r_ybot <= TiPlaneRect.r_ybot) ||
-	    (area.r_xtop >= TiPlaneRect.r_xtop) || (area.r_ytop >= TiPlaneRect.r_ytop))
-	*atotal = INFINITY;
-
-    /* Stop accumulating if already larger than growDistance to avoid the   */
-    /* possibility of integer overflow.					    */
-    if (mode == CLOSE_SEARCH)
+    STACKPUSH(tile, GatherStack);
+    while (!StackEmpty(GatherStack))
     {
-	if ((*atotal != INFINITY) && (*atotal < growDistance))
-	{
-	    locarea = (dlong)(area.r_xtop - area.r_xbot)
-			* (dlong)(area.r_ytop - area.r_ybot);
-	    if (IsSplit(tile)) locarea /= 2;
-	    if (locarea > (dlong)INFINITY)
-		*atotal = INFINITY;
-	    else
-		*atotal += (int)locarea;
-	}
+	tile = (Tile *)STACKPOP(GatherStack);
+
+	/* Ignore if tile has already been processed */
+	if (tile->ti_client != cdata) continue;
+
+	TiToRect(tile, &area);
+
+	/* Boundary tiles indicate an unclosed area, so set the area total to 	*/
+	/* INFINITY and don't try to run calculations on it.  NOTE:		*/
+	/* TiPlaneRect is slightly smaller than the plane boundaries on all	*/
+	/* sides.								*/
+
+    	if ((area.r_xbot <= TiPlaneRect.r_xbot) ||
+		(area.r_ybot <= TiPlaneRect.r_ybot) ||
+	    	(area.r_xtop >= TiPlaneRect.r_xtop) ||
+		(area.r_ytop >= TiPlaneRect.r_ytop))
+	    *atotal = INFINITY;
+
+    	/* Stop accumulating if already larger than growDistance to avoid the   */
+    	/* possibility of integer overflow.					*/
+    	if (mode == CLOSE_SEARCH)
+    	{
+	    if ((*atotal != INFINITY) && (*atotal < growDistance))
+	    {
+	    	locarea = (dlong)(area.r_xtop - area.r_xbot)
+				* (dlong)(area.r_ytop - area.r_ybot);
+	        if (IsSplit(tile)) locarea /= 2;
+	        if (locarea > (dlong)INFINITY)
+		    *atotal = INFINITY;
+	        else
+		    *atotal += (int)locarea;
+	    }
+        }
+        else if (mode == CLOSE_FILL)
+        {
+	    TileType dinfo = TiGetTypeExact(tile);
+
+	    /* The tile type cannot be depended on to have the TT_SIDE bit set	*/
+	    /* for the side of the tile that is TT_SPACE.  So set the side bit	*/
+	    /* manually.							*/
+
+	    if (IsSplit(tile))
+	    {
+	        if (TiGetLeftType(tile) == TT_SPACE)
+		    dinfo &= ~TT_SIDE;
+	        else
+		    dinfo |= TT_SIDE;
+	    }
+
+	    DBNMPaintPlane(cifPlane, dinfo, &area, CIFPaintTable, (PaintUndoInfo *)NULL);
+	    CIFTileOps++;
+        }
+
+        if (mode == CLOSE_SEARCH)
+	    tile->ti_client = (ClientData)CIF_PENDING;
+        else
+	    tile->ti_client = (ClientData)CIF_PROCESSED;
+
+        /* Look for additional neighboring space tiles */
+        /* Check top */
+        if (area.r_ytop != TiPlaneRect.r_ytop)
+            for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+	        if (tp->ti_client == cdata && TiGetBottomType(tp) == TT_SPACE)
+		{
+		    STACKPUSH(tp, GatherStack);
+		}
+
+    	/* Check bottom */
+    	if (area.r_ybot != TiPlaneRect.r_ybot)
+            for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+	    	if (tp->ti_client == cdata && TiGetTopType(tp) == TT_SPACE)
+		{
+		    STACKPUSH(tp, GatherStack);
+		}
+
+    	/* Check left */
+    	if (area.r_xbot != TiPlaneRect.r_xbot)
+	    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+	    	if (tp->ti_client == cdata && TiGetRightType(tp) == TT_SPACE)
+		{
+		    STACKPUSH(tp, GatherStack);
+		}
+
+    	/* Check right */
+    	if (area.r_xtop != TiPlaneRect.r_xtop)
+	    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
+	    	if (tp->ti_client == cdata && TiGetLeftType(tp) == TT_SPACE)
+		{
+		    STACKPUSH(tp, GatherStack);
+		}
     }
-    else if (mode == CLOSE_FILL)
-    {
-	TileType dinfo = TiGetTypeExact(tile);
-
-	/* The recursive call to cifGatherFunc() below means that the	*/
-	/* tile type cannot be depended on to have the TT_SIDE bit set	*/
-	/* for the side of the tile that is TT_SPACE.  So set the	*/
-	/* side bit manually.						*/
-
-	if (IsSplit(tile))
-	{
-	    if (TiGetLeftType(tile) == TT_SPACE)
-		dinfo &= ~TT_SIDE;
-	    else
-		dinfo |= TT_SIDE;
-	}
-
-	DBNMPaintPlane(cifPlane, dinfo, &area, CIFPaintTable, (PaintUndoInfo *)NULL);
-	CIFTileOps++;
-    }
-
-    if (mode == CLOSE_SEARCH)
-	tile->ti_client = (ClientData)CIF_PENDING;
-    else
-	tile->ti_client = (ClientData)CIF_PROCESSED;
-
-    /* Look for additional neighboring space tiles */
-    /* Check top */
-    if (area.r_ytop != TiPlaneRect.r_ytop)
-        for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-	    if (tp->ti_client == cdata && TiGetBottomType(tp) == TT_SPACE)
-		cifGatherFunc(tp, atotal, mode);
-
-    /* Check bottom */
-    if (area.r_ybot != TiPlaneRect.r_ybot)
-        for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
-	    if (tp->ti_client == cdata && TiGetTopType(tp) == TT_SPACE)
-		cifGatherFunc(tp, atotal, mode);
-
-    /* Check left */
-    if (area.r_xbot != TiPlaneRect.r_xbot)
-	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
-	    if (tp->ti_client == cdata && TiGetRightType(tp) == TT_SPACE)
-		cifGatherFunc(tp, atotal, mode);
-
-    /* Check right */
-    if (area.r_xtop != TiPlaneRect.r_xtop)
-	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-	    if (tp->ti_client == cdata && TiGetLeftType(tp) == TT_SPACE)
-		cifGatherFunc(tp, atotal, mode);
-
     return 0;
 }
 
