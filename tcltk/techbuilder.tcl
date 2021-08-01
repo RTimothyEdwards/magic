@@ -85,7 +85,7 @@ foreach i $pnames {
 
 .techwizard.parts tab configure "layers" -window .techwizard.parts.layers -fill both
 .techwizard.parts tab configure "drc" -window .techwizard.parts.drc -fill both
-.techwizard.parts tab configure "tech" -window .techwizard.parts.tech
+#.techwizard.parts tab configure "tech" -window .techwizard.parts.tech
 .techwizard.parts tab configure "planes" -window .techwizard.parts.planes
 
 # Add styles to layout for selection
