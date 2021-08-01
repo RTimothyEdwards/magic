@@ -3679,7 +3679,7 @@ drcTechFinalStyle(style)
 
 	    for (dp = style->DRCRulesTbl[i][j]; dp != NULL; dp = dp->drcc_next)
 	    {
-		if (dp->drcc_flags & (DRC_NONSTANDARD || DRC_OUTSIDE)) continue;
+		if (dp->drcc_flags & (DRC_NONSTANDARD | DRC_OUTSIDE)) continue;
 		if (dp->drcc_flags & DRC_REVERSE)
 		{
 		    if ((i == TT_SPACE) || TTMaskHasType(&dp->drcc_mask, i)) continue;
