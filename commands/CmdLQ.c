@@ -1372,7 +1372,7 @@ CmdPort(w, cmd)
     bool nonEdit = FALSE, doQuiet = FALSE;
     Label *lab, *sl;
     Rect editBox, tmpArea;
-    CellDef *editDef = EditCellUse->cu_def;
+    CellDef *editDef;
 
     static char *cmdPortOption[] =
     {
@@ -1461,6 +1461,12 @@ CmdPort(w, cmd)
 	PORT_SHAPE_THRU,
 	PORT_SHAPE_THRU
     };
+
+    windCheckOnlyWindow(&w, DBWclientID);
+    if (w == (MagWindow *) NULL)
+        editDef = EditCellUse->cu_def;
+    else
+        editDef = ((CellUse *) w->w_surfaceID)->cu_def;
 
     argstart = 1;
     argc = cmd->tx_argc;
@@ -2239,9 +2245,7 @@ CmdProperty(w, cmd)
 
     windCheckOnlyWindow(&w, DBWclientID);
     if (w == (MagWindow *) NULL)
-    {
 	def = EditCellUse->cu_def;
-    }
     else
 	def = ((CellUse *) w->w_surfaceID)->cu_def;
 

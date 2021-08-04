@@ -304,12 +304,31 @@ bool
 ToolGetEditBox(rect)
     Rect *rect;
 {
+    CellDef *editDef;
+
     if (boxRootDef == NULL)
     {
 	TxError("Box must be present\n");
 	return FALSE;
     }
-    if (EditRootDef != boxRootDef)
+
+    /* Added 8/4/2021---Don't require that EditRootDef be non-NULL. */
+
+    if (EditRootDef == NULL)
+    {
+	MagWindow *w;
+	w = ToolGetBoxWindow(rect, NULL);
+
+	windCheckOnlyWindow(&w, DBWclientID);
+	if (w == (MagWindow *) NULL)
+	    editDef = EditCellUse->cu_def;
+	else
+	    editDef = ((CellUse *) w->w_surfaceID)->cu_def;
+    }
+    else
+	editDef = EditRootDef;
+
+    if (editDef != boxRootDef)
     {
 	TxError("The box isn't in a window on the edit cell.\n");
 	return FALSE;
