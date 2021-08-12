@@ -77,7 +77,7 @@ typedef int TileType;
  *
  * Each addition of a word to the bitmask increases computation
  * time on all plane operations in magic!  Choose the smallest number
- * required for the technology files used.  The obvious reaonable values
+ * required for the technology files used.  The obvious reasonable values
  * to choose are 96, 192, 256, or 512, corresponding to word array sizes
  * of 3, 6, 8, and 16, respectively.
  */
