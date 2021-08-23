@@ -27,10 +27,10 @@ jobs:
       #  run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
         
       - name: Pulling the docker image
-        run: docker pull vezzal/vezzal:v0
+        run: docker pull vezzal/vezzal:v1
         
       - name: Start the container with the docker image
-        run: docker run -id --name test_netgen vezzal/vezzal:v0 bash | exit
+        run: docker run -id --name test_magic vezzal/vezzal:v1 bash | exit
         
       - name: Run the testing on the container and send the mail
-        run: docker exec test_netgen /vezzal/test_netgen.sh "lankasaicharan123@gmail.com" ${{ secrets.MAILING_KEY }}
+        run: docker exec test_magic /vezzal/test_magic.sh "lankasaicharan123@gmail.com" ${{ secrets.MAILING_KEY }}
