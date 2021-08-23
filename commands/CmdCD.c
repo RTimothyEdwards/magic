@@ -837,6 +837,7 @@ CmdCellname(w, cmd)
     bool is_cellname;
     bool dolist = FALSE;
     bool dodef = FALSE;
+    bool doforce = FALSE;
     int option;
     int locargc = cmd->tx_argc;
     char *cellname = NULL, *orient = NULL;
@@ -907,6 +908,10 @@ CmdCellname(w, cmd)
 	}
 	else if (!strcmp(option, "def")) {
 	    dodef = TRUE;
+	    locargc--;
+	}
+	else if (!strcmp(option, "force")) {
+	    doforce = TRUE;
 	    locargc--;
 	}
     }
@@ -1276,7 +1281,7 @@ CmdCellname(w, cmd)
 	case IDX_RENAME:
 	    /* Rename the cell and mark as modified.  Do not write to disk. */
 	    if (locargc != 4) goto badusage;
-	    DBCellRename(cellname, cmd->tx_argv[3 + ((dolist) ? 1 : 0)]);
+	    DBCellRename(cellname, cmd->tx_argv[3 + ((dolist) ? 1 : 0)], doforce);
 	    break;
 	case IDX_CREATE:
 	    newDef = DBCellLookDef(cellname);
@@ -1312,7 +1317,7 @@ badusage:
 		"instances|celldef|delete [name]\n", cmd->tx_argv[0]);
     TxError("or:    %s [list] allcells|topcells|window\n", cmd->tx_argv[0]);
     TxError("or:    %s create name\n", cmd->tx_argv[0]);
-    TxError("or:    %s rename name newname\n", cmd->tx_argv[0]);
+    TxError("or:    %s rename name newname [-force]\n", cmd->tx_argv[0]);
     TxError("or:    %s [un]lock [name]\n", cmd->tx_argv[0]);
     TxError("or:    %s writeable [name] [true|false]\n", cmd->tx_argv[0]);
     return;

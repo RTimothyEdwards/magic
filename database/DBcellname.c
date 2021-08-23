@@ -77,7 +77,10 @@ extern void DBSetUseIdHash();
  *
  *	Rename a cell.  This differs from the "save" command in that the
  *	cell is not immediately written to disk.  However, the cell is
- *	marked as modified.
+ *	marked as modified.  If "doforce" is TRUE, then allow renaming
+ *	of vendor (read-only) cells.  Because vendor cells are tied to
+ *	a GDS file, then the vendor status gets revoked and the pointer
+ *	to the GDS file gets removed.
  *
  * Results:
  *	Return TRUE if the cell was successfully renamed.  Return FALSE
@@ -89,9 +92,10 @@ extern void DBSetUseIdHash();
  * ----------------------------------------------------------------------------
  */
 bool
-DBCellRename(cellname, newname)
+DBCellRename(cellname, newname, doforce)
     char *cellname;
     char *newname;
+    bool doforce;
 {
     HashEntry *entry;
     CellDef *celldef;
@@ -119,8 +123,16 @@ DBCellRename(cellname, newname)
 
     if ((celldef->cd_flags & CDVENDORGDS) == CDVENDORGDS)
     {
-	TxError("Error:  Attempt to rename read-only cell \"%s\"\n", cellname);
-	return FALSE;
+	if (doforce)
+	{
+	    TxPrintf("Warning:  Renaming read-only cell \"%s\"\n", cellname);
+	    TxPrintf("Read-only status will be revoked and GDS file pointer removed.\n");
+	}
+	else
+	{
+	    TxError("Error:  Attempt to rename read-only cell \"%s\"\n", cellname);
+	    return FALSE;
+	}
     }
 
     /* Good to go! */
@@ -129,6 +141,22 @@ DBCellRename(cellname, newname)
     result = DBCellRenameDef(celldef, newname);
     DBWAreaChanged(celldef, &celldef->cd_bbox, DBW_ALLWINDOWS,
         (TileTypeBitMask *) NULL);
+
+    if (doforce && ((celldef->cd_flags & CDVENDORGDS) == CDVENDORGDS))
+    {
+	char *chkgdsfile;
+	bool isReadOnly;
+
+	chkgdsfile = (char *)DBPropGet(celldef, "GDS_FILE", &isReadOnly);
+	/* Note that clearing GDS_FILE will also clear CDVENDORGDS flag */
+	if (isReadOnly) DBPropPut(celldef, "GDS_FILE", NULL);
+
+	DBPropGet(celldef, "GDS_START", &isReadOnly);
+	if (isReadOnly) DBPropPut(celldef, "GDS_START", NULL);
+	DBPropGet(celldef, "GDS_END", &isReadOnly);
+	if (isReadOnly) DBPropPut(celldef, "GDS_END", NULL);
+    }
+
     UndoEnable();
     return result;
 }

@@ -166,7 +166,7 @@ drcSubCopyErrors(tile, cxp)
  *
  *  This routine is applied for each subcell of a parent def.  It calls
  *  DBNoTreeSrTiles() with the above routine drcSubCopyErrors(), which
- *  copies all TT_ERROR_P tiles from the child cell up into the parent.
+ *  copies all error tiles from the child cell up into the parent.
  *  This is used only within areas found to be non-interacting with the
  *  parent, such that any error found in the child cell is guaranteed to
  *  be a real error, and not one that might be resolved by additional
@@ -174,6 +174,8 @@ drcSubCopyErrors(tile, cxp)
  *
  *  Added 11/10/2020:  Moved drcArrayFunc() here; this limits the array
  *  checks to non-interaction areas in the parent cell.
+ *  8/20/2021:  Realized that TT_ERROR_S and (maybe?) TT_ERROR_PS tiles
+ *  are also error types that must be copied up.
  *
  *  Returns:
  *	Whatever DBNoTreeSrTiles() returns.
@@ -188,9 +190,11 @@ drcSubCopyFunc(scx, cdarg)
 {
     TileTypeBitMask drcMask;
 
-    /* Create a mask with only TT_ERROR_P in it */
+    /* Create a mask with all of the DRC error types in it */
     TTMaskZero(&drcMask);
     TTMaskSetType(&drcMask, TT_ERROR_P);
+    TTMaskSetType(&drcMask, TT_ERROR_S);
+    TTMaskSetType(&drcMask, TT_ERROR_PS);
 
     /* Use DBNoTreeSrTiles() because we want to search only one level down */
     return DBNoTreeSrTiles(scx, &drcMask, 0, drcSubCopyErrors, cdarg);

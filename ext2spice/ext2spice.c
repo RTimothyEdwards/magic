@@ -1466,7 +1466,8 @@ subcktVisit(use, hierName, is_top)
     {
 	/* No port order declared; print them as we see them.	*/
 	/* This shouldn't happen for proper .ext files written	*/
-	/* by the magic extractor.				*/
+	/* by the magic extractor, since explicit port order is	*/
+	/* generated during topVisit().				*/
 
         for (snode = (EFNode *) def->def_firstn.efnode_next;
 		snode != &def->def_firstn;
@@ -1662,6 +1663,13 @@ subcktUndef(use, hierName, is_top)
     return 0;
 }
 
+/* Define a linked node name list */
+
+typedef struct _lnn {
+    EFNodeName *lnn_nodeName;
+    struct _lnn *lnn_next;
+} linkedNodeName;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1704,12 +1712,13 @@ topVisit(def, doStub)
     HashSearch hs;
     HashEntry *he, *hep;
     HashTable portNameTable;
-    int portorder, portmax, tchars, implicit;
+    int portorder, portmax, tchars;
     bool explicit;
     DevParam *plist, *pptr;
     char *instname;
     char *subcktname;
     char *pname;
+    linkedNodeName *lnn = NULL;
 
     HashInit(&portNameTable, 32, HT_STRINGKEYS);
 
@@ -1732,7 +1741,6 @@ topVisit(def, doStub)
 
     HashStartSearch(&hs);
     portmax = -1;
-    implicit = 0;
 
     while (he = HashNext(&def->def_nodes, &hs))
     {
@@ -1747,133 +1755,96 @@ topVisit(def, doStub)
 	    if (portorder > portmax) portmax = portorder;
 	    if (portorder != -1) explicit = TRUE;
 	}
-	if (explicit == FALSE) implicit++;
+	if (explicit == FALSE)
+	{
+	    /* Tag this an an implicit port (port without an assigned index) */
+	    linkedNodeName *newlnn =
+			(linkedNodeName *)mallocMagic(sizeof(linkedNodeName));
+	    newlnn->lnn_next = lnn;
+	    newlnn->lnn_nodeName = sname;
+	    lnn = newlnn;
+	}
     }
 
-    if (portmax < 0)
+    /* Make all port numbers explicit (unless this is a black-box	*/
+    /* circuit "ext2spice blackbox on" is in effect).			*/
+
+    while (lnn != NULL)
     {
-	/* No port order declared; print them and number them	*/
-	/* as we encounter them.  This normally happens only	*/
-	/* when writing hierarchical decks for LVS.		*/
+	sname = lnn->lnn_nodeName;
+	if (esDoBlackBox == FALSE || !(def->def_flags & DEF_ABSTRACT))
+	    sname->efnn_port = ++portmax;
+	freeMagic(lnn);
+	lnn = lnn->lnn_next;
+    }
 
-	portorder = 0;
+    /* Port numbers need not start at zero or be contiguous. */
+    /* They will be printed in numerical order.              */
 
+    portorder = 0;
+    while (portorder <= portmax)
+    {
 	HashStartSearch(&hs);
 	while (he = HashNext(&def->def_nodes, &hs))
 	{
+	    char stmp[MAX_STR_SIZE];
+	    int portidx;
+	    EFNodeName *unnumbered;
+
 	    sname = (EFNodeName *) HashGetValue(he);
-	    if (sname == NULL) continue;
+	    if (sname == NULL) continue;	/* Should not happen */
 	    snode = sname->efnn_node;
 
-	    if (snode->efnode_flags & EF_PORT)
+	    if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
+
+	    for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	    {
-		pname = nodeSpiceName(snode->efnode_name->efnn_hier, &basenode);
-		if (HashLookOnly(&portNameTable, pname) == NULL)
+		portidx = nodeName->efnn_port;
+		if (portidx == portorder)
 		{
-		    hep = HashFind(&portNameTable, pname);
-		    if (basenode->efnode_name->efnn_port < 0)
+		    if (tchars > 80)
 		    {
-		    	if (tchars > 80)
-		    	{
-			    /* Line continuation */
-			    fprintf(esSpiceF, "\n+");
-			    tchars = 1;
-		    	}
-		    	fprintf(esSpiceF, " %s", pname);
-		    	tchars += strlen(pname) + 1;
-		    	basenode->efnode_name->efnn_port = portorder++;
+			/* Line continuation */
+			fprintf(esSpiceF, "\n+");
+			tchars = 1;
 		    }
-		    snode->efnode_name->efnn_port = basenode->efnode_name->efnn_port;
-		    HashSetValue(hep,
-			    (ClientData)(pointertype)snode->efnode_name->efnn_port);
-		}
-	    }
-	}
-    }
-    else
-    {
-	/* Port numbers need not start at zero or be contiguous. */
-	/* They will be printed in numerical order.              */
 
-	portorder = 0;
-	while (portorder <= portmax + implicit)
-	{
-	    HashStartSearch(&hs);
-	    while (he = HashNext(&def->def_nodes, &hs))
-	    {
-		char stmp[MAX_STR_SIZE];
-		int portidx;
-		EFNodeName *unnumbered;
+		    /* If view is abstract, rely on the given port name, not
+		     * the node.  Otherwise, artifacts of the abstract view
+		     * may cause nodes to be merged and the names lost.
+		     */
 
-		sname = (EFNodeName *) HashGetValue(he);
-		if (sname == NULL) continue;	/* Should not happen */
-		snode = sname->efnn_node;
-
-		if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
-
-		for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
-		{
-		    portidx = nodeName->efnn_port;
-		    if (portidx == portorder)
+		    if (def->def_flags & DEF_ABSTRACT)
 		    {
-			if (tchars > 80)
-			{
-			    /* Line continuation */
-			    fprintf(esSpiceF, "\n+");
-			    tchars = 1;
-			}
-			// If view is abstract, rely on the given port name, not
-			// the node.  Otherwise, artifacts of the abstract view
-			// may cause nodes to be merged and the names lost.
+			EFHNSprintf(stmp, nodeName->efnn_hier);
+			pname = stmp;
+		    }
+		    else
+			pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
 
-			if (def->def_flags & DEF_ABSTRACT)
-			{
-			    EFHNSprintf(stmp, nodeName->efnn_hier);
-			    pname = stmp;
-			}
-			else
-			    pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
-
-			if (HashLookOnly(&portNameTable, pname) == NULL)
-			{
-			    hep = HashFind(&portNameTable, pname);
-			    HashSetValue(hep,
+		    if (HashLookOnly(&portNameTable, pname) == NULL)
+		    {
+			hep = HashFind(&portNameTable, pname);
+			HashSetValue(hep,
 				    (ClientData)(pointertype)nodeName->efnn_port);
-			    fprintf(esSpiceF, " %s", pname);
-			    tchars += strlen(pname) + 1;
-			}
-			else
-			{
-			    // Node that was unassigned has been found to be
-			    // a repeat (see NOTE at top), so make sure its
-			    // port number is set correctly.
-
-			    hep = HashFind(&portNameTable, pname);
-			    nodeName->efnn_port = (int)(pointertype)HashGetValue(hep);
-			}
-			break;
+			fprintf(esSpiceF, " %s", pname);
+			tchars += strlen(pname) + 1;
 		    }
-		    else if (portidx < 0)
-			unnumbered = nodeName;
-		}
-		if (nodeName != NULL)
-		    break;
-		else if (portidx < 0)
-		{
-		    // Node has not been assigned a port number.
-		    // Give it one unless this is a black-box circuit
-		    // and "ext2spice blackbox on" is in effect.
-
-		    if (esDoBlackBox == FALSE || !(def->def_flags & DEF_ABSTRACT))
+		    else
 		    {
-			unnumbered->efnn_port = ++portmax;
-			implicit--;
-			portorder--;	/* Will loop again */
+			// Node that was unassigned has been found to be
+			// a repeat (see NOTE at top), so make sure its
+			// port number is set correctly.
+
+			hep = HashFind(&portNameTable, pname);
+			nodeName->efnn_port = (int)(pointertype)HashGetValue(hep);
 		    }
+		    break;
 		}
 	    }
-	    portorder++;
+	    if (nodeName != NULL) break;
 	}
+	portorder++;
     }
     HashKill(&portNameTable);
 
