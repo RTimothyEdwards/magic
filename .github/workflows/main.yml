@@ -22,10 +22,6 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Runs a set of commands using the runners shell
-      #- name: Logging into Dockerhub
-      #  run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-        
       - name: Pulling the docker image
         run: docker pull vezzal/vezzal:v1
         
