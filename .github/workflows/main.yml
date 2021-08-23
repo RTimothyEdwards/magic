@@ -29,4 +29,4 @@ jobs:
         run: docker run -id --name test_magic vezzal/vezzal:v1 bash | exit
         
       - name: Run the testing on the container and send the mail
-        run: docker exec test_magic /vezzal/test_magic.sh "lankasaicharan123@gmail.com" ${{ secrets.MAILING_KEY }}
+        run: docker exec test_magic /vezzal/test_magic.sh "lankasaicharan123@gmail.com,vanisaicharan2000@gmail.com" ${{ secrets.MAILING_KEY }}
