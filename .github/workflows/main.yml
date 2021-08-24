@@ -23,10 +23,10 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Pulling the docker image
-        run: docker pull vezzal/vezzal:v1
+        run: docker pull vezzal/vezzal:latest
         
       - name: Start the container with the docker image
-        run: docker run -id --name test_magic vezzal/vezzal:v1 bash | exit
+        run: docker run -id --name test_magic vezzal/vezzal:latest bash | exit
         
       - name: Run the testing on the container and send the mail
         run: docker exec test_magic /vezzal/test_magic.sh "lankasaicharan123@gmail.com,vanisaicharan2000@gmail.com" ${{ secrets.MAILING_KEY }}
