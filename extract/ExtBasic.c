@@ -3769,7 +3769,7 @@ extSubsFunc(tile, arg)
 	if (TTMaskIntersect(&DBPlaneTypes[pNum], smask))
 	    if (DBSrPaintArea((Tile *) NULL, arg->fra_def->cd_planes[pNum],
 			&tileArea, smask, extSubsFunc3, (ClientData)NULL) != 0)
-		return (1);
+		return (0);
 
     /* Mark this tile as pending and push it */
     PUSHTILE(tile, arg->fra_pNum);
