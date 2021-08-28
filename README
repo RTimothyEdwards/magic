@@ -1,4 +1,4 @@
-![Continuous Integration](https://github.com/lankasaicharan/magic/actions/workflows/main.yml/badge.svg)
+![Continuous Integration](https://github.com/RTimothyEdwards/magic/actions/workflows/main.yml/badge.svg)
 
 # MAGIC
 
