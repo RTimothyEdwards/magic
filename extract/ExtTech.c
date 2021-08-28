@@ -925,7 +925,18 @@ ExtLoadStyle(stylename)
     /* no other tech client sections depend on the extract section.	*/
 
     invext = TechSectionGetMask("extract", NULL);
+
+    /* If microns are used as units, then the TechLoad needs to convert	*/
+    /* units based on *unscaled* dimensions.  Since it gets the scale	*/
+    /* factor from CIFGetOutputScale(), the CIF units need to be	*/
+    /* unscaled.  This is cumbersome but ensures that the right units	*/
+    /* are obtained.							*/
+    CIFTechOutputScale(DBLambda[1], DBLambda[0]);
+
     TechLoad(NULL, invext);
+
+    /* Put the CIF output scale units back to what they were */
+    CIFTechOutputScale(DBLambda[0], DBLambda[1]);
 
     /* extTechFinalStyle(ExtCurStyle); */  /* Taken care of by TechLoad() */
     ExtTechScale(DBLambda[0], DBLambda[1]);
