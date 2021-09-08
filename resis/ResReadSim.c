@@ -511,6 +511,8 @@ ResSimDevice(line, rpersquare, devptr)
 
     device->gate = device->source = device->drain = device->subs = NULL;
 
+    device->rs_ttype = extGetDevType(devptr->exts_deviceName);
+
     /* sim attributes look like g=a1,a2   	*/
     /* ext attributes are "a1","a2"	   	*/
     /* do conversion from one to the other here	*/

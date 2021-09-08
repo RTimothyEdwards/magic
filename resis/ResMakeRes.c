@@ -46,7 +46,6 @@ bool ResCalcEastWest();
  *   Side Effects:  Resistor structures are produced.  Some nodes may be
  *		    eliminated.
  *--------------------------------------------------------------------------
- *
  */
 
 bool
@@ -136,7 +135,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
     height = TOP(tile) - BOTTOM(tile);
 
     /*
-     * One Breakpoint? No resistors need to be made. Free up the first
+     * One Breakpoint?  No resistors need to be made.  Free up the first
      * breakpoint, then return.
      */
 
@@ -149,7 +148,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	return(merged);
     }
 
-    /* re-sort nodes left to right. */
+    /* Re-sort nodes left to right. */
 
     ResSortBreaks(&junk->breakList, TRUE);
 
@@ -160,9 +159,9 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 
     p2= junk->breakList;
 
-    /* add extra left area to leftmost node */
+    /* Add extra left area to leftmost node */
 
-    p2->br_this->rn_float.rn_area += 	height*(p2->br_loc.p_x-LEFT(tile));
+    p2->br_this->rn_float.rn_area += height * (p2->br_loc.p_x - LEFT(tile));
     while (p2->br_next != NULL)
     {
 	p1 = p2;
@@ -179,7 +178,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	    else if (p2->br_this == resCurrentNode)
 	    {
 		 currNode = p1->br_this;
-	    	 ResMergeNodes(p2->br_this,p1->br_this,pendingList,doneList);
+	    	 ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
 		 merged = TRUE;
 		 freeMagic((char *)p1);
 	    }
@@ -187,7 +186,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	    {
 		 currNode = p2->br_this;
 		 p1->br_next = p2->br_next;
-	    	 ResMergeNodes(p1->br_this,p2->br_this,pendingList,doneList);
+	    	 ResMergeNodes(p1->br_this, p2->br_this, pendingList, doneList);
 		 merged = TRUE;
 		 freeMagic((char *)p2);
 		 p2 = p1;
@@ -195,7 +194,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	    else
 	    {
 		 currNode = p1->br_this;
-	    	 ResMergeNodes(p2->br_this,p1->br_this,pendingList,doneList);
+	    	 ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
 		 freeMagic((char *)p1);
 	    }
 
@@ -203,13 +202,13 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	     * Was the node used in another junk or breakpoint?
 	     * If so, replace the old node with the new one.
 	     */
+
 	    p3  = p2->br_next;
 	    while (p3 != NULL)
 	    {
 		if (p3->br_this == currNode)
-		{
 		     p3->br_this = p2->br_this;
-		}
+
 		p3 = p3->br_next;
 	    }
        }
@@ -221,18 +220,18 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 
        else
        {
-            resistor = (resResistor *) mallocMagic((unsigned) (sizeof(resResistor)));
+            resistor = (resResistor *)mallocMagic((unsigned)sizeof(resResistor));
             resistor->rr_nextResistor = (*resList);
             resistor->rr_lastResistor = NULL;
             if ((*resList) != NULL) (*resList)->rr_lastResistor = resistor;
             (*resList) = resistor;
             resistor->rr_connection1 = p1->br_this;
             resistor->rr_connection2 = p2->br_this;
-            element = (resElement *) mallocMagic((unsigned) (sizeof(resElement)));
+            element = (resElement *)mallocMagic((unsigned)sizeof(resElement));
             element->re_nextEl = p1->br_this->rn_re;
             element->re_thisEl = resistor;
             p1->br_this->rn_re = element;
-            element = (resElement *) mallocMagic((unsigned) (sizeof(resElement)));
+            element = (resElement *)mallocMagic((unsigned)sizeof(resElement));
             element->re_nextEl = p2->br_this->rn_re;
             element->re_thisEl = resistor;
             p2->br_this->rn_re = element;
@@ -246,7 +245,6 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 		resistor->rr_status = RES_DIAGONAL;
 		resistor->rr_status |= (SplitDirection(tile)) ? RES_NS
 			: RES_EW;
-
 	    }
 	    else
 	    {
@@ -268,10 +266,11 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 	    freeMagic((char *)p1);
 	}
     }
+
     p2->br_this->rn_float.rn_area += height * (RIGHT(tile) - p2->br_loc.p_x);
     freeMagic((char *)p2);
     junk->breakList = NULL;
-    return(merged);
+    return merged;
 }
 
 
@@ -303,7 +302,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     tileJunk	*junk = (tileJunk *)tile->ti_client;
 
     merged = FALSE;
-    width = RIGHT(tile)-LEFT(tile);
+    width = RIGHT(tile) - LEFT(tile);
 
     /*
      * One Breakpoint? No resistors need to be made. Free up the first
@@ -319,7 +318,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	return(merged);
     }
 
-    /* re-sort nodes south to north. */
+    /* Re-sort nodes south to north. */
     ResSortBreaks(&junk->breakList, FALSE);
 
     /*
@@ -329,7 +328,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 
     p2 = junk->breakList;
 
-    /* add extra left area to leftmost node */
+    /* Add extra left area to leftmost node */
 
     p2->br_this->rn_float.rn_area += width * (p2->br_loc.p_y - BOTTOM(tile));
     while (p2->br_next != NULL)
@@ -348,7 +347,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	    else if (p2->br_this == resCurrentNode)
 	    {
 		 currNode = p1->br_this;
-	    	 ResMergeNodes(p2->br_this,p1->br_this,pendingList,doneList);
+	    	 ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
 		 freeMagic((char *)p1);
 		 merged = TRUE;
 	    }
@@ -356,7 +355,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	    {
 		 currNode = p2->br_this;
 		 p1->br_next = p2->br_next;
-	    	 ResMergeNodes(p1->br_this,p2->br_this,pendingList,doneList);
+	    	 ResMergeNodes(p1->br_this, p2->br_this, pendingList, doneList);
 		 merged = TRUE;
 		 freeMagic((char *)p2);
 		 p2 = p1;
@@ -364,7 +363,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	    else
 	    {
 		 currNode = p1->br_this;
-	    	 ResMergeNodes(p2->br_this,p1->br_this,pendingList,doneList);
+	    	 ResMergeNodes(p2->br_this, p1->br_this, pendingList, doneList);
 		 freeMagic((char *)p1);
 	    }
 
@@ -372,13 +371,12 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	     * Was the node used in another junk or breakpoint?
 	     * If so, replace the old node with the new one.
 	     */
-	    p3  = p2->br_next;
+	    p3 = p2->br_next;
 	    while (p3 != NULL)
 	    {
 		if (p3->br_this == currNode)
-		{
 		     p3->br_this = p2->br_this;
-		}
+
 		p3 = p3->br_next;
 	    }
 	}
@@ -426,7 +424,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 #endif
 	    resistor->rr_value =
 		    	  (ExtCurStyle->exts_sheetResist[resistor->rr_tt]
-		          * (p2->br_loc.p_y-p1->br_loc.p_y)) / width;
+		          * (p2->br_loc.p_y - p1->br_loc.p_y)) / width;
 	    rArea = ((p2->br_loc.p_y-p1->br_loc.p_y) * width) / 2;
 	    resistor->rr_connection1->rn_float.rn_area += rArea;
 	    resistor->rr_connection2->rn_float.rn_area += rArea;
@@ -466,300 +464,293 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
     resResistor	**resList;
 
 {
-     bool 		merged;
-     int		devcount,devedge,deltax,deltay;
-     Breakpoint		*p1,*p2,*p3;
-     tileJunk		*junk = (tileJunk *)tile->ti_client;
+    bool 	merged;
+    int		devcount, devedge, deltax, deltay;
+    Breakpoint	*p1, *p2, *p3;
+    tileJunk	*junk = (tileJunk *)tile->ti_client;
 
+    merged = FALSE;
 
-     merged = FALSE;
-
-     /*
-        One Breakpoint? No resistors need to be made. Free up the first
-     	breakpoint, then return.
+    /*
+     *  One Breakpoint?  No resistors need to be made.  Free up the first
+     *	breakpoint, then return.
      */
 
-     if   (junk->breakList->br_next == NULL)
-     {
-     	  freeMagic((char *)junk->breakList);
-	  junk->breakList = NULL;
-	  return(merged);
-     }
-     /* count the number of device breakpoints  */
-     /* mark which edge they connect to		    */
-     devcount = 0;
-     devedge = 0;
-     for (p1=junk->breakList; p1 != NULL;p1 = p1->br_next)
-     {
-	  if (p1->br_this->rn_why == RES_NODE_DEVICE)
-	  {
-	       devcount++;
-	       if (p1->br_loc.p_x == LEFT(tile)) devedge |= LEFTEDGE;
-	       else if (p1->br_loc.p_x == RIGHT(tile)) devedge |= RIGHTEDGE;
-	       else if (p1->br_loc.p_y == TOP(tile)) devedge |= TOPEDGE;
-	       else if (p1->br_loc.p_y == BOTTOM(tile)) devedge |= BOTTOMEDGE;
-	  }
-     }
-     /* use distance from device to next breakpoint as determinant     */
-     /* if there is only one device or if all the devices are along */
-     /* the same edge.							   */
-     if (devcount == 1 		||
+    if   (junk->breakList->br_next == NULL)
+    {
+     	freeMagic((char *)junk->breakList);
+	junk->breakList = NULL;
+	return(merged);
+    }
+
+    /* Count the number of device breakpoints	*/
+    /* Mark which edge they connect to		*/
+
+    devcount = 0;
+    devedge = 0;
+    for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
+    {
+	if (p1->br_this->rn_why == RES_NODE_DEVICE)
+	{
+	    devcount++;
+	    if (p1->br_loc.p_x == LEFT(tile)) devedge |= LEFTEDGE;
+	    else if (p1->br_loc.p_x == RIGHT(tile)) devedge |= RIGHTEDGE;
+	    else if (p1->br_loc.p_y == TOP(tile)) devedge |= TOPEDGE;
+	    else if (p1->br_loc.p_y == BOTTOM(tile)) devedge |= BOTTOMEDGE;
+	}
+    }
+
+    /* Use distance from device to next breakpoint as determinant   */
+    /* If there is only one device or if all the devices are along  */
+    /* the same edge.						    */
+
+    if (devcount == 1 ||
         (devedge & LEFTEDGE) == devedge	||
-        (devedge & RIGHTEDGE) == devedge 	||
+        (devedge & RIGHTEDGE) == devedge ||
         (devedge & TOPEDGE) == devedge 	||
         (devedge & BOTTOMEDGE) == devedge)
-     {
-	  ResSortBreaks(&junk->breakList,TRUE);
-          p2 = NULL;
-          for (p1=junk->breakList; p1 != NULL;p1 = p1->br_next)
-          {
-	       if (p1->br_this->rn_why == RES_NODE_DEVICE)
-	       {
-	            break;
-	       }
-	       if (p1->br_next != NULL &&
+    {
+	ResSortBreaks(&junk->breakList,TRUE);
+        p2 = NULL;
+        for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
+        {
+	    if (p1->br_this->rn_why == RES_NODE_DEVICE)
+	        break;
+
+	    if (p1->br_next != NULL &&
 	       	     (p1->br_loc.p_x != p1->br_next->br_loc.p_x ||
 	       	      p1->br_loc.p_y != p1->br_next->br_loc.p_y))
-
-	       {
-	       	    p2 = p1;
-	       }
-          }
-	  deltax=INFINITY;
-	  for (p3 = p1->br_next;
-	       p3 != NULL &&
+	       	p2 = p1;
+        }
+	deltax = INFINITY;
+	for (p3 = p1->br_next; p3 != NULL &&
 	       p3->br_loc.p_x == p1->br_loc.p_x &&
 	       p3->br_loc.p_y == p1->br_loc.p_y; p3 = p3->br_next);
-	  if (p3 != NULL)
-	  {
-	       if (p3->br_crect)
-	       {
-	       	    if (p3->br_crect->r_ll.p_x > p1->br_loc.p_x)
-		    {
-		         deltax = p3->br_crect->r_ll.p_x-p1->br_loc.p_x;
-		    }
-	       	    else if (p3->br_crect->r_ur.p_x < p1->br_loc.p_x)
-		    {
-		         deltax = p1->br_loc.p_x-p3->br_crect->r_ur.p_x;
-		    }
-		    else
-		    {
-		    	 deltax=0;
-		    }
-	       }
-	       else
-	       {
-	       deltax = abs(p1->br_loc.p_x-p3->br_loc.p_x);
-	       }
-	  }
-	  if (p2 != NULL)
-	  {
-	       if (p2->br_crect)
-	       {
-	       	    if (p2->br_crect->r_ll.p_x > p1->br_loc.p_x)
-		    {
-		         deltax = MIN(deltax,p2->br_crect->r_ll.p_x-p1->br_loc.p_x);
-		    }
-	       	    else if (p2->br_crect->r_ur.p_x < p1->br_loc.p_x)
-		    {
-		         deltax = MIN(deltax,p1->br_loc.p_x-p2->br_crect->r_ur.p_x);
-		    }
-		    else
-		    {
-		    	 deltax=0;
-		    }
-	       }
-	       else
-	       {
-	            deltax = MIN(deltax,abs(p1->br_loc.p_x-p2->br_loc.p_x));
-	       }
-	  }
+	if (p3 != NULL)
+	{
+	    if (p3->br_crect)
+	    {
+	       	if (p3->br_crect->r_ll.p_x > p1->br_loc.p_x)
+		{
+		    deltax = p3->br_crect->r_ll.p_x - p1->br_loc.p_x;
+		}
+	       	else if (p3->br_crect->r_ur.p_x < p1->br_loc.p_x)
+		{
+		    deltax = p1->br_loc.p_x - p3->br_crect->r_ur.p_x;
+		}
+		else
+		{
+		    deltax = 0;
+		}
+	    }
+	    else
+	    {
+	        deltax = abs(p1->br_loc.p_x - p3->br_loc.p_x);
+	    }
+	}
+	if (p2 != NULL)
+	{
+	    if (p2->br_crect)
+	    {
+	        if (p2->br_crect->r_ll.p_x > p1->br_loc.p_x)
+		{
+		    deltax = MIN(deltax, p2->br_crect->r_ll.p_x - p1->br_loc.p_x);
+		}
+	       	else if (p2->br_crect->r_ur.p_x < p1->br_loc.p_x)
+		{
+		    deltax = MIN(deltax, p1->br_loc.p_x - p2->br_crect->r_ur.p_x);
+		}
+		else
+		{
+		    deltax = 0;
+		}
+	    }
+	    else
+	    {
+	        deltax = MIN(deltax, abs(p1->br_loc.p_x - p2->br_loc.p_x));
+	    }
+	}
 
-          /* re-sort nodes south to north. */
-	  ResSortBreaks(&junk->breakList,FALSE);
-          p2 = NULL;
-          for (p1=junk->breakList; p1 != NULL;p1 = p1->br_next)
-          {
-	       if (p1->br_this->rn_why == RES_NODE_DEVICE)
-	       {
-	            break;
-	       }
-	       if (p1->br_next != NULL &&
+        /* Re-sort nodes south to north. */
+	ResSortBreaks(&junk->breakList, FALSE);
+        p2 = NULL;
+        for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
+        {
+	    if (p1->br_this->rn_why == RES_NODE_DEVICE)
+	    {
+	        break;
+	    }
+	    if (p1->br_next != NULL &&
 	       	     (p1->br_loc.p_x != p1->br_next->br_loc.p_x ||
 	       	      p1->br_loc.p_y != p1->br_next->br_loc.p_y))
-
-	       {
-	       	    p2 = p1;
-	       }
-          }
-	  deltay=INFINITY;
-	  for (p3 = p1->br_next;
-	       p3 != NULL &&
+	    {
+	       	p2 = p1;
+	    }
+        }
+	deltay = INFINITY;
+	for (p3 = p1->br_next; p3 != NULL &&
 	       p3->br_loc.p_x == p1->br_loc.p_x &&
 	       p3->br_loc.p_y == p1->br_loc.p_y; p3 = p3->br_next);
-	  if (p3 != NULL)
-	  {
-	       if (p3->br_crect)
-	       {
-	       	    if (p3->br_crect->r_ll.p_y > p1->br_loc.p_y)
-		    {
-		         deltay = p3->br_crect->r_ll.p_y-p1->br_loc.p_y;
-		    }
-	       	    else if (p3->br_crect->r_ur.p_y < p1->br_loc.p_y)
-		    {
-		         deltay = p1->br_loc.p_y-p3->br_crect->r_ur.p_y;
-		    }
-		    else
-		    {
-		    	 deltay=0;
-		    }
-	       }
-	       else
-	       {
-	       deltay = abs(p1->br_loc.p_y-p3->br_loc.p_y);
-	       }
-	  }
-	  if (p2!= NULL)
-	  {
-	       if (p2->br_crect)
-	       {
-	       	    if (p2->br_crect->r_ll.p_y > p1->br_loc.p_y)
-		    {
-		         deltay = MIN(deltay,p2->br_crect->r_ll.p_y-p1->br_loc.p_y);
-		    }
-	       	    else if (p2->br_crect->r_ur.p_y < p1->br_loc.p_y)
-		    {
-		         deltay = MIN(deltay,p1->br_loc.p_y-p2->br_crect->r_ur.p_y);
-		    }
-		    else
-		    {
-		    	 deltay=0;
-		    }
-	       }
-	       else
-	       {
-	            deltay = MIN(deltay,abs(p1->br_loc.p_y-p2->br_loc.p_y));
-	       }
-	  }
-	  if (deltay > deltax)
-	  {
-	       return(ResCalcNorthSouth(tile,pendingList,doneList,resList));
-	  }
-	  else
-	  {
-	       return(ResCalcEastWest(tile,pendingList,doneList,resList));
-	  }
+	if (p3 != NULL)
+	{
+	    if (p3->br_crect)
+	    {
+	       	if (p3->br_crect->r_ll.p_y > p1->br_loc.p_y)
+		{
+		    deltay = p3->br_crect->r_ll.p_y - p1->br_loc.p_y;
+		}
+	       	else if (p3->br_crect->r_ur.p_y < p1->br_loc.p_y)
+		{
+		    deltay = p1->br_loc.p_y - p3->br_crect->r_ur.p_y;
+		}
+		else
+		{
+		    deltay=0;
+		}
+	    }
+	    else
+	    {
+	        deltay = abs(p1->br_loc.p_y - p3->br_loc.p_y);
+	    }
+	}
+	if (p2 != NULL)
+	{
+	    if (p2->br_crect)
+	    {
+	       	if (p2->br_crect->r_ll.p_y > p1->br_loc.p_y)
+		{
+		    deltay = MIN(deltay,p2->br_crect->r_ll.p_y - p1->br_loc.p_y);
+		}
+	       	else if (p2->br_crect->r_ur.p_y < p1->br_loc.p_y)
+		{
+		    deltay = MIN(deltay,p1->br_loc.p_y - p2->br_crect->r_ur.p_y);
+		}
+		else
+		{
+		    deltay=0;
+		}
+	    }
+	    else
+	    {
+	        deltay = MIN(deltay, abs(p1->br_loc.p_y - p2->br_loc.p_y));
+	    }
+	}
+	if (deltay > deltax)
+	{
+	    return ResCalcNorthSouth(tile, pendingList, doneList, resList);
+	}
+	else
+	{
+	    return ResCalcEastWest(tile, pendingList, doneList, resList);
+	}
+    }
 
-     }
-     /* multiple devices connected to the partition */
-     else
-     {
-     	  if (devedge == 0)
-	  {
-	       TxError("Error in device current direction routine\n");
-	       return(merged);
-	  }
-	  /* check to see if the current flow is north-south		*/
-	  /* possible north-south conditions:				*/
-	  /* 1. there are devices along the top and bottom edges    */
-	  /*    but not along the left or right			        */
-	  /* 2. there are devices along two sides at right angles,  */
-	  /*    and the tile is wider than it is tall.			*/
+    /* Multiple devices connected to the partition */
 
-	  if ((devedge & TOPEDGE)     &&
-	      (devedge & BOTTOMEDGE)  &&
-	      !(devedge & LEFTEDGE)   &&
-	      !(devedge & RIGHTEDGE)  			||
+    else
+    {
+     	if (devedge == 0)
+	{
+	    TxError("Error in device current direction routine\n");
+	    return(merged);
+	}
+
+	/* Check to see if the current flow is north-south	    */
+	/* Possible north-south conditions:			    */
+	/* 1. There are devices along the top and bottom edges	    */
+	/*    but not along the left or right			    */
+	/* 2. There are devices along two sides at right angles,    */
+	/*    and the tile is wider than it is tall.		    */
+
+	if ((devedge & TOPEDGE) && (devedge & BOTTOMEDGE) &&
+	      !(devedge & LEFTEDGE) && !(devedge & RIGHTEDGE) ||
 	      (devedge & TOPEDGE || devedge & BOTTOMEDGE) &&
 	      (devedge & LEFTEDGE || devedge & RIGHTEDGE) &&
-	      RIGHT(tile)-LEFT(tile) > TOP(tile)-BOTTOM(tile))
-	 {
-               /* re-sort nodes south to north. */
-	       ResSortBreaks(&junk->breakList,FALSE);
+	      (RIGHT(tile) - LEFT(tile)) > (TOP(tile) - BOTTOM(tile)))
+	{
+            /* re-sort nodes south to north. */
+	    ResSortBreaks(&junk->breakList, FALSE);
 
-	      /* eliminate duplicate S/D pointers */
-	      for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
-	      {
-	      	   if  (p1->br_this->rn_why == RES_NODE_DEVICE &&
+	    /* eliminate duplicate S/D pointers */
+	    for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
+	    {
+	      	if  (p1->br_this->rn_why == RES_NODE_DEVICE &&
 		       (p1->br_loc.p_y == BOTTOM(tile) ||
 		        p1->br_loc.p_y == TOP(tile)))
-		   {
-	      		p3 = NULL;
-			p2 = junk->breakList;
-			while ( p2 != NULL)
-			{
-			     if (p2->br_this == p1->br_this	&&
-			         p2 != p1			&&
+		{
+		    p3 = NULL;
+		    p2 = junk->breakList;
+		    while (p2 != NULL)
+		    {
+			if (p2->br_this == p1->br_this && p2 != p1 &&
 				 p2->br_loc.p_y != BOTTOM(tile) &&
 				 p2->br_loc.p_y != TOP(tile))
-			     {
-			     	  if (p3 == NULL)
-				  {
-				       junk->breakList = p2->br_next;
-				       freeMagic((char *) p2);
-				       p2 = junk->breakList;
-				  }
-				  else
-				  {
-				       p3->br_next = p2->br_next;
-				       freeMagic((char *) p2);
-				       p2 = p3->br_next;
-				  }
-			     }
-			     else
-			     {
-			          p3 = p2;
-				  p2 = p2->br_next;
-			     }
+			{
+			    if (p3 == NULL)
+			    {
+				junk->breakList = p2->br_next;
+				freeMagic((char *) p2);
+				p2 = junk->breakList;
+			    }
+			    else
+			    {
+				p3->br_next = p2->br_next;
+				freeMagic((char *) p2);
+				p2 = p3->br_next;
+			    }
 			}
-		   }
-	      }
-	      return(ResCalcNorthSouth(tile,pendingList,doneList,resList));
-	 }
-	 else
-	 {
-	      /* eliminate duplicate S/D pointers */
-	      for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
-	      {
-	      	   if (p1->br_this->rn_why == RES_NODE_DEVICE &&
+			else
+			{
+			    p3 = p2;
+			    p2 = p2->br_next;
+			}
+		    }
+		}
+	    }
+	    return ResCalcNorthSouth(tile, pendingList, doneList, resList);
+	}
+	else
+	{
+	    /* Eliminate duplicate S/D pointers */
+	    for (p1 = junk->breakList; p1 != NULL; p1 = p1->br_next)
+	    {
+	      	if (p1->br_this->rn_why == RES_NODE_DEVICE &&
 		       (p1->br_loc.p_x == LEFT(tile) ||
 		        p1->br_loc.p_x == RIGHT(tile)))
-		   {
-	      		p3 = NULL;
-			p2 = junk->breakList;
-			while ( p2 != NULL)
-			{
-			     if (p2->br_this == p1->br_this	&&
-			         p2 != p1			&&
+		{
+		    p3 = NULL;
+		    p2 = junk->breakList;
+		    while (p2 != NULL)
+		    {
+			if (p2->br_this == p1->br_this	&& p2 != p1 &&
 				 p2->br_loc.p_x != LEFT(tile) &&
 				 p2->br_loc.p_x != RIGHT(tile))
-			     {
-			     	  if (p3 == NULL)
-				  {
-				       junk->breakList = p2->br_next;
-				       freeMagic((char *) p2);
-				       p2 = junk->breakList;
-				  }
-				  else
-				  {
-				       p3->br_next = p2->br_next;
-				       freeMagic((char *) p2);
-				       p2 = p3->br_next;
-				  }
-			     }
-			     else
-			     {
-			          p3 = p2;
-				  p2 = p2->br_next;
-			     }
+			{
+			    if (p3 == NULL)
+			    {
+				junk->breakList = p2->br_next;
+				freeMagic((char *) p2);
+				p2 = junk->breakList;
+			    }
+			    else
+			    {
+				p3->br_next = p2->br_next;
+				freeMagic((char *) p2);
+				p2 = p3->br_next;
+			    }
 			}
-		   }
-	      }
-	      return(ResCalcEastWest(tile,pendingList,doneList,resList));
-	 }
-     }
+			else
+			{
+			    p3 = p2;
+			    p2 = p2->br_next;
+			}
+		    }
+		}
+	    }
+	    return ResCalcEastWest(tile, pendingList, doneList, resList);
+	}
+    }
 }
-
 
 /*
  *-------------------------------------------------------------------------
@@ -779,7 +770,7 @@ void
 ResDoContacts(contact, nodes, resList)
     ResContactPoint	*contact;
     resNode		**nodes;
-    resResistor	**resList;
+    resResistor		**resList;
 {
     resNode	 *resptr;
     cElement	 *ccell;
@@ -799,19 +790,19 @@ ResDoContacts(contact, nodes, resList)
 	int y = contact->cp_center.p_y;
 
 	resptr = (resNode *) mallocMagic((unsigned) (sizeof(resNode)));
-	InitializeNode(resptr,x,y,RES_NODE_CONTACT);
-	ResAddToQueue(resptr,nodes);
+	InitializeNode(resptr, x, y, RES_NODE_CONTACT);
+	ResAddToQueue(resptr, nodes);
 
  	ccell = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
 	ccell->ce_nextc = resptr->rn_ce;
 	resptr->rn_ce = ccell;
 	ccell->ce_thisc = contact;
 
-	/* add 1 celement for each layer of contact  */
+	/* Add 1 celement for each layer of contact  */
 
-	for (tilenum=0; tilenum < contact->cp_currentcontact; tilenum++)
+	for (tilenum = 0; tilenum < contact->cp_currentcontact; tilenum++)
 	{
-	    Tile	*tile = contact->cp_tile[tilenum];
+	    Tile *tile = contact->cp_tile[tilenum];
 
 	    contact->cp_cnode[tilenum] = resptr;
 	    NEWBREAK(resptr, tile, contact->cp_center.p_x,
@@ -847,17 +838,17 @@ ResDoContacts(contact, nodes, resList)
 	    squaresy = (int)squaresf;
 	    squaresy++;
 	}
-        for (tilenum=0; tilenum < contact->cp_currentcontact; tilenum++)
+        for (tilenum = 0; tilenum < contact->cp_currentcontact; tilenum++)
 	{
       	    int  x = contact->cp_center.p_x;
       	    int  y = contact->cp_center.p_y;
 	    Tile *tile = contact->cp_tile[tilenum];
 
 	    resptr = (resNode *) mallocMagic((unsigned) (sizeof(resNode)));
-	    InitializeNode(resptr,x,y,RES_NODE_CONTACT);
-	    ResAddToQueue(resptr,nodes);
+	    InitializeNode(resptr, x, y, RES_NODE_CONTACT);
+	    ResAddToQueue(resptr, nodes);
 
- 	    /* add contact pointer to node  */
+ 	    /* Add contact pointer to node  */
 
 	    ccell = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
 	    ccell->ce_nextc = resptr->rn_ce;
@@ -868,7 +859,7 @@ ResDoContacts(contact, nodes, resList)
 	    NEWBREAK(resptr, tile, contact->cp_center.p_x,
 			contact->cp_center.p_y, &contact->cp_rect);
 
-	    /* add resistors here */
+	    /* Add resistors here */
 
 	    if (tilenum > 0)
 	    {
@@ -877,13 +868,13 @@ ResDoContacts(contact, nodes, resList)
 	        resistor->rr_lastResistor = NULL;
 	        if ((*resList) != NULL) (*resList)->rr_lastResistor = resistor;
 	        (*resList) = resistor;
-	        resistor->rr_connection1 = contact->cp_cnode[tilenum-1];
+	        resistor->rr_connection1 = contact->cp_cnode[tilenum - 1];
 	        resistor->rr_connection2 = contact->cp_cnode[tilenum];
 
 	        element = (resElement *) mallocMagic((unsigned) (sizeof(resElement)));
-	        element->re_nextEl = contact->cp_cnode[tilenum-1]->rn_re;
+	        element->re_nextEl = contact->cp_cnode[tilenum - 1]->rn_re;
 	        element->re_thisEl = resistor;
-	        contact->cp_cnode[tilenum-1]->rn_re = element;
+	        contact->cp_cnode[tilenum - 1]->rn_re = element;
 	        element = (resElement *) mallocMagic((unsigned)(sizeof(resElement)));
 	        element->re_nextEl = contact->cp_cnode[tilenum]->rn_re;
 	        element->re_thisEl = resistor;
@@ -909,7 +900,7 @@ ResDoContacts(contact, nodes, resList)
 			(squaresx * squaresy);
 #endif
 		resistor->rr_tt = contact->cp_type;
-		resistor->rr_float.rr_area= 0;
+		resistor->rr_float.rr_area = 0;
 		resistor->rr_status = 0;
 	    }
 	}
@@ -918,6 +909,11 @@ ResDoContacts(contact, nodes, resList)
 
 /*
  *-------------------------------------------------------------------------
+ *
+ * ResSortBreaks --
+ *
+ * Results:
+ *	None
  *
  *-------------------------------------------------------------------------
  */
@@ -928,7 +924,7 @@ ResSortBreaks(masterlist, xsort)
     int		xsort;
 {
     Breakpoint	*p1, *p2, *p3, *p4;
-    bool		changed;
+    bool	changed;
 
     changed = TRUE;
     while (changed == TRUE)

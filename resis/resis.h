@@ -603,7 +603,7 @@ extern ResFixPoint		*ResFixList;
 extern int			ResTileCount;
 extern ResSimNode		**ResNodeArray;
 extern CellDef			*mainDef;
-extern TileTypeBitMask		ResSubsTypeBitMask;
+extern TileTypeBitMask		ResSDTypesBitMask;
 extern	HashTable		ResDevTable;
 extern TileTypeBitMask		ResNoMergeMask[NT];
 extern	ResGlobalParams		gparams;

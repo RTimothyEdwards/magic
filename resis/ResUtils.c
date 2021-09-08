@@ -90,6 +90,27 @@ ResFirst(tile, arg)
 /*
  *--------------------------------------------------------------------------
  *
+ * resMultiPlaneTerm --
+ *
+ * Callback function to set a junk field
+ *
+ *--------------------------------------------------------------------------
+ */
+
+int
+resMultiPlaneTerm(Tile *tile, tileJunk *junk2)
+{
+    tileJunk *Junk;
+    
+    Junk = resAddField(tile);
+    Junk->tj_status |= RES_TILE_SD;
+    junk2->sourceEdge |= OTHERPLANE;
+    return 0;
+}
+
+/*
+ *--------------------------------------------------------------------------
+ *
  * ResEach--
  *
  * ResEach calls ResFirst unless this is the first contact, in which case it
@@ -263,13 +284,22 @@ ResAddPlumbing(tile, arg)
 			break;
 		    }
 		}
+
 		/* other plane (in ResUse) */
 		if (source == NULL)
 		{
 		    int pNum;
+		    Rect r;
+
+		    TiToRect(tile, &r);
 		    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 		    {
-			/* XXX */
+			if (TTMaskIntersect(&DBPlaneTypes[pNum],
+				&(devptr->exts_deviceSDTypes[i])))
+			    DBSrPaintArea((Tile *)NULL, 
+				    ResUse->cu_def->cd_planes[pNum],
+				    &r, &(devptr->exts_deviceSDTypes[i]),
+				    resMultiPlaneTerm, (ClientData)junk2);
 		    }
 		}
 
@@ -303,7 +333,7 @@ ResAddPlumbing(tile, arg)
 		    if (TiGetBottomType(tp2) == t1)
 		    {
 		        tileJunk *j = resAddField(tp2);
-			if ((j->tj_status & RES_TILE_SD) ==0)
+			if ((j->tj_status & RES_TILE_SD) == 0)
 			{
 			    j->tj_status |= RES_TILE_SD;
 	            	    STACKPUSH((ClientData)tp2, resDevStack);

@@ -43,6 +43,7 @@ extern Tile		*FindStartTile();
 extern int		ResEachTile();
 extern int		ResLaplaceTile();
 extern ResSimNode	*ResInitializeNode();
+TileTypeBitMask		ResSDTypesBitMask;
 
 extern HashTable	ResNodeTable;
 
@@ -139,43 +140,33 @@ ResGetReCell()
  */
 void
 ResDissolveContacts(contacts)
-	ResContactPoint *contacts;
+    ResContactPoint *contacts;
 {
     TileType t, oldtype;
     Tile *tp;
     TileTypeBitMask residues;
 
     for (; contacts != (ResContactPoint *) NULL; contacts = contacts->cp_nextcontact)
-
     {
         oldtype=contacts->cp_type;
+
 #ifdef PARANOID
 	if (oldtype == TT_SPACE)
-	{
 	    TxError("Error in Contact Dissolving for %s \n",ResCurrentNode);
-	}
 #endif
-
 	DBFullResidueMask(oldtype, &residues);
 
 	DBErase(ResUse->cu_def, &(contacts->cp_rect), oldtype);
 	for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
-	{
 	    if (TTMaskHasType(&residues, t))
-	    {
-		if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, t))
-		    continue;
 		DBPaint(ResUse->cu_def, &(contacts->cp_rect), t);
-	    }
-	}
 
 	tp = ResDef->cd_planes[DBPlane(contacts->cp_type)]->pl_hint;
 	GOTOPOINT(tp, &(contacts->cp_rect.r_ll));
+
 #ifdef PARANOID
 	if (TiGetTypeExact(tp) == contacts->cp_type)
-	{
 	    TxError("Error in Contact Preprocess Routines\n");
-	}
 #endif
     }
 }
@@ -494,7 +485,7 @@ ResProcessTiles(goodies, origin)
 		    if ((j->tj_status & RES_TILE_DONE) == 0)
 		    {
 			resCurrentNode = resptr2;
-			merged |= (*tilefunc)(tile,(Point *)NULL);
+			merged |= (*tilefunc)(tile, (Point *)NULL);
 		    }
 		    if (merged & ORIGIN) break;
 		}
@@ -505,9 +496,9 @@ ResProcessTiles(goodies, origin)
 
 	/* Next, Process all contacts. */
 
-	for (workingc = resptr2->rn_ce;workingc != NULL;workingc = workingc->ce_nextc)
+	for (workingc = resptr2->rn_ce; workingc != NULL; workingc = workingc->ce_nextc)
 	{
-	    ResContactPoint	*cp = workingc->ce_thisc;
+	    ResContactPoint *cp = workingc->ce_thisc;
 
 	    if (merged & ORIGIN) break;
 	    if (cp->cp_status == FALSE)
@@ -627,7 +618,7 @@ ResCalcPerimOverlap(tile, dev)
 	if TTMaskHasType(omask, TiGetType(tp))
 	      overlap += MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
     }
-    dev->overlap = overlap;
+    dev->overlap += overlap;
 }
 /*
  *-------------------------------------------------------------------------
@@ -635,7 +626,7 @@ ResCalcPerimOverlap(tile, dev)
  * resMakeDevFunc --
  *
  *  Callback function from ResExtractNet.  For each device in a node's
- *  device list pulled from the .sim file, find the tile corresponding
+ *  device list pulled from the .sim file, find the tile(s) corresponding
  *  to the device in the source tree, and fill out the complete device
  *  record (namely the full device area).
  *
@@ -656,7 +647,6 @@ resMakeDevFunc(tile, cx)
 
     TiToRect(tile, &devArea);
     GeoTransRect(&cx->tc_scx->scx_trans, &devArea, &thisDev->area);
-    ResCalcPerimOverlap(tile, thisDev);
 
     if (IsSplit(tile))
 	ttype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
@@ -675,10 +665,137 @@ resMakeDevFunc(tile, cx)
 	    return 0;	/* Completely different device? */
 	thisDev->type = ttype;
     }
+
     return 1;
 }
 
- 
+/*
+ *-------------------------------------------------------------------------
+ *
+ * resExpandDevFunc --
+ *
+ *	Do a boundary search on the first tile found in the search context
+ *	path belonging to a device, including all tiles that belong to the
+ *	device.  For each compatible tile found, paint the device tile
+ *	type into ResUse and calculate the overlap.
+ *
+ * Returns:
+ *	1 to stop the search (only the first tile of a device needs to be
+ *	found).
+ *
+ * Side effects:
+ *	Paints into ResUse and recalculates values of thisDev.
+ *-------------------------------------------------------------------------
+ */
+
+#define DEV_PROCESSED 1
+
+int
+resExpandDevFunc(tile, cx)
+    Tile	*tile;
+    TreeContext *cx;
+{
+    ResDevTile	    *thisDev = (ResDevTile *)cx->tc_filter->tf_arg;
+    static Stack    *devExtentsStack = NULL;
+    static Stack    *devResetStack = NULL;
+    TileTypeBitMask *rMask;
+    Tile *tp, *tp2;
+    TileType	ttype;
+    int pNum;
+    Rect area;
+
+    pNum = DBPlane(thisDev->type);
+    if (devExtentsStack == NULL)
+	devExtentsStack = StackNew(8);
+    if (devResetStack == NULL)
+	devResetStack = StackNew(8);
+
+    tile->ti_client = (ClientData)DEV_PROCESSED;
+    STACKPUSH((ClientData)tile, devExtentsStack);
+
+    while (!StackEmpty(devExtentsStack))
+    {
+	tp = (Tile *) STACKPOP(devExtentsStack);
+	STACKPUSH((ClientData)tp, devResetStack);
+	TiToRect(tp, &area);
+
+	/* Paint type thisDev->type into ResUse over area of tile "tp" */
+	DBNMPaintPlane(ResUse->cu_def->cd_planes[pNum], TiGetTypeExact(tp),
+		&area, DBStdPaintTbl(thisDev->type, pNum), (PaintUndoInfo *)NULL);
+
+	/* Add source/drain perimeter overlap to the device for this tile */
+	ResCalcPerimOverlap(tp, thisDev);
+
+	/* Search boundary of the device tile for more tiles belonging  */
+	/* to the device.  If contacts are found, replace them with the */
+	/* device type.							*/
+
+	/* top */
+	for (tp2 = RT(tp); RIGHT(tp2) > LEFT(tp); tp2 = BL(tp2))
+	{
+	    if (tp2->ti_client == (ClientData)DEV_PROCESSED) continue;
+	    ttype = TiGetBottomType(tp2);
+	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
+		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+	    {
+		tp2->ti_client = (ClientData)DEV_PROCESSED;
+		STACKPUSH((ClientData)tp2, devExtentsStack);
+	    }
+	}
+
+	/* bottom */
+	for (tp2 = LB(tp); LEFT(tp2) < RIGHT(tp); tp2 = TR(tp2))
+	{
+	    if (tp2->ti_client == (ClientData)DEV_PROCESSED) continue;
+	    ttype = TiGetTopType(tp2);
+	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
+		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+	    {
+		tp2->ti_client = (ClientData)DEV_PROCESSED;
+		STACKPUSH((ClientData)tp2, devExtentsStack);
+	    }
+	}
+
+	/* right */
+	for (tp2 = TR(tp); TOP(tp2) > BOTTOM(tp); tp2 = LB(tp2))
+	{
+	    if (tp2->ti_client == (ClientData)DEV_PROCESSED) continue;
+	    ttype = TiGetLeftType(tp2);
+	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
+		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+	    {
+		tp2->ti_client = (ClientData)DEV_PROCESSED;
+		STACKPUSH((ClientData)tp2, devExtentsStack);
+	    }
+	}
+
+	/* left */
+	for (tp2 = BL(tp); BOTTOM(tp2) < TOP(tp); tp2 = RT(tp2))
+	{
+	    if (tp2->ti_client == (ClientData)DEV_PROCESSED) continue;
+	    ttype = TiGetRightType(tp2);
+	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
+		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
+	    {
+		tp2->ti_client = (ClientData)DEV_PROCESSED;
+		STACKPUSH((ClientData)tp2, devExtentsStack);
+	    }
+	}
+    }
+
+    /* Reset the device tile client records */
+    while (!StackEmpty(devResetStack))
+    {
+	tp = (Tile *) STACKPOP(devResetStack);
+	tp->ti_client = (ClientData)CLIENTDEFAULT;
+    }
+
+    /* Return 1 to stop the search;  we only need to run this from  */
+    /* the first device tile.					    */
+
+    return 1;
+}
+
 /*
  *-------------------------------------------------------------------------
  *
@@ -700,14 +817,16 @@ ResExtractNet(node, goodies, cellname)
     char		*cellname;
 {
     SearchContext 	scx;
-    int			pNum;
     TileTypeBitMask	FirstTileMask;
+    TileTypeBitMask	tMask;
     Point		startpoint;
     static int		first = 1;
     ResDevTile		*DevTiles, *thisDev;
     ResFixPoint		*fix;
     devPtr		*tptr;
+    int			pNum;
     int			resMakeDevFunc();
+    int			resExpandDevFunc();
 
     /* Make sure all global network variables are reset */
 
@@ -783,15 +902,20 @@ ResExtractNet(node, goodies, cellname)
     DBTreeCopyConnect(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
 					SEL_DO_LABELS, ResUse);
 
+    TTMaskZero(&ResSDTypesBitMask);
+
     /* Add devices to ResUse from list in node */
     DevTiles = NULL;
     for (tptr = node->firstDev; tptr; tptr = tptr->nextDev)
     {
 	int result;
+	int i;
+	ExtDevice *devptr;
 
 	thisDev = (ResDevTile *)mallocMagic(sizeof(ResDevTile));
 	thisDev->devptr = tptr->thisDev->rs_devptr;
 	thisDev->type = tptr->thisDev->rs_ttype;
+	thisDev->overlap = 0;
 	scx.scx_area.r_ll.p_x = tptr->thisDev->location.p_x;
 	scx.scx_area.r_ll.p_y = tptr->thisDev->location.p_y;
 	scx.scx_area.r_xtop = scx.scx_area.r_xbot + 1;
@@ -810,10 +934,18 @@ ResExtractNet(node, goodies, cellname)
 	thisDev->nextDev = DevTiles;
 	DevTiles = thisDev;
 
-	/* Paint the type into ResUse */
-	pNum = DBPlane(thisDev->type);
-	DBPaintPlane(ResUse->cu_def->cd_planes[pNum], &thisDev->area,
-		DBStdPaintTbl(thisDev->type, pNum), (PaintUndoInfo *)NULL);
+	/* Paint the entire device into ResUse */
+	TTMaskSetOnlyType(&tMask, thisDev->type);
+	DBTreeSrTiles(&scx, &tMask, 0, resExpandDevFunc, (ClientData)thisDev);
+
+	/* If the device has source/drain types in a different plane than   */
+	/* the device identifier type, then add the source/drain types to   */
+	/* the mask ResSDTypesBitMask.					    */
+
+	for (devptr = ExtCurStyle->exts_device[thisDev->type]; devptr;
+		    devptr = devptr->exts_next)
+	    for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
+		TTMaskSetMask(&ResSDTypesBitMask, &devptr->exts_deviceSDTypes[i]);
     }
     DBReComputeBbox(ResUse->cu_def);
 

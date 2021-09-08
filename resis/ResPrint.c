@@ -168,8 +168,10 @@ ResPrintExtDev(outextfile, devices)
 
 		if (devices->subs != NULL)
 		    fprintf(outextfile, " \"%s\"", devices->subs->name);
-		else
+		else if (subsName != NULL)
 		    fprintf(outextfile, " \"%s\"", subsName);
+		else
+		    fprintf(outextfile, " \"None\"");
 
 		if (devices->gate != NULL)
 		    fprintf(outextfile, " \"%s\" %d %s",

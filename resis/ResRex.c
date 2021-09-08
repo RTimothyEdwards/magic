@@ -1288,7 +1288,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 
 	    }
 	    else
-	       	TxError("missing SD connection\n");
+	       	TxError("Missing SD connection\n");
 	}
     }
     else if (simDev->drain == simNode)
@@ -1335,7 +1335,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	    }
 	}
 	else
-	    TxError("missing SD connection\n");
+	    TxError("Missing SD connection\n");
     }
     else
 	resNodeNum--;
