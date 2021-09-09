@@ -933,11 +933,15 @@ CmdExtract(w, cmd)
 	"receiver termName(s)	identify a receiving (input) terminal",
 	NULL
     };
+
+    /* These must match definitions EXT_UNIQ_* in extract/extract.h: */
+
     static char *cmdExtUniq[] =
     {
 	"all			extract matching labels as unique nodes",
 	"#			extract tagged labels as unique nodes",
 	"noports		ignore ports when making labels unique",
+	"notopports		ignore top-level ports when making labels unique",
 	NULL
     };
     static char *cmdExtCmd[] =

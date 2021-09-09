@@ -53,13 +53,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * For the cell 'def', look for the same label appearing in two or more
  * distinct nodes.  For each such label found:
  *
- *	If option is 0, then generate unique names for all
+ *	If option is EXT_UNIQ_ALL, then generate unique names for all
  *	    but one of the nodes by appending a unique numeric
  *	    suffix to the offending labels.
- *	If option is 1, then generate unique names only if
- *	    the label ends in '#'.  Leave feedback for all other
+ *	If option is EXT_UNIQ_TAGGED, then generate unique names only
+ *	    if the label ends in '#'.  Leave feedback for all other
  *	    names that don't end in '!'.
- *	If option is 2, then generate unique names as for
+ *	If option is EXT_UNIQ_NOPORTS, then generate unique names as for
  *	    option 0 only if the label is not a port.
  *
  * Results:
@@ -186,16 +186,19 @@ extMakeUnique(def, ll, lreg, lregList, labelHash, option)
      * changes a label to make it unique.
      */
     text = ll->ll_label->lab_text;
-    if (option == 0)
+    if (option == EXT_UNIQ_ALL)
 	goto makeUnique;
-    else if ((option == 2) && !(ll->ll_label->lab_flags & PORT_DIR_MASK))
+    else if ((option == EXT_UNIQ_NOPORTS || option == EXT_UNIQ_NOTOPPORTS) &&
+		!(ll->ll_label->lab_flags & PORT_DIR_MASK))
 	goto makeUnique;
 
     cpend = strchr(text, '\0');
     if (cpend > text) cpend--;
     if (*cpend == '#') goto makeUnique;
     if (*cpend == '!') return 0;
-    if ((option == 2) && (ll->ll_label->lab_flags & PORT_DIR_MASK)) return 0;
+    if (((option == EXT_UNIQ_NOPORTS) || (option == EXT_UNIQ_NOTOPPORTS))
+		&& (ll->ll_label->lab_flags & PORT_DIR_MASK))
+	return 0;
 
     /* Generate a warning for each occurrence of this label */
     nwarn = 0;

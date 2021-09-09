@@ -243,10 +243,11 @@ extDefPushFunc(use)
  * If there are, we generate unique names by appending a numeric
  * suffix to all but one of the offending labels.
  * If "option" is 1 (tagged mode), then only labels ending in the
- * character "#" are forced to be unique.  If "option" is 2 (noports
- * mode), then port labels are not forced to be unique.  Finally,
- * if the label has been changed and doesn't end in a '!', we leave
- * feedback.
+ * character "#" are forced to be unique.  If "option" is 2 ("noports"
+ * mode), then port labels are not forced to be unique.  If "option"
+ * is 3 ("notopports" mode), then port labels on the top level are
+ * not forced to be unique.  Finally, if the label has been changed
+ * and doesn't end in a '!', we leave feedback.
  *
  * Results:
  *	None.
@@ -266,6 +267,7 @@ ExtUnique(rootUse, option)
 {
     CellDef *def;
     int nwarn;
+    int locoption;
 
     /* Make sure the entire subtree is read in */
     if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
@@ -288,6 +290,12 @@ ExtUnique(rootUse, option)
     nwarn = 0;
     while (def = (CellDef *) StackPop(extDefStack))
     {
+	/* EXT_UNIQ_NOTOPPORTS:  Use EXT_UNIQ_ALL on all cells other than the top */
+	if ((option == EXT_UNIQ_NOTOPPORTS) && (StackLook(extDefStack) != NULL))
+	    locoption = EXT_UNIQ_ALL;
+	else
+	    locoption = option;
+	    
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)
 	    nwarn += extUniqueCell(def, option);

@@ -73,6 +73,12 @@ extern char *extDevTable[];
 
 extern int ExtOptions;		/* Bitmask of above */
 
+/* Options for "extract unique" */
+#define EXT_UNIQ_ALL		0
+#define EXT_UNIQ_TAGGED		1
+#define EXT_UNIQ_NOPORTS	2
+#define EXT_UNIQ_NOTOPPORTS	3
+
 extern bool ExtTechLine();
 extern void ExtTechInit();
 extern void ExtTechFinal();
