@@ -44,81 +44,79 @@ extern void ResFixBreakPoint();
 
 void
 ResDoneWithNode(resptr)
-	resNode *resptr;
+    resNode *resptr;
 
 {
-     int		status;
-     resNode		*resptr2;
-     resElement		*rcell1;
-     resResistor	*rr1;
+    int		status;
+    resNode	*resptr2;
+    resElement	*rcell1;
+    resResistor	*rr1;
 
-     resptr2 = NULL;
-     resptr->rn_status |= TRUE;
-     status = UNTOUCHED;
+    resptr2 = NULL;
+    resptr->rn_status |= TRUE;
+    status = UNTOUCHED;
 
-     /* are there any resistors? */
+    /* are there any resistors? */
 
-     if (resptr->rn_re == NULL) return;
+    if (resptr->rn_re == NULL) return;
 
-     /* Special handling for geometry option */
+    /* Special handling for geometry option */
 
-     if (ResOptionsFlags & ResOpt_Geometry) return;
+    if (ResOptionsFlags & ResOpt_Geometry) return;
 
-     /* Eliminate resistors with connections to one terminal and */
-     /* resistors with value 0.					 */
+    /* Eliminate resistors with connections to one terminal and */
+    /* resistors with value 0.					*/
 
-     for (rcell1 = resptr->rn_re; rcell1 != NULL; rcell1 = rcell1->re_nextEl)
-     {
-     	  rr1 = rcell1->re_thisEl;
-	  if (rr1->rr_connection1 == rr1->rr_connection2)
-	  {
-	       ResDeleteResPointer(resptr, rr1);
-	       ResDeleteResPointer(resptr, rr1);
-	       resptr->rn_float.rn_area += rr1->rr_float.rr_area;
-	       ResEliminateResistor(rr1, &ResResList);
-	       status = LOOP;
-	       ResDoneWithNode(resptr);
-	       break;
+    for (rcell1 = resptr->rn_re; rcell1 != NULL; rcell1 = rcell1->re_nextEl)
+    {
+     	rr1 = rcell1->re_thisEl;
+	if (rr1->rr_connection1 == rr1->rr_connection2)
+	{
+	    ResDeleteResPointer(resptr, rr1);
+	    ResDeleteResPointer(resptr, rr1);
+	    resptr->rn_float.rn_area += rr1->rr_float.rr_area;
+	    ResEliminateResistor(rr1, &ResResList);
+	    status = LOOP;
+	    ResDoneWithNode(resptr);
+	    break;
 
-	  }
-	  else if (rr1->rr_value == 0)
-	  {
-	       ResDeleteResPointer(rr1->rr_connection1, rr1);
-	       ResDeleteResPointer(rr1->rr_connection2, rr1);
-		if (rr1->rr_connection1 == resptr)
-		{
-		     resptr2 = rr1->rr_connection2;
-		}else
-		{
-		     resptr2 = rr1->rr_connection1;
-		}
-	        ResMergeNodes(resptr2, resptr, &ResNodeQueue, &ResNodeList);
-		resptr2->rn_float.rn_area += rr1->rr_float.rr_area;
-	       	ResEliminateResistor(rr1, &ResResList);
-		if ((resptr2->rn_status & TRUE) == TRUE)
-		{
-		     resptr2->rn_status &= ~TRUE;
-		     ResDoneWithNode(resptr2);
-		}
-	       resptr2 = NULL;
-	       status = SINGLE;
-	       break;
-	  }
-     }
-     if (status != UNTOUCHED) return;  /* resptr may be invalid */
+	}
+	else if (rr1->rr_value == 0)
+	{
+	    ResDeleteResPointer(rr1->rr_connection1, rr1);
+	    ResDeleteResPointer(rr1->rr_connection2, rr1);
+	    if (rr1->rr_connection1 == resptr)
+		resptr2 = rr1->rr_connection2;
+	    else
+		resptr2 = rr1->rr_connection1;
 
-     /* Eliminations that can be only if there are no devices connected */
-     /* to node.  Series and dangling connections fall in this group.	*/
+	    ResMergeNodes(resptr2, resptr, &ResNodeQueue, &ResNodeList);
+	    resptr2->rn_float.rn_area += rr1->rr_float.rr_area;
+	    ResEliminateResistor(rr1, &ResResList);
+	    if ((resptr2->rn_status & TRUE) == TRUE)
+	    {
+		resptr2->rn_status &= ~TRUE;
+		ResDoneWithNode(resptr2);
+	    }
+	    resptr2 = NULL;
+	    status = SINGLE;
+	    break;
+	}
+    }
+    if (status != UNTOUCHED) return;  /* resptr may be invalid */
 
-     if ((resptr->rn_te == NULL) && (resptr->rn_why != RES_NODE_ORIGIN)
+    /* Eliminations that can be only if there are no devices connected */
+    /* to node.  Series and dangling connections fall in this group.	*/
+
+    if ((resptr->rn_te == NULL) && (resptr->rn_why != RES_NODE_ORIGIN)
 		&& (status == UNTOUCHED))
-     	  status = ResSeriesCheck(resptr);
+     	status = ResSeriesCheck(resptr);
 
-     if ((status == UNTOUCHED) && (resptr->rn_why != RES_NODE_ORIGIN))
-	  status = ResParallelCheck(resptr);
+    if ((status == UNTOUCHED) && (resptr->rn_why != RES_NODE_ORIGIN))
+	status = ResParallelCheck(resptr);
 
-     if ((status == UNTOUCHED) && (resptr->rn_why != RES_NODE_ORIGIN))
-	  status = ResTriangleCheck(resptr);
+    if ((status == UNTOUCHED) && (resptr->rn_why != RES_NODE_ORIGIN))
+	status = ResTriangleCheck(resptr);
 }
 
 
@@ -142,38 +140,38 @@ ResFixRes(resptr, resptr2, resptr3, elimResis, newResis)
     resResistor *elimResis, *newResis;
 
 {
-     resElement  *thisREl;
+    resElement  *thisREl;
 
-     resptr3->rn_float.rn_area += newResis->rr_value*resptr->rn_float.rn_area
+    resptr3->rn_float.rn_area += newResis->rr_value * resptr->rn_float.rn_area
 		/ ((float)(newResis->rr_value + elimResis->rr_value));
-     resptr2->rn_float.rn_area += elimResis->rr_value*resptr->rn_float.rn_area
+    resptr2->rn_float.rn_area += elimResis->rr_value * resptr->rn_float.rn_area
 		/ ((float)(newResis->rr_value + elimResis->rr_value));
-     newResis->rr_value += elimResis->rr_value;
-     ASSERT(newResis->rr_value > 0, "series");
-     newResis->rr_float.rr_area += elimResis->rr_float.rr_area;
+    newResis->rr_value += elimResis->rr_value;
+    ASSERT(newResis->rr_value > 0, "series");
+    newResis->rr_float.rr_area += elimResis->rr_float.rr_area;
 
 #ifdef ARIEL
-     if (elimResis->rr_csArea && elimResis->rr_csArea < newResis->rr_csArea
+    if (elimResis->rr_csArea && elimResis->rr_csArea < newResis->rr_csArea
 		|| newResis->rr_csArea == 0)
-     {
-     	  newResis->rr_csArea = elimResis->rr_csArea;
-	  newResis->rr_tt = elimResis->rr_tt;
-     }
+    {
+     	newResis->rr_csArea = elimResis->rr_csArea;
+	newResis->rr_tt = elimResis->rr_tt;
+    }
 #endif
-     for (thisREl = resptr3->rn_re; (thisREl != NULL); thisREl = thisREl->re_nextEl)
-     {
-     	  if (thisREl->re_thisEl == elimResis)
-	  {
-	       (thisREl->re_thisEl = newResis);
-	       break;
-	  }
+    for (thisREl = resptr3->rn_re; (thisREl != NULL); thisREl = thisREl->re_nextEl)
+    {
+     	if (thisREl->re_thisEl == elimResis)
+	{
+	    (thisREl->re_thisEl = newResis);
+	    break;
+	}
 
-     }
-     if (thisREl == NULL) TxError("Resistor not found in duo\n");
-     ResDeleteResPointer(resptr, elimResis);
-     ResDeleteResPointer(resptr, newResis);
-     ResEliminateResistor(elimResis, &ResResList);
-     ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
+    }
+    if (thisREl == NULL) TxError("Resistor not found in duo\n");
+    ResDeleteResPointer(resptr, elimResis);
+    ResDeleteResPointer(resptr, newResis);
+    ResEliminateResistor(elimResis, &ResResList);
+    ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
 }
 
 /*
@@ -192,28 +190,28 @@ ResFixRes(resptr, resptr2, resptr3, elimResis, newResis)
 
 void
 ResFixParallel(elimResis, newResis)
-	resResistor *elimResis, *newResis;
+    resResistor *elimResis, *newResis;
 
 {
-     if ((newResis->rr_value + elimResis->rr_value) != 0)
-     {
-          newResis->rr_value = (((float) newResis->rr_value) *
+    if ((newResis->rr_value + elimResis->rr_value) != 0)
+    {
+        newResis->rr_value = (((float) newResis->rr_value) *
 	  			((float)elimResis->rr_value)) /
      		            	((float)(newResis->rr_value +
-					 elimResis->rr_value));
-	  ASSERT(newResis->rr_value >= 0, "parallel");
-     }
-     else
-     {
-     	  newResis->rr_value = 0;
-     }
-     newResis->rr_float.rr_area += elimResis->rr_float.rr_area;
+				 elimResis->rr_value));
+	ASSERT(newResis->rr_value >= 0, "parallel");
+    }
+    else
+    {
+     	newResis->rr_value = 0;
+    }
+    newResis->rr_float.rr_area += elimResis->rr_float.rr_area;
 #ifdef ARIEL
-     newResis->rr_csArea += elimResis->rr_csArea;
+    newResis->rr_csArea += elimResis->rr_csArea;
 #endif
-     ResDeleteResPointer(elimResis->rr_connection1, elimResis);
-     ResDeleteResPointer(elimResis->rr_connection2, elimResis);
-     ResEliminateResistor(elimResis, &ResResList);
+    ResDeleteResPointer(elimResis->rr_connection1, elimResis);
+    ResDeleteResPointer(elimResis->rr_connection2, elimResis);
+    ResEliminateResistor(elimResis, &ResResList);
 }
 
 /*
@@ -435,7 +433,7 @@ ResParallelCheck(resptr)
 
 	{
 	    r2 = rcell2->re_thisEl;
-	    if (TTMaskHasType(ResNoMergeMask+r1->rr_tt,r2->rr_tt)) continue;
+	    if (TTMaskHasType(ResNoMergeMask+r1->rr_tt, r2->rr_tt)) continue;
 	    if (((r1->rr_connection1 == r2->rr_connection1) &&
 	            (r1->rr_connection2 == r2->rr_connection2))||
 	            ((r1->rr_connection1 == r2->rr_connection2) &&
@@ -540,7 +538,7 @@ ResTriangleCheck(resptr)
 	        }
 		n3 = (resNode *)mallocMagic((unsigned)(sizeof(resNode)));
 
-	      	/*  Where should the new node be `put'?  It */
+	      	/* Where should the new node be put?  It    */
 	        /* is arbitrarily assigned to the location  */
 		/* occupied by the first node.		    */
 

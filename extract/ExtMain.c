@@ -291,7 +291,8 @@ ExtUnique(rootUse, option)
     while (def = (CellDef *) StackPop(extDefStack))
     {
 	/* EXT_UNIQ_NOTOPPORTS:  Use EXT_UNIQ_ALL on all cells other than the top */
-	if ((option == EXT_UNIQ_NOTOPPORTS) && (StackLook(extDefStack) != NULL))
+	if ((option == EXT_UNIQ_NOTOPPORTS) &&
+		    (StackLook(extDefStack) != (ClientData)NULL))
 	    locoption = EXT_UNIQ_ALL;
 	else
 	    locoption = option;

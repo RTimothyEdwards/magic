@@ -257,8 +257,8 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
 #endif
 	    resistor->rr_value =
 		    	  (ExtCurStyle->exts_sheetResist[resistor->rr_tt]
-		          * (p2->br_loc.p_x-p1->br_loc.p_x)) / height;
-	    rArea = ((p2->br_loc.p_x-p1->br_loc.p_x) * height) / 2;
+		          * (p2->br_loc.p_x - p1->br_loc.p_x)) / height;
+	    rArea = ((p2->br_loc.p_x - p1->br_loc.p_x) * height) / 2;
 	    resistor->rr_connection1->rn_float.rn_area += rArea;
 	    resistor->rr_connection2->rn_float.rn_area += rArea;
 	    resistor->rr_float.rr_area = 0;
@@ -425,7 +425,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
 	    resistor->rr_value =
 		    	  (ExtCurStyle->exts_sheetResist[resistor->rr_tt]
 		          * (p2->br_loc.p_y - p1->br_loc.p_y)) / width;
-	    rArea = ((p2->br_loc.p_y-p1->br_loc.p_y) * width) / 2;
+	    rArea = ((p2->br_loc.p_y - p1->br_loc.p_y) * width) / 2;
 	    resistor->rr_connection1->rn_float.rn_area += rArea;
 	    resistor->rr_connection2->rn_float.rn_area += rArea;
 	    resistor->rr_float.rr_area = 0;

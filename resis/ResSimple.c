@@ -542,7 +542,7 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
 	    node1 = node2;
 	}
 	else
-	    ResMergeNodes(node1,node2,pendingList,biglist);
+	    ResMergeNodes(node1, node2, pendingList, biglist);
 
 	/*
 	 * Try further simplification on net using ResDoneWithNode and
@@ -553,7 +553,7 @@ ResScrunchNet(reslist, pendingList, biglist, tolerance)
 	node1->rn_status &= ~(RES_DONE_ONCE | FINISHED);
 	ResDoneWithNode(node1);
 	while (*pendingList != NULL)
-	    ResSimplifyNet(pendingList,biglist,reslist,tolerance);
+	    ResSimplifyNet(pendingList, biglist, reslist, tolerance);
     }
 }
 
@@ -651,7 +651,7 @@ ResDistributeCapacitance(nodelist, totalcap)
     }
     capperarea = FEMTOTOATTO * totalcap / totalarea;
 
-    for (workingNode = nodelist; workingNode != NULL; workingNode=workingNode->rn_more)
+    for (workingNode = nodelist; workingNode != NULL; workingNode = workingNode->rn_more)
      	workingNode->rn_float.rn_area *= capperarea;
 }
 
@@ -719,7 +719,7 @@ ResCalculateChildCapacitance(me)
     }
 
     /* Calculate child Capacitance  */
-    for (workingRes = me->rn_re; workingRes != NULL; workingRes=workingRes->re_nextEl)
+    for (workingRes = me->rn_re; workingRes != NULL; workingRes = workingRes->re_nextEl)
     {
 	if (workingRes->re_thisEl->rr_connection1 == me &&
 		(workingRes->re_thisEl->rr_status & RES_TDI_IGNORE) == 0)
@@ -864,13 +864,13 @@ ResDoSimplify(tolerance, rctol, goodies)
     resRemoveLoops = FALSE;
     ResSetPathRes();
     for (node = ResNodeList; node != NULL; node = node->rn_more)
-    	 bigres = MAX(bigres,node->rn_noderes);
+    	 bigres = MAX(bigres, node->rn_noderes);
 
     bigres /= OHMSTOMILLIOHMS; /* convert from milliohms to ohms */
     goodies->rg_maxres = bigres;
 
 #ifdef PARANOID
-    ResSanityChecks("ExtractSingleNet",ResResList,ResNodeList,ResDevList);
+    ResSanityChecks("ExtractSingleNet", ResResList, ResNodeList, ResDevList);
 #endif
 
     /* Is extracted network still greater than the tolerance?	*/
@@ -986,13 +986,13 @@ ResDoSimplify(tolerance, rctol, goodies)
 	    ResOriginNode->rn_less = NULL;
 	    ResNodeQueue = ResOriginNode;
 	    while (ResNodeQueue != NULL)
-	        ResSimplifyNet(&ResNodeQueue,&ResNodeList,&ResResList,millitolerance);
+	        ResSimplifyNet(&ResNodeQueue, &ResNodeList, &ResResList, millitolerance);
 
 	    /*
 	     * Call ResScrunchNet to eliminate any remaining under tolerance
 	     * resistors.
 	     */
-	    ResScrunchNet(&ResResList,&ResNodeQueue,&ResNodeList,millitolerance);
+	    ResScrunchNet(&ResResList, &ResNodeQueue, &ResNodeList, millitolerance);
         }
     }
     return 0;

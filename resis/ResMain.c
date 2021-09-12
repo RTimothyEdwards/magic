@@ -1260,7 +1260,8 @@ FindStartTile(goodies, SourcePoint)
  *
  * ResGetDevice -- Once the net is extracted, we still have to equate
  *	the sim file devices with the layout devices. ResGetDevice
- *	looks for a device at the given location.
+ *	looks for a device at the given location.  "type" is also
+ *	specified to that the right plane will be searched.
  *
  * Results: returns device structure at location DevicePoint, if it
  *	exists.
@@ -1271,9 +1272,9 @@ FindStartTile(goodies, SourcePoint)
  */
 
 resDevice *
-ResGetDevice(pt)
+ResGetDevice(pt, type)
     Point	*pt;
-
+    TileType	type;
 {
     Point   workingPoint;
     Tile    *tile;
@@ -1282,26 +1283,21 @@ ResGetDevice(pt)
     workingPoint.p_x = (*pt).p_x;
     workingPoint.p_y = (*pt).p_y;
 
-    for (pnum = PL_TECHDEPBASE; pnum < DBNumPlanes; pnum++)
+    pnum = DBPlane(type);
+
+    /* Start at hint tile for device plane */
+
+    tile = ResUse->cu_def->cd_planes[pnum]->pl_hint;
+    GOTOPOINT(tile, &workingPoint);
+
+    if (IsSplit(tile))
     {
-     	if (TTMaskIntersect(&ExtCurStyle->exts_deviceMask, &DBPlaneTypes[pnum]) == 0)
-	    continue;
-
-	/* Start at hint tile for device plane */
-
-	tile = ResUse->cu_def->cd_planes[pnum]->pl_hint;
-	GOTOPOINT(tile, &workingPoint);
-
-	if (IsSplit(tile))
-	{
-            if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetLeftType(tile))
+        if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetLeftType(tile))
               	   || TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetRightType(tile)))
-                return (((tileJunk *)tile->ti_client)->deviceList);
-	}
-	else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetType(tile)))
-        {
             return (((tileJunk *)tile->ti_client)->deviceList);
-        }
     }
+    else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetType(tile)))
+        return (((tileJunk *)tile->ti_client)->deviceList);
+
     return NULL;
 }
