@@ -54,7 +54,6 @@ int simmergeVisit();
 
 /* Options specific to ext2sim */
 #ifdef EXT2SIM_AUTO
-bool esDoExtResis = FALSE;
 bool esDevNodesOnly = FALSE;
 bool esNoAttrs = FALSE;
 bool esHierAP = FALSE;
@@ -63,7 +62,6 @@ bool esMergeDevsC = FALSE;	/* merge devices of equal length & width */
 int esCapAccuracy = 1;
 
 #else
-extern bool esDoExtResis;
 extern bool esDevNodesOnly;
 extern bool esNoAttrs;
 extern bool esHierAP;
@@ -72,6 +70,7 @@ extern bool esMergeDevsC;
 extern int esCapAccuracy;
 #endif
 
+bool esDoSimExtResis = FALSE;
 bool esNoAlias = TRUE;
 bool esNoLabel = TRUE;
 char simesDefaultOut[FNSIZE];
@@ -323,15 +322,15 @@ CmdExtToSim(w, cmd)
 	case EXTTOSIM_EXTRESIST:
 	    if (cmd->tx_argc == 2)
 	    {
-		Tcl_SetResult(magicinterp, (esDoExtResis) ? "on" : "off", NULL);
+		Tcl_SetResult(magicinterp, (esDoSimExtResis) ? "on" : "off", NULL);
 		return;
 	    }
 	    else if (cmd->tx_argc != 3)
 		goto usage;
 	    idx = Lookup(cmd->tx_argv[2], yesno);
 	    if (idx < 0) goto usage;
-	    else if (idx < 3) esDoExtResis = TRUE;
-	    else esDoExtResis = FALSE;
+	    else if (idx < 3) esDoSimExtResis = TRUE;
+	    else esDoSimExtResis = FALSE;
 	    break;
 	case EXTTOSIM_ALIAS:
 	    if (cmd->tx_argc == 2)
@@ -522,13 +521,13 @@ runexttosim:
 
     if (simesOutName == simesDefaultOut)
 	(void) sprintf(simesDefaultOut, "%s%s.sim", inName,
-		((esDoExtResis) ? ".ext" : ""));
+		((esDoSimExtResis) ? ".ext" : ""));
     if (esAliasName == esDefaultAlias)
 	(void) sprintf(esDefaultAlias, "%s%s.al", inName,
-		((esDoExtResis) ? ".ext" : ""));
+		((esDoSimExtResis) ? ".ext" : ""));
     if (esLabelName == esDefaultLabel)
 	(void) sprintf(esDefaultLabel, "%s%s.nodes", inName,
-		((esDoExtResis) ? ".ext" : ""));
+		((esDoSimExtResis) ? ".ext" : ""));
     if ((esSimF = fopen(simesOutName, "w")) == NULL)
     {
 	char *tclres = Tcl_Alloc(128);
@@ -557,7 +556,7 @@ runexttosim:
     }
 
     /* Read the hierarchical description of the input circuit */
-    if (EFReadFile(inName, FALSE, esDoExtResis, FALSE) == FALSE)
+    if (EFReadFile(inName, FALSE, esDoSimExtResis, FALSE) == FALSE)
     {
 	EFDone();
 	return /* TCL_ERROR */;
@@ -734,7 +733,7 @@ main(argc, argv)
     }
 
     /* Read the hierarchical description of the input circuit */
-    if (EFReadFile(inName, FALSE, esDoExtResis, FALSE) == FALSE)
+    if (EFReadFile(inName, FALSE, esDoSimExtResis, FALSE) == FALSE)
     {
 	exit(1);
     }

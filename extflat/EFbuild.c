@@ -506,6 +506,12 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	    freeMagic(argv[7]);
 	    return;
 	}
+	else
+	{
+	    /* Flag a strong warning */
+	    TxError("Warning:  Ports \"%s\" and \"%s\" are electrically shorted.\n",
+			nodeName1, nodeName2);
+	}
     }
 
     /* If both names exist and are for different nodes, merge them */
