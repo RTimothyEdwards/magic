@@ -42,6 +42,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #define Z_TO_P		1e9
 
+/* Table of nodes to ignore (manually specified) */
+
+HashTable 	ResIgnoreTable;	/* Hash table of nodes to ignore  */
+
 /* ResSimNode is a node read in from a sim file */
 
 HashTable 	ResNodeTable;   /* Hash table of sim file nodes   */
@@ -145,13 +149,13 @@ ExtResisForDef(celldef, resisdata)
 	    ResCheckSimNodes(celldef, resisdata);
 
 	if (ResOptionsFlags & ResOpt_Stat)
-	    ResPrintStats((ResGlobalParams *)NULL,"");
+	    ResPrintStats((ResGlobalParams *)NULL, "");
     }
 
     /* Clean up */
 
     HashStartSearch(&hs);
-    while((entry = HashNext(&ResNodeTable,&hs)) != NULL)
+    while((entry = HashNext(&ResNodeTable, &hs)) != NULL)
     {
 	node=(ResSimNode *) HashGetValue(entry);
 	tptr = node->firstDev;
@@ -229,6 +233,7 @@ CmdExtResis(win, cmd)
 	"lumped   [on/off]    turn on/off writing of updated lumped resistances",
 	"silent   [on/off]    turn on/off printing of net statistics",
 	"skip     mask        don't extract these types",
+	"ignore	  names	      don't extract these nets",
 	"box      type        extract the signal under the box on layer type",
 	"cell	   cellname    extract the network for the cell named cellname",
 	"blackbox [on/off]    treat subcircuits with ports as black boxes",
@@ -244,8 +249,8 @@ CmdExtResis(win, cmd)
 typedef enum {
 	RES_BAD=-2, RES_AMBIG, RES_TOL,
 	RES_ALL, RES_SIMP, RES_EXTOUT, RES_LUMPED,
-	RES_SILENT, RES_SKIP, RES_BOX, RES_CELL, RES_BLACKBOX,
-	RES_FASTHENRY, RES_GEOMETRY, RES_HELP,
+	RES_SILENT, RES_SKIP, RES_IGNORE, RES_BOX, RES_CELL,
+	RES_BLACKBOX, RES_FASTHENRY, RES_GEOMETRY, RES_HELP,
 #ifdef LAPLACE
 	RES_LAPLACE,
 #endif
@@ -262,6 +267,7 @@ typedef enum {
 	tolerance = 1;
 	tdiTolerance = 1;
 	fhFrequency = 10e6;	/* 10 MHz default */
+	HashInit(&ResIgnoreTable, INITFLATSIZE, HT_STRINGKEYS);
 	init = 0;
     }
 
@@ -450,6 +456,31 @@ typedef enum {
 		    TTMaskZero(&(ResCopyMask[i]));
 		    TTMaskSetMask(&ResCopyMask[i], &DBConnectTbl[i]);
      		}
+	    }
+	    return;
+
+	case RES_IGNORE:
+	    if (cmd->tx_argc > 2)
+	    {
+		if (!strcasecmp(cmd->tx_argv[2], "none"))
+		{
+		    /* Kill and reinitialize the table of ignored nets */
+		    HashKill(&ResIgnoreTable);
+		    HashInit(&ResIgnoreTable, INITFLATSIZE, HT_STRINGKEYS);
+		}
+		else
+		    HashFind(&ResIgnoreTable, cmd->tx_argv[2]);
+	    }
+	    else
+	    {
+		HashSearch hs;
+		HashEntry *entry;
+
+		/* List all net names that are being ignored */
+		HashStartSearch(&hs);
+		while((entry = HashNext(&ResIgnoreTable, &hs)) != NULL)
+		    TxPrintf("%s ", (char *)entry->h_key.h_name);
+		TxPrintf("\n");
 	    }
 	    return;
 
@@ -919,29 +950,11 @@ ResCheckSimNodes(celldef, resisdata)
 
     for (node = ResOriginalNodes; node != NULL; node=node->nextnode)
     {
-	ResCurrentNode = node->name;
-	if (!(ResOptionsFlags & ResOpt_FastHenry))
-	{
-	    /* Hack!!  Don't extract Vdd or GND lines */
+	HashEntry *he;
 
-	    char *last4, *last3;
-	    last4 = node->name+strlen(node->name)-4;
-	    last3 = node->name+strlen(node->name)-3;
-
-	    if ((strncmp(last4,"Vdd!",4) == 0 ||
-	          strncmp(last4,"VDD!",4) == 0 ||
-	          strncmp(last4,"vdd!",4) == 0 ||
-	          strncmp(last4,"Gnd!",4) == 0 ||
-	          strncmp(last4,"gnd!",4) == 0 ||
-	          strncmp(last4,"GND!",4) == 0 ||
-	          strncmp(last3,"Vdd",3) == 0 ||
-	          strncmp(last3,"VDD",3) == 0 ||
-	          strncmp(last3,"vdd",3) == 0 ||
-	          strncmp(last3,"Gnd",3) == 0 ||
-	          strncmp(last3,"gnd",3) == 0 ||
-	          strncmp(last3,"GND",3) == 0) &&
-	          (node->status & FORCE) != FORCE) continue;
-	}
+	/* Ignore specified nodes */
+	he = HashLookOnly(&ResIgnoreTable, node->name);
+	if (he != NULL) continue;
 
 	/* Has this node been merged away or is it marked as skipped? */
 	/* If so, skip it */
@@ -949,21 +962,25 @@ ResCheckSimNodes(celldef, resisdata)
 		((node->status & SKIP) &&
 	  	(ResOptionsFlags & ResOpt_ExtractAll) == 0))
 	    continue;
+
+	ResCurrentNode = node->name;
 	total++;
 
      	ResSortByGate(&node->firstDev);
-	/* Find largest SD device connected to node.	*/
+
+	/* Find largest SD device connected to node. */
 
 	minRes = FLT_MAX;
 	gparams.rg_devloc = (Point *) NULL;
 	gparams.rg_status = FALSE;
 	gparams.rg_nodecap = node->capacitance;
 
-	/* the following is only used if there is a drivepoint */
-	/* to identify which tile the drivepoint is on.	 */
+	/* The following is only used if there is a drivepoint */
+	/* to identify which tile the drivepoint is on.	       */
+
 	gparams.rg_ttype = node->rs_ttype;
 
-	for (ptr = node->firstDev; ptr != NULL; ptr=ptr->nextDev)
+	for (ptr = node->firstDev; ptr != NULL; ptr = ptr->nextDev)
 	{
 	    RDev	*t1;
 	    RDev	*t2;
@@ -974,8 +991,9 @@ ResCheckSimNodes(celldef, resisdata)
 	    }
 	    else
 	    {
-	       	/* get cumulative resistance of all devices */
-		/* with same connections.			    */
+	       	/* Get cumulative resistance of all devices */
+		/* with same connections.		    */
+
 		cumRes = ptr->thisDev->resistance;
 	        t1 = ptr->thisDev;
 		for (; ptr->nextDev != NULL; ptr = ptr->nextDev)
@@ -988,7 +1006,7 @@ ResCheckSimNodes(celldef, resisdata)
 			    (t1->source != t2->drain ||
 			     t1->drain  != t2->source)) break;
 
-		    /* do parallel combination  */
+		    /* Do parallel combination  */
 		    if ((cumRes != 0.0) && (t2->resistance != 0.0))
 		    {
 			cumRes = (cumRes * t2->resistance) /
@@ -1036,7 +1054,7 @@ ResCheckSimNodes(celldef, resisdata)
 	if ((gparams.rg_devloc == NULL) && (node->status & FORCE))
 	{
     	    TxError("Node %s has force label but no drive point or "
-			"driving device\n",node->name);
+			"driving device\n", node->name);
 	}
 	if ((minRes == FLT_MAX) || (gparams.rg_devloc == NULL))
 	{
