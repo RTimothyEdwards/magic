@@ -732,15 +732,24 @@ extOutputNodes(nodeList, outFile)
 	/* nets.							*/
 
 	for (ll = reg->nreg_labels; ll; ll = ll->ll_next)
+	{
+	    bool isPort = (ll->ll_attr == LL_PORTATTR) ? TRUE : FALSE;
 	    if (ll->ll_label->lab_text == text)
 	    {
 		for (ll = ll->ll_next; ll; ll = ll->ll_next)
 		     if (extLabType(ll->ll_label->lab_text, LABTYPE_NAME))
 			if (strcmp(text, ll->ll_label->lab_text))
+			{
 			    fprintf(outFile, "equiv \"%s\" \"%s\"\n",
 					    text, ll->ll_label->lab_text);
+			    if (isPort && (ll->ll_attr == LL_PORTATTR))
+				TxError("Warning:  Ports \"%s\" and \"%s\" are"
+					" electrically shorted.\n",
+					text, ll->ll_label->lab_text);
+			}
 		break;
 	    }
+	}
     }
 }
 

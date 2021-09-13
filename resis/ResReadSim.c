@@ -968,9 +968,9 @@ ResSimMerge(line)
      	TxError("Bad node alias line\n");
 	return(1);
     }
-    node = ResInitializeNode(HashFind(&ResNodeTable, line[ALIASNAME]));
+    node = ResInitializeNode(HashFind(&ResNodeTable, line[REALNAME]));
     node->status |= FORWARD;
-    node->forward = ResInitializeNode(HashFind(&ResNodeTable, line[REALNAME]));
+    node->forward = ResInitializeNode(HashFind(&ResNodeTable, line[ALIASNAME]));
     node->forward->resistance += node->resistance;
     node->forward->capacitance += node->capacitance;
     while (node->firstDev != NULL)

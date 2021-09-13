@@ -1603,18 +1603,31 @@ int simnodeVisit(node, res, cap)
 	putc('\n', esSimF);
     }
 
-    if (esAliasF)
+    /* Write aliases.  If the "ext2sim alias on" option was issued, then
+     * write to the alias file only (<name>.al).  Otherwise write to the
+     * <name>.sim file.
+     */
+    isGlob = EFHNIsGlob(hierName);
+    for (nn = node->efnode_name->efnn_next; nn; nn = nn->efnn_next)
     {
-	isGlob = EFHNIsGlob(hierName);
-	for (nn = node->efnode_name->efnn_next; nn; nn = nn->efnn_next)
+	if (isGlob && EFHNIsGlob(nn->efnn_hier))
+	    continue;
+
+	if (esAliasF)
 	{
-	    if (isGlob && EFHNIsGlob(nn->efnn_hier))
-		continue;
 	    fprintf(esAliasF, "= ");
 	    EFHNOut(hierName, esAliasF);
 	    fprintf(esAliasF, " ");
 	    EFHNOut(nn->efnn_hier, esAliasF);
 	    fprintf(esAliasF, "\n");
+	}
+	else
+	{
+	    fprintf(esSimF, "= ");
+	    EFHNOut(hierName, esSimF);
+	    fprintf(esSimF, " ");
+	    EFHNOut(nn->efnn_hier, esSimF);
+	    fprintf(esSimF, "\n");
 	}
     }
 
