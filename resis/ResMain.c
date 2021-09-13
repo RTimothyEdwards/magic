@@ -200,7 +200,7 @@ ResMakePortBreakpoints(def)
     HashStartSearch(&hs);
     while((entry = HashNext(&ResNodeTable,&hs)) != NULL)
     {
-	node=(ResSimNode *) HashGetValue(entry);
+	node = (ResSimNode *)HashGetValue(entry);
 	if (node->status & PORTNODE)
 	{
 	    if (node->rs_ttype <= 0)
@@ -209,7 +209,6 @@ ResMakePortBreakpoints(def)
 		continue;
 	    }
 
-	    plane = def->cd_planes[DBPlane(node->rs_ttype)];
 	    rect  = &(node->rs_bbox);
 
 	    /* Beware of zero-area ports */
@@ -224,7 +223,31 @@ ResMakePortBreakpoints(def)
 		rect->r_ytop++;
 	    }
 
-	    TTMaskSetOnlyType(&mask, node->rs_ttype);
+
+	    /* If label is on a contact, the contact has been dissolved. */
+	    /* Assume that the uppermost residue is the port.  This may	 */
+	    /* not necessarily be the case.  Could do a boundary scan on */
+	    /* each residue plane to see which side of the contact is	 */
+	    /* the internal connection in the def. . .			 */
+
+	    if (DBIsContact(node->rs_ttype))
+	    {
+		TileType type;
+
+		DBFullResidueMask(node->rs_ttype, &mask);
+		for (type = DBNumUserLayers - 1; type >= TT_TECHDEPBASE; type--)
+		    if (TTMaskHasType(&mask, type))
+		    {
+			plane = def->cd_planes[DBPlane(type)];
+			break;
+		    }
+	    }
+	    else
+	    {
+		TTMaskSetOnlyType(&mask, node->rs_ttype);
+		plane = def->cd_planes[DBPlane(node->rs_ttype)];
+	    }
+
 	    (void) DBSrPaintArea((Tile *) NULL, plane, rect, &mask,
 			ResAddBreakpointFunc, (ClientData)node);
 	}
@@ -266,10 +289,32 @@ ResMakeLabelBreakpoints(def)
         node->rs_ttype = slab->lab_type;
         node->type = slab->lab_type;
 
-	plane = def->cd_planes[DBPlane(slab->lab_type)];
-	rect  = &(node->rs_bbox);
+	rect = &(node->rs_bbox);
 
-	TTMaskSetOnlyType(&mask, slab->lab_type);
+	/* If label is on a contact, the contact has been dissolved.	*/
+	/* Assume that the uppermost residue is the port.  This may	*/
+	/* not necessarily be the case.  Could do a boundary scan on	*/
+	/* each residue plane to see which side of the contact is	*/
+	/* the internal connection in the def. . .			*/
+
+	if (DBIsContact(slab->lab_type))
+	{
+	    TileType type;
+
+	    DBFullResidueMask(slab->lab_type, &mask);
+	    for (type = DBNumUserLayers - 1; type >= TT_TECHDEPBASE; type--)
+		if (TTMaskHasType(&mask, type))
+		{
+		    plane = def->cd_planes[DBPlane(type)];
+		    break;
+		}
+	}
+	else
+	{
+		TTMaskSetOnlyType(&mask, slab->lab_type);
+		plane = def->cd_planes[DBPlane(slab->lab_type)];
+	}
+
 	(void) DBSrPaintArea((Tile *) NULL, plane, rect, &mask,
 			ResAddBreakpointFunc, (ClientData)node);
 
