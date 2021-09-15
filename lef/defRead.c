@@ -945,6 +945,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
     int pinUse = PORT_USE_DEFAULT;
     int pinNum = 0;
     TileType curlayer = -1;
+    LinkedRect *rectList = NULL, *newRect;
     Rect *currect, topRect;
     Transform t;
     lefLayer *lefl;
@@ -1108,6 +1109,13 @@ DefReadPins(f, rootDef, sname, oscale, total)
 			case DEF_PINS_PROP_LAYER:
 			    curlayer = LefReadLayer(f, FALSE);
 			    currect = LefReadRect(f, curlayer, oscale);
+
+			    newRect = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+			    newRect->r_type = curlayer;
+			    newRect->r_r = *currect;
+			    newRect->r_next = rectList;
+			    rectList = newRect;
+
 			    if (pending)
 			    {
 				/* If layer was unknown, set to space and force	*/
@@ -1118,10 +1126,16 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				else
 				    flags |= LABEL_STICKY;
 
-				GeoTransRect(&t, currect, &topRect);
-				DBPaint(rootDef, &topRect, curlayer);
-				DBPutLabel(rootDef, &topRect, -1, pinname, curlayer,
-					pinNum | pinDir | pinUse | flags);
+				while (rectList != NULL)
+				{
+				    GeoTransRect(&t, &rectList->r_r, &topRect);
+				    DBPaint(rootDef, &topRect, rectList->r_type);
+				    DBPutLabel(rootDef, &topRect, -1, pinname,
+						rectList->r_type,
+						pinNum | pinDir | pinUse | flags);
+				    freeMagic(rectList);
+				    rectList = rectList->r_next;
+				}
 				pending = FALSE;
 				pinNum++;
 			    }
@@ -1141,10 +1155,17 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				else
 				    flags |= LABEL_STICKY;
 
-				GeoTransRect(&t, currect, &topRect);
-				DBPaint(rootDef, &topRect, curlayer);
-				DBPutLabel(rootDef, &topRect, -1, pinname, curlayer,
-					pinNum | pinDir | pinUse | flags);
+				while (rectList != NULL)
+				{
+				    GeoTransRect(&t, &rectList->r_r, &topRect);
+				    DBPaint(rootDef, &topRect, rectList->r_type);
+				    DBPutLabel(rootDef, &topRect, -1, pinname,
+						rectList->r_type,
+						pinNum | pinDir | pinUse | flags);
+				    freeMagic(rectList);
+				    rectList = rectList->r_next;
+				}
+				pending = FALSE;
 				pinNum++;
 			    }
 			    break;
