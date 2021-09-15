@@ -395,6 +395,8 @@ ResMoveDevices(node1, node2)
 	{
 	    if (device->rd_fet_gate == node1)
    	        device->rd_fet_gate = node2;
+	    else if (device->rd_fet_subs == node1)
+   	        device->rd_fet_subs = node2;
 	    else if (device->rd_fet_source == node1)
 	        device->rd_fet_source = node2;
 	    else if (device->rd_fet_drain == node1)

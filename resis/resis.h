@@ -461,18 +461,20 @@ typedef struct capval
 #define		RES_DEV_PLUG		0x00000002
 
 /* flags for tiles 				  	*/
+/* A tile which is part of a substrate region.		*/
+#define RES_TILE_SUBS	0x01
 /* A tile which is part of a source/drain region. 	*/
-#define RES_TILE_SD	0x1
+#define RES_TILE_SD	0x02
 /* A tile which is actually a device			*/
-#define RES_TILE_DEV 	0x2
+#define RES_TILE_DEV 	0x04
 /* Indicates whether the tile has been processed or not */
-#define RES_TILE_DONE	0x4
+#define RES_TILE_DONE	0x08
 /*a temporary marking flag 				*/
-#define RES_TILE_MARK	0x8
+#define RES_TILE_MARK	0x10
 /* indicates that tile has unidirectional current flow */
 #ifdef LAPLACE
-#define RES_TILE_1D	0x10
-#define RES_TILE_GDONE	0x20
+#define RES_TILE_1D	0x20
+#define RES_TILE_GDONE	0x40
 #endif
 /* tree walking flags */
 #define	RES_LOOP_OK	1
@@ -604,6 +606,7 @@ extern int			ResTileCount;
 extern ResSimNode		**ResNodeArray;
 extern CellDef			*mainDef;
 extern TileTypeBitMask		ResSDTypesBitMask;
+extern TileTypeBitMask		ResSubTypesBitMask;
 extern	HashTable		ResDevTable;
 extern TileTypeBitMask		ResNoMergeMask[NT];
 extern	ResGlobalParams		gparams;

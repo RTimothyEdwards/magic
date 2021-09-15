@@ -590,7 +590,7 @@ typedef enum {
 
     /* Do subcircuits (if any) first */
     if (!(ResOptionsFlags & ResOpt_Blackbox))
-	(void) DBCellSrDefs(0, resSubcircuitFunc, (ClientData) &resisdata);
+	DBCellEnum(mainDef, resSubcircuitFunc, (ClientData) &resisdata);
 
     ExtResisForDef(mainDef, &resisdata);
 
@@ -617,7 +617,9 @@ typedef enum {
  *-------------------------------------------------------------------------
  *
  * resSubcircuitFunc --
- *	For each encountered cell, call the resistance extractor.
+ *	For each encountered cell, call the resistance extractor,
+ *	then recursively call resSubcircuitFunc on all children
+ *	of the cell.
  *
  * Results:
  *	Always return 0 to keep search alive.
@@ -633,12 +635,11 @@ resSubcircuitFunc(cellDef, rdata)
     CellDef *cellDef;
     ResisData *rdata;
 {
-    if ((cellDef->cd_flags & CDINTERNAL) == CDINTERNAL)
-	return 0;
-
-    if (cellDef != rdata->mainDef)
-	if (DBIsSubcircuit(cellDef))
-	    ExtResisForDef(cellDef, rdata);
+    if (DBIsSubcircuit(cellDef))
+    {
+	ExtResisForDef(cellDef, rdata);
+	DBCellEnum(cellDef, resSubcircuitFunc, (ClientData)rdata);
+    }
     return 0;
 }
 
@@ -1202,7 +1203,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 {
     static char	newname[MAXNAME], oldnodename[MAXNAME];
     int		notdecremented;
-    resNode	*gate, *source, *drain;
+    resNode	*gate, *source, *drain, *subs;
 
     /* If we aren't doing output (i.e. this is just a statistical run) */
     /* don't patch up networks.  This cuts down on memory use.		*/
@@ -1241,6 +1242,24 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	}
 	else
 	    TxError("Missing gate connection of device at (%d %d) on net %s\n",
+			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
+			nodename);
+    }
+    if (simDev->subs == simNode)
+    {
+	if ((subs = layoutDev->rd_fet_subs) != NULL)
+	{
+	    if (subs->rn_name != NULL && notdecremented)
+	    {
+	       	resNodeNum--;
+		notdecremented = FALSE;
+	    }
+	    ResFixDevName(newname, SUBS, simDev, subs);
+	    subs->rn_name = simDev->subs->name;
+     	    sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
+	}
+	else
+	    TxError("Missing substrate connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
     }
@@ -1422,6 +1441,10 @@ ResFixDevName(line, type, device, layoutnode)
      	case DRAIN:
 	    node->oldname = device->drain->name;
 	    device->drain = node;
+	    break;
+     	case SUBS:
+	    node->oldname = device->subs->name;
+	    device->subs = node;
 	    break;
 	default:
 	    TxError("Bad Terminal Specifier\n");

@@ -98,6 +98,58 @@ ResNewSDDevice(tile, tp, xj, yj, direction, PendingList)
 /*
  *-------------------------------------------------------------------------
  *
+ * ResNewSubDevice -- called when a device is reached via a substrate.
+ *
+ * Results:none
+ *
+ * Side Effects: Makes new node if node hasn't already been created.
+ * Allocates breakpoint in current tile for device.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResNewSubDevice(tile, tp, xj, yj, direction, PendingList)
+    Tile 	*tile, *tp;
+    int 	xj, yj, direction;
+    resNode	**PendingList;
+{
+    resNode	*resptr;
+    resDevice	*resDev;
+    tElement	*tcell;
+    int		newnode;
+    tileJunk	*j;
+
+    newnode = FALSE;
+    j = (tileJunk *) tp->ti_client;
+    resDev = j->deviceList;
+
+    if (resDev->rd_fet_subs == (resNode *) NULL)
+    {
+	    resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
+	    newnode = TRUE;
+	    resDev->rd_fet_subs = resptr;
+    }
+    else
+    {
+	    resptr = resDev->rd_fet_subs;
+    }
+
+    if (newnode)
+    {
+	tcell = (tElement *) mallocMagic((unsigned)(sizeof(tElement)));
+	tcell->te_nextt = NULL;
+	tcell->te_thist = j->deviceList;
+	InitializeNode(resptr, xj, yj, RES_NODE_DEVICE);
+	resptr->rn_te = tcell;
+	ResAddToQueue(resptr, PendingList);
+    }
+    NEWBREAK(resptr, tile, xj, yj, NULL);
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * ResProcessJunction-- Called whenever a tile  connecting to the tile being
  *	worked on is found. If a junction is already present, its address is
  *      returned. Otherwise, a new junction is made.

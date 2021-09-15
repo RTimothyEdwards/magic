@@ -143,6 +143,37 @@ ResMultiPlaneFunc(tile, tpptr)
 /*
  *--------------------------------------------------------------------------
  *
+ * ResSubstrateFunc---
+ *
+ *  If device is found overlapping its substrate type, then generate a new
+ *  device at the center of the tile and add to ResNodeQueue.
+ *
+ * Results:
+ *	Always 0 to keep the search going.
+ *
+ * Side effects:
+ *	Adds to ResNodeQueue
+ *
+ *--------------------------------------------------------------------------
+ */
+
+int
+ResSubstrateFunc(tile, tpptr)
+    Tile *tile, **tpptr;
+{
+    Tile *tp = *tpptr;
+    int	 xj, yj;
+
+    xj = (LEFT(tile) + RIGHT(tile)) / 2;
+    yj = (TOP(tile) + BOTTOM(tile)) / 2;
+    ResNewSubDevice(tp, tile, xj, yj, OTHERPLANE, &ResNodeQueue);
+
+    return 0;
+}
+
+/*
+ *--------------------------------------------------------------------------
+ *
  * ResEachTile--for each tile, make a list of all possible current sources/
  *   sinks including contacts, devices, and junctions.  Once this
  *   list is made, calculate the resistor network for the tile.
@@ -370,6 +401,36 @@ ResEachTile(tile, startpoint)
 	}
     }
 
+    /* Check for substrate under device */
+
+    if (TTMaskHasType(&ResSubTypesBitMask, t1))
+    {
+	Rect r;
+	int pNum;
+	TileTypeBitMask devMask;
+
+	TiToRect(tile, &r);
+
+	for (pNum = 0; pNum < DBNumPlanes; pNum++)
+	{
+	    if (DBTypeOnPlane(t1, pNum)) continue;
+
+	    /* NOTE:  This is ridiculously inefficient and should be done
+	     * in a different way.
+	     */
+
+	    TTMaskZero(&devMask);
+	    for (t2 = TT_TECHDEPBASE; t2 < DBNumUserLayers; t2++)
+		for (devptr = ExtCurStyle->exts_device[t2]; devptr;
+			    devptr = devptr->exts_next)
+		    if (TTMaskHasType(&devptr->exts_deviceSubstrateTypes, t1))
+			TTMaskSetType(&devMask, t2);
+
+	    DBSrPaintArea((Tile *)NULL, ResUse->cu_def->cd_planes[pNum],
+			&r, &devMask, ResSubstrateFunc, (ClientData)&tile);
+	}
+    }
+
     tstructs->tj_status |= RES_TILE_DONE;
 
     resAllPortNodes(tile, &ResNodeQueue);
@@ -394,7 +455,7 @@ ResEachTile(tile, startpoint)
  */
 
 int
-resSubDevFunc(tile,tp)
+resSubDevFunc(tile, tp)
     Tile	*tile, *tp;
 {
     tileJunk	*junk = (tileJunk *)(tile->ti_client);

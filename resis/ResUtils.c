@@ -111,6 +111,26 @@ resMultiPlaneTerm(Tile *tile, tileJunk *junk2)
 /*
  *--------------------------------------------------------------------------
  *
+ * resSubstrateTerm --
+ *
+ * Callback function to set a junk field
+ *
+ *--------------------------------------------------------------------------
+ */
+
+int
+resSubstrateTerm(Tile *tile)
+{
+    tileJunk *Junk;
+    
+    Junk = resAddField(tile);
+    Junk->tj_status |= RES_TILE_SUBS;
+    return 0;
+}
+
+/*
+ *--------------------------------------------------------------------------
+ *
  * ResEach--
  *
  * ResEach calls ResFirst unless this is the first contact, in which case it
@@ -165,6 +185,7 @@ ResAddPlumbing(tile, arg)
     Tile		*tp1, *tp2, *source;
     resDevice		*resDev;
     ExtDevice		*devptr;
+    TileTypeBitMask	locDevSubsMask;
 
     if (resDevStack == NULL)
      	resDevStack = StackNew(64);
@@ -181,7 +202,8 @@ ResAddPlumbing(tile, arg)
      	junk2 = resAddField(tile);
 	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), loctype))
 	{
-	    int i, nterms;
+	    int i, nterms, pNum;
+	    Rect r;
 
 	    /* Count SD terminals of the device */
 	    nterms = 0;
@@ -288,9 +310,6 @@ ResAddPlumbing(tile, arg)
 		/* other plane (in ResUse) */
 		if (source == NULL)
 		{
-		    int pNum;
-		    Rect r;
-
 		    TiToRect(tile, &r);
 		    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 		    {
@@ -379,6 +398,22 @@ ResAddPlumbing(tile, arg)
 			}
 		    }
 		}
+	    }
+
+	    /* Find device substrate */
+
+	    TTMaskZero(&locDevSubsMask);
+	    TTMaskSetMask(&locDevSubsMask, &(devptr->exts_deviceSubstrateTypes));
+	    TTMaskClearType(&locDevSubsMask, TT_SPACE);
+
+	    TiToRect(tile, &r);
+	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	    {
+		if (TTMaskIntersect(&DBPlaneTypes[pNum], &locDevSubsMask))
+		    DBSrPaintArea((Tile *)NULL, 
+				    ResUse->cu_def->cd_planes[pNum],
+				    &r, &locDevSubsMask,
+				    resSubstrateTerm, (ClientData)NULL);
 	    }
 
 	    /* find rest of device; search for source edges */

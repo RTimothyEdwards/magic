@@ -44,6 +44,7 @@ extern int		ResEachTile();
 extern int		ResLaplaceTile();
 extern ResSimNode	*ResInitializeNode();
 TileTypeBitMask		ResSDTypesBitMask;
+TileTypeBitMask		ResSubTypesBitMask;
 
 extern HashTable	ResNodeTable;
 
@@ -374,6 +375,21 @@ ResFindNewContactTiles(contacts)
     for (; contacts != (ResContactPoint *) NULL; contacts = contacts->cp_nextcontact)
     {
 	DBFullResidueMask(contacts->cp_type, &mask);
+
+	/* Watch for types that connect to the substrate plane or well;	*/
+	/* e.g., psubstratepdiff connects to nwell but not through a	*/
+	/* contact.							*/
+
+	if (ExtCurStyle->exts_globSubstratePlane != -1)
+	{
+	    TileTypeBitMask cMask;
+	    TTMaskAndMask3(&cMask, &DBConnectTbl[contacts->cp_type],
+		&DBPlaneTypes[ExtCurStyle->exts_globSubstratePlane]);
+
+	    if (!TTMaskIsZero(&cMask))
+		TTMaskSetMask(&mask, &cMask);
+	}
+	
      	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	{
 	    tile = ResDef->cd_planes[pNum]->pl_hint;
@@ -948,6 +964,7 @@ ResExtractNet(node, goodies, cellname)
 					SEL_DO_LABELS, ResUse);
 
     TTMaskZero(&ResSDTypesBitMask);
+    TTMaskZero(&ResSubTypesBitMask);
 
     /* Add devices to ResUse from list in node */
     DevTiles = NULL;
@@ -991,6 +1008,15 @@ ResExtractNet(node, goodies, cellname)
 		    devptr = devptr->exts_next)
 	    for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
 		TTMaskSetMask(&ResSDTypesBitMask, &devptr->exts_deviceSDTypes[i]);
+
+	/* Add the substrate types to the mask ResSubTypesBitMask	    */
+
+	for (devptr = ExtCurStyle->exts_device[thisDev->type]; devptr;
+		    devptr = devptr->exts_next)
+	    TTMaskSetMask(&ResSubTypesBitMask, &devptr->exts_deviceSubstrateTypes);
+
+	/* TT_SPACE should be removed from ResSubTypesBitMask */
+	TTMaskClearType(&ResSubTypesBitMask, TT_SPACE);
     }
     DBReComputeBbox(ResUse->cu_def);
 
