@@ -498,14 +498,14 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	    else
 		sdev = DEV_VOLT;
 
-	    for (i = 0; i < 10; i++) argv[i] = zeroarg;
+	    for (i = 0; i < 8; i++) argv[i] = zeroarg;
 	    argv[0] = StrDup((char **)NULL, "0.0");
-	    argv[4] = StrDup((char **)NULL, nodeName1);
-	    argv[7] = StrDup((char **)NULL, nodeName2);
-	    efBuildDevice(def, sdev, "None", &GeoNullRect, 10, argv);
+	    argv[1] = StrDup((char **)NULL, nodeName1);
+	    argv[4] = StrDup((char **)NULL, nodeName2);
+	    efBuildDevice(def, sdev, "None", &GeoNullRect, 7, argv);
 	    freeMagic(argv[0]);
+	    freeMagic(argv[1]);
 	    freeMagic(argv[4]);
-	    freeMagic(argv[7]);
 	    return;
 	}
 	else
