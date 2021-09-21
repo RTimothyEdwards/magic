@@ -491,21 +491,23 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	{
 	    int i;
 	    int sdev;
-	    char *argv[7], zeroarg[] = "0";
+	    char *argv[10], zeroarg[] = "0";
 
 	    if ((EFOutputFlags & EF_SHORT_MASK) == EF_SHORT_R)
 		sdev = DEV_RES;
 	    else
 		sdev = DEV_VOLT;
 
-	    for (i = 0; i < 8; i++) argv[i] = zeroarg;
+	    for (i = 0; i < 10; i++) argv[i] = zeroarg;
 	    argv[0] = StrDup((char **)NULL, "0.0");
-	    argv[1] = StrDup((char **)NULL, nodeName1);
-	    argv[4] = StrDup((char **)NULL, nodeName2);
-	    efBuildDevice(def, sdev, "None", &GeoNullRect, 7, argv);
+	    argv[1] = StrDup((char **)NULL, "dummy");
+	    argv[4] = StrDup((char **)NULL, nodeName1);
+	    argv[7] = StrDup((char **)NULL, nodeName2);
+	    efBuildDevice(def, sdev, "None", &GeoNullRect, 10, argv);
 	    freeMagic(argv[0]);
 	    freeMagic(argv[1]);
 	    freeMagic(argv[4]);
+	    freeMagic(argv[7]);
 	    return;
 	}
 	else

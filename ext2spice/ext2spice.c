@@ -2675,7 +2675,7 @@ spcdevVisit(dev, hc, scale, trans)
 	    if (dev->dev_nterm > 1)
 		spcdevOutNode(hierName, source->dterm_node->efnode_name->efnn_hier,
 			name, esSpiceF);
-	    if (dev->dev_nterm > 1)
+	    if (dev->dev_nterm > 2)
 		spcdevOutNode(hierName, drain->dterm_node->efnode_name->efnn_hier,
 			name, esSpiceF);
 	    fprintf(esSpiceF, " 0.0");
