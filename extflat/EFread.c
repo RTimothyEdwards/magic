@@ -400,9 +400,8 @@ readfile:
 		}
 		*/
 
-		/* cap = (argc > 3) ? atoCap(argv[3]) * cscale : 0; */
-		/* 3/1/2017:  Cap adjustments now handled under SUBCAP. */
-		efBuildConnect(def, argv[1], argv[2], (double)0.0, &argv[4], argc - 4);
+		cap = (argc > 3) ? atoCap(argv[3]) * cscale : 0;
+		efBuildConnect(def, argv[1], argv[2], (double)cap, &argv[4], argc - 4);
 		break;
 
 	    /* node name R C x y layer a1 p1 a2 p2 ... [ attrs ] */
