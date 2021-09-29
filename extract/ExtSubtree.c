@@ -498,6 +498,7 @@ extSubtreeInteraction(ha)
 	for (oneFlat = extSubList; oneFlat; oneFlat = oneFlat->et_next)
 	    extHierAdjustments(ha, &ha->ha_cumFlat, oneFlat, &ha->ha_cumFlat);
 
+#if 0
 	/*
 	 * Output adjustments to substrate capacitance that are not
 	 * output anywhere else.  Nodes that connect down into the
@@ -506,6 +507,9 @@ extSubtreeInteraction(ha)
 	 * the current cell are not considered.  Anything left over
 	 * has its adjusted value output.
 	 */
+
+	/* Disabled (9/28/2021)---This does not work as advertised. */
+
 	for (reg = ha->ha_parentReg; reg; reg = reg->nreg_next)
 	{
 	    Rect r;
@@ -535,6 +539,7 @@ extSubtreeInteraction(ha)
 		    fprintf(ha->ha_outf, "subcap \"%s\" %lg\n", text, finC);
 	    }
 	}
+#endif
 
 	/*
 	 * Output adjustments to coupling capacitance.
