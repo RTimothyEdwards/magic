@@ -22,7 +22,7 @@
 
 2. Compilation and Installation:
 ---------------------------------
-   See the file "INSTALL" in this directory.
+   See the file "INSTALL" in this directory, or "INSTALL_MacOS.md" for MacOS.
 
 3. Version 8.3 Release Notes:
 ---------------------------------
