@@ -17,6 +17,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "tiles/tile.h"
 #include "utils/hash.h"
 #include "utils/undo.h"
+#include "utils/signals.h"
 #include "database/database.h"
 #include "utils/malloc.h"
 #include "textio/textio.h"
@@ -983,6 +984,8 @@ ResCheckSimNodes(celldef, resisdata)
     for (node = ResOriginalNodes; node != NULL; node=node->nextnode)
     {
 	HashEntry *he;
+
+	if (SigInterruptPending) break;
 
 	/* Ignore or include specified nodes */
 

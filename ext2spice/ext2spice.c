@@ -1718,6 +1718,7 @@ topVisit(def, doStub)
     char *instname;
     char *subcktname;
     char *pname;
+    char **sorted_ports;
     linkedNodeName *lnn = NULL;
 
     HashInit(&portNameTable, 32, HT_STRINGKEYS);
@@ -1778,75 +1779,83 @@ topVisit(def, doStub)
 	lnn = lnn->lnn_next;
     }
 
-    /* Port numbers need not start at zero or be contiguous. */
-    /* They will be printed in numerical order.              */
+    /* Port numbers need not start at zero or be contiguous.  They will be  */
+    /* printed in numerical order.  This is done by allocating space for    */
+    /* the output first and generating text into the allocated array	    */
+    /* indexed by port, to avoid multiple scans through the hash table.	    */
 
-    portorder = 0;
-    while (portorder <= portmax)
+    sorted_ports = (char **)mallocMagic((portmax + 1) * sizeof(char *));
+    for (portorder = 0; portorder <= portmax; portorder++) sorted_ports[portorder] = NULL;
+
+    HashStartSearch(&hs);
+    while (he = HashNext(&def->def_nodes, &hs))
     {
-	HashStartSearch(&hs);
-	while (he = HashNext(&def->def_nodes, &hs))
+	char stmp[MAX_STR_SIZE];
+	int portidx;
+	EFNodeName *unnumbered;
+
+	sname = (EFNodeName *) HashGetValue(he);
+	if (sname == NULL) continue;	/* Should not happen */
+	snode = sname->efnn_node;
+
+	if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
+
+	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	{
-	    char stmp[MAX_STR_SIZE];
-	    int portidx;
-	    EFNodeName *unnumbered;
+	    portidx = nodeName->efnn_port;
 
-	    sname = (EFNodeName *) HashGetValue(he);
-	    if (sname == NULL) continue;	/* Should not happen */
-	    snode = sname->efnn_node;
+	    /* If view is abstract, rely on the given port name, not
+	     * the node.  Otherwise, artifacts of the abstract view
+	     * may cause nodes to be merged and the names lost.
+	     */
 
-	    if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
-
-	    for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
+	    if (def->def_flags & DEF_ABSTRACT)
 	    {
-		portidx = nodeName->efnn_port;
-		if (portidx == portorder)
-		{
-		    if (tchars > 80)
-		    {
-			/* Line continuation */
-			fprintf(esSpiceF, "\n+");
-			tchars = 1;
-		    }
+		EFHNSprintf(stmp, nodeName->efnn_hier);
+		pname = stmp;
+	    }
+	    else
+		pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
 
-		    /* If view is abstract, rely on the given port name, not
-		     * the node.  Otherwise, artifacts of the abstract view
-		     * may cause nodes to be merged and the names lost.
-		     */
+	    if (HashLookOnly(&portNameTable, pname) == NULL)
+	    {
+		hep = HashFind(&portNameTable, pname);
+		HashSetValue(hep, (ClientData)(pointertype)nodeName->efnn_port);
+		sorted_ports[portidx] = StrDup((char **)NULL, pname);
+	    }
+	    else
+	    {
+		// Node that was unassigned has been found to be
+		// a repeat (see NOTE at top), so make sure its
+		// port number is set correctly.
 
-		    if (def->def_flags & DEF_ABSTRACT)
-		    {
-			EFHNSprintf(stmp, nodeName->efnn_hier);
-			pname = stmp;
-		    }
-		    else
-			pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
-
-		    if (HashLookOnly(&portNameTable, pname) == NULL)
-		    {
-			hep = HashFind(&portNameTable, pname);
-			HashSetValue(hep,
-				    (ClientData)(pointertype)nodeName->efnn_port);
-			fprintf(esSpiceF, " %s", pname);
-			tchars += strlen(pname) + 1;
-		    }
-		    else
-		    {
-			// Node that was unassigned has been found to be
-			// a repeat (see NOTE at top), so make sure its
-			// port number is set correctly.
-
-			hep = HashFind(&portNameTable, pname);
-			nodeName->efnn_port = (int)(pointertype)HashGetValue(hep);
-		    }
-		    break;
-		}
+		hep = HashFind(&portNameTable, pname);
+		nodeName->efnn_port = (int)(pointertype)HashGetValue(hep);
 	    }
 	    if (nodeName != NULL) break;
 	}
-	portorder++;
     }
     HashKill(&portNameTable);
+
+    /* Output all ports, in order */
+
+    for (portorder = 0; portorder <= portmax; portorder++)
+    {
+	if (sorted_ports[portorder] != NULL)
+	{
+	    if (tchars > 80)
+	    {
+		/* Line continuation */
+		fprintf(esSpiceF, "\n+");
+		tchars = 1;
+	    }
+	    fprintf(esSpiceF, " %s", sorted_ports[portorder]);
+	    tchars += strlen(pname) + 1;
+
+	    freeMagic(sorted_ports[portorder]);
+	}
+    }
+    freeMagic(sorted_ports);
 
     /* Add all implicitly-defined local substrate node names */
 
