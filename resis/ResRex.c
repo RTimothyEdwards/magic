@@ -44,7 +44,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Table of nodes to ignore (manually specified) */
 
-HashTable 	ResIgnoreTable;	/* Hash table of nodes to ignore  */
+HashTable 	ResIgnoreTable;	    /* Hash table of nodes to ignore  */
+
+/* Table of nodes to include (manually specified) */
+
+HashTable 	ResIncludeTable;    /* Hash table of nodes to include  */
 
 /* ResSimNode is a node read in from a sim file */
 
@@ -234,6 +238,7 @@ CmdExtResis(win, cmd)
 	"silent   [on/off]    turn on/off printing of net statistics",
 	"skip     mask        don't extract these types",
 	"ignore	  names	      don't extract these nets",
+	"include  names	      extract only these nets",
 	"box      type        extract the signal under the box on layer type",
 	"cell	   cellname    extract the network for the cell named cellname",
 	"blackbox [on/off]    treat subcircuits with ports as black boxes",
@@ -248,8 +253,8 @@ CmdExtResis(win, cmd)
 
 typedef enum {
 	RES_BAD=-2, RES_AMBIG, RES_TOL,
-	RES_ALL, RES_SIMP, RES_EXTOUT, RES_LUMPED,
-	RES_SILENT, RES_SKIP, RES_IGNORE, RES_BOX, RES_CELL,
+	RES_ALL, RES_SIMP, RES_EXTOUT, RES_LUMPED, RES_SILENT,
+	RES_SKIP, RES_IGNORE, RES_INCLUDE, RES_BOX, RES_CELL,
 	RES_BLACKBOX, RES_FASTHENRY, RES_GEOMETRY, RES_HELP,
 #ifdef LAPLACE
 	RES_LAPLACE,
@@ -268,6 +273,7 @@ typedef enum {
 	tdiTolerance = 1;
 	fhFrequency = 10e6;	/* 10 MHz default */
 	HashInit(&ResIgnoreTable, INITFLATSIZE, HT_STRINGKEYS);
+	HashInit(&ResIncludeTable, INITFLATSIZE, HT_STRINGKEYS);
 	init = 0;
     }
 
@@ -479,6 +485,31 @@ typedef enum {
 		/* List all net names that are being ignored */
 		HashStartSearch(&hs);
 		while((entry = HashNext(&ResIgnoreTable, &hs)) != NULL)
+		    TxPrintf("%s ", (char *)entry->h_key.h_name);
+		TxPrintf("\n");
+	    }
+	    return;
+
+	case RES_INCLUDE:
+	    if (cmd->tx_argc > 2)
+	    {
+		if (!strcasecmp(cmd->tx_argv[2], "all"))
+		{
+		    /* Kill and reinitialize the table of ignored nets */
+		    HashKill(&ResIncludeTable);
+		    HashInit(&ResIncludeTable, INITFLATSIZE, HT_STRINGKEYS);
+		}
+		else
+		    HashFind(&ResIncludeTable, cmd->tx_argv[2]);
+	    }
+	    else
+	    {
+		HashSearch hs;
+		HashEntry *entry;
+
+		/* List all net names that are being included */
+		HashStartSearch(&hs);
+		while((entry = HashNext(&ResIncludeTable, &hs)) != NULL)
 		    TxPrintf("%s ", (char *)entry->h_key.h_name);
 		TxPrintf("\n");
 	    }
@@ -953,9 +984,18 @@ ResCheckSimNodes(celldef, resisdata)
     {
 	HashEntry *he;
 
-	/* Ignore specified nodes */
-	he = HashLookOnly(&ResIgnoreTable, node->name);
-	if (he != NULL) continue;
+	/* Ignore or include specified nodes */
+
+	if (ResIncludeTable.ht_nEntries > 0)
+	{
+	    he = HashLookOnly(&ResIncludeTable, node->name);
+	    if (he == NULL) continue;
+	}
+	else
+	{
+	    he = HashLookOnly(&ResIgnoreTable, node->name);
+	    if (he != NULL) continue;
+	}
 
 	/* Has this node been merged away or is it marked as skipped? */
 	/* If so, skip it */
