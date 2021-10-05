@@ -1821,7 +1821,8 @@ topVisit(def, doStub)
 	    {
 		hep = HashFind(&portNameTable, pname);
 		HashSetValue(hep, (ClientData)(pointertype)nodeName->efnn_port);
-		sorted_ports[portidx] = StrDup((char **)NULL, pname);
+		if (sorted_ports[portidx] == NULL)
+		    sorted_ports[portidx] = StrDup((char **)NULL, pname);
 	    }
 	    else
 	    {
