@@ -1833,7 +1833,6 @@ topVisit(def, doStub)
 		hep = HashFind(&portNameTable, pname);
 		nodeName->efnn_port = (int)(pointertype)HashGetValue(hep);
 	    }
-	    if (nodeName != NULL) break;
 	}
     }
     HashKill(&portNameTable);
