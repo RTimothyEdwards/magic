@@ -1850,7 +1850,7 @@ topVisit(def, doStub)
 		tchars = 1;
 	    }
 	    fprintf(esSpiceF, " %s", sorted_ports[portorder]);
-	    tchars += strlen(pname) + 1;
+	    tchars += strlen(sorted_ports[portorder]) + 1;
 
 	    freeMagic(sorted_ports[portorder]);
 	}
