@@ -1683,8 +1683,18 @@ esMakePorts(hc, cdata)
 
 		    if (nn->efnn_node && !(nn->efnn_node->efnode_flags & EF_PORT))
 		    {
-			nn->efnn_node->efnode_flags |= EF_PORT;
-			nn->efnn_port = -1;	// Will be sorted later
+			/* If a node is marked EF_SUBS_NODE (is substrate)  */
+			/* but not EF_SUBS_PORT (connects to no devices)    */
+			/* and parasitic output is disabled, then do not    */
+			/* force the substrate connection to be a port.	    */
+
+			if ((EFCapThreshold != (EFCapValue)INFINITE_THRESHOLD_F) ||
+			    (!(nn->efnn_node->efnode_flags & EF_SUBS_NODE)) ||
+			    (nn->efnn_node->efnode_flags & EF_SUBS_PORT))
+			{
+			    nn->efnn_node->efnode_flags |= EF_PORT;
+			    nn->efnn_port = -1;	// Will be sorted later
+			}
 
 			// Diagnostic
 			// TxPrintf("Port connection in %s from net %s to net %s (%s)\n",

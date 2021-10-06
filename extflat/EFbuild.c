@@ -1844,6 +1844,8 @@ efNodeMerge(node1ptr, node2ptr)
 	keeping->efnode_flags |= EF_PORT;
     if (removing->efnode_flags & EF_TOP_PORT)
 	keeping->efnode_flags |= EF_TOP_PORT;
+    if (removing->efnode_flags & EF_SUBS_PORT)
+	keeping->efnode_flags |= EF_SUBS_PORT;
 
     /*
      * If "removing" has the EF_SUBS_NODE flag set, then copy the port
