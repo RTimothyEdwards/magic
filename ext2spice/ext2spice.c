@@ -1803,6 +1803,7 @@ topVisit(def, doStub)
 	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	{
 	    portidx = nodeName->efnn_port;
+	    if (portidx < 0) continue;
 
 	    /* If view is abstract, rely on the given port name, not
 	     * the node.  Otherwise, artifacts of the abstract view
