@@ -729,7 +729,11 @@ extOutputNodes(nodeList, outFile)
 
 	/* Output the alternate names for the node.  Avoid generating	*/
 	/* unnecessary "equiv A A" entries for labels on disconnected	*/
-	/* nets.							*/
+	/* nets.  Also avoid multiple "equiv" statements with the same	*/
+	/* nets (happens when ports with the same name have different	*/
+	/* port numbers, which should probably just be prohibited), and	*/
+	/* raise an error if two ports with different names are being	*/
+	/* marked as equivalent.					*/
 
 	for (ll = reg->nreg_labels; ll; ll = ll->ll_next)
 	{
@@ -740,7 +744,11 @@ extOutputNodes(nodeList, outFile)
 
 	    if (ll->ll_label->lab_text == text)
 	    {
+		char *portname = NULL;
+		char *lastname = NULL;
+
 		isPort = (ll->ll_attr == LL_PORTATTR) ? TRUE : FALSE;
+		if (isPort) portname = text;
 
 		for (ll = ll->ll_next; ll; ll = ll->ll_next)
 		     if (extLabType(ll->ll_label->lab_text, LABTYPE_NAME))
@@ -749,12 +757,22 @@ extOutputNodes(nodeList, outFile)
 			    if ((ll->ll_attr == LL_PORTATTR) ||
 					(ExtOptions & EXT_DOALIASES))
 			    {
-				fprintf(outFile, "equiv \"%s\" \"%s\"\n",
-					    text, ll->ll_label->lab_text);
-				if (isPort && (ll->ll_attr == LL_PORTATTR))
+				if ((portname == NULL) ||
+					    (strcmp(ll->ll_label->lab_text, portname)))
+				{
+				    if ((lastname == NULL) ||
+					    (strcmp(ll->ll_label->lab_text, lastname)))
+					fprintf(outFile, "equiv \"%s\" \"%s\"\n",
+						    text, ll->ll_label->lab_text);
+				    lastname = ll->ll_label->lab_text;
+				}
+				if ((portname != NULL) &&
+					    (strcmp(ll->ll_label->lab_text, portname)))
 				    TxError("Warning:  Ports \"%s\" and \"%s\" are"
 					    " electrically shorted.\n",
 					    text, ll->ll_label->lab_text);
+				if (!isPort && (ll->ll_attr == LL_PORTATTR))
+				    portname = ll->ll_label->lab_text;
 			    }
 			}
 		break;

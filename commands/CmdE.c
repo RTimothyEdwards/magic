@@ -925,6 +925,7 @@ CmdExtract(w, cmd)
 	"local			put all generated files in the current directory",
 	"resistance		estimate resistance",
 	"labelcheck		check for connections through sticky labels",
+	"aliases		output all net name aliases",
 	NULL
     };
     static char *cmdExtLength[] =
