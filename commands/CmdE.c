@@ -881,6 +881,7 @@ cmdExpandFunc(use, windowMask)
 #define	DOLOCAL		5
 #define	DORESISTANCE	6
 #define	DOLABELCHECK	7
+#define	DOALIASES	8
 
 #define	LENCLEAR	0
 #define	LENDRIVER	1
@@ -1148,6 +1149,7 @@ CmdExtract(w, cmd)
 		TxPrintf("%s local\n", OPTSET(EXT_DOLOCAL));
 		TxPrintf("%s resistance\n", OPTSET(EXT_DORESISTANCE));
 		TxPrintf("%s label check\n", OPTSET(EXT_DOLABELCHECK));
+		TxPrintf("%s aliases\n", OPTSET(EXT_DOALIASES));
 		return;
 #undef	OPTSET
 	    }
@@ -1177,6 +1179,7 @@ CmdExtract(w, cmd)
 		case DOLOCAL:		option = EXT_DOLOCAL; break;
 		case DORESISTANCE:	option = EXT_DORESISTANCE; break;
 		case DOLABELCHECK:	option = EXT_DOLABELCHECK; break;
+		case DOALIASES:		option = EXT_DOALIASES; break;
 	    }
 	    if (no) ExtOptions &= ~option;
 	    else ExtOptions |= option;

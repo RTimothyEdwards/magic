@@ -733,19 +733,31 @@ extOutputNodes(nodeList, outFile)
 
 	for (ll = reg->nreg_labels; ll; ll = ll->ll_next)
 	{
-	    bool isPort = (ll->ll_attr == LL_PORTATTR) ? TRUE : FALSE;
+	    bool isPort;
+
+	    /* Do not export aliases that are not ports unless the  */
+	    /* "extract do aliases" options was selected.	    */
+
+	    if (!(ExtOptions & EXT_DOALIASES) && (!isPort)) continue;
+
 	    if (ll->ll_label->lab_text == text)
 	    {
+		isPort = (ll->ll_attr == LL_PORTATTR) ? TRUE : FALSE;
+
 		for (ll = ll->ll_next; ll; ll = ll->ll_next)
 		     if (extLabType(ll->ll_label->lab_text, LABTYPE_NAME))
 			if (strcmp(text, ll->ll_label->lab_text))
 			{
-			    fprintf(outFile, "equiv \"%s\" \"%s\"\n",
+			    if ((ll->ll_attr == LL_PORTATTR) ||
+					(ExtOptions & EXT_DOALIASES))
+			    {
+				fprintf(outFile, "equiv \"%s\" \"%s\"\n",
 					    text, ll->ll_label->lab_text);
-			    if (isPort && (ll->ll_attr == LL_PORTATTR))
-				TxError("Warning:  Ports \"%s\" and \"%s\" are"
-					" electrically shorted.\n",
-					text, ll->ll_label->lab_text);
+				if (isPort && (ll->ll_attr == LL_PORTATTR))
+				    TxError("Warning:  Ports \"%s\" and \"%s\" are"
+					    " electrically shorted.\n",
+					    text, ll->ll_label->lab_text);
+			    }
 			}
 		break;
 	    }

@@ -70,6 +70,7 @@ extern char *extDevTable[];
 #define	EXT_DOALL		0x01f	/* ALL OF THE ABOVE */
 #define	EXT_DOLOCAL		0x020	/* Write to local directory only */
 #define	EXT_DOLABELCHECK	0x040	/* Check for connections by label */
+#define EXT_DOALIASES		0x080	/* Output all node aliases */
 
 extern int ExtOptions;		/* Bitmask of above */
 
