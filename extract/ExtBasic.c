@@ -738,8 +738,6 @@ extOutputNodes(nodeList, outFile)
 	    /* Do not export aliases that are not ports unless the  */
 	    /* "extract do aliases" options was selected.	    */
 
-	    if (!(ExtOptions & EXT_DOALIASES) && (!isPort)) continue;
-
 	    if (ll->ll_label->lab_text == text)
 	    {
 		isPort = (ll->ll_attr == LL_PORTATTR) ? TRUE : FALSE;
