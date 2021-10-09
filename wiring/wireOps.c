@@ -230,7 +230,7 @@ WirePickType(type, width)
     SelectClear();
     scx.scx_area = box;
     TTMaskSetOnlyType(&mask, WireType);
-    SelectArea(&scx, &mask, crec->dbw_bitmask);
+    SelectArea(&scx, &mask, crec->dbw_bitmask, NULL);
     DBWSetBox(scx.scx_use->cu_def, &box);
     TxPrintf("Using %s wires %d units wide.\n",
 	    DBTypeLongName(WireType), WireWidth);
@@ -989,18 +989,18 @@ WireAddContact(newType, newWidth)
 	GEO_EXPAND(&contactArea, -oldOverlap, &tmp);
 	scx.scx_area = tmp;
 	TTMaskSetOnlyType(&mask, contact->con_type);
-	SelectArea(&scx, &mask, 0);
+	SelectArea(&scx, &mask, 0, NULL);
 	if (conSurround1 != 0)
 	{
 	    GEO_EXPAND(&tmp, conSurround1, &scx.scx_area);
 	    TTMaskSetOnlyType(&mask, contact->con_layer1);
-	    SelectArea(&scx, &mask, 0);
+	    SelectArea(&scx, &mask, 0, NULL);
 	}
 	if (conSurround2 != 0)
 	{
 	    GEO_EXPAND(&tmp, conSurround2, &scx.scx_area);
 	    TTMaskSetOnlyType(&mask, contact->con_layer2);
-	    SelectArea(&scx, &mask, 0);
+	    SelectArea(&scx, &mask, 0, NULL);
 	}
     }
 

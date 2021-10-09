@@ -106,7 +106,7 @@ ExtResisForDef(celldef, resisdata)
     RDev	*oldRDev;
     HashSearch	hs;
     HashEntry	*entry;
-    devPtr	*tptr,*oldtptr;
+    devPtr	*tptr, *oldtptr;
     ResSimNode  *node;
     int		result, idx;
     char	*devname;
@@ -1495,18 +1495,13 @@ ResFixDevName(line, type, device, layoutnode)
     }
 }
 
+#if 1
 
 /*
  *-------------------------------------------------------------------------
  *
- *  ResSortByGate -- sorts device pointers whose terminal field is either
- *	drain or source by gate node number, then by drain (source) number.
- *	This places devices with identical connections next to one
- *	another.
- *
- * Results: none
- *
- * Side Effects: modifies order of devices
+ * Deprecated function.  Horribly inefficient.  See qsort() version below.
+ * (Not yet implemented;  still under test.)
  *
  *-------------------------------------------------------------------------
  */
@@ -1519,6 +1514,8 @@ ResSortByGate(DevpointerList)
     int		localchange = TRUE;
     devPtr	*working, *current;
     devPtr	*last = NULL, *gatelist = NULL;
+
+    /* Split out GATE entries into separate list (gatelist) */
 
     working = *DevpointerList;
     while (working != NULL)
@@ -1544,6 +1541,9 @@ ResSortByGate(DevpointerList)
 	    working = working->nextDev;
 	}
     }
+
+    /* Sort the SOURCE and DRAIN list (DevpointerList) */
+
     while (changed == TRUE)
     {
 	changed = localchange = FALSE;
@@ -1599,6 +1599,9 @@ ResSortByGate(DevpointerList)
 	    }
 	}
     }
+
+    /* Add the GATE list back to the end of Devpointerlist */
+
     if (working == NULL)
     {
 	*DevpointerList = gatelist;
@@ -1611,6 +1614,107 @@ ResSortByGate(DevpointerList)
 	    working->nextDev = gatelist;
     }
 }
+
+#endif	/* 1 */
+
+#if 0
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ * devSortFunc ---
+ *
+ *	qsort() sorting function for gates.  See description in
+ *	ResSortByGate() below.
+ *
+ * Returns:
+ *	1 or -1 depending on comparison result.  The devices are sorted
+ *	by gate first, then source or drain.
+ *
+ * Side effects:
+ *	qsort() reorders the indexed list of which dev1 and dev2 are
+ *	components.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+devSortFunc(dev1, dev2)
+    devPtr *dev1, *dev2;
+{
+    RDev *rd1 = dev1->thisDev;
+    RDev *rd2 = dev2->thisDev;
+
+    if (dev1->terminal == GATE)
+	return 1;
+    else if (dev2->terminal == GATE)
+	return -1;
+    else if (rd1->gate > rd2->gate)
+    	return 1;
+    else if (rd1->gate == rd2->gate)
+    {
+	if ((dev1->terminal == SOURCE &&
+		dev2->terminal == SOURCE &&
+		rd1->drain > rd2->drain)    ||
+		(dev1->terminal == SOURCE &&
+		dev2->terminal == DRAIN &&
+		rd1->drain > rd2->source)    ||
+		(dev1->terminal == DRAIN &&
+		dev2->terminal == SOURCE &&
+		rd1->source > rd2->drain)    ||
+		(dev1->terminal == DRAIN &&
+		dev2->terminal == DRAIN &&
+		rd1->source >  rd2->source))
+	{
+	    return 1;
+	}
+    }
+    return -1;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
+ *  ResSortByGate -- sorts device pointers whose terminal field is either
+ *	drain or source by gate node number, then by drain (source) number.
+ *	This places devices with identical connections next to one
+ *	another.
+ *
+ * Results: none
+ *
+ * Side Effects: modifies order of devices
+ *
+ *-------------------------------------------------------------------------
+ */
+
+void
+ResSortByGate(DevpointerList)
+    devPtr	**DevpointerList;
+{
+    devPtr	*working, **Devindexed;
+    int		listlen, listidx;
+
+    /* Linked lists are very slow to sort.  Create an indexed list  */
+    /* and run qsort() to sort, then regenerate the links.	    */
+
+    listlen = 0;
+    for (working = *DevpointerList; working; working = working->nextDev) listlen++;
+    Devindexed = (devPtr **)mallocMagic(listlen * sizeof(devPtr *));
+    listidx = 0;
+    for (working = *DevpointerList; working; working = working->nextDev)
+	Devindexed[listidx++] = working;
+
+    qsort(Devindexed, (size_t)listlen, (size_t)sizeof(devPtr *), devSortFunc);
+
+    for (listidx = 0; listidx < listlen - 1; listidx++)
+	Devindexed[listidx]->nextDev = Devindexed[listidx + 1];
+    Devindexed[listidx]->nextDev = NULL;
+
+    *Devpointerlist = Devindexed[0];
+    freeMagic(Devindexed);
+}
+
+#endif	/* 0 */
 
 /*
  *-------------------------------------------------------------------------

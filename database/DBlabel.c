@@ -228,7 +228,7 @@ DBPutFontLabel(cellDef, rect, font, size, rot, offset, align, text, type, flags)
 /*
  * ----------------------------------------------------------------------------
  *
- * DBEraseLabel --
+ * DBEraseGlobLabel --
  *
  * Delete labels attached to tiles of the indicated types that
  * are in the given area (as determined by the macro GEO_LABEL_IN_AREA).
@@ -250,13 +250,13 @@ DBPutFontLabel(cellDef, rect, font, size, rot, offset, align, text, type, flags)
  *	still enough material to keep them around.  The rect pointed to
  *	by areaReturn is filled with the area affected by removing the
  *	label, for purposes of redrawing the necessary portions of the
-*	screen.
+ *	screen.
  *
  * ----------------------------------------------------------------------------
  */
 
 bool
-DBEraseLabel(cellDef, area, mask, areaReturn)
+DBEraseGlobLabel(cellDef, area, mask, areaReturn, globmatch)
     CellDef *cellDef;		/* Cell being modified */
     Rect *area;			/* Area from which labels are to be erased.
 				 * This may be a point; any labels touching
@@ -266,6 +266,9 @@ DBEraseLabel(cellDef, area, mask, areaReturn)
 				 * be erased.
 				 */
     Rect *areaReturn;		/* Expand this with label bounding box */
+    char *globmatch;		/* If non-NULL, do glob-style matching of
+				 * any label against this string.
+				 */
 {
     Label *lab, *labPrev;
     bool erasedAny = FALSE;
@@ -288,6 +291,10 @@ DBEraseLabel(cellDef, area, mask, areaReturn)
 		newType = DBPickLabelLayer(cellDef, lab, 0);
 		if (DBConnectsTo(newType, lab->lab_type)) goto nextLab;
 	    }
+	}
+	if (globmatch != NULL)
+	{
+	    if (!Match(globmatch, lab->lab_text)) goto nextLab;
 	}
 
 	DBWLabelChanged(cellDef, lab, DBW_ALLWINDOWS);
@@ -318,6 +325,39 @@ DBEraseLabel(cellDef, area, mask, areaReturn)
 				&& (r1)->r_ybot == (r2)->r_ybot \
 				&& (r1)->r_xtop == (r2)->r_xtop \
 				&& (r1)->r_ytop == (r2)->r_ytop)
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * DBEraseLabel ---
+ *
+ *	Wrapper around DBEraseGlobLabel() with globmatch set to NULL so
+ *	that labels are erased verbatim rather that being matched against
+ *	a glob-style string.
+ *
+ * Results:
+ *	Passes back the result of DBEraseGlobLabel()
+ *
+ * Side effects:
+ *	See DBEraseGlobLabel()
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+DBEraseLabel(cellDef, area, mask, areaReturn)
+    CellDef *cellDef;		/* Cell being modified */
+    Rect *area;			/* Area from which labels are to be erased.
+				 * This may be a point; any labels touching
+				 * or overlapping it are erased.
+				 */
+    TileTypeBitMask *mask;	/* Mask of types from which labels are to
+				 * be erased.
+				 */
+    Rect *areaReturn;		/* Expand this with label bounding box */
+{
+    return DBEraseGlobLabel(cellDef, area, mask, areaReturn, NULL);
+}
 
 /*
  * ----------------------------------------------------------------------------

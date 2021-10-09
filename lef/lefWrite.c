@@ -1432,7 +1432,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		    {
 			Rect psetback;
 			GEO_EXPAND(&boundary, -pinonly, &psetback);
-			SelRemoveArea(&psetback, &DBAllButSpaceAndDRCBits);
+			SelRemoveArea(&psetback, &DBAllButSpaceAndDRCBits, NULL);
 		    }
 		}
 
@@ -1461,14 +1461,14 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 
 		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
 		GEO_EXPAND(&boundary, -setback, &carea);
-		SelRemoveArea(&carea, &DBAllButSpaceAndDRCBits);
+		SelRemoveArea(&carea, &DBAllButSpaceAndDRCBits, NULL);
 
 		/* Apply any additional setback from the "-pinonly" option */
 		if (pinonly > setback)
 		{
 		    Rect psetback;
 		    GEO_EXPAND(&boundary, -pinonly, &psetback);
-		    SelRemoveArea(&psetback, &DBAllButSpaceAndDRCBits);
+		    SelRemoveArea(&psetback, &DBAllButSpaceAndDRCBits, NULL);
 		}
 
 		/* Paint over the label area so that labels do not simply   */
@@ -1487,7 +1487,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		{
 		    Rect psetback;
 		    GEO_EXPAND(&boundary, -pinonly, &psetback);
-		    SelRemoveArea(&psetback, &DBAllButSpaceAndDRCBits);
+		    SelRemoveArea(&psetback, &DBAllButSpaceAndDRCBits, NULL);
 
 		    /* Paint over the label area so that labels do not simply   */
 		    /* disappear by being inside the setback area.		*/

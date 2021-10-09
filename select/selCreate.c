@@ -413,7 +413,7 @@ SelectIntersect(scx, type, xMask, negate)
  */
 
 void
-SelectArea(scx, types, xMask)
+SelectArea(scx, types, xMask, globmatch)
     SearchContext *scx;		/* Describes the area in which material
 				 * is to be selected.  The resulting
 				 * coordinates should map to the coordinates
@@ -432,6 +432,10 @@ SelectArea(scx, types, xMask)
 				 * must be expanded for their contents to be
 				 * considered.  0 means treat everything as
 				 * expanded.
+				 */
+    char *globmatch;		/* If non-NULL, and if L_LABELS is among the
+				 * selection types, then do glob-style matching
+				 * of any labels against this string.
 				 */
 {
     Rect labelArea, cellArea;
@@ -457,8 +461,13 @@ SelectArea(scx, types, xMask)
     /* Select labels. */
 
     if (TTMaskHasType(types, L_LABEL))
-        (void) DBCellCopyAllLabels(scx, &DBAllTypeBits, xMask,
-		SelectUse, &labelArea);
+    {
+	if (globmatch != NULL)
+	    DBCellCopyGlobLabels(scx, &DBAllTypeBits, xMask, SelectUse, &labelArea,
+		    globmatch);
+	else
+	    DBCellCopyAllLabels(scx, &DBAllTypeBits, xMask, SelectUse, &labelArea);
+    }
     else (void) DBCellCopyAllLabels(scx, types, xMask, SelectUse, &labelArea);
 
     /* Select unexpanded cell uses. */
@@ -803,7 +812,7 @@ chunkdone:
 
     if (less)
       {
-	SelRemoveArea(&bestChunk, &typeMask);
+	SelRemoveArea(&bestChunk, &typeMask, NULL);
       }
     else
       {
@@ -813,7 +822,7 @@ chunkdone:
 	if (DBIsContact(type))
 	    TTMaskSetOnlyType(&typeMask, type);
 
-	SelectArea(&newscx, &typeMask, xMask);
+	SelectArea(&newscx, &typeMask, xMask, NULL);
       }
 
     if (pArea != NULL) *pArea = bestChunk;

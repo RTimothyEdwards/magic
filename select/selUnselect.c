@@ -117,9 +117,10 @@ selRemoveCellFunc(scx, cdarg)
  */
 
 void
-SelRemoveArea(area, mask)
-     Rect *area;
-     TileTypeBitMask *mask;
+SelRemoveArea(area, mask, globmatch)
+    Rect *area;
+    TileTypeBitMask *mask;
+    char *globmatch;
 {
   SearchContext scx;
   Rect bbox, areaReturn;
@@ -134,7 +135,12 @@ SelRemoveArea(area, mask)
 
   areaReturn = *area;
   if (TTMaskHasType(mask, L_LABEL))
-	DBEraseLabel(SelectDef, area, &DBAllTypeBits, &areaReturn);
+  {
+	if (globmatch != NULL)
+	    DBEraseGlobLabel(SelectDef, area, &DBAllTypeBits, &areaReturn, globmatch);
+	else
+	    DBEraseLabel(SelectDef, area, &DBAllTypeBits, &areaReturn);
+  }
   else
 	DBEraseLabel(SelectDef, area, mask, &areaReturn);
 

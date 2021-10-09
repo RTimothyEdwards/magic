@@ -27,6 +27,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "tiles/tile.h"
 #include "utils/hash.h"
+#include "utils/utils.h"
 #include "database/database.h"
 #include "database/databaseInt.h"
 #include "textio/textio.h"
@@ -82,6 +83,9 @@ struct copyLabelArg
     Rect *cla_bbox;			/* If non-NULL, points to rectangle
 					 * to be filled in with total area of
 					 * all labels copied.
+					 */
+    char *cla_glob;			/* If non-NULL, used for glob-style
+					 * matching of labels during copy.
 					 */
 };
 
@@ -595,6 +599,7 @@ DBCellCopyAllLabels(scx, mask, xMask, targetUse, pArea)
 
     arg.cla_targetUse = targetUse;
     arg.cla_bbox = pArea;
+    arg.cla_glob = NULL;
     if (pArea != NULL)
     {
 	pArea->r_xbot = 0;
@@ -619,6 +624,9 @@ dbCopyAllLabels(scx, lab, tpath, arg)
     CellDef *def;
 
     def = arg->cla_targetUse->cu_def;
+    if (arg->cla_glob != NULL)
+	if (!Match(arg->cla_glob, lab->lab_text))
+	    return 0;
     if (!GEO_LABEL_IN_AREA(&lab->lab_rect, &(scx->scx_area))) return 0;
     GeoTransRect(&scx->scx_trans, &lab->lab_rect, &labTargetRect);
     targetPos = GeoTransPos(&scx->scx_trans, lab->lab_just);
@@ -646,6 +654,66 @@ dbCopyAllLabels(scx, lab, tpath, arg)
 	}
     }
     return 0;
+}
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * DBCellCopyGlobLabels --
+ *
+ * Copy labels from the tree rooted at scx->scx_use to targetUse,
+ * transforming according to the transform in scx.  Only labels
+ * attached to layers of the types specified by mask and which
+ * match the string "globmatch" by glob-style matching are copied.
+ * The area to be copied is determined by GEO_LABEL_IN_AREA.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Copies labels to targetUse, clipping against scx->scx_area.
+ *	If pArea is given, store in it the bounding box of all the
+ *	labels copied.
+ *
+ *-----------------------------------------------------------------------------
+ */
+
+void
+DBCellCopyGlobLabels(scx, mask, xMask, targetUse, pArea, globmatch)
+    SearchContext *scx;		/* Describes root cell to search, area to
+				 * copy, transform from root cell to coords
+				 * of targetUse.
+				 */
+    TileTypeBitMask *mask;	/* Only labels of these types are copied */
+    int xMask;			/* Expansion state mask to be used in search */
+    CellUse *targetUse;		/* Cell into which labels are to be stuffed */
+    Rect *pArea;		/* If non-NULL, points to a box that will be
+				 * filled in with bbox (in targetUse coords)
+				 * of all labels copied.  Will be degenerate
+				 * if nothing was copied.
+				 */
+    char *globmatch;		/* If non-NULL, only labels matching this
+				 * string by glob-style matching are copied.
+				 */
+{
+    int dbCopyAllLabels();
+    struct copyLabelArg arg;
+
+    /* DBTeeSrLabels finds all the labels that we want plus some more.
+     * We'll filter out the ones that we don't need.
+     */
+
+    arg.cla_targetUse = targetUse;
+    arg.cla_bbox = pArea;
+    arg.cla_glob = globmatch;
+    if (pArea != NULL)
+    {
+	pArea->r_xbot = 0;
+	pArea->r_xtop = -1;
+    }
+    (void) DBTreeSrLabels(scx, mask, xMask, (TerminalPath *) 0,
+			TF_LABEL_ATTACH, dbCopyAllLabels,
+			(ClientData) &arg);
 }
 
 /*

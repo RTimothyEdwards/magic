@@ -570,10 +570,11 @@ CmdSee(w, cmd)
 
 	/* ARGSUSED */
 void
-cmdSelectArea(layers, less, option)
+cmdSelectArea(layers, less, option, globmatch)
     char *layers;			/* Which layers are to be selected. */
     bool less;
     int option;				/* Option from defined list above */
+    char *globmatch;			/* Optional match string for labels */
 {
     SearchContext scx;
     TileTypeBitMask mask;
@@ -617,7 +618,7 @@ cmdSelectArea(layers, less, option)
 
     if (less)
       {
-	(void) SelRemoveArea(&scx.scx_area, &mask);
+	(void) SelRemoveArea(&scx.scx_area, &mask, globmatch);
 	return;
       }
 
@@ -633,7 +634,7 @@ cmdSelectArea(layers, less, option)
 		TTMaskClearType(&mask, i);
 	}
     }
-    SelectArea(&scx, &mask, crec->dbw_bitmask);
+    SelectArea(&scx, &mask, crec->dbw_bitmask, globmatch);
 }
 
 /*
@@ -831,7 +832,7 @@ CmdSelect(w, cmd)
 				 * also used to step through multiple uses.
 				 */
     static bool lessCycle = FALSE, lessCellCycle = FALSE;
-    char path[200], *printPath, **msg, **optionArgs, *feedtext, *pstr;
+    char path[200], *printPath, **msg, **optionArgs, *feedtext, *pstr, *globmatch;
     TerminalPath tpath;
     CellUse *use;
     CellDef *rootBoxDef;
@@ -854,6 +855,7 @@ CmdSelect(w, cmd)
 
 #define MARGIN 2
 
+    globmatch = NULL;
     bzero(&scx, sizeof(SearchContext));
     windCheckOnlyWindow(&w, DBWclientID);
     if ((w == (MagWindow *) NULL) || (w->w_client != DBWclientID))
@@ -977,17 +979,19 @@ CmdSelect(w, cmd)
 	 */
 
 	case SEL_AREA:
-	    if (cmd->tx_argc > 3)
+	    if (cmd->tx_argc > 4)
 	    {
 		usageError:
 		TxError("Bad arguments:\n    select %s\n",
 			cmdSelectMsg[option+1]);
 		return;
 	    }
+	    if (cmd->tx_argc == 4)
+		globmatch = optionArgs[2];	/* Label matching by glob */
 	    if (!(more || less)) SelectClear();
-	    if (cmd->tx_argc == 3)
-		cmdSelectArea(optionArgs[1], less, option);
-	    else cmdSelectArea("*,label,subcell", less);
+	    if (cmd->tx_argc >= 3)
+		cmdSelectArea(optionArgs[1], less, option, globmatch);
+	    else cmdSelectArea("*,label,subcell", less, option, globmatch);
 	    return;
 
 	/*--------------------------------------------------------------------
@@ -1000,8 +1004,8 @@ CmdSelect(w, cmd)
 	    if (cmd->tx_argc > 3) goto usageError;
 	    if (!(more || less)) SelectClear();
 	    if (cmd->tx_argc == 3)
-		cmdSelectArea(optionArgs[1], less, option);
-	    else cmdSelectArea("*,label,subcell", less, option);
+		cmdSelectArea(optionArgs[1], less, option, globmatch);
+	    else cmdSelectArea("*,label,subcell", less, option, globmatch);
 	    return;
 
 	/*--------------------------------------------------------------------
