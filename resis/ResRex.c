@@ -51,6 +51,10 @@ HashTable 	ResIgnoreTable;	    /* Hash table of nodes to ignore  */
 
 HashTable 	ResIncludeTable;    /* Hash table of nodes to include  */
 
+/* Table of cells that have been processed */
+
+HashTable	ResProcessedTable;
+
 /* ResSimNode is a node read in from a sim file */
 
 HashTable 	ResNodeTable;   /* Hash table of sim file nodes   */
@@ -113,6 +117,10 @@ ExtResisForDef(celldef, resisdata)
 
     ResRDevList = NULL;
     ResOriginalNodes = NULL;
+
+    /* Check if this cell has been processed */
+    if (HashLookOnly(&ResProcessedTable, celldef->cd_name)) return;
+    HashFind(&ResProcessedTable, celldef->cd_name);
 
     /* Get device information from the current extraction style */
     idx = 0;
@@ -621,10 +629,12 @@ typedef enum {
     resisdata.mainDef = mainDef;
 
     /* Do subcircuits (if any) first */
+    HashInit(&ResProcessedTable, INITFLATSIZE, HT_STRINGKEYS);
     if (!(ResOptionsFlags & ResOpt_Blackbox))
 	DBCellEnum(mainDef, resSubcircuitFunc, (ClientData) &resisdata);
 
     ExtResisForDef(mainDef, &resisdata);
+    HashKill(&ResProcessedTable);
 
     /* turn back on undo stuff */
     UndoEnable();
@@ -663,10 +673,12 @@ typedef enum {
  */
 
 int
-resSubcircuitFunc(cellDef, rdata)
-    CellDef *cellDef;
+resSubcircuitFunc(cellUse, rdata)
+    CellUse *cellUse;
     ResisData *rdata;
 {
+    CellDef *cellDef = cellUse->cu_def;
+
     if (DBIsSubcircuit(cellDef))
     {
 	ExtResisForDef(cellDef, rdata);
@@ -1495,7 +1507,7 @@ ResFixDevName(line, type, device, layoutnode)
     }
 }
 
-#if 1
+#if 0
 
 /*
  *-------------------------------------------------------------------------
@@ -1600,7 +1612,7 @@ ResSortByGate(DevpointerList)
 	}
     }
 
-    /* Add the GATE list back to the end of Devpointerlist */
+    /* Add the GATE list back to the end of DevpointerList */
 
     if (working == NULL)
     {
@@ -1615,9 +1627,9 @@ ResSortByGate(DevpointerList)
     }
 }
 
-#endif	/* 1 */
+#endif	/* 0 */
 
-#if 0
+#if 1
 
 /*
  *-------------------------------------------------------------------------
@@ -1639,9 +1651,11 @@ ResSortByGate(DevpointerList)
  */
 
 int
-devSortFunc(dev1, dev2)
-    devPtr *dev1, *dev2;
+devSortFunc(rec1, rec2)
+    devPtr **rec1, **rec2;
 {
+    devPtr *dev1 = *rec1;
+    devPtr *dev2 = *rec2;
     RDev *rd1 = dev1->thisDev;
     RDev *rd2 = dev2->thisDev;
 
@@ -1699,6 +1713,8 @@ ResSortByGate(DevpointerList)
 
     listlen = 0;
     for (working = *DevpointerList; working; working = working->nextDev) listlen++;
+    if (listlen == 0) return;
+
     Devindexed = (devPtr **)mallocMagic(listlen * sizeof(devPtr *));
     listidx = 0;
     for (working = *DevpointerList; working; working = working->nextDev)
@@ -1710,11 +1726,11 @@ ResSortByGate(DevpointerList)
 	Devindexed[listidx]->nextDev = Devindexed[listidx + 1];
     Devindexed[listidx]->nextDev = NULL;
 
-    *Devpointerlist = Devindexed[0];
+    *DevpointerList = Devindexed[0];
     freeMagic(Devindexed);
 }
 
-#endif	/* 0 */
+#endif	/* 1 */
 
 /*
  *-------------------------------------------------------------------------
