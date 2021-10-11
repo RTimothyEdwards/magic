@@ -1045,7 +1045,8 @@ simdevVisit(dev, hc, scale, trans)
 	case DEV_DIODE:
 	case DEV_PDIODE:
 	case DEV_NDIODE:
-	    fprintf(esSimF, "D");
+	    is_subckt = TRUE;
+	    fprintf(esSimF, "x");	/* no class for diodes, use subckt */
 	    break;
 	case DEV_RES:
 	    fprintf(esSimF, "r");
