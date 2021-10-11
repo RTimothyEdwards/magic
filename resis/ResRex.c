@@ -1507,130 +1507,6 @@ ResFixDevName(line, type, device, layoutnode)
     }
 }
 
-#if 0
-
-/*
- *-------------------------------------------------------------------------
- *
- * Deprecated function.  Horribly inefficient.  See qsort() version below.
- * (Not yet implemented;  still under test.)
- *
- *-------------------------------------------------------------------------
- */
-
-void
-ResSortByGate(DevpointerList)
-    devPtr	**DevpointerList;
-{
-    int		changed = TRUE;
-    int		localchange = TRUE;
-    devPtr	*working, *current;
-    devPtr	*last = NULL, *gatelist = NULL;
-
-    /* Split out GATE entries into separate list (gatelist) */
-
-    working = *DevpointerList;
-    while (working != NULL)
-    {
-	if (working->terminal == GATE)
-	{
-	    current = working;
-	    working = working->nextDev;
-       	    if (last == NULL)
-	    {
-		*DevpointerList = working;
-	    }
-	    else
-	    {
-	      	last->nextDev = working;
-	    }
-	    current->nextDev = gatelist;
-	    gatelist = current;
-	}
-	else
-	{
-	    last = working;
-	    working = working->nextDev;
-	}
-    }
-
-    /* Sort the SOURCE and DRAIN list (DevpointerList) */
-
-    while (changed == TRUE)
-    {
-	changed = localchange = FALSE;
-	working = *DevpointerList;
-	last = NULL;
-	while (working != NULL && (current = working->nextDev) != NULL)
-	{
-	    RDev *w = working->thisDev;
-	    RDev *c = current->thisDev;
-
-	    if (w->gate > c->gate)
-	    {
-	    	changed = TRUE;
-		localchange = TRUE;
-	    }
-	    else if (w->gate == c->gate &&
-			(working->terminal == SOURCE &&
-			current->terminal == SOURCE &&
-			w->drain > c->drain    ||
-			working->terminal == SOURCE &&
-			current->terminal == DRAIN &&
-			w->drain > c->source    ||
-			working->terminal == DRAIN &&
-			current->terminal == SOURCE &&
-			w->source > c->drain    ||
-			working->terminal == DRAIN &&
-			current->terminal == DRAIN &&
-			w->source >  c->source))
-	    {
-		changed = TRUE;
-		localchange = TRUE;
-	    }
-	    else
-	    {
-		last = working;
-		working = working->nextDev;
-		continue;
-	    }
-	    if (localchange)
-	    {
-		localchange = FALSE;
-		if (last == NULL)
-		{
-		     *DevpointerList = current;
-		}
-		else
-		{
-		     last->nextDev = current;
-		}
-		working->nextDev = current->nextDev;
-		current->nextDev = working;
-		last = current;
-	    }
-	}
-    }
-
-    /* Add the GATE list back to the end of DevpointerList */
-
-    if (working == NULL)
-    {
-	*DevpointerList = gatelist;
-    }
-    else
-    {
-     	if (working->nextDev != NULL)
-	    TxError("Bad Device pointer in sort\n");
-	else
-	    working->nextDev = gatelist;
-    }
-}
-
-#endif	/* 0 */
-
-#if 1
-
 /*
  *-------------------------------------------------------------------------
  *
@@ -1729,8 +1605,6 @@ ResSortByGate(DevpointerList)
     *DevpointerList = Devindexed[0];
     freeMagic(Devindexed);
 }
-
-#endif	/* 1 */
 
 /*
  *-------------------------------------------------------------------------

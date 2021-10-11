@@ -268,8 +268,9 @@ ResMakePortBreakpoints(def)
  *----------------------------------------------------------------------------
  */
 void
-ResMakeLabelBreakpoints(def)
+ResMakeLabelBreakpoints(def, goodies)
     CellDef *def;
+    ResGlobalParams     *goodies;
 {
     Plane	*plane;
     Rect	*rect;
@@ -283,6 +284,13 @@ ResMakeLabelBreakpoints(def)
     {
 	entry = HashFind(&ResNodeTable, slab->lab_text);
 	node = ResInitializeNode(entry);
+
+	/* If the drivepoint position changes and the drivepoint is */
+	/* in the "goodies" record, then make sure the tile type in */
+	/* "goodies" gets changed to match.			    */
+
+	if (goodies->rg_devloc == &node->drivepoint)
+	    goodies->rg_ttype = slab->lab_type;
 
         node->drivepoint = slab->lab_rect.r_ll;
         node->rs_bbox = slab->lab_rect;
@@ -1054,7 +1062,7 @@ ResExtractNet(node, goodies, cellname)
     /* Finish preprocessing. */
 
     ResMakePortBreakpoints(ResUse->cu_def);
-    ResMakeLabelBreakpoints(ResUse->cu_def);
+    ResMakeLabelBreakpoints(ResUse->cu_def, goodies);
     ResFindNewContactTiles(ResContactList);
     ResPreProcessDevices(DevTiles, ResDevList, ResUse->cu_def);
 
