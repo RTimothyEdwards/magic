@@ -149,6 +149,9 @@ SelEnumPaint(layers, editOnly, foundNonEdit, func, clientData)
     arg.sea_rectList = NULL;
     if (foundNonEdit != NULL) *foundNonEdit = FALSE;
 
+    /* EditCellUse is referenced in selEnumPFunc1() and must be non-NULL */
+    if (EditCellUse == NULL) return 1;
+
     /* First, find all the paint in the selection that has the right
      * layers.  Use the same procedure as "dbCellUniqueTileSrFunc()"
      * so that contacts are not double-counted.

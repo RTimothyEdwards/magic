@@ -695,6 +695,9 @@ defnodeVisit(node, res, cap, defdata)
     TTMaskZero(&tmask);
     TTMaskSetMask(&tmask, &DBConnectTbl[magictype]);
 
+    /* Avoid attempting to extract an implicit substrate into DEF */
+    if (node->efnode_type == TT_SPACE) return 0;
+
     DBSrConnect(def, &node->efnode_loc, &tmask, DBConnectTbl,
 		&TiPlaneRect, defNetGeometryFunc,
 		(ClientData)defdata);

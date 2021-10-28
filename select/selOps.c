@@ -103,6 +103,11 @@ SelectDelete(msg, do_clear)
 
     extern int selDelPaintFunc(), selDelCellFunc(), selDelLabelFunc();
 
+    if (EditCellUse == NULL)
+    {
+	TxError("The current cell is not editable.\n");
+	return;
+    }
     (void) SelEnumPaint(&DBAllButSpaceAndDRCBits, TRUE, &nonEdit,
 	    selDelPaintFunc, (ClientData) NULL);
     if (nonEdit)
@@ -964,6 +969,11 @@ SelectTransform(transform)
 					 * visible) coordinates.
 					 */
 {
+    if (EditCellUse == NULL)
+    {
+	TxError("The current cell is not editable.\n");
+	return;
+    }
 
     /* Copy from SelectDef to Select2Def, transforming along the way. */
 
