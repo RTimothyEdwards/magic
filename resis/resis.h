@@ -9,7 +9,7 @@
 #ifndef _RESIS_H
 #define _RESIS_H
 
-#define LAYERS_PER_CONTACT 3
+#define LAYERS_PER_CONTACT 4
 #define TILES_PER_JUNCTION 2
 
 typedef struct contactpoint

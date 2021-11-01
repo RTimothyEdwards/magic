@@ -423,7 +423,7 @@ ResFindNewContactTiles(contacts)
 	    }
 	}
 #ifdef PARANOID
-	if (contacts->cp_currentcontact > LAYERS_PER_CONTACT)
+	if (contacts->cp_currentcontact >= LAYERS_PER_CONTACT)
 	{
 	    TxError("Error: Not enough space allocated for contact nodes\n");
 	}
