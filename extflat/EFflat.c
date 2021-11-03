@@ -645,6 +645,15 @@ efAddOneConn(hc, name1, name2, conn, doWarn)
 	    efNodeMerge(&node, &newnode);
     }
 
+    /* NOTE:  If called through efAddOneConn, then this is by definition */
+    /* a port; so if EF_SUBS_NODE is set, then it should also be defined */
+    /* as EF_SUBS_PORT.  But, this also adds a port for the substrate	 */
+    /* even if there are no connected devices, so connections to devices */
+    /* need to be tracked as well as whether it is a node or a port.	 */
+
+    if (node->efnode_flags & EF_SUBS_NODE)
+	node->efnode_flags |= EF_SUBS_PORT;
+
     return 0;
 }
 
