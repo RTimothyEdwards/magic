@@ -1240,6 +1240,7 @@ bloatCheck:
 		}
 	    }
 	    TechError("Not all bloat layers fall in the same plane.\n");
+	    bloats->bl_plane = 0;   /* Prevents magic from segfaulting */
 	    bloatDone: break;
 
 	case CIFOP_NET:
