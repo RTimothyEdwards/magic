@@ -880,6 +880,17 @@ calmaProcessDef(def, outf, do_library)
     }
 
     /*
+     * Flag an error if attempting to write the default (UNNAMED) cell
+     * into GDS.  This is not strictly an error but is almost certainly
+     * not what the user intended.
+     */
+
+    if (!strcmp(def->cd_name, UNNAMED))
+    {
+	TxError("Error:  Cell has the default name \"%s\"!\n", UNNAMED);
+    }
+
+    /*
      * Check if this is a read-only file that is supposed to be copied
      * verbatim from input to output.  If so, do the direct copy.  If
      * not, or if there is any problem obtaining the original cell
