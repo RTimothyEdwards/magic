@@ -1602,10 +1602,37 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    		lefWriteGeometry, (ClientData) &lc);
 	        lc.lefMode = LEF_MODE_PORT;
 	    }
+
+	    /* Check if any other ports are already contained in this selection.    */
+	    /* If so, mark them as visited.  Use lefFindTopmost(), which is just a  */
+	    /* routine that stops the search by returning 1 when something is found */
+
+	    for (tlab = lab->lab_next; tlab != (Label *)NULL; tlab = tlab->lab_next)
+		if (tlab->lab_flags & PORT_DIR_MASK)
+		    if (!(tlab->lab_flags & PORT_VISITED))
+			if ((tlab->lab_flags & PORT_NUM_MASK) == idx)
+			{
+			    TileTypeBitMask lmask;
+			    TTMaskSetOnlyType(&lmask, tlab->lab_type);
+			    pNum = DBPlane(tlab->lab_type);
+			    if (DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
+				    &tlab->lab_rect, &lmask,
+				    lefFindTopmost, (ClientData)NULL))
+				tlab->lab_flags |= PORT_VISITED;
+
+			    /* For the "toplayer" option, ports on lower layers will not be */
+			    /* in the yank buffer but will still be in the selection.	    */
+			    else if (toplayer)
+				if (DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
+					    &tlab->lab_rect, &lmask,
+					    lefFindTopmost, (ClientData)NULL))
+				    tlab->lab_flags |= PORT_VISITED;
+			}
+
 	    DBCellClearDef(lc.lefYank);
 	    lab->lab_flags |= PORT_VISITED;
 
-	    /* Check if any other ports belong to this pin */
+	    /* Check if any other unvisited ports belong to this pin */
 
 	    for (; lab != NULL; lab = lab->lab_next)
 		if (lab->lab_flags & PORT_DIR_MASK)

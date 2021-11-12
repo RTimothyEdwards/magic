@@ -1764,6 +1764,135 @@ defCountCompFunc(cellUse, total)
 /*
  *------------------------------------------------------------
  *
+ * defCountPins --
+ *
+ *	First-pass function to count the number of pins
+ *	to be written to the DEF output file.
+ *
+ * Results:
+ *	The total number of pins to be written.
+ *
+ * Side Effects:
+ *	None.
+ *
+ *------------------------------------------------------------
+ */
+
+int
+defCountPins(rootDef)
+    CellDef *rootDef;
+{
+    int total;
+    Label *lab;
+
+    TxPrintf("Diagnostic:  Finding all pins of cell %s\n", rootDef->cd_name);
+
+    total = 0;
+    for (lab = rootDef->cd_labels; lab; lab = lab->lab_next)
+	if (lab->lab_flags & PORT_DIR_MASK)
+	    total++;
+
+    return total;
+}
+
+/*
+ *------------------------------------------------------------
+ *
+ * defWritePins --
+ *
+ *	Output the PINS section of the DEF file.  This
+ *	is a listing of all ports, their placement, and
+ *	name.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Output to the DEF file.
+ *
+ *------------------------------------------------------------
+ */
+
+void
+defWritePins(f, rootDef, oscale)
+    FILE *f;				/* File to write to */
+    CellDef *rootDef;			/* Cell definition to use */
+    float oscale;			/* Output scale factor */
+{
+    Label *lab;
+    int lwidth, lheight;
+    int dcenterx, dcentery;
+
+    for (lab = rootDef->cd_labels; lab; lab = lab->lab_next)
+    {
+	if (lab->lab_flags & PORT_DIR_MASK)
+	{
+	    fprintf(f, "   - %s + NET %s\n", lab->lab_text, lab->lab_text);
+	    if (lab->lab_flags & PORT_CLASS_MASK)
+	    {
+		fprintf(f, "     + DIRECTION ");
+		switch (lab->lab_flags & PORT_CLASS_MASK)
+		{
+		    case PORT_CLASS_INPUT:
+			fprintf(f, "INPUT");
+			break;
+		    case PORT_CLASS_OUTPUT:
+			fprintf(f, "OUTPUT");
+			break;
+		    case PORT_CLASS_TRISTATE:
+		    case PORT_CLASS_BIDIRECTIONAL:
+			fprintf(f, "INOUT");
+			break;
+		    case PORT_CLASS_FEEDTHROUGH:
+			fprintf(f, "FEEDTHRU");
+			break;
+		}
+		fprintf(f, "\n");
+	    }
+	    if (lab->lab_flags & PORT_USE_MASK)
+	    {
+		fprintf(f, "     + USE ");
+		switch (lab->lab_flags & PORT_USE_MASK)
+		{
+		    case PORT_USE_SIGNAL:
+			fprintf(f, "SIGNAL");
+			break;
+		    case PORT_USE_ANALOG:
+			fprintf(f, "ANALOG");
+			break;
+		    case PORT_USE_POWER:
+			fprintf(f, "POWER");
+			break;
+		    case PORT_USE_GROUND:
+			fprintf(f, "GROUND");
+			break;
+		    case PORT_USE_CLOCK:
+			fprintf(f, "CLOCK");
+			break;
+		}
+		fprintf(f, "\n");
+	    }
+
+	    lwidth = lab->lab_rect.r_xtop - lab->lab_rect.r_xbot;
+	    lheight = lab->lab_rect.r_ytop - lab->lab_rect.r_ybot;
+
+	    dcenterx = lab->lab_rect.r_xtop + lab->lab_rect.r_xbot;
+	    dcentery = lab->lab_rect.r_ytop + lab->lab_rect.r_ybot;
+
+	    fprintf(f, "     + PORT\n");
+	    fprintf(f, "        + LAYER %s ( %.10g %.10g ) ( %.10g %.10g )",
+		    DBTypeLongNameTbl[lab->lab_type],
+		    oscale * (float)(-lwidth) / 2.0, oscale * (float)(-lheight) / 2.0,
+		    oscale * (float)lwidth / 2.0, oscale * (float)lheight / 2.0);
+	    fprintf(f, "        + PLACED ( %.10g %.10g ) N ;\n",
+		    oscale * (float)dcenterx / 2.0, oscale * (float)dcentery / 2.0);
+	}
+    }
+}
+
+/*
+ *------------------------------------------------------------
+ *
  * defWriteComponents --
  *
  *	Output the COMPONENTS section of the DEF file.  This
@@ -1996,7 +2125,11 @@ DefWriteCell(def, outName, allSpecial, units)
     fprintf(f, "END COMPONENTS\n\n");
 
     /* Pins---assume no pins (for now) */
-    fprintf(f, "PINS 0 ;\nEND PINS\n\n");
+    total = defCountPins(def);
+    fprintf(f, "PINS %d ;\n", total);
+    if (total > 0)
+	defWritePins(f, def, scale);
+    fprintf(f, "END PINS\n\n");
 
     /* Count the number of nets and "special" nets */
     nets = defCountNets(def, allSpecial);
