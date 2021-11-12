@@ -625,6 +625,12 @@ CmdErase(w, cmd)
 
     if (!ToolGetEditBox(&editRect)) return;
 
+    if (EditCellUse == NULL)
+    {
+        TxError("No cell def being edited!\n");
+	return;
+    }
+
     /*
      * Erase with no arguments is the same as erasing
      * everything underneath the box tool (ie, painting space)
