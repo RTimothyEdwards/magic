@@ -133,8 +133,7 @@ SetBoxGrid(area)
     int limit;
     int delta;
 
-    limit = CIFCurStyle->cs_gridLimit * CIFCurStyle->cs_expander;
-    limit /= (CIFCurStyle->cs_flags & CWF_ANGSTROMS) ? 100 : 10;
+    limit = CIFCurStyle->cs_gridLimit;
 
     if (CIFCurStyle && (limit > 1))
     {
@@ -595,7 +594,7 @@ cifGrowEuclideanFunc(tile, table)
 	SetBoxGrid(&rtmp);
 	DBPaintPlane(cifPlane, &rtmp, table, (PaintUndoInfo *) NULL);
 
-	/* Finally:  translate, resize, and paint the diagonal tile */
+	/* Finally, translate, resize, and paint the diagonal tile */
 
 	rtmp = area;
 
@@ -618,6 +617,7 @@ cifGrowEuclideanFunc(tile, table)
 
 	SetBoxGrid(&rtmp);
 	DBNMPaintPlane(cifPlane, oldType, &rtmp, table, (PaintUndoInfo *) NULL);
+
 	oldType = (growDirs & GROW_EAST) ? TiGetRightType(tile) : TiGetLeftType(tile);
     }
     else
@@ -1442,8 +1442,7 @@ GetEuclideanWidthGrid(width)
     int delta;
     int limit;
 
-    limit = CIFCurStyle->cs_gridLimit * CIFCurStyle->cs_expander;
-    limit /= (CIFCurStyle->cs_flags & CWF_ANGSTROMS) ? 100 : 10;
+    limit = CIFCurStyle->cs_gridLimit;
 
     weuclid = (int)(ceil((double)width * 0.70711));
     if (CIFCurStyle && (limit > 1))
@@ -1564,8 +1563,7 @@ GetExpandedAreaGrid(wrule, space, area)
     r.r_ybot -= dy;
     r.r_ytop += dy;
 
-    limit = CIFCurStyle->cs_gridLimit * CIFCurStyle->cs_expander;
-    limit /= (CIFCurStyle->cs_flags & CWF_ANGSTROMS) ? 100 : 10;
+    limit = CIFCurStyle->cs_gridLimit;
 
     if (CIFCurStyle && (limit > 1))
     {
@@ -3478,8 +3476,7 @@ calcX:
 
     /* Check that we are not violating any gridlimit */
 
-    limit = CIFCurStyle->cs_gridLimit * CIFCurStyle->cs_expander;
-    limit /= (CIFCurStyle->cs_flags & CWF_ANGSTROMS) ? 100 : 10;
+    limit = CIFCurStyle->cs_gridLimit;
 
     if (CIFCurStyle && (limit > 1))
     {
@@ -3568,8 +3565,7 @@ cifSquareFunc(area, op, rows, columns, cut)
     bool glimit;
     SquaresData *squares = (SquaresData *)op->co_client;
 
-    limit = CIFCurStyle->cs_gridLimit * CIFCurStyle->cs_expander;
-    limit /= (CIFCurStyle->cs_flags & CWF_ANGSTROMS) ? 100 : 10;
+    limit = CIFCurStyle->cs_gridLimit;
 
     glimit = (CIFCurStyle && (limit > 1)) ? TRUE : FALSE;
     pitch = squares->sq_size + squares->sq_sep;
