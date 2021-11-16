@@ -804,7 +804,8 @@ CIFTechLine(sectionName, argc, argv)
     if (CIFCurStyle->cs_status != TECH_PENDING) return TRUE;
 
     newLayer = NULL;
-    if ((strcmp(argv[0], "templayer") == 0) || (strcmp(argv[0], "layer") == 0))
+    if ((strcmp(argv[0], "templayer") == 0) || (strcmp(argv[0], "layer") == 0) ||
+	(strcmp(argv[0], "labellayer") == 0))
     {
 	if (CIFCurStyle->cs_nLayers == MAXCIFLAYERS)
 	{
@@ -839,6 +840,8 @@ CIFTechLine(sectionName, argc, argv)
 #endif
 	if (strcmp(argv[0], "templayer") == 0)
 	    newLayer->cl_flags |= CIF_TEMP;
+	else if (strcmp(argv[0], "labellayer") == 0)
+	    newLayer->cl_flags |= CIF_LABEL;
 	cifCurLayer = newLayer;
 	cifCurOp = NULL;
 	cifGotLabels = FALSE;

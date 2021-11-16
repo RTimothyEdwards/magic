@@ -72,6 +72,7 @@ extern int calmaWriteMarkFunc();
 extern int calmaWritePaintFunc();
 extern int calmaMergePaintFunc();
 extern int calmaWriteUseFunc();
+extern int calmaPaintLabelFunc();
 extern void calmaWriteContacts();
 extern void calmaDelContacts();
 extern void calmaOutFunc();
@@ -92,6 +93,7 @@ extern void calmaRemoveDegenerate();
 typedef struct {
    FILE *f;		/* File stream for output		*/
    Rect *area;		/* Clipping area, in GDS coordinates	*/
+   int type;		/* Layer index				*/
 } calmaOutputStruct;
 
 /*--------------------------------------------------------------*/
@@ -1162,6 +1164,7 @@ calmaOutFunc(def, f, cliprect)
 
     cos.f = f;
     cos.area = (cliprect == &TiPlaneRect) ? NULL : cliprect;
+    cos.type = -1;
 
     /* Output structure begin */
     calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, f);
@@ -1227,13 +1230,19 @@ calmaOutFunc(def, f, cliprect)
 	layer = CIFCurStyle->cs_layers[type];
 	if (layer->cl_flags & CIF_TEMP) continue;
 	if (!CalmaIsValidLayer(layer->cl_calmanum)) continue;
+	cos.type = type;
 	calmaPaintLayerNumber = layer->cl_calmanum;
 	calmaPaintLayerType = layer->cl_calmatype;
 
-	DBSrPaintArea((Tile *) NULL, CIFPlanes[type],
-		cliprect, &CIFSolidBits, (CalmaMergeTiles) ?
-		calmaMergePaintFunc : calmaWritePaintFunc,
-		(ClientData) &cos);
+	if (layer->cl_flags & CIF_LABEL)
+	    DBSrPaintArea((Tile *) NULL, CIFPlanes[type],
+		    cliprect, &CIFSolidBits, calmaPaintLabelFunc,
+		    (ClientData) &cos);
+	else
+	    DBSrPaintArea((Tile *) NULL, CIFPlanes[type],
+		    cliprect, &CIFSolidBits, (CalmaMergeTiles) ?
+		    calmaMergePaintFunc : calmaWritePaintFunc,
+		    (ClientData) &cos);
     }
 
     /* Output labels.  Do this in two passes, first for non-port labels	*/
@@ -2865,6 +2874,73 @@ calmaWriteLabelFunc(lab, type, f)
 	/* End of element */
 	calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
     }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaPaintLabelFunc --
+ *
+ * Filter function used to write out a single label corresponding to the
+ * area of a paint tile, and having a text matching the CIF layer name.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Writes to the disk file.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+calmaPaintLabelFunc(tile, cos)
+    Tile *tile;			/* Tile contains area for label. */
+    calmaOutputStruct *cos;	/* File for output and clipping area */
+{
+    FILE *f = cos->f;
+    Rect *clipArea = cos->area;
+    Rect r, r2;
+    Point p;
+    int len;
+    CIFLayer *layer = CIFCurStyle->cs_layers[cos->type];
+
+    if (IsSplit(tile)) return 0;    /* Ignore non-Manhattan geometry */
+
+    if (!CalmaIsValidLayer(layer->cl_calmanum))
+	return;
+
+    TiToRect(tile, &r);
+
+    if (clipArea != NULL)
+	GeoClip(&r, clipArea);
+
+    r.r_xbot *= calmaPaintScale;
+    r.r_ybot *= calmaPaintScale;
+    r.r_xtop *= calmaPaintScale;
+    r.r_ytop *= calmaPaintScale;
+
+    calmaOutRH(4, CALMA_TEXT, CALMA_NODATA, f);
+
+    calmaOutRH(6, CALMA_LAYER, CALMA_I2, f);
+    calmaOutI2(layer->cl_calmanum, f);
+
+    calmaOutRH(6, CALMA_TEXTTYPE, CALMA_I2, f);
+    calmaOutI2(layer->cl_calmatype, f);
+
+    p.p_x = (r.r_xbot + r.r_xtop) * calmaWriteScale / 2;
+    p.p_y = (r.r_ybot + r.r_ytop) * calmaWriteScale / 2;
+    calmaOutRH(12, CALMA_XY, CALMA_I4, f);
+    calmaOutI4(p.p_x, f);
+    calmaOutI4(p.p_y, f);
+
+    /* Text of label is the CIF layer name */
+    calmaOutStringRecord(CALMA_STRING, layer->cl_name, f);
+
+    /* End of element */
+    calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
+
+    return 0;
 }
 
 /*

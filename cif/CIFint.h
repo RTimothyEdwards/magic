@@ -226,9 +226,12 @@ typedef struct
  *
  * CIF_TEMP:	Means that this is a temporary layer used to build
  *		up CIF information.  It isn't output in the CIF file.
+ * CIF_LABEL:	This layer is used to generate fixed labels in the
+ *		output file.
  */
 
 #define CIF_TEMP 		1
+#define CIF_LABEL 		2
 
 /* The following data structure describes a complete set of CIF
  * layers.  The number of CIF layers (MAXCIFLAYERS) must not be

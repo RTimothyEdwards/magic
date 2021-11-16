@@ -47,6 +47,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 extern int cifWriteInitFunc();
 extern int cifWriteMarkFunc();
 extern int cifWritePaintFunc();
+extern int cifWriteLabelFunc();
 extern int cifWriteUseFunc();
 extern void cifOutPreamble();
 extern void cifOut();
@@ -394,9 +395,14 @@ cifOutFunc(def, f)
 	if (layer->cl_flags & CIF_TEMP) continue;
 	cifPaintLayerName = layer->cl_name;
 	cifPaintScale = 1;
-	(void) DBSrPaintArea((Tile *) NULL, CIFPlanes[type],
-	    &TiPlaneRect, &CIFSolidBits, cifWritePaintFunc,
-	    (ClientData) f);
+	if (layer->cl_flags & CIF_LABEL)
+	    DBSrPaintArea((Tile *) NULL, CIFPlanes[type],
+		    &TiPlaneRect, &CIFSolidBits, cifWriteLabelFunc,
+		    (ClientData) f);
+	else
+	    DBSrPaintArea((Tile *) NULL, CIFPlanes[type],
+		    &TiPlaneRect, &CIFSolidBits, cifWritePaintFunc,
+		    (ClientData) f);
     }
 
     /* Output labels */
@@ -549,6 +555,67 @@ cifWriteUseFunc(use, f)
 	  realx++;
 	else
 	  realx--;
+    }
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifWriteLabelFunc --
+ *
+ * Filter function used to write out a label corresponding to a
+ * single paint tile.  The CIF layer name is used as the label to
+ * output.
+ *
+ * Results:
+ *	Always return 0
+ *
+ * Side effects:
+ *	Writes to the disk file.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifWriteLabelFunc(tile, f)
+    Tile *tile;		/* Tile to be written out. */
+    FILE *f;		/* File in which to write. */
+{
+    Rect r;
+    int type;
+    Point center, size;
+
+    if (IsSplit(tile)) return 0;	/* Ignore non-manhattan tiles */
+
+    if (cifPaintLayerName == NULL) return 0;	/* Shouldn't happen */
+
+    TiToRect(tile, &r);
+
+    type = CIFCurStyle->cs_labelLayer[TiGetType(tile)];
+
+    center.p_x = r.r_xbot + r.r_xtop;
+    center.p_y = r.r_ybot + r.r_ytop;
+    center.p_x *= CIFCurStyle->cs_scaleFactor;
+    center.p_x /= CIFCurStyle->cs_reducer;
+    center.p_y *= CIFCurStyle->cs_scaleFactor;
+    center.p_y /= CIFCurStyle->cs_reducer;
+
+    if (CIFDoAreaLabels)
+    {
+	size.p_x = r.r_xtop - r.r_xbot;
+	size.p_y = r.r_ytop - r.r_ybot;
+	size.p_x *= 2 * CIFCurStyle->cs_scaleFactor;
+	size.p_x /= CIFCurStyle->cs_reducer;
+	size.p_y *= 2 * CIFCurStyle->cs_scaleFactor;
+	size.p_y /= CIFCurStyle->cs_reducer;
+	fprintf(f, "95 %s %d %d %d %d;\n",
+		cifPaintLayerName, size.p_x, size.p_y, center.p_x, center.p_y);
+    }
+    else
+    {
+	fprintf(f, "94 %s %d %d;\n",
+		    cifPaintLayerName, center.p_x, center.p_y);
     }
     return 0;
 }
