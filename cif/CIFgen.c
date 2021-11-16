@@ -189,6 +189,39 @@ SetBoxGrid(area)
 
 /*
  * ----------------------------------------------------------------------------
+ * SetValueGrid ---
+ *
+ *	Adjust the given distance to the nearest CIF minimum grid.
+ *
+ *  Returns:  The adjusted value.
+ *
+ *  Side Effects:  None.
+ *
+ *  Notes:  Value is assumed to be a distance, therefore always positive.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+SetValueGrid(value)
+    int value;
+{
+    int limit;
+    int delta;
+
+    limit = CIFCurStyle->cs_gridLimit;
+
+    if (CIFCurStyle && (limit > 1))
+    {
+	delta = value % limit;
+	if (delta > 0)
+	    value += limit - delta;
+    }
+    return value;
+}
+
+/*
+ * ----------------------------------------------------------------------------
  * SetMinBoxGrid ---
  *
  *	Adjust the given area by expanding evenly on both sides so that it
@@ -571,8 +604,12 @@ cifGrowEuclideanFunc(tile, table)
 	width = area.r_xtop - area.r_xbot;
 	height = area.r_ytop - area.r_ybot;
 	hyp = sqrt((double)(width * width + height * height));
-	growDistanceY = ceil((growDistance * (hyp - height)) / width);
-	growDistanceX = ceil((growDistance * (hyp - width)) / height);
+	growDistanceY = ceil((double)(growDistance * width) / hyp);
+	growDistanceX = ceil((double)(growDistance * height) / hyp);
+
+	/* Adjust for grid limit */
+	growDistanceX = SetValueGrid(growDistanceX);
+	growDistanceY = SetValueGrid(growDistanceY);
 
 	/* Draw vertical tile to distance X */
 
@@ -581,7 +618,6 @@ cifGrowEuclideanFunc(tile, table)
 	if (!(growDirs & GROW_WEST))  rtmp.r_xbot = rtmp.r_xtop - growDistanceX;
 	if (!(growDirs & GROW_SOUTH)) rtmp.r_ybot -= growDistance;
 	if (!(growDirs & GROW_NORTH)) rtmp.r_ytop += growDistance;
-	SetBoxGrid(&rtmp);
 	DBPaintPlane(cifPlane, &rtmp, table, (PaintUndoInfo *) NULL);
 
 	/* Draw horizontal tile to distance Y */
@@ -591,7 +627,6 @@ cifGrowEuclideanFunc(tile, table)
 	if (!(growDirs & GROW_WEST))  rtmp.r_xbot -= growDistance;
 	if (!(growDirs & GROW_SOUTH)) rtmp.r_ybot = rtmp.r_ytop - growDistanceY;
 	if (!(growDirs & GROW_NORTH)) rtmp.r_ytop = rtmp.r_ybot + growDistanceY;
-	SetBoxGrid(&rtmp);
 	DBPaintPlane(cifPlane, &rtmp, table, (PaintUndoInfo *) NULL);
 
 	/* Finally, translate, resize, and paint the diagonal tile */
@@ -615,7 +650,6 @@ cifGrowEuclideanFunc(tile, table)
 	else
 	    rtmp.r_xbot += growDistanceX;
 
-	SetBoxGrid(&rtmp);
 	DBNMPaintPlane(cifPlane, oldType, &rtmp, table, (PaintUndoInfo *) NULL);
 
 	oldType = (growDirs & GROW_EAST) ? TiGetRightType(tile) : TiGetLeftType(tile);
