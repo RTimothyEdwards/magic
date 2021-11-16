@@ -950,7 +950,7 @@ defNetGeometryFunc(tile, plane, defdata)
 	{
 	    /* Diagnostic */
 	    TxPrintf("Net has width %d, default width is %d\n",
-			(h > w) ? h : w, routeWidth);
+			(h < w) ? h : w, routeWidth);
 	}
 
 	/* Find the route orientation and centerline endpoint coordinates */
