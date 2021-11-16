@@ -963,8 +963,13 @@ defNetGeometryFunc(tile, plane, defdata)
 	    x1 = r.r_xbot * oscale;
 	    x2 = r.r_xtop * oscale;
 	    if (routeWidth == 0) routeWidth = h;
-	    extlen = (defdata->specialmode != DO_REGULAR) ?
-			0 : (routeWidth * oscale) / 2;
+	    
+		extlen = 0;
+		if(defdata->specialmode == DO_REGULAR)
+		{
+			x1 = x1 + (routeWidth/2*oscale);
+			x2 = x2 - (routeWidth/2*oscale);
+		}
 	}
 	else	/* vertical orientation */
 	{
@@ -974,8 +979,13 @@ defNetGeometryFunc(tile, plane, defdata)
 	    y1 = r.r_ybot * oscale;
 	    y2 = r.r_ytop * oscale;
 	    if (routeWidth == 0) routeWidth = w;
-	    extlen = (defdata->specialmode != DO_REGULAR) ?
-			0 : (routeWidth * oscale) / 2;
+		
+		extlen = 0;
+		if(defdata->specialmode == DO_REGULAR)
+		{
+			y1 = y1 + (routeWidth/2*oscale);
+			y2 = y2 - (routeWidth/2*oscale);
+		}
 	}
     }
     else	/* Type is a via */
