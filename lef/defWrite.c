@@ -1982,10 +1982,10 @@ defComponentFunc(cellUse, defdata)
 	nameroot = cellUse->cu_def->cd_name;
 
     fprintf(f, "   - %s %s\n      + PLACED ( %.10g %.10g ) %s ;\n",
-	cellUse->cu_id, nameroot,
-	(float)cellUse->cu_bbox.r_xbot * oscale,
-	(float)cellUse->cu_bbox.r_ybot * oscale,
-	defTransPos(&cellUse->cu_transform));
+		cellUse->cu_id, nameroot,
+		(float)(cellUse->cu_bbox.r_xbot - cellUse->cu_def->cd_bbox.r_ll.p_x) * oscale,
+		(float)(cellUse->cu_bbox.r_ybot - cellUse->cu_def->cd_bbox.r_ll.p_y) * oscale,
+		defTransPos(&cellUse->cu_transform));
 
     return 0;	/* Keep the search going */
 }
