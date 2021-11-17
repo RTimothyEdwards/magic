@@ -452,7 +452,11 @@ drcTile (tile, arg)
         (*(arg->dCD_errors))++;
     }
 
-    if (IsSplit(tile))
+    /* Diagonally split tiles are processed twice.  Just like the   */
+    /* DRC searches only one direction on regular tiles, the split  */
+    /* tiles are only processed for one of the two cases.	    */
+
+    if (IsSplit(tile) && !SplitSide(tile))
     {
 	int deltax, deltay;
 	TileType tt, to;
@@ -482,16 +486,8 @@ drcTile (tile, arg)
 	}
 
 	/* Full check of edge rules along the diagonal. */
-	if (SplitSide(tile))
-	{
-	    tt = TiGetRightType(tile);	/* inside type */
-	    to = TiGetLeftType(tile);	/* outside type */
-	}
-	else
-	{
-	    tt = TiGetLeftType(tile);	/* inside type */
-	    to = TiGetRightType(tile);	/* outside type */
-	}
+	tt = TiGetLeftType(tile);	/* inside type */
+	to = TiGetRightType(tile);	/* outside type */
 
 	for (cptr = DRCCurStyle->DRCRulesTbl[to][tt]; cptr != (DRCCookie *) NULL;
 			cptr = cptr->drcc_next)
@@ -546,20 +542,17 @@ drcTile (tile, arg)
 	    deltax = (int)((double)cptr->drcc_dist * sqrt(r));
 	    deltay = (deltax * w) / h;
 
-	    if (SplitSide(tile) == 1) deltax = -deltax;
-	    if (SplitDirection(tile) == SplitSide(tile)) deltay = -deltay;
+	    if (SplitDirection(tile) == 0) deltay = -deltay;
 
-	    dinfo = TiGetTypeExact(tile) & (TT_DIAGONAL | TT_DIRECTION | TT_SIDE);
+	    dinfo = TiGetTypeExact(tile) & (TT_DIAGONAL | TT_DIRECTION);
 	    if (!(cptr->drcc_flags & DRC_REVERSE))
 	    {
 		/* Forward case is behind the triangle */
 		deltax = -deltax;
 		deltay = -deltay;
+
 		/* Split side changes in the reverse case */
-		if (SplitSide(tile))
-		    dinfo &= (~TT_SIDE);
-		else
-		    dinfo |= TT_SIDE;
+		dinfo |= TT_SIDE;
 	    }
 
 	    /* errRect is the tile area offset by (deltax, deltay) */
