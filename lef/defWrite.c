@@ -964,12 +964,12 @@ defNetGeometryFunc(tile, plane, defdata)
 	    x2 = r.r_xtop * oscale;
 	    if (routeWidth == 0) routeWidth = h;
 	    
-		extlen = 0;
-		if(defdata->specialmode == DO_REGULAR)
-		{
-			x1 = x1 + (routeWidth/2*oscale);
-			x2 = x2 - (routeWidth/2*oscale);
-		}
+	    extlen = 0;
+	    if (defdata->specialmode == DO_REGULAR)
+	    {
+		x1 = x1 + (routeWidth / 2 * oscale);
+		x2 = x2 - (routeWidth / 2 * oscale);
+	    }
 	}
 	else	/* vertical orientation */
 	{
@@ -980,12 +980,12 @@ defNetGeometryFunc(tile, plane, defdata)
 	    y2 = r.r_ytop * oscale;
 	    if (routeWidth == 0) routeWidth = w;
 		
-		extlen = 0;
-		if(defdata->specialmode == DO_REGULAR)
-		{
-			y1 = y1 + (routeWidth/2*oscale);
-			y2 = y2 - (routeWidth/2*oscale);
-		}
+	    extlen = 0;
+	    if (defdata->specialmode == DO_REGULAR)
+	    {
+		y1 = y1 + (routeWidth / 2 * oscale);
+		y2 = y2 - (routeWidth / 2 * oscale);
+	    }
 	}
     }
     else	/* Type is a via */
@@ -1993,8 +1993,10 @@ defComponentFunc(cellUse, defdata)
 
     fprintf(f, "   - %s %s\n      + PLACED ( %.10g %.10g ) %s ;\n",
 		cellUse->cu_id, nameroot,
-		(float)(cellUse->cu_bbox.r_xbot - cellUse->cu_def->cd_bbox.r_ll.p_x) * oscale,
-		(float)(cellUse->cu_bbox.r_ybot - cellUse->cu_def->cd_bbox.r_ll.p_y) * oscale,
+		(float)(cellUse->cu_bbox.r_xbot - cellUse->cu_def->cd_bbox.r_ll.p_x)
+		* oscale,
+		(float)(cellUse->cu_bbox.r_ybot - cellUse->cu_def->cd_bbox.r_ll.p_y)
+		* oscale,
 		defTransPos(&cellUse->cu_transform));
 
     return 0;	/* Keep the search going */
