@@ -419,6 +419,7 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
     Plane *plane;
     Rect r;
     int n = 1, d = 1;
+    HashTable dbUseTable;
 
     /*
      * It's very important to disable interrupts during the body of
@@ -664,6 +665,7 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
      */
     rp = &r;
     UndoDisable();
+    HashInit(&dbUseTable, 32, HT_STRINGKEYS);
     while (TRUE)
     {
 	/*
@@ -674,7 +676,8 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
 	 */
 	if (sscanf(line, "<< %s >>", layername) != 1)
 	{
-	    if (!dbReadUse(cellDef, line, sizeof line, f, n, d, dereference))
+	    if (!dbReadUse(cellDef, line, sizeof line, f, n, d,
+			dereference, &dbUseTable))
 		goto badfile;
 	    continue;
 	}
@@ -870,6 +873,7 @@ done:
 	cellDef->cd_flags |= CDSTAMPSCHANGED|CDGETNEWSTAMP;
     }
 
+    HashKill(&dbUseTable);
     UndoEnable();
     /* Disabled 3/16/2021.  Let <<checkpaint>> in file force a DRC check */
     /* DRCCheckThis(cellDef, TT_CHECKPAINT, (Rect *) NULL); */
@@ -1457,7 +1461,7 @@ DBTestOpen(name, fullPath)
  */
 
 bool
-dbReadUse(cellDef, line, len, f, scalen, scaled, dereference)
+dbReadUse(cellDef, line, len, f, scalen, scaled, dereference, dbUseTable)
     CellDef *cellDef;	/* Cell whose cells are being read */
     char *line;		/* Line containing "use ..." */
     int len;		/* Size of buffer pointed to by line */
@@ -1465,6 +1469,7 @@ dbReadUse(cellDef, line, len, f, scalen, scaled, dereference)
     int scalen;		/* Multiply values in file by this */
     int scaled;		/* Divide values in file by this */
     bool dereference;	/* If TRUE, ignore path references */
+    HashTable *dbUseTable;  /* Hash table of instances seen in this file */
 {
     int xlo, xhi, ylo, yhi, xsep, ysep, childStamp;
     int absa, absb, absd, abse, nconv;
@@ -1473,7 +1478,7 @@ dbReadUse(cellDef, line, len, f, scalen, scaled, dereference)
     CellDef *subCellDef;
     Transform t;
     Rect r;
-    bool locked;
+    bool locked, firstUse;
     char *slashptr, *pathptr;
 
     if (strncmp(line, "use", 3) != 0)
@@ -1598,6 +1603,13 @@ badTransform:
 	r.r_ytop /= scaled;
     }
 
+    /* Flag if this is the first time the cell is used in the file,
+     * so that we can expect that additional instances will not have
+     * path information given.
+     */
+    firstUse = (HashLookOnly(dbUseTable, cellname) == NULL) ? TRUE : FALSE;
+    if (firstUse) HashFind(dbUseTable, cellname);
+
     /*
      * Set up cell use.
      * If the definition for this use has not been read in,
@@ -1614,14 +1626,20 @@ badTransform:
 	/* Make sure rectangle is non-degenerate */
 	if (GEO_RECTNULL(&r))
 	{
-	    TxPrintf("Subcell has degenerate bounding box: %d %d %d %d\n",
-		    r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop);
-	    TxPrintf("Adjusting bounding box of subcell %s of %s",
-		    cellname, cellDef->cd_name);
+	    if (firstUse == TRUE)
+	    {
+		TxPrintf("Subcell has degenerate bounding box: %d %d %d %d\n",
+			r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop);
+		TxPrintf("Adjusting bounding box of subcell %s of %s",
+			cellname, cellDef->cd_name);
+	    }
 	    if (r.r_xtop <= r.r_xbot) r.r_xtop = r.r_xbot + 1;
 	    if (r.r_ytop <= r.r_ybot) r.r_ytop = r.r_ybot + 1;
-	    TxPrintf(" to %d %d %d %d\n",
-		    r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop);
+	    if (firstUse == TRUE)
+	    {
+		TxPrintf(" to %d %d %d %d\n",
+			r.r_xbot, r.r_ybot, r.r_xtop, r.r_ytop);
+	    }
 	}
 	subCellDef->cd_bbox = r;
 	subCellDef->cd_extended = r;
@@ -1632,9 +1650,12 @@ badTransform:
 	 * Watch out for attempts to create circular structures.
 	 * If this happens, disregard the subcell.
 	 */
-	TxPrintf("Subcells are used circularly!\n");
-	TxPrintf("Ignoring subcell %s of %s.\n", cellname,
-	    cellDef->cd_name);
+	if (firstUse == TRUE)
+	{
+	    TxPrintf("Subcells are used circularly!\n");
+	    TxPrintf("Ignoring subcell %s of %s.\n", cellname,
+		    cellDef->cd_name);
+	}
 	goto nextLine;
     }
 
@@ -1669,7 +1690,13 @@ badTransform:
     /* or "~" and cellDef->cd_file has path components, then the path	*/
     /* should be interpreted relative to the path of the parent cell.	*/
 
-    if ((*pathptr == '\0') || ((*pathptr != '/') && (*pathptr != '~')))
+    /* If there is no pathptr, then the situation is one of these two:	*/
+    /* (1) The instance is not the first time the cell was encountered	*/
+    /* in the file, or (2) The cell is in the same path as the parent.	*/
+    /* Only case (2) needs to be handled.				*/
+
+    if ((firstUse == TRUE) && ((*pathptr == '\0') ||
+		((*pathptr != '/') && (*pathptr != '~'))))
 	if ((cellDef->cd_file != NULL) &&
 			(slashptr = strrchr(cellDef->cd_file, '/')) != NULL)
 	{
@@ -1745,7 +1772,7 @@ badTransform:
 		}
 
 		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
-			    && (dereference == FALSE))
+			    && (dereference == FALSE) && (firstUse == TRUE))
 		{
 		    TxError("Duplicate cell in %s:  Instance of cell %s is from "
 				"path %s but cell was previously read from %s.\n",
