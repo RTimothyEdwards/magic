@@ -2735,6 +2735,8 @@ CmdSplit(w, cmd)
     if ((direction = GeoNameToPos(cmd->tx_argv[1], FALSE, TRUE)) < 0)
 	return;
 
+    if (GEO_RECTNULL(&editRect)) return;	    /* Nothing to do */
+
     if (cmd->tx_argc == 4)
     {
 	if (!CmdParseLayers(cmd->tx_argv[3], &mask2))
@@ -2823,6 +2825,8 @@ CmdSplitErase(w, cmd)
     }
 
     if (!ToolGetEditBox(&editRect)) return;
+
+    if (GEO_RECTNULL(&editRect)) return;	    /* Nothing to do */
 
     if ((direction = GeoNameToPos(cmd->tx_argv[1], FALSE, TRUE)) < 0)
 	return;
