@@ -2732,6 +2732,9 @@ CmdSplit(w, cmd)
     if (!CmdParseLayers(cmd->tx_argv[2], &mask1))
         return;
 
+    /* Remove any inactive layers */
+    TTMaskAndMask(&mask1, &DBActiveLayerBits);
+
     if ((direction = GeoNameToPos(cmd->tx_argv[1], FALSE, TRUE)) < 0)
 	return;
 
@@ -2841,6 +2844,9 @@ CmdSplitErase(w, cmd)
     TTMaskClearType(&mask, TT_SPACE);
     if (TTMaskIsZero(&mask))
 	return;
+
+    /* Remove any inactive layers */
+    TTMaskAndMask(&mask, &DBActiveLayerBits);
 
     direction = (direction >> 1) - 1;
     dir = (direction & 0x1) ? 0 : TT_DIRECTION;
