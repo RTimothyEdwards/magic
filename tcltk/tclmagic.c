@@ -1006,6 +1006,9 @@ TxFlush()
 /* from TxTkConsole and set it to zero by default.  The		*/
 /* original behavior can be restored using the *flags wizard	*/
 /* command (*flags printf true).				*/
+/*								*/
+/* 11/24/21---Routing extended to excape any dollar sign that	*/
+/* does not represent a valid Tcl variable.			*/
 /*--------------------------------------------------------------*/
 
 int
@@ -1040,7 +1043,7 @@ Tcl_printf(FILE *f, char *fmt, va_list args_in)
 	if (*(outptr + i) == '\"' || *(outptr + i) == '[' ||
 	    	*(outptr + i) == ']' || *(outptr + i) == '\\')
 	    escapes++;
-	else if (*(outptr + i) == '$' && *(outptr + i + 1) == '$')
+	else if (*(outptr + i) == '$')
 	    escapes += 2;
     }
 
@@ -1058,13 +1061,21 @@ Tcl_printf(FILE *f, char *fmt, va_list args_in)
 	        *(finalstr + i + escapes) = '\\';
 		escapes++;
 	    }
-	    else if (*(outptr + i) == '$' && *(outptr + i + 1) == '$')
+	    else if (*(outptr + i) == '$')
 	    {
-		*(finalstr + i + escapes) = '\\';
-		*(finalstr + i + escapes + 1) = '$';
-		*(finalstr + i + escapes + 2) = '\\';
-		escapes += 2;
-		i++;
+		char *wsp;
+
+		/* Determine if what follows the '$' is a valid Tcl */
+		/* variable name.  If not, then escape the '$'.	    */
+
+		wsp = strchr(outptr + i + 1, ' ');
+		if (wsp != NULL) *wsp = '\0';
+		if (Tcl_GetVar(printinterp, outptr + i + 1, 0) == NULL)
+		{
+		    *(finalstr + i + escapes) = '\\';
+		    escapes++;
+		}
+		if (wsp != NULL) *wsp = ' ';
 	    }
 	    *(finalstr + i + escapes) = *(outptr + i);
 	}
@@ -1090,6 +1101,8 @@ Tcl_printf(FILE *f, char *fmt, va_list args_in)
 /*								*/
 /* 6/17/04---extended like Tcl_printf to escape double-dollar-	*/
 /* sign ('$$') in names.					*/
+/* 11/24/21---modified like Tcl_printf to escape any dollar	*/
+/* sign that does not precede a valid Tcl variable name.	*/
 /*--------------------------------------------------------------*/
 
 char *
@@ -1100,16 +1113,14 @@ Tcl_escape(instring)
     int nchars = 0;
     int escapes = 0;
     int i;
+    Tcl_Interp *printinterp = (TxTkOutput) ? consoleinterp : magicinterp;
 
     for (i = 0; *(instring + i) != '\0'; i++)
     {
 	nchars++;
 	if (*(instring + i) == '\"' || *(instring + i) == '[' ||
-	    	*(instring + i) == ']')
+	    	*(instring + i) == ']' || *(instring + i) == '$')
 	    escapes++;
-
-	else if (*(instring + i) == '$' && *(instring + i + 1) == '$')
-	    escapes += 2;
     }
 
     newstr = Tcl_Alloc(nchars + escapes + 1);
@@ -1122,13 +1133,19 @@ Tcl_escape(instring)
 	    *(newstr + i + escapes) = '\\';
 	    escapes++;
 	}
-	else if (*(instring + i) == '$' && *(instring + i + 1) == '$')
+	else if (*(instring + i) == '$')
 	{
-	    *(newstr + i + escapes) = '\\';
-	    *(newstr + i + escapes + 1) = '$';
-	    *(newstr + i + escapes + 2) = '\\';
-	    escapes += 2;
-	    i++;
+	    char *wsp;
+
+	    /* If what follows '$' is a valid Tcl variable, don't escape it */
+	    wsp = strchr(instring + i + 1, ' ');
+	    if (wsp != NULL) *wsp = '\0';
+	    if (Tcl_GetVar(printinterp, instring + i + 1, 0) == NULL)
+	    {
+		*(newstr + i + escapes) = '\\';
+		escapes++;
+	    }
+	    if (wsp != NULL) *wsp = ' ';
 	}
 	*(newstr + i + escapes) = *(instring + i);
     }
