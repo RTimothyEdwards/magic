@@ -428,14 +428,22 @@ TechLoad(filename, initmask)
     /* If NULL is passed to argument "filename", this is a reload and	*/
     /* we should read TechFileName verbatim.				*/
 
-    if ((filename == NULL) && (TechFileName != NULL))
+    if (filename == NULL)
     {
-	tf = PaOpen(TechFileName, "r", (char *)NULL, ".", SysLibPath, &realname);
-	if (tf == (FILE *) NULL)
+	if (TechFileName != NULL)
 	{
-	    TxError("Could not find file '%s' in any of these "
+	    tf = PaOpen(TechFileName, "r", (char *)NULL, ".", SysLibPath, &realname);
+	    if (tf == (FILE *) NULL)
+	    {
+		TxError("Could not find file '%s' in any of these "
 			"directories:\n         %s\n",
 			TechFileName, SysLibPath);
+		return (FALSE);
+	    }
+	}
+	else
+	{
+	    TxError("Invalid technology file load.\n");
 	    return (FALSE);
 	}
     }
@@ -460,11 +468,18 @@ TechLoad(filename, initmask)
 	else
 	    sptr++;
 
+	/* If the filename is ".tech", then remove the extension and	*/
+	/* process like it was not there at all.			*/
 	dptr = strrchr(sptr, '.');
-	if ((dptr != NULL) && !strncmp(dptr, suffix, strlen(suffix)))
+	if ((dptr != NULL) && !strcmp(dptr, suffix))
 	    *dptr = '\0';
 
-	tf = PaOpen(filename, "r", suffix, ".", SysLibPath, &realname);
+	/* If a non-standard extension was used, then honor it */
+	if ((dptr != NULL) && (*dptr != '\0'))
+	    tf = PaOpen(filename, "r", (char *)NULL, ".", SysLibPath, &realname);
+	else
+	    tf = PaOpen(filename, "r", suffix, ".", SysLibPath, &realname);
+
 	if (tf == (FILE *) NULL)
 	{
 	    /* Try looking for tech files from the last version to	*/
@@ -759,6 +774,7 @@ skipsection:
     else if (retval == FALSE)
     {
 	/* On error, remove any existing technology file name */
+	DBNumPlanes = saveNumPlanes;
 	freeMagic(TechFileName);
 	TechFileName = NULL;
     }
