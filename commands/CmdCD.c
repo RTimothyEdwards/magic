@@ -1167,7 +1167,7 @@ CmdCellname(w, cmd)
 		TxError("Unknown cell %s\n", cellname);
 		break;
 	    }
-	    if (locargc == 3)
+	    if (locargc <= 3)
 	    {
 		if (cellDef->cd_file == NULL)
 		{
@@ -1280,7 +1280,15 @@ CmdCellname(w, cmd)
 	    break;
 	case IDX_RENAME:
 	    /* Rename the cell and mark as modified.  Do not write to disk. */
-	    if (locargc != 4) goto badusage;
+	    if ((locargc == 3) && (EditRootDef != NULL))
+	    {
+		/* Assume cellname is the target name, and the current	*/
+		/* cell is the one to have its name changed.		*/
+		cellDef = EditRootDef;
+		DBCellRename(cellDef->cd_name, cellname, doforce);
+		break;
+	    }
+	    else if (locargc != 4) goto badusage;
 	    DBCellRename(cellname, cmd->tx_argv[3 + ((dolist) ? 1 : 0)], doforce);
 	    break;
 	case IDX_CREATE:

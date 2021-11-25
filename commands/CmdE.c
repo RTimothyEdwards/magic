@@ -1012,7 +1012,10 @@ CmdExtract(w, cmd)
 
 	if (argc == 1)
 	{
-	    ExtIncremental(selectedUse);
+	    if (!strcmp(selectedUse->cu_def->cd_name, UNNAMED))
+		TxError("Please name the cell before extracting.\n");
+	    else
+		ExtIncremental(selectedUse);
 	    return;
 	}
     }
@@ -1043,7 +1046,10 @@ CmdExtract(w, cmd)
 	    break;
 
 	case EXTALL:
-	    ExtAll(selectedUse);
+	    if (!strcmp(selectedUse->cu_def->cd_name, UNNAMED))
+		TxError("Please name the cell before extracting.\n");
+	    else
+		ExtAll(selectedUse);
 	    return;
 
 	case EXTCELL:
@@ -1065,7 +1071,10 @@ CmdExtract(w, cmd)
 		TxError("No cell selected\n");
 		return;
 	    }
-	    ExtParents(selectedUse);
+	    if (!strcmp(selectedUse->cu_def->cd_name, UNNAMED))
+		TxError("Please name the cell before extracting.\n");
+	    else
+		ExtParents(selectedUse);
 	    return;
 
 	case EXTSHOWPARENTS:

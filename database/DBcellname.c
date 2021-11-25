@@ -871,8 +871,17 @@ DBCellPrint(CellName, who, dolist)
 		}
 		if (found == 0)
 		{
-		    if (!dolist)
-			TxPrintf("No cells selected.\n");
+		    if (EditRootDef == NULL)
+		    {
+			if (!dolist)
+			    TxPrintf("No cells selected.\n");
+		    }
+		    else
+		    {
+			dbCellPrintInfo(EditRootDef, who, dolist);
+			found = 1;
+			break;
+		    }
 		}
 	    }
 	    else
