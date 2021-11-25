@@ -420,6 +420,7 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
     Rect r;
     int n = 1, d = 1;
     HashTable dbUseTable;
+    bool needcleanup = FALSE;
 
     /*
      * It's very important to disable interrupts during the body of
@@ -666,6 +667,7 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
     rp = &r;
     UndoDisable();
     HashInit(&dbUseTable, 32, HT_STRINGKEYS);
+    needcleanup = TRUE;
     while (TRUE)
     {
 	/*
@@ -873,7 +875,7 @@ done:
 	cellDef->cd_flags |= CDSTAMPSCHANGED|CDGETNEWSTAMP;
     }
 
-    HashKill(&dbUseTable);
+    if (needcleanup) HashKill(&dbUseTable);
     UndoEnable();
     /* Disabled 3/16/2021.  Let <<checkpaint>> in file force a DRC check */
     /* DRCCheckThis(cellDef, TT_CHECKPAINT, (Rect *) NULL); */
