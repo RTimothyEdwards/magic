@@ -2908,7 +2908,7 @@ calmaPaintLabelFunc(tile, cos)
     if (IsSplit(tile)) return 0;    /* Ignore non-Manhattan geometry */
 
     if (!CalmaIsValidLayer(layer->cl_calmanum))
-	return;
+	return 0;
 
     TiToRect(tile, &r);
 
