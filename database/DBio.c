@@ -1759,6 +1759,7 @@ badTransform:
 	    if (slashptr != NULL)
 	    {
 		bool pathOK = FALSE;
+		char *cwddir = getenv("PWD");
 		*slashptr = '\0';
 
 		/* Avoid generating error message if pathptr starts with '~' */
@@ -1772,24 +1773,137 @@ badTransform:
 			    pathptr + 1)))
 			pathOK = TRUE;
 		}
+		else if (!strcmp(cwddir, pathptr)) pathOK = TRUE;
 
 		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
 			    && (dereference == FALSE) && (firstUse == TRUE))
 		{
+		    FILE *ftest;
+
 		    TxError("Duplicate cell in %s:  Instance of cell %s is from "
 				"path %s but cell was previously read from %s.\n",
 				cellDef->cd_name, slashptr + 1, pathptr,
 				subCellDef->cd_file);
 
-		    /* To do:  Check if new path does not exist (ignore),	*/
-		    /* or if new path has same symbolic link or is the same	*/
-		    /* filesize and checksum (ignore).  If file appears to	*/
-		    /* be truly different, then create a new cell with a	*/
-		    /* modified cell name.					*/
+		    /* Test file at path.  If path is invalid then ignore it	*/ 
+		    /* (automatic dereferencing due to unavailability).		*/
 
-		    TxError("New path will be ignored.  Please check.\n");
+		    ftest = PaOpen(cellname, "r", DBSuffix, pathptr, (char *)NULL,
+					(char **) NULL);
+		    if (ftest == NULL)
+		    {
+			TxError("New path does not exist and will be ignored.\n");
+		    }
+		    else
+		    {
+			char *newname = (char *)mallocMagic(strlen(cellname) + 6);
+			int i = 0;
+
+			/* To do:  Run checksum on file (not yet implemented) */
+			fclose(ftest);
+
+			while (TRUE)
+			{
+			    sprintf(newname, "%s#%d", cellname, i);
+			    if (DBCellLookDef(newname) == NULL) break;
+			    i++;
+			}
+			TxError("Cell name conflict:  Renaming original cell to %s.\n",
+				newname);
+
+			DBCellRename(cellname, newname, TRUE);
+			subCellDef = DBCellNewDef(cellname);
+			subCellDef->cd_timestamp = childStamp;
+			subCellDef->cd_bbox = r;
+			subCellDef->cd_extended = r;
+			freeMagic(newname);
+
+			/* Reconstruct file from path and cellname */
+
+			strcat(path, "/");
+			strcat(path, subCellDef->cd_name);
+			strcat(path, DBSuffix);
+			StrDup(&subCellDef->cd_file, path);
+		    }
 		}
 		*slashptr = '/';
+	    }
+
+	    /* The same reasoning applies if the existing file has a	*/
+	    /* default path but the new cell has a (different) path.	*/
+	    /* The paths only match if pathptr is the CWD.		*/
+
+	    else if ((pathptr != NULL) && (*pathptr != '\0'))
+	    {
+		bool pathOK = FALSE;
+		char *cwddir = getenv("PWD");
+
+		if (cwddir != NULL)
+		{
+		    if (*pathptr == '~')
+		    {
+			/* Check if the path is the same as the current directory */
+
+			char *homedir = getenv("HOME");
+			if (!strncmp(cwddir, homedir, strlen(homedir))
+				&& (!strcmp(cwddir + strlen(homedir),
+				pathptr + 1)))
+			    pathOK = TRUE;
+		    }
+		    else if (!strcmp(cwddir, pathptr)) pathOK = TRUE;
+
+		    if ((pathOK == FALSE) && strcmp(cwddir, pathptr)
+			    && (dereference == FALSE) && (firstUse == TRUE))
+		    {
+			FILE *ftest;
+
+			TxError("Duplicate cell in %s:  Instance of cell %s is from "
+				"path %s but cell was previously read from "
+				"the current directory.\n",
+				cellDef->cd_name, cellname, pathptr);
+
+			/* Test file at path.  If path is invalid then ignore	*/ 
+			/* it (automatic dereferencing due to unavailability).	*/
+
+			ftest = PaOpen(cellname, "r", DBSuffix, pathptr, (char *)NULL,
+					(char **) NULL);
+			if (ftest == NULL)
+			{
+			    TxError("New path does not exist and will be ignored.\n");
+			}
+			else
+			{
+			    char *newname = (char *)mallocMagic(strlen(cellname) + 6);
+			    int i = 0;
+
+			    /* To do:  Run checksum on file (not yet implemented) */
+			    fclose(ftest);
+
+			    while (TRUE)
+			    {
+				sprintf(newname, "%s#%d", cellname, i);
+				if (DBCellLookDef(newname) == NULL) break;
+				i++;
+			    }
+			    TxError("Cell name conflict:  Renaming original "
+					"cell to %s.\n", newname);
+
+			    DBCellRename(cellname, newname, TRUE);
+			    subCellDef = DBCellNewDef(cellname);
+			    subCellDef->cd_timestamp = childStamp;
+			    subCellDef->cd_bbox = r;
+			    subCellDef->cd_extended = r;
+			    freeMagic(newname);
+
+			    /* Reconstruct file from path and cellname */
+
+			    strcat(path, "/");
+			    strcat(path, subCellDef->cd_name);
+			    strcat(path, DBSuffix);
+			    StrDup(&subCellDef->cd_file, path);
+			}
+		    }
+		}
 	    }
 	}
 	else
