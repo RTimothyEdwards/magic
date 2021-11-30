@@ -8,17 +8,29 @@
    Use your World Wide Web browser to read:
 
 	http://opencircuitdesign.com/magic/
-	http://vlsi.csl.cornell.edu/magic/
-	http://www.research.digital.com/wrl/magic/magic.html
 
    Primary documentation is on the opencircuitdesign.com website under
-   the "Documentation" link.
+   various links, including "Download", "Compile", and "Install" for
+   information on obtaining, compiling, and installing the tool from
+   source; "Code History" for detailed comments on all code changes;
+   "Using Magic" for basic usage information including a complete on-line
+   command reference;  "Technology Files" for essential documentation on how
+   to understand, edit, or write technology files for Magic; "Documentation"
+   for miscellaneous papers and historical documentation converted to HTML
+   format.
 
-   The current development versions of magic are maintained by Tim Edwards
-   <tim@opencircuitdesign.com> and the current distribution version is
-   maintained by Rajit Manohar <rajit@csl.cornell.edu>.  Please let us
-   know of any problems/bugs you find.  Development of versions 7.2 and
-   newer is generously funded by MultiGiG, Inc.
+   The current distribution version of magic is maintained by Tim Edwards
+   <tim@opencircuitdesign.com>.  Please let me know of any problems/bugs
+   you find through the github Issues tracker.
+
+   Additional information from developer Rajit Manohar:
+
+	https://csl.yale.edu/~rajit/magic/
+
+   Of mainly historical interest only, now (available through the WayBack machine):
+
+	https://web.archive.org/web/20051217204815/http://www.research.compaq.com:80/wrl/projects/magic/magic.html
+
 
 2. Compilation and Installation:
 ---------------------------------
