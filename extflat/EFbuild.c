@@ -1122,13 +1122,7 @@ EFGetPortMax(def, imp_max)
                 snode != &def->def_firstn;
                 snode = (EFNode *) snode->efnode_next)
     {
-        if (imp_max && (snode->efnode_flags & EF_SUBS_PORT))
-	{
-	    nodeName = snode->efnode_name;
-	    portorder = nodeName->efnn_port;
-	    if (portorder > (*imp_max)) (*imp_max) = portorder;
-	}
-        else if (snode->efnode_flags & EF_PORT)
+        if (snode->efnode_flags & EF_PORT)
 	{
 	    for (nodeName = snode->efnode_name; nodeName != NULL; nodeName =
                         nodeName->efnn_next)
@@ -1137,7 +1131,15 @@ EFGetPortMax(def, imp_max)
 		if (portorder > portmax) portmax = portorder;
 	    }
 	}
+        else if (imp_max && (snode->efnode_flags & EF_SUBS_PORT))
+	{
+	    nodeName = snode->efnode_name;
+	    portorder = nodeName->efnn_port;
+	    if (portorder > (*imp_max)) (*imp_max) = portorder;
+	}
     }
+    if (imp_max)
+	if (portmax > (*imp_max)) (*imp_max) = portmax;
     return portmax;
 }
 

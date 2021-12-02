@@ -641,6 +641,7 @@ efAddOneConn(hc, name1, name2, conn, doWarn)
 	if (he2 == NULL)
 	    return 0;
 	newnode = ((EFNodeName *) HashGetValue(he2))->efnn_node;
+
 	if (node != newnode)
 	    efNodeMerge(&node, &newnode);
     }
