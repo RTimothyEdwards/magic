@@ -1171,6 +1171,7 @@ efBuildDevNode(def, name, isSubsNode)
 {
     HashEntry *he;
     EFNodeName *nn;
+    bool isNewNode = FALSE;
 
     he = HashFind(&def->def_nodes, name);
     nn = (EFNodeName *) HashGetValue(he);
@@ -1183,17 +1184,20 @@ efBuildDevNode(def, name, isSubsNode)
 		(char *) NULL, (char **) NULL, 0);
 
 	nn = (EFNodeName *) HashGetValue(he);
-	if (isSubsNode)
+	isNewNode = TRUE;
+    }
+    if (isSubsNode)
+    {
+	if (!EFHNIsGlob(nn->efnn_hier))
 	{
-	    if (!EFHNIsGlob(nn->efnn_hier))
-	    {
-		/* This node is declared to be an implicit port */
-		nn->efnn_node->efnode_flags |= EF_SUBS_PORT;
-		nn->efnn_port = -1;
-		def->def_flags |= DEF_SUBSNODES;
-	    }
-	    nn->efnn_node->efnode_flags |= (EF_DEVTERM | EF_SUBS_NODE);
+	    /* This node is declared to be an implicit port */
+	    nn->efnn_node->efnode_flags |= EF_SUBS_PORT;
+	    nn->efnn_port = -1;
+	    def->def_flags |= DEF_SUBSNODES;
 	}
+	nn->efnn_node->efnode_flags |= EF_SUBS_NODE;
+	if (isNewNode)
+	    nn->efnn_node->efnode_flags |= EF_DEVTERM;
     }
     return nn->efnn_node;
 }

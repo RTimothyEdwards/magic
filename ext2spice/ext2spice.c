@@ -1496,8 +1496,7 @@ subcktVisit(use, hierName, is_top)
 		snode != &def->def_firstn;
 		snode = (EFNode *) snode->efnode_next)
 	{
-	    if ((snode->efnode_flags & EF_SUBS_PORT) &&
-		    !(snode->efnode_flags & EF_PORT))
+	    if (snode->efnode_flags & EF_SUBS_PORT)
 	    {
 		nodeName = snode->efnode_name;
 		if (nodeName->efnn_port < 0)
@@ -1520,15 +1519,15 @@ subcktVisit(use, hierName, is_top)
 	/* Port numbers need not start at zero or be contiguous. */
 	/* They will be printed in numerical order.		 */
 
-	nodeList = (EFNodeName **)mallocMagic((imp_max + 1) * sizeof(EFNodeName *));
-	for (portidx = 0; portidx <= imp_max; portidx++)
+	nodeList = (EFNodeName **)mallocMagic((portmax + 1) * sizeof(EFNodeName *));
+	for (portidx = 0; portidx <= portmax; portidx++)
 	    nodeList[portidx] = (EFNodeName *)NULL;
 
 	for (snode = (EFNode *) def->def_firstn.efnode_next;
 			snode != &def->def_firstn;
 			snode = (EFNode *) snode->efnode_next)
 	{
-	    if (!(snode->efnode_flags & (EF_PORT | EF_SUBS_PORT))) continue;
+	    if (!(snode->efnode_flags & EF_PORT)) continue;
 	    for (nodeName = snode->efnode_name; nodeName != NULL;
 			nodeName = nodeName->efnn_next)
 	    {
@@ -1538,7 +1537,6 @@ subcktVisit(use, hierName, is_top)
 
 		portidx = nodeName->efnn_port;
 		if (portidx < 0) continue;
-		if (portidx > portmax) portmax = portidx;
 		if (nodeList[portidx] == NULL)
 		{
 		    nodeList[portidx] = nodeName;
@@ -1550,7 +1548,7 @@ subcktVisit(use, hierName, is_top)
 	    }
 	}
 
-	for (portidx = 0; portidx <= imp_max; portidx++)
+	for (portidx = 0; portidx <= portmax; portidx++)
 	{
 	    nodeName = nodeList[portidx];
 
@@ -1583,7 +1581,6 @@ subcktVisit(use, hierName, is_top)
 			snode != &def->def_firstn;
 			snode = (EFNode *) snode->efnode_next)
 	    {
-		if (snode->efnode_flags & EF_PORT) continue;
 		if (!(snode->efnode_flags & EF_SUBS_PORT)) continue;
 		nodeName = snode->efnode_name;
 		if (nodeName->efnn_port == portorder)
@@ -1868,26 +1865,11 @@ topVisit(def, doStub)
 	HashStartSearch(&hs);
 	while (he = HashNext(&def->def_nodes, &hs))
 	{
-	    HashEntry *he2;
-	    EFNode *nnode;
-
 	    sname = (EFNodeName *) HashGetValue(he);
 	    if (sname == NULL) continue;
+	    snode = sname->efnn_node;
 
-	    /* efAddOneConn() may have changed flags only in the entry	*/
-	    /* in efNodeHashTable() which is accessed by EFHNLook().	*/
-	    he2 = EFHNLook(sname->efnn_hier, (char *) NULL, "topVisit");
-	    if (he2 != NULL)
-	    {
-		snode = ((EFNodeName *)HashGetValue(he2))->efnn_node;
-		if (snode != sname->efnn_node)
-		    sname->efnn_node->efnode_flags |= snode->efnode_flags;
-	    }
-	    else
-		snode = sname->efnn_node;
-
-	    if (snode && (snode->efnode_flags & EF_SUBS_PORT) &&
-			!(snode->efnode_flags & EF_PORT))
+	    if (snode && (snode->efnode_flags & EF_SUBS_PORT))
 	    {
 		if (snode->efnode_name->efnn_port < 0)
 		{
@@ -1903,9 +1885,6 @@ topVisit(def, doStub)
 		    EFHNSprintf(stmp, snode->efnode_name->efnn_hier);
 		    fprintf(esSpiceF, " %s", stmp);
 		    snode->efnode_name->efnn_port = portorder++;
-		    if (snode != sname->efnn_node)
-			sname->efnn_node->efnode_name->efnn_port =
-				snode->efnode_name->efnn_port;
 		    tchars += strlen(stmp) + 1;
 		}
 	    }
