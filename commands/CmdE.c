@@ -896,6 +896,7 @@ cmdExpandFunc(use, windowMask)
 #define UNIQALL		0
 #define UNIQTAGGED	1
 #define UNIQNOPORTS	2
+#define UNIQNOTOPPORTS	3
 
 void
 CmdExtract(w, cmd)

@@ -77,6 +77,7 @@ extUniqueCell(def, option)
     CellDef *def;
     int option;
 {
+    NodeRegion *nodeList;
     LabRegion *lregList, *lastreg, processedLabel;
     LabRegion *lp;
     LabelList *ll;
@@ -87,6 +88,8 @@ extUniqueCell(def, option)
     int nwarn;
     bool isabstract;
 
+    NodeRegion *extFindNodes();	    /* Forward reference */
+
     nwarn = 0;
 
     /* Check for "LEFview", as we do not care about unique names in abstract views */
@@ -96,6 +99,11 @@ extUniqueCell(def, option)
     HashInit(&labelHash, 32, HT_STRINGKEYS);
     TxPrintf("Processing %s\n", def->cd_name);
     TxFlush();
+
+    /* Find and mark the substrate node.  This prevents "soft connections"  */
+    /* through the substrate from being separated into unique names.	    */
+
+    nodeList = extFindNodes(def, (Rect *)NULL, TRUE);
 
     /* Build up a list of nodes and assign them to tiles */
     lregList = (LabRegion *) ExtFindRegions(def, &TiPlaneRect,
@@ -155,6 +163,7 @@ extUniqueCell(def, option)
 
     HashKill(&labelHash);
     ExtFreeLabRegions((LabRegion *) lregList);
+    freeMagic(nodeList);
     ExtResetTiles(def, extUnInit);
     if (nwarn)
 	TxError("%s: %d warnings\n", def->cd_name, nwarn);
