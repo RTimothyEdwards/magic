@@ -130,7 +130,11 @@ EFFlatBuild(name, flags)
     if (flags & EF_FLATNODES)
     {
 	if (flags & EF_NOFLATSUBCKT)
+	{
+	    /* The top cell must always have the DEF_SUBCIRCUIT flag cleared */
+	    efFlatRootDef->def_flags &= ~DEF_SUBCIRCUIT;
 	    efFlatNodesStdCell(&efFlatContext);
+	}
 	else
 	{
 	    int flags = FLATNODE_DOWARN;    /* No FLATNODE_STDCELL flag */
