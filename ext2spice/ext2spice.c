@@ -1869,7 +1869,8 @@ topVisit(def, doStub)
 	    if (sname == NULL) continue;
 	    snode = sname->efnn_node;
 
-	    if (snode && (snode->efnode_flags & EF_SUBS_PORT))
+	    if (snode && (snode->efnode_flags & EF_SUBS_PORT) &&
+		    !(snode->efnode_flags & EF_PORT))
 	    {
 		if (snode->efnode_name->efnn_port < 0)
 		{
