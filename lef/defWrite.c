@@ -949,7 +949,8 @@ defNetGeometryFunc(tile, plane, defdata)
 	if ((h != routeWidth) && (w != routeWidth))
 	{
 	    /* Diagnostic */
-	    TxPrintf("Net has width %d, default width is %d\n",
+	    TxPrintf("Net at (%d, %d) has width %d, default width is %d\n",
+			r.r_xbot, r.r_ybot,
 			(h < w) ? h : w, routeWidth);
 	}
 
@@ -1666,7 +1667,12 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 		    if (nAc == 0)
 		    {
 			left = (r->r_xbot + r->r_xtop - size) / 2;
-			if (left >= r->r_xbot) nAc = 1;
+			nAc = 1;
+			if (left < r->r_xbot)
+			{
+			    TxError("Warning: via size is %d but area width is %d!\n",
+					size, (r->r_xtop - r->r_xbot));
+			}
 		    }
 		    else
 			left = (r->r_xbot + r->r_xtop + sep - (nAc * pitch)) / 2;
@@ -1675,7 +1681,12 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 		    if (nUp == 0)
 		    {
 			square.r_ybot = (r->r_ybot + r->r_ytop - size) / 2;
-			if (square.r_ybot >= r->r_ybot) nUp = 1;
+			nUp = 1;
+			if (square.r_ybot >= r->r_ybot)
+			{
+			    TxError("Warning: via size is %d but area height is %d!\n",
+					size, (r->r_ytop - r->r_ybot));
+			}
 		    }
 		    else
 			square.r_ybot = (r->r_ybot + r->r_ytop + sep - (nUp * pitch)) / 2;

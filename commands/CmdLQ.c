@@ -869,6 +869,7 @@ CmdPaintEraseButton(w, butPoint, isPaint)
     TTMaskClearType(&mask, TT_SPACE);
 
     if (!ToolGetEditBox(&editRect)) return;
+    if (EditRootDef == (CellDef *)NULL) return;
 
     areaReturn = editRect;
     if (TTMaskEqual(&mask, &DBZeroTypeBits))
