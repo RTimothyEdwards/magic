@@ -1884,7 +1884,7 @@ esHierVisit(hc, cdata)
     if ((def != topdef) && (hc->hc_use->use_def->def_flags & DEF_NODEVICES) &&
 		(!doStub))
     {
-	EFFlatDone();
+	EFFlatDone(esFreeNodeClient);
 	return 0;
     }
     else if (doStub)
@@ -1987,7 +1987,7 @@ esHierVisit(hc, cdata)
 #endif
     }
 
-    EFFlatDone();
+    EFFlatDone(esFreeNodeClient);
     return 0;
 }
 

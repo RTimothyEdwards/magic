@@ -36,6 +36,7 @@ extern EFNode *spcdevHierSubstrate();
 extern char *nodeSpiceHierName();
 extern devMerge *mkDevMerge();
 extern bool extHierSDAttr();
+extern int esFreeNodeClient();
 
 extern bool devIsKilled();
 extern float getCurDevMult();

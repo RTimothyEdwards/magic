@@ -81,7 +81,7 @@ EFInit()
  *
  * EFDone --
  *
- * Overall cleanup.
+ * Overall cleanup.  For use of func(), see efFreeNodeList() in EFbuild.c.
  *
  * Results:
  *	None.
@@ -95,7 +95,8 @@ EFInit()
  */
 
 void
-EFDone()
+EFDone(func)
+    int (*func)();
 {
     Connection *conn;
     HashSearch hs;
@@ -111,7 +112,7 @@ EFDone()
 	def = (Def *) HashGetValue(he);
 	freeMagic(def->def_name);
 	efFreeNodeTable(&def->def_nodes);
-	efFreeNodeList(&def->def_firstn);
+	efFreeNodeList(&def->def_firstn, func);
 	efFreeUseTable(&def->def_uses);
 	efFreeDevTable(&def->def_devs);
 	HashKill(&def->def_nodes);

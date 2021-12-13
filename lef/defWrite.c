@@ -2172,8 +2172,8 @@ DefWriteCell(def, outName, allSpecial, units)
     fprintf(f, "END NETS\n\n");
 
     if (nets.has_nets) {
-	EFFlatDone();
-	EFDone();
+	EFFlatDone(NULL);
+	EFDone(NULL);
     }
 
     fprintf(f, "END DESIGN\n\n");

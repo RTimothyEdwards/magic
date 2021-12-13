@@ -1988,18 +1988,30 @@ efFreeNodeTable(table)
  * Free the circular list of nodes of which 'head' is the head.
  * Don't free 'head' itself, since it's statically allocated.
  *
+ * If the client (e.g., ext2spice, ext2sim, ...) allocates memory for a
+ * node, then that client needs to provide a function "func" of the form:
+ *
+ *              int func(client) 
+ *		    ClientData client;
+ *		{
+ *		}
+ *
+ * The return value is unused but should be zero for consistency.
+ *
  * Results:
  *	None.
  *
  * Side effects:
- *	Frees memory.
+ *	Frees memory.  Calls func() to free additional memory allocated
+ *	in the node structure by a client.
  *
  * ----------------------------------------------------------------------------
  */
 
 void
-efFreeNodeList(head)
+efFreeNodeList(head, func)
     EFNode *head;
+    int (*func)();
 {
     EFNode *node;
     EFAttr *ap;
@@ -2010,6 +2022,12 @@ efFreeNodeList(head)
     {
 	for (ap = node->efnode_attrs; ap; ap = ap->efa_next)
 	    freeMagic((char *) ap);
+	if (node->efnode_client != (ClientData)NULL)
+	{
+	    if (func != NULL)
+		(*func)(node->efnode_client);
+	    freeMagic((char *)node->efnode_client);
+	}
 	freeMagic((char *) node);
     }
 }

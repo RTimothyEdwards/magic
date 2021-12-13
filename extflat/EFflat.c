@@ -240,7 +240,7 @@ EFFlatBuildOneLevel(def, flags)
  * EFFlatDone --
  *
  * Cleanup by removing all memory used by the flattened circuit
- * representation.
+ * representation.  For use of func(), see efFreeNodeList() in EFbuild.c.
  *
  * Results:
  *	None.
@@ -252,7 +252,8 @@ EFFlatBuildOneLevel(def, flags)
  */
 
 void
-EFFlatDone()
+EFFlatDone(func)
+    int (*func)();
 {
 #ifdef	MALLOCTRACE
     /* Hash table statistics */
@@ -262,7 +263,7 @@ EFFlatDone()
 
     /* Free temporary storage */
     efFreeNodeTable(&efNodeHashTable);
-    efFreeNodeList(&efNodeList);
+    efFreeNodeList(&efNodeList, func);
     HashFreeKill(&efCapHashTable);
     HashKill(&efNodeHashTable);
     HashKill(&efDistHashTable);

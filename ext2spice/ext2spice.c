@@ -116,6 +116,34 @@ devMerge *devMergeList = NULL ;
 /*
  * ----------------------------------------------------------------------------
  *
+ * esFreeNodeClient ---
+ *
+ *	Free the string spiceNodeName associated with the nodeClient
+ *	record that ext2spice allocates per each node structure.
+ *
+ * Returns:
+ *	0 always.
+ *
+ * Side effects:
+ *	Frees an allocated string.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+esFreeNodeClient(client)
+    nodeClient *client;
+{
+    if (client != (ClientData)NULL)
+	if (client->spiceNodeName != NULL)
+	    freeMagic((char *)client->spiceNodeName);
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * Apply modifications to a global node name and output to file "outf"
  *
  * Results:
@@ -1002,9 +1030,9 @@ runexttospice:
 	if (esFormat == HSPICE)
 	    printSubcktDict();
 
-	EFFlatDone();
+	EFFlatDone(esFreeNodeClient);
     }
-    EFDone();
+    EFDone(esFreeNodeClient);
     if (esFormat == HSPICE) {
 	HashKill(&subcktNameTable);
 #ifndef UNSORTED_SUBCKT
@@ -1167,8 +1195,8 @@ main(argc, argv)
     if (esFormat == HSPICE)
 	printSubcktDict();
 
-    EFFlatDone();
-    EFDone();
+    EFFlatDone(esFreeNodeClient);
+    EFDone(esFreeNodeClient);
     if (esFormat == HSPICE) {
 	HashKill(&subcktNameTable);
 #ifndef UNSORTED_SUBCKT

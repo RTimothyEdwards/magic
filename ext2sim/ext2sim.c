@@ -638,8 +638,8 @@ runexttosim:
     (void) sprintf( esCapFormat, " GND %%.%dlf\n", esCapAccuracy);
     EFVisitNodes(simnodeVisit, (ClientData) NULL);
 
-    EFFlatDone();
-    EFDone();
+    EFFlatDone(NULL);
+    EFDone(NULL);
 
     if (esSimF) fclose(esSimF);
     if (esLabF) fclose(esLabF);
@@ -766,8 +766,8 @@ main(argc, argv)
     (void) sprintf( esCapFormat, " GND %%.%dlf\n", esCapAccuracy);
     EFVisitNodes(simnodeVisit, (ClientData) NULL);
 
-    EFFlatDone();
-    EFDone();
+    EFFlatDone(NULL);
+    EFDone(NULL);
 
     if (esSimF) fclose(esSimF);
     if (esLabF) fclose(esLabF);
