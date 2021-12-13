@@ -1262,8 +1262,8 @@ calmaOutFunc(def, f, cliprect)
 	    }
 	    else
 	    {
-		if ((int)(lab->lab_flags & PORT_NUM_MASK) > maxport)
-		    maxport = (int)(lab->lab_flags & PORT_NUM_MASK);
+		if ((int)lab->lab_port > maxport)
+		    maxport = (int)lab->lab_port;
 	    }
 	}
 	if (maxport >= 0)
@@ -1272,7 +1272,7 @@ calmaOutFunc(def, f, cliprect)
 		{
 		    type = CIFCurStyle->cs_portLayer[lab->lab_type];
 		    if ((type >= 0) && ((lab->lab_flags & PORT_DIR_MASK) != 0) &&
-				((lab->lab_flags & PORT_NUM_MASK) == i))
+				(lab->lab_port == i))
 		    {
 			calmaWriteLabelFunc(lab, type, f);
 			/* break; */  /* Do not limit to unique labels! */

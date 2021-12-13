@@ -641,7 +641,7 @@ dbCopyAllLabels(scx, lab, tpath, arg)
     DBEraseLabelsByContent(def, &labTargetRect, -1, lab->lab_text);
     DBPutFontLabel(def, &labTargetRect, lab->lab_font,
 		lab->lab_size, labRotate, &labOffset, targetPos,
-		lab->lab_text, lab->lab_type, lab->lab_flags);
+		lab->lab_text, lab->lab_type, lab->lab_flags, lab->lab_port);
     if (arg->cla_bbox != NULL)
     {
 	GeoIncludeAll(&labTargetRect, arg->cla_bbox);
@@ -849,7 +849,8 @@ DBCellCopyLabels(scx, mask, xMask, targetUse, pArea)
 	    DBEraseLabelsByContent(def, &labTargetRect, -1, lab->lab_text);
 	    DBPutFontLabel(def, &labTargetRect, lab->lab_font,
 			lab->lab_size, labRotate, &labOffset, targetPos,
-			lab->lab_text, lab->lab_type, lab->lab_flags);
+			lab->lab_text, lab->lab_type, lab->lab_flags,
+			lab->lab_port);
 	    if (pArea != NULL)
 		(void) GeoIncludeAll(&labTargetRect, pArea);
 	}

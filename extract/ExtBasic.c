@@ -645,7 +645,7 @@ extOutputNodes(nodeList, outFile)
 	    {
 		fprintf(outFile, "port \"%s\" %d %d %d %d %d %s\n",
 			ll->ll_label->lab_text,
-			ll->ll_label->lab_flags & PORT_NUM_MASK,
+			ll->ll_label->lab_port,
 			ll->ll_label->lab_rect.r_xbot,
 			ll->ll_label->lab_rect.r_ybot,
 			ll->ll_label->lab_rect.r_xtop,

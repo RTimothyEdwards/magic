@@ -494,13 +494,11 @@ ResPrintFHNodes(fp, nodelist, nodename, nidx, celldef)
 		    if (lab->lab_flags & PORT_DIR_MASK)
 			if (!strcmp(lab->lab_text, nodeptr->rn_name))
 			{
-			    if ((lab->lab_flags & PORT_NUM_MASK) != ResPortIndex)
+			    if (lab->lab_port != ResPortIndex)
 			    {
-				lab->lab_flags &= (~(PORT_NUM_MASK));
-				lab->lab_flags |= ResPortIndex;
+				lab->lab_port = ResPortIndex;
 				TxPrintf("Port %s reassigned index %d\n",
-					lab->lab_text,
-					lab->lab_flags & PORT_NUM_MASK);
+					lab->lab_text, lab->lab_port);
 				celldef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
 			    }
 			    ResPortIndex++;

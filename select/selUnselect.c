@@ -217,7 +217,7 @@ selRemoveLabelPaintFunc(tile, label)
   (void) DBPutFontLabel(Select2Def, &label->lab_rect, label->lab_font,
 	label->lab_size, label->lab_rotate, &label->lab_offset,
 	label->lab_just, label->lab_text, label->lab_type,
-	label->lab_flags);
+	label->lab_flags, label->lab_port);
 
   return 1;
 }

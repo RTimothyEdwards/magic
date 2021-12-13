@@ -668,13 +668,13 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 
     DBEraseLabelsByContent(def, &r, -1, lab->lab_text);
     DBPutFontLabel(def, &r, lab->lab_font, lab->lab_size, rotate, &offset,
-		pos, newlabptr, lab->lab_type, lab->lab_flags);
+		pos, newlabptr, lab->lab_type, lab->lab_flags, lab->lab_port);
 
     if (lab->lab_flags & PORT_DIR_MASK)
     {
 	CellDef *orig_def = scx->scx_use->cu_def;
 	Label *slab;
-	int lidx = lab->lab_flags & PORT_NUM_MASK;
+	int lidx = lab->lab_port;
 	TileTypeBitMask *connectMask;
 
 	/* Check for equivalent ports. For any found, call	*/
@@ -688,7 +688,7 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 
 	for (slab = orig_def->cd_labels; slab != NULL; slab = slab->lab_next)
 	    if ((slab->lab_flags & PORT_DIR_MASK) && (slab != lab))
-		if ((slab->lab_flags & PORT_NUM_MASK) == lidx)
+		if (slab->lab_port == lidx)
 		{
 		    Rect newarea;
 		    int i, pNum;

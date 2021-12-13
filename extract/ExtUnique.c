@@ -186,7 +186,8 @@ extMakeUnique(def, ll, lreg, lregList, labelHash, option)
     int nsuffix, nwarn;
     Label saveLab, *lab;
     Rect r;
-    int flags;
+    unsigned short flags;
+    int portno;
 
     /*
      * Make a pass through all labels for all nodes.
@@ -277,17 +278,17 @@ makeUnique:
 	    flags = ll2->ll_label->lab_flags;
 	    if (flags & PORT_DIR_MASK) {
 		int idx;
-		int portno = -1;
+		portno = -1;
 		/* Find the last port index used in the cell def */
 		for (lab = def->cd_labels; lab != NULL; lab = lab->lab_next)
 		{
-		    idx = lab->lab_flags & PORT_NUM_MASK;
+		    idx = lab->lab_port;
 		    if (idx > portno) portno = idx;
 		} 
 		portno++;
-		flags &= ~PORT_NUM_MASK;
-		flags |= portno;
 	    }
+	    else
+		portno = 0;
 
 	    lab = ll2->ll_label;
 	    saveLab = *lab;
@@ -296,7 +297,7 @@ makeUnique:
 	    (void) DBPutFontLabel(def, &saveLab.lab_rect,
 		 	saveLab.lab_font, saveLab.lab_size, saveLab.lab_rotate,
 			&saveLab.lab_offset, saveLab.lab_just, name2,
-			saveLab.lab_type, flags);
+			saveLab.lab_type, flags, (unsigned int)portno);
 	    ll2->ll_label = (Label *) NULL;
 	}
 

@@ -616,7 +616,7 @@ endCoord:
 	    Rect r;
 	    r.r_xbot = r.r_xtop = (routeTop->r_r.r_xbot + routeTop->r_r.r_xtop) / 2;
 	    r.r_ybot = r.r_ytop = (routeTop->r_r.r_ybot + routeTop->r_r.r_ytop) / 2;
-	    DBPutLabel(rootDef, &r, GEO_CENTER, netname, routeTop->r_type, 0);
+	    DBPutLabel(rootDef, &r, GEO_CENTER, netname, routeTop->r_type, 0, 0);
 	    labeled = TRUE;
 	}
 
@@ -1132,7 +1132,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				    DBPaint(rootDef, &topRect, rectList->r_type);
 				    DBPutLabel(rootDef, &topRect, -1, pinname,
 						rectList->r_type,
-						pinNum | pinDir | pinUse | flags);
+						pinDir | pinUse | flags, pinNum);
 				    freeMagic(rectList);
 				    rectList = rectList->r_next;
 				}
@@ -1161,7 +1161,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				    DBPaint(rootDef, &topRect, rectList->r_type);
 				    DBPutLabel(rootDef, &topRect, -1, pinname,
 						rectList->r_type,
-						pinNum | pinDir | pinUse | flags);
+						pinDir | pinUse | flags, pinNum);
 				    freeMagic(rectList);
 				    rectList = rectList->r_next;
 				}

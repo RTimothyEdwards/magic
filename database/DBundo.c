@@ -434,6 +434,7 @@ typedef  Label labelUE;
 #define  lue_offset lab_offset
 #define  lue_flags  lab_flags
 #define  lue_text   lab_text
+#define  lue_port   lab_port
 
     /*
      * labelSize(n) is the size of a labelUE large enough to hold
@@ -556,7 +557,7 @@ dbUndoLabelForw(up)
     lab = DBPutFontLabel(dbUndoLastCell, &up->lue_rect,
 	up->lue_font, up->lue_size, up->lue_rotate,
 	&up->lue_offset, up->lue_just, up->lue_text,
-	up->lue_type, up->lue_flags);
+	up->lue_type, up->lue_flags, up->lue_port);
     DBWLabelChanged(dbUndoLastCell, lab, DBW_ALLWINDOWS);
 
     /*

@@ -1633,7 +1633,8 @@ cmdLabelTextFunc(label, cellUse, transform, text)
 	{
 	    newlab = DBPutFontLabel(cellDef, &label->lab_rect, label->lab_font,
 			label->lab_size, label->lab_rotate, &label->lab_offset,
-			label->lab_just, text, label->lab_type, label->lab_flags);
+			label->lab_just, text, label->lab_type, label->lab_flags,
+			label->lab_port);
 	    DBEraseLabelsByContent(cellDef, &label->lab_rect, -1, label->lab_text);
 	    DBWLabelChanged(cellDef, newlab, DBW_ALLWINDOWS);
 	}

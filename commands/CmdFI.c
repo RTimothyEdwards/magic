@@ -1872,7 +1872,8 @@ flatCopyAllLabels(scx, lab, tpath, targetUse)
 {
     Rect labTargetRect;
     int targetPos;
-    int flags = 0;
+    unsigned short flags = 0;
+    unsigned int port = 0;
     CellDef *def;
     char	labelname[1024];
     char *n, *f, c;
@@ -1903,7 +1904,10 @@ flatCopyAllLabels(scx, lab, tpath, targetUse)
      * top level cell, but certainly not any others.
      */
     if (tpath && (*tpath->tp_first) == '\0')
+    {
 	flags = lab->lab_flags;
+	port = lab->lab_port;
+    }
 
     /* To-do Feb. 2008:  Translate target rotation and offset */
 
@@ -1913,7 +1917,7 @@ flatCopyAllLabels(scx, lab, tpath, targetUse)
     strcpy(n, lab->lab_text);
     DBPutFontLabel(def, &labTargetRect, lab->lab_font, lab->lab_size,
 		lab->lab_rotate, &lab->lab_offset, targetPos,
-		f, lab->lab_type, flags);
+		f, lab->lab_type, flags, port);
     *n = c;
 
     return 0;

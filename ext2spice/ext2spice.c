@@ -77,7 +77,7 @@ int esNoModelType;  /* index for device type "None" (model-less device) */
  * which also are meaningful.
  */
 HashTable subcktNameTable ; /* the hash table itself */
-DQueue    subcktNameQueue ; /* q used to print it sorted at the end*/
+DQueue    subcktNameQueue ; /* q used to print it sorted at the end */
 
 fetInfoList esFetInfo[TT_MAXTYPES];
 
@@ -1005,6 +1005,12 @@ runexttospice:
 	EFFlatDone();
     }
     EFDone();
+    if (esFormat == HSPICE) {
+	HashKill(&subcktNameTable);
+#ifndef UNSORTED_SUBCKT
+	DQFree(&subcktNameQueue);
+#endif
+    }
 
     if (esSpiceF) fclose(esSpiceF);
 
@@ -1163,6 +1169,12 @@ main(argc, argv)
 
     EFFlatDone();
     EFDone();
+    if (esFormat == HSPICE) {
+	HashKill(&subcktNameTable);
+#ifndef UNSORTED_SUBCKT
+	DQFree(&subcktNameQueue);
+#endif
+    }
 
     if (esSpiceF) fclose(esSpiceF);
 

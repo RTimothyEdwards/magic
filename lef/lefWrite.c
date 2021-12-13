@@ -1339,7 +1339,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	if (lab->lab_flags & PORT_DIR_MASK)
 	{
 	    curport++;
-	    idx = lab->lab_flags & PORT_NUM_MASK;
+	    idx = (int)lab->lab_port;
 	    if (idx > maxport)
 		maxport = idx;
 	}
@@ -1356,7 +1356,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    for (lab = def->cd_labels; lab != NULL; lab = lab->lab_next)
 		if (lab->lab_flags & PORT_DIR_MASK)
 		    if (!(lab->lab_flags & PORT_VISITED))
-			if ((lab->lab_flags & PORT_NUM_MASK) == idx)
+			if (lab->lab_port == idx)
 			    break;
 	}
 	else
@@ -1610,7 +1610,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    for (tlab = lab->lab_next; tlab != (Label *)NULL; tlab = tlab->lab_next)
 		if (tlab->lab_flags & PORT_DIR_MASK)
 		    if (!(tlab->lab_flags & PORT_VISITED))
-			if ((tlab->lab_flags & PORT_NUM_MASK) == idx)
+			if (tlab->lab_port == idx)
 			{
 			    TileTypeBitMask lmask;
 			    TTMaskSetOnlyType(&lmask, tlab->lab_type);
@@ -1637,7 +1637,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    for (; lab != NULL; lab = lab->lab_next)
 		if (lab->lab_flags & PORT_DIR_MASK)
 		    if (!(lab->lab_flags & PORT_VISITED))
-			if ((lab->lab_flags & PORT_NUM_MASK) == idx)
+			if (lab->lab_port == idx)
 			    break;
 
 	    if (lc.numWrites > 0)
@@ -1660,7 +1660,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    for (tlab = reflab->lab_next; tlab != NULL; tlab = tlab->lab_next)
 	    {
 		if (tlab->lab_flags & PORT_DIR_MASK)
-		    if ((tlab->lab_flags & PORT_NUM_MASK) == idx)
+		    if (tlab->lab_port == idx)
 			if (strcmp(reflab->lab_text, tlab->lab_text))
 			{
 			    TxError("Index %d is used for ports \"%s\" and \"%s\"\n",

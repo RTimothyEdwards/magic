@@ -1979,8 +1979,10 @@ esHierVisit(hc, cdata)
     /* Reset the subcircuit hash table, if using HSPICE format */
     if (esFormat == HSPICE)
     {
+	HashKill(&subcktNameTable);
         HashInit(&subcktNameTable, 32, HT_STRINGKEYS);
 #ifndef UNSORTED_SUBCKT
+        DQFree(&subcktNameQueue);
         DQInit(&subcktNameQueue, 64);
 #endif
     }

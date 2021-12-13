@@ -1183,7 +1183,7 @@ cifParseUser94()
 	    flags = LABEL_STICKY;
 	else
 	    flags = 0;
-    	(void) DBPutLabel(cifReadCellDef, &rectangle, -1, name, type, flags);
+    	(void) DBPutLabel(cifReadCellDef, &rectangle, -1, name, type, flags, 0);
     }
     freeMagic(name);
     return TRUE;
@@ -1344,7 +1344,7 @@ cifParseUser95()
 	    flags = LABEL_STICKY;
 	else
 	    flags = 0;
-    	(void) DBPutLabel(cifReadCellDef, &rectangle, -1, name, type, flags);
+    	(void) DBPutLabel(cifReadCellDef, &rectangle, -1, name, type, flags, 0);
     }
 
     freeMagic(name);

@@ -2416,7 +2416,7 @@ dbReadLabels(cellDef, line, len, f, scalen, scaled)
 		goto nextlabel;
 	    }
 	    /* lab->lab_flags &= ~LABEL_STICKY; */
-	    lab->lab_flags |= idx;
+	    lab->lab_port = idx;
 	    for (pptr = &ppos[0]; *pptr != '\0'; pptr++)
 	    {
 		switch(*pptr)
@@ -2579,10 +2579,10 @@ dbReadLabels(cellDef, line, len, f, scalen, scaled)
 		    type = rtype;
 	}
 	if (font < 0)
-	    DBPutLabel(cellDef, &r, orient, text, type, flags);
+	    DBPutLabel(cellDef, &r, orient, text, type, flags, 0);
 	else
 	    DBPutFontLabel(cellDef, &r, font, size, rotate, &offset,
-			orient, text, type, flags);
+			orient, text, type, flags, 0);
 
 nextlabel:
 	if (dbFgets(line, len, f) == NULL)
@@ -2947,8 +2947,7 @@ DBCellWriteFile(cellDef, f)
 		if (lab->lab_flags & PORT_DIR_SOUTH) strcat(ppos, "s");
 		if (lab->lab_flags & PORT_DIR_EAST) strcat(ppos, "e");
 		if (lab->lab_flags & PORT_DIR_WEST) strcat(ppos, "w");
-		sprintf(lstring, "port %d %s", lab->lab_flags & PORT_NUM_MASK,
-			ppos);
+		sprintf(lstring, "port %d %s", lab->lab_port, ppos);
 
 		if (lab->lab_flags & (PORT_USE_MASK | PORT_CLASS_MASK | PORT_SHAPE_MASK))
 		{

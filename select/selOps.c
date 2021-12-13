@@ -941,7 +941,8 @@ selTransLabelFunc(label, cellUse, defTransform, transform)
 
     (void) DBPutFontLabel(Select2Def, &finalArea, label->lab_font,
 	    label->lab_size, finalRotate, &finalOffset, finalJust,
-	    label->lab_text, label->lab_type, label->lab_flags);
+	    label->lab_text, label->lab_type, label->lab_flags,
+	    label->lab_port);
     return 0;
 }
 
@@ -1255,7 +1256,8 @@ selArrayLFunc(label, use, transform, arrayInfo)
 	    DBEraseLabelsByContent(Select2Def, &current, -1, astr);
 	    DBPutFontLabel(Select2Def, &current, label->lab_font,
 			label->lab_size, rootRotate, &rootOffset,
-			rootJust, astr, label->lab_type, label->lab_flags);
+			rootJust, astr, label->lab_type,
+			label->lab_flags, label->lab_port);
 	    current.r_ybot += arrayInfo->ar_ysep;
 	    current.r_ytop += arrayInfo->ar_ysep;
 	    xi += only1;

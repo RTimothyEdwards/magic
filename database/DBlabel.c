@@ -91,17 +91,18 @@ DBIsSubcircuit(cellDef)
  */
 
 Label *
-DBPutLabel(cellDef, rect, align, text, type, flags)
+DBPutLabel(cellDef, rect, align, text, type, flags, port)
     CellDef *cellDef;
     Rect *rect;
     int align;
     char *text;
     TileType type;
-    int flags;
+    unsigned short flags;
+    unsigned int port;
 {
     /* Draw text in a standard X11 font */
     return DBPutFontLabel(cellDef, rect, -1, 0, 0, &GeoOrigin,
-		align, text, type, flags);
+		align, text, type, flags, port);
 }
 
 /*
@@ -128,7 +129,7 @@ DBPutLabel(cellDef, rect, align, text, type, flags)
  * ----------------------------------------------------------------------------
  */
 Label *
-DBPutFontLabel(cellDef, rect, font, size, rot, offset, align, text, type, flags)
+DBPutFontLabel(cellDef, rect, font, size, rot, offset, align, text, type, flags, port)
     CellDef *cellDef;	/* Cell in which label is placed */
     Rect *rect;		/* Location of label; see above for description */
     int font;		/* A vector outline font to use, or -1 for X11 font */
@@ -141,7 +142,8 @@ DBPutFontLabel(cellDef, rect, font, size, rot, offset, align, text, type, flags)
 			 */
     char *text;		/* Pointer to actual text of label */
     TileType type;	/* Type of tile to be labelled */
-    int flags;		/* Label flags */
+    unsigned short flags; /* Label flags */
+    unsigned int port;	/* Port index (if label is a port, per the flags) */
 {
     Label *lab;
     int len, x1, x2, y1, y2, tmp, labx, laby;
@@ -208,6 +210,7 @@ DBPutFontLabel(cellDef, rect, font, size, rot, offset, align, text, type, flags)
     }
     lab->lab_type = type;
     lab->lab_flags = flags;
+    lab->lab_port = port;
     lab->lab_rect = *rect;
     lab->lab_next = NULL;
     if (cellDef->cd_labels == NULL)

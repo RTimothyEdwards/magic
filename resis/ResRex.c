@@ -1200,8 +1200,7 @@ ResCheckSimNodes(celldef, resisdata)
 	fprintf(ResFHFile, "\n* Order of arguments to SPICE subcircuit call:\n");
 	for (lab = celldef->cd_labels; lab != NULL; lab = lab->lab_next)
 	    if (lab->lab_flags & PORT_DIR_MASK)
-		fprintf(ResFHFile, "* %d %s\n", lab->lab_flags & PORT_NUM_MASK,
-			lab->lab_text);
+		fprintf(ResFHFile, "* %d %s\n", lab->lab_port, lab->lab_text);
 
 	fprintf(ResFHFile, "\n.end\n");
     }

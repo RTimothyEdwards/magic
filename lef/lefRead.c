@@ -1299,7 +1299,7 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, pinShape, oscale, lann
 		/* it.							*/
 
 		if (lanno->lab_flags & PORT_DIR_MASK)
-		    pinNum = lanno->lab_flags & PORT_NUM_MASK;
+		    pinNum = lanno->lab_port;
 		else
 		{
 		    Label *sl;
@@ -1310,7 +1310,7 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, pinShape, oscale, lann
 		    {
 			if (sl->lab_flags & PORT_DIR_MASK)
 			{
-			    idx = sl->lab_flags & PORT_NUM_MASK;
+			    idx = sl->lab_port;
 			    if (idx > pinNum) pinNum = idx;
 			}
 		    }
@@ -1319,7 +1319,7 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, pinShape, oscale, lann
 	    }
 	    else
 		/* Create a new label (non-rendered) */
-		DBPutLabel(lefMacro, &rectList->r_r, -1, pinName, rectList->r_type, 0);
+		DBPutLabel(lefMacro, &rectList->r_r, -1, pinName, rectList->r_type, 0, 0);
 
 	    /* Set this label to be a port */
 
@@ -1607,7 +1607,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 			    else
 			    {
 				if (lab->lab_flags & PORT_DIR_MASK)
-				    pinNum = lab->lab_flags & PORT_NUM_MASK;
+				    pinNum = lab->lab_port;
 				else
 				{
 				    Label *sl;
@@ -1619,7 +1619,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 				    {
 					if (sl->lab_flags & PORT_DIR_MASK)
 					{
-					    idx = sl->lab_flags & PORT_NUM_MASK;
+					    idx = sl->lab_port;
 					    if (idx > pinNum) pinNum = idx;
 					}
 				    }

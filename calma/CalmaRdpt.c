@@ -316,7 +316,7 @@ calmaElementBoundary()
 	    if (lab == NULL)
 	    {
 		/* There was no label in the area.  Create a placeholder label */
-		DBPutLabel(cifReadCellDef, &rpc, GEO_CENTER, "", type, 0);
+		DBPutLabel(cifReadCellDef, &rpc, GEO_CENTER, "", type, 0, 0);
 	    }
 	}
     }
@@ -970,10 +970,10 @@ calmaElementText()
 	}
 
 	if (font < 0)
-	    lab = DBPutLabel(cifReadCellDef, &r, pos, textbody, type, flags);
+	    lab = DBPutLabel(cifReadCellDef, &r, pos, textbody, type, flags, 0);
 	else
 	    lab = DBPutFontLabel(cifReadCellDef, &r, font, size, angle,
-			&GeoOrigin, pos, textbody, type, flags);
+			&GeoOrigin, pos, textbody, type, flags, 0);
 
 	if ((lab != NULL) && (cifnum >= 0) &&
 		(cifCurReadStyle->crs_labelSticky[cifnum] == LABEL_TYPE_PORT))
@@ -988,7 +988,7 @@ calmaElementText()
 	    i = -1;
 	    for (sl = cifReadCellDef->cd_labels; sl != NULL; sl = sl->lab_next)
 	    {
-		idx = sl->lab_flags & PORT_NUM_MASK;
+		idx = sl->lab_port;
 		if (idx > i) i = idx;
 		if ((idx > 0) && (sl != lab) && !strcmp(sl->lab_text, textbody))
 		{
@@ -997,7 +997,7 @@ calmaElementText()
 		}
 	    }
 	    i++;
-	    lab->lab_flags |= (PORT_NUM_MASK & i);
+	    lab->lab_port = i;
 	    lab->lab_flags |= PORT_DIR_NORTH | PORT_DIR_SOUTH |
 				PORT_DIR_EAST | PORT_DIR_WEST;
 	}

@@ -120,7 +120,7 @@ CmdLabelProc(text, font, size, rotate, offx, offy, pos, sticky, type)
     offset.p_y = offy;
     lab = DBPutFontLabel(EditCellUse->cu_def, &editBox, font, size,
 		rotate, &offset, pos, text, type,
-		((sticky) ? LABEL_STICKY : 0));
+		((sticky) ? LABEL_STICKY : 0), 0);
     DBAdjustLabels(EditCellUse->cu_def, &editBox);
     DBReComputeBbox(EditCellUse->cu_def);
     tmpArea = lab->lab_rect;
@@ -1503,7 +1503,7 @@ CmdPort(w, cmd)
 		    int portidx = atoi(cmd->tx_argv[1]);
 		    for (sl = editDef->cd_labels; sl != NULL; sl = sl->lab_next)
 			if (sl && ((sl->lab_flags & PORT_DIR_MASK) != 0))
-			    if ((sl->lab_flags & PORT_NUM_MASK) == portidx)
+			    if ((int)sl->lab_port == portidx)
 			    {
 			    	lab = sl;
 				break;
@@ -1622,7 +1622,7 @@ CmdPort(w, cmd)
 		i = -1;
 		for (sl = editDef->cd_labels; sl != NULL; sl = sl->lab_next)
 		{
-		    idx = sl->lab_flags & PORT_NUM_MASK;
+		    idx = (int)sl->lab_port;
 		    if (idx > i) i = idx;
 		}
 #ifdef MAGIC_WRAPPER
@@ -1633,16 +1633,15 @@ CmdPort(w, cmd)
 		break;
 
 	    case PORT_FIRST:
-		i = PORT_NUM_MASK + 1;
+		i = -1;
 		for (sl = editDef->cd_labels; sl != NULL; sl = sl->lab_next)
 		{
 		    if (sl->lab_flags & PORT_DIR_MASK)
 		    {
-		    	idx = sl->lab_flags & PORT_NUM_MASK;
+		    	idx = (int)sl->lab_port;
 		    	if (idx < i) i = idx;
 		    }
 		}
-		if (i == PORT_NUM_MASK + 1) i = -1;
 #ifdef MAGIC_WRAPPER
 		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(i));
 #else
@@ -1651,18 +1650,17 @@ CmdPort(w, cmd)
 		break;
 
 	    case PORT_NEXT:
-		refidx = lab->lab_flags & PORT_NUM_MASK;
-		i = PORT_NUM_MASK + 1;
+		refidx = (int)lab->lab_port;
+		i = -1;
 		for (sl = editDef->cd_labels; sl != NULL; sl = sl->lab_next)
 		{
 		    if (sl->lab_flags & PORT_DIR_MASK)
 		    {
-		    	idx = sl->lab_flags & PORT_NUM_MASK;
+		    	idx = (int)sl->lab_port;
 		    	if (idx > refidx)
 		            if (idx < i) i = idx;
 		    }
 		}
-		if (i == PORT_NUM_MASK + 1) i = -1;
 #ifdef MAGIC_WRAPPER
 		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(i));
 #else
@@ -1705,7 +1703,7 @@ CmdPort(w, cmd)
 				lab->lab_size, lab->lab_rotate,
 				&lab->lab_offset, lab->lab_just,
 				cmd->tx_argv[argstart + 1],
-				lab->lab_type, lab->lab_flags);
+				lab->lab_type, lab->lab_flags, lab->lab_port);
 		    DBEraseLabelsByContent(editDef, &lab->lab_rect, -1,
 				lab->lab_text);
 		    DBWLabelChanged(editDef, sl, DBW_ALLWINDOWS);
@@ -1849,7 +1847,7 @@ CmdPort(w, cmd)
 	    case PORT_INDEX:
 		if (argc == 2)
 		{
-		    idx = lab->lab_flags & PORT_NUM_MASK;
+		    idx = (int)lab->lab_port;
 #ifdef MAGIC_WRAPPER
 		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(idx));
 #else
@@ -1867,8 +1865,7 @@ CmdPort(w, cmd)
 			    if (((sl->lab_flags & PORT_DIR_MASK) != 0) &&
 					!strcmp(sl->lab_text, lab->lab_text))
 			    {
-				sl->lab_flags &= (~PORT_NUM_MASK);
-				sl->lab_flags |= atoi(cmd->tx_argv[argstart + 1]);
+				sl->lab_port = (unsigned int)atoi(cmd->tx_argv[argstart + 1]);
 			    }
 			}
 			editDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
@@ -1950,8 +1947,7 @@ CmdPort(w, cmd)
 				if (!strcmp(lastlab->lab_text, tlab->lab_text))
 				    p--;
 
-			    tlab->lab_flags &= ~PORT_NUM_MASK;
-			    tlab->lab_flags |= p;
+			    tlab->lab_port = (unsigned int)p;
 			    lastlab = tlab;
 			    p++;
 			}
@@ -2019,7 +2015,7 @@ parseindex:
 		if (sl == lab) continue;	/* don't consider self */
 		if (sl->lab_flags & PORT_DIR_MASK)
 		{
-		    if ((sl->lab_flags & PORT_NUM_MASK) == idx)
+		    if ((int)sl->lab_port == idx)
 		    {
 			TxError("Port index %d is already used by port %s.\n"
 				"Use command \"port index %d\" to force "
@@ -2043,18 +2039,17 @@ parseindex:
 		    // declared a port, then use its index.
 		    if (!strcmp(sl->lab_text, lab->lab_text))
 		    {
-			idx = (sl->lab_flags & PORT_NUM_MASK) - 1;
+			idx = (int)sl->lab_port - 1;
 			break;
 		    }
-		    else if ((sl->lab_flags & PORT_NUM_MASK) > idx)
-			idx = (sl->lab_flags & PORT_NUM_MASK);
+		    else if (sl->lab_port > idx)
+			idx = sl->lab_port;
 		}
 	    }
 	    idx++;
 	}
 
-	lab->lab_flags &= ~PORT_NUM_MASK;
-	lab->lab_flags |= idx;
+	lab->lab_port = idx;
 
 	/*
 	 * Find positions.

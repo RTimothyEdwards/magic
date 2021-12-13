@@ -154,7 +154,7 @@ PlowRandomTest(def)
 #endif	/* notdef */
 
 	/* Make sure there's always something to undo */
-	DBPutLabel(def, &def->cd_bbox, -1, "dummylabel", TT_SPACE, 0);
+	DBPutLabel(def, &def->cd_bbox, -1, "dummylabel", TT_SPACE, 0, 0);
 
 	/* Undo */
 	UndoBackward(1);
