@@ -607,7 +607,7 @@ efHNFromUse(hc, prefix)
     char *srcp, *dstp;
     char name[2048], *namePtr;
     Use *u = hc->hc_use;
-    HierName *hierName;
+    HierName *hierName, *hn;
     bool hasX, hasY;
     HashEntry *he;
     unsigned size;
@@ -663,7 +663,8 @@ efHNFromUse(hc, prefix)
     }
     HashSetValue(he, (ClientData) hierName);
 
-    (void) HashFind(&efFreeHashTable, (char *) hierName);
+    for (hn = hierName; hn; hn = hn->hn_parent)
+	HashFind(&efFreeHashTable, (char *) hierName);
 
     return hierName;
 }

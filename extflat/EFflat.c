@@ -265,6 +265,7 @@ EFFlatDone()
     efFreeNodeList(&efNodeList);
     HashFreeKill(&efCapHashTable);
     HashKill(&efNodeHashTable);
+    HashKill(&efDistHashTable);
     HashKill(&efHNUseHashTable);
     return;
 }
