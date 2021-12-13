@@ -1432,7 +1432,9 @@ subcktVisit(use, hierName, is_top)
 {
     EFNode *snode;
     Def *def = use->use_def;
-    EFNodeName *nodeName;
+    EFNodeName *sname, *nodeName;
+    HashSearch hs;
+    HashEntry *he;
     int portorder, portmax, portidx, imp_max, tchars;
     char stmp[MAX_STR_SIZE];
     char *instname, *subcktname;
@@ -1481,13 +1483,15 @@ subcktVisit(use, hierName, is_top)
 	/* by the magic extractor, since explicit port order is	*/
 	/* generated during topVisit().				*/
 
-        for (snode = (EFNode *) def->def_firstn.efnode_next;
-		snode != &def->def_firstn;
-		snode = (EFNode *) snode->efnode_next)
-	{
-	    if (snode->efnode_flags & EF_PORT)
-		for (nodeName = snode->efnode_name; nodeName != NULL;
-			nodeName = nodeName->efnn_next)
+    	HashStartSearch(&hs);
+    	while (he = HashNext(&def->def_nodes, &hs))
+    	{
+	    sname = (EFNodeName *) HashGetValue(he);
+	    if (sname == NULL) continue;
+	    snode = sname->efnn_node;
+
+	    if (snode && (snode->efnode_flags & EF_PORT))
+	        for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 		    if (nodeName->efnn_port >= 0)
 		    {
 			portmax++;
@@ -1504,11 +1508,14 @@ subcktVisit(use, hierName, is_top)
 	/* Look for all implicit substrate connections that are	*/
 	/* declared as local node names, and put them last.	*/
 
-	for (snode = (EFNode *) def->def_firstn.efnode_next;
-		snode != &def->def_firstn;
-		snode = (EFNode *) snode->efnode_next)
-	{
-	    if (snode->efnode_flags & EF_SUBS_PORT)
+    	HashStartSearch(&hs);
+    	while (he = HashNext(&def->def_nodes, &hs))
+    	{
+	    sname = (EFNodeName *) HashGetValue(he);
+	    if (sname == NULL) continue;
+	    snode = sname->efnn_node;
+
+	    if (snode && (snode->efnode_flags & EF_SUBS_PORT))
 	    {
 		nodeName = snode->efnode_name;
 		if (nodeName->efnn_port < 0)
@@ -1535,13 +1542,16 @@ subcktVisit(use, hierName, is_top)
 	for (portidx = 0; portidx <= portmax; portidx++)
 	    nodeList[portidx] = (EFNodeName *)NULL;
 
-	for (snode = (EFNode *) def->def_firstn.efnode_next;
-			snode != &def->def_firstn;
-			snode = (EFNode *) snode->efnode_next)
-	{
-	    if (!(snode->efnode_flags & EF_PORT)) continue;
-	    for (nodeName = snode->efnode_name; nodeName != NULL;
-			nodeName = nodeName->efnn_next)
+    	HashStartSearch(&hs);
+    	while (he = HashNext(&def->def_nodes, &hs))
+    	{
+	    sname = (EFNodeName *) HashGetValue(he);
+	    if (sname == NULL) continue;
+	    snode = sname->efnn_node;
+
+	    if ((snode == NULL) || !(snode->efnode_flags & EF_PORT)) continue;
+
+	    for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	    {
 		EFNodeName *nn;
 		HashEntry *he;
@@ -1589,11 +1599,14 @@ subcktVisit(use, hierName, is_top)
 	portorder = portmax + 1;
 	while (portorder <= imp_max)
 	{
-	    for (snode = (EFNode *) def->def_firstn.efnode_next;
-			snode != &def->def_firstn;
-			snode = (EFNode *) snode->efnode_next)
-	    {
-		if (!(snode->efnode_flags & EF_SUBS_PORT)) continue;
+    	    HashStartSearch(&hs);
+    	    while (he = HashNext(&def->def_nodes, &hs))
+    	    {
+		sname = (EFNodeName *) HashGetValue(he);
+	    	if (sname == NULL) continue;
+	    	snode = sname->efnn_node;
+
+		if ((snode == NULL) || !(snode->efnode_flags & EF_SUBS_PORT)) continue;
 		nodeName = snode->efnode_name;
 		if (nodeName->efnn_port == portorder)
 		{
@@ -1830,7 +1843,8 @@ topVisit(def, doStub)
 	    else
 		pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
 
-	    if (HashLookOnly(&portNameTable, pname) == NULL)
+	    hep = HashLookOnly(&portNameTable, pname);
+	    if (hep == (HashEntry *)NULL)
 	    {
 		hep = HashFind(&portNameTable, pname);
 		HashSetValue(hep, (ClientData)(pointertype)nodeName->efnn_port);
@@ -1843,7 +1857,6 @@ topVisit(def, doStub)
 		// a repeat (see NOTE at top), so make sure its
 		// port number is set correctly.
 
-		hep = HashFind(&portNameTable, pname);
 		nodeName->efnn_port = (int)(pointertype)HashGetValue(hep);
 	    }
 	}
