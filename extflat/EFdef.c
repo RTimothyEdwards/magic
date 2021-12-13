@@ -162,6 +162,12 @@ EFDone()
     }
     HashKill(&efDevParamTable);
 
+    HashStartSearch(&hs);
+    while (he = HashNext(&efFreeHashTable, &hs))
+    {
+	/* Keys of this table are entries to be free'd */
+	freeMagic(he->h_key.h_ptr);
+    }
     HashKill(&efFreeHashTable);
 
     /* Final cleanup */

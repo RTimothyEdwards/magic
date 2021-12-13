@@ -351,8 +351,16 @@ ExtGetDevInfo(idx, devnameptr, devtypeptr, s_rclassptr, d_rclassptr,
 	}
 	if (found == TRUE) break;
     }
-    if (t == DBNumTypes) return FALSE;
-    if (devptr == NULL) return FALSE;
+    if (t == DBNumTypes)
+    {
+	freeMagic(uniquenamelist);
+	return FALSE;
+    }
+    if (devptr == NULL)
+    {
+	freeMagic(uniquenamelist);
+	return FALSE;
+    }
 
     if (devnameptr) *devnameptr = locdname;
     if (subnameptr) *subnameptr = devptr->exts_deviceSubstrateName;
