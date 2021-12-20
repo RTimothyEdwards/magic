@@ -3015,15 +3015,16 @@ FILE *outf;
 	   fprintf(outf, "%s", nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier,
 		    NULL));
 
-	/* Mark node as visited */
+	/* Create node client if it doesn't exist */
 	if ((nodeClient *)nn->efnn_node->efnode_client == (ClientData)NULL)
 	    initNodeClientHier(nn->efnn_node);
 
-	if (!esDistrJunct)
-	{
-	    TTMaskZero(&((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask);
-	    TTMaskCom(&((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask);
-	}
+	/* Mark node as visited (set bit one higher than number of resist classes) */
+	if (esDistrJunct)
+	    update_w(efNumResistClasses, 1, nn->efnn_node);
+	else
+	    markVisited((nodeClientHier *)nn->efnn_node->efnode_client, 
+		    efNumResistClasses);
         return nn->efnn_node;
    }
 }
@@ -3236,12 +3237,12 @@ spcdevOutNode(prefix, suffix, name, outf)
     nname = nodeSpiceName(nn->efnn_node->efnode_name->efnn_hier, NULL);
     fprintf(outf, " %s", nname);
 
-    /* Mark node as visited */
-    if (!esDistrJunct)
-    {
-	TTMaskZero(&((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask);
-	TTMaskCom(&((nodeClient *)nn->efnn_node->efnode_client)->m_w.visitMask);
-    }
+    /* Mark node as visited (set bit one higher than number of resist classes) */
+    if (esDistrJunct)
+	update_w(efNumResistClasses, 1, nn->efnn_node);
+    else
+	markVisited((nodeClientHier *)nn->efnn_node->efnode_client,
+		efNumResistClasses);
 
     return (1 + strlen(nname));
 }
@@ -3394,7 +3395,8 @@ spcnodeVisit(node, res, cap)
     {
 	isConnected = (esDistrJunct) ?
 		(((nodeClient *)node->efnode_client)->m_w.widths != NULL) :
-		(!TTMaskIsZero(&((nodeClient *)node->efnode_client)->m_w.visitMask));
+		(!TTMaskHasType(&((nodeClient *)node->efnode_client)->m_w.visitMask,
+		 efNumResistClasses));
     }
     if (!isConnected && esDevNodesOnly)
 	return 0;
@@ -4100,8 +4102,8 @@ update_w(resClass, w,  n)
     if (nc->m_w.widths == NULL)
     {
 	(nc->m_w.widths) = (float *)mallocMagic((unsigned)sizeof(float)
-		* efNumResistClasses);
-	for (i = 0; i < efNumResistClasses; i++)
+		* (efNumResistClasses + 1));
+	for (i = 0; i <= efNumResistClasses; i++)
 	    nc->m_w.widths[i] = 0.0;
     }
     nc->m_w.widths[resClass] += (float)w;
