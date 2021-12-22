@@ -480,6 +480,7 @@ DBUndoPutLabel(cellDef, lab)
     lup->lue_just = lab->lab_just;
     lup->lue_type = lab->lab_type;
     lup->lue_flags = lab->lab_flags;
+    lup->lue_port = lab->lab_port;
     lup->lue_font = lab->lab_font;
     lup->lue_size = lab->lab_size;
     lup->lue_rotate = lab->lab_rotate;
@@ -523,6 +524,7 @@ DBUndoEraseLabel(cellDef, lab)
     lup->lue_just = lab->lab_just;
     lup->lue_type = lab->lab_type;
     lup->lue_flags = lab->lab_flags;
+    lup->lue_port = lab->lab_port;
     lup->lue_font = lab->lab_font;
     lup->lue_size = lab->lab_size;
     lup->lue_rotate = lab->lab_rotate;

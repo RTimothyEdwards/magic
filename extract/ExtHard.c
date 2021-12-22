@@ -341,6 +341,7 @@ extHardSetLabel(scx, reg, arg)
     GeoTransRect(&scx->scx_trans, &r, &newlab->lab_rect);
     newlab->lab_type = oldlab->lab_type;
     newlab->lab_flags = oldlab->lab_flags;
+    newlab->lab_port = oldlab->lab_port;
     text = oldlab->lab_text;
 
     /* Don't care, really, which orientation the label has */
@@ -423,6 +424,7 @@ extHardGenerateLabel(scx, reg, arg)
 
     /* Mark this as a generated label;  may or may not be useful */
     newlab->lab_flags = LABEL_GENERATE;
+    newlab->lab_port = 0;
 
     /* Construct the text of the new label */
     dstp = newlab->lab_text;

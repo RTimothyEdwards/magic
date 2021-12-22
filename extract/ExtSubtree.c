@@ -793,6 +793,7 @@ extSubtreeFunc(scx, ha)
 		newlab->lab_type = lab->lab_type;
 		newlab->lab_rect = lab->lab_rect;
 		newlab->lab_flags = lab->lab_flags;
+		newlab->lab_port = lab->lab_port;
 		strcpy(newlab->lab_text, lab->lab_text);
 
 		newlab->lab_next = cumUse->cu_def->cd_labels;
