@@ -33,6 +33,7 @@ sudo apt-get install m4
 sudo apt-get install tcsh
 sudo apt-get install csh
 sudo apt-get install libx11-dev
+sudo apt-get install libcairo2-dev
 ```
 # Install the recommended Tcl/Tk wrapper around magic   (Version 8.5 or higher is highly recommended.)
 ```bash
@@ -80,7 +81,7 @@ git clone https://github.com/RTimothyEdwards/magic.git
 cd magic
 ./configure 
 make
-make install
+sudo make install
 ```
 #### Note: Remember to use 'gmake' on FreeBSD.
 ---
