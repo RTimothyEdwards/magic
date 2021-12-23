@@ -3835,7 +3835,8 @@ extSubsFunc2(tile, arg)
 	if (TTMaskIntersect(&DBPlaneTypes[pNum], smask))
 	    if (DBSrPaintArea((Tile *) NULL, arg->fra_def->cd_planes[pNum],
 			&tileArea, smask, extSubsFunc3, (ClientData)NULL) != 0)
-		return (1);
+		/* Keep the search going, as there may be other tiles to check */
+		return (0);
 
     /* Run third search in the area of the tile on the substrate plane	*/
     /* to make sure that nothing but space is under these tiles.	*/
