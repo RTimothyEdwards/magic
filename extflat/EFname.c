@@ -73,6 +73,12 @@ extern void efHNRecord();
  * also check if the array variable "globals" contains the name as
  * a key entry.
  *
+ * Updated 12/2021:  Removed the check for Tcl variable names matching
+ * the net name.  This seems like a bad idea all around.  Left just the
+ * check for the array variable "globals".  Otherwise use of VDD and GND
+ * variables cause nets named VDD and GND to become globals, which was
+ * not intended.
+ *
  * Results:
  *	TRUE if the name is a global.
  *
@@ -92,8 +98,8 @@ EFHNIsGlob(hierName)
 		TCL_GLOBAL_ONLY);
     if (retstr != NULL) return TRUE;
 
-    retstr = (char *)Tcl_GetVar(magicinterp, hierName->hn_name, TCL_GLOBAL_ONLY);
-    if (retstr != NULL) return TRUE;
+    // retstr = (char *)Tcl_GetVar(magicinterp, hierName->hn_name, TCL_GLOBAL_ONLY);
+    // if (retstr != NULL) return TRUE;
 #endif
     return hierName->hn_name[strlen(hierName->hn_name) - 1] == '!';
 }
