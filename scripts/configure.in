@@ -225,7 +225,6 @@ stub_defs=""
 extra_defs="$extra_defs -DCAD_DIR=\\\"\${LIBDIR}\\\" -DBIN_DIR=\\\"\${BINDIR}\\\""
 X_LIBS=
 X_CFLAGS=
-CPPFLAGS=
 INC_SPECS=
 DEPEND_FLAG=
 SHLIB_CFLAGS=""
