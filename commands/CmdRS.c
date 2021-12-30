@@ -1266,7 +1266,7 @@ Okay:
 		if ((windowMask & ~xMask) != 0) {
 		    window = CmdGetRootPoint ((Point *) NULL, (Rect *) NULL);
 		    xMask = ((DBWclientRec *)window->w_clientData)->dbw_bitmask;
-		    if (windowMask & xMask == 0) {
+		    if ((windowMask & xMask) == 0) {
 			TxError("Box present in multiple windows; use the"
 				"cursor\nto select the one you want\n");
 			return;

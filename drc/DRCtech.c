@@ -2570,7 +2570,7 @@ drcEdge(argc, argv)
 		    /* For fastest DRC, checkPlane and plane should be	*/
 		    /* the same, if possible.				*/
 
-		    if (pset & pMaskM != 0)
+		    if ((pset & pMaskM) != 0)
 		    {
 			plane = LowestMaskBit(pset & pMaskM);
 			checkPlane = plane;
