@@ -753,6 +753,7 @@ with_tclincls
 with_tkincls
 with_tcllibs
 with_tklibs
+with_wish
 with_openaccess
 enable_memdebug
 enable_modular
@@ -1432,6 +1433,7 @@ Optional Packages:
   --with-tkincls=DIR      Find tk.h in DIR
   --with-tcllibs=DIR      Find Tcl library in DIR
   --with-tklibs=DIR       Find Tk library in DIR
+  --with-wish=EXE         Use wish binary at EXE
   --with-openaccess=DIR	use OpenAccess libraries in DIR
   --with-opengl=DIR          use OpenGL include files in DIR
   --with-cairo=DIR          use Cairo include files in DIR
@@ -5182,7 +5184,6 @@ stub_defs=""
 extra_defs="$extra_defs -DCAD_DIR=\\\"\${LIBDIR}\\\" -DBIN_DIR=\\\"\${BINDIR}\\\""
 X_LIBS=
 X_CFLAGS=
-CPPFLAGS=
 INC_SPECS=
 DEPEND_FLAG=
 SHLIB_CFLAGS=""
@@ -6286,6 +6287,12 @@ if test "${with_tklibs+set}" = set; then :
 fi
 
 
+# Check whether --with-wish was given.
+if test "${with_wish+set}" = set; then :
+  withval=$with_wish; magic_with_wish_binary=$withval
+fi
+
+
 # -----------------------------------------------------------------------
 # Find the Tcl build configuration file "tclConfig.sh"
 # -----------------------------------------------------------------------
@@ -6591,36 +6598,40 @@ if test $usingTcl ; then
 # Find the version of "wish" that corresponds to TCL_EXEC_PREFIX
 # We really ought to run "ldd" to confirm that the linked libraries match.
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for wish executable" >&5
+  if text "x${magic_with_wish_binary}" = "x" ; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for wish executable" >&5
 $as_echo_n "checking for wish executable... " >&6; }
-  for dir in \
-   ${TK_EXEC_PREFIX}/bin \
-   ${TK_EXEC_PREFIX}
-  do
-    for wishexe in \
-      wish-X11 \
-      wish \
-      wish${TK_VERSION} \
-      wish.exe \
-      wish${TK_VERSION}.exe
+    for dir in \
+    ${TK_EXEC_PREFIX}/bin \
+    ${TK_EXEC_PREFIX}
     do
-      if test -r "$dir/$wishexe" ; then
-        WISH_EXE=$dir/$wishexe
+      for wishexe in \
+        wish-X11 \
+        wish \
+        wish${TK_VERSION} \
+        wish.exe \
+        wish${TK_VERSION}.exe
+      do
+        if test -r "$dir/$wishexe" ; then
+          WISH_EXE=$dir/$wishexe
+          break
+        fi
+      done
+      if test "x${WISH_EXE}" != "x" ; then
         break
       fi
     done
-    if test "x${WISH_EXE}" != "x" ; then
-      break
-    fi
-  done
-  if test "x${WISH_EXE}" = "x" ; then
-    echo "Warning: Can't find executable for \"wish\".  You may have to"
-    echo "manually set the value for WISH_EXE in the magic startup script."
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+    if test "x${WISH_EXE}" = "x" ; then
+      echo "Warning: Can't find executable for \"wish\".  You may have to"
+      echo "manually set the value for WISH_EXE in the magic startup script."
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-  else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${WISH_EXE}" >&5
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${WISH_EXE}" >&5
 $as_echo "${WISH_EXE}" >&6; }
+    fi
+  else
+    WISH_EXE=${magic_with_wish_binary}
   fi
 
 # Find the version of "tclsh" that corresponds to TCL_EXEC_PREFIX
