@@ -691,7 +691,7 @@ EFVisitNodes(nodeProc, cdata)
 	}
 	else
 	{
-	    if (node->efnode_flags & EF_SUBS_NODE)
+	    if (node->efnode_flags & EF_GLOB_SUBS_NODE)
 		cap = 0;
 	}
 	if (efWatchNodes)

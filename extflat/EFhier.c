@@ -741,7 +741,7 @@ EFHierVisitNodes(hc, nodeProc, cdata)
 	res = EFNodeResist(snode);
 	cap = snode->efnode_cap;
 	hierName = (HierName *) snode->efnode_name->efnn_hier;
-	if (snode->efnode_flags & EF_SUBS_NODE)
+	if (snode->efnode_flags & EF_GLOB_SUBS_NODE)
 	    cap = 0;
 
 	if (snode->efnode_flags & EF_KILLED) continue;

@@ -1246,7 +1246,7 @@ spcsubHierVisit(hc, node, res, cap, resstrptr)
     HierName *hierName;
     char *nsn;
 
-    if (node->efnode_flags & EF_SUBS_NODE)
+    if (node->efnode_flags & EF_GLOB_SUBS_NODE)
     {
 	hierName = (HierName *) node->efnode_name->efnn_hier;
 	nsn = nodeSpiceHierName(hc, hierName);
@@ -1676,7 +1676,7 @@ esMakePorts(hc, cdata)
 		    nn = (EFNodeName *) HashGetValue(he);
 		    if (nn == NULL)
 		    {
-			efBuildNode(portdef, FALSE, portname, 0.0,
+			efBuildNode(portdef, FALSE, FALSE, portname, 0.0,
 					0, 0, NULL, NULL, 0);
 			nn = (EFNodeName *) HashGetValue(he);
 		    }
@@ -1778,7 +1778,7 @@ esMakePorts(hc, cdata)
 		    nn = (EFNodeName *) HashGetValue(he);
 		    if (nn == NULL)
 		    {
-			efBuildNode(portdef, FALSE, portname, 0.0,
+			efBuildNode(portdef, FALSE, FALSE, portname, 0.0,
 					0, 0, NULL, NULL, 0);
 			nn = (EFNodeName *) HashGetValue(he);
 		    }

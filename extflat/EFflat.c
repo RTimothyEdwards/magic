@@ -1058,9 +1058,9 @@ efFlatSingleCap(hc, name1, name2, conn)
     if (n1 == n2)
 	return 0;
 
-    if (n1->efnode_flags & EF_SUBS_NODE)
+    if (n1->efnode_flags & EF_GLOB_SUBS_NODE)
 	n2->efnode_cap += conn->conn_cap;	/* node 2 to substrate */
-    else if (n2->efnode_flags & EF_SUBS_NODE)
+    else if (n2->efnode_flags & EF_GLOB_SUBS_NODE)
 	n1->efnode_cap += conn->conn_cap;	/* node 1 to substrate */
     else
     {

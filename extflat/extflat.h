@@ -206,6 +206,11 @@ typedef struct efnhdr
      * .ext file.
      */
 #define EF_SUBS_NODE	0x40
+    /*
+     * EF_GLOB_SUBS_NODE is set for the node declared on the "substrate"
+     * line of the .ext file as the global default substrate node.
+     */
+#define EF_GLOB_SUBS_NODE	0x80
 
 extern int efNumResistClasses;	/* Number of resistance classes in efResists */
 

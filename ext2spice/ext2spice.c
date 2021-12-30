@@ -3352,7 +3352,7 @@ spcsubVisit(node, res, cap, resstr)
     HierName *hierName;
     char *nsn;
 
-    if (node->efnode_flags & EF_SUBS_NODE)
+    if (node->efnode_flags & EF_GLOB_SUBS_NODE)
     {
 	hierName = (HierName *) node->efnode_name->efnn_hier;
 	nsn = nodeSpiceName(hierName, NULL);

@@ -420,6 +420,7 @@ readfile:
 		cap = atoCap(argv[3])*cscale;
 		efBuildNode(def,
 			    (keyTable[n].k_key == SUBSTRATE) ? TRUE : FALSE,
+			    FALSE,
 			    argv[1], (double) cap,
 			    atoi(argv[4]), atoi(argv[5]), argv[6],
 			    &argv[7], ac);
@@ -446,7 +447,7 @@ readfile:
 	     */
 	    case RNODE:
 		cap = atoCap(argv[3])*cscale;
-		efBuildNode(def, FALSE, argv[1], (double) cap,
+		efBuildNode(def, FALSE, FALSE, argv[1], (double) cap,
 			    atoi(argv[4]), atoi(argv[5]), argv[6],
 			    (char **) NULL, 0);
 		break;
