@@ -1,0 +1,31 @@
+all: appimage
+
+RESOURCES = $(shell find rsc/ -type f)
+ARCH = $(shell uname -i)
+APPIMAGE = Magic-$(ARCH).AppImage
+
+prefix.tar.gz:
+	docker build -t magic_build -f ./Dockerfile ..
+	id=$$(docker create magic_build) ; \
+	docker cp $$id:/prefix.tar.gz ./prefix.tar.gz ; \
+	docker rm -v $$id
+
+prefix: prefix.tar.gz Makefile $(RESOURCES)
+	rm -rf $@
+	mkdir -p $@
+	tar -xf $< -C $@ .
+	cp $(RESOURCES) ./$@
+	mkdir -p $@/lib/tcl8.6.12
+	cp -r $@/lib/tcl8.6 $@/lib/tcl8.6.12/library
+
+appimagetool:
+	curl -L https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage > ./appimagetool
+	chmod +x ./appimagetool
+
+appimage: $(APPIMAGE)
+$(APPIMAGE): prefix appimagetool
+	./appimagetool prefix
+
+PREFIX ?= /usr/local
+install:
+	install $(APPIMAGE) $(PREFIX)/bin/magic
