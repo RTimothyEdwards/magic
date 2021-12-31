@@ -1004,7 +1004,9 @@ ExtTechInit()
  *	shields "types" from the subtrate.  Additional optional
  *	"subtypes" is a list of types in "subplane" that shield.
  *	If absent, then all types in "subplane" are shields to the
- *	substrate.  "value" is the area capacitance in aF/um^2.
+ *	substrate.  All types specified in the "substrate" statement
+ *	as shielding substrate are automatically included.  "value"
+ *	is the area capacitance in aF/um^2.
  *
  * Results:
  *	None.
@@ -1046,41 +1048,52 @@ ExtTechSimpleAreaCap(argc, argv)
     if (argc > 5)
 	DBTechNoisyNameMask(argv[argc - 3], &subtypes);
     else
-	subtypes = DBAllButSpaceAndDRCBits;
+	TTMaskZero(&subtypes);
 
     /* Part 1: Area cap */
     for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 	if (TTMaskHasType(&types, t))
 	    ExtCurStyle->exts_areaCap[t] = capVal;
 
-    if (plane2 == -1) return;		/* No "virtual" overlaps */
+    if ((plane2 == -1) && (ExtCurStyle->exts_globSubstratePlane == -1)) return;
     else if (plane1 == plane2) return;  /* shouldn't happen */
 
     pnum1 = ExtCurStyle->exts_planeOrder[plane1];
-    pnum2 = ExtCurStyle->exts_planeOrder[plane2];
+    if (plane2 != -1)
+	pnum2 = ExtCurStyle->exts_planeOrder[plane2];
 
     /* Part 2: Overlap cap on types equivalent to substrate */
     /* Find all types in or below plane2 (i.e., ~(space)/plane2)	   */
     /* Shield types are everything in the planes between plane1 and plane2 */
 
     TTMaskZero(&shields);
-
     pshield = 0;
-    for (plane3 = PL_TECHDEPBASE; plane3 < DBNumPlanes; plane3++)
+
+    if (plane2 != -1)
     {
-	pnum3 = ExtCurStyle->exts_planeOrder[plane3];
-	if (pnum3 > pnum2 && pnum3 < pnum1)
+	for (plane3 = PL_TECHDEPBASE; plane3 < DBNumPlanes; plane3++)
 	{
-	    TTMaskSetMask(&shields, &DBPlaneTypes[plane3]);
-	    pshield |= PlaneNumToMaskBit(plane3);
+	    pnum3 = ExtCurStyle->exts_planeOrder[plane3];
+	    if (pnum3 > pnum2 && pnum3 < pnum1)
+	    {
+		TTMaskSetMask(&shields, &DBPlaneTypes[plane3]);
+		pshield |= PlaneNumToMaskBit(plane3);
+	    }
+	    else if (pnum3 <= pnum2)
+	    {
+		TTMaskAndMask(&subtypes, &DBPlaneTypes[plane3]);
+		TTMaskClearType(&subtypes, TT_SPACE);
+	    }
+	    TTMaskClearType(&shields, TT_SPACE);
 	}
-	else if (pnum3 <= pnum2)
-	{
-	    TTMaskAndMask(&subtypes, &DBPlaneTypes[plane3]);
-	    TTMaskClearType(&subtypes, TT_SPACE);
-	}
-	TTMaskClearType(&shields, TT_SPACE);
     }
+
+    /* Defaults from the "substrate" line */
+    TTMaskSetMask(&subtypes, &ExtCurStyle->exts_globSubstrateTypes);
+    TTMaskClearMask(&subtypes, &ExtCurStyle->exts_globSubstrateShieldTypes);
+    TTMaskClearType(&subtypes, TT_SPACE);
+    TTMaskSetMask(&shields, &ExtCurStyle->exts_globSubstrateShieldTypes);
+    TTMaskClearMask(&shields, &ExtCurStyle->exts_globSubstrateTypes);
 
     /* Now record all of the overlap capacitances */
 
@@ -1101,7 +1114,8 @@ ExtTechSimpleAreaCap(argc, argv)
 
 		ExtCurStyle->exts_overlapCap[s][t] = capVal;
 		ExtCurStyle->exts_overlapPlanes |= PlaneNumToMaskBit(plane1);
-		ExtCurStyle->exts_overlapOtherPlanes[s] |= PlaneNumToMaskBit(plane2);
+		if (plane2 != -1)
+		    ExtCurStyle->exts_overlapOtherPlanes[s] |= PlaneNumToMaskBit(plane2);
 		TTMaskSetType(&ExtCurStyle->exts_overlapTypes[plane1], s);
 		TTMaskSetType(&ExtCurStyle->exts_overlapOtherTypes[s], t);
 
@@ -1132,7 +1146,8 @@ ExtTechSimpleAreaCap(argc, argv)
  *	nothing shields "types" from the substrate.  Optional "subtypes"
  *	lists the types in "subplane" that shield.  Otherwise, it is
  *	assumed that all types in "subplane" shield "types" from the
- *	substrate.
+ *	substrate.  Additionally, all types declared to shield the
+ *	substrate are included.
  *
  * Results:
  *	None.
@@ -1182,7 +1197,7 @@ ExtTechSimplePerimCap(argc, argv)
     if (argc > 5)
 	DBTechNoisyNameMask(argv[argc - 3], &subtypes);
     else
-	subtypes = DBAllButSpaceAndDRCBits;
+	TTMaskZero(&subtypes);
 
     /* Part 1: Perimeter cap */
 
@@ -1194,34 +1209,45 @@ ExtTechSimplePerimCap(argc, argv)
 		TTMaskSetType(&ExtCurStyle->exts_perimCapMask[s], t);
 	    }
 
-    if (plane2 == -1) return;		/* No "virtual" overlaps */
+    if ((plane2 == -1) && (ExtCurStyle->exts_globSubstratePlane == -1)) return;
     else if (plane1 == plane2) return;  /* shouldn't happen */
 
     pnum1 = ExtCurStyle->exts_planeOrder[plane1];
-    pnum2 = ExtCurStyle->exts_planeOrder[plane2];
+    if (plane2 != -1)
+	pnum2 = ExtCurStyle->exts_planeOrder[plane2];
 
     /* Part 2: Sidewall overlap cap on types equivalent to substrate	   */
     /* Find all types in or below plane2 (i.e., ~(space)/plane2)	   */
     /* Shield types are everything in the planes between plane1 and plane2 */
 
     TTMaskZero(&shields);
-
     pshield = 0;
-    for (plane3 = PL_TECHDEPBASE; plane3 < DBNumPlanes; plane3++)
+
+    if (plane2 != -1)
     {
-	pnum3 = ExtCurStyle->exts_planeOrder[plane3];
-	if (pnum3 > pnum2 && pnum3 < pnum1)
+	for (plane3 = PL_TECHDEPBASE; plane3 < DBNumPlanes; plane3++)
 	{
-	    TTMaskSetMask(&shields, &DBPlaneTypes[plane3]);
-	    pshield |= PlaneNumToMaskBit(plane3);
+	    pnum3 = ExtCurStyle->exts_planeOrder[plane3];
+	    if (pnum3 > pnum2 && pnum3 < pnum1)
+	    {
+		TTMaskSetMask(&shields, &DBPlaneTypes[plane3]);
+		pshield |= PlaneNumToMaskBit(plane3);
+	    }
+	    else if (pnum3 <= pnum2)
+	    {
+		TTMaskAndMask(&subtypes, &DBPlaneTypes[plane3]);
+	    }
 	}
-	else if (pnum3 <= pnum2)
-	{
-	    TTMaskAndMask(&subtypes, &DBPlaneTypes[plane3]);
-	}
+	TTMaskClearType(&shields, TT_SPACE);
+	TTMaskClearType(&subtypes, TT_SPACE);
     }
-    TTMaskClearType(&shields, TT_SPACE);
+
+    /* Defaults from the "substrate" line */
+    TTMaskSetMask(&subtypes, &ExtCurStyle->exts_globSubstrateTypes);
+    TTMaskClearMask(&subtypes, &ExtCurStyle->exts_globSubstrateShieldTypes);
     TTMaskClearType(&subtypes, TT_SPACE);
+    TTMaskSetMask(&shields, &ExtCurStyle->exts_globSubstrateShieldTypes);
+    TTMaskClearMask(&shields, &ExtCurStyle->exts_globSubstrateTypes);
 
     /* Record all of the sideoverlap capacitances */
 
@@ -1241,13 +1267,17 @@ ExtTechSimplePerimCap(argc, argv)
   		if (DBIsContact(t)) continue;
 
 		TTMaskSetMask(&ExtCurStyle->exts_sideOverlapOtherTypes[s][t], &subtypes);
-		ExtCurStyle->exts_sideOverlapOtherPlanes[s][t] |=
+		if (plane2 != -1)
+		    ExtCurStyle->exts_sideOverlapOtherPlanes[s][t] |=
 				PlaneNumToMaskBit(plane2);
 		cnew = (EdgeCap *) mallocMagic((unsigned) (sizeof (EdgeCap)));
 		cnew->ec_cap = capVal;
 		cnew->ec_far = shields;		/* Types that shield */
 		cnew->ec_near = subtypes;	/* Types we create cap with */
-		cnew->ec_pmask = PlaneNumToMaskBit(plane2);
+		if (plane2 != -1)
+		    cnew->ec_pmask = PlaneNumToMaskBit(plane2);
+		else
+		    cnew->ec_pmask = 0;
 		cnew->ec_next = ExtCurStyle->exts_sideOverlapCap[s][t];
 		ExtCurStyle->exts_sideOverlapCap[s][t] = cnew;
 
@@ -1259,7 +1289,7 @@ ExtTechSimplePerimCap(argc, argv)
 
 	/* Reverse case (swap "types" and "subtypes") */
 
-	if (TTMaskHasType(&subtypes, s))
+	if ((plane2 != -1) && TTMaskHasType(&subtypes, s))
 	{
 	    ExtCurStyle->exts_sidePlanes |= PlaneNumToMaskBit(plane2);
 	    TTMaskSetType(&ExtCurStyle->exts_sideTypes[plane2], s);
