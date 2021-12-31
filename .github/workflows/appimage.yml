@@ -1,0 +1,30 @@
+
+on:
+  push:
+    tags:
+       - '*'
+
+name: CI
+
+jobs:
+  build_linux:
+    name: Build/Linux
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get the version
+        id: get_version
+        run: |
+         export VERSION_NUM=$(ruby -e "print '$GITHUB_REF'.split('/')[2]")
+         echo ::set-output name=value::${VERSION_NUM}
+      - name: Build project
+        run: |
+          cd appimage
+          make
+          cp Magic-x86_64.AppImage /tmp/Magic-${{ steps.get_version.outputs.value }}-x86_64.AppImage
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files:
+            /tmp/Magic-${{ steps.get_version.outputs.value }}-x86_64.AppImage
