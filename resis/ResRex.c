@@ -1745,7 +1745,7 @@ ResWriteExtFile(celldef, node, tol, rctol, nidx, eidx)
         }
         for (ptr = node->firstDev; ptr != NULL; ptr=ptr->nextDev)
         {
-	    if (layoutDev = ResGetDevice(&ptr->thisDev->location, ptr->thisDev->rs_ttype))
+	    if ((layoutDev = ResGetDevice(&ptr->thisDev->location, ptr->thisDev->rs_ttype)))
 	    {
 		ResFixUpConnections(ptr->thisDev, layoutDev, node, newname);
 	    }

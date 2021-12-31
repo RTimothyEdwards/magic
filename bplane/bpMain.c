@@ -261,7 +261,7 @@ Rect BPBBox(BPlane *bp)
     e = BPEnumNext(&bpe);
     bp->bp_bbox = e->e_rect;
 
-    while(e = BPEnumNext(&bpe))
+    while((e = BPEnumNext(&bpe)))
     {
       GeoIncludeRectInBBox(&e->e_rect, &bp->bp_bbox);
     }

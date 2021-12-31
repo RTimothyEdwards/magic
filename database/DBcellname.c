@@ -2489,7 +2489,7 @@ DBUnLinkCell(use, parentDef)
 {
     HashEntry *he;
 
-    if (he = HashLookOnly(&parentDef->cd_idHash, use->cu_id))
+    if ((he = HashLookOnly(&parentDef->cd_idHash, use->cu_id)))
 	HashSetValue(he, (ClientData) NULL);
 }
 

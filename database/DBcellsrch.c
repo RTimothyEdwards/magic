@@ -87,7 +87,7 @@ DBSrCellPlaneArea(BPlane *plane, Rect *rect, int (*func)(), ClientData arg)
 
     BPEnumInit(&bpe, plane, rect, BPE_OVERLAP, "DBSrCellPlaneArea");
 
-    while (use = BPEnumNext(&bpe))
+    while ((use = BPEnumNext(&bpe)))
     {
 	if ((*func)(use, arg))
 	{

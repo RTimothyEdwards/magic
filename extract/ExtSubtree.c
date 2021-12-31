@@ -672,7 +672,7 @@ extSubtreeOutputCoupling(ha)
     char *name;
 
     HashStartSearch(&hs);
-    while (he = HashNext(&ha->ha_cumFlat.et_coupleHash, &hs))
+    while ((he = HashNext(&ha->ha_cumFlat.et_coupleHash, &hs)))
     {
 	cap = extGetCapValue(he) / ExtCurStyle->exts_capScale;
 	if (cap == 0)

@@ -189,9 +189,9 @@ DBWPrintElements(cellDef, flagmask, reducer)
     char *etypes[] = {"rectangle", "line", "text"};
 
     HashStartSearch(&hs);
-    while (he = HashNext(&elementTable, &hs))
+    while ((he = HashNext(&elementTable, &hs)))
     {
-	if (elem = (DBWElement *)HashGetValue(he))
+	if ((elem = (DBWElement *)HashGetValue(he)))
 	{
 	    if ((elem->rootDef == cellDef) && (elem->flags & flagmask))
 	    {
@@ -289,9 +289,9 @@ DBWScaleElements(n, d)
     extern bool DBScalePoint();	    /* Forward declaration */
 
     HashStartSearch(&hs);
-    while (he = HashNext(&elementTable, &hs))
+    while ((he = HashNext(&elementTable, &hs)))
     {
-	if (elem = (DBWElement *)HashGetValue(he))
+	if ((elem = (DBWElement *)HashGetValue(he)))
 	{
 	    /* scale area rectangle */
 	    DBScalePoint(&elem->area.r_ll, n, d);
@@ -631,9 +631,9 @@ DBWElementNames()
 #endif
 
     HashStartSearch(&hs);
-    while (he = HashNext(&elementTable, &hs))
+    while ((he = HashNext(&elementTable, &hs)))
     {
-	if (elem = (DBWElement *)HashGetValue(he))
+	if ((elem = (DBWElement *)HashGetValue(he)))
 	{
 #ifdef MAGIC_WRAPPER
 	    Tcl_AppendElement(magicinterp, he->h_key.h_name);
@@ -673,9 +673,9 @@ DBWElementInbox(area)
 #endif
 
     HashStartSearch(&hs);
-    while (he = HashNext(&elementTable, &hs))
+    while ((he = HashNext(&elementTable, &hs)))
     {
-	if (elem = (DBWElement *)HashGetValue(he))
+	if ((elem = (DBWElement *)HashGetValue(he)))
 	{
 	    if (GEO_SURROUND(area, &elem->area))
 	    {

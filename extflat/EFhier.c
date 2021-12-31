@@ -81,7 +81,7 @@ efHierSrUses(hc, func, cdata)
     HashEntry *he;
 
     HashStartSearch(&hs);
-    while (he = HashNext(&hc->hc_use->use_def->def_uses, &hs))
+    while ((he = HashNext(&hc->hc_use->use_def->def_uses, &hs)))
     {
 	u = (Use *)HashGetValue(he);
 	newhc.hc_use = u;
@@ -258,7 +258,7 @@ EFHierSrDefs(hc, func, cdata)
     }
 
     HashStartSearch(&hs);
-    while (he = HashNext(&hc->hc_use->use_def->def_uses, &hs))
+    while ((he = HashNext(&hc->hc_use->use_def->def_uses, &hs)))
     {
 	u = (Use *)HashGetValue(he);
 	newhc.hc_use = u;
@@ -486,7 +486,7 @@ efHierVisitDevs(hc, ca)
 
     /* Visit all devices */
     HashStartSearch(&hs);
-    while (he = HashNext(&def->def_devs, &hs))
+    while ((he = HashNext(&def->def_devs, &hs)))
     {
 	dev = (Dev *)HashGetValue(he);
 	if (efHierDevKilled(hc, dev, hc->hc_hierName))
@@ -679,7 +679,7 @@ EFHierVisitCaps(hc, capProc, cdata)
     /* efCapHashTable using efFlatCaps().			*/
 
     HashStartSearch(&hs);
-    while (he = HashNext(&efCapHashTable, &hs))
+    while ((he = HashNext(&efCapHashTable, &hs)))
     {
 	ccap = CapHashGetValue(he);
 	ck = (EFCoupleKey *) he->h_key.h_words;

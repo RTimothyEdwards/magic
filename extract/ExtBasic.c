@@ -3885,7 +3885,7 @@ extNodeAreaFunc(tile, arg)
     }
 
     /* Compute the resistance for the previous region */
-    if (old = (NodeRegion *) arg->fra_region)
+    if ((old = (NodeRegion *) arg->fra_region))
 	if (ExtOptions & EXT_DORESISTANCE)
 	    extSetResist(old);
 
@@ -4258,7 +4258,7 @@ donesides:
 	 * 1-lambda halo to find everything it overlaps or touches
 	 * on the other plane.
 	 */
-	if (pMask = DBAllConnPlanes[type])
+	if ((pMask = DBAllConnPlanes[type]))
 	{
 	    Rect biggerArea;
 	    bool is_split = IsSplit(tile);
@@ -4341,7 +4341,7 @@ extCapHashKill(ht)
     HashEntry *he;
 
     HashStartSearch(&hs);
-    while (he = HashNext(ht, &hs))
+    while ((he = HashNext(ht, &hs)))
     {
 	if (HashGetValue(he) != NULL)
 	{

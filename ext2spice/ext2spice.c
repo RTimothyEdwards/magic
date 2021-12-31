@@ -1512,7 +1512,7 @@ subcktVisit(use, hierName, is_top)
 	/* generated during topVisit().				*/
 
     	HashStartSearch(&hs);
-    	while (he = HashNext(&def->def_nodes, &hs))
+    	while ((he = HashNext(&def->def_nodes, &hs)))
     	{
 	    sname = (EFNodeName *) HashGetValue(he);
 	    if (sname == NULL) continue;
@@ -1537,7 +1537,7 @@ subcktVisit(use, hierName, is_top)
 	/* declared as local node names, and put them last.	*/
 
     	HashStartSearch(&hs);
-    	while (he = HashNext(&def->def_nodes, &hs))
+    	while ((he = HashNext(&def->def_nodes, &hs)))
     	{
 	    sname = (EFNodeName *) HashGetValue(he);
 	    if (sname == NULL) continue;
@@ -1571,7 +1571,7 @@ subcktVisit(use, hierName, is_top)
 	    nodeList[portidx] = (EFNodeName *)NULL;
 
     	HashStartSearch(&hs);
-    	while (he = HashNext(&def->def_nodes, &hs))
+    	while ((he = HashNext(&def->def_nodes, &hs)))
     	{
 	    sname = (EFNodeName *) HashGetValue(he);
 	    if (sname == NULL) continue;
@@ -1628,7 +1628,7 @@ subcktVisit(use, hierName, is_top)
 	while (portorder <= imp_max)
 	{
     	    HashStartSearch(&hs);
-    	    while (he = HashNext(&def->def_nodes, &hs))
+    	    while ((he = HashNext(&def->def_nodes, &hs)))
     	    {
 		sname = (EFNodeName *) HashGetValue(he);
 	    	if (sname == NULL) continue;
@@ -1796,7 +1796,7 @@ topVisit(def, doStub)
     HashStartSearch(&hs);
     portmax = -1;
 
-    while (he = HashNext(&def->def_nodes, &hs))
+    while ((he = HashNext(&def->def_nodes, &hs)))
     {
 	sname = (EFNodeName *) HashGetValue(he);
 	if (sname == NULL) continue;
@@ -1841,7 +1841,7 @@ topVisit(def, doStub)
     for (portorder = 0; portorder <= portmax; portorder++) sorted_ports[portorder] = NULL;
 
     HashStartSearch(&hs);
-    while (he = HashNext(&def->def_nodes, &hs))
+    while ((he = HashNext(&def->def_nodes, &hs)))
     {
 	char stmp[MAX_STR_SIZE];
 	int portidx;
@@ -1916,7 +1916,7 @@ topVisit(def, doStub)
     if (!doStub)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&def->def_nodes, &hs))
+	while ((he = HashNext(&def->def_nodes, &hs)))
 	{
 	    sname = (EFNodeName *) HashGetValue(he);
 	    if (sname == NULL) continue;
@@ -3556,7 +3556,7 @@ EFHNSprintf(str, hierName)
 	convertComma = (EFOutputFlags & EF_CONVERTCOMMA);
 	convertEqual = (EFOutputFlags & EF_CONVERTEQUAL);
 	convertBrackets = (EFOutputFlags & EF_CONVERTBRACKETS);
-	while (c = *cp++)
+	while ((c = *cp++))
 	{
 	    switch (c)
 	    {

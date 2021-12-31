@@ -233,9 +233,9 @@ extHierLabelFunc(scx, label, tpath, targetDef)
     newlab->lab_type = label->lab_type;
     newlab->lab_flags = label->lab_flags;
     dstp = newlab->lab_text;
-    for (srcp = tpath->tp_first; *dstp++ = *srcp++; )
+    for ((srcp = tpath->tp_first; *dstp++ = *srcp++; ))
 	/* Nothing */;
-    for (--dstp, srcp = label->lab_text; *dstp++ = *srcp++; )
+    for ((--dstp, srcp = label->lab_text; *dstp++ = *srcp++; ))
 	/* Nothing */;
 
     newlab->lab_next = targetDef->cd_labels;

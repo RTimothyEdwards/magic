@@ -319,7 +319,7 @@ efHNToStrFunc(hierName, dstp)
     }
 
     srcp = hierName->hn_name;
-    while (*dstp++ = *srcp++)
+    while ((*dstp++ = *srcp++))
 	/* Nothing */;
 
     return --dstp;
@@ -578,7 +578,7 @@ efHNLexOrder(hierName1, hierName2)
 	return 0;
 
     if (hierName1->hn_parent)
-	if (i = efHNLexOrder(hierName1->hn_parent, hierName2->hn_parent))
+	if ((i = efHNLexOrder(hierName1->hn_parent, hierName2->hn_parent)))
 	    return i;
 
     return strcmp(hierName1->hn_name, hierName2->hn_name);
@@ -626,7 +626,7 @@ efHNFromUse(hc, prefix)
 	namePtr = name;
 	srcp = u->use_id;
 	dstp = name;
-	while (*dstp++ = *srcp++)
+	while ((*dstp++ = *srcp++))
 	    /* Nothing */;
 
 	/* Array subscript */
@@ -759,7 +759,7 @@ efHNInit(hierName, cp, endp)
     }
     else
     {
-	while (*dstp++ = *cp)
+	while ((*dstp++ = *cp))
 	    hashsum = HASHADDVAL(hashsum, *cp++);
     }
 
@@ -971,7 +971,7 @@ efHNDump()
     }
 
     HashStartSearch(&hs);
-    while (he = HashNext(&efNodeHashTable, &hs))
+    while ((he = HashNext(&efNodeHashTable, &hs)))
 	fprintf(f, "%s\n", EFHNToStr((HierName *) he->h_key.h_ptr));
 
     (void) fclose(f);

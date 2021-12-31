@@ -429,7 +429,7 @@ rtrHashKill(ht)
     HashSearch hs;
 
     HashStartSearch(&hs);
-    while (he = HashNext(ht, &hs))
+    while ((he = HashNext(ht, &hs)))
 	GCRFreeChannel((GCRChannel *) HashGetValue(he));
     HashKill(ht);
 }

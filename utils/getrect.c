@@ -69,28 +69,28 @@ GetRect(fin, skip, rect, scalen, scaled)
     while (skip-- > 0)
 	(void) getc(fin);
 
-    if (isNegative = ((c = getc(fin)) == '-')) c = getc(fin);
+    if ((isNegative = ((c = getc(fin)) == '-'))) c = getc(fin);
     for (n = 0; isdigit(c); n = n * 10 + c - '0', c = getc(fin))
 	/* Nothing */;
     rect->r_xbot = isNegative ? -n : n;
     if (!isspace(c)) goto bad;
     while ((c = getc(fin)) != EOF && isspace(c)) /* Nothing */;
 
-    if (isNegative = (c == '-')) c = getc(fin);
+    if ((isNegative = (c == '-'))) c = getc(fin);
     for (n = 0; isdigit(c); n = n * 10 + c - '0', c = getc(fin))
 	/* Nothing */;
     rect->r_ybot = isNegative ? -n : n;
     if (!isspace(c)) goto bad;
     while ((c = getc(fin)) != EOF && isspace(c)) /* Nothing */;
 
-    if (isNegative = (c == '-')) c = getc(fin);
+    if ((isNegative = (c == '-'))) c = getc(fin);
     for (n = 0; isdigit(c); n = n * 10 + c - '0', c = getc(fin))
 	/* Nothing */;
     rect->r_xtop = isNegative ? -n : n;
     if (!isspace(c)) goto bad;
     while ((c = getc(fin)) != EOF && isspace(c)) /* Nothing */;
 
-    if (isNegative = (c == '-')) c = getc(fin);
+    if ((isNegative = (c == '-'))) c = getc(fin);
     for (n = 0; isdigit(c); n = n * 10 + c - '0', c = getc(fin))
 	/* Nothing */;
     rect->r_ytop = isNegative ? -n : n;

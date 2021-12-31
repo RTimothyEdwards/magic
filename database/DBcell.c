@@ -106,7 +106,7 @@ DBCellFindDup(use, parent)
 
     BPEnumInit(&bpe, parent->cd_cellPlane, &use->cu_bbox, BPE_EQUAL,
 		"DBCellFindDup");
-    while (dupUse = BPEnumNext(&bpe))
+    while ((dupUse = BPEnumNext(&bpe))
 	if (dupUse->cu_def == use->cu_def) break;
 
     BPEnumTerm(&bpe);

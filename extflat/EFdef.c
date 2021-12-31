@@ -107,7 +107,7 @@ EFDone(func)
     int n;
 
     HashStartSearch(&hs);
-    while (he = HashNext(&efDefHashTable, &hs))
+    while ((he = HashNext(&efDefHashTable, &hs)))
     {
 	def = (Def *) HashGetValue(he);
 	freeMagic(def->def_name);

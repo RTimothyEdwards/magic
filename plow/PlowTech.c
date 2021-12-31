@@ -638,14 +638,14 @@ PlowDRCFinal()
 	plowMaxDist[i] = 0;
 	for (j = 0; j < DBNumTypes; j++)
 	{
-	    if (pr = plowWidthRulesTbl[i][j])
+	    if ((pr = plowWidthRulesTbl[i][j]))
 	    {
 		pr = plowWidthRulesTbl[i][j] = plowTechOptimizeRule(pr);
 		for ( ; pr; pr = pr->pr_next)
 		    if (pr->pr_dist > plowMaxDist[i])
 			plowMaxDist[i] = pr->pr_dist;
 	    }
-	    if (pr = plowSpacingRulesTbl[i][j])
+	    if ((pr = plowSpacingRulesTbl[i][j]))
 	    {
 		pr = plowSpacingRulesTbl[i][j] = plowTechOptimizeRule(pr);
 		for ( ; pr; pr = pr->pr_next)
@@ -1012,7 +1012,7 @@ plowTechShowTable(table, header, f)
     fprintf(f, "\n\n------------ %s ------------\n", header);
     for (i = 0; i < DBNumTypes; i++)
 	for (j = 0; j < DBNumTypes; j++)
-	    if (pr = table[i][j])
+	    if ((pr = table[i][j]))
 	    {
 		fprintf(f, "\n%s -- %s:\n",
 		    DBTypeLongName(i), DBTypeLongName(j));

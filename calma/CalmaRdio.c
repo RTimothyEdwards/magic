@@ -355,7 +355,7 @@ calmaReadR8(pd)
 
     /* Extract the sign and exponent */
     exponent = dchars[0];
-    if (isneg = (exponent & 0x80))
+    if ((isneg = (exponent & 0x80)))
 	exponent &= ~0x80;
     exponent -= 64;
 

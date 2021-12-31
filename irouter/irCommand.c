@@ -898,7 +898,7 @@ irContactsCmd(w, cmd)
 	    return;
 	}
 
-	if(rC=irFindRouteContact(tileType))
+	if((rC=irFindRouteContact(tileType)))
 	{
 	    /* Print Contact Heading */
 	    TxPrintf("%-12.12s ", "contact");
@@ -996,7 +996,7 @@ irContactsCmd(w, cmd)
 	    return;
 	}
 
-	if(rC=irFindRouteContact(tileType))
+	if((rC=irFindRouteContact(tileType)))
 	{
 	    /* Lookup contact parameter name in table */
 	    which = LookupStruct(
@@ -1272,7 +1272,7 @@ irLayersCmd(w, cmd)
 	    return;
 	}
 
-	if (rL=irFindRouteLayer(tileType))
+	if ((rL=irFindRouteLayer(tileType)))
 	{
 	    /* Print Route Layer Heading */
 	    TxPrintf("%-12.12s ", "layer");
@@ -1372,7 +1372,7 @@ irLayersCmd(w, cmd)
 	    return;
 	}
 
-	if (rL=irFindRouteLayer(tileType))
+	if ((rL=irFindRouteLayer(tileType)))
 	{
 	    /* Lookup route layer parameter name in table */
 	    which = LookupStruct(

@@ -360,7 +360,7 @@ glProcessLoc(startList, loc, bestCost, doFast)
     }
     else glMazeShortest = FALSE;
     bestPt = (GlPoint *) NULL;
-    while (lastPt = glMazeFindPath(loc, bestCost))
+    while ((lastPt = glMazeFindPath(loc, bestCost)))
     {
 	adjustedPt = glCrossAdjust((GlPoint *) NULL, lastPt);
 	if (adjustedPt->gl_cost < bestCost)

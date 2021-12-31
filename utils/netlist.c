@@ -316,7 +316,7 @@ NLSort(netList, netHeap)
 	/* Find bounding box around all terminals in this net */
 	nterms = 0;
 	for (term = net->nnet_terms; term; term = term->nterm_next)
-	    if (loc = term->nterm_locs)
+	    if ((loc = term->nterm_locs))
 	    {
 		for ( ; loc; loc = loc->nloc_next)
 		{

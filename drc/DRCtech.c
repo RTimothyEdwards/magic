@@ -1195,7 +1195,7 @@ drcExtend(argc, argv)
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    if (i == j) continue;
-	    if (pset = (DBTypesOnSamePlane(i, j) & pMask2))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pMask2)))
 	    {
 		/* Edge depends on whether or not the extension is 	*/
 		/* on the same plane as the layer from which it is	*/
@@ -1339,7 +1339,7 @@ drcWidth(argc, argv)
 	     * and a type in 'set'.
 	     */
 
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    {
 		if (TTMaskHasType(&setC, i) && TTMaskHasType(&set, j))
 		{
@@ -1423,7 +1423,7 @@ drcArea(argc, argv)
 	     * to the right of any edge between a type in '~set'
 	     * and a type in 'set'.
 	     */
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    {
 		if (TTMaskHasType(&setC, i) && TTMaskHasType(&set, j))
 		{
@@ -1495,7 +1495,7 @@ drcOffGrid(argc, argv)
 	     * to the right of any edge between a type in '~set'
 	     * and a type in 'set'.
 	     */
-	    if (pset = (DBTypesOnSamePlane(i, j)))
+	    if ((pset = (DBTypesOnSamePlane(i, j))))
 	    {
 		if (TTMaskHasType(&setC, i) && TTMaskHasType(&set, j))
 		{
@@ -1628,7 +1628,7 @@ drcMaxwidth(argc, argv)
 	     * to the right of any edge between a type in '~set'
 	     * and a type in 'set'.
 	     */
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    {
 		if (TTMaskHasType(&setC, i) && TTMaskHasType(&set, j))
 		{
@@ -1770,7 +1770,7 @@ drcSpacing3(argc, argv)
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    if (i == j) continue;
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    {
 		if (TTMaskHasType(&set1, i) && TTMaskHasType(&set3, j))
 		{
@@ -1949,7 +1949,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    if (i == j) continue;
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask1))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask1)))
 	    {
 		plane = LowestMaskBit(pset);
 
@@ -2563,7 +2563,7 @@ drcEdge(argc, argv)
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    if (i == j) continue;
-	    if (pset = (DBTypesOnSamePlane(i, j) & pMask1))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pMask1)))
 	    {
 		if (TTMaskHasType(&set1, i) && TTMaskHasType(&set2, j))
 		{
@@ -2680,7 +2680,7 @@ drcOverhang(argc, argv)
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    if (i == j) continue;
-	    if (pset = (DBTypesOnSamePlane(i, j) & pMask2))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pMask2)))
 	    {
 		if ((pset & pMask1) != 0)
 		{
@@ -2794,7 +2794,7 @@ drcRectOnly(argc, argv)
 	{
 	    if (i == j) continue;
 
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    {
 		if (TTMaskHasType(&set1, i) && TTMaskHasType(&set2, j))
 		{
@@ -2921,7 +2921,7 @@ drcSurround(argc, argv)
 	    
 	    if (isDirectional)
 	    {
-		if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+		if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    	{
 		    /* Directional surround is done entirely differently */
 
@@ -2968,7 +2968,7 @@ drcSurround(argc, argv)
 	    }
 	    else
 	    {
-		if (pset = (DBTypesOnSamePlane(i, j) & pmask2))
+		if ((pset = (DBTypesOnSamePlane(i, j) & pmask2)))
 	    	{
 		    if (TTMaskHasType(&set1, i) && TTMaskHasType(&set2, j))
 		    {
@@ -3005,7 +3005,7 @@ drcSurround(argc, argv)
 	    for (j = 0; j < DBNumTypes; j++)
 	    {
 		if (i == j) continue;	/* Ignore false edges */
-		if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+		if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 		{
 		    if (TTMaskHasType(&setM, i) && TTMaskHasType(&set2, j))
 		    {
@@ -3039,7 +3039,7 @@ drcSurround(argc, argv)
     /* Add an extra rule when presence of the surrounding	*/
     /* layer is required.  Rule is different if planes match.	*/
 
-    if (pset = pmask & pmask2)
+    if ((pset = (pmask & pmask2)))
     {
 	TTMaskZero(&invM);
 	TTMaskSetMask(&invM, &setM);
@@ -3051,7 +3051,7 @@ drcSurround(argc, argv)
 	    for (j = 0; j < DBNumTypes; j++)
 	    {
 		if (i == j) continue;
-	        if (pset = (DBTypesOnSamePlane(i, j) & pmask & pmask2))
+	        if ((pset = (DBTypesOnSamePlane(i, j) & pmask & pmask2)))
 		{
 		    plane1 = LowestMaskBit(pset);
 		    if (TTMaskHasType(&setM, i) && TTMaskHasType(&invM, j))
@@ -3085,7 +3085,7 @@ drcSurround(argc, argv)
 	    for (j = 0; j < DBNumTypes; j++)
 	    {
 		if (i == j) continue;
-	        if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	        if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 		{
 		    if (TTMaskHasType(&setM, i) && TTMaskHasType(&invM, j))
 		    {
@@ -3283,7 +3283,7 @@ drcRectangle(argc, argv)
 	{
 	    if (i == j) continue;
 
-	    if (pset = (DBTypesOnSamePlane(i, j) & pMask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pMask)))
 	    {
 		if (TTMaskHasType(&types, i) && TTMaskHasType(&nottypes, j))
 		{

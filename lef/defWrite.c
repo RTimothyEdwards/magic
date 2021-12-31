@@ -359,7 +359,7 @@ defHNsprintf(str, hierName, divchar)
     /* (which are interpreted as wildcard characters by LEF/DEF).	*/
 
     cp = hierName->hn_name;
-    while (c = *cp++)
+    while ((c = *cp++))
     {
 	switch (c)
 	{
@@ -391,7 +391,7 @@ char *defHNsprintfPrefix(hierName, str, divchar)
 	str = defHNsprintfPrefix(hierName->hn_parent, str);
 
     cp = hierName->hn_name;
-    while (*str++ = *cp++) ;
+    while ((*str++ = *cp++)) ;
     *(--str) = divchar;
     return ++str;
 }
@@ -1565,7 +1565,7 @@ defGetType(ttype, lefptr, do_vias)
     if (LefInfo.ht_table != (HashEntry **) NULL)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (lefl && (do_vias == FALSE) && (contact == CLASS_VIA) &&
@@ -1625,7 +1625,7 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
     if (LefInfo.ht_table != (HashEntry **) NULL)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    int size, sep, border;
 	    char *us1, *us2;

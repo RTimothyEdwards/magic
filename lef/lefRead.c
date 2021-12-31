@@ -642,7 +642,7 @@ LefRedefined(lefl, redefname)
     records = 0;
     altName = NULL;
     HashStartSearch(&hs);
-    while (he = HashNext(&LefInfo, &hs))
+    while ((he = HashNext(&LefInfo, &hs)))
     {
 	slef = (lefLayer *)HashGetValue(he);
 	if (slef == lefl)

@@ -107,7 +107,7 @@ efSymAddFile(name)
 
     for (lineNum = 1; fgets(line, sizeof line, f); lineNum++)
     {
-	if (cp = strchr(line, '\n'))
+	if ((cp = strchr(line, '\n')))
 	    *cp = '\0';
 	if (!efSymAdd(line))
 	    TxError("Error at line %d of %s\n", lineNum, name);
@@ -158,7 +158,7 @@ efSymAdd(str)
     }
 
     value[-1] = '\0';
-    if (he = HashLookOnly(&efSymHash, str))
+    if ((he = HashLookOnly(&efSymHash, str)))
     {
 	TxError("Symbol \"%s\" already defined\n", str);
 	value[-1] = '=';

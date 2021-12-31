@@ -203,24 +203,24 @@ CIFCalmaLayerToCifLayer(layer, datatype, calmaStyle)
 
     clt.clt_layer = layer;
     clt.clt_type = datatype;
-    if (he = HashLookOnly(&(calmaStyle->cifCalmaToCif), (char *) &clt))
+    if ((he = HashLookOnly(&(calmaStyle->cifCalmaToCif), (char *) &clt)))
       return ((spointertype) HashGetValue(he));
 
     /* Try wildcarding the datatype */
     clt.clt_type = -1;
-    if (he = HashLookOnly(&(calmaStyle->cifCalmaToCif), (char *) &clt))
+    if ((he = HashLookOnly(&(calmaStyle->cifCalmaToCif), (char *) &clt)))
       return ((spointertype) HashGetValue(he));
 
     /* Try wildcarding the layer */
     clt.clt_layer = -1;
     clt.clt_type = datatype;
-    if (he = HashLookOnly(&(calmaStyle->cifCalmaToCif), (char *) &clt))
+    if ((he = HashLookOnly(&(calmaStyle->cifCalmaToCif), (char *) &clt)))
       return ((spointertype) HashGetValue(he));
 
     /* Try wildcarding them both, for a default value */
     clt.clt_layer = -1;
     clt.clt_type = -1;
-    if (he = HashLookOnly(&(calmaStyle->cifCalmaToCif), (char *) &clt))
+    if ((he = HashLookOnly(&(calmaStyle->cifCalmaToCif), (char *) &clt)))
       return ((spointertype) HashGetValue(he));
 
     /* No luck */

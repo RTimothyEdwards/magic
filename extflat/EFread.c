@@ -626,7 +626,7 @@ resistChanged:
     /* Read in each def that has not yet been read in */
 
     HashStartSearch(&hs);
-    while (he = HashNext(&def->def_uses, &hs))
+    while ((he = HashNext(&def->def_uses, &hs)))
     {
         use = (Use *)HashGetValue(he);
 	if ((use->use_def->def_flags & DEF_AVAILABLE) == 0)

@@ -263,7 +263,7 @@ ResReadNode(nodefile)
 	node->rs_bbox.r_xtop = atoi(line[NODE_BBOX_UR_X]);
 	node->rs_bbox.r_ytop = atoi(line[NODE_BBOX_UR_Y]);
 #endif
-	if (cp = strchr(line[NODES_NODETYPE], ';')) *cp = '\0';
+	if ((cp = strchr(line[NODES_NODETYPE], ';'))) *cp = '\0';
 	node->type = DBTechNameType(line[NODES_NODETYPE]);
 
 	if (node->type == -1)
@@ -826,7 +826,7 @@ ResSimAttribute(aname, avalue, rootname, readextfile)
 	}
     }
 #endif
-    if (avalue = strchr(avalue, ','))
+    if ((avalue = strchr(avalue, ',')))
     {
         ResSimAttribute(aname, avalue + 1, rootname, readextfile);
     }

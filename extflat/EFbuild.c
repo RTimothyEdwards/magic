@@ -153,7 +153,7 @@ efBuildNode(def, isSubsnode, isDevSubsnode, nodeName, nodeCap, x, y, layerName, 
     int n;
 
     he = HashFind(&def->def_nodes, nodeName);
-    if (newname = (EFNodeName *) HashGetValue(he))
+    if ((newname = (EFNodeName *) HashGetValue(he)))
     {
 	if (efWarn)
 	    efReadError("Warning: duplicate node name %s\n", nodeName);
@@ -374,7 +374,7 @@ efBuildDist(def, driver, receiver, min, max)
 #endif	/* notdef */
 
     he = HashFind(&def->def_dists, (char *) &distKey);
-    if (dist = (Distance *) HashGetValue(he))
+    if ((dist = (Distance *) HashGetValue(he)))
     {
 	/*
 	 * There was already an entry in the table; update it
@@ -551,7 +551,7 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	    {
 		nn2->efnn_refc += nn1->efnn_refc + 1;
     		HashStartSearch(&hs);
-    		while (he1 = HashNext(&def->def_nodes, &hs))
+    		while ((he1 = HashNext(&def->def_nodes, &hs)))
 		    if ((EFNodeName *)HashGetValue(he1) == nn1)
 			HashSetValue(he1, (char *)nn2);
 	    }
@@ -559,7 +559,7 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	    {
 		nn1->efnn_refc += nn2->efnn_refc + 1;
     		HashStartSearch(&hs);
-    		while (he2 = HashNext(&def->def_nodes, &hs))
+    		while ((he2 = HashNext(&def->def_nodes, &hs)))
 		    if ((EFNodeName *)HashGetValue(he2) == nn2)
 			HashSetValue(he2, (char *)nn1);
 	    }
@@ -1622,7 +1622,7 @@ again:
     *dstp++ = ']';
 
     /* Copy remainder of path */
-    while (*dstp++ = *cp++)
+    while ((*dstp++ = *cp++))
 	/* Nothing */;
 
     cnp->cn_name = StrDup((char **) NULL, newname);
@@ -1831,7 +1831,7 @@ efNodeMerge(node1ptr, node2ptr)
     keeping->efnode_num += removing->efnode_num;
 
     /* Merge attribute lists */
-    if (ap = removing->efnode_attrs)
+    if ((ap = removing->efnode_attrs))
     {
 	while (ap->efa_next)
 	    ap = ap->efa_next;
@@ -1900,8 +1900,8 @@ efFreeUseTable(table)
     EFNodeName *nn;
 
     HashStartSearch(&hs);
-    while (he = HashNext(table, &hs))
-	if (use = (Use *) HashGetValue(he))
+    while ((he = HashNext(table, &hs)))
+	if ((use = (Use *) HashGetValue(he)))
 	{
 	    if (use->use_id != NULL) freeMagic((char *)use->use_id);
 	    freeMagic(use);
@@ -1929,7 +1929,7 @@ efFreeDevTable(table)
     int n;
 
     HashStartSearch(&hs);
-    while (he = HashNext(table, &hs))
+    while ((he = HashNext(table, &hs)))
     {
 	dev = (Dev *)HashGetValue(he);
 	for (n = 0; n < (int)dev->dev_nterm; n++)
@@ -1972,8 +1972,8 @@ efFreeNodeTable(table)
     EFNodeName *nn;
 
     HashStartSearch(&hs);
-    while (he = HashNext(table, &hs))
-	if (nn = (EFNodeName *) HashGetValue(he))
+    while ((he = HashNext(table, &hs)))
+	if ((nn = (EFNodeName *) HashGetValue(he)))
 	{
 	    for (hn = nn->efnn_hier; hn; hn = hn->hn_parent)
 		(void) HashFind(&efFreeHashTable, (char *) hn);

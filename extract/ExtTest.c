@@ -452,7 +452,7 @@ extShowTech(name)
 				out);
 		    fprintf(out, "\n");
 		}
-		if (e = ExtCurStyle->exts_sideCoupleCap[s][t])
+		if ((e = ExtCurStyle->exts_sideCoupleCap[s][t]))
 		    for ( ; e; e = e->ec_next)
 		    {
 			fprintf(out, "                COUPLE: ");
@@ -461,7 +461,7 @@ extShowTech(name)
 			extShowMask(&e->ec_far, out);
 			fprintf(out, ": %lf\n", e->ec_cap);
 		    }
-		if (e = ExtCurStyle->exts_sideOverlapCap[s][t])
+		if ((e = ExtCurStyle->exts_sideOverlapCap[s][t]))
 		    for ( ; e; e = e->ec_next)
 		    {
 			fprintf(out, "                OVERLAP: ");

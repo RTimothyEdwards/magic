@@ -242,7 +242,7 @@ paVisitFilesProc(name, pv)
 	    }
 	}
 	*lp = '\0';
-	if (code = paVisitProcess(lp = line, pv))
+	if ((code = paVisitProcess(lp = line, pv)))
 	    break;
 next:	;
     }
@@ -292,7 +292,7 @@ paVisitProcess(line, pv)
 
     for (pvc = pv->pv_first; pvc; pvc = pvc->pvc_next)
 	if (len > 0 && strncmp(line, pvc->pvc_keyword, len) == 0)
-	    if (code = (*pvc->pvc_proc)(line, pvc->pvc_cdata))
+	    if ((code = (*pvc->pvc_proc)(line, pvc->pvc_cdata)))
 		break;
 
     return (code);

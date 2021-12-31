@@ -174,7 +174,7 @@ GrTkSetCursor(cursorNum)
     grCurrent.cursor = grCursors[cursorNum];
 
     HashStartSearch(&hs);
-    while (entry = HashNext(&grTkWindowTable,&hs))
+    while ((entry = HashNext(&grTkWindowTable,&hs)))
     {
     	if (HashGetValue(entry))
 	{

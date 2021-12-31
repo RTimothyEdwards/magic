@@ -316,7 +316,7 @@ efVisitDevs(hc, ca)
     /* Visit our own devices */
 
     HashStartSearch(&hs);
-    while (he = HashNext(&def->def_devs, &hs))
+    while ((he = HashNext(&def->def_devs, &hs)))
     {
 	dev = (Dev *)HashGetValue(he);
 	if (efDevKilled(dev, hc->hc_hierName))
@@ -621,7 +621,7 @@ EFVisitCaps(capProc, cdata)
     EFCapValue cap;
 
     HashStartSearch(&hs);
-    while (he = HashNext(&efCapHashTable, &hs))
+    while ((he = HashNext(&efCapHashTable, &hs)))
     {
 	cap = CapHashGetValue(he);
 	ck = (EFCoupleKey *) he->h_key.h_words;
@@ -875,7 +875,7 @@ EFHNOut(hierName, outf)
 	trimLocal = (EFOutputFlags & EF_TRIMLOCAL);
 	convComma = (EFOutputFlags & EF_CONVERTCOMMA);
 	convBrackets = (EFOutputFlags & EF_CONVERTBRACKETS);
-	while (c = *cp++)
+	while ((c = *cp++))
 	{
 	    if (*cp)
 	    {
@@ -911,7 +911,7 @@ efHNOutPrefix(hierName, outf)
 	efHNOutPrefix(hierName->hn_parent, outf);
 
     cp = hierName->hn_name;
-    while (c = *cp++)
+    while ((c = *cp++))
 	putc(c, outf);
     putc('/', outf);
 }

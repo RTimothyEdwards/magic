@@ -618,7 +618,7 @@ TechLoad(filename, initmask)
 		skip = TRUE;
 		continue;
 	    }
-	    if (mask = (tsp->ts_prevSects & ~techSectionMask))
+	    if ((mask = (tsp->ts_prevSects & ~techSectionMask)))
 	    {
 		techSection *sp;
 
