@@ -1059,7 +1059,7 @@ extern void extMakeNodeNumPrint();
 
 /* --------------------- Miscellaneous globals ------------------------ */
 
-extern int extNumFatal;		/* Number fatal errors encountered so far */
+extern int extNumErrors;	/* Number of errors encountered so far */
 extern int extNumWarnings;	/* Number warning messages so far */
 extern CellUse *extParentUse;	/* Dummy use for def being extracted */
 extern ClientData extNbrUn;	/* Ditto */

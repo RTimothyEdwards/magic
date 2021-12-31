@@ -76,9 +76,9 @@ void extHeader();
  * Side effects:
  *	Creates the file 'outName'.ext and writes to it.
  *	May leave feedback information where errors were encountered.
- *	Upon return, extNumFatal contains the number of fatal errors
- *	encountered while extracting 'def', and extNumWarnings contains
- *	the number of warnings.
+ *	Upon return, extNumErrors contains the number of (likely serious)
+ *	errors encountered while extracting 'def', and extNumWarnings
+ *	contains the number of warnings.
  *
  * ----------------------------------------------------------------------------
  */
@@ -115,16 +115,16 @@ ExtCell(def, outName, doLength)
 	return NULL;
     }
 
-    extNumFatal = extNumWarnings = 0;
+    extNumErrors = extNumWarnings = 0;
     savePlane = extCellFile(def, f, doLength);
     (void) fclose(f);
 
-    if (extNumFatal > 0 || extNumWarnings > 0)
+    if (extNumErrors > 0 || extNumWarnings > 0)
     {
 	TxPrintf("%s:", def->cd_name);
-	if (extNumFatal > 0)
+	if (extNumErrors > 0)
 	    TxPrintf(" %d fatal error%s",
-		extNumFatal, extNumFatal != 1 ? "s" : "");
+		extNumErrors, extNumErrors != 1 ? "s" : "");
 	if (extNumWarnings > 0)
 	    TxPrintf(" %d warning%s",
 		extNumWarnings, extNumWarnings != 1 ? "s" : "");
@@ -366,7 +366,7 @@ ExtRevertSubstrate(def, savePlane)
  *
  * Side effects:
  *	May leave feedback information where errors were encountered.
- *	Upon return, extNumFatal has been incremented by the number of
+ *	Upon return, extNumErrors has been incremented by the number of
  *	fatal errors encountered while extracting 'def', and extNumWarnings
  *	by the number of warnings.
  *

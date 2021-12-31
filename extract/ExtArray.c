@@ -377,7 +377,7 @@ extArrayProcess(ha, primary)
 	DBWFeedbackAdd(primary,
 		"System error: expected array element but none found",
 		ha->ha_parentUse->cu_def, 1, STYLE_MEDIUMHIGHLIGHTS);
-	extNumFatal++;
+	extNumErrors++;
 	return;
     }
     if (SigInterruptPending) goto done;
@@ -802,7 +802,7 @@ extArrayTileToNode(tp, pNum, et, ha, doHard)
 
     /* Blew it */
     if (!doHard) return ((char *) NULL);
-    extNumFatal++;
+    extNumErrors++;
     TiToRect(tp, &r);
     if (!DebugIsSet(extDebugID, extDebNoFeedback))
 	DBWFeedbackAdd(&r, errorStr, ha->ha_parentUse->cu_def, 1,

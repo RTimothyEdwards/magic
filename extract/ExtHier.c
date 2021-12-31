@@ -540,7 +540,7 @@ extHierConnectFunc2(cum, ha)
     }
     else if (r.r_xtop > r.r_xbot && r.r_ytop > r.r_ybot)
     {
-	extNumFatal++;
+	extNumErrors++;
 	if (!DebugIsSet(extDebugID, extDebNoFeedback))
 	    DBWFeedbackAdd(&r, "Illegal overlap (types do not connect)",
 		ha->ha_parentUse->cu_def, 1, STYLE_MEDIUMHIGHLIGHTS);
@@ -642,7 +642,7 @@ extHierConnectFunc3(cum, ha)
     }
     else if (r.r_xtop > r.r_xbot && r.r_ytop > r.r_ybot)
     {
-	extNumFatal++;
+	extNumErrors++;
 	if (!DebugIsSet(extDebugID, extDebNoFeedback))
 	    DBWFeedbackAdd(&r, "Illegal overlap (types do not connect)",
 		ha->ha_parentUse->cu_def, 1, STYLE_MEDIUMHIGHLIGHTS);

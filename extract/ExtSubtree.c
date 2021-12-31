@@ -1061,7 +1061,7 @@ extSubtreeTileToNode(tp, pNum, et, ha, doHard)
 	return (extNodeName(reg));
     }
 
-    extNumFatal++;
+    extNumErrors++;
     if (!DebugIsSet(extDebugID, extDebNoFeedback))
 	DBWFeedbackAdd(&r, errorStr, parentDef, 1, STYLE_MEDIUMHIGHLIGHTS);
     return ("(none)");

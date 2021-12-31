@@ -67,7 +67,7 @@ CellDef *extYdefCum = NULL;
 ClientData extDebugID;
 
     /* Number of errors encountered during extraction */
-int extNumFatal;
+int extNumErrors;
 int extNumWarnings;
 
     /* Dummy use pointing to def being extracted */
@@ -662,7 +662,7 @@ extExtractStack(stack, doExtract, rootDef)
     Stack *stack;
     CellDef *rootDef;
 {
-    int fatal = 0, warnings = 0;
+    int errorcnt = 0, warnings = 0;
     bool first = TRUE;
     Plane *savePlane;
     CellDef *def;
@@ -685,7 +685,7 @@ extExtractStack(stack, doExtract, rootDef)
 		    sl = newsl;
 		}
 		
-		fatal += extNumFatal;
+		errorcnt += extNumErrors;
 		warnings += extNumWarnings;
 	    }
 	    else
@@ -714,9 +714,9 @@ extExtractStack(stack, doExtract, rootDef)
     }
     else
     {
-	if (fatal > 0)
+	if (errorcnt > 0)
 	    TxError("Total of %d error%s (check feedback entries).\n",
-		    fatal, fatal != 1 ? "s" : "");
+		    errorcnt, errorcnt != 1 ? "s" : "");
 	if (warnings > 0)
 	    TxError("Total of %d warning%s.\n",
 		    warnings, warnings != 1 ? "s" : "");
