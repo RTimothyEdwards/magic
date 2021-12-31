@@ -123,7 +123,7 @@ ExtCell(def, outName, doLength)
     {
 	TxPrintf("%s:", def->cd_name);
 	if (extNumErrors > 0)
-	    TxPrintf(" %d fatal error%s",
+	    TxPrintf(" %d error%s",
 		extNumErrors, extNumErrors != 1 ? "s" : "");
 	if (extNumWarnings > 0)
 	    TxPrintf(" %d warning%s",
