@@ -476,8 +476,13 @@ TechLoad(filename, initmask)
 
 	/* If a non-standard extension was used, then honor it */
 	if ((dptr != NULL) && (*dptr != '\0'))
+    {
 	    tf = PaOpen(filename, "r", (char *)NULL, ".", SysLibPath, &realname);
-	else
+        /* If the honored file in not there, try the filename with the suffix */
+        if (tf == (FILE *) NULL)
+	        tf = PaOpen(filename, "r", suffix, ".", SysLibPath, &realname);
+    }
+    else
 	    tf = PaOpen(filename, "r", suffix, ".", SysLibPath, &realname);
 
 	if (tf == (FILE *) NULL)
