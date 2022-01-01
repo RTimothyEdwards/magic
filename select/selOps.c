@@ -28,6 +28,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/geometry.h"
 #include "tiles/tile.h"
 #include "utils/hash.h"
+#include "utils/stack.h"
 #include "database/database.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
@@ -326,187 +327,239 @@ SelectFlat()
  *	tile.  Given this and the diagonal direction, we know the two
  *	valid sides to search.
  *
+ * Return value:
+ *	0   search completed successfully
+ *	1   search terminated with an error
+ *
  * ----------------------------------------------------------------------------
  */
 
 int
-selShortFindPath(tile, pnum, rlist, fdir)
+selShortFindPath(rlist, tile, pnum, fdir)
+   ExtRectList **rlist;
    Tile *tile;
    int pnum;
-   ExtRectList **rlist;
    int fdir;
 {
     Tile *tp, *mintp;
-    // int mincost = (int)tile->ti_client;
     int mincost = INT_MAX;
     ExtRectList *newrrec;
     int minp, p, mindir;
     TileType ttype;
 
-    newrrec = mallocMagic(sizeof(ExtRectList));
-
-    if (IsSplit(tile))
+    while (TRUE)
     {
-	newrrec->r_type = TiGetTypeExact(tile) & ~TT_SIDE;
-	switch(fdir)
+	newrrec = mallocMagic(sizeof(ExtRectList));
+
+	if (IsSplit(tile))
 	{
-	    case GEO_NORTH:
-		ttype = SplitBottomType(tile);
-		if (!SplitDirection(tile)) newrrec->r_type |= TT_SIDE;
-		break;
-	    case GEO_SOUTH:
-		ttype = SplitTopType(tile);
-		if (SplitDirection(tile)) newrrec->r_type |= TT_SIDE;
-		break;
-	    case GEO_EAST:
-		ttype = SplitLeftType(tile);
-		break;
-	    case GEO_WEST:
-		ttype = SplitRightType(tile);
-		newrrec->r_type |= TT_SIDE;
-		break;
-	    default:
-		ttype = SplitRightType(tile);
-		if (ttype == TT_SPACE)
-		    ttype = SplitLeftType(tile);
-		else
-		    newrrec->r_type |= TT_SIDE;
-		break;
-	}
-    }
-    else
-    {
-	ttype = TiGetTypeExact(tile);
-	newrrec->r_type = ttype;
-    }
-
-    /* Add this tile (area and type) to the linked list */
-
-    TiToRect(tile, &newrrec->r_r);
-    newrrec->r_next = *rlist;
-    *rlist = newrrec;
-
-    if ((int)tile->ti_client == 0) return 0;	/* We're done */
-    // if (mincost == 0) return 0;		/* We're done */
-    minp = pnum;
-
-    /* Search top */
-    if (IsSplit(tile))
-    {
-	if (fdir == GEO_NORTH) goto leftside;
-	else if (SplitDirection(tile) && fdir == GEO_EAST) goto leftside;
-	else if (!SplitDirection(tile) && fdir == GEO_WEST) goto leftside;
-    }
-
-    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-    {
-	if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	if ((int)tp->ti_client < mincost)
-	{
-	    mincost = (int)tp->ti_client;
-	    mintp = tp;
-	    mindir = GEO_NORTH;
-	}
-    }
-
-    /* Search left */
-leftside:
-    if (IsSplit(tile))
-    {
-	if (fdir == GEO_WEST) goto bottomside;
-	else if (SplitDirection(tile) && fdir == GEO_SOUTH) goto bottomside;
-	else if (!SplitDirection(tile) && fdir == GEO_NORTH) goto bottomside;
-    }
-
-    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
-    {
-	if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	if ((int)tp->ti_client < mincost)
-	{
-	    mincost = (int)tp->ti_client;
-	    mintp = tp;
-	    mindir = GEO_WEST;
-	}
-    }
-
-    /* Search bottom */
-bottomside:
-    if (IsSplit(tile))
-    {
-	if (fdir == GEO_SOUTH) goto rightside;
-	else if (SplitDirection(tile) && fdir == GEO_WEST) goto rightside;
-	else if (!SplitDirection(tile) && fdir == GEO_EAST) goto rightside;
-    }
-
-    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
-    {
-	if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	if ((int)tp->ti_client < mincost)
-	{
-	    mincost = (int)tp->ti_client;
-	    mintp = tp;
-	    mindir = GEO_SOUTH;
-	}
-    }
-
-    /* Search right */
-rightside:
-    if (IsSplit(tile))
-    {
-	if (fdir == GEO_EAST) goto donesides;
-	else if (SplitDirection(tile) && fdir == GEO_NORTH) goto donesides;
-	else if (!SplitDirection(tile) && fdir == GEO_SOUTH) goto donesides;
-    }
-
-    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-    {
-	if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	if ((int)tp->ti_client < mincost)
-	{
-	    mincost = (int)tp->ti_client;
-	    mintp = tp;
-	    mindir = GEO_EAST;
-	}
-    }
-
-    /* Search other connecting planes */
-donesides:
-    if (DBIsContact(ttype))
-    {
-	PlaneMask pmask;
-
-	pmask = DBConnPlanes[ttype];
-	for (p = PL_TECHDEPBASE; p < DBNumPlanes; p++)
-	{
-	    if (PlaneMaskHasPlane(pmask, p) && (p != pnum))
+	    newrrec->r_type = TiGetTypeExact(tile) & ~TT_SIDE;
+	    switch(fdir)
 	    {
-		tp = SelectDef->cd_planes[p]->pl_hint;
-		GOTOPOINT(tp, &tile->ti_ll);
-		if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-		if ((int)tp->ti_client < mincost)
+		case GEO_NORTH:
+		    ttype = SplitBottomType(tile);
+		    if (!SplitDirection(tile)) newrrec->r_type |= TT_SIDE;
+		    break;
+		case GEO_SOUTH:
+		    ttype = SplitTopType(tile);
+		    if (SplitDirection(tile)) newrrec->r_type |= TT_SIDE;
+		    break;
+		case GEO_EAST:
+		    ttype = SplitLeftType(tile);
+		    break;
+		case GEO_WEST:
+		    ttype = SplitRightType(tile);
+		    newrrec->r_type |= TT_SIDE;
+		    break;
+		default:
+		    ttype = SplitRightType(tile);
+		    if (ttype == TT_SPACE)
+			ttype = SplitLeftType(tile);
+		    else
+			newrrec->r_type |= TT_SIDE;
+		    break;
+	    }
+	}
+	else
+	{
+	    ttype = TiGetTypeExact(tile);
+	    newrrec->r_type = ttype;
+	}
+
+	/* Add this tile (area and type) to the linked list */
+
+	TiToRect(tile, &newrrec->r_r);
+	newrrec->r_next = *rlist;
+	*rlist = newrrec;
+
+	if ((int)tile->ti_client == 0) return 0;	/* We're done */
+	// if (mincost == 0) return 0;			/* We're done */
+	minp = pnum;
+
+	/* Search top */
+	if (IsSplit(tile))
+	{
+	    if (fdir == GEO_NORTH) goto leftside;
+	    else if (SplitDirection(tile) && fdir == GEO_EAST) goto leftside;
+	    else if (!SplitDirection(tile) && fdir == GEO_WEST) goto leftside;
+	}
+
+	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+	{
+	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
+	    if ((int)tp->ti_client < mincost)
+	    {
+		mincost = (int)tp->ti_client;
+		mintp = tp;
+		mindir = GEO_NORTH;
+	    }
+	}
+
+	/* Search left */
+leftside:
+	if (IsSplit(tile))
+	{
+	    if (fdir == GEO_WEST) goto bottomside;
+	    else if (SplitDirection(tile) && fdir == GEO_SOUTH) goto bottomside;
+	    else if (!SplitDirection(tile) && fdir == GEO_NORTH) goto bottomside;
+	}
+
+	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+	{
+	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
+	    if ((int)tp->ti_client < mincost)
+	    {
+		mincost = (int)tp->ti_client;
+		mintp = tp;
+		mindir = GEO_WEST;
+	    }
+	}
+
+	/* Search bottom */
+bottomside:
+	if (IsSplit(tile))
+	{
+	    if (fdir == GEO_SOUTH) goto rightside;
+	    else if (SplitDirection(tile) && fdir == GEO_WEST) goto rightside;
+	    else if (!SplitDirection(tile) && fdir == GEO_EAST) goto rightside;
+	}
+
+	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+	{
+	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
+	    if ((int)tp->ti_client < mincost)
+	    {
+		mincost = (int)tp->ti_client;
+		mintp = tp;
+		mindir = GEO_SOUTH;
+	    }
+	}
+
+	/* Search right */
+rightside:
+	if (IsSplit(tile))
+	{
+	    if (fdir == GEO_EAST) goto donesides;
+	    else if (SplitDirection(tile) && fdir == GEO_NORTH) goto donesides;
+	    else if (!SplitDirection(tile) && fdir == GEO_SOUTH) goto donesides;
+	}
+
+	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
+	{
+	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
+	    if ((int)tp->ti_client < mincost)
+	    {
+		mincost = (int)tp->ti_client;
+		mintp = tp;
+		mindir = GEO_EAST;
+	    }
+	}
+
+	/* Search other connecting planes */
+donesides:
+	if (DBIsContact(ttype))
+	{
+	    PlaneMask pmask;
+
+	    pmask = DBConnPlanes[ttype];
+	    for (p = PL_TECHDEPBASE; p < DBNumPlanes; p++)
+	    {
+		if (PlaneMaskHasPlane(pmask, p) && (p != pnum))
 		{
-		    mincost = (int)tp->ti_client;
-		    mintp = tp;
-		    minp = p;
-		    mindir = GEO_CENTER;
+		    tp = SelectDef->cd_planes[p]->pl_hint;
+		    GOTOPOINT(tp, &tile->ti_ll);
+		    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
+		    if ((int)tp->ti_client < mincost)
+		    {
+			mincost = (int)tp->ti_client;
+			mintp = tp;
+			minp = p;
+			mindir = GEO_CENTER;
+		    }
 		}
 	    }
 	}
+
+	/* If mincost is still set to INT_MAX we have a real serious problem! */
+	if (mincost == INT_MAX) return 1;
+
+	/* If no tile had lower cost than this one, then we have an error */
+	// if (mincost == (int)tile->ti_client) return 1;
+
+	/* Stopgap measure:  Error should not happen, but it does!  */
+	/* Remove client data of current tile and take minimum.	    */
+	if (mincost == (int)tile->ti_client) TiSetClient(tile, CLIENTDEFAULT);
+
+	/* Now we have the minimum cost neighboring tile;  continue search with it */
+	tile = mintp;
+	pnum = minp;
+        fdir = mindir;
     }
+}
 
-    /* If mincost is still set to INT_MAX we have a real serious problem! */
-    if (mincost == INT_MAX) return 1;
+/* Data structure used by selShortFindNext() to store a tile and    */
+/* the current search parameters, including cost, direction, plane, */
+/* and the mask of connecting types.				    */
 
-    /* If no tile had lower cost than this one, then we have an error */
-    // if (mincost == (int)tile->ti_client) return 1;
+typedef struct _shortdata {
+    int	   cost;
+    Tile  *tile;
+    int    pnum;
+    int	   fdir;
+    TileTypeBitMask *mask;
+} ShortData;
 
-    /* Stopgap measure:  Error should not happen, but it does!	*/
-    /* Remove client data of current tile and take minimum.	*/
-    if (mincost == (int)tile->ti_client) TiSetClient(tile, CLIENTDEFAULT);
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * NewSD --
+ *
+ *  Create and populate a ShortData structure.
+ *
+ * Return value:
+ *	A pointer to an allocated and populated ShortData structure.
+ *
+ * ----------------------------------------------------------------------------
+ */
 
-    /* Now we have the minimum cost neighboring tile;  recursively search it */
+ShortData *NewSD(cost, tile, pnum, fdir, mask)
+    int cost;
+    Tile *tile;
+    int pnum;
+    int fdir;
+    TileTypeBitMask *mask;
+{
+    ShortData *sd;
 
-    return selShortFindPath(mintp, minp, rlist, mindir);
+    sd = (ShortData *)mallocMagic(sizeof(ShortData));
+
+    sd->cost = cost;
+    sd->tile = tile;
+    sd->pnum = pnum;
+    sd->fdir = fdir;
+    sd->mask = mask;
+
+    return sd;
 }
 
 /*
@@ -517,7 +570,9 @@ donesides:
  *	Recursive function for finding shorts.  This routine makes strong
  *	assumptions;  namely, that all non-space material in the cell being
  *	searched belongs to the same net.  The cell searched is always
- *	SelectDef.
+ *	SelectDef.  (Although rather than actually recursing, which is
+ *	likely to exceed the computer's stack depth, we create our own
+ *	stack of unprocessed tiles and process them.)
  *
  * Results:
  *	Return 0 to keep going;  return 1 to stop when the tile contains
@@ -531,146 +586,173 @@ donesides:
  */
 
 int
-selShortFindNext(tile, pnum, ldest, cost, best, fdir, mask)
+selShortFindNext(tile, pnum, ldest, mask)
     Tile *tile;
     int pnum;
     Label *ldest;
-    int cost, *best, fdir;
     TileTypeBitMask *mask;
 {
     TileType ttype;
     TileTypeBitMask *lmask;
     Tile *tp;
+    ShortData *sd;
+    static Stack *ShortStack = (Stack *)NULL;
 
-    if (IsSplit(tile))
+    int cost = 0;
+    int best = INT_MAX;
+    int fdir = GEO_CENTER;
+
+    if (ShortStack == (Stack *)NULL)
+	ShortStack = StackNew(64);
+
+    /* Drop the first entry on the stack */
+    sd = NewSD(cost, tile, pnum, fdir, mask);
+    STACKPUSH(sd, ShortStack);
+
+    while (!StackEmpty(ShortStack))
     {
-	switch(fdir)
+	sd = (ShortData *)STACKPOP(ShortStack);
+	tile = sd->tile;
+	cost = sd->cost;
+	pnum = sd->pnum;
+	fdir = sd->fdir;
+	mask = sd->mask;
+	freeMagic((char *)sd);
+
+	if (IsSplit(tile))
 	{
-	    case GEO_NORTH:
-		ttype = SplitBottomType(tile);
-		break;
-	    case GEO_SOUTH:
-		ttype = SplitTopType(tile);
-		break;
-	    case GEO_EAST:
-		ttype = SplitLeftType(tile);
-		break;
-	    case GEO_WEST:
-		ttype = SplitRightType(tile);
-		break;
-	    default:
-		ttype = SplitLeftType(tile);
-		if (ttype == TT_SPACE) ttype = SplitRightType(tile);
-		break;
-	}
-    }
-    else
-	ttype = TiGetTypeExact(tile);
-
-    /* Ignore space tiles */
-    if (ttype == TT_SPACE) return 0;
-
-    /* Ignore non-connecting tiles */
-    if (!TTMaskHasType(mask, ttype)) return 0;
-
-    /* If this tile is unvisited, or has a lower cost, then return and	*/
-    /* keep going.  Otherwise, return 1 to stop the search this direction */
-
-    if (tile->ti_client == (ClientData)CLIENTDEFAULT)
-	TiSetClient(tile, cost);
-    else if ((int)tile->ti_client > cost)
-	TiSetClient(tile, cost);
-    else
-	return 0;
-
-    /* If this tile contains the destination point, do not search further */
-
-    if ((ttype == ldest->lab_type) && EnclosePoint(tile, &ldest->lab_rect.r_ll))
-    {
-	if (*best >= cost) *best = (cost - 1);
-	return 0;
-    }
-
-    /* If we're more costly than the best known path to destination, do	*/
-    /* not search further.						*/
-
-    if (cost >= *best) return 0;
-    lmask = &DBConnectTbl[ttype];
-
-    /* Search top */
-    if (IsSplit(tile))
-    {
-	if (fdir == GEO_NORTH) goto srchleft;
-	else if (SplitDirection(tile) && fdir == GEO_EAST) goto srchleft;
-	else if (!SplitDirection(tile) && fdir == GEO_WEST) goto srchleft;
-    }
-
-    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-    {
-	selShortFindNext(tp, pnum, ldest, cost + 1, best, GEO_NORTH, lmask);
-    }
-
-    /* Search left */
-srchleft:
-    if (IsSplit(tile))
-    {
-	if (fdir == GEO_WEST) goto srchbot;
-	else if (SplitDirection(tile) && fdir == GEO_SOUTH) goto srchbot;
-	else if (!SplitDirection(tile) && fdir == GEO_NORTH) goto srchbot;
-    }
-
-    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
-    {
-	selShortFindNext(tp, pnum, ldest, cost + 1, best, GEO_WEST, lmask);
-    }
-
-    /* Search bottom */
-srchbot:
-    if (IsSplit(tile))
-    {
-	if (fdir == GEO_SOUTH) goto srchright;
-	else if (SplitDirection(tile) && fdir == GEO_WEST) goto srchright;
-	else if (!SplitDirection(tile) && fdir == GEO_EAST) goto srchright;
-    }
-
-    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
-    {
-	selShortFindNext(tp, pnum, ldest, cost + 1, best, GEO_SOUTH, lmask);
-    }
-
-    /* Search right */
-srchright:
-    if (IsSplit(tile))
-    {
-	if (fdir == GEO_EAST) goto donesrch;
-	else if (SplitDirection(tile) && fdir == GEO_NORTH) goto donesrch;
-	else if (!SplitDirection(tile) && fdir == GEO_SOUTH) goto donesrch;
-    }
-
-    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-    {
-	selShortFindNext(tp, pnum, ldest, cost + 1, best, GEO_EAST, lmask);
-    }
-
-    /* Search other connecting planes */
-donesrch:
-    if (DBIsContact(ttype))
-    {
-	PlaneMask pmask;
-	int p;
-
-	pmask = DBConnPlanes[ttype];
-	for (p = PL_TECHDEPBASE; p < DBNumPlanes; p++)
-	{
-	    if (PlaneMaskHasPlane(pmask, p) && (p != pnum))
+	    switch(fdir)
 	    {
-		tp = SelectDef->cd_planes[p]->pl_hint;
-		GOTOPOINT(tp, &tile->ti_ll);
-		selShortFindNext(tp, p, ldest, cost + 1, best, GEO_CENTER, lmask);
+		case GEO_NORTH:
+		    ttype = SplitBottomType(tile);
+		    break;
+		case GEO_SOUTH:
+		    ttype = SplitTopType(tile);
+		    break;
+		case GEO_EAST:
+		    ttype = SplitLeftType(tile);
+		    break;
+		case GEO_WEST:
+		    ttype = SplitRightType(tile);
+		    break;
+		default:
+		    ttype = SplitLeftType(tile);
+		    if (ttype == TT_SPACE) ttype = SplitRightType(tile);
+		    break;
+	    }
+	}
+	else
+	    ttype = TiGetTypeExact(tile);
+
+	/* Ignore space tiles */
+	if (ttype == TT_SPACE) continue;
+
+	/* Ignore non-connecting tiles */
+	if (!TTMaskHasType(mask, ttype)) continue;
+
+	/* If this tile is unvisited, or has a lower cost, then return and	*/
+	/* keep going.  Otherwise, return 1 to stop the search this direction	*/
+
+	if (tile->ti_client == (ClientData)CLIENTDEFAULT)
+	    TiSetClient(tile, cost);
+	else if ((int)tile->ti_client > cost)
+	    TiSetClient(tile, cost);
+	else
+	    continue;
+
+	/* If this tile contains the destination point, do not search further */
+
+	if ((ttype == ldest->lab_type) && EnclosePoint(tile, &ldest->lab_rect.r_ll))
+	{
+	    if (best >= cost) best = (cost - 1);
+	    continue;
+	}
+
+	/* If we're more costly than the best known path to destination,    */
+	/* do not search further.					    */
+
+	if (cost >= best) continue;
+	lmask = &DBConnectTbl[ttype];
+
+	/* Search top */
+	if (IsSplit(tile))
+	{
+	    if (fdir == GEO_NORTH) goto srchleft;
+	    else if (SplitDirection(tile) && fdir == GEO_EAST) goto srchleft;
+	    else if (!SplitDirection(tile) && fdir == GEO_WEST) goto srchleft;
+	}
+
+	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+	{
+	    sd = NewSD(cost + 1, tp, pnum, GEO_NORTH, lmask);
+	    STACKPUSH(sd, ShortStack);
+	}
+
+	/* Search left */
+srchleft:
+	if (IsSplit(tile))
+	{
+	    if (fdir == GEO_WEST) goto srchbot;
+	    else if (SplitDirection(tile) && fdir == GEO_SOUTH) goto srchbot;
+	    else if (!SplitDirection(tile) && fdir == GEO_NORTH) goto srchbot;
+	}
+
+	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+	{
+	    sd = NewSD(cost + 1, tp, pnum, GEO_WEST, lmask);
+	    STACKPUSH(sd, ShortStack);
+	}
+
+	/* Search bottom */
+srchbot:
+	if (IsSplit(tile))
+	{
+	    if (fdir == GEO_SOUTH) goto srchright;
+	    else if (SplitDirection(tile) && fdir == GEO_WEST) goto srchright;
+	    else if (!SplitDirection(tile) && fdir == GEO_EAST) goto srchright;
+	}
+
+	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+	{
+	    sd = NewSD(cost + 1, tp, pnum, GEO_SOUTH, lmask);
+	    STACKPUSH(sd, ShortStack);
+	}
+
+	/* Search right */
+srchright:
+	if (IsSplit(tile))
+	{
+	    if (fdir == GEO_EAST) goto donesrch;
+	    else if (SplitDirection(tile) && fdir == GEO_NORTH) goto donesrch;
+	    else if (!SplitDirection(tile) && fdir == GEO_SOUTH) goto donesrch;
+	}
+
+	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
+	{
+	    sd = NewSD(cost + 1, tp, pnum, GEO_EAST, lmask);
+	    STACKPUSH(sd, ShortStack);
+	}
+
+	/* Search other connecting planes */
+donesrch:
+	if (DBIsContact(ttype))
+	{
+	    PlaneMask pmask;
+	    int p;
+
+	    pmask = DBConnPlanes[ttype];
+	    for (p = PL_TECHDEPBASE; p < DBNumPlanes; p++)
+	    {
+		if (PlaneMaskHasPlane(pmask, p) && (p != pnum))
+		{
+		    tp = SelectDef->cd_planes[p]->pl_hint;
+		    GOTOPOINT(tp, &tile->ti_ll);
+		    sd = NewSD(cost + 1, tp, p, GEO_CENTER, lmask);
+		    STACKPUSH(sd, ShortStack);
+		}
 	    }
 	}
     }
-    return 0;
 }
 
 
@@ -706,7 +788,7 @@ SelectShort(char *lab1, char *lab2)
     Label *selLabel, *srclab = NULL, *destlab = NULL;
     Tile *tile;
     Plane *plane;
-    int pnum, best;
+    int pnum;
     PlaneMask pmask;
     ExtRectList *rlist;
 
@@ -723,8 +805,10 @@ SelectShort(char *lab1, char *lab2)
 	    destlab = selLabel;
     }
 
-    /* Was nothing selected?  Then run the equivalent of "goto lab1 ; select net */
-    if (srclab == NULL && destlab == NULL)
+    /* If both labels were not in the existing selection, run the equivalent
+     * of "goto lab1 ; select net"
+     */
+    if ((srclab == NULL) || (destlab == NULL))
     {
 	CellUse *use;
 	TileType ttype;
@@ -761,7 +845,7 @@ SelectShort(char *lab1, char *lab2)
     }
 
     /* Must be able to find both labels */
-    if (srclab == NULL || destlab == NULL) return NULL;
+    if ((srclab == NULL) || (destlab == NULL)) return NULL;
 
     /* Must be able to find tiles associated with each label */
 
@@ -776,9 +860,7 @@ SelectShort(char *lab1, char *lab2)
 	    if (TiGetType(tile) == srclab->lab_type) break;
 	}
     }
-    best = INT_MAX;
-    selShortFindNext(tile, pnum, &destlab->lab_rect.r_ll, 0, &best, GEO_CENTER,
-		&DBConnectTbl[srclab->lab_type]);
+    selShortFindNext(tile, pnum, destlab, &DBConnectTbl[srclab->lab_type]);
 
     /* Now see if destination has been counted */
 
@@ -798,7 +880,7 @@ SelectShort(char *lab1, char *lab2)
 
     /* Now find the shortest path between source and destination */
     rlist = NULL;
-    selShortFindPath(tile, pnum, &rlist, GEO_CENTER);
+    selShortFindPath(&rlist, tile, pnum, GEO_CENTER);
 
     return rlist;
 }
