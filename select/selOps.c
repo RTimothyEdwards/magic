@@ -682,10 +682,19 @@ selShortFindNext(tile, pnum, ldest, mask)
 	    else if (!SplitDirection(tile) && fdir == GEO_WEST) goto srchleft;
 	}
 
+	/* As a small optimization, check for space tiles and avoid going
+	 * through the hoops of allocating a structure and pushing it on the
+	 * stack.  This check is not rigorous, but it saves time for the
+	 * most common case.
+	 */
+
 	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
 	{
-	    sd = NewSD(cost + 1, tp, pnum, GEO_NORTH, lmask);
-	    STACKPUSH(sd, ShortStack);
+	    if (TiGetTypeExact(tp) != TT_SPACE)
+	    {
+		sd = NewSD(cost + 1, tp, pnum, GEO_NORTH, lmask);
+		STACKPUSH(sd, ShortStack);
+	    }
 	}
 
 	/* Search left */
@@ -699,8 +708,11 @@ srchleft:
 
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 	{
-	    sd = NewSD(cost + 1, tp, pnum, GEO_WEST, lmask);
-	    STACKPUSH(sd, ShortStack);
+	    if (TiGetTypeExact(tp) != TT_SPACE)
+	    {
+		sd = NewSD(cost + 1, tp, pnum, GEO_WEST, lmask);
+		STACKPUSH(sd, ShortStack);
+	    }
 	}
 
 	/* Search bottom */
@@ -714,8 +726,11 @@ srchbot:
 
 	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
 	{
-	    sd = NewSD(cost + 1, tp, pnum, GEO_SOUTH, lmask);
-	    STACKPUSH(sd, ShortStack);
+	    if (TiGetTypeExact(tp) != TT_SPACE)
+	    {
+		sd = NewSD(cost + 1, tp, pnum, GEO_SOUTH, lmask);
+		STACKPUSH(sd, ShortStack);
+	    }
 	}
 
 	/* Search right */
@@ -729,8 +744,11 @@ srchright:
 
 	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 	{
-	    sd = NewSD(cost + 1, tp, pnum, GEO_EAST, lmask);
-	    STACKPUSH(sd, ShortStack);
+	    if (TiGetTypeExact(tp) != TT_SPACE)
+	    {
+		sd = NewSD(cost + 1, tp, pnum, GEO_EAST, lmask);
+		STACKPUSH(sd, ShortStack);
+	    }
 	}
 
 	/* Search other connecting planes */
@@ -747,8 +765,11 @@ donesrch:
 		{
 		    tp = SelectDef->cd_planes[p]->pl_hint;
 		    GOTOPOINT(tp, &tile->ti_ll);
-		    sd = NewSD(cost + 1, tp, p, GEO_CENTER, lmask);
-		    STACKPUSH(sd, ShortStack);
+		    if (TiGetTypeExact(tp) != TT_SPACE)
+		    {
+			sd = NewSD(cost + 1, tp, p, GEO_CENTER, lmask);
+			STACKPUSH(sd, ShortStack);
+		    }
 		}
 	    }
 	}
