@@ -488,6 +488,7 @@ donesides:
 		{
 		    tp = SelectDef->cd_planes[p]->pl_hint;
 		    GOTOPOINT(tp, &tile->ti_ll);
+		    SelectDef->cd_planes[p]->pl_hint = tp;
 		    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
 		    if ((int)tp->ti_client < mincost)
 		    {
@@ -765,6 +766,7 @@ donesrch:
 		{
 		    tp = SelectDef->cd_planes[p]->pl_hint;
 		    GOTOPOINT(tp, &tile->ti_ll);
+		    SelectDef->cd_planes[p]->pl_hint = tp;
 		    if (TiGetTypeExact(tp) != TT_SPACE)
 		    {
 			sd = NewSD(cost + 1, tp, p, GEO_CENTER, lmask);
