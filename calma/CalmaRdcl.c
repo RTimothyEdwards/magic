@@ -130,23 +130,31 @@ calmaSetPosition(sname)
 	     return originalPos;
         }
 	freeMagic(strname);
-     }
+    }
 
-     // Ran out of file.  It's possible that we were seeking ahead to a
-     // definition that called something that was defined between it and
-     // our previous position, so we will rewind the file and try again.
-     // If that doesn't work, then the cell is not defined in the file.
+    /* Ran out of file.  It's possible that we were seeking ahead to a
+     * definition that called something that was defined between it and
+     * our previous position, so we will rewind the file and try again.
+     * If that doesn't work, then the cell is not defined in the file.
+     */
 
-     if (originalPos != 0)
-     {
+    if (originalPos != 0)
+    {
 	rewind(calmaInputFile);
 	calmaSetPosition(sname);
 	return originalPos;
-     }
+    }
 
-     CalmaReadError("Cell \"%s\" is used but not defined in this file.\n", sname);
+    /* Avoid generating an error message in the case that the cell is not in
+     * the GDS file but is in memory.  Assume that such a case is intentional,
+     * meaning the GDS library is an addendum and the proper library it
+     * depends on was read first as intended.
+     */
+    if (DBCellLookDef(sname) == NULL)
+        CalmaReadError("Cell \"%s\" is used but not defined in this file.\n",
+		sname);
 
-     return originalPos;
+    return originalPos;
 }
 
 /* Added by NP 8/11/04 */
@@ -746,7 +754,8 @@ calmaElementSref(filename)
 	}
 	else
 	{
-	    TxPrintf("Cell definition %s does not exist!\n", sname);
+	    /* This is redundant messaging */
+	    // TxPrintf("Cell definition %s does not exist!\n", sname);
 	    fseek(calmaInputFile, originalFilePos, SEEK_SET);
 	    def = calmaFindCell(sname, NULL, NULL);
 	    /* Cell flags set to "dereferenced" in case there is no	*/
