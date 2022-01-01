@@ -1108,22 +1108,31 @@ CmdCellname(w, cmd)
 		else if (subopt >= 4)
 		{
 		    /* Check if file is already read-write */
+#ifdef FILE_LOCKS
+		    if (!(cellDef->cd_flags & CDNOEDIT) && (cellDef->cd_fd != -1))
+#else
 		    if (!(cellDef->cd_flags & CDNOEDIT))
+#endif
 			break;
 
 		    /* Make file read-write */
-
 #ifdef FILE_LOCKS
 		    if (cellDef->cd_fd == -1)
 			dbReadOpen(cellDef, NULL, TRUE, NULL);
 
 		    if (cellDef->cd_fd == -1)
-			TxError("Overriding advisory lock held on cell %s\n",
+		    {
+			TxError("An advisory lock is held on cell %s.  Cell can now"
+				" be made editable but is not writeable.\n",
 				cellDef->cd_name);
+		    }
 #endif
-		    cellDef->cd_flags &= ~CDNOEDIT;
-		    WindAreaChanged(w, &w->w_screenArea);
-		    CmdSetWindCaption(EditCellUse, EditRootDef);
+		    if (cellDef->cd_flags & CDNOEDIT)
+		    {
+			cellDef->cd_flags &= ~CDNOEDIT;
+			WindAreaChanged(w, &w->w_screenArea);
+			CmdSetWindCaption(EditCellUse, EditRootDef);
+		    }
 		}
 		else	/* "cellname writeable false" */
 		{

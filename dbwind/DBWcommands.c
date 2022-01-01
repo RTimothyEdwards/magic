@@ -46,7 +46,10 @@ extern void CmdDelete(), CmdDown(), CmdDrc(), CmdDrop(), CmdDump();
 extern void CmdEdit(), CmdElement(), CmdErase(), CmdExpand(), CmdExtract();
 extern void CmdFeedback(), CmdFill(), CmdFindBox(), CmdFindLabel(), CmdFlush();
 extern void CmdGetcell(), CmdGrid(), CmdIdentify();
-extern void CmdLabel(), CmdLoad(), CmdLocking();
+extern void CmdLabel(), CmdLoad();
+#ifdef FILE_LOCKS
+extern void CmdLocking();
+#endif
 extern void CmdMove(), CmdNetlist(), CmdOrient(), CmdPaint(), CmdPath();
 extern void CmdPlow(), CmdPolygon(), CmdPort(), CmdProperty();
 extern void CmdRandom(), CmdSave(), CmdScaleGrid(), CmdSee();
@@ -369,9 +372,11 @@ DBWInitCommands()
     WindAddCommand(DBWclientID,
 	"load [cellname]	load a cell into a window",
 	CmdLoad, FALSE);
+#ifdef FILE_LOCKS
     WindAddCommand(DBWclientID,
 	"locking [enable|disable]	enable or disable file locking",
 	CmdLocking, FALSE);
+#endif
     WindAddCommand(DBWclientID,
 	"move [dir [amount]]	OR\n"
 	"move to x y		move box and selection, either by amount\n\

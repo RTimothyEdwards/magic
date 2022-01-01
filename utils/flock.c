@@ -11,6 +11,8 @@
  *-------------------------------------------------------------------------
  */
 
+#ifdef FILE_LOCKS
+
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -164,3 +166,5 @@ FILE *flock_open(filename, mode, is_locked)
 done:
     return f;
 }
+
+#endif	/* FILE_LOCKS */

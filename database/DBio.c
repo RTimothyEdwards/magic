@@ -69,6 +69,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 extern char *Path;
 
+#ifdef FILE_LOCKS
+extern bool FileLocking;
+#endif
+
 /* Suffix for all Magic files */
 char *DBSuffix = ".mag";
 
@@ -3223,17 +3227,22 @@ DBCellWrite(cellDef, fileName)
      * figure out why.
      */
 
-    if(cellDef->cd_flags & CDNOEDIT)
+    if (cellDef->cd_flags & CDNOEDIT)
     {
-#ifdef FILE_LOCKS
-	TxPrintf("File %s is locked by another user or "
-		"is read_only and cannot be written\n", realname);
-#else
 	TxPrintf("File %s is read_only and cannot be written\n", realname);
-#endif
 	freeMagic(realname);
 	return(FALSE);
     }
+
+#ifdef FILE_LOCKS
+    if (cellDef->cd_fd == -1)
+    {
+	TxPrintf("File %s is locked by another user and "
+		"cannot be written\n", realname);
+	freeMagic(realname);
+	return(FALSE);
+    }
+#endif
 
     /* Check if the .mag file exists.  If not, we don't need to deal	*/
     /* with temporary file names.					*/
@@ -3321,17 +3330,6 @@ DBCellWrite(cellDef, fileName)
 		    tmpname, expandname, expandname, cellDef->cd_name, tmpname);
 	    goto cleanup;
 	}
-
-#ifdef FILE_LOCKS
-	else
-	{
-	    bool dereference = (cellDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	    /* Re-aquire the lock on the new file by opening it. */
-	    if (DBCellRead(cellDef, NULL, TRUE, dereference, NULL) == FALSE)
-		return FALSE;
-	}
-#endif
-
     }
     else if (exists)
     {
@@ -3408,7 +3406,14 @@ DBCellWrite(cellDef, fileName)
     result = TRUE;
     {
 	struct stat thestat;
-	realf = fopen(expandname, "r");
+	bool is_locked;
+#ifdef FILE_LOCKS
+	if (FileLocking)
+	    realf = flock_open(expandname, "r", &is_locked);
+	else
+#endif
+	    realf = fopen(expandname, "r");
+
 	if (realf == NULL)
 	{
 	    cellDef->cd_flags |= CDMODIFIED;
@@ -3416,13 +3421,20 @@ DBCellWrite(cellDef, fileName)
 	}
 	else
 	{
-	    fstat(fileno(realf),&thestat);
+	    int fd = fileno(realf);
+	    fstat(fd, &thestat);
 	    if (thestat.st_size != DBFileOffset)
 	    {
 		cellDef->cd_flags |= CDMODIFIED;
 		TxError("Warning: I/O error in writing file \"%s\"\n", expandname);
 	    }
-	    fclose(realf);
+
+#ifdef FILE_LOCKS
+	    if (FileLocking && (is_locked == FALSE))
+		cellDef->cd_fd = fd;
+	    else
+#endif
+		fclose(realf);
 	}
 	realf = NULL;
     }

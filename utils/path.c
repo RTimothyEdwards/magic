@@ -46,7 +46,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 static HashTable expansionTable;
 static bool noTable = TRUE;
 
+#ifdef FILE_LOCKS
 bool FileLocking = TRUE;
+#endif
 
 /* Limit on how long a single file name may be: */
 
@@ -456,9 +458,11 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
 	p2 = file;
 	if (PaExpand(&p2, &p1, MAXSIZE) < 0) return NULL;
 
+#ifdef FILE_LOCKS
 	if (FileLocking)
 	    return flock_open(realName, mode, is_locked);
 	else
+#endif
 	    return fopen(realName, mode);
     }
 
@@ -475,9 +479,11 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
 	(void) strncpy(realName, file, MAXSIZE-1);
 	realName[MAXSIZE-1] = '\0';
 
+#ifdef FILE_LOCKS
 	if (FileLocking)
 	    return flock_open(realName, mode, is_locked);
 	else
+#endif
 	    return fopen(realName, mode);
     }
 
@@ -487,9 +493,11 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
     {
 	if (*realName == 0) continue;
 
+#ifdef FILE_LOCKS
 	if (FileLocking)
 	    f = flock_open(realName, mode, is_locked);
 	else
+#endif
 	    f = fopen(realName, mode);
 
 	if (f != NULL) return f;
@@ -506,9 +514,11 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
     if (library == NULL) return NULL;
     while (nextName(&library, file, realName, MAXSIZE) != NULL)
     {
+#ifdef FILE_LOCKS
 	if (FileLocking)
 	    f = flock_open(realName, mode, is_locked);
 	else
+#endif
 	    f = fopen(realName, mode);
 
 	if (f != NULL) return f;

@@ -54,8 +54,10 @@ void CmdPaintEraseButton();
 
 extern Label *DefaultLabel;
 
+#ifdef FILE_LOCKS
 /* See the "locking" command */
 extern bool FileLocking;
+#endif
 
 /*
  * ----------------------------------------------------------------------------
@@ -541,6 +543,7 @@ keepGoing(use, clientdata)
     return 0;	/* keep the search going */
 }
 
+#ifdef FILE_LOCKS
 /*
  * ----------------------------------------------------------------------------
  *
@@ -604,6 +607,7 @@ CmdLocking(w, cmd)
 	FileLocking = (option <= 4) ? FALSE : TRUE;
     }
 }
+#endif	/* FILE_LOCKS */
 
 /*
  * ----------------------------------------------------------------------------

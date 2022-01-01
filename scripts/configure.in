@@ -935,8 +935,14 @@ AC_ARG_ENABLE(locking,
 [],
 [enable_locking=yes])
 
-if test "x$enable_locking" = "xno" ; then
-  echo "File locking no longer set during configuration;  ignoring option."
+if test "x$enable_locking" = "xyes" ; then
+  case $target in
+    *cygwin*)
+	;;
+    *)
+	AC_DEFINE(FILE_LOCKS)
+	;;
+  esac
 fi
 
 AC_ARG_ENABLE(calma,
