@@ -451,6 +451,8 @@ TechLoad(filename, initmask)
     {
 	char *sptr, *dptr;
 
+	tf = (FILE *)NULL;
+
 	/* TECH_VERSION in the filename is deprecated as of magic version	*/
 	/* 7.2.27;  TECH_VERSION is no longer defined in the utils/Makefile.	*/
 	/* It has been changed to TECH_FORMAT_VERSION, left at version 27,	*/
@@ -476,13 +478,15 @@ TechLoad(filename, initmask)
 
 	/* If a non-standard extension was used, then honor it */
 	if ((dptr != NULL) && (*dptr != '\0'))
-    {
+	{
 	    tf = PaOpen(filename, "r", (char *)NULL, ".", SysLibPath, &realname);
-        /* If the honored file in not there, try the filename with the suffix */
-        if (tf == (FILE *) NULL)
-	        tf = PaOpen(filename, "r", suffix, ".", SysLibPath, &realname);
-    }
-    else
+
+	    /* If that didn't work, fall back to trying the filename	*/
+	    /* with the suffix.  This is needed for some ill-considered	*/
+	    /* names like "SCN4M_SUBM.20.tech".				*/
+	}
+
+	if (tf == (FILE *)NULL)
 	    tf = PaOpen(filename, "r", suffix, ".", SysLibPath, &realname);
 
 	if (tf == (FILE *) NULL)
