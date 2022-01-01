@@ -705,7 +705,7 @@ if test $usingTcl ; then
 # Find the version of "wish" that corresponds to TCL_EXEC_PREFIX
 # We really ought to run "ldd" to confirm that the linked libraries match.
 
-  if text "x${magic_with_wish_binary}" = "x" ; then
+  if test "x${magic_with_wish_binary}" = "x" ; then
     AC_MSG_CHECKING([for wish executable])
     for dir in \
     ${TK_EXEC_PREFIX}/bin \
@@ -935,14 +935,8 @@ AC_ARG_ENABLE(locking,
 [],
 [enable_locking=yes])
 
-if test "x$enable_locking" = "xyes" ; then
-  case $target in
-     *cygwin*)
-	;;
-     *)
-	AC_DEFINE(FILE_LOCKS)
-        ;;
-  esac
+if test "x$enable_locking" = "xno" ; then
+  echo "File locking no longer set during configuration;  ignoring option."
 fi
 
 AC_ARG_ENABLE(calma,

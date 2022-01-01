@@ -54,6 +54,9 @@ void CmdPaintEraseButton();
 
 extern Label *DefaultLabel;
 
+/* See the "locking" command */
+extern bool FileLocking;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -527,7 +530,7 @@ CmdLoad(w, cmd)
 
 /*
  * Function callback which continues the search through all cells for
- * expansion/unexpansion.
+ * expansion/unexpansion, used by CmdLoad() above.
  */
 
 int
@@ -536,6 +539,70 @@ keepGoing(use, clientdata)
     ClientData clientdata;
 {
     return 0;	/* keep the search going */
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * CmdLocking --
+ *
+ * Implement the "locking" command.
+ *
+ * Usage:
+ *	locking [enable|disable]
+ *
+ * This command controls the behavior of file locking.  If enabled, then
+ * every layout read from a .mag file will generate a file descriptor in
+ * the operating system, and the file will be held open for the duration
+ * of use.  This is a fairly simple way of preventing two different
+ * processes of magic from attempting to write to the same .mag file.
+ * Generally speaking, the file locking should remain on at all times,
+ * and read/write behavior of any specific cell can be controlled with
+ * the "cellname writeable" command option.  However, in some cases,
+ * layouts with many components may exceed the operating system's
+ * allotted number of open file descriptors, in which case the only real
+ * option is to disable file locking altogether using "locking disable".
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Sets global boolean variable FileLocking.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+CmdLocking(w, cmd)
+    MagWindow *w;
+    TxCommand *cmd;
+{
+    int option;
+
+    static char *cmdLockingYesNo[] = { "disable", "no", "false", "off", "0",
+	    "enable", "yes", "true", "on", "1", 0 };
+
+    if (cmd->tx_argc <= 1)
+    {
+#ifdef MAGIC_WRAPPER
+	/* Interpreter return value is the state of locking */
+	Tcl_SetResult(magicinterp, (FileLocking) ? "enabled" : "disabled",
+		TCL_VOLATILE);
+#else
+	/* Print the status of file locking to the console */
+	TxPrintf("%s\n", (FileLocking) ? "enabled" : "disabled");
+#endif
+    }
+    else
+    {
+	option = Lookup(cmd->tx_argv[1], cmdLockingYesNo);
+	if (option < 0)
+	{
+	    TxError("Unknown locking option \"%s\"\n", cmd->tx_argv[1]);
+	    return;
+	}
+	FileLocking = (option <= 4) ? FALSE : TRUE;
+    }
 }
 
 /*

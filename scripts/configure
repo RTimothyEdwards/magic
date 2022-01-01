@@ -6598,7 +6598,7 @@ if test $usingTcl ; then
 # Find the version of "wish" that corresponds to TCL_EXEC_PREFIX
 # We really ought to run "ldd" to confirm that the linked libraries match.
 
-  if text "x${magic_with_wish_binary}" = "x" ; then
+  if test "x${magic_with_wish_binary}" = "x" ; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for wish executable" >&5
 $as_echo_n "checking for wish executable... " >&6; }
     for dir in \
@@ -6844,15 +6844,8 @@ else
 fi
 
 
-if test "x$enable_locking" = "xyes" ; then
-  case $target in
-     *cygwin*)
-	;;
-     *)
-	$as_echo "#define FILE_LOCKS 1" >>confdefs.h
-
-        ;;
-  esac
+if test "x$enable_locking" = "xno" ; then
+  echo "File locking no longer set during configuration;  ignoring option."
 fi
 
 # Check whether --enable-calma was given.

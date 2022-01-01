@@ -54,9 +54,7 @@ extern bool StrIsNumeric(char *);
 
 extern int SetNoisyBool(bool *, char *, FILE *);
 
-#ifdef FILE_LOCKS
 extern FILE *flock_open();
-#endif
 
 /* The following macro takes an integer and returns another integer that
  * is the same as the first except that all the '1' bits are turned off,

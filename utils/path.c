@@ -46,6 +46,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 static HashTable expansionTable;
 static bool noTable = TRUE;
 
+bool FileLocking = TRUE;
+
 /* Limit on how long a single file name may be: */
 
 #define MAXSIZE MAXPATHLEN
@@ -454,11 +456,10 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
 	p2 = file;
 	if (PaExpand(&p2, &p1, MAXSIZE) < 0) return NULL;
 
-#ifndef FILE_LOCKS
-	return fopen(realName, mode);
-#else
-	return flock_open(realName, mode, is_locked);
-#endif
+	if (FileLocking)
+	    return flock_open(realName, mode, is_locked);
+	else
+	    return fopen(realName, mode);
     }
 
     /* If we were already given a full rooted file name,
@@ -473,11 +474,11 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
     {
 	(void) strncpy(realName, file, MAXSIZE-1);
 	realName[MAXSIZE-1] = '\0';
-#ifndef FILE_LOCKS
-	return fopen(realName, mode);
-#else
-	return flock_open(realName, mode, is_locked);
-#endif
+
+	if (FileLocking)
+	    return flock_open(realName, mode, is_locked);
+	else
+	    return fopen(realName, mode);
     }
 
     /* Now try going through the path, one entry at a time. */
@@ -485,11 +486,12 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
     while (nextName(&path, file, realName, MAXSIZE) != NULL)
     {
 	if (*realName == 0) continue;
-#ifndef FILE_LOCKS
-	f = fopen(realName, mode);
-#else
-	f = flock_open(realName, mode, is_locked);
-#endif
+
+	if (FileLocking)
+	    f = flock_open(realName, mode, is_locked);
+	else
+	    f = fopen(realName, mode);
+
 	if (f != NULL) return f;
 
 	// If any error other than "file not found" occurred,
@@ -504,11 +506,11 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
     if (library == NULL) return NULL;
     while (nextName(&library, file, realName, MAXSIZE) != NULL)
     {
-#ifndef FILE_LOCKS
-	f = fopen(realName, mode);
-#else
-	f = flock_open(realName, mode, is_locked);
-#endif
+	if (FileLocking)
+	    f = flock_open(realName, mode, is_locked);
+	else
+	    f = fopen(realName, mode);
+
 	if (f != NULL) return f;
 
 	// If any error other than "file not found" occurred,
