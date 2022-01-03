@@ -393,7 +393,6 @@ selShortFindReverse(rlist, tile, pnum, fdir)
 	*rlist = newrrec;
 
 	if ((int)tile->ti_client == 0) return 0;	/* We're done */
-	// if (mincost == 0) return 0;			/* We're done */
 	minp = pnum;
 
 	/* Search top */
@@ -504,9 +503,6 @@ donesides:
 	/* If mincost is still set to INT_MAX we have a real serious problem! */
 	if (mincost == INT_MAX) return 1;
 
-	/* If no tile had lower cost than this one, then we have an error */
-	// if (mincost == (int)tile->ti_client) return 1;
-
 	/* Stopgap measure:  Error should not happen, but it does!  */
 	/* Remove client data of current tile and take minimum.	    */
 	if (mincost == (int)tile->ti_client) TiSetClient(tile, CLIENTDEFAULT);
@@ -516,6 +512,8 @@ donesides:
 	pnum = minp;
         fdir = mindir;
     }
+
+    /* Not reached */
 }
 
 /* Data structure used by selShortFindForward() to store a tile and */
@@ -588,6 +586,12 @@ selShortProcessTile(tile, cost, fdir, mask)
 {
     TileType ttype;
 
+    /* Ignore tiles that were already processed.  This causes the	*/
+    /* algorithm to find any valid path but not the best path.   That	*/
+    /* choice keeps the algorithm fast and efficient.			*/
+
+    if (tile->ti_client != (ClientData)CLIENTDEFAULT) return 1;
+
     if (IsSplit(tile))
     {
 	switch(fdir)
@@ -640,8 +644,7 @@ selShortProcessTile(tile, cost, fdir, mask)
  *	Function for finding shorts.  The cell searched is always SelectDef.
  *
  * Results:
- *	Return 0 to keep going;  return 1 to stop when the tile contains
- *	the destination point.
+ *	None
  *
  * Side effects:
  *	Each tile visited has its ClientData record set to the current
@@ -650,7 +653,7 @@ selShortProcessTile(tile, cost, fdir, mask)
  * ----------------------------------------------------------------------------
  */
 
-int
+void
 selShortFindForward(srctile, srctype, srcpnum, desttile)
     Tile *srctile;
     TileType srctype;
@@ -665,7 +668,6 @@ selShortFindForward(srctile, srctype, srcpnum, desttile)
     static Stack *ShortStack = (Stack *)NULL;
 
     int cost = 0;
-    int best = INT_MAX;
 
     if (ShortStack == (Stack *)NULL)
 	ShortStack = StackNew(64);
@@ -686,18 +688,6 @@ selShortFindForward(srctile, srctype, srcpnum, desttile)
 	type = sd->type;
 	freeMagic((char *)sd);
 
-	/* If this tile is the destination tile, do not search further */
-
-	if (tile == desttile)
-	{
-	    if (best >= cost) best = (cost - 1);
-	    continue;
-	}
-
-	/* If we're more costly than the best known path to destination,    */
-	/* do not search further.					    */
-
-	if (cost >= best) continue;
 	lmask = &DBConnectTbl[type];
 
 	/* Search top */
