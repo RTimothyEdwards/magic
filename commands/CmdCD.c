@@ -1109,7 +1109,7 @@ CmdCellname(w, cmd)
 		{
 		    /* Check if file is already read-write */
 #ifdef FILE_LOCKS
-		    if (!(cellDef->cd_flags & CDNOEDIT) && (cellDef->cd_fd != -1))
+		    if (!(cellDef->cd_flags & CDNOEDIT) && (cellDef->cd_fd != -2))
 #else
 		    if (!(cellDef->cd_flags & CDNOEDIT))
 #endif
@@ -1117,10 +1117,10 @@ CmdCellname(w, cmd)
 
 		    /* Make file read-write */
 #ifdef FILE_LOCKS
-		    if (cellDef->cd_fd == -1)
+		    if (cellDef->cd_fd < 0)
 			dbReadOpen(cellDef, NULL, TRUE, NULL);
 
-		    if (cellDef->cd_fd == -1)
+		    if (cellDef->cd_fd == -2)
 		    {
 			TxError("An advisory lock is held on cell %s.  Cell can now"
 				" be made editable but is not writeable.\n",
@@ -1147,10 +1147,10 @@ CmdCellname(w, cmd)
 #ifdef FILE_LOCKS
 		    /* Release any advisory lock held on this file */
 
-		    if (cellDef->cd_fd != -1)
+		    if (cellDef->cd_fd >= 0)
 		    {
 			close(cellDef->cd_fd);
-			cellDef->cd_fd = -1;
+			cellDef->cd_fd = -1;	 /* Set to initial state */
 		    }
 #endif
 

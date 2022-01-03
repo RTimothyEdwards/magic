@@ -314,13 +314,13 @@ SelectFlat()
 /*
  * ----------------------------------------------------------------------------
  *
- *  selShortFindPath --
+ *  selShortFindReverse --
  *
- *	Trace back through a path found by selShortFindNext from destination
+ *	Trace back through a path found by selShortFindForward from destination
  *	to source, picking the lowest cost return path, and adding each tile
  *	found to the linked list.
  *
- *	Algorithm notes (for this and selShortFindNext):  Note that by not
+ *	Algorithm notes (for this and selShortFindForward):  Note that by not
  *	using one of the standard database search routines, TT_SIDE is NOT
  *	set on any tile.  To find out what side we're looking at, we keep
  *	a record of what direction we were traveling from the previous
@@ -335,7 +335,7 @@ SelectFlat()
  */
 
 int
-selShortFindPath(rlist, tile, pnum, fdir)
+selShortFindReverse(rlist, tile, pnum, fdir)
    ExtRectList **rlist;
    Tile *tile;
    int pnum;
@@ -518,16 +518,15 @@ donesides:
     }
 }
 
-/* Data structure used by selShortFindNext() to store a tile and    */
+/* Data structure used by selShortFindForward() to store a tile and */
 /* the current search parameters, including cost, direction, plane, */
 /* and the mask of connecting types.				    */
 
 typedef struct _shortdata {
     int	   cost;
     Tile  *tile;
+    TileType type;
     int    pnum;
-    int	   fdir;
-    TileTypeBitMask *mask;
 } ShortData;
 
 /*
@@ -543,12 +542,11 @@ typedef struct _shortdata {
  * ----------------------------------------------------------------------------
  */
 
-ShortData *NewSD(cost, tile, pnum, fdir, mask)
+ShortData *NewSD(cost, tile, type, pnum)
     int cost;
     Tile *tile;
+    TileType type;
     int pnum;
-    int fdir;
-    TileTypeBitMask *mask;
 {
     ShortData *sd;
 
@@ -556,9 +554,8 @@ ShortData *NewSD(cost, tile, pnum, fdir, mask)
 
     sd->cost = cost;
     sd->tile = tile;
+    sd->type = type;
     sd->pnum = pnum;
-    sd->fdir = fdir;
-    sd->mask = mask;
 
     return sd;
 }
@@ -566,14 +563,81 @@ ShortData *NewSD(cost, tile, pnum, fdir, mask)
 /*
  * ----------------------------------------------------------------------------
  *
- * selShortFindNext --
+ * selShortProcessTile --
  *
- *	Recursive function for finding shorts.  This routine makes strong
- *	assumptions;  namely, that all non-space material in the cell being
- *	searched belongs to the same net.  The cell searched is always
- *	SelectDef.  (Although rather than actually recursing, which is
- *	likely to exceed the computer's stack depth, we create our own
- *	stack of unprocessed tiles and process them.)
+ *	Process a tile, finding if it extends the connection from the
+ *	last position, and setting its cost to be one higher than the
+ *	previous position.
+ *
+ * Return value:
+ *	0 if tile was updated with new cost.
+ *	1 if tile was unchanged.
+ *
+ * Side effects:
+ *	Writes cost to the tile's ClientData record.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+selShortProcessTile(tile, cost, fdir, mask)
+    Tile *tile;
+    int cost;
+    int fdir;
+    TileTypeBitMask *mask;
+{
+    TileType ttype;
+
+    if (IsSplit(tile))
+    {
+	switch(fdir)
+	{
+	    case GEO_NORTH:
+		ttype = SplitBottomType(tile);
+		break;
+	    case GEO_SOUTH:
+		ttype = SplitTopType(tile);
+		break;
+	    case GEO_EAST:
+		ttype = SplitLeftType(tile);
+		break;
+	    case GEO_WEST:
+		ttype = SplitRightType(tile);
+		break;
+	    default:
+		ttype = SplitLeftType(tile);
+		if (ttype == TT_SPACE) ttype = SplitRightType(tile);
+		break;
+	}
+    }
+    else
+	ttype = TiGetTypeExact(tile);
+
+    /* Ignore space tiles */
+    if (ttype == TT_SPACE) return 1;
+
+    /* Ignore non-connecting tiles */
+    if (!TTMaskHasType(mask, ttype)) return 1;
+
+    /* If this tile is unvisited, or has a lower cost, then return and	  */
+    /* keep going.  Otherwise, return 1 to stop the search this direction */
+
+    if (tile->ti_client == (ClientData)CLIENTDEFAULT)
+	TiSetClient(tile, cost);
+    else if ((int)tile->ti_client > cost)
+	TiSetClient(tile, cost);
+    else
+	return 1;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * selShortFindForward --
+ *
+ *	Function for finding shorts.  The cell searched is always SelectDef.
  *
  * Results:
  *	Return 0 to keep going;  return 1 to stop when the tile contains
@@ -587,27 +651,30 @@ ShortData *NewSD(cost, tile, pnum, fdir, mask)
  */
 
 int
-selShortFindNext(tile, pnum, ldest, mask)
-    Tile *tile;
-    int pnum;
-    Label *ldest;
-    TileTypeBitMask *mask;
+selShortFindForward(srctile, srctype, srcpnum, desttile)
+    Tile *srctile;
+    TileType srctype;
+    int srcpnum;
+    Tile *desttile;
 {
-    TileType ttype;
+    TileType type;
     TileTypeBitMask *lmask;
-    Tile *tp;
+    Tile *tile, *tp;
+    int pnum;
     ShortData *sd;
     static Stack *ShortStack = (Stack *)NULL;
 
     int cost = 0;
     int best = INT_MAX;
-    int fdir = GEO_CENTER;
 
     if (ShortStack == (Stack *)NULL)
 	ShortStack = StackNew(64);
 
+    /* Set the cost of the source tile to zero */
+    TiSetClient(srctile, (ClientData)0);
+
     /* Drop the first entry on the stack */
-    sd = NewSD(cost, tile, pnum, fdir, mask);
+    sd = NewSD(cost, srctile, srctype, srcpnum);
     STACKPUSH(sd, ShortStack);
 
     while (!StackEmpty(ShortStack))
@@ -616,54 +683,12 @@ selShortFindNext(tile, pnum, ldest, mask)
 	tile = sd->tile;
 	cost = sd->cost;
 	pnum = sd->pnum;
-	fdir = sd->fdir;
-	mask = sd->mask;
+	type = sd->type;
 	freeMagic((char *)sd);
 
-	if (IsSplit(tile))
-	{
-	    switch(fdir)
-	    {
-		case GEO_NORTH:
-		    ttype = SplitBottomType(tile);
-		    break;
-		case GEO_SOUTH:
-		    ttype = SplitTopType(tile);
-		    break;
-		case GEO_EAST:
-		    ttype = SplitLeftType(tile);
-		    break;
-		case GEO_WEST:
-		    ttype = SplitRightType(tile);
-		    break;
-		default:
-		    ttype = SplitLeftType(tile);
-		    if (ttype == TT_SPACE) ttype = SplitRightType(tile);
-		    break;
-	    }
-	}
-	else
-	    ttype = TiGetTypeExact(tile);
+	/* If this tile is the destination tile, do not search further */
 
-	/* Ignore space tiles */
-	if (ttype == TT_SPACE) continue;
-
-	/* Ignore non-connecting tiles */
-	if (!TTMaskHasType(mask, ttype)) continue;
-
-	/* If this tile is unvisited, or has a lower cost, then return and	*/
-	/* keep going.  Otherwise, return 1 to stop the search this direction	*/
-
-	if (tile->ti_client == (ClientData)CLIENTDEFAULT)
-	    TiSetClient(tile, cost);
-	else if ((int)tile->ti_client > cost)
-	    TiSetClient(tile, cost);
-	else
-	    continue;
-
-	/* If this tile contains the destination point, do not search further */
-
-	if ((ttype == ldest->lab_type) && EnclosePoint(tile, &ldest->lab_rect.r_ll))
+	if (tile == desttile)
 	{
 	    if (best >= cost) best = (cost - 1);
 	    continue;
@@ -673,27 +698,18 @@ selShortFindNext(tile, pnum, ldest, mask)
 	/* do not search further.					    */
 
 	if (cost >= best) continue;
-	lmask = &DBConnectTbl[ttype];
+	lmask = &DBConnectTbl[type];
 
 	/* Search top */
 	if (IsSplit(tile))
-	{
-	    if (fdir == GEO_NORTH) goto srchleft;
-	    else if (SplitDirection(tile) && fdir == GEO_EAST) goto srchleft;
-	    else if (!SplitDirection(tile) && fdir == GEO_WEST) goto srchleft;
-	}
-
-	/* As a small optimization, check for space tiles and avoid going
-	 * through the hoops of allocating a structure and pushing it on the
-	 * stack.  This check is not rigorous, but it saves time for the
-	 * most common case.
-	 */
+	    if (TiGetTopType(tile) != type)
+		goto srchleft;
 
 	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
 	{
-	    if (TiGetTypeExact(tp) != TT_SPACE)
+	    if (selShortProcessTile(tp, cost + 1, GEO_NORTH, lmask) == 0)
 	    {
-		sd = NewSD(cost + 1, tp, pnum, GEO_NORTH, lmask);
+		sd = NewSD(cost + 1, tp, TiGetBottomType(tp), pnum);
 		STACKPUSH(sd, ShortStack);
 	    }
 	}
@@ -701,17 +717,14 @@ selShortFindNext(tile, pnum, ldest, mask)
 	/* Search left */
 srchleft:
 	if (IsSplit(tile))
-	{
-	    if (fdir == GEO_WEST) goto srchbot;
-	    else if (SplitDirection(tile) && fdir == GEO_SOUTH) goto srchbot;
-	    else if (!SplitDirection(tile) && fdir == GEO_NORTH) goto srchbot;
-	}
+	    if (TiGetLeftType(tile) != type)
+		goto srchbot;
 
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 	{
-	    if (TiGetTypeExact(tp) != TT_SPACE)
+	    if (selShortProcessTile(tp, cost + 1, GEO_WEST, lmask) == 0)
 	    {
-		sd = NewSD(cost + 1, tp, pnum, GEO_WEST, lmask);
+		sd = NewSD(cost + 1, tp, TiGetRightType(tp), pnum);
 		STACKPUSH(sd, ShortStack);
 	    }
 	}
@@ -719,17 +732,14 @@ srchleft:
 	/* Search bottom */
 srchbot:
 	if (IsSplit(tile))
-	{
-	    if (fdir == GEO_SOUTH) goto srchright;
-	    else if (SplitDirection(tile) && fdir == GEO_WEST) goto srchright;
-	    else if (!SplitDirection(tile) && fdir == GEO_EAST) goto srchright;
-	}
+	    if (TiGetBottomType(tile) != type)
+		goto srchright;
 
 	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
 	{
-	    if (TiGetTypeExact(tp) != TT_SPACE)
+	    if (selShortProcessTile(tp, cost + 1, GEO_SOUTH, lmask) == 0)
 	    {
-		sd = NewSD(cost + 1, tp, pnum, GEO_SOUTH, lmask);
+		sd = NewSD(cost + 1, tp, TiGetTopType(tp), pnum);
 		STACKPUSH(sd, ShortStack);
 	    }
 	}
@@ -737,29 +747,26 @@ srchbot:
 	/* Search right */
 srchright:
 	if (IsSplit(tile))
-	{
-	    if (fdir == GEO_EAST) goto donesrch;
-	    else if (SplitDirection(tile) && fdir == GEO_NORTH) goto donesrch;
-	    else if (!SplitDirection(tile) && fdir == GEO_SOUTH) goto donesrch;
-	}
+	    if (TiGetRightType(tile) != type)
+		goto donesrch;
 
 	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 	{
-	    if (TiGetTypeExact(tp) != TT_SPACE)
+	    if (selShortProcessTile(tp, cost + 1, GEO_EAST, lmask) == 0)
 	    {
-		sd = NewSD(cost + 1, tp, pnum, GEO_EAST, lmask);
+		sd = NewSD(cost + 1, tp, TiGetLeftType(tp), pnum);
 		STACKPUSH(sd, ShortStack);
 	    }
 	}
 
 	/* Search other connecting planes */
 donesrch:
-	if (DBIsContact(ttype))
+	if ((!IsSplit(tile)) && DBIsContact(type))
 	{
 	    PlaneMask pmask;
 	    int p;
 
-	    pmask = DBConnPlanes[ttype];
+	    pmask = DBConnPlanes[type];
 	    for (p = PL_TECHDEPBASE; p < DBNumPlanes; p++)
 	    {
 		if (PlaneMaskHasPlane(pmask, p) && (p != pnum))
@@ -767,9 +774,9 @@ donesrch:
 		    tp = SelectDef->cd_planes[p]->pl_hint;
 		    GOTOPOINT(tp, &tile->ti_ll);
 		    SelectDef->cd_planes[p]->pl_hint = tp;
-		    if (TiGetTypeExact(tp) != TT_SPACE)
+	    	    if (selShortProcessTile(tp, cost + 1, GEO_CENTER, lmask) == 0)
 		    {
-			sd = NewSD(cost + 1, tp, p, GEO_CENTER, lmask);
+			sd = NewSD(cost + 1, tp, TiGetLeftType(tp), p);
 			STACKPUSH(sd, ShortStack);
 		    }
 		}
@@ -809,9 +816,10 @@ ExtRectList *
 SelectShort(char *lab1, char *lab2)
 {
     Label *selLabel, *srclab = NULL, *destlab = NULL;
-    Tile *tile;
+    Tile *srctile, *desttile;
+    TileType srctype, desttype;
+    int srcpnum, destpnum;
     Plane *plane;
-    int pnum;
     PlaneMask pmask;
     ExtRectList *rlist;
 
@@ -872,38 +880,43 @@ SelectShort(char *lab1, char *lab2)
 
     /* Must be able to find tiles associated with each label */
 
-    pmask = DBTypePlaneMaskTbl[srclab->lab_type];
-    for (pnum = PL_TECHDEPBASE; pnum < DBNumPlanes; pnum++)
+    pmask = DBTypePlaneMaskTbl[destlab->lab_type];
+    for (destpnum = PL_TECHDEPBASE; destpnum < DBNumPlanes; destpnum++)
     {
-	if (PlaneMaskHasPlane(pmask, pnum))
+	if (PlaneMaskHasPlane(pmask, destpnum))
 	{
-	    plane = SelectDef->cd_planes[pnum];
-	    tile = plane->pl_hint;
-	    GOTOPOINT(tile, &srclab->lab_rect.r_ll)
-	    if (TiGetType(tile) == srclab->lab_type) break;
+	    plane = SelectDef->cd_planes[destpnum];
+	    desttile = plane->pl_hint;
+	    GOTOPOINT(desttile, &destlab->lab_rect.r_ll)
+	    desttype = TiGetTopType(desttile);
+	    if (TTMaskHasType(&DBConnectTbl[destlab->lab_type], desttype)) break;
+	    desttype = TiGetBottomType(desttile);
+	    if (TTMaskHasType(&DBConnectTbl[destlab->lab_type], desttype)) break;
 	}
     }
-    selShortFindNext(tile, pnum, destlab, &DBConnectTbl[srclab->lab_type]);
+    pmask = DBTypePlaneMaskTbl[srclab->lab_type];
+    for (srcpnum = PL_TECHDEPBASE; srcpnum < DBNumPlanes; srcpnum++)
+    {
+	if (PlaneMaskHasPlane(pmask, srcpnum))
+	{
+	    plane = SelectDef->cd_planes[srcpnum];
+	    srctile = plane->pl_hint;
+	    GOTOPOINT(srctile, &srclab->lab_rect.r_ll)
+	    srctype = TiGetTopType(srctile);
+	    if (TTMaskHasType(&DBConnectTbl[srclab->lab_type], srctype)) break;
+	    srctype = TiGetBottomType(srctile);
+	    if (TTMaskHasType(&DBConnectTbl[srclab->lab_type], srctype)) break;
+	}
+    }
+
+    selShortFindForward(srctile, srctype, srcpnum, desttile, desttype);
 
     /* Now see if destination has been counted */
-
-    pmask = DBTypePlaneMaskTbl[destlab->lab_type];
-    for (pnum = PL_TECHDEPBASE; pnum < DBNumPlanes; pnum++)
-    {
-	if (PlaneMaskHasPlane(pmask, pnum))
-	{
-	    plane = SelectDef->cd_planes[pnum];
-	    tile = plane->pl_hint;
-	    GOTOPOINT(tile, &destlab->lab_rect.r_ll)
-	    if (TiGetType(tile) == destlab->lab_type) break;
-	}
-    }
-
-    if (tile->ti_client == (ClientData)CLIENTDEFAULT) return NULL;
+    if (desttile->ti_client == (ClientData)CLIENTDEFAULT) return NULL;
 
     /* Now find the shortest path between source and destination */
     rlist = NULL;
-    selShortFindPath(&rlist, tile, pnum, GEO_CENTER);
+    selShortFindReverse(&rlist, desttile, destpnum, GEO_CENTER);
 
     return rlist;
 }

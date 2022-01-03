@@ -1205,7 +1205,7 @@ DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
 
 #ifdef FILE_LOCKS
 	/* Close files that were locked by another user */
-	if (cellDef->cd_fd == -1) fclose(f);
+	if (cellDef->cd_fd == -2) fclose(f);
 #else
 	/* When using fcntl() to enforce file locks, we can't	*/
 	/* close the file descriptor without losing the lock.	*/
@@ -1261,10 +1261,10 @@ dbReadOpen(cellDef, name, setFileName, errptr)
     bool is_locked;
 
 #ifdef FILE_LOCKS
-    if (cellDef->cd_fd != -1)
+    if (cellDef->cd_fd >= 0)
     {
 	close(cellDef->cd_fd);
-	cellDef->cd_fd = -1;
+	cellDef->cd_fd = -1;	/* Set to initial state */
     }
 #endif
 
@@ -1385,7 +1385,9 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 	else
 	    cellDef->cd_flags &= ~CDNOEDIT;
 
-	if (is_locked == FALSE)
+	if (is_locked == TRUE)
+	    cellDef->cd_fd = -2;	/* Indicates locked file */
+	else
 	    cellDef->cd_fd = fileno(f);
 	cellDef->cd_flags &= ~CDNOTFOUND;
     }
@@ -3235,7 +3237,7 @@ DBCellWrite(cellDef, fileName)
     }
 
 #ifdef FILE_LOCKS
-    if (cellDef->cd_fd == -1)
+    if (cellDef->cd_fd == -2)
     {
 	TxPrintf("File %s is locked by another user and "
 		"cannot be written\n", realname);
@@ -3307,10 +3309,10 @@ DBCellWrite(cellDef, fileName)
 	}
 
 #ifdef FILE_LOCKS
-	if (cellDef->cd_fd != -1)
+	if (cellDef->cd_fd >= 0)
 	{
 	    close(cellDef->cd_fd);
-	    cellDef->cd_fd = -1;
+	    cellDef->cd_fd = -1;	/* Set to initial state */
 	}
 #endif
 
@@ -3430,8 +3432,11 @@ DBCellWrite(cellDef, fileName)
 	    }
 
 #ifdef FILE_LOCKS
+	    cellDef->cd_fd = -1;
 	    if (FileLocking && (is_locked == FALSE))
 		cellDef->cd_fd = fd;
+	    else if (FileLocking && (is_locked == TRUE))
+		cellDef->cd_fd = -2;
 	    else
 #endif
 		fclose(realf);
