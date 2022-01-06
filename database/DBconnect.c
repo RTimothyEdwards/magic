@@ -792,7 +792,7 @@ dbcConnectFunc(tile, cx)
     SearchContext scx2;
     TileType loctype = TiGetTypeExact(tile);
     TileType dinfo = 0;
-    int i, pNum = cx->tc_plane;
+    int retval, i, pNum = cx->tc_plane;
     CellDef *def;
 
     TiToRect(tile, &tileArea);
@@ -860,19 +860,23 @@ dbcConnectFunc(tile, cx)
     /* which have not already been painted.			*/
 
     def = csa2->csa2_use->cu_def;
+    retval = 1;
     if (DBSrPaintNMArea((Tile *) NULL, def->cd_planes[pNum],
 		dinfo, &newarea, &notConnectMask, dbcUnconnectFunc,
 		(ClientData) NULL) == 0)
-	return 0;
+	retval = 0;
 
     /* Paint this tile into the destination cell.  This
      * marks its area has having been processed.  Then recycle
      * the storage for the current list element.
      */
 
-    DBNMPaintPlane(def->cd_planes[pNum], dinfo,
+    if ((retval == 1) || DBIsContact(loctype))
+	DBNMPaintPlane(def->cd_planes[pNum], dinfo,
 		&newarea, DBStdPaintTbl(loctype, pNum),
 		(PaintUndoInfo *) NULL);
+
+    if (retval == 0) return 0;
 
     /* Since the whole area of this tile hasn't been recorded,
      * we must process its area to find any other tiles that

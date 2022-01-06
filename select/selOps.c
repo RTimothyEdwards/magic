@@ -311,6 +311,38 @@ SelectFlat()
 
 }
 
+/* Structure used by selShortTileProc() below to save a cost and Tile pointer */
+
+typedef struct _shortsearchdata {
+    int cost;
+    Tile *tile;
+} ShortSearchData;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * selShortTileProc --
+ *
+ * Callback function for DBSrPaintArea in selShortFindReverse().  When
+ * checking connected types on other planes, record the tile with the
+ * minimum cost.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+selShortTileProc(tile, ssd)
+    Tile *tile;
+    ShortSearchData *ssd;
+{
+    if ((int)tile->ti_client < ssd->cost)
+    {
+	ssd->cost = (int)tile->ti_client;
+	ssd->tile = tile;
+    }
+    return 0;
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -342,10 +374,12 @@ selShortFindReverse(rlist, tile, pnum, fdir)
    int fdir;
 {
     Tile *tp, *mintp;
-    int mincost = INT_MAX;
     ExtRectList *newrrec;
-    int minp, p, mindir;
+    int mincost, minp, p, mindir;
     TileType ttype;
+
+    mindir = fdir;
+    mincost = (int)tile->ti_client;
 
     while (TRUE)
     {
@@ -393,6 +427,7 @@ selShortFindReverse(rlist, tile, pnum, fdir)
 	*rlist = newrrec;
 
 	if ((int)tile->ti_client == 0) return 0;	/* We're done */
+
 	minp = pnum;
 
 	/* Search top */
@@ -478,21 +513,24 @@ rightside:
 donesides:
 	if (DBIsContact(ttype))
 	{
+	    ShortSearchData ssd;
 	    PlaneMask pmask;
 
 	    pmask = DBConnPlanes[ttype];
+
+	    ssd.cost = mincost;
+	    ssd.tile = (Tile *)NULL;
 	    for (p = PL_TECHDEPBASE; p < DBNumPlanes; p++)
 	    {
 		if (PlaneMaskHasPlane(pmask, p) && (p != pnum))
 		{
-		    tp = SelectDef->cd_planes[p]->pl_hint;
-		    GOTOPOINT(tp, &tile->ti_ll);
-		    SelectDef->cd_planes[p]->pl_hint = tp;
-		    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-		    if ((int)tp->ti_client < mincost)
+		    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[p],
+				&newrrec->r_r, &DBAllButSpaceAndDRCBits,
+				selShortTileProc, &ssd);
+		    if (ssd.cost < mincost)
 		    {
-			mincost = (int)tp->ti_client;
-			mintp = tp;
+			mincost = ssd.cost;
+			mintp = ssd.tile;
 			minp = p;
 			mindir = GEO_CENTER;
 		    }
@@ -503,17 +541,23 @@ donesides:
 	/* If mincost is still set to INT_MAX we have a real serious problem! */
 	if (mincost == INT_MAX) return 1;
 
-	/* Stopgap measure:  Error should not happen, but it does!  */
-	/* Remove client data of current tile and take minimum.	    */
-	if (mincost == (int)tile->ti_client) TiSetClient(tile, CLIENTDEFAULT);
+	/* Failsafe:  Avoid infinite recursion */
+	if ((tile == mintp) || (tile->ti_client == CLIENTDEFAULT))
+	{
+	    TxError("Failed to trace back shorting path.\n");
+	    break;
+	}
 
 	/* Now we have the minimum cost neighboring tile;  continue search with it */
 	tile = mintp;
 	pnum = minp;
         fdir = mindir;
-    }
 
-    /* Not reached */
+	/* WIP Diagnostic */
+	// TxPrintf("Cost = %d  Tile @ %d %d  plane %d  dir %d\n",
+	//	mincost, tile->ti_ll.p_x, tile->ti_ll.p_y, pnum, fdir);
+    }
+    return 1;
 }
 
 /* Data structure used by selShortFindForward() to store a tile and */
@@ -813,56 +857,41 @@ SelectShort(char *lab1, char *lab2)
     PlaneMask pmask;
     ExtRectList *rlist;
 
-    /* Step one: find the tiles containing the labels.  If not found,	*/
-    /* return NULL.							*/
+    CellUse *use;
+    TileType ttype;
+    Rect rect;
+    SearchContext scx;
+    MagWindow *window;
+    DBWclientRec *crec;
+    int windowMask;
+
+    window = ToolGetBoxWindow(&rect, &windowMask);
+    if (!window) return NULL;
+    use = (CellUse *)window->w_surfaceID;
+
+    /* Run the equivalent of "goto lab1 ; select net" */
+    /* Make sure the selection is clear before starting */
+
+    SelectClear();
+    ttype = CmdFindNetProc(lab1, use, &rect, FALSE);
+    if (ttype == TT_SPACE) return NULL;
+
+    bzero(&scx, sizeof(SearchContext));
+    scx.scx_use = use;
+    scx.scx_trans = GeoIdentityTransform;
+    scx.scx_area = rect;
+    crec = (DBWclientRec *)window->w_clientData;
+
+    SelectNet(&scx, ttype, crec->dbw_bitmask, (Rect *)NULL, FALSE);
 
     for (selLabel = SelectDef->cd_labels; selLabel != NULL; selLabel =
-	selLabel->lab_next)
+			selLabel->lab_next)
     {
 	if ((srclab == NULL) && Match(lab1, selLabel->lab_text))
 	    srclab = selLabel;
 
 	if ((destlab == NULL) && Match(lab2, selLabel->lab_text))
 	    destlab = selLabel;
-    }
-
-    /* If both labels were not in the existing selection, run the equivalent
-     * of "goto lab1 ; select net"
-     */
-    if ((srclab == NULL) || (destlab == NULL))
-    {
-	CellUse *use;
-	TileType ttype;
-	Rect rect;
-	SearchContext scx;
-	MagWindow *window;
-	DBWclientRec *crec;
-	int windowMask;
-
-	window = ToolGetBoxWindow(&rect, &windowMask);
-	if (!window) return NULL;
-
-	use = (CellUse *)window->w_surfaceID;
-	ttype = CmdFindNetProc(lab1, use, &rect, FALSE);
-	if (ttype == TT_SPACE) return NULL;
-
-	bzero(&scx, sizeof(SearchContext));
-	scx.scx_use = use;
-	scx.scx_trans = GeoIdentityTransform;
-	scx.scx_area = rect;
-	crec = (DBWclientRec *)window->w_clientData;
-
-	SelectNet(&scx, ttype, crec->dbw_bitmask, (Rect *)NULL, FALSE);
-
-    	for (selLabel = SelectDef->cd_labels; selLabel != NULL; selLabel =
-			selLabel->lab_next)
-    	{
-	    if ((srclab == NULL) && Match(lab1, selLabel->lab_text))
-	    	srclab = selLabel;
-
-	    if ((destlab == NULL) && Match(lab2, selLabel->lab_text))
-	    	destlab = selLabel;
-    	}
     }
 
     /* Must be able to find both labels */
