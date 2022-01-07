@@ -23,6 +23,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <ctype.h>
 #ifdef XLIB
 #include <X11/X.h>
 #include <X11/Xlib.h>
