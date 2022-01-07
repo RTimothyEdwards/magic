@@ -25,6 +25,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>	/* For sin(), cos(), and round() functions */
+#include <ctype.h>
 
 #include "utils/magic.h"
 #include "utils/malloc.h"

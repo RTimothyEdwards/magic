@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "utils/magic.h"
 #include "utils/malloc.h"

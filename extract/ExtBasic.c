@@ -25,6 +25,7 @@ static char sccsid[] = "@(#)ExtBasic.c	4.13 MAGIC (Berkeley) 12/5/85";
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
