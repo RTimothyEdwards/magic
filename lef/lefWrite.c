@@ -945,7 +945,7 @@ MakeLegalLEFSyntax(text)
     rstr = StrDup((char **)NULL, text);
 
     for (cptr = rstr; *cptr != '\0'; cptr++)
-	for (bptr = badLEFchars; bptr != '\0'; bptr++)
+	for (bptr = badLEFchars; *bptr != '\0'; bptr++)
 	    if (*cptr == *bptr)
 	    {
 		*cptr = '_';
