@@ -132,7 +132,7 @@ static bool efReadDef();
 bool
 EFReadFile(name, dosubckt, resist, noscale)
     char *name; /* Name of def to be read in */
-    bool dosubckt, resist;
+    bool dosubckt, resist, noscale;
 {
     Def *def;
     bool  rc;

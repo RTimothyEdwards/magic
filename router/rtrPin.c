@@ -88,6 +88,7 @@ RtrPinsInit(ch)
 int
 rtrPinArrayInit(ch, side, pins, nPins)
     GCRChannel *ch;
+    int side;
     GCRPin *pins;
     int nPins;
 {

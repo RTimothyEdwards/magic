@@ -47,6 +47,7 @@ typedef struct
 
 int
 main(argc, argv)
+    int argc;
     char *argv[];
 {
     char line1[LINESIZE], line2[LINESIZE], layer[LINESIZE], label[LINESIZE];
