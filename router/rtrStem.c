@@ -1237,15 +1237,17 @@ bool
 RtrComputeJogs(loc, stem, dir, contact, jog, start, width)
     NLTermLoc *loc;	/* Terminal whose stem is to be painted */
     Point *stem;		/* Point intersecting channel*/
-    Point *start;		/* Somewhere along terminal area */
-    Point *jog;			/* Where the stem crosses the first usable
-				 * grid line as it runs out from the cell.
-				 */
+    int dir;
     Point *contact;		/* A second grid point, where a contact can
 				 * be placed if necessary.  This is a the
 				 * nearest grid crossing to crossing outside
 				 * the channel.
 				 */
+    Point *jog;			/* Where the stem crosses the first usable
+				 * grid line as it runs out from the cell.
+				 */
+    Point *start;		/* Somewhere along terminal area */
+    int width;
 {
     Rect *area;
     area = &loc->nloc_rect;

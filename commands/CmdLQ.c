@@ -2228,6 +2228,7 @@ void
 CmdDoProperty(def, cmd, argstart)
     CellDef *def;
     TxCommand *cmd;
+    int argstart;
 {
     int printPropertiesFunc();
     char *value;

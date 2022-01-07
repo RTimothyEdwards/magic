@@ -237,6 +237,7 @@ void
 CIFPropRecordPath(def, pathheadp, iswire, propname)
     CellDef *def;
     CIFPath *pathheadp;
+    bool iswire;
     char *propname;
 {
     extern float CIFGetOutputScale();

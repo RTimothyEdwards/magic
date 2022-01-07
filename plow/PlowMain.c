@@ -1940,6 +1940,7 @@ plowMoveEdge(edge)
 Tile *
 plowSplitY(tp, y)
     Tile *tp;
+    int y;
 {
     Tile *newTile;
 
