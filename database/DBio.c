@@ -2827,12 +2827,12 @@ DBCellWriteFile(cellDef, f)
     char *propvalue;
     bool propfound;
 
-#define FPRINTF(f,s)\
+#define FPUTSF(f,s)\
 {\
      if (fputs(s,f) == EOF) goto ioerror;\
      DBFileOffset += strlen(s);\
 }
-#define FPRINTR(f,s)\
+#define FPUTSR(f,s)\
 {\
      if (fputs(s,f) == EOF) return 1;\
      DBFileOffset += strlen(s);\
@@ -2862,7 +2862,7 @@ DBCellWriteFile(cellDef, f)
 	     sprintf(headerstring,"magic\ntech %s\nmagscale %d %d\ntimestamp %d\n",
 	 		DBTechName, DBLambda[0], DBLambda[1] / reducer,
 			cellDef->cd_timestamp);
-	 FPRINTF(f, headerstring);
+	 FPUTSF(f, headerstring);
     }
 
     /*
@@ -2914,7 +2914,7 @@ DBCellWriteFile(cellDef, f)
     /* Now labels */
     if (cellDef->cd_labels)
     {
-	FPRINTF(f, "<< labels >>\n");
+	FPUTSF(f, "<< labels >>\n");
 	for (lab = cellDef->cd_labels; lab; lab = lab->lab_next)
 	{
 	    if (strlen(lab->lab_text) == 0) continue;	// Shouldn't happen
@@ -2943,7 +2943,7 @@ DBCellWriteFile(cellDef, f)
 			lab->lab_offset.p_x / reducer,
 			lab->lab_offset.p_y / reducer, lab->lab_text);
 	    }
-	    FPRINTF(f, lstring);
+	    FPUTSF(f, lstring);
 	    if (lab->lab_flags & PORT_DIR_MASK)
 	    {
 		char ppos[5];
@@ -3015,7 +3015,7 @@ DBCellWriteFile(cellDef, f)
 		    }
 		}
 		strcat(lstring, "\n");
-		FPRINTF(f, lstring);
+		FPUTSF(f, lstring);
 	    }
 	}
     }
@@ -3024,8 +3024,8 @@ DBCellWriteFile(cellDef, f)
     estring = DBWPrintElements(cellDef, DBW_ELEMENT_PERSISTENT, reducer);
     if (estring != NULL)
     {
-	FPRINTF(f, "<< elements >>\n");
-	FPRINTF(f, estring);
+	FPUTSF(f, "<< elements >>\n");
+	FPUTSF(f, estring);
 	freeMagic(estring);
     }
 
@@ -3061,13 +3061,13 @@ DBCellWriteFile(cellDef, f)
 
     if (cellDef->cd_props != (ClientData)NULL)
     {
-	FPRINTF(f, "<< properties >>\n");
+	FPUTSF(f, "<< properties >>\n");
 	DBPropEnum(cellDef, dbWritePropFunc, (ClientData)f);
     }
 
     if (propfound) DBPropPut(cellDef, "FIXED_BBOX", propvalue);
 
-    FPRINTF(f, "<< end >>\n");
+    FPUTSF(f, "<< end >>\n");
 
     if (fflush(f) == EOF || ferror(f))
     {
@@ -3115,7 +3115,7 @@ dbWritePropFunc(key, value, cdata)
 
     lstring = (char *)mallocMagic(10 + strlen((char *)value) + strlen(key));
     sprintf(lstring, "string %s %s\n", key, (char *)value);
-    FPRINTR(f, lstring);
+    FPUTSR(f, lstring);
     freeMagic(lstring);
 
     return 0;
@@ -3518,7 +3518,7 @@ dbWritePaintFunc(tile, cdarg)
     if (!arg->wa_found)
     {
 	sprintf(pstring, "<< %s >>\n", DBTypeLongName(type));
-	FPRINTR(arg->wa_file,pstring);
+	FPUTSR(arg->wa_file,pstring);
 	arg->wa_found = TRUE;
     }
 
@@ -3535,7 +3535,7 @@ dbWritePaintFunc(tile, cdarg)
 	sprintf(pstring, "rect %d %d %d %d\n",
 	    LEFT(tile) / arg->wa_reducer, BOTTOM(tile) / arg->wa_reducer,
 	    RIGHT(tile) / arg->wa_reducer, TOP(tile) / arg->wa_reducer);
-    FPRINTR(arg->wa_file,pstring);
+    FPUTSR(arg->wa_file,pstring);
     return 0;
 }
 
@@ -3746,7 +3746,7 @@ dbWriteCellFunc(cellUse, cdarg)
 	strcat(cstring, "\n");
     }
 
-    FPRINTR(arg->wa_file, cstring);
+    FPUTSR(arg->wa_file, cstring);
 
     cellUse->cu_def->cd_flags |= CDVISITED;
     if (pathend != NULL) *pathend = '/';
@@ -3757,19 +3757,19 @@ dbWriteCellFunc(cellUse, cdarg)
 	sprintf(cstring, "array %d %d %d %d %d %d\n",
 		cellUse->cu_xlo, cellUse->cu_xhi, cellUse->cu_xsep / arg->wa_reducer,
 		cellUse->cu_ylo, cellUse->cu_yhi, cellUse->cu_ysep / arg->wa_reducer);
-	FPRINTR(arg->wa_file,cstring);
+	FPUTSR(arg->wa_file,cstring);
     }
 
     sprintf(cstring, "timestamp %d\n", cellUse->cu_def->cd_timestamp);
-    FPRINTR(arg->wa_file,cstring)
+    FPUTSR(arg->wa_file,cstring)
     sprintf(cstring, "transform %d %d %d %d %d %d\n",
 	    t->t_a, t->t_b, t->t_c / arg->wa_reducer,
 	    t->t_d, t->t_e, t->t_f / arg->wa_reducer);
-    FPRINTR(arg->wa_file,cstring)
+    FPUTSR(arg->wa_file,cstring)
     sprintf(cstring, "box %d %d %d %d\n",
 	    b->r_xbot / arg->wa_reducer, b->r_ybot / arg->wa_reducer,
 	    b->r_xtop / arg->wa_reducer, b->r_ytop / arg->wa_reducer);
-    FPRINTR(arg->wa_file,cstring)
+    FPUTSR(arg->wa_file,cstring)
     return 0;
 }
 

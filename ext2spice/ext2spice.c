@@ -1821,7 +1821,7 @@ topVisit(def, doStub)
 	    if (portidx < 0) continue;
 
 	    /* Ignore (and unflag) ports that were removed from efNodeHashTable */
-	    if (valid_port[portidx] == FALSE)
+	    if (valid_ports[portidx] == FALSE)
 	    {
 		snode->efnode_flags &= ~EF_PORT;
 		continue;
