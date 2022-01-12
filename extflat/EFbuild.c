@@ -1109,23 +1109,20 @@ efBuildPortNode(def, name, idx, x, y, layername, toplevel)
  *	Value of highest port number in the cell def's node list
  *
  * Side effects:
- *	Larger value including the implicit ports is placed in the
- *	location of the pointer imp_max.
+ *	None.
  *
  * ----------------------------------------------------------------------------
  */
 
 int
-EFGetPortMax(def, imp_max)
+EFGetPortMax(def)
    Def *def;
-   int *imp_max;
 {
     EFNode *snode;
     EFNodeName *nodeName;
     int portmax, portorder;
 
     portmax = -1;
-    if (imp_max) *imp_max = -1;
 
     for (snode = (EFNode *) def->def_firstn.efnode_next;
                 snode != &def->def_firstn;
@@ -1140,15 +1137,7 @@ EFGetPortMax(def, imp_max)
 		if (portorder > portmax) portmax = portorder;
 	    }
 	}
-        else if (imp_max && (snode->efnode_flags & EF_SUBS_PORT))
-	{
-	    nodeName = snode->efnode_name;
-	    portorder = nodeName->efnn_port;
-	    if (portorder > (*imp_max)) (*imp_max) = portorder;
-	}
     }
-    if (imp_max)
-	if (portmax > (*imp_max)) (*imp_max) = portmax;
     return portmax;
 }
 
@@ -1868,6 +1857,9 @@ efNodeMerge(node1ptr, node2ptr)
      */
     if (removing->efnode_flags & EF_SUBS_NODE)
 	keeping->efnode_flags |= EF_SUBS_NODE;
+
+    /* Test! */
+    removing->efnode_flags = 0;
 
     /* Get rid of "removing" */
     freeMagic((char *) removing);

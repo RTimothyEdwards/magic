@@ -1463,7 +1463,7 @@ subcktVisit(use, hierName, is_top)
     EFNodeName *sname, *nodeName;
     HashSearch hs;
     HashEntry *he;
-    int portorder, portmax, portidx, imp_max, tchars;
+    int portorder, portmax, portidx, tchars;
     char stmp[MAX_STR_SIZE];
     char *instname, *subcktname;
     DevParam *plist, *pptr;
@@ -1502,7 +1502,7 @@ subcktVisit(use, hierName, is_top)
     /* Note that the ports of the subcircuit will not necessarily be	*/
     /* ALL the entries in the hash table, so we have to check.		*/
 
-    portmax = EFGetPortMax(def, &imp_max);
+    portmax = EFGetPortMax(def);
 
     if (portmax < 0)
     {
@@ -1531,34 +1531,6 @@ subcktVisit(use, hierName, is_top)
 			tchars += spcdevOutNode(hierName, nodeName->efnn_hier,
 					"subcircuit", esSpiceF);
 		    }
-	}
-
-	/* Look for all implicit substrate connections that are	*/
-	/* declared as local node names, and put them last.	*/
-
-    	HashStartSearch(&hs);
-    	while (he = HashNext(&def->def_nodes, &hs))
-    	{
-	    sname = (EFNodeName *) HashGetValue(he);
-	    if (sname == NULL) continue;
-	    snode = sname->efnn_node;
-
-	    if (snode && (snode->efnode_flags & EF_SUBS_PORT))
-	    {
-		nodeName = snode->efnode_name;
-		if (nodeName->efnn_port < 0)
-	            nodeName->efnn_port = ++portmax;
-
-		/* This is not a hierarchical name or node! */
-		EFHNSprintf(stmp, nodeName->efnn_hier);
-		if (tchars > 80)
-		{
-		    fprintf(esSpiceF, "\n+");
-		    tchars = 1;
-		}
-		fprintf(esSpiceF, " %s", stmp);
-		tchars += (1 + strlen(stmp));
-	    }
 	}
     }
     else
@@ -1612,45 +1584,8 @@ subcktVisit(use, hierName, is_top)
 		tchars += spcdevOutNode(hierName, nodeName->efnn_hier,
 				"subcircuit", esSpiceF);
 	    }
-	    else
-	    {
-		// As port indexes do not have to be contiguous, this does not
-		// necessarily indicate an error condition.  No need to report?
-		// TxError("No port connection on port %d;  need to resolve.\n", portidx);
-	    }
 	}
 	freeMagic(nodeList);
-
-	/* Look for all implicit substrate connections that are	*/
-	/* declared as local node names, and put them last.	*/
-
-	portorder = portmax + 1;
-	while (portorder <= imp_max)
-	{
-    	    HashStartSearch(&hs);
-    	    while (he = HashNext(&def->def_nodes, &hs))
-    	    {
-		sname = (EFNodeName *) HashGetValue(he);
-	    	if (sname == NULL) continue;
-	    	snode = sname->efnn_node;
-
-		if ((snode == NULL) || !(snode->efnode_flags & EF_SUBS_PORT)) continue;
-		nodeName = snode->efnode_name;
-		if (nodeName->efnn_port == portorder)
-		{
-		    /* This is not a hierarchical name or node! */
-		    EFHNSprintf(stmp, nodeName->efnn_hier);
-		    if (tchars > 80)
-		    {
-			fprintf(esSpiceF, "\n+");
-			tchars = 1;
-		    }
-		    fprintf(esSpiceF, " %s", stmp);
-		    tchars += (1 + strlen(stmp));
-		}
-	    }
-	    portorder++;
-	}
     }
 
     /* SPICE subcircuit names must begin with A-Z. */
@@ -1772,6 +1707,7 @@ topVisit(def, doStub)
     char *subcktname;
     char *pname;
     char **sorted_ports;
+    bool *valid_ports;
     linkedNodeName *lnn = NULL;
 
     HashInit(&portNameTable, 32, HT_STRINGKEYS);
@@ -1832,6 +1768,32 @@ topVisit(def, doStub)
 	lnn = lnn->lnn_next;
     }
 
+    /* TEST */
+
+    valid_ports = (bool *)mallocMagic((portmax + 1) * sizeof(bool));
+    for (portorder = 0; portorder <= portmax; portorder++) valid_ports[portorder] = FALSE;
+
+    HashStartSearch(&hs);
+    while (he = HashNext(&efNodeHashTable, &hs))
+    {
+	char stmp[MAX_STR_SIZE];
+	int portidx;
+	EFNodeName *unnumbered, *snname;
+
+	sname = (EFNodeName *) HashGetValue(he);
+	if (sname == NULL) continue;	/* Should not happen */
+
+	snode = sname->efnn_node;
+	if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
+
+	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
+	{
+	    portidx = nodeName->efnn_port;
+	    if (portidx < 0) continue;
+	    valid_ports[portidx] = TRUE;
+	}
+    }
+
     /* Port numbers need not start at zero or be contiguous.  They will be  */
     /* printed in numerical order.  This is done by allocating space for    */
     /* the output first and generating text into the allocated array	    */
@@ -1845,18 +1807,25 @@ topVisit(def, doStub)
     {
 	char stmp[MAX_STR_SIZE];
 	int portidx;
-	EFNodeName *unnumbered;
+	EFNodeName *unnumbered, *snname;
 
 	sname = (EFNodeName *) HashGetValue(he);
 	if (sname == NULL) continue;	/* Should not happen */
-	snode = sname->efnn_node;
 
+	snode = sname->efnn_node;
 	if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
 
 	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	{
 	    portidx = nodeName->efnn_port;
 	    if (portidx < 0) continue;
+
+	    /* Ignore (and unflag) ports that were removed from efNodeHashTable */
+	    if (valid_port[portidx] == FALSE)
+	    {
+		snode->efnode_flags &= ~EF_PORT;
+		continue;
+	    }
 
 	    /* If view is abstract, rely on the given port name, not
 	     * the node.  Otherwise, artifacts of the abstract view
@@ -1910,40 +1879,6 @@ topVisit(def, doStub)
 	}
     }
     freeMagic(sorted_ports);
-
-    /* Add all implicitly-defined local substrate node names */
-
-    if (!doStub)
-    {
-	HashStartSearch(&hs);
-	while (he = HashNext(&def->def_nodes, &hs))
-	{
-	    sname = (EFNodeName *) HashGetValue(he);
-	    if (sname == NULL) continue;
-	    snode = sname->efnn_node;
-
-	    if (snode && (snode->efnode_flags & EF_SUBS_PORT) &&
-		    !(snode->efnode_flags & EF_PORT))
-	    {
-		if (snode->efnode_name->efnn_port < 0)
-		{
-		    char stmp[MAX_STR_SIZE];
-
-		    if (tchars > 80)
-		    {
-			/* Line continuation */
-			fprintf(esSpiceF, "\n+");
-			tchars = 1;
-		    }
-		    /* This is not a hierarchical name or node! */
-		    EFHNSprintf(stmp, snode->efnode_name->efnn_hier);
-		    fprintf(esSpiceF, " %s", stmp);
-		    snode->efnode_name->efnn_port = portorder++;
-		    tchars += strlen(stmp) + 1;
-		}
-	    }
-	}
-    }
 
     // Add any parameters defined by "property parameter" in the cell
 
