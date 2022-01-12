@@ -1707,7 +1707,6 @@ topVisit(def, doStub)
     char *subcktname;
     char *pname;
     char **sorted_ports;
-    bool *valid_ports;
     linkedNodeName *lnn = NULL;
 
     HashInit(&portNameTable, 32, HT_STRINGKEYS);
@@ -1725,6 +1724,35 @@ topVisit(def, doStub)
 
     fprintf(esSpiceF, ".subckt %s", subcktname);
     tchars = 8 + strlen(subcktname);
+
+    /* Get list of port names from the flattened/optimized definition */
+
+    HashStartSearch(&hs);
+    while (he = HashNext(&efNodeHashTable, &hs))
+    {
+	char stmp[MAX_STR_SIZE];
+
+	sname = (EFNodeName *) HashGetValue(he);
+	if (sname == NULL) continue;	/* Should not happen */
+
+	snode = sname->efnn_node;
+	if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
+
+	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
+	{
+	    if (def->def_flags & DEF_ABSTRACT)
+	    {
+		EFHNSprintf(stmp, nodeName->efnn_hier);
+		pname = stmp;
+	    }
+	    else
+		pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
+
+	    /* Create an entry for this port in portNameTable */
+	    hep = HashFind(&portNameTable, pname);
+	    HashSetValue(hep, (ClientData)-1);
+	}
+    }
 
     /* Note that the ports of the subcircuit will not necessarily be	*/
     /* ALL the entries in the hash table, so we have to check.		*/
@@ -1768,46 +1796,20 @@ topVisit(def, doStub)
 	lnn = lnn->lnn_next;
     }
 
-    /* TEST */
-
-    valid_ports = (bool *)mallocMagic((portmax + 1) * sizeof(bool));
-    for (portorder = 0; portorder <= portmax; portorder++) valid_ports[portorder] = FALSE;
-
-    HashStartSearch(&hs);
-    while (he = HashNext(&efNodeHashTable, &hs))
-    {
-	char stmp[MAX_STR_SIZE];
-	int portidx;
-	EFNodeName *unnumbered, *snname;
-
-	sname = (EFNodeName *) HashGetValue(he);
-	if (sname == NULL) continue;	/* Should not happen */
-
-	snode = sname->efnn_node;
-	if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
-
-	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
-	{
-	    portidx = nodeName->efnn_port;
-	    if (portidx < 0) continue;
-	    valid_ports[portidx] = TRUE;
-	}
-    }
-
     /* Port numbers need not start at zero or be contiguous.  They will be  */
     /* printed in numerical order.  This is done by allocating space for    */
     /* the output first and generating text into the allocated array	    */
     /* indexed by port, to avoid multiple scans through the hash table.	    */
 
     sorted_ports = (char **)mallocMagic((portmax + 1) * sizeof(char *));
-    for (portorder = 0; portorder <= portmax; portorder++) sorted_ports[portorder] = NULL;
+    for (portorder = 0; portorder <= portmax; portorder++)
+	sorted_ports[portorder] = NULL;
 
     HashStartSearch(&hs);
     while (he = HashNext(&def->def_nodes, &hs))
     {
 	char stmp[MAX_STR_SIZE];
 	int portidx;
-	EFNodeName *unnumbered, *snname;
 
 	sname = (EFNodeName *) HashGetValue(he);
 	if (sname == NULL) continue;	/* Should not happen */
@@ -1819,13 +1821,6 @@ topVisit(def, doStub)
 	{
 	    portidx = nodeName->efnn_port;
 	    if (portidx < 0) continue;
-
-	    /* Ignore (and unflag) ports that were removed from efNodeHashTable */
-	    if (valid_ports[portidx] == FALSE)
-	    {
-		snode->efnode_flags &= ~EF_PORT;
-		continue;
-	    }
 
 	    /* If view is abstract, rely on the given port name, not
 	     * the node.  Otherwise, artifacts of the abstract view
@@ -1841,23 +1836,34 @@ topVisit(def, doStub)
 		pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
 
 	    hep = HashLookOnly(&portNameTable, pname);
-	    if (hep == (HashEntry *)NULL)
+	    if (hep != (HashEntry *)NULL)
 	    {
-		hep = HashFind(&portNameTable, pname);
-		HashSetValue(hep, (ClientData)(pointertype)nodeName->efnn_port);
-		if (sorted_ports[portidx] == NULL)
-		    sorted_ports[portidx] = StrDup((char **)NULL, pname);
+		int porttest = (int)HashGetValue(hep);
+		if (porttest != -1)
+		{
+		    /* Node that was unassigned has been found to be
+		     * a repeat (see NOTE at top), so make sure its
+		     * port number is set correctly.
+		     */
+		    nodeName->efnn_port = (int)(pointertype)HashGetValue(hep);
+		}
+		else
+		{
+		    HashSetValue(hep, (ClientData)(pointertype)nodeName->efnn_port);
+		    if (sorted_ports[portidx] == NULL)
+		    	sorted_ports[portidx] = StrDup((char **)NULL, pname);
+		}
 	    }
 	    else
 	    {
-		// Node that was unassigned has been found to be
-		// a repeat (see NOTE at top), so make sure its
-		// port number is set correctly.
-
-		nodeName->efnn_port = (int)(pointertype)HashGetValue(hep);
+		/* Port was optimized out */
+		snode->efnode_flags &= ~EF_PORT;
+		TxPrintf("Note:  Port %s was optimized out of %s\n",
+			pname, def->def_name);
 	    }
 	}
     }
+
     HashKill(&portNameTable);
 
     /* Output all ports, in order */
