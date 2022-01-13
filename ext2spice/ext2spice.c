@@ -1698,7 +1698,7 @@ topVisit(def, doStub)
     EFNode *snode, *basenode;
     EFNodeName *sname, *nodeName;
     HashSearch hs;
-    HashEntry *he, *hep;
+    HashEntry *he, *hep, *heh;
     HashTable portNameTable;
     int portorder, portmax, tchars;
     bool explicit;
@@ -1724,35 +1724,6 @@ topVisit(def, doStub)
 
     fprintf(esSpiceF, ".subckt %s", subcktname);
     tchars = 8 + strlen(subcktname);
-
-    /* Get list of port names from the flattened/optimized definition */
-
-    HashStartSearch(&hs);
-    while (he = HashNext(&efNodeHashTable, &hs))
-    {
-	char stmp[MAX_STR_SIZE];
-
-	sname = (EFNodeName *) HashGetValue(he);
-	if (sname == NULL) continue;	/* Should not happen */
-
-	snode = sname->efnn_node;
-	if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
-
-	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
-	{
-	    if (def->def_flags & DEF_ABSTRACT)
-	    {
-		EFHNSprintf(stmp, nodeName->efnn_hier);
-		pname = stmp;
-	    }
-	    else
-		pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
-
-	    /* Create an entry for this port in portNameTable */
-	    hep = HashFind(&portNameTable, pname);
-	    HashSetValue(hep, (ClientData)-1);
-	}
-    }
 
     /* Note that the ports of the subcircuit will not necessarily be	*/
     /* ALL the entries in the hash table, so we have to check.		*/
@@ -1822,6 +1793,23 @@ topVisit(def, doStub)
 	    portidx = nodeName->efnn_port;
 	    if (portidx < 0) continue;
 
+	    /* Check if the same hierName is recorded in the flattened/optimized
+	     * def's efNodeHashTable.  If not, then it has been optimized out
+	     * and should be removed from the port list.
+	     */
+	    if (def->def_flags & DEF_ABSTRACT)
+    	        heh = HashLookOnly(&efNodeHashTable, nodeName->efnn_hier);
+	    else
+    	        heh = HashLookOnly(&efNodeHashTable, snode->efnode_name->efnn_hier);
+	    if (heh == (HashEntry *)NULL)
+	    {
+		/* Port was optimized out */
+		snode->efnode_flags &= ~EF_PORT;
+		TxPrintf("Note:  Port %s was optimized out of %s\n",
+			pname, def->def_name);
+		continue;
+	    }
+
 	    /* If view is abstract, rely on the given port name, not
 	     * the node.  Otherwise, artifacts of the abstract view
 	     * may cause nodes to be merged and the names lost.
@@ -1836,34 +1824,23 @@ topVisit(def, doStub)
 		pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
 
 	    hep = HashLookOnly(&portNameTable, pname);
-	    if (hep != (HashEntry *)NULL)
+	    if (hep == (HashEntry *)NULL)
 	    {
-		int porttest = (int)(pointertype)HashGetValue(hep);
-		if (porttest != -1)
-		{
-		    /* Node that was unassigned has been found to be
-		     * a repeat (see NOTE at top), so make sure its
-		     * port number is set correctly.
-		     */
-		    nodeName->efnn_port = (int)(pointertype)HashGetValue(hep);
-		}
-		else
-		{
-		    HashSetValue(hep, (ClientData)(pointertype)nodeName->efnn_port);
-		    if (sorted_ports[portidx] == NULL)
-		    	sorted_ports[portidx] = StrDup((char **)NULL, pname);
-		}
+	    	hep = HashFind(&portNameTable, pname);
+		HashSetValue(hep, (ClientData)(pointertype)nodeName->efnn_port);
+		if (sorted_ports[portidx] == NULL)
+		    sorted_ports[portidx] = StrDup((char **)NULL, pname);
 	    }
 	    else
 	    {
-		/* Port was optimized out */
-		snode->efnode_flags &= ~EF_PORT;
-		TxPrintf("Note:  Port %s was optimized out of %s\n",
-			pname, def->def_name);
+		/* Node that was unassigned has been found to be
+		 * a repeat (see NOTE at top), so make sure its
+		 * port number is set correctly.
+		 */
+		nodeName->efnn_port = (int)(pointertype)HashGetValue(hep);
 	    }
 	}
     }
-
     HashKill(&portNameTable);
 
     /* Output all ports, in order */
