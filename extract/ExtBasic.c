@@ -263,16 +263,17 @@ extBasic(def, outFile)
     if (!SigInterruptPending)
 	nodeList = extFindNodes(def, (Rect *) NULL, FALSE);
 
-    glob_subsnode = temp_subsnode;	// Keep a record of the def's substrate
-
-    /* Assign the labels to their associated regions */
-    if (!SigInterruptPending)
-	ExtLabelRegions(def, ExtCurStyle->exts_nodeConn, &nodeList, &TiPlaneRect);
-
     /* Check for "LEFview", for which special output handling	*/
     /* can be specified in ext2spice.				*/
 
     DBPropGet(def, "LEFview", &isabstract);
+
+    /* Keep a record of the def's substrate (unless this is an abstract view) */
+    glob_subsnode = (isabstract) ? NULL : temp_subsnode;
+
+    /* Assign the labels to their associated regions */
+    if (!SigInterruptPending)
+	ExtLabelRegions(def, ExtCurStyle->exts_nodeConn, &nodeList, &TiPlaneRect);
 
     /*
      * Make sure all geometry with the same label is part of the
@@ -287,7 +288,7 @@ extBasic(def, outFile)
      * This comes before extOutputNodes because we may have to adjust
      * node capacitances in this step.
      */
-    if (!SigInterruptPending && (ExtOptions&EXT_DOCOUPLING))
+    if (!SigInterruptPending && (ExtOptions & EXT_DOCOUPLING))
     {
 	coupleInitialized = TRUE;
 	HashInit(&extCoupleHash, 256, HashSize(sizeof (CoupleKey)));
@@ -323,10 +324,11 @@ extBasic(def, outFile)
 
     /* Output each node, along with its resistance and capacitance to substrate */
     if (!SigInterruptPending)
-	extOutputNodes(nodeList, outFile, glob_subsnode);
+	extOutputNodes(nodeList, outFile);
 
     /* Output coupling capacitances */
-    if (!SigInterruptPending && (ExtOptions&EXT_DOCOUPLING) && (!propfound))
+    if (!SigInterruptPending && coupleInitialized && (ExtOptions & EXT_DOCOUPLING)
+			&& (!propfound))
 	extOutputCoupling(&extCoupleHash, outFile);
 
     /* Output devices and connectivity between nodes */
@@ -3664,6 +3666,7 @@ extFindNodes(def, clipArea, subonly)
     int pNum, n;
     TileTypeBitMask subsTypesNonSpace;
     bool space_is_substrate;
+    bool isabstract;
 
     /* Reset perimeter and area prior to node extraction */
     for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
@@ -3678,88 +3681,93 @@ extFindNodes(def, clipArea, subonly)
 
     SigDisableInterrupts();
 
-    /* First pass:  Find substrate.  Collect all tiles belonging */
-    /* to the substrate and push them onto the stack.  Then	 */
-    /* call extNodeAreaFunc() on the first of these to generate	 */
-    /* a single substrate node.					 */
-
-    /* Refinement:  Split search into two parts, one on the	*/
-    /* globSubstratePlane and one on all other planes.  ONLY	*/
-    /* search other planes if TT_SPACE is in the list of	*/
-    /* substrate types, and then only consider those types to	*/
-    /* be part of the substrate node if they have only space	*/
-    /* below them on the globSubstratePlane.  This method lets	*/
-    /* a single type like "psd" operate on, for example, both	*/
-    /* the substrate and an isolated pwell, without implicitly	*/
-    /* connecting the isolated pwell to the substrate.		*/
-
     temp_subsnode = (NodeRegion *)NULL;		// Reset for new search
-
-    if (TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, TT_SPACE))
-	space_is_substrate = True;
-    else
-	space_is_substrate = False;
-
-    TTMaskZero(&subsTypesNonSpace);
-    TTMaskSetMask(&subsTypesNonSpace, &ExtCurStyle->exts_globSubstrateTypes);
-    TTMaskClearType(&subsTypesNonSpace, TT_SPACE);
-
-    pNum = ExtCurStyle->exts_globSubstratePlane;
-    /* Does the type set of this plane intersect the substrate types? */
-    if (TTMaskIntersect(&DBPlaneTypes[pNum], &subsTypesNonSpace))
+    isabstract = FALSE;
+    DBPropGet(def, "LEFview", &isabstract);
+    if (!isabstract)
     {
-	arg.fra_pNum = pNum;
-	DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
-			&TiPlaneRect, &subsTypesNonSpace, extUnInit,
-			extSubsFunc, (ClientData) &arg);
-    }
+	/* First pass:  Find substrate.  Collect all tiles belonging	*/
+	/* to the substrate and push them onto the stack.  Then	 	*/
+	/* call extNodeAreaFunc() on the first of these to generate	*/
+	/* a single substrate node.					*/
 
-    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-    {
-	if (pNum == ExtCurStyle->exts_globSubstratePlane) continue;
+	/* Refinement:  Split search into two parts, one on the		*/
+	/* globSubstratePlane and one on all other planes.  ONLY	*/
+	/* search other planes if TT_SPACE is in the list of		*/
+	/* substrate types, and then only consider those types to	*/
+	/* be part of the substrate node if they have only space	*/
+	/* below them on the globSubstratePlane.  This method lets	*/
+	/* a single type like "psd" operate on, for example, both	*/
+	/* the substrate and an isolated pwell, without implicitly	*/
+	/* connecting the isolated pwell to the substrate.		*/
 
+
+	if (TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, TT_SPACE))
+	    space_is_substrate = True;
+	else
+	    space_is_substrate = False;
+
+	TTMaskZero(&subsTypesNonSpace);
+	TTMaskSetMask(&subsTypesNonSpace, &ExtCurStyle->exts_globSubstrateTypes);
+	TTMaskClearType(&subsTypesNonSpace, TT_SPACE);
+
+	pNum = ExtCurStyle->exts_globSubstratePlane;
 	/* Does the type set of this plane intersect the substrate types? */
-
 	if (TTMaskIntersect(&DBPlaneTypes[pNum], &subsTypesNonSpace))
-	{
+    	{
 	    arg.fra_pNum = pNum;
-	    if (space_is_substrate)
-		DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
-			&TiPlaneRect, &subsTypesNonSpace, extUnInit,
-			extSubsFunc2, (ClientData) &arg);
-	    else
-		DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
+	    DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
 			&TiPlaneRect, &subsTypesNonSpace, extUnInit,
 			extSubsFunc, (ClientData) &arg);
+        }
+
+	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	{
+	    if (pNum == ExtCurStyle->exts_globSubstratePlane) continue;
+
+	    /* Does the type set of this plane intersect the substrate types? */
+
+	    if (TTMaskIntersect(&DBPlaneTypes[pNum], &subsTypesNonSpace))
+	    {
+	        arg.fra_pNum = pNum;
+	        if (space_is_substrate)
+		    DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
+				&TiPlaneRect, &subsTypesNonSpace, extUnInit,
+				extSubsFunc2, (ClientData) &arg);
+	    	else
+		    DBSrPaintClient((Tile *) NULL, def->cd_planes[pNum],
+				&TiPlaneRect, &subsTypesNonSpace, extUnInit,
+				extSubsFunc, (ClientData) &arg);
+	    }
+    	}
+
+	/* If there was a substrate connection, process it and		*/
+	/* everything that was connected to it.  If not, then create a	*/
+	/* new node to represent the substrate.				*/
+
+	if (!StackEmpty(extNodeStack))
+	{
+	    Tile *tile;
+	    int tilePlaneNum;
+
+	    POPTILE(tile, tilePlaneNum);
+	    arg.fra_pNum = tilePlaneNum;
+	    extNodeAreaFunc(tile, &arg);
+	    temp_subsnode = (NodeRegion *)arg.fra_region;
 	}
-    }
+	else if (ExtCurStyle->exts_globSubstratePlane != -1)
+	{
+	    NodeRegion *loc_subsnode;
 
-    /* If there was a substrate connection, process it and everything	*/
-    /* that was connected to it.  If not, then create a new node	*/
-    /* to represent the substrate.					*/
-
-    if (!StackEmpty(extNodeStack))
-    {
-	Tile *tile;
-	int tilePlaneNum;
-
-	POPTILE(tile, tilePlaneNum);
-	arg.fra_pNum = tilePlaneNum;
-	extNodeAreaFunc(tile, &arg);
-	temp_subsnode = (NodeRegion *)arg.fra_region;
-    }
-    else if (ExtCurStyle->exts_globSubstratePlane != -1)
-    {
-	NodeRegion *loc_subsnode;
-
-	extNodeAreaFunc((Tile *)NULL, (FindRegion *)&arg);
-	loc_subsnode = (NodeRegion *)arg.fra_region;
-	loc_subsnode->nreg_pnum = ExtCurStyle->exts_globSubstratePlane;
-	loc_subsnode->nreg_type = TT_SPACE;
-	loc_subsnode->nreg_ll.p_x = MINFINITY + 3;
-	loc_subsnode->nreg_ll.p_y = MINFINITY + 3;
-	loc_subsnode->nreg_labels = NULL;
-	temp_subsnode = loc_subsnode;
+	    extNodeAreaFunc((Tile *)NULL, (FindRegion *)&arg);
+	    loc_subsnode = (NodeRegion *)arg.fra_region;
+	    loc_subsnode->nreg_pnum = ExtCurStyle->exts_globSubstratePlane;
+	    loc_subsnode->nreg_type = TT_SPACE;
+	    loc_subsnode->nreg_ll.p_x = MINFINITY + 3;
+	    loc_subsnode->nreg_ll.p_y = MINFINITY + 3;
+	    loc_subsnode->nreg_labels = NULL;
+	    temp_subsnode = loc_subsnode;
+    	}
     }
     if (subonly == TRUE) return ((NodeRegion *) arg.fra_region);
 

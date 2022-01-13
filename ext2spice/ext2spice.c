@@ -1838,7 +1838,7 @@ topVisit(def, doStub)
 	    hep = HashLookOnly(&portNameTable, pname);
 	    if (hep != (HashEntry *)NULL)
 	    {
-		int porttest = (int)HashGetValue(hep);
+		int porttest = (int)(pointertype)HashGetValue(hep);
 		if (porttest != -1)
 		{
 		    /* Node that was unassigned has been found to be

@@ -874,6 +874,11 @@ CmdPaint(w, cmd)
 	return;
 
     if (!ToolGetEditBox(&editRect)) return;
+    if (EditCellUse == (CellUse *)NULL)
+    {
+	TxError("The cell is not editable.\n");
+	return;
+    }
 
     if (TTMaskHasType(&mask, L_LABEL))
     {
