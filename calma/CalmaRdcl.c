@@ -49,6 +49,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 int calmaNonManhattan;
 int CalmaFlattenLimit = 10;
 int NameConvertErrors = 0;
+bool CalmaRewound = FALSE;
 
 extern HashTable calmaDefInitHash;
 
@@ -141,7 +142,11 @@ calmaSetPosition(sname)
     if (originalPos != 0)
     {
 	rewind(calmaInputFile);
+	CalmaRewound = TRUE;
 	calmaSetPosition(sname);
+	if (!CalmaPostOrder)
+	    CalmaReadError("Rewinding input.  Cells may have been instanced before "
+		    "they were defined.  Consider using \"gds ordering on\".\n");
 	return originalPos;
     }
 
@@ -330,7 +335,7 @@ calmaParseStructure(filename)
 	    /* However, if post-ordering is set, then this cell was	*/
 	    /* probably just read earlier, so don't gripe about it.	*/
 
-	    if (!CalmaPostOrder)
+	    if (!CalmaPostOrder && !CalmaRewound)
 	    {
 		CalmaReadError("Cell \"%s\" was already defined in this file.\n",
 				strname);

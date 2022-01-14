@@ -1798,9 +1798,10 @@ topVisit(def, doStub)
 	     * and should be removed from the port list.
 	     */
 	    if (def->def_flags & DEF_ABSTRACT)
-    	        heh = HashLookOnly(&efNodeHashTable, nodeName->efnn_hier);
+    	        heh = HashLookOnly(&efNodeHashTable, (char *)nodeName->efnn_hier);
 	    else
-    	        heh = HashLookOnly(&efNodeHashTable, snode->efnode_name->efnn_hier);
+    	        heh = HashLookOnly(&efNodeHashTable,
+			    (char *)snode->efnode_name->efnn_hier);
 	    if (heh == (HashEntry *)NULL)
 	    {
 		/* Port was optimized out */

@@ -485,8 +485,8 @@ CmdCalma(w, cmd)
 		else
 		    TxPrintf("GDS parser reads cells in the order "
 				"encountered in the stream file.\n");
-		return;
 #endif
+		return;
 	    }
 	    else if (cmd->tx_argc != 3)
 		goto wrongNumArgs;
