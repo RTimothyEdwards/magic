@@ -2225,8 +2225,6 @@ ExtTechLine(sectionName, argc, argv)
 	    {
 		if ((DBTechNameMask(argv[argc - 1] + 1, &idTypes)) == 0)
 		    idTypes = DBZeroTypeBits;
-		else
-		    TTMaskSetMask(allExtractTypes, &idTypes);
 		argc--;
 	    }
 
@@ -2989,6 +2987,8 @@ ExtTechLine(sectionName, argc, argv)
 	    {
 		if ((DBTechNameMask(argv[argc - 1] + 1, &idTypes)) == 0)
 		    idTypes = DBZeroTypeBits;
+		else
+		    TTMaskSetMask(allExtractTypes, &idTypes);
 		argc--;
 	    }
 
