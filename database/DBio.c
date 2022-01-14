@@ -2409,7 +2409,7 @@ dbReadLabels(cellDef, line, len, f, scalen, scaled)
 	else if (line[0] == 'p')
 	{
 	    char ppos[5], *pptr;
-	    int idx;
+	    int idx = 0;
 	    Label *lab;
 
 	    if (((lab = cellDef->cd_lastLabel) == NULL) ||
@@ -2421,7 +2421,6 @@ dbReadLabels(cellDef, line, len, f, scalen, scaled)
 		TxError("Skipping bad \"port\" line: %s", line);
 		goto nextlabel;
 	    }
-	    /* lab->lab_flags &= ~LABEL_STICKY; */
 	    lab->lab_port = idx;
 	    for (pptr = &ppos[0]; *pptr != '\0'; pptr++)
 	    {

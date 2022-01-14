@@ -777,6 +777,13 @@ extOutputNodes(nodeList, outFile)
 				if (!isPort && (ll->ll_attr == LL_PORTATTR))
 				    portname = ll->ll_label->lab_text;
 			    }
+			    else
+			    {
+				/* Label is not recorded an an alias, so    */
+				/* mark the label so that it will not be    */
+				/* used for extracting merges or caps.	    */
+				ll->ll_label->lab_port = INFINITY;
+			    }
 			}
 		break;
 	    }

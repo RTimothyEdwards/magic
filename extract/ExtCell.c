@@ -384,11 +384,17 @@ extCellFile(def, f, doLength)
 {
     NodeRegion *reg;
     Plane *saveSub;
+    Label *lab;
 
     UndoDisable();
 
     /* Prep any isolated substrate areas */
     saveSub = extPrepSubstrate(def);
+
+    /* Remove any label markers that were made by a previous extraction */
+    for (lab = def->cd_labels; lab; lab = lab->lab_next)
+	if (lab->lab_port == INFINITY)
+	    lab->lab_port = 0;
 
     /* Output the header: timestamp, technology, calls on cell uses */
     if (!SigInterruptPending) extHeader(def, f);

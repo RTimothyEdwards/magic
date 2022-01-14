@@ -100,19 +100,19 @@ typedef struct ll
 				 */
 } LabelList;
 
-#define	LL_NOATTR	-1	/* Value for ll_attr above if the label is
+#define	LL_NOATTR	 -1	/* Value for ll_attr above if the label is
 				 * not a transistor attribute.
 				 */
-#define	LL_GATEATTR	-2	/* Value for ll_attr if the label is a gate
+#define	LL_GATEATTR	 -2	/* Value for ll_attr if the label is a gate
 				 * attribute, rather than one of the diffusion
 				 * terminals' attributes.
 				 */
-#define LL_SORTATTR	-3      /* value for ll_attr used in
+#define LL_SORTATTR	 -3	/* value for ll_attr used in
 				 * ExtBasic.c/ExtSortTerminals() to swap
 				 * the attributes as well as the regions
 				 * -- Stefanos 5/96
 				 */
-#define LL_PORTATTR	-4	/* value for ll_attr used to declare
+#define LL_PORTATTR	 -4	/* value for ll_attr used to declare
 				 * the label to be a subcircuit port
 				 * -- Tim 5/02
 				 */

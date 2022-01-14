@@ -215,6 +215,13 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	pNum = DBPlane(lab->lab_type);
 	if (lab->lab_type == TT_SPACE || pNum < PL_TECHDEPBASE)
 	    continue;
+	/*
+	 * See ExtBasic.c:  Labels that do not get output as "equiv"
+	 * records in the .ext file cannot be used for merges and
+	 * caps.
+	 */
+	if (lab->lab_port == INFINITY) continue;
+
 	for (quad = 0; quad < 4; quad++)
 	{
 	    /*
@@ -247,11 +254,11 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	}
 	if ((found == FALSE) && (nodeList != NULL))
 	{
-	    // Unconnected node label.  This may be a "sticky label".
-	    // If it is not connected to TT_SPACE, then create a new
-	    // node region for it.
-	    // (3/24/2015---changed from GEO_LABEL_IN_AREA to GEO_SURROUND)
-
+	    /* Unconnected node label.  This may be a "sticky label".
+	     * If it is not connected to TT_SPACE, then create a new
+	     * node region for it.
+	     * (3/24/2015---changed from GEO_LABEL_IN_AREA to GEO_SURROUND)
+	     */
 	    if ((GEO_SURROUND(&lab->lab_rect, clipArea) ||
 			GEO_TOUCH(&lab->lab_rect, clipArea))
 			 && (lab->lab_type != TT_SPACE))

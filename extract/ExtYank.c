@@ -181,7 +181,6 @@ extHierYankFunc(use, trans, x, y, hy)
     scx.scx_y = y;
 
     /* Yank the paint */
-//  if (!DBIsSubcircuit(use->cu_def))
     DBCellCopyAllPaint(&scx, &DBAllButSpaceBits, 0, hy->hy_target);
 
     /* Yank the labels */
@@ -232,6 +231,7 @@ extHierLabelFunc(scx, label, tpath, targetDef)
     newlab->lab_just = GeoTransPos(&scx->scx_trans, label->lab_just);
     newlab->lab_type = label->lab_type;
     newlab->lab_flags = label->lab_flags;
+    newlab->lab_port = label->lab_port;
     dstp = newlab->lab_text;
     for (srcp = tpath->tp_first; *dstp++ = *srcp++; )
 	/* Nothing */;
@@ -240,25 +240,6 @@ extHierLabelFunc(scx, label, tpath, targetDef)
 
     newlab->lab_next = targetDef->cd_labels;
     targetDef->cd_labels = newlab;
-
-    /* Add paint inside label if this is a subcircuit */
-    /* Caveat:  If label has zero area, it will be extended by 1 unit */
-
-//  if (label->lab_flags & PORT_DIR_MASK)
-//  {
-//	int pNum;
-//
-//	/* Is extending the label area valid in all cases? */
-//	if (newlab->lab_rect.r_xbot == newlab->lab_rect.r_xtop)
-//	    newlab->lab_rect.r_xtop++;
-//	if (newlab->lab_rect.r_ybot == newlab->lab_rect.r_ytop)
-//	    newlab->lab_rect.r_ytop++;
-//
-//	pNum = DBPlane(newlab->lab_type);
-//	DBPaintPlane(targetDef->cd_planes[pNum], &newlab->lab_rect,
-//		DBStdPaintTbl(newlab->lab_type, pNum),
-//		(PaintUndoInfo *) NULL);
-//  }
 
     return (0);
 }
