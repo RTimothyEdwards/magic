@@ -54,6 +54,9 @@ ExtStyle *ExtCurStyle = NULL;
 /* List of all styles */
 ExtKeep *ExtAllStyles = NULL;
 
+/* Mask of all types found in the extract section */
+TileTypeBitMask *allExtractTypes;
+
 /* Forward declarations */
 void extTechFinalStyle();
 void ExtLoadStyle();
@@ -982,6 +985,9 @@ ExtTechInit()
 	freeMagic(style);
     }
     ExtAllStyles = NULL;
+
+    allExtractTypes = (TileTypeBitMask *)mallocMagic(sizeof(TileTypeBitMask));
+    TTMaskZero(allExtractTypes);
 }
 
 /*
@@ -1035,6 +1041,7 @@ ExtTechSimpleAreaCap(argc, argv)
     }
 
     DBTechNoisyNameMask(argv[1], &types);
+    TTMaskSetMask(allExtractTypes, &types);
     plane1 = DBTechNoisyNamePlane(argv[2]);
     TTMaskAndMask(&types, &DBPlaneTypes[plane1]);
 
@@ -1046,7 +1053,10 @@ ExtTechSimpleAreaCap(argc, argv)
 	plane2 = DBTechNoisyNamePlane(argv[argc - 2]);
 
     if (argc > 5)
+    {
 	DBTechNoisyNameMask(argv[argc - 3], &subtypes);
+	TTMaskSetMask(allExtractTypes, &subtypes);
+    }
     else
 	TTMaskZero(&subtypes);
 
@@ -1177,10 +1187,7 @@ ExtTechSimplePerimCap(argc, argv)
     }
 
     DBTechNoisyNameMask(argv[1], &types);
-    // TTMaskCom2(&nottypes, &types);
-    // For general use, only consider space and space-like types.
-    // For device fringing fields, like poly to diffusion on a FET,
-    // use perimc commands to augment the defaults.
+    TTMaskSetMask(allExtractTypes, &types);
     TTMaskZero(&nottypes);
     TTMaskSetType(&nottypes, TT_SPACE);
     plane1 = DBTechNoisyNamePlane(argv[2]);
@@ -1195,7 +1202,10 @@ ExtTechSimplePerimCap(argc, argv)
 	plane2 = -1;
 
     if (argc > 5)
+    {
 	DBTechNoisyNameMask(argv[argc - 3], &subtypes);
+	TTMaskSetMask(allExtractTypes, &subtypes);
+    }
     else
 	TTMaskZero(&subtypes);
 
@@ -1345,6 +1355,7 @@ ExtTechSimpleSidewallCap(argv)
     int plane;
 
     DBTechNoisyNameMask(argv[1], &types1);
+    TTMaskSetMask(allExtractTypes, &types1);
     plane = DBTechNoisyNamePlane(argv[2]);
     capVal = aToCap(argv[3]);
 
@@ -1418,10 +1429,12 @@ ExtTechSimpleOverlapCap(argv)
     }
 
     DBTechNoisyNameMask(argv[1], &types1);
+    TTMaskSetMask(allExtractTypes, &types1);
     plane1 = DBTechNoisyNamePlane(argv[2]);
     TTMaskAndMask(&types1, &DBPlaneTypes[plane1]);
 
     DBTechNoisyNameMask(argv[3], &types2);
+    TTMaskSetMask(allExtractTypes, &types2);
     plane2 = DBTechNoisyNamePlane(argv[4]);
     TTMaskAndMask(&types2, &DBPlaneTypes[plane2]);
 
@@ -1514,6 +1527,7 @@ ExtTechSimpleSideOverlapCap(argv)
     }
 
     DBTechNoisyNameMask(argv[1], &types);
+    TTMaskSetMask(allExtractTypes, &types);
     plane1 = DBTechNoisyNamePlane(argv[2]);
 
     // TTMaskCom2(&nottypes, &types);
@@ -1524,6 +1538,7 @@ ExtTechSimpleSideOverlapCap(argv)
     TTMaskAndMask(&nottypes, &DBPlaneTypes[plane1]);
 
     DBTechNoisyNameMask(argv[3], &ov);
+    TTMaskSetMask(allExtractTypes, &ov);
     plane2 = DBTechNoisyNamePlane(argv[4]);
 
     // TTMaskCom2(&notov, &ov);
@@ -1994,9 +2009,11 @@ ExtTechLine(sectionName, argc, argv)
 	case SIDEOVERLAP:
 	case SUBSTRATE:
 	    DBTechNoisyNameMask(argv[1], &types1);
+	    TTMaskSetMask(allExtractTypes, &types1);
 	    break;
 	case DEVICE:
 	    DBTechNoisyNameMask(argv[3], &types1);
+	    TTMaskSetMask(allExtractTypes, &types1);
 	    break;
 	case PLANEORDER:
 	case NOPLANEORDER:
@@ -2049,6 +2066,7 @@ ExtTechLine(sectionName, argc, argv)
 	    /* Original FET format, kept for backwards compatibility */
 
 	    DBTechNoisyNameMask(argv[2], &termtypes[0]);
+	    TTMaskSetMask(allExtractTypes, &termtypes[0]);
 	    nterm = atoi(argv[3]);
 	    transName = argv[4];
 	    subsName = argv[5];
@@ -2070,6 +2088,7 @@ ExtTechLine(sectionName, argc, argv)
 	    if (sscanf(argv[6], "%lf", &capVal) != 1)
 	    {
 		DBTechNoisyNameMask(argv[6], &subsTypes);
+		TTMaskSetMask(allExtractTypes, &subsTypes);
 		gscap = aToCap(argv[7]);
 		gccap = (argc > 8) ? aToCap(argv[8]) : (CapValue) 0;
 	    }
@@ -2206,6 +2225,8 @@ ExtTechLine(sectionName, argc, argv)
 	    {
 		if ((DBTechNameMask(argv[argc - 1] + 1, &idTypes)) == 0)
 		    idTypes = DBZeroTypeBits;
+		else
+		    TTMaskSetMask(allExtractTypes, &idTypes);
 		argc--;
 	    }
 
@@ -2248,8 +2269,10 @@ ExtTechLine(sectionName, argc, argv)
 	    {
 		case DEV_BJT:
 		    DBTechNoisyNameMask(argv[4], &termtypes[0]); /* emitter */
+		    TTMaskSetMask(allExtractTypes, &termtypes[0]);
 		    termtypes[1] = DBZeroTypeBits;
 		    DBTechNoisyNameMask(argv[5], &subsTypes);	 /* collector */
+		    TTMaskSetMask(allExtractTypes, &subsTypes);
 		    nterm = 1;	/* emitter is the only "terminal type" expected */
 		    break;
 		case DEV_MOSFET:
@@ -2258,7 +2281,9 @@ ExtTechLine(sectionName, argc, argv)
 			/* Asymmetric device with different source and drain types */
 
 			DBTechNoisyNameMask(argv[4], &termtypes[0]); /* source */
+			TTMaskSetMask(allExtractTypes, &termtypes[0]);
 			DBTechNoisyNameMask(argv[5], &termtypes[1]); /* drain */
+			TTMaskSetMask(allExtractTypes, &termtypes[1]);
 			TTMaskAndMask3(&termtypes[2], &termtypes[0], &termtypes[1]);
 
 			if (TTMaskEqual(&termtypes[0], &termtypes[1]))
@@ -2275,6 +2300,7 @@ ExtTechLine(sectionName, argc, argv)
 			termtypes[2] = DBZeroTypeBits;
 			if (strcmp(argv[6], "None"))
 		    	DBTechNoisyNameMask(argv[6], &subsTypes);   /* substrate */
+			TTMaskSetMask(allExtractTypes, &subsTypes);
 			subsName = argv[7];
 			if (argc > 8) gscap = aToCap(argv[8]);
 			if (argc > 9) gccap = aToCap(argv[9]);
@@ -2285,9 +2311,13 @@ ExtTechLine(sectionName, argc, argv)
 			/* Normal symmetric device with swappable source/drain */
 
 			DBTechNoisyNameMask(argv[4], &termtypes[0]); /* source/drain */
+			TTMaskSetMask(allExtractTypes, &termtypes[0]);
 			termtypes[1] = DBZeroTypeBits;
 			if (strcmp(argv[5], "None"))
+			{
 			    DBTechNoisyNameMask(argv[5], &subsTypes);   /* substrate */
+			    TTMaskSetMask(allExtractTypes, &subsTypes);
+			}
 			if (argc > 6) subsName = argv[6];
 			if (argc > 7) gscap = aToCap(argv[7]);
 			if (argc > 8) gccap = aToCap(argv[8]);
@@ -2300,10 +2330,14 @@ ExtTechLine(sectionName, argc, argv)
 		case DEV_PDIODE:
 		case DEV_NDIODE:
 		    DBTechNoisyNameMask(argv[4], &termtypes[0]); /* negative types */
+		    TTMaskSetMask(allExtractTypes, &termtypes[0]);
 		    termtypes[1] = DBZeroTypeBits;
 		    nterm = 1;
 		    if ((argc > 4) && strcmp(argv[4], "None"))
+		    {
 			DBTechNoisyNameMask(argv[4], &subsTypes);   /* substrate */
+			TTMaskSetMask(allExtractTypes, &subsTypes);
+		    }
 		    else
 			subsTypes = DBZeroTypeBits;
 		    if (argc > 5) subsName = argv[5];
@@ -2311,10 +2345,14 @@ ExtTechLine(sectionName, argc, argv)
 
 		case DEV_RES:
 		    DBTechNoisyNameMask(argv[4], &termtypes[0]); /* terminals */
+		    TTMaskSetMask(allExtractTypes, &termtypes[0]);
 		    termtypes[1] = DBZeroTypeBits;
 		    nterm = 2;
 		    if ((argc > 5) && strcmp(argv[5], "None"))
+		    {
 			DBTechNoisyNameMask(argv[5], &subsTypes);   /* substrate */
+			TTMaskSetMask(allExtractTypes, &subsTypes);
+		    }
 		    else
 			subsTypes = DBZeroTypeBits;
 		    if (argc > 6) subsName = argv[6];
@@ -2323,6 +2361,7 @@ ExtTechLine(sectionName, argc, argv)
 		case DEV_CAP:
 		case DEV_CAPREV:
 		    DBTechNoisyNameMask(argv[4], &termtypes[0]); /* bottom */
+		    TTMaskSetMask(allExtractTypes, &termtypes[0]);
 		    termtypes[1] = DBZeroTypeBits;
 
 		    if (argc > 5)
@@ -2335,7 +2374,10 @@ ExtTechLine(sectionName, argc, argv)
 		    nterm = 1;
 
 		    if ((argc > 6) && strcmp(argv[5], "None"))
+		    {
 			DBTechNoisyNameMask(argv[5], &subsTypes);   /* substrate */
+			TTMaskSetMask(allExtractTypes, &subsTypes);
+		    }
 		    else
 			subsTypes = DBZeroTypeBits;
 		    if (argc > 7) subsName = argv[6];
@@ -2350,7 +2392,10 @@ ExtTechLine(sectionName, argc, argv)
 		    if (DBTechNameMask(argv[argc - 1], &termtypes[0]) <= 0)
 		    {
 			if (strcmp(argv[argc - 2], "None"))
+			{
 			    DBTechNoisyNameMask(argv[argc - 2], &subsTypes);
+			    TTMaskSetMask(allExtractTypes, &subsTypes);
+			}
 			else
 			    subsTypes = DBZeroTypeBits;
 			subsName = argv[argc - 1];
@@ -2377,7 +2422,10 @@ ExtTechLine(sectionName, argc, argv)
 
 		    /* terminals */
 		    for (i = iterm; i < iterm + nterm; i++)
+		    {
 			DBTechNoisyNameMask(argv[i], &termtypes[i - iterm]);
+			TTMaskSetMask(allExtractTypes, &termtypes[i - iterm]);
+		    }
 		    termtypes[nterm] = DBZeroTypeBits;
 
 		    if (nterm == 0) i++;
@@ -2396,10 +2444,14 @@ ExtTechLine(sectionName, argc, argv)
 		case DEV_CSUBCKT:
 		    nterm = (dv->k_key == DEV_RSUBCKT) ? 2 : 1;
 		    DBTechNoisyNameMask(argv[4], &termtypes[0]);	/* terminals */
+		    TTMaskSetMask(allExtractTypes, &termtypes[0]);
 		    termtypes[1] = DBZeroTypeBits;
 
 		    if ((argc > 5) && strcmp(argv[5], "None"))
+		    {
 			DBTechNoisyNameMask(argv[5], &subsTypes);   /* substrate */
+			TTMaskSetMask(allExtractTypes, &subsTypes);
+		    }
 		    else
 			subsTypes = DBZeroTypeBits;
 		    if (argc > 6) subsName = argv[6];
@@ -2639,11 +2691,15 @@ ExtTechLine(sectionName, argc, argv)
 	    break;
 	case OVERC:
 	    DBTechNoisyNameMask(argv[2], &types2);
+	    TTMaskSetMask(allExtractTypes, &types2);
 	    capVal = aToCap(argv[3]);
 	    bad = FALSE;
 	    shield = DBZeroTypeBits;
 	    if (argc > 4)
+	    {
 		DBTechNoisyNameMask(argv[4], &shield);
+		TTMaskSetMask(allExtractTypes, &shield);
+	    }
 	    for (s = TT_TECHDEPBASE; s < DBNumTypes; s++)
 	    {
 		if (!TTMaskHasType(&types1, s)) continue;
@@ -2723,10 +2779,16 @@ ExtTechLine(sectionName, argc, argv)
 	case SIDEOVERLAP:
 	    bad = FALSE;
 	    DBTechNoisyNameMask(argv[2], &types2);
+	    TTMaskSetMask(allExtractTypes, &types2);
 	    pov = DBTechNoisyNameMask(argv[3], &ov);
+	    TTMaskSetMask(allExtractTypes, &ov);
 	    capVal = aToCap(argv[4]);
 	    shield = DBZeroTypeBits;
-	    if (argc == 6) DBTechNoisyNameMask(argv[5], &shield);
+	    if (argc == 6)
+	    {
+		DBTechNoisyNameMask(argv[5], &shield);
+		TTMaskSetMask(allExtractTypes, &shield);
+	    }
 	    if (TTMaskHasType(&types1, TT_SPACE))
 		TechError("Can't have space on inside of edge [ignored]\n");
 	    /* It's ok to have the overlap be to space as long as a plane is */
@@ -2814,8 +2876,11 @@ ExtTechLine(sectionName, argc, argv)
 	    break;
 	case SIDEWALL:
 	    DBTechNoisyNameMask(argv[2], &types2);
+	    TTMaskSetMask(allExtractTypes, &types2);
 	    DBTechNoisyNameMask(argv[3], &near);
+	    TTMaskSetMask(allExtractTypes, &near);
 	    DBTechNoisyNameMask(argv[4], &far);
+	    TTMaskSetMask(allExtractTypes, &far);
 	    if (TTMaskHasType(&types1, TT_SPACE))
 		TechError("Can't have space on inside of edge [ignored]\n");
 	    capVal = aToCap(argv[5]);
@@ -2855,6 +2920,7 @@ ExtTechLine(sectionName, argc, argv)
 	    break;
 	case PERIMC:
 	    DBTechNoisyNameMask(argv[2], &types2);
+	    TTMaskSetMask(allExtractTypes, &types2);
 	    capVal = aToCap(argv[3]);
 	    if (capVal == (CapValue) 0)
 		break;
@@ -3000,6 +3066,7 @@ void
 ExtTechFinal()
 {
     ExtStyle *es;
+    TileType s, t;
 
     /* Create a "default" style if there isn't one */
     if (ExtAllStyles == NULL)
@@ -3013,6 +3080,41 @@ ExtTechFinal()
 	ExtCurStyle->exts_status = TECH_LOADED;
     }
     extTechFinalStyle(ExtCurStyle);
+
+    /* Any type in the connection tables that is connected to	    */
+    /* something other than itself is added to the list of	    */
+    /* extractable types.					    */
+
+    for (t = TT_TECHDEPBASE; t < DBNumUserLayers; t++)
+    {
+	TileTypeBitMask mask;
+	TTMaskZero(&mask);
+	TTMaskSetMask(&mask, &DBConnectTbl[t]);
+	TTMaskClearType(&mask, t);
+	if (!TTMaskIsZero(&mask))
+	    TTMaskSetType(allExtractTypes, t);
+    }
+
+    /* Any type that wasn't found anywhere in the extract section   */
+    /* is considered non-electrical.				    */
+
+    for (s = TT_TECHDEPBASE; s < DBNumUserLayers; s++)
+	if (!TTMaskHasType(allExtractTypes, s))
+	{
+	    TxPrintf("The following types are not handled by extraction and will"
+		    " be treated as non-electrical types:\n");
+	    TxPrintf("    ");
+	    for (t = TT_TECHDEPBASE; t < DBNumUserLayers; t++)
+		if (!TTMaskHasType(allExtractTypes, t))
+		{
+		    TxPrintf("%s ", DBTypeLongNameTbl[t]);
+		    TTMaskClearType(&ExtCurStyle->exts_activeTypes, t);
+		}
+	    TxPrintf("\n");
+	    break;
+	}
+
+    freeMagic(allExtractTypes);
 }
 
 
