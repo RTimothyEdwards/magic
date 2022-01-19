@@ -163,7 +163,7 @@ CIFPaintLayer(rootDef, area, cifLayer, magicLayer, paintDef)
     scx.scx_trans = GeoIdentityTransform;
     (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
-    CIFCopyMaskHints(rootDef, CIFComponentDef);
+    CIFCopyMaskHints(&scx, CIFComponentDef);
     DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
                 (ClientData)CIFComponentDef);
 
@@ -283,7 +283,7 @@ CIFSeeLayer(rootDef, area, layer)
     scx.scx_trans = GeoIdentityTransform;
     (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
-    CIFCopyMaskHints(rootDef, CIFComponentDef);
+    CIFCopyMaskHints(&scx, CIFComponentDef);
     DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
                 (ClientData)CIFComponentDef);
 
@@ -453,7 +453,7 @@ CIFCoverageLayer(rootDef, area, layer, dolist)
     scx.scx_trans = GeoIdentityTransform;
     (void) DBTreeSrTiles(&scx, &DBAllButSpaceAndDRCBits, 0,
 	cifHierCopyFunc, (ClientData) CIFComponentDef);
-    CIFCopyMaskHints(rootDef, CIFComponentDef);
+    CIFCopyMaskHints(&scx, CIFComponentDef);
     DBTreeSrCells(&scx, 0, cifHierCopyMaskHints,
                 (ClientData)CIFComponentDef);
 
