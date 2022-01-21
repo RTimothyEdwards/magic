@@ -34,7 +34,7 @@ extern bool CalmaAddendum;
 extern bool CalmaNoDuplicates;
 extern time_t *CalmaDateStamp;
 extern bool CalmaUnique;
-extern bool CalmaMaskHints;
+extern TileTypeBitMask *CalmaMaskHints;
 extern bool CalmaMergeTiles;
 extern bool CalmaFlattenArrays;
 extern bool CalmaNoDRCCheck;

@@ -723,7 +723,7 @@ CIFPaintCurrent(filetype)
     /* plane for that layer, compare to the input plane, and create	*/
     /* mask hint properties to make the output the same as the input.	*/
 
-    if (CalmaMaskHints)
+    if ((CalmaMaskHints != NULL) && (!TTMaskIsZero(CalmaMaskHints)))
     {
 	int j;
     	CIFOp *op, newop, subop;
@@ -737,6 +737,8 @@ CIFPaintCurrent(filetype)
 
     	for (i = 0; i < cifNReadLayers; i++)
 	{
+	    if (!TTMaskHasType(CalmaMaskHints, i)) continue;
+
 	    /* Does the input layer have a corresponding output layer? */
 	    in_out_map[i] = -1;
 	    for (j = 0; j < CIFCurStyle->cs_nLayers; j++)
@@ -786,6 +788,8 @@ CIFPaintCurrent(filetype)
 	    char *propstr = NULL;
 	    char locstr[512];
 	    Plane *tempp;
+
+	    if (!TTMaskHasType(CalmaMaskHints, i)) continue;
 
 	    j = in_out_map[i];
 	    if (j < 0) continue;

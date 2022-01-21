@@ -248,9 +248,10 @@ CIFCalmaLayerToCifLayer(layer, datatype, calmaStyle)
  */
 
 void
-CIFParseReadLayers(string, mask)
+CIFParseReadLayers(string, mask, newok)
     char *string;		/* Comma-separated list of CIF layers. */
     TileTypeBitMask *mask;	/* Where to store bit mask. */
+    bool newok;			/* If TRUE, create new layers if they don't exist */
 {
     int i;
     char *p;
@@ -265,10 +266,10 @@ CIFParseReadLayers(string, mask)
 	if (p != NULL)
 	    *p = 0;
 
-	i = CIFReadNameToType(string, TRUE);
+	i = CIFReadNameToType(string, newok);
 	if (i >= 0)
 	    TTMaskSetType(mask, i);
-	else
+	else if (newok)
 	{
 	    HashEntry *he;
 	    TileTypeBitMask *amask;
@@ -280,6 +281,8 @@ CIFParseReadLayers(string, mask)
 		TTMaskSetMask(mask, amask);
 	    }
 	}
+	else
+	    TxError("Error:  CIF layer \"%s\" is unknown.\n", string);
 
 	if (p == NULL) break;
 	*p = ',';
@@ -743,7 +746,7 @@ CIFReadTechLine(sectionName, argc, argv)
 	    cifCurReadOp = (CIFOp *) mallocMagic(sizeof(CIFOp));
 	    cifCurReadOp->co_opcode = CIFOP_OR;
 	    cifCurReadOp->co_client = (ClientData)NULL;
-	    CIFParseReadLayers(argv[2], &cifCurReadOp->co_cifMask);
+	    CIFParseReadLayers(argv[2], &cifCurReadOp->co_cifMask, TRUE);
 	    TTMaskZero(&cifCurReadOp->co_paintMask);
 	    cifCurReadOp->co_next = NULL;
 	    cifCurReadOp->co_distance = 0;
@@ -793,7 +796,7 @@ CIFReadTechLine(sectionName, argc, argv)
 	    cifCurReadOp = (CIFOp *) mallocMagic(sizeof(CIFOp));
 	    cifCurReadOp->co_opcode = CIFOP_OR;
 	    cifCurReadOp->co_client = (ClientData)NULL;
-	    CIFParseReadLayers(argv[2], &cifCurReadOp->co_cifMask);
+	    CIFParseReadLayers(argv[2], &cifCurReadOp->co_cifMask, TRUE);
 	    TTMaskZero(&cifCurReadOp->co_paintMask);
 	    cifCurReadOp->co_next = NULL;
 	    cifCurReadOp->co_distance = 0;
@@ -865,7 +868,7 @@ CIFReadTechLine(sectionName, argc, argv)
 	    else
 		goto wrongNumArgs;
 	}
-	CIFParseReadLayers(argv[1], &mask);
+	CIFParseReadLayers(argv[1], &mask, TRUE);
 	for (i=0; i<MAXCIFRLAYERS; i+=1)
 	{
 	    if (TTMaskHasType(&mask,i))
@@ -891,7 +894,7 @@ CIFReadTechLine(sectionName, argc, argv)
 	int		i;
 
 	if (argc != 2) goto wrongNumArgs;
-	CIFParseReadLayers(argv[1], &mask);
+	CIFParseReadLayers(argv[1], &mask, TRUE);
 	/* trash the value in crs_labelLayer so that any labels on this
 	   layer get junked, also. dcs 4/11/90
         */
@@ -968,7 +971,7 @@ CIFReadTechLine(sectionName, argc, argv)
 	case CIFOP_OR:
 	case CIFOP_COPYUP:
 	    if (argc != 2) goto wrongNumArgs;
-	    CIFParseReadLayers(argv[1], &newOp->co_cifMask);
+	    CIFParseReadLayers(argv[1], &newOp->co_cifMask, TRUE);
 	    break;
 	case CIFOP_GROW:
 	case CIFOP_GROW_G:

@@ -105,7 +105,7 @@ Read GDSII input or generate GDSII output.
 		 Otherwise, the use of <B>yes</B> and <B>no</B> toggles the
 		 flattening behavior without affecting any value previously
 		 set by <B>flatten</B> <I>number</I>.
-	    <DT> <B>maskhints</B> [<B>yes</B>|<B>no</B>]
+	    <DT> <B>maskhints</B> [<B>yes</B>|<B>no</B>|<I>layers</I>]
 	    <DD> When set to <B>yes</B>, then after reading each cell
 		 definition from the GDS file, magic will re-generate the
 		 GDS output data from its internal representation of the
@@ -114,7 +114,9 @@ Read GDSII input or generate GDSII output.
 		 the <B>cifoutput</B> section for a GDS layer, magic will
 		 automatically generate the mask hint property for the cell
 		 such that writing GDS of the cell will produce exactly the
-		 same mask data as was in the original GDS file.
+		 same mask data as was in the original GDS file.  Alternatively
+		 to specifying "<B>yes</B>", a comma-separated list <I>layers</I>
+		 of GDS layers to create mask hints for can be specified
 		 (default <B>no</B>).
 	    <DT> <B>noduplicates</B> [<B>yes</B>|<B>no</B>]
 	    <DD> When reading a GDS file, this option forces magic to ignore

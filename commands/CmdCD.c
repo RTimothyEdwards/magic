@@ -545,9 +545,12 @@ CmdCalma(w, cmd)
 	    if (cmd->tx_argc == 2)
 	    {
 #ifdef MAGIC_WRAPPER
-		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaMaskHints));
+		if ((CalmaMaskHints != NULL) && !TTMaskIsZero(CalmaMaskHints))
+		    Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(TRUE));
+		else
+		    Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(FALSE));
 #else
-		if (CalmaMaskHints)
+		if ((CalmaMaskHints != NULL) && !TTMaskIsZero(CalmaMaskHints))
 		    TxPrintf("Mask hints generated from GDS input.\n");
 		else
 		    TxPrintf("No mask hints generated from GDS input.\n");
@@ -557,10 +560,21 @@ CmdCalma(w, cmd)
 	    else if (cmd->tx_argc != 3)
 		goto wrongNumArgs;
 
+	    if (CalmaMaskHints == NULL)
+	    {
+		CalmaMaskHints = (TileTypeBitMask *)mallocMagic(sizeof(TileTypeBitMask));
+		TTMaskZero(CalmaMaskHints);
+	    }
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
-		goto wrongNumArgs;
-	    CalmaMaskHints = (option < 4) ? FALSE : TRUE;
+		CIFParseReadLayers(cmd->tx_argv[2], CalmaMaskHints, FALSE);
+	    else
+	    {
+		if (option < 4)
+		    TTMaskZero(CalmaMaskHints);
+		else
+		    TTMaskSetMask(CalmaMaskHints, &DBAllTypeBits);
+	    }
 	    return;
 
 	case CALMA_MERGE:

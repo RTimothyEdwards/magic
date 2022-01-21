@@ -62,6 +62,7 @@ extern void CIFReadTechStyleInit();
 extern void CIFReadTechInit();
 extern bool CIFReadTechLine();
 extern void CIFReadTechFinal();
+extern void CIFParseReadLayers();
 
 /* Externally-visible procedures: */
 

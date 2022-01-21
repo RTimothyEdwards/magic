@@ -50,7 +50,7 @@ int calmaNonManhattan;
 int CalmaFlattenLimit = 10;
 int NameConvertErrors = 0;
 bool CalmaRewound = FALSE;
-bool CalmaMaskHints = FALSE;
+TileTypeBitMask *CalmaMaskHints = NULL;
 
 extern HashTable calmaDefInitHash;
 
