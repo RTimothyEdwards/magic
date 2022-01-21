@@ -92,26 +92,27 @@ bool cmdDumpParseArgs();
 #define CALMA_ADDENDUM	1
 #define CALMA_ARRAYS	2
 #define CALMA_CONTACTS	3
-#define CALMA_DRCCHECK	4
-#define	CALMA_FLATTEN	5
-#define	CALMA_FLATGLOB  6
-#define CALMA_ORDERING	7
-#define	CALMA_LABELS	8
-#define	CALMA_LIBRARY	9
-#define	CALMA_LOWER	10
-#define CALMA_MASKHINTS	11
-#define CALMA_MERGE	12
-#define CALMA_NO_STAMP	13
-#define CALMA_NO_DUP	14
-#define CALMA_READ	15
-#define CALMA_READONLY	16
-#define CALMA_RESCALE	17
-#define CALMA_WARNING	18
-#define CALMA_WRITE	19
-#define CALMA_POLYS	20
-#define CALMA_PATHS	21
-#define CALMA_UNDEFINED	22
-#define CALMA_UNIQUE	23
+#define CALMA_DATESTAMP	4
+#define CALMA_DRCCHECK	5
+#define	CALMA_FLATTEN	6
+#define	CALMA_FLATGLOB  7
+#define CALMA_ORDERING	8
+#define	CALMA_LABELS	9
+#define	CALMA_LIBRARY	10
+#define	CALMA_LOWER	11
+#define CALMA_MASKHINTS	12
+#define CALMA_MERGE	13
+#define CALMA_NO_STAMP	14
+#define CALMA_NO_DUP	15
+#define CALMA_READ	16
+#define CALMA_READONLY	17
+#define CALMA_RESCALE	18
+#define CALMA_WARNING	19
+#define CALMA_WRITE	20
+#define CALMA_POLYS	21
+#define CALMA_PATHS	22
+#define CALMA_UNDEFINED	23
+#define CALMA_UNIQUE	24
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -139,6 +140,7 @@ CmdCalma(w, cmd)
 	"addendum [yes|no]	output only cells that are not type \"readonly\"",
 	"arrays [yes|no]	output arrays as individual subuses (like in CIF)",
 	"contacts [yes|no]	optimize output by arraying contacts as subcells",
+	"datestamp [yes|value]	use current time or value as the creation date stamp",
 	"drccheck [yes|no]	mark all cells as needing DRC checking",
 	"flatten [yes|no|limit]	flatten simple cells (e.g., contacts) on input",
 	"flatglob [<name>|none]	flatten cells by name with glob patterning",
@@ -646,13 +648,24 @@ CmdCalma(w, cmd)
 	    return;
 
 	case CALMA_NO_STAMP:
+	    /* CALMA_DATESTAMP is the current implementation.		*/
+	    /* CALMA_NO_STAMP is retained for backwards-compatibility.	*/
 	    if (cmd->tx_argc == 2)
 	    {
 #ifdef MAGIC_WRAPPER
-		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaNoDateStamp));
+		if (CalmaDateStamp == NULL)
+		    Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(FALSE));
+		else if (*CalmaDateStamp == 0)
+		    Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(TRUE));
+		else
+		    Tcl_SetObjResult(magicinterp, Tcl_NewStringObj("fixed", -1));
 #else
-		TxPrintf("Structures will contain a %s header creation date stamp.\n",
-			(CalmaNoDateStamp) ?  "zero" : "valid");
+		if (CalmaDateStamp != NULL)
+		    TxPrintf("Structures will contain a header creation date "
+			"stamp of %ld.\n", (long)(*CalmaDateStamp));
+		else
+		    TxPrintf("Structures will contain a default header creation date "
+			"stamp.\n");
 #endif
 		return;
 	    }
@@ -662,7 +675,25 @@ CmdCalma(w, cmd)
 	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
 	    if (option < 0)
 		goto wrongNumArgs;
-	    CalmaNoDateStamp = (option < 4) ? FALSE : TRUE;
+
+	    /* yes|no:  If "yes", then set date stamp to zero.  If "no", then
+	     * leave date stamp pointer NULL, and current date will be used for
+	     * the timestamp.
+	     */
+	    if (option >= 4)
+	    {
+		if (CalmaDateStamp == NULL) 
+		    CalmaDateStamp = (time_t *)mallocMagic(sizeof(time_t));
+		*CalmaDateStamp = (time_t)0;
+	    }
+	    else
+	    {
+		if (CalmaDateStamp != NULL) 
+		{
+		    freeMagic((char *)CalmaDateStamp);
+		    CalmaDateStamp = (time_t *)NULL;
+		}
+	    }
 	    return;
 
 	case CALMA_PATHS:
@@ -727,6 +758,64 @@ CmdCalma(w, cmd)
 	    CIFRescaleAllow = (option < 4) ? FALSE : TRUE;
 	    if (!CIFRescaleAllow)
 		CIFWarningLevel = CIF_WARN_LIMIT;
+	    return;
+
+	case CALMA_DATESTAMP:
+	    /* CALMA_NO_STAMP is retained for backwards-compatibility. */
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		if (CalmaDateStamp != NULL)
+		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(*CalmaDateStamp));
+		else
+		    Tcl_SetObjResult(magicinterp, Tcl_NewStringObj("default", -1));
+#else
+		if (CalmaDateStamp != NULL)
+		    TxPrintf("Structures will contain a header creation date "
+			"stamp of %ld.\n", (long)(*CalmaDateStamp));
+		else
+		    TxPrintf("Structures will contain a default header creation date "
+			"stamp.\n");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
+	    if (option >= 0)
+	    {
+		/* option yes|no:  "yes" means set date stamp pointer to NULL
+		 * and use current date as the timestamp.  "no" means set the
+		 * date stamp to zero.
+		 */
+		if (option >= 4)
+		{
+		    if (CalmaDateStamp != NULL) 
+		    {
+			freeMagic((char *)CalmaDateStamp);
+			CalmaDateStamp = (time_t *)NULL;
+		    }
+		}
+		else
+		{
+		    if (CalmaDateStamp == NULL) 
+			CalmaDateStamp = (time_t *)mallocMagic(sizeof(time_t));
+		    *CalmaDateStamp = (time_t)0;
+		}
+	    }
+	    else if (StrIsInt(cmd->tx_argv[2]))
+	    {
+		/* Otherwise, if value is an integer, use it for the date stamp */
+		if (CalmaDateStamp == NULL) 
+		    CalmaDateStamp = (time_t *)mallocMagic(sizeof(time_t));
+		*CalmaDateStamp = atoi(cmd->tx_argv[2]);
+	    }
+	    else
+	    {
+	        TxError("Unrecognizable date stamp \"%s\".\n", cmd->tx_argv[2]);
+		goto wrongNumArgs;
+	    }
 	    return;
 
 	case CALMA_WARNING:

@@ -32,7 +32,7 @@ extern bool CalmaDoLibrary;
 extern bool CalmaDoLower;
 extern bool CalmaAddendum;
 extern bool CalmaNoDuplicates;
-extern bool CalmaNoDateStamp;
+extern time_t *CalmaDateStamp;
 extern bool CalmaUnique;
 extern bool CalmaMaskHints;
 extern bool CalmaMergeTiles;

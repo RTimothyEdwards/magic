@@ -59,7 +59,7 @@ bool CalmaDoLabels = TRUE;	  /* If FALSE, don't output labels with GDS-II */
 bool CalmaDoLower = TRUE;	  /* If TRUE, allow lowercase labels. */
 bool CalmaFlattenArrays = FALSE;  /* If TRUE, output arrays as individual uses */
 bool CalmaAddendum = FALSE;	  /* If TRUE, do not output readonly cell defs */
-bool CalmaNoDateStamp = FALSE;	  /* If TRUE, output zero for creation date stamp */
+time_t *CalmaDateStamp = NULL;	  /* If non-NULL, output this for creation date stamp */
 bool CalmaAllowUndefined = FALSE; /* If TRUE, allow calls to undefined cells */
 
     /* Experimental stuff---not thoroughly tested (as of Sept. 2007)! */
@@ -435,8 +435,8 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 
     /* Output structure begin */
     calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, outf);
-    if (CalmaNoDateStamp)
-    	calmaOutDate(time((time_t *) 0), outf);
+    if (CalmaDateStamp != NULL)
+    	calmaOutDate(*CalmaDateStamp, outf);
     else
     	calmaOutDate(def->cd_timestamp, outf);
     calmaOutDate(time((time_t *) 0), outf);
@@ -1003,8 +1003,8 @@ calmaProcessDef(def, outf, do_library)
 
 		/* Output structure header */
 		calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, outf);
-    		if (CalmaNoDateStamp)
-		    calmaOutDate(time((time_t *) 0), outf);
+    		if (CalmaDateStamp != NULL)
+		    calmaOutDate(*CalmaDateStamp, outf);
 		else
 		    calmaOutDate(def->cd_timestamp, outf);
 		calmaOutDate(time((time_t *) 0), outf);
@@ -1168,8 +1168,8 @@ calmaOutFunc(def, f, cliprect)
 
     /* Output structure begin */
     calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, f);
-    if (CalmaNoDateStamp)
-    	calmaOutDate(time((time_t *) 0), f);
+    if (CalmaDateStamp != NULL)
+    	calmaOutDate(*CalmaDateStamp, f);
     else
 	calmaOutDate(def->cd_timestamp, f);
     calmaOutDate(time((time_t *) 0), f);
@@ -2973,8 +2973,8 @@ calmaOutHeader(rootDef, f)
 
     /* Beginning of library */
     calmaOutRH(28, CALMA_BGNLIB, CALMA_I2, f);
-    if (CalmaNoDateStamp)
-    	calmaOutDate(time((time_t *) 0), f);
+    if (CalmaDateStamp != NULL)
+    	calmaOutDate(*CalmaDateStamp, f);
     else
     	calmaOutDate(rootDef->cd_timestamp, f);
     calmaOutDate(time((time_t *) 0), f);
