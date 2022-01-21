@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>box</H2>
@@ -59,6 +59,8 @@ Move box dist units in direction or (with no arguments) show box size.
 	   <DD> Reposition a box corner
 	   <DT> <B>exists</B>
 	   <DD> Is the cursor box present?
+	   <DT> <B>remove</B>
+	   <DD> Make the cursor box disappear from the window
 	   <DT> <B>help</B>
 	   <DD> Print help information
 	 </DL>
@@ -81,6 +83,12 @@ Move box dist units in direction or (with no arguments) show box size.
       (see above).  The <B>-edit</B> switch causes coordinate values
       to be reported relative to the origin of the current edit cell,
       if the edit cell is not the topmost cell in the layout window. <P>
+
+      <B>NOTE:</B> Prior to magic 8.1.43, the "<B>-edit</B>" switch
+      did not work with "<B>position</B>".  Starting from magic
+      8.1.43, "<B>-edit</B>" works with any <B>box</B> option and
+      returns values in the coordinate system of the child cell, if
+      the current edit cell is not the topmost cell in the window. <P>
       
       For a discussion of valid distances, see the page
       <A HREF=distance.html><I>distance</I></A>.  This includes
@@ -142,6 +150,6 @@ Move box dist units in direction or (with no arguments) show box size.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> November 8, 2004 at 2:53pm <P>
+<P><I>Last updated:</I> October 8, 2020 at 1:53pm <P>
 </BODY>
 </HTML>

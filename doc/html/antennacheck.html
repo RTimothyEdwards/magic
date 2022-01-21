@@ -1,0 +1,86 @@
+<HTML>
+<HEAD>
+  <STYLE type="text/css">
+    H1 {color: black }
+    H2 {color: maroon }
+    H3 {color: #007090 }
+    A.head:link {color: #0060a0 }
+    A.head:visited {color: #3040c0 }
+    A.head:active {color: white }
+    A.head:hover {color: yellow }
+    A.red:link {color: red }
+    A.red:visited {color: maroon }
+    A.red:active {color: yellow }
+  </STYLE>
+</HEAD>
+<TITLE>Magic-7.3 Command Reference</TITLE>
+<BODY BACKGROUND=graphics/blpaper.gif>
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
+     <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
+
+<H2>antennacheck</H2>
+<HR>
+Run antenna violation checks on the current edit cell.
+<HR>
+
+<H3>Usage:</H3>
+   <BLOCKQUOTE>
+      <B>antennacheck</B> [<I>option</I>] <BR><BR>
+      <BLOCKQUOTE>
+         where <I>option</I> may be one of the following:
+	 <DL>
+	   <DT> <B>run</B>
+	   <DD> "<B>antennacheck run</B>" is equivalent to "<B>antennacheck</B>"
+		with no arguments, and causes an antenna violation check to be
+		run.
+	   <DT> <B>debug</B>
+	   <DD> Sets up debug mode for the next antenna run.  In addition to
+		feedback entries, additional information will be printed to
+		the terminal about each error encountered.
+	 </DL>
+      </BLOCKQUOTE>
+   </BLOCKQUOTE>
+
+<H3>Summary:</H3>
+   <BLOCKQUOTE>
+      The <B>antennacheck</B> command runs a full check for antenna violations
+      on the entire area of the cell being edited.  Antenna violations are
+      defined in the technology file as the ratios of metal area to sensitive
+      MOSFET transistor gate areas to which the metal is attached.  The antenna
+      effect is a manufacturing problem caused by charge buildup on gates
+      during metal etching.  The metal being etched forms an antenna that
+      gathers charge on the net connected to the gate.  If the area of metal
+      is large enough the gate can be destroyed by the process of etching.
+      The foundry specifies what the area ratio limit must be.  The check is
+      done progressively from the lowest metal layer to the highest.  If
+      violations are found, then feedback entries are created covering the
+      area of both the gate and the metal layer at which the violation occurred.
+      <P>
+
+      The <B>extract</B> command must be run prior to <B>antennacheck</B> to
+      obtain the extracted characteristics of the design, so that all
+      sensitive transistor gates can be identified and enumerated. <P>
+   </BLOCKQUOTE>
+
+<H3>Implementation Notes:</H3>
+   <BLOCKQUOTE>
+      <B>antennacheck</B> is implemented as a built-in <B>magic</B> command.
+      The <B>antennacheck</B> command was introduced in magic version
+      8.2.150 along with technology file extensions to support the antenna
+      rule violations (see the online Maintainer's Manual #2).
+   </BLOCKQUOTE>
+
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=extract.html><I>extract</I></A> <BR>
+   </BLOCKQUOTE>
+
+<P><IMG SRC=graphics/line1.gif><P>
+<TABLE BORDER=0>
+  <TR>
+    <TD> <A HREF=commands.html>Return to command index</A>
+  </TR>
+</TABLE>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
+</BODY>
+</HTML>

@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>iroute</H2>
@@ -62,7 +62,48 @@ cursor box
 		</DL>
 	   <DT> <B>route</B> <I>node_name</I>...
 	   <DD> Connect point to named node(s)
-	   <DT> <B>saveParameters</B>
+	   <DT> <B>route</B> <I>option</I>...
+	   <DT> Connect points as specified in the options.  <I>option</I> my
+		be one of the following:
+		<DL>
+		   <DT> <B>-dbox</B>
+		   <DD> Route to the area of the cursor box.
+		   <DT> <B>-dlabel</B> <I>node_name</I>
+		   <DD> Route to the destination network named <I>node_name</I>.
+			The name may be hierarchical, specifying a labeled node
+			in a nested list of subcell instances.
+		   <DT> <B>-dlayers</B> <I>layer_list</I>
+		   <DD> Force the route to end on of one the layers in the
+			comma-separated list.
+		   <DT> <B>-drect</B> <I>llx lly urx ury</I>
+		   <DD> Force the route to end within the designated rectangular
+			area.
+		   <DT> <B>-dselection</B>
+		   <DD> Force the route to end on the area of selected paint.
+		   <DT> <B>-scursor</B>
+		   <DD> Start the route at the cursor position.
+		   <DT> <B>-slabel</B> <I>node_name</I>
+		   <DD> Route from the start network named <I>node_name</I>.
+			The name may be hierarchical, specifying a labeled node
+			in a nested list of subcell instances.
+		   <DT> <B>-slayers</B> <I>layer_list</I>
+		   <DD> Force the route to start on one of the layers in the
+			comma-separated list.
+		   <DT> <B>-spoint</B> <I>px py</I>
+		   <DD> Start the route at the indicated point.
+		   <DT> <B>-timeout</B> <I>value</I>
+		   <DD> If the maze router is unable to find a valid
+			route, it may wander off into an indefinitely
+			long search.  The search can be interrupted by
+			typing a control-C into the calling terminal,
+			but one can also specify a timed break using
+			the timeout option, where <I>value</I> is in
+			seconds.  Typically, 4 or 5 seconds is a useful
+			value.
+		</DL>
+		By far, the most useful and most common invocation is
+		"<B>iroute route -slabel</B> <I>sname</I> <B>-dlabel</B>
+		<I>dname</I>" to route between two named pins.
 	   <DD> Write out all irouter parameters.  These are written out
 		as command calls so they can be read back with the Tcl
 		<B>source</B> command.
@@ -99,7 +140,26 @@ cursor box
 
 <H3>Summary:</H3>
    <BLOCKQUOTE>
-      The <B>iroute</B> command is. . . 
+      The <B>iroute</B> command invokes Magic's maze router algorithm.
+      This is a point-to-point, over-the-cell algorithm based on costs
+      specified in the technology file's "<B>mzrouter</B>" section,
+      style "<B>iroute</B>".  It is not a channel router, and will
+      select the best path to connect the chosen start and destination
+      nodes, using whatever layers are specified as active in the
+      technology file, switching layers and adding contacts as
+      necessary, and avoiding obstacles.  The quality of the route is
+      highly dependent upon both the existing layout and the cost
+      specification. <P>
+
+      Special layer types "<B>fence</B>", "<B>rotate</B>", and "<B>magnet</B>"
+      are built-in types available in all technologies.  Painting the
+      "<B>fence</B>" layer creates a boundary inside of which Magic will
+      not route.  Under a block of "<B>rotate</B>" layer paint, Magic will
+      reverse the vertical and horizontal costs of all layers.  If the
+      technology file specifies unbalanced horizontal and vertical costs,
+      for example to tend to force horizontal routes in metal2 and vertical
+      routes in metal3, then areas painted with "rotate" will tend to get
+      horizontal routes in metal3 and vertical routes in metal2.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -119,6 +179,6 @@ cursor box
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 6, 2004 at 11:11pm <P>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
 </BODY>
 </HTML>

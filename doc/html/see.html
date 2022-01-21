@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>see</H2>
@@ -37,9 +37,11 @@ Change what layers are displayed in the window
          where <I>layers</I> is a comma-separated list of layers
 	 in the technology, and may also be the character <B>*</B>
 	 indicating all layers but not labels, <B>$</B> indicating
-	 all layers including labels, <B>labels</B> indicating
-	 only labels, <B>error</B> indicating DRC error paint,
-	 and <B>subcell</B> indicating subcells.
+	 all layers under the cursor not including labels and
+	 subcells, <B>labels</B> indicating only labels,
+	 <B>error</B> indicating DRC error paint, <B>subcell</B>
+	 indicating subcells, and <B>connect</B> indicating all
+	 types connected to the type or types preceding it.
       </BLOCKQUOTE>
    </BLOCKQUOTE>
 
@@ -53,6 +55,31 @@ Change what layers are displayed in the window
       The keyword <B>allSame</B> is a special use and indicates that
       non-edit cells should be drawn in the same manner as the edit
       cell, rather than being drawn in the "pale" styles. <P>
+
+      The keyword <B>connect</B> is only meaningful when it comes
+      after one or more listed types.  It will expand the list of
+      types to include types electrically connected to those types.
+      <P>
+
+      The special keyword <B>$</B> is only meaningful when used with
+      option "<B>see no</B>", as it refers to all layers visible
+      directly under the pointer cursor, and it is not possible to
+      query invisible layers. <P>
+
+      Starting with Magic version 7.5, contacts whose residue layers
+      (layers surrounding the cut) are partially visible and partially
+      invisible will show the visible residue when the contact type
+      itself is invisible.  That way, the command "<B>see no * ; see m1</B>",
+      for example, will show all metal1 including that under contacts,
+      preventing the display of gaps in the metal1 layer where contacts
+      are present.  Note that this applies <I>only</I> to contacts, where
+      the residue layers are declared in the techfile and therefore
+      known <I>a priori</I>.  Other layers, such as metal1 resistor
+      (often appears as "rmetal1" in techfiles), have no relation to
+      metal1 that can be definitively determined from the techfile.
+      Therefore, to see all layers corresponding to a single production
+      mask layer, it is necessary to explicitly call out all such layers
+      int the <I>layers</I> list. <P>
 
       Undisplayed layers generally do not respond to commands such
       as <B>erase</B> or <B>select</B>.  However, network selection
@@ -80,6 +107,6 @@ Change what layers are displayed in the window
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 16, 2004 at 2:02pm <P>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
 </BODY>
 </HTML>

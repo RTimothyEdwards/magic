@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>cellname</H2>
@@ -31,6 +31,9 @@ Operations on cell definitions.
 	 <DL>
 	   <DT> [<B>list</B>] <B>children</B> [<I>name</I>]
 	   <DD> List all of the children definitions of cell <I>name</I>,
+		or the children of the currently selected cell instance.
+	   <DT> [<B>list</B>] <B>childinst</B> [<I>name</I>]
+	   <DD> List all of the children instances of cell <I>name</I>,
 		or the children of the currently selected cell instance.
 	   <DT> [<B>list</B>] <B>parent</B> [<I>name</I>]
 	   <DD> List the parent cell definition of cell <I>name</I>,
@@ -74,6 +77,11 @@ Operations on cell definitions.
 		will be prohibited.  If the cell <I>name</I> is currently
 		the topmost cell in the window, the window will be loaded
 		with default cell "(UNNAMED)".
+	   <DT> <B>dereference</B> <I>name</I>
+	   <DD> Perform a flush of the cell (per the "<B>flush</B>" command),
+		first removing any file path associated with the cell, so
+		that the cell will be reloaded from the first valid location
+		found using the search paths.
 	   <DT> <B>flags</B>
 	   <DD> Reports flag settings for the cell.  Flags which are reported
 	   	are "available", "modified", and "readonly".  Flag "available"
@@ -81,7 +89,27 @@ Operations on cell definitions.
 		"modified" is true if layout changes have been made to the
 		cell.  Flag "readonly" is true if the cell has been locked to
 		prevent edits.
-	   <DT> <B>writeable</B> [<B>true</B>|<B>false</B>]
+	   <DT> <B>timestamp</B> <I>name</I> [<I>value</I>]
+	   <DD> Reports or sets the cell timestamp value.  Note that timestamps
+		should be handled automatically, so setting the timestamp is
+		discouraged outside of limited functions like creating cell
+		libraries.  The timestamp is in the usual integer format and
+		can be printed as a human-readable date using the Tcl <B>clock</B>
+		command, e.g., "<TT>clock format [cellname timestamp]</TT>".
+	   <DT> <B>filepath</B> <I>name</I> [<B>default</B>|<I>pathname</I>]
+	   <DD> With no option, this command returns the path to the file
+		for the cell <I>name</I>, or the keyword "<B>default</B>"
+		if the cell is not associated with a specific file path.
+		With option "<B>default</B>", if the cell is associated
+		with a specific file path, that association is removed.
+		With option "<I>pathname</I>", the cell is associated with
+		the given file path.  Note that this is meant to be used
+		to resolve issues with database libraries being moved
+		from one location or another.  More typically, the
+		"<B>save</B>" command should be used to create a copy
+		of the (possibly modified) cell in a new location.  Changing
+		the filepath will not perform any disk reads or writes.
+	   <DT> <B>writeable</B> <I>name</I> [<B>true</B>|<B>false</B>]
 	   <DD> Option <B>writeable false</B> makes the current cell
 	   	read-only and therefore prevents any edits from being
 		written to disk.  If magic is compiled with file-locking,
@@ -132,6 +160,8 @@ Operations on cell definitions.
    <BLOCKQUOTE>
       <A HREF=instance.html><B>instance</B></A> <BR>
       <A HREF=load.html><B>load</B></A> <BR>
+      <A HREF=path.html><B>path</B></A> <BR>
+      <A HREF=flush.html><B>flush</B></A> <BR>
       <A HREF=tk_path_name.html><I>tk_path_name</I></A> <BR>
    </BLOCKQUOTE>
 
@@ -141,6 +171,6 @@ Operations on cell definitions.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> December 4, 2005 at 5:38pm <P>
+<P><I>Last updated:</I> February 3, 2021 at 3:52pm <P>
 </BODY>
 </HTML>

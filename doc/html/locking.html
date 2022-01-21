@@ -1,0 +1,95 @@
+<HTML>
+<HEAD>
+  <STYLE type="text/css">
+    H1 {color: black }
+    H2 {color: maroon }
+    H3 {color: #007090 }
+    A.head:link {color: #0060a0 }
+    A.head:visited {color: #3040c0 }
+    A.head:active {color: white }
+    A.head:hover {color: yellow }
+    A.red:link {color: red }
+    A.red:visited {color: maroon }
+    A.red:active {color: yellow }
+  </STYLE>
+</HEAD>
+<TITLE>Magic-7.3 Command Reference</TITLE>
+<BODY BACKGROUND=graphics/blpaper.gif>
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
+     <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
+
+<H2>locking</H2>
+<HR>
+Control the behavior of file locking.
+<HR>
+
+<H3>Usage:</H3>
+   <BLOCKQUOTE>
+      <B>locking</B> [<B>enable</B>|<B>disable</B>] <BR><BR>
+   </BLOCKQUOTE>
+
+<H3>Summary:</H3>
+   <BLOCKQUOTE>
+      The <B>locking</B> command controls the behavior of file locking,
+      which is an operating system-level protocol for preventing multiple
+      processes from attempting to write to the same file at the same
+      time.  The behavior of the protocol is operating system dependent;
+      for Linux/UNIX systems, this is a feature of the system fcntl()
+      call.  When a file is opened, the file descriptor is associated
+      with an exclusive lock that prevents any other process from opening
+      the same file for writing or appending.  When using the file locking
+      feature, two processes of magic cannot open the same file in read/write
+      mode.  The first process to open the file will have the exclusive
+      right to alter the file contents.  The second process may only view
+      the layout in read-only mode. <P>
+
+      Any cell that is read-only can be forced editable using the
+      "<B>cellname writeable</B>" command option.  Note that this does
+      not make the file writeable if another process has obtained a lock
+      on the file;  it merely makes it editable, but to save the modified
+      layout to disk would require that the name of the cell be changed
+      or that the process holding the file lock releases it. <P>
+
+      This is not a perfect protection mechanism, since the "<B>cellname
+      writeable</B>" command option can subvert the intent of the file
+      lock by allowing a cell to be read in read-only mode while another
+      process has it locked;  then, after the other process has released
+      the lock, the file can be forced writeable and saved to the same
+      file, potentially overwriting modifications made by the other
+      process.  In normal use cases, however, the file locking serves
+      to prevent unintended overwriting of file modifications. <P>
+
+      The file locking is enabled by default when magic starts up.
+      Generally speaking, there is no reason to disable it.  However,
+      some operating systems have strict limits on the allowed number
+      of open file descriptors, and it is possible for a sufficiently
+      complex layout for there to be more files open than available
+      file descriptors.  In that case, the <B>locking disable</B>
+      command option will prevent issues with the filesystem at the
+      expense of file lock protection. <P>
+
+      With no arguments, <B>locking</B> returns the state of the
+      file locking, either "<B>enabled</B>" or "<B>disabled</B>". <P>
+
+   </BLOCKQUOTE>
+
+<H3>Implementation Notes:</H3>
+   <BLOCKQUOTE>
+      <B>locking</B> is implemented as a built-in command in <B>magic</B>
+      from version tag 8.3.249.
+   </BLOCKQUOTE>
+
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=cellname.html><B>cellname</B></A> <BR>
+   </BLOCKQUOTE>
+
+<P><IMG SRC=graphics/line1.gif><P>
+<TABLE BORDER=0>
+  <TR>
+    <TD> <A HREF=commands.html>Return to command index</A>
+  </TR>
+</TABLE>
+<P><I>Last updated:</I> January 1, 2022 at 3:11pm <P>
+</BODY>
+</HTML>

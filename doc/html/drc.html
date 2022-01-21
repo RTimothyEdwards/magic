@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>drc</H2>
@@ -33,9 +33,8 @@ Background design rule checker control and status.
 	   <DD> Run checker and wait for it to complete
 	   <DT> <B>check</B>
 	   <DD> Recheck area under box in all cells
-	   <DT> <B>count</B> [<B>total</B>]
-	   <DD> Count error tiles in each cell under box.  Option <B>total</B>
-	   	returns the total number of DRC error tiles in the cell.
+	   <DT> <B>count</B>
+	   <DD> Count and report error tiles in the edit cell.
 	   <DT> <B>euclidean on</B>|<B>off</B>
 	   <DD> Enable/disable Euclidean geometry checking
 	   <DT> <B>find</B> [<I>nth</I>]
@@ -75,6 +74,57 @@ Background design rule checker control and status.
 		step size.
 	 </DL>
       </BLOCKQUOTE>
+
+      <P>
+      The Tcl/Tk version of magic defines additional handling with the
+      "<B>list</B>" and "<B>listall</B>" keyword before the option name,
+      indicating that the information be passed back to the interpreter
+      as a list instead of being printed to the terminal window as text.
+      <P>
+
+      <B>drc list</B> <I>option</I> <BR><BR>
+      <BLOCKQUOTE>
+         where <I>option</I> is one of the following:
+	 <DL>
+	   <DT> <B>style</B>
+	   <DD> Return the currently active DRC style name to the interpreter.
+	   <DT> <B>count</B> [<B>total</B>]
+	   <DD> Return the DRC error count as a list pair comprising the
+		edit cell name and the total number of errors found.  With
+		<B>total</B>, returns just the count as an integer.
+	   <DT> <B>find</B> [<I>nth</I>]
+	   <DD> Return the error description of the next, or <I>nth</I>,
+		error to the interpreter.
+	   <DT> <B>why</B>
+	   <DD> Return the error description of all errors intersecting the
+		cursor box to the interpreter, as a list
+	 </DL>
+      </BLOCKQUOTE>
+
+      <B>drc listall</B> <I>option</I> <BR><BR>
+      <BLOCKQUOTE>
+         where <I>option</I> is one of the following:
+	 <DL>
+	   <DT> <B>style</B>
+	   <DD> Return a list of all available DRC styles to the interpreter.
+	   <DT> <B>count</B> [<B>total</B>]
+	   <DD> Return the DRC error count as a nested list, where each list
+		item is a pair comprising the cell name of the cell containing
+		the errors, and the total number of errors found.  With
+		<B>total</B>, returns only the sum of all the values (probably
+		not very useful).
+	   <DT> <B>why</B>
+	   <DD> Return a nested list containing a detailed description of all
+		errors intersecting the cursor box to the interpreter.  In the
+		topmost list, every other entry is the text description of a
+		DRC error class.  The list item following the DRC error
+		description is a list of all errors of that type.  Each error
+		is presented as a list of four values indicating the bounding
+		box of the error, as {<I>llx lly urx ury</I>} values in
+		internal database units.
+	 </DL>
+      </BLOCKQUOTE>
+
    </BLOCKQUOTE>
 
 <H3>Summary:</H3>
@@ -130,6 +180,6 @@ Background design rule checker control and status.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> December 4, 2005 at 5:39pm <P>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
 </BODY>
 </HTML>

@@ -1,0 +1,80 @@
+<HTML>
+<HEAD>
+  <STYLE type="text/css">
+    H1 {color: black }
+    H2 {color: maroon }
+    H3 {color: #007090 }
+    A.head:link {color: #0060a0 }
+    A.head:visited {color: #3040c0 }
+    A.head:active {color: white }
+    A.head:hover {color: yellow }
+    A.red:link {color: red }
+    A.red:visited {color: maroon }
+    A.red:active {color: yellow }
+  </STYLE>
+</HEAD>
+<TITLE>Magic-7.3 Command Reference</TITLE>
+<BODY BACKGROUND=graphics/blpaper.gif>
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
+     <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
+
+<H2>drop</H2>
+<HR>
+Paint into descendents of the current edit cell coincident with a selection.
+<HR>
+
+<H3>Usage:</H3>
+   <BLOCKQUOTE>
+      <B>drop</B> <I>layers</I> <BR><BR>
+      <BLOCKQUOTE>
+         where <I>layers</I> is a comma-separated list of types to paint.
+      </BLOCKQUOTE>
+   </BLOCKQUOTE>
+
+<H3>Summary:</H3>
+   <BLOCKQUOTE>
+      The <B>drop</B> command paints layer types into descendents of the
+      current edit cell where selected paint is found.  Normally, paint and
+      erase operations will only change the current edit cell.  Selections
+      can copy paint out of descendents of the current edit cell, but the
+      descendent cells are not themselves affected.  This specialized
+      command scans an existing selection and determines from which
+      subcell each bit of paint in the selection was copied from.  Then,
+      it paints <I>layers</I> back into those subcells in an area coincident
+      with the selected paint. <P>
+
+      The primary reason this command was created was to deal with regions
+      such as a pwell region inside a deep nwell.  The pwell is often not
+      a layer in the GDS but is defined by the absence of nwell, over a
+      deep nwell layer.  A drawn pwell is needed for magic to properly
+      extract the bulk terminal of any transistor in the pwell.  But the
+      pwell must exist in the same cell as the transistor.  After reading
+      GDS, a command sequence such as the following: "<B>select area dnwell ;
+      select intersect ~nwell ; drop pwell</B>" will ensure that the pwell
+      layer exists over the area inside a deep nwell p-region. <P>
+
+      Be aware that because other instances of a cell may exist outside of
+      the selection area, that all instances of a cell modified by <B>drop</B>
+      will be likewise modified.  <P>
+
+   </BLOCKQUOTE>
+
+<H3>Implementation Notes:</H3>
+   <BLOCKQUOTE>
+      <B>drop</B> is implemented as a built-in command in <B>magic</B>.
+   </BLOCKQUOTE>
+
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=select.html><B>select</B></A> <BR>
+   </BLOCKQUOTE>
+
+<P><IMG SRC=graphics/line1.gif><P>
+<TABLE BORDER=0>
+  <TR>
+    <TD> <A HREF=commands.html>Return to command index</A>
+  </TR>
+</TABLE>
+<P><I>Last updated:</I> March 25, 2021 at 9:48pm <P>
+</BODY>
+</HTML>

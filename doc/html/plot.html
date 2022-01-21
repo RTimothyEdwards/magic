@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>plot</H2>
@@ -36,7 +36,44 @@ Hardcopy plotting
 		layout underneath the box.  The output size is propotional
 		to <I>scale</I>, where a scale of 1 is one output pixel per
 		<B>magic</B> internal unit.  The default <I>scale</I>
-		value, if unspecified, is 0.5.
+		value, if unspecified, is 0.5. <BR><BR>
+		<I>Note:</I> Magic version 7.5.45 changed the syntax to <BR>
+		<B>plot pnm</B> <I>file</I> [<I>width</I> [<I>layers</I>]] <BR>
+		where <I>width</I> is the width of the output, in pixels,
+		having a default value of 1500 if unspecified (which is
+		reasonably photographic when scaled to the size of a
+		printed page).  If the parameter "<B>pnmplotRTL</B>" is
+		set to <B>true</B>, then output is filtered into HPRTL
+		or HPGL2 format according to the "color versatec" style
+		settings.  In that case, the filename is optional;  if
+		missing, a temporary file is created.
+	   <DT> <B>svg</B> <I>file</I>
+	   <DD> Generate an SVG (scalable vector graphics) file of the
+		exact contents of the layout window.  Note that this
+		command has no options other than the name of the output
+		file:  SVG graphics are scalable, so no scalefactor is
+		necessary, and it is intended as a WYSIWYG option.  This
+		option is <I>only</I> availble when magic is invoked with
+		the Cairo graphics interface ("<TT>magic -d XR</TT>"),
+		because the <TT>libcairo</TT> library has interchangeable
+		back-end rendering engines and can quickly swap out the
+		X11 window rendering target for an SVG file rendering
+		target, something that cannot be done in the straight-up
+		Xlib or OpenGL interfaces.  Note that when rendering to
+		the screen, no layout can be represented below the scale
+		of a screen pixel, whereas with scalable vector graphics,
+		<I>all</I> layout is rendered, no matter how dense.
+		Therefore, for large full-chip layouts, the SVG output
+		can be very large and very dense.  For full-chip rendering,
+		the PNM plot style is usually a better choice.
+	   <DT> <B>versatec</B> <I>scale</I> [<I>layers</I>]
+	   <DD> Generate an HPRTL or HPGL2 rasterized rendering of the
+		layout underneath the box.  The <I>scale</I> value is an
+		absolute scale, according to the physical size of the layout
+		as determined by the CIF or GDS output style, and the
+		resolution of the rendering device (i.e., printer or plotter).
+		The device resolution is declared in the plot parameters
+		(see below).
 	   <DT> <B>parameters</B> [<I>name value</I>]
 	   <DD> Set or print out plotting parameters (see Summary below).
 	   <DT> <B>help</B>
@@ -91,6 +128,43 @@ Hardcopy plotting
 	  <TR> <TD> <B>PS_margin</B> </TD><TD> <B>72 (1in)</B> </TD>
 		<TD> Minimum margin to allow on all sides of the output page</TD></TR>
         </TABLE>
+	HPRTL/HPGL2 parameters:
+	<TABLE BORDER=0>
+	  <TR> <TD> <I>parameter name</I> </TD><TD> <I>default value</I> </TD>
+		<TD> <I>explanation</I> </TD> </TR>
+	  <TR> <TD> <B>cellIdFont</B> </TD><TD> <B>vfont.I.12</B> </TD>
+		<TD> Font used for cell use identifier names.  The default
+		font is part of the Magic distribution.  </TD></TR>
+	  <TR> <TD> <B>cellNameFont</B> </TD><TD> <B>vfont.B.12</B> </TD>
+		<TD> Font used for cell definition names.  The default
+		font is part of the Magic distribution.  </TD></TR>
+	  <TR> <TD> <B>labelFont</B> </TD><TD> <B>vfont.R.8</B> </TD>
+		<TD> Font used for labels.  The default font is part of
+		the Magic distribution.  </TD></TR>
+	  <TR> <TD> <B>directory</B> </TD><TD> <B>/tmp</B> </TD>
+		<TD> The directory used to store the temporary output file
+		that is generated prior to spooling for the printer.  </TD></TR>
+	  <TR> <TD> <B>dotsPerInch</B> </TD><TD> <B>300</B> </TD>
+		<TD> The native resolution of the target rendering device
+		(printer or plotter) </TD></TR>
+	  <TR> <TD> <B>printer</B> </TD><TD> <B>versatec</B> </TD>
+		<TD> Name of the print spool queue. </TD></TR>
+	  <TR> <TD> <B>spoolCommand</B> </TD><TD> <B>lp -d %s %s</B> </TD>
+		<TD> The OS command to use to send the plot to the printer
+		or plotter. </TD></TR>
+	  <TR> <TD> <B>swathHeight</B> </TD><TD> <B>64</B> </TD>
+		<TD> The number of lines of output resolution that Magic
+		will generate at a time.  Normally it is not necessary to
+		mess with this value. </TD></TR>
+	  <TR> <TD> <B>width</B> </TD><TD> <B>2400</B> </TD>
+		<TD> The pixel width of the output device. </TD></TR>
+	  <TR> <TD> <B>plotType</B> </TD><TD> <B>hprtl</B> </TD>
+		<TD> The format of the plot to make.  The choices are
+		<B>hprtl</B> (equivalent to PCL5) and <B>hpgl2</B> for
+		the most common raster plot formats.  The two (very!)
+		outdated formats <B>versatec_color</B> and
+		<B>versatec_bw</B> are retained for compatibility.  </TD></TR>
+        </TABLE>
 	PNM parameters:
         <TABLE BORDER=0> 
 	  <TR> <TD> <I>parameter name</I> </TD><TD> <I>default value</I> </TD>
@@ -129,6 +203,19 @@ Hardcopy plotting
 		    memory blocksize <B>pnmmaxmem</B> will force
 		    downsampling regardless of the value of
 		    <B>pnmdownsample</B>.  </TD> </TR>
+	  <TR> <TD> <B>pnmplotRTL</B> </TD><TD> <B>false</B> </TD>
+		<TD>When set to value <B>true</B>, this parameter pipes the
+		    PNM plot output through the raster driver used by
+		    "plot versatec".  This allows rendered, antialiased
+		    PNM plots to be sent directly to a printer.  The
+		    versatec parameters are used to determine what format,
+		    printer, spooler command, temporary directory, and
+		    printer pixel width and resolution.  The filename is
+		    optional in the "plot pnm" command when this parameter
+		    is set.  If the filename is missing, a temporary filename
+		    will be generated for creating the file that is spooled
+		    to the printer queue.
+		</TD> </TR>
         </TABLE>
       </BLOCKQUOTE>
 
@@ -140,7 +227,11 @@ Hardcopy plotting
       Although such entries can fine-tune the output, this is usually
       not necessary.  Also, since version 7.3.56, magic makes intelligent
       decisions about memory usage, so it's generally not necessary to
-      change the PNM plot parameters.
+      change the PNM plot parameters.  Raster plotting in HPGL2 and HPRTL
+      formats are a good alternative to PostScript for printers and plotters
+      that support those formats.  The output is not scalable, but the size
+      of the output plot is much smaller and the speed of rendering is much
+      faster.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -158,6 +249,6 @@ Hardcopy plotting
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> December 4, 2005 at 3:24pm <P>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
 </BODY>
 </HTML>

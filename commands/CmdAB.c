@@ -1118,13 +1118,13 @@ CmdBox(w, cmd)
 	    if (area > 0)
 		TxPrintf("  area (units^2)");
 
-	    TxPrintf("\n\nmicrons:  %6.2f x %-6.2f  (% 6.2f, % -6.2f), "
-		"(% 6.2f, % -6.2f)",
+	    TxPrintf("\n\nmicrons:  %6.3f x %-6.3f  (% 6.3f, % -6.3f), "
+		"(% 6.3f, % -6.3f)",
 		(float)width *oscale, (float)height * oscale,
 		(float)boxptr->r_xbot * oscale, (float)boxptr->r_ybot * oscale,
 		(float)boxptr->r_xtop * oscale, (float)boxptr->r_ytop * oscale);
 	    if (area > 0)
-		TxPrintf("  %-10.2f", (float)area * oscale * oscale);
+		TxPrintf("  %-10.3f", (float)area * oscale * oscale);
 
 	    TxPrintf("\nlambda:");
 	    if (DBLambda[0] != DBLambda[1])

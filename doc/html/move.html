@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>move</H2>
@@ -33,7 +33,7 @@ Move the cursor box and the selection.
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>move</B> [<I>option</I>] <BR><BR>
+      <B>move</B> [<B>origin</B>] [<I>option</I>] <BR><BR>
       <BLOCKQUOTE>
          where <I>option</I> is one of the following:
 	 <DL>
@@ -62,6 +62,15 @@ Move the cursor box and the selection.
       indicated amount.  The default distance is 1 unit (usually
       lambda; see <A HREF=distance.html><I>distance</I></A> for
       further explication).<P>
+
+      The option <B>origin</B> does not require a selection.  It will
+      relocate the entire design such that the origin (coordianate 0, 0)
+      is at the position indicated by <I>option</I>.  Note that this is
+      more efficient than unexpanding the contents of the top-level cell,
+      selecting everything, and moving the selection.  For very large
+      layouts, repositioning the origin of a cell can be prohibitive
+      (may overrun available memory), and "<B>move origin</B>" is always
+      preferred.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -81,6 +90,6 @@ Move the cursor box and the selection.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 7, 2004 at 3:19am <P>
+<P><I>Last updated:</I> March 20, 2020 at 1:50pm <P>
 </BODY>
 </HTML>

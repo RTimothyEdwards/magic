@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>flush</H2>
@@ -26,7 +26,7 @@ last saved version.
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>flush</B> [<I>cellname</I>] <BR><BR>
+      <B>flush</B> [<I>cellname</I>] [<B>-dereference</B>]<BR><BR>
       <BLOCKQUOTE>
          where <I>cellname</I> is the name of a cell definition to be
 	 flushed.
@@ -41,7 +41,13 @@ last saved version.
       Otherwise, the named cell is flushed. <P>
 
       The effects of the <B>flush</B> command are irrevocable; the
-      command cannot be undone with an <B>undo</B> command.
+      command cannot be undone with an <B>undo</B> command. <P>
+
+      With the <B>-dereference</B> option, any file path that has been
+      associated with the cell is discarded, and the cell is reloaded
+      from the first location found in the search path.  With search
+      path manipulations, this can be used, for example, to switch
+      between abstract and full views of a cell.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -52,12 +58,17 @@ last saved version.
       is intended.
    </BLOCKQUOTE>
 
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=path.html><B>path</B></A> <BR>
+   </BLOCKQUOTE>
+
 <P><IMG SRC=graphics/line1.gif><P>
 <TABLE BORDER=0>
   <TR>
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 6, 2004 at 2:06am <P>
+<P><I>Last updated:</I> December 10, 2020 at 1:15pm <P>
 </BODY>
 </HTML>

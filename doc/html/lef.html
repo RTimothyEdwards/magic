@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>lef</H2>
@@ -31,20 +31,45 @@ LEF-format input and output
 	 <DL>
 	   <DT> <B>read</B> [<I>filename</I>]
 	   <DD> Read a LEF file named <I>filename</I>[<B>.lef</B>]
-	   <DT> [<I>filename</I>] <B>-import</B>
+	   <DT> <B>read</B> [<I>filename</I>] <B>-import</B>
 	   <DD> Read a LEF file.  Import standard cells from <TT>.mag</TT>
 		files
-	   <DT> <B>write</B> [<I>cell</I>]
-	   <DD> Write LEF for the current or indicated cell.
-	   <DT> <B>writeall</B>
+	   <DT> <B>read</B> [<I>filename</I>] <B>-annotate</B>
+	   <DD> Read a LEF file.  Use any macros defined in the LEF file
+		to annotate existing layouts, and ignore all other macros.
+	   <DT> <B>write</B> [<I>cell</I>] [<B>-tech</B>]
+		[<B>-hide</B> [<I>distance</I>]] [<B>-toplayer</B>]
+		[<B>-nomaster</B>]
+	   <DD> Write LEF for the current or indicated cell.<BR>
+		Option <B>-tech</B> writes the technology information (layer
+		mapping and rules) to the same file as the cell macro. <BR>
+		Option <B>-hide</B> generates an abstract view that has all
+		interior detail removed, leaving only pins and obstruction
+		layers covering the entire cell with cut-out areas for the
+		pins.  Option <B>-hide</B> may take an additional value
+		argument <I>distance</I> which will hide the central part
+		of a cell starting a distance <I>distance</I> from the edge.
+		The <I>distance</I> value is in units of lambda by default,
+		but like other distance measurements changes with respect
+		to the <B>snap</B> command setting, and can take a suffix
+		such as "<B>um</B>" to specify a physical distance relative
+		to the current CIF/GDS output scale. <BR>
+		Option <B>-toplayer</B> outputs pin geometry only for the
+		topmost layer belonging to the pin;  all connected layers
+		underneath will be output as obstructions. <BR>
+		Option <B>-nomaster</B> will prevent the generation of
+		output geometry on layers defined as MASTERSLICE.
+	   <DT> <B>writeall</B> [<B>-tech</B>] [<B>-hide</B> [<I>distance</I>]]
+		[<B>-notop</B>] [<B>-toplayer</B>] [<B>-nomaster</B>]
 	   <DD> Write all cells including the top-level cell.  This might
 		be appropriate if the top-level cell is a compendium of
-		standard cells.
-	   <DT> <B>writeall -notop</B>
-	   <DD> write all subcells of the top-level cell, but not the top-level
-		cell itself.  This is appropriate for generating a LEF library
-		from a layout, for which the layout itself would be written to
-		a DEF file.
+		standard cells. <BR>
+		With option <B>-notop</B>:  Write all subcells of the top-level cell,
+		but not the top-level cell itself.  This is appropriate for
+		generating a LEF library from a layout, for which the layout
+		itself would be written to a DEF file. <BR>
+		Options <B>-hide</B>, <B>-tech</B>, and <B>-toplayer</B> are
+		the same as for the <B>lef write</B> command.
 	   <DT> <B>help</B>
 	   <DD> Print help information
 	 </DL>
@@ -94,6 +119,12 @@ LEF-format input and output
       There are specific property names associated with the LEF format.
       These are as follows:
       <DL>
+	<DT> <B>LEFshape</B>
+	<DD> Corresponds to the value of <B>SHAPE</B> for a macro
+	     cell in the LEF format.
+	<DT> <B>LEFuse</B>
+	<DD> Corresponds to the value of <B>USE</B> for a macro
+	     cell in the LEF format.
 	<DT> <B>LEFclass</B>
 	<DD> Corresponds to the value of <B>CLASS</B> for a macro
 	     cell in the LEF format.
@@ -101,15 +132,33 @@ LEF-format input and output
 	<DD> Corresponds to the value of <B>SOURCE</B> for a macro
 	     cell in the LEF format.
 	<DT> <B>LEFsymmetry</B>
-	<DD> Corresponds to the vlaue of <B>SYMMETRY</B> for a macro
+	<DD> Corresponds to the value of <B>SYMMETRY</B> for a macro
 	     cell in the LEF format.
+	<DT> <B>LEFsite</B>
+	<DD> Corresponds to the value of <B>SITE</B> for a macro
+	     cell in the LEF format.
+	<DT> <B>LEFproperties</B>
+	<DD> Corresponds to the value of <B>PROPERTY</B> for a macro
+	     cell in the LEF format.  LEF properties should be specified
+	     in a single cell property, in key:value pairs and space-separated.
+	     Like all properties containing spaces, the entire property string
+	     should be enclosed in quotes.  When writing output, each of the
+	     space-separated entries will be output on its own PROPERTY line
+	     in the LEF file.
       </DL>
 
       Normally, when importing a LEF/DEF layout into <B>magic</B>, one
       will first execute a <B>lef read</B> command followed by a
       <B>def read</B> command.  Likewise, when writing a layout, one
       will first execute a <B>lef writeall -notop</B> command followed
-      by a <B>def write</B> command.
+      by a <B>def write</B> command. <P>
+
+      If a LEF file of macro definitions is read when the same cells
+      as named in the macros already exist in the magic database, then
+      the LEF file macros will be used to annotate the existing layout.
+      This includes setting pin properties (see above), extending the
+      area of labels to cover an entire port, and setting a bounding
+      box on the cell corresponding to the LEF origin and size.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -125,6 +174,7 @@ LEF-format input and output
       <A HREF=def.html><B>def</B></A> <BR>
       <A HREF=port.html><B>port</B></A> <BR>
       <A HREF=property.html><B>property</B></A> <BR>
+      <A HREF=snap.html><B>snap</B></A> <BR>
    </BLOCKQUOTE>
 
 <P><IMG SRC=graphics/line1.gif><P>
@@ -133,6 +183,6 @@ LEF-format input and output
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 7, 2004 at 1:43am <P>
+<P><I>Last updated:</I> June 28, 2021 at 12:28pm <P>
 </BODY>
 </HTML>

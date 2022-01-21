@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>cif</H2>
@@ -32,25 +32,36 @@ Read CIF input or generate CIF output.
 	    <DT> <B>help</B>
 	    <DD> Print usage information
 	    <DT> <B>arealabels</B> [<B>yes</B>|<B>no</B>]
-	    <DD> Enable/diable use of the CIF area label extension.  The
+	    <DD> Enable/disable use of the CIF area label extension.  The
 		 default is "yes".  Normally there is no reason not to
 		 do this.
-	    <DT> <B>coverage</B> <I>layer</I>
+	    <DT> [<B>list</B>] <B>coverage</B> <I>layer</I> [<B>box</B>]
 	    <DD> Report the coverage of the indicated CIF layer within the
 		 bounds of the current edit cell.  This is useful for
 		 fabrication processes that require a minimum amount of
 		 coverage for specific layers (usually the metal routing
-		 layers).
+		 layers).  With option <B>list</B> in front, return only
+		 the coverage value, as a decimal.  Otherwise, the value
+		 is returned as a percentage, with additional diagnostic
+		 information about the area analyzed. <P>
+		 With option "<B>box</B>", report the density inside the
+		 cursor box area only.
 	    <DT> <B>idcell</B> [<B>yes</B>|<B>no</B>]
-	    <DD> Enable/diable use of the CIF cell ID extension.  The
+	    <DD> Enable/disable use of the CIF cell ID extension.  The
 		 default is "yes".  Normally there is no reason not to
 		 do this.
-	    <DT> <B>lambda</B> <B>in</B>|<B>out</B>
-	    <DD> Report the number of microns per lambda for the current
-		 style.  If "<B>in</B>" is specified, the value is
-		 reported for the current CIF/GDS input style.  If
-		 "<B>out</B>" is specified, the value is reported for
-		 the current CIF/GDS output style. 
+	    <DT> <B>scale</B> <B>in</B>|<B>out</B>
+	    <DD> Report the number of microns per internal unit for
+		 the current style.  If "<B>in</B>" is specified,
+		 the value is reported for the current CIF/GDS input
+		 style.  If "<B>out</B>" is specified, the value is
+		 reported for the current CIF/GDS output style.  <P>
+		 <I>Warning:</I> For a long time (prior to magic 8.0.180),
+		 this function was
+		 "<B>cif lambda in</B>|<B>out</B>" and claimed to
+		 return the number of microns per lambda.  For
+		 backwards compatibility, this syntax is retained,
+		 but its use is discouraged.
 	    <DT> <B>limit</B> [<I>value</I>]
 	    <DD> Limit the amount of internal grid subdivision to the
 		 indicated value (which is dimensionless, the ratio
@@ -70,6 +81,12 @@ Read CIF input or generate CIF output.
 		 than to subsplit the internal grid to such a fine value.
 		 The <B>limit</B> option may also be used to limit grid
 		 subdivision to a minimum value (see above).
+	    <DT> <B>drccheck</B> [<B>yes</B>|<B>no</B>]
+	    <DD> (Introduced in Magic version 8.0.176)  Set to "yes" by
+		 default, causing all cells in the input file to be
+		 marked as not checked by DRC as they are input.  Set this
+		 to "no" to force magic to treat the CIF cells as "known
+		 DRC clean".
 	    <DT> <B>warning</B> [<I>option</I>]
 	    <DD> Set warning information level.  "<I>option</I>" may be one
 		 of the following:
@@ -105,6 +122,18 @@ Read CIF input or generate CIF output.
 		 each polygon encountered in the CIF input is placed in its
 		 own uniquely-named subcell.  This prevents interations with
 		 other polygons on the same plane and so reduces tile splitting.
+	    <DT> <B>paint</B> <I>cif_layers</I> <I>magic_layer</I> [<I>cellname</I>]
+	    <DD> Generate the CIF layer(s) specified by <I>cif_layers</I>,
+		 then import them into the Magic database as layer
+		 <I>magic_layer</I>.  If <I>cellname</I> is specified, then
+		 the paint is generated in that cell (which will be created,
+		 if it does not already exist).  Otherwise, paint is generated
+		 directly in the edit cell.  This is a very useful function,
+		 as it allows the automatic generation of layout from boolean
+		 operations.  Principal uses are to auto-generate fill
+		 patterns, auto-generate obstruction geometry in a standard
+		 cell, to automatically place substrate and well contacts
+		 into a standard-cell array, and so forth.
 	    <DT> <B>see</B> <I>layers</I>
 	    <DD> View the CIF/GDS output layers in the comma-separated list
 		 <I>layers</I> as feedback entries on the layout.  This is
@@ -154,6 +183,38 @@ Read CIF input or generate CIF output.
 	    <DD> Output CIF format to "<I>file</I>" for the window's root cell.
 	 </DL>
       </BLOCKQUOTE>
+      <BLOCKQUOTE>
+	 <BR>
+         "Wizard" options:  Where <I>option</I> is one of the following:
+	 <BR>
+	 <DL>
+	    <DT> <B>*hier</B> <I>layer</I>
+	    <DD> This option is like "<B>cif see</B>" but shows the layers
+		 that are generated as the result of hierarchical interactions
+		 between subcells (not including interactions between components
+		 of a subcell array;  see below).
+	    <DT> <B>*array</B> <I>layer</I>
+	    <DD> This option is like "<B>cif see</B>" but shows the layers
+		 that are generated as the result of hierarchical interactions
+		 between components of subcell arrays.
+	    <DT> <B>*hier write</B> [ <B>enable</B> | <B>disable</B> ]
+	    <DD> This sets a global option that enables (default) or disables
+		 the generation of output CIF or GDS layers due to interaction
+		 between subcells (not including inter-array interactions;
+		 see below).  For large standard cell layouts where the
+		 standard cells are known to abut properly without causing
+		 spacing or overlap errors, disabling hierarchical generation
+		 can greatly reduce the amount of time needed to generate
+		 output.
+	    <DT> <B>*array write</B> [ <B>enable</B> | <B>disable</B> ]
+	    <DD> This sets a global option that enables (default) or disables
+		 the generation of output CIF or GDS layers due to interaction
+		 between components of subcell arrays.  If cells are known to
+		 abut properly without generating spacing errors between them,
+		 disabling hierarchical generation can greatly reduce the
+		 amount of time needed to generate output.
+	 </DL>
+      </BLOCKQUOTE>
    </BLOCKQUOTE>
 
 <H3>Summary:</H3>
@@ -188,6 +249,6 @@ Read CIF input or generate CIF output.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 4, 2004 at 8:03am <P>
+<P><I>Last updated:</I> February 8, 2021 at 11:12am <P>
 </BODY>
 </HTML>

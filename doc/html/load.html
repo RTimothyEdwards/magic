@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>load</H2>
@@ -26,7 +26,8 @@ Load a cell into the layout window
 <H3>Usage:</H3>
    <BLOCKQUOTE>
       <B>load</B> [<I>cellname</I> [<B>scaled</B> <I>n</I> [<I>d</I>]]]
-		[<B>-force</B>] <BR><BR>
+		[<B>-force</B>] [<B>-dereference</B>] [<B>-quiet</B>] [<B>-fail</B>]
+		<BR><BR>
       <BLOCKQUOTE>
          where <I>cellname</I> is the name of a cell that presumably
 	 exists either in the database memory or on disk as a
@@ -69,11 +70,36 @@ Load a cell into the layout window
       do for layout such as logos and text lettering drawn in
       routing layers. <P>
 
+      The <B>-quiet</B> option prevents magic from generating error
+      messages during loads.  This can be used to prevent magic from
+      complaining that a file does not exist when "<B>load</B>" is
+      being used to create a new cell, rather than load one from
+      disk. <P>
+
+      By default, if a cell cannot be found in the search path, then
+      a new empty layout is created with the name of the specified
+      cell.  The <B>-fail</B> option prevents magic from creating a
+      new cell.  Instead, if the cell cannot be found in the search
+      path, the load will simply fail. <P>
+
+      Since version 8.2.50, magic saves the path to each subcell
+      used in a design in the .mag file, to help with version
+      control.  This breaks backwards compatibility with the
+      traditional <B>load</B> command, which would always use
+      the search paths set by the <A HREF=addpath.html><B>addpath</B></A>
+      command.  The <B>-dereference</B> option restores the
+      traditional behavior by ignoring all path references in the
+      input file and relying only on known search paths to locate
+      the source file for each subcell in the layout. <P>
+
       Note that if it is not desired to have <I>cellname</I>
       created if not found on disk (e.g., because the path for
       the cell was missing from the search path), the database
       can be updated with the <B>flush</B> command or the
-      <B>cellname delete</B> command.
+      <B>cellname delete</B> command. <P>
+
+      Use of <B>load</B> with no <I>cellname</I> given will result in
+      creating a new cell called "<TT>(UNNAMED)</TT>". <P>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -92,6 +118,6 @@ Load a cell into the layout window
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 7, 2004 at 2:02am <P>
+<P><I>Last updated:</I> February 10, 2021 at 10:05pm <P>
 </BODY>
 </HTML>

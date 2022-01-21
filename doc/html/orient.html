@@ -1,0 +1,76 @@
+<HTML>
+<HEAD>
+  <STYLE type="text/css">
+    H1 {color: black }
+    H2 {color: maroon }
+    H3 {color: #007090 }
+    A.head:link {color: #0060a0 }
+    A.head:visited {color: #3040c0 }
+    A.head:active {color: white }
+    A.head:hover {color: yellow }
+    A.red:link {color: red }
+    A.red:visited {color: maroon }
+    A.red:active {color: yellow }
+  </STYLE>
+</HEAD>
+<TITLE>Magic-7.3 Command Reference</TITLE>
+<BODY BACKGROUND=graphics/blpaper.gif>
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
+     <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
+
+<H2>orient</H2>
+<HR>
+Orient the selection according to the specified orientation.
+<HR>
+
+<H3>Usage:</H3>
+   <BLOCKQUOTE>
+      <B>orient</B> [<I>orientation</I>] [<B>-origin</B>] <BR><BR>
+      <BLOCKQUOTE>
+         where <I>orientation</I> is an orientaton in the form given by
+	 the <B>instance orientation</B> command, or an orienation in
+	 DEF format (see below).
+      </BLOCKQUOTE>
+   </BLOCKQUOTE>
+
+<H3>Summary:</H3>
+   <BLOCKQUOTE>
+      The <B>orient</B> command orients the selection according to the
+      given <I>orientation</I>, which may be in the same syntax returned
+      by the "<B>instance orientation</B>" command, or according to the
+      syntax used by the DEF format. <P>
+
+      Valid values for <I>orientation</I> are:  <B>0</B>, <B>90</B>, <B>180</B>,
+      <B>270</B>, <B>h</B>, <B>v</B>, or any combination of rotation and
+      <B>h</B> or <B>v</B> (e.g., <B>90h</B>); or the DEF orientations
+      <B>N</B>, <B>S</B>, <B>E</B>, <B>W</B>, <B>FN</B>, <B>FS</B>,
+      <B>FE</B>, and <B>FW</B>. <P>
+
+      If <B>-origin</B> is specified, the orientation is around the
+      origin of the selection, not around the lower left-hand
+      corner (see the <B>clockwise</B> command).
+   </BLOCKQUOTE>
+
+<H3>Implementation Notes:</H3>
+   <BLOCKQUOTE>
+      <B>orient</B> is implemented as a built-in <B>magic</B> command.
+   </BLOCKQUOTE>
+
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=clockwise.html><B>clockwise</B></A> <BR>
+      <A HREF=sideways.html><B>sideways</B></A> <BR>
+      <A HREF=upsidedown.html><B>upsidedown</B></A> <BR>
+      <A HREF=instance.html><B>instance</B></A> <BR>
+      <A HREF=getcell.html><B>getcell</B></A> <BR>
+   </BLOCKQUOTE>
+
+<P><IMG SRC=graphics/line1.gif><P>
+<TABLE BORDER=0>
+  <TR>
+    <TD> <A HREF=commands.html>Return to command index</A>
+  </TR>
+</TABLE>
+<P><I>Last updated:</I> October 30, 2020 at 10:50am <P>
+</BODY>
+</HTML>

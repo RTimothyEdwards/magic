@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>extresist</H2>
@@ -45,6 +45,18 @@ information.
 	   <DD> Turn off/on printing of net statistics.
 	   <DT> <B>skip</B> <I>mask</I>
 	   <DD> Don't extract types indicated in the comma-separated list <I>mask</I>
+	   <DT> <B>ignore</B> [<I>netname</I>|<B>none</B>]
+	   <DD> Don't extract the net named <I>netname</I>.  The list of ignored
+		nets is global, cumulative, and persistent;  it will only be cleared
+		when the <B>extresist ignore none</B> command is issued
+		(option available from version 8.3.207).
+	   <DT> <B>include</B> [<I>netname</I>|<B>all</B>]
+	   <DD> Extract the net named <I>netname</I>.  When this option is called
+		at least once, the behavior of the extraction changes to extract
+		only the nets that have been specified by <B>extresist include</B>
+		commands.  The list of included nets is global, cumulative, and
+		persistent;  it will only be cleared when the <B>extresist include
+		all</B> command is issued (option available from version 8.3.213).
 	   <DT> <B>box</B> <I>type</I>
 	   <DD> Extract the signal under the cursor box on layer <I>type</I>
 	   <DT> <B>cell</B> <I>cellname</I>
@@ -113,6 +125,6 @@ information.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 21, 2004 at 10:48am <P>
+<P><I>Last updated:</I> October 4, 2021 at 3:32pm <P>
 </BODY>
 </HTML>

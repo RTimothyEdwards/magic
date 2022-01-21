@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>crashbackups</H2>
@@ -25,7 +25,8 @@ Handle periodic backups during a layout editing session.
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>crashbackups </B>[<B>start</B>|<B>stop</B>] <BR><BR>
+      <B>crashbackups </B>[<B>start</B>|<B>stop</B>|<B>resume</B>|<B>disable</B>]
+      <BR><BR>
    </BLOCKQUOTE>
 
 <H3>Summary:</H3>
@@ -42,14 +43,30 @@ Handle periodic backups during a layout editing session.
       <B>crashbackups stop</B> removes the timer callback and thus
       prevents further writing of backup files.  Note that if
       crash recovery is stopped or started multiple times during
-      a session, the same filename is used to save the data.
+      a session, the same filename is used to save the data. <BR><BR>
+
+      <B>crashbackups resume</B> resumes running interval backups if
+      stopped using <B>crashbackups stop</B>.  If the interval backups
+      have never been started, or have been disabled, this command
+      does nothing. <BR><BR> 
+
+      <B>crashbackups disable</B> stops running interval backups and
+      resets to the state of never having started interval backups.
+      <B>resume</B> will have no effect in this state, and <B>start</B>
+      must be issued to start the interval backups again. <BR><BR>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
    <BLOCKQUOTE>
       <B>crashbackups</B> is implemented as a Tcl procedure in the
       "tools.tcl" script file.  It calls the magic command
-      "<B>crash save</B>".
+      "<B>crash save</B>". <BR><BR>
+
+      The crash backup interval is handled by the <B>itimer</B> system
+      subroutine.  There is only one timer per process.  A timer is also
+      used by some long-running commands such as <B>extract</B> to track
+      progress, so the crash backups must necessarily be suspended when
+      those commands are using the process timer.
    </BLOCKQUOTE>
 
 <H3>See Also:</H3>
@@ -63,6 +80,6 @@ Handle periodic backups during a layout editing session.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> December 7, 2005 at 3:15pm <P>
+<P><I>Last updated:</I> March 17, 2021 at 10:53am <P>
 </BODY>
 </HTML>

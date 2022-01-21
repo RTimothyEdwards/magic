@@ -1,0 +1,81 @@
+<HTML>
+<HEAD>
+  <STYLE type="text/css">
+    H1 {color: black }
+    H2 {color: maroon }
+    H3 {color: #007090 }
+    A.head:link {color: #0060a0 }
+    A.head:visited {color: #3040c0 }
+    A.head:active {color: white }
+    A.head:hover {color: yellow }
+    A.red:link {color: red }
+    A.red:visited {color: maroon }
+    A.red:active {color: yellow }
+  </STYLE>
+</HEAD>
+<TITLE>Magic-7.3 Command Reference</TITLE>
+<BODY BACKGROUND=graphics/blpaper.gif>
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.3">
+     <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
+
+<H2>random</H2>
+<HR>
+Generate a random number or set a random seed.
+<HR>
+
+<H3>Usage:</H3>
+   <BLOCKQUOTE>
+      <B>random</B> [<B>seed</B> [<I>value</I>]]<BR><BR>
+      <BLOCKQUOTE>
+         where <I>value</I> is any integer.
+      </BLOCKQUOTE>
+   </BLOCKQUOTE>
+
+<H3>Summary:</H3>
+   <BLOCKQUOTE>
+      The <B>random</B> command with no arguments generates and returns a
+      random integer value.  With option <B>seed</B> and no additional
+      argument, it sets the random seed value according to the current
+      time.  With option <B>seed</B> and additional argument <I>value</I>,
+      it sets the random seed to the specified value. <P>
+
+      When used with option <B>seed</B>, no value is returned. <P>
+
+      Random numbers are generally frowned upon in layout because they
+      can make certain things non-reproducible from run to run.  Magic
+      uses random numbers in only one very restricted circumstance,
+      for GDS output.  The use in GDS output is restricted to the
+      single circumstance of writing an entire GDS file
+      due to use of the "GDS_FILE" property in a cell with a "GDS_START"
+      property value of "0".  Because the GDS file may contain cells of
+      unknown names, and these names could collide with names in the
+      database, the GDS file cells are all prefixed with a random
+      two-character string.  To prevent the same prefix from being
+      used on any run of magic, the random number generator should be
+      appropriately seeded. <P>
+
+      Note that there is no random number seeding on startup of magic,
+      so if needed, the random seed should be set in the startup file
+      or on the command line. <P>
+
+   </BLOCKQUOTE>
+
+<H3>Implementation Notes:</H3>
+   <BLOCKQUOTE>
+      <B>random</B> is implemented as a built-in <B>magic</B> command.
+   </BLOCKQUOTE>
+
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=gds.html><B>gds</B></A> <BR>
+   </BLOCKQUOTE>
+
+<P><IMG SRC=graphics/line1.gif><P>
+<TABLE BORDER=0>
+  <TR>
+    <TD> <A HREF=commands.html>Return to command index</A>
+  </TR>
+</TABLE>
+<P><I>Last updated:</I> January 15, 2021 at 1:00pm <P>
+</BODY>
+</HTML>

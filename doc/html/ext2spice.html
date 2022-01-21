@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>ext2spice, exttospice</H2>
@@ -25,7 +25,7 @@ Convert extracted file(s) to a SPICE format file.
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>ext2spice</B> [<I>option</I>] <BR><BR>
+      <B>ext2spice</B> [<I>option</I>] [<I>cellname</I>] <BR><BR>
       <BLOCKQUOTE>
          where <I>option</I> is one of the following:
 	 <DL>
@@ -34,7 +34,7 @@ Convert extracted file(s) to a SPICE format file.
 		(see Summary, below).
 	   <DT> <B>default</B>
 	   <DD> Reset to default values
-	   <DT> <B>format hspice</B>|<B>spice2</B>|<B>spice3</B>
+	   <DT> <B>format hspice</B>|<B>spice2</B>|<B>spice3</B>|<B>ngspice</B>
 	   <DD> Set output format.  <B>spice3</B> is the default,
 		for compatibility with <B>tclspice</B>.  This is a
 		change from previous versions of magic, where the
@@ -55,9 +55,8 @@ Convert extracted file(s) to a SPICE format file.
 		  <DT><B>conservative</B>
 		  <DD> Merge transistors and capacitors having the same device
 		       type and node connections and having the same width and
-		       length.  Widths are summed in the final output for
-		       transistors.  Capacitor values are summed in the final
-		       output.
+		       length.  Device multipliers ("M=") are output for each
+		       set of merged devices.
 		  <DT><B>aggressive</B>
 		  <DD> Merge transistors having the same node
 		       connections and having the same length.  Widths
@@ -80,16 +79,114 @@ Convert extracted file(s) to a SPICE format file.
 		may produce warnings about unknown nodes.  However, use of
 		this option may conflict with LVS (layout-vs.-schematic),
 		when only one resistor is expected per drawn device.
-	   <DT> <B>subcircuits</B> [<B>on</B>|<B>off</B>]
-	   <DD> When set to <B>on</B> (the default), standard cells become
-		subcircuit calls ("X") in the SPICE output.  The contents
-		of the standard cells are not output, and it is assumed
-		that a pre-characterized SPICE deck exists modeling the
-		behavior of each standard cell definition.  Standard cells
-		are defined by the use of the <B>port</B> method for
-		labeling input and output ports.  When set to <B>off</B>,
-		ports are ignored, and the entire circuit hierarchy is
-		flattened down to the device level.
+	   <DT> <B>subcircuit</B> [<B>on</B>|<B>off</B>]
+	   <DD> When set to <B>on</B> (the default), and if the cell selected
+		for SPICE output has defined ports on the top level, then
+		the cell becomes a subcircuit definition in the output, and
+		the output has no top-level calls to any devices.  This
+		format is appropriate for including in a testbench netlist,
+		for example.  If the top-level cell does not have defined
+		ports, then there is no way for magic to determine what
+		the ports might be, or what order they may be in, making
+		it impossible to generate a consistent subcircuit, so in
+		the absence of ports, this option has no function.
+		Ports are defined by the use of the <B>port</B> method for
+		labeling input and output ports.  When option
+		<B>subcircuit</B> is set to <B>off</B>, the top-level
+		circuit will be the top level of the netlist, and it
+		will have no associated subcircuit definition.
+	   <DT> <B>subcircuit top</B> [<B>on</B>|<B>off</B>]
+	   <DD> This variant of the <B>subcircuit</B> option controls
+		whether or not ext2spice generates a .subckt wrapper
+		around the top-level circuit.  If the top-level circuit
+		does not have defined ports, then no .subckt wrapper
+		will ever be generated, because ext2spice will not
+		be able to know which nets are the ports.
+	   <DT> <B>subcircuit descend</B> [<B>on</B>|<B>off</B>]
+	   <DD> When set to <B>off</B>, the <B>subcircuit descend</B>
+		option will not descend into any subcells below the
+		top level, writing only the top-level circuit to the
+		output.  The default is <B>on</B>.  This option can be
+		useful for writing out digital circuits made from
+		standard cells, since the digital subcircuits can usually
+		be included from a vendor library.
+	   <DT> <B>scale</B> [<B>on</B>|<B>off</B>]
+	   <DD> When set to <B>on</B>, the scale value is set by the
+		SPICE "<B><TT>.scale</TT></B>" card, recognized by some
+		SPICE parsers.  All device lengths, widths, and areas
+		are then given in integer units (internal database
+		units).  When set to <B>off</B>, all device widths,
+		lengths, and areas are given in unscaled, physical
+		dimensions.
+	   <DT> <B>short</B> [<B>voltage</B>|<B>resistor</B>|<B>none</B>]
+	   <DD> Determines behavior with respect to ports with different
+		names connected to the same net.  SPICE does not have a
+		universal method for describing a net with more than one
+		name.  A common way of handling this is by separating
+	        differently-named parts of a net with a zero-ohm ideal
+		resistor or a zero-volt DC source.  "<B>ext2spice short</B>"
+		uses one of these methods to preserve duplicate port names.
+		"<B>ext2spice short resistor</B>" uses the zero-ohm resistor
+		method, which "<B>ext2spice short voltage</B>" uses the
+		zero-volt source method.  "<B>ext2spice short none</B>"
+		reverts to the default behavior, which is to remove all
+		port names except for one from the netlist.
+	   <DT> <B>hierarchy</B> [<B>on</B>|<B>off</B>]
+	   <DD> When set to <B>on</B>, magic will extract a hierarchical
+		representation of the circuit, in which the cell hierarchy
+		of the layout is represented in SPICE by
+		"<B><TT>.subckt</TT></B>" macros.  "ext2spice hierarchy"
+		does not require that subcircuits have port labels.  Each
+		subcircuit will be analyzed for port connections, and port
+		connections will be consistent in the SPICE output between
+		the subcircuit definition (".subckt") and instantiated
+		calls ("X") to that subcircuit.
+	   <DT> <B>blackbox</B> [<B>on</B>|<B>off</B>]
+	   <DD> When set to "on", views marked as abstract will be output
+		as subcircuit calls ("X") but there will be no associated
+		subcircuit definition output.  A circuit is considered
+		"abstract" if at the time of extraction it has a property
+		named "LEFview".  A cell will automatically be given this
+		property if it is read from a LEF input file.  It may also
+		be given this property using the "<B>property</B>" command.
+		In order for the blackbox view to be meaningful, the
+		subcell must declare ports (see the "port" command).
+	   <DT> <B>renumber</B> [<B>on</B>|<B>off</B>]
+	   <DD> When set to <B>on</B>, subcircuit calls (see above;  only
+		used for certain options such as "subcircuit", "hierarchy",
+		or with extracted device types "subcircuit" or "rsubcircuit")
+		are numbered sequentially "X1", "X2", etc., as encountered
+		by the extractor.  When set to <B>off</B>, subcircuit
+		calls (when used with options "subcircuit" or "hierarchy",
+		but not applying to low-level extracted subcircuit devices)
+		will be rendered in the SPICE output file as "X" followed
+		by the ID (name) of the cell instance.
+	   <DT> <B>global</B> [<B>on</B>|<B>off</B>]
+	   <DD> When set to <B>on</B> or default, unconnected global nets
+		of the same name in subcells are merged in the output.  When
+	        set to <B>off</B>, such nets are left unconnected.
+	   <DT> <I>cellname</I>
+	   <DD> Name of the cell to generate output for.  This item is optional;
+		if not specified, then ext2spice generates output for the
+		current edit cell.
+	   <DT> <B>lvs</B>
+	   <DD> Apply settings appropriate for running LVS (layout vs. schematic).
+		These settings are as follows:
+		<UL>
+		   <LI> hierarchy on
+		   <LI> format ngspice
+		   <LI> cthresh infinite
+		   <LI> rthresh infinite
+		   <LI> renumber off
+		   <LI> scale off
+		   <LI> blackbox on
+		   <LI> subcircuit top auto
+		   <LI> global off
+		</UL>
+		This command applies the settings but does not generate output
+		(<I>i.e.</I>, does not run <B>ext2spice</B>), so that settings
+		can be overridden if necessary. <BR>
+		(The <B>lvs</B> option was introduced in version 8.2.79).
 	   <DT> <B>help</B>
 	   <DD> Print help information.
 	 </DL>
@@ -112,6 +209,42 @@ Convert extracted file(s) to a SPICE format file.
       Valid <I>runtime_options</I> are:
       <BLOCKQUOTE>
       <DL>
+	<DT> <B>-M</B>
+	<DD> Aggressive merging of devices.  If the lengths of FET
+	     devices connected in parallel are equal, then add their
+	     widths together to form a single device.  Overrides any
+	     value specified by the "ext2spice merge" command option.
+	<DT> <B>-m</B>
+	<DD> Conservative merging of devices.  If the lengths and
+	     widths of FET devices connected in parallel are equal,
+	     then add their widths together to form a single device.
+	     Overrides any value specified by the "ext2spice merge"
+	     command option.
+	<DT> <B>-o</B> <I>filename</I>
+	<DD> Save the output as file <I>filename</I> (<I>filename</I>
+	     must include any file extension, as there is no standard
+	     extension for SPICE files).
+	<DT> <B>-j</B> <I>device</I><B>:</B><I>class</I>
+			[<B>/</B><I>subclass</I>] <B>/</B><I>subsnode</I>
+	<DD> Override values of resistance class, substrate resistance
+	     class, and substrate node name for device type <I>device</I>.
+	     Resistance classes are indexed by number and must match the
+	     definition in the technology file's extract section.
+	<DT> <B>-f spice2</B>|<B>spice3</B>|<B>hspice</B>|<B>ngspice</B>
+	<DD> Choose the output SPICE format for compatibility with
+	     different versions of SPICE.
+	<DT> <B>-d</B>
+	<DD> Distribute junction areas and perimeters.  The Magic extractor
+	     computes area and perimter values per <I>node</I>, not per
+	     <I>device</I>.  For devices that share a node, Magic cannot
+	     distinguish between the devices (for parasitic calculations, 
+	     it's not necessary to distinguish between the devices).
+	     Normally, when generating device output, Magic writes the
+	     lumped area and perimeter values along with the first device
+	     attached to a node, and sets the area and perimeter values
+	     for all remaining devices on that node to zero.  The <B>-d</B>
+	     option causes Magic to distribute the node area and perimeter
+	     evenly among all devices attached to that node.
 	<DT> <B>-B</B>
         <DD> Don't output transistor or node attributes in the SPICE file.
              This option will also disable the output of information such
@@ -157,6 +290,19 @@ Convert extracted file(s) to a SPICE format file.
 
       <B>exttospice</B> is an alias for <B>ext2spice</B>, to satisfy the
       grammatically anal retentive.
+
+      <B>ext2spice</B> is also implemented as a script to be run from
+      the shell command line, where it executes magic in batch mode
+      (i.e., using the <B>-dnull</B> option) and runs the ext2spice
+      command automatically.  With this usage, the syntax is:
+      <BLOCKQUOTE>
+	   <B>ext2spice</B> [ <I>magic_options</I> <B>--</B> ]
+		<I>ext2spice_runtime_options ext_file</I>
+      </BLOCKQUOTE>
+      The double-dash separates command options passed to magic on
+      startup (such as "<B>-T</B> <I>technology</I>" to specify the
+      technology) from those runtime options (see above) passed to
+      the <B>ext2spice</B> command.
    </BLOCKQUOTE>
 
 <H3>See Also:</H3>
@@ -171,6 +317,6 @@ Convert extracted file(s) to a SPICE format file.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 12, 2005 at 9:40pm <P>
+<P><I>Last updated:</I> September 17, 2021 at 10:12am <P>
 </BODY>
 </HTML>

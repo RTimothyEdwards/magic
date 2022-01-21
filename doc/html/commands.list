@@ -1,5 +1,6 @@
 addcommandentry
 addpath
+antennacheck
 array
 box
 calma
@@ -14,13 +15,16 @@ clockwise
 closewindow
 closewrapper
 copy
+contact
 corner
+crashbackups
 cursor
 def
 delete
 deletecommandentry
 down	
 drc
+drop
 dump
 edit
 element
@@ -57,6 +61,7 @@ iroute
 label
 lef
 load
+locking
 logcommands
 macro
 maketoolbar
@@ -68,6 +73,7 @@ path
 peekbox
 plot
 plow
+polygon
 popbox
 popstack
 port
@@ -78,6 +84,7 @@ pushbox
 pushbutton
 pushstack
 quit
+random
 redo
 redraw
 render
@@ -122,6 +129,7 @@ windowscrollbars
 wire
 writeall
 xload
+xor
 xview
 zoom
 tk_path_name

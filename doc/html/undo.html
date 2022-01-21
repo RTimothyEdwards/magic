@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>undo</H2>
@@ -31,6 +31,7 @@ Undo commands
 <H3>Usage:</H3>
    <BLOCKQUOTE>
       <B>undo</B> [<B>print</B> [<I>count</I>]] <BR><BR>
+      <B>undo</B> <B>enable</B>|<B>disable</B> <BR><BR>
       <BLOCKQUOTE>
          where <I>count</I> indicates a number of events to be undone
 	 (default 1 event), and must be a nonzero positive integer.
@@ -47,11 +48,17 @@ Undo commands
       Certain commands in <B>magic</B> disable the undo mechanism,
       thus preventing the command from being undone.  These include
       layout reads and writes, CIF, GDS, and LEF/DEF reads and
-      writes.
+      writes. <P>
 
       The <B>print</B> option generates a stack trace of the top
       <I>count</I> events in the undo stack, in excruciating
-      detail.
+      detail. <P>
+
+      The <B>undo disable</B> option disables the command queue and
+      prevents all following commands to be undoable until the
+      <B>undo enable</B> command option is given.  This can save
+      time and memory for operations in a batch file where commands
+      will never be able to be undone.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -70,6 +77,6 @@ Undo commands
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 15, 2004 at 5:55am <P>
+<P><I>Last updated:</I> June 22, 2021 at 8:26pm <P>
 </BODY>
 </HTML>

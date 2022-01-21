@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>tech</H2>
@@ -46,6 +46,19 @@ technology.
 	   <DD> Show defined planes
 	   <DT> <B>layers</B> [<I>layer</I>]
 	   <DD> Show defined layers
+	   <DT> <B>layers lock</B>|<B>unlock</B> [<I>layer</I>]
+	   <DD> Lock or unlock layers.  When locked, a layer cannot be changed
+		on the layout.  Paint of that layer type cannot be copied, moved,
+		deleted, or operated upon in any manner that would change the
+		geometry of that layer.  This is useful, for example, to
+		prevent mask layers from being modified when working on
+		modifications to a process back-end.  Note that layers can
+		be marked locked in a tech file by prefixing the layer name
+		with "-".
+	   <DT> <B>layers revert</B>
+	   <DD> Return the set of locked and unlock layers to the state
+		subsequent to reading the tech file (available from magic
+		version 8.0.183).
 	   <DT> <B>drc</B> <I>option</I>
 	   <DD> Query the DRC ruleset, where <I>option</I> is one of the
 		following:
@@ -126,6 +139,6 @@ technology.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 16, 2004 at 1:59pm <P>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
 </BODY>
 </HTML>

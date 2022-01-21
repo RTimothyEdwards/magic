@@ -15,10 +15,10 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
-<H2>command_name</H2>
+<H2>label</H2>
 <HR>
 Place a label in the layout
 <HR>
@@ -31,6 +31,27 @@ Place a label in the layout
 	 may be any valid <A HREF=direction.html><I>direction</I></A>
 	 in <B>magic</B>, and <I>layer</I> may be any valid layer in
 	 the technology.
+      </BLOCKQUOTE>
+
+      <B>label</B> <I>string</I> [<I>font</I> [<I>size</I> [<I>rotation</I>
+		[<I>offsetx offsety</I> [<I>position</I> [<I>layer</I>]]]]] <BR><BR>
+      <BLOCKQUOTE>
+         where <I>string</I> is the text of the label,
+	 <I>font</I> is the name or number of a font, <I>size</I> is
+	 the integer size of the font, in standard <A HREF=distance.html>
+	 distance</A> units; <I>rotation</I> is the rotation
+	 (in degrees) of the font, <I>offsetx</I> and <I>offsety</I>
+	 are the distance of the printed text relative to the reference
+	 position (in quarter units of <A HREF=distance.html>distance</A>);
+	 <I>position</I> may be any valid
+	 <A HREF=direction.html>direction</A> in <B>magic</B>,
+	 and <I>layer</I> may be any valid layer in the technology.
+	 This usage is only available in <B>magic</B> version 8.0 and above.
+	 See the <A HREF=setlabel.html><B>setlabel</B></A> command for
+	 details on each of the label options.  <B>setlabel -default</B> can
+	 be used to set default values for all of the optional properties
+	 when they are not present on the <B>label</B> command line.
+
       </BLOCKQUOTE>
    </BLOCKQUOTE>
 
@@ -53,9 +74,17 @@ Place a label in the layout
       example, "<B>label text north</B>" will draw the label string
       "<TT>text</TT>" to the north (above) the marker. <P>
 
-      Labels cannot be directly modified;  modifications should be
-      handled by first erasing the label with "<B>erase label</B>"
-      and then redrawing.
+      In versions of <B>magic</B> prior to 8.0, labels cannot be
+      directly modified;  modifications should be handled by first
+      erasing the label with "<B>erase label</B>" and then redrawing.
+      Versions 8.0 and higher use the <A HREF=setlabel.html><B>setlabel</B></A>
+      command to modify selected labels. <P>
+
+      Versions of <B>magic</B> from 8.0.139 allow the <I>layer</I> name
+      to have a dash ("<B>-</B>") in front (e.g., "<B>-metal1</B>") to
+      indicate a "sticky label", that is, one that is attached to the
+      specified layer type <I>layer</I>, and which cannot be reattached
+      to another layer. <P>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -65,6 +94,7 @@ Place a label in the layout
 
 <H3>See Also:</H3>
    <BLOCKQUOTE>
+      <A HREF=setlabel.html><B>setlabel</B></A> <BR>
       <A HREF=port.html><B>port</B></A> <BR>
    </BLOCKQUOTE>
 
@@ -74,6 +104,6 @@ Place a label in the layout
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 7, 2004 at 1:11am <P>
+<P><I>Last updated:</I> March 17, 2021 at 11:11am <P>
 </BODY>
 </HTML>

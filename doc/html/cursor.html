@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>cursor</H2>
@@ -25,14 +25,36 @@ Return <B>magic</B> internal coordinates of the cursor (X11 pointer)
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>cursor</B> <BR><BR>
+      <B>cursor</B> <I>glyphnum</I> <BR><BR>
+      <B>cursor</B> [<B>internal</B>|<B>lambda</B>|<B>user</B>] <BR><BR>
+      <B>cursor</B> [<B>microns</B>|<B>window</B>|<B>screen</B>]
    </BLOCKQUOTE>
 
 <H3>Summary:</H3>
    <BLOCKQUOTE>
-      The <B>cursor</B> command returns the current position of the
-      cursor (the X11 pointer, not the <B>magic</B> cursor box) in
-      internal layout coordinates.
+      The <B>cursor</B> command has two distinct uses.  When followed
+      by an integer value, the cursor glyph is changed to the indicated
+      glyph, as defined internally to Magic. <BR>
+      When used without an option, or when followed by a measurement
+      metric "internal", "lambda", or "user", the <B>cursor</B> command
+      returns the current position of the cursor (the X11 pointer, not
+      the <B>magic</B> cursor box) in layout coordinates.  The coordinates
+      are given in the indicated metric, or in internal units by default. <P>
+
+      Magic version 8.1 defines the additional option "<B>microns</B>",
+      which is like the metrics mentioned above bug returns the current
+      position of the cursor in micron units, where the scalefactor for
+      determining micron units is defined by the current CIF/GDS output
+      style. <P>
+
+      Magic version 8.1 also defines two options for returning pixel
+      coordinates:  Option "<B>window</B>" returns the pointer coordinate
+      in pixels from the bottom left-hand corner of the layout window.
+      Option "<B>screen</B>" returns the pointer coordinate in pixels
+      relative to the root screen.  In X11, this is defined as the top
+      left-hand corner of the screen.  This second form is useful for
+      interacting with the window manager, for example, to open up a new
+      window or drop-down menu next to the pointer position.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -45,11 +67,20 @@ Return <B>magic</B> internal coordinates of the cursor (X11 pointer)
       if only one window is present, or the active window if called with
       the "<TT>:</TT>" macro.  Otherwise, it must be called using the
       <I>tk_path_name</I> command to specify relative to which layout
-      window the cursor coordinates will be given.
+      window the cursor coordinates will be given. <P>
+
+      The value returned by <B>cursor</B> may be modified according to the
+      state set by the <B>snap</B> command.  <B>cursor user</B> reports
+      units relative to the grid set by the <B>grid</B> command, which may
+      differ in aspect between the X and Y axes. <P>
+
+      Note, as stated above, which versions of magic support which options. <P>
    </BLOCKQUOTE>
 
 <H3>See Also:</H3>
    <BLOCKQUOTE>
+      <A HREF=snap.html><B>snap</B></A> <BR>
+      <A HREF=grid.html><B>grid</B></A> <BR>
       <A HREF=tk_path_name.html><I>tk_path_name</I></A> <BR>
    </BLOCKQUOTE>
 
@@ -59,6 +90,6 @@ Return <B>magic</B> internal coordinates of the cursor (X11 pointer)
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 5, 2004 at 2:47am <P>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
 </BODY>
 </HTML>

@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2><I>tk_path_name</I></H2>
@@ -71,7 +71,23 @@ Execute a window command in the indicated window.
       <B>specialopen</B> command have their Tk path names registered
       as commands with the Tcl interpreter, and can be passed
       commands recognized by the specific window type (e.g.,
-      netlist commands in the netlist special window).
+      netlist commands in the netlist special window). <P>
+
+      The <I>tk_path_name</I> commands effectively implement the command
+      "<B>send</B>" as it is used in the non-Tcl-based versions of Magic.
+      For example, the command "send netlist shownet" can be written,
+      in Tcl-based Magic, as the following:
+      <BLOCKQUOTE>
+         <B>[windownames netlist] shownet</B>
+      </BLOCKQUOTE>
+      Note here the nested command "<B>windownames netlist</B>" that
+      returns the Tk path name of the netlist window, which is then
+      evaluated as a command.
+   </BLOCKQUOTE>
+
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=windownames.html><B>windownames</B></A>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -88,6 +104,6 @@ Execute a window command in the indicated window.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 16, 2004 at 1:54pm <P>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
 </BODY>
 </HTML>

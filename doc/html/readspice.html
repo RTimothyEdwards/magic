@@ -1,0 +1,67 @@
+<HTML>
+<HEAD>
+  <STYLE type="text/css">
+    H1 {color: black }
+    H2 {color: maroon }
+    H3 {color: #007090 }
+    A.head:link {color: #0060a0 }
+    A.head:visited {color: #3040c0 }
+    A.head:active {color: white }
+    A.head:hover {color: yellow }
+    A.red:link {color: red }
+    A.red:visited {color: maroon }
+    A.red:active {color: yellow }
+  </STYLE>
+</HEAD>
+<TITLE>Magic-7.3 Command Reference</TITLE>
+<BODY BACKGROUND=graphics/blpaper.gif>
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
+     <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
+
+<H2>readspice</H2>
+<HR>
+Read a SPICE netlist file and use the information from subcircuit definitions in the file to set port indexes.
+<HR>
+
+<H3>Usage:</H3>
+   <BLOCKQUOTE>
+      <B>readspice</B> <I>filename</I> <BR><BR>
+      <BLOCKQUOTE>
+         where <I>filename</I> is the path name of a SPICE netlist file containing one or more subcircuit definitions.
+      </BLOCKQUOTE>
+   </BLOCKQUOTE>
+
+<H3>Summary:</H3>
+   <BLOCKQUOTE>
+      The <B>readspice</B> command is used to ensure that port indexes on
+      port labels in a cell match the port order specified in an existing
+      SPICE netlist for that cell.  This is generally used with standard
+      cell libraries to ensure that port order is maintained in cells that
+      are read from GDS or LEF, neither of which declares a port order.
+      It will also create ports from labels in the case where a file read
+      from GDS does not contain layers that are interpreted as ports by
+      the technology file's <B>cifinput</B> section.
+   </BLOCKQUOTE>
+
+<H3>Implementation Notes:</H3>
+   <BLOCKQUOTE>
+      <B>readspice</B> is implemented as a Tcl procedure defined
+      in the GUI wrapper script.  It is only available when the wrapper
+      is used, that is, when <B>magic</B> is invoked with argument <B>-w</B>,
+      although the script can be sourced from the runtime library.
+   </BLOCKQUOTE>
+
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=port.html><B>port</B></A> <BR>
+   </BLOCKQUOTE>
+
+<P><IMG SRC=graphics/line1.gif><P>
+<TABLE BORDER=0>
+  <TR>
+    <TD> <A HREF=commands.html>Return to command index</A>
+  </TR>
+</TABLE>
+<P><I>Last updated:</I> May 28, 2020 at 11:46am <P>
+</BODY>
+</HTML>

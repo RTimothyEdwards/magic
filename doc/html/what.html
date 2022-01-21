@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>what</H2>
@@ -31,7 +31,7 @@ Short summary.
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>what</B> [<B>-list</B>] <BR><BR>
+      <B>what</B> [<B>-list</B>[<B>all</B>]] <BR><BR>
    </BLOCKQUOTE>
 
 <H3>Summary:</H3>
@@ -48,7 +48,13 @@ Short summary.
       items:  The label text, the layer the label is attached to, and
       the cell def containing the label.  Each subcell in the third
       sub-list is itself a list of two items:  The subcell instance
-      ID name, and the cell definition name.
+      ID name, and the cell definition name. <P>
+
+      <B>-listall</B> is a variant of the Tcl list, in which the first
+      sub-list contains the types found, where each entry is itself a
+      list.  Each list entry first item is the name of the layer, and
+      the second entry is a list containing the names of all subcells
+      where that type is found. <P>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -62,6 +68,6 @@ Short summary.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 15, 2004 at 6:25am <P>
+<P><I>Last updated:</I> March 24, 2021 at 3:30pm <P>
 </BODY>
 </HTML>

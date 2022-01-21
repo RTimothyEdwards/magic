@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>findlabel</H2>
@@ -25,9 +25,10 @@ Set the cursor box to the location of the indicated label
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>findlabel</B> <I>label</I> [<B>-glob</B>] <BR><BR>
+      <B>findlabel</B> [<B>-glob</B>] <I>label</I> [<I>occur</I>]<BR><BR>
       <BLOCKQUOTE>
-         where <I>label</I> is the name of an existing label in magic.
+         where <I>label</I> is the name of an existing label in magic,
+	 and optional argument <I>occur</I> is an integer.
       </BLOCKQUOTE>
    </BLOCKQUOTE>
 
@@ -39,7 +40,13 @@ Set the cursor box to the location of the indicated label
       The <B>-glob</B> option causes <B>findlabel</B> to find all labels
       containing the text pattern of <I>label</I>.  This is the way the
       <B>findlabel</B> command worked in versions of <B>magic</B> prior
-      to 7.2. 
+      to 7.2.  <P>
+
+      The optional argument <I>occur</I> will center the cursor box on the
+      <I>N</I>th instance of the label, where <I>N</I>=<I>occur</I>
+      (option introduced in version 8.3.86).  If <I>occur</I> is greater
+      than the number of labels in the edit cell, then the result is the
+      same as for a label that is not found.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -53,6 +60,6 @@ Set the cursor box to the location of the indicated label
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> November 7, 2004 at 3:32pm <P>
+<P><I>Last updated:</I> November 20, 2020 at 10:18am <P>
 </BODY>
 </HTML>

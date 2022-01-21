@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>gds, calma</H2>
@@ -28,24 +28,94 @@ Read GDSII input or generate GDSII output.
       <B>gds</B> [<I>option</I>] <BR><BR>
       <B>calma</B> [<I>option</I>] <BR><BR>
       <BLOCKQUOTE>
-         where <I>option</I> is one of the following:
+         where <I>option</I> is one of the following: <BR>
+	 Primary options:
 	 <DL>
 	    <DT> <B>help</B>
 	    <DD> Print usage information
-	    <DT> <B>arrays</B> [<B>yes</B>|<B>no</B>]
-	    <DD> Output arrays as individual subuses (like in CIF).  Default
-		 is "no".  Normally there is no reason to do this.
-	    <DT> <B>contacts</B> [<B>yes</B>|<B>no</B>]
-	    <DD> Causes contacts to be written to the GDS file as subcell
-	    	 arrays (experimental, introduced in version 7.3.55).  This
-		 method can produce very efficient output compared to writing
-		 each contact cut square separately.
-	    <DT> <B>flatten</B> [<B>yes</B>|<B>no</B>]
+	    <DT> <B>read</B> <I>file</I>
+	    <DD> Read GDSII format from file <I>file</I> into the edit cell.
+		 If <I>file</I> does not have a file extension, then <B>magic</B>
+		 searches for a file named <I>file</I>, <I>file</I>.gds,
+		 <I>file</I>.gds2, or <I>file</I>.strm.
+	    <DT> <B>warning</B> [<I>option</I>]
+	    <DD> Set warning information level.  "<I>option</I>" may be one
+		 of the following:
+		 <DL>
+		 <DT><B>default</B>
+		 <DD> The default setting is equivalent to all the other
+		      options (<B>align</B>, <B>limit</B>, <B>redirect</B>,
+		      and <B>none</B>) being disabled.
+		 <DT><B>align</B>
+		 <DD> Generate warnings during a "<B>cif see</B>" command
+		      if the alignment of geometry is on fractional lambda.
+		      Normally, magic allows contacts to be drawn at
+		      half-lambda positions.  If this violates DRC requirements
+		      for the minimum output grid, this warning setting can be
+		      used to detect such violations.
+		 <DT><B>limit</B>
+		 <DD> Limit warnings to the first 100 warnings or errors only. 
+		 <DT><B>redirect</B> [<I>file</I>]
+		 <DD> Redirect all warnings to an output file named <I>file</I>.
+		      If <I>file</I> is not given, then redirection is disabled.
+		 <DT><B>none</B>
+		 <DD> Do not produce any warning messages on GDS input.
+		 </DL>
+	    <DT> <B>write</B> <I>file</I>
+	    <DD> Output GDSII format to "<I>file</I>" for the window's root cell.
+	 </DL>
+
+	 Options for <B>gds read</B>:
+
+	 <DL>
+	    <DT> <B>drccheck</B> [<B>yes</B>|<B>no</B>]
+	    <DD> If set to <B>no</B>, then do not mark cells read from GDS as
+		 requiring DRC checks (default <B>yes</B>).
+	    <DT> <B>flatglob</B> [<B>none</B>|<I>string</I>]
+	    <DD> Flatten cells by name pattern on input.  This is the more
+		 exacting version of <B>flatten</B>, as it allows specific
+		 cells to be flattened.  Each call with an argument <I>string</I>
+		 adds <I>string</I> to the list of name patterns to be checked.
+		 A call with the option <B>none</B> will remove all patterns.
+		 A call with no options will return the list of string patterns
+		 that will be applied to inputs.  The strings may use standard
+		 shell-type glob patterns, with <B>*</B> for any length string
+		 match, <B>?</B> for any single character match, <B>\</B> for
+		 special characters, and <B>[]</B> for matching character sets
+		 or ranges (introduced in version 8.3.102).
+	    <DT> <B>flatten</B> [<B>yes</B>|<B>no</B>|<I>number</I>]
 	    <DD> Flatten simple cells (e.g., contacts) on input.  This helps
 		 magic to use its contact-area representation of contacts,
 	         and can also avoid situations where contacts are lost or
 		 translated to "generic" types because the arrayed part of
-	         the contacts is missing one or more residue layers.
+	         the contacts is missing one or more residue layers.  The
+		 default number of shapes in an input to be considered
+		 "simple" is 10, but this can be set with the <I>number</I>
+		 argument.  A <I>number</I> of zero implies <B>flatten no</B>,
+		 and a non-zero <I>number</I> implies <B>flatten yes</B>.
+		 Otherwise, the use of <B>yes</B> and <B>no</B> toggles the
+		 flattening behavior without affecting any value previously
+		 set by <B>flatten</B> <I>number</I>.
+	    <DT> <B>maskhints</B> [<B>yes</B>|<B>no</B>]
+	    <DD> When set to <B>yes</B>, then after reading each cell
+		 definition from the GDS file, magic will re-generate the
+		 GDS output data from its internal representation of the
+		 cell.  Where the output data does not match the input
+		 data, and where the technology file defines mask hints in
+		 the <B>cifoutput</B> section for a GDS layer, magic will
+		 automatically generate the mask hint property for the cell
+		 such that writing GDS of the cell will produce exactly the
+		 same mask data as was in the original GDS file.
+		 (default <B>no</B>).
+	    <DT> <B>noduplicates</B> [<B>yes</B>|<B>no</B>]
+	    <DD> When reading a GDS file, this option forces magic to ignore
+		 cell definitions in the GDS file that are already present in
+		 the database (that is, for which a cell of the same name
+		 already exists).  This can be used, for example, to pre-load
+		 an abstract view of a cell before reading a GDS file containing
+		 that cell.  This option should be used with extreme caution,
+		 since there is no check as to whether the existing view is
+		 compatible with the one in the GDS file.
 	    <DT> <B>ordering</B> [<B>yes</B>|<B>no</B>]
 	    <DD> Forces post-ordering of subcells read from a GDS file; that
 	    	 is, if a cell use is encountered before it is defined, magic
@@ -55,16 +125,18 @@ Read GDSII input or generate GDSII output.
 		 when using <B>gds flatten</B>.  Otherwise, the default behavior
 		 is <B>ordering no</B> to avoid lengthy searches through the
 		 GDS stream file.
-	    <DT> <B>labels</B> [<B>yes</B>|<B>no</B>]
-	    <DD> Cause labels to be output when writing GDSII.  Default
-		 is "yes".  Normally there is no reason not to do this.
-	    <DT> <B>lower</B> [<B>yes</B>|<B>no</B>]
-	    <DD> Allow both upper and lower case in labels.  Default is "yes".
-	    <DT> <B>read</B> <I>file</I>
-	    <DD> Read GDSII format from file <I>file</I> into the edit cell.
-		 If <I>file</I> does not have a file extension, then <B>magic</B>
-		 searches for a file named <I>file</I>, <I>file</I>.gds,
-		 <I>file</I>.gds2, or <I>file</I>.strm.
+	    <DT> <B>polygon subcells</B> [<B>yes</B>|<B>no</B>]
+	    <DD> Put non-Manhattan polygons into subcells.  Default is "no".
+		 Normally this option is not needed.  However, input layout
+		 that defines a number of angled wires, particularly those
+		 that are closely spaced, can cause <B>magic</B> to generate
+		 literally millions of internal tiles.  This tends to be
+		 true in particular for corner cells in padframes for deep
+		 submicron feature sizes, where the angled corners are
+		 required to meet the DRC specification.  When set to "yes",
+		 each polygon encountered in the GDS input is placed in its
+		 own uniquely-named subcell.  This prevents interations with
+		 other polygons on the same plane and so reduces tile splitting.
 	    <DT> <B>readonly</B> [<B>yes</B>|<B>no</B>]
 	    <DD> Set cell as "read-only".  This has the effect of marking each
 		 cell definition (using the <B>property</B> method) with the
@@ -91,43 +163,83 @@ Read GDSII input or generate GDSII output.
 		 than to subsplit the internal grid to such a fine value.
 		 The "<B>cif limit</B>" function may also be used to limit
 		 grid subdivision to a minimum value.
-	    <DT> <B>warning</B> [<I>option</I>]
-	    <DD> Set warning information level.  "<I>option</I>" may be one
-		 of the following:
-		 <DL>
-		 <DT><B>default</B>
-		 <DD> The default setting is equivalent to all the other
-		      options (<B>align</B>, <B>limit</B>, <B>redirect</B>,
-		      and <B>none</B>) being disabled.
-		 <DT><B>align</B>
-		 <DD> Generate warnings during a "<B>cif see</B>" command
-		      if the alignment of geometry is on fractional lambda.
-		      Normally, magic allows contacts to be drawn at
-		      half-lambda positions.  If this violates DRC requirements
-		      for the minimum output grid, this warning setting can be
-		      used to detect such violations.
-		 <DT><B>limit</B>
-		 <DD> Limit warnings to the first 100 warnings or errors only. 
-		 <DT><B>redirect</B> [<I>file</I>]
-		 <DD> Redirect all warnings to an output file named <I>file</I>.
-		      If <I>file</I> is not given, then redirection is disabled.
-		 <DT><B>none</B>
-		 <DD> Do not produce any warning messages on GDS input.
-		 </DL>
-	    <DT> <B>write</B> <I>file</I>
-	    <DD> Output GDSII format to "<I>file</I>" for the window's root cell.
-	    <DT> <B>polygon subcells</B> [<B>yes</B>|<B>no</B>]
-	    <DD> Put non-Manhattan polygons into subcells.  Default is "no".
-		 Normally this option is not needed.  However, input layout
-		 that defines a number of angled wires, particularly those
-		 that are closely spaced, can cause <B>magic</B> to generate
-		 literally millions of internal tiles.  This tends to be
-		 true in particular for corner cells in padframes for deep
-		 submicron feature sizes, where the angled corners are
-		 required to meet the DRC specification.  When set to "yes",
-		 each polygon encountered in the GDS input is placed in its
-		 own uniquely-named subcell.  This prevents interations with
-		 other polygons on the same plane and so reduces tile splitting.
+	    <DT> <B>unique</B> [<B>yes</B>|<B>no</B>]
+	    <DD> When reading a GDS file, this option forces magic to rename
+		 cell definitions in the database when a cell of the same name
+		 is encountered in the GDS file.  The default behavior is to
+		 overwrite the cell with the new definition.  The existing
+		 cell is renamed by adding a suffix with an underscore and a
+		 number.  The number is incremented until the name fails to
+		 match any known cell name in the database.
+	</DL>
+
+	Options for <B>gds write</B>:
+
+	<DL>
+	    <DT> <B>addendum</B> [<B>yes</B>|<B>no</B>]
+	    <DD> Do not output vendor (readonly) cell definitions.  Only the
+		 references will be output.  This makes the output file an
+		 addendum to any existing vendor GDS libraries.
+	    <DT> <B>arrays</B> [<B>yes</B>|<B>no</B>]
+	    <DD> Output arrays as individual subuses (like in CIF).  Default
+		 is "no".  Normally there is no reason to do this.
+	    <DT> <B>contacts</B> [<B>yes</B>|<B>no</B>]
+	    <DD> Causes contacts to be written to the GDS file as subcell
+	    	 arrays (experimental, introduced in version 7.3.55).  This
+		 method can produce very efficient output compared to writing
+		 each contact cut square separately.
+	    <DT> <B>datestamp</B> [<B>yes</B>|<B>no</B>|<I>value</I>]
+	    <DD> When writing a GDS file, each cell definition is given a
+		 header containing two date stamps, one for the creation date,
+		 and one for the modification date.  By default, magic writes
+		 the cell's internal timestamp as the creation date, and sets
+		 the modification date stamp to zero.  The <B>datestamp</B>
+		 option, if set to <B>no</B>, will also set the creation
+		 date stamp to zero.  If set to <I>value</I>, then the specified
+		 stamp value will be output for the creation date.  The stamp
+		 value should be an integer in the format used by the UNIX
+		 time() system call, which is the number of seconds since
+		 January 1, 1970, or equivalently the Tcl command
+		 "<B>clock seconds</B>".  Note that very few tools make use of
+		 the GDS date stamps.  But having a valid date stamp means that
+		 a GDS file cannot be written twice with the exact same contents,
+		 which has implications for repositories like git.  When writing
+		 libraries, it is useful to set a date stamp tied to a version
+		 number and apply that date stamp to all files written for the
+		 library.
+	    <DT> <B>labels</B> [<B>yes</B>|<B>no</B>]
+	    <DD> Cause labels to be output when writing GDSII.  Default
+		 is "yes".  Normally there is no reason not to do this.
+	    <DT> <B>library</B> [<B>yes</B>|<B>no</B>]
+	    <DD> Do not write the top level cell into the output GDS file, but
+		 write only the subcells of the top level cell.  Default is "no".
+	    <DT> <B>lower</B> [<B>yes</B>|<B>no</B>]
+	    <DD> Allow both upper and lower case in labels.  Default is "yes".
+	    <DT> <B>merge</B> [<B>yes</B>|<B>no</B>]
+	    <DD> Concatenate connected tiles into polygons when generating
+		 output.  Depending on the tile geometry, this may make the
+		 output file up to four times smaller, at the cost of speed
+		 in generating the output file.  Some programs like the field
+		 equation solver HFSS won't work properly with layout broken
+		 into many tiles;  other programs like Calibre will complain
+		 about acute angles when non-Manhattan geometry is broken
+		 into triangles.  GDS output limits polygon boundaries to
+		 a maximum of 200 points, which limits the efficiency of the
+		 merge method.  The default value if "no"; e.g., all GDS output
+		 is a direct conversion of tiles to rectangle and triangle
+		 boundary records.
+	    <DT> <B>nodatestamp</B> [<B>yes</B>|<B>no</B>]
+	    <DD> Backwardly compatible alternative to the <B>datestamp</B>
+		 option.  Setting <B>nodatestamp yes</B> is equivalent to
+		 setting <B>datestamp no</B> (see above).
+	    <DT> <B>undefined</B> [<B>allow</B>|<B>disallow</B>]
+	    <DD> Define the behavior for undefined cells (e.g., cells whose
+		 layout contents could not be found).  If allowed, then the
+		 calls to these cells will be written to GDS even if the cell
+		 itself is not defined in the GDS (see the <B>addendum</B>
+		 option, above).  If disallowed, the GDS file will not be
+		 written if undefined references exist.  The default behavior
+		 is <B>disallow</B>.
 	 </DL>
       </BLOCKQUOTE>
    </BLOCKQUOTE>
@@ -184,6 +296,6 @@ Read GDSII input or generate GDSII output.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> December 4, 2005 at 3:17pm <P>
+<P><I>Last updated:</I> April 27, 2021 at 1:06pm <P>
 </BODY>
 </HTML>

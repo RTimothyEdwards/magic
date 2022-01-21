@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>ext2sim, exttosim</H2>
@@ -33,9 +33,14 @@ Convert extracted file(s) to a ".sim" format file.
 	   <DD> Run exttosim on current cell, with command-line options
 		(see Summary, below).
 	   <DT> <B>alias on</B>|<B>off</B>
-	   <DD> Enable/disable alias (.al) file
+	   <DD> Enable/disable alias (.al) file.  This file contains all of
+		the node aliases (different node names that correspond to the
+		same node).  If "off", the statements are output directly to
+		the .sim file.  If "on", the statements are moved to the ".al"
+		file.
 	   <DT> <B>labels on</B>|<B>off</B>
-	   <DD> Enable/disable labels (.nodes) file
+	   <DD> Enable/disable labels (.nodes) file.  The labels file is used
+		by the extresist command.
 	   <DT> <B>default</B>
 	   <DD> Reset to default values
 	   <DT> <B>format MIT</B>|<B>SU</B>|<B>LBL</B>
@@ -140,6 +145,19 @@ Convert extracted file(s) to a ".sim" format file.
 
       <B>exttosim</B> is an alias for <B>ext2sim</B>, to satisfy the
       grammatically anal retentive.
+
+      <B>ext2sim</B> is also implemented as a script to be run from
+      the shell command line, where it executes magic in batch mode
+      (i.e., using the <B>-dnull</B> option) and runs the ext2sim
+      command automatically.  With this usage, the syntax is:
+      <BLOCKQUOTE>
+           <B>ext2sim</B> [ <I>magic_options</I> <B>--</B> ]
+                <I>ext2sim_runtime_options ext_file</I>
+      </BLOCKQUOTE>
+      The double-dash separates command options passed to magic on
+      startup (such as "<B>-T</B> <I>technology</I>" to specify the
+      technology) from those runtime options (see above) passed to
+      the <B>ext2sim</B> command.
    </BLOCKQUOTE>
 
 <H3>See Also:</H3>
@@ -156,6 +174,6 @@ Convert extracted file(s) to a ".sim" format file.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 12, 2005 at 9:40pm <P>
+<P><I>Last updated:</I> September 13, 2021 at 12:31pm <P>
 </BODY>
 </HTML>

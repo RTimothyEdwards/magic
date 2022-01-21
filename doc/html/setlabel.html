@@ -1,0 +1,170 @@
+<HTML>
+<HEAD>
+  <STYLE type="text/css">
+    H1 {color: black }
+    H2 {color: maroon }
+    H3 {color: #007090 }
+    A.head:link {color: #0060a0 }
+    A.head:visited {color: #3040c0 }
+    A.head:active {color: white }
+    A.head:hover {color: yellow }
+    A.red:link {color: red }
+    A.red:visited {color: maroon }
+    A.red:active {color: yellow }
+  </STYLE>
+</HEAD>
+<TITLE>Magic-7.3 Command Reference</TITLE>
+<BODY BACKGROUND=graphics/blpaper.gif>
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
+     <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
+
+<H2>setlabel</H2>
+<HR>
+Manipulate rendered font labels
+<HR>
+
+<H3>Usage:</H3>
+   <BLOCKQUOTE>
+      <B>setlabel</B> [<B>-default</B>] <I>option</I> <BR><BR>
+      <BLOCKQUOTE>
+         where <I>option</I> is one of the following:
+	 <DL>
+	   <DT> <B>text</B> [<I>string</I>]
+	   <DD> Report the text string of all selected labels, or change
+		the text string of selected labels to <I>string</I>.
+	   <DT> <B>font</B> [<I>name</I> [<I>scale</I>]]
+	   <DD> Report the font of all selected labels, or set the font
+		to the font named <I>name</I>, where <I>name</I> is one
+		of the known fonts returned by the command "<B>setlabel
+		fontlist</B>".  If the named font is not in the list, magic
+		will attempt to load it, if the font vector list can be
+		found (the font vector list should be in an unencoded
+		PostScript Type3 font format).  Magic scales all fonts
+		such that label size can be specified in database units.
+		Unfortunately, fonts tend to have characters (accents, for
+		example) well above the height of a standard capital letter,
+		and these characters result in the inability to extract the
+		font height from the font metrics.  In such (common) cases,
+		the optional floating-point <I>scale</I> value specifies the
+		difference between the character height and the font height
+		reported by the font metrics.  Typically, this number is
+		around 0.6.
+	   <DT> <B>font</B> <I>number</I>
+	   <DD> For <I>number</I> zero or larger, this option returns the
+		name of the font that is index <I>number</I> into the list
+		of loaded fonts.  No other action is taken.  For <I>number</I>
+		equal to <B>-1</B>, the font of the selected label is reset
+		to the default X11 font, and properties such as scale,
+		offset, and rotation are ignored.  Justification is retained.
+	   <DT> <B>fontlist</B>
+	   <DD>	Return a list of the known, loaded fonts.
+	   <DT> <B>justify</B> [<I>position</I>]
+	   <DD> Report the justification of all selected labels, or change the
+		justification to <I>position</I>, which may be any compass
+		direction or "center".
+	   <DT> <B>size</B> [<I>value</I>]
+	   <DD> Report the size of all selected labels, or change the size of
+		selected labels to <I>value</I>, which may be given in units
+		of lambda, or a metric measurement (e.g., "<B>1um</B>").  The
+		text will be adjusted so that the height of capitalized text
+		from the text baseline is equal to the requested value.
+	   <DT> <B>offset</B> [<I>x y</I>]
+	   <DD> Report the offset of all selected labels (in <I>x y</I> pairs),
+		or change the offset, which is the spacing between the point
+		marked by the label and the label text.  In the case of a
+		rectangle identifying a label, the spacing is measured from the
+		center of the rectangle.
+	   <DT> <B>rotate</B> [<I>value</I>]
+	   <DD> Report the angle of rotation of all selected labels, or change
+		the angle, which is measured in degrees counterclockwise.
+		Any integer angle is acceptable.  Labels are always drawn
+		upright, so labels rotated from 90 to 270 degrees undergo an
+		additional 180 degree rotation <I>within their bounding box</I>
+		to ensure that the text always remains upright.  Likewise,
+		rotations and reflections of subcells are applied to the
+		label bounding box, with the text rotated within the bounding
+		box to ensure an upright orientation.  If this explanation is
+		a bit obscure, then the rule is:  if a label is drawn on a cell
+		such that it occupies a specific place with respect to the cell
+		layout, then it will always appear in that same place regardless
+		of how the cell is oriented in the hierarchy of a layout.
+	   <DT> <B>layer</B> [<I>name</I>]
+	   <DD> Report the layer type to which the label is attached.
+		If the optional <I>name</I> is given, and is a valid layer
+		name, then the label is modified to be attached to that
+		layer type.  Note that if the layer is not also declared
+		"sticky" (see below), then it is likely to be reattached to
+		the original layer during certain operations.
+	   <DT> <B>sticky</B> [<B>true</B>|<B>false</B>]
+	   <DD> Report the status of the "sticky" flag for the label.  Labels
+		which have the "sticky" flag set can only attach to the
+		assigned layer type.  Such labels may be placed over a layer
+		that exists only in a subcell, unlike non-sticky labels,
+		which will reattach to any available layer or else be
+		assigned to "space".  Value returned is 1 (true) or 0 (false).
+		If "<B>true</B>" or "<B>false</B>" is specified, then the
+		sticky flag is set or cleared, respectively.
+	 </DL>
+      </BLOCKQUOTE>
+   </BLOCKQUOTE>
+
+<H3>Summary:</H3>
+   <BLOCKQUOTE>
+      The <B>setlabel</B> command manipulates selected text labels.  In versions
+	of <B>magic</B> prior to 8.0, labels could not be manipulated, but could
+	only be changed by removing and replacing the label.  Labels were drawn
+	in an X11 font that was scaled relative to the window, not the layout.
+	<B>setlabel</B> not only allows text strings to be modified on any labels,
+	but also allows labels to be drawn in scaled fonts, rotated and offset
+	to a specific position.  Fonts are read from simple, ASCII-encoded
+	PostScript Type-3 font files, such as provided by the Freefont project.
+	<BR><BR>
+
+	If <B>-default</B> is specified, then the given option is set as a
+	default, if a value is supplied.  If no value is supplied, then the
+	value of the default is returned.  The default values are applied
+	when the "<B>label</B> command is issued without the full set of
+	values.  The <B>-default</B> option may be used with any label
+	property except for <I>text</I>.
+	<BR><BR>
+
+	The default values, if not changed by using the <B>-default</B> option,
+	are as follows:
+	<DL>
+	    <DT> <B>font</B>
+	    <DD> <B>default</B> Fixed-width X11 bitmap font.
+	    <DT> <B>justify</B>
+	    <DD> <B>-1</B>  Default justification, automatically determined.
+	    <DT> <B>size</B>
+	    <DD> <B>0</B>  Size is determined by the default font.
+	    <DT> <B>offset</B>
+	    <DD> <B>0 0</B>  Text is not offset.
+	    <DT> <B>rotate</B>
+	    <DD> <B>0</B>  Text is not rotated.
+	    <DT> <B>layer</B>
+	    <DD> <B>-1</B>  Default layer type, automatically determined.
+	    <DT> <B>sticky</B>
+	    <DD> <B>0</B>  Labels are not sticky by default.
+	</DL>
+   </BLOCKQUOTE>
+
+<H3>Implementation Notes:</H3>
+   <BLOCKQUOTE>
+      <B>setlabel</B> is implemented as a built-in command in <B>magic</B>
+	version 8.0 (or higher) only.
+   </BLOCKQUOTE>
+
+<H3>See Also:</H3>
+   <BLOCKQUOTE>
+      <A HREF=label.html><B>label</B></A> <BR>
+   </BLOCKQUOTE>
+
+<P><IMG SRC=graphics/line1.gif><P>
+<TABLE BORDER=0>
+  <TR>
+    <TD> <A HREF=commands.html>Return to command index</A>
+  </TR>
+</TABLE>
+<P><I>Last updated:</I> March 17, 2021 at 11:16am <P>
+</BODY>
+</HTML>

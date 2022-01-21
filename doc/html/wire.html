@@ -20,7 +20,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>wire</H2>
@@ -55,6 +55,10 @@ Generate wires from the command line.
 	   <DD> add a new vertical wire leg
 	   <DT> <B>segment</B> <I>layer width x1 y1 x2 y2</I>... [<B>-noendcap</B>]
 	   <DD> Paint one or more wire segments
+	   <DT> <B>segment</B> <I>layer width filename</I> [<B>-noendcap</B>]
+	   <DD> Paint one or more wire segments taken from the text file
+		<I>filename</I> containing two coordinates X and Y per line,
+		one line per path point.
 	   <DT> <B>show</B>
 	   <DD> Determine where the next wire leg will be according to
 	   	the rules for <B>wire leg</B>, but place the result in
@@ -90,7 +94,28 @@ Generate wires from the command line.
       the wire width.  The <B>-noendcap</B> option causes the wire to
       end at the coordinate, with no extension.  The <B>wire segment</B>
       command is intended to be used from Tcl scripts for automatic
-      layout generation.
+      layout generation. <P>
+
+      The first format for <B>wire segment</B> has coordinates specified
+      on the command line.  For wire segments with too many points, this
+      command may overrun the internal limit on either number of command-line
+      arguments or the total number of characters in the command line.  To
+      work around these limits, the second format of the command specifies
+      a filename in place of the coordinate list.  The file is a simple
+      text file, with one line per coordinate pair.  X and Y values must be
+      separated by whitespace.  The syntax for each value is the same as for
+      the command;  e.g., one can use integers which will be interpreted
+      relative to the current snap setting, or one can specify the units,
+      such as "100um". <P>
+
+      When generating path points from a script, the most convenient method
+      is to create an empty list ("{}"), then use "lappend" to add coordinates
+      to the list.  Once the list is complete, it is necessary to use "eval"
+      to decompose the list.
+      <BLOCKQUOTE>
+	Incorrect:	<B>wire segment m1 50 $pointlist</B> <BR>
+	Correct:	<B>eval "wire segment m1 50 $pointlist"</B>
+      </BLOCKQUOTE>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -109,6 +134,6 @@ Generate wires from the command line.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> December 4, 2005 at 8:38pm <P>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
 </BODY>
 </HTML>

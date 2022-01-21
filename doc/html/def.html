@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>def</H2>
@@ -29,9 +29,9 @@ Read or write DEF format files.
       <BLOCKQUOTE>
          where <I>option</I> is one of the following:
 	 <DL>
-	   <DT> <B>read</B> [<I>filename</I>]
+	   <DT> <B>read</B> <I>filename</I> [<B>-labels</B>]
 	   <DD> Read a DEF file <I>filename</I>[<B>.def</B>]
-	   <DT> <B>write</B> [<I>cell</I>]
+	   <DT> <B>write</B> [<I>cell</I>] [<B>-units</B> <I>value</I>]
 	   <DD> Write DEF for current or indicated cell named <I>cell</I>
 	   <DT> <B>help</B>
 	   <DD> Print help information (command summary)
@@ -55,6 +55,21 @@ Read or write DEF format files.
       an appropriate LEF file exists and is read prior to writing a
       DEF format file, the technology will be initialized from the
       file if it is not declared in the technology file. <P>
+
+      Normally the DEF file is written in units of nanometers according to
+      the active GDS output scale (UNITS DISTANCE MICRONS 1000).  If option
+      "<B>-units</B> <I>value</I>" is used, then the units indicated by
+      <I>value</I> are used instead of 1000.  This option can be used, for
+      example, to preserve units when re-writing a DEF file that was read
+      with "<B>def read</B>".  There is no guarantee that values can be
+      accurately represented at the specified scale.  The <B>-units</B>
+      option was introduced in magic version 8.2.113. <P>
+
+      The "<B>-labels</B>" option to the "<B>def read</B>" command
+      causes each net in the NETS and SPECIALNETS sections of the DEF
+      file to be annotated with a label having the net name as the label
+      text. <P>
+
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -79,6 +94,6 @@ Read or write DEF format files.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 7, 2004 at 1:45am <P>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
 </BODY>
 </HTML>

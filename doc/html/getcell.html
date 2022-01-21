@@ -15,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>get, getcell</H2>
@@ -26,7 +26,8 @@ Import a cell as a subcell of the current edit cell.
 <H3>Usage:</H3>
    <BLOCKQUOTE>
       <B>getcell</B> <I>cellname</I> [<I>orientation</I>] <BR><BR>
-      <B>getcell</B> <I>cellname</I> [<B>child</B> <I>child_refpoint</I>]
+      <B>getcell</B> <I>cellname</I> [<I>orientation</I>]
+		[<B>child</B> <I>child_refpoint</I>]
 		[<B>parent</B> <I>parent_refpoint</I>] <BR><BR>
       <BLOCKQUOTE>
          where <I>orientation</I> may be one of the following:
@@ -57,11 +58,16 @@ Import a cell as a subcell of the current edit cell.
 	 and <I>child_refpoint</I> and <I>parent_refpoint</I> may be
 	 <I>x y</I> coordinate pairs, or one of the four keywords
 	 <B>ll</B>, <B>lr</B>, <B>ul</B>, or <B>ur</B>, indicating
-	 one of the four box corners.   For the child,
-	 coordinate pairs are in the coordinate system of the child,
-	 and corners indicate cell bounding box corners.  For the
-	 parent, coordinate pairs are in the coordinate system of
-	 the parent, and corners indicate corners of the cursor box.
+	 one of the four box corners, or the name of a label in the
+	 parent or child cell.   For the child, coordinate pairs are
+	 in the coordinate system of the child, and corners indicate
+	 cell bounding box corners.  For the parent, coordinate pairs
+	 are in the coordinate system of the parent, and corners indicate
+	 corners of the cursor box.  If <B>child</B> or <B>parent</B>
+	 options are not provided, then the default behavior is the same
+	 as "<B>child ll</B>" and "<B>parent ll</B>", respectively.
+	 If a label name is given, then the position (anchor point) of
+	 the label will be used as the reference point.
       </BLOCKQUOTE>
    </BLOCKQUOTE>
 
@@ -97,6 +103,6 @@ Import a cell as a subcell of the current edit cell.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 6, 2004 at 3:32am <P>
+<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
 </BODY>
 </HTML>

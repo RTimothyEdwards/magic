@@ -1,4 +1,3 @@
-
 <HTML>
 <HEAD>
   <STYLE type="text/css">
@@ -16,7 +15,7 @@
 </HEAD>
 <TITLE>Magic-7.3 Command Reference</TITLE>
 <BODY BACKGROUND=graphics/blpaper.gif>
-<H1> <IMG SRC=graphics/magic_title2.gif ALT="Magic VLSI Layout Tool Version 7.3">
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
      <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
 
 <H2>instance</H2>
@@ -31,7 +30,7 @@ Operations on cell instances (uses).
          where <I>option</I> is one of the following:
 	 <DL>
 	   <DT> [<B>list</B>] <B>children</B> [<I>name</I>]
-	   <DD> List all of the children definitions of cell use <I>name</I>,
+	   <DD> List all of the children instances of cell use <I>name</I>,
 		or the children of the currently selected cell instance.
 	   <DT> [<B>list</B>] <B>parent</B> [<I>name</I>]
 	   <DD> List the parent cell definition of cell use <I>name</I>,
@@ -46,6 +45,36 @@ Operations on cell instances (uses).
 	   <DD> List all of the cell instances in the database.  Note that
 		expansion is not automatic, so cells that are not expanded
 		are not searched.
+	   <DT> <B>orientation</B> [<I>name</I>] [<B>-def</B>]
+	   <DD> Returns the orientation of the instance.  By default, returns
+		the orientation in the naming convention used by the
+		"<B>getcell</B>" command.  If the option "<B>-def</B>" is
+		specified, then the orientation is given in the naming
+		convention used by the DEF format for component placement.
+		if <I>name</I> is given, then return the orientation of the
+		named instance.  Otherwise, the orientation of all selected
+		instances is returned as an unordered list.
+	   <DT> [<B>list</B>] <B>abutment</B>
+	   <DD> Returns the coordinates of the instance's abutment box
+		(the bounding box formed by the coordinates saved in the
+		FIXED_BBOX property in the cell), translated into the
+		coordinate system of the parent cell (which must be the
+		edit cell).  This should be used, for example, when
+		replacing an instance of a standard cell with another
+		standard cell, to move the cursor box to the abutment box
+		position so that the new cell has the same alignment as
+		the old cell (see also <B>orientation</B>, above).
+	   <DT> <B>lock</B>|<B>unlock</B> [<I>name</I>]
+	   <DD> Locking an instance prevents it from being moved, rotated,
+		flipped, deleted, or copied.  This is useful, for example,
+		when part of a layout is declared "final" and changes to
+		that area are prohibited.  The cell instance's lock status
+		can be saved to and read from the layout file, so the lock
+		will remain in effect until the instance is unlocked.
+		Cells that are locked have the character "<B>*</B>" prepended
+		to the instance name in the display.  With no <I>name</I>
+		given to the command, the lock will be applied to all
+		selected cell instances.
 	 </DL>
       </BLOCKQUOTE>
    </BLOCKQUOTE>
@@ -72,6 +101,13 @@ Operations on cell instances (uses).
       (q.v.).  A number of options to <B>cellname</B> are meaningless
       for instances. <P>
 
+      <I>Warning:</I> Because instance names are arbitrary, looking up
+      an instance name is computationally intensive compared to looking
+      up a cell name.  When used inside a loop, such as to search the
+      cell name hierarchy, use command <B>cellname</B> on cell definitions
+      instead of command <B>instance</B> on cell instance names whenever
+      possible. <P>
+
       The command option <B>instance list exists</B> is nonsensical from
       the standpoint of the end-user (if the cell is selected, of course
       it exists).  However, it is a very useful function for Tcl scripts
@@ -89,6 +125,7 @@ Operations on cell instances (uses).
    <BLOCKQUOTE>
       <A HREF=cellname.html><B>cellname</B></A> <BR>
       <A HREF=load.html><B>load</B></A> <BR>
+      <A HREF=getcell.html><B>getcell</B></A> <BR>
       <A HREF=tk_path_name.html><I>tk_path_name</I></A> <BR>
    </BLOCKQUOTE>
 
@@ -98,6 +135,6 @@ Operations on cell instances (uses).
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> October 8, 2004 at 8:06am <P>
+<P><I>Last updated:</I> January 15, 2021 at 12:47pm <P>
 </BODY>
 </HTML>
