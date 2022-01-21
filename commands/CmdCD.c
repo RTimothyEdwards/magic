@@ -99,18 +99,19 @@ bool cmdDumpParseArgs();
 #define	CALMA_LABELS	8
 #define	CALMA_LIBRARY	9
 #define	CALMA_LOWER	10
-#define CALMA_MERGE	11
-#define CALMA_NO_STAMP	12
-#define CALMA_NO_DUP	13
-#define CALMA_READ	14
-#define CALMA_READONLY	15
-#define CALMA_RESCALE	16
-#define CALMA_WARNING	17
-#define CALMA_WRITE	18
-#define CALMA_POLYS	19
-#define CALMA_PATHS	20
-#define CALMA_UNDEFINED	21
-#define CALMA_UNIQUE	22
+#define CALMA_MASKHINTS	11
+#define CALMA_MERGE	12
+#define CALMA_NO_STAMP	13
+#define CALMA_NO_DUP	14
+#define CALMA_READ	15
+#define CALMA_READONLY	16
+#define CALMA_RESCALE	17
+#define CALMA_WARNING	18
+#define CALMA_WRITE	19
+#define CALMA_POLYS	20
+#define CALMA_PATHS	21
+#define CALMA_UNDEFINED	22
+#define CALMA_UNIQUE	23
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -145,6 +146,7 @@ CmdCalma(w, cmd)
 	"labels [yes|no]	cause labels to be output when writing GDS-II",
 	"library [yes|no]	do not output the top level, only subcells",
 	"lower [yes|no]		allow both upper and lower case in labels",
+	"maskhints [yes|no]	generate mask hint properties on input",
 	"merge [yes|no]		merge tiles into polygons in the output",
 	"nodatestamp [yes|no]	write a zero value creation date stamp",
 	"noduplicates [yes|no]	do not read cells that exist before reading GDS",
@@ -535,6 +537,28 @@ CmdCalma(w, cmd)
 	    if (option < 0)
 		goto wrongNumArgs;
 	    CalmaDoLower = (option < 4) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_MASKHINTS:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaMaskHints));
+#else
+		if (CalmaMaskHints)
+		    TxPrintf("Mask hints generated from GDS input.\n");
+		else
+		    TxPrintf("No mask hints generated from GDS input.\n");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaYesNo);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaMaskHints = (option < 4) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_MERGE:

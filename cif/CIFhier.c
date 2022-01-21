@@ -310,6 +310,7 @@ cifFlatMaskHints(name, value, mhd)
 		if (lastval) freeMagic(lastval);
 
 		/* Parse through the four values and check if there's more */
+		while (*vptr && isspace(*vptr)) vptr++;
 		while (*vptr && !isspace(*vptr)) vptr++;
 		while (*vptr && isspace(*vptr)) vptr++;
 		while (*vptr && !isspace(*vptr)) vptr++;
