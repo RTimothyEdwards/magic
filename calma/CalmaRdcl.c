@@ -552,6 +552,10 @@ calmaParseStructure(filename)
 	DBW_ALLWINDOWS, &DBAllButSpaceBits);
     DBCellSetModified(cifReadCellDef, TRUE);
 
+    /* Only mark cell as needing a timestamp update if the timestamp is zero */
+    if (cifReadCellDef->cd_timestamp != 0)
+	cifReadCellDef->cd_flags &= ~CDGETNEWSTAMP;
+
     /*
      * Assign use-identifiers to all the cell uses.
      * These identifiers are generated so as to be

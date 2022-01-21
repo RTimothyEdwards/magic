@@ -1807,26 +1807,52 @@ CmdWire(w, cmd)
  * ----------------------------------------------------------------------------
  */
 
+#define OPT_WRITEALL_FORCE	0
+#define OPT_WRITEALL_MODIFIED	1
+#define OPT_WRITEALL_NOUPDATE	2	
+
 void
 CmdWriteall(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
     int cmdWriteallFunc();
-    static char *force[] = { "force", 0 };
+    int option = -1;
+    static char *writeallOpts[] = { "force", "modified", "noupdate", 0 };
     int argc;
     int flags = CDMODIFIED | CDBOXESCHANGED | CDSTAMPSCHANGED;
 
     if (cmd->tx_argc >= 2)
     {
 	flags = 0;
-	if (Lookup(cmd->tx_argv[1], force) < 0)
+	option = Lookup(cmd->tx_argv[1], writeallOpts);
+	if (option < 0)
 	{
-	    TxError("Usage: %s [force [cellname ...]]\n", cmd->tx_argv[0]);
+	    TxError("Usage: %s [force|modified|noupdate [cellname ...]]\n",
+		    cmd->tx_argv[0]);
 	    return;
 	}
+	if (option == OPT_WRITEALL_MODIFIED) flags = CDMODIFIED;
+
+	/* Check if all cells exist */
+	if (cmd->tx_argc > 2)
+	{
+	    int i;
+	    int notfound = 0;
+	    for (i = 2; i < cmd->tx_argc; i++)
+	    {
+		if (DBCellLookDef(cmd->tx_argv[i]) == NULL)
+		{
+		    TxError("No such cell \"%s\".\n", cmd->tx_argv[i]);
+		    notfound++;
+		}
+	    }
+	    if (notfound == cmd->tx_argc - 2) return;
+	}
     }
-    DBUpdateStamps();
+    if (option != OPT_WRITEALL_NOUPDATE)
+	DBUpdateStamps();
+
     argc = cmd->tx_argc;
     (void) DBCellSrDefs(flags, cmdWriteallFunc, (ClientData)cmd);
     cmd->tx_argc = argc;

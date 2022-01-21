@@ -31,7 +31,7 @@ Write out all modified cells to disk
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>writeall</B> [<B>force</B> <I>cell1 cell2...</I>]<BR><BR>
+      <B>writeall</B> [<B>force</B>|<B>modified</B>|<B>noupdate</B> <I>cell1 cell2...</I>]<BR><BR>
    </BLOCKQUOTE>
 
 <H3>Summary:</H3>
@@ -69,7 +69,16 @@ Write out all modified cells to disk
       in the hierarchy with no prompting.  If one or more cell names
       follows <B>write force</B>, the cells listed will be written 
       (action "write") and all other cells will be ignored (action
-      "skip").
+      "skip"). <P>
+
+      With the option <B>write modified</B>, the command writes all
+      cells in the hierarchy which have been modified, ignoring those
+      cells marked as needing only a bounding box or timestamp update. <P>
+
+      With the option <B>write noupdate</B>, the command writes all
+      cells in the hierarchy like it would for <B>write force</B>, but
+      it does not update timestamps. <P>
+
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
