@@ -301,6 +301,7 @@ calmaParseStructure(filename)
     int nbytes, rtype, nsrefs, osrefs, npaths;
     char *strname = NULL;
     HashEntry *he;
+    int timestampval = 0;
     int suffix;
     int mfactor;
     off_t filepos;
@@ -318,7 +319,7 @@ calmaParseStructure(filename)
     /* Read the structure name */
     was_initialized = FALSE;
     predefined = FALSE;
-    if (!calmaSkipExact(CALMA_BGNSTR)) goto syntaxerror;
+    if (!calmaReadStampRecord(CALMA_BGNSTR, &timestampval)) goto syntaxerror;
     if (!calmaReadStringRecord(CALMA_STRNAME, &strname)) goto syntaxerror;
     TxPrintf("Reading \"%s\".\n", strname);
 
@@ -391,6 +392,15 @@ calmaParseStructure(filename)
 	DBCellSetAvail(cifReadCellDef);
 	cifCurReadPlanes = cifSubcellPlanes;
 	cifReadCellDef->cd_flags &= ~CDDEREFERENCE;
+
+	/* Set timestamp from the GDS cell's creation time	*/
+	/* timestamp, unless "calma datestamp" was specified	*/
+	/* with a value, in which case use that value.		*/
+
+	if (CalmaDateStamp == NULL)
+	    cifReadCellDef->cd_timestamp = timestampval;
+	else
+	    cifReadCellDef->cd_timestamp = *CalmaDateStamp;
 
 	/* For read-only cells, set flag in def */
 	if (CalmaReadOnly)

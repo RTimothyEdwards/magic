@@ -68,6 +68,15 @@ Read GDSII input or generate GDSII output.
 	 Options for <B>gds read</B>:
 
 	 <DL>
+	    <DT> <B>datestamp</B> [<B>yes</B>|<B>no</B>|<I>value</I>]
+	    <DD> When reading a GDS file, the resulting layout views in magic
+		 will be timestamped according to the declared datestamp
+		 action.  If <B>yes</B> (the default), then the creation date
+		 timestamp from the GDS file is transferred to the layout cell.
+		 If <B>no</B>, then the datestamp is set to zero and will be
+		 created when the cell is saved to disk.  If <I>value</I>,
+		 then the specified value (in UNIX format of seconds since the
+		 epoch) will be used for the layout timestamp.
 	    <DT> <B>drccheck</B> [<B>yes</B>|<B>no</B>]
 	    <DD> If set to <B>no</B>, then do not mark cells read from GDS as
 		 requiring DRC checks (default <B>yes</B>).

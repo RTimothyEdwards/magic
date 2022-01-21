@@ -23,6 +23,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include <stdio.h>
 #include <sys/types.h>
+#include <time.h>
 
 #include <netinet/in.h>
 
@@ -265,6 +266,81 @@ calmaReadI4Record(type, pvalue)
     READI4(n);
     if (feof(calmaInputFile)) goto eof;
     *pvalue = n;
+    return (TRUE);
+
+eof:
+    CalmaReadError("Unexpected EOF.\n");
+    return (FALSE);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaReadStampRecord --
+ *
+ * Read a record that contains a pair of timestamps for creation and
+ * modification dates.
+ *
+ * Results:
+ *	TRUE on success, FALSE if the record type we read is not
+ *	what we're expecting.
+ *
+ * Side effects:
+ *	Consumes input.
+ *	Translates the creation timestamp from GDS format to a standard
+ *	UNIX (time.h) timestamp (seconds since the epoch).
+ *	Stores the result in the integer pointed to by 'stampptr'.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+calmaReadStampRecord(type, stampptr)
+    int type;
+    int *stampptr;
+{
+    int nbytes, rtype;
+    struct tm gds_timestamp;
+
+    READRH(nbytes, rtype);
+    if (nbytes < 0)
+	goto eof;
+
+    if (type != rtype)
+    {
+	calmaUnexpected(type, rtype);
+	return (FALSE);
+    }
+
+    nbytes -= CALMAHEADERLENGTH;
+    if (nbytes != 24)
+    {
+	/* Not dealing with any timestamp that is not in I2 format */
+	calmaSkipBytes(nbytes);
+	if (stampptr) *stampptr = 0;
+	CalmaReadError("Unknown timestamp format;  setting timestamp to zero.\n");
+	return TRUE;
+    }
+
+    gds_timestamp.tm_wday = 0;  /* Not used by mktime() */
+    gds_timestamp.tm_yday = 0;  /* Not used by mktime() */
+    gds_timestamp.tm_isdst = -1;
+
+    READI2(gds_timestamp.tm_year);
+    READI2(gds_timestamp.tm_mon);
+    READI2(gds_timestamp.tm_mday);
+    READI2(gds_timestamp.tm_hour);
+    READI2(gds_timestamp.tm_min);
+    READI2(gds_timestamp.tm_sec);
+
+    /* GDS timestamps differ from UNIX time structure only by a	*/
+    /* difference of 1 in the month count.			*/
+    gds_timestamp.tm_mon--;
+
+    /* Skip the modification date timestamp */
+    (void) calmaSkipBytes(nbytes - 12);
+
+    if (stampptr) *stampptr = (int)mktime(&gds_timestamp);
     return (TRUE);
 
 eof:
