@@ -1809,7 +1809,6 @@ CmdWire(w, cmd)
 
 #define OPT_WRITEALL_FORCE	0
 #define OPT_WRITEALL_MODIFIED	1
-#define OPT_WRITEALL_NOUPDATE	2	
 
 void
 CmdWriteall(w, cmd)
@@ -1818,7 +1817,7 @@ CmdWriteall(w, cmd)
 {
     int cmdWriteallFunc();
     int option = -1;
-    static char *writeallOpts[] = { "force", "modified", "noupdate", 0 };
+    static char *writeallOpts[] = { "force", "modified", 0 };
     int argc;
     int flags = CDMODIFIED | CDBOXESCHANGED | CDSTAMPSCHANGED;
 
@@ -1848,15 +1847,13 @@ CmdWriteall(w, cmd)
 		    TxError("No such cell \"%s\".\n", cmd->tx_argv[i]);
 		    notfound++;
 		}
-		else if (option != OPT_WRITEALL_NOUPDATE)
-		    DBUpdateStamps(def);
+		DBUpdateStamps(def);
 	    }
 	    if (notfound == cmd->tx_argc - 2) return;
 	}
     }
-    if (option != OPT_WRITEALL_NOUPDATE)
-	if (cmd->tx_argc <= 2)
-	    DBUpdateStamps(NULL);
+    if (cmd->tx_argc <= 2)
+	DBUpdateStamps(NULL);
 
     argc = cmd->tx_argc;
     (void) DBCellSrDefs(flags, cmdWriteallFunc, (ClientData)cmd);

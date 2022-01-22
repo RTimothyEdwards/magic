@@ -400,7 +400,11 @@ calmaParseStructure(filename)
 	if (CalmaDateStamp == NULL)
 	    cifReadCellDef->cd_timestamp = timestampval;
 	else
+	{
 	    cifReadCellDef->cd_timestamp = *CalmaDateStamp;
+	    if (*CalmaDateStamp != (time_t)0)
+		cifReadCellDef->cd_flags |= CDFIXEDSTAMP;
+	}
 
 	/* For read-only cells, set flag in def */
 	if (CalmaReadOnly)

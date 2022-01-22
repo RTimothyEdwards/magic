@@ -214,11 +214,18 @@ DBUpdateStamps(def)
     extern time_t time();
 
     DBFixMismatch();
+
     timestamp = time((time_t *) 0);
     if (def == NULL)
 	(void) DBCellSrDefs(CDGETNEWSTAMP, dbStampFunc, (ClientData) NULL);
+
     else if (def->cd_flags & CDGETNEWSTAMP)
-	dbStampFunc(def);
+    {
+	if (def->cd_flags & CDFIXEDSTAMP)
+	    def->cd_flags &= ~CDGETNEWSTAMP;
+	else
+	    dbStampFunc(def);
+    }
 }
 
 int
@@ -234,11 +241,12 @@ dbStampFunc(cellDef)
 
     if (cellDef->cd_timestamp == timestamp) return 0;
 
-    cellDef->cd_timestamp = timestamp;
+    if (!(cellDef->cd_flags & CDFIXEDSTAMP))
+	cellDef->cd_timestamp = timestamp;
+
     cellDef->cd_flags &= ~CDGETNEWSTAMP;
 
-    /* printf("Writing new timestamp %d for %s.\n",
-	timestamp, cellDef->cd_name); */
+    // printf("Writing new timestamp %d for %s.\n", timestamp, cellDef->cd_name);
 
     /* If a child's stamp has changed, then the stamps must change
      * in all its parents too.  When the hierarchical DRC becomes

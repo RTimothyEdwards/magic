@@ -1378,11 +1378,20 @@ CmdCellname(w, cmd)
 	    }
 	    else if (locargc == 4 || (locargc == 3 && cellname == NULL))
 	    {
-		int timestamp = atoi(cmd->tx_argv[2 + ((cellname == NULL) ? 0 : 1)]);
-		if (timestamp != cellDef->cd_timestamp)
+		int timestamp;
+		if (StrIsInt(cmd->tx_argv[2 + ((cellname == NULL) ? 0 : 1)]))
 		{
-		    cellDef->cd_timestamp = timestamp;
-		    cellDef->cd_flags &= ~CDGETNEWSTAMP;
+		    timestamp = atoi(cmd->tx_argv[2 + ((cellname == NULL) ? 0 : 1)]);
+		    if (timestamp != cellDef->cd_timestamp)
+		    {
+			cellDef->cd_timestamp = timestamp;
+			cellDef->cd_flags &= ~CDGETNEWSTAMP | CDFIXEDSTAMP;
+		    }
+		}
+		else
+		{
+		    TxError("Invalid timestamp \"%s\".\n",
+			cmd->tx_argv[2 + ((cellname == NULL) ? 0 : 1)]);
 		}
 	    }
 	    break;
@@ -1398,12 +1407,46 @@ CmdCellname(w, cmd)
 		break;
 	    }
 #ifdef MAGIC_WRAPPER
+	    /* All of the flags are included for completeness.  A number
+	     * of these flags are set in self-contained routines and will
+	     * never appear as the result of the "cellname flags" command.
+	     * Mainly for diagnostics (in case a routine is not cleaning
+	     * up its own flag settings, for example).
+	     */
 	    if (cellDef->cd_flags & CDAVAILABLE)
 		Tcl_AppendElement(magicinterp, "available");
 	    if (cellDef->cd_flags & CDMODIFIED)
 		Tcl_AppendElement(magicinterp, "modified");
 	    if (cellDef->cd_flags & CDNOEDIT)
 		Tcl_AppendElement(magicinterp, "readonly");
+	    if (cellDef->cd_flags & CDINTERNAL)
+		Tcl_AppendElement(magicinterp, "internal");
+	    if (cellDef->cd_flags & CDFIXEDSTAMP)
+		Tcl_AppendElement(magicinterp, "fixed-timestamp");
+	    if (cellDef->cd_flags & CDGETNEWSTAMP)
+		Tcl_AppendElement(magicinterp, "timestamp-pending");
+	    if (cellDef->cd_flags & CDSTAMPSCHANGED)
+		Tcl_AppendElement(magicinterp, "child-timestamp-changed");
+	    if (cellDef->cd_flags & CDFIXEDBBOX)
+		Tcl_AppendElement(magicinterp, "fixed-bbox");
+	    if (cellDef->cd_flags & CDBOXESCHANGED)
+		Tcl_AppendElement(magicinterp, "bbox-changed");
+	    if (cellDef->cd_flags & CDPROCESSED)
+		Tcl_AppendElement(magicinterp, "bbox-processed");
+	    if (cellDef->cd_flags & CDFLATGDS)
+		Tcl_AppendElement(magicinterp, "flat-gds");
+	    if (cellDef->cd_flags & CDFLATTENED)
+		Tcl_AppendElement(magicinterp, "flattened-gds");
+	    if (cellDef->cd_flags & CDPROCESSEDGDS)
+		Tcl_AppendElement(magicinterp, "processed-gds");
+	    if (cellDef->cd_flags & CDVENDORGDS)
+		Tcl_AppendElement(magicinterp, "vendor-gds");
+	    if (cellDef->cd_flags & CDVISITED)
+		Tcl_AppendElement(magicinterp, "visited");
+	    if (cellDef->cd_flags & CDDEREFERENCE)
+		Tcl_AppendElement(magicinterp, "dereference");
+	    if (cellDef->cd_flags & CDNOTFOUND)
+		Tcl_AppendElement(magicinterp, "not-found");
 #else
 	    TxPrintf("Flag settings for cell %s:\n", cellname);
 	    TxPrintf("in database: %s\n", (cellDef->cd_flags & CDAVAILABLE) ?
@@ -1411,6 +1454,12 @@ CmdCellname(w, cmd)
 	    TxPrintf("modified: %s\n", (cellDef->cd_flags & CDMODIFIED) ?
 			"true" : "false");
 	    TxPrintf("readonly: %s\n", (cellDef->cd_flags & CDNOEDIT) ?
+			"true" : "false");
+	    TxPrintf("vendor: %s\n", (cellDef->cd_flags & CDVENDORGDS) ?
+			"true" : "false");
+	    TxPrintf("fixed-bbox: %s\n", (cellDef->cd_flags & CDFIXEDBBOX) ?
+			"true" : "false");
+	    TxPrintf("fixed-timestamp: %s\n", (cellDef->cd_flags & CDFIXEDSTAMP) ?
 			"true" : "false");
 #endif
 	    break;

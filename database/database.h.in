@@ -411,24 +411,30 @@ typedef struct celldef
  *	CDDEREFERENCE is a flag indicating that when loading or expanding
  *	    children of a cell, the path should be ignored and the cell
  *	    path should be searched for the location.
+ *	CDFIXEDSTAMP is a flag indicating that the cell has a fixed
+ *	    timestamp that should not be modified.  This should be used
+ *	    with caution as it messes with the usual timestamp tracking,
+ *	    but is useful for preparing libraries all cells of which have
+ *	    the same timestamp value.
  */
 
-#define	CDAVAILABLE	 0x0001
-#define	CDMODIFIED	 0x0002
-#define	CDNOTFOUND	 0x0004
-#define CDINTERNAL	 0x0008
-#define CDGETNEWSTAMP	 0x0010
-#define CDSTAMPSCHANGED	 0x0020
-#define CDBOXESCHANGED	 0x0040
-#define CDFIXEDBBOX	 0x0080
-#define CDNOEDIT	 0x0100
-#define CDPROCESSED	 0x0200
-#define CDFLATGDS	 0x0400
-#define CDFLATTENED	 0x0800
-#define CDPROCESSEDGDS	 0x1000
-#define CDVENDORGDS	 0x2000
-#define CDVISITED	 0x4000
-#define CDDEREFERENCE	 0x8000
+#define	CDAVAILABLE	 0x00001
+#define	CDMODIFIED	 0x00002
+#define	CDNOTFOUND	 0x00004
+#define CDINTERNAL	 0x00008
+#define CDGETNEWSTAMP	 0x00010
+#define CDSTAMPSCHANGED	 0x00020
+#define CDBOXESCHANGED	 0x00040
+#define CDFIXEDBBOX	 0x00080
+#define CDNOEDIT	 0x00100
+#define CDPROCESSED	 0x00200
+#define CDFLATGDS	 0x00400
+#define CDFLATTENED	 0x00800
+#define CDPROCESSEDGDS	 0x01000
+#define CDVENDORGDS	 0x02000
+#define CDVISITED	 0x04000
+#define CDDEREFERENCE	 0x08000
+#define CDFIXEDSTAMP	 0x10000
 
 /*
  * Description of an array.
