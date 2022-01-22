@@ -1710,43 +1710,8 @@ CIFReadCellCleanup(filetype)
 		freeMagic((char *)def->cd_client);
 	    }
 	    def->cd_client = (ClientData)0;
+	    def->cd_flags &= ~CDFLATGDS;
 
-#if 0
-	    /* If the CDFLATTENED flag was not set, then this geometry	*/
-	    /* was never instantiated, and should generate a message.	*/
-	    /* However, this is not an error condition as there are a	*/
-	    /* number of useful reasons to copy lots of information up	*/
-	    /* the GDS hierarchy for "just in case" scenarios.		*/
-
-	    if (!(def->cd_flags & CDFLATTENED))
-		CIFReadWarning("%s read:  Unresolved geometry in cell"
-			" %s maps to no magic layers\n",
-			(filetype == FILE_CIF) ? "CIF" : "GDS", def->cd_name);
-#endif
-
-#if 0
-	    /* Remove the cell if it has no parents, no children, and no geometry */
-	    /* To-do:  Check that these conditions are valid */
-
-	    if (def->cd_parents == (CellUse *)NULL)
-	    {
-		char *savename = StrDup((char **)NULL, def->cd_name);
-
-		if (DBCellDeleteDef(def) == FALSE)
-		{
-		    CIFReadError("%s read error:  Unable to delete cell %s\n",
-				(filetype == FILE_CIF) ? "CIF" : "GDS", savename);
-		}
-		else
-		{
-		    if (filetype == FILE_CIF)
-			TxPrintf("CIF read:  Removed flattened cell %s\n", savename);
-		    else
-			TxPrintf("GDS read:  Removed flattened cell %s\n", savename);
-		}
-		freeMagic(savename);
-	    }
-#endif
 	    UndoEnable();
 	}
     }
