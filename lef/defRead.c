@@ -1597,6 +1597,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		    defMacro = DBCellNewDef(token);
 		    defMacro->cd_flags &= ~CDNOTFOUND;
 		    dereference = (defMacro->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+
 		    if (!DBCellRead(defMacro, (char *)NULL, TRUE, dereference, NULL))
 		    {
 		        LefError(DEF_ERROR, "Cell %s is not defined.  Maybe you "

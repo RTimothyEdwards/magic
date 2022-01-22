@@ -70,6 +70,13 @@ LEF-format input and output
 		itself would be written to a DEF file. <BR>
 		Options <B>-hide</B>, <B>-tech</B>, and <B>-toplayer</B> are
 		the same as for the <B>lef write</B> command.
+	   <DT> <B>datestamp</B> [<I>value</I>|<B>default</B>]
+	   <DD> Force all cell definitions generated from LEF macros to have
+		the datestamp (timestamp) of <I>value</I>.  This can be used to
+		ensure that the timestamps of abstract views match the timestamps
+		of the equivalent full views, so that switching between abstract
+		and full views does not cause timestamp mismatch handling.  The
+		string <B>default</B> cancels any fixed timestamps.
 	   <DT> <B>help</B>
 	   <DD> Print help information
 	 </DL>

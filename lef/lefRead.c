@@ -1719,7 +1719,7 @@ enum lef_macro_keys {LEF_CLASS = 0, LEF_SIZE, LEF_ORIGIN,
 	LEF_TIMING, LEF_FOREIGN, LEF_PROPERTY, LEF_MACRO_END};
 
 void
-LefReadMacro(f, mname, oscale, importForeign, doAnnotate)
+LefReadMacro(f, mname, oscale, importForeign, doAnnotate, lefTimestamp)
     FILE *f;			/* LEF file being read	*/
     char *mname;		/* name of the macro 	*/
     float oscale;		/* scale factor um->magic units */
@@ -1728,6 +1728,9 @@ LefReadMacro(f, mname, oscale, importForeign, doAnnotate)
 				 */
     bool doAnnotate;		/* If true, ignore all macros that are
 				 * not already CellDefs.
+				 */
+    int *lefTimestamp;		/* If non-NULL, use the value pointed to
+				 * as the CellDef's timestamp.
 				 */
 {
     CellDef *lefMacro;
@@ -1801,6 +1804,11 @@ LefReadMacro(f, mname, oscale, importForeign, doAnnotate)
 	}
 	else
 	    is_imported = TRUE;
+    }
+    if (lefTimestamp != NULL)
+    {
+	lefMacro->cd_timestamp = *lefTimestamp;
+	lefMacro->cd_flags = CDFIXEDSTAMP;
     }
 
     /* Initial values */
@@ -2523,10 +2531,11 @@ enum lef_sections {LEF_VERSION = 0,
 	LEF_END};
 
 void
-LefRead(inName, importForeign, doAnnotate)
+LefRead(inName, importForeign, doAnnotate, lefTimestamp)
     char *inName;
     bool importForeign;
     bool doAnnotate;
+    int *lefTimestamp;
 {
     FILE *f;
     char *filename;
@@ -2751,7 +2760,7 @@ LefRead(inName, importForeign, doAnnotate)
 		TxPrintf("LEF file:  Defines new cell %s\n", token);
 		*/
 		sprintf(tsave, "%.127s", token);
-		LefReadMacro(f, tsave, oscale, importForeign, doAnnotate);
+		LefReadMacro(f, tsave, oscale, importForeign, doAnnotate, lefTimestamp);
 		break;
 	    case LEF_END:
 		if (LefParseEndStatement(f, "LIBRARY") == 0)

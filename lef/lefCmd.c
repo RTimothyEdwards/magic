@@ -12,6 +12,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -26,7 +27,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "commands/commands.h"
 
-
+int *lefDateStamp = NULL;	/* If non-NULL, defines the timestamp
+				 * to use when creating new cell defs
+				 * from LEF or DEF.  Useful when generating
+				 * libraries to make sure that full and
+				 * abstract views of the same cell have
+				 * matching timestamps.
+				 */
 /*
  * ----------------------------------------------------------------------------
  *
@@ -55,7 +62,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define LEF_READ		0
 #define LEF_WRITE		1
 #define LEF_WRITEALL		2
-#define LEF_HELP		3
+#define LEF_DATESTAMP		3
+#define LEF_HELP		4
 
 void
 CmdLef(w, cmd)
@@ -113,7 +121,6 @@ CmdLef(w, cmd)
 					 * center of the first rectangle
 					 * found on that net.
 					 */
-
     static char *cmdLefOption[] =
     {
 	"read [filename]		read a LEF file filename[.lef]\n"
@@ -127,6 +134,7 @@ CmdLef(w, cmd)
 	"    writeall -all		recurse on all subcells of the top-level cell\n"
 	"    writeall -hide		hide all details other than ports\n"
 	"    writeall -hide [dist]	hide details in area set back distance dist",
+	"datestamp [value]		force the timestamp of cells read from LEF",
 	"help                   	print this help information",
 	NULL
     };
@@ -208,9 +216,9 @@ CmdLef(w, cmd)
 
             namep = cmd->tx_argv[2];
 	    if (is_lef)
-		LefRead(namep, lefImport, lefAnnotate);
+		LefRead(namep, lefImport, lefAnnotate, lefDateStamp);
 	    else
-		DefRead(namep, defLabelNets);
+		DefRead(namep, defLabelNets, lefDateStamp);
 	    break;
 	case LEF_WRITEALL:
 	    if (!is_lef)
@@ -374,6 +382,53 @@ CmdLef(w, cmd)
 		LefWriteCell(selectedUse->cu_def, namep, selectedUse->cu_def
 			== EditRootDef, lefTech, lefHide, lefPinOnly,
 			lefTopLayer, lefDoMaster);
+	    break;
+	case LEF_DATESTAMP:
+	    if (!is_lef)
+	    {
+		TxPrintf("The \"datestamp\" option is only for LEF reads.\n");
+		break;
+	    }
+            if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		if (lefDateStamp != NULL)
+		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(*lefDateStamp));
+                else
+		    Tcl_SetObjResult(magicinterp, Tcl_NewStringObj("default", -1));
+#else
+		if (lefDateStamp != NULL)
+		    TxPrintf("Macros will contain a header creation date "
+			    "stamp of %d.\n", *lefDateStamp);
+		else
+		    TxPrintf("Macros will contain a default header creation date "
+			    "stamp.\n");
+#endif
+		return;
+            }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    if (!strcmp(cmd->tx_argv[2], "default"))
+	    {
+		if (lefDateStamp != NULL)
+		{
+		    freeMagic((char *)lefDateStamp);
+		    lefDateStamp = NULL;
+		}
+	    }
+	    else if (StrIsInt(cmd->tx_argv[2]))
+	    {
+		if (lefDateStamp == NULL)
+		    lefDateStamp = (int *)mallocMagic(sizeof(int));
+		*lefDateStamp = atoi(cmd->tx_argv[2]);
+	    }
+	    else
+	    {
+		TxError("Unrecognizable date stamp \"%s\".\n", cmd->tx_argv[2]);
+		goto wrongNumArgs;
+	    }
+
 	    break;
 	case LEF_HELP:
 wrongNumArgs:
