@@ -1729,7 +1729,7 @@ LefReadMacro(f, mname, oscale, importForeign, doAnnotate, lefTimestamp)
     bool doAnnotate;		/* If true, ignore all macros that are
 				 * not already CellDefs.
 				 */
-    int *lefTimestamp;		/* If non-NULL, use the value pointed to
+    int lefTimestamp;		/* If not -1, use the value pointed to
 				 * as the CellDef's timestamp.
 				 */
 {
@@ -1805,9 +1805,9 @@ LefReadMacro(f, mname, oscale, importForeign, doAnnotate, lefTimestamp)
 	else
 	    is_imported = TRUE;
     }
-    if (lefTimestamp != NULL)
+    if (lefTimestamp != -1)
     {
-	lefMacro->cd_timestamp = *lefTimestamp;
+	lefMacro->cd_timestamp = lefTimestamp;
 	lefMacro->cd_flags = CDFIXEDSTAMP;
     }
 
@@ -2535,7 +2535,7 @@ LefRead(inName, importForeign, doAnnotate, lefTimestamp)
     char *inName;
     bool importForeign;
     bool doAnnotate;
-    int *lefTimestamp;
+    int lefTimestamp;
 {
     FILE *f;
     char *filename;

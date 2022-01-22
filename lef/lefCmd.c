@@ -27,13 +27,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "commands/commands.h"
 
-int *lefDateStamp = NULL;	/* If non-NULL, defines the timestamp
-				 * to use when creating new cell defs
-				 * from LEF or DEF.  Useful when generating
-				 * libraries to make sure that full and
-				 * abstract views of the same cell have
-				 * matching timestamps.
-				 */
+int lefDateStamp = -1;	/* If not -1, defines the timestamp to use when creating
+			 * new cell defs from LEF or DEF.  Useful when generating
+			 * libraries to make sure that full and abstract views of
+			 * the same cell have matching timestamps.
+			 */
 /*
  * ----------------------------------------------------------------------------
  *
@@ -218,7 +216,7 @@ CmdLef(w, cmd)
 	    if (is_lef)
 		LefRead(namep, lefImport, lefAnnotate, lefDateStamp);
 	    else
-		DefRead(namep, defLabelNets, lefDateStamp);
+		DefRead(namep, defLabelNets);
 	    break;
 	case LEF_WRITEALL:
 	    if (!is_lef)
@@ -392,14 +390,14 @@ CmdLef(w, cmd)
             if (cmd->tx_argc == 2)
 	    {
 #ifdef MAGIC_WRAPPER
-		if (lefDateStamp != NULL)
-		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(*lefDateStamp));
+		if (lefDateStamp != -1)
+		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(lefDateStamp));
                 else
 		    Tcl_SetObjResult(magicinterp, Tcl_NewStringObj("default", -1));
 #else
-		if (lefDateStamp != NULL)
+		if (lefDateStamp != -1)
 		    TxPrintf("Macros will contain a header creation date "
-			    "stamp of %d.\n", *lefDateStamp);
+			    "stamp of %d.\n", lefDateStamp);
 		else
 		    TxPrintf("Macros will contain a default header creation date "
 			    "stamp.\n");
@@ -410,19 +408,9 @@ CmdLef(w, cmd)
 		goto wrongNumArgs;
 
 	    if (!strcmp(cmd->tx_argv[2], "default"))
-	    {
-		if (lefDateStamp != NULL)
-		{
-		    freeMagic((char *)lefDateStamp);
-		    lefDateStamp = NULL;
-		}
-	    }
+		lefDateStamp = -1;
 	    else if (StrIsInt(cmd->tx_argv[2]))
-	    {
-		if (lefDateStamp == NULL)
-		    lefDateStamp = (int *)mallocMagic(sizeof(int));
-		*lefDateStamp = atoi(cmd->tx_argv[2]);
-	    }
+		lefDateStamp = atoi(cmd->tx_argv[2]);
 	    else
 	    {
 		TxError("Unrecognizable date stamp \"%s\".\n", cmd->tx_argv[2]);
