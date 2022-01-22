@@ -1511,8 +1511,6 @@ DBScaleEverything(scalen, scaled)
     int dbCellDefEnumFunc();
     LinkedCellDef *lhead, *lcd;
 
-    // DBUpdateStamps();
-
     SigDisableInterrupts();
 
     lhead = NULL;

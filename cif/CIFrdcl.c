@@ -1660,6 +1660,10 @@ CIFReadCellCleanup(filetype)
 	    DRCCheckThis(def, TT_CHECKPAINT, &def->cd_bbox);
 	DBWAreaChanged(def, &def->cd_bbox, DBW_ALLWINDOWS, &DBAllButSpaceBits);
 	DBCellSetModified(def, TRUE);
+
+	/* Only mark cell as needing a timestamp update if the timestamp is zero */
+	if (def->cd_timestamp != 0)
+	    def->cd_flags &= ~CDGETNEWSTAMP;
     }
 
     /* Do geometrical processing on the top-level cell. */

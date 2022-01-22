@@ -553,7 +553,7 @@ ExtIncremental(rootUse)
     DBFixMismatch();
 
     /* Update all timestamps */
-    DBUpdateStamps();
+    DBUpdateStamps(NULL);
 
     /* Mark all defs as being unvisited */
     (void) DBCellSrDefs(0, extDefInitFunc, (ClientData) 0);

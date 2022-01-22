@@ -637,7 +637,7 @@ cmdSaveCell(cellDef, newName, noninteractive, tryRename)
 	}
     }
 
-    DBUpdateStamps();
+    DBUpdateStamps(cellDef);
     if (!DBCellWrite(cellDef, fileName))
     {
 	TxError("Could not write file.  Cell not written.\n");

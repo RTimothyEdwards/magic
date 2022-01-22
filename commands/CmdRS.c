@@ -209,7 +209,7 @@ CmdSave(w, cmd)
     else
 	locDef = EditCellUse->cu_def;
 
-    DBUpdateStamps();
+    DBUpdateStamps(locDef);
     if (cmd->tx_argc == 2)
     {
 	char *fileName;
@@ -1151,7 +1151,7 @@ CmdSelect(w, cmd)
 		    DBStdPaintTbl(TT_CHECKPAINT, PL_DRC_CHECK),
 		    (PaintUndoInfo *) NULL);
 
-	    DBUpdateStamps();
+	    DBUpdateStamps(SelectDef);
 	    cmdSaveCell(SelectDef, cmd->tx_argv[2], FALSE, FALSE);
 	    return;
 

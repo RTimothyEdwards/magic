@@ -1837,21 +1837,26 @@ CmdWriteall(w, cmd)
 	/* Check if all cells exist */
 	if (cmd->tx_argc > 2)
 	{
+	    CellDef *def;
 	    int i;
 	    int notfound = 0;
 	    for (i = 2; i < cmd->tx_argc; i++)
 	    {
-		if (DBCellLookDef(cmd->tx_argv[i]) == NULL)
+		def = DBCellLookDef(cmd->tx_argv[i]);
+		if (def == NULL)
 		{
 		    TxError("No such cell \"%s\".\n", cmd->tx_argv[i]);
 		    notfound++;
 		}
+		else if (option != OPT_WRITEALL_NOUPDATE)
+		    DBUpdateStamps(def);
 	    }
 	    if (notfound == cmd->tx_argc - 2) return;
 	}
     }
     if (option != OPT_WRITEALL_NOUPDATE)
-	DBUpdateStamps();
+	if (cmd->tx_argc <= 2)
+	    DBUpdateStamps(NULL);
 
     argc = cmd->tx_argc;
     (void) DBCellSrDefs(flags, cmdWriteallFunc, (ClientData)cmd);

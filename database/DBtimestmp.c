@@ -207,14 +207,18 @@ DBFixMismatch()
  */
 
 void
-DBUpdateStamps()
+DBUpdateStamps(def)
+    CellDef *def;
 {
     extern int dbStampFunc();
     extern time_t time();
 
     DBFixMismatch();
     timestamp = time((time_t *) 0);
-    (void) DBCellSrDefs(CDGETNEWSTAMP, dbStampFunc, (ClientData) NULL);
+    if (def == NULL)
+	(void) DBCellSrDefs(CDGETNEWSTAMP, dbStampFunc, (ClientData) NULL);
+    else if (def->cd_flags & CDGETNEWSTAMP)
+	dbStampFunc(def);
 }
 
 int
