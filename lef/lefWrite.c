@@ -1612,8 +1612,24 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		    if (!(tlab->lab_flags & PORT_VISITED))
 			if (tlab->lab_port == idx)
 			{
-			    TileTypeBitMask lmask;
+			    TileTypeBitMask lmask, smask;
 			    TTMaskSetOnlyType(&lmask, tlab->lab_type);
+
+			    /* If label is a "sticky" label, then contacts with the */
+			    /* type as residue must be added to the layer mask.	    */
+			    if (tlab->lab_flags & LABEL_STICKY)
+			    {
+				for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+				{
+				    if (DBIsContact(ttype))
+				    {
+					DBFullResidueMask(ttype, &smask);
+					if (TTMaskHasType(&smask, tlab->lab_type))
+					    TTMaskSetType(&lmask, ttype);
+				    }
+				}
+			    }
+
 			    pNum = DBPlane(tlab->lab_type);
 			    if (DBSrPaintArea((Tile *)NULL, lc.lefYank->cd_planes[pNum],
 				    &tlab->lab_rect, &lmask,
