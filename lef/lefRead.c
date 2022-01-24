@@ -1808,7 +1808,7 @@ LefReadMacro(f, mname, oscale, importForeign, doAnnotate, lefTimestamp)
     if (lefTimestamp != -1)
     {
 	lefMacro->cd_timestamp = lefTimestamp;
-	lefMacro->cd_flags = CDFIXEDSTAMP;
+	lefMacro->cd_flags |= CDFIXEDSTAMP;
     }
 
     /* Initial values */
