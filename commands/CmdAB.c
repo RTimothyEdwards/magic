@@ -615,7 +615,7 @@ CmdBox(w, cmd)
     };
 
     CellDef *rootBoxDef;
-    Rect rootBox, editbox, *boxptr;
+    Rect rootBox, editbox, savebox, *boxptr;
     Point ll;
     int option, direction, distancex, distancey;
     int width, height;
@@ -756,6 +756,7 @@ CmdBox(w, cmd)
     /*----------------------------------------------------------*/
 
     boxptr = (refEdit) ? &editbox : &rootBox;
+    savebox = *boxptr;
 
     /*----------------------------------------------------------*/
     /* Parse arguments according to class			*/
@@ -1166,6 +1167,18 @@ badusage:
 
     if (refEdit)
 	GeoTransRect(&EditToRootTransform, &editbox, &rootBox);
+
+    /*----------------------------------------------------------*/
+    /* Check for numerical overflow in box values		*/
+    /*----------------------------------------------------------*/
+
+    if (boxptr->r_ll.p_x < (MINFINITY + 2) || boxptr->r_ll.p_x > (INFINITY - 2) ||
+	boxptr->r_ll.p_y < (MINFINITY + 2) || boxptr->r_ll.p_y > (INFINITY - 2))
+    {
+	*boxptr = savebox;
+	TxError("Box out of bounds.\n");
+	return;
+    }
 
     /*----------------------------------------------------------*/
     /* Change the position of the box in the layout window	*/
