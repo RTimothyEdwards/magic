@@ -208,8 +208,9 @@ extern void dbFreeCellPlane();
 extern void dbFreePaintPlane();
 extern bool dbTechAddPaint();
 extern bool dbTechAddErase();
-ClientData dbTechNameLookup();
-ClientData dbTechNameLookupExact();
+ClientData  dbTechNameLookup();
+ClientData  dbTechNameLookupExact();
+extern int  strcmpbynum();
 
 /* --------------- Internal database technology variables ------------- */
 

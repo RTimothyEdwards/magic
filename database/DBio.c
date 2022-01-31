@@ -2780,6 +2780,72 @@ dbFindCellGCFFunc(cellUse, ggcf)
 /*
  * ----------------------------------------------------------------------------
  *
+ * cucompare ---
+ *
+ *	String comparison of two instance names, for the purpose of sorting
+ *	the instances in a .mag file output in a repeatable way.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cucompare(const void *one, const void *two)
+{
+    CellUse *use1, *use2;
+    char *s1, *s2;
+
+    use1 = *((CellUse **)one);
+    use2 = *((CellUse **)two);
+
+    s1 = use1->cu_id;
+    s2 = use2->cu_id;
+
+    return strcmpbynum(s1, s2);
+}
+
+/* Structure used by dbGetCellFunc().  Record a list of cell uses and	*/
+/* an index into the list.						*/
+
+struct cellUseList {
+    int idx;
+    CellUse **useList;
+};
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbGetCellFunc(cellUse, useRec)
+    CellUse *cellUse;	/* Cell use whose "call" is to be written to a file */
+    struct cellUseList *useRec;
+{
+    useRec->useList[useRec->idx] = cellUse;
+    useRec->idx++;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbCountCellFunc(cellUse, count)
+    CellUse *cellUse;	/* Cell use whose "call" is to be written to a file */
+    int *count;
+{
+    (*count)++;
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DBCellWriteFile --
  *
  * NOTE: this routine is usually not want you want.  Use DBCellWrite().
@@ -2825,6 +2891,9 @@ DBCellWriteFile(cellDef, f)
     char lstring[256];
     char *propvalue;
     bool propfound;
+    CellUse **useList;
+    int i, numUses = 0;
+    struct cellUseList cul;
 
 #define FPUTSF(f,s)\
 {\
@@ -2903,12 +2972,29 @@ DBCellWriteFile(cellDef, f)
 	    goto ioerror;
     }
 
-    /* Now the cell uses */
-    if (DBCellEnum(cellDef, dbWriteCellFunc, (ClientData) &arg))
-	goto ioerror;
+    /* Now the cell uses.  To make sure that output is repeatable each	*/
+    /* time the CellDef is written, first collect all of the cells,	*/
+    /* then sort them alphabetically, and then write them.		*/
 
-    /* Clear flags set in dbWriteCellFunc */
-    DBCellEnum(cellDef, dbClearCellFunc, (ClientData)NULL);
+    DBCellEnum(cellDef, dbCountCellFunc, (ClientData) &numUses);
+    if (numUses > 0)
+    {
+    	cul.useList = (CellUse **)mallocMagic(numUses * sizeof(CellUse *));
+    	cul.idx = 0;
+
+    	if (DBCellEnum(cellDef, dbGetCellFunc, (ClientData)&cul))
+	    goto ioerror;
+
+    	qsort(cul.useList, numUses, sizeof(CellUse *), cucompare);
+
+    	for (i = 0; i < numUses; i++)
+	    dbWriteCellFunc(cul.useList[i], (ClientData) &arg);
+
+        freeMagic((char *)cul.useList);
+	
+        /* Clear flags set in dbWriteCellFunc */
+        DBCellEnum(cellDef, dbClearCellFunc, (ClientData)NULL);
+    }
 
     /* Now labels */
     if (cellDef->cd_labels)
