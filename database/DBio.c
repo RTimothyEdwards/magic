@@ -2803,7 +2803,7 @@ cucompare(const void *one, const void *two)
     return strcmpbynum(s1, s2);
 }
 
-/* Structure used by dbGetCellFunc().  Record a list of cell uses and	*/
+/* Structure used by dbGetUseFunc().  Record a list of cell uses and	*/
 /* an index into the list.						*/
 
 struct cellUseList {
@@ -2814,11 +2814,19 @@ struct cellUseList {
 /*
  * ----------------------------------------------------------------------------
  *
+ * dbGetUseFunc ---
+ *
+ *	Function to copy an enumerated cell use into a pre-allocated array
+ *	for alphabetical sorting.
+ *
+ * Return value:
+ *	Return 0 to keep the search going.
+ *
  * ----------------------------------------------------------------------------
  */
 
 int
-dbGetCellFunc(cellUse, useRec)
+dbGetUseFunc(cellUse, useRec)
     CellUse *cellUse;	/* Cell use whose "call" is to be written to a file */
     struct cellUseList *useRec;
 {
@@ -2831,13 +2839,114 @@ dbGetCellFunc(cellUse, useRec)
 /*
  * ----------------------------------------------------------------------------
  *
+ * dbCountUseFunc ---
+ *
+ *	Function to count cell uses by incrementing a counter for each
+ *	enumerated use.
+ *
+ * Return value:
+ *	Return 0 to keep the search going.
+ *
  * ----------------------------------------------------------------------------
  */
 
 int
-dbCountCellFunc(cellUse, count)
+dbCountUseFunc(cellUse, count)
     CellUse *cellUse;	/* Cell use whose "call" is to be written to a file */
     int *count;
+{
+    (*count)++;
+    return 0;
+}
+
+/* Structure used by keycompare to keep the key and value strings of a	*/
+/* property record.							*/
+
+struct keyValuePair {
+    char *key;
+    char *value;
+};
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * keycompare ---
+ *
+ *	String comparison of two property keys, for the purpose of sorting
+ *	the properties in a .mag file output in a repeatable way.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+keycompare(const void *one, const void *two)
+{
+    int cval;
+    struct keyValuePair *kv1 = *((struct keyValuePair **)one);
+    struct keyValuePair *kv2 = *((struct keyValuePair **)two);
+    char *s1 = kv1->key;
+    char *s2 = kv2->key;
+
+    cval = strcmpbynum(s1, s2);
+    return cval;
+}
+
+/* Structures used by dbGetPropFunc().  Record a list of property keys	*/
+/* and values and an index into the lists.				*/
+
+struct cellPropList {
+    int idx;
+    struct keyValuePair **keyValueList;
+};
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbGetPropFunc ---
+ *
+ *	Function to copy the key and value of an enumerated property
+ *	record into a pre-allocated array for alphabetical sorting.
+ *
+ * Return value:
+ *	Return 0 to keep the search going.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbGetPropFunc(key, value, propRec)
+    char *key;
+    ClientData value;
+    struct cellPropList *propRec;
+{
+    propRec->keyValueList[propRec->idx] =
+		(struct keyValuePair *)mallocMagic(sizeof(struct keyValuePair));
+    propRec->keyValueList[propRec->idx]->key = key;
+    propRec->keyValueList[propRec->idx]->value = value;
+    propRec->idx++;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbCountPropFunc ---
+ *
+ *	Function to count cell properties by incrementing a counter for each
+ *	enumerated property.
+ *
+ * Return value:
+ *	Return 0 to keep the search going.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbCountPropFunc(key, value, count)
+    char *key;
+    ClientData value;
+    int *count;		/* Client data */
 {
     (*count)++;
     return 0;
@@ -2892,7 +3001,7 @@ DBCellWriteFile(cellDef, f)
     char *propvalue;
     bool propfound;
     CellUse **useList;
-    int i, numUses = 0;
+    int i, numUses = 0, numProps = 0;
     struct cellUseList cul;
 
 #define FPUTSF(f,s)\
@@ -2976,13 +3085,13 @@ DBCellWriteFile(cellDef, f)
     /* time the CellDef is written, first collect all of the cells,	*/
     /* then sort them alphabetically, and then write them.		*/
 
-    DBCellEnum(cellDef, dbCountCellFunc, (ClientData) &numUses);
+    DBCellEnum(cellDef, dbCountUseFunc, (ClientData) &numUses);
     if (numUses > 0)
     {
     	cul.useList = (CellUse **)mallocMagic(numUses * sizeof(CellUse *));
     	cul.idx = 0;
 
-    	if (DBCellEnum(cellDef, dbGetCellFunc, (ClientData)&cul))
+    	if (DBCellEnum(cellDef, dbGetUseFunc, (ClientData)&cul))
 	    goto ioerror;
 
     	qsort(cul.useList, numUses, sizeof(CellUse *), cucompare);
@@ -3144,12 +3253,31 @@ DBCellWriteFile(cellDef, f)
 	}
     }
 
-    if (cellDef->cd_props != (ClientData)NULL)
+    DBPropEnum(cellDef, dbCountPropFunc, (ClientData)&numProps);
+    if (numProps > 0)
     {
+    	struct cellPropList propRec;
+
+	propRec.idx = 0;
+	propRec.keyValueList = (struct keyValuePair **)mallocMagic(numProps
+			* sizeof(struct keyValuePair *));
+	DBPropEnum(cellDef, dbGetPropFunc, (ClientData)&propRec);
+
+    	qsort(propRec.keyValueList, numProps, sizeof(struct keyValuePair *),
+			keycompare);
+
 	FPUTSF(f, "<< properties >>\n");
-	DBPropEnum(cellDef, dbWritePropFunc, (ClientData)f);
+	for (i = 0; i < numProps; i++)
+	{
+	    dbWritePropFunc(propRec.keyValueList[i]->key,
+			propRec.keyValueList[i]->value,
+			(ClientData)f);
+	    freeMagic ((char *)propRec.keyValueList[i]);
+	}
+	freeMagic((char *)propRec.keyValueList);
     }
 
+    /* Restore the original values in FIXED_BBOX, if any */
     if (propfound) DBPropPut(cellDef, "FIXED_BBOX", propvalue);
 
     FPUTSF(f, "<< end >>\n");
@@ -3192,20 +3320,19 @@ ioerror:
 int
 dbWritePropFunc(key, value, cdata)
     char *key;
-    ClientData value;
+    char *value;
     ClientData cdata;
 {
     FILE *f = (FILE *)cdata;
-    char *lstring;
 
-    lstring = (char *)mallocMagic(10 + strlen((char *)value) + strlen(key));
-    sprintf(lstring, "string %s %s\n", key, (char *)value);
-    FPUTSR(f, lstring);
-    freeMagic(lstring);
+    FPUTSR(f, "string ");
+    FPUTSR(f, key);
+    FPUTSR(f, " ");
+    FPUTSR(f, value);
+    FPUTSR(f, "\n");
 
     return 0;
 }
-
 
 /*
  * ----------------------------------------------------------------------------
