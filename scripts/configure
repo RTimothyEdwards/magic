@@ -6816,24 +6816,15 @@ else
 fi
 
 
-if test $usingTcl ; then
-  if test "x$enable_modular" = "xyes" ; then
-    programs="$programs ext2sim ext2spice"
-    $as_echo "#define EXT2SPICE_AUTO 1" >>confdefs.h
-
-    $as_echo "#define EXT2SIM_AUTO 1" >>confdefs.h
-
-  else
-    modules="$modules ext2sim ext2spice"
-    extra_libs="$extra_libs \${MAGICDIR}/ext2sim/libext2sim.o"
-    extra_libs="$extra_libs \${MAGICDIR}/ext2spice/libext2spice.o"
-  fi
-else
-  programs="$programs ext2sim ext2spice"
+if test "x$enable_modular" = "xyes" ; then
   $as_echo "#define EXT2SPICE_AUTO 1" >>confdefs.h
 
   $as_echo "#define EXT2SIM_AUTO 1" >>confdefs.h
 
+else
+  modules="$modules ext2sim ext2spice"
+  extra_libs="$extra_libs \${MAGICDIR}/ext2sim/libext2sim.o"
+  extra_libs="$extra_libs \${MAGICDIR}/ext2spice/libext2spice.o"
 fi
 
 # Check whether --enable-locking was given.
@@ -7637,12 +7628,12 @@ elif test $usingScheme ; then
   unused="$unused tcltk"
   cadinstall="$cadinstall lisp"
   extra_libs="$extra_libs \${MAGICDIR}/lisp/liblisp.o"
-  programs="$programs extcheck graphics"
+  programs="$programs graphics"
   $as_echo "#define SCHEME_INTERPRETER 1" >>confdefs.h
 
 else
   unused="$unused lisp tcltk"
-  programs="$programs extcheck graphics"
+  programs="$programs graphics"
 fi
 
 

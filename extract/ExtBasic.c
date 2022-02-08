@@ -824,6 +824,7 @@ extSubsName(node)
     {
 	if (node->lreg_ll.p_x <= (MINFINITY + 3))
 	{
+#ifdef MAGIC_WRAPPER
 	    if (ExtCurStyle->exts_globSubstrateName[0] == '$' &&
 		 ExtCurStyle->exts_globSubstrateName[1] != '$')
 	    {
@@ -840,6 +841,7 @@ extSubsName(node)
 			+ 1;
 	    }
 	    else
+#endif
 		return ExtCurStyle->exts_globSubstrateName;
 	}
 	else return NULL;
@@ -2543,7 +2545,7 @@ extDevFindMatch(deventry, t)
 
 	j = MATCH_TERM;
 	i = 0;
-	match = True;
+	match = TRUE;
 	for (k = 0; k < devptr->exts_deviceSDCount; k++)
 	{
 	    if (extTransRec.tr_termnode[k] == NULL) break;
@@ -2551,13 +2553,13 @@ extDevFindMatch(deventry, t)
 	    {
 		if (TTMaskIsZero(&devptr->exts_deviceSDTypes[i]))
 		{
-		    match = False;
+		    match = FALSE;
 		    break;
 		}
 		if (!TTMaskEqual(&devptr->exts_deviceSDTypes[i],
 			    &deventry->exts_deviceSDTypes[i]))
 		{
-		    match = False;
+		    match = FALSE;
 		    break;
 		}
 	    }
@@ -3710,9 +3712,9 @@ extFindNodes(def, clipArea, subonly)
 
 
 	if (TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, TT_SPACE))
-	    space_is_substrate = True;
+	    space_is_substrate = TRUE;
 	else
-	    space_is_substrate = False;
+	    space_is_substrate = FALSE;
 
 	TTMaskZero(&subsTypesNonSpace);
 	TTMaskSetMask(&subsTypesNonSpace, &ExtCurStyle->exts_globSubstrateTypes);

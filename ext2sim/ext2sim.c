@@ -28,14 +28,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/hash.h"
 #include "utils/utils.h"
 #include "tiles/tile.h"
-#ifdef MAGIC_WRAPPER
 #include "database/database.h"
 #include "windows/windows.h"
 #include "textio/textio.h"
 #include "dbwind/dbwind.h"	/* for DBWclientID */
 #include "commands/commands.h"  /* for module auto-load */
 #include "textio/txcommands.h"
-#endif
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
 #include "extract/extract.h"	/* for extDevTable */
@@ -43,12 +41,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 
 /* Forward declarations */
-#ifdef MAGIC_WRAPPER
 void CmdExtToSim();
-#endif
 bool simnAP();
 bool simnAPHier();
-int simmainArgs();
+int simParseArgs();
 int simdevVisit(), simresistVisit(), simcapVisit(), simnodeVisit();
 int simmergeVisit();
 
@@ -182,9 +178,9 @@ extern devMerge *devMergeList;
 #define ATTR_HIERAP	"*[Ee][Xx][Tt]:[Aa][Pp][Hh]*"
 #define ATTR_SUBSAP	"*[Ee][Xx][Tt]:[Aa][Pp][Ss]*"
 
-#ifdef MAGIC_WRAPPER
-
 #define        atoCap(s)       ((EFCapValue)atof(s))
+
+#ifdef MAGIC_WRAPPER
 
 /* Forward declaration */
 int _ext2sim_start();
@@ -226,7 +222,7 @@ Exttosim_Init(interp)
 }
 
 #endif /* EXT2SIM_AUTO */
-
+#endif /* MAGIC_WRAPPER */
 
 /*
  * ----------------------------------------------------------------------------
@@ -322,7 +318,11 @@ CmdExtToSim(w, cmd)
 	case EXTTOSIM_EXTRESIST:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, (esDoSimExtResis) ? "on" : "off", NULL);
+#else
+		TxPrintf("Extresist: %s\n", (esDoSimExtResis) ? "on" : "off");
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc != 3)
@@ -335,7 +335,11 @@ CmdExtToSim(w, cmd)
 	case EXTTOSIM_ALIAS:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, (esNoAlias) ? "off" : "on", NULL);
+#else
+		TxPrintf("Aliases: %s\n", (esNoAlias) ? "off" : "on");
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc != 3)
@@ -348,7 +352,11 @@ CmdExtToSim(w, cmd)
 	case EXTTOSIM_LABELS:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, (esNoLabel) ? "off" : "on", NULL);
+#else
+		TxPrintf("Labels: %s\n", (esNoLabel) ? "off" : "on");
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc != 3)
@@ -362,10 +370,18 @@ CmdExtToSim(w, cmd)
 	    if (cmd->tx_argc == 2)
 	    {
 		if (!IS_FINITE_F(LocCapThreshold))
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "infinite", NULL);
+#else
+		    TxPrintf("Capacitance threshold: infinite\n");
+#endif
 		else
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetObjResult(magicinterp,
 			Tcl_NewDoubleObj((double)LocCapThreshold));
+#else
+		    TxPrintf("Capacitance threshold: %lf\n", (double)LocCapThreshold);
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc < 3) goto usage;
@@ -380,10 +396,18 @@ CmdExtToSim(w, cmd)
 	    if (cmd->tx_argc == 2)
 	    {
 		if (LocResistThreshold == INFINITE_THRESHOLD)
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "infinite", NULL);
+#else
+		    TxPrintf("Resistance threshold: infinite\n");
+#endif
 		else
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetObjResult(magicinterp,
 			Tcl_NewIntObj(LocResistThreshold));
+#else
+		    TxPrintf("Resistance threshold: %lf\n", (double)LocResistThreshold);
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc < 3) goto usage;
@@ -397,7 +421,11 @@ CmdExtToSim(w, cmd)
 	case EXTTOSIM_FORMAT:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, sim_formats[esFormat], TCL_STATIC);
+#else
+		TxPrintf("Format: %s\n", sim_formats[esFormat]);
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc < 3) goto usage;
@@ -411,11 +439,23 @@ CmdExtToSim(w, cmd)
 	    if (cmd->tx_argc == 2)
 	    {
 		if (esMergeDevsA)
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "aggressive", NULL);
+#else
+		    TxPrintf("Merge: aggressive\n");
+#endif
 		else if (esMergeDevsC)
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "conservative", NULL);
+#else
+		    TxPrintf("Merge: conservative\n");
+#endif
 		else
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "none", NULL);
+#else
+		    TxPrintf("Merge: none\n");
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc < 3) goto usage;
@@ -483,7 +523,7 @@ runexttosim:
     EFResistThreshold = LocResistThreshold;
 
     /* Process command line arguments */
-    inName = EFArgs(argc, argv, &err_result, simmainArgs, (ClientData) NULL);
+    inName = EFArgs(argc, argv, &err_result, simParseArgs, (ClientData) NULL);
 
     if (err_result == TRUE)
     {
@@ -530,28 +570,40 @@ runexttosim:
 		((esDoSimExtResis) ? ".ext" : ""));
     if ((esSimF = fopen(simesOutName, "w")) == NULL)
     {
+#ifdef MAGIC_WRAPPER
 	char *tclres = Tcl_Alloc(128);
 	sprintf(tclres, "exttosim: Unable to open file %s for writing\n",
 		simesOutName);
 	Tcl_SetResult(magicinterp, tclres, TCL_DYNAMIC);
+#else
+	TxError("exttosim: Unable to open file %s for writing\n", simesOutName);
+#endif
 	EFDone();
 	return /* TCL_ERROR */;
     }
     if (!esNoAlias && (esAliasF = fopen(esAliasName, "w")) == NULL)
     {
+#ifdef MAGIC_WRAPPER
 	char *tclres = Tcl_Alloc(128);
 	sprintf(tclres, "exttosim: Unable to open file %s for writing\n",
 		esAliasName);
 	Tcl_SetResult(magicinterp, tclres, TCL_DYNAMIC);
+#else
+	TxError("exttosim: Unable to open file %s for writing\n", esAliasName);
+#endif
 	EFDone();
 	return /* TCL_ERROR */;
     }
     if (!esNoLabel && (esLabF = fopen(esLabelName, "w")) == NULL)
     {
+#ifdef MAGIC_WRAPPER
 	char *tclres = Tcl_Alloc(128);
 	sprintf(tclres, "exttosim: Unable to open file %s for writing\n",
 		esLabelName);
 	Tcl_SetResult(magicinterp, tclres, TCL_DYNAMIC);
+#else
+	TxError("exttosim: Unable to open file %s for writing\n", esLabelName);
+#endif
 	return /* TCL_ERROR */;
     }
 
@@ -648,7 +700,7 @@ runexttosim:
     TxPrintf("exttosim finished.\n");
 }
 
-#else	/* !MAGIC_WRAPPER */
+#if 0	/* Independent program "ext2sim" deprecated */
 
 /*
  * ----------------------------------------------------------------------------
@@ -699,7 +751,7 @@ main(argc, argv)
     fetInfo[i].resClassSub = 6 ;
     fetInfo[i].defSubs = "Vdd!";
     /* Process command line arguments */
-    inName = EFArgs(argc, argv, NULL, simmainArgs, (ClientData) NULL);
+    inName = EFArgs(argc, argv, NULL, simParseArgs, (ClientData) NULL);
     if (inName == NULL)
 	exit (1);
 
@@ -777,12 +829,12 @@ main(argc, argv)
     exit(0);
 }
 
-#endif		/* MAGIC_WRAPPER */
+#endif		/* Deprecated */
 
 /*
  * ----------------------------------------------------------------------------
  *
- * simmainArgs --
+ * simParseArgs --
  *
  * Process those arguments that are specific to ext2sim.
  * Assumes that *pargv[0][0] is '-', indicating a flag
@@ -805,7 +857,7 @@ main(argc, argv)
  */
 
 int
-simmainArgs(pargc, pargv)
+simParseArgs(pargc, pargv)
     int *pargc;
     char ***pargv;
 {
@@ -880,34 +932,6 @@ simmainArgs(pargc, pargv)
 
 	     break;
 	     }
-#ifndef MAGIC_WRAPPER
-	case 'j':
-	    {
-	    char *rp,  subsNode[80] ;
-	    int   ndx, rClass, rClassSub = NO_RESCLASS;
-
-	    if ((cp = ArgStr(&argc,&argv,"resistance class")) == NULL)
-		goto usage;
-	    if ( (rp = strchr(cp,':')) == NULL )
-		goto usage;
-	    else *rp++ = '\0';
-	    if ( sscanf(rp, "%d/%d/%s", &rClass, &rClassSub, subsNode) != 3 ) {
-		rClassSub = NO_RESCLASS ;
-	    	if ( sscanf(rp, "%d/%s",  &rClass, subsNode) != 2 ) goto usage;
-	    }
-	    ndx = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, cp);
-	    fetInfo[ndx].resClassSource = rClass;
-	    fetInfo[ndx].resClassDrain = rClass;
-	    fetInfo[ndx].resClassSub = rClassSub;
-	    fetInfo[ndx].defSubs = (char *) mallocMagic((unsigned) (strlen(subsNode)+1));
-	    fetInfo[ndx].devType = TT_SPACE;
-	    strcpy(fetInfo[ndx].defSubs,subsNode);
-	    TxError("Info: fet %s(%d) sdRclass=%d subRclass=%d dSub=%s\n",
-	    	cp, ndx, fetInfo[ndx].resClassSD, fetInfo[ndx].resClassSub,
-            	fetInfo[ndx].defSubs);
-	    break;
-	    }
-#endif			/* MAGIC_WRAPPER */
 	default:
 	    TxError("Unrecognized flag: %s\n", argv[0]);
 	    goto usage;
@@ -921,19 +945,10 @@ usage:
     TxError("Usage: ext2sim [-a aliasfile] [-A] [-B] [-l labelfile] [-L]\n"
 		"[-o simfile] [-J flat|hier] [-y cap_digits]\n"
 		"[-f mit|lbl|su] "
-#ifdef MAGIC_WRAPPER
 		"[file]\n"
-#else
-		"[-j device:sdRclass[/subRclass]/defaultSubstrate]\n"
-		"file\n\n    or else see options to extcheck(1)\n"
-#endif
 		);
 
-#ifdef MAGIC_WRAPPER
     return 1;
-#else
-    exit (1);
-#endif
 }
 
 

@@ -809,10 +809,9 @@ mainInitFinal()
     char *rname;
     int result;
 
+#ifdef MAGIC_WRAPPER
     /* Reset terminal if exit is called inside a TCL script */
     Tcl_SetExitProc(tcl_exit_hook);
-
-#ifdef MAGIC_WRAPPER
 
     /* Read in system pre-startup file, if it exists. */
 
@@ -1205,7 +1204,9 @@ mainInitFinal()
     UndoFlush();
     TxClearPoint();
 
+#ifdef MAGIC_WRAPPER
     Tcl_SetExitProc(NULL);
+#endif
 
     return 0;
 }

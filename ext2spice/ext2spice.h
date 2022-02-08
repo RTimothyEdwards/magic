@@ -17,10 +17,8 @@ typedef struct _devMerge {
 } devMerge;
 
 /* Forward declarations */
-#ifdef MAGIC_WRAPPER
 void CmdExtToSpice();
-#endif
-extern int spcmainArgs();
+extern int spcParseArgs();
 extern int spccapVisit(), spcdevVisit(), spcnodeVisit(), subcktVisit();
 extern int spcresistVisit(), devMergeVisit(), devDistJunctVisit();
 extern int spcsubVisit();

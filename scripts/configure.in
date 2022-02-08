@@ -914,20 +914,13 @@ AC_ARG_ENABLE(modular,
 [],
 [enable_modular=no])
 
-if test $usingTcl ; then
-  if test "x$enable_modular" = "xyes" ; then
-    programs="$programs ext2sim ext2spice"
-    AC_DEFINE(EXT2SPICE_AUTO)
-    AC_DEFINE(EXT2SIM_AUTO)
-  else
-    modules="$modules ext2sim ext2spice"
-    extra_libs="$extra_libs \${MAGICDIR}/ext2sim/libext2sim.o"
-    extra_libs="$extra_libs \${MAGICDIR}/ext2spice/libext2spice.o"
-  fi
-else
-  programs="$programs ext2sim ext2spice"
+if test "x$enable_modular" = "xyes" ; then
   AC_DEFINE(EXT2SPICE_AUTO)
   AC_DEFINE(EXT2SIM_AUTO)
+else
+  modules="$modules ext2sim ext2spice"
+  extra_libs="$extra_libs \${MAGICDIR}/ext2sim/libext2sim.o"
+  extra_libs="$extra_libs \${MAGICDIR}/ext2spice/libext2spice.o"
 fi
 
 AC_ARG_ENABLE(locking,
@@ -1268,11 +1261,11 @@ elif test $usingScheme ; then
   unused="$unused tcltk"
   cadinstall="$cadinstall lisp"
   extra_libs="$extra_libs \${MAGICDIR}/lisp/liblisp.o"
-  programs="$programs extcheck graphics"
+  programs="$programs graphics"
   AC_DEFINE(SCHEME_INTERPRETER)
 else
   unused="$unused lisp tcltk"
-  programs="$programs extcheck graphics"
+  programs="$programs graphics"
 fi
 
 dnl ----------------------------------------------------------------

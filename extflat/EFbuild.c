@@ -35,6 +35,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
 #include "extract/extract.h"	/* for device class list */
+#include "extract/extractInt.h"	/* for extGetDevType()	*/
 
 /*
  * To avoid allocating ridiculously large amounts of memory to hold

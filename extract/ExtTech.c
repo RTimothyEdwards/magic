@@ -270,6 +270,8 @@ ExtCompareStyle(stylename)
     return FALSE;
 }
 
+#endif /* MAGIC_WRAPPER */
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -428,8 +430,6 @@ ExtGetDevInfo(idx, devnameptr, devtypeptr, s_rclassptr, d_rclassptr,
     freeMagic(uniquenamelist);
     return TRUE;
 }
-
-#endif /* MAGIC_WRAPPER */
 
 /*
  * ----------------------------------------------------------------------------

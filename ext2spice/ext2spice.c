@@ -29,14 +29,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/dqueue.h"
 #include "utils/utils.h"
 #include "tiles/tile.h"
-#ifdef MAGIC_WRAPPER
 #include "database/database.h"
 #include "windows/windows.h"
 #include "textio/textio.h"
 #include "dbwind/dbwind.h"	/* for DBWclientID */
 #include "commands/commands.h"  /* for module auto-load */
 #include "textio/txcommands.h"
-#endif
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
 #include "extract/extract.h"	/* for extDevTable */
@@ -113,6 +111,10 @@ int	 esSpiceDevsMerged;
 
 devMerge *devMergeList = NULL ;
 
+#define        atoCap(s)       ((EFCapValue)atof(s))
+
+extern void ESGenerateHierarchy();  /* forward reference */
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -134,7 +136,7 @@ int
 esFreeNodeClient(client)
     nodeClient *client;
 {
-    if (client != (ClientData)NULL)
+    if (client != (nodeClient *)NULL)
 	if (client->spiceNodeName != NULL)
 	    freeMagic((char *)client->spiceNodeName);
 
@@ -186,7 +188,6 @@ esFormatSubs(outf, suf)
 }
 
 #ifdef MAGIC_WRAPPER
-
 #ifdef EXT2SPICE_AUTO
 /*
  * ----------------------------------------------------------------------------
@@ -223,6 +224,8 @@ Exttospice_Init(interp)
     return TCL_OK;
 }
 #endif /* EXT2SPICE_AUTO */
+
+#endif /* MAGIC_WRAPPER */
 
 /*
  * ----------------------------------------------------------------------------
@@ -377,7 +380,11 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_EXTRESIST:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, (esDoExtResis) ? "on" : "off", NULL);
+#else
+		TxPrintf("Extresist:  %s\n", (esDoExtResis) ? "on" : "off");
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc != 3)
@@ -391,7 +398,11 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_RESISTORTEE:
 	    if (cmd->tx_argc == 3)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, (esDoResistorTee) ? "on" : "off", NULL);
+#else
+		TxPrintf("Resistor tee:  %s\n", (esDoResistorTee) ? "on" : "off");
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc != 4)
@@ -405,7 +416,11 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_SCALE:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, (esScale < 0) ? "on" : "off", NULL);
+#else
+		TxPrintf("Scale:  %s\n", (esScale < 0) ? "on" : "off");
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc != 3)
@@ -419,7 +434,11 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_HIERARCHY:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, (esDoHierarchy) ? "on" : "off", NULL);
+#else
+		TxPrintf("Hierarchy:  %s\n", (esDoHierarchy) ? "on" : "off");
+#endif
 		return;
 	    }
 	    idx = Lookup(cmd->tx_argv[2], yesno);
@@ -433,7 +452,11 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_BLACKBOX:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, (esDoBlackBox) ? "on" : "off", NULL);
+#else
+		TxPrintf("Black box:  %s\n", (esDoBlackBox) ? "on" : "off");
+#endif
 		return;
 	    }
 	    idx = Lookup(cmd->tx_argv[2], yesno);
@@ -447,7 +470,11 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_RENUMBER:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, (esDoRenumber) ? "on" : "off", NULL);
+#else
+		TxPrintf("Renumber:  %s\n", (esDoRenumber) ? "on" : "off");
+#endif
 		return;
 	    }
 	    idx = Lookup(cmd->tx_argv[2], yesno);
@@ -461,7 +488,11 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_MERGENAMES:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, (esMergeNames) ? "on" : "off", NULL);
+#else
+		TxPrintf("Merge names:  %s\n", (esMergeNames) ? "on" : "off");
+#endif
 		return;
 	    }
 	    idx = Lookup(cmd->tx_argv[2], yesno);
@@ -476,11 +507,23 @@ CmdExtToSpice(w, cmd)
 	    if (cmd->tx_argc == 2)
 	    {
 		if ((EFOutputFlags & EF_SHORT_MASK) == EF_SHORT_NONE)
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "none", NULL);
+#else
+		    TxPrintf("Shorts:  none\n");
+#endif
 		else if ((EFOutputFlags & EF_SHORT_MASK) == EF_SHORT_R)
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "resistor", NULL);
+#else
+		    TxPrintf("Shorts:  resistor\n");
+#endif
 		else if ((EFOutputFlags & EF_SHORT_MASK) == EF_SHORT_V)
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "voltage source", NULL);
+#else
+		    TxPrintf("Shorts:  voltage source\n");
+#endif
 		return;
 	    }
 	    idx = Lookup(cmd->tx_argv[2], cmdShortTypes);
@@ -528,7 +571,11 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_SUBCIRCUITS:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, (esDoPorts) ? "on" : "off", NULL);
+#else
+		TxPrintf("Ports:  %s\n", (esDoPorts) ? "on" : "off");
+#endif
 		return;
 	    }
 	    idx = Lookup(cmd->tx_argv[2], subcktopts);
@@ -544,16 +591,26 @@ CmdExtToSpice(w, cmd)
 		case IDX_DESCEND:
 		    if (cmd->tx_argc == 3)
 		    {
+#ifdef MAGIC_WRAPPER
 			Tcl_SetResult(magicinterp, (esDoPorts) ? "on" : "off", NULL);
+#else
+			TxPrintf("Ports:  %s\n", (esDoPorts) ? "on" : "off");
+#endif
 			return;
 		    }
 		    break;
 		case IDX_TOP:
 		    if (cmd->tx_argc == 3)
 		    {
+#ifdef MAGIC_WRAPPER
 			Tcl_SetResult(magicinterp,
 				(esDoSubckt == 2) ? "auto" :
 				(esDoSubckt == 1) ? "on" : "off", NULL);
+#else
+			TxPrintf("Top subcircuit:  %s\n",
+				(esDoSubckt == 2) ? "auto" :
+				(esDoSubckt == 1) ? "on" : "off");
+#endif
 			return;
 		    }
 		    break;
@@ -588,15 +645,24 @@ CmdExtToSpice(w, cmd)
 	case EXTTOSPC_FORMAT:
 	    if (cmd->tx_argc == 2)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, cmdExtToSpcFormat[esFormat], NULL);
+#else
+		TxPrintf("Format:  %s\n", cmdExtToSpcFormat[esFormat]);
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc < 3) goto usage;
 	    idx = Lookup(cmd->tx_argv[2], cmdExtToSpcFormat);
 	    if (idx < 0)
 	    {
+#ifdef MAGIC_WRAPPER
 		Tcl_SetResult(magicinterp, "Bad format type.  Formats are:"
 			"spice2, spice3, hspice, and ngspice.", NULL);
+#else
+		TxError("Bad format type.  Formats are:"
+			"spice2, spice3, hspice, and ngspice.");
+#endif
 		return;
 	    }
 	    else
@@ -611,10 +677,19 @@ CmdExtToSpice(w, cmd)
 	    if (cmd->tx_argc == 2)
 	    {
 		if (!IS_FINITE_F(LocCapThreshold))
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "infinite", NULL);
+#else
+		    TxPrintf("Capacitance threshold:  infinite\n");
+#endif
 		else
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetObjResult(magicinterp,
 			Tcl_NewDoubleObj((double)LocCapThreshold));
+#else
+		    TxPrintf("Capacitance threshold:  %lf\n",
+			    (double)LocCapThreshold);
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc < 3) goto usage;
@@ -636,10 +711,19 @@ CmdExtToSpice(w, cmd)
 	    if (cmd->tx_argc == 2)
 	    {
 		if (LocResistThreshold == INFINITE_THRESHOLD)
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "infinite", NULL);
+#else
+		    TxPrintf("Resistance threshold:  infinite\n");
+#endif
 		else
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetObjResult(magicinterp,
 			Tcl_NewIntObj(LocResistThreshold));
+#else
+		    TxPrintf("Resistance threshold:  %lf\n",
+			    (double)LocResistThreshold);
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc < 3) goto usage;
@@ -655,11 +739,23 @@ CmdExtToSpice(w, cmd)
 	    if (cmd->tx_argc == 2)
 	    {
 		if (esMergeDevsA)
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "aggressive", NULL);
+#else
+		    TxPrintf("Merge:  aggressive\n");
+#endif
 		else if (esMergeDevsC)
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "conservative", NULL);
+#else
+		    TxPrintf("Merge:  conservative\n");
+#endif
 		else
+#ifdef MAGIC_WRAPPER
 		    Tcl_SetResult(magicinterp, "none", NULL);
+#else
+		    TxPrintf("Merge:  none\n");
+#endif
 		return;
 	    }
 	    else if (cmd->tx_argc < 3) goto usage;
@@ -740,7 +836,7 @@ runexttospice:
 
     /* Process command line arguments */
 
-    inName = EFArgs(argc, argv, &err_result, spcmainArgs, (ClientData) NULL);
+    inName = EFArgs(argc, argv, &err_result, spcParseArgs, (ClientData) NULL);
     if (err_result == TRUE)
     {
 	EFDone();
@@ -788,10 +884,14 @@ runexttospice:
 
     if ((esSpiceF = fopen(spcesOutName, "w")) == NULL)
     {
+#ifdef MAGIC_WRAPPER
 	char *tclres = Tcl_Alloc(128);
 	sprintf(tclres, "exttospice: Unable to open file %s for writing\n",
 		spcesOutName);
 	Tcl_SetResult(magicinterp, tclres, TCL_DYNAMIC);
+#else
+	TxError("exttospice: Unable to open file %s for writing\n", spcesOutName);
+#endif
 	EFDone();
         return;
     }
@@ -836,6 +936,7 @@ runexttospice:
 	    esFetInfo[i].defSubs = subname;
 	}
 
+#ifdef MAGIC_WRAPPER
 	if (EFCompat == TRUE)
 	{
 	    /* Tcl variable substitution for substrate node names */
@@ -846,6 +947,7 @@ runexttospice:
 		if (resstr != NULL) esFetInfo[i].defSubs = resstr;
 	    }
 	}
+#endif
 
 	if (esDoHierarchy && (subname != NULL))
 	{
@@ -885,6 +987,7 @@ runexttospice:
 	}
     }
 
+#ifdef MAGIC_WRAPPER
     if (EFCompat == TRUE)
     {
 	/* Keep a pointer to the "GND" variable, if it exists. */
@@ -892,6 +995,7 @@ runexttospice:
 	resstr = (char *)Tcl_GetVar(magicinterp, "GND", TCL_GLOBAL_ONLY);
 	if (resstr == NULL) resstr = "GND";	/* default value */
     }
+#endif
 
     /* Write the output file */
 
@@ -921,6 +1025,7 @@ runexttospice:
 	fprintf(esSpiceF, ".global ");
 	while (glist != NULL)
 	{
+#ifdef MAGIC_WRAPPER
 	    if (EFCompat == TRUE)
 	    {
 		/* Handle global names that are TCL variables */
@@ -937,6 +1042,7 @@ runexttospice:
 		    esFormatSubs(esSpiceF, glist->gll_name);
 	    }
 	    else
+#endif
 		esFormatSubs(esSpiceF, glist->gll_name);
 
 	    fprintf(esSpiceF, " ");
@@ -1046,7 +1152,7 @@ runexttospice:
     return;
 }
 
-#else	/* MAGIC_WRAPPER */
+#if 0	/* Independent program "ext2spice" has been deprecated */
 
 /*
  * ----------------------------------------------------------------------------
@@ -1103,7 +1209,7 @@ main(argc, argv)
     esFetInfo[i].defSubs = "Vdd!";
     /* Process command line arguments */
 
-    inName = EFArgs(argc, argv, NULL, spcmainArgs, (ClientData) NULL);
+    inName = EFArgs(argc, argv, NULL, spcParseArgs, (ClientData) NULL);
     if (inName == NULL)
 	exit (1);
 
@@ -1210,13 +1316,13 @@ main(argc, argv)
     exit (0);
 }
 
-#endif	/* MAGIC_WRAPPER */
+#endif	/* Deprecated */
 
 
 /*
  * ----------------------------------------------------------------------------
  *
- * spcmainArgs --
+ * spcParseArgs --
  *
  * Process those arguments that are specific to ext2spice.
  * Assumes that *pargv[0][0] is '-', indicating a flag
@@ -1238,7 +1344,7 @@ main(argc, argv)
  */
 
 int
-spcmainArgs(pargc, pargv)
+spcParseArgs(pargc, pargv)
     int *pargc;
     char ***pargv;
 {
@@ -1249,12 +1355,7 @@ spcmainArgs(pargc, pargv)
 		"[-B] [-o spicefile] [-M|-m] [-y cap_digits] "
 		"[-J flat|hier]\n"
 		"[-f spice2|spice3|hspice|ngspice] [-M] [-m] "
-#ifdef MAGIC_WRAPPER
 		"[file]\n";
-#else
-		"[-j device:sdRclass[/subRclass]/defaultSubstrate]\n"
-		"file\n\n    or else see options to extcheck(1)\n";
-#endif
 
     switch (argv[0][1])
     {
@@ -1318,32 +1419,6 @@ spcmainArgs(pargc, pargv)
 	      esCapAccuracy = atoi(t);
 	      break;
 	      }
-#ifndef MAGIC_WRAPPER
-	case 'j':
-	    {
-	    char *rp,  subsNode[80] ;
-	    int   ndx, rClass, rClassSub = -1;
-
-	    if ((cp = ArgStr(&argc,&argv,"resistance class")) == NULL)
-		goto usage;
-	    if ( (rp = (char *) strchr(cp,':')) == NULL )
-		goto usage;
-	    else *rp++ = '\0';
-	    if ( sscanf(rp, "%d/%d/%s", &rClass, &rClassSub, subsNode) != 3 ) {
-		rClassSub = -1 ;
-	    	if ( sscanf(rp, "%d/%s",  &rClass, subsNode) != 2 ) goto usage;
-	    }
-	    ndx = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, cp);
-	    esFetInfo[ndx].resClassSource = esFetInfo[ndx].resClassDrain = rClass;
-	    esFetInfo[ndx].resClassSub = rClassSub;
-	    esFetInfo[ndx].defSubs = (char *)mallocMagic((unsigned)(strlen(subsNode)+1));
-	    strcpy(esFetInfo[ndx].defSubs,subsNode);
-	    TxError("info: dev %s(%d) srcRclass=%d drnRclass=%d subRclass=%d dSub=%s\n",
-	    cp, ndx, esFetInfo[ndx].resClassSource, esFetInfo[ndx].resClassDrain,
-	    esFetInfo[ndx].resClassSub, esFetInfo[ndx].defSubs);
-	    break;
-	    }
-#endif			/* MAGIC_WRAPPER */
 	case 'h':	/* -h or -help, as suggested by "ext2spice help" */
 	    TxPrintf(usage_text);
 	    break;
@@ -1358,12 +1433,7 @@ spcmainArgs(pargc, pargv)
 
 usage:
     TxError(usage_text);
-
-#ifdef MAGIC_WRAPPER
     return 1;
-#else
-    exit (1);
-#endif
 }
 
 /*
@@ -2935,7 +3005,7 @@ FILE *outf;
 		    NULL));
 
 	/* Create node client if it doesn't exist */
-	if ((nodeClient *)nn->efnn_node->efnode_client == (ClientData)NULL)
+	if ((nodeClient *)nn->efnn_node->efnode_client == (nodeClient *)NULL)
 	    initNodeClientHier(nn->efnn_node);
 
 	/* Mark node as visited (set bit one higher than number of resist classes) */

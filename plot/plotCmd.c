@@ -67,7 +67,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 typedef enum {
 	POSTSCRIPT=0,
 	PLOTPNM,
-#ifdef HAVE_LIBCAIRO
+#if defined(HAVE_LIBCAIRO) && defined(MAGIC_WRAPPER)
 	PLOTSVG,
 #endif
 #ifdef GREMLIN
@@ -97,7 +97,7 @@ CmdPlot(w, cmd)
     float width;
     int iwidth, scale;
 
-#ifdef HAVE_LIBCAIRO
+#if defined(HAVE_LIBCAIRO) && defined(MAGIC_WRAPPER)
     int flags;
     extern void GrTCairoPlotSVG();
 #endif
@@ -108,7 +108,7 @@ CmdPlot(w, cmd)
                                      underneath the box",
 	"pnm file [width [layers]]   generate PNM file for what's\n\
 		                     underneath the box",
-#ifdef HAVE_LIBCAIRO
+#if defined(HAVE_LIBCAIRO) && defined(MAGIC_WRAPPER)
 	"svg file		     generate SVG file for the whole window",
 #endif
 #ifdef GREMLIN
@@ -149,7 +149,7 @@ CmdPlot(w, cmd)
 #ifdef GREMLIN
 		|| (option == STYLE_GREMLIN)
 #endif
-#ifdef HAVE_LIBCAIRO
+#if defined(HAVE_LIBCAIRO) && defined(MAGIC_WRAPPER)
 		|| (option == PLOTSVG)
 #endif
 #ifdef VERSATEC
@@ -264,7 +264,7 @@ CmdPlot(w, cmd)
 	    return;
 #endif
 
-#ifdef HAVE_LIBCAIRO
+#if defined(HAVE_LIBCAIRO) && defined(MAGIC_WRAPPER)
 	case PLOTSVG:
 	    if (cmd->tx_argc > 3)
 	    {

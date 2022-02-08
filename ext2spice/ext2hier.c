@@ -25,6 +25,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #ifdef MAGIC_WRAPPER
 #include "tcltk/tclmagic.h"
+#endif
+
 #include "utils/magic.h"
 #include "utils/malloc.h"
 #include "utils/geometry.h"
@@ -1992,5 +1994,3 @@ esHierVisit(hc, cdata)
     EFFlatDone(esFreeNodeClient);
     return 0;
 }
-
-#endif /* MAGIC_WRAPPER */

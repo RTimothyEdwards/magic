@@ -1012,7 +1012,9 @@ CmdWhat(w, cmd)
 			TTMaskSetOnlyType(&maskBits, i);
 			if (DBIsContact(i)) DBMaskAddStacking(&maskBits);
 
+#ifdef MAGIC_WRAPPER
 			if (doListAll) paintcellobj = Tcl_NewListObj(0, NULL);
+#endif
 
 			/* Search selection for tiles of this type, then    */
 			/* call cmdFindWhatTileFunc() to search the cell    */
@@ -1035,6 +1037,7 @@ CmdWhat(w, cmd)
 				TxPrintf(" %s ", lidp->lid_name);
 			    TxPrintf(")\n");
 			}
+#ifdef MAGIC_WRAPPER
 			else
 			{
 			    Tcl_ListObjAppendElement(magicinterp, paintcellobj,
@@ -1048,15 +1051,18 @@ CmdWhat(w, cmd)
 			    Tcl_ListObjAppendElement(magicinterp, paintcellobj,
 				    celllistobj);
 			}
+#endif
 
 		        while (lid != NULL)
 		        {
 			   freeMagic(lid);
 			   lid = lid->lid_next;
 			}
+#ifdef MAGIC_WRAPPER
 			if (doListAll)
 			    Tcl_ListObjAppendElement(magicinterp, paintobj,
 					paintcellobj);
+#endif
 		    }
 		}
 		EditCellUse = saveUse;
