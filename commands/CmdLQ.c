@@ -1658,7 +1658,7 @@ CmdPort(w, cmd)
 	    if (option != PORT_REMOVE)
 	    {
 		TxError("Exactly one label may be present under the cursor box.\n");
-		TxError("Use \"port <name> ...\" to specify a uniqe port.\n");
+		TxError("Use \"port <name> ...\" to specify a unique port.\n");
 	    }
 
 	    return;
