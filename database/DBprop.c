@@ -64,7 +64,8 @@ DBPropPut(cellDef, name, value)
 
     if (cellDef->cd_flags & CDNOEDIT)
     {
-	freeMagic((char *)value);
+	if (value != (ClientData)NULL)
+	    freeMagic((char *)value);
 	return;
     }
 
