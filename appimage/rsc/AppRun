@@ -1,7 +1,0 @@
-#!/bin/sh
-export CURDIR=$(dirname $(readlink -f "${0}")) # Needs to be 6 characters to replace /prefix :)
-export PATH="${CURDIR}/bin":$PATH
-export LD_LIBRARY_PATH=${CURDIR}/lib:$LD_LIBRARY_PATH
-export CAD_ROOT="${CURDIR}/lib"
-cd "${CURDIR}"
-exec "./bin/magic" $@

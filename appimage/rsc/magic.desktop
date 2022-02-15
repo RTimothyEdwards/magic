@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Magic
-Icon=magic
-Exec=magic
-Comment=Magic - A VLSI Layout System
-Categories=Development;
-Terminal=true
