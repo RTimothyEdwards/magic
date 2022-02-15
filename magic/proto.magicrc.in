@@ -99,6 +99,9 @@ macro Control_Shift_XK_z "center"
 #endif /* (XLIB) */
 # Question mark
 macro ? "drc why"
+#ifndef USE_READLINE
+macro ! "drc find; findbox zoom; zoom 16"
+#endif 	/* (!USE_READLINE) */
 macro / "select area; what ; select clear"
 # Comma key
 macro , "select clear"
