@@ -4573,6 +4573,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
      * points weren't provided.  (Lower-left of the box tool is interpreted
      * in root coordinates).
      */
+	// getcell cellname child 0 0 parent ll v 0 0
     av = &cmd->tx_argv[2];
     ac = cmd->tx_argc - 2;
     hasChild = hasRoot = hasTrans = FALSE;
@@ -4599,7 +4600,8 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 		    TxError("Keyword must be followed by a reference point\n");
 		    goto usage;
 	        }
-		else if (ac == 3)
+		//else if (ac == 3) # error case: getcell cellname child 0 0 parent ll -> (ac > 3) -> read 0 as label 
+		else if (ac >= 3 && StrIsInt(av[1]) && StrIsInt(av[2]))
 		{
 		    childPoint.p_x = cmdParseCoord(w, av[1], TRUE, TRUE);
 		    childPoint.p_y = cmdParseCoord(w, av[2], TRUE, FALSE);
@@ -4652,8 +4654,9 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 		{
 		    TxError("Keyword must be followed by a reference point\n");
 		    goto usage;
-	        }
-		else if (ac == 3)
+	    }
+		//else if (ac == 3) # error case: getcell cellname child 0 0 parent ll v 0 0 -> (ac > 3) -> read 0 as label 
+		else if (ac >= 3 && StrIsInt(av[1]) && StrIsInt(av[2]))
 		{
 		    editPoint.p_x = cmdParseCoord(w, av[1], TRUE, TRUE);
 		    editPoint.p_y = cmdParseCoord(w, av[2], TRUE, FALSE);
@@ -4730,8 +4733,10 @@ default_action:
 		    }
 		    av += 1;
 		    ac -= 1;
-	        }
-		else if (Lookup(av[1], kwdNames)>=0)
+	    }
+		// error case: getcell cellname v 0 0 -> read 0 in kwdNames -> goto default transform
+		// av[1] = "0", "90", "180", "270" case -> av[1] must mean editpoint coordinate
+		else if (Lookup(av[1], kwdNames)>=0 && Lookup(av[1], kwdNames)!= 2 && strcmp(av[1],"90") && strcmp(av[1],"180") && strcmp(av[1],"270"))
 		{
 		    goto default_action;
 		}
