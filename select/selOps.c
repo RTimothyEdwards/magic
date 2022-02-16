@@ -301,6 +301,7 @@ SelectFlat()
 		SelectUse);
     DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, SelectUse,
 		(Rect *)NULL);
+    DBReComputeBbox(SelectDef);
 
     SelRememberForUndo(FALSE, SelectRootDef, &SelectUse->cu_bbox);
 

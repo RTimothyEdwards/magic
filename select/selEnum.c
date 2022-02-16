@@ -654,7 +654,7 @@ selEnumCFunc1(scx, arg)
     (void) DBCellSrArea(&scx2, selEnumCFunc2, (ClientData) arg);
     if (arg->sea_foundUse == NULL)
     {
-	TxError("Internal error:  couldn't find selected cell %s.\n",
+	TxError("The selected cell %s is not in the layout.\n",
 	    arg->sea_use->cu_id);
 	return 2;
     }
@@ -816,7 +816,7 @@ SelEnumLabels(layers, editOnly, foundNonEdit, func, clientData)
 			TF_LABEL_ATTACH, selEnumLFunc2, (ClientData) &arg);
 	    if (arg.sea_foundLabel == NULL)
 	    {
-		TxError("Internal error:  couldn't find selected label %s.\n",
+		TxError("The selected label %s is not in the layout.\n",
 				selLabel->lab_text);
 		continue;
 	    }
