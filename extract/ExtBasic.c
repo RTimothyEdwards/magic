@@ -3693,10 +3693,7 @@ extFindNodes(def, clipArea, subonly)
     temp_subsnode = (NodeRegion *)NULL;		// Reset for new search
     isabstract = FALSE;
 
-    // NOTE:  Commented out 12/17/2022.  This does not produce the intended
-    // result when an abstract view contains well and substrate types.
-    // Not sure if commenting it out produces the intended result when an
-    // abstract view does NOT contain will and substrate types, though.
+    // Do not treat abstract cells differently per the substrate.
     /* DBPropGet(def, "LEFview", &isabstract); */
 
     if (!isabstract)
