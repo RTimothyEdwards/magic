@@ -271,9 +271,9 @@ extern void DRCWhy();
 extern void DRCPrintStats();
 extern void DRCCheck();
 extern DRCCountList *DRCCount();
-extern int DRCFind();
+extern int  DRCFind();
 extern void DRCCatchUp();
-extern bool DRCFindInteractions();
+extern int  DRCFindInteractions();
 extern int  DRCBasicCheck();
 extern void DRCOffGridError();
 

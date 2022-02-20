@@ -165,7 +165,7 @@ extSubtree(parentUse, reg, f)
     HierExtractArg ha;
     Rect r, rlab, rbloat, *b;
     Label *lab;
-    bool result;
+    int result;
     int cuts, totcuts;
     float pdone, plast;
     SearchContext scx;
@@ -233,21 +233,26 @@ extSubtree(parentUse, reg, f)
 	    // any geometry in the cell and therefore do not get flagged by
 	    // DRCFindInteractions().
 
-	    for (lab = def->cd_labels; lab; lab = lab->lab_next)
-		if (GEO_OVERLAP(&lab->lab_rect, &r) || GEO_TOUCH(&lab->lab_rect, &r)) {
-		    // Clip the label area to the area of rbloat
-		    rlab = lab->lab_rect;
-		    GEOCLIP(&rlab, &rbloat);
-		    if (!result) {
-			// If result == FALSE then ha.ha_interArea is invalid.
-			ha.ha_interArea = rlab;
-			result = TRUE;
+	    if (result != -1)
+	    {
+	    	for (lab = def->cd_labels; lab; lab = lab->lab_next)
+		    if (GEO_OVERLAP(&lab->lab_rect, &r) ||
+				GEO_TOUCH(&lab->lab_rect, &r))
+		    {
+			/* Clip the label area to the area of rbloat */
+			rlab = lab->lab_rect;
+			GEOCLIP(&rlab, &rbloat);
+			if (result == 0) {
+			    /* If result == FALSE then ha.ha_interArea is invalid. */
+			    ha.ha_interArea = rlab;
+			    result = 1;
+			}
+			else
+		            GeoIncludeAll(&rlab, &ha.ha_interArea);
 		    }
-		    else
-		        result |= GeoIncludeAll(&rlab, &ha.ha_interArea);
-		}
+	    }
 
-	    if (result)
+	    if (result > 0)
 	    {
 		ha.ha_clipArea = ha.ha_interArea;
 		GEOCLIP(&ha.ha_clipArea, &r);
@@ -255,7 +260,7 @@ extSubtree(parentUse, reg, f)
 		extSubtreeClippedArea += RECTAREA(&ha.ha_clipArea);
 		extSubtreeInteraction(&ha);
 	    }
-	    else
+	    else if (result != -1)
 	    {
 		/* Make sure substrate connections have been handled	*/
 		/* even if there were no other interactions found.	*/

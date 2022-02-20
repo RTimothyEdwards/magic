@@ -3824,8 +3824,8 @@ CmdDrc(w, cmd)
 	    window = ToolGetBoxWindow(&rootArea, (int *) NULL);
 	    if (window == NULL) return;
 	    rootUse = (CellUse *) window->w_surfaceID;
-	    if (!DRCFindInteractions(rootUse->cu_def, &rootArea,
-		radius, &area))
+	    if (DRCFindInteractions(rootUse->cu_def, &rootArea,
+		radius, &area) <= 0)
 	    {
 		TxPrintf("No interactions in this area for that radius.\n");
 		return;

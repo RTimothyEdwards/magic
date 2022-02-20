@@ -828,8 +828,8 @@ CIFGenSubcells(def, area, output)
 	    if (square.r_ytop > totalArea.r_ytop)
 		square.r_ytop = totalArea.r_ytop;
 	    GEO_EXPAND(&square, radius, &square);
-	    if (!DRCFindInteractions(def, &square, radius,
-		&interaction)) continue;
+	    if (DRCFindInteractions(def, &square, radius,
+		&interaction) <= 0) continue;
 
 	    /* We've found an interaction.  Flatten it into CIFTotalUse, then
 	     * make CIF from what's flattened.  Yank extra material to

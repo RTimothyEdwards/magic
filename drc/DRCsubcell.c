@@ -365,8 +365,10 @@ drcSubCheckPaint(scx, curUse)
  *	or subcell-paint interactions in a given area of a given cell.
  *
  * Results:
- *	Returns TRUE if there were any interactions in the given
- *	area, FALSE if there were none.
+ *	Returns 1 if there were any interactions in the given
+ *	area, 0 if there were none, and -1 if there were no subcells
+ *	in the area (implies no interactions, but may be treated
+ *	differently, e.g., by extSubtree()).
  *
  * Side effects:
  *	The parameter interaction is set to contain the bounding box
@@ -381,7 +383,7 @@ drcSubCheckPaint(scx, curUse)
  * ----------------------------------------------------------------------------
  */
 
-bool
+int
 DRCFindInteractions(def, area, radius, interaction)
     CellDef *def;		/* Cell to check for interactions. */
     Rect *area;			/* Area of def to check for interacting
@@ -425,7 +427,7 @@ DRCFindInteractions(def, area, radius, interaction)
      * have overlapping bounding boxes without overlapping paint.
      */
 
-    if (GEO_RECTNULL(&drcSubIntArea)) return FALSE;
+    if (GEO_RECTNULL(&drcSubIntArea)) return -1;
     use = NULL;
 
     /* If errors are being propagated up from child to parent,	*/
@@ -447,15 +449,15 @@ DRCFindInteractions(def, area, radius, interaction)
 	scx.scx_trans = GeoIdentityTransform;
 	scx.scx_area = drcSubIntArea;
 	if (DBTreeSrCells(&scx, 0, drcSubCheckPaint, (ClientData) &use) == 0)
-	    return FALSE;
+	    return 0;
     }
 
     /* OK, no more excuses, there's really an interaction area here. */
 
     *interaction = drcSubIntArea;
     GeoClip(interaction, area);
-    if (GEO_RECTNULL(interaction)) return FALSE;
-    return TRUE;
+    if (GEO_RECTNULL(interaction)) return 0;
+    return 1;
 }
 
 /*
@@ -757,7 +759,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 	    /* Find all the interactions in the square, and clip to the error
 	     * area we're interested in. */
 
-	    if (!DRCFindInteractions(def, &cliparea, DRCTechHalo, &intArea))
+	    if (DRCFindInteractions(def, &cliparea, DRCTechHalo, &intArea) <= 0)
 	    {
 		/* Added May 4, 2008---if there are no subcells, run the
 		 * basic check over the area of the erasebox.
