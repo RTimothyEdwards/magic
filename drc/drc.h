@@ -281,6 +281,8 @@ extern void DRCPrintStyle();
 extern void DRCSetStyle();
 extern void DRCLoadStyle();
 
+extern PlaneMask CoincidentPlanes(TileTypeBitMask *typeMask, PlaneMask pmask);
+
 /* The following macro can be used by the outside world to see if
  * the background checker needs to be called.
  */

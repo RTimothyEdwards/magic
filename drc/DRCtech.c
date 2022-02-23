@@ -38,6 +38,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "cif/cif.h"
 #include "cif/CIFint.h"
+#include "drc/drc.h"
 
 CIFStyle *drcCifStyle = NULL;
 bool	 DRCForceReload = FALSE;

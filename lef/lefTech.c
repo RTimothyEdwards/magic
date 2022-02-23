@@ -37,6 +37,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "utils/malloc.h"
 #include "lef/lefInt.h"
 #include "drc/drc.h"
+#include "cif/cif.h"
 
 /* ---------------------------------------------------------------------*/
 
