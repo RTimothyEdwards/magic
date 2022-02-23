@@ -65,11 +65,11 @@ extern Node *extHierNewNode();
 extern ExtTree *extHierNewOne();
 
 /* Global data incremented by extSubtree() */
-int extSubtreeTotalArea;	/* Total area of cell */
-int extSubtreeInteractionArea;	/* Total area of all interactions, counting the
+long extSubtreeTotalArea;	/* Total area of cell */
+long extSubtreeInteractionArea;	/* Total area of all interactions, counting the
 				 * entire area of the interaction each time.
 				 */
-int extSubtreeClippedArea;	/* Total area of all interactions, counting only
+long extSubtreeClippedArea;	/* Total area of all interactions, counting only
 				 * the area that lies inside each chunk, so no
 				 * area is counted more than once.
 				 */

@@ -39,6 +39,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/stack.h"
 #include "utils/malloc.h"
 #include "utils/maxrect.h"
+#include "drc/drc.h"
 
 /* TRUE to run (very slow) algorithm for optimizing non-manhattan tiles */
 /* (cuts size of output;  see also the GDS "merge" option)		*/
