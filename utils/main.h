@@ -93,7 +93,6 @@ extern Transform RootToEditTransform;
 /* global procedures */
 
 extern void MainExit(int);	/* a way of exiting that cleans up after itself */
-// These are not declared anywhere
-// extern bool MainLoadStyles(), MainLoadCursors();  /* Used during init & reset */
+extern void magicMain();
 
 #endif /* _MAIN_H */

@@ -249,7 +249,7 @@ runantennacheck:
     efGates = 0;
     TxPrintf("Running antenna checks.\n");
     EFVisitDevs(antennacheckVisit, (ClientData)editUse);
-    EFFlatDone();
+    EFFlatDone(NULL);
     EFDone();
 
     TxPrintf("antennacheck finished.\n");

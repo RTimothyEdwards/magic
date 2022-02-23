@@ -89,7 +89,7 @@ main(argc, argv)
     EFVisitNodes(nodeVisit, (ClientData) NULL);
 
 #ifdef	free_all_mem
-    EFFlatDone();
+    EFFlatDone(NULL);
     EFDone();
 #endif	/* free_all_mem */
 

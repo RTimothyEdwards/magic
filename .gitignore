@@ -31,3 +31,4 @@ tcltk/ext2sim.sh
 magic/tclmagic.dylib
 tcltk/magicdnull.dSYM/
 tcltk/magicexec.dSYM/
+reconfigure.sh

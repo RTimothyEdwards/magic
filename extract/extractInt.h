@@ -44,9 +44,7 @@ extern CapValue extGetCapValue();
 extern void extSetCapValue();
 extern void extCapHashKill();
 
-typedef int ResValue;	/* Warning:  in some places resistances are stored
-			 * as ints.  This is here for documentation only.
-			 */
+typedef int ResValue;
 
 typedef struct {
      char  areaType;	/* ANTENNAMODEL_SURFACE or ANTENNAMODEL_SIDEWALL */
@@ -881,6 +879,7 @@ typedef struct extstyle
     TileTypeBitMask	 exts_globSubstrateTypes;
     int			 exts_globSubstratePlane;
     TileTypeBitMask	 exts_globSubstrateShieldTypes;
+    TileType		 exts_globSubstrateDefaultType;
 
     /* Scaling */
 	/*

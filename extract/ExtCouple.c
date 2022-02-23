@@ -420,6 +420,7 @@ extAddOverlap(tbelow, ecpls)
 
     /* Quick check on validity of tile's ti_client record */
     if (rbelow == (NodeRegion *)CLIENTDEFAULT) return 0;
+    if (rabove == (NodeRegion *)CLIENTDEFAULT) return 0;
 
     /* Compute the area of overlap */
     ov.o_clip.r_xbot = MAX(LEFT(tbelow), LEFT(tabove));
@@ -908,10 +909,20 @@ extSideOverlap(tp, esws)
 
 	/* If the nodes are electrically connected, then we don't add	*/
 	/* any side overlap capacitance to the node.			*/
-	if (rtp == rbp) return (0);
+	if (rtp == rbp) return 0;
+    	if (rtp == (NodeRegion *)CLIENTDEFAULT) return 0;
+    	if (rbp == (NodeRegion *)CLIENTDEFAULT) return 0;
 
-	if (rtp < rbp) ck.ck_1 = rtp, ck.ck_2 = rbp;
-	    else ck.ck_1 = rbp, ck.ck_2 = rtp;
+	if (rtp < rbp)
+	{
+	    ck.ck_1 = rtp;
+	    ck.ck_2 = rbp;
+	}
+	else
+	{
+	    ck.ck_1 = rbp;
+	    ck.ck_2 = rtp;
+	}
 	he = HashFind(extCoupleHashPtr, (char *) &ck);
 	if (CAP_DEBUG) extAdjustCouple(he, cap, "sideoverlap");
 	extSetCapValue(he, cap + extGetCapValue(he));

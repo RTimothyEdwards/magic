@@ -208,6 +208,7 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
     int quad, pNum;
     Point p;
     bool found;
+    TileType extSubType = 0;
 
     for (lab = def->cd_labels; lab; lab = lab->lab_next)
     {
@@ -263,32 +264,56 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 			GEO_TOUCH(&lab->lab_rect, clipArea))
 			 && (lab->lab_type != TT_SPACE))
 	    {
-		NodeRegion *newNode;
-		int n;
-		int nclasses = ExtCurStyle->exts_numResistClasses;
+		/* If the label is the substrate type and is over	*/
+		/* space, then assign the label to the default		*/
+		/* substrate region.					*/
 
-	    	n = sizeof (NodeRegion) + (sizeof (PerimArea) * (nclasses - 1));
-		newNode = (NodeRegion *)mallocMagic((unsigned) n);
-
-		ll = (LabelList *)mallocMagic(sizeof(LabelList));
-		ll->ll_label = lab;
-		ll->ll_next = NULL;
-		if (lab->lab_flags & PORT_DIR_MASK)
-		    ll->ll_attr = LL_PORTATTR;
+		if ((pNum == ExtCurStyle->exts_globSubstratePlane) &&
+			TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes,
+			lab->lab_type))
+		{
+		    if (glob_subsnode != NULL)
+		    {
+		    	ll = (LabelList *)mallocMagic(sizeof(LabelList));
+		    	ll->ll_label = lab;
+		    	if (lab->lab_flags & PORT_DIR_MASK)
+			    ll->ll_attr = LL_PORTATTR;
+		    	else
+			    ll->ll_attr = LL_NOATTR;
+		    	ll->ll_next = glob_subsnode->nreg_labels;
+		    	glob_subsnode->nreg_labels = ll;
+		    }
+		}
 		else
-		    ll->ll_attr = LL_NOATTR;
+		{
+		    NodeRegion *newNode;
+		    int n;
+		    int nclasses;
 
-	 	newNode->nreg_next = *nodeList;
-		newNode->nreg_pnum = pNum;
-		newNode->nreg_type = lab->lab_type;
-		newNode->nreg_ll = lab->lab_rect.r_ll;
-		newNode->nreg_cap = (CapValue)0;
-		newNode->nreg_resist = 0;
-		for (n = 0; n < nclasses; n++)
-		    newNode->nreg_pa[n].pa_perim = newNode->nreg_pa[n].pa_area = 0;
-		newNode->nreg_labels = ll;
+		    nclasses = ExtCurStyle->exts_numResistClasses;
+	    	    n = sizeof (NodeRegion) + (sizeof (PerimArea) * (nclasses - 1));
+		    newNode = (NodeRegion *)mallocMagic((unsigned) n);
 
-		*nodeList = newNode;
+		    ll = (LabelList *)mallocMagic(sizeof(LabelList));
+		    ll->ll_label = lab;
+		    ll->ll_next = NULL;
+		    if (lab->lab_flags & PORT_DIR_MASK)
+			ll->ll_attr = LL_PORTATTR;
+		    else
+			ll->ll_attr = LL_NOATTR;
+
+	 	    newNode->nreg_next = *nodeList;
+		    newNode->nreg_pnum = pNum;
+		    newNode->nreg_type = lab->lab_type;
+		    newNode->nreg_ll = lab->lab_rect.r_ll;
+		    newNode->nreg_cap = (CapValue)0;
+		    newNode->nreg_resist = 0;
+		    for (n = 0; n < nclasses; n++)
+			newNode->nreg_pa[n].pa_perim = newNode->nreg_pa[n].pa_area = 0;
+		    newNode->nreg_labels = ll;
+
+		    *nodeList = newNode;
+		}
 	    }
 	}
     }

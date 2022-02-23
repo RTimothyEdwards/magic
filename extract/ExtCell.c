@@ -277,18 +277,12 @@ extPrepSubstrate(def)
     /* substrate.  If there is not a simple type representing the substrate */
     /* then do not attempt to resolve substrate regions.                    */
 
+    if ((subType = ExtCurStyle->exts_globSubstrateDefaultType) == -1) return NULL;
+
     TTMaskZero(&subMask);
     TTMaskSetMask(&subMask, &ExtCurStyle->exts_globSubstrateTypes);
-
-    for (subType = TT_TECHDEPBASE; subType < DBNumUserLayers; subType++)
-	if (TTMaskHasType(&subMask, subType))
-	    if (DBPlane(subType) == ExtCurStyle->exts_globSubstratePlane)
-		break;
-
     TTMaskCom2(&notSubMask, &subMask);
     TTMaskAndMask(&notSubMask, &DBPlaneTypes[ExtCurStyle->exts_globSubstratePlane]);
-
-    if (subType == DBNumUserLayers) return NULL;
 
     /* Generate the full flattened substrate into ha->ha_cumFlat (which */
     /* was empty initially).  This adds layer geometry for the          */

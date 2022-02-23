@@ -102,4 +102,6 @@ extern void ExtGetZAxis();
 
 extern void ExtDumpCaps();
 
+extern int extEnumTilePerim();
+
 #endif /* _EXTRACT_H */

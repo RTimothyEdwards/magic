@@ -396,7 +396,7 @@ DBCellGenerateSubstrate(scx, subType, notSubMask, subShieldMask, targetDef)
     Plane *tempPlane;
     int plane;
     Rect rect;
-    TileTypeBitMask subMask;
+    TileTypeBitMask allButSubMask;
     int dbEraseSubFunc();
     int dbPaintSubFunc();
     int dbEraseNonSub();
@@ -417,14 +417,7 @@ DBCellGenerateSubstrate(scx, subType, notSubMask, subShieldMask, targetDef)
     csd.csd_pNum = plane;
     csd.csd_modified = FALSE;
 
-    /* First erase the default substrate type everywhere.  The substrate */
-    /* type is, effectively, only a marker or visual reference.  It has	 */
-    /* no use and makes it harder to determine what is the global	 */
-    /* substrate area.							 */
-    TTMaskSetOnlyType(&subMask, subType);
-    DBTreeSrTiles(scx, &subMask, 0, dbEraseSubFunc, (ClientData)&csd);
-
-    /* Now paint the substrate type in the temporary plane over the	*/
+    /* First paint the substrate type in the temporary plane over the	*/
     /* area of all substrate shield types.				*/
     /* Note: xMask is always zero, as this is only called from extract routines */
     DBTreeSrTiles(scx, subShieldMask, 0, dbPaintSubFunc, (ClientData)&csd);
@@ -433,10 +426,17 @@ DBCellGenerateSubstrate(scx, subType, notSubMask, subShieldMask, targetDef)
     /* Now erase all areas that are non-substrate types in the source */
     DBTreeSrTiles(scx, notSubMask, 0, dbEraseNonSub, (ClientData)&csd);
 
-    /* Finally, copy the destination plane contents onto tempPlane */
+    /* Finally, copy the destination plane contents onto tempPlane,	*/
+    /* ignoring the substrate type.					*/
+    TTMaskZero(&allButSubMask);
+    TTMaskSetMask(&allButSubMask, &DBAllButSpaceBits);
+    TTMaskClearType(&allButSubMask, subType);
     DBSrPaintArea((Tile *)NULL, targetDef->cd_planes[plane], &TiPlaneRect,
-		&DBAllButSpaceBits, dbCopySubFunc, (ClientData)&csd);
+		&allButSubMask, dbCopySubFunc, (ClientData)&csd);
 
+    /* Now we have a plane where the substrate type has a strict 	*/
+    /* definition that it always marks areas of isolated substrate but	*/
+    /* never areas of default substrate.  Return this plane.		*/
     return tempPlane;
 }
 

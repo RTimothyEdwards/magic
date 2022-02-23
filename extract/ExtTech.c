@@ -747,7 +747,7 @@ extTechStyleInit(style)
 
 	style->exts_sheetResist[r] = 0;
 	style->exts_cornerChop[r] = 1.0;
-	style->exts_viaResist[r] = 0;
+	style->exts_viaResist[r] = (ResValue) 0;
 	style->exts_height[r] = 0.0;
 	style->exts_thick[r] = 0.0;
 	style->exts_areaCap[r] = (CapValue) 0;
@@ -826,7 +826,7 @@ extTechStyleInit(style)
 	style->exts_antennaRatio[r].ratioGate = 0.0;
 	style->exts_antennaRatio[r].ratioDiffA = 0.0;
 	style->exts_antennaRatio[r].ratioDiffB = 0.0;
-	style->exts_resistByResistClass[r] = 0;
+	style->exts_resistByResistClass[r] = (ResValue) 0;
 	TTMaskZero(&style->exts_typesByResistClass[r]);
 	style->exts_typesResistChanged[r] = DBAllButSpaceAndDRCBits;
 	TTMaskSetType(&style->exts_typesResistChanged[r], TT_SPACE);
@@ -841,6 +841,7 @@ extTechStyleInit(style)
     // the techfile.
 
     style->exts_globSubstratePlane = -1;
+    style->exts_globSubstrateDefaultType = -1;
     TTMaskZero(&style->exts_globSubstrateTypes);
     TTMaskZero(&style->exts_globSubstrateShieldTypes);
     style->exts_globSubstrateName = (char *)NULL;
@@ -904,6 +905,33 @@ aToCap(str)
 	TechError("Capacitance value %s must be a number\n", str);
     }
     return capVal;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * aToRes --
+ *
+ *    Utility procedure for reading resistance values.
+ *
+ * Returns:
+ *    A value of type ResValue.
+ *
+ * Side effects:
+ *    none.
+ * ----------------------------------------------------------------------------
+ */
+
+ResValue
+aToRes(str)
+    char *str;
+{
+    ResValue resVal;
+    if (sscanf(str, "%d", &resVal) != 1) {
+	resVal = (ResValue) 0;
+	TechError("Resistance value %s must be a number\n", str);
+    }
+    return resVal;
 }
 
 /*
@@ -1048,7 +1076,7 @@ ExtTechSimpleAreaCap(argc, argv)
     capVal = aToCap(argv[argc - 1]);
 
     if (argc == 4)
-	plane2 = -1;
+	plane2 = ExtCurStyle->exts_globSubstratePlane;
     else
 	plane2 = DBTechNoisyNamePlane(argv[argc - 2]);
 
@@ -1098,12 +1126,37 @@ ExtTechSimpleAreaCap(argc, argv)
 	}
     }
 
-    /* Defaults from the "substrate" line */
-    TTMaskSetMask(&subtypes, &ExtCurStyle->exts_globSubstrateTypes);
-    TTMaskClearMask(&subtypes, &ExtCurStyle->exts_globSubstrateShieldTypes);
-    TTMaskClearType(&subtypes, TT_SPACE);
-    TTMaskSetMask(&shields, &ExtCurStyle->exts_globSubstrateShieldTypes);
-    TTMaskClearMask(&shields, &ExtCurStyle->exts_globSubstrateTypes);
+    /* Defaults from the "substrate" line, if used, and if the arguments */
+    /* do not specify the plane and shielding types.			 */
+
+    if ((ExtCurStyle->exts_globSubstratePlane != -1) && (argc == 4))
+    {
+	TTMaskSetMask(&subtypes, &ExtCurStyle->exts_globSubstrateTypes);
+	TTMaskClearMask(&subtypes, &ExtCurStyle->exts_globSubstrateShieldTypes);
+	TTMaskClearType(&subtypes, TT_SPACE);
+
+	/* If the substrate type is used for isolated substrate regions,	*/
+	/* then the substrate plane is also a shielding plane, and the 		*/
+	/* default substrate type is a shielding type.				*/
+
+	if (ExtCurStyle->exts_globSubstrateDefaultType != -1)
+	{
+	    pshield |= PlaneNumToMaskBit(ExtCurStyle->exts_globSubstratePlane);
+
+	    /* The substrate default type now marks isolated regions	*/
+	    /* and so is not itself a substrate type.			*/
+
+	    TTMaskClearType(&subtypes, ExtCurStyle->exts_globSubstrateDefaultType);
+
+	    /* All types on the substrate plane that are not substrate	*/
+	    /* are by definition shielding types.			*/
+
+	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+		if (DBPlane(t) == ExtCurStyle->exts_globSubstratePlane)
+		    if (!TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, t))
+		    	TTMaskSetType(&shields, t);
+	}
+    }
 
     /* Now record all of the overlap capacitances */
 
@@ -1116,7 +1169,8 @@ ExtTechSimpleAreaCap(argc, argv)
 
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 	    {
-		if (!TTMaskHasType(&subtypes, t)) continue;
+		if (!TTMaskHasType(&subtypes, t))
+		    continue;
 
 		if (s == t) continue;	/* shouldn't happen */
 		if (ExtCurStyle->exts_overlapCap[s][t] > (CapValue) 0)
@@ -1196,12 +1250,12 @@ ExtTechSimplePerimCap(argc, argv)
 
     capVal = aToCap(argv[argc - 1]);
 
-    if (argc >= 4)
-	plane2 = DBTechNoisyNamePlane(argv[argc - 2]);
+    if (argc == 4)
+	plane2 = ExtCurStyle->exts_globSubstratePlane;
     else
-	plane2 = -1;
+	plane2 = DBTechNoisyNamePlane(argv[argc - 2]);
 
-    if (argc > 5)
+    if (argc > 4)
     {
 	DBTechNoisyNameMask(argv[argc - 3], &subtypes);
 	TTMaskSetMask(allExtractTypes, &subtypes);
@@ -1252,12 +1306,37 @@ ExtTechSimplePerimCap(argc, argv)
 	TTMaskClearType(&subtypes, TT_SPACE);
     }
 
-    /* Defaults from the "substrate" line */
-    TTMaskSetMask(&subtypes, &ExtCurStyle->exts_globSubstrateTypes);
-    TTMaskClearMask(&subtypes, &ExtCurStyle->exts_globSubstrateShieldTypes);
-    TTMaskClearType(&subtypes, TT_SPACE);
-    TTMaskSetMask(&shields, &ExtCurStyle->exts_globSubstrateShieldTypes);
-    TTMaskClearMask(&shields, &ExtCurStyle->exts_globSubstrateTypes);
+    /* Defaults from the "substrate" line, if used, and if the arguments */
+    /* do not specify the plane and shielding types.			 */
+
+    if ((ExtCurStyle->exts_globSubstratePlane != -1) && (argc == 4))
+    {
+	TTMaskSetMask(&subtypes, &ExtCurStyle->exts_globSubstrateTypes);
+	TTMaskClearMask(&subtypes, &ExtCurStyle->exts_globSubstrateShieldTypes);
+	TTMaskClearType(&subtypes, TT_SPACE);
+
+	/* If the substrate type is used for isolated substrate regions,	*/
+	/* then the substrate plane is also a shielding plane, and the 		*/
+	/* default substrate type is a shielding type.				*/
+
+	if (ExtCurStyle->exts_globSubstrateDefaultType != -1)
+	{
+	    pshield |= PlaneNumToMaskBit(ExtCurStyle->exts_globSubstratePlane);
+
+	    /* The substrate default type now marks isolated regions	*/
+	    /* and so is not itself a substrate type.			*/
+
+	    TTMaskClearType(&subtypes, ExtCurStyle->exts_globSubstrateDefaultType);
+
+	    /* All types on the substrate plane that are not substrate	*/
+	    /* are by definition shielding types.			*/
+
+	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+		if (DBPlane(t) == ExtCurStyle->exts_globSubstratePlane)
+		    if (!TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, t))
+		    	TTMaskSetType(&shields, t);
+	}
+    }
 
     /* Record all of the sideoverlap capacitances */
 
@@ -1273,7 +1352,9 @@ ExtTechSimplePerimCap(argc, argv)
 	    TTMaskSetMask(&ExtCurStyle->exts_sideEdges[s], &nottypes);
 	    for (t = 0; t < DBNumTypes; t++)
 	    {
-		if (!TTMaskHasType(&nottypes, t)) continue;
+		if (!TTMaskHasType(&nottypes, t))
+		    continue;
+
   		if (DBIsContact(t)) continue;
 
 		TTMaskSetMask(&ExtCurStyle->exts_sideOverlapOtherTypes[s][t], &subtypes);
@@ -1771,6 +1852,7 @@ ExtTechLine(sectionName, argc, argv)
     int n, l, i, j, size, val, p1, p2, p3, nterm, iterm, class;
     PlaneMask pshield, pov;
     CapValue capVal, gscap, gccap;
+    ResValue resVal;
     TileTypeBitMask types1, types2, termtypes[MAXSD];
     TileTypeBitMask near, far, ov, shield, subsTypes, idTypes;
     char *subsName, *transName, *cp, *endptr, *paramName;
@@ -2048,10 +2130,10 @@ ExtTechLine(sectionName, argc, argv)
 			"(in milliohms/square).\n", argv[argc - 1]);
 		break;
 	    }
-	    val = atoi(argv[argc - 1]);
+	    resVal = aToRes(argv[argc - 1]);
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 		if (TTMaskHasType(&types1, t))
-		    ExtCurStyle->exts_viaResist[t] = val;
+		    ExtCurStyle->exts_viaResist[t] = resVal;
 	    break;
 	case CSCALE:
 	    ExtCurStyle->exts_capScale = strtol(argv[1], &endptr, 10);
@@ -2519,7 +2601,7 @@ ExtTechLine(sectionName, argc, argv)
 		TechError("Fet resistivity %s must be numeric\n", argv[3]);
 		break;
 	    }
-	    val = atoi(argv[3]);
+	    resVal = aToRes(argv[3]);
 	    isLinear = (strcmp(argv[2], "linear") == 0);
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 	    {
@@ -2529,9 +2611,9 @@ ExtTechLine(sectionName, argc, argv)
 		    for (devptr = ExtCurStyle->exts_device[t]; devptr; devptr = devptr->exts_next)
 		    {
 			he = HashFind(&devptr->exts_deviceResist, argv[2]);
-			HashSetValue(he, (spointertype)val);
+			HashSetValue(he, (spointertype)resVal);
 			if (isLinear)
-			    devptr->exts_linearResist = val;
+			    devptr->exts_linearResist = resVal;
 		    }
 		}
 	    }
@@ -2949,7 +3031,7 @@ ExtTechLine(sectionName, argc, argv)
 		}
 	    }
 	    else
-		val = atoi(argv[2]);
+		resVal = aToRes(argv[2]);
 
 	    if (argc == 4)
 		chop = atof(argv[3]);
@@ -2957,11 +3039,11 @@ ExtTechLine(sectionName, argc, argv)
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 		if (TTMaskHasType(&types1, t))
 		{
-		    ExtCurStyle->exts_sheetResist[t] = val;
+		    ExtCurStyle->exts_sheetResist[t] = resVal;
 		    ExtCurStyle->exts_cornerChop[t] = chop;
 		    ExtCurStyle->exts_typeToResistClass[t] = class;
 		}
-	    ExtCurStyle->exts_resistByResistClass[class] = val;
+	    ExtCurStyle->exts_resistByResistClass[class] = resVal;
 	    ExtCurStyle->exts_typesByResistClass[class] = types1;
 	    }
 	    break;
@@ -2997,6 +3079,23 @@ ExtTechLine(sectionName, argc, argv)
 	    TTMaskSetMask(&ExtCurStyle->exts_globSubstrateTypes, &types1);
 	    ExtCurStyle->exts_globSubstrateShieldTypes = idTypes;
 	    ExtCurStyle->exts_globSubstratePlane = DBTechNoisyNamePlane(argv[2]);
+
+	    /* The "default" substrate type is a type that is in the	*/
+	    /* list of substrate types and exists on the substrate	*/
+	    /* plane, where space on the same plane is also declared to	*/
+	    /* be the substrate type.					*/
+
+	    if (ExtCurStyle->exts_globSubstratePlane != -1)
+	    {
+		TileType subType;
+		for (subType = TT_TECHDEPBASE; subType < DBNumUserLayers; subType++)
+		    if (TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, subType))
+			if (DBPlane(subType) == ExtCurStyle->exts_globSubstratePlane)
+			{
+			    ExtCurStyle->exts_globSubstrateDefaultType = subType;
+			    break;
+			}
+	    }
 
 	    /* Handle optional substrate node name */
 	    if (argc == 4)
