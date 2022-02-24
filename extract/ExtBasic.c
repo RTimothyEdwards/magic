@@ -3723,6 +3723,14 @@ extFindNodes(def, clipArea, subonly)
 	TTMaskSetMask(&subsTypesNonSpace, &ExtCurStyle->exts_globSubstrateTypes);
 	TTMaskClearType(&subsTypesNonSpace, TT_SPACE);
 
+	/* If the default substrate type is set, it is used *only* for	*/
+	/* isolated substrate regions and does not mark the default	*/
+	/* substrate, so remove it from the list of substrate types.	*/
+
+	if (ExtCurStyle->exts_globSubstrateDefaultType != -1)
+	    TTMaskClearType(&subsTypesNonSpace,
+			ExtCurStyle->exts_globSubstrateDefaultType);
+
 	pNum = ExtCurStyle->exts_globSubstratePlane;
 	/* Does the type set of this plane intersect the substrate types? */
 	if (TTMaskIntersect(&DBPlaneTypes[pNum], &subsTypesNonSpace))

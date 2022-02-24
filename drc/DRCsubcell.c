@@ -200,6 +200,10 @@ drcSubCopyFunc(scx, cdarg)
     return DBNoTreeSrTiles(scx, &drcMask, 0, drcSubCopyErrors, cdarg);
 }
 
+/* Flags used by the client data for drcSubcellFunc() */
+#define PROPAGATE_FLAG 1
+#define CELLFOUND_FLAG 2
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -220,12 +224,15 @@ drcSubCopyFunc(scx, cdarg)
  */
 
 int
-drcSubcellFunc(subUse, propagate)
+drcSubcellFunc(subUse, flags)
     CellUse *subUse;		/* Subcell instance. */
-    bool *propagate;		/* Errors to propagate up */
+    int *flags;			/* Information to propagate up */
 {
     Rect area, haloArea, intArea, subIntArea, locIntArea;
     int i;
+
+    /* A subcell has been seen, so set the "cell found" flag */
+    *flags |= CELLFOUND_FLAG;
 
     /* To determine interactions, find the bounding box of
      * all paint and other subcells within one halo of this
@@ -269,7 +276,7 @@ drcSubcellFunc(subUse, propagate)
     GeoInclude(&locIntArea, &intArea);
 #endif
 
-    if (!GEO_RECTNULL(&subIntArea)) *propagate = TRUE;
+    if (!GEO_RECTNULL(&subIntArea)) *flags |= PROPAGATE_FLAG;
 
     drcCurSub = subUse;
     (void) DBSrCellPlaneArea(drcSubDef->cd_cellPlane, &haloArea,
@@ -402,7 +409,7 @@ DRCFindInteractions(def, area, radius, interaction)
     int i;
     CellUse *use;
     SearchContext scx;
-    bool propagate;
+    int flags;
 
     drcSubDef = def;
     drcSubRadius = radius;
@@ -417,9 +424,9 @@ DRCFindInteractions(def, area, radius, interaction)
 
     drcSubIntArea = GeoNullRect;
     GEO_EXPAND(area, radius, &drcSubLookArea);
-    propagate = FALSE;
+    flags = 0;
     (void) DBSrCellPlaneArea(def->cd_cellPlane, &drcSubLookArea,
-		drcSubcellFunc, (ClientData)(&propagate));
+		drcSubcellFunc, (ClientData)(&flags));
 
     /* If there seems to be an interaction area, make a second pass
      * to make sure there's more than one cell with paint in the
@@ -427,13 +434,14 @@ DRCFindInteractions(def, area, radius, interaction)
      * have overlapping bounding boxes without overlapping paint.
      */
 
-    if (GEO_RECTNULL(&drcSubIntArea)) return -1;
+    if (!(flags & CELLFOUND_FLAG)) return -1;
+    if (GEO_RECTNULL(&drcSubIntArea)) return 0;
     use = NULL;
 
     /* If errors are being propagated up from child to parent,	*/
     /* then the interaction area is always valid.		*/
 
-    if (propagate == FALSE)
+    if (!(flags & PROPAGATE_FLAG))
     {
 	for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
 	{

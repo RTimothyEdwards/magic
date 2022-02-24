@@ -255,65 +255,65 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	}
 	if ((found == FALSE) && (nodeList != NULL))
 	{
-	    /* Unconnected node label.  This may be a "sticky label".
-	     * If it is not connected to TT_SPACE, then create a new
-	     * node region for it.
-	     * (3/24/2015---changed from GEO_LABEL_IN_AREA to GEO_SURROUND)
-	     */
-	    if ((GEO_SURROUND(&lab->lab_rect, clipArea) ||
-			GEO_TOUCH(&lab->lab_rect, clipArea))
-			 && (lab->lab_type != TT_SPACE))
-	    {
-		/* If the label is the substrate type and is over	*/
-		/* space, then assign the label to the default		*/
-		/* substrate region.					*/
+	    /* Handle unconnected node label. */
 
-		if ((pNum == ExtCurStyle->exts_globSubstratePlane) &&
+	    /* If the label is the substrate type and is over	*/
+	    /* space, then assign the label to the default	*/
+	    /* substrate region.  The label need not be in the	*/
+	    /* clip area.					*/
+
+	    if ((pNum == ExtCurStyle->exts_globSubstratePlane) &&
 			TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes,
 			lab->lab_type))
+	    {
+		if (temp_subsnode != NULL)
 		{
-		    if (glob_subsnode != NULL)
-		    {
-		    	ll = (LabelList *)mallocMagic(sizeof(LabelList));
-		    	ll->ll_label = lab;
-		    	if (lab->lab_flags & PORT_DIR_MASK)
-			    ll->ll_attr = LL_PORTATTR;
-		    	else
-			    ll->ll_attr = LL_NOATTR;
-		    	ll->ll_next = glob_subsnode->nreg_labels;
-		    	glob_subsnode->nreg_labels = ll;
-		    }
-		}
-		else
-		{
-		    NodeRegion *newNode;
-		    int n;
-		    int nclasses;
-
-		    nclasses = ExtCurStyle->exts_numResistClasses;
-	    	    n = sizeof (NodeRegion) + (sizeof (PerimArea) * (nclasses - 1));
-		    newNode = (NodeRegion *)mallocMagic((unsigned) n);
-
 		    ll = (LabelList *)mallocMagic(sizeof(LabelList));
 		    ll->ll_label = lab;
-		    ll->ll_next = NULL;
 		    if (lab->lab_flags & PORT_DIR_MASK)
 			ll->ll_attr = LL_PORTATTR;
 		    else
 			ll->ll_attr = LL_NOATTR;
-
-	 	    newNode->nreg_next = *nodeList;
-		    newNode->nreg_pnum = pNum;
-		    newNode->nreg_type = lab->lab_type;
-		    newNode->nreg_ll = lab->lab_rect.r_ll;
-		    newNode->nreg_cap = (CapValue)0;
-		    newNode->nreg_resist = 0;
-		    for (n = 0; n < nclasses; n++)
-			newNode->nreg_pa[n].pa_perim = newNode->nreg_pa[n].pa_area = 0;
-		    newNode->nreg_labels = ll;
-
-		    *nodeList = newNode;
+		    ll->ll_next = glob_subsnode->nreg_labels;
+		    temp_subsnode->nreg_labels = ll;
 		}
+	    }
+
+	    /* This may be a "sticky label".  If it is not connected to
+	     * TT_SPACE, then create a new node region for it.  The
+	     * label must be within the clip area.
+	     */
+	    else if ((GEO_SURROUND(&lab->lab_rect, clipArea) ||
+			GEO_TOUCH(&lab->lab_rect, clipArea))
+			 && (lab->lab_type != TT_SPACE))
+	    {
+		NodeRegion *newNode;
+		int n;
+		int nclasses;
+
+		nclasses = ExtCurStyle->exts_numResistClasses;
+	    	n = sizeof (NodeRegion) + (sizeof (PerimArea) * (nclasses - 1));
+		newNode = (NodeRegion *)mallocMagic((unsigned) n);
+
+		ll = (LabelList *)mallocMagic(sizeof(LabelList));
+		ll->ll_label = lab;
+		ll->ll_next = NULL;
+		if (lab->lab_flags & PORT_DIR_MASK)
+		    ll->ll_attr = LL_PORTATTR;
+		else
+		    ll->ll_attr = LL_NOATTR;
+
+	 	newNode->nreg_next = *nodeList;
+		newNode->nreg_pnum = pNum;
+		newNode->nreg_type = lab->lab_type;
+		newNode->nreg_ll = lab->lab_rect.r_ll;
+		newNode->nreg_cap = (CapValue)0;
+		newNode->nreg_resist = 0;
+		for (n = 0; n < nclasses; n++)
+		    newNode->nreg_pa[n].pa_perim = newNode->nreg_pa[n].pa_area = 0;
+		newNode->nreg_labels = ll;
+
+		*nodeList = newNode;
 	    }
 	}
     }

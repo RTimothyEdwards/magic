@@ -397,6 +397,7 @@ DBCellGenerateSubstrate(scx, subType, notSubMask, subShieldMask, targetDef)
     int plane;
     Rect rect;
     TileTypeBitMask allButSubMask;
+    TileTypeBitMask defaultSubTypeMask;
     int dbEraseSubFunc();
     int dbPaintSubFunc();
     int dbEraseNonSub();
@@ -417,9 +418,15 @@ DBCellGenerateSubstrate(scx, subType, notSubMask, subShieldMask, targetDef)
     csd.csd_pNum = plane;
     csd.csd_modified = FALSE;
 
-    /* First paint the substrate type in the temporary plane over the	*/
-    /* area of all substrate shield types.				*/
+    /* The substrate type will be redefined to denote only areas of	*/
+    /* isolated substrate.  The first step is to erase the default	*/
+    /* substrate everywhere so that it can be regenerated automatically	*/
     /* Note: xMask is always zero, as this is only called from extract routines */
+    TTMaskSetOnlyType(&defaultSubTypeMask, subType);
+    DBTreeSrTiles(scx, &defaultSubTypeMask, 0, dbEraseSubFunc, (ClientData)&csd);
+
+    /* Next, paint the substrate type in the temporary plane over the	*/
+    /* area of all substrate shield types.				*/
     DBTreeSrTiles(scx, subShieldMask, 0, dbPaintSubFunc, (ClientData)&csd);
     if (csd.csd_modified == FALSE) return NULL;
 
