@@ -867,15 +867,8 @@ extSideOverlap(tp, esws)
     }
 
     /* Add in the new capacitance. */
-    if (tb == TT_SPACE)
-    {
-	/* Is tp a space tile?  If so, extGetRegion points to garbage;
-	 * make terminal 2 point to ground.
-	 */
-	rbp->nreg_cap += cap;
-	if (CAP_DEBUG) extNregAdjustCap(rbp, cap, "sideoverlap_to_subs");
-    }
-    else
+
+    if (tb != TT_SPACE)
     {
 	int oa = ExtCurStyle->exts_planeOrder[esws->plane_of_boundary];
 	int ob = ExtCurStyle->exts_planeOrder[esws->plane_checked];
@@ -900,12 +893,13 @@ extSideOverlap(tp, esws)
 	    rbp->nreg_cap -= subcap;
 	    /* Ignore residual error at ~zero zeptoFarads.  Probably	*/
 	    /* there should be better handling of round-off here.	*/
-	    if ((rbp->nreg_cap > -0.001) && (rbp->nreg_cap < 0.001)) rbp->nreg_cap = 0;
+	    if ((rbp->nreg_cap > -0.001) && (rbp->nreg_cap < 0.001))
+		rbp->nreg_cap = 0;
 	    if (CAP_DEBUG)
-		extNregAdjustCap(rbp, -subcap, "obsolete_perimcap");
-	} else if (CAP_DEBUG)
-	    extNregAdjustCap(rbp, 0.0,
-		"obsolete_perimcap (skipped, wrong direction)");
+	    	extNregAdjustCap(rbp, -subcap, "obsolete_perimcap");
+    	}
+	else if (CAP_DEBUG)
+	    extNregAdjustCap(rbp, 0.0, "obsolete_perimcap (skipped, wrong direction)");
 
 	/* If the nodes are electrically connected, then we don't add	*/
 	/* any side overlap capacitance to the node.			*/

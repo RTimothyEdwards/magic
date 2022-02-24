@@ -1242,9 +1242,9 @@ ExtTechSimplePerimCap(argc, argv)
 
     DBTechNoisyNameMask(argv[1], &types);
     TTMaskSetMask(allExtractTypes, &types);
-    TTMaskZero(&nottypes);
-    TTMaskSetType(&nottypes, TT_SPACE);
     plane1 = DBTechNoisyNamePlane(argv[2]);
+
+    TTMaskCom2(&nottypes, &types);
     TTMaskAndMask(&types, &DBPlaneTypes[plane1]);
     TTMaskAndMask(&nottypes, &DBPlaneTypes[plane1]);
 
@@ -1260,8 +1260,13 @@ ExtTechSimplePerimCap(argc, argv)
 	DBTechNoisyNameMask(argv[argc - 3], &subtypes);
 	TTMaskSetMask(allExtractTypes, &subtypes);
     }
-    else
+    else if (ExtCurStyle->exts_globSubstratePlane != -1)
+    {
 	TTMaskZero(&subtypes);
+	TTMaskSetMask(&subtypes, &ExtCurStyle->exts_globSubstrateTypes);
+    }
+    else
+	TTMaskSetOnlyType(&subtypes, TT_SPACE);
 
     /* Part 1: Perimeter cap */
 
@@ -1328,6 +1333,9 @@ ExtTechSimplePerimCap(argc, argv)
 
 	    TTMaskClearType(&subtypes, ExtCurStyle->exts_globSubstrateDefaultType);
 
+	    /* But space is */
+	    TTMaskSetType(&subtypes, TT_SPACE);
+
 	    /* All types on the substrate plane that are not substrate	*/
 	    /* are by definition shielding types.			*/
 
@@ -1352,9 +1360,7 @@ ExtTechSimplePerimCap(argc, argv)
 	    TTMaskSetMask(&ExtCurStyle->exts_sideEdges[s], &nottypes);
 	    for (t = 0; t < DBNumTypes; t++)
 	    {
-		if (!TTMaskHasType(&nottypes, t))
-		    continue;
-
+		if (!TTMaskHasType(&nottypes, t)) continue;
   		if (DBIsContact(t)) continue;
 
 		TTMaskSetMask(&ExtCurStyle->exts_sideOverlapOtherTypes[s][t], &subtypes);
@@ -1374,33 +1380,6 @@ ExtTechSimplePerimCap(argc, argv)
 
 		for (r = TT_TECHDEPBASE; r < DBNumTypes; r++)
 		    if (TTMaskHasType(&subtypes, r))
-			ExtCurStyle->exts_sideOverlapShieldPlanes[s][r] |= pshield;
-	    }
-	}
-
-	/* Reverse case (swap "types" and "subtypes") */
-
-	if ((plane2 != -1) && TTMaskHasType(&subtypes, s))
-	{
-	    ExtCurStyle->exts_sidePlanes |= PlaneNumToMaskBit(plane2);
-	    TTMaskSetType(&ExtCurStyle->exts_sideTypes[plane2], s);
-	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
-	    {
-  		if (DBIsContact(t)) continue;
-
-		TTMaskSetMask(&ExtCurStyle->exts_sideOverlapOtherTypes[s][t], &types);
-		ExtCurStyle->exts_sideOverlapOtherPlanes[s][t] |=
-				PlaneNumToMaskBit(plane1);
-		cnew = (EdgeCap *) mallocMagic((unsigned) (sizeof (EdgeCap)));
-		cnew->ec_cap = capVal;
-		cnew->ec_far = shields;		/* Types that shield */
-		cnew->ec_near = types;		/* Types we create cap with */
-		cnew->ec_pmask = PlaneNumToMaskBit(plane1);
-		cnew->ec_next = ExtCurStyle->exts_sideOverlapCap[s][t];
-		ExtCurStyle->exts_sideOverlapCap[s][t] = cnew;
-
-		for (r = TT_TECHDEPBASE; r < DBNumTypes; r++)
-		    if (TTMaskHasType(&types, r))
 			ExtCurStyle->exts_sideOverlapShieldPlanes[s][r] |= pshield;
 	    }
 	}
@@ -1611,10 +1590,7 @@ ExtTechSimpleSideOverlapCap(argv)
     TTMaskSetMask(allExtractTypes, &types);
     plane1 = DBTechNoisyNamePlane(argv[2]);
 
-    // TTMaskCom2(&nottypes, &types);
-    TTMaskZero(&nottypes);
-    TTMaskSetType(&nottypes, TT_SPACE);
-
+    TTMaskCom2(&nottypes, &types);
     TTMaskAndMask(&types,    &DBPlaneTypes[plane1]);
     TTMaskAndMask(&nottypes, &DBPlaneTypes[plane1]);
 
@@ -1655,12 +1631,12 @@ ExtTechSimpleSideOverlapCap(argv)
     for (plane3 = PL_TECHDEPBASE; plane3 < DBNumPlanes; plane3++)
     {
 	pnum3 = ExtCurStyle->exts_planeOrder[plane3];
-	if ((forward == TRUE) && (pnum3 > pnum2 && pnum3 < pnum1))
+	if ((forward == FALSE) && (pnum3 > pnum2 && pnum3 < pnum1))
 	{
 	    TTMaskSetMask(&shields, &DBPlaneTypes[plane3]);
 	    pshield |= PlaneNumToMaskBit(plane3);
 	}
-	else if ((forward == FALSE) && (pnum3 < pnum2 && pnum3 > pnum1))
+	else if ((forward == TRUE) && (pnum3 < pnum2 && pnum3 > pnum1))
 	{
 	    TTMaskSetMask(&shields, &DBPlaneTypes[plane3]);
 	    pshield |= PlaneNumToMaskBit(plane3);
