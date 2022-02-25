@@ -33,6 +33,7 @@ for i in "$@" ; do
       -noc*) TKCON=;;
       -dnull) DNULL=true;;
       --version) TKCON=; DNULL=true;;
+      --commit) TKCON=; DNULL=true;;
       --prefix) TKCON=; DNULL=true;;
       *) arglist="$arglist${arglist:+ }\"${i//\"/\\\"}\"";;
    esac

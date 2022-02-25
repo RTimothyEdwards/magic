@@ -62,6 +62,7 @@ magicdnull: magicdnull.c ${MAGICDIR}/defs.mak
 magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak ${MAGICDIR}/VERSION
 	sed -e /MAGIC_VERSION/s%MAGIC_VERSION%${MAGIC_VERSION}%g \
 	    -e /MAGIC_REVISION/s%MAGIC_REVISION%${MAGIC_REVISION}%g \
+	    -e /MAGIC_COMMIT/s%MAGIC_COMMIT%${MAGIC_COMMIT}%g \
 	    magic.tcl.in > magic.tcl
 
 magic.sh: magic.sh.in ${MAGICDIR}/defs.mak

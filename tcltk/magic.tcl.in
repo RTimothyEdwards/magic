@@ -205,6 +205,10 @@ for {set i 0} {$i < $argc} {incr i 1} {
 	 puts stdout "MAGIC_VERSION.MAGIC_REVISION"
 	 exit 0
       }
+      ^--commit {
+	 puts stdout "MAGIC_COMMIT"
+	 exit 0
+      }
       ^--prefix {
 	 puts stdout $CAD_ROOT
 	 exit 0
