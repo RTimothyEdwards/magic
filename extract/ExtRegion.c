@@ -185,7 +185,9 @@ extRegionAreaFunc(tile, arg)
  * on the boundary between two tiles of different types.
  *
  * Results:
- *	None.
+ *	When called with a NULL nodeList, any default substrate
+ *	label found will be returned (in a pointer to a LabelList
+ *	structure).  This feature is used by extHardProc().
  *
  * Side effects:
  *	Each LabRegion has labels added to its label list.
@@ -193,7 +195,7 @@ extRegionAreaFunc(tile, arg)
  * ----------------------------------------------------------------------------
  */
 
-void
+LabelList *
 ExtLabelRegions(def, connTo, nodeList, clipArea)
     CellDef *def;		/* Cell definition being labelled */
     TileTypeBitMask *connTo;	/* Connectivity table (see above) */
@@ -209,6 +211,7 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
     Point p;
     bool found;
     TileType extSubType = 0;
+    LabelList *retList = NULL;
 
     for (lab = def->cd_labels; lab; lab = lab->lab_next)
     {
@@ -253,7 +256,7 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 		break;
 	    }
 	}
-	if ((found == FALSE) && (nodeList != NULL))
+	if (found == FALSE)
 	{
 	    /* Handle unconnected node label. */
 
@@ -266,7 +269,7 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 			TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes,
 			lab->lab_type))
 	    {
-		if (temp_subsnode != NULL)
+		if ((temp_subsnode != NULL) || (nodeList == NULL))
 		{
 		    ll = (LabelList *)mallocMagic(sizeof(LabelList));
 		    ll->ll_label = lab;
@@ -274,8 +277,18 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 			ll->ll_attr = LL_PORTATTR;
 		    else
 			ll->ll_attr = LL_NOATTR;
-		    ll->ll_next = glob_subsnode->nreg_labels;
-		    temp_subsnode->nreg_labels = ll;
+
+		    if (nodeList != NULL)
+		    {
+			ll->ll_next = temp_subsnode->nreg_labels;
+			temp_subsnode->nreg_labels = ll;
+		    }
+		    else
+		    {
+			ll->ll_next = (LabelList *)NULL;
+			if (retList != NULL) freeMagic(retList);
+			retList = ll;
+		    }
 		}
 	    }
 
@@ -283,7 +296,8 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	     * TT_SPACE, then create a new node region for it.  The
 	     * label must be within the clip area.
 	     */
-	    else if ((GEO_SURROUND(&lab->lab_rect, clipArea) ||
+	    else if ((nodeList != NULL) &&
+			(GEO_SURROUND(&lab->lab_rect, clipArea) ||
 			GEO_TOUCH(&lab->lab_rect, clipArea))
 			 && (lab->lab_type != TT_SPACE))
 	    {
@@ -317,6 +331,7 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	    }
 	}
     }
+    return retList;
 }
 
 /*

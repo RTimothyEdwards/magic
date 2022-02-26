@@ -169,6 +169,7 @@ extHardProc(scx, arg)
     CellDef *def = scx->scx_use->cu_def;
     TransRegion *reg;
     TransRegion *labRegList;
+    LabelList *subList;
     char *savenext;
     int ret = 0;
 
@@ -221,14 +222,31 @@ extHardProc(scx, arg)
 	 * will have uninitialized region pointers, and so will not have labels
 	 * assigned to them.
 	 */
-	// ExtLabelRegions(def, ExtCurStyle->exts_nodeConn, &labRegList,
-	//		&scx->scx_area);
-	ExtLabelRegions(def, ExtCurStyle->exts_nodeConn, NULL, NULL);
+	subList = ExtLabelRegions(def, ExtCurStyle->exts_nodeConn, NULL, NULL);
 
 	/* Now try to find a region with a node label */
 	for (reg = labRegList; reg; reg = reg->treg_next)
 	    if (reg->treg_labels && extHardSetLabel(scx, reg, arg))
 		goto success;
+
+	/* If a label was found attached to the default substrate, then
+	 * check if any region has a substrate type.  If that region does
+	 * not reach the substrate plane (e.g., is not connected to an
+	 * isolated substrate region), then it connects to the default
+	 * substrate and takes the substrate label.
+	 */
+	if (ExtCurStyle->exts_globSubstrateDefaultType != -1)
+	    for (reg = labRegList; reg; reg = reg->treg_next)
+		if (TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, reg->treg_type))
+		    if (reg->treg_pnum != ExtCurStyle->exts_globSubstratePlane)
+		    {
+			reg->treg_labels = subList;
+			if (extHardSetLabel(scx, reg, arg))
+			    goto success;
+			reg->treg_labels = NULL;
+		    }
+
+	if (subList != NULL) freeMagic(subList);
 
 	/* No luck; it's as though there was no geometry at all */
 	extHardFreeAll(def, labRegList);
