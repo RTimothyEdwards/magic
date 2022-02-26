@@ -1585,6 +1585,14 @@ devDistJunctHierVisit(hc, dev, scale)
     return 0;
 }
 
+/* Structure used to store flags and an EFNode pointer */
+
+typedef struct _flagDefRecord {
+    int     fdr_flags;	/* Flags to propagate (if any) */
+    EFNode *fdr_node;	/* Node of parent cell (if any) */
+    struct _flagDefRecord *fdr_next;	/* Keep in a linked list */
+} flagDefRecord;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1608,14 +1616,30 @@ esMakePorts(hc, cdata)
     Connection *conn;
     Def *def = hc->hc_use->use_def, *portdef, *updef;
     Use *use;
-    HashEntry *he;
+    HashTable flagHashTable;
+    HashEntry *he, *he1, *he2;
     EFNodeName *nn;
+    flagDefRecord *flagrec, *flagrec2, *flagtop;
 
     char *name, *portname, *tptr, *aptr, *locname;
     int j;
 
     /* Done when the bottom of the hierarchy is reached */
     if (HashGetNumEntries(&def->def_uses) == 0) return 0;
+
+    /* The entire purpose of this hash table is to avoid unnecessary	*/
+    /* use of the substrate as a port.  Technically, every layout has	*/
+    /* a substrate.  For LVS, however, only the connections to devices	*/
+    /* are relevant.  This is tracked with the EF_SUBS_PORT flag.  But	*/
+    /* the flag needs to be propagated up through the hierarchy, and	*/
+    /* that hierarchy can best be determined here.  Since the		*/
+    /* connections made by "merge" statements may weave through		*/
+    /* multiple cells, the child-to-parent propagation of the		*/
+    /* EF_SUBS_PORT flag must be made by surveying all of the		*/
+    /* connections.							*/
+
+    flagtop = NULL;
+    HashInit(&flagHashTable, 32, HT_STRINGKEYS);
 
     for (conn = (Connection *)def->def_conns; conn; conn = conn->conn_next)
     {
@@ -1625,6 +1649,33 @@ esMakePorts(hc, cdata)
 	    locname = (j == 0) ? conn->conn_2.cn_name : conn->conn_1.cn_name;
 	    if ((tptr = strchr(name, '/')) == NULL)
 		continue;
+
+	    /* Create entries for both node names in the flag hash table,	*/
+	    /* and make them both point to the same record.			*/
+
+	    he1 = HashFind(&flagHashTable, name);
+	    flagrec = (flagDefRecord *)HashGetValue(he1);
+	    he2 = HashFind(&flagHashTable, locname);
+	    flagrec2 = (flagDefRecord *)HashGetValue(he2);
+
+	    if ((flagrec == NULL) && (flagrec2 == NULL))
+	    {
+		flagrec = (flagDefRecord *)mallocMagic(sizeof(flagDefRecord));
+		flagrec->fdr_node = NULL;
+		flagrec->fdr_flags = 0;
+		flagrec->fdr_next = flagtop;
+		flagtop = flagrec;
+		
+		HashSetValue(he1, flagrec);
+	    	HashSetValue(he2, flagrec);
+	    }
+	    else if (flagrec == NULL)
+	    {
+		flagrec = flagrec2;
+	    	HashSetValue(he1, flagrec);
+	    }
+	    else if (flagrec2 == NULL)
+	    	HashSetValue(he2, flagrec);
 
 	    portname = name;
 	    updef = def;
@@ -1704,6 +1755,14 @@ esMakePorts(hc, cdata)
 			// TxPrintf("Port connection in %s from net %s to net %s (%s)\n",
 			//	def->def_name, locname, name, portname);
 		    }
+
+		    /* Propagate the EF_SUBS_PORT flag */
+		    if (nn->efnn_node && (nn->efnn_node->efnode_flags & EF_SUBS_PORT))
+		    {
+			flagrec->fdr_flags = EF_SUBS_PORT;
+			if (flagrec->fdr_node != NULL)
+			    flagrec->fdr_node->efnode_flags |= EF_SUBS_PORT;
+		     }
 		}
 
 		if ((tptr = strchr(portname, '/')) == NULL)
@@ -1712,6 +1771,21 @@ esMakePorts(hc, cdata)
 
 		updef = portdef;
 	    }
+
+	    /* If locname is a port of the parent, set this in the flag		*/
+	    /* record, and if the flag is non-zero, apply it immediately.	*/
+
+	    if (strchr(locname, '/') == NULL)
+	    {
+		he = HashFind(&def->def_nodes, locname);
+		if (he != NULL)
+		{
+		    nn = (EFNodeName *) HashGetValue(he);
+		    flagrec->fdr_node = nn->efnn_node;
+		    flagrec->fdr_node->efnode_flags |= flagrec->fdr_flags;
+		}
+	    }
+
 	}
     }
 
@@ -1805,6 +1879,14 @@ esMakePorts(hc, cdata)
 	    //		name, portname);
 	}
     }
+
+    /* Free table data */
+    while (flagtop != NULL)
+    {
+	freeMagic((char *)flagtop);
+	flagtop = flagtop->fdr_next;
+    }
+    HashKill(&flagHashTable);
     return 0;
 }
 
