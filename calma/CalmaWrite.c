@@ -2915,11 +2915,6 @@ calmaPaintLabelFunc(tile, cos)
     if (clipArea != NULL)
 	GeoClip(&r, clipArea);
 
-    r.r_xbot *= calmaPaintScale;
-    r.r_ybot *= calmaPaintScale;
-    r.r_xtop *= calmaPaintScale;
-    r.r_ytop *= calmaPaintScale;
-
     calmaOutRH(4, CALMA_TEXT, CALMA_NODATA, f);
 
     calmaOutRH(6, CALMA_LAYER, CALMA_I2, f);
@@ -2928,8 +2923,8 @@ calmaPaintLabelFunc(tile, cos)
     calmaOutRH(6, CALMA_TEXTTYPE, CALMA_I2, f);
     calmaOutI2(layer->cl_calmatype, f);
 
-    p.p_x = (r.r_xbot + r.r_xtop) * calmaWriteScale / 2;
-    p.p_y = (r.r_ybot + r.r_ytop) * calmaWriteScale / 2;
+    p.p_x = (r.r_xbot + r.r_xtop) * calmaPaintScale / 2;
+    p.p_y = (r.r_ybot + r.r_ytop) * calmaPaintScale / 2;
     calmaOutRH(12, CALMA_XY, CALMA_I4, f);
     calmaOutI4(p.p_x, f);
     calmaOutI4(p.p_y, f);
