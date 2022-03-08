@@ -694,17 +694,21 @@ dbCellLabelSrFunc(scx, fp)
 	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
     }
 
-    if (fp->tf_tpath != (TerminalPath *) NULL)
+    /* Do not add a path name of a top level window */
+    if (strncmp(scx->scx_use->cu_id, "Topmost ", 8))
     {
-	TerminalPath *tp = fp->tf_tpath;
-
-	tnext = tp->tp_next;
-	tp->tp_next = DBPrintUseId(scx, tp->tp_next, tp->tp_last-tp->tp_next,
-			FALSE);
-	if (tp->tp_next < tp->tp_last)
+	if (fp->tf_tpath != (TerminalPath *) NULL)
 	{
-	    *(tp->tp_next++) = '/';
-	    *(tp->tp_next) = '\0';
+	    TerminalPath *tp = fp->tf_tpath;
+
+	    tnext = tp->tp_next;
+	    tp->tp_next = DBPrintUseId(scx, tp->tp_next, tp->tp_last-tp->tp_next,
+			FALSE);
+	    if (tp->tp_next < tp->tp_last)
+	    {
+		*(tp->tp_next++) = '/';
+		*(tp->tp_next) = '\0';
+	    }
 	}
     }
 
