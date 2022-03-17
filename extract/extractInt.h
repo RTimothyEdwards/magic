@@ -782,6 +782,16 @@ typedef struct extstyle
 	 */
     int			 exts_sideCoupleHalo;
 
+	/*
+	 * Search out a distance exts_fringeShieldHalo from each edge
+	 * for types on the same plane that partially shield fringe
+	 * capacitance.  The shielding is modeled as an ellipse equation
+	 * and the shield halo should be approximately 10x the distance
+	 * where half the fringe capacitance is shielded.  If not specified,
+	 * then it is set to be equal to exts_sideCoupleHalo.
+	 */
+    int			 exts_fringeShieldHalo;
+
     /*
      * Sidewall-overlap coupling capacitance.
      * This is between an edge on one plane and a type on another plane

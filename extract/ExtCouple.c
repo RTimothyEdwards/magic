@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <math.h>		/* For sin() */
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -53,6 +54,7 @@ int extAddOverlap(), extAddCouple();
 int extSideLeft(), extSideRight(), extSideBottom(), extSideTop();
 int extSideOverlap();
 void extSideCommon();
+int extShieldLeft(), extShieldRight(), extShieldBottom(), extShieldTop();
 
 /* Structure to pass on to the coupling and sidewall capacitance	*/
 /* routines to include the current cell definition and the current	*/
@@ -77,9 +79,17 @@ typedef struct _ecpls {
 
 typedef struct _esws {
     Boundary *bp;
-    int  plane_of_boundary;
-    int  plane_checked;
+    int   plane_of_boundary;
+    int   plane_checked;
+    float shieldfrac;
 } extSidewallStruct;
+
+/* Structure to pass the value for fringe shielding	*/
+
+typedef struct _efss {
+    Boundary *bp;
+    float shieldfrac;		// Fraction of fringe capacitance shielded
+} extFringeShieldStruct;
 
 
 /* --------------------- Debugging stuff ---------------------- */
@@ -137,6 +147,15 @@ void extAdjustCouple(he, c, str)
  *		  edge.  In this case we add the coupling capacitance to the
  *		  hash table.  (We may want to deduct the perimeter capacitance
  *		  to substrate?).
+ *
+ * and a mitigating effect:
+ *
+ *	Sidewall
+ *	shield.   When another shape on the same plane is in the proximity of
+ *		  a sidewall edge, then the other shape partially shields the
+ *		  fringe (sidewall overlap) capacitance.  The amount of shielding
+ *		  is modeled by an ellipse between the fringe effect distance
+ *		  exts_fringeShieldHalo (no shielding) and zero (full shielding).
  *
  * Requires that ExtFindRegions has been run on 'def' to label all its
  * tiles with NodeRegions.  Also requires that the HashTable 'table'
@@ -688,13 +707,6 @@ extAddCouple(bp, ecs)
 
 	GEOCLIP(&bp->b_segment, extCoupleSearchArea);
 
-	/* Fixed 2/27/2017 by Tim
-	 * GEO_RECTNULL should not be applied to boundaries, which are
-	 * segments and therefore have no area.  This causes the function
-	 * to always return.
-	 */
-	/* if (GEO_RECTNULL(&bp->b_segment)) return (0); */
-
 	if ((bp->b_segment.r_ytop <= bp->b_segment.r_ybot) &&
 		(bp->b_segment.r_xtop <= bp->b_segment.r_xbot))
 	    return 0;
@@ -729,6 +741,70 @@ extAddCouple(bp, ecs)
 	(void) DBSrPaintArea((Tile *) NULL, def->cd_planes[ecs->plane],
 		&r, &ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
 		proc, (ClientData) bp);
+
+    if (extCoupleList && extOverlapList && (ExtCurStyle->exts_fringeShieldHalo > 0))
+    {
+    	extFringeShieldStruct efss;
+    	NodeRegion *rbp;
+
+	/* Resize r for fringe shield calculation */
+
+	switch (bp->b_direction)
+	{
+	    case BD_LEFT:	/* Along left */
+		r.r_xbot += ExtCurStyle->exts_sideCoupleHalo	;
+		r.r_xbot -= ExtCurStyle->exts_fringeShieldHalo	;
+		proc = extShieldLeft;
+		break;
+	    case BD_RIGHT:	/* Along right */
+		r.r_xtop -= ExtCurStyle->exts_sideCoupleHalo	;
+		r.r_xtop += ExtCurStyle->exts_fringeShieldHalo	;
+		proc = extShieldRight;
+		break;
+	    case BD_TOP:	/* Along top */
+		r.r_ytop -= ExtCurStyle->exts_sideCoupleHalo	;
+		r.r_ytop += ExtCurStyle->exts_fringeShieldHalo	;
+		proc = extShieldTop;
+		break;
+	    case BD_BOTTOM:	/* Along bottom */
+		r.r_ybot += ExtCurStyle->exts_sideCoupleHalo	;
+		r.r_ybot -= ExtCurStyle->exts_fringeShieldHalo	;
+		proc = extShieldBottom;
+		break;
+	}
+
+	/* Find fringe shielding amount */
+
+	efss.bp = bp;
+	efss.shieldfrac = 0.0;
+
+	(void) DBSrPaintArea((Tile *) NULL, def->cd_planes[ecs->plane],
+		&r, &ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
+		proc, (ClientData) &efss);
+
+	esws.shieldfrac = efss.shieldfrac;
+
+	/* Remove the part of the capacitance to substrate that came from
+	 * the sidewall overlap and that was shielded by the nearby shape.
+	 */
+	if (esws.shieldfrac > 0.0)
+	{
+	    int length;
+	    CapValue subcap;
+
+	    if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
+		length = bp->b_segment.r_ytop - bp->b_segment.r_ybot;
+	    else
+		length = bp->b_segment.r_xtop - bp->b_segment.r_xbot;
+
+	    subcap = ExtCurStyle->exts_perimCap[tin][tout] * length * esws.shieldfrac;
+
+	    rbp = (NodeRegion *) extGetRegion(bp->b_inside);
+	    rbp->nreg_cap -= subcap;
+	}
+    }
+    else
+	esws.shieldfrac = 0.0;
 
     if (extOverlapList)
     {
@@ -861,7 +937,7 @@ extSideOverlap(tp, esws)
 		}
 	    }
 	    if (rtp != rbp)
-		cap += e->ec_cap * ov.o_area;
+		cap += e->ec_cap * ov.o_area * (1.0 - esws->shieldfrac);
 	    areaAccountedFor += ov.o_area;
 	}
     }
@@ -889,6 +965,7 @@ extSideOverlap(tp, esws)
 		outtype = DBPlaneToResidue(outtype, esws->plane_of_boundary);
 
 	    subcap = (ExtCurStyle->exts_perimCap[ta][outtype] *
+			(1.0 - esws->shieldfrac) *
 			MIN(areaAccountedFor, length));
 	    rbp->nreg_cap -= subcap;
 	    /* Ignore residual error at ~zero zeptoFarads.  Probably	*/
@@ -1175,3 +1252,216 @@ extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep)
 	}
     extSetCapValue(he, cap);
 }
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extShieldLeft --
+ *
+ * Searching to the left of the boundary 'bp', we found the tile
+ * 'tpfar' which may lie on the far side of an edge to which the
+ * edge bp->b_inside | bp->b_outside shields the fringing capacitance.
+ *
+ * Walk along the right-hand side of 'tpfar' searching for such edges,
+ * and recording the amount of shielding in the passed structure.
+ *
+ * Results:
+ *	Returns 0 always.
+ *
+ * Side effects:
+ *	Updates efss->shieldfrac
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extShieldLeft(tpfar, efss)
+    Tile *tpfar;
+    extFringeShieldStruct *efss;
+{
+    Boundary *bp = efss->bp;
+    Tile *tpnear;
+    float fshield;	/* fraction shielded for this segment */
+    float frac;		/* ratio of segment to boundary length */
+
+    int sep = bp->b_segment.r_xbot - RIGHT(tpfar);
+    int limit = MAX(bp->b_segment.r_ybot, BOTTOM(tpfar));
+    int start = MIN(bp->b_segment.r_ytop, TOP(tpfar));
+    float halo = (float)ExtCurStyle->exts_fringeShieldHalo;
+    float fsep = (float)sep;
+
+    for (tpnear = TR(tpfar); TOP(tpnear) > limit; tpnear = LB(tpnear))
+    {
+	int overlap = MIN(TOP(tpnear), start) - MAX(BOTTOM(tpnear), limit);
+
+	if (overlap > 0)
+	{
+	    frac = (float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot) /
+		   (float)(start - limit);
+	    /* Use sin() approximation for shielding effect */
+            fshield = 1.0 - sin(1.571 * fsep / halo);
+	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	}
+    }
+    return (0);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extShieldRight --
+ *
+ * Searching to the right of the boundary 'bp', we found the tile
+ * 'tpfar' which may lie on the far side of an edge to which the
+ * edge bp->b_inside | bp->b_outside shields the fringing capacitance.
+ *
+ * Walk along the left-hand side of 'tpfar' searching for such edges,
+ * and recording the amount of shielding in the passed structure.
+ *
+ * Results:
+ *	Returns 0 always.
+ *
+ * Side effects:
+ *	Updates efss->shieldfrac
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extShieldRight(tpfar, efss)
+    Tile *tpfar;
+    extFringeShieldStruct *efss;
+{
+    Boundary *bp = efss->bp;
+    Tile *tpnear;
+    float fshield;	/* fraction shielded for this segment */
+    float frac;		/* ratio of segment to boundary length */
+
+    int sep = LEFT(tpfar) - bp->b_segment.r_xtop;
+    int limit = MIN(bp->b_segment.r_ytop, TOP(tpfar));
+    int start = MAX(bp->b_segment.r_ybot, BOTTOM(tpfar));
+    float halo = (float)ExtCurStyle->exts_fringeShieldHalo;
+    float fsep = (float)sep;
+
+    for (tpnear = BL(tpfar); BOTTOM(tpnear) < limit; tpnear = RT(tpnear))
+    {
+	int overlap = MIN(TOP(tpnear), limit) - MAX(BOTTOM(tpnear), start);
+
+	if (overlap > 0)
+	{
+	    frac = (float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot) /
+		   (float)(limit - start);
+	    /* Use sin() approximation for shielding effect */
+            fshield = 1.0 - sin(1.571 * fsep / halo);
+	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	}
+    }
+    return (0);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extShieldTop --
+ *
+ * Searching to the top of the boundary 'bp', we found the tile
+ * 'tpfar' which may lie on the far side of an edge to which the
+ * edge bp->b_inside | bp->b_outside shields the fringing capacitance.
+ *
+ * Walk along the bottom side of 'tpfar' searching for such edges,
+ * and recording the amount of shielding in the passed structure.
+ *
+ * Results:
+ *	Returns 0 always.
+ *
+ * Side effects:
+ *	Updates efss->shieldfrac
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extShieldTop(tpfar, efss)
+    Tile *tpfar;
+    extFringeShieldStruct *efss;
+{
+    Boundary *bp = efss->bp;
+    Tile *tpnear;
+    float fshield;	/* fraction shielded for this segment */
+    float frac;		/* ratio of segment to boundary length */
+
+    int sep = BOTTOM(tpfar) - bp->b_segment.r_ytop;
+    int limit = MIN(bp->b_segment.r_xtop, RIGHT(tpfar));
+    int start = MAX(bp->b_segment.r_xbot, LEFT(tpfar));
+    float halo = (float)ExtCurStyle->exts_fringeShieldHalo;
+    float fsep = (float)sep;
+
+    for (tpnear = LB(tpfar); LEFT(tpnear) < limit; tpnear = TR(tpnear))
+    {
+	int overlap = MIN(RIGHT(tpnear), limit) - MAX(LEFT(tpnear), start);
+
+	if (overlap > 0)
+	{
+	    frac = (float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot) /
+		   (float)(limit - start);
+	    /* Use sin() approximation for shielding effect */
+            fshield = 1.0 - sin(1.571 * fsep / halo);
+	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	}
+    }
+    return (0);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extShieldBottom --
+ *
+ * Searching to the bottom of the boundary 'bp', we found the tile
+ * 'tpfar' which may lie on the far side of an edge to which the
+ * edge bp->b_inside | bp->b_outside shields the fringing capacitance.
+ *
+ * Walk along the top side of 'tpfar' searching for such
+ * and recording the amount of shielding in the passed structure.
+ *
+ * Results:
+ *	Returns 0 always.
+ *
+ * Side effects:
+ *	Updates efss->shieldfrac
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extShieldBottom(tpfar, efss)
+    Tile *tpfar;
+    extFringeShieldStruct *efss;
+{
+    Boundary *bp = efss->bp;
+    Tile *tpnear;
+    float fshield;	/* fraction shielded for this segment */
+    float frac;		/* ratio of segment to boundary length */
+
+    int sep = bp->b_segment.r_ybot - TOP(tpfar);
+    int limit = MAX(bp->b_segment.r_xbot, LEFT(tpfar));
+    int start = MIN(bp->b_segment.r_xtop, RIGHT(tpfar));
+    float halo = (float)ExtCurStyle->exts_fringeShieldHalo;
+    float fsep = (float)sep;
+
+    for (tpnear = RT(tpfar); RIGHT(tpnear) > limit; tpnear = BL(tpnear))
+    {
+	int overlap = MIN(RIGHT(tpnear), start) - MAX(LEFT(tpnear), limit);
+
+	if (overlap > 0)
+	{
+	    frac = (float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot) /
+		   (float)(start - limit);
+	    /* Use sin() approximation for shielding effect */
+            fshield = 1.0 - sin(1.571 * fsep / halo);
+	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	}
+    }
+    return (0);
+}
+

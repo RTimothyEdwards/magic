@@ -74,7 +74,8 @@ typedef enum
     AREAC, CONTACT, CSCALE,
     DEFAULTAREACAP, DEFAULTOVERLAP, DEFAULTPERIMETER, DEFAULTSIDEOVERLAP,
     DEFAULTSIDEWALL,
-    DEVICE, FET, FETRESIST, HEIGHT, ANTENNA, MODEL, TIEDOWN, LAMBDA, OVERC,
+    DEVICE, FET, FETRESIST, FRINGESHIELDHALO,
+    HEIGHT, ANTENNA, MODEL, TIEDOWN, LAMBDA, OVERC,
     PERIMC, PLANEORDER, NOPLANEORDER, RESIST, RSCALE, SIDEHALO, SIDEOVERLAP,
     SIDEWALL, STEP, STYLE, SUBSTRATE, UNITS, VARIANT
 } Key;
@@ -122,6 +123,9 @@ static keydesc keyTable[] = {
     "fetresist",	FETRESIST,	4,	4,
 "type region ohms-per-square",
 
+    "fringeshieldhalo",	FRINGESHIELDHALO,  2,	2,
+"distance",
+
     "height",		HEIGHT,		4,	4,
 "type height-above-subtrate thickness",
 
@@ -155,7 +159,7 @@ static keydesc keyTable[] = {
 "resistance-scalefactor",
 
     "sidehalo",		SIDEHALO,	2,	2,
-"halo",
+"distance",
 
     "sideoverlap",	SIDEOVERLAP,	5,	6,
 "intypes outtypes ovtypes capacitance [shieldtypes]",
@@ -811,6 +815,7 @@ extTechStyleInit(style)
     }
 
     style->exts_sideCoupleHalo = 0;
+    style->exts_fringeShieldHalo = 0;
     style->exts_stepSize = 100;
     style->exts_unitsPerLambda = 100.0;
     style->exts_resistScale = 1000;
@@ -2974,6 +2979,13 @@ ExtTechLine(sectionName, argc, argv)
 	    dhalo *= (double)1000.0;
 	    ExtCurStyle->exts_sideCoupleHalo = (int)dhalo;
 	    break;
+	case FRINGESHIELDHALO:
+	    /* Allow floating-point and increase by factor of 1000      */
+	    /* to accommodate "units microns".                          */
+	    sscanf(argv[1], "%lg", &dhalo);
+	    dhalo *= (double)1000.0;
+	    ExtCurStyle->exts_fringeShieldHalo = (int)dhalo;
+	    break;
 	case PERIMC:
 	    DBTechNoisyNameMask(argv[2], &types2);
 	    TTMaskSetMask(allExtractTypes, &types2);
@@ -3451,9 +3463,11 @@ zinit:
 	    style->exts_height[r] /= dscale;
 	}
 
-	/* side halo and step size are also in microns */
+	/* side halo, fringe shield halo, and step size are also in microns */
 
 	style->exts_sideCoupleHalo = (int)(((float)style->exts_sideCoupleHalo
+		/ dscale) + 0.5);
+	style->exts_fringeShieldHalo = (int)(((float)style->exts_fringeShieldHalo
 		/ dscale) + 0.5);
 	style->exts_stepSize = (int)(((float)style->exts_stepSize
 		/ dscale) + 0.5);
@@ -3471,6 +3485,7 @@ zinit:
     /* needed, so normalize it back to lambda units.			*/
 
     style->exts_sideCoupleHalo /= 1000;
+    style->exts_fringeShieldHalo /= 1000;
 }
 
 /*
@@ -3499,6 +3514,7 @@ ExtTechScale(scalen, scaled)
     style->exts_unitsPerLambda = style->exts_unitsPerLambda * (float)scalen
 		/ (float)scaled;
     DBScaleValue(&style->exts_sideCoupleHalo, scaled, scalen);
+    DBScaleValue(&style->exts_fringeShieldHalo, scaled, scalen);
     DBScaleValue(&style->exts_stepSize, scaled, scalen);
 
     for (i = 0; i < DBNumTypes; i++)
