@@ -315,10 +315,10 @@ dnl Check for X enabled/disabled
 
 AC_PATH_XTRA
 
-if test "x${X_DISPLAY_MISSING}" = "x"; then
+if test "x$no_x" = "x"; then
   usingX11=1
 else
-  AC_MSG_ERROR([Unable to find X11---compiling without graphics])
+  echo Unable to find X11---compiling without graphics.
   echo Cannot find X11---will attempt to compile anyway.
   echo Graphics options will be NULL only!
   if test $usingOGL ; then

@@ -6058,10 +6058,10 @@ fi
 fi
 
 
-if test "x${X_DISPLAY_MISSING}" = "x"; then
+if test "x$no_x" = "x"; then
   usingX11=1
 else
-  as_fn_error $? "Unable to find X11---compiling without graphics" "$LINENO" 5
+  echo Unable to find X11---compiling without graphics.
   echo Cannot find X11---will attempt to compile anyway.
   echo Graphics options will be NULL only!
   if test $usingOGL ; then
@@ -7282,7 +7282,9 @@ if test "x$enable_threads" = "xyes" ; then
     $as_echo "#define HAVE_PTHREADS 1" >>confdefs.h
 
     gr_libs="$gr_libs -lpthread"
-    gr_srcs="$gr_srcs \${X11THREAD_SRCS}"
+    if test $usingX11 ; then    
+      gr_srcs="$gr_srcs \${X11THREAD_SRCS}"
+    fi
     gr_hsrcs=""
     gr_hprog=""
 fi
