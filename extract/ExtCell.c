@@ -208,14 +208,17 @@ extFileOpen(def, file, mode, doLocal, prealfile)
     else
 	name = def->cd_name;
 
-    ends = strrchr(def->cd_file, '/');
-    if (ends != NULL)
+    if (def->cd_file)
     {
-	testf = PaOpen(ends + 1, "r", ".mag", ".", ".", NULL);
-	if (testf)
+	ends = strrchr(def->cd_file, '/');
+	if (ends != NULL)
 	{
-	    fclose(testf);
-	    return NULL;
+	    testf = PaOpen(ends + 1, "r", ".mag", ".", ".", NULL);
+	    if (testf)
+	    {
+		fclose(testf);
+		return NULL;
+	    }
 	}
     }
     return (PaOpen(name, mode, ".ext", ".", ".", prealfile));
