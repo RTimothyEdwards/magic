@@ -74,12 +74,13 @@ enum def_netspecial_shape_keys {
 	DEF_SPECNET_SHAPE_DRCFILL};
 
 char *
-DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
+DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap)
     CellDef *rootDef;		/* Cell to paint */
     FILE *f;			/* Input file */
     float oscale;		/* Scale factor between LEF and magic units */
     bool special;		/* True if this section is SPECIALNETS */
     char *netname;		/* Name of the net, if net is to be labeled */
+    LefRules *ruleset;		/* Non-default rule, or NULL */
     LefMapping *defLayerMap;	/* magic-to-lef layer mapping array */
 {
     char *token;
@@ -97,12 +98,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
     lefLayer *lefl = NULL;
     lefRule *rule = NULL;
     int keyword;
-
-    static char *regnet_keys[] = {
-	"STYLE",
-	"TAPER",
-	"TAPERRULE",
-    };
+    bool is_taper = FALSE, end_taper = FALSE;
 
     static char *specnet_keys[] = {
 	"SHAPE",
@@ -189,11 +185,17 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
 		saveWidth = paintWidth;
 	    }
-	    else if (rule)
-		paintWidth = rule->width;
 	    else
-		paintWidth = (lefl) ? lefl->info.route.width :
+	    {
+		if (ruleset)
+		    for (rule = ruleset->rule; rule; rule = rule->next)
+			if (rule->lefInfo == lefl)
+			    break;
+
+		paintWidth = (rule) ? rule->width :
+				(lefl) ? lefl->info.route.width :
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+	    }
 	}
 	else if ((*token == '+') && (special == TRUE))
 	{
@@ -250,8 +252,6 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 		case DEF_SPECNET_FIXEDBUMP:
 		    /* Ignore this keyword */
 		    break;
-
-
 	    }
 	}
 	else if (!strcmp(token, "RECT"))
@@ -335,6 +335,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 	    /* Return to the default width for this layer */
 	    paintWidth = (lefl) ? lefl->info.route.width :
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+	    is_taper = TRUE;
 	}
 	else if (!strcmp(token, "TAPERRULE"))
 	{
@@ -343,14 +344,28 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 	    he = HashLookOnly(&LefNonDefaultRules, token);
 	    if (he != NULL)
 	    {
-		rule = (lefRule *)HashGetValue(he);
-	        paintWidth = rule->width;
+	   	LefRules *tempruleset = (LefRules *)HashGetValue(he);
+		for (rule = tempruleset->rule; rule; rule = rule->next)
+		    if (rule->lefInfo == lefl)
+			break;
+
+		if (rule) paintWidth = rule->width;
+	    	is_taper = TRUE;
+	    }
+	    else if (!strcmp(token, "DEFAULT"))
+	    {
+	    	paintWidth = (lefl) ? lefl->info.route.width :
+				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+	    	is_taper = TRUE;
 	    }
 	    else
 	    	LefError(DEF_ERROR, "Unknown nondefault rule \"%s\"\n", token);
 	}
 	else if (*token != '(')	/* via name */
 	{
+	    /* A via directly after a taper rule would cancel the taper rule */
+	    is_taper = FALSE;
+
 	    /* A '+' or ';' record ends the route */
 	    if (*token == ';' || *token == '+')
 		break;
@@ -536,6 +551,8 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 		    extend = (int)roundf((2 * z) / oscale);
 	    }
 
+	    end_taper = ((valid == TRUE) && (is_taper == TRUE)) ? TRUE : FALSE;
+
 	    /* Indicate that we have a valid reference point */
 
 	    if (valid == FALSE)
@@ -609,6 +626,24 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 		newRoute->r_r.r_ytop >>= 1;
 	    }
 
+	    /* If a taper rule was in effect and we have a valid	*/
+	    /* segment, reset the width	after creating the segment.	*/
+
+	    if (end_taper)
+	    {
+		is_taper = FALSE;
+		end_taper = FALSE;
+		rule = NULL;
+		if (ruleset)
+		    for (rule = ruleset->rule; rule; rule = rule->next)
+			if (rule->lefInfo == lefl)
+			    break;
+
+		paintWidth = (rule) ? rule->width :
+				(lefl) ? lefl->info.route.width :
+				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+	    }
+
 endCoord:
 	    /* Find the closing parenthesis for the coordinate pair */
 	    while (*token != ')')
@@ -677,7 +712,8 @@ enum def_nondefprop_keys {
 	DEF_NONDEFPROP_VIA, DEF_NONDEFPROP_VIARULE,
 	DEF_NONDEFPROP_MINCUTS, DEF_NONDEFPROP_PROPERTY,
 	DEF_NONDEFLAYER_WIDTH, DEF_NONDEFLAYER_DIAG,
-	DEF_NONDEFLAYER_SPACE, DEF_NONDEFLAYER_EXT};
+	DEF_NONDEFLAYER_SPACE, DEF_NONDEFLAYER_EXT,
+	DEF_NONDEFPROP_DONE};
 
 void
 DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
@@ -688,13 +724,14 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
     int total;
 {
     char *token;
-    char *rulename = NULL;
     int keyword, subkey;
     int processed = 0;
     HashEntry *he;
     lefLayer *lefl;
     float fvalue;
+    LefRules *ruleset = NULL;
     lefRule *rule = NULL;
+    bool inlayer;
 
     static char *nondef_keys[] = {
 	"-",
@@ -713,6 +750,7 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 	"DIAGWIDTH",
 	"SPACING",
 	"WIREEXT",
+	";",
 	NULL
     };
 
@@ -733,16 +771,15 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 
 		/* Get non-default rule name */
 		token = LefNextToken(f, TRUE);
-		rulename = StrDup((char **)NULL, token);
 
 		/* Create a hash entry for this nondefault rule */
 		/* NOTE:  Needs to handle name collisions.	*/
-		he = HashFind(&LefNonDefaultRules, rulename);
-		rule = (lefRule *)mallocMagic(sizeof(lefRule));
-		HashSetValue(he, rule);
-		rule->lefInfo = NULL;
-		rule->width = 0;
-		rule->spacing = 0;
+		he = HashFind(&LefNonDefaultRules, token);
+		ruleset = (LefRules *)mallocMagic(sizeof(LefRules));
+		HashSetValue(he, ruleset);
+		ruleset->name = StrDup((char **)NULL, token);
+		ruleset->rule = NULL;
+		processed++;
 
 		/* Process all properties */
 		while (token && (*token != ';'))
@@ -750,10 +787,15 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 		    if (*token != '+')
 		    {
 			token = LefNextToken(f, TRUE);
-			continue;
+			if (!inlayer)
+			    continue;
 		    }
 		    else
+		    {
+			inlayer = FALSE;
+			rule = NULL;
 			token = LefNextToken(f, TRUE);
+		    }
 
 		    subkey = Lookup(token, nondef_property_keys);
 		    if (subkey < 0)
@@ -764,6 +806,8 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 		    }
 		    switch (subkey)
 		    {
+			case DEF_NONDEFPROP_DONE:
+			    break;
 			case DEF_NONDEFPROP_HARDSPACING:
 			    lefl = NULL;
 			    /* Ignore this */
@@ -776,11 +820,20 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 			    token = LefNextToken(f, TRUE);
 			    he = HashFind(&LefInfo, token);
 			    lefl = (lefLayer *)HashGetValue(he);
-			    if (rule)
+			    if (ruleset)
+			    {
+				/* Chain new layer rule to linked list */
+				rule = (lefRule *)mallocMagic(sizeof(lefRule));
 			    	rule->lefInfo = lefl;
+				rule->width = 0;
+				rule->spacing = 0;
+				rule->next = ruleset->rule;
+				ruleset->rule = rule;
+			    }
 			    else
 				LefError(DEF_INFO, "No non-default rule name for \"%s\" "
 					"in NONDEFAULTRULE definition!.\n", token);
+			    inlayer = TRUE;
 			    break;
 			case DEF_NONDEFPROP_MINCUTS:
 			case DEF_NONDEFPROP_PROPERTY:
@@ -790,23 +843,34 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 			    token = LefNextToken(f, TRUE);
 			    break;
 			case DEF_NONDEFLAYER_WIDTH:
+			    if (!inlayer)
+				LefError(DEF_INFO, "WIDTH specified without layer.\n");
 			    token = LefNextToken(f, TRUE);
 			    sscanf(token, "%f", &fvalue);
-			    if (lefl == NULL)
+			    if (rule == NULL)
+				LefError(DEF_INFO, "No rule for non-default width.\n");
+			    else if (lefl == NULL)
 				LefError(DEF_INFO, "No layer for non-default width.\n");
-			    else if (lefl->lefClass == CLASS_ROUTE)
-				lefl->info.route.width = (int)roundf(fvalue / oscale);
+			    else
+			    	rule->width = (int)roundf(fvalue / oscale);
 			    break;
 			case DEF_NONDEFLAYER_SPACE:
+			    if (!inlayer)
+				LefError(DEF_INFO, "SPACING specified without layer.\n");
 			    token = LefNextToken(f, TRUE);
 			    sscanf(token, "%f", &fvalue);
-			    if (lefl == NULL)
-				LefError(DEF_INFO, "No layer for non-default width.\n");
-			    else if (lefl->lefClass == CLASS_ROUTE)
-				lefl->info.route.spacing = (int)roundf(fvalue / oscale);
+			    if (rule == NULL)
+				LefError(DEF_INFO, "No rule for non-default spacing.\n");
+			    else if (lefl == NULL)
+				LefError(DEF_INFO, "No layer for non-default spacing.\n");
+			    else
+			    	rule->spacing = (int)roundf(fvalue / oscale);
 			    break;
 			case DEF_NONDEFLAYER_DIAG:
 			case DEF_NONDEFLAYER_EXT:
+			    if (!inlayer)
+				LefError(DEF_INFO,
+					"Layer value specified without layer.\n");
 			    /* Absorb token and ignore */
 			    token = LefNextToken(f, TRUE);
 			    break;
@@ -851,9 +915,13 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 
 enum def_net_keys {DEF_NET_START = 0, DEF_NET_END};
 enum def_netprop_keys {
-	DEF_NETPROP_USE = 0, DEF_NETPROP_ROUTED, DEF_NETPROP_FIXED,
-	DEF_NETPROP_COVER, DEF_NETPROP_SOURCE, DEF_NETPROP_WEIGHT,
-	DEF_NETPROP_PROPERTY};
+	DEF_NETPROP_USE = 0, DEF_NETPROP_ROUTED, DEF_NETPROP_NOSHIELD,
+	DEF_NETPROP_FIXED, DEF_NETPROP_COVER, DEF_NETPROP_SOURCE,
+	DEF_NETPROP_SHIELDNET, DEF_NETPROP_SUBNET, DEF_NETPROP_VPIN,
+	DEF_NETPROP_XTALK, DEF_NETPROP_NONDEFRULE, DEF_NETPROP_FIXEDBUMP,
+	DEF_NETPROP_FREQUENCY, DEF_NETPROP_ORIGINAL, DEF_NETPROP_PATTERN,
+	DEF_NETPROP_ESTCAP, DEF_NETPROP_WEIGHT, DEF_NETPROP_PROPERTY
+};
 
 void
 DefReadNets(f, rootDef, sname, oscale, special, dolabels, total)
@@ -870,6 +938,8 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, total)
     int keyword, subkey;
     int processed = 0;
     LefMapping *defLayerMap;
+    LefRules *ruleset = NULL;
+    HashEntry *he;
 
     static char *net_keys[] = {
 	"-",
@@ -880,9 +950,20 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, total)
     static char *net_property_keys[] = {
 	"USE",
 	"ROUTED",
+	"NOSHIELD",
 	"FIXED",
 	"COVER",
 	"SOURCE",
+	"SHIELDNET",
+	"SUBNET",
+	"VPIN",
+	"XTALK",
+	"NONDEFAULTRULE",
+	"FIXEDBUMP",
+	"FREQUENCY",
+	"ORIGINAL",
+	"PATTERN",
+	"ESTCAP",
 	"WEIGHT",
 	"PROPERTY",
 	NULL
@@ -938,16 +1019,53 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, total)
 		    }
 		    switch (subkey)
 		    {
-			case DEF_NETPROP_USE:
-			    /* Presently, we ignore this, except to	*/
-			    /* absorb the following value.		*/
-			    token = LefNextToken(f, TRUE);
-			    break;
 			case DEF_NETPROP_ROUTED:
 			case DEF_NETPROP_FIXED:
 			case DEF_NETPROP_COVER:
+			case DEF_NETPROP_NOSHIELD:
 			    token = DefAddRoutes(rootDef, f, oscale, special,
-					netname, defLayerMap);
+					netname, ruleset, defLayerMap);
+			    ruleset = NULL;
+			    break;
+
+			case DEF_NETPROP_NONDEFRULE:
+		    	    token = LefNextToken(f, TRUE);
+			    /*
+			     * Differs from "TAPERRULE" in that it specifies a non-default
+			     * rule to use for the entire net.
+			     */
+			    he = HashLookOnly(&LefNonDefaultRules, token);
+			    if (he != NULL)
+			        ruleset = (LefRules *)HashGetValue(he);
+			    else
+			    	LefError(DEF_ERROR, "Unknown nondefault rule \"%s\"\n", token);
+			    break;
+
+			case DEF_NETPROP_PROPERTY:
+			    /* Ignore except to absorb the next two tokens. */
+			    token = LefNextToken(f, TRUE);  /* Drop through */
+
+			case DEF_NETPROP_SOURCE:
+			case DEF_NETPROP_USE:
+			case DEF_NETPROP_SHIELDNET:
+			case DEF_NETPROP_SUBNET:
+			case DEF_NETPROP_XTALK:
+			case DEF_NETPROP_FREQUENCY:
+			case DEF_NETPROP_ORIGINAL:
+			case DEF_NETPROP_PATTERN:
+			case DEF_NETPROP_ESTCAP:
+			case DEF_NETPROP_WEIGHT:
+			    /* Ignore except to absorb the next token. */
+			    token = LefNextToken(f, TRUE);  /* Drop through */
+
+			case DEF_NETPROP_FIXEDBUMP:
+			    /* Ignore this keyword */
+			    break;
+
+			case DEF_NETPROP_VPIN:
+			    /* VPIN is an in-line pin not in the PINS section	*/
+			    /* Need to handle this!				*/
+			    token = LefNextToken(f, TRUE);
 			    break;
 		    }
 		}

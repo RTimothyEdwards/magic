@@ -103,10 +103,11 @@ typedef struct {
 
 /* Structure used for non-default rules. */
 
-typedef struct {
+typedef struct _lefRule {
     lefLayer	*lefInfo;	/* Layer or via referenced by the rule */
     int 	width;		/* Non-default width value for layer */
     int		spacing;	/* Non-default spacing value for layer */
+    struct _lefRule	*next;
 } lefRule;
 
 /* Structure to hold nondefault rules required by nets */
@@ -114,7 +115,6 @@ typedef struct {
 typedef struct {
     char *name;
     lefRule *rule;
-    lefRule *next;
 } LefRules;
 
 /* Structure holding the counts of regular and special nets */
