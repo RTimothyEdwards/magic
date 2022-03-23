@@ -45,6 +45,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 
 HashTable LefInfo;
 
+/* Non-default rule table (currently used only by DEF read/write) */
+
+HashTable LefNonDefaultRules;
+
 /*
  *-----------------------------------------------------------------------------
  *  LefInit --
@@ -68,6 +72,7 @@ LefInit()
     /* on it when we to the tech initialization.			*/
 
     LefInfo.ht_table = (HashEntry **) NULL;
+    LefNonDefaultRules.ht_table = (HashEntry **) NULL;
 }
 
 /*
@@ -114,8 +119,10 @@ LefTechInit()
 	    }
 	}
 	HashKill(&LefInfo);
+	HashKill(&LefNonDefaultRules);
     }
     HashInit(&LefInfo, 32, HT_STRINGKEYS);
+    HashInit(&LefNonDefaultRules, 32, HT_STRINGKEYS);
     lefCurrentLine = -1;
 }
 

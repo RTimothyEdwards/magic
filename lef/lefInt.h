@@ -21,15 +21,6 @@
 #define DEFAULT_WIDTH 3	   /* Default metal width for routes if undefined */
 #define DEFAULT_SPACING 4  /* Default spacing between metal if undefined  */
 
-/* Structure holding the counts of regular and special nets */
-
-typedef struct
-{
-    int regular;
-    int special;
-    bool has_nets;
-} NetCount;
-
 /* Various modes for writing nets. */
 #define DO_REGULAR  0
 #define DO_SPECIAL  1
@@ -110,9 +101,36 @@ typedef struct {
     lefLayer *lefInfo;          /* Pointer to information about the layer */
 } LefMapping;
 
+/* Structure used for non-default rules. */
+
+typedef struct {
+    lefLayer	*lefInfo;	/* Layer or via referenced by the rule */
+    int 	width;		/* Non-default width value for layer */
+    int		spacing;	/* Non-default spacing value for layer */
+} lefRule;
+
+/* Structure to hold nondefault rules required by nets */
+
+typedef struct {
+    char *name;
+    lefRule *rule;
+    lefRule *next;
+} LefRules;
+
+/* Structure holding the counts of regular and special nets */
+
+typedef struct {
+    int regular;
+    int special;
+    int numrules;
+    LefRules *rules;
+    bool has_nets;
+} NetCount;
+
 /* External declaration of global variables */
 extern int lefCurrentLine;
 extern HashTable LefInfo;
+extern HashTable LefNonDefaultRules;
 
 /* Forward declarations */
 

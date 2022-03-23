@@ -94,8 +94,15 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
     int routeWidth, paintWidth, saveWidth;
     TileType routeLayer, paintLayer;
     HashEntry *he;
-    lefLayer *lefl;
+    lefLayer *lefl = NULL;
+    lefRule *rule = NULL;
     int keyword;
+
+    static char *regnet_keys[] = {
+	"STYLE",
+	"TAPER",
+	"TAPERRULE",
+    };
 
     static char *specnet_keys[] = {
 	"SHAPE",
@@ -182,6 +189,8 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
 		saveWidth = paintWidth;
 	    }
+	    else if (rule)
+		paintWidth = rule->width;
 	    else
 		paintWidth = (lefl) ? lefl->info.route.width :
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
@@ -320,6 +329,25 @@ DefAddRoutes(rootDef, f, oscale, special, netname, defLayerMap)
 	    /* Is this a LEF 5.8 thing?  Not sure if it should be ignored!  */
 	    /* Should the whole wire leg be ignored?			    */
 	    continue;
+	}
+	else if (!strcmp(token, "TAPER"))
+	{
+	    /* Return to the default width for this layer */
+	    paintWidth = (lefl) ? lefl->info.route.width :
+				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+	}
+	else if (!strcmp(token, "TAPERRULE"))
+	{
+	    token = LefNextToken(f, TRUE);
+
+	    he = HashLookOnly(&LefNonDefaultRules, token);
+	    if (he != NULL)
+	    {
+		rule = (lefRule *)HashGetValue(he);
+	        paintWidth = rule->width;
+	    }
+	    else
+	    	LefError(DEF_ERROR, "Unknown nondefault rule \"%s\"\n", token);
 	}
 	else if (*token != '(')	/* via name */
 	{
@@ -625,6 +653,183 @@ endCoord:
 	routeTop = routeTop->r_next;
     }
     return token;	/* Pass back the last token found */
+}
+
+/*
+ *------------------------------------------------------------
+ *
+ * DefReadNonDefaultRules --
+ *
+ *	Read a NONDEFAULTRULES section from a DEF file.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Adds information into the non-default rules hash table.
+ *
+ *------------------------------------------------------------
+ */
+
+enum def_nondef_keys {DEF_NONDEF_START = 0, DEF_NONDEF_END};
+enum def_nondefprop_keys {
+	DEF_NONDEFPROP_HARDSPACING = 0, DEF_NONDEFPROP_LAYER,
+	DEF_NONDEFPROP_VIA, DEF_NONDEFPROP_VIARULE,
+	DEF_NONDEFPROP_MINCUTS, DEF_NONDEFPROP_PROPERTY,
+	DEF_NONDEFLAYER_WIDTH, DEF_NONDEFLAYER_DIAG,
+	DEF_NONDEFLAYER_SPACE, DEF_NONDEFLAYER_EXT};
+
+void
+DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
+    FILE *f;
+    CellDef *rootDef;
+    char *sname;
+    float oscale;
+    int total;
+{
+    char *token;
+    char *rulename = NULL;
+    int keyword, subkey;
+    int processed = 0;
+    HashEntry *he;
+    lefLayer *lefl;
+    float fvalue;
+    lefRule *rule = NULL;
+
+    static char *nondef_keys[] = {
+	"-",
+	"END",
+	NULL
+    };
+
+    static char *nondef_property_keys[] = {
+	"HARDSPACING",
+	"LAYER",
+	"VIA",
+	"VIARULE",
+	"MINCUTS",
+	"PROPERTY",
+	"WIDTH",
+	"DIAGWIDTH",
+	"SPACING",
+	"WIREEXT",
+	NULL
+    };
+
+    while ((token = LefNextToken(f, TRUE)) != NULL)
+    {
+	keyword = Lookup(token, nondef_keys);
+	if (keyword < 0)
+	{
+	    LefError(DEF_INFO, "Unknown keyword \"%s\" in NONDEFAULTRULES "
+			"definition; ignoring.\n", token);
+	    LefEndStatement(f);
+	    continue;
+	}
+
+	switch (keyword)
+	{
+	    case DEF_NONDEF_START:
+
+		/* Get non-default rule name */
+		token = LefNextToken(f, TRUE);
+		rulename = StrDup((char **)NULL, token);
+
+		/* Create a hash entry for this nondefault rule */
+		/* NOTE:  Needs to handle name collisions.	*/
+		he = HashFind(&LefNonDefaultRules, rulename);
+		rule = (lefRule *)mallocMagic(sizeof(lefRule));
+		HashSetValue(he, rule);
+		rule->lefInfo = NULL;
+		rule->width = 0;
+		rule->spacing = 0;
+
+		/* Process all properties */
+		while (token && (*token != ';'))
+		{
+		    if (*token != '+')
+		    {
+			token = LefNextToken(f, TRUE);
+			continue;
+		    }
+		    else
+			token = LefNextToken(f, TRUE);
+
+		    subkey = Lookup(token, nondef_property_keys);
+		    if (subkey < 0)
+		    {
+			LefError(DEF_INFO, "Unknown non-default rule property \"%s\" "
+				"in NONDEFAULTRULE definition; ignoring.\n", token);
+			continue;
+		    }
+		    switch (subkey)
+		    {
+			case DEF_NONDEFPROP_HARDSPACING:
+			    lefl = NULL;
+			    /* Ignore this */
+			    break;
+			case DEF_NONDEFPROP_VIA:
+			case DEF_NONDEFPROP_VIARULE:
+			    lefl = NULL;
+			    /* Fall through */
+			case DEF_NONDEFPROP_LAYER:
+			    token = LefNextToken(f, TRUE);
+			    he = HashFind(&LefInfo, token);
+			    lefl = (lefLayer *)HashGetValue(he);
+			    if (rule)
+			    	rule->lefInfo = lefl;
+			    else
+				LefError(DEF_INFO, "No non-default rule name for \"%s\" "
+					"in NONDEFAULTRULE definition!.\n", token);
+			    break;
+			case DEF_NONDEFPROP_MINCUTS:
+			case DEF_NONDEFPROP_PROPERTY:
+			    lefl = NULL;
+			    /* Ignore the next two tokens */
+			    token = LefNextToken(f, TRUE);
+			    token = LefNextToken(f, TRUE);
+			    break;
+			case DEF_NONDEFLAYER_WIDTH:
+			    token = LefNextToken(f, TRUE);
+			    sscanf(token, "%f", &fvalue);
+			    if (lefl == NULL)
+				LefError(DEF_INFO, "No layer for non-default width.\n");
+			    else if (lefl->lefClass == CLASS_ROUTE)
+				lefl->info.route.width = (int)roundf(fvalue / oscale);
+			    break;
+			case DEF_NONDEFLAYER_SPACE:
+			    token = LefNextToken(f, TRUE);
+			    sscanf(token, "%f", &fvalue);
+			    if (lefl == NULL)
+				LefError(DEF_INFO, "No layer for non-default width.\n");
+			    else if (lefl->lefClass == CLASS_ROUTE)
+				lefl->info.route.spacing = (int)roundf(fvalue / oscale);
+			    break;
+			case DEF_NONDEFLAYER_DIAG:
+			case DEF_NONDEFLAYER_EXT:
+			    /* Absorb token and ignore */
+			    token = LefNextToken(f, TRUE);
+			    break;
+		    }
+		}
+		break;
+
+	    case DEF_NONDEF_END:
+		if (!LefParseEndStatement(f, sname))
+		{
+		    LefError(DEF_ERROR, "Non-default rule END statement missing.\n");
+		    keyword = -1;
+		}
+		break;
+	}
+	if (keyword == DEF_NONDEF_END) break;
+    }
+
+    if (processed == total)
+	TxPrintf("  Processed %d non-default rules total.\n", processed);
+    else
+	LefError(DEF_WARNING, "Number of non-default rules read (%d) does not match "
+		"the number declared (%d).\n", processed, total);
 }
 
 /*
@@ -1720,7 +1925,7 @@ enum def_sections {DEF_VERSION = 0, DEF_NAMESCASESENSITIVE,
 	DEF_PINS, DEF_PINPROPERTIES, DEF_SPECIALNETS,
 	DEF_NETS, DEF_IOTIMINGS, DEF_SCANCHAINS,
 	DEF_CONSTRAINTS, DEF_GROUPS, DEF_EXTENSION, DEF_BLOCKAGES,
-	DEF_END};
+	DEF_NONDEFAULTRULES, DEF_END};
 
 void
 DefRead(inName, dolabels)
@@ -1762,6 +1967,7 @@ DefRead(inName, dolabels)
 	"GROUPS",
 	"BEGINEXT",
 	"BLOCKAGES",
+	"NONDEFAULTRULES",
 	"END",
 	NULL
     };
@@ -1911,6 +2117,13 @@ DefRead(inName, dolabels)
 		LefEndStatement(f);
 		DefReadNets(f, rootDef, sections[DEF_NETS], oscale, FALSE,
 			dolabels, total);
+		break;
+	    case DEF_NONDEFAULTRULES:
+		token = LefNextToken(f, TRUE);
+		if (sscanf(token, "%d", &total) != 1) total = 0;
+		LefEndStatement(f);
+		DefReadNonDefaultRules(f, rootDef, sections[DEF_NONDEFAULTRULES],
+			oscale, total);
 		break;
 	    case DEF_IOTIMINGS:
 		LefSkipSection(f, sections[DEF_IOTIMINGS]);

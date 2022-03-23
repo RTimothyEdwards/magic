@@ -1296,8 +1296,8 @@ extShieldLeft(tpfar, efss)
 
 	if (overlap > 0)
 	{
-	    frac = (float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot) /
-		   (float)(start - limit);
+	    frac = (float)(start - limit) /
+		(float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot);
 	    /* Use sin() approximation for shielding effect */
             fshield = 1.0 - sin(1.571 * fsep / halo);
 	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
@@ -1349,8 +1349,8 @@ extShieldRight(tpfar, efss)
 
 	if (overlap > 0)
 	{
-	    frac = (float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot) /
-		   (float)(limit - start);
+	    frac = (float)(limit - start) /
+		(float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot);
 	    /* Use sin() approximation for shielding effect */
             fshield = 1.0 - sin(1.571 * fsep / halo);
 	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
@@ -1402,8 +1402,8 @@ extShieldTop(tpfar, efss)
 
 	if (overlap > 0)
 	{
-	    frac = (float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot) /
-		   (float)(limit - start);
+	    frac = (float)(limit - start) /
+		(float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot);
 	    /* Use sin() approximation for shielding effect */
             fshield = 1.0 - sin(1.571 * fsep / halo);
 	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
@@ -1455,8 +1455,8 @@ extShieldBottom(tpfar, efss)
 
 	if (overlap > 0)
 	{
-	    frac = (float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot) /
-		   (float)(start - limit);
+	    frac = (float)(start - limit) /
+		(float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot);
 	    /* Use sin() approximation for shielding effect */
             fshield = 1.0 - sin(1.571 * fsep / halo);
 	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);

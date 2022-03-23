@@ -207,6 +207,8 @@ defCountNets(rootDef, allSpecial)
 
     total.regular = (allSpecial) ? -1 : 0;
     total.special = 0;
+    total.numrules = 0;
+    total.rules = NULL;
     total.has_nets = TRUE;
 
     TxPrintf("Diagnostic:  Finding all nets in cell %s\n", rootDef->cd_name);
@@ -2157,19 +2159,39 @@ DefWriteCell(def, outName, allSpecial, units)
     /* Count the number of nets and "special" nets */
     nets = defCountNets(def, allSpecial);
 
-    /* "Special" nets---nets matching $GND, $VDD, or $globals(*) 	*/
+    /* Nondefault rules */
+#if 0
+    /* Not yet implemented */
+    if (nets.numrules > 0)
+    {
+	NetRule *nrule;
+	fprintf(f, "NONDEFAULTRULES %d ;\n", nets.numrules);
+	for (nrule = nets.rules; nrule; nrule = nrule->next)
+	{
+	    fprintf(f, "  - %s\n", nrule->name);
+	    fprintf(f, "     + LAYER %s WIDTH %.10g\n", nrule->rule->name, 
+			((float)nrule->rule->info.route.width * scale));
+	}
+	fprintf(f, "END NONDEFAULTRULES\n\n");
+    }
+#endif
 
-    fprintf(f, "SPECIALNETS %d ;\n", nets.special);
+    /* "Special" nets---nets matching $GND, $VDD, or $globals(*) 	*/
     if (nets.special > 0)
+    {
+	fprintf(f, "SPECIALNETS %d ;\n", nets.special);
 	defWriteNets(f, def, scale, lefMagicToLefLayer, (allSpecial) ?
 		ALL_SPECIAL : DO_SPECIAL);
-    fprintf(f, "END SPECIALNETS\n\n");
+	fprintf(f, "END SPECIALNETS\n\n");
+    }
 
     /* "Regular" nets */
-    fprintf(f, "NETS %d ;\n", nets.regular);
     if (nets.regular > 0)
+    {
+	fprintf(f, "NETS %d ;\n", nets.regular);
 	defWriteNets(f, def, scale, lefMagicToLefLayer, DO_REGULAR);
-    fprintf(f, "END NETS\n\n");
+	fprintf(f, "END NETS\n\n");
+    }
 
     if (nets.has_nets) {
 	EFFlatDone(NULL);
