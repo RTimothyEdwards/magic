@@ -1518,6 +1518,119 @@ DefReadPins(f, rootDef, sname, oscale, total)
 /*
  *------------------------------------------------------------
  *
+ * DefReadBlockages --
+ *
+ *	Read a BLOCKAGES section from a DEF file.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Generates layout
+ *
+ *------------------------------------------------------------
+ */
+
+enum def_block_keys {DEF_BLOCK_START = 0, DEF_BLOCK_END};
+enum def_block_prop_keys {
+	DEF_BLOCK_PROP_RECT = 0, DEF_BLOCK_PROP_LAYER};
+
+void
+DefReadBlockages(f, rootDef, sname, oscale, total)
+    FILE *f;
+    CellDef *rootDef; 
+    char *sname;
+    float oscale;
+    int total;
+{
+    char *token;
+    int keyword, subkey, values;
+    int processed = 0;
+    TileType curlayer;
+    Rect *currect;
+    lefLayer *lefl;
+    HashEntry *he;
+
+    static char *block_keys[] = {
+	"-",
+	"END",
+	NULL
+    };
+
+    static char *block_property_keys[] = {
+	"RECT",
+	"LAYER",
+	NULL
+    };
+
+    while ((token = LefNextToken(f, TRUE)) != NULL)
+    {
+	keyword = Lookup(token, block_keys);
+
+	if (keyword < 0)
+	{
+	    LefError(DEF_INFO, "Unknown keyword \"%s\" in BLOCKAGES "
+			"definition; ignoring.\n", token);
+	    LefEndStatement(f);
+	    continue;
+	}
+	switch (keyword)
+	{
+	    case DEF_BLOCK_START:		/* "-" keyword */
+
+		/* Update the record of the number of blockages		*/
+		/* processed and spit out a message for every 5% done.	*/
+
+		LefEstimate(processed++, total, "blockages");
+
+		while ((token = LefNextToken(f, TRUE)) != NULL)
+		{
+		    if (*token == ';')
+			break;
+
+		    subkey = Lookup(token, block_property_keys);
+		    if (subkey < 0)
+		    {
+			LefError(DEF_INFO, "Unknown blockage property \"%s\" in "
+				"BLOCKAGES definition; ignoring.\n", token);
+			continue;
+		    }
+		    switch (subkey)
+		    {
+			case DEF_BLOCK_PROP_LAYER:
+			    curlayer = LefReadLayer(f, TRUE);
+			    break;
+
+			case DEF_BLOCK_PROP_RECT:
+			    currect = LefReadRect(f, curlayer, oscale);
+			    DBPaint(rootDef, currect, curlayer);
+			    break;
+		    }
+		}
+		break;
+
+	    case DEF_BLOCK_END:
+		if (!LefParseEndStatement(f, sname))
+		{
+		    LefError(DEF_ERROR, "Blockage END statement missing.\n");
+		    keyword = -1;
+		}
+		break;
+	}
+	if (keyword == DEF_BLOCK_END) break;
+    }
+
+    if (processed == total)
+	TxPrintf("  Processed %d blockage%s.\n", processed,
+		((processed > 1) ? "s" : ""));
+    else
+	LefError(DEF_WARNING, "Number of blockages read (%d) does not match "
+		"the number declared (%d).\n", processed, total);
+}
+
+/*
+ *------------------------------------------------------------
+ *
  * DefReadVias --
  *
  *	Read a VIAS section from a DEF file.
@@ -2259,7 +2372,11 @@ DefRead(inName, dolabels)
 		LefSkipSection(f, sections[DEF_EXTENSION]);
 		break;
 	    case DEF_BLOCKAGES:
-		LefSkipSection(f, sections[DEF_BLOCKAGES]);
+		token = LefNextToken(f, TRUE);
+		if (sscanf(token, "%d", &total) != 1) total = 0;
+		LefEndStatement(f);
+		DefReadBlockages(f, rootDef, sections[DEF_BLOCKAGES],
+			oscale, total);
 		break;
 	    case DEF_END:
 		if (!LefParseEndStatement(token, "DESIGN"))

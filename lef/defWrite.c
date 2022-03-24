@@ -53,6 +53,14 @@ typedef struct {
 } DefData;
 
 typedef struct {
+   CellDef	*def;
+   int		nlayers;
+   char		**baseNames;
+   TileTypeBitMask *blockMasks;
+   LinkedRect **blockData;
+} DefObsData;
+
+typedef struct {
    float scale;
    int total;
    int plane;
@@ -207,6 +215,7 @@ defCountNets(rootDef, allSpecial)
 
     total.regular = (allSpecial) ? -1 : 0;
     total.special = 0;
+    total.blockages = 0;
     total.numrules = 0;
     total.rules = NULL;
     total.has_nets = TRUE;
@@ -252,6 +261,10 @@ defnodeCount(node, res, cap, total)
     HierName *hierName;
     char ndn[256];
     char *cp, clast;
+
+    /* Ignore the substrate node if it is not connected to any routing */
+    if (node->efnode_type == TT_SPACE)
+	return 0;
 
     /* Ignore power and ground lines, which we will treat	*/
     /* as SPECIALNETS types.					*/
@@ -310,6 +323,8 @@ defnodeCount(node, res, cap, total)
 
 	if ((node->efnode_flags & EF_SPECIAL) || (node->efnode_flags & EF_PORT))
 	    total->special++;
+	else
+	    total->blockages++;
     }
     else
     {
@@ -319,6 +334,8 @@ defnodeCount(node, res, cap, total)
 	    total->special++;
 	else if (node->efnode_flags & EF_PORT)
 	    total->regular++;
+	else
+	    total->blockages++;
     }
 
     return 0;	/* Keep going. . . */
@@ -625,6 +642,8 @@ defnodeVisit(node, res, cap, defdata)
     {
 	if (!(node->efnode_flags & EF_PORT))
 	    return 0;
+	else if (node->efnode_flags & EF_SPECIAL)
+	    return 0;
     }
     else if (defdata->specialmode == DO_SPECIAL)
     {
@@ -645,6 +664,10 @@ defnodeVisit(node, res, cap, defdata)
     {
 	TxError("Node mismatch: %s vs. %s\n", ndn, ndn2);
     }
+
+    /* Avoid attempting to extract an implicit substrate into DEF */
+    if (node->efnode_type == TT_SPACE)
+	return 0;
 
     fprintf(f, "   - %s", ndn);
     defdata->outcolumn = 5 + strlen(ndn);
@@ -696,9 +719,6 @@ defnodeVisit(node, res, cap, defdata)
     /* TTMaskSetOnlyType(&tmask, magictype); */
     TTMaskZero(&tmask);
     TTMaskSetMask(&tmask, &DBConnectTbl[magictype]);
-
-    /* Avoid attempting to extract an implicit substrate into DEF */
-    if (node->efnode_type == TT_SPACE) return 0;
 
     DBSrConnect(def, &node->efnode_loc, &tmask, DBConnectTbl,
 		&TiPlaneRect, defNetGeometryFunc,
@@ -1519,7 +1539,7 @@ defCountViaFunc(tile, cviadata)
     {
 	cviadata->total++;	/* Increment the count of uses */
 	lefl = (lefLayer *)mallocMagic(sizeof(lefLayer));
-	lefl->type = ttype;
+	lefl->type = ctype;
 	lefl->obsType = -1;
 	lefl->lefClass = CLASS_VIA;
 	lefl->info.via.area = r;
@@ -1664,6 +1684,12 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 		    int i, j, nAc, nUp, pitch, left;
 		    Rect square, *r = &lefl->info.via.area;
 
+		    /* Scale the area to CIF units */
+		    lefl->info.via.area.r_xbot *= oscale;
+		    lefl->info.via.area.r_ybot *= oscale;
+		    lefl->info.via.area.r_xtop *= oscale;
+		    lefl->info.via.area.r_ytop *= oscale;
+
 		    pitch = size + sep;
 		    nAc = (r->r_xtop - r->r_xbot + sep - (2 * border)) / pitch;
 		    if (nAc == 0)
@@ -1701,13 +1727,13 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 			{
 			     square.r_xtop = square.r_xbot + size;
 
-			     fprintf(f, "\n      + RECT %s ( %.10g %.10g )"
-					" ( %.10g %.10g )",
+			     fprintf(f, "\n      + RECT %s ( %.10g %.10g ) "
+					"( %.10g %.10g )",
 					lefMagicToLefLayer[lefl->type].lefName,
-					(float)(square.r_xbot) * oscale / 2,
-					(float)(square.r_ybot) * oscale / 2,
-					(float)(square.r_xtop) * oscale / 2,
-					(float)(square.r_ytop) * oscale / 2);
+					(float)(square.r_xbot / 2),
+					(float)(square.r_ybot / 2),
+					(float)(square.r_xtop / 2),
+					(float)(square.r_ytop / 2));
 			     square.r_xbot += pitch;
 			}
 			square.r_ybot += pitch;
@@ -1837,9 +1863,10 @@ defCountPins(rootDef)
  */
 
 void
-defWritePins(f, rootDef, oscale)
+defWritePins(f, rootDef, lefMagicToLefLayer, oscale)
     FILE *f;				/* File to write to */
     CellDef *rootDef;			/* Cell definition to use */
+    LefMapping *lefMagicToLefLayer;	/* Magic to LEF layer name mapping */
     float oscale;			/* Output scale factor */
 {
     Label *lab;
@@ -1902,15 +1929,232 @@ defWritePins(f, rootDef, oscale)
 	    dcenterx = lab->lab_rect.r_xtop + lab->lab_rect.r_xbot;
 	    dcentery = lab->lab_rect.r_ytop + lab->lab_rect.r_ybot;
 
+
 	    fprintf(f, "     + PORT\n");
 	    fprintf(f, "        + LAYER %s ( %.10g %.10g ) ( %.10g %.10g )",
-		    DBTypeLongNameTbl[lab->lab_type],
+    	    	    lefMagicToLefLayer[lab->lab_type].lefName,
 		    oscale * (float)(-lwidth) / 2.0, oscale * (float)(-lheight) / 2.0,
 		    oscale * (float)lwidth / 2.0, oscale * (float)lheight / 2.0);
 	    fprintf(f, "        + PLACED ( %.10g %.10g ) N ;\n",
 		    oscale * (float)dcenterx / 2.0, oscale * (float)dcentery / 2.0);
 	}
     }
+}
+
+/*
+ *------------------------------------------------------------
+ *
+ * defWriteNets --
+ *
+ *	Output the NETS section of a DEF file.  We make use of
+ *	the connectivity search routines used by "getnode" to
+ *	determine unique notes and assign a net name to each.
+ *	Then, we generate the geometry output for each NET
+ *	entry.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Output written to the DEF output file.
+ *
+ *------------------------------------------------------------
+ */
+
+void
+defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
+    FILE *f;				/* File to write to */
+    CellDef *rootDef;			/* Cell definition to use */
+    float oscale;			/* Output scale factor */
+    LefMapping *MagicToLefTable;	/* Magic to LEF layer mapping */
+{
+    DefObsData defobsdata;
+    lefLayer *lefl;
+    int i, numblocks, nonempty;
+    LinkedRect *lr;
+    HashSearch hs;
+    HashEntry *he;
+
+    int defblockageVisit();
+
+    defobsdata.def = rootDef;
+    defobsdata.nlayers = 0;
+
+    /* Blockages are done by layer.  Create one blockage per route	*/
+    /* layer, and ignore vias.						*/
+
+    numblocks = 0;
+    if (LefInfo.ht_table != (HashEntry **) NULL)
+    {
+	HashStartSearch(&hs);
+	while (he = HashNext(&LefInfo, &hs))
+	{
+	    lefl = (lefLayer *)HashGetValue(he);
+	    if ((lefl->lefClass == CLASS_ROUTE) || (lefl->lefClass == CLASS_VIA))
+		numblocks++;
+	}
+
+	defobsdata.nlayers = numblocks;
+	defobsdata.blockMasks = (TileTypeBitMask *)mallocMagic(numblocks *
+			sizeof(TileTypeBitMask));
+	defobsdata.blockData = (LinkedRect **)mallocMagic(numblocks *
+			sizeof(LinkedRect *));
+	defobsdata.baseNames = (char **)mallocMagic(numblocks *
+			sizeof(char *));
+
+	if (numblocks > 0)
+	{
+	    numblocks = 0;
+	    HashStartSearch(&hs);
+	    while (he = HashNext(&LefInfo, &hs))
+	    {
+		lefl = (lefLayer *)HashGetValue(he);
+		if ((lefl->lefClass == CLASS_ROUTE) || (lefl->lefClass == CLASS_VIA))
+		{
+		    char *llayer;
+		    if (lefl->lefClass == CLASS_ROUTE)
+			llayer = lefl->canonName;
+		    else
+			llayer = MagicToLefTable[lefl->type].lefName;
+
+		    defobsdata.baseNames[numblocks] = llayer;
+		    TTMaskSetOnlyType(&defobsdata.blockMasks[numblocks], lefl->type);
+		    if (lefl->obsType != -1)
+		    	TTMaskSetType(&defobsdata.blockMasks[numblocks], lefl->obsType);
+		    defobsdata.blockData[numblocks] = NULL;
+		    numblocks++;
+		}
+	    }
+	}
+    }
+    if (numblocks > 0)
+	EFVisitNodes(defblockageVisit, (ClientData)&defobsdata);
+
+    /* Quick check for presence of data to write */
+ 
+    nonempty = 0;
+    for (i = 0; i < numblocks; i++)
+	if (defobsdata.blockData[i] != NULL)
+	    nonempty++;
+
+    if (nonempty > 0)
+    {
+    	fprintf(f, "BLOCKAGES %d ;\n", nonempty);
+
+    	for (i = 0; i < numblocks; i++)
+    	{
+	    if (defobsdata.blockData[i] == NULL) continue;
+	    fprintf(f, "   - LAYER %s\n", defobsdata.baseNames[i]);
+	    for (lr = defobsdata.blockData[i]; lr; lr = lr->r_next)
+	    {
+	    	fprintf(f, "      RECT %.10g %.10g %.10g %.10g\n",
+				(float)(lr->r_r.r_xbot * oscale),
+				(float)(lr->r_r.r_ybot * oscale),
+				(float)(lr->r_r.r_xtop * oscale),
+				(float)(lr->r_r.r_ytop * oscale));
+	    	freeMagic(lr);
+	    }
+            fprintf(f, ";\n");
+    	}
+    	fprintf(f, "END BLOCKAGES\n\n");
+    }
+    freeMagic(defobsdata.blockData);
+    freeMagic(defobsdata.blockMasks);
+    freeMagic(defobsdata.baseNames);
+
+}
+
+int
+defblockageVisit(node, res, cap, defobsdata)
+    EFNode *node;
+    int res;
+    EFCapValue cap;
+    DefObsData *defobsdata;
+{
+    CellDef *def = defobsdata->def;
+    TileType magictype;
+    TileTypeBitMask tmask;
+    int defBlockageGeometryFunc();	/* Forward declaration */
+
+    /* For regular nets, only count those nodes having port	*/
+    /* connections.  For special nets, only count those nodes	*/
+    /* that were marked with the EF_SPECIAL flag while counting	*/
+    /* nets.							*/
+
+    if ((node->efnode_flags & EF_PORT) || (node->efnode_flags & EF_SPECIAL))
+	return 0;
+
+    magictype = DBTechNameType(EFLayerNames[node->efnode_type]);
+    TTMaskZero(&tmask);
+    TTMaskSetMask(&tmask, &DBConnectTbl[magictype]);
+
+    /* Avoid attempting to extract an implicit substrate into DEF */
+    if (node->efnode_type == TT_SPACE) return 0;
+
+    DBSrConnect(def, &node->efnode_loc, &tmask, DBConnectTbl,
+		&TiPlaneRect, defBlockageGeometryFunc,
+		(ClientData)defobsdata);
+
+    return 0;
+}
+
+/* Callback function for generating a linked list of blockage geometry	*/
+/* for a net.								*/
+
+int
+defBlockageGeometryFunc(tile, plane, defobsdata)
+    Tile *tile;			/* Tile being visited */
+    int plane;			/* Plane of the tile being visited */
+    DefObsData *defobsdata;	/* Data passed to this function */
+{
+    TileType ttype = TiGetTypeExact(tile);
+    TileType loctype;
+    Rect r;
+    LinkedRect *lr;
+    int i;
+
+    if (IsSplit(tile))
+	loctype = (ttype & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile); 
+    else
+	loctype = ttype;
+
+    if (loctype == TT_SPACE) return 0;
+
+    /* Dissolve stacked contacts */
+
+    if (loctype >= DBNumUserLayers)
+    {
+	TileTypeBitMask *rMask;
+	TileType rtype;
+
+	rMask = DBResidueMask(loctype);
+	for (rtype = TT_TECHDEPBASE; rtype < DBNumUserLayers; rtype++)
+	    if (TTMaskHasType(rMask, rtype))
+		if (DBPlane(rtype) == plane)
+		{
+		    loctype = rtype;
+		    break;
+		}
+	if (rtype == DBNumUserLayers)
+	    return 0;
+    }
+
+    for (i = 0; i < defobsdata->nlayers; i++)
+	if (TTMaskHasType(&(defobsdata->blockMasks[i]), loctype))
+	    break;
+
+    if (i < defobsdata->nlayers)
+    {
+    	TiToRect(tile, &r);
+
+	lr = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+	lr->r_next = defobsdata->blockData[i];
+	lr->r_type = loctype;
+	lr->r_r = r;
+	defobsdata->blockData[i] = lr;
+    }
+
+    return 0;
 }
 
 /*
@@ -2153,7 +2397,7 @@ DefWriteCell(def, outName, allSpecial, units)
     total = defCountPins(def);
     fprintf(f, "PINS %d ;\n", total);
     if (total > 0)
-	defWritePins(f, def, scale);
+	defWritePins(f, def, lefMagicToLefLayer, scale);
     fprintf(f, "END PINS\n\n");
 
     /* Count the number of nets and "special" nets */
@@ -2193,13 +2437,17 @@ DefWriteCell(def, outName, allSpecial, units)
 	fprintf(f, "END NETS\n\n");
     }
 
+    /* Blockages */
+    if (nets.blockages > 0)
+	defWriteBlockages(f, def, scale, lefMagicToLefLayer);
+
+    fprintf(f, "END DESIGN\n\n");
+    fclose(f);
+
     if (nets.has_nets) {
 	EFFlatDone(NULL);
 	EFDone(NULL);
     }
-
-    fprintf(f, "END DESIGN\n\n");
-    fclose(f);
 
     freeMagic((char *)lefMagicToLefLayer);
     lefRemoveGeneratedVias();
