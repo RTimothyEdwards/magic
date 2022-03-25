@@ -19,13 +19,17 @@ WORKDIR /prefix/bin
 RUN cp ./wish8.6 ./wish
 RUN cp ./tclsh8.6 ./tclsh
 
+# Cairo
+RUN yum install -y cairo-devel
+
+# Magic
 WORKDIR /magic
 COPY . .
 
 RUN ./configure \
-        --prefix=/prefix \
-        --with-tcl=/prefix/lib \
-        --with-tk=/prefix/lib \
+    --prefix=/prefix \
+    --with-tcl=/prefix/lib \
+    --with-tk=/prefix/lib \
     && make database/database.h \
     && make -j$(nproc) \
     && make install
