@@ -4,7 +4,7 @@ RESOURCES = $(shell find rsc/ -type f)
 ARCH = $(shell uname -i)
 APPIMAGE = Magic-$(ARCH).AppImage
 
-prefix.tar.gz:
+prefix.tar.gz: Dockerfile
 	docker build -t magic_build -f ./Dockerfile ..
 	id=$$(docker create magic_build) ; \
 	docker cp $$id:/prefix.tar.gz ./prefix.tar.gz ; \
@@ -29,3 +29,8 @@ $(APPIMAGE): prefix appimagetool
 PREFIX ?= /usr/local
 install:
 	install $(APPIMAGE) $(PREFIX)/bin/magic
+
+.PHONY: clean
+clean:
+	rm -f prefix.tar.gz
+	rm -rf prefix
