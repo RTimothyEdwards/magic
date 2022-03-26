@@ -1682,13 +1682,19 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 		if (CIFGetContactSize(lefl->type, &size, &sep, &border))
 		{
 		    int i, j, nAc, nUp, pitch, left;
-		    Rect square, *r = &lefl->info.via.area;
+		    Rect square, rect = lefl->info.via.area, *r;
+		    r = &rect;
 
 		    /* Scale the area to CIF units */
-		    lefl->info.via.area.r_xbot *= oscale;
-		    lefl->info.via.area.r_ybot *= oscale;
-		    lefl->info.via.area.r_xtop *= oscale;
-		    lefl->info.via.area.r_ytop *= oscale;
+		    r->r_xbot *= oscale;
+		    r->r_ybot *= oscale;
+		    r->r_xtop *= oscale;
+		    r->r_ytop *= oscale;
+
+		    r->r_xbot /= 2;
+		    r->r_ybot /= 2;
+		    r->r_xtop /= 2;
+		    r->r_ytop /= 2;
 
 		    pitch = size + sep;
 		    nAc = (r->r_xtop - r->r_xbot + sep - (2 * border)) / pitch;
@@ -1730,10 +1736,10 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 			     fprintf(f, "\n      + RECT %s ( %.10g %.10g ) "
 					"( %.10g %.10g )",
 					lefMagicToLefLayer[lefl->type].lefName,
-					(float)(square.r_xbot / 2),
-					(float)(square.r_ybot / 2),
-					(float)(square.r_xtop / 2),
-					(float)(square.r_ytop / 2));
+					(float)(square.r_xbot),
+					(float)(square.r_ybot),
+					(float)(square.r_xtop),
+					(float)(square.r_ytop));
 			     square.r_xbot += pitch;
 			}
 			square.r_ybot += pitch;
@@ -1929,14 +1935,19 @@ defWritePins(f, rootDef, lefMagicToLefLayer, oscale)
 	    dcenterx = lab->lab_rect.r_xtop + lab->lab_rect.r_xbot;
 	    dcentery = lab->lab_rect.r_ytop + lab->lab_rect.r_ybot;
 
-
 	    fprintf(f, "     + PORT\n");
-	    fprintf(f, "        + LAYER %s ( %.10g %.10g ) ( %.10g %.10g )",
-    	    	    lefMagicToLefLayer[lab->lab_type].lefName,
-		    oscale * (float)(-lwidth) / 2.0, oscale * (float)(-lheight) / 2.0,
-		    oscale * (float)lwidth / 2.0, oscale * (float)lheight / 2.0);
+    	    if (lefMagicToLefLayer[lab->lab_type].lefName == NULL)
+		TxError("No LEF layer corresponding to layer %s of pin \"%s\".\n",
+			lab->lab_text,
+			DBTypeLongNameTbl[lab->lab_type]);
+	    else
+		fprintf(f, "        + LAYER %s ( %.10g %.10g ) ( %.10g %.10g )",
+    	    	    	lefMagicToLefLayer[lab->lab_type].lefName,
+		    	oscale * (float)(-lwidth) / 2.0, oscale * (float)(-lheight) / 2.0,
+		    	oscale * (float)lwidth / 2.0, oscale * (float)lheight / 2.0);
+
 	    fprintf(f, "        + PLACED ( %.10g %.10g ) N ;\n",
-		    oscale * (float)dcenterx / 2.0, oscale * (float)dcentery / 2.0);
+			oscale * (float)dcenterx / 2.0, oscale * (float)dcentery / 2.0);
 	}
     }
 }
@@ -2202,19 +2213,37 @@ arrayDefFunc(use, transform, x, y, defdata)
     int sx = use->cu_xhi - use->cu_xlo;
     int sy = use->cu_yhi - use->cu_ylo;
     char idx[32];
-    Rect box;
+    Rect box, rect, *r, bbrect, defrect;
+    int xoff, yoff;
 
     idx[0] = 0;
 
     if (sy) sprintf(idx, "%d%s", y, sx ? "," : "");
     if (sx) sprintf(idx + strlen(idx), "%d", x);
 
-    GeoTransRect(transform, &use->cu_def->cd_bbox, &box);
+    r = &use->cu_def->cd_bbox;
+
+    xoff = yoff = 0;
+    if (use->cu_def->cd_flags & CDFIXEDBBOX)
+    {
+	char *propval;
+	bool found;
+
+	propval = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+	if (found)
+	{
+	    if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,
+			&rect.r_xtop, &rect.r_ytop) == 4)
+		r = &rect;
+	}
+    }
+
+    GeoTransRect(transform, r, &box);
 
     fprintf(defdata->f, "   - %s[%s] %s\n      + PLACED ( %.10g %.10g ) %s ;\n",
 		use->cu_id, idx, use->cu_def->cd_name,
-		(float)box.r_xbot * defdata->scale,
-		(float)box.r_ybot * defdata->scale,
+		(float)(box.r_xbot) * defdata->scale,
+		(float)(box.r_ybot) * defdata->scale,
 		defTransPos(&use->cu_transform));
     return 0;
 }
@@ -2229,6 +2258,8 @@ defComponentFunc(cellUse, defdata)
     FILE *f = defdata->f;
     float oscale = defdata->scale;
     char *nameroot;
+    Rect *r, rect, bbrect, defrect;
+    int xoff, yoff;
 
     /* Ignore any cellUse that does not have an identifier string. */
     if (cellUse->cu_id == NULL) return 0;
@@ -2248,11 +2279,34 @@ defComponentFunc(cellUse, defdata)
     else
 	nameroot = cellUse->cu_def->cd_name;
 
+    r = &cellUse->cu_def->cd_bbox;
+
+    xoff = yoff = 0;
+    if (cellUse->cu_def->cd_flags & CDFIXEDBBOX)
+    {
+	char *propval;
+	bool found;
+
+	propval = DBPropGet(cellUse->cu_def, "FIXED_BBOX", &found);
+	if (found)
+	{
+	    if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,
+			&rect.r_xtop, &rect.r_ytop) == 4)
+	    {
+		r = &rect;
+		GeoTransRect(&cellUse->cu_transform, &rect, &bbrect);
+		GeoTransRect(&cellUse->cu_transform, &cellUse->cu_def->cd_bbox, &defrect);
+		xoff = bbrect.r_xbot - defrect.r_xbot;
+		yoff = bbrect.r_ybot - defrect.r_ybot;
+	    }
+	}
+    }
+
     fprintf(f, "   - %s %s\n      + PLACED ( %.10g %.10g ) %s ;\n",
 		cellUse->cu_id, nameroot,
-		(float)(cellUse->cu_bbox.r_xbot - cellUse->cu_def->cd_bbox.r_ll.p_x)
+		(float)(cellUse->cu_bbox.r_xbot - r->r_ll.p_x + xoff)
 		* oscale,
-		(float)(cellUse->cu_bbox.r_ybot - cellUse->cu_def->cd_bbox.r_ll.p_y)
+		(float)(cellUse->cu_bbox.r_ybot - r->r_ll.p_y + yoff)
 		* oscale,
 		defTransPos(&cellUse->cu_transform));
 

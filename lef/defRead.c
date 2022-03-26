@@ -516,8 +516,11 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap)
 		if (valid == FALSE)
 		{
 		    LefError(DEF_ERROR, "No reference point for \"*\" wildcard\n");
-		    freeMagic(newRoute);
-		    newRoute = NULL;
+		    if (newRoute)
+		    {
+			freeMagic(newRoute);
+			newRoute = NULL;
+		    }
 		    goto endCoord;
 		}
 	    }
