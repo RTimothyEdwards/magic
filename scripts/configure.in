@@ -281,14 +281,14 @@ dnl csh not being in /bin, or only tcsh being available.
 
 AC_PATH_PROG(CSH, csh, [no])
 
-if test "x${CSH}" = "x"; then
+if test "x${CSH}" = "xno"; then
   AC_MSG_ERROR([cannot find /bin/csh---cannot compile!])
 fi
 
 dnl Python3 is preferred for running the preprocessor script
 dnl but CPP can be used instead.
 AC_PATH_PROG([PYTHON3], [python3], [no])
-if test "x${PYTHON3}" == "x"; then
+if test "x${PYTHON3}" == "xno"; then
 
    dnl check size of pointer for correct behavior on 64-bit systems
    dnl If the C preprocessor is GCC, we need to force the flag to

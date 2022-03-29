@@ -5322,7 +5322,7 @@ fi
 
 
 
-if test "x${CSH}" = "x"; then
+if test "x${CSH}" = "xno"; then
   as_fn_error $? "cannot find /bin/csh---cannot compile!" "$LINENO" 5
 fi
 
@@ -5367,7 +5367,7 @@ $as_echo "no" >&6; }
 fi
 
 
-if test "x${PYTHON3}" == "x"; then
+if test "x${PYTHON3}" == "xno"; then
 
 
    usingPython3=

@@ -499,6 +499,29 @@ CmdTech(w, cmd)
 		    TxPrintf("Minimum surround is %d\n", tresult);
 #endif
 		}
+		else if (!strncmp(cmd->tx_argv[2], "direc", 5))
+		{
+		    if (cmd->tx_argc >= 5)
+		    {
+			t2 = DBTechNoisyNameType(cmd->tx_argv[4]);
+			if (t2 < 0) {
+			    TxError("No such layer %s\n", cmd->tx_argv[4]);
+			    break;
+		 	}
+		    }
+		    else
+		    {
+			TxError("Requires two layer types.\n");
+			break;
+		    }
+
+		    tresult = DRCGetDirectionalLayerSurround(t1, t2);
+#ifdef MAGIC_WRAPPER
+		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(tresult));
+#else
+		    TxPrintf("Minimum surround (in one orientation) is %d\n", tresult);
+#endif
+		}
 	    }
 	    else
 		goto wrongNumArgs;

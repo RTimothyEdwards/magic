@@ -19,11 +19,11 @@ all:	$(ALL_TARGET)
 
 standard:
 	@echo --- errors and warnings logged in file make.log
-	@${MAKE} mains 2>&1 | tee -a make.log | egrep -i "(.c:|Stop.|---)"
+	@${MAKE} mains
 
 tcl:
 	@echo --- errors and warnings logged in file make.log
-	@${MAKE} tcllibrary 2>&1 | tee -a make.log | egrep -i "(.c:|Stop.|---)"
+	@${MAKE} tcllibrary
 
 force: clean all
 
@@ -36,12 +36,12 @@ config:
 tcllibrary: database/database.h modules
 	@echo --- making Tcl shared libraries
 	for dir in ${PROGRAMS}; do \
-		(cd $$dir && ${MAKE} tcl-main); done
+		(cd $$dir && ${MAKE} tcl-main) || exit 1; done
 
 mains: database/database.h modules libs
 	@echo --- making main programs
 	for dir in ${PROGRAMS}; do \
-		(cd $$dir && ${MAKE} main); done
+		(cd $$dir && ${MAKE} main) || exit 1; done
 
 database/database.h: database/database.h.in
 	@echo --- making header file database/database.h
@@ -50,25 +50,25 @@ database/database.h: database/database.h.in
 modules: database/database.h depend
 	@echo --- making modules
 	for dir in ${MODULES} ${PROGRAMS}; do \
-		(cd $$dir && ${MAKE} module); done
+		(cd $$dir && ${MAKE} module) || exit 1; done
 
 libs:
 	@echo --- making libraries
 	for dir in ${LIBRARIES}; do \
-		(cd $$dir && ${MAKE} lib); done
+		(cd $$dir && ${MAKE} lib) || exit 1; done
 
 depend:	database/database.h
 	@echo --- making dependencies
 	${RM} */Depend
 	for dir in ${MODULES} ${UNUSED_MODULES} ${PROGRAMS}; do \
-		(cd $$dir && ${MAKE} depend); done
+		(cd $$dir && ${MAKE} depend) || exit 1; done
 
 install: $(INSTALL_TARGET)
 
 install-magic:
 	@echo --- installing executable to $(DESTDIR)${INSTALL_BINDIR}
 	@echo --- installing runtime files to $(DESTDIR)${INSTALL_LIBDIR}
-	@${MAKE} install-real 2>&1 >> install.log
+	@${MAKE} install-real
 
 install-real: install-dirs
 	for dir in ${INSTALL_CAD_DIRS}; do \
@@ -89,7 +89,7 @@ install-dirs:
 install-tcl:
 	@echo --- installing executable to $(DESTDIR)${INSTALL_BINDIR}
 	@echo --- installing runtime files to $(DESTDIR)${INSTALL_LIBDIR}
-	@${MAKE} install-tcl-real 2>&1 >> install.log
+	@${MAKE} install-tcl-real
 
 install-tcl-real: install-tcl-dirs
 	for dir in ${INSTALL_CAD_DIRS} ${PROGRAMS}; do \

@@ -249,6 +249,7 @@ extern int DRCGetDefaultLayerWidth();
 extern int DRCGetDefaultLayerSpacing();
 extern int DRCGetDefaultWideLayerSpacing();
 extern int DRCGetDefaultLayerSurround();
+extern int DRCGetDirectionalLayerSurround();
 
 extern int DRCInteractionCheck();
 extern int drcArrayFunc();

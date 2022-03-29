@@ -4115,7 +4115,7 @@ DRCGetDefaultLayerSurround(ttype1, ttype2)
 {
     int layerSurround = 0;
     DRCCookie *cptr;
-    TileTypeBitMask *set;
+    TileTypeBitMask *set, *cset;
 
     for (cptr = DRCCurStyle->DRCRulesTbl[ttype1][TT_SPACE]; cptr != (DRCCookie *) NULL;
 	cptr = cptr->drcc_next)
@@ -4135,6 +4135,81 @@ DRCGetDefaultLayerSurround(ttype1, ttype2)
 			DBTypeLongNameTbl[ttype1]);
 		    */
 		}
+	}
+    }
+    if (layerSurround > 0) return layerSurround;
+
+    for (cptr = DRCCurStyle->DRCRulesTbl[TT_SPACE][ttype1]; cptr != (DRCCookie *) NULL;
+	cptr = cptr->drcc_next)
+    {
+	if ((cptr->drcc_flags & DRC_REVERSE) == 0)	/* FORWARD only */
+	{
+	    set = &cptr->drcc_mask;
+	    cset = &cptr->drcc_corner;
+	    if (TTMaskHasType(set, TT_SPACE) && !TTMaskHasType(set, ttype1))
+	        if ((TTMaskHasType(cset, ttype2)) &&
+			(cptr->drcc_flags && DRC_BOTHCORNERS) &&
+			(cptr->drcc_edgeplane == cptr->drcc_plane) &&
+			(cptr->drcc_dist == cptr->drcc_cdist))
+		{
+		    layerSurround = cptr->drcc_dist;
+		    /* Diagnostic */
+		    /*
+		    TxPrintf("DRC: Layer %s has default surround %d over layer %s\n",
+			DBTypeLongNameTbl[ttype2], layerSurround,
+			DBTypeLongNameTbl[ttype1]);
+		    */
+		}
+	}
+    }
+    return layerSurround;
+}
+
+/*
+ *-----------------------------------------------------------------------------
+ *  DRCGetDirectionalLayerSurround ---
+ *
+ *	Determine the minimum required surround amount of layer type 2
+ *	around layer type 1 for a directional surround rule (rule
+ *	applies for two opposing sides of layer type 1).
+ *
+ * Results:
+ *	The minimum spacing between the specified magic layer types,
+ *	in magic internal units
+ *
+ * Side effects:
+ *	None.
+ *
+ *-----------------------------------------------------------------------------
+ */
+
+int
+DRCGetDirectionalLayerSurround(ttype1, ttype2)
+    TileType ttype1, ttype2;
+{
+    int layerSurround = 0;
+    DRCCookie *cptr, *cnext;
+    TileTypeBitMask *set, *cset;
+
+    for (cptr = DRCCurStyle->DRCRulesTbl[ttype1][TT_SPACE]; cptr != (DRCCookie *) NULL;
+	cptr = cptr->drcc_next)
+    {
+	if (cptr->drcc_flags & DRC_TRIGGER)
+	{
+	    set = &cptr->drcc_mask;
+	    if (!TTMaskHasType(set, TT_SPACE) && TTMaskHasType(set, ttype2))
+	        if ((cptr->drcc_plane == cptr->drcc_edgeplane) &&
+			(cptr->drcc_cdist == 0))
+		{
+		    layerSurround = cptr->drcc_dist;
+		    /* Diagnostic */
+		    /*
+		    TxPrintf("DRC: Layer %s has default surround %d over layer %s\n",
+			DBTypeLongNameTbl[ttype2], layerSurround,
+			DBTypeLongNameTbl[ttype1]);
+		    */
+		}
+	    cnext = cptr->drcc_next;
 	}
     }
     return layerSurround;

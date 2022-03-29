@@ -48,6 +48,7 @@ typedef struct {
    unsigned char orient;
 
    LefMapping	*MagicToLefTbl;
+   HashTable	*defViaTable;
    int		outcolumn;	/* Current column of output in file */
    unsigned char specialmode;	/* What nets to write as SPECIALNETS */
 } DefData;
@@ -61,11 +62,12 @@ typedef struct {
 } DefObsData;
 
 typedef struct {
+   CellDef *def;
    float scale;
    int total;
-   int plane;
    TileTypeBitMask *mask;
    LefMapping *MagicToLefTbl;
+   HashTable *defViaTable;
 } CViaData;
 
 /*----------------------------------------------------------------------*/
@@ -595,11 +597,12 @@ defWriteCoord(defdata, x, y, orient)
  */
 
 void
-defWriteNets(f, rootDef, oscale, MagicToLefTable, specialmode)
+defWriteNets(f, rootDef, oscale, MagicToLefTable, defViaTable, specialmode)
     FILE *f;				/* File to write to */
     CellDef *rootDef;			/* Cell definition to use */
     float oscale;			/* Output scale factor */
     LefMapping *MagicToLefTable;	/* Magic to LEF layer mapping */
+    HashTable *defViaTable;		/* Hash table of contact positions */
     unsigned char specialmode;		/* What to write as a SPECIALNET */
 {
     DefData defdata;
@@ -611,6 +614,7 @@ defWriteNets(f, rootDef, oscale, MagicToLefTable, specialmode)
     defdata.MagicToLefTbl = MagicToLefTable;
     defdata.outcolumn = 0;
     defdata.specialmode = specialmode;
+    defdata.defViaTable = defViaTable;
 
     EFVisitNodes(defnodeVisit, (ClientData)&defdata);
 }
@@ -769,6 +773,30 @@ defnodeVisit(node, res, cap, defdata)
     return 0; 	/* Keep going */
 }
 
+/* Callback function for defNetGeometryFunc().  Determines if any tile	*/
+/* sets the lower bound of the clip line for extending a wire upward	*/
+
+int
+defMaxWireFunc(tile, yclip)
+    Tile *tile;
+    int  *yclip;
+{
+    if (BOTTOM(tile) < (*yclip)) *yclip = BOTTOM(tile);
+    return 0;
+}
+
+/* Callback function for defNetGeometryFunc().  Determines if any tile	*/
+/* sets the upper bound of the clip line for extending a wire downward	*/
+
+int
+defMinWireFunc(tile, yclip)
+    Tile *tile;
+    int  *yclip;
+{
+    if (TOP(tile) > (*yclip)) *yclip = TOP(tile);
+    return 0;
+}
+
 /* Callback function for DBTreeSrUniqueTiles.  When no routed areas	*/
 /* were found, we assume that there was no routing material overlapping	*/
 /* the port.  So, we need to find the area of a tile defining the port	*/
@@ -810,13 +838,15 @@ defNetGeometryFunc(tile, plane, defdata)
     float oscale = defdata->scale;
     TileTypeBitMask *rMask, *r2Mask;
     TileType rtype, r2type, ttype = TiGetType(tile);
-    Rect r;
+    Rect r, rorig;
     unsigned char orient;
     bool sameroute = FALSE;
-    int routeWidth, w, h, midlinex2;
+    int routeWidth, w, h, midlinex2, topClip, botClip;
     float x1, y1, x2, y2, extlen;
-    lefLayer *lefType;
-    char *lefName, viaName[24];
+    lefLayer *lefType, *lefl;
+    char *lefName, viaName[128], posstr[24];
+    HashEntry *he;
+    HashTable *defViaTable = defdata->defViaTable;
     LefMapping *MagicToLefTable = defdata->MagicToLefTbl;
 
     if (ttype == TT_SPACE) return 0;
@@ -923,6 +953,7 @@ defNetGeometryFunc(tile, plane, defdata)
 	    }
 	}
     }
+    rorig = r;
 
     /* Layer names are taken from the LEF database. */
 
@@ -970,6 +1001,43 @@ defNetGeometryFunc(tile, plane, defdata)
 	/* This means a regular net should have been a special net.	*/
 	if ((h != routeWidth) && (w != routeWidth))
 	{
+	    /* Handle slivers.  There are two main cases:
+	     * (1) Sliver is part of a via extension, so it can be ignored.
+	     * (2) Sliver is a route split into several tiles due to geometry
+	     *     to the left.  Expand up and down to include all tiles.
+	     */
+
+	    if (w < routeWidth) return 0;
+
+	    if (h < routeWidth)
+	    {
+		/* Check upward */
+		r = rorig;
+		r.r_ytop = r.r_ybot + routeWidth;
+		r.r_ybot = rorig.r_ytop;
+		topClip = r.r_ytop;
+		DBSrPaintArea(tile, def->cd_planes[plane],
+			&r, &DBNotConnectTbl[ttype],
+			defMaxWireFunc, (ClientData)&topClip);
+
+		/* Check downward */
+		r = rorig;
+		r.r_ybot = r.r_ytop - routeWidth;
+		r.r_ytop = rorig.r_ybot;
+		botClip = r.r_ybot;
+		DBSrPaintArea(tile, def->cd_planes[plane],
+			&r, &DBNotConnectTbl[ttype],
+			defMinWireFunc, (ClientData)&botClip);
+
+		r = rorig;
+		if (topClip > r.r_ytop) r.r_ytop = topClip;
+		if (botClip < r.r_ybot) r.r_ybot = botClip;
+
+		/* If height is still less that a route width, bail */
+		h = r.r_ytop - r.r_ybot;
+		if (h < routeWidth) return 0;
+	    }
+
 	    /* Diagnostic */
 	    TxPrintf("Net at (%d, %d) has width %d, default width is %d\n",
 			r.r_xbot, r.r_ybot,
@@ -981,6 +1049,8 @@ defNetGeometryFunc(tile, plane, defdata)
 		orient = GEO_NORTH;
 		midlinex2 = (r.r_xtop + r.r_xbot);
 	    }
+	    else
+		midlinex2 = (r.r_ytop + r.r_ybot);
 	}
 
 	/* Find the route orientation and centerline endpoint coordinates */
@@ -1145,10 +1215,23 @@ defNetGeometryFunc(tile, plane, defdata)
 	    }
 
 	    /* Via type continues route */
-	    snprintf(viaName, (size_t)24, "_%.10g_%.10g",
+    	    sprintf(posstr, "%s_%d_%d", DBPlaneShortName(DBPlane(ttype)),
+			rorig.r_xbot, rorig.r_ybot);
+    	    he = HashLookOnly(defViaTable, posstr);
+	    if (he != NULL)
+	    {
+	    	lefl = (lefLayer *)HashGetValue(he);
+	 	defCheckForBreak(strlen(lefl->canonName) + 2, defdata);
+	    	fprintf(f, " %s ", lefl->canonName);
+	    }
+	    else
+	    {
+		TxError("Cannot find via name %s in table!\n", posstr);
+	    	snprintf(viaName, (size_t)24, "_%.10g_%.10g",
 			((float)w * oscale), ((float)h * oscale));
-	    defCheckForBreak(strlen(lefName) + strlen(viaName) + 2, defdata);
-	    fprintf(f, " %s%s ", lefName, viaName);
+	    	defCheckForBreak(strlen(lefName) + strlen(viaName) + 2, defdata);
+	    	fprintf(f, " %s%s ", lefName, viaName);
+	    }
 	}
 	else
 	{
@@ -1196,10 +1279,24 @@ defNetGeometryFunc(tile, plane, defdata)
 		if (defdata->specialmode != DO_REGULAR)
 		    defWriteRouteWidth(defdata, routeWidth);
 		defWriteCoord(defdata, x1, y1, GEO_CENTER);
-		snprintf(viaName, (size_t)24, "_%.10g_%.10g",
-			((float)w * oscale), ((float)h * oscale));
-	        defCheckForBreak(strlen(lefName) + strlen(viaName) + 2, defdata);
-		fprintf(f, " %s%s ", lefName, viaName);
+
+    		sprintf(posstr, "%s_%d_%d", DBPlaneShortName(DBPlane(ttype)),
+			rorig.r_xbot, rorig.r_ybot);
+    		he = HashLookOnly(defViaTable, posstr);
+		if (he != NULL)
+		{
+		    lefl = (lefLayer *)HashGetValue(he);
+	 	    defCheckForBreak(strlen(lefl->canonName) + 2, defdata);
+	    	    fprintf(f, " %s ", lefl->canonName);
+	        }
+		else
+		{
+		    TxError("Cannot find via name %s in table!\n", posstr);
+		    snprintf(viaName, (size_t)24, "_%.10g_%.10g",
+				((float)w * oscale), ((float)h * oscale));
+	 	    defCheckForBreak(strlen(lefName) + strlen(viaName) + 2, defdata);
+		    fprintf(f, " %s%s ", lefName, viaName);
+		}
 	    }
 	    else
 	    {
@@ -1347,9 +1444,10 @@ defNetGeometryFunc(tile, plane, defdata)
  */
 
 int
-defCountVias(rootDef, MagicToLefTable, oscale)
+defCountVias(rootDef, MagicToLefTable, defViaTable, oscale)
     CellDef *rootDef;
     LefMapping *MagicToLefTable;
+    HashTable *defViaTable;
     float oscale;
 {
     TileTypeBitMask contactMask, *rmask;
@@ -1361,11 +1459,11 @@ defCountVias(rootDef, MagicToLefTable, oscale)
     cviadata.scale = oscale;
     cviadata.total = 0;
     cviadata.MagicToLefTbl = MagicToLefTable;
+    cviadata.defViaTable = defViaTable;
+    cviadata.def = rootDef;
 
     for (pNum = PL_SELECTBASE; pNum < DBNumPlanes; pNum++)
     {
-	cviadata.plane = pNum;
-
         /* Only search for contacts that are on their *home* plane */
 
 	TTMaskZero(&contactMask);
@@ -1396,6 +1494,14 @@ defCountVias(rootDef, MagicToLefTable, oscale)
     return cviadata.total;
 }
 
+/* Simple callback function used by defCountViaFunc */
+
+int
+defCheckFunc(tile)
+{
+    return 1;
+}
+
 /* Callback function used by defCountVias */
 
 int
@@ -1406,12 +1512,17 @@ defCountViaFunc(tile, cviadata)
     TileType ttype = TiGetType(tile), ctype, rtype;
     TileTypeBitMask *rmask, *rmask2;
     Tile *tp;
-    char *lname, vname[100], *vp;
-    Rect r, r2;
-    int w, h, offx, offy;
+    char *lname, vname[100], *vp, posstr[24];
+    Rect r, r2, rorig;
+    int w, h, offx, offy, sdist, lorient, horient;
+    int ldist, hdist, sldist, shdist, pNum;
+    TileType ltype, htype;
     float oscale = cviadata->scale;
     lefLayer *lefl;
+    LinkedRect *newlr;
+    CellDef *def = cviadata->def;
     HashEntry *he;
+    HashTable *defViaTable = cviadata->defViaTable;
     LefMapping *MagicToLefTable = cviadata->MagicToLefTbl;
 
     /* Techfiles are allowed not to declare a LEF entry, in which */
@@ -1521,6 +1632,7 @@ defCountViaFunc(tile, cviadata)
     /* All values for the via rect are in 1/2 lambda to account */
     /* for a centerpoint not on the internal grid.		*/
 
+    rorig = r;
     r.r_xbot <<= 1;
     r.r_xtop <<= 1;
     r.r_ybot <<= 1;
@@ -1537,7 +1649,67 @@ defCountViaFunc(tile, cviadata)
     r.r_xtop = -offx + w;
     r.r_ytop = -offy + h;
 
-    sprintf(vname, "%s_%.10g_%.10g", lname,
+    /* If the via type has directional surround rules, then determine	*/
+    /* the orientation of the lower and upper metal layers and add a	*/
+    /* suffix to the via name.						*/
+
+    rmask = DBResidueMask(ctype);
+    ldist = hdist = 0;
+    ltype = htype = TT_SPACE;
+    for (rtype = TT_TECHDEPBASE; rtype < DBNumUserLayers; rtype++)
+	if (TTMaskHasType(rmask, rtype))
+	{
+	    sdist = DRCGetDefaultLayerSurround(ctype, rtype);
+	    if (ltype == TT_SPACE)
+		sldist = sdist;
+	    else
+		shdist = sdist;
+
+	    sdist = DRCGetDirectionalLayerSurround(ctype, rtype);
+	    if (ltype == TT_SPACE)
+	    {
+		ldist = sdist;
+		ltype = rtype;
+	    }
+	    else
+	    {
+		hdist = sdist;
+		htype = rtype;
+		break;
+	    }
+	}
+    lorient = horient = 0;
+    if (ldist > 0)
+    {
+	r2.r_ybot = rorig.r_ybot - sldist;
+	r2.r_ytop = rorig.r_ytop + sldist;
+	r2.r_xbot = rorig.r_xbot - ldist + sldist;
+	r2.r_xtop = rorig.r_xtop + ldist + sldist;
+	pNum = DBPlane(ltype);
+	lorient = DBSrPaintArea((Tile *)NULL, def->cd_planes[pNum], &r2,
+			&DBNotConnectTbl[ltype], defCheckFunc,
+			(ClientData)NULL);
+    }
+    if (hdist > 0)
+    {
+	r2.r_ybot = rorig.r_ybot - shdist;
+	r2.r_ytop = rorig.r_ytop + shdist;
+	r2.r_xbot = rorig.r_xbot - hdist + shdist;
+	r2.r_xtop = rorig.r_xtop + hdist + shdist;
+	pNum = DBPlane(htype);
+	horient = DBSrPaintArea((Tile *)NULL, def->cd_planes[pNum], &r2,
+			&DBNotConnectTbl[htype], defCheckFunc,
+			(ClientData)NULL);
+    }
+    if ((ldist > 0) || (hdist > 0))
+    {
+	sprintf(vname, "%s_%.10g_%.10g_%c%c", lname,
+			((float)offx * oscale), ((float)offy * oscale),
+			(ldist == 0) ? 'x' : (lorient == 0) ? 'h' : 'v',
+			(hdist == 0) ? 'x' : (horient == 0) ? 'h' : 'v');
+    }
+    else
+	sprintf(vname, "%s_%.10g_%.10g", lname,
 			((float)offx * oscale), ((float)offy * oscale));
 
     he = HashFind(&LefInfo, vname);
@@ -1555,7 +1727,67 @@ defCountViaFunc(tile, cviadata)
 	lefl->refCnt = 0;	/* These entries will be removed after writing */
 	HashSetValue(he, lefl);
 	lefl->canonName = (char *)he->h_key.h_name;
+
+	if ((sldist > 0) || (ldist > 0))
+	{
+	    newlr = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+	    newlr->r_next = lefl->info.via.lr;
+	    lefl->info.via.lr = newlr;
+	    newlr->r_type = ltype;
+	    r2.r_xbot = r.r_xbot - 2 * sldist;
+	    r2.r_xtop = r.r_xtop + 2 * sldist;
+	    r2.r_ybot = r.r_ybot - 2 * sldist;
+	    r2.r_ytop = r.r_ytop + 2 * sldist;
+	    if (ldist > 0)
+	    {
+		if (lorient == 0)
+		{
+		    r2.r_xbot -= 2 * ldist;
+		    r2.r_xtop += 2 * ldist;
+		}
+		else
+		{
+		    r2.r_ybot -= 2 * ldist;
+		    r2.r_ytop += 2 * ldist;
+		}
+	    }
+	    newlr->r_r = r2;
+	}
+	if ((shdist > 0) || (hdist > 0))
+	{
+	    newlr = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+	    newlr->r_next = lefl->info.via.lr;
+	    lefl->info.via.lr = newlr;
+	    newlr->r_type = htype;
+	    r2.r_xbot = r.r_xbot - 2 * shdist;
+	    r2.r_xtop = r.r_xtop + 2 * shdist;
+	    r2.r_ybot = r.r_ybot - 2 * shdist;
+	    r2.r_ytop = r.r_ytop + 2 * shdist;
+	    if (hdist > 0)
+	    {
+		if (horient == 0)
+		{
+		    r2.r_xbot -= 2 * hdist;
+		    r2.r_xtop += 2 * hdist;
+		}
+		else
+		{
+		    r2.r_ybot -= 2 * hdist;
+		    r2.r_ytop += 2 * hdist;
+		}
+	    }
+	    newlr->r_r = r2;
+	}
     }
+    /* Record this tile position in the contact hash table */
+    sprintf(posstr, "%s_%d_%d", DBPlaneShortName(DBPlane(ctype)),
+		rorig.r_xbot, rorig.r_ybot);
+    he = HashFind(defViaTable, posstr);
+    HashSetValue(he, lefl);
+
+    /* XXX WIP XXX */
+    TxPrintf("Via name \"%s\" hashed as \"%s\"\n", lefl->canonName, posstr);
+
     return 0;	/* Keep the search going */
 }
 
@@ -1647,6 +1879,8 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
     lefLayer *lefl;
     TileTypeBitMask *rMask;
     TileType ttype;
+    Rect *r;
+    LinkedRect *lr;
 
     /* Pick up information from the LefInfo hash table	*/
     /* created by fucntion defCountVias()		*/
@@ -1677,12 +1911,24 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 		rMask = DBResidueMask(lefl->type);
 		for (ttype = TT_TECHDEPBASE; ttype < DBNumUserLayers; ttype++)
 		    if (TTMaskHasType(rMask, ttype))
+		    {
+			r = &lefl->info.via.area;
+
+			/* If an lr entry was made, then it includes	*/
+			/* any required surround distance, so use that	*/
+			/* rectangle instead of the via area.		*/
+
+			for (lr =lefl->info.via.lr; lr; lr = lr->r_next)
+			    if (lr->r_type == ttype)
+				r = &lr->r_r;
+
 			fprintf(f, "\n      + RECT %s ( %.10g %.10g ) ( %.10g %.10g )",
 				lefMagicToLefLayer[ttype].lefName,
-				(float)(lefl->info.via.area.r_xbot) * oscale / 2,
-				(float)(lefl->info.via.area.r_ybot) * oscale / 2,
-				(float)(lefl->info.via.area.r_xtop) * oscale / 2,
-				(float)(lefl->info.via.area.r_ytop) * oscale / 2);
+				(float)(r->r_xbot) * oscale / 2,
+				(float)(r->r_ybot) * oscale / 2,
+				(float)(r->r_xtop) * oscale / 2,
+				(float)(r->r_ytop) * oscale / 2);
+		    }
 
 		/* Handle the contact cuts.	*/
 
@@ -2409,6 +2655,7 @@ DefWriteCell(def, outName, allSpecial, units)
     NetCount nets;
     int total;
     float scale;
+    HashTable defViaTable;
 
     LefMapping *lefMagicToLefLayer;
     int i;
@@ -2438,10 +2685,12 @@ DefWriteCell(def, outName, allSpecial, units)
 
     defWriteHeader(def, f, scale, units);
 
+    HashInit(&defViaTable, 256, HT_STRINGKEYS);
+
     lefMagicToLefLayer = defMakeInverseLayerMap(LAYER_MAP_VIAS);
 
     /* Vias---magic contact areas are reported as vias. */
-    total = defCountVias(def, lefMagicToLefLayer, scale);
+    total = defCountVias(def, lefMagicToLefLayer, &defViaTable, scale);
     fprintf(f, "VIAS %d ;\n", total);
     if (total > 0)
 	defWriteVias(f, def, scale, lefMagicToLefLayer);
@@ -2485,8 +2734,8 @@ DefWriteCell(def, outName, allSpecial, units)
     if (nets.special > 0)
     {
 	fprintf(f, "SPECIALNETS %d ;\n", nets.special);
-	defWriteNets(f, def, scale, lefMagicToLefLayer, (allSpecial) ?
-		ALL_SPECIAL : DO_SPECIAL);
+	defWriteNets(f, def, scale, lefMagicToLefLayer, &defViaTable,
+		(allSpecial) ?  ALL_SPECIAL : DO_SPECIAL);
 	fprintf(f, "END SPECIALNETS\n\n");
     }
 
@@ -2494,7 +2743,7 @@ DefWriteCell(def, outName, allSpecial, units)
     if (nets.regular > 0)
     {
 	fprintf(f, "NETS %d ;\n", nets.regular);
-	defWriteNets(f, def, scale, lefMagicToLefLayer, DO_REGULAR);
+	defWriteNets(f, def, scale, lefMagicToLefLayer, &defViaTable, DO_REGULAR);
 	fprintf(f, "END NETS\n\n");
     }
 
@@ -2511,6 +2760,7 @@ DefWriteCell(def, outName, allSpecial, units)
     }
 
     freeMagic((char *)lefMagicToLefLayer);
+    HashKill(&defViaTable);
     lefRemoveGeneratedVias();
 }
 
