@@ -1039,7 +1039,8 @@ defNetGeometryFunc(tile, plane, defdata)
 	    }
 
 	    /* Diagnostic */
-	    TxPrintf("Net at (%d, %d) has width %d, default width is %d\n",
+	    if ((h != routeWidth) && (w != routeWidth))
+	    	TxPrintf("Net at (%d, %d) has width %d, default width is %d\n",
 			r.r_xbot, r.r_ybot,
 			(h < w) ? h : w, routeWidth);
 
@@ -1785,8 +1786,7 @@ defCountViaFunc(tile, cviadata)
     he = HashFind(defViaTable, posstr);
     HashSetValue(he, lefl);
 
-    /* XXX WIP XXX */
-    TxPrintf("Via name \"%s\" hashed as \"%s\"\n", lefl->canonName, posstr);
+    /* TxPrintf("Via name \"%s\" hashed as \"%s\"\n", lefl->canonName, posstr); */
 
     return 0;	/* Keep the search going */
 }
@@ -2666,6 +2666,12 @@ DefWriteCell(def, outName, allSpecial, units)
     /* or units of nanometers.  10 = centimicrons, 1000 = microns.	*/
 
     scale = CIFGetOutputScale(1000 / units);
+
+    if (!strcmp(def->cd_name, UNNAMED))
+    {
+	TxError("Please name the cell before generating DEF.\n");
+	return;
+    }
 
     f = lefFileOpen(def, outName, ".def", "w", &filename);
 
