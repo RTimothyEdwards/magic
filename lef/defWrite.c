@@ -974,6 +974,13 @@ defNetGeometryFunc(tile, plane, defdata)
 	    TxPrintf("Net at (%d, %d) has width %d, default width is %d\n",
 			r.r_xbot, r.r_ybot,
 			(h < w) ? h : w, routeWidth);
+
+	    /* Set orientation based on longest side */
+	    if (h > w)
+	    {
+		orient = GEO_NORTH;
+		midlinex2 = (r.r_xtop + r.r_xbot);
+	    }
 	}
 
 	/* Find the route orientation and centerline endpoint coordinates */
