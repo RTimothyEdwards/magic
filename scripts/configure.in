@@ -1916,11 +1916,7 @@ fi
 
 echo "-----------------------------------------------------------"
 echo
-
 echo "Use 'make' to compile and 'make install' to install."
-echo
-echo "Errors may not be printed to stdout:  see files 'make.log' "
-echo "  and 'install.log' for complete error summary."
 echo
 echo "-----------------------------------------------------------"
 echo
