@@ -1,0 +1,55 @@
+<HTML>
+<HEAD>
+  <STYLE type="text/css">
+    H1 {color: black }
+    H2 {color: maroon }
+    H3 {color: #007090 }
+    A.head:link {color: #0060a0 }
+    A.head:visited {color: #3040c0 }
+    A.head:active {color: white }
+    A.head:hover {color: yellow }
+    A.red:link {color: red }
+    A.red:visited {color: maroon }
+    A.red:active {color: yellow }
+  </STYLE>
+</HEAD>
+<TITLE>Magic-7.3 Command Reference</TITLE>
+<BODY BACKGROUND=graphics/blpaper.gif>
+<H1> <IMG SRC=graphics/magic_title8_2.png ALT="Magic VLSI Layout Tool Version 8.2">
+     <IMG SRC=graphics/magic_OGL_sm.gif ALIGN="top" ALT="*"> </H1>
+
+<H2>display</H2>
+<HR>
+Print graphics mode information
+<HR>
+
+<H3>Usage:</H3>
+   <BLOCKQUOTE>
+      <B>display</B><BR><BR>
+   </BLOCKQUOTE>
+
+<H3>Summary:</H3>
+   <BLOCKQUOTE>
+      The <B>display</B> command prints the type of graphics being used.
+      The returned value is a string which may be one of the following:
+      "<B>NULL</B>", "<B>X11</B>", "<B>OPENGL</B>", "<B>CAIRO</B>", or
+      some typographical variant thereof.  The returned string will be
+      equal to the string passed to the "<B>-d</B>" command-line option.
+      If no such option was given on the command line, then the value
+      reflects the default graphics mode in effect.
+   </BLOCKQUOTE>
+
+<H3>Implementation Notes:</H3>
+   <BLOCKQUOTE>
+      <B>display</B> is implemented as a built-in command in <B>magic</B>.
+   </BLOCKQUOTE>
+
+<P><IMG SRC=graphics/line1.gif><P>
+<TABLE BORDER=0>
+  <TR>
+    <TD> <A HREF=commands.html>Return to command index</A>
+  </TR>
+</TABLE>
+<P><I>Last updated:</I> March 30, 2022 at 5:26pm <P>
+</BODY>
+</HTML>

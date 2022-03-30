@@ -29,7 +29,7 @@ Read or write DEF format files.
       <BLOCKQUOTE>
          where <I>option</I> is one of the following:
 	 <DL>
-	   <DT> <B>read</B> <I>filename</I> [<B>-labels</B>]
+	   <DT> <B>read</B> <I>filename</I> [<B>-labels</B>] [<B>-annotate</B>]
 	   <DD> Read a DEF file <I>filename</I>[<B>.def</B>]
 	   <DT> <B>write</B> [<I>cell</I>] [<B>-units</B> <I>value</I>]
 	   <DD> Write DEF for current or indicated cell named <I>cell</I>
@@ -70,6 +70,11 @@ Read or write DEF format files.
       file to be annotated with a label having the net name as the label
       text. <P>
 
+      The "<B>-annotate</B>" option will add labels to a layout from a
+      DEF file, but will not add layer geometry or subcells.  This is
+      useful for labeling all of the regular nets if the DEF file was
+      previously read without the <B>-labels</B> option. <P>
+
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -94,6 +99,6 @@ Read or write DEF format files.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> March 7, 2020 at 1:06pm <P>
+<P><I>Last updated:</I> March 30, 2022 at 5:31pm <P>
 </BODY>
 </HTML>
