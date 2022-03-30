@@ -90,7 +90,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
     bool valid = FALSE;		/* is there a valid reference point? */
     bool initial = TRUE;
     bool labeled = TRUE;
-    Rect locarea;
+    Rect locarea, r;
     int extend, lextend, hextend;
     float x, y, z, w;
     int routeWidth, paintWidth, saveWidth;
@@ -676,16 +676,52 @@ endCoord:
     {
 	/* paint */
 	if (annotate == FALSE)
+	{
 	    DBPaint(rootDef, &routeTop->r_r, routeTop->r_type);
 
-	/* label */
-	if (labeled == FALSE)
+	    /* label */
+	    if (labeled == FALSE)
+	    {
+		r.r_xbot = r.r_xtop = (routeTop->r_r.r_xbot + routeTop->r_r.r_xtop) / 2;
+		r.r_ybot = r.r_ytop = (routeTop->r_r.r_ybot + routeTop->r_r.r_ytop) / 2;
+		DBPutLabel(rootDef, &r, GEO_CENTER, netname, routeTop->r_type, 0, 0);
+		labeled = TRUE;
+	    }
+	}
+	else
 	{
-	    Rect r;
-	    r.r_xbot = r.r_xtop = (routeTop->r_r.r_xbot + routeTop->r_r.r_xtop) / 2;
-	    r.r_ybot = r.r_ytop = (routeTop->r_r.r_ybot + routeTop->r_r.r_ytop) / 2;
-	    DBPutLabel(rootDef, &r, GEO_CENTER, netname, routeTop->r_type, 0, 0);
-	    labeled = TRUE;
+	    /* When annotating, make sure there is a valid layer under the	*/
+	    /* label.  If not, then wait for the next bit of geometry.		*/
+
+	    if (labeled == FALSE)
+	    {
+		Tile *tp;
+		Plane *plane = rootDef->cd_planes[DBPlane(routeTop->r_type)];
+		tp = plane->pl_hint;
+		GOTOPOINT(tp, &routeTop->r_r.r_ll);
+		if (TiGetType(tp) == routeTop->r_type)
+		{
+		    r.r_xbot = r.r_xtop =
+				(routeTop->r_r.r_xbot + routeTop->r_r.r_xtop) / 2;
+		    r.r_ybot = r.r_ytop =
+				(routeTop->r_r.r_ybot + routeTop->r_r.r_ytop) / 2;
+		    DBPutLabel(rootDef, &r, GEO_CENTER, netname, routeTop->r_type,
+				0, 0);
+		    labeled = TRUE;
+		}
+		if ((labeled == FALSE) && (routeTop->r_next == NULL))
+		{
+		    TxError("Warning:  Label \"%s\" did not land on any existing"
+				" net geometry.\n", netname);
+		    r.r_xbot = r.r_xtop =
+				(routeTop->r_r.r_xbot + routeTop->r_r.r_xtop) / 2;
+		    r.r_ybot = r.r_ytop =
+				(routeTop->r_r.r_ybot + routeTop->r_r.r_ytop) / 2;
+		    DBPutLabel(rootDef, &r, GEO_CENTER, netname, routeTop->r_type,
+				0, 0);
+		    labeled = TRUE;
+		}
+	    }
 	}
 
 	/* advance to next point and free record (1-delayed) */
