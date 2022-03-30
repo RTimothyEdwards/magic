@@ -359,10 +359,42 @@ drc off
 
 if {[info commands magic::openwrapper] != {}} {
    if {[windownames layout] == {}} {
-      set winname [magic::openwrapper]
+      if {[magic::display] == "NULL"} {
+          magic::openwindow
+          rename magic::openwrapper magic::_openwrapper
+      } else {
+          set winname [magic::openwrapper]
+          magic::scrollupdate $winname
+      }
       magic::techmanager initall
-      magic::scrollupdate $winname
 
+      foreach cellname $celllist {
+	 set fext [file extension $cellname]
+         puts stdout "handling file entry $cellname extension $fext"
+	 switch $fext {
+	     .lef -
+	     .LEF {lef read $cellname}
+	     .def -
+	     .DEF {def read $cellname}
+	     .gds -
+	     .GDS -
+	     .gds2 -
+	     .GDS2 -
+	     .gdsii -
+	     .GDSII {gds read $cellname}
+	     .cif -
+	     .CIF {cif read $cellname}
+	     .tcl {source $cellname}
+	     .mag -
+	     "" {magic::load $cellname}
+	     default {puts stderr "don't know how to load file $cellname"}
+	 }
+      }
+   }
+} elseif {[info commands wm] == {}} {
+   # Magic running with Tcl but in NULL graphics mode.
+   if {[windownames layout] == {}} {
+      magic::openwindow
       foreach cellname $celllist {
 	 set fext [file extension $cellname]
          puts stdout "handling file entry $cellname extension $fext"

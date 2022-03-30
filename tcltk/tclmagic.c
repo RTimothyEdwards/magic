@@ -711,6 +711,21 @@ _magic_flags(ClientData clientData,
 }
 
 /*--------------------------------------------------------------*/
+/* Pre-initialization:  Return the state of the graphics type	*/
+/* so that certain steps can be taken when NULL graphics are	*/
+/* specified.							*/
+/*--------------------------------------------------------------*/
+
+static int
+_magic_display(ClientData clientData,
+        Tcl_Interp *interp, int argc, char *argv[])
+{
+    /* Set the result to the name of the graphics mode used. */
+    Tcl_SetResult(magicinterp, MainDisplayType, NULL);
+    return TCL_OK;
+}
+
+/*--------------------------------------------------------------*/
 /* Post-initialization:  read in the magic startup files and	*/
 /* load any initial layout.  Note that this is not done via	*/
 /* script, but probably should be.				*/
@@ -1222,6 +1237,8 @@ Tclmagic_Init(interp)
     Tcl_CreateCommand(interp, "magic::initialize", (Tcl_CmdProc *)_magic_initialize,
 			(ClientData)NULL, (Tcl_CmdDeleteProc *) NULL);
     Tcl_CreateCommand(interp, "magic::startup", (Tcl_CmdProc *)_magic_startup,
+			(ClientData)NULL, (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand(interp, "magic::display", (Tcl_CmdProc *)_magic_display,
 			(ClientData)NULL, (Tcl_CmdDeleteProc *) NULL);
 
     /* Initialize the command-tag callback feature */

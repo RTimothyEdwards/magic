@@ -15,7 +15,10 @@ global Glyph
 global Opts
 global Winopts
 
-set tk_version $::tk_version
+# Don't source this file in a non-graphics (no Tk) environment
+
+if {[catch {set tk_version $::tk_version}]} {return}
+
 # Simple console commands (like TkCon, but much simpler)
 
 if {[lsearch [namespace children] ::tkshell] < 0} {
@@ -495,6 +498,7 @@ proc magic::techmanager {{option "update"}} {
 proc magic::captions {{subcommand {}}} {
    global Opts
 
+   if {[magic::display] == "NULL"} {return}
    if {$subcommand != {} && $subcommand != "writeable" && $subcommand != "load"} {
       return
    }
@@ -611,6 +615,7 @@ proc magic::repaintwrapper { win } {
 # infinite recursion.
 
 proc magic::boxview {win {cmdstr ""}} {
+   if {[magic::display] == "NULL"} {return}
    if {${cmdstr} == "exists" || ${cmdstr} == "help" || ${cmdstr} == ""} {
       # do nothing. . . informational only, no change to the box
    } elseif {${cmdstr} == "remove"} {
@@ -685,6 +690,7 @@ proc magic::cursorview {win} {
 proc magic::toolupdate {win {yesno "yes"} {layerlist "none"}} {
    global Winopts
 
+   if {[magic::display] == "NULL"} {return}
    if {$win == {}} {
       set win [magic::windownames]
    }
@@ -897,6 +903,7 @@ proc magic::maketoolbar { framename } {
 proc magic::techrebuild {winpath {cmdstr ""}} {
    global Opts
 
+   if {[magic::display] == "NULL"} {return}
    # For NULL window, find all layout windows and apply update to each.
    if {$winpath == {}} {
       set winlist [magic::windownames layout]
@@ -970,6 +977,7 @@ proc magic::setscrollvalues {win} {
 
 proc magic::scrollupdate {win} {
 
+   if {[magic::display] == "NULL"} {return}
    if {[info level] <= 1} {
 
       # For NULL window, find current window

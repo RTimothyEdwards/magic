@@ -656,6 +656,7 @@ gr_libs
 TCL_LIB_DIR
 TCLSH_EXE
 WISH_EXE
+LIB_SPECS_GRNULL
 LIB_SPECS_NOSTUB
 LIB_SPECS
 INC_SPECS
@@ -6073,8 +6074,7 @@ fi
 if test "x$no_x" = "x"; then
   usingX11=1
 else
-  echo Unable to find X11---compiling without graphics.
-  echo Cannot find X11---will attempt to compile anyway.
+  echo Unable to find X11 or X11 disabled---compiling without graphics.
   echo Graphics options will be NULL only!
   if test $usingOGL ; then
     echo "Cannot use OpenGL/GLX without X11, disabling."
@@ -6084,10 +6084,10 @@ else
     echo "Cannot use Cairo without X11, disabling."
     usingCairo=
   fi
-  if test $usingTcl ; then
-    echo "Cannot compile TCL version without X11, disabling."
-    usingTcl=
-  fi
+  # if test $usingTcl ; then
+  #   echo "Cannot compile TCL version without X11, disabling."
+  #   usingTcl=
+  # fi
 fi
 
 # For distributed installs, where the run-time files are installed in a
@@ -7290,13 +7290,15 @@ fi
 
 
 if test "x$enable_threads" = "xyes" ; then
-    usingThreads=1
-    $as_echo "#define HAVE_PTHREADS 1" >>confdefs.h
+    if test $usingX11 ; then
+    	usingThreads=1
+    	$as_echo "#define HAVE_PTHREADS 1" >>confdefs.h
 
-    gr_libs="$gr_libs -lpthread"
-    gr_srcs="$gr_srcs \${X11THREAD_SRCS}"
-    gr_hsrcs=""
-    gr_hprog=""
+    	gr_libs="$gr_libs -lpthread"
+    	gr_srcs="$gr_srcs \${X11THREAD_SRCS}"
+    	gr_hsrcs=""
+    	gr_hprog=""
+    fi
 fi
 
 # Check whether --enable-route was given.
@@ -7703,6 +7705,10 @@ else
   fi
 fi
 
+if test $usingX11 ; then
+     gr_libs="$gr_libs \${X11_LDFLAGS}"
+fi
+
 
 case $target in
   *-linux*)
@@ -7764,6 +7770,7 @@ esac
 
 if test $usingTcl ; then
     LIB_SPECS_NOSTUB="${LIB_SPECS}"
+    LIB_SPECS_GRNULL="${LIB_SPECS}"
 
 # -----------------------------------------------------------------------
 #
@@ -7805,9 +7812,11 @@ if test $usingTcl ; then
         "${TCL_LIB_DIR}" = "/usr/lib64" -o \
         "${TCL_LIB_DIR}" = "${TK_LIB_DIR}" ; then
     LIB_SPECS_NOSTUB="${LIB_SPECS_NOSTUB} ${TCL_LIB_SPEC}"
+    LIB_SPECS_GRNULL="${LIB_SPECS_GRNULL} ${TCL_LIB_SPEC}"
     LIB_SPECS="${LIB_SPECS} ${TCL_STUB_LIB_SPEC}"
   else
     LIB_SPECS_NOSTUB="${LIB_SPECS_NOSTUB} -L${TCL_LIB_DIR} ${TCL_LIB_SPEC}"
+    LIB_SPECS_GRNULL="${LIB_SPECS_GRNULL} -L${TCL_LIB_DIR} ${TCL_LIB_SPEC}"
     LIB_SPECS="${LIB_SPECS} -L${TCL_LIB_DIR} ${TCL_STUB_LIB_SPEC}"
     if test "x${loader_run_path}" = "x" ; then
       loader_run_path="${TCL_LIB_DIR}"
@@ -8165,6 +8174,7 @@ fi
   if test "$with_gnu_ld" = "yes" ; then
     LDDL_FLAGS="${LDDL_FLAGS} -Wl,--version-script=\${MAGICDIR}/magic/symbol.map"
   fi
+
 
 
 
