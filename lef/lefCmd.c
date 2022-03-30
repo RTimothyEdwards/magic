@@ -119,6 +119,10 @@ CmdLef(w, cmd)
 					 * center of the first rectangle
 					 * found on that net.
 					 */
+    bool defAnnotate = FALSE;		/* Indicates that no geometry should be
+					 * created from any DEF files, which
+					 * will be used for label annotation only.
+					 */
     static char *cmdLefOption[] =
     {
 	"read [filename]		read a LEF file filename[.lef]\n"
@@ -139,9 +143,10 @@ CmdLef(w, cmd)
 
     static char *cmdDefOption[] =
     {
-	"read [filename]		read a DEF file filename[.def]",
-	"write [cell] [-allspecial]	write DEF for current or indicated cell\n"
-	"write -labels			label every net in NETS with the net name",
+	"read [filename]		read a DEF file filename[.def]\n"
+	"    read [filename] -labels	read a DEF file with net labeling\n"
+	"    read [filename] -annotate	read a DEF file for net annotation only",
+	"write [cell] [-allspecial]	write DEF for current or indicated cell",
 	"writeall			(use \"flatten -nosubckt\" + \"def"
 					" write\" instead)",
 	"help                   	print this help information",
@@ -198,7 +203,12 @@ CmdLef(w, cmd)
 			if (!strncmp(cmd->tx_argv[i], "-import", 7))
 			    lefImport = TRUE;
 			else if (!strncmp(cmd->tx_argv[i], "-anno", 5))
-			    lefAnnotate = TRUE;
+			{
+			    if (is_lef)
+			    	lefAnnotate = TRUE;
+			    else
+			    	defAnnotate = TRUE;
+			}
 			else if (!strncmp(cmd->tx_argv[i], "-label", 6))
 			{
 			    if (is_lef)
@@ -216,7 +226,7 @@ CmdLef(w, cmd)
 	    if (is_lef)
 		LefRead(namep, lefImport, lefAnnotate, lefDateStamp);
 	    else
-		DefRead(namep, defLabelNets);
+		DefRead(namep, defLabelNets, defAnnotate);
 	    break;
 	case LEF_WRITEALL:
 	    if (!is_lef)

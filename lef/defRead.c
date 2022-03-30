@@ -74,7 +74,7 @@ enum def_netspecial_shape_keys {
 	DEF_SPECNET_SHAPE_DRCFILL};
 
 char *
-DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap)
+DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotate)
     CellDef *rootDef;		/* Cell to paint */
     FILE *f;			/* Input file */
     float oscale;		/* Scale factor between LEF and magic units */
@@ -82,6 +82,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap)
     char *netname;		/* Name of the net, if net is to be labeled */
     LefRules *ruleset;		/* Non-default rule, or NULL */
     LefMapping *defLayerMap;	/* magic-to-lef layer mapping array */
+    bool annotate;		/* If TRUE, do not generate any geometry */
 {
     char *token;
     LinkedRect *routeList, *newRoute = NULL, *routeTop = NULL;
@@ -674,7 +675,8 @@ endCoord:
     while (routeTop != NULL)
     {
 	/* paint */
-	DBPaint(rootDef, &routeTop->r_r, routeTop->r_type);
+	if (annotate == FALSE)
+	    DBPaint(rootDef, &routeTop->r_r, routeTop->r_type);
 
 	/* label */
 	if (labeled == FALSE)
@@ -927,13 +929,14 @@ enum def_netprop_keys {
 };
 
 void
-DefReadNets(f, rootDef, sname, oscale, special, dolabels, total)
+DefReadNets(f, rootDef, sname, oscale, special, dolabels, annotate, total)
     FILE *f;
     CellDef *rootDef;
     char *sname;
     float oscale;
     bool special;		/* True if this section is SPECIALNETS */
     bool dolabels;		/* If true, create a label for each net */
+    bool annotate;		/* If true, create labels, not geometry */
     int total;
 {
     char *token;
@@ -1027,7 +1030,7 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, total)
 			case DEF_NETPROP_COVER:
 			case DEF_NETPROP_NOSHIELD:
 			    token = DefAddRoutes(rootDef, f, oscale, special,
-					netname, ruleset, defLayerMap);
+					netname, ruleset, defLayerMap, annotate);
 			    ruleset = NULL;
 			    break;
 
@@ -2054,7 +2057,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		/* Don't process properties for cells we could not find */
 
 		if ((defMacro == NULL) || ((defUse = DBCellNewUse(defMacro, usename))
-			== NULL))
+				== NULL))
 		{
 		    if (defMacro != NULL) LefEndStatement(f);
 		    break;
@@ -2162,9 +2165,10 @@ enum def_sections {DEF_VERSION = 0, DEF_NAMESCASESENSITIVE,
 	DEF_NONDEFAULTRULES, DEF_END};
 
 void
-DefRead(inName, dolabels)
+DefRead(inName, dolabels, annotate)
     char *inName;
     bool dolabels;
+    bool annotate;
 {
     CellDef *rootDef;
     FILE *f;
@@ -2205,6 +2209,9 @@ DefRead(inName, dolabels)
 	"END",
 	NULL
     };
+
+    /* "annotate" implies "dolabels" whether set or not */
+    if (annotate) dolabels = TRUE;
 
     /* Make sure we have a valid LefInfo hash table, even if it's empty */
     if (LefInfo.ht_table == (HashEntry **) NULL)
@@ -2321,7 +2328,11 @@ DefRead(inName, dolabels)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
-		DefReadComponents(f, rootDef, sections[DEF_COMPONENTS], oscale, total);
+		if (annotate)
+		    LefSkipSection(f, sections[DEF_COMPONENTS]);
+		else
+		    DefReadComponents(f, rootDef, sections[DEF_COMPONENTS],
+				oscale, total);
 		break;
 	    case DEF_VIAS:
 		token = LefNextToken(f, TRUE);
@@ -2333,7 +2344,10 @@ DefRead(inName, dolabels)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
-		DefReadPins(f, rootDef, sections[DEF_PINS], oscale, total);
+		if (annotate)
+		    LefSkipSection(f, sections[DEF_PINS]);
+		else
+		    DefReadPins(f, rootDef, sections[DEF_PINS], oscale, total);
 		break;
 	    case DEF_PINPROPERTIES:
 		LefSkipSection(f, sections[DEF_PINPROPERTIES]);
@@ -2343,14 +2357,14 @@ DefRead(inName, dolabels)
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
 		DefReadNets(f, rootDef, sections[DEF_SPECIALNETS], oscale, TRUE,
-			dolabels, total);
+			dolabels, annotate, total);
 		break;
 	    case DEF_NETS:
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
 		DefReadNets(f, rootDef, sections[DEF_NETS], oscale, FALSE,
-			dolabels, total);
+			dolabels, annotate, total);
 		break;
 	    case DEF_NONDEFAULTRULES:
 		token = LefNextToken(f, TRUE);
@@ -2378,8 +2392,11 @@ DefRead(inName, dolabels)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
-		DefReadBlockages(f, rootDef, sections[DEF_BLOCKAGES],
-			oscale, total);
+		if (annotate)
+		    LefSkipSection(f, sections[DEF_BLOCKAGES]);
+		else
+		    DefReadBlockages(f, rootDef, sections[DEF_BLOCKAGES],
+				oscale, total);
 		break;
 	    case DEF_END:
 		if (!LefParseEndStatement(token, "DESIGN"))

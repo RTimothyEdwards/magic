@@ -1573,11 +1573,12 @@ cmdIdFunc(selUse, use, transform, newId)
 }
 
 TileType
-CmdFindNetProc(nodename, use, rect, warn_not_found)
+CmdFindNetProc(nodename, use, rect, warn_not_found, isvalid)
     char *nodename;
     CellUse *use;
     Rect *rect;
     bool warn_not_found;
+    bool *isvalid;
 {
     char		*s,*s2;
     SearchContext	scx, scx2;
@@ -1722,10 +1723,12 @@ checklocal:
 		if (!usefound)
 		    TxError("Couldn't find use referenced in hierarchical name\n");
 	    }
+            if (isvalid) *isvalid = FALSE;
 	    return TT_SPACE;
 	}
     }
     GeoTransRect(&trans, &localrect, rect);
+    if (isvalid) *isvalid = TRUE;
     return ttype;
 }
 
@@ -1770,7 +1773,7 @@ CmdGoto(w, cmd)
     Rect	rect;
     CellUse	*use;
     int		locargc;
-    bool	nocomplain = FALSE;
+    bool	nocomplain = FALSE, isvalid;
     TileType	ttype;
 
     windCheckOnlyWindow(&w, DBWclientID);
@@ -1797,8 +1800,8 @@ CmdGoto(w, cmd)
 
     /* CmdFindNetProc() does all the work */
     use = (CellUse *)w->w_surfaceID;
-    ttype = CmdFindNetProc(nodename, use, &rect, !nocomplain);
-    if (ttype == TT_SPACE) return;
+    ttype = CmdFindNetProc(nodename, use, &rect, !nocomplain, &isvalid);
+    if (isvalid == FALSE) return;
 
     ToolMoveBox(TOOL_BL, &rect.r_ll, FALSE, use->cu_def);
     ToolMoveCorner(TOOL_TR, &rect.r_ur, FALSE, use->cu_def);
