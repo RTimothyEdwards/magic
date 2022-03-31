@@ -874,7 +874,7 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 			    else
 				LefError(DEF_INFO, "No non-default rule name for \"%s\" "
 					"in NONDEFAULTRULE definition!.\n", token);
-			    inlayer = TRUE;
+			    if (subkey == DEF_NONDEFPROP_LAYER) inlayer = TRUE;
 			    break;
 			case DEF_NONDEFPROP_MINCUTS:
 			case DEF_NONDEFPROP_PROPERTY:

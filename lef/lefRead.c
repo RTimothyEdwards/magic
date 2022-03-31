@@ -1701,6 +1701,205 @@ LefEndStatement(f)
 /*
  *------------------------------------------------------------
  *
+ * LefReadNonDefaultRule --
+ *
+ *	Read in a NONDEFAULTRULE section from a LEF file.
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	Creates a new nondefaultrule in the associated hash
+ *	table.
+ *
+ *------------------------------------------------------------
+ */
+
+enum lef_nondefprop_keys {
+	LEF_NONDEFPROP_HARDSPACING = 0, LEF_NONDEFPROP_LAYER,
+	LEF_NONDEFPROP_END, LEF_NONDEFPROP_VIA,
+	LEF_NONDEFPROP_USEVIA, LEF_NONDEFPROP_USEVIARULE,
+	LEF_NONDEFPROP_MINCUTS, LEF_NONDEFPROP_PROPERTY,
+	LEF_NONDEFLAYER_WIDTH, LEF_NONDEFLAYER_DIAG,
+	LEF_NONDEFLAYER_SPACE, LEF_NONDEFLAYER_EXT};
+
+void
+LefReadNonDefaultRule(f, rname, oscale)
+    FILE *f;			/* LEF file being read	*/
+    char *rname;		/* name of the rule 	*/
+    float oscale;		/* scale factor um->magic units */
+{
+    char *token;
+    char tsave[128];
+    int keyword;
+    HashEntry *he;
+    LefRules *ruleset = NULL;
+    lefRule *rule = NULL;
+    lefLayer *lefl;
+    float fvalue;
+    char *newname = rname;
+    int idx;
+    bool inlayer, done;
+
+    static char *nondef_property_keys[] = {
+	"HARDSPACING",
+	"LAYER",
+	"END",
+	"VIA",
+	"USEVIA",
+	"USEVIARULE",
+	"MINCUTS",
+	"PROPERTY",
+	"WIDTH",
+	"DIAGWIDTH",
+	"SPACING",
+	"WIREEXTENSION",
+	NULL
+    };
+
+    /* Start by creating a new nondefault rule */
+
+    he = HashFind(&LefNonDefaultRules, rname);
+    idx = 0;
+    if (HashGetValue(he) != NULL)
+    {
+	LefError(LEF_WARNING, "Nondefault rule \"%s\" was already defined.\n", rname);
+    	newname = (char *)mallocMagic(strlen(rname) + 5);
+    }
+    while (HashGetValue(he))
+    {
+	sprintf(newname, "%s_%d", rname, idx);
+	LefError(LEF_WARNING, "Renaming this rule \"%s\"\n", newname);
+        he = HashFind(&LefNonDefaultRules, newname);
+    }
+    ruleset = (LefRules *)mallocMagic(sizeof(LefRules));
+    HashSetValue(he, ruleset);
+    ruleset->name = StrDup((char **)NULL, newname);
+    ruleset->rule = NULL;
+
+    done = FALSE;
+    inlayer = FALSE;
+    while ((token = LefNextToken(f, TRUE)) != NULL)
+    {
+	keyword = Lookup(token, nondef_property_keys);
+	if (keyword < 0)
+	{
+	    LefError(LEF_INFO, "Unknown keyword \"%s\" in NONDEFAULTRULES "
+			"definition; ignoring.\n", token);
+	    LefEndStatement(f);
+	    continue;
+	}
+
+	switch (keyword)
+	{
+	    case LEF_NONDEFPROP_END:
+		token = LefNextToken(f, TRUE);
+		if (inlayer)
+		    inlayer = FALSE;
+		else
+		    done = TRUE;
+	    case LEF_NONDEFPROP_HARDSPACING:
+		lefl = NULL;
+		/* Ignore this */
+		break;
+	    case LEF_NONDEFPROP_VIA:
+		/* Read in the via definition */
+		token = LefNextToken(f, TRUE);
+		sprintf(tsave, "%.127s", token);
+		he = HashFind(&LefInfo, token);
+		lefl = (lefLayer *)HashGetValue(he);
+		if (lefl == NULL)
+		{
+		    lefl = (lefLayer *)mallocMagic(sizeof(lefLayer));
+		    lefl->type = -1;
+		    lefl->obsType = -1;
+		    lefl->refCnt = 1;
+		    lefl->lefClass = CLASS_VIA;
+		    lefl->info.via.area = GeoNullRect;
+		    lefl->info.via.cell = (CellDef *)NULL;
+		    lefl->info.via.lr = (LinkedRect *)NULL;
+		    HashSetValue(he, lefl);
+		    LefReadLayerSection(f, tsave, keyword, lefl);
+		    lefl->canonName = (char *)he->h_key.h_name;
+		}
+		goto newrule;
+
+	    case LEF_NONDEFPROP_USEVIA:
+	    case LEF_NONDEFPROP_USEVIARULE:
+		lefl = NULL;
+		/* Fall through---vias and viarules are treated like layers */
+
+	    case LEF_NONDEFPROP_LAYER:
+		token = LefNextToken(f, TRUE);
+		he = HashFind(&LefInfo, token);
+		lefl = (lefLayer *)HashGetValue(he);
+newrule:
+		if (ruleset)
+		{
+		    /* Chain new layer rule to linked list */
+		    rule = (lefRule *)mallocMagic(sizeof(lefRule));
+		    rule->lefInfo = lefl;
+		    rule->width = 0;
+		    rule->spacing = 0;
+		    rule->next = ruleset->rule;
+		    ruleset->rule = rule;
+		}
+		else
+		    LefError(LEF_INFO, "No non-default rule name for \"%s\" "
+				"in NONDEFAULTRULE definition!.\n", token);
+		if (keyword == LEF_NONDEFPROP_LAYER) inlayer = TRUE;
+		break;
+
+	    case LEF_NONDEFPROP_MINCUTS:
+	    case LEF_NONDEFPROP_PROPERTY:
+		lefl = NULL;
+		/* Ignore the next two tokens */
+		token = LefNextToken(f, TRUE);
+		token = LefNextToken(f, TRUE);
+		break;
+	    case LEF_NONDEFLAYER_WIDTH:
+		if (!inlayer)
+	 	    LefError(LEF_INFO, "WIDTH specified without layer.\n");
+		token = LefNextToken(f, TRUE);
+		sscanf(token, "%f", &fvalue);
+		if (rule == NULL)
+		    LefError(LEF_INFO, "No rule for non-default width.\n");
+		else if (lefl == NULL)
+		    LefError(LEF_INFO, "No layer for non-default width.\n");
+		else
+		    rule->width = (int)roundf(fvalue / oscale);
+		    break;
+	    case LEF_NONDEFLAYER_SPACE:
+		if (!inlayer)
+		    LefError(DEF_INFO, "SPACING specified without layer.\n");
+		token = LefNextToken(f, TRUE);
+		sscanf(token, "%f", &fvalue);
+		if (rule == NULL)
+		    LefError(LEF_INFO, "No rule for non-default spacing.\n");
+		else if (lefl == NULL)
+		    LefError(LEF_INFO, "No layer for non-default spacing.\n");
+		else
+		    rule->spacing = (int)roundf(fvalue / oscale);
+		break;
+	    case LEF_NONDEFLAYER_DIAG:
+	    case LEF_NONDEFLAYER_EXT:
+		if (!inlayer)
+		    LefError(LEF_INFO,
+				"Layer value specified without layer.\n");
+		/* Absorb token and ignore */
+		token = LefNextToken(f, TRUE);
+		break;
+	}
+
+	if (done) break;
+    }
+ 
+    if (newname != rname) freeMagic(newname);
+}
+
+/*
+ *------------------------------------------------------------
+ *
  * LefReadMacro --
  *
  *	Read in a MACRO section from a LEF file.
@@ -2727,9 +2926,8 @@ LefRead(inName, importForeign, doAnnotate, lefTimestamp)
 
 	    case LEF_SECTION_NONDEFAULTRULE:
 		token = LefNextToken(f, TRUE);
-		LefError(LEF_INFO, "Defines non-default rule %s (ignored)\n", token);
 		sprintf(tsave, "%.127s", token);
-		LefSkipSection(f, tsave);
+		LefReadNonDefaultRule(f, tsave, oscale);
 		break;
 	    case LEF_SECTION_SPACING:
 		LefSkipSection(f, sections[LEF_SECTION_SPACING]);
