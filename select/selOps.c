@@ -228,6 +228,12 @@ SelectCopy(transform)
 {
     SearchContext scx;
 
+    if (EditCellUse == NULL)
+    {
+	TxError("The current cell is not editable.\n");
+	return;
+    }
+
     /* Copy from SelectDef to Select2Def while transforming, then
      * let SelectAndCopy2 do the rest of the work.  Don't record
      * anything involving Select2Def for undo-ing.
@@ -1438,6 +1444,12 @@ SelectStretch(x, y)
 				/* Forward declarations. */
 
     if ((x == 0) && (y == 0)) return;
+
+    if (EditCellUse == NULL)
+    {
+	TxError("The current cell is not editable.\n");
+	return;
+    }
 
     /* First of all, copy from SelectDef to Select2Def, moving the
      * selection along the way.

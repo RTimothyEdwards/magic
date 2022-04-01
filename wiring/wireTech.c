@@ -36,7 +36,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "utils/malloc.h"
 
 /* Linked list to store contact information collected by this module: */
-Contact *WireContacts;
+Contact *WireContacts = NULL;
 int WireUnits;		    // Units per lambda for wiring sizes
 
 

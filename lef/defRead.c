@@ -940,6 +940,40 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 /*
  *------------------------------------------------------------
  *
+ * defFoundOneFunc --
+ *
+ *	Simple callback function for DefReadNets() when using
+ *	the "def read -annoatate" option.  Attempts to find
+ *	paint in the top level in the area of a pin that is
+ *	part of the net.
+ *
+ *	Note:  The routine does not search on connected tiles
+ *	and so could miss the connecting material, although
+ *	there are multiple fall-back chances to succeed.
+ * 
+ * Returns:
+ *	1 to stop the search, as we just take the first tile
+ *	found and run with it.
+ *
+ * Side effects:
+ *	Copies a pointer to the tile found into the client
+ *	data record.
+ *
+ *------------------------------------------------------------
+ */
+
+int
+defFoundOneFunc(tile, tret)
+    Tile *tile;
+    Tile **tret;
+{
+    *tret = tile;
+    return 1;
+}
+
+/*
+ *------------------------------------------------------------
+ *
  * DefReadNets --
  *
  *	Read a NETS or SPECIALNETS section from a DEF file.
@@ -976,12 +1010,13 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, annotate, total)
     int total;
 {
     char *token;
-    char *netname = NULL;
+    char *netname = NULL, *prnet;
     int keyword, subkey;
     int processed = 0;
     LefMapping *defLayerMap;
     LefRules *ruleset = NULL;
     HashEntry *he;
+    bool needanno;
 
     static char *net_keys[] = {
 	"-",
@@ -1031,6 +1066,7 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, annotate, total)
 		/* Get net name */
 		token = LefNextToken(f, TRUE);
 		if (dolabels) netname = StrDup((char **)NULL, token);
+		needanno = annotate;
 
 		/* Update the record of the number of nets processed	*/
 		/* and spit out a message for every 5% finished.	*/
@@ -1041,6 +1077,62 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, annotate, total)
 		/* Process all properties */
 		while (token && (*token != ';'))
 		{
+		    if (needanno)
+		    {
+			char *compname, *termname;
+
+			/* Annotation only---when back-annotating	*/
+			/* labels into a layout, the safest place to	*/
+			/* put labels is on a terminal position		*/
+
+			if (*token == '(')
+			{
+			    token = LefNextToken(f, TRUE);
+			    if (!strcmp(token, "PIN"))
+				needanno = FALSE;
+			    else
+			    {
+				Rect r;
+				bool isvalid;
+				TileType ttype;
+				Tile *tp;
+
+				compname = StrDup((char **)NULL, token);
+			    	token = LefNextToken(f, TRUE);
+				termname = (char *)mallocMagic(strlen(compname) +
+					strlen(token) + 3);
+				sprintf(termname, "%s/%s", compname, token);
+				ttype = CmdFindNetProc(termname, EditCellUse, &r,
+					FALSE, &isvalid);
+				if (isvalid)
+				{
+				    /* The pin was found.  However, there may not be
+				     * paint on the top level over the whole pin.
+				     * Search the area (+1) for attached paint, then
+				     * label inside that tile.
+				     */
+				    tp = NULL;
+				    DBSrPaintArea((Tile *)NULL,
+						rootDef->cd_planes[DBPlane(ttype)],
+						&r, &DBConnectTbl[ttype],
+						defFoundOneFunc, (ClientData)&tp);
+
+				    if (tp != NULL)
+				    {
+					TiToRect(tp, &r);
+					r.r_xbot = r.r_xtop = (r.r_xbot + r.r_xtop) / 2;
+					r.r_ybot = r.r_ytop = (r.r_ybot + r.r_ytop) / 2;
+					DBPutLabel(rootDef, &r, GEO_CENTER, netname,
+						ttype, 0, 0);
+					needanno = FALSE;
+				    }
+				}
+				freeMagic(termname);
+				freeMagic(compname);
+			    }
+			}
+		    }
+
 		    /* All connections are ignored, and we go		*/
 		    /* go directly to the first property ("+") key	*/
 
@@ -1065,8 +1157,11 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, annotate, total)
 			case DEF_NETPROP_FIXED:
 			case DEF_NETPROP_COVER:
 			case DEF_NETPROP_NOSHIELD:
+			    prnet = NULL;
+			    if (dolabels && (needanno || (!annotate)))
+				prnet = netname;
 			    token = DefAddRoutes(rootDef, f, oscale, special,
-					netname, ruleset, defLayerMap, annotate);
+					prnet, ruleset, defLayerMap, annotate);
 			    ruleset = NULL;
 			    break;
 
@@ -1309,6 +1404,7 @@ DefReadPins(f, rootDef, sname, oscale, total)
     int pinDir = PORT_CLASS_DEFAULT;
     int pinUse = PORT_USE_DEFAULT;
     int pinNum = 0;
+    int width, height, rot, size;
     TileType curlayer = -1;
     LinkedRect *rectList = NULL, *newRect;
     Rect *currect, topRect;
@@ -1495,9 +1591,27 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				{
 				    GeoTransRect(&t, &rectList->r_r, &topRect);
 				    DBPaint(rootDef, &topRect, rectList->r_type);
-				    DBPutLabel(rootDef, &topRect, -1, pinname,
-						rectList->r_type,
-						pinDir | pinUse | flags, pinNum);
+				    // DBPutLabel(rootDef, &topRect, -1, pinname,
+				    //		rectList->r_type,
+				    //		pinDir | pinUse | flags, pinNum);
+				    width = (topRect.r_xtop - topRect.r_xbot);
+				    height = (topRect.r_ytop - topRect.r_ybot);
+				    rot = 0;
+				    if (height > (width * 2))
+				    {
+					int temp = height;
+					height = width;
+					width = temp;
+					rot = 90;
+				    }
+				    size = DRCGetDefaultLayerWidth(rectList->r_type);
+				    while ((size << 1) < height) size <<= 1;
+				    size <<= 3;		/* Fonts are in 8x units */
+				    DBPutFontLabel(rootDef, &topRect,
+						0, size, rot, &GeoOrigin,
+						GEO_CENTER, pinname,
+				    		rectList->r_type,
+				    		pinDir | pinUse | flags, pinNum);
 				    freeMagic(rectList);
 				    rectList = rectList->r_next;
 				}
@@ -1524,9 +1638,27 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				{
 				    GeoTransRect(&t, &rectList->r_r, &topRect);
 				    DBPaint(rootDef, &topRect, rectList->r_type);
-				    DBPutLabel(rootDef, &topRect, -1, pinname,
-						rectList->r_type,
-						pinDir | pinUse | flags, pinNum);
+				    // DBPutLabel(rootDef, &topRect, -1, pinname,
+				    //		rectList->r_type,
+				    //		pinDir | pinUse | flags, pinNum);
+				    width = (topRect.r_xtop - topRect.r_xbot);
+				    height = (topRect.r_ytop - topRect.r_ybot);
+				    rot = 0;
+				    if (height > (width * 2))
+				    {
+					int temp = height;
+					height = width;
+					width = temp;
+					rot = 90;
+				    }
+				    size = DRCGetDefaultLayerWidth(rectList->r_type);
+				    while ((size << 1) < height) size <<= 1;
+				    size <<= 3;		/* Fonts are in 8x units */
+				    DBPutFontLabel(rootDef, &topRect,
+						0, size, rot, &GeoOrigin,
+						GEO_CENTER, pinname,
+				    		rectList->r_type,
+				    		pinDir | pinUse | flags, pinNum);
 				    freeMagic(rectList);
 				    rectList = rectList->r_next;
 				}

@@ -1868,7 +1868,8 @@ newrule:
 		    LefError(LEF_INFO, "No layer for non-default width.\n");
 		else
 		    rule->width = (int)roundf(fvalue / oscale);
-		    break;
+	    	LefEndStatement(f);
+		break;
 	    case LEF_NONDEFLAYER_SPACE:
 		if (!inlayer)
 		    LefError(DEF_INFO, "SPACING specified without layer.\n");
@@ -1880,6 +1881,7 @@ newrule:
 		    LefError(LEF_INFO, "No layer for non-default spacing.\n");
 		else
 		    rule->spacing = (int)roundf(fvalue / oscale);
+	    	LefEndStatement(f);
 		break;
 	    case LEF_NONDEFLAYER_DIAG:
 	    case LEF_NONDEFLAYER_EXT:
@@ -1888,6 +1890,7 @@ newrule:
 				"Layer value specified without layer.\n");
 		/* Absorb token and ignore */
 		token = LefNextToken(f, TRUE);
+	    	LefEndStatement(f);
 		break;
 	}
 
