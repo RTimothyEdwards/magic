@@ -118,6 +118,9 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
     arg.fra_each = each;
     arg.fra_region = (Region *) NULL;
 
+    /* Make sure temp_subsnode is NULL */
+    temp_subsnode = NULL;
+
     SigDisableInterrupts();
     for (arg.fra_pNum=PL_TECHDEPBASE; arg.fra_pNum<DBNumPlanes; arg.fra_pNum++)
 	(void) DBSrPaintClient((Tile *) NULL, def->cd_planes[arg.fra_pNum],
@@ -207,7 +210,8 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
     Label *lab;
     Tile *tp;
     LabRegion *reg;
-    int quad, pNum;
+    NodeRegion *newNode;
+    int quad, pNum, n, nclasses;
     Point p;
     bool found;
     TileType extSubType = 0;
@@ -265,11 +269,29 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	    /* substrate region.  The label need not be in the	*/
 	    /* clip area.					*/
 
+	    ll = (LabelList *)NULL;
 	    if ((pNum == ExtCurStyle->exts_globSubstratePlane) &&
 			TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes,
 			lab->lab_type))
 	    {
-		if ((temp_subsnode != NULL) || (nodeList == NULL))
+		if (nodeList != NULL)
+		{
+		    /* temp_subsnode only defined when extFindNodes()	*/
+		    /* was called before ExtLabelRegions()		*/
+		    if (temp_subsnode != NULL)
+		    {
+		    	ll = (LabelList *)mallocMagic(sizeof(LabelList));
+		    	ll->ll_label = lab;
+		    	if (lab->lab_flags & PORT_DIR_MASK)
+			    ll->ll_attr = LL_PORTATTR;
+		    	else
+			    ll->ll_attr = LL_NOATTR;
+
+			ll->ll_next = temp_subsnode->nreg_labels;
+			temp_subsnode->nreg_labels = ll;
+		    }
+		}
+		else
 		{
 		    ll = (LabelList *)mallocMagic(sizeof(LabelList));
 		    ll->ll_label = lab;
@@ -278,17 +300,9 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 		    else
 			ll->ll_attr = LL_NOATTR;
 
-		    if (nodeList != NULL)
-		    {
-			ll->ll_next = temp_subsnode->nreg_labels;
-			temp_subsnode->nreg_labels = ll;
-		    }
-		    else
-		    {
-			ll->ll_next = (LabelList *)NULL;
-			if (retList != NULL) freeMagic(retList);
-			retList = ll;
-		    }
+		    ll->ll_next = (LabelList *)NULL;
+		    if (retList != NULL) freeMagic(retList);
+		    retList = ll;
 		}
 	    }
 
@@ -296,15 +310,11 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 	     * TT_SPACE, then create a new node region for it.  The
 	     * label must be within the clip area.
 	     */
-	    else if ((nodeList != NULL) &&
+	    if ((ll == NULL) && (nodeList != NULL) &&
 			(GEO_SURROUND(&lab->lab_rect, clipArea) ||
 			GEO_TOUCH(&lab->lab_rect, clipArea))
 			 && (lab->lab_type != TT_SPACE))
 	    {
-		NodeRegion *newNode;
-		int n;
-		int nclasses;
-
 		nclasses = ExtCurStyle->exts_numResistClasses;
 	    	n = sizeof (NodeRegion) + (sizeof (PerimArea) * (nclasses - 1));
 		newNode = (NodeRegion *)mallocMagic((unsigned) n);
