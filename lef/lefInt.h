@@ -152,6 +152,7 @@ void LefAddViaGeometry();
 void LefGenViaGeometry();
 Rect *LefReadRect();
 TileType LefReadLayer();
+void LefReadLayerSection();
 
 LefMapping *defMakeInverseLayerMap();
 
