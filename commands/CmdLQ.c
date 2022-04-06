@@ -103,6 +103,12 @@ CmdLabelProc(text, font, size, rotate, offx, offy, pos, sticky, type)
     /* Make sure the box exists */
     if (!ToolGetEditBox(&editBox)) return;
 
+    if (EditCellUse == NULL)
+    {
+        TxError("The current cell is not editable.\n");
+        return;
+    }
+
     /* Make sure there's a valid string of text. */
 
     if ((text == NULL) || (*text == 0))
