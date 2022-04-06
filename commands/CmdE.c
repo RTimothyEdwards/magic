@@ -1062,7 +1062,7 @@ CmdExtract(w, cmd)
 		TxError("No cell selected\n");
 		return;
 	    }
-	    ExtCell(selectedUse->cu_def, namep, FALSE);
+	    ExtractOneCell(selectedUse->cu_def, namep, FALSE);
 	    return;
 
 	case EXTPARENTS:

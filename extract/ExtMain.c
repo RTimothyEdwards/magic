@@ -75,11 +75,28 @@ CellUse *extParentUse;
 
 /* ------------------------ Data local to this file ------------------- */
 
+typedef struct _linkedDef {
+    CellDef *ld_def;
+    struct _linkedDef *ld_next;
+} LinkedDef;
+
+/* Linked list structure to use to store the substrate plane from each	*/ 
+/* extracted CellDef so that they can be returned to the original after	*/
+/* extraction.								*/
+
+struct saveList {
+    Plane *sl_plane;
+    CellDef *sl_def;
+    struct saveList *sl_next;
+};
+
     /* Stack of defs pending extraction */
 Stack *extDefStack;
 
     /* Forward declarations */
-int extDefInitFunc(), extDefPushFunc();
+int extDefInitFunc();
+void extDefPush();
+void extDefIncremental();
 void extParents();
 void extDefParentFunc();
 void extDefParentAreaFunc();
@@ -157,6 +174,82 @@ ExtInit()
 /*
  * ----------------------------------------------------------------------------
  *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extDefListFunc(use, defList)
+    CellUse *use;
+    LinkedDef **defList;
+{
+    CellDef *def = use->cu_def;
+    LinkedDef *newLD;
+
+    /* Ignore all internal cells and cells that have been visited */
+    if (def->cd_flags & CDINTERNAL) return 0;
+
+    /* Recurse to the bottom first */
+    (void) DBCellEnum(def, extDefListFunc, (ClientData)defList);
+
+    /* Don't add cells that have already been visited */
+    if (def->cd_client) return 0;
+
+    /* When done with descendents, add self to the linked list */
+    
+    newLD = (LinkedDef *)mallocMagic(sizeof(LinkedDef));
+    newLD->ld_def = def;
+    newLD->ld_next = *defList;
+    *defList = newLD;
+
+    /* Mark self as visited */
+    def->cd_client = (ClientData) 1;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extDefListFuncIncremental(use, defList)
+    CellUse *use;
+    LinkedDef **defList;
+{
+    CellDef *def = use->cu_def;
+    LinkedDef *newLD;
+
+    /* Ignore all internal cells */
+    if (def->cd_flags & CDINTERNAL) return 0;
+
+    /* Mark cells that don't need updating */
+    if (!extTimestampMisMatch(def))
+	def->cd_flags |= CDNOEXTRACT;
+
+    /* Recurse to the bottom first */
+    (void) DBCellEnum(def, extDefListFuncIncremental, (ClientData)defList);
+
+    /* Don't add cells that have already been visited */
+    if (def->cd_client) return 0;
+
+    /* When done with descendents, add self to the linked list */
+    
+    newLD = (LinkedDef *)mallocMagic(sizeof(LinkedDef));
+    newLD->ld_def = def;
+    newLD->ld_next = *defList;
+    *defList = newLD;
+
+    /* Mark self as visited */
+    def->cd_client = (ClientData) 1;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * ExtAll --
  *
  * Extract the subtree rooted at the CellDef 'rootUse->cu_def'.
@@ -178,6 +271,8 @@ void
 ExtAll(rootUse)
     CellUse *rootUse;
 {
+    LinkedDef *defList = NULL;
+
     /* Make sure the entire subtree is read in */
     if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
     {
@@ -191,9 +286,16 @@ ExtAll(rootUse)
     /* Mark all defs as being unvisited */
     (void) DBCellSrDefs(0, extDefInitFunc, (ClientData) 0);
 
-    /* Recursively visit all defs in the tree and push on stack */
+    /* Recursively visit all defs in the tree and create a linked list	*/
+    /* from bottommost back up to the top.				*/
+
+    extDefListFunc(rootUse, &defList);
+
+    /* Now reverse the list onto a stack such that the bottommost cell	*/
+    /* is the first to be extracted, and so forth back up to the top.	*/
+
     extDefStack = StackNew(100);
-    (void) extDefPushFunc(rootUse);
+    extDefPush(defList);
 
     /* Now extract all the cells we just found */
     extExtractStack(extDefStack, TRUE, rootUse->cu_def);
@@ -214,22 +316,20 @@ extDefInitFunc(def)
 }
 
 /*
- * Function to push each cell def on extDefStack
- * if it hasn't already been pushed, and then recurse
- * on all that def's children.
+ * Function to reverse the linked list of CellDefs to extract by
+ * pushing each cell def from the list onto extDefStack.
  */
-int
-extDefPushFunc(use)
-    CellUse *use;
+
+void
+extDefPush(defList)
+    LinkedDef *defList;
 {
-    CellDef *def = use->cu_def;
-
-    if (def->cd_client || (def->cd_flags&CDINTERNAL))
-	return (0);
-
-    def->cd_client = (ClientData) 1;
-    StackPush((ClientData) def, extDefStack);
-    (void) DBCellEnum(def, extDefPushFunc, (ClientData) 0);
+    while (defList != NULL)
+    {
+    	StackPush((ClientData)defList->ld_def, extDefStack);
+	freeMagic(defList);
+	defList = defList->ld_next;
+    }
     return (0);
 }
 
@@ -266,6 +366,7 @@ ExtUnique(rootUse, option)
     int option;
 {
     CellDef *def;
+    LinkedDef *defList = NULL;
     int nwarn;
     int locoption;
 
@@ -282,9 +383,16 @@ ExtUnique(rootUse, option)
     /* Mark all defs as being unvisited */
     (void) DBCellSrDefs(0, extDefInitFunc, (ClientData) 0);
 
-    /* Recursively visit all defs in the tree and push on stack */
+    /* Recursively visit all defs in the tree and create a linked list	*/
+    /* from bottommost back up to the top.				*/
+
+    extDefListFunc(rootUse, &defList);
+
+    /* Now reverse the list onto a stack such that the bottommost cell	*/
+    /* is the first to be extracted, and so forth back up to the top.	*/
+
     extDefStack = StackNew(100);
-    (void) extDefPushFunc(rootUse);
+    extDefPush(defList);
 
     /* Now process all the cells we just found */
     nwarn = 0;
@@ -349,6 +457,38 @@ extParents(use, doExtract)
     CellUse *use;
     bool doExtract;	/* If TRUE, we extract; if FALSE, we print */
 {
+    LinkedDef *defList = NULL;
+    CellDef *def;
+    Plane *saveSub;
+    struct saveList *newsl, *sl = (struct saveList *)NULL;
+
+    /* Mark all defs as being unvisited */
+    (void) DBCellSrDefs(0, extDefInitFunc, (ClientData) 0);
+
+    /* All children of use->cu_def need substrate preparation */
+    extDefListFunc(use, &defList);
+
+    /* use->cu_def is on the top of the list, so remove it */ 
+    freeMagic(defList);
+    defList = defList->ld_next;
+
+    while (defList != NULL)
+    {
+	def = defList->ld_def;
+	saveSub = extPrepSubstrate(def);
+	if (saveSub != NULL)
+	{
+	    newsl = (struct saveList *)mallocMagic(sizeof(struct saveList));
+	    newsl->sl_plane = saveSub;
+	    newsl->sl_def = def;
+	    newsl->sl_next = sl;
+	    sl = newsl;
+	}
+
+	freeMagic(defList);
+	defList = defList->ld_next;
+    }
+
     /* Mark all defs as being unvisited */
     (void) DBCellSrDefs(0, extDefInitFunc, (ClientData) 0);
 
@@ -359,6 +499,13 @@ extParents(use, doExtract)
     /* Now extract all the cells we just found */
     extExtractStack(extDefStack, doExtract, (CellDef *) NULL);
     StackFree(extDefStack);
+
+    /* Replace any modified substrate planes in use->cu_def's children */
+    for (; sl; sl = sl->sl_next)
+    {
+	ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
+	freeMagic(sl);
+    }
 }
 
 /*
@@ -482,6 +629,76 @@ extDefParentAreaFunc(def, baseDef, allButUse, area)
     }
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ExtractOneCell ---
+ *
+ * Extract a single cell by preparing the substrate plane of all of its
+ * children, calling ExtCell(), then restoring the substrate planes of
+ * all the cells.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+ExtractOneCell(def, outName, doLength)
+    CellDef *def;       /* Cell being extracted */
+    char *outName;      /* Name of output file; if NULL, derive from def name */
+    bool doLength;      /* If TRUE, extract pathlengths from drivers to
+                         * receivers (the names are stored in ExtLength.c).
+                         * Should only be TRUE for the root cell in a
+                         * hierarchy.
+                         */
+{
+    LinkedDef *defList = NULL;
+    CellUse dummyUse;
+    CellDef *subDef;
+    Plane *savePlane;
+    struct saveList *newsl, *sl = (struct saveList *)NULL;
+
+    dummyUse.cu_def = def;
+
+    /* Mark all defs as being unvisited */
+    (void) DBCellSrDefs(0, extDefInitFunc, (ClientData) 0);
+
+    extDefListFunc(&dummyUse, &defList);
+
+    /* def is on top of the list, so remove it */
+    freeMagic(defList);
+    defList = defList->ld_next;
+
+    /* Prepare substrates of all children of def */
+    while (defList != NULL)
+    {
+        subDef = defList->ld_def;
+        savePlane = extPrepSubstrate(subDef);
+        if (savePlane != NULL)
+        {
+            newsl = (struct saveList *)mallocMagic(sizeof(struct saveList));
+            newsl->sl_plane = savePlane;
+            newsl->sl_def = subDef;
+            newsl->sl_next = sl;
+            sl = newsl;
+        }
+        freeMagic(defList);
+        defList = defList->ld_next;
+    }
+
+    savePlane = ExtCell(def, outName, doLength);
+
+    /* Restore all modified substrate planes */
+
+    if (savePlane != NULL) ExtRevertSubstrate(def, savePlane);
+    for (; sl; sl = sl->sl_next)
+    {
+        ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
+        freeMagic(sl);
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+
 bool
 extContainsGeometry(def, allButUse, area)
     CellDef *def;
@@ -504,6 +721,8 @@ extContainsGeometry(def, allButUse, area)
 
     return (FALSE);
 }
+
+/* ------------------------------------------------------------------------- */
 
 bool
 extContainsCellFunc(use, allButUse)
@@ -542,6 +761,8 @@ void
 ExtIncremental(rootUse)
     CellUse *rootUse;
 {
+    LinkedDef *defList = NULL;
+
     /* Make sure the entire subtree is read in */
     if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
     {
@@ -558,12 +779,16 @@ ExtIncremental(rootUse)
     /* Mark all defs as being unvisited */
     (void) DBCellSrDefs(0, extDefInitFunc, (ClientData) 0);
 
-    /*
-     * Recursively visit all defs in the tree
-     * and push on stack if they need extraction.
-     */
+    /* Recursively visit all defs in the tree and create a linked list	*/
+    /* from bottommost back up to the top.				*/
+
+    extDefListFuncIncremental(rootUse, &defList);
+
+    /* Now reverse the list onto a stack such that the bottommost cell	*/
+    /* is the first to be extracted, and so forth back up to the top.	*/
+
     extDefStack = StackNew(100);
-    (void) extDefIncrementalFunc(rootUse);
+    extDefPush(defList);
 
     /* Now extract all the cells we just found */
     extExtractStack(extDefStack, TRUE, rootUse->cu_def);
@@ -571,32 +796,12 @@ ExtIncremental(rootUse)
 }
 
 /*
- * Function to push each cell def on extDefStack if it hasn't
- * already been pushed and if it needs re-extraction, and then
- * recurse on all that def's children.
- */
-
-int
-extDefIncrementalFunc(use)
-    CellUse *use;
-{
-    CellDef *def = use->cu_def;
-
-    if (def->cd_client || (def->cd_flags&CDINTERNAL))
-	return (0);
-
-    def->cd_client = (ClientData) 1;
-    if (extTimestampMisMatch(def))
-	StackPush((ClientData) def, extDefStack);
-    (void) DBCellEnum(def, extDefIncrementalFunc, (ClientData) 0);
-    return (0);
-}
-
-/*
+ * ----------------------------------------------------------------------------
  * Function returning TRUE if 'def' needs re-extraction.
  * This will be the case if either the .ext file for 'def'
  * does not exist, or if its timestamp fails to match that
  * recorded in 'def'.
+ * ----------------------------------------------------------------------------
  */
 
 bool
@@ -624,16 +829,6 @@ closeit:
     (void) fclose(extFile);
     return (ret);
 }
-
-/* Linked list structure to use to store the substrate plane from each	*/ 
-/* extracted CellDef so that they can be returned to the original after	*/
-/* extraction.								*/
-
-struct saveList {
-    Plane *sl_plane;
-    CellDef *sl_def;
-    struct saveList *sl_next;
-};
 
 /*
  * ----------------------------------------------------------------------------
@@ -689,7 +884,7 @@ extExtractStack(stack, doExtract, rootDef)
 		errorcnt += extNumErrors;
 		warnings += extNumWarnings;
 	    }
-	    else
+	    else if (!(def->cd_flags & CDNOEXTRACT))
 	    {
 		if (!first) TxPrintf(", ");
 		TxPrintf("%s", def->cd_name);
@@ -703,6 +898,7 @@ extExtractStack(stack, doExtract, rootDef)
     for (; sl; sl = sl->sl_next)
     {
 	ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
+	sl->sl_def->cd_flags &= ~CDNOEXTRACT; 
 	freeMagic(sl);
     }
 

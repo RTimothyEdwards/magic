@@ -94,11 +94,17 @@ ExtCell(def, outName, doLength)
 			 */
 {
     char *filename;
-    FILE *f;
+    FILE *f = NULL;
     Plane *savePlane;
     bool doLocal;
 
     doLocal = (ExtOptions & EXT_DOLOCAL) ? TRUE : FALSE;
+
+    /* Incremental extraction:  If the cell is marked for no extraction,
+     * then just prepare the substrate plane and return it to the caller.
+     */
+    if (def->cd_flags & CDNOEXTRACT)
+	return extPrepSubstrate(def);
 
     f = extFileOpen(def, outName, "w", doLocal, &filename);
 
@@ -117,7 +123,7 @@ ExtCell(def, outName, doLength)
 
     extNumErrors = extNumWarnings = 0;
     savePlane = extCellFile(def, f, doLength);
-    (void) fclose(f);
+    if (f != NULL) fclose(f);
 
     if (extNumErrors > 0 || extNumWarnings > 0)
     {

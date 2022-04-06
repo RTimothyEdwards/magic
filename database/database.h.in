@@ -416,6 +416,8 @@ typedef struct celldef
  *	    with caution as it messes with the usual timestamp tracking,
  *	    but is useful for preparing libraries all cells of which have
  *	    the same timestamp value.
+ *	CDNOEXTRACT is used by incremental extraction to flag cells that
+ *	    are up-to-date and do not need to be re-extracted.
  */
 
 #define	CDAVAILABLE	 0x00001
@@ -435,6 +437,7 @@ typedef struct celldef
 #define CDVISITED	 0x04000
 #define CDDEREFERENCE	 0x08000
 #define CDFIXEDSTAMP	 0x10000
+#define CDNOEXTRACT	 0x20000
 
 /*
  * Description of an array.

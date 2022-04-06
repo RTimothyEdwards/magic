@@ -87,6 +87,7 @@ extern void ExtSetStyle();
 extern void ExtPrintStyle();
 extern void ExtRevertSubstrate();
 extern Plane *ExtCell();
+extern void ExtractOneCell();
 
 extern int ExtGetGateTypesMask();
 extern int ExtGetDiffTypesMask();
@@ -103,5 +104,7 @@ extern void ExtGetZAxis();
 extern void ExtDumpCaps();
 
 extern int extEnumTilePerim();
+extern Plane *extPrepSubstrate();
+
 
 #endif /* _EXTRACT_H */
