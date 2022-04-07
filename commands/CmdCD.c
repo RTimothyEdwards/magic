@@ -2238,11 +2238,13 @@ CmdContact(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    TileType type, rtype;
+    TileType type, rtype, ctype;
     TileTypeBitMask *rmask, smask;
     CCStruct ccs;
     Rect area;
+    LinkedRect *lr = NULL;
     int cmdContactFunc();	/* Forward declaration */
+    int cmdContactEraseFunc();	/* Forward declaration */
 
     windCheckOnlyWindow(&w, DBWclientID);
     if ((w == (MagWindow *) NULL) || (w->w_client != DBWclientID))
@@ -2251,13 +2253,78 @@ CmdContact(w, cmd)
 	return;
     }
 
-    if (cmd->tx_argc != 2)
+    if ((cmd->tx_argc != 2) && (cmd->tx_argc != 3))
     {
 	TxError("Usage: %s <contact_type>\n", cmd->tx_argv[0]);
 	return;
     }
     if (!ToolGetEditBox(&area)) return;
 
+    if (EditCellUse == NULL)
+    {
+	TxError("The cell in the window is not editable.\n");
+	return;
+    }
+
+    if (cmd->tx_argc == 3)
+    {
+	if (!strcmp(cmd->tx_argv[1], "erase"))
+	{
+	    /* Erase a contact from the area of the box.  This acts	*/
+	    /* differently from the "erase" command.  "erase" will 	*/
+	    /* remove the contact and leave nothing behind.  "contact	*/
+	    /* erase" will remove the contact and leave the residues	*/
+	    /* behind.	The main difference is that this action cannot	*/
+	    /* be done on a whole area;  the individual contacts need	*/
+	    /* to be enumerated and the erase/paint done on each one.	*/
+
+	    type = DBTechNoisyNameType(cmd->tx_argv[2]);
+
+	    if (!DBIsContact(type))
+	    {
+	    	TxError("Error:  tile type \"%s\" is not a contact.\n",
+			cmd->tx_argv[2]);
+	    	return;
+	    }
+	    TTMaskSetOnlyType(&smask, type);
+
+	    /* Add all stacked contact types containing "type" */
+	    for (ctype = DBNumUserLayers; ctype < DBNumTypes; ctype++)
+	    {
+		rmask = DBResidueMask(ctype);
+		if (TTMaskHasType(rmask, ctype))
+		    TTMaskSetMask(&smask, rmask);
+	    }
+
+	    /* Enumerate all tiles inside the box area containing contact "type" */
+	    DBSrPaintArea((Tile *) NULL, EditCellUse->cu_def->cd_planes[DBPlane(type)],
+			&area, &smask, cmdContactEraseFunc, (ClientData)&lr);
+
+	    rmask = DBResidueMask(type);
+
+	    while (lr != NULL)
+	    {
+    		GeoClip(&lr->r_r, &area);
+
+		/* Erase contact type "type" and repaint with the residues */
+		DBErase(EditCellUse->cu_def, &lr->r_r, type);
+		for (rtype = 0; rtype < DBNumUserLayers; rtype++)
+	    	    if (TTMaskHasType(rmask, rtype))
+			DBPaint(EditCellUse->cu_def, &lr->r_r, rtype);
+
+		freeMagic(lr);
+		lr = lr->r_next;
+	    }
+
+	    /* Refresh the layout drawing */
+	    DBWAreaChanged(EditCellUse->cu_def, &area, DBW_ALLWINDOWS, &smask);
+	    DRCCheckThis (EditCellUse->cu_def, TT_CHECKPAINT, &area);
+	}
+	else
+	    TxError("Usage: %s erase <contact_type>\n", cmd->tx_argv[0]);
+	return;
+    }
+    
     type = DBTechNoisyNameType(cmd->tx_argv[1]);
     if (type >= 0)
     {
@@ -2341,6 +2408,27 @@ cmdContactFunc2(tile, ccs)
     newlr->r_r = area;
     newlr->r_next = ccs->lhead;
     ccs->lhead = newlr;
+
+    return 0;
+}
+
+/* For each contact tile found, attach the area to a LinkedRect structure
+ */
+
+int
+cmdContactEraseFunc(tile, lr)
+    Tile *tile;
+    LinkedRect **lr;
+{
+    LinkedRect *newlr;
+    Rect area;
+
+    newlr = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+
+    newlr->r_type = TiGetType(tile);
+    TiToRect(tile, &newlr->r_r);
+    newlr->r_next = *lr;
+    *lr = newlr;
 
     return 0;
 }

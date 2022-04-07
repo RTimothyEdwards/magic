@@ -60,7 +60,12 @@ Erase paint from the layout inside the bounds of the cursor box.
 
       The option "<B>erase cursor</B>" picks the layers at the position
       of the (X11) cursor and erases these from the area of the cursor
-      box.
+      box. <P>
+
+      Note that when applied to contact types, "<B>erase</B>" will erase
+      the entire contact, including the top and bottom metal types
+      comprising the contact.  To remove the contact cuts without affecting
+      the surrounding material, use the "<B>contact erase</B>" command. <P>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -71,6 +76,7 @@ Erase paint from the layout inside the bounds of the cursor box.
 <H3>See Also:</H3>
    <BLOCKQUOTE>
       <A HREF=paint.html><B>paint</B></A> <BR>
+      <A HREF=contact.html><B>contact</B></A> <BR>
    </BLOCKQUOTE>
 
 <P><IMG SRC=graphics/line1.gif><P>
