@@ -306,7 +306,7 @@ if test "x${PYTHON3}" == "xno"; then
    fi
 
 else
-   MCPP="\${MAGICDIR}/scripts/preproc.py -ccomm"
+   MCPP="${PYTHON3} \${MAGICDIR}/scripts/preproc.py -ccomm"
    MSED="cat"
    usingPython3=1
 fi
