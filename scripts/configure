@@ -5374,10 +5374,10 @@ if test "x${PYTHON3}" == "xno"; then
    usingPython3=
    if test "$CPP" = "$CC -E" ; then
       MCPP="$CPP -x c"
-      MSED="sed -e 's/\\/\\\\/'"
+      MSED="sed -e 's/\\\\/\\\\\\\\/'"
    else
       MCPP="$CPP"
-      MSED="sed -e 's/\\/\\\\/'"
+      MSED="sed -e 's/\\\\/\\\\\\\\/'"
    fi
 
 else
