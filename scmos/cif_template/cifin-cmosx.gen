@@ -1,4 +1,4 @@
-/*  For IBM triple metal process... No CCD, Bipolar, Poly2 layers.
+/*  For IBM triple metal process... No CCD, Bipolar, Poly2 layers. */
 /*  This is prelimanary, please let me know if anything here seems
     abnormal to you...   pi@lepton.isi.edu 3/14/95		    */
 #ifdef NOWELL

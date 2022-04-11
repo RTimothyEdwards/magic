@@ -19,7 +19,7 @@
  *     *********************************************************************
  */
 
-/* #define	PAINTDEBUG /* For debugging */
+/* #define	PAINTDEBUG */	/* For debugging */
 
 #ifndef lint
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/database/DBpaint.c,v 1.15 2010/09/24 19:53:19 tim Exp $";
