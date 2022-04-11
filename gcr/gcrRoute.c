@@ -79,7 +79,7 @@ GCRroute(ch)
 
     gcrSetEndDist(ch);
     density = gcrDensity(ch);
-/*  gcrPrDensity(ch, density);	/* Debugging */
+/*  gcrPrDensity(ch, density); */	/* Debugging */
     if (density > ch->gcr_width)
     {
 	(void) sprintf(mesg, "Density (%d) > channel size (%d)",

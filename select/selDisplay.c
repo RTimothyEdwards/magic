@@ -445,7 +445,7 @@ SelCopyToFeedback(celldef, seluse, style, text)
 }
 
 /*----------------------------------------------------------------------*/
-/* Callback function per tile of the selection
+/* Callback function per tile of the selection				*/
 /*----------------------------------------------------------------------*/
 
 int
