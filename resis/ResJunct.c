@@ -124,6 +124,10 @@ ResNewSubDevice(tile, tp, xj, yj, direction, PendingList)
     j = (tileJunk *) tp->ti_client;
     resDev = j->deviceList;
 
+    /* Arrived at a device that has a terminal connected to substrate	*/
+    /* that is not a FET bulk terminal (e.g., varactor, diode).		*/
+    if (resDev->rd_nterms < 4) return;
+
     if (resDev->rd_fet_subs == (resNode *) NULL)
     {
 	    resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
