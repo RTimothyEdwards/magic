@@ -330,7 +330,6 @@ extDefPush(defList)
 	freeMagic(defList);
 	defList = defList->ld_next;
     }
-    return (0);
 }
 
 /*
