@@ -585,7 +585,7 @@ cifGrowEuclideanFunc(tile, table)
     {
 	int growDistanceX, growDistanceY;
 	int height, width;
-	double hyp;
+	double frac, ratio;
 	int limit;
 
 	if (oldType & TT_SIDE)
@@ -605,9 +605,13 @@ cifGrowEuclideanFunc(tile, table)
 
 	width = area.r_xtop - area.r_xbot;
 	height = area.r_ytop - area.r_ybot;
-	hyp = sqrt((double)(width * width + height * height));
-	growDistanceY = ceil((double)(growDistance * width) / hyp);
-	growDistanceX = ceil((double)(growDistance * height) / hyp);
+        ratio = (double)height / (double)width;
+	frac = ratio / (1 + sqrt(1 + ratio * ratio));
+	growDistanceX = ceil((double)growDistance * frac);
+
+        ratio = (double)width / (double)height;
+	frac = ratio / (1 + sqrt(1 + ratio * ratio));
+	growDistanceY = ceil((double)growDistance * frac);
 
 	/* Adjust for grid limit */
 	growDistanceX = SetValueGrid(growDistanceX);
