@@ -17,8 +17,11 @@ if [ "${TCL_MAG_DIR}" = "/magic/tcl" ]; then
 fi
 TKCON=true
 DNULL=
-MAGIC_WISH=WISH_EXE
-export MAGIC_WISH
+
+if [ -z "$MAGIC_WISH" ]; then
+   MAGIC_WISH=WISH_EXE
+   export MAGIC_WISH
+fi
 
 # Hacks for Cygwin
 if [ "`uname | cut -d_ -f1`" = "CYGWIN" ]; then

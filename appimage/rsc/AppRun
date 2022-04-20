@@ -1,0 +1,7 @@
+#!/bin/sh
+export CURDIR=$(dirname $(readlink -f "${0}"))
+export PATH="${CURDIR}/bin":$PATH
+export LD_LIBRARY_PATH=${CURDIR}/lib:$LD_LIBRARY_PATH
+export CAD_ROOT="${CURDIR}/lib"
+export MAGIC_WISH="${CURDIR}/bin/wish"
+exec "${CURDIR}/bin/magic" $@
