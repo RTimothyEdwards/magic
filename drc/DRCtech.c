@@ -1290,13 +1290,6 @@ drcExtend(argc, argv)
  *
  *	width poly,pmc 2 "poly width must be at least 2"
  *
- * Optional "from layers2" is useful when defining a device width;
- * effectively, it represents an overhang rule where the presence of
- * the overhanging material is optional.  The equivalent rule is:
- *
- *	edge4way layers2 layers distance layers 0 0 why
- *
- *
  * Results:
  *	Returns distance.
  *
@@ -1354,6 +1347,26 @@ drcWidth(argc, argv)
 				why, distance, DRC_FORWARD, plane, plane);
 		    dp->drcc_next = dpnew;
 		}
+
+		/* Width checks are symmetric and so need to be checked	*/
+		/* in only one direction.  However, split tiles are	*/
+		/* not symmetric, so apply the reverse case with a flag	*/
+		/* that will allow the rule to be applied only in the	*/
+		/* case of a split tile.				*/
+
+		if (TTMaskHasType(&set, i) && TTMaskHasType(&setC, j))
+		{
+		    plane = LowestMaskBit(pset);
+
+		    /* Find bucket preceding the new one we wish to insert */
+		    dp = drcFindBucket(i, j, distance);
+		    dpnew = (DRCCookie *)mallocMagic(sizeof (DRCCookie));
+		    drcAssign(dpnew, distance, dp->drcc_next, &set, &set,
+				why, distance, DRC_REVERSE | DRC_SPLITTILE,
+				plane, plane);
+		    dp->drcc_next = dpnew;
+		}
+
 	    }
 	}
     }

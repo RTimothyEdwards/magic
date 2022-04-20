@@ -646,7 +646,11 @@ drcTile (tile, arg)
 	    for (cptr = DRCCurStyle->DRCRulesTbl[to][tt]; cptr != (DRCCookie *) NULL;
 			cptr = cptr->drcc_next)
 	    {
-		if (cptr->drcc_flags & DRC_ANGLES_90) continue;
+	    	/* DRC_ANGLES_90 and DRC_SPLITTILE rules are handled by	*/
+		/* the code above for non-Manhattan shapes and do not	*/
+		/* need to be processed again.				*/
+		if (cptr->drcc_flags & (DRC_ANGLES_90 | DRC_SPLITTILE))
+		    continue;
 
 		/* Find the rule distances according to the scale factor */
 		dist = cptr->drcc_dist;
@@ -1044,7 +1048,11 @@ drcTile (tile, arg)
 	    for (cptr = DRCCurStyle->DRCRulesTbl[to][tt]; cptr != (DRCCookie *) NULL;
 				cptr = cptr->drcc_next)
 	    {
-		if (cptr->drcc_flags & DRC_ANGLES_90) continue;
+	    	/* DRC_ANGLES_90 and DRC_SPLITTILE rules are handled by	*/
+		/* the code above for non-Manhattan shapes and do not	*/
+		/* need to be processed again.				*/
+		if (cptr->drcc_flags & (DRC_ANGLES_90 | DRC_SPLITTILE))
+		    continue;
 
 		/* Find the rule distances according to the scale factor */
 		dist = cptr->drcc_dist;

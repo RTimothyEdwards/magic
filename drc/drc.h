@@ -64,24 +64,25 @@ typedef struct drccookie
  * edge processing.
  */
 
-#define		DRC_FORWARD		0x000
-#define		DRC_REVERSE		0x001
-#define		DRC_BOTHCORNERS		0x002
-#define		DRC_TRIGGER		0x004
-#define		DRC_BENDS		0x008
-#define		DRC_OUTSIDE		0x010
-#define		DRC_AREA		0x020
-#define		DRC_OFFGRID		0x040
-#define		DRC_MAXWIDTH		0x080
-#define		DRC_MAXWIDTH_BOTH       0x100
-#define		DRC_RECTSIZE		0x200
-#define		DRC_ANGLES_45		0x400
-#define		DRC_ANGLES_90		0x800
+#define		DRC_FORWARD		0x0000
+#define		DRC_REVERSE		0x0001
+#define		DRC_BOTHCORNERS		0x0002
+#define		DRC_TRIGGER		0x0004
+#define		DRC_BENDS		0x0008
+#define		DRC_OUTSIDE		0x0010
+#define		DRC_AREA		0x0020
+#define		DRC_OFFGRID		0x0040
+#define		DRC_MAXWIDTH		0x0080
+#define		DRC_MAXWIDTH_BOTH       0x0100
+#define		DRC_RECTSIZE		0x0200
+#define		DRC_ANGLES_45		0x0400
+#define		DRC_ANGLES_90		0x0800
+#define		DRC_SPLITTILE		0x1000
 #define 	DRC_NONSTANDARD		(DRC_AREA|DRC_MAXWIDTH|DRC_RECTSIZE\
 					 |DRC_ANGLES_90|DRC_OFFGRID)
 
 /* More flags for indicating what the rule type represents */
-#define		DRC_CIFRULE		0x400
+#define		DRC_CIFRULE		0x2000
 
 #define	DRC_PENDING			0
 #define DRC_UNPROCESSED 		CLIENTDEFAULT
