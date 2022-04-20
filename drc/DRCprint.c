@@ -129,8 +129,10 @@ DRCPrintRulesTable (fp)
 			fprintf(fp," bends");
 		    if (dp->drcc_flags & DRC_RECTSIZE)
 			fprintf(fp," rect-size");
-		    if (dp->drcc_flags & DRC_ANGLES)
-			fprintf(fp," angles");
+		    if (dp->drcc_flags & DRC_ANGLES_45)
+			fprintf(fp," angles_45");
+		    if (dp->drcc_flags & DRC_ANGLES_90)
+			fprintf(fp," angles_90");
 		    fprintf(fp,"\n");
 	        }
 	    }

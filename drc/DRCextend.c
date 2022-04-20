@@ -40,6 +40,9 @@ Stack *DRCstack = (Stack *)NULL;
  *
  * Side Effects: may cause errors to be painted.
  *
+ * NOTES:  Tile has been determined to be a split tile before this
+ *	routine is called.
+ *
  *-------------------------------------------------------------------------
  */
 
@@ -51,21 +54,18 @@ drcCheckAngles(tile, arg, cptr)
     DRCCookie	*cptr;
 {
     Rect rect;
-    int ortho = (cptr->drcc_flags & 0x01);  /* 1 = orthogonal, 0 = 45s */
+    bool ortho = (cptr->drcc_flags & DRC_ANGLES_45) ? FALSE : TRUE;
 
-    if (IsSplit(tile))
+    if (ortho || ((RIGHT(tile) - LEFT(tile)) != (TOP(tile) - BOTTOM(tile))))
     {
-	if (ortho || (RIGHT(tile) - LEFT(tile)) != (TOP(tile) - BOTTOM(tile)))
+	TiToRect(tile, &rect);
+	GeoClip(&rect, arg->dCD_clip);
+	if (!GEO_RECTNULL(&rect))
 	{
-	    TiToRect(tile, &rect);
-	    GeoClip(&rect, arg->dCD_clip);
-	    if (!GEO_RECTNULL(&rect))
-	    {
-		arg->dCD_cptr = cptr;
-		(*(arg->dCD_function)) (arg->dCD_celldef, &rect,
+	    arg->dCD_cptr = cptr;
+	    (*(arg->dCD_function)) (arg->dCD_celldef, &rect,
 			arg->dCD_cptr, arg->dCD_clientData);
-		(*(arg->dCD_errors))++;
-	    }
+	    (*(arg->dCD_errors))++;
 	}
     }
 }

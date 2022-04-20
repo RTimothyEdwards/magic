@@ -1667,22 +1667,123 @@ drcAngles(argc, argv)
     char *argv[];
 {
     char *layers = argv[1];
-    int angles = atoi(argv[2]);
+    char *endptr;
+    long value;
+    int angles;
     int why = drcWhyCreate(argv[3]);
     TileTypeBitMask set;
     DRCCookie *dp, *dpnew;
     int plane;
+    PlaneMask ptest, pset, pmask;
     TileType i, j;
 
-    DBTechNoisyNameMask(layers, &set);
+    value = strtol(argv[2], &endptr, 10);
 
-    angles /= 45;
-    angles--;		/* angles now 0 for 45s and 1 for 90s */
-
-    if ((angles != 0) && (angles != 1))
+    switch (value)
     {
-	TechError("angles must be 45 or 90\n");
-	return 0;
+	case 45:
+	    angles = DRC_ANGLES_45 | DRC_ANGLES_90;
+	    break;
+	case 90:
+	    angles = DRC_ANGLES_90;
+	    break;
+	default:
+	    TechError("angles must be 45 or 90\n");
+	    return 0;
+    }
+
+    if (endptr != NULL)
+	if (!strcmp(endptr + 1, "only"))
+	    if (angles & DRC_ANGLES_45)
+		angles = DRC_ANGLES_45; 	/* 45 degrees only */
+
+    ptest = DBTechNoisyNameMask(layers, &set);
+
+    /* The 45 degrees only case is implemented like drcRectOnly, except	*/
+    /* that drcRectOnly checks only for inside corners, while this	*/
+    /* also checks for outside corners.  Where inside and outside	*/
+    /* corners have been beveled, the error is discarded while		*/
+    /* processing.							*/
+
+    if (angles == DRC_ANGLES_45)
+    {
+	TileTypeBitMask set2, setC, setM;
+
+	pmask = CoincidentPlanes(&set, ptest);
+
+	if (pmask == 0)
+	{
+	    TechError("All types for \"rect_only\"  must be on the same plane.\n");
+	    return 0;
+	}
+
+    	/* set2 is the inverse of set */
+	TTMaskCom2(&set2, &set);
+
+	for (i = 0; i < DBNumTypes; i++)
+	{
+	    for (j = 0; j < DBNumTypes; j++)
+	    {
+		if (i == j) continue;
+
+		if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+		{
+		    /* Inside corners */
+		    if (TTMaskHasType(&set, i) && TTMaskHasType(&set2, j))
+		    {
+			plane = LowestMaskBit(pset);
+			/* setC = all types in plane */
+			TTMaskZero(&setC);
+			TTMaskSetMask(&setC, &DBPlaneTypes[plane]);
+
+			/* Find bucket preceding the new one we wish to insert */
+			dp = drcFindBucket(i, j, 1);
+			dpnew = (DRCCookie *)mallocMagic(sizeof (DRCCookie));
+			drcAssign(dpnew, 1, dp->drcc_next, &set2, &setC, why, 1,
+				angles | DRC_FORWARD | DRC_BOTHCORNERS,
+				plane, plane);
+			dp->drcc_next = dpnew;
+
+			/* find bucket preceding new one we wish to insert */
+			dp = drcFindBucket(j, i, 1);
+			dpnew = (DRCCookie *)mallocMagic(sizeof (DRCCookie));
+			drcAssign(dpnew, 1, dp->drcc_next, &set2, &setC, why, 1,
+				angles | DRC_REVERSE | DRC_BOTHCORNERS,
+				plane, plane);
+			dp->drcc_next = dpnew;
+		    }
+
+		    /* Outside corners */
+		    if (TTMaskHasType(&set2, i) && TTMaskHasType(&set, j))
+		    {
+			plane = LowestMaskBit(pset);
+			/* setC = all types in plane */
+			TTMaskZero(&setC);
+			TTMaskSetMask(&setC, &DBPlaneTypes[plane]);
+
+			/* setM = not(i) */
+			TTMaskSetOnlyType(&setM, i);
+			TTMaskCom(&setM);
+
+			/* Find bucket preceding the new one we wish to insert */
+			dp = drcFindBucket(i, j, 1);
+			dpnew = (DRCCookie *)mallocMagic(sizeof (DRCCookie));
+			drcAssign(dpnew, 1, dp->drcc_next, &setM, &setC, why, 1,
+				angles | DRC_FORWARD | DRC_BOTHCORNERS,
+				plane, plane);
+			dp->drcc_next = dpnew;
+
+			/* find bucket preceding new one we wish to insert */
+			dp = drcFindBucket(j, i, 1);
+			dpnew = (DRCCookie *)mallocMagic(sizeof (DRCCookie));
+			drcAssign(dpnew, 1, dp->drcc_next, &setM, &setC, why, 1,
+				angles | DRC_REVERSE | DRC_BOTHCORNERS,
+				plane, plane);
+			dp->drcc_next = dpnew;
+		    }
+		}
+	    }
+	}
     }
 
     for (i = 0; i < DBNumTypes; i++)
@@ -1699,7 +1800,7 @@ drcAngles(argc, argv)
 	    dp = drcFindBucket(TT_SPACE, i, 1);
 	    dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
 	    drcAssign(dpnew, 1, dp->drcc_next, &set, &set, why,
-			1, DRC_ANGLES | angles, plane, plane);
+			1, angles, plane, plane);
 	    dp->drcc_next = dpnew;
 	}
     }

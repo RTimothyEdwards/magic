@@ -260,7 +260,10 @@ areaCheck(tile, arg)
 	}
 	arg->dCD_rlist[arg->dCD_entries - 1] = rect;
     }
-    else
+    /* "angles 45-only" needs to reject errors that are inside split tiles */
+    else if (!IsSplit(tile) ||
+		((arg->dCD_cptr->drcc_flags & (DRC_ANGLES_45 | DRC_ANGLES_90))
+		!= DRC_ANGLES_45))
     {
 	(*(arg->dCD_function))(arg->dCD_celldef, &rect, arg->dCD_cptr,
 			arg->dCD_clientData);
@@ -461,13 +464,13 @@ drcTile (tile, arg)
 	int deltax, deltay;
 	TileType tt, to;
 
-	/* Check rules for DRC_ANGLES rule and process */
+	/* Check rules for DRC_ANGLES_90 rule and process */
 	tt = TiGetLeftType(tile);
 	if (tt != TT_SPACE)
 	{
 	    for (cptr = DRCCurStyle->DRCRulesTbl[TT_SPACE][tt];
 			cptr != (DRCCookie *) NULL; cptr = cptr->drcc_next)
-		if (cptr->drcc_flags & DRC_ANGLES)
+		if (cptr->drcc_flags & DRC_ANGLES_90)
 		{
 		    drcCheckAngles(tile, arg, cptr);
 		    break;
@@ -478,7 +481,7 @@ drcTile (tile, arg)
 	{
 	    for (cptr = DRCCurStyle->DRCRulesTbl[TT_SPACE][tt];
 			cptr != (DRCCookie *) NULL; cptr = cptr->drcc_next)
-		if (cptr->drcc_flags & DRC_ANGLES)
+		if (cptr->drcc_flags & DRC_ANGLES_90)
 		{
 		    drcCheckAngles(tile, arg, cptr);
 		    break;
@@ -508,7 +511,7 @@ drcTile (tile, arg)
 	    /* Note:  Triggered wide-spacing rule will require handling	*/
 	    /* the DRC_MAXWIDTH rule on non-Manhattan edges.		*/
 
-	    if (cptr->drcc_flags & (DRC_ANGLES | DRC_AREA | DRC_MAXWIDTH
+	    if (cptr->drcc_flags & (DRC_ANGLES_90 | DRC_AREA | DRC_MAXWIDTH
 		    | DRC_RECTSIZE | DRC_OFFGRID))
 		continue;
 
@@ -643,7 +646,7 @@ drcTile (tile, arg)
 	    for (cptr = DRCCurStyle->DRCRulesTbl[to][tt]; cptr != (DRCCookie *) NULL;
 			cptr = cptr->drcc_next)
 	    {
-		if (cptr->drcc_flags & DRC_ANGLES) continue;
+		if (cptr->drcc_flags & DRC_ANGLES_90) continue;
 
 		/* Find the rule distances according to the scale factor */
 		dist = cptr->drcc_dist;
@@ -1041,7 +1044,7 @@ drcTile (tile, arg)
 	    for (cptr = DRCCurStyle->DRCRulesTbl[to][tt]; cptr != (DRCCookie *) NULL;
 				cptr = cptr->drcc_next)
 	    {
-		if (cptr->drcc_flags & DRC_ANGLES) continue;
+		if (cptr->drcc_flags & DRC_ANGLES_90) continue;
 
 		/* Find the rule distances according to the scale factor */
 		dist = cptr->drcc_dist;

@@ -75,9 +75,10 @@ typedef struct drccookie
 #define		DRC_MAXWIDTH		0x080
 #define		DRC_MAXWIDTH_BOTH       0x100
 #define		DRC_RECTSIZE		0x200
-#define		DRC_ANGLES		0x400
+#define		DRC_ANGLES_45		0x400
+#define		DRC_ANGLES_90		0x800
 #define 	DRC_NONSTANDARD		(DRC_AREA|DRC_MAXWIDTH|DRC_RECTSIZE\
-					 |DRC_ANGLES|DRC_OFFGRID)
+					 |DRC_ANGLES_90|DRC_OFFGRID)
 
 /* More flags for indicating what the rule type represents */
 #define		DRC_CIFRULE		0x400
