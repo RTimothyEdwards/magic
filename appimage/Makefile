@@ -1,28 +1,24 @@
-all: appimage
-
 RESOURCES = $(shell find rsc/ -type f)
-ARCH = $(shell uname -i)
+ARCH = $(shell uname -m)
 APPIMAGE = Magic-$(ARCH).AppImage
 
-prefix.tar.gz: Dockerfile
+all: $(APPIMAGE)
+
+.PHONY: prefix/bin/magic
+prefix/bin/magic: Dockerfile Makefile
+	rm -rf prefix
 	docker build -t magic_build -f ./Dockerfile ..
 	id=$$(docker create magic_build) ; \
-	docker cp $$id:/prefix.tar.gz ./prefix.tar.gz ; \
+	docker cp $$id:/prefix ./prefix ; \
 	docker rm -v $$id
-
-prefix: prefix.tar.gz Makefile
-	rm -rf $@
-	mkdir -p $@
-	tar -xf $< -C $@ .
-	mkdir -p $@/lib/tcl8.6.12
-	cp -r $@/lib/tcl8.6 $@/lib/tcl8.6.12/library
+	mkdir -p prefix/lib/tcl8.6.12
+	cp -r prefix/lib/tcl8.6 prefix/lib/tcl8.6.12/library
 
 appimagetool:
 	curl -L https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage > ./appimagetool
 	chmod +x ./appimagetool
 
-appimage: $(APPIMAGE)
-$(APPIMAGE): prefix appimagetool $(RESOURCES) 
+$(APPIMAGE): prefix/bin/magic appimagetool $(RESOURCES) 
 	cp $(RESOURCES) ./prefix
 	./appimagetool prefix
 
@@ -32,5 +28,6 @@ install:
 
 .PHONY: clean
 clean:
+	rm -f *.AppImage
 	rm -f prefix.tar.gz
 	rm -rf prefix
