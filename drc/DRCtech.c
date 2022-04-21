@@ -1043,7 +1043,7 @@ DRCTechAddRule(sectionName, argc, argv)
     "step_size",
 	"surround",	 6,	6,	drcSurround,
     "layers1 layers2 distance presence why",
-	"width",	 4,	4,	drcWidth,
+	"width",	 4,	5,	drcWidth,
     "layers width why",
 	"widespacing",	 7,	8,	drcSpacing,
     "layers1 width layers2 separation adjacency why",
@@ -1111,13 +1111,13 @@ DRCTechAddRule(sectionName, argc, argv)
  * Process an extension rule.
  * This is of the form:
  *
- *	extend layers1 layers2 distance [exact_width] why
+ *	extend layers1 layers2 distance [exact_width | exclusive] why
  *
  * indicating that if "layers1" extends from "layers2", then it must
  * have a width of at least "distance".  This is very much like the
  * "overhang" rule, except that the extension is optional.  Example:
  *
- *	extend nfet ndiff 2 "n-transistor length must be at least 2"
+ *	extend nfet *poly 3 "n-transistor width must be at least 3"
  *
  * "extend" implements the following general-purpose edge rule:
  *
@@ -1126,6 +1126,13 @@ DRCTechAddRule(sectionName, argc, argv)
  * Option "exact_width" implements an additional rule that checks for
  * maximum extension at distance.  This is intended for use with, for
  * example, a fixed gate length for a specific type of device.
+ *
+ * Option "exclusive" is for use for, e.g., transistor length when the
+ * length rule is larger than the minimum width rule.  However, without
+ * the option, "extend" sets OKtypes to the union of layers1 and layers2;
+ * that covers, e.g., extension of diffusion from a gate where an
+ * additional gate within the distance does not violate the rule.  With
+ * "exclusive", layers2 may not appear within "distance" of the edge.
  *
  * Results:
  *	Returns distance.
@@ -1152,10 +1159,16 @@ drcExtend(argc, argv)
     TileTypeBitMask set2, setZ, setN, setM;
     PlaneMask pMask1, pMask2, pset, ptest;
     bool exact = FALSE;
+    bool exclusive = FALSE;
 
     if (!strncmp(argv[4], "exact_", 6))
     {
 	exact = TRUE;
+	why = drcWhyCreate(argv[5]);
+    }
+    else if (!strncmp(argv[4], "exclu", 5))
+    {
+	exclusive = TRUE;
 	why = drcWhyCreate(argv[5]);
     }
     else
@@ -1181,9 +1194,12 @@ drcExtend(argc, argv)
 	return (0);
     }
 
-    /* setM is the union of set1 and set2 */
+    /* setM is the union of set1 and set2 unless exclusive == TRUE */
     TTMaskZero(&setM);
-    TTMaskSetMask3(&setM, &set1, &set2);
+    if (exclusive)
+	TTMaskSetMask(&setM, &set1);
+    else
+	TTMaskSetMask3(&setM, &set1, &set2);
 
     /* setN is the inverse of set1, and setC is the inverse of set2 */
     TTMaskCom2(&setN, &set1);
@@ -1284,11 +1300,15 @@ drcExtend(argc, argv)
  * Process a width rule.
  * This is of the form:
  *
- *	width layers distance why
+ *	width layers distance [angles] why
  *
  * e.g,
  *
  *	width poly,pmc 2 "poly width must be at least 2"
+ *
+ * The option "angles" is computed only on non-manhattan edges and is used
+ * in cases were, for example, an angled transistor has a minimum width
+ * larger than that of a straight gate.
  *
  * Results:
  *	Returns distance.
@@ -1306,12 +1326,20 @@ drcWidth(argc, argv)
 {
     char *layers = argv[1];
     int distance = atoi(argv[2]);
-    int why = drcWhyCreate(argv[3]);
+    int why;
     TileTypeBitMask set, setC;
     PlaneMask pmask, pset, ptest;
     DRCCookie *dp, *dpnew;
     TileType i, j;
-    int plane;
+    int plane, flags = 0;
+
+    if (!strncmp(argv[3], "angle", 5))
+    {
+	flags = DRC_SPLITTILE;
+	why = drcWhyCreate(argv[4]);
+    }
+    else
+	why = drcWhyCreate(argv[3]);
 
     ptest = DBTechNoisyNameMask(layers, &set);
     pmask = CoincidentPlanes(&set, ptest);
@@ -1344,7 +1372,7 @@ drcWidth(argc, argv)
 		    dp = drcFindBucket(i, j, distance);
 		    dpnew = (DRCCookie *)mallocMagic(sizeof (DRCCookie));
 		    drcAssign(dpnew, distance, dp->drcc_next, &set, &set,
-				why, distance, DRC_FORWARD, plane, plane);
+				why, distance, DRC_FORWARD | flags, plane, plane);
 		    dp->drcc_next = dpnew;
 		}
 
@@ -1366,7 +1394,6 @@ drcWidth(argc, argv)
 				plane, plane);
 		    dp->drcc_next = dpnew;
 		}
-
 	    }
 	}
     }
