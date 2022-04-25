@@ -549,7 +549,6 @@ keepGoing(use, clientdata)
     return 0;	/* keep the search going */
 }
 
-#ifdef FILE_LOCKS
 /*
  * ----------------------------------------------------------------------------
  *
@@ -578,6 +577,11 @@ keepGoing(use, clientdata)
  * Side effects:
  *	Sets global boolean variable FileLocking.
  *
+ * Note:
+ *	When magic is configured with --disable-locking, then this command
+ *	is implemented such that "locking enable" does nothing, and
+ *	"locking disable" generates an error.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -593,6 +597,7 @@ CmdLocking(w, cmd)
 
     if (cmd->tx_argc <= 1)
     {
+#ifdef FILE_LOCKS
 #ifdef MAGIC_WRAPPER
 	/* Interpreter return value is the state of locking */
 	Tcl_SetResult(magicinterp, (FileLocking) ? "enabled" : "disabled",
@@ -612,8 +617,27 @@ CmdLocking(w, cmd)
 	}
 	FileLocking = (option <= 4) ? FALSE : TRUE;
     }
+#else	/* !FILE_LOCKS */
+#ifdef MAGIC_WRAPPER
+	Tcl_SetResult(magicinterp,
+		"File locking disabled as a compile-time option",
+		TCL_VOLATILE);
+#else
+	/* Print the status of file locking to the console */
+	TxPrintf("File locking disabled as a compile-time option\n");
+#endif
+    }
+    else
+    {
+	option = Lookup(cmd->tx_argv[1], cmdLockingYesNo);
+	if (option < 0)
+	    TxError("Unknown locking option \"%s\"\n", cmd->tx_argv[1]);
+	else if (option > 4)		/* "true", "enable", "on", etc. */
+	    TxError("Cannot enable locking because it has been disabled"
+			" as a compile-time option.\n");
+    }
+#endif	/* !FILE_LOCKS */
 }
-#endif	/* FILE_LOCKS */
 
 /*
  * ----------------------------------------------------------------------------

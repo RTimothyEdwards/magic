@@ -155,7 +155,7 @@ extHierSubstrate(ha, use, x, y)
     {
 	/* Check area under all of the subcircuit (not just the part	*/
 	/* in the current interaction area).				*/
-	GeoTransRect(&use->cu_transform, &use->cu_def->cd_bbox, &subArea.r_ll);
+	GeoTransRect(&use->cu_transform, &use->cu_def->cd_bbox, &subArea);
     }
   
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)

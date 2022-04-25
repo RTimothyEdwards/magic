@@ -1028,7 +1028,7 @@ DRCTechAddRule(sectionName, argc, argv)
 	"exact_overlap", 2,	2,	drcExactOverlap,
     "layers",
 	"extend",	 5,	6,	drcExtend,
-    "layers1 layers2 distance why",
+    "layers1 layers2 distance [option] why",
 	"no_overlap",	 3,	3,	drcNoOverlap,
     "layers1 layers2",
 	"option",	 2,	2,	drcOption,
