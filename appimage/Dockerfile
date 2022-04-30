@@ -1,11 +1,16 @@
-FROM donnio/python3:centos6
+FROM centos/python-38-centos7:20210726-fad62e9
+
+USER root
+
+# Build Dependencies
+RUN yum install -y cairo-devel freeglut-devel gcc make tcsh
 
 # Tcl/Tk 
 WORKDIR /tcl
 RUN curl -L https://prdownloads.sourceforge.net/tcl/tcl8.6.12-src.tar.gz | tar --strip-components=1 -xzC . \
     && cd unix \
     && ./configure --prefix=/prefix \
-    && make -j$(nproc) \
+    && make \
     && make install
 
 WORKDIR /tk
@@ -19,9 +24,6 @@ WORKDIR /prefix/bin
 RUN cp ./wish8.6 ./wish
 RUN cp ./tclsh8.6 ./tclsh
 
-# Cairo
-RUN yum install -y cairo-devel
-
 # Magic
 WORKDIR /magic
 COPY . .
@@ -30,6 +32,7 @@ RUN ./configure \
     --prefix=/prefix \
     --with-tcl=/prefix/lib \
     --with-tk=/prefix/lib \
+    --without-opengl \
     && make clean \
     && make database/database.h \
     && make -j$(nproc) \
