@@ -4,22 +4,15 @@ name: CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+  vezzal:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Pulling the docker image
@@ -30,3 +23,29 @@ jobs:
         
       - name: Run the testing on the container and send the mail
         run: docker exec test_magic /vezzal/test_magic.sh "lankasaicharan123@gmail.com,tim@opencircuitdesign.com" ${{secrets.MAILING_KEY}}
+  simple_build_linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get Dependencies
+        run: |
+          sudo apt-get install -y tcl-dev tk-dev libcairo-dev csh
+      - name: Build
+        run: |
+          ./configure
+          make database/database.h
+          make -j$(nproc)
+  simple_build_mac:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get Dependencies
+        run: |
+          brew install --cask xquartz
+          brew install cairo tcl-tk tcsh
+      - name: Build
+        run: |
+          export PATH="/opt/X11/bin:$PATH"
+          ./scripts/configure_mac
+          make database/database.h
+          make -j$(sysctl -n hw.ncpu)
