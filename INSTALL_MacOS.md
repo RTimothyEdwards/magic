@@ -1,7 +1,20 @@
-# In order to install magic on MacOS (Big Sur) follow these steps:
+# Installing Magic on macOS (Tested on Big Sur)
+## With Brew
+Get [Homebrew](https://brew.sh).
 
+```sh
+brew install cairo tcl-tk tcsh
+brew install --cask xquartz
+./scripts/configure_mac
+make database/database.h
+make -j$(sysctl -n hw.ncpu)
+make install # may need sudo depending on your setup
+```
 
-## Build Tcl for X11
+## Without Brew
+Get [XQuartz](https://github.com/XQuartz/XQuartz)
+
+### Build Tcl for X11
 
 We are following the instructions from xschem (https://github.com/StefanSchippers/xschem/blob/master/README_MacOS.md). 
 
@@ -15,7 +28,7 @@ make
 make install
 ```
 
-## Build Tk for X11
+### Build Tk for X11
 
 * Download Tk from https://prdownloads.sourceforge.net/tcl/tk8.6.10-src.tar.gz
 
@@ -27,7 +40,7 @@ make
 make install
 ```
 
-## Build magic
+### Build magic
 
 We need to provide this `tcl-tk` and suppress compilation errors.
 
