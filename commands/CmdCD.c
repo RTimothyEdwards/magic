@@ -2292,8 +2292,8 @@ CmdContact(w, cmd)
 	    for (ctype = DBNumUserLayers; ctype < DBNumTypes; ctype++)
 	    {
 		rmask = DBResidueMask(ctype);
-		if (TTMaskHasType(rmask, ctype))
-		    TTMaskSetMask(&smask, rmask);
+		if (TTMaskHasType(rmask, type))
+		    TTMaskSetType(&smask, ctype);
 	    }
 
 	    /* Enumerate all tiles inside the box area containing contact "type" */
