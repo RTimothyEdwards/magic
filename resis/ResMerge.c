@@ -742,6 +742,9 @@ ResMergeNodes(node1, node2, pendingList, doneList)
 	node1->rn_ce = tCon;
     }
 
+    /* Moves name to new node, if new node does not have a name */
+    if (node1->rn_name == NULL) node1->rn_name = node2->rn_name;
+
     /* Moves resistors to new node  */
 
     workingRes = node2->rn_re;
