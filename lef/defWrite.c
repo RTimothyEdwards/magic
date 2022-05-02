@@ -1499,6 +1499,7 @@ defCountVias(rootDef, MagicToLefTable, defViaTable, oscale)
 
 int
 defCheckFunc(tile)
+    Tile *tile;
 {
     return 1;
 }

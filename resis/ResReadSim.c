@@ -172,7 +172,9 @@ ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
 		if (resproc) result = (*resproc)(line);
 		break;
 	    case '=':
-		if (mergeproc) result = (*mergeproc)(line);
+		/* Do not merge nodes, as this interferes with	*/
+		/* extresist's primary function.		*/
+		/* if (mergeproc) result = (*mergeproc)(line);	*/
 		break;
 	    case 'A':
 		if (attrproc)

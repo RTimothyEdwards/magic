@@ -710,6 +710,9 @@ resPortFunc(scx, lab, tpath, result)
     HashEntry *entry;
     ResSimNode *node;
 
+    // Ignore the top level cell
+    if (scx->scx_use->cu_id == NULL) return 0;
+
     GeoTransRect(&scx->scx_trans, &lab->lab_rect, &r);
 
     // To be expanded.  Currently this handles digital signal inputs
@@ -723,7 +726,8 @@ resPortFunc(scx, lab, tpath, result)
 	// direction is either INPUT or OUTPUT, then use SIGNAL is implied.
 
 	if ((puse == 0) && ((pclass == PORT_CLASS_INPUT)
-		|| (pclass == PORT_CLASS_OUTPUT)))
+		|| (pclass == PORT_CLASS_OUTPUT)
+		|| (pclass == PORT_CLASS_DEFAULT)))
 	    puse = PORT_USE_SIGNAL;
 
 	if (puse == PORT_USE_SIGNAL || puse == PORT_USE_CLOCK) {
@@ -742,7 +746,8 @@ resPortFunc(scx, lab, tpath, result)
 	    if (lab->lab_flags & PORT_DIR_WEST)
 		portloc.p_x = r.r_xbot;
 
-	    if ((pclass == PORT_CLASS_INPUT) || (pclass == PORT_CLASS_OUTPUT)) {
+	    if ((pclass == PORT_CLASS_INPUT) || (pclass == PORT_CLASS_OUTPUT)
+			|| (pclass == PORT_CLASS_DEFAULT)) {
 		int len;
 		char *nodename;
 

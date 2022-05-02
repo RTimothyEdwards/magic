@@ -313,7 +313,7 @@ readfile:
 
 	    /* equiv node1 node2 */
 	    case EQUIV:
-		efBuildEquiv(def, argv[1], argv[2]);
+		efBuildEquiv(def, argv[1], argv[2], resist);
 		break;
 
 	    /* replaces "fet" (below) */

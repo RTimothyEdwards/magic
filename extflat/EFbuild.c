@@ -449,12 +449,13 @@ efBuildKill(def, name)
  */
 
 void
-efBuildEquiv(def, nodeName1, nodeName2)
+efBuildEquiv(def, nodeName1, nodeName2, resist)
     Def *def;		/* Def for which we're adding a new node name */
     char *nodeName1;	/* One of node names to be made equivalent */
     char *nodeName2;	/* Other name to be made equivalent.  One of nodeName1
 			 * or nodeName2 must already be known.
 			 */
+    bool resist;	/* True if "extresist on" option was selected */
 {
     EFNodeName *nn1, *nn2;
     HashEntry *he1, *he2;
@@ -520,12 +521,15 @@ efBuildEquiv(def, nodeName1, nodeName2)
 	    freeMagic(argv[7]);
 	    return;
 	}
-	else
+	else if (!resist)
 	{
 	    /* Flag a strong warning */
 	    TxError("Warning:  Ports \"%s\" and \"%s\" are electrically shorted.\n",
 			nodeName1, nodeName2);
 	}
+	else
+	    /* Do not merge the nodes when folding in extresist parasitics */
+	    return;
     }
 
     /* If both names exist and are for different nodes, merge them */
