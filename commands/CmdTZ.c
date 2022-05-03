@@ -930,7 +930,7 @@ CmdWhat(w, cmd)
     TxCommand *cmd;		/* Information about the command. */
 {
     int i, locargc;
-    bool foundAny;
+    bool foundAny, editNull = FALSE;
     bool doList = FALSE, doListAll = FALSE;
     TileTypeBitMask layers, maskBits, *rMask;
     CellUse *CheckUse;
@@ -974,11 +974,20 @@ CmdWhat(w, cmd)
     }
 #endif
 
+    /* The "what" command should not fail if there is no edit cell */
+    if (EditCellUse == NULL)
+    {
+	editNull = TRUE;
+	EditCellUse = w->w_surfaceID;
+    }
+
     /* Find all the selected paint and print out the layer names. */
 
     TTMaskZero(&layers);
     (void) SelEnumPaint(&DBAllButSpaceAndDRCBits, FALSE, (bool *) NULL,
 	    cmdWhatPaintFunc, (ClientData) &layers);
+
+    if (editNull == TRUE) EditCellUse = (CellUse *)NULL;
 
     if (!TTMaskIsZero(&layers))
     {
