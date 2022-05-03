@@ -956,8 +956,8 @@ TxDispatch(f)
 void
 TxParseString(str, q, event)
     char *str;
-    void* q;		/* unused */
-    void* event;	/* always NULL (ignored) */
+    void *q;		/* unused */
+    void *event;	/* always NULL (ignored) */
 {
     char *reply;
 
