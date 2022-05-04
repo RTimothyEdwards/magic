@@ -303,10 +303,6 @@ extBasic(def, outFile)
 		extRelocateSubstrateCoupling(&extCoupleHash, glob_subsnode);
     }
 
-    /* Output device parameters for any subcircuit devices */
-    if (!SigInterruptPending)
-	extOutputParameters(def, transList, outFile);
-
     /* Check for "device", as it modifies handling of parasitics */
     propptr = (char *)DBPropGet(def, "device", &propfound);
     if (propfound)
@@ -318,6 +314,19 @@ extBasic(def, outFile)
 	    tnode->nreg_cap = (CapValue)0.0;
 	    tnode->nreg_resist = (ResValue)0;
 	}
+
+	/* If the device name is "primitive", then parameters	*/
+	/* are output here.					*/
+
+	if (!strncmp(propptr, "primitive ", 10))
+	    fprintf(outFile, "parameters :%s %s\n", def->cd_name, propptr + 10);
+    }
+
+    else
+    {
+	/* Output device parameters for any subcircuit devices */
+	if (!SigInterruptPending)
+	    extOutputParameters(def, transList, outFile);
     }
 
     if (isabstract) fprintf(outFile, "abstract\n");
@@ -342,12 +351,21 @@ extBasic(def, outFile)
 	subsnode = NULL;
 	propvalue = NULL;
 
-	if (propfound)
+	/* Special case of device "primitive":  The subcircuit has the	*/
+	/* name of a primitive device model and should be extracted as	*/
+	/* the same.  The property string may contain parameters to	*/
+	/* pass to the subcircuit.					*/
+
+	if (propfound && (!strncmp(propptr, "primitive", 9)))
+	    fprintf(outFile, "primitive\n");
+
+	else if (propfound)
 	{
 	    /* Sanity checking on syntax of property line, plus	*/
 	    /* conversion of values to internal units.		*/
 	    propvalue = StrDup((char **)NULL, propptr);
 	    token = strtok(propvalue, " ");
+
 	    devidx = Lookup(token, extDevTable);
 	    if (devidx < 0)
 	    {

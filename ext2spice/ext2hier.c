@@ -445,7 +445,8 @@ subcktHierVisit(use, hierName, is_top)
     /* Same considerations as at line 1831 for determining if the cell	*/
     /* has been folded into the parent and should not be output.	*/
 
-    isStub = ((def->def_flags & DEF_ABSTRACT) && esDoBlackBox) ?  TRUE : FALSE;
+    isStub = ((def->def_flags & (DEF_ABSTRACT | DEF_PRIMITIVE)) && esDoBlackBox) ?
+		TRUE : FALSE;
     if ((!is_top) && (def->def_flags & DEF_NODEVICES) && (!isStub))
         return 0;
 
@@ -1921,6 +1922,9 @@ esHierVisit(hc, cdata)
     dfd = (DefFlagsData *)cdata;
     topdef = dfd->def;
     flags = dfd->flags;
+
+    /* Cells which are marked as "primitive" get no output at all */
+    if (def->def_flags & DEF_PRIMITIVE) return 0;
 
     /* Cells without any contents (devices or subcircuits) will	*/
     /* be absorbed into their parents.  Use this opportunity to	*/

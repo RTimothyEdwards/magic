@@ -55,8 +55,8 @@ char *extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
 typedef enum
 {
     ABSTRACT, ADJUST, ATTR, CAP, DEVICE, DIST, EQUIV, FET, KILLNODE, MERGE,
-    NODE, PARAMETERS, PORT, RESISTOR, RESISTCLASS, RNODE, SCALE, SUBCAP,
-    SUBSTRATE, TECH, TIMESTAMP, USE, VERSION, EXT_STYLE
+    NODE, PARAMETERS, PORT, PRIMITIVE, RESISTOR, RESISTCLASS, RNODE, SCALE,
+    SUBCAP, SUBSTRATE, TECH, TIMESTAMP, USE, VERSION, EXT_STYLE
 } Key;
 
 static struct
@@ -80,6 +80,7 @@ keyTable[] =
     "node",		NODE,		7,
     "parameters",	PARAMETERS,	3,
     "port",		PORT,		8,
+    "primitive",	PRIMITIVE,	0,	/* defines a primitive device */
     "resist",		RESISTOR,	4,
     "resistclasses",	RESISTCLASS,	1,
     "rnode",		RNODE,		5,
@@ -593,6 +594,11 @@ resistChanged:
 	    /* abstract (no options/arguments) */
 	    case ABSTRACT:
 		def->def_flags |= DEF_ABSTRACT;
+		break;
+
+	    /* primitive (no arguments) */
+	    case PRIMITIVE:
+		def->def_flags |= DEF_PRIMITIVE;
 		break;
 
 	    /* To-do: compare timestamp against the cell */

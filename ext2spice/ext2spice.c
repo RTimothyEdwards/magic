@@ -1779,6 +1779,9 @@ topVisit(def, doStub)
     char **sorted_ports;
     linkedNodeName *lnn = NULL;
 
+    /* Primitive devices are not output at all */
+    if (def->def_flags & DEF_PRIMITIVE) return;
+
     HashInit(&portNameTable, 32, HT_STRINGKEYS);
 
     /* SPICE subcircuit names must begin with A-Z.  This will also be	*/

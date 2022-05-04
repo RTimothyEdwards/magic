@@ -179,6 +179,7 @@ typedef struct def
 #define DEF_NODEVICES	0x08	/* This def contains no devices */
 #define DEF_SUBSNODES	0x10	/* This def contains implicit substrate nodes */
 #define DEF_ABSTRACT	0x20	/* This def is an abstract view (e.g., LEF) */
+#define DEF_PRIMITIVE	0x40	/* This def is a primitive device */
 
 /*
  * Every Def has a NULL-terminated list of uses that correspond

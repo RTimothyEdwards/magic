@@ -35,10 +35,10 @@ Attach a "property" (string key and value pair) to the edit cell
    <BLOCKQUOTE>
       The <B>property</B> command implements a general-purpose method
       of attaching information to a cell definition.  Except for a
-      few properties known to the <B>lef</B> and <B>gds</B> commands
-      (q.v.), properties have no inherent meaning to magic but may be
-      used with other programs or scripts to add additional information
-      about a cell definition. <P>
+      few properties known to the <B>lef</B>, <B>extract</B>, and
+      <B>gds</B> commands (q.v.), properties have no inherent meaning
+      to magic but may be used with other programs or scripts to add
+      additional information about a cell definition. <P>
 
       With no arguments, all properties of the current edit cell are
       listed.  With only the <I>key</I> argument, the value associated
@@ -46,6 +46,87 @@ Attach a "property" (string key and value pair) to the edit cell
       <I>value</I> is associated with the string <I>key</I> as a
       property of the cell.  If <I>key</I> is an existing key, then
       its original value will be overwritten.
+   </BLOCKQUOTE>
+
+   <BLOCKQUOTE>
+      Property names reserved by and used by magic:
+      <DL>
+	<DT> <B>GDS_FILE</B>
+	<DD> The value is the name of a GDS file which contains the mask
+	     data for the cell.  The cell is then effectively an abstract
+	     view, because its contents are in the GDS file and do not
+	     necessarily match what is displayed (although they might).
+	<DT> <B>GDS_START</B>
+	<DD> If a <B>GDS_FILE</B> is defined, then this value indicates the
+	     byte position of the start of mask data for this cell definition
+	     in the file.  If set to value <B>0</B>, then the file will be
+	     searched for the data bounds.
+	<DT> <B>GDS_END</B>
+	<DD> If a <B>GDS_FILE</B> is defined, then this value indicates the
+	     byte position of the end of mask data for this cell definition
+	     in the file.  If <B>GDS_START</B> is set to <B>0</B>, then this
+	     property may be omitted.
+	<DT> <B>LEFview</B>
+	<DD> If set to <B>TRUE</B>, this cell is an abstract view such as that
+	     obtained from a LEF macro, and should not be used for extraction
+	     or for writing mask data (unless <B>GDS_FILE</B> is defined).
+	<DT> <B>LEFproperties</B>
+	<DD> If the file was read from a LEF macro, then this property corresponds
+	     to the LEF <B>PROPERTY</B> block values.  All values from the block
+	     are contatenated into the single property string.
+	<DT> <B>LEFsymmetry</B>
+	<DD> If the file was read from a LEF macro, then this property corresponds
+	     to the macro's <B>SYMMETRY</B> value.
+	<DT> <B>LEFclass</B>
+	<DD> If the file was read from a LEF macro, then this property corresponds
+	     to the macro's <B>CLASS</B> value.
+	<DT> <B>LEFsite</B>
+	<DD> If the file was read from a LEF macro, then this property corresponds
+	     to the macro's <B>SITE</B> value.
+	<DT> <B>FIXED_BBOX</B>
+	<DD> This property value is a space-separated list of four integer values
+	     corresponding to the abutment box of the cell, in magic's internal
+	     units.  The abutment box is automatically read from LEF files, but
+	     may be defined for any file and can be used for placement alignment.
+	<DT> <B>device</B>
+	<DD> This property declares that the cell is a device or contains a
+	     single device that is not a known extractable device defined in
+	     the technology file.  In the first case, the device to be extracted
+	     is a subcircuit and the name of the device is the same as the name
+	     of the cell.  In this case, the property value should begin with
+	     "<B>primitive</B>".  This may be followed by any parameters
+	     associated with the device that need to be output in the netlist;
+	     e.g., "<B>primitive nf=4</B>.  When the cell is recast as a
+	     primitive device, it is necessary for the port order in the cell
+	     to match the port order of the device as it must appear in the
+	     output netlist.  In the second case, the device to be extracted
+	     is either a low-level component type (not a subcircuit), or is a
+	     subcircuit with a different name than the cell.  In that case, the
+	     value string should be the text of the line as it should appear
+	     in a "<B>device</B>" line in the output <TT>.ext</TT> file when the
+	     cell is extracted.  That includes the names of all ports and any
+	     parameters to be output.  As the output device is defined inside
+	     the subcircuit of the cell in which it is defined, the ports may
+	     be reordered between the subcircuit and the instantiation of the
+	     device.  The use of either form of the <B>device</B> property
+	     precludes the generation of parasitics associated with the cell.
+	     All parasitics are assumed to be included in the device model.
+	<DT> <B>parameter</B>
+	<DD> If, when an instance of the cell's subcircuit is generated in the
+	     output netlist, the instance should be passed one or more
+	     parameters, then those parameter <I>key</I><B>=</B><I>value</I>
+	     pairs (as a single, space-separated string) should be defined as
+	     the value to the <B>parameter</B> property.
+        <DT> <B>MASKHINTS_</B><I>type</I>
+	<DD> The value is a string of consecutive sets of four integer values,
+	     each set representing the bounding box of a rectangle defining
+	     the area of CIF type <I>type</I>, in magic's internal units.
+	     This indicates that magic will
+	     always generate mask layer <I>type</I> in the specified rectangle
+	     area when writing GDS or CIF output.  <I>type</I> may be a templayer,
+	     such that <I>type</I> could be defined as the absence of a mask layer,
+	     for example.
+      </DL>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
