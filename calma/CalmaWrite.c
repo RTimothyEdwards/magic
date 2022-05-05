@@ -943,12 +943,43 @@ calmaProcessDef(def, outf, do_library)
 	size_t defsize, numbytes;
 	off_t cellstart, cellend, structstart;
  	dlong cval;
+	int namelen;
+	char *modName;
 	FILE *fi;
 
+	/* Handle compressed files */
+	
+	modName = filename;
+	namelen = strlen(filename);
+	if ((namelen > 4) && !strcmp(filename + namelen - 3, ".gz"))
+	{
+	    char *sysCmd, sptr;
+	
+	    sptr = strrchr(filename, '/');
+	    if (sptr == NULL)
+		sptr = filename;
+	    else
+		sptr++;
+	
+	    modName = StrDup((char **)NULL, sptr);
+	    *(modName + strlen(modName) - 3) = '\0';
+
+	    sysCmd = mallocMagic(18 + namelen + strlen(modName));
+	    sprinf(sysCmd, "gunzip -c -k %s > %s", filename, modName);
+	    if (system(sysCmd) != 0)
+	    {
+		/* File didn't uncompress.  Go back to original name,
+		 * although that will probably fail and raise an error.
+		 */
+		freeMagic(modName);
+		modName = filename;
+	    }
+	}
+	
 	/* Use PaOpen() so the paths searched are the same as were	*/
 	/* searched to find the .mag file that indicated this GDS file.	*/
 
-	fi = PaOpen(filename, "r", "", Path, CellLibPath, &retfilename);
+	fi = PaOpen(modName, "r", "", Path, CellLibPath, &retfilename);
 	if (fi == NULL)
 	{
 	    /* This is a rare error, but if the subcell is inside	*/
@@ -964,7 +995,9 @@ calmaProcessDef(def, outf, do_library)
 
 	    TxError("Calma output error:  Can't find GDS file \"%s\" "
 				"for vendor cell \"%s\".  It will not be output.\n",
-				filename, def->cd_name);
+				modName, def->cd_name);
+
+	    if (modName != filename) freeMagic(modName);
 
 	    if (CalmaAllowUndefined)
 		return 0;
@@ -1111,6 +1144,17 @@ calmaProcessDef(def, outf, do_library)
 		freeMagic(buffer);
 	    }
 	    fclose(fi);
+
+	    if (modName != filename)
+	    {
+		/* Remove the uncompressed file */
+		if (unlink(modName) != 0)
+		{
+		    TxError("Error attempting to delete uncompressed file \"%s\"\n",
+				modName);
+		}
+		freeMagic(modName);
+	    }
 
 	    /* Mark the definition as vendor GDS so that magic doesn't	*/
 	    /* try to generate subcell interaction or array interaction	*/

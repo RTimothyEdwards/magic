@@ -125,6 +125,9 @@ CmdCalma(w, cmd)
     char **msg, *namep, *dotptr;
     CellDef *rootDef;
     FILE *f;
+    int namelen;
+    bool gzipd;
+    char *realName, *saveName, *modName;
 
     extern int CalmaFlattenLimit;
 
@@ -870,11 +873,54 @@ CmdCalma(w, cmd)
 	case CALMA_READ:
 	    if (cmd->tx_argc != 3) goto wrongNumArgs;
 
+	    /* Check for compressed files, and uncompress them.	    	*/
+	    /* Always uncompress into the current working directory	*/
+	    /* because the original compressed file might be in an	*/
+	    /* unwriteable directory.					*/
+
+	    modName = cmd->tx_argv[2];
+	    namelen = strlen(modName);
+	    if ((namelen > 4) && !strcmp(modName + namelen - 3, ".gz"))
+	    {
+		char *sysCmd, *sptr;
+
+		/* First try to open the uncompressed file name.  If	*/
+		/* the file exists, then don't try to uncompress on top	*/
+		/* of it, but just fail.				*/
+
+		sptr = strrchr(modName, '/');
+		if (sptr == NULL)
+		    sptr = modName;
+		else
+		    sptr++;
+		modName = StrDup((char **)NULL, sptr);
+		*(modName + strlen(modName) - 3) = '\0';
+		if ((f = PaOpen(modName, "r", NULL, Path,
+		    	(char *)NULL, NULL)) != (FILE *)NULL)
+		{
+		    fclose(f);
+		    TxError("Uncompressed file \"%s\" already exists!\n", modName);
+		    freeMagic(modName);
+		    return;
+		}
+
+		sysCmd = mallocMagic(18 + namelen + strlen(modName));
+		/* Note: "-k" keeps the original compressed file */
+		TxPrintf("Uncompressing file \"%s\".\n", cmd->tx_argv[2]);
+		sprintf(sysCmd, "gunzip -c -k %s > %s", cmd->tx_argv[2], modName);
+		if (system(sysCmd) != 0)
+		{
+		    freeMagic(modName);
+		    modName = NULL;
+		}
+		freeMagic(sysCmd);
+	    }
+
 	    /* Check for various common file extensions, including	*/
 	    /* no extension (as-is), ".gds", ".gds2", and ".strm".	*/
 
 	    for (ext = 0; gdsExts[ext] != NULL; ext++)
-		if ((f = PaOpen(cmd->tx_argv[2], "r", gdsExts[ext], Path,
+		if ((f = PaOpen(modName, "r", gdsExts[ext], Path,
 		    	(char *) NULL, &namep)) != (FILE *)NULL)
 		    break;
 
@@ -887,6 +933,18 @@ CmdCalma(w, cmd)
 	    }
 	    CalmaReadFile(f, namep);
 	    (void) fclose(f);
+	    if (modName != cmd->tx_argv[2])
+	    {
+		/* A gzipped file was read and now the uncompressed	*/
+		/* file that was generated should be removed.		*/
+
+		if (unlink(namep) != 0)
+		{
+		    TxError("Error attempting to delete uncompressed file \"%s\"\n",
+				namep);
+		}
+		freeMagic(modName);
+	    }
 	    return;
     }
 
@@ -898,8 +956,20 @@ CmdCalma(w, cmd)
 outputCalma:
     dotptr = strrchr(namep, '.');
 
+    /* Check for additional ".gz" extension */
+    if (!strcmp(dotptr, ".gz"))
+    {
+	gzipd = TRUE;
+	*dotptr = '\0';
+    	dotptr = strrchr(namep, '.');
+    }
+    else
+	gzipd = FALSE;
+
     f = PaOpen(namep, "w", (dotptr == NULL) ? ".gds" : "", ".",
-		(char *) NULL, (char **) NULL);
+		(char *) NULL, (char **)&realName);
+    if (gzipd)
+	saveName = StrDup((char **)NULL, realName);
 
     if (f == (FILE *) NULL)
     {
@@ -914,6 +984,24 @@ outputCalma:
 	TxError("File may be incompletely written.\n");
     }
     (void) fclose(f);
+
+    if (gzipd)
+    {
+	char *sysCmd;
+	sysCmd = mallocMagic(16 + strlen(saveName));
+        TxPrintf("Compressing file \"%s\"\n", saveName);
+	sprintf(sysCmd, "gzip -n --best %s", saveName);
+
+	/* Note that without additional arguments, "gzip" will wholly	*/
+	/* replace the uncompressed file with the compressed one.	*/
+
+	if (system(sysCmd) != 0)
+	{
+	    TxError("Failed to compress file \"%s\"\n", saveName);
+	}
+	freeMagic(sysCmd);
+	freeMagic(saveName);
+    }
 }
 #endif
 

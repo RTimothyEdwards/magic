@@ -285,6 +285,23 @@ if test "x${CSH}" = "xno"; then
   AC_MSG_ERROR([cannot find /bin/csh---cannot compile!])
 fi
 
+dnl gzip and gunzip are used for file compression and uncompression of
+dnl large files (e.g., GDS)
+AC_PATH_PROG([GZIP], [gzip], [no])
+if test "x${GZIP}" = "xno"; then
+  AC_MSG_ERROR([cannot find gzip---will not be able to compress large files])
+else
+  AC_DEFINE(HAVE_GZIP)
+fi
+
+AC_PATH_PROG([GUNZIP], [gunzip], [no])
+if test "x${GUNZIP}" = "xno"; then
+  AC_MSG_ERROR([cannot find gunzip---will not be able to automatically uncompress files])
+else
+  AC_DEFINE(HAVE_GUNZIP)
+fi
+
+
 dnl Python3 is preferred for running the preprocessor script
 dnl but CPP can be used instead.
 AC_PATH_PROG([PYTHON3], [python3], [no])

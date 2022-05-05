@@ -44,6 +44,7 @@ extern int LookupStructFull();
 extern int PaExpand(char **, char **, int);
 extern char *nextName();
 extern FILE *PaOpen(char *, char *, char *, char *, char *, char **);
+extern FILE *PaZOpen(char *, char *, char *, char *, char *, char **, bool *);
 extern FILE *PaLockOpen(char *, char *, char *, char *, char *, char **, bool *);
 extern char *StrDup(char **, char *);
 extern int Match();
