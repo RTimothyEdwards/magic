@@ -152,9 +152,12 @@ int calmaElementIgnore[] = { CALMA_ELFLAGS, CALMA_PLEX, -1 };
  */
 
 void
-CalmaReadFile(file, filename)
+CalmaReadFile(file, filename, origname)
     FILE *file;			/* File from which to read Calma */
     char *filename;		/* The real name of the file read */
+    char *origname;		/* Original name of file read (used for
+				 * compressed files)
+				 */
 {
     int k, version;
     char *libname = NULL;
@@ -234,7 +237,7 @@ CalmaReadFile(file, filename)
     if (!calmaParseUnits()) goto done;
 
     /* Main body of GDS-II input */
-    while (calmaParseStructure(filename))
+    while (calmaParseStructure(filename, origname))
 	if (SigInterruptPending)
 	    goto done;
     (void) calmaSkipExact(CALMA_ENDLIB);

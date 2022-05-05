@@ -931,7 +931,7 @@ CmdCalma(w, cmd)
 			cmd->tx_argv[2], cmd->tx_argv[2], cmd->tx_argv[2]);
 	        return;
 	    }
-	    CalmaReadFile(f, namep);
+	    CalmaReadFile(f, namep, cmd->tx_argv[2]);
 	    (void) fclose(f);
 	    if (modName != cmd->tx_argv[2])
 	    {
@@ -957,7 +957,7 @@ outputCalma:
     dotptr = strrchr(namep, '.');
 
     /* Check for additional ".gz" extension */
-    if (!strcmp(dotptr, ".gz"))
+    if (dotptr && !strcmp(dotptr, ".gz"))
     {
 	gzipd = TRUE;
 	*dotptr = '\0';

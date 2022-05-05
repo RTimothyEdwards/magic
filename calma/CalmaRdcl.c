@@ -294,8 +294,11 @@ calmaExact()
  */
 
 bool
-calmaParseStructure(filename)
+calmaParseStructure(filename, origname)
     char *filename;		/* Name of the GDS file read */
+    char *origname;		/* Original name of the GDS file
+				 * (used with compressed files)
+				 */
 {
     static int structs[] = { CALMA_STRCLASS, CALMA_STRTYPE, -1 };
     int nbytes, rtype, nsrefs, osrefs, npaths;
@@ -446,7 +449,7 @@ calmaParseStructure(filename)
 
 	/* Substitute variable for PDK path or ~ for home directory	*/
 	/* the same way that cell references are handled in .mag files.	*/
-	DBPathSubstitute(filename, cstring, cifReadCellDef);
+	DBPathSubstitute(origname, cstring, cifReadCellDef);
 	fncopy = StrDup(NULL, cstring);
 	sprintf(fpcopy, "%"DLONG_PREFIX"d", (dlong) filepos);
 	DBPropPut(cifReadCellDef, "GDS_START", (ClientData)fpcopy);
