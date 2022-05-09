@@ -965,7 +965,7 @@ calmaProcessDef(def, outf, do_library)
 	    *(modName + strlen(modName) - 3) = '\0';
 
 	    sysCmd = mallocMagic(18 + namelen + strlen(modName));
-	    sprintf(sysCmd, "gunzip -c -k %s > %s", filename, modName);
+	    sprintf(sysCmd, "gunzip -c %s > %s", filename, modName);
 	    if (system(sysCmd) != 0)
 	    {
 		/* File didn't uncompress.  Go back to original name,

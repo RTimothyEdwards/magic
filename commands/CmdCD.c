@@ -907,7 +907,7 @@ CmdCalma(w, cmd)
 		sysCmd = mallocMagic(18 + namelen + strlen(modName));
 		/* Note: "-k" keeps the original compressed file */
 		TxPrintf("Uncompressing file \"%s\".\n", cmd->tx_argv[2]);
-		sprintf(sysCmd, "gunzip -c -k %s > %s", cmd->tx_argv[2], modName);
+		sprintf(sysCmd, "gunzip -c %s > %s", cmd->tx_argv[2], modName);
 		if (system(sysCmd) != 0)
 		{
 		    freeMagic(modName);
