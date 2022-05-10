@@ -219,7 +219,7 @@ calmaReadI2Record(type, pvalue)
 
     /* Read the value */
     READI2(n);
-    if (feof(calmaInputFile)) goto eof;
+    if (FEOF(calmaInputFile)) goto eof;
     *pvalue = n;
     return (TRUE);
 
@@ -264,7 +264,7 @@ calmaReadI4Record(type, pvalue)
 
     /* Read the value */
     READI4(n);
-    if (feof(calmaInputFile)) goto eof;
+    if (FEOF(calmaInputFile)) goto eof;
     *pvalue = n;
     return (TRUE);
 
@@ -386,7 +386,7 @@ calmaReadStringRecord(type, str)
 
     nbytes -= CALMAHEADERLENGTH;
     *str = (char *) mallocMagic(nbytes + 1);
-    if (fread(*str, sizeof (char), nbytes, calmaInputFile) != nbytes)
+    if (FREAD(*str, sizeof (char), nbytes, calmaInputFile) != nbytes)
 	goto eof;
 
     *(*str + nbytes) = '\0';
@@ -425,7 +425,7 @@ calmaReadR8(pd)
     double mantissa, d;
     bool isneg;
 
-    if (fread((char *) dchars, sizeof (char), sizeof dchars,
+    if (FREAD((char *) dchars, sizeof (char), sizeof dchars,
 		calmaInputFile) != sizeof dchars)
 	return (FALSE);
 
@@ -616,7 +616,7 @@ calmaSkipBytes(nbytes)
     int nbytes;	/* Skip this many bytes */
 {
     while (nbytes-- > 0)
-	if (getc(calmaInputFile) < 0)
+	if (FGETC(calmaInputFile) < 0)
 	    return (FALSE);
 
     return (TRUE);

@@ -49,6 +49,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "cif/CIFint.h"
 #include "cif/CIFread.h"
+#include "calma/calmaInt.h"
 
 /* The following structure is used by CmdCorner to keep track of
  * areas to be filled.
@@ -91,28 +92,29 @@ bool cmdDumpParseArgs();
 #define CALMA_HELP	0
 #define CALMA_ADDENDUM	1
 #define CALMA_ARRAYS	2
-#define CALMA_CONTACTS	3
-#define CALMA_DATESTAMP	4
-#define CALMA_DRCCHECK	5
-#define	CALMA_FLATTEN	6
-#define	CALMA_FLATGLOB  7
-#define CALMA_ORDERING	8
-#define	CALMA_LABELS	9
-#define	CALMA_LIBRARY	10
-#define	CALMA_LOWER	11
-#define CALMA_MASKHINTS	12
-#define CALMA_MERGE	13
-#define CALMA_NO_STAMP	14
-#define CALMA_NO_DUP	15
-#define CALMA_READ	16
-#define CALMA_READONLY	17
-#define CALMA_RESCALE	18
-#define CALMA_WARNING	19
-#define CALMA_WRITE	20
-#define CALMA_POLYS	21
-#define CALMA_PATHS	22
-#define CALMA_UNDEFINED	23
-#define CALMA_UNIQUE	24
+#define CALMA_COMPRESS  3
+#define CALMA_CONTACTS	4
+#define CALMA_DATESTAMP	5
+#define CALMA_DRCCHECK	6
+#define	CALMA_FLATTEN	7
+#define	CALMA_FLATGLOB  8
+#define CALMA_ORDERING	9
+#define	CALMA_LABELS	10
+#define	CALMA_LIBRARY	11
+#define	CALMA_LOWER	12
+#define CALMA_MASKHINTS	13
+#define CALMA_MERGE	14
+#define CALMA_NO_STAMP	15
+#define CALMA_NO_DUP	16
+#define CALMA_READ	17
+#define CALMA_READONLY	18
+#define CALMA_RESCALE	19
+#define CALMA_WARNING	20
+#define CALMA_WRITE	21
+#define CALMA_POLYS	22
+#define CALMA_PATHS	23
+#define CALMA_UNDEFINED	24
+#define CALMA_UNIQUE	25
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -121,17 +123,18 @@ CmdCalma(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    int option, ext;
+    int option, ext, value;
     char **msg, *namep, *dotptr;
+    char writeMode[3];
     CellDef *rootDef;
     FILE *f;
-    int namelen;
-    bool gzipd;
-    char *realName, *saveName, *modName;
+#ifdef HAVE_ZLIB
+    gzFile fz;
+#endif
 
     extern int CalmaFlattenLimit;
 
-    static char *gdsExts[] = {".gds", ".gds2", ".strm", "", NULL};
+    static char *gdsExts[] = {".gds", ".gds.gz", ".gds2", ".strm", "", NULL};
     static char *cmdCalmaYesNo[] = {
 		"no", "false", "off", "0", "yes", "true", "on", "1", 0 };
     static char *cmdCalmaAllowDisallow[] = {"disallow", "0", "allow", "1", 0};
@@ -142,6 +145,7 @@ CmdCalma(w, cmd)
 	"help		print this help information",
 	"addendum [yes|no]	output only cells that are not type \"readonly\"",
 	"arrays [yes|no]	output arrays as individual subuses (like in CIF)",
+	"compress [value]	compress output with zlib compression 0 to 6",
 	"contacts [yes|no]	optimize output by arraying contacts as subcells",
 	"datestamp [yes|value]	use current time or value as the creation date stamp",
 	"drccheck [yes|no]	mark all cells as needing DRC checking",
@@ -310,6 +314,41 @@ CmdCalma(w, cmd)
 	    if (option < 0)
 		goto wrongNumArgs;
 	    CalmaAllowUndefined = (option < 2) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_COMPRESS:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef HAVE_ZLIB
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(CalmaCompression));
+#else
+		if (CalmaCompression == 0)
+		    TxPrintf("Calma files are not compressed.\n");
+		else
+		    TxPrintf("Calma files are compressed with zlib compression level %d.\n", CalmaCompression);
+#endif
+#else	/* !HAVE_ZLIB */
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(0));
+#else
+		TxPrintf("No file compression has been enabled.\n");
+#endif
+#endif	/* !HAVE_ZLIB */
+		return;
+	    }
+#ifdef HAVE_ZLIB
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    value = atoi(cmd->tx_argv[2]);
+	    if ((value < 0) || (value > 9))
+		TxError("Bad compression value %d.  Value must be in the range 0 to 9.\n", value);
+	    else
+		CalmaCompression = value;
+#else
+	    goto wrongNumArgs;
+#endif
 	    return;
 
 	case CALMA_CONTACTS:
@@ -873,58 +912,15 @@ CmdCalma(w, cmd)
 	case CALMA_READ:
 	    if (cmd->tx_argc != 3) goto wrongNumArgs;
 
-	    /* Check for compressed files, and uncompress them.	    	*/
-	    /* Always uncompress into the current working directory	*/
-	    /* because the original compressed file might be in an	*/
-	    /* unwriteable directory.					*/
-
-	    modName = cmd->tx_argv[2];
-	    namelen = strlen(modName);
-	    if ((namelen > 4) && !strcmp(modName + namelen - 3, ".gz"))
-	    {
-		char *sysCmd, *sptr;
-
-		/* First try to open the uncompressed file name.  If	*/
-		/* the file exists, then don't try to uncompress on top	*/
-		/* of it, but just fail.				*/
-
-		sptr = strrchr(modName, '/');
-		if (sptr == NULL)
-		    sptr = modName;
-		else
-		    sptr++;
-		modName = StrDup((char **)NULL, sptr);
-		*(modName + strlen(modName) - 3) = '\0';
-		if ((f = PaOpen(modName, "r", NULL, Path,
-		    	(char *)NULL, NULL)) != (FILE *)NULL)
-		{
-		    fclose(f);
-		    TxError("Uncompressed file \"%s\" already exists!\n", modName);
-		    freeMagic(modName);
-		    return;
-		}
-
-		sysCmd = mallocMagic(18 + namelen + strlen(modName));
-		/* Note: "-k" keeps the original compressed file */
-		TxPrintf("Uncompressing file \"%s\".\n", cmd->tx_argv[2]);
-		sprintf(sysCmd, "gunzip -c %s > %s", cmd->tx_argv[2], modName);
-		if (system(sysCmd) != 0)
-		{
-		    freeMagic(modName);
-		    modName = NULL;
-		}
-		freeMagic(sysCmd);
-	    }
-
 	    /* Check for various common file extensions, including	*/
 	    /* no extension (as-is), ".gds", ".gds2", and ".strm".	*/
 
 	    for (ext = 0; gdsExts[ext] != NULL; ext++)
-		if ((f = PaOpen(modName, "r", gdsExts[ext], Path,
-		    	(char *) NULL, &namep)) != (FILE *)NULL)
+		if ((f = PaZOpen(cmd->tx_argv[2], "r", gdsExts[ext], Path,
+		    	(char *) NULL, &namep)) != (FILETYPE)NULL)
 		    break;
 
-	    if (f == (FILE *) NULL)
+	    if (f == (FILETYPE) NULL)
 	    {
 	        TxError("Cannot open %s.gds, %s.strm or %s to read "
 			"GDS-II stream input.\n",
@@ -932,19 +928,7 @@ CmdCalma(w, cmd)
 	        return;
 	    }
 	    CalmaReadFile(f, namep, cmd->tx_argv[2]);
-	    (void) fclose(f);
-	    if (modName != cmd->tx_argv[2])
-	    {
-		/* A gzipped file was read and now the uncompressed	*/
-		/* file that was generated should be removed.		*/
-
-		if (unlink(namep) != 0)
-		{
-		    TxError("Error attempting to delete uncompressed file \"%s\"\n",
-				namep);
-		}
-		freeMagic(modName);
-	    }
+	    (void) FCLOSE(f);
 	    return;
     }
 
@@ -956,54 +940,49 @@ CmdCalma(w, cmd)
 outputCalma:
     dotptr = strrchr(namep, '.');
 
-    /* Check for additional ".gz" extension */
-    if (dotptr && !strcmp(dotptr, ".gz"))
+#ifdef HAVE_ZLIB
+    /* Handle compression based on value of CalmaCompression */
+    if (CalmaCompression > 0)
     {
-	gzipd = TRUE;
-	*dotptr = '\0';
-    	dotptr = strrchr(namep, '.');
+	sprintf(writeMode, "w%d", CalmaCompression);
+	fz = PaZOpen(namep, writeMode, (dotptr == NULL) ? ".gds.gz" : "", ".", (char *) NULL, (char **)NULL);
+	if (fz == (gzFile)NULL)
+	{
+	    TxError("Cannot open %s%s to write compressed GDS-II stream output\n", namep,
+			(dotptr == NULL) ? ".gds.gz" : "");
+	    return;
+	}
+	if (!CalmaWriteZ(rootDef, fz))
+	{
+	    TxError("I/O error in writing compressed file %s.\n", namep);
+	    TxError("File may be incompletely written.\n");
+	}
+	(void) gzclose(fz);
     }
     else
-	gzipd = FALSE;
-
-    f = PaOpen(namep, "w", (dotptr == NULL) ? ".gds" : "", ".",
-		(char *) NULL, (char **)&realName);
-    if (gzipd)
-	saveName = StrDup((char **)NULL, realName);
-
-    if (f == (FILE *) NULL)
     {
-	TxError("Cannot open %s%s to write GDS-II stream output\n", namep,
-		(dotptr == NULL) ? ".gds" : "");
-	return;
-    }
 
-    if (!CalmaWrite(rootDef, f))
-    {
-	TxError("I/O error in writing file %s.\n", namep);
-	TxError("File may be incompletely written.\n");
-    }
-    (void) fclose(f);
-
-    if (gzipd)
-    {
-	char *sysCmd;
-	sysCmd = mallocMagic(16 + strlen(saveName));
-        TxPrintf("Compressing file \"%s\"\n", saveName);
-	sprintf(sysCmd, "gzip -n --best %s", saveName);
-
-	/* Note that without additional arguments, "gzip" will wholly	*/
-	/* replace the uncompressed file with the compressed one.	*/
-
-	if (system(sysCmd) != 0)
-	{
-	    TxError("Failed to compress file \"%s\"\n", saveName);
-	}
-	freeMagic(sysCmd);
-	freeMagic(saveName);
-    }
-}
 #endif
+	f = PaOpen(namep, "w", (dotptr == NULL) ? ".gds" : "", ".", (char *) NULL, (char **)NULL);
+	if (f == (FILE *)NULL)
+	{
+	    TxError("Cannot open %s%s to write GDS-II stream output\n", namep,
+			(dotptr == NULL) ? ".gds" : "");
+	    return;
+	}
+	if (!CalmaWrite(rootDef, f))
+	{
+	    TxError("I/O error in writing file %s.\n", namep);
+	    TxError("File may be incompletely written.\n");
+	}
+	(void) fclose(f);
+
+#ifdef HAVE_ZLIB
+    }
+#endif
+
+}
+#endif /* CALMA_MODULE */
 
 /*
  * ----------------------------------------------------------------------------
@@ -5095,3 +5074,4 @@ cmdDumpFunc(rect, name, label, point)
     *point = rect->r_ll;
     return 1;
 }
+

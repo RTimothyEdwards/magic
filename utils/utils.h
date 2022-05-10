@@ -21,6 +21,10 @@
 #ifndef _UTILS_H
 #define _UTILS_H 1
 
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
+
 #include "utils/magic.h"
 
 /*
@@ -51,6 +55,10 @@ extern char *ArgStr();
 extern bool StrIsWhite(char *, bool);
 extern bool StrIsInt(char *);
 extern bool StrIsNumeric(char *);
+
+#ifdef HAVE_ZLIB
+extern gzFile PaZOpen(char *, char *, char *, char *, char *, char **);
+#endif
 
 extern int SetNoisyBool(bool *, char *, FILE *);
 

@@ -91,19 +91,19 @@ typedef struct {
  * ----------------------------------------------------------------------------
  */
 
-off_t
+OFFTYPE
 calmaSetPosition(sname)
     char *sname;
 {
-    off_t originalPos = 0, currentPos = 0;
+    OFFTYPE originalPos = 0, currentPos = 0;
     int nbytes, rtype;
     char *strname = NULL;
     int strRecSize = 0;
     bool found = FALSE;
 
-    originalPos = ftello(calmaInputFile);
+    originalPos = FTELL(calmaInputFile);
 
-    while (feof(calmaInputFile) == 0)
+    while (FEOF(calmaInputFile) == 0)
     {
         do
         {
@@ -113,7 +113,7 @@ calmaSetPosition(sname)
              /* Skip no of bytes in record header until
               * we reach to next structure record.
               */
-             fseek(calmaInputFile, nbytes - CALMAHEADERLENGTH, SEEK_CUR);
+             FSEEK(calmaInputFile, nbytes - CALMAHEADERLENGTH, SEEK_CUR);
         } while (rtype != CALMA_BGNSTR);
         if (nbytes <= 0) break;
 
@@ -126,7 +126,7 @@ calmaSetPosition(sname)
               */
              strRecSize = strlen(strname);
              if (strRecSize & 01) strRecSize++;
-             fseek(calmaInputFile, -(nbytes + strRecSize + CALMAHEADERLENGTH),
+             FSEEK(calmaInputFile, -(nbytes + strRecSize + CALMAHEADERLENGTH),
 				SEEK_CUR);
 	     freeMagic(strname);
 	     return originalPos;
@@ -188,7 +188,7 @@ calmaNextCell()
 {
     int nbytes, rtype;
 
-    if (feof(calmaInputFile) == 0)
+    if (FEOF(calmaInputFile) == 0)
     {
         do
         {
@@ -199,17 +199,17 @@ calmaNextCell()
 		 * try to set the file pointer somewhere sane, but
 		 * it will likely dump an error later on.
 		 */
-                fseek(calmaInputFile, -(CALMAHEADERLENGTH), SEEK_END);
+                FSEEK(calmaInputFile, -(CALMAHEADERLENGTH), SEEK_END);
                 return;
              }
 
              /* Skip no. of bytes in record header to reach the next
 	      * structure record.
               */
-             fseek(calmaInputFile, nbytes - CALMAHEADERLENGTH, SEEK_CUR);
+             FSEEK(calmaInputFile, nbytes - CALMAHEADERLENGTH, SEEK_CUR);
         } while((rtype != CALMA_BGNSTR) && (rtype != CALMA_ENDLIB));
 
-	fseek(calmaInputFile, -nbytes, SEEK_CUR);
+	FSEEK(calmaInputFile, -nbytes, SEEK_CUR);
     }
 }
 
@@ -307,7 +307,7 @@ calmaParseStructure(filename, origname)
     int timestampval = 0;
     int suffix;
     int mfactor;
-    off_t filepos;
+    OFFTYPE filepos;
     bool was_called;
     bool was_initialized;
     bool predefined;
@@ -327,7 +327,7 @@ calmaParseStructure(filename, origname)
     TxPrintf("Reading \"%s\".\n", strname);
 
     /* Used for read-only and annotated LEF views */
-    filepos = ftello(calmaInputFile);
+    filepos = FTELL(calmaInputFile);
 
     /* Set up the cell definition */
     he = HashFind(&calmaDefInitHash, strname);
@@ -455,7 +455,7 @@ calmaParseStructure(filename, origname)
 	DBPropPut(cifReadCellDef, "GDS_START", (ClientData)fpcopy);
 
 	fpcopy = (char *)mallocMagic(20);
-	filepos = ftello(calmaInputFile);
+	filepos = FTELL(calmaInputFile);
 	sprintf(fpcopy, "%"DLONG_PREFIX"d", (dlong) filepos);
 	DBPropPut(cifReadCellDef, "GDS_END", (ClientData)fpcopy);
 
@@ -743,8 +743,8 @@ calmaElementSref(filename)
 	 * Added by Nishit 8/16/2004
 	 */
 
-	off_t originalFilePos = calmaSetPosition(sname);
-	if (!feof(calmaInputFile))
+	OFFTYPE originalFilePos = calmaSetPosition(sname);
+	if (!FEOF(calmaInputFile))
 	{
 	    HashTable OrigCalmaLayerHash;
 	    int crsMultiplier = cifCurReadStyle->crs_multiplier;
@@ -758,7 +758,7 @@ calmaElementSref(filename)
 	    calmaParseStructure(filename);
 
 	    /* Put things back to the way they were. */
-	    fseek(calmaInputFile, originalFilePos, SEEK_SET);
+	    FSEEK(calmaInputFile, originalFilePos, SEEK_SET);
 	    cifReadCellDef = calmaLookCell(currentSname);
 	    def = calmaLookCell(sname);
 	    cifCurReadPlanes = savePlanes;
@@ -783,7 +783,7 @@ calmaElementSref(filename)
 	{
 	    /* This is redundant messaging */
 	    // TxPrintf("Cell definition %s does not exist!\n", sname);
-	    fseek(calmaInputFile, originalFilePos, SEEK_SET);
+	    FSEEK(calmaInputFile, originalFilePos, SEEK_SET);
 	    def = calmaFindCell(sname, NULL, NULL);
 	    /* Cell flags set to "dereferenced" in case there is no	*/
 	    /* definition in the GDS file.  If there is a definition	*/
@@ -821,7 +821,7 @@ calmaElementSref(filename)
 	READI2(rows);
 	xlo = 0; xhi = cols - 1;
 	ylo = 0; yhi = rows - 1;
-	if (feof(calmaInputFile)) return -1;
+	if (FEOF(calmaInputFile)) return -1;
 	(void) calmaSkipBytes(nbytes - CALMAHEADERLENGTH - 4);
     }
     else
@@ -897,7 +897,7 @@ calmaElementSref(filename)
 	    refarray[n].p_x *= (savescale / cifCurReadStyle->crs_scaleFactor);
 	}
 
-	if (feof(calmaInputFile))
+	if (FEOF(calmaInputFile))
 	    return -1;
     }
 

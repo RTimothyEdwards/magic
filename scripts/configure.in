@@ -178,6 +178,9 @@ then
     AC_DEFINE(HAVE___VA_COPY, 1, [Define if we have __va_copy])
 fi
 
+dnl Check for zlib
+AC_CHECK_LIB([z],[gzopen],[AC_DEFINE([HAVE_ZLIB],[1],["zlib compression"])])  
+
 dnl Check for some C99 functions  
 
 dnl Built-in round/roundf require CFLAGS -std=c99, but this also

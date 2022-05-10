@@ -194,6 +194,16 @@ Read GDSII input or generate GDSII output.
 	    <DT> <B>arrays</B> [<B>yes</B>|<B>no</B>]
 	    <DD> Output arrays as individual subuses (like in CIF).  Default
 		 is "no".  Normally there is no reason to do this.
+	    <DT> <B>compress</B> [<I>value</I>]
+	    <DD> For non-zero <I>value</I>, apply gzip-style compression to the
+		 output stream.  Per the gzip compression algorithm, <I>value</I>
+		 represents a level of compression effort, and ranges from 1 to
+		 9.  When <I>value</I> is zero, no compression is applied and the
+		 output is standard GDS format, and the output file extension is
+		 ".gds".  When <I>value</I> is non-zero, compression is applied,
+		 and the output file extension is ".gds.gz".  With no argument,
+		 return the current compression setting.  The default compression
+		 setting is zero (no compression applied;  output is plain GDS).
 	    <DT> <B>contacts</B> [<B>yes</B>|<B>no</B>]
 	    <DD> Causes contacts to be written to the GDS file as subcell
 	    	 arrays (experimental, introduced in version 7.3.55).  This
@@ -270,6 +280,10 @@ Read GDSII input or generate GDSII output.
       If no option is given, a CALMA GDS-II stream file is produced for the
       root cell, with the default name of the root cell definition and the
       filename extension ".gds". <P>
+
+      <B>gds read</B> will read both (gzip-)compressed and uncompressed GDS
+      files.  <B>gds write</B> will only write compressed files as indicated
+      by the <B>gds compress</B> setting. <P>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
@@ -307,6 +321,6 @@ Read GDSII input or generate GDSII output.
     <TD> <A HREF=commands.html>Return to command index</A>
   </TR>
 </TABLE>
-<P><I>Last updated:</I> April 27, 2021 at 1:06pm <P>
+<P><I>Last updated:</I> May 10, 2022 at 9:14am <P>
 </BODY>
 </HTML>

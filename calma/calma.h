@@ -42,6 +42,9 @@ extern bool CalmaFlattenUses;
 extern char **CalmaFlattenUsesByName;
 extern bool CalmaReadOnly;
 extern bool CalmaContactArrays;
+#ifdef HAVE_ZLIB
+extern bool CalmaCompression;
+#endif
 extern bool CalmaPostOrder;
 extern bool CalmaAllowUndefined;
 

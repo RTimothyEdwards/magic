@@ -25,6 +25,10 @@
 #include "utils/magic.h"
 #include "database/database.h"
 
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
+
 /* Record data types */
 #define CALMA_NODATA	0	/* No data present */
 #define CALMA_BITARRAY	1	/* Bit array */
@@ -136,8 +140,30 @@ typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT, LABEL_TYPE_CEL
 
 /* ------------------------- Input macros ----------------------------- */
 
+#ifdef HAVE_ZLIB
+    #define FOPEN    gzopen
+    #define FCLOSE   gzclose
+    #define FGETC    gzgetc
+    #define FREAD(a,b,c,d)    gzread(d,a,b*c)
+    #define FEOF     gzeof
+    #define FSEEK    gzseek
+    #define FTELL    gztell
+    #define FILETYPE gzFile
+    #define OFFTYPE  z_off_t
+#else
+    #define FOPEN    fopen
+    #define FCLOSE   fclose
+    #define FGETC    getc
+    #define FREAD    fread
+    #define FEOF     feof
+    #define FSEEK    fseek
+    #define FTELL    ftello
+    #define FILETYPE FILE *
+    #define OFFTYPE  off_t
+#endif
+
 /* Globals for Calma reading */
-extern FILE *calmaInputFile;
+extern FILETYPE calmaInputFile;
 extern char *calmaFilename;
 extern int  calmaReadScale1;
 extern int  calmaReadScale2;
@@ -168,8 +194,8 @@ typedef union { char uc[4]; unsigned int ul; } FourByteInt;
 #define	READI2(z) \
 	{ \
             TwoByteInt u; \
-            u.uc[0] = getc(calmaInputFile); \
-            u.uc[1] = getc(calmaInputFile); \
+            u.uc[0] = FGETC(calmaInputFile); \
+            u.uc[1] = FGETC(calmaInputFile); \
             (z) = (int) ntohs(u.us); \
 	}
 
@@ -177,10 +203,10 @@ typedef union { char uc[4]; unsigned int ul; } FourByteInt;
 #define	READI4(z) \
 	{ \
             FourByteInt u; \
-            u.uc[0] = getc(calmaInputFile); \
-            u.uc[1] = getc(calmaInputFile); \
-            u.uc[2] = getc(calmaInputFile); \
-            u.uc[3] = getc(calmaInputFile); \
+            u.uc[0] = FGETC(calmaInputFile); \
+            u.uc[1] = FGETC(calmaInputFile); \
+            u.uc[2] = FGETC(calmaInputFile); \
+            u.uc[3] = FGETC(calmaInputFile); \
             (z) = (int) ntohl(u.ul); \
 	}
 
@@ -193,10 +219,10 @@ typedef union { char uc[4]; unsigned int ul; } FourByteInt;
 		calmaLApresent = FALSE; \
 	    } else { \
 		READI2(nb); \
-		if (feof(calmaInputFile)) nb = -1; \
+		if (FEOF(calmaInputFile)) nb = -1; \
 		else { \
-		    (rt) = getc(calmaInputFile); \
-		    (void) getc(calmaInputFile); \
+		    (rt) = FGETC(calmaInputFile); \
+		    (void) FGETC(calmaInputFile); \
 		} \
 	    } \
 	}

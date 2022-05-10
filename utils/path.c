@@ -28,6 +28,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <ctype.h>
 #include <sys/param.h>
 
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
+
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
 #include "utils/hash.h"
@@ -530,6 +534,137 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
 
     return NULL;
 }
+
+#ifdef HAVE_ZLIB
+
+/*-------------------------------------------------------------------
+ * PaZOpen --
+ *	This routine does a file lookup using the current path and
+ *	supplying a default extension.  The return type is a Zlib-
+ *	type compressed stream.
+ *
+ * Results:
+ *	A gzFile type, or NULL if the file couldn't be found.
+ *
+ * Side Effects:
+ *	See notes for PaLockOpen() for handling of extensions.
+ *
+ * Path Format:
+ *	A path is a string containing directory names separated by
+ *	colons or white space.  Tilde notation may be used within paths.
+ *-------------------------------------------------------------------
+ */
+
+gzFile
+PaZOpen(file, mode, ext, path, library, pRealName)
+    char *file;			/* Name of the file to be opened. */
+    char *mode;			/* The file mode, as given to gzopen. */
+    char *ext;			/* The extension to be added to the file name,
+				 * or NULL.  Note:  this string must include
+				 * the dot (or whatever separator you use).
+				 */
+    char *path;			/* A search path:  a list of directory names
+				 * separated by colons or blanks.  To use
+				 * only the working directory, use "." for
+				 * the path.
+				 */
+    char *library;		/* A 2nd path containing library names.  Can be
+				 * NULL to indicate no library.
+				 */
+    char **pRealName;		/* Pointer to a location that will be filled
+				 * in with the address of the real name of
+				 * the file that was successfully opened.
+				 * If NULL, then nothing is stored.
+				 */
+{
+    char extendedName[MAXSIZE], *p1, *p2;
+    static char realName[MAXSIZE];
+    int length, extLength, i;
+    gzFile f;
+
+    if (file == NULL) return (gzFile) NULL;
+    if (file[0] == '\0') return (gzFile) NULL;
+    if (pRealName != NULL) (*pRealName) = realName;
+
+    /* See if we must supply an extension. */
+
+    length = strlen(file);
+    if (length >= MAXSIZE) length = MAXSIZE - 1;
+    if (ext != NULL)
+    {
+	(void) strncpy(extendedName, file, length + 1);
+	i = MAXSIZE - 1 - length;
+	extLength = strlen(ext);
+	if (extLength > i) extLength = i;
+
+	(void) strncpy(&(extendedName[length]), ext, extLength + 1);
+
+	extendedName[MAXSIZE-1] = '\0';
+	file = extendedName;
+    }
+
+    /* If the first character of the file name is a tilde or dollar sign,
+     * do tilde or environment variable expansion but don't touch a search
+     * path.
+     */
+
+    if (file[0] == '~' || file[0] == '$')
+    {
+	p1 = realName;
+	p2 = file;
+	if (PaExpand(&p2, &p1, MAXSIZE) < 0) return NULL;
+	return gzopen(realName, mode);
+    }
+
+    /* If we were already given a full rooted file name,
+     * or a relative pathname, just use it.
+     */
+
+    if (file[0] == '/'
+	    || (file[0] == '.' && (strcmp(file, ".") == 0
+				|| strncmp(file, "./", 2) == 0
+				|| strcmp(file, "..") == 0
+				|| strncmp(file, "../", 3) == 0)))
+    {
+	(void) strncpy(realName, file, MAXSIZE-1);
+	realName[MAXSIZE-1] = '\0';
+	return gzopen(realName, mode);
+    }
+
+    /* Now try going through the path, one entry at a time. */
+
+    while (nextName(&path, file, realName, MAXSIZE) != NULL)
+    {
+	if (*realName == 0) continue;
+	f = gzopen(realName, mode);
+
+	if (f != NULL) return f;
+
+	// If any error other than "file not found" occurred,
+	// then halt immediately.
+	if (errno != ENOENT) return NULL;
+    }
+
+    /* We've tried the path and that didn't work.  Now go through
+     * the library area, one entry at a time.
+     */
+
+    if (library == NULL) return NULL;
+    while (nextName(&library, file, realName, MAXSIZE) != NULL)
+    {
+	f = gzopen(realName, mode);
+
+	if (f != NULL) return f;
+
+	// If any error other than "file not found" occurred,
+	// then halt immediately.
+	if (errno != ENOENT) return NULL;
+    }
+
+    return NULL;
+}
+
+#endif /* HAVE_ZLIB */
 
 /*
  *-------------------------------------------------------------------

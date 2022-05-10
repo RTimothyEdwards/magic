@@ -1075,7 +1075,7 @@ calmaReadPath(pathheadpp, iscale)
 	    CalmaReadError("Warning:  Very large point in path:  (%d, %d)\n",
 		path.cifp_x, path.cifp_y);
 	}
-	if (feof(calmaInputFile))
+	if (FEOF(calmaInputFile))
 	{
 	    CIFFreePath(*pathheadpp);
 	    return (FALSE);

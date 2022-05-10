@@ -50,7 +50,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/undo.h"
 
 /* Globals for Calma reading */
-FILE *calmaInputFile = NULL;		/* Read from this stream */
+FILETYPE calmaInputFile = NULL;		/* Read from this stream */
 FILE *calmaErrorFile = NULL;		/* Write error output here */
 bool CalmaSubcellPolygons = FALSE;	/* Put non-Manhattan polygons
 					 * in their own subcells.
@@ -153,7 +153,7 @@ int calmaElementIgnore[] = { CALMA_ELFLAGS, CALMA_PLEX, -1 };
 
 void
 CalmaReadFile(file, filename, origname)
-    FILE *file;			/* File from which to read Calma */
+    FILETYPE file;			/* File from which to read Calma */
     char *filename;		/* The real name of the file read */
     char *origname;		/* Original name of file read (used for
 				 * compressed files)
@@ -269,7 +269,7 @@ done:
     HashKill(&calmaDefInitHash);
     UndoEnable();
 
-    if (calmaErrorFile != NULL) fclose(calmaErrorFile);
+    if (calmaErrorFile != NULL) FCLOSE(calmaErrorFile);
 }
 
 /*
@@ -386,14 +386,14 @@ CalmaReadError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
     char *format;
     char *a1, *a2, *a3, *a4, *a5, *a6, *a7, *a8, *a9, *a10;
 {
-    off_t filepos;
+    OFFTYPE filepos;
 
     calmaTotalErrors++;
     if (CIFWarningLevel == CIF_WARN_NONE) return;
 
     if ((calmaTotalErrors < 100) || (CIFWarningLevel != CIF_WARN_LIMIT))
     {
-	filepos = ftello(calmaInputFile);
+	filepos = FTELL(calmaInputFile);
 
         if (CIFWarningLevel == CIF_WARN_REDIRECT)
         {

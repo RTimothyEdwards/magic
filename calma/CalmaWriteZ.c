@@ -1,7 +1,15 @@
 /*
- * CalmaWrite.c --
+ * CalmaWriteZ.c --
  *
- * Output of Calma GDS-II stream format.
+ * Output of gzip-compressed Calma GDS-II stream format.
+ * This is essentially a duplication of all functions in CalmaWrite.c that
+ * write I/O to output, substituting zlib functions for the standard I/O
+ * functions.  Note that since zlib can *read* an uncompressed file through
+ * the same calls that it uses to write, then zlib is used for *all* GDS
+ * file reads.  Only the GDS write functions have duplicate routines,
+ * because writing an uncompressed file with zlib still writes a file in
+ * gzip format, so to maintain the ability to write plain GDS files, a
+ * set of routines is needed that is separate from the zlib routines.
  *
  *     *********************************************************************
  *     * Copyright (C) 1985, 1990 Regents of the University of California. *
@@ -19,6 +27,8 @@
 #ifndef lint
 static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/calma/CalmaWrite.c,v 1.8 2010/12/22 16:29:06 tim Exp $";
 #endif  /* not lint */
+
+#ifdef HAVE_ZLIB
 
 #include <stdio.h>
 #include <stdint.h>
@@ -53,111 +63,81 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 #include "utils/main.h"		/* for Path and CellLibPath */
 #include "utils/stack.h"
 
-    /* Exports */
-bool CalmaDoLibrary = FALSE;	  /* If TRUE, do not output the top level */
-bool CalmaDoLabels = TRUE;	  /* If FALSE, don't output labels with GDS-II */
-bool CalmaDoLower = TRUE;	  /* If TRUE, allow lowercase labels. */
-bool CalmaFlattenArrays = FALSE;  /* If TRUE, output arrays as individual uses */
-bool CalmaAddendum = FALSE;	  /* If TRUE, do not output readonly cell defs */
-time_t *CalmaDateStamp = NULL;	  /* If non-NULL, output this for creation date stamp */
-bool CalmaAllowUndefined = FALSE; /* If TRUE, allow calls to undefined cells */
+    /* External variables from CalmaWrite.c */
+extern HashTable calmaLibHash;
+extern HashTable calmaPrefixHash;
+extern HashTable calmaUndefHash;
+extern bool CalmaDoLibrary;
+extern bool CalmaAllowUndefined;
+extern bool CalmaContactArrays;
+extern bool CalmaAddendum;
+extern bool CalmaMergeTiles;
+extern bool CalmaDoLabels;
+extern bool CalmaDoLower;
+extern bool CalmaFlattenArrays;
+extern time_t *CalmaDateStamp;
+extern int calmaCellNum;
+extern int calmaWriteScale;
+extern int calmaPaintScale;
+extern int calmaPaintLayerNumber;
+extern int calmaPaintLayerType;
 
-    /* Experimental stuff---not thoroughly tested (as of Sept. 2007)! */
-bool CalmaContactArrays = FALSE; /* If TRUE, output contacts as subcell arrays */
-bool CalmaMergeTiles = FALSE;	 /* If TRUE, merge tiles into polygons in output. */
-
-#ifdef HAVE_ZLIB
-int  CalmaCompression = 0;	/* Output file compression level (0 = uncompressed) */
-#endif
-
-    /* Forward declarations */
+    /* External functions from CalmaWrite.c */
 extern int calmaWriteInitFunc();
 extern int calmaWriteMarkFunc();
-extern int calmaWritePaintFunc();
-extern int calmaMergePaintFunc();
-extern int calmaWriteUseFunc();
-extern int calmaPaintLabelFunc();
-extern void calmaWriteContacts();
-extern void calmaDelContacts();
-extern void calmaOutFunc();
-extern void calmaOutStructName();
-extern void calmaWriteLabelFunc();
-extern void calmaOutHeader();
-extern void calmaOutDate();
-extern void calmaOutStringRecord();
-extern void calmaOut8();
-extern void calmaOutR8();
-extern void calmaProcessBoundary();
-extern void calmaMergeBoundaries();
-extern void calmaRemoveColinear();
-extern void calmaRemoveDegenerate();
 
-/* Structure used by calmaWritePaintFunc() */
+    /* Forward declarations */
+extern int calmaWritePaintFuncZ();
+extern int calmaMergePaintFuncZ();
+extern int calmaWriteUseFuncZ();
+extern int calmaPaintLabelFuncZ();
+extern void calmaWriteContactsZ();
+extern void calmaOutFuncZ();
+extern void calmaOutStructNameZ();
+extern void calmaWriteLabelFuncZ();
+extern void calmaOutHeaderZ();
+extern void calmaOutDateZ();
+extern void calmaOutStringRecordZ();
+extern void calmaOut8Z();
+extern void calmaOutR8Z();
+
+/* Structure used by calmaWritePaintFuncZ() and others */
 
 typedef struct {
-   FILE *f;		/* File stream for output		*/
+   gzFile f;		/* Compressed file stream for output	*/
    Rect *area;		/* Clipping area, in GDS coordinates	*/
    int type;		/* Layer index				*/
-} calmaOutputStruct;
+} calmaOutputStructZ;
 
 /*--------------------------------------------------------------*/
-/* Structures used by the tile merging algorithm 		*/
+/* Structures used by the tile merging algorithm                */
 /*--------------------------------------------------------------*/
 
-#define GDS_PENDING	0
+#define GDS_PENDING     0
 #define GDS_UNPROCESSED CLIENTDEFAULT
-#define GDS_PROCESSED	1
+#define GDS_PROCESSED   1
 
 #define PUSHTILE(tp) \
     if ((tp)->ti_client == (ClientData) GDS_UNPROCESSED) { \
-	(tp)->ti_client = (ClientData) GDS_PENDING; \
-	STACKPUSH((ClientData) (tp), SegStack); \
+        (tp)->ti_client = (ClientData) GDS_PENDING; \
+        STACKPUSH((ClientData) (tp), SegStack); \
     }
 
-#define LB_EXTERNAL	0	/* Polygon external edge	*/
-#define LB_INTERNAL	1	/* Polygon internal edge	*/
-#define LB_INIT		2	/* Data not yet valid		*/
+#define LB_EXTERNAL     0       /* Polygon external edge        */
+#define LB_INTERNAL     1       /* Polygon internal edge        */
+#define LB_INIT         2       /* Data not yet valid           */
 
 typedef struct LB1 {
-    char lb_type;		/* Boundary Type (external or internal) */
-    Point lb_start;		/* Start point */
-    struct LB1 *lb_next;	/* Next point record */
+    char lb_type;               /* Boundary Type (external or internal) */
+    Point lb_start;             /* Start point */
+    struct LB1 *lb_next;        /* Next point record */
 } LinkedBoundary;
 
 typedef struct BT1 {
     LinkedBoundary *bt_first;   /* Polygon list */
-    int bt_points;		/* Number of points in this list */
-    struct BT1 *bt_next;	/* Next polygon record */
+    int bt_points;              /* Number of points in this list */
+    struct BT1 *bt_next;        /* Next polygon record */
 } BoundaryTop;
-
-/*--------------------------------------------------------------*/
-
-/* Number assigned to each cell */
-int calmaCellNum;
-
-/* Factor by which to scale Magic coordinates for cells and labels. */
-int calmaWriteScale;
-
-/* Scale factor for outputting paint: */
-int calmaPaintScale;
-
-/*
- * Current layer number and "type".
- * In GDS-II format, this is output with each rectangle.
- */
-int calmaPaintLayerNumber;
-int calmaPaintLayerType;
-
-/*
- * Hash table used to determine which GDS libraries have been output
- */
-HashTable calmaLibHash;
-HashTable calmaPrefixHash;
-HashTable calmaUndefHash;
-
-/* Imports */
-extern time_t time();
-
 
 /* -------------------------------------------------------------------- */
 
@@ -169,92 +149,91 @@ extern time_t time();
 /* -------------------------------------------------------------------- */
 
 /*
- * calmaOutRH --
+ * calmaOutRHZ --
  *
  * Output a Calma record header.
  * This consists of a two-byte count of the number of bytes in the
  * record (including the two count bytes), a one-byte record type,
  * and a one-byte data type.
  */
-#define	calmaOutRH(count, type, datatype, f) \
-    { calmaOutI2(count, f); (void) putc(type, f); (void) putc(datatype, f); }
+#define	calmaOutRHZ(count, type, datatype, f) \
+    { calmaOutI2Z(count, f); (void) gzputc(f, type); (void) gzputc(f, datatype); }
 
 /*
- * calmaOutI2 --
+ * calmaOutI2Z --
  *
  * Output a two-byte integer.
  * Calma byte order is the same as the network byte order used
  * by the various network library procedures.
  */
-#define	calmaOutI2(n, f) \
+#define	calmaOutI2Z(n, f) \
     { \
 	union { short u_s; char u_c[2]; } u; \
 	u.u_s = htons(n); \
-	(void) putc(u.u_c[0], f); \
-	(void) putc(u.u_c[1], f); \
+	(void) gzputc(f, u.u_c[0]); \
+	(void) gzputc(f, u.u_c[1]); \
     }
 /*
- * calmaOutI4 --
+ * calmaOutI4Z --
  *
  * Output a four-byte integer.
  * Calma byte order is the same as the network byte order used
  * by the various network library procedures.
  */
-#define calmaOutI4(n, f) \
+#define calmaOutI4Z(n, f) \
     { \
 	union { long u_i; char u_c[4]; } u; \
 	u.u_i = htonl(n); \
-	(void) putc(u.u_c[0], f); \
-	(void) putc(u.u_c[1], f); \
-	(void) putc(u.u_c[2], f); \
-	(void) putc(u.u_c[3], f); \
+	(void) gzputc(f, u.u_c[0]); \
+	(void) gzputc(f, u.u_c[1]); \
+	(void) gzputc(f, u.u_c[2]); \
+	(void) gzputc(f, u.u_c[3]); \
     }
 
 static char calmaMapTableStrict[] =
 {
-      0,    0,    0,    0,    0,    0,    0,    0,	/* NUL - BEL */
-      0,    0,    0,    0,    0,    0,    0,    0,	/* BS  - SI  */
-      0,    0,    0,    0,    0,    0,    0,    0,	/* DLE - ETB */
-      0,    0,    0,    0,    0,    0,    0,    0,	/* CAN - US  */
-    '_',  '_',  '_',  '_',  '$',  '_',  '_',  '_',	/* SP  - '   */
-    '_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',	/* (   - /   */
-    '0',  '1',  '2',  '3',  '4',  '5',  '6',  '7',	/* 0   - 7   */
-    '8',  '9',  '_',  '_',  '_',  '_',  '_',  '_',	/* 8   - ?   */
-    '_',  'A',  'B',  'C',  'D',  'E',  'F',  'G',	/* @   - G   */
-    'H',  'I',  'J',  'K',  'L',  'M',  'N',  'O',	/* H   - O   */
-    'P',  'Q',  'R',  'S',  'T',  'U',  'V',  'W',	/* P   - W   */
-    'X',  'Y',  'Z',  '_',  '_',  '_',  '_',  '_',	/* X   - _   */
-    '_',  'a',  'b',  'c',  'd',  'e',  'f',  'g',	/* `   - g   */
-    'h',  'i',  'j',  'k',  'l',  'm',  'n',  'o',	/* h   - o   */
-    'p',  'q',  'r',  's',  't',  'u',  'v',  'w',	/* p   - w   */
-    'x',  'y',  'z',  '_',  '_',  '_',  '_',  0,	/* x   - DEL */
+      0,    0,    0,    0,    0,    0,    0,    0,      /* NUL - BEL */
+      0,    0,    0,    0,    0,    0,    0,    0,      /* BS  - SI  */
+      0,    0,    0,    0,    0,    0,    0,    0,      /* DLE - ETB */
+      0,    0,    0,    0,    0,    0,    0,    0,      /* CAN - US  */
+    '_',  '_',  '_',  '_',  '$',  '_',  '_',  '_',      /* SP  - '   */
+    '_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',      /* (   - /   */
+    '0',  '1',  '2',  '3',  '4',  '5',  '6',  '7',      /* 0   - 7   */
+    '8',  '9',  '_',  '_',  '_',  '_',  '_',  '_',      /* 8   - ?   */
+    '_',  'A',  'B',  'C',  'D',  'E',  'F',  'G',      /* @   - G   */
+    'H',  'I',  'J',  'K',  'L',  'M',  'N',  'O',      /* H   - O   */
+    'P',  'Q',  'R',  'S',  'T',  'U',  'V',  'W',      /* P   - W   */
+    'X',  'Y',  'Z',  '_',  '_',  '_',  '_',  '_',      /* X   - _   */
+    '_',  'a',  'b',  'c',  'd',  'e',  'f',  'g',      /* `   - g   */
+    'h',  'i',  'j',  'k',  'l',  'm',  'n',  'o',      /* h   - o   */
+    'p',  'q',  'r',  's',  't',  'u',  'v',  'w',      /* p   - w   */
+    'x',  'y',  'z',  '_',  '_',  '_',  '_',  0,        /* x   - DEL */
 };
 
 static char calmaMapTablePermissive[] =
 {
-      0,    0,    0,    0,    0,    0,    0,    0,	/* NUL - BEL */
-      0,    0,    0,    0,    0,    0,    0,    0,	/* BS  - SI  */
-      0,    0,    0,    0,    0,    0,    0,    0,	/* DLE - ETB */
-      0,    0,    0,    0,    0,    0,    0,    0,	/* CAN - US  */
-    ' ',  '!',  '"',  '#',  '$',  '&',  '%', '\'',	/* SP  - '   */
-    '(',  ')',  '*',  '+',  ',',  '-',  '.',  '/',	/* (   - /   */
-    '0',  '1',  '2',  '3',  '4',  '5',  '6',  '7',	/* 0   - 7   */
-    '8',  '9',  ':',  ';',  '<',  '=',  '>',  '?',	/* 8   - ?   */
-    '@',  'A',  'B',  'C',  'D',  'E',  'F',  'G',	/* @   - G   */
-    'H',  'I',  'J',  'K',  'L',  'M',  'N',  'O',	/* H   - O   */
-    'P',  'Q',  'R',  'S',  'T',  'U',  'V',  'W',	/* P   - W   */
-    'X',  'Y',  'Z',  '[', '\\',  ']',  '^',  '_',	/* X   - _   */
-    '`',  'a',  'b',  'c',  'd',  'e',  'f',  'g',	/* `   - g   */
-    'h',  'i',  'j',  'k',  'l',  'm',  'n',  'o',	/* h   - o   */
-    'p',  'q',  'r',  's',  't',  'u',  'v',  'w',	/* p   - w   */
-    'x',  'y',  'z',  '{',  '|',  '}',  '~',    0,	/* x   - DEL */
+      0,    0,    0,    0,    0,    0,    0,    0,      /* NUL - BEL */
+      0,    0,    0,    0,    0,    0,    0,    0,      /* BS  - SI  */
+      0,    0,    0,    0,    0,    0,    0,    0,      /* DLE - ETB */
+      0,    0,    0,    0,    0,    0,    0,    0,      /* CAN - US  */
+    ' ',  '!',  '"',  '#',  '$',  '&',  '%', '\'',      /* SP  - '   */
+    '(',  ')',  '*',  '+',  ',',  '-',  '.',  '/',      /* (   - /   */
+    '0',  '1',  '2',  '3',  '4',  '5',  '6',  '7',      /* 0   - 7   */
+    '8',  '9',  ':',  ';',  '<',  '=',  '>',  '?',      /* 8   - ?   */
+    '@',  'A',  'B',  'C',  'D',  'E',  'F',  'G',      /* @   - G   */
+    'H',  'I',  'J',  'K',  'L',  'M',  'N',  'O',      /* H   - O   */
+    'P',  'Q',  'R',  'S',  'T',  'U',  'V',  'W',      /* P   - W   */
+    'X',  'Y',  'Z',  '[', '\\',  ']',  '^',  '_',      /* X   - _   */
+    '`',  'a',  'b',  'c',  'd',  'e',  'f',  'g',      /* `   - g   */
+    'h',  'i',  'j',  'k',  'l',  'm',  'n',  'o',      /* h   - o   */
+    'p',  'q',  'r',  's',  't',  'u',  'v',  'w',      /* p   - w   */
+    'x',  'y',  'z',  '{',  '|',  '}',  '~',    0,      /* x   - DEL */
 };
-
 
 /*
  * ----------------------------------------------------------------------------
  *
- * CalmaWrite --
+ * CalmaWriteZ --
  *
  * Write out the entire tree rooted at the supplied CellDef in Calma
  * GDS-II stream format, to the specified file.
@@ -286,9 +265,9 @@ static char calmaMapTablePermissive[] =
  */
 
 bool
-CalmaWrite(rootDef, f)
+CalmaWriteZ(rootDef, f)
     CellDef *rootDef;	/* Pointer to CellDef to be written */
-    FILE *f;		/* Open output file */
+    gzFile f;		/* Open compressed output file */
 {
     int oldCount = DBWFeedbackCount, problems, nerr;
     bool good;
@@ -336,19 +315,19 @@ CalmaWrite(rootDef, f)
     calmaCellNum = -2;
 
     /* Output the header, identifying this file */
-    calmaOutHeader(rootDef, f);
+    calmaOutHeaderZ(rootDef, f);
 
     /*
      * Write all contact cell definitions first
      */
-    if (CalmaContactArrays) calmaWriteContacts(f);
+    if (CalmaContactArrays) calmaWriteContactsZ(f);
 
     /*
      * We perform a post-order traversal of the tree rooted at 'rootDef',
      * to insure that each child cell is output before it is used.  The
      * root cell is output last.
      */
-    calmaProcessDef(rootDef, f, CalmaDoLibrary);
+    calmaProcessDefZ(rootDef, f, CalmaDoLibrary);
 
     /*
      * Check for any cells that were instanced in the output definition
@@ -367,7 +346,7 @@ CalmaWrite(rootDef, f)
 
 	    extraDef = DBCellLookDef((char *)he->h_key.h_name);
 	    if (extraDef != NULL)
-		calmaProcessDef(extraDef, f, FALSE);
+		calmaProcessDefZ(extraDef, f, FALSE);
 	    else
 	    	TxError("Error:  Cell %s is not defined in the output file!\n",
 				refname + 1);
@@ -375,9 +354,10 @@ CalmaWrite(rootDef, f)
     }
 
     /* Finish up by outputting the end-of-library marker */
-    calmaOutRH(4, CALMA_ENDLIB, CALMA_NODATA, f);
-    fflush(f);
-    good = !ferror(f);
+    calmaOutRHZ(4, CALMA_ENDLIB, CALMA_NODATA, f);
+    gzflush(f, Z_SYNC_FLUSH);
+    gzerror(f, &nerr);
+    good = (nerr == 0) ? TRUE : FALSE;
 
     /* See if any problems occurred */
     if (problems = (DBWFeedbackCount - oldCount))
@@ -398,7 +378,7 @@ CalmaWrite(rootDef, f)
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaDumpStructure --
+ * calmaDumpStructureZ --
  *
  * Parse a structure (cell) from the GDS file.  Check the name against the
  * existing database and modify the name in case of a collision.  Then dump
@@ -410,9 +390,9 @@ CalmaWrite(rootDef, f)
  */
 
 bool
-calmaDumpStructure(def, outf, calmaDefHash, filename)
+calmaDumpStructureZ(def, outf, calmaDefHash, filename)
     CellDef *def;
-    FILE *outf;
+    gzFile outf;
     HashTable *calmaDefHash;
     char *filename;
 {
@@ -428,7 +408,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 
     if (rtype != CALMA_BGNSTR)
     {
-	calmaOutRH(nbytes, rtype, CALMA_I2, outf);
+	calmaOutRHZ(nbytes, rtype, CALMA_I2, outf);
         return (FALSE);
     }
 
@@ -438,12 +418,12 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
     TxPrintf("Reading \"%s\".\n", strname);
 
     /* Output structure begin */
-    calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, outf);
+    calmaOutRHZ(28, CALMA_BGNSTR, CALMA_I2, outf);
     if (CalmaDateStamp != NULL)
-    	calmaOutDate(*CalmaDateStamp, outf);
+    	calmaOutDateZ(*CalmaDateStamp, outf);
     else
-    	calmaOutDate(def->cd_timestamp, outf);
-    calmaOutDate(time((time_t *) 0), outf);
+    	calmaOutDateZ(def->cd_timestamp, outf);
+    calmaOutDateZ(time((time_t *) 0), outf);
 
     /* Do a quick check of the calmaUndefHash table to see if this cell	*/
     /* was previously used in a GDS file that does not define it (a GDS	*/
@@ -497,7 +477,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 	else
 	    *newnameptr = '1';
 	/* To be considered:  Should the structure be output more than once? */
-	calmaOutStringRecord(CALMA_STRNAME, newnameptr + 1, outf);
+	calmaOutStringRecordZ(CALMA_STRNAME, newnameptr + 1, outf);
     }
     else if (!strcmp(strname, def->cd_name))
     {
@@ -506,7 +486,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 
 	newnameptr = mallocMagic(strlen(strname) + 2);
 	sprintf(newnameptr, "1%s", strname);
-	calmaOutStringRecord(CALMA_STRNAME, newnameptr + 1, outf);
+	calmaOutStringRecordZ(CALMA_STRNAME, newnameptr + 1, outf);
 	HashSetValue(he, (char *)newnameptr);
     }
     else
@@ -575,7 +555,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		HashSetValue(he, (char *)newnameptr);
 	    }
 	}
-	calmaOutStringRecord(CALMA_STRNAME, newnameptr + 1, outf);
+	calmaOutStringRecordZ(CALMA_STRNAME, newnameptr + 1, outf);
     }
     freeMagic(strname);
 
@@ -588,14 +568,14 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 	int datatype;
 
 	READI2(nbytes);
-	if (feof(calmaInputFile))
+	if (gzeof(calmaInputFile))
 	{
 	    /* Unexpected end-of-file */
-	    fseek(calmaInputFile, -(CALMAHEADERLENGTH), SEEK_END);
+	    gzseek(calmaInputFile, -(CALMAHEADERLENGTH), SEEK_END);
 	    break;
 	}
-	rtype = getc(calmaInputFile);
-	datatype = getc(calmaInputFile);
+	rtype = gzgetc(calmaInputFile);
+	datatype = gzgetc(calmaInputFile);
 	switch (rtype) {
 	    case CALMA_BGNSTR:
 		UNREADRH(nbytes, rtype);
@@ -613,7 +593,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		newnameptr = (char *)HashGetValue(he);
 		if (newnameptr != NULL)
 		{
-		    calmaOutStringRecord(CALMA_SNAME, newnameptr + 1, outf);
+		    calmaOutStringRecordZ(CALMA_SNAME, newnameptr + 1, outf);
 		}
 		else
 		{
@@ -630,28 +610,28 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		    if (edef != NULL)
 			sprintf(newnameptr, "0%s%s[[0]]", prefix, strname);
 		    HashSetValue(he, (char *)newnameptr);
-		    calmaOutStringRecord(CALMA_SNAME, newnameptr + 1, outf);
+		    calmaOutStringRecordZ(CALMA_SNAME, newnameptr + 1, outf);
 		}
 		break;
 
 	    default:
-		calmaOutRH(nbytes, rtype, datatype, outf);
+		calmaOutRHZ(nbytes, rtype, datatype, outf);
 		nbytes -= 4;
 
 		/* Copy nbytes from input to output */
 		while (nbytes-- > 0)
 		{
 		    int byte;
-		    if ((byte = getc(calmaInputFile)) < 0)
+		    if ((byte = gzgetc(calmaInputFile)) < 0)
 		    {
 			TxError("End of file with %d bytes remaining to be read.\n",
 				nbytes);
 			while (nbytes-- > 0)
-			    putc(0, outf);	// zero-pad output
+			    gzputc(outf, 0);	// zero-pad output
 			return (FALSE);
 		    }
 		    else
-			putc(byte, outf);
+			gzputc(outf, byte);
 		}
 		break;
 	}
@@ -667,7 +647,7 @@ syntaxerror:
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaFullDump --
+ * calmaFullDumpZ --
  *
  * Read in a GDS-II stream format library and dump its contents to
  * file "outf" verbatim except for cell references, which are renamed
@@ -680,10 +660,10 @@ syntaxerror:
  */
 
 void
-calmaFullDump(def, fi, outf, filename)
+calmaFullDumpZ(def, fi, outf, filename)
     CellDef *def;
-    FILE *fi;
-    FILE *outf;
+    gzFile fi;
+    gzFile outf;
     char *filename;
 {
     int version, rval;
@@ -771,7 +751,7 @@ calmaFullDump(def, fi, outf, filename)
     else
 	HashSetValue(he, StrDup(NULL, ""));
 
-    while (calmaDumpStructure(def, outf, &calmaDefHash, filename))
+    while (calmaDumpStructureZ(def, outf, &calmaDefHash, filename))
 	if (SigInterruptPending)
 	    goto done;
     calmaSkipExact(CALMA_ENDLIB);
@@ -803,33 +783,8 @@ done:
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaWriteInitFunc --
- *
- * Filter function called on behalf of CalmaWrite() above.
- * Responsible for setting the cif number of each cell to zero.
- *
- * Results:
- *	Returns 0 to indicate that the search should continue.
- *
- * Side effects:
- *	Modify the calma numbers of the cells they are passed.
- *
- * ----------------------------------------------------------------------------
- */
-
-int
-calmaWriteInitFunc(def)
-    CellDef *def;
-{
-    def->cd_client = (ClientData) 0;
-    return (0);
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * calmaProcessUse --
- * calmaProcessDef --
+ * calmaProcessUseZ --
+ * calmaProcessDefZ --
  *
  * Main loop of Calma generation.  Performs a post-order, depth-first
  * traversal of the tree rooted at 'def'.  Only cells that have not
@@ -849,17 +804,17 @@ calmaWriteInitFunc(def)
  */
 
 int
-calmaProcessUse(use, outf)
+calmaProcessUseZ(use, outf)
     CellUse *use;	/* Process use->cu_def */
-    FILE *outf;		/* Stream file */
+    gzFile outf;	/* Stream file */
 {
-    return (calmaProcessDef(use->cu_def, outf, FALSE));
+    return (calmaProcessDefZ(use->cu_def, outf, FALSE));
 }
 
 int
-calmaProcessDef(def, outf, do_library)
+calmaProcessDefZ(def, outf, do_library)
     CellDef *def;	/* Output this def's children, then the def itself */
-    FILE *outf;		/* Stream file */
+    gzFile outf;		/* Stream file */
     bool do_library;	/* If TRUE, output only children of def, but not def */
 {
     char *filename;
@@ -935,7 +890,7 @@ calmaProcessDef(def, outf, do_library)
      * as they are expected to be in the referenced GDS file.
      */
     if (!hasContent || hasGDSEnd)
-	if (DBCellEnum(def, calmaProcessUse, (ClientData) outf) != 0)
+	if (DBCellEnum(def, calmaProcessUseZ, (ClientData) outf) != 0)
 	    return 1;
 
     /* Give some feedback to the user */
@@ -945,45 +900,15 @@ calmaProcessDef(def, outf, do_library)
     {
 	char *buffer, *offptr, *retfilename;
 	size_t defsize, numbytes;
-	off_t cellstart, cellend, structstart;
+	z_off_t cellstart, cellend, structstart;
  	dlong cval;
 	int namelen;
-	char *modName;
-	FILE *fi;
+	gzFile fi;
 
-	/* Handle compressed files */
-	
-	modName = filename;
-	namelen = strlen(filename);
-	if ((namelen > 4) && !strcmp(filename + namelen - 3, ".gz"))
-	{
-	    char *sysCmd, *sptr;
-	
-	    sptr = strrchr(filename, '/');
-	    if (sptr == NULL)
-		sptr = filename;
-	    else
-		sptr++;
-	
-	    modName = StrDup((char **)NULL, sptr);
-	    *(modName + strlen(modName) - 3) = '\0';
-
-	    sysCmd = mallocMagic(18 + namelen + strlen(modName));
-	    sprintf(sysCmd, "gunzip -c %s > %s", filename, modName);
-	    if (system(sysCmd) != 0)
-	    {
-		/* File didn't uncompress.  Go back to original name,
-		 * although that will probably fail and raise an error.
-		 */
-		freeMagic(modName);
-		modName = filename;
-	    }
-	}
-	
 	/* Use PaOpen() so the paths searched are the same as were	*/
 	/* searched to find the .mag file that indicated this GDS file.	*/
 
-	fi = PaOpen(modName, "r", "", Path, CellLibPath, &retfilename);
+	fi = PaZOpen(filename, "r", "", Path, CellLibPath, &retfilename);
 	if (fi == NULL)
 	{
 	    /* This is a rare error, but if the subcell is inside	*/
@@ -999,9 +924,7 @@ calmaProcessDef(def, outf, do_library)
 
 	    TxError("Calma output error:  Can't find GDS file \"%s\" "
 				"for vendor cell \"%s\".  It will not be output.\n",
-				modName, def->cd_name);
-
-	    if (modName != filename) freeMagic(modName);
+				filename, def->cd_name);
 
 	    if (CalmaAllowUndefined)
 		return 0;
@@ -1020,16 +943,16 @@ calmaProcessDef(def, outf, do_library)
 
 	    he = HashLookOnly(&calmaLibHash, retfilename);
 	    if (he == NULL)
-		calmaFullDump(def, fi, outf, retfilename);
+		calmaFullDumpZ(def, fi, outf, retfilename);
 
-	    fclose(fi);
+	    gzclose(fi);
 	    def->cd_flags |= CDVENDORGDS;
 	}
 	else
 	{
 	    offptr = (char *)DBPropGet(def, "GDS_END", NULL);
 	    sscanf(offptr, "%"DLONG_PREFIX"d", &cval);
-	    cellend = (off_t)cval;
+	    cellend = (z_off_t)cval;
 	    offptr = (char *)DBPropGet(def, "GDS_BEGIN", &oldStyle);
 	    if (!oldStyle)
 	    {
@@ -1039,33 +962,33 @@ calmaProcessDef(def, outf, do_library)
 		/* that the magic cell name and GDS name match.		*/
 
 		/* Output structure header */
-		calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, outf);
+		calmaOutRHZ(28, CALMA_BGNSTR, CALMA_I2, outf);
     		if (CalmaDateStamp != NULL)
-		    calmaOutDate(*CalmaDateStamp, outf);
+		    calmaOutDateZ(*CalmaDateStamp, outf);
 		else
-		    calmaOutDate(def->cd_timestamp, outf);
-		calmaOutDate(time((time_t *) 0), outf);
+		    calmaOutDateZ(def->cd_timestamp, outf);
+		calmaOutDateZ(time((time_t *) 0), outf);
 
 		/* Name structure the same as the magic cellname */
-		calmaOutStructName(CALMA_STRNAME, def, outf);
+		calmaOutStructNameZ(CALMA_STRNAME, def, outf);
 	    }
 
 	    sscanf(offptr, "%"DLONG_PREFIX"d", &cval);
-	    cellstart = (off_t)cval;
+	    cellstart = (z_off_t)cval;
 
 	    /* GDS_START has been defined as the start of data after the cell	*/
 	    /* structure name.  However, a sanity check is wise, so move back	*/
 	    /* that far and make sure the structure name is there.		*/
-	    structstart = cellstart - (off_t)(strlen(def->cd_name));
+	    structstart = cellstart - (z_off_t)(strlen(def->cd_name));
 	    if (strlen(def->cd_name) & 0x1) structstart--;
 	    structstart -= 2;
 
-	    fseek(fi, structstart, SEEK_SET);
+	    gzseek(fi, structstart, SEEK_SET);
 
 	    /* Read the structure name and check against the CellDef name */
 	    defsize = (size_t)(cellstart - structstart);
 	    buffer = (char *)mallocMagic(defsize + 1);
-	    numbytes = fread(buffer, sizeof(char), (size_t)defsize, fi);
+	    numbytes = gzread(fi, buffer, sizeof(char) * (size_t)defsize);
 	    if (numbytes == defsize)
 	    {
 		buffer[defsize] = '\0';
@@ -1105,7 +1028,7 @@ calmaProcessDef(def, outf, do_library)
 		defsize = (size_t)(cellend - cellstart);
 		buffer = (char *)mallocMagic(defsize);
 
-		numbytes = fread(buffer, sizeof(char), (size_t)defsize, fi);
+		numbytes = gzread(fi, buffer, sizeof(char) * (size_t)defsize);
 
 		if (numbytes == defsize)
 		{
@@ -1125,7 +1048,7 @@ calmaProcessDef(def, outf, do_library)
 		    }
 		    else
 		    {
-		    	numbytes = fwrite(buffer, sizeof(char), (size_t)defsize, outf);
+		    	numbytes = gzwrite(outf, buffer, sizeof(char) * (size_t)defsize);
 		    	if (numbytes <= 0)
 		    	{
 			    TxError("Calma output error:  Can't write cell from "
@@ -1147,18 +1070,7 @@ calmaProcessDef(def, outf, do_library)
 		}
 		freeMagic(buffer);
 	    }
-	    fclose(fi);
-
-	    if (modName != filename)
-	    {
-		/* Remove the uncompressed file */
-		if (unlink(modName) != 0)
-		{
-		    TxError("Error attempting to delete uncompressed file \"%s\"\n",
-				modName);
-		}
-		freeMagic(modName);
-	    }
+	    gzclose(fi);
 
 	    /* Mark the definition as vendor GDS so that magic doesn't	*/
 	    /* try to generate subcell interaction or array interaction	*/
@@ -1171,7 +1083,7 @@ calmaProcessDef(def, outf, do_library)
     /* Output this cell definition from the Magic database */
     if (!isReadOnly)
 	if (!do_library)
-	    calmaOutFunc(def, outf, &TiPlaneRect);
+	    calmaOutFuncZ(def, outf, &TiPlaneRect);
 
     return 0;
 }
@@ -1180,7 +1092,7 @@ calmaProcessDef(def, outf, do_library)
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaOutFunc --
+ * calmaOutFuncZ --
  *
  * Write out the definition for a single cell as a GDS-II stream format
  * structure.  We try to preserve the original cell's name if it is legal
@@ -1196,9 +1108,9 @@ calmaProcessDef(def, outf, do_library)
  */
 
 void
-calmaOutFunc(def, f, cliprect)
+calmaOutFuncZ(def, f, cliprect)
     CellDef *def;	/* Pointer to cell def to be written */
-    FILE *f;		/* Open output file */
+    gzFile f;		/* Open output file */
     Rect *cliprect;	/* Area to clip to (used for contact cells),
 			 * in CIF/GDS coordinates.
 			 */
@@ -1208,22 +1120,22 @@ calmaOutFunc(def, f, cliprect)
     Rect bigArea;
     int type;
     int dbunits;
-    calmaOutputStruct cos;
+    calmaOutputStructZ cos;
 
     cos.f = f;
     cos.area = (cliprect == &TiPlaneRect) ? NULL : cliprect;
     cos.type = -1;
 
     /* Output structure begin */
-    calmaOutRH(28, CALMA_BGNSTR, CALMA_I2, f);
+    calmaOutRHZ(28, CALMA_BGNSTR, CALMA_I2, f);
     if (CalmaDateStamp != NULL)
-    	calmaOutDate(*CalmaDateStamp, f);
+    	calmaOutDateZ(*CalmaDateStamp, f);
     else
-	calmaOutDate(def->cd_timestamp, f);
-    calmaOutDate(time((time_t *) 0), f);
+	calmaOutDateZ(def->cd_timestamp, f);
+    calmaOutDateZ(time((time_t *) 0), f);
 
     /* Output structure name */
-    calmaOutStructName(CALMA_STRNAME, def, f);
+    calmaOutStructNameZ(CALMA_STRNAME, def, f);
 
     /* Since Calma database units are nanometers, multiply all units by 10,
      * modified by the scale multiplier.
@@ -1261,7 +1173,7 @@ calmaOutFunc(def, f, cliprect)
      * arrays we output a single call, unlike CIF, since Calma
      * supports the notion of arrays.
      */
-    (void) DBCellEnum(def, calmaWriteUseFunc, (ClientData) f);
+    (void) DBCellEnum(def, calmaWriteUseFuncZ, (ClientData) f);
 
     /* Output all the tiles associated with this cell; skip temporary layers */
     GEO_EXPAND(&def->cd_bbox, CIFCurStyle->cs_radius, &bigArea);
@@ -1284,12 +1196,12 @@ calmaOutFunc(def, f, cliprect)
 
 	if (layer->cl_flags & CIF_LABEL)
 	    DBSrPaintArea((Tile *) NULL, CIFPlanes[type],
-		    cliprect, &CIFSolidBits, calmaPaintLabelFunc,
+		    cliprect, &CIFSolidBits, calmaPaintLabelFuncZ,
 		    (ClientData) &cos);
 	else
 	    DBSrPaintArea((Tile *) NULL, CIFPlanes[type],
 		    cliprect, &CIFSolidBits, (CalmaMergeTiles) ?
-		    calmaMergePaintFunc : calmaWritePaintFunc,
+		    calmaMergePaintFuncZ : calmaWritePaintFuncZ,
 		    (ClientData) &cos);
     }
 
@@ -1306,7 +1218,7 @@ calmaOutFunc(def, f, cliprect)
 	    type = CIFCurStyle->cs_labelLayer[lab->lab_type];
 	    if ((type >= 0) && (lab->lab_flags & PORT_DIR_MASK) == 0)
 	    {
-		calmaWriteLabelFunc(lab, type, f);
+		calmaWriteLabelFuncZ(lab, type, f);
 	    }
 	    else
 	    {
@@ -1322,61 +1234,20 @@ calmaOutFunc(def, f, cliprect)
 		    if ((type >= 0) && ((lab->lab_flags & PORT_DIR_MASK) != 0) &&
 				(lab->lab_port == i))
 		    {
-			calmaWriteLabelFunc(lab, type, f);
+			calmaWriteLabelFuncZ(lab, type, f);
 			/* break; */  /* Do not limit to unique labels! */
 		    }
 		}
     }
 
     /* End of structure */
-    calmaOutRH(4, CALMA_ENDSTR, CALMA_NODATA, f);
+    calmaOutRHZ(4, CALMA_ENDSTR, CALMA_NODATA, f);
 }
 
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaIsUseNameDefault --
- *
- * Determine if this use name is not default; that is, it is not the name
- * of the cell def followed by an underscore and a use index number.  If
- * it is not default, then we want to write out the use name as a property
- * in the GDS stream file so that we can recover the name when the file is
- * read back into magic.
- *
- * Results:
- *	TRUE if the cell use ID is a default name; FALSE if not.
- *
- * Side Effects:
- *	None.
- *
- * ----------------------------------------------------------------------------
- */
-
-bool
-calmaIsUseNameDefault(defName, useName)
-    char *defName;
-    char *useName;
-{
-    int idx, slen;
-    char *sptr;
-
-    if (useName == NULL) return TRUE;
-    slen = strlen(defName);
-    if (!strncmp(defName, useName, slen))
-    {
-	sptr = useName + slen;
-	if (*sptr != '_') return FALSE;
-	else sptr++;
-	if (sscanf(sptr, "%d", &idx) != 1) return FALSE;
-	else return TRUE;
-    }
-    return FALSE;
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * calmaWriteUseFunc --
+ * calmaWriteUseFuncZ --
  *
  * Filter function, called by DBCellEnum on behalf of calmaOutFunc above,
  * to write out each CellUse called by the CellDef being output.  If the
@@ -1393,15 +1264,15 @@ calmaIsUseNameDefault(defName, useName)
  */
 
 int
-calmaWriteUseFunc(use, f)
+calmaWriteUseFuncZ(use, f)
     CellUse *use;
-    FILE *f;
+    gzFile f;
 {
     /*
      * r90, r180, and r270 are Calma 8-byte real representations
      * of the angles 90, 180, and 270 degrees.  Because there are
      * only 4 possible values, it is faster to have them pre-computed
-     * than to format with calmaOutR8().
+     * than to format with calmaOutR8Z().
      */
     static unsigned char r90[] = { 0x42, 0x5a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     static unsigned char r180[] = { 0x42, 0xb4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -1469,18 +1340,18 @@ calmaWriteUseFunc(use, f)
 	    for (y = 0; y <= topy; y++)
 	    {
 		/* Structure reference */
-		calmaOutRH(4, CALMA_SREF, CALMA_NODATA, f);
-		calmaOutStructName(CALMA_SNAME, use->cu_def, f);
+		calmaOutRHZ(4, CALMA_SREF, CALMA_NODATA, f);
+		calmaOutStructNameZ(CALMA_SNAME, use->cu_def, f);
 
 		/* Transformation flags */
-		calmaOutRH(6, CALMA_STRANS, CALMA_BITARRAY, f);
-		calmaOutI2(stransflags, f);
+		calmaOutRHZ(6, CALMA_STRANS, CALMA_BITARRAY, f);
+		calmaOutI2Z(stransflags, f);
 
 		/* Rotation if there is one */
 		if (whichangle)
 		{
-		    calmaOutRH(12, CALMA_ANGLE, CALMA_R8, f);
-		    calmaOut8(whichangle, f);
+		    calmaOutRHZ(12, CALMA_ANGLE, CALMA_R8, f);
+		    calmaOut8Z(whichangle, f);
 		}
 
 		/* Translation */
@@ -1490,12 +1361,12 @@ calmaWriteUseFunc(use, f)
 				+ t->t_e*(use->cu_ysep)*y;
 		xxlate *= calmaWriteScale;
 		yxlate *= calmaWriteScale;
-		calmaOutRH(12, CALMA_XY, CALMA_I4, f);
-		calmaOutI4(xxlate, f);
-		calmaOutI4(yxlate, f);
+		calmaOutRHZ(12, CALMA_XY, CALMA_I4, f);
+		calmaOutI4Z(xxlate, f);
+		calmaOutI4Z(yxlate, f);
 
 		/* End of element */
-		calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
+		calmaOutRHZ(4, CALMA_ENDEL, CALMA_NODATA, f);
 	    }
 	}
     }
@@ -1506,37 +1377,37 @@ calmaWriteUseFunc(use, f)
 	rectype = isArray ? CALMA_AREF : CALMA_SREF;
 
 	/* Structure reference */
-	calmaOutRH(4, rectype, CALMA_NODATA, f);
-	calmaOutStructName(CALMA_SNAME, use->cu_def, f);
+	calmaOutRHZ(4, rectype, CALMA_NODATA, f);
+	calmaOutStructNameZ(CALMA_SNAME, use->cu_def, f);
 
 	/* Transformation flags */
-	calmaOutRH(6, CALMA_STRANS, CALMA_BITARRAY, f);
-	calmaOutI2(stransflags, f);
+	calmaOutRHZ(6, CALMA_STRANS, CALMA_BITARRAY, f);
+	calmaOutI2Z(stransflags, f);
 
 	/* Rotation if there is one */
 	if (whichangle)
 	{
-	    calmaOutRH(12, CALMA_ANGLE, CALMA_R8, f);
-	    calmaOut8(whichangle, f);
+	    calmaOutRHZ(12, CALMA_ANGLE, CALMA_R8, f);
+	    calmaOut8Z(whichangle, f);
 	}
 
 	/* If array, number of columns and rows in the array */
 	if (isArray)
 	{
-	    calmaOutRH(8, CALMA_COLROW, CALMA_I2, f);
+	    calmaOutRHZ(8, CALMA_COLROW, CALMA_I2, f);
 	    cols = topx + 1;
 	    rows = topy + 1;
-	    calmaOutI2(cols, f);
-	    calmaOutI2(rows, f);
+	    calmaOutI2Z(cols, f);
+	    calmaOutI2Z(rows, f);
 	}
 
 	/* Translation */
 	xxlate = t->t_c * calmaWriteScale;
 	yxlate = t->t_f * calmaWriteScale;
 	hdrsize = isArray ? 28 : 12;
-	calmaOutRH(hdrsize, CALMA_XY, CALMA_I4, f);
-	calmaOutI4(xxlate, f);
-	calmaOutI4(yxlate, f);
+	calmaOutRHZ(hdrsize, CALMA_XY, CALMA_I4, f);
+	calmaOutI4Z(xxlate, f);
+	calmaOutI4Z(yxlate, f);
 
 	/* Array sizes if an array */
 	if (isArray)
@@ -1547,8 +1418,8 @@ calmaWriteUseFunc(use, f)
 	    GeoTransPoint(t, &p, &p2);
 	    p2.p_x *= calmaWriteScale;
 	    p2.p_y *= calmaWriteScale;
-	    calmaOutI4(p2.p_x, f);
-	    calmaOutI4(p2.p_y, f);
+	    calmaOutI4Z(p2.p_x, f);
+	    calmaOutI4Z(p2.p_y, f);
 
 	    /* Row reference point */
 	    p.p_x = 0;
@@ -1556,8 +1427,8 @@ calmaWriteUseFunc(use, f)
 	    GeoTransPoint(t, &p, &p2);
 	    p2.p_x *= calmaWriteScale;
 	    p2.p_y *= calmaWriteScale;
-	    calmaOutI4(p2.p_x, f);
-	    calmaOutI4(p2.p_y, f);
+	    calmaOutI4Z(p2.p_x, f);
+	    calmaOutI4Z(p2.p_y, f);
 	}
 
 	/* By NP */
@@ -1566,9 +1437,9 @@ calmaWriteUseFunc(use, f)
 
 	if (!calmaIsUseNameDefault(use->cu_def->cd_name, use->cu_id))
 	{
-	    calmaOutRH(6, CALMA_PROPATTR, CALMA_I2, f);
-	    calmaOutI2(CALMA_PROP_USENAME_STD, f);
-	    calmaOutStringRecord(CALMA_PROPVALUE, use->cu_id, f);
+	    calmaOutRHZ(6, CALMA_PROPATTR, CALMA_I2, f);
+	    calmaOutI2Z(CALMA_PROP_USENAME_STD, f);
+	    calmaOutStringRecordZ(CALMA_PROPVALUE, use->cu_id, f);
 	}
 
 	/* Add an array limits property, if the CellUse is an array and */
@@ -1579,13 +1450,13 @@ calmaWriteUseFunc(use, f)
 	    char arraystr[128];
 	    sprintf(arraystr, "%d_%d_%d_%d", use->cu_xlo, use->cu_xhi,
 			use->cu_ylo, use->cu_yhi);
-	    calmaOutRH(6, CALMA_PROPATTR, CALMA_I2, f);
-	    calmaOutI2(CALMA_PROP_ARRAY_LIMITS, f);
-	    calmaOutStringRecord(CALMA_PROPVALUE, arraystr, f);
+	    calmaOutRHZ(6, CALMA_PROPATTR, CALMA_I2, f);
+	    calmaOutI2Z(CALMA_PROP_ARRAY_LIMITS, f);
+	    calmaOutStringRecordZ(CALMA_PROPVALUE, arraystr, f);
 	}
 
 	/* End of element */
-	calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
+	calmaOutRHZ(4, CALMA_ENDEL, CALMA_NODATA, f);
     }
 
     return (0);
@@ -1610,10 +1481,10 @@ calmaWriteUseFunc(use, f)
  */
 
 void
-calmaOutStructName(type, def, f)
+calmaOutStructNameZ(type, def, f)
     int type;
     CellDef *def;
-    FILE *f;
+    gzFile f;
 {
     char *defname;
     unsigned char c;
@@ -1658,65 +1529,8 @@ bad:
 		 defname);
     }
 
-    calmaOutStringRecord(type, defname, f);
+    calmaOutStringRecordZ(type, defname, f);
     freeMagic(defname);
-}
-
-/* Added by NP 8/21/2004 */
-/*
- * ----------------------------------------------------------------------------
- *
- * calmaGetContactCell --
- *
- *   This routine creates [if it hasn't been created yet] a cell definition
- *   containing the given TileType.  Cellname is "$$" + layer1_name + "_" +
- *   layer2_name... + "$$". Cellname contains the short name of all the
- *   residues of the layer "type".
- *
- * Results:
- *   Returns new celldef it doesn't exist else created one.
- *
- * Side effects:
- *	 New celldef created specially for contact type if it does not exist.
- *
- * ----------------------------------------------------------------------------
- */
-
-CellDef *
-calmaGetContactCell(type, lookOnly)
-    TileType type;		/* magic contact tile type */
-    bool lookOnly;		/* if true, don't generate any new cells */
-{
-    TileType j;
-    char contactCellName[100];
-    TileTypeBitMask *rMask = DBResidueMask(type);
-    CellDef *def;
-    bool first = TRUE;
-
-    strcpy(contactCellName, "$$");
-    for (j = TT_SPACE + 1; j < DBNumUserLayers; j++)
-	if (TTMaskHasType(rMask, j))
-	{
-            /* Cellname starts with "$$" to make it diffrent from
-             * other database cells, and to be compatible with a
-	     * number of other EDA tools.
-             */
-	    if (!first)
-		strcat(contactCellName, "_");
-	    else
-		first = FALSE;
-            strcat(contactCellName, DBTypeShortName(j));
-        }
-    strcat(contactCellName, "$$");
-
-    def = DBCellLookDef(contactCellName);
-    if ((def == (CellDef *) NULL) && (lookOnly == FALSE))
-    {
-	def = DBCellNewDef(contactCellName);
-       	def->cd_flags &= ~(CDMODIFIED|CDGETNEWSTAMP);
-        def->cd_flags |= CDAVAILABLE;
-    }
-    return def;
 }
 
 /*
@@ -1736,8 +1550,8 @@ calmaGetContactCell(type, lookOnly)
  */
 
 bool
-CalmaGenerateArray(f, type, llx, lly, pitch, cols, rows)
-    FILE *f;		/* GDS output file */
+CalmaGenerateArrayZ(f, type, llx, lly, pitch, cols, rows)
+    gzFile f;		/* GDS output file */
     TileType type;	/* Magic tile type of contact */
     int llx, lly;	/* Lower-left hand coordinate of the array
 			 * (centered on contact cut)
@@ -1752,44 +1566,43 @@ CalmaGenerateArray(f, type, llx, lly, pitch, cols, rows)
     if (child == NULL) return FALSE;
 
     /* Structure reference */
-    calmaOutRH(4, CALMA_AREF, CALMA_NODATA, f);
-    calmaOutStructName(CALMA_SNAME, child, f);
+    calmaOutRHZ(4, CALMA_AREF, CALMA_NODATA, f);
+    calmaOutStructNameZ(CALMA_SNAME, child, f);
 
     /* Transformation flags */
-    calmaOutRH(6, CALMA_STRANS, CALMA_BITARRAY, f);
-    calmaOutI2(0, f);
+    calmaOutRHZ(6, CALMA_STRANS, CALMA_BITARRAY, f);
+    calmaOutI2Z(0, f);
 
     /* Number of columns and rows in the array */
-    calmaOutRH(8, CALMA_COLROW, CALMA_I2, f);
-    calmaOutI2(cols, f);
-    calmaOutI2(rows, f);
+    calmaOutRHZ(8, CALMA_COLROW, CALMA_I2, f);
+    calmaOutI2Z(cols, f);
+    calmaOutI2Z(rows, f);
 
     /* Translation */
     xxlate = llx * calmaPaintScale;
     yxlate = lly * calmaPaintScale;
-    calmaOutRH(28, CALMA_XY, CALMA_I4, f);
-    calmaOutI4(xxlate, f);
-    calmaOutI4(yxlate, f);
+    calmaOutRHZ(28, CALMA_XY, CALMA_I4, f);
+    calmaOutI4Z(xxlate, f);
+    calmaOutI4Z(yxlate, f);
 
     /* Column reference point */
-    calmaOutI4(xxlate + pitch * cols * calmaPaintScale, f);
-    calmaOutI4(yxlate, f);
+    calmaOutI4Z(xxlate + pitch * cols * calmaPaintScale, f);
+    calmaOutI4Z(yxlate, f);
 
     /* Row reference point */
-    calmaOutI4(xxlate, f);
-    calmaOutI4(yxlate + pitch * rows * calmaPaintScale, f);
+    calmaOutI4Z(xxlate, f);
+    calmaOutI4Z(yxlate + pitch * rows * calmaPaintScale, f);
 
     /* End of AREF element */
-    calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
+    calmaOutRHZ(4, CALMA_ENDEL, CALMA_NODATA, f);
 
     return TRUE;
 }
 
-/* Added by NP 8/22/2004 */
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaWriteContacts --
+ * calmaWriteContactsZ --
  *
  *  This routine creates a new cellDef for each contact type and writes to
  *  the GDS output stream file. It is called before processing all cell
@@ -1805,8 +1618,8 @@ CalmaGenerateArray(f, type, llx, lly, pitch, cols, rows)
  */
 
 void
-calmaWriteContacts(f)
-    FILE *f;
+calmaWriteContactsZ(f)
+    gzFile f;
 {
     TileType type;
     TileTypeBitMask tMask, *rMask;
@@ -1866,368 +1679,11 @@ calmaWriteContacts(f)
 	    cliprect.r_xbot = cliprect.r_ybot = -halfsize;
 	    cliprect.r_xtop = cliprect.r_ytop = halfsize;
 
-            calmaOutFunc(def, f, &cliprect);
+            calmaOutFuncZ(def, f, &cliprect);
             UndoEnable();
 	}
     }
     CalmaContactArrays = TRUE;
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * calmaDelContacts --
- *
- *  This routine removes all cell definitions generated by
- *  calmaWriteContacts().
- *
- * Results:
- *	None.
- *
- * Side effects:
- *	Removes contact cell defs from the database.
- *
- * ----------------------------------------------------------------------------
- */
-
-void
-calmaDelContacts()
-{
-    TileType type;
-    CellDef *def;
-
-    for (type = TT_SPACE + 1; type < DBNumUserLayers; type++)
-	if (DBIsContact(type))
-	{
-            def = calmaGetContactCell(type, TRUE);
-	    if (def != (CellDef *)NULL)
-		 DBCellDeleteDef(def);
-	}
-}
-
-/*
- * ----------------------------------------------------------------------------
- * calmaAddSegment ---
- *
- * Process a new polygon edge, inserting it into a polygon record as
- * required.  If the edge is between a GDS layer and TT_SPACE, then
- * we insert a point record.  If the edge is between two tiles of the
- * same layer, then we insert a tile record.
- *
- * Results:
- *	Return 1 if an internal segment was generated, 0 if an external
- *	segment was generate.  On error, return -1 (failure to find a
- *	connecting point; this shouldn't happen).
- *
- *	Returns the current segment in the original pointer position (1st
- *	argument).  If segments are added in counterclockwise order, then
- *	this should be most efficient.
- *
- * Side effects:
- *	May allocate memory.
- * ---------------------------------------------------------------------------
- */
-
-int
-calmaAddSegment(lbptr, poly_edge, p1x, p1y, p2x, p2y)
-    LinkedBoundary **lbptr;
-    bool poly_edge;
-    int p1x, p1y, p2x, p2y;
-{
-    LinkedBoundary *newseg, *curseg, *stopseg;
-    bool startmatch = FALSE;
-    bool endmatch = FALSE;
-
-    stopseg = NULL;
-    for (curseg = *lbptr; curseg != stopseg; curseg = curseg->lb_next)
-    {
-	stopseg = *lbptr;
-	if (curseg->lb_type == LB_INIT)
-	{
-	    if ((p1x == curseg->lb_start.p_x) && (p1y == curseg->lb_start.p_y))
-		startmatch = TRUE;
-
-	    if ((p2x == curseg->lb_next->lb_start.p_x) &&
-			(p2y == curseg->lb_next->lb_start.p_y))
-		endmatch = TRUE;
-
-	    if (startmatch && endmatch)
-	    {
-		/* Segment completes this edge */
-		curseg->lb_type = (poly_edge) ? LB_EXTERNAL : LB_INTERNAL;
-		*lbptr = curseg;
-		return (int)curseg->lb_type;
-	    }
-	    else if (startmatch || endmatch)
-	    {
-		/* Insert a new segment after curseg */
-		newseg = (LinkedBoundary *)mallocMagic(sizeof(LinkedBoundary));
-		newseg->lb_next = curseg->lb_next;
-		curseg->lb_next = newseg;
-
-		if (startmatch)
-		{
-		    newseg->lb_type = curseg->lb_type;
-		    curseg->lb_type = (poly_edge) ? LB_EXTERNAL : LB_INTERNAL;
-		    newseg->lb_start.p_x = p2x;
-		    newseg->lb_start.p_y = p2y;
-		}
-		else
-		{
-		    newseg->lb_type = (poly_edge) ? LB_EXTERNAL : LB_INTERNAL;
-		    newseg->lb_start.p_x = p1x;
-		    newseg->lb_start.p_y = p1y;
-		}
-		curseg = newseg;
-		*lbptr = curseg;
-		return (int)curseg->lb_type;
-	    }
-	}
-    }
-    return -1;		/* This shouldn't happen, but isn't fatal. */
-}
-
-/*
- * ----------------------------------------------------------------------------
- * calmaRemoveDegenerate ---
- *
- *    This routine takes lists of polygons and removes any degenerate
- *    segments (those that backtrack on themselves) from each one.
- *
- * Results:
- *	None.
- *
- * Side Effects:
- *	Deallocates memory for any segments that are removed.
- *
- * ----------------------------------------------------------------------------
- */
-
-void
-calmaRemoveDegenerate(blist)
-    BoundaryTop *blist;
-{
-    bool segfound;
-    LinkedBoundary *stopseg, *curseg, *lastseg;
-    BoundaryTop *bounds;
-
-    for (bounds = blist; bounds != NULL; bounds = bounds->bt_next)
-    {
-	segfound = TRUE;
-	while (segfound)
-	{
-	    segfound = FALSE;
-	    stopseg = NULL;
-	    for (lastseg = bounds->bt_first; lastseg != stopseg;)
-	    {
-		stopseg = bounds->bt_first;
-		curseg = lastseg->lb_next;
-
-		if (GEO_SAMEPOINT(curseg->lb_start,
-			curseg->lb_next->lb_next->lb_start))
-		{
-		    segfound = TRUE;
-		    lastseg->lb_next = curseg->lb_next->lb_next;
-
-		    freeMagic(curseg->lb_next);
-		    freeMagic(curseg);
-
-		    /* Make sure record doesn't point to a free'd segment */
-		    bounds->bt_first = lastseg;
-		    bounds->bt_points -= 2;
-		    break;
-		}
-		else
-		    lastseg = lastseg->lb_next;
-	    }
-	}
-    }
-}
-
-/*
- * ----------------------------------------------------------------------------
- * calmaRemoveColinear ---
- *
- *    This routine takes lists of polygons and removes any redundant
- *    (colinear) points.
- *
- * Results:
- *	None.
- *
- * Side Effects:
- *	Deallocates memory for any segments that are removed.
- *
- * ----------------------------------------------------------------------------
- */
-
-void
-calmaRemoveColinear(blist)
-    BoundaryTop *blist;
-{
-    LinkedBoundary *stopseg, *curseg, *lastseg;
-    BoundaryTop *bounds;
-
-    for (bounds = blist; bounds != NULL; bounds = bounds->bt_next)
-    {
-	stopseg = NULL;
-	for (lastseg = bounds->bt_first; lastseg != stopseg;)
-	{
-	    stopseg = bounds->bt_first;
-	    curseg = lastseg->lb_next;
-
-	    if (((lastseg->lb_start.p_x == curseg->lb_start.p_x) &&
-		(lastseg->lb_start.p_x == curseg->lb_next->lb_start.p_x)) ||
-		((lastseg->lb_start.p_y == curseg->lb_start.p_y) &&
-		(lastseg->lb_start.p_y == curseg->lb_next->lb_start.p_y)))
-	    {
-		lastseg->lb_next = curseg->lb_next;
-
-		/* Make sure record doesn't point to a free'd segment */
-		if (curseg == bounds->bt_first) bounds->bt_first = lastseg;
-
-		freeMagic(curseg);
-		bounds->bt_points--;
-	    }
-	    else if ((lastseg->lb_start.p_x != curseg->lb_start.p_x) &&
-		(lastseg->lb_start.p_y != curseg->lb_start.p_y) &&
-		(curseg->lb_start.p_x != curseg->lb_next->lb_start.p_x) &&
-		(curseg->lb_start.p_y != curseg->lb_next->lb_start.p_y))
-	    {
-		/* Check colinearity of non-Manhattan edges */
-		int delx1, dely1, delx2, dely2, gcf;
-
-		delx1 = curseg->lb_start.p_x - lastseg->lb_start.p_x;
-		dely1 = curseg->lb_start.p_y - lastseg->lb_start.p_y;
-		delx2 = curseg->lb_next->lb_start.p_x - curseg->lb_start.p_x;
-		dely2 = curseg->lb_next->lb_start.p_y - curseg->lb_start.p_y;
-
-		if ((delx1 != delx2) || (dely1 != dely2))
-		{
-		    gcf = FindGCF(delx1, dely1);
-		    if (gcf > 1)
-		    {
-			delx1 /= gcf;
-			dely1 /= gcf;
-		    }
-		}
-		if ((delx1 != delx2) || (dely1 != dely2))
-		{
-		    gcf = FindGCF(delx2, dely2);
-		    if (gcf > 1)
-		    {
-			delx2 /= gcf;
-			dely2 /= gcf;
-		    }
-		}
-		if ((delx1 == delx2) && (dely1 == dely2))
-	 	{
-		    lastseg->lb_next = curseg->lb_next;
-		    if (curseg == bounds->bt_first) bounds->bt_first = lastseg;
-		    freeMagic(curseg);
-		    bounds->bt_points--;
-		}
-		else
-		    lastseg = lastseg->lb_next;
-	    }
-	    else
-		lastseg = lastseg->lb_next;
-	}
-    }
-}
-
-/*
- * ----------------------------------------------------------------------------
- * calmaMergeSegments ---
- *
- *    Once a tile has been disassembled into segments, and it is not a simple
- *    rectangle (which would have been handled already), then merge it into
- *    the list of boundaries.
- *
- *    Note that this algorithm is O(N^2) and has lots of room for improvement!
- *    Still, each segment is never checked against more than 200 points,
- *    because when a boundary reaches this number (the maximum for GDS
- *    boundary records), the record will tend to be skipped (it should
- *    probably be output here. . .)
- *
- * Results:
- *	None.
- *
- * Side effects:
- *	Output, memory allocation and deallocation
- *
- * ----------------------------------------------------------------------------
- */
-
-void
-calmaMergeSegments(edge, blist, num_points)
-    LinkedBoundary *edge;
-    BoundaryTop **blist;
-    int num_points;
-{
-    LinkedBoundary *stopseg, *curseg, *lastseg;
-    LinkedBoundary *compstop, *compseg, *complast;
-    BoundaryTop *bounds, *newbounds;
-
-    if (*blist == NULL) goto make_new_bound;
-
-    /* Check each internal edge for an antiparallel match with	*/
-    /* an internal edge in the boundary lists.			*/
-
-    stopseg = NULL;
-    for (lastseg = edge; lastseg != stopseg; lastseg = lastseg->lb_next)
-    {
-	stopseg = edge;
-	curseg = lastseg->lb_next;
-	if (curseg->lb_type == LB_EXTERNAL) continue;
-
-	for (bounds = *blist; bounds != NULL; bounds = bounds->bt_next)
-	{
-	    /* Avoid overflow on GDS boundary point limit.  Note	*/
-	    /* that a merge will remove 2 points, but GDS requires	*/
-	    /* that we add the 1st point to the end of the list.	*/
-
-	    if (bounds->bt_points + num_points > 201) continue;
-
-	    compstop = NULL;
-	    for (complast = bounds->bt_first; complast != compstop;
-			complast = complast->lb_next)
-	    {
-	        compstop = bounds->bt_first;
-		compseg = complast->lb_next;
-		if (compseg->lb_type == LB_EXTERNAL) continue;
-
-		/* Edges match antiparallel only. Rect points are *not*	*/
-		/* canonical. r_ll and p1 are both 1st points traveling	*/
-		/* in a counterclockwise direction along the perimeter.	*/
-
-		if (GEO_SAMEPOINT(compseg->lb_start, curseg->lb_next->lb_start) &&
-		   GEO_SAMEPOINT(compseg->lb_next->lb_start, curseg->lb_start))
-		{
-		    lastseg->lb_next = compseg->lb_next;
-		    complast->lb_next = curseg->lb_next;
-
-		    freeMagic(compseg);
-		    freeMagic(curseg);
-
-		    /* Make sure the record doesn't point to the free'd segment */
-		    if (compseg == bounds->bt_first) bounds->bt_first = complast;
-		    bounds->bt_points += num_points - 2;
-		    return;
-		}
-	    }
-	}
-    }
-
-    /* If still no connecting edge was found, or if we overflowed the GDS max	*/
-    /* number of records for a boundary, then start a new entry.		*/
-
-make_new_bound:
-
-    newbounds = (BoundaryTop *)mallocMagic(sizeof(BoundaryTop));
-    newbounds->bt_first = edge;
-    newbounds->bt_next = *blist;
-    newbounds->bt_points = num_points;
-    *blist = newbounds;
 }
 
 /*
@@ -2245,11 +1701,11 @@ make_new_bound:
  */
 
 void
-calmaProcessBoundary(blist, cos)
+calmaProcessBoundaryZ(blist, cos)
     BoundaryTop *blist;
-    calmaOutputStruct *cos;
+    calmaOutputStructZ *cos;
 {
-    FILE *f = cos->f;
+    gzFile f = cos->f;
     LinkedBoundary *listtop, *lbref, *lbstop, *lbfree;
     BoundaryTop *bounds;
     int sval;
@@ -2258,18 +1714,18 @@ calmaProcessBoundary(blist, cos)
     for (bounds = blist; bounds != NULL; bounds = bounds->bt_next)
     {
 	/* Boundary */
-	calmaOutRH(4, CALMA_BOUNDARY, CALMA_NODATA, f);
+	calmaOutRHZ(4, CALMA_BOUNDARY, CALMA_NODATA, f);
 
 	/* Layer */
-	calmaOutRH(6, CALMA_LAYER, CALMA_I2, f);
-	calmaOutI2(calmaPaintLayerNumber, f);
+	calmaOutRHZ(6, CALMA_LAYER, CALMA_I2, f);
+	calmaOutI2Z(calmaPaintLayerNumber, f);
 
 	/* Data type */
-	calmaOutRH(6, CALMA_DATATYPE, CALMA_I2, f);
-	calmaOutI2(calmaPaintLayerType, f);
+	calmaOutRHZ(6, CALMA_DATATYPE, CALMA_I2, f);
+	calmaOutI2Z(calmaPaintLayerType, f);
 
 	/* Record length = ((#points + 1) * 2 values * 4 bytes) + 4 bytes header */
-	calmaOutRH(4 + (bounds->bt_points + 1) * 8, CALMA_XY, CALMA_I4, f);
+	calmaOutRHZ(4 + (bounds->bt_points + 1) * 8, CALMA_XY, CALMA_I4, f);
 
 	/* Coordinates (repeat 1st point) */
 
@@ -2279,49 +1735,19 @@ calmaProcessBoundary(blist, cos)
 	for (lbref = listtop; lbref != lbstop; lbref = lbref->lb_next)
 	{
 	    lbstop = listtop;
-	    calmaOutI4(lbref->lb_start.p_x * calmaPaintScale, f);
-	    calmaOutI4(lbref->lb_start.p_y * calmaPaintScale, f);
+	    calmaOutI4Z(lbref->lb_start.p_x * calmaPaintScale, f);
+	    calmaOutI4Z(lbref->lb_start.p_y * calmaPaintScale, f);
 	    chkcount++;
 	}
-	calmaOutI4(listtop->lb_start.p_x * calmaPaintScale, f);
-	calmaOutI4(listtop->lb_start.p_y * calmaPaintScale, f);
+	calmaOutI4Z(listtop->lb_start.p_x * calmaPaintScale, f);
+	calmaOutI4Z(listtop->lb_start.p_y * calmaPaintScale, f);
 
 	if (chkcount != bounds->bt_points)
 	    TxError("Points recorded=%d;  Points written=%d\n",
 			bounds->bt_points, chkcount);
 
 	/* End of element */
-	calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
-
-#ifdef DEBUG
-	/* Diagnostic: report the contents of the list */
-	TxPrintf("Polygon path (%d points):\n", bounds->bt_points);
-
-	listtop = bounds->bt_first;
-	lbstop = NULL;
-
-	for (lbref = listtop; lbref != lbstop; lbref = lbref->lb_next)
-	{
-	    if (lbref != listtop)
-		TxPrintf("->");
-	    else
-		lbstop = listtop;
-
-	    switch(lbref->lb_type)
-	    {
-		case LB_EXTERNAL:
-		    TxPrintf("(%d %d)", lbref->lb_start.p_x, lbref->lb_start.p_y);
-		    break;
-		case LB_INTERNAL:
-		    TxPrintf("[[%d %d]]", lbref->lb_start.p_x, lbref->lb_start.p_y);
-		    break;
-		case LB_INIT:
-		    TxPrintf("XXXXX");
-		    break;
-	    }
-	}
-	TxPrintf("\n\n");
-#endif
+	calmaOutRHZ(4, CALMA_ENDEL, CALMA_NODATA, f);
 
 	/* Free the LinkedBoundary list */
 
@@ -2343,23 +1769,23 @@ calmaProcessBoundary(blist, cos)
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaMergePaintFunc --
+ * calmaMergePaintFuncZ --
  *
  * Results:
  *	None.
  *
  * Side effects:
- *	Writes to the disk file.
+ *	Writes to the gzFile cos->f
  *
  * ----------------------------------------------------------------------------
  */
 
 int
-calmaMergePaintFunc(tile, cos)
+calmaMergePaintFuncZ(tile, cos)
     Tile *tile;			/* Tile to be written out. */
-    calmaOutputStruct *cos;	/* Information needed by algorithm */
+    calmaOutputStructZ *cos;	/* Information needed by algorithm */
 {
-    FILE *f = cos->f;
+    gzFile f = cos->f;
     Rect *clipArea = cos->area;
     Tile *t, *tp;
     TileType ttype;
@@ -2612,7 +2038,7 @@ right_search:
 done_searches:
 	if (intedges == 0)
 	{
-	    calmaWritePaintFunc(t, cos);
+	    calmaWritePaintFuncZ(t, cos);
 
 	    /* Although calmaWritePaintFunc is called only on isolated	*/
 	    /* tiles, we may have expanded it.  This could use a LOT of	*/
@@ -2651,7 +2077,7 @@ done_searches:
     calmaRemoveColinear(bounds);
 
     /* Output the boundary records */
-    calmaProcessBoundary(bounds, cos);
+    calmaProcessBoundaryZ(bounds, cos);
 
     return 0;	/* Keep the search alive. . . */
 }
@@ -2659,7 +2085,7 @@ done_searches:
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaWritePaintFunc --
+ * calmaWritePaintFuncZ --
  *
  * Filter function used to write out a single paint tile.
  *
@@ -2672,17 +2098,17 @@ done_searches:
  *	None.
  *
  * Side effects:
- *	Writes to the disk file.
+ *	Writes to the gzFile 'f'
  *
  * ----------------------------------------------------------------------------
  */
 
 int
-calmaWritePaintFunc(tile, cos)
+calmaWritePaintFuncZ(tile, cos)
     Tile *tile;			/* Tile to be written out. */
-    calmaOutputStruct *cos;	/* File for output and clipping area */
+    calmaOutputStructZ *cos;	/* File for output and clipping area */
 {
-    FILE *f = cos->f;
+    gzFile f = cos->f;
     Rect *clipArea = cos->area;
     Rect r, r2;
 
@@ -2696,15 +2122,15 @@ calmaWritePaintFunc(tile, cos)
     r.r_ytop *= calmaPaintScale;
 
     /* Boundary */
-    calmaOutRH(4, CALMA_BOUNDARY, CALMA_NODATA, f);
+    calmaOutRHZ(4, CALMA_BOUNDARY, CALMA_NODATA, f);
 
     /* Layer */
-    calmaOutRH(6, CALMA_LAYER, CALMA_I2, f);
-    calmaOutI2(calmaPaintLayerNumber, f);
+    calmaOutRHZ(6, CALMA_LAYER, CALMA_I2, f);
+    calmaOutI2Z(calmaPaintLayerNumber, f);
 
     /* Data type */
-    calmaOutRH(6, CALMA_DATATYPE, CALMA_I2, f);
-    calmaOutI2(calmaPaintLayerType, f);
+    calmaOutRHZ(6, CALMA_DATATYPE, CALMA_I2, f);
+    calmaOutI2Z(calmaPaintLayerType, f);
 
     /* The inefficient use of CALMA_BOUNDARY for rectangles actually	*/
     /* makes it easy to implement triangles, since they must be defined */
@@ -2713,49 +2139,49 @@ calmaWritePaintFunc(tile, cos)
     if (IsSplit(tile))
     {
 	/* Coordinates */
-	calmaOutRH(36, CALMA_XY, CALMA_I4, f);
+	calmaOutRHZ(36, CALMA_XY, CALMA_I4, f);
 
 	switch ((SplitSide(tile) << 1) | SplitDirection(tile))
 	{
 	    case 0x0:
-		calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ybot, f);
-		calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ytop, f);
-		calmaOutI4(r.r_xtop, f); calmaOutI4(r.r_ytop, f);
-		calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ybot, f);
+		calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ybot, f);
+		calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ytop, f);
+		calmaOutI4Z(r.r_xtop, f); calmaOutI4Z(r.r_ytop, f);
+		calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ybot, f);
 		break;
 	    case 0x1:
-		calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ytop, f);
-		calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ybot, f);
-		calmaOutI4(r.r_xtop, f); calmaOutI4(r.r_ybot, f);
-		calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ytop, f);
+		calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ytop, f);
+		calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ybot, f);
+		calmaOutI4Z(r.r_xtop, f); calmaOutI4Z(r.r_ybot, f);
+		calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ytop, f);
 		break;
 	    case 0x2:
-		calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ybot, f);
-		calmaOutI4(r.r_xtop, f); calmaOutI4(r.r_ybot, f);
-		calmaOutI4(r.r_xtop, f); calmaOutI4(r.r_ytop, f);
-		calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ybot, f);
+		calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ybot, f);
+		calmaOutI4Z(r.r_xtop, f); calmaOutI4Z(r.r_ybot, f);
+		calmaOutI4Z(r.r_xtop, f); calmaOutI4Z(r.r_ytop, f);
+		calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ybot, f);
 		break;
 	    case 0x3:
-		calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ytop, f);
-		calmaOutI4(r.r_xtop, f); calmaOutI4(r.r_ytop, f);
-		calmaOutI4(r.r_xtop, f); calmaOutI4(r.r_ybot, f);
-		calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ytop, f);
+		calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ytop, f);
+		calmaOutI4Z(r.r_xtop, f); calmaOutI4Z(r.r_ytop, f);
+		calmaOutI4Z(r.r_xtop, f); calmaOutI4Z(r.r_ybot, f);
+		calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ytop, f);
 		break;
 	}
     }
     else
     {
 	/* Coordinates */
-	calmaOutRH(44, CALMA_XY, CALMA_I4, f);
-	calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ybot, f);
-	calmaOutI4(r.r_xtop, f); calmaOutI4(r.r_ybot, f);
-	calmaOutI4(r.r_xtop, f); calmaOutI4(r.r_ytop, f);
-	calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ytop, f);
-	calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ybot, f);
+	calmaOutRHZ(44, CALMA_XY, CALMA_I4, f);
+	calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ybot, f);
+	calmaOutI4Z(r.r_xtop, f); calmaOutI4Z(r.r_ybot, f);
+	calmaOutI4Z(r.r_xtop, f); calmaOutI4Z(r.r_ytop, f);
+	calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ytop, f);
+	calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ybot, f);
     }
 
     /* End of element */
-    calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
+    calmaOutRHZ(4, CALMA_ENDEL, CALMA_NODATA, f);
 
     return 0;
 }
@@ -2763,9 +2189,9 @@ calmaWritePaintFunc(tile, cos)
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaWriteLabelFunc --
+ * calmaWriteLabelFuncZ --
  *
- * Output a single label to the stream file 'f'.
+ * Output a single label to the compressed stream file 'f'.
  *
  * The CIF type to which this label is attached is 'type'; if this
  * is < 0 then the label is not output.
@@ -2777,16 +2203,16 @@ calmaWritePaintFunc(tile, cos)
  *	None.
  *
  * Side effects:
- *	Writes to the FILE 'f'.
+ *	Writes to the gzFile 'f'.
  *
  * ----------------------------------------------------------------------------
  */
 
 void
-calmaWriteLabelFunc(lab, type, f)
+calmaWriteLabelFuncZ(lab, type, f)
     Label *lab;	/* Label to output */
     int type;	/* CIF layer number, or -1 if not attached to a layer */
-    FILE *f;	/* Stream file */
+    gzFile f;	/* Stream file */
 {
     Point p;
     int calmanum, calmatype;
@@ -2798,14 +2224,14 @@ calmaWriteLabelFunc(lab, type, f)
     if (!CalmaIsValidLayer(calmanum))
 	return;
 
-    calmaOutRH(4, CALMA_TEXT, CALMA_NODATA, f);
+    calmaOutRHZ(4, CALMA_TEXT, CALMA_NODATA, f);
 
-    calmaOutRH(6, CALMA_LAYER, CALMA_I2, f);
-    calmaOutI2(calmanum, f);
+    calmaOutRHZ(6, CALMA_LAYER, CALMA_I2, f);
+    calmaOutI2Z(calmanum, f);
 
     calmatype = CIFCurStyle->cs_layers[type]->cl_calmatype;
-    calmaOutRH(6, CALMA_TEXTTYPE, CALMA_I2, f);
-    calmaOutI2(calmatype, f);
+    calmaOutRHZ(6, CALMA_TEXTTYPE, CALMA_I2, f);
+    calmaOutI2Z(calmatype, f);
 
     if (lab->lab_font >= 0)
     {
@@ -2851,35 +2277,35 @@ calmaWriteLabelFunc(lab, type, f)
 		break;
 	}
 
-	calmaOutRH(6, CALMA_PRESENTATION, CALMA_BITARRAY, f);
-	calmaOutI2(textpres, f);
+	calmaOutRHZ(6, CALMA_PRESENTATION, CALMA_BITARRAY, f);
+	calmaOutI2Z(textpres, f);
 
-	calmaOutRH(6, CALMA_STRANS, CALMA_BITARRAY, f);
-	calmaOutI2(0, f);	/* Any need for these bits? */
+	calmaOutRHZ(6, CALMA_STRANS, CALMA_BITARRAY, f);
+	calmaOutI2Z(0, f);	/* Any need for these bits? */
 
-	calmaOutRH(12, CALMA_MAG, CALMA_R8, f);
-	calmaOutR8(((double)lab->lab_size / 800)
+	calmaOutRHZ(12, CALMA_MAG, CALMA_R8, f);
+	calmaOutR8Z(((double)lab->lab_size / 800)
 		* (double)CIFCurStyle->cs_scaleFactor
 		/ (double)CIFCurStyle->cs_expander, f);
 
 	if (lab->lab_rotate != 0)
 	{
-	    calmaOutRH(12, CALMA_ANGLE, CALMA_R8, f);
-	    calmaOutR8((double)lab->lab_rotate, f);
+	    calmaOutRHZ(12, CALMA_ANGLE, CALMA_R8, f);
+	    calmaOutR8Z((double)lab->lab_rotate, f);
 	}
     }
 
     p.p_x = (lab->lab_rect.r_xbot + lab->lab_rect.r_xtop) * calmaWriteScale / 2;
     p.p_y = (lab->lab_rect.r_ybot + lab->lab_rect.r_ytop) * calmaWriteScale / 2;
-    calmaOutRH(12, CALMA_XY, CALMA_I4, f);
-    calmaOutI4(p.p_x, f);
-    calmaOutI4(p.p_y, f);
+    calmaOutRHZ(12, CALMA_XY, CALMA_I4, f);
+    calmaOutI4Z(p.p_x, f);
+    calmaOutI4Z(p.p_y, f);
 
     /* Text of label */
-    calmaOutStringRecord(CALMA_STRING, lab->lab_text, f);
+    calmaOutStringRecordZ(CALMA_STRING, lab->lab_text, f);
 
     /* End of element */
-    calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
+    calmaOutRHZ(4, CALMA_ENDEL, CALMA_NODATA, f);
 
     /* If the cifoutput layer is for labels only (has no operators),	*/
     /* and the label rectangle is not degenerate, then output the label	*/
@@ -2901,33 +2327,33 @@ calmaWriteLabelFunc(lab, type, f)
 	r.r_ytop *= calmaWriteScale;
 
 	/* Boundary */
-	calmaOutRH(4, CALMA_BOUNDARY, CALMA_NODATA, f);
+	calmaOutRHZ(4, CALMA_BOUNDARY, CALMA_NODATA, f);
 
 	/* Layer */
-	calmaOutRH(6, CALMA_LAYER, CALMA_I2, f);
-	calmaOutI2(calmanum, f);
+	calmaOutRHZ(6, CALMA_LAYER, CALMA_I2, f);
+	calmaOutI2Z(calmanum, f);
 
 	/* Data type */
-	calmaOutRH(6, CALMA_DATATYPE, CALMA_I2, f);
-	calmaOutI2(calmatype, f);
+	calmaOutRHZ(6, CALMA_DATATYPE, CALMA_I2, f);
+	calmaOutI2Z(calmatype, f);
 
 	/* Coordinates */
-	calmaOutRH(44, CALMA_XY, CALMA_I4, f);
-	calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ybot, f);
-	calmaOutI4(r.r_xtop, f); calmaOutI4(r.r_ybot, f);
-	calmaOutI4(r.r_xtop, f); calmaOutI4(r.r_ytop, f);
-	calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ytop, f);
-	calmaOutI4(r.r_xbot, f); calmaOutI4(r.r_ybot, f);
+	calmaOutRHZ(44, CALMA_XY, CALMA_I4, f);
+	calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ybot, f);
+	calmaOutI4Z(r.r_xtop, f); calmaOutI4Z(r.r_ybot, f);
+	calmaOutI4Z(r.r_xtop, f); calmaOutI4Z(r.r_ytop, f);
+	calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ytop, f);
+	calmaOutI4Z(r.r_xbot, f); calmaOutI4Z(r.r_ybot, f);
 
 	/* End of element */
-	calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
+	calmaOutRHZ(4, CALMA_ENDEL, CALMA_NODATA, f);
     }
 }
 
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaPaintLabelFunc --
+ * calmaPaintLabelFuncZ --
  *
  * Filter function used to write out a single label corresponding to the
  * area of a paint tile, and having a text matching the CIF layer name.
@@ -2936,17 +2362,17 @@ calmaWriteLabelFunc(lab, type, f)
  *	None.
  *
  * Side effects:
- *	Writes to the disk file.
+ *	Writes to the gzFile 'f'
  *
  * ----------------------------------------------------------------------------
  */
 
 int
-calmaPaintLabelFunc(tile, cos)
+calmaPaintLabelFuncZ(tile, cos)
     Tile *tile;			/* Tile contains area for label. */
-    calmaOutputStruct *cos;	/* File for output and clipping area */
+    calmaOutputStructZ *cos;	/* File for output and clipping area */
 {
-    FILE *f = cos->f;
+    gzFile f = cos->f;
     Rect *clipArea = cos->area;
     Rect r, r2;
     Point p;
@@ -2963,25 +2389,25 @@ calmaPaintLabelFunc(tile, cos)
     if (clipArea != NULL)
 	GeoClip(&r, clipArea);
 
-    calmaOutRH(4, CALMA_TEXT, CALMA_NODATA, f);
+    calmaOutRHZ(4, CALMA_TEXT, CALMA_NODATA, f);
 
-    calmaOutRH(6, CALMA_LAYER, CALMA_I2, f);
-    calmaOutI2(layer->cl_calmanum, f);
+    calmaOutRHZ(6, CALMA_LAYER, CALMA_I2, f);
+    calmaOutI2Z(layer->cl_calmanum, f);
 
-    calmaOutRH(6, CALMA_TEXTTYPE, CALMA_I2, f);
-    calmaOutI2(layer->cl_calmatype, f);
+    calmaOutRHZ(6, CALMA_TEXTTYPE, CALMA_I2, f);
+    calmaOutI2Z(layer->cl_calmatype, f);
 
     p.p_x = (r.r_xbot + r.r_xtop) * calmaPaintScale / 2;
     p.p_y = (r.r_ybot + r.r_ytop) * calmaPaintScale / 2;
-    calmaOutRH(12, CALMA_XY, CALMA_I4, f);
-    calmaOutI4(p.p_x, f);
-    calmaOutI4(p.p_y, f);
+    calmaOutRHZ(12, CALMA_XY, CALMA_I4, f);
+    calmaOutI4Z(p.p_x, f);
+    calmaOutI4Z(p.p_y, f);
 
     /* Text of label is the CIF layer name */
-    calmaOutStringRecord(CALMA_STRING, layer->cl_name, f);
+    calmaOutStringRecordZ(CALMA_STRING, layer->cl_name, f);
 
     /* End of element */
-    calmaOutRH(4, CALMA_ENDEL, CALMA_NODATA, f);
+    calmaOutRHZ(4, CALMA_ENDEL, CALMA_NODATA, f);
 
     return 0;
 }
@@ -2997,33 +2423,33 @@ calmaPaintLabelFunc(tile, cos)
  *	None.
  *
  * Side effects:
- *	Writes to the FILE 'f'.
+ *	Writes to the gzFile 'f'.
  *
  * ----------------------------------------------------------------------------
  */
 
 void
-calmaOutHeader(rootDef, f)
+calmaOutHeaderZ(rootDef, f)
     CellDef *rootDef;
-    FILE *f;
+    gzFile f;
 {
     static double useru = 0.001;
     static double mum = 1.0e-9;
 
     /* GDS II version 3.0 */
-    calmaOutRH(6, CALMA_HEADER, CALMA_I2, f);
-    calmaOutI2(3, f);
+    calmaOutRHZ(6, CALMA_HEADER, CALMA_I2, f);
+    calmaOutI2Z(3, f);
 
     /* Beginning of library */
-    calmaOutRH(28, CALMA_BGNLIB, CALMA_I2, f);
+    calmaOutRHZ(28, CALMA_BGNLIB, CALMA_I2, f);
     if (CalmaDateStamp != NULL)
-    	calmaOutDate(*CalmaDateStamp, f);
+    	calmaOutDateZ(*CalmaDateStamp, f);
     else
-    	calmaOutDate(rootDef->cd_timestamp, f);
-    calmaOutDate(time((time_t *) 0), f);
+    	calmaOutDateZ(rootDef->cd_timestamp, f);
+    calmaOutDateZ(time((time_t *) 0), f);
 
     /* Library name (name of root cell) */
-    calmaOutStructName(CALMA_LIBNAME, rootDef, f);
+    calmaOutStructNameZ(CALMA_LIBNAME, rootDef, f);
 
     /*
      * Units.
@@ -3037,18 +2463,18 @@ calmaOutHeader(rootDef, f)
      * properly with other software.
      */
 
-    calmaOutRH(20, CALMA_UNITS, CALMA_R8, f);
+    calmaOutRHZ(20, CALMA_UNITS, CALMA_R8, f);
     if (CIFCurStyle->cs_flags & CWF_ANGSTROMS) useru = 0.0001;
-    calmaOutR8(useru, f);	/* User units per database unit */
+    calmaOutR8Z(useru, f);	/* User units per database unit */
 
     if (CIFCurStyle->cs_flags & CWF_ANGSTROMS) mum = 1e-10;
-    calmaOutR8(mum, f);		/* Meters per database unit */
+    calmaOutR8Z(mum, f);	/* Meters per database unit */
 }
 
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaOutDate --
+ * calmaOutDateZ --
  *
  * Output a date/time specification to the FILE 'f'.
  * This consists of outputting 6 2-byte quantities,
@@ -3058,30 +2484,30 @@ calmaOutHeader(rootDef, f)
  *	None.
  *
  * Side effects:
- *	Writes to the FILE 'f'.
+ *	Writes to the gzFile 'f'.
  *
  * ----------------------------------------------------------------------------
  */
 
 void
-calmaOutDate(t, f)
+calmaOutDateZ(t, f)
     time_t t;	/* Time (UNIX format) to be output */
-    FILE *f;	/* Stream file */
+    gzFile f;	/* Stream file */
 {
     struct tm *datep = localtime(&t);
 
-    calmaOutI2(datep->tm_year, f);
-    calmaOutI2(datep->tm_mon+1, f);
-    calmaOutI2(datep->tm_mday, f);
-    calmaOutI2(datep->tm_hour, f);
-    calmaOutI2(datep->tm_min, f);
-    calmaOutI2(datep->tm_sec, f);
+    calmaOutI2Z(datep->tm_year, f);
+    calmaOutI2Z(datep->tm_mon+1, f);
+    calmaOutI2Z(datep->tm_mday, f);
+    calmaOutI2Z(datep->tm_hour, f);
+    calmaOutI2Z(datep->tm_min, f);
+    calmaOutI2Z(datep->tm_sec, f);
 }
 
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaOutStringRecord --
+ * calmaOutStringRecordZ --
  *
  * Output a complete string-type record.  The actual record
  * type is given by 'type'.  Up to the first CALMANAMELENGTH characters
@@ -3093,21 +2519,21 @@ calmaOutDate(t, f)
  *	None.
  *
  * Side effects:
- *	Writes to the FILE 'f'.
+ *	Writes to the gzFile 'f'.
  *
  * ----------------------------------------------------------------------------
  */
 
 void
-calmaOutStringRecord(type, str, f)
-    int type;		/* Type of this record (data type is ASCII string) */
+calmaOutStringRecordZ(type, str, f)
+    int type;	/* Type of this record (data type is ASCII string) */
     char *str;	/* String to be output */
-    FILE *f;	/* Stream file */
+    gzFile f;	/* Compressed stream file */
 {
     int len;
     unsigned char c;
     char *table, *locstr, *origstr = NULL;
-    char *locstrprv; 	/* Added by BSI */
+    char *locstrprv;
 
     if(CIFCurStyle->cs_flags & CWF_PERMISSIVE_LABELS)
     {
@@ -3142,16 +2568,16 @@ calmaOutStringRecord(type, str, f)
 	locstr = str + len - CALMANAMELENGTH;
 	len = CALMANAMELENGTH;
     }
-    calmaOutI2(len+4, f);	/* Record length */
-    (void) putc(type, f);		/* Record type */
-    (void) putc(CALMA_ASCII, f);	/* Data type */
+    calmaOutI2Z(len+4, f);	/* Record length */
+    (void) gzputc(f, type);		/* Record type */
+    (void) gzputc(f, CALMA_ASCII);	/* Data type */
 
     /* Output the string itself */
     while (len--)
     {
 	locstrprv = locstr;
 	c = (unsigned char) *locstr++;
-	if (c == 0) putc('\0', f);
+	if (c == 0) gzputc(f, '\0');
 	else
 	{
 	    if ((c > 127) || (c == 0))
@@ -3169,9 +2595,9 @@ calmaOutStringRecord(type, str, f)
 		locstrprv[0] = c;
 	    }
 	    if (!CalmaDoLower && islower(c))
-		(void) putc(toupper(c), f);
+		(void) gzputc(f, toupper(c));
 	    else
-		(void) putc(c, f);
+		(void) gzputc(f, c);
 	}
     }
     if (origstr != NULL)
@@ -3185,7 +2611,7 @@ calmaOutStringRecord(type, str, f)
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaOutR8 --
+ * calmaOutR8Z --
  *
  * Write an 8-byte Real value in GDS-II format to the output stream
  * The value is passed as a double.
@@ -3194,15 +2620,15 @@ calmaOutStringRecord(type, str, f)
  *	None.
  *
  * Side effects:
- *	8-byte value written to output stream FILE 'f'.
+ *	8-byte value written to compressed output stream gzFile 'f'.
  *
  * ----------------------------------------------------------------------------
  */
 
 void
-calmaOutR8(d, f)
+calmaOutR8Z(d, f)
     double d;	/* Double value to write to output */
-    FILE *f;	/* Stream file */
+    gzFile f;	/* Stream file */
 {
     int c, i, sign, expon;
 
@@ -3249,11 +2675,11 @@ calmaOutR8(d, f)
 	}
     }
     c = (sign << 7) | expon;
-    (void) putc(c, f);
+    (void) gzputc(f, c);
     for (i = 1; i < 8; i++)
     {
 	c = (int)(0xff & (mantissa >> (64 - (8 * i))));
-	(void) putc(c, f);
+	(void) gzputc(f, c);
     }
 }
 
@@ -3261,7 +2687,7 @@ calmaOutR8(d, f)
 /*
  * ----------------------------------------------------------------------------
  *
- * calmaOut8 --
+ * calmaOut8Z --
  *
  * Output 8 bytes.
  *
@@ -3269,18 +2695,20 @@ calmaOutR8(d, f)
  *	None.
  *
  * Side effects:
- *	Writes to the FILE 'f'.
+ *	Writes to the gzFile 'f'.
  *
  * ----------------------------------------------------------------------------
  */
 
 void
-calmaOut8(str, f)
+calmaOut8Z(str, f)
     char *str;	/* 8-byte string to be output */
-    FILE *f;	/* Stream file */
+    gzFile f;	/* Compressed stream file */
 {
     int i;
 
     for (i = 0; i < 8; i++)
-	(void) putc(*str++, f);
+	(void) gzputc(f, *str++);
 }
+
+#endif /* HAVE_ZLIB */
