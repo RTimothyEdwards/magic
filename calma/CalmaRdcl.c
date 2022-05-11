@@ -142,7 +142,7 @@ calmaSetPosition(sname)
 
     if (originalPos != 0)
     {
-	rewind(calmaInputFile);
+	REWIND(calmaInputFile);
 	CalmaRewound = TRUE;
 	calmaSetPosition(sname);
 	if (!CalmaPostOrder)

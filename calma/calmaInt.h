@@ -148,6 +148,7 @@ typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT, LABEL_TYPE_CEL
     #define FEOF     gzeof
     #define FSEEK    gzseek
     #define FTELL    gztell
+    #define REWIND   gzrewind
     #define FILETYPE gzFile
     #define OFFTYPE  z_off_t
 #else
@@ -158,6 +159,7 @@ typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT, LABEL_TYPE_CEL
     #define FEOF     feof
     #define FSEEK    fseek
     #define FTELL    ftello
+    #define REWIND   rewind
     #define FILETYPE FILE *
     #define OFFTYPE  off_t
 #endif
