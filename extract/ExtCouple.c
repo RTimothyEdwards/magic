@@ -738,9 +738,11 @@ extAddCouple(bp, ecs)
     }
 
     if (extCoupleList)
+    {
 	(void) DBSrPaintArea((Tile *) NULL, def->cd_planes[ecs->plane],
 		&r, &ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
 		proc, (ClientData) bp);
+    }
 
     if (extCoupleList && extOverlapList && (ExtCurStyle->exts_fringeShieldHalo > 0))
     {
@@ -1001,6 +1003,14 @@ extSideOverlap(tp, esws)
     return (0);
 }
 
+/* NOTE ---
+ * A non-rigorous check is made in the four routines below to see if there
+ * is intervening material between the boundary and tfar.  To be rigorous
+ * without invoking a secondary area search, need to supply a routine that
+ * specifically walks out in one direction to the nearest matching tile
+ * and does not look beyond.
+ */
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1046,9 +1056,28 @@ extSideLeft(tpfar, bp)
 	for (tpnear = TR(tpfar); TOP(tpnear) > limit; tpnear = LB(tpnear))
 	{
 	    int overlap = MIN(TOP(tpnear), start) - MAX(BOTTOM(tpnear), limit);
-
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+	    {
+	    	Tile *tptest = tpnear;
+		Point p;
+	    	NodeRegion *rnear;
+
+		/* Walk back from edge to original boundary, checking	*/
+		/* that no shielding shapes exist in between.		*/
+	
+		p.p_y = (start + limit) / 2;
+		p.p_x = RIGHT(tpnear) + 1;
+		while (p.p_x < bp->b_segment.r_xbot)
+		{
+		    GOTOPOINT(tptest, &p);
+		    rnear = (NodeRegion *)extGetRegion(tptest);
+		    if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
+			break;
+		    p.p_x = RIGHT(tptest) + 1;
+		}
+		if (p.p_x > bp->b_segment.r_xbot)
+		    extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+	    }
 	}
     }
 
@@ -1095,9 +1124,28 @@ extSideRight(tpfar, bp)
 	for (tpnear = BL(tpfar); BOTTOM(tpnear) < limit; tpnear = RT(tpnear))
 	{
 	    int overlap = MIN(TOP(tpnear), limit) - MAX(BOTTOM(tpnear), start);
-
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+	    {
+	    	Tile *tptest = tpnear;
+		Point p;
+	    	NodeRegion *rnear;
+
+		/* Walk back from edge to original boundary, checking	*/
+		/* that no shielding shapes exist in between.		*/
+	
+		p.p_y = (start + limit) / 2;
+		p.p_x = LEFT(tpnear) - 1;
+		while (p.p_x > bp->b_segment.r_xtop)
+		{
+		    GOTOPOINT(tptest, &p);
+		    rnear = (NodeRegion *)extGetRegion(tptest);
+		    if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
+			break;
+		    p.p_x = LEFT(tptest) - 1;
+		}
+		if (p.p_x < bp->b_segment.r_xtop)
+		    extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+	    }
 	}
     }
 
@@ -1144,9 +1192,28 @@ extSideTop(tpfar, bp)
 	for (tpnear = LB(tpfar); LEFT(tpnear) < limit; tpnear = TR(tpnear))
 	{
 	    int overlap = MIN(RIGHT(tpnear), limit) - MAX(LEFT(tpnear), start);
-
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+	    {
+	    	Tile *tptest = tpnear;
+		Point p;
+	    	NodeRegion *rnear;
+
+		/* Walk back from edge to original boundary, checking	*/
+		/* that no shielding shapes exist in between.		*/
+	
+		p.p_x = (start + limit) / 2;
+		p.p_y = BOTTOM(tpnear) - 1;
+		while (p.p_y > bp->b_segment.r_ytop)
+		{
+		    GOTOPOINT(tptest, &p);
+		    rnear = (NodeRegion *)extGetRegion(tptest);
+		    if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
+			break;
+		    p.p_y = BOTTOM(tptest) - 1;
+		}
+		if (p.p_y < bp->b_segment.r_ytop)
+		    extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+	    }
 	}
     }
 
@@ -1193,9 +1260,28 @@ extSideBottom(tpfar, bp)
 	for (tpnear = RT(tpfar); RIGHT(tpnear) > limit; tpnear = BL(tpnear))
 	{
 	    int overlap = MIN(RIGHT(tpnear), start) - MAX(LEFT(tpnear), limit);
-
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+	    {
+	    	Tile *tptest = tpnear;
+		Point p;
+	    	NodeRegion *rnear;
+
+		/* Walk back from edge to original boundary, checking	*/
+		/* that no shielding shapes exist in between.		*/
+	
+		p.p_x = (start + limit) / 2;
+		p.p_y = TOP(tpnear) + 1;
+		while (p.p_y < bp->b_segment.r_ybot)
+		{
+		    GOTOPOINT(tptest, &p);
+		    rnear = (NodeRegion *)extGetRegion(tptest);
+		    if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
+			break;
+		    p.p_y = TOP(tptest) - 1;
+		}
+		if (p.p_y > bp->b_segment.r_ybot)
+		    extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+	    }
 	}
     }
 
