@@ -55,4 +55,8 @@ extern void CalmaTechInit();
 extern bool CalmaGenerateArray();
 extern void CalmaReadError();
 
+#ifdef HAVE_ZLIB
+extern bool CalmaWriteZ();
+#endif
+
 #endif /* _CALMA_H */

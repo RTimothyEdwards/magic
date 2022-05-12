@@ -167,6 +167,7 @@ typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT, LABEL_TYPE_CEL
 
 /* Globals for Calma reading */
 extern FILETYPE calmaInputFile;
+extern FILE *calmaInputFileNoCompression;
 extern char *calmaFilename;
 extern int  calmaReadScale1;
 extern int  calmaReadScale2;

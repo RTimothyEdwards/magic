@@ -588,14 +588,14 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 	int datatype;
 
 	READI2(nbytes);
-	if (feof(calmaInputFile))
+	if (FEOF(calmaInputFile))
 	{
 	    /* Unexpected end-of-file */
-	    fseek(calmaInputFile, -(CALMAHEADERLENGTH), SEEK_END);
+	    FSEEK(calmaInputFile, -(CALMAHEADERLENGTH), SEEK_END);
 	    break;
 	}
-	rtype = getc(calmaInputFile);
-	datatype = getc(calmaInputFile);
+	rtype = FGETC(calmaInputFile);
+	datatype = FGETC(calmaInputFile);
 	switch (rtype) {
 	    case CALMA_BGNSTR:
 		UNREADRH(nbytes, rtype);
@@ -642,7 +642,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
 		while (nbytes-- > 0)
 		{
 		    int byte;
-		    if ((byte = getc(calmaInputFile)) < 0)
+		    if ((byte = FGETC(calmaInputFile)) < 0)
 		    {
 			TxError("End of file with %d bytes remaining to be read.\n",
 				nbytes);
@@ -682,7 +682,7 @@ syntaxerror:
 void
 calmaFullDump(def, fi, outf, filename)
     CellDef *def;
-    FILE *fi;
+    FILETYPE fi;
     FILE *outf;
     char *filename;
 {
@@ -702,8 +702,8 @@ calmaFullDump(def, fi, outf, filename)
 
     HashInit(&calmaDefHash, 32, 0);
 
-    calmaInputFile = fi;
     cifReadCellDef = def;
+    calmaInputFile = fi;
 
     /* Read and ignore the GDS-II header */
 
@@ -771,7 +771,7 @@ calmaFullDump(def, fi, outf, filename)
     else
 	HashSetValue(he, StrDup(NULL, ""));
 
-    while (calmaDumpStructure(def, outf, &calmaDefHash, filename))
+    while (calmaDumpStructure(def, fi, outf, &calmaDefHash, filename))
 	if (SigInterruptPending)
 	    goto done;
     calmaSkipExact(CALMA_ENDLIB);
@@ -949,7 +949,7 @@ calmaProcessDef(def, outf, do_library)
  	dlong cval;
 	int namelen;
 	char *modName;
-	FILE *fi;
+	FILETYPE fi;
 
 	/* Handle compressed files */
 	
@@ -980,10 +980,10 @@ calmaProcessDef(def, outf, do_library)
 	    }
 	}
 	
-	/* Use PaOpen() so the paths searched are the same as were	*/
+	/* Use PaZOpen() so the paths searched are the same as were	*/
 	/* searched to find the .mag file that indicated this GDS file.	*/
 
-	fi = PaOpen(modName, "r", "", Path, CellLibPath, &retfilename);
+	fi = PaZOpen(modName, "r", "", Path, CellLibPath, &retfilename);
 	if (fi == NULL)
 	{
 	    /* This is a rare error, but if the subcell is inside	*/
@@ -1022,7 +1022,7 @@ calmaProcessDef(def, outf, do_library)
 	    if (he == NULL)
 		calmaFullDump(def, fi, outf, retfilename);
 
-	    fclose(fi);
+	    FCLOSE(fi);
 	    def->cd_flags |= CDVENDORGDS;
 	}
 	else
@@ -1060,12 +1060,12 @@ calmaProcessDef(def, outf, do_library)
 	    if (strlen(def->cd_name) & 0x1) structstart--;
 	    structstart -= 2;
 
-	    fseek(fi, structstart, SEEK_SET);
+	    FSEEK(fi, structstart, SEEK_SET);
 
 	    /* Read the structure name and check against the CellDef name */
 	    defsize = (size_t)(cellstart - structstart);
 	    buffer = (char *)mallocMagic(defsize + 1);
-	    numbytes = fread(buffer, sizeof(char), (size_t)defsize, fi);
+	    numbytes = FREAD(buffer, sizeof(char), (size_t)defsize, fi);
 	    if (numbytes == defsize)
 	    {
 		buffer[defsize] = '\0';
@@ -1105,7 +1105,7 @@ calmaProcessDef(def, outf, do_library)
 		defsize = (size_t)(cellend - cellstart);
 		buffer = (char *)mallocMagic(defsize);
 
-		numbytes = fread(buffer, sizeof(char), (size_t)defsize, fi);
+		numbytes = FREAD(buffer, sizeof(char), (size_t)defsize, fi);
 
 		if (numbytes == defsize)
 		{
@@ -1147,7 +1147,7 @@ calmaProcessDef(def, outf, do_library)
 		}
 		freeMagic(buffer);
 	    }
-	    fclose(fi);
+	    FCLOSE(fi);
 
 	    if (modName != filename)
 	    {
