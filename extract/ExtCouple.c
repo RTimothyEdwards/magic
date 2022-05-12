@@ -1366,6 +1366,7 @@ extShieldLeft(tpfar, efss)
     extFringeShieldStruct *efss;
 {
     Boundary *bp = efss->bp;
+    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
     Tile *tpnear;
     float fshield;	/* fraction shielded for this segment */
     float frac;		/* ratio of segment to boundary length */
@@ -1379,14 +1380,33 @@ extShieldLeft(tpfar, efss)
     for (tpnear = TR(tpfar); TOP(tpnear) > limit; tpnear = LB(tpnear))
     {
 	int overlap = MIN(TOP(tpnear), start) - MAX(BOTTOM(tpnear), limit);
-
 	if (overlap > 0)
 	{
-	    frac = (float)(start - limit) /
-		(float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot);
-	    /* Use sin() approximation for shielding effect */
-            fshield = 1.0 - sin(1.571 * fsep / halo);
-	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	    Tile *tptest = tpnear;
+	    Point p;
+	    NodeRegion *rnear;
+
+	    /* Walk back from edge to original boundary, checking	*/
+	    /* that no shapes are shielding the shield. . .		*/
+
+	    p.p_y = (start + limit) / 2;
+	    p.p_x = RIGHT(tpnear) + 1;
+	    while (p.p_x < bp->b_segment.r_xbot)
+	    {
+		GOTOPOINT(tptest, &p);
+		rnear = (NodeRegion *)extGetRegion(tptest);
+		if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
+		    break;
+		p.p_x = RIGHT(tptest) + 1;
+	    }
+	    if (p.p_x > bp->b_segment.r_xbot)
+	    {
+		frac = (float)(start - limit) /
+			(float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot);
+		/* Use sin() approximation for shielding effect */
+		fshield = 1.0 - sin(1.571 * fsep / halo);
+		efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	    }
 	}
     }
     return (0);
@@ -1419,6 +1439,7 @@ extShieldRight(tpfar, efss)
     extFringeShieldStruct *efss;
 {
     Boundary *bp = efss->bp;
+    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
     Tile *tpnear;
     float fshield;	/* fraction shielded for this segment */
     float frac;		/* ratio of segment to boundary length */
@@ -1432,14 +1453,33 @@ extShieldRight(tpfar, efss)
     for (tpnear = BL(tpfar); BOTTOM(tpnear) < limit; tpnear = RT(tpnear))
     {
 	int overlap = MIN(TOP(tpnear), limit) - MAX(BOTTOM(tpnear), start);
-
 	if (overlap > 0)
 	{
-	    frac = (float)(limit - start) /
-		(float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot);
-	    /* Use sin() approximation for shielding effect */
-            fshield = 1.0 - sin(1.571 * fsep / halo);
-	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	    Tile *tptest = tpnear;
+	    Point p;
+	    NodeRegion *rnear;
+
+	    /* Walk back from edge to original boundary, checking	*/
+	    /* that no shapes are shielding the shield. . .		*/
+
+	    p.p_y = (start + limit) / 2;
+	    p.p_x = LEFT(tpnear) - 1;
+	    while (p.p_x > bp->b_segment.r_xtop)
+	    {
+		GOTOPOINT(tptest, &p);
+		rnear = (NodeRegion *)extGetRegion(tptest);
+		if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
+		    break;
+		p.p_x = LEFT(tptest) - 1;
+	    }
+	    if (p.p_x < bp->b_segment.r_xtop)
+	    {
+		frac = (float)(limit - start) /
+			(float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot);
+		/* Use sin() approximation for shielding effect */
+		fshield = 1.0 - sin(1.571 * fsep / halo);
+		efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	    }
 	}
     }
     return (0);
@@ -1472,6 +1512,7 @@ extShieldTop(tpfar, efss)
     extFringeShieldStruct *efss;
 {
     Boundary *bp = efss->bp;
+    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
     Tile *tpnear;
     float fshield;	/* fraction shielded for this segment */
     float frac;		/* ratio of segment to boundary length */
@@ -1485,14 +1526,33 @@ extShieldTop(tpfar, efss)
     for (tpnear = LB(tpfar); LEFT(tpnear) < limit; tpnear = TR(tpnear))
     {
 	int overlap = MIN(RIGHT(tpnear), limit) - MAX(LEFT(tpnear), start);
-
 	if (overlap > 0)
 	{
-	    frac = (float)(limit - start) /
-		(float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot);
-	    /* Use sin() approximation for shielding effect */
-            fshield = 1.0 - sin(1.571 * fsep / halo);
-	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	    Tile *tptest = tpnear;
+	    Point p;
+	    NodeRegion *rnear;
+
+	    /* Walk back from edge to original boundary, checking	*/
+	    /* that no shapes are shielding the shield. . .		*/
+
+	    p.p_x = (start + limit) / 2;
+	    p.p_y = BOTTOM(tpnear) - 1;
+	    while (p.p_y > bp->b_segment.r_ytop)
+	    {
+		GOTOPOINT(tptest, &p);
+		rnear = (NodeRegion *)extGetRegion(tptest);
+		if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
+		    break;
+		p.p_y = BOTTOM(tptest) - 1;
+	    }
+	    if (p.p_y < bp->b_segment.r_ytop)
+	    {
+		frac = (float)(limit - start) /
+			(float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot);
+		/* Use sin() approximation for shielding effect */
+		fshield = 1.0 - sin(1.571 * fsep / halo);
+		efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	    }
 	}
     }
     return (0);
@@ -1525,6 +1585,7 @@ extShieldBottom(tpfar, efss)
     extFringeShieldStruct *efss;
 {
     Boundary *bp = efss->bp;
+    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
     Tile *tpnear;
     float fshield;	/* fraction shielded for this segment */
     float frac;		/* ratio of segment to boundary length */
@@ -1538,14 +1599,33 @@ extShieldBottom(tpfar, efss)
     for (tpnear = RT(tpfar); RIGHT(tpnear) > limit; tpnear = BL(tpnear))
     {
 	int overlap = MIN(RIGHT(tpnear), start) - MAX(LEFT(tpnear), limit);
-
 	if (overlap > 0)
 	{
-	    frac = (float)(start - limit) /
-		(float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot);
-	    /* Use sin() approximation for shielding effect */
-            fshield = 1.0 - sin(1.571 * fsep / halo);
-	    efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	    Tile *tptest = tpnear;
+	    Point p;
+	    NodeRegion *rnear;
+
+	    /* Walk back from edge to original boundary, checking	*/
+	    /* that no shapes are shielding the shield. . .		*/
+
+	    p.p_x = (start + limit) / 2;
+	    p.p_y = TOP(tpnear) + 1;
+	    while (p.p_y < bp->b_segment.r_ybot)
+	    {
+		GOTOPOINT(tptest, &p);
+		rnear = (NodeRegion *)extGetRegion(tptest);
+		if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
+		    break;
+		p.p_y = TOP(tptest) + 1;
+	    }
+	    if (p.p_y > bp->b_segment.r_ybot)
+	    {
+		frac = (float)(start - limit) /
+			(float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot);
+		/* Use sin() approximation for shielding effect */
+		fshield = 1.0 - sin(1.571 * fsep / halo);
+		efss->shieldfrac = fshield * frac + efss->shieldfrac * (1.0 - frac);
+	    }
 	}
     }
     return (0);
