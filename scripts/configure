@@ -746,6 +746,7 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 with_gnu_ld
+enable_compression
 with_x
 with_distdir
 with_interpreter
@@ -1416,6 +1417,7 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --disable-compression        disable file compression
   --enable-memdebug            enable memory debugging
   --enable-modular        embed ext2sim and ext2spice packages
   --disable-locking        disable file locking
@@ -5033,7 +5035,16 @@ $as_echo "#define HAVE___VA_COPY 1" >>confdefs.h
 
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gzopen in -lz" >&5
+# Check whether --enable-compression was given.
+if test "${enable_compression+set}" = set; then :
+  enableval=$enable_compression;
+else
+  enable_compression=yes
+fi
+
+
+if test "x$enable_compression" = "xyes" ; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gzopen in -lz" >&5
 $as_echo_n "checking for gzopen in -lz... " >&6; }
 if ${ac_cv_lib_z_gzopen+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -5075,6 +5086,7 @@ $as_echo "#define HAVE_ZLIB 1" >>confdefs.h
 
 fi
 
+fi
 
 
 

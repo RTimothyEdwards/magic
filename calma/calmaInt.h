@@ -162,6 +162,7 @@ typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT, LABEL_TYPE_CEL
     #define REWIND   rewind
     #define FILETYPE FILE *
     #define OFFTYPE  off_t
+    #define PaZOpen  PaOpen
 #endif
 
 /* Globals for Calma reading */
