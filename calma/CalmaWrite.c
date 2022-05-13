@@ -771,7 +771,7 @@ calmaFullDump(def, fi, outf, filename)
     else
 	HashSetValue(he, StrDup(NULL, ""));
 
-    while (calmaDumpStructure(def, fi, outf, &calmaDefHash, filename))
+    while (calmaDumpStructure(def, outf, &calmaDefHash, filename))
 	if (SigInterruptPending)
 	    goto done;
     calmaSkipExact(CALMA_ENDLIB);
