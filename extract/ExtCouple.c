@@ -1277,7 +1277,7 @@ extSideBottom(tpfar, bp)
 		    rnear = (NodeRegion *)extGetRegion(tptest);
 		    if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
 			break;
-		    p.p_y = TOP(tptest) - 1;
+		    p.p_y = TOP(tptest) + 1;
 		}
 		if (p.p_y > bp->b_segment.r_ybot)
 		    extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
