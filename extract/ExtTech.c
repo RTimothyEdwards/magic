@@ -111,8 +111,8 @@ static keydesc keyTable[] = {
     "defaultsideoverlap", DEFAULTSIDEOVERLAP, 6, 6,
 "types plane othertypes otherplane capacitance",
 
-    "defaultsidewall",	DEFAULTSIDEWALL, 4,	4,
-"types plane capacitance",
+    "defaultsidewall",	DEFAULTSIDEWALL, 4,	5,
+"types plane capacitance [offset]",
 
     "device",		DEVICE,		4,	10,
 "device dev-type types options...",
@@ -164,8 +164,8 @@ static keydesc keyTable[] = {
     "sideoverlap",	SIDEOVERLAP,	5,	6,
 "intypes outtypes ovtypes capacitance [shieldtypes]",
 
-    "sidewall",		SIDEWALL,	6,	6,
-"intypes outtypes neartypes fartypes capacitance",
+    "sidewall",		SIDEWALL,	6,	7,
+"intypes outtypes neartypes fartypes capacitance [offset]",
 
     "step",		STEP,		2,	2,
 "size",
@@ -1374,6 +1374,7 @@ ExtTechSimplePerimCap(argc, argv)
 				PlaneNumToMaskBit(plane2);
 		cnew = (EdgeCap *) mallocMagic((unsigned) (sizeof (EdgeCap)));
 		cnew->ec_cap = capVal;
+		cnew->ec_offset = 0;		/* No offsets on perimeter caps */
 		cnew->ec_far = shields;		/* Types that shield */
 		cnew->ec_near = subtypes;	/* Types we create cap with */
 		if (plane2 != -1)
@@ -1408,7 +1409,8 @@ ExtTechSimplePerimCap(argc, argv)
  */
 
 void
-ExtTechSimpleSidewallCap(argv)
+ExtTechSimpleSidewallCap(argc, argv)
+    int   argc;
     char *argv[];
 {
     /* Like ExtTechLine, but with near = types2 and far = types1 */
@@ -1417,12 +1419,25 @@ ExtTechSimpleSidewallCap(argv)
     TileTypeBitMask types1, types2;
     CapValue capVal;
     EdgeCap *cnew;
+    int offset;
+    double doffset;
     int plane;
 
     DBTechNoisyNameMask(argv[1], &types1);
     TTMaskSetMask(allExtractTypes, &types1);
     plane = DBTechNoisyNamePlane(argv[2]);
     capVal = aToCap(argv[3]);
+
+    if (argc == 5)
+    {
+	/* Save a value of 1000 * the offset, which will be converted
+	 * appropriately to magic units like exts->sideCoupleHalo.
+	 */
+	sscanf(argv[4], "%lg", &doffset);
+	offset = (int)(0.5 + doffset * 1000.0);
+    }
+    else
+	offset = 0;
 
     // Like perimeter cap, treat only space and space-like types
     // TTMaskCom2(&types2, &types1);
@@ -1449,6 +1464,7 @@ ExtTechSimpleSidewallCap(argv)
 		TTMaskSetMask(&ExtCurStyle->exts_sideCoupleOtherEdges[s][t], &types1);
 		cnew = (EdgeCap *) mallocMagic((unsigned) (sizeof (EdgeCap)));
 		cnew->ec_cap = capVal;
+		cnew->ec_offset = offset;
 		cnew->ec_near = types2;
 		cnew->ec_far = types1;
 		cnew->ec_next = ExtCurStyle->exts_sideCoupleCap[s][t];
@@ -1679,6 +1695,7 @@ ExtTechSimpleSideOverlapCap(argv)
 				PlaneNumToMaskBit(plane2);
 		cnew = (EdgeCap *) mallocMagic((unsigned) (sizeof (EdgeCap)));
 		cnew->ec_cap = capVal;
+		cnew->ec_offset = 0;		/* No offsets on overlap caps */
 		cnew->ec_far = shields;		/* Types that shield */
 		cnew->ec_near = ov;		/* Types we create cap with */
 		cnew->ec_pmask = PlaneNumToMaskBit(plane2);
@@ -1846,7 +1863,9 @@ ExtTechLine(sectionName, argc, argv)
     ParamList *subcktParams, *newParam;
     ExtDevice *devptr;
     int refcnt;
+    int offset;
     double dhalo;
+    double doffset;
     bool bad;
 
     if (argc < 1)
@@ -2215,7 +2234,7 @@ ExtTechLine(sectionName, argc, argv)
 	    ExtTechSimpleSideOverlapCap(argv);
 	    break;
 	case DEFAULTSIDEWALL:
-	    ExtTechSimpleSidewallCap(argv);
+	    ExtTechSimpleSidewallCap(argc, argv);
 	    break;
 	case DEVICE:
 
@@ -2896,6 +2915,7 @@ ExtTechLine(sectionName, argc, argv)
 		    ExtCurStyle->exts_sideOverlapOtherPlanes[s][t] |= pov;
 		    cnew = (EdgeCap *) mallocMagic((unsigned) (sizeof (EdgeCap)));
 		    cnew->ec_cap = capVal;
+		    cnew->ec_offset = 0;	/* No offsets on overlap caps */
 		    cnew->ec_far = shield; /* Really types that shield */
 		    cnew->ec_near = ov;  /* Really types we create cap with */
 		    cnew->ec_pmask = pov;
@@ -2945,6 +2965,13 @@ ExtTechLine(sectionName, argc, argv)
 	    if (TTMaskHasType(&types1, TT_SPACE))
 		TechError("Can't have space on inside of edge [ignored]\n");
 	    capVal = aToCap(argv[5]);
+	    if (argc == 7)
+	    {
+		sscanf(argv[6], "%lg", &doffset);
+		offset = (int)(0.5 + doffset * 1000.0);
+	    }
+	    else
+		offset = 0;
 	    for (s = TT_TECHDEPBASE; s < DBNumTypes; s++)
 	    {
 		if (!TTMaskHasType(&types1, s))
@@ -2959,6 +2986,7 @@ ExtTechLine(sectionName, argc, argv)
 		    TTMaskSetMask(&ExtCurStyle->exts_sideCoupleOtherEdges[s][t], &far);
 		    cnew = (EdgeCap *) mallocMagic((unsigned) (sizeof (EdgeCap)));
 		    cnew->ec_cap = capVal;
+		    cnew->ec_offset = offset;
 		    cnew->ec_near = near;
 		    cnew->ec_far = far;
 		    cnew->ec_next = ExtCurStyle->exts_sideCoupleCap[s][t];
@@ -3451,11 +3479,20 @@ zinit:
 		// the value needs to be divided by 2 (the factor of
 		// 2 is made up by the fact that the sidewall is
 		// independently accumulated on each plate of the
-		// capacitor)
+		// capacitor).  ALSO:  ec_offset was multiplied up by
+		// 1000 so that micron distances could be saved as
+		// integer values, so that factor needs to be divided out.
 
 		for (ec = style->exts_sideCoupleCap[r][s]; ec != NULL;
 				ec = ec->ec_next)
+		{
 		    ec->ec_cap *= 0.5;
+		    if (ec->ec_offset > 0)
+		    {
+		    	ec->ec_offset = (int)(((float)ec->ec_offset / dscale) + 0.5);
+		    	ec->ec_offset /= 1000;
+		    }
+		}
 	    }
 
 	    /* Layer thickness and height are in microns, but are floating-point */
@@ -3548,12 +3585,13 @@ ExtTechScale(scalen, scaled)
 	    // per distance, the distance is referred to a separation
 	    // distance in the same units, so the cap never scales.
 
-	    // for (ec = style->exts_sideCoupleCap[i][j]; ec != NULL;
-	    //			ec = ec->ec_next)
-	    // {
-	    //	ec->ec_cap *= scalen;
-	    //	ec->ec_cap /= scaled;
-	    // }
+	    for (ec = style->exts_sideCoupleCap[i][j]; ec != NULL;
+	    			ec = ec->ec_next)
+	    {
+	    	// ec->ec_cap *= scalen;
+	    	// ec->ec_cap /= scaled;
+    		DBScaleValue(&(ec->ec_offset), scaled, scalen);
+	    }
 	    for (ec = style->exts_sideOverlapCap[i][j]; ec != NULL;
 				ec = ec->ec_next)
 	    {

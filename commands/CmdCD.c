@@ -927,7 +927,7 @@ CmdCalma(w, cmd)
 			cmd->tx_argv[2], cmd->tx_argv[2], cmd->tx_argv[2]);
 	        return;
 	    }
-	    CalmaReadFile(f, namep, cmd->tx_argv[2]);
+	    CalmaReadFile(f, namep);
 	    (void) FCLOSE(f);
 	    return;
     }
