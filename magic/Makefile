@@ -34,7 +34,7 @@ DEST_XBM = $(BITMAPS:%=$(DESTDIR)${INSTALL_TCLDIR}/bitmaps/%)
 
 DFLAGS += -DMAGIC_DATE="\"`date`\"" -DCAD_DIR="${LIBDIR}"
 LIBS   += ${GR_LIBS} ${READLINE_LIBS} -lm ${LD_EXTRA_LIBS} \
-		${OA_LIBS} ${TOP_EXTRA_LIBS}
+		${OA_LIBS} ${ZLIB_FLAG} ${TOP_EXTRA_LIBS}
 CLEANS += tclmagic${SHDLIB_EXT} libtclmagic${SHDLIB_EXT}.a proto.magicrc
 
 main: magic proto.magicrc

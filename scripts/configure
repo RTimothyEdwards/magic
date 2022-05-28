@@ -660,6 +660,7 @@ LIB_SPECS_GRNULL
 LIB_SPECS_NOSTUB
 LIB_SPECS
 INC_SPECS
+ZLIB_FLAG
 EXTRA_LIB_SPECS
 SHLIB_LIB_SPECS
 LDDL_FLAGS
@@ -5043,6 +5044,7 @@ else
 fi
 
 
+ZLIB_FLAG=""
 if test "x$enable_compression" = "xyes" ; then
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gzopen in -lz" >&5
 $as_echo_n "checking for gzopen in -lz... " >&6; }
@@ -5082,7 +5084,10 @@ fi
 $as_echo "$ac_cv_lib_z_gzopen" >&6; }
 if test "x$ac_cv_lib_z_gzopen" = xyes; then :
 
+
 $as_echo "#define HAVE_ZLIB 1" >>confdefs.h
+
+    	ZLIB_FLAG=" -lz"
 
 fi
 
@@ -8229,6 +8234,7 @@ fi
   if test "$with_gnu_ld" = "yes" ; then
     LDDL_FLAGS="${LDDL_FLAGS} -Wl,--version-script=\${MAGICDIR}/magic/symbol.map"
   fi
+
 
 
 
