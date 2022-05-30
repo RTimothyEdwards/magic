@@ -63,6 +63,7 @@ MSED		       = @MSED@
 RANLIB                 = @RANLIB@
 SHDLIB_EXT             = @SHDLIB_EXT@
 ZLIB_FLAG              = @ZLIB_FLAG@
+LDDL_FLAGS             = ${LDFLAGS} @LDDL_FLAGS@
 LD_RUN_PATH	       = @LD_RUN_PATH@
 LIB_SPECS	       = @LIB_SPECS@
 LIB_SPECS_NOSTUB       = @LIB_SPECS_NOSTUB@
