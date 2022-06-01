@@ -708,7 +708,7 @@ extAddCouple(bp, ecs)
 
 	GEOCLIP(&bp->b_segment, extCoupleSearchArea);
 
-	if ((bp->b_segment.r_ytop <= bp->b_segment.r_ybot) &&
+	if ((bp->b_segment.r_ytop <= bp->b_segment.r_ybot) ||
 		(bp->b_segment.r_xtop <= bp->b_segment.r_xbot))
 	    return 0;
     }
