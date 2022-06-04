@@ -4016,11 +4016,11 @@ extNodeAreaFunc(tile, arg)
 	if (extNodeClipArea)
 	{
 	    TITORECT(tile, &r);
-	    GEOCLIP(&r, extNodeClipArea);
 
 	    /* Check if the tile is outside the clip area */
-	    if ((r.r_xtop <= r.r_xbot) || (r.r_ytop < r.r_ybot)) continue;
+	    if (!GEO_OVERLAP(&r, extNodeClipArea)) continue;
 
+	    GEOCLIP(&r, extNodeClipArea);
 	    area = (dlong)(r.r_xtop - r.r_xbot) * (dlong)(r.r_ytop - r.r_ybot);
 	}
 	else area = (dlong)(TOP(tile) - BOTTOM(tile)) * (dlong)(RIGHT(tile) - LEFT(tile));

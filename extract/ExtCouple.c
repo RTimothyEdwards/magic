@@ -706,11 +706,10 @@ extAddCouple(bp, ecs)
 	bpCopy = *bp;
 	bp = &bpCopy;
 
-	GEOCLIP(&bp->b_segment, extCoupleSearchArea);
-
-	if ((bp->b_segment.r_ytop <= bp->b_segment.r_ybot) ||
-		(bp->b_segment.r_xtop <= bp->b_segment.r_xbot))
+	if (!GEO_OVERLAP(&bp->b_segment, extCoupleSearchArea))
 	    return 0;
+
+	GEOCLIP(&bp->b_segment, extCoupleSearchArea);
     }
     r = ovr = bp->b_segment;
 
@@ -893,9 +892,6 @@ extSideOverlap(tp, esws)
     /* (TO DO:  Make sure TT_SPACE is removed from all exts_sideOverlapOtherTypes */
     tb = TiGetType(tp);
     if (tb == TT_SPACE) return (0);
-
-    /* If shapes belong to the same node then there is no coupling. */
-    if (rtp == rbp) return (0);
 
     if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
     {
