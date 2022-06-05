@@ -772,7 +772,7 @@ extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
 		&& (he = HashLookOnly(&ha->ha_connHash, name))
 		&& (nn = (NodeName *) HashGetValue(he)))
 	{
-	    /* Adjust the capacitance and resistance */
+	    /* Adjust the capacitance and resistance on the node */
 	    nn->nn_node->node_cap -= np->nreg_cap;
 	    for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
 	    {
