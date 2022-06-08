@@ -530,6 +530,9 @@ calmaParseStructure(filename)
 	cifReadCellDef->cd_client = (ClientData) calmaExact();
 	cifReadCellDef->cd_flags |= CDFLATGDS;
 	cifReadCellDef->cd_flags &= ~CDFLATTENED;
+
+	/* Remove any labels in this cell */
+	DBEraseLabel(cifReadCellDef, &TiPlaneRect, &DBAllTypeBits, NULL);
     }
     else
     {

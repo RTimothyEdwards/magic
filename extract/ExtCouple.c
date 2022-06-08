@@ -722,6 +722,8 @@ extAddCouple(bp, ecs)
     distFringe = (ExtOptions & EXT_DOFRINGEHALO) ?
 		ExtCurStyle->exts_fringeShieldHalo : 1;
 
+    if (distFringe == 0) distFringe = 1;
+
     switch (bp->b_direction)
     {
 	case BD_LEFT:	/* Along left */

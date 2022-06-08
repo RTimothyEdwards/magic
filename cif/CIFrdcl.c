@@ -1689,6 +1689,10 @@ CIFReadCellCleanup(filetype)
 	if (def->cd_flags & CDFLATGDS)
 	{
 	    /* These cells have been flattened and are no longer needed. */
+	    /* Do not remove the actual CellDef, though, because it is	 */
+	    /* still instanced, and that instance tells the GDS write	 */
+	    /* routine that the subcell needs to be included in the 	 */
+	    /* output.  But all clientdata and labels should be removed. */
 
 	    int pNum;
 	    Plane **cifplanes = (Plane **)def->cd_client;
@@ -1698,7 +1702,6 @@ CIFReadCellCleanup(filetype)
 	    /* cifplanes should be valid, but don't crash magic if not */
 	    if (cifplanes != (Plane **)0)
 	    {
-
 		for (pNum = 0; pNum < MAXCIFRLAYERS; pNum++)
 		{
 		    if (cifplanes[pNum] != NULL)
