@@ -1745,7 +1745,7 @@ CmdPort(w, cmd)
 		    if (sl->lab_flags & PORT_DIR_MASK)
 		    {
 		    	idx = (int)sl->lab_port;
-		    	if (idx < i) i = idx;
+		    	if (idx < i || i == -1) i = idx;
 		    }
 		}
 #ifdef MAGIC_WRAPPER
@@ -1764,7 +1764,7 @@ CmdPort(w, cmd)
 		    {
 		    	idx = (int)sl->lab_port;
 		    	if (idx > refidx)
-		            if (idx < i) i = idx;
+		            if (idx < i || i == -1) i = idx;
 		    }
 		}
 #ifdef MAGIC_WRAPPER
