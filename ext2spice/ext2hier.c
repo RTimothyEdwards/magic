@@ -1782,11 +1782,18 @@ esMakePorts(hc, cdata)
 		if (he != NULL)
 		{
 		    nn = (EFNodeName *) HashGetValue(he);
-		    flagrec->fdr_node = nn->efnn_node;
-		    flagrec->fdr_node->efnode_flags |= flagrec->fdr_flags;
+		    if (nn == NULL)
+		    {
+			TxError("Error:  Node %s not found in cell %s!\n",
+				locname, def->def_name);
+		    }
+		    else
+		    {
+		    	flagrec->fdr_node = nn->efnn_node;
+		    	flagrec->fdr_node->efnode_flags |= flagrec->fdr_flags;
+		    }
 		}
 	    }
-
 	}
     }
 
