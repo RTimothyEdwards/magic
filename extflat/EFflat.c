@@ -66,6 +66,7 @@ int efAddOneConn(HierContext *, char *, char *, Connection *, bool);
 
 #define FLATNODE_STDCELL    0x01
 #define FLATNODE_DOWARN	    0x02
+#define FLATNODE_NOABSTRACT 0x04
 
 
 /*
@@ -129,6 +130,10 @@ EFFlatBuild(name, flags)
 
     if (flags & EF_FLATNODES)
     {
+	int flatnodeflags = 0;
+	if (flags & EF_WARNABSTRACT)
+	    flatnodeflags = FLATNODE_NOABSTRACT;
+
 	if (flags & EF_NOFLATSUBCKT)
 	{
 	    /* The top cell must always have the DEF_SUBCIRCUIT flag cleared */
@@ -137,8 +142,8 @@ EFFlatBuild(name, flags)
 	}
 	else
 	{
-	    int flags = FLATNODE_DOWARN;    /* No FLATNODE_STDCELL flag */
-	    efFlatNodes(&efFlatContext, (ClientData)flags);
+	    flatnodeflags |= FLATNODE_DOWARN;    /* No FLATNODE_STDCELL flag */
+	    efFlatNodes(&efFlatContext, (ClientData)flatnodeflags);
 	}
 	efFlatKills(&efFlatContext);
 	if (!(flags & EF_NONAMEMERGE))
@@ -315,6 +320,14 @@ efFlatNodes(hc, clientData)
 
     bool stdcell = (flags & FLATNODE_STDCELL) ? TRUE : FALSE;
     bool doWarn = (flags & FLATNODE_DOWARN) ? TRUE : FALSE;
+
+    if (flags & FLATNODE_NOABSTRACT)
+    {
+    	Def *def = hc->hc_use->use_def;
+	if (def->def_flags & DEF_ABSTRACT)
+	    TxError("Error:  Cell %s was extracted as an abstract view.\n",
+			def->def_name);
+    }
 
     (void) efHierSrUses(hc, efFlatNodes, clientData);
 

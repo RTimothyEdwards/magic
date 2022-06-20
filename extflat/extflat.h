@@ -36,6 +36,7 @@ typedef unsigned char U_char;
 #define	EF_NOFLATSUBCKT		0x10	/* Don't flatten standard cells */
 #define	EF_NONAMEMERGE		0x20	/* Don't merge unconnected nets	*/
 					/* with the same name.		*/
+#define EF_WARNABSTRACT		0x40	/* Warn if subcell is abstract	*/
 
 /* Flags to control output of node names.  Stored in EFOutputFlags */
 #define EF_TRIM_MASK		0x1f	/* Mask for handling name trimming */

@@ -224,7 +224,7 @@ runantennacheck:
     }
 
     /* Convert the hierarchical description to a flat one */
-    flatFlags = EF_FLATNODES;
+    flatFlags = EF_FLATNODES | EF_WARNABSTRACT;
     TxPrintf("Building flattened netlist.\n");
     EFFlatBuild(inName, flatFlags);
 
