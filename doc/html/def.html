@@ -30,6 +30,7 @@ Read or write DEF format files.
          where <I>option</I> is one of the following:
 	 <DL>
 	   <DT> <B>read</B> <I>filename</I> [<B>-labels</B>] [<B>-annotate</B>]
+			[<B>-noblockage</B>]
 	   <DD> Read a DEF file <I>filename</I>[<B>.def</B>]
 	   <DT> <B>write</B> [<I>cell</I>] [<B>-units</B> <I>value</I>]
 	   <DD> Write DEF for current or indicated cell named <I>cell</I>
@@ -74,6 +75,14 @@ Read or write DEF format files.
       DEF file, but will not add layer geometry or subcells.  This is
       useful for labeling all of the regular nets if the DEF file was
       previously read without the <B>-labels</B> option. <P>
+
+      The "<B>-noblockage</B>" option will ignore all BLOCKAGES sections
+      in the DEF file, in effect producing only mask layer geometry.  If
+      not specified, then layer BLOCKAGES in the DEF file are treated
+      like obstructions in LEF files, and translated into obstruction
+      layers in magic (per the definition of obstruction layers in either
+      the "lef" section of the magic technology file, or in a technology
+      LEF file read prior to reading the DEF file). <P>
 
    </BLOCKQUOTE>
 

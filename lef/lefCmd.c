@@ -123,6 +123,10 @@ CmdLef(w, cmd)
 					 * created from any DEF files, which
 					 * will be used for label annotation only.
 					 */
+    bool defNoBlockage = FALSE;		/* Indicates that BLOCKAGE geometry in
+					 * the DEF file should be ignored; only
+					 * mask geometry will be generated.
+					 */
     static char *cmdLefOption[] =
     {
 	"read [filename]		read a LEF file filename[.lef]\n"
@@ -145,7 +149,8 @@ CmdLef(w, cmd)
     {
 	"read [filename]		read a DEF file filename[.def]\n"
 	"    read [filename] -labels	read a DEF file with net labeling\n"
-	"    read [filename] -annotate	read a DEF file for net annotation only",
+	"    read [filename] -annotate	read a DEF file for net annotation only\n",
+	"    read [filename] -noblockage	read a DEF file (mask layers only).",
 	"write [cell] [-allspecial]	write DEF for current or indicated cell",
 	"writeall			(use \"flatten -nosubckt\" + \"def"
 					" write\" instead)",
@@ -216,6 +221,13 @@ CmdLef(w, cmd)
 			    else
 				defLabelNets = TRUE;
 			}
+			else if (!strncmp(cmd->tx_argv[i], "-noblock", 8))
+			{
+			    if (is_lef)
+				TxPrintf("The \"-noblockage\" option is only for def read\n");
+			    else
+				defNoBlockage = TRUE;
+			}
 		    }
 		}
 	    }
@@ -226,7 +238,7 @@ CmdLef(w, cmd)
 	    if (is_lef)
 		LefRead(namep, lefImport, lefAnnotate, lefDateStamp);
 	    else
-		DefRead(namep, defLabelNets, defAnnotate);
+		DefRead(namep, defLabelNets, defAnnotate, defNoBlockage);
 	    break;
 	case LEF_WRITEALL:
 	    if (!is_lef)

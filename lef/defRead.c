@@ -2333,10 +2333,11 @@ enum def_sections {DEF_VERSION = 0, DEF_NAMESCASESENSITIVE,
 	DEF_NONDEFAULTRULES, DEF_END};
 
 void
-DefRead(inName, dolabels, annotate)
+DefRead(inName, dolabels, annotate, noblockage)
     char *inName;
     bool dolabels;
     bool annotate;
+    bool noblockage;
 {
     CellDef *rootDef;
     FILE *f;
@@ -2560,7 +2561,7 @@ DefRead(inName, dolabels, annotate)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
-		if (annotate)
+		if (annotate || noblockage)
 		    LefSkipSection(f, sections[DEF_BLOCKAGES]);
 		else
 		    DefReadBlockages(f, rootDef, sections[DEF_BLOCKAGES],
