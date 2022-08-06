@@ -1643,13 +1643,18 @@ if test $usingTcl ; then
       LDDL_FLAGS="-shared ${LIB_SPECS}"
       ;;
       
-    *-netbsd*|*-openbsd*)
+    *-netbsd*)
       # Not available on all versions:  check for include file.
       AC_CHECK_HEADER(dlfcn.h, test_ok=yes, test_ok=no)
       if test "$test_ok" = yes; then
         SHLIB_CFLAGS="-fPIC"
         LDDL_FLAGS="-shared ${LIB_SPEC}"
       fi
+      ;;
+
+    *-openbsd*)
+      SHLIB_CFLAGS="-fPIC"
+      LDDL_FLAGS="-shared ${LIB_SPEC}"
       ;;
 
     *-nextstep*)
