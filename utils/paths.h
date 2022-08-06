@@ -58,7 +58,7 @@
 #  endif
 # endif
 #else
-# if defined(linux) || defined(__FreeBSD__)
+# if defined(linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
 #  define PAGERDIR "/usr/bin/more"
 # elif defined(CYGWIN)
 #  define PAGERDIR "./less"
