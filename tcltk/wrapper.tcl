@@ -859,6 +859,14 @@ proc magic::maketoolbar { framename } {
 
    set locklist [tech locked]
    set ncols 0
+
+   # Sometimes the window manager can have bogus values, so allow an
+   # environment variable LAYOUT_ICON_COLS to override the number of icon
+   # columns.
+   if {[info exists ::env(LAYOUT_ICON_COLS)]} {
+	set ncols [expr $::env(LAYOUT_ICON_COLS) - 1]
+   }
+
    while {1} {
       incr ncols
       set i 0
