@@ -557,8 +557,11 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 		    {
 			if (ExtCurStyle->exts_antennaRatio[i].ratioGate > 0)
 			{
-			    anttotal += (double)antennaarea[i] /
-				    (double)ExtCurStyle->exts_antennaRatio[i].ratioGate;
+			    /* Partial model ignores vias */
+			    if ((ExtCurStyle->exts_antennaModel & ANTENNAMODEL_PARTIAL) &&
+				    !DBIsContact(i))
+				anttotal += (double)antennaarea[i] /
+					(double)ExtCurStyle->exts_antennaRatio[i].ratioGate;
 			}
 			if (ExtCurStyle->exts_antennaRatio[i].ratioGate > saveRatio)
 			    saveRatio = ExtCurStyle->exts_antennaRatio[i].ratioGate;
