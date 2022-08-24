@@ -605,6 +605,7 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 			antennaError = TRUE;
 			if (efAntennaDebug == TRUE)
 			{
+			    TxError("Cell: %s\n", hc->hc_use->use_id);
 			    TxError("Antenna violation detected at plane %s\n",
 		    			DBPlaneLongNameTbl[pNum2]);
 			    TxError("Effective antenna ratio %g > limit %g\n",
