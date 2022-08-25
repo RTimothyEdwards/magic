@@ -801,22 +801,26 @@ antennaAccumFunc(tile, aaptr)
 			typeareas[ttype] += (dlong)((float)perimeter * thick);
 		    }
 
-	    if (type >= DBNumUserLayers)
+	    /* NOTE:  The "partial" model ignores the contribution of vias. */
+	    if (!(ExtCurStyle->exts_antennaModel & ANTENNAMODE_PARTIAL))
 	    {
-		DBResidueMask(type, &sMask);
-		for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
-		    if (TTMaskHasType(&sMask, ttype))
-			if (DBTypeOnPlane(ttype, plane))
-			{
-			    thick = ExtCurStyle->exts_thick[ttype];
-			    typeareas[ttype] += (dlong)((float)perimeter * thick);
-			    break;
-			}
-	    }
-	    else
-	    {
-		thick = ExtCurStyle->exts_thick[type];
-		typeareas[type] += (dlong)((float)perimeter * thick);
+		if (type >= DBNumUserLayers)
+		{
+		    DBResidueMask(type, &sMask);
+		    for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
+			if (TTMaskHasType(&sMask, ttype))
+			    if (DBTypeOnPlane(ttype, plane))
+			    {
+				thick = ExtCurStyle->exts_thick[ttype];
+				typeareas[ttype] += (dlong)((float)perimeter * thick);
+				break;
+			    }
+		}
+		else
+		{
+		    thick = ExtCurStyle->exts_thick[type];
+		    typeareas[type] += (dlong)((float)perimeter * thick);
+		}
 	    }
 	}
 	else
