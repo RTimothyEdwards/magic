@@ -94,6 +94,8 @@ bool CalmaUnique = FALSE;		/* If TRUE, then if a cell exists in
 					 * memory is renamed to a unique
 					 * identifier with a _N suffix.
 					 */
+extern bool CalmaDoLibrary;		/* Also used by GDS write */
+
 extern void calmaUnexpected();
 extern int calmaWriteInitFunc();
 
@@ -157,7 +159,7 @@ CalmaReadFile(file, filename)
     char *filename;		/* The real name of the file read */
 {
     int k, version;
-    char *libname = NULL;
+    char *libname = NULL, *libnameptr;
     MagWindow *mw;
     static int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
 			     CALMA_REFLIBS, CALMA_FONTS, CALMA_ATTRTABLE,
@@ -216,15 +218,43 @@ CalmaReadFile(file, filename)
     if (!calmaSkipExact(CALMA_BGNLIB)) goto done;
     calmaSkipSet(skipBeforeLib);
     if (!calmaReadStringRecord(CALMA_LIBNAME, &libname)) goto done;
-    if ((libname != NULL) && (libname[0] != '\0'))
+
+    /* Use CalmaDoLibrary similarly for input as for output;  if set to	*/
+    /* TRUE, the library name is considered meaningless and discarded;	*/
+    /* the GDS file contents are read into memory but no view is loaded	*/
+
+    if (CalmaDoLibrary)
+	libnameptr = NULL;
+    else
+        libnameptr = libname;
+
+    if ((libnameptr != NULL) && (libname[0] != '\0'))
     {
+	bool modified = FALSE;
+	char *sptr;
+
 	/* Avoid generating a magic name with spaces in it. . .	*/
 	/* (added by Mike Godfrey, 7/17/05)			*/
 
 	for (k = 0; k < strlen(libname); k++)
 	    if (libname[k] == ' ')
+	    {
 		libname[k] = '_';
-	TxPrintf("Library name: %s\n", libname);
+		modified = TRUE;
+	    }
+
+	/* Avoid generating a magic name with slashes in it. . . */
+	/* (added by Tim, 8/26/2022)				 */
+
+	if ((sptr = strrchr(libname, '/')) != NULL)
+	{
+	    libnameptr = sptr + 1;
+	    modified = TRUE;
+	}
+
+	if (modified)
+	    TxPrintf("Library name modified to make legal cell name syntax.\n");
+	TxPrintf("Library name: %s\n", libnameptr);
     }
 
     /* Skip the reflibs, fonts, etc. cruft */
@@ -249,15 +279,15 @@ done:
     /* top-level cell, so magic-produced GDS can be read back	*/
     /* with the expected cell appearing in the layout window.	*/
 
-    if (libname != NULL)
+    if (libnameptr != NULL)
     {
 	mw = CmdGetRootPoint((Point *)NULL, (Rect *)NULL);
 	if (mw == NULL)
 	    windCheckOnlyWindow(&mw, DBWclientID);
 	if (mw != NULL)
 	{
-	    if (calmaLookCell(libname, NULL) != (CellDef *)NULL)
-		DBWloadWindow(mw, libname, 0);
+	    if (calmaLookCell(libnameptr, NULL) != (CellDef *)NULL)
+		DBWloadWindow(mw, libnameptr, 0);
 	}
 	freeMagic(libname);
     }

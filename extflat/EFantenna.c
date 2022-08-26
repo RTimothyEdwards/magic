@@ -802,7 +802,7 @@ antennaAccumFunc(tile, aaptr)
 		    }
 
 	    /* NOTE:  The "partial" model ignores the contribution of vias. */
-	    if (!(ExtCurStyle->exts_antennaModel & ANTENNAMODE_PARTIAL))
+	    if (!(ExtCurStyle->exts_antennaModel & ANTENNAMODEL_PARTIAL))
 	    {
 		if (type >= DBNumUserLayers)
 		{
