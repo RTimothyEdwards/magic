@@ -4153,6 +4153,12 @@ DRCGetDefaultLayerWidth(ttype)
     DRCCookie *cptr;
     TileTypeBitMask *set;
 
+    if (ttype < 0)
+    {
+	TxError("Error:  Attempt to get default width of invalid layer!\n");
+	return 0;
+    }
+
     for (cptr = DRCCurStyle->DRCRulesTbl[TT_SPACE][ttype]; cptr != (DRCCookie *) NULL;
 	cptr = cptr->drcc_next)
     {
