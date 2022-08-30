@@ -111,6 +111,7 @@ struct transRec
 					 * non-rectangular geometries.
 					 */
     int		 tr_perim;		/* Total perimeter */
+    int		 tr_plane;		/* Plane of device */
     TermTilePos  tr_termpos[MAXSD];	/* lowest tile connecting to term */
 } extTransRec;
 
@@ -1803,6 +1804,7 @@ extOutputDevices(def, transList, outFile)
 	extTransRec.tr_nterm = 0;
 	extTransRec.tr_gatelen = 0;
 	extTransRec.tr_perim = 0;
+	extTransRec.tr_plane = reg->treg_pnum;		/* Save this value! */
 	extTransRec.tr_subsnode = (NodeRegion *)NULL;
 
 	arg.fra_def = def;
@@ -3011,9 +3013,14 @@ extTransPerimFunc(bp)
      * that might not be surrounded by terminals on all sides).
      */
 
-    /* Don't double-count contact perimeters (added by Tim 1/9/07) */
+    /* Don't double-count contact perimeters (added by Tim 1/9/07)	*/
+    /* 8/30/2022:  The code at line 681 can reassign a transistor	*/
+    /* gate node off of the device plane, so the original plane of	*/
+    /* the gate node is saved in extTransRec.tr_plane and used here.	*/
+    /* Do *not* user extTransRec.tr_gatenode->nreg_pnum!		*/
+
     if ((!DBIsContact(toutside) && !DBIsContact(tinside)) ||
-		(bp->b_plane == extTransRec.tr_gatenode->nreg_pnum))
+		(bp->b_plane == extTransRec.tr_plane))
 	extTransRec.tr_perim += len;
 
     return (0);
