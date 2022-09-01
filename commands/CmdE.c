@@ -361,10 +361,8 @@ CmdElement(w, cmd)
 			return;
 		    }
 		}
-		if (!StrIsInt(cmd->tx_argv[5])) goto badusage;
-		area.r_xbot = atoi(cmd->tx_argv[5]);
-		if (!StrIsInt(cmd->tx_argv[6])) goto badusage;
-		area.r_ybot = atoi(cmd->tx_argv[6]);
+		area.r_xbot = cmdParseCoord(w, cmd->tx_argv[5], FALSE, TRUE);
+		area.r_ybot = cmdParseCoord(w, cmd->tx_argv[6], FALSE, FALSE);
 
 		switch (type)
 		{
@@ -375,10 +373,8 @@ CmdElement(w, cmd)
 					cmdElementType[ELEMENT_LINE]);
 			    return;
 			}
-			if (!StrIsInt(cmd->tx_argv[7])) goto badusage;
-			area.r_xtop = atoi(cmd->tx_argv[7]);
-			if (!StrIsInt(cmd->tx_argv[8])) goto badusage;
-			area.r_ytop = atoi(cmd->tx_argv[8]);
+			area.r_xtop = cmdParseCoord(w, cmd->tx_argv[7], FALSE, TRUE);
+			area.r_ytop = cmdParseCoord(w, cmd->tx_argv[8], FALSE, FALSE);
 			DBWElementAddLine(w, cmd->tx_argv[3], &area, def, style);
 			break;
 		    case ELEMENT_RECT:
@@ -388,10 +384,8 @@ CmdElement(w, cmd)
 					cmdElementType[ELEMENT_RECT]);
 			    return;
 			}
-			if (!StrIsInt(cmd->tx_argv[7])) goto badusage;
-			area.r_xtop = atoi(cmd->tx_argv[7]);
-			if (!StrIsInt(cmd->tx_argv[8])) goto badusage;
-			area.r_ytop = atoi(cmd->tx_argv[8]);
+			area.r_xtop = cmdParseCoord(w, cmd->tx_argv[7], FALSE, TRUE);
+			area.r_ytop = cmdParseCoord(w, cmd->tx_argv[8], FALSE, FALSE);
 			DBWElementAddRect(w, cmd->tx_argv[3], &area, def, style);
 			break;
 		    case ELEMENT_TEXT:
@@ -505,21 +499,19 @@ CmdElement(w, cmd)
 
 			if (cmd->tx_argc >= 6)
 			{
-			    if (!StrIsInt(cmd->tx_argv[4]) ||
-			    		!StrIsInt(cmd->tx_argv[5]))
-				goto badrect;
-			    crect.r_xbot = atoi(cmd->tx_argv[4]);
-			    crect.r_ybot = atoi(cmd->tx_argv[5]);
+			    crect.r_xbot = cmdParseCoord(w, cmd->tx_argv[4],
+					FALSE, TRUE);
+			    crect.r_ybot = cmdParseCoord(w, cmd->tx_argv[5],
+					FALSE, FALSE);
 			    crect.r_xtop = crect.r_xbot; /* placeholder */
 			    crect.r_ytop = crect.r_ybot; /* placeholder */
 			}
 			if (cmd->tx_argc == 8)
 			{
-			    if (!StrIsInt(cmd->tx_argv[6]) ||
-			    		!StrIsInt(cmd->tx_argv[7]))
-				goto badrect;
-			    crect.r_xtop = atoi(cmd->tx_argv[6]);
-			    crect.r_ytop = atoi(cmd->tx_argv[7]);
+			    crect.r_xtop = cmdParseCoord(w, cmd->tx_argv[6],
+					FALSE, TRUE);
+			    crect.r_ytop = cmdParseCoord(w, cmd->tx_argv[7],
+					FALSE, FALSE);
 			}
 
 			if (cmd->tx_argc == 6 || cmd->tx_argc == 8)
