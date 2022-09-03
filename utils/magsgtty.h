@@ -33,7 +33,12 @@
 # endif
 
 #include <sys/ioctl.h>
+
+#if defined(__OpenBSD__)
+#include <termios.h>
+#else
 #include <sys/ioctl_compat.h>
+#endif
 
 #else
 #include <termio.h>

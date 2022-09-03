@@ -1215,6 +1215,15 @@ txGetTermState(buf)
     ioctl( fileno( stdin ), TCGETA, buf);
 }
 
+#elif defined (__OpenBSD__)
+
+void
+txGetTermState(buf)
+    struct termios *buf;
+{
+    (void) tcgetattr(fileno(stdin), buf);
+}
+
 #else
 
 void
@@ -1247,12 +1256,16 @@ void
 txSetTermState(buf)
 #if defined(SYSV) || defined(CYGWIN)
     struct termio *buf;
+#elif defined(__OpenBSD__)
+    struct termios *buf;
 #else
     txTermState *buf;
 #endif /* SYSV */
 {
 #if defined(SYSV) || defined(CYGWIN)
     ioctl( fileno(stdin), TCSETAF, buf );
+#elif defined (__OpenBSD__)
+    (void) tcsetattr( fileno(stdin), TCSANOW, buf );
 #else
     /* set the current terminal characteristics */
     (void) ioctl(fileno(stdin), TIOCSETN, (char *) &(buf->tx_i_sgtty) );
@@ -1282,11 +1295,13 @@ void
 txInitTermRec(buf)
 #if defined(SYSV) || defined(CYGWIN)
     struct termio *buf;
+#elif defined(__OpenBSD__)
+    struct termios *buf;
 #else
     txTermState *buf;
 #endif /* SYSV */
 {
-#if defined(SYSV) || defined(CYGWIN)
+#if defined(SYSV) || defined(CYGWIN) || defined(__OpenBSD__)
     buf->c_lflag = ISIG;    /* raw: no echo and no processing, allow signals */
     buf->c_cc[ VMIN ] = 1;
     buf->c_cc[ VTIME ] = 0;
@@ -1303,6 +1318,8 @@ txInitTermRec(buf)
 
 #if defined(SYSV) || defined(CYGWIN)
 struct termio closeTermState;
+#elif defined(__OpenBSD__)
+struct termios closeTermState;
 #else
 static txTermState closeTermState;
 #endif /* SYSV */
@@ -1330,6 +1347,13 @@ txSaveTerm()
 {
 #if defined(SYSV) || defined(CYGWIN)
     ioctl( fileno( stdin ), TCGETA, &closeTermState);
+    txEraseChar = closeTermState.c_cc[VERASE];
+    txKillChar =  closeTermState.c_cc[VKILL];
+    TxEOFChar = closeTermState.c_cc[VEOF];
+    TxInterruptChar = closeTermState.c_cc[VINTR];
+    haveCloseState = TRUE;
+#elif defined(__OpenBSD__)
+    (void) tcgetattr( fileno( stdin ), &closeTermState);
     txEraseChar = closeTermState.c_cc[VERASE];
     txKillChar =  closeTermState.c_cc[VKILL];
     TxEOFChar = closeTermState.c_cc[VEOF];
@@ -1371,6 +1395,8 @@ TxSetTerminal()
 {
 #if defined(SYSV) || defined(CYGWIN)
     struct termio buf;
+#elif defined(__OpenBSD__)
+    struct termios buf;
 #else
     txTermState buf;
 #endif /* SYSV */
