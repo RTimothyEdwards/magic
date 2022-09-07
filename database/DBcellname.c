@@ -2098,6 +2098,14 @@ DBCellSrDefs(pattern, func, cdata)
  * This operation is not recorded on the undo list, as it always accompanies
  * the creation of a new cell use.
  *
+ *		    *** ANOTHER WARNING ***
+ *
+ * Do NOT pass a NULL cu_id to this routine when doing bulk cell copies,
+ * because an entire hash table of entries for the parent def will be created
+ * and searched for every cell being linked, making the routine run-time
+ * exponential with the number of links.  It is better to run
+ * DBGenerateUniqueIDs() instead.
+ *
  * Results:
  *	TRUE if the CellUse is unique within the parent CellDef, FALSE
  *	if there would be a name conflict.  If the cu_id of the CellUse
@@ -2363,8 +2371,9 @@ dbFindNamesFunc(use, parentDef)
 	he = HashFind(&dbUniqueNameTable, use->cu_id);
 	if (HashGetValue(he))
 	{
-	    TxError("Duplicate instance-id for cell %s (%s) will be renamed\n",
-			use->cu_def->cd_name, use->cu_id);
+    	    if (dbWarnUniqueIds)
+		TxError("Duplicate instance-id for cell %s (%s) will be renamed\n",
+				use->cu_def->cd_name, use->cu_id);
 	    DBUnLinkCell(use, parentDef);
 	    freeMagic(use->cu_id);
 	    use->cu_id = (char *) NULL;

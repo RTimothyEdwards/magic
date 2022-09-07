@@ -1209,6 +1209,10 @@ DBCellCopyAllCells(scx, xMask, targetUse, pArea)
     GeoTransRect(&scx->scx_trans, &scx->scx_area, &arg.caa_rect);
 
     (void) DBTreeSrCells(scx, xMask, dbCellCopyCellsFunc, (ClientData) &arg);
+
+    /* dbCellCopyCellsFunc() allows cells to be left with duplicate IDs */
+    /* so generate unique IDs as needed now.				*/
+    DBGenerateUniqueIds(targetUse->cu_def, FALSE);
 }
 
 /*
@@ -1306,17 +1310,12 @@ dbCellCopyCellsFunc(scx, arg)
 	return 2;
     }
 
-    /* When creating a new use, try to re-use the id from the old
-     * one.  Only create a new one if the old id can't be used.
-     */
+    /* When creating a new use, re-use the id from the old one.		*/
+    /* Do not attempt to run DBLinkCell() now and resolve unique IDs;	*/
+    /* just create duplicate IDs and regenerate unique ones at the end.	*/
 
     newUse = DBCellNewUse(def, (char *) use->cu_id);
-    if (!DBLinkCell(newUse, arg->caa_targetUse->cu_def))
-    {
-	freeMagic((char *) newUse->cu_id);
-	newUse->cu_id = NULL;
-	(void) DBLinkCell(newUse, arg->caa_targetUse->cu_def);
-    }
+
     newUse->cu_expandMask = use->cu_expandMask;
     newUse->cu_flags = use->cu_flags;
 
