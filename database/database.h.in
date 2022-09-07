@@ -911,6 +911,7 @@ extern void DBSeeTypesAll();
 extern void DBUpdateStamps();
 extern void DBEnumerateTypes();
 extern Plane *DBNewPlane();
+extern bool DBDescendSubcell();
 
 extern PaintResultType (*DBNewPaintTable())[TT_MAXTYPES][TT_MAXTYPES];
 typedef int (*IntProc)();
