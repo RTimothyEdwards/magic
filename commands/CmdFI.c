@@ -1917,6 +1917,13 @@ flatCopyAllLabels(scx, lab, tpath, targetUse)
     n = tpath->tp_next;
     f = tpath->tp_first;
     c = *n;
+
+    /* Apply alternate path separator "." because we don't want	*/
+    /* the default "/" which will make the label be treated as	*/
+    /* an actual hierarchical name, such as when determining	*/
+    /* precedence of label names.				*/
+    if (tpath->tp_next != tpath->tp_first) *(n - 1) = '.';
+
     strcpy(n, lab->lab_text);
     DBPutFontLabel(def, &labTargetRect, lab->lab_font, lab->lab_size,
 		lab->lab_rotate, &lab->lab_offset, targetPos,
