@@ -1390,12 +1390,13 @@ enum def_pins_prop_keys {
 	DEF_PINS_PROP_PORT, DEF_PINS_PROP_SPECIAL};
 
 void
-DefReadPins(f, rootDef, sname, oscale, total)
+DefReadPins(f, rootDef, sname, oscale, total, annotate)
     FILE *f;
     CellDef *rootDef;
     char *sname;
     float oscale;
     int total;
+    bool annotate;
 {
     char *token;
     char pinname[LEF_LINE_MAX];
@@ -1654,6 +1655,15 @@ DefReadPins(f, rootDef, sname, oscale, total)
 				    size = DRCGetDefaultLayerWidth(rectList->r_type);
 				    while ((size << 1) < height) size <<= 1;
 				    size <<= 3;		/* Fonts are in 8x units */
+
+				    /* If DEF file is being imported to annotate a
+				     * layout, then remove any existing label in
+				     * the layout that matches the PIN record.
+				     */
+				    if (annotate)
+					DBEraseLabelsByContent(rootDef, &topRect,
+								-1, pinname);
+
 				    DBPutFontLabel(rootDef, &topRect,
 						0, size, rot, &GeoOrigin,
 						GEO_CENTER, pinname,
@@ -2513,10 +2523,7 @@ DefRead(inName, dolabels, annotate, noblockage)
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
-		if (annotate)
-		    LefSkipSection(f, sections[DEF_PINS]);
-		else
-		    DefReadPins(f, rootDef, sections[DEF_PINS], oscale, total);
+		DefReadPins(f, rootDef, sections[DEF_PINS], oscale, total, annotate);
 		break;
 	    case DEF_PINPROPERTIES:
 		LefSkipSection(f, sections[DEF_PINPROPERTIES]);
