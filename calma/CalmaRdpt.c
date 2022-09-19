@@ -809,10 +809,16 @@ calmaElementText()
 	if (nbytes > 0 && rtype == CALMA_MAG)
 	{
 	    calmaReadR8(&dval);
-
-	    /* Assume that MAG is the label size in microns	*/
-	    /* "size" is the label size in 10 * (database units) */
-	    size = (int)((dval * 1000 * cifCurReadStyle->crs_multiplier)
+	    /* Sanity check on dval (must be nonzero positive) */
+	    if ((dval <= 0) || (dval > 10000))
+	    {
+		CalmaReadError("Invalid text magnification %lg.\n", dval);
+		/* Keep default size */
+	    }
+	    else
+		/* Assume that MAG is the label size in microns		*/
+		/* "size" is the label size in 10 * (database units)	*/
+		size = (int)((dval * 1000 * cifCurReadStyle->crs_multiplier)
 				/ cifCurReadStyle->crs_scaleFactor);
 	}
 	else
