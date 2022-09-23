@@ -715,6 +715,9 @@ SelectChunk(scx, type, xMask, pArea, less)
 	SelSetDisplay(SelectUse, SelectRootDef);
     }
 
+    /* Ignore if type is TT_SPACE */
+    if (type == TT_SPACE) return;
+
     /* The chunk is computed iteratively.  First extract a small
      * region (defined by INITIALSIZE) into Select2Def.  Then find
      * the largest chunk in the region.  If the chunk touches a

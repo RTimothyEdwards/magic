@@ -1442,8 +1442,10 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		/* SelectDef.						    */
 
 		pNum = DBPlane(lab->lab_type);
-		DBPaintPlane(SelectDef->cd_planes[pNum], &carea,
-			DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
+		if (pNum >= 0)
+		    DBPaintPlane(SelectDef->cd_planes[pNum], &carea,
+				DBStdPaintTbl(lab->lab_type, pNum),
+				(PaintUndoInfo *) NULL);
 
 		/* Remember this area since it's going to get erased */
 		newlll = (labelLinkedList *)mallocMagic(sizeof(labelLinkedList));
