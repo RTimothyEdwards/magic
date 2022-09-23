@@ -917,6 +917,7 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 			    break;
 		    }
 		}
+		inlayer = FALSE;
 		break;
 
 	    case DEF_NONDEF_END:

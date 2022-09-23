@@ -36,6 +36,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/signals.h"
 #include "utils/malloc.h"
 
+/* Global variable */
+Stack *dbConnectStack = (Stack *)NULL;
+
 /* General note for DBSrConnect:
  *
  * The connectivity extractor works in two passes, in order to avoid
@@ -319,6 +322,32 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     return result;
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * dbcFindTileFunc --
+ *
+ *	Simple callback used by dbSrConnectFunc to return any tile found
+ *	matching the search type mask.
+ *
+ * Results:
+ *	Always 1.
+ *
+ * Side effects:
+ *	Fill client data with a pointer to the tile found.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbcFindTileFunc(tile, arg)
+    Tile *tile;
+    ClientData arg;
+{
+    Tile **tptr = (Tile **)arg;
+    *tptr = tile;
+    return 1;
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -346,6 +375,10 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
  *	passes, so "seen before" is a function both of the ti_client
  *	field in the tile and the csa_clear value.
  *
+ *	9/21/2022:  Changed from being a recursive routine to using a
+ *	stack method, as large power/ground networks were causing stack
+ *	smashing.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -356,206 +389,235 @@ dbSrConnectFunc(tile, csa)
 {
     Tile *t2;
     Rect tileArea;
-    int i;
+    int i, pNum;
+    int result = 0;
     TileTypeBitMask *connectMask;
     TileType loctype, checktype;
     PlaneMask planes;
 
-    TiToRect(tile, &tileArea);
+    if (dbConnectStack == (Stack *)NULL)
+	dbConnectStack = StackNew(256);
 
-    /* Make sure this tile overlaps the area we're interested in. */
+    /* Drop the first entry on the stack */
+    pNum = csa->csa_pNum;
+    STACKPUSH((ClientData)tile, dbConnectStack);
+    STACKPUSH((ClientData)pNum, dbConnectStack);
 
-    if (!GEO_OVERLAP(&tileArea, &csa->csa_bounds)) return 0;
-
-    /* See if we've already been here before, and mark the tile as already
-     * visited.
-     */
-
-    if (csa->csa_clear)
+    while (!StackEmpty(dbConnectStack))
     {
-	if (tile->ti_client == (ClientData) CLIENTDEFAULT) return 0;
-	tile->ti_client = (ClientData) CLIENTDEFAULT;
-    }
-    else
-    {
-	if (tile->ti_client != (ClientData) CLIENTDEFAULT) return 0;
-	tile->ti_client = (ClientData) 1;
-    }
+	pNum = (int)STACKPOP(dbConnectStack);
+	tile = (Tile *)STACKPOP(dbConnectStack);
+	if (result == 1) continue;
 
-    /* Call the client function, if there is one. */
+	TiToRect(tile, &tileArea);
 
-    if (csa->csa_clientFunc != NULL)
-    {
-	if ((*csa->csa_clientFunc)(tile, csa->csa_pNum, csa->csa_clientData) != 0)
-	    return 1;
-    }
+	/* Make sure this tile overlaps the area we're interested in. */
 
-    /* Now search around each of the four sides of this tile for
-     * connected tiles.  For each one found, call ourselves
-     * recursively.
-     */
+	if (!GEO_OVERLAP(&tileArea, &csa->csa_bounds)) continue;
 
-    if (IsSplit(tile))
-    {
-	if (SplitSide(tile))
-	    loctype = SplitRightType(tile);
-	else
-	    loctype = SplitLeftType(tile);
-    }
-    else
-	loctype = TiGetTypeExact(tile);
-    connectMask = &csa->csa_connect[loctype];
+	/* See if we've already been here before, and mark the tile as already
+	 * visited.
+	 */
 
-    /* Left side: */
-
-    if (IsSplit(tile) && SplitSide(tile)) goto bottomside;
-
-    for (t2 = BL(tile); BOTTOM(t2) < tileArea.r_ytop; t2 = RT(t2))
-    {
-	if (IsSplit(t2))
+	if (csa->csa_clear)
 	{
-	    checktype = SplitRightType(t2);
+	    if (tile->ti_client == (ClientData) CLIENTDEFAULT) continue;
+	    tile->ti_client = (ClientData) CLIENTDEFAULT;
 	}
 	else
-	    checktype = TiGetTypeExact(t2);
-	if (TTMaskHasType(connectMask, checktype))
 	{
-	    if (csa->csa_clear)
+	    if (tile->ti_client != (ClientData) CLIENTDEFAULT) continue;
+	    tile->ti_client = (ClientData) 1;
+	}
+
+	/* Call the client function, if there is one. */
+
+	if (csa->csa_clientFunc != NULL)
+	{
+	    if ((*csa->csa_clientFunc)(tile, pNum, csa->csa_clientData) != 0)
 	    {
-		if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
+		result = 1;
+		continue;
 	    }
-	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) continue;
-	    if (IsSplit(t2))
-		TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE)); /* bit set */
-	    if (dbSrConnectFunc(t2, csa) != 0) return 1;
 	}
-    }
 
-    /* Bottom side: */
+	/* Now search around each of the four sides of this tile for
+	 * connected tiles.  For each one found, call ourselves
+	 * recursively.
+	 */
+
+	if (IsSplit(tile))
+	{
+	    if (SplitSide(tile))
+		loctype = SplitRightType(tile);
+	    else
+		loctype = SplitLeftType(tile);
+	}
+	else
+	    loctype = TiGetTypeExact(tile);
+	connectMask = &csa->csa_connect[loctype];
+
+	/* Left side: */
+
+	if (IsSplit(tile) && SplitSide(tile)) goto bottomside;
+
+	for (t2 = BL(tile); BOTTOM(t2) < tileArea.r_ytop; t2 = RT(t2))
+	{
+	    if (IsSplit(t2))
+	    {
+		checktype = SplitRightType(t2);
+	    }
+	    else
+		checktype = TiGetTypeExact(t2);
+	    if (TTMaskHasType(connectMask, checktype))
+	    {
+		if (csa->csa_clear)
+		{
+		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
+		}
+		else if (t2->ti_client != (ClientData) CLIENTDEFAULT) continue;
+		if (IsSplit(t2))
+		    TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE)); /* bit set */
+		STACKPUSH((ClientData)t2, dbConnectStack);
+    		STACKPUSH((ClientData)pNum, dbConnectStack);
+	    }
+	}
+
+	/* Bottom side: */
 
 bottomside:
-    if (IsSplit(tile) && (!(SplitSide(tile) ^ SplitDirection(tile))))
-	goto rightside;
+	if (IsSplit(tile) && (!(SplitSide(tile) ^ SplitDirection(tile))))
+	    goto rightside;
 
-    for (t2 = LB(tile); LEFT(t2) < tileArea.r_xtop; t2 = TR(t2))
-    {
-	if (IsSplit(t2))
+	for (t2 = LB(tile); LEFT(t2) < tileArea.r_xtop; t2 = TR(t2))
 	{
-	    checktype = SplitTopType(t2);
-	}
-	else
-	    checktype = TiGetTypeExact(t2);
-	if (TTMaskHasType(connectMask, checktype))
-	{
-	    if (csa->csa_clear)
-	    {
-		if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
-	    }
-	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) continue;
 	    if (IsSplit(t2))
 	    {
-		if (SplitDirection(t2))
-		    TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE)); /* bit set */
-		else
-		    TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE)); /* bit clear */
+		checktype = SplitTopType(t2);
 	    }
-	    if (dbSrConnectFunc(t2, csa) != 0) return 1;
+	    else
+		checktype = TiGetTypeExact(t2);
+	    if (TTMaskHasType(connectMask, checktype))
+	    {
+		if (csa->csa_clear)
+		{
+		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
+		}
+		else if (t2->ti_client != (ClientData) CLIENTDEFAULT) continue;
+		if (IsSplit(t2))
+		{
+		    if (SplitDirection(t2))
+			/* bit set */
+			TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE));
+		    else
+			/* bit clear */
+			TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE));
+		}
+		STACKPUSH((ClientData)t2, dbConnectStack);
+    		STACKPUSH((ClientData)pNum, dbConnectStack);
+	    }
 	}
-    }
 
-    /* Right side: */
+	/* Right side: */
 
 rightside:
-    if (IsSplit(tile) && !SplitSide(tile)) goto topside;
+	if (IsSplit(tile) && !SplitSide(tile)) goto topside;
 
-    for (t2 = TR(tile); ; t2 = LB(t2))
-    {
-	if (IsSplit(t2))
+	for (t2 = TR(tile); ; t2 = LB(t2))
 	{
-	    checktype = SplitLeftType(t2);
-	}
-	else
-	    checktype = TiGetTypeExact(t2);
-	if (TTMaskHasType(connectMask, checktype))
-	{
-	    if (csa->csa_clear)
-	    {
-		if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextRight;
-	    }
-	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) goto nextRight;
 	    if (IsSplit(t2))
-		TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE)); /* bit clear */
-	    if (dbSrConnectFunc(t2, csa) != 0) return 1;
+	    {
+		checktype = SplitLeftType(t2);
+	    }
+	    else
+		checktype = TiGetTypeExact(t2);
+	    if (TTMaskHasType(connectMask, checktype))
+	    {
+		if (csa->csa_clear)
+		{
+		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextRight;
+		}
+		else if (t2->ti_client != (ClientData) CLIENTDEFAULT) goto nextRight;
+		if (IsSplit(t2))
+		    TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE)); /* bit clear */
+		STACKPUSH((ClientData)t2, dbConnectStack);
+    		STACKPUSH((ClientData)pNum, dbConnectStack);
+	    }
+	    nextRight: if (BOTTOM(t2) <= tileArea.r_ybot) break;
 	}
-	nextRight: if (BOTTOM(t2) <= tileArea.r_ybot) break;
-    }
 
-    /* Top side: */
+	/* Top side: */
 topside:
 
-    if (IsSplit(tile) && (SplitSide(tile) ^ SplitDirection(tile))) goto donesides;
+	if (IsSplit(tile) && (SplitSide(tile) ^ SplitDirection(tile))) goto donesides;
 
-    for (t2 = RT(tile); ; t2 = BL(t2))
-    {
-	if (IsSplit(t2))
+	for (t2 = RT(tile); ; t2 = BL(t2))
 	{
-	    checktype = SplitBottomType(t2);
-	}
-	else
-	    checktype = TiGetTypeExact(t2);
-	if (TTMaskHasType(connectMask, checktype))
-	{
-	    if (csa->csa_clear)
-	    {
-		if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextTop;
-	    }
-	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) goto nextTop;
 	    if (IsSplit(t2))
 	    {
-		if (SplitDirection(t2))
-		    TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE)); /* bit clear */
-		else
-		    TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE)); /* bit set */
+		checktype = SplitBottomType(t2);
 	    }
-	    if (dbSrConnectFunc(t2, csa) != 0) return 1;
+	    else
+		checktype = TiGetTypeExact(t2);
+	    if (TTMaskHasType(connectMask, checktype))
+	    {
+		if (csa->csa_clear)
+		{
+		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextTop;
+		}
+		else if (t2->ti_client != (ClientData) CLIENTDEFAULT) goto nextTop;
+		if (IsSplit(t2))
+		{
+		    if (SplitDirection(t2))
+			/* bit clear */
+			TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE));
+		    else
+			/* bit set */
+			TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE));
+		}
+		STACKPUSH((ClientData)t2, dbConnectStack);
+    		STACKPUSH((ClientData)pNum, dbConnectStack);
+	    }
+	    nextTop: if (LEFT(t2) <= tileArea.r_xbot) break;
 	}
-	nextTop: if (LEFT(t2) <= tileArea.r_xbot) break;
-    }
 
 donesides:
 
-    /* Lastly, check to see if this tile connects to anything on
-     * other planes.  If so, search those planes.
-     */
+	/* Lastly, check to see if this tile connects to anything on
+	 * other planes.  If so, search those planes.
+	 */
 
-    planes = DBConnPlanes[loctype];
-    planes &= ~(PlaneNumToMaskBit(csa->csa_pNum));
-    if (planes != 0)
-    {
-        struct conSrArg newcsa;
-	Rect newArea;
-
-	newcsa = *csa;
-	TiToRect(tile, &newArea);
-	GEO_EXPAND(&newArea, 1, &newArea);
-	for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
+	planes = DBConnPlanes[loctype];
+	planes &= ~(PlaneNumToMaskBit(pNum));
+	if (planes != 0)
 	{
-	    if (!PlaneMaskHasPlane(planes, i)) continue;
-	    newcsa.csa_pNum = i;
-	    if (IsSplit(tile))
+	    Rect newArea;
+	    GEO_EXPAND(&tileArea, 1, &newArea);
+
+	    for (i = PL_TECHDEPBASE; i < DBNumPlanes; i++)
 	    {
-		if (DBSrPaintNMArea((Tile *) NULL, csa->csa_def->cd_planes[i],
-			TiGetTypeExact(tile), &newArea, connectMask,
-			dbSrConnectFunc, (ClientData) &newcsa) != 0)
-		    return 1;
+		if (!PlaneMaskHasPlane(planes, i)) continue;
+		if (IsSplit(tile))
+		{
+		    if (DBSrPaintNMArea((Tile *) NULL, csa->csa_def->cd_planes[i],
+				TiGetTypeExact(tile), &newArea, connectMask,
+				dbcFindTileFunc, (ClientData)&t2) != 0)
+		    {
+			STACKPUSH((ClientData)t2, dbConnectStack);
+    			STACKPUSH((ClientData)i, dbConnectStack);
+		    }
+		}
+		else if (DBSrPaintArea((Tile *) NULL, csa->csa_def->cd_planes[i],
+			&newArea, connectMask, dbcFindTileFunc,
+			(ClientData)&t2) != 0)
+		{
+    		    STACKPUSH((ClientData)t2, dbConnectStack);
+    		    STACKPUSH((ClientData)i, dbConnectStack);
+		}
 	    }
-	    else if (DBSrPaintArea((Tile *) NULL, csa->csa_def->cd_planes[i],
-			&newArea, connectMask, dbSrConnectFunc,
-			(ClientData) &newcsa) != 0) return 1;
 	}
     }
-
-    return 0;
+    return result;
 }
 
 

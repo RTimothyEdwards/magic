@@ -65,6 +65,7 @@ typedef struct {
    CellDef *def;
    float scale;
    int total;
+   int plane;
    TileTypeBitMask *mask;
    LefMapping *MagicToLefTbl;
    HashTable *defViaTable;
@@ -218,8 +219,6 @@ defCountNets(rootDef, allSpecial)
     total.regular = (allSpecial) ? -1 : 0;
     total.special = 0;
     total.blockages = 0;
-    total.numrules = 0;
-    total.rules = NULL;
     total.has_nets = TRUE;
 
     TxPrintf("Diagnostic:  Finding all nets in cell %s\n", rootDef->cd_name);
@@ -844,7 +843,7 @@ defNetGeometryFunc(tile, plane, defdata)
     int routeWidth, w, h, midlinex2, topClip, botClip;
     float x1, y1, x2, y2, extlen;
     lefLayer *lefType, *lefl;
-    char *lefName, viaName[128], posstr[24];
+    char *lefName, *taperName, viaName[128], posstr[24];
     HashEntry *he;
     HashTable *defViaTable = defdata->defViaTable;
     LefMapping *MagicToLefTable = defdata->MagicToLefTbl;
@@ -883,34 +882,13 @@ defNetGeometryFunc(tile, plane, defdata)
 		return 0;
 
 	/* Boundary search on stacked contact types to include any	*/
-	/* tile areas belonging to ttype.				*/
-
-	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp)) /* Top */
-	{
-	    r2type = TiGetBottomType(tp);
-	    if (r2type == ttype)
-	    {
-		if (!rMask) return 0;
-		TiToRect(tp, &r2);
-		GeoInclude(&r2, &r);
-	    }
-	    else if (r2type >= DBNumUserLayers)
-	    {
-		r2Mask = DBResidueMask(r2type);
-		if (TTMaskHasType(r2Mask, ttype))
-		    return 0;
-	    }
-	}
+	/* tile areas belonging to ttype.  ONLY check top and right.	*/
 
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp)) /* Left */
 	{
 	    r2type = TiGetRightType(tp);
 	    if (r2type == ttype)
-	    {
-		if (!rMask) return 0;
-		TiToRect(tp, &r2);
-		GeoInclude(&r2, &r);
-	    }
+		return 0;
 	    else if (r2type >= DBNumUserLayers)
 	    {
 		r2Mask = DBResidueMask(r2type);
@@ -923,11 +901,7 @@ defNetGeometryFunc(tile, plane, defdata)
 	{
 	    r2type = TiGetTopType(tp);
 	    if (r2type == ttype)
-	    {
-		if (!rMask) return 0;
-		TiToRect(tp, &r2);
-		GeoInclude(&r2, &r);
-	    }
+		return 0;
 	    else if (r2type >= DBNumUserLayers)
 	    {
 		r2Mask = DBResidueMask(r2type);
@@ -936,12 +910,13 @@ defNetGeometryFunc(tile, plane, defdata)
 	    }
 	}
 
-	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp)) /* Right */
+	/* Extend boundary to top and right */
+
+	for (tp = RT(tile); ; tp = RT(tp)) /* Top */
 	{
-	    r2type = TiGetLeftType(tp);
+	    r2type = TiGetBottomType(tp);
 	    if (r2type == ttype)
 	    {
-		if (!rMask) return 0;
 		TiToRect(tp, &r2);
 		GeoInclude(&r2, &r);
 	    }
@@ -949,8 +924,34 @@ defNetGeometryFunc(tile, plane, defdata)
 	    {
 		r2Mask = DBResidueMask(r2type);
 		if (TTMaskHasType(r2Mask, ttype))
-		    return 0;
+		{
+		    TiToRect(tp, &r2);
+		    GeoInclude(&r2, &r);
+		}
+		else break;
 	    }
+	    else break;
+	}
+
+	for (tp = TR(tile); ; tp = TR(tp)) /* Right */
+	{
+	    r2type = TiGetLeftType(tp);
+	    if (r2type == ttype)
+	    {
+		TiToRect(tp, &r2);
+		GeoInclude(&r2, &r);
+	    }
+	    else if (r2type >= DBNumUserLayers)
+	    {
+		r2Mask = DBResidueMask(r2type);
+		if (TTMaskHasType(r2Mask, ttype))
+		{
+		    TiToRect(tp, &r2);
+		    GeoInclude(&r2, &r);
+		}
+		else break;
+	    }
+	    else break;
 	}
     }
     rorig = r;
@@ -960,6 +961,7 @@ defNetGeometryFunc(tile, plane, defdata)
     lefName = MagicToLefTable[ttype].lefName;
     if (lefName == NULL) return 0;	/* Do not write types not in LEF definition */
     lefType = MagicToLefTable[ttype].lefInfo;
+    taperName = NULL;
 
     orient = GEO_EAST;
     w = r.r_xtop - r.r_xbot;
@@ -997,8 +999,7 @@ defNetGeometryFunc(tile, plane, defdata)
 	    }
 	}
 
-	/* Warn if the route is not equal to the default route width--- */
-	/* This means a regular net should have been a special net.	*/
+	/* Check for non-default widths */
 	if ((h != routeWidth) && (w != routeWidth))
 	{
 	    /* Handle slivers.  There are two main cases:
@@ -1038,11 +1039,36 @@ defNetGeometryFunc(tile, plane, defdata)
 		if (h < routeWidth) return 0;
 	    }
 
-	    /* Diagnostic */
-	    if ((h != routeWidth) && (w != routeWidth))
+	    /* Handle non-default width regular nets (use TAPERRULE) */
+	    if ((h != routeWidth) && (w != routeWidth) &&
+			(defdata->specialmode == DO_REGULAR))
+	    {
+		int ndv = (h > w) ? w : h;
+		char ndname[100];
+		LefRules *ruleset;
+		lefRule *rule;
+
+		/*
 	    	TxPrintf("Net at (%d, %d) has width %d, default width is %d\n",
 			r.r_xbot, r.r_ybot,
 			(h < w) ? h : w, routeWidth);
+		 */
+
+		/* Create a nondefault rule.  Use one rule per layer and width */
+		sprintf(ndname, "%s_width_%d", lefName, (int)((float)ndv * oscale));
+		he = HashFind(&LefNonDefaultRules, ndname);
+		ruleset = (LefRules *)HashGetValue(he);
+		if (ruleset == NULL)
+		{
+		    ruleset = (LefRules *)mallocMagic(sizeof(LefRules));
+		    HashSetValue(he, ruleset);
+		    ruleset->name = StrDup((char **)NULL, ndname);
+		    ruleset->rule = (lefRule *)mallocMagic(sizeof(lefRule));
+		    ruleset->rule->lefInfo = lefType;
+		    ruleset->rule->width = ndv;
+		}
+		taperName = ruleset->name;
+	    }
 
 	    /* Set orientation based on longest side */
 	    if (h > w)
@@ -1170,6 +1196,9 @@ defNetGeometryFunc(tile, plane, defdata)
 			sameroute = FALSE;
 		}
 	    }
+	    else if (taperName != NULL)
+		/* TAPERRULE can only be put after a NEW layer line */
+		sameroute = FALSE;
 	    else
 		sameroute = TRUE;
 	}
@@ -1277,6 +1306,8 @@ defNetGeometryFunc(tile, plane, defdata)
 
 	        defCheckForBreak(strlen(rName) + 1, defdata);
 		fprintf(f, "%s ", rName);
+		if (taperName != NULL)
+		    fprintf(f, "TAPERRULE %s ", taperName);
 		if (defdata->specialmode != DO_REGULAR)
 		    defWriteRouteWidth(defdata, routeWidth);
 		defWriteCoord(defdata, x1, y1, GEO_CENTER);
@@ -1303,6 +1334,8 @@ defNetGeometryFunc(tile, plane, defdata)
 	    {
 	        defCheckForBreak(strlen(lefName) + 1, defdata);
 		fprintf(f, "%s ", lefName);
+		if (taperName != NULL)
+		    fprintf(f, "TAPERRULE %s ", taperName);
 		if (defdata->specialmode != DO_REGULAR)
 		    defWriteRouteWidth(defdata, routeWidth);
 
@@ -1487,6 +1520,7 @@ defCountVias(rootDef, MagicToLefTable, defViaTable, oscale)
 		}
 	}
 	cviadata.mask = &contactMask;
+	cviadata.plane = pNum;
 
 	DBSrPaintArea((Tile *)NULL, rootDef->cd_planes[pNum],
 			&TiPlaneRect, &contactMask,
@@ -1531,13 +1565,14 @@ defCountViaFunc(tile, cviadata)
     /* case we would need to initialize the hash table.		  */
     if (LefInfo.ht_table == (HashEntry **) NULL) LefTechInit();
 
-    /* Find the canonical type */
+    /* If type is a stacked contact, find the residue on the search plane */
     if (ttype >= DBNumUserLayers)
     {
 	rmask = DBResidueMask(ttype);
 	for (ctype = TT_TECHDEPBASE; ctype < DBNumUserLayers; ctype++)
 	    if (TTMaskHasType(rmask, ctype))
-		break;
+		if (DBPlane(ctype) == cviadata->plane)
+		    break;
 	if (ctype == DBNumUserLayers)
 	    return 1;			/* Error condition */
     }
@@ -1559,34 +1594,16 @@ defCountViaFunc(tile, cviadata)
     /* of regular and/or stacked types.  This whole thing should be	*/
     /* replaced by calls to generate layers via the CIF/Calma code.	*/
 
-    /* Top */
-    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-    {
-	rtype = TiGetBottomType(tp);
-	if (rtype == ctype)
-	{
-	    if (!rmask) return 0; /* ignore tile but continue search */
-	    TiToRect(tp, &r2);
-	    GeoInclude(&r2, &r);
-	}
-	else if (rtype >= DBNumUserLayers)
-	{
-	    rmask2 = DBResidueMask(rtype);
-	    if (TTMaskHasType(rmask2, ctype))
-		return 0;
-	}
-    }
+    /* If any matching tile exists to left or bottom, then return	*/
+    /* immediately.  Only expand areas for which this is the bottom and	*/
+    /* left-most contact tile.						*/
 
     /* Left */
     for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
     {
 	rtype = TiGetRightType(tp);
 	if (rtype == ctype)
-	{
-	    if (!rmask) return 0; /* ignore tile but continue search */
-	    TiToRect(tp, &r2);
-	    GeoInclude(&r2, &r);
-	}
+	    return 0;
 	else if (rtype >= DBNumUserLayers)
 	{
 	    rmask2 = DBResidueMask(rtype);
@@ -1600,11 +1617,7 @@ defCountViaFunc(tile, cviadata)
     {
 	rtype = TiGetTopType(tp);
 	if (rtype == ctype)
-	{
-	    if (!rmask) return 0; /* ignore tile but continue search */
-	    TiToRect(tp, &r2);
-	    GeoInclude(&r2, &r);
-	}
+	    return 0;
 	else if (rtype >= DBNumUserLayers)
 	{
 	    rmask2 = DBResidueMask(rtype);
@@ -1613,13 +1626,14 @@ defCountViaFunc(tile, cviadata)
 	}
     }
 
-    /* Right */
-    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
+    /* Expand to top and right until the whole contact area has been found */
+
+    /* Top */
+    for (tp = RT(tile); ; tp = RT(tp))
     {
-	rtype = TiGetLeftType(tp);
+	rtype = TiGetBottomType(tp);
 	if (rtype == ctype)
 	{
-	    if (!rmask) return 0; /* ignore tile but continue search */
 	    TiToRect(tp, &r2);
 	    GeoInclude(&r2, &r);
 	}
@@ -1627,8 +1641,35 @@ defCountViaFunc(tile, cviadata)
 	{
 	    rmask2 = DBResidueMask(rtype);
 	    if (TTMaskHasType(rmask2, ctype))
-		return 0;
+	    {
+	    	TiToRect(tp, &r2);
+	    	GeoInclude(&r2, &r);
+	    }
+	    else break;
 	}
+	else break;
+    }
+
+    /* Right */
+    for (tp = TR(tile); ; tp = TR(tp))
+    {
+	rtype = TiGetLeftType(tp);
+	if (rtype == ctype)
+	{
+	    TiToRect(tp, &r2);
+	    GeoInclude(&r2, &r);
+	}
+	else if (rtype >= DBNumUserLayers)
+	{
+	    rmask2 = DBResidueMask(rtype);
+	    if (TTMaskHasType(rmask2, ctype))
+	    {
+		TiToRect(tp, &r2);
+		GeoInclude(&r2, &r);
+	    }
+	    else break;
+	}
+	else break;
     }
 
     /* All values for the via rect are in 1/2 lambda to account */
@@ -2651,10 +2692,11 @@ DefWriteCell(def, outName, allSpecial, units)
     bool allSpecial;		/* Treat all nets as SPECIALNETS? */
     int units;			/* Force units to this value (default 1000) */
 {
-    char *filename;
-    FILE *f;
+    char *filename, *filename1, *filename2;
+    char line[2048];
+    FILE *f, *f2;		/* Break output file into parts */
     NetCount nets;
-    int total;
+    int total, numrules;
     float scale;
     HashTable defViaTable;
 
@@ -2662,6 +2704,7 @@ DefWriteCell(def, outName, allSpecial, units)
     int i;
     lefLayer *lefl;
     HashEntry *he;
+    HashSearch hs;
 
     /* Note that "1" corresponds to "1000" in the header UNITS line,	*/
     /* or units of nanometers.  10 = centimicrons, 1000 = microns.	*/
@@ -2689,6 +2732,7 @@ DefWriteCell(def, outName, allSpecial, units)
 #endif
 	return;
     }
+    filename1 = StrDup((char **)NULL, filename);
 
     defWriteHeader(def, f, scale, units);
 
@@ -2720,39 +2764,89 @@ DefWriteCell(def, outName, allSpecial, units)
     /* Count the number of nets and "special" nets */
     nets = defCountNets(def, allSpecial);
 
-    /* Nondefault rules */
-#if 0
-    /* Not yet implemented */
-    if (nets.numrules > 0)
+    /* Not done yet with output, so keep this file open. . . */
+
+    f2 = lefFileOpen(def, outName, ".def.part", "w", &filename);
+
+    if (f2 == NULL)
     {
-	NetRule *nrule;
-	fprintf(f, "NONDEFAULTRULES %d ;\n", nets.numrules);
-	for (nrule = nets.rules; nrule; nrule = nrule->next)
-	{
-	    fprintf(f, "  - %s\n", nrule->name);
-	    fprintf(f, "     + LAYER %s WIDTH %.10g\n", nrule->rule->name, 
-			((float)nrule->rule->info.route.width * scale));
-	}
-	fprintf(f, "END NONDEFAULTRULES\n\n");
-    }
+#ifdef MAGIC_WRAPPER
+	TxError("Cannot open output file %s (%s).\n", filename,
+		strerror(errno));
+#else
+	TxError("Cannot open output file: ");
+	perror(filename);
 #endif
+	/* If part 2 cannot be opened, remove part 1 */
+	fclose(f);
+	unlink(filename1);
+        freeMagic(filename1);
+	return;
+    }
+    filename2 = StrDup((char **)NULL, filename);
 
     /* "Special" nets---nets matching $GND, $VDD, or $globals(*) 	*/
     if (nets.special > 0)
     {
-	fprintf(f, "SPECIALNETS %d ;\n", nets.special);
-	defWriteNets(f, def, scale, lefMagicToLefLayer, &defViaTable,
+	fprintf(f2, "SPECIALNETS %d ;\n", nets.special);
+	defWriteNets(f2, def, scale, lefMagicToLefLayer, &defViaTable,
 		(allSpecial) ?  ALL_SPECIAL : DO_SPECIAL);
-	fprintf(f, "END SPECIALNETS\n\n");
+	fprintf(f2, "END SPECIALNETS\n\n");
     }
 
     /* "Regular" nets */
     if (nets.regular > 0)
     {
-	fprintf(f, "NETS %d ;\n", nets.regular);
-	defWriteNets(f, def, scale, lefMagicToLefLayer, &defViaTable, DO_REGULAR);
-	fprintf(f, "END NETS\n\n");
+	fprintf(f2, "NETS %d ;\n", nets.regular);
+	defWriteNets(f2, def, scale, lefMagicToLefLayer, &defViaTable, DO_REGULAR);
+	fprintf(f2, "END NETS\n\n");
     }
+    fclose(f2);
+
+    /* Now that nets have been written, the nondefault rules can be generated */
+
+    /* Nondefault rules */
+    numrules = LefNonDefaultRules.ht_nEntries;
+    if (numrules > 0)
+    {
+	LefRules *nrules;
+
+	fprintf(f, "NONDEFAULTRULES %d ;\n", numrules);
+	HashStartSearch(&hs);
+	while (he = HashNext(&LefNonDefaultRules, &hs))
+	{
+	    nrules = (LefRules *)HashGetValue(he);
+
+	    fprintf(f, "  - %s\n", nrules->name);
+	    fprintf(f, "     + LAYER %s WIDTH %.10g ;\n",
+			nrules->rule->lefInfo->canonName, 
+			((float)nrules->rule->width * scale));
+	}
+	fprintf(f, "END NONDEFAULTRULES\n\n");
+    }
+
+    /* Append contents of file with NETS and SPECIALNETS sections */
+
+    f2 = lefFileOpen(def, outName, ".def.part", "r", &filename);
+    if (f2 == NULL)
+    {
+	/* This should not happen because the file was just written. . . */
+#ifdef MAGIC_WRAPPER
+	TxError("Cannot open input file %s (%s).\n", filename,
+		strerror(errno));
+#else
+	TxError("Cannot open input file: ");
+	perror(filename);
+#endif
+	/* If part 2 cannot be opened, remove part 1 */
+	fclose(f);
+	unlink(filename1);
+        freeMagic(filename1);
+        freeMagic(filename2);
+	return;
+    }
+    while (dbFgets(line, sizeof line, f2) != NULL) fprintf(f, "%s", line);
+    fclose(f2);
 
     /* Blockages */
     if (nets.blockages > 0)
@@ -2761,10 +2855,18 @@ DefWriteCell(def, outName, allSpecial, units)
     fprintf(f, "END DESIGN\n\n");
     fclose(f);
 
+    /* Remove the temporary file of nets */
+    unlink(filename2);
+
+    freeMagic(filename1);
+    freeMagic(filename2);
+
     if (nets.has_nets) {
 	EFFlatDone(NULL);
 	EFDone(NULL);
     }
+
+    /* To do:  Clean up nondefault rules tables */
 
     freeMagic((char *)lefMagicToLefLayer);
     HashKill(&defViaTable);

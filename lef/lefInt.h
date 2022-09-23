@@ -123,8 +123,6 @@ typedef struct {
     int regular;
     int special;
     int blockages;
-    int numrules;
-    LefRules *rules;
     bool has_nets;
 } NetCount;
 
