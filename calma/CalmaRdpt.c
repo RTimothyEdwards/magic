@@ -698,10 +698,9 @@ calmaElementText()
     static int ignore[] = { CALMA_PATHTYPE, CALMA_WIDTH, -1 };
     char *textbody = NULL;
     int nbytes, rtype;
-    int layer, textt, cifnum;
+    int layer, textt, cifnum, textpres;
     TileType type;
     Rect r;
-    unsigned short textpres;
     double dval;
     int size, angle, font, pos;
 

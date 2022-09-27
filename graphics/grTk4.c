@@ -83,6 +83,7 @@ grtkGetCursorPos (mw, p)
     Window win1, win2;
 
     if (mw == NULL) mw = grCurrent.mw;
+    if (mw == NULL) return FALSE;
 
     XQueryPointer(grXdpy, Tk_WindowId((Tk_Window)mw->w_grdata),
 		  &win1, &win2, &x1, &y1,
