@@ -76,19 +76,23 @@ struct seeTypesArg
  * Returns 1 if the func() returns 1;  otherwise returns 0 to keep the
  * search alive.
  *
+ * NOTE: struct BPEnum has an array size 10000, causing this routine to
+ * take up a half megabyte of stack space if the variable is declared
+ * inside the local frame.  Use mallocMagic() instead.
  *-----------------------------------------------------------------------------
  */
 
 int
 DBSrCellPlaneArea(BPlane *plane, Rect *rect, int (*func)(), ClientData arg)
 {
-    BPEnum bpe;
+    BPEnum *bpe;
     CellUse *use;
     int rval = 0;
 
-    BPEnumInit(&bpe, plane, rect, BPE_OVERLAP, "DBSrCellPlaneArea");
+    bpe = (BPEnum *)mallocMagic(sizeof(BPEnum));
+    BPEnumInit(bpe, plane, rect, BPE_OVERLAP, "DBSrCellPlaneArea");
 
-    while (use = BPEnumNext(&bpe))
+    while (use = BPEnumNext(bpe))
     {
 	if ((*func)(use, arg))
 	{
@@ -97,7 +101,8 @@ DBSrCellPlaneArea(BPlane *plane, Rect *rect, int (*func)(), ClientData arg)
 	}
     }
 
-    BPEnumTerm(&bpe);
+    BPEnumTerm(bpe);
+    freeMagic(bpe);
     return rval;
 }
 
