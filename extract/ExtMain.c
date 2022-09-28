@@ -406,7 +406,7 @@ ExtUnique(rootUse, option)
 	    
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)
-	    nwarn += extUniqueCell(def, option);
+	    nwarn += extUniqueCell(def, locoption);
     }
     StackFree(extDefStack);
     if (nwarn)
