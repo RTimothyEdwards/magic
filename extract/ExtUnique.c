@@ -163,7 +163,7 @@ extUniqueCell(def, option)
 
     HashKill(&labelHash);
     ExtFreeLabRegions((LabRegion *) lregList);
-    freeMagic(nodeList);
+    if (nodeList) freeMagic(nodeList);
     ExtResetTiles(def, extUnInit);
     if (nwarn)
 	TxError("%s: %d warnings\n", def->cd_name, nwarn);
