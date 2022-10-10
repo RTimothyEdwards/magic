@@ -14,6 +14,9 @@
 
 #include <X11/Xlib.h>
 
+/* C99 compat */
+#include <X11/Xutil.h>
+
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -28,6 +31,9 @@
 #include "graphics/grTkInt.h"
 #include "graphics/grTkCommon.h"
 #include "database/fonts.h"
+
+/* C99 compat */
+#include "database/database.h"
 
 
 /*---------------------------------------------------------

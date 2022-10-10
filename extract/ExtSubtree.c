@@ -49,6 +49,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "dbwind/dbwind.h"
 #include "utils/styles.h"
 
+/* C99 compat */
+#include "drc/drc.h"
+
 #ifdef	exactinteractions
 /*
  * If "exactinteractions" is defined, we use an experimental algorithm

@@ -40,6 +40,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 #include "utils/styles.h"
 
+/* C99 compat */
+#include "router/routerInt.h"
+
 /*
  * Maps a tile pointer to a channel structure.
  * We use this rather than the client fields of tiles because

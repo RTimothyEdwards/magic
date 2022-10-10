@@ -36,6 +36,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 #define        atoCap(s)       ((EFCapValue)atof(s))
 
 /* --------------------- Visible outside extflat ---------------------- */

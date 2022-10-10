@@ -45,6 +45,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "netmenu/netmenu.h"
 #include "utils/runstats.h"
 
+/* C99 compat */
+#include "garouter/garouter.h"
+
 /* Forward declarations */
 
 extern int rtrMakeChannel();

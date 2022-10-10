@@ -57,6 +57,13 @@ extern void SelectStretch();
 extern void SelectArray();
 extern void SelectDump();
 
+/* C99 compat */
+extern void SelCopyToFeedback();
+extern void SelectAndCopy1();
+extern void SelectFlat();
+extern void SelSetDisplay();
+extern void SelRememberForUndo();
+
 /* Flag to indicate whether selection captures subcell labels */
 
 extern unsigned char SelectDoLabels;

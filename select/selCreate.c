@@ -39,6 +39,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/main.h"
 #include "utils/signals.h"
 
+/* C99 compat */
+#include "graphics/graphics.h"
+
 /* Two cells worth of information are kept around by the selection
  * module.  SelectDef and SelectUse are for the cells whose contents
  * are the current selection.  Select2Def and Select2Use provide a

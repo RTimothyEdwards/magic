@@ -43,6 +43,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "router/router.h"
 #include "utils/utils.h"
 
+/* C99 compat */
+#include "select/select.h"
+
 /* The following structure is used to hold information about
  * areas to be erased during net ripup.
  */

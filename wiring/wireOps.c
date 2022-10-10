@@ -40,6 +40,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "textio/txcommands.h"
 #include "utils/styles.h"
 
+/* C99 compat */
+#include "utils/undo.h"
+
 /* The following variables define the state of the wiring interface. */
 
 TileType WireType = TT_SELECTBASE-1; /* Type of material currently selected

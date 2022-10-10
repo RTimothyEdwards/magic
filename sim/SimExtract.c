@@ -42,6 +42,9 @@
 #include "utils/stack.h"
 #include "sim/sim.h"
 
+/* C99 compat */
+#include "extract/extract.h"
+
 
 /* When performing node name extraction, we mark all tiles of a node
  * as we walk through the database.  Since nodes can span multiple cells,

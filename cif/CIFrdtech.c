@@ -40,6 +40,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "calma/calmaInt.h"
 #include "utils/malloc.h"
 
+/* C99 compat */
+#include "cif/cif.h"
+
 /* Pointer to a list of all the CIF-reading styles: */
 
 CIFReadKeep *cifReadStyleList = NULL;

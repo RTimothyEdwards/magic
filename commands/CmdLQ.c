@@ -46,6 +46,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "select/select.h"
 #include "netmenu/netmenu.h"
 
+/* C99 compat */
+#include "cif/cif.h"
+
 /* Forward declarations */
 
 void CmdPaintEraseButton();

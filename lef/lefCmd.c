@@ -27,6 +27,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "commands/commands.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+#include "cif/cif.h"
+#include "lef/lefInt.h"
+
 int lefDateStamp = -1;	/* If not -1, defines the timestamp to use when creating
 			 * new cell defs from LEF or DEF.  Useful when generating
 			 * libraries to make sure that full and abstract views of

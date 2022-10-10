@@ -247,6 +247,39 @@ extern bool plowQueueLeftmost();
 extern bool plowQueueRightmost();
 extern Tile *plowSplitY();
 
+/* C99 compat */
+extern bool Plow();
+extern void PlowClearBound();
+extern bool PlowSelection();
+extern void PlowSetBound();
+extern void PlowStraighten();
+extern int  plowApplySearchRules();
+extern int  plowAtomize();
+extern void plowCleanupJogs();
+extern void plowDebugEdge();
+extern int  plowFindWidth();
+extern int  plowFindWidthBack();
+extern int  plowGenRandom();
+extern void plowQueueDone();
+extern void plowQueueInit();
+extern int  plowSrFinalArea();
+extern void plowSrOutline();
+extern int  plowSrShadow();
+extern int  plowSrShadowBack();
+extern int  plowSrShadowInitial();
+extern bool plowYankMore();
+extern void PlowRandomTest();
+extern void plowDebugInit();
+extern void plowMergeBottom();
+extern void plowMergeTop();
+extern void plowMoveEdge();
+extern int  plowShadowInitialRHS();
+extern int  plowShadowLHS();
+extern int  plowShadowRHS();
+extern void plowTechShow();
+extern void plowUpdateLabels();
+extern void plowYankCreate();
+
 /* ------------------------- Debugging flags -------------------------- */
 
 /*

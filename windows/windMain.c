@@ -66,6 +66,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "utils/utils.h"
 #include "textio/txcommands.h"
 
+/* C99 compat */
+#include "utils/main.h"
+
 /* The type of windows that this package will implement */
 int WindPackageType = WIND_MAGIC_WINDOWS;
 

@@ -38,6 +38,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/macros.h"
 #include "windows/windows.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 /* Define the macro client table */
 
 HashTable MacroClients;

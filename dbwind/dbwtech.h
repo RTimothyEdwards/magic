@@ -16,6 +16,11 @@ extern TileTypeBitMask	*DBWStyleToTypesTbl;
 #define	DBWStyleToTypes(s)	(DBWStyleToTypesTbl + s)
 
 /* forward declarations */
-int  DBWTechParseStyle();
+extern int  DBWTechParseStyle();
+
+/* C99 compat */
+extern void DBWElementStyle();
+extern void DBWElementText();
+extern void DBWSetCrosshair();
 
 #endif /* _DBWTECH_H */

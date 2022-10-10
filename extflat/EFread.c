@@ -41,6 +41,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "extract/extractInt.h"
 #include "utils/paths.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 #ifndef MAGIC_WRAPPER
 /* This must match the definition for extDevTable in extract/ExtBasic.c */
 char *extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",

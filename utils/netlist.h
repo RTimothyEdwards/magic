@@ -123,4 +123,9 @@ typedef struct
 /* Exports */
 extern char *NLNetName();
 
+/* C99 compat */
+extern void NLFree();
+extern int  NLBuild();
+extern void NLSort();
+
 #endif /* _RMNETLIST_H */

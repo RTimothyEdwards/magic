@@ -63,6 +63,18 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "utils/signals.h"
 
+/* C99 compat */
+#include "dbwind/dbwtech.h"
+#include "cif/cif.h"
+#include "lef/lef.h"
+#include "commands/commands.h"
+#include "graphics/graphics.h"
+#include "irouter/irouter.h"
+#include "mzrouter/mzrouter.h"
+#include "router/router.h"
+#include "wiring/wiring.h"
+#include "extract/extract.h"
+
 #ifndef _PATH_TMP
 #define _PATH_TMP "/tmp"
 #endif

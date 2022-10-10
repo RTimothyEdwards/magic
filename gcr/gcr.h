@@ -343,4 +343,38 @@ extern void GCRFlipXY();
 extern void GCRNoFlip();
 extern void GCRShow();
 
+/* C99 compat */
+extern void gcrSaveChannel();
+extern bool gcrBlocked();
+extern void gcrEvalPat();
+extern void gcrLinkTrack();
+extern void gcrMoveTrack();
+extern int  gcrNextSplit();
+extern void gcrUnlinkPin();
+extern bool gcrVertClear();
+extern void gcrWanted();
+extern void gcrBuildNets();
+extern void gcrCheckCol();
+extern int  gcrClass();
+extern void gcrCollapse();
+extern int  gcrDensity();
+extern void gcrDumpResult();
+extern void gcrFeasible();
+extern void gcrInitCol();
+extern void gcrInitCollapse();
+extern int  gcrLook();
+extern void gcrMakeRuns();
+extern void gcrMarkWanted();
+extern void gcrPickBest();
+extern void gcrPrintCol();
+extern int  gcrRealDist();
+extern void gcrReduceRange();
+extern bool gcrRiverRoute();
+extern void gcrSetEndDist();
+extern void gcrSetFlags();
+extern void gcrShellSort();
+extern int  gcrTryRun();
+extern void gcrUncollapse();
+extern void gcrVacate();
+
 #endif /* _GCR_H */

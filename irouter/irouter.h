@@ -49,4 +49,8 @@ extern bool IRTechLine();
 extern void IRDRCInit();
 extern bool IRDRCLine();
 
+/* C99 compat */
+extern int  irRoute();
+extern void IRCommand();
+
 #endif /* _IROUTER_H */

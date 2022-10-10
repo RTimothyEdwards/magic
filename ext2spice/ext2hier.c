@@ -46,6 +46,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/runstats.h"
 #include "ext2spice/ext2spice.h"
 
+/* C99 compat */
+#include "extflat/extflat.h"
+
 /* These global values are defined in ext2spice.c */
 extern HashTable subcktNameTable;
 extern DQueue    subcktNameQueue;

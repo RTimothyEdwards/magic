@@ -22,7 +22,11 @@ extern Tcl_Interp *consoleinterp;
 /* Forward declaration of procedures */
 
 extern char *Tcl_escape();
-extern int TagVerify();
+extern int  TagVerify();
+
+/* C99 compat */
+extern int  Tcl_printf();
+extern void MakeWindowCommand();
 
 /* Backward compatibility issues */
 #ifndef CONST84

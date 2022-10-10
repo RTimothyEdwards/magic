@@ -50,6 +50,9 @@
 #include "cif/cif.h"
 #include "cif/CIFint.h"		/* access to CIFPlanes, CIFCurStyle, etc. */
 
+/* C99 compat */
+#include "utils/signals.h"
+
 extern Display     *grXdpy;		/* X11 display */
 extern GLXContext  grXcontext;		/* OpenGL/X11 interface def. */
 extern XVisualInfo *grVisualInfo;	/* OpenGL preferred visual */

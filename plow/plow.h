@@ -54,4 +54,9 @@ extern int PlowJogHorizon;
 /* TRUE if we should eliminate jogs after each plow operation */
 extern bool PlowDoStraighten;
 
+/* C99 compat */
+extern void DRCPlowScale();
+extern void PlowInit();
+extern void PlowAfterTech();
+
 #endif /* _PLOW_H */

@@ -77,4 +77,8 @@ extern Rect cmwCurrentColorArea;
 extern void cmwUndoColor(int, int, int, int, int, int, int);
 extern bool CMWCheckWritten(void);
 
+/* C99 compat */
+extern void CMWinit();
+
+
 #endif /* _CMWIND_H */

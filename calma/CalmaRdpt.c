@@ -48,6 +48,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "calma/calmaInt.h"
 #include "calma/calma.h"
 
+/* C99 compat */
+#include "drc/drc.h"
+
 extern int calmaNonManhattan;
 
 extern int CalmaPolygonCount;

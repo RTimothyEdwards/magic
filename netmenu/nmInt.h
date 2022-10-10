@@ -128,6 +128,15 @@ extern void NMWriteAll();
 extern void NMUndo();
 extern void NMUndoInit();
 
+/* C99 compat */
+extern void NMMeasureNet();
+extern int  NMcommand();
+extern int  NMredisplay();
+extern int  NMCull();
+extern bool CmdParseLayers();
+extern int  NMredisplay();
+extern int  NMEnumTerms();
+
 /* Various global variables (within this module): */
 
 extern char * NMCurNetName;

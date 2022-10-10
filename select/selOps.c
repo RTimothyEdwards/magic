@@ -41,6 +41,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "drc/drc.h"
 
+/* C99 compat */
+#include "commands/commands.h"
+#include "netmenu/netmenu.h"
+
 /* The following variables are shared between SelectStretch and the
  * search functions that it causes to be invoked.
  */

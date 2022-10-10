@@ -77,6 +77,18 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "graphics/wind3d.h"
 #endif
 
+/* C99 compat */
+#include "utils/utils.h"
+#include "utils/tech.h"
+#include "commands/commands.h"
+#include "dbwind/dbwind.h"
+#include "cmwind/cmwind.h"
+#include "extract/extract.h"
+#include "plow/plow.h"
+#include "select/select.h"
+#include "irouter/irouter.h"
+#include "lef/lefInt.h"
+
 
 /*
  * Global data structures

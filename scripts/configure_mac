@@ -4,5 +4,4 @@ set -x
     --with-tcl=$(brew --prefix tcl-tk)\
     --with-tk=$(brew --prefix tcl-tk)\
     --with-cairo=$(brew --prefix cairo)/include\
-    "CFLAGS=-Wno-error=implicit-function-declaration"\
     "LDFLAGS=-L$(brew --prefix cairo)/lib"

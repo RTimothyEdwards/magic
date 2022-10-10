@@ -11,10 +11,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
-
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -30,6 +26,14 @@
 #include "graphics/grTOGLInt.h"
 #include "graphics/grTkCommon.h"
 #include "database/fonts.h"
+
+/* C99 compat
+ * GL headers must be included after graphics/grTOGLInt.h
+ */
+#include <GL/gl.h>
+#include <GL/glx.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
 
 extern Display *grXdpy;
 

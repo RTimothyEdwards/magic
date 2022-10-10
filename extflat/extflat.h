@@ -353,6 +353,67 @@ extern HierName *EFStrToHN();
 extern char *EFHNToStr();
 extern int EFGetPortMax();
 
+/* C99 compat */
+extern void EFHNFree();
+extern bool EFHNIsGlob();
+extern int  EFNodeResist();
+extern void efAdjustSubCap();
+extern int  efBuildAddStr();
+extern void efBuildAttr();
+extern int  efBuildDevice();
+extern void efBuildDeviceParams();
+extern void efBuildDist();
+extern void efBuildEquiv();
+extern void efBuildKill();
+extern void efBuildPortNode();
+extern void efBuildUse();
+extern int  efFlatCaps();
+extern int  efFlatDists();
+extern int  efFlatKills();
+extern int  efFlatNodes();
+extern int  efFlatNodesStdCell();
+extern void efFreeConn();
+extern void efFreeDevTable();
+extern void efFreeNodeList();
+extern void efFreeNodeTable();
+extern void efFreeUseTable();
+extern void efHNBuildDistKey();
+extern int  efHNLexOrder();
+extern void efHNPrintSizes();
+extern void efHNRecord();
+extern int  efHierSrArray();
+extern int  efHierSrUses();
+extern int  efHierVisitDevs();
+extern void efNodeMerge();
+extern void efReadError();
+extern int  efReadLine();
+extern bool efSymAdd();
+extern bool efSymAddFile();
+extern void efSymInit();
+extern void EFDone();
+extern void EFFlatBuild();
+extern void EFFlatDone();
+extern bool EFHNIsGND();
+extern void EFInit();
+extern bool EFReadFile();
+extern int  EFVisitDevs();
+extern int  efVisitDevs();
+extern bool efSymLook();
+extern int  efVisitResists();
+extern int  EFVisitResists();
+extern int  EFVisitNodes();
+extern int  EFVisitCaps();
+extern void EFGetLengthAndWidth();
+extern void EFHNOut();
+extern int  EFHierSrDefs();
+extern int  EFVisitSubcircuits();
+extern int  EFHierVisitSubcircuits();
+extern int  EFHierVisitDevs();
+extern int  EFHierVisitResists();
+extern int  EFHierVisitCaps();
+extern int  EFHierVisitNodes();
+
+
 /* ------------------------- constants used by clients -------------- */
 
 /*

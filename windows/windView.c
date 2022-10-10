@@ -32,6 +32,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "textio/textio.h"
 #include "dbwind/dbwind.h"
 
+/* C99 compat */
+#include "database/database.h"
+
 extern void windNewView();
 
 
@@ -274,7 +277,6 @@ void
 WindScale(scalen, scaled)
     int scalen, scaled;
 {
-    extern void DBScalePoint();
     MagWindow *w2;
     Rect newArea;
 

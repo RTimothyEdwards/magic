@@ -286,6 +286,21 @@ extern void DRCLoadStyle();
 
 extern PlaneMask CoincidentPlanes(TileTypeBitMask *typeMask, PlaneMask pmask);
 
+/* C99 compat */
+extern void DRCBreak();
+extern void DRCFlatCheck();
+extern void DRCWhyAll();
+extern void drcCifInit();
+extern void drcCifCheck();
+extern void drcCifFinal();
+extern void drcCheckAngles();
+extern void drcCheckArea();
+extern int  drcCheckMaxwidth();
+extern void drcCheckRectSize();
+extern void drcCheckOffGrid();
+extern int  LowestMaskBit();
+extern void drcCifScale();
+
 /* The following macro can be used by the outside world to see if
  * the background checker needs to be called.
  */

@@ -292,6 +292,17 @@ extern void WindSeparateRedisplay();
 /* handler for window buttons in the scrollbar/zoom (non-wrapper) frame */
 extern bool WindButtonInFrame();
 
+/* C99 compat */
+extern bool WindDelete();
+extern void WindScale();
+extern void WindTranslate();
+extern void WindUnload();
+extern void WindRedisplay();
+extern void windUnlink();
+extern void windReClip();
+extern void windFree();
+extern int  WindSendCommand();
+
 /* interface variables */
 extern int WindDefaultFlags;	/* Mask of properties applied to new windows */
 extern int WindNewButtons;	/* A mask of the buttons that are down now. */

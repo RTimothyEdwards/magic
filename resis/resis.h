@@ -635,6 +635,47 @@ extern void			ResFixDevName();
 extern void			ResWriteLumpFile();
 extern void			ResSortBreaks();
 
+/* C99 compat */
+extern void ResAddToQueue();
+extern bool ResCalcTileResistance();
+extern void ResCleanNode();
+extern void ResCleanUpEverything();
+extern void ResDeleteResPointer();
+extern void ResDoContacts();
+extern int  ResDoSimplify();
+extern void ResDoneWithNode();
+extern void ResEliminateResistor();
+extern bool ResExtractNet();
+extern int  ResFracture();
+extern void ResMergeNodes();
+extern void ResNewSDDevice();
+extern void ResNewSubDevice();
+extern void ResPreProcessDevices();
+extern void ResPrintDeviceList();
+extern void ResPrintExtDev();
+extern void ResPrintReference();
+extern void ResPrintResistorList();
+extern void ResPrintStats();
+extern void ResProcessJunction();
+extern int  ResReadNode();
+extern int  ResReadSim();
+extern void ResRemoveFromQueue();
+extern int  ResSimNewNode();
+extern int  ResWriteExtFile();
+extern void ResPrintExtNode();
+extern void ResPrintExtRes();
+extern void ResPrintFHNodes();
+extern void ResPrintFHRects();
+extern int  ResCreateCenterlines();
+extern int  ResSeriesCheck();
+extern int  ResParallelCheck();
+extern int  ResTriangleCheck();
+extern int  gettokens();
+extern int  resWalkdown();
+extern int  resWalkleft();
+extern int  resWalkright();
+extern int  resWalkup();
+
 
 /* macros */
 

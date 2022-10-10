@@ -198,7 +198,7 @@ extern void DBWUndoNewEdit();
 extern void DBWHLAddClient();
 extern void DBWHLRemoveClient();
 extern void DBWHLRedraw();
-extern int DBWHLRedrawWind();
+extern int  DBWHLRedrawWind();
 extern void DBWDrawBox();
 extern void DBWDrawCrosshair();
 
@@ -231,6 +231,18 @@ extern void DBWElementParseFlags();
 extern char *DBWPrintElements();
 extern void DBWScaleElements();
 extern void DBWScaleCrosshair();
+
+/* C99 compat */
+extern void DBWreload();
+extern void DBWInitCommands();
+extern void dbwUndoInit();
+extern void dbwFeedbackInit();
+extern void DBWElementPos();
+extern bool DBCellDeleteUse();
+extern void DBWHLRedrawPrepWindow();
+extern void CmdInit();
+extern void DBWinit();
+extern int  DBWTechParseStyle();
 
 /* Random procedures used internally to this module.  None of these
  * should ever need to be called by the outside world.

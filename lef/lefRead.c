@@ -44,6 +44,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "cif/CIFread.h"	/* Access to cifCurReadStyle. . . */
 #include "lef/lefInt.h"
 
+/* C99 compat */
+#include "utils/signals.h"
+#include "utils/signals.h"
+#include "drc/drc.h"
+#include "lef/lef.h"
+
 /* ---------------------------------------------------------------------*/
 
 /* Current line number for reading */

@@ -92,6 +92,10 @@ extern char TxInterruptChar;		/* The current interrupt character */
 /* command procedures */
 extern void TxDispatch();
 
+/* C99 compat */
+extern void TxMore();
+extern void txGetFileCommand();
+
 /* variables that tell if stdin and stdout are to a terminal */
 extern bool TxStdinIsatty;
 extern bool TxStdoutIsatty;

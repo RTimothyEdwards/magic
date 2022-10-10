@@ -52,6 +52,15 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/signals.h"
 #include "sim/sim.h"
 
+/* C99 compat */
+#include "cif/cif.h"
+#include "lef/lef.h"
+#include "extract/extract.h"
+#include "irouter/irouter.h"
+#include "mzrouter/mzrouter.h"
+#include "router/router.h"
+#include "wiring/wiring.h"
+
 extern void DisplayWindow();
 
 /* Used by CmdSetLabel() */
@@ -260,7 +269,6 @@ CmdScaleGrid(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    extern void DBScalePoint();
     int scalen, scaled;
     char *argsep;
     Rect rootBox;

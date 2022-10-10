@@ -51,6 +51,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "cif/CIFread.h"
 #include "calma/calmaInt.h"
 
+/* C99 compat */
+#include "dbwind/dbwtech.h"
+
 /* The following structure is used by CmdCorner to keep track of
  * areas to be filled.
  */

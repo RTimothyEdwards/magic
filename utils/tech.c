@@ -25,6 +25,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdarg.h>
 #include <ctype.h>
 
+/*
+ * C99 compat
+ * Mind: tcltk/tclmagic.h must be included prior to all the other headers
+ */
+#include "tcltk/tclmagic.h"
+
 #include "database/database.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -33,6 +39,23 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 #include "windows/windows.h"
 #include "utils/malloc.h"
+
+/* C99 compat */
+#include "utils/heap.h"
+#include "cif/cif.h"
+#include "cif/cif.h"
+#include "drc/drc.h"
+#include "mzrouter/mzrouter.h"
+#include "wiring/wiring.h"
+#include "lef/lef.h"
+#include "router/router.h"
+#include "irouter/irouter.h"
+#include "garouter/garouter.h"
+#include "extract/extract.h"
+#include "plow/plow.h"
+
+/* Cannot include tcltk/tclmagic.h for a clash with utils/magic.h
+extern int Tcl_printf(FILE *, char *, va_list); */
 
 global int  TechFormatVersion;
 global bool TechOverridesDefault;

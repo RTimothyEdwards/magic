@@ -138,6 +138,17 @@ extern void (*GrResumePtr)();
 #define GrStop	(*GrStopPtr)
 #define GrResume (*GrResumePtr)
 
+/* C99 compat */
+extern void GrClipTriangle();
+extern void GrBox();
+extern bool GrFontText();
+extern void GrDiagonal();
+extern bool grTkLoadFont();
+extern void grTkFreeFonts();
+extern bool grtoglLoadFont();
+extern void GrDrawTriangleEdge();
+extern bool GrReadGlyphs();
+
 /* Number of colors defined in the colormap */
 extern int GrNumColors;
 

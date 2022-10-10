@@ -41,6 +41,10 @@ static char sccsid[] = "@(#)SimSelect.c	4.14 MAGIC (Berkeley) 10/3/85";
 #include "utils/signals.h"
 #include "sim/sim.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+#include "extract/extract.h"
+
 /* Two cells worth of information are kept around by the selection
  * module.  SelectDef and SelectUse are for the cells whose contents
  * are the current selection.  Select2Def and Select2Use provide a

@@ -43,8 +43,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/styles.h"
 #include "utils/malloc.h"
 #include "utils/list.h"
-#include "../mzrouter/mzrouter.h"
+#include "mzrouter/mzrouter.h"
 #include "irouter/irInternal.h"
+
+/* C99 compat */
+#include "debug/debug.h"
 
 /* Subcommand table - declared here since its referenced before defined */
 typedef struct

@@ -46,6 +46,9 @@
 #include "utils/paths.h"
 #include "graphics/grTkCommon.h"
 
+/* C99 compat */
+#include "dbwind/dbwind.h"
+
 uint8_t			**grTCairoStipples;
 HashTable		grTCairoWindowTable;
 XVisualInfo		*grTCairoVisualInfo;

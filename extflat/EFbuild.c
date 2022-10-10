@@ -37,6 +37,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "extract/extract.h"	/* for device class list */
 #include "extract/extractInt.h"	/* for extGetDevType()	*/
 
+/* C99 compat */
+#include "textio/textio.h"
+
 /*
  * To avoid allocating ridiculously large amounts of memory to hold
  * transistor types and the names of node types, we maintain the following

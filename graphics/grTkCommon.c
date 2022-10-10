@@ -32,6 +32,16 @@
 #include "graphics/grTkCommon.h"
 #include "graphics/glyphs.h"
 
+/* C99 compat
+ * GL headers must be included after graphics/grTOGLInt.h
+ */
+#include <GL/gl.h>
+#include <GL/glx.h>
+#include <GL/glu.h>
+#include <mach/mach.h> /* Needed to define panic */
+
+#include "textio/textio.h"
+
 /* Variables declared by grClip.c */
 
 extern int grCurFill, grCurOutline, grCurColor;

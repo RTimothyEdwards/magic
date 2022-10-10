@@ -41,6 +41,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "grouter/grouter.h"
 #include "textio/textio.h"
 
+/* C99 compat */
+#include "router/routerInt.h"
+
 /* Forward declarations */
 bool rtrPinArrayBlock();
 void rtrPinShow(GCRPin *);

@@ -42,6 +42,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "dbwind/dbwind.h"
 
+/* C99 compat */
+#include "utils/main.h"
+
 /* imports from other graphics files */
 extern void (*grSetSPatternPtr)();
 extern void (*grDefineCursorPtr)();

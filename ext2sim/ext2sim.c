@@ -40,6 +40,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/runstats.h"
 #include "utils/malloc.h"
 
+/* C99 compat */
+#include "extflat/extflat.h"
+
 /* Forward declarations */
 void CmdExtToSim();
 bool simnAP();
@@ -47,6 +50,10 @@ bool simnAPHier();
 int simParseArgs();
 int simdevVisit(), simresistVisit(), simcapVisit(), simnodeVisit();
 int simmergeVisit();
+
+/* C99 compat */
+int simdevOutNode();
+int simdevSubstrate();
 
 /* Options specific to ext2sim */
 #ifdef EXT2SIM_AUTO

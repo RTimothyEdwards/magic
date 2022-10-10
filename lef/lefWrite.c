@@ -44,6 +44,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "cif/CIFint.h"
 #include "lef/lefInt.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+#include "select/select.h"
+
 
 #define FP "%s"
 #define POINT FP " " FP

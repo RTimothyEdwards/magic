@@ -30,6 +30,9 @@
 #include "utils/malloc.h"
 #include "utils/signals.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 /* Types of elements */
 
 #define ELEMENT_RECT	0

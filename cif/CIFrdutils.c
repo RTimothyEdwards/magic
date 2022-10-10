@@ -27,6 +27,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdarg.h>
 #include <ctype.h>
 
+/*
+ * C99 compat
+ * Mind: tcltk/tclmagic.h must be included prior to all the other headers
+ */
+#include "tcltk/tclmagic.h"
+
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "tiles/tile.h"
@@ -39,6 +45,16 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/signals.h"
 #include "utils/undo.h"
 #include "utils/malloc.h"
+
+/* C99 compat */
+#include "lef/lef.h"
+#include "drc/drc.h"
+#include "extract/extract.h"
+#include "wiring/wiring.h"
+#include "router/router.h"
+#include "mzrouter/mzrouter.h"
+#include "irouter/irouter.h"
+#include "plow/plow.h"
 
 /* The following variables are used to provide one character of
  * lookahead.  cifParseLaAvail is TRUE if cifParseLaChar contains

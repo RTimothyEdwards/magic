@@ -28,7 +28,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
-#include "utils/utils.h"
 #include "tiles/tile.h"
 #include "utils/hash.h"
 #include "database/database.h"
@@ -39,6 +38,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "cif/cif.h"
 #include "cif/CIFint.h"
 #include "drc/drc.h"
+
+/* C99 compat */
+#include "utils/tech.h"
+#include "plow/plow.h"
 
 CIFStyle *drcCifStyle = NULL;
 bool	 DRCForceReload = FALSE;

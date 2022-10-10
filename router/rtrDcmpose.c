@@ -61,6 +61,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "netmenu/netmenu.h"
 #include "debug/debug.h"
 
+/* C99 compat */
+#include "router/routerInt.h"
+
 /* The following tile types are used during channel decomposition */
 #define	CELLTILE	1	/* Cell tile -- no channels here */
 #define	USERCHAN	2	/* User-defined channel */

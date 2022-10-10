@@ -34,6 +34,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 #include "utils/signals.h"
 
+/* C99 compat */
+#include "utils/undo.h"
+
 /* The current selection is displayed by displaying the outline of
  * shapes in one cell as an overlay (using the higlight facilities)
  * on top of another cell.  The variables below are used to remember

@@ -29,6 +29,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/geometry.h"
 #include "tiles/tile.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 /*
  * Debugging version of TiSetBody() macro in tile.h
  * Includes sanity check that a tile at "infinity"

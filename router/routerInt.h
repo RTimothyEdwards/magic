@@ -30,4 +30,20 @@ extern int	rtrTarget;			/* Via minimization, target type	*/
 extern int	rtrReplace;			/* Via minimization, replacement type	*/
 extern int	rtrDelta;			/* Change in layer width		*/
 
+/* C99 compat */
+extern void RtrPinsFixStems();
+extern int  RtrViaMinimize();
+extern int  rtrPinArrayFixStems();
+extern int  rtrPinArrayInit();
+extern int  rtrPinArrayLink();
+extern int  rtrSidePassToClient();
+extern int  rtrSideProcess();
+extern int  rtrXDist();
+extern int  rtrYDist();
+extern int  rtrStemContactLine();
+extern int  rtrStemTypes();
+extern int  rtrSrTraverse();
+extern int  rtrListVia();
+extern void rtrListArea();
+
 #endif /* _ROUTERINT_H */

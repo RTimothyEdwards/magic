@@ -24,6 +24,9 @@
 #include "windows/windows.h"
 #include "utils/malloc.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 /*
  *-------------------------------------------------------------------------
  * Below are the service routines for file locking.

@@ -97,6 +97,12 @@ extern void GAClearChannels();
 extern bool GADefineChannel();
 extern bool GAMazeInitParms();
 
+/* C99 compat */
+extern void GAInit();
+extern void GAGenChans();
+extern int  GARouteCmd();
+extern void GATest();
+
 /* Exported variables */
 extern bool GAStemWarn;
 

@@ -29,6 +29,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/utils.h"
 #include "utils/malloc.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 #define heapLeft(used,i)  ((used) < ( (i)<<1)    ? 0 : (i)+(i)  )
 #define heapRight(used,i) ((used) < (((i)<<1)+1) ? 0 : (i)+(i)+1)
 

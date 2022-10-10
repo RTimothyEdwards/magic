@@ -31,6 +31,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "utils/styles.h"
 
+/* C99 compat */
+#include "router/router.h"
+
 int gcrRouterErrors;
 extern int gcrStandalone;
 

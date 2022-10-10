@@ -89,4 +89,9 @@ extern void grInformDriver();
      (((x) >> SUBPIXELBITS) < 4) || (((y) >> SUBPIXELBITS) < 4) \
 )
 
+/* C99 compat */
+extern bool GrReadGlyphs();
+extern bool GrBoxOutline();
+extern bool grtcairoLoadFont();
+
 #endif /* _GRAPHICSINT_H */

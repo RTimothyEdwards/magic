@@ -58,6 +58,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "sim/sim.h"
 #include "gcr/gcr.h"
 
+/* C99 compat */
+#include "cif/cif.h"
+
 /* The following structure is used by CmdFill to keep track of
  * areas to be filled.
  */

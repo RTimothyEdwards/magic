@@ -95,4 +95,10 @@ extern Transform RootToEditTransform;
 extern void MainExit(int);	/* a way of exiting that cleans up after itself */
 extern void magicMain();
 
+/* C99 compat */
+extern int  mainInitBeforeArgs();
+extern int  mainDoArgs();
+extern int  mainInitAfterArgs();
+extern int  mainInitFinal();
+
 #endif /* _MAIN_H */

@@ -237,6 +237,41 @@ GlPoint *glProcessLoc();
 Tile *glChanPinToTile();
 void glCrossMark();
 
+/* C99 compat */
+extern void GlGlobalRoute();
+extern void GlInit();
+extern void dbSetPlaneTile();
+extern void glChanBlockDens();
+extern void glChanBuildMap();
+extern void glChanFreeMap();
+extern int  glCrossCost();
+extern int  glCrossEnum();
+extern void glCrossScalePenalties();
+extern void glCrossUnreserve();
+extern void glDMAlloc();
+extern void glDMCopy();
+extern void glDMFree();
+extern int  glDMMaxInRange();
+extern bool glDensAdjust();
+extern void glDensInit();
+extern void glHistoAdd();
+extern void glListAdd();
+extern void glListToHeap();
+extern void glMazeResetCost();
+extern int  glMultiSteiner();
+extern int  glMultiStemCost();
+extern int  glPathFreePerm();
+extern void glPathFreeTemp();
+extern int  glPenClearPerChan();
+extern void glPenCompute();
+extern int  glPenDeleteNet();
+extern void glPenSetPerChan();
+extern void glShowCross();
+extern void glStatsDone();
+extern void glStatsInit();
+extern int  glPenEnumCross();
+extern void GlTest();
+
     /* Penalties for crossings */
 extern int glJogPenalty;
 extern int glObsPenalty1;

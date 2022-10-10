@@ -1085,6 +1085,21 @@ extern NodeRegion *temp_subsnode;	/* Substrate connection to subcell */
      */
 extern struct stack *extNodeStack;
 
+/* C99 compat */
+extern void ExtFindInteractions();
+extern void ExtInterCount();
+extern void ExtInterCount();
+extern void ExtTimes();
+extern void ExtParentArea();
+extern void extHierCopyLabels();
+extern int  extTimesInitFunc();
+extern int  extTimesHierFunc();
+extern int  extTimesFlatFunc();
+extern Plane *extCellFile();
+extern int  extInterAreaFunc();
+extern int  extTreeSrPaintArea();
+extern int  extMakeUnique();
+
 /* ------------------ Connectivity table management ------------------- */
 
 /*

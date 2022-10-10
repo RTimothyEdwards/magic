@@ -56,7 +56,7 @@ extern void CIFTechInit();
 extern bool CIFTechLine();
 extern void CIFTechFinal();
 extern void CIFTechOutputScale();
-extern void CIFTechInputScale();
+extern int  CIFTechInputScale();
 extern bool CIFTechLimitScale();
 extern void CIFReadTechStyleInit();
 extern void CIFReadTechInit();
@@ -90,5 +90,8 @@ extern int CIFOutputScaleFactor();
 
 extern void PaintWireList();
 extern LinkedRect *PaintPolygon();
+
+/* C99 compat */
+extern int  CIFGetContactSize();
 
 #endif /* _CIF_H */

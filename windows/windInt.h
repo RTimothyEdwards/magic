@@ -57,6 +57,10 @@ extern void windDump();
 extern void windClientInit();
 extern MagWindow *windSearchPoint();
 
+/* C99 compat */
+extern void windScreenToFrame();
+extern void WindPrintClientList();
+
 /* ----------------- constants ----------------- */
 
 /* the width of window borders */

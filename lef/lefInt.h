@@ -157,6 +157,17 @@ LefMapping *defMakeInverseLayerMap();
 void LefError(int, char *, ...);	/* Variable argument procedure requires */
 					/* parameter list.			*/
 
+/* C99 compat */
+extern void LefRead();
+extern void DefRead();
+
+void LefWriteAll();
+void DefWriteCell();
+void LefWriteCell();
+int  DRCGetDefaultLayerWidth();
+void LefTechInit();
+void lefRemoveGeneratedVias();
+
 /* Definitions for type passed to LefError() */
 
 #define LEF_ERROR	0

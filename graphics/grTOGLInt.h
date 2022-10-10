@@ -19,6 +19,11 @@
 
 #define TOGL_BATCH_SIZE	10000
 
+/* C99 compat
+ * Include OpenGL prototype headers
+ */
+#define GL_GLEXT_PROTOTYPES
+
 /* Current settings for X function parameters */
 typedef struct {
     Tk_Font		font;

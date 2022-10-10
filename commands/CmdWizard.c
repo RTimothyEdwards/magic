@@ -46,6 +46,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/utils.h"
 #include "textio/txcommands.h"
 
+/* C99 compat */
+#include "extract/extract.h"
+
 /* Forward declarations */
 
 extern void cmdPsearchStats();

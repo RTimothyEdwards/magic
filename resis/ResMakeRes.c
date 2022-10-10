@@ -26,6 +26,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "resis/resis.h"
 #include "cif/CIFint.h"
 
+/* C99 compat */
+#include "cif/cif.h"
+
 /* Forward declarations */
 bool ResCalcNearDevice();
 bool ResCalcNorthSouth();

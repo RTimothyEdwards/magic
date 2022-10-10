@@ -55,4 +55,9 @@ extern void TechError(char *, ...);
 extern void TechAddClient();
 extern void TechAddAlias();
 
+/* C99 compat */
+extern SectionID TechSectionGetMask();
+extern void TechInit();
+extern int  techGetTokens();
+
 #endif /* _TECH_H */

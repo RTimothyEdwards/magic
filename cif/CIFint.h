@@ -327,6 +327,26 @@ extern int cifHierCopyMaskHints();
 extern void CIFLoadStyle();
 extern void CIFCopyMaskHints();
 
+/* C99 compat */
+extern void CIFCoverageLayer();
+extern bool CIFWriteFlat();
+extern void CIFScalePlanes();
+extern void CIFInputRescale();
+extern int  CIFCalmaLayerToCifLayer();
+extern int  CIFScaleCoord();
+extern void CIFPropRecordPath();
+extern void CIFPaintWirePath();
+extern void CIFMakeManhattanPath();
+extern int  cifGrowSliver();
+extern int  cifHierElementFunc();
+extern int  cifSquareFunc();
+extern int  cifSquareGridFunc();
+extern int  cifSlotFunc();
+extern int  CIFParseScale();
+extern int  cifParseCalmaNums();
+extern int  CIFEdgeDirection();
+extern bool CIFReadTechLimitScale();
+
 /* Shared variables and structures: */
 
 extern Plane *CIFPlanes[];		/* Normal place to store CIF. */

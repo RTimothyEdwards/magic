@@ -42,6 +42,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/tech.h"
 #include "utils/signals.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 /* The following variable is exported to the rest of the world.
  * It is read from the "styletype" line of the technology file,
  * and defines the class of display styles file expected for

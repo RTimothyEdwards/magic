@@ -44,6 +44,9 @@
 #include "utils/paths.h"
 #include "graphics/grTkCommon.h"
 
+/* C99 compat */
+#include "dbwind/dbwind.h"
+
 GLubyte		**grTOGLStipples;
 HashTable	grTOGLWindowTable;
 GLXContext	grXcontext;

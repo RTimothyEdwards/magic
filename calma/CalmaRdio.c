@@ -46,6 +46,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 #include "calma/calmaInt.h"
 
+/* C99 compat */
+#include "calma/calma.h"
+
 /* Forward declarations */
 bool calmaReadR8();
 bool calmaSkipBytes();

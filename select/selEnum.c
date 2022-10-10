@@ -38,6 +38,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "textio/textio.h"
 
+/* C99 compat */
+#include "graphics/graphics.h"
+
 /* Structure passed from top-level enumeration procedures to lower-level
  * ones:
  */

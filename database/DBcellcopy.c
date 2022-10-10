@@ -35,6 +35,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "dbwind/dbwind.h"
 #include "commands/commands.h"
 
+/* C99 compat */
+#include "graphics/graphics.h"
+
 /*
  * The following variable points to the tables currently used for
  * painting.  The paint tables are occasionally switched, by clients

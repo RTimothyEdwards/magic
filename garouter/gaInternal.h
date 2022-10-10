@@ -96,4 +96,16 @@ typedef struct nnl
 /* procedure declarations */
 extern bool gaMazeInit();
 
+/* C99 compat */
+extern bool gaMazeInit();
+extern void gaChannelInit();
+extern void gaStemPaintAll();
+extern void gaStemAssignAll();
+extern bool gaStemSimpleInit();
+extern bool gaStemSimpleRoute();
+extern bool gaStemSimpleInit();
+extern bool gaStemSimpleRoute();
+extern bool gaStemSimpleRoute();
+extern int  gaBuildNetList();
+
 #endif /* _GAINTERNAL_H */

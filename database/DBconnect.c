@@ -36,6 +36,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/signals.h"
 #include "utils/malloc.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 /* Global variable */
 Stack *dbConnectStack = (Stack *)NULL;
 

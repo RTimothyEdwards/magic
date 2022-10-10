@@ -56,4 +56,8 @@ extern void NMButtonRight();
 extern void NMMeasureAll();
 #endif
 
+/* C99 compat */
+extern void nmGetNums();
+
+
 #endif /* _NETMENU_H */

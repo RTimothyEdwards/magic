@@ -175,6 +175,28 @@ extern Point RtrOrigin;
 extern void RtrTechInit(), RtrTechFinal();
 extern bool RtrTechLine();
 
+/* C99 compat */
+extern int  RtrTechScale();
+extern void RtrChannelBounds();
+extern void RtrMilestoneStart();
+extern void RtrMilestonePrint();
+extern void RtrChannelObstacles();
+extern void RtrMilestoneDone();
+extern void RtrChannelDensity();
+extern void RtrChannelRoute();
+extern void RtrChannelCleanObstacles();
+extern void RtrStemProcessAll();
+extern void RtrPaintBack();
+extern bool RtrStemAssignExt();
+extern void RtrPinsInit();
+extern void RtrHazards();
+extern void RtrPinsLink();
+extern bool RtrPinsBlock();
+extern bool rtrStemMask();
+extern bool RtrStemPaintExt();
+extern int  rtrEnumSides();
+extern void RtrChannelError();
+
 /* Overall procedure to do routing */
 extern void Route();
 

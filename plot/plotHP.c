@@ -15,6 +15,9 @@
 #include "utils/malloc.h"
 #include "plot/plotInt.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 #ifdef VERSATEC
 
 extern int PlotRTLCompress();

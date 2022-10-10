@@ -49,6 +49,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/main.h"			/* for EditCellUse */
 #include "utils/undo.h"
 
+/* C99 compat */
+#include "calma/calma.h"
+
 /* Globals for Calma reading */
 FILETYPE calmaInputFile = NULL;		/* Read from this stream */
 FILE *calmaErrorFile = NULL;		/* Write error output here */

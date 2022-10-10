@@ -41,6 +41,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/maxrect.h"
 #include "drc/drc.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+#include "utils/undo.h"
+
 /* TRUE to run (very slow) algorithm for optimizing non-manhattan tiles */
 /* (cuts size of output;  see also the GDS "merge" option)		*/
 bool CIFUnfracture = FALSE;

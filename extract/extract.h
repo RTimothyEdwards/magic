@@ -107,5 +107,41 @@ extern void ExtDumpCaps();
 extern int extEnumTilePerim();
 extern Plane *extPrepSubstrate();
 
+/* C99 compat */
+extern void ExtAll();
+extern void ExtIncremental();
+extern void ExtLengthClear();
+extern void ExtParents();
+extern void ExtSetDriver();
+extern void ExtSetReceiver();
+extern void ExtShowParents();
+extern void ExtTechScale();
+extern void ExtUnique();
+extern void ExtractTest();
+extern int  ExtFindNeighbors();
+extern void ExtFreeLabRegions();
+extern void ExtResetTiles();
+extern void extArray();
+extern void extFindCoupling();
+extern void extHierAdjustments();
+extern void extHierConnections();
+extern void extHierFreeLabels();
+extern void extHierFreeOne();
+extern void extHierFreeOne();
+extern void extHierSubstrate();
+extern int  extHierYankFunc();
+extern bool extLabType();
+extern void extLength();
+extern void extLengthInit();
+extern void extOutputConns();
+extern void extOutputCoupling();
+extern int  extPathTileDist();
+extern void extRelocateSubstrateCoupling();
+extern void extSetNodeNum();
+extern void extShowTile();
+extern void extSubtree();
+extern int  extUniqueCell();
+extern void ExtLabelOneRegion();
+extern void ExtInit();
 
 #endif /* _EXTRACT_H */

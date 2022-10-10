@@ -43,7 +43,7 @@ extern char **CalmaFlattenUsesByName;
 extern bool CalmaReadOnly;
 extern bool CalmaContactArrays;
 #ifdef HAVE_ZLIB
-extern bool CalmaCompression;
+extern int  CalmaCompression;
 #endif
 extern bool CalmaPostOrder;
 extern bool CalmaAllowUndefined;
@@ -54,6 +54,34 @@ extern void CalmaReadFile();
 extern void CalmaTechInit();
 extern bool CalmaGenerateArray();
 extern void CalmaReadError();
+
+/* C99 compat */
+extern void CalmaReadError();
+extern int  calmaAddSegment();
+extern void calmaDelContacts();
+extern void calmaElementBoundary();
+extern void calmaElementBox();
+extern void calmaElementPath();
+extern void calmaElementText();
+extern bool calmaIsUseNameDefault();
+extern bool calmaParseStructure();
+extern int  calmaProcessDef();
+extern int  calmaProcessDefZ();
+extern bool calmaReadI2Record();
+extern bool calmaReadI4Record();
+extern void calmaReadPoint();
+extern bool calmaReadR8();
+extern bool calmaReadStampRecord();
+extern bool calmaReadStringRecord();
+extern bool calmaReadStringRecord();
+extern bool calmaReadTransform();
+extern bool calmaSkipBytes();
+extern bool calmaSkipExact();
+extern bool calmaSkipTo();
+extern void calmaUnexpected();
+extern void calmaMergeSegments();
+extern void calmaRemoveDegenerate();
+extern void calmaRemoveColinear();
 
 #ifdef HAVE_ZLIB
 extern bool CalmaWriteZ();

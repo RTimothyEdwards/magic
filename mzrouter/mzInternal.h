@@ -432,6 +432,27 @@ extern dlong mzWindowMaxToGo;
 /* Marked cell list */
 extern List *mzMarkedCellsList;
 
+/* C99 compat */
+extern void mzExtendBlockBounds();
+extern void mzBuildDestAreaBlocks();
+extern void mzBuildEstimate();
+extern void mzBuildHFR();
+extern void mzCleanEstimate();
+extern void mzComputeDerivedParms();
+extern void mzDumpEstimates();
+extern void mzDumpTags();
+extern void mzExtendDown();
+extern void mzExtendLeft();
+extern void mzExtendRight();
+extern void mzExtendUp();
+extern void mzFreeAllRPaths();
+extern void mzMarkConnectedTiles();
+extern void mzPaintBlockType();
+extern void mzPrintPathHead();
+extern bool mzStart();
+extern void mzWalkLRContact();
+extern void mzWalkUDContact();
+
 /* ------------ Interesting Point Macros -------------------------------- */
 /* The following macros are used in the low-level routines for finding
  * the NEXT interesting point to the Right, Left, Up and Down.

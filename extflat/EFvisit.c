@@ -37,6 +37,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "tiles/tile.h"
 #include "extract/extract.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 /* Root of the tree being flattened */
 extern Def *efFlatRootDef;
 extern Use efFlatRootUse;

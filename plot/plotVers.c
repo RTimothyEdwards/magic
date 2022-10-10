@@ -24,6 +24,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <string.h>
 
+/* C99 compat */
+#include <stdlib.h>
+
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "utils/geofast.h"
@@ -40,6 +43,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/signals.h"
 #include "dbwind/dbwind.h"
 #include "cif/cif.h"		/* for CIFGetOutputScale() */
+
+/* C99 compat */
+#include "plot/plotInt.h"
 
 #ifdef VERSATEC
 

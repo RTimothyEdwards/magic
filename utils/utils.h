@@ -56,6 +56,25 @@ extern bool StrIsWhite(char *, bool);
 extern bool StrIsInt(char *);
 extern bool StrIsNumeric(char *);
 
+/* C99 compat */
+extern void PaAppend(char **, char *);
+extern void ReduceFraction(int *, int *);
+extern bool TechLoad(char *, SectionID);
+extern void UndoFlush();
+extern int  GeoTransAngle();
+extern int  GeoTransOrient();
+extern void GeoTransPointDelta();
+extern int  FindGCF();
+extern int  GetRect();
+extern void niceabort();
+extern void ShowRect();
+extern void FindDisplay();
+extern void ForkChildAdd();
+extern int  PaEnum();
+extern int  paVisitProcess();
+extern void SetNoisyInt();
+extern void SetNoisyDI();
+
 #ifdef HAVE_ZLIB
 extern gzFile PaZOpen(char *, char *, char *, char *, char *, char **);
 #endif

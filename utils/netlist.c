@@ -36,6 +36,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "utils/styles.h"
 
+/* C99 compat */
+#include "netmenu/netmenu.h"
+#include "dbwind/dbwind.h"
+
 /* Compute the "cost" of a net from the bounding rect for all its terminals */
 #define	NETSIZE(r)  ((int)((r)->r_xtop - (r)->r_xbot + (r)->r_ytop - (r)->r_ybot))
 

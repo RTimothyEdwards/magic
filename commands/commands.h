@@ -64,4 +64,16 @@ extern void CmdDoMacro();
 extern TileType CmdFindNetProc();
 extern bool CmdCheckForPaintFunc();
 
+/* C99 compat */
+extern int cmdScaleCoord();
+extern void FlatCopyAllLabels();
+extern bool cmdDumpParseArgs();
+extern void cmdFlushCell();
+extern int cmdParseCoord();
+extern void cmdSaveCell();
+extern void CmdInit();
+
+extern void CmdDoProperty();
+extern void CmdPaintEraseButton();
+
 #endif /* _COMMANDS_H */

@@ -40,6 +40,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "utils/signals.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 /* Use a reference-counted character structure for feedback info */
 
 typedef struct rcstring

@@ -40,6 +40,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/main.h"
 #include "utils/signals.h"
 
+/* C99 compat */
+#include "router/routerInt.h"
+
 /*
  * Local data used for communicating with filter functions.
  * This procedure is non-reentrant because it needs to use a temporary

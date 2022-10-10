@@ -36,6 +36,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "plow/plowInt.h"
 #include "drc/drc.h"
 
+/* C99 compat */
+#include "utils/tech.h"
+#include "drc/drc.h"
+
 /* Imports from DRC */
 extern char *maskToPrint();
 

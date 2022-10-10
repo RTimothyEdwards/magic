@@ -38,6 +38,10 @@ extern bool grtkGetBackingStore();
 extern bool grtkScrollBackingStore();
 extern void grtkPutBackingStore();
 
+/* C99 compat */
+extern bool grTkLoadFont();
+extern void grTkFreeFonts();
+
 extern Tk_Font grTkFonts[4];
 extern Tk_Cursor grCursors[MAX_CURSORS];
 

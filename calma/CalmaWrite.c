@@ -53,6 +53,10 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 #include "utils/main.h"		/* for Path and CellLibPath */
 #include "utils/stack.h"
 
+/* C99 compat */
+#include "utils/undo.h"
+#include "calma/calma.h"
+
     /* Exports */
 bool CalmaDoLibrary = FALSE;	  /* If TRUE, do not output the top level */
 bool CalmaDoLabels = TRUE;	  /* If FALSE, don't output labels with GDS-II */

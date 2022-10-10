@@ -35,6 +35,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 #include "utils/undo.h"
 
+/* C99 compat */
+#include "drc/drc.h"
+
 /* The following variable holds the CellDef into which feedback
  * is to be placed for displaying CIF.
  */

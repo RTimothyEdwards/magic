@@ -45,6 +45,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "gcr/gcr.h"
 #include "grouter/grouter.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+#include "irouter/irouter.h"
+#include "mzrouter/mzrouter.h"
+#include "garouter/garouter.h"
+#include "router/routerInt.h"
+
 /* Global variable initialization */
 
 bool RtrMazeStems = FALSE;	/* Set by default to original behavior */

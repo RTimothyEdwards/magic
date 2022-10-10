@@ -42,6 +42,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "cif/cif.h"
 #include "drc/drc.h"	/* For WRL's DRC-CIF extensions */
 
+/* C99 compat */
+#include "calma/calma.h"
+#include "dbwind/dbwind.h"
+#include "drc/drc.h"
+
 /* The following statics are used to keep track of things between
  * calls to CIFTechLine.
  */

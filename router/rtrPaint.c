@@ -37,6 +37,9 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/r
 #include "dbwind/dbwind.h"
 #include "utils/main.h"
 
+/* C99 compat */
+#include "textio/textio.h"
+
 int RtrViaLimit		= 2;
 int rtrMetalLength	= 0;
 int rtrPolyLength	= 0;

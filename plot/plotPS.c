@@ -38,6 +38,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "dbwind/dbwind.h"
 #include "textio/textio.h"
 
+/* C99 compat */
+#include "graphics/graphics.h"
+
 /* Records of the following type are used to describe how to generate
  * PS output for a particular set of mask layers.  Each style
  * describes the PS figures to draw for a particular set of

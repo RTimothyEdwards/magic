@@ -44,9 +44,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/geofast.h"
 #include "utils/touchingtypes.h"
 #include "select/select.h"
-#include "../mzrouter/mzrouter.h"
+#include "mzrouter/mzrouter.h"
 #include "irouter/irouter.h"
 #include "irouter/irInternal.h"
+
+/* C99 compat */
+#include "select/select.h"
 
 /* --- Routines local to this file that are referenced before they are
  *     defined --- */

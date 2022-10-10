@@ -212,6 +212,9 @@ ClientData  dbTechNameLookup();
 ClientData  dbTechNameLookupExact();
 extern int  strcmpbynum();
 
+/* C99 compat */
+extern int  dbScaleCell();
+
 /* --------------- Internal database technology variables ------------- */
 
 /*

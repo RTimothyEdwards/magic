@@ -41,6 +41,9 @@
 #include "utils/paths.h"
 #include "graphics/grTkCommon.h"
 
+/* C99 compat */
+#include "dbwind/dbwind.h"
+
 GR_CURRENT grCurrent = {
 	(Tk_Font)0, 0, 0, 0, 0, 0,
 	(MagWindow *)NULL

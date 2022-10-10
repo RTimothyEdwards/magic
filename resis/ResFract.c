@@ -25,6 +25,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "windows/windows.h"
 #include "utils/main.h"
 
+/* C99 compat */
+#include "extract/extractInt.h"
+#include "resis/resis.h"
+
 extern Tile *ResSplitX();
 
 

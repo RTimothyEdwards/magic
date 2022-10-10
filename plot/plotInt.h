@@ -235,4 +235,19 @@ extern unsigned char PlotPNMBG;
 extern bool PlotPNMRTL;
 #endif
 
+/* C99 compat */
+extern void PlotRastFatLine();
+extern void PlotHPRTLHeader();
+extern void PlotPS();
+extern void PlotHPGL2Header();
+extern void PlotPrintParams();
+extern int  PlotDumpHPRTL();
+extern void PlotHPGL2Trailer();
+extern void PlotSetParam();
+extern void PlotHPRTLTrailer();
+extern void PlotVersatec();
+extern void PlotPNM();
+extern void PlotPNM();
+extern int  PlotRTLCompress();
+
 #endif /* _PLOTINT_H */

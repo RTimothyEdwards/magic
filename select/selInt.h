@@ -31,10 +31,12 @@
  */
 
 extern int SelRedisplay();
-extern void SelSetDisplay();
 extern void SelUndoInit();
 extern void SelRememberForUndo();
 extern void SelectAndCopy2();
+
+/* C99 compat */
+extern void SelNetRememberForUndo();
 
 extern CellUse *Select2Use;
 extern CellDef *Select2Def;

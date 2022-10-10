@@ -40,6 +40,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "utils/utils.h"
 
+/* C99 compat */
+#include "commands/commands.h"
+
 /* The arrays below are used to store information about the various
  * button handlers that have registered themselves.
  */

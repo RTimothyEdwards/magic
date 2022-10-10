@@ -28,4 +28,14 @@ extern HashTable SimGNAliasTbl;
 extern HashTable SimGetnodeTbl;
 extern HashTable SimAbortSeenTbl;
 
+/* C99 compat */
+extern void SimGetnode();
+extern void SimGetsnode();
+extern void SimGetNodeCleanUp();
+extern int  SimPutLabel();
+extern int  SimSrConnect();
+extern void SimTreeCopyConnect();
+extern int  SimTreeSrNMTiles();
+extern int  SimTreeSrTiles();
+
 #endif /* _SIM_H */

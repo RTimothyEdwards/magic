@@ -45,6 +45,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/signals.h"
 #include "extract/extract.h"
 
+/* C99 compat */
+#include "drc/drc.h"
+
 /* Imports from PlowMain.c */
 extern CellDef *plowYankDef;
 

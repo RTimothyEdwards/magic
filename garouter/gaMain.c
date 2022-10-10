@@ -230,6 +230,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "debug/debug.h"
 #include "drc/drc.h"
 
+/* C99 compat */
+#include "utils/netlist.h"
+#include "garouter/gaInternal.h"
+
 
 /*
  * ----------------------------------------------------------------------------

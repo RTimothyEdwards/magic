@@ -54,6 +54,9 @@ extern void SigSetTimer();
 extern void SigTimerInterrupts();
 extern void SigTimerDisplay();
 
+/* C99 compat */
+extern void SigRemoveTimer();
+
 extern sigRetVal sigOnInterrupt();
 
 #endif /* _MAGSIGNAL_H */

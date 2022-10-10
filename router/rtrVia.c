@@ -40,6 +40,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "router/router.h"
 #include "router/routerInt.h"
 
+/* C99 compat */
+#include "router/routerInt.h"
+
 /*
  * The following structures are used to hold information about
  * areas to be erased/modified/painted during via minimization.

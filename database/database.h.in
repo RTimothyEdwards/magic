@@ -861,7 +861,7 @@ extern void DBClearCellPlane();
 
     /* Insertion/deletion of cell uses into the name space of a parent */
 extern bool DBLinkCell();
-extern void DBUnlinkCell();
+extern void DBUnLinkCell();
 
     /* Deletion of cell defs */
 extern void DBUndoReset();
@@ -946,6 +946,64 @@ extern int DBArraySr();
 extern bool DBNearestLabel();
 extern int DBSrLabelLoc();
 extern TileType DBTransformDiagonal();
+
+/* C99 compat */
+extern void DBEraseValid();
+extern void DBPaintValid();
+extern void DBTreeCountPaint();
+extern FILE *dbReadOpen();
+extern int  DBLoadFont();
+extern int  DBNameToFont();
+extern int  DBFontChar();
+extern void DBFontInitCurves();
+extern void DBUndoEraseLabel();
+extern void DBUndoPutLabel();
+extern bool DBCellRename();
+extern bool DBCellDelete();
+extern int  DBCellSrArea();
+extern int  DBSrCellPlaneArea();
+extern int  DBMoveCell();
+extern bool DBReLinkCell();
+extern int  DBBoundCellPlane();
+extern Label *DBCheckLabelsByContent();
+extern void DBMaskAddStacking();
+extern bool DBIsChild();
+extern void DBScaleEverything();
+extern bool DBScalePoint();
+extern int  DBScaleCell();
+extern TileType DBTechNameTypes();
+extern void DBTreeFindUse();
+extern void DBGenerateUniqueIds();
+extern TileType DBInvTransformDiagonal();
+extern bool DBIsSubcircuit();
+extern int  DBSrPaintNMArea();
+extern int  DBTreeSrNMTiles();
+extern void DRCOffGridError();
+extern int  dbCellUsePrintFunc();
+extern int  dbTechContactResidues();
+extern TileType dbTechNewStackedType();
+extern void dbUndoEdit();
+extern void DBSplitTile();
+extern int  DBSrCellUses();
+extern TileType DBTechNameTypeExact();
+extern void dbInstanceUnplace();
+extern int  dbIsPrimary();
+extern void dbTechMatchResidues();
+extern void DBUndoInit();
+extern void DBResetTilePlane();
+extern void DBNewYank();
+extern int  DBSrPaintClient();
+extern int  DBSrConnect();
+extern char *dbFgets();
+extern void DBAdjustLabelsNew();
+extern bool DBScaleValue();
+extern int  DBMergeNMTiles0();
+extern int  DBSearchLabel();
+extern int  dbCellUniqueTileSrFunc();
+extern void DBWDrawFontLabel();
+extern void DBCellCopyManhattanPaint();
+extern bool dbScalePlane();
+extern int  DBPaintPlaneVert();
 
 /* -------------------------- Layer locking ------------------------------*/
 

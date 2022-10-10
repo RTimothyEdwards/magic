@@ -193,6 +193,10 @@ extern void GeoDecomposeTransform(Transform *, bool *, int *);
 extern void GeoIncludeRectInBBox(Rect *, Rect *);
 extern void GeoCanonicalRect(Rect *, Rect *);
 
+/* C99 compat */
+extern bool GeoDisjoint();
+extern void GeoScaleTrans();
+
 /*
  *-------------------------------------------------------------------
  *	Declarations of exported transforms and rectangles:

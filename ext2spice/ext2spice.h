@@ -41,6 +41,18 @@ extern float getCurDevMult();
 extern void addDevMult();
 extern void setDevMult();
 
+/* C99 compat */
+extern int  EFHNSprintf();
+extern int  printSubcktDict();
+extern int  spcdevOutNode();
+extern int  spcnAP();
+extern int  parallelDevs();
+extern int  nodeHspiceName();
+extern int  devDistJunctHierVisit();
+extern int  spcnAPHier();
+extern void mergeAttr();
+extern int  update_w();
+
 /* Options specific to ext2spice */
 extern bool esDoExtResis;
 extern bool esDoPorts;

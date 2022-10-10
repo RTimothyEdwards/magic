@@ -45,6 +45,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "mzrouter/mzrouter.h"
 #include "mzrouter/mzInternal.h"
 
+/* C99 compat */
+#include "drc/drc.h"
+
 /* Procedures referenced before they are defined
  * (these procedures are local to this file)
  */

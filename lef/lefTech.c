@@ -39,6 +39,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "drc/drc.h"
 #include "cif/cif.h"
 
+/* C99 compat */
+#include "utils/tech.h"
+
 /* ---------------------------------------------------------------------*/
 
 /* Layer and Via routing information table.  */

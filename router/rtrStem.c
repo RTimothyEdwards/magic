@@ -46,6 +46,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/signals.h"
 #include "utils/maxrect.h"
 
+/* C99 compat */
+#include "router/routerInt.h"
+
 /* Used when searching for stems */
 typedef struct
 {
