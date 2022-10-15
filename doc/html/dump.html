@@ -25,16 +25,20 @@ Copy contents of the indicated cell into the current edit cell.
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>dump</B> <I>cell</I> [<B>child</B> <I>child_refpoint</I>]
+      <B>dump</B> <I>cell</I> [<I>orientation</I>]
+		 [<B>child</B> <I>child_refpoint</I>]
 		 [<B>parent</B> <I>parent_refpoint</I>]
 	<BR><BR>
       <BLOCKQUOTE>
          where <I>cell</I> is the name of the cell whose contents are to
 	 be copied, and optional <I>child_refpoint</I> and
 	 <I>parent_refpoint</I> are coordinate pairs of <I>x y</I> values,
-	 or keywords <B>ll</B>, <B>lr</B>, <B>ul</B>, or <B>ur</B>.  The
-	 syntax and use of the reference points is the same as for the
-	 <B>getcell</B> command.
+	 or keywords <B>ll</B>, <B>lr</B>, <B>ul</B>, or <B>ur</B>.
+	 The optional <I>orientation</I> may be any valid orientation
+	 (flip or rotation), such as <B>h</B>, <B>v</B>, <B>90</B>,
+	 <B>180</B>, or <B>270</B>.
+	 The syntax and use of the orientation and reference points is the
+	 same as for the <B>getcell</B> command.
       </BLOCKQUOTE>
    </BLOCKQUOTE>
 

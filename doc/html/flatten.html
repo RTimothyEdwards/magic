@@ -30,8 +30,8 @@ Flatten edit cell into the indicated destination cell.
          where <I>cellname</I> is the name of a cell definition to be
 	 created, and into which the flattened geometry will be placed.
 	 <I>option</I> may be one of <B>-nolabels</B>, <B>-nosubcircuits</B>,
-	 or <B>-noports</B>, <B>-novendor</B>, <B>-dotoplabels</B>, and
-	 <B>-dobox</B>.
+	 or <B>-noports</B>, <B>-novendor</B>, <B>-dotoplabels</B>,
+	 <B>-doproperty</B>, and <B>-dobox</B>.
       </BLOCKQUOTE>
    </BLOCKQUOTE>
 
@@ -63,6 +63,11 @@ Flatten edit cell into the indicated destination cell.
 	<DD> This option tells magic to preserve in the flattened view
 	     only the labels that are in the top level cell.  Labels in
 	     subcells will be ignored.
+        <DT> <B>-doproperty</B>
+	<DD> This option will only flatten subcells which are marked
+	     with the property string "<B>flatten</B>".  This is useful
+	     for flattening an entire set of cells;  for example, flattening
+	     subcells with routing before creating a DEF file of a layout.
         <DT> <B>-dobox</B>
 	<DD> When this option is specified, magic flattens only the area
 	     of the circuit that is inside the boundary of the cursor box.

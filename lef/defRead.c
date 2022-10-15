@@ -2354,8 +2354,10 @@ DefRead(inName, dolabels, annotate, noblockage)
     FILE *f;
     char *filename;
     char *token;
+    char *bboxstr;
     int keyword, dscale, total;
     float oscale;
+    Rect *dierect;
 
     static char *sections[] = {
 	"VERSION",
@@ -2496,6 +2498,14 @@ DefRead(inName, dolabels, annotate, noblockage)
 		LefEndStatement(f);
 		break;
 	    case DEF_DIEAREA:
+		dierect = LefReadRect(f, 0, oscale);
+		bboxstr = mallocMagic(40);
+		sprintf(bboxstr, "%d %d %d %d",
+			dierect->r_xbot,
+			dierect->r_ybot,
+			dierect->r_xtop,
+			dierect->r_ytop);
+		DBPropPut(rootDef, "FIXED_BBOX", bboxstr);
 		LefEndStatement(f);
 		break;
 	    case DEF_PROPERTYDEFINITIONS:

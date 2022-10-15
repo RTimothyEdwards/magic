@@ -2004,7 +2004,10 @@ CmdFlatten(w, cmd)
 			toplabels = (invert) ? FALSE : TRUE;
 			break;
 		    case 'p':
-			doports = (invert) ? FALSE : TRUE;
+			if (!strncmp(cmd->tx_argv[i] + 3, "prop", 4))
+			    xMask = (invert) ? CU_DESCEND_ALL : CU_DESCEND_PROP_FLAT;
+			else
+			    doports = (invert) ? FALSE : TRUE;
 			break;
 		    case 's':
 			xMask = (invert) ? CU_DESCEND_NO_SUBCKT : CU_DESCEND_ALL;
@@ -2014,7 +2017,7 @@ CmdFlatten(w, cmd)
 			break;
 		    default:
 			TxError("options are: -nolabels, -nosubcircuits, -noports, "
-				"-novendor, -dotoplabels, -dobox\n");
+				"-novendor, -dotoplabels, -doproperty, -dobox\n");
 			break;
 		}
 	    }

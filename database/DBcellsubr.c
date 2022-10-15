@@ -64,6 +64,8 @@ DBDescendSubcell(use, xMask)
     CellUse *use;
     unsigned int xMask;
 {
+    bool propfound;
+
     /* Check single bit (window ID) or zero */
     if (((xMask - 1) & xMask) == 0)
 	return ((use->cu_expandMask & xMask) == xMask);
@@ -90,6 +92,16 @@ DBDescendSubcell(use, xMask)
 
 	case CU_DESCEND_NO_VENDOR:
 	    return (use->cu_def->cd_flags & CDVENDORGDS) ? FALSE : TRUE;
+
+	case CU_DESCEND_PROP_FLAT:
+	    if (use->cu_expandMask == CU_DESCEND_SPECIAL)
+		return TRUE;
+	    else
+	    {
+		/* Descend only into cells marked with property "flatten" */
+		DBPropGet(use->cu_def, "flatten", &propfound);
+		return (propfound) ? TRUE : FALSE;
+	    }
 
 	case CU_DESCEND_NONE:
 	    return FALSE;

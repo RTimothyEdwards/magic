@@ -102,6 +102,8 @@ defWriteHeader(def, f, oscale, units)
     int units;		/* Units for UNITS; could be derived from oscale */
 {
     TileType type;
+    char *propvalue;
+    bool propfound;
 
     TxPrintf("Diagnostic:  Write DEF header for cell %s\n", def->cd_name);
 
@@ -130,12 +132,37 @@ defWriteHeader(def, f, oscale, units)
 
     fprintf(f, "   UNITS DISTANCE MICRONS %d ;\n", units);
 
-    /* Die area, taken from the cell def bounding box.			*/
-    fprintf(f, "   DIEAREA ( %.10g %.10g ) ( %.10g %.10g ) ;\n",
-	(float)def->cd_bbox.r_xbot * oscale,
-	(float)def->cd_bbox.r_ybot * oscale,
-	(float)def->cd_bbox.r_xtop * oscale,
-	(float)def->cd_bbox.r_ytop * oscale);
+    /* For DIEAREA, use the FIXED_BBOX property if present.  Otherwise,	*/
+    /* use the extents of geometry (CellDef bounding box)		*/
+
+    propvalue = (char *)DBPropGet(def, "FIXED_BBOX", &propfound);
+    if (propfound)
+    {
+	Rect bbox;
+
+	/* Die area, taken from the declared FIXED_BBOX.		*/
+	if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		&bbox.r_xtop, &bbox.r_ytop) == 4)
+        {
+	     fprintf(f, "   DIEAREA ( %.10g %.10g ) ( %.10g %.10g ) ;\n",
+			(float)bbox.r_xbot * oscale,
+			(float)bbox.r_ybot * oscale,
+			(float)bbox.r_xtop * oscale,
+			(float)bbox.r_ytop * oscale);
+	}
+	else
+	    propfound = FALSE;
+    }
+
+    if (!propfound)
+    {
+	/* Die area, taken from the cell def bounding box.		*/
+	fprintf(f, "   DIEAREA ( %.10g %.10g ) ( %.10g %.10g ) ;\n",
+		(float)def->cd_bbox.r_xbot * oscale,
+		(float)def->cd_bbox.r_ybot * oscale,
+		(float)def->cd_bbox.r_xtop * oscale,
+		(float)def->cd_bbox.r_ytop * oscale);
+    }
 
     fprintf(f, "\n");
 }
