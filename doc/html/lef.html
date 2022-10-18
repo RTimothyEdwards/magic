@@ -39,7 +39,7 @@ LEF-format input and output
 		to annotate existing layouts, and ignore all other macros.
 	   <DT> <B>write</B> [<I>cell</I>] [<B>-tech</B>]
 		[<B>-hide</B> [<I>distance</I>]] [<B>-toplayer</B>]
-		[<B>-nomaster</B>]
+		[<B>-pinonly</B> [<I>distance</I>]] [<B>-nomaster</B>]
 	   <DD> Write LEF for the current or indicated cell.<BR>
 		Option <B>-tech</B> writes the technology information (layer
 		mapping and rules) to the same file as the cell macro. <BR>
@@ -57,6 +57,12 @@ LEF-format input and output
 		Option <B>-toplayer</B> outputs pin geometry only for the
 		topmost layer belonging to the pin;  all connected layers
 		underneath will be output as obstructions. <BR>
+		Option <B>-pinonly</B> will mark only areas that are port
+		labels as pins, while marking the rest of each related net
+		as an obstruction.  Value <I>distance</I>, if given, will
+		extend any pin beyond the marked port label along the length
+		of the same net, to the specified distance into the interior
+		of the cell. <BR>
 		Option <B>-nomaster</B> will prevent the generation of
 		output geometry on layers defined as MASTERSLICE.
 	   <DT> <B>writeall</B> [<B>-tech</B>] [<B>-hide</B> [<I>distance</I>]]
