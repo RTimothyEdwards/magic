@@ -1260,7 +1260,7 @@ ExtTechSimplePerimCap(argc, argv)
     else
 	plane2 = DBTechNoisyNamePlane(argv[argc - 2]);
 
-    if (argc > 4)
+    if (argc > 5)
     {
 	DBTechNoisyNameMask(argv[argc - 3], &subtypes);
 	TTMaskSetMask(allExtractTypes, &subtypes);
