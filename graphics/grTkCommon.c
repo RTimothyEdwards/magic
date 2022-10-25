@@ -16,6 +16,7 @@
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
+#include "utils/main.h"
 #include "utils/styles.h"
 #include "utils/geometry.h"
 #include "utils/hash.h"
@@ -31,14 +32,6 @@
 #include "dbwind/dbwind.h"
 #include "graphics/grTkCommon.h"
 #include "graphics/glyphs.h"
-
-/* C99 compat
- * GL headers must be included after graphics/grTOGLInt.h
- */
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
-#include <mach/mach.h> /* Needed to define panic */
 
 #include "textio/textio.h"
 
@@ -1260,7 +1253,8 @@ ImgLayerCmd(clientData, interp, objc, objv)
 	return code;
       }
       default: {
-	panic("bad const entries to layerOptions in ImgLayerCmd");
+	TxError("bad const entries to layerOptions in ImgLayerCmd\n");
+        MainExit(1);
       }
     }
     return TCL_OK;
@@ -1462,7 +1456,8 @@ ImgLayerDelete(masterData)
     LayerMaster *masterPtr = (LayerMaster *) masterData;
 
     if (masterPtr->instancePtr != NULL) {
-	panic("tried to delete layer image when instances still exist");
+	TxError("tried to delete layer image when instances still exist\n");
+        MainExit(1);
     }
     masterPtr->tkMaster = NULL;
     if (masterPtr->imageCmd != NULL) {
