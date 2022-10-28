@@ -49,6 +49,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "cif/CIFint.h"
 #include "cif/CIFread.h"
 
+/* C99 compat */
+#include "utils/malloc.h"
+
 #ifdef USE_READLINE
 #ifdef HAVE_READLINE
 #include <readline/readline.h>

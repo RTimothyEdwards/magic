@@ -30,6 +30,11 @@
 #include "grOGLInt.h"
 #include "utils/paths.h"
 
+/* C99 compat */
+#include "dbwind/dbwind.h"
+#include "utils/main.h"
+#include "utils/malloc.h"
+
 GLubyte 	**grOGLStipples;
 HashTable	grOGLWindowTable;
 Display 	*grXdpy;

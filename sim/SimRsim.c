@@ -27,6 +27,7 @@
 #include <ctype.h>
 #include <signal.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -45,7 +46,9 @@
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "sim/sim.h"
-#include <errno.h>
+
+/* C99 compat */
+#include "textio/textio.h"
 
 static bool InitRsim();
 

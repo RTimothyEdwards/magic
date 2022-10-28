@@ -45,6 +45,11 @@
 #include "grX11Int.h"
 #include "utils/paths.h"
 
+/* C99 compat */
+#include "utils/main.h"
+#include "utils/malloc.h"
+#include "dbwind/dbwind.h"
+
 extern char  *DBWStyleType;
 
 Display      *grXdpy;

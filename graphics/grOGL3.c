@@ -38,6 +38,9 @@
 #include "database/fonts.h"
 #include "grOGLInt.h"
 
+/* C99 compat */
+#include "utils/malloc.h"
+
 extern Display *grXdpy;
 
 static XFontStruct *grXFonts[4];

@@ -243,6 +243,7 @@ extern void DBWHLRedrawPrepWindow();
 extern void CmdInit();
 extern void DBWinit();
 extern int  DBWTechParseStyle();
+extern void dbwButtonSetCursor();
 
 /* Random procedures used internally to this module.  None of these
  * should ever need to be called by the outside world.

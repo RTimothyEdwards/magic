@@ -33,6 +33,9 @@
 #include "graphics/graphicsInt.h"
 #include "grX11Int.h"
 
+/* C99 compat */
+#include "utils/main.h"
+
 extern char *DBWStyleType;
 extern unsigned long grPlanes[256];
 extern unsigned long grPixels[256];

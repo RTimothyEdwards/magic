@@ -38,6 +38,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* C99 compat */
 #include "textio/textio.h"
+#include "utils/pathvisit.h"
 
 #define        atoCap(s)       ((EFCapValue)atof(s))
 

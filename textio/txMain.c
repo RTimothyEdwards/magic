@@ -37,6 +37,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "dbwind/dbwind.h"
 
+/* C99 compat */
+#include "utils/malloc.h"
+
 /* Global variables that indicate if we are reading or writing to a tty.
  */
 global bool TxStdinIsatty;

@@ -23,6 +23,9 @@
 #include <math.h>
 #include <X11/Xlib.h>
 
+/* C99 compat */
+#include <X11/Xutil.h>
+
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "graphics/graphics.h"
@@ -35,6 +38,9 @@
 #include "dbwind/dbwind.h"
 #include "database/fonts.h"
 #include "grX11Int.h"
+
+/* C99 compat */
+#include "utils/malloc.h"
 
 /* locals */
 

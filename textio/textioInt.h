@@ -55,13 +55,12 @@ extern bool TxGetInputEvent();
 extern void txFprintfBasic(FILE *, ...);
 
 /* C99 compat */
-int  Tcl_printf();
 void txCommandsInit();
-int  Tcl_printf();
-int  Tcl_printf();
-int  Tcl_printf();
-int  Tcl_printf();
 int  TranslateChar();
 char *TxGetLineWPrompt();
+
+#ifdef MAGIC_WRAPPER
+int  Tcl_printf();
+#endif
 
 #endif /* _TEXTIOINT_H */

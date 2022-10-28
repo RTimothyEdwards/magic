@@ -41,4 +41,9 @@ typedef struct
 
 PaVisit *PaVisitInit();
 
+/* C99 compat */
+extern void PaVisitAddClient();
+extern int  PaVisitFiles();
+extern void PaVisitFree();
+
 #endif	/* _PATHVISIT_H */

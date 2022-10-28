@@ -94,7 +94,6 @@ extern int ExtGetGateTypesMask();
 extern int ExtGetDiffTypesMask();
 
 #ifdef MAGIC_WRAPPER
-extern bool ExtGetDevInfo();
 extern bool ExtCompareStyle();
 #endif
 
@@ -143,5 +142,6 @@ extern void extSubtree();
 extern int  extUniqueCell();
 extern void ExtLabelOneRegion();
 extern void ExtInit();
+extern bool ExtGetDevInfo();
 
 #endif /* _EXTRACT_H */

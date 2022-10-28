@@ -37,5 +37,10 @@ extern int  SimSrConnect();
 extern void SimTreeCopyConnect();
 extern int  SimTreeSrNMTiles();
 extern int  SimTreeSrTiles();
+extern bool SimStartRsim();
+extern void SimConnectRsim();
+extern bool SimSelection();
+extern void SimRsimMouse();
+extern int  SimFillBuffer();
 
 #endif /* _SIM_H */

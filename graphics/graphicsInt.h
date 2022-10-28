@@ -93,5 +93,11 @@ extern void grInformDriver();
 extern bool GrReadGlyphs();
 extern bool GrBoxOutline();
 extern bool grtcairoLoadFont();
+extern int  xloop_create();
+extern bool groglLoadFont();
+extern void GrX11Close();
+extern bool grx11LoadFont();
+extern void xloop_end();
+extern bool groglPreLoadFont();
 
 #endif /* _GRAPHICSINT_H */

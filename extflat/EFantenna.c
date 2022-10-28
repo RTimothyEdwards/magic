@@ -37,6 +37,9 @@
 #include "select/select.h"
 #include "utils/malloc.h"
 
+/* C99 compat */
+#include "extract/extract.h"
+
 /* Forward declarations */
 int antennacheckArgs();
 int antennacheckVisit();

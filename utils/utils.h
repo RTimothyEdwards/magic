@@ -74,6 +74,7 @@ extern int  PaEnum();
 extern int  paVisitProcess();
 extern void SetNoisyInt();
 extern void SetNoisyDI();
+extern bool ParsSplit();
 
 #ifdef HAVE_ZLIB
 extern gzFile PaZOpen(char *, char *, char *, char *, char *, char **);

@@ -52,6 +52,7 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/t
 
 /* C99 compat */
 #include "windows/windows.h"
+#include "utils/main.h"
 
 /* Turning this flag on prints out input events and commands as they
  * are processed.

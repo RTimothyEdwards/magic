@@ -15,6 +15,10 @@
 #include <X11/keysym.h>
 #include <pthread.h>
 
+/* C99 compat */
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "graphics/graphics.h"
