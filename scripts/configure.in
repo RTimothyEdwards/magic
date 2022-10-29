@@ -1359,7 +1359,7 @@ case $target in
     dnl 64-bit support for AMD Opteron
     case $target in
 	*x86_64*)
-	    CFLAGS="${CFLAGS} -m64 -fPIC"
+	    CFLAGS="${CFLAGS} -m64 -fPIC -Werror=implicit-function-declaration"
 	    ;;
     esac
     if test $usingOGL ; then

@@ -7780,7 +7780,7 @@ case $target in
 
         case $target in
 	*x86_64*)
-	    CFLAGS="${CFLAGS} -m64 -fPIC"
+	    CFLAGS="${CFLAGS} -m64 -fPIC -Werror=implicit-function-declaration"
 	    ;;
     esac
     if test $usingOGL ; then
