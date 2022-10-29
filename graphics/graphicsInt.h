@@ -92,12 +92,15 @@ extern void grInformDriver();
 /* C99 compat */
 extern bool GrReadGlyphs();
 extern bool GrBoxOutline();
-extern bool grtcairoLoadFont();
 extern int  xloop_create();
 extern bool groglLoadFont();
 extern void GrX11Close();
 extern bool grx11LoadFont();
 extern void xloop_end();
 extern bool groglPreLoadFont();
+
+#ifdef CAIRO
+extern bool grtcairoLoadFont();
+#endif
 
 #endif /* _GRAPHICSINT_H */
