@@ -25,6 +25,7 @@
 #include <zlib.h>
 #endif
 
+#include "utils/tech.h"
 #include "utils/magic.h"
 
 /*

@@ -10,9 +10,7 @@
  *************************************************************************/
 #include <stdio.h>
 #include <string.h>
-#ifndef	SYSV
 #include <sys/wait.h>
-#endif /* SYSV */
 #include <errno.h>
 
 #include "utils/utils.h"

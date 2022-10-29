@@ -1337,6 +1337,7 @@ GrTOGLLower(w)
 
 #ifdef CAIRO_OFFSCREEN_RENDER
 extern void GrTCairoLock();
+extern void GrTCairoUnlock();
 extern void TCairoOffScreen();
 #endif
 

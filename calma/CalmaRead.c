@@ -299,7 +299,7 @@ done:
     HashKill(&calmaDefInitHash);
     UndoEnable();
 
-    if (calmaErrorFile != NULL) FCLOSE(calmaErrorFile);
+    if (calmaErrorFile != NULL) fclose(calmaErrorFile);
 }
 
 /*

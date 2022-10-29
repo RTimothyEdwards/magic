@@ -130,7 +130,8 @@ CmdCalma(w, cmd)
     char **msg, *namep, *dotptr;
     char writeMode[3];
     CellDef *rootDef;
-    FILE *f;
+    FILETYPE f;
+    FILE *fp;
 #ifdef HAVE_ZLIB
     gzFile fz;
 #endif
@@ -966,19 +967,19 @@ outputCalma:
     {
 
 #endif
-	f = PaOpen(namep, "w", (dotptr == NULL) ? ".gds" : "", ".", (char *) NULL, (char **)NULL);
-	if (f == (FILE *)NULL)
+	fp = PaOpen(namep, "w", (dotptr == NULL) ? ".gds" : "", ".", (char *) NULL, (char **)NULL);
+	if (fp == (FILE *)NULL)
 	{
 	    TxError("Cannot open %s%s to write GDS-II stream output\n", namep,
 			(dotptr == NULL) ? ".gds" : "");
 	    return;
 	}
-	if (!CalmaWrite(rootDef, f))
+	if (!CalmaWrite(rootDef, fp))
 	{
 	    TxError("I/O error in writing file %s.\n", namep);
 	    TxError("File may be incompletely written.\n");
 	}
-	(void) fclose(f);
+	(void) fclose(fp);
 
 #ifdef HAVE_ZLIB
     }

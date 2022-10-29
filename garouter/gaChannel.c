@@ -43,7 +43,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "debug/debug.h"
 
 /* C99 compat */
-#include "gaRouter/gaInternal.h"
+#include "garouter/gaInternal.h"
 
 /* List of all active channels */
 GCRChannel *gaChannelList = NULL;

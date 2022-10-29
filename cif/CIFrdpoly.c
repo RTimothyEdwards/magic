@@ -21,6 +21,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdlib.h>		/* For qsort() */
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "tiles/tile.h"
