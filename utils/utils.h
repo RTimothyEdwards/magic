@@ -49,7 +49,7 @@ extern int LookupStructFull();
 extern int PaExpand(char **, char **, int);
 extern char *nextName();
 extern FILE *PaOpen(char *, char *, char *, char *, char *, char **);
-extern FILE *PaLockOpen(char *, char *, char *, char *, char *, char **, bool *);
+extern FILE *PaLockOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
 extern char *StrDup(char **, char *);
 extern int Match();
 extern char *ArgStr();
@@ -79,12 +79,17 @@ extern bool ParsSplit();
 
 #ifdef HAVE_ZLIB
 extern gzFile PaZOpen(char *, char *, char *, char *, char *, char **);
+extern gzFile PaLockZOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
+extern char *PaCheckCompressed(char *);
 #endif
 
 extern int SetNoisyBool(bool *, char *, FILE *);
 
 #ifdef FILE_LOCKS
 extern FILE *flock_open();
+#ifdef HAVE_ZLIB
+extern gzFile flock_zopen();
+#endif
 #endif
 
 /* The following macro takes an integer and returns another integer that

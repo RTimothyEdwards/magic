@@ -25,6 +25,10 @@
 #include <limits.h>
 #include <stdint.h>
 
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
+
 /* ------------------- Universal pointer typecast --------------------- */
 
 /* Set default value for backwards compatibility with non-autoconf make */
@@ -129,6 +133,34 @@ extern char *MagicVersion;
 extern char *MagicRevision;
 extern char *MagicCompileTime;
 extern char AbortMessage[];
+
+/* ------------ zlib (compression) support -------------------------------- */
+
+#ifdef HAVE_ZLIB
+    #define FOPEN    gzopen
+    #define FCLOSE   gzclose
+    #define FGETC    gzgetc
+    #define FREAD(a,b,c,d)    gzread(d,a,b*c)
+    #define FEOF     gzeof
+    #define FSEEK    gzseek
+    #define FTELL    gztell
+    #define REWIND   gzrewind
+    #define FILETYPE gzFile
+    #define OFFTYPE  z_off_t
+#else
+    #define FOPEN    fopen
+    #define FCLOSE   fclose
+    #define FGETC    getc
+    #define FREAD    fread
+    #define FEOF     feof
+    #define FSEEK    fseek
+    #define FTELL    ftello
+    #define REWIND   rewind
+    #define FILETYPE FILE *
+    #define OFFTYPE  off_t
+    #define PaZOpen  PaOpen
+    #define PaLockZOpen  PaLockOpen
+#endif
 
 /* ---------------- Start of Machine Configuration Section ----------------- */
 

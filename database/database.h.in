@@ -951,7 +951,7 @@ extern TileType DBTransformDiagonal();
 extern void DBEraseValid();
 extern void DBPaintValid();
 extern void DBTreeCountPaint();
-extern FILE *dbReadOpen();
+extern void DBOpenOnly();
 extern int  DBLoadFont();
 extern int  DBNameToFont();
 extern int  DBFontChar();

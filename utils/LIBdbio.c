@@ -45,14 +45,16 @@ static char rcsid[] = "$Header: /usr/cvsroot/magic-8.0/utils/LIBdbio.c,v 1.1.1.1
  */
 
 FILE *
-flock_open(filename, mode, is_locked)
+flock_open(filename, mode, is_locked, fdb)
     char *filename;
     char *mode;
     bool *is_locked;
+    int *fdb;
 {
     FILE *f;
 
     if (is_locked) *is_locked = FALSE;
     f = fopen(filename, mode);
+    if ((f >= 0) && (fdb != NULL)) *fdb = fileno(f);
     return(f);
 }

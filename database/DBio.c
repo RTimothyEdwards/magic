@@ -99,7 +99,7 @@ static char *DBbackupFile = (char *)NULL;
 
 /* Forward declarations */
 char *dbFgets();
-FILE *dbReadOpen();
+FILETYPE dbReadOpen();
 int DBFileOffset;
 bool dbReadLabels();
 bool dbReadElements();
@@ -408,7 +408,7 @@ DBAddStandardCellPaths(pathptr, level)
 
 bool
 dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
-    FILE *f;		/* The file, already opened by the caller */
+    FILETYPE f;		/* The file, already opened by the caller */
     CellDef *cellDef;	/* Pointer to definition of cell to be read in */
     char *name;		/* Name of file from which to read definition.
 			 * If NULL, then use cellDef->cd_file; if that
@@ -761,7 +761,7 @@ dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
 	 * in the file beginning with 'r'.
 	 */
 nextrect:
-	while (((c = getc(f)) == 'r') || (c == 't'))
+	while (((c = FGETC(f)) == 'r') || (c == 't'))
 	{
 	    TileType dinfo;
 	    int dir;
@@ -828,7 +828,7 @@ nextrect:
 	 */
 	if (c == '#')
 	{
-	    (void) fgets(line, sizeof line, f);
+	    (void) dbFgets(line, sizeof line, f);
 	    goto nextrect;
 	}
 
@@ -1200,7 +1200,7 @@ DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
 			 * is placed here, unless NULL.
 			 */
 {
-    FILE *f;
+    FILETYPE f;
     bool result;
 
     if (errptr != NULL) *errptr = 0;
@@ -1217,11 +1217,11 @@ DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
 
 #ifdef FILE_LOCKS
 	/* Close files that were locked by another user */
-	if (cellDef->cd_fd == -2) fclose(f);
+	if (cellDef->cd_fd == -2) FCLOSE(f);
 #else
 	/* When using fcntl() to enforce file locks, we can't	*/
 	/* close the file descriptor without losing the lock.	*/
-	fclose(f);
+	FCLOSE(f);
 #endif
     }
     return result;
@@ -1243,7 +1243,7 @@ DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
  * to point to the name of the file from which the cell was loaded.
  *
  * Results:
- *	Returns an open FILE * if successful, or NULL on error.
+ *	Returns an open FILETYPE if successful, or NULL on error.
  *
  * Side effects:
  *	Opens a FILE.  Leaves cellDef->cd_flags marked as
@@ -1258,7 +1258,7 @@ DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
  * ----------------------------------------------------------------------------
  */
 
-FILE *
+FILETYPE
 dbReadOpen(cellDef, name, setFileName, errptr)
     CellDef *cellDef;	/* Def being read */
     char *name;		/* Name if specified, or NULL */
@@ -1268,7 +1268,8 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 			 */
     int *errptr;	/* Pointer to int to hold error value */
 {
-    FILE *f = NULL;
+    FILETYPE f = NULL;
+    int fd;
     char *filename, *realname;
     bool is_locked;
 
@@ -1284,13 +1285,13 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 
     if (name != (char *) NULL)
     {
-	f = PaLockOpen(name, "r", DBSuffix, Path,
-			CellLibPath, &filename, &is_locked);
+	f = PaLockZOpen(name, "r", DBSuffix, Path,
+			CellLibPath, &filename, &is_locked, &fd);
 	if (errptr != NULL) *errptr = errno;
     }
     else if (cellDef->cd_file != (char *) NULL)
     {
-	/* Do not send a name with a file extension to PaLockOpen(),
+	/* Do not send a name with a file extension to PaLockZOpen(),
 	 * otherwise that routine must handle it and then cannot
 	 * distinguish between, say, cell.mag and cell.mag.mag.
 	 */
@@ -1308,15 +1309,15 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 	else
 	    *pptr = '\0';
 
-	f = PaLockOpen(cellDef->cd_file, "r", DBSuffix, ".",
-			(char *) NULL, &filename, &is_locked);
+	f = PaLockZOpen(cellDef->cd_file, "r", DBSuffix, ".",
+			(char *) NULL, &filename, &is_locked, &fd);
 
 	/* Fall back on the original method of using search paths. */
 
 	if (f == NULL)
 	{
-	    f = PaLockOpen(cellDef->cd_name, "r", DBSuffix, Path,
-			CellLibPath, &filename, &is_locked);
+	    f = PaLockZOpen(cellDef->cd_name, "r", DBSuffix, Path,
+			CellLibPath, &filename, &is_locked, &fd);
 
 	    if (f != NULL)
 	    {
@@ -1349,8 +1350,8 @@ dbReadOpen(cellDef, name, setFileName, errptr)
     }
     else
     {
-	f = PaLockOpen(cellDef->cd_name, "r", DBSuffix, Path,
-			CellLibPath, &filename, &is_locked);
+	f = PaLockZOpen(cellDef->cd_name, "r", DBSuffix, Path,
+			CellLibPath, &filename, &is_locked, &fd);
 	if (errptr != NULL) *errptr = errno;
     }
 
@@ -1358,7 +1359,7 @@ dbReadOpen(cellDef, name, setFileName, errptr)
     {
 	/* Don't print another message if we've already tried to read it */
 	if (cellDef->cd_flags & CDNOTFOUND)
-	    return ((FILE *) NULL);
+	    return ((FILETYPE) NULL);
 
 	if (name != (char *) NULL)
 	{
@@ -1381,7 +1382,7 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 	if (errptr && DBVerbose) TxError("%s\n", strerror(*errptr));
 
 	cellDef->cd_flags |= CDNOTFOUND;
-	return ((FILE *) NULL);
+	return ((FILETYPE) NULL);
     }
 
 #ifdef FILE_LOCKS
@@ -1400,7 +1401,7 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 	if (is_locked == TRUE)
 	    cellDef->cd_fd = -2;	/* Indicates locked file */
 	else
-	    cellDef->cd_fd = fileno(f);
+	    cellDef->cd_fd = fd;
 	cellDef->cd_flags &= ~CDNOTFOUND;
     }
 #else
@@ -1427,6 +1428,36 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 /*
  * ----------------------------------------------------------------------------
  *
+ * DBOpenOnly --
+ *
+ * Form of dbReadOpen() used to check if a file is locked;  it does not
+ * return a value.
+ *
+ * Return value:
+ *	None.
+ *
+ * Side effects:
+ *	See dbReadOpen() above.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBOpenOnly(cellDef, name, setFileName, errptr)
+    CellDef *cellDef;	/* Def being read */
+    char *name;		/* Name if specified, or NULL */
+    bool setFileName;	/* If TRUE then cellDef->cd_file should be updated
+			 * to point to the name of the file from which the
+			 * cell was loaded.
+			 */
+    int *errptr;	/* Pointer to int to hold error value */
+{
+    dbReadOpen(cellDef, name, setFileName, errptr);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DBTestOpen --
  *
  * Check whether or not a database file can be found on disk.
@@ -1445,14 +1476,14 @@ DBTestOpen(name, fullPath)
     char *name;
     char **fullPath;
 {
-    FILE *f;
+    FILETYPE f;
 
-    f = PaLockOpen(name, "r", DBSuffix, Path, CellLibPath,
-		fullPath, (bool *)NULL);
+    f = PaLockZOpen(name, "r", DBSuffix, Path, CellLibPath,
+		fullPath, (bool *)NULL, (int *)NULL);
 
     if (f != NULL)
     {
-	fclose(f);
+	FCLOSE(f);
 	return TRUE;
     }
     return FALSE;
@@ -1485,7 +1516,7 @@ dbReadUse(cellDef, line, len, f, scalen, scaled, dereference, dbUseTable)
     CellDef *cellDef;	/* Cell whose cells are being read */
     char *line;		/* Line containing "use ..." */
     int len;		/* Size of buffer pointed to by line */
-    FILE *f;		/* Input file */
+    FILETYPE f;		/* Input file */
     int scalen;		/* Multiply values in file by this */
     int scaled;		/* Divide values in file by this */
     bool dereference;	/* If TRUE, ignore path references */
@@ -1796,7 +1827,7 @@ badTransform:
 		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
 			    && (dereference == FALSE) && (firstUse == TRUE))
 		{
-		    FILE *ftest;
+		    FILETYPE ftest;
 
 		    TxError("Duplicate cell in %s:  Instance of cell %s is from "
 				"path %s but cell was previously read from %s.\n",
@@ -1806,7 +1837,7 @@ badTransform:
 		    /* Test file at path.  If path is invalid then ignore it	*/ 
 		    /* (automatic dereferencing due to unavailability).		*/
 
-		    ftest = PaOpen(cellname, "r", DBSuffix, pathptr, (char *)NULL,
+		    ftest = PaZOpen(cellname, "r", DBSuffix, pathptr, (char *)NULL,
 					(char **) NULL);
 		    if (ftest == NULL)
 		    {
@@ -1818,7 +1849,7 @@ badTransform:
 			int i = 0;
 
 			/* To do:  Run checksum on file (not yet implemented) */
-			fclose(ftest);
+			FCLOSE(ftest);
 
 			while (TRUE)
 			{
@@ -1873,7 +1904,7 @@ badTransform:
 		    if ((pathOK == FALSE) && strcmp(cwddir, pathptr)
 			    && (dereference == FALSE) && (firstUse == TRUE))
 		    {
-			FILE *ftest;
+			FILETYPE ftest;
 
 			TxError("Duplicate cell in %s:  Instance of cell %s is from "
 				"path %s but cell was previously read from "
@@ -1883,7 +1914,7 @@ badTransform:
 			/* Test file at path.  If path is invalid then ignore	*/ 
 			/* it (automatic dereferencing due to unavailability).	*/
 
-			ftest = PaOpen(cellname, "r", DBSuffix, pathptr, (char *)NULL,
+			ftest = PaZOpen(cellname, "r", DBSuffix, pathptr, (char *)NULL,
 					(char **) NULL);
 			if (ftest == NULL)
 			{
@@ -1895,7 +1926,7 @@ badTransform:
 			    int i = 0;
 
 			    /* To do:  Run checksum on file (not yet implemented) */
-			    fclose(ftest);
+			    FCLOSE(ftest);
 
 			    while (TRUE)
 			    {
@@ -2009,7 +2040,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
     CellDef *cellDef;	/* Cell whose elements are being read */
     char *line;		/* Line containing << elements >> */
     int len;		/* Size of buffer pointed to by line */
-    FILE *f;		/* Input file */
+    FILETYPE f;		/* Input file */
     int scalen;		/* Scale up by this factor */
     int scaled;		/* Scale down by this factor */
 {
@@ -2139,7 +2170,7 @@ dbReadElements(cellDef, line, len, f, scalen, scaled)
     CellDef *cellDef;	/* Cell whose elements are being read */
     char *line;		/* Line containing << elements >> */
     int len;		/* Size of buffer pointed to by line */
-    FILE *f;		/* Input file */
+    FILETYPE f;		/* Input file */
     int scalen;		/* Scale up by this factor */
     int scaled;		/* Scale down by this factor */
 {
@@ -2313,7 +2344,7 @@ dbReadLabels(cellDef, line, len, f, scalen, scaled)
     CellDef *cellDef;	/* Cell whose labels are being read */
     char *line;		/* Line containing << labels >> */
     int len;		/* Size of buffer pointed to by line */
-    FILE *f;		/* Input file */
+    FILETYPE f;		/* Input file */
     int scalen;		/* Scale up by this factor */
     int scaled;		/* Scale down by this factor */
 {
@@ -2631,7 +2662,7 @@ char *
 dbFgets(line, len, f)
     char *line;
     int len;
-    FILE *f;
+    FILETYPE f;
 {
     char *cs;
     int l;
@@ -2640,7 +2671,7 @@ dbFgets(line, len, f)
     do
     {
 	cs = line, l = len;
-	while (--l > 0 && (c = getc(f)) != EOF)
+	while (--l > 0 && (c = FGETC(f)) != EOF)
 	{
 	    if (c != '\r') *cs++ = c;
 	    if (c == '\n')
@@ -3633,9 +3664,11 @@ DBCellWrite(cellDef, fileName)
     {
 	struct stat thestat;
 	bool is_locked;
+	int fd;
+
 #ifdef FILE_LOCKS
 	if (FileLocking)
-	    realf = flock_open(expandname, "r", &is_locked);
+	    realf = flock_open(expandname, "r", &is_locked, NULL);
 	else
 #endif
 	    realf = fopen(expandname, "r");
@@ -3647,7 +3680,7 @@ DBCellWrite(cellDef, fileName)
 	}
 	else
 	{
-	    int fd = fileno(realf);
+	    fd = fileno(realf);
 	    fstat(fd, &thestat);
 	    if (thestat.st_size != DBFileOffset)
 	    {
@@ -4024,11 +4057,11 @@ DBGetTech(cellName)
 					 * is desired.
 					 */
 {
-    FILE *f;
+    FILETYPE f;
     static char line[512];
     char *p;
 
-    f = PaOpen(cellName, "r", DBSuffix, Path, CellLibPath, (char **) NULL);
+    f = PaZOpen(cellName, "r", DBSuffix, Path, CellLibPath, (char **) NULL);
     if (f == NULL) return NULL;
 
     p = (char *) NULL;
@@ -4043,7 +4076,7 @@ DBGetTech(cellName)
 	/* Find the tech name */;
 
 ret:
-    (void) fclose(f);
+    (void) FCLOSE(f);
     f = NULL;
     return (p);
 }

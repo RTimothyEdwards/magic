@@ -1339,7 +1339,7 @@ CmdCellname(w, cmd)
 		    /* Make file read-write */
 #ifdef FILE_LOCKS
 		    if (cellDef->cd_fd < 0)
-			dbReadOpen(cellDef, NULL, TRUE, NULL);
+			DBOpenOnly(cellDef, NULL, TRUE, NULL);
 
 		    if (cellDef->cd_fd == -2)
 		    {
@@ -4240,9 +4240,14 @@ CmdDrc(w, cmd)
 	    break;
 
 	case DRC_OFF:
+#ifdef MAGIC_WRAPPER
+	    /* Turn on long enough to force a break, then turn off */
+	    DRCBackGround = DRC_SET_ON;
+	    DRCStatus = DRC_IN_PROGRESS;
+	    DRCBreak();
+#endif
 	    DRCBackGround = DRC_SET_OFF;
 #ifdef MAGIC_WRAPPER
-	    DRCBreak();
 	    if (TxInputRedirect != TX_INPUT_REDIRECTED)
 #endif
 		TxSetPrompt('%');		/* Return prompt to "normal" */

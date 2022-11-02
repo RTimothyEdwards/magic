@@ -533,6 +533,7 @@ DRCContinuous()
 	        }
 	    }
 	    UndoDisable();
+
 	    /* fprintf(stderr, "DRC continuing internally. . .\n"); fflush(stderr); */
 #else
 #ifndef USE_IO_PROBE

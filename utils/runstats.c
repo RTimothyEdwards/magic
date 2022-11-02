@@ -26,20 +26,18 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <sys/times.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "utils/magic.h"
 #include "utils/runstats.h"
 
 /* Library imports: */
 
-#ifndef __APPLE__
+#ifdef CYGWIN
 extern char *sbrk();
 extern int end;
 #else
-#ifndef CYGWIN
-extern void *sbrk();
 int end;
-#endif
 #endif
 
 /*

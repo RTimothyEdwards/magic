@@ -27,6 +27,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <pwd.h>
 #include <ctype.h>
 #include <sys/param.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #ifdef HAVE_ZLIB
 #include <zlib.h>
@@ -57,6 +59,47 @@ bool FileLocking = TRUE;
 /* Limit on how long a single file name may be: */
 
 #define MAXSIZE MAXPATHLEN
+
+#ifdef HAVE_ZLIB
+/*
+ *-------------------------------------------------------------------
+ *
+ * PaCheckCompressed() ---
+ *
+ * Check if a file is compressed by adding ".gz" to the name and
+ * attempting to open the file.
+ *
+ * Return value:
+ *	The string value that resulted in a valid file descriptor.
+ *	This is a dynamically allocated string *or* a pointer to the
+ *	original filename;  the calling routine should check and
+ *	free if needed.
+ *
+ *-------------------------------------------------------------------
+ */
+ 
+char *
+PaCheckCompressed(filename)
+    char *filename;
+{
+    int fd;
+    char *gzname;
+
+    gzname = (char *)mallocMagic(strlen(filename) + 4);
+    sprintf(gzname, "%s.gz", filename);
+
+    fd = open(gzname, O_RDONLY);
+    if (fd < 0)
+    {
+	freeMagic(gzname);
+	gzname = filename;
+    }
+    else
+	close(fd);
+
+    return gzname;
+}
+#endif /* HAVE_ZLIB */
 
 /*-------------------------------------------------------------------
  * PaAppend --
@@ -357,6 +400,204 @@ nextName(ppath, file, dest, size)
     return dest;
 }
 
+#ifdef HAVE_ZLIB
+
+/*-------------------------------------------------------------------
+ * PaLockZOpen --
+ *	This routine does a file lookup using the current path and
+ *	supplying a default extension.
+ *
+ * Results:
+ *	A gzFile type, or NULL if the file couldn't be found.
+ *
+ * Side Effects:
+ *-------------------------------------------------------------------
+ */
+
+gzFile
+PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
+    char *file;			/* Name of the file to be opened. */
+    char *mode;			/* The file mode, as given to fopen. */
+    char *ext;			/* The extension to be added to the file name,
+				 * or NULL.  Note:  this string must include
+				 * the dot (or whatever separator you use).
+				 */
+    char *path;			/* A search path:  a list of directory names
+				 * separated by colons or blanks.  To use
+				 * only the working directory, use "." for
+				 * the path.
+				 */
+    char *library;		/* A 2nd path containing library names.  Can be
+				 * NULL to indicate no library.
+				 */
+    char **pRealName;		/* Pointer to a location that will be filled
+				 * in with the address of the real name of
+				 * the file that was successfully opened.
+				 * If NULL, then nothing is stored.
+				 */
+    bool *is_locked;		/* Pointer to a location to store the result
+				 * of the attempt to grab an advisory lock
+				 * on the file.  If NULL, then nothing is
+				 * stored.
+				 */
+    int *fdp;			/* If non-NULL, put the file descriptor here */
+{
+    char extendedName[MAXSIZE], *p1, *p2;
+    static char realName[MAXSIZE];
+    int length, extLength, i, fd;
+    int oflag = 0;
+    gzFile f;
+
+    if (fdp != NULL) *fdp = -1;
+    if (file == NULL) return (gzFile) NULL;
+    if (file[0] == '\0') return (gzFile) NULL;
+    if (pRealName != NULL) (*pRealName) = realName;
+
+    /* Get equivalent flag for file descriptor mode */
+    if (mode[0] == 'r')
+	oflag = (mode[1] == '+') ? O_RDWR : O_RDONLY;
+    else if (mode[0] == 'w')
+	oflag = (mode[1] == '+') ? O_APPEND : O_WRONLY;
+
+    /* See if we must supply an extension. */
+
+    length = strlen(file);
+    if (length >= MAXSIZE) length = MAXSIZE - 1;
+    if (ext != NULL)
+    {
+	(void) strncpy(extendedName, file, length + 1);
+	i = MAXSIZE - 1 - length;
+	extLength = strlen(ext);
+	if (extLength > i) extLength = i;
+
+	/* (Modified by Tim, 1/13/2015;  assume that "file" has	*/
+	/* the extension already stripped, therefore always add	*/
+	/* the extension if one is specified.  This allows the	*/
+	/* code to distinguish between, say, "a.mag" and	*/
+	/* "a.mag.mag".)					*/
+
+	/* If the extension is already on the name, don't add it */
+	// if ((length < extLength) || ((extLength > 0)
+	//		&& (strcmp(ext, file + length - extLength))))
+
+	(void) strncpy(&(extendedName[length]), ext, extLength + 1);
+
+	extendedName[MAXSIZE-1] = '\0';
+	file = extendedName;
+    }
+
+    /* If the first character of the file name is a tilde or dollar sign,
+     * do tilde or environment variable expansion but don't touch a search
+     * path.
+     */
+
+    if (file[0] == '~' || file[0] == '$')
+    {
+	p1 = realName;
+	p2 = file;
+	if (PaExpand(&p2, &p1, MAXSIZE) < 0) return NULL;
+
+#ifdef FILE_LOCKS
+	if (FileLocking)
+	    return flock_zopen(realName, mode, is_locked, fdp);
+	else
+#endif
+	    fd = open(realName, oflag);
+
+	if (fdp != NULL) *fdp = fd;
+	return gzdopen(fd, mode);
+    }
+
+    /* If we were already given a full rooted file name,
+     * or a relative pathname, just use it.
+     */
+
+    if (file[0] == '/'
+	    || (file[0] == '.' && (strcmp(file, ".") == 0
+				|| strncmp(file, "./", 2) == 0
+				|| strcmp(file, "..") == 0
+				|| strncmp(file, "../", 3) == 0)))
+    {
+	(void) strncpy(realName, file, MAXSIZE-1);
+	realName[MAXSIZE-1] = '\0';
+
+#ifdef FILE_LOCKS
+	if (FileLocking)
+	    return flock_zopen(realName, mode, is_locked, fdp);
+	else
+#endif
+	    fd = open(realName, oflag);
+
+	if (fdp != NULL) *fdp = fd;
+	return gzdopen(fd, mode);
+    }
+
+    /* Now try going through the path, one entry at a time. */
+
+    while (nextName(&path, file, realName, MAXSIZE) != NULL)
+    {
+	if (*realName == 0) continue;
+
+#ifdef FILE_LOCKS
+	if (FileLocking)
+	    f = flock_zopen(realName, mode, is_locked, &fd);
+	else
+	{
+	    fd = open(realName, oflag);
+	    f = gzdopen(fd, mode);
+	}
+#else
+	fd = open(realName, oflag);
+	f = gzdopen(fd, mode);
+#endif
+
+	if (f != NULL)
+	{
+	    if (fdp != NULL) *fdp = fd;
+	    return f;
+	}
+
+	// If any error other than "file not found" occurred,
+	// then halt immediately.
+	if (errno != ENOENT) return NULL;
+    }
+
+    /* We've tried the path and that didn't work.  Now go through
+     * the library area, one entry at a time.
+     */
+
+    if (library == NULL) return NULL;
+    while (nextName(&library, file, realName, MAXSIZE) != NULL)
+    {
+#ifdef FILE_LOCKS
+	if (FileLocking)
+	    f = flock_zopen(realName, mode, is_locked, &fd);
+	else
+	{
+	    fd = open(realName, oflag);
+	    f = gzdopen(fd, mode);
+	}
+#else
+	fd = open(realName, oflag);
+	f = gzdopen(fd, mode);
+#endif
+
+	if (f != NULL)
+	{
+	    if (fdp != NULL) *fdp = fd;
+	    return f;
+	}
+
+	// If any error other than "file not found" occurred,
+	// then halt immediately.
+	if (errno != ENOENT) return NULL;
+    }
+
+    return NULL;
+}
+
+#endif  /* HAVE_ZLIB */
+
 /*-------------------------------------------------------------------
  * PaLockOpen --
  *	This routine does a file lookup using the current path and
@@ -389,7 +630,7 @@ nextName(ppath, file, dest, size)
  */
 
 FILE *
-PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
+PaLockOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
     char *file;			/* Name of the file to be opened. */
     char *mode;			/* The file mode, as given to fopen. */
     char *ext;			/* The extension to be added to the file name,
@@ -414,12 +655,14 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
 				 * on the file.  If NULL, then nothing is
 				 * stored.
 				 */
+    int *fdp;			/* If non-NULL, put the file descriptor here. */
 {
     char extendedName[MAXSIZE], *p1, *p2;
     static char realName[MAXSIZE];
     int length, extLength, i;
     FILE *f;
 
+    if (fdp != NULL) *fdp = -1;
     if (file == NULL) return (FILE *) NULL;
     if (file[0] == '\0') return (FILE *) NULL;
     if (pRealName != NULL) (*pRealName) = realName;
@@ -464,10 +707,13 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
 
 #ifdef FILE_LOCKS
 	if (FileLocking)
-	    return flock_open(realName, mode, is_locked);
+	    f = flock_open(realName, mode, is_locked, NULL);
 	else
 #endif
-	    return fopen(realName, mode);
+	    f = fopen(realName, mode);
+
+	 if ((fdp != NULL) && (f != NULL)) *fdp = fileno(f);
+	 return f;
     }
 
     /* If we were already given a full rooted file name,
@@ -485,10 +731,13 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
 
 #ifdef FILE_LOCKS
 	if (FileLocking)
-	    return flock_open(realName, mode, is_locked);
+	    f = flock_open(realName, mode, is_locked, NULL);
 	else
 #endif
-	    return fopen(realName, mode);
+	    f = fopen(realName, mode);
+
+	 if ((fdp != NULL) && (f != NULL)) *fdp = fileno(f);
+	 return f;
     }
 
     /* Now try going through the path, one entry at a time. */
@@ -499,12 +748,16 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
 
 #ifdef FILE_LOCKS
 	if (FileLocking)
-	    f = flock_open(realName, mode, is_locked);
+	    f = flock_open(realName, mode, is_locked, NULL);
 	else
 #endif
 	    f = fopen(realName, mode);
 
-	if (f != NULL) return f;
+	if (f != NULL)
+	{
+	    if (fdp != NULL) *fdp = fileno(f);
+	    return f;
+	}
 
 	// If any error other than "file not found" occurred,
 	// then halt immediately.
@@ -520,12 +773,16 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked)
     {
 #ifdef FILE_LOCKS
 	if (FileLocking)
-	    f = flock_open(realName, mode, is_locked);
+	    f = flock_open(realName, mode, is_locked, NULL);
 	else
 #endif
 	    f = fopen(realName, mode);
 
-	if (f != NULL) return f;
+	if (f != NULL)
+	{
+	    if (fdp != NULL) *fdp = fileno(f);
+	    return f;
+	}
 
 	// If any error other than "file not found" occurred,
 	// then halt immediately.
@@ -705,7 +962,7 @@ PaOpen(file, mode, ext, path, library, pRealName)
 				 * If NULL, then nothing is stored.
 				 */
 {
-    return PaLockOpen(file, mode, ext, path, library, pRealName, NULL);
+    return PaLockOpen(file, mode, ext, path, library, pRealName, NULL, NULL);
 }
 
 /*

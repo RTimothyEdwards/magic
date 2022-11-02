@@ -55,7 +55,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 int
 GetRect(fin, skip, rect, scalen, scaled)
-    FILE *fin;
+    FILETYPE fin;
     int skip;			/* Number of bytes to skip before rect */
     Rect *rect;	/* Pointer to rectangle to be filled in */
     int scalen;			/* Scale up by this amount */
@@ -67,31 +67,31 @@ GetRect(fin, skip, rect, scalen, scaled)
     int dir = 0x1;
 
     while (skip-- > 0)
-	(void) getc(fin);
+	(void) FGETC(fin);
 
-    if (isNegative = ((c = getc(fin)) == '-')) c = getc(fin);
-    for (n = 0; isdigit(c); n = n * 10 + c - '0', c = getc(fin))
+    if (isNegative = ((c = FGETC(fin)) == '-')) c = FGETC(fin);
+    for (n = 0; isdigit(c); n = n * 10 + c - '0', c = FGETC(fin))
 	/* Nothing */;
     rect->r_xbot = isNegative ? -n : n;
     if (!isspace(c)) goto bad;
-    while ((c = getc(fin)) != EOF && isspace(c)) /* Nothing */;
+    while ((c = FGETC(fin)) != EOF && isspace(c)) /* Nothing */;
 
-    if (isNegative = (c == '-')) c = getc(fin);
-    for (n = 0; isdigit(c); n = n * 10 + c - '0', c = getc(fin))
+    if (isNegative = (c == '-')) c = FGETC(fin);
+    for (n = 0; isdigit(c); n = n * 10 + c - '0', c = FGETC(fin))
 	/* Nothing */;
     rect->r_ybot = isNegative ? -n : n;
     if (!isspace(c)) goto bad;
-    while ((c = getc(fin)) != EOF && isspace(c)) /* Nothing */;
+    while ((c = FGETC(fin)) != EOF && isspace(c)) /* Nothing */;
 
-    if (isNegative = (c == '-')) c = getc(fin);
-    for (n = 0; isdigit(c); n = n * 10 + c - '0', c = getc(fin))
+    if (isNegative = (c == '-')) c = FGETC(fin);
+    for (n = 0; isdigit(c); n = n * 10 + c - '0', c = FGETC(fin))
 	/* Nothing */;
     rect->r_xtop = isNegative ? -n : n;
     if (!isspace(c)) goto bad;
-    while ((c = getc(fin)) != EOF && isspace(c)) /* Nothing */;
+    while ((c = FGETC(fin)) != EOF && isspace(c)) /* Nothing */;
 
-    if (isNegative = (c == '-')) c = getc(fin);
-    for (n = 0; isdigit(c); n = n * 10 + c - '0', c = getc(fin))
+    if (isNegative = (c == '-')) c = FGETC(fin);
+    for (n = 0; isdigit(c); n = n * 10 + c - '0', c = FGETC(fin))
 	/* Nothing */;
     rect->r_ytop = isNegative ? -n : n;
 
@@ -112,7 +112,7 @@ GetRect(fin, skip, rect, scalen, scaled)
 
     while (c != EOF && c != '\n')
     {
-	c = getc(fin);
+	c = FGETC(fin);
 	switch ((char)c)
 	{
 	    case 's':
@@ -127,6 +127,6 @@ GetRect(fin, skip, rect, scalen, scaled)
 
 bad:
     while (c != EOF && c != '\n')
-	c = getc(fin);
+	c = FGETC(fin);
     return (FALSE);
 }

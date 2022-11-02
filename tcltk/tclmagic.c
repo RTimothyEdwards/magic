@@ -369,8 +369,8 @@ _tcl_dispatch(ClientData clientData,
 	/* with the same name that returns an error.  However, this	*/
 	/* rule hangs magic when the "load" command is used on a shared	*/
 	/* object file that fails to load properly.  So if the filename	*/
-	/* has an extension which is not ".mag", we will return the 	*/
-	/* error.							*/
+	/* has an extension which is not ".mag" or ".gz", we will	*/
+	/* return the error.						*/
 
 	/* Updated 1/20/2015:  Need to check for a '.' AFTER the last	*/
 	/* slash, so as to avoid problems with ./, ../, etc.		*/
@@ -387,7 +387,7 @@ _tcl_dispatch(ClientData clientData,
 		    slashptr++;
 
 		if ((dotptr = strrchr(slashptr, '.')) != NULL)
-		    if (strcmp(dotptr + 1, "mag"))
+		    if (strcmp(dotptr + 1, "mag") && strcmp(dotptr + 1, "gz"))
 			return result;
 	    }
 	}

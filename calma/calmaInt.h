@@ -25,10 +25,6 @@
 #include "utils/magic.h"
 #include "database/database.h"
 
-#ifdef HAVE_ZLIB
-#include <zlib.h>
-#endif
-
 /* Record data types */
 #define CALMA_NODATA	0	/* No data present */
 #define CALMA_BITARRAY	1	/* Bit array */
@@ -139,31 +135,6 @@ typedef struct
 typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT, LABEL_TYPE_CELLID } labelType;
 
 /* ------------------------- Input macros ----------------------------- */
-
-#ifdef HAVE_ZLIB
-    #define FOPEN    gzopen
-    #define FCLOSE   gzclose
-    #define FGETC    gzgetc
-    #define FREAD(a,b,c,d)    gzread(d,a,b*c)
-    #define FEOF     gzeof
-    #define FSEEK    gzseek
-    #define FTELL    gztell
-    #define REWIND   gzrewind
-    #define FILETYPE gzFile
-    #define OFFTYPE  z_off_t
-#else
-    #define FOPEN    fopen
-    #define FCLOSE   fclose
-    #define FGETC    getc
-    #define FREAD    fread
-    #define FEOF     feof
-    #define FSEEK    fseek
-    #define FTELL    ftello
-    #define REWIND   rewind
-    #define FILETYPE FILE *
-    #define OFFTYPE  off_t
-    #define PaZOpen  PaOpen
-#endif
 
 /* Globals for Calma reading */
 extern FILETYPE calmaInputFile;

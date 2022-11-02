@@ -360,6 +360,13 @@ DBWloadWindow(window, name, flags)
 	else
 	    rootname++;
 
+	/* Strip off any ".gz" extension from the name */
+	dotptr = strrchr(rootname, '.');
+
+	if (dotptr != NULL)
+	    if (!strcmp(dotptr, ".gz"))
+		*dotptr = '\0';
+
 	/* Strip off any ".mag" extension from the name */
 	dotptr = strrchr(rootname, '.');
 
