@@ -3553,17 +3553,15 @@ extSetNodeNum(reg, plane, tile)
 
 	if (!SplitSide(tile) && SplitDirection(tile))
 	    type = SplitSide(tile) ? SplitRightType(tile) : SplitLeftType(tile);
-	else if (reg->lreg_pnum == DBNumPlanes)
+	else
 	{
-	    /* Accept tile provisionally anyway */
 	    type = SplitSide(tile) ? SplitRightType(tile) : SplitLeftType(tile);
+	    /* (Are these type checks necessary?) */
 	    if ((type == TT_SPACE) || !TTMaskHasType(&DBPlaneTypes[plane], type))
 	    	type = SplitSide(tile) ? SplitLeftType(tile) : SplitRightType(tile);
 	    if ((type == TT_SPACE) || !TTMaskHasType(&DBPlaneTypes[plane], type))
 		return;
 	}
-	else
-	    return;
     }
     else
 	type = TiGetType(tile);

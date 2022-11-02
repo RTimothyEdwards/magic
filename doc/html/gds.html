@@ -187,6 +187,13 @@ Read GDSII input or generate GDSII output.
 	Options for <B>gds write</B>:
 
 	<DL>
+	    <DT> <B>abstract</B> [<B>allow</B>|<B>disallow</B>]
+	    <DD> Define the behavior for abstract cells (e.g., cells derived
+		 from LEF views).  If allowed, then these cells will be
+		 written to GDS even if the abstraction layers (e.g.,
+		 metal obstructions) have no defined GDS layers.  If
+		 disallowed, the GDS file will not be written if abstract
+		 cells exist.  The default behavior is <B>disallow</B>.
 	    <DT> <B>addendum</B> [<B>yes</B>|<B>no</B>]
 	    <DD> Do not output vendor (readonly) cell definitions.  Only the
 		 references will be output.  This makes the output file an

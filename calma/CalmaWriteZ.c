@@ -73,6 +73,7 @@ extern HashTable calmaPrefixHash;
 extern HashTable calmaUndefHash;
 extern bool CalmaDoLibrary;
 extern bool CalmaAllowUndefined;
+extern bool CalmaAllowAbstract;
 extern bool CalmaContactArrays;
 extern bool CalmaAddendum;
 extern bool CalmaMergeTiles;
@@ -880,13 +881,19 @@ calmaProcessDefZ(def, outf, do_library)
 
     if (isReadOnly && hasContent && CalmaAddendum) return (0);
 
-    /* Give a strongly-worded statement about writing abstract views */
-
     if (isAbstract && !isReadOnly)
-	TxError("Warning:  Writing abstract view of \"%s\" to GDS.  This is"
-			" probably not what you want to do.\n",
+    {
+	if (CalmaAllowAbstract)
+	    TxError("Warning:  Writing abstract view of \"%s\" to GDS.\n",
 			def->cd_name);
-		
+	else
+	{
+	    TxError("Error:  Cell \"%s\" is an abstract view;  cannot write GDS.\n",
+			def->cd_name);
+	    return 1;
+	}
+    }
+
     /*
      * Output the definitions for any of our descendants that have
      * not already been output.  Numbers are assigned to the subcells

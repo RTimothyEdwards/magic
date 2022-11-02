@@ -47,6 +47,7 @@ extern int  CalmaCompression;
 #endif
 extern bool CalmaPostOrder;
 extern bool CalmaAllowUndefined;
+extern bool CalmaAllowAbstract;
 
 /* Externally-visible procedures: */
 extern bool CalmaWrite();

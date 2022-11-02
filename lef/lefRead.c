@@ -1085,6 +1085,25 @@ LefPaintPolygon(lefMacro, pointList, points, curlayer, keep)
 
 /*
  *------------------------------------------------------------
+ * lefUnconnectFunc --
+ *
+ * Callback function used by LefReadGeometry when doing LEF
+ * annotation to check if a port is incompatible with the
+ * existing layout.
+ *
+ * Return 1 always.
+ *------------------------------------------------------------
+ */
+int
+lefUnconnectFunc(tile, clientData)
+    Tile *tile;
+    ClientData clientData;
+{
+    return 1;
+}
+
+/*
+ *------------------------------------------------------------
  * LefReadGeometry --
  *
  *	Read Geometry information from a LEF file.
@@ -1101,6 +1120,10 @@ LefPaintPolygon(lefMacro, pointList, points, curlayer, keep)
  *	it also determines what layer is returned by
  *	function LefReadLayer().
  *
+ *	If is_imported is TRUE, then this is an annotation,
+ *	and no geometry should ever be added over an area
+ *	that does not have a compatible type.
+ *
  * Side Effects:
  *	Reads input from file f;
  *	Paints into the CellDef lefMacro.
@@ -1113,11 +1136,12 @@ enum lef_geometry_keys {LEF_LAYER = 0, LEF_WIDTH, LEF_PATH,
 	LEF_GEOMETRY_END};
 
 LinkedRect *
-LefReadGeometry(lefMacro, f, oscale, do_list)
+LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
     CellDef *lefMacro;
     FILE *f;
     float oscale;
     bool do_list;
+    bool is_imported;
 {
     TileType curlayer = -1, otherlayer = -1;
 
@@ -1169,6 +1193,19 @@ LefReadGeometry(lefMacro, f, oscale, do_list)
 		paintrect = (curlayer < 0) ? NULL : LefReadRect(f, curlayer, oscale);
 		if (paintrect)
 		{
+		    if (is_imported)
+		    {
+			/* Check if layout area is compatible with the port */
+			int pNum = DBPlane(curlayer);
+			if (DBSrPaintArea((Tile *)NULL, lefMacro->cd_planes[pNum],
+				paintrect, &DBConnectTbl[curlayer],
+				lefUnconnectFunc, (ClientData)NULL) == 1)
+			{
+			    LefEndStatement(f);
+			    break;
+			}
+		    }
+
 		    /* Paint the area, if a CellDef is defined */
 		    if (lefMacro)
 		    {
@@ -1275,18 +1312,20 @@ LefReadGeometry(lefMacro, f, oscale, do_list)
  */
 
 void
-LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, pinShape, oscale, lanno)
+LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, pinShape, oscale,
+	is_imported, lanno)
     CellDef *lefMacro;
     FILE *f;
     char *pinName;
     int pinNum, pinDir, pinUse, pinShape;
     float oscale;
+    bool  is_imported;
     Label *lanno;
 {
     Label *newlab;
     LinkedRect *rectList;
 
-    rectList = LefReadGeometry(lefMacro, f, oscale, TRUE);
+    rectList = LefReadGeometry(lefMacro, f, oscale, TRUE, is_imported);
 
     while (rectList != NULL)
     {
@@ -1650,7 +1689,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 			if ((lab == NULL) && (firstport == TRUE))
 			    DBEraseLabelsByContent(lefMacro, NULL, -1, testpin);
 			LefReadPort(lefMacro, f, testpin, pinNum, pinDir, pinUse,
-				pinShape, oscale, lab);
+				pinShape, oscale, TRUE, lab);
 		    }
 		    else
 			LefSkipSection(f, NULL);
@@ -1658,7 +1697,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		}
 		else
 		    LefReadPort(lefMacro, f, testpin, pinNum, pinDir, pinUse,
-			    pinShape, oscale, NULL);
+			    pinShape, oscale, FALSE, NULL);
 		break;
 	    case LEF_CAPACITANCE:
 	    case LEF_ANTENNADIFF:
@@ -2143,7 +2182,7 @@ origin_error:
 		if (is_imported)
 		    LefSkipSection(f, NULL);
 		else
-		    LefReadGeometry(lefMacro, f, oscale, FALSE);
+		    LefReadGeometry(lefMacro, f, oscale, FALSE, is_imported);
 		break;
 	    case LEF_TIMING:
 		LefSkipSection(f, macro_keys[LEF_TIMING]);

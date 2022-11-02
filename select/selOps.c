@@ -564,7 +564,7 @@ donesides:
 	pnum = minp;
         fdir = mindir;
 
-	/* WIP Diagnostic */
+	/* Diagnostic */
 	// TxPrintf("Cost = %d  Tile @ %d %d  plane %d  dir %d\n",
 	//	mincost, tile->ti_ll.p_x, tile->ti_ll.p_y, pnum, fdir);
     }

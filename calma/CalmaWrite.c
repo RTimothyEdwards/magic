@@ -65,6 +65,7 @@ bool CalmaFlattenArrays = FALSE;  /* If TRUE, output arrays as individual uses *
 bool CalmaAddendum = FALSE;	  /* If TRUE, do not output readonly cell defs */
 time_t *CalmaDateStamp = NULL;	  /* If non-NULL, output this for creation date stamp */
 bool CalmaAllowUndefined = FALSE; /* If TRUE, allow calls to undefined cells */
+bool CalmaAllowAbstract = FALSE;  /* If TRUE, allow abstract views to be written */
 
     /* Experimental stuff---not thoroughly tested (as of Sept. 2007)! */
 bool CalmaContactArrays = FALSE; /* If TRUE, output contacts as subcell arrays */
@@ -925,12 +926,18 @@ calmaProcessDef(def, outf, do_library)
 
     if (isReadOnly && hasContent && CalmaAddendum) return (0);
 
-    /* Give a strongly-worded statement about writing abstract views */
-
     if (isAbstract && !isReadOnly)
-	TxError("Warning:  Writing abstract view of \"%s\" to GDS.  This is"
-			" probably not what you want to do.\n",
+    {
+	if (CalmaAllowAbstract)
+	    TxError("Warning:  Writing abstract view of \"%s\" to GDS.\n",
 			def->cd_name);
+	else
+	{
+	    TxError("Error:  Cell \"%s\" is an abstract view;  cannot write GDS.\n",
+			def->cd_name);
+	    return 1;
+	}
+    }
 		
     /*
      * Output the definitions for any of our descendants that have

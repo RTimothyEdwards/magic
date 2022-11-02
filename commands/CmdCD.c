@@ -93,31 +93,32 @@ bool cmdDumpParseArgs();
  */
 
 #define CALMA_HELP	0
-#define CALMA_ADDENDUM	1
-#define CALMA_ARRAYS	2
-#define CALMA_COMPRESS  3
-#define CALMA_CONTACTS	4
-#define CALMA_DATESTAMP	5
-#define CALMA_DRCCHECK	6
-#define	CALMA_FLATTEN	7
-#define	CALMA_FLATGLOB  8
-#define CALMA_ORDERING	9
-#define	CALMA_LABELS	10
-#define	CALMA_LIBRARY	11
-#define	CALMA_LOWER	12
-#define CALMA_MASKHINTS	13
-#define CALMA_MERGE	14
-#define CALMA_NO_STAMP	15
-#define CALMA_NO_DUP	16
-#define CALMA_READ	17
-#define CALMA_READONLY	18
-#define CALMA_RESCALE	19
-#define CALMA_WARNING	20
-#define CALMA_WRITE	21
-#define CALMA_POLYS	22
-#define CALMA_PATHS	23
-#define CALMA_UNDEFINED	24
-#define CALMA_UNIQUE	25
+#define CALMA_ABSTRACT	1
+#define CALMA_ADDENDUM	2
+#define CALMA_ARRAYS	3
+#define CALMA_COMPRESS  4
+#define CALMA_CONTACTS	5
+#define CALMA_DATESTAMP	6
+#define CALMA_DRCCHECK	7
+#define	CALMA_FLATTEN	8
+#define	CALMA_FLATGLOB  9
+#define CALMA_ORDERING	10
+#define	CALMA_LABELS	11
+#define	CALMA_LIBRARY	12
+#define	CALMA_LOWER	13
+#define CALMA_MASKHINTS	14
+#define CALMA_MERGE	15
+#define CALMA_NO_STAMP	16
+#define CALMA_NO_DUP	17
+#define CALMA_READ	18
+#define CALMA_READONLY	19
+#define CALMA_RESCALE	20
+#define CALMA_WARNING	21
+#define CALMA_WRITE	22
+#define CALMA_POLYS	23
+#define CALMA_PATHS	24
+#define CALMA_UNDEFINED	25
+#define CALMA_UNIQUE	26
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -147,6 +148,8 @@ CmdCalma(w, cmd)
     static char *cmdCalmaOption[] =
     {
 	"help		print this help information",
+	"abstract [allow|disallow]\n"
+	"		[dis]allow writing of GDS with calls to abstract cells",
 	"addendum [yes|no]	output only cells that are not type \"readonly\"",
 	"arrays [yes|no]	output arrays as individual subuses (like in CIF)",
 	"compress [value]	compress output with zlib compression 0 to 6",
@@ -318,6 +321,26 @@ CmdCalma(w, cmd)
 	    if (option < 0)
 		goto wrongNumArgs;
 	    CalmaAllowUndefined = (option < 2) ? FALSE : TRUE;
+	    return;
+
+	case CALMA_ABSTRACT:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaAllowAbstract));
+#else
+		TxPrintf("Writing of GDS file with abstract cells is %sallowed.\n",
+			(CalmaAllowUndefined) ?  "" : "dis");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    option = Lookup(cmd->tx_argv[2], cmdCalmaAllowDisallow);
+	    if (option < 0)
+		goto wrongNumArgs;
+	    CalmaAllowAbstract = (option < 2) ? FALSE : TRUE;
 	    return;
 
 	case CALMA_COMPRESS:

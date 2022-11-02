@@ -926,10 +926,24 @@ efFlatKills(hc)
 }
 
 
-/*----
- * WIP
- *----
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * efFlatCapsDeviceless --
+ *
+ * Recursive procedure to flatten all capacitors in the circuit.
+ * Works like efFlatCaps() (see below), but ignores CellDefs that
+ * have no devices.
+ *
+ * Results:
+ *	Returns 0 to keep efHierSrUses going.
+ *
+ * Side effects:
+ *	See description of efFlatCaps().
+ *
+ * ----------------------------------------------------------------------------
  */
+
 
 int
 efFlatCapsDeviceless(hc)

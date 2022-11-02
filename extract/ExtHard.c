@@ -96,14 +96,17 @@ extLabEach(tile, pNum, arg)
     int pNum;
     FindRegion *arg;
 {
-    TransRegion *reg = (TransRegion *) arg->fra_region;
 
     /* Avoid setting the region's tile pointer to a split tile if we can */
+    /*
     if (IsSplit(reg->treg_tile) && !IsSplit(tile))
     {
 	reg->treg_tile = tile;
 	reg->treg_area = pNum;
     }
+    */
+
+    TransRegion *reg = (TransRegion *) arg->fra_region;
 
     if (reg->treg_area == DBNumPlanes) reg->treg_area = pNum;
     extSetNodeNum((LabRegion *)reg, pNum, tile);
