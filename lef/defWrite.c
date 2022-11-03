@@ -2876,7 +2876,7 @@ DefWriteCell(def, outName, allSpecial, units)
         freeMagic(filename2);
 	return;
     }
-    while (dbFgets(line, sizeof line, f2) != NULL) fprintf(f, "%s", line);
+    while (fgets(line, sizeof line, f2) != NULL) fprintf(f, "%s", line);
     fclose(f2);
 
     /* Blockages */
