@@ -36,6 +36,8 @@
 #include "extract/extractInt.h"
 #include "select/select.h"
 #include "utils/malloc.h"
+#include "cif/cif.h"		/* For CIFGetContactSize() */
+#include "cif/CIFint.h"		/* For CIFCurStyle */
 
 /* C99 compat */
 #include "extract/extract.h"
@@ -91,11 +93,13 @@ typedef struct _aas {
     dlong *accum;	/* Pointer to array of accumulated areas per type */
     int pNum;		/* Plane of check */
     Rect r;		/* Holds any one visited rectangle */
+    Rect via;		/* Holds any one visitid via rectangle */
     CellDef *def;	/* CellDef for adding feedback */
 } AntennaAccumStruct;
 
 typedef struct _gdas {
     dlong accum;	/* Accumulated area of all gates/diff */
+    int pNum;		/* Plane of check */
     Rect r;		/* Holds any one visited rectangle */
     CellDef *def;	/* CellDef for adding feedback */
 } GateDiffAccumStruct;
@@ -363,7 +367,7 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
     TileType t, conType;
     int pos, pNum, pNum2, pmax, p, i, j, total;
     dlong gatearea, diffarea;
-    double anttotal;
+    double anttotal, conttotal;
     float saveRatio, ratioTotal;
     dlong *antennaarea;
     Rect r, gaterect;
@@ -526,13 +530,17 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 		/* Search planes of tie types and accumulate all tiedown areas */
 		gdas.accum = (dlong)0;
 		for (p = 0;  p < DBNumPlanes; p++)
+		{
+		    gdas.pNum = p;
 		    DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[p],
 			    &TiPlaneRect, &ExtCurStyle->exts_antennaTieTypes,
 			    areaAccumFunc, (ClientData)&gdas);
+		}
 		diffarea = gdas.accum;
 
 		/* Search plane of gate type and accumulate all gate area */
 		gdas.accum = (dlong)0;
+		gdas.pNum = pNum;
 		DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[pNum],
 			&TiPlaneRect, &gatemask, areaAccumFunc, (ClientData)&gdas);
 		gatearea = gdas.accum;
@@ -552,16 +560,25 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 		}
 
 		antennaError = FALSE;
+
 		if (diffarea == 0)
 		{
 		    anttotal = 0.0;
+		    conttotal = 0.0;
 		    saveRatio = 0.0;
-		    for (i = 0; i < DBNumTypes; i++)
+		    for (i = 0; i < DBNumUserLayers; i++)
 		    {
 			if (ExtCurStyle->exts_antennaRatio[i].ratioGate > 0)
 			{
-			    anttotal += (double)antennaarea[i] /
-				    (double)ExtCurStyle->exts_antennaRatio[i].ratioGate;
+			    /* Partial model computes vias separately */
+			    if ((ExtCurStyle->exts_antennaModel & ANTENNAMODEL_PARTIAL)
+					&& !DBIsContact(i))
+				anttotal += (double)antennaarea[i] /
+					(double)ExtCurStyle->exts_antennaRatio[i].ratioGate;
+			    else if ((ExtCurStyle->exts_antennaModel & ANTENNAMODEL_PARTIAL)
+					&& (DBPlane(i) == pNum2))
+				conttotal += (double)antennaarea[i] /
+					(double)ExtCurStyle->exts_antennaRatio[i].ratioGate;
 			}
 			if (ExtCurStyle->exts_antennaRatio[i].ratioGate > saveRatio)
 			    saveRatio = ExtCurStyle->exts_antennaRatio[i].ratioGate;
@@ -572,7 +589,10 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 			antennaError = TRUE;
 			if (efAntennaDebug == TRUE)
 			{
-			    TxError("Cell: %s\n", hc->hc_use->use_id);
+			    if (hc->hc_use->use_id)
+				TxError("Cell: %s\n", hc->hc_use->use_id);
+			    else
+				TxError("Cell: %s\n", hc->hc_use->use_def->def_name);
 			    TxError("Antenna violation detected at plane %s\n",
 				    DBPlaneLongNameTbl[pNum2]);
 			    TxError("Effective antenna ratio %g > limit %g\n",
@@ -586,19 +606,53 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 				    aas.r.r_xtop, aas.r.r_ytop);
 			}
 		    }
+		    if (conttotal > (double)gatearea)
+		    {
+			antennaError = TRUE;
+			if (efAntennaDebug == TRUE)
+			{
+			    if (hc->hc_use->use_id)
+				TxError("Cell: %s\n", hc->hc_use->use_id);
+			    else
+				TxError("Cell: %s\n", hc->hc_use->use_def->def_name);
+			    TxError("Antenna violation detected at plane %s contact\n",
+				    DBPlaneLongNameTbl[pNum2]);
+			    TxError("Effective antenna ratio %g > limit %g\n",
+				    saveRatio * (float)conttotal / (float)gatearea,
+				    saveRatio);
+			    TxError("Gate rect (%d %d) to (%d %d)\n",
+				    gdas.r.r_xbot, gdas.r.r_ybot,
+				    gdas.r.r_xtop, gdas.r.r_ytop);
+			    TxError("Antenna rect (%d %d) to (%d %d)\n",
+				    aas.r.r_xbot, aas.r.r_ybot,
+				    aas.r.r_xtop, aas.r.r_ytop);
+			}
+		    }
 		}
 		else
 		{
 		    anttotal = 0.0;
+		    conttotal = 0.0;
 		    saveRatio = 0.0;
-		    for (i = 0; i < DBNumTypes; i++)
+		    for (i = 0; i < DBNumUserLayers; i++)
 			if (ExtCurStyle->exts_antennaRatio[i].ratioDiffB != INFINITY)
 			{
-			    ratioTotal = ExtCurStyle->exts_antennaRatio[i].ratioDiffB +
-				diffarea * ExtCurStyle->exts_antennaRatio[i].ratioDiffA;
+			    /* Compute effective gate ratio increased by diffusion area */
+			    ratioTotal = ExtCurStyle->exts_antennaRatio[i].ratioGate +
+			    		ExtCurStyle->exts_antennaRatio[i].ratioDiffB +
+					ExtCurStyle->exts_antennaRatio[i].ratioDiffA *
+					(double)diffarea;
 
 			    if (ratioTotal > 0)
-				anttotal += (double)antennaarea[i] / (double)ratioTotal;
+			    {
+			    	/* Partial model computes vias separately */
+			    	if ((ExtCurStyle->exts_antennaModel & ANTENNAMODEL_PARTIAL)
+					&& !DBIsContact(i))
+				    anttotal += (double)antennaarea[i] / ratioTotal;
+			        else if ((ExtCurStyle->exts_antennaModel & ANTENNAMODEL_PARTIAL)
+					&& (DBPlane(i) == pNum2))
+				    conttotal += (double)antennaarea[i] / ratioTotal;
+			    }
 			    if (ratioTotal > saveRatio)
 				saveRatio = ratioTotal;
 			}
@@ -608,11 +662,36 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 			antennaError = TRUE;
 			if (efAntennaDebug == TRUE)
 			{
-			    TxError("Cell: %s\n", hc->hc_use->use_id);
+			    if (hc->hc_use->use_id)
+				TxError("Cell: %s\n", hc->hc_use->use_id);
+			    else
+				TxError("Cell: %s\n", hc->hc_use->use_def->def_name);
 			    TxError("Antenna violation detected at plane %s\n",
 		    			DBPlaneLongNameTbl[pNum2]);
 			    TxError("Effective antenna ratio %g > limit %g\n",
 				    saveRatio * (float)anttotal / (float)gatearea,
+				    saveRatio);
+			    TxError("Gate rect (%d %d) to (%d %d)\n",
+				    gdas.r.r_xbot, gdas.r.r_ybot,
+				    gdas.r.r_xtop, gdas.r.r_ytop);
+			    TxError("Antenna rect (%d %d) to (%d %d)\n",
+				    aas.r.r_xbot, aas.r.r_ybot,
+				    aas.r.r_xtop, aas.r.r_ytop);
+			}
+		    }
+		    if (conttotal > (double)gatearea)
+		    {
+			antennaError = TRUE;
+			if (efAntennaDebug == TRUE)
+			{
+			    if (hc->hc_use->use_id)
+				TxError("Cell: %s\n", hc->hc_use->use_id);
+			    else
+				TxError("Cell: %s\n", hc->hc_use->use_def->def_name);
+			    TxError("Antenna violation detected at plane %s contact\n",
+		    			DBPlaneLongNameTbl[pNum2]);
+			    TxError("Effective antenna ratio %g > limit %g\n",
+				    saveRatio * (float)conttotal / (float)gatearea,
 				    saveRatio);
 			    TxError("Gate rect (%d %d) to (%d %d)\n",
 				    gdas.r.r_xbot, gdas.r.r_ybot,
@@ -697,6 +776,16 @@ areaAccumFunc(tile, gdas)
     int type;
     dlong area;
 
+    /* Avoid double-counting the area of contacts */
+    if (IsSplit(tile))
+	type = SplitSide(tile) ? SplitRightType(tile) : SplitLeftType(tile);
+    else
+	type = TiGetType(tile);
+
+    if (DBIsContact(type))
+	if (DBPlane(type) != gdas->pNum)
+	    return 0;
+
     TiToRect(tile, rect);
     area = (dlong)(rect->r_xtop - rect->r_xbot) * (dlong)(rect->r_ytop - rect->r_ybot);
     gdas->accum += area;
@@ -722,64 +811,18 @@ antennaAccumFunc(tile, aaptr)
     AntennaAccumStruct *aaptr;
 {
     Rect *rect = &(aaptr->r);
+    Rect *cont = &(aaptr->via);
     dlong area;
     int type;
     dlong *typeareas = aaptr->accum;
     int plane = aaptr->pNum;
-    float thick;
+    float thick, fcutsize;
+    int cutsize, cutsep, cutborder, nx, ny, w, h;
 
     type = TiGetType(tile);
 
-    TiToRect(tile, rect);
-
     if (ExtCurStyle->exts_antennaRatio[type].areaType & ANTENNAMODEL_SIDEWALL)
     {
-	/* Accumulate perimeter of tile where tile abuts space */
-
-	Tile *tp;
-	int perimeter = 0, pmax, pmin;
-
-	/* Top */
-	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-	{
-	    if (TiGetBottomType(tp) == TT_SPACE)
-	    {
-		pmin = MAX(LEFT(tile), LEFT(tp));
-		pmax = MIN(RIGHT(tile), RIGHT(tp));
-		perimeter += (pmax - pmin);
-	    }
-	}
-	/* Bottom */
-	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
-	{
-	    if (TiGetTopType(tp) == TT_SPACE)
-	    {
-		pmin = MAX(LEFT(tile), LEFT(tp));
-		pmax = MIN(RIGHT(tile), RIGHT(tp));
-		perimeter += (pmax - pmin);
-	    }
-	}
-	/* Left */
-	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
-	{
-	    if (TiGetRightType(tp) == TT_SPACE)
-	    {
-		pmin = MAX(BOTTOM(tile), BOTTOM(tp));
-		pmax = MIN(TOP(tile), TOP(tp));
-		perimeter += (pmax - pmin);
-	    }
-	}
-	/* Right */
-	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-	{
-	    if (TiGetLeftType(tp) == TT_SPACE)
-	    {
-		pmin = MAX(BOTTOM(tile), BOTTOM(tp));
-		pmax = MIN(TOP(tile), TOP(tp));
-		perimeter += (pmax - pmin);
-	    }
-	}
-
 	if (DBIsContact(type))
 	{
 	    int cperim;
@@ -787,7 +830,22 @@ antennaAccumFunc(tile, aaptr)
 	    TileTypeBitMask sMask;
 	    float thick;
 
-	    cperim = ((rect->r_xtop - rect->r_xbot) + (rect->r_ytop - rect->r_ybot)) << 1;
+	    TiToRect(tile, cont);
+
+	    /* Simple cut area calculation.  Note that this is not the same as	*/
+	    /* the GDS output routine for contact cuts, and can be wrong for	*/
+	    /* partially overlapping contacts where the tiles get subdivided.	*/
+
+	    CIFGetContactSize(type, &cutsize, &cutsep, &cutborder);
+
+	    w = cont->r_xtop - cont->r_xbot;
+	    h = cont->r_ytop - cont->r_ybot;
+	    nx = (w - 2 * cutborder) / (cutsize + cutsep);
+	    ny = (h - 2 * cutborder) / (cutsize + cutsep);
+	    if (nx == 0) nx = 1;
+	    if (ny == 0) ny = 1;
+
+	    cperim = nx * ny * (cutsize << 2) / CIFCurStyle->cs_scaleFactor;
 
 	    /* For contacts, add the area of the perimeter to the   */
 	    /* residue (metal) type on the plane being searched.    */
@@ -801,7 +859,7 @@ antennaAccumFunc(tile, aaptr)
 		    if (DBTypeOnPlane(ttype, plane))
 		    {
 			thick = ExtCurStyle->exts_thick[ttype];
-			typeareas[ttype] += (dlong)((float)perimeter * thick);
+			typeareas[ttype] += (dlong)((float)cperim * thick);
 		    }
 
 	    /* NOTE:  The "partial" model ignores the contribution of vias. */
@@ -815,19 +873,67 @@ antennaAccumFunc(tile, aaptr)
 			    if (DBTypeOnPlane(ttype, plane))
 			    {
 				thick = ExtCurStyle->exts_thick[ttype];
-				typeareas[ttype] += (dlong)((float)perimeter * thick);
+				typeareas[ttype] += (dlong)((float)cperim * thick);
 				break;
 			    }
 		}
 		else
 		{
 		    thick = ExtCurStyle->exts_thick[type];
-		    typeareas[type] += (dlong)((float)perimeter * thick);
+		    typeareas[type] += (dlong)((float)cperim * thick);
 		}
 	    }
 	}
 	else
 	{
+	    Tile *tp;
+	    int perimeter = 0, pmax, pmin;
+
+	    TiToRect(tile, rect);
+
+	    /* Accumulate perimeter of tile where tile abuts space */
+
+	    /* Top */
+	    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+	    {
+		if (TiGetBottomType(tp) == TT_SPACE)
+		{
+		    pmin = MAX(LEFT(tile), LEFT(tp));
+		    pmax = MIN(RIGHT(tile), RIGHT(tp));
+		    perimeter += (pmax - pmin);
+		}
+	    }
+	    /* Bottom */
+	    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+	    {
+		if (TiGetTopType(tp) == TT_SPACE)
+		{
+		    pmin = MAX(LEFT(tile), LEFT(tp));
+		    pmax = MIN(RIGHT(tile), RIGHT(tp));
+		    perimeter += (pmax - pmin);
+		}
+	    }
+	    /* Left */
+	    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+	    {
+		if (TiGetRightType(tp) == TT_SPACE)
+		{
+		    pmin = MAX(BOTTOM(tile), BOTTOM(tp));
+		    pmax = MIN(TOP(tile), TOP(tp));
+		    perimeter += (pmax - pmin);
+		}
+	    }
+	    /* Right */
+	    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
+	    {
+		if (TiGetLeftType(tp) == TT_SPACE)
+		{
+		    pmin = MAX(BOTTOM(tile), BOTTOM(tp));
+		    pmax = MIN(TOP(tile), TOP(tp));
+		    perimeter += (pmax - pmin);
+		}
+	    }
+
 	    /* Area is perimeter times layer thickness */
 	    thick = ExtCurStyle->exts_thick[type];
 	    typeareas[type] += (dlong)((float)perimeter * thick);
@@ -835,10 +941,6 @@ antennaAccumFunc(tile, aaptr)
     }
     else if (ExtCurStyle->exts_antennaRatio[type].areaType & ANTENNAMODEL_SURFACE)
     {
-	/* Simple tile area calculation */
-	area = (dlong)(rect->r_xtop - rect->r_xbot)
-		* (dlong)(rect->r_ytop - rect->r_ybot);
-
 	/* If type is a contact, then add area to both residues as well	*/
 	/* as the contact type.						*/
 
@@ -849,6 +951,24 @@ antennaAccumFunc(tile, aaptr)
 	{
 	    TileType ttype;
 	    TileTypeBitMask sMask;
+
+	    TiToRect(tile, cont);
+
+	    /* Simple cut area calculation.  Note that this is not the same as	*/
+	    /* the GDS output routine for contact cuts, and can be wrong for	*/
+	    /* partially overlapping contacts where the tiles get subdivided.	*/
+
+	    CIFGetContactSize(type, &cutsize, &cutsep, &cutborder);
+
+	    w = cont->r_xtop - cont->r_xbot;
+	    h = cont->r_ytop - cont->r_ybot;
+	    nx = (w - 2 * cutborder) / (cutsize + cutsep);
+	    ny = (h - 2 * cutborder) / (cutsize + cutsep);
+	    if (nx == 0) nx = 1;
+	    if (ny == 0) ny = 1;
+
+	    fcutsize = (float)cutsize / (float)CIFCurStyle->cs_scaleFactor;
+	    area = (dlong)(nx * ny) * (dlong)(fcutsize * fcutsize);
 
 	    DBFullResidueMask(type, &sMask);
 	    for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
@@ -871,7 +991,13 @@ antennaAccumFunc(tile, aaptr)
 		typeareas[type] += area;
 	}
 	else
+	{
+	    TiToRect(tile, rect);
+	    area = (dlong)(rect->r_xtop - rect->r_xbot)
+			* (dlong)(rect->r_ytop - rect->r_ybot);
+
 	    typeareas[type] += area;
+	}
     }
     return 0;
 }

@@ -2727,6 +2727,10 @@ ExtTechLine(sectionName, argc, argv)
 	    else
 		antennaratio = 0;
 
+	    /* NOTE:  antennaratio is multiplied by diffusion area and so has
+	     * units of (1/area^2) and so it should be scaled with other
+	     * dimension-scaled units.
+	     */
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 		if (TTMaskHasType(&types1, t))
 		    ExtCurStyle->exts_antennaRatio[t].ratioDiffA = antennaratio;
@@ -3445,6 +3449,7 @@ zinit:
 	/* internal units is done separately).				*/
 
 	float dscale = CIFGetOutputScale(1000);
+	float dsq = dscale * dscale;
 
 	CapValue scalefac = (CapValue)dscale;
 	CapValue sqfac = scalefac * scalefac;
@@ -3498,6 +3503,9 @@ zinit:
 	    /* Layer thickness and height are in microns, but are floating-point */
 	    style->exts_thick[r] /= dscale;
 	    style->exts_height[r] /= dscale;
+
+	    /* Only this antenna coefficient has dimensioned units */
+	    style->exts_antennaRatio[r].ratioDiffA *= dsq;
 	}
 
 	/* side halo, fringe shield halo, and step size are also in microns */
@@ -3573,6 +3581,9 @@ ExtTechScale(scalen, scaled)
 	style->exts_height[i] /= scalen;
 	style->exts_thick[i] *= scaled;
 	style->exts_thick[i] /= scalen;
+
+	style->exts_antennaRatio[i].ratioDiffA *= sqn;
+	style->exts_antennaRatio[i].ratioDiffA /= sqd;
 
 	for (j = 0; j < DBNumTypes; j++)
 	{
