@@ -1165,8 +1165,9 @@ defNetGeometryFunc(tile, plane, defdata)
 	{
 	    if (TTMaskHasType(rMask, stype))
 	    {
-		if ((stype == defdata->type) || (defdata->tile == (Tile *)NULL))
-		   rtype = stype;
+		if ((rtype == TT_SPACE) &&
+			((stype == defdata->type) || (defdata->tile == (Tile *)NULL)))
+		    rtype = stype;
 		else
 		   r2type = stype;
 	    }
