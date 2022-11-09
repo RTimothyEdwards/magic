@@ -1981,12 +1981,15 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
     TileType ttype;
     Rect *r;
     LinkedRect *lr;
+    float cscale;
 
     /* Pick up information from the LefInfo hash table	*/
     /* created by fucntion defCountVias()		*/
 
     if (LefInfo.ht_table != (HashEntry **) NULL)
     {
+	cscale = CIFGetOutputScale(1);
+
 	HashStartSearch(&hs);
 	while (he = HashNext(&LefInfo, &hs))
 	{
@@ -2038,7 +2041,16 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 		    Rect square, rect = lefl->info.via.area, *r;
 		    r = &rect;
 
-		    /* Scale the area to CIF units */
+		    /* Scale contact dimensions to the output units */
+		    size *= oscale;
+		    sep *= oscale;
+		    border *= oscale;
+
+		    size /= cscale;
+		    sep /= cscale;
+		    border /= cscale;
+
+		    /* Scale the area to output units */
 		    r->r_xbot *= oscale;
 		    r->r_ybot *= oscale;
 		    r->r_xtop *= oscale;
@@ -2353,8 +2365,9 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
 	while (he = HashNext(&LefInfo, &hs))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
-	    if ((lefl->lefClass == CLASS_ROUTE) || (lefl->lefClass == CLASS_VIA))
-		numblocks++;
+	    if (lefl != NULL)
+		if ((lefl->lefClass == CLASS_ROUTE) || (lefl->lefClass == CLASS_VIA))
+		    numblocks++;
 	}
 
 	defobsdata.nlayers = numblocks;
@@ -2372,7 +2385,8 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
 	    while (he = HashNext(&LefInfo, &hs))
 	    {
 		lefl = (lefLayer *)HashGetValue(he);
-		if ((lefl->lefClass == CLASS_ROUTE) || (lefl->lefClass == CLASS_VIA))
+		if ((lefl != NULL) && ((lefl->lefClass == CLASS_ROUTE) ||
+				(lefl->lefClass == CLASS_VIA)))
 		{
 		    char *llayer;
 		    if (lefl->lefClass == CLASS_ROUTE)
@@ -2766,7 +2780,7 @@ DefWriteCell(def, outName, allSpecial, units)
     /* Note that "1" corresponds to "1000" in the header UNITS line,	*/
     /* or units of nanometers.  10 = centimicrons, 1000 = microns.	*/
 
-    scale = CIFGetOutputScale(1000 / units);
+    scale = CIFGetOutputScale(1000) * units;
 
     if (!strcmp(def->cd_name, UNNAMED))
     {
