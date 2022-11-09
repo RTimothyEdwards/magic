@@ -319,7 +319,7 @@ defnodeCount(node, res, cap, total)
 	if (pwr)
 	{
 	    /* Diagnostic */
-	    TxPrintf("Node %s is defined in the \"globals\" array\n");
+	    TxPrintf("Node %s is defined in the \"globals\" array\n", pwr);
 	    node->efnode_flags |= EF_SPECIAL;
 	}
 
@@ -771,6 +771,8 @@ defnodeVisit(node, res, cap, defdata)
 	scx.scx_area = node->efnode_loc;
 	scx.scx_use = def->cd_parents;
 	scx.scx_trans = GeoIdentityTransform;
+
+	rport = GeoNullRect;
 	DBTreeSrUniqueTiles(&scx, &tmask, 0, defPortTileFunc, (ClientData)&rport);
 
 	/* Add the residue types to any contact type */
@@ -780,14 +782,24 @@ defnodeVisit(node, res, cap, defdata)
 	    TTMaskSetMask(&tmask, rmask);
 	    TTMaskSetType(&tmask, magictype);
 	}
-	/* Expand the rectangle around the port to overlap any	*/
-	/* connecting material.					*/
-	rport.r_xbot--;
-	rport.r_ybot--;
-	rport.r_xtop++;
-	rport.r_ytop++;
-  	DBSrConnect(def, &rport, &tmask, DBConnectTbl, &TiPlaneRect,
+
+	/* Check if anything was found in the location (e.g., .ext file
+	 * could be invalid or outdated).
+	 */
+	if (GEO_RECTNULL(&rport))
+	    TxError("Nothing found at node %s location (bad .ext file?)!\n", ndn);
+	else
+	{
+
+	    /* Expand the rectangle around the port to overlap any	*/
+	    /* connecting material.					*/
+	    rport.r_xbot--;
+	    rport.r_ybot--;
+	    rport.r_xtop++;
+	    rport.r_ytop++;
+  	    DBSrConnect(def, &rport, &tmask, DBConnectTbl, &TiPlaneRect,
 			defNetGeometryFunc, (ClientData)defdata);
+	}
     }
 
     /* Was there a last record pending?  If so, write it. */
@@ -1030,13 +1042,20 @@ defNetGeometryFunc(tile, plane, defdata)
 	    }
 	}
 
-	/* Check for non-default widths */
-	if ((h != routeWidth) && (w != routeWidth))
+	/* Check for non-default widths and slivers */
+
+	if (((h != routeWidth) && (w != routeWidth)) || 
+		((h == routeWidth) && (w < routeWidth)) ||
+		((w == routeWidth) && (h < routeWidth)))
 	{
 	    /* Handle slivers.  There are two main cases:
 	     * (1) Sliver is part of a via extension, so it can be ignored.
 	     * (2) Sliver is a route split into several tiles due to geometry
 	     *     to the left.  Expand up and down to include all tiles.
+	     *
+	     * Slivers that violate design rule widths are assumed to get
+	     * merged with another tile to make a full shape.  Slivers that
+	     * continue to violate minimum width with be ignored.
 	     */
 
 	    if (w < routeWidth) return 0;
@@ -1097,6 +1116,8 @@ defNetGeometryFunc(tile, plane, defdata)
 		    ruleset->rule = (lefRule *)mallocMagic(sizeof(lefRule));
 		    ruleset->rule->lefInfo = lefType;
 		    ruleset->rule->width = ndv;
+		    /* Policy is never to use a wire extension on non-default rules. */
+		    ruleset->rule->extend = 0;
 		}
 		taperName = ruleset->name;
 	    }
@@ -1123,7 +1144,8 @@ defNetGeometryFunc(tile, plane, defdata)
 	    if (routeWidth == 0) routeWidth = h;
 	    
 	    extlen = 0;
-	    if (defdata->specialmode == DO_REGULAR)
+	    /* NOTE: non-default tapers are not using wire extensions */
+	    if ((defdata->specialmode == DO_REGULAR) && (taperName == NULL))
 	    {
 		x1 = x1 + (routeWidth / 2 * oscale);
 		x2 = x2 - (routeWidth / 2 * oscale);
@@ -1139,7 +1161,8 @@ defNetGeometryFunc(tile, plane, defdata)
 	    if (routeWidth == 0) routeWidth = w;
 		
 	    extlen = 0;
-	    if (defdata->specialmode == DO_REGULAR)
+	    /* NOTE: non-default tapers are not using wire extensions */
+	    if ((defdata->specialmode == DO_REGULAR) && (taperName == NULL))
 	    {
 		y1 = y1 + (routeWidth / 2 * oscale);
 		y2 = y2 - (routeWidth / 2 * oscale);
@@ -2282,13 +2305,12 @@ defWritePins(f, rootDef, lefMagicToLefLayer, oscale)
 /*
  *------------------------------------------------------------
  *
- * defWriteNets --
+ * defWriteBlockages --
  *
- *	Output the NETS section of a DEF file.  We make use of
- *	the connectivity search routines used by "getnode" to
- *	determine unique notes and assign a net name to each.
- *	Then, we generate the geometry output for each NET
- *	entry.
+ *	Output the BLOCKAGES section of a DEF file.  Write
+ *	geometry for any layer that is defined as an
+ *	obstruction layer in the technology file "lef"
+ *	section.
  *
  * Results:
  *	None.
@@ -2798,7 +2820,7 @@ DefWriteCell(def, outName, allSpecial, units)
 
     /* Not done yet with output, so keep this file open. . . */
 
-    f2 = lefFileOpen(def, outName, ".def.part", "w", &filename);
+    f2 = lefFileOpen(def, outName, ".def_part", "w", &filename);
 
     if (f2 == NULL)
     {
@@ -2850,16 +2872,19 @@ DefWriteCell(def, outName, allSpecial, units)
 	    nrules = (LefRules *)HashGetValue(he);
 
 	    fprintf(f, "  - %s\n", nrules->name);
-	    fprintf(f, "     + LAYER %s WIDTH %.10g ;\n",
+	    fprintf(f, "     + LAYER %s WIDTH %.10g",
 			nrules->rule->lefInfo->canonName, 
 			((float)nrules->rule->width * scale));
+	    if (nrules->rule->extend > 0)
+	    	fprintf(f, " WIREEXT %.10g", (float)nrules->rule->extend / 2.0);
+	    fprintf(f, " ;\n");
 	}
 	fprintf(f, "END NONDEFAULTRULES\n\n");
     }
 
     /* Append contents of file with NETS and SPECIALNETS sections */
 
-    f2 = lefFileOpen(def, outName, ".def.part", "r", &filename);
+    f2 = lefFileOpen(def, outName, ".def_part", "r", &filename);
     if (f2 == NULL)
     {
 	/* This should not happen because the file was just written. . . */

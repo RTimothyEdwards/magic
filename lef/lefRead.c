@@ -1886,6 +1886,7 @@ newrule:
 		    rule->lefInfo = lefl;
 		    rule->width = 0;
 		    rule->spacing = 0;
+		    rule->extend = 0;
 		    rule->next = ruleset->rule;
 		    ruleset->rule = rule;
 		}
@@ -1928,8 +1929,20 @@ newrule:
 		    rule->spacing = (int)roundf(fvalue / oscale);
 	    	LefEndStatement(f);
 		break;
-	    case LEF_NONDEFLAYER_DIAG:
 	    case LEF_NONDEFLAYER_EXT:
+		if (!inlayer)
+		    LefError(DEF_INFO, "WIREEXT specified without layer.\n");
+		token = LefNextToken(f, TRUE);
+		sscanf(token, "%f", &fvalue);
+		if (rule == NULL)
+		    LefError(LEF_INFO, "No rule for non-default extension.\n");
+		else if (lefl == NULL)
+		    LefError(LEF_INFO, "No layer for non-default extension.\n");
+		else
+		    rule->extend = (int)roundf((2 * fvalue) / oscale);
+	    	LefEndStatement(f);
+		break;
+	    case LEF_NONDEFLAYER_DIAG:
 		if (!inlayer)
 		    LefError(LEF_INFO,
 				"Layer value specified without layer.\n");

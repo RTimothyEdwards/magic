@@ -107,6 +107,7 @@ typedef struct _lefRule {
     lefLayer	*lefInfo;	/* Layer or via referenced by the rule */
     int 	width;		/* Non-default width value for layer */
     int		spacing;	/* Non-default spacing value for layer */
+    int		extend;		/* Non-default extension value for layer */
     struct _lefRule	*next;
 } lefRule;
 

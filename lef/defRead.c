@@ -97,7 +97,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
     Rect locarea, r;
     int extend, lextend, hextend;
     float x, y, z, w;
-    int routeWidth, paintWidth, saveWidth;
+    int paintWidth, saveWidth, paintExtend;
     TileType routeLayer, paintLayer;
     HashEntry *he;
     lefLayer *lefl = NULL;
@@ -188,6 +188,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		else
 		    paintWidth = (lefl) ? lefl->info.route.width :
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+		paintExtend = 0;	/* SPECIALNETS always have 0 wire extension */
 		saveWidth = paintWidth;
 	    }
 	    else
@@ -200,6 +201,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		paintWidth = (rule) ? rule->width :
 				(lefl) ? lefl->info.route.width :
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+		paintExtend = (rule) ? rule->extend : paintWidth;
 	    }
 	}
 	else if ((*token == '+') && (special == TRUE))
@@ -340,6 +342,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 	    /* Return to the default width for this layer */
 	    paintWidth = (lefl) ? lefl->info.route.width :
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+	    paintExtend = (special) ? 0 : paintWidth;
 	    is_taper = TRUE;
 	}
 	else if (!strcmp(token, "TAPERRULE"))
@@ -354,13 +357,18 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		    if (rule->lefInfo == lefl)
 			break;
 
-		if (rule) paintWidth = rule->width;
+		if (rule)
+		{
+		    paintWidth = rule->width;
+		    paintExtend = rule->extend;
+		}
 	    	is_taper = TRUE;
 	    }
 	    else if (!strcmp(token, "DEFAULT"))
 	    {
 	    	paintWidth = (lefl) ? lefl->info.route.width :
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+		paintExtend = (special) ? 0 : paintWidth;
 	    	is_taper = TRUE;
 	    }
 	    else
@@ -479,6 +487,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 				else
 				    paintWidth = (lefl) ? lefl->info.route.width
 					: DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+				paintExtend = (special) ? 0 : paintWidth;
 				break;
 			    }
 		}
@@ -544,7 +553,8 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 	    /* is apparently how everyone interprets it, and is true for    */
 	    /* 5.6 spec.						    */
 
-	    extend = (special) ? 0 : paintWidth;
+	    extend = paintExtend;
+
 	    token = LefNextToken(f, TRUE);
 	    if (*token != ')')
 	    {
@@ -872,6 +882,7 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 			    	rule->lefInfo = lefl;
 				rule->width = 0;
 				rule->spacing = 0;
+				rule->extend = 0;
 				rule->next = ruleset->rule;
 				ruleset->rule = rule;
 			    }
@@ -911,8 +922,19 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 			    else
 			    	rule->spacing = (int)roundf(fvalue / oscale);
 			    break;
-			case DEF_NONDEFLAYER_DIAG:
 			case DEF_NONDEFLAYER_EXT:
+			    if (!inlayer)
+				LefError(DEF_INFO, "WIREEXT specified without layer.\n");
+			    token = LefNextToken(f, TRUE);
+			    sscanf(token, "%f", &fvalue);
+			    if (rule == NULL)
+				LefError(DEF_INFO, "No rule for non-default extension.\n");
+			    else if (lefl == NULL)
+				LefError(DEF_INFO, "No layer for non-default extension.\n");
+			    else
+			    	rule->extend = (int)roundf((2 * fvalue) / oscale);
+			    break;
+			case DEF_NONDEFLAYER_DIAG:
 			    if (!inlayer)
 				LefError(DEF_INFO,
 					"Layer value specified without layer.\n");
