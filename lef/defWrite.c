@@ -1129,7 +1129,10 @@ defNetGeometryFunc(tile, plane, defdata)
 		midlinex2 = (r.r_xtop + r.r_xbot);
 	    }
 	    else
+	    {
+		orient = GEO_EAST;
 		midlinex2 = (r.r_ytop + r.r_ybot);
+	    }
 	}
 
 	/* Find the route orientation and centerline endpoint coordinates */
