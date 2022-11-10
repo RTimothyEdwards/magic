@@ -564,6 +564,10 @@ CalmaTechInit()
     ASSERT(sizeof(FourByteInt)==4, "definition in calmaInt.h");
     ASSERT(sizeof(TwoByteInt)==2, "definition in calmaInt.h");
 
+    /* NOTE:  Enable the code below when CalmaContactArrays	*/
+    /* behaves like the non-arrayed function and can be enabled	*/
+    /* by default.						*/
+#if 0
     /* Initialize CalmaFlattenByName to have one entry for	*/
     /* "$$*$$" to match the name style used by the contact	*/
     /* array cell generation.  This can be overridden by the	*/
@@ -575,4 +579,5 @@ CalmaTechInit()
 	*CalmaFlattenUsesByName = StrDup((char **)NULL, "$$*$$");
 	*(CalmaFlattenUsesByName + 1) = NULL;
     }
+#endif
 }

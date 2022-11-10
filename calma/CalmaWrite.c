@@ -67,9 +67,12 @@ time_t *CalmaDateStamp = NULL;	  /* If non-NULL, output this for creation date s
 bool CalmaAllowUndefined = FALSE; /* If TRUE, allow calls to undefined cells */
 bool CalmaAllowAbstract = FALSE;  /* If TRUE, allow abstract views to be written */
 
-    /* CalmaContactArrays changed from FALSE to TRUE 11/10/2022 */
-bool CalmaContactArrays = TRUE; /* If TRUE, output contacts as subcell arrays */
-    /* Experimental stuff---not thoroughly tested (as of Sept. 2007)! */
+    /* Experimental stuff---not thoroughly tested.  In particular, the 	*/
+    /* array generation of CalmaContactArrays is different from that	*/
+    /* used by the cifSquareFunc(), and should be using the 		*/
+    /* cifFillSquaresArea() function directly, and include slots.	*/
+
+bool CalmaContactArrays = FALSE; /* If TRUE, output contacts as subcell arrays */
 bool CalmaMergeTiles = FALSE;	 /* If TRUE, merge tiles into polygons in output. */
 
 #ifdef HAVE_ZLIB
