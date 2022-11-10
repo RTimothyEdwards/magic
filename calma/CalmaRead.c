@@ -563,4 +563,16 @@ CalmaTechInit()
 {
     ASSERT(sizeof(FourByteInt)==4, "definition in calmaInt.h");
     ASSERT(sizeof(TwoByteInt)==2, "definition in calmaInt.h");
+
+    /* Initialize CalmaFlattenByName to have one entry for	*/
+    /* "$$*$$" to match the name style used by the contact	*/
+    /* array cell generation.  This can be overridden by the	*/
+    /* "gds flatglob none" command option.			*/
+
+    if (CalmaFlattenUsesByName == (char **)NULL)
+    {
+	CalmaFlattenUsesByName = (char **)mallocMagic(2 * sizeof(char *));
+	*CalmaFlattenUsesByName = StrDup((char **)NULL, "$$*$$");
+	*(CalmaFlattenUsesByName + 1) = NULL;
+    }
 }

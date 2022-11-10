@@ -1144,6 +1144,8 @@ calmaOutFuncZ(def, f, cliprect)
     int type;
     int dbunits;
     calmaOutputStructZ cos;
+    bool propfound;
+    char *propvalue;
 
     cos.f = f;
     cos.area = (cliprect == &TiPlaneRect) ? NULL : cliprect;
@@ -1200,6 +1202,19 @@ calmaOutFuncZ(def, f, cliprect)
 
     /* Output all the tiles associated with this cell; skip temporary layers */
     GEO_EXPAND(&def->cd_bbox, CIFCurStyle->cs_radius, &bigArea);
+
+    /* Include any fixed bounding box as part of the area to process,	*/
+    /* in case the fixed bounding box is larger than the geometry.	*/
+    propvalue = (char *)DBPropGet(def, "FIXED_BBOX", &propfound);
+    if (propfound)
+    {
+	Rect bbox;
+
+	if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		&bbox.r_xtop, &bbox.r_ytop) == 4)
+	    GeoInclude(&bbox, &bigArea);
+    }
+
     CIFErrorDef = def;
     CIFGen(def, def, &bigArea, CIFPlanes, &DBAllTypeBits, TRUE, TRUE, FALSE,
 		(ClientData)f);
@@ -1559,7 +1574,7 @@ bad:
 /*
  * ----------------------------------------------------------------------------
  *
- * CalmaGenerateArray --
+ * CalmaGenerateArrayZ --
  *
  *	This routine
  *

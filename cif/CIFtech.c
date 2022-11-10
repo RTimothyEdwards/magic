@@ -2049,7 +2049,9 @@ CIFTechFinal()
 	for (op = style->cs_layers[i]->cl_ops; (op != NULL) &&
 			(op->co_opcode == CIFOP_OR) &&
 			(TTMaskIsZero(&op->co_cifMask)); op = op->co_next);
-	if (op && (op->co_opcode == CIFOP_SQUARES) && (op->co_next == NULL))
+	if (op && ((op->co_opcode == CIFOP_SQUARES) ||
+		   (op->co_opcode == CIFOP_SQUARES_G) ||
+		   (op->co_opcode == CIFOP_SLOTS)) && (op->co_next == NULL))
 	{
 	    clientdata = op->co_client;
 	    for (op = style->cs_layers[i]->cl_ops; op->co_opcode == CIFOP_OR;

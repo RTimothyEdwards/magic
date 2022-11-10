@@ -3433,7 +3433,13 @@ cifContactFunc(tile, csi)
     left += halfsize;
     bottom += halfsize;
 
-    result = CalmaGenerateArray((FILE *)csi->csi_client, csi->csi_type,
+#ifdef HAVE_ZLIB
+    if (CalmaCompression > 0)
+	result = CalmaGenerateArrayZ((FILETYPE)csi->csi_client, csi->csi_type,
+		left, bottom, pitch, nAcross, nUp);
+    else
+#endif
+	result = CalmaGenerateArray((FILE *)csi->csi_client, csi->csi_type,
 		left, bottom, pitch, nAcross, nUp);
 
     return (result == TRUE) ? 0 : 1;
@@ -4840,12 +4846,15 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 		    	break;
 		    }
 		}
-		DBClearPaintPlane(nextPlane);
-		cifPlane = nextPlane;
-		cifSquaresFillArea(op, cellDef, curPlane);
-		temp = curPlane;
-		curPlane = nextPlane;
-		nextPlane = temp;
+		if (CalmaContactArrays == FALSE)
+		{
+		    DBClearPaintPlane(nextPlane);
+		    cifPlane = nextPlane;
+		    cifSquaresFillArea(op, cellDef, curPlane);
+		    temp = curPlane;
+		    curPlane = nextPlane;
+		    nextPlane = temp;
+		}
 		break;
 
 	    case CIFOP_SLOTS:
@@ -4857,12 +4866,15 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 		    	break;
 		    }
 		}
-		DBClearPaintPlane(nextPlane);
-		cifPlane = nextPlane;
-		cifSlotsFillArea(op, cellDef, curPlane);
-		temp = curPlane;
-		curPlane = nextPlane;
-		nextPlane = temp;
+		if (CalmaContactArrays == FALSE)
+		{
+		    DBClearPaintPlane(nextPlane);
+		    cifPlane = nextPlane;
+		    cifSlotsFillArea(op, cellDef, curPlane);
+		    temp = curPlane;
+		    curPlane = nextPlane;
+		    nextPlane = temp;
+		}
 		break;
 
 	    case CIFOP_MAXRECT:

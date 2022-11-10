@@ -86,6 +86,7 @@ extern void calmaRemoveColinear();
 
 #ifdef HAVE_ZLIB
 extern bool CalmaWriteZ();
+extern bool CalmaGenerateArrayZ();
 #endif
 
 #endif /* _CALMA_H */
