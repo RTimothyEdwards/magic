@@ -41,6 +41,9 @@
 
 #include <stdio.h>
 
+#define _XOPEN_SOURCE       /* See feature_test_macros(7) */
+#include <wchar.h>
+
 /* System-specific feature definitions and include files. */
 #include "rldefs.h"
 #include "rlmbutil.h"

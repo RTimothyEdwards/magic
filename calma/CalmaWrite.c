@@ -1605,13 +1605,11 @@ calmaWriteUseFunc(use, f)
 	/* By NP */
 	/* Property attributes/value pairs. */
 	/* Add a CellUse ID property, if the CellUse has a non-default name */
+	/* (Modified 11/11/2022:  Do this always, not just the non-default case) */
 
-	if (!calmaIsUseNameDefault(use->cu_def->cd_name, use->cu_id))
-	{
-	    calmaOutRH(6, CALMA_PROPATTR, CALMA_I2, f);
-	    calmaOutI2(CALMA_PROP_USENAME_STD, f);
-	    calmaOutStringRecord(CALMA_PROPVALUE, use->cu_id, f);
-	}
+	calmaOutRH(6, CALMA_PROPATTR, CALMA_I2, f);
+	calmaOutI2(CALMA_PROP_USENAME_STD, f);
+	calmaOutStringRecord(CALMA_PROPVALUE, use->cu_id, f);
 
 	/* Add an array limits property, if the CellUse is an array and */
 	/* limits of the array (xlo, ylo) are not zero (the default).	*/
