@@ -422,7 +422,7 @@ DBWredisplay(w, rootArea, clipArea)
         GrSetStuff(STYLE_LABEL);
 	(void) DBTreeSrLabels(&scontext, &DBAllTypeBits, bitMask,
 		(TerminalPath *) NULL, TF_LABEL_DISPLAY | TF_LABEL_ATTACH,
-		dbwLabelFunc, (ClientData) NULL);
+		dbwLabelFunc, (ClientData)(&crec->dbw_visibleLayers));
 	GrClipTo(&rootClip);
     }
 
@@ -921,16 +921,26 @@ DBWDrawFontLabel(label, window, trans, style)
  */
 
 int
-dbwLabelFunc(scx, label, tpath)
+dbwLabelFunc(scx, label, tpath, clientData)
     SearchContext *scx;		/* Contains pointer to use containing def in
 				 * which label appears, and transform to
 				 * screen coordinates.
 				 */
     Label *label;		/* Label to be displayed. */
     TerminalPath *tpath;	/* Contains pointer to full pathname of label */
+    ClientData clientData;	/* Used for mask for dbw_visibleLayers */
 {
     Rect labRect, tmp;
     int screenPos, screenRot, newStyle;
+    TileTypeBitMask *vmask;
+
+    vmask = (TileTypeBitMask *)clientData;
+
+    /* Do not draw the label if the layer to which it is attached is
+     * not being drawn.
+     */
+    if (!TTMaskHasType(vmask, label->lab_type))
+	return 0;
 
     if (!dbwAllSame && ((editDef != scx->scx_use->cu_def)
 	|| (scx->scx_trans.t_a != editTrans.t_a)

@@ -103,7 +103,6 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
     lefLayer *lefl = NULL;
     lefRule *rule = NULL;
     int keyword;
-    bool is_taper = FALSE, end_taper = FALSE;
 
     static char *specnet_keys[] = {
 	"SHAPE",
@@ -194,9 +193,13 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 	    else
 	    {
 		if (ruleset)
+		{
 		    for (rule = ruleset->rule; rule; rule = rule->next)
 			if (rule->lefInfo == lefl)
 			    break;
+		}
+		else
+		    rule = NULL;
 
 		paintWidth = (rule) ? rule->width :
 				(lefl) ? lefl->info.route.width :
@@ -343,7 +346,6 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 	    paintWidth = (lefl) ? lefl->info.route.width :
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
 	    paintExtend = (special) ? 0 : paintWidth;
-	    is_taper = TRUE;
 	}
 	else if (!strcmp(token, "TAPERRULE"))
 	{
@@ -362,23 +364,18 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		    paintWidth = rule->width;
 		    paintExtend = rule->extend;
 		}
-	    	is_taper = TRUE;
 	    }
 	    else if (!strcmp(token, "DEFAULT"))
 	    {
 	    	paintWidth = (lefl) ? lefl->info.route.width :
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
 		paintExtend = (special) ? 0 : paintWidth;
-	    	is_taper = TRUE;
 	    }
 	    else
 	    	LefError(DEF_ERROR, "Unknown nondefault rule \"%s\"\n", token);
 	}
 	else if (*token != '(')	/* via name */
 	{
-	    /* A via directly after a taper rule would cancel the taper rule */
-	    is_taper = FALSE;
-
 	    /* A '+' or ';' record ends the route */
 	    if (*token == ';' || *token == '+')
 		break;
@@ -569,8 +566,6 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		    extend = (int)roundf((2 * z) / oscale);
 	    }
 
-	    end_taper = ((valid == TRUE) && (is_taper == TRUE)) ? TRUE : FALSE;
-
 	    /* Indicate that we have a valid reference point */
 
 	    if (valid == FALSE)
@@ -642,24 +637,6 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		newRoute->r_r.r_ybot >>= 1;
 		newRoute->r_r.r_xtop >>= 1;
 		newRoute->r_r.r_ytop >>= 1;
-	    }
-
-	    /* If a taper rule was in effect and we have a valid	*/
-	    /* segment, reset the width	after creating the segment.	*/
-
-	    if (end_taper)
-	    {
-		is_taper = FALSE;
-		end_taper = FALSE;
-		rule = NULL;
-		if (ruleset)
-		    for (rule = ruleset->rule; rule; rule = rule->next)
-			if (rule->lefInfo == lefl)
-			    break;
-
-		paintWidth = (rule) ? rule->width :
-				(lefl) ? lefl->info.route.width :
-				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
 	    }
 
 endCoord:
@@ -845,7 +822,7 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 			if (!inlayer)
 			    continue;
 		    }
-		    else
+		    if (*token == '+')
 		    {
 			inlayer = FALSE;
 			rule = NULL;

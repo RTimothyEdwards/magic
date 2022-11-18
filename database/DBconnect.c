@@ -223,7 +223,6 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     /* The following lets us call DBSrConnect recursively */
     else if (startTile->ti_client == (ClientData)1) return 0;
 
-
     /* Pass 1.  During this pass the client function gets called. */
 
     csa.csa_clientFunc = func;
@@ -313,7 +312,6 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     /* The following lets us call DBSrConnect recursively */
     else if (startTile->ti_client == (ClientData)1) return 0;
 
-
     /* Pass 1.  During this pass the client function gets called. */
 
     csa.csa_clientFunc = func;
@@ -394,6 +392,7 @@ dbSrConnectFunc(tile, csa)
     Rect tileArea;
     int i, pNum;
     int result = 0;
+    bool callClient;
     TileTypeBitMask *connectMask;
     TileType loctype, checktype;
     PlaneMask planes;
@@ -422,6 +421,7 @@ dbSrConnectFunc(tile, csa)
 	 * visited.
 	 */
 
+	callClient = TRUE;
 	if (csa->csa_clear)
 	{
 	    if (tile->ti_client == (ClientData) CLIENTDEFAULT) continue;
@@ -429,13 +429,17 @@ dbSrConnectFunc(tile, csa)
 	}
 	else
 	{
-	    if (tile->ti_client != (ClientData) CLIENTDEFAULT) continue;
+	    if (tile->ti_client == (ClientData) 1) continue;
+
+	    /* Allow a process to mark tiles for skipping the client function */
+	    if (tile->ti_client != (ClientData) CLIENTDEFAULT)
+		callClient = FALSE;
 	    tile->ti_client = (ClientData) 1;
 	}
 
 	/* Call the client function, if there is one. */
 
-	if (csa->csa_clientFunc != NULL)
+	if (callClient && (csa->csa_clientFunc != NULL))
 	{
 	    if ((*csa->csa_clientFunc)(tile, pNum, csa->csa_clientData) != 0)
 	    {
@@ -478,7 +482,7 @@ dbSrConnectFunc(tile, csa)
 		{
 		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
 		}
-		else if (t2->ti_client != (ClientData) CLIENTDEFAULT) continue;
+		else if (t2->ti_client == (ClientData) 1) continue;
 		if (IsSplit(t2))
 		    TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE)); /* bit set */
 		STACKPUSH((ClientData)t2, dbConnectStack);
@@ -506,7 +510,7 @@ bottomside:
 		{
 		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
 		}
-		else if (t2->ti_client != (ClientData) CLIENTDEFAULT) continue;
+		else if (t2->ti_client == (ClientData) 1) continue;
 		if (IsSplit(t2))
 		{
 		    if (SplitDirection(t2))
@@ -540,7 +544,7 @@ rightside:
 		{
 		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextRight;
 		}
-		else if (t2->ti_client != (ClientData) CLIENTDEFAULT) goto nextRight;
+		else if (t2->ti_client == (ClientData) 1) goto nextRight;
 		if (IsSplit(t2))
 		    TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE)); /* bit clear */
 		STACKPUSH((ClientData)t2, dbConnectStack);
@@ -568,7 +572,7 @@ topside:
 		{
 		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextTop;
 		}
-		else if (t2->ti_client != (ClientData) CLIENTDEFAULT) goto nextTop;
+		else if (t2->ti_client == (ClientData) 1) goto nextTop;
 		if (IsSplit(t2))
 		{
 		    if (SplitDirection(t2))

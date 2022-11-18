@@ -50,6 +50,7 @@ typedef struct {
    TileType	type;
    float	x, y, extlen;
    unsigned char orient;
+   LefRules 	*ruleset;	/* Non-default ruleset or NULL */
 
    LefMapping	*MagicToLefTbl;
    HashTable	*defViaTable;
@@ -643,6 +644,7 @@ defWriteNets(f, rootDef, oscale, MagicToLefTable, defViaTable, specialmode)
     defdata.def = rootDef;
     defdata.MagicToLefTbl = MagicToLefTable;
     defdata.outcolumn = 0;
+    defdata.ruleset = NULL;
     defdata.specialmode = specialmode;
     defdata.defViaTable = defViaTable;
 
@@ -839,6 +841,34 @@ defMinWireFunc(tile, yclip)
     return 0;
 }
 
+/* Callback function for defNetGeometryFunc().  Determines if any tile	*/
+/* is enclosed by rect, and if so, marks the tile client so that	*/
+/* DBSrConnectFunc() will not apply the client function to that tile.	*/
+/* clientdata value (ClientData)1 means the tile has already been	*/
+/* processed;  (ClientData)CLIENTDEFAULT means that it has not been	*/
+/* processed.  Any other value will cause it to skip the client		*/
+/* function when it is processed.					*/
+
+int
+defExemptWireFunc(tile, rect)
+    Tile *tile;
+    Rect *rect;
+{
+    Rect r;
+
+    /* Do not change the client data of tiles that have been processed! */
+    if (tile->ti_client != (ClientData) 1)
+    {
+	/* Ignore contacts, which need additional processing */
+	if (DBIsContact(TiGetType(tile))) return 0;
+
+	TiToRect(tile, &r);
+	if (GEO_SURROUND(rect, &r))
+	    tile->ti_client = (ClientData) 2;
+    }
+    return 0;
+}
+
 /* Callback function for DBTreeSrUniqueTiles.  When no routed areas	*/
 /* were found, we assume that there was no routing material overlapping	*/
 /* the port.  So, we need to find the area of a tile defining the port	*/
@@ -886,7 +916,8 @@ defNetGeometryFunc(tile, plane, defdata)
     int routeWidth, w, h, midlinex2, topClip, botClip;
     float x1, y1, x2, y2, extlen;
     lefLayer *lefType, *lefl;
-    char *lefName, *taperName, viaName[128], posstr[24];
+    char *lefName, viaName[128], posstr[24];
+    LefRules *lastruleset = defdata->ruleset;
     HashEntry *he;
     HashTable *defViaTable = defdata->defViaTable;
     LefMapping *MagicToLefTable = defdata->MagicToLefTbl;
@@ -1004,7 +1035,6 @@ defNetGeometryFunc(tile, plane, defdata)
     lefName = MagicToLefTable[ttype].lefName;
     if (lefName == NULL) return 0;	/* Do not write types not in LEF definition */
     lefType = MagicToLefTable[ttype].lefInfo;
-    taperName = NULL;
 
     orient = GEO_EAST;
     w = r.r_xtop - r.r_xbot;
@@ -1055,30 +1085,40 @@ defNetGeometryFunc(tile, plane, defdata)
 	     *
 	     * Slivers that violate design rule widths are assumed to get
 	     * merged with another tile to make a full shape.  Slivers that
-	     * continue to violate minimum width with be ignored.
+	     * continue to violate minimum width will be ignored.
 	     */
 
 	    if (w < routeWidth) return 0;
 
 	    if (h < routeWidth)
 	    {
-		/* Check upward */
+		/* Check upward. */
 		r = rorig;
 		r.r_ytop = r.r_ybot + routeWidth;
 		r.r_ybot = rorig.r_ytop;
-		topClip = r.r_ytop;
-		DBSrPaintArea(tile, def->cd_planes[plane],
-			&r, &DBNotConnectTbl[ttype],
-			defMaxWireFunc, (ClientData)&topClip);
+		do
+		{
+		    r.r_ytop += routeWidth;
+		    topClip = r.r_ytop;
+		    DBSrPaintArea(tile, def->cd_planes[plane],
+				&r, &DBNotConnectTbl[ttype],
+				defMaxWireFunc, (ClientData)&topClip);
+		}
+		while (topClip == r.r_ytop);
 
 		/* Check downward */
 		r = rorig;
 		r.r_ybot = r.r_ytop - routeWidth;
 		r.r_ytop = rorig.r_ybot;
-		botClip = r.r_ybot;
-		DBSrPaintArea(tile, def->cd_planes[plane],
-			&r, &DBNotConnectTbl[ttype],
-			defMinWireFunc, (ClientData)&botClip);
+		do
+		{
+		    r.r_ybot -= routeWidth;
+		    botClip = r.r_ybot;
+		    DBSrPaintArea(tile, def->cd_planes[plane],
+				&r, &DBNotConnectTbl[ttype],
+				defMinWireFunc, (ClientData)&botClip);
+		}
+		while (botClip == r.r_ybot);
 
 		r = rorig;
 		if (topClip > r.r_ytop) r.r_ytop = topClip;
@@ -1087,6 +1127,14 @@ defNetGeometryFunc(tile, plane, defdata)
 		/* If height is still less that a route width, bail */
 		h = r.r_ytop - r.r_ybot;
 		if (h < routeWidth) return 0;
+
+		/* If r is larger than rorig, then exempt all unprocessed	*/
+		/* tiles contained in rorig from being checked again.		*/
+
+		if (!GEO_SAMERECT(r, rorig))
+		    DBSrPaintArea(tile, def->cd_planes[plane],
+				&r, &DBConnectTbl[ttype],
+				defExemptWireFunc, (ClientData)&r);
 	    }
 
 	    /* Handle non-default width regular nets (use TAPERRULE) */
@@ -1104,7 +1152,9 @@ defNetGeometryFunc(tile, plane, defdata)
 			(h < w) ? h : w, routeWidth);
 		 */
 
-		/* Create a nondefault rule.  Use one rule per layer and width */
+		/* Create a nondefault rule.  Use one rule per layer and width	*/
+		/* for now (to do:  keep the same ruleset when possible)	*/
+
 		sprintf(ndname, "%s_width_%d", lefName, (int)((float)ndv * oscale));
 		he = HashFind(&LefNonDefaultRules, ndname);
 		ruleset = (LefRules *)HashGetValue(he);
@@ -1118,8 +1168,12 @@ defNetGeometryFunc(tile, plane, defdata)
 		    ruleset->rule->width = ndv;
 		    /* Policy is never to use a wire extension on non-default rules. */
 		    ruleset->rule->extend = 0;
+		    /* Spacing is not needed, but set it to the layer default */
+		    ruleset->rule->spacing = DRCGetDefaultLayerSpacing(ttype, ttype);
+		    /* There will only be one rule in this ruleset */
+		    ruleset->rule->next = NULL;
 		}
-		taperName = ruleset->name;
+		defdata->ruleset = ruleset;
 	    }
 
 	    /* Set orientation based on longest side */
@@ -1134,6 +1188,9 @@ defNetGeometryFunc(tile, plane, defdata)
 		midlinex2 = (r.r_ytop + r.r_ybot);
 	    }
 	}
+	else
+	    /* Non-default width has ended and the route returns to default rules */
+	    defdata->ruleset = NULL;
 
 	/* Find the route orientation and centerline endpoint coordinates */
 
@@ -1148,7 +1205,7 @@ defNetGeometryFunc(tile, plane, defdata)
 	    
 	    extlen = 0;
 	    /* NOTE: non-default tapers are not using wire extensions */
-	    if ((defdata->specialmode == DO_REGULAR) && (taperName == NULL))
+	    if ((defdata->specialmode == DO_REGULAR) && (defdata->ruleset == NULL))
 	    {
 		x1 = x1 + (routeWidth / 2 * oscale);
 		x2 = x2 - (routeWidth / 2 * oscale);
@@ -1165,7 +1222,7 @@ defNetGeometryFunc(tile, plane, defdata)
 		
 	    extlen = 0;
 	    /* NOTE: non-default tapers are not using wire extensions */
-	    if ((defdata->specialmode == DO_REGULAR) && (taperName == NULL))
+	    if ((defdata->specialmode == DO_REGULAR) && (defdata->ruleset == NULL))
 	    {
 		y1 = y1 + (routeWidth / 2 * oscale);
 		y2 = y2 - (routeWidth / 2 * oscale);
@@ -1254,9 +1311,6 @@ defNetGeometryFunc(tile, plane, defdata)
 			sameroute = FALSE;
 		}
 	    }
-	    else if (taperName != NULL)
-		/* TAPERRULE can only be put after a NEW layer line */
-		sameroute = FALSE;
 	    else
 		sameroute = TRUE;
 	}
@@ -1267,13 +1321,28 @@ defNetGeometryFunc(tile, plane, defdata)
 	if (sameroute && (defdata->specialmode != DO_REGULAR) &&
 		defdata->orient == GEO_CENTER)
 	    sameroute = FALSE;
+
+	/* For now, placement of a via after a taper rule cancels the	*/
+	/* taper rule (see above note about combining layer rules).	*/
+	if (sameroute && (defdata->ruleset != NULL))
+	{
+	    lastruleset = NULL;
+	    sameroute = FALSE;
+	}
     }
 
+    /* If a non-default rule has changed, then we start a new route */
+    if (lastruleset != defdata->ruleset)
+    {
+	sameroute = FALSE;
+	lastruleset = defdata->ruleset;
+    }
 
     /* Determine if we need to write a NEW (type) record.  We do this	*/
     /* if 1) this is the first tile visited (except that we don't	*/
     /* write "NEW"), 2) the current tile doesn't touch the last tile	*/
-    /* visited, or 3) the current type is not equal to the last type.	*/
+    /* visited, 3) the current type is not equal to the last type, or	*/
+    /* 4) a new non-default rule is needed.				*/
 
     if ((!sameroute) || (ttype != defdata->type))
     {
@@ -1364,8 +1433,8 @@ defNetGeometryFunc(tile, plane, defdata)
 
 	        defCheckForBreak(strlen(rName) + 1, defdata);
 		fprintf(f, "%s ", rName);
-		if (taperName != NULL)
-		    fprintf(f, "TAPERRULE %s ", taperName);
+		if (defdata->ruleset != NULL)
+		    fprintf(f, "TAPERRULE %s ", defdata->ruleset->name);
 		if (defdata->specialmode != DO_REGULAR)
 		    defWriteRouteWidth(defdata, routeWidth);
 		defWriteCoord(defdata, x1, y1, GEO_CENTER);
@@ -1392,8 +1461,8 @@ defNetGeometryFunc(tile, plane, defdata)
 	    {
 	        defCheckForBreak(strlen(lefName) + 1, defdata);
 		fprintf(f, "%s ", lefName);
-		if (taperName != NULL)
-		    fprintf(f, "TAPERRULE %s ", taperName);
+		if (defdata->ruleset != NULL)
+		    fprintf(f, "TAPERRULE %s ", defdata->ruleset->name);
 		if (defdata->specialmode != DO_REGULAR)
 		    defWriteRouteWidth(defdata, routeWidth);
 
@@ -2421,17 +2490,17 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
     	for (i = 0; i < numblocks; i++)
     	{
 	    if (defobsdata.blockData[i] == NULL) continue;
-	    fprintf(f, "   - LAYER %s\n", defobsdata.baseNames[i]);
+	    fprintf(f, "   - LAYER %s", defobsdata.baseNames[i]);
 	    for (lr = defobsdata.blockData[i]; lr; lr = lr->r_next)
 	    {
-	    	fprintf(f, "      RECT %.10g %.10g %.10g %.10g\n",
+	    	fprintf(f, "\n      RECT ( %.10g %.10g ) ( %.10g %.10g )",
 				(float)(lr->r_r.r_xbot * oscale),
 				(float)(lr->r_r.r_ybot * oscale),
 				(float)(lr->r_r.r_xtop * oscale),
 				(float)(lr->r_r.r_ytop * oscale));
 	    	freeMagic(lr);
 	    }
-            fprintf(f, ";\n");
+            fprintf(f, " ;\n");
     	}
     	fprintf(f, "END BLOCKAGES\n\n");
     }
@@ -2757,11 +2826,12 @@ defMakeInverseLayerMap(do_vias)
  */
 
 void
-DefWriteCell(def, outName, allSpecial, units)
+DefWriteCell(def, outName, allSpecial, units, analRetentive)
     CellDef *def;		/* Cell being written */
     char *outName;		/* Name of output file, or NULL. */
     bool allSpecial;		/* Treat all nets as SPECIALNETS? */
     int units;			/* Force units to this value (default 1000) */
+    bool analRetentive;		/* Force compatibility with stupid tools */
 {
     char *filename, *filename1, *filename2;
     char line[2048];
@@ -2881,19 +2951,73 @@ DefWriteCell(def, outName, allSpecial, units)
     if (numrules > 0)
     {
 	LefRules *nrules;
+	lefRule *rule;
 
 	fprintf(f, "NONDEFAULTRULES %d ;\n", numrules);
 	HashStartSearch(&hs);
 	while (he = HashNext(&LefNonDefaultRules, &hs))
 	{
 	    nrules = (LefRules *)HashGetValue(he);
+	    fprintf(f, "  - %s", nrules->name);
 
-	    fprintf(f, "  - %s\n", nrules->name);
-	    fprintf(f, "     + LAYER %s WIDTH %.10g",
+	    if (analRetentive)
+	    {
+		/* Some tools can crash or throw an error if all layers
+		 * are not represented in the non-default rule, which
+		 * is an anal retentive interpretation of the DEF spec.
+		 */
+		if (LefInfo.ht_table != (HashEntry **)NULL)
+		{
+		    HashSearch hs2;
+		    HashEntry *he2;
+		    lefLayer *lefl2;
+
+		    HashStartSearch(&hs2);
+		    while (he2 = HashNext(&LefInfo, &hs2))
+		    {
+			lefl2 = (lefLayer *)HashGetValue(he2);
+			if (lefl2->lefClass == CLASS_ROUTE)
+			{
+			    /* Avoid duplicate entries per route layer */
+			    if (lefl2->refCnt < 0) continue;
+			    lefl2->refCnt = -lefl2->refCnt;
+
+			    /* Ignore obstruction layers */
+			    if (lefl2->type == -1) continue;
+
+			    /* Only output rules here for routing layers that
+			     * are not represented in the non-default ruleset.
+			     */
+	    		    for (rule = nrules->rule; rule; rule = rule->next)
+				if (lefl2->type == rule->lefInfo->type)
+				    break;
+			    if (rule != NULL) continue;
+			    fprintf(f, "\n     + LAYER %s WIDTH %.10g WIREEXT %.10g",
+					lefl2->canonName, 
+					(float)(lefl2->info.route.width) * scale,
+					(float)(lefl2->info.route.width) * scale / 2.0);
+			}
+		    }
+
+		    /* Put the reference counts back to the way they were */
+		    HashStartSearch(&hs2);
+		    while (he2 = HashNext(&LefInfo, &hs2))
+		    {
+			lefl2 = (lefLayer *)HashGetValue(he2);
+			if (lefl2->refCnt < 0)
+			    lefl2->refCnt = -lefl2->refCnt;
+		    }
+		}
+	    }
+
+	    for (rule = nrules->rule; rule; rule = rule->next)
+	    {
+		fprintf(f, "\n     + LAYER %s WIDTH %.10g",
 			nrules->rule->lefInfo->canonName, 
 			((float)nrules->rule->width * scale));
-	    if (nrules->rule->extend > 0)
-	    	fprintf(f, " WIREEXT %.10g", (float)nrules->rule->extend / 2.0);
+		if (nrules->rule->extend > 0)
+	    	    fprintf(f, " WIREEXT %.10g", (float)nrules->rule->extend / 2.0);
+	    }
 	    fprintf(f, " ;\n");
 	}
 	fprintf(f, "END NONDEFAULTRULES\n\n");

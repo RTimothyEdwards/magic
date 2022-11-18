@@ -132,6 +132,16 @@ CmdLef(w, cmd)
 					 * the DEF file should be ignored; only
 					 * mask geometry will be generated.
 					 */
+    bool defAnalRetentive = FALSE;	/* Deal with situations where tools
+					 * have interpreted ambiguities in the
+					 * LEF/DEF spec in the most stupid way
+					 * possible, and then coded the rule
+					 * in such a way that the tool crashes
+					 * because the developers did not
+					 * entertain the idea that a more
+					 * sensible interpretation was possible.
+					 */
+
     static char *cmdLefOption[] =
     {
 	"read [filename]		read a LEF file filename[.lef]\n"
@@ -366,7 +376,7 @@ CmdLef(w, cmd)
 			else
 			    TxPrintf("The \"-nomaster\" option is only for lef write\n");
 		    }
-		    else if (!strncmp(cmd->tx_argv[i], "-units", 5))
+		    else if (!strncmp(cmd->tx_argv[i], "-units", 6))
 		    {
 			if (is_lef)
 			    TxPrintf("The \"-units\" option is only for def write\n");
@@ -385,6 +395,13 @@ CmdLef(w, cmd)
 			    }
 			}
 		    }
+		    else if (!strncmp(cmd->tx_argv[i], "-anal", 5))
+		    {
+			if (is_lef)
+			    TxPrintf("The \"-anal\" option is only for def write\n");
+			else
+			    defAnalRetentive = TRUE;
+		    }
 		    else goto wrongNumArgs;
 		    cargs--;
 		}
@@ -402,7 +419,8 @@ CmdLef(w, cmd)
 	    else
 		namep = cmd->tx_argv[2];
 	    if (!is_lef)
-		DefWriteCell(selectedUse->cu_def, namep, allSpecial, units);
+		DefWriteCell(selectedUse->cu_def, namep, allSpecial, units,
+			defAnalRetentive);
 	    else
 		LefWriteCell(selectedUse->cu_def, namep, selectedUse->cu_def
 			== EditRootDef, lefTech, lefHide, lefPinOnly,
