@@ -155,6 +155,8 @@ efBuildNode(def, isSubsnode, isDevSubsnode, nodeName, nodeCap, x, y, layerName, 
     HashEntry *he;
     unsigned size;
     int n;
+    char *uqname = nodeName;
+    int uqidx;
 
     he = HashFind(&def->def_nodes, nodeName);
     if (newname = (EFNodeName *) HashGetValue(he))
@@ -185,7 +187,20 @@ efBuildNode(def, isSubsnode, isDevSubsnode, nodeName, nodeCap, x, y, layerName, 
 	    if (isSubsnode == TRUE)
 		newnode->efnode_flags |= EF_GLOB_SUBS_NODE;
     
-	    return;
+	    /* If tracking unique nodes (for "def write", for example),
+	     * collect unique node positions in the client data so that
+	     * all of them can be visited.
+	     */
+	    uqname = mallocMagic(strlen(nodeName) + 8);
+	    uqidx = 0;
+	    while (1)
+	    {
+		sprintf(uqname, "%s_uq%d", nodeName, uqidx);
+		he = HashFind(&def->def_nodes, uqname);
+		if ((newname = (EFNodeName *)HashGetValue(he)) == NULL)
+		    break;
+		uqidx++;
+	    }
 	}
     }
 
@@ -193,7 +208,7 @@ efBuildNode(def, isSubsnode, isDevSubsnode, nodeName, nodeCap, x, y, layerName, 
     {
 	/* Allocate a new node with 'nodeName' as its single name */
 	newname = (EFNodeName *) mallocMagic((unsigned)(sizeof (EFNodeName)));
-	newname->efnn_hier = EFStrToHN((HierName *) NULL, nodeName);
+	newname->efnn_hier = EFStrToHN((HierName *) NULL, uqname);
 	newname->efnn_port = -1;	/* No port assignment */
 	newname->efnn_refc = 0;		/* Only reference is self */
 	newname->efnn_next = NULL;
@@ -239,6 +254,12 @@ efBuildNode(def, isSubsnode, isDevSubsnode, nodeName, nodeCap, x, y, layerName, 
 
     /* If isSubsnode was TRUE, then turn off backwards compatibility mode */
     if (isSubsnode == TRUE) EFCompat = FALSE;
+
+    if (uqname != nodeName)
+    {
+	newnode->efnode_flags |= EF_UNIQUE_NODE;
+	freeMagic(uqname);
+    }
 }
 
 /*

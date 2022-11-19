@@ -295,6 +295,9 @@ defnodeCount(node, res, cap, total)
     char ndn[256];
     char *cp, clast;
 
+    /* Ignore ports---use the unique node entries instead */
+    if (node->efnode_flags & EF_TOP_PORT) return 0;
+
     /* Ignore the substrate node if it is not connected to any routing */
     if (node->efnode_type == TT_SPACE)
 	return 0;
@@ -668,6 +671,9 @@ defnodeVisit(node, res, cap, defdata)
     TileType magictype;
     EFNodeName *thisnn;
     int defNetGeometryFunc();		/* Forward declaration */
+
+    /* Ignore ports---use the unique node entries instead */
+    if (node->efnode_flags & EF_TOP_PORT) return 0;
 
     /* For regular nets, only count those nodes having port	*/
     /* connections.  For special nets, only count those nodes	*/

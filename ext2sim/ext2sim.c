@@ -1596,6 +1596,7 @@ int simnodeVisit(node, res, cap)
     char *fmt;
     EFAttr *ap;
 
+    if (node->efnode_flags & EF_UNIQUE_NODE) return 0;
     if (esDevNodesOnly && node->efnode_client == (ClientData) NULL)
 	return 0;
 

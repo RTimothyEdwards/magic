@@ -212,6 +212,15 @@ typedef struct efnhdr
      * line of the .ext file as the global default substrate node.
      */
 #define EF_GLOB_SUBS_NODE	0x80
+    /*
+     * EF_UNIQUE_NODE marks a node that has the same name as another
+     * node, indicating that the nodes are electrically connected only
+     * by name.  The processing routine can determine whether to
+     * process these individually.  The capacitance and resistance
+     * values are merged with the first node of the same name.  The
+     * location is maintained so that the net fragment can be found.
+     */	
+#define EF_UNIQUE_NODE		0x100
 
 extern int efNumResistClasses;	/* Number of resistance classes in efResists */
 
