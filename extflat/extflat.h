@@ -221,6 +221,12 @@ typedef struct efnhdr
      * location is maintained so that the net fragment can be found.
      */	
 #define EF_UNIQUE_NODE		0x100
+    /*
+     * EF_PORT_NONODE is used to mark a port for which no "node"
+     * record has been seen.  When a corresponding node record is
+     * found, this flag is cleared.
+     */
+#define EF_PORT_NONODE		0x200
 
 extern int efNumResistClasses;	/* Number of resistance classes in efResists */
 

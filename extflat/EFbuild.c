@@ -187,6 +187,16 @@ efBuildNode(def, isSubsnode, isDevSubsnode, nodeName, nodeCap, x, y, layerName, 
 	    if (isSubsnode == TRUE)
 		newnode->efnode_flags |= EF_GLOB_SUBS_NODE;
     
+	    /* For tracking unique nodes (see below), the first
+	     * node entry for a port is not considered unique,
+	     * since the port itself is not a node.
+	     */
+	    if (newnode->efnode_flags & EF_PORT_NONODE)
+	    {
+		newnode->efnode_flags &= ~EF_PORT_NONODE;
+		return;
+	    }
+
 	    /* If tracking unique nodes (for "def write", for example),
 	     * collect unique node positions in the client data so that
 	     * all of them can be visited.
@@ -1117,6 +1127,10 @@ efBuildPortNode(def, name, idx, x, y, layername, toplevel)
 			layername, (char **) NULL, 0);
 
 	nn = (EFNodeName *) HashGetValue(he);
+
+        /* Flag this as a port where the corresponding node has not been seen. */
+    	if (nn != (EFNodeName *) NULL)
+	    nn->efnn_node->efnode_flags |= EF_PORT_NONODE;
     }
     if (nn != (EFNodeName *) NULL)
     {
