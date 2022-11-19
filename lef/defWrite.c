@@ -274,7 +274,7 @@ defCountNets(rootDef, allSpecial)
     {
 	TxError("Warning:  Circuit has no .ext file;  no nets written.\n");
 	TxError("Run extract on this circuit if you want nets in the output.\n");
-	EFDone();
+	EFDone(NULL);
 	total.has_nets = FALSE;
     }
 
@@ -1074,6 +1074,7 @@ defNetGeometryFunc(tile, plane, defdata)
 
 	/* Check for non-default widths and slivers */
 
+	defdata->ruleset = NULL;
 	if (((h != routeWidth) && (w != routeWidth)) || 
 		((h == routeWidth) && (w < routeWidth)) ||
 		((w == routeWidth) && (h < routeWidth)))
