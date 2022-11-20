@@ -772,6 +772,7 @@ skipsection:
 	    WireTechScale(d, n);
 #ifdef LEF_MODULE
 	    LefTechScale(d, n);
+	    LefTechSetDefaults();
 #endif
 #ifdef ROUTE_MODULE
 	    RtrTechScale(d, n);

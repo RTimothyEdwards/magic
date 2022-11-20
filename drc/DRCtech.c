@@ -4165,6 +4165,16 @@ DRCGetDefaultLayerWidth(ttype)
     for (cptr = DRCCurStyle->DRCRulesTbl[TT_SPACE][ttype]; cptr != (DRCCookie *) NULL;
 	cptr = cptr->drcc_next)
     {
+	/* Skip triggered and triggering rules */
+	if (cptr->drcc_flags & DRC_TRIGGER)
+	{
+	    cptr = cptr->drcc_next;
+	    continue;
+	}
+
+	/* Skip area rule */
+	if (cptr->drcc_flags & DRC_AREA) continue;
+
 	/* FORWARD rules only, and no MAXWIDTH */
 	if ((cptr->drcc_flags & (DRC_REVERSE | DRC_MAXWIDTH)) == 0)
 	{
@@ -4219,6 +4229,10 @@ DRCGetDefaultLayerSpacing(ttype1, ttype2)
 	    cptr = cptr->drcc_next;
 	    continue;
 	}
+
+	/* Skip area rule */
+	if (cptr->drcc_flags & DRC_AREA) continue;
+
 	if ((cptr->drcc_flags & DRC_REVERSE) == 0)	/* FORWARD only */
 	{
 	    set = &cptr->drcc_mask;

@@ -16,6 +16,7 @@
 extern void LefTechInit();
 extern bool LefTechLine();
 extern void LefTechScale();
+extern void LefTechSetDefaults();
 
 /* Initialization: */
 

@@ -339,10 +339,10 @@ LefTechLine(sectionName, argc, argv)
 			break;
 		    case LEFTECH_CONTACT:
 			newlefl->lefClass = CLASS_VIA;
-			newlefl->info.via.area.r_xtop = DRCGetDefaultLayerWidth(mtype);
-			newlefl->info.via.area.r_ytop = newlefl->info.via.area.r_xtop;
-			newlefl->info.via.area.r_xbot = -newlefl->info.via.area.r_xtop;
-			newlefl->info.via.area.r_ybot = -newlefl->info.via.area.r_ytop;
+			newlefl->info.via.area.r_xbot = -1;
+			newlefl->info.via.area.r_ybot = -1;
+			newlefl->info.via.area.r_xtop = -1;
+			newlefl->info.via.area.r_ytop = -1;	/* To be filled */
 			newlefl->info.via.cell = (CellDef *)NULL;
 			newlefl->info.via.lr = (LinkedRect *)NULL;
 			newlefl->info.via.obsType = mtype2;
@@ -350,13 +350,19 @@ LefTechLine(sectionName, argc, argv)
 		    case LEFTECH_ROUTE:
 		    case LEFTECH_ROUTING:
 			newlefl->lefClass = CLASS_ROUTE;
+			/* Set provisional width (to be removed) */
 			newlefl->info.route.width = DRCGetDefaultLayerWidth(mtype);
 			if (newlefl->info.route.width == 0)
 			    newlefl->info.route.width = DEFAULT_WIDTH;
+			else
+			    newlefl->info.route.width = -1;  /* To be filled */
+			/* Set provisional spacing (to be removed) */
 			newlefl->info.route.spacing =
 					DRCGetDefaultLayerSpacing(mtype, mtype);
 			if (newlefl->info.route.spacing == 0)
 			    newlefl->info.route.spacing = DEFAULT_SPACING;
+			else
+			    newlefl->info.route.spacing = -1; /* To be filled */
 			newlefl->info.route.pitch = 0;
 			newlefl->info.route.hdirection = TRUE;
 			break;
@@ -450,6 +456,60 @@ LefTechScale(scalen, scaled)
 	    if (!lefl) continue;
 	    if (lefl->refCnt < 0)
 		lefl->refCnt = -lefl->refCnt;
+	}
+    }
+}
+
+/*
+ *-----------------------------------------------------------------------------
+ *  LefTechSetDefaults --
+ *
+ *	Change parameters of the LEF section after scaling (see above)
+ *	to set default values for each route and contact layer (width and
+ *	spacing have been set to -1).  This is because the value is in
+ *	lambda, and calling the DRC defaults before scaling can produce
+ *	a rounded value which is then incorrect when scaled.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+LefTechSetDefaults()
+{
+    HashSearch hs;
+    HashEntry *he;
+    lefLayer *lefl;
+
+    if (LefInfo.ht_table != (HashEntry **) NULL)
+    {
+	HashStartSearch(&hs);
+	while (he = HashNext(&LefInfo, &hs))
+	{
+	    lefl = (lefLayer *)HashGetValue(he);
+	    if (!lefl) continue;
+
+	    if (lefl->lefClass == CLASS_VIA)
+	    {
+		if ((lefl->info.via.area.r_xbot == -1) &&
+			(lefl->info.via.area.r_ybot == -1) &&
+			(lefl->info.via.area.r_xtop == -1) &&
+			(lefl->info.via.area.r_ytop == -1))
+		{
+		    lefl->info.via.area.r_xtop = 
+				DRCGetDefaultLayerWidth(lefl->type);
+		    lefl->info.via.area.r_ytop = lefl->info.via.area.r_xtop;
+		    lefl->info.via.area.r_xbot = -lefl->info.via.area.r_xtop;
+		    lefl->info.via.area.r_ybot = -lefl->info.via.area.r_ytop;
+		}
+	    }
+	    else if (lefl->lefClass == CLASS_ROUTE)
+	    {
+		if (lefl->info.route.width = -1)
+		    lefl->info.route.width = DRCGetDefaultLayerWidth(lefl->type);
+		if (lefl->info.route.spacing = -1)
+		    lefl->info.route.width = DRCGetDefaultLayerSpacing(lefl->type,
+				lefl->type);
+	    }
 	}
     }
 }
