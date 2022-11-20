@@ -3344,7 +3344,6 @@ spcsubVisit(node, res, cap, resstr)
     HierName *hierName;
     char *nsn;
 
-    if (node->efnode_flags & EF_UNIQUE_NODE) return 0;
     if (node->efnode_flags & EF_GLOB_SUBS_NODE)
     {
 	hierName = (HierName *) node->efnode_name->efnn_hier;
@@ -3384,7 +3383,6 @@ spcnodeVisit(node, res, cap)
     char *fmt, *nsn;
     EFAttr *ap;
 
-    if (node->efnode_flags & EF_UNIQUE_NODE) return 0;
     if (node->efnode_client)
     {
 	isConnected = (esDistrJunct) ?

@@ -212,21 +212,6 @@ typedef struct efnhdr
      * line of the .ext file as the global default substrate node.
      */
 #define EF_GLOB_SUBS_NODE	0x80
-    /*
-     * EF_UNIQUE_NODE marks a node that has the same name as another
-     * node, indicating that the nodes are electrically connected only
-     * by name.  The processing routine can determine whether to
-     * process these individually.  The capacitance and resistance
-     * values are merged with the first node of the same name.  The
-     * location is maintained so that the net fragment can be found.
-     */	
-#define EF_UNIQUE_NODE		0x100
-    /*
-     * EF_PORT_NONODE is used to mark a port for which no "node"
-     * record has been seen.  When a corresponding node record is
-     * found, this flag is cleared.
-     */
-#define EF_PORT_NONODE		0x200
 
 extern int efNumResistClasses;	/* Number of resistance classes in efResists */
 
@@ -246,6 +231,9 @@ typedef struct efnode
 				 * .ext file so it will be easy to map between
 				 * node names and locations.
 				 */
+    LinkedRect	*efnode_disjoint; /* List of disjoint node locations, created
+				   * if EFSaveLocs is TRUE.
+				   */
     EFAttr	*efnode_attrs;	/* Node attribute list */
     ClientData	 efnode_client;	/* For hire */
     EFPerimArea	 efnode_pa[1];	/* Dummy; each node actually has
@@ -355,6 +343,9 @@ extern int EFLayerNumNames;
 
     /* Output control flags */
 extern int EFOutputFlags;
+
+    /* Behavior regarding disjoint node segments */
+extern bool EFSaveLocs;
 
 /* -------------------------- Exported procedures --------------------- */
 

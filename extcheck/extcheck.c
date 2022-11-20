@@ -135,7 +135,6 @@ nodeVisit(node, res, cap)
     cap = (cap + 500) / 1000;
     res = (res + 500) / 1000;
 
-    if (node->efnode_flags & EF_UNIQUE_NODE) return 0;
     ecNumNodes++;
     if (EFHNIsGlob(node->efnode_name->efnn_hier))
 	ecNumGlobalNodes++;

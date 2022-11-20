@@ -320,7 +320,7 @@ defnodeCount(node, res, cap, total)
 	if (pwr)
 	{
 	    /* Diagnostic */
-	    TxPrintf("Node %s is defined in the \"globals\" array\n", pwr);
+	    TxPrintf("Node %s is defined in the \"globals\" array\n", cp);
 	    node->efnode_flags |= EF_SPECIAL;
 	}
 
@@ -665,7 +665,9 @@ defnodeVisit(node, res, cap, defdata)
     CellDef *def = defdata->def;
     float oscale = defdata->scale;
     TileTypeBitMask tmask, *rmask;
-    TileType magictype;
+    TileType nodetype, magictype;
+    Rect *nodeloc;
+    LinkedRect *lr;
     EFNodeName *thisnn;
     int defNetGeometryFunc();		/* Forward declaration */
 
@@ -732,76 +734,85 @@ defnodeVisit(node, res, cap, defdata)
 	}
     }
 
-    /* TT_SPACE indicates that a layer name must be the next	*/
-    /* thing to be written to the DEF file.			*/
+    /* TT_SPACE indicates that a layer name must be the	*/
+    /* next thing to be written to the DEF file.	*/
     defdata->type = TT_SPACE;
     defdata->tile = (Tile *)NULL;
 
-    /* Net geometry (this should be an option!)---	*/
-    /* Use the DBconnect routines to find all geometry	*/
-    /* connected to a specific node.  This is a		*/
-    /* redundant search---we've already done this once	*/
-    /* when extracting the circuit.  But, because the	*/
-    /* DEF file requires a count of nodes up front, we	*/
-    /* would have to do it twice anyway.  In this case,	*/
-    /* we only do it once here, since the results of	*/
-    /* the first pass are picked up from the .ext file.	*/
+    /* Process all disjoint segments of the node */
 
-    magictype = DBTechNameType(EFLayerNames[node->efnode_type]);
-
-    /* Note that the type of the node might be defined by the type */
-    /* in the subcircuit itself, so we need to search for any type */
-    /* that might validly connect to it, not just the type itself. */
-    /* TTMaskSetOnlyType(&tmask, magictype); */
-    TTMaskZero(&tmask);
-    TTMaskSetMask(&tmask, &DBConnectTbl[magictype]);
-
-    DBSrConnect(def, &node->efnode_loc, &tmask, DBConnectTbl,
-		&TiPlaneRect, defNetGeometryFunc,
-		(ClientData)defdata);
-
-    if (defdata->tile == (Tile *)NULL)
+    for (lr = node->efnode_disjoint; lr; lr = lr->r_next)
     {
-	/* No route layer?  It's possible that something connects to	*/
-	/* the port location but doesn't overlap.  Try painting the	*/
-	/* node type in def and trying again.				*/
+	/* Watch for entries created from the substrate node */
+	if ((lr->r_r.r_ll.p_x <= (MINFINITY + 2)) ||
+			(lr->r_r.r_ll.p_y <= (MINFINITY + 2)))
+	    continue;
 
-	Rect rport;
-	SearchContext scx;
-	int defPortTileFunc();	/* Fwd declaration */
+	/* Net geometry (this should be an option!)---		*/
+	/* Use the DBconnect routines to find all geometry	*/
+	/* connected to a specific node.  This is a		*/
+	/* redundant search---we've already done this once	*/
+	/* when extracting the circuit.  But, because the	*/
+	/* DEF file requires a count of nodes up front, we	*/
+	/* would have to do it twice anyway.  In this case,	*/
+	/* we only do it once here, since the results of	*/
+	/* the first pass are picked up from the .ext file.	*/
 
-	scx.scx_area = node->efnode_loc;
-	scx.scx_use = def->cd_parents;
-	scx.scx_trans = GeoIdentityTransform;
+	magictype = DBTechNameType(EFLayerNames[lr->r_type]);
 
-	rport = GeoNullRect;
-	DBTreeSrUniqueTiles(&scx, &tmask, 0, defPortTileFunc, (ClientData)&rport);
+	/* Note that the type of the node might be defined by the type */
+	/* in the subcircuit itself, so we need to search for any type */
+	/* that might validly connect to it, not just the type itself. */
+	/* TTMaskSetOnlyType(&tmask, magictype); */
+	TTMaskZero(&tmask);
+	TTMaskSetMask(&tmask, &DBConnectTbl[magictype]);
 
-	/* Add the residue types to any contact type */
-	if (DBIsContact(magictype))
-	{
-	    rmask = DBResidueMask(magictype);
-	    TTMaskSetMask(&tmask, rmask);
-	    TTMaskSetType(&tmask, magictype);
-	}
-
-	/* Check if anything was found in the location (e.g., .ext file
-	 * could be invalid or outdated).
-	 */
-	if (GEO_RECTNULL(&rport))
-	    TxError("Nothing found at node %s location (bad .ext file?)!\n", ndn);
-	else
-	{
-
-	    /* Expand the rectangle around the port to overlap any	*/
-	    /* connecting material.					*/
-	    rport.r_xbot--;
-	    rport.r_ybot--;
-	    rport.r_xtop++;
-	    rport.r_ytop++;
-  	    DBSrConnect(def, &rport, &tmask, DBConnectTbl, &TiPlaneRect,
+	DBSrConnect(def, &lr->r_r, &tmask, DBConnectTbl, &TiPlaneRect,
 			defNetGeometryFunc, (ClientData)defdata);
-	}
+
+	if (defdata->tile == (Tile *)NULL)
+	{
+	    /* No route layer?  It's possible that something connects 	*/
+	    /* to the port location but doesn't overlap.  Try painting	*/
+	    /* the node type in def and trying again.			*/
+
+	    Rect rport;
+	    SearchContext scx;
+	    int defPortTileFunc();	/* Fwd declaration */
+
+	    scx.scx_area = node->efnode_loc;
+	    scx.scx_use = def->cd_parents;
+	    scx.scx_trans = GeoIdentityTransform;
+
+	    rport = GeoNullRect;
+	    DBTreeSrUniqueTiles(&scx, &tmask, 0, defPortTileFunc, (ClientData)&rport);
+
+	    /* Add the residue types to any contact type */
+	    if (DBIsContact(magictype))
+	    {
+		rmask = DBResidueMask(magictype);
+		TTMaskSetMask(&tmask, rmask);
+		TTMaskSetType(&tmask, magictype);
+	    }
+
+	    /* Check if anything was found in the location (e.g., .ext file
+	     * could be invalid or outdated).
+	     */
+	    if (GEO_RECTNULL(&rport))
+		TxError("Nothing found at node %s location (floating label?)!\n", ndn);
+	    else
+	    {
+
+		/* Expand the rectangle around the port to overlap any	*/
+		/* connecting material.					*/
+		rport.r_xbot--;
+		rport.r_ybot--;
+		rport.r_xtop++;
+		rport.r_ytop++;
+  		DBSrConnect(def, &rport, &tmask, DBConnectTbl, &TiPlaneRect,
+				defNetGeometryFunc, (ClientData)defdata);
+	    }
+        }
     }
 
     /* Was there a last record pending?  If so, write it. */

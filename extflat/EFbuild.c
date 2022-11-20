@@ -89,7 +89,7 @@ extern float locScale;
  * node, or added to the values already stored in an existing one.
  *
  * Results:
- *	None.
+ *	Return a pointer to the new node.
  *
  * Side effects:
  *	Updates the HashTable and node list of 'def'.
@@ -139,10 +139,12 @@ extern float locScale;
  */
 
 void
-efBuildNode(def, isSubsnode, isDevSubsnode, nodeName, nodeCap, x, y, layerName, av, ac)
+efBuildNode(def, isSubsnode, isDevSubsnode, isExtNode, nodeName, nodeCap,
+		x, y, layerName, av, ac)
     Def *def;		/* Def to which this connection is to be added */
     bool isSubsnode;	/* TRUE if the node is the global substrate */
     bool isDevSubsnode;	/* TRUE if the node is a device body connection */
+    bool isExtNode;	/* TRUE if this was a "node" or "substrate" in .ext */
     char *nodeName;	/* One of the names for this node */
     double nodeCap;	/* Capacitance of this node to ground */
     int x; int y;	/* Location of a point inside this node */
@@ -155,8 +157,9 @@ efBuildNode(def, isSubsnode, isDevSubsnode, nodeName, nodeCap, x, y, layerName, 
     HashEntry *he;
     unsigned size;
     int n;
-    char *uqname = nodeName;
-    int uqidx;
+    LinkedRect *lr;
+    Rect rnew;
+    int tnew = 0;
 
     he = HashFind(&def->def_nodes, nodeName);
     if (newname = (EFNodeName *) HashGetValue(he))
@@ -186,31 +189,30 @@ efBuildNode(def, isSubsnode, isDevSubsnode, nodeName, nodeCap, x, y, layerName, 
 
 	    if (isSubsnode == TRUE)
 		newnode->efnode_flags |= EF_GLOB_SUBS_NODE;
-    
-	    /* For tracking unique nodes (see below), the first
-	     * node entry for a port is not considered unique,
-	     * since the port itself is not a node.
-	     */
-	    if (newnode->efnode_flags & EF_PORT_NONODE)
-	    {
-		newnode->efnode_flags &= ~EF_PORT_NONODE;
-		return;
-	    }
 
-	    /* If tracking unique nodes (for "def write", for example),
-	     * collect unique node positions in the client data so that
-	     * all of them can be visited.
-	     */
-	    uqname = mallocMagic(strlen(nodeName) + 8);
-	    uqidx = 0;
-	    while (1)
+	    /* The node is a duplicate port name at a different location. */
+	    /* If EFSaveLocs is TRUE, then save the layer and position in */
+	    /* newnode's efnode_disjoint list.				  */
+
+	    if ((EFSaveLocs == TRUE) && (isExtNode == TRUE))
 	    {
-		sprintf(uqname, "%s_uq%d", nodeName, uqidx);
-		he = HashFind(&def->def_nodes, uqname);
-		if ((newname = (EFNodeName *)HashGetValue(he)) == NULL)
-		    break;
-		uqidx++;
+		rnew.r_xbot = (int)(0.5 + (float)x * locScale);
+		rnew.r_ybot = (int)(0.5 + (float)y * locScale);
+		rnew.r_xtop = rnew.r_xbot + 1;
+		rnew.r_ytop = rnew.r_ybot + 1;
+
+		if (layerName)
+		    tnew = efBuildAddStr(EFLayerNames, &EFLayerNumNames,
+					MAXTYPES, layerName);
+		else
+		    tnew = 0;
+		lr = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+		lr->r_r = rnew;
+		lr->r_type = tnew;
+		lr->r_next = newnode->efnode_disjoint;
+		newnode->efnode_disjoint = lr; 
 	    }
+	    return;
 	}
     }
 
@@ -218,7 +220,7 @@ efBuildNode(def, isSubsnode, isDevSubsnode, nodeName, nodeCap, x, y, layerName, 
     {
 	/* Allocate a new node with 'nodeName' as its single name */
 	newname = (EFNodeName *) mallocMagic((unsigned)(sizeof (EFNodeName)));
-	newname->efnn_hier = EFStrToHN((HierName *) NULL, uqname);
+	newname->efnn_hier = EFStrToHN((HierName *) NULL, nodeName);
 	newname->efnn_port = -1;	/* No port assignment */
 	newname->efnn_refc = 0;		/* Only reference is self */
 	newname->efnn_next = NULL;
@@ -265,11 +267,17 @@ efBuildNode(def, isSubsnode, isDevSubsnode, nodeName, nodeCap, x, y, layerName, 
     /* If isSubsnode was TRUE, then turn off backwards compatibility mode */
     if (isSubsnode == TRUE) EFCompat = FALSE;
 
-    if (uqname != nodeName)
+    /* Save location of top-level geometry if EFSaveLocs is TRUE */
+    if ((EFSaveLocs == TRUE) && (isExtNode == TRUE))
     {
-	newnode->efnode_flags |= EF_UNIQUE_NODE;
-	freeMagic(uqname);
+	lr = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+	lr->r_r = newnode->efnode_loc;
+	lr->r_type = newnode->efnode_type;
+	lr->r_next = (LinkedRect *)NULL;
+	newnode->efnode_disjoint = lr;
     }
+    else
+	newnode->efnode_disjoint = (LinkedRect *)NULL;
 }
 
 /*
@@ -510,7 +518,7 @@ efBuildEquiv(def, nodeName1, nodeName2, resist)
 	{
 	    if (efWarn)
 		efReadError("Creating new node %s\n", nodeName1);
-	    efBuildNode(def, FALSE, FALSE,
+	    efBuildNode(def, FALSE, FALSE, FALSE,
 		    nodeName1, (double)0, 0, 0,
 		    (char *) NULL, (char **) NULL, 0);
 	    nn1 = (EFNodeName *) HashGetValue(he1);
@@ -1123,14 +1131,10 @@ efBuildPortNode(def, name, idx, x, y, layername, toplevel)
     if (nn == (EFNodeName *) NULL)
     {
 	/* Create node if it doesn't already exist */
-	efBuildNode(def, FALSE, FALSE, name, (double)0, x, y,
+	efBuildNode(def, FALSE, FALSE, FALSE, name, (double)0, x, y,
 			layername, (char **) NULL, 0);
 
 	nn = (EFNodeName *) HashGetValue(he);
-
-        /* Flag this as a port where the corresponding node has not been seen. */
-    	if (nn != (EFNodeName *) NULL)
-	    nn->efnn_node->efnode_flags |= EF_PORT_NONODE;
     }
     if (nn != (EFNodeName *) NULL)
     {
@@ -1221,7 +1225,7 @@ efBuildDevNode(def, name, isSubsNode)
 	/* Create node if it doesn't already exist */
 	if (efWarn && !isSubsNode)
 	    efReadError("Node %s doesn't exist so creating it\n", name);
-	efBuildNode(def, FALSE, isSubsNode, name, (double)0, 0, 0,
+	efBuildNode(def, FALSE, isSubsNode, FALSE, name, (double)0, 0, 0,
 		(char *) NULL, (char **) NULL, 0);
 
 	nn = (EFNodeName *) HashGetValue(he);
@@ -1901,7 +1905,22 @@ efNodeMerge(node1ptr, node2ptr)
     if (removing->efnode_flags & EF_SUBS_NODE)
 	keeping->efnode_flags |= EF_SUBS_NODE;
 
-    /* Test! */
+    /* If EFSaveLocs is set, then merge any disjoint segments from
+     * removing to keeping.
+     */
+    if (EFSaveLocs == TRUE)
+    {
+	LinkedRect *lr;
+
+	if (keeping->efnode_disjoint == NULL)
+	    keeping->efnode_disjoint = removing->efnode_disjoint;
+	else
+	{
+	    for (lr = keeping->efnode_disjoint; lr->r_next; lr = lr->r_next);
+	    lr->r_next = removing->efnode_disjoint;
+	}
+    }
+
     removing->efnode_flags = 0;
 
     /* Get rid of "removing" */
@@ -2059,6 +2078,7 @@ efFreeNodeList(head, func)
 {
     EFNode *node;
     EFAttr *ap;
+    LinkedRect *lr;
 
     for (node = (EFNode *) head->efnode_next;
 	    node != head;
@@ -2072,6 +2092,9 @@ efFreeNodeList(head, func)
 		(*func)(node->efnode_client);
 	    freeMagic((char *)node->efnode_client);
 	}
+	for (lr = node->efnode_disjoint; lr; lr = lr->r_next)
+	    freeMagic((char *)lr);
+
 	freeMagic((char *) node);
     }
 }

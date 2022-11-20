@@ -461,6 +461,7 @@ efAddNodes(hc, stdcell)
     EFNodeName *nn, *newname, *oldname;
     EFNode *node, *newnode;
     EFAttr *ap, *newap;
+    LinkedRect *lr, *newlr;
     HierName *hierName;
     int size, asize;
     HashEntry *he;
@@ -488,6 +489,15 @@ efAddNodes(hc, stdcell)
 	    newap->efa_type = ap->efa_type;
 	    newap->efa_next = newnode->efnode_attrs;
 	    newnode->efnode_attrs = newap;
+	}
+	newnode->efnode_disjoint = (LinkedRect *)NULL;
+	for (lr = node->efnode_disjoint; lr; lr = lr->r_next)
+	{
+	    newlr = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+	    newlr->r_r = lr->r_r;
+	    newlr->r_type = lr->r_type;
+	    newlr->r_next = newnode->efnode_disjoint;
+	    newnode->efnode_disjoint = newlr;
 	}
 
 	// If called with "hierarchy on", all local node caps and adjustments

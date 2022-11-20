@@ -102,6 +102,7 @@ keyTable[] =
 char *efReadFileName;	/* Name of file currently being read */
 int efReadLineNum;	/* Current line number in above file */
 float locScale;		/* Multiply values in the file by this on read-in */
+bool EFSaveLocs;	/* If TRUE, save location of merged top-level nodes */
 
 /* Data local to this file */
 static bool efReadDef();
@@ -181,6 +182,7 @@ efReadDef(def, dosubckt, resist, noscale, toplevel)
     int argc, ac, n;
     CellDef *dbdef;
     EFCapValue cap;
+    EFNode *node;
     char *line = NULL, *argv[128], *name, *attrs;
     int size = 0;
     int rscale = 1;	/* Multiply resistances by this */
@@ -241,6 +243,13 @@ efReadDef(def, dosubckt, resist, noscale, toplevel)
     }
 
 readfile:
+    /* NOTE: noscale == TRUE means that coordinates should be in database
+     * coordinates.  EFSaveLocs == TRUE means save the coordinates of
+     * merged nodes for later searching.  Since coordinates can only be
+     * searched if they are in database units, these two settings are
+     * effectively equivalent (and both are used by "def write" only).
+     */
+    EFSaveLocs = noscale;
     efReadLineNum = 0;
     while ((argc = efReadLine(&line, &size, inf, argv)) >= 0)
     {
@@ -424,7 +433,7 @@ readfile:
 		cap = atoCap(argv[3])*cscale;
 		efBuildNode(def,
 			    (keyTable[n].k_key == SUBSTRATE) ? TRUE : FALSE,
-			    FALSE,
+			    FALSE, (toplevel) ? TRUE : FALSE,
 			    argv[1], (double) cap,
 			    atoi(argv[4]), atoi(argv[5]), argv[6],
 			    &argv[7], ac);
@@ -451,7 +460,7 @@ readfile:
 	     */
 	    case RNODE:
 		cap = atoCap(argv[3])*cscale;
-		efBuildNode(def, FALSE, FALSE, argv[1], (double) cap,
+		efBuildNode(def, FALSE, FALSE, FALSE, argv[1], (double) cap,
 			    atoi(argv[4]), atoi(argv[5]), argv[6],
 			    (char **) NULL, 0);
 		break;
@@ -639,8 +648,7 @@ resistChanged:
     {
         use = (Use *)HashGetValue(he);
 	if ((use->use_def->def_flags & DEF_AVAILABLE) == 0)
-	    if (efReadDef(use->use_def, DoSubCircuit, resist, noscale, FALSE)
-			!= TRUE)
+	    if (efReadDef(use->use_def, DoSubCircuit, resist, noscale, FALSE) != TRUE)
 		rc = FALSE;
     }
 
