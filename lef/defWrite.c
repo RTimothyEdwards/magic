@@ -711,6 +711,10 @@ defnodeVisit(node, res, cap, defdata)
     fprintf(f, "   - %s", ndn);
     defdata->outcolumn = 5 + strlen(ndn);
 
+    /* If this net is marked as a PORT, then connect to the associated PIN */
+    if (node->efnode_flags & EF_TOP_PORT)
+	fprintf(f, " ( PIN %s )", ndn);
+
     /* Find all the node names that are port connections. 	*/
     /* For now, we will just use anything connecting one level	*/
     /* down in the hierarchy.  This is not definitive, however,	*/
@@ -733,10 +737,6 @@ defnodeVisit(node, res, cap, defdata)
 	    }
 	}
     }
-
-    /* If this net is marked as a PORT, then connect to the associated PIN */
-    if (node->efnode_flags & EF_TOP_PORT)
-	fprintf(f, " ( PIN %s )", ndn);
 
     /* TT_SPACE indicates that a layer name must be the	*/
     /* next thing to be written to the DEF file.	*/
