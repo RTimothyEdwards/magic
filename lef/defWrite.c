@@ -661,6 +661,7 @@ defnodeVisit(node, res, cap, defdata)
     HierName *hierName;
     char *ndn;
     char ndn2[256];
+    char locndn[256];
     FILE *f = defdata->f;
     CellDef *def = defdata->def;
     float oscale = defdata->scale;
@@ -718,7 +719,6 @@ defnodeVisit(node, res, cap, defdata)
 
     for (thisnn = node->efnode_name; thisnn != NULL; thisnn = thisnn->efnn_next)
     {
-	char locndn[256];
 	hierName = thisnn->efnn_hier;
 	if (hierName->hn_parent && !hierName->hn_parent->hn_parent)
 	{
@@ -733,6 +733,10 @@ defnodeVisit(node, res, cap, defdata)
 	    }
 	}
     }
+
+    /* If this net is marked as a PORT, then connect to the associated PIN */
+    if (node->efnode_flags & EF_TOP_PORT)
+	fprintf(f, " ( PIN %s )", ndn);
 
     /* TT_SPACE indicates that a layer name must be the	*/
     /* next thing to be written to the DEF file.	*/
