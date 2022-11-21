@@ -543,6 +543,8 @@ extOutputUsesFunc(cu, outf)
 {
     Transform *t = &cu->cu_transform;
 
+    if (cu->cu_def->cd_flags & CDDONTUSE) return 0;
+
     fprintf(outf, "use %s %s", cu->cu_def->cd_name, cu->cu_id);
     if (cu->cu_xlo != cu->cu_xhi || cu->cu_ylo != cu->cu_yhi)
     {

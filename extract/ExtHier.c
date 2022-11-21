@@ -115,6 +115,9 @@ extHierSubstrate(ha, use, x, y)
     /* then there is no need to do it again.			*/
     if (use->cu_flags & CU_SUB_EXTRACTED) return;
 
+    /* Don't extract anything from cells marked "don't use".	*/
+    if (use->cu_def->cd_flags & CDDONTUSE) return;
+
     def = (CellDef *)ha->ha_parentUse->cu_def;
 
     /* Register the name of the parent's substrate */

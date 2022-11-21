@@ -174,6 +174,48 @@ ExtInit()
 /*
  * ----------------------------------------------------------------------------
  *
+ * Simple callback returns 1 if any cell is not marked with the CDDONTUSE
+ * flag.  If DBCellEnum() returns 0 then all children of the CellDef are
+ * marked CDDONTUSE.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extIsUsedFunc(use, clientData)
+    CellUse *use;
+    ClientData clientData;	/* unused */
+{
+    CellDef *def = use->cu_def;
+
+    /* If any cell is not marked CDDONTUSE then return 1 and stop the search. */
+    if (!(def->cd_flags & CDDONTUSE)) return 1;
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * Simple callback returns 1 if any non-space tile is found in a cell.
+ * Used to determine if a cell does not need extracting because it is
+ * an empty placeholder cell created when flattening part of a vendor
+ * GDS, and exists only to reference the GDS file location for writing
+ * GDS.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extEnumFunc(tile, plane)
+    Tile *tile;
+    int *plane;
+{
+    return 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -185,8 +227,8 @@ extDefListFunc(use, defList)
     CellDef *def = use->cu_def;
     LinkedDef *newLD;
 
-    /* Ignore all internal cells and cells that have been visited */
-    if (def->cd_flags & CDINTERNAL) return 0;
+    /* Ignore all internal cells and cells that are marked "don't use" */
+    if (def->cd_flags & (CDINTERNAL | CDDONTUSE)) return 0;
 
     /* Recurse to the bottom first */
     (void) DBCellEnum(def, extDefListFunc, (ClientData)defList);
@@ -194,15 +236,37 @@ extDefListFunc(use, defList)
     /* Don't add cells that have already been visited */
     if (def->cd_client) return 0;
 
+    /* Mark self as visited */
+    def->cd_client = (ClientData) 1;
+
+    /* Check if all descendents are marked as "don't use" */
+    if (DBCellEnum(def, extIsUsedFunc, (ClientData)NULL) == 0)
+    {
+	int plane;
+
+	/* Nothing below this cell had anything to extract.	*/
+	/* Check this cell for paint.  If it has none, then	*/
+	/* ignore it.						*/
+
+	for (plane = PL_TECHDEPBASE; plane < DBNumPlanes; plane++)
+	    if (DBSrPaintArea((Tile *)NULL, def->cd_planes[plane], &TiPlaneRect,
+			&DBAllButSpaceAndDRCBits, extEnumFunc, (ClientData)NULL))
+		break;
+
+	if (plane == DBNumPlanes)
+	{
+	    /* Cell has no material.  Mark it and return. */
+	    def->cd_flags |= CDDONTUSE;
+	    return 0;
+	}
+    }
+
     /* When done with descendents, add self to the linked list */
     
     newLD = (LinkedDef *)mallocMagic(sizeof(LinkedDef));
     newLD->ld_def = def;
     newLD->ld_next = *defList;
     *defList = newLD;
-
-    /* Mark self as visited */
-    def->cd_client = (ClientData) 1;
 
     return 0;
 }
@@ -221,8 +285,8 @@ extDefListFuncIncremental(use, defList)
     CellDef *def = use->cu_def;
     LinkedDef *newLD;
 
-    /* Ignore all internal cells */
-    if (def->cd_flags & CDINTERNAL) return 0;
+    /* Ignore all internal cells and cells marked "don't use" */
+    if (def->cd_flags & (CDINTERNAL | CDDONTUSE)) return 0;
 
     /* Mark cells that don't need updating */
     if (!extTimestampMisMatch(def))
@@ -234,15 +298,37 @@ extDefListFuncIncremental(use, defList)
     /* Don't add cells that have already been visited */
     if (def->cd_client) return 0;
 
+    /* Mark self as visited */
+    def->cd_client = (ClientData) 1;
+
+    /* Check if all descendents are marked as "don't use" */
+    if (DBCellEnum(def, extIsUsedFunc, (ClientData)NULL) == 0)
+    {
+	int plane;
+
+	/* Nothing below this cell had anything to extract.	*/
+	/* Check this cell for paint.  If it has none, then	*/
+	/* ignore it.						*/
+
+	for (plane = PL_TECHDEPBASE; plane < DBNumPlanes; plane++)
+	    if (DBSrPaintArea((Tile *)NULL, def->cd_planes[plane], &TiPlaneRect,
+			&DBAllButSpaceAndDRCBits, extEnumFunc, (ClientData)NULL))
+		break;
+
+	if (plane == DBNumPlanes)
+	{
+	    /* Cell has no material.  Mark it and return. */
+	    def->cd_flags |= CDDONTUSE;
+	    return 0;
+	}
+    }
+
     /* When done with descendents, add self to the linked list */
     
     newLD = (LinkedDef *)mallocMagic(sizeof(LinkedDef));
     newLD->ld_def = def;
     newLD->ld_next = *defList;
     *defList = newLD;
-
-    /* Mark self as visited */
-    def->cd_client = (ClientData) 1;
 
     return 0;
 }
