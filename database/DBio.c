@@ -1208,7 +1208,7 @@ DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
     if (cellDef->cd_flags & CDAVAILABLE)
 	result = TRUE;
 
-    else if ((f = dbReadOpen(cellDef, name, TRUE, errptr)) == NULL)
+    else if ((f = dbReadOpen(cellDef, name, TRUE, dereference, errptr)) == NULL)
 	result = FALSE;
 
     else
@@ -1259,18 +1259,21 @@ DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
  */
 
 FILETYPE
-dbReadOpen(cellDef, name, setFileName, errptr)
+dbReadOpen(cellDef, name, setFileName, dereference, errptr)
     CellDef *cellDef;	/* Def being read */
     char *name;		/* Name if specified, or NULL */
     bool setFileName;	/* If TRUE then cellDef->cd_file should be updated
 			 * to point to the name of the file from which the
 			 * cell was loaded.
 			 */
+    bool dereference;	/* If dereferencing, try search paths first, and
+			 * only if that fails, try the value in cd_file.
+			 */
     int *errptr;	/* Pointer to int to hold error value */
 {
     FILETYPE f = NULL;
     int fd;
-    char *filename, *realname;
+    char *filename, *realname, *savename;
     bool is_locked;
 
 #ifdef FILE_LOCKS
@@ -1309,7 +1312,9 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 	else
 	    *pptr = '\0';
 
-	f = PaLockZOpen(cellDef->cd_file, "r", DBSuffix, ".",
+	/* If dereferencing, then use search paths first */
+	if (!dereference)
+	    f = PaLockZOpen(cellDef->cd_file, "r", DBSuffix, ".",
 			(char *) NULL, &filename, &is_locked, &fd);
 
 	/* Fall back on the original method of using search paths. */
@@ -1329,7 +1334,8 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 
 		if (pptr != NULL) *pptr = '.';
 		if (DBVerbose)
-		    TxError("Warning:  Parent cell lists instance of \"%s\" at "
+		    if (!dereference)
+			TxError("Warning:  Parent cell lists instance of \"%s\" at "
 				"bad file path %s.\n",
 				cellDef->cd_name, cellDef->cd_file);
 
@@ -1338,10 +1344,24 @@ dbReadOpen(cellDef, name, setFileName, errptr)
 		StrDup(&cellDef->cd_file, filename);
 
 		if (DBVerbose)
-		{
-		    TxError("The cell exists in the search paths at %s.\n", filename);
-		    TxError("The discovered version will be used.\n");
-		}
+		    if (!dereference)
+		    {
+			TxError("The cell exists in the search paths at %s.\n",
+					filename);
+			TxError("The discovered version will be used.\n");
+		    }
+	    }
+	    else if (dereference)
+	    {
+		f = PaLockZOpen(cellDef->cd_file, "r", DBSuffix, ".",
+			(char *) NULL, &filename, &is_locked, &fd);
+		if (f != NULL)
+		    if (DBVerbose)
+			TxError("Warning:  Dereferenced cell \"%s\" not "
+				"found in search paths;  using original "
+				"location %s.\n",
+				cellDef->cd_name,
+				cellDef->cd_file);
 	    }
 	}
 
@@ -1452,7 +1472,7 @@ DBOpenOnly(cellDef, name, setFileName, errptr)
 			 */
     int *errptr;	/* Pointer to int to hold error value */
 {
-    dbReadOpen(cellDef, name, setFileName, errptr);
+    dbReadOpen(cellDef, name, setFileName, FALSE, errptr);
 }
 
 /*
