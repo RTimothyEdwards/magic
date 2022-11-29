@@ -1198,7 +1198,7 @@ LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
 			/* Check if layout area is compatible with the port */
 			int pNum = DBPlane(curlayer);
 			if (DBSrPaintArea((Tile *)NULL, lefMacro->cd_planes[pNum],
-				paintrect, &DBConnectTbl[curlayer],
+				paintrect, &DBNotConnectTbl[curlayer],
 				lefUnconnectFunc, (ClientData)NULL) == 1)
 			{
 			    LefEndStatement(f);
