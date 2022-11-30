@@ -556,6 +556,25 @@ lefGetBound(tile, cdata)
 /*
  * ----------------------------------------------------------------------------
  *
+ * lefHasPaint---
+ *
+ * Simple callback that returns 1 to stop the search when any tile matching
+ * the search mask is found.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+lefHasPaint(tile, clientData)
+    Tile *tile;
+    ClientData clientData;
+{
+    return 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * lefAccumulateArea --
  *
  * Function called to accumulate the tile area of tiles
@@ -1722,8 +1741,31 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	/* sure that every pin has a legal path to the outside of the	*/
 	/* cell.  Otherwise, this routine can block internal pins.	*/
 
-	Rect layerBound;
+	Rect layerBound, manualBound;
 	labelLinkedList *thislll;
+	bool propfound;
+	char *propvalue;
+
+	/* If there is a property OBS_BBOX, then use the value of the	*/
+	/* defined box to set the minimum hidden area.  This will still	*/
+	/* get clipped to the setback.					*/
+
+	propvalue = (char *)DBPropGet(def, "OBS_BBOX", &propfound);
+	if (propfound)
+	{
+	    if (sscanf(propvalue, "%d %d %d %d",
+			&(manualBound.r_xbot),
+			&(manualBound.r_ybot),
+			&(manualBound.r_xtop),
+			&(manualBound.r_ytop)) != 4)
+	    {
+		TxError("Improper values for obstruction bounding box "
+				"OBS_BBOX property");
+	    	manualBound = GeoNullRect;
+	    }
+	}
+	else
+	    manualBound = GeoNullRect;
 
 	for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
 	    if (TTMaskHasType(&lmask, ttype))
@@ -1736,6 +1778,14 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 			DBSrPaintArea((Tile *)NULL, lefFlatUse.cu_def->cd_planes[pNum],
 				&TiPlaneRect, &DBAllButSpaceAndDRCBits,
 				lefGetBound, (ClientData)(&layerBound));
+
+			/* Add any manual boundary if there is any	*/
+			/* material at all in the cell on this plane.	*/
+			if (!GEO_RECTNULL(&manualBound))
+			    if (DBSrPaintArea((Tile *)NULL, def->cd_planes[pNum],
+					&TiPlaneRect, &DBAllButSpaceAndDRCBits,
+					lefHasPaint, (ClientData)NULL) == 1)
+				GeoInclude(&manualBound, &layerBound);
 		    }
 
 		/* Clip layerBound to setback boundary */

@@ -1804,7 +1804,7 @@ typedef struct _cellpropstruct {
  * dbScaleProp --
  *
  *  Callback function for dbScaleCell.  Finds properties that represent
- *  internal geometry (FIXED_BBOX and MASKHINTS_*) and scale the values
+ *  internal geometry (*_BBOX and MASKHINTS_*) and scale the values
  *  by the numerator / denominator values passed as a pointer to a Point
  *  structure, where p_x is the numerator value and p_y is the denominator
  *  value.
@@ -1821,7 +1821,7 @@ int dbScaleProp(name, value, cps)
     char *newvalue, *vptr;
     Rect r;
 
-    if (!strcmp(name, "FIXED_BBOX"))
+    if ((strlen(name) > 5) && !strncmp(name + strlen(name) - 5, "_BBOX", 5))
     {
 	if (sscanf(value, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
 			&r.r_xtop, &r.r_ytop) == 4)
@@ -1899,7 +1899,7 @@ int dbScaleProp(name, value, cps)
  * dbMoveProp --
  *
  *  Callback function for ??.  Finds properties that represent
- *  internal geometry (FIXED_BBOX and MASKHINTS_*) and modifies the values
+ *  internal geometry (*_BBOX and MASKHINTS_*) and modifies the values
  *  by the X, Y values passed as a pointer to a Point structure in ClientData.
  *
  * ----------------------------------------------------------------------------
@@ -1914,7 +1914,8 @@ int dbMoveProp(name, value, cps)
     char *newvalue;
     Rect r;
 
-    if (!strcmp(name, "FIXED_BBOX") || !strncmp(name, "MASKHINTS_", 10))
+    if (((strlen(name) > 5) && !strncmp(name + strlen(name) - 5, "_BBOX", 5))
+		|| !strncmp(name, "MASKHINTS_", 10))
     {
 	if (sscanf(value, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
 			&r.r_xtop, &r.r_ytop) == 4)
@@ -2099,7 +2100,7 @@ donecell:
     }
 
     /* Check all properties for ones with keys beginning with "MASKHINTS_"
-     * or the key "FIXED_BBOX", and scale them by the same amount as all
+     * or ending with "_BBOX", and scale them by the same amount as all
      * the geometry.
      */
 
@@ -2295,7 +2296,7 @@ donecell:
     DBMovePoint(&cellDef->cd_extended.r_ur, origx, origy);
 
     /* Check all properties for ones with keys beginning with "MASKHINTS_"
-     * or the key "FIXED_BBOX", and move them by the same amount as all
+     * or ending with "_BBOX", and move them by the same amount as all
      * the geometry.
      */
 
