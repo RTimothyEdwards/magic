@@ -1044,7 +1044,7 @@ DRCTechAddRule(sectionName, argc, argv)
     "layers1 layers2 separation [layers3] adjacency why",
 	"stepsize",	 2,	2,	drcStepSize,
     "step_size",
-	"surround",	 6,	6,	drcSurround,
+	"surround",	 6,	7,	drcSurround,
     "layers1 layers2 distance presence why",
 	"width",	 4,	5,	drcWidth,
     "layers width why",
@@ -2977,7 +2977,7 @@ drcRectOnly(argc, argv)
  * Process a surround rule.
  * This is of the form:
  *
- *	surround layers1 layers2 dist presence why
+ *	surround layers1 layers2 dist [dist2] presence why
  *
  * indicating that layers2 must surround layers1 by at least distance
  * dist in all directions.
@@ -3004,6 +3004,13 @@ drcRectOnly(argc, argv)
  * corner will trigger the rule requiring at least "dist" width of the same
  * material on the other side of the corner.
  *
+ * Extension added November 30, 2022:  Similar to the asymmetric via
+ * extension rule above are rules of the type "extension on one side
+ * must be >= dist if the extension on the adjacent side is < dist2",
+ * for which the asymmetric rule above is the limiting case dist = dist2.
+ * dist2 is optional and is taken to be equal to dist if not present,
+ * which is the original form of the "directional" rule.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -3012,8 +3019,9 @@ drcSurround(argc, argv)
     int argc;
     char *argv[];
 {
-    char *layers1 = argv[1], *layers2 = argv[2];
+    char *layers1 = argv[1], *layers2 = argv[2], *endptr;
     int distance = atoi(argv[3]);
+    int distance2;
     char *presence = argv[4];
     int why = drcWhyCreate(argv[5]);
     TileTypeBitMask set1, set2, setM, invM, setR;
@@ -3023,6 +3031,24 @@ drcSurround(argc, argv)
     TileType i, j;
     bool isExact = FALSE;
     bool isDirectional = FALSE;
+
+    if (argc == 7)
+    {
+	distance2 = strtol(argv[4], &endptr, 10);
+	if ((endptr != NULL) && (*endptr != '\0'))
+	{
+	    TechError("Incorrect arguments in directional \"surround\" rule\n");
+	    return (0);
+	}
+	presence = argv[5];
+	why = drcWhyCreate(argv[6]);
+    }
+    else
+    {
+	distance2 = distance;
+	presence = argv[4];
+	why = drcWhyCreate(argv[5]);
+    }
 
     ptest = DBTechNoisyNameMask(layers1, &setM);
     pmask = CoincidentPlanes(&setM, ptest);
@@ -3087,7 +3113,7 @@ drcSurround(argc, argv)
 				DRC_REVERSE | DRC_BOTHCORNERS,
 				plane2, plane1);
 			dptrig = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
-			drcAssign(dptrig, distance, dpnew, &set2,
+			drcAssign(dptrig, distance2, dpnew, &set2,
 				&DBZeroTypeBits, why, 0,
 				DRC_FORWARD | DRC_TRIGGER,
 				plane2, plane1);
@@ -3104,7 +3130,7 @@ drcSurround(argc, argv)
 				DRC_FORWARD | DRC_BOTHCORNERS,
 				plane2, plane1);
 			dptrig = (DRCCookie *)mallocMagic(sizeof(DRCCookie));
-			drcAssign(dptrig, distance, dpnew, &set2,
+			drcAssign(dptrig, distance2, dpnew, &set2,
 				&DBZeroTypeBits, why, 0,
 				DRC_REVERSE | DRC_TRIGGER,
 				plane2, plane1);
