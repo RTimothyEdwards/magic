@@ -171,7 +171,14 @@ LEF-format input and output
       the LEF file macros will be used to annotate the existing layout.
       This includes setting pin properties (see above), extending the
       area of labels to cover an entire port, and setting a bounding
-      box on the cell corresponding to the LEF origin and size.
+      box on the cell corresponding to the LEF origin and size. <P>
+
+      Note that <B>lef write -hide</B> will generate only the minimum
+      amount of obstruction bounding any non-pin geometry inside a
+      layout.  To enforce a larger obstruction area, the property
+      "<B>OBS_BBOX</B>" can be created in the cell, a string with
+      four values for the lower left and upper right corners of the
+      bounding box, in magic internal database units.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>

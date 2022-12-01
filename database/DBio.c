@@ -3060,7 +3060,7 @@ DBCellWriteFile(cellDef, f)
     TileTypeBitMask typeMask, *sMask;
     int reducer;
     char *estring;
-    char lstring[256];
+    char lstring[2048];
     char *propvalue;
     bool propfound;
     CellUse **useList;
