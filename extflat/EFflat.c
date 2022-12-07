@@ -763,6 +763,8 @@ efFlatGlob()
 	    HashSetValue(heGlob, (ClientData) nameGlob);
 	    nameGlob->efnn_node = nodeFlat;
 	    nameGlob->efnn_hier = (HierName *) heGlob->h_key.h_ptr;
+	    nameGlob->efnn_port = -1;
+	    nameGlob->efnn_refc = 0;
 	}
 	else if (nameGlob->efnn_node != nodeFlat)
 	{

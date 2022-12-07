@@ -185,11 +185,13 @@ ResPrintExtDev(outextfile, devices)
 			    devices->layout->rd_width,
 			    devices->rs_sattr);
 
-		if (devices->drain != NULL)
-		    fprintf(outextfile, " \"%s\" %d %s",
-			    devices->drain->name,
-			    devices->layout->rd_width,
-			    devices->rs_dattr);
+		/* Don't write drain values for 2-terminal devices */
+		if (devptr->exts_deviceSDCount > 1)
+		    if (devices->drain != NULL)
+		    	fprintf(outextfile, " \"%s\" %d %s",
+				devices->drain->name,
+				devices->layout->rd_width,
+				devices->rs_dattr);
 
 		fprintf(outextfile, "\n");
 	    }

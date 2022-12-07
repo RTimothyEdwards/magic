@@ -126,7 +126,7 @@ typedef struct efnn
     struct efnn		*efnn_next;	/* Next name for this node */
     HierName		*efnn_hier;	/* HierName for this node */
     int			 efnn_port;	/* Port number for this node */
-    unsigned char	 efnn_refc;	/* #times referenced in hash */
+    unsigned short	 efnn_refc;	/* #times referenced in hash */
 } EFNodeName;
 
 /*
