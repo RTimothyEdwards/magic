@@ -282,6 +282,10 @@ ResMakeLabelBreakpoints(def, goodies)
 
     for (slab = def->cd_labels; slab != NULL; slab = slab->lab_next)
     {
+	/* Avoid any empty-string labels, or it will end up as	*/
+	/* missing terminal on a device.			*/
+	if (*(slab->lab_text) == '\0') continue;
+
 	entry = HashFind(&ResNodeTable, slab->lab_text);
 	node = ResInitializeNode(entry);
 

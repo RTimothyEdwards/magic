@@ -2028,7 +2028,7 @@ LefReadMacro(f, mname, oscale, importForeign, doAnnotate, lefTimestamp)
 
 	for (suffix = 1; HashGetValue(he) != NULL; suffix++)
 	{
-	    sprintf(newname, "%250s_%d", mname, suffix);
+	    snprintf(newname, 255, "%s_%d", mname, suffix);
 	    he = HashFind(&lefDefInitHash, newname);
 	}
 	LefError(LEF_WARNING, "Cell \"%s\" was already defined in this file.  "
