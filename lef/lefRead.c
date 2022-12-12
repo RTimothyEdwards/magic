@@ -1083,21 +1083,66 @@ LefPaintPolygon(lefMacro, pointList, points, curlayer, keep)
     return rlist;
 }
 
+/* Structure used by lefConnectFunc(), below */
+
+typedef struct _plane_type {
+    Plane *pt_plane;
+    TileType pt_type;
+} PlaneType;
+
+/*
+ *------------------------------------------------------------
+ * lefConnectFunc --
+ *
+ * Callback function used by LefReadGeometry when doing LEF
+ * annotation to check if a port is compatible with the
+ * existing layout.  Where a compatible type is found, paint
+ * the type that is passed in the client data argument into
+ * the plane that is also passed in the client data argument.
+ * This builds up an area of the port type in the cell
+ * hierarchy that can be checked against the port rectangle.
+ *
+ * Return 0 always to keep the search going.
+ *------------------------------------------------------------
+ */
+int
+lefConnectFunc(tile, cxp)
+    Tile *tile;
+    TreeContext *cxp;
+{
+    SearchContext *scx = cxp->tc_scx;
+    PlaneType *pt = (PlaneType *)cxp->tc_filter->tf_arg;
+    Rect rect, trect;
+
+    TiToRect(tile, &rect);
+    GeoTransRect(&scx->scx_trans, &rect, &trect);
+    
+    /* Where a compatible type is found, paint the type pass as
+     * argument into the plane passed as argument.
+     */
+
+    DBPaintPlane(pt->pt_plane, &trect,
+		DBStdPaintTbl(pt->pt_type, cxp->tc_plane),
+		(PaintUndoInfo *)NULL);
+
+    return 0;
+}
+
 /*
  *------------------------------------------------------------
  * lefUnconnectFunc --
  *
- * Callback function used by LefReadGeometry when doing LEF
- * annotation to check if a port is incompatible with the
- * existing layout.
- *
- * Return 1 always.
+ * Simple search that returns 1 if any tile is found in the
+ * plane constructed by lefConnectFunc() above in the area of
+ * a LEF pin that does not have the same type as the pin.
+ * 
  *------------------------------------------------------------
  */
+
 int
-lefUnconnectFunc(tile, clientData)
+lefUnconnectFunc(tile, clientdata)
     Tile *tile;
-    ClientData clientData;
+    ClientData clientdata;	/* (unused) */
 {
     return 1;
 }
@@ -1195,15 +1240,35 @@ LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
 		{
 		    if (is_imported)
 		    {
-			/* Check if layout area is compatible with the port */
 			int pNum = DBPlane(curlayer);
-			if (DBSrPaintArea((Tile *)NULL, lefMacro->cd_planes[pNum],
+			SearchContext scx;
+			CellUse	dummy;
+			PlaneType pt;
+			Plane *checkplane = DBNewPlane((ClientData)0);
+
+			scx.scx_use = &dummy;
+			dummy.cu_def = lefMacro;
+			dummy.cu_id = NULL;
+			scx.scx_trans = GeoIdentityTransform;
+			scx.scx_area = *paintrect;
+			pt.pt_type = curlayer;
+			pt.pt_plane = checkplane;
+
+			/* Check if layout area is compatible with the port.	*/
+			/* Check all paint in this area in all subcells.	*/
+
+			DBTreeSrTiles(&scx, &DBConnectTbl[curlayer], 0,
+				lefConnectFunc, (ClientData)&pt);
+
+			if (DBSrPaintArea((Tile *)NULL, checkplane,
 				paintrect, &DBNotConnectTbl[curlayer],
 				lefUnconnectFunc, (ClientData)NULL) == 1)
 			{
 			    LefEndStatement(f);
+			    TiFreePlane(checkplane);
 			    break;
 			}
+			TiFreePlane(checkplane);
 		    }
 
 		    /* Paint the area, if a CellDef is defined */
@@ -1306,7 +1371,11 @@ LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
  *	Reads input from file f;
  *	Generates a new label entry in the CellDef lefMacro.
  *	If "lanno" is not NULL, then the label pointed to by
- *	lanno is modified.
+ *	lanno is modified.  If is_imported is TRUE, then only
+ *	add a shape around lanno (which must be non-NULL).  If
+ *	none of the geometry matches the position of the label,
+ *	then move the label to the first area in the geometry
+ *	list.
  *
  *------------------------------------------------------------
  */
@@ -1688,6 +1757,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		    {
 			if ((lab == NULL) && (firstport == TRUE))
 			    DBEraseLabelsByContent(lefMacro, NULL, -1, testpin);
+
 			LefReadPort(lefMacro, f, testpin, pinNum, pinDir, pinUse,
 				pinShape, oscale, TRUE, lab);
 		    }
