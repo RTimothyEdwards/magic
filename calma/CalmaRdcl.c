@@ -56,6 +56,7 @@ bool CalmaRewound = FALSE;
 TileTypeBitMask *CalmaMaskHints = NULL;
 
 extern HashTable calmaDefInitHash;
+extern int CalmaPolygonCount;
 
 /* forward declarations */
 int  calmaElementSref();
@@ -274,6 +275,45 @@ calmaExact()
     return parray;
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * calmaFlattenPolygonFunc --
+ *
+ * Polygons have been dropped into subcells by default for
+ * efficiency in reading.  If the "subcell polygons" option
+ * has not been selected, then flatten these cells into the
+ * layout and delete the cells.  This seems inefficient but
+ * in fact can be much faster than reading the polygons
+ * directly into the cell from GDS.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+calmaFlattenPolygonFunc(use, parent)
+    CellUse *use;
+    CellDef *parent;
+{
+    int i;
+    CellUse dummy;
+    SearchContext scx;
+
+    if (use->cu_def == NULL || use->cu_def->cd_name == NULL) return 0;
+    if (strncmp(use->cu_def->cd_name, "polygon", 7)) return 0;
+
+    dummy.cu_transform = GeoIdentityTransform;
+    dummy.cu_id = NULL;
+    dummy.cu_def = parent;
+    scx.scx_use = use;
+    scx.scx_area = use->cu_bbox;
+    scx.scx_trans = GeoIdentityTransform;
+    DBCellCopyAllPaint(&scx, &DBAllButSpaceAndDRCBits, 0, &dummy);
+    DBDeleteCellNoModify(use);
+    DBCellDeleteDef(use->cu_def);
+
+    return 0;	/* Keep the search going */
+}
 
 
 /*
@@ -545,6 +585,12 @@ calmaParseStructure(filename)
 	 */
 
 	CIFPaintCurrent(FILE_CALMA);
+    }
+
+    if ((!CalmaSubcellPolygons) && (CalmaPolygonCount > 0))
+    {
+	DBCellEnum(cifReadCellDef, calmaFlattenPolygonFunc, (ClientData)cifReadCellDef);
+	CalmaPolygonCount = 0;
     }
 
     DBAdjustLabelsNew(cifReadCellDef, &TiPlaneRect,

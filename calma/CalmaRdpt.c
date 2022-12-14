@@ -248,8 +248,12 @@ calmaElementBoundary()
     if (ciftype >= 0) plane = cifCurReadPlanes[ciftype];
 
     /* Convert the polygon to rectangles. */
+    /* NOTE:  This was previously contingent on CalmaSubcellPolygons.	*/
+    /* However, in practice it has been found to be much faster to read	*/
+    /* polygons into subcells and then flatten into the layout instead	*/
+    /* of reading polygons directly into the layout.  I am unsure why.	*/
 
-    if (CalmaSubcellPolygons && (calmaNonManhattan > 0))
+    if (calmaNonManhattan > 0)
     {
 	/* Place the polygon in its own subcell */
 	char newname[] = "polygonXXXXX";
