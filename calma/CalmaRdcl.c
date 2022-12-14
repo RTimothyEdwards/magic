@@ -287,6 +287,13 @@ calmaExact()
  * in fact can be much faster than reading the polygons
  * directly into the cell from GDS.
  *
+ * Return value:
+ *	Return 0 to keep the search going
+ *
+ * Side effects:
+ *	Polygons are copied from use->cu_def to parent.
+ *	use->cu_def is deleted.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -298,6 +305,7 @@ calmaFlattenPolygonFunc(use, parent)
     int i;
     CellUse dummy;
     SearchContext scx;
+    HashEntry *he;
 
     if (use->cu_def == NULL || use->cu_def->cd_name == NULL) return 0;
     if (strncmp(use->cu_def->cd_name, "polygon", 7)) return 0;
@@ -310,11 +318,13 @@ calmaFlattenPolygonFunc(use, parent)
     scx.scx_trans = GeoIdentityTransform;
     DBCellCopyAllPaint(&scx, &DBAllButSpaceAndDRCBits, 0, &dummy);
     DBDeleteCellNoModify(use);
+    HashRemove(&CifCellTable, use->cu_def->cd_name);
+    /* There should only be one use, so it can just be cleared */
+    use->cu_def->cd_parents = (CellUse *)NULL;
     DBCellDeleteDef(use->cu_def);
 
     return 0;	/* Keep the search going */
 }
-
 
 /*
  * ----------------------------------------------------------------------------
@@ -347,12 +357,15 @@ calmaParseStructure(filename)
     int timestampval = 0;
     int suffix;
     int mfactor;
+    int locPolygonCount;
     OFFTYPE filepos;
     bool was_called;
     bool was_initialized;
     bool predefined;
     bool do_flatten;
     CellDef *def;
+
+    locPolygonCount = CalmaPolygonCount;
 
     /* Make sure this is a structure; if not, let the caller know we're done */
     PEEKRH(nbytes, rtype);
@@ -587,11 +600,8 @@ calmaParseStructure(filename)
 	CIFPaintCurrent(FILE_CALMA);
     }
 
-    if ((!CalmaSubcellPolygons) && (CalmaPolygonCount > 0))
-    {
+    if ((!CalmaSubcellPolygons) && (locPolygonCount < CalmaPolygonCount))
 	DBCellEnum(cifReadCellDef, calmaFlattenPolygonFunc, (ClientData)cifReadCellDef);
-	CalmaPolygonCount = 0;
-    }
 
     DBAdjustLabelsNew(cifReadCellDef, &TiPlaneRect,
 	      (cifCurReadStyle->crs_flags & CRF_NO_RECONNECT_LABELS) ? 1 : 0);

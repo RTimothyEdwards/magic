@@ -71,6 +71,12 @@ Flatten edit cell into the indicated destination cell.
         <DT> <B>-dobox</B>
 	<DD> When this option is specified, magic flattens only the area
 	     of the circuit that is inside the boundary of the cursor box.
+        <DT> <B>-doinplace</B>
+	<DD> When this option is specified, <I>cellname</I> must be the
+	     name of a cell <I>use</I> (instance), not a cell <I>definition</I>.
+	     The cell use <I>cellname</I> is assumed to exist in the current
+	     edit cell.  The cell use will be removed from the edit cell and
+	     replaced with its flattened contents.
       </DL>
 
       Note that <I>cellname</I> is a top-level cell but is not displayed

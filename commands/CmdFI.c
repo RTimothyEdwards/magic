@@ -1959,7 +1959,7 @@ CmdFlatten(w, cmd)
     TxCommand *cmd;
 {
      int		rval, xMask;
-     bool		dolabels, dobox, toplabels, invert, doports;
+     bool		dolabels, dobox, toplabels, invert, doports, doinplace;
      char		*destname;
      CellDef		*newdef;
      CellUse		*newuse;
@@ -1972,6 +1972,7 @@ CmdFlatten(w, cmd)
     toplabels = FALSE;
     dobox = FALSE;
     doports = TRUE;
+    doinplace = FALSE;
 
     rval = 0;
     if (cmd->tx_argc > 2)
@@ -2000,6 +2001,9 @@ CmdFlatten(w, cmd)
 		    case 'b':
 			dobox = (invert) ? FALSE : TRUE;
 			break;
+		    case 'i':
+			doinplace = (invert) ? FALSE : TRUE;
+			break;
 		    case 'l':
 			dolabels = (invert) ? FALSE : TRUE;
 			break;
@@ -2020,7 +2024,8 @@ CmdFlatten(w, cmd)
 			break;
 		    default:
 			TxError("options are: -nolabels, -nosubcircuits, -noports, "
-				"-novendor, -dotoplabels, -doproperty, -dobox\n");
+				"-novendor, -dotoplabels, -doproperty, -dobox, "
+				"-doinplace\n");
 			break;
 		}
 	    }
@@ -2034,6 +2039,51 @@ CmdFlatten(w, cmd)
      	TxError("usage: flatten [-<option>...] destcell\n");
 	return;
     }
+
+    /* Flatten-in-place:  destname is an instance, not a cell def */
+    if (doinplace)
+    {
+	HashEntry *he;
+
+	if (EditCellUse == NULL)
+	{
+	    TxError("The cell def is not editable.\n");
+	    return;
+	}
+
+	he = HashLookOnly(&EditCellUse->cu_def->cd_idHash, destname);
+	if (he == NULL)
+	{
+	    TxError("No cell use %s found in edit cell.\n", destname);
+	    return;
+	}
+	scx.scx_use = (CellUse *)HashGetValue(he);
+	scx.scx_trans = GeoIdentityTransform;
+	scx.scx_area = scx.scx_use->cu_def->cd_bbox;
+
+	UndoDisable();
+
+	DBCellCopyAllPaint(&scx, &DBAllButSpaceAndDRCBits, xMask, EditCellUse);
+	if (dolabels)
+	    FlatCopyAllLabels(&scx, &DBAllTypeBits, xMask, EditCellUse);
+	else if (toplabels)
+	{
+	    int savemask = scx.scx_use->cu_expandMask;
+	    scx.scx_use->cu_expandMask = CU_DESCEND_SPECIAL;
+	    DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, EditCellUse);
+	    scx.scx_use->cu_expandMask = savemask;
+	}
+
+	if (xMask != CU_DESCEND_ALL)
+	    DBCellCopyAllCells(&scx, xMask, EditCellUse, (Rect *)NULL);
+
+	/* Remove the use */
+	DBDeleteCell(scx.scx_use);
+
+	UndoEnable();
+	return;
+    }
+
     /* create the new def */
     newdef = DBCellLookDef(destname);
     if ((newdef != NULL) && (dobox == FALSE))
