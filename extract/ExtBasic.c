@@ -105,6 +105,9 @@ struct transRec
     int		 tr_termlen[MAXSD];	/* Length of each diff terminal edge,
 					 * used for computing L/W for the fet.
 					 */
+    int		 tr_termdepth[MAXSD];	/* Length of the terminal perpendicular
+					 * to the device edge.
+					 */
     Point	 tr_termvector[MAXSD];	/* Perimeter traversal vector, used to
 					 * find and calculate correct parameters
 					 * for annular (ring) devices and other
@@ -1058,7 +1061,7 @@ ExtSortTerminals(tran, ll)
     TermTilePos	*p1, *p2;
     NodeRegion	*tmp_node;
     TermTilePos	tmp_pos;
-    int		tmp_len;
+    int		tmp_len, tmp_depth;
     LabelList   *lp;
 
     do
@@ -1086,14 +1089,17 @@ ExtSortTerminals(tran, ll)
 	    tmp_node = tran->tr_termnode[nsd];
 	    tmp_pos = tran->tr_termpos[nsd];
 	    tmp_len = tran->tr_termlen[nsd];
+	    tmp_depth = tran->tr_termdepth[nsd];
 
 	    tran->tr_termnode[nsd] = tran->tr_termnode[nsd+1];
 	    tran->tr_termpos[nsd] = tran->tr_termpos[nsd+1];
 	    tran->tr_termlen[nsd] = tran->tr_termlen[nsd+1];
+	    tran->tr_termdepth[nsd] = tran->tr_termdepth[nsd+1];
 
 	    tran->tr_termnode[nsd+1] = tmp_node;
 	    tran->tr_termpos[nsd+1] = tmp_pos;
 	    tran->tr_termlen[nsd+1] = tmp_len;
+	    tran->tr_termdepth[nsd+1] = tmp_depth;
 	   /* Need to SWAP the indices in the labRegion too.
             * These for loops within the  bubblesort in here are kinda slow
             *  but S,D attributes are not that common so it should not matter
@@ -1684,12 +1690,13 @@ extOutputParameters(def, transList, outFile)
  */
 
 void
-extOutputDevParams(reg, devptr, outFile, length, width)
+extOutputDevParams(reg, devptr, outFile, length, width, depthvec)
     TransRegion *reg;
     ExtDevice *devptr;
     FILE *outFile;
     int length;
     int width;
+    int *depthvec;
 {
     ParamList *chkParam;
 
@@ -1711,8 +1718,18 @@ extOutputDevParams(reg, devptr, outFile, length, width)
 				extTransRec.tr_perim);
 		break;
 	    case 'l':
-		fprintf(outFile, " %c=%d", chkParam->pl_param[0],
+		if (chkParam->pl_param[1] == '\0' ||
+			chkParam->pl_param[1] == '0')
+		    fprintf(outFile, " %c=%d", chkParam->pl_param[0],
 				length);
+		else if (chkParam->pl_param[1] > '0' && chkParam->pl_param[1] <= '9')
+		{
+		    int tidx = chkParam->pl_param[1] - '1';
+		    /* output depth of terminal */
+		    fprintf(outFile, " %c%c=%d", chkParam->pl_param[0],
+				chkParam->pl_param[1],
+				depthvec[tidx]);
+		}
 		break;
 	    case 'w':
 		fprintf(outFile, " %c=%d", chkParam->pl_param[0],
@@ -1936,6 +1953,7 @@ extOutputDevices(def, transList, outFile)
 		while (extTransRec.tr_nterm < nsd)
 		{
 		    extTransRec.tr_termlen[extTransRec.tr_nterm] = 0;
+		    extTransRec.tr_termdepth[extTransRec.tr_nterm] = 0;
 		    extTransRec.tr_termnode[extTransRec.tr_nterm++] = node;
 		}
 	    }
@@ -2158,7 +2176,8 @@ extOutputDevices(def, transList, outFile)
 		    fprintf(outFile, " %d %d", length, width);
 		}
 
-		extOutputDevParams(reg, devptr, outFile, length, width);
+		extOutputDevParams(reg, devptr, outFile, length, width,
+				extTransRec.tr_termdepth);
 
 		fprintf(outFile, " \"%s\"", (subsName == NULL) ?
 					"None" : subsName);
@@ -2167,7 +2186,8 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_DIODE:	/* Only handle the optional substrate node */
 	    case DEV_NDIODE:
 	    case DEV_PDIODE:
-		extOutputDevParams(reg, devptr, outFile, length, width);
+		extOutputDevParams(reg, devptr, outFile, length, width,
+				extTransRec.tr_termdepth);
 		if (subsName != NULL)
 		    fprintf(outFile, " \"%s\"", subsName);
 		break;
@@ -2294,7 +2314,8 @@ extOutputDevices(def, transList, outFile)
 		else		/* regular resistor */
 		    fprintf(outFile, " %g", dres / 1000.0); /* mOhms -> Ohms */
 
-		extOutputDevParams(reg, devptr, outFile, length, width);
+		extOutputDevParams(reg, devptr, outFile, length, width,
+				extTransRec.tr_termdepth);
 
 		if (devptr->exts_deviceClass == DEV_RSUBCKT)
 		{
@@ -2384,7 +2405,8 @@ extOutputDevices(def, transList, outFile)
 			    fprintf(outFile, " \"%s\"", subsName);
 		    }
 
-		    extOutputDevParams(reg, devptr, outFile, length, width);
+		    extOutputDevParams(reg, devptr, outFile, length, width,
+				extTransRec.tr_termdepth);
 
 		    if (devptr->exts_deviceClass == DEV_CSUBCKT)
 		    {
@@ -2853,7 +2875,7 @@ extTransPerimFunc(bp)
     Tile *tile;
     NodeRegion *diffNode = (NodeRegion *) extGetRegion(bp->b_outside);
     ExtDevice *devptr, *deventry;
-    int i, len = BoundaryLength(bp);
+    int i, depth, len = BoundaryLength(bp);
     int thisterm;
     LabelList *ll;
     Label *lab;
@@ -2870,6 +2892,17 @@ extTransPerimFunc(bp)
         toutside = (SplitSide(tile)) ? SplitRightType(tile): SplitLeftType(tile);
     else
         toutside = TiGetTypeExact(bp->b_outside);
+
+    /* Experimental---find the depth of the area outside the boundary.
+     * This can be used in limited circumstances to extract the terminal
+     * length (here, called tr_depth).
+     */
+    if (toutside == TT_SPACE)
+	depth = 0;
+    else if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
+	depth = RIGHT(bp->b_outside) - LEFT(bp->b_outside);
+    else
+	depth = TOP(bp->b_outside) - BOTTOM(bp->b_outside);
 
     if (extTransRec.tr_devrec != NULL)
 	devptr = extTransRec.tr_devrec;
@@ -2910,6 +2943,7 @@ extTransPerimFunc(bp)
 		    extTransRec.tr_nterm++;
 		    extTransRec.tr_termnode[thisterm] = diffNode;
 		    extTransRec.tr_termlen[thisterm] = 0;
+		    extTransRec.tr_termdepth[thisterm] = 0;
 		    extTransRec.tr_termvector[thisterm].p_x = 0;
 		    extTransRec.tr_termvector[thisterm].p_y = 0;
 		    extTransRec.tr_termpos[thisterm].pnum = DBPlane(toutside);
@@ -2951,6 +2985,10 @@ extTransPerimFunc(bp)
 
 		/* Add the length to this terminal's perimeter */
 		extTransRec.tr_termlen[thisterm] += len;
+
+		/* Update the terminal depth */
+		if (depth > extTransRec.tr_termdepth[thisterm])
+		    extTransRec.tr_termdepth[thisterm] = depth;
 
 		/* Update the boundary traversal vector */
 		switch(bp->b_direction) {

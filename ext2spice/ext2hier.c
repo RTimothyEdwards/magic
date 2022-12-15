@@ -149,7 +149,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
     float sdM;          /* Device multiplier */
 {
     bool hierD;
-    DevParam *plist;
+    DevParam *plist, *dparam;
     int parmval;
     EFNode *dnode, *subnodeFlat = NULL;
 
@@ -253,14 +253,47 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 
 		break;
 	    case 'l':
-		fprintf(esSpiceF, " %s=", plist->parm_name);
-		if (esScale < 0)
-		    fprintf(esSpiceF, "%g", l * scale);
-		else if (plist->parm_scale != 1.0)
-		    fprintf(esSpiceF, "%g", l * scale * esScale
+		// Check for device length vs. terminal length
+		if (plist->parm_type[1] == '\0' || plist->parm_type[1] == '0')
+		{
+		    fprintf(esSpiceF, " %s=", plist->parm_name);
+		    if (esScale < 0)
+			fprintf(esSpiceF, "%g", l * scale);
+		    else if (plist->parm_scale != 1.0)
+			fprintf(esSpiceF, "%g", l * scale * esScale
 				* plist->parm_scale * 1E-6);
+		    else
+			fprintf(esSpiceF, "%gu", l * scale * esScale);
+		}
 		else
-		    fprintf(esSpiceF, "%gu", l * scale * esScale);
+		{
+		    /* l1, l2, etc. used to indicate the length of the terminal */
+		    /* Find value in dev_params */
+		    for (dparam = dev->dev_params; dparam; dparam = dparam->parm_next)
+		    {
+			if ((strlen(dparam->parm_name) > 2) &&
+			    	(dparam->parm_name[0] == 'l') &&
+			    	(dparam->parm_name[1] == plist->parm_type[1]) &&
+			    	(dparam->parm_name[2] == '='))
+			{
+			    int dval;
+			    if (sscanf(&dparam->parm_name[3], "%d", &dval) == 1)
+			    {
+		    		fprintf(esSpiceF, " %s=", plist->parm_name);
+				if (esScale < 0)
+				    fprintf(esSpiceF, "%g", dval * scale);
+				else if (plist->parm_scale != 1.0)
+				    fprintf(esSpiceF, "%g", dval * scale * esScale
+						* plist->parm_scale * 1E-6);
+				else
+				    fprintf(esSpiceF, "%gu", dval * scale * esScale);
+				dparam->parm_name[0] = '\0';
+				break;
+			    }
+			}
+		    }
+		}
+
 		break;
 	    case 'w':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
@@ -313,8 +346,9 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
     }
 
     /* Add parameters that are to be copied verbatim */
-    for (plist = dev->dev_params; plist; plist = plist->parm_next)
-	fprintf(esSpiceF, " %s", plist->parm_name);
+    for (dparam = dev->dev_params; dparam; dparam = dparam->parm_next)
+	if (dparam->parm_name[0] != '\0')
+	    fprintf(esSpiceF, " %s", dparam->parm_name);
 }
 
 /*
