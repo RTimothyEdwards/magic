@@ -709,7 +709,7 @@ calmaElementText()
     TileType type;
     Rect r;
     double dval;
-    int size, angle, font, pos;
+    int size, micron, angle, font, pos;
 
     /* Skip CALMA_ELFLAGS, CALMA_PLEX */
     calmaSkipSet(calmaElementIgnore);
@@ -732,9 +732,23 @@ calmaElementText()
     font = -1;
     angle = 0;
 
-    /* Default size is 1um */
-    size = (int)((1000 * cifCurReadStyle->crs_multiplier)
+    /* Use the minimum width of the layer on which the text is placed
+     * as the default text size, or 1um, whichever is smaller.  Account
+     * for the 8/10 difference encoded in the rendered font height.
+     */
+    size = DRCGetDefaultLayerWidth(type);
+    if (size > 0)
+    {
+	size *= (calmaReadScale2 * cifCurReadStyle->crs_multiplier * 8);
+	size /= (calmaReadScale1 * cifCurReadStyle->crs_scaleFactor * 10);
+    }
+
+    /* Default or maximum size is 1um */
+    micron = (int)((800 * cifCurReadStyle->crs_multiplier)
 				/ cifCurReadStyle->crs_scaleFactor);
+    if ((size == 0) || (size > micron))
+	size = micron;
+
     /* Default position is bottom-right (but what the spec calls "top-left"!) */
     pos = GEO_SOUTHEAST;
 

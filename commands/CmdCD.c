@@ -102,14 +102,14 @@ bool cmdDumpParseArgs();
 #define CALMA_DRCCHECK	7
 #define	CALMA_FLATTEN	8
 #define	CALMA_FLATGLOB  9
-#define CALMA_ORDERING	10
-#define	CALMA_LABELS	11
-#define	CALMA_LIBRARY	12
-#define	CALMA_LOWER	13
-#define CALMA_MASKHINTS	14
-#define CALMA_MERGE	15
-#define CALMA_NO_STAMP	16
-#define CALMA_NO_DUP	17
+#define	CALMA_LABELS	10
+#define	CALMA_LIBRARY	11
+#define	CALMA_LOWER	12
+#define CALMA_MASKHINTS	13
+#define CALMA_MERGE	14
+#define CALMA_NO_STAMP	15
+#define CALMA_NO_DUP	16
+#define CALMA_ORDERING	17
 #define CALMA_READ	18
 #define CALMA_READONLY	19
 #define CALMA_RESCALE	20
@@ -158,7 +158,6 @@ CmdCalma(w, cmd)
 	"drccheck [yes|no]	mark all cells as needing DRC checking",
 	"flatten [yes|no|limit]	flatten simple cells (e.g., contacts) on input",
 	"flatglob [<name>|none]	flatten cells by name with glob patterning",
-	"ordering [on|off]	cause cells to be read in post-order",
 	"labels [yes|no]	cause labels to be output when writing GDS-II",
 	"library [yes|no]	do not output the top level, only subcells",
 	"lower [yes|no]		allow both upper and lower case in labels",
@@ -166,6 +165,7 @@ CmdCalma(w, cmd)
 	"merge [yes|no]		merge tiles into polygons in the output",
 	"nodatestamp [yes|no]	write a zero value creation date stamp",
 	"noduplicates [yes|no]	do not read cells that exist before reading GDS",
+	"ordering [on|off]	cause cells to be read in post-order",
 	"read file		read Calma GDS-II format from \"file\"\n"
 	"		into edit cell",
 	"readonly [yes|no]	set cell as read-only and generate output from GDS file",

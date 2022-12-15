@@ -364,6 +364,7 @@ calmaParseStructure(filename)
     bool predefined;
     bool do_flatten;
     CellDef *def;
+    Label *lab;
 
     locPolygonCount = CalmaPolygonCount;
 
@@ -599,6 +600,11 @@ calmaParseStructure(filename)
 
 	CIFPaintCurrent(FILE_CALMA);
     }
+
+    /* Check for empty string labels that are caused by pin geometry that
+     * did not get any corresponding text type, and remove them.
+     */
+    DBEraseLabelsByContent(cifReadCellDef, NULL, -1, "");
 
     if ((!CalmaSubcellPolygons) && (locPolygonCount < CalmaPolygonCount))
 	DBCellEnum(cifReadCellDef, calmaFlattenPolygonFunc, (ClientData)cifReadCellDef);
@@ -1094,7 +1100,14 @@ calmaElementSref(filename)
 	    if (isArray)
 		DBMakeArray(use, &GeoIdentityTransform, xlo, ylo, xhi, yhi, xsep, ysep);
 	    DBSetTrans(use, &trans);
-	    DBPlaceCell(use, cifReadCellDef);
+	    if (DBCellFindDup(use, cifReadCellDef) != NULL)
+	    {
+		DBCellDeleteUse(use);
+		CalmaReadError("Warning: cell \"%s\" placed on top of"
+				" itself.  Ignoring the extra one.\n", def->cd_name);
+	    }
+	    else
+		DBPlaceCell(use, cifReadCellDef);
 
 	    break;	// No need to do 2nd loop
 	}
@@ -1161,8 +1174,17 @@ calmaElementSref(filename)
 		if (isArray)
 		    DBMakeArray(use, &GeoIdentityTransform, xlo, ylo, xhi, yhi, xsep, ysep);
 		DBSetTrans(use, &trans);
-		DBPlaceCell(use, cifReadCellDef);
-		madeinst = TRUE;
+		if (DBCellFindDup(use, cifReadCellDef) != NULL)
+		{
+		    DBCellDeleteUse(use);
+		    CalmaReadError("Warning: cell \"%s\" placed on top of"
+				" itself.  Ignoring the extra one.\n", def->cd_name);
+		}
+		else
+		{
+		    DBPlaceCell(use, cifReadCellDef);
+		    madeinst = TRUE;
+		}
 	    }
 	    else
 	    {
@@ -1179,8 +1201,17 @@ calmaElementSref(filename)
 	    if (isArray)
 		DBMakeArray(use, &GeoIdentityTransform, xlo, ylo, xhi, yhi, xsep, ysep);
 	    DBSetTrans(use, &trans);
-	    DBPlaceCell(use, cifReadCellDef);
-	    madeinst = TRUE;
+	    if (DBCellFindDup(use, cifReadCellDef) != NULL)
+	    {
+		DBCellDeleteUse(use);
+		CalmaReadError("Warning: cell \"%s\" placed on top of"
+				" itself.  Ignoring the extra one.\n", def->cd_name);
+	    }
+	    else
+	    {
+		DBPlaceCell(use, cifReadCellDef);
+		madeinst = TRUE;
+	    }
 	}
     }
 

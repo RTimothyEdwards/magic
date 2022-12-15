@@ -1162,13 +1162,11 @@ proc magic::add_message {pname ptext parameters {color blue}} {
 
 #----------------------------------------------------------
 #  Add a selectable-list parameter to the gencell window
-#  Added 12/14/2022:  Optional argument "func" specifies a
-#  callback procedure to trigger when a menu item is
-#  selected.
+#  (NOTE:  Use magic::add_dependency to add a callback to
+#  the selection list choice.)
 #----------------------------------------------------------
 
-proc magic::add_selectlist {pname ptext all_values parameters {itext ""} \
-	{func {}}} {
+proc magic::add_selectlist {pname ptext all_values parameters {itext ""}} {
 
    if [dict exists $parameters $pname] {
         set value [dict get $parameters $pname]
@@ -1185,8 +1183,7 @@ proc magic::add_selectlist {pname ptext all_values parameters {itext ""} \
    menu .params.edits.${pname}_sel.menu -tearoff 0
    foreach item ${all_values} {
 	set cmdtxt ".params.edits.${pname}_sel configure -text $item"
-	if {$func != {}} {set cmdtxt "$cmdtxt ; $func"}
-       .params.edits.${pname}_sel.menu add radio -label $item \
+	.params.edits.${pname}_sel.menu add radio -label $item \
 	-variable magic::${pname}_val -value $item \
 	-command $cmdtxt
    }
