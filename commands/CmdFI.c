@@ -2044,6 +2044,7 @@ CmdFlatten(w, cmd)
     if (doinplace)
     {
 	HashEntry *he;
+	Label *lab;
 
 	if (EditCellUse == NULL)
 	{
@@ -2058,8 +2059,12 @@ CmdFlatten(w, cmd)
 	    return;
 	}
 	scx.scx_use = (CellUse *)HashGetValue(he);
-	scx.scx_trans = GeoIdentityTransform;
+	scx.scx_trans = scx.scx_use->cu_transform;
 	scx.scx_area = scx.scx_use->cu_def->cd_bbox;
+
+	/* Mark labels in the subcell top level for later handling */
+	for (lab = scx.scx_use->cu_def->cd_labels; lab; lab = lab->lab_next)
+	    lab->lab_flags |= LABEL_GENERATE;
 
 	UndoDisable();
 
@@ -2076,6 +2081,36 @@ CmdFlatten(w, cmd)
 
 	if (xMask != CU_DESCEND_ALL)
 	    DBCellCopyAllCells(&scx, xMask, EditCellUse, (Rect *)NULL);
+
+	/* Marked labels coming from the subcell top level must not be	*/ 
+	/* ports, and text should be prefixed with the subcell name.	*/
+
+	for (lab = EditCellUse->cu_def->cd_labels; lab; lab = lab->lab_next)
+	{
+	    Label *newlab;
+	    char *newtext;
+
+	    if (lab->lab_flags & LABEL_GENERATE)
+	    {
+		newtext = mallocMagic(strlen(lab->lab_text)
+			+ strlen(scx.scx_use->cu_id) + 2);
+
+		sprintf(newtext, "%s/%s", scx.scx_use->cu_id, lab->lab_text);
+
+		DBPutFontLabel(EditCellUse->cu_def,
+			&lab->lab_rect, lab->lab_font, lab->lab_size,
+			lab->lab_rotate, &lab->lab_offset, lab->lab_just,
+			newtext, lab->lab_type, 0, 0);
+		DBEraseLabelsByContent(EditCellUse->cu_def, &lab->lab_rect,
+			-1, lab->lab_text);
+
+		freeMagic(newtext);
+	    }
+	}
+	
+	/* Unmark labels in the subcell top level */
+	for (lab = scx.scx_use->cu_def->cd_labels; lab; lab = lab->lab_next)
+	    lab->lab_flags &= ~LABEL_GENERATE;
 
 	/* Remove the use */
 	DBDeleteCell(scx.scx_use);

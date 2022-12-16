@@ -55,7 +55,7 @@ extern FILE *extFileOpen();
      * reported.
      */
 int ExtDoWarn = EXTWARN_DUP|EXTWARN_FETS;
-int ExtOptions = EXT_DOALL;
+int ExtOptions = EXT_DOALL|EXT_DOLABELCHECK;
 
 /* --------------------------- Global data ---------------------------- */
 

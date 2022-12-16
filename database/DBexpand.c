@@ -310,7 +310,7 @@ dbReadAreaFunc(scx, halt_on_error)
 					 * an area to be recursively read in
 					 * coordinates of the cell use's def.
 					 */
-    bool halt_on_error;	/* If TURE, failure to find a cell causes a halt */
+    bool halt_on_error;	/* If TRUE, failure to find a cell causes a halt */
 {
     CellDef *def = scx->scx_use->cu_def;
 

@@ -287,19 +287,26 @@ extHierConnections(ha, cumFlat, oneFlat)
 
     for (lab = sourceDef->cd_labels;  lab;  lab = lab->lab_next)
     {
-	CellDef *cumDef = cumFlat->et_use->cu_def;
-	Rect r = lab->lab_rect;
-	TileTypeBitMask *connected = &DBConnectTbl[lab->lab_type];
-	int i = DBPlane(lab->lab_type);
+	CellDef *cumDef;
+	Rect r;
+	TileTypeBitMask *connected;
+	
+	if (!(lab->lab_flags & LABEL_STICKY)) continue;
+
+	r = lab->lab_rect;
+	GEOCLIP(&r, &ha->ha_subArea);
+	if (GEO_RECTNULL(&r)) continue;
+
+	cumDef = cumFlat->et_use->cu_def;
+	connected = &DBConnectTbl[lab->lab_type];
+	pNum = DBPlane(lab->lab_type);
 
 	ha->hierOneTile = (Tile *)lab;	/* Blatant hack recasting */
 	ha->hierType = lab->lab_type;
-	ha->hierPNumBelow = i;
+	ha->hierPNumBelow = pNum;
 
-	GEOCLIP(&r, &ha->ha_subArea);
-	if (lab->lab_flags & LABEL_STICKY)
-	    DBSrPaintArea((Tile *) NULL,
-			cumFlat->et_use->cu_def->cd_planes[i], &r,
+	DBSrPaintArea((Tile *) NULL,
+			cumFlat->et_use->cu_def->cd_planes[pNum], &r,
 			connected, extHierConnectFunc3, (ClientData) ha);
     }
 }
@@ -381,7 +388,7 @@ extHierConnectFunc1(oneTile, ha)
     // name may refer to a range of array elements, and the generated
     // node only describes a single point.
 
-    for (lab = cumDef->cd_labels;  lab;  lab = lab->lab_next)
+    for (lab = cumDef->cd_labels; lab; lab = lab->lab_next)
     {
 	// All sticky labels are at the front of the list in cumDef, so
 	// stop when we see the first non-sticky label.
