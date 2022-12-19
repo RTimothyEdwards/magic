@@ -759,7 +759,8 @@ CIFPaintCurrent(filetype)
 	}
 
 	/* Multiply input planes to the same scale as the generated output */
-	CIFScalePlanes(CIFCurStyle->cs_scaleFactor, 1, cifCurReadPlanes);
+	CIFScalePlanes(CIFCurStyle->cs_scaleFactor, cifCurReadStyle->crs_scaleFactor,
+			cifCurReadPlanes);
 
 	/* Generate the output for these layers from the cell contents */
 	CIFClearPlanes(CIFPlanes);

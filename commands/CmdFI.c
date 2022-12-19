@@ -2116,6 +2116,8 @@ CmdFlatten(w, cmd)
 	DBDeleteCell(scx.scx_use);
 
 	UndoEnable();
+	DBWAreaChanged(EditCellUse->cu_def, &scx.scx_use->cu_def->cd_bbox,
+			DBW_ALLWINDOWS, &DBAllButSpaceAndDRCBits);
 	return;
     }
 
