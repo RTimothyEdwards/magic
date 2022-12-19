@@ -26,7 +26,8 @@ Load a cell into the layout window
 <H3>Usage:</H3>
    <BLOCKQUOTE>
       <B>load</B> [<I>cellname</I> [<B>scaled</B> <I>n</I> [<I>d</I>]]]
-		[<B>-force</B>] [<B>-dereference</B>] [<B>-quiet</B>] [<B>-fail</B>]
+		[<B>-force</B>] [<B>-dereference</B>] [<B>-quiet</B>]
+		[<B>-silent</B>] [<B>-fail</B>]
 		<BR><BR>
       <BLOCKQUOTE>
          where <I>cellname</I> is the name of a cell that presumably
@@ -70,11 +71,15 @@ Load a cell into the layout window
       do for layout such as logos and text lettering drawn in
       routing layers. <P>
 
-      The <B>-quiet</B> option prevents magic from generating error
+      The <B>-silent</B> option prevents magic from generating error
       messages during loads.  This can be used to prevent magic from
       complaining that a file does not exist when "<B>load</B>" is
       being used to create a new cell, rather than load one from
       disk. <P>
+
+      The <B>-quiet</B> option prevents magic from generating
+      diagnostic output during a file load.  It will only print
+      important warnings and errors. <P>
 
       By default, if a cell cannot be found in the search path, then
       a new empty layout is created with the name of the specified
