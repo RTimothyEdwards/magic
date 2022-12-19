@@ -736,11 +736,15 @@ calmaElementText()
      * as the default text size, or 1um, whichever is smaller.  Account
      * for the 8/10 difference encoded in the rendered font height.
      */
-    size = DRCGetDefaultLayerWidth(type);
-    if (size > 0)
+    size = 0;
+    if (type > 0)
     {
-	size *= (calmaReadScale2 * cifCurReadStyle->crs_multiplier * 8);
-	size /= (calmaReadScale1 * cifCurReadStyle->crs_scaleFactor * 10);
+	size = DRCGetDefaultLayerWidth(type);
+	if (size > 0)
+	{
+	    size *= (calmaReadScale2 * cifCurReadStyle->crs_multiplier * 8);
+	    size /= (calmaReadScale1 * cifCurReadStyle->crs_scaleFactor * 10);
+	}
     }
 
     /* Default or maximum size is 1um */
