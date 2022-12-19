@@ -347,7 +347,8 @@ CmdLabel(w, cmd)
 #define LOAD_DEREFERENCE  1
 #define LOAD_FORCE	  2
 #define LOAD_QUIET	  3
-#define LOAD_FAIL	  4
+#define LOAD_SILENT	  4
+#define LOAD_FAIL	  5
 
 /*
  * ----------------------------------------------------------------------------
@@ -398,12 +399,12 @@ CmdLoad(w, cmd)
     bool ignoreTech = FALSE;
     bool noWindow = FALSE;
     bool dereference = FALSE;
-    bool beQuiet = FALSE;
+    char verbose = DB_VERBOSE_WARN;
     bool failNotFound = FALSE;
-    bool saveVerbose;
+    unsigned char saveVerbose;
     unsigned char flags;
     int keepGoing();			/* forward declaration */
-    extern bool DBVerbose;		/* from DBio.c */
+    extern unsigned char DBVerbose;	/* from DBio.c */
 
     saveVerbose = DBVerbose;
 
@@ -412,7 +413,8 @@ CmdLoad(w, cmd)
 	"-nowindow	load file but do not display in the layout window",
 	"-dereference	use search paths and ignore embedded cell paths in file",
 	"-force 	load file even if tech in header does not match",
-	"-quiet		no alert if file does not exist",
+	"-quiet		only errors printed",
+	"-silent	no alert if file does not exist",
 	"-fail		if file does not exist, do not create a new cell",
 	NULL
     };
@@ -432,7 +434,10 @@ CmdLoad(w, cmd)
 	    	ignoreTech = TRUE;
 		break;
 	    case LOAD_QUIET:
-	    	beQuiet = TRUE;
+	    	verbose = DB_VERBOSE_ERR;
+		break;
+	    case LOAD_SILENT:
+	    	verbose = DB_VERBOSE_NONE;
 		break;
 	    case LOAD_FAIL:
 	    	failNotFound = TRUE;
@@ -490,12 +495,12 @@ CmdLoad(w, cmd)
 	    *(cmd->tx_argv[1] + strlen(cmd->tx_argv[1]) - 1) = '\0';
 	}
 #endif
-	DBVerbose = !beQuiet;
+	DBVerbose = verbose;
 	flags = 0;
 	if (ignoreTech) flags |= DBW_LOAD_IGNORE_TECH;
 	if (dereference) flags |= DBW_LOAD_DEREFERENCE;
 	if (failNotFound) flags |= DBW_LOAD_FAIL;
-	if (beQuiet) flags |= DBW_LOAD_QUIET;
+	if (verbose < DB_VERBOSE_WARN) flags |= DBW_LOAD_QUIET;
 
 	DBWloadWindow((noWindow == TRUE) ? NULL : w, cmd->tx_argv[1], flags);
 	DBVerbose = saveVerbose;
@@ -533,7 +538,7 @@ CmdLoad(w, cmd)
     }
     else
     {
-	DBVerbose = !beQuiet;
+	DBVerbose = verbose;
 	DBWloadWindow(w, (char *) NULL, DBW_LOAD_IGNORE_TECH);
 	DBVerbose = saveVerbose;
     }

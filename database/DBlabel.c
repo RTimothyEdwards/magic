@@ -601,11 +601,12 @@ DBAdjustLabels(def, area)
 	newType = DBPickLabelLayer(def, lab, 0);
 	if (newType == lab->lab_type) continue;
 	if (lab->lab_flags & LABEL_STICKY) continue;
-	if (DBVerbose && ((def->cd_flags & CDINTERNAL) == 0)) {
+	if ((DBVerbose >= DB_VERBOSE_ALL) && ((def->cd_flags & CDINTERNAL) == 0))
+	{
 	    TxPrintf("Moving label \"%s\" from %s to %s in cell %s.\n",
 		    lab->lab_text, DBTypeLongName(lab->lab_type),
 		    DBTypeLongName(newType), def->cd_name);
-	};
+	}
 	DBUndoEraseLabel(def, lab);
 	lab->lab_type = newType;
 	DBUndoPutLabel(def, lab);
@@ -617,9 +618,10 @@ DBAdjustLabels(def, area)
 
 
 /*
- * Extended version of DBAdjustLabels.  If noreconnect==0,
+ * Extended version of DBAdjustLabels.  If noreconnect == 0,
  * this is supposed to be the same as DBAdjustlabels() above.
  */
+
 void
 DBAdjustLabelsNew(def, area, noreconnect)
     CellDef *def;	/* Cell whose paint was changed. */
@@ -640,46 +642,52 @@ DBAdjustLabelsNew(def, area, noreconnect)
     lab = def->cd_labels;
     while (lab != NULL)
     {
-	    int locnoreconnect = noreconnect;
-	    if (!GEO_TOUCH(&lab->lab_rect, area)) {
-		    goto nextLab;
-	    }
-	    if (lab->lab_type == TT_SPACE) locnoreconnect = FALSE;
-	    newType = DBPickLabelLayer(def, lab, locnoreconnect);
-	    if (newType == lab->lab_type) {
-		    goto nextLab;
-	    }
-	    if(newType < 0 && !(lab->lab_flags & LABEL_STICKY)) {
-		    TxPrintf("Deleting ambiguous-layer label \"%s\" from %s in cell %s.\n",
-			     lab->lab_text, DBTypeLongName(lab->lab_type),
-			     def->cd_name);
+	int locnoreconnect = noreconnect;
+	if (!GEO_TOUCH(&lab->lab_rect, area))
+	{
+	    goto nextLab;
+	}
+	if (lab->lab_type == TT_SPACE) locnoreconnect = FALSE;
+	newType = DBPickLabelLayer(def, lab, locnoreconnect);
+	if (newType == lab->lab_type)
+	{
+	    goto nextLab;
+	}
+	if (newType < 0 && !(lab->lab_flags & LABEL_STICKY))
+	{
+	    TxPrintf("Deleting ambiguous-layer label \"%s\" from %s in cell %s.\n",
+		 	lab->lab_text, DBTypeLongName(lab->lab_type),
+		 	def->cd_name);
 
-		    if (labPrev == NULL)
-			    def->cd_labels = lab->lab_next;
-		    else
-			    labPrev->lab_next = lab->lab_next;
-		    if (def->cd_lastLabel == lab)
-			    def->cd_lastLabel = labPrev;
-		    DBUndoEraseLabel(def, lab);
-		    DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
-		    freeMagic((char *) lab);
-		    lab = lab->lab_next;
-		    modified = TRUE;
-		    continue;
-	    } else if (!(lab->lab_flags & LABEL_STICKY)) {
-		    if (DBVerbose && ((def->cd_flags & CDINTERNAL) == 0)) {
-			    TxPrintf("Moving label \"%s\" from %s to %s in cell %s.\n",
-				     lab->lab_text, DBTypeLongName(lab->lab_type),
-				     DBTypeLongName(newType), def->cd_name);
-		    }
-		    DBUndoEraseLabel(def, lab);
-		    lab->lab_type = newType;
-		    DBUndoPutLabel(def, lab);
-		    modified = TRUE;
-	    }
-    nextLab:
-	    labPrev = lab;
+	    if (labPrev == NULL)
+		def->cd_labels = lab->lab_next;
+	    else
+		labPrev->lab_next = lab->lab_next;
+	    if (def->cd_lastLabel == lab)
+		def->cd_lastLabel = labPrev;
+	    DBUndoEraseLabel(def, lab);
+	    DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
+	    freeMagic((char *) lab);
 	    lab = lab->lab_next;
+	    modified = TRUE;
+	    continue;
+	}
+	else if (!(lab->lab_flags & LABEL_STICKY))
+	{
+	    if ((DBVerbose >= DB_VERBOSE_ALL) && ((def->cd_flags & CDINTERNAL) == 0))
+	    {
+		TxPrintf("Moving label \"%s\" from %s to %s in cell %s.\n",
+				lab->lab_text, DBTypeLongName(lab->lab_type),
+				DBTypeLongName(newType), def->cd_name);
+	    }
+	    DBUndoEraseLabel(def, lab);
+	    lab->lab_type = newType;
+	    DBUndoPutLabel(def, lab);
+	    modified = TRUE;
+	}
+nextLab:
+	labPrev = lab;
+	lab = lab->lab_next;
     }
 
     if (modified) DBCellSetModified(def, TRUE);

@@ -1028,7 +1028,14 @@ extern char *DBSuffix;		/* Suffix appended to all Magic cell names */
 
 /* -------------------- User Interface Stuff -------------------------- */
 
-extern bool DBVerbose;		/* If FALSE, don't print warning messages */
+extern unsigned char DBVerbose;	/* If 0, don't print any messages	*/
+				/* If 1, print only error messages	*/
+				/* If 2, print errors and warnings	*/
+				/* If > 2, print all messages		*/
+#define DB_VERBOSE_NONE	0
+#define DB_VERBOSE_ERR	1
+#define DB_VERBOSE_WARN	2
+#define DB_VERBOSE_ALL	3
 
 /* ------------------ Exported technology variables ------------------- */
 
