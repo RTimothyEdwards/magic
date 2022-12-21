@@ -294,9 +294,12 @@ typedef struct cifstyle
 				 * layer.
 				 */
     int cs_portLayer[TT_MAXTYPES];
-				/* Similar to cs_labelLayer, to distinguish
-				 * between output types used for "normal"
-				 * text and those used specifically for ports.
+				/* Similar to cs_labelLayer, to use as
+				 * a type for geometry attached to port labels.
+				 */
+    int cs_portText[TT_MAXTYPES];
+				/* Similar to cs_labelLayer, to use as
+				 * a text type for port labels
 				 */
     CIFLayer *cs_layers[MAXCIFLAYERS];
 				/* Describes how to generate each layer.*/

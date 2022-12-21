@@ -188,6 +188,7 @@ cifTechStyleInit()
     {
 	CIFCurStyle->cs_labelLayer[i] = -1;
 	CIFCurStyle->cs_portLayer[i] = -1;
+	CIFCurStyle->cs_portText[i] = -1;
     }
     for (i = 0; i < MAXCIFLAYERS; i++)
 	CIFCurStyle->cs_layers[i] = NULL;
@@ -871,7 +872,7 @@ CIFTechLine(sectionName, argc, argv)
 
     if (strcmp(argv[0], "labels") == 0)
     {
-	bool portOnly = FALSE, noPort = FALSE;
+	bool portOnly = FALSE, noPort = FALSE, textOnly = FALSE;
 
 	if (cifCurLayer == NULL)
 	{
@@ -886,6 +887,8 @@ CIFTechLine(sectionName, argc, argv)
 		portOnly = TRUE;
 	    else if (!strncmp(argv[2], "noport", 6))
 		noPort = TRUE;
+	    else if (!strncmp(argv[2], "text", 6))
+		textOnly = TRUE;
 	    else
 	    {
 		TechError("Unknown option %s for labels statement.\n", argv[2]);
@@ -898,10 +901,28 @@ CIFTechLine(sectionName, argc, argv)
 	{
 	    if (TTMaskHasType(&mask, i))
 	    {
-		if (portOnly != TRUE)
-		    CIFCurStyle->cs_labelLayer[i] = CIFCurStyle->cs_nLayers-1;
-		if (noPort != TRUE)
+		if (portOnly == TRUE)
+		{
+		    /* With "port", use layer for port geometry.
+		     * If the port text type has not been set, set it to
+		     * this layer.
+		     */
 		    CIFCurStyle->cs_portLayer[i] = CIFCurStyle->cs_nLayers-1;
+		    if (CIFCurStyle->cs_portText[i] == -1)
+			CIFCurStyle->cs_portText[i] = CIFCurStyle->cs_nLayers-1;
+		}
+		else
+		{
+		    /* For "noport" or no argument, the label text and data
+		     * are set to this layer.  If no argument, then set the
+		     * port text type to this type.  If a later "port" statement
+		     * applies to the same layer, then the data type will be
+		     * separate from the text type.
+		     */ 
+		    CIFCurStyle->cs_labelLayer[i] = CIFCurStyle->cs_nLayers-1;
+		    if (noPort == FALSE)
+			CIFCurStyle->cs_portText[i] = CIFCurStyle->cs_nLayers-1;
+		}
 	    }
 	}
 	cifGotLabels = TRUE;

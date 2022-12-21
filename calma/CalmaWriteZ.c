@@ -1249,14 +1249,15 @@ calmaOutFuncZ(def, f, cliprect)
 
     if (CalmaDoLabels)
     {
-	int i, maxport = -1;
+	int i, ltype, maxport = -1;
 
 	for (lab = def->cd_labels; lab; lab = lab->lab_next)
 	{
-	    type = CIFCurStyle->cs_labelLayer[lab->lab_type];
-	    if ((type >= 0) && (lab->lab_flags & PORT_DIR_MASK) == 0)
+	    if ((lab->lab_flags & PORT_DIR_MASK) == 0)
 	    {
-		calmaWriteLabelFuncZ(lab, type, f);
+		ltype = CIFCurStyle->cs_labelLayer[lab->lab_type];
+		type = ltype;
+		calmaWriteLabelFuncZ(lab, ltype, type, f);
 	    }
 	    else
 	    {
@@ -1268,11 +1269,12 @@ calmaOutFuncZ(def, f, cliprect)
 	    for (i = 0; i <= maxport; i++)
 		for (lab = def->cd_labels; lab; lab = lab->lab_next)
 		{
+		    ltype = CIFCurStyle->cs_portText[lab->lab_type];
 		    type = CIFCurStyle->cs_portLayer[lab->lab_type];
 		    if ((type >= 0) && ((lab->lab_flags & PORT_DIR_MASK) != 0) &&
 				(lab->lab_port == i))
 		    {
-			calmaWriteLabelFuncZ(lab, type, f);
+			calmaWriteLabelFuncZ(lab, ltype, type, f);
 			/* break; */  /* Do not limit to unique labels! */
 		    }
 		}
@@ -2245,18 +2247,21 @@ calmaWritePaintFuncZ(tile, cos)
  */
 
 void
-calmaWriteLabelFuncZ(lab, type, f)
+calmaWriteLabelFuncZ(lab, ltype, type, f)
     Label *lab;	/* Label to output */
-    int type;	/* CIF layer number, or -1 if not attached to a layer */
+    int ltype;	/* CIF layer number to use for TEXT record */
+    int type;	/* CIF layer number to use for BOUNDARY record,
+		 * or -1 if not attached to a layer
+		 */
     gzFile f;	/* Stream file */
 {
     Point p;
     int calmanum, calmatype;
 
-    if (type < 0)
+    if (ltype < 0)
 	return;
 
-    calmanum = CIFCurStyle->cs_layers[type]->cl_calmanum;
+    calmanum = CIFCurStyle->cs_layers[ltype]->cl_calmanum;
     if (!CalmaIsValidLayer(calmanum))
 	return;
 
@@ -2265,7 +2270,7 @@ calmaWriteLabelFuncZ(lab, type, f)
     calmaOutRHZ(6, CALMA_LAYER, CALMA_I2, f);
     calmaOutI2Z(calmanum, f);
 
-    calmatype = CIFCurStyle->cs_layers[type]->cl_calmatype;
+    calmatype = CIFCurStyle->cs_layers[ltype]->cl_calmatype;
     calmaOutRHZ(6, CALMA_TEXTTYPE, CALMA_I2, f);
     calmaOutI2Z(calmatype, f);
 
@@ -2346,6 +2351,15 @@ calmaWriteLabelFuncZ(lab, type, f)
     /* If the cifoutput layer is for labels only (has no operators),	*/
     /* and the label rectangle is not degenerate, then output the label	*/
     /* rectangle as a boundary with the label's layer:purpose pair.	*/
+
+    if (type < 0)
+	return;
+
+    calmanum = CIFCurStyle->cs_layers[type]->cl_calmanum;
+    if (!CalmaIsValidLayer(calmanum))
+	return;
+
+    calmatype = CIFCurStyle->cs_layers[type]->cl_calmatype;
 
     /* Note that the check for whether the CIF_LABEL_NOPORT flag has	*/
     /* been set is done outside of this routine.			*/

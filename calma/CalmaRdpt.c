@@ -323,7 +323,34 @@ calmaElementBoundary()
 	    if (lab == NULL)
 	    {
 		/* There was no label in the area.  Create a placeholder label */
-		DBPutLabel(cifReadCellDef, &rpc, GEO_CENTER, "", type, 0, 0);
+		lab = DBPutLabel(cifReadCellDef, &rpc, GEO_CENTER, "", type, 0, 0);
+	    }
+	    if ((cifCurReadStyle->crs_labelSticky[ciftype] == LABEL_TYPE_PORT)
+			&& ((lab->lab_flags & PORT_DIR_MASK) == 0))
+	    {
+		/* Label was read previously as a text type, but the pin layer
+		 * causes it to be recast as a port, or corresponding label has
+		 * not yet been seen.
+		 */
+	    	int i, idx;
+		Label *sl;
+
+		/* Order ports as encountered. */
+		i = -1;
+		for (sl = cifReadCellDef->cd_labels; sl != NULL; sl = sl->lab_next)
+		{
+		    idx = sl->lab_port;
+		    if (idx > i) i = idx;
+		    if ((idx > 0) && (sl != lab) && !strcmp(sl->lab_text, lab->lab_text))
+		    {
+			i = idx - 1;
+			break;
+		    }
+		}
+		i++;
+		lab->lab_port = i;
+		lab->lab_flags |= PORT_DIR_NORTH | PORT_DIR_SOUTH |
+				PORT_DIR_EAST | PORT_DIR_WEST;
 	    }
 	}
     }
@@ -709,7 +736,7 @@ calmaElementText()
     TileType type;
     Rect r;
     double dval;
-    int size, micron, angle, font, pos;
+    int size, micron, angle, font, pos, portnum, idx;
 
     /* Skip CALMA_ELFLAGS, CALMA_PLEX */
     calmaSkipSet(calmaElementIgnore);
@@ -731,6 +758,7 @@ calmaElementText()
 
     font = -1;
     angle = 0;
+    portnum = 0;
 
     /* Use the minimum width of the layer on which the text is placed
      * as the default text size, or 1um, whichever is smaller.  Account
@@ -992,6 +1020,26 @@ calmaElementText()
 			sl->lab_next = lab->lab_next;
 		    if (cifReadCellDef->cd_lastLabel == lab)
 			cifReadCellDef->cd_lastLabel = sl;
+
+		    /* Port number from the placeholder is ignored;  find
+		     * a new valid port number for the new label name.
+		     */
+	    	    i = -1;
+		    for (sl = cifReadCellDef->cd_labels; sl != NULL; sl = sl->lab_next)
+		    {
+			idx = sl->lab_port;
+			if (idx > i) i = idx;
+			if ((idx > 0) && (sl != lab) && !strcmp(sl->lab_text, textbody))
+			{
+			    i = idx - 1;
+			    break;
+			}
+		    }
+		    i++;
+		    portnum = i;
+		    flags |= PORT_DIR_NORTH | PORT_DIR_SOUTH |
+				PORT_DIR_EAST | PORT_DIR_WEST;
+
 		    freeMagic((char *)lab);
 		    break;
 		}
@@ -1000,16 +1048,14 @@ calmaElementText()
 	}
 
 	if (font < 0)
-	    lab = DBPutLabel(cifReadCellDef, &r, pos, textbody, type, flags, 0);
+	    lab = DBPutLabel(cifReadCellDef, &r, pos, textbody, type, flags, portnum);
 	else
 	    lab = DBPutFontLabel(cifReadCellDef, &r, font, size, angle,
-			&GeoOrigin, pos, textbody, type, flags, 0);
+			&GeoOrigin, pos, textbody, type, flags, portnum);
 
 	if ((lab != NULL) && (cifnum >= 0) &&
 		(cifCurReadStyle->crs_labelSticky[cifnum] == LABEL_TYPE_PORT))
 	{
-	    int idx;
-
 	    /* No port information can be encoded in the GDS file, so	*/
 	    /* assume defaults, and assume that the port order is the	*/
 	    /* order in which labels arrive in the GDS stream.  If	*/
