@@ -92,7 +92,7 @@ char *DBSuffix = ".mag";
 int DBLambda[2] = {1, 1};
 
 /* See database.h for verbose levels */
-unsigned char DBVerbose = DB_VERBOSE_WARN;
+unsigned char DBVerbose = DB_VERBOSE_ALL;
 
 /* Global name of backup file for this session */
 static char *DBbackupFile = (char *)NULL;
