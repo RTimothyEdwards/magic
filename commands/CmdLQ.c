@@ -399,7 +399,7 @@ CmdLoad(w, cmd)
     bool ignoreTech = FALSE;
     bool noWindow = FALSE;
     bool dereference = FALSE;
-    char verbose = DB_VERBOSE_WARN;
+    char verbose = DB_VERBOSE_ALL;
     bool failNotFound = FALSE;
     unsigned char saveVerbose;
     unsigned char flags;
