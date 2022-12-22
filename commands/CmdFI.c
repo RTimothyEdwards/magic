@@ -2112,6 +2112,9 @@ CmdFlatten(w, cmd)
 	for (lab = scx.scx_use->cu_def->cd_labels; lab; lab = lab->lab_next)
 	    lab->lab_flags &= ~LABEL_GENERATE;
 
+	/* Copy and transform mask hints from child to parent */
+	DBCellCopyMaskHints(scx.scx_use, EditCellUse->cu_def);
+
 	/* Remove the use */
 	DBDeleteCell(scx.scx_use);
 

@@ -21,6 +21,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <string.h>		/* For strlen() and strncmp() */
+#include <ctype.h>		/* for isspace() */
+
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "utils/geofast.h"
@@ -357,6 +360,118 @@ struct dbCopySubData {
     int csd_pNum;
     bool csd_modified;
 };
+
+/* Data structure used by dbCopyMaskHintsFunc */
+
+struct propUseDefStruct {
+   CellUse *child;
+   CellDef *parent;
+};
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * dbCopyMaskHintsFunc --
+ *
+ * Callback function used by DBCellCopyMaskHints().  Does the work
+ * of copying a "mask-hints" property from a child instance into its
+ * parent def, modifying coordinates according to the child instance's
+ * transform.
+ *
+ * Results:
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	Creates properties in the parent cell.
+ * 
+ *-----------------------------------------------------------------------------
+ */
+
+int
+dbCopyMaskHintsFunc(key, value, puds)
+    char *key;
+    ClientData value;
+    struct propUseDefStruct *puds;
+{
+    CellUse *use = puds->child;
+    CellDef *def = puds->parent;
+    char *propstr = (char *)value;
+    char *newvalue, *vptr;
+    Rect r, rnew;
+
+    if (!strncmp(key, "MASKHINTS_", 10))
+    {
+	char *vptr, *lastval;
+	int lastlen;
+
+	newvalue = (char *)NULL;
+	vptr = propstr;
+	while (*vptr != '\0')
+	{
+	    if (sscanf(vptr, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
+			&r.r_xtop, &r.r_ytop) == 4)
+	    {
+		GeoTransRect(&use->cu_transform, &r, &rnew);
+
+		lastval = newvalue;
+		lastlen = (lastval) ? strlen(lastval) : 0;
+		newvalue = mallocMagic(40 + lastlen);
+
+		if (lastval)
+		    strcpy(newvalue, lastval);
+		else
+		    *newvalue = '\0';
+
+		sprintf(newvalue + lastlen, "%s%d %d %d %d", (lastval) ?  " " : "",
+			rnew.r_xbot, rnew.r_ybot, rnew.r_xtop, rnew.r_ytop);
+		if (lastval) freeMagic(lastval);
+
+		while (*vptr && !isspace(*vptr)) vptr++;
+		while (*vptr && isspace(*vptr)) vptr++;
+		while (*vptr && !isspace(*vptr)) vptr++;
+		while (*vptr && isspace(*vptr)) vptr++;
+		while (*vptr && !isspace(*vptr)) vptr++;
+		while (*vptr && isspace(*vptr)) vptr++;
+		while (*vptr && !isspace(*vptr)) vptr++;
+		while (*vptr && isspace(*vptr)) vptr++;
+	    }
+	    else break;
+	}
+	if (newvalue)
+	    DBPropPut(def, key, newvalue);
+    }
+
+    return 0;
+}
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * DBCellCopyMaskHints --
+ *
+ * This function is used by the "flatten -inplace" command option to
+ * transfer information from mask-hint properties from a flattened
+ * child cell to the parent.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Properties copied from child to parent cell and modified.
+ *
+ *-----------------------------------------------------------------------------
+ */
+void
+DBCellCopyMaskHints(child, parent)
+    CellUse *child;
+    CellDef *parent;
+{
+    struct propUseDefStruct puds;
+
+    puds.child = child;
+    puds.parent = parent;
+    DBPropEnum(child->cu_def, dbCopyMaskHintsFunc, (ClientData)&puds);
+}
 
 /*
  *-----------------------------------------------------------------------------
