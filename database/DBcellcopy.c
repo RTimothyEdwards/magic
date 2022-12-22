@@ -352,20 +352,12 @@ DBCellCheckCopyAllPaint(scx, mask, xMask, targetUse, func)
     DBTreeSrTiles(scx, &locMask, xMask, dbCopyAllPaint, (ClientData) &arg);
 }
 
-/* Client data structure used by DBCellGenerateSubstrate() */
-
-struct dbCopySubData {
-    Plane *csd_plane;
-    TileType csd_subtype;
-    int csd_pNum;
-    bool csd_modified;
-};
-
 /* Data structure used by dbCopyMaskHintsFunc */
 
 struct propUseDefStruct {
-   CellUse *child;
-   CellDef *parent;
+   CellDef *puds_source;
+   CellDef *puds_dest;
+   Transform *puds_trans;	/* Transform from source use to dest */
 };
 
 /*
@@ -393,25 +385,29 @@ dbCopyMaskHintsFunc(key, value, puds)
     ClientData value;
     struct propUseDefStruct *puds;
 {
-    CellUse *use = puds->child;
-    CellDef *def = puds->parent;
+    CellDef *dest = puds->puds_dest;
+    Transform *trans = puds->puds_trans;
     char *propstr = (char *)value;
-    char *newvalue, *vptr;
+    char *parentprop, *newvalue, *vptr;
     Rect r, rnew;
+    bool propfound;
 
     if (!strncmp(key, "MASKHINTS_", 10))
     {
 	char *vptr, *lastval;
 	int lastlen;
 
-	newvalue = (char *)NULL;
+	/* Append to existing mask hint (if any) */
+	parentprop = (char *)DBPropGet(dest, key, &propfound);
+	newvalue = (propfound) ? StrDup((char **)NULL, parentprop) : (char *)NULL;
+
 	vptr = propstr;
 	while (*vptr != '\0')
 	{
 	    if (sscanf(vptr, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
 			&r.r_xtop, &r.r_ytop) == 4)
 	    {
-		GeoTransRect(&use->cu_transform, &r, &rnew);
+		GeoTransRect(trans, &r, &rnew);
 
 		lastval = newvalue;
 		lastlen = (lastval) ? strlen(lastval) : 0;
@@ -438,7 +434,7 @@ dbCopyMaskHintsFunc(key, value, puds)
 	    else break;
 	}
 	if (newvalue)
-	    DBPropPut(def, key, newvalue);
+	    DBPropPut(dest, key, newvalue);
     }
 
     return 0;
@@ -468,10 +464,269 @@ DBCellCopyMaskHints(child, parent)
 {
     struct propUseDefStruct puds;
 
-    puds.child = child;
-    puds.parent = parent;
+    puds.puds_source = child->cu_def;
+    puds.puds_dest = parent;
+    puds.puds_trans = &child->cu_transform;
     DBPropEnum(child->cu_def, dbCopyMaskHintsFunc, (ClientData)&puds);
 }
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * dbFlatCopyMaskHintsFunc ---
+ *
+ * Callback function used by DBFlatCopyMaskHints() to copy mask hint
+ * properties from a child cell into a flattened cell def.  This is
+ * simply a variant of DBCellCopyMaskHints() above, with arguments
+ * appropriate to being called from DBTreeSrCells(), and applying
+ * the transform from the search context.
+ *
+ * Results:
+ *	0 to keep the cell search going.
+ * 
+ * Side effects:
+ *	Generates properties in the target def.
+ *
+ *-----------------------------------------------------------------------------
+ */
+int
+dbFlatCopyMaskHintsFunc(scx, def)
+    SearchContext *scx;
+    CellDef *def;
+{
+    struct propUseDefStruct puds;
+    CellUse *use = scx->scx_use;
+
+    puds.puds_source = scx->scx_use->cu_def;
+    puds.puds_dest = def;
+    puds.puds_trans = &scx->scx_trans;
+
+    DBPropEnum(use->cu_def, dbCopyMaskHintsFunc, (ClientData)&puds);
+
+    return 0;
+}
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * DBFlatCopyMaskHints --
+ *
+ * This function is used by the "flatten" command option to copy information
+ * in mask-hint properties from flattened children to a flattened cell def.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Properties copied from child to parent cell and modified.
+ *
+ *-----------------------------------------------------------------------------
+ */
+void
+DBFlatCopyMaskHints(scx, xMask, targetUse)
+    SearchContext *scx;		/* Describes root cell to search, area to
+				 * copy, transform from root cell to coords
+				 * of targetUse.
+				 */
+    int xMask;			/* Expansion state mask to be used in search */
+    CellUse *targetUse;		/* Cell into which properties will be added */
+{
+    DBTreeSrCells(scx, xMask, dbFlatCopyMaskHintsFunc, (ClientData)targetUse->cu_def);
+}
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * DBFlattenInPlace --
+ *
+ * This function is used by the "flatten" command "-doinplace" option to
+ * flatten a cell instance into its parent cell.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Indicated cell use is flattened into the edit cell def.
+ *
+ *-----------------------------------------------------------------------------
+ */
+
+void
+DBFlattenInPlace(use, dest, xMask, dolabels, toplabels)
+    CellUse *use;		/* Cell use to flatten */
+    CellUse *dest;		/* Cell use to flatten into */
+    int xMask;			/* Search mask for flattening */
+    bool dolabels;		/* Option to flatten labels */
+    bool toplabels;		/* Option to selectively flatten top-level labels */
+{
+    Label *lab;
+    SearchContext scx;
+
+    if (dest == NULL)
+    {
+	TxError("The target cell does not exist or is not editable.\n");
+	return;
+    }
+
+    scx.scx_use = use;
+    scx.scx_trans = use->cu_transform;
+    scx.scx_area = use->cu_def->cd_bbox;
+
+    /* Mark labels in the subcell top level for later handling */
+    for (lab = scx.scx_use->cu_def->cd_labels; lab; lab = lab->lab_next)
+	lab->lab_flags |= LABEL_GENERATE;
+
+    DBCellCopyAllPaint(&scx, &DBAllButSpaceAndDRCBits, xMask, dest);
+    if (dolabels)
+	FlatCopyAllLabels(&scx, &DBAllTypeBits, xMask, dest);
+    else if (toplabels)
+    {
+	int savemask = scx.scx_use->cu_expandMask;
+	scx.scx_use->cu_expandMask = CU_DESCEND_SPECIAL;
+	DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, dest);
+	scx.scx_use->cu_expandMask = savemask;
+    }
+
+    if (xMask != CU_DESCEND_ALL)
+	DBCellCopyAllCells(&scx, xMask, dest, (Rect *)NULL);
+
+    /* Marked labels coming from the subcell top level must not be	*/ 
+    /* ports, and text should be prefixed with the subcell name.	*/
+
+    for (lab = dest->cu_def->cd_labels; lab; lab = lab->lab_next)
+    {
+	Label *newlab;
+	char *newtext;
+
+	if (lab->lab_flags & LABEL_GENERATE)
+	{
+	    newtext = mallocMagic(strlen(lab->lab_text)
+			+ strlen(scx.scx_use->cu_id) + 2);
+
+	    sprintf(newtext, "%s/%s", scx.scx_use->cu_id, lab->lab_text);
+
+	    DBPutFontLabel(dest->cu_def,
+			&lab->lab_rect, lab->lab_font, lab->lab_size,
+			lab->lab_rotate, &lab->lab_offset, lab->lab_just,
+			newtext, lab->lab_type, 0, 0);
+	    DBEraseLabelsByContent(dest->cu_def, &lab->lab_rect,
+			-1, lab->lab_text);
+
+	    freeMagic(newtext);
+	}
+    }
+	
+    /* Unmark labels in the subcell top level */
+    for (lab = scx.scx_use->cu_def->cd_labels; lab; lab = lab->lab_next)
+	lab->lab_flags &= ~LABEL_GENERATE;
+
+    /* Copy and transform mask hints from child to parent */
+    DBCellCopyMaskHints(scx.scx_use, dest->cu_def);
+
+    /* Remove the use from the parent def */
+    DBDeleteCell(scx.scx_use);
+
+    DBWAreaChanged(dest->cu_def, &scx.scx_use->cu_def->cd_bbox,
+			DBW_ALLWINDOWS, &DBAllButSpaceAndDRCBits);
+}
+
+/* Client data structure used by DBCellFlattenAllCells() */
+
+struct dbFlattenAllData {
+    CellUse *fad_dest;		/* Cell use to flatten into */
+    int fad_xmask;		/* Search mask for flattening */
+    bool fad_dolabels;		/* Option to flatten labels */
+    bool fad_toplabels;		/* Option to selectively flatten top-level labels */
+};
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * dbCellFlattenCellsFunc --
+ *
+ * Do the actual work of flattening cells for DBCellFlattenAllCells().
+ *
+ * Results:
+ *	Always return 2.
+ *
+ * Side effects:
+ *	Updates the paint planes of EditRootDef.
+ *
+ *-----------------------------------------------------------------------------
+ */
+
+int
+dbCellFlattenCellsFunc(scx, clientData)
+    SearchContext *scx;	/* Pointer to search context containing
+			 * ptr to cell use to be copied,
+			 * and transform to the target def.
+			 */
+    ClientData clientData;	/* Data passed to client function */
+{
+    CellUse *use, *dest;
+    int xMask;
+    bool dolabels;
+    bool toplabels;
+    struct dbFlattenAllData *fad = (struct dbFlattenAllData *)clientData;
+
+    dest = fad->fad_dest;
+    xMask = fad->fad_xmask;
+    dolabels = fad->fad_dolabels;
+    toplabels = fad->fad_toplabels;
+
+    use = scx->scx_use;
+    DBFlattenInPlace(use, dest, xMask, dolabels, toplabels);
+    return 2;
+}
+
+/*
+ *-----------------------------------------------------------------------------
+ *
+ * DBCellFlattenAllCells --
+ *
+ * Flatten subcells from the tree rooted at scx->scx_use into the edit root
+ * CellDef, transforming according to the transform in scx.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Updates the paint planes in EditRootDef.
+ *
+ *-----------------------------------------------------------------------------
+ */
+
+void
+DBCellFlattenAllCells(scx, dest, xMask, dolabels, toplabels)
+    SearchContext *scx;		/* Describes root cell to search and transform
+				 * from root cell to coords of targetUse.
+				 */
+    CellUse *dest;		/* CellUse to flatten into (usually EditCellUse) */
+    int xMask;			/* Expansion state mask to be passed to
+				 * the flattening routine that determines
+				 * whether to do a shallow or deep flattening.
+				 */
+    bool dolabels;		/* Option to flatten labels */
+    bool toplabels;		/* Option to selectively flatten top-level labels */
+{
+    int dbCellFlattenCellsFunc();
+    struct dbFlattenAllData fad;
+
+    fad.fad_dest = dest;
+    fad.fad_xmask = xMask;
+    fad.fad_dolabels = dolabels;
+    fad.fad_toplabels = toplabels;
+    DBTreeSrCells(scx, CU_DESCEND_ALL, dbCellFlattenCellsFunc, (ClientData)&fad);
+}
+
+/* Client data structure used by DBCellGenerateSubstrate() */
+
+struct dbCopySubData {
+    Plane *csd_plane;
+    TileType csd_subtype;
+    int csd_pNum;
+    bool csd_modified;
+};
 
 /*
  *-----------------------------------------------------------------------------

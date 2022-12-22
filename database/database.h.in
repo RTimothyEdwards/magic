@@ -891,6 +891,7 @@ extern void DBCellCopyAllLabels();
 extern void DBCellCopyGlobLabels();
 extern void DBCellCopyCells();
 extern void DBCellCopyAllCells();
+extern void DBFlatCopyMaskHints();
 extern Plane *DBCellGenerateSubstrate();
 
     /* Contact image handling */
@@ -917,6 +918,8 @@ extern void DBEnumerateTypes();
 extern Plane *DBNewPlane();
 extern bool DBDescendSubcell();
 extern void DBCellCopyMaskHints();
+extern void DBFlattenInPlace();
+extern void DBCellFlattenAllCells();
 
 extern PaintResultType (*DBNewPaintTable())[TT_MAXTYPES][TT_MAXTYPES];
 typedef int (*IntProc)();

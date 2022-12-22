@@ -1958,7 +1958,7 @@ CmdFlatten(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-     int		rval, xMask;
+     int		i, xMask, optargs;
      bool		dolabels, dobox, toplabels, invert, doports, doinplace;
      char		*destname;
      CellDef		*newdef;
@@ -1966,36 +1966,32 @@ CmdFlatten(w, cmd)
      SearchContext	scx;
      CellUse		*flatDestUse;
 
-    destname = cmd->tx_argv[cmd->tx_argc - 1];
+    destname = NULL;
     xMask = CU_DESCEND_ALL;
     dolabels = TRUE;
     toplabels = FALSE;
     dobox = FALSE;
     doports = TRUE;
     doinplace = FALSE;
+    optargs = cmd->tx_argc - 1;
 
-    rval = 0;
-    if (cmd->tx_argc > 2)
+    if (optargs > 0)
     {
-	int i;
-	for (i = 1; i < (cmd->tx_argc - 1); i++)
+	for (i = 1; i < (optargs + 1); i++)
 	{
-	    if (!strncmp(cmd->tx_argv[i], "-no", 3))
+	    if ((cmd->tx_argv[i][0] == '-') && (strlen(cmd->tx_argv[i]) > 3))
 	    {
-		invert = TRUE;
-	    }
-	    else if (!strncmp(cmd->tx_argv[i], "-do", 3))
-	    {
-		invert = FALSE;
-	    }
-	    else
-	    {
-	        rval = -1;
-		break;
-	    }
+		if (!strncmp(cmd->tx_argv[i] + 1, "no", 2))
+		    invert = TRUE;
+		else if (!strncmp(cmd->tx_argv[i] + 1, "do", 2))
+		    invert = FALSE;
+		else
+		{
+		    TxError("Bad flatten option \"%s\";  must start with \"-no\" or \"-do\"\n",
+				cmd->tx_argv[i]);
+		    return;
+		}
 
-	    if (strlen(cmd->tx_argv[i]) > 3)
-	    {
 		switch(cmd->tx_argv[i][3])
 		{
 		    case 'b':
@@ -2029,98 +2025,53 @@ CmdFlatten(w, cmd)
 			break;
 		}
 	    }
+	    else
+		destname = cmd->tx_argv[i];
 	}
     }
-    else if (cmd->tx_argc != 2)
-	rval = -1;
 
-    if (rval != 0)
+    /* Flatten-in-place */
+    if (doinplace)
     {
-     	TxError("usage: flatten [-<option>...] destcell\n");
+	if (destname != NULL)	/* instance name was given in "destname" */
+	{
+	    HashEntry *he;
+	    CellUse *use;
+	
+	    if (EditCellUse == NULL)
+	    {
+		TxError("The current cell is not editable.\n");
+		return;
+	    }
+	    he = HashLookOnly(&EditCellUse->cu_def->cd_idHash, destname);
+	    if (he == NULL)
+	    {
+		TxError("No cell use %s found in edit cell.\n", destname);
+		return;
+	    }
+	    use = (CellUse *)HashGetValue(he);
+	    UndoDisable();
+	    DBFlattenInPlace(use, EditCellUse, xMask, dolabels, toplabels);
+	    UndoEnable();
+	}
+	else
+	{
+	    /* Instances to flatten are taken from SelectDef */
+	    UndoDisable();
+	    scx.scx_use = SelectUse;
+	    scx.scx_area = SelectUse->cu_bbox;
+	    scx.scx_trans = SelectUse->cu_transform;
+
+	    DBCellFlattenAllCells(&scx, EditCellUse, xMask, dolabels, toplabels);
+	    UndoEnable();
+	    SelectClear();
+	}
 	return;
     }
 
-    /* Flatten-in-place:  destname is an instance, not a cell def */
-    if (doinplace)
+    if (destname == NULL)
     {
-	HashEntry *he;
-	Label *lab;
-
-	if (EditCellUse == NULL)
-	{
-	    TxError("The cell def is not editable.\n");
-	    return;
-	}
-
-	he = HashLookOnly(&EditCellUse->cu_def->cd_idHash, destname);
-	if (he == NULL)
-	{
-	    TxError("No cell use %s found in edit cell.\n", destname);
-	    return;
-	}
-	scx.scx_use = (CellUse *)HashGetValue(he);
-	scx.scx_trans = scx.scx_use->cu_transform;
-	scx.scx_area = scx.scx_use->cu_def->cd_bbox;
-
-	/* Mark labels in the subcell top level for later handling */
-	for (lab = scx.scx_use->cu_def->cd_labels; lab; lab = lab->lab_next)
-	    lab->lab_flags |= LABEL_GENERATE;
-
-	UndoDisable();
-
-	DBCellCopyAllPaint(&scx, &DBAllButSpaceAndDRCBits, xMask, EditCellUse);
-	if (dolabels)
-	    FlatCopyAllLabels(&scx, &DBAllTypeBits, xMask, EditCellUse);
-	else if (toplabels)
-	{
-	    int savemask = scx.scx_use->cu_expandMask;
-	    scx.scx_use->cu_expandMask = CU_DESCEND_SPECIAL;
-	    DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, EditCellUse);
-	    scx.scx_use->cu_expandMask = savemask;
-	}
-
-	if (xMask != CU_DESCEND_ALL)
-	    DBCellCopyAllCells(&scx, xMask, EditCellUse, (Rect *)NULL);
-
-	/* Marked labels coming from the subcell top level must not be	*/ 
-	/* ports, and text should be prefixed with the subcell name.	*/
-
-	for (lab = EditCellUse->cu_def->cd_labels; lab; lab = lab->lab_next)
-	{
-	    Label *newlab;
-	    char *newtext;
-
-	    if (lab->lab_flags & LABEL_GENERATE)
-	    {
-		newtext = mallocMagic(strlen(lab->lab_text)
-			+ strlen(scx.scx_use->cu_id) + 2);
-
-		sprintf(newtext, "%s/%s", scx.scx_use->cu_id, lab->lab_text);
-
-		DBPutFontLabel(EditCellUse->cu_def,
-			&lab->lab_rect, lab->lab_font, lab->lab_size,
-			lab->lab_rotate, &lab->lab_offset, lab->lab_just,
-			newtext, lab->lab_type, 0, 0);
-		DBEraseLabelsByContent(EditCellUse->cu_def, &lab->lab_rect,
-			-1, lab->lab_text);
-
-		freeMagic(newtext);
-	    }
-	}
-	
-	/* Unmark labels in the subcell top level */
-	for (lab = scx.scx_use->cu_def->cd_labels; lab; lab = lab->lab_next)
-	    lab->lab_flags &= ~LABEL_GENERATE;
-
-	/* Copy and transform mask hints from child to parent */
-	DBCellCopyMaskHints(scx.scx_use, EditCellUse->cu_def);
-
-	/* Remove the use */
-	DBDeleteCell(scx.scx_use);
-
-	UndoEnable();
-	DBWAreaChanged(EditCellUse->cu_def, &scx.scx_use->cu_def->cd_bbox,
-			DBW_ALLWINDOWS, &DBAllButSpaceAndDRCBits);
+     	TxError("usage: flatten [-<option>...] destcell\n");
 	return;
     }
 
@@ -2171,6 +2122,7 @@ CmdFlatten(w, cmd)
     UndoDisable();
 
     DBCellCopyAllPaint(&scx, &DBAllButSpaceAndDRCBits, xMask, flatDestUse);
+    DBFlatCopyMaskHints(&scx, xMask, flatDestUse);
     if (dolabels)
 	FlatCopyAllLabels(&scx, &DBAllTypeBits, xMask, flatDestUse);
     else if (toplabels)
