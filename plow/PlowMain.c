@@ -2249,6 +2249,7 @@ plowYankCreate()
 }
 
 #ifndef	NO_RUSAGE
+void
 plowShowTime(t1, t2, nqueued, nprocessed, nmoved)
     struct rusage *t1, *t2;
     int nqueued, nprocessed, nmoved;

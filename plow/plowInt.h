@@ -280,6 +280,10 @@ extern void plowTechShow();
 extern void plowUpdateLabels();
 extern void plowYankCreate();
 
+#ifndef NO_RUSAGE
+extern void plowShowTime();
+#endif
+
 /* ------------------------- Debugging flags -------------------------- */
 
 /*
