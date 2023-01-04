@@ -1635,17 +1635,18 @@ cmdLabelTextFunc(label, cellUse, transform, text)
 	TxPrintf("%s\n", label->lab_text);
 #endif
     }
-    else
+    else if (strcmp(text, label->lab_text))
     {
-	if (strcmp(text, label->lab_text))
-	{
-	    newlab = DBPutFontLabel(cellDef, &label->lab_rect, label->lab_font,
+	newlab = DBPutFontLabel(cellDef, &label->lab_rect, label->lab_font,
 			label->lab_size, label->lab_rotate, &label->lab_offset,
 			label->lab_just, text, label->lab_type, label->lab_flags,
 			label->lab_port);
-	    DBEraseLabelsByContent(cellDef, &label->lab_rect, -1, label->lab_text);
-	    DBWLabelChanged(cellDef, newlab, DBW_ALLWINDOWS);
-	}
+	DBEraseLabelsByContent(cellDef, &label->lab_rect, -1, label->lab_text);
+	DBWLabelChanged(cellDef, newlab, DBW_ALLWINDOWS);
+	DBWHLRedraw(SelectRootDef, &SelectDef->cd_extended, TRUE);
+	DBWAreaChanged(SelectDef, &SelectDef->cd_extended, DBW_ALLWINDOWS,
+		&DBAllButSpaceBits);
+	DBCellSetModified(cellDef, TRUE);
     }
     return 0;
 }
@@ -1661,6 +1662,7 @@ cmdLabelRotateFunc(label, cellUse, transform, value)
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj;
 #endif
+    Rect selarea;
 
     if (value == NULL)
     {
@@ -1673,7 +1675,7 @@ cmdLabelRotateFunc(label, cellUse, transform, value)
 	TxPrintf("%d\n", label->lab_rotate);
 #endif
     }
-    else
+    else if (label->lab_rotate != *value)
     {
 	DBUndoEraseLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
@@ -1681,6 +1683,7 @@ cmdLabelRotateFunc(label, cellUse, transform, value)
 	DBFontLabelSetBBox(label);
 	DBUndoPutLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
+	DBCellSetModified(cellDef, TRUE);
     }
     return 0;
 }
@@ -1708,7 +1711,7 @@ cmdLabelSizeFunc(label, cellUse, transform, value)
 	TxPrintf("%g\n", (double)label->lab_size / 8.0);
 #endif
     }
-    else
+    else if (label->lab_size != *value)
     {
 	DBUndoEraseLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
@@ -1716,6 +1719,7 @@ cmdLabelSizeFunc(label, cellUse, transform, value)
 	DBFontLabelSetBBox(label);
 	DBUndoPutLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
+	DBCellSetModified(cellDef, TRUE);
     }
     return 0;
 }
@@ -1743,7 +1747,7 @@ cmdLabelJustFunc(label, cellUse, transform, value)
 	TxPrintf("%s\n", GeoPosToName(label->lab_just));
 #endif
     }
-    else
+    else if (label->lab_just != *value)
     {
 	DBUndoEraseLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
@@ -1751,6 +1755,7 @@ cmdLabelJustFunc(label, cellUse, transform, value)
 	DBFontLabelSetBBox(label);
 	DBUndoPutLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
+	DBCellSetModified(cellDef, TRUE);
     }
     return 0;
 }
@@ -1828,6 +1833,7 @@ cmdLabelStickyFunc(label, cellUse, transform, value)
 	    DBUndoEraseLabel(cellDef, label);
 	    label->lab_flags = newvalue;
 	    DBUndoPutLabel(cellDef, label);
+	    DBCellSetModified(cellDef, TRUE);
 	}
     }
     return 0;
@@ -1861,7 +1867,7 @@ cmdLabelOffsetFunc(label, cellUse, transform, point)
 		(double)(label->lab_offset.p_y) / 8.0);
 #endif
     }
-    else
+    else if (!GEO_SAMEPOINT(label->lab_offset, *point))
     {
 	DBUndoEraseLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
@@ -1869,6 +1875,53 @@ cmdLabelOffsetFunc(label, cellUse, transform, point)
 	DBFontLabelSetBBox(label);
 	DBUndoPutLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
+	DBCellSetModified(cellDef, TRUE);
+    }
+    return 0;
+}
+
+int
+cmdLabelRectFunc(label, cellUse, transform, rect)
+    Label *label;
+    CellUse *cellUse;
+    Transform *transform;
+    Rect *rect;
+{
+    CellDef *cellDef = cellUse->cu_def;
+#ifdef MAGIC_WRAPPER
+    Tcl_Obj *lobj, *pobj;
+#endif
+
+    if (rect == NULL)
+    {
+#ifdef MAGIC_WRAPPER
+	lobj = Tcl_GetObjResult(magicinterp);
+	pobj = Tcl_NewListObj(0, NULL);
+	Tcl_ListObjAppendElement(magicinterp, lobj, pobj);
+	Tcl_ListObjAppendElement(magicinterp, pobj,
+			Tcl_NewIntObj((double)label->lab_rect.r_xbot));
+	Tcl_ListObjAppendElement(magicinterp, pobj,
+			Tcl_NewIntObj((double)label->lab_rect.r_ybot));
+	Tcl_ListObjAppendElement(magicinterp, pobj,
+			Tcl_NewIntObj((double)label->lab_rect.r_xtop));
+	Tcl_ListObjAppendElement(magicinterp, pobj,
+			Tcl_NewIntObj((double)label->lab_rect.r_ytop));
+	Tcl_SetObjResult(magicinterp, lobj);
+#else
+	TxPrintf("%d %d %d %d\n",
+			label->lab_rect.r_xbot, label->lab_rect.r_ybot,
+			label->lab_rect.r_xtop, label->lab_rect.r_ytop);
+#endif
+    }
+    else if (!GEO_SAMERECT(label->lab_rect, *rect))
+    {
+	DBUndoEraseLabel(cellDef, label);
+	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
+	label->lab_rect = *rect;
+	DBFontLabelSetBBox(label);
+	DBUndoPutLabel(cellDef, label);
+	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
+	DBCellSetModified(cellDef, TRUE);
     }
     return 0;
 }
@@ -1902,7 +1955,7 @@ cmdLabelFontFunc(label, cellUse, transform, font)
 	    TxPrintf("%s\n", DBFontList[label->lab_font]->mf_name);
 #endif
     }
-    else
+    else if (label->lab_font != *font)
     {
 	DBUndoEraseLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
@@ -1911,6 +1964,7 @@ cmdLabelFontFunc(label, cellUse, transform, font)
 	DBFontLabelSetBBox(label);
 	DBUndoPutLabel(cellDef, label);
 	DBWLabelChanged(cellDef, label, DBW_ALLWINDOWS);
+	DBCellSetModified(cellDef, TRUE);
     }
     return 0;
 }
@@ -1952,16 +2006,17 @@ cmdLabelFontFunc(label, cellUse, transform, font)
  * ----------------------------------------------------------------------------
  */
 
-#define SETLABEL_TEXT		0
+#define SETLABEL_BOX		0
 #define SETLABEL_FONT		1
 #define SETLABEL_FONTLIST	2
 #define SETLABEL_JUSTIFY	3
-#define SETLABEL_SIZE		4
+#define SETLABEL_LAYER		4
 #define SETLABEL_OFFSET		5
 #define SETLABEL_ROTATE		6
-#define SETLABEL_STICKY		7
-#define SETLABEL_LAYER		8
-#define SETLABEL_HELP		9
+#define SETLABEL_SIZE		7
+#define SETLABEL_STICKY		8
+#define SETLABEL_TEXT		9
+#define SETLABEL_HELP		10
 
 void
 CmdSetLabel(w, cmd)
@@ -1972,6 +2027,7 @@ CmdSetLabel(w, cmd)
     int locargc, argstart = 1;
     char **msg;
     Point offset;
+    Rect rect;
     TileType ttype;
     int option;
     bool doDefault = FALSE;
@@ -1984,15 +2040,16 @@ CmdSetLabel(w, cmd)
 
     static char *cmdLabelSetOption[] =
     {
-	"text <text>		change/get label text",
+	"box <lx> <ly> <ux> <uy>	change/get label box",
 	"font <name>		change/get label font",
 	"fontlist		list available fonts",
 	"justify <position>	change/get label justification",
-	"size <value>		change/get label size",
+	"layer <type>		change/get layer type",
 	"offset <x> <y>		change/get label offset",
 	"rotate <degrees>	change/get label rotation",
+	"size <value>		change/get label size",
 	"sticky [true|false]	change/get sticky property",
-	"layer <type>		change/get layer type",
+	"text <text>		change/get label text",
 	"help			print this help info",
 	NULL
     };
@@ -2021,10 +2078,15 @@ CmdSetLabel(w, cmd)
 	}
     }
 
-    if (locargc < 2 || locargc > 4)
+    if (locargc < 2)
 	option = SETLABEL_HELP;
     else
 	option = Lookup(cmd->tx_argv[argstart], cmdLabelSetOption);
+
+    if ((option != SETLABEL_BOX) && (locargc > 4))
+	option = SETLABEL_HELP;
+    else if ((option == SETLABEL_BOX) && (locargc > 6))
+	option = SETLABEL_HELP;
 
     switch (option)
     {
@@ -2049,7 +2111,7 @@ CmdSetLabel(w, cmd)
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
 			cmdLabelTextFunc, (locargc == 3) ?
 			(ClientData)cmd->tx_argv[argstart + 1] : (ClientData)NULL);
 	    }
@@ -2117,7 +2179,7 @@ CmdSetLabel(w, cmd)
 		}
 		else if (EditCellUse)
 		{
-		    SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+		    SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
 				cmdLabelFontFunc, (locargc == 3) ?
 				(ClientData)&font : (ClientData)NULL);
 		}
@@ -2147,7 +2209,7 @@ CmdSetLabel(w, cmd)
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
 			cmdLabelJustFunc, (locargc == 3) ?
 			(ClientData)&pos : (ClientData)NULL);
 	    }
@@ -2176,7 +2238,7 @@ CmdSetLabel(w, cmd)
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
 			cmdLabelSizeFunc, (locargc == 3) ?
 			(ClientData)&size : (ClientData)NULL);
 	    }
@@ -2188,8 +2250,9 @@ CmdSetLabel(w, cmd)
 		char *yp;
 		if ((yp = strchr(cmd->tx_argv[argstart + 1], ' ')) != NULL)
 		{
+		    *yp = '\0';
 		    offset.p_x = cmdScaleCoord(w, cmd->tx_argv[argstart + 1], TRUE, TRUE, 8);
-		    offset.p_y = cmdScaleCoord(w, yp, TRUE, FALSE, 8);
+		    offset.p_y = cmdScaleCoord(w, yp + 1, TRUE, FALSE, 8);
 		}
 		else
 		{
@@ -2224,9 +2287,76 @@ CmdSetLabel(w, cmd)
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
 			cmdLabelOffsetFunc, (locargc != 2) ?
 			(ClientData)&offset : (ClientData)NULL);
+	    }
+	    break;
+
+	case SETLABEL_BOX:
+	    if (doDefault)
+	    {
+		TxError("Cannot set a default label box.\n");
+	    }
+	    else if (EditCellUse)
+	    {
+		if (locargc == 3)
+		{
+		    /* Useful with [box values] */
+		    char *yp = cmd->tx_argv[argstart + 1];
+		    rect.r_xbot = cmdScaleCoord(w, yp, TRUE, TRUE, 1);
+		    yp = strchr(yp, ' ');
+		    if (yp != NULL)
+		    {
+		    	*yp = '\0';
+			yp++;
+			while (isspace(*yp) && (*yp != '\0')) yp++;
+			rect.r_ybot = cmdScaleCoord(w, yp, TRUE, FALSE, 1);
+			yp = strchr(yp, ' ');
+			if (yp != NULL)
+			{
+			    *yp = '\0';
+			    yp++;
+			    while (isspace(*yp) && (*yp != '\0')) yp++;
+			    rect.r_xtop = cmdScaleCoord(w, yp, TRUE, TRUE, 1);
+			    yp = strchr(yp, ' ');
+			    if (yp != NULL)
+			    {
+			    	*yp = '\0';
+				yp++;
+				while (isspace(*yp) && (*yp != '\0')) yp++;
+				rect.r_ytop = cmdScaleCoord(w, yp, TRUE, FALSE, 1);
+			    }
+			    else
+				TxError("Label box requires four coordinates.\n");
+			}
+			else
+			{
+			    rect.r_xtop = rect.r_xbot;
+			    rect.r_ytop = rect.r_ybot;
+			    yp = cmd->tx_argv[argstart + 1];
+			}
+		    }
+		    else
+			TxError("Label box requires four coordinates.\n");
+
+		    if (yp == NULL) break;	/* Error condition */
+		}
+		else if (locargc == 6)
+		{
+		    rect.r_xbot = cmdScaleCoord(w, cmd->tx_argv[argstart + 1],
+				TRUE, TRUE, 1);
+		    rect.r_ybot = cmdScaleCoord(w, cmd->tx_argv[argstart + 2],
+				TRUE, FALSE, 1);
+		    rect.r_xtop = cmdScaleCoord(w, cmd->tx_argv[argstart + 3],
+				TRUE, TRUE, 1);
+		    rect.r_ytop = cmdScaleCoord(w, cmd->tx_argv[argstart + 4],
+				TRUE, FALSE, 1);
+		}
+		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
+				cmdLabelRectFunc,
+				((locargc == 6) || (locargc == 3)) ?
+				(ClientData)&rect : (ClientData)NULL);
 	    }
 	    break;
 
@@ -2252,7 +2382,7 @@ CmdSetLabel(w, cmd)
 	    }
 	    else if (EditCellUse)
 	    {
-		SelEnumLabels(&DBAllTypeBits, TRUE, (bool *)NULL,
+		SelEnumLabelsMirror(&DBAllTypeBits, TRUE, (bool *)NULL,
 			cmdLabelRotateFunc, (locargc == 3) ?
 			(ClientData)&rotate : (ClientData)NULL);
 	    }

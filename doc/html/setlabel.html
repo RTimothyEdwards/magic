@@ -29,9 +29,10 @@ Manipulate rendered font labels
       <BLOCKQUOTE>
          where <I>option</I> is one of the following:
 	 <DL>
-	   <DT> <B>text</B> [<I>string</I>]
-	   <DD> Report the text string of all selected labels, or change
-		the text string of selected labels to <I>string</I>.
+	   <DT> <B>box</B> [<I>llx lly urx ury</I>]
+	   <DD> Report the bounds of the attachment box for all selected
+		labels, or set the coordinates of the attachment box to
+		the indicated values. 
 	   <DT> <B>font</B> [<I>name</I> [<I>scale</I>]]
 	   <DD> Report the font of all selected labels, or set the font
 		to the font named <I>name</I>, where <I>name</I> is one
@@ -62,12 +63,13 @@ Manipulate rendered font labels
 	   <DD> Report the justification of all selected labels, or change the
 		justification to <I>position</I>, which may be any compass
 		direction or "center".
-	   <DT> <B>size</B> [<I>value</I>]
-	   <DD> Report the size of all selected labels, or change the size of
-		selected labels to <I>value</I>, which may be given in units
-		of lambda, or a metric measurement (e.g., "<B>1um</B>").  The
-		text will be adjusted so that the height of capitalized text
-		from the text baseline is equal to the requested value.
+	   <DT> <B>layer</B> [<I>name</I>]
+	   <DD> Report the layer type to which the label is attached.
+		If the optional <I>name</I> is given, and is a valid layer
+		name, then the label is modified to be attached to that
+		layer type.  Note that if the layer is not also declared
+		"sticky" (see below), then it is likely to be reattached to
+		the original layer during certain operations.
 	   <DT> <B>offset</B> [<I>x y</I>]
 	   <DD> Report the offset of all selected labels (in <I>x y</I> pairs),
 		or change the offset, which is the spacing between the point
@@ -88,13 +90,12 @@ Manipulate rendered font labels
 		such that it occupies a specific place with respect to the cell
 		layout, then it will always appear in that same place regardless
 		of how the cell is oriented in the hierarchy of a layout.
-	   <DT> <B>layer</B> [<I>name</I>]
-	   <DD> Report the layer type to which the label is attached.
-		If the optional <I>name</I> is given, and is a valid layer
-		name, then the label is modified to be attached to that
-		layer type.  Note that if the layer is not also declared
-		"sticky" (see below), then it is likely to be reattached to
-		the original layer during certain operations.
+	   <DT> <B>size</B> [<I>value</I>]
+	   <DD> Report the size of all selected labels, or change the size of
+		selected labels to <I>value</I>, which may be given in units
+		of lambda, or a metric measurement (e.g., "<B>1um</B>").  The
+		text will be adjusted so that the height of capitalized text
+		from the text baseline is equal to the requested value.
 	   <DT> <B>sticky</B> [<B>true</B>|<B>false</B>]
 	   <DD> Report the status of the "sticky" flag for the label.  Labels
 		which have the "sticky" flag set can only attach to the
@@ -104,6 +105,9 @@ Manipulate rendered font labels
 		assigned to "space".  Value returned is 1 (true) or 0 (false).
 		If "<B>true</B>" or "<B>false</B>" is specified, then the
 		sticky flag is set or cleared, respectively.
+	   <DT> <B>text</B> [<I>string</I>]
+	   <DD> Report the text string of all selected labels, or change
+		the text string of selected labels to <I>string</I>.
 	 </DL>
       </BLOCKQUOTE>
    </BLOCKQUOTE>
@@ -125,7 +129,7 @@ Manipulate rendered font labels
 	value of the default is returned.  The default values are applied
 	when the "<B>label</B> command is issued without the full set of
 	values.  The <B>-default</B> option may be used with any label
-	property except for <I>text</I>.
+	property except for <I>text</I> and <I>box</I>.
 	<BR><BR>
 
 	The default values, if not changed by using the <B>-default</B> option,

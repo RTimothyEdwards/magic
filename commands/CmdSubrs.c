@@ -201,7 +201,8 @@ cmdScaleCoord(w, arg, is_relative, is_x, scale)
 	    return round(dval);
 	}
     }
-    dval /= CIFGetOutputScale(mscale);
+    if (!isspace(*endptr))
+        dval /= CIFGetOutputScale(mscale);
     return round(dval);
 }
 

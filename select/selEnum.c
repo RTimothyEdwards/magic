@@ -733,7 +733,7 @@ selEnumCFunc2(scx, arg)
 /*
  * ----------------------------------------------------------------------------
  *
- * SelEnumLabels --
+ * SelEnumLabelsBase --
  *
  * 	Find all selected labels, and call the client's procedure for
  *	each label found.  Only consider labels attached to "layers",
@@ -771,10 +771,13 @@ selEnumCFunc2(scx, arg)
  */
 
 int
-SelEnumLabels(layers, editOnly, foundNonEdit, func, clientData)
+SelEnumLabelsBase(layers, editOnly, doMirror, foundNonEdit, func, clientData)
     TileTypeBitMask *layers;	/* Find labels on these layers. */
     bool editOnly;		/* TRUE means only find labels that are
 				 * both selected and in the edit cell.
+				 */
+    bool doMirror; 		/* If TRUE, apply the function to both the
+				 * label in the selection and in the edit cell.
 				 */
     bool *foundNonEdit;		/* If non-NULL, this word is set to TRUE
 				 * if there are selected labels that aren't
@@ -837,9 +840,65 @@ SelEnumLabels(layers, editOnly, foundNonEdit, func, clientData)
 
 	if ((*func)(arg.sea_foundLabel, arg.sea_foundUse,
 	    &arg.sea_foundTrans, clientData) != 0) return 1;
+
+	if (doMirror)
+	    (*func)(selLabel, SelectUse, &SelectUse->cu_transform, clientData);
     }
 
     return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * SelEnumLabels --
+ *
+ * Wrapper for SelEnumLabelsBase() with doMirror set to FALSE.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+SelEnumLabels(layers, editOnly, foundNonEdit, func, clientData)
+    TileTypeBitMask *layers;	/* Find labels on these layers. */
+    bool editOnly;		/* TRUE means only find labels that are
+				 * both selected and in the edit cell.
+				 */
+    bool *foundNonEdit;		/* If non-NULL, this word is set to TRUE
+				 * if there are selected labels that aren't
+				 * in the edit cell, FALSE otherwise.
+				 */
+    int (*func)();		/* Function to call for each label found. */
+    ClientData clientData;	/* Argument to pass through to func. */
+{
+    return SelEnumLabelsBase(layers, editOnly, FALSE, foundNonEdit, func, clientData);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * SelEnumLabelsMirror --
+ *
+ * Wrapper for SelEnumLabelsBase() with doMirror set to TRUE.  Function
+ * "func" is applied to both the label in the edit cell and in the
+ * selection.  Used when modifying labels so that the selection view
+ * tracks the changes made to each label.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+SelEnumLabelsMirror(layers, editOnly, foundNonEdit, func, clientData)
+    TileTypeBitMask *layers;	/* Find labels on these layers. */
+    bool editOnly;		/* TRUE means only find labels that are
+				 * both selected and in the edit cell.
+				 */
+    bool *foundNonEdit;		/* If non-NULL, this word is set to TRUE
+				 * if there are selected labels that aren't
+				 * in the edit cell, FALSE otherwise.
+				 */
+    int (*func)();		/* Function to call for each label found. */
+    ClientData clientData;	/* Argument to pass through to func. */
+{
+    return SelEnumLabelsBase(layers, editOnly, TRUE, foundNonEdit, func, clientData);
 }
 
 /* Search function for label enumeration:  make sure that this label

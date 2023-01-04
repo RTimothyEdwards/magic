@@ -46,6 +46,7 @@ extern ExtRectList *SelectShort();
 extern int SelEnumPaint();
 extern int SelEnumCells();
 extern int SelEnumLabels();
+extern int SelEnumLabelsMirror();
 
 /* Procedures to operate on the selection. */
 
