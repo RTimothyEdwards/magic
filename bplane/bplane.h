@@ -160,17 +160,6 @@
  *
  */
 
-/* offset of a structure member (used to gen offsets for ihash stuff) */
-#if _MSC_VER
-/* Microsoft compile complains about size of (void*), so must use (char*) */
-/* Could use (char*) in UNIX version too. */
-#define OFFSET(structure,member)   \
-( ((char *) &(((structure *) 0))->member) - ((char *) 0) )
-#else
-#define OFFSET(structure,member)   \
-( ((void *) &(((structure *) 0))->member) - ((void *) 0) )
-#endif
-
 /* data-structures opaque to clients */
 #include "bplane/bpOpaque.h"
 
