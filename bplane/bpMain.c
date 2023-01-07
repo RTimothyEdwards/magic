@@ -37,6 +37,7 @@
  */
 
 #include <stdio.h>
+#include <stddef.h>
 #include "utils/utils.h"
 #include "utils/malloc.h"
 #include "database/database.h"
@@ -68,8 +69,8 @@ BPlane *BPNew(void)
 
   /* HASH TABLE */
   new->bp_hashTable = IHashInit(4, /* initial buckets */
-				OFFSET(Element, e_rect), /* key */
-				OFFSET(Element, e_hashLink),
+				offsetof(Element, e_rect), /* key */
+				offsetof(Element, e_hashLink),
 				IHash4WordKeyHash,
 				IHash4WordKeyEq);
 
