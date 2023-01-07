@@ -321,9 +321,12 @@ PlotDumpHPRTL(hpfile, kRaster, cRaster, mRaster, yRaster)
 	/* Merge the black plane into C, M, and Y */
 	for (count = 0; count < ipl; count++)
 	{
-	    *c++ = (*c | *k);
-	    *m++ = (*m | *k);
-	    *y++ = (*y | *k);
+	    *c = (*c | *k);
+	    *m = (*m | *k);
+	    *y = (*y | *k);
+	    c++;
+	    m++;
+	    y++;
 	    k++;
 	}
 
