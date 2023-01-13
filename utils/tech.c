@@ -44,6 +44,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/heap.h"
 #include "cif/cif.h"
 #include "cif/cif.h"
+#include "cif/CIFint.h"
 #include "drc/drc.h"
 #include "mzrouter/mzrouter.h"
 #include "wiring/wiring.h"
@@ -757,6 +758,14 @@ skipsection:
 
     if ((filename != NULL) && (retval == TRUE))
     {
+	/* If the tech file insists that the grid should be set	*/
+	/* to the minimum, then enforce it.			*/
+	if (CIFCurStyle && (CIFCurStyle->cs_flags & CWF_MINIMUM_GRID))
+	{
+	    DBLambda[0] = 1;
+	    DBLambda[1] = CIFCurStyle->cs_scaleFactor / CIFCurStyle->cs_gridLimit;
+	}
+
 	/* If internal scalefactor is not the default 1:1, then we  */
 	/* need to scale the techfile numbers accordingly.          */
 

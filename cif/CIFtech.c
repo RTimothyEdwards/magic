@@ -1018,6 +1018,8 @@ CIFTechLine(sectionName, argc, argv)
 	{
 	    if (strcmp(argv[i], "calma-permissive-labels") == 0)
 		CIFCurStyle->cs_flags |= CWF_PERMISSIVE_LABELS;
+	    else if (strcmp(argv[i], "set-minimum-grid") == 0)
+		CIFCurStyle->cs_flags |= CWF_MINIMUM_GRID;
 	    else if (strcmp(argv[i], "grow-euclidean") == 0)
 		CIFCurStyle->cs_flags |= CWF_GROW_EUCLIDEAN;
 	    else if (strcmp(argv[i], "see-no-vendor") == 0)
