@@ -1315,7 +1315,7 @@ nmdone:
  * DBDiagonalProc(type) --
  *
  *	Return the result type of a diagonal tile painted on oldtype;
- *	Argument "cdata", gives direction and side of diagonal, and the
+ *	Argument "dinfo", gives direction and side of diagonal, and the
  *	paint result table for the given diagonal side.
  *
  *	If the result cannot be described with a single tile, then
@@ -1333,14 +1333,13 @@ nmdone:
  */
 
 int
-DBDiagonalProc(oldtype, cdata)
+DBDiagonalProc(oldtype, dinfo)
     TileType oldtype;
-    ClientData cdata;
+    DiagInfo *dinfo;
 {
     TileType old_n, old_s, old_e, old_w;
     TileType new_n, new_s, new_e, new_w;
     TileType newtype;
-    DiagInfo *dinfo = (DiagInfo *)cdata;
     PaintResultType *resultTbl = dinfo->resultTbl;
 
     /* Disassemble old and new types into four quadrants, find the	*/
