@@ -194,7 +194,10 @@ DBSearchForTech(techname, pathroot, level)
 	    if (tdent->d_type != DT_DIR)
 	    {
 		if (!strcmp(tdent->d_name, techname))
+		{
+		    closedir(tdir);
 		    return pathroot;
+		}
 	    }
 	    else if (strcmp(tdent->d_name, ".") && strcmp(tdent->d_name, ".."))
 	    {
@@ -202,13 +205,17 @@ DBSearchForTech(techname, pathroot, level)
 		sprintf(newpath, "%s/%s", pathroot, tdent->d_name);
 		found = DBSearchForTech(techname, newpath, level + 1);
 		if (found != newpath) freeMagic(newpath);
-		if (found) return found;
+		if (found)
+		{
+		    closedir(tdir);
+		    return found;
+		}
 	    }
 	}
 	closedir(tdir);
     }
-    else
-	return NULL;
+
+    return NULL;
 }
 
 /*
