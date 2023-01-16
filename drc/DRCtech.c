@@ -1968,7 +1968,8 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
     TileTypeBitMask *set1, *set2;
     PlaneMask pmask1, pmask2;
     int wwidth, distance;
-    char *adjacency, *why;
+    char *adjacency;
+    int why;
     bool widerule;
     int runlength;
     bool multiplane;
