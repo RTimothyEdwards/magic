@@ -1197,7 +1197,7 @@ PlotPS(fileName, scx, layers, xMask)
 		theight + PlotPSMargin);
     fontptr = PlotPSIdFont;
     fprintf(file, "%%%%DocumentNeededResources: font %s", fontptr);
-    if (!Match(fptr2 = PlotPSNameFont, fontptr));
+    if (!Match(fptr2 = PlotPSNameFont, fontptr))
         fprintf(file, " font %s", fptr2);
     if (!Match(fptr3 = PlotPSLabelFont, fontptr))
 	if (!Match(fptr3, fptr2))
