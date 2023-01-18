@@ -25,7 +25,7 @@
 #include "utils/magic.h"
 
 /* Externally visible variables */
-extern bool CalmaSubcellPolygons;
+extern unsigned char CalmaSubcellPolygons;
 extern bool CalmaSubcellPaths;
 extern bool CalmaDoLabels;
 extern bool CalmaDoLibrary;
@@ -48,6 +48,15 @@ extern int  CalmaCompression;
 extern bool CalmaPostOrder;
 extern bool CalmaAllowUndefined;
 extern bool CalmaAllowAbstract;
+
+/* Definitions used by the return value for CalmaSubcellPolygons */
+/* 	CALMA_POLYGON_NONE:  Process polygons immediately	 */
+/* 	CALMA_POLYGON_TEMP:  Create temporary polygon subcells	 */
+/* 	CALMA_POLYGON_KEEP:  Keep polygons in subcells		 */
+
+#define CALMA_POLYGON_NONE	0
+#define CALMA_POLYGON_TEMP	1
+#define CALMA_POLYGON_KEEP	2
 
 /* Externally-visible procedures: */
 extern bool CalmaWrite();

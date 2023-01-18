@@ -606,7 +606,8 @@ calmaParseStructure(filename)
      */
     DBEraseLabelsByContent(cifReadCellDef, NULL, -1, "");
 
-    if ((!CalmaSubcellPolygons) && (locPolygonCount < CalmaPolygonCount))
+    if ((CalmaSubcellPolygons == CALMA_POLYGON_TEMP) &&
+			(locPolygonCount < CalmaPolygonCount))
 	DBCellEnum(cifReadCellDef, calmaFlattenPolygonFunc, (ClientData)cifReadCellDef);
 
     DBAdjustLabelsNew(cifReadCellDef, &TiPlaneRect,

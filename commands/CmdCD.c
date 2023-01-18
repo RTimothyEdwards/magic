@@ -143,6 +143,7 @@ CmdCalma(w, cmd)
     static char *cmdCalmaYesNo[] = {
 		"no", "false", "off", "0", "yes", "true", "on", "1", 0 };
     static char *cmdCalmaAllowDisallow[] = {"disallow", "0", "allow", "1", 0};
+    static char *cmdCalmaPolygonType[] = {"none", "temporary", "keep", 0};
     static char *cmdCalmaWarnOptions[] = { "default", "none", "align",
 		"limit", "redirect", "help", 0 };
     static char *cmdCalmaOption[] =
@@ -672,22 +673,44 @@ CmdCalma(w, cmd)
 	    if (cmd->tx_argc == 3)
 	    {
 #ifdef MAGIC_WRAPPER
-		Tcl_SetObjResult(magicinterp, Tcl_NewBooleanObj(CalmaSubcellPolygons));
+		switch (CalmaSubcellPolygons)
+		{
+		    case CALMA_POLYGON_NONE:
+		        Tcl_SetObjResult(magicinterp, Tcl_NewStringObj("none", 0));
+			break;
+		    case CALMA_POLYGON_TEMP:
+		        Tcl_SetObjResult(magicinterp, Tcl_NewStringObj("temporary", 0));
+			break;
+		    case CALMA_POLYGON_KEEP:
+		        Tcl_SetObjResult(magicinterp, Tcl_NewStringObj("keep", 0));
+			break;
+		}
 #else
-		if (CalmaSubcellPolygons)
-		    TxPrintf("Non-manhattan polygons placed in subcells.\n");
-		else
+		if (CalmaSubcellPolygons == CALMA_POLYGON_NONE)
 		    TxPrintf("Non-manhattan polygons read as-is.\n");
+		else if (CalmaSubcellPolygons == CALMA_POLYGON_TEMP)
+		    TxPrintf("Non-manhattan polygons placed in temporary subcells.\n");
+		else
+		    TxPrintf("Non-manhattan polygons placed in subcells.\n");
 #endif
 		return;
 	    }
 	    else if (cmd->tx_argc != 4)
 		goto wrongNumArgs;
 
-	    option = Lookup(cmd->tx_argv[3], cmdCalmaYesNo);
+	    option = Lookup(cmd->tx_argv[3], cmdCalmaPolygonType);
 	    if (option < 0)
-		goto wrongNumArgs;
-	    CalmaSubcellPolygons = (option < 4) ? FALSE : TRUE;
+	    {
+		option = Lookup(cmd->tx_argv[3], cmdCalmaYesNo);
+	    	if (option < 0)
+		    goto wrongNumArgs;
+		else if (option < 4)
+		    CalmaSubcellPolygons = (unsigned char)CALMA_POLYGON_NONE;
+		else
+		    CalmaSubcellPolygons = (unsigned char)CALMA_POLYGON_KEEP;
+	    }
+	    else
+		CalmaSubcellPolygons = (unsigned char)option;
 	    return;
 
 	case CALMA_NO_DUP:

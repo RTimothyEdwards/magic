@@ -55,9 +55,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* Globals for Calma reading */
 FILETYPE calmaInputFile = NULL;		/* Read from this stream */
 FILE *calmaErrorFile = NULL;		/* Write error output here */
-bool CalmaSubcellPolygons = FALSE;	/* Put non-Manhattan polygons
-					 * in their own subcells.
-					 */
+unsigned char CalmaSubcellPolygons = CALMA_POLYGON_NONE;
+					/* Read non-Manhattan polygons as-is */
 int CalmaPolygonCount;
 bool CalmaSubcellPaths = FALSE;		/* Put paths in their own subcells. */
 int CalmaPathCount;
