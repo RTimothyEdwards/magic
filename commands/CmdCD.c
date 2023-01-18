@@ -707,7 +707,7 @@ CmdCalma(w, cmd)
 		else if (option < 4)
 		    CalmaSubcellPolygons = (unsigned char)CALMA_POLYGON_NONE;
 		else
-		    CalmaSubcellPolygons = (unsigned char)CALMA_POLYGON_KEEP;
+		    CalmaSubcellPolygons = (unsigned char)CALMA_POLYGON_TEMP;
 	    }
 	    else
 		CalmaSubcellPolygons = (unsigned char)option;
