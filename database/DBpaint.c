@@ -1538,7 +1538,7 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
 		}
 
 		oldType = TiGetTypeExact(tile);
-		newType = DBDiagonalProc(oldType, &dinfo);
+		newType = DBDiagonalProc(oldType, (uintptr_t)&dinfo);
 
 		/* Ignore tiles that don't change type.	*/
 
