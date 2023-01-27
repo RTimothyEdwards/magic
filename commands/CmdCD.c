@@ -2907,7 +2907,7 @@ CmdCorner(w, cmd)
 	    ui.pu_pNum = pNum;
 
 	    rectp = CIFPolyToRects(cmdPathList.pathlist->pathhead, plane,
-			resultTbl, &ui);
+			resultTbl, &ui, FALSE);
 	    for (; rectp != NULL; rectp = rectp->r_next)
 	    {
 		DBPaintPlane(plane, &rectp->r_r, resultTbl, &ui);

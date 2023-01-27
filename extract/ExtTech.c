@@ -62,6 +62,12 @@ void extTechFinalStyle();
 void ExtLoadStyle();
 void ExtTechScale(int, int);
 
+/* This is a placeholder value;  it may be approximately
+ * constant across processes, or it may need to be set
+ * per process.
+ */
+#define FRINGE_MULT  0.02
+
 /*
  * Table used for parsing the extract section of a .tech file
  * Each line in the extract section is of a type determined by
@@ -767,6 +773,7 @@ extTechStyleInit(style)
 	    style->exts_sideOverlapCap[r][s] = (EdgeCap *) NULL;
 	    style->exts_perimCap[r][s] = (CapValue) 0;
 	    style->exts_overlapCap[r][s] = (CapValue) 0;
+	    style->exts_overlapMult[r][s] = (float) 0;
 
 	    TTMaskZero(&style->exts_overlapShieldTypes[r][s]);
 	    style->exts_overlapShieldPlanes[r][s] = 0;
@@ -815,7 +822,6 @@ extTechStyleInit(style)
     }
 
     style->exts_sideCoupleHalo = 0;
-    style->exts_fringeShieldHalo = 0;
     style->exts_stepSize = 100;
     style->exts_unitsPerLambda = 100.0;
     style->exts_resistScale = 1000;
@@ -1064,6 +1070,7 @@ ExtTechSimpleAreaCap(argc, argv)
     TileType s, t;
     TileTypeBitMask types, subtypes, shields;
     CapValue capVal;
+    float multVal;
     int plane1, plane2, plane3, pnum1, pnum2, pnum3;
     PlaneMask pshield;
 
@@ -1096,7 +1103,11 @@ ExtTechSimpleAreaCap(argc, argv)
     /* Part 1: Area cap */
     for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 	if (TTMaskHasType(&types, t))
+	{
 	    ExtCurStyle->exts_areaCap[t] = capVal;
+	    ExtCurStyle->exts_overlapMult[t][0] = (float) capVal * FRINGE_MULT;
+	    ExtCurStyle->exts_overlapMult[0][t] = (float) capVal * FRINGE_MULT;
+	}
 
     if ((plane2 == -1) && (ExtCurStyle->exts_globSubstratePlane == -1)) return;
     else if (plane1 == plane2) return;  /* shouldn't happen */
@@ -1182,6 +1193,8 @@ ExtTechSimpleAreaCap(argc, argv)
 		    continue;	/* redundant overlap */
 
 		ExtCurStyle->exts_overlapCap[s][t] = capVal;
+		ExtCurStyle->exts_overlapMult[s][t] = (float)capVal * FRINGE_MULT;
+		ExtCurStyle->exts_overlapMult[t][s] = (float)capVal * FRINGE_MULT;
 		ExtCurStyle->exts_overlapPlanes |= PlaneNumToMaskBit(plane1);
 		if (plane2 != -1)
 		    ExtCurStyle->exts_overlapOtherPlanes[s] |= PlaneNumToMaskBit(plane2);
@@ -1561,6 +1574,8 @@ ExtTechSimpleOverlapCap(argv)
 		    continue;	/* redundant overlap */
 
 		ExtCurStyle->exts_overlapCap[s][t] = capVal;
+		ExtCurStyle->exts_overlapMult[s][t] = (float)capVal * FRINGE_MULT;
+		ExtCurStyle->exts_overlapMult[t][s] = (float)capVal * FRINGE_MULT;
 		ExtCurStyle->exts_overlapPlanes |= PlaneNumToMaskBit(plane1);
 		ExtCurStyle->exts_overlapOtherPlanes[s] |= PlaneNumToMaskBit(plane2);
 		TTMaskSetType(&ExtCurStyle->exts_overlapTypes[plane1], s);
@@ -2109,7 +2124,11 @@ ExtTechLine(sectionName, argc, argv)
 	    capVal = aToCap(argv[2]);
 	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
 		if (TTMaskHasType(&types1, t))
+		{
 		    ExtCurStyle->exts_areaCap[t] = capVal;
+		    ExtCurStyle->exts_overlapMult[t][0] = (float) capVal * FRINGE_MULT;
+		    ExtCurStyle->exts_overlapMult[0][t] = (float) capVal * FRINGE_MULT;
+		}
 	    break;
 	case CONTACT:
 	    /* Contact size, border, spacing deprecated (now taken from	*/
@@ -2825,6 +2844,8 @@ ExtTechLine(sectionName, argc, argv)
 			continue;
 		    }
 		    ExtCurStyle->exts_overlapCap[s][t] = capVal;
+		    ExtCurStyle->exts_overlapMult[s][t] = (float)capVal * FRINGE_MULT;
+		    ExtCurStyle->exts_overlapMult[t][s] = (float)capVal * FRINGE_MULT;
 		    ExtCurStyle->exts_overlapPlanes |= PlaneNumToMaskBit(p1);
 		    ExtCurStyle->exts_overlapOtherPlanes[s]
 			    |= PlaneNumToMaskBit(p2);
@@ -3012,11 +3033,7 @@ ExtTechLine(sectionName, argc, argv)
 	    ExtCurStyle->exts_sideCoupleHalo = (int)dhalo;
 	    break;
 	case FRINGESHIELDHALO:
-	    /* Allow floating-point and increase by factor of 1000      */
-	    /* to accommodate "units microns".                          */
-	    sscanf(argv[1], "%lg", &dhalo);
-	    dhalo *= (double)1000.0;
-	    ExtCurStyle->exts_fringeShieldHalo = (int)dhalo;
+	    /* This is deprecated. . . Ignore */
 	    break;
 	case PERIMC:
 	    DBTechNoisyNameMask(argv[2], &types2);
@@ -3471,6 +3488,7 @@ zinit:
 
 		style->exts_perimCap[r][s] *= scalefac;
 		style->exts_overlapCap[r][s] *= sqfac;
+		style->exts_overlapMult[r][s] *= scalefac;
 		for (ec = style->exts_sideOverlapCap[r][s]; ec != NULL;
 				ec = ec->ec_next)
 		    ec->ec_cap *= scalefac;
@@ -3512,8 +3530,6 @@ zinit:
 
 	style->exts_sideCoupleHalo = (int)(((float)style->exts_sideCoupleHalo
 		/ dscale) + 0.5);
-	style->exts_fringeShieldHalo = (int)(((float)style->exts_fringeShieldHalo
-		/ dscale) + 0.5);
 	style->exts_stepSize = (int)(((float)style->exts_stepSize
 		/ dscale) + 0.5);
     }
@@ -3530,7 +3546,6 @@ zinit:
     /* needed, so normalize it back to lambda units.			*/
 
     style->exts_sideCoupleHalo /= 1000;
-    style->exts_fringeShieldHalo /= 1000;
 }
 
 /*
@@ -3559,7 +3574,6 @@ ExtTechScale(scalen, scaled)
     style->exts_unitsPerLambda = style->exts_unitsPerLambda * (float)scalen
 		/ (float)scaled;
     DBScaleValue(&style->exts_sideCoupleHalo, scaled, scalen);
-    DBScaleValue(&style->exts_fringeShieldHalo, scaled, scalen);
     DBScaleValue(&style->exts_stepSize, scaled, scalen);
 
     for (i = 0; i < DBNumTypes; i++)
@@ -3591,6 +3605,8 @@ ExtTechScale(scalen, scaled)
 	    style->exts_perimCap[i][j] /= scaled;
 	    style->exts_overlapCap[i][j] *= sqn;
 	    style->exts_overlapCap[i][j] /= sqd;    /* Typo fixed in 7.2.57 */
+	    style->exts_overlapMult[i][j] *= scalen;
+	    style->exts_overlapMult[i][j] /= scaled;
 
 	    // Do not scale sidewall cap, for while the value is
 	    // per distance, the distance is referred to a separation

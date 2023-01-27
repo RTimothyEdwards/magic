@@ -22,7 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
-#include <math.h>		/* For sin() */
+#include <math.h>		/* For atan() */
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -41,10 +41,6 @@ HashTable *extCoupleHashPtr;
 /* Clipping area for coupling searches */
 Rect *extCoupleSearchArea;
 
-/* Current list of sidewall capacitance rules */
-EdgeCap *extCoupleList;
-EdgeCap *extOverlapList;
-
 /* Def being processed */
 CellDef *extOverlapDef;
 
@@ -52,9 +48,8 @@ CellDef *extOverlapDef;
 int extBasicOverlap(), extBasicCouple();
 int extAddOverlap(), extAddCouple();
 int extSideLeft(), extSideRight(), extSideBottom(), extSideTop();
-int extShieldLeft(), extShieldRight(), extShieldBottom(), extShieldTop();
 int extWalkLeft(), extWalkRight(), extWalkBottom(), extWalkTop();
-int extSideOverlap();
+int extSideOverlap(), extFindOverlap();
 void extSideCommon();
 
 /* Structure to pass on to the coupling and sidewall capacitance	*/
@@ -80,10 +75,13 @@ typedef struct _ecpls {
 
 typedef struct _esws {
     Boundary *bp;
-    int   plane_of_boundary;
-    int   plane_checked;
-    int   fringe_halo;
-    float shieldfrac;
+    int       plane_of_boundary;
+    int       plane_checked;
+    bool      fringe_halo;
+    Rect     *area;
+    EdgeCap  *extCoupleList;	/* List of sidewall capacitance rules */
+    EdgeCap  *extOverlapList;	/* List of overlap capacitance rules */
+    CellDef  *def;
 } extSidewallStruct;
 
 /* --------------------- Debugging stuff ---------------------- */
@@ -141,15 +139,6 @@ void extAdjustCouple(he, c, str)
  *		  edge.  In this case we add the coupling capacitance to the
  *		  hash table.  (We may want to deduct the perimeter capacitance
  *		  to substrate?).
- *
- * and a mitigating effect:
- *
- *	Sidewall
- *	shield.   When another shape on the same plane is in the proximity of
- *		  a sidewall edge, then the other shape partially shields the
- *		  fringe (sidewall overlap) capacitance.  The amount of shielding
- *		  is modeled by an ellipse between the fringe effect distance
- *		  exts_fringeShieldHalo (no shielding) and zero (full shielding).
  *
  * Requires that ExtFindRegions has been run on 'def' to label all its
  * tiles with NodeRegions.  Also requires that the HashTable 'table'
@@ -670,8 +659,6 @@ extBasicCouple(tile, ecs)
  * ----------------------------------------------------------------------------
  */
 
-Rect extSideOverlapSearchArea;
-
 int
 extAddCouple(bp, ecs)
     Boundary *bp;	/* Boundary being considered */
@@ -682,7 +669,6 @@ extAddCouple(bp, ecs)
     PlaneMask pMask;
     Boundary bpCopy;
     Rect r, ovr;
-    CellDef *def = ecs->def;
     extSidewallStruct esws;
     int distFringe;
 
@@ -692,10 +678,12 @@ extAddCouple(bp, ecs)
     if (DBIsContact(tout))
 	tout = DBPlaneToResidue(tout, ecs->plane);
 
-    extCoupleList = ExtCurStyle->exts_sideCoupleCap[tin][tout];
-    extOverlapList = ExtCurStyle->exts_sideOverlapCap[tin][tout];
-    if (extCoupleList == NULL && extOverlapList == NULL)
+    esws.extCoupleList = ExtCurStyle->exts_sideCoupleCap[tin][tout];
+    esws.extOverlapList = ExtCurStyle->exts_sideOverlapCap[tin][tout];
+    if ((esws.extCoupleList == NULL) && (esws.extOverlapList == NULL))
 	return (0);
+
+    esws.def = ecs->def;
 
     /*
      * Clip the edge of interest to the area where we're searching
@@ -719,138 +707,169 @@ extAddCouple(bp, ecs)
     /* fringe cap is (unrealistically) assumed to couple only 	*/
     /* to shapes that are directly below the edge.		*/
 
+    esws.fringe_halo = (ExtOptions & EXT_DOFRINGEHALO) ? 
+		((ExtCurStyle->exts_sideCoupleHalo == 0) ? FALSE : TRUE)
+		: FALSE;
+
     distFringe = (ExtOptions & EXT_DOFRINGEHALO) ?
-		ExtCurStyle->exts_fringeShieldHalo : 1;
+		ExtCurStyle->exts_sideCoupleHalo : 1;
 
     if (distFringe == 0) distFringe = 1;
+
+    esws.bp = bp;
+    esws.plane_of_boundary = ecs->plane;
+    esws.area = &ovr;
 
     switch (bp->b_direction)
     {
 	case BD_LEFT:	/* Along left */
 	    r.r_xbot -= ExtCurStyle->exts_sideCoupleHalo;
 	    ovr.r_xbot -= distFringe;
-    	    if (extCoupleList)
-		extWalkLeft(&r,
+	    extWalkLeft(&r,
 			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extSideLeft, bp, (ClientData)NULL);
+			extSideLeft, bp, (ClientData)&esws);
 	    break;
 	case BD_RIGHT:	/* Along right */
 	    r.r_xtop += ExtCurStyle->exts_sideCoupleHalo;
 	    ovr.r_xtop += distFringe;
-    	    if (extCoupleList)
-		extWalkRight(&r,
+	    extWalkRight(&r,
 			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extSideRight, bp, (ClientData)NULL);
+			extSideRight, bp, (ClientData)&esws);
 	    break;
 	case BD_TOP:	/* Along top */
 	    r.r_ytop += ExtCurStyle->exts_sideCoupleHalo;
 	    ovr.r_ytop += distFringe;
-    	    if (extCoupleList)
-		extWalkTop(&r,
+	    extWalkTop(&r,
 			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extSideTop, bp, (ClientData)NULL);
+			extSideTop, bp, (ClientData)&esws);
 	    break;
 	case BD_BOTTOM:	/* Along bottom */
 	    r.r_ybot -= ExtCurStyle->exts_sideCoupleHalo;
 	    ovr.r_ybot -= distFringe;
-    	    if (extCoupleList)
-		extWalkBottom(&r,
+	    extWalkBottom(&r,
 			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extSideBottom, bp, (ClientData)NULL);
+			extSideBottom, bp, (ClientData)&esws);
+	    break;
+    }
+    return (0);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extRemoveSubcap --
+ *
+ * A nearby shape blocks parasitic fringe capacitance from a layer boundary
+ * to substrate, and so all parasitic fringe capacitance from the layer's
+ * region to substrate that is blocked must be removed from the total
+ * substrate capacitance for that region.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extRemoveSubcap(bp, clip, esws)
+    Boundary *bp;		/* Boundary with fringe capacitance */
+    Rect *clip;			/* Area not being blocked */
+    extSidewallStruct *esws;	/* Overlapping edge and plane information */
+{
+    int dnear, length;
+    double snear, cfrac;
+    NodeRegion *rbp;
+    TileType ta, tb;
+    float mult;
+    CapValue subcap;
+
+    if (!esws->fringe_halo) return;
+
+    ta = TiGetType(bp->b_inside);
+    tb = TiGetType(bp->b_outside);
+    rbp = (NodeRegion *)extGetRegion(bp->b_inside);
+
+    if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
+	length = bp->b_segment.r_ytop - bp->b_segment.r_ybot;
+    else
+	length = bp->b_segment.r_xtop - bp->b_segment.r_xbot;
+
+    switch (bp->b_direction)
+    {
+	case BD_LEFT:	/* Tile tp is to the left of the boundary */
+	    dnear = bp->b_segment.r_xbot - clip->r_xbot;
+	    break;
+	case BD_RIGHT:	/* Tile tp is to the right of the boundary */
+	    dnear = clip->r_xtop - bp->b_segment.r_xtop;
+	    break;
+	case BD_BOTTOM:	/* Tile tp is below the boundary */
+	    dnear = bp->b_segment.r_ybot - clip->r_ybot;
+	    break;
+	case BD_TOP:	/* Tile tp is above the boundary */
+	    dnear = clip->r_ytop - bp->b_segment.r_ytop;
 	    break;
     }
 
-    /* Additional calculations for the significant shielding effect of	*/
-    /* nearby shapes on fringe capacitance.				*/
+    if (dnear < 0) dnear = 0;	/* Don't count underlap */
+    mult = ExtCurStyle->exts_overlapMult[ta][0];
+    snear = 0.6366 * atan(mult * dnear);
 
-    if (extCoupleList && extOverlapList && (ExtCurStyle->exts_fringeShieldHalo > 0)
-		&& (ExtOptions & EXT_DOCOUPLING))
-    {
-	float shieldFrac;
-    	NodeRegion *rbp;
+    /* "snear" is the fractional portion of the fringe cap seen by	*/
+    /* the substrate, so (1.0 - snear) is the part that is blocked.	*/
 
-	shieldFrac = 0.0;
+    subcap = ExtCurStyle->exts_perimCap[ta][tb] * (1.0 - snear) * length;
+    rbp->nreg_cap -= subcap;
+}
 
-	/* Resize r for fringe shield calculation */
-	/* and find fringe shielding amount */
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extFindOverlap --
+ *
+ * Callback function for extWalkTop/Bottom/Right/Left to find the
+ * side overlap (fringe) capacitance from a material edge (held in
+ * esws->bp) and all layers in planes below to which its fringe
+ * capacitance may couple.  The area to search will have been reduced
+ * by any nearby layers on the same plane that shield the fringe
+ * capacitance.
+ *
+ * Results:
+ *	Returns 0 to keep extWalk*() going.
+ *
+ * Side effects:
+ *	See side effects of the called function extSideOverlap()
+ *
+ * ----------------------------------------------------------------------------
+ */
 
-	switch (bp->b_direction)
+
+int
+extFindOverlap(tp, area, esws)
+    Tile *tp;			/* Overlapped tile */
+    Rect *area;			/* Area to check for coupling */
+    extSidewallStruct *esws;	/* Overlapping edge and plane information */
+{
+    PlaneMask pMask;
+    int pNum;
+    Rect *rsave;
+    Boundary *bp = esws->bp;
+    TileType tin = TiGetType(bp->b_inside);
+    TileType tout = TiGetType(bp->b_outside);
+
+    pMask = ExtCurStyle->exts_sideOverlapOtherPlanes[tin][tout];
+    extOverlapDef = esws->def;
+
+    /* Replace esws->area with area */
+    rsave = esws->area;
+    esws->area = area;
+
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	if (PlaneMaskHasPlane(pMask, pNum))
 	{
-	    case BD_LEFT:	/* Along left */
-		r.r_xbot += ExtCurStyle->exts_sideCoupleHalo	;
-		r.r_xbot -= ExtCurStyle->exts_fringeShieldHalo	;
-		extWalkLeft(&r,
-			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extShieldLeft, bp, (ClientData) &shieldFrac);
-		break;
-	    case BD_RIGHT:	/* Along right */
-		r.r_xtop -= ExtCurStyle->exts_sideCoupleHalo	;
-		r.r_xtop += ExtCurStyle->exts_fringeShieldHalo	;
-		extWalkRight(&r,
-			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extShieldRight, bp, (ClientData) &shieldFrac);
-		break;
-	    case BD_TOP:	/* Along top */
-		r.r_ytop -= ExtCurStyle->exts_sideCoupleHalo	;
-		r.r_ytop += ExtCurStyle->exts_fringeShieldHalo	;
-		extWalkTop(&r,
-			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extShieldTop, bp, (ClientData) &shieldFrac);
-		break;
-	    case BD_BOTTOM:	/* Along bottom */
-		r.r_ybot += ExtCurStyle->exts_sideCoupleHalo	;
-		r.r_ybot -= ExtCurStyle->exts_fringeShieldHalo	;
-		extWalkBottom(&r,
-			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extShieldBottom, bp, (ClientData) &shieldFrac);
-		break;
+	    esws->plane_checked = pNum;
+	    (void) DBSrPaintArea((Tile *) NULL, esws->def->cd_planes[pNum],
+			area, &ExtCurStyle->exts_sideOverlapOtherTypes[tin][tout],
+			extSideOverlap, (ClientData)esws);
 	}
-
-	esws.shieldfrac = shieldFrac;
-
-	/* Remove the part of the capacitance to substrate that came from
-	 * the sidewall overlap and that was shielded by the nearby shape.
-	 */
-	if (esws.shieldfrac > 0.0)
-	{
-	    int length;
-	    CapValue subcap;
-
-	    if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
-		length = bp->b_segment.r_ytop - bp->b_segment.r_ybot;
-	    else
-		length = bp->b_segment.r_xtop - bp->b_segment.r_xbot;
-
-	    subcap = ExtCurStyle->exts_perimCap[tin][tout] * length * esws.shieldfrac;
-
-	    rbp = (NodeRegion *) extGetRegion(bp->b_inside);
-	    rbp->nreg_cap -= subcap;
-	}
-    }
-    else
-	esws.shieldfrac = 0.0;
-
-    if (extOverlapList)
-    {
-	pMask = ExtCurStyle->exts_sideOverlapOtherPlanes[tin][tout];
-	extSideOverlapSearchArea = ovr;
-	extOverlapDef = def;
-
-	esws.bp = bp;
-	esws.plane_of_boundary = ecs->plane;
-	esws.fringe_halo = distFringe;
-
-	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-	    if (PlaneMaskHasPlane(pMask, pNum))
-	    {
-		esws.plane_checked = pNum;
-		(void) DBSrPaintArea((Tile *) NULL, def->cd_planes[pNum],
-			&ovr, &ExtCurStyle->exts_sideOverlapOtherTypes[tin][tout],
-			extSideOverlap, (ClientData) &esws);
-	    }
-    }
-
-    return (0);
+    esws->area = rsave;
+    return 0;
 }
 
 /*
@@ -886,7 +905,7 @@ extSideOverlap(tp, esws)
     HashEntry *he;
     EdgeCap *e;
     int length, areaAccountedFor, areaTotal;
-    double cfrac, afrac;
+    double cfrac, sfrac, afrac, mult;
     CapValue cap;
     CoupleKey ck;
 
@@ -907,12 +926,10 @@ extSideOverlap(tp, esws)
     }
 
     TITORECT(tp, &ov.o_clip);
-    GEOCLIP(&ov.o_clip, &extSideOverlapSearchArea);
-    areaTotal = length * esws->fringe_halo;
+    GEOCLIP(&ov.o_clip, esws->area);
+    areaTotal = GEO_WIDTH(&ov.o_clip) * GEO_HEIGHT(&ov.o_clip);
     areaAccountedFor = 0;
  
-    ASSERT(areaTotal == GEO_WIDTH(&ov.o_clip) * GEO_HEIGHT(&ov.o_clip),
-	"extSideOverlap");
     ta = TiGetType(bp->b_inside);
 
     /* Revert any contacts to their residues */
@@ -923,50 +940,58 @@ extSideOverlap(tp, esws)
 
     /* Find the fraction of the fringe cap seen by tile tp (depends	*/
     /* on the tile width and distance from the boundary)		*/
-    if (esws->fringe_halo > 1)
+    if (esws->fringe_halo)
     {
 	int dfar, dnear;
-	double ffar, fnear;
 	double sfar, snear;
 
 	switch (bp->b_direction)
 	{
 	    case BD_LEFT:	/* Tile tp is to the left of the boundary */
-		dfar = bp->b_segment.r_ll.p_x - LEFT(tp);
-		dnear = bp->b_segment.r_ll.p_x - RIGHT(tp);
+		dfar = bp->b_segment.r_ll.p_x - ov.o_clip.r_xbot;
+		dnear = bp->b_segment.r_ll.p_x - ov.o_clip.r_xtop;
 		break;
 	    case BD_RIGHT:	/* Tile tp is to the right of the boundary */
-		dfar = RIGHT(tp) - bp->b_segment.r_ur.p_x;
-		dnear = LEFT(tp) - bp->b_segment.r_ur.p_x;
+		dfar = ov.o_clip.r_xtop - bp->b_segment.r_ur.p_x;
+		dnear = ov.o_clip.r_xbot - bp->b_segment.r_ur.p_x;
 		break;
 	    case BD_BOTTOM:	/* Tile tp is below the boundary */
-		dfar = bp->b_segment.r_ll.p_y - BOTTOM(tp);
-		dnear = bp->b_segment.r_ll.p_y - TOP(tp);
+		dfar = bp->b_segment.r_ll.p_y - ov.o_clip.r_ybot;
+		dnear = bp->b_segment.r_ll.p_y - ov.o_clip.r_ytop;
 		break;
 	    case BD_TOP:	/* Tile tp is above the boundary */
-		dfar = TOP(tp) - bp->b_segment.r_ur.p_y;
-		dnear = BOTTOM(tp) - bp->b_segment.r_ur.p_y;
+		dfar = ov.o_clip.r_ytop - bp->b_segment.r_ur.p_y;
+		dnear = ov.o_clip.r_ybot - bp->b_segment.r_ur.p_y;
 		break;
 	}
-	if (dnear < 0) dnear = 0;	/* Do not count underlap */
-	if (dfar > esws->fringe_halo) dfar = esws->fringe_halo;
-	ffar = (double)dfar / (double)esws->fringe_halo;
-	fnear = (double)dnear / (double)esws->fringe_halo;
-	sfar = sin(1.5708 * ffar);
-	snear = sin(1.5708 * fnear);
+	if (dnear < 0) dnear = 0;	/* Don't count underlap */
+        mult = ExtCurStyle->exts_overlapMult[ta][tb];
+	sfar = 0.6366 * atan(mult * dfar);
+	snear = 0.6366 * atan(mult * dnear);
 
 	/* "cfrac" is the fractional portion of the fringe cap seen by	*/
 	/* tile tp along its length.  This is independent of the	*/
 	/* portion of the boundary length that tile tp occupies.	*/
 	
 	cfrac = sfar - snear;
+
+	/* The fringe portion extracted from the substrate will be	*/
+	/* different than the portion added to the coupling layer.	*/
+
+        mult = ExtCurStyle->exts_overlapMult[ta][0];
+	sfar = 0.6366 * atan(mult * dfar);
+	snear = 0.6366 * atan(mult * dnear);
+	sfrac = sfar - snear;
     }
     else
+    {
 	cfrac = 1.0;	/* For simplified perimeter cap calculation */
+	sfrac = 1.0;
+    }
 
     /* Apply each rule, incorporating shielding into the edge length. */
     cap = (CapValue) 0;
-    for (e = extOverlapList; e; e = e->ec_next)
+    for (e = esws->extOverlapList; e; e = e->ec_next)
     {
 	/* Only apply rules for the plane in which they are declared */
 	if (!PlaneMaskHasPlane(e->ec_pmask, esws->plane_checked)) continue;
@@ -1008,14 +1033,14 @@ extSideOverlap(tp, esws)
 	    }
 	    if (rtp != rbp)
 	    {
-		if (esws->fringe_halo == 1)
+		if (!esws->fringe_halo)
 		{
-		    cap += e->ec_cap * ov.o_area * (1.0 - esws->shieldfrac);
+		    cap += e->ec_cap * ov.o_area;
 		}
 		else	/* (perimeter cap distributed over halo) */
 		{
 		    afrac = (double)ov.o_area / (double)areaTotal;
-		    cap += e->ec_cap * length * afrac * cfrac * (1.0 - esws->shieldfrac);
+		    cap += e->ec_cap * length * afrac * cfrac;
 		}
 	    }
 	    areaAccountedFor += ov.o_area;
@@ -1045,14 +1070,12 @@ extSideOverlap(tp, esws)
 		outtype = DBPlaneToResidue(outtype, esws->plane_of_boundary);
 
 	    afrac = (double)areaAccountedFor / (double)areaTotal;
-	    if (esws->fringe_halo == 1)
+	    if (!esws->fringe_halo)
 	    	subcap = (ExtCurStyle->exts_perimCap[ta][outtype] *
-			(1.0 - esws->shieldfrac) *
 			MIN(areaAccountedFor, length));
 	    else	/* Fringe capacitance distributed over halo */
 	    	subcap = (ExtCurStyle->exts_perimCap[ta][outtype] *
-			(1.0 - esws->shieldfrac) * cfrac * length *
-			MIN(afrac, 1.0));
+			sfrac * length * MIN(afrac, 1.0));
 	    rbp->nreg_cap -= subcap;
 	    /* Ignore residual error at ~zero zeptoFarads.  Probably	*/
 	    /* there should be better handling of round-off here.	*/
@@ -1148,7 +1171,14 @@ extWalkTop(area, mask, func, bp, clientData)
 		if (lookRight)
 		    bloc.b_segment.r_xtop = RIGHT(tp);
 
+		/* Call sidewall coupling calculation function */
 		if (func(tp, &bloc, clientData) != 0) return 1;
+
+		/* Clip coupling area and call fringe coupling calculation function */
+		aloc = *area;
+		aloc.r_ytop = BOTTOM(tp);
+		if (extFindOverlap(bp->b_outside, &aloc, clientData) != 0) return 1;
+		extRemoveSubcap(bp, &aloc, clientData);
 
 		/* Recurse on tile left side */
 		if (lookLeft)
@@ -1176,13 +1206,18 @@ extWalkTop(area, mask, func, bp, clientData)
 		/* coupling to tiles behind it, so return.	*/
 		return 0;
 	    }
+
 	    /* Continue to walk left until out of bounds */
 	    tp = BL(tp);
 	}
 	/* Continue to walk up from right edge */
 	tile = RT(tile);
     }
-    return 0;
+
+    /* Any length which does not couple to anything in the	*/
+    /* same plane is still checked for coupling to anything	*/
+    /* below it.						*/
+    return extFindOverlap(bp->b_outside, area, clientData);
 }
     
 /*
@@ -1246,7 +1281,14 @@ extWalkBottom(area, mask, func, bp, clientData)
 		if (lookRight)
 		    bloc.b_segment.r_xtop = RIGHT(tp);
 
+		/* Call sidewall coupling calculation function */
 		if (func(tp, &bloc, clientData) != 0) return 1;
+
+		/* Clip coupling area and call fringe coupling calculation function */
+		aloc = *area;
+		aloc.r_ybot = TOP(tp);
+		if (extFindOverlap(bp->b_outside, &aloc, clientData) != 0) return 1;
+		extRemoveSubcap(bp, &aloc, clientData);
 
 		/* Recurse on tile left side */
 		if (lookLeft)
@@ -1274,13 +1316,18 @@ extWalkBottom(area, mask, func, bp, clientData)
 		/* coupling to tiles behind it, so return.	*/
 		return 0;
 	    }
+
 	    /* Continue to walk right until out of bounds */
 	    tp = TR(tp);
 	}
 	/* Continue to walk down from left edge */
 	tile = LB(tile);
     }
-    return 0;
+
+    /* Any length which does not couple to anything in the	*/
+    /* same plane is still checked for coupling to anything	*/
+    /* below it.						*/
+    return extFindOverlap(bp->b_outside, area, clientData);
 }
     
 /*
@@ -1344,7 +1391,14 @@ extWalkRight(area, mask, func, bp, clientData)
 		if (lookUp)
 		    bloc.b_segment.r_ytop = TOP(tp);
 
+		/* Call sidewall coupling calculation function */
 		if (func(tp, &bloc, clientData) != 0) return 1;
+
+		/* Clip coupling area and call fringe coupling calculation function */
+		aloc = *area;
+		aloc.r_xtop = LEFT(tp);
+		if (extFindOverlap(bp->b_outside, &aloc, clientData) != 0) return 1;
+		extRemoveSubcap(bp, &aloc, clientData);
 
 		/* Recurse on tile bottom side */
 		if (lookDown)
@@ -1372,13 +1426,18 @@ extWalkRight(area, mask, func, bp, clientData)
 		/* coupling to tiles behind it, so return.	*/
 		return 0;
 	    }
+
 	    /* Continue to walk down until out of bounds */
 	    tp = LB(tp);
 	}
 	/* Continue to walk right from top edge */
 	tile = TR(tile);
     }
-    return 0;
+
+    /* Any length which does not couple to anything in the	*/
+    /* same plane is still checked for coupling to anything	*/
+    /* below it.						*/
+    return extFindOverlap(bp->b_outside, area, clientData);
 }
     
 /*
@@ -1442,7 +1501,14 @@ extWalkLeft(area, mask, func, bp, clientData)
 		if (lookUp)
 		    bloc.b_segment.r_ytop = TOP(tp);
 
+		/* Call sidewall coupling calculation function */
 		if (func(tp, &bloc, clientData) != 0) return 1;
+
+		/* Clip coupling area and call fringe coupling calculation function */
+		aloc = *area;
+		aloc.r_xbot = RIGHT(tp);
+		if (extFindOverlap(bp->b_outside, &aloc, clientData) != 0) return 1;
+		extRemoveSubcap(bp, &aloc, clientData);
 
 		/* Recurse on tile bottom side */
 		if (lookDown)
@@ -1470,13 +1536,18 @@ extWalkLeft(area, mask, func, bp, clientData)
 		/* coupling to tiles behind it, so return.	*/
 		return 0;
 	    }
+
 	    /* Continue to walk up until out of bounds */
 	    tp = RT(tp);
 	}
 	/* Continue to walk left from top edge */
 	tile = BL(tile);
     }
-    return 0;
+
+    /* Any length which does not couple to anything in the	*/
+    /* same plane is still checked for coupling to anything	*/
+    /* below it.						*/
+    return extFindOverlap(bp->b_outside, area, clientData);
 }
     
 /*
@@ -1507,10 +1578,10 @@ extWalkLeft(area, mask, func, bp, clientData)
  */
 
 int
-extSideLeft(tpfar, bp, clientData)
+extSideLeft(tpfar, bp, esws)
     Tile *tpfar;
     Boundary *bp;
-    ClientData clientData;	/* Unused */
+    extSidewallStruct *esws;
 {
     NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
     NodeRegion *rfar = (NodeRegion *) extGetRegion(tpfar);
@@ -1526,7 +1597,8 @@ extSideLeft(tpfar, bp, clientData)
 	{
 	    int overlap = MIN(TOP(tpnear), start) - MAX(BOTTOM(tpnear), limit);
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep,
+				esws->extCoupleList);
 	}
     }
 
@@ -1556,10 +1628,10 @@ extSideLeft(tpfar, bp, clientData)
  */
 
 int
-extSideRight(tpfar, bp, clientData)
+extSideRight(tpfar, bp, esws)
     Tile *tpfar;
     Boundary *bp;
-    ClientData clientData;	/* Unused */
+    extSidewallStruct *esws;
 {
     NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
     NodeRegion *rfar = (NodeRegion *) extGetRegion(tpfar);
@@ -1575,7 +1647,8 @@ extSideRight(tpfar, bp, clientData)
 	{
 	    int overlap = MIN(TOP(tpnear), limit) - MAX(BOTTOM(tpnear), start);
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep,
+				esws->extCoupleList);
 	}
     }
 
@@ -1605,10 +1678,10 @@ extSideRight(tpfar, bp, clientData)
  */
 
 int
-extSideTop(tpfar, bp, clientData)
+extSideTop(tpfar, bp, esws)
     Tile *tpfar;
     Boundary *bp;
-    ClientData clientData;	/* Unused */
+    extSidewallStruct *esws;
 {
     NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
     NodeRegion *rfar = (NodeRegion *) extGetRegion(tpfar);
@@ -1624,7 +1697,8 @@ extSideTop(tpfar, bp, clientData)
 	{
 	    int overlap = MIN(RIGHT(tpnear), limit) - MAX(LEFT(tpnear), start);
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep,
+				esws->extCoupleList);
 	}
     }
 
@@ -1654,10 +1728,10 @@ extSideTop(tpfar, bp, clientData)
  */
 
 int
-extSideBottom(tpfar, bp, clientData)
+extSideBottom(tpfar, bp, esws)
     Tile *tpfar;
     Boundary *bp;
-    ClientData clientData; 	/* Unused */
+    extSidewallStruct *esws;
 {
     NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
     NodeRegion *rfar = (NodeRegion *) extGetRegion(tpfar);
@@ -1673,7 +1747,8 @@ extSideBottom(tpfar, bp, clientData)
 	{
 	    int overlap = MIN(RIGHT(tpnear), start) - MAX(LEFT(tpnear), limit);
 	    if (overlap > 0)
-		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep);
+		extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep,
+				esws->extCoupleList);
 	}
     }
 
@@ -1704,12 +1779,13 @@ extSideBottom(tpfar, bp, clientData)
  */
 
 void
-extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep)
+extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep, extCoupleList)
     NodeRegion *rinside, *rfar;	/* Both must be valid */
     Tile *tpnear, *tpfar;	/* Tiles on near and far side of edge */
     int overlap, sep;		/* Overlap of this edge with original one,
 				 * and distance between the two.
 				 */
+    EdgeCap  *extCoupleList;	/* List of sidewall capacitance rules */
 {
     TileType near = TiGetType(tpnear), far = TiGetType(tpfar);
     HashEntry *he;
@@ -1731,297 +1807,5 @@ extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep)
 			"sidewall");
 	}
     extSetCapValue(he, cap);
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * extShieldLeft --
- *
- * Searching to the left of the boundary 'bp', we found the tile
- * 'tpfar' which may lie on the far side of an edge to which the
- * edge bp->b_inside | bp->b_outside shields the fringing capacitance.
- *
- * Walk along the right-hand side of 'tpfar' searching for such edges,
- * and recording the amount of shielding in the passed structure.
- *
- * Results:
- *	Returns 0 always.
- *
- * Side effects:
- *	Updates data pointed to by shieldFrac
- *
- * ----------------------------------------------------------------------------
- */
-
-int
-extShieldLeft(tpfar, bp, shieldFrac)
-    Tile *tpfar;
-    Boundary *bp;
-    float *shieldFrac;
-{
-    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
-    Tile *tpnear;
-    float fshield;	/* fraction shielded for this segment */
-    float frac;		/* ratio of segment to boundary length */
-
-    int sep = bp->b_segment.r_xbot - RIGHT(tpfar);
-    int limit = MAX(bp->b_segment.r_ybot, BOTTOM(tpfar));
-    int start = MIN(bp->b_segment.r_ytop, TOP(tpfar));
-    float halo = (float)ExtCurStyle->exts_fringeShieldHalo;
-    float fsep = (float)sep;
-
-    for (tpnear = TR(tpfar); TOP(tpnear) > limit; tpnear = LB(tpnear))
-    {
-	int overlap = MIN(TOP(tpnear), start) - MAX(BOTTOM(tpnear), limit);
-	if (overlap > 0)
-	{
-	    Tile *tptest = tpnear;
-	    Point p;
-	    NodeRegion *rnear;
-
-	    /* Walk back from edge to original boundary, checking	*/
-	    /* that no shapes are shielding the shield. . .		*/
-
-	    p.p_y = (start + limit) / 2;
-	    p.p_x = RIGHT(tpnear) + 1;
-	    while (p.p_x < bp->b_segment.r_xbot)
-	    {
-		GOTOPOINT(tptest, &p);
-		rnear = (NodeRegion *)extGetRegion(tptest);
-		if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
-		    break;
-		p.p_x = RIGHT(tptest) + 1;
-	    }
-	    if (p.p_x > bp->b_segment.r_xbot)
-	    {
-		frac = (float)(start - limit) /
-			(float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot);
-		/* Use sin() approximation for shielding effect */
-		fshield = 1.0 - sin(1.571 * fsep / halo);
-		*shieldFrac = fshield * frac + (*shieldFrac) * (1.0 - frac);
-	    }
-	}
-    }
-    return (0);
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * extShieldRight --
- *
- * Searching to the right of the boundary 'bp', we found the tile
- * 'tpfar' which may lie on the far side of an edge to which the
- * edge bp->b_inside | bp->b_outside shields the fringing capacitance.
- *
- * Walk along the left-hand side of 'tpfar' searching for such edges,
- * and recording the amount of shielding in the passed structure.
- *
- * Results:
- *	Returns 0 always.
- *
- * Side effects:
- *	Updates data pointed to by shieldFrac
- *
- * ----------------------------------------------------------------------------
- */
-
-int
-extShieldRight(tpfar, bp, shieldFrac)
-    Tile *tpfar;
-    Boundary *bp;
-    float *shieldFrac;
-{
-    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
-    Tile *tpnear;
-    float fshield;	/* fraction shielded for this segment */
-    float frac;		/* ratio of segment to boundary length */
-
-    int sep = LEFT(tpfar) - bp->b_segment.r_xtop;
-    int limit = MIN(bp->b_segment.r_ytop, TOP(tpfar));
-    int start = MAX(bp->b_segment.r_ybot, BOTTOM(tpfar));
-    float halo = (float)ExtCurStyle->exts_fringeShieldHalo;
-    float fsep = (float)sep;
-
-    for (tpnear = BL(tpfar); BOTTOM(tpnear) < limit; tpnear = RT(tpnear))
-    {
-	int overlap = MIN(TOP(tpnear), limit) - MAX(BOTTOM(tpnear), start);
-	if (overlap > 0)
-	{
-	    Tile *tptest = tpnear;
-	    Point p;
-	    NodeRegion *rnear;
-
-	    /* Walk back from edge to original boundary, checking	*/
-	    /* that no shapes are shielding the shield. . .		*/
-
-	    p.p_y = (start + limit) / 2;
-	    p.p_x = LEFT(tpnear) - 1;
-	    while (p.p_x > bp->b_segment.r_xtop)
-	    {
-		GOTOPOINT(tptest, &p);
-		rnear = (NodeRegion *)extGetRegion(tptest);
-		if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
-		    break;
-		p.p_x = LEFT(tptest) - 1;
-	    }
-	    if (p.p_x < bp->b_segment.r_xtop)
-	    {
-		frac = (float)(limit - start) /
-			(float)(bp->b_segment.r_ytop - bp->b_segment.r_ybot);
-		/* Use sin() approximation for shielding effect */
-		fshield = 1.0 - sin(1.571 * fsep / halo);
-		*shieldFrac = fshield * frac + (*shieldFrac) * (1.0 - frac);
-	    }
-	}
-    }
-    return (0);
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * extShieldTop --
- *
- * Searching to the top of the boundary 'bp', we found the tile
- * 'tpfar' which may lie on the far side of an edge to which the
- * edge bp->b_inside | bp->b_outside shields the fringing capacitance.
- *
- * Walk along the bottom side of 'tpfar' searching for such edges,
- * and recording the amount of shielding in the passed structure.
- *
- * Results:
- *	Returns 0 always.
- *
- * Side effects:
- *	Updates data pointed to by shieldFrac
- *
- * ----------------------------------------------------------------------------
- */
-
-int
-extShieldTop(tpfar, bp, shieldFrac)
-    Tile *tpfar;
-    Boundary *bp;
-    float *shieldFrac;
-{
-    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
-    Tile *tpnear;
-    float fshield;	/* fraction shielded for this segment */
-    float frac;		/* ratio of segment to boundary length */
-
-    int sep = BOTTOM(tpfar) - bp->b_segment.r_ytop;
-    int limit = MIN(bp->b_segment.r_xtop, RIGHT(tpfar));
-    int start = MAX(bp->b_segment.r_xbot, LEFT(tpfar));
-    float halo = (float)ExtCurStyle->exts_fringeShieldHalo;
-    float fsep = (float)sep;
-
-    for (tpnear = LB(tpfar); LEFT(tpnear) < limit; tpnear = TR(tpnear))
-    {
-	int overlap = MIN(RIGHT(tpnear), limit) - MAX(LEFT(tpnear), start);
-	if (overlap > 0)
-	{
-	    Tile *tptest = tpnear;
-	    Point p;
-	    NodeRegion *rnear;
-
-	    /* Walk back from edge to original boundary, checking	*/
-	    /* that no shapes are shielding the shield. . .		*/
-
-	    p.p_x = (start + limit) / 2;
-	    p.p_y = BOTTOM(tpnear) - 1;
-	    while (p.p_y > bp->b_segment.r_ytop)
-	    {
-		GOTOPOINT(tptest, &p);
-		rnear = (NodeRegion *)extGetRegion(tptest);
-		if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
-		    break;
-		p.p_y = BOTTOM(tptest) - 1;
-	    }
-	    if (p.p_y < bp->b_segment.r_ytop)
-	    {
-		frac = (float)(limit - start) /
-			(float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot);
-		/* Use sin() approximation for shielding effect */
-		fshield = 1.0 - sin(1.571 * fsep / halo);
-		*shieldFrac = fshield * frac + (*shieldFrac) * (1.0 - frac);
-	    }
-	}
-    }
-    return (0);
-}
-
-/*
- * ----------------------------------------------------------------------------
- *
- * extShieldBottom --
- *
- * Searching to the bottom of the boundary 'bp', we found the tile
- * 'tpfar' which may lie on the far side of an edge to which the
- * edge bp->b_inside | bp->b_outside shields the fringing capacitance.
- *
- * Walk along the top side of 'tpfar' searching for such
- * and recording the amount of shielding in the passed structure.
- *
- * Results:
- *	Returns 0 always.
- *
- * Side effects:
- *	Updates data pointed to by shieldFrac
- *
- * ----------------------------------------------------------------------------
- */
-
-int
-extShieldBottom(tpfar, bp, shieldFrac)
-    Tile *tpfar;
-    Boundary *bp;
-    float *shieldFrac;
-{
-    NodeRegion *rinside = (NodeRegion *) extGetRegion(bp->b_inside);
-    Tile *tpnear;
-    float fshield;	/* fraction shielded for this segment */
-    float frac;		/* ratio of segment to boundary length */
-
-    int sep = bp->b_segment.r_ybot - TOP(tpfar);
-    int limit = MAX(bp->b_segment.r_xbot, LEFT(tpfar));
-    int start = MIN(bp->b_segment.r_xtop, RIGHT(tpfar));
-    float halo = (float)ExtCurStyle->exts_fringeShieldHalo;
-    float fsep = (float)sep;
-
-    for (tpnear = RT(tpfar); RIGHT(tpnear) > limit; tpnear = BL(tpnear))
-    {
-	int overlap = MIN(RIGHT(tpnear), start) - MAX(LEFT(tpnear), limit);
-	if (overlap > 0)
-	{
-	    Tile *tptest = tpnear;
-	    Point p;
-	    NodeRegion *rnear;
-
-	    /* Walk back from edge to original boundary, checking	*/
-	    /* that no shapes are shielding the shield. . .		*/
-
-	    p.p_x = (start + limit) / 2;
-	    p.p_y = TOP(tpnear) + 1;
-	    while (p.p_y < bp->b_segment.r_ybot)
-	    {
-		GOTOPOINT(tptest, &p);
-		rnear = (NodeRegion *)extGetRegion(tptest);
-		if ((rnear != (NodeRegion *)extUnInit) && (rnear != rinside))
-		    break;
-		p.p_y = TOP(tptest) + 1;
-	    }
-	    if (p.p_y > bp->b_segment.r_ybot)
-	    {
-		frac = (float)(start - limit) /
-			(float)(bp->b_segment.r_xtop - bp->b_segment.r_xbot);
-		/* Use sin() approximation for shielding effect */
-		fshield = 1.0 - sin(1.571 * fsep / halo);
-		*shieldFrac = fshield * frac + (*shieldFrac) * (1.0 - frac);
-	    }
-	}
-    }
-    return (0);
 }
 

@@ -726,6 +726,15 @@ typedef struct extstyle
 	 */
     CapValue		 exts_overlapCap[NT][NT];
 
+	/*
+	 * exts_overlapMult is needed for modeling fringe shielding and
+	 * partial fringing, whose models have multiplier coefficients
+	 * that are proportional to area capacitance referred to some
+	 * constant length (so that it scales with the internal grid,
+	 * not with the internal grid squared).
+	 */
+    float		 exts_overlapMult[NT][NT];
+
 	/* Specifies an ordering of the planes, so we can determine which
 	 * tile is above another one.  This is used only when determining
 	 * if we should subtract capacitance to substrate for overlap and
@@ -780,18 +789,12 @@ typedef struct extstyle
 	 * This value determines how much extra gets yanked when
 	 * computing hierarchical adjustments, so should be kept
 	 * small to insure reasonable performance.
+	 *
+	 * To be done:  Set this as a per-plane value with a
+	 * corresponding method in the tech file to declare the value
+	 * for each plane separately.
 	 */
     int			 exts_sideCoupleHalo;
-
-	/*
-	 * Search out a distance exts_fringeShieldHalo from each edge
-	 * for types on the same plane that partially shield fringe
-	 * capacitance.  The shielding is modeled as an ellipse equation
-	 * and the shield halo should be approximately 10x the distance
-	 * where half the fringe capacitance is shielded.  If not specified,
-	 * then it is set to be equal to exts_sideCoupleHalo.
-	 */
-    int			 exts_fringeShieldHalo;
 
     /*
      * Sidewall-overlap coupling capacitance.

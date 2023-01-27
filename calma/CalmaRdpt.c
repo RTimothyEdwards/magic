@@ -283,7 +283,7 @@ calmaElementBoundary()
 
     /* Convert the polygon to rectangles. */
 
-    rp = CIFPolyToRects(pathheadp, plane, CIFPaintTable, (PaintUndoInfo *)NULL);
+    rp = CIFPolyToRects(pathheadp, plane, CIFPaintTable, (PaintUndoInfo *)NULL, TRUE);
     CIFFreePath(pathheadp);
 
     /* If the input layer is designated for ports by a "label"	*/

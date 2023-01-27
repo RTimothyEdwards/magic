@@ -42,6 +42,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "drc/drc.h"
 #include "textio/txcommands.h"
 #include "extract/extract.h"
+#include "extract/extractInt.h"
 #include "select/select.h"
 
 /* C99 compat */
@@ -860,14 +861,15 @@ cmdExpandFunc(use, windowMask)
 #define	EXTALL		0
 #define EXTCELL		1
 #define	EXTDO		2
-#define EXTHELP		3
-#define	EXTLENGTH	4
-#define	EXTNO		5
-#define	EXTPARENTS	6
-#define	EXTSHOWPARENTS	7
-#define	EXTSTYLE	8
-#define	EXTUNIQUE	9
-#define	EXTWARN		10
+#define EXTHALO		3
+#define EXTHELP		4
+#define	EXTLENGTH	5
+#define	EXTNO		6
+#define	EXTPARENTS	7
+#define	EXTSHOWPARENTS	8
+#define	EXTSTYLE	9
+#define	EXTUNIQUE	10
+#define	EXTWARN		11
 
 #define	WARNALL		0
 #define WARNDUP		1
@@ -900,6 +902,7 @@ CmdExtract(w, cmd)
 {
     char **msg, *namep, *arg;
     int option, warn, len, n, all;
+    int dist;
     bool no;
     CellUse *selectedUse;
     CellDef	*selectedDef;
@@ -953,6 +956,7 @@ CmdExtract(w, cmd)
 	"all			extract root cell and all its children",
 	"cell name		extract selected cell into file \"name\"",
 	"do [option]		enable extractor option",
+	"halo [value]		print or set the sidewall halo distance",
 	"help			print this help information",
 	"length [option]	control pathlength extraction information",
 	"no [option]		disable extractor option",
@@ -1059,6 +1063,36 @@ CmdExtract(w, cmd)
 	    }
 	    ExtractOneCell(selectedUse->cu_def, namep, FALSE);
 	    return;
+
+	case EXTHALO:
+	    if (ExtCurStyle == NULL)
+	    {
+		TxError("No extraction style set.\n");
+		return;
+	    }
+	    else if (argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_Obj *tobj;
+		tobj = Tcl_NewIntObj(ExtCurStyle->exts_sideCoupleHalo);
+		Tcl_SetObjResult(magicinterp, tobj);
+#else
+		TxPrintf("Side overlap halo is %d\n", ExtCurStyle->exts_sideCoupleHalo);
+#endif
+		return;
+	    }
+	    else if (argc != 3) goto wrongNumArgs;
+
+	    /* argv[2] is a halo distance */
+	    dist = cmdParseCoord(w, argv[2], TRUE, TRUE);
+	    if (dist <= 0)
+	    {
+		TxError("Bad halo distance.  Halo must be strictly positive.");
+		return;
+	    }
+	    else
+		ExtCurStyle->exts_sideCoupleHalo = dist;
+	    break;
 
 	case EXTPARENTS:
 	    selectedUse = CmdGetSelectedCell((Transform *) NULL);

@@ -481,7 +481,7 @@ CIFPaintWirePath(pathheadp, width, endcap, plane, ptable, ui)
 	    /* Slow draw for non-Manhattan paths:		*/
 	    /* Break the area up into triangles and rectangles	*/
 
-	    rectp = CIFPolyToRects(polypath, plane, ptable, ui);
+	    rectp = CIFPolyToRects(polypath, plane, ptable, ui, FALSE);
 	    CIFFreePath(polypath);
 
 	    for (; rectp != NULL ; rectp = rectp->r_next)
@@ -583,7 +583,7 @@ PaintPolygon(pointlist, number, plane, ptable, ui, keep)
 	cifpath = newpath;
     }
 
-    rectlist = CIFPolyToRects(cifpath, plane, ptable, ui);
+    rectlist = CIFPolyToRects(cifpath, plane, ptable, ui, FALSE);
     CIFFreePath(cifpath);
 
     for (rectp = rectlist; rectp != NULL ; rectp = rectp->r_next)
@@ -807,7 +807,7 @@ CIFParsePoly()
     /* Convert the polygon to rectangles. */
 
     rectp = CIFPolyToRects(pathheadp, cifReadPlane, CIFPaintTable,
-		(PaintUndoInfo *)NULL);
+		(PaintUndoInfo *)NULL, FALSE);
     CIFFreePath(pathheadp);
     if (rectp == NULL)
     {

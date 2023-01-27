@@ -1093,7 +1093,7 @@ runexttospice:
 
 	TTMaskZero(&initMask);
 	if (!esDistrJunct)
-	    TTMaskCom(&initMask);
+	    TTMaskSetType(&initMask, efNumResistClasses);
 
 	if (esMergeDevsA || esMergeDevsC)
 	{
@@ -1271,7 +1271,7 @@ main(argc, argv)
 
     TTMaskZero(&initMask);
     if (!esDistrJunct)
-	TTMaskCom(&initMask);
+	TTMaskSetType(&initMask, efNumResistClasses);
 
     if ( esMergeDevsA || esMergeDevsC ) {
      	EFVisitDevs(devMergeVisit, (ClientData) NULL);

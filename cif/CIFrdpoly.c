@@ -29,6 +29,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "cif/CIFint.h"
 #include "cif/CIFread.h"
+#include "calma/calma.h"
 #include "utils/malloc.h"
 
 #define HEDGE 0		/* Horizontal edge */
@@ -222,11 +223,12 @@ cifCross(edge, dir, ybot, ytop)
  */
 
 LinkedRect *
-CIFPolyToRects(path, plane, resultTbl, ui)
+CIFPolyToRects(path, plane, resultTbl, ui, isCalma)
     CIFPath *path;		/* Path describing a polygon. */
     Plane *plane;		/* Plane to draw on */
     PaintResultType *resultTbl;
     PaintUndoInfo *ui;
+    bool isCalma;		/* TRUE for Calma, FALSE for CIF */
 {
     int npts = 0, n, *dir, curr, wrapno;
     int xbot, xtop, ybot, ytop;
@@ -240,6 +242,9 @@ CIFPolyToRects(path, plane, resultTbl, ui)
 
     if ((tail->cifp_x != path->cifp_x) || (tail->cifp_y != path->cifp_y))
     {
+	if (isCalma)
+	    CalmaReadError("Boundary is not closed.\n" );
+
 	p = (CIFPath *) mallocMagic ((unsigned) sizeof (CIFPath));
 	p->cifp_x = path->cifp_x;
 	p->cifp_y = path->cifp_y;
