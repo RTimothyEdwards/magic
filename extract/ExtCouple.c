@@ -727,28 +727,28 @@ extAddCouple(bp, ecs)
 	    ovr.r_xbot -= distFringe;
 	    extWalkLeft(&r,
 			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extSideLeft, bp, (ClientData)&esws);
+			extSideLeft, bp, &esws);
 	    break;
 	case BD_RIGHT:	/* Along right */
 	    r.r_xtop += ExtCurStyle->exts_sideCoupleHalo;
 	    ovr.r_xtop += distFringe;
 	    extWalkRight(&r,
 			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extSideRight, bp, (ClientData)&esws);
+			extSideRight, bp, &esws);
 	    break;
 	case BD_TOP:	/* Along top */
 	    r.r_ytop += ExtCurStyle->exts_sideCoupleHalo;
 	    ovr.r_ytop += distFringe;
 	    extWalkTop(&r,
 			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extSideTop, bp, (ClientData)&esws);
+			extSideTop, bp, &esws);
 	    break;
 	case BD_BOTTOM:	/* Along bottom */
 	    r.r_ybot -= ExtCurStyle->exts_sideCoupleHalo;
 	    ovr.r_ybot -= distFringe;
 	    extWalkBottom(&r,
 			&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout],
-			extSideBottom, bp, (ClientData)&esws);
+			extSideBottom, bp, &esws);
 	    break;
     }
     return (0);
@@ -1133,12 +1133,12 @@ extSideOverlap(tp, esws)
  */
 
 int
-extWalkTop(area, mask, func, bp, clientData)
+extWalkTop(area, mask, func, bp, esws)
     Rect *area;
     TileTypeBitMask *mask;
     int (*func)();
     Boundary *bp;
-    ClientData clientData;
+    extSidewallStruct *esws;
 {
     Tile *tile, *tp;
     TileType ttype;
@@ -1172,13 +1172,13 @@ extWalkTop(area, mask, func, bp, clientData)
 		    bloc.b_segment.r_xtop = RIGHT(tp);
 
 		/* Call sidewall coupling calculation function */
-		if (func(tp, &bloc, clientData) != 0) return 1;
+		if (func(tp, &bloc, esws) != 0) return 1;
 
 		/* Clip coupling area and call fringe coupling calculation function */
 		aloc = *area;
 		aloc.r_ytop = BOTTOM(tp);
-		if (extFindOverlap(bp->b_outside, &aloc, clientData) != 0) return 1;
-		extRemoveSubcap(bp, &aloc, clientData);
+		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
+		extRemoveSubcap(bp, &aloc, esws);
 
 		/* Recurse on tile left side */
 		if (lookLeft)
@@ -1187,7 +1187,7 @@ extWalkTop(area, mask, func, bp, clientData)
 		    aloc.r_xtop = bloc.b_segment.r_xbot;
 		    bloc.b_segment.r_xbot = bp->b_segment.r_xbot;
 		    bloc.b_segment.r_xtop = aloc.r_xtop;
-		    if (extWalkTop(&aloc, mask, func, &bloc, clientData) != 0)
+		    if (extWalkTop(&aloc, mask, func, &bloc, esws) != 0)
 			return 1;
 		}
 
@@ -1198,7 +1198,7 @@ extWalkTop(area, mask, func, bp, clientData)
 		    aloc.r_xbot = bloc.b_segment.r_xtop;
 		    bloc.b_segment.r_xtop = bp->b_segment.r_xtop;
 		    bloc.b_segment.r_xbot = aloc.r_xbot;
-		    if (extWalkTop(&aloc, mask, func, &bloc, clientData) != 0)
+		    if (extWalkTop(&aloc, mask, func, &bloc, esws) != 0)
 			return 1;
 		}
 
@@ -1217,7 +1217,7 @@ extWalkTop(area, mask, func, bp, clientData)
     /* Any length which does not couple to anything in the	*/
     /* same plane is still checked for coupling to anything	*/
     /* below it.						*/
-    return extFindOverlap(bp->b_outside, area, clientData);
+    return extFindOverlap(bp->b_outside, area, esws);
 }
     
 /*
@@ -1243,12 +1243,12 @@ extWalkTop(area, mask, func, bp, clientData)
  */
 
 int
-extWalkBottom(area, mask, func, bp, clientData)
+extWalkBottom(area, mask, func, bp, esws)
     Rect *area;
     TileTypeBitMask *mask;
     int (*func)();
     Boundary *bp;
-    ClientData clientData;
+    extSidewallStruct *esws;
 {
     Tile *tile, *tp;
     TileType ttype;
@@ -1282,13 +1282,13 @@ extWalkBottom(area, mask, func, bp, clientData)
 		    bloc.b_segment.r_xtop = RIGHT(tp);
 
 		/* Call sidewall coupling calculation function */
-		if (func(tp, &bloc, clientData) != 0) return 1;
+		if (func(tp, &bloc, esws) != 0) return 1;
 
 		/* Clip coupling area and call fringe coupling calculation function */
 		aloc = *area;
 		aloc.r_ybot = TOP(tp);
-		if (extFindOverlap(bp->b_outside, &aloc, clientData) != 0) return 1;
-		extRemoveSubcap(bp, &aloc, clientData);
+		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
+		extRemoveSubcap(bp, &aloc, esws);
 
 		/* Recurse on tile left side */
 		if (lookLeft)
@@ -1297,7 +1297,7 @@ extWalkBottom(area, mask, func, bp, clientData)
 		    aloc.r_xtop = bloc.b_segment.r_xbot;
 		    bloc.b_segment.r_xbot = bp->b_segment.r_xbot;
 		    bloc.b_segment.r_xtop = aloc.r_xtop;
-		    if (extWalkBottom(&aloc, mask, func, &bloc, clientData) != 0)
+		    if (extWalkBottom(&aloc, mask, func, &bloc, esws) != 0)
 			return 1;
 		}
 
@@ -1308,7 +1308,7 @@ extWalkBottom(area, mask, func, bp, clientData)
 		    aloc.r_xbot = bloc.b_segment.r_xtop;
 		    bloc.b_segment.r_xtop = bp->b_segment.r_xtop;
 		    bloc.b_segment.r_xbot = aloc.r_xbot;
-		    if (extWalkBottom(&aloc, mask, func, &bloc, clientData) != 0)
+		    if (extWalkBottom(&aloc, mask, func, &bloc, esws) != 0)
 			return 1;
 		}
 
@@ -1327,7 +1327,7 @@ extWalkBottom(area, mask, func, bp, clientData)
     /* Any length which does not couple to anything in the	*/
     /* same plane is still checked for coupling to anything	*/
     /* below it.						*/
-    return extFindOverlap(bp->b_outside, area, clientData);
+    return extFindOverlap(bp->b_outside, area, esws);
 }
     
 /*
@@ -1353,12 +1353,12 @@ extWalkBottom(area, mask, func, bp, clientData)
  */
 
 int
-extWalkRight(area, mask, func, bp, clientData)
+extWalkRight(area, mask, func, bp, esws)
     Rect *area;
     TileTypeBitMask *mask;
     int (*func)();
     Boundary *bp;
-    ClientData clientData;
+    extSidewallStruct *esws;
 {
     Tile *tile, *tp;
     TileType ttype;
@@ -1392,13 +1392,13 @@ extWalkRight(area, mask, func, bp, clientData)
 		    bloc.b_segment.r_ytop = TOP(tp);
 
 		/* Call sidewall coupling calculation function */
-		if (func(tp, &bloc, clientData) != 0) return 1;
+		if (func(tp, &bloc, esws) != 0) return 1;
 
 		/* Clip coupling area and call fringe coupling calculation function */
 		aloc = *area;
 		aloc.r_xtop = LEFT(tp);
-		if (extFindOverlap(bp->b_outside, &aloc, clientData) != 0) return 1;
-		extRemoveSubcap(bp, &aloc, clientData);
+		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
+		extRemoveSubcap(bp, &aloc, esws);
 
 		/* Recurse on tile bottom side */
 		if (lookDown)
@@ -1407,7 +1407,7 @@ extWalkRight(area, mask, func, bp, clientData)
 		    aloc.r_ytop = bloc.b_segment.r_ybot;
 		    bloc.b_segment.r_ybot = bp->b_segment.r_ybot;
 		    bloc.b_segment.r_ytop = aloc.r_ytop;
-		    if (extWalkRight(&aloc, mask, func, &bloc, clientData) != 0)
+		    if (extWalkRight(&aloc, mask, func, &bloc, esws) != 0)
 			return 1;
 		}
 
@@ -1418,7 +1418,7 @@ extWalkRight(area, mask, func, bp, clientData)
 		    aloc.r_ybot = bloc.b_segment.r_ytop;
 		    bloc.b_segment.r_ytop = bp->b_segment.r_ytop;
 		    bloc.b_segment.r_ybot = aloc.r_ybot;
-		    if (extWalkRight(&aloc, mask, func, &bloc, clientData) != 0)
+		    if (extWalkRight(&aloc, mask, func, &bloc, esws) != 0)
 			return 1;
 		}
 
@@ -1437,7 +1437,7 @@ extWalkRight(area, mask, func, bp, clientData)
     /* Any length which does not couple to anything in the	*/
     /* same plane is still checked for coupling to anything	*/
     /* below it.						*/
-    return extFindOverlap(bp->b_outside, area, clientData);
+    return extFindOverlap(bp->b_outside, area, esws);
 }
     
 /*
@@ -1463,12 +1463,12 @@ extWalkRight(area, mask, func, bp, clientData)
  */
 
 int
-extWalkLeft(area, mask, func, bp, clientData)
+extWalkLeft(area, mask, func, bp, esws)
     Rect *area;
     TileTypeBitMask *mask;
     int (*func)();
     Boundary *bp;
-    ClientData clientData;
+    extSidewallStruct *esws;
 {
     Tile *tile, *tp;
     TileType ttype;
@@ -1502,13 +1502,13 @@ extWalkLeft(area, mask, func, bp, clientData)
 		    bloc.b_segment.r_ytop = TOP(tp);
 
 		/* Call sidewall coupling calculation function */
-		if (func(tp, &bloc, clientData) != 0) return 1;
+		if (func(tp, &bloc, esws) != 0) return 1;
 
 		/* Clip coupling area and call fringe coupling calculation function */
 		aloc = *area;
 		aloc.r_xbot = RIGHT(tp);
-		if (extFindOverlap(bp->b_outside, &aloc, clientData) != 0) return 1;
-		extRemoveSubcap(bp, &aloc, clientData);
+		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
+		extRemoveSubcap(bp, &aloc, esws);
 
 		/* Recurse on tile bottom side */
 		if (lookDown)
@@ -1517,7 +1517,7 @@ extWalkLeft(area, mask, func, bp, clientData)
 		    aloc.r_ytop = bloc.b_segment.r_ybot;
 		    bloc.b_segment.r_ybot = bp->b_segment.r_ybot;
 		    bloc.b_segment.r_ytop = aloc.r_ytop;
-		    if (extWalkRight(&aloc, mask, func, &bloc, clientData) != 0)
+		    if (extWalkRight(&aloc, mask, func, &bloc, esws) != 0)
 			return 1;
 		}
 
@@ -1528,7 +1528,7 @@ extWalkLeft(area, mask, func, bp, clientData)
 		    aloc.r_ybot = bloc.b_segment.r_ytop;
 		    bloc.b_segment.r_ytop = bp->b_segment.r_ytop;
 		    bloc.b_segment.r_ybot = aloc.r_ybot;
-		    if (extWalkRight(&aloc, mask, func, &bloc, clientData) != 0)
+		    if (extWalkRight(&aloc, mask, func, &bloc, esws) != 0)
 			return 1;
 		}
 
@@ -1547,7 +1547,7 @@ extWalkLeft(area, mask, func, bp, clientData)
     /* Any length which does not couple to anything in the	*/
     /* same plane is still checked for coupling to anything	*/
     /* below it.						*/
-    return extFindOverlap(bp->b_outside, area, clientData);
+    return extFindOverlap(bp->b_outside, area, esws);
 }
     
 /*
