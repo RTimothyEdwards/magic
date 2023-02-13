@@ -112,7 +112,6 @@ ResPrintExtDev(outextfile, devices)
     FILE	*outextfile;
     RDev	*devices;
 {
-    TileType t;
     char *subsName;
     ExtDevice *devptr, *devtest;
 
@@ -122,39 +121,7 @@ ResPrintExtDev(outextfile, devices)
 	{
 	    if (ResOptionsFlags & ResOpt_DoExtFile)
 	    {
-		t = devices->layout->rd_devtype;
-		devptr = ExtCurStyle->exts_device[t];
-
-		/* Make sure the number of S/D terminals matches for	*/
-		/* the device record.					*/
-
-		if ((devices->drain == NULL) && (devptr->exts_deviceSDCount == 2))
-		{
-		    /* Check if there is a compatible device	*/
-		    /* with 2 terminals				*/
-
-		    for (devtest = devptr->exts_next; devtest;
-				devtest = devtest->exts_next)
-			if (devtest->exts_deviceSDCount == 1)
-			{
-			    devptr = devtest;
-			    break;
-			}
-		}
-		else if ((devices->drain != NULL) && (devptr->exts_deviceSDCount == 1))
-		{
-		    /* Check if there is a compatible device	*/
-		    /* with 3 terminals				*/
-
-		    for (devtest = devptr->exts_next; devtest;
-				devtest = devtest->exts_next)
-			if (devtest->exts_deviceSDCount == 2)
-			{
-			    devptr = devtest;
-			    break;
-			}
-		}
-
+		devptr = devices->rs_devptr;
 		subsName = devptr->exts_deviceSubstrateName;
 
 #ifdef MAGIC_WRAPPER

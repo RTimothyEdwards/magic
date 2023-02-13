@@ -478,6 +478,7 @@ ResSimDevice(line, rpersquare, devptr)
     char	*newattr, tmpattr[MAXTOKEN];
     static int	nowarning = TRUE;
     float	lambda;
+    ExtDevice *devtest;
 
     if ((line[RDEV_WIDTH][0] == '\0') || (line[RDEV_LENGTH][0] == '\0'))
     {
@@ -501,6 +502,19 @@ ResSimDevice(line, rpersquare, devptr)
 
     device->status = FALSE;
     device->nextDev = ResRDevList;
+
+    /* Check that devptr matches the device name and number of terminals */
+    /* Note that this routine is only called for the original "fet"	 */
+    /* types with fixed names, so the names must match and there must	 */
+    /* always be three terminals (two source/drain terminals).		 */
+
+    if (devptr->exts_deviceSDCount != 2)
+	for (devtest = devptr->exts_next; devtest; devtest = devtest->exts_next)
+	    if (devtest->exts_deviceSDCount == 2)
+	    {
+		devptr = devtest;
+		break;
+	    }
 
     lambda = (float)ExtCurStyle->exts_unitsPerLambda / resscale;
     device->location.p_x = (int)((float)atof(line[RDEV_DEVX]) / lambda);
