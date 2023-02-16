@@ -691,6 +691,7 @@ struct conSrArg
                                          */
     int (*csa_clientFunc)();            /* Client function to call. */
     ClientData csa_clientData;          /* Argument for clientFunc. */
+    ClientData csa_clientDefault;       /* Value to reset tiles' ClientData to. */
     bool csa_clear;                     /* FALSE means pass 1, TRUE
                                          * means pass 2.
                                          */
@@ -1001,6 +1002,7 @@ extern void DBResetTilePlane();
 extern void DBNewYank();
 extern int  DBSrPaintClient();
 extern int  DBSrConnect();
+extern int  DBSrConnectOnePlane();
 extern char *dbFgets();
 extern void DBAdjustLabelsNew();
 extern bool DBScaleValue();

@@ -24,8 +24,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 #include "resis/resis.h"
 
-int resSubDevFunc();
-
 /*
  *--------------------------------------------------------------------------
  *
@@ -439,46 +437,4 @@ ResEachTile(tile, startpoint)
 			&ResNodeList);
 
     return(merged);
-}
-
-/*
- *-------------------------------------------------------------------------
- *
- * resSubDevFunc -- called when DBSrPaintArea finds a device within
- *	a substrate area.
- *
- * Results: always returns 0 to keep search going.
- *
- * Side Effects: allocates substrate node.
- *
- *-------------------------------------------------------------------------
- */
-
-int
-resSubDevFunc(tile, tp)
-    Tile	*tile, *tp;
-{
-    tileJunk	*junk = (tileJunk *)(tile->ti_client);
-    resNode	*resptr;
-    tElement	*tcell;
-    int		x, y;
-
-    if (junk->deviceList->rd_fet_subs == NULL)
-    {
-        resptr = (resNode *) mallocMagic((unsigned)(sizeof(resNode)));
-	junk->deviceList->rd_fet_subs = resptr;
-	junk->tj_status |= RES_TILE_DEV;
-        tcell = (tElement *) mallocMagic((unsigned)(sizeof(tElement)));
-	tcell->te_thist = junk->deviceList;
-	tcell->te_nextt = NULL;
-	x = (LEFT(tile) + RIGHT(tile)) >> 1;
-	y = (TOP(tile) + BOTTOM(tile)) >> 1;
-
-	InitializeNode(resptr, x, y, RES_NODE_JUNCTION);
-	resptr->rn_te = tcell;
-	ResAddToQueue(resptr, &ResNodeQueue);
-
-	NEWBREAK(resptr, tp, x, y, NULL);
-    }
-    return 0;
 }

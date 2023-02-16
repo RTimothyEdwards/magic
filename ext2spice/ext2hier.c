@@ -173,7 +173,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				* esScale * esScale * plist->parm_scale
 				* 1E-12);
 		    else
-			fprintf(esSpiceF, "%gp", parmval * scale * scale
+			esSIvalue(esSpiceF, 1.0E-12 * parmval * scale * scale
 				* esScale * esScale);
 		}
 		else
@@ -194,15 +194,15 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				'p' && plist->parm_next->parm_type[1] ==
 				plist->parm_type[1])
 		    {
-			spcnAP(dnode, resclass, scale, plist->parm_name,
-				plist->parm_next->parm_name, sdM,
-				esSpiceF, w);
+			spcnAP(&dev->dev_terms[pn], dnode, resclass, scale,
+				plist->parm_name, plist->parm_next->parm_name,
+				sdM, esSpiceF, w);
 			plist = plist->parm_next;
 		    }
 		    else
 		    {
-			spcnAP(dnode, resclass, scale, plist->parm_name, NULL, sdM,
-				esSpiceF, w);
+			spcnAP(&dev->dev_terms[pn], dnode, resclass, scale,
+				plist->parm_name, NULL, sdM, esSpiceF, w);
 		    }
 		}
 
@@ -220,7 +220,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 			fprintf(esSpiceF, "%g", parmval * scale
 				* esScale * plist->parm_scale * 1E-6);
 		    else
-			fprintf(esSpiceF, "%gu", parmval * scale * esScale);
+			esSIvalue(esSpiceF, 1.0E-6 * parmval * scale * esScale);
 		}
 		else
 		{
@@ -240,14 +240,15 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				'a' && plist->parm_next->parm_type[1] ==
 				plist->parm_type[1])
 		    {
-			spcnAP(dnode, resclass, scale, plist->parm_next->parm_name,
+			spcnAP(&dev->dev_terms[pn], dnode, resclass, scale,
+				plist->parm_next->parm_name,
 				plist->parm_name, sdM, esSpiceF, w);
 			plist = plist->parm_next;
 		    }
 		    else
 		    {
-			spcnAP(dnode, resclass, scale, NULL, plist->parm_name, sdM,
-				esSpiceF, w);
+			spcnAP(&dev->dev_terms[pn], dnode, resclass, scale, NULL,
+				plist->parm_name, sdM, esSpiceF, w);
 		    }
 		}
 
@@ -263,7 +264,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 			fprintf(esSpiceF, "%g", l * scale * esScale
 				* plist->parm_scale * 1E-6);
 		    else
-			fprintf(esSpiceF, "%gu", l * scale * esScale);
+			esSIvalue(esSpiceF, 1.0E-6 * l * scale * esScale);
 		}
 		else
 		{
@@ -286,7 +287,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				    fprintf(esSpiceF, "%g", dval * scale * esScale
 						* plist->parm_scale * 1E-6);
 				else
-				    fprintf(esSpiceF, "%gu", dval * scale * esScale);
+				    esSIvalue(esSpiceF, 1.0E-6 * dval * scale * esScale);
 				dparam->parm_name[0] = '\0';
 				break;
 			    }
@@ -303,7 +304,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    fprintf(esSpiceF, "%g", w * scale * esScale
 				* plist->parm_scale * 1E-6);
 		else
-		    fprintf(esSpiceF, "%gu", w * scale * esScale);
+		    esSIvalue(esSpiceF, 1.0E-6 * w * scale * esScale);
 		break;
 	    case 's':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
@@ -319,8 +320,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    fprintf(esSpiceF, "%g", dev->dev_rect.r_xbot * scale
 				* esScale * plist->parm_scale * 1E-6);
 		else
-		    fprintf(esSpiceF, "%gu", dev->dev_rect.r_xbot * scale
-				* esScale);
+		    esSIvalue(esSpiceF, 1.0E-6 * dev->dev_rect.r_xbot * scale * esScale);
 		break;
 	    case 'y':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
@@ -330,8 +330,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    fprintf(esSpiceF, "%g", dev->dev_rect.r_ybot * scale
 				* esScale * plist->parm_scale * 1E-6);
 		else
-		    fprintf(esSpiceF, "%gu", dev->dev_rect.r_ybot * scale
-				* esScale);
+		    esSIvalue(esSpiceF, 1.0E-6 * dev->dev_rect.r_ybot * scale * esScale);
 		break;
 	    case 'r':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
@@ -426,9 +425,10 @@ esOutputHierResistor(hc, dev, scale, term1, term2, has_model, l, w, dscale)
 	}
 	else
 	{
-	    fprintf(esSpiceF, " w=%gu l=%gu",
-		(float)w * scale * esScale,
-		(float)((l * scale * esScale) / dscale));
+	    fprintf(esSpiceF, " w=");
+	    esSIvalue(esSpiceF, 1.0E-6 * (float)w * scale * esScale);
+	    fprintf(esSpiceF, " w=");
+	    esSIvalue(esSpiceF, 1.0E-6 * (float)((l * scale * esScale) / dscale));
 	}
 	spcHierWriteParams(hc, dev, scale, l, w, sdM);
 	if (sdM != 1.0)
@@ -934,9 +934,10 @@ spcdevHierVisit(hc, dev, scale)
 		}
 		else
 		{
-		    fprintf(esSpiceF, " w=%gu l=%gu",
-			w * scale * esScale,
-			l * scale * esScale);
+		    fprintf(esSpiceF, " w=");
+		    esSIvalue(esSpiceF, 1.0E-6 * w * scale * esScale);
+		    fprintf(esSpiceF, " l=");
+		    esSIvalue(esSpiceF, 1.0E-6 * l * scale * esScale);
 		}
 		spcHierWriteParams(hc, dev, scale, l, w, sdM);
 		if (sdM != 1.0)
@@ -981,9 +982,10 @@ spcdevHierVisit(hc, dev, scale)
 		}
 		else
 		{
-		    fprintf(esSpiceF, " w=%gu l=%gu",
-			w * scale * esScale,
-			l * scale * esScale);
+		    fprintf(esSpiceF, " w=");
+		    esSIvalue(esSpiceF, 1.0E-6 * w * scale * esScale);
+		    fprintf(esSpiceF, " l=");
+		    esSIvalue(esSpiceF, 1.0E-6 * l * scale * esScale);
 		}
 		spcHierWriteParams(hc, dev, scale, l, w, sdM);
 		if (sdM != 1.0)
@@ -1024,9 +1026,10 @@ spcdevHierVisit(hc, dev, scale)
 	    }
 	    else
 	    {
-		fprintf(esSpiceF, " w=%gu l=%gu",
-			w * scale * esScale,
-			l * scale * esScale);
+		fprintf(esSpiceF, " w=");
+		esSIvalue(esSpiceF, 1.0E-6 * w * scale * esScale);
+		fprintf(esSpiceF, " l=");
+		esSIvalue(esSpiceF, 1.0E-6 * l * scale * esScale);
 	    }
 	    spcHierWriteParams(hc, dev, scale, l, w, sdM);
 	    if (sdM != 1.0)
@@ -1042,10 +1045,10 @@ spcdevHierVisit(hc, dev, scale)
 
 	    fprintf(esSpiceF, "\n+ ");
 	    dnode = GetHierNode(hc, drain->dterm_node->efnode_name->efnn_hier);
-            spcnAP(dnode, esFetInfo[dev->dev_type].resClassDrain, scale,
+            spcnAP(drain, dnode, esFetInfo[dev->dev_type].resClassDrain, scale,
 			"ad", "pd", sdM, esSpiceF, w);
 	    snode= GetHierNode(hc, source->dterm_node->efnode_name->efnn_hier);
-	    spcnAP(snode, esFetInfo[dev->dev_type].resClassSource, scale,
+	    spcnAP(source, snode, esFetInfo[dev->dev_type].resClassSource, scale,
 			"as", "ps", sdM, esSpiceF, w);
 	    if (subAP)
 	    {
@@ -1057,8 +1060,8 @@ spcdevHierVisit(hc, dev, scale)
 		    fprintf(esSpiceF, "asub=0 psub=0");
 		}
 		else if (subnodeFlat)
-		    spcnAP(subnodeFlat, esFetInfo[dev->dev_type].resClassSub, scale,
-	       			"asub", "psub", sdM, esSpiceF, -1);
+		    spcnAP(NULL, subnodeFlat, esFetInfo[dev->dev_type].resClassSub,
+				scale, "asub", "psub", sdM, esSpiceF, -1);
 		else
 		    fprintf(esSpiceF, "asub=0 psub=0");
 	    }
@@ -1073,13 +1076,21 @@ spcdevHierVisit(hc, dev, scale)
         case DEV_MSUBCKT:
 	        if (!esNoAttrs)
 	        {
-		    if (gate->dterm_attrs || source->dterm_attrs || drain->dterm_attrs)
+		    bool haveSattr = FALSE;
+		    bool haveDattr = FALSE;
+
+		    if (source->dterm_attrs && (*source->dterm_attrs))
+			haveSattr = TRUE;
+		    if (drain->dterm_attrs && (*drain->dterm_attrs))
+			haveDattr = TRUE;
+
+		    if (gate->dterm_attrs || haveSattr || haveDattr)
 		        fprintf(esSpiceF,"\n**devattr");
 		    if (gate->dterm_attrs)
 		        fprintf(esSpiceF, " g=%s", gate->dterm_attrs);
-		    if (source->dterm_attrs)
+		    if (haveSattr)
 		        fprintf(esSpiceF, " s=%s", source->dterm_attrs);
-		    if (drain->dterm_attrs)
+		    if (haveDattr)
 		        fprintf(esSpiceF, " d=%s", drain->dterm_attrs);
 	        }
 	        break;

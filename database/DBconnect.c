@@ -132,6 +132,85 @@ DBInvTransformDiagonal(oldtype, trans)
 /*
  * ----------------------------------------------------------------------------
  *
+ * DBSrConnectOnePlane --
+ *
+ * 	Search from a starting tile to find all paint that is electrically
+ *	connected to that tile in the same plane.
+ *
+ * Results:
+ *	0 is returned if the search finished normally.  1 is returned
+ *	if the search was aborted.
+ *
+ * Side effects:
+ *	For every paint tile that is electrically connected to the initial
+ *	tile, func is called.  Func should have the following form:
+ *
+ *	    int
+ *	    func(tile, clientData)
+ *		Tile *tile;
+ *		ClientData clientData;
+ *    	    {
+ *	    }
+ *
+ *	The clientData passed to func is the same one that was passed
+ *	to us.  Func returns 0 under normal conditions;  if it returns
+ *	1 then the search is aborted.
+ *
+ *				*** WARNING ***
+ *
+ *	Func should not modify any paint during the search, since this
+ *	will mess up pointers kept by these procedures and likely cause
+ *	a core-dump.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+DBSrConnectOnePlane(startTile, connect, func, clientData)
+    Tile *startTile;		/* Starting tile for search */
+    TileTypeBitMask *connect;	/* Pointer to a table indicating what tile
+				 * types connect to what other tile types.
+				 * Each entry gives a mask of types that
+				 * connect to tiles of a given type.
+				 */
+    int (*func)();		/* Function to apply at each connected tile. */
+    ClientData clientData;	/* Client data for above function. */
+
+{
+    struct conSrArg csa;
+    int result;
+    extern int dbSrConnectFunc();	/* Forward declaration. */
+
+    result = 0;
+    csa.csa_def = (CellDef *)NULL;
+    csa.csa_bounds = TiPlaneRect;
+
+    /* Pass 1.  During this pass the client function gets called. */
+
+    csa.csa_clientFunc = func;
+    csa.csa_clientData = clientData;
+    csa.csa_clientDefault = startTile->ti_client;
+    csa.csa_clear = FALSE;
+    csa.csa_connect = connect;
+    csa.csa_pNum = -1;
+    if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
+
+    /* Pass 2.  Don't call any client function, just clear the marks.
+     * Don't allow any interruptions.
+     */
+
+    SigDisableInterrupts();
+    csa.csa_clientFunc = NULL;
+    csa.csa_clear = TRUE;
+    (void) dbSrConnectFunc(startTile, &csa);
+    SigEnableInterrupts();
+
+    return result;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DBSrConnect --
  *
  * 	Search through a cell to find all paint that is electrically
@@ -227,6 +306,7 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
 
     csa.csa_clientFunc = func;
     csa.csa_clientData = clientData;
+    csa.csa_clientDefault = CLIENTDEFAULT;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
     if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
@@ -316,6 +396,7 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
 
     csa.csa_clientFunc = func;
     csa.csa_clientData = clientData;
+    csa.csa_clientDefault = CLIENTDEFAULT;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
     if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
@@ -424,15 +505,15 @@ dbSrConnectFunc(tile, csa)
 	callClient = TRUE;
 	if (csa->csa_clear)
 	{
-	    if (tile->ti_client == (ClientData) CLIENTDEFAULT) continue;
-	    tile->ti_client = (ClientData) CLIENTDEFAULT;
+	    if (tile->ti_client == csa->csa_clientDefault) continue;
+	    tile->ti_client = csa->csa_clientDefault;
 	}
 	else
 	{
 	    if (tile->ti_client == (ClientData) 1) continue;
 
 	    /* Allow a process to mark tiles for skipping the client function */
-	    if (tile->ti_client != (ClientData) CLIENTDEFAULT)
+	    if (tile->ti_client != csa->csa_clientDefault)
 		callClient = FALSE;
 	    tile->ti_client = (ClientData) 1;
 	}
@@ -480,7 +561,7 @@ dbSrConnectFunc(tile, csa)
 	    {
 		if (csa->csa_clear)
 		{
-		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
+		    if (t2->ti_client == csa->csa_clientDefault) continue;
 		}
 		else if (t2->ti_client == (ClientData) 1) continue;
 		if (IsSplit(t2))
@@ -508,7 +589,7 @@ bottomside:
 	    {
 		if (csa->csa_clear)
 		{
-		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
+		    if (t2->ti_client == csa->csa_clientDefault) continue;
 		}
 		else if (t2->ti_client == (ClientData) 1) continue;
 		if (IsSplit(t2))
@@ -542,7 +623,7 @@ rightside:
 	    {
 		if (csa->csa_clear)
 		{
-		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextRight;
+		    if (t2->ti_client == csa->csa_clientDefault) goto nextRight;
 		}
 		else if (t2->ti_client == (ClientData) 1) goto nextRight;
 		if (IsSplit(t2))
@@ -570,7 +651,7 @@ topside:
 	    {
 		if (csa->csa_clear)
 		{
-		    if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextTop;
+		    if (t2->ti_client == csa->csa_clientDefault) goto nextTop;
 		}
 		else if (t2->ti_client == (ClientData) 1) goto nextTop;
 		if (IsSplit(t2))
@@ -589,6 +670,7 @@ topside:
 	}
 
 donesides:
+	if (pNum < 0) continue;		/* Used for single-plane search */
 
 	/* Lastly, check to see if this tile connects to anything on
 	 * other planes.  If so, search those planes.

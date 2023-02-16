@@ -105,9 +105,9 @@ struct transRec
     int		 tr_termlen[MAXSD];	/* Length of each diff terminal edge,
 					 * used for computing L/W for the fet.
 					 */
-    int		 tr_termdepth[MAXSD];	/* Length of the terminal perpendicular
-					 * to the device edge.
-					 */
+    int		 tr_termarea[MAXSD];	/* Total area of the terminal */
+    int		 tr_termperim[MAXSD];	/* Total perimeter of the terminal */
+    int		 tr_termshared[MAXSD];	/* Number of devices sharing this terminal */
     Point	 tr_termvector[MAXSD];	/* Perimeter traversal vector, used to
 					 * find and calculate correct parameters
 					 * for annular (ring) devices and other
@@ -1061,7 +1061,7 @@ ExtSortTerminals(tran, ll)
     TermTilePos	*p1, *p2;
     NodeRegion	*tmp_node;
     TermTilePos	tmp_pos;
-    int		tmp_len, tmp_depth;
+    int		tmp_len, tmp_area, tmp_perim, tmp_shared;
     LabelList   *lp;
 
     do
@@ -1089,21 +1089,29 @@ ExtSortTerminals(tran, ll)
 	    tmp_node = tran->tr_termnode[nsd];
 	    tmp_pos = tran->tr_termpos[nsd];
 	    tmp_len = tran->tr_termlen[nsd];
-	    tmp_depth = tran->tr_termdepth[nsd];
+	    tmp_area = tran->tr_termarea[nsd];
+	    tmp_perim = tran->tr_termperim[nsd];
+	    tmp_shared = tran->tr_termshared[nsd];
 
 	    tran->tr_termnode[nsd] = tran->tr_termnode[nsd+1];
 	    tran->tr_termpos[nsd] = tran->tr_termpos[nsd+1];
 	    tran->tr_termlen[nsd] = tran->tr_termlen[nsd+1];
-	    tran->tr_termdepth[nsd] = tran->tr_termdepth[nsd+1];
+	    tran->tr_termperim[nsd] = tran->tr_termperim[nsd+1];
+	    tran->tr_termarea[nsd] = tran->tr_termarea[nsd+1];
+	    tran->tr_termshared[nsd] = tran->tr_termshared[nsd+1];
 
 	    tran->tr_termnode[nsd+1] = tmp_node;
 	    tran->tr_termpos[nsd+1] = tmp_pos;
 	    tran->tr_termlen[nsd+1] = tmp_len;
-	    tran->tr_termdepth[nsd+1] = tmp_depth;
+	    tran->tr_termarea[nsd+1] = tmp_area;
+	    tran->tr_termperim[nsd+1] = tmp_perim;
+	    tran->tr_termshared[nsd+1] = tmp_shared;
+
 	   /* Need to SWAP the indices in the labRegion too.
             * These for loops within the  bubblesort in here are kinda slow
             *  but S,D attributes are not that common so it should not matter
             * that much -- Stefanos 5/96 */
+
             for ( lp = ll ; lp ; lp = lp->ll_next )
 		if ( lp->ll_attr == nsd ) lp->ll_attr = LL_SORTATTR ;
 		else if ( lp->ll_attr == nsd+1 ) lp->ll_attr = nsd ;
@@ -1690,13 +1698,13 @@ extOutputParameters(def, transList, outFile)
  */
 
 void
-extOutputDevParams(reg, devptr, outFile, length, width, depthvec)
+extOutputDevParams(reg, devptr, outFile, length, width, areavec)
     TransRegion *reg;
     ExtDevice *devptr;
     FILE *outFile;
     int length;
     int width;
-    int *depthvec;
+    int *areavec;
 {
     ParamList *chkParam;
 
@@ -1710,12 +1718,14 @@ extOutputDevParams(reg, devptr, outFile, length, width, depthvec)
 			chkParam->pl_param[1] == '0')
 		    fprintf(outFile, " %c=%d", chkParam->pl_param[0],
 				reg->treg_area);
+		/* Note: a1, a2, etc., are standard output */
 		break;
 	    case 'p':
 		if (chkParam->pl_param[1] == '\0' ||
 			chkParam->pl_param[1] == '0')
 		    fprintf(outFile, " %c=%d", chkParam->pl_param[0],
 				extTransRec.tr_perim);
+		/* Note: p1, p2, etc., are standard output */
 		break;
 	    case 'l':
 		if (chkParam->pl_param[1] == '\0' ||
@@ -1725,10 +1735,12 @@ extOutputDevParams(reg, devptr, outFile, length, width, depthvec)
 		else if (chkParam->pl_param[1] > '0' && chkParam->pl_param[1] <= '9')
 		{
 		    int tidx = chkParam->pl_param[1] - '1';
-		    /* output depth of terminal */
+		    /* output length of terminal, assuming a rectangular
+		     * shape, as simplified terminal area / width
+		     */
 		    fprintf(outFile, " %c%c=%d", chkParam->pl_param[0],
 				chkParam->pl_param[1],
-				depthvec[tidx]);
+				areavec[tidx] / width);
 		}
 		break;
 	    case 'w':
@@ -1953,7 +1965,9 @@ extOutputDevices(def, transList, outFile)
 		while (extTransRec.tr_nterm < nsd)
 		{
 		    extTransRec.tr_termlen[extTransRec.tr_nterm] = 0;
-		    extTransRec.tr_termdepth[extTransRec.tr_nterm] = 0;
+		    extTransRec.tr_termarea[extTransRec.tr_nterm] = 0;
+		    extTransRec.tr_termperim[extTransRec.tr_nterm] = 0;
+		    extTransRec.tr_termshared[extTransRec.tr_nterm] = 0;
 		    extTransRec.tr_termnode[extTransRec.tr_nterm++] = node;
 		}
 	    }
@@ -2177,7 +2191,7 @@ extOutputDevices(def, transList, outFile)
 		}
 
 		extOutputDevParams(reg, devptr, outFile, length, width,
-				extTransRec.tr_termdepth);
+				extTransRec.tr_termarea);
 
 		fprintf(outFile, " \"%s\"", (subsName == NULL) ?
 					"None" : subsName);
@@ -2187,7 +2201,7 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_NDIODE:
 	    case DEV_PDIODE:
 		extOutputDevParams(reg, devptr, outFile, length, width,
-				extTransRec.tr_termdepth);
+				extTransRec.tr_termarea);
 		if (subsName != NULL)
 		    fprintf(outFile, " \"%s\"", subsName);
 		break;
@@ -2315,7 +2329,7 @@ extOutputDevices(def, transList, outFile)
 		    fprintf(outFile, " %g", dres / 1000.0); /* mOhms -> Ohms */
 
 		extOutputDevParams(reg, devptr, outFile, length, width,
-				extTransRec.tr_termdepth);
+				extTransRec.tr_termarea);
 
 		if (devptr->exts_deviceClass == DEV_RSUBCKT)
 		{
@@ -2406,7 +2420,7 @@ extOutputDevices(def, transList, outFile)
 		    }
 
 		    extOutputDevParams(reg, devptr, outFile, length, width,
-				extTransRec.tr_termdepth);
+				extTransRec.tr_termarea);
 
 		    if (devptr->exts_deviceClass == DEV_CSUBCKT)
 		    {
@@ -2428,7 +2442,7 @@ extOutputDevices(def, transList, outFile)
 	node = (NodeRegion *) extGetRegion(reg->treg_tile);
 	ll = node->nreg_labels;
 	extTransOutTerminal((LabRegion *) node, ll, LL_GATEATTR,
-			extTransRec.tr_gatelen, outFile);
+			extTransRec.tr_gatelen, 0, 0, 0, outFile);
 
 	/* Sort source and drain terminals by position, unless the	*/
 	/* device is asymmetric, in which case source and drain do not	*/
@@ -2440,7 +2454,10 @@ extOutputDevices(def, transList, outFile)
 	/* each non-gate terminal */
 	for (nsd = 0; nsd < extTransRec.tr_nterm; nsd++)
 	    extTransOutTerminal((LabRegion *) extTransRec.tr_termnode[nsd], ll,
-			nsd, extTransRec.tr_termlen[nsd], outFile);
+			nsd, extTransRec.tr_termlen[nsd],
+			extTransRec.tr_termarea[nsd],
+			extTransRec.tr_termperim[nsd],
+			extTransRec.tr_termshared[nsd], outFile);
 
 	(void) fputs("\n", outFile);
     }
@@ -2867,6 +2884,171 @@ extTransTileFunc(tile, pNum, arg)
     return 0;
 }
 
+/* Structures used by extTermAPFunc() for storing area and perimeter data */
+
+typedef struct _nodelist {
+    struct _nodelist *nl_next;
+    NodeRegion *nl_node;
+} ExtNodeList;
+
+typedef struct _extareaperimdata {
+    int eapd_area;
+    int eapd_perim;
+    TileTypeBitMask eapd_mask;
+    TileTypeBitMask *eapd_gatemask;
+    NodeRegion *eapd_gatenode;
+    ExtNodeList *eapd_shared;
+} ExtAreaPerimData;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extAddSharedDevice --
+ *
+ *	Add a node region representing a device to the list of nodes
+ *	kept in the structure passed to extTermAPFunc(), to keep track
+ *	of how many devices share the same terminal area.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+extAddSharedDevice(eapd, node)
+    ExtAreaPerimData *eapd;
+    NodeRegion *node;
+{
+    ExtNodeList *nl, *newnl;
+
+    for (nl = eapd->eapd_shared; nl; nl = nl->nl_next)
+	if (nl->nl_node == node) break;
+
+    if (nl == NULL)
+    {
+	newnl = (ExtNodeList *)mallocMagic(sizeof(ExtNodeList));
+	newnl->nl_node = node;
+	newnl->nl_next = eapd->eapd_shared;
+	eapd->eapd_shared = newnl;
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extTermAPFunc --
+ *
+ *	Callback function used by extTransPerimFunc() to find the largest
+ *	area encompassing a device terminal.  This is the bounding box of
+ *	the area containing terminal types connected to a device tile.
+ *
+ *	This routine is redundant with the area and perimeter calculations
+ *	in extFindNodes(), but that routine traverses an entire net.  This
+ *	routine finds the area and perimeter belonging to material on a
+ *	single plane extending from a device (e.g., diffusion and contacts
+ *	on a FET source or drain).
+ *
+ *	Note that this definition is not necessarily accurate for defining
+ *	terminal area and perimeter, as the area of terminal types may not
+ *	be rectangular, making an approximation using length and width
+ *	inappropriate.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extTermAPFunc(tile, pNum, eapd)
+    Tile *tile;		/* Tile extending a device terminal */
+    int   pNum;		/* Plane of tile (unused, set to -1) */
+    ExtAreaPerimData *eapd;	/* Area and perimeter totals for terminal */
+{
+    TileType type;
+    Tile *tp;
+    Rect r;
+
+    TiToRect(tile, &r);
+    eapd->eapd_area += (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+
+    /* Diagonal */
+    if (IsSplit(tile))
+    {
+	int w, h, l;
+	type = (SplitSide(tile)) ? SplitLeftType(tile): SplitRightType(tile);
+	w = RIGHT(tile) - LEFT(tile);
+	h = TOP(tile) - BOTTOM(tile);
+	l = w * w + h * h;
+	eapd->eapd_perim += (int)sqrt((double)l);
+    }
+
+    /* Top */
+    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+    {
+	type = TiGetBottomType(tp);
+	if (TTMaskHasType(&eapd->eapd_mask, type))
+	{
+	    eapd->eapd_perim += MIN(RIGHT(tile), RIGHT(tp)) -
+			MAX(LEFT(tile), LEFT(tp));
+	    if (TTMaskHasType(eapd->eapd_gatemask, type))
+		if (tp->ti_client != (ClientData)eapd->eapd_gatenode)
+		    extAddSharedDevice(eapd, (NodeRegion *)tp->ti_client);
+	}
+    }
+
+    /* Bottom */
+    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+    {
+	type = TiGetTopType(tp);
+	if (TTMaskHasType(&eapd->eapd_mask, type))
+	{
+	    eapd->eapd_perim += MIN(RIGHT(tile), RIGHT(tp)) -
+			MAX(LEFT(tile), LEFT(tp));
+	    if (TTMaskHasType(eapd->eapd_gatemask, type))
+		if (tp->ti_client != (ClientData)eapd->eapd_gatenode)
+		    extAddSharedDevice(eapd, (NodeRegion *)tp->ti_client);
+	}
+    }
+
+    /* Left */
+    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+    {
+	type = TiGetRightType(tp);
+	if (TTMaskHasType(&eapd->eapd_mask, type))
+	{
+	    eapd->eapd_perim += MIN(TOP(tile), TOP(tp)) -
+			MAX(BOTTOM(tile), BOTTOM(tp));
+	    if (TTMaskHasType(eapd->eapd_gatemask, type))
+		if (tp->ti_client != (ClientData)eapd->eapd_gatenode)
+		    extAddSharedDevice(eapd, (NodeRegion *)tp->ti_client);
+	}
+    }
+
+    /* Right */
+    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
+    {
+	type = TiGetLeftType(tp);
+	if (TTMaskHasType(&eapd->eapd_mask, type)) 
+	{
+	    eapd->eapd_perim += MIN(TOP(tile), TOP(tp)) -
+			MAX(BOTTOM(tile), BOTTOM(tp));
+	    if (TTMaskHasType(eapd->eapd_gatemask, type))
+		if (tp->ti_client != (ClientData)eapd->eapd_gatenode)
+		    extAddSharedDevice(eapd, (NodeRegion *)tp->ti_client);
+	}
+    }
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extTransPerimFunc --
+ *
+ *	Callback function for exploring the perimeter of a device to find
+ *	areas connected to the device (e.g., gate) and areas adjacent but
+ *	not connected (e.g., source and drain).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
 int
 extTransPerimFunc(bp)
     Boundary *bp;
@@ -2875,11 +3057,10 @@ extTransPerimFunc(bp)
     Tile *tile;
     NodeRegion *diffNode = (NodeRegion *) extGetRegion(bp->b_outside);
     ExtDevice *devptr, *deventry;
-    int i, depth, len = BoundaryLength(bp);
+    int i, area, perim, len = BoundaryLength(bp);
     int thisterm;
     LabelList *ll;
     Label *lab;
-    Rect r;
     bool SDterm = FALSE;
 
     tile = bp->b_inside;
@@ -2892,17 +3073,6 @@ extTransPerimFunc(bp)
         toutside = (SplitSide(tile)) ? SplitRightType(tile): SplitLeftType(tile);
     else
         toutside = TiGetTypeExact(bp->b_outside);
-
-    /* Experimental---find the depth of the area outside the boundary.
-     * This can be used in limited circumstances to extract the terminal
-     * length (here, called tr_depth).
-     */
-    if (toutside == TT_SPACE)
-	depth = 0;
-    else if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
-	depth = RIGHT(bp->b_outside) - LEFT(bp->b_outside);
-    else
-	depth = TOP(bp->b_outside) - BOTTOM(bp->b_outside);
 
     if (extTransRec.tr_devrec != NULL)
 	devptr = extTransRec.tr_devrec;
@@ -2943,7 +3113,9 @@ extTransPerimFunc(bp)
 		    extTransRec.tr_nterm++;
 		    extTransRec.tr_termnode[thisterm] = diffNode;
 		    extTransRec.tr_termlen[thisterm] = 0;
-		    extTransRec.tr_termdepth[thisterm] = 0;
+		    extTransRec.tr_termarea[thisterm] = 0;
+		    extTransRec.tr_termperim[thisterm] = 0;
+		    extTransRec.tr_termshared[thisterm] = 0;
 		    extTransRec.tr_termvector[thisterm].p_x = 0;
 		    extTransRec.tr_termvector[thisterm].p_y = 0;
 		    extTransRec.tr_termpos[thisterm].pnum = DBPlane(toutside);
@@ -2986,9 +3158,39 @@ extTransPerimFunc(bp)
 		/* Add the length to this terminal's perimeter */
 		extTransRec.tr_termlen[thisterm] += len;
 
-		/* Update the terminal depth */
-		if (depth > extTransRec.tr_termdepth[thisterm])
-		    extTransRec.tr_termdepth[thisterm] = depth;
+		if (extTransRec.tr_termarea[thisterm] == 0)
+		{
+		    /* Find the area and perimeter of the terminal area (connected
+		     * area outside the boundary on a single plane).  Note that
+		     * this does not consider terminal area outside of the cell
+		     * or how area or perimeter may be shared or overlap between
+		     * devices.
+		     */
+
+		    ExtAreaPerimData eapd;
+		    int shared;
+
+		    eapd.eapd_area = eapd.eapd_perim = 0;
+		    TTMaskCom2(&eapd.eapd_mask, &DBConnectTbl[toutside]);
+		    eapd.eapd_gatemask = &ExtCurStyle->exts_deviceMask;
+		    eapd.eapd_gatenode = (NodeRegion *)extGetRegion(bp->b_inside);
+		    eapd.eapd_shared = NULL;
+
+		    DBSrConnectOnePlane(bp->b_outside, DBConnectTbl,
+					extTermAPFunc, (ClientData)&eapd);
+
+		    shared = 1;
+		    while (eapd.eapd_shared)
+		    {
+			shared++;
+			freeMagic(eapd.eapd_shared);
+			eapd.eapd_shared = eapd.eapd_shared->nl_next;
+		    }
+
+		    extTransRec.tr_termarea[thisterm] = eapd.eapd_area;
+		    extTransRec.tr_termperim[thisterm] = eapd.eapd_perim;
+		    extTransRec.tr_termshared[thisterm] = shared;
+		}
 
 		/* Update the boundary traversal vector */
 		switch(bp->b_direction) {
@@ -3435,13 +3637,16 @@ extSpecialPerimFunc(bp, sense)
  */
 
 void
-extTransOutTerminal(lreg, ll, whichTerm, len, outFile)
+extTransOutTerminal(lreg, ll, whichTerm, len, area, perim, shared, outFile)
     LabRegion *lreg;		/* Node connected to terminal */
     LabelList *ll;	/* Gate's label list */
     int whichTerm;		/* Which terminal we are processing.  The gate
 				 * is indicated by LL_GATEATTR.
 				 */
     int len;			/* Length of perimeter along terminal */
+    int area;			/* Total area of terminal */
+    int perim;			/* Total perimeter of terminal (includes len) */
+    int shared;			/* Number of devices sharing the terminal */
     FILE *outFile;		/* Output file */
 {
     char *cp;
@@ -3463,7 +3668,16 @@ extTransOutTerminal(lreg, ll, whichTerm, len, outFile)
 	    fmt = ',';
 	}
 
-    if (fmt == ' ')
+    /* NOTE:  The area and perimeter of a terminal are divided equally
+     * among devices that share the same terminal area.  This may not
+     * necessarily be the best way to handle shared terminals;  in
+     * particular, it is preferable to detect and output fingered
+     * devices separately.
+     */
+
+    if ((whichTerm != LL_GATEATTR) && (area != 0) && (perim != 0))
+	fprintf(outFile, "%c%d,%d", fmt, (area / shared), (perim / shared));
+    else if (fmt == ' ')
 	fprintf(outFile, " 0");
 }
 

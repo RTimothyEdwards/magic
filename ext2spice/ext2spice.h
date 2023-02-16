@@ -52,6 +52,7 @@ extern int  devDistJunctHierVisit();
 extern int  spcnAPHier();
 extern void mergeAttr();
 extern int  update_w();
+extern void esSIvalue();
 
 /* Options specific to ext2spice */
 extern bool esDoExtResis;

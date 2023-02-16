@@ -1225,6 +1225,12 @@ simdevVisit(dev, hc, scale, trans)
     }
     else if (is_subckt)
     {
+	/* Output source and drain attributes */
+	if (source->dterm_attrs)
+	    fprintf(esSimF, " s=%s", source->dterm_attrs);
+	if (drain->dterm_attrs)
+	       fprintf(esSimF, " d=%s", drain->dterm_attrs);
+
 	/* Output length, width, and position as attributes */
         fprintf(esSimF, " l=%g w=%g x=%g y=%g",
 		l * scale, w * scale, r.r_xbot * scale, r.r_ybot * scale);

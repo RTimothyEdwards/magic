@@ -1083,8 +1083,6 @@ efBuildDevice(def, class, type, r, argc, argv)
 	term = &newdev->dev_terms[n];
 	term->dterm_node = efBuildDevNode(def, av[TERM_NAME], FALSE);
 	term->dterm_length = atoi(av[TERM_PERIM]);
-	term->dterm_area = 0;
-	term->dterm_perim = 0;
 
 	/* If the attr list is '0', this signifies no attributes */
 	if (av[TERM_ATTRS][0] == '0' && av[TERM_ATTRS][1] == '\0')

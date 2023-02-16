@@ -255,8 +255,6 @@ typedef struct devterm
     EFNode	*dterm_node;	/* Node to which we're connected */
     char	*dterm_attrs;	/* Attribute list */
     int		 dterm_length;	/* Length of terminal connection to gate */
-    int		 dterm_perim;	/* Terminal perimeter if passed as a param */
-    int		 dterm_area;	/* Terminal area if passed as a param */
 } DevTerm;
 
 /*

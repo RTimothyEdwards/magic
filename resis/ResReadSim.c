@@ -382,8 +382,9 @@ ResSimSubckt(line)
 	if (!strcmp(EFDevTypes[j], line[i]))
 	    break;
 
-    /* Read attributes, especially to pick up values for L, W, X, and Y,
-     * that are critical for use by extresist.
+    /* Read attributes, especially to pick up values for L, W, X, and Y;
+     * and source and drain area and perimeter, that are critical for use
+     * by extresist.
      */
     for (k = 1; line[k][0] != '\0'; k++)
     {
@@ -405,6 +406,12 @@ ResSimSubckt(line)
 		    break;
 		case 'y':
 		    device->location.p_y = (int)((float)atof(eqptr) / lambda);
+		    break;
+		case 's':
+		    device->rs_sattr = StrDup((char **)NULL, eqptr);
+		    break;
+		case 'd':
+		    device->rs_dattr = StrDup((char **)NULL, eqptr);
 		    break;
 	    }
 	}
@@ -531,30 +538,47 @@ ResSimDevice(line, rpersquare, devptr)
 
     /* sim attributes look like g=a1,a2   	*/
     /* ext attributes are "a1","a2"	   	*/
-    /* do conversion from one to the other here	*/
+    /* Do conversion from one to the other here	*/
+    /* NOTE:  As of version 8.3.366, .ext attributes will end in two	*/
+    /* integer values, not quoted, for device area and perimeter.  Do	*/
+    /* not quote them.							*/
 
     for (i = RDEV_ATTR; i < RDEV_ATTR + RDEV_NUM_ATTR; i++)
     {
+	char *cptr, *sptr;
+	int d1, d2;
+
      	if (line[i][0] == '\0') break;
-	k = 0;
-	tmpattr[k++] = '"';
-	for (j = 2; line[i][j] != '\0'; j++)
+
+	sptr = &line[i][2];	/* Start after "s=" or "d=" */
+	tmpattr[0] = '\0';
+	while ((cptr = strchr(sptr, ',')) != NULL)
 	{
-	    if (line[i][j] == ',')
+	    if (sscanf(sptr, "%d,%d", &d1, &d2) == 2)
 	    {
-	       	tmpattr[k++] = '"';
-	       	tmpattr[k++] = ',';
-	       	tmpattr[k++] = '"';
+		strcat(tmpattr, sptr);
+		sptr = NULL;
+		break;
 	    }
 	    else
 	    {
-	        tmpattr[k++] = line[i][j];
+		*cptr = '\0';
+		strcat(tmpattr, "\"");
+		strcat(tmpattr, sptr);
+		strcat(tmpattr, "\",");
+		sptr = cptr + 1;
+		*cptr = ',';
 	    }
 	}
-	tmpattr[k++] = '"';
-	tmpattr[k++] = '\0';
-	newattr = (char *)mallocMagic((unsigned)k);
-	strncpy(newattr, tmpattr, k);
+	if (sptr && (strlen(sptr) != 0))
+	{
+	    strcat(tmpattr, "\"");
+	    strcat(tmpattr, sptr);
+	    strcat(tmpattr, "\"");
+	}
+
+	newattr = (char *)mallocMagic(strlen(tmpattr) + 1);
+	strcpy(newattr, tmpattr);
 	switch (line[i][0])
 	{
 	    case 'g':
