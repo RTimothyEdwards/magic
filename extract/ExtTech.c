@@ -3510,11 +3510,8 @@ zinit:
 				ec = ec->ec_next)
 		{
 		    ec->ec_cap *= 0.5;
-		    if (ec->ec_offset > 0)
-		    {
-		    	ec->ec_offset = (int)(((float)ec->ec_offset / dscale) + 0.5);
-		    	ec->ec_offset /= 1000;
-		    }
+		    ec->ec_offset = (int)(((float)ec->ec_offset / dscale) + 0.5);
+		    ec->ec_offset /= 1000;
 		}
 	    }
 
