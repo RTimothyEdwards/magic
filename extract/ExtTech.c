@@ -55,7 +55,7 @@ ExtStyle *ExtCurStyle = NULL;
 ExtKeep *ExtAllStyles = NULL;
 
 /* Mask of all types found in the extract section */
-TileTypeBitMask *allExtractTypes;
+TileTypeBitMask *allExtractTypes = NULL;
 
 /* Forward declarations */
 void extTechFinalStyle();
@@ -1025,7 +1025,8 @@ ExtTechInit()
     }
     ExtAllStyles = NULL;
 
-    allExtractTypes = (TileTypeBitMask *)mallocMagic(sizeof(TileTypeBitMask));
+    if (allExtractTypes == NULL)
+	allExtractTypes = (TileTypeBitMask *)mallocMagic(sizeof(TileTypeBitMask));
     TTMaskZero(allExtractTypes);
 }
 
@@ -3249,8 +3250,6 @@ ExtTechFinal()
 	    TxPrintf("\n");
 	    break;
 	}
-
-    freeMagic(allExtractTypes);
 }
 
 
