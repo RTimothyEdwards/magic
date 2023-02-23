@@ -2076,6 +2076,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
     int scaled;		/* Scale down by this factor */
 {
     char propertyname[128], propertyvalue[2048], *storedvalue;
+    char *pvalueptr;
     int ntok;
     unsigned int noeditflag;
 
@@ -2084,6 +2085,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
     cellDef->cd_flags &= ~CDNOEDIT;
 
     /* Get first element line */
+    line[len - 1] = 'X';
     if (dbFgets(line, len, f) == NULL) return (FALSE);
 
     while (TRUE)
@@ -2103,15 +2105,44 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 
 	/*
 	 * Properties may only be "string", for now.  This may be the only
-	 * property type ever needed.
+	 * property type ever needed.  Handle possible string buffer
+	 * overflows.
 	 */
 	if (line[0] == 's')
 	{
-	    if ((ntok = sscanf(line, "string %127s %2047[^\n]",
+	    pvalueptr = &propertyvalue[0];
+
+	    if ((ntok = sscanf(line, "string %127s %2048[^\n]",
 		    propertyname, propertyvalue)) != 2)
 	    {
 		TxError("Skipping bad property line: %s", line);
 		goto nextproperty;
+	    }
+
+	    /* Handle string overflows in property values */
+	    if (line[len - 1] == '\0')
+	    {
+		int pvlen = strlen(pvalueptr);
+		*(pvalueptr + pvlen - 1) = '\0';
+
+		while (*(pvalueptr + pvlen - 1) == '\0')
+		{
+		    char *newpvalue;
+
+		    pvlen += 2048;
+		    newpvalue = (char *)mallocMagic(pvlen);
+		    strcpy(newpvalue, pvalueptr);
+		    if (pvalueptr != &propertyvalue[0])
+			freeMagic(pvalueptr);
+		    pvalueptr = newpvalue;
+		    *(pvalueptr + pvlen - 1) = 'X';
+		    if (dbFgets(newpvalue + pvlen - 2048, 2048, f) == NULL)
+		    {
+			freeMagic(pvalueptr);
+			cellDef->cd_flags |= noeditflag;
+			return (TRUE);
+		    }
+		}
 	    }
 
 	    /* Go ahead and process the vendor GDS property */
@@ -2124,7 +2155,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 	    {
 		Rect locbbox;
 
-		if (sscanf(propertyvalue, "%d %d %d %d",
+		if (sscanf(pvalueptr, "%d %d %d %d",
 			&(locbbox.r_xbot),
 			&(locbbox.r_ybot),
 			&(locbbox.r_xtop),
@@ -2132,7 +2163,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 		{
 		    TxError("Cannot read bounding box values in %s property",
 				propertyname);
-		    storedvalue = StrDup((char **)NULL, propertyvalue);
+		    storedvalue = StrDup((char **)NULL, pvalueptr);
 		    (void) DBPropPut(cellDef, propertyname, storedvalue);
 		}
 		else
@@ -2157,17 +2188,19 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			    locbbox.r_xbot, locbbox.r_ybot,
 			    locbbox.r_xtop, locbbox.r_ytop);
 		    (void) DBPropPut(cellDef, propertyname, storedvalue);
-
 		}
 	    }
 	    else
 	    {
-		storedvalue = StrDup((char **)NULL, propertyvalue);
+		storedvalue = StrDup((char **)NULL, pvalueptr);
 		(void) DBPropPut(cellDef, propertyname, storedvalue);
 	    }
+	    if (pvalueptr != &propertyvalue[0])
+		freeMagic(pvalueptr);
 	}
 
 nextproperty:
+	line[len - 1] = 'X';
 	if (dbFgets(line, len, f) == NULL)
 	    break;
     }
