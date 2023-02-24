@@ -173,7 +173,7 @@ extFoundFunc(tile, cxp)
  * file 'outFile'.
  *
  * Results:
- *	Returns a list of Region structs that comprise all
+ *	Returns a list of ExtRegion structs that comprise all
  *	the nodes in 'def'.  It is the caller's responsibility
  *	to call ExtResetTile() and ExtFreeLabRegions() to restore
  *	the CellDef to its original state and to free the list
@@ -191,7 +191,7 @@ extFoundFunc(tile, cxp)
  *		device
  *
  * Interruptible in a limited sense.  We will still return a
- * Region list, but labels may not have been assigned, and
+ * ExtRegion list, but labels may not have been assigned, and
  * nodes and fets may not have been output.
  *
  * ----------------------------------------------------------------------------
@@ -260,7 +260,7 @@ extBasic(def, outFile)
     /*
      * Build up a list of the electrical nodes (equipotentials)
      * for extOutputNodes() below.  For this, we definitely want
-     * to leave each tile pointing to its associated Region struct.
+     * to leave each tile pointing to its associated ExtRegion struct.
      * Compute resistance and capacitance on the fly.
      * Use a special-purpose version of ExtFindRegions for speed.
      */
@@ -1858,13 +1858,13 @@ extOutputDevices(def, transList, outFile)
 
 	/* Mark with reg and process each perimeter segment */
 	arg.fra_uninit = (ClientData) extTransRec.tr_gatenode;
-	arg.fra_region = (Region *) reg;
+	arg.fra_region = (ExtRegion *) reg;
 	arg.fra_each = extTransTileFunc;
 	ntiles = ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 
 	/* Re-mark with extTransRec.tr_gatenode */
 	arg.fra_uninit = (ClientData) reg;
-	arg.fra_region = (Region *) extTransRec.tr_gatenode;
+	arg.fra_region = (ExtRegion *) extTransRec.tr_gatenode;
 	arg.fra_each = (int (*)()) NULL;
 	(void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 
@@ -2158,7 +2158,7 @@ extOutputDevices(def, transList, outFile)
 		    /* Mark with reg and process each perimeter segment */
 
 		    arg.fra_uninit = (ClientData) extTransRec.tr_gatenode;
-		    arg.fra_region = (Region *) reg;
+		    arg.fra_region = (ExtRegion *) reg;
 		    arg.fra_each = extAnnularTileFunc;
 
 		    (void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
@@ -2178,7 +2178,7 @@ extOutputDevices(def, transList, outFile)
 		    /* Re-mark with extTransRec.tr_gatenode */
 
 		    arg.fra_uninit = (ClientData) reg;
-		    arg.fra_region = (Region *) extTransRec.tr_gatenode;
+		    arg.fra_region = (ExtRegion *) extTransRec.tr_gatenode;
 		    arg.fra_each = (int (*)()) NULL;
 		    (void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 
@@ -2240,7 +2240,7 @@ extOutputDevices(def, transList, outFile)
 		    /* Mark with reg and process each perimeter segment */
 
 		    arg.fra_uninit = (ClientData) extTransRec.tr_gatenode;
-		    arg.fra_region = (Region *) reg;
+		    arg.fra_region = (ExtRegion *) reg;
 		    if (isAnnular)
 		        arg.fra_each = extAnnularTileFunc;
 		    else
@@ -2276,7 +2276,7 @@ extOutputDevices(def, transList, outFile)
 		    /* Re-mark with extTransRec.tr_gatenode */
 
 		    arg.fra_uninit = (ClientData) reg;
-		    arg.fra_region = (Region *) extTransRec.tr_gatenode;
+		    arg.fra_region = (ExtRegion *) extTransRec.tr_gatenode;
 		    arg.fra_each = (int (*)()) NULL;
 		    (void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 		}
@@ -2378,7 +2378,7 @@ extOutputDevices(def, transList, outFile)
 			/* Mark with reg and process each perimeter segment */
 
 			arg.fra_uninit = (ClientData) extTransRec.tr_gatenode;
-			arg.fra_region = (Region *) reg;
+			arg.fra_region = (ExtRegion *) reg;
 			arg.fra_each = extAnnularTileFunc;
 			(void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 
@@ -2395,7 +2395,7 @@ extOutputDevices(def, transList, outFile)
 			/* Re-mark with extTransRec.tr_gatenode */
 
 			arg.fra_uninit = (ClientData) reg;
-			arg.fra_region = (Region *) extTransRec.tr_gatenode;
+			arg.fra_region = (ExtRegion *) extTransRec.tr_gatenode;
 			arg.fra_each = (int (*)()) NULL;
 			(void) ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
 		    }
@@ -3893,7 +3893,7 @@ extSetNodeNum(reg, plane, tile)
  * ----------------------------------------------------------------------------
  */
 
-Region *
+ExtRegion *
 extTransFirst(tile, arg)
     Tile *tile;
     FindRegion *arg;
@@ -3914,8 +3914,8 @@ extTransFirst(tile, arg)
 
     /* Prepend it to the region list */
     reg->treg_next = (TransRegion *) arg->fra_region;
-    arg->fra_region = (Region *) reg;
-    return ((Region *) reg);
+    arg->fra_region = (ExtRegion *) reg;
+    return ((ExtRegion *) reg);
 }
 
     /*ARGSUSED*/
@@ -3998,7 +3998,7 @@ extFindNodes(def, clipArea, subonly)
 	extNodeStack = StackNew(64);
 
     arg.fra_def = def;
-    arg.fra_region = (Region *) NULL;
+    arg.fra_region = (ExtRegion *) NULL;
 
     SigDisableInterrupts();
 
@@ -4244,7 +4244,7 @@ extNodeAreaFunc(tile, arg)
 
     /* Prepend the new node to the region list */
     reg->nreg_next = (NodeRegion *) arg->fra_region;
-    arg->fra_region = (Region *) reg;
+    arg->fra_region = (ExtRegion *) reg;
 
     /* Used by substrate generating routine */
     if (tile == NULL) return 1;

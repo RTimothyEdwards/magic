@@ -132,7 +132,7 @@ typedef struct ll
  * The following are the structures built up by the various
  * clients of ExtFindRegions.  The general rule for these
  * structures is that their initial fields must be identical
- * to those in a Region, but subsequent fields are up to
+ * to those in a ExtRegion, but subsequent fields are up to
  * the individual client.
  *
  * Regions marked as GENERIC are the types accepted by
@@ -140,8 +140,8 @@ typedef struct ll
  */
 
     /*
-     * GENERIC Region struct.
-     * All this provides is a pointer to the next Region.
+     * GENERIC ExtRegion struct.
+     * All this provides is a pointer to the next ExtRegion.
      * This is the type passed to functions like ExtFreeRegions,
      * and is the type returned by ExtFindRegions.  Clients should
      * cast pointers of this type to their own, client type.
@@ -149,7 +149,7 @@ typedef struct ll
 typedef struct reg
 {
     struct reg	*reg_next;	/* Next region in list */
-} Region;
+} ExtRegion;
 
     /*
      * GENERIC region with labels.
@@ -253,9 +253,9 @@ typedef struct
 					  * field of a tile if it's not yet
 					  * been visited.
 					  */
-    Region	      *(*fra_first)();	 /* Function to init new region */
+    ExtRegion	      *(*fra_first)();	 /* Function to init new region */
     int		       (*fra_each)();	 /* Function for each tile in region */
-    Region		*fra_region;	 /* Ptr to Region struct for current
+    ExtRegion		*fra_region;	 /* Ptr to ExtRegion struct for current
 					  * region.  May be set by fra_first
 					  * and used by fra_each.
 					  */
@@ -1027,16 +1027,16 @@ extern ClientData extUnInit;
 	STACKPUSH((ClientData)(pointertype)(pl | TT_SIDE), extNodeStack); \
 	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
 
-/* ------------------------- Region finding --------------------------- */
+/* ------------------------- ExtRegion finding --------------------------- */
 
-extern Region *ExtFindRegions();
+extern ExtRegion *ExtFindRegions();
 extern LabelList *ExtLabelRegions();
 
 /* Filter functions for ExtFindRegions() */
-extern Region *extTransFirst();		extern int extTransEach();
-extern Region *extResFirst();		extern int extResEach();
-extern Region *extNodeFirst();		extern int extNodeEach();
-extern Region *extHierLabFirst();	extern int extHierLabEach();
+extern ExtRegion *extTransFirst();		extern int extTransEach();
+extern ExtRegion *extResFirst();		extern int extResEach();
+extern ExtRegion *extNodeFirst();		extern int extNodeEach();
+extern ExtRegion *extHierLabFirst();	extern int extHierLabEach();
 
 extern Tile *extNodeToTile();
 

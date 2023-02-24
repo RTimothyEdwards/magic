@@ -580,7 +580,7 @@ SimFindOneNode( sx, tile )
 
     arg.fra_pNum = DBPlane(type);
     arg.fra_uninit = (ClientData) extUnInit;
-    arg.fra_region = (Region *) reg;
+    arg.fra_region = (ExtRegion *) reg;
     arg.fra_each = SimFindTxtor;
     (void) ExtFindNeighbors( tile, arg.fra_pNum, &arg );
 
@@ -601,7 +601,7 @@ SimFindOneNode( sx, tile )
 
 	arg.fra_pNum = DBPlane(loctype);
 	arg.fra_uninit = (ClientData) extUnInit;
-	arg.fra_region = (Region *) reg;
+	arg.fra_region = (ExtRegion *) reg;
 	arg.fra_each = SimTransistorTile;
 	(void) ExtFindNeighbors( gateTile, arg.fra_pNum, &arg );
 
@@ -609,7 +609,7 @@ SimFindOneNode( sx, tile )
 	arg.fra_connectsTo = ExtCurStyle->exts_nodeConn;
 	arg.fra_pNum = DBPlane(type);
 	arg.fra_uninit = (ClientData) reg;
-	arg.fra_region = (Region *) extUnInit;
+	arg.fra_region = (ExtRegion *) extUnInit;
 	arg.fra_each = (int (*)()) NULL;
 	(void) ExtFindNeighbors( tile, arg.fra_pNum, &arg );
 
@@ -640,12 +640,12 @@ SimFindOneNode( sx, tile )
 
 	arg.fra_pNum = DBPlane(loctype);
 	arg.fra_uninit = (ClientData) sdTile->ti_client;
-	arg.fra_region = (Region *) &ret;
+	arg.fra_region = (ExtRegion *) &ret;
 	arg.fra_each = SimTransistorTile;
 	(void) ExtFindNeighbors( sdTile, arg.fra_pNum, &arg );
 
 	/* Unmark the transitor, since its not part of this region */
-	arg.fra_region = (Region *) arg.fra_uninit;
+	arg.fra_region = (ExtRegion *) arg.fra_uninit;
 	arg.fra_uninit = (ClientData) &ret;
 	arg.fra_each = (int (*)()) NULL;
 	(void) ExtFindNeighbors( sdTile, arg.fra_pNum, &arg );

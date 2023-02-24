@@ -734,7 +734,7 @@ extArrayNodeName(np, ha, et1, et2)
  * The node associated with a tile can be determined in one of the
  * following ways:
  *
- *	(1) Look for a label on the list of the Region pointed to by the
+ *	(1) Look for a label on the list of the ExtRegion pointed to by the
  *	    tile planes of 'et->et_use->cu_def'.  If no label was found,
  *	    then try (2).
  *

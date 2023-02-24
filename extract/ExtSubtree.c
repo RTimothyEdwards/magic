@@ -950,7 +950,7 @@ extSubstrateFunc(scx, ha)
  * The node associated with a tile can be determined in one of the
  * following ways:
  *
- *	(1) Look for a label on the list of the Region pointed to by the
+ *	(1) Look for a label on the list of the ExtRegion pointed to by the
  *	    tile planes of the yank buffer.  If no label was found, then
  *	    try (2).
  *
