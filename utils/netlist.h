@@ -48,7 +48,7 @@ typedef struct nlTermLoc
     struct chan		*nloc_chan;	/* Contains nloc_stem */
     struct pin		*nloc_pin;	/* Pin on nloc_chan boundary */
 
-    struct region	*nloc_region;	/* Region containing stem */
+    struct region	*nloc_region;	/* ExtRegion containing stem */
     struct czone	*nloc_czone;	/* Range containing point */
     int			 nloc_stemcost;	/* Cost of stem	*/
     int			 nloc_flags;	/* Flags */

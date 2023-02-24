@@ -70,7 +70,7 @@ bool extHardSetLabel();
  * ----------------------------------------------------------------------------
  */
 
-Region *
+ExtRegion *
 extLabFirst(tile, arg)
     Tile *tile;
     FindRegion *arg;
@@ -85,8 +85,8 @@ extLabFirst(tile, arg)
 
     /* Prepend it to the region list */
     reg->treg_next = (TransRegion *) arg->fra_region;
-    arg->fra_region = (Region *) reg;
-    return ((Region *) reg);
+    arg->fra_region = (ExtRegion *) reg;
+    return ((ExtRegion *) reg);
 }
 
     /*ARGSUSED*/
@@ -211,7 +211,7 @@ extHardProc(scx, arg)
 	 * If labels are being generated automatically on this pass,
 	 * we don't bother to assign labels to geometry.  Instead, we
 	 * construct a new label based on the lower-leftmost tile in
-	 * the Region labRegList.
+	 * the ExtRegion labRegList.
 	 */
 	if (arg->hw_autogen)
 	{
@@ -300,7 +300,7 @@ extHardSetLabel(scx, reg, arg)
 				 * coordinates in the def scx->scx_use->cu_def
 				 * up to root coordinates.
 				 */
-    TransRegion *reg;		/* Region with a label list */
+    TransRegion *reg;		/* ExtRegion with a label list */
     HardWay *arg;		/* We will set arg->hw_label if a node
 				 * label is found on the label list of 'reg'.
 				 */
@@ -414,7 +414,7 @@ extHardGenerateLabel(scx, reg, arg)
 				 * generated label's coordinates up to
 				 * root coordinates.
 				 */
-    TransRegion *reg;		/* Region whose treg_ll and treg_pnum we use
+    TransRegion *reg;		/* ExtRegion whose treg_ll and treg_pnum we use
 				 * to generate a new label name.
 				 */
     HardWay *arg;		/* We set arg->hw_label to the new label */
@@ -493,7 +493,7 @@ extHardFreeAll(def, tReg)
     arg.fra_connectsTo = ExtCurStyle->exts_nodeConn;
     arg.fra_def = def;
     arg.fra_each = (int (*)()) NULL;
-    arg.fra_region = (Region *) extUnInit;
+    arg.fra_region = (ExtRegion *) extUnInit;
 
     for (reg = tReg; reg; reg = reg->treg_next)
     {

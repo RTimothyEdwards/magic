@@ -44,7 +44,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * -------------------------------------------------------------------------
  */
 
-Region *
+ExtRegion *
 ResFirst(tile, arg)
     Tile *tile;
     FindRegion *arg;
@@ -82,9 +82,9 @@ ResFirst(tile, arg)
 	reg->cp_contactTile = tile;
 	/* Prepend it to the region list */
 	reg->cp_nextcontact = (ResContactPoint *) arg->fra_region;
-	arg->fra_region = (Region *) reg;
+	arg->fra_region = (ExtRegion *) reg;
     }
-    return((Region *) NULL);
+    return((ExtRegion *) NULL);
 }
 
 /*

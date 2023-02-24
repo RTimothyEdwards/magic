@@ -46,11 +46,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * Two procedures are supplied by the caller, 'first' and 'each'.
  *
  * The function 'first' must be non-NULL.  It is called for each tile
- * tile found in the region.  It must return a pointer to a Region
- * struct (or one of the client forms of a Region struct; see the
+ * tile found in the region.  It must return a pointer to a ExtRegion
+ * struct (or one of the client forms of a ExtRegion struct; see the
  * comments in extractInt.h).
  *
- *	Region *
+ *	ExtRegion *
  *	(*first)(tile, arg)
  *	    Tile *tile;		/# Tile is on plane arg->fra_pNum #/
  *	    FindRegion *arg;
@@ -69,13 +69,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *
  * Results:
  *	Returns a pointer to the first element in the linked list
- *	of Region structures for this CellDef.  The Region structs
- *	may in fact contain more than the basic Region struct; this
+ *	of ExtRegion structures for this CellDef.  The ExtRegion structs
+ *	may in fact contain more than the basic ExtRegion struct; this
  *	will depend on what the function 'first' allocates.
  *
  * Side effects:
  *	Each non-space tile has its ti_client field left pointing
- *	to a Region structure that describes the region that tile
+ *	to a ExtRegion structure that describes the region that tile
  *	belongs to.
  *
  * Non-interruptible.  It is the caller's responsibility to check
@@ -84,7 +84,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * ----------------------------------------------------------------------------
  */
 
-Region *
+ExtRegion *
 ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
     CellDef *def;		/* Cell definition being searched */
     Rect *area;			/* Area to search initially for tiles */
@@ -104,7 +104,7 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
     ClientData uninit;		/* Contents of a ti_client field indicating
 				 * that the tile has not yet been visited.
 				 */
-    Region * (*first)();	/* Applied to first tile in region */
+    ExtRegion * (*first)();	/* Applied to first tile in region */
     int (*each)();		/* Applied to each tile in region */
 {
     FindRegion arg;
@@ -116,7 +116,7 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
     arg.fra_uninit = uninit;
     arg.fra_first = first;
     arg.fra_each = each;
-    arg.fra_region = (Region *) NULL;
+    arg.fra_region = (ExtRegion *) NULL;
 
     /* Make sure temp_subsnode is NULL */
     temp_subsnode = NULL;
@@ -140,7 +140,7 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
  * equal to arg->fra_uninit are visited.
  *
  * We call 'fra_first' to allocate a new region struct for it, and then
- * prepend it to the Region list (Region *) arg->fra_clientData.  We
+ * prepend it to the ExtRegion list (ExtRegion *) arg->fra_clientData.  We
  * then call ExtFindNeighbors to trace out recursively all the remaining
  * tiles in the region.
  *
@@ -148,7 +148,7 @@ ExtFindRegions(def, area, mask, connectsTo, uninit, first, each)
  *	Always returns 0, to cause DBSrPaintClient to continue its search.
  *
  * Side effects:
- *	Allocates a new Region struct if the tile has not yet been visited.
+ *	Allocates a new ExtRegion struct if the tile has not yet been visited.
  *	See also the comments for ExtFindNeighbors.
  *
  * ----------------------------------------------------------------------------
@@ -425,7 +425,7 @@ ExtLabelOneRegion(def, connTo, reg)
  *
  * Side effects:
  *	All the non-space tiles in the CellDef have their ti_client
- *	fields set back to uninitialized.  Does not free the Region
+ *	fields set back to uninitialized.  Does not free the ExtRegion
  *	structs that these tiles point to; that must be done by
  *	ExtFreeRegions, ExtFreeLabRegions, or ExtFreeHierLabRegions.
  *
@@ -470,9 +470,9 @@ ExtResetTiles(def, resetTo)
 
 void
 ExtFreeRegions(regList)
-    Region *regList;	/* List of regions to be freed */
+    ExtRegion *regList;	/* List of regions to be freed */
 {
-    Region *reg;
+    ExtRegion *reg;
 
     for (reg = regList; reg; reg = reg->reg_next)
 	freeMagic((char *) reg);
@@ -495,9 +495,9 @@ ExtFreeLabRegions(regList)
 
 void
 ExtFreeHierLabRegions(regList)
-    Region *regList;	/* List of regions to be freed */
+    ExtRegion *regList;	/* List of regions to be freed */
 {
-    Region *reg;
+    ExtRegion *reg;
     LabelList *ll;
 
     for (reg = regList; reg; reg = reg->reg_next)

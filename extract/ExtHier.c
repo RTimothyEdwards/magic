@@ -941,7 +941,7 @@ extHierNewNode(he)
  */
 
     /*ARGSUSED*/
-Region *
+ExtRegion *
 extHierLabFirst(tile, arg)
     Tile *tile;
     FindRegion *arg;
@@ -955,9 +955,9 @@ extHierLabFirst(tile, arg)
 
     /* Prepend it to the region list */
     new->lreg_next = (LabRegion *) arg->fra_region;
-    arg->fra_region = (Region *) new;
+    arg->fra_region = (ExtRegion *) new;
 
-    return ((Region *) new);
+    return ((ExtRegion *) new);
 }
 
     /*ARGSUSED*/
