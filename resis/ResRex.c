@@ -1322,8 +1322,19 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
     }
+
     if (simDev->source == simNode)
     {
+	/* Check for devices with only one terminal.  If it was cast as drain,	*/
+	/* then swap it with the source so that the code below handles it	*/
+	/* correctly.								*/
+
+	if (layoutDev->rd_fet_source == NULL && layoutDev->rd_fet_drain != NULL)
+	{
+	    layoutDev->rd_fet_source = layoutDev->rd_fet_drain;
+	    layoutDev->rd_fet_drain = (struct resnode *)NULL;
+	}
+
      	if (simDev->drain == simNode)
 	{
 	    if (((source = layoutDev->rd_fet_source) != NULL) &&

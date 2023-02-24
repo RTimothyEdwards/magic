@@ -1169,22 +1169,28 @@ simdevVisit(dev, hc, scale, trans)
 	}
     }
 
-    if (is_subckt && subnode)
+    if (dev->dev_class != DEV_DIODE && dev->dev_class != DEV_NDIODE &&
+		dev->dev_class != DEV_PDIODE)
     {
-	/* As a general policy on subcircuits supporting extresist, */
-	/* output the subcircuit node as the last port of the	    */
-	/* subcircuit definition.				    */
-	putc(' ', esSimF);
-	simdevSubstrate(hierName, subnode->efnode_name->efnn_hier,
-	             dev->dev_type, 0.0, FALSE, esSimF);
-    }
+	if (is_subckt && subnode)
+	{
+	    /* As a general policy on subcircuits supporting extresist,	*/
+	    /* output the subcircuit node as the last port of the	*/
+	    /* subcircuit definition, *except* for the use of the 'x'	*/
+	    /* device type for diodes.					*/
 
-    /* Support gemini's substrate comparison */
-    else if (esFormat == LBL && subnode)
-    {
-	putc(' ', esSimF);
-	simdevSubstrate(hierName, subnode->efnode_name->efnn_hier,
+	    putc(' ', esSimF);
+	    simdevSubstrate(hierName, subnode->efnode_name->efnn_hier,
 	             dev->dev_type, 0.0, FALSE, esSimF);
+	}
+
+	/* Support gemini's substrate comparison */
+	else if (esFormat == LBL && subnode)
+	{
+	    putc(' ', esSimF);
+	    simdevSubstrate(hierName, subnode->efnode_name->efnn_hier,
+	             dev->dev_type, 0.0, FALSE, esSimF);
+	}
     }
 
     GeoTransRect(trans, &dev->dev_rect, &r);
@@ -1228,7 +1234,7 @@ simdevVisit(dev, hc, scale, trans)
 	/* Output source and drain attributes */
 	if (source->dterm_attrs)
 	    fprintf(esSimF, " s=%s", source->dterm_attrs);
-	if (drain->dterm_attrs)
+	if ((source != drain) && drain->dterm_attrs)
 	       fprintf(esSimF, " d=%s", drain->dterm_attrs);
 
 	/* Output length, width, and position as attributes */
