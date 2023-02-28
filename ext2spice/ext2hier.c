@@ -427,7 +427,7 @@ esOutputHierResistor(hc, dev, scale, term1, term2, has_model, l, w, dscale)
 	{
 	    fprintf(esSpiceF, " w=");
 	    esSIvalue(esSpiceF, 1.0E-6 * (float)w * scale * esScale);
-	    fprintf(esSpiceF, " w=");
+	    fprintf(esSpiceF, " l=");
 	    esSIvalue(esSpiceF, 1.0E-6 * (float)((l * scale * esScale) / dscale));
 	}
 	spcHierWriteParams(hc, dev, scale, l, w, sdM);
