@@ -637,7 +637,7 @@ DBTopPrint(mw, dolist)
 
 int strcmpbynum(const char *s1, const char *s2)
 {
-    /* Like strcmp() but compare sequences of digits numerically */
+    /* Like strcasecmp() but compare sequences of digits numerically */
     for (;;)
     {
 	if (*s2 == '\0')
@@ -646,8 +646,11 @@ int strcmpbynum(const char *s1, const char *s2)
 	    return 1;
 	else if (!(isdigit(*s1) && isdigit(*s2)))
 	{
-	    if (*s1 != *s2)
-		return (int)*s1 - (int)*s2;
+	    char c1, c2;
+	    c1 = tolower(*s1);
+	    c2 = tolower(*s2);
+	    if (c1 != c2)
+		return (int)c1 - (int)c2;
 	    else
 	    {
 		++s1;

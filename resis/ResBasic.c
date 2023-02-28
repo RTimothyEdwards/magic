@@ -282,19 +282,24 @@ ResEachTile(tile, startpoint)
     for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp=RT(tp))
     {
 	t2 = TiGetRightType(tp);
-	devptr = ExtCurStyle->exts_device[t2];
-	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2) &&
-	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t1))
-        /* found device */
+	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2))
 	{
-	    xj = LEFT(tile);
-	    yj = (TOP(tp) + BOTTOM(tp)) >> 1;
-	    ResNewSDDevice(tile, tp, xj, yj, RIGHTEDGE, &ResNodeQueue);
+	    devptr = ExtCurStyle->exts_device[t2];
+	    for (i = 0; i < devptr->exts_deviceSDCount; i++)
+	    {
+		if (TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		{
+		    /* found device */
+		    xj = LEFT(tile);
+		    yj = (TOP(tp) + BOTTOM(tp)) >> 1;
+		    ResNewSDDevice(tile, tp, xj, yj, RIGHTEDGE, &ResNodeQueue);
+		    break;
+		}
+	    }
 	}
 	if TTMaskHasType(&(ExtCurStyle->exts_nodeConn[t1]), t2)
-	/* tile is junction  */
 	{
-	    /*junction rn_loc */
+	    /* tile is junction */
 	    xj = LEFT(tile);
 	    yj = (MAX(BOTTOM(tile), BOTTOM(tp)) + MIN(TOP(tile), TOP(tp))) >> 1;
 	    (void) ResProcessJunction(tile, tp, xj, yj, &ResNodeQueue);
@@ -304,20 +309,25 @@ ResEachTile(tile, startpoint)
     /* right */
     for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp=LB(tp))
     {
-      	t2 = TiGetLeftType(tp);
-	devptr = ExtCurStyle->exts_device[t2];
-	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2) &&
-	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t1))
-        /* found device */
+	t2 = TiGetLeftType(tp);
+	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2))
 	{
-	    xj = RIGHT(tile);
-	    yj = (TOP(tp)+BOTTOM(tp))>>1;
-	    ResNewSDDevice(tile, tp, xj, yj, LEFTEDGE, &ResNodeQueue);
+	    devptr = ExtCurStyle->exts_device[t2];
+	    for (i = 0; i < devptr->exts_deviceSDCount; i++)
+	    {
+		if (TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		{
+		    /* found device */
+		    xj = RIGHT(tile);
+		    yj = (TOP(tp) + BOTTOM(tp)) >> 1;
+		    ResNewSDDevice(tile, tp, xj, yj, LEFTEDGE, &ResNodeQueue);
+		    break;
+		}
+	    }
 	}
 	if TTMaskHasType(&ExtCurStyle->exts_nodeConn[t1], t2)
-	/* tile is junction  */
 	{
-	    /*junction rn_loc */
+	    /* tile is junction */
 	    xj = RIGHT(tile);
 	    yj = (MAX(BOTTOM(tile),BOTTOM(tp)) + MIN(TOP(tile), TOP(tp))) >> 1;
 	    (void)ResProcessJunction(tile, tp, xj, yj, &ResNodeQueue);
@@ -327,19 +337,25 @@ ResEachTile(tile, startpoint)
     /* top */
     for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp=BL(tp))
     {
-      	t2 = TiGetBottomType(tp);
-	devptr = ExtCurStyle->exts_device[t2];
-	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2) &&
-	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t1))
-        /* found device */
+	t2 = TiGetBottomType(tp);
+	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2))
 	{
-	    yj = TOP(tile);
-	    xj = (LEFT(tp)+RIGHT(tp))>>1;
-	    ResNewSDDevice(tile, tp, xj, yj, BOTTOMEDGE, &ResNodeQueue);
+	    devptr = ExtCurStyle->exts_device[t2];
+	    for (i = 0; i < devptr->exts_deviceSDCount; i++)
+	    {
+		if(TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		{
+		    /* found device */
+		    yj = TOP(tile);
+		    xj = (LEFT(tp)+RIGHT(tp))>>1;
+		    ResNewSDDevice(tile, tp, xj, yj, BOTTOMEDGE, &ResNodeQueue);
+		    break;
+		}
+	    }
 	}
 	if TTMaskHasType(&ExtCurStyle->exts_nodeConn[t1],t2)
-	/* tile is junction  */
 	{
+	    /* tile is junction */
 	    yj = TOP(tile);
 	    xj = (MAX(LEFT(tile),LEFT(tp)) + MIN(RIGHT(tile),RIGHT(tp))) >> 1;
 	    ResProcessJunction(tile, tp, xj, yj, &ResNodeQueue);
@@ -349,19 +365,25 @@ ResEachTile(tile, startpoint)
     /* bottom */
     for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp=TR(tp))
     {
-      	t2 = TiGetTopType(tp);
-	devptr = ExtCurStyle->exts_device[t2];
-	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2) &&
-	      TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t1))
-        /* found device */
+	t2 = TiGetTopType(tp);
+	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2))
 	{
-	    yj = BOTTOM(tile);
-	    xj = (LEFT(tp) + RIGHT(tp)) >> 1;
-	    ResNewSDDevice(tile, tp, xj, yj, TOPEDGE, &ResNodeQueue);
+	    devptr = ExtCurStyle->exts_device[t2];
+	    for (i = 0; i < devptr->exts_deviceSDCount; i++)
+	    {
+		if (TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		{
+		    /* found device */
+		    yj = BOTTOM(tile);
+		    xj = (LEFT(tp) + RIGHT(tp)) >> 1;
+		    ResNewSDDevice(tile, tp, xj, yj, TOPEDGE, &ResNodeQueue);
+		    break;
+		}
+	    }
 	}
 	if TTMaskHasType(&(ExtCurStyle->exts_nodeConn[t1]), t2)
-	/* tile is junction  */
 	{
+	    /* tile is junction */
 	    yj = BOTTOM(tile);
 	    xj = (MAX(LEFT(tile),LEFT(tp)) + MIN(RIGHT(tile),RIGHT(tp))) >> 1;
 	    ResProcessJunction(tile, tp, xj, yj, &ResNodeQueue);

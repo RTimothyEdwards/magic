@@ -894,6 +894,7 @@ extern void DBCellCopyCells();
 extern void DBCellCopyAllCells();
 extern void DBFlatCopyMaskHints();
 extern Plane *DBCellGenerateSubstrate();
+extern Plane *DBCellGenerateSimpleSubstrate();
 
     /* Contact image handling */
 extern TileType DBPlaneToResidue();

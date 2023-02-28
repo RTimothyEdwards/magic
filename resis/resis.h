@@ -634,6 +634,7 @@ extern void			ResSortByGate();
 extern void			ResFixDevName();
 extern void			ResWriteLumpFile();
 extern void			ResSortBreaks();
+extern Plane			*extResPrepSubstrate();
 
 /* C99 compat */
 extern void ResAddToQueue();

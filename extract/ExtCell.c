@@ -292,10 +292,10 @@ extPrepSubstrate(def)
     TTMaskCom2(&notSubMask, &subMask);
     TTMaskAndMask(&notSubMask, &DBPlaneTypes[ExtCurStyle->exts_globSubstratePlane]);
 
-    /* Generate the full flattened substrate into ha->ha_cumFlat (which */
-    /* was empty initially).  This adds layer geometry for the          */
-    /* substrate in the typical case where the substrate may be space   */
-    /* (implicitly defined substrate).                                  */
+    /* Generate the full flattened substrate into a new plane structure	*/
+    /* (called subPlane).  This adds layer geometry for the substrate	*/
+    /* in the typical case where the substrate may be space (implicitly	*/
+    /* defined substrate).                                  		*/
 
     scx.scx_trans = GeoIdentityTransform;
     scx.scx_area = def->cd_bbox;
@@ -305,6 +305,81 @@ extPrepSubstrate(def)
 
     subPlane = DBCellGenerateSubstrate(&scx, subType, &notSubMask,
 		&ExtCurStyle->exts_globSubstrateShieldTypes, def);
+    if (subPlane != NULL)
+    {
+	pNum = ExtCurStyle->exts_globSubstratePlane;
+	savePlane = def->cd_planes[pNum];
+	def->cd_planes[pNum] = subPlane;
+	return savePlane;
+    }
+    else
+        return NULL;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extResPrepSubstrate ---
+ *
+ * This works similarly to extPrepSubstrate above, but is used for the
+ * "extresist" command, where the method is to make sure that the whole
+ * substrate area of the cell has non-space tiles, so that these can be
+ * used to estimate the resistance of the substrate from point to point,
+ * and to eliminate isolated substrate regions, since those represent an
+ * idealized cutoff of resistance that "extresist" is supposed to be
+ * replacing with an accurate resitance network.
+ *
+ * Results:
+ *	Returns a Plane structure that is the original substrate plane from
+ *	CellDef "def", with the entire substrate region filled with the
+ *	substrate tile type.  If a substrate plane or substrate type is not
+ *	defined by the technology, then the routine returns NULL.
+ *
+ * Side effects:
+ *	All modifications are limited to the returned plane structure.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+Plane *
+extResPrepSubstrate(def)
+    CellDef *def;
+{
+    SearchContext scx;
+    CellUse dummy;
+    TileType subType;
+    TileTypeBitMask subMask, notSubMask;
+    Plane *subPlane, *savePlane;
+    int pNum;
+
+    /* Determine if substrate copying is required. */
+
+    if (ExtCurStyle->exts_globSubstratePlane == -1) return NULL;
+
+    /* Find a type to use for the substrate, and the mask of all types      */
+    /* in the same plane as the substrate that are not connected to the     */
+    /* substrate.  If there is not a simple type representing the substrate */
+    /* then do not attempt to resolve substrate regions.                    */
+
+    if ((subType = ExtCurStyle->exts_globSubstrateDefaultType) == -1) return NULL;
+
+    TTMaskZero(&subMask);
+    TTMaskSetMask(&subMask, &ExtCurStyle->exts_globSubstrateTypes);
+    TTMaskCom2(&notSubMask, &subMask);
+    TTMaskAndMask(&notSubMask, &DBPlaneTypes[ExtCurStyle->exts_globSubstratePlane]);
+
+    /* Generate the full flattened substrate into a new plane structure	*/
+    /* (called subPlane).  This adds layer geometry for the substrate	*/
+    /* in the typical case where the substrate may be space (implicitly	*/
+    /* defined substrate).                                  		*/
+
+    scx.scx_trans = GeoIdentityTransform;
+    scx.scx_area = def->cd_bbox;
+    scx.scx_use = &dummy;
+    dummy.cu_def = def;
+    dummy.cu_id = NULL;
+
+    subPlane = DBCellGenerateSimpleSubstrate(&scx, subType, &notSubMask, def);
     if (subPlane != NULL)
     {
 	pNum = ExtCurStyle->exts_globSubstratePlane;

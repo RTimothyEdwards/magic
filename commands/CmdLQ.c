@@ -1407,9 +1407,14 @@ portFindLabel(editDef, port, unique, nonEdit)
 int
 complabel(const void *one, const void *two)
 {
+    /* Natural sort order routine from DBcellname.c
+     * replaces strcasecmp().
+     */
+    int strcmpbynum();
+
     Label *l1 = *((Label **)one);
     Label *l2 = *((Label **)two);
-    return strcasecmp(l1->lab_text, l2->lab_text);
+    return strcmpbynum(l1->lab_text, l2->lab_text);
 }
 
 /*
@@ -2027,6 +2032,8 @@ CmdPort(w, cmd)
 		 * order of the label text).  NOTE:  Because SPICE is
 		 * case-insensitive, case-insensitive alphabetical order
 		 * is used.
+		 * Update (2/26/2023):  Use *natural sort* order so that
+		 * indexes get sorted in numerical, not alphabetical, order.
 		 */
 		{
 		    int numlabels, n, p;

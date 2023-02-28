@@ -821,6 +821,89 @@ DBCellGenerateSubstrate(scx, subType, notSubMask, subShieldMask, targetDef)
 }
 
 /*
+ *-----------------------------------------------------------------------------
+ *
+ * DBCellGenerateSimpleSubstrate --
+ *
+ * This function is used by the extraction code in "extresist".
+ * It is similar to DBCellGenerateSubstrate(), above.  It finds space
+ * tiles on the substrate plane and converts them to a substrate type
+ * in the target, clipped to the cell boundary.  This allows the
+ * extraction to find and record all common (global) substrate regions,
+ * without requiring a physical substrate type to be drawn into all cells.
+ *
+ * Unlike normal paint copying, this can only be done by painting the
+ * substrate type over the entire cell area and then erasing all areas
+ * belonging to not-substrate types in the source.
+ *
+ * Returns:
+ *	Nothing.
+ *
+ * Side Effects:
+ *	Paints into the targetUse's CellDef.  This only happens if two
+ *	conditions are met:
+ *	(1) The techfile has defined "substrate"
+ *	(2) The techfile defines a type corresponding to the substrate
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+Plane *
+DBCellGenerateSimpleSubstrate(scx, subType, notSubMask, targetDef)
+    SearchContext *scx;
+    TileType subType;			/* Substrate paint type */
+    TileTypeBitMask *notSubMask;	/* Mask of types that are not substrate */
+    CellDef *targetDef;
+{
+    struct dbCopySubData csd;
+    Plane *tempPlane;
+    int plane;
+    Rect rect;
+    TileTypeBitMask allButSubMask;
+    TileTypeBitMask defaultSubTypeMask;
+    int dbEraseSubFunc();
+    int dbPaintSubFunc();
+    int dbEraseNonSub();
+    int dbCopySubFunc();
+
+    GEOTRANSRECT(&scx->scx_trans, &scx->scx_area, &rect);
+
+    /* Clip to bounding box of the top level cell */
+    GEOCLIP(&rect, &scx->scx_use->cu_def->cd_bbox);
+
+    plane = DBPlane(subType);
+
+    tempPlane = DBNewPlane((ClientData) TT_SPACE);
+    DBClearPaintPlane(tempPlane);
+
+    csd.csd_subtype = subType;
+    csd.csd_plane = tempPlane;
+    csd.csd_pNum = plane;
+    csd.csd_modified = FALSE;
+
+    /* Paint the substrate type in the temporary plane over the	area of	*/
+    /* the entire cell.							*/
+    DBPaintPlane(tempPlane, &rect, DBStdPaintTbl(subType, plane),
+			(PaintUndoInfo *)NULL);
+
+    /* Now erase all areas that are non-substrate types in the source */
+    DBTreeSrTiles(scx, notSubMask, 0, dbEraseNonSub, (ClientData)&csd);
+
+    /* Finally, copy the destination plane contents onto tempPlane,	*/
+    /* ignoring the substrate type.					*/
+    TTMaskZero(&allButSubMask);
+    TTMaskSetMask(&allButSubMask, &DBAllButSpaceBits);
+    TTMaskClearType(&allButSubMask, subType);
+    DBSrPaintArea((Tile *)NULL, targetDef->cd_planes[plane], &TiPlaneRect,
+		&allButSubMask, dbCopySubFunc, (ClientData)&csd);
+
+    /* Now we have a plane where the substrate type occupies the whole	*/
+    /* area of the cell except where there are conflicting types (e.g.,	*/
+    /* nwell).  Return this plane.					*/
+    return tempPlane;
+}
+
+/*
  * Callback function for DBCellGenerateSubstrate()
  * Finds tiles in the source def that belong to the type that represents
  * the substrate, and erases them.

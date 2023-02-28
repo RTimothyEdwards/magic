@@ -1165,8 +1165,39 @@ ResCleanUpEverything()
 /*
  *-------------------------------------------------------------------------
  *
+ * ResGetTileFunc --
+ *
+ *	Callback function used by FindStartTile() when searching for
+ *	terminal connections of a device that may be on planes other
+ *	than the plane of the device identifier type.  Ignore space
+ *	tiles.  Otherwise, for any tile found, record the tile in
+ *	the client data record and return 1 to stop the search.
+ *
+ * Results:
+ *	Return 0 if tile is a space tile, to keep the search going.
+ *	Return 1 otherwise to stop the search immediately because
+ *	a valid start tile has been found.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+ResGetTileFunc(tile, tpptr)
+    Tile *tile, **tpptr;
+{
+    if (TiGetType(tile) != TT_SPACE)
+    {
+	*tpptr = tile;
+	return 1;
+    }
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * FindStartTile-- To start the extraction, we need to find the first driver.
- *	The sim file gives us the location of a point in  or near (within 1
+ *	The sim file gives us the location of a point in or near (within 1
  *	unit) of the device. FindStartTile looks for the device, then
  *	for adjoining diffusion. The diffusion tile is returned.
  *
@@ -1186,8 +1217,9 @@ FindStartTile(goodies, SourcePoint)
 {
     Point	workingPoint;
     Tile	*tile, *tp;
-    int		pnum, t1, t2;
+    int		pnum, t1, t2, i;
     ExtDevice   *devptr;
+    Rect	r;
 
     /* If the drive point is on a contact, check for the contact residues   */
     /* first, then the contact type itself.				    */
@@ -1284,57 +1316,80 @@ FindStartTile(goodies, SourcePoint)
 
     devptr = ExtCurStyle->exts_device[t1];
 
-    /* left */
-    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+    for (i = 0; i < devptr->exts_deviceSDCount; i++)
     {
-	t2 = TiGetRightType(tp);
-	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t2))
+	/* left */
+	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 	{
-	    SourcePoint->p_x = LEFT(tile);
-	    SourcePoint->p_y = (MIN(TOP(tile),TOP(tp)) +
+	    t2 = TiGetRightType(tp);
+	    if ((t2 != TT_SPACE) && TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+	    {
+		SourcePoint->p_x = LEFT(tile);
+		SourcePoint->p_y = (MIN(TOP(tile),TOP(tp)) +
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
-	    return(tp);
+		return(tp);
+	    }
 	}
-    }
 
-    /* right */
-    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-    {
-	t2 = TiGetLeftType(tp);
-	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t2))
+	/* right */
+	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 	{
-	    SourcePoint->p_x = RIGHT(tile);
-	    SourcePoint->p_y = (MIN(TOP(tile), TOP(tp))+
+	    t2 = TiGetLeftType(tp);
+	    if ((t2 != TT_SPACE) && TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+	    {
+		SourcePoint->p_x = RIGHT(tile);
+		SourcePoint->p_y = (MIN(TOP(tile), TOP(tp))+
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
-	    return(tp);
+		return(tp);
+	    }
+	}
+
+	/* top */
+	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+	{
+	    t2 = TiGetBottomType(tp);
+	    if ((t2 != TT_SPACE) && TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+	    {
+		SourcePoint->p_y = TOP(tile);
+		SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp)) +
+		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
+		return(tp);
+	    }
+	}
+
+	/* bottom */
+	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+	{
+	    t2 = TiGetTopType(tp);
+	    if ((t2 != TT_SPACE) && TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+	    {
+		SourcePoint->p_y = BOTTOM(tile);
+		SourcePoint->p_x = (MIN(RIGHT(tile), RIGHT(tp)) +
+		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
+		return(tp);
+	    }
 	}
     }
 
-    /* top */
-    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+    /* Didn't find a terminal (S/D) type tile in the perimeter search.	*/
+    /* Check if S/D types are in a different plane from the identifier.	*/
+
+    TiToRect(tile, &r);
+    tp = NULL;
+    for (i = 0; i < devptr->exts_deviceSDCount; i++)
     {
-	t2 = TiGetBottomType(tp);
-	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t2))
+	for (pnum = 0; pnum < DBNumPlanes; pnum++)
 	{
-	    SourcePoint->p_y = TOP(tile);
-	    SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp)) +
-		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
-	    return(tp);
+	    DBSrPaintArea((Tile *)NULL, ResUse->cu_def->cd_planes[pnum],
+		&r, &(devptr->exts_deviceSDTypes[i]), ResGetTileFunc, &tp);
+	    if (tp != NULL) return tp;
 	}
     }
 
-    /* bottom */
-    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
-    {
-	t2 = TiGetTopType(tp);
-	if (TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), t2))
-	{
-	    SourcePoint->p_y = BOTTOM(tile);
-	    SourcePoint->p_x = (MIN(RIGHT(tile), RIGHT(tp)) +
-		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
-	    return(tp);
-	}
-    }
+    /* Didn't find a terminal (S/D) type tile anywhere.  Flag an error. */
+
+    TxError("Couldn't find a terminal of the device at %d %d\n",
+			goodies->rg_devloc->p_x, goodies->rg_devloc->p_y);
     return((Tile *) NULL);
 }
 

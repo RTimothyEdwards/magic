@@ -83,13 +83,24 @@ int	ResPortIndex;	/* Port ordering to backannotate into magic */
 extern ResSimNode *ResInitializeNode();
 extern CellUse	  *CmdGetSelectedCell();
 
+/* Linked list structure to use to store the substrate plane from each  */
+/* extracted CellDef so that they can be returned to the original after */
+/* extraction.								*/
+
+struct saveList {
+    Plane *sl_plane;
+    CellDef *sl_def;
+    struct saveList *sl_next;
+};
+
 /* Structure stores information required to be sent to ExtResisForDef() */
 typedef struct
 {
-    float	tolerance;
-    float	tdiTolerance;
-    float	frequency;
-    CellDef	*mainDef;
+    float	    tolerance;
+    float	    tdiTolerance;
+    float	    frequency;
+    struct saveList *savePlanes;
+    CellDef	    *mainDef;
 } ResisData;
 
 /*
@@ -114,6 +125,7 @@ ExtResisForDef(celldef, resisdata)
     ResSimNode  *node;
     int		result, idx;
     char	*devname;
+    Plane	*savePlane;
 
     ResRDevList = NULL;
     ResOriginalNodes = NULL;
@@ -121,6 +133,18 @@ ExtResisForDef(celldef, resisdata)
     /* Check if this cell has been processed */
     if (HashLookOnly(&ResProcessedTable, celldef->cd_name)) return;
     HashFind(&ResProcessedTable, celldef->cd_name);
+
+    /* Prepare the substrate for resistance extraction */
+    savePlane = extResPrepSubstrate(celldef);    
+    if (savePlane != NULL)
+    {
+	struct saveList *newsl;
+	newsl = (struct saveList *)mallocMagic(sizeof(struct saveList));
+	newsl->sl_plane = savePlane;
+	newsl->sl_def = celldef;
+	newsl->sl_next = resisdata->savePlanes;
+	resisdata->savePlanes = newsl;
+    }
 
     /* Get device information from the current extraction style */
     idx = 0;
@@ -227,6 +251,7 @@ CmdExtResis(win, cmd)
     CellUse	*selectedUse;
     ResisData	resisdata;
     char	*endptr;	/* for use with strtod() */
+    struct saveList *sl;
 
     extern int resSubcircuitFunc();	/* Forward declaration */
 
@@ -627,6 +652,7 @@ typedef enum {
     resisdata.tdiTolerance = tdiTolerance;
     resisdata.frequency = fhFrequency;
     resisdata.mainDef = mainDef;
+    resisdata.savePlanes = (struct saveList *)NULL;
 
     /* Do subcircuits (if any) first */
     HashInit(&ResProcessedTable, INITFLATSIZE, HT_STRINGKEYS);
@@ -635,6 +661,13 @@ typedef enum {
 
     ExtResisForDef(mainDef, &resisdata);
     HashKill(&ResProcessedTable);
+
+    /* Revert substrate planes */
+    for (sl = resisdata.savePlanes; sl; sl = sl->sl_next)
+    {
+	ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
+	freeMagic(sl);
+    }
 
     /* turn back on undo stuff */
     UndoEnable();
@@ -1337,6 +1370,14 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 
      	if (simDev->drain == simNode)
 	{
+	    if ((layoutDev->rd_fet_source != NULL) &&
+			(layoutDev->rd_fet_drain == NULL))
+	    {
+		/* Handle source/drain-tied devices */
+		if (simDev->drain == simDev->source)
+		    layoutDev->rd_fet_drain = layoutDev->rd_fet_source;
+	    }
+
 	    if (((source = layoutDev->rd_fet_source) != NULL) &&
 	       	   ((drain = layoutDev->rd_fet_drain) != NULL))
 	    {
