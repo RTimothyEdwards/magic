@@ -107,7 +107,17 @@ DBCellFindDup(use, parent)
     BPEnumInit(&bpe, parent->cd_cellPlane, &use->cu_bbox, BPE_EQUAL,
 		"DBCellFindDup");
     while (dupUse = BPEnumNext(&bpe))
-	if (dupUse->cu_def == use->cu_def) break;
+	if (dupUse->cu_def == use->cu_def)
+	    /* Transforms must be equal---Aligned bounding boxes are
+	     * an insufficient measure of exact overlap.
+	     */
+	    if ((dupUse->cu_transform.t_a == use->cu_transform.t_a) &&
+			(dupUse->cu_transform.t_b == use->cu_transform.t_b) &&
+			(dupUse->cu_transform.t_c == use->cu_transform.t_c) &&
+			(dupUse->cu_transform.t_d == use->cu_transform.t_d) &&
+			(dupUse->cu_transform.t_e == use->cu_transform.t_e) &&
+			(dupUse->cu_transform.t_f == use->cu_transform.t_f))
+		break;
 
     BPEnumTerm(&bpe);
     return dupUse;
