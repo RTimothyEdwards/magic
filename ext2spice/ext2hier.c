@@ -1264,9 +1264,43 @@ spcresistHierVisit(hc, hierName1, hierName2, res)
     HierName *hierName2;
     float res;
 {
+    HashEntry *he;
+    EFNodeName *nn;
+
     fprintf(esSpiceF, "R%d %s %s %g\n", esResNum++,
 		nodeSpiceHierName(hc, hierName1),
                 nodeSpiceHierName(hc, hierName2), res / 1000.);
+
+    /* Mark nodes as visited so that associated capacitances won't be marked
+     * as "floating".  This is inefficient since nodeSpiceName() already does
+     * a hash lookup of the EFNodeName.  Could be improved, but is not a big
+     * performance issue.
+     */
+    he = EFHNLook(hierName1, (char *)NULL, "nodeName");
+    if (he != NULL)
+    {
+	nn = (EFNodeName *)HashGetValue(he);
+
+	/* Mark node as visited (set bit one higher than number of resist classes) */
+	if (esDistrJunct)
+	    update_w(efNumResistClasses, 1, nn->efnn_node);
+	else
+	    markVisited((nodeClientHier *)nn->efnn_node->efnode_client,
+			efNumResistClasses);
+    }
+
+    he = EFHNLook(hierName2, (char *)NULL, "nodeName");
+    if (he != NULL)
+    {
+	nn = (EFNodeName *)HashGetValue(he);
+
+	/* Mark node as visited (set bit one higher than number of resist classes) */
+	if (esDistrJunct)
+	    update_w(efNumResistClasses, 1, nn->efnn_node);
+	else
+	    markVisited((nodeClientHier *)nn->efnn_node->efnode_client,
+			efNumResistClasses);
+    }
 
     return 0;
 }
