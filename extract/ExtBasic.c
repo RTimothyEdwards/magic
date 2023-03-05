@@ -1961,7 +1961,8 @@ extOutputDevices(def, transList, outFile)
 	    {
 		node = extTransRec.tr_termnode[extTransRec.tr_nterm - 1];
 		(void) strcat(mesg, ";\n connecting remainder to node ");
-		(void) strcat(mesg, extNodeName((LabRegion *) node));
+		(void) strncat(mesg, extNodeName((LabRegion *) node),
+				255 - strlen(mesg));
 		while (extTransRec.tr_nterm < nsd)
 		{
 		    extTransRec.tr_termlen[extTransRec.tr_nterm] = 0;
