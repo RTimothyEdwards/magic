@@ -205,7 +205,9 @@ Read CIF input or generate CIF output.
 		 standard cells are known to abut properly without causing
 		 spacing or overlap errors, disabling hierarchical generation
 		 can greatly reduce the amount of time needed to generate
-		 output.
+		 output.  Defining the property <B>CIFhier</B> inside a cell
+		 will override the use of <B>*hier write disable</B> and
+		 force hierarchical output for that cell and its descendents.
 	    <DT> <B>*array write</B> [ <B>enable</B> | <B>disable</B> ]
 	    <DD> This sets a global option that enables (default) or disables
 		 the generation of output CIF or GDS layers due to interaction
@@ -213,6 +215,9 @@ Read CIF input or generate CIF output.
 		 abut properly without generating spacing errors between them,
 		 disabling hierarchical generation can greatly reduce the
 		 amount of time needed to generate output.
+		 Defining the property <B>CIFhier</B> inside a cell
+		 will override the use of <B>*array write disable</B> and
+		 force hierarchical output for that cell and its descendents.
 	 </DL>
       </BLOCKQUOTE>
    </BLOCKQUOTE>
@@ -241,6 +246,7 @@ Read CIF input or generate CIF output.
 <H3>See Also:</H3>
    <BLOCKQUOTE>
       <A HREF=gds.html><B>gds</B> (<B>calma</B>)</A> <BR>
+      <A HREF=property.html><B>property</B></A> (property "CIFhier")<BR>
    </BLOCKQUOTE>
 
 <P><IMG SRC=graphics/line1.gif><P>

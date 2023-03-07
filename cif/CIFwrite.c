@@ -305,6 +305,7 @@ cifOut(outf)
     FILE *outf;
 {
     CellDef *def;
+    bool needHier;
 
     while (!StackEmpty(cifStack))
     {
@@ -385,10 +386,12 @@ cifOutFunc(def, f)
     CIFErrorDef = def;
     CIFGen(def, def, &bigArea, CIFPlanes, &DBAllTypeBits, TRUE, TRUE, FALSE,
 		(ClientData)NULL);
+
     if (!CIFHierWriteDisable)
-	CIFGenSubcells(def, &bigArea, CIFPlanes);
+        CIFGenSubcells(def, &bigArea, CIFPlanes);
     if (!CIFArrayWriteDisable)
-	CIFGenArrays(def, &bigArea, CIFPlanes);
+        CIFGenArrays(def, &bigArea, CIFPlanes);
+
     for (type = 0; type < CIFCurStyle->cs_nLayers; type++)
     {
 	layer = CIFCurStyle->cs_layers[type];

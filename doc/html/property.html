@@ -83,11 +83,28 @@ Attach a "property" (string key and value pair) to the edit cell
 	<DT> <B>LEFsite</B>
 	<DD> If the file was read from a LEF macro, then this property corresponds
 	     to the macro's <B>SITE</B> value.
+	<DT> <B>CIFhier</B>
+	<DD> If defined, then this cell will be written to CIF or GDS
+	     output with hierachical processing regardless of the settings of
+	     the command options "cif *hier write disable" and "cif *array write
+	     disable".  That allows those commands to be used to avoid
+	     time-consuming and unnecessary hierarchical processing of a top-level
+	     chip assembly with mostly correct-by-design components (such as a
+	     digital standard cell layout) while preserving necessary hierarchical
+	     processing on blocks (such as analog circuits) that need them.
 	<DT> <B>FIXED_BBOX</B>
 	<DD> This property value is a space-separated list of four integer values
 	     corresponding to the abutment box of the cell, in magic's internal
 	     units.  The abutment box is automatically read from LEF files, but
 	     may be defined for any file and can be used for placement alignment.
+	<DT> <B>OBS_BBOX</B>
+	<DD> This property value is a space-sparated list of four integer values
+	     corresponding to a bounding box to be used when generating a LEF
+	     file abstract view of a cell.  The area inside the bounding box
+	     will be entirely covered in obstruction layers (unless cut-outs
+	     are required to accommodate pins).  Any set-back applied by the
+	     "lef write -hide <value>" option will be applied to this obstruction
+	     box.
 	<DT> <B>device</B>
 	<DD> This property declares that the cell is a device or contains a
 	     single device that is not a known extractable device defined in

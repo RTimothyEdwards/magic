@@ -824,7 +824,8 @@ calmaProcessDefZ(def, outf, do_library)
 {
     char *filename;
     int polyidx;
-    bool isReadOnly, oldStyle, hasContent, isAbstract, hasGDSEnd;
+    bool isReadOnly, oldStyle, hasContent, isAbstract, hasGDSEnd, needHier;
+    bool hierWrite, arrayWrite;
     HashEntry *he;
 
     /* Skip if already output */
@@ -873,6 +874,7 @@ calmaProcessDefZ(def, outf, do_library)
     DBPropGet(def, "LEFview", &isAbstract);
     DBPropGet(def, "GDS_START", &hasContent);
     DBPropGet(def, "GDS_END", &hasGDSEnd);
+    DBPropGet(def, "CIFhier", &needHier);
     filename = (char *)DBPropGet(def, "GDS_FILE", &isReadOnly);
 
     /* When used with "calma addendum true", don't output the read-only	*/
@@ -902,8 +904,29 @@ calmaProcessDefZ(def, outf, do_library)
      * as they are expected to be in the referenced GDS file.
      */
     if (!hasContent || hasGDSEnd)
-	if (DBCellEnum(def, calmaProcessUseZ, (ClientData) outf) != 0)
+    {
+	int result;
+
+	if (needHier)
+	{
+	    hierWrite = CIFHierWriteDisable;
+	    arrayWrite = CIFArrayWriteDisable;
+
+	    CIFHierWriteDisable = FALSE;
+	    CIFArrayWriteDisable = FALSE;
+	}
+
+	result = DBCellEnum(def, calmaProcessUseZ, (ClientData) outf);
+
+	if (needHier)
+	{
+	    CIFHierWriteDisable = hierWrite;
+	    CIFArrayWriteDisable = arrayWrite;
+	}
+
+	if (result != 0)
 	    return 1;
+    }
 
     /* Give some feedback to the user */
     TxPrintf("   Generating output for cell %s\n", def->cd_name);
@@ -1106,7 +1129,24 @@ calmaProcessDefZ(def, outf, do_library)
     /* Output this cell definition from the Magic database */
     if (!isReadOnly)
 	if (!do_library)
+	{
+	    if (needHier)
+	    {
+		hierWrite = CIFHierWriteDisable;
+		arrayWrite = CIFArrayWriteDisable;
+	
+		CIFHierWriteDisable = FALSE;
+		CIFArrayWriteDisable = FALSE;
+	    }
+
 	    calmaOutFuncZ(def, outf, &TiPlaneRect);
+
+	    if (needHier)
+	    {
+		CIFHierWriteDisable = hierWrite;
+		CIFArrayWriteDisable = arrayWrite;
+	    }
+	}
 
     return 0;
 }
@@ -1218,10 +1258,11 @@ calmaOutFuncZ(def, f, cliprect)
     CIFErrorDef = def;
     CIFGen(def, def, &bigArea, CIFPlanes, &DBAllTypeBits, TRUE, TRUE, FALSE,
 		(ClientData)f);
+
     if (!CIFHierWriteDisable)
-	CIFGenSubcells(def, &bigArea, CIFPlanes);
+        CIFGenSubcells(def, &bigArea, CIFPlanes);
     if (!CIFArrayWriteDisable)
-	CIFGenArrays(def, &bigArea, CIFPlanes);
+        CIFGenArrays(def, &bigArea, CIFPlanes);
 
     for (type = 0; type < CIFCurStyle->cs_nLayers; type++)
     {
