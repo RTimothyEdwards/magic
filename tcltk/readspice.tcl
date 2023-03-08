@@ -133,7 +133,9 @@ proc readspice {netfile} {
 
 	       # Get the complete set of labels in the top cell and make a list
 	       select top cell
+	       unexpand
 	       select area labels
+	       expand
 	       set all [lindex [what -list] 1]
 	       select clear
 
