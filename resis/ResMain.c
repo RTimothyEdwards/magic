@@ -38,7 +38,7 @@ resNode			*ResNodeQueue = NULL;	/* Pending nodes	  */
 resNode			*ResOriginNode = NULL;	/* node where R=0	  */
 resNode			*resCurrentNode;
 int			ResTileCount = 0;	/* Number of tiles rn_status */
-extern ExtRegion 		*ResFirst();
+extern ExtRegion 	*ResFirst();
 extern Tile		*FindStartTile();
 extern int		ResEachTile();
 extern int		ResLaplaceTile();

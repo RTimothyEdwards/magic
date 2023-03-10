@@ -248,7 +248,7 @@ extFileOpen(def, file, mode, doLocal, prealfile)
  * a cell on the plane representing the substrate to determine if the area is
  * the default substrate or an isolated region.  If an isolated region, it
  * must be painted with a tile type so that the extraction code can tag the
- * tiles with a ExtRegion and assign it a node.  This code creates the substrate
+ * tiles with an ExtRegion and assign it a node.  This code creates the substrate
  * paint in the isolated regions for the duration of the extration, then
  * reverts back to the original plane afterward.
  *

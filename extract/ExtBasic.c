@@ -190,7 +190,7 @@ extFoundFunc(tile, cxp)
  *		fet
  *		device
  *
- * Interruptible in a limited sense.  We will still return a
+ * Interruptible in a limited sense.  We will still return an
  * ExtRegion list, but labels may not have been assigned, and
  * nodes and fets may not have been output.
  *

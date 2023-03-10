@@ -132,7 +132,7 @@ typedef struct ll
  * The following are the structures built up by the various
  * clients of ExtFindRegions.  The general rule for these
  * structures is that their initial fields must be identical
- * to those in a ExtRegion, but subsequent fields are up to
+ * to those in an ExtRegion, but subsequent fields are up to
  * the individual client.
  *
  * Regions marked as GENERIC are the types accepted by
@@ -1027,7 +1027,7 @@ extern ClientData extUnInit;
 	STACKPUSH((ClientData)(pointertype)(pl | TT_SIDE), extNodeStack); \
 	STACKPUSH((ClientData)(pointertype)tp, extNodeStack)
 
-/* ------------------------- ExtRegion finding --------------------------- */
+/* ------------------------- Region finding --------------------------- */
 
 extern ExtRegion *ExtFindRegions();
 extern LabelList *ExtLabelRegions();

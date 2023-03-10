@@ -823,7 +823,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
 
     TxPrintf ("PNM image dimensions: %d x %d\n", im_x, im_y);
 #if 0
-    TxPrintf ("ExtRegion size: %d x %d\n", tile_xsize, tile_ysize);
+    TxPrintf ("Region size: %d x %d\n", tile_xsize, tile_ysize);
     TxPrintf ("Pixels per region: %d\n", y_pixels);
     TxPrintf ("Scale: %g\n", scale);
     TxPrintf ("Antialiasing overlap: %d\n", scale_over_2);
