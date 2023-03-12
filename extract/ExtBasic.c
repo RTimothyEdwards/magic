@@ -2099,7 +2099,7 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_SUBCKT:
 	    case DEV_MSUBCKT:
 	    case DEV_ASYMMETRIC:
-		length = extTransRec.tr_gatelen / 2;	/* (default) */
+		length = 0;
 		width = 0;
 		isAnnular = FALSE;
 
@@ -2119,7 +2119,32 @@ extOutputDevices(def, transList, outFile)
 				extTransRec.tr_termvector[n].p_y == 0)
 			isAnnular = TRUE;
 		}
-		if (n) width /= n;
+
+		/* For devices missing a terminal, reduce n accordingly. */
+		/* This avoids errors in length and width calculations.  */
+		while ((n > 0) && (extTransRec.tr_termnode[n - 1]) &&
+			(extTransRec.tr_termlen[n - 1] == 0) &&
+			(extTransRec.tr_termarea[n - 1] == 0) &&
+			(extTransRec.tr_termperim[n - 1] == 0)) n--;
+
+		if (n)
+		{
+		    width /= n;
+		    if (n > 1)
+			length = extTransRec.tr_gatelen / n;
+		    else
+		    {
+			/* Assumption:  A device with a single terminal	*/
+			/* must be rectangular;  an example is a MOSCAP	*/
+			/* with poly over three sides of diffusion.  	*/
+			/* Length in this case is not properly defined,	*/
+			/* but it is only necessary for the model to	*/
+			/* get the correct area per W * L.  If the	*/
+			/* device is annular, then this assumption will	*/
+			/* get corrected by extComputeEffectiveLW().	*/
+			length = (extTransRec.tr_gatelen - width) / 2;
+		    }
+		}
 
 		/*------------------------------------------------------*/
 		/* Note that the tr_termvector says a lot about the	*/
@@ -3152,7 +3177,8 @@ extTransPerimFunc(bp)
 		     */
 		    if (strcmp(extTransRec.tr_devrec->exts_deviceName, "Ignore") &&
 				strcmp(extTransRec.tr_devrec->exts_deviceName, "Short"))
-			TxError("Error:  Asymmetric device with multiple terminals!\n");
+			TxError("Warning:  Unexpected asymmetric device at %d, %d!\n",
+				bp->b_outside->ti_ll.p_x, bp->b_outside->ti_ll.p_y);
 		    break;
 		}
 
