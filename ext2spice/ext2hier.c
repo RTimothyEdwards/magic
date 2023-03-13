@@ -902,7 +902,7 @@ spcdevHierVisit(hc, dev, scale)
 
 	    /* Capacitor is "Cnnn top bottom value"	*/
 	    /* extraction sets top=gate bottom=source	*/
-	    /* extracted units are fF; output is in fF */
+	    /* extracted units are fF.			*/
 
 	    spcdevOutNode(hc->hc_hierName,
 			gate->dterm_node->efnode_name->efnn_hier,
@@ -920,8 +920,7 @@ spcdevHierVisit(hc, dev, scale)
 
 	    if (!has_model)
 	    {
-		fprintf(esSpiceF, " %ffF", (double)sdM *
-				(double)(dev->dev_cap));
+		esSIvalue(esSpiceF, 1.0E-15 * (double)sdM * (double)dev->dev_cap);
 		spcHierWriteParams(hc, dev, scale, l, w, sdM);
 	    }
 	    else
@@ -950,7 +949,7 @@ spcdevHierVisit(hc, dev, scale)
 
 	    /* Capacitor is "Cnnn bottom top value"	*/
 	    /* extraction sets top=source bottom=gate	*/
-	    /* extracted units are fF; output is in fF */
+	    /* extracted units are fF.			*/
 
 	    spcdevOutNode(hc->hc_hierName,
 			gate->dterm_node->efnode_name->efnn_hier,
@@ -968,8 +967,7 @@ spcdevHierVisit(hc, dev, scale)
 
 	    if (!has_model)
 	    {
-		fprintf(esSpiceF, " %ffF", (double)sdM *
-				(double)(dev->dev_cap));
+		esSIvalue(esSpiceF, 1.0E-15 * (double)sdM * (double)dev->dev_cap);
 		spcHierWriteParams(hc, dev, scale, l, w, sdM);
 	    }
 	    else
@@ -1226,9 +1224,11 @@ spccapHierVisit(hc, hierName1, hierName2, cap)
     if (fabs(cap) <= EFCapThreshold)
 	return 0;
 
-    fprintf(esSpiceF, esSpiceCapFormat, esCapNum++,
+    fprintf(esSpiceF, "C%d %s %s ", esCapNum++,
 		nodeSpiceHierName(hc, hierName1),
-                nodeSpiceHierName(hc, hierName2), cap);
+                nodeSpiceHierName(hc, hierName2));
+    esSIvalue(esSpiceF, 1.0E-15 *cap);
+    fprintf(esSpiceF, "\n");
     return 0;
 }
 
@@ -1397,10 +1397,14 @@ spcnodeHierVisit(hc, node, res, cap)
     cap = cap  / 1000;
     if (fabs(cap) > EFCapThreshold)
     {
-	fprintf(esSpiceF, esSpiceCapFormat, esCapNum++, nsn, cap,
-			(isConnected) ?  "" :
-			(esFormat == NGSPICE) ? " $ **FLOATING" :
-			" **FLOATING");
+	fprintf(esSpiceF, "C%d %s %s ", esCapNum++, nsn, esSpiceCapNode);
+	esSIvalue(esSpiceF, 1.0E-15 * cap);
+	if (!isConnected)
+	{
+	    if (esFormat == NGSPICE) fprintf(esSpiceF, " $");
+	    fprintf(esSpiceF, " **FLOATING");
+	}
+	fprintf(esSpiceF, "\n");
     }
     if (node->efnode_attrs && !esNoAttrs)
     {
@@ -2121,18 +2125,17 @@ esHierVisit(hc, cdata)
 	EFHierVisitResists(hcf, spcresistHierVisit, (ClientData)NULL);
 
 	/* Output coupling capacitances */
-	sprintf( esSpiceCapFormat,  "C%%d %%s %%s %%.%dlffF\n", esCapAccuracy);
 	EFHierVisitCaps(hcf, spccapHierVisit, (ClientData)NULL);
 
 	if (EFCompat == FALSE)
 	{
 	    /* Find the substrate node */
 	    EFHierVisitNodes(hcf, spcsubHierVisit, (ClientData)&resstr);
-	    if (resstr == NULL) resstr = StrDup((char **)NULL, "0");
+	    if (resstr == NULL)
+		resstr = esSpiceDefaultGnd;
 
 	    /* Output lumped capacitance and resistance to substrate */
-	    sprintf( esSpiceCapFormat,  "C%%d %%s %s %%.%dlffF%%s\n",
-			resstr, esCapAccuracy);
+	    esSpiceCapNode = resstr;
 	    EFHierVisitNodes(hcf, spcnodeHierVisit, (ClientData) NULL);
 	    freeMagic(resstr);
 	}

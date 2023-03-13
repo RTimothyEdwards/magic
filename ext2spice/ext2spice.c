@@ -56,8 +56,8 @@ bool esMergeNames = TRUE;
 bool esNoAttrs = FALSE;
 bool esHierAP = FALSE;
 char spcesDefaultOut[FNSIZE];
-int  esCapAccuracy = 2;
-char esSpiceCapFormat[FNSIZE];
+char *esSpiceCapNode;
+char esSpiceDefaultGnd[] = "0";
 char *spcesOutName = spcesDefaultOut;
 FILE *esSpiceF = NULL;
 float esScale = -1.0 ; /* negative if hspice the EFScale/100 otherwise */
@@ -1116,21 +1116,17 @@ runexttospice:
 	EFVisitDevs(spcdevVisit, (ClientData) NULL);
 	TTMaskZero(&initMask);
 	if (flatFlags & EF_FLATCAPS)
-	{
-	    (void) sprintf( esSpiceCapFormat,  "C%%d %%s %%s %%.%dlffF\n",
-				esCapAccuracy);
 	    EFVisitCaps(spccapVisit, (ClientData) NULL);
-	}
+
 	EFVisitResists(spcresistVisit, (ClientData) NULL);
 	EFVisitSubcircuits(subcktVisit, (ClientData) NULL);
 
 	/* Visit nodes to find the substrate node */
 	EFVisitNodes(spcsubVisit, (ClientData)&substr);
 	if (substr == NULL)
-	    substr = StrDup((char **)NULL, "0");
+	    substr = esSpiceDefaultGnd;
 
-	(void) sprintf( esSpiceCapFormat, "C%%d %%s %s %%.%dlffF%%s",
-			substr, esCapAccuracy);
+	esSpiceCapNode = substr;
 	EFVisitNodes(spcnodeVisit, (ClientData) NULL);
 
 	if (EFCompat == FALSE) freeMagic(substr);
@@ -1295,13 +1291,12 @@ main(argc, argv)
      	EFVisitDevs(devDistJunctVisit, (ClientData) NULL);
     EFVisitDevs(spcdevVisit, (ClientData) NULL);
     TTMaskZero(&initMask);
-    if (flatFlags & EF_FLATCAPS) {
-	(void) sprintf( esSpiceCapFormat,  "C%%d %%s %%s %%.%dlffF\n",esCapAccuracy);
+    if (flatFlags & EF_FLATCAPS)
 	EFVisitCaps(spccapVisit, (ClientData) NULL);
-    }
+
     EFVisitResists(spcresistVisit, (ClientData) NULL);
     EFVisitSubcircuits(subcktVisit, (ClientData) NULL);
-    (void) sprintf( esSpiceCapFormat, "C%%d %%s GND %%.%dlffF%%s", esCapAccuracy);
+    esSpiceCapNode = esSpiceDefaultGnd;
     EFVisitNodes(spcnodeVisit, (ClientData) NULL);
 
     if ((esDoSubckt == TRUE) || (locDoSubckt == TRUE))
@@ -1359,10 +1354,10 @@ spcParseArgs(pargc, pargv)
 {
     char **argv = *pargv, *cp;
     int argc = *pargc;
+    char *ftmp, *t;
 
     char usage_text[] = "Usage: ext2spice "
-		"[-B] [-o spicefile] [-M|-m] [-y cap_digits] "
-		"[-J flat|hier]\n"
+		"[-B] [-o spicefile] [-M|-m] [-J flat|hier]\n"
 		"[-f spice2|spice3|hspice|ngspice] [-M] [-m] "
 		"[file]\n";
 
@@ -1371,66 +1366,66 @@ spcParseArgs(pargc, pargv)
 	case 'd':
 	    esDistrJunct = TRUE;
 	    break;
+
 	case 'M':
 	    esMergeDevsA = TRUE;
 	    break;
+
 	case 'm':
 	    esMergeDevsC = TRUE;
 	    break;
+
 	case 'B':
 	    esNoAttrs = TRUE;
 	    break;
+
 	case 'F':
 	    esDevNodesOnly = TRUE;
 	    break;
+
 	case 'o':
 	    if ((spcesOutName = ArgStr(&argc, &argv, "filename")) == NULL)
 		goto usage;
 	    break;
-	case 'f': {
-	     char *ftmp ;
 
-	     if ((ftmp = ArgStr(&argc, &argv, "format")) == NULL)
+	case 'f':
+	    if ((ftmp = ArgStr(&argc, &argv, "format")) == NULL)
 		goto usage;
-	     if (strcasecmp(ftmp, "SPICE2") == 0)
+	    if (strcasecmp(ftmp, "SPICE2") == 0)
 	        esFormat = SPICE2;
-	     else if (strcasecmp(ftmp, "SPICE3") == 0)
+	    else if (strcasecmp(ftmp, "SPICE3") == 0)
 		esFormat = SPICE3;
-	     else if (strcasecmp(ftmp, "HSPICE") == 0)
-	     {
+	    else if (strcasecmp(ftmp, "HSPICE") == 0)
+	    {
 		esFormat = HSPICE;
 		esScale = -1.0;
-	     }
-	     else if (strcasecmp(ftmp, "NGSPICE") == 0)
+	    }
+	    else if (strcasecmp(ftmp, "NGSPICE") == 0)
 		esFormat = NGSPICE;
-	     else goto usage;
-	     break;
-	     }
+	    else goto usage;
+	    break;
+
 	case 'J':
-	     {
-	     char *ftmp ;
-
-	     if ((ftmp = ArgStr(&argc, &argv, "hierAP_SD")) == NULL)
+	    if ((ftmp = ArgStr(&argc, &argv, "hierAP_SD")) == NULL)
 		goto usage;
-	     if ( strcasecmp(ftmp, "HIER") == 0 )
+	    if ( strcasecmp(ftmp, "HIER") == 0 )
 		esHierAP = TRUE ;
-	     else if ( strcasecmp(ftmp, "FLAT") == 0 )
+	    else if (strcasecmp(ftmp, "FLAT") == 0 )
 		esHierAP = FALSE ;
-	     else goto usage;
+	    else goto usage;
 
-	     break;
-	     }
-	case 'y': {
-	      char *t;
+	    break;
 
-	      if (( t =  ArgStr(&argc, &argv, "cap-accuracy") ) == NULL)
+	case 'y':
+	    if ((t = ArgStr(&argc, &argv, "cap-accuracy")) == NULL)
 		goto usage;
-	      esCapAccuracy = atoi(t);
-	      break;
-	      }
+	    TxPrintf("The cap accuracy flag 'y' is deprecated.\n");
+	    break;
+
 	case 'h':	/* -h or -help, as suggested by "ext2spice help" */
 	    TxPrintf(usage_text);
 	    break;
+
 	default:
 	    TxError("Unrecognized flag: %s\n", argv[0]);
 	    goto usage;
@@ -2822,7 +2817,7 @@ spcdevVisit(dev, hc, scale, trans)
 
 	    /* Capacitor is "Cnnn top bottom value"	*/
 	    /* extraction sets top=gate bottom=source	*/
-	    /* extracted units are fF; output is in fF */
+	    /* extracted units are fF.			*/
 
 	    spcdevOutNode(hierName, gate->dterm_node->efnode_name->efnn_hier,
 			name, esSpiceF);
@@ -2838,8 +2833,7 @@ spcdevVisit(dev, hc, scale, trans)
 
 	    if (!has_model)
 	    {
-		fprintf(esSpiceF, " %ffF", (double)sdM *
-				(double)(dev->dev_cap));
+		esSIvalue(esSpiceF, 1.0E-15 * (double)sdM * (double)dev->dev_cap);
 		spcWriteParams(dev, hierName, scale, l, w, sdM);
 	    }
 	    else
@@ -2866,7 +2860,7 @@ spcdevVisit(dev, hc, scale, trans)
 
 	    /* Capacitor is "Cnnn bottom top value"	*/
 	    /* extraction sets top=source bottom=gate	*/
-	    /* extracted units are fF; output is in fF */
+	    /* extracted units are fF.			*/
 
 	    spcdevOutNode(hierName, source->dterm_node->efnode_name->efnn_hier,
 			name, esSpiceF);
@@ -2882,8 +2876,7 @@ spcdevVisit(dev, hc, scale, trans)
 
 	    if (!has_model)
 	    {
-		fprintf(esSpiceF, " %ffF", (double)sdM *
-				(double)(dev->dev_cap));
+		esSIvalue(esSpiceF, 1.0E-15 * (double)sdM * (double)dev->dev_cap);
 		spcWriteParams(dev, hierName, scale, l, w, sdM);
 	    }
 	    else
@@ -3113,13 +3106,9 @@ esSIvalue(file, value)
     {
 	/* Do nothing---value is probably zero */
     }
-    else if (avalue < 1.0E-15)
-    {
-	suffix = 'a';
-	value *= 1.0E18;
-    }
     else if (avalue < 1.0E-12)
     {
+	/* NOTE:  ngspice does not support "a" for "atto" */
 	suffix = 'f';
 	value *= 1.0E15;
     }
@@ -3155,9 +3144,9 @@ esSIvalue(file, value)
     }
 
     if (suffix == '\0')
-	fprintf(file, "%g", value);
+	fprintf(file, "%.3g", value);
     else
-	fprintf(file, "%g%c", value, suffix);
+	fprintf(file, "%.3g%c", value, suffix);
 }
 
 /*
@@ -3470,8 +3459,10 @@ spccapVisit(hierName1, hierName2, cap)
     if (cap <= EFCapThreshold)
 	return 0;
 
-    fprintf(esSpiceF, esSpiceCapFormat ,esCapNum++,nodeSpiceName(hierName1, NULL),
-                                          nodeSpiceName(hierName2, NULL), cap);
+    fprintf(esSpiceF, "C%d %s %s ", esCapNum++, nodeSpiceName(hierName1, NULL),
+                                          nodeSpiceName(hierName2, NULL));
+    esSIvalue(esSpiceF, 1.0E-15 * cap);
+    fprintf(esSpiceF, "\n");
     return 0;
 }
 
@@ -3638,10 +3629,14 @@ spcnodeVisit(node, res, cap)
     cap = cap  / 1000;
     if (cap > EFCapThreshold)
     {
-	fprintf(esSpiceF, esSpiceCapFormat, esCapNum++, nsn, cap,
-			(isConnected) ?  "\n" :
-			(esFormat == NGSPICE) ? " $ **FLOATING\n" :
-			" **FLOATING\n");
+	fprintf(esSpiceF, "C%d %s %s ", esCapNum++, nsn, esSpiceCapNode);
+	esSIvalue(esSpiceF, 1.0E-15 * cap);
+	if (!isConnected)
+	{
+	    if (esFormat == NGSPICE) fprintf(esSpiceF, " $");
+	    fprintf(esSpiceF, " **FLOATING");
+	}
+	fprintf(esSpiceF, "\n");
     }
     if (node->efnode_attrs && !esNoAttrs)
     {

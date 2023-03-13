@@ -62,7 +62,6 @@ bool esNoAttrs = FALSE;
 bool esHierAP = FALSE;
 bool esMergeDevsA = FALSE;	/* merge devices of equal length */
 bool esMergeDevsC = FALSE;	/* merge devices of equal length & width */
-int esCapAccuracy = 1;
 
 #else
 extern bool esDevNodesOnly;
@@ -70,7 +69,8 @@ extern bool esNoAttrs;
 extern bool esHierAP;
 extern bool esMergeDevsA;
 extern bool esMergeDevsC;
-extern int esCapAccuracy;
+extern char esSpiceDefaultGnd[];
+extern char *esSpiceCapNode;
 #endif
 
 bool esDoSimExtResis = FALSE;
@@ -690,11 +690,10 @@ runexttosim:
 
     EFVisitDevs(simdevVisit, (ClientData)NULL);
     if (flatFlags & EF_FLATCAPS) {
-    	(void) sprintf( esCapFormat, " %%.%dlf\n", esCapAccuracy);
 	EFVisitCaps(simcapVisit, (ClientData) NULL);
     }
     EFVisitResists(simresistVisit, (ClientData) NULL);
-    (void) sprintf( esCapFormat, " GND %%.%dlf\n", esCapAccuracy);
+    esSpiceCapNode = esSpiceDefaultGnd;
     EFVisitNodes(simnodeVisit, (ClientData) NULL);
 
     EFFlatDone(NULL);
@@ -817,12 +816,10 @@ main(argc, argv)
     }
 
     EFVisitDevs(simdevVisit, (ClientData) NULL);
-    if (flatFlags & EF_FLATCAPS) {
-    	(void) sprintf( esCapFormat, " %%.%dlf\n", esCapAccuracy);
+    if (flatFlags & EF_FLATCAPS)
 	EFVisitCaps(simcapVisit, (ClientData) NULL);
-    }
     EFVisitResists(simresistVisit, (ClientData) NULL);
-    (void) sprintf( esCapFormat, " GND %%.%dlf\n", esCapAccuracy);
+    esSpiceCapNode = esSpiceDefaultGnd;
     EFVisitNodes(simnodeVisit, (ClientData) NULL);
 
     EFFlatDone(NULL);
@@ -922,7 +919,7 @@ simParseArgs(pargc, pargv)
 
 	      if (( t =  ArgStr(&argc, &argv, "cap-accuracy") ) == NULL)
 		goto usage;
-	      esCapAccuracy = atoi(t);
+	      TxPrintf("Cap accuracy option -y is deprecated.\n");
 	      break;
 	      }
 	case 'J':
@@ -1535,7 +1532,7 @@ int simcapVisit(hierName1, hierName2, cap)
     EFHNOut(hierName1, esSimF);
     fprintf(esSimF, " ");
     EFHNOut(hierName2, esSimF);
-    fprintf(esSimF, esCapFormat, cap);
+    fprintf(esSimF, " %.1lf\n", cap);
     return 0;
 }
 
@@ -1618,7 +1615,8 @@ int simnodeVisit(node, res, cap)
     {
 	fprintf(esSimF, "C ");
 	EFHNOut(hierName, esSimF);
-	fprintf(esSimF, esCapFormat, cap);
+	fprintf(esSimF, "%s ", esSpiceCapNode);
+	fprintf(esSimF, "%.1f\n", cap);
     }
     if (res > EFResistThreshold)
     {
