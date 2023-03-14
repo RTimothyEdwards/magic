@@ -2132,7 +2132,7 @@ esHierVisit(hc, cdata)
 	    /* Find the substrate node */
 	    EFHierVisitNodes(hcf, spcsubHierVisit, (ClientData)&resstr);
 	    if (resstr == NULL)
-		resstr = esSpiceDefaultGnd;
+		resstr = StrDup((char **)NULL, esSpiceDefaultGnd);
 
 	    /* Output lumped capacitance and resistance to substrate */
 	    esSpiceCapNode = resstr;

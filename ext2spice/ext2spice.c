@@ -1124,7 +1124,7 @@ runexttospice:
 	/* Visit nodes to find the substrate node */
 	EFVisitNodes(spcsubVisit, (ClientData)&substr);
 	if (substr == NULL)
-	    substr = esSpiceDefaultGnd;
+	    substr = StrDup((char **)NULL, esSpiceDefaultGnd);
 
 	esSpiceCapNode = substr;
 	EFVisitNodes(spcnodeVisit, (ClientData) NULL);
@@ -1296,7 +1296,7 @@ main(argc, argv)
 
     EFVisitResists(spcresistVisit, (ClientData) NULL);
     EFVisitSubcircuits(subcktVisit, (ClientData) NULL);
-    esSpiceCapNode = esSpiceDefaultGnd;
+    esSpiceCapNode = StrDup((char **)NULL, esSpiceDefaultGnd);
     EFVisitNodes(spcnodeVisit, (ClientData) NULL);
 
     if ((esDoSubckt == TRUE) || (locDoSubckt == TRUE))

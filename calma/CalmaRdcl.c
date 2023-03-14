@@ -359,7 +359,7 @@ calmaParseStructure(filename)
     int mfactor;
     int locPolygonCount;
     OFFTYPE filepos;
-    bool was_called;
+    bool was_called = FALSE;
     bool was_initialized;
     bool predefined;
     bool do_flatten;
