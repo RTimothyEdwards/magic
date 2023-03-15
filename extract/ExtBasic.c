@@ -2132,6 +2132,8 @@ extOutputDevices(def, transList, outFile)
 		    width /= n;
 		    if (n > 1)
 			length = extTransRec.tr_gatelen / n;
+		    else if (extTransRec.tr_gatelen < width)
+			length = extTransRec.tr_gatelen;
 		    else
 		    {
 			/* Assumption:  A device with a single terminal	*/
@@ -2175,10 +2177,12 @@ extOutputDevices(def, transList, outFile)
 		{
 		    LinkedBoundary *lb;
 
-		    extSpecialBounds = (LinkedBoundary **)mallocMagic(n *
+		    extSpecialBounds = (LinkedBoundary **)mallocMagic(
+				extTransRec.tr_nterm *
 				sizeof(LinkedBoundary *));
 
-		    for (i = 0; i < n; i++) extSpecialBounds[i] = NULL;
+		    for (i = 0; i < extTransRec.tr_nterm; i++)
+			extSpecialBounds[i] = NULL;
 
 		    /* Mark with reg and process each perimeter segment */
 
@@ -2194,7 +2198,7 @@ extOutputDevices(def, transList, outFile)
 
 		    /* Free the lists */
 
-		    for (i = 0; i < n; i++)
+		    for (i = 0; i < extTransRec.tr_nterm; i++)
 			for (lb = extSpecialBounds[i]; lb != NULL; lb = lb->b_next)
 			    freeMagic((char *)lb);
 		    freeMagic((char *)extSpecialBounds);
