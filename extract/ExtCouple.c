@@ -49,7 +49,7 @@ int extBasicOverlap(), extBasicCouple();
 int extAddOverlap(), extAddCouple();
 int extSideLeft(), extSideRight(), extSideBottom(), extSideTop();
 int extWalkLeft(), extWalkRight(), extWalkBottom(), extWalkTop();
-int extSideOverlap(), extFindOverlap();
+int extSideOverlap(), extSideOverlapHalo(), extFindOverlap();
 void extSideCommon();
 
 /* Structure to pass on to the coupling and sidewall capacitance	*/
@@ -396,6 +396,18 @@ struct overlap
     TileTypeBitMask	 o_tmask;
 };
 
+struct sideoverlap
+{
+    Rect		  so_clip;
+    double		  so_coupfrac;
+    double		  so_subfrac;
+    int		  	  so_length;
+    extSidewallStruct    *so_esws;
+    PlaneMask		  so_pmask;
+    TileTypeBitMask	  so_tmask;
+    TileType		  so_ctype;
+};
+
 int
 extAddOverlap(tbelow, ecpls)
     Tile *tbelow;
@@ -591,6 +603,134 @@ extSubtractOverlap2(tile, ov)
 	break;
     }
     ov->o_area = ovnew.o_area;
+
+    return (0);
+}
+
+/* Side overlap shielding.  The fraction of the side overlap (fringe)
+ * capacitance over this area is added to ov->o_frac, so that it can
+ * be subtracted from the total.
+ */
+
+int
+extSubtractSideOverlap(tile, sov)
+    Tile *tile;
+    struct sideoverlap *sov;
+{
+    Rect r;
+    int area, dnear, dfar, length;
+    double mult, snear, sfar;
+    TileType ta, tb;
+    Boundary *bp = sov->so_esws->bp;
+
+    TITORECT(tile, &r);
+    GEOCLIP(&r, &sov->so_clip);
+    area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+    if (area <= 0) return 0;
+
+    ta = TiGetType(bp->b_inside);
+    tb = sov->so_ctype;
+
+    if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
+	length = r.r_ytop - r.r_ybot;
+    else
+	length = r.r_xtop - r.r_xbot;
+
+    switch (bp->b_direction)
+    {
+	case BD_LEFT:	/* Tile tp is to the left of the boundary */
+	    dnear = bp->b_segment.r_xbot - r.r_xtop;
+	    dfar = bp->b_segment.r_xbot - r.r_xbot;
+	    break;
+	case BD_RIGHT:	/* Tile tp is to the right of the boundary */
+	    dnear = r.r_xbot - bp->b_segment.r_xtop;
+	    dfar = r.r_xtop - bp->b_segment.r_xtop;
+	    break;
+	case BD_BOTTOM:	/* Tile tp is below the boundary */
+	    dnear = bp->b_segment.r_ybot - r.r_ytop;
+	    dfar = bp->b_segment.r_ybot - r.r_ybot;
+	    break;
+	case BD_TOP:	/* Tile tp is above the boundary */
+	    dnear = r.r_ybot - bp->b_segment.r_ytop;
+	    dfar = r.r_ytop - bp->b_segment.r_ytop;
+	    break;
+    }
+
+    if (dnear < 0) dnear = 0;	/* Don't count underlap */
+    mult = ExtCurStyle->exts_overlapMult[ta][0];
+    snear = 0.6366 * atan(mult * dnear);
+    sfar = 0.6366 * atan(mult * dfar);
+
+    /* "sfar - snear" is the fractional portion of the fringe cap	*/
+    /* seen by the substrate in the direction perpendicular to the edge	*/
+    /* generating the fringe cap.  This is multiplied by the fraction	*/
+    /* of the total edge length to get the total fraction of the entire	*/
+    /* fringe capacitance being shielded.				*/
+
+    sov->so_subfrac += (sfar - snear) * ((double)length / (double)sov->so_length);
+
+    /* Do the same calculation but the the overlap multiplier for the	*/
+    /* coupling layer, since the fringe capacitance has a different	*/
+    /* halo than for the substrate.					*/
+
+    mult = ExtCurStyle->exts_overlapMult[ta][tb];
+    snear = 0.6366 * atan(mult * dnear);
+    sfar = 0.6366 * atan(mult * dfar);
+    sov->so_coupfrac += (sfar - snear) * ((double)length / (double)sov->so_length);
+
+    return (0);
+}
+
+/* Recursive shielding side overlap check.  If the tile shields	*/
+/* then the area of overlap is subtracted from ov->o_area.  If	*/
+/* not, then this routine is called recursively on the next	*/
+/* shielding plane.						*/
+
+int
+extSubtractSideOverlap2(tile, sov)
+    Tile *tile;
+    struct sideoverlap *sov;
+{
+    struct sideoverlap sovnew;
+    int area, pNum;
+    Rect r;
+
+    TITORECT(tile, &r);
+    GEOCLIP(&r, &sov->so_clip);
+    area = (r.r_xtop - r.r_xbot) * (r.r_ytop - r.r_ybot);
+    if (area <= 0)
+	return (0);
+
+    /* This tile shields everything below */
+    if (TTMaskHasType(&sov->so_tmask, TiGetType(tile)))
+    {
+	extSubtractSideOverlap(tile, sov);
+	return (0);
+    }
+
+    /* Tile doesn't shield, so search next plane */
+    sovnew = *sov;
+    sovnew.so_clip = r;
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+    {
+	if (!PlaneMaskHasPlane(sovnew.so_pmask, pNum)) continue;
+	sovnew.so_pmask &= ~(PlaneNumToMaskBit(pNum));
+	if (sovnew.so_pmask == 0)
+	{
+	    (void) DBSrPaintArea((Tile *) NULL,
+		extOverlapDef->cd_planes[pNum], &sovnew.so_clip, &sovnew.so_tmask,
+		extSubtractSideOverlap, (ClientData) &sovnew);
+	}
+	else
+	{
+	    (void) DBSrPaintArea((Tile *) NULL,
+		extOverlapDef->cd_planes[pNum], &sovnew.so_clip, &DBAllTypeBits,
+		extSubtractSideOverlap2, (ClientData) &sovnew);
+	}
+	break;
+    }
+    sov->so_subfrac = sovnew.so_subfrac;
+    sov->so_coupfrac = sovnew.so_coupfrac;
 
     return (0);
 }
@@ -866,7 +1006,8 @@ extFindOverlap(tp, area, esws)
 	    esws->plane_checked = pNum;
 	    (void) DBSrPaintArea((Tile *) NULL, esws->def->cd_planes[pNum],
 			area, &ExtCurStyle->exts_sideOverlapOtherTypes[tin][tout],
-			extSideOverlap, (ClientData)esws);
+			(esws->fringe_halo) ? extSideOverlapHalo : extSideOverlap,
+			(ClientData)esws);
 	}
     esws->area = rsave;
     return 0;
@@ -875,10 +1016,246 @@ extFindOverlap(tp, area, esws)
 /*
  * ----------------------------------------------------------------------------
  *
- * extSideOverlap --
+ * extSideOverlapHalo --
  *
  * The boundary 'bp' has been found to overlap the tile 'tp', which it
  * has coupling capacitance to.
+ *
+ * Every tile that couples to an edge is also shielding the substrate
+ * from that edge.  To maintain the proper accounting of the amount of
+ * substrate shielded, calculate only for the area of the substrate that
+ * couples to the *unshielded* portion of the tile.  The part of the
+ * substrate that is under a shielded portion of the tile will be handled
+ * later when calculating coupling to that shielding tile.
+ * 
+ *
+ * Results:
+ *	Returns 0 to keep DBSrPaintArea() going.
+ *
+ * Side effects:
+ *	Update the coupling capacitance between node(bp->t_inside) and
+ *	node(tp) if the two nodes are different.  Does so by updating
+ *	the value stored in the HashEntry keyed by the two nodes.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extSideOverlapHalo(tp, esws)
+    Tile *tp;			/* Overlapped tile */
+    extSidewallStruct *esws;	/* Overlapping edge and plane information */
+{
+    Boundary *bp = esws->bp;	/* Overlapping edge */
+    NodeRegion *rtp = (NodeRegion *) extGetRegion(tp);
+    NodeRegion *rbp = (NodeRegion *) extGetRegion(bp->b_inside);
+    TileType ta, tb;
+    Rect tpr;
+    struct sideoverlap sov;
+    HashEntry *he;
+    EdgeCap *e;
+    int length;
+    double cfrac, sfrac, afrac, mult, efflength;
+    CapValue cap, subcap;
+    CoupleKey ck;
+    int dfar, dnear;
+    double sfar, snear, subfrac;
+
+    /* Nothing to do for space tiles, so just return. */
+    /* (TO DO:  Make sure TT_SPACE is removed from all exts_sideOverlapOtherTypes */
+    tb = TiGetType(tp);
+    if (tb == TT_SPACE) return (0);
+
+    if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
+    {
+	length = MIN(bp->b_segment.r_ytop, TOP(tp))
+	       - MAX(bp->b_segment.r_ybot, BOTTOM(tp));
+    }
+    else
+    {
+	length = MIN(bp->b_segment.r_xtop, RIGHT(tp))
+	       - MAX(bp->b_segment.r_xbot, LEFT(tp));
+    }
+
+    /* Get the area of the coupling tile, and clip to the fringe area	*/
+    /* of the tile edge generating the fringe capacitance.		*/
+    TITORECT(tp, &sov.so_clip);
+    GEOCLIP(&sov.so_clip, esws->area);
+ 
+    /* ta is the tile type of the edge generating the fringe cap. */
+    ta = TiGetType(bp->b_inside);
+
+    /* Revert any contacts to their residues */
+    if (DBIsContact(ta))
+	ta = DBPlaneToResidue(ta, esws->plane_of_boundary);
+    if (DBIsContact(tb))
+	tb = DBPlaneToResidue(tb, esws->plane_checked);
+
+    /* Find the fraction of the fringe cap seen by tile tp (depends	*/
+    /* on the tile width and distance from the boundary)		*/
+    switch (bp->b_direction)
+    {
+	case BD_LEFT:	/* Tile tp is to the left of the boundary */
+	    dfar = bp->b_segment.r_ll.p_x - sov.so_clip.r_xbot;
+	    dnear = bp->b_segment.r_ll.p_x - sov.so_clip.r_xtop;
+	    break;
+	case BD_RIGHT:	/* Tile tp is to the right of the boundary */
+	    dfar = sov.so_clip.r_xtop - bp->b_segment.r_ur.p_x;
+	    dnear = sov.so_clip.r_xbot - bp->b_segment.r_ur.p_x;
+	    break;
+	case BD_BOTTOM:	/* Tile tp is below the boundary */
+	    dfar = bp->b_segment.r_ll.p_y - sov.so_clip.r_ybot;
+	    dnear = bp->b_segment.r_ll.p_y - sov.so_clip.r_ytop;
+	    break;
+	case BD_TOP:	/* Tile tp is above the boundary */
+	    dfar = sov.so_clip.r_ytop - bp->b_segment.r_ur.p_y;
+	    dnear = sov.so_clip.r_ybot - bp->b_segment.r_ur.p_y;
+	    break;
+    }
+    if (dnear < 0) dnear = 0;	/* Don't count underlap */
+    mult = ExtCurStyle->exts_overlapMult[ta][tb];
+    sfar = 0.6366 * atan(mult * dfar);
+    snear = 0.6366 * atan(mult * dnear);
+
+    /* "cfrac" is the fractional portion of the fringe cap seen	*/
+    /* by tile tp along its length.  This is independent of the	*/
+    /* portion of the boundary length that tile tp occupies.	*/
+	
+    cfrac = sfar - snear;
+
+    /* The fringe portion extracted from the substrate will be	*/
+    /* different than the portion added to the coupling layer.	*/
+
+    mult = ExtCurStyle->exts_overlapMult[ta][0];
+    sfar = 0.6366 * atan(mult * dfar);
+    snear = 0.6366 * atan(mult * dnear);
+    sfrac = sfar - snear;
+
+    /* Apply each rule, incorporating shielding into the edge length. */
+    cap = subcap = (CapValue) 0;
+    subfrac = 0.0;
+    for (e = esws->extOverlapList; e; e = e->ec_next)
+    {
+	/* Only apply rules for the plane in which they are declared */
+	if (!PlaneMaskHasPlane(e->ec_pmask, esws->plane_checked)) continue;
+
+	/* Does this rule "e" include the tile we found? */
+	if (TTMaskHasType(&e->ec_near, TiGetType(tp)))
+	{
+	    /* We have a possible capacitor, but are the tiles shielded from
+	     * each other part of the way?
+	     */
+	    int pNum;
+	    sov.so_pmask = ExtCurStyle->exts_sideOverlapShieldPlanes[ta][tb];
+	    sov.so_esws = esws;
+	    sov.so_coupfrac = (double)0.0;
+	    sov.so_subfrac = (double)0.0;
+	    sov.so_length = length;
+	    sov.so_ctype = tb;
+
+	    if (sov.so_pmask)
+	    {
+		sov.so_tmask = e->ec_far;  /* Actually shieldtypes. */
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		{
+		    /* Each call to DBSrPaintArea has an opportunity to
+		     * subtract a partial capacitance from the total.
+		     */
+		    if (!PlaneMaskHasPlane(sov.so_pmask, pNum)) continue;
+		    sov.so_pmask &= ~(PlaneNumToMaskBit(pNum));
+		    if (sov.so_pmask == 0)
+		    {
+			(void) DBSrPaintArea((Tile *) NULL,
+			    extOverlapDef->cd_planes[pNum], &sov.so_clip,
+			    &sov.so_tmask, extSubtractSideOverlap, (ClientData) &sov);
+		    }
+		    else
+		    {
+			(void) DBSrPaintArea((Tile *) NULL,
+			    extOverlapDef->cd_planes[pNum], &sov.so_clip,
+			    &DBAllTypeBits,
+			    extSubtractSideOverlap2, (ClientData) &sov);
+		    }
+		    break;
+		}
+	    }
+	    if (rtp != rbp)
+	    {
+		efflength = (cfrac * (double)length) * (1.0 - sov.so_coupfrac);
+		cap += e->ec_cap * efflength;
+
+		subfrac += sov.so_subfrac;	/* Just add the shielded fraction */
+	    }
+	}
+    }
+
+    /* Add in the new capacitance. */
+
+    if (tb != TT_SPACE)
+    {
+	int oa = ExtCurStyle->exts_planeOrder[esws->plane_of_boundary];
+	int ob = ExtCurStyle->exts_planeOrder[esws->plane_checked];
+	if (oa > ob)
+	{
+	    /* If the overlapped tile is between the substrate and the boundary
+	     * tile, then we subtract the fringe substrate capacitance
+	     * from rbp's region due to the area of the sideoverlap, since
+	     * we now know it is shielded from the substrate.
+	     */
+	    TileType outtype = TiGetType(bp->b_outside);
+
+	    /* Decompose contacts into their residues */
+	    if (DBIsContact(ta))
+		ta = DBPlaneToResidue(ta, esws->plane_of_boundary);
+	    if (DBIsContact(outtype))
+		outtype = DBPlaneToResidue(outtype, esws->plane_of_boundary);
+
+	    efflength = (sfrac * (double)length) * (1.0 - subfrac);
+	    subcap = ExtCurStyle->exts_perimCap[ta][0] * efflength;
+	    rbp->nreg_cap -= subcap;
+	    /* Ignore residual error at ~zero zeptoFarads.  Probably	*/
+	    /* there should be better handling of round-off here.	*/
+	    if ((rbp->nreg_cap > -0.001) && (rbp->nreg_cap < 0.001))
+		rbp->nreg_cap = 0;
+	    if (CAP_DEBUG)
+	    	extNregAdjustCap(rbp, -subcap, "obsolete_perimcap");
+    	}
+	else if (CAP_DEBUG)
+	    extNregAdjustCap(rbp, 0.0, "obsolete_perimcap (skipped, wrong direction)");
+
+	/* If the nodes are electrically connected, then we don't add	*/
+	/* any side overlap capacitance to the node.			*/
+	if (rtp == rbp) return 0;
+    	if (rtp == (NodeRegion *)CLIENTDEFAULT) return 0;
+    	if (rbp == (NodeRegion *)CLIENTDEFAULT) return 0;
+
+	if (rtp < rbp)
+	{
+	    ck.ck_1 = rtp;
+	    ck.ck_2 = rbp;
+	}
+	else
+	{
+	    ck.ck_1 = rbp;
+	    ck.ck_2 = rtp;
+	}
+	he = HashFind(extCoupleHashPtr, (char *) &ck);
+	if (CAP_DEBUG) extAdjustCouple(he, cap, "sideoverlap");
+	extSetCapValue(he, cap + extGetCapValue(he));
+    }
+    return (0);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extSideOverlap --
+ *
+ * The boundary 'bp' has been found to overlap the tile 'tp', which it
+ * has coupling capacitance to.  This is legacy behavior when no fringe
+ * halo is considered, but the fringe is modeled as being directed
+ * downward from an edge onto any layer directly below the edge, and
+ * occupying no area.  This approximation is generally only reasonable for
+ * processes down to 0.5um or so.
  *
  * Results:
  *	Returns 0 to keep DBSrPaintArea() going.
@@ -905,7 +1282,7 @@ extSideOverlap(tp, esws)
     HashEntry *he;
     EdgeCap *e;
     int length, areaAccountedFor, areaTotal;
-    double cfrac, sfrac, afrac, mult;
+    double afrac;
     CapValue cap;
     CoupleKey ck;
 
@@ -937,57 +1314,6 @@ extSideOverlap(tp, esws)
 	ta = DBPlaneToResidue(ta, esws->plane_of_boundary);
     if (DBIsContact(tb))
 	tb = DBPlaneToResidue(tb, esws->plane_checked);
-
-    /* Find the fraction of the fringe cap seen by tile tp (depends	*/
-    /* on the tile width and distance from the boundary)		*/
-    if (esws->fringe_halo)
-    {
-	int dfar, dnear;
-	double sfar, snear;
-
-	switch (bp->b_direction)
-	{
-	    case BD_LEFT:	/* Tile tp is to the left of the boundary */
-		dfar = bp->b_segment.r_ll.p_x - ov.o_clip.r_xbot;
-		dnear = bp->b_segment.r_ll.p_x - ov.o_clip.r_xtop;
-		break;
-	    case BD_RIGHT:	/* Tile tp is to the right of the boundary */
-		dfar = ov.o_clip.r_xtop - bp->b_segment.r_ur.p_x;
-		dnear = ov.o_clip.r_xbot - bp->b_segment.r_ur.p_x;
-		break;
-	    case BD_BOTTOM:	/* Tile tp is below the boundary */
-		dfar = bp->b_segment.r_ll.p_y - ov.o_clip.r_ybot;
-		dnear = bp->b_segment.r_ll.p_y - ov.o_clip.r_ytop;
-		break;
-	    case BD_TOP:	/* Tile tp is above the boundary */
-		dfar = ov.o_clip.r_ytop - bp->b_segment.r_ur.p_y;
-		dnear = ov.o_clip.r_ybot - bp->b_segment.r_ur.p_y;
-		break;
-	}
-	if (dnear < 0) dnear = 0;	/* Don't count underlap */
-        mult = ExtCurStyle->exts_overlapMult[ta][tb];
-	sfar = 0.6366 * atan(mult * dfar);
-	snear = 0.6366 * atan(mult * dnear);
-
-	/* "cfrac" is the fractional portion of the fringe cap seen by	*/
-	/* tile tp along its length.  This is independent of the	*/
-	/* portion of the boundary length that tile tp occupies.	*/
-	
-	cfrac = sfar - snear;
-
-	/* The fringe portion extracted from the substrate will be	*/
-	/* different than the portion added to the coupling layer.	*/
-
-        mult = ExtCurStyle->exts_overlapMult[ta][0];
-	sfar = 0.6366 * atan(mult * dfar);
-	snear = 0.6366 * atan(mult * dnear);
-	sfrac = sfar - snear;
-    }
-    else
-    {
-	cfrac = 1.0;	/* For simplified perimeter cap calculation */
-	sfrac = 1.0;
-    }
 
     /* Apply each rule, incorporating shielding into the edge length. */
     cap = (CapValue) 0;
@@ -1032,17 +1358,8 @@ extSideOverlap(tp, esws)
 		}
 	    }
 	    if (rtp != rbp)
-	    {
-		if (!esws->fringe_halo)
-		{
-		    cap += e->ec_cap * ov.o_area;
-		}
-		else	/* (perimeter cap distributed over halo) */
-		{
-		    afrac = (double)ov.o_area / (double)areaTotal;
-		    cap += e->ec_cap * length * afrac * cfrac;
-		}
-	    }
+		cap += e->ec_cap * ov.o_area;
+
 	    areaAccountedFor += ov.o_area;
 	}
     }
@@ -1070,12 +1387,8 @@ extSideOverlap(tp, esws)
 		outtype = DBPlaneToResidue(outtype, esws->plane_of_boundary);
 
 	    afrac = (double)areaAccountedFor / (double)areaTotal;
-	    if (!esws->fringe_halo)
-	    	subcap = (ExtCurStyle->exts_perimCap[ta][outtype] *
+	    subcap = (ExtCurStyle->exts_perimCap[ta][outtype] *
 			MIN(areaAccountedFor, length));
-	    else	/* Fringe capacitance distributed over halo */
-	    	subcap = (ExtCurStyle->exts_perimCap[ta][outtype] *
-			sfrac * length * MIN(afrac, 1.0));
 	    rbp->nreg_cap -= subcap;
 	    /* Ignore residual error at ~zero zeptoFarads.  Probably	*/
 	    /* there should be better handling of round-off here.	*/
