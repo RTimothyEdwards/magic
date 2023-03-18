@@ -1180,7 +1180,7 @@ extSideOverlapHalo(tp, esws)
 	    }
 	    if (rtp != rbp)
 	    {
-		efflength = (cfrac * (double)length) * (1.0 - sov.so_coupfrac);
+		efflength = (cfrac - sov.so_coupfrac) * (double)length;
 		cap += e->ec_cap * efflength;
 
 		subfrac += sov.so_subfrac;	/* Just add the shielded fraction */
@@ -1209,7 +1209,7 @@ extSideOverlapHalo(tp, esws)
 	    if (DBIsContact(outtype))
 		outtype = DBPlaneToResidue(outtype, esws->plane_of_boundary);
 
-	    efflength = (sfrac * (double)length) * (1.0 - subfrac);
+	    efflength = (sfrac - subfrac) * (double)length;
 	    subcap = ExtCurStyle->exts_perimCap[ta][0] * efflength;
 	    rbp->nreg_cap -= subcap;
 	    /* Ignore residual error at ~zero zeptoFarads.  Probably	*/

@@ -1085,9 +1085,9 @@ CmdExtract(w, cmd)
 
 	    /* argv[2] is a halo distance */
 	    dist = cmdParseCoord(w, argv[2], TRUE, TRUE);
-	    if (dist <= 0)
+	    if (dist < 0)
 	    {
-		TxError("Bad halo distance.  Halo must be strictly positive.");
+		TxError("Bad halo distance.  Halo must be non-negative.");
 		return;
 	    }
 	    else
