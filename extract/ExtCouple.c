@@ -1491,7 +1491,7 @@ extWalkTop(area, mask, func, bp, esws)
 		aloc = *area;
 		aloc.r_ytop = BOTTOM(tp);
 		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
-		extRemoveSubcap(bp, &aloc, esws);
+		extRemoveSubcap(&bloc, &aloc, esws);
 
 		/* Recurse on tile left side */
 		if (lookLeft)
@@ -1601,7 +1601,7 @@ extWalkBottom(area, mask, func, bp, esws)
 		aloc = *area;
 		aloc.r_ybot = TOP(tp);
 		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
-		extRemoveSubcap(bp, &aloc, esws);
+		extRemoveSubcap(&bloc, &aloc, esws);
 
 		/* Recurse on tile left side */
 		if (lookLeft)
@@ -1711,7 +1711,7 @@ extWalkRight(area, mask, func, bp, esws)
 		aloc = *area;
 		aloc.r_xtop = LEFT(tp);
 		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
-		extRemoveSubcap(bp, &aloc, esws);
+		extRemoveSubcap(&bloc, &aloc, esws);
 
 		/* Recurse on tile bottom side */
 		if (lookDown)
@@ -1821,7 +1821,7 @@ extWalkLeft(area, mask, func, bp, esws)
 		aloc = *area;
 		aloc.r_xbot = RIGHT(tp);
 		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
-		extRemoveSubcap(bp, &aloc, esws);
+		extRemoveSubcap(&bloc, &aloc, esws);
 
 		/* Recurse on tile bottom side */
 		if (lookDown)
