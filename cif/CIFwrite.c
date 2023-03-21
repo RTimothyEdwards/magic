@@ -319,7 +319,7 @@ cifOut(outf)
 	if ((def->cd_flags & CDAVAILABLE) == 0)
 	{
 	    bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	    if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) continue;
+	    if (!DBCellRead(def, TRUE, dereference, NULL)) continue;
 	}
 
 	/* Add any subcells to the stack.  This must be done before

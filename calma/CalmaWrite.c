@@ -892,7 +892,7 @@ calmaProcessDef(def, outf, do_library)
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL))
+	if (!DBCellRead(def, TRUE, dereference, NULL))
 	    return (0);
     }
 

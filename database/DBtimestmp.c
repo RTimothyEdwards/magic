@@ -140,7 +140,7 @@ DBFixMismatch()
 	if (cellDef->cd_flags & CDPROCESSED) continue;
 
 	dereference = (cellDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	(void) DBCellRead(cellDef, (char *) NULL, TRUE, dereference, NULL);
+	(void) DBCellRead(cellDef, TRUE, dereference, NULL);
 
 	/* Jimmy up the cell's current bounding box, so the following
 	 * procedure call will absolutely and positively know that

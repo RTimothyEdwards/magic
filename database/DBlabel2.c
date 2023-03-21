@@ -296,7 +296,7 @@ DBTreeFindUse(name, use, scx)
 	if ((def->cd_flags & CDAVAILABLE) == 0)
 	{
 	    bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	    (void) DBCellRead(def, (char *) NULL, TRUE, dereference, NULL);
+	    (void) DBCellRead(def, TRUE, dereference, NULL);
 	}
 
 	cp = name;
@@ -348,7 +348,7 @@ DBTreeFindUse(name, use, scx)
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	(void) DBCellRead(def, (char *) NULL, TRUE, dereference, NULL);
+	(void) DBCellRead(def, TRUE, dereference, NULL);
     }
 
     scx->scx_use = use;

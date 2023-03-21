@@ -244,7 +244,7 @@ dbCellPlaneSrFunc(scx, fp)
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+	if (!DBCellRead(def, TRUE, dereference, NULL)) return 0;
     }
 
     context.tc_scx = scx;
@@ -366,7 +366,7 @@ dbCellUniqueTileSrFunc(scx, fp)
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+	if (!DBCellRead(def, TRUE, dereference, NULL)) return 0;
     }
 
     context.tc_scx = scx;
@@ -478,7 +478,7 @@ DBNoTreeSrTiles(scx, mask, xMask, func, cdarg)
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+	if (!DBCellRead(def, TRUE, dereference, NULL)) return 0;
     }
 
     filter.tf_func = func;
@@ -589,7 +589,7 @@ DBTreeSrLabels(scx, mask, xMask, tpath, flags, func, cdarg)
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+	if (!DBCellRead(def, TRUE, dereference, NULL)) return 0;
     }
 
     for (lab = def->cd_labels; lab; lab = lab->lab_next)
@@ -696,7 +696,7 @@ dbCellLabelSrFunc(scx, fp)
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+	if (!DBCellRead(def, TRUE, dereference, NULL)) return 0;
     }
 
     /* Do not add a path name of a top level window */
@@ -820,7 +820,7 @@ DBTreeSrCells(scx, xMask, func, cdarg)
     if ((cellUse->cu_def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (cellUse->cu_def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(cellUse->cu_def, (char *) NULL, TRUE, dereference, NULL))
+	if (!DBCellRead(cellUse->cu_def, TRUE, dereference, NULL))
 	    return 0;
     }
 
@@ -868,7 +868,7 @@ dbTreeCellSrFunc(scx, fp)
 	if ((use->cu_def->cd_flags & CDAVAILABLE) == 0)
 	{
 	    bool dereference = (use->cu_def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	    if (!DBCellRead(use->cu_def, (char *) NULL, TRUE, dereference, NULL))
+	    if (!DBCellRead(use->cu_def, TRUE, dereference, NULL))
 		return 0;
 	}
     }
@@ -1129,7 +1129,7 @@ DBCellSrArea(scx, func, cdarg)
     {
 	bool dereference = (scx->scx_use->cu_def->cd_flags & CDDEREFERENCE) ?
 		TRUE : FALSE;
-	if (!DBCellRead(scx->scx_use->cu_def, (char *) NULL, TRUE, dereference, NULL))
+	if (!DBCellRead(scx->scx_use->cu_def, TRUE, dereference, NULL))
 	    return 0;
     }
 
@@ -1255,7 +1255,7 @@ DBCellEnum(cellDef, func, cdarg)
     if ((cellDef->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (cellDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(cellDef, (char *) NULL, TRUE, dereference, NULL)) return 0;
+	if (!DBCellRead(cellDef, TRUE, dereference, NULL)) return 0;
     }
     if (DBSrCellPlaneArea(cellDef->cd_cellPlane,
 		&TiPlaneRect, dbEnumFunc, (ClientData) &filter))

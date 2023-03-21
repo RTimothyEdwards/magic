@@ -4741,7 +4741,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
      */
     def->cd_flags &= ~CDNOTFOUND;
     dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-    if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL))
+    if (!DBCellRead(def, TRUE, dereference, NULL))
 	return (FALSE);
     DBReComputeBbox(def);
     dummy->cu_def = def;

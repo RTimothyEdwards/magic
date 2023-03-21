@@ -2222,7 +2222,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		    defMacro->cd_flags &= ~CDNOTFOUND;
 		    dereference = (defMacro->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
 
-		    if (!DBCellRead(defMacro, (char *)NULL, TRUE, dereference, NULL))
+		    if (!DBCellRead(defMacro, TRUE, dereference, NULL))
 		    {
 		        LefError(DEF_ERROR, "Cell %s is not defined.  Maybe you "
 				"have not read the corresponding LEF file?\n",

@@ -414,13 +414,9 @@ DBAddStandardCellPaths(pathptr, level)
  */
 
 bool
-dbCellReadDef(f, cellDef, name, ignoreTech, dereference)
+dbCellReadDef(f, cellDef, ignoreTech, dereference)
     FILETYPE f;		/* The file, already opened by the caller */
     CellDef *cellDef;	/* Pointer to definition of cell to be read in */
-    char *name;		/* Name of file from which to read definition.
-			 * If NULL, then use cellDef->cd_file; if that
-			 * is NULL try the name of the cell.
-			 */
     bool ignoreTech;	/* If FALSE then the technology of the file MUST
 			 * match the current technology, or else the
 			 * subroutine will return an error condition
@@ -1088,13 +1084,13 @@ bool
 DBReadBackup(name)
     char *name;		/* Name of the backup file */
 {
-    FILE *f;
+    FILETYPE f;
     char *filename, *rootname, *chrptr;
     char line[256];
     CellDef *cellDef;
     bool result = TRUE;
 
-    if ((f = PaOpen(name, "r", NULL, "", NULL, NULL)) == NULL)
+    if ((f = PaZOpen(name, "r", NULL, "", NULL, NULL)) == NULL)
     {
 	TxError("Cannot open backup file \"%s\"\n", name);
 	return FALSE;
@@ -1136,7 +1132,7 @@ DBReadBackup(name)
 	    cellDef->cd_flags &= ~CDNOTFOUND;
 	    cellDef->cd_flags |= CDAVAILABLE;
 
-	    if (dbCellReadDef(f, cellDef, filename, TRUE, FALSE) == FALSE)
+	    if (dbCellReadDef(f, cellDef, TRUE, FALSE) == FALSE)
 		return FALSE;
 
 	    if (dbFgets(line, sizeof(line), f) == NULL)
@@ -1192,12 +1188,8 @@ DBReadBackup(name)
  */
 
 bool
-DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
+DBCellRead(cellDef, ignoreTech, dereference, errptr)
     CellDef *cellDef;	/* Pointer to definition of cell to be read in */
-    char *name;		/* Name of file from which to read definition.
-			 * If NULL, then use cellDef->cd_file; if that
-			 * is NULL try the name of the cell.
-			 */
     bool ignoreTech;	/* If FALSE then the technology of the file MUST
 			 * match the current technology, or else the
 			 * subroutine will return an error condition
@@ -1219,12 +1211,12 @@ DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
     if (cellDef->cd_flags & CDAVAILABLE)
 	result = TRUE;
 
-    else if ((f = dbReadOpen(cellDef, name, TRUE, dereference, errptr)) == NULL)
+    else if ((f = dbReadOpen(cellDef, TRUE, dereference, errptr)) == NULL)
 	result = FALSE;
 
     else
     {
-	result = (dbCellReadDef(f, cellDef, name, ignoreTech, dereference));
+	result = (dbCellReadDef(f, cellDef, ignoreTech, dereference));
 
 #ifdef FILE_LOCKS
 	/* Close files that were locked by another user */
@@ -1244,7 +1236,7 @@ DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
  * dbReadOpen --
  *
  * Open the file containing the cell we are going to read.
- * If a filename for the cell is specified ('name' is non-NULL),
+ * If a filename for the cell is being dereferenced,
  * we try to open it somewhere in the search path.  Otherwise,
  * we try the filename already associated with the cell, or the
  * name of the cell itself as the name of the file containing
@@ -1270,9 +1262,8 @@ DBCellRead(cellDef, name, ignoreTech, dereference, errptr)
  */
 
 FILETYPE
-dbReadOpen(cellDef, name, setFileName, dereference, errptr)
+dbReadOpen(cellDef, setFileName, dereference, errptr)
     CellDef *cellDef;	/* Def being read */
-    char *name;		/* Name if specified, or NULL */
     bool setFileName;	/* If TRUE then cellDef->cd_file should be updated
 			 * to point to the name of the file from which the
 			 * cell was loaded.
@@ -1297,13 +1288,7 @@ dbReadOpen(cellDef, name, setFileName, dereference, errptr)
 
     if (errptr != NULL) *errptr = 0;	// No error, by default
 
-    if (name != (char *) NULL)
-    {
-	f = PaLockZOpen(name, "r", DBSuffix, Path,
-			CellLibPath, &filename, &is_locked, &fd);
-	if (errptr != NULL) *errptr = errno;
-    }
-    else if (cellDef->cd_file != (char *) NULL)
+    if (cellDef->cd_file != (char *) NULL)
     {
 	/* Do not send a name with a file extension to PaLockZOpen(),
 	 * otherwise that routine must handle it and then cannot
@@ -1392,17 +1377,13 @@ dbReadOpen(cellDef, name, setFileName, dereference, errptr)
 	if (cellDef->cd_flags & CDNOTFOUND)
 	    return ((FILETYPE) NULL);
 
-	if (name != (char *) NULL)
-	{
-	    if (DBVerbose >= DB_VERBOSE_ERR)
-	    	TxError("File %s%s couldn't be read\n", name, DBSuffix);
-	}
-	else if (cellDef->cd_file != (char *) NULL)
+	if (cellDef->cd_file != (char *) NULL)
 	{
 	    if (DBVerbose >= DB_VERBOSE_ERR)
 	    	TxError("File %s couldn't be read\n", cellDef->cd_file);
 	}
-	else {
+	else
+	{
 	    if (DBVerbose >= DB_VERBOSE_ERR)
 		TxError("Cell %s couldn't be read\n", cellDef->cd_name);
 	    realname = (char *) mallocMagic((unsigned) (strlen(cellDef->cd_name)
@@ -1582,7 +1563,13 @@ dbReadUse(cellDef, line, len, f, scalen, scaled, dereference, dbUseTable)
 
     pathptr = &path[0];
     while (*pathptr == ' ' || *pathptr == '\t') pathptr++;
-    if ((dereference == TRUE) || (*pathptr == '\n')) *pathptr = '\0';
+
+    /* NOTE:  Removed the truncating of the path when dereferencing,	*/
+    /* 3/20/2023.  This allows the original location to be recovered if	*/
+    /* dereferencing is used, but the cell does not exist in the search	*/
+    /* paths and only exists in the original location.			*/
+
+    if (*pathptr == '\n') *pathptr = '\0';
 
     locked = (useid[0] == CULOCKCHAR) ? TRUE : FALSE;
 
@@ -1772,10 +1759,11 @@ badTransform:
     /* or "~" and cellDef->cd_file has path components, then the path	*/
     /* should be interpreted relative to the path of the parent cell.	*/
 
-    /* If there is no pathptr, then the situation is one of these two:	*/
+    /* If there is no pathptr, then one of these three things are true:	*/
     /* (1) The instance is not the first time the cell was encountered	*/
-    /* in the file, or (2) The cell is in the same path as the parent.	*/
-    /* Only case (2) needs to be handled.				*/
+    /* in the file, (2) "-dereference" has been selected on the current	*/
+    /* file, but the subcell was already loaded, or (3) the cell is in	*/
+    /* the same path as the parent.  Only case (3) needs to be handled.	*/
 
     if ((firstUse == TRUE) && ((*pathptr == '\0') ||
 		((*pathptr != '/') && (*pathptr != '~'))))

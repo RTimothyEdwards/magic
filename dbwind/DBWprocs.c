@@ -354,6 +354,9 @@ DBWloadWindow(window, name, flags)
 
 	char *dotptr;
 
+	/* Strip any leading "./" from the name */
+	if (!strncmp(name, "./", 2)) name += 2;
+
 	rootname = strrchr(name, '/');
 	if (rootname == NULL)
 	    rootname = name;
@@ -376,14 +379,20 @@ DBWloadWindow(window, name, flags)
 
 	newEditDef = DBCellLookDef(rootname);
 
-	if ((newEditDef != (CellDef *)NULL) && (newEditDef->cd_file != NULL))
+	/* If "rootname" is the same as "name", then a cell was requested
+	 * by name and was found in memory, and all is good.  If not, then
+	 * "name" implies some specific location and needs to be checked
+	 * against the existing cell's file path.
+	 */
+	if ((newEditDef != (CellDef *)NULL) && (newEditDef->cd_file != NULL) &&
+		strcmp(name, rootname))
  	{
 	    /* If the cellname exists already, check if we are really	*/
 	    /* looking at the same file.  If not, and two files in two	*/
-	    /* different paths have the same root cellname, then keep	*/
-	    /* the full pathname for the new cellname.			*/
+	    /* different paths have the same root cellname, then fail.	*/
 
 	    char *fullpath;
+	    bool badFile = FALSE;
 	    struct stat statbuf;
 	    ino_t inode;
 
@@ -392,40 +401,68 @@ DBWloadWindow(window, name, flags)
 		if (stat(fullpath, &statbuf) == 0)
 		{
 		    inode = statbuf.st_ino;
-		    if (stat(newEditDef->cd_file, &statbuf) == 0)
+		    char *full_cdfile;
+
+		    full_cdfile = (char *)mallocMagic(strlen(newEditDef->cd_file) +
+				strlen(DBSuffix) + 1);
+
+		    /* cd_file is not supposed to have the file extension,	*/
+		    /* but check just in case.					*/
+
+		    if (strstr(newEditDef->cd_file, DBSuffix) != NULL)
+			sprintf(full_cdfile, "%s", newEditDef->cd_file);
+		    else
+			sprintf(full_cdfile, "%s%s", newEditDef->cd_file, DBSuffix);
+
+		    if (stat(full_cdfile, &statbuf) == 0)
 		    {
 			if (inode != statbuf.st_ino)
-			    newEditDef = (CellDef *)NULL;
+			    badFile = TRUE;
+		    }
+		    else if ((dofail == FALSE) &&
+				(!(newEditDef->cd_flags & CDAVAILABLE)))
+		    {
+			/* Exception:  If the cell can be found and the		*/
+			/* existing file has not been loaded yet, then keep	*/
+			/* the same behavior of "expand" and rename the	cell	*/
+			/* and flag a warning.					*/
+
+			TxError("Warning:  Existing cell %s points to invalid path "
+				"\"%s\".  Cell was found at location \"%s\" and "
+				"this location will be used.\n",
+				rootname, newEditDef->cd_file, fullpath);
+			freeMagic(newEditDef->cd_file);
+			newEditDef->cd_file = NULL;
 		    }
 		    else
-			newEditDef = (CellDef *)NULL;
+			badFile = TRUE;
+
+		    freeMagic(full_cdfile);
 		}
 		else
-		    newEditDef = (CellDef *)NULL;
+		    badFile = TRUE;
+
 	    }
 	    else
-		newEditDef = (CellDef *)NULL;
+		badFile = TRUE;
 
 	    /* If the cells have the same name but different 	*/
-	    /* paths, then give the new cell the full path name	*/
+	    /* paths, then fail.				*/
 
-	    if (newEditDef == NULL)
+	    if (badFile == TRUE)
 	    {
-		if (dofail)
-		{
-		    if (!beQuiet)
-			TxError("No file \"%s\" found or readable.\n", name);
-		    return;
-		}
-		rootname = name;
-		newEditDef = DBCellLookDef(rootname);
+		TxError("File \"%s\":  The cell was already read and points "
+				"to conflicting location \"%s\".\n", name,
+				newEditDef->cd_file);
+		return;
 	    }
 	}
 	if (newEditDef == (CellDef *) NULL)
 	{
 	    /* "-fail" option:  If no file is readable, then do not	*/
 	    /* create a new cell.					*/
-	    if (dofail)
+
+	    if (dofail && !DBTestOpen(name, NULL))
 	    {
 		if (!beQuiet)
 		    TxError("No file \"%s\" found or readable.\n", name);
@@ -434,9 +471,15 @@ DBWloadWindow(window, name, flags)
 	    newEditDef = DBCellNewDef(rootname);
 	}
 
-	if (dereference) newEditDef->cd_flags |= CDDEREFERENCE;
+	/* If the name differs from the root name, then set the file	*/
+	/* path to be the same as "name".				*/
 
-	if (!DBCellRead(newEditDef, name, ignoreTech, dereference, &error_val))
+	if (dereference)
+	    newEditDef->cd_flags |= CDDEREFERENCE;
+	else if ((newEditDef->cd_file == NULL) && strcmp(name, rootname))
+	    newEditDef->cd_file = StrDup((char **)NULL, name);
+
+	if (!DBCellRead(newEditDef, ignoreTech, dereference, &error_val))
 	{
 	    if (error_val == ENOENT)
 	    {
@@ -448,7 +491,7 @@ DBWloadWindow(window, name, flags)
 	    {
 		/* File exists but some error has occurred like
 		 * file is unreadable or max file descriptors
-		 * was reached, in which csae we don't want to
+		 * was reached, in which case we don't want to
 		 * create a new cell, so delete the new celldef
 		 * and return.
 		 */

@@ -83,7 +83,7 @@ DBExpand(cellUse, expandMask, expandFlag)
 	if ((def->cd_flags & CDAVAILABLE) == 0)
 	{
 	    bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	    if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL))
+	    if (!DBCellRead(def, TRUE, dereference, NULL))
 		return;
 	    /* Note:  we don't have to recompute the bbox here, because
 	     * if it changed, then a timestamp violation must have occurred
@@ -149,7 +149,7 @@ DBExpandAll(rootUse, rootRect, expandMask, expandFlag, func, cdarg)
 
     if ((rootUse->cu_def->cd_flags & CDAVAILABLE) == 0)
     {
-	(void) DBCellRead(rootUse->cu_def, (char *) NULL, TRUE, dereference, NULL);
+	(void) DBCellRead(rootUse->cu_def, TRUE, dereference, NULL);
     }
 
     /*
@@ -200,7 +200,7 @@ dbExpandFunc(scx, arg)
 	/* If the cell is unavailable, then don't expand it.
 	 */
 	if ((childUse->cu_def->cd_flags & CDAVAILABLE) == 0)
-	    if(!DBCellRead(childUse->cu_def, (char *) NULL, TRUE, arg->ea_deref, NULL))
+	    if(!DBCellRead(childUse->cu_def, TRUE, arg->ea_deref, NULL))
 	    {
 		TxError("Cell %s is unavailable.  It could not be expanded.\n",
 			childUse->cu_def->cd_name);
@@ -317,7 +317,7 @@ dbReadAreaFunc(scx, halt_on_error)
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (DBCellRead(def, (char *)NULL, TRUE, dereference, NULL) == FALSE)
+	if (DBCellRead(def, TRUE, dereference, NULL) == FALSE)
 	    if (halt_on_error)
 		return 1;
 

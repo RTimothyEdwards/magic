@@ -325,7 +325,7 @@ cmdFlushCell(def, force_deref)
     DBCellClearDef(def);
     DBCellClearAvail(def);
     dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-    (void) DBCellRead(def, (char *) NULL, TRUE, dereference, NULL);
+    (void) DBCellRead(def, TRUE, dereference, NULL);
     DBCellSetAvail(def);
     DBReComputeBbox(def);
     DBCellSetModified(def, FALSE);

@@ -426,7 +426,7 @@ extTreeSrPaintArea(scx, func, cdarg)
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return 0;
+	if (!DBCellRead(def, TRUE, dereference, NULL)) return 0;
     }
 
     filter.tf_func = func;
@@ -466,7 +466,7 @@ extTreeSrFunc(scx, fp)
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, (char *) NULL, TRUE, dereference, NULL)) return (0);
+	if (!DBCellRead(def, TRUE, dereference, NULL)) return (0);
     }
 
     context.tc_scx = scx;

@@ -137,7 +137,7 @@ CmdEdit(w, cmd)
     {
 	bool dereference = (EditCellUse->cu_def->cd_flags & CDDEREFERENCE) ?
 		TRUE : FALSE;
-	DBCellRead(EditCellUse->cu_def, (char *)NULL, TRUE, dereference, NULL);
+	DBCellRead(EditCellUse->cu_def, TRUE, dereference, NULL);
     }
 
     if (EditCellUse->cu_def->cd_flags & CDNOEDIT)

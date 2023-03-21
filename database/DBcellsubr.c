@@ -79,7 +79,7 @@ DBDescendSubcell(use, xMask)
 	    {
 		bool dereference = (use->cu_def->cd_flags & CDDEREFERENCE) ?
 			TRUE : FALSE;
-		if (!DBCellRead(use->cu_def, (char *) NULL, TRUE, dereference, NULL))
+		if (!DBCellRead(use->cu_def, TRUE, dereference, NULL))
 		    return FALSE;
 	    }
 	    return (DBIsSubcircuit(use->cu_def)) ? FALSE : TRUE;

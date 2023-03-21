@@ -1399,7 +1399,7 @@ W3DloadWindow(window, name)
 	return FALSE;
 
     dereference = (newEditDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-    if (!DBCellRead(newEditDef, (char *)NULL, TRUE, dereference, NULL))
+    if (!DBCellRead(newEditDef, TRUE, dereference, NULL))
 	return FALSE;
 
     DBReComputeBbox(newEditDef);
