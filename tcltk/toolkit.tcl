@@ -1443,7 +1443,9 @@ proc magic::gencell_dialog {instname gencell_type library parameters} {
    raise .params
 
    # Wait for window to become visible to set the scroll region
-   tkwait visibility .params.body.area
+   if {[catch {winfo children .params.body.area}]} {
+      tkwait visibility .params.body.area
+   }
    .params.body.area config -scrollregion [.params.body.area bbox all]
 }
 
