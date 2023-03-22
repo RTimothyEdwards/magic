@@ -216,6 +216,14 @@ typedef union { char uc[4]; unsigned int ul; } FourByteInt;
 	    UNREADRH(nb, rt); \
 	}
 
+/* Structure used for sorting ports by number */
+
+typedef struct portlabel
+{
+    Label         *pl_label;
+    unsigned int   pl_port;
+} PortLabel;
+
 /* Other commonly used globals */
 extern HashTable calmaLayerHash;
 extern int calmaElementIgnore[];
@@ -229,6 +237,8 @@ extern bool calmaIsContactCell;
 
 extern char *calmaRecordName();
 extern void calmaSkipSet();
+
+extern int compport();
 
 /* ------------------- Imports from CIF reading ----------------------- */
 

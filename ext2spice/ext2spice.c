@@ -3189,8 +3189,8 @@ int spcnAP(dterm, node, resClass, scale, asterm, psterm, m, outf, w)
 	return 1;
     }
 
-    if (asterm) sprintf(afmt, " %s=", asterm);
-    if (psterm) sprintf(pfmt, " %s=", psterm);
+    if (asterm) snprintf(afmt, sizeof afmt, " %s=", asterm);
+    if (psterm) snprintf(pfmt, sizeof pfmt, " %s=", psterm);
 
     if (!esDistrJunct || w == -1) goto newFmt;
 
@@ -3206,13 +3206,13 @@ int spcnAP(dterm, node, resClass, scale, asterm, psterm, m, outf, w)
     {
 	if (asterm)
 	{
-	    fprintf(outf, afmt);
+	    fputs(afmt, outf);
 	    esSIvalue(outf, 1.0E-12 * node->efnode_pa[resClass].pa_area
 			* scale * scale * dsc);
 	}
 	if (psterm)
 	{
-	    fprintf(outf, pfmt);
+	    fputs(pfmt, outf);
 	    esSIvalue(outf, 1.0E-6 * node->efnode_pa[resClass].pa_perim * scale * dsc);
 	}
     }
@@ -3220,13 +3220,13 @@ int spcnAP(dterm, node, resClass, scale, asterm, psterm, m, outf, w)
     {
 	if (asterm)
 	{
-	    fprintf(outf, afmt);
+	    fputs(afmt, outf);
 	    esSIvalue(outf, 1.0E-12 * ((float)node->efnode_pa[resClass].pa_area
 			* scale * scale) * esScale * esScale * dsc);
 	}
 	if (psterm)
 	{
-	    fprintf(outf, pfmt);
+	    fputs(pfmt, outf);
 	    esSIvalue(outf, 1.0E-6 * ((float)node->efnode_pa[resClass].pa_perim
 			* scale) * esScale * dsc);
 	}
@@ -3274,12 +3274,12 @@ newFmt:
     {
 	if (asterm)
 	{
-	    fprintf(outf, afmt);
+	    fputs(afmt, outf);
 	    esSIvalue(outf, 1.0E-12 * area * scale * scale / m);
 	}
 	if (psterm)
 	{
-	    fprintf(outf, pfmt);
+	    fputs(pfmt, outf);
 	    esSIvalue(outf, 1.0E-6 * perim * scale / m);
 	}
     }
@@ -3287,12 +3287,12 @@ newFmt:
     {
 	if (asterm)
 	{
-	    fprintf(outf, afmt);
+	    fputs(afmt, outf);
 	    esSIvalue(outf, 1.0E-12 * ((float)area * scale * scale) * esScale * esScale);
 	}
 	if (psterm)
 	{
-	    fprintf(outf, pfmt);
+	    fputs(pfmt, outf);
 	    esSIvalue(outf, 1.0E-6 * ((float)perim * scale) * esScale);
 	}
     }
@@ -3357,16 +3357,16 @@ int spcnAPHier(dterm, hierName, resClass, scale, asterm, psterm, m, outf)
 
     if (esScale < 0)
     {
-	fprintf(outf, afmt);
+	fputs(afmt, outf);
 	esSIvalue(outf, 1.0E-12 * area * scale * scale / m);
-	fprintf(outf, pfmt);
+	fputs(pfmt, outf);
 	esSIvalue(outf, 1.0E-6 * perim * scale / m);
     }
     else
     {
-	fprintf(outf, afmt);
+	fputs(afmt, outf);
 	esSIvalue(outf, 1.0E-12 * ((float)area * scale) * esScale * esScale);
-	fprintf(outf, pfmt);
+	fputs(pfmt, outf);
 	esSIvalue(outf, 1.0E-6 * ((float)perim * scale) * esScale);
     }
     return 0;

@@ -60,6 +60,7 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 #include "utils/styles.h"
 #include "textio/textio.h"
 #include "calma/calmaInt.h"
+#include "extract/extractInt.h"	/* for LabelList */
 #include "utils/main.h"		/* for Path and CellLibPath */
 #include "utils/stack.h"
 
@@ -122,7 +123,7 @@ typedef struct {
 #define GDS_UNPROCESSED CLIENTDEFAULT
 #define GDS_PROCESSED   1
 
-#define PUSHTILE(tp) \
+#define PUSHTILEZ(tp) \
     if ((tp)->ti_client == (ClientData) GDS_UNPROCESSED) { \
         (tp)->ti_client = (ClientData) GDS_PENDING; \
         STACKPUSH((ClientData) (tp), SegStack); \
@@ -1186,6 +1187,7 @@ calmaOutFuncZ(def, f, cliprect)
     calmaOutputStructZ cos;
     bool propfound;
     char *propvalue;
+    extern int compport();	/* Forward declaration */
 
     cos.f = f;
     cos.area = (cliprect == &TiPlaneRect) ? NULL : cliprect;
@@ -1290,7 +1292,8 @@ calmaOutFuncZ(def, f, cliprect)
 
     if (CalmaDoLabels)
     {
-	int i, ltype, maxport = -1;
+	int i, ltype, numports = 0;
+	LabelList *ll = NULL, *newll;
 
 	for (lab = def->cd_labels; lab; lab = lab->lab_next)
 	{
@@ -1302,23 +1305,42 @@ calmaOutFuncZ(def, f, cliprect)
 	    }
 	    else
 	    {
-		if ((int)lab->lab_port > maxport)
-		    maxport = (int)lab->lab_port;
+		newll = (LabelList *)mallocMagic(sizeof(LabelList));
+		newll->ll_label = lab;
+		newll->ll_attr = (unsigned int)lab->lab_port;
+		newll->ll_next = ll;
+		ll = newll;
+		numports++;
 	    }
 	}
-	if (maxport >= 0)
-	    for (i = 0; i <= maxport; i++)
-		for (lab = def->cd_labels; lab; lab = lab->lab_next)
-		{
-		    ltype = CIFCurStyle->cs_portText[lab->lab_type];
-		    type = CIFCurStyle->cs_portLayer[lab->lab_type];
-		    if ((type >= 0) && ((lab->lab_flags & PORT_DIR_MASK) != 0) &&
-				(lab->lab_port == i))
-		    {
-			calmaWriteLabelFuncZ(lab, ltype, type, f);
-			/* break; */  /* Do not limit to unique labels! */
-		    }
-		}
+	if (newll != NULL)
+	{
+	    /* Turn linked list into an array, then run qsort on it	*/
+	    /* to sort by port number.					*/
+
+	    PortLabel *pllist = (PortLabel *)mallocMagic(numports * sizeof(PortLabel));
+	    i = 0;
+	    while (ll != NULL)
+	    {
+		pllist[i].pl_label = ll->ll_label;
+		pllist[i].pl_port = (unsigned int)ll->ll_attr;
+		freeMagic(ll);
+		ll = ll->ll_next;
+		i++;
+	    }
+
+	    qsort(pllist, numports, sizeof(PortLabel), compport);
+
+	    for (i = 0; i < numports; i++)
+	    {
+		lab = pllist[i].pl_label;
+		ltype = CIFCurStyle->cs_portText[lab->lab_type];
+		type = CIFCurStyle->cs_portLayer[lab->lab_type];
+		if (type >= 0)
+		    calmaWriteLabelFuncZ(lab, ltype, type, f);
+	    }
+	    freeMagic(pllist);
+	}
     }
 
     /* End of structure */
@@ -1737,7 +1759,7 @@ calmaWriteContactsZ(f)
             /* Get clip bounds, so that residue surround is	*/
 	    /* minimum.  Note that these values are in CIF/GDS	*/
 	    /* units, and the clipping rectangle passed to	*/
-	    /* calmaOutFunc is also in CIF/GDS units.		*/
+	    /* calmaOutFuncZ is also in CIF/GDS units.		*/
 
 	    halfsize = CIFGetContactSize(type, NULL, NULL, NULL) >> 1;
 
@@ -1882,7 +1904,7 @@ calmaMergePaintFuncZ(tile, cos)
     if (SegStack == (Stack *)NULL)
 	SegStack = StackNew(64);
 
-    PUSHTILE(tile);
+    PUSHTILEZ(tile);
     while (!StackEmpty(SegStack))
     {
 	t = (Tile *) STACKPOP(SegStack);
@@ -2050,7 +2072,7 @@ calmaMergePaintFuncZ(tile, cos)
 	    intedges += calmaAddSegment(&lb, is_ext,
 			MIN(RIGHT(t), RIGHT(tp)), TOP(t),
 			MAX(LEFT(t), LEFT(tp)), TOP(t));
-	    if (!is_ext) PUSHTILE(tp);
+	    if (!is_ext) PUSHTILEZ(tp);
 	}
 
 	if (split_type == 0x3)
@@ -2070,7 +2092,7 @@ left_search:
 	    intedges += calmaAddSegment(&lb, is_ext,
 			LEFT(t), MIN(TOP(t), TOP(tp)),
 			LEFT(t), MAX(BOTTOM(t), BOTTOM(tp)));
-	    if (!is_ext) PUSHTILE(tp);
+	    if (!is_ext) PUSHTILEZ(tp);
 	}
 
 	if (split_type == 0x0)
@@ -2090,7 +2112,7 @@ bottom_search:
 	    intedges += calmaAddSegment(&lb, is_ext,
 			MAX(LEFT(t), LEFT(tp)), BOTTOM(t),
 			MIN(RIGHT(t), RIGHT(tp)), BOTTOM(t));
-	    if (!is_ext) PUSHTILE(tp);
+	    if (!is_ext) PUSHTILEZ(tp);
 	}
 
 	if (split_type == 0x1)
@@ -2109,7 +2131,7 @@ right_search:
 	    intedges += calmaAddSegment(&lb, is_ext,
 			RIGHT(t), MAX(BOTTOM(t), BOTTOM(tp)),
 			RIGHT(t), MIN(TOP(t), TOP(tp)));
-	    if (!is_ext) PUSHTILE(tp);
+	    if (!is_ext) PUSHTILEZ(tp);
 	}
 
 	/* If tile is isolated, process it now and we're done */
