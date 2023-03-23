@@ -3106,38 +3106,38 @@ esSIvalue(file, value)
     {
 	/* Do nothing---value is probably zero */
     }
-    else if (avalue < 1.0E-12)
+    else if (avalue < 0.9999E-13)
     {
 	/* NOTE:  ngspice does not support "a" for "atto" */
 	suffix = 'f';
 	value *= 1.0E15;
     }
-    else if (avalue < 1.0E-9)
+    else if (avalue < 1.0001E-10)
     {
 	suffix = 'p';
 	value *= 1.0E12;
     }
-    else if (avalue < 1.0E-6)
+    else if (avalue < 1.0001E-7)
     {
 	suffix = 'n';
 	value *= 1.0E9;
     }
-    else if (avalue < 1.0E-3)
+    else if (avalue < 1.0001E-4)
     {
 	suffix = 'u';
 	value *= 1.0E6;
     }
-    else if (avalue <= 1.0E-3)
+    else if (avalue < 1.0001E-2)
     {
 	suffix = 'm';
 	value *= 1.0E3;
     }
-    else if (avalue >= 1.0E9)
+    else if (avalue > 0.9999E9)
     {
 	suffix = 'G';
 	value /= 1.0E9;
     }
-    else if (avalue >= 1.0E3)
+    else if (avalue > 0.9999E3)
     {
 	suffix = 'k';
 	value /= 1.0E3;

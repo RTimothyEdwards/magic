@@ -1484,7 +1484,7 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		    resNodeNum--;
 		    notdecremented = FALSE;
 		}
-		ResFixDevName(newname,DRAIN,simDev,source);
+		ResFixDevName(newname, DRAIN, simDev, source);
 		source->rn_name = simDev->drain->name;
 	    }
 	}

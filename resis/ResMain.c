@@ -1016,16 +1016,12 @@ ResExtractNet(node, goodies, cellname)
 	/* the device identifier type, then add the source/drain types to   */
 	/* the mask ResSDTypesBitMask.					    */
 
-	for (devptr = ExtCurStyle->exts_device[thisDev->type]; devptr;
-		    devptr = devptr->exts_next)
-	    for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
-		TTMaskSetMask(&ResSDTypesBitMask, &devptr->exts_deviceSDTypes[i]);
+	devptr = tptr->thisDev->rs_devptr;
+	for (i = 0; !TTMaskIsZero(&devptr->exts_deviceSDTypes[i]); i++)
+	    TTMaskSetMask(&ResSDTypesBitMask, &devptr->exts_deviceSDTypes[i]);
 
 	/* Add the substrate types to the mask ResSubTypesBitMask	    */
-
-	for (devptr = ExtCurStyle->exts_device[thisDev->type]; devptr;
-		    devptr = devptr->exts_next)
-	    TTMaskSetMask(&ResSubTypesBitMask, &devptr->exts_deviceSubstrateTypes);
+	TTMaskSetMask(&ResSubTypesBitMask, &devptr->exts_deviceSubstrateTypes);
 
 	/* TT_SPACE should be removed from ResSubTypesBitMask */
 	TTMaskClearType(&ResSubTypesBitMask, TT_SPACE);
@@ -1314,75 +1310,84 @@ FindStartTile(goodies, SourcePoint)
     else
 	t1 = TiGetType(tile);
 
-    devptr = ExtCurStyle->exts_device[t1];
+    /* NOTE: There must be a way to pass the device type from a device
+     * record's rs_devptr instead of groping around for it.
+     */
 
-    for (i = 0; i < devptr->exts_deviceSDCount; i++)
+    for (devptr = ExtCurStyle->exts_device[t1]; devptr; devptr = devptr->exts_next)
     {
-	/* left */
-	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+	for (i = 0; i < devptr->exts_deviceSDCount; i++)
 	{
-	    t2 = TiGetRightType(tp);
-	    if ((t2 != TT_SPACE) && TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+	    /* left */
+	    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 	    {
-		SourcePoint->p_x = LEFT(tile);
-		SourcePoint->p_y = (MIN(TOP(tile),TOP(tp)) +
+		t2 = TiGetRightType(tp);
+		if ((t2 != TT_SPACE) &&
+			TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+		{
+		    SourcePoint->p_x = LEFT(tile);
+		    SourcePoint->p_y = (MIN(TOP(tile),TOP(tp)) +
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
-		return(tp);
+		    return(tp);
+		}
 	    }
-	}
 
-	/* right */
-	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-	{
-	    t2 = TiGetLeftType(tp);
-	    if ((t2 != TT_SPACE) && TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+	    /* right */
+	    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 	    {
-		SourcePoint->p_x = RIGHT(tile);
-		SourcePoint->p_y = (MIN(TOP(tile), TOP(tp))+
+		t2 = TiGetLeftType(tp);
+		if ((t2 != TT_SPACE) &&
+			TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+		{
+		    SourcePoint->p_x = RIGHT(tile);
+		    SourcePoint->p_y = (MIN(TOP(tile), TOP(tp))+
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
-		return(tp);
+		    return(tp);
+		}
 	    }
-	}
 
-	/* top */
-	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-	{
-	    t2 = TiGetBottomType(tp);
-	    if ((t2 != TT_SPACE) && TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+	    /* top */
+	    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
 	    {
-		SourcePoint->p_y = TOP(tile);
-		SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp)) +
+		t2 = TiGetBottomType(tp);
+		if ((t2 != TT_SPACE) &&
+			TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+		{
+		    SourcePoint->p_y = TOP(tile);
+		    SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp)) +
 		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
-		return(tp);
+		    return(tp);
+		}
 	    }
-	}
 
-	/* bottom */
-	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
-	{
-	    t2 = TiGetTopType(tp);
-	    if ((t2 != TT_SPACE) && TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+	    /* bottom */
+	    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
 	    {
-		SourcePoint->p_y = BOTTOM(tile);
-		SourcePoint->p_x = (MIN(RIGHT(tile), RIGHT(tp)) +
+		t2 = TiGetTopType(tp);
+		if ((t2 != TT_SPACE) &&
+			TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+		{
+		    SourcePoint->p_y = BOTTOM(tile);
+		    SourcePoint->p_x = (MIN(RIGHT(tile), RIGHT(tp)) +
 		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
-		return(tp);
+		    return(tp);
+		}
 	    }
 	}
-    }
 
-    /* Didn't find a terminal (S/D) type tile in the perimeter search.	*/
-    /* Check if S/D types are in a different plane from the identifier.	*/
+	/* Didn't find a terminal (S/D) type tile in the perimeter search.	*/
+	/* Check if S/D types are in a different plane from the identifier.	*/
 
-    TiToRect(tile, &r);
-    tp = NULL;
-    for (i = 0; i < devptr->exts_deviceSDCount; i++)
-    {
-	for (pnum = 0; pnum < DBNumPlanes; pnum++)
+	TiToRect(tile, &r);
+	tp = NULL;
+	for (i = 0; i < devptr->exts_deviceSDCount; i++)
 	{
-	    DBSrPaintArea((Tile *)NULL, ResUse->cu_def->cd_planes[pnum],
-		&r, &(devptr->exts_deviceSDTypes[i]), ResGetTileFunc, &tp);
-	    if (tp != NULL) return tp;
+	    for (pnum = 0; pnum < DBNumPlanes; pnum++)
+	    {
+		DBSrPaintArea((Tile *)NULL, ResUse->cu_def->cd_planes[pnum],
+			&r, &(devptr->exts_deviceSDTypes[i]), ResGetTileFunc, &tp);
+		if (tp != NULL) return tp;
+	    }
 	}
     }
 

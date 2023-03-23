@@ -284,17 +284,21 @@ ResEachTile(tile, startpoint)
 	t2 = TiGetRightType(tp);
 	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2))
 	{
-	    devptr = ExtCurStyle->exts_device[t2];
-	    for (i = 0; i < devptr->exts_deviceSDCount; i++)
+	    for (devptr = ExtCurStyle->exts_device[t2]; devptr;
+			devptr = devptr->exts_next)
 	    {
-		if (TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		for (i = 0; i < devptr->exts_deviceSDCount; i++)
 		{
-		    /* found device */
-		    xj = LEFT(tile);
-		    yj = (TOP(tp) + BOTTOM(tp)) >> 1;
-		    ResNewSDDevice(tile, tp, xj, yj, RIGHTEDGE, &ResNodeQueue);
-		    break;
+		    if (TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		    {
+			/* found device */
+			xj = LEFT(tile);
+			yj = (TOP(tp) + BOTTOM(tp)) >> 1;
+			ResNewSDDevice(tile, tp, xj, yj, RIGHTEDGE, &ResNodeQueue);
+			break;
+		    }
 		}
+		if (i < devptr->exts_deviceSDCount) break;
 	    }
 	}
 	if TTMaskHasType(&(ExtCurStyle->exts_nodeConn[t1]), t2)
@@ -312,17 +316,21 @@ ResEachTile(tile, startpoint)
 	t2 = TiGetLeftType(tp);
 	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2))
 	{
-	    devptr = ExtCurStyle->exts_device[t2];
-	    for (i = 0; i < devptr->exts_deviceSDCount; i++)
+	    for (devptr = ExtCurStyle->exts_device[t2]; devptr;
+			devptr = devptr->exts_next)
 	    {
-		if (TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		for (i = 0; i < devptr->exts_deviceSDCount; i++)
 		{
-		    /* found device */
-		    xj = RIGHT(tile);
-		    yj = (TOP(tp) + BOTTOM(tp)) >> 1;
-		    ResNewSDDevice(tile, tp, xj, yj, LEFTEDGE, &ResNodeQueue);
-		    break;
+		    if (TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		    {
+			/* found device */
+			xj = RIGHT(tile);
+			yj = (TOP(tp) + BOTTOM(tp)) >> 1;
+			ResNewSDDevice(tile, tp, xj, yj, LEFTEDGE, &ResNodeQueue);
+			break;
+		    }
 		}
+		if (i < devptr->exts_deviceSDCount) break;
 	    }
 	}
 	if TTMaskHasType(&ExtCurStyle->exts_nodeConn[t1], t2)
@@ -335,25 +343,29 @@ ResEachTile(tile, startpoint)
     }
 
     /* top */
-    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp=BL(tp))
+    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
     {
 	t2 = TiGetBottomType(tp);
 	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2))
 	{
-	    devptr = ExtCurStyle->exts_device[t2];
-	    for (i = 0; i < devptr->exts_deviceSDCount; i++)
+	    for (devptr = ExtCurStyle->exts_device[t2]; devptr;
+			devptr = devptr->exts_next)
 	    {
-		if(TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		for (i = 0; i < devptr->exts_deviceSDCount; i++)
 		{
-		    /* found device */
-		    yj = TOP(tile);
-		    xj = (LEFT(tp)+RIGHT(tp))>>1;
-		    ResNewSDDevice(tile, tp, xj, yj, BOTTOMEDGE, &ResNodeQueue);
-		    break;
+		    if(TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		    {
+			/* found device */
+			yj = TOP(tile);
+			xj = (LEFT(tp) + RIGHT(tp)) >> 1;
+			ResNewSDDevice(tile, tp, xj, yj, BOTTOMEDGE, &ResNodeQueue);
+			break;
+		    }
 		}
+		if (i < devptr->exts_deviceSDCount) break;
 	    }
 	}
-	if TTMaskHasType(&ExtCurStyle->exts_nodeConn[t1],t2)
+	if TTMaskHasType(&ExtCurStyle->exts_nodeConn[t1], t2)
 	{
 	    /* tile is junction */
 	    yj = TOP(tile);
@@ -368,17 +380,21 @@ ResEachTile(tile, startpoint)
 	t2 = TiGetTopType(tp);
 	if (TTMaskHasType(&(ExtCurStyle->exts_deviceMask), t2))
 	{
-	    devptr = ExtCurStyle->exts_device[t2];
-	    for (i = 0; i < devptr->exts_deviceSDCount; i++)
+	    for (devptr = ExtCurStyle->exts_device[t2]; devptr;
+			devptr = devptr->exts_next)
 	    {
-		if (TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		for (i = 0; i < devptr->exts_deviceSDCount; i++)
 		{
-		    /* found device */
-		    yj = BOTTOM(tile);
-		    xj = (LEFT(tp) + RIGHT(tp)) >> 1;
-		    ResNewSDDevice(tile, tp, xj, yj, TOPEDGE, &ResNodeQueue);
-		    break;
+		    if (TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		    {
+			/* found device */
+			yj = BOTTOM(tile);
+			xj = (LEFT(tp) + RIGHT(tp)) >> 1;
+			ResNewSDDevice(tile, tp, xj, yj, TOPEDGE, &ResNodeQueue);
+			break;
+		    }
 		}
+		if (i < devptr->exts_deviceSDCount) break;
 	    }
 	}
 	if TTMaskHasType(&(ExtCurStyle->exts_nodeConn[t1]), t2)
