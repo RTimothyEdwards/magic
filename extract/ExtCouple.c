@@ -32,6 +32,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
+#include "textio/textio.h"
 
 /* --------------------- Data local to this file ---------------------- */
 
@@ -673,9 +674,12 @@ extSubtractSideOverlap(tile, sov)
     /* coupling layer, since the fringe capacitance has a different	*/
     /* halo than for the substrate.					*/
 
-    mult = ExtCurStyle->exts_overlapMult[ta][tb];
-    snear = 0.6366 * atan(mult * dnear);
-    sfar = 0.6366 * atan(mult * dfar);
+    if (ExtCurStyle->exts_overlapMult[ta][tb] != mult)
+    {
+	mult = ExtCurStyle->exts_overlapMult[ta][tb];
+	snear = 0.6366 * atan(mult * dnear);
+	sfar = 0.6366 * atan(mult * dfar);
+    }
     sov->so_coupfrac += (sfar - snear) * ((double)length / (double)sov->so_length);
 
     return (0);
@@ -811,6 +815,16 @@ extAddCouple(bp, ecs)
     Rect r, ovr;
     extSidewallStruct esws;
     int distFringe;
+
+    /* Check here for a zero exts_sideCoupleOtherEdges mask.
+     * that handles cases such as FET types not being declared in
+     * defaultperimeter, as the edge between poly and FET will be
+     * seen as a boundary.  The lack of any area coupling should
+     * then prevent it from being checked for fringe cap.
+     */
+
+    if (TTMaskIsZero(&ExtCurStyle->exts_sideCoupleOtherEdges[tin][tout]))
+	return 0;
 
     /* Revert any edge contacts to their residues */
     if (DBIsContact(tin))
@@ -1065,22 +1079,18 @@ extSideOverlapHalo(tp, esws)
     tb = TiGetType(tp);
     if (tb == TT_SPACE) return (0);
 
-    if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
-    {
-	length = MIN(bp->b_segment.r_ytop, TOP(tp))
-	       - MAX(bp->b_segment.r_ybot, BOTTOM(tp));
-    }
-    else
-    {
-	length = MIN(bp->b_segment.r_xtop, RIGHT(tp))
-	       - MAX(bp->b_segment.r_xbot, LEFT(tp));
-    }
-
     /* Get the area of the coupling tile, and clip to the fringe area	*/
     /* of the tile edge generating the fringe capacitance.		*/
     TITORECT(tp, &sov.so_clip);
     GEOCLIP(&sov.so_clip, esws->area);
  
+    /* Calculate the length of the clipped area */
+
+    if (bp->b_segment.r_xtop == bp->b_segment.r_xbot)
+	length = sov.so_clip.r_ytop - sov.so_clip.r_ybot;
+    else
+	length = sov.so_clip.r_xtop - sov.so_clip.r_xbot;
+
     /* ta is the tile type of the edge generating the fringe cap. */
     ta = TiGetType(bp->b_inside);
 
@@ -1125,9 +1135,12 @@ extSideOverlapHalo(tp, esws)
     /* The fringe portion extracted from the substrate will be	*/
     /* different than the portion added to the coupling layer.	*/
 
-    mult = ExtCurStyle->exts_overlapMult[ta][0];
-    sfar = 0.6366 * atan(mult * dfar);
-    snear = 0.6366 * atan(mult * dnear);
+    if (ExtCurStyle->exts_overlapMult[ta][0] != mult)
+    {
+	mult = ExtCurStyle->exts_overlapMult[ta][0];
+	sfar = 0.6366 * atan(mult * dfar);
+	snear = 0.6366 * atan(mult * dnear);
+    }
     sfrac = sfar - snear;
 
     /* Apply each rule, incorporating shielding into the edge length. */
@@ -1390,6 +1403,11 @@ extSideOverlap(tp, esws)
 	    subcap = (ExtCurStyle->exts_perimCap[ta][outtype] *
 			MIN(areaAccountedFor, length));
 	    rbp->nreg_cap -= subcap;
+	    /* XXX WIP XXX */
+	    TxPrintf("(4) Subtracting cap value %g in clip area %d %d %d %d\n",
+			subcap,
+			ov.o_clip.r_xbot, ov.o_clip.r_ybot,
+			ov.o_clip.r_xtop, ov.o_clip.r_ytop);
 	    /* Ignore residual error at ~zero zeptoFarads.  Probably	*/
 	    /* there should be better handling of round-off here.	*/
 	    if ((rbp->nreg_cap > -0.001) && (rbp->nreg_cap < 0.001))
@@ -1490,6 +1508,8 @@ extWalkTop(area, mask, func, bp, esws)
 		/* Clip coupling area and call fringe coupling calculation function */
 		aloc = *area;
 		aloc.r_ytop = BOTTOM(tp);
+		aloc.r_xbot = bloc.b_segment.r_xbot;
+		aloc.r_xtop = bloc.b_segment.r_xtop;
 		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
 		extRemoveSubcap(&bloc, &aloc, esws);
 
@@ -1600,6 +1620,8 @@ extWalkBottom(area, mask, func, bp, esws)
 		/* Clip coupling area and call fringe coupling calculation function */
 		aloc = *area;
 		aloc.r_ybot = TOP(tp);
+		aloc.r_xbot = bloc.b_segment.r_xbot;
+		aloc.r_xtop = bloc.b_segment.r_xtop;
 		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
 		extRemoveSubcap(&bloc, &aloc, esws);
 
@@ -1710,6 +1732,8 @@ extWalkRight(area, mask, func, bp, esws)
 		/* Clip coupling area and call fringe coupling calculation function */
 		aloc = *area;
 		aloc.r_xtop = LEFT(tp);
+		aloc.r_ybot = bloc.b_segment.r_ybot;
+		aloc.r_ytop = bloc.b_segment.r_ytop;
 		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
 		extRemoveSubcap(&bloc, &aloc, esws);
 
@@ -1820,6 +1844,8 @@ extWalkLeft(area, mask, func, bp, esws)
 		/* Clip coupling area and call fringe coupling calculation function */
 		aloc = *area;
 		aloc.r_xbot = RIGHT(tp);
+		aloc.r_ybot = bloc.b_segment.r_ybot;
+		aloc.r_ytop = bloc.b_segment.r_ytop;
 		if (extFindOverlap(bp->b_outside, &aloc, esws) != 0) return 1;
 		extRemoveSubcap(&bloc, &aloc, esws);
 
@@ -1830,7 +1856,7 @@ extWalkLeft(area, mask, func, bp, esws)
 		    aloc.r_ytop = bloc.b_segment.r_ybot;
 		    bloc.b_segment.r_ybot = bp->b_segment.r_ybot;
 		    bloc.b_segment.r_ytop = aloc.r_ytop;
-		    if (extWalkRight(&aloc, mask, func, &bloc, esws) != 0)
+		    if (extWalkLeft(&aloc, mask, func, &bloc, esws) != 0)
 			return 1;
 		}
 
@@ -1841,7 +1867,7 @@ extWalkLeft(area, mask, func, bp, esws)
 		    aloc.r_ybot = bloc.b_segment.r_ytop;
 		    bloc.b_segment.r_ytop = bp->b_segment.r_ytop;
 		    bloc.b_segment.r_ybot = aloc.r_ybot;
-		    if (extWalkRight(&aloc, mask, func, &bloc, esws) != 0)
+		    if (extWalkLeft(&aloc, mask, func, &bloc, esws) != 0)
 			return 1;
 		}
 
