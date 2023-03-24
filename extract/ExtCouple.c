@@ -1403,11 +1403,6 @@ extSideOverlap(tp, esws)
 	    subcap = (ExtCurStyle->exts_perimCap[ta][outtype] *
 			MIN(areaAccountedFor, length));
 	    rbp->nreg_cap -= subcap;
-	    /* XXX WIP XXX */
-	    TxPrintf("(4) Subtracting cap value %g in clip area %d %d %d %d\n",
-			subcap,
-			ov.o_clip.r_xbot, ov.o_clip.r_ybot,
-			ov.o_clip.r_xtop, ov.o_clip.r_ytop);
 	    /* Ignore residual error at ~zero zeptoFarads.  Probably	*/
 	    /* there should be better handling of round-off here.	*/
 	    if ((rbp->nreg_cap > -0.001) && (rbp->nreg_cap < 0.001))
@@ -1528,7 +1523,7 @@ extWalkTop(area, mask, func, bp, esws)
 		if (lookRight)
 		{
 		    aloc = *area;
-		    aloc.r_xbot = bloc.b_segment.r_xtop;
+		    aloc.r_xbot = RIGHT(tp);
 		    bloc.b_segment.r_xtop = bp->b_segment.r_xtop;
 		    bloc.b_segment.r_xbot = aloc.r_xbot;
 		    if (extWalkTop(&aloc, mask, func, &bloc, esws) != 0)
@@ -1640,7 +1635,7 @@ extWalkBottom(area, mask, func, bp, esws)
 		if (lookRight)
 		{
 		    aloc = *area;
-		    aloc.r_xbot = bloc.b_segment.r_xtop;
+		    aloc.r_xbot = RIGHT(tp);
 		    bloc.b_segment.r_xtop = bp->b_segment.r_xtop;
 		    bloc.b_segment.r_xbot = aloc.r_xbot;
 		    if (extWalkBottom(&aloc, mask, func, &bloc, esws) != 0)
@@ -1752,7 +1747,7 @@ extWalkRight(area, mask, func, bp, esws)
 		if (lookUp)
 		{
 		    aloc = *area;
-		    aloc.r_ybot = bloc.b_segment.r_ytop;
+		    aloc.r_ybot = TOP(tp);
 		    bloc.b_segment.r_ytop = bp->b_segment.r_ytop;
 		    bloc.b_segment.r_ybot = aloc.r_ybot;
 		    if (extWalkRight(&aloc, mask, func, &bloc, esws) != 0)
@@ -1864,7 +1859,7 @@ extWalkLeft(area, mask, func, bp, esws)
 		if (lookUp)
 		{
 		    aloc = *area;
-		    aloc.r_ybot = bloc.b_segment.r_ytop;
+		    aloc.r_ybot = TOP(tp);
 		    bloc.b_segment.r_ytop = bp->b_segment.r_ytop;
 		    bloc.b_segment.r_ybot = aloc.r_ybot;
 		    if (extWalkLeft(&aloc, mask, func, &bloc, esws) != 0)

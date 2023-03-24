@@ -706,6 +706,8 @@ extOutputNodes(nodeList, outFile)
 	{
 	    intR = (reg->nreg_resist + rround) / ExtCurStyle->exts_resistScale;
 	    finC = reg->nreg_cap/ExtCurStyle->exts_capScale;
+	    /* Avoid negative capacitance caused by round-off near zero */
+	    if (finC < 0.0) finC = 0.0;
 	    fprintf(outFile, "node \"%s\" %d %lg", text, intR, finC);
 	}
 
