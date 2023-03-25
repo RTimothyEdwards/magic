@@ -1881,7 +1881,6 @@ flatCopyAllLabels(scx, lab, tpath, targetUse)
     unsigned short flags = 0;
     unsigned int port = 0;
     CellDef *def;
-    char	labelname[1024];
     char *n, *f, c;
 
     /* Ignore null labels */
