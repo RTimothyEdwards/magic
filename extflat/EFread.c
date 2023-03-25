@@ -596,11 +596,9 @@ resistChanged:
 
 	    /* resistor node1 node2 resistance */
 	    /* NOTE:  Value changed to floating-point 12/16/2019;     */
-	    /* (value * rscale) is in milliohms which is integer as   */
-	    /* resolution finer than milliohms is deemed unnecessary. */
 	    case RESISTOR:
 		efBuildResistor(def, argv[1], argv[2],
-			    (int)(0.5 + (double)rscale * atof(argv[3])));
+			    (float)(0.5 + (double)rscale * atof(argv[3])));
 		break;
 
 	    /* abstract (no options/arguments) */
