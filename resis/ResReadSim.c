@@ -71,7 +71,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define		RES_EXT_ATTR_TEXT	7
 
 
-#define MAXTOKEN 		256
+#define MAXTOKEN 		1024
 #define MAXLINE 		40
 #define MAXDIGIT		20
 
