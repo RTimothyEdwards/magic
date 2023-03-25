@@ -2123,15 +2123,16 @@ CmdFlatten(w, cmd)
 
     DBCellCopyAllPaint(&scx, &DBAllButSpaceAndDRCBits, xMask, flatDestUse);
     DBFlatCopyMaskHints(&scx, xMask, flatDestUse);
-    if (dolabels)
-	FlatCopyAllLabels(&scx, &DBAllTypeBits, xMask, flatDestUse);
-    else if (toplabels)
+    if (toplabels)
     {
 	int savemask = scx.scx_use->cu_expandMask;
 	scx.scx_use->cu_expandMask = CU_DESCEND_SPECIAL;
-	DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, flatDestUse);
+	DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, flatDestUse,
+			NULL);
 	scx.scx_use->cu_expandMask = savemask;
     }
+    else if (dolabels)
+	FlatCopyAllLabels(&scx, &DBAllTypeBits, xMask, flatDestUse);
 
     if (xMask != CU_DESCEND_ALL)
 	DBCellCopyAllCells(&scx, xMask, flatDestUse, (Rect *)NULL);
