@@ -305,7 +305,6 @@ typedef struct label
 
 #define PORT_VISITED	   0x2000	/* Bit for checking if a port	*/
 					/* has been previously visited.	*/
-
 #define LABEL_STICKY	   0x4000	/* Label does not change layers	*/
 #define LABEL_GENERATE	   0x8000	/* Auto-generated label		*/
 

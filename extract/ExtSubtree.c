@@ -701,6 +701,26 @@ extSubtreeOutputCoupling(ha)
 /*
  * ----------------------------------------------------------------------------
  *
+ * extFoundProc ---
+ *
+ * Simple callback function that returns 1 when a tile is found during a
+ * plane area search.  Used to determine if a label has incompatible material
+ * inside the label area.
+ * 
+ * ----------------------------------------------------------------------------
+ */
+
+int
+extFoundProc(tile, clientData)
+    Tile *tile;
+    ClientData clientData;
+{
+    return 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * extSubtreeFunc --
  *
  * Called once for each cell use that is a child of the parent def
@@ -782,17 +802,56 @@ extSubtreeFunc(scx, ha)
 	// Copy any sticky labels to cumUse->cu_def, so that the labels
 	// can be found even when there is no geometry underneath in
 	// the parent cell.
+	//
+	// Update, 4/6/2023:  Overuse of the sticky flag can make this
+	// ridiculously inefficient.  The goal is to capture labels
+	// that don't have a layer underneath that is incompatible
+	// with the label type.  Adding a simple search over the
+	// area of the label and the plane of the label layer.  Only
+	// if the search finds nothing will the label be copied.
 
 	CellDef *cumDef = ha->ha_cumFlat.et_lookNames;
 
 	if (cumDef != NULL)
 	{
+	    Rect r;
 	    Label *lab, *newlab;
 	    unsigned int n;
 
-	    for (lab = cumDef->cd_labels; lab ; lab = lab->lab_next)
+	    for (lab = cumDef->cd_labels; lab; lab = lab->lab_next)
 	    {
 		if (!(lab->lab_flags & LABEL_STICKY)) continue;
+
+		r = lab->lab_rect;
+		GEOCLIP(&r, &ha->ha_interArea);
+		if (GEO_RECTNULL(&r)) continue;
+
+		if (r.r_xbot == r.r_xtop)
+		{
+		    if (r.r_ybot == r.r_ytop)
+		    {
+			/* Quick solution for point labels--use GOTOPOINT
+			 * instead of an area search.
+			 */
+			Plane *plane = cumDef->cd_planes[DBPlane(lab->lab_type)];
+			Tile *tile = plane->pl_hint;
+			GOTOPOINT(tile, &r.r_ll);
+			if (TTMaskHasType(&DBConnectTbl[lab->lab_type], TiGetType(tile)))
+			    continue;
+		    }
+		    r.r_xbot--;
+		    r.r_xtop++;
+		}
+		if (r.r_ybot == r.r_ytop)
+		{
+		    r.r_ybot--;
+		    r.r_ytop++;
+		}
+		if (DBSrPaintArea((Tile *)NULL,
+			cumDef->cd_planes[DBPlane(lab->lab_type)],
+			&r, &DBNotConnectTbl[lab->lab_type],
+			extFoundProc, (ClientData)NULL) == 0)
+		     continue;
 		
 		n = sizeof (Label) + strlen(lab->lab_text)
 			- sizeof lab->lab_text + 1;
