@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # For installation, put this file (magic.sh) in a known executable path.
 # Put startup script "magic.tcl", shared library "tclmagic.so", and

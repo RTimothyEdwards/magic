@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Standalone script for ext2sim, for Tcl-based magic 8.0
 #
