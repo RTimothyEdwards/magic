@@ -1432,6 +1432,23 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 	    if (!strcmp(pptr, DBSuffix)) *pptr = '\0';
 
 	(void) StrDup(&cellDef->cd_file, filename);
+	if (DBVerbose >= DB_VERBOSE_ALL)
+	{
+	    char *sptr = strrchr(filename, '/');
+	    if (sptr == NULL)
+	        TxPrintf("Cell %s read from current working directory\n",
+				cellDef->cd_name);
+	    else
+	    {
+		*sptr = '\0';
+	    	TxPrintf("Cell %s read from path %s\n", cellDef->cd_name, filename);
+	    }
+	}
+    }
+    else if (DBVerbose >= DB_VERBOSE_WARN)
+    {
+	TxPrintf("Warning:  Loaded cell %s but recorded file path is %s\n",
+		filename, cellDef->cd_file);
     }
     cellDef->cd_flags |= CDAVAILABLE;
     return (f);
