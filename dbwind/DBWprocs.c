@@ -471,15 +471,22 @@ DBWloadWindow(window, name, flags)
 	    newEditDef = DBCellNewDef(rootname);
 	}
 
-	/* If the name differs from the root name, then set the file	*/
-	/* path to be the same as "name".				*/
+	/* If dereferencing, set the appropriate flag in newEditDef. */
 
 	if (dereference)
 	    newEditDef->cd_flags |= CDDEREFERENCE;
-	else if ((newEditDef->cd_file == NULL) && strcmp(name, rootname))
+
+	/* If the name differs from the root name, then set the file	*/
+	/* path to be the same as "name".				*/
+
+	if ((newEditDef->cd_file == NULL) && strcmp(name, rootname))
 	    newEditDef->cd_file = StrDup((char **)NULL, name);
 
-	if (!DBCellRead(newEditDef, ignoreTech, dereference, &error_val))
+	/* A cell name passed on the "load" command line is never
+	 * dereferenced itself;  "dereference" applies only to its
+	 * (unloaded) descendents.
+	 */
+	if (!DBCellRead(newEditDef, ignoreTech, FALSE, &error_val))
 	{
 	    if (error_val == ENOENT)
 	    {

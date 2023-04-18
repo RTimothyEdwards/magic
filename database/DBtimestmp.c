@@ -130,8 +130,6 @@ DBFixMismatch()
 
     while (mismatch != NULL)
     {
-	bool dereference;
-
 	/* Be careful to remove the front element from the mismatch
 	 * list before processing it, because while processing it we
 	 * may add new elements to the list.
@@ -143,8 +141,7 @@ DBFixMismatch()
 	mismatch = mismatch->mm_next;
 	if (cellDef->cd_flags & CDPROCESSED) continue;
 
-	dereference = (cellDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	(void) DBCellRead(cellDef, TRUE, dereference, NULL);
+	(void) DBCellRead(cellDef, TRUE, TRUE, NULL);
 
 	/* Jimmy up the cell's current bounding box, so the following
 	 * procedure call will absolutely and positively know that

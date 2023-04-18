@@ -82,8 +82,7 @@ DBExpand(cellUse, expandMask, expandFlag)
 	def = cellUse->cu_def;
 	if ((def->cd_flags & CDAVAILABLE) == 0)
 	{
-	    bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	    if (!DBCellRead(def, TRUE, dereference, NULL))
+	    if (!DBCellRead(def, TRUE, TRUE, NULL))
 		return;
 	    /* Note:  we don't have to recompute the bbox here, because
 	     * if it changed, then a timestamp violation must have occurred
@@ -144,13 +143,9 @@ DBExpandAll(rootUse, rootRect, expandMask, expandFlag, func, cdarg)
     int dbExpandFunc(), dbUnexpandFunc();
     SearchContext scontext;
     struct expandArg arg;
-    bool dereference = (rootUse->cu_def->cd_flags & CDDEREFERENCE) ?
-		    TRUE : FALSE;
 
     if ((rootUse->cu_def->cd_flags & CDAVAILABLE) == 0)
-    {
-	(void) DBCellRead(rootUse->cu_def, TRUE, dereference, NULL);
-    }
+	(void) DBCellRead(rootUse->cu_def, TRUE, TRUE, NULL);
 
     /*
      * Walk through the area and set the expansion state
@@ -160,7 +155,7 @@ DBExpandAll(rootUse, rootRect, expandMask, expandFlag, func, cdarg)
     arg.ea_xmask = expandMask;
     arg.ea_func = func;
     arg.ea_arg = cdarg;
-    arg.ea_deref = dereference;
+    arg.ea_deref = (rootUse->cu_def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
 
     scontext.scx_use = rootUse;
     scontext.scx_trans = GeoIdentityTransform;
@@ -200,12 +195,16 @@ dbExpandFunc(scx, arg)
 	/* If the cell is unavailable, then don't expand it.
 	 */
 	if ((childUse->cu_def->cd_flags & CDAVAILABLE) == 0)
-	    if(!DBCellRead(childUse->cu_def, TRUE, arg->ea_deref, NULL))
+	{
+	    /* If the parent is dereferenced, then the child should be, too */
+	    if (arg->ea_deref) childUse->cu_def->cd_flags |= CDDEREFERENCE;
+	    if(!DBCellRead(childUse->cu_def, TRUE, TRUE, NULL))
 	    {
 		TxError("Cell %s is unavailable.  It could not be expanded.\n",
 			childUse->cu_def->cd_name);
 		return 2;
 	    }
+	}
 
 	childUse->cu_expandMask |= arg->ea_xmask;
 	if (arg->ea_func != NULL)
@@ -316,8 +315,7 @@ dbReadAreaFunc(scx, halt_on_error)
 
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
-	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (DBCellRead(def, TRUE, dereference, NULL) == FALSE)
+	if (DBCellRead(def, TRUE, TRUE, NULL) == FALSE)
 	    if (halt_on_error)
 		return 1;
 

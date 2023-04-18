@@ -1198,25 +1198,37 @@ DBCellRead(cellDef, ignoreTech, dereference, errptr)
 			 * names do not match, but an attempt will be
 			 * made to read the file anyway.
 			 */
-    bool dereference;	/* If TRUE then ignore path argument to uses */
+    bool dereference;	/* If TRUE then ignore path argument to cellDef */
     int *errptr;	/* Copy of errno set by file reading routine
 			 * is placed here, unless NULL.
 			 */
 {
     FILETYPE f;
-    bool result;
+    bool result, usederef, locderef;
 
     if (errptr != NULL) *errptr = 0;
+
+    /* NOTE: "dereference" indicates whether or not to dereference
+     * the cellDef itself.  To determine if subcells of cellDef
+     * should be dereferenced, use the CDDEREFERENCE flag in the
+     * cellDef.
+     */
+    usederef = (cellDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
+    /* "locderef" indicates whether or not to use the CDDEREFERENCE
+     * for the cellDef itself.  If dereference is FALSE, then never
+     * dereference.  Otherwise, follow the flag value.
+     */
+    locderef = (dereference == TRUE) ? usederef : FALSE;
 
     if (cellDef->cd_flags & CDAVAILABLE)
 	result = TRUE;
 
-    else if ((f = dbReadOpen(cellDef, TRUE, dereference, errptr)) == NULL)
+    else if ((f = dbReadOpen(cellDef, TRUE, locderef, errptr)) == NULL)
 	result = FALSE;
 
     else
     {
-	result = (dbCellReadDef(f, cellDef, ignoreTech, dereference));
+	result = (dbCellReadDef(f, cellDef, ignoreTech, usederef));
 
 #ifdef FILE_LOCKS
 	/* Close files that were locked by another user */

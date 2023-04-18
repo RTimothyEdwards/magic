@@ -966,15 +966,13 @@ drcFindFunc(scx, finddata)
     CellDef *def;
     HashEntry *h;
     int drcFindFunc2();
-    bool dereference;
 
     def = scx->scx_use->cu_def;
     h = HashFind(finddata->deft, (char *)def);
     if (HashGetValue(h) != 0) return 0;
     HashSetValue(h, 1);
 
-    dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-    (void) DBCellRead(def, TRUE, dereference, NULL);
+    (void) DBCellRead(def, TRUE, TRUE, NULL);
 
     if (DBSrPaintArea((Tile *) NULL, def->cd_planes[PL_DRC_ERROR],
 	    &def->cd_bbox, &DBAllButSpaceBits, drcFindFunc2,

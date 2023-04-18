@@ -317,10 +317,8 @@ cifOut(outf)
 
 	/* Read the cell in if it is not already available. */
 	if ((def->cd_flags & CDAVAILABLE) == 0)
-	{
-	    bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	    if (!DBCellRead(def, TRUE, dereference, NULL)) continue;
-	}
+	    if (!DBCellRead(def, TRUE, TRUE, NULL))
+		continue;
 
 	/* Add any subcells to the stack.  This must be done before
 	 * outputting CIF to make sure that the subcells all have

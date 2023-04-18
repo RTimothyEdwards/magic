@@ -242,10 +242,8 @@ dbCellPlaneSrFunc(scx, fp)
     if (!DBDescendSubcell(scx->scx_use, fp->tf_xmask))
 	return 0;
     if ((def->cd_flags & CDAVAILABLE) == 0)
-    {
-	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, TRUE, dereference, NULL)) return 0;
-    }
+	if (!DBCellRead(def, TRUE, TRUE, NULL))
+	    return 0;
 
     context.tc_scx = scx;
     context.tc_filter = fp;
@@ -364,10 +362,8 @@ dbCellUniqueTileSrFunc(scx, fp)
     if (!DBDescendSubcell(scx->scx_use, fp->tf_xmask))
 	return 0;
     if ((def->cd_flags & CDAVAILABLE) == 0)
-    {
-	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, TRUE, dereference, NULL)) return 0;
-    }
+	if (!DBCellRead(def, TRUE, TRUE, NULL))
+	    return 0;
 
     context.tc_scx = scx;
     context.tc_filter = fp;
@@ -476,10 +472,8 @@ DBNoTreeSrTiles(scx, mask, xMask, func, cdarg)
 	return 0;
 
     if ((def->cd_flags & CDAVAILABLE) == 0)
-    {
-	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, TRUE, dereference, NULL)) return 0;
-    }
+	if (!DBCellRead(def, TRUE, TRUE, NULL))
+	    return 0;
 
     filter.tf_func = func;
     filter.tf_arg = cdarg;
@@ -587,10 +581,8 @@ DBTreeSrLabels(scx, mask, xMask, tpath, flags, func, cdarg)
     ASSERT(def != (CellDef *) NULL, "DBTreeSrLabels");
     if (!DBDescendSubcell(cellUse, xMask)) return 0;
     if ((def->cd_flags & CDAVAILABLE) == 0)
-    {
-	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, TRUE, dereference, NULL)) return 0;
-    }
+	if (!DBCellRead(def, TRUE, TRUE, NULL))
+	    return 0;
 
     for (lab = def->cd_labels; lab; lab = lab->lab_next)
     {
@@ -694,10 +686,8 @@ dbCellLabelSrFunc(scx, fp)
     ASSERT(def != (CellDef *) NULL, "dbCellLabelSrFunc");
     if (!DBDescendSubcell(scx->scx_use, fp->tf_xmask)) return 0;
     if ((def->cd_flags & CDAVAILABLE) == 0)
-    {
-	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, TRUE, dereference, NULL)) return 0;
-    }
+	if (!DBCellRead(def, TRUE, TRUE, NULL))
+	    return 0;
 
     /* Do not add a path name of a top level window */
     if (strncmp(scx->scx_use->cu_id, "Topmost ", 8))
@@ -818,11 +808,8 @@ DBTreeSrCells(scx, xMask, func, cdarg)
     if (!DBDescendSubcell(cellUse, xMask))
 	return 0;
     if ((cellUse->cu_def->cd_flags & CDAVAILABLE) == 0)
-    {
-	bool dereference = (cellUse->cu_def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(cellUse->cu_def, TRUE, dereference, NULL))
+	if (!DBCellRead(cellUse->cu_def, TRUE, TRUE, NULL))
 	    return 0;
-    }
 
     context.tc_scx = scx;
     context.tc_filter = &filter;
@@ -866,11 +853,8 @@ dbTreeCellSrFunc(scx, fp)
     else
     {
 	if ((use->cu_def->cd_flags & CDAVAILABLE) == 0)
-	{
-	    bool dereference = (use->cu_def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	    if (!DBCellRead(use->cu_def, TRUE, dereference, NULL))
+	    if (!DBCellRead(use->cu_def, TRUE, TRUE, NULL))
 		return 0;
-	}
     }
     if (fp->tf_xmask == CU_DESCEND_ALL)
     {
@@ -1126,12 +1110,8 @@ DBCellSrArea(scx, func, cdarg)
     context.tc_scx = scx;
 
     if ((scx->scx_use->cu_def->cd_flags & CDAVAILABLE) == 0)
-    {
-	bool dereference = (scx->scx_use->cu_def->cd_flags & CDDEREFERENCE) ?
-		TRUE : FALSE;
-	if (!DBCellRead(scx->scx_use->cu_def, TRUE, dereference, NULL))
+	if (!DBCellRead(scx->scx_use->cu_def, TRUE, TRUE, NULL))
 	    return 0;
-    }
 
     if (DBSrCellPlaneArea(scx->scx_use->cu_def->cd_cellPlane,
 		&scx->scx_area, dbCellSrFunc, (ClientData) &context))
@@ -1253,10 +1233,9 @@ DBCellEnum(cellDef, func, cdarg)
     filter.tf_func = func;
     filter.tf_arg = cdarg;
     if ((cellDef->cd_flags & CDAVAILABLE) == 0)
-    {
-	bool dereference = (cellDef->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(cellDef, TRUE, dereference, NULL)) return 0;
-    }
+	if (!DBCellRead(cellDef, TRUE, TRUE, NULL))
+	    return 0;
+
     if (DBSrCellPlaneArea(cellDef->cd_cellPlane,
 		&TiPlaneRect, dbEnumFunc, (ClientData) &filter))
 	return 1;

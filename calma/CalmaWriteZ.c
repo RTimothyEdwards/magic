@@ -842,11 +842,8 @@ calmaProcessDefZ(def, outf, do_library)
 
     /* Read the cell in if it is not already available. */
     if ((def->cd_flags & CDAVAILABLE) == 0)
-    {
-	bool dereference = (def->cd_flags & CDDEREFERENCE) ? TRUE : FALSE;
-	if (!DBCellRead(def, TRUE, dereference, NULL))
+	if (!DBCellRead(def, TRUE, TRUE, NULL))
 	    return (0);
-    }
 
     /*
      * Flag an error if attempting to write the default (UNNAMED) cell
