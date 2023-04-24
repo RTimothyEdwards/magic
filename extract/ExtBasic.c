@@ -2480,8 +2480,15 @@ extOutputDevices(def, transList, outFile)
 	/* device is asymmetric, in which case source and drain do not	*/
 	/* permute, and the terminal order is fixed.			*/
 
-	if (TTMaskIsZero(&devptr->exts_deviceSDTypes[1]))
-	    ExtSortTerminals(&extTransRec, ll);
+	switch (devptr->exts_deviceClass)
+	{
+	    case DEV_FET:
+	    case DEV_MOSFET:
+	    case DEV_MSUBCKT:
+		if (TTMaskIsZero(&devptr->exts_deviceSDTypes[1]))
+		    ExtSortTerminals(&extTransRec, ll);
+		break;
+	}
 
 	/* each non-gate terminal */
 	for (nsd = 0; nsd < extTransRec.tr_nterm; nsd++)
@@ -2515,6 +2522,7 @@ extTransFindSubs(tile, t, mask, def, sn, layerptr)
     int pNum;
     int extTransFindSubsFunc1();	/* Forward declaration */
     NodeAndType noderec;
+    TileTypeBitMask lmask;
 
     noderec.region = (NodeRegion *)NULL;
     noderec.layer = TT_SPACE;
@@ -2525,9 +2533,16 @@ extTransFindSubs(tile, t, mask, def, sn, layerptr)
     /* on certain extended drain MOSFET devices.			*/
     GEO_EXPAND(&tileArea, 1, &tileAreaPlus);
 
+    /* If mask includes TT_SPACE, make sure that is removed before	*/
+    /* determining a plane intersection (because space intersects all	*/
+    /* planes).								*/
+
+    lmask = *mask;
+    TTMaskClearType(&lmask, TT_SPACE);
+
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
-	if (TTMaskIntersect(&DBPlaneTypes[pNum], mask))
+	if (TTMaskIntersect(&DBPlaneTypes[pNum], &lmask))
 	{
 	    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[pNum], &tileAreaPlus,
 		    mask, extTransFindSubsFunc1, (ClientData)&noderec))
@@ -2559,7 +2574,10 @@ extTransFindSubsFunc1(tile, noderecptr)
 	    TxError("Warning:  Split substrate under device at (%d %d)\n",
 			tile->ti_ll.p_x, tile->ti_ll.p_y);
 	if (IsSplit(tile))
+	{
 	    type = (SplitSide(tile)) ? SplitRightType(tile): SplitLeftType(tile);
+	    if (type == TT_SPACE) return 0;	/* Ignore space in split tiles */
+	}
 	else
 	    type = TiGetTypeExact(tile);
 
