@@ -1440,11 +1440,42 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    scx.scx_area = labr;
 	    SelectClear();
 
+	    SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
+
+	    // Search for gate and diff types and accumulate antenna
+	    // areas.  For gates, check for all gate types tied to
+	    // devices with MOSFET types (including "msubcircuit", etc.).
+	    // For diffusion, use the types declared in the "tiedown"
+	    // statement in the extract section of the techfile.
+
+	    antgatearea = 0;
+	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	    {
+		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
+			    &TiPlaneRect, &gatetypemask,
+			    lefAccumulateArea, (ClientData) &antgatearea);
+		// Stop after first plane with geometry to avoid double-counting
+		// contacts.
+		if (antgatearea > 0) break;
+	    }
+
+	    antdiffarea = 0;
+	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	    {
+		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
+			    &TiPlaneRect, &difftypemask,
+			    lefAccumulateArea, (ClientData) &antdiffarea);
+		// Stop after first plane with geometry to avoid double-counting
+		// contacts.
+		if (antdiffarea > 0) break;
+	    }
+
 	    if (setback == 0)
 	    {
 		Rect carea;
 		labelLinkedList *newlll;
 
+	    	SelectClear();
 		if (pinonly == 0)
 		    carea = labr;
 		else
@@ -1484,7 +1515,6 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		/* For -hide with setback, select the entire net and then   */
 		/* remove the part inside the setback area.		    */
 
-		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
 		GEO_EXPAND(&boundary, -setback, &carea);
 		SelRemoveArea(&carea, &DBAllButSpaceAndDRCBits, NULL);
 
@@ -1505,8 +1535,6 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    }
 	    else
 	    {
-		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
-
 		/* Apply any pin setback */
 		if (pinonly >= 0)
 		{
@@ -1521,34 +1549,6 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		    DBPaintPlane(SelectDef->cd_planes[pNum], &labr,
 			    DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
 		}
-	    }
-
-	    // Search for gate and diff types and accumulate antenna
-	    // areas.  For gates, check for all gate types tied to
-	    // devices with MOSFET types (including "msubcircuit", etc.).
-	    // For diffusion, use the types declared in the "tiedown"
-	    // statement in the extract section of the techfile.
-
-	    antgatearea = 0;
-	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-	    {
-		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
-			    &TiPlaneRect, &gatetypemask,
-			    lefAccumulateArea, (ClientData) &antgatearea);
-		// Stop after first plane with geometry to avoid double-counting
-		// contacts.
-		if (antgatearea > 0) break;
-	    }
-
-	    antdiffarea = 0;
-	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-	    {
-		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
-			    &TiPlaneRect, &difftypemask,
-			    lefAccumulateArea, (ClientData) &antdiffarea);
-		// Stop after first plane with geometry to avoid double-counting
-		// contacts.
-		if (antdiffarea > 0) break;
 	    }
 
 	    if (toplayer)
