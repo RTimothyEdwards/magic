@@ -379,6 +379,13 @@ ExtAll(rootUse)
 
     extDefListFunc(rootUse, &defList);
 
+    /* Sanity check---print wrning if there is nothing to extract */
+    if (defList == (LinkedDef *)NULL)
+    {
+	TxError("Warning:  There is nothing here to extract.\n");
+	return;
+    }
+
     /* Now reverse the list onto a stack such that the bottommost cell	*/
     /* is the first to be extracted, and so forth back up to the top.	*/
 
