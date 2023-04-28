@@ -388,7 +388,7 @@ extern void efHNRecord();
 extern int  efHierSrArray();
 extern int  efHierSrUses();
 extern int  efHierVisitDevs();
-extern void efNodeMerge();
+extern EFNode *efNodeMerge();
 extern void efReadError();
 extern int  efReadLine();
 extern bool efSymAdd();

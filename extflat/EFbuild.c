@@ -64,7 +64,7 @@ int   EFLayerNumNames;
 Connection *efAllocConn();
 EFNode *efBuildDevNode();
 void efNodeAddName();
-void efNodeMerge();
+EFNode *efNodeMerge();
 
 bool efConnBuildName();
 bool efConnInitSubs();
@@ -577,6 +577,8 @@ efBuildEquiv(def, nodeName1, nodeName2, resist)
     /* If both names exist and are for different nodes, merge them */
     if (nn1)
     {
+	EFNode *lostnode;
+
 	if (nn1->efnn_node == (EFNode *)NULL)
 	    return;		/* Repeated "equiv" statement */
 	if (nn1->efnn_node != nn2->efnn_node)
@@ -584,12 +586,30 @@ efBuildEquiv(def, nodeName1, nodeName2, resist)
 	    struct efnode *node1 = nn1->efnn_node;
 	    struct efnode *node2 = nn2->efnn_node;
     	    HashSearch hs;
+	    HashEntry *he;
 
 	    if (efWarn)
 		efReadError("Merged nodes %s and %s\n", nodeName1, nodeName2);
-	    efNodeMerge(&nn1->efnn_node, &nn2->efnn_node);
+	    lostnode = efNodeMerge(&nn1->efnn_node, &nn2->efnn_node);
 	    if (nn1->efnn_port > 0) nn2->efnn_port = nn1->efnn_port;
 	    else if (nn2->efnn_port > 0) nn1->efnn_port = nn2->efnn_port;
+
+	    /* Check if there are any device terminals pointing to the
+	     * node that was just removed.
+	     */
+	    HashStartSearch(&hs);
+	    while (he = HashNext(&def->def_devs, &hs))
+	    {
+	    	Dev *dev;
+		int n;
+
+		dev = (Dev *)HashGetValue(he);
+		for (n = 0; n < dev->dev_nterm; n++)
+		    if (dev->dev_terms[n].dterm_node == lostnode)
+			dev->dev_terms[n].dterm_node =
+				(nn1->efnn_node == NULL) ?
+				nn2->efnn_node : nn1->efnn_node;
+	    }
 
 	    /* If a node has been merged away, make sure that its name	*/
 	    /* and all aliases point to the merged name's hash.		*/
@@ -609,6 +629,14 @@ efBuildEquiv(def, nodeName1, nodeName2, resist)
     		while (he2 = HashNext(&def->def_nodes, &hs))
 		    if ((EFNodeName *)HashGetValue(he2) == nn2)
 			HashSetValue(he2, (char *)nn1);
+	    }
+
+	    /* Check if any device terminals point to the old node */
+	    if (nn1->efnn_node == NULL)
+	    {
+	    }
+	    else if (nn2->efnn_node == NULL)
+	    {
 	    }
 	}
 	return;
@@ -1740,7 +1768,8 @@ efNodeAddName(node, he, hn)
  * make this node2 and free its memory.
  *
  * Results:
- *	Return 0 if node1 has precedence, 1 if node2 has precedence
+ *	Return the pointer to the node that is removed and will be
+ *	deallocated.
  *
  * Side effects:
  *	See above.
@@ -1748,7 +1777,7 @@ efNodeAddName(node, he, hn)
  * ----------------------------------------------------------------------------
  */
 
-void
+EFNode *
 efNodeMerge(node1ptr, node2ptr)
     EFNode **node1ptr, **node2ptr;	/* Pointers to hierarchical nodes */
 {
@@ -1927,6 +1956,8 @@ efNodeMerge(node1ptr, node2ptr)
     /* Make sure that the active node is always node1 */
     *node1ptr = keeping;
     *node2ptr = (EFNode *)NULL;	    /* Sanity check */
+
+    return removing;
 }
 
 
