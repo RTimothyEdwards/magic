@@ -1263,7 +1263,8 @@ efBuildDevNode(def, name, isSubsNode)
 	{
 	    /* This node is declared to be an implicit port */
 	    nn->efnn_node->efnode_flags |= EF_SUBS_PORT;
-	    nn->efnn_port = -1;
+	    if (isNewNode == TRUE)
+		nn->efnn_port = -1;
 	    def->def_flags |= DEF_SUBSNODES;
 	}
 	nn->efnn_node->efnode_flags |= EF_SUBS_NODE;
