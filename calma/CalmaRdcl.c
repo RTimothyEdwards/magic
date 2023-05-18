@@ -1374,7 +1374,8 @@ calmaFindCell(name, was_called, predefined)
 	     * if the cell is used in a parent before being defined
 	     * then it will cause a core dump.
 	     */
-	     DBReComputeBbox(def);
+	    DBReComputeBbox(def);
+	    if (was_called) *was_called = FALSE;
 	}
 	else
 	{
@@ -1385,9 +1386,9 @@ calmaFindCell(name, was_called, predefined)
 		if (predefined) *predefined = TRUE;
 	    	TxPrintf("Using pre-existing cell definition\n");
 	    }
+	    if (was_called) *was_called = TRUE;
 	}
 	HashSetValue(h, def);
-	if (was_called) *was_called = FALSE;
     }
     else
     {

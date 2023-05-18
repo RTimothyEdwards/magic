@@ -1789,7 +1789,7 @@ efNodeMerge(node1ptr, node2ptr)
 
     /* Sanity check: ignore if same node */
     if (*node1ptr == *node2ptr)
-	return;
+	return NULL;
 
     /* Keep the node with the greater number of entries, and merge  */
     /* the node with fewer entries into it.			    */
