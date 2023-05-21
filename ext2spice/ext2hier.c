@@ -1144,33 +1144,49 @@ spcdevHierMergeVisit(hc, dev, scale)
 	{
 	    /* To-do:  add back source, drain attribute check */
 
+	    /* Default case:  Add the counts together */
+	    m = esFMult[cfp->esFMIndex] + esFMult[fp->esFMIndex];
+
 	    switch(dev->dev_class)
 	    {
 		case DEV_MOSFET:
 		case DEV_MSUBCKT:
 		case DEV_ASYMMETRIC:
 		case DEV_FET:
-		    m = esFMult[cfp->esFMIndex] + (fp->w / cfp->w);
+		    if (cfp->w > 0)
+			m = esFMult[cfp->esFMIndex] + (fp->w / cfp->w);
 		    break;
 		case DEV_RSUBCKT:
 		case DEV_RES:
 		    if ((fp->dev->dev_type == esNoModelType) ||
 			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
-			m = esFMult[cfp->esFMIndex] + (fp->dev->dev_res
-				/ cfp->dev->dev_res);
+		    {
+			if (cfp->dev->dev_res > 0)
+			    m = esFMult[cfp->esFMIndex] + (fp->dev->dev_res
+					/ cfp->dev->dev_res);
+		    }
 		    else
-			m = esFMult[cfp->esFMIndex] + (fp->l / cfp->l);
+		    {
+			if (cfp->l > 0)
+			    m = esFMult[cfp->esFMIndex] + (fp->l / cfp->l);
+		    }
 		    break;
 		case DEV_CSUBCKT:
 		case DEV_CAP:
 		case DEV_CAPREV:
 		    if ((fp->dev->dev_type == esNoModelType) ||
 			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
-			m = esFMult[cfp->esFMIndex] + (fp->dev->dev_cap
-				/ cfp->dev->dev_cap);
+		    {
+			if (cfp->dev->dev_cap > 0)
+			    m = esFMult[cfp->esFMIndex] + (fp->dev->dev_cap
+					/ cfp->dev->dev_cap);
+		    }
 		    else
-			m = esFMult[cfp->esFMIndex] +
-				((fp->l * fp->w) / (cfp->l * cfp->w));
+		    {
+			if ((cfp->l > 0) && (cfp->w > 0))
+			    m = esFMult[cfp->esFMIndex] +
+					((fp->l * fp->w) / (cfp->l * cfp->w));
+		    }
 		    break;
 	    }
 	    setDevMult(fp->esFMIndex, DEV_KILLED);
@@ -1584,33 +1600,49 @@ devMergeHierVisit(hc, dev, scale)
 		mergeAttr(&cd->dterm_attrs, &drain->dterm_attrs);
 	    }
 mergeThem:
+	    /* Default case:  Add the counts together */
+	    m = esFMult[cfp->esFMIndex] + esFMult[fp->esFMIndex];
+
 	    switch(dev->dev_class)
 	    {
 		case DEV_MOSFET:
 		case DEV_ASYMMETRIC:
 		case DEV_MSUBCKT:
 		case DEV_FET:
-		    m = esFMult[cfp->esFMIndex] + ((float)fp->w / (float)cfp->w);
+		    if (cfp->w > 0)
+			m = esFMult[cfp->esFMIndex] + ((float)fp->w / (float)cfp->w);
 		    break;
 		case DEV_RSUBCKT:
 		case DEV_RES:
 		    if ((fp->dev->dev_type == esNoModelType) ||
 			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
-		        m = esFMult[cfp->esFMIndex] + (fp->dev->dev_res
-				/ cfp->dev->dev_res);
+		    {
+			if (cfp->dev->dev_res > 0)
+			    m = esFMult[cfp->esFMIndex] + (fp->dev->dev_res
+					/ cfp->dev->dev_res);
+		    }
 		    else
-		        m = esFMult[cfp->esFMIndex] + (fp->l / cfp->l);
+		    {
+			if (cfp->l > 0)
+			    m = esFMult[cfp->esFMIndex] + (fp->l / cfp->l);
+		    }
 		    break;
 		case DEV_CSUBCKT:
 		case DEV_CAP:
 		case DEV_CAPREV:
 		    if ((fp->dev->dev_type == esNoModelType) ||
 			    !strcmp(EFDevTypes[fp->dev->dev_type], "None"))
-		        m = esFMult[cfp->esFMIndex] + (fp->dev->dev_cap
-				/ cfp->dev->dev_cap);
+		    {
+			if (cfp->dev->dev_cap > 0)
+			    m = esFMult[cfp->esFMIndex] + (fp->dev->dev_cap
+					/ cfp->dev->dev_cap);
+		    }
 		    else
-		        m = esFMult[cfp->esFMIndex] +
-				((fp->l  * fp->w) / (cfp->l * cfp->w));
+		    {
+			if ((cfp->l > 0) && (cfp->w > 0))
+			    m = esFMult[cfp->esFMIndex] +
+					((fp->l  * fp->w) / (cfp->l * cfp->w));
+		    }
 		    break;
 	    }
 	    setDevMult(fp->esFMIndex, DEV_KILLED);
