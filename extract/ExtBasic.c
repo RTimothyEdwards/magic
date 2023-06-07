@@ -1838,6 +1838,20 @@ extOutputDevices(def, transList, outFile)
 	extTransRec.tr_plane = reg->treg_pnum;		/* Save this value! */
 	extTransRec.tr_subsnode = (NodeRegion *)NULL;
 
+	for (i = 0; i < MAXSD; i++)
+	{
+	    extTransRec.tr_termnode[i] = NULL;
+	    extTransRec.tr_termlen[i] = 0;
+	    extTransRec.tr_termarea[i] = 0;
+	    extTransRec.tr_termperim[i] = 0;
+	    extTransRec.tr_termshared[i] = 0;
+	    extTransRec.tr_termvector[i].p_x = 0;
+	    extTransRec.tr_termvector[i].p_y = 0;
+	    extTransRec.tr_termpos[i].pnum = 0;
+	    extTransRec.tr_termpos[i].pt.p_x = 0;
+	    extTransRec.tr_termpos[i].pt.p_y = 0;
+	}
+
 	arg.fra_def = def;
 	arg.fra_connectsTo = ExtCurStyle->exts_deviceConn;
 

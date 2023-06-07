@@ -458,15 +458,16 @@ dbCopyMaskHintsFunc(key, value, puds)
  *-----------------------------------------------------------------------------
  */
 void
-DBCellCopyMaskHints(child, parent)
+DBCellCopyMaskHints(child, parent, transform)
     CellUse *child;
     CellDef *parent;
+    Transform *transform;
 {
     struct propUseDefStruct puds;
 
     puds.puds_source = child->cu_def;
     puds.puds_dest = parent;
-    puds.puds_trans = &child->cu_transform;
+    puds.puds_trans = transform;
     DBPropEnum(child->cu_def, dbCopyMaskHintsFunc, (ClientData)&puds);
 }
 
@@ -561,6 +562,7 @@ DBFlattenInPlace(use, dest, xMask, dolabels, toplabels)
 {
     Label *lab;
     SearchContext scx;
+    int xsep, ysep, xbase, ybase;
 
     if (dest == NULL)
     {
@@ -569,64 +571,117 @@ DBFlattenInPlace(use, dest, xMask, dolabels, toplabels)
     }
 
     scx.scx_use = use;
-    scx.scx_trans = use->cu_transform;
     scx.scx_area = use->cu_def->cd_bbox;
 
     /* Mark labels in the subcell top level for later handling */
     for (lab = scx.scx_use->cu_def->cd_labels; lab; lab = lab->lab_next)
 	lab->lab_flags |= LABEL_GENERATE;
 
-    DBCellCopyAllPaint(&scx, &DBAllButSpaceAndDRCBits, xMask, dest);
-    if (dolabels)
-	FlatCopyAllLabels(&scx, &DBAllTypeBits, xMask, dest);
-    else if (toplabels)
+    scx.scx_x = use->cu_xlo;
+    scx.scx_y = use->cu_ylo;
+
+    while (TRUE)
     {
-	int savemask = scx.scx_use->cu_expandMask;
-	scx.scx_use->cu_expandMask = CU_DESCEND_SPECIAL;
-	DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, dest);
-	scx.scx_use->cu_expandMask = savemask;
-    }
-
-    if (xMask != CU_DESCEND_ALL)
-	DBCellCopyAllCells(&scx, xMask, dest, (Rect *)NULL);
-
-    /* Marked labels coming from the subcell top level must not be	*/ 
-    /* ports, and text should be prefixed with the subcell name.	*/
-
-    for (lab = dest->cu_def->cd_labels; lab; lab = lab->lab_next)
-    {
-	Label *newlab;
-	char *newtext;
-
-	if (lab->lab_flags & LABEL_GENERATE)
+	if ((use->cu_xlo == use->cu_xhi) && (use->cu_ylo == use->cu_yhi))
+	    scx.scx_trans = use->cu_transform;
+	else
 	{
-	    newtext = mallocMagic(strlen(lab->lab_text)
+	    if (use->cu_xlo > use->cu_xhi) xsep = -use->cu_xsep;
+	    else xsep = use->cu_xsep;
+	    if (use->cu_ylo > use->cu_yhi) ysep = -use->cu_ysep;
+	    else ysep = use->cu_ysep;
+	    xbase = xsep * (scx.scx_x - use->cu_xlo);
+	    ybase = ysep * (scx.scx_y - use->cu_ylo);
+	    GeoTransTranslate(xbase, ybase, &use->cu_transform, &scx.scx_trans);
+	}
+
+	DBCellCopyAllPaint(&scx, &DBAllButSpaceAndDRCBits, xMask, dest);
+	if (dolabels)
+	     FlatCopyAllLabels(&scx, &DBAllTypeBits, xMask, dest);
+	else if (toplabels)
+	{
+	    int savemask = scx.scx_use->cu_expandMask;
+	    scx.scx_use->cu_expandMask = CU_DESCEND_SPECIAL;
+	    DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, dest);
+	    scx.scx_use->cu_expandMask = savemask;
+	}
+
+	if (xMask != CU_DESCEND_ALL)
+	    DBCellCopyAllCells(&scx, xMask, dest, (Rect *)NULL);
+
+	/* Marked labels coming from the subcell top level must not be	*/ 
+	/* ports, and text should be prefixed with the subcell name.	*/
+
+	for (lab = dest->cu_def->cd_labels; lab; lab = lab->lab_next)
+	{
+	    Label *newlab;
+	    char *newtext;
+
+	    if (lab->lab_flags & LABEL_GENERATE)
+	    {
+		newtext = mallocMagic(strlen(lab->lab_text)
 			+ strlen(scx.scx_use->cu_id) + 2);
 
-	    sprintf(newtext, "%s/%s", scx.scx_use->cu_id, lab->lab_text);
+		if ((use->cu_xlo != use->cu_xhi) && (use->cu_ylo != use->cu_yhi))
+		    sprintf(newtext, "%s[%d][%d]/%s", scx.scx_use->cu_id,
+				scx.scx_x, scx.scx_y, lab->lab_text);
+		else if (use->cu_xlo != use->cu_xhi)
+		    sprintf(newtext, "%s[%d]/%s", scx.scx_use->cu_id,
+				scx.scx_x, lab->lab_text);
+		else if (use->cu_ylo != use->cu_yhi)
+		    sprintf(newtext, "%s[%d]/%s", scx.scx_use->cu_id,
+				scx.scx_y, lab->lab_text);
+		else
+		    sprintf(newtext, "%s/%s", scx.scx_use->cu_id, lab->lab_text);
 
-	    DBPutFontLabel(dest->cu_def,
+		DBPutFontLabel(dest->cu_def,
 			&lab->lab_rect, lab->lab_font, lab->lab_size,
 			lab->lab_rotate, &lab->lab_offset, lab->lab_just,
 			newtext, lab->lab_type, 0, 0);
-	    DBEraseLabelsByContent(dest->cu_def, &lab->lab_rect,
+		DBEraseLabelsByContent(dest->cu_def, &lab->lab_rect,
 			-1, lab->lab_text);
 
-	    freeMagic(newtext);
+		freeMagic(newtext);
+	    }
+	}
+	
+	/* Copy and transform mask hints from child to parent */
+	DBCellCopyMaskHints(scx.scx_use, dest->cu_def, &scx.scx_trans);
+
+	/* Stop processing if the use is not arrayed. */
+	if ((scx.scx_x == use->cu_xhi) && (scx.scx_y == use->cu_yhi))
+	    break;
+
+	if (use->cu_xlo < use->cu_xhi)
+	    scx.scx_x++;
+	else if (use->cu_xlo > use->cu_xhi)
+	    scx.scx_x--;
+
+	if (((use->cu_xlo < use->cu_xhi) && (scx.scx_x > use->cu_xhi)) ||
+	    ((use->cu_xlo > use->cu_xhi) && (scx.scx_x < use->cu_xhi)))
+	{
+	    if (use->cu_ylo < use->cu_yhi)
+	    {
+		scx.scx_y++;
+		scx.scx_x = use->cu_xlo;
+	    }
+	    else if (use->cu_yhi > use->cu_yhi)
+	    {
+		scx.scx_y--;
+		scx.scx_x = use->cu_xlo;
+	    }
 	}
     }
-	
+
     /* Unmark labels in the subcell top level */
     for (lab = scx.scx_use->cu_def->cd_labels; lab; lab = lab->lab_next)
 	lab->lab_flags &= ~LABEL_GENERATE;
 
-    /* Copy and transform mask hints from child to parent */
-    DBCellCopyMaskHints(scx.scx_use, dest->cu_def);
-
     /* Remove the use from the parent def */
     DBDeleteCell(scx.scx_use);
 
-    DBWAreaChanged(dest->cu_def, &scx.scx_use->cu_def->cd_bbox,
+    /* Was: &scx.scx_use->cu_def->cd_bbox */
+    DBWAreaChanged(dest->cu_def, &scx.scx_use->cu_bbox,
 			DBW_ALLWINDOWS, &DBAllButSpaceAndDRCBits);
 }
 
