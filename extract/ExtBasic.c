@@ -1768,6 +1768,49 @@ extOutputDevParams(reg, devptr, outFile, length, width, areavec)
     }
 }
 
+/* Structures used by extTermAPFunc() for storing area and perimeter data */
+
+typedef struct _nodelist {
+    struct _nodelist *nl_next;
+    NodeRegion *nl_node;
+} ExtNodeList;
+
+typedef struct _extareaperimdata {
+    int eapd_area;
+    int eapd_perim;
+    TileTypeBitMask eapd_mask;
+    TileTypeBitMask *eapd_gatemask;
+    NodeRegion *eapd_gatenode;
+    ExtNodeList *eapd_shared;
+} ExtAreaPerimData;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extTransFindTermArea --
+ *
+ * Callback function to find the area and perimeter of a terminal area in
+ * a plane other than the plane of the device identifier type.  This routine
+ * searches around the first tile of the terminal for all connected terminal
+ * types and calculates area and perimeter.
+ *
+ * Return value:
+ *	Always return 1 to stop the search, because we need only one tile
+ *	under the identifier tile to start the search.
+ *
+ * ----------------------------------------------------------------------------
+ */
+int
+extTransFindTermArea(tile, eapd)
+    Tile *tile;
+    ExtAreaPerimData *eapd;
+{
+    int extTermAPFunc();	/* Forward declaration */
+
+    DBSrConnectOnePlane(tile, DBConnectTbl, extTermAPFunc, (ClientData)eapd);
+    return 1;
+}
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1929,10 +1972,14 @@ extOutputDevices(def, transList, outFile)
 		else if (!TTMaskIntersect(tmask, &DBPlaneTypes[reg->treg_pnum])
 			|| (TTMaskHasType(tmask, TT_SPACE)))
 		{
+		    ExtAreaPerimData eapd;
+		    TileType tt = TT_SPACE;
+		    Rect r;
+
 		    node = NULL;
 
 		    /* First try to find a region under the device */
-		    extTransFindSubs(reg->treg_tile, t, tmask, def, &node, NULL);
+		    extTransFindSubs(reg->treg_tile, t, tmask, def, &node, &tt);
 
 		    if ((node == NULL) && (TTMaskHasType(tmask, TT_SPACE))) {
 			/* Device node is the global substrate. */
@@ -1946,6 +1993,38 @@ extOutputDevices(def, transList, outFile)
 		    }
 		    extTransRec.tr_devmatch |= (MATCH_TERM << termcount);
 		    extTransRec.tr_termnode[termcount] = node;
+
+		    /* Terminals on other planes will not have area and perimeter
+		     * computed, so do that here.
+		     */
+		    TiToRect(reg->treg_tile, &r);
+		    eapd.eapd_area = 0;
+		    eapd.eapd_perim = 0;
+		    eapd.eapd_shared = NULL;
+		    /* NOTE: Currently there is no way to determine if a
+		     * terminal on another plane belongs to multiple devices,
+		     * so device sharing is not checked.  Could be done by
+		     * checking the terminal area for the gate mask (on its
+		     * own plane) in extTermAPFunc().
+		     */
+		    eapd.eapd_gatemask = &DBZeroTypeBits;
+		    TTMaskCom2(&eapd.eapd_mask, tmask);
+		    if (tt == TT_SPACE)
+		    {
+			/* Terminal may be the substrate, in which case	*/
+			/* the device should not be recording area or	*/
+			/* perimeter, so leave them as zero.		*/
+			extTransRec.tr_termarea[termcount] = 0;
+			extTransRec.tr_termperim[termcount] = 0;
+		    }
+		    else
+		    {
+			DBSrPaintArea((Tile *)NULL, def->cd_planes[DBPlane(tt)],
+				&r, &tmask, extTransFindTermArea, (ClientData)&eapd);
+			extTransRec.tr_termarea[termcount] = eapd.eapd_area;
+			extTransRec.tr_termperim[termcount] = eapd.eapd_perim;
+		    }
+		    extTransRec.tr_termshared[termcount] = 1;
 		}
 		else {
 		    /* Determine if there is another matching device record */
@@ -2749,7 +2828,7 @@ extTransTileFunc(tile, pNum, arg)
 {
     TileTypeBitMask mask, cmask, *smask;
     TileType loctype, idlayer, sublayer;
-    int perim, result;
+    int perim, result, i;
     bool allow_globsubsnode;
     ExtDevice *devptr, *deventry, *devtest;
     NodeRegion *region;
@@ -2758,12 +2837,12 @@ extTransTileFunc(tile, pNum, arg)
     Label *lab;
     Rect r;
 
+    TITORECT(tile, &r);
     for (ll = extTransRec.tr_gatenode->nreg_labels; ll; ll = ll->ll_next)
     {
 	/* Skip if already marked */
 	if (ll->ll_attr != LL_NOATTR) continue;
 	lab = ll->ll_label;
-	TITORECT(tile, &r);
 	if (GEO_TOUCH(&r, &lab->lab_rect) &&
 		extLabType(lab->lab_text, LABTYPE_GATEATTR))
 	{
@@ -2944,25 +3023,8 @@ extTransTileFunc(tile, pNum, arg)
 	    extTransRec.tr_devmatch |= MATCH_ID;
     }
     extTransRec.tr_devrec = devptr;
-
     return 0;
 }
-
-/* Structures used by extTermAPFunc() for storing area and perimeter data */
-
-typedef struct _nodelist {
-    struct _nodelist *nl_next;
-    NodeRegion *nl_node;
-} ExtNodeList;
-
-typedef struct _extareaperimdata {
-    int eapd_area;
-    int eapd_perim;
-    TileTypeBitMask eapd_mask;
-    TileTypeBitMask *eapd_gatemask;
-    NodeRegion *eapd_gatenode;
-    ExtNodeList *eapd_shared;
-} ExtAreaPerimData;
 
 /*
  * ----------------------------------------------------------------------------
