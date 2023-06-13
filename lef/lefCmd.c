@@ -24,6 +24,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "dbwind/dbwind.h"
 #include "utils/main.h"
 #include "utils/utils.h"
+#include "utils/malloc.h"
 #include "textio/txcommands.h"
 #include "commands/commands.h"
 
@@ -37,6 +38,9 @@ int lefDateStamp = -1;	/* If not -1, defines the timestamp to use when creating
 			 * libraries to make sure that full and abstract views of
 			 * the same cell have matching timestamps.
 			 */
+
+linkedNetName *lefIgnoreNets = NULL; /* Nets names to ignore for antenna area */
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -65,8 +69,9 @@ int lefDateStamp = -1;	/* If not -1, defines the timestamp to use when creating
 #define LEF_READ		0
 #define LEF_WRITE		1
 #define LEF_WRITEALL		2
-#define LEF_DATESTAMP		3
-#define LEF_HELP		4
+#define LEF_NOCHECK		3
+#define LEF_DATESTAMP		4
+#define LEF_HELP		5
 
 void
 CmdLef(w, cmd)
@@ -155,6 +160,7 @@ CmdLef(w, cmd)
 	"    writeall -all		recurse on all subcells of the top-level cell\n"
 	"    writeall -hide		hide all details other than ports\n"
 	"    writeall -hide [dist]	hide details in area set back distance dist",
+	"nocheck [netname ...]		ignore antenna area checks on named net(s)",
 	"datestamp [value]		force the timestamp of cells read from LEF",
 	"help                   	print this help information",
 	NULL
@@ -463,6 +469,73 @@ CmdLef(w, cmd)
 	    }
 
 	    break;
+	case LEF_NOCHECK:
+	    if (!is_lef)
+	    {
+		TxPrintf("The \"nocheck\" option is only for LEF writes.\n");
+		break;
+	    }
+            if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		if (lefIgnoreNets == NULL)
+		    Tcl_SetObjResult(magicinterp, Tcl_NewStringObj("none", -1));
+		else
+		{
+		    Tcl_Obj *lobj;
+		    linkedNetName *lnn;
+
+		    lobj = Tcl_NewListObj(0, NULL);
+		    for (lnn = lefIgnoreNets; lnn; lnn = lnn->lnn_next)
+			Tcl_ListObjAppendElement(magicinterp, lobj,
+					Tcl_NewStringObj(lnn->lnn_name, -1));
+
+		    Tcl_SetObjResult(magicinterp, lobj);
+		}
+#else
+		if (lefIgnoreNets == NULL)
+		    TxPrintf("There are no net names being ignored.\n");
+		else
+		{
+		    linkedNetName *lnn;
+
+		    for (lnn = lefIgnoreNets; lnn; lnn = lnn->lnn_next)
+		    	TxPrintf("%s ", lnn->lnn_name);
+
+		    TxPrintf("\n");
+		}
+#endif
+	    }
+	    else
+	    {
+		int i;
+		char *inet;
+		linkedNetName *lnn;
+
+		/* This is inefficient, but there should never be more than
+		 * a few items in this list.
+		 */
+		for (i = 2; i < cmd->tx_argc; i++)
+		{
+		    inet = cmd->tx_argv[i];
+		    if (!strcasecmp(inet, "none"))
+		    {
+			/* Remove all net names from the list */
+			for (lnn = lefIgnoreNets; lnn; lnn = lnn->lnn_next)
+			    freeMagic(lnn);
+			lefIgnoreNets = NULL;
+		    }
+		    else
+		    {
+			lnn = (linkedNetName *)mallocMagic(sizeof(linkedNetName));
+			lnn->lnn_name = StrDup((char **)NULL, inet);
+			lnn->lnn_next = lefIgnoreNets;
+			lefIgnoreNets = lnn;
+		    }
+		}
+	    }
+	    break;
+
 	case LEF_HELP:
 wrongNumArgs:
 	    TxPrintf("The \"%s\" options are:\n", cmd->tx_argv[0]);

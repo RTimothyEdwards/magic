@@ -127,10 +127,17 @@ typedef struct {
     bool has_nets;
 } NetCount;
 
+/* Linked string structure used to maintain list of nets to ignore */
+typedef struct _linkedNetName {
+    char *lnn_name;
+    struct _linkedNetName *lnn_next;
+} linkedNetName;
+
 /* External declaration of global variables */
 extern int lefCurrentLine;
 extern HashTable LefInfo;
 extern HashTable LefNonDefaultRules;
+extern linkedNetName *lefIgnoreNets;
 
 /* Forward declarations */
 

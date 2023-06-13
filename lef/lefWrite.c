@@ -1416,6 +1416,8 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	while (lab != NULL)
 	{
 	    int antgatearea, antdiffarea;
+	    linkedNetName *lnn;
+	    bool ignored;
 
 	    labr = lab->lab_rect;
 
@@ -1440,7 +1442,14 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    scx.scx_area = labr;
 	    SelectClear();
 
-	    SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
+	    // Check for net names to ignore for antenna checks.
+	    ignored = FALSE;
+	    for (lnn = lefIgnoreNets; lnn; lnn = lnn->lnn_next)
+		if (!strcmp(lnn->lnn_name, lab->lab_text))
+		    ignored = TRUE;
+
+	    if (!ignored || (setback != 0))
+		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
 
 	    // Search for gate and diff types and accumulate antenna
 	    // areas.  For gates, check for all gate types tied to
@@ -1449,26 +1458,28 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    // statement in the extract section of the techfile.
 
 	    antgatearea = 0;
-	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-	    {
-		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
+	    if (!ignored)
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		{
+		    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
 			    &TiPlaneRect, &gatetypemask,
 			    lefAccumulateArea, (ClientData) &antgatearea);
-		// Stop after first plane with geometry to avoid double-counting
-		// contacts.
-		if (antgatearea > 0) break;
-	    }
+		    // Stop after first plane with geometry to avoid double-counting
+		    // contacts.
+		    if (antgatearea > 0) break;
+		}
 
 	    antdiffarea = 0;
-	    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
-	    {
-		DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
+	    if (!ignored)
+		for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+		{
+		    DBSrPaintArea((Tile *)NULL, SelectDef->cd_planes[pNum],
 			    &TiPlaneRect, &difftypemask,
 			    lefAccumulateArea, (ClientData) &antdiffarea);
-		// Stop after first plane with geometry to avoid double-counting
-		// contacts.
-		if (antdiffarea > 0) break;
-	    }
+		    // Stop after first plane with geometry to avoid double-counting
+		    // contacts.
+		    if (antdiffarea > 0) break;
+		}
 
 	    if (setback == 0)
 	    {
