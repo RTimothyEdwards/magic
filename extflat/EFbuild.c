@@ -513,6 +513,8 @@ efBuildEquiv(def, nodeName1, nodeName2, resist)
 
     if (nn2 == (EFNodeName *) NULL)
     {
+	bool isNew = TRUE;
+
 	/* Create nodeName1 if it doesn't exist */
 	if (nn1 == (EFNodeName *) NULL)
 	{
@@ -522,11 +524,12 @@ efBuildEquiv(def, nodeName1, nodeName2, resist)
 		    nodeName1, (double)0, 0, 0,
 		    (char *) NULL, (char **) NULL, 0);
 	    nn1 = (EFNodeName *) HashGetValue(he1);
+	    isNew = FALSE;
 	}
 
 	/* Make nodeName2 be another alias for node1 */
 	efNodeAddName(nn1->efnn_node, he2,
-			EFStrToHN((HierName *) NULL, nodeName2));
+			EFStrToHN((HierName *) NULL, nodeName2), isNew);
 	return;
     }
     else if (nn2->efnn_node == (EFNode *)NULL)
@@ -630,21 +633,13 @@ efBuildEquiv(def, nodeName1, nodeName2, resist)
 		    if ((EFNodeName *)HashGetValue(he2) == nn2)
 			HashSetValue(he2, (char *)nn1);
 	    }
-
-	    /* Check if any device terminals point to the old node */
-	    if (nn1->efnn_node == NULL)
-	    {
-	    }
-	    else if (nn2->efnn_node == NULL)
-	    {
-	    }
 	}
 	return;
     }
 
     /* Make nodeName1 be another alias for node2 */
     efNodeAddName(nn2->efnn_node, he1,
-			EFStrToHN((HierName *) NULL, nodeName1));
+			EFStrToHN((HierName *) NULL, nodeName1), FALSE);
 }
 
 
@@ -1716,10 +1711,11 @@ again:
  */
 
 void
-efNodeAddName(node, he, hn)
+efNodeAddName(node, he, hn, isNew)
     EFNode *node;
     HashEntry *he;
     HierName *hn;
+    bool isNew;		// If TRUE, added name is never the preferred name.
 {
     EFNodeName *newnn;
     EFNodeName *oldnn;
@@ -1730,7 +1726,8 @@ efNodeAddName(node, he, hn)
     newnn->efnn_hier = hn;
     newnn->efnn_port = -1;
     newnn->efnn_refc = 0;
-    HashSetValue(he, (char *) newnn);
+
+    HashSetValue(he, (char *)newnn);
 
     /* If the node is a port of the top level cell, denoted by flag	*/
     /* EF_TOP_PORT, then the name given to the port always stays at the	*/
@@ -1740,7 +1737,8 @@ efNodeAddName(node, he, hn)
 
     /* Link in the new name */
     oldnn = node->efnode_name;
-    if (oldnn == NULL || (EFHNBest(newnn->efnn_hier, oldnn->efnn_hier) && !topport))
+    if ((oldnn == NULL) || (EFHNBest(newnn->efnn_hier, oldnn->efnn_hier)
+		&& !topport && !isNew))
     {
 	/* New head of list */
 	newnn->efnn_next = oldnn;

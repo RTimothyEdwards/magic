@@ -793,7 +793,11 @@ extOutputNodes(nodeList, outFile)
 						    text, ll->ll_label->lab_text);
 				    lastname = ll->ll_label->lab_text;
 				}
+				/* Don't print a warning unless both labels are
+				 * really ports.
+				 */
 				if ((portname != NULL) &&
+			    		    (ll->ll_attr == LL_PORTATTR) &&
 					    (strcmp(ll->ll_label->lab_text, portname)))
 				    TxError("Warning:  Ports \"%s\" and \"%s\" are"
 					    " electrically shorted.\n",

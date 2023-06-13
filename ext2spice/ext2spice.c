@@ -1899,7 +1899,8 @@ topVisit(def, doStub)
 		pname = stmp;
 	    }
 	    else
-		pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
+		// pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
+		pname = nodeSpiceName(nodeName->efnn_hier, NULL);
 
 	    hep = HashLookOnly(&portNameTable, pname);
 	    if (hep == (HashEntry *)NULL)
