@@ -58,6 +58,7 @@ extern FILE *extFileOpen();
      */
 int ExtDoWarn = EXTWARN_DUP|EXTWARN_FETS;
 int ExtOptions = EXT_DOALL|EXT_DOLABELCHECK|EXT_DOALIASES;
+char *ExtLocalPath = NULL;
 
 /* --------------------------- Global data ---------------------------- */
 
@@ -908,9 +909,9 @@ extTimestampMisMatch(def)
     int stamp;
     bool doLocal;
 
-    doLocal = (ExtOptions & EXT_DOLOCAL) ? TRUE : FALSE;
+    doLocal = (ExtLocalPath == NULL) ? FALSE : TRUE;
 
-    extFile = extFileOpen(def, (char *) NULL, "r", doLocal, (char **) NULL);
+    extFile = extFileOpen(def, (char *) NULL, "r", (char **) NULL);
     if (extFile == NULL)
 	return (TRUE);
 

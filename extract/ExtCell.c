@@ -22,6 +22,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <math.h>
 #include <string.h>
 
@@ -95,9 +98,6 @@ ExtCell(def, outName, doLength)
     char *filename;
     FILE *f = NULL;
     Plane *savePlane;
-    bool doLocal;
-
-    doLocal = (ExtOptions & EXT_DOLOCAL) ? TRUE : FALSE;
 
     /* Incremental extraction:  If the cell is marked for no extraction,
      * then just prepare the substrate plane and return it to the caller.
@@ -105,7 +105,7 @@ ExtCell(def, outName, doLength)
     if (def->cd_flags & CDNOEXTRACT)
 	return extPrepSubstrate(def);
 
-    f = extFileOpen(def, outName, "w", doLocal, &filename);
+    f = extFileOpen(def, outName, "w", &filename);
 
     TxPrintf("Extracting %s into %s:\n", def->cd_name, filename);
 
@@ -159,7 +159,7 @@ ExtCell(def, outName, doLength)
  */
 
 FILE *
-extFileOpen(def, file, mode, doLocal, prealfile)
+extFileOpen(def, file, mode, prealfile)
     CellDef *def;	/* Cell whose .ext file is to be written */
     char *file;		/* If non-NULL, open 'name'.ext; otherwise,
 			 * derive filename from 'def' as described
@@ -168,7 +168,6 @@ extFileOpen(def, file, mode, doLocal, prealfile)
     char *mode;		/* Either "r" or "w", the mode in which the .ext
 			 * file is to be opened.
 			 */
-    bool  doLocal;	/* If true, always write to local directory */
     char **prealfile;	/* If this is non-NULL, it gets set to point to
 			 * a string holding the name of the .ext file.
 			 */
@@ -178,8 +177,33 @@ extFileOpen(def, file, mode, doLocal, prealfile)
     FILE *rfile, *testf;
 
     if (file) name = file;
-    else if (doLocal)
-	name = def->cd_name;	/* No path component, so save locally */
+    else if (ExtLocalPath != NULL)
+    {
+	if (!strcmp(ExtLocalPath, "."))
+	    name = def->cd_name;	/* Save locally */
+	else
+	{
+	    struct stat st = {0};
+
+	    /* Test presence of the directory */
+	    if (stat(ExtLocalPath, &st) == -1) {
+		TxError("Path \"%s\" does not exist;  attempting to create it.\n",
+			ExtLocalPath);
+		mkdir(ExtLocalPath, 0755);
+		if (stat(ExtLocalPath, &st) == -1) {
+		    TxError("Path \"%s\" does not exist;  saving locally.\n",
+				ExtLocalPath);
+		    name = def->cd_name;	/* Save locally */
+		}
+	    }
+	    else
+	    {
+		/* Save locally in specified path, which is assumed to exist */
+		name = namebuf;
+		sprintf(namebuf, "%s/%s", ExtLocalPath, def->cd_name);
+	    }
+	}
+    }
     else if (def->cd_file)
     {
 	name = def->cd_file;

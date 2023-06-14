@@ -26,6 +26,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdlib.h>
 #include <string.h>
 
+#include "utils/main.h"
 #include "utils/magic.h"
 #include "utils/paths.h"
 #include "utils/geometry.h"
@@ -35,8 +36,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/pathvisit.h"
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
-
-/* C99 compat */
 #include "textio/textio.h"
 #include "utils/pathvisit.h"
 
@@ -58,13 +57,6 @@ char *EFLibPath = NULL;		/* Library search path for .ext files */
 char *EFTech = NULL;
 char *EFStyle = NULL;		/* Start with no extraction style */
 bool  EFCompat = TRUE;		/* Start with backwards compatibility enabled */
-
-#ifdef MAGIC_WRAPPER
-extern char     *Path;		/* magic's search path---note this should  */
-				/* be done with #include "utils/main.h" but */
-				/* this is easier.			   */
-#endif
-
 
 /* -------------------- Visible only inside extflat ------------------- */
 
@@ -203,9 +195,10 @@ EFArgs(argc, argv, err_result, argsProc, cdata)
 		EFCapThreshold = atoCap(cp);	/* Femtofarads */
 		break;
 	    case 'p':
-		EFSearchPath = ArgStr(&argc, &argv, "search path");
-		if (EFSearchPath == NULL)
+		cp = ArgStr(&argc, &argv, "search path");
+		if (cp == NULL)
 		    goto usage;
+		StrDup(&EFSearchPath, cp);
 		break;
 	    case 'r':
 		if ((cp = ArgStr(&argc, &argv, "resist threshold")) == NULL)
@@ -302,13 +295,9 @@ EFArgs(argc, argv, err_result, argsProc, cdata)
 	}
     }
 
-    /* Find the search path if one was not specified */
-    if (EFSearchPath == NULL)
-#ifdef MAGIC_WRAPPER
-	/* Set the search path to be the same as magic's search path */
-	EFSearchPath = StrDup(NULL, Path);
-#else
-	efLoadSearchPath(&EFSearchPath);
+#ifndef MAGIC_WRAPPER
+    /* This is probably not useful */
+    if (EFSearchPath == NULL) efLoadSearchPath(&EFSearchPath);
 #endif
 
     EFLibPath = libpath;

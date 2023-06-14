@@ -173,6 +173,13 @@ EFDone(func)
 
     /* Final cleanup */
     HashKill(&efDefHashTable);
+
+    /* EFSearchPath does not persist beyond the command that set it */
+    if (EFSearchPath)
+    {
+	freeMagic(EFSearchPath);
+	EFSearchPath = NULL;
+    }
 }
 
 /*

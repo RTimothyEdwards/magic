@@ -27,6 +27,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <ctype.h>
 
 #include "tcltk/tclmagic.h"
+#include "utils/main.h"
 #include "utils/magic.h"
 #include "utils/malloc.h"
 #include "utils/geometry.h"
@@ -201,10 +202,15 @@ efReadDef(def, dosubckt, resist, noscale, toplevel)
     def->def_flags |= DEF_AVAILABLE;
     name = def->def_name;
 
-    /* If cell is in main database, check if there is a file path set. */
+    /* If the search path was specified with the "-p" argument to the calling
+     * command (e.g., ext2spice or ext2sim), then use that path.
+     */
+    if (EFSearchPath != NULL)
+	inf = PaOpen(name, "r", ".ext", EFSearchPath, EFLibPath, &efReadFileName);
 
-    if ((dbdef = DBCellLookDef(name)) != NULL)
+    if ((inf == NULL) && (dbdef = DBCellLookDef(name)) != NULL)
     {
+	/* If cell is in main database, check if there is a file path set. */
 	if (dbdef->cd_file != NULL)
 	{
 	    char *filepath, *sptr;
@@ -218,18 +224,11 @@ efReadDef(def, dosubckt, resist, noscale, toplevel)
 	    freeMagic(filepath);
 	}
     }
-    if (inf == NULL)
-	inf = PaOpen(name, "r", ".ext", EFSearchPath, EFLibPath, &efReadFileName);
 
-    if (inf == NULL)
-    {
-	/* Complementary to .ext file write:  If file is in a read-only	*/
-	/* directory, then .ext	file is written to CWD.			*/
-	char *proot;
-	proot = strrchr(name, '/');
-	if (proot != NULL)
-	    inf = PaOpen(proot + 1, "r", ".ext", ".", ".", &efReadFileName);
-    }
+    /* Try with the standard search path */
+    if ((inf == NULL) && (EFSearchPath == NULL))
+	inf = PaOpen(name, "r", ".ext", Path, EFLibPath, &efReadFileName);
+
     if (inf == NULL)
     {
 #ifdef MAGIC_WRAPPER

@@ -80,7 +80,11 @@ Circuit netlist extractor
 			same directory as the .mag file from which it is
 			derived, unless the .mag file is in a directory which
 			is not writable.  In that case, the .ext file will also
-			be written to the current working directory.
+			be written to the current working directory. <P>
+			<I>Note:</I>  As of magic version 8.3.404, "<B>extract
+			do local</B>" effectively implements "<B>extract path .</B>"
+			and "<B>extract no local</B>" implements "<B> extract
+			path none</B>".
 		  <DT> <B>labelcheck</B>
 		  <DD> Check for labels which have zero area and connect
 			to a subcell on the edge;  this case is rare but is
@@ -124,6 +128,19 @@ Circuit netlist extractor
 	
 	   <DT> <B>help</B>
 	   <DD> Print help information
+	   <DT> <B>path</B> [<I>pathname</I>|<B>none</B>]
+	   <DD> Extract locally into the directory <I>pathname</I>.  If
+		<I>pathname</I> does not exist, then magic will attempt to
+		create it.  If it cannot be created, then the behavior will
+		be to save extract files in the current working directory.
+		If no path is set, or if <B>none</B> is specified as the
+		path, then the behavior will be to extract files in the
+		same directory as where the magic database (<B>.mag</B>)
+		file is located, unless that directory is unwritable by
+		the user, in which case the file is extracted to the
+		current working diretory.  Note that "<B>extract do local</B>"
+		is the same as "<B>extract path .</B>" and "<B>extract no local</B>"
+		is the same as "<B>extract path none</B>".
 	   <DT> <B>parents</B>
 	   <DD> Extract the selected cell and all its parents
 	   <DT> <B>showparents</B>

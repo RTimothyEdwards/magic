@@ -862,10 +862,11 @@ cmdExpandFunc(use, windowMask)
 #define	EXTLENGTH	5
 #define	EXTNO		6
 #define	EXTPARENTS	7
-#define	EXTSHOWPARENTS	8
-#define	EXTSTYLE	9
-#define	EXTUNIQUE	10
-#define	EXTWARN		11
+#define EXTPATH		8
+#define	EXTSHOWPARENTS	9
+#define	EXTSTYLE	10
+#define	EXTUNIQUE	11
+#define	EXTWARN		12
 
 #define	WARNALL		0
 #define WARNDUP		1
@@ -957,6 +958,7 @@ CmdExtract(w, cmd)
 	"length [option]	control pathlength extraction information",
 	"no [option]		disable extractor option",
 	"parents		extract selected cell and all its parents",
+	"path [path]		if set, extract into the indicated path",
 	"showparents		show all parents of selected cell",
 	"style [stylename]	set current extraction parameter style",
 	"unique [option]	generate unique names when different nodes\n\
@@ -1113,6 +1115,13 @@ CmdExtract(w, cmd)
 	    ExtShowParents(selectedUse);
 	    return;
 
+	case EXTPATH:
+	    if (argc == 2)
+		ExtPrintPath(dolist);
+	    else
+		ExtSetPath(argv[2]);
+	    return;
+
 	case EXTSTYLE:
 	    if (argc == 2)
 		ExtPrintStyle(dolist, doforall, !doforall);
@@ -1188,7 +1197,6 @@ CmdExtract(w, cmd)
 		TxPrintf("%s capacitance\n", OPTSET(EXT_DOCAPACITANCE));
 		TxPrintf("%s coupling\n", OPTSET(EXT_DOCOUPLING));
 		TxPrintf("%s length\n", OPTSET(EXT_DOLENGTH));
-		TxPrintf("%s local\n", OPTSET(EXT_DOLOCAL));
 		TxPrintf("%s resistance\n", OPTSET(EXT_DORESISTANCE));
 		TxPrintf("%s label check\n", OPTSET(EXT_DOLABELCHECK));
 		TxPrintf("%s aliases\n", OPTSET(EXT_DOALIASES));
@@ -1218,10 +1226,19 @@ CmdExtract(w, cmd)
 		case DOCAPACITANCE:	option = EXT_DOCAPACITANCE; break;
 		case DOCOUPLING:	option = EXT_DOCOUPLING; break;
 		case DOLENGTH:		option = EXT_DOLENGTH; break;
-		case DOLOCAL:		option = EXT_DOLOCAL; break;
 		case DORESISTANCE:	option = EXT_DORESISTANCE; break;
 		case DOLABELCHECK:	option = EXT_DOLABELCHECK; break;
 		case DOALIASES:		option = EXT_DOALIASES; break;
+		case DOLOCAL:
+		    /* "extract do local" and "extract no local" are kept for
+		     * backwards compatibility, but now effectively implement
+		     * "extract path ." and "extract path none", respectively.
+		     */
+		    if (no)
+			StrDup(&ExtLocalPath, NULL);
+		    else
+			StrDup(&ExtLocalPath, ".");
+		    return;
 	    }
 	    if (no) ExtOptions &= ~option;
 	    else ExtOptions |= option;

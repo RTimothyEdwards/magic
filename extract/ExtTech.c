@@ -577,6 +577,87 @@ ExtGetZAxis(tile, height, thick)
 }
 #endif  /* THREE_D */
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ExtPrintPath --
+ *
+ *	Print the path where extraction files will be written
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Output.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+ExtPrintPath(dolist)
+    bool dolist;
+{
+    if (ExtLocalPath == NULL)
+    {
+	if (dolist)
+	{
+#ifdef MAGIC_WRAPPER
+	    Tcl_SetObjResult(magicinterp, Tcl_NewStringObj("(none)", -1));
+#else
+	    TxPrintf("(none)\n");
+#endif
+	}
+	else
+	    TxPrintf("(none)\n");
+    }
+    else
+    {
+	if (dolist)
+	{
+#ifdef MAGIC_WRAPPER
+	    Tcl_SetObjResult(magicinterp, Tcl_NewStringObj(ExtLocalPath, -1));
+#else
+	    TxPrintf("%s\n", ExtLocalPath);
+#endif
+	}
+	else
+	    TxPrintf("The extraction path is: %s\n", ExtLocalPath);
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * ExtSetPath --
+ *
+ * Set the current extraction path to 'path', unless 'path' is "none" or
+ * "(none)", in which case clear the path and set it to NULL.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Just told you.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+ExtSetPath(path)
+    char *path;
+{
+    if (path != NULL)
+    {
+	if (!strcasecmp(path, "none") || !strcasecmp(path, "(none)") ||
+			!strcasecmp(path, "null"))
+	{
+	    StrDup(&ExtLocalPath, NULL);
+	    return;
+	}
+    }
+    StrDup(&ExtLocalPath, path);
+    return;
+}
 
 /*
  * ----------------------------------------------------------------------------

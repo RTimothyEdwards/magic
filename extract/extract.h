@@ -69,11 +69,11 @@ extern char *extDevTable[];
 #define	EXT_DOLENGTH		0x010	/* Extract pathlengths */
 #define	EXT_DOFRINGEHALO	0x020	/* Distributed fringe capacitance */
 #define	EXT_DOALL		0x03f	/* ALL OF THE ABOVE */
-#define	EXT_DOLOCAL		0x040	/* Write to local directory only */
-#define	EXT_DOLABELCHECK	0x080	/* Check for connections by label */
-#define EXT_DOALIASES		0x100	/* Output all node aliases */
+#define	EXT_DOLABELCHECK	0x040	/* Check for connections by label */
+#define EXT_DOALIASES		0x080	/* Output all node aliases */
 
 extern int ExtOptions;		/* Bitmask of above */
+extern char *ExtLocalPath;	/* If non-NULL, location to write .ext files */ 
 
 /* Options for "extract unique" */
 #define EXT_UNIQ_ALL		0
@@ -86,6 +86,8 @@ extern void ExtTechInit();
 extern void ExtTechFinal();
 extern void ExtSetStyle();
 extern void ExtPrintStyle();
+extern void ExtSetPath();
+extern void ExtPrintPath();
 extern void ExtRevertSubstrate();
 extern Plane *ExtCell();
 extern void ExtractOneCell();
