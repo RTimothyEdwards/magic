@@ -1662,6 +1662,10 @@ extOutputParameters(def, transList, outFile)
 				fprintf(outFile, " %c%c=%s*%g",
 					plist->pl_param[0], plist->pl_param[1],
 					plist->pl_name, plist->pl_scale);
+			    else if (plist->pl_offset != 0.0)
+				fprintf(outFile, " %c%c=%s%+g",
+					plist->pl_param[0], plist->pl_param[1],
+					plist->pl_name, plist->pl_offset);
 			    else
 				fprintf(outFile, " %c%c=%s", plist->pl_param[0],
 					plist->pl_param[1], plist->pl_name);
@@ -1672,6 +1676,10 @@ extOutputParameters(def, transList, outFile)
 				fprintf(outFile, " %c=%s*%g",
 					plist->pl_param[0],
 					plist->pl_name, plist->pl_scale);
+			    if (plist->pl_offset != 0.0)
+				fprintf(outFile, " %c=%s%+g",
+					plist->pl_param[0],
+					plist->pl_name, plist->pl_offset);
 			    else
 				fprintf(outFile, " %c=%s", plist->pl_param[0],
 					plist->pl_name);

@@ -78,6 +78,7 @@ typedef struct pl
     char	 pl_param[2];	/* Default character for parameter */
     char	*pl_name;	/* Full name for parameter */
     double	 pl_scale;	/* Scaling of parameter, if specified */
+    double	 pl_offset;	/* Offset of parameter, if specified */
     struct pl	*pl_next;	/* Next parameter in list */
 } ParamList;
 

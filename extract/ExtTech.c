@@ -2364,7 +2364,7 @@ ExtTechLine(sectionName, argc, argv)
 	    subcktParams = NULL;
 	    while ((paramName = strchr(argv[argc - 1], '=')) != NULL)
 	    {
-		char *mult;
+		char *mult, *offset;
 
 		paramName++;
 		newParam = (ParamList *)mallocMagic(sizeof(ParamList));
@@ -2392,6 +2392,21 @@ ExtTechLine(sectionName, argc, argv)
 		}
 		else
 		    newParam->pl_scale = 1.0;
+
+		if ((offset = strchr(paramName, '+')) != NULL)
+		{
+		    *offset = '\0';
+		    offset++;
+		    newParam->pl_offset = atof(offset);
+		}
+		else if ((offset = strchr(paramName, '-')) != NULL)
+		{
+		    *offset = '\0';
+		    offset++;
+		    newParam->pl_offset = -atof(offset);
+		}
+		else
+		    newParam->pl_offset = 0.0;
 
 		newParam->pl_name = StrDup((char **)NULL, paramName);
 		newParam->pl_next = subcktParams;

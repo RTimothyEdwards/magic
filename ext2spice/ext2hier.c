@@ -173,8 +173,8 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				* esScale * esScale * plist->parm_scale
 				* 1E-12);
 		    else
-			esSIvalue(esSpiceF, 1.0E-12 * parmval * scale * scale
-				* esScale * esScale);
+			esSIvalue(esSpiceF, 1.0E-12 * (parmval + plist->parm_offset)
+				* scale * scale * esScale * esScale);
 		}
 		else
 		{
@@ -220,7 +220,8 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 			fprintf(esSpiceF, "%g", parmval * scale
 				* esScale * plist->parm_scale * 1E-6);
 		    else
-			esSIvalue(esSpiceF, 1.0E-6 * parmval * scale * esScale);
+			esSIvalue(esSpiceF, (parmval + plist->parm_offset)
+				* scale * esScale * 1.0E-6);
 		}
 		else
 		{
@@ -264,7 +265,8 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 			fprintf(esSpiceF, "%g", l * scale * esScale
 				* plist->parm_scale * 1E-6);
 		    else
-			esSIvalue(esSpiceF, 1.0E-6 * l * scale * esScale);
+			esSIvalue(esSpiceF, 1.0E-6 * (l + plist->parm_offset)
+				* scale * esScale);
 		}
 		else
 		{
@@ -287,7 +289,8 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				    fprintf(esSpiceF, "%g", dval * scale * esScale
 						* plist->parm_scale * 1E-6);
 				else
-				    esSIvalue(esSpiceF, 1.0E-6 * dval * scale * esScale);
+				    esSIvalue(esSpiceF, (dval + plist->parm_offset)
+						* scale * esScale * 1.0E-6);
 				dparam->parm_name[0] = '\0';
 				break;
 			    }
@@ -304,7 +307,8 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    fprintf(esSpiceF, "%g", w * scale * esScale
 				* plist->parm_scale * 1E-6);
 		else
-		    esSIvalue(esSpiceF, 1.0E-6 * w * scale * esScale);
+		    esSIvalue(esSpiceF, 1.0E-6 * (w + plist->parm_offset)
+				* scale * esScale);
 		break;
 	    case 's':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
@@ -320,7 +324,8 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    fprintf(esSpiceF, "%g", dev->dev_rect.r_xbot * scale
 				* esScale * plist->parm_scale * 1E-6);
 		else
-		    esSIvalue(esSpiceF, 1.0E-6 * dev->dev_rect.r_xbot * scale * esScale);
+		    esSIvalue(esSpiceF, (dev->dev_rect.r_xbot + plist->parm_offset)
+				* scale * esScale * 1.0E-6);
 		break;
 	    case 'y':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
@@ -330,7 +335,8 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    fprintf(esSpiceF, "%g", dev->dev_rect.r_ybot * scale
 				* esScale * plist->parm_scale * 1E-6);
 		else
-		    esSIvalue(esSpiceF, 1.0E-6 * dev->dev_rect.r_ybot * scale * esScale);
+		    esSIvalue(esSpiceF, (dev->dev_rect.r_ybot + plist->parm_offset)
+				* scale * esScale * 1.0E-6);
 		break;
 	    case 'r':
 		fprintf(esSpiceF, " %s=", plist->parm_name);

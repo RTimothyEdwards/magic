@@ -692,7 +692,7 @@ efBuildDeviceParams(name, argc, argv)
     /* Parse arguments for each parameter */
     for (n = 0; n < argc; n++)
     {
-	char *mult;
+	char *mult, *offset;
 
 	pptr = strchr(argv[n], '=');
 	if (pptr == NULL)
@@ -715,6 +715,19 @@ efBuildDeviceParams(name, argc, argv)
 	}
 	else
 	    newparm->parm_scale = 1.0;
+
+	if ((offset = strchr(pptr + 1, '+')) != NULL)
+	{
+	    *offset = '\0';
+	    newparm->parm_offset = atof(offset + 1);
+	}
+	else if ((offset = strchr(pptr + 1, '-')) != NULL)
+	{
+	    *offset = '\0';
+	    newparm->parm_offset = -atof(offset + 1);
+	}
+	else
+	    newparm->parm_offset = 0.0;
 
 	// For parameters defined for cell defs, copy the whole
 	// expression verbatim into parm_name.  parm_type is
