@@ -714,20 +714,26 @@ efBuildDeviceParams(name, argc, argv)
 	    newparm->parm_scale = atof(mult + 1);
 	}
 	else
+	{
 	    newparm->parm_scale = 1.0;
 
-	if ((offset = strchr(pptr + 1, '+')) != NULL)
-	{
-	    *offset = '\0';
-	    newparm->parm_offset = atof(offset + 1);
+	    /* NOTE:  If extending feature to allow for both scale
+	     * and offset, be sure to distinguish between +/- as an
+	     * offset and +/- as a sign.
+	     */
+	    if ((offset = strchr(pptr + 1, '+')) != NULL)
+	    {
+		*offset = '\0';
+		newparm->parm_offset = atof(offset + 1);
+	    }
+	    else if ((offset = strchr(pptr + 1, '-')) != NULL)
+	    {
+		*offset = '\0';
+		newparm->parm_offset = -atof(offset + 1);
+	    }
+	    else
+		newparm->parm_offset = 0.0;
 	}
-	else if ((offset = strchr(pptr + 1, '-')) != NULL)
-	{
-	    *offset = '\0';
-	    newparm->parm_offset = -atof(offset + 1);
-	}
-	else
-	    newparm->parm_offset = 0.0;
 
 	// For parameters defined for cell defs, copy the whole
 	// expression verbatim into parm_name.  parm_type is

@@ -2391,22 +2391,29 @@ ExtTechLine(sectionName, argc, argv)
 		    newParam->pl_scale = atof(mult);
 		}
 		else
+		{
 		    newParam->pl_scale = 1.0;
 
-		if ((offset = strchr(paramName, '+')) != NULL)
-		{
-		    *offset = '\0';
-		    offset++;
-		    newParam->pl_offset = atof(offset);
+		    /* NOTE: If allowing both scale and offset, be sure
+		     * to distinguish between +/- used for offsets and
+		     * +/- used as sign.
+		     */
+
+		    if ((offset = strchr(paramName, '+')) != NULL)
+		    {
+			*offset = '\0';
+			offset++;
+			newParam->pl_offset = atof(offset);
+		    }
+		    else if ((offset = strchr(paramName, '-')) != NULL)
+		    {
+			*offset = '\0';
+			offset++;
+			newParam->pl_offset = -atof(offset);
+		    }
+		    else
+			newParam->pl_offset = 0.0;
 		}
-		else if ((offset = strchr(paramName, '-')) != NULL)
-		{
-		    *offset = '\0';
-		    offset++;
-		    newParam->pl_offset = -atof(offset);
-		}
-		else
-		    newParam->pl_offset = 0.0;
 
 		newParam->pl_name = StrDup((char **)NULL, paramName);
 		newParam->pl_next = subcktParams;
