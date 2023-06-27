@@ -3907,14 +3907,15 @@ cmdDownEnumFunc(selUse, use, transform, area)
 #define EUCLIDEAN	7
 #define FIND		8
 #define DRC_HELP	9
-#define DRC_OFF		10
-#define DRC_ON		11
-#define DRC_STATUS	12
-#define DRC_STYLE	13
-#define PRINTRULES	14
-#define RULESTATS	15
-#define STATISTICS	16
-#define WHY		17
+#define DRC_IGNORE	10
+#define DRC_OFF		11
+#define DRC_ON		12
+#define DRC_STATUS	13
+#define DRC_STYLE	14
+#define PRINTRULES	15
+#define RULESTATS	16
+#define STATISTICS	17
+#define WHY		18
 
 void
 CmdDrc(w, cmd)
@@ -3934,6 +3935,7 @@ CmdDrc(w, cmd)
     bool	incremental;
     bool	doforall = FALSE;
     bool	dolist = FALSE;
+    int		drc_start;
     int		count_total;
     DRCCountList *dcl;
     int argc = cmd->tx_argc;
@@ -3954,6 +3956,7 @@ CmdDrc(w, cmd)
 	"euclidean on|off	enable/disable Euclidean geometry checking",
 	"find [nth]     	locate next (or nth) error in the layout",
 	"help                   print this help information",
+	"ignore	[<text>|none]   do not report on rules with this text",
 	"off                    turn off background checker",
 	"on                     reenable background checker",
 	"status			report if the drc checker is on or off",
@@ -4000,12 +4003,12 @@ CmdDrc(w, cmd)
 	if ((argc > 2) && (option != PRINTRULES) && (option != FIND)
 	    && (option != SHOWINT) && (option != DRC_HELP) && (option != EUCLIDEAN)
 	    && (option != DRC_STEPSIZE) && (option != DRC_HALO) && (option != COUNT)
-	    && (option != DRC_STYLE))
+	    && (option != DRC_STYLE) && (option != DRC_IGNORE))
 	{
 	    badusage:
 	    TxError("Wrong arguments in \"drc %s\" command:\n", argv[1]);
-	    TxError("    :drc %s\n", cmdDrcOption[option]);
-	    TxError("Try \":drc help\" for more help.\n");
+	    TxError("    drc %s\n", cmdDrcOption[option]);
+	    TxError("Try \"drc help\" for more help.\n");
 	    return;
 	}
     }
@@ -4173,39 +4176,61 @@ CmdDrc(w, cmd)
 		drc_nth++;
 	    }
 
-	    result = DRCFind(rootUse, &rootArea, &area, drc_nth);
-	    if (incremental && (result < 0))
+	    drc_start = -1;
+	    while (TRUE)
 	    {
-		/* 2nd pass, if we exceeded the total number of errors */
-		drc_nth = 1;
-		result = DRCFind(rootUse, &rootArea, &area, drc_nth);
-	    }
+		/* May need to loop multiple times if some error types
+		 * are being ignored.
+		 */
 
-	    if (result > 0)
-	    {
-		ToolMoveBox(TOOL_BL, &area.r_ll, FALSE, rootDef);
-		ToolMoveCorner(TOOL_TR, &area.r_ur, FALSE, rootDef);
+		result = DRCFind(rootUse, &rootArea, &area, drc_nth);
+		if (incremental && (result < 0))
+		{
+		    /* 2nd pass, if we exceeded the total number of errors */
+		    drc_nth = 1;
+		    result = DRCFind(rootUse, &rootArea, &area, drc_nth);
+		}
+
+		/* If looping on an incremental DRC error search, and errors
+		 * are being ignored, and there are no non-ignored errors in
+		 * the search area, then quit if we have looped back around
+		 * to the starting point.
+		 */
+		if ((drc_start > 0) && (result == drc_start))
+		    break;
+
+		if (result > 0)
+		{
+		    ToolMoveBox(TOOL_BL, &area.r_ll, FALSE, rootDef);
+		    ToolMoveCorner(TOOL_TR, &area.r_ur, FALSE, rootDef);
 #ifdef MAGIC_WRAPPER
-		if (!dolist)
+		    if (!dolist)
 #endif
-		TxPrintf("Error area #%d:\n", result);
-		DRCWhy(dolist, rootUse, &area);
-	    }
-	    else if (result < 0)
-	    {
+		    TxPrintf("Error area #%d:\n", result);
+		    if (DRCWhy(dolist, rootUse, &area)) break;
+		    drc_nth++;
+		}
+		else if (result < 0)
+		{
 #ifdef MAGIC_WRAPPER
-		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(-1));
-		if (!dolist)
+		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(-1));
+		    if (!dolist)
 #endif
-		TxPrintf("There aren't that many errors");
-	    }
-	    else
-	    {
+		    TxPrintf("There aren't that many errors");
+		    break;
+		}
+		else
+		{
 #ifdef MAGIC_WRAPPER
-		Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(0));
-		if (!dolist)
+		    Tcl_SetObjResult(magicinterp, Tcl_NewIntObj(0));
+		    if (!dolist)
 #endif
-		TxPrintf("There are no errors in %s.\n", rootDef->cd_name);
+		    TxPrintf("There are no errors in %s.\n", rootDef->cd_name);
+		    break;
+		}
+
+		if (drc_start < 0)
+		    drc_start = result;
 	    }
 	    break;
 
@@ -4259,6 +4284,54 @@ CmdDrc(w, cmd)
 	    {
 		if ((**msg == '*') && !wizardHelp) continue;
 		TxPrintf("    %s\n", *msg);
+	    }
+	    break;
+
+	case DRC_IGNORE:
+	    /* Ignore rules containing the given text, unless the text is "none",
+	     * in which case clear the list of rules to ignore.
+	     */
+	    if (argc == 2)
+	    {
+		LinkedIndex *li;
+
+		/* Print or list rules being ignored */
+
+		li = DRCIgnoreRules;
+		while (li != NULL)
+		{
+		    TxPrintf("%s\n", DRCCurStyle->DRCWhyList[li->li_index]);
+		    li = li->li_next;
+		}
+		if (DRCIgnoreRules == NULL) TxPrintf("(none)\n");
+		break;
+	    }
+	    if (argc != 3) goto badusage;
+	    if (!strcasecmp(argv[2], "none"))
+	    {
+		LinkedIndex *li;
+		li = DRCIgnoreRules;
+		while (li != NULL)
+		{
+		    freeMagic(li);
+		    li = li->li_next;
+		}
+		DRCIgnoreRules = (LinkedIndex *)NULL;
+	    }
+	    else
+	    {
+		int i;
+		LinkedIndex *newli;
+		for (i = 1; i < DRCCurStyle->DRCWhySize; i++)
+		{
+		    if (strstr(DRCCurStyle->DRCWhyList[i], argv[2]) != NULL)
+		    {
+			newli = (LinkedIndex *)mallocMagic(sizeof(LinkedIndex));
+			newli->li_index = i;
+			newli->li_next = DRCIgnoreRules;
+			DRCIgnoreRules = newli;
+		    }
+		}
 	    }
 	    break;
 
@@ -4349,7 +4422,8 @@ CmdDrc(w, cmd)
 	       DRCWhyAll(rootUse, &rootArea, NULL);
 	    else
 #endif
-	    DRCWhy(dolist, rootUse, &rootArea);
+	    if (!DRCWhy(dolist, rootUse, &rootArea))
+		TxPrintf("No errors found.\n");
 	    break;
     }
     return;

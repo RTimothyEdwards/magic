@@ -41,6 +41,12 @@ Background design rule checker control and status.
 	   <DD> Locate next (or <I>nth</I>) error in current cell
 	   <DT> <B>help</B>
 	   <DD> Print help information
+	   <DT> <B>ignore</B> [<I>text</I>|<B>none</B>]
+	   <DD> Without options, print a list of all rules that are not being
+		reported.  With option <I>text</I>, don't report rules containing
+		the string <I>text</I>.  This is cumulative;  additional calls
+		to "<B>drc ignore</B> <I>text</I>" will add rules to be ignored.
+		Cancel ignoring rules with "<B>drc ignore none</B>" (the default).
 	   <DT> <B>off</B>
 	   <DD> Turn off background checker
 	   <DT> <B>on</B>

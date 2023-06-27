@@ -168,8 +168,9 @@ maskToPrint (mask)
 {
     int	i;
     int gotSome = FALSE;
-    static char printchain[400];
-    char buffer[20];
+    static char printchain[512];
+    char buffer[20], *drcName;
+    int bufsize = 511;
 
     if (TTMaskIsZero(mask))
 	return "<none>";
@@ -179,9 +180,15 @@ maskToPrint (mask)
     for (i = 0; i < DBNumTypes; i++)
 	if (TTMaskHasType(mask, i))
 	{
-	    if (gotSome) strcat(printchain, ",");
+	    if (gotSome) strncat(printchain, ",", bufsize--);
 	    else gotSome = TRUE;
-	    strcat(printchain, drcGetName(i, buffer));
+	    strncat(printchain, drcGetName(i, buffer), bufsize);
+	    bufsize -= strlen(buffer);
+	    if (bufsize <= 1)
+	    {
+		printchain[510] = '|';
+		break;
+	    }
 	}
 
     return (printchain);

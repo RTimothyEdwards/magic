@@ -190,6 +190,13 @@ typedef struct drcstyle
 
 #define DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE  0x01
 
+/* Type definition used to keep a list of DRC rules to ignore */
+
+typedef struct _linkedIndex {
+    int li_index;
+    struct _linkedIndex *li_next;
+} LinkedIndex;
+
 /* Things shared between DRC functions, but not used by the
  * outside world:
  */
@@ -229,6 +236,8 @@ extern DRCKeep  *DRCStyleList;	/* List of available DRC styles */
 extern DRCStyle *DRCCurStyle;	/* Current DRC style in effect */
 extern CellDef  *DRCdef;	/* Current cell being checked for DRC */
 extern CellUse  *DRCuse, *DRCDummyUse;
+
+extern LinkedIndex *DRCIgnoreRules;
 
 /*
  * Internal procedures
@@ -270,7 +279,7 @@ extern void DRCContinuous();
 extern void DRCCheckThis();
 extern void DRCRemovePending();
 extern void DRCPrintRulesTable();
-extern void DRCWhy();
+extern bool DRCWhy();
 extern void DRCPrintStats();
 extern void DRCCheck();
 extern DRCCountList *DRCCount();

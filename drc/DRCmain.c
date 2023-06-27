@@ -126,6 +126,7 @@ static int drcTotalVRulesHisto[DRC_MAXRULESHISTO];
 static int drcTotalHRulesHisto[DRC_MAXRULESHISTO];
 #endif	/* DRCRULESHISTO */
 
+LinkedIndex *DRCIgnoreRules = NULL;
 
 /*
  * ----------------------------------------------------------------------------
@@ -282,12 +283,15 @@ drcPrintError (celldef, rect, cptr, scx)
 
     area = &scx->scx_area;
     if ((area != NULL) && (!GEO_OVERLAP(area, rect))) return;
-    DRCErrorCount += 1;
 
     i = DRCErrorList[cptr->drcc_tag];
     if (i == 0)
 	TxPrintf("%s\n", drcSubstitute(cptr));
-    DRCErrorList[cptr->drcc_tag] = i + 1;
+    if (i >= 0)
+    {
+    	DRCErrorCount += 1;
+	DRCErrorList[cptr->drcc_tag] = i + 1;
+    }
 }
 
 /* Same routine as above, but output goes to a Tcl list and is appended	*/
@@ -310,7 +314,6 @@ drcListError (celldef, rect, cptr, scx)
 
     area = &scx->scx_area;
     if ((area != NULL) && (!GEO_OVERLAP(area, rect))) return;
-    DRCErrorCount += 1;
     i = DRCErrorList[cptr->drcc_tag];
     if (i == 0)
     {
@@ -320,7 +323,11 @@ drcListError (celldef, rect, cptr, scx)
 			Tcl_NewStringObj(drcSubstitute(cptr), -1));
 	Tcl_SetObjResult(magicinterp, lobj);
     }
-    DRCErrorList[cptr->drcc_tag] = i + 1;
+    if (i >= 0)
+    {
+	DRCErrorCount += 1;
+	DRCErrorList[cptr->drcc_tag] = i + 1;
+    }
 }
 
 /* Same routine as above, but output for every single error is recorded	*/
@@ -452,7 +459,7 @@ DRCPrintStats()
  *	about each distinct kind of violation found.
  *
  * Results:
- *	None.
+ *	TRUE if errors were found, and FALSE if not.
  *
  * Side effects:
  *	None, except that error messages are printed.  The given
@@ -462,7 +469,7 @@ DRCPrintStats()
  * ----------------------------------------------------------------------------
  */
 
-void
+bool
 DRCWhy(dolist, use, area)
     bool dolist;			/*
 					 * Generate Tcl list for value
@@ -476,14 +483,20 @@ DRCWhy(dolist, use, area)
 {
     SearchContext scx;
     Rect box;
-    int i;
-    extern int drcWhyFunc();		/* Forward reference. */
+    int i, nerrors;
+    extern void drcWhyFunc();		/* Forward reference. */
+    LinkedIndex *li;
 
     /* Create a hash table to eliminate duplicate messages. */
 
     DRCErrorList = (int *)mallocMagic((DRCCurStyle->DRCWhySize + 1) * sizeof(int));
     for (i = 0; i <= DRCCurStyle->DRCWhySize; i++)
 	DRCErrorList[i] = 0;
+
+    /* Ignore rules as specified by setting the DRCErrorList entry to	*/
+    /* -1, indicating that the error type should be ignored.		*/
+    for (li = DRCIgnoreRules; li; li = li->li_next)
+	DRCErrorList[li->li_index] = -1;
 
     DRCErrorCount = 0;
     box = DRCdef->cd_bbox;
@@ -510,7 +523,7 @@ DRCWhy(dolist, use, area)
     (void) GeoInclude(&DRCdef->cd_bbox, &box);
     DBWAreaChanged(DRCdef, &box, DBW_ALLWINDOWS, &DBAllButSpaceBits);
 
-    if (DRCErrorCount == 0) TxPrintf("No errors found.\n");
+    return (DRCErrorCount > 0) ? TRUE : FALSE;
 }
 
 #ifdef MAGIC_WRAPPER
@@ -595,7 +608,7 @@ DRCWhyAll(use, area, fout)
  *	searches the subcell recursively.
  *
  * Results:
- *	Always returns 0 to keep the search alive.
+ *	Returns the number of errors found by DRCInteractionCheck().
  *
  * Side effects:
  *	None.
@@ -604,7 +617,7 @@ DRCWhyAll(use, area, fout)
  */
 
 	/* ARGSUSED */
-int
+void
 drcWhyFunc(scx, cdarg)
     SearchContext *scx;		/* Describes current state of search. */
     ClientData cdarg;		/* Used to hold boolean value "dolist" */
@@ -614,9 +627,8 @@ drcWhyFunc(scx, cdarg)
 
     /* Check paint and interactions in this subcell. */
 
-    (void) DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
+    DRCInteractionCheck(def, &scx->scx_area, &scx->scx_area,
 		(dolist) ? drcListError : drcPrintError, (ClientData) scx);
-    return 0;
 }
 
 #ifdef MAGIC_WRAPPER
