@@ -251,12 +251,28 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 		reg = (LabRegion *) extGetRegion(tp);
 		ll = (LabelList *) mallocMagic((unsigned) (sizeof (LabelList)));
 		ll->ll_label = lab;
-		ll->ll_next = reg->lreg_labels;
-		reg->lreg_labels = ll;
 		if (lab->lab_flags & PORT_DIR_MASK)
 		    ll->ll_attr = LL_PORTATTR;
 		else
 		    ll->ll_attr = LL_NOATTR;
+
+		if ((lab->lab_flags & PORT_DIR_MASK) || (reg->lreg_labels == NULL))
+		{
+		    ll->ll_next = reg->lreg_labels;
+		    reg->lreg_labels = ll;
+		}
+		else
+		{
+		    LabelList *fport = reg->lreg_labels;
+
+		    /* Place *after* any labels with LL_PORTATTR */
+		    while ((fport->ll_next != NULL) &&
+				(fport->ll_next->ll_attr == LL_PORTATTR))
+			fport = fport->ll_next;
+
+		    ll->ll_next = fport->ll_next;
+		    fport->ll_next = ll;
+		}
 		break;
 	    }
 	}
@@ -399,12 +415,28 @@ ExtLabelOneRegion(def, connTo, reg)
 	    {
 		ll = (LabelList *) mallocMagic((unsigned) (sizeof (LabelList)));
 		ll->ll_label = lab;
-		ll->ll_next = reg->nreg_labels;
-		reg->nreg_labels = ll;
 		if (lab->lab_flags & PORT_DIR_MASK)
 		    ll->ll_attr = LL_PORTATTR;
 		else
 		    ll->ll_attr = LL_NOATTR;
+
+		if ((lab->lab_flags & PORT_DIR_MASK) || (reg->nreg_labels == NULL))
+		{
+		    ll->ll_next = reg->nreg_labels;
+		    reg->nreg_labels = ll;
+		}
+		else
+		{
+		    LabelList *fport = reg->nreg_labels;
+
+		    /* Place *after* any labels with LL_PORTATTR */
+		    while ((fport->ll_next != NULL) &&
+				(fport->ll_next->ll_attr == LL_PORTATTR))
+			fport = fport->ll_next;
+
+		    ll->ll_next = fport->ll_next;
+		    fport->ll_next = ll;
+		}
 		break;
 	    }
 	}
