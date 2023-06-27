@@ -3935,8 +3935,10 @@ CmdDrc(w, cmd)
     bool	incremental;
     bool	doforall = FALSE;
     bool	dolist = FALSE;
+    bool	findonly;
     int		drc_start;
     int		count_total;
+    LinkedIndex *DRCSaveRules = NULL;
     DRCCountList *dcl;
     int argc = cmd->tx_argc;
     char **argv = cmd->tx_argv;
@@ -4165,7 +4167,8 @@ CmdDrc(w, cmd)
 	    rootDef = rootUse->cu_def;
 
 	    incremental = FALSE;
-	    if (argc == 3 && StrIsInt(argv[2]))
+	    findonly = FALSE;
+	    if ((argc == 3) && StrIsInt(argv[2]))
 	    {
 		drc_nth = atoi(argv[2]);
 		if (drc_nth <= 0) drc_nth = 1;
@@ -4174,6 +4177,30 @@ CmdDrc(w, cmd)
 	    {
 	        incremental = TRUE;
 		drc_nth++;
+
+		/* If 3rd argument is a string, then look only for
+		 * rules containing the string text.
+		 */
+		if (argc == 3)
+		{
+		    int i;
+
+		    findonly = TRUE;
+		    DRCSaveRules = DRCIgnoreRules;
+		    DRCIgnoreRules = NULL;
+		    for (i = 1; i < DRCCurStyle->DRCWhySize; i++)
+		    {
+	 		if (strstr(DRCCurStyle->DRCWhyList[i], argv[2]) != NULL)
+			{
+			    LinkedIndex *newli;
+
+			    newli = (LinkedIndex *)mallocMagic(sizeof(LinkedIndex));
+			    newli->li_index = i;
+			    newli->li_next = DRCIgnoreRules;
+			    DRCIgnoreRules = newli;
+			}
+		    }
+		}
 	    }
 
 	    drc_start = -1;
@@ -4207,7 +4234,7 @@ CmdDrc(w, cmd)
 		    if (!dolist)
 #endif
 		    TxPrintf("Error area #%d:\n", result);
-		    if (DRCWhy(dolist, rootUse, &area)) break;
+		    if (DRCWhy(dolist, rootUse, &area, findonly)) break;
 		    drc_nth++;
 		}
 		else if (result < 0)
@@ -4231,6 +4258,17 @@ CmdDrc(w, cmd)
 
 		if (drc_start < 0)
 		    drc_start = result;
+	    }
+	    if (findonly)
+	    {
+		/* Delete temporary rules */
+		while (DRCIgnoreRules != NULL)
+		{
+		    freeMagic(DRCIgnoreRules);
+		    DRCIgnoreRules = DRCIgnoreRules->li_next;
+		}
+		/* Replace temporary set of rules */
+		DRCIgnoreRules = DRCSaveRules;
 	    }
 	    break;
 
@@ -4309,14 +4347,11 @@ CmdDrc(w, cmd)
 	    if (argc != 3) goto badusage;
 	    if (!strcasecmp(argv[2], "none"))
 	    {
-		LinkedIndex *li;
-		li = DRCIgnoreRules;
-		while (li != NULL)
+		while (DRCIgnoreRules != NULL)
 		{
-		    freeMagic(li);
-		    li = li->li_next;
+		    freeMagic(DRCIgnoreRules);
+		    DRCIgnoreRules = DRCIgnoreRules->li_next;
 		}
-		DRCIgnoreRules = (LinkedIndex *)NULL;
 	    }
 	    else
 	    {
@@ -4422,7 +4457,7 @@ CmdDrc(w, cmd)
 	       DRCWhyAll(rootUse, &rootArea, NULL);
 	    else
 #endif
-	    if (!DRCWhy(dolist, rootUse, &rootArea))
+	    if (!DRCWhy(dolist, rootUse, &rootArea, FALSE))
 		TxPrintf("No errors found.\n");
 	    break;
     }

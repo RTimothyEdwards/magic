@@ -37,8 +37,10 @@ Background design rule checker control and status.
 	   <DD> Count and report error tiles in the edit cell.
 	   <DT> <B>euclidean on</B>|<B>off</B>
 	   <DD> Enable/disable Euclidean geometry checking
-	   <DT> <B>find</B> [<I>nth</I>]
-	   <DD> Locate next (or <I>nth</I>) error in current cell
+	   <DT> <B>find</B> [<I>nth</I>|<I>text</I>]
+	   <DD> Locate next (or <I>nth</I>) error in current cell;  if string
+		<I>text</I> is given instead of an integer, then search for the
+		next error of a type containing the text.
 	   <DT> <B>help</B>
 	   <DD> Print help information
 	   <DT> <B>ignore</B> [<I>text</I>|<B>none</B>]

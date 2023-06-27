@@ -470,7 +470,7 @@ DRCPrintStats()
  */
 
 bool
-DRCWhy(dolist, use, area)
+DRCWhy(dolist, use, area, findonly)
     bool dolist;			/*
 					 * Generate Tcl list for value
 					 */
@@ -479,6 +479,11 @@ DRCWhy(dolist, use, area)
 					 */
     Rect *area;				/* Area, in def's coordinates, that
 					 * is to be checked.
+					 */
+    bool findonly;			/* If TRUE, contents of DRCIgnoreRules
+					 * are inverted; that is, flag only
+					 * the marked rules instead of ignoring
+					 * them.
 					 */
 {
     SearchContext scx;
@@ -490,13 +495,26 @@ DRCWhy(dolist, use, area)
     /* Create a hash table to eliminate duplicate messages. */
 
     DRCErrorList = (int *)mallocMagic((DRCCurStyle->DRCWhySize + 1) * sizeof(int));
-    for (i = 0; i <= DRCCurStyle->DRCWhySize; i++)
-	DRCErrorList[i] = 0;
 
-    /* Ignore rules as specified by setting the DRCErrorList entry to	*/
-    /* -1, indicating that the error type should be ignored.		*/
-    for (li = DRCIgnoreRules; li; li = li->li_next)
-	DRCErrorList[li->li_index] = -1;
+    if (!findonly)
+    {
+	for (i = 0; i <= DRCCurStyle->DRCWhySize; i++)
+	    DRCErrorList[i] = 0;
+
+	/* Ignore rules as specified by setting the DRCErrorList entry to	*/
+	/* -1, indicating that the error type should be ignored.		*/
+	for (li = DRCIgnoreRules; li; li = li->li_next)
+	    DRCErrorList[li->li_index] = -1;
+    }
+    else
+    {
+	/* Inverted behavior: Only look at rules in the DRCIgnoreRules list */
+	for (i = 0; i <= DRCCurStyle->DRCWhySize; i++)
+	    DRCErrorList[i] = -1;
+
+	for (li = DRCIgnoreRules; li; li = li->li_next)
+	    DRCErrorList[li->li_index] = 0;
+    }
 
     DRCErrorCount = 0;
     box = DRCdef->cd_bbox;
