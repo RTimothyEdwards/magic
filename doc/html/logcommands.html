@@ -20,10 +20,20 @@
 
 <H2>logcommands</H2>
 <HR>
-Log all commands into a file
+Log all commands and mouse button actions into a file
 <HR>
 
 <H3>Usage:</H3>
+   <BLOCKQUOTE>
+      <B>logcommands</B> <I>option</I> [<I>file</I>] <BR><BR>
+      <BLOCKQUOTE>
+         where <I>option</I> is one of:  <B>start</B>, <B>stop</B>,
+		<B>update</B>, <B>suspend</B>, or <B>resume</B>, and
+		<I>file</I> is the name of the log file to write to.
+      </BLOCKQUOTE>
+
+   or (legacy usage):
+
    <BLOCKQUOTE>
       <B>logcommands</B> [<I>file</I> [<B>update</B>]] <BR><BR>
       <BLOCKQUOTE>
@@ -33,10 +43,53 @@ Log all commands into a file
 
 <H3>Summary:</H3>
    <BLOCKQUOTE>
-      The <B>logcommands</B> command tells magic to write all
-      command-line commands and button pushes to the log file
-      named <I>file</I>.  If <B>update</B> is specified, a
-      screen update is generated after each command executes.
+      The <B>logcommands</B> command creates and manages a file
+      containing all of the command-line commands and button actions
+      as they occur while file writing is active.  This creates a
+      recording of the layout session which can be "played back" by
+      sourcing the log file.  Behavior is controlled by one of the
+      command options, as follows:
+	<DL>
+	   <DT><B>start</B> <I>filename</I>
+	   <DD> This opens the log file named <I>filename</I>, writes
+		a header and issues a few rudimentary commands to
+		align the file with the current window size and zoom
+		factor, and the cursor box position.  Then it starts
+		recording commands, not including the <B>logcommands</B>
+		command itself.
+	   <DT><B>stop</B>
+	   <DD> This command closes any open log file and stops recording
+		commands.
+	   <DT><B>suspend</B>
+	   <DD> This command stops recording commands until the
+		<B>logcommands resume</B> command is issued, without
+		ending or closing the file.  This is used by the wrapper
+		script code to prevent some commands such as those that
+		track pointer movement from being added to the log file.
+	   <DT><B>resume</B>
+	   <DD> This command resumes recording after it has been suspended.
+	   <DT><B>update</B>
+	   <DD> This command sets a flag that issues a display update
+		command after every command recorded in the log file.
+		This usage is largely deprecated, since sourcing the
+		log file for playback will refresh the display as usual.
+	</DL>
+	   
+      The legacy syntax "<B>logcommands</B> [<I>file</I> [<B>update</B>]]"
+      will open a new command log file if <I>file</I> is given, optionally
+      with the "update" feature (see above) if the <B>update</B> keyword
+      is added.  With no arguments, the log file is ended and closed.
+   </BLOCKQUOTE>
+
+<H3>Caveats:</H3>
+   <BLOCKQUOTE>
+	The initial header and setup in the log file is rudimentary.  It
+	will not attempt to load a technology file, load a layout, or
+	edit some part of a layout to match what is in the layout window
+	at the time that the log file was created.  The best usage is to
+	start the log file immediately after starting magic, and only
+	play back the log file in the tech file environment in which it
+	was created.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>

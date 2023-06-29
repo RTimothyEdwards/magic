@@ -130,9 +130,13 @@ extern void TxSetPoint();
 extern int TxGetPoint();
 extern void TxClearPoint();
 
-/* Routine to set up command logging.
+/* Routines to handle command logging.
  */
-extern void TxLogCommands();
+extern void TxLogStart();
+extern void TxLogStop();
+extern void TxLogUpdate();
+extern void TxLogSuspend();
+extern void TxLogResume();
 
 
 /* Routines for handling input events.  A typical device driver in the

@@ -863,17 +863,22 @@ windHelpCmd(w, cmd)
     ASSERT(FALSE, windHelpCmd);
 }
 
-static char *logKeywords[] =
-    {
-	"update",
-	0
-    };
-
 /*
  * ----------------------------------------------------------------------------
  * windLogCommandsCmd --
  *
  *	Log the commands and button pushes in a file.
+ *
+ * Syntax:
+ *	logcommands start <filename>	Open and start a new command log file
+ *	logcommands stop		End and close a command log file
+ *	logcommands update		Refresh display after each log command
+ *	logcommands suspend		Suspend logging of commands
+ *	logcommands resume		Resume logging of commands
+ *
+ * Legacy syntax:
+ *	logcommands <filename> [update]	Start a new command log file with updating
+ *	logcommands			End and close a command log file
  *
  * Results:
  *	None.
@@ -883,35 +888,74 @@ static char *logKeywords[] =
  * ----------------------------------------------------------------------------
  */
 
+#define LOG_CMD_START	0	// Create a new log file (default behavior)
+#define LOG_CMD_STOP	1	// End a log file and stop logging.
+#define LOG_CMD_UPDATE	2	// Update display after every logged command.
+#define LOG_CMD_SUSPEND	3	// Suspend command logging.
+#define LOG_CMD_RESUME 	4	// Resume command logging.
+
 void
 windLogCommandsCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    char *fileName;
-    bool update;
+    char *fileName = NULL;
+    unsigned char flags = 0;
+    int idx = LOG_CMD_STOP;
+
+    static char *logKeywords[] = {"start", "stop", "update", "suspend", "resume", 0};
 
     if ((cmd->tx_argc < 1) || (cmd->tx_argc > 3)) goto usage;
 
-    update = FALSE;
-
-    if (cmd->tx_argc == 1)
-	fileName = NULL;
-    else
-	fileName = cmd->tx_argv[1];
-
-    if (cmd->tx_argc == 3) {
-	int i;
-	i = Lookup(cmd->tx_argv[cmd->tx_argc - 1], logKeywords);
-	if (i != 0) goto usage;
-	update = TRUE;
+    if (cmd->tx_argc > 1)
+    {
+	idx = Lookup(cmd->tx_argv[1], logKeywords);
+	if (idx < 0) fileName = cmd->tx_argv[1];
     }
 
-    TxLogCommands(fileName, update);
-    return;
+    if (cmd->tx_argc == 3)
+    {
+	int i;
+
+	if (fileName == NULL)
+	    fileName = cmd->tx_argv[2];
+	else
+	{
+	    /* Legacy behavior:  Allow "logcommands <filename> update"
+	     * to mean "logcommands start <filename> ; logcommands update"
+	     */
+	    i = Lookup(cmd->tx_argv[2], logKeywords);
+	    if (i != LOG_CMD_UPDATE) goto usage;
+	    flags = TX_LOG_UPDATE;
+	    idx = LOG_CMD_START;
+	}
+    }
+
+    switch (idx)
+    {
+	case LOG_CMD_START:
+	    if (fileName == NULL) break;
+	    TxLogStart(fileName, w);
+	    if (flags & TX_LOG_UPDATE)
+	    	TxLogUpdate();
+	    return;
+	case LOG_CMD_STOP:
+	    TxLogStop();
+	    return;
+	case LOG_CMD_UPDATE:
+	    TxLogUpdate();
+	    return;
+	case LOG_CMD_SUSPEND:
+	    TxLogSuspend();
+	    return;
+	case LOG_CMD_RESUME:
+	    TxLogResume();
+	    return;
+    }	
 
 usage:
-    TxError("Usage: %s [filename [update]]\n", cmd->tx_argv[0]);
+    TxError("Usage: %s [start|stop|update|suspend|resume [filename]]\n",
+		cmd->tx_argv[0]);
 }
 
 /*

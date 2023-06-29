@@ -311,6 +311,24 @@ WindSendCommand(w, cmd, quiet)
     if ((WindNewButtons == 0) && (windGrabber != (WindClient) NULL))
 	WindReleaseInput((WindClient) rc);
 
+    /* This is a bit of a hack, because it shouldn't be done in so many
+     * places, but the command logging needs to regenerate the setpoint
+     * positions as commands, and it needs the command's Y value to be
+     * correct for the command.  It is okay to modify the command's
+     * recorded position value, because logging the command is the only
+     * other thing done with the structure.
+     */
+    if (w != NULL)
+    {
+	switch (WindPackageType)
+	{
+            case WIND_X_WINDOWS:
+        	/* Windows have origin at lower-left corner */
+	        cmd->tx_p.p_y = w->w_allArea.r_ytop - cmd->tx_p.p_y;
+	    break;
+	}
+    }
+
     return 0;
 }
 

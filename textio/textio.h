@@ -38,6 +38,9 @@ extern unsigned char TxInputRedirect;
 
 #endif
 
+#define TX_LOG_UPDATE		1	/* Update display after every log command */
+#define TX_LOG_SUSPEND		2	/* Suspend output logging */
+
 extern int TxCurButtons;
 
 /* These should really be defined by the application, not hard-coded */

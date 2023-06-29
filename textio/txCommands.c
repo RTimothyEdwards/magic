@@ -28,6 +28,7 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/t
 #include <sys/types.h>
 #include <sys/time.h>
 #include <signal.h>
+#include <time.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magsgtty.h"
@@ -614,11 +615,11 @@ TxClearPoint()
 }
 
 static FILE *txLogFile = NULL;
-bool txLogUpdate;
+unsigned char txLogFlags;
 
 /*
  * ----------------------------------------------------------------------------
- * TxLogCommands --
+ * TxLogStart --
  *
  *	Log all further commands to the given file name.  If the file is NULL,
  *	turn off logging.
@@ -632,21 +633,165 @@ bool txLogUpdate;
  */
 
 void
-TxLogCommands(fileName, update)
+TxLogStart(fileName, mw)
     char *fileName;
-    bool update;	/* Request a screen update after each command */
+    MagWindow *mw;	 /* Window commands are logged from */
 {
     if (txLogFile != NULL)
     {
-	(void) fclose(txLogFile);
-	txLogFile = NULL;
+	TxError("There is already a log file (%s) open!\n", txLogFile);
+	return;
     }
-    if (fileName == NULL) return;
 
-    txLogUpdate = update;
+    txLogFlags = 0;
     txLogFile = fopen(fileName, "w");
     if (txLogFile == NULL)
 	TxError("Could not open file '%s' for writing.\n", fileName);
+    else
+    {
+	time_t t_stamp = time((time_t *)NULL);
+	struct tm *clock = localtime(&t_stamp);
+	char *now = ctime(&t_stamp);
+
+	TxPrintf("Logging commands to file \"%s\"\n", fileName);
+	/* Write comment line header into command file and log the current
+	 * window view position so that cursor positions in the file match
+	 * the layout.  If the cursor box is defined, then issue a "box
+	 * values" command so that relative box adjustments are correct.
+	 */
+#ifdef MAGIC_WRAPPER
+	fprintf(txLogFile, "# Magic command log file\n");
+	fprintf(txLogFile, "# Using technology: %s\n", DBTechName);
+	if (mw != NULL)
+	    fprintf(txLogFile, "# Title: %s\n", mw->w_caption);
+	fprintf(txLogFile, "# Date: %s", now);
+#endif
+	if (mw != NULL)
+	{
+	    CellDef *rootBoxDef;
+	    Rect rootBox;
+
+#ifndef MAGIC_WRAPPER
+	    // Colon preceeds commands in the non-Tcl verson of the log file.
+	    fprintf(txLogFile, ":");
+#endif
+	    fprintf(txLogFile, "view %di %di %di %di\n",
+			mw->w_surfaceArea.r_xbot, mw->w_surfaceArea.r_ybot,
+			mw->w_surfaceArea.r_xtop, mw->w_surfaceArea.r_ytop);
+	    if (ToolGetBox(&rootBoxDef, &rootBox))
+	    {
+		fprintf(txLogFile, "box values %di %di %di %di\n",
+				rootBox.r_xbot, rootBox.r_ybot,
+				rootBox.r_xtop, rootBox.r_ytop);
+	    }
+	}
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * TxLogStop --
+ *
+ *	Turn off logging.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	File IO.
+ * ----------------------------------------------------------------------------
+ */
+
+void
+TxLogStop()
+{
+    if (txLogFile != NULL)
+    {
+	TxPrintf("Ending command logging to file.\n");
+	fclose(txLogFile);
+	txLogFile = NULL;
+	txLogFlags = 0;
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * TxLogUpdate --
+ *
+ *	Set the log file flags to force a display refresh after logged commands
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	File IO.
+ * ----------------------------------------------------------------------------
+ */
+
+void
+TxLogUpdate()
+{
+    if (txLogFile == NULL)
+    {
+	TxError("There is no log file to set an update flag on.\n");
+	return;
+    }
+    if (txLogFlags & TX_LOG_UPDATE)
+    {
+	txLogFlags &= ~TX_LOG_UPDATE;
+	TxPrintf("No display refresh after logged commands.\n");
+    }
+    else
+    {
+	txLogFlags |= TX_LOG_UPDATE;
+	TxPrintf("Forcing display refresh after logged commands.\n");
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * TxLogSuspend --
+ *
+ *	Suspend command logging
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	File IO.
+ * ----------------------------------------------------------------------------
+ */
+
+void
+TxLogSuspend()
+{
+    if (txLogFile == NULL)
+	return;
+
+    txLogFlags |= TX_LOG_SUSPEND;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * TxLogResume --
+ *
+ *	Resume command logging
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	File IO.
+ * ----------------------------------------------------------------------------
+ */
+
+void
+TxLogResume()
+{
+    if (txLogFile == NULL)
+	return;
+
+    txLogFlags &= ~TX_LOG_SUSPEND;
 }
 
 /*
@@ -681,25 +826,61 @@ txLogCommand(cmd)
 	0
     };
 
+#ifdef MAGIC_WRAPPER
+    char *pfix = "";
+#else
+    char *pfix = ":";
+#endif
+
+    /* Do not do anything if there is no log file */
     if (txLogFile == (FILE *) NULL) return;
 
-    if (cmd->tx_wid >= 0) {
-	/* Command has a window associated with it. */
-	fprintf(txLogFile, ":setpoint %d %d %d\n",
-	    cmd->tx_p.p_x, cmd->tx_p.p_y, cmd->tx_wid);
-    } else {
-	/* No window associated with the command. */
-	fprintf(txLogFile, ":setpoint %d %d\n",
-	    cmd->tx_p.p_x, cmd->tx_p.p_y);
-    }
+    /* Do not write anything if the log file is suspended */
+    if (txLogFlags & TX_LOG_SUSPEND) return;
 
     if (cmd->tx_argc > 0)
     {
 	int i;
-	fprintf(txLogFile, ":%s", cmd->tx_argv[0]);
+	char *postns;
+
+	/* Do not output "logcommand" commands to the log file.
+	 * Do not output "*bypass" commands to the log file.
+	 */
+	postns = strstr(cmd->tx_argv[0], "::");
+	if (postns == NULL)
+	    postns = cmd->tx_argv[0];
+	else
+	    postns += 2;
+
+	if (!strncmp(postns, "logc", 4))
+	    return;
+	else if (!strcmp(postns, "*bypass"))
+	    return;
+
+	/* Commands ending in "cursor" should be preceeded by a set point	*/
+	/* to indicate where the pointer was at the time of the command.	*/
+
+	if (!strcmp(cmd->tx_argv[cmd->tx_argc - 1], "cursor"))
+	{
+	    if (cmd->tx_wid >= 0)
+	    {
+		/* Command has a window associated with it. */
+		fprintf(txLogFile, "%ssetpoint %d %d %d\n",
+			pfix, cmd->tx_p.p_x, cmd->tx_p.p_y, cmd->tx_wid);
+	    }
+	    else
+	    {
+		/* No window associated with the command. */
+		fprintf(txLogFile, "%ssetpoint %d %d\n",
+			pfix, cmd->tx_p.p_x, cmd->tx_p.p_y);
+	    }
+	}
+	else if (!strcmp(postns, "setpoint")) return;
+
+	fprintf(txLogFile, "%s%s", pfix, cmd->tx_argv[0]);
 	for (i = 1; i < cmd->tx_argc; i++)
 	{
-	    fprintf(txLogFile, " '%s'", cmd->tx_argv[i]);
+	    fprintf(txLogFile, " %s", cmd->tx_argv[i]);
 	}
 	fprintf(txLogFile, "\n");
     }
@@ -722,12 +903,13 @@ txLogCommand(cmd)
 	    default: {ASSERT(FALSE, "txLogCommand"); break; };
 	}
 
-	fprintf(txLogFile, ":pushbutton %s %s\n",
-		txButTable[but], txActTable[act]);
+	fprintf(txLogFile, "%spushbutton %s %s\n",
+		pfix, txButTable[but], txActTable[act]);
     }
-    if (txLogUpdate)
-	fprintf(txLogFile, ":updatedisplay\n");
-    (void) fflush(txLogFile);
+    if (txLogFlags & TX_LOG_UPDATE)
+	fprintf(txLogFile, "%supdatedisplay\n", pfix);
+
+    fflush(txLogFile);
 }
 
 /*
@@ -1182,6 +1364,8 @@ TxTclDispatch(clientData, argc, argv, quiet)
     if (DRCBackGround != DRC_SET_OFF) DRCBackGround = DRC_NOT_SET;
 
     result = WindSendCommand((MagWindow *)clientData, tclcmd, quiet);
+
+    if (txLogFile != NULL) txLogCommand(tclcmd);
 
     TxFreeCommand(tclcmd);
 

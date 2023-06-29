@@ -243,10 +243,14 @@ proc magic::drcupdate { option } {
 }
 
 proc magic::drcstate { status } {
+   logcommands suspend
    set winlist [*bypass windownames layout]
    foreach lwin $winlist {
       set framename [winfo parent $lwin]
-      if {$framename == "."} {return}
+      if {$framename == "."} {
+	 logcommands resume
+	 return
+      }
       switch $status {
          idle {
 		set dct [*bypass drc list count total]
@@ -260,6 +264,7 @@ proc magic::drcstate { status } {
          busy { ${framename}.titlebar.drcbutton configure -selectcolor yellow }
       }
    }
+   logcommands resume
 }
 
 # Create the menu of windows.  This is kept separate from the cell manager,
@@ -502,6 +507,7 @@ proc magic::captions {{subcommand {}}} {
    if {$subcommand != {} && $subcommand != "writeable" && $subcommand != "load"} {
       return
    }
+   logcommands suspend
    set winlist [magic::windownames layout]
    foreach winpath $winlist {
       set framename [winfo parent $winpath]
@@ -521,6 +527,7 @@ proc magic::captions {{subcommand {}}} {
 	   "Loaded: ${subcaption1} Editing: ${subcaption2} Tool: $Opts(tool) \
 	   Technology: ${techname}"
    }
+   logcommands resume
 }
 
 # Allow captioning in the title window by tagging the "load" and "edit" commands
@@ -655,8 +662,12 @@ proc magic::cursorview {win} {
    if {$win == {}} {
       return
    }
+   logcommands suspend
    set framename [winfo parent $win]
-   if {[catch {set cr [*bypass cif scale out]}]} {return}
+   if {[catch {set cr [*bypass cif scale out]}]} {
+      logcommands resume
+      return
+   }
    if {$cr == 0} {return}
    set olst [${win} cursor internal]
 
@@ -671,7 +682,10 @@ proc magic::cursorview {win} {
    if {[catch {
       set olstx [expr {$olstx * $cr}]
       set olsty [expr {$olsty * $cr}]
-   }]} {return}
+   }]} {
+      logcommands resume
+      return
+   }
 
    if {[${win} box exists]} {
       set dlst [${win} box position]
@@ -685,20 +699,24 @@ proc magic::cursorview {win} {
       set titletext [format "(%+g %+g) microns" $olstx $olsty]
       ${framename}.titlebar.pos configure -text $titletext
    }
+   logcommands resume
 }
 
 proc magic::toolupdate {win {yesno "yes"} {layerlist "none"}} {
    global Winopts
 
    if {[magic::display] == "NULL"} {return}
+   logcommands suspend
    if {$win == {}} {
       set win [magic::windownames]
    }
 
    # Wind3d has a "see" function, so make sure this is not a 3d window
    if {$win == [magic::windownames wind3d]} {
+      logcommands resume
       return
    }
+   logcommands resume
 
    set topname [winfo toplevel $win]
    set framename [winfo parent $win]
@@ -939,11 +957,15 @@ proc magic::techrebuild {winpath {cmdstr ""}} {
 proc magic::setscrollvalues {win} {
    global Opts
 
+   logcommands suspend
    set svalues [${win} view get]
    set bvalues [${win} view bbox]
 
    set framename [winfo parent ${win}]
-   if {$framename == "."} {return}
+   if {$framename == "."} {
+      logcommands resume
+      return
+   }
 
    set bwidth [expr {[lindex $bvalues 2] - [lindex $bvalues 0]}]
    set bheight [expr {[lindex $bvalues 3] - [lindex $bvalues 1]}]
@@ -985,6 +1007,7 @@ proc magic::setscrollvalues {win} {
 
 proc magic::scrollupdate {win} {
 
+   logcommands suspend
    if {[magic::display] == "NULL"} {return}
    if {[info level] <= 1} {
 
@@ -1001,6 +1024,7 @@ proc magic::scrollupdate {win} {
  	 magic::setscrollvalues $win
       }
    }
+   logcommands resume
 }
 
 # scrollview:  update the magic display to match the
