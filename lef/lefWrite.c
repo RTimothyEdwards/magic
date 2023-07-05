@@ -1442,11 +1442,21 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    scx.scx_area = labr;
 	    SelectClear();
 
-	    // Check for net names to ignore for antenna checks.
 	    ignored = FALSE;
-	    for (lnn = lefIgnoreNets; lnn; lnn = lnn->lnn_next)
-		if (!strcmp(lnn->lnn_name, lab->lab_text))
+
+	    // Ports that have been flagged as power or ground should not be
+	    // checked for antenna diffusion and gate area.
+
+	    if ((lab->lab_flags & PORT_DIR_MASK) != 0)
+		if (((lab->lab_flags & PORT_USE_MASK) == PORT_USE_POWER) ||
+			((lab->lab_flags & PORT_USE_MASK) == PORT_USE_GROUND))
 		    ignored = TRUE;
+
+	    // Check for net names to ignore for antenna checks.
+	    if (!ignored)
+		for (lnn = lefIgnoreNets; lnn; lnn = lnn->lnn_next)
+		    if (!strcmp(lnn->lnn_name, lab->lab_text))
+			ignored = TRUE;
 
 	    if (!ignored || (setback != 0))
 		SelectNet(&scx, lab->lab_type, 0, NULL, FALSE);
