@@ -89,8 +89,9 @@ typedef struct		/* Position of each terminal (below) tile position */
 
 /* Field definitions for tr_devmatch */
 #define MATCH_ID    0x01		/* Device matches identifier in devrec */
-#define MATCH_SUB   0x02		/* Device matches substrate type in devrec */
-#define MATCH_TERM  0x04		/* Device matches terminal in devrec */
+#define MATCH_PARAM 0x02		/* Device is compatible with parameter range */
+#define MATCH_SUB   0x04		/* Device matches substrate type in devrec */
+#define MATCH_TERM  0x08		/* Device matches terminal in devrec */
 /* (additional fields: bit shifts up by 1 for each defined device terminal) */
 
 struct transRec
@@ -1647,16 +1648,30 @@ extOutputParameters(def, transList, outFile)
 
 	    for (devptr = ExtCurStyle->exts_device[t]; devptr; devptr = devptr->exts_next)
 	    {
+		bool has_output = FALSE;
+
 		/* Do not output parameters for ignored devices */
 		if (!strcmp(devptr->exts_deviceName, "Ignore")) continue;
 
+		/* Do a quick first pass to determine if there is anything
+		 * to output (only entries with non-NULL pl_name get output).
+		 */
 		plist = devptr->exts_deviceParams;
-		if (plist != (ParamList *)NULL)
+		for (; plist != NULL; plist = plist->pl_next)
+		    if (plist->pl_name != NULL)
+		    {
+			has_output = TRUE;
+			break;
+		    }
+
+		if (has_output)
 		{
 		    fprintf(outFile, "parameters %s", devptr->exts_deviceName);
+		    plist = devptr->exts_deviceParams;
 		    for (; plist != NULL; plist = plist->pl_next)
 		    {
-			if (plist->pl_param[1] != '\0')
+			if (plist->pl_name == NULL) continue;
+			else if (plist->pl_param[1] != '\0')
 			{
 			    if (plist->pl_scale != 1.0)
 				fprintf(outFile, " %c%c=%s*%g",
@@ -1725,6 +1740,7 @@ extOutputDevParams(reg, devptr, outFile, length, width, areavec)
     for (chkParam = devptr->exts_deviceParams; chkParam
 		!= NULL; chkParam = chkParam->pl_next)
     {
+	if (chkParam->pl_name == NULL) continue;
 	switch(tolower(chkParam->pl_param[0]))
 	{
 	    case 'a':
@@ -1795,6 +1811,161 @@ typedef struct _extareaperimdata {
     NodeRegion *eapd_gatenode;
     ExtNodeList *eapd_shared;
 } ExtAreaPerimData;
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * extDevFindParamMatch --
+ *
+ * Routine which checks parameter values of a device against parameter
+ * ranges specified for the device model.  If the parameters of the
+ * current device do not match the ranges, then another device record
+ * with matching parameters will be sought, and returned if found.
+ * If no device with matching parameters is found, then the original
+ * device record is returned, and a warning about parameter mismatch
+ * is printed.
+ *
+ * When looking for alternate parameter ranges, all other parameter
+ * record values must be the same as the current one.  A record with
+ * no range (min > max) always matches.
+ *
+ * Return value:
+ *	Pointer to a device record.
+ *  
+ * ----------------------------------------------------------------------------
+ */
+
+ExtDevice *
+extDevFindParamMatch(devptr, length, width)
+    ExtDevice *devptr;
+    int length;		/* Computed effective length of device */
+    int width;		/* Computed effective width of device */
+{
+    ExtDevice *newdevptr, *nextdev;
+    int i;
+
+    while (TRUE)
+    {
+	ParamList *chkParam;
+	bool out_of_bounds = FALSE;
+
+	newdevptr = devptr;
+	nextdev = devptr->exts_next;
+
+	for (chkParam = devptr->exts_deviceParams; chkParam != NULL;
+			chkParam = chkParam->pl_next)
+	{
+	    if (chkParam->pl_minimum > chkParam->pl_maximum) continue;
+
+	    switch (tolower(chkParam->pl_param[0]))
+	    {
+		case 'a':
+		    if (chkParam->pl_param[1] == '\0' ||
+				chkParam->pl_param[1] == '0')
+		    {
+			int area = length * width;
+			if (area < chkParam->pl_minimum) out_of_bounds = TRUE;
+			if (area > chkParam->pl_maximum) out_of_bounds = TRUE;
+		    }
+		    else
+		    {
+			int tidx = chkParam->pl_param[1] - '1';
+			int area = extTransRec.tr_termarea[tidx];
+			if (area < chkParam->pl_minimum) out_of_bounds = TRUE;
+			if (area > chkParam->pl_maximum) out_of_bounds = TRUE;
+		    }
+		    break;
+		case 'p':
+		    if (chkParam->pl_param[1] == '\0' ||
+				chkParam->pl_param[1] == '0')
+		    {
+			int perim = 2 * (length + width);
+			if (perim < chkParam->pl_minimum) out_of_bounds = TRUE;
+			if (perim > chkParam->pl_maximum) out_of_bounds = TRUE;
+		    }
+		    else
+		    {
+			int tidx = chkParam->pl_param[1] - '1';
+			int perim = extTransRec.tr_termperim[tidx];
+			if (perim < chkParam->pl_minimum) out_of_bounds = TRUE;
+			if (perim > chkParam->pl_maximum) out_of_bounds = TRUE;
+		    }
+		    break;
+		case 'l':
+		    if (chkParam->pl_param[1] == '\0' ||
+				chkParam->pl_param[1] == '0')
+		    {
+			if (length < chkParam->pl_minimum) out_of_bounds = TRUE;
+			if (length > chkParam->pl_maximum) out_of_bounds = TRUE;
+		    }
+		    else if (chkParam->pl_param[1] > '0' && chkParam->pl_param[1] <= '9')
+		    {
+			int tidx = chkParam->pl_param[1] - '1';
+			int len = extTransRec.tr_termlen[tidx];
+			if (len < chkParam->pl_minimum) out_of_bounds = TRUE;
+			if (len > chkParam->pl_maximum) out_of_bounds = TRUE;
+		    }
+		    break;
+		case 'w':
+		    if (width < chkParam->pl_minimum) out_of_bounds = TRUE;
+		    if (width > chkParam->pl_maximum) out_of_bounds = TRUE;
+		    break;
+		default:
+		    /* Do nothing;  these parameters cannot be used for
+		     * differentiating device models.
+		     */
+		    break;
+	    }
+	    if (out_of_bounds) break;
+	}
+	if (chkParam == NULL) break;
+
+	/* Check that the next device record is compatible in all values
+	 * except for parameters and name.
+	 */
+	if (nextdev != NULL)
+	{
+	    if (nextdev->exts_deviceClass != devptr->exts_deviceClass)
+		nextdev = NULL;
+	    else if (nextdev->exts_deviceSDCount != devptr->exts_deviceSDCount)
+		nextdev = NULL;
+	}
+
+	if (nextdev != NULL)
+	{
+	    for (i = 0; i < nextdev->exts_deviceSDCount; i++)
+	    {
+		if (!TTMaskEqual(&nextdev->exts_deviceSDTypes[i],
+				&devptr->exts_deviceSDTypes[i]))
+		{
+		    nextdev = NULL;
+		    break;
+		}
+	    }
+	}
+
+	if (nextdev != NULL)
+	    if (!TTMaskEqual(&nextdev->exts_deviceSubstrateTypes,
+				&devptr->exts_deviceSubstrateTypes))
+		nextdev = NULL;
+
+	if (nextdev != NULL)
+	    if (!TTMaskEqual(&nextdev->exts_deviceIdentifierTypes,
+				&devptr->exts_deviceIdentifierTypes))
+		nextdev = NULL;
+
+	if (nextdev == NULL)
+	{
+	    newdevptr = devptr;		/* Return to original entry */
+	    TxError("Device parameters do not match any extraction model.\n");
+	    break;
+	}
+	else
+	    devptr = nextdev;
+    }
+
+    return newdevptr;
+}
 
 /*
  * ----------------------------------------------------------------------------
@@ -2032,7 +2203,7 @@ extOutputDevices(def, transList, outFile)
 		    else
 		    {
 			DBSrPaintArea((Tile *)NULL, def->cd_planes[DBPlane(tt)],
-				&r, &tmask, extTransFindTermArea, (ClientData)&eapd);
+				&r, tmask, extTransFindTermArea, (ClientData)&eapd);
 			extTransRec.tr_termarea[termcount] = eapd.eapd_area;
 			extTransRec.tr_termperim[termcount] = eapd.eapd_perim;
 		    }
@@ -2173,27 +2344,23 @@ extOutputDevices(def, transList, outFile)
 	if (devptr->exts_deviceClass != DEV_FET)
 	    fprintf(outFile, "device ");
 
-	fprintf(outFile, "%s %s",
-			extDevTable[devptr->exts_deviceClass],
-			devptr->exts_deviceName);
-
-	fprintf(outFile, " %d %d %d %d",
-		reg->treg_ll.p_x, reg->treg_ll.p_y,
-		reg->treg_ll.p_x + 1, reg->treg_ll.p_y + 1);
-
-	/* NOTE:  The following code makes unreasonable simplifying	*/
-	/* assumptions about how to calculate device length and	width.	*/
-	/* However, it is the same as was always used by ext2sim and	*/
-	/* ext2spice.  By putting it here, where all the tile		*/
-	/* information exists, it is at least theoretically possible to	*/
-	/* write better routines that can deal with bends in resistors	*/
-	/* and transistors, annular devices, multiple-drain devices,	*/
-	/* etc., etc.							*/
-	/*				Tim, 2/20/03			*/
+	/* NOTE:  The code for the old FET device makes unreasonable	*/
+	/* simplifying assumptions about how to calculate device length	*/
+	/* and width.  The newer MOSFET and MSUBCKT and other devices	*/
+	/* compute proper length and width, including but not limited	*/
+	/* to dealing with bends and annular shapes.			*/
 
 	switch (devptr->exts_deviceClass)
 	{
 	    case DEV_FET:	/* old style, perimeter & area */
+		fprintf(outFile, "%s %s",
+			extDevTable[devptr->exts_deviceClass],
+			devptr->exts_deviceName);
+
+		fprintf(outFile, " %d %d %d %d",
+			reg->treg_ll.p_x, reg->treg_ll.p_y,
+			reg->treg_ll.p_x + 1, reg->treg_ll.p_y + 1);
+
 		fprintf(outFile, " %d %d \"%s\"",
 		    reg->treg_area, extTransRec.tr_perim,
 				(subsName == NULL) ? "None" : subsName);
@@ -2320,6 +2487,15 @@ extOutputDevices(def, transList, outFile)
 
 		}
 
+		devptr = extDevFindParamMatch(devptr, length, width);
+		fprintf(outFile, "%s %s",
+			extDevTable[devptr->exts_deviceClass],
+			devptr->exts_deviceName);
+
+		fprintf(outFile, " %d %d %d %d",
+			reg->treg_ll.p_x, reg->treg_ll.p_y,
+			reg->treg_ll.p_x + 1, reg->treg_ll.p_y + 1);
+
 		if (devptr->exts_deviceClass == DEV_MOSFET ||
 			devptr->exts_deviceClass == DEV_ASYMMETRIC ||
 			devptr->exts_deviceClass == DEV_BJT)
@@ -2337,6 +2513,15 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_DIODE:	/* Only handle the optional substrate node */
 	    case DEV_NDIODE:
 	    case DEV_PDIODE:
+		devptr = extDevFindParamMatch(devptr, length, width);
+		fprintf(outFile, "%s %s",
+			extDevTable[devptr->exts_deviceClass],
+			devptr->exts_deviceName);
+
+		fprintf(outFile, " %d %d %d %d",
+			reg->treg_ll.p_x, reg->treg_ll.p_y,
+			reg->treg_ll.p_x + 1, reg->treg_ll.p_y + 1);
+
 		extOutputDevParams(reg, devptr, outFile, length, width,
 				extTransRec.tr_termarea);
 		if (subsName != NULL)
@@ -2452,6 +2637,16 @@ extOutputDevices(def, transList, outFile)
 					"Resistor has zero width");
 		}
 
+		devptr = extDevFindParamMatch(devptr, length, width);
+
+		fprintf(outFile, "%s %s",
+			extDevTable[devptr->exts_deviceClass],
+			devptr->exts_deviceName);
+
+		fprintf(outFile, " %d %d %d %d",
+			reg->treg_ll.p_x, reg->treg_ll.p_y,
+			reg->treg_ll.p_x + 1, reg->treg_ll.p_y + 1);
+
 		if (devptr->exts_deviceClass == DEV_RSUBCKT)
 		{
 		    /* (Nothing) */
@@ -2478,6 +2673,14 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_CAP:
 	    case DEV_CAPREV:
 	    case DEV_CSUBCKT:
+		fprintf(outFile, "%s %s",
+			extDevTable[devptr->exts_deviceClass],
+			devptr->exts_deviceName);
+
+		fprintf(outFile, " %d %d %d %d",
+			reg->treg_ll.p_x, reg->treg_ll.p_y,
+			reg->treg_ll.p_x + 1, reg->treg_ll.p_y + 1);
+
 		hasModel = strcmp(devptr->exts_deviceName, "None");
 		if (hasModel)
 		{
@@ -2780,6 +2983,10 @@ extDevFindMatch(deventry, t)
 	if (matchflags & MATCH_SUB)	/* Must have the same substrate type */
 	    if (!TTMaskEqual(&devptr->exts_deviceSubstrateTypes,
 			    &deventry->exts_deviceSubstrateTypes)) continue;
+
+	if (matchflags & MATCH_PARAM)	/* Must have compatible parameter range */
+	    /* To be completed */
+	    ;
 
 	j = MATCH_TERM;
 	i = 0;
