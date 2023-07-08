@@ -491,13 +491,17 @@ efBuildKill(def, name)
  */
 
 void
-efBuildEquiv(def, nodeName1, nodeName2, resist)
+efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
     Def *def;		/* Def for which we're adding a new node name */
     char *nodeName1;	/* One of node names to be made equivalent */
     char *nodeName2;	/* Other name to be made equivalent.  One of nodeName1
 			 * or nodeName2 must already be known.
 			 */
     bool resist;	/* True if "extresist on" option was selected */
+    bool isspice;	/* Passed from "dosubckt" in EFReadFile(), is only
+			 * TRUE when running ext2spice.  Indicates that nodes
+			 * are case-insensitive.
+			 */
 {
     EFNodeName *nn1, *nn2;
     HashEntry *he1, *he2;
@@ -543,38 +547,46 @@ efBuildEquiv(def, nodeName1, nodeName2, resist)
     if (nn1 && nn2 && (nn1->efnn_port >= 0) && (nn2->efnn_port >= 0) &&
 	    (nn1->efnn_port != nn2->efnn_port))
     {
-	if ((EFOutputFlags & EF_SHORT_MASK) != EF_SHORT_NONE)
+	equalByCase = FALSE;
+	if (isspice)
 	{
-	    int i;
-	    int sdev;
-	    char *argv[10], zeroarg[] = "0";
+	    /* If ports have the same name under the assumption of
+	     * case-insensitivity, then just quietly merge them.
+	     */
+	    if (!strcasecmp(nodeName1, nodeName2)) equalByCase = TRUE;
+	}
+	if (!equalByCase)
+	{
+	    if ((EFOutputFlags & EF_SHORT_MASK) != EF_SHORT_NONE)
+	    {
+		int i;
+		int sdev;
+		char *argv[10], zeroarg[] = "0";
 
-	    if ((EFOutputFlags & EF_SHORT_MASK) == EF_SHORT_R)
-		sdev = DEV_RES;
+		if ((EFOutputFlags & EF_SHORT_MASK) == EF_SHORT_R)
+		    sdev = DEV_RES;
+		else
+		    sdev = DEV_VOLT;
+
+		for (i = 0; i < 10; i++) argv[i] = zeroarg;
+		argv[0] = StrDup((char **)NULL, "0.0");
+		argv[1] = StrDup((char **)NULL, "dummy");
+		argv[4] = StrDup((char **)NULL, nodeName1);
+		argv[7] = StrDup((char **)NULL, nodeName2);
+		efBuildDevice(def, sdev, "None", &GeoNullRect, 10, argv);
+		freeMagic(argv[0]);
+		freeMagic(argv[1]);
+		freeMagic(argv[4]);
+		freeMagic(argv[7]);
+		return;
+	    }
+	    else if (!resist)
+		TxError("Warning:  Ports \"%s\" and \"%s\" are electrically shorted.\n",
+				nodeName1, nodeName2);
 	    else
-		sdev = DEV_VOLT;
-
-	    for (i = 0; i < 10; i++) argv[i] = zeroarg;
-	    argv[0] = StrDup((char **)NULL, "0.0");
-	    argv[1] = StrDup((char **)NULL, "dummy");
-	    argv[4] = StrDup((char **)NULL, nodeName1);
-	    argv[7] = StrDup((char **)NULL, nodeName2);
-	    efBuildDevice(def, sdev, "None", &GeoNullRect, 10, argv);
-	    freeMagic(argv[0]);
-	    freeMagic(argv[1]);
-	    freeMagic(argv[4]);
-	    freeMagic(argv[7]);
-	    return;
+		/* Do not merge the nodes when folding in extresist parasitics */
+		return;
 	}
-	else if (!resist)
-	{
-	    /* Flag a strong warning */
-	    TxError("Warning:  Ports \"%s\" and \"%s\" are electrically shorted.\n",
-			nodeName1, nodeName2);
-	}
-	else
-	    /* Do not merge the nodes when folding in extresist parasitics */
-	    return;
     }
 
     /* If both names exist and are for different nodes, merge them */
