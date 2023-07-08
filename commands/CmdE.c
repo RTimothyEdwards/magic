@@ -598,7 +598,7 @@ badusage:
  * EditCellUse->cu_def.
  *
  * Usage:
- *	erase [layers | cursor]
+ *	erase [layers | cursor | pick x y]
  *
  * Results:
  *	None.
@@ -630,14 +630,23 @@ CmdErase(w, cmd)
     windCheckOnlyWindow(&w, DBWclientID);
     if (w == (MagWindow *) NULL) return;
 
+    if ((cmd->tx_argc == 4) && !strcmp(cmd->tx_argv[1], "pick"))
+    {
+	Point editPoint, rootPoint;
+	editPoint.p_x = cmdParseCoord(w, cmd->tx_argv[2], FALSE, TRUE);
+	editPoint.p_y = cmdParseCoord(w, cmd->tx_argv[3], FALSE, FALSE);
+	GeoTransPoint(&EditToRootTransform, &editPoint, &rootPoint);
+	CmdPaintEraseButton(w, &rootPoint, FALSE, FALSE);
+	return;
+    }
+
     if (cmd->tx_argc > 2)
     {
-	TxError("Usage: %s [<layers> | cursor]\n", cmd->tx_argv[0]);
+	TxError("Usage: %s [<layers> | cursor | pick x y]\n", cmd->tx_argv[0]);
 	return;
     }
 
     if (!ToolGetEditBox(&editRect)) return;
-
     if (EditCellUse == NULL)
     {
         TxError("No cell def being edited!\n");
@@ -654,7 +663,16 @@ CmdErase(w, cmd)
 	(void) CmdParseLayers("*,label", &mask);
     else if (!strncmp(cmd->tx_argv[1], "cursor", 6))
     {
-	CmdPaintEraseButton(w, &cmd->tx_p, FALSE);
+	Point editPoint, rootPoint;
+
+	CmdPaintEraseButton(w, &cmd->tx_p, FALSE, TRUE);
+
+	/* Recast the command as "erase pick x y" for logging purposes */
+	CmdGetRootPoint(&rootPoint, (Rect *)NULL);
+	GeoTransPoint(&RootToEditTransform, &rootPoint, &editPoint);
+	sprintf(cmd->tx_argstring, "erase pick %di %di", editPoint.p_x,
+			editPoint.p_y);
+	TxRebuildCommand(cmd);
 	return;
     }
     else if (!CmdParseLayers(cmd->tx_argv[1], &mask))

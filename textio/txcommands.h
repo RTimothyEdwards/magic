@@ -158,6 +158,7 @@ extern TxCommand *TxNewCommand();
 extern void TxFreeCommand();
 extern void TxParseString();
 extern void TxDispatch();
+extern void TxRebuildCommand();
 extern int TxCommandNumber;	/* Serial number of current command. */
 
 #ifdef MAGIC_WRAPPER

@@ -39,11 +39,12 @@ Erase paint from the layout inside the bounds of the cursor box.
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>erase</B> [<I>layers</I>|<B>cursor</B>] <BR><BR>
+      <B>erase</B> [<I>layers</I>|<B>cursor</B>|<B>pick</B> <I>x y</I>] <BR><BR>
       <BLOCKQUOTE>
          where <I>layers</I> is a comma-separated list of layer types
 	 to be erased, or <B>*</B> to indicate all paint but not labels,
-         or <B>$</B> to indicate both paint and labels.
+         or <B>$</B> to indicate both paint and labels; and where <I>x</I>
+	 and <I>y</I> are values in the layout coordinate system.
       </BLOCKQUOTE>
    </BLOCKQUOTE>
 
@@ -61,6 +62,11 @@ Erase paint from the layout inside the bounds of the cursor box.
       The option "<B>erase cursor</B>" picks the layers at the position
       of the (X11) cursor and erases these from the area of the cursor
       box. <P>
+
+      The option "<B>erase pick</B> <I>x y</I>" works like "<B>erase
+      cursor</B>", but the type of material to erase is selected from
+      the given position in layout coordinates instead of a pointer
+      position. <P>
 
       Note that when applied to contact types, "<B>erase</B>" will erase
       the entire contact, including the top and bottom metal types

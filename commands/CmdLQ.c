@@ -815,6 +815,14 @@ CmdMove(w, cmd)
 	    return;
 	}
 
+	/* Recast the command as "move to x y" so that it no longer
+	 * depends on the pointer position, for command logging.
+	 */
+	GeoTransPoint(&RootToEditTransform, &rootPoint, &editPoint);
+        sprintf(cmd->tx_argstring, "move to %di %di\n", editPoint.p_x,
+                        editPoint.p_y);
+        TxRebuildCommand(cmd);
+
 moveToPoint:
 	if (!ToolGetBox(&rootDef, &rootBox) || (rootDef != SelectRootDef))
 	{
@@ -871,7 +879,7 @@ moveToPoint:
  * Paint the specified layers underneath the box in EditCellUse->cu_def.
  *
  * Usage:
- *	paint <layers> | cursor
+ *	paint <layers> | cursor | pick x y
  *
  * Results:
  *	None.
@@ -897,15 +905,34 @@ CmdPaint(w, cmd)
 	return;
     }
 
+    if ((cmd->tx_argc == 4) && !strcmp(cmd->tx_argv[1], "pick"))
+    {
+	Point editPoint, rootPoint;
+	editPoint.p_x = cmdParseCoord(w, cmd->tx_argv[2], FALSE, TRUE);
+	editPoint.p_y = cmdParseCoord(w, cmd->tx_argv[3], FALSE, FALSE);
+	GeoTransPoint(&EditToRootTransform, &editPoint, &rootPoint);
+	CmdPaintEraseButton(w, &rootPoint, TRUE, FALSE);
+	return;
+    }
+
     if (cmd->tx_argc != 2)
     {
-	TxError("Usage: %s <layers> | cursor\n", cmd->tx_argv[0]);
+	TxError("Usage: %s <layers> | cursor | pick x y\n", cmd->tx_argv[0]);
 	return;
     }
 
     if (!strncmp(cmd->tx_argv[1], "cursor", 6))
     {
-	CmdPaintEraseButton(w, &cmd->tx_p, TRUE);
+	Point editPoint, rootPoint;
+
+	CmdPaintEraseButton(w, &cmd->tx_p, TRUE, TRUE);
+
+	/* Recast the command as "paint pick x y" for logging purposes */
+	CmdGetRootPoint(&rootPoint, (Rect *)NULL);
+	GeoTransPoint(&RootToEditTransform, &rootPoint, &editPoint);
+	sprintf(cmd->tx_argstring, "paint pick %di %di", editPoint.p_x,
+			editPoint.p_y);
+	TxRebuildCommand(cmd);
 	return;
     }
     else if (!CmdParseLayers(cmd->tx_argv[1], &mask))
@@ -957,10 +984,11 @@ CmdPaint(w, cmd)
  */
 
 void
-CmdPaintEraseButton(w, butPoint, isPaint)
+CmdPaintEraseButton(w, refPoint, isPaint, isScreen)
     MagWindow *w;
-    Point *butPoint;	/* Screen location at which button was raised */
+    Point *refPoint;	/* Screen location at which button was raised */
     bool isPaint;	/* True for paint, False for erase.	*/
+    bool isScreen;	/* True for screen coordinates, False for root */
 {
     Rect rootRect, editRect, areaReturn;
     TileTypeBitMask mask;
@@ -974,7 +1002,15 @@ CmdPaintEraseButton(w, butPoint, isPaint)
     }
     crec = (DBWclientRec *) w->w_clientData;
 
-    WindPointToSurface(w, butPoint, (Point *) NULL, &rootRect);
+    if (isScreen)
+	WindPointToSurface(w, refPoint, (Point *) NULL, &rootRect);
+    else
+    {
+	rootRect.r_ll.p_x = refPoint->p_x;
+	rootRect.r_ll.p_y = refPoint->p_y;
+	rootRect.r_ur.p_x = refPoint->p_x + 1;
+	rootRect.r_ur.p_y = refPoint->p_y + 1;
+    }
 
     DBSeeTypesAll(((CellUse *)w->w_surfaceID), &rootRect,
 	    crec->dbw_bitmask, &mask);

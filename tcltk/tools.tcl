@@ -21,7 +21,7 @@ proc magic::suspendall {} {
 	    set framename $window
          }
          if {[incr Winopts(${framename},suspend)] == 1} {
-	    $window update suspend
+	    $window updatedisplay suspend
          }
       }
    }
@@ -42,7 +42,7 @@ proc magic::resumeall {} {
 	    incr Winopts($framename,suspend) -1
 	    if { $Winopts(${framename},suspend) <= 0 } {
 	       unset Winopts(${framename},suspend)
-	       $window update resume
+	       $window updatedisplay resume
 	    }
 	 }
       }

@@ -856,31 +856,16 @@ txLogCommand(cmd)
 	    return;
 	else if (!strcmp(postns, "*bypass"))
 	    return;
-
-	/* Commands ending in "cursor" should be preceeded by a set point	*/
-	/* to indicate where the pointer was at the time of the command.	*/
-
-	if (!strcmp(cmd->tx_argv[cmd->tx_argc - 1], "cursor"))
-	{
-	    if (cmd->tx_wid >= 0)
-	    {
-		/* Command has a window associated with it. */
-		fprintf(txLogFile, "%ssetpoint %d %d %d\n",
-			pfix, cmd->tx_p.p_x, cmd->tx_p.p_y, cmd->tx_wid);
-	    }
-	    else
-	    {
-		/* No window associated with the command. */
-		fprintf(txLogFile, "%ssetpoint %d %d\n",
-			pfix, cmd->tx_p.p_x, cmd->tx_p.p_y);
-	    }
-	}
 	else if (!strcmp(postns, "setpoint")) return;
 
 	fprintf(txLogFile, "%s%s", pfix, cmd->tx_argv[0]);
 	for (i = 1; i < cmd->tx_argc; i++)
 	{
-	    fprintf(txLogFile, " %s", cmd->tx_argv[i]);
+	    bool needQuotes = (strchr(cmd->tx_argv[i], ' ') == NULL) ? FALSE : TRUE;
+	    fprintf(txLogFile, " ");
+	    if (needQuotes) fprintf(txLogFile, "\"");
+	    fprintf(txLogFile, "%s", cmd->tx_argv[i]);
+	    if (needQuotes) fprintf(txLogFile, "\"");
 	}
 	fprintf(txLogFile, "\n");
     }
@@ -1298,6 +1283,45 @@ txGetFileCommand(f, queue)
 #endif
 
     TxParseString(linep, queue, (TxInputEvent *) NULL);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * TxRebuildCommand:
+ *
+ *	Rebuild the arguments of a TxCommand structure.  This assumes
+ *	that a routine has rewritten the tx_argstring record with a
+ *	modified command.  Tokenize the tx_argstring and update the
+ *	tx_argc count and tx_argv pointers.
+ *
+ *	The purpose of this routine is to allow some command callbacks
+ *	to change the command from one implying the use of pointer
+ *	coordinates to an equivalent command that uses database units,
+ *	for the purpose of logging the command.
+ *
+ * ----------------------------------------------------------------------------
+ */
+void
+TxRebuildCommand(TxCommand *cmd)
+{
+    char *cptr, *tptr, c;
+
+    cmd->tx_argc = 0;
+    tptr = cptr = cmd->tx_argstring;
+
+    do
+    {
+	c = *cptr;
+	if ((c == ' ') || (c == '\0'))
+	{
+	    cmd->tx_argv[cmd->tx_argc] = tptr;
+	    cmd->tx_argc++;
+	    *cptr = '\0';
+	    tptr = cptr + 1;
+	}
+	cptr++;
+    }	
+    while (c != '\0');
 }
 
 #ifdef MAGIC_WRAPPER

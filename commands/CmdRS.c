@@ -1311,7 +1311,21 @@ Okay:
 	    }
 	    else
 	    {
+		char *aptr;
+		int i;
+
 	        window = CmdGetRootPoint((Point *) NULL, &scx.scx_area);
+
+		/* Recast command with "at x y" at the end for logging */
+		for (i = 0; i < cmd->tx_argc; i++)
+		{
+		    aptr = cmd->tx_argv[i] + strlen(cmd->tx_argv[i]);
+		    *aptr = ' ';
+		}
+		sprintf(aptr + 1, "at %di %di", scx.scx_area.r_xbot,
+				scx.scx_area.r_ybot);
+		TxRebuildCommand(cmd);
+		    
 	    }
 	    if (window == NULL) return;
 	    scx.scx_use = (CellUse *) window->w_surfaceID;

@@ -351,7 +351,7 @@ DBWBoxHandler(w, cmd)
     if (button == TX_MIDDLE_BUTTON)
     {
 	if (cmd->tx_buttonAction == TX_BUTTON_DOWN)
-	    CmdPaintEraseButton(w, &cmd->tx_p, TRUE);
+	    CmdPaintEraseButton(w, &cmd->tx_p, TRUE, TRUE);
 	return;
     }
 

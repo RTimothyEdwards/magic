@@ -2711,6 +2711,14 @@ CmdCopy(w, cmd)
 	    return;
 	}
 
+	/* Recast the command as "copy to x y" so that it no longer
+	 * depends on the pointer position, for command logging.
+	 */
+	GeoTransPoint(&RootToEditTransform, &rootPoint, &editPoint);
+	sprintf(cmd->tx_argstring, "copy to %di %di\n", editPoint.p_x,
+			editPoint.p_y);
+	TxRebuildCommand(cmd);
+
 copyToPoint:
 	if (!ToolGetBox(&rootDef, &rootBox) || (rootDef != SelectRootDef))
 	{

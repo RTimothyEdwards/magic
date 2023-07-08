@@ -33,9 +33,10 @@ Paint mask information into the current edit cell
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>paint</B> <I>layers</I>|<B>cursor</B> <BR><BR>
+      <B>paint</B> <I>layers</I>|<B>cursor</B>|<B>pick</B> <I>x y</I> <BR><BR>
       <BLOCKQUOTE>
-         where <I>layers</I> is a comma-separated list of types to paint.
+         where <I>layers</I> is a comma-separated list of types to paint,
+	 and <I>x y</I> are coordinates in the layout coordinate system.
       </BLOCKQUOTE>
    </BLOCKQUOTE>
 
@@ -52,7 +53,11 @@ Paint mask information into the current edit cell
       position of the (X11) cursor and fills the cursor box with these
       types.  However, when no material (e.g., "space") is present under
       the cursor, then all material and labels are erased from the
-      area of the cursor box.
+      area of the cursor box. <P>
+
+      The "<B>paint pick</B> <I>x y</I>" option works like "<B>paint
+      cursor</B>", but the type of paint is selected from the given
+      position in layout coordinates instead of a pointer position.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>

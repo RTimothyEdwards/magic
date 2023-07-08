@@ -797,6 +797,13 @@ CmdBox(w, cmd)
 			ToolMoveCorner(tcorner, &cmd->tx_p, TRUE, rootBoxDef);
 			break;
 		}
+
+		/* Recast command as "box values" for logging purposes */
+		ToolGetBox(&rootBoxDef, &rootBox);
+		sprintf(cmd->tx_argstring, "box values %di %di %di %di",
+			rootBox.r_xbot, rootBox.r_ybot,
+			rootBox.r_xtop, rootBox.r_ytop);
+		TxRebuildCommand(cmd);
 		return;
 	    }
 	    else if (DBWSnapToGrid != DBW_SNAP_USER)
