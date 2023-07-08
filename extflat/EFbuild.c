@@ -547,7 +547,7 @@ efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
     if (nn1 && nn2 && (nn1->efnn_port >= 0) && (nn2->efnn_port >= 0) &&
 	    (nn1->efnn_port != nn2->efnn_port))
     {
-	equalByCase = FALSE;
+	bool equalByCase = FALSE;
 	if (isspice)
 	{
 	    /* If ports have the same name under the assumption of

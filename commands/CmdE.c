@@ -56,10 +56,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *
  * Implement the "edit" command.
  * Use the cell that is currently selected as the edit cell.  If more than
- * one cell is selected, use the point to choose between them.
+ * one cell is selected, use the point to choose between them.  If the
+ * optional argument "<instname>" is provided, then edit the specified
+ * instance (if it exists in the current layout window).
  *
  * Usage:
- *	edit
+ *	edit [<instname>]
  *
  * Results:
  *	None.
@@ -82,13 +84,24 @@ CmdEdit(w, cmd)
     TxCommand *cmd;
 {
     Rect area, pointArea;
-    CellUse *usave;
+    CellUse *usave, *use = NULL;
     CellDef *csave;
     int cmdEditRedisplayFunc();		/* Forward declaration. */
     int cmdEditEnumFunc();		/* Forward declaration. */
     bool noCurrentUse = FALSE;
 
-    if (cmd->tx_argc > 1)
+    if ((w != NULL) && (cmd->tx_argc == 2))
+    {
+	CellUse *rootUse;
+	SearchContext scx;
+
+	rootUse = (CellUse *)w->w_surfaceID;
+	bzero(&scx, sizeof(SearchContext));
+	DBTreeFindUse(cmd->tx_argv[1], rootUse, &scx);
+	use = scx.scx_use;
+    }
+
+    if ((use == NULL) && (cmd->tx_argc > 1))
     {
 	TxError("Usage: edit\nMaybe you want the \"load\" command\n");
 	return;
@@ -121,10 +134,18 @@ CmdEdit(w, cmd)
     cmdFoundNewEdit = FALSE;
     csave = EditRootDef;
     usave = EditCellUse;
-    EditCellUse = NULL;
 
-    (void) SelEnumCells(FALSE, (bool *) NULL, (SearchContext *) NULL,
-	    cmdEditEnumFunc, (ClientData) &pointArea);
+    if (use == NULL)
+    {
+	EditCellUse = NULL;
+	SelEnumCells(FALSE, (bool *) NULL, (SearchContext *) NULL,
+		cmdEditEnumFunc, (ClientData) &pointArea);
+    }
+    else
+    {
+	EditCellUse = use;
+	cmdFoundNewEdit = TRUE;
+    }
 
     if (EditCellUse == (CellUse *)NULL)
     {

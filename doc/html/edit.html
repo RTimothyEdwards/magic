@@ -20,7 +20,7 @@
 
 <H2>edit</H2>
 <HR>
-Use selected cell as new edit cell
+Use selected cell as new edit cell, or specify cell to edit.
 <HR>
 
 <H3>Shortcuts:</H3>
@@ -30,12 +30,17 @@ Use selected cell as new edit cell
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>edit</B> <BR><BR>
+      <B>edit</B> [<I>instance</I>]<BR><BR>
    </BLOCKQUOTE>
 
 <H3>Summary:</H3>
    <BLOCKQUOTE>
-      The <B>edit</B> command makes the selected cell the new edit cell.
+      With no arguments, the <B>edit</B> command makes the selected cell the
+      new edit cell.  If more than one cell is selected, then the one closest
+      to the pointer position is used. <BR><BR>
+      With argument <I>instance</I>, makes the instance named <I>instance</I>
+      the new edit cell, if <I>instance</I> exists and is in the current layout
+      window.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
