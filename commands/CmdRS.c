@@ -786,7 +786,7 @@ CmdSelect(w, cmd)
     };
     static char *cmdSelectMsg[] =
     {
-	"[more | less | nocycle] [layers]\n"
+	"[more | less | nocycle] [layers] [at x y]\n"
         "                                [de]select paint chunk/region/net under\n"
  	"                                cursor, or [de]select subcell if cursor\n"
 	"	                         over space",
@@ -845,13 +845,14 @@ CmdSelect(w, cmd)
     CellUse *use;
     CellDef *rootBoxDef;
     Transform trans, rootTrans, tmp1;
-    Point p, rootPoint;
+    Point p, rootPoint, atPoint;
     Rect r, selarea;
     ExtRectList *rlist;
     int option;
     int feedstyle;
     bool layerspec;
     bool degenerate;
+    bool doat = FALSE;
     bool more = FALSE, less = FALSE, samePlace = TRUE;
     unsigned char labelpolicy = SEL_DO_LABELS;
 #ifdef MAGIC_WRAPPER
@@ -938,6 +939,20 @@ CmdSelect(w, cmd)
 	    if ((cmd->tx_argc >= 3) && !strncmp(cmd->tx_argv[2],
 			"cell", strlen(cmd->tx_argv[2])))
 		optionArgs = &cmd->tx_argv[2];
+	}
+
+	doat = FALSE;
+	if ((cmd->tx_argc > 3) && !strcmp(cmd->tx_argv[cmd->tx_argc - 3], "at"))
+	{
+	    Point editPoint;
+
+	    doat = TRUE;
+	    editPoint.p_x = cmdParseCoord(w, cmd->tx_argv[cmd->tx_argc - 2],
+				FALSE, TRUE);
+	    editPoint.p_y = cmdParseCoord(w, cmd->tx_argv[cmd->tx_argc - 1],
+				FALSE, FALSE);
+	    GeoTransPoint(&EditToRootTransform, &editPoint, &atPoint);
+	    cmd->tx_argc -= 3;
 	}
     }
 
@@ -1247,11 +1262,12 @@ CmdSelect(w, cmd)
 	 */
 
 	case SEL_DEFAULT:
-	    if (cmd->tx_argc > 2) goto usageError;
+
 	    if (cmd->tx_argc == 2)
 		layerspec = TRUE;
 	    else
 		layerspec = FALSE;
+
 	    goto Okay;
 	case SEL_CELL:
 	    layerspec = FALSE;
@@ -1284,6 +1300,15 @@ Okay:
 		scx.scx_area.r_ytop = scx.scx_area.r_ybot + 1;
 		degenerate = TRUE;
 	    }
+	    else if (doat)
+	    {
+		scx.scx_area.r_xbot = atPoint.p_x;
+		scx.scx_area.r_ybot = atPoint.p_y;
+		scx.scx_area.r_xtop = atPoint.p_x + 1;
+		scx.scx_area.r_ytop = atPoint.p_y + 1;
+		windCheckOnlyWindow(&w, DBWclientID);
+		window = w;
+	    }
 	    else
 	    {
 	        window = CmdGetRootPoint((Point *) NULL, &scx.scx_area);
@@ -1305,17 +1330,34 @@ Okay:
 	     * same space WILL cause a crash).
 	     */
 
-	    if (!GEO_ENCLOSE(&cmd->tx_p, &lastArea)
-		    || ((lastCommand + 1) != TxCommandNumber))
+	    if (doat)
 	    {
-		samePlace = FALSE;
-		lastUse = NULL;
-	    }
+		if (!GEO_ENCLOSE(&scx.scx_area.r_ll, &lastArea)
+			|| ((lastCommand + 1) != TxCommandNumber))
+		{
+		    samePlace = FALSE;
+		    lastUse = NULL;
+		}
 
-	    lastArea.r_xbot = cmd->tx_p.p_x - MARGIN;
-	    lastArea.r_ybot = cmd->tx_p.p_y - MARGIN;
-	    lastArea.r_xtop = cmd->tx_p.p_x + MARGIN;
-	    lastArea.r_ytop = cmd->tx_p.p_y + MARGIN;
+		lastArea.r_xbot = scx.scx_area.r_xbot - MARGIN;
+		lastArea.r_ybot = scx.scx_area.r_ybot - MARGIN;
+		lastArea.r_xtop = scx.scx_area.r_xbot + MARGIN;
+		lastArea.r_ytop = scx.scx_area.r_ybot + MARGIN;
+	    }
+	    else
+	    {
+		if (!GEO_ENCLOSE(&cmd->tx_p, &lastArea)
+			|| ((lastCommand + 1) != TxCommandNumber))
+		{
+		    samePlace = FALSE;
+		    lastUse = NULL;
+		}
+
+		lastArea.r_xbot = cmd->tx_p.p_x - MARGIN;
+		lastArea.r_ybot = cmd->tx_p.p_y - MARGIN;
+		lastArea.r_xtop = cmd->tx_p.p_x + MARGIN;
+		lastArea.r_ytop = cmd->tx_p.p_y + MARGIN;
+	    }
 	    lastCommand = TxCommandNumber;
 
 	    /* If there's material under the cursor, select some paint.

@@ -47,13 +47,14 @@ create a new cell definition from a selection.
       <BLOCKQUOTE>
          where <I>option</I> may be one of the following:
 	 <DL>
-	   <DT> [<B>more</B> | <B>less</B>] [<I>layers</I>]
-	   <DD> [De]select material under cursor, or
-		[de]select a subcell if the cursor is over space.
-	   <DT>	<B>nocycle</B> [<I>layers</I>]
+	   <DT> [<B>more</B> | <B>less</B>] [<I>layers</I>] [<B>at</B> <I>x y</I>]
+	   <DD> [De]select material under cursor or indicated position, or
+		[de]select a subcell if the cursor or indicated position is over
+		space.
+	   <DT>	<B>nocycle</B> [<I>layers</I>] [<B>at</B> <I>x y</I>]
 	   <DD> Select material without cycling through different tile
 	   	types when "select" is called from the same cursor position
-		more than once.
+		or indicated coordinate more than once.
 	   <DT> [<B>do</B> | <B>no</B> | <B>simple</B>] <B>labels</B>
 	   <DD> Set policy for copying labels during a network selection.
 	   <DT>	[<B>more</B> | <B>less</B>] <B>area</B> [<I>layers</I>] [<I>pattern</I>]

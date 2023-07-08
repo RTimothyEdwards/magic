@@ -3773,7 +3773,7 @@ CmdDelete(w, cmd)
  * new edit cell into the window containing the point tool.
  *
  * Usage:
- *	down
+ *	down [<instname>]
  *
  * Results:
  *	None.
@@ -3795,11 +3795,23 @@ CmdDown(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
+    CellUse *use = NULL;
     Rect area, pointArea;
     int cmdEditRedisplayFunc();		/* External declaration. */
     int cmdDownEnumFunc();		/* Forward declaration. */
 
-    if (cmd->tx_argc > 1)
+    if ((w != NULL) && (cmd->tx_argc == 2))
+    {
+	CellUse *rootUse;
+	SearchContext scx;
+
+	rootUse = (CellUse *)w->w_surfaceID;
+	bzero(&scx, sizeof(SearchContext));
+	DBTreeFindUse(cmd->tx_argv[1], rootUse, &scx);
+	use = scx.scx_use;
+    }
+
+    if ((use == NULL) && (cmd->tx_argc > 1))
     {
 	TxError("Usage: edit\nMaybe you want the \"load\" command\n");
 	return;
@@ -3822,8 +3834,18 @@ CmdDown(w, cmd)
 
     (void) ToolGetPoint((Point *) NULL, &pointArea);
     cmdFoundNewDown = FALSE;
-    (void) SelEnumCells(FALSE, (bool *) NULL, (SearchContext *) NULL,
-	    cmdDownEnumFunc, (ClientData) &pointArea);
+
+    if (use == NULL)
+    {
+	SelEnumCells(FALSE, (bool *) NULL, (SearchContext *) NULL,
+		cmdDownEnumFunc, (ClientData) &pointArea);
+    }
+    else
+    {
+	EditCellUse = use;
+	EditRootDef = use->cu_def;
+	cmdFoundNewDown = TRUE;
+    }
     if (!cmdFoundNewDown)
 	TxError("You haven't selected a new cell to edit.\n");
 

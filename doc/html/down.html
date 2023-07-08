@@ -20,20 +20,22 @@
 
 <H2>down</H2>
 <HR>
-Load selected cell into a window
+Load selected or indicated cell into a window
 <HR>
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>down</B>
+      <B>down</B> [<I>instance</I>]
    </BLOCKQUOTE>
 
 <H3>Summary:</H3>
    <BLOCKQUOTE>
-      The <B>down</B> command loads the currently selected cell into the
-      window.  If more than one cell is selected, the one closest to the
-      cursor (pointer) position will be used, or at worst, one will be
-      selected arbitrarily.
+      With no arguments, the <B>down</B> command loads the currently
+      selected cell into the window.  If more than one cell is selected,
+      the one closest to the cursor (pointer) position will be used, or at
+      worst, one will be selected arbitrarily. <BR><BR>
+      With one argument <I>instance</I>, the cell of the instance named
+      <I>instance</I> will be loaded into the window.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
