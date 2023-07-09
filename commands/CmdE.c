@@ -179,6 +179,14 @@ CmdEdit(w, cmd)
     GeoTransRect(&EditToRootTransform, &(EditCellUse->cu_def->cd_bbox), &area);
     (void) WindSearch(DBWclientID, (ClientData) NULL,
 	    (Rect *) NULL, cmdEditRedisplayFunc, (ClientData) &area);
+
+    if ((cmd->tx_argc == 1) && cmdFoundNewEdit)
+    {
+	/* Recast the command with the instance name for logging */
+	sprintf(cmd->tx_argstring, "edit %s", EditCellUse->cu_id);
+	TxRebuildCommand(cmd);
+    }
+
 }
 
 /* Search function to handle redisplays for CmdEdit:  it checks to

@@ -1551,7 +1551,9 @@ Okay:
 		return;
 	    }
 
-	    if (cmd->tx_argc > 3) goto usageError;
+	    if (cmd->tx_argc > 3)
+		if (strcmp(cmd->tx_argv[cmd->tx_argc - 3], "at"))
+		    goto usageError;
 
 	    /* If an explicit cell use id is provided, look for that cell
 	     * and select it.  In this case, defeat all of the "multiple
@@ -3215,6 +3217,17 @@ CmdStretch(w, cmd)
 	GeoTransTranslate(xdelta, ydelta, &GeoIdentityTransform, &t);
 	GeoTransRect(&t, &rootBox, &newBox);
 	DBWSetBox(rootDef, &newBox);
+
+	/* Recast the command in the usual 3-argument form for logging */
+	if (ydelta > 0)
+	    sprintf(cmd->tx_argstring, "stretch n %di", ydelta);
+	else if (ydelta < 0)
+	    sprintf(cmd->tx_argstring, "stretch s %di", -ydelta);
+	else if (xdelta > 0)
+	    sprintf(cmd->tx_argstring, "stretch e %di", xdelta);
+	else
+	    sprintf(cmd->tx_argstring, "stretch w %di", -xdelta);
+	TxRebuildCommand(cmd);
     }
 
     SelectStretch(xdelta, ydelta);

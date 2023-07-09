@@ -3863,6 +3863,13 @@ CmdDown(w, cmd)
     (void) WindSearch(DBWclientID, (ClientData) NULL,
 	    (Rect *) NULL, cmdEditRedisplayFunc, (ClientData) &area);
     DBWloadWindow(w, EditCellUse->cu_def->cd_name, DBW_LOAD_IGNORE_TECH);
+
+    if ((cmd->tx_argc == 1) && cmdFoundNewDown)
+    {
+	/* Recast the command with the instance name for logging */
+	sprintf(cmd->tx_argstring, "down %s", EditCellUse->cu_id);
+	TxRebuildCommand(cmd);
+    }
 }
 
 /* Search function to find the new edit cell:  look for a cell use
