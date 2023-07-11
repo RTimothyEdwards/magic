@@ -47,7 +47,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "select/select.h"
 #include "graphics/graphics.h"
 
-#if defined(SYSV) || defined(__APPLE__)
+#if defined(SYSV) || defined(__APPLE__) || defined(EMSCRIPTEN)
 # define	NO_RUSAGE
 #endif
 

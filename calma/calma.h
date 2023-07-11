@@ -63,10 +63,9 @@ extern bool CalmaWrite();
 extern void CalmaReadFile();
 extern void CalmaTechInit();
 extern bool CalmaGenerateArray();
-extern void CalmaReadError();
+extern void CalmaReadError(char *format, ...);
 
 /* C99 compat */
-extern void CalmaReadError();
 extern int  calmaAddSegment();
 extern void calmaDelContacts();
 extern void calmaElementBoundary();

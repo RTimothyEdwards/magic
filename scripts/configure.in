@@ -1353,13 +1353,12 @@ dnl ----------------------------------------------------------------
 case $target in
   *-linux*)
     AC_DEFINE(linux)
-    AC_DEFINE(SYSV)
     dnl Defining "ISC" prevents compiler failure on redefinition of "wchar_t"
     AC_DEFINE(ISC)
     dnl 64-bit support for AMD Opteron
     case $target in
 	*x86_64*)
-	    CFLAGS="${CFLAGS} -m64 -fPIC -Werror=implicit-function-declaration"
+	    CFLAGS="${CFLAGS} -fPIC -Werror=implicit-function-declaration"
 	    ;;
     esac
     if test $usingOGL ; then

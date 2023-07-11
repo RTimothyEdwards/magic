@@ -28,7 +28,7 @@
 #define VERSATEC		/* Add this for HP plotter support */
 
 /* system V machines lack vfont.h, so include the defs below. */
-#if  !defined(SYSV) && !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(CYGWIN) && !defined(__APPLE__) && !defined(__DragonFly__) && !defined(__OpenBSD__)
+#if  !defined(SYSV) && !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(CYGWIN) && !defined(__APPLE__) && !defined(__DragonFly__) && !defined(__OpenBSD__) && !defined(EMSCRIPTEN)
 #include <vfont.h>
 #else
 struct header {

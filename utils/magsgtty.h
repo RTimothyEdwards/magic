@@ -34,7 +34,7 @@
 
 #include <sys/ioctl.h>
 
-#if defined(__OpenBSD__)
+#if defined(__OpenBSD__) || defined(EMSCRIPTEN)
 #include <termios.h>
 #else
 #include <sys/ioctl_compat.h>

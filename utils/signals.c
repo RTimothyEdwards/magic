@@ -665,7 +665,7 @@ SigInit(batchmode)
 #endif
     }
 
-#if !defined(SYSV) && !defined(CYGWIN)
+#if !defined(SYSV) && !defined(CYGWIN) && !defined(EMSCRIPTEN)
     sigsetmask(0);
 #endif
 }
@@ -673,7 +673,7 @@ SigInit(batchmode)
 void
 sigSetAction(int signo, sigRetVal (*handler)(int))
 {
-#if defined(SYSV) || defined(CYGWIN) || defined(__NetBSD__)
+#if defined(SYSV) || defined(CYGWIN) || defined(__NetBSD__) || defined(EMSCRIPTEN)
     struct sigaction sa;
 
     sa.sa_handler = handler;

@@ -30,7 +30,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/stat.h>
-#ifdef	SYSV
+#if defined(SYSV) || defined(EMSCRIPTEN)
 #include <fcntl.h>
 #endif
 
@@ -262,7 +262,7 @@ plowGenRandom(lo, hi)
     int lo, hi;		/* Inclusive bounds for the integer we'll generate */
 {
     int range = hi - lo + 1;
-#ifdef	SYSV
+#if defined(SYSV) || defined(EMSCRIPTEN)
     int r = rand();
 #else
     int r = random();

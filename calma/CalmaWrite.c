@@ -27,7 +27,7 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 #include <ctype.h>
 #include <sys/types.h>
 #include <arpa/inet.h>	/* for htons() */
-#ifdef	SYSV
+#if defined(SYSV) || defined(EMSCRIPTEN)
 #include <time.h>
 #else
 #include <sys/time.h>

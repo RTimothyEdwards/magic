@@ -1046,7 +1046,7 @@ CmdPaintEraseButton(w, refPoint, isPaint, isScreen)
     else
     {
 	DBEraseValid(EditCellUse->cu_def, &editRect, &mask, 0);
-	DBEraseLabel(EditCellUse->cu_def, &editRect, &mask);
+	DBEraseLabel(EditCellUse->cu_def, &editRect, &mask, NULL);
     }
     SelectClear();
     DBAdjustLabels(EditCellUse->cu_def, &editRect);

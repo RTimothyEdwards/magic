@@ -25,7 +25,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#ifdef SYSV
+#if defined(SYSV) || defined(EMSCRIPTEN)
 #include <sys/param.h>
 #include <sys/times.h>
 #endif
@@ -780,7 +780,7 @@ extTimeProc(proc, def, tv)
 {
     int secs, usecs, i;
 
-#ifdef SYSV
+#if defined(SYSV) || defined(EMSCRIPTEN)
     tv->tv_sec = 0;
     tv->tv_usec = 0;
 #else

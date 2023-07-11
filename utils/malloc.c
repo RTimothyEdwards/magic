@@ -54,7 +54,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Imports */
 
-extern void TxError();
+extern void TxError(char *, ...);
 extern char *TxGetLine();
 
 /*

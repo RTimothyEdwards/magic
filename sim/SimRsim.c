@@ -213,7 +213,7 @@ SimStartRsim(argv)
 
     FORK(child);
 /*
-#ifdef SYSV
+#if defined(SYSV)
     child = fork();
 #else
     child = vfork();

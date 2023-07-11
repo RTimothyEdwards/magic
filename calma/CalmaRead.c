@@ -20,6 +20,7 @@
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/calma/CalmaRead.c,v 1.3 2010/06/24 12:37:15 tim Exp $";
 #endif  /* not lint */
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -409,12 +410,9 @@ calmaParseUnits()
  * ----------------------------------------------------------------------------
  */
 
-void
-    /*VARARGS1*/
-CalmaReadError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
-    char *format;
-    char *a1, *a2, *a3, *a4, *a5, *a6, *a7, *a8, *a9, *a10;
+void CalmaReadError(char *format, ...)
 {
+    va_list args;
     OFFTYPE filepos;
 
     calmaTotalErrors++;
@@ -432,15 +430,15 @@ CalmaReadError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
                                 cifReadCellDef->cd_name);
 		fprintf(calmaErrorFile, "(byte position %"DLONG_PREFIX"d): ",
 				(dlong)filepos);
-                fprintf(calmaErrorFile, format, a1, a2, a3, a4, a5, a6, a7,
-                                a8, a9, a10);
+		va_start(args, format);
+		Vfprintf(calmaErrorFile, format, args);
+		va_end(args);
             }
         }
         else
         {
             TxError("Error while reading cell \"%s\" ", cifReadCellDef->cd_name);
 	    TxError("(byte position %"DLONG_PREFIX"d): ", (dlong)filepos);
-            TxError(format, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
         }
     }
     else if ((calmaTotalErrors == 100) && (CIFWarningLevel == CIF_WARN_LIMIT))

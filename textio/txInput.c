@@ -1218,7 +1218,7 @@ txGetTermState(buf)
     ioctl( fileno( stdin ), TCGETA, buf);
 }
 
-#elif defined (__OpenBSD__)
+#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
 
 void
 txGetTermState(buf)
@@ -1259,7 +1259,7 @@ void
 txSetTermState(buf)
 #if defined(SYSV) || defined(CYGWIN)
     struct termio *buf;
-#elif defined(__OpenBSD__)
+#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
     struct termios *buf;
 #else
     txTermState *buf;
@@ -1267,7 +1267,7 @@ txSetTermState(buf)
 {
 #if defined(SYSV) || defined(CYGWIN)
     ioctl( fileno(stdin), TCSETAF, buf );
-#elif defined (__OpenBSD__)
+#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
     (void) tcsetattr( fileno(stdin), TCSANOW, buf );
 #else
     /* set the current terminal characteristics */
@@ -1298,13 +1298,13 @@ void
 txInitTermRec(buf)
 #if defined(SYSV) || defined(CYGWIN)
     struct termio *buf;
-#elif defined(__OpenBSD__)
+#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
     struct termios *buf;
 #else
     txTermState *buf;
 #endif /* SYSV */
 {
-#if defined(SYSV) || defined(CYGWIN) || defined(__OpenBSD__)
+#if defined(SYSV) || defined(CYGWIN) || defined(__OpenBSD__) || defined(EMSCRIPTEN)
     buf->c_lflag = ISIG;    /* raw: no echo and no processing, allow signals */
     buf->c_cc[ VMIN ] = 1;
     buf->c_cc[ VTIME ] = 0;
@@ -1321,7 +1321,7 @@ txInitTermRec(buf)
 
 #if defined(SYSV) || defined(CYGWIN)
 struct termio closeTermState;
-#elif defined(__OpenBSD__)
+#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
 struct termios closeTermState;
 #else
 static txTermState closeTermState;
@@ -1355,7 +1355,7 @@ txSaveTerm()
     TxEOFChar = closeTermState.c_cc[VEOF];
     TxInterruptChar = closeTermState.c_cc[VINTR];
     haveCloseState = TRUE;
-#elif defined(__OpenBSD__)
+#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
     (void) tcgetattr( fileno( stdin ), &closeTermState);
     txEraseChar = closeTermState.c_cc[VERASE];
     txKillChar =  closeTermState.c_cc[VKILL];
@@ -1398,7 +1398,7 @@ TxSetTerminal()
 {
 #if defined(SYSV) || defined(CYGWIN)
     struct termio buf;
-#elif defined(__OpenBSD__)
+#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
     struct termios buf;
 #else
     txTermState buf;

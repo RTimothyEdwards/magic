@@ -243,7 +243,7 @@ CIFPolyToRects(path, plane, resultTbl, ui, isCalma)
     if ((tail->cifp_x != path->cifp_x) || (tail->cifp_y != path->cifp_y))
     {
 	if (isCalma)
-	    CalmaReadError("Boundary is not closed.\n" );
+	    CalmaReadError("Boundary is not closed.\n");
 
 	p = (CIFPath *) mallocMagic ((unsigned) sizeof (CIFPath));
 	p->cifp_x = path->cifp_x;
