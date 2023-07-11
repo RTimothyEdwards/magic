@@ -445,6 +445,9 @@ void CalmaReadError(char *format, ...)
         {
             TxError("Error while reading cell \"%s\" ", cifReadCellDef->cd_name);
 	    TxError("(byte position %"DLONG_PREFIX"d): ", (dlong)filepos);
+	    va_start(args, format);	    
+	    TxErrorV(format, args);
+	    va_end(args);	    
         }
     }
     else if ((calmaTotalErrors == 100) && (CIFWarningLevel == CIF_WARN_LIMIT))

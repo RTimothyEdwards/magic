@@ -69,6 +69,7 @@ extern void TxStopMore();
 
 /* printing procedures with variable arguments lists */
 extern void TxError(char *, ...);
+extern void TxErrorV(char *, va_list args);
 extern void TxPrintf(char *, ...);
 extern char *TxPrintString(char *, ...);
 

@@ -302,9 +302,15 @@ TxFlush()
  */
 
 void
-TxError(char *fmt, ...)
-{
+TxError(char *fmt, ...) {
     va_list args;
+    va_start(args, fmt);
+    va_end(args);
+}
+
+void
+TxErrorV(char *fmt, va_list args)
+{
     FILE *f;
 
     TxFlushOut();
@@ -312,7 +318,6 @@ TxError(char *fmt, ...)
 	f = TxMoreFile;
     else
 	f = stderr;
-    va_start(args, fmt);
     if (txHavePrompt)
     {
 	TxUnPrompt();
@@ -322,7 +327,6 @@ TxError(char *fmt, ...)
     else {
 	Vfprintf(f, fmt, args);
     }
-    va_end(args);
     TxFlushErr();
 }
 
