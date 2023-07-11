@@ -7773,12 +7773,12 @@ fi
 case $target in
   *-linux*)
     $as_echo "#define linux 1" >>confdefs.h
-
+    $as_echo "#define SYSV 1" >>confdefs.h
         $as_echo "#define ISC 1" >>confdefs.h
 
         case $target in
 	*x86_64*)
-	    CFLAGS="${CFLAGS} -fPIC -Werror=implicit-function-declaration"
+	    CFLAGS="${CFLAGS} -m64 -fPIC -Werror=implicit-function-declaration"
 	    ;;
     esac
     if test $usingOGL ; then
@@ -7789,6 +7789,10 @@ case $target in
     elif test -f /usr/lib/libbsd.a ; then
       gr_libs="$gr_libs -lbsd"
     fi
+    ;;
+  *-emscripten*)
+    $as_echo "#define linux 1" >>confdefs.h
+    CFLAGS="${CFLAGS} -fPIC -Werror=implicit-function-declaration -Wno-int-conversion -Wno-implicit-int"
     ;;
   *solaris*)
     $as_echo "#define SYSV 1" >>confdefs.h

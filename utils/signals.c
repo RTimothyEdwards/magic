@@ -54,7 +54,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #define SIGIOT SIGABRT	/* io-trap signal redefined */
 #endif
 
-#ifdef	linux
+#if defined(linux) || defined(EMSCRIPTEN)
 #if SIGBUS == SIGUNUSED
 #undef SIGBUS
 #define SIGBUS SIGUSR1
@@ -547,7 +547,7 @@ sigCrash(signum)
     char *msg;
     extern bool AbortFatal;
 
-#ifndef	linux
+#if !defined(linux) && !defined(EMSCRIPTEN)
     if (magicNumber == 1239987) {
 	/* Things aren't screwed up that badly, try to reset the terminal */
 	magicNumber = 0;

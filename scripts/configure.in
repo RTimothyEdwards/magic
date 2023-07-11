@@ -1353,6 +1353,7 @@ dnl ----------------------------------------------------------------
 case $target in
   *-linux*)
     AC_DEFINE(linux)
+    AC_DEFINE(SYSV)
     dnl Defining "ISC" prevents compiler failure on redefinition of "wchar_t"
     AC_DEFINE(ISC)
     dnl 64-bit support for AMD Opteron
@@ -1370,6 +1371,10 @@ case $target in
       gr_libs="$gr_libs -lbsd"
     fi
     ;; 
+  *-emscripten*)
+    AC_DEFINE(linux)
+    CFLAGS="${CFLAGS} -fPIC -Werror=implicit-function-declaration -Wno-int-conversion -Wno-implicit-int"
+    ;;
   *solaris*)
     AC_DEFINE(SYSV)
     ;;
