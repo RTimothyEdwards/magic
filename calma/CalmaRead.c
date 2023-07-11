@@ -28,6 +28,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include <netinet/in.h>
 
+/*
+ * C99 compat
+ * Mind: tcltk/tclmagic.h must be included prior to all the other headers
+ */
+#include "tcltk/tclmagic.h"
+
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "tiles/tile.h"
