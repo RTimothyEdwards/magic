@@ -7773,7 +7773,9 @@ fi
 case $target in
   *-linux*)
     $as_echo "#define linux 1" >>confdefs.h
+
     $as_echo "#define SYSV 1" >>confdefs.h
+
         $as_echo "#define ISC 1" >>confdefs.h
 
         case $target in
