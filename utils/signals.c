@@ -348,7 +348,7 @@ SigWatchFile(filenum, filename)
     if (!mainDebug)
     {
 	/* turn on FASYNC */
-#ifndef SYSV
+#if !defined(SYSV) && !defined(EMSCRIPTEN)
 #ifdef F_SETOWN
 	if (!iswindow)
 	{
