@@ -32,3 +32,4 @@ magic/tclmagic.dylib
 tcltk/magicdnull.dSYM/
 tcltk/magicexec.dSYM/
 reconfigure.sh
+pfx/

@@ -1,189 +1,107 @@
-#!/bin/csh -f
-#
+#!/usr/bin/env python3
+
 # makes the "database.h" (1st argument, $1) file from "database.h.in"
 # (2nd argument, $2), setting various mask operation definitions
 # according to the number of words implied by the value of TT_MAXTYPES
+import re
+import sys
 
-# The following mess grabs the value of TT_MAXTYPES from database.h.in
-#
-set maxtypes=`sed -n -e '/^#define[[:space:]]*TT_MAXTYPES/s/#define[[:space:]]*TT_MAXTYPES[[:space:]]*//p' < $1 | sed -e 's/\/\*[[:print:]]*\*\/[[:space:]]*//g' `
-#
-# Alternative method works with outdated versions of sed/ed.
-#
-if ($maxtypes == "") then
-   set maxtypes=`sed -n -e '/^#define[ 	]*TT_MAXTYPES/s/#define[ 	]*TT_MAXTYPES[ 	]*//p' < $1 | sed -e 's/\/\*.*\*\/[ 	]*//g' `
-endif
-#
-# If we can't generate database.h correctly, nothing is going to compile.
-#
-if ($maxtypes == "") then
-   echo "Bad sed script in scripts/makedbh:  Cannot generate database/database.h!"
-   exit
-endif
+database_h_in = open(sys.argv[1], encoding="utf8").read()
+
+maxtypes_rx = re.compile(r"#define\s+TT_MAXTYPES\s+(\d+)")
+
+match = maxtypes_rx.findall(database_h_in)
+if len(match) == 0:
+    print(
+        f"Bad regular expression in {sys.argv[0]}: Cannot generate database/database.h!",
+        file=sys.stderr,
+    )
+    exit(-1)
+
+maxtypes = int(match[0])
 
 # Find derived values from bits per word
 # Note that bits-per-word should be determined from the compiler, but
 # 32 bits per word has always been hardwired into magic.
 #
-set bpw = 32
+bpw = 32
+maskwords = (maxtypes + bpw - 1) // bpw
 
-# @ wordmask=$bpw - 1
-# set wordshift=`echo "c=l($bpw); d=l(2); scale=0; c/d" | bc -l`
-# @ maskwords=$maxtypes + $bpw - 1
-# @ maskwords/=$bpw
-
-@ maskwords=$maxtypes + $bpw - 1
-@ maskwords/=$bpw
+# Prepare Output String
+out_string = database_h_in
 
 
-# Generate the main part of the database.h file from database.h.in
-cat $1 > $2
+def p(string):
+    global out_string
+    out_string += f"{string}"
 
-# Generate a list of integers from 0 to the value of "maskwords" - 1
-set count=""
-@ maskwords--
-while (${maskwords} >= 0)
-   set count=`echo ${count} ${maskwords}`
-   @ maskwords--
-end
 
-# NOTE: echo -n is not POSIX, not portable to newer Bourne-shells, so use printf
-# NOTE:  Some OSes are known to buffer printf and echo independently, so do not
-# intermix "echo" and "printf" or output may have lines out of order.
+# Generated macros
+def add_generated_mask_macro(name, expression, *, connector=","):
+    global maskwords
 
-printf "#define TTMaskZero(m) ( \\\n" >> $2
-foreach i (${count})
-   printf "	(m)->tt_words[$i] = 0" >> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-      printf "\n" >> $2
-   else
-      printf ", \\\n" >> $2
-   endif
-end
+    p(f"#define {name} ( \\\n")
+    for i in reversed(range(maskwords)):
+        p(f"\t{expression.format(i=i)}")
+        if i == 0:
+            p(")\n\n")
+        else:
+            p(f"{connector} \\\n")
 
-printf "#define TTMaskIsZero(m) ( \\\n" >> $2
-foreach i (${count})
-   printf "	(m)->tt_words[$i] == 0" >> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-      printf "\n" >> $2
-   else
-      printf " && \\\n" >> $2
-   endif
-end
 
-printf "#define TTMaskEqual(m, n) ( \\\n" >> $2
-foreach i (${count})
-   printf "	(m)->tt_words[$i] == (n)->tt_words[$i]" >> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-      printf "\n" >> $2
-   else
-      printf " && \\\n" >> $2
-   endif
-end
+add_generated_mask_macro(
+    "TTMaskZero(m)",
+    "(m)->tt_words[{i}] = 0",
+)
+add_generated_mask_macro(
+    "TTMaskIsZero(m)",
+    "(m)->tt_words[{i}] == 0",
+    connector=" &&",
+)
+add_generated_mask_macro(
+    "TTMaskEqual(m, n)",
+    "(m)->tt_words[{i}] == (n)->tt_words[{i}]",
+    connector=" &&",
+)
+add_generated_mask_macro(
+    "TTMaskIntersect(m, n)",
+    "((m)->tt_words[{i}] & (n)->tt_words[{i}])",
+    connector=" ||",
+)
+add_generated_mask_macro(
+    "TTMaskCom(m)",
+    "((m)->tt_words[{i}] = ~(m)->tt_words[{i}])",
+)
+add_generated_mask_macro(
+    "TTMaskCom2(m, n)",
+    "((m)->tt_words[{i}] = ~(n)->tt_words[{i}])",
+)
+add_generated_mask_macro(
+    "TTMaskSetMask(m, n)",
+    "((m)->tt_words[{i}] |= (n)->tt_words[{i}])",
+)
+add_generated_mask_macro(
+    "TTMaskSetMask3(m, n, o)",
+    "((m)->tt_words[{i}] |= (n)->tt_words[{i}] | (o)->tt_words[{i}])",
+)
+add_generated_mask_macro(
+    "TTMaskAndMask(m, n)",
+    "((m)->tt_words[{i}] &= (n)->tt_words[{i}])",
+)
+add_generated_mask_macro(
+    "TTMaskAndMask3(m, n, o)",
+    "((m)->tt_words[{i}] = (n)->tt_words[{i}] & (o)->tt_words[{i}])",
+)
+add_generated_mask_macro(
+    "TTMaskClearMask(m, n)",
+    "((m)->tt_words[{i}] &= ~(n)->tt_words[{i}])",
+)
+add_generated_mask_macro(
+    "TTMaskClearMask3(m, n, o)",
+    "((m)->tt_words[{i}] = (n)->tt_words[{i}] & ~(o)->tt_words[{i}])",
+)
 
-printf "#define TTMaskIntersect(m, n) ( \\\n" >> $2
-foreach i (${count})
-   printf "	((m)->tt_words[$i] & (n)->tt_words[$i])" >> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-      printf "\n" >> $2
-   else
-      printf " || \\\n" >> $2
-   endif
-end
+p("#endif /* _DATABASE_H */\n")
 
-printf "#define TTMaskCom(m) ( \\\n" >> $2
-foreach i (${count})
-   printf "	((m)->tt_words[$i] = ~(m)->tt_words[$i])" >> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-      printf "\n" >> $2
-   else
-      printf ", \\\n" >> $2
-   endif
-end
-
-printf "#define TTMaskCom2(m, n) ( \\\n" >> $2
-foreach i (${count})
-   printf "	((m)->tt_words[$i] = ~(n)->tt_words[$i])" >> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-      printf "\n" >> $2
-   else
-      printf ", \\\n" >> $2
-   endif
-end
-
-printf "#define TTMaskSetMask(m, n) ( \\\n" >> $2
-foreach i (${count})
-   printf "	((m)->tt_words[$i] |= (n)->tt_words[$i])" >> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-      printf "\n" >> $2
-   else
-      printf ", \\\n" >> $2
-   endif
-end
-
-printf "#define TTMaskSetMask3(m, n, o) ( \\\n" >> $2
-foreach i (${count})
-   printf "	((m)->tt_words[$i] |= (n)->tt_words[$i] | (o)->tt_words[$i])" \
-	>> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-      printf "\n" >> $2
-   else
-      printf ", \\\n" >> $2
-   endif
-end
-
-printf "#define TTMaskAndMask(m, n) ( \\\n" >> $2
-foreach i (${count})
-   printf "	((m)->tt_words[$i] &= (n)->tt_words[$i])" >> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-      printf "\n" >> $2
-   else
-      printf ", \\\n" >> $2
-   endif
-end
-
-printf "#define TTMaskAndMask3(m, n, o) ( \\\n" >> $2
-foreach i (${count})
-   printf "	((m)->tt_words[$i] = (n)->tt_words[$i] & (o)->tt_words[$i])" \
-	>> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-      printf "\n" >> $2
-   else
-      printf ", \\\n" >> $2
-   endif
-end
-
-printf "#define TTMaskClearMask(m, n) ( \\\n" >> $2
-foreach i (${count})
-   printf "	((m)->tt_words[$i] &= ~(n)->tt_words[$i])" >> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-      printf "\n" >> $2
-   else
-      printf ", \\\n" >> $2
-   endif
-end
-
-printf "#define TTMaskClearMask3(m, n, o) ( \\\n" >> $2
-foreach i (${count})
-   printf "	((m)->tt_words[$i] = (n)->tt_words[$i] & ~(o)->tt_words[$i])" \
-	>> $2
-   if ($i == 0) then
-      printf ")\n" >> $2
-   else
-      printf ", \\\n" >> $2
-   endif
-end
-
-printf "\n" >> $2
-printf "#endif /* _DATABASE_H */\n" >> $2
+with open(sys.argv[2], "w", encoding="utf8") as f:
+    f.write(out_string)

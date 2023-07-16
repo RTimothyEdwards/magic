@@ -17,10 +17,10 @@ jobs:
     steps:
       - name: Pulling the docker image
         run: docker pull vezzal/vezzal:v1
-        
+
       - name: Start the container with the docker image
         run: docker run -id --name test_magic vezzal/vezzal:v1 bash | exit
-        
+
       - name: Run the testing on the container and send the mail
         run: docker exec test_magic /vezzal/test_magic.sh "lankasaicharan123@gmail.com,tim@opencircuitdesign.com" ${{secrets.MAILING_KEY}}
   simple_build_linux:
@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Get Dependencies
         run: |
-          sudo apt-get install -y tcl-dev tk-dev libcairo-dev csh
+          sudo apt-get install -y tcl-dev tk-dev libcairo-dev
       - name: Build
         run: |
           ./configure
@@ -41,7 +41,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: Get Dependencies
         run: |
-          sudo apt-get install -y csh
           git clone https://github.com/emscripten-core/emsdk.git
           cd emsdk
           ./emsdk install latest
