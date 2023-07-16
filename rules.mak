@@ -14,13 +14,12 @@ depend: ${DEPEND_FILE}
 
 ${DEPEND_FILE}:
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} ${DEPSRCS} | \
-	sed -e "/#/D" -e "/ \//s/ \/.*\.h//" -e "/  \\\/D" \
-	> ${DEPEND_FILE}
+	sed -e "/#/D" -e "/ \//s/ \/.*\.h//" -e "/  \\\/D" > ${DEPEND_FILE}
 
 # Original Depend file generating line:
 #	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} ${SRCS} > ${DEPEND_FILE}
 
-.c.o:	../database/database.h
+${OBJS}: %.o: ${SRCS} ../database/database.h
 	@echo --- compiling ${MODULE}/$*.o
 	${RM} $*.o
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS}  -c $*.c

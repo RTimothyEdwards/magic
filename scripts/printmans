@@ -1,9 +1,8 @@
-#!/bin/csh -f
+#!/bin/sh
+cmd=$1
+shift
 
-set cmd=($1)
-shift argv
-
-foreach i ($argv)
-    echo cat $i \| $cmd
+for i in "$@"; do
+    echo "cat $i | $cmd"
     cat $i | $cmd
-end
+done
