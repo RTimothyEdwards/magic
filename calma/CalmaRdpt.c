@@ -872,8 +872,11 @@ calmaElementText()
 	    else
 		/* Assume that MAG is the label size in microns		*/
 		/* "size" is the label size in 10 * (database units)	*/
-		size = (int)((dval * 1000 * cifCurReadStyle->crs_multiplier)
-				/ cifCurReadStyle->crs_scaleFactor);
+		/* The "calma magscale" option can be used to		*/
+		/* reinterpret the size for any specific GDS file.	*/
+		size = (int)(0.5 + ((dval * 1000 * CalmaMagScale
+			* cifCurReadStyle->crs_multiplier)
+			/ cifCurReadStyle->crs_scaleFactor));
 	}
 	else
 	    UNREADRH(nbytes, rtype);

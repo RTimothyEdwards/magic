@@ -105,6 +105,14 @@ Read GDSII input or generate GDSII output.
 		 Otherwise, the use of <B>yes</B> and <B>no</B> toggles the
 		 flattening behavior without affecting any value previously
 		 set by <B>flatten</B> <I>number</I>.
+	    <DT> <B>magscale</B> [<I>value</I>|<B>default</B>]
+	    <DD> By default magic interprets the GDS magnification value
+		 of 1.0 as 1 micron for text scale.  As this definition is
+		 not universal, some GDS files may read in with text at
+		 an unusual scale.  The value <I>value</I> sets the text
+		 height in microns at a magnification of 1.  Value <B>default</B>
+		 resets the value to the default of 1.  If no option is given,
+		 then return the magnification value. 
 	    <DT> <B>maskhints</B> [<B>yes</B>|<B>no</B>|<I>layers</I>]
 	    <DD> When set to <B>yes</B>, then after reading each cell
 		 definition from the GDS file, magic will re-generate the

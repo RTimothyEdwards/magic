@@ -82,6 +82,12 @@ bool CalmaReadOnly = FALSE;		/* Set files to read-only and
 					 * retain file position information
 					 * so cells can be written verbatim.
 					 */
+float CalmaMagScale = 1.0;		/* Scale by which to interpret the MAG
+					 * record in GDS text records.  The
+					 * default is to treat the value as
+					 * the text height in microns.  This
+					 * value reinterprets the scale.
+					 */
 bool CalmaNoDRCCheck = FALSE;		/* If TRUE, don't mark cells as needing
 					 * a DRC check;  they will be assumed
 					 * DRC clean.

@@ -39,6 +39,8 @@ extern bool CalmaMergeTiles;
 extern bool CalmaFlattenArrays;
 extern bool CalmaNoDRCCheck;
 extern bool CalmaFlattenUses;
+extern int  CalmaFlattenLimit;
+extern float CalmaMagScale;
 extern char **CalmaFlattenUsesByName;
 extern bool CalmaReadOnly;
 extern bool CalmaContactArrays;

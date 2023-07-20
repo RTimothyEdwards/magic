@@ -105,20 +105,21 @@ bool cmdDumpParseArgs();
 #define	CALMA_LABELS	10
 #define	CALMA_LIBRARY	11
 #define	CALMA_LOWER	12
-#define CALMA_MASKHINTS	13
-#define CALMA_MERGE	14
-#define CALMA_NO_STAMP	15
-#define CALMA_NO_DUP	16
-#define CALMA_ORDERING	17
-#define CALMA_READ	18
-#define CALMA_READONLY	19
-#define CALMA_RESCALE	20
-#define CALMA_WARNING	21
-#define CALMA_WRITE	22
-#define CALMA_POLYS	23
-#define CALMA_PATHS	24
-#define CALMA_UNDEFINED	25
-#define CALMA_UNIQUE	26
+#define CALMA_MAGSCALE  13
+#define CALMA_MASKHINTS	14
+#define CALMA_MERGE	15
+#define CALMA_NO_STAMP	16
+#define CALMA_NO_DUP	17
+#define CALMA_ORDERING	18
+#define CALMA_READ	19
+#define CALMA_READONLY	20
+#define CALMA_RESCALE	21
+#define CALMA_WARNING	22
+#define CALMA_WRITE	23
+#define CALMA_POLYS	24
+#define CALMA_PATHS	25
+#define CALMA_UNDEFINED	26
+#define CALMA_UNIQUE	27
 
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
@@ -136,8 +137,6 @@ CmdCalma(w, cmd)
 #ifdef HAVE_ZLIB
     gzFile fz;
 #endif
-
-    extern int CalmaFlattenLimit;
 
     static char *gdsExts[] = {".gds", ".gds.gz", ".gds2", ".strm", "", NULL};
     static char *cmdCalmaYesNo[] = {
@@ -162,6 +161,7 @@ CmdCalma(w, cmd)
 	"labels [yes|no]	cause labels to be output when writing GDS-II",
 	"library [yes|no]	do not output the top level, only subcells",
 	"lower [yes|no]		allow both upper and lower case in labels",
+	"magscale [value]	scale to interpret text magnification 1 in microns",
 	"maskhints [yes|no]	generate mask hint properties on input",
 	"merge [yes|no]		merge tiles into polygons in the output",
 	"nodatestamp [yes|no]	write a zero value creation date stamp",
@@ -419,6 +419,27 @@ CmdCalma(w, cmd)
 	    if (option < 0)
 		goto wrongNumArgs;
 	    CalmaNoDRCCheck = (option < 4) ? TRUE : FALSE;
+	    return;
+
+	case CALMA_MAGSCALE:
+	    if (cmd->tx_argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewDoubleObj((double)CalmaMagScale));
+#else
+		TxPrintf("Text magnification 1.0 = %g microns.\n");
+#endif
+		return;
+	    }
+	    else if (cmd->tx_argc != 3)
+		goto wrongNumArgs;
+
+	    if (StrIsNumeric(cmd->tx_argv[2]))
+		 CalmaMagScale = (float)atof(cmd->tx_argv[2]);
+	    else if (!strcmp(cmd->tx_argv[2], "default"))
+		 CalmaMagScale = 1.0;
+	    else
+		goto wrongNumArgs;
 	    return;
 
 	case CALMA_FLATTEN:
