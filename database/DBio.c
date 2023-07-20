@@ -1232,7 +1232,7 @@ DBCellRead(cellDef, ignoreTech, dereference, errptr)
 
 #ifdef FILE_LOCKS
 	/* Close files that were locked by another user */
-	if (cellDef->cd_fd == -2) FCLOSE(f);
+	if ((FileLocking == FALSE) || (cellDef->cd_fd == -2)) FCLOSE(f);
 #else
 	/* When using fcntl() to enforce file locks, we can't	*/
 	/* close the file descriptor without losing the lock.	*/
