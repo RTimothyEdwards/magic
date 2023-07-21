@@ -1560,8 +1560,9 @@ Okay:
 	     * click" code.
 	     */
 
-	    if ((cmd->tx_argc == 3) && (optionArgs == &cmd->tx_argv[2]) &&
-		(more == FALSE) && (less == FALSE))
+	    if (((cmd->tx_argc == 3) || (cmd->tx_argc == 6)) &&
+			(optionArgs == &cmd->tx_argv[2]) &&
+			(more == FALSE) && (less == FALSE))
 	    {
 		use = lastUse = scx.scx_use;
 		p.p_x = scx.scx_use->cu_xlo;
@@ -1569,7 +1570,7 @@ Okay:
 		trans = GeoIdentityTransform;
 		printPath = scx.scx_use->cu_id;
 	    }
-	    else if (cmd->tx_argc == 3)
+	    else if ((cmd->tx_argc == 3) || (cmd->tx_argc == 6))
 	    {
 		SearchContext scx2;
 
