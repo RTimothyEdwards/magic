@@ -418,25 +418,4 @@ extern int  EFHierVisitResists();
 extern int  EFHierVisitCaps();
 extern int  EFHierVisitNodes();
 
-
-/* ------------------------- constants used by clients -------------- */
-
-/*
- * ANSI C definitions of arguments to EFvisit procedures
- */
-
-/* - left for documentation purposes
-
-typedef int (*capproc)(HierName *, HierName *, double, ClientData );
-
-extern int EFVisitCaps(capproc, ClientData );
-
-typedef int (*nodeproc)(EFNode *, int , double, ClientData );
-
-extern int EFVisitNodes(nodeproc , ClientData );
-
-extern int EFReadFile(char *);
-
-*/
-
 #endif /* _EXTFLAT_H */

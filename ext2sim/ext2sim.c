@@ -615,7 +615,7 @@ runexttosim:
     }
 
     /* Read the hierarchical description of the input circuit */
-    if (EFReadFile(inName, FALSE, esDoSimExtResis, FALSE) == FALSE)
+    if (EFReadFile(inName, FALSE, esDoSimExtResis, FALSE, FALSE) == FALSE)
     {
 	EFDone();
 	return /* TCL_ERROR */;
@@ -791,7 +791,7 @@ main(argc, argv)
     }
 
     /* Read the hierarchical description of the input circuit */
-    if (EFReadFile(inName, FALSE, esDoSimExtResis, FALSE) == FALSE)
+    if (EFReadFile(inName, FALSE, esDoSimExtResis, FALSE, FALSE) == FALSE)
     {
 	exit(1);
     }

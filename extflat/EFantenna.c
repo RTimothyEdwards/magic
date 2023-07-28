@@ -224,7 +224,7 @@ runantennacheck:
 
     /* Read the hierarchical description of the input circuit */
     TxPrintf("Reading extract file.\n");
-    if (EFReadFile(inName, FALSE, FALSE, FALSE) == FALSE)
+    if (EFReadFile(inName, FALSE, FALSE, FALSE, FALSE) == FALSE)
     {
 	EFDone();
 	return /* TCL_ERROR */;

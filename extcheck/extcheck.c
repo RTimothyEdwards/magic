@@ -74,7 +74,7 @@ main(argc, argv)
 	exit (1);
 
     /* Read the hierarchical description of the input circuit */
-    EFReadFile(inName, FALSE, FALSE, FALSE);
+    EFReadFile(inName, FALSE, FALSE, FALSE, FALSE);
     if (EFArgTech) EFTech = StrDup((char **) NULL, EFArgTech);
     if (EFScale == 0.0) EFScale = 1.0;
 

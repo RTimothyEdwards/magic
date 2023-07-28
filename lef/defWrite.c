@@ -265,7 +265,7 @@ defCountNets(rootDef, allSpecial)
 
     EFScale = 0.0;	/* Allows EFScale to be set to the scale value	*/
 
-    if (EFReadFile(rootDef->cd_name, TRUE, FALSE, TRUE))
+    if (EFReadFile(rootDef->cd_name, TRUE, FALSE, TRUE, FALSE))
     {
 	EFFlatBuild(rootDef->cd_name, EF_FLATNODES | EF_NOFLATSUBCKT);
         EFVisitNodes(defnodeCount, (ClientData)&total);

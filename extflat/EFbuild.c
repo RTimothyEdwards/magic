@@ -498,9 +498,9 @@ efBuildEquiv(def, nodeName1, nodeName2, resist, isspice)
 			 * or nodeName2 must already be known.
 			 */
     bool resist;	/* True if "extresist on" option was selected */
-    bool isspice;	/* Passed from "dosubckt" in EFReadFile(), is only
-			 * TRUE when running ext2spice.  Indicates that nodes
-			 * are case-insensitive.
+    bool isspice;	/* Passed from EFReadFile(), is only TRUE when
+			 * running ext2spice.  Indicates that nodes are
+			 * case-insensitive.
 			 */
 {
     EFNodeName *nn1, *nn2;

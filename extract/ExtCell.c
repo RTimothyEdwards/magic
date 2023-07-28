@@ -195,6 +195,12 @@ extFileOpen(def, file, mode, prealfile)
 				ExtLocalPath);
 		    name = def->cd_name;	/* Save locally */
 		}
+		else
+		{
+		    /* Save locally in specified path, which was just created */
+		    name = namebuf;
+		    sprintf(namebuf, "%s/%s", ExtLocalPath, def->cd_name);
+		}
 	    }
 	    else
 	    {

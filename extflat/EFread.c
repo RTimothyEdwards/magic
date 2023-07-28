@@ -121,7 +121,10 @@ static bool efReadDef();
  * name of 'name', allocates a new one.  Calls efReadDef to do the
  * work of reading the def itself.  If 'dosubckt' is true, then port
  * mappings are kept.  If 'resist' is true, read in the .res.ext file
- * (from extresist) if it exists, after reading the .ext file.
+ * (from extresist) if it exists, after reading the .ext file.  If
+ * "isspice" is true, then the .ext file is being read for SPICE
+ * netlist generation, and node names should be treated as case-
+ * insensitive.
  *
  * Results:
  *	Passes on the return value of efReadDef (see below)
@@ -136,9 +139,9 @@ static bool efReadDef();
  */
 
 bool
-EFReadFile(name, dosubckt, resist, noscale)
+EFReadFile(name, dosubckt, resist, noscale, isspice)
     char *name; /* Name of def to be read in */
-    bool dosubckt, resist, noscale;
+    bool dosubckt, resist, noscale, isspice;
 {
     Def *def;
     bool  rc;
@@ -148,7 +151,7 @@ EFReadFile(name, dosubckt, resist, noscale)
 	def = efDefNew(name);
 
     locScale = 1.0;
-    rc = efReadDef(def, dosubckt, resist, noscale, TRUE);
+    rc = efReadDef(def, dosubckt, resist, noscale, TRUE, isspice);
     if (EFArgTech) EFTech = StrDup((char **) NULL, EFArgTech);
     if (EFScale == 0.0) EFScale = 1.0;
 
@@ -176,9 +179,9 @@ EFReadFile(name, dosubckt, resist, noscale)
  */
 
 bool
-efReadDef(def, dosubckt, resist, noscale, toplevel)
+efReadDef(def, dosubckt, resist, noscale, toplevel, isspice)
    Def *def;
-   bool dosubckt, resist, noscale, toplevel;
+   bool dosubckt, resist, noscale, toplevel, isspice;
 {
     int argc, ac, n;
     CellDef *dbdef;
@@ -325,7 +328,7 @@ readfile:
 
 	    /* equiv node1 node2 */
 	    case EQUIV:
-		efBuildEquiv(def, argv[1], argv[2], resist, dosubckt);
+		efBuildEquiv(def, argv[1], argv[2], resist, isspice);
 		break;
 
 	    /* replaces "fet" (below) */
@@ -645,7 +648,8 @@ resistChanged:
     {
         use = (Use *)HashGetValue(he);
 	if ((use->use_def->def_flags & DEF_AVAILABLE) == 0)
-	    if (efReadDef(use->use_def, DoSubCircuit, resist, noscale, FALSE) != TRUE)
+	    if (efReadDef(use->use_def, DoSubCircuit, resist, noscale, FALSE,
+			isspice) != TRUE)
 		rc = FALSE;
     }
 
