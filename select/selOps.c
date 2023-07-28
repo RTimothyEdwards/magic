@@ -145,6 +145,64 @@ SelectDelete(msg, do_clear)
     if (do_clear) SelectClear();
 }
 
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * SelectDeleteUses --
+ *
+ * 	Delete all cell uses in the edit cell that are selected.
+ *	This function is used by "flatten -doinplace" when operating
+ *	on a selection.  Since selected instances are flattened, the
+ *	instances need to be deleted from the cell.  This routine is
+ *	the same as SelectDelete() without the paint and label delete
+ *	functions.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	Cell uses are removed from the edit cell.  If there are selected
+ *	uses that aren't in the edit cell, the user is warned.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+SelectDeleteUses(msg, do_clear)
+    char *msg;		/* Some information to print in error messages.
+			 * For example, if called as part of a move procedure,
+			 * supply "moved".  This will appear in messages of
+			 * the form "only edit cell information was moved".
+			 */
+    bool do_clear;	/* If TRUE, clear the select def before returning. */
+{
+    bool nonEdit;
+    Rect editArea;
+
+    extern int selDelPaintFunc(), selDelCellFunc(), selDelLabelFunc();
+
+    if (EditCellUse == NULL)
+    {
+	TxError("The current cell is not editable.\n");
+	return;
+    }
+    (void) SelEnumCells(TRUE, &nonEdit, (SearchContext *) NULL,
+	    selDelCellFunc, (ClientData) NULL);
+    if (nonEdit)
+    {
+	TxError("You selected one or more subcells that aren't children\n");
+	TxError("    of the edit cell.  Only those in the edit cell were\n");
+	TxError("    %s.\n", msg);
+    }
+
+    DBReComputeBbox(EditCellUse->cu_def);
+    GeoTransRect(&RootToEditTransform, &SelectDef->cd_extended, &editArea);
+    DBWAreaChanged(EditCellUse->cu_def, &editArea, DBW_ALLWINDOWS,
+	(TileTypeBitMask *) NULL);
+    DRCCheckThis(EditCellUse->cu_def, TT_CHECKPAINT, &editArea);
+    if (do_clear) SelectClear();
+}
+
 /* Search function to delete paint. */
 
 int

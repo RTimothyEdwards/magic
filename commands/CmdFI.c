@@ -2050,7 +2050,7 @@ CmdFlatten(w, cmd)
 	    }
 	    use = (CellUse *)HashGetValue(he);
 	    UndoDisable();
-	    DBFlattenInPlace(use, EditCellUse, xMask, dolabels, toplabels);
+	    DBFlattenInPlace(use, EditCellUse, xMask, dolabels, toplabels, TRUE);
 	    UndoEnable();
 	}
 	else
@@ -2062,8 +2062,12 @@ CmdFlatten(w, cmd)
 	    scx.scx_trans = SelectUse->cu_transform;
 
 	    DBCellFlattenAllCells(&scx, EditCellUse, xMask, dolabels, toplabels);
+
+	    /* Instances in SelectDef need to be removed.  The 2nd	*/
+	    /* argument TRUE causes the selection to be deleted.	*/
+	    SelectDeleteUses("flattened", TRUE);
+
 	    UndoEnable();
-	    SelectClear();
 	}
 	return;
     }

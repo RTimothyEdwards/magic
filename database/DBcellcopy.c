@@ -553,12 +553,13 @@ DBFlatCopyMaskHints(scx, xMask, targetUse)
  */
 
 void
-DBFlattenInPlace(use, dest, xMask, dolabels, toplabels)
+DBFlattenInPlace(use, dest, xMask, dolabels, toplabels, doclear)
     CellUse *use;		/* Cell use to flatten */
     CellUse *dest;		/* Cell use to flatten into */
     int xMask;			/* Search mask for flattening */
     bool dolabels;		/* Option to flatten labels */
     bool toplabels;		/* Option to selectively flatten top-level labels */
+    bool doclear;		/* Delete the original use if TRUE */
 {
     Label *lab;
     SearchContext scx;
@@ -678,7 +679,8 @@ DBFlattenInPlace(use, dest, xMask, dolabels, toplabels)
 	lab->lab_flags &= ~LABEL_GENERATE;
 
     /* Remove the use from the parent def */
-    DBDeleteCell(scx.scx_use);
+    if (doclear)
+	DBDeleteCell(scx.scx_use);
 
     /* Was: &scx.scx_use->cu_def->cd_bbox */
     DBWAreaChanged(dest->cu_def, &scx.scx_use->cu_bbox,
@@ -730,7 +732,7 @@ dbCellFlattenCellsFunc(scx, clientData)
     toplabels = fad->fad_toplabels;
 
     use = scx->scx_use;
-    DBFlattenInPlace(use, dest, xMask, dolabels, toplabels);
+    DBFlattenInPlace(use, dest, xMask, dolabels, toplabels, FALSE);
     return 2;
 }
 
