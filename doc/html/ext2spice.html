@@ -273,6 +273,15 @@ Convert extracted file(s) to a SPICE format file.
 	     of search for area and perimeter is the whole netlist.  In
 	     general, <B>flat</B> (which is the default) will give accurate
 	     results (it will take into account shared sources/drains).
+	<DT> <B>-p</B> <I>path</I>
+	<DD> Search the directory location <I>path</I> for .ext format
+	     files.  This option is typically used with the "<B>extract
+	     path</B> <I>path</I>" command, because extraction and netlist
+	     generation are two independent steps.  If this option is not
+	     specified, then by default the .ext file is expected to be in
+	     the same location as the corresponding .mag file, and failing
+	     that, the search path for .ext files is the same as the search
+	     path for .mag files.
       </DL>
       </BLOCKQUOTE>
 

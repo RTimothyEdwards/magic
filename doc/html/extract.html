@@ -140,7 +140,10 @@ Circuit netlist extractor
 		the user, in which case the file is extracted to the
 		current working diretory.  Note that "<B>extract do local</B>"
 		is the same as "<B>extract path .</B>" and "<B>extract no local</B>"
-		is the same as "<B>extract path none</B>".
+		is the same as "<B>extract path none</B>".  Also note that
+		netlist generation is independent of extraction, and needs to
+		specify the same path as used by <B>extract path</B>, e.g.,
+		"<B>ext2spice -p</B> <I>pathname</I>".
 	   <DT> <B>parents</B>
 	   <DD> Extract the selected cell and all its parents
 	   <DT> <B>showparents</B>

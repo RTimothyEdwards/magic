@@ -619,8 +619,8 @@ DBTreeSrLabels(scx, mask, xMask, tpath, flags, func, cdarg)
 		    r1.r_ybot = r->r_ytop;
 		    r2.r_xbot = r->r_xtop;
 		}
-		is_touching = GEO_TOUCH(&lab->lab_bbox, &r1) ||
-			  GEO_TOUCH(&lab->lab_bbox, &r2);
+		is_touching = GEO_TOUCH(&lab->lab_rect, &r1) ||
+			  GEO_TOUCH(&lab->lab_rect, &r2);
 	    }
 	    else
 		is_touching = GEO_TOUCH(&lab->lab_rect, r);
