@@ -1283,7 +1283,7 @@ efBuildDevNode(def, name, isSubsNode)
 	nn = (EFNodeName *) HashGetValue(he);
 	isNewNode = TRUE;
     }
-    if (isSubsNode)
+    if (isSubsNode || (nn->efnn_node->efnode_flags & EF_GLOB_SUBS_NODE))
     {
 	if (!EFHNIsGlob(nn->efnn_hier))
 	{
