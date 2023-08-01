@@ -390,9 +390,13 @@ extHierConnectFunc1(oneTile, ha)
 
     for (lab = cumDef->cd_labels; lab; lab = lab->lab_next)
     {
-	// All sticky labels are at the front of the list in cumDef, so
-	// stop when we see the first non-sticky label.
-	if (!(lab->lab_flags & LABEL_STICKY)) break;
+	/* NOTE:  Need a better way to access the sticky labels
+	 * without running through the whole linked list.  Pushing
+	 * them to the list front may not work for reasons explained
+	 * in extSubtreeAdjustInit().
+	 */
+	
+	if (!(lab->lab_flags & LABEL_STICKY)) continue;
 
 	if (GEO_TOUCH(&r, &lab->lab_rect))
 	    if (TTMaskHasType(connected, lab->lab_type))

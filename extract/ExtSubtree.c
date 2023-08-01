@@ -821,10 +821,10 @@ extSubtreeFunc(scx, ha)
 	    for (lab = cumDef->cd_labels; lab; lab = lab->lab_next)
 	    {
 		if (!(lab->lab_flags & LABEL_STICKY)) continue;
+		if (!(GEO_LABEL_IN_AREA(&lab->lab_rect, &ha->ha_interArea))) continue;
 
 		r = lab->lab_rect;
 		GEOCLIP(&r, &ha->ha_interArea);
-		if (GEO_RECTNULL(&r)) continue;
 
 		if (r.r_xbot == r.r_xtop)
 		{
