@@ -623,13 +623,39 @@ resistChanged:
 		break;
 	}
     }
-    (void) fclose(inf);
+    fclose(inf);
+    inf = (FILE *)NULL;
 
     /* Is there an "extresist" extract file? */
     if (DoResist)
     {
 	DoResist = FALSE;	/* do this only once */
-	inf = PaOpen(name, "r", ".res.ext", EFSearchPath, EFLibPath, &efReadFileName);
+	if (EFSearchPath != NULL)
+	    inf = PaOpen(name, "r", ".res.ext", EFSearchPath,
+			EFLibPath, &efReadFileName);
+
+	if ((inf == NULL) && (dbdef = DBCellLookDef(name)) != NULL)
+	{
+	    /* If cell is in main database, check if there is a file path set. */
+	    if (dbdef->cd_file != NULL)
+	    {
+		char *filepath, *sptr;
+
+		filepath = StrDup((char **)NULL, dbdef->cd_file);
+		sptr = strrchr(filepath, '/');
+		if (sptr) {
+		    *sptr = '\0';
+		    inf = PaOpen(name, "r", ".res.ext", filepath,
+				EFLibPath, &efReadFileName);
+		}
+		freeMagic(filepath);
+	    }
+	}
+
+	/* Try with the standard search path */
+	if ((inf == NULL) && (EFSearchPath == NULL))
+	    inf = PaOpen(name, "r", ".res.ext", Path, EFLibPath, &efReadFileName);
+
 	if (inf != NULL)
 	    goto readfile;
     }
