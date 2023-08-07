@@ -986,6 +986,7 @@ ResCheckSimNodes(celldef, resisdata)
 	    }
 	ResExtFile = PaOpen(outfile, "w", ".res.ext", ".", (char *)NULL, (char **)NULL);
 	if (outfile != celldef->cd_name) freeMagic(outfile);
+	outfile = celldef->cd_name;
     }
     else
     {
@@ -1194,7 +1195,7 @@ ResCheckSimNodes(celldef, resisdata)
 	    }
 	    else
 	    {
-		ResDoSimplify(ftolerance,rctol,&gparams);
+		ResDoSimplify(ftolerance, rctol, &gparams);
 		if (ResOptionsFlags & ResOpt_DoLumpFile)
 		{
 		    ResWriteLumpFile(node);

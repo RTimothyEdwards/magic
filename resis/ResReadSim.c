@@ -901,7 +901,8 @@ ResSimProcessDrivePoints(filename)
     HashEntry	*entry;
     ResSimNode	*node;
 
-    fp = PaOpen(filename, "r", ".ext", ".", (char *)NULL, (char **)NULL);
+    fp = PaOpen(filename, "r", ".ext", (ExtLocalPath == NULL) ? "." : ExtLocalPath,
+			(char *)NULL, (char **)NULL);
     if (fp == NULL)
     {
      	TxError("Cannot open file %s%s\n", filename, ".ext");
@@ -947,7 +948,8 @@ ResSimProcessFixPoints(filename)
     FILE	*fp;
     ResFixPoint	*thisfix;
 
-    fp = PaOpen(filename, "r", ".ext", ".", (char *)NULL, (char **)NULL);
+    fp = PaOpen(filename, "r", ".ext", (ExtLocalPath == NULL) ? "." : ExtLocalPath,
+			(char *)NULL, (char **)NULL);
     if (fp == NULL)
     {
      	TxError("Cannot open file %s%s\n", filename, ".ext");
