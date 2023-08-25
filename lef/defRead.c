@@ -61,7 +61,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 enum def_netspecial_keys {DEF_SPECNET_SHAPE = 0, DEF_SPECNET_STYLE,
 	DEF_SPECNET_USE, DEF_SPECNET_VOLTAGE, DEF_SPECNET_FIXEDBUMP,
 	DEF_SPECNET_ORIGINAL, DEF_SPECNET_PATTERN, DEF_SPECNET_ESTCAP,
-	DEF_SPECNET_WEIGHT, DEF_SPECNET_PROPERTY};
+	DEF_SPECNET_WEIGHT, DEF_SPECNET_PROPERTY, DEF_SPECNET_ROUTED,
+	DEF_SPECNET_FIXED, DEF_SPECNET_COVER, DEF_SPECNET_SHIELD };
 
 enum def_netspecial_shape_keys {
 	DEF_SPECNET_SHAPE_RING = 0,
@@ -115,6 +116,10 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 	"ESTCAP",
 	"WEIGHT",
 	"PROPERTY",
+	"ROUTED",
+	"FIXED",
+	"COVER",
+	"SHIELD",
 	NULL
     };
 
@@ -262,6 +267,16 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		case DEF_SPECNET_FIXEDBUMP:
 		    /* Ignore this keyword */
 		    break;
+
+		case DEF_SPECNET_SHIELD:
+		    /* Treat as the following case except to absorb the next token */
+		    token = LefNextToken(f, TRUE);  /* Drop through */
+
+		case DEF_SPECNET_ROUTED:
+		case DEF_SPECNET_COVER:
+		case DEF_SPECNET_FIXED:
+		    initial = TRUE;
+		    continue;
 	    }
 	}
 	else if (!strcmp(token, "RECT"))
