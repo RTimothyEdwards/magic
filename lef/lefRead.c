@@ -532,7 +532,7 @@ LefSkipSection(f, section)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	if ((keyword = Lookup(token, end_section)) == 0)
+	if ((keyword = LookupFull(token, end_section)) == 0)
 	{
 	    result = -1;
 	    while (result == -1)
@@ -1213,7 +1213,7 @@ LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, geometry_keys);
+	keyword = LookupFull(token, geometry_keys);
 	if (keyword < 0)
 	{
 	    LefError(LEF_INFO, "Unknown keyword \"%s\" in LEF file; ignoring.\n",
@@ -1645,7 +1645,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, pin_keys);
+	keyword = LookupFull(token, pin_keys);
 	if (keyword < 0)
 	{
 	    LefError(LEF_INFO, "Unknown keyword \"%s\" in LEF file; ignoring.\n",
@@ -1657,7 +1657,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 	{
 	    case LEF_DIRECTION:
 		token = LefNextToken(f, TRUE);
-		subkey = Lookup(token, pin_classes);
+		subkey = LookupFull(token, pin_classes);
 		if (subkey < 0)
 		    LefError(LEF_ERROR, "Improper DIRECTION statement\n");
 		else
@@ -1666,7 +1666,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		break;
 	    case LEF_USE:
 		token = LefNextToken(f, TRUE);
-		subkey = Lookup(token, pin_uses);
+		subkey = LookupFull(token, pin_uses);
 		if (subkey < 0)
 		    LefError(LEF_ERROR, "Improper USE statement\n");
 		else
@@ -1675,7 +1675,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 		break;
 	    case LEF_SHAPE:
 		token = LefNextToken(f, TRUE);
-		subkey = Lookup(token, pin_shapes);
+		subkey = LookupFull(token, pin_shapes);
 		if (subkey < 0)
 		    LefError(LEF_ERROR, "Improper SHAPE statement\n");
 		else
@@ -1896,7 +1896,7 @@ LefReadNonDefaultRule(f, rname, oscale)
     inlayer = FALSE;
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, nondef_property_keys);
+	keyword = LookupFull(token, nondef_property_keys);
 	if (keyword < 0)
 	{
 	    LefError(LEF_INFO, "Unknown keyword \"%s\" in NONDEFAULTRULES "
@@ -2149,7 +2149,7 @@ LefReadMacro(f, mname, oscale, importForeign, doAnnotate, lefTimestamp)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, macro_keys);
+	keyword = LookupFull(token, macro_keys);
 	if (keyword < 0)
 	{
 	    LefError(LEF_INFO, "Unknown keyword \"%s\" in LEF file; ignoring.\n",
@@ -2693,7 +2693,7 @@ LefReadLayerSection(f, lname, mode, lefl)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, layer_keys);
+	keyword = LookupFull(token, layer_keys);
 	if (keyword < 0)
 	{
 	    LefError(LEF_INFO, "Unknown keyword \"%s\" in LEF file; ignoring.\n",
@@ -2707,7 +2707,7 @@ LefReadLayerSection(f, lname, mode, lefl)
 		token = LefNextToken(f, TRUE);
 		if (*token != '\n')
 		{
-		    typekey = Lookup(token, layer_type_keys);
+		    typekey = LookupFull(token, layer_type_keys);
 		    if (typekey < 0)
 			LefError(LEF_WARNING, "Unknown layer type \"%s\" in LEF file; "
 				"ignoring.\n", token);
@@ -2934,7 +2934,7 @@ LefRead(inName, importForeign, doAnnotate, lefTimestamp)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, sections);
+	keyword = LookupFull(token, sections);
 	if (keyword < 0)
 	{
 	    LefError(LEF_INFO, "Unknown keyword \"%s\" in LEF file; ignoring.\n",

@@ -213,7 +213,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 
 	    /* Check for SHAPE, STYLE, or USE keywords */
 	    token = LefNextToken(f, TRUE);
-	    keyword = Lookup(token, specnet_keys);
+	    keyword = LookupFull(token, specnet_keys);
 	    if (keyword < 0)
 	    {
 		LefError(DEF_INFO, "Unknown keyword \"%s\" in SPECIALNET "
@@ -236,7 +236,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 
 		case DEF_SPECNET_SHAPE:
 		    token = LefNextToken(f, TRUE);
-		    keyword = Lookup(token, specnet_shape_keys);
+		    keyword = LookupFull(token, specnet_shape_keys);
 		    if (keyword < 0)
 		    {
 			LefError(DEF_INFO, "Unknown SHAPE \"%s\" in SPECIALNET "
@@ -788,7 +788,7 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, nondef_keys);
+	keyword = LookupFull(token, nondef_keys);
 	if (keyword < 0)
 	{
 	    LefError(DEF_INFO, "Unknown keyword \"%s\" in NONDEFAULTRULES "
@@ -829,7 +829,7 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 			token = LefNextToken(f, TRUE);
 		    }
 
-		    subkey = Lookup(token, nondef_property_keys);
+		    subkey = LookupFull(token, nondef_property_keys);
 		    if (subkey < 0)
 		    {
 			LefError(DEF_INFO, "Unknown non-default rule property \"%s\" "
@@ -1054,7 +1054,7 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, annotate, total)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, net_keys);
+	keyword = LookupFull(token, net_keys);
 	if (keyword < 0)
 	{
 	    LefError(DEF_INFO, "Unknown keyword \"%s\" in NET "
@@ -1148,7 +1148,7 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, annotate, total)
 		    else
 			token = LefNextToken(f, TRUE);
 
-		    subkey = Lookup(token, net_property_keys);
+		    subkey = LookupFull(token, net_property_keys);
 		    if (subkey < 0)
 		    {
 			LefError(DEF_INFO, "Unknown net property \"%s\" in "
@@ -1294,7 +1294,7 @@ DefReadLocation(use, f, oscale, tptr, noplace)
         if (*token != ')') goto parse_error;
         token = LefNextToken(f, TRUE);
 
-        keyword = Lookup(token, orientations);
+        keyword = LookupFull(token, orientations);
         if (keyword < 0)
         {
 	    LefError(DEF_ERROR, "Unknown macro orientation \"%s\".\n", token);
@@ -1484,7 +1484,7 @@ DefReadPins(f, rootDef, sname, oscale, total, annotate)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, pin_keys);
+	keyword = LookupFull(token, pin_keys);
 
 	if (keyword < 0)
 	{
@@ -1531,7 +1531,7 @@ DefReadPins(f, rootDef, sname, oscale, total, annotate)
 		    if (*token != '+') continue;
 
 		    token = LefNextToken(f, TRUE);
-		    subkey = Lookup(token, pin_property_keys);
+		    subkey = LookupFull(token, pin_property_keys);
 		    if (subkey < 0)
 		    {
 			LefError(DEF_INFO, "Unknown pin property \"%s\" in "
@@ -1554,7 +1554,7 @@ DefReadPins(f, rootDef, sname, oscale, total, annotate)
 			    break;
 			case DEF_PINS_PROP_USE:
 			    token = LefNextToken(f, TRUE);
-			    subkey = Lookup(token, pin_uses);
+			    subkey = LookupFull(token, pin_uses);
 			    if (subkey < 0)
 				LefError(DEF_ERROR, "Unknown pin use \"%s\"\n", token);
 			    else
@@ -1566,7 +1566,7 @@ DefReadPins(f, rootDef, sname, oscale, total, annotate)
 			    break;
 			case DEF_PINS_PROP_DIR:
 			    token = LefNextToken(f, TRUE);
-			    subkey = Lookup(token, pin_classes);
+			    subkey = LookupFull(token, pin_classes);
 			    if (subkey < 0)
 				LefError(DEF_ERROR, "Unknown pin class \"%s\"\n", token);
 			    else
@@ -1753,7 +1753,7 @@ DefReadBlockages(f, rootDef, sname, oscale, total)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, block_keys);
+	keyword = LookupFull(token, block_keys);
 
 	if (keyword < 0)
 	{
@@ -1776,7 +1776,7 @@ DefReadBlockages(f, rootDef, sname, oscale, total)
 		    if (*token == ';')
 			break;
 
-		    subkey = Lookup(token, block_property_keys);
+		    subkey = LookupFull(token, block_property_keys);
 		    if (subkey < 0)
 		    {
 			LefError(DEF_INFO, "Unknown blockage property \"%s\" in "
@@ -1883,7 +1883,7 @@ DefReadVias(f, sname, oscale, total)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, via_keys);
+	keyword = LookupFull(token, via_keys);
 
 	if (keyword < 0)
 	{
@@ -1951,7 +1951,7 @@ DefReadVias(f, sname, oscale, total)
 		    if (*token != '+') continue;
 
 		    token = LefNextToken(f, TRUE);
-		    subkey = Lookup(token, via_property_keys);
+		    subkey = LookupFull(token, via_property_keys);
 		    if (subkey < 0)
 		    {
 			LefError(DEF_INFO, "Unknown via property \"%s\" in "
@@ -2163,7 +2163,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, component_keys);
+	keyword = LookupFull(token, component_keys);
 
 	if (keyword < 0)
 	{
@@ -2252,7 +2252,7 @@ DefReadComponents(f, rootDef, sname, oscale, total)
 		    if (*token != '+') continue;
 
 		    token = LefNextToken(f, TRUE);
-		    subkey = Lookup(token, property_keys);
+		    subkey = LookupFull(token, property_keys);
 		    if (subkey < 0)
 		    {
 			LefError(DEF_INFO, "Unknown component property \"%s\" in "
@@ -2431,7 +2431,7 @@ DefRead(inName, dolabels, annotate, noblockage)
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
-	keyword = Lookup(token, sections);
+	keyword = LookupFull(token, sections);
 	if (keyword < 0)
 	{
 	    LefError(DEF_INFO, "Unknown keyword \"%s\" in DEF file; ignoring.\n", token);
