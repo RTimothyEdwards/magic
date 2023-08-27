@@ -148,11 +148,14 @@ areaCheck(tile, arg)
     TiToRect(tile, &rect);
 
     /* Only consider the portion of the suspicious tile that overlaps
-     * the clip area for errors, unless this is a trigger rule.
+     * the clip area for errors, unless this is a trigger rule, in
+     * which case it should be restricted only to the full check area.
      */
 
     if (!(arg->dCD_cptr->drcc_flags & DRC_TRIGGER))
 	GeoClip(&rect, arg->dCD_clip);
+    else
+	GeoClip(&rect, arg->dCD_rect);
 
     GeoClip(&rect, arg->dCD_constraint);
     if ((rect.r_xbot >= rect.r_xtop) || (rect.r_ybot >= rect.r_ytop))
@@ -301,6 +304,8 @@ areaNMCheck(tile, arg)
 
     if (!(arg->dCD_cptr->drcc_flags & DRC_TRIGGER))
 	GeoClip(&rect, arg->dCD_clip);
+    else
+	GeoClip(&rect, arg->dCD_rect);
 
     GeoClip(&rect, arg->dCD_constraint);
     if ((rect.r_xbot >= rect.r_xtop) || (rect.r_ybot >= rect.r_ytop))
