@@ -1822,7 +1822,9 @@ AC_SUBST(OA_LIBS)
 AC_SUBST(ALL_TARGET)
 AC_SUBST(INSTALL_TARGET)
 
-AC_OUTPUT(defs.mak)
+AC_CONFIG_FILES([defs.mak])
+AC_CONFIG_FILES([makedbh], [chmod +x makedbh])
+AC_OUTPUT
 
 dnl 
 dnl Print configuration and report problems

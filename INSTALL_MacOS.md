@@ -3,7 +3,7 @@
 Get [Homebrew](https://brew.sh).
 
 ```sh
-brew install cairo tcl-tk
+brew install cairo tcl-tk python3
 brew install --cask xquartz
 ./scripts/configure_mac
 make database/database.h

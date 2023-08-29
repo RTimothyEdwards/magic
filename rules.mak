@@ -46,10 +46,15 @@ ${DESTDIR}${BINDIR}/${MODULE}${EXEEXT}: ${MODULE}${EXEEXT}
 	${RM} ${DESTDIR}${BINDIR}/${MODULE}${EXEEXT}
 	${CP} ${MODULE}${EXEEXT} ${DESTDIR}${BINDIR}
 
+.PHONY: clean
 clean:
 	${RM} ${CLEANS}
 
 tags: ${SRCS} ${LIB_SRCS}
 	ctags ${SRCS} ${LIB_SRCS}
 
+# If "include" is unqualified, it will attempt to build all targets of "include"
+# So, we gate the include, only running it if "clean" is not the target
+ifneq ($(MAKECMDGOALS),clean)
 include ${DEPEND_FILE}
+endif
