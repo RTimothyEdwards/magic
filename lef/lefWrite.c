@@ -1501,9 +1501,30 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		    carea = labr;
 		else
 		{
+		    scx.scx_area = labr;
 		    SelectChunk(&scx, lab->lab_type, 0, &carea, FALSE);
-		    if (GEO_RECTNULL(&carea)) carea = labr;
-		    else if (pinonly > 0)
+		    if (GEO_RECTNULL(&carea))
+		    {
+			/* In the flattened cell, any connected layer
+			 * could be underneath the label.
+			 */
+			TileType tt;
+			for (tt = TT_TECHDEPBASE; tt < DBNumTypes; tt++)
+			{
+			    if (tt == lab->lab_type) continue;
+			    if (DBConnectsTo(tt, lab->lab_type))
+			    {
+				scx.scx_area = labr;
+				SelectChunk(&scx, tt, 0, &carea, FALSE);
+				if (!GEO_RECTNULL(&carea))
+				    break;
+			    }
+			}
+			if (tt == DBNumTypes)
+			    carea = labr;
+		    }
+
+		    if ((pinonly > 0) && (!GEO_RECTNULL(&carea)))
 		    {
 			Rect psetback;
 			GEO_EXPAND(&boundary, -pinonly, &psetback);
