@@ -106,6 +106,11 @@ bool dbReadElements();
 bool dbReadProperties();
 bool dbReadUse();
 
+#ifdef MAGIC_WRAPPER
+/* Used to make a tag callback after loading a techfile */
+extern int TagCallback();
+#endif /* MAGIC_WRAPPER */
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -151,6 +156,13 @@ file_is_not_writeable(name)
     return(0);
 }
 
+/* Linked string record used to hold directory contents */
+
+typedef struct _linkedDirent {
+    struct dirent *ld_dirent;
+    struct _linkedDirent *ld_next;
+} LinkedDirent;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -168,18 +180,27 @@ file_is_not_writeable(name)
  * Side effects:
  *	None.
  *
+ * Notes:
+ *	Algorithm refined 9/12/2023.  A directory which has the exact name of
+ *	the technology is preferred (put at the front of the list) to any other
+ *	directory name.  e.g., for techname "sky130A.tech", directory "sky130A"
+ *	would be preferred to "sky130A_orig".
+ *
  * ----------------------------------------------------------------------------
  */
 
 char *
-DBSearchForTech(techname, pathroot, level)
+DBSearchForTech(techname, techroot, pathroot, level)
     char *techname;
+    char *techroot;	/* techname without the ".tech" suffix */
     char *pathroot;
     int level;
 {
-    char *newpath, *found;
+    char *newpath, *found, *dptr;
     struct dirent *tdent;
     DIR *tdir;
+    LinkedDirent *dlist = NULL, *ld, *ldlast = NULL;
+    int dlen;
 
     /* Avoid potential infinite looping.  Any tech file should not be very  */
     /* far down the path.  10 levels is already excessive.		    */
@@ -189,31 +210,67 @@ DBSearchForTech(techname, pathroot, level)
     if (tdir) {
 
 	/* Read the directory contents of tdir */
+	/* If any entry of tdir is equal to techroot, put it at the front */
+	/* of the list. */
+
 	while ((tdent = readdir(tdir)) != NULL)
 	{
+	    ld = (LinkedDirent *)mallocMagic(sizeof(LinkedDirent));
+	    ld->ld_dirent = tdent;
+
+	    if (!strcmp(tdent->d_name, techroot))
+	    {
+		/* Put at front of list */
+		ld->ld_next = dlist;
+		dlist = ld;
+		if (ldlast == NULL)
+		    ldlast = ld;
+	    }
+	    else if (strcmp(tdent->d_name, ".") && strcmp(tdent->d_name, ".."))
+	    {
+		/* Put at end of list */
+		ld->ld_next = NULL;
+		if (ldlast == NULL)
+		    dlist = ld;
+		else
+		    ldlast->ld_next = ld;
+		ldlast = ld;
+	    }
+	}
+
+	for (ld = dlist; ld; ld = ld->ld_next)
+	{
+	    tdent = ld->ld_dirent;
 	    if (tdent->d_type != DT_DIR)
 	    {
 		if (!strcmp(tdent->d_name, techname))
 		{
 		    closedir(tdir);
+		    for (ld = dlist; ld; ld = ld->ld_next)
+			freeMagic(ld);
 		    return pathroot;
 		}
 	    }
-	    else if (strcmp(tdent->d_name, ".") && strcmp(tdent->d_name, ".."))
+	    else
 	    {
 		newpath = mallocMagic(strlen(pathroot) + strlen(tdent->d_name) + 3);
 		sprintf(newpath, "%s/%s", pathroot, tdent->d_name);
-		found = DBSearchForTech(techname, newpath, level + 1);
+		found = DBSearchForTech(techname, techroot, newpath, level + 1);
 		if (found != newpath) freeMagic(newpath);
 		if (found)
 		{
 		    closedir(tdir);
+		    for (ld = dlist; ld; ld = ld->ld_next)
+			freeMagic(ld);
 		    return found;
 		}
 	    }
 	}
 	closedir(tdir);
     }
+
+    for (ld = dlist; ld; ld = ld->ld_next)
+	freeMagic(ld);
 
     return NULL;
 }
@@ -492,7 +549,7 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 		    /* Places to check for a technology:  In the PDK_ROOT
 		     * (PDKROOT) directory, PDK_PATH (PDKPATH) from environment
 		     * variables, and CAD_ROOT from Tcl variables;  the open_pdks
-		     * default install path /usr/share/pdk/, and magic's install
+		     * default install path /usr/local/share/pdk/, and magic's install
 		     * path.  For CAD_ROOT the variable is expected to point to
 		     * a path containing the techfile.  For PDK_PATH and PDK_ROOT,
 		     * search the directory tree for any subdirectory called
@@ -506,28 +563,29 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 
 		    string = getenv("PDK_PATH");
 		    if (string)
-			found = DBSearchForTech(techfullname, string, 0);
+			found = DBSearchForTech(techfullname, tech, string, 0);
 		    if (!found)
 		    {
 			string = getenv("PDKPATH");
 			if (string)
-			    found = DBSearchForTech(techfullname, string, 0);
+			    found = DBSearchForTech(techfullname, tech, string, 0);
 		    }
 		    if (!found)
 		    {
 			string = getenv("PDK_ROOT");
 			if (string)
-			    found = DBSearchForTech(techfullname, string, 0);
+			    found = DBSearchForTech(techfullname, tech, string, 0);
 		    }
 		    if (!found)
 		    {
 			string = getenv("PDKROOT");
 			if (string)
-			    found = DBSearchForTech(techfullname, string, 0);
+			    found = DBSearchForTech(techfullname, tech, string, 0);
 		    }
 		    if (!found)
 		    {
-			found = DBSearchForTech(techfullname, "/usr/share/pdk", 0);
+			found = DBSearchForTech(techfullname, tech,
+					"/usr/local/share/pdk", 0);
 		    }
 #ifdef MAGIC_WRAPPER
 		    /* Additional checks for PDK_PATH, etc., as Tcl variables.	*/
@@ -539,31 +597,46 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 			string = (char *)Tcl_GetVar(magicinterp, "PDK_ROOT",
 				    TCL_GLOBAL_ONLY);
 			if (string)
-			    found = DBSearchForTech(techfullname, string, 0);
+			    found = DBSearchForTech(techfullname, tech, string, 0);
 		    }
 		    if (!found)
 		    {
 			string = (char *)Tcl_GetVar(magicinterp, "PDKROOT",
 				    TCL_GLOBAL_ONLY);
 			if (string)
-			    found = DBSearchForTech(techfullname, string, 0);
+			    found = DBSearchForTech(techfullname, tech, string, 0);
 		    }
 		    if (!found)
 		    {
 			string = (char *)Tcl_GetVar(magicinterp, "PDK_PATH",
 				    TCL_GLOBAL_ONLY);
 			if (string)
-			    found = DBSearchForTech(techfullname, string, 0);
+			    found = DBSearchForTech(techfullname, tech, string, 0);
 		    }
 		    if (!found)
 		    {
 			string = (char *)Tcl_GetVar(magicinterp, "PDKPATH",
 				    TCL_GLOBAL_ONLY);
 			if (string)
-			    found = DBSearchForTech(techfullname, string, 0);
+			    found = DBSearchForTech(techfullname, tech, string, 0);
 		    }
 		
+		    /* Experimental---check for a ".tcl" file in the same */
+		    /* directory as ".tech" and source it instead of	  */
+		    /* loading the tech file.				  */
+
+		    if (found)
+		    {
+			char *tclpath;
+
+			tclpath = (char *)mallocMagic(strlen(found) + strlen(tech)
+					+ 6);
+			sprintf(tclpath, "%s/%s.tcl", found, tech);
+			Tcl_EvalFile(magicinterp, tclpath);
+			freeMagic(tclpath);
+		    }
 #endif
+
 		    freeMagic(techfullname);
 		    if (found)
 		    {
@@ -586,6 +659,17 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 				TxPrintf("Cell path is now \"%s\"\n", CellLibPath);
 			}
 			freeMagic(found);
+#ifdef MAGIC_WRAPPER
+			/* Apply tag callbacks for "tech load" command */
+			{
+			    char *argv[2];
+			    argv[0] = StrDup((char **)NULL, "tech");
+			    argv[1] = StrDup((char **)NULL, "load");
+			    TagCallback(magicinterp, NULL, 2, argv);
+			    freeMagic(argv[1]);
+			    freeMagic(argv[0]);
+			}
+#endif
 		    }
 		}
 		if (strcmp(DBTechName, tech))

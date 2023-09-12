@@ -93,7 +93,7 @@ TagVerify(keyword)
 /* Find any tags associated with a command and execute them.	*/
 /*--------------------------------------------------------------*/
 
-static int
+int
 TagCallback(interp, tkpath, argc, argv)
     Tcl_Interp *interp;
     char *tkpath;
