@@ -998,6 +998,11 @@ CmdCalma(w, cmd)
 			cmd->tx_argv[2], cmd->tx_argv[2], cmd->tx_argv[2]);
 	        return;
 	    }
+
+	    /* Ensure that there is a valid edit cell */
+	    if (EditCellUse == NULL)
+		DBWloadWindow(w, (char *)NULL, DBW_LOAD_IGNORE_TECH);
+
 	    CalmaReadFile(f, namep);
 	    (void) FCLOSE(f);
 	    return;
