@@ -1260,6 +1260,20 @@ proc magic::gencell_update {{command {}}} {
 }
 
 #-------------------------------------------------------------
+# updateParamsScrollRegion ---
+#
+# Change the canvas size when the parameter window changes
+# size so that the scrollbar works correctly.
+#-------------------------------------------------------------
+
+proc updateParamsScrollRegion {} {
+    set bbox [.params.body.area bbox all]
+    .params.body.area configure -scrollregion $bbox
+    .params.body.area configure -width [lindex $bbox 2]
+    .params.body.area configure -height [lindex $bbox 3]
+}
+
+#-------------------------------------------------------------
 # gencell_dialog ---
 #
 # Create the dialog window for entering device parameters.  The
@@ -1404,6 +1418,13 @@ proc magic::gencell_dialog {instname gencell_type library parameters} {
        frame .params.body.area.edits
        .params.body.area create window 0 0 -anchor nw -window .params.body.area.edits
        .params.body.area config -yscrollcommand {.params.body.sb set}
+
+       # Make sure scrollbar tracks any window size changes
+       bind .params <Configure> updateParamsScrollRegion
+
+       # Allow mouse wheel to scroll the window up and down.
+       bind .params.body.area <Button-4> {.params.body.area yview scroll -1 units}
+       bind .params.body.area <Button-5> {.params.body.area yview scroll +1 units}
    }
 
    if {$instname == {}} {
@@ -1441,12 +1462,6 @@ proc magic::gencell_dialog {instname gencell_type library parameters} {
 
    # Make sure the window is raised
    raise .params
-
-   # Wait for window to become visible to set the scroll region
-   if {[catch {winfo children .params.body.area}]} {
-      tkwait visibility .params.body.area
-   }
-   .params.body.area config -scrollregion [.params.body.area bbox all]
 }
 
 #-------------------------------------------------------------
