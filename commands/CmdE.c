@@ -911,9 +911,10 @@ cmdExpandFunc(use, windowMask)
 #define	EXTPARENTS	7
 #define EXTPATH		8
 #define	EXTSHOWPARENTS	9
-#define	EXTSTYLE	10
-#define	EXTUNIQUE	11
-#define	EXTWARN		12
+#define EXTSTEPSIZE	10
+#define	EXTSTYLE	11
+#define	EXTUNIQUE	12
+#define	EXTWARN		13
 
 #define	WARNALL		0
 #define WARNDUP		1
@@ -1007,6 +1008,7 @@ CmdExtract(w, cmd)
 	"parents		extract selected cell and all its parents",
 	"path [path]		if set, extract into the indicated path",
 	"showparents		show all parents of selected cell",
+	"stepsize [value]	print or set the extraction step size",
 	"style [stylename]	set current extraction parameter style",
 	"unique [option]	generate unique names when different nodes\n\
 			have the same name",
@@ -1137,6 +1139,36 @@ CmdExtract(w, cmd)
 	    }
 	    else
 		ExtCurStyle->exts_sideCoupleHalo = dist;
+	    break;
+
+	case EXTSTEPSIZE:
+	    if (ExtCurStyle == NULL)
+	    {
+		TxError("No extraction style set.\n");
+		return;
+	    }
+	    else if (argc == 2)
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_Obj *tobj;
+		tobj = Tcl_NewIntObj(ExtCurStyle->exts_stepSize);
+		Tcl_SetObjResult(magicinterp, tobj);
+#else
+		TxPrintf("Extraction step size is %d\n", ExtCurStyle->exts_stepSize);
+#endif
+		return;
+	    }
+	    else if (argc != 3) goto wrongNumArgs;
+
+	    /* argv[2] is a step size */
+	    dist = cmdParseCoord(w, argv[2], TRUE, TRUE);
+	    if (dist <= 0)
+	    {
+		TxError("Bad step size.  Step size must be strictly positive.");
+		return;
+	    }
+	    else
+		ExtCurStyle->exts_stepSize = dist;
 	    break;
 
 	case EXTPARENTS:

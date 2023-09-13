@@ -125,7 +125,16 @@ Circuit netlist extractor
 		  <DD>
 		</DL>
 	      </BLOCKQUOTE>
-	
+	   <DT> <B>halo</B> [<I>distance</I>]
+	   <DD> Return or set the maximum distance between shapes for which
+		sidewall coupling is considered.  <I>distance</I> is in
+		the units of snap distance (lambda, by default), but like
+		all distances may be specified with a suffix like "um" for
+		physical distance.  The default value is set by the technology
+		file.  Smaller values will decrease the parasitic capacitance
+		extraction time at the expense of accuracy.  When <I>distance</I>
+		is not specified, the value returned is always in internal
+		units.
 	   <DT> <B>help</B>
 	   <DD> Print help information
 	   <DT> <B>path</B> [<I>pathname</I>|<B>none</B>]
@@ -150,6 +159,17 @@ Circuit netlist extractor
 	   <DD> List the cell and all parents of selected cell.  Note that
 		this is not really an extract option and is superceded by
 		the <B>cellname</B> command.
+	   <DT> <B>stepsize</B> [<I>distance</I>]
+	   <DD> Return or set the step size used when breaking a layout into
+		smaller parts for more efficient extraction.  <I>distance</I>
+		is in the units of snap distance (lambda, by default), but like
+		all distances may be specified with a suffix like "um" for
+		physical distance.  The default value is set by the technology
+		file.  Both large and small values make extraction inefficient,
+		and finding the optimal step size is largely trial-and-error.
+		The step size in a tech file has most likely already been
+		optimized for extraction speed.  When <I>distance</I> is not
+		specified, the value returned is always in internal units.
 	   <DT> [<B>list</B>|<B>listall</B>] <B>style</B> [<I>stylename</I>]
 	   <DD> Set the current extraction style to <I>stylename</I>.
 		Without arguments, print the current extraction style.
