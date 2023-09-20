@@ -621,19 +621,19 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 			    found = DBSearchForTech(techfullname, tech, string, 0);
 		    }
 		
-		    /* Experimental---check for a ".tcl" file in the same */
-		    /* directory as ".tech" and source it instead of	  */
-		    /* loading the tech file.				  */
+		    /* Experimental---check for a ".magicrc" file in	*/
+		    /* the same directory as ".tech" and source it	*/
+		    /* first.						*/
 
 		    if (found)
 		    {
-			char *tclpath;
+			char *rcpath;
 
-			tclpath = (char *)mallocMagic(strlen(found) + strlen(tech)
-					+ 6);
-			sprintf(tclpath, "%s/%s.tcl", found, tech);
-			Tcl_EvalFile(magicinterp, tclpath);
-			freeMagic(tclpath);
+			rcpath = (char *)mallocMagic(strlen(found) + strlen(tech)
+					+ 10);
+			sprintf(rcpath, "%s/%s.magicrc", found, tech);
+			Tcl_EvalFile(magicinterp, rcpath);
+			freeMagic(rcpath);
 		    }
 #endif
 

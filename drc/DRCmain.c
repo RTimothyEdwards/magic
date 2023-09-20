@@ -909,6 +909,10 @@ DRCCatchUp()
 
     background = DRCBackGround;
     DRCBackGround = DRC_SET_ON;
+    /* Always reset DRC status to "not running" before calling DRCContinous()
+     * directly.
+     */
+    DRCStatus = DRC_NOT_RUNNING;
     DRCContinuous();
     DRCBackGround = background;
 }
