@@ -32,7 +32,7 @@ Read or write DEF format files.
 	   <DT> <B>read</B> <I>filename</I> [<B>-labels</B>] [<B>-annotate</B>]
 			[<B>-noblockage</B>]
 	   <DD> Read a DEF file <I>filename</I>[<B>.def</B>]
-	   <DT> <B>write</B> [<I>cell</I>] [<B>-units</B> <I>value</I>]
+	   <DT> <B>write</B> [<I>cell</I>] [<B>-units</B> <I>value</I>] [<B>-anal</B>]
 	   <DD> Write DEF for current or indicated cell named <I>cell</I>
 	   <DT> <B>help</B>
 	   <DD> Print help information (command summary)
@@ -84,6 +84,13 @@ Read or write DEF format files.
       the "lef" section of the magic technology file, or in a technology
       LEF file read prior to reading the DEF file). <P>
 
+      The "<B>-anal</B>" option for "<B>def write</B>" satisfies the
+      (very dubious) rule interpretation that "NONDEFAULT RULE" blocks
+      must contain a rule for every metal layer.  This is based on a
+      ridiculous interpretation of a specification that is poorly
+      worded and ambiguous.  The interpretation makes no sense
+      whatsoever.  But some tools will not accept the more rational
+      interpretation. <P>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
