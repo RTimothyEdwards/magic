@@ -322,14 +322,15 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 		}
 	    }
 
-	    /* This may be a "sticky label".  If it is not connected to
-	     * TT_SPACE, then create a new node region for it.  The
-	     * label must be within the clip area.
+	    /* This may be a "sticky label".  If it is not connected to a
+	     * non-electrical type (includes TT_SPACE), then create a new node
+	     * region for it.  The label must be within the clip area.
 	     */
 	    if ((ll == NULL) && (nodeList != NULL) &&
 			(GEO_SURROUND(&lab->lab_rect, clipArea) ||
 			GEO_TOUCH(&lab->lab_rect, clipArea))
-			 && (lab->lab_type != TT_SPACE))
+			 && (lab->lab_type != TT_SPACE)
+			 && TTMaskHasType(&ExtCurStyle->exts_activeTypes, lab->lab_type))
 	    {
 		nclasses = ExtCurStyle->exts_numResistClasses;
 	    	n = sizeof (NodeRegion) + (sizeof (PerimArea) * (nclasses - 1));
