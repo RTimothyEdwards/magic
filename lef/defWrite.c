@@ -29,9 +29,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "utils/undo.h"
 #include "cif/cif.h"
+#include "extract/extractInt.h"	/* for ExtCurStyle definition */
 #include "extflat/extflat.h"
 #include "lef/lefInt.h"
-#include "drc/drc.h"		/* for querying width,spacing rules */
+#include "drc/drc.h"		/* for querying width, spacing rules */
 
 /* C99 compat */
 #include "utils/signals.h"
@@ -800,13 +801,18 @@ defnodeVisit(node, res, cap, defdata)
 	    }
 
 	    /* Check if anything was found in the location (e.g., .ext file
-	     * could be invalid or outdated).
+	     * could be invalid or outdated).  However, if magictype is not
+	     * an electrically active type, then don't issue any warning.
 	     */
 	    if (GEO_RECTNULL(&rport))
-		TxError("Nothing found at node %s location (floating label?)!\n", ndn);
+	    {
+		if (TTMaskHasType(&ExtCurStyle->exts_activeTypes, magictype))
+		    TxError("Nothing of type %s found at node %s location"
+				" (floating label?)!\n",
+				DBTypeLongNameTbl[magictype], ndn);
+	    }
 	    else
 	    {
-
 		/* Expand the rectangle around the port to overlap any	*/
 		/* connecting material.					*/
 		rport.r_xbot--;
@@ -2430,15 +2436,19 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
 {
     DefObsData defobsdata;
     lefLayer *lefl;
-    int i, numblocks, nonempty;
+    int i, numblocks, nonempty, pNum;
     LinkedRect *lr;
     HashSearch hs;
     HashEntry *he;
+    TileTypeBitMask ExtraObsLayersMask;
 
+    int defSimpleBlockageFunc();	/* Forward declaration */
     int defblockageVisit();
 
     defobsdata.def = rootDef;
     defobsdata.nlayers = 0;
+
+    TTMaskZero(&ExtraObsLayersMask);
 
     /* Blockages are done by layer.  Create one blockage per route	*/
     /* layer, and ignore vias.						*/
@@ -2482,7 +2492,16 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
 		    defobsdata.baseNames[numblocks] = llayer;
 		    TTMaskSetOnlyType(&defobsdata.blockMasks[numblocks], lefl->type);
 		    if (lefl->obsType != -1)
+		    {
 		    	TTMaskSetType(&defobsdata.blockMasks[numblocks], lefl->obsType);
+			/* If the obstruction type is not an active electrical
+			 * type, then add it to the mask of layers to search
+			 * separately from extracted nodes.
+			 */
+			if (!TTMaskHasType(&ExtCurStyle->exts_activeTypes,
+					lefl->obsType))
+			    TTMaskSetType(&ExtraObsLayersMask, lefl->obsType);
+		    }
 		    defobsdata.blockData[numblocks] = NULL;
 		    numblocks++;
 		}
@@ -2491,6 +2510,22 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
     }
     if (numblocks > 0)
 	EFVisitNodes(defblockageVisit, (ClientData)&defobsdata);
+
+    /* If obstruction types are marked as non-electrical layers (which
+     * normally they are), then they will not be extracted as nodes.
+     * Do a separate search on obstruction areas and add them to the
+     * list of blockages.  To be considered, the layer must have a
+     * corresponding LEF route or via layer type, that LEF record must
+     * define an obstruction type, and that obstruction type must not
+     * be in the active layer list.
+     */
+
+    for (pNum = PL_SELECTBASE; pNum < DBNumPlanes; pNum++)
+    {
+    	DBSrPaintArea((Tile *)NULL, rootDef->cd_planes[pNum], &TiPlaneRect,
+		&ExtraObsLayersMask, defSimpleBlockageFunc,
+		(ClientData)&defobsdata);
+    }
 
     /* Quick check for presence of data to write */
  
@@ -2600,6 +2635,45 @@ defBlockageGeometryFunc(tile, plane, defobsdata)
 	if (rtype == DBNumUserLayers)
 	    return 0;
     }
+
+    for (i = 0; i < defobsdata->nlayers; i++)
+	if (TTMaskHasType(&(defobsdata->blockMasks[i]), loctype))
+	    break;
+
+    if (i < defobsdata->nlayers)
+    {
+    	TiToRect(tile, &r);
+
+	lr = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
+	lr->r_next = defobsdata->blockData[i];
+	lr->r_type = loctype;
+	lr->r_r = r;
+	defobsdata->blockData[i] = lr;
+    }
+
+    return 0;
+}
+
+/* Callback function for generating a linked list of blockage geometry	*/
+/* pulled from all non-electrical obstruction types.			*/
+
+int
+defSimpleBlockageFunc(tile, defobsdata)
+    Tile *tile;			/* Tile being visited */
+    DefObsData *defobsdata;	/* Data passed to this function */
+{
+    TileType ttype = TiGetTypeExact(tile);
+    TileType loctype;
+    Rect r;
+    LinkedRect *lr;
+    int i;
+
+    if (IsSplit(tile))
+	loctype = (ttype & TT_SIDE) ? SplitRightType(tile) : SplitLeftType(tile); 
+    else
+	loctype = ttype;
+
+    if (loctype == TT_SPACE) return 0;
 
     for (i = 0; i < defobsdata->nlayers; i++)
 	if (TTMaskHasType(&(defobsdata->blockMasks[i]), loctype))
@@ -3063,8 +3137,7 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
     fclose(f2);
 
     /* Blockages */
-    if (nets.blockages > 0)
-	defWriteBlockages(f, def, scale, lefMagicToLefLayer);
+    defWriteBlockages(f, def, scale, lefMagicToLefLayer);
 
     fprintf(f, "END DESIGN\n\n");
     fclose(f);
