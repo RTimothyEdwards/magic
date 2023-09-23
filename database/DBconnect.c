@@ -855,10 +855,13 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 		    connectMask = &csa2->csa2_connect[slab->lab_type];
 
 		    pNum = DBPlane(slab->lab_type);
-		    if (DBSrPaintArea((Tile *) NULL, def->cd_planes[pNum],
+
+		    // Do *not* run this check on zero area labels
+		    if (!GEO_RECTNULL(&newarea))
+		    	if (DBSrPaintArea((Tile *) NULL, def->cd_planes[pNum],
 				&newarea, connectMask, dbcUnconnectFunc,
 				(ClientData) NULL) == 1)
-			continue;
+			    continue;
 
 		    newarea.r_xbot--;
 		    newarea.r_xtop++;
