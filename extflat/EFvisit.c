@@ -681,7 +681,7 @@ EFVisitNodes(nodeProc, cdata)
     int res;
 
     for (node = (EFNode *) efNodeList.efnode_next;
-	    node != &efNodeList;
+	    node && (node != &efNodeList);
 	    node = (EFNode *) node->efnode_next)
     {
 	res = EFNodeResist(node);
