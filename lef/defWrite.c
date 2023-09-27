@@ -1188,7 +1188,7 @@ defNetGeometryFunc(tile, plane, defdata)
 		    ruleset->rule = (lefRule *)mallocMagic(sizeof(lefRule));
 		    ruleset->rule->lefInfo = lefType;
 		    ruleset->rule->width = ndv;
-		    /* Policy is never to use a wire extension on non-default rules. */
+		    /* Non-default rules wire extension-at-via is not used. */
 		    ruleset->rule->extend = 0;
 		    /* Spacing is not needed, but set it to the layer default */
 		    ruleset->rule->spacing = DRCGetDefaultLayerSpacing(ttype, ttype);
@@ -1226,11 +1226,21 @@ defNetGeometryFunc(tile, plane, defdata)
 	    if (routeWidth == 0) routeWidth = h;
 	    
 	    extlen = 0;
-	    /* NOTE: non-default tapers are not using wire extensions */
-	    if ((defdata->specialmode == DO_REGULAR) && (defdata->ruleset == NULL))
+	    /* NOTE: non-default tapers are not using wire */
+	    /* extension-at-via (need to implement)	   */
+
+	    if (defdata->specialmode == DO_REGULAR)
 	    {
-		x1 = x1 + (routeWidth / 2 * oscale);
-		x2 = x2 - (routeWidth / 2 * oscale);
+		if (defdata->ruleset != NULL)
+		{
+		    x1 = x1 + (defdata->ruleset->rule->width / 2 * oscale);
+		    x2 = x2 - (defdata->ruleset->rule->width / 2 * oscale);
+		}
+		else
+		{
+		    x1 = x1 + (routeWidth / 2 * oscale);
+		    x2 = x2 - (routeWidth / 2 * oscale);
+		}
 	    }
 	}
 	else	/* vertical orientation */
@@ -1243,11 +1253,20 @@ defNetGeometryFunc(tile, plane, defdata)
 	    if (routeWidth == 0) routeWidth = w;
 		
 	    extlen = 0;
-	    /* NOTE: non-default tapers are not using wire extensions */
-	    if ((defdata->specialmode == DO_REGULAR) && (defdata->ruleset == NULL))
+	    /* NOTE: non-default tapers are not using wire */
+	    /* extension-at-via (need to implement)	   */
+	    if (defdata->specialmode == DO_REGULAR)
 	    {
-		y1 = y1 + (routeWidth / 2 * oscale);
-		y2 = y2 - (routeWidth / 2 * oscale);
+		if (defdata->ruleset != NULL)
+		{
+		    y1 = y1 + (defdata->ruleset->rule->width / 2 * oscale);
+		    y2 = y2 - (defdata->ruleset->rule->width / 2 * oscale);
+		}
+		else
+		{
+		    y1 = y1 + (routeWidth / 2 * oscale);
+		    y2 = y2 - (routeWidth / 2 * oscale);
+		}
 	    }
 	}
     }
@@ -3082,10 +3101,9 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 				if (lefl2->type == rule->lefInfo->type)
 				    break;
 			    if (rule != NULL) continue;
-			    fprintf(f, "\n     + LAYER %s WIDTH %.10g WIREEXT %.10g",
+			    fprintf(f, "\n     + LAYER %s WIDTH %.10g",
 					lefl2->canonName, 
-					(float)(lefl2->info.route.width) * scale,
-					(float)(lefl2->info.route.width) * scale / 2.0);
+					(float)(lefl2->info.route.width) * scale);
 			}
 		    }
 

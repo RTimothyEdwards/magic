@@ -209,7 +209,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		paintWidth = (rule) ? rule->width :
 				(lefl) ? lefl->info.route.width :
 				DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
-		paintExtend = (rule) ? rule->extend : paintWidth;
+		paintExtend = (rule) ? rule->width : paintWidth;
 	    }
 	}
 	else if ((*token == '+') && (special == TRUE))
@@ -377,7 +377,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		if (rule)
 		{
 		    paintWidth = rule->width;
-		    paintExtend = rule->extend;
+		    paintExtend = rule->width;
 		}
 	    }
 	    else if (!strcmp(token, "DEFAULT"))
@@ -874,7 +874,7 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 			    	rule->lefInfo = lefl;
 				rule->width = 0;
 				rule->spacing = 0;
-				rule->extend = 0;
+				rule->extend = 0;		/* unused */
 				rule->next = ruleset->rule;
 				ruleset->rule = rule;
 			    }
@@ -924,7 +924,10 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
 			    else if (lefl == NULL)
 				LefError(DEF_INFO, "No layer for non-default extension.\n");
 			    else
+			    {
+				LefError(DEF_WARNING, "Non-default extension at via not implemented.\n");
 			    	rule->extend = (int)roundf((2 * fvalue) / oscale);
+			    }
 			    break;
 			case DEF_NONDEFLAYER_DIAG:
 			    if (!inlayer)
