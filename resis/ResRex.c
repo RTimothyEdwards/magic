@@ -96,9 +96,9 @@ struct saveList {
 /* Structure stores information required to be sent to ExtResisForDef() */
 typedef struct
 {
-    float	    tolerance;
     float	    tdiTolerance;
     float	    frequency;
+    float	    rthresh;
     struct saveList *savePlanes;
     CellDef	    *mainDef;
 } ResisData;
@@ -118,14 +118,14 @@ ExtResisForDef(celldef, resisdata)
     CellDef *celldef;
     ResisData *resisdata;
 {
-    RDev	*oldRDev;
-    HashSearch	hs;
-    HashEntry	*entry;
-    devPtr	*tptr, *oldtptr;
+    RDev       *oldRDev;
+    HashSearch hs;
+    HashEntry  *entry;
+    devPtr     *tptr, *oldtptr;
     ResSimNode  *node;
-    int		result, idx;
-    char	*devname;
-    Plane	*savePlane;
+    int                result, idx;
+    char       *devname;
+    Plane      *savePlane;
 
     ResRDevList = NULL;
     ResOriginalNodes = NULL;
@@ -135,7 +135,7 @@ ExtResisForDef(celldef, resisdata)
     HashFind(&ResProcessedTable, celldef->cd_name);
 
     /* Prepare the substrate for resistance extraction */
-    savePlane = extResPrepSubstrate(celldef);    
+    savePlane = extResPrepSubstrate(celldef);
     if (savePlane != NULL)
     {
 	struct saveList *newsl;
@@ -150,18 +150,18 @@ ExtResisForDef(celldef, resisdata)
     idx = 0;
     while (ExtGetDevInfo(idx++, &devname, NULL, NULL, NULL, NULL, NULL))
     {
-        if (idx == TT_MAXTYPES)
-        {
-            TxError("Error:  Ran out of space for device types!\n");
-            break;
-        }
-        efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, devname);
+	if (idx == TT_MAXTYPES)
+	{
+	    TxError("Error:  Ran out of space for device types!\n");
+	    break;
+	}
+	efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, devname);
     }
 
     HashInit(&ResNodeTable, INITFLATSIZE, HT_STRINGKEYS);
     /* read in .sim file */
     result = (ResReadSim(celldef->cd_name,
-	      	ResSimDevice, ResSimCapacitor, ResSimResistor,
+		ResSimDevice, ResSimCapacitor, ResSimResistor,
 		ResSimAttribute, ResSimMerge, ResSimSubckt) == 0);
 
     /* Clean up the EFDevTypes table */
@@ -212,7 +212,7 @@ ExtResisForDef(celldef, resisdata)
     HashKill(&ResNodeTable);
     while (ResRDevList != NULL)
     {
-    	oldRDev = ResRDevList;
+	oldRDev = ResRDevList;
 	ResRDevList = ResRDevList->nextDev;
 	if (oldRDev->layout != NULL)
 	{
@@ -222,7 +222,6 @@ ExtResisForDef(celldef, resisdata)
 	freeMagic((char *)oldRDev);
     }
 }
-
 
 /*
  *-------------------------------------------------------------------------
@@ -241,12 +240,13 @@ ExtResisForDef(celldef, resisdata)
 
 void
 CmdExtResis(win, cmd)
-	MagWindow *win;
-	TxCommand *cmd;
+    MagWindow *win;
+    TxCommand *cmd;
 {
-    int		i, j, k, option, value, saveFlags;
-    static int	init = 1;
-    static float tolerance, tdiTolerance, fhFrequency;
+    int i, j, k, option, value, saveFlags;
+    static int init = 1;
+    static float rthresh, tdiTolerance, fhFrequency;
+
     CellDef	*mainDef;
     CellUse	*selectedUse;
     ResisData	resisdata;
@@ -264,8 +264,9 @@ CmdExtResis(win, cmd)
 
     static char *cmdExtresisCmd[] =
     {
-	"tolerance [value]    set ratio between resistor and device tol.",
 	"all 		       extract all the nets",
+	"threshold [value]    set minimum resistor extraction threshold",
+	"tolerance [value]    set ratio between resistor and device tol.",
 	"simplify [on/off]    turn on/off simplification of resistor nets",
 	"extout   [on/off]    turn on/off writing of .res.ext file",
 	"lumped   [on/off]    turn on/off writing of updated lumped resistances",
@@ -286,8 +287,9 @@ CmdExtResis(win, cmd)
     };
 
 typedef enum {
-	RES_BAD=-2, RES_AMBIG, RES_TOL,
-	RES_ALL, RES_SIMP, RES_EXTOUT, RES_LUMPED, RES_SILENT,
+	RES_BAD=-2, RES_AMBIG, RES_ALL,
+	RES_THRESH, RES_TOL,
+	RES_SIMP, RES_EXTOUT, RES_LUMPED, RES_SILENT,
 	RES_SKIP, RES_IGNORE, RES_INCLUDE, RES_BOX, RES_CELL,
 	RES_BLACKBOX, RES_FASTHENRY, RES_GEOMETRY, RES_HELP,
 #ifdef LAPLACE
@@ -303,7 +305,7 @@ typedef enum {
             TTMaskZero(&(ResCopyMask[i]));
 	    TTMaskSetMask(&ResCopyMask[i], &DBConnectTbl[i]);
      	}
-	tolerance = 1;
+	rthresh = 0;
 	tdiTolerance = 1;
 	fhFrequency = 10e6;	/* 10 MHz default */
 	HashInit(&ResIgnoreTable, INITFLATSIZE, HT_STRINGKEYS);
@@ -350,13 +352,12 @@ typedef enum {
 	    ResOptionsFlags |=  ResOpt_ExplicitRtol;
 	    if (cmd->tx_argc > 2)
 	    {
-		tolerance = MagAtof(cmd->tx_argv[2]);
-		if (tolerance <= 0)
+		tdiTolerance = MagAtof(cmd->tx_argv[2]);
+		if (tdiTolerance <= 0)
 		{
 		    TxError("Usage:  %s tolerance [value]\n", cmd->tx_argv[0]);
 			return;
 		}
-		tdiTolerance = tolerance;
 	    }
 	    else
 	    {
@@ -364,6 +365,26 @@ typedef enum {
 		Tcl_SetObjResult(magicinterp, Tcl_NewDoubleObj((double)tdiTolerance));
 #else
 		TxPrintf("Tolerance ratio is %g.\n", tdiTolerance);
+#endif
+	    }
+	    return;
+
+	 case RES_THRESH:
+	    if (cmd->tx_argc > 2)
+	    {
+		rthresh = MagAtof(cmd->tx_argv[2]);
+		if (rthresh < 0)
+		{
+		    TxError("Usage:  %s threshold [value]\n", cmd->tx_argv[0]);
+			return;
+		}
+	    }
+	    else
+	    {
+#ifdef MAGIC_WRAPPER
+		Tcl_SetObjResult(magicinterp, Tcl_NewDoubleObj((double)rthresh));
+#else
+		TxPrintf("Resistance threshold is %g.\n", rthresh);
 #endif
 	    }
 	    return;
@@ -648,7 +669,7 @@ typedef enum {
     ResOptionsFlags &= ~ResOpt_Power;
 #endif
 
-    resisdata.tolerance = tolerance;
+    resisdata.rthresh = rthresh;
     resisdata.tdiTolerance = tdiTolerance;
     resisdata.frequency = fhFrequency;
     resisdata.mainDef = mainDef;
@@ -964,13 +985,13 @@ ResCheckSimNodes(celldef, resisdata)
 {
     ResSimNode	*node;
     devPtr	*ptr;
-    float	ftolerance, rctolerance, minRes, cumRes;
+    float	ftolerance, minRes, cumRes;
     int		failed1=0;
     int 	failed3=0;
     int		total =0;
     char	*outfile = celldef->cd_name;
-    float	tol = resisdata->tolerance;
     float	rctol = resisdata->tdiTolerance;
+    float	rthresh = resisdata->rthresh;
     int		nidx = 1, eidx = 1;	/* node & segment counters for geom. */
 
     if (ResOptionsFlags & ResOpt_DoExtFile)
@@ -1166,16 +1187,10 @@ ResCheckSimNodes(celldef, resisdata)
 	    continue;
 	}
 	gparams.rg_bigdevres = (int)minRes * OHMSTOMILLIOHMS;
-	if ((rctol == 0.0) || (tol == 0.0))
-	{
-	    ftolerance = 0.0;
-	    rctolerance = 0.0;
-	}
+	if (minRes > resisdata->rthresh)
+	    ftolerance =  minRes;
 	else
-	{
-	    ftolerance =  minRes / tol;
-	    rctolerance = minRes / rctol;
-	}
+	    ftolerance = resisdata->rthresh; 
 
 	/*
 	 *   Is the device resistance greater than the lumped node
@@ -1201,11 +1216,10 @@ ResCheckSimNodes(celldef, resisdata)
 		    ResWriteLumpFile(node);
 		}
 		if (gparams.rg_maxres >= ftolerance  ||
-		        gparams.rg_maxres >= rctolerance ||
 			(ResOptionsFlags & ResOpt_ExtractAll))
 		{
 		    resNodeNum = 0;
-		    failed3 += ResWriteExtFile(celldef, node, tol, rctol,
+		    failed3 += ResWriteExtFile(celldef, node, rctol,
 				&nidx, &eidx);
 		}
 	    }
@@ -1780,10 +1794,10 @@ ResAlignNodes(nodelist, reslist)
  */
 
 int
-ResWriteExtFile(celldef, node, tol, rctol, nidx, eidx)
+ResWriteExtFile(celldef, node, rctol, nidx, eidx)
     CellDef	*celldef;
     ResSimNode	*node;
-    float	tol, rctol;
+    float	rctol;
     int		*nidx, *eidx;
 {
     float	RCdev;
@@ -1793,7 +1807,7 @@ ResWriteExtFile(celldef, node, tol, rctol, nidx, eidx)
 
     RCdev = gparams.rg_bigdevres * gparams.rg_nodecap;
 
-    if (tol == 0.0 || (node->status & FORCE) ||
+    if ((node->status & FORCE) ||
 		(ResOptionsFlags & ResOpt_ExtractAll) ||
 		(ResOptionsFlags & ResOpt_Simplify) == 0 ||
 		(rctol + 1) * RCdev < rctol * gparams.rg_Tdi)
