@@ -880,7 +880,7 @@ ResDoSimplify(tolerance, rctol, goodies)
     /* we're calculating lumped values so that the capacitance  */
     /* values get calculated correctly.				*/
 
-     (void) ResDistributeCapacitance(ResNodeList,goodies->rg_nodecap);
+    (void) ResDistributeCapacitance(ResNodeList, goodies->rg_nodecap);
 
     if (((tolerance > bigres) || ((ResOptionsFlags & ResOpt_Simplify) == 0)) &&
 	    ((ResOptionsFlags & ResOpt_DoLumpFile) == 0))
@@ -895,9 +895,9 @@ ResDoSimplify(tolerance, rctol, goodies)
     	oldres->rr_status &= ~RES_HEAP;
 	if (oldres->rr_status & RES_TDI_IGNORE)
 	{
-	     ResDeleteResPointer(oldres->rr_node[0], oldres);
-	     ResDeleteResPointer(oldres->rr_node[1], oldres);
-	     ResEliminateResistor(oldres, &ResResList);
+	    ResDeleteResPointer(oldres->rr_node[0], oldres);
+	    ResDeleteResPointer(oldres->rr_node[1], oldres);
+	    ResEliminateResistor(oldres, &ResResList);
 	}
     }
 
@@ -940,7 +940,6 @@ ResDoSimplify(tolerance, rctol, goodies)
 	    goodies->rg_Tdi != -1)
 	return 0;
 
-
     /* Simplify network; resistors are still in milliohms, so use
      * millitolerance.
      */
@@ -963,7 +962,6 @@ ResDoSimplify(tolerance, rctol, goodies)
 	}
         if (ResOriginNode != NULL)
         {
-
             /* if Tdi is enabled, prune all branches whose end nodes	*/
 	    /* have time constants less than the tolerance.		*/
 
