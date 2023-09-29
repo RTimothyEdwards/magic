@@ -870,6 +870,61 @@ resExpandDevFunc(tile, cx)
 /*
  *-------------------------------------------------------------------------
  *
+ * ResShaveContacts ---
+ *
+ *	Remove the top layer off of every contact in the design, leaving
+ *	only the bottom layer.  This also resolves issues with stacked
+ *	contacts by leaving clean contact areas where stacked types
+ *	overlap.  Contacts are removed from the plane above the search
+ *	plane, so the removal does not corrupt the current plane search.
+ *
+ * Results:
+ *	Return 0 to keep the search going.
+ *
+ *-------------------------------------------------------------------------
+ */
+
+int
+ResShaveContacts(tile, def)
+    Tile *tile;
+    CellDef *def;
+{
+    TileType ttype;
+    TileTypeBitMask *rmask;
+    Rect area;
+    Plane *plane;
+    int pNum;
+    int pMask;
+
+    /* To do:  Handle split tiles, although this is unlikely for
+     * contact types.
+     */
+    ttype = TiGetType(tile);
+
+    if (DBIsContact(ttype))
+    {
+	/* Remove the contact type from the plane above */
+	TiToRect(tile, &area);
+	pMask = DBTypePlaneMaskTbl[ttype];
+	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+	    if (PlaneMaskHasPlane(pMask, pNum))
+		break;
+
+	for (++pNum; pNum < DBNumPlanes; pNum++)
+	    if (PlaneMaskHasPlane(pMask, pNum))
+	    {
+		plane = def->cd_planes[pNum];
+		DBPaintPlane(plane, &area, DBStdEraseTbl(ttype, pNum),
+			(PaintUndoInfo *)NULL);
+	    }
+    }
+
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------------------------
+ *
  * ResExtractNet-- extracts the resistance net at the specified
  *	rn_loc. If the resulting net is greater than the tolerance,
  *	simplify and return the resulting network.
@@ -1027,6 +1082,21 @@ ResExtractNet(node, goodies, cellname)
     DBReComputeBbox(ResUse->cu_def);
 
     ExtResetTiles(scx.scx_use->cu_def, extUnInit);
+
+    /* To avoid issues with overlapping stacked contact types and	*/
+    /* double-counting contacts on multiple planes, erase the top	*/
+    /* contact layers of all contacts.  ExtFindRegions() will still	*/
+    /* find the connectivity above but will only process one tile per	*/
+    /* contact.	  This temporarily creates an improper database, but	*/
+    /* the contacts are all immediately erased by ResDissolveContacts().*/
+
+    for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
+    {
+	Plane *plane = ResUse->cu_def->cd_planes[pNum];
+	DBSrPaintArea(plane->pl_hint, plane, &(ResUse->cu_def->cd_bbox),
+		&DBAllButSpaceAndDRCBits, ResShaveContacts,
+		(ClientData)ResUse->cu_def);
+    }
 
     /* Find all contacts in design and note their position */
 

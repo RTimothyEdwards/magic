@@ -895,14 +895,7 @@ ResDoContacts(contact, nodes, resList)
 		resistor->rr_cl = squaresy;
 		resistor->rr_width = squaresx;
 
-		/* NOTE: ExtFindRegions() finds tiles on the top AND	*/
-		/* bottom planes of the contact.  So there are two	*/
-		/* tile entries per contact, in parallel.  To prevent	*/
-		/* double-counting, double the resistance of each	*/
-		/* entry;  this is (probably?) easier than limiting the	*/
-		/* entries to a single plane per contact.		*/
-
-		resistor->rr_value = 2.0 *
+		resistor->rr_value =
 		    	(float)ExtCurStyle->exts_viaResist[contact->cp_type] /
 			(float)(squaresx * squaresy);
 #ifdef ARIEL
