@@ -590,11 +590,11 @@ proc magic::gencell_getparams {} {
    set parameters [dict create]
    set slist [grid slaves .params.body.area.edits]
    foreach s $slist {
-      if {[regexp {^.params.body.area.edits.(.*)_ent$} $s valid pname] != 0} {
+      if {[regexp {^\.params\.body\.area\.edits\.(.*)_ent$} $s valid pname] != 0} {
 	 set value [subst \$magic::${pname}_val]
-      } elseif {[regexp {^.params.body.area.edits.(.*)_chk$} $s valid pname] != 0} {
+      } elseif {[regexp {^\.params\.body\.area\.edits\.(.*)_chk$} $s valid pname] != 0} {
 	 set value [subst \$magic::${pname}_val]
-      } elseif {[regexp {^.params.body.area.edits.(.*)_sel$} $s valid pname] != 0} {
+      } elseif {[regexp {^\.params\.body\.area\.edits\.(.*)_sel$} $s valid pname] != 0} {
 	 set value [subst \$magic::${pname}_val]
       }
       dict set parameters $pname $value
@@ -1035,7 +1035,7 @@ proc magic::add_entry {pname ptext parameters} {
 proc magic::add_check_callbacks {gencell_type library} {
     set wlist [winfo children .params.body.area.edits]
     foreach w $wlist {
-        if {[regexp {\.params\.edits\.(.+)_ent} $w valid pname]} {
+        if {[regexp {\.params\.body\.area\.edits\.(.+)_ent} $w valid pname]} {
 	    # Add callback on enter or focus out
 	    bind $w <Return> \
 			"magic::update_dialog {} $pname $gencell_type $library"
