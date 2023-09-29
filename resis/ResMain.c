@@ -132,9 +132,8 @@ ResGetReCell()
  *  results:  none
  *
  *  Side Effects:  All contacts in the design are broken into their
- *    constituent
- *    layers.  There should be no contacts in ResDef after this procedure
- *    runs.
+ *    constituent layers.  There should be no contacts in ResDef after
+ *    this procedure runs.
  *
  *
  *------------------------------------------------------------------------
@@ -147,7 +146,7 @@ ResDissolveContacts(contacts)
     Tile *tp;
     TileTypeBitMask residues;
 
-    for (; contacts != (ResContactPoint *) NULL; contacts = contacts->cp_nextcontact)
+    for (; contacts != (ResContactPoint *)NULL; contacts = contacts->cp_nextcontact)
     {
         oldtype=contacts->cp_type;
 
@@ -223,7 +222,6 @@ ResMakePortBreakpoints(def)
 		rect->r_ybot--;
 		rect->r_ytop++;
 	    }
-
 
 	    /* If label is on a contact, the contact has been dissolved. */
 	    /* Assume that the uppermost residue is the port.  This may	 */
@@ -1031,6 +1029,11 @@ ResExtractNet(node, goodies, cellname)
     ExtResetTiles(scx.scx_use->cu_def, extUnInit);
 
     /* Find all contacts in design and note their position */
+
+    /* NOTE:  ExtFindRegions() will call ResFirst or ResEach for BOTH	*/
+    /* planes of a contact.  Rather than attempting to limit the	*/
+    /* search, ResDoContacts() will just double the resistance per via	*/
+    /* so that the final value is correct.				*/
 
     ResContactList = (ResContactPoint *)ExtFindRegions(ResUse->cu_def,
 				     &(ResUse->cu_def->cd_bbox),
