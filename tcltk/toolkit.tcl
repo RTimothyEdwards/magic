@@ -509,7 +509,7 @@ proc magic::gencell {gencell_name {instname {}} args} {
 	    if {$cellname != ""} {
 		# Case:  Change existing instance, parameters in args (if any)
 		select cell $instname
-		set devparms [cellname list property $gencell_type parameters]
+		set devparms [cellname list property $cellname parameters]
 	        set parameters [magic::gencell_defaults $gencell_type $library $devparms]
 		if {[dict exists $parameters nocell]} {
 		    set arcount [array -list count]
