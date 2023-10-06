@@ -172,8 +172,27 @@ proc magic::create_new_pin {pinname portnum {layer m1}} {
 proc magic::generate_layout_add {subname subpins complist library} {
     global PDKNAMESPACE
 
-    # Create a new subcircuit
+    # Create a new subcircuit.
     load $subname -quiet
+
+    # In the case where subcells of circuit "subname" do not exist,
+    # delete the placeholders so that they can be regenerated.
+
+    set children [cellname list children $subname]
+    foreach child $children {
+	set flags [cellname flags $child]
+	foreach flag $flags {
+	    if {$flag == "not-found"} {
+		set insts [cellname list instances $child]
+		foreach inst $insts {
+		    select cell $inst
+		    delete
+		}
+		cellname delete $child
+	    }
+	}
+    }
+
     box 0 0 0 0
 
     # Generate pins
