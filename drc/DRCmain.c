@@ -909,10 +909,14 @@ DRCCatchUp()
 
     background = DRCBackGround;
     DRCBackGround = DRC_SET_ON;
+
+#ifdef MAGIC_WRAPPER
     /* Always reset DRC status to "not running" before calling DRCContinous()
      * directly.
      */
     DRCStatus = DRC_NOT_RUNNING;
+#endif
+
     DRCContinuous();
     DRCBackGround = background;
 }
