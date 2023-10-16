@@ -785,7 +785,7 @@ CmdMove(w, cmd)
 	 * box exists.
          * If no selection exists, but the box does, then move the box
          * anyway (hace 10/8/97)
-	 * The above method is superceded by "box move <dir> <dist>"
+	 * The above method is superseded by "box move <dir> <dist>"
 	 * but is retained for backward compatibility.
 	 */
 

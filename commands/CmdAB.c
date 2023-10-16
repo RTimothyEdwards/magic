@@ -50,7 +50,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * CmdAddPath --
  *
  * Implement the "addpath" command:  append to the global cell search path.
- * (Usage superceded by extended "path" command; retained for compatibility)
+ * (Usage superseded by extended "path" command; retained for compatibility)
  *
  * Usage:
  *	addpath path

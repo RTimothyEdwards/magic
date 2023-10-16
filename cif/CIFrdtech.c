@@ -872,10 +872,20 @@ CIFReadTechLine(sectionName, argc, argv)
 		goto wrongNumArgs;
 	}
 	CIFParseReadLayers(argv[1], &mask, TRUE);
-	for (i=0; i<MAXCIFRLAYERS; i+=1)
+	for (i = 0; i < MAXCIFRLAYERS; i++)
 	{
-	    if (TTMaskHasType(&mask,i))
+	    if (TTMaskHasType(&mask, i))
 	    {
+		/* Only one magic type can be assigned to a GDS layer, so
+		 * multiple assignments should be flagged as errors.
+		 */
+	     	if (cifCurReadStyle->crs_labelLayer[i] != TT_SPACE)
+		    TechError("Labels on layer \"%s\" attached to \"%s\" supersedes "
+				"prior attachment to \"%s\".\n",
+				cifReadLayers[i],
+				DBTypeLongNameTbl[cifCurReadLayer->crl_magicType],
+				DBTypeLongNameTbl[cifCurReadStyle->crs_labelLayer[i]]);
+
 		cifCurReadStyle->crs_labelLayer[i]
 			= cifCurReadLayer->crl_magicType;
 		if (argc == 3)
@@ -899,8 +909,8 @@ CIFReadTechLine(sectionName, argc, argv)
 	if (argc != 2) goto wrongNumArgs;
 	CIFParseReadLayers(argv[1], &mask, TRUE);
 	/* trash the value in crs_labelLayer so that any labels on this
-	   layer get junked, also. dcs 4/11/90
-        */
+	 * layer get junked, also. dcs 4/11/90
+         */
 	for (i=0; i < cifNReadLayers; i++)
 	{
 	     if (TTMaskHasType(&mask,i))

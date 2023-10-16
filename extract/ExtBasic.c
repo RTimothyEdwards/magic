@@ -3490,16 +3490,10 @@ extTransPerimFunc(bp)
 		    }
 		}
 		else
-		{
-		    /* Do not generate error messages on "Ignore" or "Short"
-		     * device types
+		    /* Do not print error messages here, as errors may
+		     * be resolved when checking the next device entry.
 		     */
-		    if (strcmp(extTransRec.tr_devrec->exts_deviceName, "Ignore") &&
-				strcmp(extTransRec.tr_devrec->exts_deviceName, "Short"))
-			TxError("Warning:  Unexpected asymmetric device at %d, %d!\n",
-				bp->b_outside->ti_ll.p_x, bp->b_outside->ti_ll.p_y);
 		    break;
-		}
 
 		/* Add the length to this terminal's perimeter */
 		extTransRec.tr_termlen[thisterm] += len;
