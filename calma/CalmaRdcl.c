@@ -610,8 +610,12 @@ calmaParseStructure(filename)
 			(locPolygonCount < CalmaPolygonCount))
 	DBCellEnum(cifReadCellDef, calmaFlattenPolygonFunc, (ClientData)cifReadCellDef);
 
-    DBAdjustLabelsNew(cifReadCellDef, &TiPlaneRect,
-	      (cifCurReadStyle->crs_flags & CRF_NO_RECONNECT_LABELS) ? 1 : 0);
+    /* Because the "label" statement can only match one GDS layer to one magic
+     * layer, then all labels are subject to adjustment to attach them to
+     * something meaningful in the layout.  The "no-reconnect-labels" option
+     * is not useful and has been deprecated.
+     */
+    DBAdjustLabelsNew(cifReadCellDef, &TiPlaneRect);
     DBReComputeBbox(cifReadCellDef);
 
     /* Don't bother to register with DRC if we're going to delete the	*/

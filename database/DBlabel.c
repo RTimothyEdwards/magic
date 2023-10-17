@@ -36,12 +36,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "database/database.h"
 #include "database/fonts.h"
 #include "database/databaseInt.h"
+#include "extract/extractInt.h"   /* for ExtCurStyle */
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "commands/commands.h"
 #include "textio/textio.h"
 
-static TileType DBPickLabelLayer(/* CellDef *def, Label *lab, int noreconnect */);
+static TileType DBPickLabelLayer(/* CellDef *def, Label *lab, bool doCalma */);
 
 /* Globally-accessible font information */
 
@@ -292,7 +293,7 @@ DBEraseGlobLabel(cellDef, area, mask, areaReturn, globmatch)
 	     */
 	    if (!(lab->lab_type == TT_SPACE))
 	    {
-		newType = DBPickLabelLayer(cellDef, lab, 0);
+		newType = DBPickLabelLayer(cellDef, lab, FALSE);
 		if (DBConnectsTo(newType, lab->lab_type)) goto nextLab;
 	    }
 	}
@@ -598,7 +599,7 @@ DBAdjustLabels(def, area)
     for (lab = def->cd_labels; lab != NULL; lab = lab->lab_next)
     {
 	if (!GEO_TOUCH(&lab->lab_rect, area)) continue;
-	newType = DBPickLabelLayer(def, lab, 0);
+	newType = DBPickLabelLayer(def, lab, FALSE);
 	if (newType == lab->lab_type) continue;
 	if (lab->lab_flags & LABEL_STICKY) continue;
 	if ((DBVerbose >= DB_VERBOSE_ALL) && ((def->cd_flags & CDINTERNAL) == 0))
@@ -618,17 +619,32 @@ DBAdjustLabels(def, area)
 
 
 /*
- * Extended version of DBAdjustLabels.  If noreconnect == 0,
- * this is supposed to be the same as DBAdjustlabels() above.
+ *---------------------------------------------------------------
+ *
+ * DBAdjustLabelsNew--
+ *
+ *	Modified version of DBAdjustLabels, used with reading
+ *	GDS and LEF files.  Since those files use GDS layers and
+ *	not magic layers, there is no exact relationship between
+ *	the two.  Instead, the cifinput rules are used to set an
+ *	initial type only.  The rules for label adjustment are
+ *	different from DBAdjustLabels(), and so a different
+ *	routine is called.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	The layer attachments of labels may change.  For each
+ *	such change, a message is output.
+ *
+ *---------------------------------------------------------------
  */
 
 void
-DBAdjustLabelsNew(def, area, noreconnect)
+DBAdjustLabelsNew(def, area)
     CellDef *def;	/* Cell whose paint was changed. */
     Rect *area;		/* Area where paint was modified. */
-    int noreconnect; 	/* if 1, don't move label to a type that doesn't
-			 * connect to the original type, delete instead
-			 */
 {
     Label *lab, *labPrev;
     TileType newType;
@@ -642,35 +658,40 @@ DBAdjustLabelsNew(def, area, noreconnect)
     lab = def->cd_labels;
     while (lab != NULL)
     {
-	int locnoreconnect = noreconnect;
-	if (!GEO_TOUCH(&lab->lab_rect, area))
-	{
-	    goto nextLab;
-	}
-	if (lab->lab_type == TT_SPACE) locnoreconnect = FALSE;
-	newType = DBPickLabelLayer(def, lab, locnoreconnect);
+	bool doCalma = TRUE;
+	if (!GEO_TOUCH(&lab->lab_rect, area)) goto nextLab;
+	if (lab->lab_type == TT_SPACE) doCalma = FALSE;
+	newType = DBPickLabelLayer(def, lab, doCalma);
 	if (newType == lab->lab_type)
-	{
 	    goto nextLab;
-	}
-	if (newType < 0 && !(lab->lab_flags & LABEL_STICKY))
+
+	if (((newType < 0) || (newType == TT_SPACE)) && !(lab->lab_flags & LABEL_STICKY))
 	{
-	    TxPrintf("Deleting ambiguous-layer label \"%s\" from %s in cell %s.\n",
+	    if (lab->lab_type == TT_SPACE)
+	    {
+		TxPrintf("Deleting unattached label \"%s\" in cell %s.\n",
+		 	lab->lab_text, def->cd_name);
+
+		if (labPrev == NULL)
+		    def->cd_labels = lab->lab_next;
+		else
+		    labPrev->lab_next = lab->lab_next;
+		if (def->cd_lastLabel == lab)
+		    def->cd_lastLabel = labPrev;
+		DBUndoEraseLabel(def, lab);
+		DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
+		freeMagic((char *) lab);
+		lab = lab->lab_next;
+		modified = TRUE;
+		continue;
+	    }
+	    else
+	    {
+		TxPrintf("Making label \"%s\" on type %s in cell %s sticky.\n",
 		 	lab->lab_text, DBTypeLongName(lab->lab_type),
 		 	def->cd_name);
-
-	    if (labPrev == NULL)
-		def->cd_labels = lab->lab_next;
-	    else
-		labPrev->lab_next = lab->lab_next;
-	    if (def->cd_lastLabel == lab)
-		def->cd_lastLabel = labPrev;
-	    DBUndoEraseLabel(def, lab);
-	    DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
-	    freeMagic((char *) lab);
-	    lab = lab->lab_next;
-	    modified = TRUE;
-	    continue;
+		lab->lab_flags |= LABEL_STICKY;
+	    }
 	}
 	else if (!(lab->lab_flags & LABEL_STICKY))
 	{
@@ -723,10 +744,10 @@ TileTypeBitMask *dbAdjustPlaneTypes;	/* Mask of all types in current
 					 * plane being searched.
 					 */
 TileType
-DBPickLabelLayer(def, lab, noreconnect)
+DBPickLabelLayer(def, lab, doCalma)
     CellDef *def;		/* Cell definition containing label. */
     Label *lab;			/* Label for which a home must be found. */
-    int noreconnect;        /* if 1, return -1 if rule 5 or 6 would succeed */
+    bool doCalma;        	/* if TRUE, use rules for GDS and LEF */
 {
     TileTypeBitMask types[3], types2[3];
     Rect check1, check2;
@@ -827,112 +848,147 @@ DBPickLabelLayer(def, lab, noreconnect)
     }
 
     /* If the label's layer covers the label's area, use it.
-     * Otherwise, look for a layer in the following order:
-     * 1. A layer on the same plane as the original layer and that
-     *    covers the label and connects to its original layer.
-     * 2. A layer on the same plane as the original layer and that
-     *    is a component of material that covers the label and
-     *    connects to its original layer.
-     * 3. A layer that covers the label and connects to the
-     *    old layer.
-     * 4. A layer that is a component of material that covers
-     *    the label and connects to the old layer.
-     * 5. A layer that covers the label.
-     * 6. A layer that is a component of material that covers the label.
-     * 7. Space.
+     * Otherwise, look for a layer in the following order
+     * (Note:  "covers" means covers the area of the label if the
+     * label has area or touches the entire label if it doesn't.):
+     *
+     * If "doCalma" is TRUE, then:
+     *   1. A layer on the same plane as the original layer and that
+     *      covers the label and is not a device type.
+     *   2. A layer on the same plane as the original layer and that
+     *      covers the label.
+     *   3. A layer on the same plane as the original layer and that
+     *      is a component of material that covers the label.
+     *   4. -1
+     *
+     * If "doCalma" is FALSE, then:
+     *   1. A layer on the same plane as the original layer and that
+     *      covers the label and connects to its original layer.
+     *   2. A layer on the same plane as the original layer and that
+     *      is a component of material that covers the label and
+     *      connects to its original layer.
+     *   3. A layer that covers the label and connects to the old layer.
+     *   4. A layer that is a component of material that covers the
+     *      label and connects to the old layer.
+     *   5. A layer that covers the label and is on the same plane as the
+     *	    label.
+     *   6. A layer that is a component of material that covers the label
+     *	    and is on the same plane as the label.
+     *   7. Space.
      *
      * All searches are done from the lowest to highest plane, so that
      * the label connects to material on the highest plane that matches
      * the criteria above.  This avoids weirdnesses caused by declaring
      * types out of order in the techfile.
+     *
+     * Note that when the "label" command is used with no type given,
+     * then lab_type is TT_SPACE and "same plane as the label" is all
+     * planes.  This should never be true when called during GDS or
+     * LEF reads, so only needs to be checked when "doCalma" is FALSE.
      */
 
     if (TTMaskHasType(&types[0], lab->lab_type)) return lab->lab_type;
     plane = DBPlane(lab->lab_type);
-    choice1 = choice2 = choice3 = choice4 = choice5 = choice6 = TT_SPACE;
 
-    for (j = PL_SELECTBASE; j < DBNumPlanes; j++)
+    if (doCalma)
     {
+	choice1 = choice2 = choice3 = -1;
+
 	for (i = TT_SELECTBASE; i < DBNumUserLayers; i += 1)
 	{
-	    if (!TTMaskHasType(&DBPlaneTypes[j], i)) continue;
+	    if (!TTMaskHasType(&DBPlaneTypes[plane], i)) continue;
 
-	    if (DBConnectsTo(i, lab->lab_type))
+	    if (TTMaskHasType(&types[0], i) && (ExtCurStyle != NULL))
 	    {
-		if (DBPlane(i) == plane)
-		{
-		    if (TTMaskHasType(&types[0], i))
-		    {
-			choice1 = i;
-			continue;
-		    }
-		    else if (TTMaskHasType(&types[1], i))
-		    {
-			choice2 = i;
-			continue;
-		    }
-		}
-		if (TTMaskHasType(&types[0], i))
-		{
-		    choice3 = i;
-		    continue;
-		}
-		else if (TTMaskHasType(&types[1], i))
-		{
-		    choice4 = i;
-		    continue;
-		}
-	    }
-	    if (TTMaskHasType(&types[0], i))
-	    {
-		/* A type that connects to more than itself is preferred */
-		if (choice5 == TT_SPACE)
-		    choice5 = i;
+		if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, i))
+		    choice2 = i;
 		else
-		{
-		    TileTypeBitMask ctest;
-		    TTMaskZero(&ctest);
-		    TTMaskSetMask(&ctest, &DBConnectTbl[i]);
-		    TTMaskClearType(&ctest, i);
-		    if (!TTMaskIsZero(&ctest))
-			choice5 = i;
-		    else if (TTMaskHasType(&types[1], i))
-			choice6 = i;
-		}
+		    choice1 = i;
 		continue;
 	    }
 	    else if (TTMaskHasType(&types[1], i))
 	    {
-		choice6 = i;
+		choice3 = i;
 		continue;
 	    }
 	}
-    }
 
-    if (choice1 != TT_SPACE) return choice1;
-    else if (choice2 != TT_SPACE) return choice2;
-    else if (choice3 != TT_SPACE) return choice3;
-    else if (choice4 != TT_SPACE) return choice4;
-    else if (noreconnect) {
-#ifdef notdef
-	TxPrintf("DBPickLabelLayer \"%s\" (on %s at %d,%d) choice4=%s choice5=%s choice6=%s.\n",
-		     lab->lab_text,
-		     DBTypeLongName(lab->lab_type),
-		     lab->lab_rect.r_xbot,
-		     lab->lab_rect.r_ytop,
-		     DBTypeLongName(choice4),
-		     DBTypeLongName(choice5),
-		     DBTypeLongName(choice6));
-#endif
-	/* If the flag is set, don't cause a netlist change by moving a
-	   the label.  So unless there's only space here, delete the label */
-	if(choice5 == TT_SPACE && choice6 == TT_SPACE)
-	    return TT_SPACE;
-	else
- 	    return -1;
+	if (choice1 != -1) return choice1;
+	else if (choice2 != -1) return choice2;
+	else return choice3;
     }
-    else if (choice5 != TT_SPACE) return choice5;
-    else return choice6;
+    else
+    {
+	choice1 = choice2 = choice3 = choice4 = choice5 = choice6 = TT_SPACE;
+
+	for (j = PL_SELECTBASE; j < DBNumPlanes; j++)
+	{
+	    for (i = TT_SELECTBASE; i < DBNumUserLayers; i += 1)
+	    {
+		if (!TTMaskHasType(&DBPlaneTypes[j], i)) continue;
+
+		if (DBConnectsTo(i, lab->lab_type))
+		{
+		    if (DBPlane(i) == plane)
+		    {
+			if (TTMaskHasType(&types[0], i))
+			{
+			    choice1 = i;
+			    continue;
+			}
+			else if (TTMaskHasType(&types[1], i))
+			{
+			    choice2 = i;
+			    continue;
+			}
+		    }
+		    if (TTMaskHasType(&types[0], i))
+		    {
+			choice3 = i;
+			continue;
+		    }
+		    else if (TTMaskHasType(&types[1], i))
+		    {
+			choice4 = i;
+			continue;
+		    }
+		}
+		if ((DBPlane(i) == plane) || (lab->lab_type == TT_SPACE))
+		{
+		    if (TTMaskHasType(&types[0], i))
+		    {
+			/* A type that connects to more than itself is preferred */
+			if (choice5 == TT_SPACE)
+			    choice5 = i;
+			else
+			{
+			    TileTypeBitMask ctest;
+			    TTMaskZero(&ctest);
+			    TTMaskSetMask(&ctest, &DBConnectTbl[i]);
+			    TTMaskClearType(&ctest, i);
+			    if (!TTMaskIsZero(&ctest))
+				choice5 = i;
+			    else if (TTMaskHasType(&types[1], i))
+				choice6 = i;
+			}
+			continue;
+		    }
+		    else if (TTMaskHasType(&types[1], i))
+		    {
+			choice6 = i;
+			continue;
+		    }
+		}
+	    }
+	}
+
+	if (choice1 != TT_SPACE) return choice1;
+	else if (choice2 != TT_SPACE) return choice2;
+	else if (choice3 != TT_SPACE) return choice3;
+	else if (choice4 != TT_SPACE) return choice4;
+	else if (choice5 != TT_SPACE) return choice5;
+	else return choice6;
+    }
 }
 
 /* Search function for DBPickLabelLayer:  just OR in the type of

@@ -1052,8 +1052,16 @@ CmdWatch(w, cmd)
 	    };
 	    return;
 	}
-	crec->dbw_watchDef = EditCellUse->cu_def;
-	crec->dbw_watchTrans = EditToRootTransform;
+	if (EditCellUse != NULL)
+	{
+	    crec->dbw_watchDef = EditCellUse->cu_def;
+	    crec->dbw_watchTrans = EditToRootTransform;
+	}
+	else
+	{
+	    crec->dbw_watchDef = ((CellUse *)w->w_surfaceID)->cu_def;
+	    crec->dbw_watchTrans = ((CellUse *)w->w_surfaceID)->cu_transform;
+	}
     }
 
     crec->dbw_watchPlane = pNum;

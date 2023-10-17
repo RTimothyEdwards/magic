@@ -877,14 +877,27 @@ CIFReadTechLine(sectionName, argc, argv)
 	    if (TTMaskHasType(&mask, i))
 	    {
 		/* Only one magic type can be assigned to a GDS layer, so
-		 * multiple assignments should be flagged as errors.
+		 * multiple assignments should be flagged as errors.  BUT,
+		 * this is a common historic error.  Since reattachments
+		 * should be handled rationally (by code added 10/17/2023
+		 * to DBlabel.c), there is no urgent need to flag an issue
+		 * unless the new layer does not exist on the same plane
+		 * as the old one.
 		 */
 	     	if (cifCurReadStyle->crs_labelLayer[i] != TT_SPACE)
-		    TechError("Labels on layer \"%s\" attached to \"%s\" supersedes "
-				"prior attachment to \"%s\".\n",
+		{
+		    int p1, p2;
+		    p1 = DBPlane(cifCurReadLayer->crl_magicType);
+		    p2 = DBPlane(cifCurReadStyle->crs_labelLayer[i]);
+
+		    if (!DBTypeOnPlane(cifCurReadLayer->crl_magicType, p2) &&
+				!DBTypeOnPlane(cifCurReadStyle->crs_labelLayer[i], p1))
+		        TechError("Labels on layer \"%s\" attached to \"%s\" "
+				"supersedes prior attachment to \"%s\".\n",
 				cifReadLayers[i],
 				DBTypeLongNameTbl[cifCurReadLayer->crl_magicType],
 				DBTypeLongNameTbl[cifCurReadStyle->crs_labelLayer[i]]);
+		}
 
 		cifCurReadStyle->crs_labelLayer[i]
 			= cifCurReadLayer->crl_magicType;
@@ -926,14 +939,15 @@ CIFReadTechLine(sectionName, argc, argv)
 
     /* miscellaneous cif-reading boolean options */
 
-    if(strcmp(argv[0], "options") == 0) {
+    if (strcmp(argv[0], "options") == 0) {
 	int i;
 	if (argc < 2) goto wrongNumArgs;
-	for(i = 1; i < argc; i++) {
-	    if(strcmp(argv[i], "ignore-unknown-layer-labels") == 0)
+	for (i = 1; i < argc; i++) {
+	    if (strcmp(argv[i], "ignore-unknown-layer-labels") == 0)
 		cifCurReadStyle->crs_flags |= CRF_IGNORE_UNKNOWNLAYER_LABELS;
-	    if(strcmp(argv[i], "no-reconnect-labels") == 0)
-		cifCurReadStyle->crs_flags |= CRF_NO_RECONNECT_LABELS;
+	    /* Allow "no-reconnect-labels", although it has been deprecated */
+	    else if (strcmp(argv[i], "no-reconnect-labels") != 0)
+		TechError("Unknown cifinput option \"%s\".\n", argv[i]);
 	}
 	return TRUE;
     }

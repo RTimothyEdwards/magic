@@ -115,7 +115,6 @@ typedef struct cifrstyle
 
 /* option bitmasks used in crs_flags */
 #define CRF_IGNORE_UNKNOWNLAYER_LABELS	1
-#define CRF_NO_RECONNECT_LABELS		2
 
 /* Methods to deal with fractional results of conversion from CIF to magic */
 /* units (see routine CIFScaleCoord() for details).			   */

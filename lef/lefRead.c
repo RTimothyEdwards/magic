@@ -2310,7 +2310,7 @@ origin_error:
     }
     else
     {
-	DBAdjustLabelsNew(lefMacro, &TiPlaneRect, 1);
+	DBAdjustLabelsNew(lefMacro, &TiPlaneRect);
 
 	if (has_size)
 	{

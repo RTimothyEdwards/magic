@@ -1002,8 +1002,6 @@ calmaElementText()
 	    flags = 0;
 	else if (cifnum >= 0 && (cifCurReadStyle->crs_labelSticky[cifnum] != LABEL_TYPE_NONE))
 	    flags = LABEL_STICKY;
-	else if (cifCurReadStyle->crs_flags & CRF_NO_RECONNECT_LABELS)
-	    flags = LABEL_STICKY;
 	else
 	    flags = 0;
 
