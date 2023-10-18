@@ -269,9 +269,9 @@ CmdPlot(w, cmd)
 
 #if defined(HAVE_LIBCAIRO) && defined(MAGIC_WRAPPER)
 	case PLOTSVG:
-	    if (cmd->tx_argc > 3)
+	    if (cmd->tx_argc != 3)
 	    {
-		TxError("Too many arguments:\n    plot %s\n",
+		TxError("Wrong number of arguments:\n    plot %s\n",
 			cmdPlotOption[PLOTSVG]);
 		return;
 	    }

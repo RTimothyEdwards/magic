@@ -755,6 +755,12 @@ PlotPNM(fileName, scx, layers, xMask, width)
 	    }
 	    fileName = tempFile;
 	}
+	else if (strchr(fileName, '.') == NULL)
+	{
+	    /* Add extention ".pnm" if the filename does not have an extension */
+	    sprintf(tempFile, "%s.pnm", fileName);
+	    fileName = tempFile;
+	}
 	rtl_args.outfile = PaOpen(fileName, "w", (char *)NULL, ".",
 		(char *)NULL, (char **)NULL);
 	if (rtl_args.outfile == NULL)
@@ -807,7 +813,9 @@ PlotPNM(fileName, scx, layers, xMask, width)
     {
 	/* open PNM file */
 
-	fp = PaOpen (fileName, "w", ".pnm", ".", NULL, NULL);
+	fp = PaOpen (fileName, "w",
+			(strchr(fileName, '.') == NULL) ? ".pnm" : NULL,
+			".", NULL, NULL);
 	if (fp == NULL)
 	{
 	    TxError ("Could not open file `%s' for writing\n", fileName);
