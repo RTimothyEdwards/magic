@@ -2366,6 +2366,7 @@ ExtTechLine(sectionName, argc, argv)
 	    while ((paramName = strchr(argv[argc - 1], '=')) != NULL)
 	    {
 		char *mult, *offset;
+		double dval;
 
 		/* Ignore ">=" and "<=", which are handled below */ 
 		if (paramName > argv[argc - 1])
@@ -2379,7 +2380,7 @@ ExtTechLine(sectionName, argc, argv)
 		newParam->pl_param[1] = '\0';
 		newParam->pl_maximum = -1;
 		newParam->pl_minimum = 0;
-		newParam->pl_offset = 0.0;
+		newParam->pl_offset = 0;
 
 		if (paramName - argv[argc - 1] == 3)
 		    newParam->pl_param[1] = *(argv[argc - 1] + 1);
@@ -2412,16 +2413,18 @@ ExtTechLine(sectionName, argc, argv)
 		    {
 			*offset = '\0';
 			offset++;
-			newParam->pl_offset = atof(offset);
+			dval = atof(offset);
+			newParam->pl_offset = (int)(0.5 + (dval * 1000));
 		    }
 		    else if ((offset = strchr(paramName, '-')) != NULL)
 		    {
 			*offset = '\0';
 			offset++;
-			newParam->pl_offset = -atof(offset);
+			dval = -atof(offset);
+			newParam->pl_offset = (int)(0.5 + (dval * 1000));
 		    }
 		    else
-			newParam->pl_offset = 0.0;
+			newParam->pl_offset = 0;
 		}
 
 		newParam->pl_name = StrDup((char **)NULL, paramName);
@@ -2483,7 +2486,7 @@ ExtTechLine(sectionName, argc, argv)
 		    newParam->pl_minimum = 0;
 		    newParam->pl_name = NULL;
 		    newParam->pl_scale = 1.0;
-		    newParam->pl_offset = 0.0;
+		    newParam->pl_offset = 0;
 
 		    newParam->pl_next = subcktParams;
 		    subcktParams = newParam;
@@ -3693,6 +3696,14 @@ zinit:
 		for (chkParam = devptr->exts_deviceParams; chkParam;
 				chkParam = chkParam->pl_next)
 		{
+		    if (chkParam->pl_offset != 0)
+		    {
+			if (chkParam->pl_param[0] == 'a')
+			    chkParam->pl_offset /= dsq;
+			else
+			    chkParam->pl_offset /= dscale;
+		    }
+
 		    if (chkParam->pl_minimum > chkParam->pl_maximum) continue;
 		    else if (chkParam->pl_param[0] == 'a')
 		    {
@@ -3781,6 +3792,8 @@ zinit:
 	    for (chkParam = devptr->exts_deviceParams; chkParam;
 				chkParam = chkParam->pl_next)
 	    {
+		if (chkParam->pl_offset != 0)
+		    chkParam->pl_offset /= 1000;
 		if (chkParam->pl_minimum > chkParam->pl_maximum) continue;
 		chkParam->pl_maximum /= 1000;
 		chkParam->pl_minimum /= 1000;
@@ -3835,6 +3848,19 @@ ExtTechScale(scalen, scaled)
 	    for (chkParam = devptr->exts_deviceParams; chkParam;
 				chkParam = chkParam->pl_next)
 	    {
+		if (chkParam->pl_offset != 0)
+		{
+		    if (chkParam->pl_param[0] == 'a')
+		    {
+			chkParam->pl_offset *= sqd;
+			chkParam->pl_offset /= sqn;
+		    }
+		    else
+		    {
+			chkParam->pl_offset *= scaled;
+			chkParam->pl_offset /= scalen;
+		    }
+		}
 		if (chkParam->pl_minimum > chkParam->pl_maximum) continue;
 		else if (chkParam->pl_param[0] == 'a')
 		{

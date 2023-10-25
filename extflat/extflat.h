@@ -269,7 +269,7 @@ typedef struct parm
     char	 parm_type[2];
     char	*parm_name;
     double	 parm_scale;
-    double	 parm_offset;
+    int	 	 parm_offset;
     struct parm	*parm_next;
 } DevParam;
 

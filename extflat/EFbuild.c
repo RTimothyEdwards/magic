@@ -736,15 +736,15 @@ efBuildDeviceParams(name, argc, argv)
 	    if ((offset = strchr(pptr + 1, '+')) != NULL)
 	    {
 		*offset = '\0';
-		newparm->parm_offset = atof(offset + 1);
+		newparm->parm_offset = atoi(offset + 1);
 	    }
 	    else if ((offset = strchr(pptr + 1, '-')) != NULL)
 	    {
 		*offset = '\0';
-		newparm->parm_offset = -atof(offset + 1);
+		newparm->parm_offset = -atoi(offset + 1);
 	    }
 	    else
-		newparm->parm_offset = 0.0;
+		newparm->parm_offset = 0;
 	}
 
 	// For parameters defined for cell defs, copy the whole

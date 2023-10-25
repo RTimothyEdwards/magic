@@ -78,7 +78,7 @@ typedef struct pl
     char	 pl_param[2];	/* Default character for parameter */
     char	*pl_name;	/* Full name for parameter */
     double	 pl_scale;	/* Scaling of parameter, if specified */
-    double	 pl_offset;	/* Offset of parameter, if specified */
+    int	 	 pl_offset;	/* Offset of parameter, if specified */
     int	 	 pl_maximum;	/* Maximum value for this device model */
     int		 pl_minimum;	/* Minimum value for this device model */
     struct pl	*pl_next;	/* Next parameter in list */
