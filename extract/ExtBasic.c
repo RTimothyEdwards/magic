@@ -2041,7 +2041,7 @@ extOutputDevices(def, transList, outFile)
     int nsd, length, width, n, i, ntiles, corners, tn, rc, termcount;
     double dres, dcap;
     char mesg[256];
-    bool isAnnular, hasModel;
+    bool isAnnular, hasModel, sd_is_tied;
 
     for (reg = transList; reg && !SigInterruptPending; reg = reg->treg_next)
     {
@@ -2134,6 +2134,7 @@ extOutputDevices(def, transList, outFile)
 	{
 	    if (devptr == NULL) break;	    /* Bad device */
 	    nsd = devptr->exts_deviceSDCount;
+	    sd_is_tied = FALSE;
 	    for (termcount = 0; termcount < nsd; termcount++)
 	    {
 		TileTypeBitMask *tmask;
@@ -2144,11 +2145,10 @@ extOutputDevices(def, transList, outFile)
 		tmask = &devptr->exts_deviceSDTypes[termcount];
 		if (TTMaskIsZero(tmask)) {
 		    if (termcount < nsd) {
-			ExtDevice *devcheck;
-
 			/* Not finding another device record just means that	*/
 			/* terminals are tied together on the same net, such as	*/
 			/* with a MOS cap.  Accept this fact and move on.	*/
+			sd_is_tied = TRUE;
 		    } 
 		    break;	/* End of SD terminals */
 		}
@@ -2219,6 +2219,7 @@ extOutputDevices(def, transList, outFile)
 	    }
 	    if (termcount == nsd) break;    /* All terminals accounted for */
 	    if (devptr == deventry) break;  /* No other device records available */
+	    if (sd_is_tied) break;	    /* Legal case of tied source and drain */
 	    /* Try again with a different device record */
 	}
 	extTransRec.tr_nterm = termcount;
