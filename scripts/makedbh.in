@@ -12,10 +12,8 @@ maxtypes_rx = re.compile(r"#define\s+TT_MAXTYPES\s+(\d+)")
 
 match = maxtypes_rx.findall(database_h_in)
 if len(match) == 0:
-    print(
-        f"Bad regular expression in {sys.argv[0]}: Cannot generate database/database.h!",
-        file=sys.stderr,
-    )
+    print("Bad regular expression in " + sys.argv[0] + ": Cannot "
+	+ "generate database/database.h!", file=sys.stderr)
     exit(-1)
 
 maxtypes = int(match[0])
@@ -33,20 +31,20 @@ out_string = database_h_in
 
 def p(string):
     global out_string
-    out_string += f"{string}"
+    out_string += string
 
 
 # Generated macros
 def add_generated_mask_macro(name, expression, *, connector=","):
     global maskwords
 
-    p(f"#define {name} ( \\\n")
+    p("#define " + name + " ( \\\n")
     for i in reversed(range(maskwords)):
-        p(f"\t{expression.format(i=i)}")
+        p("\t" + expression.format(i=i))
         if i == 0:
             p(")\n\n")
         else:
-            p(f"{connector} \\\n")
+            p(connector + " \\\n")
 
 
 add_generated_mask_macro(
