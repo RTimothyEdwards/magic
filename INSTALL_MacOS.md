@@ -22,6 +22,7 @@ We are following the instructions from xschem (https://github.com/StefanSchipper
 
 We are using not `opt` but `opt2` so that this Tcl does not interfere with `tcl-tk` from HomeBrew.
 
+Extract the Tcl sources and then go to the unix folder and execute the following commands::
 ```
 ./configure --prefix=/usr/local/opt2/tcl-tk  
 make
@@ -31,6 +32,13 @@ make install
 ### Build Tk for X11
 
 * Download Tk from https://prdownloads.sourceforge.net/tcl/tk8.6.10-src.tar.gz
+
+Extract Tk source and then go to the unix folder:
+
+NOTE: before running 'make' inspect the Makefile and ensure the LIB_RUNTIME_DIR is set as follows. Make the correction if not:
+```
+LIB_RUNTIME_DIR         = $(libdir)
+```
 
 ```
 ./configure --prefix=/usr/local/opt2/tcl-tk \
@@ -53,3 +61,18 @@ CFLAGS=-Wno-error=implicit-function-declaration
 make
 make install
 ```
+
+## If facing issue with layout window not opening / XQuartz:
+Make sure that the output of the following command is ```:0```.
+```
+echo $DISPLAY
+```
+if the above command doesn't display ```:0``` then add the following line in ```.zshrc```.
+```
+export PATH="/opt/X11/bin:$PATH"
+```
+Close & reopen terminal to load the path. Then set display manually to ```0``` by using the following command.
+```
+export DISPLAY=:0
+```
+Now  ```echo DISPLAY``` should give ```:0``` as output.
