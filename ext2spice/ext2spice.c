@@ -3105,6 +3105,7 @@ esSIvalue(file, value)
     float value;
 {
     char suffix = '\0';
+    int precision;
     float avalue;
 
     avalue = fabsf(value);
@@ -3150,10 +3151,30 @@ esSIvalue(file, value)
 	value /= 1.0E3;
     }
 
+    /* Note that "%g" is preferred because it produces more readable
+     * output.  However, it changes the definition of the precision
+     * from significant digits after the radix to total significant
+     * digits.  Determine the proper precision to use by reading
+     * back the formatted value and comparing to the original value.
+     */
+
+    for (precision = 3; precision < 9; precision++)
+    {
+	int vtrunc, ptrunc;
+	char ptest[32];
+	float pvalue;
+
+	sprintf(ptest, "%.*g", value, precision);
+	sscanf(ptest, "%f", &pvalue);
+	vtrunc = (int)(0.5 + (value * 1e6));
+	ptrunc = (int)(0.5 + (pvalue * 1e6));
+	if (vtrunc == ptrunc) break;
+    }
+
     if (suffix == '\0')
-	fprintf(file, "%.3g", value);
+	fprintf(file, "%.*g", value, precision);
     else
-	fprintf(file, "%.3g%c", value, suffix);
+	fprintf(file, "%.3*%c", value, precision, suffix);
 }
 
 /*
