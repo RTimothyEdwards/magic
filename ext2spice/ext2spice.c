@@ -3174,7 +3174,7 @@ esSIvalue(file, value)
     if (suffix == '\0')
 	fprintf(file, "%.*g", value, precision);
     else
-	fprintf(file, "%.3*%c", value, precision, suffix);
+	fprintf(file, "%.*%c", value, precision, suffix);
 }
 
 /*
