@@ -3164,7 +3164,7 @@ esSIvalue(file, value)
 	char ptest[32];
 	float pvalue;
 
-	sprintf(ptest, "%.*g", value, precision);
+	sprintf(ptest, "%.*g", precision, value);
 	sscanf(ptest, "%f", &pvalue);
 	vtrunc = (int)(0.5 + (value * 1e6));
 	ptrunc = (int)(0.5 + (pvalue * 1e6));
@@ -3172,9 +3172,9 @@ esSIvalue(file, value)
     }
 
     if (suffix == '\0')
-	fprintf(file, "%.*g", value, precision);
+	fprintf(file, "%.*g", precision, value);
     else
-	fprintf(file, "%.*%c", value, precision, suffix);
+	fprintf(file, "%.*g%c", precision, value, suffix);
 }
 
 /*
