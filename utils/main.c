@@ -791,10 +791,16 @@ mainInitAfterArgs()
     return 0;
 }
 
+/*
+ * Tcl exit procedure hook for the Tcl_Exit() subroutine
+ *
+ * clientData is an exit value if "exit" was specified from a script.
+ */
+
 void tcl_exit_hook(ClientData clientData)
 {
     TxResetTerminal();
-    exit(0);
+    exit((int)clientData);
 }
 
 /*
