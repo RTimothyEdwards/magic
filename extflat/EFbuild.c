@@ -188,7 +188,10 @@ efBuildNode(def, isSubsnode, isDevSubsnode, isExtNode, nodeName, nodeCap,
 		newnode->efnode_flags |= EF_SUBS_NODE;
 
 	    if (isSubsnode == TRUE)
+	    {
 		newnode->efnode_flags |= EF_GLOB_SUBS_NODE;
+		EFCompat = FALSE;
+	    }
 
 	    /* The node is a duplicate port name at a different location. */
 	    /* If EFSaveLocs is TRUE, then save the layer and position in */
