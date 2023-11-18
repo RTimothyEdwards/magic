@@ -16,6 +16,8 @@ TCL_FILES = \
 	tkcon.tcl \
 	tkshell.tcl \
 	wrapper.tcl \
+	toolbar.tcl \
+	reorderLayers.tcl \
 	console.tcl \
 	techbuilder.tcl \
 	cellmgr.tcl \
