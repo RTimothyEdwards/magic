@@ -388,6 +388,14 @@ proc magic::maketechmanager { mgrpath } {
 
 catch {source ${CAD_ROOT}/magic/tcl/cellmgr.tcl}
 
+# Generate the toolbar for the wrapper
+
+catch {source ${CAD_ROOT}/magic/tcl/toolbar.tcl}
+
+# Include the reorder toolbar script
+
+catch {source ${CAD_ROOT}/magic/tcl/reorderLayers.tcl}
+
 # Generate the library manager
 
 catch {source ${CAD_ROOT}/magic/tcl/libmgr.tcl}
@@ -783,144 +791,6 @@ proc magic::maketoolimages {} {
       image create layer pale_$layername -name $layername \
 		-disabled true -icon 23 -width $tsize -height $tsize
     }
-}
-
-# Generate the toolbar for the wrapper
-
-proc magic::maketoolbar { framename } {
-   global Opts
-   global Winopts
-
-   # Don't do anything if in suspend mode
-   set topname [winfo toplevel $framename]
-   if {[info exists Winopts(${topname},suspend)]} {
-      if { $Winopts(${topname},suspend) > 0} { return }
-   }
-
-   if {$Opts(toolbar) == 0} {
-      magic::maketoolimages
-      set Opts(toolbar) 1
-   }
-
-   # Destroy any existing toolbar before starting
-   set alltools [winfo children ${framename}.toolbar]
-   foreach i $alltools {
-      destroy $i
-   }
-
-   # All toolbar commands will be passed to the appropriate window
-   set win ${framename}.magic
-
-   # Generate layer images and buttons for toolbar
-   if {$Opts(hidespecial) == 0} {
-       set special_layers {errors labels subcell}
-   } else {
-       set special_layers {}
-   }
-
-   if {$Opts(hidelocked) == 0} {
-       set all_layers [concat $special_layers [magic::tech layer "*"]]
-   } else {
-       set all_layers [concat $special_layers [magic::tech unlocked]]
-   }
-   foreach layername $all_layers {
-      button ${framename}.toolbar.b$layername -image img_$layername -command \
-		"$win see $layername"
-
-      # Bindings:  Entering the button puts the canonical layer name in the
-      # message window.
-      bind ${framename}.toolbar.b$layername <Enter> \
-		[subst {focus %W ; ${framename}.titlebar.message configure \
-		 -text "$layername"}]
-      bind ${framename}.toolbar.b$layername <Leave> \
-		[subst {${framename}.titlebar.message configure -text ""}]
-
-      # 3rd mouse button makes layer invisible; 1st mouse button restores it.
-      # 2nd mouse button paints the layer color.  Key "p" also does paint, esp.
-      # for users with 2-button mice.  Key "e" erases, as does Shift-Button-2.
-
-      bind ${framename}.toolbar.b$layername <ButtonPress-2> \
-		"$win paint $layername"
-      bind ${framename}.toolbar.b$layername <KeyPress-p> \
-		"$win paint $layername"
-      bind ${framename}.toolbar.b$layername <Shift-ButtonPress-2> \
-		"$win erase $layername"
-      bind ${framename}.toolbar.b$layername <KeyPress-e> \
-		"$win erase $layername"
-      bind ${framename}.toolbar.b$layername <ButtonPress-3> \
-		"$win see no $layername"
-      bind ${framename}.toolbar.b$layername <KeyPress-s> \
-		"$win select more area $layername"
-      bind ${framename}.toolbar.b$layername <KeyPress-S> \
-		"$win select less area $layername"
-   }
-
-   # Create an additional set of layers and buttons in the "disabled" style
-   # These buttons can be swapped in place of the regular buttons when the
-   # layer is locked.  They define no bindings except "u" for "unlock",
-   # and the button bindings (see, see no)
-
-   foreach layername $all_layers {
-      button ${framename}.toolbar.p$layername -image pale_$layername -command \
-		"$win see $layername"
-      bind ${framename}.toolbar.p$layername <ButtonPress-3> \
-		"$win see no $layername"
-      bind ${framename}.toolbar.p$layername <Enter> \
-		[subst {focus %W ; ${framename}.titlebar.message configure \
-		 -text "$layername (locked)"}]
-      bind ${framename}.toolbar.p$layername <Leave> \
-		[subst {${framename}.titlebar.message configure -text ""}]
-   }
-
-   # Figure out how many columns we need to fit all the layer buttons inside
-   # the toolbar without going outside the window area.
-
-   set locklist [tech locked]
-   set ncols 0
-
-   # Sometimes the window manager can have bogus values, so allow an
-   # environment variable LAYOUT_ICON_COLS to override the number of icon
-   # columns.
-   if {[info exists ::env(LAYOUT_ICON_COLS)]} {
-	set ncols [expr $::env(LAYOUT_ICON_COLS) - 1]
-   }
-
-   while {1} {
-      incr ncols
-      set i 0
-      set j 0
-      foreach layername $all_layers {
-	 if {[lsearch $locklist $layername] >= 0} {
-            grid ${framename}.toolbar.p$layername -row $i -column $j -sticky news
-	 } else {
-            grid ${framename}.toolbar.b$layername -row $i -column $j -sticky news
-	 }
-	 bind ${framename}.toolbar.p$layername <KeyPress-u> \
-		"$win tech unlock $layername ; \
-		grid forget ${framename}.toolbar.p$layername ; \
-		grid ${framename}.toolbar.b$layername \
-		-row $i -column $j -sticky news"
-	 bind ${framename}.toolbar.b$layername <KeyPress-l> \
-		"$win tech lock $layername ; \
-		grid forget ${framename}.toolbar.b$layername ; \
-		grid ${framename}.toolbar.p$layername \
-		-row $i -column $j -sticky news"
-         incr j
-         if {$j == $ncols} {
-	    set j 0
-	    incr i
-         }
-      }
-
-      # Make sure that window has been created so we will get the correct
-      # height value.
-
-      update idletasks
-      set winheight [expr {[winfo height ${framename}] - \
-		[winfo height ${framename}.titlebar]}]
-      set toolheight [lindex [grid bbox ${framename}.toolbar] 3]
-      if {$toolheight <= $winheight} {break}
-   }
 }
 
 # Delete and rebuild the toolbar buttons in response to a "tech load"
@@ -1439,6 +1309,7 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
    $m add separator
    $m add command -label "Clear Feedback" -command {magic::feedback clear}
    $m add separator
+   $m add command -label "Reorder layers" -command "magic::reorderToolbar ${layoutframe}"
 
 # #################################
 # DRC
