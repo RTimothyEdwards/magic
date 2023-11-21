@@ -682,7 +682,7 @@ calmaFullDumpZ(def, fi, outf, filename)
 
     static int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
 		CALMA_REFLIBS, CALMA_FONTS, CALMA_ATTRTABLE,
-		CALMA_STYPTABLE, CALMA_GENERATIONS, CALMA_UNITS, -1 };
+		CALMA_STYPTABLE, CALMA_GENERATIONS, -1 };
     static int skipBeforeLib[] = { CALMA_LIBDIRSIZE, CALMA_SRFNAME,
 		CALMA_LIBSECUR, -1 };
 
@@ -698,10 +698,14 @@ calmaFullDumpZ(def, fi, outf, filename)
     calmaSkipSet(skipBeforeLib);
     if (!calmaReadStringRecord(CALMA_LIBNAME, &libname)) goto done;
 
-    // NOTE:  CALMA_UNITS needs to be parsed to determine if units in
-    // the input file are compatible with units being used in the output
+    // CALMA_UNITS needs to be parsed to determine if units in the
+    // input file are compatible with units being used in the output
     // file.
-    calmaSkipSet(hdrSkip);
+    if (calmaParseUnits() == FALSE)
+    {
+	TxError("Error:  Library %s has incompatible database units!\n", libname);
+	return;
+    }
 
     // Record the GDS library so it will not be processed again.
     he = HashFind(&calmaLibHash, filename);

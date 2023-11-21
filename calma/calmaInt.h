@@ -237,6 +237,7 @@ extern bool calmaIsContactCell;
 
 extern char *calmaRecordName();
 extern void calmaSkipSet();
+extern bool calmaParseUnits();
 
 extern int compport();
 
