@@ -1449,8 +1449,6 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		    }
 		    layoutDev->rd_fet_drain = (resNode *)NULL;
 	            if (source->rn_name != NULL)  resNodeNum--;
-	            ResFixDevName(newname, SOURCE, simDev, source);
-	            source->rn_name = simDev->source->name;
 		}
 		else
 		{
@@ -1459,9 +1457,9 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 			resNodeNum--;
 			notdecremented = FALSE;
 		    }
-	            ResFixDevName(newname, SOURCE, simDev, source);
-	            source->rn_name = simDev->source->name;
 		}
+	        ResFixDevName(newname, SOURCE, simDev, source);
+	        source->rn_name = simDev->source->name;
 
 	    }
 	    else
@@ -1472,25 +1470,35 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
     }
     else if (simDev->drain == simNode)
     {
-	if ((source = layoutDev->rd_fet_source) != NULL)
+	/* Check for devices with only one terminal.  If it was cast as source,	*/
+	/* then swap it with the drain so that the code below handles it	*/
+	/* correctly.								*/
+
+	if (layoutDev->rd_fet_drain == NULL && layoutDev->rd_fet_source != NULL)
 	{
-	    if ((drain = layoutDev->rd_fet_drain) != NULL)
+	    layoutDev->rd_fet_drain = layoutDev->rd_fet_source;
+	    layoutDev->rd_fet_source = (struct resnode *)NULL;
+	}
+
+	if ((drain = layoutDev->rd_fet_drain) != NULL)
+	{
+	    if ((source = layoutDev->rd_fet_source) != NULL)
 	    {
 		if (drain != source)
 		{
-		    if (drain->rn_why & ORIGIN)
+		    if (source->rn_why & ORIGIN)
 		    {
-			 ResMergeNodes(drain, source, &ResNodeQueue,
-				&ResNodeList);
-		         ResDoneWithNode(drain);
-			 source = drain;
-		    }
-  		    else
-		    {
- 		         ResMergeNodes(source, drain, &ResNodeQueue,
+			 ResMergeNodes(source, drain, &ResNodeQueue,
 				&ResNodeList);
 		         ResDoneWithNode(source);
 			 drain = source;
+		    }
+  		    else
+		    {
+ 		         ResMergeNodes(drain, source, &ResNodeQueue,
+				&ResNodeList);
+		         ResDoneWithNode(drain);
+			 source = drain;
 		    }
 		}
 		layoutDev->rd_fet_source = (resNode *) NULL;
@@ -1499,19 +1507,17 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 		    resNodeNum--;
 		    notdecremented = FALSE;
 		}
-	        ResFixDevName(newname, DRAIN, simDev, drain);
-	        drain->rn_name = simDev->drain->name;
 	    }
 	    else
 	    {
-		if (source->rn_name != NULL  && notdecremented)
+		if (drain->rn_name != NULL  && notdecremented)
 		{
 		    resNodeNum--;
 		    notdecremented = FALSE;
 		}
-		ResFixDevName(newname, DRAIN, simDev, source);
-		source->rn_name = simDev->drain->name;
 	    }
+	    ResFixDevName(newname, DRAIN, simDev, drain);
+	    drain->rn_name = simDev->drain->name;
 	}
 	else
 	    TxError("Missing terminal connection of device at (%d %d) on net %s\n",
