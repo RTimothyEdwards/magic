@@ -743,7 +743,19 @@ ResMergeNodes(node1, node2, pendingList, doneList)
     }
 
     /* Moves name to new node, if new node does not have a name */
-    if (node1->rn_name == NULL) node1->rn_name = node2->rn_name;
+    if (node1->rn_name == NULL)
+	node1->rn_name = node2->rn_name;
+    else if ((node2->rn_name != NULL) && (node2->rn_name != node1->rn_name))
+    {
+	HashEntry *entry;
+	ResSimNode *node;
+
+	/* Check if node2 is a port */
+	entry = HashFind(&ResNodeTable, node2->rn_name);
+	node = (ResSimNode *)HashGetValue(entry);
+	if (node && (node->status & PORTNODE))
+	    node1->rn_name = node2->rn_name;
+    }
 
     /* Moves resistors to new node  */
 
