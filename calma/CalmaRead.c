@@ -114,8 +114,6 @@ extern bool CalmaDoLibrary;		/* Also used by GDS write */
 extern void calmaUnexpected();
 extern int calmaWriteInitFunc();
 
-bool calmaParseUnits();
-
 /*
  * Scaling.
  * Multiply all coordinates by calmaReadScale1, then divide them
@@ -351,6 +349,7 @@ calmaParseUnits()
     double metersPerDBUnit;
     double userUnitsPerDBUnit;
     double cuPerDBUnit;
+    bool compatible;
 
     READRH(nbytes, rtype);
 #ifdef	lint
@@ -368,6 +367,39 @@ calmaParseUnits()
 
     /* Read meters per database unit */
     if (!calmaReadR8(&metersPerDBUnit)) return (FALSE);
+
+    /* Important!  When CalmaReadOnly is TRUE, then this file will have its
+     * contents output verbatim.  But if the database units don't match,
+     * then it will get output at the wrong scale.  Setting a magnification
+     * factor on the instance when generating output might (?) work.  For
+     * now, prohibiting a GDS read in read-only mode when the database units
+     * don't match.  This forces the user either to reconsider the read-only
+     * status or to rewrite the GDS at a compatible scalefactor.
+     */
+    compatible = TRUE;
+    if (CalmaReadOnly == TRUE)
+    {
+	if (CIFCurStyle->cs_flags & CWF_ANGSTROMS)
+	{
+	    if ((int)(0.5 + metersPerDBUnit * 1e12) != 100)
+	    {
+		CalmaReadError("Incompatible scale factor of %g, must be 1e-10.\n",
+				metersPerDBUnit);
+		TxError("Cannot read this file in read-only mode.\n");
+		return FALSE;
+	    }
+	}
+	else
+	{
+	    if ((int)(0.5 + metersPerDBUnit * 1e11) != 100)
+	    {
+		CalmaReadError("Incompatible scale factor of %g, must be 1e-9.\n",
+				metersPerDBUnit);
+		TxError("Cannot read this file in read-only mode.\n");
+		return FALSE;
+	    }
+	}
+    }
 
 #ifdef	notdef
     TxPrintf("1 database unit equals %e user units\n", userUnitsPerDBUnit);

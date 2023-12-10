@@ -162,7 +162,50 @@ efBuildNode(def, isSubsnode, isDevSubsnode, isExtNode, nodeName, nodeCap,
     int tnew = 0;
 
     he = HashFind(&def->def_nodes, nodeName);
-    if (newname = (EFNodeName *) HashGetValue(he))
+    newname = (EFNodeName *)HashGetValue(he);
+
+    if (newname && (def->def_kills != NULL))
+    {
+	HashEntry *hek;
+	EFNodeName *nn, *knn, *nodeAlias, *lastAlias;
+
+	/* Watch for nodes that are aliases of the node that was most
+	 * recently killed.  This can occur in .res.ext files where an
+	 * equivalent node name (alias) is used as one of the node
+	 * points.  It must be regenerated as its own node and removed
+	 * from the name list of the killed node.
+	 */
+	hek = HashLookOnly(&def->def_nodes, EFHNToStr(def->def_kills->kill_name));
+	if (hek != NULL)
+        {
+            knn = (EFNodeName *) HashGetValue(hek);
+	    if ((knn != NULL) && (knn->efnn_node == newname->efnn_node))
+	    {
+		/* Remove alias from killed node's name list */
+		lastAlias = NULL;
+		for (nodeAlias = knn->efnn_node->efnode_name; nodeAlias != NULL;
+			nodeAlias = nodeAlias->efnn_next)
+		{
+		    if (!strcmp(EFHNToStr(nodeAlias->efnn_hier), nodeName))
+		    {
+			if (lastAlias == NULL)
+			    knn->efnn_node->efnode_name = nodeAlias->efnn_next;
+			else
+			    lastAlias->efnn_next = nodeAlias->efnn_next;
+			EFHNFree(nodeAlias->efnn_hier, (HierName *)NULL, HN_ALLOC);
+			freeMagic(nodeAlias);
+			break;
+		    }
+		    lastAlias = nodeAlias;
+		}
+		
+		/* Force name to be made into a new node */
+		newname = (EFNodeName *)NULL;
+	    }
+	}
+    }
+
+    if (newname)
     {
 	if (efWarn)
 	    efReadError("Warning: duplicate node name %s\n", nodeName);
