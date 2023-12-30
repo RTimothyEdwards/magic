@@ -1154,7 +1154,11 @@ CIFMakeManhattanPath(pathHead, plane, resultTbl, ui)
 	/* Final check---ensure that rectangle is not degenerate */
 
         if (plane && (tr.r_xtop - tr.r_xbot > 0) && (tr.r_ytop - tr.r_ybot > 0))
+	{
             DBNMPaintPlane(plane, type, &tr, resultTbl, ui);
+	    GEO_EXPAND(&tr, 1, &tr);
+	    DBMergeNMTiles(plane, &tr, ui);
+	}
     }
 }
 
