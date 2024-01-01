@@ -800,7 +800,7 @@ mainInitAfterArgs()
 void tcl_exit_hook(ClientData clientData)
 {
     TxResetTerminal();
-    exit(*(int *)clientData);
+    exit(*(int *)(&clientData));
 }
 
 /*
