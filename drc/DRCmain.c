@@ -184,9 +184,9 @@ drcSubstitute (cptr)
     DRCCookie * cptr;  		/* Design rule violated */
 {
     static char *why_out = NULL;
-    char *whyptr, *sptr, *wptr;
+    char *whyptr, *sptr, *wptr, *unit;
     int subscnt = 0, whylen;
-    float oscale, value;
+    float oscale, dscale, value;
     extern float CIFGetOutputScale();
 
     whyptr = DRCCurStyle->DRCWhyList[cptr->drcc_tag];
@@ -203,10 +203,22 @@ drcSubstitute (cptr)
     why_out = (char *)mallocMagic(whylen * sizeof(char));
     strcpy(why_out, whyptr);
 
-    if (cptr->drcc_flags & DRC_CIFRULE)
-	oscale = CIFGetScale(100);	/* 100 = microns to centimicrons */
+    if (DRCPrintConvert)
+    {
+	unit = "um";
+	if (cptr->drcc_flags & DRC_CIFRULE)
+	    oscale = CIFGetScale(100);	/* 100 = microns to centimicrons */
+	else
+	    oscale = CIFGetOutputScale(1000);   /* 1000 for conversion to um */
+	dscale = 1;
+    }
     else
-	oscale = CIFGetOutputScale(1000);   /* 1000 for conversion to um */
+    {
+	unit = "lambda";
+	oscale = 1;
+	dscale = CIFGetOutputScale(1);
+    }
+
     wptr = why_out;
 
     while ((sptr = strchr(whyptr, '%')) != NULL)
@@ -218,21 +230,21 @@ drcSubstitute (cptr)
 	switch (*(sptr + 1))
 	{
 	    case 'd':
-		/* Replace with "dist" value in microns */
-		value = (float)cptr->drcc_dist * oscale;
-		snprintf(wptr, 20, "%01.3gum", value);
+		/* Replace with "dist" value in microns or lambda */
+		value = (float)cptr->drcc_dist * oscale / dscale;
+		snprintf(wptr, 20, "%01.3g%s", value, unit);
 		wptr += strlen(wptr);
 		break;
 	    case 'c':
-		/* Replace with "cdist" value in microns */
-		value = (float)cptr->drcc_cdist * oscale;
-		snprintf(wptr, 20, "%01.3gum", value);
+		/* Replace with "cdist" value in microns or lambda */
+		value = (float)cptr->drcc_cdist * oscale / dscale;
+		snprintf(wptr, 20, "%01.3g%s", value, unit);
 		wptr += strlen(wptr);
 		break;
 	    case 'a':
-		/* Replace with "cdist" value in microns squared */
-		value = (float)cptr->drcc_cdist * oscale * oscale;
-		snprintf(wptr, 20, "%01.4gum^2", value);
+		/* Replace with "cdist" value in microns or lambda squared */
+		value = (float)cptr->drcc_cdist * oscale * oscale / (dscale * dscale);
+		snprintf(wptr, 20, "%01.4g%s^2", value, unit);
 		wptr += strlen(wptr);
 		break;
 	    default:
