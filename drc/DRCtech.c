@@ -3686,14 +3686,30 @@ drcScaleDown(style, scalefactor)
 		    }
 		    if  (dp->drcc_cdist > 0)
 		    {
+			int cmod;
 			int locscale = scalefactor;
 			if (dp->drcc_flags & DRC_AREA)
 			    locscale *= scalefactor;
 
 			dist = dp->drcc_cdist;
 			dp->drcc_cdist /= locscale;
-			if ((dp->drcc_cmod = (unsigned char)(dist % locscale)) != 0)
+
+			/* Save the amount by which the distance needs to be
+			 * corrected when multiplied back to the original
+			 * scale.  For area, the modulus will always be
+			 * a multiple of the scalefactor, so it can be
+			 * divided by the scalefactor so it still fits in an
+			 * unsigned char.
+			 */
+
+			if ((cmod = (dist % locscale)) != 0)
+			{
 			    dp->drcc_cdist++;
+			    if (dp->drcc_flags & DRC_AREA)
+				dp->drcc_cmod = (unsigned char)(cmod / scalefactor);
+			    else
+				dp->drcc_cmod = (unsigned char)cmod;
+			}
 		    }
 		}
     }
@@ -3748,8 +3764,15 @@ drcScaleUp(style, scalefactor)
 			    dp->drcc_cdist--;
 			dp->drcc_cdist *= scalefactor;
 			if (dp->drcc_flags & DRC_AREA)
+			{
 			    dp->drcc_cdist *= scalefactor;
-			dp->drcc_cdist += (short)dp->drcc_cmod;
+			    /* See note above on how cmod is divided by the
+			     * scalefactor for area values.
+			     */
+			    dp->drcc_cdist += (short)(dp->drcc_cmod * scalefactor);
+			}
+			else
+			    dp->drcc_cdist += (short)dp->drcc_cmod;
 			dp->drcc_cmod = 0;
 		    }
 		}
