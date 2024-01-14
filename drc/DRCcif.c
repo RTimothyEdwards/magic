@@ -1124,7 +1124,7 @@ drcCifArea(argc, argv)
     }
 
     scalefactor = drcCifStyle->cs_scaleFactor;
-    centiarea *= (drcCifStyle->cs_expander * drcCifStyle->cs_expander);
+    // centiarea *= (drcCifStyle->cs_expander * drcCifStyle->cs_expander);
     dpnext = drcCifRules[thislayer][DRC_CIF_SPACE];
     dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
     drcCifAssign(dpnew, centihorizon, dpnext, &CIFSolidBits, &CIFSolidBits,
