@@ -1,14 +1,11 @@
 # Installing Magic on macOS (Tested on Big Sur)
-## With Brew
+## With Brew using a community tap
 Get [Homebrew](https://brew.sh).
 
 ```sh
-brew install cairo tcl-tk python3
 brew install --cask xquartz
-./scripts/configure_mac
-make database/database.h
-make -j$(sysctl -n hw.ncpu)
-make install # may need sudo depending on your setup
+brew tap shaunplee/asic
+brew install shaunplee/asic/magic-vlsi
 ```
 
 ## Without Brew
