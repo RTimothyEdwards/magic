@@ -4814,7 +4814,7 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
 			 * cell itself.
 			 */
 {
-    Point childPoint, editPoint, rootPoint, refpoint;
+    Point childPoint, editPoint, rootPoint;
     CellDef *def, *rootDef, *editDef;
     bool hasChild, hasRoot, hasTrans;
     Rect rootBox, bbox;
@@ -5254,9 +5254,19 @@ box_error:
     scx->scx_use = dummy;
 
     /* Transform childPoint by trans_cell */
-    GeoTransPoint(&trans_cell, &childPoint, &refpoint);
-    GeoTranslateTrans(&trans_cell, rootPoint.p_x - refpoint.p_x,
+    if (hasChild)
+    {
+	Point refpoint;
+
+	GeoTransPoint(&trans_cell, &childPoint, &refpoint);
+	GeoTranslateTrans(&trans_cell, rootPoint.p_x - refpoint.p_x,
 		rootPoint.p_y - refpoint.p_y, &scx->scx_trans);
+    }
+    else
+    {
+	GeoTranslateTrans(&trans_cell, rootPoint.p_x - childPoint.p_x,
+		rootPoint.p_y - childPoint.p_y, &scx->scx_trans);
+    }
 
     scx->scx_area = bbox;
     return TRUE;
