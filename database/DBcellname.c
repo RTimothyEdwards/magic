@@ -1307,7 +1307,7 @@ DBLockUse(UseName, bval)
 	while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
 	{
 	    celldef = (CellDef *) HashGetValue(entry);
-	    if (celldef != (CellDef *) NULL)
+	    if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
 	    {
 		celluse = celldef->cd_parents;   /* only need one */
 		if (celluse != (CellUse *)NULL) {
@@ -1386,7 +1386,7 @@ DBOrientUse(UseName, dodef)
 	while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
 	{
 	    celldef = (CellDef *) HashGetValue(entry);
-	    if (celldef != (CellDef *) NULL)
+	    if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
 	    {
 		celluse = celldef->cd_parents;   /* only need one */
 		if (celluse != (CellUse *)NULL) {
@@ -1549,7 +1549,7 @@ DBAbutmentUse(UseName, dolist)
 	while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
 	{
 	    celldef = (CellDef *) HashGetValue(entry);
-	    if (celldef != (CellDef *) NULL)
+	    if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
 	    {
 		celluse = celldef->cd_parents;   /* only need one */
 		if (celluse != (CellUse *)NULL) {
@@ -2519,7 +2519,7 @@ DBUnLinkCell(use, parentDef)
  * Side effects:
  *	Fills in *pydef with a newly created CellDef by that name, and
  *	*pyuse with a newly created CellUse pointing to the new def.
- *	The CellDef pointed to by *pydef has the CD_INTERNAL flag
+ *	The CellDef pointed to by *pydef has the CDINTERNAL flag
  *	set, and is marked as being available.
  *
  * ----------------------------------------------------------------------------
