@@ -66,23 +66,31 @@ extern HashTable	ResNodeTable;
 void
 ResInitializeConn()
 {
-    TileType dev, diff;
+    TileType dev, ttype;
     char *dev_name;
+    int i;
     ExtDevice *devptr;
 
     for (dev = TT_TECHDEPBASE; dev < TT_MAXTYPES; dev++)
     {
-	devptr = ExtCurStyle->exts_device[dev];
-	if ((devptr != NULL) && ((dev_name = devptr->exts_deviceName) != NULL)
-		&& (strcmp(dev_name, "None")))
+	for (devptr = ExtCurStyle->exts_device[dev]; devptr; devptr = devptr->exts_next)
 	{
-	    for (diff = TT_TECHDEPBASE; diff < TT_MAXTYPES; diff++)
+	    if ((devptr != NULL) && ((dev_name = devptr->exts_deviceName) != NULL)
+			&& (strcmp(dev_name, "None")))
 	    {
-		if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]), diff)
-		    TTMaskSetType(&ResConnectWithSD[diff], dev);
+		for (ttype = TT_TECHDEPBASE; ttype < TT_MAXTYPES; ttype++)
+		{
+		    for (i = 0; ; i++)
+		    {
+			if (TTMaskIsZero(&(devptr->exts_deviceSDTypes[i])))
+			    break;
+			if TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), ttype)
+			    TTMaskSetType(&ResConnectWithSD[ttype], dev);
+		    }
 
-		if TTMaskHasType(&(devptr->exts_deviceSubstrateTypes), diff)
-		    TTMaskSetType(&ResConnectWithSD[diff], dev);
+		    if TTMaskHasType(&(devptr->exts_deviceSubstrateTypes), ttype)
+			TTMaskSetType(&ResConnectWithSD[ttype], dev);
+		}
 	    }
 	}
 	TTMaskSetMask(&ResConnectWithSD[dev], &DBConnectTbl[dev]);
@@ -410,6 +418,7 @@ ResFindNewContactTiles(contacts)
 		TxError("Error: setting contact tile to null\n");
 	    }
 #endif
+
 	    if ((IsSplit(tile) && TTMaskHasType(&mask, TiGetRightType(tile)))
 			|| TTMaskHasType(&mask, TiGetType(tile)))
 	    {
@@ -422,6 +431,30 @@ ResFindNewContactTiles(contacts)
 		ce->ce_nextc = j->contactList;
 		(contacts->cp_currentcontact) += 1;
 		j->contactList = ce;
+	    }
+	    else
+	    {
+		TileType ttype = TiGetTypeExact(tile);
+		if (DBIsContact(ttype))
+		{
+		    /* Handle the exceptional case in which a contact
+		     * type is its own residue.  This can be used for
+		     * devices whose terminals are always a contact
+		     * and for which a non-contact type cannot be drawn.
+		     */
+		    if (TTMaskIntersect(DBResidueMask(ttype), &mask))
+		    {
+			tileJunk *j = (tileJunk *)tile->ti_client;
+			cElement *ce;
+
+			ce = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
+			contacts->cp_tile[contacts->cp_currentcontact] = tile;
+			ce->ce_thisc = contacts;
+			ce->ce_nextc = j->contactList;
+			(contacts->cp_currentcontact) += 1;
+			j->contactList = ce;
+		    }
+		}
 	    }
 	}
 #ifdef PARANOID
@@ -1289,6 +1322,8 @@ FindStartTile(goodies, SourcePoint)
     int		pnum, t1, t2, i;
     ExtDevice   *devptr;
     Rect	r;
+    bool	complex;
+    static Stack *devStack = NULL;
 
     /* If the drive point is on a contact, check for the contact residues   */
     /* first, then the contact type itself.				    */
@@ -1391,6 +1426,8 @@ FindStartTile(goodies, SourcePoint)
     {
 	for (i = 0; i < devptr->exts_deviceSDCount; i++)
 	{
+	    complex = FALSE;	/* Assume device is a single tile */
+
 	    /* left */
 	    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 	    {
@@ -1403,6 +1440,9 @@ FindStartTile(goodies, SourcePoint)
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
 		    return(tp);
 		}
+		else if (tp->ti_client != CLIENTDEFAULT)
+		    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			complex = TRUE;
 	    }
 
 	    /* right */
@@ -1417,6 +1457,9 @@ FindStartTile(goodies, SourcePoint)
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
 		    return(tp);
 		}
+		else if (tp->ti_client != CLIENTDEFAULT)
+		    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			complex = TRUE;
 	    }
 
 	    /* top */
@@ -1431,6 +1474,9 @@ FindStartTile(goodies, SourcePoint)
 		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
 		    return(tp);
 		}
+		else if (tp->ti_client != CLIENTDEFAULT)
+		    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			complex = TRUE;
 	    }
 
 	    /* bottom */
@@ -1444,6 +1490,149 @@ FindStartTile(goodies, SourcePoint)
 		    SourcePoint->p_x = (MIN(RIGHT(tile), RIGHT(tp)) +
 		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
 		    return(tp);
+		}
+		else if (tp->ti_client != CLIENTDEFAULT)
+		    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			complex = TRUE;
+	    }
+
+	    if (complex == TRUE)
+	    {
+		/* Didn't find a terminal but device has multiple	*/
+		/* tiles, so make a secondary search looking at all	*/
+		/* tiles of the device.					*/
+
+		if (devStack == NULL) devStack = StackNew(8);
+
+		((tileJunk *)tile->ti_client)->tj_status |= RES_TILE_PUSHED;
+       		STACKPUSH((ClientData)tile, devStack);
+		while (!StackEmpty(devStack))
+		{
+       		    tile = (Tile *)STACKPOP(devStack);
+
+		    /* left */
+		    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
+		    {
+			t2 = TiGetRightType(tp);
+			if ((t2 != TT_SPACE) &&
+				TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+			{
+			    SourcePoint->p_x = LEFT(tile);
+			    SourcePoint->p_y = (MIN(TOP(tile),TOP(tp)) +
+		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
+			    while (!StackEmpty(devStack))
+			    {
+				STACKPOP(devStack);
+			    }
+			    return(tp);
+			}
+			else if (tp->ti_client != CLIENTDEFAULT)
+			{
+			    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			    {
+				if (!(((tileJunk *)tp->ti_client)->tj_status
+						& RES_TILE_PUSHED))
+				{
+				    ((tileJunk *)tp->ti_client)->tj_status
+							|= RES_TILE_PUSHED;
+				    STACKPUSH((ClientData)tp, devStack);
+				}
+			    }
+			}
+		    }
+
+		    /* right */
+		    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
+		    {
+			t2 = TiGetLeftType(tp);
+			if ((t2 != TT_SPACE) &&
+				TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+			{
+			    SourcePoint->p_x = RIGHT(tile);
+			    SourcePoint->p_y = (MIN(TOP(tile), TOP(tp))+
+		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
+			    while (!StackEmpty(devStack))
+			    {
+				STACKPOP(devStack);
+			    }
+			    return(tp);
+			}
+			else if (tp->ti_client != CLIENTDEFAULT)
+			{
+			    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			    {
+				if (!(((tileJunk *)tp->ti_client)->tj_status
+						& RES_TILE_PUSHED))
+				{
+				    ((tileJunk *)tp->ti_client)->tj_status
+							|= RES_TILE_PUSHED;
+				    STACKPUSH((ClientData)tp, devStack);
+				}
+			    }
+			}
+		    }
+
+		    /* top */
+		    for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
+		    {
+			t2 = TiGetBottomType(tp);
+			if ((t2 != TT_SPACE) &&
+				TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+			{
+			    SourcePoint->p_y = TOP(tile);
+			    SourcePoint->p_x = (MIN(RIGHT(tile),RIGHT(tp)) +
+			   			MAX(LEFT(tile), LEFT(tp))) >> 1;
+			    while (!StackEmpty(devStack))
+			    {
+				STACKPOP(devStack);
+			    }
+			    return(tp);
+			}
+			else if (tp->ti_client != CLIENTDEFAULT)
+			{
+			    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			    {
+				if (!(((tileJunk *)tp->ti_client)->tj_status
+						& RES_TILE_PUSHED))
+				{
+				    ((tileJunk *)tp->ti_client)->tj_status
+							|= RES_TILE_PUSHED;
+				    STACKPUSH((ClientData)tp, devStack);
+				}
+			    }
+			}
+		    }
+
+		    /* bottom */
+		    for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
+		    {
+			t2 = TiGetTopType(tp);
+			if ((t2 != TT_SPACE) &&
+				TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t2))
+			{
+			    SourcePoint->p_y = BOTTOM(tile);
+			    SourcePoint->p_x = (MIN(RIGHT(tile), RIGHT(tp)) +
+		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
+			    while (!StackEmpty(devStack))
+			    {
+				STACKPOP(devStack);
+			    }
+			    return(tp);
+			}
+			else if (tp->ti_client != CLIENTDEFAULT)
+			{
+			    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			    {
+				if (!(((tileJunk *)tp->ti_client)->tj_status
+						& RES_TILE_PUSHED))
+				{
+				    ((tileJunk *)tp->ti_client)->tj_status
+							|= RES_TILE_PUSHED;
+				    STACKPUSH((ClientData)tp, devStack);
+				}
+			    }
+			}
+		    }
 		}
 	    }
 	}
