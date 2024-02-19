@@ -305,7 +305,7 @@ bpEnumNextBin(BPEnum *bpe, bool inside)
 {
   BPStack *bps = bpe->bpe_top;
 
-#ifdef PARANOID
+#ifdef BPARANOID
   ASSERT(bps,"bpEnumNextBin");
   ASSERT(!bpe->bpe_nextElement,"bpEnumNextBin");
 #endif

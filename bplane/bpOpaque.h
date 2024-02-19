@@ -106,7 +106,7 @@ static __inline__ bool bpBinType(BinArray *ba, int i)
 
 static __inline__ Element *bpBinList(BinArray *ba, int i)
 {
-#ifdef PARANOID
+#ifdef BPARANOID
   ASSERT(bpBinType(ba,i)==BT_LIST,"bpBinList");
 #endif
   return (Element *) ba->ba_bins[i];
@@ -114,7 +114,7 @@ static __inline__ Element *bpBinList(BinArray *ba, int i)
 
 static __inline__ Element **bpBinListHead(BinArray *ba, int i)
 {
-#ifdef PARANOID
+#ifdef BPARANOID
   ASSERT(bpBinType(ba,i)==BT_LIST,"bpBinList");
 #endif
   return (Element **) &ba->ba_bins[i];
@@ -122,7 +122,7 @@ static __inline__ Element **bpBinListHead(BinArray *ba, int i)
 
 static __inline__ BinArray *bpSubArray(BinArray *ba, int i)
 {
-#ifdef PARANOID
+#ifdef BPARANOID
   ASSERT(bpBinType(ba,i)==BT_ARRAY,"bpSubArray");
 #endif
   return (BinArray *) ((pointertype) ba->ba_bins[i] & ~BT_TYPE_MASK);
