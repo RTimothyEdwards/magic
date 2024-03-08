@@ -2040,7 +2040,7 @@ defGetType(ttype, lefptr, do_vias)
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (lefl && (do_vias == FALSE) && (contact == CLASS_VIA) &&
-			(lefl->info.via.lr != NULL))
+			(lefl->lefClass == CLASS_VIA))
 		continue;	/* Skip VIA definitions if do_vias is FALSE */
 	    
 	    if (lefl && ((contact == lefl->lefClass) ||
