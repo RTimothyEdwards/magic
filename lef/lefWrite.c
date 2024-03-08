@@ -1496,6 +1496,11 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		Rect carea;
 		labelLinkedList *newlll;
 
+		/* SelectClear() requires SelectRootDef be non-NULL, although
+		 * this might be an error in SelectClear(), since SelectClear()
+		 * clears the selection, not the source.
+		 */
+		if (SelectRootDef == NULL) SelectRootDef = lefFlatDef;
 	    	SelectClear();
 		if (pinonly == 0)
 		    carea = labr;
