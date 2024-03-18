@@ -1432,8 +1432,24 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, pinShape, oscale,
 		}
 	    }
 	    else
+	    {
+		/* If any other label is a port and has the same name,	*/
+		/* then use its port number.				*/
+
+		Label *sl;
+		for (sl = lefMacro->cd_labels; sl != NULL; sl = sl->lab_next)
+		{
+		    if (sl->lab_flags & PORT_DIR_MASK)
+			if (!strcmp(sl->lab_text, pinName))
+			{
+			    pinNum = sl->lab_port;
+			    break;
+			}
+		}
+
 		/* Create a new label (non-rendered) */
 		DBPutLabel(lefMacro, &rectList->r_r, -1, pinName, rectList->r_type, 0, 0);
+	    }
 
 	    /* Set this label to be a port */
 
