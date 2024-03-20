@@ -441,7 +441,11 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 			routeList = addRoute;
 		    }
 
+		    /* Set paintLayer to the contact cut type */
 		    paintLayer = lefl->type;
+		    if (!DBIsContact(lefl->type))
+			if (lefl->info.via.lr != NULL)
+			    paintLayer = lefl->info.via.lr->r_type;
 
 		    newRoute->r_r.r_xbot = refp.p_x + lefl->info.via.area.r_xbot;
 		    newRoute->r_r.r_ybot = refp.p_y + lefl->info.via.area.r_ybot;
@@ -493,12 +497,26 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 					DBTypeLongNameTbl[stype]);
 				*/
 				routeLayer = stype;
+
 				lefl = defLayerMap[routeLayer].lefInfo;
+
+				/* Get correct rule for nondefault rules */
+				if (ruleset)
+				{
+				    for (rule = ruleset->rule; rule; rule = rule->next)
+					if (rule->lefInfo == lefl)
+					    break;
+				}
+				else
+				    rule = NULL;
+
 				if (special)
 				    paintWidth = saveWidth;
 				else
-				    paintWidth = (lefl) ? lefl->info.route.width
-					: DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+				    paintWidth = (rule) ? rule->width :
+					(lefl) ? lefl->info.route.width :
+					DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+
 				paintExtend = (special) ? 0 : paintWidth;
 				break;
 			    }
