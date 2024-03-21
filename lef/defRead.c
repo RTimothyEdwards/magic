@@ -95,6 +95,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
     bool valid = FALSE;		/* is there a valid reference point? */
     bool initial = TRUE;
     bool labeled = TRUE;
+    bool iscontact = FALSE;
     Rect locarea, r;
     int extend, lextend, hextend;
     float x, y, z, w;
@@ -151,6 +152,9 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 
 	    /* invalidate reference point */
 	    valid = FALSE;
+
+	    /* assume this is not a via unless found otherwise */
+	    iscontact = FALSE;
 
 	    token = LefNextToken(f, TRUE);
 
@@ -441,11 +445,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 			routeList = addRoute;
 		    }
 
-		    /* Set paintLayer to the contact cut type */
 		    paintLayer = lefl->type;
-		    if (!DBIsContact(lefl->type))
-			if (lefl->info.via.lr != NULL)
-			    paintLayer = lefl->info.via.lr->r_type;
 
 		    newRoute->r_r.r_xbot = refp.p_x + lefl->info.via.area.r_xbot;
 		    newRoute->r_r.r_ybot = refp.p_y + lefl->info.via.area.r_ybot;
@@ -457,6 +457,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		    newRoute->r_r.r_xtop >>= 1;
 		    newRoute->r_r.r_ytop >>= 1;
 
+		    iscontact = TRUE;
 		}
 		else if ((paintLayer = DBTechNameType(LefLower(token))) >= 0)
 		{
@@ -480,7 +481,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		/* This is absolutely impossible to make consistent	*/
 		/* with the DEF	spec, but there you have it. . .	*/
 
-		if (DBIsContact(paintLayer))
+		if (iscontact || (DBIsContact(paintLayer)))
 		{
 		    TileTypeBitMask *rMask = DBResidueMask(paintLayer);
 		    TileType stype;
@@ -520,6 +521,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 				paintExtend = (special) ? 0 : paintWidth;
 				break;
 			    }
+		    iscontact = FALSE;
 		}
 	    }
 	    else
