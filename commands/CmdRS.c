@@ -859,6 +859,7 @@ CmdSelect(w, cmd)
     char *tclstr;
     Tcl_Obj *lobj;
 #endif
+    int original_cmd_length = cmd->tx_argc;
 
 /* How close two clicks must be to be considered the same point: */
 
@@ -1317,7 +1318,8 @@ Okay:
 	        window = CmdGetRootPoint((Point *) NULL, &scx.scx_area);
 
 		/* Recast command with "at x y" at the end for logging */
-		for (i = 0; i < cmd->tx_argc; i++)
+		int argc_adjustment = original_cmd_length - cmd->tx_argc; // need to restore argc adjustments;
+		for (i = 0; i < original_cmd_length; i++)
 		{
 		    aptr = cmd->tx_argv[i] + strlen(cmd->tx_argv[i]);
 		    *aptr = ' ';
@@ -1325,6 +1327,8 @@ Okay:
 		sprintf(aptr + 1, "at %di %di", scx.scx_area.r_xbot,
 				scx.scx_area.r_ybot);
 		TxRebuildCommand(cmd);
+		original_cmd_length = cmd->tx_argc; // Reset original_cmd_length
+		cmd->tx_argc = cmd->tx_argc - argc_adjustment; // Readjust argument count
 		    
 	    }
 	    if (window == NULL) return;
@@ -1552,7 +1556,7 @@ Okay:
 	    }
 
 	    if (cmd->tx_argc > 3)
-		if (strcmp(cmd->tx_argv[cmd->tx_argc - 3], "at"))
+		if (strcmp(cmd->tx_argv[original_cmd_length - 3], "at"))
 		    goto usageError;
 
 	    /* If an explicit cell use id is provided, look for that cell
