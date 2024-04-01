@@ -334,7 +334,9 @@ proc magic::generate_layout_add {subname subpins complist library} {
 	}
 
 	set outparts {}
-	lappend outparts "magic::gencell $libdev $instname"
+	# Escape any brackets in the instance name, since it gets passed to "eval"
+	set minstname [string map {[ \\\[ ] \\\]} $instname]
+	lappend outparts "magic::gencell $libdev $minstname"
 
 	# Output all parameters.  Parameters not used by the toolkit are
 	# ignored by the toolkit.
