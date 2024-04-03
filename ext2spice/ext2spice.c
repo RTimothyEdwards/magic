@@ -875,7 +875,8 @@ runexttospice:
 	sprintf(spcesDefaultOut, "%s.spice", inName);
 
     /* Read the hierarchical description of the input circuit */
-    if (EFReadFile(inName, TRUE, esDoExtResis, FALSE, TRUE) == FALSE)
+    if (EFReadFile(inName, esDoHierarchy, esDoExtResis, FALSE, TRUE)
+		== FALSE)
     {
 	EFDone();
         return;
