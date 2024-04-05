@@ -1440,11 +1440,22 @@ proc magic::gencell_dialog {instname gencell_type library parameters} {
 
    if {$instname != {}} {
       # Remove any array component of the instance name
-      set instname [string map {\\ ""} $instname]
-      if {[regexp {^(.*)\[[0-9,]+\]$} $instname valid instroot]} {
+      set baseinstname [string map {\\ ""} $instname]
+      if {[regexp {^(.*)\[[0-9,]+\]$} $baseinstname valid instroot]} {
+	 set originstname $instname
 	 set instname $instroot
+      } else {
+	 set instroot ""
       }
       set gname [instance list celldef [subst $instname]]
+      if {$gname == ""} {
+	 # Check if name inherited brackets but is not an array
+         if {$instroot != ""} {
+             set testinstname [string map {\[ \\\[ \] \\\]} $baseinstname]
+	     set gname [instance list celldef [subst $testinstname]]
+	     set instname $originstname
+	 }
+      }
       set gencell_type [cellname list property $gname gencell]
       if {$library == {}} {
 	 set library [cellname list property $gname library]
@@ -1562,6 +1573,7 @@ proc magic::gencell_dialog {instname gencell_type library parameters} {
 		magic::gencell_dialog \$inst $gencell_type $library {} ; \
 		destroy .params}]
    } else {
+	set instname [string map {\[ \\\[ \] \\\]} $instname]
 	button .params.buttons.apply -text "Apply" -command \
 		"magic::gencell_change $instname $gencell_type $library {}"
 	button .params.buttons.okay -text "Okay" -command \

@@ -2294,8 +2294,14 @@ DBFindUse(id, parentDef)
     he = HashLookOnly(&parentDef->cd_idHash, id);
     if (delimit != NULL) *delimit = '[';
     if (he == NULL)
-	return (CellUse *) NULL;
+    {
+	/* Try again without ignoring the delimiter */
+	if (delimit != NULL)
+	    he = HashLookOnly(&parentDef->cd_idHash, id);
 
+	if (he == NULL)
+	    return (CellUse *) NULL;
+    }
     return (CellUse *) HashGetValue(he);
 }
 
