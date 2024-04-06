@@ -77,6 +77,13 @@ char	*drcNeedStyle = NULL;
 #define DRC_CIF_SPACE		0
 #define DRC_CIF_SOLID		1
 
+/* Define Euclidean distance checks */
+
+#define RADIAL_NW       0x1000
+#define RADIAL_NE       0x8000
+#define RADIAL_SW       0x2000
+#define RADIAL_SE       0x4000
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -715,7 +722,7 @@ drcCifTile (tile, arg)
 		    {
 			errRect.r_ybot -= cptr->drcc_cdist;
 			if (DRCEuclidean)
-			    arg->dCD_radial |= 0x1000;
+			    arg->dCD_radial |= RADIAL_SW;
 		    }
 
 		    if (cptr->drcc_flags & DRC_BOTHCORNERS)
@@ -731,7 +738,7 @@ drcCifTile (tile, arg)
 			{
 			    errRect.r_ytop += cptr->drcc_cdist;
 			    if (DRCEuclidean)
-				arg->dCD_radial |= 0x2000;
+				arg->dCD_radial |= RADIAL_NW;
 			}
 		    }
 
@@ -761,7 +768,7 @@ drcCifTile (tile, arg)
 		    {
 			errRect.r_ytop += cptr->drcc_cdist;
 			if (DRCEuclidean)
-			    arg->dCD_radial |= 0x8000;
+			    arg->dCD_radial |= RADIAL_NE;
 		    }
 
 		    if (cptr->drcc_flags & DRC_BOTHCORNERS)
@@ -777,7 +784,7 @@ drcCifTile (tile, arg)
 			{
 			    errRect.r_ybot -= cptr->drcc_cdist;
 			    if (DRCEuclidean)
-				arg->dCD_radial |= 0x4000;
+				arg->dCD_radial |= RADIAL_SE;
 			}
 		    }
 
@@ -797,7 +804,7 @@ drcCifTile (tile, arg)
 		}
 		if (arg->dCD_radial)
 		{
-		    arg->dCD_radial &= 0xf0000;
+		    arg->dCD_radial &= 0xf000;
 		    arg->dCD_radial |= (0xfff & cptr->drcc_cdist);
 		}
 
@@ -902,7 +909,7 @@ tbcheck:
 		    {
 			errRect.r_xtop += cptr->drcc_cdist;
 			if (DRCEuclidean)
-			    arg->dCD_radial |= 0x4000;
+			    arg->dCD_radial |= RADIAL_SE;
 		    }
 
 		    if (cptr->drcc_flags & DRC_BOTHCORNERS)
@@ -917,7 +924,7 @@ tbcheck:
 			{
 			    errRect.r_xbot -= cptr->drcc_cdist;
 			    if (DRCEuclidean)
-				arg->dCD_radial |= 0x1000;
+				arg->dCD_radial |= RADIAL_SW;
 			}
 		    }
 
@@ -949,7 +956,7 @@ tbcheck:
 		    {
 			errRect.r_xbot -= cptr->drcc_cdist;
 			if (DRCEuclidean)
-			    arg->dCD_radial |= 0x2000;
+			    arg->dCD_radial |= RADIAL_NW;
 		    }
 
 		    if (cptr->drcc_flags & DRC_BOTHCORNERS)
@@ -964,7 +971,7 @@ tbcheck:
 			{
 			    errRect.r_xtop += cptr->drcc_cdist;
 			    if (DRCEuclidean)
-				arg->dCD_radial |= 0x8000;
+				arg->dCD_radial |= RADIAL_NE;
 			}
 		    }
 
@@ -1029,6 +1036,7 @@ areaCifCheck(tile, arg)
     struct drcClientData *arg;
 {
     Rect rect;		/* Area where error is to be recorded. */
+    Rect cifrect;	/* rect, in CIF coordinates */
     int			scale = drcCifStyle->cs_scaleFactor;
 
     /* If the tile has a legal type, then return. */
@@ -1039,10 +1047,11 @@ areaCifCheck(tile, arg)
      * the clip area for errors.
      */
 
-    TiToRect(tile, &rect);
-    GeoClip(&rect, arg->dCD_constraint);
-    if ((rect.r_xbot >= rect.r_xtop) || (rect.r_ybot >= rect.r_ytop))
+    TiToRect(tile, &cifrect);
+    GeoClip(&cifrect, arg->dCD_constraint);
+    if ((cifrect.r_xbot >= cifrect.r_xtop) || (cifrect.r_ybot >= cifrect.r_ytop))
 	return 0;
+    rect = cifrect;
     rect.r_xbot /= scale;
     rect.r_xtop /= scale;
     if (rect.r_xbot == rect.r_xtop)
@@ -1058,6 +1067,80 @@ areaCifCheck(tile, arg)
     GeoClip(&rect, arg->dCD_clip);
     if ((rect.r_xbot >= rect.r_xtop) || (rect.r_ybot >= rect.r_ytop))
 	return 0;
+
+    /*
+     * Euclidean distance checks
+     */
+    if (arg->dCD_radial != 0)
+    {
+	unsigned int i;
+	int sqx, sqy;
+	int sdist = arg->dCD_radial & 0xfff;
+	long sstest, ssdist = sdist * sdist;
+
+	if ((arg->dCD_radial & RADIAL_NW) != 0)
+	{
+	    if (((sqx = arg->dCD_constraint->r_xbot + sdist
+			- cifrect.r_xtop) >= 0) && ((sqy = cifrect.r_ybot
+			- arg->dCD_constraint->r_ytop + sdist) >= 0)
+			&& ((sqx * sqx + sqy * sqy) >= ssdist))
+		return 0;
+	    else if (IsSplit(tile) && !SplitDirection(tile) && !SplitSide(tile))
+	    {
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xbot + sdist,
+			arg->dCD_constraint->r_ytop - sdist,
+			LEFT(tile), BOTTOM(tile), RIGHT(tile), TOP(tile));
+		if (sstest > ssdist) return 0;
+	    }
+	}
+	if ((arg->dCD_radial & RADIAL_NE) != 0)
+	{
+	    if (((sqx = cifrect.r_xbot - arg->dCD_constraint->r_xtop
+			+ sdist) >= 0) && ((sqy = cifrect.r_ybot
+			- arg->dCD_constraint->r_ytop + sdist) >= 0)
+			&& ((sqx * sqx + sqy * sqy) >= ssdist))
+		return 0;
+	    else if (IsSplit(tile) && SplitDirection(tile) && SplitSide(tile))
+	    {
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xtop - sdist,
+			arg->dCD_constraint->r_ytop - sdist,
+			LEFT(tile), TOP(tile), RIGHT(tile), BOTTOM(tile));
+		if (sstest > ssdist) return 0;
+	    }
+	}
+	if ((arg->dCD_radial & RADIAL_SW) != 0)
+	{
+	    if (((sqx = arg->dCD_constraint->r_xbot + sdist
+			- cifrect.r_xtop) >= 0) &&
+			((sqy = arg->dCD_constraint->r_ybot
+			+ sdist - cifrect.r_ytop) >= 0)
+			&& ((sqx * sqx + sqy * sqy) >= ssdist))
+		return 0;
+	    else if (IsSplit(tile) && SplitDirection(tile) && !SplitSide(tile))
+	    {
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xbot + sdist,
+			arg->dCD_constraint->r_ybot + sdist,
+			LEFT(tile), TOP(tile), RIGHT(tile), BOTTOM(tile));
+		if (sstest > ssdist) return 0;
+	    }
+	}
+	if ((arg->dCD_radial & RADIAL_SE) != 0)
+	{
+	    if (((sqx = cifrect.r_xbot - arg->dCD_constraint->r_xtop
+			+ sdist) >= 0) &&
+			((sqy = arg->dCD_constraint->r_ybot
+			+ sdist - cifrect.r_ytop) >= 0)
+			&& ((sqx * sqx + sqy * sqy) >= ssdist))
+		return 0;
+	    else if (IsSplit(tile) && !SplitDirection(tile) && SplitSide(tile))
+	    {
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xtop - sdist,
+			arg->dCD_constraint->r_ybot + sdist,
+			LEFT(tile), BOTTOM(tile), RIGHT(tile), TOP(tile));
+		if (sstest > ssdist) return 0;
+	    }
+	}
+    }
 
     (*(arg->dCD_function)) (arg->dCD_celldef, &rect,
 	arg->dCD_cptr, arg->dCD_clientData);

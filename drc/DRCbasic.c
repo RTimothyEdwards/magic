@@ -61,7 +61,7 @@ extern MaxRectsData *drcCanonicalMaxwidth();
 /*
  *-----------------------------------------------------------------------
  *
- * point_to_segment
+ * drcCifPointToSegment
  *
  *	Euclidean-distance point-to-segment distance (squared)
  *	calculation (borrowed from XCircuit)
@@ -77,7 +77,7 @@ extern MaxRectsData *drcCanonicalMaxwidth();
  */
 
 long
-point_to_segment(px, py, s1x, s1y, s2x, s2y)
+drcCifPointToSegment(px, py, s1x, s1y, s2x, s2y)
     int px, py;		/* The position of the point */
     int s1x, s1y;	/* One endpoint of the line segment */
     int s2x, s2y;	/* The other endpoint of the line segment */
@@ -187,7 +187,7 @@ areaCheck(tile, arg)
 		return 0;
 	    else if (IsSplit(tile) && !SplitDirection(tile) && !SplitSide(tile))
 	    {
-		sstest = point_to_segment(arg->dCD_constraint->r_xbot + sdist,
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xbot + sdist,
 			arg->dCD_constraint->r_ytop - sdist,
 			LEFT(tile), BOTTOM(tile), RIGHT(tile), TOP(tile));
 		if (sstest > ssdist) return 0;
@@ -202,7 +202,7 @@ areaCheck(tile, arg)
 		return 0;
 	    else if (IsSplit(tile) && SplitDirection(tile) && SplitSide(tile))
 	    {
-		sstest = point_to_segment(arg->dCD_constraint->r_xtop - sdist,
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xtop - sdist,
 			arg->dCD_constraint->r_ytop - sdist,
 			LEFT(tile), TOP(tile), RIGHT(tile), BOTTOM(tile));
 		if (sstest > ssdist) return 0;
@@ -218,7 +218,7 @@ areaCheck(tile, arg)
 		return 0;
 	    else if (IsSplit(tile) && SplitDirection(tile) && !SplitSide(tile))
 	    {
-		sstest = point_to_segment(arg->dCD_constraint->r_xbot + sdist,
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xbot + sdist,
 			arg->dCD_constraint->r_ybot + sdist,
 			LEFT(tile), TOP(tile), RIGHT(tile), BOTTOM(tile));
 		if (sstest > ssdist) return 0;
@@ -234,7 +234,7 @@ areaCheck(tile, arg)
 		return 0;
 	    else if (IsSplit(tile) && !SplitDirection(tile) && SplitSide(tile))
 	    {
-		sstest = point_to_segment(arg->dCD_constraint->r_xtop - sdist,
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xtop - sdist,
 			arg->dCD_constraint->r_ybot + sdist,
 			LEFT(tile), BOTTOM(tile), RIGHT(tile), TOP(tile));
 		if (sstest > ssdist) return 0;

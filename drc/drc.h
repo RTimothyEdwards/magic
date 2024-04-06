@@ -309,6 +309,7 @@ extern void drcCheckRectSize();
 extern void drcCheckOffGrid();
 extern int  LowestMaskBit();
 extern void drcCifScale();
+extern long drcCifPointToSegment();
 
 /* The following macro can be used by the outside world to see if
  * the background checker needs to be called.
