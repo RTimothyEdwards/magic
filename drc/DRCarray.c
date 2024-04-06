@@ -299,6 +299,7 @@ drcArrayYankFunc(use, transform, x, y, yankArea)
     scx.scx_use = use;
     scx.scx_trans = *transform;
     (void) DBCellCopyAllPaint(&scx, &DBAllButSpaceBits, 0, DRCuse);
+    (void) DBFlatCopyMaskHints(&scx, 0, DRCuse);
     return 0;
 }
 

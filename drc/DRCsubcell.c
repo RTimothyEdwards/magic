@@ -882,6 +882,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 
 	    (void) DBCellCheckCopyAllPaint(&scx, &DBAllButSpaceBits, 0,
 			DRCuse, func);
+	    (void) DBFlatCopyMaskHints(&scx, 0, DRCuse);
 
 	    (void) DBNewPaintTable(savedPaintTable);
 	    (void) DBNewPaintPlane(savedPaintPlane);
@@ -944,6 +945,7 @@ DRCFlatCheck(use, area)
 	    savedPaintPlane = DBNewPaintPlane(DBPaintPlaneMark);
 
 	    (void) DBCellCopyAllPaint(&scx, &DBAllButSpaceBits, 0, DRCuse);
+	    (void) DBFlatCopyMaskHints(&scx, 0, DRCuse);
 
 	    (void) DBNewPaintTable(savedPaintTable);
 	    (void) DBNewPaintPlane(savedPaintPlane);
