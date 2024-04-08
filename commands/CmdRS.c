@@ -850,6 +850,8 @@ CmdSelect(w, cmd)
     ExtRectList *rlist;
     int option;
     int feedstyle;
+    int isqual;		// Command has a qualifier argument like "more", "less", etc.
+    int primargs;	// Number of arguments other than qualifiers
     bool layerspec;
     bool degenerate;
     bool doat = FALSE;
@@ -878,6 +880,7 @@ CmdSelect(w, cmd)
      * "less", "do", "no", "nocycle", "top", and "cell".
      */
 
+    isqual = 0;			// Track any qualifier argument
     if (cmd->tx_argc >= 2)
     {
 	int arg1len = strlen(cmd->tx_argv[1]);
@@ -887,15 +890,15 @@ CmdSelect(w, cmd)
 	{
 	    more = TRUE;
 	    less = FALSE;
+	    isqual = 1;
 	    optionArgs = &cmd->tx_argv[2];
-	    cmd->tx_argc--;
 	}
 	else if (!strncmp(cmd->tx_argv[1], "less", arg1len))
 	{
 	    more = FALSE;
 	    less = TRUE;
+	    isqual = 1;
 	    optionArgs = &cmd->tx_argv[2];
-	    cmd->tx_argc--;
 	}
 	else if (!strncmp(cmd->tx_argv[1], "nocycle", arg1len))
 	{
@@ -903,46 +906,48 @@ CmdSelect(w, cmd)
 	    labelpolicy = SEL_NO_LABELS;
 	    more = FALSE;
 	    less = FALSE;
+	    isqual = 1;
 	    type = TT_SELECTBASE - 1;	   /* avoid cycling between types */
 	    optionArgs = &cmd->tx_argv[2];
-	    cmd->tx_argc--;
 	}
 	else if (!strncmp(cmd->tx_argv[1], "same", arg1len))
 	{
 	    /* Force this to be the same as the last selection command,	*/
 	    /* even if there were other commands in between.		*/
 	    lastCommand = TxCommandNumber - 1;
+	    isqual = 1;
 	    optionArgs = &cmd->tx_argv[2];
-	    cmd->tx_argc--;
 	}
 	else if (!strncmp(cmd->tx_argv[1], "do", arg1len))
 	{
 	    labelpolicy = SEL_DO_LABELS;
+	    isqual = 1;
 	    optionArgs = &cmd->tx_argv[2];
-	    cmd->tx_argc--;
 	}
 	else if (!strncmp(cmd->tx_argv[1], "no", arg1len))
 	{
 	    labelpolicy = SEL_NO_LABELS;
+	    isqual = 1;
 	    optionArgs = &cmd->tx_argv[2];
-	    cmd->tx_argc--;
 	}
 	else if (!strncmp(cmd->tx_argv[1], "simple", arg1len))
 	{
 	    labelpolicy = SEL_SIMPLE_LABELS;
+	    isqual = 1;
 	    optionArgs = &cmd->tx_argv[2];
-	    cmd->tx_argc--;
 	}
-
 	else if (!strncmp(cmd->tx_argv[1], "top", arg1len))
 	{
 	    if ((cmd->tx_argc >= 3) && !strncmp(cmd->tx_argv[2],
 			"cell", strlen(cmd->tx_argv[2])))
+	    {
+		isqual = 1;
 		optionArgs = &cmd->tx_argv[2];
+	    }
 	}
 
 	doat = FALSE;
-	if ((cmd->tx_argc > 3) && !strcmp(cmd->tx_argv[cmd->tx_argc - 3], "at"))
+	if ((cmd->tx_argc - isqual > 3) && !strcmp(cmd->tx_argv[cmd->tx_argc - 3], "at"))
 	{
 	    Point editPoint;
 
@@ -952,29 +957,32 @@ CmdSelect(w, cmd)
 	    editPoint.p_y = cmdParseCoord(w, cmd->tx_argv[cmd->tx_argc - 1],
 				FALSE, FALSE);
 	    GeoTransPoint(&EditToRootTransform, &editPoint, &atPoint);
+	    /* After registering "doat", ignore the arguments */
 	    cmd->tx_argc -= 3;
 	}
     }
 
     /* Check the option for validity. */
 
-    if (cmd->tx_argc == 1)
+    primargs = cmd->tx_argc - isqual;
+    if (primargs == 1)
 	option = SEL_DEFAULT;
     else
     {
 	char *fileName;
 
 	option = Lookup(optionArgs[0], cmdSelectOption);
-	if (option < 0 && cmd->tx_argc != 2)
+	if ((option < 0) && (primargs != 2))
 	{
 	    TxError("\"%s\" isn't a valid select option.\n", cmd->tx_argv[1]);
 	    option = SEL_HELP;
 	    cmd->tx_argc = 2;
+	    primargs = 2;
 	}
 	else if (option < 0)
 	{
 	    option = SEL_DEFAULT;
-	    if (more || less)
+	    if (more || less || (!samePlace))
 		optionArgs = &cmd->tx_argv[1];
 	    else
 		optionArgs = &cmd->tx_argv[0];
@@ -1002,17 +1010,17 @@ CmdSelect(w, cmd)
 	 */
 
 	case SEL_AREA:
-	    if (cmd->tx_argc > 4)
+	    if (primargs > 4)
 	    {
 		usageError:
 		TxError("Bad arguments:\n    select %s\n",
-			cmdSelectMsg[option+1]);
+			cmdSelectMsg[option + 1]);
 		return;
 	    }
-	    if (cmd->tx_argc == 4)
+	    if (primargs == 4)
 		globmatch = optionArgs[2];	/* Label matching by glob */
 	    if (!(more || less)) SelectClear();
-	    if (cmd->tx_argc >= 3)
+	    if (primargs >= 3)
 		cmdSelectArea(optionArgs[1], less, option, globmatch);
 	    else cmdSelectArea("*,label,subcell", less, option, globmatch);
 	    return;
@@ -1024,9 +1032,9 @@ CmdSelect(w, cmd)
 	 */
 
 	case SEL_VISIBLE:
-	    if (cmd->tx_argc > 3) goto usageError;
+	    if (primargs > 3) goto usageError;
 	    if (!(more || less)) SelectClear();
-	    if (cmd->tx_argc == 3)
+	    if (primargs == 3)
 		cmdSelectArea(optionArgs[1], less, option, globmatch);
 	    else cmdSelectArea("*,label,subcell", less, option, globmatch);
 	    return;
@@ -1037,7 +1045,7 @@ CmdSelect(w, cmd)
 	 */
 
 	case SEL_INTERSECT:
-	    if (cmd->tx_argc > 3) goto usageError;
+	    if (primargs > 3) goto usageError;
 	    cmdIntersectArea(optionArgs[1]);
 	    return;
 
@@ -1047,7 +1055,7 @@ CmdSelect(w, cmd)
 	 */
 
 	case SEL_CLEAR:
-	    if ((more) || (less) || (cmd->tx_argc > 2)) goto usageError;
+	    if ((more) || (less) || (primargs > 2)) goto usageError;
 	    SelectClear();
 	    return;
 
@@ -1103,7 +1111,7 @@ CmdSelect(w, cmd)
 	 */
 
 	 case SEL_KEEP:
-	    if ((more) || (less) || (cmd->tx_argc > 2)) goto usageError;
+	    if ((more) || (less) || (primargs > 2)) goto usageError;
 	    SelectAndCopy1();
 	    GeoTransRect(&SelectUse->cu_transform, &SelectDef->cd_bbox, &selarea);
 	    DBWHLRedraw(SelectRootDef, &selarea, FALSE);
@@ -1115,7 +1123,7 @@ CmdSelect(w, cmd)
 	 */
 
 	 case SEL_MOVE:
-	    if ((more) || (less) || (cmd->tx_argc != 4)) goto usageError;
+	    if ((more) || (less) || (primargs != 4)) goto usageError;
 
 	    p.p_x = cmdParseCoord(w, cmd->tx_argv[2], FALSE, TRUE);
 	    p.p_y = cmdParseCoord(w, cmd->tx_argv[3], FALSE, FALSE);
@@ -1139,7 +1147,7 @@ CmdSelect(w, cmd)
 	 */
 
 	 case SEL_PICK:
-	    if ((more) || (less) || (cmd->tx_argc > 2)) goto usageError;
+	    if ((more) || (less) || (primargs > 2)) goto usageError;
 	    SelectDelete("picked", FALSE);
 	    DBWHLRedraw(SelectRootDef, &selarea, FALSE);
 	    return;
@@ -1151,7 +1159,7 @@ CmdSelect(w, cmd)
 	 */
 
 	case SEL_FLAT:
-	    if ((more) || (less) || (cmd->tx_argc > 2)) goto usageError;
+	    if ((more) || (less) || (primargs > 2)) goto usageError;
 	    SelectFlat();
 	    return;
 
@@ -1161,7 +1169,7 @@ CmdSelect(w, cmd)
 	 */
 
 	 case SEL_SAVE:
-	    if (cmd->tx_argc != 3) goto usageError;
+	    if (primargs != 3) goto usageError;
 
 	    /* Be sure to paint DRC check information into the cell before
 	     * saving it!  Otherwise DRC problems may not be detected.  Also
@@ -1185,7 +1193,7 @@ CmdSelect(w, cmd)
 	 case SEL_FEEDBACK:
 	    feedtext = NULL;
 	    feedstyle = STYLE_ORANGE1;
-	    if (cmd->tx_argc > 2)
+	    if (primargs > 2)
 	    {
 		/* Get style (To do) */
 		feedstyle = GrGetStyleFromName(cmd->tx_argv[2]);
@@ -1196,7 +1204,7 @@ CmdSelect(w, cmd)
 					" .dstyle file\n");
 		    return;
 		}
-		if (cmd->tx_argc > 3)
+		if (primargs > 3)
 		    feedtext = cmd->tx_argv[3];
 	    }
 	    SelCopyToFeedback(SelectRootDef, SelectUse, feedstyle,
@@ -1211,7 +1219,7 @@ CmdSelect(w, cmd)
 	 *--------------------------------------------------------------------
 	 */
 	case SEL_SHORT:
-	    if (cmd->tx_argc != 4) goto usageError;
+	    if (primargs != 4) goto usageError;
 	    rlist = SelectShort(cmd->tx_argv[2], cmd->tx_argv[3]);
 
 	    if (rlist == NULL)
@@ -1245,8 +1253,8 @@ CmdSelect(w, cmd)
 	    break;
 
 	case SEL_BOX: case SEL_CHUNK: case SEL_REGION: case SEL_NET:
-	    if (cmd->tx_argc > 3) goto usageError;
-	    if (cmd->tx_argc == 3)
+	    if (primargs > 3) goto usageError;
+	    if (primargs == 3)
 		layerspec = TRUE;
 	    else
 		layerspec = FALSE;
@@ -1263,7 +1271,7 @@ CmdSelect(w, cmd)
 
 	case SEL_DEFAULT:
 
-	    if (cmd->tx_argc == 2)
+	    if (primargs == 2)
 		layerspec = TRUE;
 	    else
 		layerspec = FALSE;
@@ -1325,7 +1333,6 @@ Okay:
 		sprintf(aptr + 1, "at %di %di", scx.scx_area.r_xbot,
 				scx.scx_area.r_ybot);
 		TxRebuildCommand(cmd);
-		    
 	    }
 	    if (window == NULL) return;
 	    scx.scx_use = (CellUse *) window->w_surfaceID;
@@ -1551,7 +1558,7 @@ Okay:
 		return;
 	    }
 
-	    if (cmd->tx_argc > 3)
+	    if (primargs > 3)
 		if (strcmp(cmd->tx_argv[cmd->tx_argc - 3], "at"))
 		    goto usageError;
 
@@ -1560,7 +1567,7 @@ Okay:
 	     * click" code.
 	     */
 
-	    if (((cmd->tx_argc == 3) || (cmd->tx_argc == 6)) &&
+	    if (((primargs == 3) || (primargs == 6)) &&
 			(optionArgs == &cmd->tx_argv[2]) &&
 			(more == FALSE) && (less == FALSE))
 	    {
@@ -1570,7 +1577,7 @@ Okay:
 		trans = GeoIdentityTransform;
 		printPath = scx.scx_use->cu_id;
 	    }
-	    else if ((cmd->tx_argc == 3) || (cmd->tx_argc == 6))
+	    else if ((primargs == 3) || (primargs == 6))
 	    {
 		SearchContext scx2;
 
