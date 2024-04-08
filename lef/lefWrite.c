@@ -29,6 +29,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "utils/hash.h"
 #include "database/database.h"
 #include "extract/extract.h"
+#include "extract/extractInt.h"
 #include "utils/tech.h"
 #include "utils/utils.h"
 #include "utils/malloc.h"
@@ -1135,7 +1136,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
     SearchContext scx;
     CellDef *lefFlatDef;
     CellUse lefFlatUse, lefSourceUse;
-    TileTypeBitMask lmask, boundmask, *lrmask, gatetypemask, difftypemask;
+    TileTypeBitMask lmask, wmask, boundmask, *lrmask, gatetypemask, difftypemask;
     TileType ttype;
     lefClient lc;
     int idx, pNum, pTop, maxport, curport;
@@ -1206,6 +1207,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
     TTMaskZero(&lc.rmask);
     TTMaskZero(&boundmask);
     TTMaskZero(&lmask);
+    TTMaskZero(&wmask);
     pmask = 0;
 
     /* Any layer which has a port label attached to it should by	*/
@@ -1233,6 +1235,17 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		}
 		if ((lefl->lefClass == CLASS_ROUTE) && (lefl->obsType != -1))
 		    TTMaskSetType(&lmask, lefl->type);
+		else if (lefl->lefClass == CLASS_MASTER)
+		{
+		    /* This is something of a hack. . .  Record MASTERSLICE layers
+		     * that are not substrate (e.g., "nwell" but not "pwell").  These
+		     * will be used to paint obstructions on the plane of the
+		     * masterslice layer.  There may be better solutions to this.
+		     */
+		    if (ExtCurStyle != NULL)
+			if (!TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, lefl->type))
+			    TTMaskSetType(&wmask, lefl->type);
+		}
 	    }
 	    if (lefl->obsType != -1)
 		TTMaskSetType(&lc.rmask, lefl->obsType);
@@ -1772,7 +1785,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
     lc.lastType = TT_SPACE;
     lc.needHeader = FALSE;
 
-    /* Restrict to routing planes only */
+    /* Restrict to routing and masterslice planes only */
 
     if (setback >= 0)
     {
@@ -1815,7 +1828,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    manualBound = GeoNullRect;
 
 	for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
-	    if (TTMaskHasType(&lmask, ttype))
+	    if (TTMaskHasType(&lmask, ttype) || TTMaskHasType(&wmask, ttype))
 	    {
 		Rect r;
 		layerBound.r_xbot = layerBound.r_xtop = 0;
