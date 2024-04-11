@@ -1025,8 +1025,7 @@ dbcConnectFunc(tile, cx)
      * the storage for the current list element.
      */
 
-    if ((retval == 1) || DBIsContact(loctype))
-	DBNMPaintPlane(def->cd_planes[pNum], dinfo,
+    DBNMPaintPlane(def->cd_planes[pNum], dinfo,
 		&newarea, DBStdPaintTbl(loctype, pNum),
 		(PaintUndoInfo *) NULL);
 
