@@ -428,6 +428,10 @@ ResAddPlumbing(tile, arg)
 		{
 		    t1 = (SplitSide(tp1)) ? SplitRightType(tp1) :
 				SplitLeftType(tp1);
+		    /* Check in case this is the wrong side */
+		    if (ExtCurStyle->exts_device[t1] == NULL)
+			t1 = (SplitSide(tp1)) ? SplitLeftType(tp1) :
+				SplitRightType(tp1);
 		}
 		else
 		    t1 = TiGetTypeExact(tp1);

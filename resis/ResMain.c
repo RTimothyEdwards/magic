@@ -432,7 +432,7 @@ ResFindNewContactTiles(contacts)
 		(contacts->cp_currentcontact) += 1;
 		j->contactList = ce;
 	    }
-	    else
+	    else if (!IsSplit(tile))
 	    {
 		TileType ttype = TiGetTypeExact(tile);
 		if (DBIsContact(ttype))
