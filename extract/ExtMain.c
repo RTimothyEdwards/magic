@@ -361,11 +361,14 @@ ExtAll(rootUse)
     CellUse *rootUse;
 {
     LinkedDef *defList = NULL;
+    CellDef *err_def;
 
     /* Make sure the entire subtree is read in */
-    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    err_def = DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE);
+    if (err_def != NULL)
     {
 	TxError("Failure to read entire subtree of cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return;
     }
 
@@ -460,15 +463,17 @@ ExtUnique(rootUse, option)
     CellUse *rootUse;
     int option;
 {
-    CellDef *def;
+    CellDef *def, *err_def;
     LinkedDef *defList = NULL;
     int nwarn;
     int locoption;
 
     /* Make sure the entire subtree is read in */
-    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    err_def = DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE);
+    if (err_def != NULL)
     {
 	TxError("Failure to read entire subtree of cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return;
     }
 
@@ -857,11 +862,14 @@ ExtIncremental(rootUse)
     CellUse *rootUse;
 {
     LinkedDef *defList = NULL;
+    CellDef *err_def;
 
     /* Make sure the entire subtree is read in */
-    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    err_def = DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE);
+    if (err_def != NULL)
     {
 	TxError("Failure to read entire subtree of cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return;
     }
 

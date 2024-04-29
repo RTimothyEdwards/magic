@@ -692,11 +692,14 @@ DRCCheck(use, area)
 				 */
 {
     SearchContext scx;
+    CellDef *err_def;
     extern int drcCheckFunc();	/* Forward reference. */
 
-    if (DBCellReadArea(use, area, TRUE))
+    err_def = DBCellReadArea(use, area, TRUE);
+    if (err_def != NULL)
     {
 	TxError("Failure to read in entire subtree of cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return;
     }
 

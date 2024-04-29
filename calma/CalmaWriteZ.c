@@ -277,6 +277,7 @@ CalmaWriteZ(rootDef, f)
 {
     int oldCount = DBWFeedbackCount, problems, nerr;
     bool good;
+    CellDef *err_def;
     CellUse dummy;
     HashEntry *he;
     HashSearch hs;
@@ -302,9 +303,11 @@ CalmaWriteZ(rootDef, f)
      */
 
     dummy.cu_def = rootDef;
-    if (DBCellReadArea(&dummy, &rootDef->cd_bbox, !CalmaAllowUndefined))
+    err_def = DBCellReadArea(&dummy, &rootDef->cd_bbox, !CalmaAllowUndefined);
+    if (err_def != NULL)
     {
 	TxError("Failure to read entire subtree of the cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return FALSE;
     }
 
