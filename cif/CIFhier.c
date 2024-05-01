@@ -285,7 +285,7 @@ cifFlatMaskHints(name, value, mhd)
     Rect r, newr;
     char *vptr, *newval, *lastval, *propvalue;
     bool propfound;
-    int lastlen;
+    int lastlen, numvals;
 
     if (!strncmp(name, "MASKHINTS_", 10))
     {
@@ -293,8 +293,9 @@ cifFlatMaskHints(name, value, mhd)
 	vptr = value;
 	while (*vptr != '\0')
 	{
-	    if (sscanf(vptr, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
-			&r.r_xtop, &r.r_ytop) == 4)
+	    numvals = sscanf(vptr, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
+			&r.r_xtop, &r.r_ytop);
+	    if (numvals == 4)
 	    {
 		/* Transform rectangle to top level coordinates */
 		GeoTransRect(mhd->mh_trans, &r, &newr);
@@ -319,6 +320,12 @@ cifFlatMaskHints(name, value, mhd)
 		while (*vptr && isspace(*vptr)) vptr++;
 		while (*vptr && !isspace(*vptr)) vptr++;
 		while (*vptr && isspace(*vptr)) vptr++;
+	    }
+	    else
+	    {
+		TxError("MASKHINTS_%s:  Expected 4 values, found only %d\n",
+				name + 10, numvals);
+		break;
 	    }
 	}
 
