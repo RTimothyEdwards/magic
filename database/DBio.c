@@ -497,6 +497,7 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
     int n = 1, d = 1;
     HashTable dbUseTable;
     bool needcleanup = FALSE;
+    bool hasrcfile = FALSE;
 
     /*
      * It's very important to disable interrupts during the body of
@@ -556,7 +557,7 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 		     * magic/ and look for a compatible techfile there.
 		     */
 		    char *found = NULL;
-		    char *string, *techfullname;
+		    char *sptr, *string, *techfullname;
     
 		    techfullname = mallocMagic(strlen(tech) + 6);
 		    sprintf(techfullname, "%s.tech", tech);
@@ -621,45 +622,61 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 			    found = DBSearchForTech(techfullname, tech, string, 0);
 		    }
 		
-		    /* Experimental---check for a ".magicrc" file in	*/
-		    /* the same directory as ".tech" and source it	*/
-		    /* first.						*/
+		    /* Check for a ".magicrc" file in the same directory */
+		    /* as ".tech" and source it	first.			 */
 
 		    if (found)
 		    {
 			char *rcpath;
+			FILE *tmpf;
 
 			rcpath = (char *)mallocMagic(strlen(found) + strlen(tech)
 					+ 10);
 			sprintf(rcpath, "%s/%s.magicrc", found, tech);
-			Tcl_EvalFile(magicinterp, rcpath);
+			if ((tmpf = fopen(rcpath, "r")) != NULL)
+			{
+			    fclose(tmpf);
+			    Tcl_EvalFile(magicinterp, rcpath);
+			    hasrcfile = TRUE;
+			}
 			freeMagic(rcpath);
 		    }
 #endif
 
 		    freeMagic(techfullname);
 		    if (found)
-		    {
-			char *sptr;
 			PaAppend(&SysLibPath, found);
 
-			TxError("Loading technology %s\n", tech);
-			if (!TechLoad(tech, 0))
-			    TxError("Error in loading technology file\n");
-			else if ((sptr = strstr(found, "libs.tech")) != NULL)
+		    TxError("Loading technology %s\n", tech);
+		    result = TechLoad(tech, 0);
+		    if (!result)
+			TxError("Error in loading technology file\n");
+		    else if (found)
+		    {
+			if ((sptr = strstr(found, "libs.tech")) != NULL)
 			{
 			    int paths = 0;
-			    /* Additional automatic handling of open_pdks-  */
-			    /* style PDKs.  Append the libs.ref libraries   */
-			    /* to the cell search path.			    */
+
+			    if (hasrcfile == FALSE)
+			    {
+				/* Additional automatic handling of open_pdks-  */
+				/* style PDKs.  Append the libs.ref libraries   */
+				/* to the cell search path.  Do this only if a	*/
+				/* magicrc file was not associated with the PDK	*/
+				/* as the magicrc file is expected to set the	*/
+				/* search path.					*/
 			    
-			    strcpy(sptr + 5, "ref");
-			    paths = DBAddStandardCellPaths(found, 0);
-			    if (paths > 0)
-				TxPrintf("Cell path is now \"%s\"\n", CellLibPath);
+				strcpy(sptr + 5, "ref");
+				paths = DBAddStandardCellPaths(found, 0);
+				if (paths > 0)
+				    TxPrintf("Cell path is now \"%s\"\n", CellLibPath);
+			    }
 			}
 			freeMagic(found);
+		    }
 #ifdef MAGIC_WRAPPER
+		    if (result)
+		    {
 			/* Apply tag callbacks for "tech load" command */
 			{
 			    char *argv[2];
