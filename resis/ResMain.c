@@ -1055,11 +1055,14 @@ ResExtractNet(node, goodies, cellname)
      * that does not correspond exactly to the layer underneath, include
      * all connecting types.
      */
-    TTMaskZero(&FirstTileMask);
-    TTMaskSetMask(&FirstTileMask, &DBConnectTbl[node->type]);
+    if (node->type != TT_SPACE)
+    {
+	TTMaskZero(&FirstTileMask);
+	TTMaskSetMask(&FirstTileMask, &DBConnectTbl[node->type]);
 
-    DBTreeCopyConnect(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
+	DBTreeCopyConnect(&scx, &FirstTileMask, 0, ResCopyMask, &TiPlaneRect,
 					SEL_DO_LABELS, ResUse);
+    }
 
     TTMaskZero(&ResSDTypesBitMask);
     TTMaskZero(&ResSubTypesBitMask);
@@ -1651,11 +1654,31 @@ FindStartTile(goodies, SourcePoint)
 		if (tp != NULL) return tp;
 	    }
 	}
+
+	/* Is it possible that the net is the substrate under the device? */
+	for (pnum = 0; pnum < DBNumPlanes; pnum++)
+	{
+	    DBSrPaintArea((Tile *)NULL, ResUse->cu_def->cd_planes[pnum],
+			&r, &(devptr->exts_deviceSubstrateTypes), ResGetTileFunc, &tp);
+	    if (tp != NULL) return tp;
+	}
     }
 
-    /* Didn't find a terminal (S/D) type tile anywhere.  Flag an error. */
+    /* If any device type has TT_SPACE as a substrate type, then don't
+     * issue an error;  however, not handling the substrate as a
+     * resistive network is not a good idea and "extresist" needs to use
+     * the method employed by "extract" of drawing a substrate type out
+     * to the boundary of each subcell.
+     */
 
-    TxError("Couldn't find a terminal of the device at %d %d\n",
+    for (devptr = ExtCurStyle->exts_device[t1]; devptr; devptr = devptr->exts_next)
+	if (TTMaskHasType(&(devptr->exts_deviceSubstrateTypes), TT_SPACE))
+	    break;
+
+    /* Didn't find a terminal (S/D or substrate) type tile anywhere.  Flag an error. */
+
+    if (devptr == NULL)
+	TxError("Couldn't find a terminal of the device at %d %d\n",
 			goodies->rg_devloc->p_x, goodies->rg_devloc->p_y);
     return((Tile *) NULL);
 }

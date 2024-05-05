@@ -1206,7 +1206,11 @@ ResCheckSimNodes(celldef, resisdata)
 	    if (ResExtractNet(node, &gparams, outfile) != 0)
 	    {
 		/* On error, don't output this net, but keep going */
-	       	TxError("Error in extracting node %s\n", node->name);
+		if (node->type == TT_SPACE)
+		    TxPrintf("Note:  Substrate node %s not extracted as network.\n",
+				node->name);
+		else
+		    TxError("Error in extracting node %s\n", node->name);
 	    }
 	    else
 	    {
