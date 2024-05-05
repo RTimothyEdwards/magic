@@ -564,6 +564,41 @@ DBReOrientLabel(cellDef, area, newPos)
 /*
  * ----------------------------------------------------------------------------
  *
+ * dbGetLabelArea ---
+ *
+ * Callback function used by DBAdjustLabels.  Find all material under a label
+ * that is *not* the label type, and return the 
+ *
+ * Note:  This clips in a regular order, and does not consider what is the
+ * largest rectangular area outside the area that has been clipped out.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+dbGetLabelArea(tile, area)
+    Tile *tile;		/* Tile found. */
+    Rect *area;		/* Area to be modified. */
+{
+    Rect r;
+    
+    TiToRect(tile, &r);
+
+    if (r.r_xbot > area->r_xbot)
+	area->r_xtop = r.r_xbot;
+    else if (r.r_xtop < area->r_xtop)
+	area->r_xbot = r.r_xtop;
+    else if (r.r_ybot > area->r_ybot)
+	area->r_ytop = r.r_ybot;
+    else if (r.r_ytop < area->r_ytop)
+	area->r_ybot = r.r_ytop;
+
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DBAdjustLabels --
  *
  * 	This procedure is called after paint has been modified
@@ -590,7 +625,7 @@ DBAdjustLabels(def, area)
 {
     Label *lab;
     TileType newType;
-    bool modified = FALSE;
+    bool modified = FALSE, adjusted = FALSE;
 
     /* First, find each label that crosses the area we're
      * interested in.
@@ -602,16 +637,60 @@ DBAdjustLabels(def, area)
 	newType = DBPickLabelLayer(def, lab, FALSE);
 	if (newType == lab->lab_type) continue;
 	if (lab->lab_flags & LABEL_STICKY) continue;
-	if ((DBVerbose >= DB_VERBOSE_ALL) && ((def->cd_flags & CDINTERNAL) == 0))
+
+	/* New behavior (5/2024) (idea from Philipp Guhring)---If the new
+	 * type is space, then instead of immediately casting the label off
+	 * of its material, find the amount of the label that is still
+	 * covered by the material.  If the material covers more than half
+	 * the label area, then adjust the label area to match the material.
+	 */
+
+	adjusted = FALSE;
+	if (newType == TT_SPACE)
 	{
-	    TxPrintf("Moving label \"%s\" from %s to %s in cell %s.\n",
-		    lab->lab_text, DBTypeLongName(lab->lab_type),
-		    DBTypeLongName(newType), def->cd_name);
+	    Rect r;
+	    TileTypeBitMask lmask;
+
+	    TTMaskSetOnlyType(&lmask, lab->lab_type);
+	    /* To do:  Add compatible types (contact, residue) */
+	    TTMaskCom(&lmask);
+
+	    r = lab->lab_rect;
+	    DBSrPaintArea((Tile *) NULL, def->cd_planes[DBPlane(lab->lab_type)],
+		    &lab->lab_rect, &lmask, dbGetLabelArea, (ClientData) &r);
+
+	    if (!GEO_RECTNULL(&r))
+	    {
+		if ((DBVerbose >= DB_VERBOSE_ALL) && ((def->cd_flags & CDINTERNAL) == 0))
+		{
+		    TxPrintf("Adjusting size of label \"%s\" in cell %s.\n",
+				lab->lab_text, def->cd_name);
+		}
+
+		DBUndoEraseLabel(def, lab);
+		DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
+		lab->lab_rect = r;
+		DBFontLabelSetBBox(lab);
+		DBUndoPutLabel(def, lab);
+		DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
+		modified = TRUE;
+		adjusted = TRUE;
+	    }
 	}
-	DBUndoEraseLabel(def, lab);
-	lab->lab_type = newType;
-	DBUndoPutLabel(def, lab);
-	modified = TRUE;
+
+	if (!adjusted)
+	{
+	    if ((DBVerbose >= DB_VERBOSE_ALL) && ((def->cd_flags & CDINTERNAL) == 0))
+	    {
+		TxPrintf("Moving label \"%s\" from %s to %s in cell %s.\n",
+			lab->lab_text, DBTypeLongName(lab->lab_type),
+			DBTypeLongName(newType), def->cd_name);
+	    }
+	    DBUndoEraseLabel(def, lab);
+	    lab->lab_type = newType;
+	    DBUndoPutLabel(def, lab);
+	    modified = TRUE;
+	}
     }
 
     if (modified) DBCellSetModified(def, TRUE);
