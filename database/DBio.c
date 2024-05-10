@@ -2267,7 +2267,8 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 	    if (!strcmp(propertyname, "GDS_FILE"))
 		cellDef->cd_flags |= CDVENDORGDS;
 
-	    /* Also process FIXED_BBOX property, as units must match */
+	    /* Also process FIXED_BBOX property, as units must match,	*/
+	    /* and ditto for MASKHINTS_*.				*/
 
 	    if (!strcmp(propertyname, "FIXED_BBOX"))
 	    {
@@ -2307,6 +2308,74 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			    locbbox.r_xtop, locbbox.r_ytop);
 		    (void) DBPropPut(cellDef, propertyname, storedvalue);
 		}
+	    }
+	    else if (!strncmp(propertyname, "MASKHINTS_", 10))
+	    {
+		Rect locbbox;
+		char *pptr = pvalueptr;
+		int  numvals, numrects = 0, slen, n;
+
+		while (*pptr != '\0')
+		{
+		    numvals = sscanf(pptr, "%d %d %d %d",
+				&(locbbox.r_xbot),
+				&(locbbox.r_ybot),
+				&(locbbox.r_xtop),
+				&(locbbox.r_ytop));
+		    if (numvals <= 0)
+			break;
+		    else if (numvals != 4)
+		    {
+			TxError("Cannot read bounding box values in %s property",
+				propertyname);
+			break;
+		    }
+		    else
+		    {
+			if (numrects == 0)
+			{
+			    storedvalue = (char *)mallocMagic(40);
+			    *storedvalue = '\0';
+			    slen = -1;
+			}
+			else
+			{
+			    char *newvalue;
+			    slen = strlen(storedvalue);
+			    newvalue = (char *)mallocMagic(40 + slen);
+			    sprintf(newvalue, "%s ", storedvalue);
+			    freeMagic(storedvalue);
+			    storedvalue = newvalue;
+			}
+			numrects++;
+
+			if (scalen > 1)
+			{
+			    locbbox.r_xbot *= scalen;
+			    locbbox.r_ybot *= scalen;
+			    locbbox.r_xtop *= scalen;
+			    locbbox.r_ytop *= scalen;
+			}
+			if (scaled > 1)
+			{
+			    locbbox.r_xbot /= scaled;
+			    locbbox.r_ybot /= scaled;
+			    locbbox.r_xtop /= scaled;
+			    locbbox.r_ytop /= scaled;
+			}
+			sprintf(storedvalue + slen + 1, "%d %d %d %d",
+				locbbox.r_xbot, locbbox.r_ybot,
+				locbbox.r_xtop, locbbox.r_ytop);
+
+			/* Skip forward four values in pvalueptr */
+			for (n = 0; n < 4; n++)
+			{
+			    while (!isspace(*pptr)) pptr++;
+			    while (isspace(*pptr) && (*pptr != '\0')) pptr++;
+			}
+		    }
+		}
+		(void) DBPropPut(cellDef, propertyname, storedvalue);
 	    }
 	    else
 	    {
@@ -3177,6 +3246,16 @@ dbCountPropFunc(key, value, count)
     return 0;
 }
 
+/* Structure used by dbPropWriteFunc.  Holds the FILE stream pointer of
+ * the file being written to, and the scale reducer for dimensional
+ * values in the output (magscale).
+ */
+
+typedef struct _pwfrec {
+    FILE *pwf_file;
+    int pwf_reducer;
+} pwfrec;
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -3228,6 +3307,7 @@ DBCellWriteFile(cellDef, f)
     CellUse **useList;
     int i, numUses = 0, numProps = 0;
     struct cellUseList cul;
+    pwfrec pwf;
 
 #define FPUTSF(f,s)\
 {\
@@ -3450,34 +3530,6 @@ DBCellWriteFile(cellDef, f)
 
     /* And any properties */
 
-    /* NOTE:  FIXED_BBOX is treated specially;  values are database */
-    /* values and should be divided by reducer.  Easiest to do it   */
-    /* here and revert values after.				    */
-
-    propvalue = (char *)DBPropGet(cellDef, "FIXED_BBOX", &propfound);
-    if (propfound)
-    {
-	char *proporig, *propscaled;
-	Rect scalebox, bbox;
-
-	proporig = StrDup((char **)NULL, propvalue);
-	propscaled = mallocMagic(strlen(propvalue) + 5);
-	if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		    &bbox.r_xtop, &bbox.r_ytop) == 4)
-	{
-	    scalebox.r_xbot = bbox.r_xbot / reducer;
-	    scalebox.r_xtop = bbox.r_xtop / reducer;
-	    scalebox.r_ybot = bbox.r_ybot / reducer;
-	    scalebox.r_ytop = bbox.r_ytop / reducer;
-	    sprintf(propscaled, "%d %d %d %d",
-		    bbox.r_xbot / reducer, bbox.r_ybot / reducer,
-		    bbox.r_xtop / reducer, bbox.r_ytop / reducer);
-
-	    DBPropPut(cellDef, "FIXED_BBOX", propscaled);
-	    propvalue = proporig;
-	}
-    }
-
     DBPropEnum(cellDef, dbCountPropFunc, (ClientData)&numProps);
     if (numProps > 0)
     {
@@ -3492,18 +3544,17 @@ DBCellWriteFile(cellDef, f)
 			keycompare);
 
 	FPUTSF(f, "<< properties >>\n");
+	pwf.pwf_file = f;
+	pwf.pwf_reducer = reducer;
 	for (i = 0; i < numProps; i++)
 	{
 	    dbWritePropFunc(propRec.keyValueList[i]->key,
 			propRec.keyValueList[i]->value,
-			(ClientData)f);
+			(ClientData)&pwf);
 	    freeMagic ((char *)propRec.keyValueList[i]);
 	}
 	freeMagic((char *)propRec.keyValueList);
     }
-
-    /* Restore the original values in FIXED_BBOX, if any */
-    if (propfound) DBPropPut(cellDef, "FIXED_BBOX", propvalue);
 
     FPUTSF(f, "<< end >>\n");
 
@@ -3539,6 +3590,11 @@ ioerror:
  *	expected property strings and output the value based on the
  *	known format of what it points to.
  *
+ *	Also, this function assumes that properties FIXED_BBOX and
+ *	MASKHINTS_* are in internal units, and converts them by
+ *	dividing by the reducer value passed in cdata.  No other
+ *	properties are altered.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -3548,13 +3604,98 @@ dbWritePropFunc(key, value, cdata)
     char *value;
     ClientData cdata;
 {
-    FILE *f = (FILE *)cdata;
+    pwfrec *pwf = (pwfrec *)cdata;
+    FILE *f = pwf->pwf_file;
+    int reducer = pwf->pwf_reducer;
+    char *newvalue = value;
+
+    /* NOTE:  FIXED_BBOX is treated specially;  values are database */
+    /* values and should be divided by reducer.  Easiest to do it   */
+    /* here and revert values after.  Ditto for MASKHINTS_*.	    */
+
+    if (!strcmp(key, "FIXED_BBOX"))
+    {
+	Rect scalebox, bbox;
+
+	if (sscanf(value, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		    &bbox.r_xtop, &bbox.r_ytop) == 4)
+	{
+	    scalebox.r_xbot = bbox.r_xbot / reducer;
+	    scalebox.r_xtop = bbox.r_xtop / reducer;
+	    scalebox.r_ybot = bbox.r_ybot / reducer;
+	    scalebox.r_ytop = bbox.r_ytop / reducer;
+
+	    newvalue = mallocMagic(strlen(value) + 5);
+	    sprintf(newvalue, "%d %d %d %d",
+		    scalebox.r_xbot, scalebox.r_ybot,
+		    scalebox.r_xtop, scalebox.r_ytop);
+	}
+	else
+	    TxError("Error:  Cannot parse FIXED_BBOX property value!\n");
+	
+    }
+    else if (!strncmp(key, "MASKHINTS_", 10))
+    {
+	Rect scalebox, bbox;
+        char *vptr = value, *sptr;
+	int numvals, numrects = 0, n;
+
+	while (TRUE)
+	{
+	    numvals = sscanf(vptr, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		    &bbox.r_xtop, &bbox.r_ytop);
+	    if (numvals <= 0)
+		break;
+	    else if (numvals != 4)
+	    {
+		TxError("Error:  Cannot parse %s property value!\n", key);
+		/* Revert property value to original string */
+		if (newvalue != value) freeMagic(newvalue);
+		newvalue = value;
+		break;
+	    }
+	    else
+	    {
+		scalebox.r_xbot = bbox.r_xbot / reducer;
+		scalebox.r_xtop = bbox.r_xtop / reducer;
+		scalebox.r_ybot = bbox.r_ybot / reducer;
+		scalebox.r_ytop = bbox.r_ytop / reducer;
+		if (numrects == 0)
+		{
+		    newvalue = mallocMagic(40);
+		    sptr = newvalue;
+		}
+		else
+		{
+		    char *tempvalue;
+		    tempvalue = mallocMagic(strlen(newvalue) + 40);
+		    sprintf(tempvalue, "%s ", newvalue);
+		    sptr = tempvalue + strlen(newvalue) + 1;
+		    freeMagic(newvalue);
+		    newvalue = tempvalue;
+		}
+		sprintf(sptr, "%d %d %d %d",
+			scalebox.r_xbot, scalebox.r_ybot,
+			scalebox.r_xtop, scalebox.r_ytop);
+		numrects++;
+	    }
+
+	    /* Skip forward four values in value */
+	    for (n = 0; n < 4; n++)
+	    {
+		while (!isspace(*vptr)) vptr++;
+		while (isspace(*vptr) && (*vptr != '\0')) vptr++;
+	    }
+	}
+    }
 
     FPUTSR(f, "string ");
     FPUTSR(f, key);
     FPUTSR(f, " ");
-    FPUTSR(f, value);
+    FPUTSR(f, newvalue);
     FPUTSR(f, "\n");
+
+    if (newvalue != value) freeMagic(newvalue);
 
     return 0;
 }
