@@ -1468,7 +1468,8 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    // Check for net names to ignore for antenna checks.
 	    if (!ignored)
 		for (lnn = lefIgnoreNets; lnn; lnn = lnn->lnn_next)
-		    if (!strcmp(lnn->lnn_name, lab->lab_text))
+		    if (!strcmp(lnn->lnn_name, lab->lab_text) ||
+				!strcmp(lnn->lnn_name, "*"))
 			ignored = TRUE;
 
 	    if (!ignored || (setback != 0))

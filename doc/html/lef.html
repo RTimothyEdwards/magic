@@ -76,7 +76,7 @@ LEF-format input and output
 		itself would be written to a DEF file. <BR>
 		Options <B>-hide</B>, <B>-tech</B>, and <B>-toplayer</B> are
 		the same as for the <B>lef write</B> command.
-	   <DT> <B>nocheck</B> [<I>netname</I> ...]|[<B>none</B>]
+	   <DT> <B>nocheck</B> [<I>netname</I> ...]|[<B>none</B>]|[<B>*</B>]
 	   <DD> Do not check for antenna diffusion and gate area on the nets with
 		the names given as option <I>netname</I>.
 		Any number of net names may be given as arguments.  Typically,
@@ -86,7 +86,9 @@ LEF-format input and output
 		skipped automatically.  If not, then this command option provides
 		an alternative way to avoid running the checks, which can cause
 		a huge performance hit when generating a LEF view of a large
-		layout.  With the single argument "<B>none</B>", removes the
+		layout.  The single argument "<B>*</B>" will cause all net checks
+		to be skipped, and no antenna information will appear in the
+		LEF file output.  The single argument "<B>none</B>" removes the
 		list of net names for which antenna checks should be skipped.
 	   <DT> <B>datestamp</B> [<I>value</I>|<B>default</B>]
 	   <DD> Force all cell definitions generated from LEF macros to have
