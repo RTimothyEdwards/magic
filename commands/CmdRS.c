@@ -855,7 +855,7 @@ CmdSelect(w, cmd)
     bool layerspec;
     bool degenerate;
     bool doat = FALSE;
-    bool more = FALSE, less = FALSE, samePlace = TRUE;
+    bool more = FALSE, less = FALSE, samePlace = TRUE, dotop = FALSE;
     unsigned char labelpolicy = SEL_DO_LABELS;
 #ifdef MAGIC_WRAPPER
     char *tclstr;
@@ -942,6 +942,7 @@ CmdSelect(w, cmd)
 			"cell", strlen(cmd->tx_argv[2])))
 	    {
 		isqual = 1;
+		dotop = TRUE;
 		optionArgs = &cmd->tx_argv[2];
 	    }
 	}
@@ -1614,9 +1615,10 @@ Okay:
 		use = DBSelectCell(scx.scx_use, lastUse, &lastIndices,
 			&scx.scx_area, crec->dbw_bitmask, &trans, &p, &tpath);
 
-		/* Use the window's root cell if nothing else is found. */
+		/* Use the window's root cell if nothing else is found, */
+		/* or if the command was "select top cell".		*/
 
-		if (use == NULL)
+		if ((dotop == TRUE) || (use == NULL))
 		{
 		    use = lastUse = scx.scx_use;
 		    p.p_x = scx.scx_use->cu_xlo;
