@@ -2338,8 +2338,7 @@ CmdSetLabel(w, cmd)
 		if (locargc == 2)
 		{
 #ifdef MAGIC_WRAPPER
-	 	    Tcl_Obj *lobj;
-		    Tcl_NewListObj(0, NULL);
+		    lobj = Tcl_NewListObj(0, NULL);
 	    	    Tcl_ListObjAppendElement(magicinterp, lobj,
 				Tcl_NewIntObj(DefaultLabel->lab_offset.p_x));
 	    	    Tcl_ListObjAppendElement(magicinterp, lobj,
