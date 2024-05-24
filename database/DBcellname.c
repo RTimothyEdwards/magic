@@ -1121,11 +1121,13 @@ DBUsePrint(CellName, who, dolist)
 	celldef = DBCellLookDef(CellName);
 	*lasthier = '/';
     }
-    else
+    else if (EditCellUse != NULL)
     {
 	/* Referenced cellDef is the current edit def */
 	celldef = EditCellUse->cu_def;
     }
+    else
+	return;
 
     switch (who)
     {
