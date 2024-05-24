@@ -1421,6 +1421,10 @@ proc magic::openwrapper {{cell ""} {framename ""}} {
       grid ${layoutframe}.toolbar -row 1 -column 2 -rowspan 2 -sticky new
    }
 
+   if { $Winopts(${framename},cmdentry) == 1} {
+      addcommandentry $framename
+   }
+
    # Remove "open" and "close" macros so they don't generate non-GUI
    # windows or (worse) blow away the window inside the GUI frame
 
