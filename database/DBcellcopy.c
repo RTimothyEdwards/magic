@@ -1725,7 +1725,8 @@ DBCellCopyAllCells(scx, xMask, targetUse, pArea)
 
     /* dbCellCopyCellsFunc() allows cells to be left with duplicate IDs */
     /* so generate unique IDs as needed now.				*/
-    DBGenerateUniqueIds(targetUse->cu_def, FALSE);
+
+    if (targetUse != NULL) DBGenerateUniqueIds(targetUse->cu_def, FALSE);
 }
 
 /*
