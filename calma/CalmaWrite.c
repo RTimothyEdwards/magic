@@ -1440,7 +1440,7 @@ calmaOutFunc(def, f, cliprect)
 		numports++;
 	    }
 	}
-	if (newll != NULL)
+	if (ll != NULL)
 	{
 	    /* Turn linked list into an array, then run qsort on it	*/
 	    /* to sort by port number.					*/
