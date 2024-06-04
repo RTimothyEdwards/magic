@@ -1591,8 +1591,10 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		/* disappear by being inside the setback area.		    */
 
 		pNum = DBPlane(lab->lab_type);
-		DBPaintPlane(SelectDef->cd_planes[pNum], &labr,
-			DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
+		if (pNum >= 0) // ignore labels in space
+		    DBPaintPlane(SelectDef->cd_planes[pNum], &labr,
+				DBStdPaintTbl(lab->lab_type, pNum),
+				(PaintUndoInfo *) NULL);
 	    }
 	    else
 	    {
@@ -1607,8 +1609,10 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		    /* disappear by being inside the setback area.		*/
 
 		    pNum = DBPlane(lab->lab_type);
-		    DBPaintPlane(SelectDef->cd_planes[pNum], &labr,
-			    DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
+		    if (pNum >= 0) // ignore labels in space
+			DBPaintPlane(SelectDef->cd_planes[pNum], &labr,
+				DBStdPaintTbl(lab->lab_type, pNum),
+				(PaintUndoInfo *) NULL);
 		}
 	    }
 
