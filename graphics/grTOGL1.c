@@ -599,7 +599,7 @@ keys_and_buttons:
 		idxmax = (nbytes == 0) ? 1 : nbytes;
 		for (idx = 0; idx < idxmax; idx++)
 		{
-		    if (inChar[idx] == 3)	/* Ctrl-C interrupt */
+		    if (nbytes > 0 && inChar[idx] == 3)	/* Ctrl-C interrupt */
 		    {
 			if (SigInterruptPending)
 			    MainExit(0);	/* double Ctrl-C */
