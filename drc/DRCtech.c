@@ -60,6 +60,9 @@ global int DRCStepSize;
 
 global int DRCRuleOptimization = TRUE;
 
+/* Whether we are converting units printed from lambda to microns */
+global bool DRCPrintConvert;
+
 /* The following variables count how many rules were specified by
  * the technology file and how many edge rules were optimized away.
  */
@@ -554,6 +557,9 @@ DRCTechStyleInit()
     drcRulesOptimized = 0;
     drcRulesSpecified = 0;
 
+    /* default to printing in microns */
+    DRCPrintConvert = TRUE;
+
     if (DRCCurStyle == NULL)
     {
 	DRCCurStyle = (DRCStyle *) mallocMagic(sizeof(DRCStyle));
@@ -847,6 +853,19 @@ DRCTechLine(sectionName, argc, argv)
     if ((DRCCurStyle->ds_status != TECH_PENDING) &&
 		(DRCCurStyle->ds_status != TECH_SUSPENDED))
 	return TRUE;
+
+    /* Process "print" line next (if any) */
+
+    if (strcmp(argv[0], "print") == 0)
+    {
+	if (!strcmp(argv[1], "microns"))
+	    DRCPrintConvert = TRUE;
+	else if (!strcmp(argv[1], "um"))
+	    DRCPrintConvert = TRUE;
+	else if (strcmp(argv[1], "lambda"))
+	    TechError("print must be microns or lambda.  Using the "
+	            "default value (microns).\n");
+    }
 
     /* Process "scalefactor" line next (if any) */
 
