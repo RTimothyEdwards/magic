@@ -1296,7 +1296,7 @@ CmdCellname(w, cmd)
 	    if (cellDef == (CellDef *) NULL)
 		TxError("Unknown cell %s\n", cellname);
 	    else
-		CmdDoProperty(cellDef, cmd, 3 + ((dolist) ? 1 : 0));
+		CmdDoProperty(cellDef, cmd, 2 + ((dolist) ? 1 : 0));
 	    break;
 
 	case IDX_DELETE:

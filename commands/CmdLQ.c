@@ -2326,6 +2326,7 @@ CmdDoProperty(def, cmd, argstart)
 	/* print all properties and their values */
 	DBPropEnum(def, printPropertiesFunc);
     }
+
     else if (locargc == 2)
     {
 	/* print the value of the indicated property */
@@ -2342,7 +2343,7 @@ CmdDoProperty(def, cmd, argstart)
 	    /* just return NULL if the property was not found.		*/
 	    if (strcmp(cmd->tx_argv[1], "list"))
 #endif
-		TxError("Property name %s is not defined\n");
+		TxError("Property name \"%s\" is not defined\n", cmd->tx_argv[1]);
 	}
     }
     else if (locargc == 3)
