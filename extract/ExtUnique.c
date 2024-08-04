@@ -164,7 +164,8 @@ extUniqueCell(def, option)
 
 		if (!(ll->ll_label->lab_flags & PORT_DIR_MASK))
 		    for (lltest = lastreg->lreg_labels; lltest; lltest = lltest->ll_next)
-			if (!strcmp(lltest->ll_label->lab_text, text))
+			if ((lltest->ll_label != NULL) &&
+					(!strcmp(lltest->ll_label->lab_text, text)))
 			    if (lltest->ll_label->lab_flags & PORT_DIR_MASK)
 				break;
 
