@@ -1816,6 +1816,9 @@ topVisit(def, doStub)
 	snode = sname->efnn_node;
 	if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
         explicit = FALSE;
+	portorder = snode->efnode_name->efnn_port;
+	if (portorder > portmax) portmax = portorder;
+	if (portorder != -1) explicit = TRUE;
 	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	{
 	    portorder = nodeName->efnn_port;
