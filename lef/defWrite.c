@@ -2966,6 +2966,13 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 	TxError("Please name the cell before generating DEF.\n");
 	return;
     }
+    char * outName_part ;
+    if((outName_part = mallocMagic(strlen(outName)+strlen("_part")+1)) != NULL) {
+        outName_part[0] = '\0';
+        strcat(outName_part, outName);
+        strcat(outName_part, "_part");
+    }
+    //
 
     f = lefFileOpen(def, outName, ".def", "w", &filename);
 
@@ -3016,7 +3023,7 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 
     /* Not done yet with output, so keep this file open. . . */
 
-    f2 = lefFileOpen(def, outName, ".def_part", "w", &filename);
+    f2 = lefFileOpen(def, outName_part, ".def", "w", &filename);
 
     if (f2 == NULL)
     {
@@ -3030,7 +3037,8 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 	/* If part 2 cannot be opened, remove part 1 */
 	fclose(f);
 	unlink(filename1);
-        freeMagic(filename1);
+    freeMagic(filename1);
+    freeMagic(outName_part);
 	return;
     }
     filename2 = StrDup((char **)NULL, filename);
@@ -3133,7 +3141,7 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 
     /* Append contents of file with NETS and SPECIALNETS sections */
 
-    f2 = lefFileOpen(def, outName, ".def_part", "r", &filename);
+    f2 = lefFileOpen(def, outName_part, ".def", "r", &filename);
     if (f2 == NULL)
     {
 	/* This should not happen because the file was just written. . . */
@@ -3149,10 +3157,12 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 	unlink(filename1);
         freeMagic(filename1);
         freeMagic(filename2);
+    freeMagic(outName_part);
 	return;
     }
     while (fgets(line, sizeof line, f2) != NULL) fprintf(f, "%s", line);
     fclose(f2);
+    freeMagic(outName_part);
 
     /* Blockages */
     defWriteBlockages(f, def, scale, lefMagicToLefLayer);
