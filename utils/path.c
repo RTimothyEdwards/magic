@@ -736,8 +736,9 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 #endif
 	    f = fopen(realName, mode);
 
-	 if ((fdp != NULL) && (f != NULL)) *fdp = fileno(f);
-	 return f;
+	if ((fdp != NULL) && (f != NULL)) *fdp = fileno(f);
+	if ((f != NULL) || (file[0] == '/'))
+	    return f;
     }
 
     /* Now try going through the path, one entry at a time. */
@@ -883,9 +884,15 @@ PaZOpen(file, mode, ext, path, library, pRealName)
 				|| strcmp(file, "..") == 0
 				|| strncmp(file, "../", 3) == 0)))
     {
+	gzFile result;
 	(void) strncpy(realName, file, MAXSIZE-1);
 	realName[MAXSIZE-1] = '\0';
-	return gzopen(realName, mode);
+
+	/* For full paths, halt immediately if not found.  Otherwise,
+	 * treat the path as relative to something in the search path.
+	 */
+	result = gzopen(realName, mode);
+	if ((result != NULL) || (file[0] == '/')) return result;
     }
 
     /* Now try going through the path, one entry at a time. */
