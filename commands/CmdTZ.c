@@ -981,7 +981,7 @@ CmdWhat(w, cmd)
     if (EditCellUse == NULL)
     {
 	editNull = TRUE;
-	EditCellUse = w->w_surfaceID;
+	EditCellUse = (CellUse *)w->w_surfaceID;
     }
 
     /* Find all the selected paint and print out the layer names. */
