@@ -2111,7 +2111,7 @@ badTransform:
 		    }
 		    else
 		    {
-			char *newname = (char *)mallocMagic(strlen(cellname) + 6);
+			char *newname = (char *)mallocMagic(strlen(cellname) + 7);
 			int i = 0;
 
 			/* To do:  Run checksum on file (not yet implemented) */
@@ -2119,7 +2119,7 @@ badTransform:
 
 			while (TRUE)
 			{
-			    sprintf(newname, "%s#%d", cellname, i);
+			    sprintf(newname, "%s__%d", cellname, i);
 			    if (DBCellLookDef(newname) == NULL) break;
 			    i++;
 			}
@@ -2188,7 +2188,7 @@ badTransform:
 			}
 			else
 			{
-			    char *newname = (char *)mallocMagic(strlen(cellname) + 6);
+			    char *newname = (char *)mallocMagic(strlen(cellname) + 7);
 			    int i = 0;
 
 			    /* To do:  Run checksum on file (not yet implemented) */
@@ -2196,7 +2196,7 @@ badTransform:
 
 			    while (TRUE)
 			    {
-				sprintf(newname, "%s#%d", cellname, i);
+				sprintf(newname, "%s__%d", cellname, i);
 				if (DBCellLookDef(newname) == NULL) break;
 				i++;
 			    }
