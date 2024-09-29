@@ -942,7 +942,7 @@ SelectShort(char *lab1, char *lab2)
     /* Make sure the selection is clear before starting */
 
     SelectClear();
-    ttype = CmdFindNetProc(lab1, use, &rect, FALSE);
+    ttype = CmdFindNetProc(lab1, use, &rect, FALSE, NULL);
     if (ttype == TT_SPACE) return NULL;
 
     bzero(&scx, sizeof(SearchContext));
