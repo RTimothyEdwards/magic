@@ -36,12 +36,12 @@
 #define SIZEOF_VOID_P SIZEOF_UNSIGNED_INT
 #endif
 
-#if SIZEOF_VOID_P == SIZEOF_UNSIGNED_INT
-typedef unsigned int pointertype;
-typedef signed int spointertype;
-#elif SIZEOF_VOID_P == SIZEOF_UNSIGNED_LONG
+#if SIZEOF_VOID_P == SIZEOF_UNSIGNED_LONG
 typedef unsigned long pointertype;
 typedef signed long spointertype;
+#elif SIZEOF_VOID_P == SIZEOF_UNSIGNED_INT
+typedef unsigned int pointertype;
+typedef signed int spointertype;
 #else
 ERROR: Cannot compile without knowing the size of a pointer.  See utils/magic.h
 #endif
