@@ -267,7 +267,7 @@ calmaElementBoundary()
 	he = HashFind(&calmaDefInitHash, newname);
 	if (!HashGetValue(he))
 	{
-	    newdef = calmaFindCell(newname, NULL);
+	    newdef = calmaFindCell(newname, NULL, NULL);
 	    cifReadCellDef = newdef;
 	    DBCellClearDef(cifReadCellDef);
 	    DBCellSetAvail(cifReadCellDef);
@@ -673,7 +673,7 @@ calmaElementPath()
 	    he = HashFind(&calmaDefInitHash, newname);
 	    if (!HashGetValue(he))
 	    {
-		newdef = calmaFindCell(newname, NULL);
+		newdef = calmaFindCell(newname, NULL, NULL);
 		cifReadCellDef = newdef;
 		DBCellClearDef(cifReadCellDef);
 		DBCellSetAvail(cifReadCellDef);
