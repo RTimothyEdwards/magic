@@ -840,7 +840,7 @@ runexttospice:
     inName = EFArgs(argc, argv, &err_result, spcParseArgs, (ClientData) NULL);
     if (err_result == TRUE)
     {
-	EFDone();
+	EFDone(NULL);
 	return;
     }
 
@@ -878,7 +878,7 @@ runexttospice:
     if (EFReadFile(inName, esDoHierarchy, esDoExtResis, FALSE, TRUE)
 		== FALSE)
     {
-	EFDone();
+	EFDone(NULL);
         return;
     }
 
@@ -894,7 +894,7 @@ runexttospice:
 #else
 	TxError("exttospice: Unable to open file %s for writing\n", spcesOutName);
 #endif
-	EFDone();
+	EFDone(NULL);
         return;
     }
 
