@@ -890,6 +890,8 @@ grX11Stdin()
 
 		entry = HashLookOnly(&grX11WindowTable, VisEvent->window);
 		w = (entry)?(MagWindow *)HashGetValue(entry):0;
+		if(!w)
+		    break;
 
 		switch(VisEvent->state)
 		{
