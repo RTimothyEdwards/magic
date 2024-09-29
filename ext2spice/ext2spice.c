@@ -17,6 +17,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>		/* for atof() */
 #include <string.h>
 #include <ctype.h>
@@ -3699,7 +3700,7 @@ nodeVisitDebug(node, res, cap)
 
     hierName = (HierName *) node->efnode_name->efnn_hier;
     nsn = nodeSpiceName(hierName, NULL);
-    TxError("** %s (%x)\n", nsn, node);
+    TxError("** %s (%lx)\n", nsn, (intmax_t) node);
 
     printf("\t client.name=%s, client.m_w=%p\n",
     ((nodeClient *)node->efnode_client)->spiceNodeName,
