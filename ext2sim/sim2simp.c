@@ -31,7 +31,7 @@ char *s;
 	return p;
 }
 
-int parseAttr(str, a, p)
+void parseAttr(str, a, p)
 char *str;
 int *a, *p;
 {
