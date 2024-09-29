@@ -2324,7 +2324,7 @@ CmdDoProperty(def, cmd, argstart)
     if (locargc == 1)
     {
 	/* print all properties and their values */
-	DBPropEnum(def, printPropertiesFunc);
+	DBPropEnum(def, printPropertiesFunc, NULL);
     }
 
     else if (locargc == 2)
