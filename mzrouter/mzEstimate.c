@@ -91,6 +91,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdint.h>
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -1998,8 +1999,8 @@ mzDumpEstFunc(tile, fd)
     }
     else
     {
-	TxPrintf("\ntile %x\t\t  (x: %d to %d, y: %d to %d)\n",
-		(pointertype) tile, r.r_xbot, r.r_xtop, r.r_ybot, r.r_ytop);
+	TxPrintf("\ntile %lx\t\t  (x: %d to %d, y: %d to %d)\n",
+		(intmax_t) tile, r.r_xbot, r.r_xtop, r.r_ybot, r.r_ytop);
 	TxPrintf("\thcost = %d, ",
 		tilec->tc_hCost);
 	TxPrintf("vcost = %d \n",
