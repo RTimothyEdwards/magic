@@ -3034,7 +3034,7 @@ dbFgets(line, len, f)
 {
     char *cs;
     int l;
-    int c;
+    int c = EOF;
 
     do
     {
