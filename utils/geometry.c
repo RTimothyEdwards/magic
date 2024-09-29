@@ -586,6 +586,8 @@ GeoTransOrient(t)
 		return ORIENT_FLIPPED_WEST;
 	}
     }
+    
+    return ORIENT_NORTH;
 }
 
 
