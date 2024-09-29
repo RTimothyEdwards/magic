@@ -557,6 +557,8 @@ pipehandler()
 
 	entry = HashLookOnly(&grOGLWindowTable, ExposeEvent->window);
 	mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
+	if(!mw)
+	    break;
 
 	screenRect.r_xbot = ExposeEvent->x;
 	screenRect.r_xtop = ExposeEvent->x + ExposeEvent->width;
