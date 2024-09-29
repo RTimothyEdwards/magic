@@ -195,7 +195,7 @@ gcrMakeChannel(ch, fp)
 	     * p and P mean poly is blocked.  Upper case means vacate the
 	     * column, lower case means vacate the track.
 	     */
-	    if (fscanf(fp, "%s", s) != 1)
+	    if (fscanf(fp, "%24s", s) != 1)
 	    {
 		TxError("Format error in router input file\n");
 		return (FALSE);
