@@ -262,7 +262,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    if (esScale < 0)
 			fprintf(esSpiceF, "%g", l * scale);
 		    else if (plist->parm_scale != 1.0)
-			fprintf(esSpiceF, "%g", l * scale * esScale
+			fprintf(esSpiceF, "%g", (double)l * scale * esScale
 				* plist->parm_scale * 1E-6);
 		    else
 			esSIvalue(esSpiceF, 1.0E-6 * (l + plist->parm_offset)
@@ -286,7 +286,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				if (esScale < 0)
 				    fprintf(esSpiceF, "%g", dval * scale);
 				else if (plist->parm_scale != 1.0)
-				    fprintf(esSpiceF, "%g", dval * scale * esScale
+				    fprintf(esSpiceF, "%g", (double)dval * scale * esScale
 						* plist->parm_scale * 1E-6);
 				else
 				    esSIvalue(esSpiceF, (dval + plist->parm_offset)
@@ -321,8 +321,8 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		if (esScale < 0)
 		    fprintf(esSpiceF, "%g", dev->dev_rect.r_xbot * scale);
 		else if (plist->parm_scale != 1.0)
-		    fprintf(esSpiceF, "%g", dev->dev_rect.r_xbot * scale
-				* esScale * plist->parm_scale * 1E-6);
+		    fprintf(esSpiceF, "%g", (double)dev->dev_rect.r_xbot * (double)scale
+				* (double)esScale * (double)plist->parm_scale * 1E-6);
 		else
 		    esSIvalue(esSpiceF, (dev->dev_rect.r_xbot + plist->parm_offset)
 				* scale * esScale * 1.0E-6);
