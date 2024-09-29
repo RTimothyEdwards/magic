@@ -835,6 +835,8 @@ grX11Stdin()
 		    entry = HashLookOnly(&grX11WindowTable,grCurrent.window);
 	            w = (entry)?(MagWindow *)HashGetValue(entry):0;
 	            grCurrent.mw=w;
+	            if(!w)
+	                break;
 
 		    screenRect.r_xbot = ExposeEvent->x;
             	    screenRect.r_xtop = ExposeEvent->x+ExposeEvent->width;
