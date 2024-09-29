@@ -197,7 +197,7 @@ runantennacheck:
 
     if (err_result == TRUE)
     {
-	EFDone();
+	EFDone(NULL);
         return /* TCL_ERROR */;
     }
 
@@ -211,7 +211,7 @@ runantennacheck:
 	if (w == (MagWindow *) NULL)
 	{
 	    TxError("Point to a window or specify a cell name.\n");
-	    EFDone();
+	    EFDone(NULL);
 	    return /* TCL_ERROR */;
 	}
 	inName = ((CellUse *) w->w_surfaceID)->cu_def->cd_name;
@@ -226,7 +226,7 @@ runantennacheck:
     TxPrintf("Reading extract file.\n");
     if (EFReadFile(inName, FALSE, FALSE, FALSE, FALSE) == FALSE)
     {
-	EFDone();
+	EFDone(NULL);
 	return /* TCL_ERROR */;
     }
 
@@ -257,7 +257,7 @@ runantennacheck:
     TxPrintf("Running antenna checks.\n");
     EFVisitDevs(antennacheckVisit, (ClientData)editUse);
     EFFlatDone(NULL);
-    EFDone();
+    EFDone(NULL);
 
     TxPrintf("antennacheck finished.\n");
     freeMagic(EFDeviceTypes);
