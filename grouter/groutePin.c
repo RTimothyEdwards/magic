@@ -130,7 +130,7 @@ glPointToPin(ch, side, point)
  * ----------------------------------------------------------------------------
  */
 
-int
+void
 GLInitPins(ch)
     GCRChannel *ch;
 {
@@ -140,7 +140,7 @@ GLInitPins(ch)
     glPinArrayInit(ch, GEO_EAST, ch->gcr_rPins, ch->gcr_width);
 }
 
-int
+void
 glPinArrayInit(ch, side, pins, nPins)
     GCRChannel *ch;
     GCRPin *pins;
@@ -352,7 +352,7 @@ glPinArrayBlock(ch, pins, opins, nPins)
  * ----------------------------------------------------------------------------
  */
 
-int
+void
 GLLinkPins(ch)
     GCRChannel *ch;
 {
@@ -362,7 +362,7 @@ GLLinkPins(ch)
     glPinArrayLink(ch->gcr_rPins, ch->gcr_width);
 }
 
-int
+void
 glPinArrayLink(pins, nPins)
     GCRPin *pins;
     int nPins;
@@ -452,7 +452,7 @@ glShowPin(pin)
  * ----------------------------------------------------------------------------
  */
 
-int
+void
 GLFixStemPins(ch)
     GCRChannel *ch;
 {
@@ -462,7 +462,7 @@ GLFixStemPins(ch)
     glPinArrayFixStems(ch->gcr_rPins, ch->gcr_width);
 }
 
-int
+void
 glPinArrayFixStems(pins, nPins)
     GCRPin *pins;
     int nPins;
