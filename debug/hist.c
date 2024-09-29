@@ -141,8 +141,10 @@ HistAdd(name, ptrKeys, value)
 {
     Histogram * h;
 
-    if((h=histFind(name, ptrKeys))==(Histogram *) NULL)
+    if((h=histFind(name, ptrKeys))==(Histogram *) NULL) {
 	HistCreate(name, ptrKeys, 0, 20, 10);
+	h=histFind(name, ptrKeys);
+    }
 
     h->hi_cum+=value;
     if(value < h->hi_lo)
