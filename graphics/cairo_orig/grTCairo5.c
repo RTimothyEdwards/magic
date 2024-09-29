@@ -73,7 +73,7 @@ Point *p;			/* screen pos of lower left corner */
 		}
 	}
 	if ((!anyObscure) && (GEO_SURROUND(&grCurClip, &bBox)) ) {
-		int *pixelp, x, y, thisp, lastp;
+		int *pixelp, x, y, thisp, lastp = -1;
 		int color, red, green, blue, mask;
 
 		/* no clipping, try to go quickly */
