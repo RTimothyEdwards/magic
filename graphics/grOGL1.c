@@ -375,7 +375,7 @@ glTransYs(int wy)
  * Set the OpenGL viewport (projection matrix) for the current window
  *----------------------------------------------------------------------
  */
-int
+void
 oglSetProjection(llx, lly, width, height)
     int llx, lly, width, height;
 {
