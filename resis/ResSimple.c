@@ -1036,7 +1036,7 @@ ResSetPathRes()
     }
     if (ResOriginNode == NULL)
     {
-     	resDevice *res = ResGetDevice(gparams.rg_devloc);
+	resDevice *res = ResGetDevice(gparams.rg_devloc, gparams.rg_ttype);
 	ResOriginNode = res->rd_fet_source;
 	ResOriginNode->rn_why = RES_NODE_ORIGIN;
 	ResOriginNode->rn_noderes = 0;
