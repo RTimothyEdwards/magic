@@ -373,14 +373,13 @@ gcrPrDensity(ch, chanDensity)
 {
     int i, diff;
     char name[256];
-    FILE *fp;
+    FILE *fp, *fp_always_close;
 
     (void) sprintf(name, "dens.%d.%d.%d.%d",
 		ch->gcr_area.r_xbot, ch->gcr_area.r_ybot,
 		ch->gcr_area.r_xtop, ch->gcr_area.r_ytop);
-    fp = fopen(name, "w");
-    if (fp == NULL)
-	fp = stdout;
+    fp_always_close = fopen(name, "w");
+    fp = fp_always_close ? fp_always_close : stdout;
 
     fprintf(fp, "Chan width: %d\n", ch->gcr_width);
     fprintf(fp, "Chan length: %d\n", ch->gcr_length);
@@ -424,8 +423,8 @@ gcrPrDensity(ch, chanDensity)
     }
 
     (void) fflush(fp);
-    if (fp != stdout)
-	(void) fclose(fp);
+    if (fp_always_close != NULL)
+	(void) fclose(fp_always_close);
 }
 
 /*
