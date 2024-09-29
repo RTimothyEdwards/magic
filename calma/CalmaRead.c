@@ -345,7 +345,7 @@ done:
 bool
 calmaParseUnits()
 {
-    int nbytes, rtype;
+    int nbytes, rtype = 0;
     double metersPerDBUnit;
     double userUnitsPerDBUnit;
     double cuPerDBUnit;
