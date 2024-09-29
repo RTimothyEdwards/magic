@@ -1188,7 +1188,7 @@ mainInitFinal()
 		    break;
 #ifdef LEF_MODULE
 		case FN_LEF_FILE:
-		    LefRead(temporary->fn, FALSE, FALSE);
+		    LefRead(temporary->fn, FALSE, FALSE, -1);
 		    break;
 		case FN_DEF_FILE:
 		    DefRead(temporary->fn, FALSE);
