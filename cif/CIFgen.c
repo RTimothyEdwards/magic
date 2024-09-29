@@ -4896,7 +4896,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 		}
 		netname = (char *)op->co_client;
 		cifPlane = curPlane;
-		ttype = CmdFindNetProc(netname, CIFDummyUse, &bbox, FALSE);
+		ttype = CmdFindNetProc(netname, CIFDummyUse, &bbox, FALSE, NULL);
 		if (ttype != TT_SPACE)
 		{
 		    UndoDisable();
