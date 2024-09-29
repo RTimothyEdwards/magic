@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$$";
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdint.h>
 
 #include "utils/magic.h"
 #include "utils/signals.h"
@@ -540,8 +541,8 @@ mzDumpTagsFunc(tile, cxp)
     TITORECT(tile, &r);
 
     /* print tile bounds */
-    TxPrintf("tile %x  (x: %d to %d, y: %d to %d)\n",
-	     (pointertype) tile, r.r_xbot, r.r_xtop, r.r_ybot, r.r_ytop);
+    TxPrintf("tile %lx  (x: %d to %d, y: %d to %d)\n",
+	     (intmax_t) (pointertype) tile, r.r_xbot, r.r_xtop, r.r_ybot, r.r_ytop);
 
     /* dump rects attached to client field */
     {
