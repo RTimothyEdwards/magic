@@ -24,6 +24,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -976,7 +977,7 @@ cmdTsrFunc(tp)
     Tile *tp;
 {
     if (cmdTsearchDebug)
-	TxPrintf("%x\n", tp);
+	TxPrintf("%lx\n", (intmax_t) tp);
     numTilesFound++;
     return 0;
 }
