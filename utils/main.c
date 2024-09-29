@@ -1164,7 +1164,7 @@ mainInitFinal()
 
     if (mainRecover && MakeMainWindow)
     {
-	DBFileRecovery();
+	DBFileRecovery(NULL); /* automatic search most recent */
     }
 
     /*
