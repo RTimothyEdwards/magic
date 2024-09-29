@@ -191,11 +191,13 @@ ExtractTest(w, cmd)
 	    "Total interaction area processed = %ld (%.2f%%) / %ld (%.2f%%)\n",
 		extSubtreeInteractionArea,
 		((double) extSubtreeInteractionArea) / ((double) a1) * 100.0,
+		areaInteraction,
 		((double) areaInteraction) / ((double) a2) * 100.0);
 	    TxPrintf(
 	    "Clipped interaction area= %ld (%.2f%%) / %ld (%.2f%%)\n",
 		extSubtreeClippedArea,
 		((double) extSubtreeClippedArea) / ((double) a1) * 100.0,
+		areaClipped,
 		((double) areaClipped) / ((double) a2) * 100.0);
 	    extSubtreeTotalArea = 0;
 	    extSubtreeInteractionArea = 0;
