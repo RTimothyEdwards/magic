@@ -19,6 +19,7 @@
 static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #endif  /* not lint */
 
+#include <assert.h>
 #include <stdio.h>
 
 #include "tcltk/tclmagic.h"
@@ -337,9 +338,11 @@ WindAreaChanged(w, area)
     /* will be copied into on the next display redraw.			*/
 
     if ((w != NULL) && (w->w_backingStore == (ClientData)NULL) &&
-		(!(w->w_flags & WIND_OBSCURED)) && (GrCreateBackingStorePtr != NULL))
-	if ((area == (Rect *)NULL) || GEO_SURROUND(&biggerArea, &w->w_screenArea))
+		(!(w->w_flags & WIND_OBSCURED)) && (GrCreateBackingStorePtr != NULL)) {
+	assert(area); // area is non-null
+	if (GEO_SURROUND(&biggerArea, &w->w_screenArea))
 	    (*GrCreateBackingStorePtr)(w);
+    }
 }
 
 int
