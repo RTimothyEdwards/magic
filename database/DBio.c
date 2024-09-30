@@ -2148,7 +2148,7 @@ badTransform:
 	    /* default path but the new cell has a (different) path.	*/
 	    /* The paths only match if pathptr is the CWD.		*/
 
-	    else if ((pathptr != NULL) && (*pathptr != '\0'))
+	    else if (*pathptr != '\0')
 	    {
 		bool pathOK = FALSE;
 		char *cwddir = getenv("PWD");
