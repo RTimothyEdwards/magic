@@ -208,7 +208,7 @@ DebugSet(clientID, argc, argv, value)
 
     if (id < 0 || id >= debugNumClients)
     {
-	TxError("DebugSet: bad client id %d\n", clientID);
+	TxError("DebugSet: bad client id %lu\n", (unsigned long)clientID);
 	return;
     }
     dc = &debugClients[id];
