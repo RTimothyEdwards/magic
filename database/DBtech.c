@@ -223,7 +223,7 @@ DBTechSetVersion(sectionName, argc, argv)
 	major = minor = rev = 0;
 	rmajor = rminor = rrev = 0;
 	
-	if (sscanf(vstring, "%d.%d.%d", &rmajor, &rminor, &rrev) == 0)
+	if (sscanf(vstring, "%d.%d.%d", &rmajor, &rminor, &rrev) != 3)
 	{
 	    TechError("Badly formed magic version string, should be major.minor.rev\n");
 	    return FALSE;
