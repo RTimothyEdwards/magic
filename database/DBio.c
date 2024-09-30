@@ -688,8 +688,8 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 			    freeMagic(argv[1]);
 			    freeMagic(argv[0]);
 			}
-#endif
 		    }
+#endif
 		}
 		if (strcmp(DBTechName, tech))
 		{
