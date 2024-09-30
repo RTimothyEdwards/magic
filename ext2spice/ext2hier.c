@@ -167,13 +167,13 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    fprintf(esSpiceF, " %s=", plist->parm_name);
 		    parmval = dev->dev_area;
 		    if (esScale < 0)
-			fprintf(esSpiceF, "%g", parmval * scale * scale);
+			fprintf(esSpiceF, "%g", (double)parmval * scale * scale);
 		    else if (plist->parm_scale != 1.0)
-			fprintf(esSpiceF, "%g", parmval * scale * scale
+			fprintf(esSpiceF, "%g", (double)parmval * scale * scale
 				* esScale * esScale * plist->parm_scale
 				* 1E-12);
 		    else
-			esSIvalue(esSpiceF, 1.0E-12 * (parmval + plist->parm_offset)
+			esSIvalue(esSpiceF, 1.0E-12 * ((double)parmval + plist->parm_offset)
 				* scale * scale * esScale * esScale);
 		}
 		else
