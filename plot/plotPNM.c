@@ -877,7 +877,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
 	/* Clear tile memory with the background gray level */
 
 	memset((void *)rtile, PlotPNMBG,
-		(size_t)(ds_xsize * ds_ysize * PIXELSZ));
+		(size_t)ds_xsize * ds_ysize * PIXELSZ);
 
 	if (SigInterruptPending)
 	{
