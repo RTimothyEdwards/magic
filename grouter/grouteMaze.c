@@ -26,6 +26,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdint.h>
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "utils/geofast.h"
@@ -595,10 +596,10 @@ glPathPrint(path)
 	pin = rp->gl_pin;
 	ch = pin->gcr_ch;
 	tp = rp->gl_tile;
-	TxPrintf("(%d,%d) cost=%d pcost=%d pId=%d/%d\n",
+	TxPrintf("(%d,%d) cost=%d pcost=%d pId=%ld/%d\n",
 		pin->gcr_point.p_x, pin->gcr_point.p_y,
 		rp->gl_cost, pin->gcr_cost,
-		pin->gcr_pId, pin->gcr_pSeg);
+		(intmax_t) pin->gcr_pId, pin->gcr_pSeg);
 	TxPrintf("\tchan=(%d,%d,%d,%d)/%d\n",
 		ch->gcr_area.r_xbot, ch->gcr_area.r_ybot,
 		ch->gcr_area.r_xtop, ch->gcr_area.r_ytop,
