@@ -963,7 +963,7 @@ extRemoveSubcap(bp, clip, esws)
 
     if (dnear < 0) dnear = 0;	/* Don't count underlap */
     mult = ExtCurStyle->exts_overlapMult[ta][0];
-    snear = 0.6366 * atan(mult * dnear);
+    snear = 0.6366 * atan((double)mult * dnear);
 
     /* "snear" is the fractional portion of the fringe cap seen by	*/
     /* the substrate, so (1.0 - snear) is the part that is blocked.	*/
