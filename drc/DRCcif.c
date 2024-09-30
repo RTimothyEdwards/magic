@@ -1076,7 +1076,7 @@ areaCifCheck(tile, arg)
 	unsigned int i;
 	int sqx, sqy;
 	int sdist = arg->dCD_radial & 0xfff;
-	long sstest, ssdist = sdist * sdist;
+	long sstest, ssdist = (long) sdist * sdist;
 
 	if ((arg->dCD_radial & RADIAL_NW) != 0)
 	{
