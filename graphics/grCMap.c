@@ -156,7 +156,7 @@ char *libPath;			/* a library search path */
     while (fgets(inputLine, 128, f) != NULL)
     {
 	argc = sscanf(inputLine, "%*d %*d %*d %d", &newmax);
-	if (argc == 0)
+	if (argc <= 0)
 	{
 	    /* Allow comment lines */
 	    if (*inputLine == '#') continue;
