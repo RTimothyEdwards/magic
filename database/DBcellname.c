@@ -283,7 +283,7 @@ DBCellDelete(cellname, force)
     /* so that WindUnload() will create a new one.			*/
 
     if (!strcmp(cellname, UNNAMED))
-	DBCellRename(cellname, "__UNNAMED__");
+	DBCellRename(cellname, "__UNNAMED__", FALSE);
 
     /* For all top-level cell uses, check if any windows have this	*/
     /* use.  If so, load the window with (UNNAMED).			*/
