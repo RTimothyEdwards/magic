@@ -405,7 +405,7 @@ extBasic(def, outFile)
 	    if (propfound)
 	    {
 		token = strtok(NULL, " ");
-		if ((token == NULL) || !sscanf(token, "%d", &urx))
+		if ((token == NULL) || (sscanf(token, "%d", &urx) != 1))
 		    propfound = FALSE;
 		else
 		    urx *= ExtCurStyle->exts_unitsPerLambda;
@@ -414,7 +414,7 @@ extBasic(def, outFile)
 	    if (propfound)
 	    {
 		token = strtok(NULL, " ");
-		if ((token == NULL) || !sscanf(token, "%d", &ury))
+		if ((token == NULL) || (sscanf(token, "%d", &ury) != 1))
 		    propfound = FALSE;
 		else
 		    ury *= ExtCurStyle->exts_unitsPerLambda;
