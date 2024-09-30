@@ -328,8 +328,8 @@ PlowTest(w, cmd)
 		return;
 	    }
 	    TiToRect(tp, &area2);
-	    TxPrintf("Splitting tile 0x%x at y=%d yielding 0x%x\n",
-			tp, editArea.r_ybot, plowSplitY(tp, editArea.r_ybot));
+	    TxPrintf("Splitting tile %p at y=%d yielding %p\n",
+			(void *)tp, editArea.r_ybot, (void *)plowSplitY(tp, editArea.r_ybot));
 	    DBWAreaChanged(def, &area2, DBW_ALLWINDOWS, &DBAllButSpaceBits);
 	    break;
 	case PC_MERGEDOWN:
