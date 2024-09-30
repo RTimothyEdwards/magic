@@ -789,7 +789,7 @@ EFNodeResist(node)
 	    if (v < 0.0) s = 0.0; else s = sqrt(v);
 
 	    fperim = (float) perim;
-	    dresist = (fperim + s)/(fperim - s) * efResists[n];
+	    dresist = ((double)fperim + (double)s)/((double)fperim - (double)s) * efResists[n];
 	    if (dresist + (double) resist > (double) INT_MAX)
 		resist = INT_MAX;
 	    else
