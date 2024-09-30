@@ -945,8 +945,8 @@ ResCheckPorts(cellDef)
 		/* and a drivepoint.					*/
 
 		node = ResInitializeNode(entry);
-		TxPrintf("Port: name = %s is new node 0x%x\n",
-			lab->lab_text, node);
+		TxPrintf("Port: name = %s is new node %p\n",
+			lab->lab_text, (void *)node);
 		TxPrintf("Location is (%d, %d); drivepoint (%d, %d)\n",
 			portloc.p_x, portloc.p_y,
 			portloc.p_x, portloc.p_y);
