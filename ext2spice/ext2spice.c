@@ -2201,7 +2201,7 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		if (esScale < 0)
 		    fprintf(esSpiceF, "%g", dev->dev_rect.r_xbot * scale);
 		else if (plist->parm_scale != 1.0)
-		    fprintf(esSpiceF, "%g", dev->dev_rect.r_xbot * scale
+		    fprintf(esSpiceF, "%g", (double)dev->dev_rect.r_xbot * scale
 				* esScale * plist->parm_scale * 1E-6);
 		else
 		    esSIvalue(esSpiceF, (dev->dev_rect.r_xbot + plist->parm_offset)
