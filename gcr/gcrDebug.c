@@ -107,7 +107,7 @@ GCRRouteFromFile(fname)
     (void) GCRroute(ch);
     times(&tbuf2);
     TxPrintf("Time   :  %5.2fu  %5.2fs\n", (tbuf2.tms_utime -
-	    tbuf1.tms_utime)/60.0, (tbuf2.tms_stime-tbuf1.tms_stime)*60);
+	    tbuf1.tms_utime)/60.0, (double)(tbuf2.tms_stime-tbuf1.tms_stime)*60);
 
     gcrDumpResult(ch, GcrShowEnd);
     gcrShowMap(ch);
