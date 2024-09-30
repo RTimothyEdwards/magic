@@ -2986,7 +2986,7 @@ ExtTechLine(sectionName, argc, argv)
 		    ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_SIDEWALL;
 		else
 		    TxError("Unknown antenna model \"%s\":  Use \"surface\" or "
-				    "\"sidewall\"");
+				    "\"sidewall\"", argv[2]);
 	    }
 	    break;
 
