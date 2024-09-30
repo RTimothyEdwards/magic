@@ -338,7 +338,7 @@ defnodeCount(node, res, cap, total)
 	if (pwr && (!strcmp(cp, pwr)))
 	{
 	    /* Diagnostic */
-	    TxPrintf("Node %s matches GND variable definition!\n");
+	    TxPrintf("Node %s matches GND variable definition!\n", cp);
 	    node->efnode_flags |= EF_SPECIAL;
 	}
 
