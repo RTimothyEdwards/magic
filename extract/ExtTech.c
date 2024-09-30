@@ -2501,7 +2501,7 @@ ExtTechLine(sectionName, argc, argv)
 		    equal = TRUE;
 		    limitstr++;
 		}
-		if (sscanf(limitstr, "%lg", &dval) == 0)
+		if (sscanf(limitstr, "%lg", &dval) != 1)
 		{
 		    TxError("Non-numeric limit \"%s\" for parameter \"%c%s\".\n",
 				limitstr, cond, argv[argc - 1]);
