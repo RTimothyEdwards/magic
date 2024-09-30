@@ -255,7 +255,7 @@ TxPrintCommand(cmd)
     int i, j;
     char TxTemp[200];
 
-    TxError("Command at 0x%x\n    ", cmd);
+    TxError("Command at %p\n    ", cmd);
     if (cmd->tx_button == TX_CHARACTER) {
 	TxError("Text command with %d words: ", cmd->tx_argc);
 	for (i = 0; i < cmd->tx_argc; i++) {
