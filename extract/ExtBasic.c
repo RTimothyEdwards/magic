@@ -427,14 +427,14 @@ extBasic(def, outFile)
 		    case DEV_FET:
 			/* Read area */
 			token = strtok(NULL, " ");
-			if ((token == NULL) || !sscanf(token, "%d", &w))
+			if ((token == NULL) || (sscanf(token, "%d", &w) != 1))
 			    propfound = FALSE;
 			else
 			    w *= ExtCurStyle->exts_unitsPerLambda *
 			    	   ExtCurStyle->exts_unitsPerLambda;
 			/* Read perimeter */
 			token = strtok(NULL, " ");
-			if ((token == NULL) || !sscanf(token, "%d", &l))
+			if ((token == NULL) || (sscanf(token, "%d", &l) != 1))
 			    propfound = FALSE;
 			else
 			    l *= ExtCurStyle->exts_unitsPerLambda;
@@ -444,13 +444,13 @@ extBasic(def, outFile)
 		    case DEV_BJT:
 			/* Read width */
 			token = strtok(NULL, " ");
-			if ((token == NULL) || !sscanf(token, "%d", &w))
+			if ((token == NULL) || (sscanf(token, "%d", &w) != 1))
 			    propfound = FALSE;
 			else
 			    w *= ExtCurStyle->exts_unitsPerLambda;
 			/* Read length */
 			token = strtok(NULL, " ");
-			if ((token == NULL) || !sscanf(token, "%d", &l))
+			if ((token == NULL) || (sscanf(token, "%d", &l) != 1))
 			    propfound = FALSE;
 			else
 			    l *= ExtCurStyle->exts_unitsPerLambda;
@@ -460,13 +460,13 @@ extBasic(def, outFile)
 			{
 			    /* Read width */
 			    token = strtok(NULL, " ");
-			    if ((token == NULL) || !sscanf(token, "%d", &w))
+			    if ((token == NULL) || (sscanf(token, "%d", &w) != 1))
 				propfound = FALSE;
 			    else
 				w *= ExtCurStyle->exts_unitsPerLambda;
 			    /* Read length */
 			    token = strtok(NULL, " ");
-			    if ((token == NULL) || !sscanf(token, "%d", &l))
+			    if ((token == NULL) || (sscanf(token, "%d", &l) != 1))
 				propfound = FALSE;
 			    else
 				l *= ExtCurStyle->exts_unitsPerLambda;
@@ -479,14 +479,14 @@ extBasic(def, outFile)
 			{
 			    /* Read area */
 			    token = strtok(NULL, " ");
-			    if ((token == NULL) || !sscanf(token, "%d", &w))
+			    if ((token == NULL) || (sscanf(token, "%d", &w) != 1))
 				propfound = FALSE;
 			    else
 				w *= ExtCurStyle->exts_unitsPerLambda *
 				     ExtCurStyle->exts_unitsPerLambda;
 			    /* Read perimeter */
 			    token = strtok(NULL, " ");
-			    if ((token == NULL) || !sscanf(token, "%d", &l))
+			    if ((token == NULL) || (sscanf(token, "%d", &l) != 1))
 				propfound = FALSE;
 			    else
 				l *= ExtCurStyle->exts_unitsPerLambda;
