@@ -640,7 +640,7 @@ CmdRoute(w, cmd)
 	    {
 		if(cmd->tx_argc!=3)
 		    goto wrongNumArgs;
-		if(!sscanf(cmd->tx_argv[2], "%d", &RtrViaLimit))
+		if(sscanf(cmd->tx_argv[2], "%d", &RtrViaLimit) != 1)
 		    TxError("Bad value for via limit\n");
 	    }
 	    TxPrintf("Via limit is %d\n", RtrViaLimit);
@@ -650,7 +650,7 @@ CmdRoute(w, cmd)
 	    {
 		if(cmd->tx_argc!=3)
 		    goto wrongNumArgs;
-		if(!sscanf(cmd->tx_argv[2], "%f", &RtrEndConst))
+		if(sscanf(cmd->tx_argv[2], "%f", &RtrEndConst) != 1)
 		    TxError("Bad value for channel end distance\n");
 	    }
 	    TxPrintf("Channel end constant is %f\n", RtrEndConst);
@@ -660,7 +660,7 @@ CmdRoute(w, cmd)
 	    {
 		if(cmd->tx_argc!=3)
 		    goto wrongNumArgs;
-		if(!sscanf(cmd->tx_argv[2], "%d", &GCRMinJog))
+		if(sscanf(cmd->tx_argv[2], "%d", &GCRMinJog) != 1)
 		    TxError("Bad value for minimum jog length\n");
 	    }
 	    TxPrintf("Minimum jog length is %d\n", GCRMinJog);
@@ -670,7 +670,7 @@ CmdRoute(w, cmd)
 	    {
 		if(cmd->tx_argc!=3)
 		    goto wrongNumArgs;
-		if(!sscanf(cmd->tx_argv[2], "%f", &GCRObstDist))
+		if(sscanf(cmd->tx_argv[2], "%f", &GCRObstDist) != 1)
 		    TxError("Bad value for obstacle constant\n");
 	    }
 	    TxPrintf("Obstacle constant is %f\n", GCRObstDist);
@@ -680,7 +680,7 @@ CmdRoute(w, cmd)
 	    {
 		if(cmd->tx_argc!=3)
 		    goto wrongNumArgs;
-		if(!sscanf(cmd->tx_argv[2], "%d", &GCRSteadyNet))
+		if(sscanf(cmd->tx_argv[2], "%d", &GCRSteadyNet) != 1)
 		    TxError("Bad value for steady net constant\n");
 	    }
 	    TxPrintf("Steady net constant is %d\n", GCRSteadyNet);
