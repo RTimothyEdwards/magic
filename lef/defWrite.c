@@ -2285,8 +2285,7 @@ defCountCompFunc(cellUse, total)
     int sy = cellUse->cu_yhi - cellUse->cu_ylo + 1;
     // TxPrintf("Diagnostic: cell %s %d %d\n", cellUse->cu_id, sx, sy);
     ASSERT(sx >= 0 && sy >= 0, "Valid array");
-
-    (*total) += sx * sy;	/* Increment the count of uses */
+    (*total) += (unsigned long)sx * sy;	/* Increment the count of uses */
 
     return 0;	/* Keep the search going */
 }
