@@ -203,14 +203,14 @@ void
 gcrDumpChannel(ch)
     GCRChannel * ch;
 {
-    char name[20];
+    char name[32];
     int track, col, netCount = 0, gcrNetName();
     short res;
     GCRNet * net, * netNames[500];
     FILE * fp, * fopen();
 
     netNames[0]=(GCRNet *) 0;
-    (void) sprintf(name, "channel.%p", ch);
+    (void) snprintf(name, sizeof(name), "channel.%p", ch);
     if((fp = fopen(name, "w")) == NULL)
     {
 	TxError("Can't open file %s to dump channel.\n", name);
