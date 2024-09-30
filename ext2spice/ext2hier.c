@@ -217,11 +217,11 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    if (esScale < 0)
 			fprintf(esSpiceF, "%g", parmval * scale);
 		    else if (plist->parm_scale != 1.0)
-			fprintf(esSpiceF, "%g", parmval * scale
-				* esScale * plist->parm_scale * 1E-6);
+			fprintf(esSpiceF, "%g", (double)parmval * (double)scale
+				* (double)esScale * (double)plist->parm_scale * 1E-6);
 		    else
-			esSIvalue(esSpiceF, (parmval + plist->parm_offset)
-				* scale * esScale * 1.0E-6);
+			esSIvalue(esSpiceF, ((double)parmval + (double)plist->parm_offset)
+				* (double)scale * (double)esScale * 1.0E-6);
 		}
 		else
 		{
