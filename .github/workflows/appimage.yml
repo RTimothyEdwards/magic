@@ -3,7 +3,7 @@ on:
     tags:
       - "*"
 
-name: CI
+name: CI-appimage
 
 jobs:
   build_appimage:
