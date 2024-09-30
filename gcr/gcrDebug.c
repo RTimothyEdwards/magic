@@ -978,8 +978,12 @@ gcrShowMap(ch)
     while (1)
     {
 	TxPrintf("Field selector (0 terminates): ");
-	if(!scanf("%d", &field))	/*typed something funny*/
+	if(scanf("%d", &field) != 1)	/*typed something funny or EOF*/
 	{
+	    if (feof(stdin)) {
+	        TxPrintf("End of input detected. Terminating.\n");
+	        return;
+	    }
 	    TxPrintf("Bad input.  Legal responses are\n");
 	    TxPrintf("   GCRBLKM     1\n");
 	    TxPrintf("   GCRBLKP     2\n");
