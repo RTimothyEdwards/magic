@@ -535,7 +535,7 @@ GrTkInit(dispType)
 	}
 	else
 	{
-	    TxPrintf("Using %s, VisualID 0x%x depth %d\n",
+	    TxPrintf("Using %s, VisualID 0x%lx depth %d\n",
 		visual_type[grvisual_get[gritems].class],
 		grvisual_get[gritems].visualid,
 		grvisual_get[gritems].depth);
