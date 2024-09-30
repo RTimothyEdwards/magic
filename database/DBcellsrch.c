@@ -1621,7 +1621,7 @@ dbTileScaleFunc(tile, scvals)
     if ((targetRect.r_xtop - targetRect.r_xbot == 0) ||
 		(targetRect.r_ytop - targetRect.r_ybot == 0))
     {
-	TxPrintf("Tile 0x%x at (%d, %d) has zero area after scaling:  Removed.\n",
+	TxPrintf("Tile %p at (%d, %d) has zero area after scaling:  Removed.\n",
 		tile, targetRect.r_xbot, targetRect.r_ybot);
 	return 0;
     }
