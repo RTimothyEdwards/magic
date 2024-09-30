@@ -231,7 +231,7 @@ PlotClearRaster(raster, area)
     if (area == NULL)
     {
 	bzero((char *) raster->ras_bits,
-		raster->ras_bytesPerLine * raster->ras_height);
+		(size_t)raster->ras_bytesPerLine * raster->ras_height);
 	return;
     }
 
