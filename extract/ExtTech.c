@@ -2976,7 +2976,7 @@ ExtTechLine(sectionName, argc, argv)
 		ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_CUMULATIVE;
 	    else
 		TxError("Unknown antenna model \"%s\":  Use \"partial\" or "
-			    "\"cumulative\"");
+			    "\"cumulative\"", argv[1]);
 
 	    if (argc > 2)
 	    {
