@@ -519,7 +519,7 @@ PlotDumpRaster(raster, file)
     int count;
 
     count = write(fileno(file), (char *) raster->ras_bits,
-	    raster->ras_bytesPerLine*raster->ras_height);
+	    (size_t)raster->ras_bytesPerLine * raster->ras_height);
     if (count < 0)
     {
 	TxError("I/O error in writing raster file:  %s.\n",
