@@ -639,7 +639,7 @@ TxLogStart(fileName, mw)
 {
     if (txLogFile != NULL)
     {
-	TxError("There is already a log file (%s) open!\n", txLogFile);
+	TxError("There is already a log file open!\n");
 	return;
     }
 
