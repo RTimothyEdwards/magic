@@ -201,7 +201,7 @@ void
 TxPrintEvent(event)
     TxInputEvent *event;
 {
-    TxError("Input event at 0x%x\n    ", event);
+    TxError("Input event at %p\n    ", event);
     if (event->txe_button == TX_EOF) {
 	TxError("EOF event");
     } else if (event->txe_button == TX_BYPASS) {
