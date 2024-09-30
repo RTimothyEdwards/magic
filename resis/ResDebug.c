@@ -87,7 +87,7 @@ ResPrintResistorList(fp, list)
 	          list->rr_connection2->rn_loc.p_y,
 		  list->rr_value);
 	else
-	    fprintf(fp, "r (%d,%d) (%d,%d) r=%d\n",
+	    fprintf(fp, "r (%d,%d) (%d,%d) r=%.2f\n",
 	          list->rr_connection1->rn_loc.p_x,
 	          list->rr_connection1->rn_loc.p_y,
 	          list->rr_connection2->rn_loc.p_x,
