@@ -54,7 +54,7 @@ windPrintWindow(w)
     LinkedRect *lr;
 
     TxPrintf("\nWindow %d: '%s'\n", w->w_wid, w->w_caption);
-    TxPrintf("  Client %x  Surface %x \n", w->w_client, w->w_surfaceID);
+    TxPrintf("  Client %lx  Surface %lx \n", w->w_client, w->w_surfaceID);
 
     TxPrintf("  All area (%d, %d) (%d, %d)\n",
 	w->w_allArea.r_xbot, w->w_allArea.r_ybot,
