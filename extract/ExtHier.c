@@ -854,7 +854,7 @@ extOutputConns(table, outf)
 		fprintf(outf, "merge \"%s\" \"%s\" %lg",
 				nn->nn_name, nnext->nn_name, c);
 		for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
-		    fprintf(outf, " %ld %ld",
+		    fprintf(outf, " %ld %d",
 				node->node_pa[n].pa_area,
 				node->node_pa[n].pa_perim);
 		fprintf(outf, "\n");
