@@ -603,7 +603,7 @@ DBFlattenInPlace(use, dest, xMask, dolabels, toplabels, doclear)
 	{
 	    int savemask = scx.scx_use->cu_expandMask;
 	    scx.scx_use->cu_expandMask = CU_DESCEND_SPECIAL;
-	    DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, dest);
+	    DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, dest, NULL);
 	    scx.scx_use->cu_expandMask = savemask;
 	}
 
