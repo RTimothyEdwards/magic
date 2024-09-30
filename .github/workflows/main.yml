@@ -51,7 +51,7 @@ jobs:
           emconfigure ./configure --without-cairo --without-opengl --without-x --disable-readline --target=asmjs-unknown-emscripten
           emmake make
       - name: archive wasm bundle
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: magic-wasm-bundle
           path: |
