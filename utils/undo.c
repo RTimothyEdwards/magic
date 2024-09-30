@@ -924,8 +924,8 @@ undoPrintForw(iup, n)
 {
     int i = 0;
 
-    (void) TxPrintf("head=0x%x\ttail=0x%x\tcur=0x%x\n",
-		undoLogHead, undoLogTail, undoLogCur);
+    (void) TxPrintf("head=%p\ttail=%p\tcur=%p\n",
+		(void *)undoLogHead, (void *)undoLogTail, (void *)undoLogCur);
     if (iup == (internalUndoEvent *) NULL)
 	iup = undoLogHead;
     while (iup != (internalUndoEvent *) NULL)
@@ -947,8 +947,8 @@ undoPrintBack(iup, n)
 {
     int i = 0;
 
-    (void) TxPrintf("head=0x%x\ttail=0x%x\tcur=0x%x\n",
-		undoLogHead, undoLogTail, undoLogCur);
+    (void) TxPrintf("head=%p\ttail=%p\tcur=%p\n",
+		(void *)undoLogHead, (void *)undoLogTail, (void *)undoLogCur);
     if (iup == (internalUndoEvent *) NULL)
 	iup = undoLogTail;
     while (iup != (internalUndoEvent *) NULL)
