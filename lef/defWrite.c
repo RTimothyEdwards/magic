@@ -441,7 +441,7 @@ char *defHNsprintfPrefix(hierName, str, divchar)
     char *cp, c;
 
     if (hierName->hn_parent)
-	str = defHNsprintfPrefix(hierName->hn_parent, str);
+	str = defHNsprintfPrefix(hierName->hn_parent, str, divchar);
 
     cp = hierName->hn_name;
     while (*str++ = *cp++) ;
