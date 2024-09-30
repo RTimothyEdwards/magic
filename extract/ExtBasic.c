@@ -612,7 +612,7 @@ extSetResist(reg)
 	reg->nreg_pa[n].pa_perim = perim = extResistPerim[n];
 	if (area > 0 && perim > 0)
 	{
-	    v = (double) (perim*perim - 16*area);
+	    v = (double) ((dlong)perim * perim - 16 * area);
 
 	    /* Approximate by one square if v < 0 */
 	    if (v < 0) s = 0; else s = sqrt(v);
