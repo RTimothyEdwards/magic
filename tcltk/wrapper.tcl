@@ -760,12 +760,16 @@ proc magic::toolupdate {win {yesno "yes"} {layerlist "none"}} {
       # "hidespecial" is used, so catch each configure command.
 
       if {$canon != ""} {
-         if {$yesno == "yes"} {
-	    catch {${framename}.toolbar.b$canon configure -image img_$canon}
-	    catch {${framename}.toolbar.p$canon configure -image pale_$canon}
-         } else {
-	    catch {${framename}.toolbar.b$canon configure -image img_space}
-	    catch {${framename}.toolbar.p$canon configure -image img_space}
+         # Layer aliases like "allm1" expand into multiple layers
+         foreach clayer $canon {
+	    set toolframe ${framename}.toolbar.canvas.frame.f${clayer}
+            if {$yesno == "yes"} {
+	       catch {${toolframe}.b configure -image img_$clayer}
+	       catch {${toolframe}.p configure -image pale_$clayer}
+            } else {
+	       catch {${toolframe}.b configure -image img_space}
+	       catch {${toolframe}.p configure -image img_space}
+	    }
 	 }
       }
    }
