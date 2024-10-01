@@ -557,7 +557,7 @@ pipehandler()
 
 	entry = HashLookOnly(&grOGLWindowTable, ExposeEvent->window);
 	mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
-	if(!mw)
+	if (!mw)
 	    break;
 
 	screenRect.r_xbot = ExposeEvent->x;
@@ -720,14 +720,16 @@ oglSetDisplay (dispType, outFileName, mouseFileName)
     grSetCharSizePtr = groglSetCharSize;
     grFillPolygonPtr = groglFillPolygon;
 
-    if (execFailed) {
+    if (execFailed)
+    {
         TxError("Execution failed!\n");
         return FALSE;
     }
 
     TxAdd1InputDevice(fileno(stdin), grOGLWStdin, (ClientData) NULL);
 
-    if(!GrOGLInit()){
+    if (!GrOGLInit())
+    {
 	return FALSE;
     }
     GrScreenRect.r_xbot = 0;

@@ -788,7 +788,7 @@ dbUndoCellBack(up)
 	    break;
         case UNDO_CELL_PLACE:
 	    use = findUse(up, TRUE);
-	    if(use) {
+	    if (use) {
 		DBUnLinkCell(use, up->cue_parent);
 		DBDeleteCell(use);
 		(void) DBCellDeleteUse(use);
@@ -806,7 +806,7 @@ dbUndoCellBack(up)
 	 */
         case UNDO_CELL_CLRID:
 	    use = findUse(up, FALSE);	/* Find it with a NULL id */
-	    if(use) {
+	    if (use) {
 		(void) DBReLinkCell(use, up->cue_id);
 		DBWAreaChanged(up->cue_parent, &up->cue_bbox,
 			(int) ~use->cu_expandMask, &DBAllButSpaceBits);
@@ -821,7 +821,7 @@ dbUndoCellBack(up)
 	 */
 	case UNDO_CELL_SETID:
 	    use = findUse(up, TRUE);	/* Find it with current id */
-	    if(use) {
+	    if (use) {
 		DBUnLinkCell(use, up->cue_parent);
 		freeMagic(use->cu_id);
 		use->cu_id = (char *) NULL;
@@ -830,7 +830,7 @@ dbUndoCellBack(up)
 
 	case UNDO_CELL_LOCKDOWN:
 	    use = findUse(up, TRUE);
-	    if(use) {
+	    if (use) {
 		use->cu_flags = up->cue_flags;
 		DBWAreaChanged(up->cue_parent, &up->cue_bbox,
 			(int) ~use->cu_expandMask, &DBAllButSpaceBits);

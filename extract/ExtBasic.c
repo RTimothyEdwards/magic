@@ -1078,15 +1078,15 @@ ExtSortTerminals(tran, ll)
 	{
 	    p1 = &(tran->tr_termpos[nsd]);
 	    p2 = &(tran->tr_termpos[nsd+1]);
-	    if( p2->pnum > p1->pnum )
+	    if (p2->pnum > p1->pnum)
 		continue;
-	    else if( p2->pnum == p1->pnum )
+	    else if (p2->pnum == p1->pnum)
 	    {
-		if( p2->pt.p_x > p1->pt.p_x )
+		if (p2->pt.p_x > p1->pt.p_x)
 		    continue;
-		else if( p2->pt.p_x == p1->pt.p_x && p2->pt.p_y > p1->pt.p_y )
+		else if (p2->pt.p_x == p1->pt.p_x && p2->pt.p_y > p1->pt.p_y)
 		    continue;
-		else if( p2->pt.p_x == p1->pt.p_x && p2->pt.p_y == p1->pt.p_y )
+		else if (p2->pt.p_x == p1->pt.p_x && p2->pt.p_y == p1->pt.p_y)
 		{
 		    TxPrintf("Extract error:  Duplicate tile position, ignoring\n");
 		    continue;
@@ -3476,17 +3476,17 @@ extTransPerimFunc(bp)
 
 		    /* update the region tile position */
 
-		    if( DBPlane(TiGetType(otile)) < pos->pnum )
+		    if (DBPlane(TiGetType(otile)) < pos->pnum)
 		    {
 			pos->pnum = DBPlane(TiGetType(otile));
 			pos->pt = otile->ti_ll;
 		    }
-		    else if( DBPlane(TiGetType(otile)) == pos->pnum )
+		    else if (DBPlane(TiGetType(otile)) == pos->pnum)
 		    {
-			if( LEFT(otile) < pos->pt.p_x )
+			if (LEFT(otile) < pos->pt.p_x)
 			    pos->pt = otile->ti_ll;
-			else if( LEFT(otile) == pos->pt.p_x &&
-				BOTTOM(otile) < pos->pt.p_y )
+			else if (LEFT(otile) == pos->pt.p_x &&
+				BOTTOM(otile) < pos->pt.p_y)
 			    pos->pt.p_y = BOTTOM(otile);
 		    }
 		}

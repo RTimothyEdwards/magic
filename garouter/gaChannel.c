@@ -386,7 +386,7 @@ gaChannelStats(list)
 	        clear = NULL;
 	        break;
 	}
-	if(tot && clear) {
+	if (tot && clear) {
 	    gaPinStats(ch->gcr_tPins, ch->gcr_length, tot, clear);
 	    gaPinStats(ch->gcr_bPins, ch->gcr_length, tot, clear);
 	    gaPinStats(ch->gcr_lPins, ch->gcr_width, tot, clear);
