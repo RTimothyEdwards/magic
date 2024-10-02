@@ -577,7 +577,9 @@ TechLoad(filename, initmask)
 #endif
 	ExtTechInit();
 	DRCTechInit();
+#ifdef ROUTE_MODULE
 	MZTechInit();
+#endif
 
             /* Changing number of planes requires handling on every     */
             /* celldef.  So we need to save the original number of      */
