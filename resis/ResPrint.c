@@ -218,7 +218,7 @@ ResPrintExtNode(outextfile, nodelist, nodename)
 	char	*nodename;
 {
     int		nodenum = 0;
-    char	newname[MAXNAME], tmpname[MAXNAME], *cp;
+    char	newname[MAXNAME+32], tmpname[MAXNAME], *cp;
     HashEntry  *entry;
     ResSimNode *node, *ResInitializeNode();
     bool	DoKillNode = TRUE;
