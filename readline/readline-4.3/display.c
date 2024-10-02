@@ -21,6 +21,8 @@
    59 Temple Place, Suite 330, Boston, MA 02111 USA. */
 #define READLINE_LIBRARY
 
+#define _XOPEN_SOURCE       /* See feature_test_macros(7) */
+
 #if defined (HAVE_CONFIG_H)
 #  include <config.h>
 #endif
@@ -41,7 +43,6 @@
 
 #include <stdio.h>
 
-#define _XOPEN_SOURCE       /* See feature_test_macros(7) */
 #include <wchar.h>
 
 /* System-specific feature definitions and include files. */
