@@ -52,7 +52,7 @@
 
 extern char  *DBWStyleType;
 
-Display      *grXdpy;
+extern Display *grXdpy; /* grX11thread.c */
 int	      grXscrn;
 Colormap      grXcmap;
 Visual       *grVisual;

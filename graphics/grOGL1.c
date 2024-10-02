@@ -37,12 +37,12 @@
 
 GLubyte 	**grOGLStipples;
 HashTable	grOGLWindowTable;
-Display 	*grXdpy;
+extern Display 	*grXdpy; /* grX11thread.c */
 GLXContext	grXcontext;
-int		grXscrn;
-int		pipeRead, pipeWrite;
-int		Xhelper;
-Visual		*grVisual;
+extern int	grXscrn; /* grX11su1.c */
+extern int	pipeRead, pipeWrite; /* grX11su1.c */
+extern int	Xhelper; /* grX11su1.c */
+extern Visual	*grVisual; /* grX11su1.c */
 
 #ifdef HAVE_PTHREADS
 extern int writePipe;
