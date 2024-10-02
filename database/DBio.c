@@ -3334,7 +3334,7 @@ dbGetPropFunc(key, value, propRec)
     propRec->keyValueList[propRec->idx] =
 		(struct keyValuePair *)mallocMagic(sizeof(struct keyValuePair));
     propRec->keyValueList[propRec->idx]->key = key;
-    propRec->keyValueList[propRec->idx]->value = value;
+    propRec->keyValueList[propRec->idx]->value = (char *)value;
     propRec->idx++;
 
     return 0;
