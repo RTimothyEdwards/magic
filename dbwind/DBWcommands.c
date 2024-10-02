@@ -223,9 +223,11 @@ DBWInitCommands()
     WindAddCommand(DBWclientID,
 	"addpath [path]		append to current search path",
 	CmdAddPath, FALSE);
+#ifdef LEF_MODULE
     WindAddCommand(DBWclientID,
 	"antennacheck [path]	check for antenna violations",
 	CmdAntennaCheck, FALSE);
+#endif
     WindAddCommand(DBWclientID,
 	"array xsize ysize	OR\n"
 	"array xlo xhi ylo yhi\n"
