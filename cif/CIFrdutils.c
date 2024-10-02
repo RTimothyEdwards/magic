@@ -276,8 +276,10 @@ CIFScaleCoord(
 		    PlowAfterTech();
 		    ExtTechScale(1, denom);
 		    WireTechScale(1, denom);
+#ifdef ROUTE_MODULE
 		    MZAfterTech();
 		    IRAfterTech();
+#endif
 #ifdef LEF_MODULE
 		    LefTechScale(1, denom);
 #endif
