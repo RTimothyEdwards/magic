@@ -1079,7 +1079,7 @@ char *name;
 	static int WindowNumber = 0;
 	HashEntry	*entry;
 	char	*windowplace;
-	char	windowname[10];
+	char	windowname[32];
 	int		x      = w->w_frameArea.r_xbot;
 	int		y      = grTransYs(w->w_frameArea.r_ytop);
 	int		width  = w->w_frameArea.r_xtop - w->w_frameArea.r_xbot;
