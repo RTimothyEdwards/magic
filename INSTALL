@@ -47,6 +47,12 @@ Autoconf Capsule Summary:
 			Disable threaded X11 and OpenGL graphics.
 			Normally enabled.
 
+	--disable-compression
+			Disable reading and writing of compressed
+			(gzipped) GDS files and reading of compressed
+			.mag files.  Normally enabled, if the zlib
+			development package is installed.
+
 Notes to Magic maintainers:
 --------------------------
 

@@ -2017,6 +2017,7 @@ badTransform:
 		    char argstr[1024];
 
 		    githash1[0] = '\0';
+		    githash2[0] = '\0';
 
 		    /* Remove the file component */
 		    sl1ptr = strrchr(pathptr, '/');
@@ -2487,8 +2488,8 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			/* Skip forward four values in pvalueptr */
 			for (n = 0; n < 4; n++)
 			{
-			    while (!isspace(*pptr)) pptr++;
-			    while (isspace(*pptr) && (*pptr != '\0')) pptr++;
+			    while ((*pptr != '\0') && !isspace(*pptr)) pptr++;
+			    while ((*pptr != '\0') && isspace(*pptr)) pptr++;
 			}
 		    }
 		}
