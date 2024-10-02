@@ -78,6 +78,7 @@ void bpDumpRect(Rect *r)
     fprintf(stderr,"%d",
 	    r->r_ytop);
   }
+#ifdef CIF_MODULE
   else
   {
     float oscale;
@@ -93,6 +94,7 @@ void bpDumpRect(Rect *r)
     fprintf(stderr,"%f",
 	    oscale * (float)r->r_ytop);
   }
+#endif
 }
 
 /*
@@ -170,6 +172,7 @@ static void bpBinArrayDump(BinArray *ba, int indent)
     fprintf(stderr,"{dx %d} {dy %d} ",
 	    dx,dy);
   }
+#ifdef CIF_MODULE
   else
   {
     float oscale;
@@ -182,6 +185,7 @@ static void bpBinArrayDump(BinArray *ba, int indent)
     fprintf(stderr,"{dy %f} ",
 	    (float)dy * oscale);
   }
+#endif
     fprintf(stderr,"{dimX %d} {dimY %d} {  bbox ",
 	  dimX,
 	  dimY);

@@ -1633,7 +1633,10 @@ dbTileScaleFunc(tile, scvals)
     if (IsSplit(tile))
 	type = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
     DBNMPaintPlane(scvals->ptarget, exact, &targetRect,
-		((scvals->doCIF) ? CIFPaintTable :
+		(
+#ifdef CIF_MODULE
+		(scvals->doCIF) ? CIFPaintTable :
+#endif
 		DBStdPaintTbl(type, scvals->pnum)),
 		(PaintUndoInfo *)NULL);
     return 0;
