@@ -2879,7 +2879,7 @@ extTransFindSubsFunc1(tile, noderecptr)
     if (tile->ti_client != (ClientData) extUnInit)
     {
 	if ((noderecptr->region != (NodeRegion *)NULL) &&
-		    (noderecptr->region != tile->ti_client))
+		    ((ClientData)noderecptr->region != tile->ti_client))
 	    TxError("Warning:  Split substrate under device at (%d %d)\n",
 			tile->ti_ll.p_x, tile->ti_ll.p_y);
 	if (IsSplit(tile))
