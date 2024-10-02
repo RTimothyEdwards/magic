@@ -1603,7 +1603,7 @@ dbAbutmentUseFunc(selUse, use, transform, data)
     }
 
     trans = &use->cu_transform;
-    propvalue = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+    propvalue = (char *)DBPropGet(use->cu_def, "FIXED_BBOX", &found);
     if (!found)
 	bbox = use->cu_def->cd_bbox;
     else

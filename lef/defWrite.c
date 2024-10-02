@@ -2772,7 +2772,7 @@ arrayDefFunc(use, transform, x, y, defdata)
 	char *propval;
 	bool found;
 
-	propval = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+	propval = (char *)DBPropGet(use->cu_def, "FIXED_BBOX", &found);
 	if (found)
 	{
 	    if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,
@@ -2830,7 +2830,7 @@ defComponentFunc(cellUse, defdata)
 	char *propval;
 	bool found;
 
-	propval = DBPropGet(cellUse->cu_def, "FIXED_BBOX", &found);
+	propval = (char *)DBPropGet(cellUse->cu_def, "FIXED_BBOX", &found);
 	if (found)
 	{
 	    if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,
