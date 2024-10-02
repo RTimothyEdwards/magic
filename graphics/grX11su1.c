@@ -794,7 +794,7 @@ grX11Stdin()
 		}
 
 	        grCurrent.window = ButtonEvent->window;
-		entry = HashLookOnly(&grX11WindowTable,grCurrent.window);
+		entry = HashLookOnly(&grX11WindowTable, (char *)grCurrent.window);
 	        grCurrent.mw= (entry)?(MagWindow *)HashGetValue(entry):0;
 
 		event->txe_p.p_x = ButtonEvent->x;
@@ -811,7 +811,7 @@ grX11Stdin()
 	        event = TxNewEvent();
 
 	        grCurrent.window = KeyPressedEvent->window;
-		entry = HashLookOnly(&grX11WindowTable,grCurrent.window);
+		entry = HashLookOnly(&grX11WindowTable, (char *)grCurrent.window);
 	        grCurrent.mw= (entry)?(MagWindow *)HashGetValue(entry):0;
 
     		read(pipeRead, &c, sizeof(int));
@@ -832,7 +832,7 @@ grX11Stdin()
 		    MagWindow	*w;
 
 	            grCurrent.window = ExposeEvent->window;
-		    entry = HashLookOnly(&grX11WindowTable,grCurrent.window);
+		    entry = HashLookOnly(&grX11WindowTable, (char *)grCurrent.window);
 	            w = (entry)?(MagWindow *)HashGetValue(entry):0;
 	            grCurrent.mw=w;
 	            if (!w)
@@ -867,7 +867,7 @@ grX11Stdin()
 		    MagWindow	*w;
 
 	            grCurrent.window = ConfigureEvent->window;
-		    entry = HashLookOnly(&grX11WindowTable,grCurrent.window);
+		    entry = HashLookOnly(&grX11WindowTable, (char *)grCurrent.window);
 	            w = (entry)?(MagWindow *)HashGetValue(entry):0;
 	            grCurrent.mw=w;
 
@@ -888,7 +888,7 @@ grX11Stdin()
 		XVisibilityEvent *VisEvent = (XVisibilityEvent*) &xevent;
 		MagWindow	*w;
 
-		entry = HashLookOnly(&grX11WindowTable, VisEvent->window);
+		entry = HashLookOnly(&grX11WindowTable, (char *)VisEvent->window);
 		w = (entry)?(MagWindow *)HashGetValue(entry):0;
 		if (!w)
 		    break;
@@ -920,7 +920,7 @@ grX11Stdin()
 		    MagWindow	*w;
 
 	            grCurrent.window = anyEvent->window;
-		    entry = HashLookOnly(&grX11WindowTable, grCurrent.window);
+		    entry = HashLookOnly(&grX11WindowTable, (char *)grCurrent.window);
 	            w = (entry)?(MagWindow *)HashGetValue(entry):0;
 
 /* The line above is defintely NOT a good idea. w == 0 causes address
@@ -1233,7 +1233,7 @@ GrX11Create(w, name)
 	grCurrent.mw = w;
 	w->w_grdata = (ClientData) wind;
 
-	entry = HashFind(&grX11WindowTable,grCurrent.window);
+	entry = HashFind(&grX11WindowTable, (char *)grCurrent.window);
 	HashSetValue(entry,w);
 
         XDefineCursor(grXdpy, grCurrent.window,grCurrent.cursor);
@@ -1282,7 +1282,7 @@ GrX11Delete(w)
     HashEntry	*entry;
 
     xw = (Window) w->w_grdata;
-    entry = HashLookOnly(&grX11WindowTable,xw);
+    entry = HashLookOnly(&grX11WindowTable, (char *)xw);
     HashSetValue(entry,NULL);
 
     XDestroyWindow(grXdpy,xw);
