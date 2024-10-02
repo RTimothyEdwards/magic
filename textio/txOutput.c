@@ -405,7 +405,7 @@ TxUseMore()
 	    pagername++;
 	else
 	    pagername = pagerpath;
-	execl(pagerpath, pagername, 0);
+	execl(pagerpath, pagername, NULL);
 
 	/* Something went very wrong if it gets here. */
 
