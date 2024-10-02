@@ -203,7 +203,7 @@ extMakeUnique(def, ll, lreg, lregList, labelHash, option)
 {
     static char *badmesg =
     "Non-global label \"%s\" attached to more than one unconnected node: %s";
-    char *cpend, *text, name[1024], name2[1024], message[1024];
+    char *cpend, *text, name[1024], name2[1024+32], message[1024];
     LabRegion *lp2;
     LabelList *ll2;
     int nsuffix, nwarn;
