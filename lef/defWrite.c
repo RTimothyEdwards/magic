@@ -531,7 +531,7 @@ defWriteRouteWidth(defdata, width)
     int width;
 {
     float oscale = defdata->scale;
-    char numstr[12];
+    char numstr[32];
     sprintf(numstr, "%.10g", ((float)width * defdata->scale));
     defCheckForBreak(strlen(numstr) + 1, defdata);
     fprintf(defdata->f, "%s ", numstr);
@@ -564,7 +564,7 @@ defWriteCoord(defdata, x, y, orient)
     unsigned char orient;
 {
     FILE *f = defdata->f;
-    char numstr[12];
+    char numstr[32];
     int ctot = 4;
 
     /* The "12" here is just a fudge factor;  it is not crucial */
