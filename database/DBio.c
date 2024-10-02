@@ -1072,7 +1072,7 @@ DBFileRecovery(filename)
     struct stat sbuf;
     uid_t userid = getuid();
     time_t recent = 0;
-    char *snptr, *tempdir, tempname[256];
+    char *snptr, *tempdir, tempname[1024];
     int pid;
     static char *actionNames[] = {"read", "cancel", 0 };
     char *prompt;
@@ -1098,7 +1098,8 @@ DBFileRecovery(filename)
 	while ((dp = readdir(cwd)) != NULL)
 	{
 	    char *doslash = (tempdir[strlen(tempdir) - 1] == '/') ? "" : "/";
-	    sprintf(tempname, "%s%s%s", tempdir, doslash, dp->d_name);
+	    int n = snprintf(tempname, sizeof(tempname), "%s%s%s", tempdir, doslash, dp->d_name);
+	    ASSERT(n < sizeof(tempname), "tempname");
 	    snptr = tempname + strlen(tempdir);
 	    if (!strncmp(snptr, "MAG", 3))
 	    {
@@ -1909,7 +1910,8 @@ badTransform:
 	    {
 		char savepath[1024];
 		strcpy(savepath, pathptr);
-		sprintf(path, "%s/%s", cellDef->cd_file, savepath);
+		int n = snprintf(path, sizeof(path), "%s/%s", cellDef->cd_file, savepath);
+		ASSERT(n < sizeof(path), "path");
 	    }
 	    pathptr = &path[0];
 	    *slashptr = '/';
@@ -2032,7 +2034,8 @@ badTransform:
 			    dup2(link[1], STDOUT_FILENO);
 			    close(link[0]);
 			    close(link[1]);
-			    sprintf(argstr, "-C %s", pathptr);
+			    int n = snprintf(argstr, sizeof(argstr), "-C %s", pathptr);
+			    ASSERT(n < sizeof(argstr), "argstr");
 			    execlp("git", argstr, "rev-parse", "HEAD", NULL);
 			    _exit(122);  /* see vfork man page for reason for _exit() */
 			}
