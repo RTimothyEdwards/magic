@@ -1700,7 +1700,7 @@ DBCellNewDef(cellName)
 	cellName = UNNAMED;
 
     entry = HashFind(&dbCellDefTable, cellName);
-    if (HashGetValue(entry) != (ClientData) NULL)
+    if (HashGetValue(entry) != NULL)
 	return ((CellDef *) NULL);
 
     cellDef = DBCellDefAlloc();
@@ -1861,7 +1861,7 @@ DBCellRenameDef(cellDef, newName)
     ASSERT(HashGetValue(oldEntry) == (ClientData) cellDef, "DBCellRenameDef");
 
     newEntry = HashFind(&dbCellDefTable, newName);
-    if (HashGetValue(newEntry) != (ClientData) NULL)
+    if (HashGetValue(newEntry) != NULL)
 	return (FALSE);
 
     HashSetValue(oldEntry, (ClientData) NULL);
