@@ -630,7 +630,7 @@ DBWElementNames()
     HashEntry *he;
 
 #ifndef MAGIC_WRAPPER
-    TxPrintf(stdout, "Known elements:");
+    TxPrintf("Known elements:");
 #endif
 
     HashStartSearch(&hs);
@@ -641,13 +641,13 @@ DBWElementNames()
 #ifdef MAGIC_WRAPPER
 	    Tcl_AppendElement(magicinterp, he->h_key.h_name);
 #else
-	    TxPrintf(stdout, " %s", he->h_key.h_name);
+	    TxPrintf(" %s", he->h_key.h_name);
 #endif
 	}
     }
 
 #ifndef MAGIC_WRAPPER
-    TxPrintf(stdout, "/n");
+    TxPrintf("/n");
 #endif
 
 }
@@ -672,7 +672,7 @@ DBWElementInbox(area)
     int sqdist;
 
 #ifndef MAGIC_WRAPPER
-    TxPrintf(stdout, "Element(s) inside box: ");
+    TxPrintf("Element(s) inside box: ");
 #endif
 
     HashStartSearch(&hs);
@@ -685,14 +685,14 @@ DBWElementInbox(area)
 #ifdef MAGIC_WRAPPER
 		Tcl_AppendElement(magicinterp, he->h_key.h_name);
 #else
-		TxPrintf(stdout, " %s", he->h_key.h_name);
+		TxPrintf(" %s", he->h_key.h_name);
 #endif
 	    }
 	}
     }
 
 #ifndef MAGIC_WRAPPER
-    TxPrintf(stdout, "/n");
+    TxPrintf("/n");
 #endif
 }
 
