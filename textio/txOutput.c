@@ -108,7 +108,7 @@ txFprintfBasic(FILE *f, const char *fmt, ...)
  */
 
 void
-TxPrintf(char *fmt, ...)
+TxPrintf(const char *fmt, ...)
 {
     va_list args;
     FILE *f;
@@ -159,7 +159,7 @@ TxPrintf(char *fmt, ...)
  */
 
 char *
-TxPrintString(char *fmt, ...)
+TxPrintString(const char *fmt, ...)
 {
     va_list args;
     static char *outstr = NULL;
@@ -300,7 +300,7 @@ TxFlush()
  */
 
 void
-TxError(char *fmt, ...) {
+TxError(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     TxErrorV(fmt, args);
@@ -308,7 +308,7 @@ TxError(char *fmt, ...) {
 }
 
 void
-TxErrorV(char *fmt, va_list args)
+TxErrorV(const char *fmt, va_list args)
 {
     FILE *f;
 
