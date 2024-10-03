@@ -76,13 +76,11 @@ static bool txPrintFlag = TRUE;
  */
 
 void
-txFprintfBasic(FILE *f, ...)
+txFprintfBasic(FILE *f, const char *fmt, ...)
 {
     va_list args;
-    char *fmt;
 
-    va_start(args, f);
-    fmt = va_arg(args, char *);
+    va_start(args, fmt);
     Vfprintf(f, fmt, args);
     va_end(args);
 }

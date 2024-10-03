@@ -168,6 +168,16 @@ extern char AbortMessage[];
     #define PaLockZOpen  PaLockOpen
 #endif
 
+/* ------------ modern compiler support -------------------------------- */
+
+#if defined(__GNUC__) || defined(__clang__)
+ #define ATTR_FORMAT_PRINTF_1 __attribute__((format (printf,1,2)))
+ #define ATTR_FORMAT_PRINTF_2 __attribute__((format (printf,2,3)))
+#else
+ #define ATTR_FORMAT_PRINTF_1 /* */
+ #define ATTR_FORMAT_PRINTF_2 /* */
+#endif
+
 /* ---------------- Start of Machine Configuration Section ----------------- */
 
     /* ------- Configuration:  Handle Missing Routines/Definitions ------- */

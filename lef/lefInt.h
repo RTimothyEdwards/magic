@@ -162,8 +162,8 @@ void LefReadLayerSection();
 
 LefMapping *defMakeInverseLayerMap();
 
-void LefError(int, char *, ...);	/* Variable argument procedure requires */
-					/* parameter list.			*/
+/* Variable argument procedure requires parameter list. */
+void LefError(int, char *, ...) ATTR_FORMAT_PRINTF_2;
 
 /* C99 compat */
 extern void LefRead();
