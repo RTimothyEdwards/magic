@@ -52,7 +52,7 @@ extern bool TxGetInputEvent();
 
 /* Routines with variable argument lists */
 
-extern void txFprintfBasic(FILE *, ...);
+extern void txFprintfBasic(FILE *, const char *fmt, ...) ATTR_FORMAT_PRINTF_2;
 
 /* C99 compat */
 void txCommandsInit();
