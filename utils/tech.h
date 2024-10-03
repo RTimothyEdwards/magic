@@ -51,7 +51,7 @@ extern bool TechOverridesDefault; /* Set TRUE if technology was specified on
 
 /* ----------------- Exported procedures ---------------- */
 
-extern void TechError(char *, ...) ATTR_FORMAT_PRINTF_1;
+extern void TechError(const char *, ...) ATTR_FORMAT_PRINTF_1;
 extern void TechAddClient();
 extern void TechAddAlias();
 

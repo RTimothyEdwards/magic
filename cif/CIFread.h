@@ -188,8 +188,8 @@ extern int CIFEdgeDirection(CIFPath *first, CIFPath *last);
 
 /* Variable argument procedures require complete prototype */
 
-extern void CIFReadError(char *format, ...) ATTR_FORMAT_PRINTF_1;
-extern void CIFReadWarning(char *format, ...) ATTR_FORMAT_PRINTF_1;
+extern void CIFReadError(const char *format, ...) ATTR_FORMAT_PRINTF_1;
+extern void CIFReadWarning(const char *format, ...) ATTR_FORMAT_PRINTF_1;
 
 /* Variables shared by the CIF-reading modules, see CIFreadutils.c
  * for more details:

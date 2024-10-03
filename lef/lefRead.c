@@ -306,7 +306,7 @@ LefNextToken(f, ignore_eol)
  */
 
 void
-LefError(int type, char *fmt, ...)
+LefError(int type, const char *fmt, ...)
 {
     static int errors = 0, warnings = 0, messages = 0;
     va_list args;

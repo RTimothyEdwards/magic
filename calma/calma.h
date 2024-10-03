@@ -65,7 +65,7 @@ extern bool CalmaWrite(CellDef *rootDef, FILE *f);
 extern void CalmaReadFile(FILETYPE file, char *filename);
 extern void CalmaTechInit(void);
 extern bool CalmaGenerateArray(FILE *f, TileType type, int llx, int lly, int pitch, int cols, int rows);
-extern void CalmaReadError(char *format, ...) ATTR_FORMAT_PRINTF_1;
+extern void CalmaReadError(const char *format, ...) ATTR_FORMAT_PRINTF_1;
 
 /* C99 compat */
 extern void calmaDelContacts(void);

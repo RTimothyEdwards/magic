@@ -129,7 +129,7 @@ Plane *cifReadPlane;			/* Plane into which to paint material
 
     /* VARARGS1 */
 void
-CIFReadError(char *format, ...)
+CIFReadError(const char *format, ...)
 {
     va_list args;
 
@@ -153,7 +153,7 @@ CIFReadError(char *format, ...)
 
 
 void
-CIFReadWarning(char *format, ...)
+CIFReadWarning(const char *format, ...)
 {
     va_list args;
 
