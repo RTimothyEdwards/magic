@@ -1596,7 +1596,7 @@ DBOpenOnly(cellDef, name, setFileName, errptr)
 			 */
     int *errptr;	/* Pointer to int to hold error value */
 {
-    dbReadOpen(cellDef, name != NULL, setFileName, FALSE, errptr);
+    dbReadOpen(cellDef, setFileName, FALSE, errptr);
 }
 
 /*
