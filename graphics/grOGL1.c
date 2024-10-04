@@ -267,6 +267,7 @@ GrOGLInit()
 	{
 	    TxError("No suitable visual!\n");
 	    MainExit(1);
+	    ATTR_UNREACHABLE;
 	}
     }
     grXscrn = grVisualInfo->screen;
