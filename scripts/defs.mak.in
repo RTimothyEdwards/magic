@@ -83,7 +83,7 @@ CC                     = @CC@
 CPP                    = @CPP@
 CXX		       = @CXX@
 
-CPPFLAGS               = -I. -I${MAGICDIR} @CPPFLAGS@
+CPPFLAGS               = -I${MAGICDIR} @CPPFLAGS@
 DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" -DGCORE=\"@GCORE@\"
 DFLAGS		      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" -DNDEBUG
 DFLAGS_NOSTUB	       = @extra_defs@ @DEFS@ -DGCORE=\"@GCORE@\"
