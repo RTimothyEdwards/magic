@@ -997,7 +997,7 @@ SelectShort(char *lab1, char *lab2)
 	}
     }
 
-    selShortFindForward(srctile, srctype, srcpnum, desttile, desttype);
+    selShortFindForward(srctile, srctype, srcpnum, desttile/*, desttype*/);
 
     /* Now see if destination has been counted */
     if (desttile->ti_client == (ClientData)CLIENTDEFAULT) return NULL;
