@@ -86,8 +86,8 @@ CmdEdit(
     Rect area, pointArea;
     CellUse *usave, *use = NULL;
     CellDef *csave;
-    int cmdEditRedisplayFunc();		/* Forward declaration. */
-    int cmdEditEnumFunc();		/* Forward declaration. */
+    int cmdEditRedisplayFunc(MagWindow *w, Rect *area);		/* Forward declaration. */
+    int cmdEditEnumFunc(CellUse *selUse, CellUse *use, Transform *transform, Rect *area);		/* Forward declaration. */
     bool noCurrentUse = FALSE;
 
     if ((w != NULL) && (cmd->tx_argc == 2))
@@ -633,7 +633,7 @@ CmdErase(
 {
     Rect editRect, areaReturn;
     TileTypeBitMask mask, errorLayersForErasure, activeLayersForErasure;
-    extern int cmdEraseCellsFunc();
+    extern int cmdEraseCellsFunc(SearchContext *scx, ClientData cdarg);
 
     windCheckOnlyWindow(&w, DBWclientID);
     if (w == (MagWindow *) NULL) return;
@@ -805,7 +805,7 @@ CmdExpand(
     Rect rootRect;
     CellUse *rootBoxUse;
     CellDef *rootBoxDef;
-    int cmdExpandFunc();		/* Forward reference. */
+    int cmdExpandFunc(CellUse *use, int windowMask);		/* Forward reference. */
 
     if (cmd->tx_argc > 2 || (cmd->tx_argc == 2
 	&& (strncmp(cmd->tx_argv[1], "toggle", strlen(cmd->tx_argv[1])) != 0)))

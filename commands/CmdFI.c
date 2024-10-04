@@ -512,7 +512,7 @@ CmdFill(
     TileTypeBitMask maskBits;
     Rect editBox;
     SearchContext scx;
-    extern int cmdFillFunc();
+    extern int cmdFillFunc(Tile *tile, TreeContext *cxp);
 
     if (cmd->tx_argc < 2 || cmd->tx_argc > 3)
     {
@@ -802,7 +802,7 @@ CmdFindLabel(
     int found, occur, plainargs;
     bool doglob = FALSE;   /* csh-style glob matching (see utils/match.c) */
     LabSearchRec lsr;
-    int dbListLabels();	   /* forward declaration */
+    int dbListLabels(SearchContext *scx, Label *label, TerminalPath *tpath, ClientData cdarg);	   /* forward declaration */
 
     plainargs = cmd->tx_argc;
     if ((plainargs > 2) && !strncmp(cmd->tx_argv[1], "-glob", 5))
@@ -1512,7 +1512,7 @@ CmdIdentify(
     MagWindow *w,
     TxCommand *cmd)
 {
-    extern int cmdIdFunc();		/* Forward reference. */
+    extern int cmdIdFunc(CellUse *selUse, CellUse *use, Transform *transform, char *newId);		/* Forward reference. */
 
     if (cmd->tx_argc != 2)
     {
@@ -1702,7 +1702,7 @@ checklocal:
 
     if (locvalid == TRUE)
     {
-	int findTile();
+	int findTile(Tile *tile, TileType *rtype);
 	CellDef	 *targetdef = use->cu_def;
 	Plane *plane = targetdef->cd_planes[pnum];
 
@@ -1865,7 +1865,7 @@ FlatCopyAllLabels(
     int xMask,
     CellUse *targetUse)
 {
-    int flatCopyAllLabels();
+    int flatCopyAllLabels(SearchContext *scx, Label *lab, TerminalPath *tpath, CellUse *targetUse);
     char pathstring[FLATTERMSIZE];
     TerminalPath	tpath;
 

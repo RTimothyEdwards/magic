@@ -52,7 +52,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Forward declarations */
 
-extern void cmdPsearchStats();
+extern void cmdPsearchStats(char *str, struct tms *tl, struct tms *td, int count);
 
 void cmdStatsHier(CellDef *, int, CellDef *);
 
@@ -436,7 +436,7 @@ CmdTilestats(
     bool allDefs = FALSE;
     char **av = cmd->tx_argv + 1;
     int ac = cmd->tx_argc - 1;
-    int cmdStatsFunc();
+    int cmdStatsFunc(CellDef *def, FILE *outf);
 
     if (ac > 2)
     {
@@ -515,7 +515,8 @@ cmdStatsFunc(
     CellDef *def,
     FILE *outf)
 {
-    int cmdStatsCount(), cmdStatsOutput();
+    int cmdStatsCount(CellDef *def, struct countClient *cc);
+    int cmdStatsOutput(CellDef *def, struct countClient *cc);
     struct countClient cc;
     int total;
     TileType t;
@@ -568,7 +569,7 @@ cmdStatsCount(
     CellDef *def,
     struct countClient *cc)
 {
-    int cmdStatsCountTile();
+    int cmdStatsCountTile(Tile *tile, struct cellInfo *ci);
     int pNum;
     struct cellInfo *ci;
     TileType t;
@@ -755,7 +756,7 @@ CmdPsearch(
     MagWindow *w,
     TxCommand *cmd)
 {
-    char *RunStats();
+    char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
     static struct tms tlast, tdelta;
     Point p;
     Plane *plane;
@@ -823,7 +824,7 @@ cmdPsearchStats(
     struct tms *td,
     int count)
 {
-    char *RunStats();
+    char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
     char *rstatp;
     int us, ups;
 
@@ -867,8 +868,9 @@ CmdTsearch(
     MagWindow *w,
     TxCommand *cmd)
 {
-    int cmdTsrFunc();
-    char *RunStats(), *rstatp;
+    int cmdTsrFunc(Tile *tp);
+    char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
+    char *rstatp;
     static TileTypeBitMask mask;
     static struct tms tlast, tdelta;
     Rect rtool, rsearch;
