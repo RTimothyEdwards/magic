@@ -152,17 +152,32 @@ typedef struct cifpath
 
 /* Procedures */
 
-extern bool CIFParseBox(), CIFParseWire(), CIFParsePoly();
-extern bool CIFParseFlash(), CIFParseLayer(), CIFParseStart();
-extern bool CIFParseFinish(), CIFParseDelete(), CIFParseUser();
-extern bool CIFParseCall(), CIFParseTransform(), CIFParseInteger();
-extern bool CIFParsePath(), CIFParsePoint(), CIFParseSInteger();
-extern void CIFSkipToSemi(), CIFSkipSep(), CIFSkipBlanks();
-extern void CIFFreePath(), CIFCleanPath();
-extern void CIFReadCellInit(), CIFReadCellCleanup();
-extern LinkedRect *CIFPolyToRects();
-extern Transform *CIFDirectionToTrans();
-extern int CIFReadNameToType();
+extern bool CIFParseBox(void);
+extern bool CIFParseWire(void);
+extern bool CIFParsePoly(void);
+extern bool CIFParseFlash(void);
+extern bool CIFParseLayer(void);
+extern bool CIFParseStart(void);
+extern bool CIFParseFinish(void);
+extern bool CIFParseDelete(void);
+extern bool CIFParseUser(void);
+extern bool CIFParseCall(void);
+extern bool CIFParseTransform(Transform *transformp);
+extern bool CIFParseInteger(int *valuep);
+extern bool CIFParsePath(CIFPath **pathheadpp, int iscale);
+extern bool CIFParsePoint(Point *pointp, int iscale);
+extern bool CIFParseSInteger(int *valuep);
+extern void CIFSkipToSemi(void);
+extern void CIFSkipSep(void);
+extern void CIFSkipBlanks(void);
+extern void CIFFreePath(CIFPath *path);
+extern void CIFCleanPath(CIFPath *pathHead);
+extern void CIFReadCellInit(int ptrkeys);
+extern void CIFReadCellCleanup(int filetype);
+extern LinkedRect *CIFPolyToRects(CIFPath *path, Plane *plane, PaintResultType *resultTbl,
+                                  PaintUndoInfo *ui, bool isCalma);
+extern Transform *CIFDirectionToTrans(Point *point);
+extern int CIFReadNameToType(char *name, bool newOK);
 
 /* Variable argument procedures require complete prototype */
 
