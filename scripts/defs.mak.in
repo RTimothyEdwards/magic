@@ -108,6 +108,8 @@ OA		       = @OA@
 OA_LIBS		       = @OA_LIBS@
 
 DEPSRCS	  = ${SRCS}
-OBJS      = ${SRCS:.c=.o} ${CXXSRCS:.cpp=.o}
+C_OBJS    = ${SRCS:.c=.o}
+CXX_OBJS  = ${CXXSRCS:.cpp=.o}
+OBJS      = ${CXX_OBJS} ${C_OBJS}
 LIB_OBJS  = ${LIB_SRCS:.c=.o}
 CLEANS    = Depend ${OBJS} ${LIB_OBJS} lib${MODULE}.a lib${MODULE}.o ${MODULE}
