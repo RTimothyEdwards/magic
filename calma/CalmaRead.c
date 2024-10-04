@@ -299,7 +299,7 @@ done:
 	    windCheckOnlyWindow(&mw, DBWclientID);
 	if (mw != NULL)
 	{
-	    if (calmaLookCell(libnameptr, NULL) != (CellDef *)NULL)
+	    if (calmaLookCell(libnameptr) != (CellDef *)NULL)
 		DBWloadWindow(mw, libnameptr, 0);
 	}
 	freeMagic(libname);
