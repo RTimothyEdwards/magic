@@ -240,7 +240,7 @@ int
 DBPaintPlane0(plane, area, resultTbl, undo, method)
     Plane *plane;		/* Plane whose paint is to be modified */
     Rect *area;			/* Area to be changed */
-    PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
+    const PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
 				 * present in the plane, giving the type to
 				 * which the existing tile must change as a
 				 * result of this paint operation.
@@ -766,7 +766,7 @@ void
 DBFracturePlane(plane, area, resultTbl, undo)
     Plane *plane;		/* Plane whose paint is to be modified */
     Rect *area;	/* Area to be changed */
-    PaintResultType *resultTbl;	/* Paint table, to pinpoint those tiles
+    const PaintResultType *resultTbl;	/* Paint table, to pinpoint those tiles
 				 * that interact with the paint type.
 				 */
     PaintUndoInfo *undo;	/* Record containing everything needed to
@@ -1340,7 +1340,7 @@ DBDiagonalProc(oldtype, dinfo)
     TileType old_n, old_s, old_e, old_w;
     TileType new_n, new_s, new_e, new_w;
     TileType newtype;
-    PaintResultType *resultTbl = dinfo->resultTbl;
+    const PaintResultType *resultTbl = dinfo->resultTbl;
 
     /* Disassemble old and new types into four quadrants, find the	*/
     /* paint result for each quadrant, then reassemble the result.	*/
@@ -1457,7 +1457,7 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
     Plane *plane;		/* Plane whose paint is to be modified */
     TileType exacttype;		/* diagonal info for tile to be changed */
     Rect *area;	/* Area to be changed */
-    PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
+    const PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
 				 * present in the plane, giving the type to
 				 * which the existing tile must change as a
 				 * result of this paint operation.
@@ -2064,7 +2064,7 @@ void
 DBPaintType(plane, area, resultTbl, client, undo, tileMask)
     Plane *plane;		/* Plane whose paint is to be modified */
     Rect *area;	/* Area to be changed */
-    PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
+    const PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
 				 * present in the plane, giving the type to
 				 * which the existing tile must change as a
 				 * result of this paint operation.
@@ -2555,7 +2555,7 @@ int
 DBPaintPlaneVert(plane, area, resultTbl, undo)
     Plane *plane;		/* Plane whose paint is to be modified */
     Rect *area;	/* Area to be changed */
-    PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
+    const PaintResultType *resultTbl;	/* Table, indexed by the type of tile already
 				 * present in the plane, giving the type to
 				 * which the existing tile must change as a
 				 * result of this paint operation.

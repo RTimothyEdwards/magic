@@ -67,8 +67,8 @@ global Plane *CIFPlanes[MAXCIFLAYERS];
  * have two entries each.
  */
 
-PaintResultType CIFPaintTable[] = {CIF_SOLIDTYPE, CIF_SOLIDTYPE};
-PaintResultType CIFEraseTable[] = {TT_SPACE, TT_SPACE};
+const PaintResultType CIFPaintTable[] = {CIF_SOLIDTYPE, CIF_SOLIDTYPE};
+const PaintResultType CIFEraseTable[] = {TT_SPACE, TT_SPACE};
 
 /* The following local variables are used as a convenience to pass
  * information between CIFGen and the various search functions.
@@ -549,7 +549,7 @@ cifGrowGridFunc(
 int
 cifGrowEuclideanFunc(
     Tile *tile,
-    PaintResultType *table)		/* Table to be used for painting. */
+    const PaintResultType *table)		/* Table to be used for painting. */
 {
     Tile *tp;
     Rect area, rtmp;
@@ -762,7 +762,7 @@ cifGrowEuclideanFunc(
 int
 cifGrowFunc(
     Tile *tile,
-    PaintResultType *table)		/* Table to be used for painting. */
+    const PaintResultType *table)		/* Table to be used for painting. */
 {
     Rect area;
     TileType oldType = TiGetTypeExact(tile);

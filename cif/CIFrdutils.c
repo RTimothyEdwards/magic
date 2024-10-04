@@ -1052,7 +1052,7 @@ void
 CIFMakeManhattanPath(
     CIFPath *pathHead,
     Plane *plane,
-    PaintResultType *resultTbl,
+    const PaintResultType *resultTbl,
     PaintUndoInfo *ui)
 {
     CIFPath *new, *new2, *next, *path;

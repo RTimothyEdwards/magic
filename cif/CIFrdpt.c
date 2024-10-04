@@ -321,7 +321,7 @@ CIFPaintWirePath(
     int width,
     bool endcap,
     Plane *plane,
-    PaintResultType *ptable,
+    const PaintResultType *ptable,
     PaintUndoInfo *ui)
 {
     CIFPath *pathp, *previousp, *nextp, *polypath;
