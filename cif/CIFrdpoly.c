@@ -55,10 +55,14 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
  */
 
 int
-cifLowX(a, b)
-    CIFPath **a, **b;
+cifLowX(
+    const void *aa,
+    const void *bb)
 {
-    Point *p, *q;
+    const CIFPath **a = (const CIFPath **)aa;
+    const CIFPath **b = (const CIFPath **)bb;
+
+    const Point *p, *q;
 
     p = &(*a)->cifp_point;
     q = &(*b)->cifp_point;
@@ -88,9 +92,12 @@ cifLowX(a, b)
  */
 
 int
-cifLowY(a, b)
-    Point **a, **b;
+cifLowY(
+    const void *aa,
+    const void *bb)
 {
+    const Point **a = (const Point **)aa;
+    const Point **b = (const Point **)bb;
     if ((*a)->p_y < (*b)->p_y)
 	return (-1);
     if ((*a)->p_y > (*b)->p_y)
