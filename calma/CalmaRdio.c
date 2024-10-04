@@ -73,9 +73,9 @@ bool calmaSkipBytes(int nbytes);
  */
 
 bool
-calmaReadTransform(ptrans, name)
-    Transform *ptrans;	/* Fill in this transform */
-    char *name;		/* Name of subcell (for errors) */
+calmaReadTransform(
+    Transform *ptrans,	/* Fill in this transform */
+    char *name)		/* Name of subcell (for errors) */
 {
     int nbytes, rtype, flags, angle;
     double dangle;
@@ -205,9 +205,9 @@ calmaReadTransform(ptrans, name)
  */
 
 bool
-calmaReadI2Record(type, pvalue)
-    int type;		/* Type of record expected */
-    int *pvalue;	/* Store value here */
+calmaReadI2Record(
+    int type,		/* Type of record expected */
+    int *pvalue)	/* Store value here */
 {
     int nbytes, rtype, n;
 
@@ -250,9 +250,9 @@ eof:
  */
 
 bool
-calmaReadI4Record(type, pvalue)
-    int type;		/* Type of record expected */
-    int *pvalue;	/* Store value here */
+calmaReadI4Record(
+    int type,		/* Type of record expected */
+    int *pvalue)	/* Store value here */
 {
     int nbytes, rtype, n;
 
@@ -298,9 +298,9 @@ eof:
  */
 
 bool
-calmaReadStampRecord(type, stampptr)
-    int type;
-    int *stampptr;
+calmaReadStampRecord(
+    int type,
+    int *stampptr)
 {
     int nbytes, rtype;
     struct tm gds_timestamp;
@@ -371,9 +371,9 @@ eof:
  */
 
 bool
-calmaReadStringRecord(type, str)
-    int type;
-    char **str;
+calmaReadStringRecord(
+    int type,
+    char **str)
 {
     int nbytes, rtype;
 
@@ -420,8 +420,8 @@ eof:
  */
 
 bool
-calmaReadR8(pd)
-    double *pd;		/* Store result in *pd */
+calmaReadR8(
+    double *pd)		/* Store result in *pd */
 {
     int i, exponent;
     unsigned char dchars[8];
@@ -489,8 +489,8 @@ calmaReadR8(pd)
  */
 
 void
-calmaSkipSet(skipwhat)
-    int *skipwhat;
+calmaSkipSet(
+    int *skipwhat)
 {
     int *skipp;
     int nbytes, rtype;
@@ -533,8 +533,8 @@ skipit:
  */
 
 bool
-calmaSkipExact(type)
-    int type;
+calmaSkipExact(
+    int type)
 {
     int nbytes, rtype;
 
@@ -579,8 +579,8 @@ eof:
  */
 
 bool
-calmaSkipTo(what)
-    int what;
+calmaSkipTo(
+    int what)
 {
     int nbytes, rtype;
 
@@ -615,8 +615,8 @@ calmaSkipTo(what)
  */
 
 bool
-calmaSkipBytes(nbytes)
-    int nbytes;	/* Skip this many bytes */
+calmaSkipBytes(
+    int nbytes)	/* Skip this many bytes */
 {
     while (nbytes-- > 0)
 	if (FGETC(calmaInputFile) < 0)

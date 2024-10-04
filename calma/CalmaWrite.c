@@ -290,9 +290,9 @@ static char calmaMapTablePermissive[] =
  */
 
 bool
-CalmaWrite(rootDef, f)
-    CellDef *rootDef;	/* Pointer to CellDef to be written */
-    FILE *f;		/* Open output file */
+CalmaWrite(
+    CellDef *rootDef,	/* Pointer to CellDef to be written */
+    FILE *f)		/* Open output file */
 {
     int oldCount = DBWFeedbackCount, problems, nerr;
     bool good;
@@ -417,11 +417,11 @@ CalmaWrite(rootDef, f)
  */
 
 bool
-calmaDumpStructure(def, outf, calmaDefHash, filename)
-    CellDef *def;
-    FILE *outf;
-    HashTable *calmaDefHash;
-    char *filename;
+calmaDumpStructure(
+    CellDef *def,
+    FILE *outf,
+    HashTable *calmaDefHash,
+    char *filename)
 {
     int nbytes, rtype;
     char *strname = NULL, *newnameptr;
@@ -687,11 +687,11 @@ syntaxerror:
  */
 
 void
-calmaFullDump(def, fi, outf, filename)
-    CellDef *def;
-    FILETYPE fi;
-    FILE *outf;
-    char *filename;
+calmaFullDump(
+    CellDef *def,
+    FILETYPE fi,
+    FILE *outf,
+    char *filename)
 {
     int version, rval;
     char *libname = NULL, *testlib, uniqlibname[4];
@@ -831,8 +831,8 @@ done:
  */
 
 int
-calmaWriteInitFunc(def)
-    CellDef *def;
+calmaWriteInitFunc(
+    CellDef *def)
 {
     def->cd_client = (ClientData) 0;
     return (0);
@@ -862,18 +862,18 @@ calmaWriteInitFunc(def)
  */
 
 int
-calmaProcessUse(use, outf)
-    CellUse *use;	/* Process use->cu_def */
-    FILE *outf;		/* Stream file */
+calmaProcessUse(
+    CellUse *use,	/* Process use->cu_def */
+    FILE *outf)		/* Stream file */
 {
     return (calmaProcessDef(use->cu_def, outf, FALSE));
 }
 
 int
-calmaProcessDef(def, outf, do_library)
-    CellDef *def;	/* Output this def's children, then the def itself */
-    FILE *outf;		/* Stream file */
-    bool do_library;	/* If TRUE, output only children of def, but not def */
+calmaProcessDef(
+    CellDef *def,	/* Output this def's children, then the def itself */
+    FILE *outf,		/* Stream file */
+    bool do_library)	/* If TRUE, output only children of def, but not def */
 {
     char *filename;
     int polyidx;
@@ -1294,10 +1294,10 @@ compport(const void *one, const void *two)
  */
 
 void
-calmaOutFunc(def, f, cliprect)
-    CellDef *def;	/* Pointer to cell def to be written */
-    FILE *f;		/* Open output file */
-    Rect *cliprect;	/* Area to clip to (used for contact cells),
+calmaOutFunc(
+    CellDef *def,	/* Pointer to cell def to be written */
+    FILE *f,		/* Open output file */
+    Rect *cliprect)	/* Area to clip to (used for contact cells),
 			 * in CIF/GDS coordinates.
 			 */
 {
@@ -1489,9 +1489,9 @@ calmaOutFunc(def, f, cliprect)
  */
 
 bool
-calmaIsUseNameDefault(defName, useName)
-    char *defName;
-    char *useName;
+calmaIsUseNameDefault(
+    char *defName,
+    char *useName)
 {
     int idx, slen;
     char *sptr;
@@ -1529,9 +1529,9 @@ calmaIsUseNameDefault(defName, useName)
  */
 
 int
-calmaWriteUseFunc(use, f)
-    CellUse *use;
-    FILE *f;
+calmaWriteUseFunc(
+    CellUse *use,
+    FILE *f)
 {
     /*
      * r90, r180, and r270 are Calma 8-byte real representations
@@ -1744,10 +1744,10 @@ calmaWriteUseFunc(use, f)
  */
 
 void
-calmaOutStructName(type, def, f)
-    int type;
-    CellDef *def;
-    FILE *f;
+calmaOutStructName(
+    int type,
+    CellDef *def,
+    FILE *f)
 {
     char *defname;
     unsigned char c;
@@ -1817,9 +1817,9 @@ bad:
  */
 
 CellDef *
-calmaGetContactCell(type, lookOnly)
-    TileType type;		/* magic contact tile type */
-    bool lookOnly;		/* if true, don't generate any new cells */
+calmaGetContactCell(
+    TileType type,		/* magic contact tile type */
+    bool lookOnly)		/* if true, don't generate any new cells */
 {
     TileType j;
     char contactCellName[100];
@@ -1870,14 +1870,16 @@ calmaGetContactCell(type, lookOnly)
  */
 
 bool
-CalmaGenerateArray(f, type, llx, lly, pitch, cols, rows)
-    FILE *f;		/* GDS output file */
-    TileType type;	/* Magic tile type of contact */
-    int llx, lly;	/* Lower-left hand coordinate of the array
+CalmaGenerateArray(
+    FILE *f,		/* GDS output file */
+    TileType type,	/* Magic tile type of contact */
+    int llx,
+    int lly,		/* Lower-left hand coordinate of the array
 			 * (centered on contact cut)
 			 */
-    int pitch;		/* Pitch of the array elements */
-    int cols, rows;	/* Number of array elements in X and Y */
+    int pitch,		/* Pitch of the array elements */
+    int cols,
+    int rows)		/* Number of array elements in X and Y */
 {
     CellDef *child;	/* Cell definition of the contact cell */
     int xxlate, yxlate;
@@ -1939,8 +1941,8 @@ CalmaGenerateArray(f, type, llx, lly, pitch, cols, rows)
  */
 
 void
-calmaWriteContacts(f)
-    FILE *f;
+calmaWriteContacts(
+    FILE *f)
 {
     TileType type;
     TileTypeBitMask tMask, *rMask;
@@ -2025,7 +2027,7 @@ calmaWriteContacts(f)
  */
 
 void
-calmaDelContacts()
+calmaDelContacts(void)
 {
     TileType type;
     CellDef *def;
@@ -2063,10 +2065,13 @@ calmaDelContacts()
  */
 
 int
-calmaAddSegment(lbptr, poly_edge, p1x, p1y, p2x, p2y)
-    LinkedBoundary **lbptr;
-    bool poly_edge;
-    int p1x, p1y, p2x, p2y;
+calmaAddSegment(
+    LinkedBoundary **lbptr,
+    bool poly_edge,
+    int p1x,
+    int p1y,
+    int p2x,
+    int p2y)
 {
     LinkedBoundary *newseg, *curseg, *stopseg;
     bool startmatch = FALSE;
@@ -2138,8 +2143,8 @@ calmaAddSegment(lbptr, poly_edge, p1x, p1y, p2x, p2y)
  */
 
 void
-calmaRemoveDegenerate(blist)
-    BoundaryTop *blist;
+calmaRemoveDegenerate(
+    BoundaryTop *blist)
 {
     bool segfound;
     LinkedBoundary *stopseg, *curseg, *lastseg;
@@ -2195,8 +2200,8 @@ calmaRemoveDegenerate(blist)
  */
 
 void
-calmaRemoveColinear(blist)
-    BoundaryTop *blist;
+calmaRemoveColinear(
+    BoundaryTop *blist)
 {
     LinkedBoundary *stopseg, *curseg, *lastseg;
     BoundaryTop *bounds;
@@ -2293,10 +2298,10 @@ calmaRemoveColinear(blist)
  */
 
 void
-calmaMergeSegments(edge, blist, num_points)
-    LinkedBoundary *edge;
-    BoundaryTop **blist;
-    int num_points;
+calmaMergeSegments(
+    LinkedBoundary *edge,
+    BoundaryTop **blist,
+    int num_points)
 {
     LinkedBoundary *stopseg, *curseg, *lastseg;
     LinkedBoundary *compstop, *compseg, *complast;
@@ -2379,9 +2384,9 @@ make_new_bound:
  */
 
 void
-calmaProcessBoundary(blist, cos)
-    BoundaryTop *blist;
-    calmaOutputStruct *cos;
+calmaProcessBoundary(
+    BoundaryTop *blist,
+    calmaOutputStruct *cos)
 {
     FILE *f = cos->f;
     LinkedBoundary *listtop, *lbref, *lbstop, *lbfree;
@@ -2489,9 +2494,9 @@ calmaProcessBoundary(blist, cos)
  */
 
 int
-calmaMergePaintFunc(tile, cos)
-    Tile *tile;			/* Tile to be written out. */
-    calmaOutputStruct *cos;	/* Information needed by algorithm */
+calmaMergePaintFunc(
+    Tile *tile,			/* Tile to be written out. */
+    calmaOutputStruct *cos)	/* Information needed by algorithm */
 {
     FILE *f = cos->f;
     Rect *clipArea = cos->area;
@@ -2812,9 +2817,9 @@ done_searches:
  */
 
 int
-calmaWritePaintFunc(tile, cos)
-    Tile *tile;			/* Tile to be written out. */
-    calmaOutputStruct *cos;	/* File for output and clipping area */
+calmaWritePaintFunc(
+    Tile *tile,			/* Tile to be written out. */
+    calmaOutputStruct *cos)	/* File for output and clipping area */
 {
     FILE *f = cos->f;
     Rect *clipArea = cos->area;
@@ -2917,13 +2922,13 @@ calmaWritePaintFunc(tile, cos)
  */
 
 void
-calmaWriteLabelFunc(lab, ltype, type, f)
-    Label *lab;	/* Label to output */
-    int ltype;	/* CIF layer number to use for TEXT record */
-    int type;	/* CIF layer number to use for BOUNDARY record,
+calmaWriteLabelFunc(
+    Label *lab,	/* Label to output */
+    int ltype,	/* CIF layer number to use for TEXT record */
+    int type,	/* CIF layer number to use for BOUNDARY record,
 		 * or -1 if not attached to a layer
 		 */
-    FILE *f;	/* Stream file */
+    FILE *f)	/* Stream file */
 {
     Point p;
     int calmanum, calmatype;
@@ -3088,9 +3093,9 @@ calmaWriteLabelFunc(lab, ltype, type, f)
  */
 
 int
-calmaPaintLabelFunc(tile, cos)
-    Tile *tile;			/* Tile contains area for label. */
-    calmaOutputStruct *cos;	/* File for output and clipping area */
+calmaPaintLabelFunc(
+    Tile *tile,			/* Tile contains area for label. */
+    calmaOutputStruct *cos)	/* File for output and clipping area */
 {
     FILE *f = cos->f;
     Rect *clipArea = cos->area;
@@ -3149,9 +3154,9 @@ calmaPaintLabelFunc(tile, cos)
  */
 
 void
-calmaOutHeader(rootDef, f)
-    CellDef *rootDef;
-    FILE *f;
+calmaOutHeader(
+    CellDef *rootDef,
+    FILE *f)
 {
     static double useru = 0.001;
     static double mum = 1.0e-9;
@@ -3210,9 +3215,9 @@ calmaOutHeader(rootDef, f)
  */
 
 void
-calmaOutDate(t, f)
-    time_t t;	/* Time (UNIX format) to be output */
-    FILE *f;	/* Stream file */
+calmaOutDate(
+    time_t t,	/* Time (UNIX format) to be output */
+    FILE *f)	/* Stream file */
 {
     struct tm *datep = localtime(&t);
 
@@ -3245,10 +3250,10 @@ calmaOutDate(t, f)
  */
 
 void
-calmaOutStringRecord(type, str, f)
-    int type;		/* Type of this record (data type is ASCII string) */
-    char *str;	/* String to be output */
-    FILE *f;	/* Stream file */
+calmaOutStringRecord(
+    int type,		/* Type of this record (data type is ASCII string) */
+    char *str,	/* String to be output */
+    FILE *f)	/* Stream file */
 {
     int len;
     unsigned char c;
@@ -3346,9 +3351,9 @@ calmaOutStringRecord(type, str, f)
  */
 
 void
-calmaOutR8(d, f)
-    double d;	/* Double value to write to output */
-    FILE *f;	/* Stream file */
+calmaOutR8(
+    double d,	/* Double value to write to output */
+    FILE *f)	/* Stream file */
 {
     int c, i, sign, expon;
 
@@ -3421,9 +3426,9 @@ calmaOutR8(d, f)
  */
 
 void
-calmaOut8(str, f)
-    char *str;	/* 8-byte string to be output */
-    FILE *f;	/* Stream file */
+calmaOut8(
+    char *str,	/* 8-byte string to be output */
+    FILE *f)	/* Stream file */
 {
     int i;
 

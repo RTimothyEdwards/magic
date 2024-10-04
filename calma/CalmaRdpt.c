@@ -82,8 +82,9 @@ bool calmaReadPath(CIFPath **pathheadpp, int iscale);
  */
 
 void
-calmaInputRescale(n, d)
-    int n, d;
+calmaInputRescale(
+    int n,
+    int d)
 {
     HashEntry *h;
     HashSearch hs;
@@ -135,9 +136,9 @@ calmaInputRescale(n, d)
  */
 
 void
-calmaReadPoint(p, iscale)
-    Point *p;
-    int iscale;
+calmaReadPoint(
+    Point *p,
+    int iscale)
 {
     int rescale;
 
@@ -205,7 +206,7 @@ calmaReadPoint(p, iscale)
  */
 
 void
-calmaElementBoundary()
+calmaElementBoundary(void)
 {
     int dt, layer, ciftype;
     CIFPath *pathheadp;
@@ -406,7 +407,7 @@ calmaElementBoundary()
  */
 
 void
-calmaElementBox()
+calmaElementBox(void)
 {
     int nbytes, rtype, npoints, savescale;
     int dt, layer, ciftype;
@@ -501,7 +502,7 @@ calmaElementBox()
  */
 
 void
-calmaElementPath()
+calmaElementPath(void)
 {
     int nbytes, rtype, extend1, extend2;
     int layer, dt, width, pathtype, ciftype, savescale;
@@ -729,7 +730,7 @@ calmaElementPath()
  */
 
 void
-calmaElementText()
+calmaElementText(void)
 {
     static int ignore[] = { CALMA_PATHTYPE, CALMA_WIDTH, -1 };
     char *textbody = NULL;
@@ -1108,9 +1109,9 @@ calmaElementText()
  */
 
 bool
-calmaReadPath(pathheadpp, iscale)
-    CIFPath **pathheadpp;
-    int iscale;
+calmaReadPath(
+    CIFPath **pathheadpp,
+    int iscale)
 {
     CIFPath path, *pathtailp, *newpathp;
     int nbytes, rtype, npoints, savescale;
@@ -1215,10 +1216,10 @@ calmaReadPath(pathheadpp, iscale)
  */
 
 void
-calmaLayerError(mesg, layer, dt)
-    char *mesg;
-    int layer;
-    int dt;
+calmaLayerError(
+    char *mesg,
+    int layer,
+    int dt)
 {
     CalmaLayerType clt;
     HashEntry *he;

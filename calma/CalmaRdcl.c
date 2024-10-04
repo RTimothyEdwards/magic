@@ -96,8 +96,8 @@ typedef struct {
  */
 
 OFFTYPE
-calmaSetPosition(sname)
-    char *sname;
+calmaSetPosition(
+    char *sname)
 {
     OFFTYPE originalPos = 0, currentPos = 0;
     int nbytes, rtype;
@@ -188,7 +188,7 @@ calmaSetPosition(sname)
  */
 
 void
-calmaNextCell()
+calmaNextCell(void)
 {
     int nbytes, rtype;
 
@@ -240,7 +240,7 @@ calmaNextCell()
  */
 
 Plane **
-calmaExact()
+calmaExact(void)
 {
     int pNum;
     Plane *newplane;
@@ -298,9 +298,9 @@ calmaExact()
  */
 
 int
-calmaFlattenPolygonFunc(use, parent)
-    CellUse *use;
-    CellDef *parent;
+calmaFlattenPolygonFunc(
+    CellUse *use,
+    CellDef *parent)
 {
     int i;
     CellUse dummy;
@@ -347,8 +347,8 @@ calmaFlattenPolygonFunc(use, parent)
  */
 
 bool
-calmaParseStructure(filename)
-    char *filename;		/* Name of the GDS file read */
+calmaParseStructure(
+    char *filename)		/* Name of the GDS file read */
 {
     static int structs[] = { CALMA_STRCLASS, CALMA_STRTYPE, -1 };
     int nbytes, rtype, nsrefs, osrefs, npaths;
@@ -675,9 +675,10 @@ syntaxerror:
  */
 
 bool
-calmaParseElement(filename, pnsrefs, pnpaths)
-    char *filename;
-    int *pnsrefs, *pnpaths;
+calmaParseElement(
+    char *filename,
+    int *pnsrefs,
+    int *pnpaths)
 {
     static int node[] = { CALMA_ELFLAGS, CALMA_PLEX, CALMA_LAYER,
 			  CALMA_NODETYPE, CALMA_XY, -1 };
@@ -737,9 +738,9 @@ calmaParseElement(filename, pnsrefs, pnpaths)
  */
 
 int
-calmaEnumFunc(tile, plane)
-    Tile *tile;
-    int *plane;
+calmaEnumFunc(
+    Tile *tile,
+    int *plane)
 {
     return 1;
 }
@@ -764,8 +765,8 @@ calmaEnumFunc(tile, plane)
  */
 
 int
-calmaElementSref(filename)
-    char *filename;
+calmaElementSref(
+    char *filename)
 {
     int nbytes, rtype, cols, rows, nref, n, i, savescale;
     int xlo, ylo, xhi, yhi, xsep, ysep;
@@ -1232,9 +1233,9 @@ calmaElementSref(filename)
 /* Callback function for determining if a cell has at least one subcell */
 
 int
-gdsHasUses(use, clientdata)
-    CellUse *use;
-    ClientData clientdata;
+gdsHasUses(
+    CellUse *use,
+    ClientData clientdata)
 {
     return 1;
 }
@@ -1242,9 +1243,9 @@ gdsHasUses(use, clientdata)
 /* Callback function for copying paint from one CIF cell into another */
 
 int
-gdsCopyPaintFunc(tile, gdsCopyRec)
-    Tile *tile;
-    GDSCopyRec *gdsCopyRec;
+gdsCopyPaintFunc(
+    Tile *tile,
+    GDSCopyRec *gdsCopyRec)
 {
     int pNum;
     TileType dinfo;
@@ -1289,8 +1290,8 @@ gdsCopyPaintFunc(tile, gdsCopyRec)
  */
 
 void
-calmaUniqueCell(sname)
-    char *sname;
+calmaUniqueCell(
+    char *sname)
 {
     HashEntry *h;
     CellDef *def, *testdef;
@@ -1349,14 +1350,14 @@ calmaUniqueCell(sname)
  */
 
 CellDef *
-calmaFindCell(name, was_called, predefined)
-    char *name;		/* Name of desired cell */
-    bool *was_called;	/* If this cell is in the hash table, then it
+calmaFindCell(
+    char *name,		/* Name of desired cell */
+    bool *was_called,	/* If this cell is in the hash table, then it
 			 * was instanced before it was defined.  We
 			 * need to know this so as to avoid flattening
 			 * the cell if requested.
 			 */
-    bool *predefined;	/* If this cell was in memory before the GDS
+    bool *predefined)	/* If this cell was in memory before the GDS
 			 * file was read, then this flag gets set.
 			 */
 
@@ -1431,8 +1432,8 @@ calmaFindCell(name, was_called, predefined)
  */
 
 CellDef *
-calmaLookCell(name)
-    char *name;		/* Name of desired cell */
+calmaLookCell(
+    char *name)		/* Name of desired cell */
 {
     HashEntry *h;
 
