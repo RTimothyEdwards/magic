@@ -582,7 +582,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
     int i, x, y, tile_ydelta;
     int save_ds, iter;
     int scale_over_2, ds_over_2;
-    float *strip;
+    float *strip = NULL;
     float scale, invscale, scaledown, normal;
 
 #ifdef VERSATEC
@@ -937,8 +937,10 @@ PlotPNM(fileName, scx, layers, xMask, width)
 done:
     PlotPNMdownsample = save_ds;
     freeMagic(rtile);
+    rtile = NULL;
     freeMagic(strip);
     freeMagic(lkstep);
+    lkstep = NULL;
     return;
 }
 
