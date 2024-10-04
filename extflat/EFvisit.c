@@ -894,9 +894,16 @@ EFHNOut(hierName, outf)
 	    }
 	    else switch (c)
 	    {
-		case '!':	if (!trimGlob) (void) putc(c, outf); break;
-		case '#':	if (trimLocal) break;
-		default:	(void) putc(c, outf); break;
+		case '!':
+		    if (!trimGlob)
+			(void) putc(c, outf);
+		    break;
+		case '#':
+		    if (trimLocal)
+			break;
+		default:
+		    (void) putc(c, outf);
+		    break;
 	    }
 	}
     }
