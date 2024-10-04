@@ -198,7 +198,7 @@ GrTOGLSetCursor(cursorNum)
     toglCurrent.cursor = grCursors[cursorNum];
 
     HashStartSearch(&hs);
-    while (entry = HashNext(&grTOGLWindowTable,&hs))
+    while ((entry = HashNext(&grTOGLWindowTable,&hs)))
     {
     	if (HashGetValue(entry))
 	{

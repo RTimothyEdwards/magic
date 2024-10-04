@@ -543,7 +543,7 @@ efAddNodes(hc, stdcell)
 	     * The name should only have been in the hash table already
 	     * if the node was marked with EF_DEVTERM as described above.
 	     */
-	    if (oldname = (EFNodeName *) HashGetValue(he))
+	    if ((oldname = (EFNodeName *) HashGetValue(he)))
 	    {
 		if (hierName != nn->efnn_hier)
 		    EFHNFree(hierName, hc->hc_hierName, HN_CONCAT);
@@ -795,7 +795,7 @@ efFlatGlob()
      * also adding it to the global hash table efNodeHashTable.
      */
     HashStartSearch(&hs);
-    while (heGlob = HashNext(&globalTable, &hs))
+    while ((heGlob = HashNext(&globalTable, &hs)))
     {
 	/*
 	 * Add the name to the flat node name hash table, and
@@ -927,7 +927,7 @@ efFlatKills(hc)
     /* Process all of our kill information */
     for (k = def->def_kills; k; k = k->kill_next)
     {
-	if (he = EFHNConcatLook(hc->hc_hierName, k->kill_name, "kill"))
+	if ((he = EFHNConcatLook(hc->hc_hierName, k->kill_name, "kill")))
 	{
 	    nn = (EFNodeName *) HashGetValue(he);
 	    nn->efnn_node->efnode_flags |= EF_KILLED;
@@ -1149,12 +1149,12 @@ efFlatDists(hc)
 
     /* Process our own distances */
     HashStartSearch(&hs);
-    while (he = HashNext(&hc->hc_use->use_def->def_dists, &hs))
+    while ((he = HashNext(&hc->hc_use->use_def->def_dists, &hs)))
     {
 	dist = (Distance *) HashGetValue(he);
 	efHNBuildDistKey(hc->hc_hierName, dist, &distKey);
 	heFlat = HashFind(&efDistHashTable, (char *) &distKey);
-	if (distFlat = (Distance *) HashGetValue(heFlat))
+	if ((distFlat = (Distance *) HashGetValue(heFlat)))
 	{
 	    /*
 	     * This code differs from that in efBuildDist(), in that

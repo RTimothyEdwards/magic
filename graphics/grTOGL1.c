@@ -1092,7 +1092,7 @@ GrTOGLCreate(w, name)
     WindSeparateRedisplay(w);
 
     sprintf(windowname, ".magic%d", WindowNumber + 1);
-    if (windowplace = XGetDefault(grXdpy, "magic", windowname))
+    if ((windowplace = XGetDefault(grXdpy, "magic", windowname)))
     {
 	XParseGeometry(windowplace,&x,&y,
 		(unsigned int *)&width,(unsigned int *)&height);
@@ -1108,7 +1108,7 @@ GrTOGLCreate(w, name)
     grAttributes.background_pixel = WhitePixel(grXdpy,grXscrn);
     grAttributes.border_pixel = BlackPixel(grXdpy,grXscrn);
 
-    if (tktop = Tk_MainWindow(magicinterp))
+    if ((tktop = Tk_MainWindow(magicinterp)))
     {
         if (!WindowNumber)
 	{
@@ -1539,7 +1539,7 @@ GrTOGLIconUpdate(w,text)		/* See Blt code */
     XSetClassHint( grXdpy, wind, &class);
     if (text)
     {
-	if (brack = strchr(text,'['))
+	if ((brack = strchr(text,'[')))
 	{
 	    brack--;
 	    *brack = 0;
@@ -1548,7 +1548,7 @@ GrTOGLIconUpdate(w,text)		/* See Blt code */
      	    *brack = ' ';
 	    return;
 	}
-	if (brack = strrchr(text,' ')) text = brack+1;
+	if ((brack = strrchr(text,' '))) text = brack+1;
 	XSetIconName(grXdpy,wind,text);
 	XStoreName(grXdpy,wind,text);
     }

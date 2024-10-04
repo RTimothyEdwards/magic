@@ -107,7 +107,7 @@ EFDone(func)
     int n;
 
     HashStartSearch(&hs);
-    while (he = HashNext(&efDefHashTable, &hs))
+    while ((he = HashNext(&efDefHashTable, &hs)))
     {
 	def = (Def *) HashGetValue(he);
 	freeMagic(def->def_name);
@@ -151,7 +151,7 @@ EFDone(func)
     /* Free up the parameter name tables for each device */
 
     HashStartSearch(&hs);
-    while (he = HashNext(&efDevParamTable, &hs))
+    while ((he = HashNext(&efDevParamTable, &hs)))
     {
 	DevParam *plist = (DevParam *)HashGetValue(he);
 	while (plist != NULL)
@@ -164,7 +164,7 @@ EFDone(func)
     HashKill(&efDevParamTable);
 
     HashStartSearch(&hs);
-    while (he = HashNext(&efFreeHashTable, &hs))
+    while ((he = HashNext(&efFreeHashTable, &hs)))
     {
 	/* Keys of this table are entries to be free'd */
 	freeMagic(he->h_key.h_ptr);
