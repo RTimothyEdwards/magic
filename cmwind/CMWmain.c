@@ -44,12 +44,12 @@ global WindClient CMWclientID;
 
 /* Forward and external declarations */
 
-extern void cmwColor();
-extern void cmwSave();
-extern void cmwLoad();
-extern void cmwPushbutton();
-extern void RGBxHSV();
-extern void CMWundoInit();
+extern void cmwColor(MagWindow *w, TxCommand *cmd);
+extern void cmwSave(MagWindow *w, TxCommand *cmd);
+extern void cmwLoad(MagWindow *w, TxCommand *cmd);
+extern void cmwPushbutton(MagWindow *w, TxCommand *cmd);
+extern bool RGBxHSV(double r, double g, double b, double *h, double *s, double *v);
+extern void CMWundoInit(void);
 
 /* -------------------------------------------------------------------- */
 
