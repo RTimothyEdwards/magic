@@ -89,7 +89,7 @@ extern void CMWundoInit(void);
  * which pump is hit and which mouse button is used to hit it.
  */
 
-ColorBar colorBars[] =
+const ColorBar const colorBars[] =
 {
     {"Red",	CB_RED,		STYLE_RED,	{{ 2000,	8000},	{10000,	 9000}},
 						{{ 2000,	9500},	{10000,	10500}}},
@@ -106,7 +106,7 @@ ColorBar colorBars[] =
     {0}
 };
 
-ColorPump colorPumps[] =
+const ColorPump const colorPumps[] =
 {
     {CB_RED,	-.0078,	{{  500, 8000},	{ 1500,	9000}}},
     {CB_RED,	 .0078,	{{10500, 8000},	{11500,	9000}}},
@@ -123,13 +123,13 @@ ColorPump colorPumps[] =
     {-1}
 };
 
-Rect cmwCurrentColorArea = {{6000, 12000}, {18000, 15000}};
-Rect cmwCurrentColorTextBox = {{6000, 15500}, {18000, 16500}};
-char *cmwCurrentColorText = "Color Being Edited";
+const Rect cmwCurrentColorArea = {{6000, 12000}, {18000, 15000}};
+const Rect cmwCurrentColorTextBox = {{6000, 15500}, {18000, 16500}};
+const char * const cmwCurrentColorText = "Color Being Edited";
 
 /* Bounding rectangle for entire window */
 
-Rect colorWindowRect = {{0, 1500}, {24000, 17000}};
+const Rect colorWindowRect = {{0, 1500}, {24000, 17000}};
 
 /*
  * ----------------------------------------------------------------------------
@@ -250,8 +250,8 @@ CMWredisplay(
     Rect *clipArea)	/* An area on the screen to clip to. */
 {
     CMWclientRec *cr;
-    ColorBar *cb;
-    ColorPump *cp;
+    const ColorBar *cb;
+    const ColorPump *cp;
     Rect rect, screenR;
     Point screenP;
     double values[6], x;

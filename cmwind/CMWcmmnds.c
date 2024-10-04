@@ -143,8 +143,8 @@ cmwButtonDown(
     Point *p,
     int button)
 {
-    ColorBar *cb;
-    ColorPump *cp;
+    const ColorBar *cb;
+    const ColorPump *cp;
     Point surfacePoint;
     int x;
     double dx;
@@ -598,8 +598,8 @@ cmwRedisplayFunc(
 				 * color bars in the window.
 				 */
 {
-    ColorBar *cb;
-    ColorPump *cp;
+    const ColorBar *cb;
+    const ColorPump *cp;
     Rect screenR;
     CMWclientRec *cr = (CMWclientRec *) w->w_clientData;
 
@@ -649,7 +649,7 @@ CMWCheckWritten(void)
 {
     bool indx;
     char *prompt;
-    static char *(yesno[]) = {"no", "yes", NULL};
+    static const char * const (yesno[]) = {"no", "yes", NULL};
 
     if (!cmwModified) return TRUE;
     prompt = TxPrintString("The color map has been modified.\n"
