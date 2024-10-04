@@ -701,7 +701,7 @@ CmdUnexpand(
 {
     int windowMask, boxMask;
     Rect rootRect;
-    int cmdUnexpandFunc();		/* Forward reference. */
+    int cmdUnexpandFunc(CellUse *use, int windowMask);		/* Forward reference. */
 
     if (cmd->tx_argc != 1)
     {
@@ -943,11 +943,14 @@ CmdWhat(
 
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj, *paintobj, *paintcellobj, *celllistobj, *labelobj, *cellobj;
-    extern int cmdWhatCellListFunc();
+    extern int cmdWhatCellListFunc(CellUse *selUse, CellUse *realUse, Transform *transform, Tcl_Obj *newobj);
 #endif
 
-    extern int cmdWhatPaintFunc(), cmdWhatLabelFunc(), cmdWhatCellFunc();
-    extern int cmdWhatLabelPreFunc(), orderLabelFunc();
+    extern int cmdWhatPaintFunc(Rect *rect, TileType type, TileTypeBitMask *mask);
+    extern int cmdWhatLabelFunc(LabelStore *entry, bool *foundAny);
+    extern int cmdWhatCellFunc(CellUse *selUse, CellUse *realUse, Transform *transform, bool *foundAny);
+    extern int cmdWhatLabelPreFunc(Label *label, CellUse *cellUse, Transform *transform, bool *foundAny);
+    extern int orderLabelFunc(LabelStore *one, LabelStore *two);
 
     locargc = cmd->tx_argc;
 
@@ -1345,7 +1348,7 @@ cmdWhatCellFunc(
 				 */
 {
     /* Forward reference */
-    char *dbGetUseName();
+    char *dbGetUseName(CellUse *celluse);
 
     if (!*foundAny)
     {
@@ -1370,7 +1373,7 @@ cmdWhatCellListFunc(
 {
     Tcl_Obj *tuple;
     /* Forward reference */
-    char *dbGetUseName();
+    char *dbGetUseName(CellUse *celluse);
 
     tuple = Tcl_NewListObj(0, NULL);
     Tcl_ListObjAppendElement(magicinterp, tuple,
@@ -1859,7 +1862,7 @@ CmdWriteall(
     MagWindow *w,
     TxCommand *cmd)
 {
-    int cmdWriteallFunc();
+    int cmdWriteallFunc(CellDef *def, TxCommand *cmd);
     int option = -1;
     static char *writeallOpts[] = { "force", "modified", 0 };
     int argc;

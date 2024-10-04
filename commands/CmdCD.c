@@ -67,8 +67,8 @@ struct cmdCornerArea
 };
 
 /* Forward declarations */
-int cmdDumpFunc();
-bool cmdDumpParseArgs();
+int cmdDumpFunc(Rect *rect, char *name, Label *label, Point *point);
+bool cmdDumpParseArgs(char *cmdName, MagWindow *w, TxCommand *cmd, CellUse *dummy, SearchContext *scx);
 #ifdef CALMA_MODULE
 
 /*
@@ -1323,7 +1323,7 @@ CmdCellname(
 	    /* Unload the cell definition and re-read with search paths */
 	    if (locargc == 3)
 	    {
-		void cmdFlushCell();
+		void cmdFlushCell(CellDef *def, int force_deref);
 
 		if (cellname == NULL)
 		    cellDef = EditRootDef;
@@ -2387,8 +2387,8 @@ CmdContact(
     CCStruct ccs;
     Rect area;
     LinkedRect *lr = NULL;
-    int cmdContactFunc();	/* Forward declaration */
-    int cmdContactEraseFunc();	/* Forward declaration */
+    int cmdContactFunc(Tile *tile, CCStruct *ccs);	/* Forward declaration */
+    int cmdContactEraseFunc(Tile *tile, LinkedRect **lr);	/* Forward declaration */
 
     windCheckOnlyWindow(&w, DBWclientID);
     if ((w == (MagWindow *) NULL) || (w->w_client != DBWclientID))
@@ -2522,7 +2522,7 @@ cmdContactFunc(
 {
     TileType stype;
     TileTypeBitMask smask;
-    int cmdContactFunc2();	/* Forward declaration */
+    int cmdContactFunc2(Tile *tile, CCStruct *ccs);	/* Forward declaration */
 
     TiToRect(tile, &ccs->area);
     GeoClip(&ccs->area, &ccs->clip);
@@ -2815,11 +2815,11 @@ CmdCorner(
     TileTypeBitMask maskBits;
     Rect editBox;
     SearchContext scx;
-    extern int cmdCornerFunc();
+    extern int cmdCornerFunc(Tile *tile, TreeContext *cxp);
     bool hasErr = FALSE;
     int locargc = cmd->tx_argc;
 
-    extern int cmdBevelFunc();
+    extern int cmdBevelFunc(Tile *tile, TreeContext *cxp);
     bool dobevel = FALSE;
     NMCornerPath cmdPathList;
 
@@ -3833,8 +3833,8 @@ CmdDown(
 {
     CellUse *use = NULL;
     Rect area, pointArea;
-    int cmdEditRedisplayFunc();		/* External declaration. */
-    int cmdDownEnumFunc();		/* Forward declaration. */
+    int cmdEditRedisplayFunc(MagWindow *w, Rect *area);		/* External declaration. */
+    int cmdDownEnumFunc(CellUse *selUse, CellUse *use, Transform *transform, Rect *area);		/* Forward declaration. */
 
     if ((w != NULL) && (cmd->tx_argc == 2))
     {

@@ -52,9 +52,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Forward declarations */
 
-extern char *cmdCheckNewName();
-extern int cmdSaveWindSet();
-extern void CmdSetWindCaption();
+extern char *cmdCheckNewName(CellDef *def, char *newName, bool tryRename, bool noninteractive);
+extern int cmdSaveWindSet(MagWindow *window, CellDef *def);
+extern void CmdSetWindCaption(CellUse *newEditUse, CellDef *rootDef);
 
 TileTypeBitMask CmdYMLabel;
 TileTypeBitMask CmdYMCell;
@@ -908,7 +908,7 @@ CmdSetWindCaption(
 				 * edit cell was selected.
 				 */
 {
-    int cmdWindSet();
+    int cmdWindSet(MagWindow *window);
 
     newEditDef = (newEditUse) ? newEditUse->cu_def : NULL;
     newRootDef = rootDef;
@@ -1075,7 +1075,7 @@ bool
 CmdWarnWrite(void)
 {
     int count, code;
-    int cmdWarnWriteFunc();
+    int cmdWarnWriteFunc(CellDef *cellDef, int *pcount);
     static char *yesno[] = { "no", "yes", 0 };
     char *prompt;
 
@@ -1125,7 +1125,7 @@ cmdExpandOneLevel(
     int bitmask,
     bool expand)
 {
-    extern int cmdExpand1func();
+    extern int cmdExpand1func(CellUse *cu, ClientData bitmask);
 
     /* first, expand this cell use */
     DBExpand(cu, bitmask, expand);
@@ -1174,7 +1174,7 @@ CmdGetSelectedCell(
 				 */
 {
     CellUse *result = NULL;
-    int cmdGetSelFunc();		/* Forward declaration. */
+    int cmdGetSelFunc(CellUse *selUse, CellUse *realUse, Transform *transform, CellUse **pResult);		/* Forward declaration. */
 
     cmdSelTrans = pTrans;
     (void) SelEnumCells(FALSE, (bool *) NULL, (SearchContext *) NULL,

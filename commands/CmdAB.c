@@ -156,7 +156,7 @@ CmdArray(
     Tcl_Obj *tobj;
 #endif
 
-    extern int selGetArrayFunc();
+    extern int selGetArrayFunc(CellUse *selUse, CellUse *use, Transform *trans, LinkedArray **arg);
 
     locargc = cmd->tx_argc;
     argstart = 1;

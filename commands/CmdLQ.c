@@ -51,7 +51,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Forward declarations */
 
-void CmdPaintEraseButton();
+void CmdPaintEraseButton(MagWindow *w, Point *refPoint, bool isPaint, bool isScreen);
 
 /* See the SetLabel command */
 
@@ -403,7 +403,7 @@ CmdLoad(
     bool failNotFound = FALSE;
     unsigned char saveVerbose;
     unsigned char flags;
-    int keepGoing();			/* forward declaration */
+    int keepGoing(CellUse *use, ClientData clientdata);			/* forward declaration */
     extern unsigned char DBVerbose;	/* from DBio.c */
 
     saveVerbose = DBVerbose;
@@ -1448,7 +1448,7 @@ complabel(
     /* Natural sort order routine from DBcellname.c
      * replaces strcasecmp().
      */
-    int strcmpbynum();
+    int strcmpbynum(const char *s1, const char *s2);
 
     Label *l1 = *((Label **)one);
     Label *l2 = *((Label **)two);
@@ -2076,7 +2076,7 @@ CmdPort(
 		{
 		    int numlabels, n, p;
 		    Label **slablist, *tlab, *lastlab;
-		    extern int complabel();
+		    extern int complabel(const void *one, const void *two);
 
 		    /* Create a sortable list of labels */
 		    numlabels = 0;
