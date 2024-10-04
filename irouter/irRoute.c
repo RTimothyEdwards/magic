@@ -595,6 +595,7 @@ irGetStartPoint(startType, argStartPt, argStartLabel, startLayerPtr, routeUse)
 	/* shouldn't happen */
 	{
 	    ASSERT(FALSE,"irGetStartPoint");
+	    goto abort;
 	}
 	break;
     }
@@ -720,6 +721,7 @@ irGetDestRect(destType, argDestRect, argDestLabel, destLayerPtr, routeUse)
 	/* shouldn't happen */
 	{
 	    ASSERT(FALSE,"irGetDestRect");
+	    goto abort;
 	}
 	break;
     }
