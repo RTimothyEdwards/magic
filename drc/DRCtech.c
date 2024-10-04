@@ -4138,7 +4138,7 @@ DRCTechScale(scalen, scaled)
     int scalegcf;
 
     if (DRCCurStyle == NULL) return;
-    else if (scalen == scaled == 1) return;
+    else if (scalen == scaled) return;
 
     /* Revert DRC rules to original (unscaled) values */
     drcScaleUp(DRCCurStyle, DRCCurStyle->DRCScaleFactorN);
