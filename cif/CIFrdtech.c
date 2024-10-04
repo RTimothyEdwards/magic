@@ -90,8 +90,9 @@ void CIFReadLoadStyle(char *stylename);
  */
 
 bool
-CIFReadTechLimitScale(ns, ds)
-    int ns, ds;
+CIFReadTechLimitScale(
+    int ns,
+    int ds)
 {
     int gridup, scaledown;
     int scale, limit, mult;
@@ -131,9 +132,9 @@ CIFReadTechLimitScale(ns, ds)
  */
 
 int
-CIFReadNameToType(name, newOK)
-    char *name;		/* Name of a CIF layer. */
-    bool newOK;		/* TRUE means OK to create a new layer if this
+CIFReadNameToType(
+    char *name,		/* Name of a CIF layer. */
+    bool newOK)		/* TRUE means OK to create a new layer if this
 			 * name is one we haven't seen before.
 			 */
 {
@@ -196,10 +197,10 @@ CIFReadNameToType(name, newOK)
  */
 
 int
-CIFCalmaLayerToCifLayer(layer, datatype, calmaStyle)
-    int layer;		/* Calma layer number */
-    int datatype;	/* Calma datatype */
-    CIFReadStyle *calmaStyle;
+CIFCalmaLayerToCifLayer(
+    int layer,		/* Calma layer number */
+    int datatype,	/* Calma datatype */
+    CIFReadStyle *calmaStyle)
 {
     CalmaLayerType clt;
     HashEntry *he;
@@ -251,10 +252,10 @@ CIFCalmaLayerToCifLayer(layer, datatype, calmaStyle)
  */
 
 void
-CIFParseReadLayers(string, mask, newok)
-    char *string;		/* Comma-separated list of CIF layers. */
-    TileTypeBitMask *mask;	/* Where to store bit mask. */
-    bool newok;			/* If TRUE, create new layers if they don't exist */
+CIFParseReadLayers(
+    char *string,		/* Comma-separated list of CIF layers. */
+    TileTypeBitMask *mask,	/* Where to store bit mask. */
+    bool newok)			/* If TRUE, create new layers if they don't exist */
 {
     int i;
     char *p;
@@ -313,7 +314,7 @@ CIFParseReadLayers(string, mask, newok)
  */
 
 void
-cifNewReadStyle()
+cifNewReadStyle(void)
 {
     int i;
     CIFOp	 *op;
@@ -353,7 +354,7 @@ cifNewReadStyle()
  */
 
 void
-cifReadStyleInit()
+cifReadStyleInit(void)
 {
     int i;
 
@@ -395,7 +396,7 @@ cifReadStyleInit()
  */
 
 void
-CIFReadTechInit()
+CIFReadTechInit(void)
 {
     CIFReadKeep *style;
 
@@ -433,7 +434,7 @@ CIFReadTechInit()
  */
 
 void
-CIFReadTechStyleInit()
+CIFReadTechStyleInit(void)
 {
     cifNReadLayers = 0;
     cifCurReadLayer = NULL;
@@ -460,10 +461,10 @@ CIFReadTechStyleInit()
  */
 	/* ARGSUSED */
 bool
-CIFReadTechLine(sectionName, argc, argv)
-    char *sectionName;		/* Name of this section ("cifinput"). */
-    int argc;			/* Number of fields on line. */
-    char *argv[];		/* Values of fields. */
+CIFReadTechLine(
+    char *sectionName,		/* Name of this section ("cifinput"). */
+    int argc,			/* Number of fields on line. */
+    char *argv[])		/* Values of fields. */
 {
     CIFOp *newOp = NULL;
     CIFReadKeep *newStyle, *p;
@@ -1051,7 +1052,7 @@ CIFReadTechLine(sectionName, argc, argv)
  */
 
 void
-CIFReadTechFinal()
+CIFReadTechFinal(void)
 {
     /* Reduce the scale by the multiplier, as much as possible while	*/
     /* keeping all CIF input ops in integer units.			*/
@@ -1095,8 +1096,8 @@ CIFReadTechFinal()
  * ----------------------------------------------------------------------------
  */
 void
-CIFReadLoadStyle(stylename)
-    char *stylename;
+CIFReadLoadStyle(
+    char *stylename)
 {
     SectionID invcifr;
 
@@ -1138,8 +1139,8 @@ CIFReadLoadStyle(stylename)
  */
 
 int
-CIFReadGetGrowSize(type)
-    TileType type;
+CIFReadGetGrowSize(
+    TileType type)
 {
     CIFReadStyle *istyle = cifCurReadStyle;
     CIFOp *op;
@@ -1193,8 +1194,8 @@ CIFReadGetGrowSize(type)
  */
 
 float
-CIFGetInputScale(convert)
-   int convert;
+CIFGetInputScale(
+   int convert)
 {
     /* Avoid divide-by-0 error if there is no cif input style	*/
     /* in the tech file.					*/
@@ -1226,10 +1227,10 @@ CIFGetInputScale(convert)
  */
 
 void
-CIFPrintReadStyle(dolist, doforall, docurrent)
-    bool dolist;		/* Return as a list if true */
-    bool doforall;		/* Return list of all styles if true */
-    bool docurrent;		/* Return current style if true */
+CIFPrintReadStyle(
+    bool dolist,		/* Return as a list if true */
+    bool doforall,		/* Return list of all styles if true */
+    bool docurrent)		/* Return current style if true */
 {
     CIFReadKeep *style;
 
@@ -1297,8 +1298,8 @@ CIFPrintReadStyle(dolist, doforall, docurrent)
  */
 
 void
-CIFSetReadStyle(name)
-    char *name;			/* Name of the new style.  If NULL,
+CIFSetReadStyle(
+    char *name)			/* Name of the new style.  If NULL,
 				 * just print the name of the current
 				 * style.
 				 */
@@ -1358,10 +1359,10 @@ CIFSetReadStyle(name)
  */
 
 int
-cifParseCalmaNums(str, numArray, numNums)
-    char *str;	/* String to parse */
-    int *numArray;	/* Array to fill in */
-    int numNums;	/* Maximum number of entries in numArray */
+cifParseCalmaNums(
+    char *str,	/* String to parse */
+    int *numArray,	/* Array to fill in */
+    int numNums)	/* Maximum number of entries in numArray */
 {
     int numFilled, num;
 
@@ -1421,9 +1422,10 @@ cifParseCalmaNums(str, numArray, numNums)
  */
 
 int
-CIFTechInputScale(n, d, opt)
-    int n, d;
-    bool opt;
+CIFTechInputScale(
+    int n,
+    int d,
+    bool opt)
 {
     CIFReadStyle *istyle = cifCurReadStyle;
     CIFReadLayer *cl;

@@ -65,7 +65,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 bool
-CIFParseBox()
+CIFParseBox(void)
 {
     Point	center;
     Point	direction;
@@ -176,7 +176,7 @@ CIFParseBox()
  */
 
 bool
-CIFParseFlash()
+CIFParseFlash(void)
 {
     int		diameter;
     int		savescale;
@@ -236,11 +236,11 @@ CIFParseFlash()
  */
 
 void
-CIFPropRecordPath(def, pathheadp, iswire, propname)
-    CellDef *def;
-    CIFPath *pathheadp;
-    bool iswire;
-    char *propname;
+CIFPropRecordPath(
+    CellDef *def,
+    CIFPath *pathheadp,
+    bool iswire,
+    char *propname)
 {
     extern float CIFGetOutputScale(int convert);
     CIFPath *pathp;
@@ -316,13 +316,13 @@ CIFPropRecordPath(def, pathheadp, iswire, propname)
  */
 
 void
-CIFPaintWirePath(pathheadp, width, endcap, plane, ptable, ui)
-    CIFPath *pathheadp;
-    int width;
-    bool endcap;
-    Plane *plane;
-    PaintResultType *ptable;
-    PaintUndoInfo *ui;
+CIFPaintWirePath(
+    CIFPath *pathheadp,
+    int width,
+    bool endcap,
+    Plane *plane,
+    PaintResultType *ptable,
+    PaintUndoInfo *ui)
 {
     CIFPath *pathp, *previousp, *nextp, *polypath;
     CIFPath *returnpath, *newpath, *savepath;
@@ -562,13 +562,13 @@ CIFPaintWirePath(pathheadp, width, endcap, plane, ptable, ui)
  */
 
 LinkedRect *
-PaintPolygon(pointlist, number, plane, ptable, ui, keep)
-    Point *pointlist;		/* Array of Point structures */
-    int number;			/* total number of points */
-    Plane *plane;		/* Plane structure to paint into */
-    PaintResultType *ptable;	/* Paint result table */
-    PaintUndoInfo *ui;		/* Undo record */
-    bool keep;			/* Return list of rects if true */
+PaintPolygon(
+    Point *pointlist,		/* Array of Point structures */
+    int number,			/* total number of points */
+    Plane *plane,		/* Plane structure to paint into */
+    PaintResultType *ptable,	/* Paint result table */
+    PaintUndoInfo *ui,		/* Undo record */
+    bool keep)			/* Return list of rects if true */
 {
     LinkedRect	*rectp, *rectlist;
     CIFPath *newpath, *cifpath = (CIFPath *)NULL;
@@ -617,14 +617,14 @@ PaintPolygon(pointlist, number, plane, ptable, ui, keep)
  */
 
 void
-PaintWireList(pointlist, number, width, endcap, plane, ptable, ui)
-    Point *pointlist;		/* Array of Point structures */
-    int number;			/* total number of points */
-    int width;			/* Route width of path */
-    bool endcap;		/* Whether or not to add 1/2 width endcaps */
-    Plane *plane;		/* Plane structure to paint into */
-    PaintResultType *ptable;	/* Paint result table */
-    PaintUndoInfo *ui;		/* Undo record */
+PaintWireList(
+    Point *pointlist,		/* Array of Point structures */
+    int number,			/* total number of points */
+    int width,			/* Route width of path */
+    bool endcap,		/* Whether or not to add 1/2 width endcaps */
+    Plane *plane,		/* Plane structure to paint into */
+    PaintResultType *ptable,	/* Paint result table */
+    PaintUndoInfo *ui)		/* Undo record */
 {
     CIFPath *newpath, *cifpath = (CIFPath *)NULL;
     int i;
@@ -661,7 +661,7 @@ PaintWireList(pointlist, number, width, endcap, plane, ptable, ui)
  */
 
 bool
-CIFParseWire()
+CIFParseWire(void)
 {
     int		width;
     CIFPath	*pathheadp, *polypath;
@@ -721,7 +721,7 @@ CIFParseWire()
  */
 
 bool
-CIFParseLayer()
+CIFParseLayer(void)
 {
 #define MAXCHARS 4
     char	name[MAXCHARS+1];
@@ -784,7 +784,7 @@ CIFParseLayer()
  */
 
 bool
-CIFParsePoly()
+CIFParsePoly(void)
 {
     CIFPath	*pathheadp;
     LinkedRect	*rectp;

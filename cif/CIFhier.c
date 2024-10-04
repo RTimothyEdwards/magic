@@ -107,7 +107,7 @@ static CIFLayer *CurCifLayer;
  */
 
 void
-CIFInitCells()
+CIFInitCells(void)
 {
     int i;
 
@@ -172,7 +172,7 @@ CIFInitCells()
  */
 
 void
-cifHierCleanup()
+cifHierCleanup(void)
 {
     int i;
 
@@ -232,10 +232,10 @@ typedef struct _maskHintsData
 
 /* DEPRECATED */
 int
-cifMaskHints(name, value, targetDef)
-    char *name;
-    char *value;
-    CellDef *targetDef;
+cifMaskHints(
+    char *name,
+    char *value,
+    CellDef *targetDef)
 {
     char *propvalue, *newval;
     bool propfound;
@@ -277,10 +277,10 @@ cifMaskHints(name, value, targetDef)
  */
 
 int
-cifFlatMaskHints(name, value, mhd)
-    char *name;
-    char *value;
-    MaskHintsData *mhd;
+cifFlatMaskHints(
+    char *name,
+    char *value,
+    MaskHintsData *mhd)
 {
     Rect r, newr;
     char *vptr, *newval, *lastval, *propvalue;
@@ -361,9 +361,9 @@ cifFlatMaskHints(name, value, mhd)
  */
 
 void
-CIFCopyMaskHints(scx, targetDef)
-    SearchContext *scx;
-    CellDef *targetDef;
+CIFCopyMaskHints(
+    SearchContext *scx,
+    CellDef *targetDef)
 {
     MaskHintsData mhd;
 
@@ -392,9 +392,9 @@ CIFCopyMaskHints(scx, targetDef)
  */
 
 int
-cifHierCopyMaskHints(scx, clientData)
-    SearchContext *scx;
-    ClientData clientData;
+cifHierCopyMaskHints(
+    SearchContext *scx,
+    ClientData clientData)
 {
     MaskHintsData mhd;
 
@@ -431,9 +431,9 @@ cifHierCopyMaskHints(scx, clientData)
  */
 
 int
-cifHierCopyFunc(tile, cxp)
-    Tile *tile;			/* Pointer to tile to copy. */
-    TreeContext *cxp;		/* Describes context of search, including
+cifHierCopyFunc(
+    Tile *tile,			/* Pointer to tile to copy. */
+    TreeContext *cxp)		/* Describes context of search, including
 				 * transform and client data.
 				 */
 {
@@ -500,8 +500,8 @@ cifHierCopyFunc(tile, cxp)
  */
 
 int
-cifHierCellFunc(scx)
-    SearchContext *scx;		/* Describes cell and area in cell. */
+cifHierCellFunc(
+    SearchContext *scx)		/* Describes cell and area in cell. */
 {
     SearchContext newscx;
     Rect rootArea;
@@ -560,9 +560,9 @@ cifHierCellFunc(scx)
  */
 
 int
-cifHierErrorFunc(tile, checkArea)
-    Tile *tile;			/* Tile that covers area it shouldn't. */
-    Rect *checkArea;		/* Intersection of this and tile is error. */
+cifHierErrorFunc(
+    Tile *tile,			/* Tile that covers area it shouldn't. */
+    Rect *checkArea)		/* Intersection of this and tile is error. */
 {
     Rect area;
 
@@ -602,9 +602,9 @@ cifHierErrorFunc(tile, checkArea)
  */
 
 int
-cifHierCheckFunc(tile, plane)
-    Tile *tile;			/* Tile containing CIF. */
-    Plane *plane;		/* Plane to check against and modify. */
+cifHierCheckFunc(
+    Tile *tile,			/* Tile containing CIF. */
+    Plane *plane)		/* Plane to check against and modify. */
 {
     Rect area;
 
@@ -649,9 +649,9 @@ cifHierCheckFunc(tile, plane)
  */
 
 int
-cifHierTempCheckFunc(tile, plane)
-    Tile *tile;			/* Tile containing CIF. */
-    Plane *plane;		/* Plane to check against and modify. */
+cifHierTempCheckFunc(
+    Tile *tile,			/* Tile containing CIF. */
+    Plane *plane)		/* Plane to check against and modify. */
 {
     Rect area;
 
@@ -684,9 +684,9 @@ cifHierTempCheckFunc(tile, plane)
  */
 
 int
-cifHierPaintFunc(tile, plane)
-    Tile *tile;
-    Plane *plane;		/* Plane in which to paint CIF over tile's
+cifHierPaintFunc(
+    Tile *tile,
+    Plane *plane)		/* Plane in which to paint CIF over tile's
 				 * area.
 				 */
 {
@@ -725,8 +725,8 @@ cifHierPaintFunc(tile, plane)
  */
 
 void
-cifCheckAndErase(style)
-    CIFStyle *style;		/* Describes how to make CIF. */
+cifCheckAndErase(
+    CIFStyle *style)		/* Describes how to make CIF. */
 {
     int i;
 
@@ -766,10 +766,10 @@ cifCheckAndErase(style)
  */
 
 void
-CIFGenSubcells(def, area, output)
-    CellDef *def;		/* Parent cell for which CIF is computed. */
-    Rect *area;			/* All CIF in this area is interesting. */
-    Plane **output;		/* Array of pointers to planes into which
+CIFGenSubcells(
+    CellDef *def,		/* Parent cell for which CIF is computed. */
+    Rect *area,			/* All CIF in this area is interesting. */
+    Plane **output)		/* Array of pointers to planes into which
 				 * the CIF output will be OR'ed (real CIF
 				 * only).
 				 */
@@ -934,13 +934,14 @@ CIFGenSubcells(def, area, output)
  */
 
 int
-cifHierElementFuncLow(use, transform, x, y, checkArea)
-    CellUse *use;			/* CellUse being array-checked. */
-    Transform *transform;		/* Transform from this instance to
+cifHierElementFuncLow(
+    CellUse *use,			/* CellUse being array-checked. */
+    Transform *transform,		/* Transform from this instance to
 					 * the parent.
 					 */
-    int x, y;				/* Indices of this instance. */
-    Rect *checkArea;			/* Area (in parent coords) to be
+    int x,
+    int y,				/* Indices of this instance. */
+    Rect *checkArea)			/* Area (in parent coords) to be
 					 * CIF-generated.
 					 */
 {
@@ -957,13 +958,14 @@ cifHierElementFuncLow(use, transform, x, y, checkArea)
  */
 
 int
-cifHierElementFuncHigh(use, transform, x, y, checkArea)
-    CellUse *use;			/* CellUse being array-checked. */
-    Transform *transform;		/* Transform from this instance to
+cifHierElementFuncHigh(
+    CellUse *use,			/* CellUse being array-checked. */
+    Transform *transform,		/* Transform from this instance to
 					 * the parent.
 					 */
-    int x, y;				/* Indices of this instance. */
-    Rect *checkArea;			/* Area (in parent coords) to be
+    int x,
+    int y,				/* Indices of this instance. */
+    Rect *checkArea)			/* Area (in parent coords) to be
 					 * CIF-generated.
 					 */
 {
@@ -998,13 +1000,14 @@ cifHierElementFuncHigh(use, transform, x, y, checkArea)
 
     /* ARGSUSED */
 int
-cifHierElementFunc(use, transform, x, y, checkArea)
-    CellUse *use;			/* CellUse being array-checked. */
-    Transform *transform;		/* Transform from this instance to
+cifHierElementFunc(
+    CellUse *use,			/* CellUse being array-checked. */
+    Transform *transform,		/* Transform from this instance to
 					 * the parent.
 					 */
-    int x, y;				/* Indices of this instance. */
-    Rect *checkArea;			/* Area (in parent coords) to be
+    int x,
+    int y,				/* Indices of this instance. */
+    Rect *checkArea)			/* Area (in parent coords) to be
 					 * CIF-generated.
 					 */
 {
@@ -1062,9 +1065,9 @@ cifHierElementFunc(use, transform, x, y, checkArea)
  */
 
 int
-cifGrowSliver(tile, area)
-    Tile *tile;
-    Rect *area;
+cifGrowSliver(
+    Tile *tile,
+    Rect *area)
 {
     int height, width, expand_up, expand_side;
 
@@ -1123,8 +1126,8 @@ cifGrowSliver(tile, area)
  */
 
 int
-cifHierPaintArrayFunc(tile)
-    Tile *tile;
+cifHierPaintArrayFunc(
+    Tile *tile)
 {
     Rect area;
     int i, j, xbot, xtop;
@@ -1194,9 +1197,9 @@ cifHierPaintArrayFunc(tile)
  */
 
 int
-cifHierArrayFunc(scx, output)
-    SearchContext *scx;		/* Information about the search. */
-    Plane **output;		/* Array of planes to hold results. */
+cifHierArrayFunc(
+    SearchContext *scx,		/* Information about the search. */
+    Plane **output)		/* Array of planes to hold results. */
 {
     Rect childArea, parentArea, A, B, C, D, expandedArea;
     CellUse *use;
@@ -1540,10 +1543,10 @@ cifHierArrayFunc(scx, output)
  */
 
 void
-CIFGenArrays(def, area, output)
-    CellDef *def;		/* Parent cell for which CIF is computed. */
-    Rect *area;			/* All CIF in this area is interesting. */
-    Plane **output;		/* Array of pointers to planes into which
+CIFGenArrays(
+    CellDef *def,		/* Parent cell for which CIF is computed. */
+    Rect *area,			/* All CIF in this area is interesting. */
+    Plane **output)		/* Array of pointers to planes into which
 				 * the CIF output will be OR'ed (real CIF
 				 * only, temp layers won't appear).  If
 				 * output is NULL, then CIF is stored in

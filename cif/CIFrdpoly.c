@@ -119,10 +119,10 @@ cifLowY(a, b)
  */
 
 bool
-cifOrient(edges, nedges, dir)
-    CIFPath *edges[];		/* Array of edges to be categorized. */
-    int dir[];			/* Array to hold directions. */
-    int nedges;			/* Size of arrays. */
+cifOrient(
+    CIFPath *edges[],		/* Array of edges to be categorized. */
+    int nedges,			/* Size of arrays. */
+    int dir[])			/* Array to hold directions. */
 {
     Point *p, *q;
     int n;
@@ -179,10 +179,11 @@ cifOrient(edges, nedges, dir)
  */
 
 bool
-cifCross(edge, dir, ybot, ytop)
-    CIFPath *edge;	/* Pointer to first of 2 path points in edge */
-    int dir;			/* Direction of edge */
-    int ybot, ytop;		/* Range of interest */
+cifCross(
+    CIFPath *edge,	/* Pointer to first of 2 path points in edge */
+    int dir,			/* Direction of edge */
+    int ybot,
+    int ytop)		/* Range of interest */
 {
     int ebot, etop;
 
@@ -223,12 +224,12 @@ cifCross(edge, dir, ybot, ytop)
  */
 
 LinkedRect *
-CIFPolyToRects(path, plane, resultTbl, ui, isCalma)
-    CIFPath *path;		/* Path describing a polygon. */
-    Plane *plane;		/* Plane to draw on */
-    PaintResultType *resultTbl;
-    PaintUndoInfo *ui;
-    bool isCalma;		/* TRUE for Calma, FALSE for CIF */
+CIFPolyToRects(
+    CIFPath *path,		/* Path describing a polygon. */
+    Plane *plane,		/* Plane to draw on */
+    PaintResultType *resultTbl,
+    PaintUndoInfo *ui,
+    bool isCalma)		/* TRUE for Calma, FALSE for CIF */
 {
     int npts = 0, n, *dir, curr, wrapno;
     int xbot, xtop, ybot, ytop;
