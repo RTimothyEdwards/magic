@@ -504,9 +504,9 @@ LefTechSetDefaults()
 	    }
 	    else if (lefl->lefClass == CLASS_ROUTE)
 	    {
-		if (lefl->info.route.width = -1)
+		if (lefl->info.route.width == -1)
 		    lefl->info.route.width = DRCGetDefaultLayerWidth(lefl->type);
-		if (lefl->info.route.spacing = -1)
+		if (lefl->info.route.spacing == -1)
 		    lefl->info.route.width = DRCGetDefaultLayerSpacing(lefl->type,
 				lefl->type);
 	    }
