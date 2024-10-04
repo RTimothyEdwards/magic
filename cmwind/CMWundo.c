@@ -36,14 +36,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 UndoType cmwUndoClientID;
 
 /*
- * Functions to play events forward/backward.
- */
-void cmwUndoForw(colorUE *up);
-void cmwUndoBack(colorUE *up);
-void cmwUndoStart(void);
-void cmwUndoDone(void);
-
-/*
  * A single undo event for the
  * color map module.
  */
@@ -59,6 +51,14 @@ void cmwUndoDone(void);
  * of an undo/redo command.
  */
 bool cmwColorsChanged[256];
+
+/*
+ * Functions to play events forward/backward.
+ */
+void cmwUndoForw(colorUE *up);
+void cmwUndoBack(colorUE *up);
+void cmwUndoStart(void);
+void cmwUndoDone(void);
 
 /*
  * ----------------------------------------------------------------------------
