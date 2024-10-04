@@ -82,7 +82,6 @@ int  CalmaCompression = 0;	/* Output file compression level (0 = uncompressed) *
 
     /* Forward declarations */
 extern int calmaWriteInitFunc();
-extern int calmaWriteMarkFunc();
 extern int calmaWritePaintFunc();
 extern int calmaMergePaintFunc();
 extern int calmaWriteUseFunc();

@@ -90,7 +90,6 @@ extern int calmaPaintLayerType;
 
     /* External functions from CalmaWrite.c */
 extern int calmaWriteInitFunc();
-extern int calmaWriteMarkFunc();
 
     /* Forward declarations */
 extern int calmaWritePaintFuncZ();
