@@ -227,19 +227,19 @@ typedef struct portlabel
 /* Other commonly used globals */
 extern HashTable calmaLayerHash;
 extern int calmaElementIgnore[];
-extern CellDef *calmaFindCell();
+extern CellDef *calmaFindCell(char *name, bool *was_called, bool *predefined);
 
 /* (Added by Nishit, 8/18/2004--8/24/2004) */
-extern CellDef *calmaLookCell();
-extern void calmaWriteContacts();
-extern CellDef *calmaGetContactCell();
+extern CellDef *calmaLookCell(char *name);
+extern void calmaWriteContacts(FILE *f);
+extern CellDef *calmaGetContactCell(TileType type, bool lookOnly);
 extern bool calmaIsContactCell;
 
-extern char *calmaRecordName();
-extern void calmaSkipSet();
-extern bool calmaParseUnits();
+extern char *calmaRecordName(int rtype);
+extern void calmaSkipSet(int *skipwhat);
+extern bool calmaParseUnits(void);
 
-extern int compport();
+extern int compport(const void *one, const void *two);
 
 /* ------------------- Imports from CIF reading ----------------------- */
 
