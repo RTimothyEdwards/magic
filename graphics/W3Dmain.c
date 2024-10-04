@@ -774,7 +774,7 @@ w3dSeeLayers(w, cmd)
 	if (crec->cif)
 	{
 	    /* If CIF layers, match the layer name (1 only) */
-	    if (!CIFNameToMask(cmd->tx_argv[lidx], &mask))
+	    if (!CIFNameToMask(cmd->tx_argv[lidx], &mask, NULL))
 		return;
 	}
 	else
