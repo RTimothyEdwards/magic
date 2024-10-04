@@ -257,7 +257,7 @@ groglSetCharSize (size)
  *	Determine the size of a text string.
  *
  * Results:
- *	None.
+ *	0 on success.  -1 on error (no side-effects).
  *
  * Side effects:
  *	A rectangle is filled in that is the size of the text in pixels.
@@ -266,7 +266,7 @@ groglSetCharSize (size)
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 GrOGLTextSize(text, size, r)
     char *text;
     int size;
@@ -296,13 +296,14 @@ GrOGLTextSize(text, size, r)
 		size );
 	break;
     }
-    if (font == NULL) return;
+    if (font == NULL) return -1;
     XTextExtents(font, text, strlen(text), &dir, &fa, &fd, &overall);
 
     r->r_ytop = overall.ascent;
     r->r_ybot = -overall.descent;
     r->r_xtop = overall.width - overall.lbearing;
     r->r_xbot = -overall.lbearing - 1;
+    return 0;
 }
 
 
@@ -787,7 +788,8 @@ groglPutText (text, pos, clip, obscure)
     int i;
     float tscale;
 
-    GrOGLTextSize(text, oglCurrent.fontSize, &textrect);
+    if (GrOGLTextSize(text, oglCurrent.fontSize, &textrect) < 0)
+        return;
 
     location.r_xbot = pos->p_x + textrect.r_xbot;
     location.r_xtop = pos->p_x + textrect.r_xtop;
