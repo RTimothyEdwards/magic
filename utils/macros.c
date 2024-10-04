@@ -556,6 +556,8 @@ MacroKey(str, verbose)
 		    kc = (int)tc;
 		else if (kmod & ControlMask)
 		    kc = (int)(tc - 'A' + 1);
+		else
+		    kc = (int)tc;
 
 		if (!(kmod & (Mod1Mask | LockMask)))
 		    if (!(kmod & ShiftMask) || !(kmod & ControlMask))
