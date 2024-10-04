@@ -3683,7 +3683,7 @@ CmdCrash(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    int option;
+    int option = -1;
     char *filename = NULL;
     static char *cmdCrashOpt[] = {"save", "recover", 0};
 
