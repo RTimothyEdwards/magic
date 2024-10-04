@@ -78,7 +78,7 @@ extern void cmwUndoColor(int, int, int, int, int, int, int);
 extern bool CMWCheckWritten(void);
 
 /* C99 compat */
-extern void CMWinit();
+extern void CMWinit(void);
 
 
 #endif /* _CMWIND_H */
