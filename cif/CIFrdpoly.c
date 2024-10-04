@@ -234,7 +234,7 @@ LinkedRect *
 CIFPolyToRects(
     CIFPath *path,		/* Path describing a polygon. */
     Plane *plane,		/* Plane to draw on */
-    PaintResultType *resultTbl,
+    const PaintResultType *resultTbl,
     PaintUndoInfo *ui,
     bool isCalma)		/* TRUE for Calma, FALSE for CIF */
 {
