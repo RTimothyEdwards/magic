@@ -438,7 +438,7 @@ CIFCoverageLayer(rootDef, area, layer, dolist)
     SearchContext scx;
     TileTypeBitMask mask, depend;
     float fcover;
-    int cifCoverageFunc();
+    int cifCoverageFunc(Tile *tile, ClientData *arg);
     bool doBox = (area != &rootDef->cd_bbox) ? TRUE : FALSE;
 
     /* Check out the CIF layer name. */

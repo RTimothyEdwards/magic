@@ -64,8 +64,8 @@ TileTypeBitMask CIFSolidBits;
 
 /* Forward Declarations */
 
-void cifTechStyleInit();
-bool cifCheckCalmaNum();
+void cifTechStyleInit(void);
+bool cifCheckCalmaNum(char *str);
 
 /*
  * ----------------------------------------------------------------------------

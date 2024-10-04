@@ -78,8 +78,8 @@ static int growDistance;	/* Distance to grow stuff. */
 static Plane *cifPlane;		/* Plane acted on by search functions. */
 static int cifScale;		/* Scale factor to use on tiles. */
 
-extern void cifClipPlane();
-extern void cifGenClip();
+extern void cifClipPlane(Plane *plane, Rect *clip);
+extern void cifGenClip(Rect *area, Rect *expanded, Rect *clip);
 
 /*
  * ----------------------------------------------------------------------------
@@ -305,7 +305,7 @@ cifGrowMinFunc(tile, table)
     TileType type, tptype;
     Tile *tp, *tp2;
     bool changed;
-    void SetMinBoxGrid();		/* Forward reference */
+    void SetMinBoxGrid(Rect *area, int width);		/* Forward reference */
 
     TiToRect(tile, &area);
 
@@ -1793,7 +1793,7 @@ cifBridgeFunc1(tile, brs)
     int width = brs->bridge->br_width;
     int spacing = growDistance;
     BridgeCheckStruct brcs;
-    int cifBridgeCheckFunc();	/* Forward reference */
+    int cifBridgeCheckFunc(Tile *tile, BridgeCheckStruct *brcs);	/* Forward reference */
 
     /* If tile is marked, then it has been handled, so ignore it */
     if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
@@ -1916,7 +1916,7 @@ cifBridgeFunc2(tile, brs)
     int wtest;
     int spacing = growDistance;
     BridgeCheckStruct brcs;
-    int cifBridgeCheckFunc();	/* Forward reference */
+    int cifBridgeCheckFunc(Tile *tile, BridgeCheckStruct *brcs);	/* Forward reference */
 
     /* If tile is marked, then it has been handled, so ignore it */
     if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
@@ -2087,7 +2087,7 @@ cifCloseFunc(tile, plane)
 {
     Rect area, newarea;
     int atotal;
-    int cifGatherFunc();
+    int cifGatherFunc(Tile *tile, int *atotal, int mode);
 
     /* If tile is marked, then it has been handled, so ignore it */
     if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
