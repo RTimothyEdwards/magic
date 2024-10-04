@@ -201,6 +201,7 @@ GrTkTextSize(text, size, r)
 	font = grXLargeFont;
 	break;
     default:
+        font = NULL;
 	TxError("%s%d\n", "GrTkTextSize: Unknown character size ",
 		size );
 	break;
