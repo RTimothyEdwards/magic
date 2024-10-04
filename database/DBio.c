@@ -3990,7 +3990,7 @@ DBCellWrite(cellDef, fileName)
      * If so, write to the temp file and then rename it after
      * we're done.
      */
-    if (tmpf = fopen(tmpname, "w"))
+    if ((tmpf = fopen(tmpname, "w")))
     {
 	result = DBCellWriteFile(cellDef, tmpf);
 	(void) fclose(tmpf);

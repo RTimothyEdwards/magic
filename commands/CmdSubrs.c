@@ -410,7 +410,7 @@ CmdParseLayers(s, mask)
 
 
     TTMaskZero(mask);
-    while (c = *s++)
+    while ((c = *s++))
     {
 	switch (c)
 	{
@@ -756,7 +756,7 @@ again:
 
     if (strcmp(returnname, def->cd_name) != 0)
     {
-	if (f = PaOpen(returnname, "r", DBSuffix, ".", (char *) NULL, &filename))
+	if ((f = PaOpen(returnname, "r", DBSuffix, ".", (char *) NULL, &filename)))
 	{
 	    (void) fclose(f);
 	    if (noninteractive) {
