@@ -169,8 +169,8 @@ esFormatSubs(outf, suf)
     if (outf)
     {
 	l = strlen(suf) - 1;
-	if ((EFOutputFlags & EF_TRIMGLOB ) && suf[l] == '!' ||
-	         (EFOutputFlags & EF_TRIMLOCAL) && suf[l] == '#')
+	if (((EFOutputFlags & EF_TRIMGLOB ) && suf[l] == '!') ||
+	         ((EFOutputFlags & EF_TRIMLOCAL) && suf[l] == '#'))
 	    suf[l] = '\0' ;
 	if (EFOutputFlags & EF_CONVERTCOMMA)
 	    while ((specchar = strchr(suf, ',')) != NULL)
@@ -3652,7 +3652,7 @@ spcnodeVisit(node, res, cap)
     hierName = (HierName *) node->efnode_name->efnn_hier;
     nsn = nodeSpiceName(hierName, NULL);
 
-    if (esFormat == SPICE2 || esFormat == HSPICE && strncmp(nsn, "z@", 2)==0 ) {
+    if (esFormat == SPICE2 || (esFormat == HSPICE && strncmp(nsn, "z@", 2)==0 )) {
 	static char ntmp[MAX_STR_SIZE];
 
 	EFHNSprintf(ntmp, hierName);

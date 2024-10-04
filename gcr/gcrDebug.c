@@ -635,7 +635,7 @@ void  gcrPrintCol(ch, i, showResult)
 		    }
 		    else TxPrintf("#");
 		}
-		else if ((res[i][j] & GCRU) || j != 0 && (res[i][j-1] & GCRU))
+		else if ((res[i][j] & GCRU) || (j != 0 && (res[i][j-1] & GCRU)))
 		{
 		    if((res[i][j]&GCRCC) && (!(res[i][j]&(GCRBLKM|GCRBLKP))))
 		    {

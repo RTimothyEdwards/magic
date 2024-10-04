@@ -320,8 +320,8 @@ selEnumPFunc2(tile, arg)
     /* Also okay if the X over Y yields a stacking type whose residues	*/
     /* are X and Y.							*/
 
-    if ((ttype != seltype) && (((ttype == TT_SPACE) &&
-		TTMaskHasType(&DBHomePlaneTypes[arg->sea_plane], seltype))) ||
+    if (((ttype != seltype) && (((ttype == TT_SPACE) &&
+		TTMaskHasType(&DBHomePlaneTypes[arg->sea_plane], seltype)))) ||
 		(DBPaintResultTbl[arg->sea_plane][ttype][seltype] != seltype))
     {
 	TileType chktype = DBPaintResultTbl[arg->sea_plane][ttype][seltype];
