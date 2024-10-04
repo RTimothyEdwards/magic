@@ -503,7 +503,7 @@ calmaElementBox()
 void
 calmaElementPath()
 {
-    int nbytes, rtype, extend1, extend2;
+    int nbytes = -1, rtype = 0, extend1, extend2;
     int layer, dt, width, pathtype, ciftype, savescale;
     int xmin, ymin, xmax, ymax, temp;
     CIFPath *pathheadp, *pathp, *previousp;
@@ -733,7 +733,7 @@ calmaElementText()
 {
     static int ignore[] = { CALMA_PATHTYPE, CALMA_WIDTH, -1 };
     char *textbody = NULL;
-    int nbytes, rtype;
+    int nbytes = -1, rtype = 0;
     int layer, textt, cifnum, textpres;
     TileType type;
     Rect r;
