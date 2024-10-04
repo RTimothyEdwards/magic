@@ -98,7 +98,6 @@ extern void calmaOutStringRecord();
 extern void calmaOut8();
 extern void calmaOutR8();
 extern void calmaProcessBoundary();
-extern void calmaMergeBoundaries();
 extern void calmaRemoveColinear();
 extern void calmaRemoveDegenerate();
 
