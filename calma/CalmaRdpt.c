@@ -257,13 +257,13 @@ calmaElementBoundary(void)
     if ((CalmaSubcellPolygons != CALMA_POLYGON_NONE) && (calmaNonManhattan > 0))
     {
 	/* Place the polygon in its own subcell */
-	char newname[] = "polygonXXXXX";
+	char newname[16];
 	HashEntry *he;
 
 	savedef = cifReadCellDef;
 
 	/* Make up name for cell */
-	sprintf(newname + 7, "%05d", ++CalmaPolygonCount);
+	snprintf(newname, sizeof(newname), "polygon%05d", ++CalmaPolygonCount);
 
 	he = HashFind(&calmaDefInitHash, newname);
 	if (!HashGetValue(he))
@@ -663,13 +663,13 @@ calmaElementPath(void)
 	if (CalmaSubcellPaths)
 	{
 	    /* Place the path in its own subcell */
-	    char newname[] = "pathXXXXX";
+	    char newname[16];
 	    HashEntry *he;
 
 	    savedef = cifReadCellDef;
 
 	    /* Make up name for cell */
-	    sprintf(newname + 4, "%05d", ++CalmaPathCount);
+	    snprintf(newname, sizeof(newname), "path%05d", ++CalmaPathCount);
 
 	    he = HashFind(&calmaDefInitHash, newname);
 	    if (!HashGetValue(he))
