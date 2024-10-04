@@ -518,7 +518,7 @@ pnmTile (tile, cxp)
     col = PaintStyles[type].color;
     t = rtile + x + ds_xsize * y;
 
-    for (dy; dy > 0; dy--)
+    for ( ; dy > 0; dy--)
     {
 	for (j = 0; j < dx; j++)
 	{
