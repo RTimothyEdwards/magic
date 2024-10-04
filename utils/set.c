@@ -101,7 +101,7 @@ SetNoisyBool(parm,valueS,file)
     char *valueS;
     FILE *file;
 {
-    int n, which, result;
+    int n, which, result = -2;
 
     /* Bool string Table */
     static struct
@@ -145,13 +145,17 @@ SetNoisyBool(parm,valueS,file)
 	}
 	else
 	{
-	    TxError("Unrecognized boolean value: \"%s\"\n", valueS);
-	    TxError("Valid values are:  ");
-	    for (n = 0; boolStrings[n].bS_name; n++)
-		TxError(" %s", boolStrings[n].bS_name);
-	    TxError("\n");
 	    result = -2;
 	}
+    }
+
+    if (result == -2)
+    {
+	TxError("Unrecognized boolean value: \"%s\"\n", valueS);
+	TxError("Valid values are:  ");
+	for (n = 0; boolStrings[n].bS_name; n++)
+	    TxError(" %s", boolStrings[n].bS_name);
+	TxError("\n");
     }
 
     /* Print parm value */
