@@ -1328,6 +1328,7 @@ efBuildDevNode(def, name, isSubsNode)
 		(char *) NULL, (char **) NULL, 0);
 
 	nn = (EFNodeName *) HashGetValue(he);
+	ASSERT(nn, "nn");
 	isNewNode = TRUE;
     }
     if (isSubsNode || (nn->efnn_node->efnode_flags & EF_GLOB_SUBS_NODE))
