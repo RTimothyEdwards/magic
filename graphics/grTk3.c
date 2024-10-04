@@ -244,7 +244,7 @@ GrTkReadPixel (w, x, y)
     image = XGetImage(grXdpy, grCurrent.windowid, x, grMagicToX(y), 1, 1,
 		      ~0, ZPixmap);
     value = XGetPixel(image, 0, 0);
-    return (value & (1 << grDisplay.depth) - 1);
+    return (value & ((1 << grDisplay.depth) - 1));
 }
 
 
