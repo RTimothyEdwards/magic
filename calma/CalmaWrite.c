@@ -44,6 +44,7 @@ static const char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic
 #include "utils/geometry.h"
 #include "tiles/tile.h"
 #include "utils/utils.h"
+#include "utils/magic_zlib.h"
 #include "utils/hash.h"
 #include "database/database.h"
 #include "database/databaseInt.h"
