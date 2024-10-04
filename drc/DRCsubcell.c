@@ -965,5 +965,5 @@ drcIncCount(def, area, rule, count)
     DRCCookie *rule;
     int *count;
 {
-    *count++;
+    (*count)++;
 }
