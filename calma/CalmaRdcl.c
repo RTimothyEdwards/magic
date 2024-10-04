@@ -59,9 +59,9 @@ extern HashTable calmaDefInitHash;
 extern int CalmaPolygonCount;
 
 /* forward declarations */
-int  calmaElementSref();
-bool calmaParseElement();
-void calmaUniqueCell();
+int calmaElementSref(char *filename);
+bool calmaParseElement(char *filename, int *pnsrefs, int *pnpaths);
+void calmaUniqueCell(char *sname);
 
 /* Structure used when flattening the GDS hierarchy on read-in */
 
@@ -245,7 +245,7 @@ calmaExact()
     int pNum;
     Plane *newplane;
     Plane **parray;
-    int gdsCopyPaintFunc();	/* Forward reference */
+    int gdsCopyPaintFunc(Tile *tile, GDSCopyRec *gdsCopyRec);	/* Forward reference */
 
     parray = (Plane **)mallocMagic(MAXCIFRLAYERS * sizeof(Plane *));
 
@@ -776,8 +776,8 @@ calmaElementSref(filename)
     Point refarray[3], refunscaled[3], p;
     CellUse *use;
     CellDef *def;
-    int gdsCopyPaintFunc();	/* Forward reference */
-    int gdsHasUses();		/* Forward reference */
+    int gdsCopyPaintFunc(Tile *tile, GDSCopyRec *gdsCopyRec);	/* Forward reference */
+    int gdsHasUses(CellUse *use, ClientData clientdata);		/* Forward reference */
     /* Added by NP */
     char *useid = NULL, *arraystr = NULL;
     int propAttrType;

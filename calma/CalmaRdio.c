@@ -50,8 +50,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "calma/calma.h"
 
 /* Forward declarations */
-bool calmaReadR8();
-bool calmaSkipBytes();
+bool calmaReadR8(double *pd);
+bool calmaSkipBytes(int nbytes);
 
 
 /*

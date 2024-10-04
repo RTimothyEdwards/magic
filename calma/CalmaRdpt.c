@@ -57,8 +57,8 @@ extern int CalmaPolygonCount;
 extern int CalmaPathCount;
 extern HashTable calmaDefInitHash;
 
-extern void calmaLayerError();
-bool calmaReadPath();
+extern void calmaLayerError(char *mesg, int layer, int dt);
+bool calmaReadPath(CIFPath **pathheadpp, int iscale);
 
 /*
  * ----------------------------------------------------------------------------

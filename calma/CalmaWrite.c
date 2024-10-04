@@ -81,24 +81,24 @@ int  CalmaCompression = 0;	/* Output file compression level (0 = uncompressed) *
 #endif
 
     /* Forward declarations */
-extern int calmaWriteInitFunc();
-extern int calmaWritePaintFunc();
-extern int calmaMergePaintFunc();
-extern int calmaWriteUseFunc();
-extern int calmaPaintLabelFunc();
-extern void calmaWriteContacts();
-extern void calmaDelContacts();
-extern void calmaOutFunc();
-extern void calmaOutStructName();
-extern void calmaWriteLabelFunc();
-extern void calmaOutHeader();
-extern void calmaOutDate();
-extern void calmaOutStringRecord();
-extern void calmaOut8();
-extern void calmaOutR8();
-extern void calmaProcessBoundary();
-extern void calmaRemoveColinear();
-extern void calmaRemoveDegenerate();
+extern int calmaWriteInitFunc(CellDef *def);
+extern int calmaWritePaintFunc(Tile *tile, calmaOutputStruct *cos);
+extern int calmaMergePaintFunc(Tile *tile, calmaOutputStruct *cos);
+extern int calmaWriteUseFunc(CellUse *use, FILE *f);
+extern int calmaPaintLabelFunc(Tile *tile, calmaOutputStruct *cos);
+extern void calmaWriteContacts(FILE *f);
+extern void calmaDelContacts(void);
+extern void calmaOutFunc(CellDef *def, FILE *f, Rect *cliprect);
+extern void calmaOutStructName(int type, CellDef *def, FILE *f);
+extern void calmaWriteLabelFunc(Label *lab, int ltype, int type, FILE *f);
+extern void calmaOutHeader(CellDef *rootDef, FILE *f);
+extern void calmaOutDate(time_t t, FILE *f);
+extern void calmaOutStringRecord(int type, char *str, FILE *f);
+extern void calmaOut8(char *str, FILE *f);
+extern void calmaOutR8(double d, FILE *f);
+extern void calmaProcessBoundary(BoundaryTop *blist, calmaOutputStruct *cos);
+extern void calmaRemoveColinear(BoundaryTop *blist);
+extern void calmaRemoveDegenerate(BoundaryTop *blist);
 
 /* Structure used by calmaWritePaintFunc() */
 
