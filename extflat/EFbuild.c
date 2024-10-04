@@ -1045,7 +1045,7 @@ efBuildDevice(def, class, type, r, argc, argv)
 		 && (ttype != extGetDevType(EFDevTypes[newdev->dev_type]))))
 	{
 	    TxError("Device %s %s at (%d, %d) overlaps incompatible device %s %s!\n",
-		    extDevTable[class], type, r->r_xbot, r->r_ybot,
+		    extDevTable[(unsigned char)class], type, r->r_xbot, r->r_ybot,
 		    extDevTable[newdev->dev_class], EFDevTypes[newdev->dev_type]);
 	    return 0;
 	}
@@ -1053,7 +1053,7 @@ efBuildDevice(def, class, type, r, argc, argv)
 	{
 	    TxError("Device %s %s at (%d, %d) overlaps device with incompatible"
 		    " number of terminals (%d vs. %d)!\n",
-		    extDevTable[class], type, r->r_xbot, r->r_ybot, nterminals,
+		    extDevTable[(unsigned char)class], type, r->r_xbot, r->r_ybot, nterminals,
 		    newdev->dev_nterm);
 	    return 0;
 	}
