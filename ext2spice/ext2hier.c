@@ -1409,7 +1409,7 @@ spcnodeHierVisit(hc, node, res, cap)
     hierName = (HierName *) node->efnode_name->efnn_hier;
     nsn = nodeSpiceHierName(hc, hierName);
 
-    if (esFormat == SPICE2 || esFormat == HSPICE && !strncmp(nsn, "z@", 2)) {
+    if (esFormat == SPICE2 || (esFormat == HSPICE && !strncmp(nsn, "z@", 2))) {
 	static char ntmp[MAX_STR_SIZE];
 
 	EFHNSprintf(ntmp, hierName);

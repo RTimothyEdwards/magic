@@ -1033,9 +1033,9 @@ ResCheckSimNodes(celldef, resisdata)
      	ResFHFile = NULL;
     }
 
-    if (ResExtFile == NULL && (ResOptionsFlags & ResOpt_DoExtFile)
-         || (ResOptionsFlags & ResOpt_DoLumpFile) && ResLumpFile == NULL
-         || (ResOptionsFlags & ResOpt_FastHenry) && ResFHFile == NULL)
+    if ((ResExtFile == NULL && (ResOptionsFlags & ResOpt_DoExtFile))
+         || ((ResOptionsFlags & ResOpt_DoLumpFile) && ResLumpFile == NULL)
+         || ((ResOptionsFlags & ResOpt_FastHenry) && ResFHFile == NULL))
     {
      	TxError("Couldn't open output file\n");
 	return;
