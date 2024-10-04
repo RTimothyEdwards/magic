@@ -1419,9 +1419,10 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 
 	pptr = strrchr(sptr, '.');
 	if (pptr != NULL)
+	{
 	    if (strcmp(pptr, DBSuffix)) pptr = NULL;
-	else
-	    *pptr = '\0';
+	    else *pptr = '\0';
+	}
 
 	/* If dereferencing, then use search paths first */
 	if (!dereference)

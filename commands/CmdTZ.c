@@ -415,10 +415,12 @@ CmdTech(w, cmd)
 
 	    for (ctype = TT_TECHDEPBASE; ctype < DBNumUserLayers; ctype++)
 		if (DBIsContact(ctype))
+		{
 		    if (TTMaskHasType(&DBActiveLayerBits, ctype))
 			DBUnlockContact(ctype);
 		    else
 			DBLockContact(ctype);
+		}
 
 	    for (ctype = DBNumUserLayers; ctype < DBNumTypes; ctype++)
 	    {
