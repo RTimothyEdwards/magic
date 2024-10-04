@@ -490,9 +490,9 @@ calmaReadR8(
 
 void
 calmaSkipSet(
-    int *skipwhat)
+    const int *skipwhat)
 {
-    int *skipp;
+    const int *skipp;
     int nbytes, rtype;
 
     for (;;)

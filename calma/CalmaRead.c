@@ -147,7 +147,7 @@ HashTable calmaLayerHash;
 HashTable calmaDefInitHash;
 
 /* Common stuff to ignore */
-int calmaElementIgnore[] = { CALMA_ELFLAGS, CALMA_PLEX, -1 };
+const int calmaElementIgnore[] = { CALMA_ELFLAGS, CALMA_PLEX, -1 };
 
 /*
  * ----------------------------------------------------------------------------
@@ -174,11 +174,11 @@ CalmaReadFile(
     int k, version;
     char *libname = NULL, *libnameptr = NULL;
     MagWindow *mw;
-    static int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
-			     CALMA_REFLIBS, CALMA_FONTS, CALMA_ATTRTABLE,
-			     CALMA_STYPTABLE, CALMA_GENERATIONS, -1 };
-    static int skipBeforeLib[] = { CALMA_LIBDIRSIZE, CALMA_SRFNAME,
-				   CALMA_LIBSECUR, -1 };
+    static const int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
+					 CALMA_REFLIBS, CALMA_FONTS, CALMA_ATTRTABLE,
+					 CALMA_STYPTABLE, CALMA_GENERATIONS, -1 };
+    static const int skipBeforeLib[] = { CALMA_LIBDIRSIZE, CALMA_SRFNAME,
+					       CALMA_LIBSECUR, -1 };
 
     if (EditCellUse == (CellUse *)NULL)
     {
@@ -558,12 +558,12 @@ calmaUnexpected(
  * ----------------------------------------------------------------------------
  */
 
-char *
+const char *
 calmaRecordName(
     int rtype)
 {
     static char numeric[10];
-    static char *calmaRecordNames[] =
+    static const char * const calmaRecordNames[] =
     {
 	"HEADER",	"BGNLIB",	"LIBNAME",	"UNITS",
 	"ENDLIB",	"BGNSTR",	"STRNAME",	"ENDSTR",

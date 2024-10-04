@@ -350,7 +350,7 @@ bool
 calmaParseStructure(
     char *filename)		/* Name of the GDS file read */
 {
-    static int structs[] = { CALMA_STRCLASS, CALMA_STRTYPE, -1 };
+    static const int structs[] = { CALMA_STRCLASS, CALMA_STRTYPE, -1 };
     int nbytes = -1, rtype = 0, nsrefs, osrefs, npaths;
     char *strname = NULL;
     HashEntry *he;
@@ -680,7 +680,7 @@ calmaParseElement(
     int *pnsrefs,
     int *pnpaths)
 {
-    static int node[] = { CALMA_ELFLAGS, CALMA_PLEX, CALMA_LAYER,
+    static const int node[] = { CALMA_ELFLAGS, CALMA_PLEX, CALMA_LAYER,
 			  CALMA_NODETYPE, CALMA_XY, -1 };
     int nbytes, rtype, madeinst;
 
@@ -1351,7 +1351,7 @@ calmaUniqueCell(
 
 CellDef *
 calmaFindCell(
-    char *name,		/* Name of desired cell */
+    const char *name,	/* Name of desired cell */
     bool *was_called,	/* If this cell is in the hash table, then it
 			 * was instanced before it was defined.  We
 			 * need to know this so as to avoid flattening

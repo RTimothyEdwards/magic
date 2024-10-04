@@ -112,7 +112,7 @@ extern void calmaWriteLabelFuncZ(Label *lab, int ltype, int type, gzFile f);
 extern void calmaOutHeaderZ(CellDef *rootDef, gzFile f);
 extern void calmaOutDateZ(time_t t, gzFile f);
 extern void calmaOutStringRecordZ(int type, char *str, gzFile f);
-extern void calmaOut8Z(char *str, gzFile f);
+extern void calmaOut8Z(const char *str, gzFile f);
 extern void calmaOutR8Z(double d, gzFile f);
 
 /*--------------------------------------------------------------*/
@@ -180,7 +180,7 @@ extern void calmaOutR8Z(double d, gzFile f);
 	(void) gzputc(f, u.u_c[3]); \
     }
 
-static char calmaMapTableStrict[] =
+static const char calmaMapTableStrict[] =
 {
       0,    0,    0,    0,    0,    0,    0,    0,      /* NUL - BEL */
       0,    0,    0,    0,    0,    0,    0,    0,      /* BS  - SI  */
@@ -200,7 +200,7 @@ static char calmaMapTableStrict[] =
     'x',  'y',  'z',  '_',  '_',  '_',  '_',  0,        /* x   - DEL */
 };
 
-static char calmaMapTablePermissive[] =
+static const char calmaMapTablePermissive[] =
 {
       0,    0,    0,    0,    0,    0,    0,    0,      /* NUL - BEL */
       0,    0,    0,    0,    0,    0,    0,    0,      /* BS  - SI  */
@@ -667,10 +667,10 @@ calmaFullDumpZ(
     HashSearch hs;
     HashEntry *he, *he2;
 
-    static int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
+    static const int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
 		CALMA_REFLIBS, CALMA_FONTS, CALMA_ATTRTABLE,
 		CALMA_STYPTABLE, CALMA_GENERATIONS, -1 };
-    static int skipBeforeLib[] = { CALMA_LIBDIRSIZE, CALMA_SRFNAME,
+    static const int skipBeforeLib[] = { CALMA_LIBDIRSIZE, CALMA_SRFNAME,
 		CALMA_LIBSECUR, -1 };
 
     HashInit(&calmaDefHash, 32, 0);
@@ -1365,10 +1365,10 @@ calmaWriteUseFuncZ(
      * only 4 possible values, it is faster to have them pre-computed
      * than to format with calmaOutR8Z().
      */
-    static unsigned char r90[] = { 0x42, 0x5a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-    static unsigned char r180[] = { 0x42, 0xb4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-    static unsigned char r270[] = { 0x43, 0x10, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00 };
-    unsigned char *whichangle;
+    static const unsigned char r90[] = { 0x42, 0x5a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    static const unsigned char r180[] = { 0x42, 0xb4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    static const unsigned char r270[] = { 0x43, 0x10, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    const unsigned char *whichangle;
     int x, y, topx, topy, rows, cols, xxlate, yxlate, hdrsize;
     int rectype, stransflags;
     Transform *t;
@@ -1579,7 +1579,7 @@ calmaOutStructNameZ(
     unsigned char c;
     char *cp;
     int calmanum;
-    char *table;
+    const char *table;
 
     if (CIFCurStyle->cs_flags & CWF_PERMISSIVE_LABELS)
     {
@@ -2638,7 +2638,8 @@ calmaOutStringRecordZ(
 {
     int len;
     unsigned char c;
-    char *table, *locstr, *origstr = NULL;
+    const char *table;
+    char *locstr, *origstr = NULL;
     char *locstrprv;
 
     if(CIFCurStyle->cs_flags & CWF_PERMISSIVE_LABELS)
@@ -2808,7 +2809,7 @@ calmaOutR8Z(
 
 void
 calmaOut8Z(
-    char *str,	/* 8-byte string to be output */
+    const char *str,	/* 8-byte string to be output */
     gzFile f)	/* Compressed stream file */
 {
     int i;

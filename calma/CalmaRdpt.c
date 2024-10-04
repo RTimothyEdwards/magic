@@ -732,7 +732,7 @@ calmaElementPath(void)
 void
 calmaElementText(void)
 {
-    static int ignore[] = { CALMA_PATHTYPE, CALMA_WIDTH, -1 };
+    static const int ignore[] = { CALMA_PATHTYPE, CALMA_WIDTH, -1 };
     char *textbody = NULL;
     int nbytes = -1, rtype = 0;
     int layer, textt, cifnum, textpres;
