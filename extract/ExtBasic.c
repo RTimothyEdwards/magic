@@ -1022,7 +1022,7 @@ extFindDuplicateLabels(def, nreg)
 			    {
 				r.r_ll = r.r_ur = ll2->ll_label->lab_rect.r_ll;
 				r.r_xbot--, r.r_ybot--, r.r_xtop++, r.r_ytop++;
-				extMakeNodeNumPrint(name, np2);
+				extMakeNodeNumPrint(name, (LabRegion *)np2);
 				(void) sprintf(message, badmesg, text, name);
 				DBWFeedbackAdd(&r, message, def,
 					    1, STYLE_PALEHIGHLIGHTS);
@@ -2288,7 +2288,7 @@ extOutputDevices(def, transList, outFile)
 	if (!TTMaskIsZero(&devptr->exts_deviceSubstrateTypes)
 		&& (subsNode = extTransRec.tr_subsnode))
 	{
-	    subsName = extNodeName(subsNode);
+	    subsName = extNodeName((LabRegion *)subsNode);
 	}
 
 #ifdef MAGIC_WRAPPER
@@ -2332,11 +2332,11 @@ extOutputDevices(def, transList, outFile)
 
 	    /* gate */
 	    node = (NodeRegion *)extGetRegion(reg->treg_tile);
-	    fprintf(outFile, "\"%s\" ", extNodeName(node));
+	    fprintf(outFile, "\"%s\" ", extNodeName((LabRegion *)node));
 
 	    /* First non-gate terminal */
 	    node = (NodeRegion *)extTransRec.tr_termnode[0];
-	    fprintf(outFile, "\"%s\"\n", extNodeName(node));
+	    fprintf(outFile, "\"%s\"\n", extNodeName((LabRegion *)node));
 
 	    continue;
 	}
