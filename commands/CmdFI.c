@@ -942,7 +942,7 @@ CmdFlush(
 {
     CellDef *def;
     int action;
-    static char *actionNames[] = { "no", "yes", 0 };
+    static const char * const actionNames[] = { "no", "yes", 0 };
     char *prompt;
     bool dereference = FALSE;
     char *strNoConfirm;

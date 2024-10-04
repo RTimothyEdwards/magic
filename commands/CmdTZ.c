@@ -1932,9 +1932,9 @@ cmdWriteallFunc(
 {
     char *prompt, *argv;
     int i, action, cidx = 0;
-    static char *actionNames[] =
+    static const char * const actionNames[] =
         { "write", "flush", "skip", "abort", "autowrite", 0 };
-    static char *explain[] =
+    static const char * const explain[] =
 	{ "", "(bboxes)", "(timestamps)", "(bboxes/timestamps)", 0 };
 
     if (def->cd_flags & CDINTERNAL) return 0;
