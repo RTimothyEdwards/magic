@@ -62,8 +62,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "router/router.h"
 #include "wiring/wiring.h"
 
-extern void DisplayWindow();
-
 /* Used by CmdSetLabel() */
 Label *DefaultLabel;
 

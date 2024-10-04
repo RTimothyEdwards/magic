@@ -57,8 +57,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "yacr.h"
 #endif	/* LLNL */
 
-extern void DisplayWindow();
-
 /* Trivial function that returns 1 if called */
 
 int
