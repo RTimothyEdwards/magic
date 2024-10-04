@@ -77,7 +77,9 @@ extern void calmaElementText(void);
 extern bool calmaIsUseNameDefault(char *defName, char *useName);
 extern bool calmaParseStructure(char *filename);
 extern int calmaProcessDef(CellDef *def, FILE *outf, bool do_library);
+#ifdef HAVE_ZLIB
 extern int calmaProcessDefZ(CellDef *def, gzFile outf, bool do_library);
+#endif
 extern bool calmaReadI2Record(int type, int *pvalue);
 extern bool calmaReadI4Record(int type, int *pvalue);
 extern void calmaReadPoint(Point *p, int iscale);
