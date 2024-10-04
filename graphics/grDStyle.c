@@ -408,7 +408,7 @@ char *libPath;
 {
     FILE *inp;
     int res = 0;
-    int i, scount, processed = DISP_VERSION;
+    int i, scount = 0, processed = DISP_VERSION;
     char fullName[256];
     dstylelink *sstyle;
     int MaxTechStyles = 0, MaxTileStyles = 0;
