@@ -11,9 +11,12 @@ include ${MAGICDIR}/defs.mak
 
 #----------------------------------------
 
+ifeq ($(OA),)
+OA := fake_oa_stub
+endif
 CXX_INCLUDES = -I. -I${OA}/oa/include
 
-DEPS_MAGIC := $(shell mkdir .deps > /dev/null 2>&1 || :)
+DEPS_MAGIC := $(shell mkdir -p .deps > /dev/null 2>&1 || :)
 
 DEP_FILES = $(addprefix .deps/,$(SRCS:.c=.P))\
 	$(addprefix .deps/,$(CXXSRCS:.cpp=.P))
@@ -21,7 +24,7 @@ DEP_FILES = $(addprefix .deps/,$(SRCS:.c=.P))\
 -include ${DEP_FILES}
 
 %.o: %.cpp
-	@echo '$(COMPILE) -c $<'; \
+	@echo '$(CXX) -c $<'; \
 	${CXX} ${CXX_CFLAGS} ${OTHER_CFLAGS} ${CXX_INCLUDES} -Wp,-MD,.deps/$(*F).pp -c $<
 	@-cp .deps/$(*F).pp .deps/$(*F).P; \
 	tr ' ' '\012' < .deps/$(*F).pp \
@@ -29,8 +32,12 @@ DEP_FILES = $(addprefix .deps/,$(SRCS:.c=.P))\
 	>> .deps/$(*F).P; \
 	${RM} .deps/$(*F).pp
 
-clean:
+oa-main: lib
+
+module-clean:
+	${RM} ${CLEANS}
 	${RM} *.o
+	${RM} *.a
 	${RM} -r .deps
 
 #------------------------------------------------------
