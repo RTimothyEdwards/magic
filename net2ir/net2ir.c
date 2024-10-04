@@ -120,7 +120,7 @@ getfirst:
 	    continue;
 	}
 
-	if (cp = strchr(line1, '\n'))
+	if ((cp = strchr(line1, '\n')))
 	    *cp = '\0';
 
 	if (nterms >= 2)

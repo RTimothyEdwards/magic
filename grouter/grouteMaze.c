@@ -570,7 +570,7 @@ glMazeResetCost(headPage, headFree)
     for (gpage = headPage; gpage; gpage = gpage->glp_next)
     {
 	for (n = headFree; n < gpage->glp_free; n++)
-	    if (pin = gpage->glp_array[n].gl_pin)
+	    if ((pin = gpage->glp_array[n].gl_pin))
 	    {
 		pin->gcr_cost = INFINITY;
 		if (pin->gcr_linked)
