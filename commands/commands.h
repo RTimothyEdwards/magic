@@ -50,27 +50,28 @@ extern TileTypeBitMask CmdYMAllButSpace;
 
 /* --------------------- Global procedure headers --------------------- */
 
-extern MagWindow *CmdGetEditPoint();
-extern MagWindow *CmdGetRootPoint();
-extern bool CmdWarnWrite();
-extern bool CmdParseLayers();
-extern void CmdLabelProc();
-extern void CmdSetWindCaption();
-extern CellUse *CmdGetSelectedCell();
-extern bool CmdIllegalChars();
-extern TileType CmdFindNetProc();
-extern bool CmdCheckForPaintFunc();
+extern MagWindow *CmdGetEditPoint(Point *point, Rect *rect);
+extern MagWindow *CmdGetRootPoint(Point *point, Rect *rect);
+extern bool CmdWarnWrite(void);
+extern bool CmdParseLayers(char *s, TileTypeBitMask *mask);
+extern void CmdLabelProc(char *text, int font, int size, int rotate, int offx, int offy,
+                         int pos, bool sticky, TileType type);
+extern void CmdSetWindCaption(CellUse *newEditUse, CellDef *rootDef);
+extern CellUse *CmdGetSelectedCell(Transform *pTrans);
+extern bool CmdIllegalChars(char *string, char *illegal, char *msg);
+extern TileType CmdFindNetProc(char *nodename, CellUse *use, Rect *rect, bool warn_not_found, bool *isvalid);
+extern bool CmdCheckForPaintFunc(void);
 
 /* C99 compat */
-extern int cmdScaleCoord();
-extern void FlatCopyAllLabels();
-extern bool cmdDumpParseArgs();
-extern void cmdFlushCell();
-extern int cmdParseCoord();
-extern void cmdSaveCell();
-extern void CmdInit();
+extern int cmdScaleCoord(MagWindow *w, char *arg, bool is_relative, bool is_x, int scale);
+extern void FlatCopyAllLabels(SearchContext *scx, TileTypeBitMask *mask, int xMask, CellUse *targetUse);
+extern bool cmdDumpParseArgs(char *cmdName, MagWindow *w, TxCommand *cmd, CellUse *dummy, SearchContext *scx);
+extern void cmdFlushCell(CellDef *def, bool force_deref);
+extern int cmdParseCoord(MagWindow *w, char *arg, bool is_relative, bool is_x);
+extern void cmdSaveCell(CellDef *cellDef, char *newName, bool noninteractive, bool tryRename);
+extern void CmdInit(void);
 
-extern void CmdDoProperty();
-extern void CmdPaintEraseButton();
+extern void CmdDoProperty(CellDef *def, TxCommand *cmd, int argstart);
+extern void CmdPaintEraseButton(MagWindow *w, Point *refPoint, bool isPaint, bool isScreen);
 
 #endif /* _COMMANDS_H */
