@@ -405,7 +405,7 @@ calmaDumpStructureZ(def, outf, calmaDefHash, filename)
     HashTable *calmaDefHash;
     char *filename;
 {
-    int nbytes, rtype;
+    int nbytes = -1, rtype = 0;
     char *strname = NULL, *newnameptr;
     HashEntry *he, *he2;
     CellDef *edef;
