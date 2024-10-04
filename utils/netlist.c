@@ -369,6 +369,8 @@ NLNetName(net)
     static char tempId[100];
 #if defined(EMSCRIPTEN)
  int etext;    
+#elif defined(linux) && defined(__clang__)
+    extern char etext;
 #elif defined(linux) || defined(CYGWIN)
     extern int etext asm("etext");
 #elif defined(__APPLE__)
