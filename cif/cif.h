@@ -69,7 +69,6 @@ extern void CIFParseReadLayers();
 extern float CIFGetOutputScale();
 extern float CIFGetScale();
 extern float CIFGetInputScale();
-extern int CIFGetDefaultContactSize();
 
 extern int CIFPaintCurrent();
 extern void CIFSeeLayer();
