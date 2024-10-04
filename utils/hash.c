@@ -282,7 +282,7 @@ hash(table, key)
 HashEntry *
 HashLookOnly(table, key)
     HashTable *table;	/* Hash table to search. */
-    char *key;			/* Interpreted according to table->ht_ptrKeys
+    const char *key;		/* Interpreted according to table->ht_ptrKeys
 				 * as described in HashInit()'s comments.
 				 */
 {
@@ -352,7 +352,7 @@ next:
 HashEntry *
 HashFind(table, key)
     HashTable *table;	/* Hash table to search. */
-    char *key;			/* Interpreted according to table->ht_ptrKeys
+    const char *key;		/* Interpreted according to table->ht_ptrKeys
 				 * as described in HashInit()'s comments.
 				 */
 {
@@ -577,7 +577,7 @@ HashStats(table)
 void
 HashRemove(table, key)
     HashTable *table;	/* Hash table to search. */
-    char *key;			/* Interpreted according to table->ht_ptrKeys
+    const char *key;		/* Interpreted according to table->ht_ptrKeys
 				 * as described in HashInit()'s comments.
 				 */
 {
