@@ -376,7 +376,7 @@ extHardSetLabel(scx, reg, arg)
 	do { *dstp++ = *srcp++; } while (--prefixlen > 0);
     }
     srcp = text;
-    while (*dstp++ = *srcp++) /* Nothing */;
+    while ((*dstp++ = *srcp++)) /* Nothing */;
 
     arg->hw_label = newlab;
     if (DebugIsSet(extDebugID, extDebHardWay))
@@ -455,7 +455,7 @@ extHardGenerateLabel(scx, reg, arg)
 	do { *dstp++ = *srcp++; } while (--prefixlen > 0);
     }
     srcp = gen;
-    while (*dstp++ = *srcp++) /* Nothing */;
+    while ((*dstp++ = *srcp++)) /* Nothing */;
     arg->hw_label = newlab;
     if (DebugIsSet(extDebugID, extDebHardWay))
 	TxPrintf("Hard way: generated label = \"%s\"\n", newlab->lab_text);
