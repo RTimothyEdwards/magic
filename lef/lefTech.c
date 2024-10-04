@@ -104,7 +104,7 @@ LefTechInit()
     if (LefInfo.ht_table != (HashEntry **) NULL)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (!lefl) continue;
@@ -157,7 +157,7 @@ lefRemoveGeneratedVias()
     if (LefInfo.ht_table != (HashEntry **) NULL)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (!lefl) continue;
@@ -423,7 +423,7 @@ LefTechScale(scalen, scaled)
     if (LefInfo.ht_table != (HashEntry **) NULL)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (!lefl) continue;
@@ -450,7 +450,7 @@ LefTechScale(scalen, scaled)
 
 	/* Return all refCnt values to normal */
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (!lefl) continue;
@@ -483,7 +483,7 @@ LefTechSetDefaults()
     if (LefInfo.ht_table != (HashEntry **) NULL)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (!lefl) continue;
