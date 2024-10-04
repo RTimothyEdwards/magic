@@ -92,7 +92,7 @@ extern Transform RootToEditTransform;
 
 /* global procedures */
 
-extern void MainExit(int);	/* a way of exiting that cleans up after itself */
+extern void MainExit(int) ATTR_NORETURN;	/* a way of exiting that cleans up after itself */
 extern void magicMain();
 
 /* C99 compat */
