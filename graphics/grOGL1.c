@@ -1076,16 +1076,18 @@ GrOGLIconUpdate(w,text)
      class.res_class = "magic";
      XSetClassHint( grXdpy, wind, &class);
 
-     if (brack = strchr(text,'['))
+     if (text == NULL)
+          return;
+     if ((brack = strchr(text,'[')) && brack != text)
      {
-     	  brack--;
+	  brack--;
 	  *brack = 0;
 	  XSetIconName(grXdpy,wind,text);
 	  XStoreName(grXdpy,wind,text);
      	  *brack = ' ';
 	  return;
      }
-     if (brack = strrchr(text,' ')) text = brack+1;
+     if ((brack = strrchr(text,' '))) text = brack+1;
      XSetIconName(grXdpy,wind,text);
      XStoreName(grXdpy,wind,text);
 }
