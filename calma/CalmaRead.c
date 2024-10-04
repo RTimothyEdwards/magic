@@ -172,7 +172,7 @@ CalmaReadFile(file, filename)
     char *filename;		/* The real name of the file read */
 {
     int k, version;
-    char *libname = NULL, *libnameptr;
+    char *libname = NULL, *libnameptr = NULL;
     MagWindow *mw;
     static int hdrSkip[] = { CALMA_FORMAT, CALMA_MASK, CALMA_ENDMASKS,
 			     CALMA_REFLIBS, CALMA_FONTS, CALMA_ATTRTABLE,
@@ -309,7 +309,11 @@ done:
     HashKill(&calmaDefInitHash);
     UndoEnable();
 
-    if (calmaErrorFile != NULL) fclose(calmaErrorFile);
+    if (calmaErrorFile != NULL)
+    {
+	fclose(calmaErrorFile);
+	calmaErrorFile = NULL;
+    }
 }
 
 /*
