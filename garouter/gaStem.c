@@ -84,7 +84,7 @@ int gaNumSimplePaint, gaNumMazePaint, gaNumExtPaint;
 /* Forward declarations */
 int gaStemContainingChannelFunc();
 bool gaStemAssign();
-void gaStemGridRange();
+int gaStemGridRange();
 void gaStemPaint();
 bool gaStemNetClear();
 bool gaStemInternalFunc();
@@ -869,7 +869,7 @@ gaStemNetClear(termArea, point, side, netList)
  * of 'r'.
  *
  * Results:
- *	None.
+ *	0 on success, -1 on error (no side effects).
  *
  * Side effects:
  *	Sets *pMinGrid, *pMaxGrid, and *pStart.
@@ -877,7 +877,7 @@ gaStemNetClear(termArea, point, side, netList)
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 gaStemGridRange(type, r, pMinGrid, pMaxGrid, pStart)
     int type;
     Rect *r;
@@ -914,7 +914,7 @@ gaStemGridRange(type, r, pMinGrid, pMaxGrid, pStart)
 	default:
 	{
 	    ASSERT(FALSE, "Bad channel type in gaStemGridRange");
-	    break;
+	    return -1;
 	}
     }
     max = MAX(max, start);
@@ -922,6 +922,7 @@ gaStemGridRange(type, r, pMinGrid, pMaxGrid, pStart)
     *pMaxGrid = max;
     *pMinGrid = min;
     *pStart = start;
+    return 0;
 }
 
 /*
