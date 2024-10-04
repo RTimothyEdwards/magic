@@ -173,10 +173,14 @@ extern char AbortMessage[];
 #if defined(__GNUC__) || defined(__clang__)
  #define ATTR_FORMAT_PRINTF_1 __attribute__((format (printf,1,2)))
  #define ATTR_FORMAT_PRINTF_2 __attribute__((format (printf,2,3)))
+ #define ATTR_UNREACHABLE __builtin_unreachable()
+ #define ATTR_NORETURN __attribute__((noreturn))
  #define __unused__(x) x __attribute__((unused))
 #else
  #define ATTR_FORMAT_PRINTF_1 /* */
  #define ATTR_FORMAT_PRINTF_2 /* */
+ #define ATTR_UNREACHABLE /* */
+ #define ATTR_NORETURN /* */
  #define __unused__(x) x
 #endif
 
