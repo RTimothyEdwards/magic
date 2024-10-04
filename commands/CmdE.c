@@ -79,9 +79,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 static bool cmdFoundNewEdit;
 
 void
-CmdEdit(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdEdit(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Rect area, pointArea;
     CellUse *usave, *use = NULL;
@@ -197,9 +197,9 @@ CmdEdit(w, cmd)
  */
 
 int
-cmdEditRedisplayFunc(w, area)
-    MagWindow *w;			/* Window containing edit cell. */
-    Rect *area;			/* Area to be redisplayed. */
+cmdEditRedisplayFunc(
+    MagWindow *w,			/* Window containing edit cell. */
+    Rect *area)			/* Area to be redisplayed. */
 {
     static Rect origin = {{-1, -1}, {1, 1}};
     Rect tmp;
@@ -226,13 +226,13 @@ cmdEditRedisplayFunc(w, area)
  */
 
 int
-cmdEditEnumFunc(selUse, use, transform, area)
-    CellUse *selUse;		/* Use from selection (not used). */
-    CellUse *use;		/* Use from layout that corresponds to
+cmdEditEnumFunc(
+    CellUse *selUse,		/* Use from selection (not used). */
+    CellUse *use,		/* Use from layout that corresponds to
 				 * selUse (could be an array!).
 				 */
-    Transform *transform;	/* Transform from use->cu_def to root coords. */
-    Rect *area;			/* We're looking for a use containing this
+    Transform *transform,	/* Transform from use->cu_def to root coords. */
+    Rect *area)			/* We're looking for a use containing this
 				 * area, in root coords.
 				 */
 {
@@ -305,9 +305,9 @@ cmdEditEnumFunc(selUse, use, transform, area)
 #define OPTION_FLAGS	3
 
 void
-CmdElement(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdElement(
+    MagWindow *w,
+    TxCommand *cmd)
 {
 
     int option, type;
@@ -627,9 +627,9 @@ static CellUse *cmdEraseCells[MAXCELLS];
 static int cmdEraseCount;
 
 void
-CmdErase(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdErase(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Rect editRect, areaReturn;
     TileTypeBitMask mask, errorLayersForErasure, activeLayersForErasure;
@@ -759,9 +759,9 @@ CmdErase(w, cmd)
 }
 
 int
-cmdEraseCellsFunc(scx, cdarg)
-SearchContext *scx;		/* Indicates cell found. */
-ClientData cdarg;		/* Not used. */
+cmdEraseCellsFunc(
+    SearchContext *scx,		/* Indicates cell found. */
+    ClientData cdarg)		/* Not used. */
 {
     /* All this procedure does is to remember cells that are
      * found, up to MAXCELLS of them.
@@ -797,9 +797,9 @@ ClientData cdarg;		/* Not used. */
  */
 
 void
-CmdExpand(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdExpand(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int windowMask, boxMask, d;
     Rect rootRect;
@@ -869,9 +869,9 @@ CmdExpand(w, cmd)
  */
 
 int
-cmdExpandFunc(use, windowMask)
-    CellUse *use;		/* Use that was just expanded. */
-    int windowMask;		/* Window where it was expanded. */
+cmdExpandFunc(
+    CellUse *use,		/* Use that was just expanded. */
+    int windowMask)		/* Window where it was expanded. */
 {
     if (use->cu_parent == NULL) return 0;
     DBWAreaChanged(use->cu_parent, &use->cu_bbox, windowMask,
@@ -941,9 +941,9 @@ cmdExpandFunc(use, windowMask)
 #define UNIQNOTOPPORTS	3
 
 void
-CmdExtract(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdExtract(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     char **msg, *namep, *arg;
     int option, warn, len, n, all;

@@ -62,8 +62,8 @@ extern void DisplayWindow();
 /* Trivial function that returns 1 if called */
 
 int
-existFunc(tile)
-    Tile *tile;
+existFunc(
+    Tile *tile)
 {
     return 1;
 }
@@ -82,9 +82,9 @@ existFunc(tile)
  */
 
 int
-checkForPaintFunc(cellDef, arg)
-    CellDef *cellDef;
-    ClientData arg;
+checkForPaintFunc(
+    CellDef *cellDef,
+    ClientData arg)
 {
     int numPlanes = *((int *)arg);
     int pNum, result;
@@ -121,7 +121,7 @@ checkForPaintFunc(cellDef, arg)
  */
 
 bool
-CmdCheckForPaintFunc()
+CmdCheckForPaintFunc(void)
 {
     if (DBCellSrDefs(0, checkForPaintFunc, (ClientData)&DBNumPlanes))
 	return TRUE;
@@ -165,9 +165,9 @@ CmdCheckForPaintFunc()
 #define TECH_REVERT	11
 
 void
-CmdTech(w, cmd)
-    MagWindow *w;		/* Window in which command was invoked. */
-    TxCommand *cmd;		/* Info about command options. */
+CmdTech(
+    MagWindow *w,		/* Window in which command was invoked. */
+    TxCommand *cmd)		/* Info about command options. */
 {
     int	option, action, i, locargc;
     char **msg;
@@ -655,9 +655,9 @@ usage2:
  */
 
 void
-CmdTool(w, cmd)
-    MagWindow *w;		/* Window in which command was invoked. */
-    TxCommand *cmd;		/* Info about command options. */
+CmdTool(
+    MagWindow *w,		/* Window in which command was invoked. */
+    TxCommand *cmd)		/* Info about command options. */
 {
     if (cmd->tx_argc == 1)
     {
@@ -697,9 +697,9 @@ CmdTool(w, cmd)
  */
 
 void
-CmdUnexpand(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdUnexpand(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int windowMask, boxMask;
     Rect rootRect;
@@ -735,9 +735,9 @@ CmdUnexpand(w, cmd)
  */
 
 int
-cmdUnexpandFunc(use, windowMask)
-    CellUse *use;		/* Use that was just unexpanded. */
-    int windowMask;		/* Window where it was unexpanded. */
+cmdUnexpandFunc(
+    CellUse *use,		/* Use that was just unexpanded. */
+    int windowMask)		/* Window where it was unexpanded. */
 {
     if (use->cu_parent == NULL) return 0;
     DBWAreaChanged(use->cu_parent, &use->cu_bbox, windowMask,
@@ -766,9 +766,9 @@ cmdUnexpandFunc(use, windowMask)
  */
 
 void
-CmdUpsidedown(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdUpsidedown(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Transform trans;
     Rect rootBox, bbox;
@@ -830,9 +830,10 @@ struct linked_id {
 };
 
 
-int cmdWhatPrintCell(tile, cxp)
-   Tile *tile;
-   TreeContext *cxp;
+int
+cmdWhatPrintCell(
+   Tile *tile,
+   TreeContext *cxp)
 {
     struct linked_id **lid = (struct linked_id **)cxp->tc_filter->tf_arg;
     struct linked_id *curlid = *lid;
@@ -884,7 +885,9 @@ static LabelStore *labelBlockTop, *labelEntry;
  */
 
 int
-cmdFindWhatTileFunc(Tile *tile, ClientData clientData)
+cmdFindWhatTileFunc(
+    Tile *tile,
+    ClientData clientData)
 {
     struct linked_id **lid = (struct linked_id **)clientData;
     SearchContext scx;
@@ -930,9 +933,9 @@ cmdFindWhatTileFunc(Tile *tile, ClientData clientData)
  */
 
 void
-CmdWhat(w, cmd)
-    MagWindow *w;		/* Window in which command was invoked. */
-    TxCommand *cmd;		/* Information about the command. */
+CmdWhat(
+    MagWindow *w,		/* Window in which command was invoked. */
+    TxCommand *cmd)		/* Information about the command. */
 {
     int i, locargc;
     bool foundAny, editNull = FALSE;
@@ -1199,10 +1202,10 @@ CmdWhat(w, cmd)
 
     /*ARGSUSED*/
 int
-cmdWhatPaintFunc(rect, type, mask)
-    Rect *rect;			/* Not used. */
-    TileType type;		/* Type of this piece of paint. */
-    TileTypeBitMask *mask;	/* Place to OR in type's bit. */
+cmdWhatPaintFunc(
+    Rect *rect,			/* Not used. */
+    TileType type,		/* Type of this piece of paint. */
+    TileTypeBitMask *mask)	/* Place to OR in type's bit. */
 {
     if (type & TT_DIAGONAL)
 	type = (type & TT_SIDE) ? (type & TT_RIGHTMASK) >> 14 :
@@ -1217,11 +1220,11 @@ cmdWhatPaintFunc(rect, type, mask)
 
     /*ARGSUSED*/
 int
-cmdWhatLabelPreFunc(label, cellUse, transform, foundAny)
-    Label *label;		/* Label that's selected. */
-    CellUse *cellUse;		/* Cell use containing label. */
-    Transform *transform;	/* Not used. */
-    bool *foundAny;		/* Use to print extra stuff for the first
+cmdWhatLabelPreFunc(
+    Label *label,		/* Label that's selected. */
+    CellUse *cellUse,		/* Cell use containing label. */
+    Transform *transform,	/* Not used. */
+    bool *foundAny)		/* Use to print extra stuff for the first
 				 * label found.
 				 */
 {
@@ -1261,9 +1264,9 @@ cmdWhatLabelPreFunc(label, cellUse, transform, foundAny)
 
 
 int
-cmdWhatLabelFunc(entry, foundAny)
-    LabelStore *entry;		/* stored pointers to label info*/
-    bool *foundAny;		/* Use to print extra stuff for the first
+cmdWhatLabelFunc(
+    LabelStore *entry,		/* stored pointers to label info*/
+    bool *foundAny)		/* Use to print extra stuff for the first
 				 * label found.
 				 */
 {
@@ -1313,9 +1316,9 @@ cmdWhatLabelFunc(entry, foundAny)
 /* they are sorted by label name, then cell name, then attached material */
 /* that way all of identical names are grouped together */
 int
-orderLabelFunc(one, two)
-    LabelStore *one;		/* one of the labels being compared */
-    LabelStore *two;		/* the other label to compare with */
+orderLabelFunc(
+    LabelStore *one,		/* one of the labels being compared */
+    LabelStore *two)		/* the other label to compare with */
 {
     int i;
 
@@ -1335,11 +1338,11 @@ orderLabelFunc(one, two)
 
     /*ARGSUSED*/
 int
-cmdWhatCellFunc(selUse, realUse, transform, foundAny)
-    CellUse *selUse;		/* Not used. */
-    CellUse *realUse;		/* Selected cell use. */
-    Transform *transform;	/* Not used. */
-    bool *foundAny;		/* Used to print extra stuff for the first
+cmdWhatCellFunc(
+    CellUse *selUse,		/* Not used. */
+    CellUse *realUse,		/* Selected cell use. */
+    Transform *transform,	/* Not used. */
+    bool *foundAny)		/* Used to print extra stuff for the first
 				 * use found.
 				 */
 {
@@ -1361,11 +1364,11 @@ cmdWhatCellFunc(selUse, realUse, transform, foundAny)
 /* Same search function as above, but appends use names to a Tcl list */
 
 int
-cmdWhatCellListFunc(selUse, realUse, transform, newobj)
-    CellUse *selUse;		/* Not used. */
-    CellUse *realUse;		/* Selected cell use. */
-    Transform *transform;	/* Not used. */
-    Tcl_Obj *newobj;		/* Tcl list object holding use names */
+cmdWhatCellListFunc(
+    CellUse *selUse,		/* Not used. */
+    CellUse *realUse,		/* Selected cell use. */
+    Transform *transform,	/* Not used. */
+    Tcl_Obj *newobj)		/* Tcl list object holding use names */
 {
     Tcl_Obj *tuple;
     /* Forward reference */
@@ -1416,9 +1419,9 @@ cmdWhatCellListFunc(selUse, realUse, transform, newobj)
 #define SEGMENT		11
 
 void
-CmdWire(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdWire(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int option, locargc;
     char **msg, *lastargv;
@@ -1854,9 +1857,9 @@ CmdWire(w, cmd)
 #define OPT_WRITEALL_MODIFIED	1
 
 void
-CmdWriteall(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdWriteall(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int cmdWriteallFunc();
     int option = -1;
@@ -1911,11 +1914,11 @@ CmdWriteall(w, cmd)
 
     /*ARGSUSED*/
 int
-cmdWriteallFunc(def, cmd)
-    CellDef *def;	/* Pointer to CellDef to be saved.  This def might
+cmdWriteallFunc(
+    CellDef *def,	/* Pointer to CellDef to be saved.  This def might
 			 * be an internal buffer; if so, we ignore it.
 			 */
-    TxCommand *cmd;	/* Client data passed to DBCellSrDefs, a pointer
+    TxCommand *cmd)	/* Client data passed to DBCellSrDefs, a pointer
 			 * to the command structure.  If cmd->tx_argc == 1,
 			 * then prompt for each action.  If cmd->tx_argc
 			 * == 2, then write all cells without asking.  If
@@ -2014,9 +2017,9 @@ cmdWriteallFunc(def, cmd)
  */
 
 void
-CmdXload(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdXload(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     windCheckOnlyWindow(&w, DBWclientID);
     if (w == (MagWindow *) NULL)
@@ -2062,9 +2065,9 @@ CmdXload(w, cmd)
  */
 
 void
-CmdXor(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdXor(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int			rval, xMask;
     bool		dolabels;

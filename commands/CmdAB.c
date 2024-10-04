@@ -70,9 +70,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  /*ARGSUSED*/
 
 void
-CmdAddPath( w, cmd )
-    MagWindow *w;
-    TxCommand *cmd;
+CmdAddPath(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (cmd->tx_argc != 2) {
 	TxError("Usage: %s appended_search_path\n", cmd->tx_argv[0]);
@@ -130,9 +130,9 @@ typedef struct LA1
 #define ARRAY_DEFAULT	6
 
 void
-CmdArray(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdArray(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     static char *cmdArrayOption[] = {
 	"count 		[[xlo] xhi [ylo] yhi]	array subcells",
@@ -480,11 +480,11 @@ freelist:
  */
 
 int
-selGetArrayFunc(selUse, use, trans, arg)
-   CellUse *selUse;
-   CellUse *use;
-   Transform *trans;
-   LinkedArray **arg;
+selGetArrayFunc(
+   CellUse *selUse,
+   CellUse *use,
+   Transform *trans,
+   LinkedArray **arg)
 {
     /* Check "use" for array information and pass this to arrayInfo */
 
@@ -593,9 +593,9 @@ selGetArrayFunc(selUse, use, trans, arg)
 #define BOX_DEFAULT	13
 
 void
-CmdBox(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdBox(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     static char *cmdBoxOption[] = {
 	"width		[value]			set or return box width",
