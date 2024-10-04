@@ -2241,7 +2241,7 @@ DBMoveCell(cellDef, origx, origy)
 	newplane = DBNewPlane((ClientData) TT_SPACE);
 	DBClearPaintPlane(newplane);
 	if (dbMovePlane(cellDef->cd_planes[pNum], newplane, pNum,
-		origx, origy, FALSE))
+		origx, origy))
 	    cellDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
         DBFreePaintPlane(cellDef->cd_planes[pNum]);
 	TiFreePlane(cellDef->cd_planes[pNum]);
