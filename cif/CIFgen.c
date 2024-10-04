@@ -4157,11 +4157,13 @@ bridgeErase(brlims, area)
     }
 
     for (t = 0; t < TT_MAXTYPES; t++, temps++)
+    {
         if (TTMaskHasType(&brlims->co_cifMask, t))
            if (DBSrPaintArea((Tile *) NULL, *temps, area, &CIFSolidBits, cifPaintFunc, CIFEraseTable))
                 return 0;
-	
-        return 1;       //Nothing found
+    }
+
+    return 1;       //Nothing found
 }
 
 /*
