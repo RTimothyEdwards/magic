@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include <oaDB.h>
 #include <magicOA.h>
 #include <magicInit.h>
@@ -147,7 +148,7 @@ TCLFUNC(get_db_units_per_user_unit) {
 
 TCLFUNC(open_cell) {
   TCLENTRY();
-  int cvIndex;
+  //int cvIndex;
 
   if(objc != 4)
       TCL_RTN_ERROR("Usage: %s lib cell view",getArgString(0));
@@ -163,7 +164,7 @@ TCLFUNC(open_cell) {
 
 TCLFUNC(close_cell) {
   TCLENTRY();
-  int cellIndex;
+  //int cellIndex;
 
   if((objc != 4))
     TCL_RTN_ERROR("Usage: %s lib cell view", getArgString(0));
@@ -199,8 +200,8 @@ TCLFUNC(close_all_cells) {
 }
 
 TCLFUNC(get_bounding_box) {
-  char *defstring;
-  char *inststring;
+  const char *defstring;
+  const char *inststring;
   int callback = 0;
 
   TCLENTRY();
@@ -240,8 +241,8 @@ TCLFUNC(help) {
 
 struct tclCmd {
   Tcl_ObjCmdProc * cmd;
-  char *name;
-  char *help;
+  const char *name;
+  const char *help;
 };
 
 static const struct tclCmd tclCmds[] = {
@@ -300,8 +301,10 @@ int Magicoa_Init(Tcl_Interp *interp) {
       return TCL_ERROR;
 #endif
 	try {
+	char argvbuf[32];
 	int args=1;
-	char *argv[] = {"tclsh"};
+	snprintf(argvbuf, sizeof(argvbuf), "tclsh");
+	char *argv[] = {&argvbuf[0]};
 	oaDBInit(&args, argv);
 
 	} CATCH

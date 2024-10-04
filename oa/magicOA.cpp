@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include <magicOA.h>
 
 using namespace std;
@@ -10,8 +11,9 @@ oaCellView *curCellView;
 int
 getTechInfo (const char *techName)
 {
-
-  char *argArray[] = {"tclsh"};
+  char argvbuf[32];
+  snprintf(argvbuf, sizeof(argvbuf), "tclsh");
+  char *argArray[] = {&argvbuf[0]};
   int argCount = 1;
   // initialize OA DB
   oaDBInit( &argCount, argArray );
@@ -37,7 +39,7 @@ getTechInfo (const char *techName)
     oaString routeLayerName;
 
     cout <<"Route layer specs" << endl;
-    for (int i = 0; i < routeLayerSpecArray.getNumValues(); i++) {
+    for (unsigned int i = 0; i < routeLayerSpecArray.getNumValues(); i++) {
       oaRouteLayerSpec routeLayerSpec = routeLayerSpecArray[i];
       oaPhysicalLayer *routeLayer = routeLayerSpec.layer();
       routeLayer->getName(routeLayerName);
@@ -177,7 +179,7 @@ openDesign(const char *lib, const char *cell, const char *view) {
   try {
     cellView = oaCellView::open(libName, cellName, viewName,
 					    oacMaskLayout, 'r');
-  } catch (oaDBException dbErr) {
+  } catch (oaDBException& dbErr) {
     cout << dbErr.getFormatString() << endl;
     return 1;
   }
@@ -307,13 +309,13 @@ getBoundingBox (oaInst *instPtr, const char *instanceName, const char *defName,
       inst->getOrigin(instOrigin);
       try {
         cellView = inst->getMaster();
-      } catch (oaDBException dbErr) {
+      } catch (oaDBException& dbErr) {
         cout << "error in getMaster" << endl;
         return 1;
       }
       try {
         topBlock = cellView->getTopBlock();
-      } catch (oaDBException dbErr) {
+      } catch (oaDBException& dbErr) {
 	cout << "error in getTopBlock" << endl;
 	return 1;
       }
