@@ -692,9 +692,10 @@ HashKill(table)
     for (hp = table->ht_table, hend = &hp[table->ht_size]; hp < hend; hp++)
 	for (h = *hp; h != NIL; h = h->h_next)
 	{
+	    const void *p = h->h_key.h_ptr;
 	    freeMagic((char *) h);
 	    if (killFn)
-		(*killFn)(h->h_key.h_ptr);
+		(*killFn)((void *)p);
 	}
     freeMagic((char *) table->ht_table);
 
