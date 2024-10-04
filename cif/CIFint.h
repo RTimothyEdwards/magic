@@ -319,37 +319,40 @@ typedef struct cifstyle
 
 /* procedures */
 
-extern bool CIFNameToMask();
-extern void CIFGenSubcells();
-extern void CIFGenArrays();
-extern void CIFGen();
-extern void CIFClearPlanes();
-extern Plane *CIFGenLayer();
-extern void CIFInitCells();
-extern int cifHierCopyFunc();
-extern int cifHierCopyMaskHints();
-extern void CIFLoadStyle();
-extern void CIFCopyMaskHints();
+extern bool CIFNameToMask(char *name, TileTypeBitMask *result, TileTypeBitMask *depend);
+extern void CIFGenSubcells(CellDef *def, Rect *area, Plane **output);
+extern void CIFGenArrays(CellDef *def, Rect *area, Plane **output);
+extern void CIFGen(CellDef *cellDef, CellDef *origDef, Rect *area, Plane **planes, TileTypeBitMask *layers,
+                   bool replace, bool genAllPlanes, bool hier, ClientData clientdata);
+extern void CIFClearPlanes(Plane **planes);
+extern Plane *CIFGenLayer(CIFOp *op, Rect *area, CellDef *cellDef, CellDef *origDef, Plane *temps[],
+                          bool hier, ClientData clientdata);
+extern void CIFInitCells(void);
+extern int cifHierCopyFunc(Tile *tile, TreeContext *cxp);
+extern int cifHierCopyMaskHints(SearchContext *scx, ClientData clientData);
+extern void CIFLoadStyle(char *stylename);
+extern void CIFCopyMaskHints(SearchContext *scx, CellDef *targetDef);
 
 /* C99 compat */
-extern void CIFCoverageLayer();
-extern bool CIFWriteFlat();
-extern void CIFScalePlanes();
-extern void CIFInputRescale();
-extern int  CIFCalmaLayerToCifLayer();
-extern int  CIFScaleCoord();
-extern void CIFPropRecordPath();
-extern void CIFPaintWirePath();
-extern void CIFMakeManhattanPath();
-extern int  cifGrowSliver();
-extern int  cifHierElementFunc();
-extern int  cifSquareFunc();
-extern int  cifSquareGridFunc();
-extern int  cifSlotFunc();
-extern int  CIFParseScale();
-extern int  cifParseCalmaNums();
-extern int  CIFEdgeDirection();
-extern bool CIFReadTechLimitScale();
+extern void CIFCoverageLayer(CellDef *rootDef, Rect *area, char *layer, bool dolist);
+extern bool CIFWriteFlat(CellDef *rootDef, FILE *f);
+extern void CIFScalePlanes(int scalen, int scaled, Plane **planearray);
+extern void CIFInputRescale(int n, int d);
+extern int CIFCalmaLayerToCifLayer(int layer, int datatype, CIFReadStyle *calmaStyle);
+extern int CIFScaleCoord(int cifCoord, int snap_type);
+extern void CIFPropRecordPath(CellDef *def, CIFPath *pathheadp, bool iswire, char *propname);
+extern void CIFPaintWirePath(CIFPath *pathheadp, int width, bool endcap, Plane *plane,
+                             PaintResultType *ptable, PaintUndoInfo *ui);
+extern void CIFMakeManhattanPath(CIFPath *pathHead, Plane *plane, PaintResultType *resultTbl, PaintUndoInfo *ui);
+extern int cifGrowSliver(Tile *tile, Rect *area);
+extern int cifHierElementFunc(CellUse *use, Transform *transform, int x, int y, Rect *checkArea);
+extern int cifSquareFunc(Rect *area, CIFOp *op, int *rows, int *columns, Rect *cut);
+extern int cifSquareGridFunc(Rect *area, CIFOp *op, int *rows, int *columns, Rect *cut);
+extern int cifSlotFunc(Rect *area, CIFOp *op, int *numY, int *numX, Rect *cut, bool vertical);
+extern int CIFParseScale(char *true_scale, int *expander);
+extern int cifParseCalmaNums(char *str, int *numArray, int numNums);
+extern int CIFEdgeDirection(CIFPath *first, CIFPath *last);
+extern bool CIFReadTechLimitScale(int ns, int ds);
 
 /* Shared variables and structures: */
 
@@ -383,7 +386,7 @@ extern PaintResultType CIFPaintTable[], CIFEraseTable[];
 
 extern int CIFErrorLayer;
 extern CellDef *CIFErrorDef;
-extern void CIFError();
+extern void CIFError(Rect *area, char *message);
 
 /* The following determines the tile type used to hold the CIF
  * information on its paint plane.
