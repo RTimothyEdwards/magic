@@ -291,6 +291,7 @@ GrOGLTextSize(text, size, r)
 	font = grXLargeFont;
 	break;
     default:
+        font = NULL;
 	TxError("%s%d\n", "GrOGLTextSize: Unknown character size ",
 		size );
 	break;
