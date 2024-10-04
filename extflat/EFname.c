@@ -508,6 +508,9 @@ EFHNBest(hierName1, hierName2)
     HierName *np1, *np2;
     char last1, last2;
 
+    ASSERT(hierName1, "hierName1");
+    ASSERT(hierName2, "hierName2");
+
     for (ncomponents1 = 0, np1 = hierName1; np1; np1 = np1->hn_parent)
 	ncomponents1++;
     for (ncomponents2 = 0, np2 = hierName2; np2; np2 = np2->hn_parent)
