@@ -123,7 +123,7 @@ TCLFUNC(get_user_unit) {
     TCL_RTN_ERROR("Usage: %s tech",getArgString(0));
 
   try {
-    getUserUnit(getArgString(1), uUnit, NULL, techUserUnit);
+    getUserUnit(getArgString(1), uUnit, sizeof(uUnit), NULL, techUserUnit);
     Tcl_Obj *strResult = Tcl_NewStringObj(uUnit, strlen(uUnit));
     //Tcl_SetResult(REX_interp, uUnit, TCL_STATIC);
     Tcl_SetObjResult(REX_interp, strResult);

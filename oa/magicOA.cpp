@@ -97,7 +97,7 @@ getTechInfo (const char *techName)
 }
 
 int
-getUserUnit(const char *techName, char *userUnit, ClientData *cdarg,
+getUserUnit(const char *techName, char *userUnit, size_t userUnitSz, ClientData *cdarg,
 		int (*magicFunc)(const char *techName, char *userUnit,
 		ClientData *cdarg), oaCellViewType viewType)
 {
@@ -110,35 +110,35 @@ getUserUnit(const char *techName, char *userUnit, ClientData *cdarg,
   switch (chipTech->getUserUnits(viewType)) {
   case oacMicron:
     //userUnit = "micron";
-    strcpy(userUnit, "micron");
+    strcpy_s(userUnit, userUnitSz, "micron");
     break;
   case oacMillimeter:
     //userUnit = "millimeter";
-    strcpy(userUnit, "millimeter");
+    strcpy_s(userUnit, userUnitSz, "millimeter");
     break;
   case oacCentimeter:
     //userUnit = "centimeter";
-    strcpy(userUnit, "centimeter");
+    strcpy_s(userUnit, userUnitSz, "centimeter");
     break;
   case oacMeter:
     //userUnit = "meter";
-    strcpy(userUnit, "meter");
+    strcpy_s(userUnit, userUnitSz, "meter");
     break;
   case oacMil:
     //userUnit = "mil";
-    strcpy(userUnit, "mil");
+    strcpy_s(userUnit, userUnitSz, "mil");
     break;
   case oacInch:
     //userUnit = "inch";
-    strcpy(userUnit, "inch");
+    strcpy_s(userUnit, userUnitSz, "inch");
     break;
   case oacNanometer:
     //userUnit = "nanometer";
+    strcpy_s(userUnit, userUnitSz, "nanometer");
     break;
-    strcpy(userUnit, "nanometer");
   default:
     //userUnit = "none";
-    strcpy(userUnit, "none");
+    strcpy_s(userUnit, userUnitSz, "none");
   }
   //cout << "getTechUserUnit " << userUnit << endl;
   if (magicFunc)

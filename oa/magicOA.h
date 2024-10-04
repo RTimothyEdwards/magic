@@ -6,7 +6,7 @@
 
 // Functions implemented for OA DB access and query
 int getTechInfo(const char *techName);
-int getUserUnit(const char *techName, char *userUnit, ClientData *cdarg,
+int getUserUnit(const char *techName, char *userUnit, size_t userUnitSz, ClientData *cdarg,
 		int (*magicFunc) (const char *techName, char *userUnit,
 		ClientData *cdarg) = NULL,
 		oaCellViewType viewType=oacMaskLayout);
