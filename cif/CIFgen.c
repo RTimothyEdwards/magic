@@ -305,7 +305,6 @@ cifGrowMinFunc(tile, table)
     TileType type, tptype;
     Tile *tp, *tp2;
     bool changed;
-    void SetMinBoxGrid(Rect *area, int width);		/* Forward reference */
 
     TiToRect(tile, &area);
 
