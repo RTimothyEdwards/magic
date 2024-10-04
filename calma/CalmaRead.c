@@ -167,9 +167,9 @@ int calmaElementIgnore[] = { CALMA_ELFLAGS, CALMA_PLEX, -1 };
  */
 
 void
-CalmaReadFile(file, filename)
-    FILETYPE file;			/* File from which to read Calma */
-    char *filename;		/* The real name of the file read */
+CalmaReadFile(
+    FILETYPE file,		/* File from which to read Calma */
+    char *filename)		/* The real name of the file read */
 {
     int k, version;
     char *libname = NULL, *libnameptr = NULL;
@@ -347,7 +347,7 @@ done:
  */
 
 bool
-calmaParseUnits()
+calmaParseUnits(void)
 {
     int nbytes, rtype = 0;
     double metersPerDBUnit;
@@ -458,7 +458,8 @@ calmaParseUnits()
  * ----------------------------------------------------------------------------
  */
 
-void CalmaReadError(char *format, ...)
+void
+CalmaReadError(char *format, ...)
 {
     va_list args;
     OFFTYPE filepos;
@@ -515,9 +516,9 @@ void CalmaReadError(char *format, ...)
  */
 
 void
-calmaUnexpected(wanted, got)
-    int wanted;	/* Type of record we wanted */
-    int got;	/* Type of record we got */
+calmaUnexpected(
+    int wanted,	/* Type of record we wanted */
+    int got)	/* Type of record we got */
 {
     CalmaReadError("Unexpected record type in input: \n");
 
@@ -558,8 +559,8 @@ calmaUnexpected(wanted, got)
  */
 
 char *
-calmaRecordName(rtype)
-    int rtype;
+calmaRecordName(
+    int rtype)
 {
     static char numeric[10];
     static char *calmaRecordNames[] =
@@ -607,7 +608,7 @@ calmaRecordName(rtype)
  */
 
 void
-CalmaTechInit()
+CalmaTechInit(void)
 {
     ASSERT(sizeof(FourByteInt)==4, "definition in calmaInt.h");
     ASSERT(sizeof(TwoByteInt)==2, "definition in calmaInt.h");

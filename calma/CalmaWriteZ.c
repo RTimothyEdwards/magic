@@ -271,9 +271,9 @@ static char calmaMapTablePermissive[] =
  */
 
 bool
-CalmaWriteZ(rootDef, f)
-    CellDef *rootDef;	/* Pointer to CellDef to be written */
-    gzFile f;		/* Open compressed output file */
+CalmaWriteZ(
+    CellDef *rootDef,	/* Pointer to CellDef to be written */
+    gzFile f)		/* Open compressed output file */
 {
     int oldCount = DBWFeedbackCount, problems, nerr;
     bool good;
@@ -399,11 +399,11 @@ CalmaWriteZ(rootDef, f)
  */
 
 bool
-calmaDumpStructureZ(def, outf, calmaDefHash, filename)
-    CellDef *def;
-    gzFile outf;
-    HashTable *calmaDefHash;
-    char *filename;
+calmaDumpStructureZ(
+    CellDef *def,
+    gzFile outf,
+    HashTable *calmaDefHash,
+    char *filename)
 {
     int nbytes = -1, rtype = 0;
     char *strname = NULL, *newnameptr;
@@ -669,11 +669,11 @@ syntaxerror:
  */
 
 void
-calmaFullDumpZ(def, fi, outf, filename)
-    CellDef *def;
-    gzFile fi;
-    gzFile outf;
-    char *filename;
+calmaFullDumpZ(
+    CellDef *def,
+    gzFile fi,
+    gzFile outf,
+    char *filename)
 {
     int version, rval;
     char *libname = NULL, *testlib, uniqlibname[4];
@@ -817,18 +817,18 @@ done:
  */
 
 int
-calmaProcessUseZ(use, outf)
-    CellUse *use;	/* Process use->cu_def */
-    gzFile outf;	/* Stream file */
+calmaProcessUseZ(
+    CellUse *use,	/* Process use->cu_def */
+    gzFile outf)	/* Stream file */
 {
     return (calmaProcessDefZ(use->cu_def, outf, FALSE));
 }
 
 int
-calmaProcessDefZ(def, outf, do_library)
-    CellDef *def;	/* Output this def's children, then the def itself */
-    gzFile outf;		/* Stream file */
-    bool do_library;	/* If TRUE, output only children of def, but not def */
+calmaProcessDefZ(
+    CellDef *def,	/* Output this def's children, then the def itself */
+    gzFile outf,		/* Stream file */
+    bool do_library)	/* If TRUE, output only children of def, but not def */
 {
     char *filename;
     int polyidx;
@@ -1176,10 +1176,10 @@ calmaProcessDefZ(def, outf, do_library)
  */
 
 void
-calmaOutFuncZ(def, f, cliprect)
-    CellDef *def;	/* Pointer to cell def to be written */
-    gzFile f;		/* Open output file */
-    Rect *cliprect;	/* Area to clip to (used for contact cells),
+calmaOutFuncZ(
+    CellDef *def,	/* Pointer to cell def to be written */
+    gzFile f,		/* Open output file */
+    Rect *cliprect)	/* Area to clip to (used for contact cells),
 			 * in CIF/GDS coordinates.
 			 */
 {
@@ -1371,9 +1371,9 @@ calmaOutFuncZ(def, f, cliprect)
  */
 
 int
-calmaWriteUseFuncZ(use, f)
-    CellUse *use;
-    gzFile f;
+calmaWriteUseFuncZ(
+    CellUse *use,
+    gzFile f)
 {
     /*
      * r90, r180, and r270 are Calma 8-byte real representations
@@ -1586,10 +1586,10 @@ calmaWriteUseFuncZ(use, f)
  */
 
 void
-calmaOutStructNameZ(type, def, f)
-    int type;
-    CellDef *def;
-    gzFile f;
+calmaOutStructNameZ(
+    int type,
+    CellDef *def,
+    gzFile f)
 {
     char *defname;
     unsigned char c;
@@ -1655,14 +1655,16 @@ bad:
  */
 
 bool
-CalmaGenerateArrayZ(f, type, llx, lly, pitch, cols, rows)
-    gzFile f;		/* GDS output file */
-    TileType type;	/* Magic tile type of contact */
-    int llx, lly;	/* Lower-left hand coordinate of the array
+CalmaGenerateArrayZ(
+    gzFile f,		/* GDS output file */
+    TileType type,	/* Magic tile type of contact */
+    int llx,
+    int lly,		/* Lower-left hand coordinate of the array
 			 * (centered on contact cut)
 			 */
-    int pitch;		/* Pitch of the array elements */
-    int cols, rows;	/* Number of array elements in X and Y */
+    int pitch,		/* Pitch of the array elements */
+    int cols,
+    int rows)		/* Number of array elements in X and Y */
 {
     CellDef *child;	/* Cell definition of the contact cell */
     int xxlate, yxlate;
@@ -1723,8 +1725,8 @@ CalmaGenerateArrayZ(f, type, llx, lly, pitch, cols, rows)
  */
 
 void
-calmaWriteContactsZ(f)
-    gzFile f;
+calmaWriteContactsZ(
+    gzFile f)
 {
     TileType type;
     TileTypeBitMask tMask, *rMask;
@@ -1806,9 +1808,9 @@ calmaWriteContactsZ(f)
  */
 
 void
-calmaProcessBoundaryZ(blist, cos)
-    BoundaryTop *blist;
-    calmaOutputStructZ *cos;
+calmaProcessBoundaryZ(
+    BoundaryTop *blist,
+    calmaOutputStructZ *cos)
 {
     gzFile f = cos->f;
     LinkedBoundary *listtop, *lbref, *lbstop, *lbfree;
@@ -1886,9 +1888,9 @@ calmaProcessBoundaryZ(blist, cos)
  */
 
 int
-calmaMergePaintFuncZ(tile, cos)
-    Tile *tile;			/* Tile to be written out. */
-    calmaOutputStructZ *cos;	/* Information needed by algorithm */
+calmaMergePaintFuncZ(
+    Tile *tile,			/* Tile to be written out. */
+    calmaOutputStructZ *cos)	/* Information needed by algorithm */
 {
     gzFile f = cos->f;
     Rect *clipArea = cos->area;
@@ -2209,9 +2211,9 @@ done_searches:
  */
 
 int
-calmaWritePaintFuncZ(tile, cos)
-    Tile *tile;			/* Tile to be written out. */
-    calmaOutputStructZ *cos;	/* File for output and clipping area */
+calmaWritePaintFuncZ(
+    Tile *tile,			/* Tile to be written out. */
+    calmaOutputStructZ *cos)	/* File for output and clipping area */
 {
     gzFile f = cos->f;
     Rect *clipArea = cos->area;
@@ -2314,13 +2316,13 @@ calmaWritePaintFuncZ(tile, cos)
  */
 
 void
-calmaWriteLabelFuncZ(lab, ltype, type, f)
-    Label *lab;	/* Label to output */
-    int ltype;	/* CIF layer number to use for TEXT record */
-    int type;	/* CIF layer number to use for BOUNDARY record,
+calmaWriteLabelFuncZ(
+    Label *lab,	/* Label to output */
+    int ltype,	/* CIF layer number to use for TEXT record */
+    int type,	/* CIF layer number to use for BOUNDARY record,
 		 * or -1 if not attached to a layer
 		 */
-    gzFile f;	/* Stream file */
+    gzFile f)	/* Stream file */
 {
     Point p;
     int calmanum, calmatype;
@@ -2485,9 +2487,9 @@ calmaWriteLabelFuncZ(lab, ltype, type, f)
  */
 
 int
-calmaPaintLabelFuncZ(tile, cos)
-    Tile *tile;			/* Tile contains area for label. */
-    calmaOutputStructZ *cos;	/* File for output and clipping area */
+calmaPaintLabelFuncZ(
+    Tile *tile,			/* Tile contains area for label. */
+    calmaOutputStructZ *cos)	/* File for output and clipping area */
 {
     gzFile f = cos->f;
     Rect *clipArea = cos->area;
@@ -2546,9 +2548,9 @@ calmaPaintLabelFuncZ(tile, cos)
  */
 
 void
-calmaOutHeaderZ(rootDef, f)
-    CellDef *rootDef;
-    gzFile f;
+calmaOutHeaderZ(
+    CellDef *rootDef,
+    gzFile f)
 {
     static double useru = 0.001;
     static double mum = 1.0e-9;
@@ -2607,9 +2609,9 @@ calmaOutHeaderZ(rootDef, f)
  */
 
 void
-calmaOutDateZ(t, f)
-    time_t t;	/* Time (UNIX format) to be output */
-    gzFile f;	/* Stream file */
+calmaOutDateZ(
+    time_t t,	/* Time (UNIX format) to be output */
+    gzFile f)	/* Stream file */
 {
     struct tm *datep = localtime(&t);
 
@@ -2642,10 +2644,10 @@ calmaOutDateZ(t, f)
  */
 
 void
-calmaOutStringRecordZ(type, str, f)
-    int type;	/* Type of this record (data type is ASCII string) */
-    char *str;	/* String to be output */
-    gzFile f;	/* Compressed stream file */
+calmaOutStringRecordZ(
+    int type,	/* Type of this record (data type is ASCII string) */
+    char *str,	/* String to be output */
+    gzFile f)	/* Compressed stream file */
 {
     int len;
     unsigned char c;
@@ -2743,9 +2745,9 @@ calmaOutStringRecordZ(type, str, f)
  */
 
 void
-calmaOutR8Z(d, f)
-    double d;	/* Double value to write to output */
-    gzFile f;	/* Stream file */
+calmaOutR8Z(
+    double d,	/* Double value to write to output */
+    gzFile f)	/* Stream file */
 {
     int c, i, sign, expon;
 
@@ -2818,9 +2820,9 @@ calmaOutR8Z(d, f)
  */
 
 void
-calmaOut8Z(str, f)
-    char *str;	/* 8-byte string to be output */
-    gzFile f;	/* Compressed stream file */
+calmaOut8Z(
+    char *str,	/* 8-byte string to be output */
+    gzFile f)	/* Compressed stream file */
 {
     int i;
 
