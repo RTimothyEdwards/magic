@@ -950,7 +950,7 @@ CmdWhat(
     extern int cmdWhatLabelFunc(LabelStore *entry, bool *foundAny);
     extern int cmdWhatCellFunc(CellUse *selUse, CellUse *realUse, Transform *transform, bool *foundAny);
     extern int cmdWhatLabelPreFunc(Label *label, CellUse *cellUse, Transform *transform, bool *foundAny);
-    extern int orderLabelFunc(LabelStore *one, LabelStore *two);
+    extern int orderLabelFunc(const void *, const void *); /* (LabelStore *one, LabelStore *two) */
 
     locargc = cmd->tx_argc;
 
@@ -1318,9 +1318,11 @@ cmdWhatLabelFunc(
 /* that way all of identical names are grouped together */
 int
 orderLabelFunc(
-    LabelStore *one,		/* one of the labels being compared */
-    LabelStore *two)		/* the other label to compare with */
+    const void *a,		/* one of the labels being compared */
+    const void *b)		/* the other label to compare with */
 {
+    LabelStore *one = (LabelStore *)a; /* qsort compar 1st */
+    LabelStore *two = (LabelStore *)b; /* qsort compar 2nd */
     int i;
 
     if ((i = strcmp(one->lab_text, two->lab_text)) != 0)
