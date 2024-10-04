@@ -542,9 +542,9 @@ char *libPath;
 	    }
 	    else
 	    {
-		int newres = TRUE;
-
+		int newres;
 recovery:
+		newres = TRUE;
 		switch (section)
 		{
 		    case LAYOUT_STYLES:
