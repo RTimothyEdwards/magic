@@ -189,7 +189,8 @@ EFHNConcat(prefix, suffix)
 	else
 	    firstNew = new;
     }
-    prev->hn_parent = prefix;
+    if (prev)
+	prev->hn_parent = prefix;
 
     return firstNew;
 }
