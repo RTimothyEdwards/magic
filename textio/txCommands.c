@@ -880,15 +880,16 @@ txLogCommand(cmd)
 	    case TX_LEFT_BUTTON: { but = 0; break; };
 	    case TX_MIDDLE_BUTTON: { but = 1; break; };
 	    case TX_RIGHT_BUTTON: { but = 2; break; };
-	    default: {ASSERT(FALSE, "txLogCommand"); break; };
+	    default: {ASSERT(FALSE, "txLogCommand"); but = -1; break; };
 	}
 	switch(cmd->tx_buttonAction) {
 	    case TX_BUTTON_DOWN: { act = 0; break; };
 	    case TX_BUTTON_UP: { act = 1; break; };
-	    default: {ASSERT(FALSE, "txLogCommand"); break; };
+	    default: {ASSERT(FALSE, "txLogCommand"); act = -1; break; };
 	}
 
-	fprintf(txLogFile, "%spushbutton %s %s\n",
+	if (but >= 0 && act >= 0)
+	    fprintf(txLogFile, "%spushbutton %s %s\n",
 		pfix, txButTable[but], txActTable[act]);
     }
     if (txLogFlags & TX_LOG_UPDATE)
