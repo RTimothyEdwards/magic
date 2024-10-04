@@ -51,46 +51,48 @@ extern bool CIFUnfracture;
 
 /* Procedures that parse the cif sections of a technology file. */
 
-extern void CIFTechStyleInit();
-extern void CIFTechInit();
-extern bool CIFTechLine();
-extern void CIFTechFinal();
-extern void CIFTechOutputScale();
-extern int  CIFTechInputScale();
-extern bool CIFTechLimitScale();
-extern void CIFReadTechStyleInit();
-extern void CIFReadTechInit();
-extern bool CIFReadTechLine();
-extern void CIFReadTechFinal();
-extern void CIFParseReadLayers();
+extern void CIFTechStyleInit(void);
+extern void CIFTechInit(void);
+extern bool CIFTechLine(char *sectionName, int argc, char *argv[]);
+extern void CIFTechFinal(void);
+extern void CIFTechOutputScale(int n, int d);
+extern int CIFTechInputScale(int n, int d, bool opt);
+extern bool CIFTechLimitScale(int ns, int ds);
+extern void CIFReadTechStyleInit(void);
+extern void CIFReadTechInit(void);
+extern bool CIFReadTechLine(char *sectionName, int argc, char *argv[]);
+extern void CIFReadTechFinal(void);
+extern void CIFParseReadLayers(char *string, TileTypeBitMask *mask, bool newok);
 
 /* Externally-visible procedures: */
 
-extern float CIFGetOutputScale();
-extern float CIFGetScale();
-extern float CIFGetInputScale();
+extern float CIFGetOutputScale(int convert);
+extern float CIFGetScale(int convert);
+extern float CIFGetInputScale(int convert);
 
-extern int CIFPaintCurrent();
-extern void CIFSeeLayer();
-extern void CIFPaintLayer();
-extern void CIFSeeHierLayer();
-extern void CIFPrintStats();
+extern int CIFPaintCurrent(int filetype);
+extern void CIFSeeLayer(CellDef *rootDef, Rect *area, char *layer);
+extern void CIFPaintLayer(CellDef *rootDef, Rect *area, char *cifLayer, int magicLayer, CellDef *paintDef);
+extern void CIFSeeHierLayer(CellDef *rootDef, Rect *area, char *layer, int arrays, int subcells);
+extern void CIFPrintStats(void);
 
-extern bool CIFWrite();
-extern void CIFReadFile();
+extern bool CIFWrite(CellDef *rootDef, FILE *f);
+extern void CIFReadFile(FILE *file);
 
-extern void CIFSetStyle();
-extern void CIFSetReadStyle();
+extern void CIFSetStyle(char *name);
+extern void CIFSetReadStyle(char *name);
 
-extern void CIFPrintStyle();
-extern void CIFPrintReadStyle();
+extern void CIFPrintStyle(bool dolist, bool doforall, bool docurrent);
+extern void CIFPrintReadStyle(bool dolist, bool doforall, bool docurrent);
 
-extern int CIFOutputScaleFactor();
+extern int CIFOutputScaleFactor(void);
 
-extern void PaintWireList();
-extern LinkedRect *PaintPolygon();
+extern void PaintWireList(Point *pointlist, int number, int width, int endcap, Plane *plane,
+                          PaintResultType *ptable, PaintUndoInfo *ui);
+extern LinkedRect *PaintPolygon(Point *pointlist, int number, Plane *plane, PaintResultType *ptable,
+                                PaintUndoInfo *ui, int keep);
 
 /* C99 compat */
-extern int  CIFGetContactSize();
+extern int CIFGetContactSize(TileType type, int *edge, int *spacing, int *border);
 
 #endif /* _CIF_H */
