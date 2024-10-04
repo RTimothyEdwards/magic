@@ -80,6 +80,14 @@ bool CalmaMergeTiles = FALSE;	 /* If TRUE, merge tiles into polygons in output. 
 int  CalmaCompression = 0;	/* Output file compression level (0 = uncompressed) */
 #endif
 
+/* Structure used by calmaWritePaintFunc() */
+
+typedef struct {
+   FILE *f;		/* File stream for output		*/
+   Rect *area;		/* Clipping area, in GDS coordinates	*/
+   int type;		/* Layer index				*/
+} calmaOutputStruct;
+
     /* Forward declarations */
 extern int calmaWriteInitFunc(CellDef *def);
 extern int calmaWritePaintFunc(Tile *tile, calmaOutputStruct *cos);
@@ -99,14 +107,6 @@ extern void calmaOutR8(double d, FILE *f);
 extern void calmaProcessBoundary(BoundaryTop *blist, calmaOutputStruct *cos);
 extern void calmaRemoveColinear(BoundaryTop *blist);
 extern void calmaRemoveDegenerate(BoundaryTop *blist);
-
-/* Structure used by calmaWritePaintFunc() */
-
-typedef struct {
-   FILE *f;		/* File stream for output		*/
-   Rect *area;		/* Clipping area, in GDS coordinates	*/
-   int type;		/* Layer index				*/
-} calmaOutputStruct;
 
 /*--------------------------------------------------------------*/
 /* Structures used by the tile merging algorithm 		*/
