@@ -720,7 +720,7 @@ cmdCheckNewName(
     bool tryRename,
     bool noninteractive)
 {
-    static char *yesno[] = { "no", "yes", 0 };
+    static const char * const yesno[] = { "no", "yes", 0 };
     char *filename;
     char *prompt;
     char *returnname;
@@ -1076,7 +1076,7 @@ CmdWarnWrite(void)
 {
     int count, code;
     int cmdWarnWriteFunc(CellDef *cellDef, int *pcount);
-    static char *yesno[] = { "no", "yes", 0 };
+    static const char * const yesno[] = { "no", "yes", 0 };
     char *prompt;
 
     count = 0;
