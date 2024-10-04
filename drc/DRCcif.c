@@ -1184,7 +1184,7 @@ drcCifArea(argc, argv)
     DRCCookie *dpnext, *dpnew;
     TileType i, j;
     int plane;
-    int	thislayer;
+    int	thislayer = -1;
     int scalefactor;
 
     if (drcCifStyle == NULL)
@@ -1246,7 +1246,7 @@ drcCifMaxwidth(argc, argv)
     TileType i, j;
     int plane;
     int bend;
-    int thislayer;
+    int thislayer = -1;
     int scalefactor;
 
     if (drcCifStyle == NULL)
