@@ -1597,7 +1597,7 @@ CmdFindNetProc(nodename, use, rect, warn_not_found, isvalid)
     scx.scx_trans = GeoIdentityTransform;
     s = nodename;
     trans = GeoIdentityTransform;
-    while (s2 = strchr(s, '/'))
+    while ((s2 = strchr(s, '/')))
     {
      	*s2 = '\0';
 	DBTreeFindUse(s, scx.scx_use, &scx2);

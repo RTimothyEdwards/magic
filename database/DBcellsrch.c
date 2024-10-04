@@ -92,7 +92,7 @@ DBSrCellPlaneArea(BPlane *plane, Rect *rect, int (*func)(), ClientData arg)
     bpe = (BPEnum *)mallocMagic(sizeof(BPEnum));
     BPEnumInit(bpe, plane, rect, BPE_OVERLAP, "DBSrCellPlaneArea");
 
-    while (use = BPEnumNext(bpe))
+    while ((use = BPEnumNext(bpe)))
     {
 	if ((*func)(use, arg))
 	{
