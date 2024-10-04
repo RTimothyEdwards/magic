@@ -25,6 +25,7 @@
 
 #include "windows/windows.h"
 #include "database/database.h"
+#include "textio/txcommands.h" /* TxCommand */
 
 /*
  * Name of default yank buffer
