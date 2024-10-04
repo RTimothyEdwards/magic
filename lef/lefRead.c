@@ -1331,7 +1331,7 @@ LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
 			    rectList = rectNew;
 
 			if ((!do_list) && (otherlayer != -1))
-			    LefPaintPolygon(lefMacro, pointList, points, otherlayer);
+			    LefPaintPolygon(lefMacro, pointList, points, otherlayer, FALSE);
 		    }
 		    freeMagic(pointList);
 		}
