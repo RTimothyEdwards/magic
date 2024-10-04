@@ -140,7 +140,7 @@ ResPrintExtDev(outextfile, devices)
 		    fprintf(outextfile,"device ");
 
 		fprintf(outextfile,"%s %s %d %d %d %d ",
-			extDevTable[devptr->exts_deviceClass],
+			extDevTable[(unsigned char)devptr->exts_deviceClass],
 			devptr->exts_deviceName,
 			devices->layout->rd_inside.r_ll.p_x,
 			devices->layout->rd_inside.r_ll.p_y,

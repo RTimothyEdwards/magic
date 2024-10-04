@@ -710,7 +710,7 @@ PlotTextSize(font, string, area)
     {
 	if ((*string == ' ') || (*string == '\t'))
 	    d = &font->fo_chars['t'];
-	else d = &font->fo_chars[*string];
+	else d = &font->fo_chars[(unsigned char)*string];
 	if (d->nbytes == 0) continue;
 	if (d->up > area->r_ytop)
 	    area->r_ytop = d->up;
@@ -783,7 +783,7 @@ PlotRasterText(raster, clip, font, string, point)
 	 * area of the raster.
 	 */
 
-	d = &font->fo_chars[*string];
+	d = &font->fo_chars[(unsigned char)*string];
 	cBytesPerLine = (d->left + d->right + 7) >> 3;
 	for (i = 0; i < d->up + d->down; i++)
 	{

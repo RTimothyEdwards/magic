@@ -2355,7 +2355,7 @@ extOutputDevices(def, transList, outFile)
 	{
 	    case DEV_FET:	/* old style, perimeter & area */
 		fprintf(outFile, "%s %s",
-			extDevTable[devptr->exts_deviceClass],
+			extDevTable[(unsigned char)devptr->exts_deviceClass],
 			devptr->exts_deviceName);
 
 		fprintf(outFile, " %d %d %d %d",
@@ -2490,7 +2490,7 @@ extOutputDevices(def, transList, outFile)
 
 		devptr = extDevFindParamMatch(devptr, length, width);
 		fprintf(outFile, "%s %s",
-			extDevTable[devptr->exts_deviceClass],
+			extDevTable[(unsigned char)devptr->exts_deviceClass],
 			devptr->exts_deviceName);
 
 		fprintf(outFile, " %d %d %d %d",
@@ -2516,7 +2516,7 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_PDIODE:
 		devptr = extDevFindParamMatch(devptr, length, width);
 		fprintf(outFile, "%s %s",
-			extDevTable[devptr->exts_deviceClass],
+			extDevTable[(unsigned char)devptr->exts_deviceClass],
 			devptr->exts_deviceName);
 
 		fprintf(outFile, " %d %d %d %d",
@@ -2641,7 +2641,7 @@ extOutputDevices(def, transList, outFile)
 		devptr = extDevFindParamMatch(devptr, length, width);
 
 		fprintf(outFile, "%s %s",
-			extDevTable[devptr->exts_deviceClass],
+			extDevTable[(unsigned char)devptr->exts_deviceClass],
 			devptr->exts_deviceName);
 
 		fprintf(outFile, " %d %d %d %d",
@@ -2675,7 +2675,7 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_CAPREV:
 	    case DEV_CSUBCKT:
 		fprintf(outFile, "%s %s",
-			extDevTable[devptr->exts_deviceClass],
+			extDevTable[(unsigned char)devptr->exts_deviceClass],
 			devptr->exts_deviceName);
 
 		fprintf(outFile, " %d %d %d %d",
