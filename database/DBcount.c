@@ -52,10 +52,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *
  *	int
  *	hiercount(parent, uses, child, cdata)
- *	    CellDef *parent, *child;
+ *	    CellDef *parent;
  *	    int uses;		/# Scale factor: number of times child
  *				 # is used by parent
  *				 #/
+ *          CellDef *child;
  *	    ClientData cdata;
  *	{
  *	}
