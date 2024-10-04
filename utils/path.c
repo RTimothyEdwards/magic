@@ -1099,7 +1099,7 @@ PaEnum(path, file, proc, cdata)
 {
     char component[MAXSIZE], *next;
 
-    while (next = nextName(&path, file, component, sizeof component))
+    while ((next = nextName(&path, file, component, sizeof component)))
 	if (next[0] && (*proc)(next, cdata))
 	    return (1);
 

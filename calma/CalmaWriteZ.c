@@ -369,7 +369,7 @@ CalmaWriteZ(rootDef, f)
     good = (nerr == 0) ? TRUE : FALSE;
 
     /* See if any problems occurred */
-    if (problems = (DBWFeedbackCount - oldCount))
+    if ((problems = (DBWFeedbackCount - oldCount)))
 	TxPrintf("%d problems occurred.  See feedback entries.\n", problems);
 
     /*
@@ -1605,7 +1605,7 @@ calmaOutStructNameZ(type, def, f)
     }
 
     /* Is the def name a legal Calma name? */
-    for (cp = def->cd_name; c = (unsigned char) *cp; cp++)
+    for (cp = def->cd_name; (c = (unsigned char) *cp); cp++)
     {
 	if ((c > 127) || (table[c] == 0))
 	    goto bad;

@@ -729,7 +729,7 @@ HashTable *table;
 	void *p;
 
 	HashStartSearch(&hs);
-	while (he = HashNext(table, &hs)) {
+	while ((he = HashNext(table, &hs))) {
 		p = HashGetValue(he);
 		freeMagic(p);
 	}

@@ -118,7 +118,7 @@ DumpCore()
      * to place the crash dump.
      */
 
-    if (crashFile = PaOpen(CRASHDIR, "r", "", ".", "", &crashDir))
+    if ((crashFile = PaOpen(CRASHDIR, "r", "", ".", "", &crashDir)))
     {
 	(void) fclose(crashFile);
 
