@@ -19,6 +19,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <stdlib.h>	/* for atof() */
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <math.h>	/* for sqrt() in bipolar L,W calculation */
 

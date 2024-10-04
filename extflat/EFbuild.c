@@ -24,6 +24,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include <stdio.h>
 #include <stdlib.h>		/* for atof() */
 #include <string.h>
+#include <strings.h>
 
 #include "utils/magic.h"
 #include "utils/geometry.h"

@@ -20,6 +20,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdint.h>
 #include <stdlib.h>		/* for atof() */
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <math.h>		/* for fabs() */
 
