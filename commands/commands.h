@@ -50,17 +50,14 @@ extern TileTypeBitMask CmdYMAllButSpace;
 
 /* --------------------- Global procedure headers --------------------- */
 
-extern MagWindow *CmdGetRootBox();
 extern MagWindow *CmdGetEditPoint();
 extern MagWindow *CmdGetRootPoint();
 extern bool CmdWarnWrite();
 extern bool CmdParseLayers();
-extern void CmdAddSlop();
 extern void CmdLabelProc();
 extern void CmdSetWindCaption();
 extern CellUse *CmdGetSelectedCell();
 extern bool CmdIllegalChars();
-extern void CmdDoMacro();
 extern TileType CmdFindNetProc();
 extern bool CmdCheckForPaintFunc();
 
