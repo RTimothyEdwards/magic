@@ -92,6 +92,14 @@ extern int calmaPaintLayerType;
     /* External functions from CalmaWrite.c */
 extern int calmaWriteInitFunc(CellDef *def);
 
+/* Structure used by calmaWritePaintFuncZ() and others */
+
+typedef struct {
+   gzFile f;		/* Compressed file stream for output	*/
+   Rect *area;		/* Clipping area, in GDS coordinates	*/
+   int type;		/* Layer index				*/
+} calmaOutputStructZ;
+
     /* Forward declarations */
 extern int calmaWritePaintFuncZ(Tile *tile, calmaOutputStructZ *cos);
 extern int calmaMergePaintFuncZ(Tile *tile, calmaOutputStructZ *cos);
@@ -106,14 +114,6 @@ extern void calmaOutDateZ(time_t t, gzFile f);
 extern void calmaOutStringRecordZ(int type, char *str, gzFile f);
 extern void calmaOut8Z(char *str, gzFile f);
 extern void calmaOutR8Z(double d, gzFile f);
-
-/* Structure used by calmaWritePaintFuncZ() and others */
-
-typedef struct {
-   gzFile f;		/* Compressed file stream for output	*/
-   Rect *area;		/* Clipping area, in GDS coordinates	*/
-   int type;		/* Layer index				*/
-} calmaOutputStructZ;
 
 /*--------------------------------------------------------------*/
 /* Structures used by the tile merging algorithm                */
