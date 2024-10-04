@@ -222,7 +222,7 @@ gaStemAssign(routeUse, doWarn, loc, term, net, netList)
      * See if this location lies inside a river-routing channel.
      * If it does, return the channel containing it.
      */
-    if (ch = gaStemContainingChannel(routeUse, doWarn, loc))
+    if ((ch = gaStemContainingChannel(routeUse, doWarn, loc)))
     {
 	if (ch->gcr_type != CHAN_HRIVER && ch->gcr_type != CHAN_VRIVER)
 	    goto fail;
@@ -347,7 +347,7 @@ gaStemContainingChannelFunc(tile, pCh)
 {
     GCRChannel *ch;
 
-    if (ch = (GCRChannel *) tile->ti_client)
+    if ((ch = (GCRChannel *) tile->ti_client))
     {
 	if (*pCh)
 	{

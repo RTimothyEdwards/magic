@@ -370,7 +370,7 @@ RtrStemAssignExt(use, doWarn, loc, term, net)
 	    rtrStemRange(loc, dr->dr_dir, &si);
 	    if (si.stem_dir != -1)
 	    {
-		if (pin = rtrStemTip(loc, &si, use))
+		if ((pin = rtrStemTip(loc, &si, use)))
 		{
 		    /* Mark the pin as taken */
 		    pins++;
@@ -476,7 +476,7 @@ rtrStemTip(loc, si, use)
      * Try each crossing point in the best direction, starting from the
      * stem_start point and working outward toward stem_lo and stem_hi.
      */
-    if (pin = rtrStemTryPin(loc, si->stem_dir, &si->stem_start, use))
+    if ((pin = rtrStemTryPin(loc, si->stem_dir, &si->stem_start, use)))
 	return (pin);
 
     plo = phi = si->stem_start;
@@ -949,7 +949,7 @@ rtrStemSearch(center, dir, point)
 	tile = TiSrPointNoHint(RtrChannelPlane, point);
 	if (TiGetType(tile) == TT_SPACE)
 	{
-	    if (ch = (GCRChannel *) tile->ti_client)
+	    if ((ch = (GCRChannel *) tile->ti_client))
 		break;
 	    return ((GCRChannel *) NULL);
 	}
