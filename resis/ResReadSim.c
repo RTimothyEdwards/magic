@@ -178,9 +178,11 @@ ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
 		break;
 	    case 'A':
 		if (attrproc)
+		{
 		    result = (*attrproc)(line[ATTRIBUTENODENAME],
 			    line[ATTRIBUTEVALUE], simfile, &extfile);
-		    break;
+		}
+		break;
 	    case 'x':
 		fettype = DBNumTypes;
 		break;
