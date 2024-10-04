@@ -59,46 +59,46 @@ extern void nmNotDefined();
 
 NetButton NMButtons[] =
 {
-    NULL,	STYLE_ORANGE1,		0,	200,	80,	210,
-	NMGetLabels, NULL, NMNextLabel, NULL, NMNextLabel, NULL,
-    NULL,	STYLE_ERASEALL,		0,	174,	24,	198,
-	NMPutLabel, NULL, NMReOrientLabel, NULL, NMReOrientLabel, NULL,
-    NULL,	STYLE_ORANGE1,		42,	188,	59,	198,
-	NMChangeNum, NULL, NMChangeNum, NULL, NMChangeNum, NULL,
-    NULL,	STYLE_ORANGE1,		63,	188,	80,	198,
-	NMChangeNum, NULL, NMChangeNum, NULL, NMChangeNum, NULL,
-    "Find",	STYLE_ORANGE2,		42,	174,	80,	184,
-	NMFindLabel, NULL, NMFindLabel, NULL, NMFindLabel, NULL,
-    NULL,	STYLE_GREEN1,	0,	150,	80,	160,
-	NMButtonNetList, NULL, NMButtonNetList, NULL, NMButtonNetList, NULL,
-    "Verify",	STYLE_BLUE1,	0,	138,	38,	148,
-	NMCmdVerify, NULL, NMCmdVerify, NULL, NMCmdVerify, NULL,
-    "Print",	STYLE_BLUE2,	42,	138,	80,	148,
-	NMCmdPrint, NULL, NMCmdPrint, NULL, NMCmdPrint, NULL,
-    "Terms",	STYLE_RED1,		0,	126,	38,	136,
-	NMCmdShowterms, NULL, NMCmdShowterms, NULL, NMCmdShowterms, NULL,
-    "Cleanup",	STYLE_RED2,		42,	126,	80,	136,
-	NMCmdCleanup, NULL, NMCmdCleanup, NULL, NMCmdCleanup, NULL,
-    "No Net",STYLE_GRAY1,		0,	114,	38,	124,
-	NMCmdDnet, NULL, NMCmdDnet, NULL, NMCmdDnet, NULL,
-    "Show",STYLE_YELLOW1,		42,	114,	80,	124,
-	NMShowUnderBox, NULL, NMShowUnderBox, NULL, NMShowUnderBox, NULL,
-    NULL,	-1	/* -1 Signals end of list. */
+    {NULL,	STYLE_ORANGE1,		{{0,	200},	{80,	210}},
+	NMGetLabels, NULL, NMNextLabel, NULL, NMNextLabel, NULL},
+    {NULL,	STYLE_ERASEALL,		{{0,	174},	{24,	198}},
+	NMPutLabel, NULL, NMReOrientLabel, NULL, NMReOrientLabel, NULL},
+    {NULL,	STYLE_ORANGE1,		{{42,	188},	{59,	198}},
+	NMChangeNum, NULL, NMChangeNum, NULL, NMChangeNum, NULL},
+    {NULL,	STYLE_ORANGE1,		{{63,	188},	{80,	198}},
+	NMChangeNum, NULL, NMChangeNum, NULL, NMChangeNum, NULL},
+    {"Find",	STYLE_ORANGE2,		{{42,	174},	{80,	184}},
+	NMFindLabel, NULL, NMFindLabel, NULL, NMFindLabel, NULL},
+    {NULL,	STYLE_GREEN1,		{{0,	150},	{80,	160}},
+	NMButtonNetList, NULL, NMButtonNetList, NULL, NMButtonNetList, NULL},
+    {"Verify",	STYLE_BLUE1,		{{0,	138},	{38,	148}},
+	NMCmdVerify, NULL, NMCmdVerify, NULL, NMCmdVerify, NULL},
+    {"Print",	STYLE_BLUE2,		{{42,	138},	{80,	148}},
+	NMCmdPrint, NULL, NMCmdPrint, NULL, NMCmdPrint, NULL},
+    {"Terms",	STYLE_RED1,		{{0,	126},	{38,	136}},
+	NMCmdShowterms, NULL, NMCmdShowterms, NULL, NMCmdShowterms, NULL},
+    {"Cleanup",	STYLE_RED2,		{{42,	126},	{80,	136}},
+	NMCmdCleanup, NULL, NMCmdCleanup, NULL, NMCmdCleanup, NULL},
+    {"No Net",STYLE_GRAY1,		{{0,	114},	{38,	124}},
+	NMCmdDnet, NULL, NMCmdDnet, NULL, NMCmdDnet, NULL},
+    {"Show",STYLE_YELLOW1,		{{42,	114},	{80,	124}},
+	NMShowUnderBox, NULL, NMShowUnderBox, NULL, NMShowUnderBox, NULL},
+    {NULL,	-1	/* -1 Signals end of list. */ }
 };
 
 NetLabel nmLabels[] =
 {
-    "Label",	STYLE_WHITE,	0,	212,	80,	222,
-    "Netlist",	STYLE_WHITE,	0,	162,	80,	172,
-    NULL,	-1 	/* -1 signals end of list. */
+    {"Label",	STYLE_WHITE,	{{0,	212},	{80,	222}}},
+    {"Netlist",	STYLE_WHITE,	{{0,	162},	{80,	172}}},
+    {NULL,	-1 	/* -1 signals end of list. */ }
 };
 
 NetRect nmRects[] =
 {
-    STYLE_BBOX,		8,	174,	16,	198,
-    STYLE_BBOX,		0,	182,	24,	190,
-    STYLE_BBOX,		12,	186,	12,	186,
-    -1			/* -1 signals end of list. */
+    {STYLE_BBOX,	{{8,	174},	{16,	198}}},
+    {STYLE_BBOX,	{{0,	182},	{24,	190}}},
+    {STYLE_BBOX,	{{12,	186},	{12,	186}}},
+    {-1			/* -1 signals end of list. */ }
 };
 
 
@@ -106,8 +106,8 @@ NetRect nmRects[] =
  * netlist menu, and the initial screen location of netlist menus.
  */
 
-Rect nmSurfaceArea = {-4, 110, 84, 226};
-Rect nmScreenArea = {0, 0, 140, 190};
+Rect nmSurfaceArea = {{-4, 110}, {84, 226}};
+Rect nmScreenArea = {{0, 0}, {140, 190}};
 
 /* Only one netlist window is allowed to be open at once.  This is it. */
 

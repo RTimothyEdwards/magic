@@ -98,10 +98,10 @@ GATest(w, cmd)
 	char	*cmd_name;
 	cmdType	 cmd_val;
     } cmds[] = {
-	"clrdebug",		CLRDEBUG,
-	"setdebug",		SETDEBUG,
-	"showdebug",		SHOWDEBUG,
-	0
+	{"clrdebug",		CLRDEBUG},
+	{"setdebug",		SETDEBUG},
+	{"showdebug",		SHOWDEBUG},
+	{0}
     };
 
     GAInit();
@@ -388,17 +388,17 @@ GAInit()
 	char	*di_name;
 	int	*di_id;
     } dflags[] = {
-	"chanonly",	&gaDebChanOnly,
-	"chanstats",	&gaDebChanStats,
-	"maze",		&gaDebMaze,
-	"nosimple",	&gaDebNoSimple,
-	"paintstems",	&gaDebPaintStems,
-	"showchans",	&gaDebShowChans,
-	"showmaze",	&gaDebShowMaze,
-	"stems",	&gaDebStems,
-	"verbose",	&gaDebVerbose,
-	"noclean",	&gaDebNoClean,
-	0
+	{"chanonly",	&gaDebChanOnly},
+	{"chanstats",	&gaDebChanStats},
+	{"maze",	&gaDebMaze},
+	{"nosimple",	&gaDebNoSimple},
+	{"paintstems",	&gaDebPaintStems},
+	{"showchans",	&gaDebShowChans},
+	{"showmaze",	&gaDebShowMaze},
+	{"stems",	&gaDebStems},
+	{"verbose",	&gaDebVerbose},
+	{"noclean",	&gaDebNoClean},
+	{0}
     };
 
     if (gaInitialized)

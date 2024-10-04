@@ -399,13 +399,13 @@ CmdParseLayers(s, mask)
     }
     special[] =
     {
-	"$",		LN_DOLLAR,
-	"*",		LN_ALL,
-	"errors",	LN_ERRORS,
-	"labels",	LN_LABELS,
-	"subcell",	LN_CELL,
-	"connect",	LN_CONNECT,
-	0,
+	{"$",		LN_DOLLAR},
+	{"*",		LN_ALL},
+	{"errors",	LN_ERRORS},
+	{"labels",	LN_LABELS},
+	{"subcell",	LN_CELL},
+	{"connect",	LN_CONNECT},
+	{0},
     };
 
 

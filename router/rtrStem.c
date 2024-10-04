@@ -66,7 +66,7 @@ static struct dirs			/* List of directions for stems */
 {
     int		dr_dir;			/* Direction */
 }
-    dirs[] = { GEO_NORTH, GEO_SOUTH, GEO_EAST, GEO_WEST, 0 };
+    dirs[] = { {GEO_NORTH}, {GEO_SOUTH}, {GEO_EAST}, {GEO_WEST}, {0} };
 
 #define MAKEBOX(p, r, width, offset) { \
     (r)->r_xbot = (p)->p_x + (offset); \

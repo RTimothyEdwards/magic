@@ -817,7 +817,7 @@ CmdSelect(w, cmd)
 				 * multiples types are pointed to, consecutive
 				 * selections will cycle through them.
 				 */
-    static Rect lastArea = {-100, -100, -200, -200};
+    static Rect lastArea = {{-100, -100}, {-200, -200}};
 				/* Used to remember region around what was
 				 * pointed at in the last select command:  a
 				 * new selection in this area causes the next

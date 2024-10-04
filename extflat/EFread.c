@@ -71,32 +71,32 @@ static struct
 }
 keyTable[] =
 {
-    "abstract",		ABSTRACT,	0,	/* defines a LEF-like view */
-    "adjust",		ADJUST,		4,
-    "attr",		ATTR,		8,
-    "cap",		CAP,		4,
-    "device",		DEVICE,		11,	/* effectively replaces "fet" */
-    "distance",		DIST,		4,
-    "equiv",		EQUIV,		3,
-    "fet",		FET,		12,	/* for backwards compatibility */
-    "killnode",		KILLNODE,	2,
-    "merge",		MERGE,		3,
-    "node",		NODE,		7,
-    "parameters",	PARAMETERS,	3,
-    "port",		PORT,		8,
-    "primitive",	PRIMITIVE,	0,	/* defines a primitive device */
-    "resist",		RESISTOR,	4,
-    "resistclasses",	RESISTCLASS,	1,
-    "rnode",		RNODE,		5,
-    "scale",		SCALE,		4,
-    "subcap",		SUBCAP,		3,
-    "substrate",	SUBSTRATE,	3,
-    "tech",		TECH,		2,
-    "timestamp",	TIMESTAMP,	2,
-    "use",		USE,		9,
-    "version",		VERSION,	2,
-    "style",		EXT_STYLE,	2,
-    0
+    {"abstract",	ABSTRACT,	0},	/* defines a LEF-like view */
+    {"adjust",		ADJUST,		4},
+    {"attr",		ATTR,		8},
+    {"cap",		CAP,		4},
+    {"device",		DEVICE,		11},	/* effectively replaces "fet" */
+    {"distance",	DIST,		4},
+    {"equiv",		EQUIV,		3},
+    {"fet",		FET,		12},	/* for backwards compatibility */
+    {"killnode",	KILLNODE,	2},
+    {"merge",		MERGE,		3},
+    {"node",		NODE,		7},
+    {"parameters",	PARAMETERS,	3},
+    {"port",		PORT,		8},
+    {"primitive",	PRIMITIVE,	0},	/* defines a primitive device */
+    {"resist",		RESISTOR,	4},
+    {"resistclasses",	RESISTCLASS,	1},
+    {"rnode",		RNODE,		5},
+    {"scale",		SCALE,		4},
+    {"subcap",		SUBCAP,		3},
+    {"substrate",	SUBSTRATE,	3},
+    {"tech",		TECH,		2},
+    {"timestamp",	TIMESTAMP,	2},
+    {"use",		USE,		9},
+    {"version",		VERSION,	2},
+    {"style",		EXT_STYLE,	2},
+    {0}
 };
 
 /* Data shared with EFerror.c */

@@ -137,23 +137,23 @@ ExtInit()
 	char	*di_name;
 	int	*di_id;
     } debugFlags[] = {
-	"areaenum",	&extDebAreaEnum,
-	"array",	&extDebArray,
-	"hardway",	&extDebHardWay,
-	"hiercap",	&extDebHierCap,
-        "hierareacap",	&extDebHierAreaCap,
-	"label",	&extDebLabel,
-	"length",	&extDebLength,
-	"neighbor",	&extDebNeighbor,
-	"noarray",	&extDebNoArray,
-	"nofeedback",	&extDebNoFeedback,
-	"nohard",	&extDebNoHard,
-	"nosubcell",	&extDebNoSubcell,
-	"perimeter",	&extDebPerim,
-	"resist",	&extDebResist,
-	"visonly",	&extDebVisOnly,
-	"yank",		&extDebYank,
-	0
+	{"areaenum",	&extDebAreaEnum},
+	{"array",	&extDebArray},
+	{"hardway",	&extDebHardWay},
+	{"hiercap",	&extDebHierCap},
+	{"hierareacap",	&extDebHierAreaCap},
+	{"label",	&extDebLabel},
+	{"length",	&extDebLength},
+	{"neighbor",	&extDebNeighbor},
+	{"noarray",	&extDebNoArray},
+	{"nofeedback",	&extDebNoFeedback},
+	{"nohard",	&extDebNoHard},
+	{"nosubcell",	&extDebNoSubcell},
+	{"perimeter",	&extDebPerim},
+	{"resist",	&extDebResist},
+	{"visonly",	&extDebVisOnly},
+	{"yank",	&extDebYank},
+	{0}
     };
 
     /* Register ourselves with the debugging module */

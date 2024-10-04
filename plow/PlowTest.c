@@ -105,28 +105,28 @@ struct
     pCmd  p_cmd;
     char *p_help;
 } plowCmds[] = {
-    "clrdebug",		PC_CLRD,	"flags",
-    "help",		PC_HELP,	"",
-    "jogreduce",	PC_JOG,		"",
-    "lwidth",		PC_LWIDTH,	"layers",
-    "lshadow",		PC_LSHADOW,	"layers",
-    "mergedown",	PC_MERGEDOWN,	"",
-    "mergeup",		PC_MERGEUP,	"",
-    "move",		PC_MOVE,	"",
-    "outline",		PC_OUTLINE,	"direction layers",
-    "plow",		PC_PLOW,	"direction [layers]",
-    "print",		PC_PRINT,	"",
-    "random",		PC_RANDOM,	"",
-    "setdebug",		PC_SETD,	"flags",
-    "shadow",		PC_SHADOW,	"layers",
-    "showdebug",	PC_SHOWD,	"",
-    "split",		PC_SPLIT,	"",
-    "techshow",		PC_TECHSHOW,	"[file]",
-    "trail",		PC_TRAIL,	"[value]",
-    "whenbot",		PC_WHENBOT,	"[xbot ybot]",
-    "whentop",		PC_WHENTOP,	"[xtop ytop]",
-    "width",		PC_WIDTH,	"layers",
-    0,
+    {"clrdebug",	PC_CLRD,	"flags"},
+    {"help",		PC_HELP,	""},
+    {"jogreduce",	PC_JOG,		""},
+    {"lwidth",		PC_LWIDTH,	"layers"},
+    {"lshadow",		PC_LSHADOW,	"layers"},
+    {"mergedown",	PC_MERGEDOWN,	""},
+    {"mergeup",		PC_MERGEUP,	""},
+    {"move",		PC_MOVE,	""},
+    {"outline",		PC_OUTLINE,	"direction layers"},
+    {"plow",		PC_PLOW,	"direction [layers]"},
+    {"print",		PC_PRINT,	""},
+    {"random",		PC_RANDOM,	""},
+    {"setdebug",	PC_SETD,	"flags"},
+    {"shadow",		PC_SHADOW,	"layers"},
+    {"showdebug",	PC_SHOWD,	""},
+    {"split",		PC_SPLIT,	""},
+    {"techshow",	PC_TECHSHOW,	"[file]"},
+    {"trail",		PC_TRAIL,	"[value]"},
+    {"whenbot",		PC_WHENBOT,	"[xbot ybot]"},
+    {"whentop",		PC_WHENTOP,	"[xtop ytop]"},
+    {"width",		PC_WIDTH,	"layers"},
+    {0},
 };
 
 void
@@ -457,14 +457,14 @@ plowDebugInit()
 	char	*di_name;
 	int	*di_id;
     } debug[] = {
-	"addedge",	&plowDebAdd,
-	"jogs",		&plowDebJogs,
-	"moveedge",	&plowDebMove,
-	"nextedge",	&plowDebNext,
-	"time",		&plowDebTime,
-	"width",	&plowDebWidth,
-	"yankall",	&plowDebYankAll,
-	0
+	{"addedge",	&plowDebAdd},
+	{"jogs",	&plowDebJogs},
+	{"moveedge",	&plowDebMove},
+	{"nextedge",	&plowDebNext},
+	{"time",	&plowDebTime},
+	{"width",	&plowDebWidth},
+	{"yankall",	&plowDebYankAll},
+	{0}
     };
 
     /* Register ourselves with the debugging module */

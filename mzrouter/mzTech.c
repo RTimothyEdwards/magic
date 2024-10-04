@@ -817,8 +817,8 @@ mzTechSpacing(argc, argv)
 	char	*sT_name;	/* name of value */
 	int     sT_value;	/* corresponding interger value */
     } subcellTable[] = {
-	"subcell",		TT_SUBCELL,
-	0
+	{"subcell",		TT_SUBCELL},
+	{0}
     };
 
     /* check number of arguments */

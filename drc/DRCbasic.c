@@ -46,7 +46,7 @@ int dbDRCDebug = 0;
 
 static DRCCookie drcOverlapCookie = {
     0, 0, 0, 0,
-    { 0 }, { 0 },
+    { {0} }, { {0} },
     0, 0, 0,
     DRC_OVERLAP_TAG,
     (DRCCookie *) NULL

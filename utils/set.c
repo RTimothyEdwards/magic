@@ -109,15 +109,15 @@ SetNoisyBool(parm,valueS,file)
 	char	*bS_name;	/* name */
 	bool    bS_value;	/* procedure processing this parameter */
     } boolStrings[] = {
-	"yes",		TRUE,
-	"no",		FALSE,
-	"true",		TRUE,
-	"false",	FALSE,
-	"1",		TRUE,
-	"0",		FALSE,
-	"on",		TRUE,
-	"off",		FALSE,
-	0
+	{"yes",		TRUE},
+	{"no",		FALSE},
+	{"true",	TRUE},
+	{"false",	FALSE},
+	{"1",		TRUE},
+	{"0",		FALSE},
+	{"on",		TRUE},
+	{"off",		FALSE},
+	{0}
     };
 
     /* If value not null, set parm */

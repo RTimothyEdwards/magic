@@ -408,15 +408,15 @@ PlotColorVersTechLine(sectionName, argc, argv)
 {
     VersatecStyle *new;
     static struct { char *l_str; int l_color; } colors[] = {
-	"black",   BLACK,
-	"cyan",	   CYAN,
-	"magenta", MAGENTA,
-	"yellow",  YELLOW,
-	"K",	   BLACK,
-	"C",	   CYAN,
-	"M",	   MAGENTA,
-	"Y",	   YELLOW,
-	0
+	{"black",   BLACK},
+	{"cyan",    CYAN},
+	{"magenta", MAGENTA},
+	{"yellow",  YELLOW},
+	{"K",	   BLACK},
+	{"C",	   CYAN},
+	{"M",	   MAGENTA},
+	{"Y",	   YELLOW},
+	{0}
     };
     int i;
 
