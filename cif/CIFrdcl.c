@@ -594,8 +594,8 @@ cifMaskHintFunc(
  */
 
 int
-CIFPaintCurrent(filetype)
-    bool filetype;
+CIFPaintCurrent(
+    int filetype)
 {
     extern int cifMakeBoundaryFunc(Tile *tile, ClientData clientdata);	/* Forward declaration. */
     extern int cifPaintCurrentFunc(Tile *tile, TileType type);	/* Forward declaration. */
@@ -898,7 +898,7 @@ cifMakeBoundaryFunc(
     Rect area;
     char propertyvalue[128], *storedvalue;
     int savescale;
-    bool filetype = (bool)clientdata;
+    int filetype = (int)clientdata;
 
     TiToRect(tile, &area);
     area.r_xtop = CIFScaleCoord(area.r_xtop, COORD_EXACT);
@@ -1614,8 +1614,8 @@ CIFParseUser(void)
  */
 
 void
-CIFReadCellCleanup(filetype)
-    bool filetype;
+CIFReadCellCleanup(
+    int filetype)
 {
     HashEntry *h;
     HashSearch hs;
@@ -1658,7 +1658,7 @@ CIFReadCellCleanup(filetype)
 	def->cd_flags &= ~CDPROCESSEDGDS;
 
 	if ((filetype == FILE_CIF && CIFNoDRCCheck == FALSE) ||
-			(filetype == 1 && CalmaNoDRCCheck == FALSE))
+			(filetype == FILE_CALMA && CalmaNoDRCCheck == FALSE))
 	    DRCCheckThis(def, TT_CHECKPAINT, &def->cd_bbox);
 	DBWAreaChanged(def, &def->cd_bbox, DBW_ALLWINDOWS, &DBAllButSpaceBits);
 	DBCellSetModified(def, TRUE);
