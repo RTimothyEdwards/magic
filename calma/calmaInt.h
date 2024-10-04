@@ -231,7 +231,7 @@ extern CellDef *calmaFindCell();
 
 /* (Added by Nishit, 8/18/2004--8/24/2004) */
 extern CellDef *calmaLookCell();
-extern void calmaWriteContact();
+extern void calmaWriteContacts();
 extern CellDef *calmaGetContactCell();
 extern bool calmaIsContactCell;
 
