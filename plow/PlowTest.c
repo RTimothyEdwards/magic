@@ -162,6 +162,8 @@ PlowTest(w, cmd)
 	    for (n = 0; plowCmds[n].p_name; n++)
 		TxPrintf("%-15s %s\n", plowCmds[n].p_name, plowCmds[n].p_help);
 	    break;
+	case PC_ERROR: /* exhaustive switch on enum compiler warning */
+	    break;
 	case PC_RANDOM:
 	    PlowRandomTest(def);
 	    break;
