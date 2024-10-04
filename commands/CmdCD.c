@@ -1633,7 +1633,14 @@ CmdCellname(
 		TxError("Cannot set orientation by name.  Use selection.\n");
 		break;
 	    }
-	    DBOrientUse(cellname, dodef, orient);
+	    /* FIXME reading the function documentation above DBOrientUse() this method
+	     *  is only used to report orientation.  The selection interface should be
+	     *  used to change orientation.  Which is conveyed in the TxError() above.
+	     * So the 3rd argument here does not do anything.
+	     * Maybe the intention here is to display the current orientation, if so
+	     *  please remove this comment and the extra argument 'orient' below.
+	     */
+	    DBOrientUse(cellname, dodef/*, orient*/);
 	    break;
 	case IDX_ABUTMENT:
 	    DBAbutmentUse(cellname, dolist);
