@@ -338,12 +338,7 @@ extern void CIFCoverageLayer(CellDef *rootDef, Rect *area, char *layer, bool dol
 extern bool CIFWriteFlat(CellDef *rootDef, FILE *f);
 extern void CIFScalePlanes(int scalen, int scaled, Plane **planearray);
 extern void CIFInputRescale(int n, int d);
-extern int CIFCalmaLayerToCifLayer(int layer, int datatype, CIFReadStyle *calmaStyle);
 extern int CIFScaleCoord(int cifCoord, int snap_type);
-extern void CIFPropRecordPath(CellDef *def, CIFPath *pathheadp, bool iswire, char *propname);
-extern void CIFPaintWirePath(CIFPath *pathheadp, int width, bool endcap, Plane *plane,
-                             PaintResultType *ptable, PaintUndoInfo *ui);
-extern void CIFMakeManhattanPath(CIFPath *pathHead, Plane *plane, PaintResultType *resultTbl, PaintUndoInfo *ui);
 extern int cifGrowSliver(Tile *tile, Rect *area);
 extern int cifHierElementFunc(CellUse *use, Transform *transform, int x, int y, Rect *checkArea);
 extern int cifSquareFunc(Rect *area, CIFOp *op, int *rows, int *columns, Rect *cut);
@@ -351,7 +346,6 @@ extern int cifSquareGridFunc(Rect *area, CIFOp *op, int *rows, int *columns, Rec
 extern int cifSlotFunc(Rect *area, CIFOp *op, int *numY, int *numX, Rect *cut, bool vertical);
 extern int CIFParseScale(char *true_scale, int *expander);
 extern int cifParseCalmaNums(char *str, int *numArray, int numNums);
-extern int CIFEdgeDirection(CIFPath *first, CIFPath *last);
 extern bool CIFReadTechLimitScale(int ns, int ds);
 
 /* Shared variables and structures: */
