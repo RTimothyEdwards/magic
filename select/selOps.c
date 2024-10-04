@@ -1942,6 +1942,8 @@ selStretchFillFunc3(tile, area)
 	else if (selStretchY < 0)
 	    type = (SplitDirection(tile) ? SplitLeftType(tile) :
 			SplitRightType(tile));
+	else
+	    type = TT_SPACE;
 	if (type == TT_SPACE) return 0;   /* nothing to stretch */
     }
     else
