@@ -84,18 +84,18 @@ extern bool FileLocking;
  */
 
 void
-CmdLabelProc(text, font, size, rotate, offx, offy, pos, sticky, type)
-    char *text;			/* Text for label. */
-    int font;			/* Known font to use, or -1 for X11 fonts */
-    int size;			/* Fixed size of font (invalid with X11 fonts) */
-    int rotate;			/* Rotation (invalid with X11 fonts) */
-    int offx;			/* Position offset X (invalid with X11 fonts) */
-    int offy;			/* Position offset Y (invalid with X11 fonts) */
-    int pos;			/* Justification of text relative to text. -1
+CmdLabelProc(
+    char *text,			/* Text for label. */
+    int font,			/* Known font to use, or -1 for X11 fonts */
+    int size,			/* Fixed size of font (invalid with X11 fonts) */
+    int rotate,			/* Rotation (invalid with X11 fonts) */
+    int offx,			/* Position offset X (invalid with X11 fonts) */
+    int offy,			/* Position offset Y (invalid with X11 fonts) */
+    int pos,			/* Justification of text relative to text. -1
 				 * means "pick a nice one for me."
 				 */
-    bool sticky;		/* 1 if label should not be moved off chosen layer */
-    TileType type;		/* Type of material label is to be attached
+    bool sticky,		/* 1 if label should not be moved off chosen layer */
+    TileType type)		/* Type of material label is to be attached
 				 * to.  -1 means "pick a reasonable layer".
 				 */
 {
@@ -182,9 +182,9 @@ CmdLabelProc(text, font, size, rotate, offx, offy, pos, sticky, type)
 
 
 void
-CmdLabel(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdLabel(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     TileType type = (TileType)(-1);
     int pos = -1, font = -1, size = 0, rotate = 0, offx = 0, offy = 0;
@@ -388,9 +388,9 @@ CmdLabel(w, cmd)
  */
 
 void
-CmdLoad(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdLoad(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int n = 1;
     int d = 1;
@@ -550,9 +550,9 @@ CmdLoad(w, cmd)
  */
 
 int
-keepGoing(use, clientdata)
-    CellUse *use;
-    ClientData clientdata;
+keepGoing(
+    CellUse *use,
+    ClientData clientdata)
 {
     return 0;	/* keep the search going */
 }
@@ -594,9 +594,9 @@ keepGoing(use, clientdata)
  */
 
 void
-CmdLocking(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdLocking(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int option;
 
@@ -668,9 +668,9 @@ CmdLocking(w, cmd)
  */
 
 void
-CmdMove(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdMove(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Transform t;
     Rect rootBox, newBox;
@@ -891,9 +891,9 @@ moveToPoint:
  */
 
 void
-CmdPaint(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdPaint(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Rect editRect;
     TileTypeBitMask mask;
@@ -984,11 +984,11 @@ CmdPaint(w, cmd)
  */
 
 void
-CmdPaintEraseButton(w, refPoint, isPaint, isScreen)
-    MagWindow *w;
-    Point *refPoint;	/* Screen location at which button was raised */
-    bool isPaint;	/* True for paint, False for erase.	*/
-    bool isScreen;	/* True for screen coordinates, False for root */
+CmdPaintEraseButton(
+    MagWindow *w,
+    Point *refPoint,	/* Screen location at which button was raised */
+    bool isPaint,	/* True for paint, False for erase.	*/
+    bool isScreen)	/* True for screen coordinates, False for root */
 {
     Rect rootRect, editRect, areaReturn;
     TileTypeBitMask mask;
@@ -1085,9 +1085,9 @@ CmdPaintEraseButton(w, refPoint, isPaint, isScreen)
 #define PATHHELP	3
 
 void
-CmdPath(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdPath(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     char **pathptr;
     char *srcptr;
@@ -1210,9 +1210,9 @@ usage:
  */
 
 void
-CmdPolygon(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdPolygon(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     TileType type;
     int points, i, j, pNum;
@@ -1283,11 +1283,11 @@ CmdPolygon(w, cmd)
 /*----------------------------------------------------------------------*/
 
 int
-cmdPortLabelFunc1(scx, label, tpath, cdata)
-    SearchContext *scx;
-    Label *label;
-    TerminalPath *tpath;
-    ClientData cdata;
+cmdPortLabelFunc1(
+    SearchContext *scx,
+    Label *label,
+    TerminalPath *tpath,
+    ClientData cdata)
 {
     Label **rlab = (Label **)cdata;
 
@@ -1305,11 +1305,11 @@ cmdPortLabelFunc1(scx, label, tpath, cdata)
 }
 
 int
-cmdPortLabelFunc2(scx, label, tpath, cdata)
-    SearchContext *scx;
-    Label *label;
-    TerminalPath *tpath;
-    ClientData cdata;
+cmdPortLabelFunc2(
+    SearchContext *scx,
+    Label *label,
+    TerminalPath *tpath,
+    ClientData cdata)
 {
     Label **rlab = (Label **)cdata;
 
@@ -1338,11 +1338,11 @@ cmdPortLabelFunc2(scx, label, tpath, cdata)
 /*----------------------------------------------------------------------*/
 
 Label *
-portFindLabel(editDef, port, unique, nonEdit)
-    CellDef *editDef;
-    bool unique;
-    bool port;		// If TRUE, only look for labels that are ports
-    bool *nonEdit;	// TRUE if label is not in the edit cell
+portFindLabel(
+    CellDef *editDef,
+    bool port,		// If TRUE, only look for labels that are ports
+    bool unique,
+    bool *nonEdit)	// TRUE if label is not in the edit cell
 {
     int found, wrongkind;
     Label *lab, *sl;
@@ -1441,7 +1441,9 @@ portFindLabel(editDef, port, unique, nonEdit)
  */
 
 int
-complabel(const void *one, const void *two)
+complabel(
+    const void *one,
+    const void *two)
 {
     /* Natural sort order routine from DBcellname.c
      * replaces strcasecmp().
@@ -1516,9 +1518,9 @@ complabel(const void *one, const void *two)
 #define PORT_HELP	15
 
 void
-CmdPort(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdPort(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     char **msg;
     int argstart;
@@ -2311,10 +2313,10 @@ parsepositions:
  */
 
 void
-CmdDoProperty(def, cmd, argstart)
-    CellDef *def;
-    TxCommand *cmd;
-    int argstart;
+CmdDoProperty(
+    CellDef *def,
+    TxCommand *cmd,
+    int argstart)
 {
     int printPropertiesFunc();
     char *value;
@@ -2389,9 +2391,9 @@ CmdDoProperty(def, cmd, argstart)
  */
 
 void
-CmdProperty(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdProperty(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     CellDef *def;
 
@@ -2414,9 +2416,10 @@ CmdProperty(w, cmd)
  */
 
 int
-printPropertiesFunc(name, value)
-    char *name;
-    ClientData value;
+printPropertiesFunc(
+    const char *name,
+    ClientData value,
+    ClientData cdata) /* not used */
 {
 #ifdef MAGIC_WRAPPER
     char *keyvalue;
@@ -2466,9 +2469,9 @@ printPropertiesFunc(name, value)
 #define NLIST_TERMINAL	3
 
 void
-CmdNetlist(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdNetlist(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int option;
     char **msg, *lastargv;
@@ -2549,9 +2552,9 @@ CmdNetlist(w, cmd)
  */
 
 void
-CmdOrient(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdOrient(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Transform trans, t2;
     int orientidx, locargc;

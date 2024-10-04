@@ -88,9 +88,9 @@ Label *DefaultLabel;
  */
 
 void
-CmdRandom(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdRandom(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int value;
 
@@ -141,9 +141,9 @@ CmdRandom(w, cmd)
  */
 
 void
-CmdRsim(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdRsim(
+    MagWindow *w,
+    TxCommand *cmd)
 {
 
     if ((cmd->tx_argc == 1) && (!SimRsimRunning)) {
@@ -194,9 +194,9 @@ CmdRsim(w, cmd)
  */
 
 void
-CmdSave(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdSave(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     CellDef *locDef;
 
@@ -266,9 +266,9 @@ CmdSave(w, cmd)
  */
 
 void
-CmdScaleGrid(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdScaleGrid(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int scalen, scaled;
     char *argsep;
@@ -422,9 +422,9 @@ scalegridusage:
  */
 
 void
-CmdSee(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdSee(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int flags;
     bool off;
@@ -579,11 +579,11 @@ CmdSee(w, cmd)
 
 	/* ARGSUSED */
 void
-cmdSelectArea(layers, less, option, globmatch)
-    char *layers;			/* Which layers are to be selected. */
-    bool less;
-    int option;				/* Option from defined list above */
-    char *globmatch;			/* Optional match string for labels */
+cmdSelectArea(
+    char *layers,			/* Which layers are to be selected. */
+    bool less,
+    int option,				/* Option from defined list above */
+    char *globmatch)			/* Optional match string for labels */
 {
     SearchContext scx;
     TileTypeBitMask mask;
@@ -665,8 +665,8 @@ cmdSelectArea(layers, less, option, globmatch)
  */
 
 void
-cmdIntersectArea(layer)
-    char *layer;		/* The layer to intersect with */
+cmdIntersectArea(
+    char *layer)		/* The layer to intersect with */
 {
     TileType ttype;
     SearchContext scx;
@@ -746,9 +746,9 @@ cmdIntersectArea(layer)
  */
 
 void
-CmdSelect(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdSelect(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     TileTypeBitMask mask;
     SearchContext scx;
@@ -1681,11 +1681,11 @@ Okay:
  */
 
 int
-cmdLabelTextFunc(label, cellUse, transform, text)
-    Label *label;
-    CellUse *cellUse;
-    Transform *transform;
-    char *text;
+cmdLabelTextFunc(
+    Label *label,
+    CellUse *cellUse,
+    Transform *transform,
+    char *text)
 {
     Label *newlab;
     CellDef *cellDef = cellUse->cu_def;
@@ -1721,11 +1721,11 @@ cmdLabelTextFunc(label, cellUse, transform, text)
 }
 
 int
-cmdLabelRotateFunc(label, cellUse, transform, value)
-    Label *label;
-    CellUse *cellUse;
-    Transform *transform;
-    int *value;
+cmdLabelRotateFunc(
+    Label *label,
+    CellUse *cellUse,
+    Transform *transform,
+    int *value)
 {
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
@@ -1758,11 +1758,11 @@ cmdLabelRotateFunc(label, cellUse, transform, value)
 }
 
 int
-cmdLabelSizeFunc(label, cellUse, transform, value)
-    Label *label;
-    CellUse *cellUse;
-    Transform *transform;
-    int *value;
+cmdLabelSizeFunc(
+    Label *label,
+    CellUse *cellUse,
+    Transform *transform,
+    int *value)
 {
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
@@ -1794,11 +1794,11 @@ cmdLabelSizeFunc(label, cellUse, transform, value)
 }
 
 int
-cmdLabelJustFunc(label, cellUse, transform, value)
-    Label *label;
-    CellUse *cellUse;
-    Transform *transform;
-    int *value;
+cmdLabelJustFunc(
+    Label *label,
+    CellUse *cellUse,
+    Transform *transform,
+    int *value)
 {
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
@@ -1830,11 +1830,11 @@ cmdLabelJustFunc(label, cellUse, transform, value)
 }
 
 int
-cmdLabelLayerFunc(label, cellUse, transform, value)
-    Label *label;
-    CellUse *cellUse;
-    Transform *transform;
-    int *value;
+cmdLabelLayerFunc(
+    Label *label,
+    CellUse *cellUse,
+    Transform *transform,
+    int *value)
 {
     CellDef *cellDef = cellUse->cu_def;
     TileType ttype;
@@ -1868,11 +1868,11 @@ cmdLabelLayerFunc(label, cellUse, transform, value)
 }
 
 int
-cmdLabelStickyFunc(label, cellUse, transform, value)
-    Label *label;
-    CellUse *cellUse;
-    Transform *transform;
-    int *value;
+cmdLabelStickyFunc(
+    Label *label,
+    CellUse *cellUse,
+    Transform *transform,
+    int *value)
 {
     CellDef *cellDef = cellUse->cu_def;
     int newvalue;
@@ -1909,11 +1909,11 @@ cmdLabelStickyFunc(label, cellUse, transform, value)
 }
 
 int
-cmdLabelOffsetFunc(label, cellUse, transform, point)
-    Label *label;
-    CellUse *cellUse;
-    Transform *transform;
-    Point *point;
+cmdLabelOffsetFunc(
+    Label *label,
+    CellUse *cellUse,
+    Transform *transform,
+    Point *point)
 {
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
@@ -1950,11 +1950,11 @@ cmdLabelOffsetFunc(label, cellUse, transform, point)
 }
 
 int
-cmdLabelRectFunc(label, cellUse, transform, rect)
-    Label *label;
-    CellUse *cellUse;
-    Transform *transform;
-    Rect *rect;
+cmdLabelRectFunc(
+    Label *label,
+    CellUse *cellUse,
+    Transform *transform,
+    Rect *rect)
 {
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
@@ -1996,11 +1996,11 @@ cmdLabelRectFunc(label, cellUse, transform, rect)
 }
 
 int
-cmdLabelFontFunc(label, cellUse, transform, font)
-    Label *label;
-    CellUse *cellUse;
-    Transform *transform;
-    int *font;
+cmdLabelFontFunc(
+    Label *label,
+    CellUse *cellUse,
+    Transform *transform,
+    int *font)
 {
     CellDef *cellDef = cellUse->cu_def;
 #ifdef MAGIC_WRAPPER
@@ -2088,9 +2088,9 @@ cmdLabelFontFunc(label, cellUse, transform, font)
 #define SETLABEL_HELP		10
 
 void
-CmdSetLabel(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdSetLabel(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int pos = -1, font = -1, size = 0, rotate = 0, flags = 0;
     int locargc, argstart = 1;
@@ -2566,9 +2566,9 @@ CmdSetLabel(w, cmd)
  */
 
 void
-CmdSideways(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdSideways(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Transform trans;
     Rect rootBox, bbox;
@@ -2628,9 +2628,9 @@ CmdSideways(w, cmd)
  */
 
 void
-CmdShell(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdShell(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int i, cmdlength;
     char *command;
@@ -2676,9 +2676,9 @@ int (*CmdStretchCmd)() = NULL;
     /* ARGSUSED */
 
 void
-CmdSgraph(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdSgraph(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (CmdStretchCmd != NULL)
     {
@@ -2711,9 +2711,9 @@ CmdSgraph(w, cmd)
  */
 
 void
-CmdStartRsim(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdStartRsim(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     static char rsimstr[] = "rsim";
 
@@ -2758,9 +2758,9 @@ CmdStartRsim(w, cmd)
  */
 
 void
-CmdSimCmd(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdSimCmd(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     static char cmdbuf[200];
     char 	*strptr;
@@ -2845,9 +2845,9 @@ CmdSimCmd(w, cmd)
 #define SNAP_LIST		6
 
 void
-CmdSnap(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdSnap(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     static char *names[] = { "off", "internal", "lambda", "grid", "user", "on",
 		"list", 0 };
@@ -2911,9 +2911,9 @@ printit:
  */
 
 void
-CmdSplit(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdSplit(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Rect editRect, expRect;
     TileTypeBitMask mask1, mask2, *cmask;
@@ -3011,9 +3011,9 @@ CmdSplit(w, cmd)
  */
 
 void
-CmdSplitErase(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdSplitErase(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Rect editRect, expRect;
     TileTypeBitMask mask;
@@ -3109,9 +3109,9 @@ CmdSplitErase(w, cmd)
  */
 
 void
-CmdStretch(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdStretch(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Transform t;
     Rect rootBox, newBox;

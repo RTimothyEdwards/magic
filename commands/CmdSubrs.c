@@ -100,11 +100,12 @@ TileTypeBitMask CmdYMAllButSpace;
  */
 
 int
-cmdScaleCoord(w, arg, is_relative, is_x, scale)
-    MagWindow *w;
-    char *arg;
-    bool is_relative, is_x;
-    int scale;
+cmdScaleCoord(
+    MagWindow *w,
+    char *arg,
+    bool is_relative,
+    bool is_x,
+    int scale)
 {
     char *endptr;
     double dval = 0;
@@ -230,10 +231,11 @@ cmdScaleCoord(w, arg, is_relative, is_x, scale)
  */
 
 int
-cmdParseCoord(w, arg, is_relative, is_x)
-    MagWindow *w;
-    char *arg;
-    bool is_relative, is_x;
+cmdParseCoord(
+    MagWindow *w,
+    char *arg,
+    bool is_relative,
+    bool is_x)
 {
     return cmdScaleCoord(w, arg, is_relative, is_x, 1);
 }
@@ -257,7 +259,7 @@ cmdParseCoord(w, arg, is_relative, is_x)
  */
 
 void
-CmdInit()
+CmdInit(void)
 {
     TTMaskZero(&CmdYMLabel);
     TTMaskSetType(&CmdYMLabel, L_LABEL);
@@ -291,9 +293,9 @@ CmdInit()
  */
 
 void
-cmdFlushCell(def, force_deref)
-    CellDef *def;
-    bool force_deref;
+cmdFlushCell(
+    CellDef *def,
+    bool force_deref)
 {
     CellUse *parentUse;
 
@@ -373,9 +375,9 @@ cmdFlushCell(def, force_deref)
  */
 
 bool
-CmdParseLayers(s, mask)
-    char *s;
-    TileTypeBitMask *mask;
+CmdParseLayers(
+    char *s,
+    TileTypeBitMask *mask)
 {
     TileTypeBitMask newmask, tempmask;
     char *dp, c;
@@ -547,8 +549,8 @@ printTypes:
  */
 
 TileType
-cmdMaskToType(mask)
-    TileTypeBitMask *mask;
+cmdMaskToType(
+    TileTypeBitMask *mask)
 {
     TileType type, t;
 
@@ -593,16 +595,16 @@ cmdMaskToType(mask)
  */
 
 void
-cmdSaveCell(cellDef, newName, noninteractive, tryRename)
-    CellDef *cellDef;	/* Pointer to def of cell to be saved */
-    char *newName;	/* Pointer to name of file in which cell is to be
+cmdSaveCell(
+    CellDef *cellDef,	/* Pointer to def of cell to be saved */
+    char *newName,	/* Pointer to name of file in which cell is to be
 			 * saved.  May be NULL, in which case the name from
 			 * the CellDef is taken.
 			 */
-    bool noninteractive;/* If true, try hard but don't ask the user
+    bool noninteractive,/* If true, try hard but don't ask the user
 			 * questions.
 			 */
-    bool tryRename;	/* We should rename the cell to the name of the
+    bool tryRename)	/* We should rename the cell to the name of the
 			 * place where it was saved.
 			 */
 {
@@ -712,11 +714,11 @@ cleanup:
  */
 
 char *
-cmdCheckNewName(def, newName, tryRename, noninteractive)
-    CellDef *def;
-    char *newName;
-    bool tryRename;
-    bool noninteractive;
+cmdCheckNewName(
+    CellDef *def,
+    char *newName,
+    bool tryRename,
+    bool noninteractive)
 {
     static char *yesno[] = { "no", "yes", 0 };
     char *filename;
@@ -803,10 +805,10 @@ again:
  */
 
 static char *
-nameEllipsis(name, maxlen, prefix)
-    char *name;
-    int maxlen;
-    char **prefix;
+nameEllipsis(
+    char *name,
+    int maxlen,
+    char **prefix)
 {
     int l = strlen(name);
 
@@ -846,9 +848,9 @@ nameEllipsis(name, maxlen, prefix)
  */
 
 int
-cmdSaveWindSet(window, def)
-    MagWindow *window;
-    CellDef *def;
+cmdSaveWindSet(
+    MagWindow *window,
+    CellDef *def)
 {
     char caption[200];
     CellDef *rootDef;
@@ -900,9 +902,9 @@ static CellDef *newRootDef;	/* Pointer to root def of window in which
 				 */
 
 void
-CmdSetWindCaption(newEditUse, rootDef)
-    CellUse *newEditUse;	/* Pointer to new edit cell use */
-    CellDef *rootDef;		/* Root cell def of the window in which the
+CmdSetWindCaption(
+    CellUse *newEditUse,	/* Pointer to new edit cell use */
+    CellDef *rootDef)		/* Root cell def of the window in which the
 				 * edit cell was selected.
 				 */
 {
@@ -941,8 +943,8 @@ CmdSetWindCaption(newEditUse, rootDef)
  */
 
 int
-cmdWindSet(window)
-    MagWindow *window;
+cmdWindSet(
+    MagWindow *window)
 {
     char caption[200];
     CellDef *wDef;
@@ -998,9 +1000,9 @@ cmdWindSet(window)
  */
 
 MagWindow *
-CmdGetRootPoint(point, rect)
-    Point *point;
-    Rect *rect;
+CmdGetRootPoint(
+    Point *point,
+    Rect *rect)
 {
     MagWindow *window;
 
@@ -1033,9 +1035,9 @@ CmdGetRootPoint(point, rect)
  */
 
 MagWindow *
-CmdGetEditPoint(point, rect)
-    Point *point;
-    Rect *rect;
+CmdGetEditPoint(
+    Point *point,
+    Rect *rect)
 {
     MagWindow *window;
     Rect rootRect;
@@ -1070,7 +1072,7 @@ CmdGetEditPoint(point, rect)
  */
 
 bool
-CmdWarnWrite()
+CmdWarnWrite(void)
 {
     int count, code;
     int cmdWarnWriteFunc();
@@ -1092,9 +1094,9 @@ CmdWarnWrite()
 }
 
 int
-cmdWarnWriteFunc(cellDef, pcount)
-    CellDef *cellDef;
-    int *pcount;
+cmdWarnWriteFunc(
+    CellDef *cellDef,
+    int *pcount)
 {
     if ((cellDef->cd_flags & CDINTERNAL) == 0)
 	(*pcount)++;
@@ -1118,10 +1120,10 @@ cmdWarnWriteFunc(cellDef, pcount)
  */
 
 void
-cmdExpandOneLevel(cu, bitmask, expand)
-    CellUse *cu;
-    int bitmask;
-    bool expand;
+cmdExpandOneLevel(
+    CellUse *cu,
+    int bitmask,
+    bool expand)
 {
     extern int cmdExpand1func();
 
@@ -1134,9 +1136,9 @@ cmdExpandOneLevel(cu, bitmask, expand)
 }
 
 int
-cmdExpand1func(cu, bitmask)
-    CellUse *cu;
-    ClientData bitmask;
+cmdExpand1func(
+    CellUse *cu,
+    ClientData bitmask)
 {
     DBExpand(cu, (int) bitmask, FALSE);
     return 0;
@@ -1166,8 +1168,8 @@ Transform *cmdSelTrans;		/* Shared between CmdGetSelectedCell and
 				 */
 
 CellUse *
-CmdGetSelectedCell(pTrans)
-    Transform *pTrans;		/* If non-NULL, transform from selected
+CmdGetSelectedCell(
+    Transform *pTrans)		/* If non-NULL, transform from selected
 				 * cell to root coords is stored here.
 				 */
 {
@@ -1182,11 +1184,11 @@ CmdGetSelectedCell(pTrans)
 
 	/* ARGSUSED */
 int
-cmdGetSelFunc(selUse, realUse, transform, pResult)
-    CellUse *selUse;		/* Not used. */
-    CellUse *realUse;		/* The first selected use. */
-    Transform *transform;	/* Transform from coords of realUse to root. */
-    CellUse **pResult;		/* Store realUse here. */
+cmdGetSelFunc(
+    CellUse *selUse,		/* Not used. */
+    CellUse *realUse,		/* The first selected use. */
+    Transform *transform,	/* Transform from coords of realUse to root. */
+    CellUse **pResult)		/* Store realUse here. */
 {
     *pResult = realUse;
     if (cmdSelTrans != NULL)
@@ -1214,10 +1216,10 @@ cmdGetSelFunc(selUse, realUse, transform, pResult)
  */
 
 bool
-CmdIllegalChars(string, illegal, msg)
-    char *string;		/* String to check for illegal chars. */
-    char *illegal;		/* String containing illegal chars. */
-    char *msg;			/* String identifying what string is
+CmdIllegalChars(
+    char *string,		/* String to check for illegal chars. */
+    char *illegal,		/* String containing illegal chars. */
+    char *msg)			/* String identifying what string is
 				 * supposed to represent, for ease in
 				 * printing error messages.
 				 */
