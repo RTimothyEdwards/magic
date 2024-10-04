@@ -294,7 +294,7 @@ plowFileDiff(file1, file2)
     char *file2;
 {
     char b1[BUFSIZ], b2[BUFSIZ];
-    int f1, f2;
+    int f1 = -1, f2 = -1;
     int n1, n2;
     bool ret = FALSE;
 
@@ -310,7 +310,9 @@ plowFileDiff(file1, file2)
     ret = TRUE;
 
 done:
-    (void) close(f1);
-    (void) close(f2);
+    if (f1 >= 0)
+        (void) close(f1);
+    if (f2 >= 0)
+        (void) close(f2);
     return (ret);
 }
