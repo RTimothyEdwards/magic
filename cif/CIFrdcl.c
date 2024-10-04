@@ -596,8 +596,8 @@ int
 CIFPaintCurrent(filetype)
     bool filetype;
 {
-    extern int cifMakeBoundaryFunc();	/* Forward declaration. */
-    extern int cifPaintCurrentFunc();	/* Forward declaration. */
+    extern int cifMakeBoundaryFunc(Tile *tile, ClientData clientdata);	/* Forward declaration. */
+    extern int cifPaintCurrentFunc(Tile *tile, TileType type);	/* Forward declaration. */
 
     Plane *plane, *swapplane;
     int i;

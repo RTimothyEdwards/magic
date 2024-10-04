@@ -44,15 +44,15 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/textio.h"
 
     /* Forward declarations */
-extern int cifWriteInitFunc();
-extern int cifWriteMarkFunc();
-extern int cifWritePaintFunc();
-extern int cifWriteLabelFunc();
-extern int cifWriteUseFunc();
-extern void cifOutPreamble();
-extern void cifOut();
-extern void cifOutFunc();
-extern int GrClipTriangle();
+extern int cifWriteInitFunc(CellDef *def);
+extern int cifWriteMarkFunc(CellUse *use);
+extern int cifWritePaintFunc(Tile *tile, FILE *f);
+extern int cifWriteLabelFunc(Tile *tile, FILE *f);
+extern int cifWriteUseFunc(CellUse *use, FILE *f);
+extern void cifOutPreamble(FILE *outf, CellDef *cell);
+extern void cifOut(FILE *outf);
+extern void cifOutFunc(CellDef *def, FILE *f);
+extern void GrClipTriangle(Rect *r, Rect *c, int clipped, TileType dinfo, Point *points, int *np);
 
 /* Current cell number in CIF numbering scheme */
 

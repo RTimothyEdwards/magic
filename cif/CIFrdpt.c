@@ -242,7 +242,7 @@ CIFPropRecordPath(def, pathheadp, iswire, propname)
     bool iswire;
     char *propname;
 {
-    extern float CIFGetOutputScale();
+    extern float CIFGetOutputScale(int convert);
     CIFPath *pathp;
     char *pathstr, *sptr;
     int components;

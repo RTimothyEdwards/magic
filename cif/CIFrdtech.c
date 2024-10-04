@@ -62,8 +62,8 @@ CIFReadLayer *cifCurReadLayer;		/* Current layer being processed. */
 CIFOp *cifCurReadOp;			/* Last geometric operation seen. */
 
 /* Forward declarations */
-void cifReadStyleInit();
-void CIFReadLoadStyle();
+void cifReadStyleInit(void);
+void CIFReadLoadStyle(char *stylename);
 
 /*
  * ----------------------------------------------------------------------------
