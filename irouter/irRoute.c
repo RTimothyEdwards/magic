@@ -1098,7 +1098,7 @@ irChooseEndPtLayers(routeUse,expansionMask,endPt,argLayers,endPtName)
 	    }
 	    TxPrintf("\n");
 
-	    for(pickedRC=FALSE,l=presentContacts; l && !pickedRC; l=LIST_TAIL(l))
+	    for(pickedRC=NULL,l=presentContacts; l && !pickedRC; l=LIST_TAIL(l))
 	    {
 		rC = (RouteContact *) LIST_FIRST(l);
 		if (!LIST_TAIL(l) && !presentLayers)
