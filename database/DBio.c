@@ -2311,7 +2311,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
     int scalen;		/* Scale up by this factor */
     int scaled;		/* Scale down by this factor */
 {
-    char propertyname[128], propertyvalue[2048], *storedvalue;
+    char propertyname[128], propertyvalue[2049], *storedvalue;
     char *pvalueptr;
     int ntok;
     unsigned int noeditflag;
