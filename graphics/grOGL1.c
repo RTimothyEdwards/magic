@@ -527,6 +527,8 @@ pipehandler()
 
 	    entry = HashLookOnly(&grOGLWindowTable, (char *)VisEvent->window);
 	    mw = (entry)?(MagWindow *)HashGetValue(entry):0;
+	    if (!mw)
+		break;
 
 	    switch(VisEvent->state)
 	    {
