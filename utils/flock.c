@@ -23,6 +23,7 @@
 #include "database/database.h"
 #include "windows/windows.h"
 #include "utils/malloc.h"
+#include "utils/magic_zlib.h"
 
 /* C99 compat */
 #include "textio/textio.h"

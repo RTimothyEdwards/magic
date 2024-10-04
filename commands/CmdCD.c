@@ -37,6 +37,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "utils/main.h"
 #include "commands/commands.h"
 #include "utils/utils.h"
+#include "utils/magic_zlib.h"
 #include "textio/textio.h"
 #include "drc/drc.h"
 #include "graphics/graphics.h"
