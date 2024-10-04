@@ -355,7 +355,7 @@ RtrStemAssignExt(use, doWarn, loc, term, net)
      */
 
     pins = 0;
-    loc->nloc_chan == (GCRChannel *) NULL;
+    loc->nloc_chan = (GCRChannel *) NULL;
     for ( dr = dirs; dr->dr_dir; dr++)
     {
 	StemInfo si;
