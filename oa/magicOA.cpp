@@ -1,6 +1,19 @@
 #include <iostream>
 #include <cstring>
+#include <string.h>
 #include <magicOA.h>
+
+#ifdef __cplusplus
+#define __restrict /*restrict*/
+#define EXTERN_C extern "C"
+#else
+#define __restrict restrict
+#define EXTERN_C extern
+#endif
+#ifndef rsize_t
+#define rsize_t size_t
+#endif
+EXTERN_C /*errno_t*/ int strcpy_s(char *__restrict dest, rsize_t destsz, const char *__restrict src); // FIXME glibc does not include
 
 using namespace std;
 
