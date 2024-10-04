@@ -149,10 +149,10 @@ Rect colorWindowRect = {{0, 1500}, {24000, 17000}};
  */
 
 bool
-CMWcreate(window, argc, argv)
-    MagWindow *window;
-    int argc;
-    char *argv[];
+CMWcreate(
+    MagWindow *window,
+    int argc,
+    char *argv[])
 {
     CMWclientRec *crec;
     int color;
@@ -189,8 +189,8 @@ CMWcreate(window, argc, argv)
  */
 
 bool
-CMWdelete(window)
-    MagWindow *window;
+CMWdelete(
+    MagWindow *window)
 {
     CMWclientRec *cr;
 
@@ -218,10 +218,10 @@ CMWdelete(window)
  */
 
 void
-CMWreposition(window, newScreenArea, final)
-    MagWindow *window;
-    Rect *newScreenArea;
-    bool final;
+CMWreposition(
+    MagWindow *window,
+    Rect *newScreenArea,
+    bool final)
 {
     if (final)
 	WindMove(window, &colorWindowRect);
@@ -244,10 +244,10 @@ CMWreposition(window, newScreenArea, final)
  */
 
 void
-CMWredisplay(w, rootArea, clipArea)
-    MagWindow *w;		/* The window containing the area. */
-    Rect *rootArea;	/* Redisplay area in surface coordinates. */
-    Rect *clipArea;	/* An area on the screen to clip to. */
+CMWredisplay(
+    MagWindow *w,		/* The window containing the area. */
+    Rect *rootArea,	/* Redisplay area in surface coordinates. */
+    Rect *clipArea)	/* An area on the screen to clip to. */
 {
     CMWclientRec *cr;
     ColorBar *cb;
@@ -372,9 +372,9 @@ CMWredisplay(w, rootArea, clipArea)
  */
 
 void
-CMWloadWindow(w, color)
-    MagWindow *w;	/* Identifies window to which color is to be bound */
-    int color;		/* New color to be bound to this window. */
+CMWloadWindow(
+    MagWindow *w,	/* Identifies window to which color is to be bound */
+    int color)		/* New color to be bound to this window. */
 {
     CMWclientRec *cr = (CMWclientRec *) w->w_clientData;
     char caption[40];
@@ -407,7 +407,7 @@ CMWloadWindow(w, color)
  */
 
 void
-CMWinit()
+CMWinit(void)
 {
     CMWclientID = WindAddClient("color", CMWcreate, CMWdelete,
 			CMWredisplay, CMWcommand,

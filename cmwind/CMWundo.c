@@ -79,7 +79,7 @@ void cmwUndoDone(void);
  */
 
 void
-CMWundoInit()
+CMWundoInit(void)
 {
     cmwUndoClientID = UndoAddClient(cmwUndoStart, cmwUndoDone, NULL, NULL,
 				cmwUndoForw, cmwUndoBack, "color map");
@@ -104,16 +104,16 @@ CMWundoInit()
  */
 
 void
-cmwUndoForw(up)
-    colorUE *up;
+cmwUndoForw(
+    colorUE *up)
 {
     (void) GrPutColor(up->cue_color, up->new_r, up->new_g, up->new_b);
     cmwColorsChanged[up->cue_color] = TRUE;
 }
 
 void
-cmwUndoBack(up)
-    colorUE *up;
+cmwUndoBack(
+    colorUE *up)
 {
     (void) GrPutColor(up->cue_color, up->old_r, up->old_g, up->old_b);
     cmwColorsChanged[up->cue_color] = TRUE;
@@ -136,10 +136,14 @@ cmwUndoBack(up)
  */
 
 void
-cmwUndoColor(color, oldr, oldg, oldb, newr, newg, newb)
-    int color;
-    int oldr, oldg, oldb;
-    int newr, newg, newb;
+cmwUndoColor(
+    int color,
+    int oldr,
+    int oldg,
+    int oldb,
+    int newr,
+    int newg,
+    int newb)
 {
     colorUE *up;
 
@@ -173,7 +177,7 @@ cmwUndoColor(color, oldr, oldg, oldb, newr, newg, newb)
  */
 
 void
-cmwUndoStart()
+cmwUndoStart(void)
 {
     int i;
 
@@ -200,7 +204,7 @@ cmwUndoStart()
  */
 
 void
-cmwUndoDone()
+cmwUndoDone(void)
 {
     int i;
     extern int cmwRedisplayFunc(MagWindow *w, int color);
