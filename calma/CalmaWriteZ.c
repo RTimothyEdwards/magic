@@ -89,22 +89,22 @@ extern int calmaPaintLayerNumber;
 extern int calmaPaintLayerType;
 
     /* External functions from CalmaWrite.c */
-extern int calmaWriteInitFunc();
+extern int calmaWriteInitFunc(CellDef *def);
 
     /* Forward declarations */
-extern int calmaWritePaintFuncZ();
-extern int calmaMergePaintFuncZ();
-extern int calmaWriteUseFuncZ();
-extern int calmaPaintLabelFuncZ();
-extern void calmaWriteContactsZ();
-extern void calmaOutFuncZ();
-extern void calmaOutStructNameZ();
-extern void calmaWriteLabelFuncZ();
-extern void calmaOutHeaderZ();
-extern void calmaOutDateZ();
-extern void calmaOutStringRecordZ();
-extern void calmaOut8Z();
-extern void calmaOutR8Z();
+extern int calmaWritePaintFuncZ(Tile *tile, calmaOutputStructZ *cos);
+extern int calmaMergePaintFuncZ(Tile *tile, calmaOutputStructZ *cos);
+extern int calmaWriteUseFuncZ(CellUse *use, gzFile f);
+extern int calmaPaintLabelFuncZ(Tile *tile, calmaOutputStructZ *cos);
+extern void calmaWriteContactsZ(gzFile f);
+extern void calmaOutFuncZ(CellDef *def, gzFile f, Rect *cliprect);
+extern void calmaOutStructNameZ(int type, CellDef *def, gzFile f);
+extern void calmaWriteLabelFuncZ(Label *lab, int ltype, int type, gzFile f);
+extern void calmaOutHeaderZ(CellDef *rootDef, gzFile f);
+extern void calmaOutDateZ(time_t t, gzFile f);
+extern void calmaOutStringRecordZ(int type, char *str, gzFile f);
+extern void calmaOut8Z(char *str, gzFile f);
+extern void calmaOutR8Z(double d, gzFile f);
 
 /* Structure used by calmaWritePaintFuncZ() and others */
 
@@ -1190,7 +1190,7 @@ calmaOutFuncZ(def, f, cliprect)
     calmaOutputStructZ cos;
     bool propfound;
     char *propvalue;
-    extern int compport();	/* Forward declaration */
+    extern int compport(const void *one, const void *two);	/* Forward declaration */
 
     cos.f = f;
     cos.area = (cliprect == &TiPlaneRect) ? NULL : cliprect;
