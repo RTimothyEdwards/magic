@@ -61,42 +61,42 @@ extern bool CalmaAllowAbstract;
 #define CALMA_POLYGON_KEEP	2
 
 /* Externally-visible procedures: */
-extern bool CalmaWrite();
-extern void CalmaReadFile();
-extern void CalmaTechInit();
-extern bool CalmaGenerateArray();
+extern bool CalmaWrite(CellDef *rootDef, FILE *f);
+extern void CalmaReadFile(FILETYPE file, char *filename);
+extern void CalmaTechInit(void);
+extern bool CalmaGenerateArray(FILE *f, TileType type, int llx, int lly, int pitch, int cols, int rows);
 extern void CalmaReadError(char *format, ...);
 
 /* C99 compat */
-extern int  calmaAddSegment();
-extern void calmaDelContacts();
-extern void calmaElementBoundary();
-extern void calmaElementBox();
-extern void calmaElementPath();
-extern void calmaElementText();
-extern bool calmaIsUseNameDefault();
-extern bool calmaParseStructure();
-extern int  calmaProcessDef();
-extern int  calmaProcessDefZ();
-extern bool calmaReadI2Record();
-extern bool calmaReadI4Record();
-extern void calmaReadPoint();
-extern bool calmaReadR8();
-extern bool calmaReadStampRecord();
-extern bool calmaReadStringRecord();
-extern bool calmaReadStringRecord();
-extern bool calmaReadTransform();
-extern bool calmaSkipBytes();
-extern bool calmaSkipExact();
-extern bool calmaSkipTo();
-extern void calmaUnexpected();
-extern void calmaMergeSegments();
-extern void calmaRemoveDegenerate();
-extern void calmaRemoveColinear();
+extern int calmaAddSegment(LinkedBoundary **lbptr, int poly_edge, int p1x, int p1y, int p2x, int p2y);
+extern void calmaDelContacts(void);
+extern void calmaElementBoundary(void);
+extern void calmaElementBox(void);
+extern void calmaElementPath(void);
+extern void calmaElementText(void);
+extern bool calmaIsUseNameDefault(char *defName, char *useName);
+extern bool calmaParseStructure(char *filename);
+extern int calmaProcessDef(CellDef *def, FILE *outf, bool do_library);
+extern int calmaProcessDefZ(CellDef *def, gzFile outf, bool do_library);
+extern bool calmaReadI2Record(int type, int *pvalue);
+extern bool calmaReadI4Record(int type, int *pvalue);
+extern void calmaReadPoint(Point *p, int iscale);
+extern bool calmaReadR8(double *pd);
+extern bool calmaReadStampRecord(int type, int *stampptr);
+extern bool calmaReadStringRecord(int type, char **str);
+extern bool calmaReadStringRecord(int type, char **str);
+extern bool calmaReadTransform(Transform *ptrans, char *name);
+extern bool calmaSkipBytes(int nbytes);
+extern bool calmaSkipExact(int type);
+extern bool calmaSkipTo(int what);
+extern void calmaUnexpected(int wanted, int got);
+extern void calmaMergeSegments(LinkedBoundary *edge, BoundaryTop **blist, int num_points);
+extern void calmaRemoveDegenerate(BoundaryTop *blist);
+extern void calmaRemoveColinear(BoundaryTop *blist);
 
 #ifdef HAVE_ZLIB
-extern bool CalmaWriteZ();
-extern bool CalmaGenerateArrayZ();
+extern bool CalmaWriteZ(CellDef *rootDef, gzFile f);
+extern bool CalmaGenerateArrayZ(gzFile f, TileType type, int llx, int lly, int pitch, int cols, int rows);
 #endif
 
 #endif /* _CALMA_H */
