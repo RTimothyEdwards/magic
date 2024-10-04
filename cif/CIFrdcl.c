@@ -126,8 +126,8 @@ char *cifSubcellId = NULL;
  */
 
 void
-CIFReadCellInit(ptrkeys)
-    int ptrkeys;
+CIFReadCellInit(
+    int ptrkeys)
 {
     int i;
 
@@ -162,8 +162,8 @@ CIFReadCellInit(ptrkeys)
  */
 
 bool
-cifForgetCell(cifNum)
-    int cifNum;
+cifForgetCell(
+    int cifNum)
 {
     HashEntry *h;
 
@@ -196,8 +196,8 @@ cifForgetCell(cifNum)
  */
 
 void
-cifUniqueCell(cifNum)
-   int cifNum;
+cifUniqueCell(
+   int cifNum)
 {
     HashEntry *h;
     CellDef *def, *testdef;
@@ -256,8 +256,8 @@ cifUniqueCell(cifNum)
  */
 
 CellDef *
-cifFindCell(cifNum)
-    int cifNum;			/* The CIF number of the desired cell. */
+cifFindCell(
+    int cifNum)			/* The CIF number of the desired cell. */
 {
     HashEntry *h;
     CellDef *def, *testdef;
@@ -299,10 +299,10 @@ cifFindCell(cifNum)
  */
 
 void
-CIFScalePlanes(scalen, scaled, planearray)
-    int scalen;
-    int scaled;
-    Plane **planearray;
+CIFScalePlanes(
+    int scalen,
+    int scaled,
+    Plane **planearray)
 {
     int pNum;
     Plane *newplane;
@@ -348,8 +348,9 @@ CIFScalePlanes(scalen, scaled, planearray)
  */
 
 void
-CIFInputRescale(n, d)
-    int n, d;
+CIFInputRescale(
+    int n,
+    int d)
 {
     CIFReadStyle *istyle = cifCurReadStyle;
     CIFReadLayer *cl;
@@ -417,7 +418,7 @@ CIFInputRescale(n, d)
  */
 
 bool
-CIFParseStart()
+CIFParseStart(void)
 {
     int		number;
 
@@ -502,9 +503,9 @@ CIFParseStart()
  * ----------------------------------------------------------------------------
  */
 
-int cifCheckPaintFunc(tile, clientData)
-    Tile *tile;
-    ClientData clientData;
+int cifCheckPaintFunc(
+    Tile *tile,
+    ClientData clientData)
 {
     return 1;
 }
@@ -512,9 +513,9 @@ int cifCheckPaintFunc(tile, clientData)
 /* Callback function for copying paint from one CIF cell into another */
 
 int
-cifCopyPaintFunc(tile, cifCopyRec)
-    Tile *tile;
-    CIFCopyRec *cifCopyRec;
+cifCopyPaintFunc(
+    Tile *tile,
+    CIFCopyRec *cifCopyRec)
 {
     int pNum;
     TileType dinfo;
@@ -558,9 +559,9 @@ cifCopyPaintFunc(tile, cifCopyRec)
  */
 
 int
-cifMaskHintFunc(tile, lrecp)
-    Tile *tile;
-    LinkedRect **lrecp;
+cifMaskHintFunc(
+    Tile *tile,
+    LinkedRect **lrecp)
 {
     Rect r;
     LinkedRect *newlr;
@@ -886,9 +887,9 @@ CIFPaintCurrent(filetype)
 /* Use CIF layer geometry to define a fixed bounding box for the current cell */
 
 int
-cifMakeBoundaryFunc(tile, clientdata)
-    Tile *tile;			/* Tile of CIF information. */
-    ClientData clientdata;	/* Pass the file type (CIF or CALMA) */
+cifMakeBoundaryFunc(
+    Tile *tile,			/* Tile of CIF information. */
+    ClientData clientdata)	/* Pass the file type (CIF or CALMA) */
 {
     /* It is assumed that there is one rectangle for the boundary.  */
     /* If there are multiple rectangles defined with the boundary   */
@@ -965,9 +966,9 @@ cifMakeBoundaryFunc(tile, clientdata)
 /* Paint CIF layer geometry into the current cell def as magic layer "type"	*/
 
 int
-cifPaintCurrentFunc(tile, type)
-    Tile *tile;			/* Tile of CIF information. */
-    TileType type;		/* Magic type to be painted. */
+cifPaintCurrentFunc(
+    Tile *tile,			/* Tile of CIF information. */
+    TileType type)		/* Magic type to be painted. */
 {
     Rect area;
     int pNum;
@@ -1042,7 +1043,7 @@ cifPaintCurrentFunc(tile, type)
  */
 
 bool
-CIFParseFinish()
+CIFParseFinish(void)
 {
     if (!cifSubcellBeingRead)
     {
@@ -1097,7 +1098,7 @@ CIFParseFinish()
  */
 
 bool
-CIFParseDelete()
+CIFParseDelete(void)
 {
     int		number;
 
@@ -1139,7 +1140,7 @@ CIFParseDelete()
  */
 
 char *
-cifParseName()
+cifParseName(void)
 {
     char	ch;
     char	*bufferp;
@@ -1181,7 +1182,7 @@ cifParseName()
  */
 
 bool
-cifParseUser9()
+cifParseUser9(void)
 {
     char *name;
 
@@ -1213,7 +1214,7 @@ cifParseUser9()
  */
 
 bool
-CIFParseCall()
+CIFParseCall(void)
 {
     int		called;
     Transform	transform;
@@ -1280,7 +1281,7 @@ CIFParseCall()
  */
 
 bool
-cifParseUser91()
+cifParseUser91(void)
 {
     if (cifSubcellId != NULL)
     {
@@ -1311,7 +1312,7 @@ cifParseUser91()
  */
 
 bool
-cifParseUser94()
+cifParseUser94(void)
 {
     Rect rectangle;
     char *name = NULL;
@@ -1401,7 +1402,7 @@ cifParseUser94()
  */
 
 bool
-cifParseUser95()
+cifParseUser95(void)
 {
     /* Modified by BIM 1/8/2018 */
     Rect rectangle;
@@ -1561,7 +1562,7 @@ cifParseUser95()
  * ----------------------------------------------------------------------------
  */
 bool
-CIFParseUser()
+CIFParseUser(void)
 {
     char	ch;
 

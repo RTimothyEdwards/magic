@@ -85,7 +85,7 @@ bool cifCheckCalmaNum(char *str);
  */
 
 void
-cifTechFreeStyle()
+cifTechFreeStyle(void)
 {
     int i;
     CIFOp	*op;
@@ -148,7 +148,7 @@ cifTechFreeStyle()
  */
 
 void
-cifTechNewStyle()
+cifTechNewStyle(void)
 {
     cifTechFreeStyle();
     cifTechStyleInit();
@@ -165,7 +165,7 @@ cifTechNewStyle()
  */
 
 void
-cifTechStyleInit()
+cifTechStyleInit(void)
 {
     int i;
 
@@ -216,18 +216,18 @@ cifTechStyleInit()
  */
 
 void
-cifParseLayers(string, style, paintMask, cifMask, spaceOK)
-    char *string;		/* List of layers. */
-    CIFStyle *style;		/* Gives CIF style for parsing string.*/
-    TileTypeBitMask *paintMask;	/* Place to store mask of paint layers.  If
+cifParseLayers(
+    char *string,		/* List of layers. */
+    CIFStyle *style,		/* Gives CIF style for parsing string.*/
+    TileTypeBitMask *paintMask,	/* Place to store mask of paint layers.  If
 				 * NULL, then only CIF layer names are
 				 * considered.
 				 */
-    TileTypeBitMask *cifMask;	/* Place to store mask of CIF layers.  If
+    TileTypeBitMask *cifMask,	/* Place to store mask of CIF layers.  If
 				 * NULL, then only paint layer names are
 				 * considered.
 				 */
-    int	spaceOK;		/* are space layers permissible in this cif
+    int	spaceOK)		/* are space layers permissible in this cif
     				   layer?
 				*/
 {
@@ -357,7 +357,7 @@ okpaint:
  */
 
 void
-CIFTechInit()
+CIFTechInit(void)
 {
     CIFKeep *style;
 
@@ -393,7 +393,7 @@ CIFTechInit()
  */
 
 void
-CIFTechStyleInit()
+CIFTechStyleInit(void)
 {
     CalmaTechInit();
 
@@ -434,8 +434,9 @@ CIFTechStyleInit()
  */
 
 bool
-CIFTechLimitScale(ns, ds)
-    int ns, ds;
+CIFTechLimitScale(
+    int ns,
+    int ds)
 {
     int gridup, scaledown;
     int scale, limit, expand;
@@ -474,9 +475,9 @@ CIFTechLimitScale(ns, ds)
  */
 
 int
-CIFParseScale(true_scale, expander)
-    char *true_scale;
-    int  *expander;
+CIFParseScale(
+    char *true_scale,
+    int  *expander)
 {
     char *decimal;
     short places;
@@ -525,10 +526,10 @@ CIFParseScale(true_scale, expander)
  */
 
 bool
-CIFTechLine(sectionName, argc, argv)
-    char *sectionName;		/* The name of this section. */
-    int argc;			/* Number of fields on line. */
-    char *argv[];		/* Values of fields. */
+CIFTechLine(
+    char *sectionName,		/* The name of this section. */
+    int argc,			/* Number of fields on line. */
+    char *argv[])		/* Values of fields. */
 {
     TileTypeBitMask mask, tempMask, cifMask, bloatLayers;
     int i, j, l, distance;
@@ -1540,8 +1541,8 @@ bloatCheck:
  */
 
 bool
-cifCheckCalmaNum(str)
-    char *str;
+cifCheckCalmaNum(
+    char *str)
 {
     int n = atoi(str);
 
@@ -1577,9 +1578,9 @@ cifCheckCalmaNum(str)
  */
 
 void
-cifComputeRadii(layer, des)
-    CIFLayer *layer;		/* Layer for which to compute distances. */
-    CIFStyle *des;		/* CIF style (used to find temp layer
+cifComputeRadii(
+    CIFLayer *layer,		/* Layer for which to compute distances. */
+    CIFStyle *des)		/* CIF style (used to find temp layer
 				 * distances.
 				 */
 {
@@ -1685,8 +1686,8 @@ cifComputeRadii(layer, des)
  */
 
 void
-cifComputeHalo(style)
-    CIFStyle *style;
+cifComputeHalo(
+    CIFStyle *style)
 {
     int maxGrow, maxShrink, i;
 
@@ -1755,7 +1756,7 @@ cifComputeHalo(style)
  */
 
 void
-CIFTechFinal()
+CIFTechFinal(void)
 {
     CIFStyle *style = CIFCurStyle;
     CIFOp *op;
@@ -2139,8 +2140,8 @@ CIFTechFinal()
  */
 
 void
-CIFLoadStyle(stylename)
-    char *stylename;
+CIFLoadStyle(
+    char *stylename)
 {
     SectionID invcif;
 
@@ -2188,11 +2189,11 @@ CIFLoadStyle(stylename)
  */
 
 int
-CIFGetContactSize(type, edge, spacing, border)
-    TileType type;
-    int *edge;
-    int *border;
-    int *spacing;
+CIFGetContactSize(
+    TileType type,
+    int *edge,
+    int *spacing,
+    int *border)
 {
     CIFStyle *style = CIFCurStyle;
     CIFOp *op, *sop;
@@ -2285,8 +2286,9 @@ CIFGetContactSize(type, edge, spacing, border)
  */
 
 void
-CIFTechOutputScale(n, d)
-    int n, d;
+CIFTechOutputScale(
+    int n,
+    int d)
 {
     int i, j, lgcf, lexpand;
     CIFStyle *ostyle = CIFCurStyle;

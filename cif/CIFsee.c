@@ -76,9 +76,9 @@ typedef struct {
  */
 
 int
-cifPaintDBFunc(tile, pld)
-    Tile *tile;			/* Tile of CIF information. */
-    PaintLayerData *pld;
+cifPaintDBFunc(
+    Tile *tile,			/* Tile of CIF information. */
+    PaintLayerData *pld)
 {
     Rect area;
     int pNum;
@@ -132,14 +132,14 @@ cifPaintDBFunc(tile, pld)
  */
 
 void
-CIFPaintLayer(rootDef, area, cifLayer, magicLayer, paintDef)
-    CellDef *rootDef;		/* Cell for which to generate CIF.  Must be
+CIFPaintLayer(
+    CellDef *rootDef,		/* Cell for which to generate CIF.  Must be
 				 * the rootDef of a window.
 				 */
-    Rect *area;			/* Area in which to generate CIF. */
-    char *cifLayer;		/* CIF layer to highlight on the screen. */
-    int	  magicLayer;		/* Magic layer to paint with the result */
-    CellDef *paintDef;		/* CellDef to paint into (may be NULL)	*/
+    Rect *area,			/* Area in which to generate CIF. */
+    char *cifLayer,		/* CIF layer to highlight on the screen. */
+    int	  magicLayer,		/* Magic layer to paint with the result */
+    CellDef *paintDef)		/* CellDef to paint into (may be NULL)	*/
 {
     int oldCount, i;
     char msg[100];
@@ -217,9 +217,9 @@ CIFPaintLayer(rootDef, area, cifLayer, magicLayer, paintDef)
  */
 
 int
-cifSeeFunc(tile, sld)
-    Tile *tile;			/* Tile to be entered as feedback. */
-    SeeLayerData *sld;		/* Layer and explanation for the feedback. */
+cifSeeFunc(
+    Tile *tile,			/* Tile to be entered as feedback. */
+    SeeLayerData *sld)		/* Layer and explanation for the feedback. */
 {
     Rect area;
 
@@ -258,12 +258,12 @@ cifSeeFunc(tile, sld)
  */
 
 void
-CIFSeeLayer(rootDef, area, layer)
-    CellDef *rootDef;		/* Cell for which to generate CIF.  Must be
+CIFSeeLayer(
+    CellDef *rootDef,		/* Cell for which to generate CIF.  Must be
 				 * the rootDef of a window.
 				 */
-    Rect *area;			/* Area in which to generate CIF. */
-    char *layer;		/* CIF layer to highlight on the screen. */
+    Rect *area,			/* Area in which to generate CIF. */
+    char *layer)		/* CIF layer to highlight on the screen. */
 {
     int oldCount, i;
     char msg[100];
@@ -348,14 +348,14 @@ CIFSeeLayer(rootDef, area, layer)
  */
 
 void
-CIFSeeHierLayer(rootDef, area, layer, arrays, subcells)
-    CellDef *rootDef;		/* Def in which to compute CIF.  Must be
+CIFSeeHierLayer(
+    CellDef *rootDef,		/* Def in which to compute CIF.  Must be
 				 * the root definition of a window.
 				 */
-    Rect *area;			/* Area in which to generate CIF. */
-    char *layer;		/* CIF layer to be highlighted. */
-    bool arrays;		/* TRUE means show array interactions. */
-    bool subcells;		/* TRUE means show subcell interactions. */
+    Rect *area,			/* Area in which to generate CIF. */
+    char *layer,		/* CIF layer to be highlighted. */
+    bool arrays,		/* TRUE means show array interactions. */
+    bool subcells)		/* TRUE means show subcell interactions. */
 {
     int i, oldCount;
     SeeLayerData sld;
@@ -426,11 +426,11 @@ typedef struct {
 } coverstats;
 
 void
-CIFCoverageLayer(rootDef, area, layer, dolist)
-    CellDef *rootDef;		/* Def in which to compute CIF coverage */
-    Rect *area;			/* Area in which to compute coverage */
-    char *layer;		/* CIF layer for coverage computation. */
-    bool dolist;		/* If TRUE, report only the value, in decimal */
+CIFCoverageLayer(
+    CellDef *rootDef,		/* Def in which to compute CIF coverage */
+    Rect *area,			/* Area in which to compute coverage */
+    char *layer,		/* CIF layer for coverage computation. */
+    bool dolist)		/* If TRUE, report only the value, in decimal */
 {
     coverstats cstats;
     int i, scale;
@@ -510,9 +510,9 @@ CIFCoverageLayer(rootDef, area, layer, dolist)
 }
 
 int
-cifCoverageFunc(tile, arg)
-    Tile *tile;
-    ClientData *arg;
+cifCoverageFunc(
+    Tile *tile,
+    ClientData *arg)
 {
     coverstats *cstats = (coverstats *)arg;
     Rect r;

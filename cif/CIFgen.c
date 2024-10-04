@@ -100,9 +100,9 @@ extern void cifGenClip(Rect *area, Rect *expanded, Rect *clip);
  */
 
 int
-cifPaintFunc(tile, table)
-    Tile *tile;
-    PaintResultType *table;		/* Used for painting. */
+cifPaintFunc(
+    Tile *tile,
+    PaintResultType *table)		/* Used for painting. */
 {
     Rect area;
 
@@ -133,8 +133,8 @@ cifPaintFunc(tile, table)
  */
 
 void
-SetBoxGrid(area)
-    Rect *area;
+SetBoxGrid(
+    Rect *area)
 {
     int limit;
     int delta;
@@ -209,8 +209,8 @@ SetBoxGrid(area)
  */
 
 int
-SetValueGrid(value)
-    int value;
+SetValueGrid(
+    int value)
 {
     int limit;
     int delta;
@@ -242,9 +242,9 @@ SetValueGrid(value)
  */
 
 void
-SetMinBoxGrid(area, width)
-    Rect *area;
-    int width;
+SetMinBoxGrid(
+    Rect *area,
+    int width)
 {
     int wtest;
     int wtot;
@@ -296,9 +296,9 @@ SetMinBoxGrid(area, width)
  */
 
 int
-cifGrowMinFunc(tile, table)
-    Tile *tile;
-    PaintResultType *table;		/* Table to be used for painting. */
+cifGrowMinFunc(
+    Tile *tile,
+    PaintResultType *table)		/* Table to be used for painting. */
 {
     Rect area, parea;
     int locDist, width, height, h;
@@ -471,9 +471,9 @@ cifGrowMinFunc(tile, table)
  */
 
 int
-cifGrowGridFunc(tile, table)
-    Tile *tile;
-    PaintResultType *table;		/* Table to be used for painting. */
+cifGrowGridFunc(
+    Tile *tile,
+    PaintResultType *table)		/* Table to be used for painting. */
 {
     Rect area;
     int remainder;
@@ -547,9 +547,9 @@ cifGrowGridFunc(tile, table)
 #define STOP_ES 0x80
 
 int
-cifGrowEuclideanFunc(tile, table)
-    Tile *tile;
-    PaintResultType *table;		/* Table to be used for painting. */
+cifGrowEuclideanFunc(
+    Tile *tile,
+    PaintResultType *table)		/* Table to be used for painting. */
 {
     Tile *tp;
     Rect area, rtmp;
@@ -760,9 +760,9 @@ cifGrowEuclideanFunc(tile, table)
  */
 
 int
-cifGrowFunc(tile, table)
-    Tile *tile;
-    PaintResultType *table;		/* Table to be used for painting. */
+cifGrowFunc(
+    Tile *tile,
+    PaintResultType *table)		/* Table to be used for painting. */
 {
     Rect area;
     TileType oldType = TiGetTypeExact(tile);
@@ -889,9 +889,9 @@ cifGrowFunc(tile, table)
  */
 
 int
-cifBloatFunc(tile, clientData)
-    Tile *tile;
-    ClientData clientData;
+cifBloatFunc(
+    Tile *tile,
+    ClientData clientData)
 {
     Rect tileArea, cifArea, bloat;
     TileType oldType, type, topLeftType, bottomRightType;
@@ -1216,9 +1216,9 @@ endbloat:
  */
 
 int
-cifProcessResetFunc(tile, clientData)
-    Tile *tile;
-    ClientData clientData;	/* unused */
+cifProcessResetFunc(
+    Tile *tile,
+    ClientData clientData)	/* unused */
 {
     tile->ti_client = (ClientData) CIF_UNPROCESSED;
     return 0;
@@ -1265,9 +1265,9 @@ cifProcessSelectiveResetFunc(tile, clipArea)
  */
 
 int
-cifFoundFunc(tile, BloatStackPtr)
-    Tile *tile;
-    Stack **BloatStackPtr;
+cifFoundFunc(
+    Tile *tile,
+    Stack **BloatStackPtr)
 {
     PUSHTILE(tile, *BloatStackPtr);
     return 0;
@@ -1301,9 +1301,9 @@ typedef struct _bloatStruct {
  */
 
 int
-cifBloatAllFunc(tile, bls)
-    Tile *tile;			/* The tile to be processed. */
-    BloatStruct *bls;
+cifBloatAllFunc(
+    Tile *tile,			/* The tile to be processed. */
+    BloatStruct *bls)
 {
     Rect area, clipArea;
     TileTypeBitMask *connect;
@@ -1589,8 +1589,8 @@ typedef struct _bridgeCheckStruct {
  */
 
 int
-GetEuclideanWidthGrid(width)
-    int width;
+GetEuclideanWidthGrid(
+    int width)
 {
     int weuclid;
     int delta;
@@ -1647,10 +1647,10 @@ GetEuclideanWidthGrid(width)
  */
 
 void
-GetExpandedAreaGrid(wrule, space, area)
-    int wrule;
-    bool space;
-    Rect *area;
+GetExpandedAreaGrid(
+    int wrule,
+    bool space,
+    Rect *area)
 {
     bool horiz;
     bool overlap;
@@ -1782,9 +1782,9 @@ GetExpandedAreaGrid(wrule, space, area)
  */
 
 int
-cifBridgeFunc1(tile, brs)
-    Tile *tile;
-    BridgeStruct *brs;
+cifBridgeFunc1(
+    Tile *tile,
+    BridgeStruct *brs)
 {
     Plane *plane = brs->plane;
     Rect area;
@@ -1904,9 +1904,9 @@ cifBridgeFunc1(tile, brs)
  */
 
 int
-cifBridgeFunc2(tile, brs)
-    Tile *tile;
-    BridgeStruct *brs;
+cifBridgeFunc2(
+    Tile *tile,
+    BridgeStruct *brs)
 {
     Plane *plane = brs->plane;
     Rect area;
@@ -2004,9 +2004,9 @@ cifBridgeFunc2(tile, brs)
  */
 
 int
-cifBridgeCheckFunc(tile, brcs)
-    Tile *tile;
-    BridgeCheckStruct *brcs;
+cifBridgeCheckFunc(
+    Tile *tile,
+    BridgeCheckStruct *brcs)
 {
     int dir = brcs->direction;
     Tile *self = brcs->tile;
@@ -2080,13 +2080,13 @@ cifBridgeCheckFunc(tile, brcs)
 #define CLOSE_DONE   2
 
 int
-cifCloseFunc(tile, plane)
-    Tile *tile;
-    Plane *plane;
+cifCloseFunc(
+    Tile *tile,
+    Plane *plane)
 {
     Rect area, newarea;
     int atotal;
-    int cifGatherFunc(Tile *tile, int *atotal, int mode);
+    int cifGatherFunc(Tile *tile, int *atotal, bool mode);
 
     /* If tile is marked, then it has been handled, so ignore it */
     if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
@@ -2115,10 +2115,10 @@ cifCloseFunc(tile, plane)
 }
 
 int
-cifGatherFunc(tile, atotal, mode)
-    Tile *tile;
-    int *atotal;
-    bool mode;
+cifGatherFunc(
+    Tile *tile,
+    int *atotal,
+    bool mode)
 {
     Tile *tp;
     TileType type;
@@ -2292,9 +2292,9 @@ cifSquaresInitFunc(tile, clientData)
  */
 
 int
-cifSquaresStripFunc(tile, stripsData)
-    Tile *tile;
-    StripsData *stripsData;
+cifSquaresStripFunc(
+    Tile *tile,
+    StripsData *stripsData)
 {
     bool vertical;
     int width, height;
@@ -2419,9 +2419,9 @@ cifSquaresStripFunc(tile, stripsData)
 
 
 int
-cifUnconnectFunc(tile, clientData)
-    Tile *tile;
-    ClientData clientData;	/* unused */
+cifUnconnectFunc(
+    Tile *tile,
+    ClientData clientData)	/* unused */
 {
     TileType t = TiGetTypeExact(tile);
     if (t == TT_SPACE) return 1;
@@ -2449,10 +2449,10 @@ cifUnconnectFunc(tile, clientData)
  */
 
 void
-cifRectBoundingBox(op, cellDef, plane)
-    CIFOp *op;
-    CellDef *cellDef;
-    Plane *plane;
+cifRectBoundingBox(
+    CIFOp *op,
+    CellDef *cellDef,
+    Plane *plane)
 {
     Tile *tile = NULL, *t, *tp;
     Rect bbox, area, *maxr;
@@ -2608,10 +2608,10 @@ cifRectBoundingBox(op, cellDef, plane)
  */
 
 void
-cifSquaresFillArea(op, cellDef, plane)
-    CIFOp *op;
-    CellDef *cellDef;
-    Plane *plane;
+cifSquaresFillArea(
+    CIFOp *op,
+    CellDef *cellDef,
+    Plane *plane)
 {
     Tile *tile, *t, *tp;
     Rect bbox, area, square, cut, llcut;
@@ -2937,10 +2937,10 @@ cifSquaresFillArea(op, cellDef, plane)
  */
 
 void
-cifSlotsFillArea(op, cellDef, plane)
-    CIFOp *op;
-    CellDef *cellDef;
-    Plane *plane;
+cifSlotsFillArea(
+    CIFOp *op,
+    CellDef *cellDef,
+    Plane *plane)
 {
     Tile *tile, *t, *tp;
     Rect bbox, area, square, cut, llcut;
@@ -3306,9 +3306,9 @@ cifSlotsFillArea(op, cellDef, plane)
  */
 
 int
-cifBloatMaxFunc(tile, op)
-    Tile *tile;			/* The tile to be processed. */
-    CIFOp *op;			/* Describes the operation to be performed
+cifBloatMaxFunc(
+    Tile *tile,			/* The tile to be processed. */
+    CIFOp *op)			/* Describes the operation to be performed
 				 * (all we care about is the opcode and
 				 * bloat table).
 				 */
@@ -3443,9 +3443,9 @@ cifBloatMaxFunc(tile, op)
  */
 
 bool
-inside_triangle(rect, tile)
-    Rect *rect;
-    Tile *tile;
+inside_triangle(
+    Rect *rect,
+    Tile *tile)
 {
     int theight, twidth;
     dlong f1, f2, f3, f4;
@@ -3498,9 +3498,9 @@ inside_triangle(rect, tile)
  */
 
 int
-cifContactFunc(tile, csi)
-    Tile *tile;			/* Tile to be diced up. */
-    CIFSquaresInfo *csi; 	/* Describes how to generate squares. */
+cifContactFunc(
+    Tile *tile,			/* Tile to be diced up. */
+    CIFSquaresInfo *csi) 	/* Describes how to generate squares. */
 {
     Rect area;
     int i, nAcross, j, nUp, left, bottom, pitch, halfsize;
@@ -3576,12 +3576,13 @@ cifContactFunc(tile, csi)
  */
 
 int
-cifSlotFunc(area, op, numY, numX, cut, vertical)
-    Rect  *area;		/* Area to be diced up			*/
-    CIFOp *op;			/* Describes how to generate squares.	*/
-    int *numY, *numX;		/* Return values: # rows and # columns 	*/
-    Rect *cut;			/* initial (lower left) cut area 	*/
-    bool vertical;		/* if TRUE, slot is aligned vertically	*/
+cifSlotFunc(
+    Rect  *area,		/* Area to be diced up			*/
+    CIFOp *op,			/* Describes how to generate squares.	*/
+    int *numY,
+    int *numX,			/* Return values: # rows and # columns 	*/
+    Rect *cut,			/* initial (lower left) cut area 	*/
+    bool vertical)		/* if TRUE, slot is aligned vertically	*/
 {
     int i, j, xpitch, ypitch, delta, limit;
     int *axtop, *axbot, *aytop, *aybot;
@@ -3715,11 +3716,12 @@ calcY:
  */
 
 int
-cifSquareFunc(area, op, rows, columns, cut)
-    Rect *area;			/* Area to be diced up */
-    CIFOp *op;			/* Describes how to generate squares.	*/
-    int *rows, *columns;	/* Return values: # rows and # columns,	*/
-    Rect *cut;			/* initial (lower left) cut area.	*/
+cifSquareFunc(
+    Rect *area,			/* Area to be diced up */
+    CIFOp *op,			/* Describes how to generate squares.	*/
+    int *rows,
+    int *columns,		/* Return values: # rows and # columns,	*/
+    Rect *cut)			/* initial (lower left) cut area.	*/
 {
     int pitch, delta, limit;
     bool glimit;
@@ -3827,11 +3829,12 @@ sqY:
  */
 
 int
-cifSquareGridFunc(area, op, rows, columns, cut)
-    Rect *area;			/* Area to be diced up */
-    CIFOp *op;			/* Describes how to generate squares.	*/
-    int *rows, *columns;	/* Return values: # rows and # columns,	*/
-    Rect *cut;			/* initial (lower left) cut area.	*/
+cifSquareGridFunc(
+    Rect *area,			/* Area to be diced up */
+    CIFOp *op,			/* Describes how to generate squares.	*/
+    int *rows,
+    int *columns,		/* Return values: # rows and # columns,	*/
+    Rect *cut)			/* initial (lower left) cut area.	*/
 {
     Rect locarea;
     int left, bottom, right, top, pitch;
@@ -3918,13 +3921,13 @@ cifSquareGridFunc(area, op, rows, columns, cut)
  */
 
 void
-cifSrTiles(cifOp, area, cellDef, temps, func, cdArg)
-    CIFOp *cifOp;		/* Geometric operation being processed. */
-    Rect *area;			/* Area of Magic paint to consider. */
-    CellDef *cellDef;		/* CellDef to search for paint. */
-    Plane *temps[];		/* Planes to use for temporaries. */
-    int (*func)();		/* Search function to pass to DBSrPaintArea. */
-    ClientData cdArg;		/* Client data for func. */
+cifSrTiles(
+    CIFOp *cifOp,		/* Geometric operation being processed. */
+    Rect *area,			/* Area of Magic paint to consider. */
+    CellDef *cellDef,		/* CellDef to search for paint. */
+    Plane *temps[],		/* Planes to use for temporaries. */
+    int (*func)(),		/* Search function to pass to DBSrPaintArea. */
+    ClientData cdArg)		/* Client data for func. */
 {
     TileTypeBitMask maskBits;
     TileType t;
@@ -4005,9 +4008,9 @@ typedef struct _bridgeLimCheckStruct {
  *-----------------------------------------------------------------------
  */
 int
-bridgeLimFound(tile, calcOverlap)
-    Tile *tile;
-    bool calcOverlap;
+bridgeLimFound(
+    Tile *tile,
+    bool calcOverlap)
 {
     if (calcOverlap)
     {
@@ -4027,10 +4030,10 @@ bridgeLimFound(tile, calcOverlap)
  *------------------------------------------------------------------------
  */
 int
-bridgeLimSrTiles(brlims, area, calcOverlap)
-    BridgeLimStruct *brlims;    /* Bridge-Lim structure. */
-    Rect *area;                 /* Area of Magic paint to consider. */
-    bool calcOverlap;           /* TRUE to calculate the overlap of the limiting tiles in the specified area. */
+bridgeLimSrTiles(
+    BridgeLimStruct *brlims,    /* Bridge-Lim structure. */
+    Rect *area,                 /* Area of Magic paint to consider. */
+    bool calcOverlap)           /* TRUE to calculate the overlap of the limiting tiles in the specified area. */
 {
     TileTypeBitMask maskBits;
     TileType t;
@@ -4086,9 +4089,9 @@ bridgeLimSrTiles(brlims, area, calcOverlap)
  * ----------------------------------------------------------------------------
  */
 int
-cifBridgeLimFunc0(tile, brlims)
-    Tile *tile;
-    BridgeLimStruct *brlims;
+cifBridgeLimFunc0(
+    Tile *tile,
+    BridgeLimStruct *brlims)
 {
     Plane *plane = brlims->plane;
     Rect area, parea;
@@ -4161,9 +4164,9 @@ cifBridgeLimFunc0(tile, brlims)
  *-----------------------------------------------------------------------
  */
 int
-bridgeLimCheckFunc(tile, brlimcs)
-    Tile *tile;
-    BridgeLimCheckStruct *brlimcs;
+bridgeLimCheckFunc(
+    Tile *tile,
+    BridgeLimCheckStruct *brlimcs)
 {
     int dir = brlimcs->direction;
     Tile *self = brlimcs->tile;
@@ -4231,9 +4234,9 @@ bridgeLimCheckFunc(tile, brlimcs)
  *-----------------------------------------------------------------------
  */
 int
-bridgeErase(brlims, area)
-    BridgeLimStruct *brlims;    /* Bridge-lim structure. */
-    Rect *area;                 /* Area of Magic paint to consider. */
+bridgeErase(
+    BridgeLimStruct *brlims,    /* Bridge-lim structure. */
+    Rect *area)                 /* Area of Magic paint to consider. */
 {
     TileTypeBitMask maskBits;
     TileType t;
@@ -4277,9 +4280,9 @@ bridgeErase(brlims, area)
  * ----------------------------------------------------------------------------
  */
 int
-cifBridgeLimFunc1(tile, brlims)
-    Tile *tile;
-    BridgeLimStruct *brlims;
+cifBridgeLimFunc1(
+    Tile *tile,
+    BridgeLimStruct *brlims)
 {
     Plane *plane = brlims->plane;
     Rect area;
@@ -4438,9 +4441,9 @@ cifBridgeLimFunc1(tile, brlims)
  * ----------------------------------------------------------------------------
  */
 int
-cifBridgeLimFunc2(tile, brlims)
-    Tile *tile;
-    BridgeLimStruct *brlims;
+cifBridgeLimFunc2(
+    Tile *tile,
+    BridgeLimStruct *brlims)
 {
     Plane *plane = brlims->plane;
     Rect area;
@@ -4571,24 +4574,24 @@ cifBridgeLimFunc2(tile, brlims)
  */
 
 Plane *
-CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
-    CIFOp *op;			/* List of CIFOps telling how to make layer. */
-    Rect *area;			/* Area to consider when generating CIF.  Only
+CIFGenLayer(
+    CIFOp *op,			/* List of CIFOps telling how to make layer. */
+    Rect *area,			/* Area to consider when generating CIF.  Only
 				 * material in this area will be considered, so
 				 * the caller should usually expand his desired
 				 * area by one CIF radius.
 				 */
-    CellDef *cellDef;		/* CellDef to search when paint layers are
+    CellDef *cellDef,		/* CellDef to search when paint layers are
 				 * needed for operation.
 				 */
-    CellDef *origDef;		/* Original CellDef for which output is being
+    CellDef *origDef,		/* Original CellDef for which output is being
 				 * generated (cellDef may be derived from this).
 				 */
-    Plane *temps[];		/* Temporary layers to be used when needed
+    Plane *temps[],		/* Temporary layers to be used when needed
 				 * for operation.
 				 */
-    bool hier;			/* TRUE if called from CIFGenSubcells or CIFGenArrays */
-    ClientData clientdata;	/*
+    bool hier,			/* TRUE if called from CIFGenSubcells or CIFGenArrays */
+    ClientData clientdata)	/*
 				 * Data that may be passed to the CIF operation
 				 * function.
 				 */
@@ -5176,31 +5179,31 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
  */
 
 void
-CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, hier, clientdata)
-    CellDef *cellDef;		/* Cell for which CIF is to be generated. */
-    CellDef *origDef;		/* Original cell, if different from cellDef */
-    Rect *area;			/* Any CIF overlapping this area (in coords
+CIFGen(
+    CellDef *cellDef,		/* Cell for which CIF is to be generated. */
+    CellDef *origDef,		/* Original cell, if different from cellDef */
+    Rect *area,			/* Any CIF overlapping this area (in coords
 				 * of cellDef) will be generated.  The CIF
 				 * will be clipped to this area.
 				 */
-    Plane **planes;		/* Pointer to array of pointers to planes
+    Plane **planes,		/* Pointer to array of pointers to planes
 				 * to hold "real" CIF layers that are
 				 * generated.  Pointers may initially be
 				 * NULL.
 				 */
-    TileTypeBitMask *layers;	/* CIF layers to generate. */
-    bool replace;		/* TRUE means that the new CIF is to replace
+    TileTypeBitMask *layers,	/* CIF layers to generate. */
+    bool replace,		/* TRUE means that the new CIF is to replace
 				 * anything that was previously in planes.
 				 * FALSE means that the new CIF is to be
 				 * OR'ed in with the current contents of
 				 * planes.
 				 */
-    bool genAllPlanes;		/* If TRUE, generate a tile plane even for
+    bool genAllPlanes,		/* If TRUE, generate a tile plane even for
 				 * those layers not specified as being
 				 * generated in the 'layers' mask above.
 				 */
-    bool hier;			/* TRUE if called from CIFGenSubcells or CIFGenArrays */
-    ClientData clientdata;	/* Data that may be passed along to the
+    bool hier,			/* TRUE if called from CIFGenSubcells or CIFGenArrays */
+    ClientData clientdata)	/* Data that may be passed along to the
 				 * CIF operation functions.
 				 */
 {
@@ -5290,9 +5293,9 @@ CIFGen(cellDef, origDef, area, planes, layers, replace, genAllPlanes, hier, clie
  */
 
 void
-cifClipPlane(plane, clip)
-    Plane *plane;
-    Rect *clip;
+cifClipPlane(
+    Plane *plane,
+    Rect *clip)
 {
     Rect r;
 
@@ -5344,12 +5347,13 @@ cifClipPlane(plane, clip)
  */
 
 void
-cifGenClip(area, expanded, clip)
-    Rect *area;			/* Any CIF overlapping this area (in coords
+cifGenClip(
+    Rect *area,			/* Any CIF overlapping this area (in coords
 				 * of cellDef) will be generated.  The CIF
 				 * will be clipped to this area.
 				 */
-    Rect *expanded, *clip;
+    Rect *expanded,
+    Rect *clip)
 {
     if (area->r_xbot > TiPlaneRect.r_xbot)
     {
@@ -5395,8 +5399,8 @@ cifGenClip(area, expanded, clip)
  */
 
 void
-CIFClearPlanes(planes)
-    Plane **planes;		/* Pointer to an array of MAXCIFLAYERS
+CIFClearPlanes(
+    Plane **planes)		/* Pointer to an array of MAXCIFLAYERS
 				 * planes.
 				 */
 {

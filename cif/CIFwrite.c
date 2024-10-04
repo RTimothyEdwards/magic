@@ -118,9 +118,9 @@ bool CIFArrayWriteDisable = FALSE;
  */
 
 bool
-CIFWrite(rootDef, f)
-    CellDef *rootDef;	/* Pointer to CellDef to be written */
-    FILE *f;		/* Open output file */
+CIFWrite(
+    CellDef *rootDef,	/* Pointer to CellDef to be written */
+    FILE *f)		/* Open output file */
 {
     bool good;
     int oldCount = DBWFeedbackCount;
@@ -205,8 +205,8 @@ CIFWrite(rootDef, f)
  */
 
 int
-cifWriteInitFunc(def)
-    CellDef *def;
+cifWriteInitFunc(
+    CellDef *def)
 {
     def->cd_client = (ClientData) 0;
     return (0);
@@ -229,8 +229,8 @@ cifWriteInitFunc(def)
  */
 
 int
-cifWriteMarkFunc(use)
-    CellUse *use;
+cifWriteMarkFunc(
+    CellUse *use)
 {
     if (use->cu_def->cd_client != (ClientData) 0) return 0;
     use->cu_def->cd_client = (ClientData) cifCellNum;
@@ -255,9 +255,9 @@ cifWriteMarkFunc(use)
  */
 
 void
-cifOutPreamble(outf, cell)
-    FILE *outf;
-    CellDef *cell;
+cifOutPreamble(
+    FILE *outf,
+    CellDef *cell)
 {
     extern char *MagicVersion;
     extern char *MagicCompileTime;
@@ -304,8 +304,8 @@ cifOutPreamble(outf, cell)
  */
 
 void
-cifOut(outf)
-    FILE *outf;
+cifOut(
+    FILE *outf)
 {
     CellDef *def;
     bool needHier;
@@ -353,9 +353,9 @@ cifOut(outf)
  */
 
 void
-cifOutFunc(def, f)
-    CellDef *def;	/* Pointer to cell def to be written */
-    FILE *f;		/* Open output file */
+cifOutFunc(
+    CellDef *def,	/* Pointer to cell def to be written */
+    FILE *f)		/* Open output file */
 {
     Rect bigArea;
     Label *lab;
@@ -484,9 +484,9 @@ cifOutFunc(def, f)
  */
 
 int
-cifWriteUseFunc(use, f)
-    CellUse *use;
-    FILE *f;
+cifWriteUseFunc(
+    CellUse *use,
+    FILE *f)
 {
     int x, y, topx, topy;
     int realx, realy;
@@ -582,9 +582,9 @@ cifWriteUseFunc(use, f)
  */
 
 int
-cifWriteLabelFunc(tile, f)
-    Tile *tile;		/* Tile to be written out. */
-    FILE *f;		/* File in which to write. */
+cifWriteLabelFunc(
+    Tile *tile,		/* Tile to be written out. */
+    FILE *f)		/* File in which to write. */
 {
     Rect r;
     int type;
@@ -641,9 +641,9 @@ cifWriteLabelFunc(tile, f)
  */
 
 int
-cifWritePaintFunc(tile, f)
-    Tile *tile;		/* Tile to be written out. */
-    FILE *f;				/* File in which to write. */
+cifWritePaintFunc(
+    Tile *tile,		/* Tile to be written out. */
+    FILE *f)				/* File in which to write. */
 {
     Rect r;
 
@@ -722,9 +722,9 @@ cifWritePaintFunc(tile, f)
  */
 
 bool
-CIFWriteFlat(rootDef, f)
-    CellDef *rootDef;	/* Pointer to CellDef to be written */
-    FILE *f;		/* Open output file */
+CIFWriteFlat(
+    CellDef *rootDef,	/* Pointer to CellDef to be written */
+    FILE *f)		/* Open output file */
 {
     bool good;
     int oldCount = DBWFeedbackCount;
