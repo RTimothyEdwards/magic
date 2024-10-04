@@ -332,15 +332,15 @@ PlotDumpHPRTL(hpfile, kRaster, cRaster, mRaster, yRaster)
 
 	/* Compress each plane (C, M, and Y) and output */
 
-	size = PlotRTLCompress(c - ipl, obytes, bpl);
+	size = PlotRTLCompress((unsigned char *)(c - ipl), obytes, bpl);
 	fprintf(hpfile, "\033*b%dV", size);
 	fwrite(obytes, size, 1, hpfile);
 
-	size = PlotRTLCompress(m - ipl, obytes, bpl);
+	size = PlotRTLCompress((unsigned char *)(m - ipl), obytes, bpl);
 	fprintf(hpfile, "\033*b%dV", size);
 	fwrite(obytes, size, 1, hpfile);
 
-	size = PlotRTLCompress(y - ipl, obytes, bpl);
+	size = PlotRTLCompress((unsigned char *)(y - ipl), obytes, bpl);
 	fprintf(hpfile, "\033*b%dW", size);
 	fwrite(obytes, size, 1, hpfile);
     }
