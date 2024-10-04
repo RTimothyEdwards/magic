@@ -182,11 +182,11 @@ PlowDRCLine(sectionName, argc, argv)
 	int	 rk_maxargs;	/* Max # arguments */
 	int    (*rk_proc)();	/* Procedure implementing this keyword */
     } ruleKeys[] = {
-	"edge",		 8,	9,	plowEdgeRule,
-	"edge4way",	 8,	9,	plowEdgeRule,
-	"spacing",	 6,	6,	plowSpacingRule,
-	"width",	 4,	4,	plowWidthRule,
-	0
+	{"edge",	 8,	9,	plowEdgeRule},
+	{"edge4way",	 8,	9,	plowEdgeRule},
+	{"spacing",	 6,	6,	plowSpacingRule},
+	{"width",	 4,	4,	plowWidthRule},
+	{0}
     }, *rp;
 
     /*

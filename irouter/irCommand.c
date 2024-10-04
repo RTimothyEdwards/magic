@@ -110,8 +110,8 @@ irSetNoisyAutoInt(parm, valueS, file)
 	char	*sv_name;	/* name */
 	int	 sv_type;
     } specialValues[] = {
-	"automatic",	V_AUTOMATIC,
-	0
+	{"automatic",	V_AUTOMATIC},
+	{0}
     };
 
     /* If value non-null set parm */
@@ -679,9 +679,9 @@ FILE *file;
 	char	*sp_name;	/* name */
 	int	 sp_type;
     } specialArgs[] = {
-	"command",	SP_COMMAND,
-	".",		SP_DOT,
-	0
+	{"command",	SP_COMMAND},
+	{".",		SP_DOT},
+	{0}
     };
 
     if(s!=NULL)
@@ -785,11 +785,11 @@ static struct
     void    	(*cP_proc)();	/* Procedure processing this parameter */
 #endif
 } cParms[] = {
-    "active",	irCSetActive,
-    "width",	irCSetWidth,
-    "length",	irCSetLength,
-    "cost",	irCSetCost,
-    0
+    {"active",	irCSetActive},
+    {"width",	irCSetWidth},
+    {"length",	irCSetLength},
+    {"cost",	irCSetCost},
+    {0}
 };
 
 /* NEXTVALUE - returns pointer to next value arg (string). */
@@ -1154,15 +1154,15 @@ static struct
     void	(*lP_proc)();	/* procedure processing this parameter */
 #endif
 } lParms[] = {
-    "active",	irLSetActive,
-    "width",	irLSetWidth,
-    "length",	irLSetLength,
-    "hCost",	irLSetHCost,
-    "vCost",	irLSetVCost,
-    "jogCost",	irLSetJogCost,
-    "hintCost", irLSetHintCost,
-    "overCost", irLSetOverCost,
-    0
+    {"active",	irLSetActive},
+    {"width",	irLSetWidth},
+    {"length",	irLSetLength},
+    {"hCost",	irLSetHCost},
+    {"vCost",	irLSetVCost},
+    {"jogCost",	irLSetJogCost},
+    {"hintCost", irLSetHintCost},
+    {"overCost", irLSetOverCost},
+    {0}
 };
 
 /* NEXTVALUE - returns pointer to next value arg (string). */
@@ -1747,9 +1747,9 @@ static struct
     char	*srP_name;	/* name of parameter */
     void	(*srP_proc)();	/* Procedure processing this parameter */
 } srParms[] = {
-    "rate",		irSrSetRate,
-    "width",		irSrSetWidth,
-    0
+    {"rate",		irSrSetRate},
+    {"width",		irSrSetWidth},
+    {0}
 };
 
 void
@@ -1868,11 +1868,11 @@ irSpacingsCmd(w, cmd)
 	char	*sV_name;	/* name of value */
 	int     sV_value;	/* corresponding interger value */
     } sValue[] = {
-	"n",		-1,
-	"nil",		-1,
-	"none",		-1,
-	"null",		-1,
-	0
+	{"n",		-1},
+	{"nil",		-1},
+	{"none",	-1},
+	{"null",	-1},
+	{0}
     };
 
     /* Subcell Table */
@@ -1881,8 +1881,8 @@ irSpacingsCmd(w, cmd)
 	char	*sT_name;	/* name of value */
 	int     sT_value;	/* corresponding interger value */
     } subcellTable[] = {
-	"subcell",		TT_SUBCELL,
-	0
+	{"subcell",		TT_SUBCELL},
+	{0}
     };
 
     /* Process by case */
@@ -2238,15 +2238,15 @@ static struct
     char	*wzdP_name;	/* name of parameter */
     void	(*wzdP_proc)();	/* Procedure processing this parameter */
 } wzdParms[] = {
-    "bloom",		irWzdSetBloomCost,
-    "bloomLimit",	irWzdSetBloomLimit,
-    "boundsIncrement",	irWzdSetBoundsIncrement,
-    "estimate",		irWzdSetEstimate,
-    "expandEndpoints",	irWzdSetExpandEndpoints,
-    "penalty",		irWzdSetPenalty,
-    "penetration",	irWzdSetPenetration,
-    "window",		irWzdSetWindow,
-    0
+    {"bloom",		irWzdSetBloomCost},
+    {"bloomLimit",	irWzdSetBloomLimit},
+    {"boundsIncrement",	irWzdSetBoundsIncrement},
+    {"estimate",	irWzdSetEstimate},
+    {"expandEndpoints",	irWzdSetExpandEndpoints},
+    {"penalty",		irWzdSetPenalty},
+    {"penetration",	irWzdSetPenetration},
+    {"window",		irWzdSetWindow},
+    {0}
 };
 
 void
@@ -2510,21 +2510,21 @@ irSaveParametersCmd(w, cmd)
 /*--- Subcommand Table ---*/
 
 SubCmdTableE irSubcommands[] = {
-    "contacts",	irContactsCmd,
+    {"contacts",	irContactsCmd,
     "set route-contact parameters",
     "contacts [type] [parameter] [value1] ... [valuen]\n\
-\t(can use '*' for type or parameter)",
+\t(can use '*' for type or parameter)"},
 
-    "help",		irHelpCmd,
+    {"help",		irHelpCmd,
     "summarize iroute subcommands",
-    "help [subcommand]",
+    "help [subcommand]"},
 
-    "layers",	irLayersCmd,
+    {"layers",	irLayersCmd,
     "set route-layer parameters",
     "layers [type] [parameter] [value1] ... [valuen]\n\
-\t(can use '*' for type or parameter)",
+\t(can use '*' for type or parameter)"},
 
-    "route",	irRouteCmd,
+    {"route",	irRouteCmd,
     "connect point to node(s)",
     "route [options]\n\
 \t-sLayers layers = layers route may start on.\n\
@@ -2535,38 +2535,38 @@ SubCmdTableE irSubcommands[] = {
 \t-dBox = route to box (DEFAULT)\n\
 \t-dLabel name = route to label of given name\n\
 \t-dRect xbot ybot xtop ytop =  route to rectangle of given coordinates\n\
-\t-dSelection = route to selection",
+\t-dSelection = route to selection"},
 
-    "saveParameters",	irSaveParametersCmd,
+    {"saveParameters",	irSaveParametersCmd,
     "write out all irouter parameters\n\
 \t(can be read back with :source)",
-    "saveParameters <filename>",
+    "saveParameters <filename>"},
 
-    "search", irSearchCmd,
+    {"search", irSearchCmd,
     "set parameters controlling the internal search for routes",
-    "search [searchParameter] [value]",
+    "search [searchParameter] [value]"},
 
-    "spacings",	irSpacingsCmd,
+    {"spacings",	irSpacingsCmd,
     "set minimum spacing between route-type and arbitrary type",
     "spacings [route-type] [type] [spacing] ... [typen spacingn]\n\
 \t(types can be 'SUBCELL', spacing can be 'nil')\n\
 iroute spacings CLEAR\n\
-\t(sets all spacings to nil)",
+\t(sets all spacings to nil)"},
 
-    "verbosity", irVerbosityCmd,
+    {"verbosity", irVerbosityCmd,
     "control the amount of messages printed",
     "verbosity [level]\n\
-\t(0 = errors and warnings only, 1 = brief, 2 = lots of statistics)",
+\t(0 = errors and warnings only, 1 = brief, 2 = lots of statistics)"},
 
-    "version",	irVersionCmd,
+    {"version",	irVersionCmd,
     "identify irouter version",
-    "version",
+    "version"},
 
-    "wizard", irWizardCmd,
+    {"wizard", irWizardCmd,
     "set miscellaneous parameters",
-    "wizard [wizardParameter] [value]",
+    "wizard [wizardParameter] [value]"},
 
-    0
+    {0}
 }, *subCmdP;
 
 void

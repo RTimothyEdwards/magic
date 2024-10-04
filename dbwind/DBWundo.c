@@ -208,7 +208,7 @@ dbwUndoChangeEdit(ep)
     Rect area;
     CellUse *use;
     CellDef *editDef, *parent;
-    static Rect origin = {-1, -1, 1, 1};
+    static Rect origin = {{-1, -1}, {1, 1}};
 
     /* Redisplay the old edit cell */
     GeoTransRect(&EditToRootTransform, &(EditCellUse->cu_def->cd_bbox), &area);

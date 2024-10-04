@@ -124,12 +124,12 @@ GlTest(w, cmd)
 	char	*cmd_name;
 	cmdType	 cmd_val;
     } cmds[] = {
-	"clrdebug",		CLRDEBUG,
-	"onlynet",		ONLYNET,
-	"setdebug",		SETDEBUG,
-	"showdebug",		SHOWDEBUG,
-	"sides",		SIDES,
-	0
+	{"clrdebug",		CLRDEBUG},
+	{"onlynet",		ONLYNET},
+	{"setdebug",		SETDEBUG},
+	{"showdebug",		SHOWDEBUG},
+	{"sides",		SIDES},
+	{0}
     };
 
     if (!glInitialized)
@@ -262,24 +262,24 @@ GlInit()
 	char	*di_name;
 	int	*di_id;
     } dflags[] = {
-	"allpoints",	&glDebAllPoints,
-	"chan",		&glDebChan,
-	"cross",	&glDebCross,
-	"fast",		&glDebFast,
-	"heap",		&glDebHeap,
-	"histo",	&glDebHisto,
-	"log",		&glDebLog,
-	"greedy",	&glDebGreedy,
-	"maze",		&glDebMaze,
-	"net",		&glDebNet,
-	"newheaps",	&glDebNewHeaps,
-	"penalties",	&glDebPen,
-	"showpins",	&glDebShowPins,
-	"stemsonly",	&glDebStemsOnly,
-	"straight",	&glDebStraight,
-	"tiles",	&glDebTiles,
-	"verbose",	&glDebVerbose,
-	0
+	{"allpoints",	&glDebAllPoints},
+	{"chan",	&glDebChan},
+	{"cross",	&glDebCross},
+	{"fast",	&glDebFast},
+	{"heap",	&glDebHeap},
+	{"histo",	&glDebHisto},
+	{"log",		&glDebLog},
+	{"greedy",	&glDebGreedy},
+	{"maze",	&glDebMaze},
+	{"net",		&glDebNet},
+	{"newheaps",	&glDebNewHeaps},
+	{"penalties",	&glDebPen},
+	{"showpins",	&glDebShowPins},
+	{"stemsonly",	&glDebStemsOnly},
+	{"straight",	&glDebStraight},
+	{"tiles",	&glDebTiles},
+	{"verbose",	&glDebVerbose},
+	{0}
     };
 
     if (glInitialized)

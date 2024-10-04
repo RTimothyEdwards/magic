@@ -272,18 +272,18 @@ CmdGaRoute(w, cmd)
 	char	*cmd_name;
 	cmdType	 cmd_val;
     } cmds[] = {
-	"channel xl yl xh yh [type]\n\
-channel	[type]		define a channel",			CHANNEL,
-	"generate type [file]	generate channel definition commands",
-								GEN,
-	"help			print this message",		HELP,
-	"nowarn			only warn if all locations of a terminal\n\
-			are unreachable",			NOWARN,
-	"route [netlist]		route the current cell",ROUTE,
-	"reset			clear all channel definitions",	RESET,
-	"warn			leave feedback for each location of a\n\
-			terminal that is unreachable",		WARN,
-	0
+	{"channel xl yl xh yh [type]\n\
+channel	[type]		define a channel",			CHANNEL},
+	{"generate type [file]	generate channel definition commands",
+								GEN},
+	{"help			print this message",		HELP},
+	{"nowarn			only warn if all locations of a terminal\n\
+			are unreachable",			NOWARN},
+	{"route [netlist]		route the current cell",ROUTE},
+	{"reset			clear all channel definitions",	RESET},
+	{"warn			leave feedback for each location of a\n\
+			terminal that is unreachable",		WARN},
+	{0}
     };
 
     GAInit();

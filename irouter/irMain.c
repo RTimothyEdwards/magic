@@ -99,9 +99,9 @@ IRDebugInit()
 	char	*di_name;
 	int	*di_id;
     } dflags[] = {
-	"endpts",	&irDebEndPts,
-	"noclean",	&irDebNoClean,
-	0
+	{"endpts",	&irDebEndPts},
+	{"noclean",	&irDebNoClean},
+	{0}
     };
 
     /* Register with debug module */
