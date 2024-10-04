@@ -38,8 +38,10 @@ UndoType cmwUndoClientID;
 /*
  * Functions to play events forward/backward.
  */
-void cmwUndoForw(), cmwUndoBack();
-void cmwUndoStart(), cmwUndoDone();
+void cmwUndoForw(colorUE *up);
+void cmwUndoBack(colorUE *up);
+void cmwUndoStart(void);
+void cmwUndoDone(void);
 
 /*
  * A single undo event for the
@@ -201,7 +203,7 @@ void
 cmwUndoDone()
 {
     int i;
-    extern int cmwRedisplayFunc();
+    extern int cmwRedisplayFunc(MagWindow *w, int color);
 
     for (i = 0; i < 256; i++)
 	if (cmwColorsChanged[i])

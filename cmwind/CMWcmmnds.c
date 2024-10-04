@@ -43,10 +43,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Forward declarations: */
 
-extern void cmwButtonUp(), cmwButtonDown();
-extern void cbUpdate();
-extern void RGBxHSV();
-extern void HSVxRGB();
+extern void cmwButtonUp(MagWindow *w, Point *p, int button);
+extern void cmwButtonDown(MagWindow *w, Point *p, int button);
+extern void cbUpdate(MagWindow *w, int code, double x, int replace);
+extern bool RGBxHSV(double r, double g, double b, double *h, double *s, double *v);
+extern void HSVxRGB(double h, double s, double v, double *r, double *g, double *b);
 
 /* If a button is pressed over the top box in the window, which
  * displays the current color, we must save the window in which
@@ -231,7 +232,7 @@ cmwButtonUp(w, p, button)
 {
     CMWclientRec *crec;
     int r, g, b, color, oldR, oldG, oldB;
-    extern int cmwRedisplayFunc();
+    extern int cmwRedisplayFunc(MagWindow *w, int color);
 
     /* If the button wasn't depressed over the top box in the window
      * (the one displaying the current color), then we ignore the
@@ -548,7 +549,7 @@ cbUpdate(w, code, x, replace)
     CMWclientRec *cr = (CMWclientRec *) w->w_clientData;
     double values[6];
     int r, g, b, nr, ng, nb;
-    extern int cmwRedisplayFunc();
+    extern int cmwRedisplayFunc(MagWindow *w, int color);
 
     /* Get current color map values */
     (void) GrGetColor(cr->cmw_color, &r, &g, &b);
