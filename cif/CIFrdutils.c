@@ -1253,7 +1253,7 @@ CIFCleanPath(pathHead)
 	if (!path) return;
     }
 
-    while (next = path->cifp_next)
+    while ((next = path->cifp_next))
     {
 	if ((dir2 = CIFEdgeDirection(path, next)) == CIF_ZERO)
 	{

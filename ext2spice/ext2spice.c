@@ -1588,7 +1588,7 @@ subcktVisit(use, hierName, is_top)
 	/* generated during topVisit().				*/
 
     	HashStartSearch(&hs);
-    	while (he = HashNext(&def->def_nodes, &hs))
+	while ((he = HashNext(&def->def_nodes, &hs)))
     	{
 	    sname = (EFNodeName *) HashGetValue(he);
 	    if (sname == NULL) continue;
@@ -1619,7 +1619,7 @@ subcktVisit(use, hierName, is_top)
 	    nodeList[portidx] = (EFNodeName *)NULL;
 
     	HashStartSearch(&hs);
-    	while (he = HashNext(&def->def_nodes, &hs))
+	while ((he = HashNext(&def->def_nodes, &hs)))
     	{
 	    sname = (EFNodeName *) HashGetValue(he);
 	    if (sname == NULL) continue;
@@ -1810,7 +1810,7 @@ topVisit(def, doStub)
     HashStartSearch(&hs);
     portmax = -1;
 
-    while (he = HashNext(&def->def_nodes, &hs))
+    while ((he = HashNext(&def->def_nodes, &hs)))
     {
 	sname = (EFNodeName *) HashGetValue(he);
 	if (sname == NULL) continue;
@@ -1859,7 +1859,7 @@ topVisit(def, doStub)
 	sorted_ports[portorder] = NULL;
 
     HashStartSearch(&hs);
-    while (he = HashNext(&def->def_nodes, &hs))
+    while ((he = HashNext(&def->def_nodes, &hs)))
     {
 	char stmp[MAX_STR_SIZE];
 	int portidx;
@@ -3805,7 +3805,7 @@ EFHNSprintf(str, hierName)
 	convertComma = (EFOutputFlags & EF_CONVERTCOMMA);
 	convertEqual = (EFOutputFlags & EF_CONVERTEQUAL);
 	convertBrackets = (EFOutputFlags & EF_CONVERTBRACKETS);
-	while (c = *cp++)
+	while ((c = *cp++))
 	{
 	    switch (c)
 	    {
