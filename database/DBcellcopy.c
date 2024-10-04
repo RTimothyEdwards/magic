@@ -666,7 +666,7 @@ DBFlattenInPlace(use, dest, xMask, dolabels, toplabels, doclear)
 		scx.scx_y++;
 		scx.scx_x = use->cu_xlo;
 	    }
-	    else if (use->cu_yhi > use->cu_yhi)
+	    else if (use->cu_ylo > use->cu_yhi)
 	    {
 		scx.scx_y--;
 		scx.scx_x = use->cu_xlo;
