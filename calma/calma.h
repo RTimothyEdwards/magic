@@ -68,7 +68,6 @@ extern bool CalmaGenerateArray(FILE *f, TileType type, int llx, int lly, int pit
 extern void CalmaReadError(char *format, ...);
 
 /* C99 compat */
-extern int calmaAddSegment(LinkedBoundary **lbptr, int poly_edge, int p1x, int p1y, int p2x, int p2y);
 extern void calmaDelContacts(void);
 extern void calmaElementBoundary(void);
 extern void calmaElementBox(void);
@@ -92,9 +91,6 @@ extern bool calmaSkipBytes(int nbytes);
 extern bool calmaSkipExact(int type);
 extern bool calmaSkipTo(int what);
 extern void calmaUnexpected(int wanted, int got);
-extern void calmaMergeSegments(LinkedBoundary *edge, BoundaryTop **blist, int num_points);
-extern void calmaRemoveDegenerate(BoundaryTop *blist);
-extern void calmaRemoveColinear(BoundaryTop *blist);
 
 #ifdef HAVE_ZLIB
 extern bool CalmaWriteZ(CellDef *rootDef, gzFile f);

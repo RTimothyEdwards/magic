@@ -129,22 +129,6 @@ extern void calmaOutR8Z(double d, gzFile f);
         STACKPUSH((ClientData) (tp), SegStack); \
     }
 
-#define LB_EXTERNAL     0       /* Polygon external edge        */
-#define LB_INTERNAL     1       /* Polygon internal edge        */
-#define LB_INIT         2       /* Data not yet valid           */
-
-typedef struct LB1 {
-    char lb_type;               /* Boundary Type (external or internal) */
-    Point lb_start;             /* Start point */
-    struct LB1 *lb_next;        /* Next point record */
-} LinkedBoundary;
-
-typedef struct BT1 {
-    LinkedBoundary *bt_first;   /* Polygon list */
-    int bt_points;              /* Number of points in this list */
-    struct BT1 *bt_next;        /* Next polygon record */
-} BoundaryTop;
-
 /* -------------------------------------------------------------------- */
 
 /*
