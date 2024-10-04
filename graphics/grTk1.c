@@ -1322,7 +1322,7 @@ GrTkCreate(w, name)
     WindSeparateRedisplay(w);
 
     sprintf(windowname, ".magic%d", WindowNumber + 1);
-    if (windowplace = XGetDefault(grXdpy, "magic", windowname))
+    if ((windowplace = XGetDefault(grXdpy, "magic", windowname)))
     {
 	XParseGeometry(windowplace,&x,&y,
 		(unsigned int *)&width,(unsigned int *)&height);
@@ -1339,7 +1339,7 @@ GrTkCreate(w, name)
     if(grClass == 3) grDepth = 8;  /* Needed since grDisplay.depth is reset
 				     to 7 if Pseudocolor      */
 
-    if (tktop = Tk_MainWindow(magicinterp))
+    if ((tktop = Tk_MainWindow(magicinterp)))
     {
 	if (!WindowNumber)
 	{
@@ -1754,7 +1754,7 @@ GrTkIconUpdate(w, text)		/* See Blt code */
     class.res_class = "magic";
 
     XSetClassHint( grXdpy, wind, &class);
-    if (brack = strchr(text,'['))
+    if ((brack = strchr(text,'[')))
     {
      	brack--;
 	*brack = 0;
@@ -1763,7 +1763,7 @@ GrTkIconUpdate(w, text)		/* See Blt code */
      	*brack = ' ';
 	return;
     }
-    if (brack = strrchr(text,' ')) text = brack+1;
+    if ((brack = strrchr(text,' '))) text = brack+1;
     XSetIconName(grXdpy,wind,text);
     XStoreName(grXdpy,wind,text);
 }

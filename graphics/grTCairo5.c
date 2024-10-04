@@ -199,7 +199,7 @@ int cursorNum;	/* The cursor number as defined in the display
 	tcairoCurrent.cursor = grCursors[cursorNum];
 
 	HashStartSearch(&hs);
-	while (entry = HashNext(&grTCairoWindowTable, &hs))
+	while ((entry = HashNext(&grTCairoWindowTable, &hs)))
 	{
 		if (HashGetValue(entry))
 		{
