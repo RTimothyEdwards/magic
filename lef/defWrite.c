@@ -412,7 +412,7 @@ defHNsprintf(str, hierName, divchar)
     /* (which are interpreted as wildcard characters by LEF/DEF).	*/
 
     cp = hierName->hn_name;
-    while (c = *cp++)
+    while ((c = *cp++))
     {
 	switch (c)
 	{
@@ -444,7 +444,7 @@ char *defHNsprintfPrefix(hierName, str, divchar)
 	str = defHNsprintfPrefix(hierName->hn_parent, str, divchar);
 
     cp = hierName->hn_name;
-    while (*str++ = *cp++) ;
+    while ((*str++ = *cp++)) ;
     *(--str) = divchar;
     return ++str;
 }
@@ -2036,7 +2036,7 @@ defGetType(ttype, lefptr, do_vias)
     if (LefInfo.ht_table != (HashEntry **) NULL)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (lefl && (do_vias == FALSE) && (contact == CLASS_VIA) &&
@@ -2101,7 +2101,7 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 	cscale = CIFGetOutputScale(1);
 
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    int size, sep, border;
 	    char *us1, *us2;
@@ -2475,7 +2475,7 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
     if (LefInfo.ht_table != (HashEntry **) NULL)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (lefl != NULL)
@@ -2495,7 +2495,7 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
 	{
 	    numblocks = 0;
 	    HashStartSearch(&hs);
-	    while (he = HashNext(&LefInfo, &hs))
+	    while ((he = HashNext(&LefInfo, &hs)))
 	    {
 		lefl = (lefLayer *)HashGetValue(he);
 		if ((lefl != NULL) && ((lefl->lefClass == CLASS_ROUTE) ||
@@ -3063,7 +3063,7 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 
 	fprintf(f, "NONDEFAULTRULES %d ;\n", numrules);
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefNonDefaultRules, &hs))
+	while ((he = HashNext(&LefNonDefaultRules, &hs)))
 	{
 	    nrules = (LefRules *)HashGetValue(he);
 	    fprintf(f, "  - %s", nrules->name);
@@ -3081,7 +3081,7 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 		    lefLayer *lefl2;
 
 		    HashStartSearch(&hs2);
-		    while (he2 = HashNext(&LefInfo, &hs2))
+		    while ((he2 = HashNext(&LefInfo, &hs2)))
 		    {
 			lefl2 = (lefLayer *)HashGetValue(he2);
 			if (lefl2->lefClass == CLASS_ROUTE)
@@ -3108,7 +3108,7 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 
 		    /* Put the reference counts back to the way they were */
 		    HashStartSearch(&hs2);
-		    while (he2 = HashNext(&LefInfo, &hs2))
+		    while ((he2 = HashNext(&LefInfo, &hs2)))
 		    {
 			lefl2 = (lefLayer *)HashGetValue(he2);
 			if (lefl2->refCnt < 0)

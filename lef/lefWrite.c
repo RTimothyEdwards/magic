@@ -187,7 +187,7 @@ lefFileOpen(def, file, suffix, mode, prealfile)
     else
 	ends++;
 
-    if (endp = strrchr(ends, '.'))
+    if ((endp = strrchr(ends, '.')))
     {
 	if (strcmp(endp, suffix))
 	{
@@ -300,7 +300,7 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
 
     HashStartSearch(&hs);
     nprops = 0;
-    while (he = HashNext(propTable, &hs))
+    while ((he = HashNext(propTable, &hs)))
     {
 	if (nprops == 0) fprintf(f, "PROPERTYDEFINITIONS\n");
 	nprops++;
@@ -312,7 +312,7 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
     if (nprops > 0) fprintf(f, "END PROPERTYDEFINITIONS\n\n");
 
     HashStartSearch(&hs);
-    while (he = HashNext(siteTable, &hs))
+    while ((he = HashNext(siteTable, &hs)))
     {
 	/* Output the SITE as a macro */
 	CellDef *siteDef;
@@ -374,7 +374,7 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
 	float oscale = CIFGetOutputScale(1000);	/* lambda->micron conversion */
 
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (!lefl) continue;
@@ -436,7 +436,7 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
 
 	/* Return reference counts to normal */
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (lefl && lefl->refCnt < 0)
@@ -1219,7 +1219,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    TTMaskSetType(&lc.rmask, lab->lab_type);
 
     HashStartSearch(&hs);
-    while (he = HashNext(&LefInfo, &hs))
+    while ((he = HashNext(&LefInfo, &hs)))
     {
 	lefLayer *lefl = (lefLayer *)HashGetValue(he);
 	if (lefl && (lefl->lefClass == CLASS_ROUTE || lefl->lefClass == CLASS_VIA
@@ -2247,7 +2247,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefPinOnly, lefTopLayer,
     HashKill(&propHashTbl);
     HashKill(&siteHashTbl);
 
-    while (def = (CellDef *) StackPop(lefDefStack))
+    while ((def = (CellDef *) StackPop(lefDefStack)))
     {
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)
