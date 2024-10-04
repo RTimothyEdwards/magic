@@ -25,6 +25,7 @@ static char sccsid[] = "@(#)ExtTech.c	4.8 MAGIC (Berkeley) 10/26/85";
 #include <stdio.h>
 #include <stdlib.h>		/* for strtod() */
 #include <string.h>
+#include <strings.h>
 #include <math.h>
 #include <ctype.h>		/* for isspace() */
 

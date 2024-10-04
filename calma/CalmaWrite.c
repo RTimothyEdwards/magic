@@ -24,6 +24,7 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 #include <stdint.h>
 #include <stdlib.h>	/* for random() */
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <arpa/inet.h>	/* for htons() */
