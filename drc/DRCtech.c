@@ -4362,7 +4362,7 @@ DRCGetDefaultLayerSurround(ttype1, ttype2)
 	    cset = &cptr->drcc_corner;
 	    if (TTMaskHasType(set, TT_SPACE) && !TTMaskHasType(set, ttype1))
 	        if ((TTMaskHasType(cset, ttype2)) &&
-			(cptr->drcc_flags && DRC_BOTHCORNERS) &&
+			(cptr->drcc_flags & DRC_BOTHCORNERS) &&
 			(cptr->drcc_edgeplane == cptr->drcc_plane) &&
 			(cptr->drcc_dist == cptr->drcc_cdist))
 		{
