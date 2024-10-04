@@ -1323,8 +1323,6 @@ CmdCellname(
 	    /* Unload the cell definition and re-read with search paths */
 	    if (locargc == 3)
 	    {
-		void cmdFlushCell(CellDef *def, int force_deref);
-
 		if (cellname == NULL)
 		    cellDef = EditRootDef;
 		else
