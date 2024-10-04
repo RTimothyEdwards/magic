@@ -496,7 +496,7 @@ ExtUnique(rootUse, option)
 
     /* Now process all the cells we just found */
     nwarn = 0;
-    while (def = (CellDef *) StackPop(extDefStack))
+    while ((def = (CellDef *) StackPop(extDefStack)))
     {
 	/* EXT_UNIQ_NOTOPPORTS:  Use EXT_UNIQ_ALL on all cells other than the top */
 	if ((option == EXT_UNIQ_NOTOPPORTS) &&
@@ -967,7 +967,7 @@ extExtractStack(stack, doExtract, rootDef)
     CellDef *def;
     struct saveList *newsl, *sl = (struct saveList *)NULL;
 
-    while (def = (CellDef *) StackPop(stack))
+    while ((def = (CellDef *) StackPop(stack)))
     {
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)

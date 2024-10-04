@@ -215,7 +215,7 @@ extFileOpen(def, file, mode, prealfile)
 	name = def->cd_file;
 	ends = strrchr(def->cd_file, '/');
 	if (ends == NULL) ends = def->cd_file;
-	if (endp = strrchr(ends + 1, '.'))
+	if ((endp = strrchr(ends + 1, '.')))
 	{
 	    name = namebuf;
 	    len = endp - def->cd_file;

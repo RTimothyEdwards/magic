@@ -690,7 +690,7 @@ extArrayAdjust(ha, et1, et2)
     extHierAdjustments(ha, &ha->ha_cumFlat, et2, et2);
 
     HashStartSearch(&hs);
-    while (he = HashNext(&ha->ha_cumFlat.et_coupleHash, &hs))
+    while ((he = HashNext(&ha->ha_cumFlat.et_coupleHash, &hs)))
     {
 	cap = extGetCapValue(he)  / ExtCurStyle->exts_capScale;
 	if (cap == 0)
@@ -797,7 +797,7 @@ extArrayTileToNode(tp, pNum, et, ha, doHard)
     }
 
     if (!DebugIsSet(extDebugID, extDebNoHard))
-	if (reg = (LabRegion *) extArrayHardNode(tp, pNum, def, ha))
+	if ((reg = (LabRegion *) extArrayHardNode(tp, pNum, def, ha)))
 	    goto found;
 
     /* Blew it */
