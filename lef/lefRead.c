@@ -349,6 +349,10 @@ LefError(int type, char *fmt, ...)
 	    mode = 1;
 	    level = -1;
 	    break;
+	default:
+	    ASSERT(FALSE, "type");
+	    return;
+	    break;
     }
     lefdeftype = lefdeftypes[mode];
 
