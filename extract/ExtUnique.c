@@ -221,16 +221,20 @@ extMakeUnique(def, ll, lreg, lregList, labelHash, option)
     text = ll->ll_label->lab_text;
     if (option == EXT_UNIQ_ALL)
 	goto makeUnique;
-    else if ((option == EXT_UNIQ_NOPORTS || option == EXT_UNIQ_NOTOPPORTS) &&
-		(ll->ll_label->lab_flags & PORT_DIR_MASK))
+    else if ((option == EXT_UNIQ_NOPORTS || option == EXT_UNIQ_NOTOPPORTS)
+		&& !(ll->ll_label->lab_flags & PORT_DIR_MASK))
 	goto makeUnique;
 
     cpend = strchr(text, '\0');
     if (cpend > text) cpend--;
     if (*cpend == '#') goto makeUnique;
     if (*cpend == '!') return 0;
+
+    /* Don't generate warnings about ports when given the "noports" or
+     * "notopports" options.
+     */
     if (((option == EXT_UNIQ_NOPORTS) || (option == EXT_UNIQ_NOTOPPORTS))
-		&& !(ll->ll_label->lab_flags & PORT_DIR_MASK))
+		&& (ll->ll_label->lab_flags & PORT_DIR_MASK))
 	return 0;
 
     /* Generate a warning for each occurrence of this label */

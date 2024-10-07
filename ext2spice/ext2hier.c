@@ -1816,8 +1816,8 @@ esMakePorts(hc, cdata)
 		/* matches a use.  If not, then check if the part	*/
 		/* the last opening bracket matches a known use.	*/
 
-		aptr = strrchr(portname, '[');
 		*tptr = '\0';
+		aptr = strrchr(portname, '[');
 		is_array = FALSE;
 		if (aptr != NULL)
 		{
