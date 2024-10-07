@@ -1,0 +1,109 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI-macos
+
+# Controls when the workflow will run
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  simple_build_macos12:
+    runs-on: macos-12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Dependencies
+        shell: bash # default shell has unwanted broken pipe indication
+        run: |
+          brew install --cask xquartz
+          brew install cairo tcl-tk tcsh
+          echo "UNAME_M=$(uname -m)" >> $GITHUB_ENV
+          set +e
+          set +o pipefail # macosx this is on by default (turn it off)
+          (
+            echo "### $(uname -s) $(uname -m) $(uname -r)"
+            echo ""
+            set +e
+            set +o pipefail # macosx this is on by default (turn it off)
+            export HOMEBREW_NO_COLOR=true
+            export HOMEBREW_NO_EMOKI=true
+            # output to $TMPFILE first, then head, instead of using pipeline directly
+            #  this removes unwanted GHA SIGPIPE error/warning indicators from GHA logs
+            # brew maybe a nodejs command which has a known issue in this area on macosx
+            TMPFILE=/tmp/shell0$$.tmp
+            brew info xquartz > $TMPFILE && head -n1 $TMPFILE
+            brew info cairo   > $TMPFILE && head -n1 $TMPFILE
+            brew info tcl-tk  > $TMPFILE && head -n1 $TMPFILE
+            brew info tcsh    > $TMPFILE && head -n1 $TMPFILE
+            echo ""
+            cc -v 2>&1
+            echo ""
+            xcodebuild -version
+            echo ""
+            xcodebuild -showsdks | grep macOS
+          ) >> $GITHUB_STEP_SUMMARY
+
+      - name: Build
+        run: |
+          export PATH="/opt/X11/bin:$PATH"
+          ./scripts/configure_mac
+
+          echo "===== defs.mak ====="
+          cat defs.mak
+          echo "===== defs.mak ====="
+
+          make database/database.h
+          make -j$(sysctl -n hw.ncpu)
+
+  simple_build_macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Dependencies
+        shell: bash # default shell has unwanted broken pipe indication
+        run: |
+          brew install --cask xquartz
+          brew install cairo tcl-tk tcsh
+          echo "UNAME_M=$(uname -m)" >> $GITHUB_ENV
+          set +e
+          set +o pipefail # macosx this is on by default (turn it off)
+          (
+            echo "### $(uname -s) $(uname -m) $(uname -r)"
+            echo ""
+            set +e
+            set +o pipefail # macosx this is on by default (turn it off)
+            export HOMEBREW_NO_COLOR=true
+            export HOMEBREW_NO_EMOKI=true
+            # output to $TMPFILE first, then head, instead of using pipeline directly
+            #  this removes unwanted GHA SIGPIPE error/warning indicators from GHA logs
+            # brew maybe a nodejs command which has a known issue in this area on macosx
+            TMPFILE=/tmp/shell0$$.tmp
+            brew info xquartz > $TMPFILE && head -n1 $TMPFILE
+            brew info cairo   > $TMPFILE && head -n1 $TMPFILE
+            brew info tcl-tk  > $TMPFILE && head -n1 $TMPFILE
+            brew info tcsh    > $TMPFILE && head -n1 $TMPFILE
+            echo ""
+            cc -v 2>&1
+            echo ""
+            xcodebuild -version
+            echo ""
+            xcodebuild -showsdks | grep macOS
+          ) >> $GITHUB_STEP_SUMMARY
+
+      - name: Build
+        run: |
+          export PATH="/opt/X11/bin:$PATH"
+          ./scripts/configure_mac
+
+          echo "===== defs.mak ====="
+          cat defs.mak
+          echo "===== defs.mak ====="
+
+          make database/database.h
+          make -j$(sysctl -n hw.ncpu)
