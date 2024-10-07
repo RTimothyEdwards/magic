@@ -1,0 +1,285 @@
+
+name: CI-canary-matrix
+
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+
+jobs:
+  canary:
+    strategy:
+      max-parallel: 3
+      matrix:
+        os: [ubuntu-24.04, ubuntu-22.04, ubuntu-20.04]
+        # Configure Options
+        pkgs: [all, none, no_tk_tcl_rl, no_rl, no_zlib, no_gc_gl_gu, no_gc_gu]
+        # Toolchain
+        #  ubuntu-20.04 [gcc-9] gcc-10
+        #  ubuntu-22.04 [gcc-11] gcc-12
+        #  ubuntu-24.04 [gcc-13] gcc-14
+        tc:  [default, gcc-10, gcc-12, gcc-14, clang-17, clang-18]
+        exclude:
+          - os: ubuntu-20.04
+            tc: gcc-12
+          - os: ubuntu-20.04
+            tc: gcc-14
+          - os: ubuntu-20.04
+            tc: clang-17
+          - os: ubuntu-20.04
+            tc: clang-18
+
+          - os: ubuntu-22.04
+            tc: gcc-10
+          - os: ubuntu-22.04
+            tc: gcc-14
+          - os: ubuntu-22.04
+            tc: clang-17
+          - os: ubuntu-22.04
+            tc: clang-18
+
+          - os: ubuntu-24.04
+            tc: gcc-10
+          - os: ubuntu-24.04
+            tc: gcc-12
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Matrix Check
+        env:
+          MATRIX_OS:   ${{ matrix.os }}
+          MATRIX_PKGS: ${{ matrix.pkgs }}
+          MATRIX_TC:   ${{ matrix.tc }}
+        run: |
+          # This takes the macros params ENV and processes into options list
+
+          if [ "${MATRIX_PKGS}" = "none" ]
+          then
+            pkgs=""
+            cfgs=""
+          else
+            pkgs="kcnrzCLUX"
+            cfgs=""
+          fi
+
+          # z no.*_zl  zlib1g-dev
+          # n no.*_nc  libncurses-dev
+          # r no.*_rl  libreadline-dev
+          # c no.*_tcl tcl-dev
+          # k no.*_tk  tk-dev
+          # C no.*_gc  libcairo-dev
+          # L no.*_gl  libgl-dev
+          # U no.*_gu  libglu1-mesa-dev
+          # X no.*_gx  libx11-dev
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_zl"; then
+            pkgs=$(echo -n "$pkgs" | sed -e 's#z##'); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_nc"; then
+            pkgs=$(echo -n "$pkgs" | sed -e 's#n##'); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_rl"; then
+            pkgs=$(echo -n "$pkgs" | sed -e 's#r##'); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_tcl"; then
+            pkgs=$(echo -n "$pkgs" | sed -e 's#c##'); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_tk"; then
+            pkgs=$(echo -n "$pkgs" | sed -e 's#k##'); fi
+
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_gc"; then
+            pkgs=$(echo -n "$pkgs" | sed -e 's#C##'); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_gl"; then
+            pkgs=$(echo -n "$pkgs" | sed -e 's#L##'); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_gu"; then
+            pkgs=$(echo -n "$pkgs" | sed -e 's#U##'); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_gx"; then
+            pkgs=$(echo -n "$pkgs" | sed -e 's#X##'); fi
+
+          _package_list=()
+          echo -n $pkgs | grep -q "z" && _package_list+=(zlib1g-dev)
+          echo -n $pkgs | grep -q "n" && _package_list+=(libncurses-dev)
+          echo -n $pkgs | grep -q "r" && _package_list+=(libreadline-dev)
+          echo -n $pkgs | grep -q "c" && _package_list+=(tcl-dev)
+          echo -n $pkgs | grep -q "k" && _package_list+=(tk-dev)
+          echo -n $pkgs | grep -q "C" && _package_list+=(libcairo-dev)
+          echo -n $pkgs | grep -q "L" && _package_list+=(libgl-dev)
+          echo -n $pkgs | grep -q "U" && _package_list+=(libglu1-mesa-dev)
+          echo -n $pkgs | grep -q "X" && _package_list+=(libx11-dev)
+          echo "PACKAGE_LIST=${_package_list[*]}" >> $GITHUB_ENV
+
+          #
+          _configure_args=()
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_zl"; then
+            _configure_args+=(--disable-compression); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_rl"; then
+            _configure_args+=(--disable-readline); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_tcl"; then
+            _configure_args+=(--without-tcl); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_tk"; then
+            _configure_args+=(--without-tk); fi
+
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_gc"; then
+            _configure_args+=(--without-cairo); fi
+          if echo -n "$MATRIX_PKGS" | grep -q "^no.*_gl"; then
+            _configure_args+=(--without-opengl); fi
+
+          echo "CONFIGURE_ARGS=${_configure_args[*]}" >> $GITHUB_ENV
+
+      - name: Setup Toolchain
+        env:
+          MATRIX_TC: ${{ matrix.tc }}
+        run: |
+          # decode settings
+          BUILD_GCC_VERSION=$(  echo -n "$MATRIX_TC" | grep -i "^gcc"   | sed -e 's#^gcc\-\?##i')
+          BUILD_CLANG_VERSION=$(echo -n "$MATRIX_TC" | grep -i "^clang" | sed -e 's#^clang\-\?##i')
+          echo "BUILD_GCC_VERSION=$BUILD_GCC_VERSION" >> $GITHUB_ENV
+          echo "BUILD_CLANG_VERSION=$BUILD_CLANG_VERSION" >> $GITHUB_ENV
+
+          if [ -n "$BUILD_GCC_VERSION" ]
+          then
+            GCCV=$BUILD_GCC_VERSION
+            # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
+            sudo apt-get install gcc-${GCCV} g++-${GCCV} cpp-${GCCV}
+            gcc-${GCCV} -v
+            g++-${GCCV} -v
+            cpp-${GCCV} -v < /dev/null
+            ls -l /usr/bin/g++ /usr/bin/g++-[0-9]* /usr/bin/gcc /usr/bin/gcc-[0-9]* /usr/bin/cpp-* /usr/bin/*-gnu-cpp* || true
+            update-alternatives --list gcc || true
+            update-alternatives --list g++ || true
+            update-alternatives --list cpp || true
+            update-alternatives --query gcc || true
+            update-alternatives --query g++ || true
+            update-alternatives --query cpp || true
+            ls -l /usr/bin/g++ /usr/bin/g++-[0-9]* /usr/bin/gcc /usr/bin/gcc-[0-9]* /usr/bin/cpp-* /usr/bin/*-gnu-cpp* || true
+            sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCCV} 50
+            sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${GCCV} 50
+            sudo update-alternatives --install "/usr/bin/$(uname -m)-linux-gnu-cpp" cpp "/usr/bin/$(uname -m)-linux-gnu-cpp-${GCCV}" 50
+            ls -l /usr/bin/g++ /usr/bin/g++-[0-9]* /usr/bin/gcc /usr/bin/gcc-[0-9]* /usr/bin/cpp-* /usr/bin/*-gnu-cpp* || true
+            update-alternatives --list gcc || true
+            update-alternatives --list g++ || true
+            update-alternatives --list cpp || true
+            hash -r
+            gcc -v
+          elif [ -n "$BUILD_CLANG_VERSION" ]
+          then
+            CLANGV=$BUILD_CLANG_VERSION
+            # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
+            sudo apt-get install clang-${CLANGV} clang++-${CLANGV} #clang-cpp-${CLANGV}
+            clang-${CLANGV} -v
+            clang++-${CLANGV} -v
+            clang-cpp-${CLANGV} -v < /dev/null
+            ls -l /usr/bin/clang++ /usr/bin/clang++-[0-9]* /usr/bin/clang /usr/bin/clang-[0-9]* /usr/bin/clang-cpp-* /usr/bin/clang-cpp* || true
+            update-alternatives --list clang || true
+            update-alternatives --list clang++ || true
+            update-alternatives --list clang-cpp || true
+            update-alternatives --query clang || true
+            update-alternatives --query clang++ || true
+            update-alternatives --query clang-cpp || true
+            ls -l /usr/bin/clang++ /usr/bin/clang++-[0-9]* /usr/bin/clang /usr/bin/clang-[0-9]* /usr/bin/clang-cpp-* /usr/bin/clang-cpp* || true
+            sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${CLANGV} 50
+            sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${CLANGV} 50
+            sudo update-alternatives --install "/usr/bin/clang-cpp" clang-cpp "/usr/bin/clang-cpp-${CLANGV}" 50
+            ls -l /usr/bin/clang++ /usr/bin/clang++-[0-9]* /usr/bin/clang /usr/bin/clang-[0-9]* /usr/bin/clang-cpp-* /usr/bin/clang-cpp* || true
+            update-alternatives --list clang || true
+            update-alternatives --list clang++ || true
+            update-alternatives --list clang-cpp || true
+            hash -r
+            clang -v
+          fi
+
+      - name: Get Dependencies
+        run: |
+          if [ -n "$PACKAGE_LIST" ]
+          then
+            sudo apt-get install -y ${PACKAGE_LIST}
+          fi
+
+      - name: Build
+        run: |
+          if [ -n "$BUILD_CLANG_VERSION" ]
+          then
+            export CC="clang-${BUILD_CLANG_VERSION}"
+            export CXX="clang++-${BUILD_CLANG_VERSION}"
+            export CPP="clang-cpp-${BUILD_CLANG_VERSION}"
+          fi
+
+          ./configure $CONFIGURE_ARGS 2>&1 | tee CONFIGURE.LOG
+
+          egrep "^(CPP|CXX|CC)\s" defs.mak
+
+          # Add -Wall for CI loggings
+          sed -e 's# -Werror=# -Wall -Werror=#' -i defs.mak
+          # Non security/reliability related warnings
+          #sed -e 's# -Werror=# -Wno-unused-variable -Werror=#' -i defs.mak
+          #sed -e 's# -Werror=# -Wno-unused-local-typedefs -Werror=#' -i defs.mak
+          #sed -e 's# -Werror=# -Wno-unused-label -Werror=#' -i defs.mak
+          #sed -e 's# -Werror=# -Wno-unused-but-set-variable -Werror=#' -i defs.mak
+          make database/database.h
+          make -j$(nproc) 2>&1 | tee MAKE.LOG
+
+      - name: Summary
+        env:
+          MATRIX_OS:   ${{ matrix.os }}
+          MATRIX_PKGS: ${{ matrix.pkgs }}
+        run: |
+          set +e
+          grep "error:"   MAKE.LOG > MAKE_error.LOG
+          grep "warning:" MAKE.LOG > MAKE_warning.LOG
+
+          # Less important warnings relating to codesmell more than security (filter out of headline)
+          grep -v  "Wunused-variable"         MAKE_warning.LOG |
+           grep -v "Wunused-local-typedefs" |
+           grep -v "Wunused-label" |
+           grep -v "Wunused-but-set-variable" > MAKE_warning_filtered.LOG
+
+          ls -l
+          wc -l *.LOG
+
+          error_count=$(           grep -c "error:"   MAKE_error.LOG)
+          filtered_warning_count=$(grep -c "warning:" MAKE_warning_filtered.LOG)
+
+          title="### $(cat VERSION) ${MATRIX_OS} ${MATRIX_TC} ${MATRIX_PKGS} :: "
+          if [ "$error_count" -gt 0 ]
+          then
+            title="$title $error_count error(s)"
+          fi
+          if [ "$filtered_warning_count" -gt 0 ]
+          then
+            title="$title $filtered_warning_count warning(s)"
+          fi
+
+          (
+            total_error_count=$(  wc -l MAKE_error.LOG   | cut -d' ' -f1)
+            total_warning_count=$(wc -l MAKE_warning.LOG | cut -d' ' -f1)
+            echo "$title"
+            echo ""
+            echo "PACKAGE_LIST=$PACKAGE_LIST"
+            echo "CONFIGURE_ARGS=$CONFIGURE_ARGS"
+            echo ""
+            if [ "$BUILD_CLANG_VERSION" ]
+            then
+              "clang-${BUILD_CLANG_VERSION}" --version | head -n1
+              if ! update-alternatives --list clang
+              then
+                update-alternatives --list "clang-${BUILD_CLANG_VERSION}"
+              fi
+            else
+              gcc --version | head -n1
+              if ! update-alternatives --list gcc
+              then
+                update-alternatives --list "gcc-${BUILD_GCC_VERSION}"
+              fi
+            fi
+            echo ""
+            echo "total ${total_error_count} error(s) ${total_warning_count} warning(s) :"
+            echo "|Count|Warning Group (-j build log inaccuracies)|"
+            echo "|--:|:--|"
+            # due to -j build the log lines might get corrupted, so missing/incorrect/bogus entries might be seen
+            #  so we add extra: egrep "\[\-W.*\]"  (to try to remove that)
+            sed -e 's#.*\(\[\-W\)#\1#' -e 's#\(\]\).*$#\1#' MAKE_warning.LOG | egrep "\[\-W.*\]" | sort | uniq -c | sort -n  | tr -s ' ' | tr ' ' '|' | awk '{print $0"|"}'
+            echo ""
+            sed -e '0,/Configuration Summary/d' -e '/\---/,//d' CONFIGURE.LOG | egrep "^.*:"
+            echo ""
+            grep DCAD_DIR MAKE.LOG  | tail -n1
+          ) >> $GITHUB_STEP_SUMMARY
+
