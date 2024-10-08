@@ -945,6 +945,7 @@ CmdFlush(
     static char *actionNames[] = { "no", "yes", 0 };
     char *prompt;
     bool dereference = FALSE;
+    bool noprompt = FALSE; /* no interactive confirm when changed */
 
     if (!strncmp(cmd->tx_argv[cmd->tx_argc - 1], "-deref", 6))
     {
@@ -952,9 +953,15 @@ CmdFlush(
 	cmd->tx_argc--;
     }
 
+    if (!strcmp(cmd->tx_argv[cmd->tx_argc - 1], "-noprompt"))
+    {
+        noprompt = TRUE;
+        cmd->tx_argc--;
+    }
+
     if (cmd->tx_argc > 2)
     {
-	TxError("Usage: flush [cellname] [dereference]\n");
+	TxError("Usage: flush [cellname] [-noprompt] [-dereference]\n");
 	return;
     }
 
@@ -975,7 +982,9 @@ CmdFlush(
 	}
     }
 
-    if (def->cd_flags & (CDMODIFIED|CDSTAMPSCHANGED|CDBOXESCHANGED))
+    bool has_changes = (def->cd_flags & (CDMODIFIED|CDSTAMPSCHANGED|CDBOXESCHANGED)) != 0;
+
+    if (!noprompt && has_changes)
     {
 	prompt = TxPrintString("Really throw away all changes made"
 			" to cell %s? ", def->cd_name);
@@ -986,7 +995,7 @@ CmdFlush(
 
     cmdFlushCell(def, dereference);
     SelectClear();
-    TxPrintf("[Flushed]\n");
+    TxPrintf("[Flushed%s]\n", has_changes ? " Modifications were Discarded" : "");
 }
 
 
