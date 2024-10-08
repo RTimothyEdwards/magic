@@ -265,15 +265,28 @@ windQuitCmd(w, cmd)
     bool checkfirst = TRUE;
 
     if (cmd->tx_argc == 2)
+    {
 	if (!strcmp(cmd->tx_argv[1], "-noprompt"))
+	{
 	    checkfirst = FALSE;
+	    cmd->tx_argc--;
+        }
+    }
+
+    if (cmd->tx_argc > 1)
+    {
+        TxError("Usage: quit [-noprompt]\n");
+        return;
+    }
 
     if (checkfirst)
+    {
 	for (cr = windFirstClientRec; cr != (clientRec *) NULL;
 		cr = cr->w_nextClient)
 	    if (cr->w_exit != NULL)
 		if (!(*(cr->w_exit))())
 		    return;
+    }
 
     MainExit(0);
 }

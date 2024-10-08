@@ -31,7 +31,7 @@ Exit magic
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>quit</B> <BR><BR>
+      <B>quit</B> [<B>-noprompt</B>]<BR><BR>
    </BLOCKQUOTE>
 
 <H3>Summary:</H3>
@@ -45,6 +45,9 @@ Exit magic
       and the Tcl <B>exit</B> command is required to quit the program.
       The Tcl <B>exit</B> command will <I>always</I> exit <B>magic</B>
       immediately, without prompting or cleanup or any other niceties. <P>
+
+      With the <B>-noprompt</B> option, the interactive confirm prompt
+      does not occur so any changes will be discarded.
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
