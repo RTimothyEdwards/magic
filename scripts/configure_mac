@@ -1,7 +1,68 @@
 #!/bin/sh
 set -x
+
+echo "uname_a=$(uname -a)"
+echo "uname_m=$(uname -m)" # x86_64 arm64
+
+xcodebuild -showsdks
+
+# GHA ~202410
+# x86_64-apple-darwin21.6.0   lacks needed -I/usr/X11/include
+# aarch64-apple-darwin23.6.0  has needed -I/usr/X11/include
+
+for d in /usr/X11/include /opt/X11/include /opt/local/include /usr/local/include
+do
+    if [ -d "$d" ]
+    then
+        echo "Directory Exists: $d"
+        if [ -z "$x11_include_dir" ] && [ -f "${d}/X11/Xlib.h" ]
+        then
+            echo "Found Xlib.h: ${d}/X11/Xlib.h"
+            x11_include_dir="${d}"
+        fi
+    fi
+done
+
+for d in /usr/X11/lib /opt/X11/lib /opt/local/lib /usr/local/lib
+do
+    if [ -d "$d" ]
+    then
+        echo "Directory Exists: $d"
+        if [ -z "$x11_library_dir" ] && [ -e "${d}/libX11.dylib" ]
+        then
+            echo "Found libX11.dylib: ${d}/libX11.dylib"
+            x11_library_dir="${d}"
+        fi
+    fi
+done
+
+if [ -n "$x11_include_dir" ]
+then
+    # On some versions of MacOSX (example macosx12 / XCode 14.2) the tcl-tk
+    #  also installs a set of X11 headers that seem incomplete.  At a location
+    #  like /usr/local/Cellar/tcl-tk/8.6.15/include/X11/X.h
+    #
+    # When XQuartz is installed it has a full set of correct X11 headers but
+    #  it doesn't provide any explicit -I directory itself, and tcl-tk does
+    #  provide -I value, so the incomplete headers end up having priority.
+    #CFLAGS="-I/opt/local/include"
+    #CFLAGS="-I/opt/X11/include"
+    CONFARGS="$CONFARGS --x-includes=$x11_include_dir"
+fi
+
+if [ -n "$x11_library_dir" ]
+then
+    # Example system view from xquartz 2.8.5  and  tcl-tk 8.6.15
+    # /opt/X11/lib/libX11.6.dylib (3496912 bytes 2023-01-26)
+    # /opt/homebrew/Cellar/libx11/1.8.10/lib/libX11.6.dylib (1025536 bytes 2024-10-07)
+    # Note the size difference, the question is ... if the tcl-tk expects to run against
+    #  their copy of libX11, is the ABI equivalent and substitutable without crashing ?
+    CONFARGS="$CONFARGS --x-libraries=$x11_library_dir"
+fi
+
 ./configure\
     --with-tcl=$(brew --prefix tcl-tk)\
     --with-tk=$(brew --prefix tcl-tk)\
     --with-cairo=$(brew --prefix cairo)/include\
+    $CONFARGS\
     "LDFLAGS=-L$(brew --prefix cairo)/lib"
