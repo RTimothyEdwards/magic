@@ -263,10 +263,11 @@ windQuitCmd(w, cmd)
 {
     clientRec *cr;
     bool checkfirst = TRUE;
+    int exit_status = 0;
 
-    if (cmd->tx_argc == 2)
+    if (cmd->tx_argc > 1)
     {
-	if (!strcmp(cmd->tx_argv[1], "-noprompt"))
+	if (!strcmp(cmd->tx_argv[cmd->tx_argc - 1], "-noprompt"))
 	{
 	    checkfirst = FALSE;
 	    cmd->tx_argc--;
@@ -275,7 +276,21 @@ windQuitCmd(w, cmd)
 
     if (cmd->tx_argc > 1)
     {
-        TxError("Usage: quit [-noprompt]\n");
+        int tmp;
+        if (sscanf(cmd->tx_argv[cmd->tx_argc - 1], "%d", &tmp) == 1 && exit_status >= 0 && exit_status <= 255)
+        {
+            exit_status = tmp;
+            cmd->tx_argc--;
+        }
+        else
+        {
+            TxError("Invalid exit_status: %s\n", cmd->tx_argv[cmd->tx_argc - 1]);
+        }
+    }
+
+    if (cmd->tx_argc > 1)
+    {
+        TxError("Usage: quit [exit_status] [-noprompt]\n");
         return;
     }
 
@@ -288,7 +303,7 @@ windQuitCmd(w, cmd)
 		    return;
     }
 
-    MainExit(0);
+    MainExit(exit_status);
 }
 
 
