@@ -389,7 +389,7 @@ calmaReadStringRecord(type, str)
 
     nbytes -= CALMAHEADERLENGTH;
     *str = (char *) mallocMagic(nbytes + 1);
-    if (FREAD(*str, sizeof (char), nbytes, calmaInputFile) != nbytes)
+    if (magicFREAD(*str, sizeof (char), nbytes, calmaInputFile) != nbytes)
 	goto eof;
 
     *(*str + nbytes) = '\0';
@@ -428,7 +428,7 @@ calmaReadR8(pd)
     double mantissa, d;
     bool isneg;
 
-    if (FREAD((char *) dchars, sizeof (char), sizeof dchars,
+    if (magicFREAD((char *) dchars, sizeof (char), sizeof dchars,
 		calmaInputFile) != sizeof dchars)
 	return (FALSE);
 
