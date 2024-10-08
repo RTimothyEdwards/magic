@@ -622,6 +622,12 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+MAKE_READLINE
+MAKE_CAIRO
+MAKE_GLU
+MAKE_GL
+MAKE_X11
+MAKE_TCL
 INSTALL_TARGET
 ALL_TARGET
 OA_LIBS
@@ -5611,7 +5617,6 @@ magic_with_tk_libraries=""
 
 
 usingOGL=1
-use_libglu="-lGLU"
 usingTcl=1
 usingOA=0
 usingCairo=1
@@ -7514,6 +7519,7 @@ fi
     else
 	rl_libs="\${MAGICDIR}/readline/readline/libreadline.a"
 	CPPFLAGS="$CPPFLAGS -I\${MAGICDIR}/readline"
+        use_bundled_readline=1
     fi
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltermcap" >&5
 $as_echo_n "checking for tgetent in -ltermcap... " >&6; }
@@ -7815,11 +7821,9 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_GLU_gluNewTess" >&5
 $as_echo "$ac_cv_lib_GLU_gluNewTess" >&6; }
 if test "x$ac_cv_lib_GLU_gluNewTess" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBGLU 1
-_ACEOF
 
-  LIBS="-lGLU $LIBS"
+        usingGLU=1
+        use_libglu="-lGLU"
 
 else
 
@@ -7835,6 +7839,7 @@ fi
 if test "x$use_libglu" != "x" ; then
     $as_echo "#define VECTOR_FONTS 1" >>confdefs.h
 
+    usingGLU=1
 fi
 
 if test $usingOGL ; then
@@ -8586,6 +8591,19 @@ fi
 
 
 
+
+
+MAKE_TCL=$usingTcl
+
+MAKE_X11=$usingX11
+
+MAKE_GL=$usingOGL
+
+MAKE_GLU=$usingGLU
+
+MAKE_CAIRO=$usingCairo
+
+MAKE_READLINE=$use_bundled_readline
 
 
 ac_config_files="$ac_config_files defs.mak"
