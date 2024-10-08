@@ -1091,7 +1091,7 @@ calmaProcessDef(
 	    /* Read the structure name and check against the CellDef name */
 	    defsize = (size_t)(cellstart - structstart);
 	    buffer = (char *)mallocMagic(defsize + 1);
-	    numbytes = FREAD(buffer, sizeof(char), (size_t)defsize, fi);
+	    numbytes = magicFREAD(buffer, sizeof(char), (size_t)defsize, fi);
 	    if (numbytes == defsize)
 	    {
 		buffer[defsize] = '\0';
@@ -1131,7 +1131,7 @@ calmaProcessDef(
 		defsize = (size_t)(cellend - cellstart);
 		buffer = (char *)mallocMagic(defsize);
 
-		numbytes = FREAD(buffer, sizeof(char), (size_t)defsize, fi);
+		numbytes = magicFREAD(buffer, sizeof(char), (size_t)defsize, fi);
 
 		if (numbytes == defsize)
 		{
