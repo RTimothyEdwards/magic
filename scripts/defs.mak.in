@@ -114,3 +114,11 @@ CXX_OBJS  = ${CXXSRCS:.cpp=.o}
 OBJS      = ${CXX_OBJS} ${C_OBJS}
 LIB_OBJS  = ${LIB_SRCS:.c=.o}
 CLEANS    = Depend ${OBJS} ${LIB_OBJS} lib${MODULE}.a lib${MODULE}.o ${MODULE}
+
+# allows Makefile to be selective
+MAKE_TCL           = @MAKE_TCL@
+MAKE_X11           = @MAKE_X11@
+MAKE_GL            = @MAKE_GL@
+MAKE_GLU           = @MAKE_GLU@
+MAKE_CAIRO         = @MAKE_CAIRO@
+MAKE_READLINE      = @MAKE_READLINE@

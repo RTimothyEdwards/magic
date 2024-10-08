@@ -298,7 +298,6 @@ dnl --with-tcl=no or --with-interpreter=no, and OpenGL may be
 dnl disabled with --with-opengl=no
 
 usingOGL=1
-use_libglu="-lGLU"
 usingTcl=1
 usingOA=0
 usingCairo=1
@@ -1073,6 +1072,7 @@ if test "x$enable_readline" = "xyes" ; then
     else
 	rl_libs="\${MAGICDIR}/readline/readline/libreadline.a"
 	CPPFLAGS="$CPPFLAGS -I\${MAGICDIR}/readline"
+        use_bundled_readline=1
     fi
     AC_CHECK_LIB(termcap, tgetent, [
 	rl_libs="$rl_libs -ltermcap"
@@ -1188,7 +1188,10 @@ if test $usingOGL ; then
 	echo "GL library files not found, disabling OpenGL"
  	usingOGL=
     ],)
-    AC_CHECK_LIB(GLU, gluNewTess, , [
+    AC_CHECK_LIB(GLU, gluNewTess, [
+        usingGLU=1
+        use_libglu="-lGLU"
+    ], [
 	echo "GLU library files not found; disabling font rendering"
 	use_libglu=""
     ],)
@@ -1198,6 +1201,7 @@ fi
 
 if test "x$use_libglu" != "x" ; then
     AC_DEFINE(VECTOR_FONTS)
+    usingGLU=1
 fi
 	
 if test $usingOGL ; then
@@ -1845,6 +1849,13 @@ AC_SUBST(OA_LIBS)
 
 AC_SUBST(ALL_TARGET)
 AC_SUBST(INSTALL_TARGET)
+
+AC_SUBST(MAKE_TCL,      [$usingTcl])
+AC_SUBST(MAKE_X11,      [$usingX11])
+AC_SUBST(MAKE_GL,       [$usingOGL])
+AC_SUBST(MAKE_GLU,      [$usingGLU])
+AC_SUBST(MAKE_CAIRO,    [$usingCairo])
+AC_SUBST(MAKE_READLINE, [$use_bundled_readline])
 
 AC_CONFIG_FILES([defs.mak])
 AC_CONFIG_FILES([makedbh], [chmod +x makedbh])
