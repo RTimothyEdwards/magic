@@ -91,7 +91,7 @@ CmdPlot(w, cmd)
     TxCommand *cmd;
 {
     int option;
-    char **msg;
+    const char * const *msg;
     MagWindow *window;
     DBWclientRec *crec;
     TileTypeBitMask mask;
@@ -105,7 +105,7 @@ CmdPlot(w, cmd)
     extern void GrTCairoPlotSVG();
 #endif
 
-    static char *cmdPlotOption[] =
+    static const char * const cmdPlotOption[] =
     {
 	"postscript file [layers]    generate PostScript file for what's\n\
                                      underneath the box",

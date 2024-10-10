@@ -505,7 +505,7 @@ CmdRoute(w, cmd)
     NLNetList netList;
     char *netListName;
 
-    static char *cmdRouteOption[] =
+    static const char * const cmdRouteOption[] =
     {
 	"*checks		toggle column checking",
 	"*debug		toggle router trace messages",

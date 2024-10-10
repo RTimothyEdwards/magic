@@ -256,14 +256,14 @@ CmdExtResis(win, cmd)
 
     extern int resSubcircuitFunc();	/* Forward declaration */
 
-    static char *onOff[] =
+    static const char * const onOff[] =
     {
 	"off",
 	"on",
 	NULL
     };
 
-    static char *cmdExtresisCmd[] =
+    static const char * const cmdExtresisCmd[] =
     {
 	"all 		       extract all the nets",
 	"threshold [value]    set minimum resistor extraction threshold",
