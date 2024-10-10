@@ -106,7 +106,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
     lefRule *rule = NULL;
     int keyword;
 
-    static char *specnet_keys[] = {
+    static const char * const specnet_keys[] = {
 	"SHAPE",
 	"STYLE",
 	"USE",
@@ -124,7 +124,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 	NULL
     };
 
-    static char *specnet_shape_keys[] = {
+    static const char * const specnet_shape_keys[] = {
 	"RING",
 	"PADRING",
 	"BLOCKRING",
@@ -800,13 +800,13 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
     lefRule *rule = NULL;
     bool inlayer;
 
-    static char *nondef_keys[] = {
+    static const char * const nondef_keys[] = {
 	"-",
 	"END",
 	NULL
     };
 
-    static char *nondef_property_keys[] = {
+    static const char * const nondef_property_keys[] = {
 	"HARDSPACING",
 	"LAYER",
 	"VIA",
@@ -1060,13 +1060,13 @@ DefReadNets(f, rootDef, sname, oscale, special, dolabels, annotate, total)
     HashEntry *he;
     bool needanno;
 
-    static char *net_keys[] = {
+    static const char * const net_keys[] = {
 	"-",
 	"END",
 	NULL
     };
 
-    static char *net_property_keys[] = {
+    static const char * const net_property_keys[] = {
 	"USE",
 	"ROUTED",
 	"NOSHIELD",
@@ -1309,7 +1309,7 @@ DefReadLocation(use, f, oscale, tptr, noplace)
     float x, y;
     Transform t2;
 
-    static char *orientations[] = {
+    static const char * const orientations[] = {
 	"N", "S", "E", "W", "FN", "FS", "FE", "FW"
     };
 
@@ -1457,13 +1457,13 @@ DefReadPins(f, rootDef, sname, oscale, total, annotate)
     bool pending = FALSE;
     bool hasports = FALSE;
 
-    static char *pin_keys[] = {
+    static const char * const pin_keys[] = {
 	"-",
 	"END",
 	NULL
     };
 
-    static char *pin_property_keys[] = {
+    static const char * const pin_property_keys[] = {
 	"NET",
 	"DIRECTION",
 	"LAYER",
@@ -1475,7 +1475,7 @@ DefReadPins(f, rootDef, sname, oscale, total, annotate)
 	NULL
     };
 
-    static char *pin_classes[] = {
+    static const char * const pin_classes[] = {
 	"DEFAULT",
 	"INPUT",
 	"OUTPUT TRISTATE",
@@ -1485,7 +1485,7 @@ DefReadPins(f, rootDef, sname, oscale, total, annotate)
 	NULL
     };
 
-    static char *pin_uses[] = {
+    static const char * const pin_uses[] = {
 	"DEFAULT",
 	"SIGNAL",
 	"POWER",
@@ -1778,13 +1778,13 @@ DefReadBlockages(f, rootDef, sname, oscale, total)
     lefLayer *lefl;
     HashEntry *he;
 
-    static char *block_keys[] = {
+    static const char * const block_keys[] = {
 	"-",
 	"END",
 	NULL
     };
 
-    static char *block_property_keys[] = {
+    static const char * const block_property_keys[] = {
 	"RECT",
 	"LAYER",
 	NULL
@@ -1903,13 +1903,13 @@ DefReadVias(f, sname, oscale, total)
     int rows = 1, cols = 1;
     TileType tlayer, clayer, blayer;
 
-    static char *via_keys[] = {
+    static const char * const via_keys[] = {
 	"-",
 	"END",
 	NULL
     };
 
-    static char *via_property_keys[] = {
+    static const char * const via_property_keys[] = {
 	"RECT",
 	"VIARULE",
 	"CUTSIZE",
@@ -2179,13 +2179,13 @@ DefReadComponents(f, rootDef, sname, oscale, total)
     int keyword, subkey, values;
     int processed = 0;
 
-    static char *component_keys[] = {
+    static const char * const component_keys[] = {
 	"-",
 	"END",
 	NULL
     };
 
-    static char *property_keys[] = {
+    static const char * const property_keys[] = {
 	"FIXED",
 	"COVER",
 	"PLACED",
@@ -2398,7 +2398,7 @@ DefRead(inName, dolabels, annotate, noblockage)
     float oscale;
     Rect *dierect;
 
-    static char *sections[] = {
+    static const char * const sections[] = {
 	"VERSION",
 	"NAMESCASESENSITIVE",
 	"UNITS",
