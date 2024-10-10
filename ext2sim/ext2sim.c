@@ -264,7 +264,7 @@ CmdExtToSim(w, cmd)
     int option = EXTTOSIM_RUN;
     int argc = cmd->tx_argc;
     char **argv = cmd->tx_argv;
-    char **msg;
+    const char * const *msg;
     bool err_result;
 
     short s_rclass, d_rclass, sub_rclass;
@@ -276,7 +276,7 @@ CmdExtToSim(w, cmd)
     static EFCapValue LocCapThreshold = 2;
     static int LocResistThreshold = 10;
 
-    static char *cmdExtToSimOption[] = {
+    static const char * const cmdExtToSimOption[] = {
 	"[run] [options]	run exttosim on current cell\n"
 	"			use \"run -help\" to get standard options",
 	"alias on|off		enable/disable alias (.al) file",
@@ -291,14 +291,14 @@ CmdExtToSim(w, cmd)
 	NULL
     };
 
-    static char *sim_formats[] = {
+    static const char * const sim_formats[] = {
 	"MIT",
 	"LBL",
 	"SU",
 	NULL
     };
 
-    static char *yesno[] = {
+    static const char * const yesno[] = {
 	"yes",
 	"true",
 	"on",
@@ -308,7 +308,7 @@ CmdExtToSim(w, cmd)
 	NULL
     };
 
-    static char *cmdMergeTypes[] = {
+    static const char * const cmdMergeTypes[] = {
 	"none			don't merge parallel devices",
 	"conservative		merge devices with same L, W",
 	"aggressive		merge devices with same L"
@@ -430,7 +430,7 @@ CmdExtToSim(w, cmd)
 	    if (cmd->tx_argc == 2)
 	    {
 #ifdef MAGIC_WRAPPER
-		Tcl_SetResult(magicinterp, sim_formats[esFormat], TCL_STATIC);
+		Tcl_SetResult(magicinterp, (char*)sim_formats[esFormat], TCL_STATIC);
 #else
 		TxPrintf("Format: %s\n", sim_formats[esFormat]);
 #endif
