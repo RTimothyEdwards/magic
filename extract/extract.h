@@ -58,7 +58,7 @@ extern int ExtDoWarn;		/* Bitmask of above */
 /* Device names for .ext file output (new in version 7.2)	*/
 /* (defined in extract/ExtBasic.c *and* extflat/EFread.c)	*/
 
-extern char *extDevTable[];
+extern const char * const extDevTable[];
 
 /* Extractor options */
 
