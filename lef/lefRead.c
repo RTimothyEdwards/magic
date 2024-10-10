@@ -462,9 +462,9 @@ LefParseEndStatement(f, match)
 {
     char *token;
     int keyword, words;
-    char *match_name[2];
+    const char * match_name[2];
 
-    static char *end_section[] = {
+    static const char * const end_section[] = {
 	"END",
 	"ENDEXT",
 	NULL
@@ -529,7 +529,7 @@ LefSkipSection(f, section)
 {
     char *token;
     int keyword, result;
-    static char *end_section[] = {
+    static const char * const end_section[] = {
 	"END",
 	"ENDEXT",
 	NULL
@@ -1203,7 +1203,7 @@ LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
     Rect *paintrect;
     const Rect *contact = NULL;
 
-    static char *geometry_keys[] = {
+    static const char * const geometry_keys[] = {
 	"LAYER",
 	"WIDTH",
 	"PATH",
@@ -1526,7 +1526,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
     Label *firstlab;
     bool firstport = TRUE;
 
-    static char *pin_keys[] = {
+    static const char * const pin_keys[] = {
 	"DIRECTION",
 	"USE",
 	"PORT",
@@ -1545,7 +1545,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 	NULL
     };
 
-    static char *pin_classes[] = {
+    static const char * const pin_classes[] = {
 	"DEFAULT",
 	"INPUT",
 	"OUTPUT",
@@ -1555,7 +1555,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 	NULL
     };
 
-    static int lef_class_to_bitmask[] = {
+    static const int lef_class_to_bitmask[] = {
 	PORT_CLASS_DEFAULT,
 	PORT_CLASS_INPUT,
 	PORT_CLASS_OUTPUT,
@@ -1564,7 +1564,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 	PORT_CLASS_FEEDTHROUGH
     };
 
-    static char *pin_uses[] = {
+    static const char * const pin_uses[] = {
 	"DEFAULT",
 	"SIGNAL",
 	"ANALOG",
@@ -1574,7 +1574,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 	NULL
     };
 
-    static int lef_use_to_bitmask[] = {
+    static const int lef_use_to_bitmask[] = {
 	PORT_USE_DEFAULT,
 	PORT_USE_SIGNAL,
 	PORT_USE_ANALOG,
@@ -1583,7 +1583,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 	PORT_USE_CLOCK
     };
 
-    static char *pin_shapes[] = {
+    static const char * const pin_shapes[] = {
 	"DEFAULT",
 	"ABUTMENT",
 	"RING",
@@ -1591,7 +1591,7 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
 	NULL
     };
 
-    static int lef_shape_to_bitmask[] = {
+    static const int lef_shape_to_bitmask[] = {
 	PORT_SHAPE_DEFAULT,
 	PORT_SHAPE_ABUT,
 	PORT_SHAPE_RING,
@@ -1878,7 +1878,7 @@ LefReadNonDefaultRule(f, rname, oscale)
     int idx;
     bool inlayer, done;
 
-    static char *nondef_property_keys[] = {
+    static const char * const nondef_property_keys[] = {
 	"HARDSPACING",
 	"LAYER",
 	"END",
@@ -2094,7 +2094,7 @@ LefReadMacro(f, mname, oscale, importForeign, doAnnotate, lefTimestamp)
     bool has_size, is_imported = FALSE, propfound;
     Rect lefBBox;
 
-    static char *macro_keys[] = {
+    static const char * const macro_keys[] = {
 	"CLASS",
 	"SIZE",
 	"ORIGIN",
@@ -2659,7 +2659,7 @@ LefReadLayerSection(f, lname, mode, lefl)
     float fvalue, oscale;
 
     /* These are defined in the order of CLASS_* in lefInt.h */
-    static char *layer_type_keys[] = {
+    static const char * const layer_type_keys[] = {
 	"ROUTING",
 	"CUT",
 	"MASTERSLICE",
@@ -2667,7 +2667,7 @@ LefReadLayerSection(f, lname, mode, lefl)
 	NULL
     };
 
-    static char *layer_keys[] = {
+    static const char * const layer_keys[] = {
 	"TYPE",
 	"WIDTH",
 	"MAXWIDTH",
@@ -2704,7 +2704,7 @@ LefReadLayerSection(f, lname, mode, lefl)
 	NULL
     };
 
-    static char *spacing_keys[] = {
+    static const char * const spacing_keys[] = {
 	"RANGE",
 	";",
 	NULL
@@ -2898,7 +2898,7 @@ LefRead(inName, importForeign, doAnnotate, lefTimestamp)
     HashEntry *he;
     lefLayer *lefl;
 
-    static char *sections[] = {
+    static const char * const sections[] = {
 	"VERSION",
 	"BUSBITCHARS",
 	"DIVIDERCHAR",

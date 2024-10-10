@@ -71,7 +71,7 @@ global int **GrStippleTable = NULL;
 global int grNumStipples = 0;
 
 /* MUST be the same indices as the constants in graphicsInt.h */
-char *fillStyles[] = {
+const char * const fillStyles[] = {
 	"solid",
 	"cross",
 	"outline",
