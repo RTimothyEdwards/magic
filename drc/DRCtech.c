@@ -826,7 +826,7 @@ DRCTechLine(sectionName, argc, argv)
 
     if (DRCStyleList == NULL)
     {
-	char *locargv[2][10] = {{"style"}, {"default"}};
+	char *locargv[2] = {"style", "default"};
 
 	if (DRCTechLine(sectionName, 2, locargv) == FALSE)
 	    return FALSE;
