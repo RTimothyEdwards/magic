@@ -407,7 +407,7 @@ PlotColorVersTechLine(sectionName, argc, argv)
     char *argv[];		/* Pointers to fields of line. */
 {
     VersatecStyle *new;
-    static struct { char *l_str; int l_color; } colors[] = {
+    static const struct { const char *l_str; int l_color; } colors[] = {
 	{"black",   BLACK},
 	{"cyan",    CYAN},
 	{"magenta", MAGENTA},
@@ -449,7 +449,7 @@ PlotColorVersTechLine(sectionName, argc, argv)
 	    freeMagic((char *)new);
 	    return TRUE;
 	}
-	i = LookupStruct(argv[1], (LookupTable *) colors, sizeof colors[0]);
+	i = LookupStruct(argv[1], (const LookupTable *) colors, sizeof colors[0]);
 	if (i < 0)
 	{
 	    TechError("First field must be BLACK, CYAN, MAGENTA or YELLOW.\n");

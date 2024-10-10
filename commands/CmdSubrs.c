@@ -396,10 +396,10 @@ CmdParseLayers(
 #define LN_CONNECT	5
     static struct
     {
-	char *layer_name;
+	const char *layer_name;
 	int layer_value;
     }
-    special[] =
+    const special[] =
     {
 	{"$",		LN_DOLLAR},
 	{"*",		LN_ALL},
@@ -439,7 +439,7 @@ CmdParseLayers(
 	type = DBTechNameTypes(name, &newmask);
 	if (type == -2)
 	{
-	    which = LookupStruct(name, (LookupTable *) special, sizeof special[0]);
+	    which = LookupStruct(name, (const LookupTable *) special, sizeof special[0]);
 	    if (which >= 0)
 	    {
 		switch (special[which].layer_value)

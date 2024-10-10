@@ -63,9 +63,9 @@ typedef enum
     SUBCAP, SUBSTRATE, TECH, TIMESTAMP, USE, VERSION, EXT_STYLE
 } Key;
 
-static struct
+static const struct
 {
-    char	*k_name;	/* Name of first token on line */
+    const char	*k_name;	/* Name of first token on line */
     Key 	 k_key;		/* Internal name for token of this type */
     int		 k_mintokens;	/* Min total # of tokens on line of this type */
 }
@@ -255,7 +255,7 @@ readfile:
     efReadLineNum = 0;
     while ((argc = efReadLine(&line, &size, inf, argv)) >= 0)
     {
-	n = LookupStruct(argv[0], (LookupTable *) keyTable, sizeof keyTable[0]);
+	n = LookupStruct(argv[0], (const LookupTable *) keyTable, sizeof keyTable[0]);
 	if (n < 0)
 	{
 	    efReadError("Unrecognized token \"%s\" (ignored)\n", argv[0]);

@@ -360,9 +360,9 @@ GeoNameToPos(name, manhattan, verbose)
 			 * valid directions.
 			 */
 {
-    static struct pos
+    static const struct pos
     {
-	char	*pos_name;
+	const char *pos_name;
 	int	 pos_value;
 	bool	 pos_manhattan;
     }
@@ -403,11 +403,11 @@ GeoNameToPos(name, manhattan, verbose)
 	{"west",	GEO_WEST,		TRUE},
 	{0}
     };
-    struct pos *pp;
     char *fmt;
+    const struct pos *pp;
     int pos;
 
-    pos = LookupStruct(name, (LookupTable *) positions, sizeof positions[0]);
+    pos = LookupStruct(name, (const LookupTable *) positions, sizeof positions[0]);
 
     if ((pos >= 0) && (!manhattan || positions[pos].pos_manhattan))
 	return positions[pos].pos_value;

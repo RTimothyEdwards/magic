@@ -59,13 +59,13 @@ static MagWindow *irWindow;
 /* Subcommand table - declared here since its referenced before defined */
 typedef struct
 {
-    char	*sC_name;	/* name of iroute subcommand */
+    const char	*sC_name;	/* name of iroute subcommand */
     void	(*sC_proc)();	/* Procedure implementing this subcommand */
-    char 	*sC_commentString;	/* describes subcommand */
-    char 	*sC_usage;		/* command syntax */
+    const char 	*sC_commentString;	/* describes subcommand */
+    const char 	*sC_usage;		/* command syntax */
 
 } SubCmdTableE;
-extern SubCmdTableE irSubcommands[];
+extern const SubCmdTableE irSubcommands[];
 
 
 /*
@@ -105,9 +105,9 @@ irSetNoisyAutoInt(parm, valueS, file)
 
     /* special value Table */
 #define V_AUTOMATIC	-1
-    static struct
+    static const struct
     {
-	char	*sv_name;	/* name */
+	const char *sv_name;	/* name */
 	int	 sv_type;
     } specialValues[] = {
 	{"automatic",	V_AUTOMATIC},
@@ -122,7 +122,7 @@ irSetNoisyAutoInt(parm, valueS, file)
     	/* check if special value */
 	which = LookupStruct(
 	    valueS,
-	    (char **) specialValues,
+	    (const LookupTable *) specialValues,
 	    sizeof specialValues[0]);
 
 	if(which == -1)
@@ -674,9 +674,9 @@ FILE *file;
     /* special arg Table */
 #define SP_COMMAND	-1
 #define SP_DOT		-2
-    static struct
+    static const struct
     {
-	char	*sp_name;	/* name */
+	const char *sp_name;	/* name */
 	int	 sp_type;
     } specialArgs[] = {
 	{"command",	SP_COMMAND},
@@ -690,7 +690,7 @@ FILE *file;
 	/* check if special arg */
 	which = LookupStruct(
 	    s,
-	    (char **) specialArgs,
+	    (const LookupTable *) specialArgs,
 	    sizeof specialArgs[0]);
 
 	if(which == -1)
@@ -776,9 +776,9 @@ FILE *file;
  */
 
 /* Contact Parameter Table */
-static struct
+static const struct
 {
-    char	*cP_name;	/* name of parameter */
+    const char	*cP_name;	/* name of parameter */
 #ifdef MAGIC_WRAPPER
     Tcl_Obj	*(*cP_proc)();	/* Procedure processing this parameter */
 #else
@@ -938,7 +938,7 @@ irContactsCmd(w, cmd)
 	/* Lookup parameter name in contact parm table */
 	which = LookupStruct(
 	    cmd->tx_argv[3],
-	    (char **) cParms,
+	    (const LookupTable *) cParms,
 	    sizeof cParms[0]);
 
 	/* Process table lookup */
@@ -1001,7 +1001,7 @@ irContactsCmd(w, cmd)
 	    /* Lookup contact parameter name in table */
 	    which = LookupStruct(
 		cmd->tx_argv[3],
-		(char **) cParms,
+		(const LookupTable *) cParms,
 		sizeof cParms[0]);
 
 	    /* Process result of lookup */
@@ -1094,7 +1094,7 @@ irHelpCmd(w, cmd)
 	/* Lookup subcommand in table, and printed associated help info */
 	which = LookupStruct(
 	    cmd->tx_argv[2],
-	    (char **) irSubcommands,
+	    (const LookupTable *) irSubcommands,
 	    sizeof irSubcommands[0]);
 
         /* Process result of lookup */
@@ -1145,9 +1145,9 @@ irHelpCmd(w, cmd)
  */
 
 /* Layer Parameter Table */
-static struct
+static const struct
 {
-    char	*lP_name;	/* name of parameter */
+    const char	*lP_name;	/* name of parameter */
 #ifdef MAGIC_WRAPPER
     Tcl_Obj	*(*lP_proc)();	/* procedure processing this parameter */
 #else
@@ -1312,7 +1312,7 @@ irLayersCmd(w, cmd)
 	/* Lookup parameter name in layer parm table */
 	which = LookupStruct(
 	    cmd->tx_argv[3],
-	    (char **) lParms,
+	    (const LookupTable *) lParms,
 	    sizeof lParms[0]);
 
 	/* Process table lookup */
@@ -1377,7 +1377,7 @@ irLayersCmd(w, cmd)
 	    /* Lookup route layer parameter name in table */
 	    which = LookupStruct(
 		cmd->tx_argv[3],
-		(char **) lParms,
+		(const LookupTable *) lParms,
 		sizeof lParms[0]);
 
 	    /* Process result of lookup */
@@ -1742,9 +1742,9 @@ leaveClean:
  */
 
 /* Search Parameter Table */
-static struct
+static const struct
 {
-    char	*srP_name;	/* name of parameter */
+    const char	*srP_name;	/* name of parameter */
     void	(*srP_proc)();	/* Procedure processing this parameter */
 } srParms[] = {
     {"rate",		irSrSetRate},
@@ -1779,7 +1779,7 @@ irSearchCmd(w, cmd)
 	/* Lookup parameter name in contact parm table */
 	which = LookupStruct(
 	    cmd->tx_argv[2],
-	    (char **) srParms,
+	    (const LookupTable *) srParms,
 	    sizeof srParms[0]);
 
 	/* Process table lookup */
@@ -1863,9 +1863,9 @@ irSpacingsCmd(w, cmd)
     int which, value, argI, i, n;
 
     /* Special Value Table */
-    static struct
+    static const struct
     {
-	char	*sV_name;	/* name of value */
+	const char *sV_name;	/* name of value */
 	int     sV_value;	/* corresponding interger value */
     } sValue[] = {
 	{"n",		-1},
@@ -1876,9 +1876,9 @@ irSpacingsCmd(w, cmd)
     };
 
     /* Subcell Table */
-    static struct
+    static const struct
     {
-	char	*sT_name;	/* name of value */
+	const char *sT_name;	/* name of value */
 	int     sT_value;	/* corresponding interger value */
     } subcellTable[] = {
 	{"subcell",		TT_SUBCELL},
@@ -1976,7 +1976,7 @@ irSpacingsCmd(w, cmd)
 	    /* if not a real type, check to see if "SUBCELL" */
 	    which = LookupStruct(
 		cmd->tx_argv[3],
-		(char **) subcellTable,
+		(const LookupTable *) subcellTable,
 		sizeof subcellTable[0]);
 	    if ( which>= 0)
 	        tileType = TT_SUBCELL;
@@ -2033,7 +2033,7 @@ irSpacingsCmd(w, cmd)
 		/* if not a real type, check to see if "SUBCELL" */
 		which = LookupStruct(
 		    cmd->tx_argv[argI],
-		    (char **) subcellTable,
+		    (const LookupTable *) subcellTable,
 		    sizeof subcellTable[0]);
 		if ( which>= 0)
 	        tileType = TT_SUBCELL;
@@ -2066,7 +2066,7 @@ irSpacingsCmd(w, cmd)
 		/* Lookup in special value table */
 		which = LookupStruct(
 		    s,
-		    (char **) sValue,
+		    (const LookupTable *) sValue,
 		    sizeof sValue[0]);
 
 		/* Process result of lookup */
@@ -2233,9 +2233,9 @@ irVersionCmd(w, cmd)
  */
 
 /* Wizard Parameter Table */
-static struct
+static const struct
 {
-    char	*wzdP_name;	/* name of parameter */
+    const char	*wzdP_name;	/* name of parameter */
     void	(*wzdP_proc)();	/* Procedure processing this parameter */
 } wzdParms[] = {
     {"bloom",		irWzdSetBloomCost},
@@ -2276,7 +2276,7 @@ irWizardCmd(w, cmd)
 	/* Lookup parameter name in contact parm table */
 	which = LookupStruct(
 	    cmd->tx_argv[2],
-	    (char **) wzdParms,
+	    (const LookupTable *) wzdParms,
 	    sizeof wzdParms[0]);
 
 	/* Process table lookup */
@@ -2509,7 +2509,7 @@ irSaveParametersCmd(w, cmd)
 
 /*--- Subcommand Table ---*/
 
-SubCmdTableE irSubcommands[] = {
+const SubCmdTableE irSubcommands[] = {
     {"contacts",	irContactsCmd,
     "set route-contact parameters",
     "contacts [type] [parameter] [value1] ... [valuen]\n\
@@ -2637,7 +2637,7 @@ IRCommand(w, cmd)
 	/* Lookup subcommand in table */
 	which = LookupStruct(
 	    cmd->tx_argv[1],
-	    (char **) irSubcommands,
+	    (const LookupTable *) irSubcommands,
 	    sizeof irSubcommands[0]);
 
         /* Process result of lookup */

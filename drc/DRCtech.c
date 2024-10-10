@@ -1021,13 +1021,13 @@ DRCTechAddRule(sectionName, argc, argv)
 {
     int which, distance, mdist;
     char *fmt;
-    static struct
+    static const struct
     {
-	char	*rk_keyword;	/* Initial keyword */
+	const char *rk_keyword;	/* Initial keyword */
 	int	 rk_minargs;	/* Min # arguments */
 	int	 rk_maxargs;	/* Max # arguments */
 	int    (*rk_proc)();	/* Procedure implementing this keyword */
-	char	*rk_err;	/* Error message */
+	const char *rk_err;	/* Error message */
     } ruleKeys[] = {
 	{"angles",	 4,	4,	drcAngles,
     "layers 45|90 why"},
@@ -1080,7 +1080,7 @@ DRCTechAddRule(sectionName, argc, argv)
 
     drcRulesSpecified += 1;
 
-    which = LookupStruct(argv[0], (LookupTable *) ruleKeys, sizeof ruleKeys[0]);
+    which = LookupStruct(argv[0], (const LookupTable *) ruleKeys, sizeof ruleKeys[0]);
     if (which < 0)
     {
 	TechError("Bad DRC rule type \"%s\"\n", argv[0]);

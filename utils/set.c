@@ -104,9 +104,9 @@ SetNoisyBool(parm,valueS,file)
     int n, which, result = -2;
 
     /* Bool string Table */
-    static struct
+    static const struct
     {
-	char	*bS_name;	/* name */
+	const char *bS_name;	/* name */
 	bool    bS_value;	/* procedure processing this parameter */
     } boolStrings[] = {
 	{"yes",		TRUE},
@@ -126,7 +126,7 @@ SetNoisyBool(parm,valueS,file)
 	/* Lookup value string in boolString table */
 	which = LookupStruct(
 	    valueS,
-	    (LookupTable *) boolStrings,
+	    (const LookupTable *) boolStrings,
 	    sizeof boolStrings[0]);
 
         /* Process result of lookup */

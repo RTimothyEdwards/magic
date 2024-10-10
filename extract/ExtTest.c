@@ -123,9 +123,9 @@ ExtractTest(w, cmd)
     typedef enum {  CLRDEBUG, CLRLENGTH, DRIVER, DUMP, INTERACTIONS,
 		    INTERCOUNT, EXTPARENTS, RECEIVER, SETDEBUG, SHOWDEBUG,
 		    SHOWPARENTS, SHOWTECH, STATS, STEP, TIME } cmdType;
-    static struct
+    static const struct
     {
-	char	*cmd_name;
+	const char *cmd_name;
 	cmdType	 cmd_val;
     } cmds[] = {
 	{"clrdebug",		CLRDEBUG},
@@ -163,7 +163,7 @@ ExtractTest(w, cmd)
 	return;
     }
 
-    n = LookupStruct(cmd->tx_argv[1], (LookupTable *) cmds, sizeof cmds[0]);
+    n = LookupStruct(cmd->tx_argv[1], (const LookupTable *) cmds, sizeof cmds[0]);
     if (n < 0)
     {
 	TxError("Unrecognized subcommand: %s\n", cmd->tx_argv[1]);

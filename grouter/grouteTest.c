@@ -119,9 +119,9 @@ GlTest(w, cmd)
     typedef enum { CLRDEBUG, ONLYNET, SETDEBUG, SHOWDEBUG, SIDES } cmdType;
     Rect editArea;
     int n;
-    static struct
+    static const struct
     {
-	char	*cmd_name;
+	const char *cmd_name;
 	cmdType	 cmd_val;
     } cmds[] = {
 	{"clrdebug",		CLRDEBUG},
@@ -141,7 +141,7 @@ GlTest(w, cmd)
 	goto badCmd;
     }
 
-    n = LookupStruct(cmd->tx_argv[1], (LookupTable *) cmds, sizeof cmds[0]);
+    n = LookupStruct(cmd->tx_argv[1], (const LookupTable *) cmds, sizeof cmds[0]);
     if (n < 0)
     {
 	TxError("Unrecognized subcommand: %s\n", cmd->tx_argv[1]);

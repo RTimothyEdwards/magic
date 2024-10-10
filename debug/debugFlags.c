@@ -214,7 +214,7 @@ DebugSet(clientID, argc, argv, value)
     dc = &debugClients[id];
     for (; argc-- > 0; argv++)
     {
-	n = LookupStruct(*argv, (LookupTable *) dc->dc_flags,
+	n = LookupStruct(*argv, (const LookupTable *) dc->dc_flags,
 			sizeof dc->dc_flags[0]);
 	if (n < 0)
 	{
