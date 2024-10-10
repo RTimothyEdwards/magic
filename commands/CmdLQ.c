@@ -408,7 +408,7 @@ CmdLoad(w, cmd)
 
     saveVerbose = DBVerbose;
 
-    static char *cmdLoadOption[] =
+    static const char * const cmdLoadOption[] =
     {
 	"-nowindow	load file but do not display in the layout window",
 	"-dereference	use search paths and ignore embedded cell paths in file",
@@ -600,7 +600,7 @@ CmdLocking(w, cmd)
 {
     int option;
 
-    static char *cmdLockingYesNo[] = { "disable", "no", "false", "off", "0",
+    static const char * const cmdLockingYesNo[] = { "disable", "no", "false", "off", "0",
 	    "enable", "yes", "true", "on", "1", 0 };
 
     if (cmd->tx_argc <= 1)
@@ -1092,7 +1092,7 @@ CmdPath(w, cmd)
     char **pathptr;
     char *srcptr;
     int option;
-    static char *cmdPathOption[] =
+    static const char * const cmdPathOption[] =
     {
 	"search	[[+]path]	set [append to] search path",
 	"cell	[[+]path]	set [append to] cell path",
@@ -1520,7 +1520,7 @@ CmdPort(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    char **msg;
+    const char * const *msg;
     int argstart;
     int i, refidx, idx, pos, type, option, argc;
     unsigned int dirmask;
@@ -1530,7 +1530,7 @@ CmdPort(w, cmd)
     Rect editBox, tmpArea;
     CellDef *editDef;
 
-    static char *cmdPortOption[] =
+    static const char * const cmdPortOption[] =
     {
 	"class	[type]		get [set] port class type",
 	"use	[type]		get [set] port use type",
@@ -1551,7 +1551,7 @@ CmdPort(w, cmd)
 	NULL
     };
 
-    static char *cmdPortClassTypes[] =
+    static const char * const cmdPortClassTypes[] =
     {
 	"default",
 	"input",
@@ -1576,7 +1576,7 @@ CmdPort(w, cmd)
 	PORT_CLASS_FEEDTHROUGH
     };
 
-    static char *cmdPortUseTypes[] =
+    static const char * const cmdPortUseTypes[] =
     {
 	"default",
 	"analog",
@@ -1599,7 +1599,7 @@ CmdPort(w, cmd)
 	PORT_USE_CLOCK
     };
 
-    static char *cmdPortShapeTypes[] =
+    static const char * const cmdPortShapeTypes[] =
     {
 	"default",
 	"abutment",
@@ -2471,9 +2471,10 @@ CmdNetlist(w, cmd)
     TxCommand *cmd;
 {
     int option;
-    char **msg, *lastargv;
+    const char * const *msg;
+    char *lastargv;
     Point cursor;
-    static char *cmdNetlistOption[] =
+    static const char * const cmdNetlistOption[] =
     {
 	"help           print this help information",
 	"select		select the net nearest the cursor",
@@ -2560,7 +2561,7 @@ CmdOrient(w, cmd)
     CellDef *rootDef;
     bool noAdjust = FALSE;
 
-    static char *orientNames[] = {      "0", "90", "180", "270",
+    static const char * const orientNames[] = {      "0", "90", "180", "270",
                                         "v", "0v", "90v", "180v", "270v",
                                         "h", "0h", "90h", "180h", "270h",
                                         "N", "E", "S", "W",

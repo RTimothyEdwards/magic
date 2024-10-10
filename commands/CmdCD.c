@@ -130,7 +130,8 @@ CmdCalma(w, cmd)
     TxCommand *cmd;
 {
     int option, ext, value;
-    char **msg, *namep, *dotptr;
+    const char * const *msg;
+    char *namep, *dotptr;
     char writeMode[3];
     CellDef *rootDef;
     FILETYPE f;
@@ -139,14 +140,14 @@ CmdCalma(w, cmd)
     gzFile fz;
 #endif
 
-    static char *gdsExts[] = {".gds", ".gds.gz", ".gds2", ".strm", "", NULL};
-    static char *cmdCalmaYesNo[] = {
+    static const char * const gdsExts[] = {".gds", ".gds.gz", ".gds2", ".strm", "", NULL};
+    static const char * const cmdCalmaYesNo[] = {
 		"no", "false", "off", "0", "yes", "true", "on", "1", 0 };
-    static char *cmdCalmaAllowDisallow[] = {"disallow", "0", "allow", "1", 0};
-    static char *cmdCalmaPolygonType[] = {"none", "temporary", "keep", 0};
-    static char *cmdCalmaWarnOptions[] = { "default", "none", "align",
+    static const char * const cmdCalmaAllowDisallow[] = {"disallow", "0", "allow", "1", 0};
+    static const char * const cmdCalmaPolygonType[] = {"none", "temporary", "keep", 0};
+    static const char * const cmdCalmaWarnOptions[] = { "default", "none", "align",
 		"limit", "redirect", "help", 0 };
-    static char *cmdCalmaOption[] =
+    static const char * const cmdCalmaOption[] =
     {
 	"help		print this help information",
 	"abstract [allow|disallow]\n"
@@ -1115,7 +1116,7 @@ CmdCellname(w, cmd)
     void (*func)();
     CellDef *newDef, *cellDef;
 
-    static char *cmdCellOption[] =
+    static const char * const cmdCellOption[] =
     {
 	"children 	list children of selected or named cell",
 	"parents 	list parents of selected or named cell",
@@ -1151,7 +1152,7 @@ CmdCellname(w, cmd)
 		   IDX_ORIENTATION, IDX_RENAME, IDX_READWRITE,
 		   IDX_MODIFIED } optionType;
 
-    static char *cmdCellnameYesNo[] = {
+    static const char * const cmdCellnameYesNo[] = {
 		"no", "false", "off", "0", "yes", "true", "on", "1", 0 };
 
     if (strstr(cmd->tx_argv[0], "in"))
@@ -1715,7 +1716,8 @@ CmdCif(w, cmd)
     TxCommand *cmd;
 {
     int option, yesno;
-    char **msg, *namep;
+    const char * const *msg;
+    char *namep;
     CellDef *rootDef, *paintDef;
     Rect box;
     TileType layer;
@@ -1730,11 +1732,11 @@ CmdCif(w, cmd)
     int argshift;
     char **argv = cmd->tx_argv;
 
-    static char *cmdCifWarnOptions[] = { "default", "none", "align",
+    static const char * const cmdCifWarnOptions[] = { "default", "none", "align",
 		"limit", "redirect", "help", 0 };
-    static char *cmdCifYesNo[] = { "no", "yes", 0 };
-    static char *cmdCifInOut[] = { "input", "output", 0 };
-    static char *cmdCifOption[] =
+    static const char * const cmdCifYesNo[] = { "no", "yes", 0 };
+    static const char * const cmdCifInOut[] = { "input", "output", 0 };
+    static const char * const cmdCifOption[] =
     {
 	"*array layer		display CIF layer under box (array only)",
 	"*hier layer		display CIF layer under box (hier only)",
@@ -3686,7 +3688,7 @@ CmdCrash(w, cmd)
 {
     int option = -1;
     char *filename = NULL;
-    static char *cmdCrashOpt[] = {"save", "recover", 0};
+    static const char * const cmdCrashOpt[] = {"save", "recover", 0};
 
     if (cmd->tx_argc > 3)
 	TxError("Usage: %s save|recover [filename]\n", cmd->tx_argv[0]);
@@ -3994,7 +3996,7 @@ CmdDrc(w, cmd)
     CellDef	* rootDef;
     Transform	  trans;
     MagWindow	* window;
-    char 	**msg;
+    const char 	* const *msg;
     bool	wizardHelp;
     bool	incremental;
     bool	doforall = FALSE;
@@ -4010,7 +4012,7 @@ CmdDrc(w, cmd)
     Tcl_Obj *lobj;
 #endif
 
-    static char *cmdDrcOption[] =
+    static const char * const cmdDrcOption[] =
     {
 	"*flatcheck             check box area by flattening",
 	"*halo [d]		limit error checking to areas of d units",
@@ -4962,10 +4964,10 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     hasChild = hasRoot = hasTrans = FALSE;
     while (ac > 0)
     {
-	static char *kwdNames[] = { "child", "parent", "0", "90", "180", "270",
+	static const char * const kwdNames[] = { "child", "parent", "0", "90", "180", "270",
 					    "v", "0v", "90v", "180v", "270v",
 					    "h", "0h", "90h", "180h", "270h", 0 };
-	static char *refPointNames[] = { "ll", "lr", "ul", "ur", 0 };
+	static const char * const refPointNames[] = { "ll", "lr", "ul", "ur", 0 };
 	Label *lab;
 	int n,p;
 

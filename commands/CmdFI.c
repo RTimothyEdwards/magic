@@ -150,7 +150,7 @@ CmdFeedback(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    static char *cmdFeedbackOptions[] =
+    static const char * const cmdFeedbackOptions[] =
     {
 	"add text [style] [points...]	create new feedback area over box",
 	"clear [substring]		clear all or selected feedback info",
@@ -161,11 +161,11 @@ CmdFeedback(w, cmd)
 	"why				print all feedback messages under box",
 	NULL
     };
-    static char *cmdFeedbackStyleNames[] =
+    static const char * const cmdFeedbackStyleNames[] =
     {
 	"dotted", "medium", "outline", "pale", "solid", NULL
     };
-    static int cmdFeedbackStyles[] =
+    static const int cmdFeedbackStyles[] =
     {
 	STYLE_DOTTEDHIGHLIGHTS, STYLE_MEDIUMHIGHLIGHTS,
 	STYLE_OUTLINEHIGHLIGHTS, STYLE_PALEHIGHLIGHTS,
@@ -176,7 +176,8 @@ CmdFeedback(w, cmd)
 					 */
     int option, i, style, pstart;
     Rect box, r;
-    char *text, **msg;
+    char *text;
+    const char * const *msg;
     CellDef *rootDef;
     HashTable table;
     HashEntry *h;
@@ -1259,7 +1260,7 @@ CmdGrid(w, cmd)
     int xSpacing, ySpacing, xOrig, yOrig, multiple;
     DBWclientRec *crec;
     char *boxvalues;
-    static char *cmdGridOptions[] =
+    static const char * const cmdGridOptions[] =
     {
 	"box [values]	report the box representing the user grid",
 	"help		print this message",

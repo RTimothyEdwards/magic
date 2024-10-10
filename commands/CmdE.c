@@ -311,14 +311,14 @@ CmdElement(w, cmd)
 {
 
     int option, type;
-    char **msg;
+    const char * const *msg;
     Rect area;
     int style;
     CellDef *def;
     CellUse *use;
     bool getopt;
 
-    static char *cmdElementOption[] = {
+    static const char * const cmdElementOption[] = {
 	"add			create a new element",
 	"delete		delete an existing element",
 	"configure		configure or query an existing element",
@@ -328,14 +328,14 @@ CmdElement(w, cmd)
 	NULL
     };
 
-    static char *cmdElementType[] = {
+    static const char * const cmdElementType[] = {
 	"line		name style x1 y1 x2 y2",
 	"rectangle		name style llx lly urx ury",
 	"text		name style cx cy label",
 	NULL
     };
 
-    static char *cmdConfigureType[] = {
+    static const char * const cmdConfigureType[] = {
 	"text		get (or) replace <string>",
 	"style		get (or) add <style> (or) remove <style>",
 	"position		get (or) <point> (or) <rect>",
@@ -945,7 +945,8 @@ CmdExtract(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    char **msg, *namep, *arg;
+    const char * const *msg;
+    char *namep, *arg;
     int option, warn, len, n, all;
     int dist;
     bool no;
@@ -957,7 +958,7 @@ CmdExtract(w, cmd)
     int argc = cmd->tx_argc;
     char **argv = cmd->tx_argv;
 
-    static char *cmdExtWarn[] =
+    static const char * const cmdExtWarn[] =
     {
 	"all			enable all warnings",
 	"dup			warn when different nodes have the same name",
@@ -965,7 +966,7 @@ CmdExtract(w, cmd)
 	"labels		warn when subcell nodes are unlabelled",
 	NULL
     };
-    static char *cmdExtOption[] =
+    static const char * const cmdExtOption[] =
     {
 	"adjust			compensate R and C hierarchically",
 	"all			all options",
@@ -978,7 +979,7 @@ CmdExtract(w, cmd)
 	"aliases		output all net name aliases",
 	NULL
     };
-    static char *cmdExtLength[] =
+    static const char * const cmdExtLength[] =
     {
 	"clear			clear the driver and receiver tables",
 	"driver termName(s)	identify a driving (output) terminal",
@@ -988,7 +989,7 @@ CmdExtract(w, cmd)
 
     /* These must match definitions EXT_UNIQ_* in extract/extract.h: */
 
-    static char *cmdExtUniq[] =
+    static const char * const cmdExtUniq[] =
     {
 	"all			extract matching labels as unique nodes",
 	"#			extract tagged labels as unique nodes",
@@ -996,7 +997,7 @@ CmdExtract(w, cmd)
 	"notopports		ignore top-level ports when making labels unique",
 	NULL
     };
-    static char *cmdExtCmd[] =
+    static const char * const cmdExtCmd[] =
     {
 	"all			extract root cell and all its children",
 	"cell name		extract selected cell into file \"name\"",
