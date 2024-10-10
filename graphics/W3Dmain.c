@@ -645,7 +645,7 @@ w3dHelp(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    char **msg;
+    const char * const *msg;
     W3DclientRec *crec = (W3DclientRec *) w->w_clientData;
 
     if (cmd->tx_argc == 1)
