@@ -45,8 +45,8 @@ typedef struct WIND_S3 {
 extern MagWindow *windTopWindow;
 extern MagWindow *windBottomWindow;
 extern clientRec *windFirstClientRec;
-extern char *butTable[];
-extern char *actTable[];
+extern const char * const butTable[];
+extern const char * const actTable[];
 extern bool windPrintCommands;
 
 /* ----------------- procedures ----------------- */
