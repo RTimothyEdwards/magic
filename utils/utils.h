@@ -51,7 +51,7 @@ extern char *nextName();
 extern FILE *PaOpen(char *, char *, char *, char *, char *, char **);
 extern FILE *PaLockOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
 extern char *StrDup(char **, const char *);
-extern int Match();
+extern bool Match(const char *pattern, const char *string);
 extern char *ArgStr();
 extern bool StrIsWhite(const char *, bool);
 extern bool StrIsInt(const char *);
