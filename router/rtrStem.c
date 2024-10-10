@@ -66,7 +66,7 @@ static struct dirs			/* List of directions for stems */
 {
     int		dr_dir;			/* Direction */
 }
-    dirs[] = { GEO_NORTH, GEO_SOUTH, GEO_EAST, GEO_WEST, 0 };
+    dirs[] = { {GEO_NORTH}, {GEO_SOUTH}, {GEO_EAST}, {GEO_WEST}, {0} };
 
 #define MAKEBOX(p, r, width, offset) { \
     (r)->r_xbot = (p)->p_x + (offset); \
@@ -355,7 +355,7 @@ RtrStemAssignExt(use, doWarn, loc, term, net)
      */
 
     pins = 0;
-    loc->nloc_chan == (GCRChannel *) NULL;
+    loc->nloc_chan = (GCRChannel *) NULL;
     for ( dr = dirs; dr->dr_dir; dr++)
     {
 	StemInfo si;
@@ -370,7 +370,7 @@ RtrStemAssignExt(use, doWarn, loc, term, net)
 	    rtrStemRange(loc, dr->dr_dir, &si);
 	    if (si.stem_dir != -1)
 	    {
-		if (pin = rtrStemTip(loc, &si, use))
+		if ((pin = rtrStemTip(loc, &si, use)))
 		{
 		    /* Mark the pin as taken */
 		    pins++;
@@ -476,7 +476,7 @@ rtrStemTip(loc, si, use)
      * Try each crossing point in the best direction, starting from the
      * stem_start point and working outward toward stem_lo and stem_hi.
      */
-    if (pin = rtrStemTryPin(loc, si->stem_dir, &si->stem_start, use))
+    if ((pin = rtrStemTryPin(loc, si->stem_dir, &si->stem_start, use)))
 	return (pin);
 
     plo = phi = si->stem_start;
@@ -949,7 +949,7 @@ rtrStemSearch(center, dir, point)
 	tile = TiSrPointNoHint(RtrChannelPlane, point);
 	if (TiGetType(tile) == TT_SPACE)
 	{
-	    if (ch = (GCRChannel *) tile->ti_client)
+	    if ((ch = (GCRChannel *) tile->ti_client))
 		break;
 	    return ((GCRChannel *) NULL);
 	}

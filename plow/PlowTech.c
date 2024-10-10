@@ -182,11 +182,11 @@ PlowDRCLine(sectionName, argc, argv)
 	int	 rk_maxargs;	/* Max # arguments */
 	int    (*rk_proc)();	/* Procedure implementing this keyword */
     } ruleKeys[] = {
-	"edge",		 8,	9,	plowEdgeRule,
-	"edge4way",	 8,	9,	plowEdgeRule,
-	"spacing",	 6,	6,	plowSpacingRule,
-	"width",	 4,	4,	plowWidthRule,
-	0
+	{"edge",	 8,	9,	plowEdgeRule},
+	{"edge4way",	 8,	9,	plowEdgeRule},
+	{"spacing",	 6,	6,	plowSpacingRule},
+	{"width",	 4,	4,	plowWidthRule},
+	{0}
     }, *rp;
 
     /*
@@ -642,14 +642,14 @@ PlowDRCFinal()
 	plowMaxDist[i] = 0;
 	for (j = 0; j < DBNumTypes; j++)
 	{
-	    if (pr = plowWidthRulesTbl[i][j])
+	    if ((pr = plowWidthRulesTbl[i][j]))
 	    {
 		pr = plowWidthRulesTbl[i][j] = plowTechOptimizeRule(pr);
 		for ( ; pr; pr = pr->pr_next)
 		    if (pr->pr_dist > plowMaxDist[i])
 			plowMaxDist[i] = pr->pr_dist;
 	    }
-	    if (pr = plowSpacingRulesTbl[i][j])
+	    if ((pr = plowSpacingRulesTbl[i][j]))
 	    {
 		pr = plowSpacingRulesTbl[i][j] = plowTechOptimizeRule(pr);
 		for ( ; pr; pr = pr->pr_next)
@@ -1016,7 +1016,7 @@ plowTechShowTable(table, header, f)
     fprintf(f, "\n\n------------ %s ------------\n", header);
     for (i = 0; i < DBNumTypes; i++)
 	for (j = 0; j < DBNumTypes; j++)
-	    if (pr = table[i][j])
+	    if ((pr = table[i][j]))
 	    {
 		fprintf(f, "\n%s -- %s:\n",
 		    DBTypeLongName(i), DBTypeLongName(j));

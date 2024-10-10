@@ -399,18 +399,18 @@ CmdParseLayers(s, mask)
     }
     special[] =
     {
-	"$",		LN_DOLLAR,
-	"*",		LN_ALL,
-	"errors",	LN_ERRORS,
-	"labels",	LN_LABELS,
-	"subcell",	LN_CELL,
-	"connect",	LN_CONNECT,
-	0,
+	{"$",		LN_DOLLAR},
+	{"*",		LN_ALL},
+	{"errors",	LN_ERRORS},
+	{"labels",	LN_LABELS},
+	{"subcell",	LN_CELL},
+	{"connect",	LN_CONNECT},
+	{0},
     };
 
 
     TTMaskZero(mask);
-    while (c = *s++)
+    while ((c = *s++))
     {
 	switch (c)
 	{
@@ -756,7 +756,7 @@ again:
 
     if (strcmp(returnname, def->cd_name) != 0)
     {
-	if (f = PaOpen(returnname, "r", DBSuffix, ".", (char *) NULL, &filename))
+	if ((f = PaOpen(returnname, "r", DBSuffix, ".", (char *) NULL, &filename)))
 	{
 	    (void) fclose(f);
 	    if (noninteractive) {

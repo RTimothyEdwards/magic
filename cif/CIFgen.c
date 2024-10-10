@@ -1379,8 +1379,24 @@ cifBloatAllFunc(tile, bls)
 	area.r_xtop *= locScale;
 	area.r_ytop *= locScale;
 
-	DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &area,
-		CIFPaintTable, (PaintUndoInfo *) NULL);
+	/* Diagonal:  If expanding across the edge of a diagonal, */
+	/* then just fill the whole tile.			  */
+
+	if (IsSplit(t))
+	{
+	    TileType tt;
+	    tt = TiGetTypeExact(t);
+	    if ((tt & TT_SIDE) && (TTMaskHasType(connect, TiGetLeftType(t))))
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    else if (!(tt & TT_SIDE) && (TTMaskHasType(connect, TiGetRightType(t))))
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+	    else
+		DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &area,
+			CIFPaintTable, (PaintUndoInfo *) NULL);
+	}
+	else
+	    DBNMPaintPlane(cifPlane, TiGetTypeExact(t), &area,
+			CIFPaintTable, (PaintUndoInfo *) NULL);
 
 	/* Top */
 	for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
@@ -1401,6 +1417,7 @@ cifBloatAllFunc(tile, bls)
 	for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
 	    if (TTMaskHasType(connect, TiGetLeftType(tp)))
 		PUSHTILE(tp, BloatStack);
+
     }
 
     /* Clear the tiles that were processed */
@@ -4140,11 +4157,13 @@ bridgeErase(brlims, area)
     }
 
     for (t = 0; t < TT_MAXTYPES; t++, temps++)
+    {
         if (TTMaskHasType(&brlims->co_cifMask, t))
            if (DBSrPaintArea((Tile *) NULL, *temps, area, &CIFSolidBits, cifPaintFunc, CIFEraseTable))
                 return 0;
-	
-        return 1;       //Nothing found
+    }
+
+    return 1;       //Nothing found
 }
 
 /*
@@ -4896,7 +4915,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 		}
 		netname = (char *)op->co_client;
 		cifPlane = curPlane;
-		ttype = CmdFindNetProc(netname, CIFDummyUse, &bbox, FALSE);
+		ttype = CmdFindNetProc(netname, CIFDummyUse, &bbox, FALSE, NULL);
 		if (ttype != TT_SPACE)
 		{
 		    UndoDisable();

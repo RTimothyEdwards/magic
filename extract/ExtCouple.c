@@ -219,7 +219,7 @@ extRelocateSubstrateCoupling(table, subsnode)
     NodeRegion *rbp;
 
     HashStartSearch(&hs);
-    while (he = HashNext(table, &hs))
+    while ((he = HashNext(table, &hs)))
     {
 	cap = extGetCapValue(he);
 	if (cap == 0) continue;
@@ -275,7 +275,7 @@ extOutputCoupling(table, outFile)
     CapValue cap;  /* value of capacitance. */
 
     HashStartSearch(&hs);
-    while (he = HashNext(table, &hs))
+    while ((he = HashNext(table, &hs)))
     {
 	cap = extGetCapValue(he) / ExtCurStyle->exts_capScale;
 	if (cap == 0)
@@ -464,7 +464,7 @@ extAddOverlap(tbelow, ecpls)
      * Deduct the area shielded from the area of the overlap, so we adjust
      * the overlap capacitance correspondingly.
      */
-    if (ov.o_pmask = ExtCurStyle->exts_overlapShieldPlanes[ta][tb])
+    if ((ov.o_pmask = ExtCurStyle->exts_overlapShieldPlanes[ta][tb]))
     {
 	ov.o_tmask = ExtCurStyle->exts_overlapShieldTypes[ta][tb];
 	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
@@ -963,7 +963,7 @@ extRemoveSubcap(bp, clip, esws)
 
     if (dnear < 0) dnear = 0;	/* Don't count underlap */
     mult = ExtCurStyle->exts_overlapMult[ta][0];
-    snear = 0.6366 * atan(mult * dnear);
+    snear = 0.6366 * atan((double)mult * dnear);
 
     /* "snear" is the fractional portion of the fringe cap seen by	*/
     /* the substrate, so (1.0 - snear) is the part that is blocked.	*/

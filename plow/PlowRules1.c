@@ -436,7 +436,7 @@ plowPenumbraRule(impactedEdge, ar)
     int newsep, oldsep, newx;
 
     oldsep = impactedEdge->e_x - movingEdge->e_x;
-    if (pr = ar->ar_rule)
+    if ((pr = ar->ar_rule))
     {
 	if (!TTMaskHasType(&pr->pr_oktypes, impactedEdge->e_ltype))
 	    return (0);

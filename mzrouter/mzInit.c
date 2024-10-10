@@ -111,9 +111,9 @@ MZInit()
 	char	*di_name;
 	int	*di_id;
     } dflags[] = {
-	"steppath",	&mzDebStep,
-	"maze",		&mzDebMaze,
-	0
+	{"steppath",	&mzDebStep},
+	{"maze",	&mzDebMaze},
+	{0}
     };
 
     /* Register with debug module */

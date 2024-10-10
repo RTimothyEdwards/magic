@@ -193,7 +193,7 @@ SelRememberForUndo(before, def, area)
 {
     SelUndoEvent *sue;
     static SelUndoEvent *beforeEvent = NULL;
-    static Rect nullRect = {0, 0, -1, -1};
+    static Rect nullRect = {{0, 0}, {-1, -1}};
 
     sue = (SelUndoEvent *) UndoNewEvent(SelUndoClientID, sizeof(SelUndoEvent));
     if (sue == NULL) return;

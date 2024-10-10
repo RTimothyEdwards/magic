@@ -23,6 +23,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <time.h>
 
@@ -817,7 +818,7 @@ CmdSelect(w, cmd)
 				 * multiples types are pointed to, consecutive
 				 * selections will cycle through them.
 				 */
-    static Rect lastArea = {-100, -100, -200, -200};
+    static Rect lastArea = {{-100, -100}, {-200, -200}};
 				/* Used to remember region around what was
 				 * pointed at in the last select command:  a
 				 * new selection in this area causes the next

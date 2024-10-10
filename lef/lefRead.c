@@ -21,6 +21,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <strings.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <sys/time.h>
@@ -648,7 +649,7 @@ LefRedefined(lefl, redefname)
     records = 0;
     altName = NULL;
     HashStartSearch(&hs);
-    while (he = HashNext(&LefInfo, &hs))
+    while ((he = HashNext(&LefInfo, &hs)))
     {
 	slef = (lefLayer *)HashGetValue(he);
 	if (slef == lefl)
@@ -1331,7 +1332,7 @@ LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
 			    rectList = rectNew;
 
 			if ((!do_list) && (otherlayer != -1))
-			    LefPaintPolygon(lefMacro, pointList, points, otherlayer);
+			    LefPaintPolygon(lefMacro, pointList, points, otherlayer, FALSE);
 		    }
 		    freeMagic(pointList);
 		}

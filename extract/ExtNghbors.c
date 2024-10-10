@@ -295,7 +295,7 @@ donesides:
 	 * 1-lambda halo to find everything it overlaps or touches
 	 * on the other plane.
 	 */
-	if (pMask = DBAllConnPlanes[type])
+	if ((pMask = DBAllConnPlanes[type]))
 	{
 	    TITORECT(tile, &pla.area);
 	    GEO_EXPAND(&pla.area, 1, &biggerArea);

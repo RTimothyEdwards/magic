@@ -25,6 +25,8 @@
 #  include <config.h>
 #endif
 
+#define _XOPEN_SOURCE       /* See feature_test_macros(7) */
+
 #include <sys/types.h>
 #include <fcntl.h>
 #include <wchar.h>

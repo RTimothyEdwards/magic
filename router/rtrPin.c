@@ -171,7 +171,7 @@ rtrPinArrayInit(ch, side, pins, nPins)
 	    if (side == GEO_WEST) p.p_x--;
 	    if (side == GEO_SOUTH) p.p_y--;
 	    tp = TiSrPointNoHint(RtrChannelPlane, &p);
-	    if (adjacent = (GCRChannel *) tp->ti_client)
+	    if ((adjacent = (GCRChannel *) tp->ti_client))
 	    {
 		/* Only link if entering the linked channel from a legal side */
 		linked = RtrPointToPin(adjacent, otherSide, &point);

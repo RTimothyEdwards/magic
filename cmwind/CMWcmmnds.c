@@ -372,7 +372,7 @@ cmwColor(w, cmd)
     }
     else if (cmd->tx_argc == 2)
     {
-	if (sscanf(cmd->tx_argv[1], "%i", &color) == 0)
+	if (sscanf(cmd->tx_argv[1], "%i", &color) != 1)
 	{
 	    /* Invalid color---allow keywords "next" and "last" */
 	    crec = (CMWclientRec *) w->w_clientData;

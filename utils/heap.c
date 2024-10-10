@@ -325,7 +325,7 @@ heapify(heap, root)
 	while (1)
 	{
 	    if ((x = heapLeft(used, root)) == 0) break;
-	    if (r = heapRight(used, root))
+	    if ((r = heapRight(used, root)))
 		KEY_LESS_COND(keyType, list, x, r, x = r);
 
 	    KEY_LE_COND(keyType, list, x, root, return);
@@ -341,7 +341,7 @@ heapify(heap, root)
 	while (1)
 	{
 	    if ((x = heapLeft(used, root)) == 0) break;
-	    if (r = heapRight(used, root))
+	    if ((r = heapRight(used, root)))
 				KEY_GREATER_COND(keyType, list, x, r, x = r);
 	    KEY_GE_COND(keyType, list, x, root, return);
 	    *list = list[root];

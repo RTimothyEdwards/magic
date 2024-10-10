@@ -353,7 +353,7 @@ ResEachTile(tile, startpoint)
 	    {
 		for (i = 0; i < devptr->exts_deviceSDCount; i++)
 		{
-		    if(TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
+		    if (TTMaskHasType(&(devptr->exts_deviceSDTypes[i]), t1))
 		    {
 			/* found device */
 			yj = TOP(tile);

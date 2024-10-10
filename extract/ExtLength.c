@@ -261,7 +261,7 @@ extLength(rootUse, f)
      * be from a single cell.
      */
     HashStartSearch(&hs);
-    while (he = HashNext(&extDriverHash, &hs))
+    while ((he = HashNext(&extDriverHash, &hs)))
     {
 	dList = extPathLabel(rootUse, he->h_key.h_name);
 	HashSetValue(he, (ClientData) dList);
@@ -273,7 +273,7 @@ extLength(rootUse, f)
      * then compute and output the distance to each.
      */
     HashStartSearch(&hs);
-    while (he = HashNext(&extDriverHash, &hs))
+    while ((he = HashNext(&extDriverHash, &hs)))
     {
 	/* Ignore drivers whose labels couldn't be found */
 	dList = (Label *) HashGetValue(he);
@@ -875,7 +875,7 @@ extPathFlood(tile, p, distance, epa)
      * 1-lambda halo to find everything it overlaps or touches
      * on the other plane.
      */
-    if (pMask = DBAllConnPlanes[type])
+    if ((pMask = DBAllConnPlanes[type]))
     {
 	int saveplane = epa->epa_pNum;
 	struct extPathFloodArg epfa;

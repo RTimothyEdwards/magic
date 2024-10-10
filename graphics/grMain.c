@@ -80,7 +80,7 @@ global int GrPixelCorrect = 1;
 /* The following rectangle is describes the display area and is available
  * to the user of this module.
  */
-global Rect GrScreenRect = {0, 0, 0, 0};
+global Rect GrScreenRect = {{0, 0}, {0, 0}};
 
 /*
  * Interrupt status for the timer.  In TCL, this is used for graphics

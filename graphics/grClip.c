@@ -46,7 +46,7 @@ extern void GrClipTriangle();
  * lintpick happy!
  */
 
-global Rect GrCrossRect = {-GR_CROSSSIZE, -GR_CROSSSIZE, GR_CROSSSIZE, GR_CROSSSIZE};
+global Rect GrCrossRect = {{-GR_CROSSSIZE, -GR_CROSSSIZE}, {GR_CROSSSIZE, GR_CROSSSIZE}};
 global int GrNumClipBoxes = 0;	/* for benchmarking */
 global int grCurDStyle;
 global unsigned char GrGridMultiple = 1;
@@ -434,7 +434,7 @@ GrClipLine(x1, y1, x2, y2)
 	    {
 		Point p1, p2;
 		Rect c;
-		bool ok1, ok2;
+		bool ok1 = FALSE, ok2 = FALSE;
 		c = ob->r_r;
 		c.r_xbot--;  c.r_ybot--;
 		c.r_xtop++;  c.r_ytop++;

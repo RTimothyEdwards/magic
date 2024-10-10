@@ -26,7 +26,7 @@ jobs:
   simple_build_linux:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Get Dependencies
         run: |
           sudo apt-get install -y tcl-dev tk-dev libcairo-dev
@@ -38,7 +38,7 @@ jobs:
   simple_build_wasm:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Get Dependencies
         run: |
           git clone https://github.com/emscripten-core/emsdk.git
@@ -48,10 +48,10 @@ jobs:
       - name: Build
         run: |
           source ./emsdk/emsdk_env.sh
-          emconfigure ./configure --without-cairo --without-opengl --without-x --disable-readline --target=asmjs-unknown-emscripten
+          emconfigure ./configure --without-cairo --without-opengl --without-x --disable-readline --disable-compression --target=asmjs-unknown-emscripten
           emmake make
       - name: archive wasm bundle
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: magic-wasm-bundle
           path: |
@@ -59,7 +59,7 @@ jobs:
   # simple_build_mac:
   #   runs-on: macos-11
   #   steps:
-  #     - uses: actions/checkout@v2
+  #     - uses: actions/checkout@v4
   #     - name: Get Dependencies
   #       run: |
   #         brew install --cask xquartz

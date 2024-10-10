@@ -1357,7 +1357,7 @@ DefReadLocation(use, f, oscale, tptr, noplace)
 	    char *propval;
 	    bool found;
 
-	    propval = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+	    propval = (char *)DBPropGet(use->cu_def, "FIXED_BBOX", &found);
 	    if (found)
 	    {
 		if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,

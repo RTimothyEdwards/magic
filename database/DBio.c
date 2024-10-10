@@ -28,6 +28,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/file.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
@@ -686,8 +688,8 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 			    freeMagic(argv[1]);
 			    freeMagic(argv[0]);
 			}
-#endif
 		    }
+#endif
 		}
 		if (strcmp(DBTechName, tech))
 		{
@@ -1070,7 +1072,7 @@ DBFileRecovery(filename)
     struct stat sbuf;
     uid_t userid = getuid();
     time_t recent = 0;
-    char *snptr, *tempdir, tempname[256];
+    char *snptr, *tempdir, tempname[1024];
     int pid;
     static char *actionNames[] = {"read", "cancel", 0 };
     char *prompt;
@@ -1096,7 +1098,8 @@ DBFileRecovery(filename)
 	while ((dp = readdir(cwd)) != NULL)
 	{
 	    char *doslash = (tempdir[strlen(tempdir) - 1] == '/') ? "" : "/";
-	    sprintf(tempname, "%s%s%s", tempdir, doslash, dp->d_name);
+	    int n = snprintf(tempname, sizeof(tempname), "%s%s%s", tempdir, doslash, dp->d_name);
+	    ASSERT(n < sizeof(tempname), "tempname");
 	    snptr = tempname + strlen(tempdir);
 	    if (!strncmp(snptr, "MAG", 3))
 	    {
@@ -1417,9 +1420,10 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 
 	pptr = strrchr(sptr, '.');
 	if (pptr != NULL)
+	{
 	    if (strcmp(pptr, DBSuffix)) pptr = NULL;
-	else
-	    *pptr = '\0';
+	    else *pptr = '\0';
+	}
 
 	/* If dereferencing, then use search paths first */
 	if (!dereference)
@@ -1594,7 +1598,7 @@ DBOpenOnly(cellDef, name, setFileName, errptr)
 			 */
     int *errptr;	/* Pointer to int to hold error value */
 {
-    dbReadOpen(cellDef, name != NULL, setFileName, FALSE, errptr);
+    dbReadOpen(cellDef, setFileName, FALSE, errptr);
 }
 
 /*
@@ -1907,7 +1911,8 @@ badTransform:
 	    {
 		char savepath[1024];
 		strcpy(savepath, pathptr);
-		sprintf(path, "%s/%s", cellDef->cd_file, savepath);
+		int n = snprintf(path, sizeof(path), "%s/%s", cellDef->cd_file, savepath);
+		ASSERT(n < sizeof(path), "path");
 	    }
 	    pathptr = &path[0];
 	    *slashptr = '/';
@@ -1973,6 +1978,123 @@ badTransform:
 		}
 		else if (!strcmp(cwddir, pathptr)) pathOK = TRUE;
 
+		/* Apply same check as done in DBWprocs, which is to check the
+		 * inode of the two files and declare the path okay if they are
+		 * the same.  This avoids conflicts in files that are referenced
+		 * from two different places via different relative paths, or
+		 * through symbolic links.
+		 */
+
+		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
+			    && (dereference == FALSE) && (firstUse == TRUE))
+		{
+		    struct stat statbuf;
+		    ino_t inode;
+
+		    if (stat(subCellDef->cd_file, &statbuf) == 0)
+		    {
+			inode = statbuf.st_ino;
+
+			if (stat(pathptr, &statbuf) == 0)
+			{
+			    if (inode == statbuf.st_ino)
+				pathOK = TRUE;
+			}
+		    }
+		}
+
+		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
+			    && (dereference == FALSE) && (firstUse == TRUE))
+		{
+		    /* See if both paths are inside a git repository, and both
+		     * git repositories have the same commit hash.  Then the
+		     * two layouts can be considered equivalent.  If the "git"
+		     * command fails for any reason, then ignore the error and
+		     * continue.
+		     */
+		    char *sl1ptr, *sl2ptr;
+		    int link[2], nbytes, status;
+		    pid_t pid;
+		    char githash1[128];
+		    char githash2[128];
+		    char argstr[1024];
+
+		    githash1[0] = '\0';
+		    githash2[0] = '\0';
+
+		    /* Remove the file component */
+		    sl1ptr = strrchr(pathptr, '/');
+		    if (sl1ptr != NULL) *sl1ptr = '\0';
+
+		    /* Check first file for a git hash */
+		    if (pipe(link) != -1)
+		    {
+			FORK(pid);
+			if (pid == 0)
+			{
+			    dup2(link[1], STDOUT_FILENO);
+			    close(link[0]);
+			    close(link[1]);
+			    int n = snprintf(argstr, sizeof(argstr), "-C %s", pathptr);
+			    ASSERT(n < sizeof(argstr), "argstr");
+			    execlp("git", argstr, "rev-parse", "HEAD", NULL);
+			    _exit(122);  /* see vfork man page for reason for _exit() */
+			}
+			else
+			{
+			    close(link[1]);
+			    nbytes = read(link[0], githash1, sizeof(githash1));
+			    waitpid(pid, &status, 0);
+			}
+		    }
+
+		    if (sl1ptr != NULL) *sl1ptr = '/';
+
+		    if (githash1[0] != '\0')
+		    {
+			/* Check the second repository */
+
+			/* Remove the file component */
+			sl2ptr = strrchr(subCellDef->cd_file, '/');
+			if (sl2ptr != NULL) *sl2ptr = '\0';
+
+			/* Check first file for a git hash */
+			if (pipe(link) != -1)
+			{
+			    FORK(pid);
+			    if (pid == 0)
+			    {
+				dup2(link[1], STDOUT_FILENO);
+				close(link[0]);
+				close(link[1]);
+				sprintf(argstr, "-C %s", subCellDef->cd_file);
+				execlp("git", argstr, "rev-parse", "HEAD", NULL);
+				_exit(123);  /* see vfork man page for reason for _exit() */
+			    }
+			    else
+			    {
+				close(link[1]);
+				nbytes = read(link[0], githash2, sizeof(githash2));
+				waitpid(pid, &status, 0);
+			    }
+			}
+
+			if (sl2ptr != NULL) *sl2ptr = '/';
+
+			if (githash2[0] != '\0')
+			{
+			    /* Check if the repositories have the same hash */
+			    if (!strcmp(githash1, githash2))
+			    {
+				TxPrintf("Cells %s in %s and %s have matching git repository"
+					" commits and can be considered equivalent.\n",
+					slashptr + 1, subCellDef->cd_file, pathptr);
+				pathOK = TRUE;
+			    }
+			}
+		    }
+		}
+
 		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
 			    && (dereference == FALSE) && (firstUse == TRUE))
 		{
@@ -1994,7 +2116,7 @@ badTransform:
 		    }
 		    else
 		    {
-			char *newname = (char *)mallocMagic(strlen(cellname) + 6);
+			char *newname = (char *)mallocMagic(strlen(cellname) + 7);
 			int i = 0;
 
 			/* To do:  Run checksum on file (not yet implemented) */
@@ -2002,7 +2124,7 @@ badTransform:
 
 			while (TRUE)
 			{
-			    sprintf(newname, "%s#%d", cellname, i);
+			    sprintf(newname, "%s__%d", cellname, i);
 			    if (DBCellLookDef(newname) == NULL) break;
 			    i++;
 			}
@@ -2031,7 +2153,7 @@ badTransform:
 	    /* default path but the new cell has a (different) path.	*/
 	    /* The paths only match if pathptr is the CWD.		*/
 
-	    else if ((pathptr != NULL) && (*pathptr != '\0'))
+	    else if (*pathptr != '\0')
 	    {
 		bool pathOK = FALSE;
 		char *cwddir = getenv("PWD");
@@ -2071,7 +2193,7 @@ badTransform:
 			}
 			else
 			{
-			    char *newname = (char *)mallocMagic(strlen(cellname) + 6);
+			    char *newname = (char *)mallocMagic(strlen(cellname) + 7);
 			    int i = 0;
 
 			    /* To do:  Run checksum on file (not yet implemented) */
@@ -2079,7 +2201,7 @@ badTransform:
 
 			    while (TRUE)
 			    {
-				sprintf(newname, "%s#%d", cellname, i);
+				sprintf(newname, "%s__%d", cellname, i);
 				if (DBCellLookDef(newname) == NULL) break;
 				i++;
 			    }
@@ -2193,7 +2315,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
     int scalen;		/* Scale up by this factor */
     int scaled;		/* Scale down by this factor */
 {
-    char propertyname[128], propertyvalue[2048], *storedvalue;
+    char propertyname[128], propertyvalue[2049], *storedvalue;
     char *pvalueptr;
     int ntok;
     unsigned int noeditflag;
@@ -2370,8 +2492,8 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			/* Skip forward four values in pvalueptr */
 			for (n = 0; n < 4; n++)
 			{
-			    while (!isspace(*pptr)) pptr++;
-			    while (isspace(*pptr) && (*pptr != '\0')) pptr++;
+			    while ((*pptr != '\0') && !isspace(*pptr)) pptr++;
+			    while ((*pptr != '\0') && isspace(*pptr)) pptr++;
 			}
 		    }
 		}
@@ -2917,7 +3039,7 @@ dbFgets(line, len, f)
 {
     char *cs;
     int l;
-    int c;
+    int c = EOF;
 
     do
     {
@@ -3216,7 +3338,7 @@ dbGetPropFunc(key, value, propRec)
     propRec->keyValueList[propRec->idx] =
 		(struct keyValuePair *)mallocMagic(sizeof(struct keyValuePair));
     propRec->keyValueList[propRec->idx]->key = key;
-    propRec->keyValueList[propRec->idx]->value = value;
+    propRec->keyValueList[propRec->idx]->value = (char *)value;
     propRec->idx++;
 
     return 0;
@@ -3871,7 +3993,7 @@ DBCellWrite(cellDef, fileName)
      * If so, write to the temp file and then rename it after
      * we're done.
      */
-    if (tmpf = fopen(tmpname, "w"))
+    if ((tmpf = fopen(tmpname, "w")))
     {
 	result = DBCellWriteFile(cellDef, tmpf);
 	(void) fclose(tmpf);

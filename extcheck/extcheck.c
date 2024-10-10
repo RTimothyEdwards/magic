@@ -90,7 +90,7 @@ main(argc, argv)
 
 #ifdef	free_all_mem
     EFFlatDone(NULL);
-    EFDone();
+    EFDone(NULL);
 #endif	/* free_all_mem */
 
     printf("Memory used: %s\n", RunStats(RS_MEM, NULL, NULL));

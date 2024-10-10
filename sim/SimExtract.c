@@ -486,7 +486,7 @@ SimTransistorTile(tile, pNum, arg)
 	devptr = ExtCurStyle->exts_device[t];
 	for (i = 0; !TTMaskHasType(&devptr->exts_deviceSDTypes[i],
 			TT_SPACE); i++)
-	    extEnumTilePerim(tile, devptr->exts_deviceSDTypes[i],
+	    extEnumTilePerim(tile, devptr->exts_deviceSDTypes[i], pNum,
 			SimTransTerms, (ClientData) &transistor );
     }
 

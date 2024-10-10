@@ -603,7 +603,7 @@ DBFlattenInPlace(use, dest, xMask, dolabels, toplabels, doclear)
 	{
 	    int savemask = scx.scx_use->cu_expandMask;
 	    scx.scx_use->cu_expandMask = CU_DESCEND_SPECIAL;
-	    DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, dest);
+	    DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_SPECIAL, dest, NULL);
 	    scx.scx_use->cu_expandMask = savemask;
 	}
 
@@ -666,7 +666,7 @@ DBFlattenInPlace(use, dest, xMask, dolabels, toplabels, doclear)
 		scx.scx_y++;
 		scx.scx_x = use->cu_xlo;
 	    }
-	    else if (use->cu_yhi > use->cu_yhi)
+	    else if (use->cu_ylo > use->cu_yhi)
 	    {
 		scx.scx_y--;
 		scx.scx_x = use->cu_xlo;
@@ -1725,7 +1725,8 @@ DBCellCopyAllCells(scx, xMask, targetUse, pArea)
 
     /* dbCellCopyCellsFunc() allows cells to be left with duplicate IDs */
     /* so generate unique IDs as needed now.				*/
-    DBGenerateUniqueIds(targetUse->cu_def, FALSE);
+
+    if (targetUse != NULL) DBGenerateUniqueIds(targetUse->cu_def, FALSE);
 }
 
 /*

@@ -21,6 +21,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdint.h>
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -53,7 +54,7 @@ windPrintWindow(w)
     LinkedRect *lr;
 
     TxPrintf("\nWindow %d: '%s'\n", w->w_wid, w->w_caption);
-    TxPrintf("  Client %x  Surface %x \n", w->w_client, w->w_surfaceID);
+    TxPrintf("  Client %lx  Surface %lx \n", w->w_client, w->w_surfaceID);
 
     TxPrintf("  All area (%d, %d) (%d, %d)\n",
 	w->w_allArea.r_xbot, w->w_allArea.r_ybot,
@@ -106,9 +107,9 @@ windDump()
     for (rc = windFirstClientRec; rc != (clientRec * ) NULL;
 	rc = rc->w_nextClient)
     {
-	TxPrintf("'%10s'  %x %x %x %x\n", rc->w_clientName,
-	    rc->w_create, rc->w_delete,
-	    rc->w_redisplay, rc->w_command);
+	TxPrintf("'%10s'  %lx %lx %lx %lx\n", rc->w_clientName,
+	    (intmax_t) rc->w_create, (intmax_t) rc->w_delete,
+	    (intmax_t) rc->w_redisplay, (intmax_t) rc->w_command);
     }
 
     TxPrintf("\n");

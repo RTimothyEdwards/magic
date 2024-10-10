@@ -128,22 +128,22 @@ ExtractTest(w, cmd)
 	char	*cmd_name;
 	cmdType	 cmd_val;
     } cmds[] = {
-	"clrdebug",		CLRDEBUG,
-	"clrlength",		CLRLENGTH,
-	"driver",		DRIVER,
-	"dump",			DUMP,
-	"interactions",		INTERACTIONS,
-	"intercount",		INTERCOUNT,
-	"parents",		EXTPARENTS,
-	"receiver",		RECEIVER,
-	"setdebug",		SETDEBUG,
-	"showdebug",		SHOWDEBUG,
-	"showparents",		SHOWPARENTS,
-	"showtech",		SHOWTECH,
-	"stats",		STATS,
-	"step",			STEP,
-	"times",		TIME,
-	0
+	{"clrdebug",		CLRDEBUG},
+	{"clrlength",		CLRLENGTH},
+	{"driver",		DRIVER},
+	{"dump",		DUMP},
+	{"interactions",	INTERACTIONS},
+	{"intercount",		INTERCOUNT},
+	{"parents",		EXTPARENTS},
+	{"receiver",		RECEIVER},
+	{"setdebug",		SETDEBUG},
+	{"showdebug",		SHOWDEBUG},
+	{"showparents",		SHOWPARENTS},
+	{"showtech",		SHOWTECH},
+	{"stats",		STATS},
+	{"step",		STEP},
+	{"times",		TIME},
+	{0}
     };
 
     if (cmd->tx_argc == 1)
@@ -191,11 +191,13 @@ ExtractTest(w, cmd)
 	    "Total interaction area processed = %ld (%.2f%%) / %ld (%.2f%%)\n",
 		extSubtreeInteractionArea,
 		((double) extSubtreeInteractionArea) / ((double) a1) * 100.0,
+		areaInteraction,
 		((double) areaInteraction) / ((double) a2) * 100.0);
 	    TxPrintf(
 	    "Clipped interaction area= %ld (%.2f%%) / %ld (%.2f%%)\n",
 		extSubtreeClippedArea,
 		((double) extSubtreeClippedArea) / ((double) a1) * 100.0,
+		areaClipped,
 		((double) areaClipped) / ((double) a2) * 100.0);
 	    extSubtreeTotalArea = 0;
 	    extSubtreeInteractionArea = 0;
@@ -452,7 +454,7 @@ extShowTech(name)
 				out);
 		    fprintf(out, "\n");
 		}
-		if (e = ExtCurStyle->exts_sideCoupleCap[s][t])
+		if ((e = ExtCurStyle->exts_sideCoupleCap[s][t]))
 		    for ( ; e; e = e->ec_next)
 		    {
 			fprintf(out, "                COUPLE: ");
@@ -461,7 +463,7 @@ extShowTech(name)
 			extShowMask(&e->ec_far, out);
 			fprintf(out, ": %lf\n", e->ec_cap);
 		    }
-		if (e = ExtCurStyle->exts_sideOverlapCap[s][t])
+		if ((e = ExtCurStyle->exts_sideOverlapCap[s][t]))
 		    for ( ; e; e = e->ec_next)
 		    {
 			fprintf(out, "                OVERLAP: ");

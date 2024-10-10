@@ -565,15 +565,15 @@ enumerate:
 	    theight = TOP(tp) - BOTTOM(tp);
 	    twidth = RIGHT(tp) - LEFT(tp);
 	    f1 = (rect->r_ybot > MINFINITY + 2) ?
-		(TOP(tp) - rect->r_ybot) * twidth : DLONG_MAX;
+		(dlong)(TOP(tp) - rect->r_ybot) * (dlong)twidth : DLONG_MAX;
 	    f2 = (rect->r_ytop < INFINITY - 2) ?
-		(rect->r_ytop - BOTTOM(tp)) * twidth : DLONG_MAX;
+		(dlong)(rect->r_ytop - BOTTOM(tp)) * (dlong)twidth : DLONG_MAX;
 
 	    if (TTMaskHasType(mask, SplitLeftType(tp)))
 	    {
 		/* !Outside-of-triangle check */
 		f4 = (rect->r_xbot > MINFINITY + 2) ?
-			(rect->r_xbot - LEFT(tp)) * theight : DLONG_MIN;
+			(dlong)(rect->r_xbot - LEFT(tp)) * (dlong)theight : DLONG_MIN;
 		if (SplitDirection(tp) ? (f1 > f4) : (f2 > f4))
 		{
 		    TiSetBody(tp, (ClientData)((TileType)TiGetBody(tp)
@@ -587,7 +587,7 @@ enumerate:
 	    {
 		/* !Outside-of-triangle check */
 		f3 = (rect->r_xtop < INFINITY - 2) ?
-			(RIGHT(tp) - rect->r_xtop) * theight : DLONG_MIN;
+			(dlong)(RIGHT(tp) - rect->r_xtop) * (dlong)theight : DLONG_MIN;
 		if (SplitDirection(tp) ? (f2 > f3) : (f1 > f3))
 		{
 		    TiSetBody(tp, (ClientData)((TileType)TiGetBody(tp)

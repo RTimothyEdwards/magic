@@ -826,7 +826,7 @@ DRCTechLine(sectionName, argc, argv)
 
     if (DRCStyleList == NULL)
     {
-	char *locargv[2][10] = {"style", "default"};
+	char *locargv[2][10] = {{"style"}, {"default"}};
 
 	if (DRCTechLine(sectionName, 2, locargv) == FALSE)
 	    return FALSE;
@@ -1022,53 +1022,53 @@ DRCTechAddRule(sectionName, argc, argv)
 	int    (*rk_proc)();	/* Procedure implementing this keyword */
 	char	*rk_err;	/* Error message */
     } ruleKeys[] = {
-	"angles",	 4,	4,	drcAngles,
-    "layers 45|90 why",
-	"edge",		 8,	9,	drcEdge,
-    "layers1 layers2 distance okTypes cornerTypes cornerDistance why [plane]",
-	"edge4way",	 8,	9,	drcEdge,
-    "layers1 layers2 distance okTypes cornerTypes cornerDistance why [plane]",
-	"exact_overlap", 2,	2,	drcExactOverlap,
-    "layers",
-	"extend",	 5,	6,	drcExtend,
-    "layers1 layers2 distance [option] why",
-	"no_overlap",	 3,	3,	drcNoOverlap,
-    "layers1 layers2",
-	"option",	 2,	2,	drcOption,
-    "option_name option_value",
-	"overhang",	 5,	5,	drcOverhang,
-    "layers1 layers2 distance why",
-	"rect_only",	 3,	3,	drcRectOnly,
-    "layers why",
-	"spacing",	 6,	7,	drcSpacing,
-    "layers1 layers2 separation [layers3] adjacency why",
-	"stepsize",	 2,	2,	drcStepSize,
-    "step_size",
-	"surround",	 6,	7,	drcSurround,
-    "layers1 layers2 distance presence why",
-	"width",	 4,	5,	drcWidth,
-    "layers width why",
-	"widespacing",	 7,	8,	drcSpacing,
-    "layers1 width layers2 separation adjacency why",
-        "area",		 5,	5,	drcArea,
-    "layers area horizon why",
-        "off_grid",	 4,	4,	drcOffGrid,
-    "layers pitch why",
-        "maxwidth",	 4,	5,	drcMaxwidth,
-    "layers maxwidth bends why",
-	"cifstyle",	 2,	2,	drcCifSetStyle,
-    "cif_style",
-	"cifwidth",	 4,	4,	drcCifWidth,
-    "layers width why",
-	"cifspacing",	 6,	6,	drcCifSpacing,
-    "layers1 layers2 separation adjacency why",
-	"cifarea",	 5,	5,	drcCifArea,
-    "layers area horizon why",
-	"cifmaxwidth",	 5,	5,	drcCifMaxwidth,
-    "layers maxwidth bends why",
-	"rectangle",	5,	5,	drcRectangle,
-    "layers maxwidth [even|odd|any] why",
-	0
+	{"angles",	 4,	4,	drcAngles,
+    "layers 45|90 why"},
+	{"edge",	 8,	9,	drcEdge,
+    "layers1 layers2 distance okTypes cornerTypes cornerDistance why [plane]"},
+	{"edge4way",	 8,	9,	drcEdge,
+    "layers1 layers2 distance okTypes cornerTypes cornerDistance why [plane]"},
+	{"exact_overlap", 2,	2,	drcExactOverlap,
+    "layers"},
+	{"extend",	 5,	6,	drcExtend,
+    "layers1 layers2 distance [option] why"},
+	{"no_overlap",	 3,	3,	drcNoOverlap,
+    "layers1 layers2"},
+	{"option",	 2,	2,	drcOption,
+    "option_name option_value"},
+	{"overhang",	 5,	5,	drcOverhang,
+    "layers1 layers2 distance why"},
+	{"rect_only",	 3,	3,	drcRectOnly,
+    "layers why"},
+	{"spacing",	 6,	7,	drcSpacing,
+    "layers1 layers2 separation [layers3] adjacency why"},
+	{"stepsize",	 2,	2,	drcStepSize,
+    "step_size"},
+	{"surround",	 6,	7,	drcSurround,
+    "layers1 layers2 distance presence why"},
+	{"width",	 4,	5,	drcWidth,
+    "layers width why"},
+	{"widespacing",	 7,	8,	drcSpacing,
+    "layers1 width layers2 separation adjacency why"},
+        {"area",	 5,	5,	drcArea,
+    "layers area horizon why"},
+        {"off_grid",	 4,	4,	drcOffGrid,
+    "layers pitch why"},
+        {"maxwidth",	 4,	5,	drcMaxwidth,
+    "layers maxwidth bends why"},
+	{"cifstyle",	 2,	2,	drcCifSetStyle,
+    "cif_style"},
+	{"cifwidth",	 4,	4,	drcCifWidth,
+    "layers width why"},
+	{"cifspacing",	 6,	6,	drcCifSpacing,
+    "layers1 layers2 separation adjacency why"},
+	{"cifarea",	 5,	5,	drcCifArea,
+    "layers area horizon why"},
+	{"cifmaxwidth",	 5,	5,	drcCifMaxwidth,
+    "layers maxwidth bends why"},
+	{"rectangle",	5,	5,	drcRectangle,
+    "layers maxwidth [even|odd|any] why"},
+	{0}
     }, *rp;
 
     drcRulesSpecified += 1;
@@ -1216,7 +1216,7 @@ drcExtend(argc, argv)
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    if (i == j) continue;
-	    if (pset = (DBTypesOnSamePlane(i, j) & pMask2))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pMask2)))
 	    {
 		/* Edge depends on whether or not the extension is 	*/
 		/* on the same plane as the layer from which it is	*/
@@ -1365,7 +1365,7 @@ drcWidth(argc, argv)
 	     * and a type in 'set'.
 	     */
 
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    {
 		if (TTMaskHasType(&setC, i) && TTMaskHasType(&set, j))
 		{
@@ -1468,7 +1468,7 @@ drcArea(argc, argv)
 	     * to the right of any edge between a type in '~set'
 	     * and a type in 'set'.
 	     */
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    {
 		if (TTMaskHasType(&setC, i) && TTMaskHasType(&set, j))
 		{
@@ -1540,7 +1540,7 @@ drcOffGrid(argc, argv)
 	     * to the right of any edge between a type in '~set'
 	     * and a type in 'set'.
 	     */
-	    if (pset = (DBTypesOnSamePlane(i, j)))
+	    if ((pset = (DBTypesOnSamePlane(i, j))))
 	    {
 		if (TTMaskHasType(&setC, i) && TTMaskHasType(&set, j))
 		{
@@ -1673,7 +1673,7 @@ drcMaxwidth(argc, argv)
 	     * to the right of any edge between a type in '~set'
 	     * and a type in 'set'.
 	     */
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    {
 		if (TTMaskHasType(&setC, i) && TTMaskHasType(&set, j))
 		{
@@ -1769,7 +1769,7 @@ drcAngles(argc, argv)
 	    {
 		if (i == j) continue;
 
-		if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+		if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 		{
 		    /* Inside corners */
 		    if (TTMaskHasType(&set, i) && TTMaskHasType(&set2, j))
@@ -1916,7 +1916,7 @@ drcSpacing3(argc, argv)
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    if (i == j) continue;
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    {
 		if (TTMaskHasType(&set1, i) && TTMaskHasType(&set3, j))
 		{
@@ -2096,7 +2096,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    if (i == j) continue;
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask1))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask1)))
 	    {
 		plane = LowestMaskBit(pset);
 
@@ -2321,7 +2321,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 
 	    if (needtrigger) continue;
 
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask1))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask1)))
 	    {
 		plane = LowestMaskBit(pset);
 
@@ -2710,7 +2710,7 @@ drcEdge(argc, argv)
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    if (i == j) continue;
-	    if (pset = (DBTypesOnSamePlane(i, j) & pMask1))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pMask1)))
 	    {
 		if (TTMaskHasType(&set1, i) && TTMaskHasType(&set2, j))
 		{
@@ -2827,7 +2827,7 @@ drcOverhang(argc, argv)
 	for (j = 0; j < DBNumTypes; j++)
 	{
 	    if (i == j) continue;
-	    if (pset = (DBTypesOnSamePlane(i, j) & pMask2))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pMask2)))
 	    {
 		if ((pset & pMask1) != 0)
 		{
@@ -2941,7 +2941,7 @@ drcRectOnly(argc, argv)
 	{
 	    if (i == j) continue;
 
-	    if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    {
 		if (TTMaskHasType(&set1, i) && TTMaskHasType(&set2, j))
 		{
@@ -3094,7 +3094,7 @@ drcSurround(argc, argv)
 	    
 	    if (isDirectional)
 	    {
-		if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+		if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 	    	{
 		    /* Directional surround is done entirely differently */
 
@@ -3141,7 +3141,7 @@ drcSurround(argc, argv)
 	    }
 	    else
 	    {
-		if (pset = (DBTypesOnSamePlane(i, j) & pmask2))
+		if ((pset = (DBTypesOnSamePlane(i, j) & pmask2)))
 	    	{
 		    if (TTMaskHasType(&set1, i) && TTMaskHasType(&set2, j))
 		    {
@@ -3178,7 +3178,7 @@ drcSurround(argc, argv)
 	    for (j = 0; j < DBNumTypes; j++)
 	    {
 		if (i == j) continue;	/* Ignore false edges */
-		if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+		if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 		{
 		    if (TTMaskHasType(&setM, i) && TTMaskHasType(&set2, j))
 		    {
@@ -3212,7 +3212,7 @@ drcSurround(argc, argv)
     /* Add an extra rule when presence of the surrounding	*/
     /* layer is required.  Rule is different if planes match.	*/
 
-    if (pset = pmask & pmask2)
+    if ((pset = pmask & pmask2))
     {
 	TTMaskZero(&invM);
 	TTMaskSetMask(&invM, &setM);
@@ -3224,7 +3224,7 @@ drcSurround(argc, argv)
 	    for (j = 0; j < DBNumTypes; j++)
 	    {
 		if (i == j) continue;
-	        if (pset = (DBTypesOnSamePlane(i, j) & pmask & pmask2))
+	        if ((pset = (DBTypesOnSamePlane(i, j) & pmask & pmask2)))
 		{
 		    plane1 = LowestMaskBit(pset);
 		    if (TTMaskHasType(&setM, i) && TTMaskHasType(&invM, j))
@@ -3258,7 +3258,7 @@ drcSurround(argc, argv)
 	    for (j = 0; j < DBNumTypes; j++)
 	    {
 		if (i == j) continue;
-	        if (pset = (DBTypesOnSamePlane(i, j) & pmask))
+	        if ((pset = (DBTypesOnSamePlane(i, j) & pmask)))
 		{
 		    if (TTMaskHasType(&setM, i) && TTMaskHasType(&invM, j))
 		    {
@@ -3456,7 +3456,7 @@ drcRectangle(argc, argv)
 	{
 	    if (i == j) continue;
 
-	    if (pset = (DBTypesOnSamePlane(i, j) & pMask))
+	    if ((pset = (DBTypesOnSamePlane(i, j) & pMask)))
 	    {
 		if (TTMaskHasType(&types, i) && TTMaskHasType(&nottypes, j))
 		{
@@ -4138,7 +4138,7 @@ DRCTechScale(scalen, scaled)
     int scalegcf;
 
     if (DRCCurStyle == NULL) return;
-    else if (scalen == scaled == 1) return;
+    else if (scalen == scaled) return;
 
     /* Revert DRC rules to original (unscaled) values */
     drcScaleUp(DRCCurStyle, DRCCurStyle->DRCScaleFactorN);
@@ -4362,7 +4362,7 @@ DRCGetDefaultLayerSurround(ttype1, ttype2)
 	    cset = &cptr->drcc_corner;
 	    if (TTMaskHasType(set, TT_SPACE) && !TTMaskHasType(set, ttype1))
 	        if ((TTMaskHasType(cset, ttype2)) &&
-			(cptr->drcc_flags && DRC_BOTHCORNERS) &&
+			(cptr->drcc_flags & DRC_BOTHCORNERS) &&
 			(cptr->drcc_edgeplane == cptr->drcc_plane) &&
 			(cptr->drcc_dist == cptr->drcc_cdist))
 		{

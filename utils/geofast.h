@@ -32,12 +32,12 @@
  */
 
 #define	GEOCLIP(r, area) \
-    if (1) { \
+    do { \
 	if ((r)->r_xbot < (area)->r_xbot) (r)->r_xbot = (area)->r_xbot; \
 	if ((r)->r_ybot < (area)->r_ybot) (r)->r_ybot = (area)->r_ybot; \
 	if ((r)->r_xtop > (area)->r_xtop) (r)->r_xtop = (area)->r_xtop; \
 	if ((r)->r_ytop > (area)->r_ytop) (r)->r_ytop = (area)->r_ytop; \
-    } else
+    } while(0)
 
 /* --------------------- Transforming rectangles ---------------------- */
 

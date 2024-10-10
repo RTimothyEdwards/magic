@@ -547,6 +547,7 @@ TxPrefix(void)
     if (_rl_prefix != NULL)
 	rl_insert_text(_rl_prefix);
     rl_redisplay();
+    return 0;
 }
 
 /*

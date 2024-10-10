@@ -140,7 +140,7 @@ ResPrintExtDev(outextfile, devices)
 		    fprintf(outextfile,"device ");
 
 		fprintf(outextfile,"%s %s %d %d %d %d ",
-			extDevTable[devptr->exts_deviceClass],
+			extDevTable[(unsigned char)devptr->exts_deviceClass],
 			devptr->exts_deviceName,
 			devices->layout->rd_inside.r_ll.p_x,
 			devices->layout->rd_inside.r_ll.p_y,
@@ -218,7 +218,7 @@ ResPrintExtNode(outextfile, nodelist, nodename)
 	char	*nodename;
 {
     int		nodenum = 0;
-    char	newname[MAXNAME], tmpname[MAXNAME], *cp;
+    char	newname[MAXNAME+32], tmpname[MAXNAME], *cp;
     HashEntry  *entry;
     ResSimNode *node, *ResInitializeNode();
     bool	DoKillNode = TRUE;

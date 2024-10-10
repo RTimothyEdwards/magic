@@ -228,6 +228,7 @@ GrTOGLTextSize(text, size, r)
 	font = grXLargeFont;
 	break;
     default:
+        font = NULL;
 	TxError("%s%d\n", "GrTOGLTextSize: Unknown character size ",
 		size );
 	break;

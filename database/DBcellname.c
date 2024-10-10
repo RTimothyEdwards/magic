@@ -283,7 +283,7 @@ DBCellDelete(cellname, force)
     /* so that WindUnload() will create a new one.			*/
 
     if (!strcmp(cellname, UNNAMED))
-	DBCellRename(cellname, "__UNNAMED__");
+	DBCellRename(cellname, "__UNNAMED__", FALSE);
 
     /* For all top-level cell uses, check if any windows have this	*/
     /* use.  If so, load the window with (UNNAMED).			*/
@@ -1121,11 +1121,13 @@ DBUsePrint(CellName, who, dolist)
 	celldef = DBCellLookDef(CellName);
 	*lasthier = '/';
     }
-    else
+    else if (EditCellUse != NULL)
     {
 	/* Referenced cellDef is the current edit def */
 	celldef = EditCellUse->cu_def;
     }
+    else
+	return;
 
     switch (who)
     {
@@ -1601,7 +1603,7 @@ dbAbutmentUseFunc(selUse, use, transform, data)
     }
 
     trans = &use->cu_transform;
-    propvalue = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+    propvalue = (char *)DBPropGet(use->cu_def, "FIXED_BBOX", &found);
     if (!found)
 	bbox = use->cu_def->cd_bbox;
     else
@@ -1698,7 +1700,7 @@ DBCellNewDef(cellName)
 	cellName = UNNAMED;
 
     entry = HashFind(&dbCellDefTable, cellName);
-    if (HashGetValue(entry) != (ClientData) NULL)
+    if (HashGetValue(entry) != NULL)
 	return ((CellDef *) NULL);
 
     cellDef = DBCellDefAlloc();
@@ -1859,7 +1861,7 @@ DBCellRenameDef(cellDef, newName)
     ASSERT(HashGetValue(oldEntry) == (ClientData) cellDef, "DBCellRenameDef");
 
     newEntry = HashFind(&dbCellDefTable, newName);
-    if (HashGetValue(newEntry) != (ClientData) NULL)
+    if (HashGetValue(newEntry) != NULL)
 	return (FALSE);
 
     HashSetValue(oldEntry, (ClientData) NULL);
@@ -2507,7 +2509,7 @@ DBUnLinkCell(use, parentDef)
 {
     HashEntry *he;
 
-    if (he = HashLookOnly(&parentDef->cd_idHash, use->cu_id))
+    if ((he = HashLookOnly(&parentDef->cd_idHash, use->cu_id)))
 	HashSetValue(he, (ClientData) NULL);
 }
 

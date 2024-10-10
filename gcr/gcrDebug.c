@@ -20,6 +20,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/times.h>
 
@@ -106,7 +107,7 @@ GCRRouteFromFile(fname)
     (void) GCRroute(ch);
     times(&tbuf2);
     TxPrintf("Time   :  %5.2fu  %5.2fs\n", (tbuf2.tms_utime -
-	    tbuf1.tms_utime)/60.0, (tbuf2.tms_stime-tbuf1.tms_stime)*60);
+	    tbuf1.tms_utime)/60.0, (double)(tbuf2.tms_stime-tbuf1.tms_stime)*60);
 
     gcrDumpResult(ch, GcrShowEnd);
     gcrShowMap(ch);
@@ -194,7 +195,7 @@ gcrMakeChannel(ch, fp)
 	     * p and P mean poly is blocked.  Upper case means vacate the
 	     * column, lower case means vacate the track.
 	     */
-	    if (fscanf(fp, "%s", s) != 1)
+	    if (fscanf(fp, "%24s", s) != 1)
 	    {
 		TxError("Format error in router input file\n");
 		return (FALSE);
@@ -372,14 +373,13 @@ gcrPrDensity(ch, chanDensity)
 {
     int i, diff;
     char name[256];
-    FILE *fp;
+    FILE *fp, *fp_always_close;
 
     (void) sprintf(name, "dens.%d.%d.%d.%d",
 		ch->gcr_area.r_xbot, ch->gcr_area.r_ybot,
 		ch->gcr_area.r_xtop, ch->gcr_area.r_ytop);
-    fp = fopen(name, "w");
-    if (fp == NULL)
-	fp = stdout;
+    fp_always_close = fopen(name, "w");
+    fp = fp_always_close ? fp_always_close : stdout;
 
     fprintf(fp, "Chan width: %d\n", ch->gcr_width);
     fprintf(fp, "Chan length: %d\n", ch->gcr_length);
@@ -423,8 +423,8 @@ gcrPrDensity(ch, chanDensity)
     }
 
     (void) fflush(fp);
-    if (fp != stdout)
-	(void) fclose(fp);
+    if (fp_always_close != NULL)
+	(void) fclose(fp_always_close);
 }
 
 /*
@@ -454,33 +454,33 @@ gcrDumpPins(ch)
     TxPrintf("LEFT PINS\n");
     for(i=0; i<=ch->gcr_width; i++)
     {
-	TxPrintf("Location [%d]=%d:  x=%d, y=%d, pNext=%d, pPrev=%d, id=%d\n",
-	i, &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
-	pinArray[i].gcr_pNext, pinArray[i].gcr_pPrev, pinArray[i].gcr_pId);
+	TxPrintf("Location [%d]=%ld:  x=%d, y=%d, pNext=%ld, pPrev=%ld, id=%ld\n",
+	i, (intmax_t) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
+	(intmax_t) pinArray[i].gcr_pNext, (intmax_t) pinArray[i].gcr_pPrev, (intmax_t) pinArray[i].gcr_pId);
     }
     pinArray=ch->gcr_rPins;
     TxPrintf("RIGHT PINS\n");
     for(i=0; i<=ch->gcr_width; i++)
     {
-	TxPrintf("Location [%d]=%d:  x=%d, y=%d, pNext=%d, pPrev=%d, id=%d\n",
-	i, &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
-	pinArray[i].gcr_pNext, pinArray[i].gcr_pPrev, pinArray[i].gcr_pId);
+	TxPrintf("Location [%d]=%ld:  x=%d, y=%d, pNext=%ld, pPrev=%ld, id=%ld\n",
+	i, (intmax_t) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
+	(intmax_t) pinArray[i].gcr_pNext, (intmax_t) pinArray[i].gcr_pPrev, (intmax_t) pinArray[i].gcr_pId);
     }
     pinArray=ch->gcr_bPins;
     TxPrintf("BOTTOM PINS\n");
     for(i=0; i<=ch->gcr_length; i++)
     {
-	TxPrintf("Location [%d]=%d:  x=%d, y=%d, pNext=%d, pPrev=%d, id=%d\n",
-	i, &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
-	pinArray[i].gcr_pNext, pinArray[i].gcr_pPrev, pinArray[i].gcr_pId);
+	TxPrintf("Location [%d]=%ld:  x=%d, y=%d, pNext=%ld, pPrev=%ld, id=%ld\n",
+	i, (intmax_t) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
+	(intmax_t) pinArray[i].gcr_pNext, (intmax_t) pinArray[i].gcr_pPrev, (intmax_t) pinArray[i].gcr_pId);
     }
     pinArray=ch->gcr_tPins;
     TxPrintf("TOP PINS\n");
     for(i=0; i<=ch->gcr_length; i++)
     {
-	TxPrintf("Location [%d]=%d:  x=%d, y=%d, pNext=%d, pPrev=%d, id=%d\n",
-	i, &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
-	pinArray[i].gcr_pNext, pinArray[i].gcr_pPrev, pinArray[i].gcr_pId);
+	TxPrintf("Location [%d]=%ld:  x=%d, y=%d, pNext=%ld, pPrev=%ld, id=%ld\n",
+	i, (intmax_t) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
+	(intmax_t) pinArray[i].gcr_pNext, (intmax_t) pinArray[i].gcr_pPrev, (intmax_t) pinArray[i].gcr_pId);
     }
 }
 
@@ -507,9 +507,9 @@ gcrDumpPinList(pin, dir)
 {
     if (pin)
     {
-	TxPrintf("Location (%d, %d)=%x:  pNext=%d, pPrev=%d, id=%d\n",
-		pin->gcr_x, pin->gcr_y, pin,
-		pin->gcr_pNext, pin->gcr_pPrev, pin->gcr_pId);
+	TxPrintf("Location (%d, %d)=%lx:  pNext=%ld, pPrev=%ld, id=%ld\n",
+		pin->gcr_x, pin->gcr_y, (intmax_t) pin,
+		(intmax_t) pin->gcr_pNext, (intmax_t) pin->gcr_pPrev, (intmax_t) pin->gcr_pId);
 	if (dir) gcrDumpPinList(pin->gcr_pNext, dir);
 	else gcrDumpPinList(pin->gcr_pPrev, dir);
     }
@@ -635,7 +635,7 @@ void  gcrPrintCol(ch, i, showResult)
 		    }
 		    else TxPrintf("#");
 		}
-		else if ((res[i][j] & GCRU) || j != 0 && (res[i][j-1] & GCRU))
+		else if ((res[i][j] & GCRU) || (j != 0 && (res[i][j-1] & GCRU)))
 		{
 		    if((res[i][j]&GCRCC) && (!(res[i][j]&(GCRBLKM|GCRBLKP))))
 		    {
@@ -978,8 +978,12 @@ gcrShowMap(ch)
     while (1)
     {
 	TxPrintf("Field selector (0 terminates): ");
-	if(!scanf("%d", &field))	/*typed something funny*/
+	if(scanf("%d", &field) != 1)	/*typed something funny or EOF*/
 	{
+	    if (feof(stdin)) {
+	        TxPrintf("End of input detected. Terminating.\n");
+	        return;
+	    }
 	    TxPrintf("Bad input.  Legal responses are\n");
 	    TxPrintf("   GCRBLKM     1\n");
 	    TxPrintf("   GCRBLKP     2\n");

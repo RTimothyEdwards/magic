@@ -23,6 +23,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -3683,7 +3684,7 @@ CmdCrash(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    int option;
+    int option = -1;
     char *filename = NULL;
     static char *cmdCrashOpt[] = {"save", "recover", 0};
 

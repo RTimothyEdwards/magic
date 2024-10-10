@@ -164,7 +164,8 @@ extUniqueCell(def, option)
 
 		if (!(ll->ll_label->lab_flags & PORT_DIR_MASK))
 		    for (lltest = lastreg->lreg_labels; lltest; lltest = lltest->ll_next)
-			if (!strcmp(lltest->ll_label->lab_text, text))
+			if ((lltest->ll_label != NULL) &&
+					(!strcmp(lltest->ll_label->lab_text, text)))
 			    if (lltest->ll_label->lab_flags & PORT_DIR_MASK)
 				break;
 
@@ -202,7 +203,7 @@ extMakeUnique(def, ll, lreg, lregList, labelHash, option)
 {
     static char *badmesg =
     "Non-global label \"%s\" attached to more than one unconnected node: %s";
-    char *cpend, *text, name[1024], name2[1024], message[1024];
+    char *cpend, *text, name[1024], name2[1024+32], message[1024];
     LabRegion *lp2;
     LabelList *ll2;
     int nsuffix, nwarn;
@@ -220,16 +221,20 @@ extMakeUnique(def, ll, lreg, lregList, labelHash, option)
     text = ll->ll_label->lab_text;
     if (option == EXT_UNIQ_ALL)
 	goto makeUnique;
-    else if ((option == EXT_UNIQ_NOPORTS || option == EXT_UNIQ_NOTOPPORTS) &&
-		(ll->ll_label->lab_flags & PORT_DIR_MASK))
+    else if ((option == EXT_UNIQ_NOPORTS || option == EXT_UNIQ_NOTOPPORTS)
+		&& !(ll->ll_label->lab_flags & PORT_DIR_MASK))
 	goto makeUnique;
 
     cpend = strchr(text, '\0');
     if (cpend > text) cpend--;
     if (*cpend == '#') goto makeUnique;
     if (*cpend == '!') return 0;
+
+    /* Don't generate warnings about ports when given the "noports" or
+     * "notopports" options.
+     */
     if (((option == EXT_UNIQ_NOPORTS) || (option == EXT_UNIQ_NOTOPPORTS))
-		&& !(ll->ll_label->lab_flags & PORT_DIR_MASK))
+		&& (ll->ll_label->lab_flags & PORT_DIR_MASK))
 	return 0;
 
     /* Generate a warning for each occurrence of this label */

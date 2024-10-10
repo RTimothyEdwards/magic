@@ -124,7 +124,7 @@ glListToHeap(list, destPt)
 	 * to lie along that channel portion).
 	 */
 	pin = temp->gl_pin;
-	if (tp = glChanPinToTile((Tile *) NULL, pin))
+	if ((tp = glChanPinToTile((Tile *) NULL, pin)))
 	{
 	    new = glPathNew(pin, temp->gl_cost, (GlPoint *) NULL);
 	    new->gl_tile = tp;

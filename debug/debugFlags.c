@@ -121,7 +121,7 @@ DebugAddFlag(clientID, name)
 
     if (id < 0 || id >= debugNumClients)
     {
-	TxError("DebugAddFlag: bad client id %d (flag %s)\n", clientID, name);
+	TxError("DebugAddFlag: bad client id %lu (flag %s)\n", clientID, name);
 	return (0);
     }
 
@@ -165,7 +165,7 @@ DebugShow(clientID)
 
     if (id < 0 || id >= debugNumClients)
     {
-	TxError("DebugShow: bad client id %d\n", clientID);
+	TxError("DebugShow: bad client id %lu\n", clientID);
 	return;
     }
     dc = &debugClients[id];
@@ -208,7 +208,7 @@ DebugSet(clientID, argc, argv, value)
 
     if (id < 0 || id >= debugNumClients)
     {
-	TxError("DebugSet: bad client id %d\n", clientID);
+	TxError("DebugSet: bad client id %lu\n", (unsigned long)clientID);
 	return;
     }
     dc = &debugClients[id];

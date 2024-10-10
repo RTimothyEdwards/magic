@@ -201,7 +201,7 @@ void
 TxPrintEvent(event)
     TxInputEvent *event;
 {
-    TxError("Input event at 0x%x\n    ", event);
+    TxError("Input event at %p\n    ", event);
     if (event->txe_button == TX_EOF) {
 	TxError("EOF event");
     } else if (event->txe_button == TX_BYPASS) {
@@ -255,7 +255,7 @@ TxPrintCommand(cmd)
     int i, j;
     char TxTemp[200];
 
-    TxError("Command at 0x%x\n    ", cmd);
+    TxError("Command at %p\n    ", cmd);
     if (cmd->tx_button == TX_CHARACTER) {
 	TxError("Text command with %d words: ", cmd->tx_argc);
 	for (i = 0; i < cmd->tx_argc; i++) {
@@ -639,7 +639,7 @@ TxLogStart(fileName, mw)
 {
     if (txLogFile != NULL)
     {
-	TxError("There is already a log file (%s) open!\n", txLogFile);
+	TxError("There is already a log file open!\n");
 	return;
     }
 
@@ -880,15 +880,16 @@ txLogCommand(cmd)
 	    case TX_LEFT_BUTTON: { but = 0; break; };
 	    case TX_MIDDLE_BUTTON: { but = 1; break; };
 	    case TX_RIGHT_BUTTON: { but = 2; break; };
-	    default: {ASSERT(FALSE, "txLogCommand"); break; };
+	    default: {ASSERT(FALSE, "txLogCommand"); but = -1; break; };
 	}
 	switch(cmd->tx_buttonAction) {
 	    case TX_BUTTON_DOWN: { act = 0; break; };
 	    case TX_BUTTON_UP: { act = 1; break; };
-	    default: {ASSERT(FALSE, "txLogCommand"); break; };
+	    default: {ASSERT(FALSE, "txLogCommand"); act = -1; break; };
 	}
 
-	fprintf(txLogFile, "%spushbutton %s %s\n",
+	if (but >= 0 && act >= 0)
+	    fprintf(txLogFile, "%spushbutton %s %s\n",
 		pfix, txButTable[but], txActTable[act]);
     }
     if (txLogFlags & TX_LOG_UPDATE)

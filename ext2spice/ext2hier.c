@@ -167,13 +167,13 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    fprintf(esSpiceF, " %s=", plist->parm_name);
 		    parmval = dev->dev_area;
 		    if (esScale < 0)
-			fprintf(esSpiceF, "%g", parmval * scale * scale);
+			fprintf(esSpiceF, "%g", (double)parmval * scale * scale);
 		    else if (plist->parm_scale != 1.0)
-			fprintf(esSpiceF, "%g", parmval * scale * scale
+			fprintf(esSpiceF, "%g", (double)parmval * scale * scale
 				* esScale * esScale * plist->parm_scale
 				* 1E-12);
 		    else
-			esSIvalue(esSpiceF, 1.0E-12 * (parmval + plist->parm_offset)
+			esSIvalue(esSpiceF, 1.0E-12 * ((double)parmval + plist->parm_offset)
 				* scale * scale * esScale * esScale);
 		}
 		else
@@ -217,11 +217,11 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    if (esScale < 0)
 			fprintf(esSpiceF, "%g", parmval * scale);
 		    else if (plist->parm_scale != 1.0)
-			fprintf(esSpiceF, "%g", parmval * scale
-				* esScale * plist->parm_scale * 1E-6);
+			fprintf(esSpiceF, "%g", (double)parmval * (double)scale
+				* (double)esScale * (double)plist->parm_scale * 1E-6);
 		    else
-			esSIvalue(esSpiceF, (parmval + plist->parm_offset)
-				* scale * esScale * 1.0E-6);
+			esSIvalue(esSpiceF, ((double)parmval + (double)plist->parm_offset)
+				* (double)scale * (double)esScale * 1.0E-6);
 		}
 		else
 		{
@@ -262,7 +262,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		    if (esScale < 0)
 			fprintf(esSpiceF, "%g", l * scale);
 		    else if (plist->parm_scale != 1.0)
-			fprintf(esSpiceF, "%g", l * scale * esScale
+			fprintf(esSpiceF, "%g", (double)l * scale * esScale
 				* plist->parm_scale * 1E-6);
 		    else
 			esSIvalue(esSpiceF, 1.0E-6 * (l + plist->parm_offset)
@@ -286,7 +286,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 				if (esScale < 0)
 				    fprintf(esSpiceF, "%g", dval * scale);
 				else if (plist->parm_scale != 1.0)
-				    fprintf(esSpiceF, "%g", dval * scale * esScale
+				    fprintf(esSpiceF, "%g", (double)dval * scale * esScale
 						* plist->parm_scale * 1E-6);
 				else
 				    esSIvalue(esSpiceF, (dval + plist->parm_offset)
@@ -304,7 +304,7 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		if (esScale < 0)
 		    fprintf(esSpiceF, "%g", w * scale);
 		else if (plist->parm_scale != 1.0)
-		    fprintf(esSpiceF, "%g", w * scale * esScale
+		    fprintf(esSpiceF, "%g", (double)w * scale * esScale
 				* plist->parm_scale * 1E-6);
 		else
 		    esSIvalue(esSpiceF, 1.0E-6 * (w + plist->parm_offset)
@@ -321,8 +321,8 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		if (esScale < 0)
 		    fprintf(esSpiceF, "%g", dev->dev_rect.r_xbot * scale);
 		else if (plist->parm_scale != 1.0)
-		    fprintf(esSpiceF, "%g", dev->dev_rect.r_xbot * scale
-				* esScale * plist->parm_scale * 1E-6);
+		    fprintf(esSpiceF, "%g", (double)dev->dev_rect.r_xbot * (double)scale
+				* (double)esScale * (double)plist->parm_scale * 1E-6);
 		else
 		    esSIvalue(esSpiceF, (dev->dev_rect.r_xbot + plist->parm_offset)
 				* scale * esScale * 1.0E-6);
@@ -332,8 +332,8 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
 		if (esScale < 0)
 		    fprintf(esSpiceF, "%g", dev->dev_rect.r_ybot * scale);
 		else if (plist->parm_scale != 1.0)
-		    fprintf(esSpiceF, "%g", dev->dev_rect.r_ybot * scale
-				* esScale * plist->parm_scale * 1E-6);
+		    fprintf(esSpiceF, "%g", (double)dev->dev_rect.r_ybot * (double)scale
+				* (double)esScale * (double)plist->parm_scale * 1E-6);
 		else
 		    esSIvalue(esSpiceF, (dev->dev_rect.r_ybot + plist->parm_offset)
 				* scale * esScale * 1.0E-6);
@@ -1409,7 +1409,7 @@ spcnodeHierVisit(hc, node, res, cap)
     hierName = (HierName *) node->efnode_name->efnn_hier;
     nsn = nodeSpiceHierName(hc, hierName);
 
-    if (esFormat == SPICE2 || esFormat == HSPICE && !strncmp(nsn, "z@", 2)) {
+    if (esFormat == SPICE2 || (esFormat == HSPICE && !strncmp(nsn, "z@", 2))) {
 	static char ntmp[MAX_STR_SIZE];
 
 	EFHNSprintf(ntmp, hierName);
@@ -1816,8 +1816,8 @@ esMakePorts(hc, cdata)
 		/* matches a use.  If not, then check if the part	*/
 		/* the last opening bracket matches a known use.	*/
 
-		aptr = strrchr(portname, '[');
 		*tptr = '\0';
+		aptr = strrchr(portname, '[');
 		is_array = FALSE;
 		if (aptr != NULL)
 		{
@@ -1874,11 +1874,13 @@ esMakePorts(hc, cdata)
 			{
 			    nn->efnn_node->efnode_flags |= EF_PORT;
 			    nn->efnn_port = -1;	// Will be sorted later
-			}
 
-			// Diagnostic
-			// TxPrintf("Port connection in %s from net %s to net %s (%s)\n",
-			//	def->def_name, locname, name, portname);
+			    // Diagnostic
+			    /* TxPrintf("Port connection in %s from net %s to "
+			     *		"net %s (%s)\n",
+			     *		def->def_name, locname, name, portname);
+			     */
+			}
 		    }
 
 		    /* Propagate the EF_SUBS_PORT flag */

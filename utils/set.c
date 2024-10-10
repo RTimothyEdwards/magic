@@ -101,7 +101,7 @@ SetNoisyBool(parm,valueS,file)
     char *valueS;
     FILE *file;
 {
-    int n, which, result;
+    int n, which, result = -2;
 
     /* Bool string Table */
     static struct
@@ -109,15 +109,15 @@ SetNoisyBool(parm,valueS,file)
 	char	*bS_name;	/* name */
 	bool    bS_value;	/* procedure processing this parameter */
     } boolStrings[] = {
-	"yes",		TRUE,
-	"no",		FALSE,
-	"true",		TRUE,
-	"false",	FALSE,
-	"1",		TRUE,
-	"0",		FALSE,
-	"on",		TRUE,
-	"off",		FALSE,
-	0
+	{"yes",		TRUE},
+	{"no",		FALSE},
+	{"true",	TRUE},
+	{"false",	FALSE},
+	{"1",		TRUE},
+	{"0",		FALSE},
+	{"on",		TRUE},
+	{"off",		FALSE},
+	{0}
     };
 
     /* If value not null, set parm */
@@ -145,13 +145,17 @@ SetNoisyBool(parm,valueS,file)
 	}
 	else
 	{
-	    TxError("Unrecognized boolean value: \"%s\"\n", valueS);
-	    TxError("Valid values are:  ");
-	    for (n = 0; boolStrings[n].bS_name; n++)
-		TxError(" %s", boolStrings[n].bS_name);
-	    TxError("\n");
 	    result = -2;
 	}
+    }
+
+    if (result == -2)
+    {
+	TxError("Unrecognized boolean value: \"%s\"\n", valueS);
+	TxError("Valid values are:  ");
+	for (n = 0; boolStrings[n].bS_name; n++)
+	    TxError(" %s", boolStrings[n].bS_name);
+	TxError("\n");
     }
 
     /* Print parm value */

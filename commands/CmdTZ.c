@@ -415,10 +415,12 @@ CmdTech(w, cmd)
 
 	    for (ctype = TT_TECHDEPBASE; ctype < DBNumUserLayers; ctype++)
 		if (DBIsContact(ctype))
+		{
 		    if (TTMaskHasType(&DBActiveLayerBits, ctype))
 			DBUnlockContact(ctype);
 		    else
 			DBLockContact(ctype);
+		}
 
 	    for (ctype = DBNumUserLayers; ctype < DBNumTypes; ctype++)
 	    {
@@ -981,7 +983,7 @@ CmdWhat(w, cmd)
     if (EditCellUse == NULL)
     {
 	editNull = TRUE;
-	EditCellUse = w->w_surfaceID;
+	EditCellUse = (CellUse *)w->w_surfaceID;
     }
 
     /* Find all the selected paint and print out the layer names. */

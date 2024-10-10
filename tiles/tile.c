@@ -57,7 +57,7 @@ TiSetBody(tp, b)
  * this area.
  */
 
-global Rect TiPlaneRect = { MINFINITY+2, MINFINITY+2, INFINITY-2, INFINITY-2 };
+global Rect TiPlaneRect = { {MINFINITY+2, MINFINITY+2}, {INFINITY-2, INFINITY-2} };
 
 #ifdef HAVE_SYS_MMAN_H
 

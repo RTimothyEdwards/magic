@@ -70,28 +70,28 @@ TileTypeBitMask DBTechActiveLayerBits;	/* Layers marked locked in the techfile *
 /* Table of default, builtin planes */
 DefaultPlane dbTechDefaultPlanes[] =
 {
-    PL_ROUTER,		"router",
-    PL_DRC_ERROR,	"designRuleError",
-    PL_DRC_CHECK,	"designRuleCheck",
-    PL_M_HINT,		"mhint",
-    PL_F_HINT,		"fhint",
-    PL_R_HINT,		"rhint",
-    0,			0,	0
+    {PL_ROUTER,		"router"},
+    {PL_DRC_ERROR,	"designRuleError"},
+    {PL_DRC_CHECK,	"designRuleCheck"},
+    {PL_M_HINT,		"mhint"},
+    {PL_F_HINT,		"fhint"},
+    {PL_R_HINT,		"rhint"},
+    {0,			NULL}
 };
 
 /* Table of default, builtin types */
 DefaultType dbTechDefaultTypes[] =
 {
-    TT_SPACE,		-1,		"space",		FALSE,
-    TT_CHECKPAINT,	PL_DRC_CHECK,	"checkpaint,CP",	FALSE,
-    TT_CHECKSUBCELL,	PL_DRC_CHECK,	"checksubcell,CS",	FALSE,
-    TT_ERROR_P,		PL_DRC_ERROR,	"error_p,EP",		FALSE,
-    TT_ERROR_S,		PL_DRC_ERROR,	"error_s,ES",		FALSE,
-    TT_ERROR_PS,	PL_DRC_ERROR,	"error_ps,EPS",		FALSE,
-    TT_MAGNET,		PL_M_HINT,	"magnet,mag",		TRUE,
-    TT_FENCE,		PL_F_HINT,	"fence,f",		TRUE,
-    TT_ROTATE,		PL_R_HINT,	"rotate,r",		TRUE,
-    0,			0,		NULL,			0
+    {TT_SPACE,		-1,		"space",		FALSE},
+    {TT_CHECKPAINT,	PL_DRC_CHECK,	"checkpaint,CP",	FALSE},
+    {TT_CHECKSUBCELL,	PL_DRC_CHECK,	"checksubcell,CS",	FALSE},
+    {TT_ERROR_P,	PL_DRC_ERROR,	"error_p,EP",		FALSE},
+    {TT_ERROR_S,	PL_DRC_ERROR,	"error_s,ES",		FALSE},
+    {TT_ERROR_PS,	PL_DRC_ERROR,	"error_ps,EPS",		FALSE},
+    {TT_MAGNET,		PL_M_HINT,	"magnet,mag",		TRUE},
+    {TT_FENCE,		PL_F_HINT,	"fence,f",		TRUE},
+    {TT_ROTATE,		PL_R_HINT,	"rotate,r",		TRUE},
+    {0,			0,		NULL,			0}
 };
 
 /* Forward declarations */

@@ -46,7 +46,7 @@ int dbDRCDebug = 0;
 
 static DRCCookie drcOverlapCookie = {
     0, 0, 0, 0,
-    { 0 }, { 0 },
+    { {0} }, { {0} },
     0, 0, 0,
     DRC_OVERLAP_TAG,
     (DRCCookie *) NULL
@@ -176,7 +176,7 @@ areaCheck(tile, arg)
 	unsigned int i;
 	int sqx, sqy;
 	int sdist = arg->dCD_radial & 0xfff;
-	long sstest, ssdist = sdist * sdist;
+	long sstest, ssdist = (long) sdist * sdist;
 
 	if ((arg->dCD_radial & RADIAL_NW) != 0)
 	{
@@ -692,9 +692,15 @@ drcTile (tile, arg)
 			cptr->drcc_dist++;
 
 		    if (cptr->drcc_flags & DRC_REVERSE)
+		    {
 			mrd = drcCanonicalMaxwidth(tpleft, GEO_WEST, arg, cptr);
+			triggered = 0;
+		    }
 		    else if (firsttile)
+		    {
 			mrd = drcCanonicalMaxwidth(tile, GEO_EAST, arg, cptr);
+			triggered = 0;
+		    }
 		    if (!trigpending || (DRCCurStyle->DRCFlags
 				& DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE))
 			cptr->drcc_dist--;
@@ -1089,9 +1095,15 @@ drcTile (tile, arg)
 			cptr->drcc_dist++;
 
 		    if (cptr->drcc_flags & DRC_REVERSE)
+		    {
 			mrd = drcCanonicalMaxwidth(tpbot, GEO_SOUTH, arg, cptr);
+			triggered = 0;
+		    }
 		    else if (firsttile)
+		    {
 			mrd = drcCanonicalMaxwidth(tile, GEO_NORTH, arg, cptr);
+			triggered = 0;
+		    }
 		    if (!trigpending || (DRCCurStyle->DRCFlags
 				& DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE))
 			cptr->drcc_dist--;

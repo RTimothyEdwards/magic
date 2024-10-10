@@ -1076,7 +1076,7 @@ areaCifCheck(tile, arg)
 	unsigned int i;
 	int sqx, sqy;
 	int sdist = arg->dCD_radial & 0xfff;
-	long sstest, ssdist = sdist * sdist;
+	long sstest, ssdist = (long) sdist * sdist;
 
 	if ((arg->dCD_radial & RADIAL_NW) != 0)
 	{
@@ -1184,7 +1184,7 @@ drcCifArea(argc, argv)
     DRCCookie *dpnext, *dpnew;
     TileType i, j;
     int plane;
-    int	thislayer;
+    int	thislayer = -1;
     int scalefactor;
 
     if (drcCifStyle == NULL)
@@ -1246,7 +1246,7 @@ drcCifMaxwidth(argc, argv)
     TileType i, j;
     int plane;
     int bend;
-    int thislayer;
+    int thislayer = -1;
     int scalefactor;
 
     if (drcCifStyle == NULL)
