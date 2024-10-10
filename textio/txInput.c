@@ -105,11 +105,11 @@ char *magic_direction_list[] = {
 #define DIRECT_COMPL  10
 
 /* Can only accommodate 32 arg options, increase as necessary */
-static struct cmd_spec {
-  char *cmd;
+static const struct cmd_spec {
+  const char *cmd;
   int   type;
   char *args[32];
-} magic_cmd_spec[] = {
+} const magic_cmd_spec[] = {
   { "", COMMAND_COMPL, {(char *)NULL} },
   { "help", COMMAND_COMPL, {(char *)NULL} },
 
@@ -595,13 +595,13 @@ magic_completion_function(char *text, int start, int end)
 		strcat(line, " ");
 	}
 
-	entry = LookupStructFull(line, (char **)&magic_cmd_spec,
+	entry = LookupStructFull(line, (const char * const *)&magic_cmd_spec,
 		sizeof(struct cmd_spec));
 
 	if (entry == -1 && num_tokens >= 1)
 	{
 	    sprintf(line, "%s*", tokens[0]);
-	    entry = LookupStructFull(line, (char **)&magic_cmd_spec,
+	    entry = LookupStructFull(line, (const char * const *)&magic_cmd_spec,
 			sizeof(struct cmd_spec));
 	}
 
