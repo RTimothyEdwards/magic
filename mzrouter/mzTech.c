@@ -812,7 +812,7 @@ mzTechSpacing(argc, argv)
     char *s;
 
     /* Subcell Table */
-    static struct
+    static const struct
     {
 	char	*sT_name;	/* name of value */
 	int     sT_value;	/* corresponding interger value */
@@ -849,7 +849,7 @@ mzTechSpacing(argc, argv)
 	    /* if not a real type, check to see if "SUBCELL" */
 	    which = LookupStruct(
 		argv[argI],
-		(LookupTable *) subcellTable,
+		(const LookupTable *) subcellTable,
 		sizeof subcellTable[0]);
 	    if ( which>= 0)
 	        tileType = TT_SUBCELL;

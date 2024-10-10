@@ -52,12 +52,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* Subcommand table - declared here since its referenced before defined */
 typedef struct
 {
-    char	*sC_name;	/* name of iroute subcommand */
+    const char	*sC_name;	/* name of iroute subcommand */
     void	(*sC_proc)();	/* Procedure implementing this subcommand */
-    char 	*sC_commentString;
-    char	*sC_usage;
+    const char 	*sC_commentString;
+    const char	*sC_usage;
 } TestCmdTableE;
-extern TestCmdTableE irTestCommands[];
+extern const TestCmdTableE irTestCommands[];
 
 
 /*
@@ -154,7 +154,7 @@ irHelpTstCmd(w, cmd)
 	/* Lookup subcommand in table, and printed associated help info */
 	which = LookupStruct(
 	    cmd->tx_argv[2],
-	    (char **) irTestCommands,
+	    (const LookupTable *) irTestCommands,
 	    sizeof irTestCommands[0]);
 
         /* Process result of lookup */
@@ -219,7 +219,7 @@ irParmsTstCmd(w, cmd)
 }
 
 /*--------------------------- Command Table ------------------------------ */
-TestCmdTableE irTestCommands[] = {
+const TestCmdTableE irTestCommands[] = {
     {"debug",	irDebugTstCmd,
     "set or clear debug flags",
     "debug [flag] [value]"},
@@ -284,7 +284,7 @@ IRTest(w, cmd)
 	/* Lookup subcommand in table */
 	which = LookupStruct(
 	    cmd->tx_argv[1],
-	    (char **) irTestCommands,
+	    (const LookupTable *) irTestCommands,
 	    sizeof irTestCommands[0]);
 
         /* Process result of lookup */

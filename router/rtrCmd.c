@@ -267,9 +267,9 @@ CmdGaRoute(w, cmd)
     int n, chanType;
     Rect editArea;
     FILE *f;
-    static struct
+    static const struct
     {
-	char	*cmd_name;
+	const char *cmd_name;
 	cmdType	 cmd_val;
     } cmds[] = {
 	{"channel xl yl xh yh [type]\n\
@@ -290,7 +290,7 @@ channel	[type]		define a channel",			CHANNEL},
     if (cmd->tx_argc == 1)
 	goto doRoute;
 
-    n = LookupStruct(cmd->tx_argv[1], (LookupTable *) cmds, sizeof cmds[0]);
+    n = LookupStruct(cmd->tx_argv[1], (const LookupTable *) cmds, sizeof cmds[0]);
     if (n < 0)
     {
 	if (n == -1)

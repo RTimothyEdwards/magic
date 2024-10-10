@@ -89,14 +89,14 @@ typedef enum
 
 typedef struct
 {
-    char	*k_name;
+    const char	*k_name;
     int		 k_key;
     int		 k_minargs;
     int		 k_maxargs;
-    char	*k_usage;
+    const char	*k_usage;
 } keydesc;
 
-static keydesc keyTable[] = {
+static const keydesc keyTable[] = {
     {"areacap",		AREAC,		3,	3,
 "types capacitance"},
 
@@ -202,7 +202,7 @@ static keydesc keyTable[] = {
 
 /* types are enumerated in extract.h */
 
-static keydesc devTable[] = {
+static const keydesc devTable[] = {
     {"mosfet",		DEV_MOSFET,		5,	10,
 "name gate-types src-types [drn-types] sub-types|None sub-node [gscap gccap]"},
 
@@ -1954,7 +1954,7 @@ ExtTechLine(sectionName, argc, argv)
     TileTypeBitMask near, far, ov, shield, subsTypes, idTypes;
     char *subsName, *transName, *cp, *endptr, *paramName;
     TileType s, t, r, o;
-    keydesc *kp, *dv;
+    const keydesc *kp, *dv;
     bool isLinear;
     HashEntry *he;
     EdgeCap *cnew;
@@ -1973,7 +1973,7 @@ ExtTechLine(sectionName, argc, argv)
 	return (TRUE);
     }
 
-    n = LookupStruct(argv[0], (LookupTable *) keyTable, sizeof keyTable[0]);
+    n = LookupStruct(argv[0], (const LookupTable *) keyTable, sizeof keyTable[0]);
     if (n < 0)
     {
 	TechError("Illegal keyword.  Legal keywords are:\n\t");
@@ -2343,7 +2343,7 @@ ExtTechLine(sectionName, argc, argv)
 
 	    /* Parse second argument for device type */
 
-	    n = LookupStruct(argv[1], (LookupTable *)devTable, sizeof devTable[0]);
+	    n = LookupStruct(argv[1], (const LookupTable *)devTable, sizeof devTable[0]);
 	    if (n < 0)
 	    {
 		TechError("Illegal device.  Legal devices are:\n\t");
