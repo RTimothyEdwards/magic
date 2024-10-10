@@ -82,8 +82,8 @@ windBorderCmd(w, cmd)
 {
     int place;
     bool value;
-    static char *onoff[] = {"on", "off", 0};
-    static bool truth[] = {TRUE, FALSE};
+    static const char * const onoff[] = {"on", "off", 0};
+    static const bool truth[] = {TRUE, FALSE};
 
     if (cmd->tx_argc > 2) goto usage;
     else if (cmd->tx_argc == 1)
@@ -97,7 +97,8 @@ windBorderCmd(w, cmd)
 	value = (w->w_flags & WIND_BORDER) ? 0 : 1;
 
 #ifdef MAGIC_WRAPPER
-	Tcl_SetResult(magicinterp, onoff[value], TCL_STATIC);
+        /* this cast to remove const is ok, TCL_STATIC conveys the storage handling of this string */
+	Tcl_SetResult(magicinterp, (char *)onoff[value], TCL_STATIC);
 #else
 	TxPrintf("Window border is %s\n", onoff[value]);
 #endif
@@ -151,8 +152,8 @@ windCaptionCmd(w, cmd)
 {
     int place;
     Rect ts;
-    static char *onoff[] = {"on", "off", 0};
-    static bool truth[] = {TRUE, FALSE};
+    static const char * const onoff[] = {"on", "off", 0};
+    static const bool truth[] = {TRUE, FALSE};
 
     if (cmd->tx_argc > 2) goto usage;
     else if (cmd->tx_argc == 1)
@@ -903,7 +904,7 @@ windLogCommandsCmd(w, cmd)
     unsigned char flags = 0;
     int idx = LOG_CMD_STOP;
 
-    static char *logKeywords[] = {"start", "stop", "update", "suspend", "resume", 0};
+    static const char * const logKeywords[] = {"start", "stop", "update", "suspend", "resume", 0};
 
     if ((cmd->tx_argc < 1) || (cmd->tx_argc > 3)) goto usage;
 
