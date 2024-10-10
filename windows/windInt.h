@@ -36,7 +36,7 @@ typedef struct WIND_S3 {
     bool (*w_exit)();
     void (*w_reposition)();	/* called when a window moves or changes size */
     GrGlyph *w_icon;
-    char **w_commandTable;
+    const char * const *w_commandTable;
     void (**w_functionTable)();
     struct WIND_S3 *w_nextClient;
 } clientRec;

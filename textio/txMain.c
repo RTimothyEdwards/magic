@@ -104,7 +104,7 @@ void
 TxInitReadline()
 {
     int i, j;
-    char **commandTable;
+    const char * const *commandTable;
     char nobell[] = "set bell-style none";
 
     rl_getc_function = TxGetChar;

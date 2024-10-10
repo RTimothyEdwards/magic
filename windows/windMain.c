@@ -260,8 +260,9 @@ WindAddClient(clientName, create, delete, redisplay, command, update,
     /* Commands and functions should be registered with the client */
     /* using the WindAddCommand() function.			   */
 
-    res->w_commandTable = (char **)mallocMagic(sizeof(char *));
-    *(res->w_commandTable) = NULL;
+    const char **newtable = (const char **)mallocMagic(sizeof(char *));
+    newtable[0] = NULL;
+    res->w_commandTable = newtable;
     res->w_functionTable = (void (**)())mallocMagic(sizeof(void (*)()));
     *(res->w_functionTable) = NULL;
 
@@ -406,7 +407,7 @@ WindExecute(w, rc, cmd)
 {
     int cmdNum;
     clientRec *client = (clientRec *) rc;
-    char **commandTable = client->w_commandTable;
+    const char * const *commandTable = client->w_commandTable;
     void (**functionTable)() = client->w_functionTable;
 
     if (cmd->tx_argc > 0)
@@ -452,9 +453,9 @@ WindAddCommand(rc, text, func, dynamic)
 {
     int cidx, numCommands = 0;
     clientRec *client = (clientRec *) rc;
-    char **commandTable = client->w_commandTable;
+    const char * const *commandTable = client->w_commandTable;
     void (**functionTable)() = client->w_functionTable;
-    char **newcmdTable;
+    const char **newcmdTable;
     void (**newfnTable)();
 
     /* Find the number of commands and functions, increment by one, and */
@@ -463,7 +464,7 @@ WindAddCommand(rc, text, func, dynamic)
     while (commandTable[numCommands] != NULL) numCommands++;
     numCommands++;
 
-    newcmdTable = (char **)mallocMagic((numCommands + 1) * sizeof(char *));
+    newcmdTable = (const char **)mallocMagic((numCommands + 1) * sizeof(char *));
     newfnTable = (void (**)())mallocMagic((numCommands + 1) * sizeof(void (*)()));
 
     /* Copy the old values, inserting the new command in alphabetical	*/
@@ -493,7 +494,7 @@ WindAddCommand(rc, text, func, dynamic)
     /* Release memory for the original pointers, and replace the	*/
     /* pointers in the client record.					*/
 
-    freeMagic(commandTable);
+    freeMagic((void*)commandTable);
     freeMagic(functionTable);
 
     client->w_commandTable = newcmdTable;
@@ -534,7 +535,7 @@ WindReplaceCommand(rc, command, newfunc)
 {
     int cidx, clen;
     clientRec *client = (clientRec *) rc;
-    char **commandTable = client->w_commandTable;
+    const char * const *commandTable = client->w_commandTable;
     void (**functionTable)() = client->w_functionTable;
 
     clen = strlen(command);
@@ -569,7 +570,7 @@ WindReplaceCommand(rc, command, newfunc)
  * ----------------------------------------------------------------------------
  */
 
-char **
+const char * const *
 WindGetCommandTable(rc)
     WindClient rc;
 {
