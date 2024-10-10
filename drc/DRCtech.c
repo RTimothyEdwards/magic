@@ -826,7 +826,14 @@ DRCTechLine(sectionName, argc, argv)
 
     if (DRCStyleList == NULL)
     {
-	char *locargv[2] = {"style", "default"};
+	char bufargv[2][10];
+	char *locargv[2];
+
+	strcpy(bufargv[0], "style");
+	strcpy(bufargv[1], "default");
+
+	locargv[0] = bufargv[0];
+	locargv[1] = bufargv[1];
 
 	if (DRCTechLine(sectionName, 2, locargv) == FALSE)
 	    return FALSE;
