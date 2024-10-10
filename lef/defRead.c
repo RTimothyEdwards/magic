@@ -95,6 +95,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
     bool valid = FALSE;		/* is there a valid reference point? */
     bool initial = TRUE;
     bool labeled = TRUE;
+    bool iscontact = FALSE;
     Rect locarea, r;
     int extend, lextend, hextend;
     float x, y, z, w;
@@ -151,6 +152,9 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 
 	    /* invalidate reference point */
 	    valid = FALSE;
+
+	    /* assume this is not a via unless found otherwise */
+	    iscontact = FALSE;
 
 	    token = LefNextToken(f, TRUE);
 
@@ -453,6 +457,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		    newRoute->r_r.r_xtop >>= 1;
 		    newRoute->r_r.r_ytop >>= 1;
 
+		    iscontact = TRUE;
 		}
 		else if ((paintLayer = DBTechNameType(LefLower(token))) >= 0)
 		{
@@ -476,7 +481,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		/* This is absolutely impossible to make consistent	*/
 		/* with the DEF	spec, but there you have it. . .	*/
 
-		if (DBIsContact(paintLayer))
+		if (iscontact || (DBIsContact(paintLayer)))
 		{
 		    TileTypeBitMask *rMask = DBResidueMask(paintLayer);
 		    TileType stype;
@@ -493,15 +498,30 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 					DBTypeLongNameTbl[stype]);
 				*/
 				routeLayer = stype;
+
 				lefl = defLayerMap[routeLayer].lefInfo;
+
+				/* Get correct rule for nondefault rules */
+				if (ruleset)
+				{
+				    for (rule = ruleset->rule; rule; rule = rule->next)
+					if (rule->lefInfo == lefl)
+					    break;
+				}
+				else
+				    rule = NULL;
+
 				if (special)
 				    paintWidth = saveWidth;
 				else
-				    paintWidth = (lefl) ? lefl->info.route.width
-					: DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+				    paintWidth = (rule) ? rule->width :
+					(lefl) ? lefl->info.route.width :
+					DEFAULT_WIDTH * DBLambda[1] / DBLambda[0];
+
 				paintExtend = (special) ? 0 : paintWidth;
 				break;
 			    }
+		    iscontact = FALSE;
 		}
 	    }
 	    else
@@ -1337,7 +1357,7 @@ DefReadLocation(use, f, oscale, tptr, noplace)
 	    char *propval;
 	    bool found;
 
-	    propval = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+	    propval = (char *)DBPropGet(use->cu_def, "FIXED_BBOX", &found);
 	    if (found)
 	    {
 		if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,

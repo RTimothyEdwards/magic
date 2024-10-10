@@ -283,7 +283,7 @@ DBCellDelete(cellname, force)
     /* so that WindUnload() will create a new one.			*/
 
     if (!strcmp(cellname, UNNAMED))
-	DBCellRename(cellname, "__UNNAMED__");
+	DBCellRename(cellname, "__UNNAMED__", FALSE);
 
     /* For all top-level cell uses, check if any windows have this	*/
     /* use.  If so, load the window with (UNNAMED).			*/
@@ -1121,11 +1121,13 @@ DBUsePrint(CellName, who, dolist)
 	celldef = DBCellLookDef(CellName);
 	*lasthier = '/';
     }
-    else
+    else if (EditCellUse != NULL)
     {
 	/* Referenced cellDef is the current edit def */
 	celldef = EditCellUse->cu_def;
     }
+    else
+	return;
 
     switch (who)
     {
@@ -1307,7 +1309,7 @@ DBLockUse(UseName, bval)
 	while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
 	{
 	    celldef = (CellDef *) HashGetValue(entry);
-	    if (celldef != (CellDef *) NULL)
+	    if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
 	    {
 		celluse = celldef->cd_parents;   /* only need one */
 		if (celluse != (CellUse *)NULL) {
@@ -1386,7 +1388,7 @@ DBOrientUse(UseName, dodef)
 	while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
 	{
 	    celldef = (CellDef *) HashGetValue(entry);
-	    if (celldef != (CellDef *) NULL)
+	    if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
 	    {
 		celluse = celldef->cd_parents;   /* only need one */
 		if (celluse != (CellUse *)NULL) {
@@ -1549,7 +1551,7 @@ DBAbutmentUse(UseName, dolist)
 	while( (entry = HashNext(&dbCellDefTable, &hs)) != NULL)
 	{
 	    celldef = (CellDef *) HashGetValue(entry);
-	    if (celldef != (CellDef *) NULL)
+	    if ((celldef != (CellDef *)NULL) && !(celldef->cd_flags & CDINTERNAL))
 	    {
 		celluse = celldef->cd_parents;   /* only need one */
 		if (celluse != (CellUse *)NULL) {
@@ -1601,7 +1603,7 @@ dbAbutmentUseFunc(selUse, use, transform, data)
     }
 
     trans = &use->cu_transform;
-    propvalue = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+    propvalue = (char *)DBPropGet(use->cu_def, "FIXED_BBOX", &found);
     if (!found)
 	bbox = use->cu_def->cd_bbox;
     else
@@ -1698,7 +1700,7 @@ DBCellNewDef(cellName)
 	cellName = UNNAMED;
 
     entry = HashFind(&dbCellDefTable, cellName);
-    if (HashGetValue(entry) != (ClientData) NULL)
+    if (HashGetValue(entry) != NULL)
 	return ((CellDef *) NULL);
 
     cellDef = DBCellDefAlloc();
@@ -1859,7 +1861,7 @@ DBCellRenameDef(cellDef, newName)
     ASSERT(HashGetValue(oldEntry) == (ClientData) cellDef, "DBCellRenameDef");
 
     newEntry = HashFind(&dbCellDefTable, newName);
-    if (HashGetValue(newEntry) != (ClientData) NULL)
+    if (HashGetValue(newEntry) != NULL)
 	return (FALSE);
 
     HashSetValue(oldEntry, (ClientData) NULL);
@@ -2294,8 +2296,14 @@ DBFindUse(id, parentDef)
     he = HashLookOnly(&parentDef->cd_idHash, id);
     if (delimit != NULL) *delimit = '[';
     if (he == NULL)
-	return (CellUse *) NULL;
+    {
+	/* Try again without ignoring the delimiter */
+	if (delimit != NULL)
+	    he = HashLookOnly(&parentDef->cd_idHash, id);
 
+	if (he == NULL)
+	    return (CellUse *) NULL;
+    }
     return (CellUse *) HashGetValue(he);
 }
 
@@ -2501,7 +2509,7 @@ DBUnLinkCell(use, parentDef)
 {
     HashEntry *he;
 
-    if (he = HashLookOnly(&parentDef->cd_idHash, use->cu_id))
+    if ((he = HashLookOnly(&parentDef->cd_idHash, use->cu_id)))
 	HashSetValue(he, (ClientData) NULL);
 }
 
@@ -2519,7 +2527,7 @@ DBUnLinkCell(use, parentDef)
  * Side effects:
  *	Fills in *pydef with a newly created CellDef by that name, and
  *	*pyuse with a newly created CellUse pointing to the new def.
- *	The CellDef pointed to by *pydef has the CD_INTERNAL flag
+ *	The CellDef pointed to by *pydef has the CDINTERNAL flag
  *	set, and is marked as being available.
  *
  * ----------------------------------------------------------------------------

@@ -29,6 +29,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header$";
 #include "utils/hash.h"
 #include "database/database.h"
 #include "extract/extract.h"
+#include "extract/extractInt.h"
 #include "utils/tech.h"
 #include "utils/utils.h"
 #include "utils/malloc.h"
@@ -186,7 +187,7 @@ lefFileOpen(def, file, suffix, mode, prealfile)
     else
 	ends++;
 
-    if (endp = strrchr(ends, '.'))
+    if ((endp = strrchr(ends, '.')))
     {
 	if (strcmp(endp, suffix))
 	{
@@ -299,7 +300,7 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
 
     HashStartSearch(&hs);
     nprops = 0;
-    while (he = HashNext(propTable, &hs))
+    while ((he = HashNext(propTable, &hs)))
     {
 	if (nprops == 0) fprintf(f, "PROPERTYDEFINITIONS\n");
 	nprops++;
@@ -311,7 +312,7 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
     if (nprops > 0) fprintf(f, "END PROPERTYDEFINITIONS\n\n");
 
     HashStartSearch(&hs);
-    while (he = HashNext(siteTable, &hs))
+    while ((he = HashNext(siteTable, &hs)))
     {
 	/* Output the SITE as a macro */
 	CellDef *siteDef;
@@ -373,7 +374,7 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
 	float oscale = CIFGetOutputScale(1000);	/* lambda->micron conversion */
 
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (!lefl) continue;
@@ -435,7 +436,7 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
 
 	/* Return reference counts to normal */
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (lefl && lefl->refCnt < 0)
@@ -1135,7 +1136,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
     SearchContext scx;
     CellDef *lefFlatDef;
     CellUse lefFlatUse, lefSourceUse;
-    TileTypeBitMask lmask, boundmask, *lrmask, gatetypemask, difftypemask;
+    TileTypeBitMask lmask, wmask, boundmask, *lrmask, gatetypemask, difftypemask;
     TileType ttype;
     lefClient lc;
     int idx, pNum, pTop, maxport, curport;
@@ -1206,6 +1207,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
     TTMaskZero(&lc.rmask);
     TTMaskZero(&boundmask);
     TTMaskZero(&lmask);
+    TTMaskZero(&wmask);
     pmask = 0;
 
     /* Any layer which has a port label attached to it should by	*/
@@ -1217,7 +1219,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    TTMaskSetType(&lc.rmask, lab->lab_type);
 
     HashStartSearch(&hs);
-    while (he = HashNext(&LefInfo, &hs))
+    while ((he = HashNext(&LefInfo, &hs)))
     {
 	lefLayer *lefl = (lefLayer *)HashGetValue(he);
 	if (lefl && (lefl->lefClass == CLASS_ROUTE || lefl->lefClass == CLASS_VIA
@@ -1233,6 +1235,17 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		}
 		if ((lefl->lefClass == CLASS_ROUTE) && (lefl->obsType != -1))
 		    TTMaskSetType(&lmask, lefl->type);
+		else if (lefl->lefClass == CLASS_MASTER)
+		{
+		    /* This is something of a hack. . .  Record MASTERSLICE layers
+		     * that are not substrate (e.g., "nwell" but not "pwell").  These
+		     * will be used to paint obstructions on the plane of the
+		     * masterslice layer.  There may be better solutions to this.
+		     */
+		    if (ExtCurStyle != NULL)
+			if (!TTMaskHasType(&ExtCurStyle->exts_globSubstrateTypes, lefl->type))
+			    TTMaskSetType(&wmask, lefl->type);
+		}
 	    }
 	    if (lefl->obsType != -1)
 		TTMaskSetType(&lc.rmask, lefl->obsType);
@@ -1455,7 +1468,8 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    // Check for net names to ignore for antenna checks.
 	    if (!ignored)
 		for (lnn = lefIgnoreNets; lnn; lnn = lnn->lnn_next)
-		    if (!strcmp(lnn->lnn_name, lab->lab_text))
+		    if (!strcmp(lnn->lnn_name, lab->lab_text) ||
+				!strcmp(lnn->lnn_name, "*"))
 			ignored = TRUE;
 
 	    if (!ignored || (setback != 0))
@@ -1496,6 +1510,11 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		Rect carea;
 		labelLinkedList *newlll;
 
+		/* SelectClear() requires SelectRootDef be non-NULL, although
+		 * this might be an error in SelectClear(), since SelectClear()
+		 * clears the selection, not the source.
+		 */
+		if (SelectRootDef == NULL) SelectRootDef = lefFlatDef;
 	    	SelectClear();
 		if (pinonly == 0)
 		    carea = labr;
@@ -1572,8 +1591,10 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		/* disappear by being inside the setback area.		    */
 
 		pNum = DBPlane(lab->lab_type);
-		DBPaintPlane(SelectDef->cd_planes[pNum], &labr,
-			DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
+		if (pNum >= 0) // ignore labels in space
+		    DBPaintPlane(SelectDef->cd_planes[pNum], &labr,
+				DBStdPaintTbl(lab->lab_type, pNum),
+				(PaintUndoInfo *) NULL);
 	    }
 	    else
 	    {
@@ -1588,8 +1609,10 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 		    /* disappear by being inside the setback area.		*/
 
 		    pNum = DBPlane(lab->lab_type);
-		    DBPaintPlane(SelectDef->cd_planes[pNum], &labr,
-			    DBStdPaintTbl(lab->lab_type, pNum), (PaintUndoInfo *) NULL);
+		    if (pNum >= 0) // ignore labels in space
+			DBPaintPlane(SelectDef->cd_planes[pNum], &labr,
+				DBStdPaintTbl(lab->lab_type, pNum),
+				(PaintUndoInfo *) NULL);
 		}
 	    }
 
@@ -1767,7 +1790,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
     lc.lastType = TT_SPACE;
     lc.needHeader = FALSE;
 
-    /* Restrict to routing planes only */
+    /* Restrict to routing and masterslice planes only */
 
     if (setback >= 0)
     {
@@ -1810,7 +1833,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 	    manualBound = GeoNullRect;
 
 	for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
-	    if (TTMaskHasType(&lmask, ttype))
+	    if (TTMaskHasType(&lmask, ttype) || TTMaskHasType(&wmask, ttype))
 	    {
 		Rect r;
 		layerBound.r_xbot = layerBound.r_xtop = 0;
@@ -2160,7 +2183,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefPinOnly, lefTopLayer,
     bool recurse;
 {
     HashTable propHashTbl, siteHashTbl;
-    CellDef *def, *rootdef;
+    CellDef *def, *rootdef, *err_def;
     FILE *f;
     char *filename;
     float scale = CIFGetOutputScale(1000);	/* conversion to microns */
@@ -2168,9 +2191,11 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefPinOnly, lefTopLayer,
     rootdef = rootUse->cu_def;
 
     /* Make sure the entire subtree is read in */
-    if (DBCellReadArea(rootUse, &rootdef->cd_bbox, TRUE))
+    err_def = DBCellReadArea(rootUse, &rootdef->cd_bbox, TRUE);
+    if (err_def != NULL)
     {
 	TxError("Could not read entire subtree of the cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return;
     }
 
@@ -2222,7 +2247,7 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefPinOnly, lefTopLayer,
     HashKill(&propHashTbl);
     HashKill(&siteHashTbl);
 
-    while (def = (CellDef *) StackPop(lefDefStack))
+    while ((def = (CellDef *) StackPop(lefDefStack)))
     {
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)

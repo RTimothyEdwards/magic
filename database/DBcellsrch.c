@@ -92,7 +92,7 @@ DBSrCellPlaneArea(BPlane *plane, Rect *rect, int (*func)(), ClientData arg)
     bpe = (BPEnum *)mallocMagic(sizeof(BPEnum));
     BPEnumInit(bpe, plane, rect, BPE_OVERLAP, "DBSrCellPlaneArea");
 
-    while (use = BPEnumNext(bpe))
+    while ((use = BPEnumNext(bpe)))
     {
 	if ((*func)(use, arg))
 	{
@@ -1621,7 +1621,7 @@ dbTileScaleFunc(tile, scvals)
     if ((targetRect.r_xtop - targetRect.r_xbot == 0) ||
 		(targetRect.r_ytop - targetRect.r_ybot == 0))
     {
-	TxPrintf("Tile 0x%x at (%d, %d) has zero area after scaling:  Removed.\n",
+	TxPrintf("Tile %p at (%d, %d) has zero area after scaling:  Removed.\n",
 		tile, targetRect.r_xbot, targetRect.r_ybot);
 	return 0;
     }
@@ -2241,7 +2241,7 @@ DBMoveCell(cellDef, origx, origy)
 	newplane = DBNewPlane((ClientData) TT_SPACE);
 	DBClearPaintPlane(newplane);
 	if (dbMovePlane(cellDef->cd_planes[pNum], newplane, pNum,
-		origx, origy, FALSE))
+		origx, origy))
 	    cellDef->cd_flags |= (CDMODIFIED | CDGETNEWSTAMP);
         DBFreePaintPlane(cellDef->cd_planes[pNum]);
 	TiFreePlane(cellDef->cd_planes[pNum]);

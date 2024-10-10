@@ -478,7 +478,7 @@ int pixsize;
 {
 	Point *tp;
 	int np, nptotal;
-	int i, j;
+	int i, j = 0;
 	static int maxnp = 0;
 	FontChar *ccur;
 

@@ -128,7 +128,7 @@ void BPAdd(BPlane *bp, void *element)
 	 "BPAdd, attempted during active enumerations");
 
   /* element rect must be canonical! */
-#ifdef PARANOID
+#ifdef BPARANOID
   ASSERT(GeoIsCanonicalRect(r),"BPAdd, rect must be canonical.");
 #endif
 
@@ -262,7 +262,7 @@ Rect BPBBox(BPlane *bp)
     e = BPEnumNext(&bpe);
     bp->bp_bbox = e->e_rect;
 
-    while(e = BPEnumNext(&bpe))
+    while((e = BPEnumNext(&bpe)))
     {
       GeoIncludeRectInBBox(&e->e_rect, &bp->bp_bbox);
     }

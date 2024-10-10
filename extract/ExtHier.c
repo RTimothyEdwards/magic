@@ -737,7 +737,7 @@ extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
     if (ExtOptions & EXT_DOCOUPLING)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&oneFlat->et_coupleHash, &hs))
+	while ((he = HashNext(&oneFlat->et_coupleHash, &hs)))
 	{
 	    ckpOne = ((CoupleKey *) he->h_key.h_words);
 
@@ -828,7 +828,7 @@ extOutputConns(table, outf)
     HashEntry *he;
 
     HashStartSearch(&hs);
-    while (he = HashNext(table, &hs))
+    while ((he = HashNext(table, &hs)))
     {
 	nfirst = (NodeName *) HashGetValue(he);
 
@@ -838,7 +838,7 @@ extOutputConns(table, outf)
 	 * for a node appearing earlier in the table.  If so, we need
 	 * only free the NodeName without any further processing.
 	 */
-	if (node = nfirst->nn_node)
+	if ((node = nfirst->nn_node))
 	{
 	    /*
 	     * If there are N names for this node, output N-1 merge lines.
@@ -848,13 +848,13 @@ extOutputConns(table, outf)
 	    /* Note 3/1/2017:  Cap value no longer used */
 	    c = (node->node_cap) / ExtCurStyle->exts_capScale;
 	    nn = node->node_names;
-	    if (nnext = nn->nn_next)
+	    if ((nnext = nn->nn_next))
 	    {
 		/* First merge */
 		fprintf(outf, "merge \"%s\" \"%s\" %lg",
 				nn->nn_name, nnext->nn_name, c);
 		for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
-		    fprintf(outf, " %d %d",
+		    fprintf(outf, " %"DLONG_PREFIX"d %d",
 				node->node_pa[n].pa_area,
 				node->node_pa[n].pa_perim);
 		fprintf(outf, "\n");
@@ -862,7 +862,7 @@ extOutputConns(table, outf)
 		nn->nn_node = (Node *) NULL;		/* Processed */
 
 		/* Subsequent merges */
-		for (nn = nnext; nnext = nn->nn_next; nn = nnext)
+		for (nn = nnext; (nnext = nn->nn_next); nn = nnext)
 		{
 		    fprintf(outf, "merge \"%s\" \"%s\"\n",
 				    nn->nn_name, nnext->nn_name);

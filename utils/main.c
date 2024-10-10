@@ -25,6 +25,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include <sys/types.h>
 #include <sys/times.h>
@@ -1164,7 +1165,7 @@ mainInitFinal()
 
     if (mainRecover && MakeMainWindow)
     {
-	DBFileRecovery();
+	DBFileRecovery(NULL); /* automatic search most recent */
     }
 
     /*
@@ -1188,10 +1189,10 @@ mainInitFinal()
 		    break;
 #ifdef LEF_MODULE
 		case FN_LEF_FILE:
-		    LefRead(temporary->fn, FALSE, FALSE);
+		    LefRead(temporary->fn, FALSE, FALSE, -1);
 		    break;
 		case FN_DEF_FILE:
-		    DefRead(temporary->fn, FALSE);
+		    DefRead(temporary->fn, FALSE, FALSE, FALSE);
 		    break;
 #endif
 #ifdef MAGIC_WRAPPER

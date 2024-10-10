@@ -567,6 +567,9 @@ BinArray *bpBinArrayBuild(Rect bbox,
   int numBins;
   int count;
 
+  /* Added by Tim, 2/19/2024 */
+  /* This line is not supposed to be needed? */
+  if ((!subbin) && ((pointertype)elements & BT_ARRAY)) return NULL;
 
   if(BPD) DumpRect("#### bpBinArrayBuild, TOP bbox= ", &bbox);
 

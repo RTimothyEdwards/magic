@@ -37,12 +37,12 @@
 
 GLubyte 	**grOGLStipples;
 HashTable	grOGLWindowTable;
-Display 	*grXdpy;
+extern Display 	*grXdpy; /* grX11thread.c */
 GLXContext	grXcontext;
-int		grXscrn;
-int		pipeRead, pipeWrite;
-int		Xhelper;
-Visual		*grVisual;
+extern int	grXscrn; /* grX11su1.c */
+extern int	pipeRead, pipeWrite; /* grX11su1.c */
+extern int	Xhelper; /* grX11su1.c */
+extern Visual	*grVisual; /* grX11su1.c */
 
 #ifdef HAVE_PTHREADS
 extern int writePipe;
@@ -375,7 +375,7 @@ glTransYs(int wy)
  * Set the OpenGL viewport (projection matrix) for the current window
  *----------------------------------------------------------------------
  */
-int
+void
 oglSetProjection(llx, lly, width, height)
     int llx, lly, width, height;
 {
@@ -434,7 +434,7 @@ pipehandler()
 	int 		key;
 	XKeyPressedEvent *KeyPressedEvent = (XKeyPressedEvent *) &xevent;
 
-	entry = HashLookOnly(&grOGLWindowTable, KeyPressedEvent->window);
+	entry = HashLookOnly(&grOGLWindowTable, (char *)KeyPressedEvent->window);
 	mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
 
 	event = TxNewEvent();
@@ -457,7 +457,7 @@ pipehandler()
 
 	XButtonEvent *ButtonEvent = (XButtonEvent *) &xevent;
 
-	entry = HashLookOnly(&grOGLWindowTable, ButtonEvent->window);
+	entry = HashLookOnly(&grOGLWindowTable, (char *)ButtonEvent->window);
 	mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
 
 	event = TxNewEvent();
@@ -504,7 +504,7 @@ pipehandler()
 	width = ConfigureEvent->width;
 	height = ConfigureEvent->height;
 
-	entry = HashLookOnly(&grOGLWindowTable, ConfigureEvent->window);
+	entry = HashLookOnly(&grOGLWindowTable, (char *)ConfigureEvent->window);
 	mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
 
 	screenRect.r_xbot = ConfigureEvent->x;
@@ -525,7 +525,7 @@ pipehandler()
 	case VisibilityNotify:		{
 	    XVisibilityEvent *VisEvent = (XVisibilityEvent*) &xevent;
 
-	    entry = HashLookOnly(&grOGLWindowTable, VisEvent->window);
+	    entry = HashLookOnly(&grOGLWindowTable, (char *)VisEvent->window);
 	    mw = (entry)?(MagWindow *)HashGetValue(entry):0;
 
 	    switch(VisEvent->state)
@@ -555,8 +555,10 @@ pipehandler()
 	XEvent		discard;
 	XExposeEvent	*ExposeEvent = (XExposeEvent*) &xevent;
 
-	entry = HashLookOnly(&grOGLWindowTable, ExposeEvent->window);
+	entry = HashLookOnly(&grOGLWindowTable, (char *)ExposeEvent->window);
 	mw = (entry) ? (MagWindow *)HashGetValue(entry) : 0;
+	if (!mw)
+	    break;
 
 	screenRect.r_xbot = ExposeEvent->x;
 	screenRect.r_xtop = ExposeEvent->x + ExposeEvent->width;
@@ -584,7 +586,7 @@ pipehandler()
 
    	XAnyEvent 	*AnyEvent = (XAnyEvent *) &xevent;
 
-	entry = HashLookOnly(&grOGLWindowTable, AnyEvent->window);
+	entry = HashLookOnly(&grOGLWindowTable, (char *)AnyEvent->window);
 	mw = (entry)?(MagWindow *)HashGetValue(entry):0;
 
 	SigDisableInterrupts();
@@ -718,14 +720,16 @@ oglSetDisplay (dispType, outFileName, mouseFileName)
     grSetCharSizePtr = groglSetCharSize;
     grFillPolygonPtr = groglFillPolygon;
 
-    if (execFailed) {
+    if (execFailed)
+    {
         TxError("Execution failed!\n");
         return FALSE;
     }
 
     TxAdd1InputDevice(fileno(stdin), grOGLWStdin, (ClientData) NULL);
 
-    if(!GrOGLInit()){
+    if (!GrOGLInit())
+    {
 	return FALSE;
     }
     GrScreenRect.r_xbot = 0;
@@ -848,7 +852,7 @@ GrOGLCreate(w, name)
         glXMakeCurrent(grXdpy, (GLXDrawable)wind, grXcontext);
 
 	w->w_grdata = (ClientData) wind;
-	entry = HashFind(&grOGLWindowTable, wind);
+	entry = HashFind(&grOGLWindowTable, (char *)wind);
 	HashSetValue(entry,w);
 	XDefineCursor(grXdpy, wind, oglCurrent.cursor);
    	GrOGLIconUpdate(w, w->w_caption);
@@ -910,7 +914,7 @@ GrOGLDelete(w)
     HashEntry	*entry;
 
     xw = (Window) w->w_grdata;
-    entry = HashLookOnly(&grOGLWindowTable,xw);
+    entry = HashLookOnly(&grOGLWindowTable, (char *)xw);
     HashSetValue(entry,NULL);
 
     XDestroyWindow(grXdpy, xw);

@@ -942,7 +942,7 @@ SelectShort(char *lab1, char *lab2)
     /* Make sure the selection is clear before starting */
 
     SelectClear();
-    ttype = CmdFindNetProc(lab1, use, &rect, FALSE);
+    ttype = CmdFindNetProc(lab1, use, &rect, FALSE, NULL);
     if (ttype == TT_SPACE) return NULL;
 
     bzero(&scx, sizeof(SearchContext));
@@ -997,7 +997,7 @@ SelectShort(char *lab1, char *lab2)
 	}
     }
 
-    selShortFindForward(srctile, srctype, srcpnum, desttile, desttype);
+    selShortFindForward(srctile, srctype, srcpnum, desttile/*, desttype*/);
 
     /* Now see if destination has been counted */
     if (desttile->ti_client == (ClientData)CLIENTDEFAULT) return NULL;
@@ -1942,6 +1942,8 @@ selStretchFillFunc3(tile, area)
 	else if (selStretchY < 0)
 	    type = (SplitDirection(tile) ? SplitLeftType(tile) :
 			SplitRightType(tile));
+	else
+	    type = TT_SPACE;
 	if (type == TT_SPACE) return 0;   /* nothing to stretch */
     }
     else

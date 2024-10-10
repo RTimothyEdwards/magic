@@ -17,8 +17,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>		/* for atof() */
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <math.h>		/* for fabs() */
 
@@ -168,8 +170,8 @@ esFormatSubs(outf, suf)
     if (outf)
     {
 	l = strlen(suf) - 1;
-	if ((EFOutputFlags & EF_TRIMGLOB ) && suf[l] == '!' ||
-	         (EFOutputFlags & EF_TRIMLOCAL) && suf[l] == '#')
+	if (((EFOutputFlags & EF_TRIMGLOB ) && suf[l] == '!') ||
+	         ((EFOutputFlags & EF_TRIMLOCAL) && suf[l] == '#'))
 	    suf[l] = '\0' ;
 	if (EFOutputFlags & EF_CONVERTCOMMA)
 	    while ((specchar = strchr(suf, ',')) != NULL)
@@ -840,7 +842,7 @@ runexttospice:
     inName = EFArgs(argc, argv, &err_result, spcParseArgs, (ClientData) NULL);
     if (err_result == TRUE)
     {
-	EFDone();
+	EFDone(NULL);
 	return;
     }
 
@@ -875,9 +877,10 @@ runexttospice:
 	sprintf(spcesDefaultOut, "%s.spice", inName);
 
     /* Read the hierarchical description of the input circuit */
-    if (EFReadFile(inName, TRUE, esDoExtResis, FALSE, TRUE) == FALSE)
+    if (EFReadFile(inName, esDoHierarchy, esDoExtResis, FALSE, TRUE)
+		== FALSE)
     {
-	EFDone();
+	EFDone(NULL);
         return;
     }
 
@@ -893,7 +896,7 @@ runexttospice:
 #else
 	TxError("exttospice: Unable to open file %s for writing\n", spcesOutName);
 #endif
-	EFDone();
+	EFDone(NULL);
         return;
     }
 
@@ -1586,7 +1589,7 @@ subcktVisit(use, hierName, is_top)
 	/* generated during topVisit().				*/
 
     	HashStartSearch(&hs);
-    	while (he = HashNext(&def->def_nodes, &hs))
+	while ((he = HashNext(&def->def_nodes, &hs)))
     	{
 	    sname = (EFNodeName *) HashGetValue(he);
 	    if (sname == NULL) continue;
@@ -1617,7 +1620,7 @@ subcktVisit(use, hierName, is_top)
 	    nodeList[portidx] = (EFNodeName *)NULL;
 
     	HashStartSearch(&hs);
-    	while (he = HashNext(&def->def_nodes, &hs))
+	while ((he = HashNext(&def->def_nodes, &hs)))
     	{
 	    sname = (EFNodeName *) HashGetValue(he);
 	    if (sname == NULL) continue;
@@ -1808,13 +1811,16 @@ topVisit(def, doStub)
     HashStartSearch(&hs);
     portmax = -1;
 
-    while (he = HashNext(&def->def_nodes, &hs))
+    while ((he = HashNext(&def->def_nodes, &hs)))
     {
 	sname = (EFNodeName *) HashGetValue(he);
 	if (sname == NULL) continue;
 	snode = sname->efnn_node;
 	if ((!snode) || (!(snode->efnode_flags & EF_PORT))) continue;
         explicit = FALSE;
+	portorder = snode->efnode_name->efnn_port;
+	if (portorder > portmax) portmax = portorder;
+	if (portorder != -1) explicit = TRUE;
 	for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	{
 	    portorder = nodeName->efnn_port;
@@ -1854,7 +1860,7 @@ topVisit(def, doStub)
 	sorted_ports[portorder] = NULL;
 
     HashStartSearch(&hs);
-    while (he = HashNext(&def->def_nodes, &hs))
+    while ((he = HashNext(&def->def_nodes, &hs)))
     {
 	char stmp[MAX_STR_SIZE];
 	int portidx;
@@ -2006,8 +2012,8 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		    if (esScale < 0)
 			fprintf(esSpiceF, "%g", parmval * scale * scale);
 		    else if (plist->parm_scale != 1.0)
-			fprintf(esSpiceF, "%g", parmval * scale * scale
-				* esScale * esScale * plist->parm_scale
+			fprintf(esSpiceF, "%g", (double)parmval * (double)scale * (double)scale
+				* (double)esScale * (double)esScale * plist->parm_scale
 				* 1E-12);
 		    else
 			esSIvalue(esSpiceF, 1.0E-12 * (parmval + plist->parm_offset)
@@ -2073,7 +2079,7 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		    if (esScale < 0)
 			fprintf(esSpiceF, "%g", parmval * scale);
 		    else if (plist->parm_scale != 1.0)
-			fprintf(esSpiceF, "%g", parmval * scale
+			fprintf(esSpiceF, "%g", (double)parmval * scale
 				* esScale * plist->parm_scale * 1E-6);
 		    else
 			esSIvalue(esSpiceF, 1.0E-12 * (parmval + plist->parm_offset)
@@ -2137,7 +2143,7 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		    if (esScale < 0)
 			fprintf(esSpiceF, "%g", l * scale);
 		    else if (plist->parm_scale != 1.0)
-			fprintf(esSpiceF, "%g", l * scale * esScale
+			fprintf(esSpiceF, "%g", (double)l * scale * esScale
 				* plist->parm_scale * 1E-6);
 		    else
 			esSIvalue(esSpiceF, 1.0E-6 * (l + plist->parm_offset)
@@ -2161,7 +2167,7 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 				if (esScale < 0)
 				    fprintf(esSpiceF, "%g", dval * scale);
 				else if (plist->parm_scale != 1.0)
-				    fprintf(esSpiceF, "%g", dval * scale * esScale
+				    fprintf(esSpiceF, "%g", (double)dval * scale * esScale
 						* plist->parm_scale * 1E-6);
 				else
 				    esSIvalue(esSpiceF, (dval + plist->parm_offset)
@@ -2179,7 +2185,7 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		if (esScale < 0)
 		    fprintf(esSpiceF, "%g", w * scale);
 		else if (plist->parm_scale != 1.0)
-		    fprintf(esSpiceF, "%g", w * scale * esScale
+		    fprintf(esSpiceF, "%g", (double)w * scale * esScale
 				* plist->parm_scale * 1E-6);
 		else
 		    esSIvalue(esSpiceF, 1.0E-6 * (w + plist->parm_offset)
@@ -2196,7 +2202,7 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		if (esScale < 0)
 		    fprintf(esSpiceF, "%g", dev->dev_rect.r_xbot * scale);
 		else if (plist->parm_scale != 1.0)
-		    fprintf(esSpiceF, "%g", dev->dev_rect.r_xbot * scale
+		    fprintf(esSpiceF, "%g", (double)dev->dev_rect.r_xbot * scale
 				* esScale * plist->parm_scale * 1E-6);
 		else
 		    esSIvalue(esSpiceF, (dev->dev_rect.r_xbot + plist->parm_offset)
@@ -2207,8 +2213,8 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		if (esScale < 0)
 		    fprintf(esSpiceF, "%g", dev->dev_rect.r_ybot * scale);
 		else if (plist->parm_scale != 1.0)
-		    fprintf(esSpiceF, "%g", dev->dev_rect.r_ybot * scale
-				* esScale * plist->parm_scale * 1E-6);
+		    fprintf(esSpiceF, "%g", (double)dev->dev_rect.r_ybot * (double)scale
+				* (double)esScale * plist->parm_scale * 1E-6);
 		else
 		    esSIvalue(esSpiceF, (dev->dev_rect.r_ybot + plist->parm_offset)
 				* scale * esScale * 1.0E-6);
@@ -3647,7 +3653,7 @@ spcnodeVisit(node, res, cap)
     hierName = (HierName *) node->efnode_name->efnn_hier;
     nsn = nodeSpiceName(hierName, NULL);
 
-    if (esFormat == SPICE2 || esFormat == HSPICE && strncmp(nsn, "z@", 2)==0 ) {
+    if (esFormat == SPICE2 || (esFormat == HSPICE && strncmp(nsn, "z@", 2)==0 )) {
 	static char ntmp[MAX_STR_SIZE];
 
 	EFHNSprintf(ntmp, hierName);
@@ -3695,7 +3701,7 @@ nodeVisitDebug(node, res, cap)
 
     hierName = (HierName *) node->efnode_name->efnn_hier;
     nsn = nodeSpiceName(hierName, NULL);
-    TxError("** %s (%x)\n", nsn, node);
+    TxError("** %s (%lx)\n", nsn, (intmax_t) node);
 
     printf("\t client.name=%s, client.m_w=%p\n",
     ((nodeClient *)node->efnode_client)->spiceNodeName,
@@ -3800,7 +3806,7 @@ EFHNSprintf(str, hierName)
 	convertComma = (EFOutputFlags & EF_CONVERTCOMMA);
 	convertEqual = (EFOutputFlags & EF_CONVERTEQUAL);
 	convertBrackets = (EFOutputFlags & EF_CONVERTBRACKETS);
-	while (c = *cp++)
+	while ((c = *cp++))
 	{
 	    switch (c)
 	    {

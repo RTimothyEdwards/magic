@@ -226,7 +226,10 @@ for {set i 0} {$i < $argc} {incr i 1} {
 
 if {$do_wrapper} {
   source ${CAD_ROOT}/magic/tcl/wrapper.tcl
-  lappend argafter "-nowindow" ;# Set no-initial-window option in magic.
+  # Set the no-initial-window option in magic.  Do *not* append it, as the
+  # arguments may have a Tcl script, for which all following arguments are
+  # considered arguments of the script.
+  set argafter [linsert $argafter 1 -nowindow]
 }
 unset x i do_wrapper
 if {[catch {eval $argafter}]}  {		;# magic::initialize ${argv}

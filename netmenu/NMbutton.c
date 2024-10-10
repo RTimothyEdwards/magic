@@ -79,7 +79,7 @@ NMButtonNetList(window, cmd, nmButton, point)
     else
     {
 	TxPrintf("New net list name: ");
-	if (TxGetLine(newName, MAXLENGTH) == NULL) newName[0] == 0;
+	if (TxGetLine(newName, MAXLENGTH) == NULL) newName[0] = 0;
 	if (newName[0] == 0) return;
 	NMNewNetlist(newName);
     }

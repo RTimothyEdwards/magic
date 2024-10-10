@@ -319,7 +319,7 @@ efVisitDevs(hc, ca)
     /* Visit our own devices */
 
     HashStartSearch(&hs);
-    while (he = HashNext(&def->def_devs, &hs))
+    while ((he = HashNext(&def->def_devs, &hs)))
     {
 	dev = (Dev *)HashGetValue(he);
 	if (efDevKilled(dev, hc->hc_hierName))
@@ -624,7 +624,7 @@ EFVisitCaps(capProc, cdata)
     EFCapValue cap;
 
     HashStartSearch(&hs);
-    while (he = HashNext(&efCapHashTable, &hs))
+    while ((he = HashNext(&efCapHashTable, &hs)))
     {
 	cap = CapHashGetValue(he);
 	ck = (EFCoupleKey *) he->h_key.h_words;
@@ -789,7 +789,7 @@ EFNodeResist(node)
 	    if (v < 0.0) s = 0.0; else s = sqrt(v);
 
 	    fperim = (float) perim;
-	    dresist = (fperim + s)/(fperim - s) * efResists[n];
+	    dresist = ((double)fperim + (double)s)/((double)fperim - (double)s) * efResists[n];
 	    if (dresist + (double) resist > (double) INT_MAX)
 		resist = INT_MAX;
 	    else
@@ -878,7 +878,7 @@ EFHNOut(hierName, outf)
 	trimLocal = (EFOutputFlags & EF_TRIMLOCAL);
 	convComma = (EFOutputFlags & EF_CONVERTCOMMA);
 	convBrackets = (EFOutputFlags & EF_CONVERTBRACKETS);
-	while (c = *cp++)
+	while ((c = *cp++))
 	{
 	    if (*cp)
 	    {
@@ -894,9 +894,16 @@ EFHNOut(hierName, outf)
 	    }
 	    else switch (c)
 	    {
-		case '!':	if (!trimGlob) (void) putc(c, outf); break;
-		case '#':	if (trimLocal) break;
-		default:	(void) putc(c, outf); break;
+		case '!':
+		    if (!trimGlob)
+			(void) putc(c, outf);
+		    break;
+		case '#':
+		    if (trimLocal)
+			break;
+		default:
+		    (void) putc(c, outf);
+		    break;
 	    }
 	}
     }
@@ -914,7 +921,7 @@ efHNOutPrefix(hierName, outf)
 	efHNOutPrefix(hierName->hn_parent, outf);
 
     cp = hierName->hn_name;
-    while (c = *cp++)
+    while ((c = *cp++))
 	putc(c, outf);
     putc('/', outf);
 }

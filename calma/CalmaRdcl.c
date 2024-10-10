@@ -351,7 +351,7 @@ calmaParseStructure(filename)
     char *filename;		/* Name of the GDS file read */
 {
     static int structs[] = { CALMA_STRCLASS, CALMA_STRTYPE, -1 };
-    int nbytes, rtype, nsrefs, osrefs, npaths;
+    int nbytes = -1, rtype = 0, nsrefs, osrefs, npaths;
     char *strname = NULL;
     HashEntry *he;
     int timestampval = 0;

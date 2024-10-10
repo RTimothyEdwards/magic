@@ -260,7 +260,7 @@ dbUndoSplitForw(us)
 {
     /* Create internal fracture */
     if (dbUndoLastCell == NULL) return;
-    DBSplitTile(dbUndoLastCell->cd_planes[us->sue_plane], &us->sue_point,
+    DBSplitTile(dbUndoLastCell->cd_planes[(unsigned char)us->sue_plane], &us->sue_point,
 		us->sue_splitx);
 }
 
@@ -276,7 +276,7 @@ dbUndoSplitBack(us)
     srect.r_ur.p_y = us->sue_point.p_y + 1;
 
     /* Remove internal fracture and restore original split tile */
-    DBMergeNMTiles0(dbUndoLastCell->cd_planes[us->sue_plane], &srect,
+    DBMergeNMTiles0(dbUndoLastCell->cd_planes[(unsigned char)us->sue_plane], &srect,
 		(PaintUndoInfo *)NULL, TRUE);
 }
 
@@ -314,20 +314,20 @@ dbUndoPaintForw(up)
 	loctype = (up->pue_oldtype & TT_LEFTMASK);
 	dinfo = TT_DIAGONAL | (up->pue_oldtype & TT_DIRECTION);
 
-	DBNMPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane],
-		dinfo, &up->pue_rect, DBStdEraseTbl(loctype, up->pue_plane),
+	DBNMPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane],
+		dinfo, &up->pue_rect, DBStdEraseTbl(loctype, (unsigned char)up->pue_plane),
 		(PaintUndoInfo *) NULL);
 
 	loctype = (up->pue_oldtype & TT_RIGHTMASK) >> 14;
 	dinfo |= TT_SIDE;
 
-	DBNMPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane],
-		dinfo, &up->pue_rect, DBStdEraseTbl(loctype, up->pue_plane),
+	DBNMPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane],
+		dinfo, &up->pue_rect, DBStdEraseTbl(loctype, (unsigned char)up->pue_plane),
 		(PaintUndoInfo *) NULL);
     }
     else
-	DBPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane], &up->pue_rect,
-			DBStdEraseTbl(up->pue_oldtype, up->pue_plane),
+	DBPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane], &up->pue_rect,
+			DBStdEraseTbl(up->pue_oldtype, (unsigned char)up->pue_plane),
 			(PaintUndoInfo *) NULL);
 
     if (up->pue_newtype & TT_DIAGONAL)
@@ -335,20 +335,20 @@ dbUndoPaintForw(up)
 	loctype = (up->pue_newtype & TT_LEFTMASK);
 	dinfo = TT_DIAGONAL | (up->pue_newtype & TT_DIRECTION);
 
-	DBNMPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane],
-		dinfo, &up->pue_rect, DBStdPaintTbl(loctype, up->pue_plane),
+	DBNMPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane],
+		dinfo, &up->pue_rect, DBStdPaintTbl(loctype, (unsigned char)up->pue_plane),
 		(PaintUndoInfo *) NULL);
 
 	loctype = (up->pue_newtype & TT_RIGHTMASK) >> 14;
 	dinfo |= TT_SIDE;
 
-	DBNMPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane],
-		dinfo, &up->pue_rect, DBStdPaintTbl(loctype, up->pue_plane),
+	DBNMPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane],
+		dinfo, &up->pue_rect, DBStdPaintTbl(loctype, (unsigned char)up->pue_plane),
 		(PaintUndoInfo *) NULL);
     }
     else
-	DBPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane], &up->pue_rect,
-			DBStdPaintTbl(up->pue_newtype, up->pue_plane),
+	DBPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane], &up->pue_rect,
+			DBStdPaintTbl(up->pue_newtype, (unsigned char)up->pue_plane),
 			(PaintUndoInfo *) NULL);
 endPaintFor:
     dbUndoUndid = TRUE;
@@ -368,20 +368,20 @@ dbUndoPaintBack(up)
 	loctype = (up->pue_newtype & TT_LEFTMASK);
 	dinfo = TT_DIAGONAL | (up->pue_newtype & TT_DIRECTION);
 
-	DBNMPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane],
-		dinfo, &up->pue_rect, DBStdEraseTbl(loctype, up->pue_plane),
+	DBNMPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane],
+		dinfo, &up->pue_rect, DBStdEraseTbl(loctype, (unsigned char)up->pue_plane),
 		(PaintUndoInfo *) NULL);
 
 	loctype = (up->pue_newtype & TT_RIGHTMASK) >> 14;
 	dinfo |= TT_SIDE;
 
-	DBNMPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane],
-		dinfo, &up->pue_rect, DBStdEraseTbl(loctype, up->pue_plane),
+	DBNMPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane],
+		dinfo, &up->pue_rect, DBStdEraseTbl(loctype, (unsigned char)up->pue_plane),
 		(PaintUndoInfo *) NULL);
     }
     else
-	DBPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane], &up->pue_rect,
-			DBStdEraseTbl(up->pue_newtype, up->pue_plane),
+	DBPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane], &up->pue_rect,
+			DBStdEraseTbl(up->pue_newtype, (unsigned char)up->pue_plane),
 			(PaintUndoInfo *) NULL);
 
     if (up->pue_oldtype & TT_DIAGONAL)
@@ -389,23 +389,23 @@ dbUndoPaintBack(up)
 	loctype = (up->pue_oldtype & TT_LEFTMASK);
 	dinfo = TT_DIAGONAL | (up->pue_oldtype & TT_DIRECTION);
 
-	DBNMPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane], dinfo,
-		&up->pue_rect, DBStdPaintTbl(loctype, up->pue_plane),
+	DBNMPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane], dinfo,
+		&up->pue_rect, DBStdPaintTbl(loctype, (unsigned char)up->pue_plane),
 		(PaintUndoInfo *) NULL);
 
 	loctype = (up->pue_oldtype & TT_RIGHTMASK) >> 14;
 	dinfo |= TT_SIDE;
 
-	DBNMPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane], dinfo,
-		&up->pue_rect, DBStdPaintTbl(loctype, up->pue_plane),
+	DBNMPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane], dinfo,
+		&up->pue_rect, DBStdPaintTbl(loctype, (unsigned char)up->pue_plane),
 		(PaintUndoInfo *) NULL);
 
-	DBMergeNMTiles0(dbUndoLastCell->cd_planes[up->pue_plane],
+	DBMergeNMTiles0(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane],
 		&up->pue_rect, (PaintUndoInfo *)NULL, TRUE);
     }
     else
-	DBPaintPlane(dbUndoLastCell->cd_planes[up->pue_plane], &up->pue_rect,
-			DBStdPaintTbl(up->pue_oldtype, up->pue_plane),
+	DBPaintPlane(dbUndoLastCell->cd_planes[(unsigned char)up->pue_plane], &up->pue_rect,
+			DBStdPaintTbl(up->pue_oldtype, (unsigned char)up->pue_plane),
 			(PaintUndoInfo *) NULL);
 
 endPaintBack:
@@ -788,9 +788,11 @@ dbUndoCellBack(up)
 	    break;
         case UNDO_CELL_PLACE:
 	    use = findUse(up, TRUE);
-	    DBUnLinkCell(use, up->cue_parent);
-	    DBDeleteCell(use);
-	    (void) DBCellDeleteUse(use);
+	    if (use) {
+		DBUnLinkCell(use, up->cue_parent);
+		DBDeleteCell(use);
+		(void) DBCellDeleteUse(use);
+	    }
 	    DBReComputeBbox(up->cue_parent);
 	    DBWAreaChanged(up->cue_parent, &up->cue_bbox, DBW_ALLWINDOWS,
 		(TileTypeBitMask *) NULL);
@@ -804,9 +806,11 @@ dbUndoCellBack(up)
 	 */
         case UNDO_CELL_CLRID:
 	    use = findUse(up, FALSE);	/* Find it with a NULL id */
-	    (void) DBReLinkCell(use, up->cue_id);
-	    DBWAreaChanged(up->cue_parent, &up->cue_bbox,
-		(int) ~use->cu_expandMask, &DBAllButSpaceBits);
+	    if (use) {
+		(void) DBReLinkCell(use, up->cue_id);
+		DBWAreaChanged(up->cue_parent, &up->cue_bbox,
+			(int) ~use->cu_expandMask, &DBAllButSpaceBits);
+	    }
 	    break;
 	/*
 	 * The following is a hack.
@@ -817,16 +821,20 @@ dbUndoCellBack(up)
 	 */
 	case UNDO_CELL_SETID:
 	    use = findUse(up, TRUE);	/* Find it with current id */
-	    DBUnLinkCell(use, up->cue_parent);
-	    freeMagic(use->cu_id);
-	    use->cu_id = (char *) NULL;
+	    if (use) {
+		DBUnLinkCell(use, up->cue_parent);
+		freeMagic(use->cu_id);
+		use->cu_id = (char *) NULL;
+	    }
 	    break;
 
 	case UNDO_CELL_LOCKDOWN:
 	    use = findUse(up, TRUE);
-	    use->cu_flags = up->cue_flags;
-	    DBWAreaChanged(up->cue_parent, &up->cue_bbox,
+	    if (use) {
+		use->cu_flags = up->cue_flags;
+		DBWAreaChanged(up->cue_parent, &up->cue_bbox,
 			(int) ~use->cu_expandMask, &DBAllButSpaceBits);
+	    }
 	    break;
     }
 }

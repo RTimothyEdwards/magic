@@ -305,7 +305,7 @@ bpEnumNextBin(BPEnum *bpe, bool inside)
 {
   BPStack *bps = bpe->bpe_top;
 
-#ifdef PARANOID
+#ifdef BPARANOID
   ASSERT(bps,"bpEnumNextBin");
   ASSERT(!bpe->bpe_nextElement,"bpEnumNextBin");
 #endif
@@ -506,23 +506,23 @@ static __inline__ void *BPEnumNext(BPEnum *bpe)
     switch (bpe->bpe_top->bps_state)
     {
     case BPS_BINS:
-      if(e=bpEnumNextBINS(bpe, 0)) return e;
+      if((e=bpEnumNextBINS(bpe, 0))) return e;
       break;
 
     case BPS_BINS_INSIDE:
-      if(e=bpEnumNextBINS(bpe, 1)) return e;
+      if((e=bpEnumNextBINS(bpe, 1))) return e;
       break;
 
     case BPS_INBOX:
-      if(e=bpEnumNextINBOX(bpe, 0)) return e;
+      if((e=bpEnumNextINBOX(bpe, 0))) return e;
       break;
 
     case BPS_INBOX_INSIDE:
-      if(e=bpEnumNextINBOX(bpe, 1)) return e;
+      if((e=bpEnumNextINBOX(bpe, 1))) return e;
       break;
 
     case BPS_HASH:
-      if(e=bpEnumNextHASH(bpe)) return e;
+      if((e=bpEnumNextHASH(bpe))) return e;
       break;
 
     case BPS_DONE:

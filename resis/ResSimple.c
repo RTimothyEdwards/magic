@@ -198,8 +198,8 @@ ResSimplifyNet(nodelist, biglist, reslist, tolerance)
 	     * Break loop here. More than one driver indicates a loop;
 	     * remove deadend, allowing drivers to be merged
 	     */
-	    else if (UnMarkedReceivers == 0 && (MarkedReceivers == 1 &&
-		    NumberOfDrivers > 1 || resistor2 != resistor1))
+	    else if (UnMarkedReceivers == 0 && ((MarkedReceivers == 1 &&
+		    NumberOfDrivers > 1) || resistor2 != resistor1))
 
 	    {
 		otherNode->rn_float.rn_area += resistor1->rr_float.rr_area;
@@ -1036,7 +1036,7 @@ ResSetPathRes()
     }
     if (ResOriginNode == NULL)
     {
-     	resDevice *res = ResGetDevice(gparams.rg_devloc);
+	resDevice *res = ResGetDevice(gparams.rg_devloc, gparams.rg_ttype);
 	ResOriginNode = res->rd_fet_source;
 	ResOriginNode->rn_why = RES_NODE_ORIGIN;
 	ResOriginNode->rn_noderes = 0;

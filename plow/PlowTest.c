@@ -105,28 +105,28 @@ struct
     pCmd  p_cmd;
     char *p_help;
 } plowCmds[] = {
-    "clrdebug",		PC_CLRD,	"flags",
-    "help",		PC_HELP,	"",
-    "jogreduce",	PC_JOG,		"",
-    "lwidth",		PC_LWIDTH,	"layers",
-    "lshadow",		PC_LSHADOW,	"layers",
-    "mergedown",	PC_MERGEDOWN,	"",
-    "mergeup",		PC_MERGEUP,	"",
-    "move",		PC_MOVE,	"",
-    "outline",		PC_OUTLINE,	"direction layers",
-    "plow",		PC_PLOW,	"direction [layers]",
-    "print",		PC_PRINT,	"",
-    "random",		PC_RANDOM,	"",
-    "setdebug",		PC_SETD,	"flags",
-    "shadow",		PC_SHADOW,	"layers",
-    "showdebug",	PC_SHOWD,	"",
-    "split",		PC_SPLIT,	"",
-    "techshow",		PC_TECHSHOW,	"[file]",
-    "trail",		PC_TRAIL,	"[value]",
-    "whenbot",		PC_WHENBOT,	"[xbot ybot]",
-    "whentop",		PC_WHENTOP,	"[xtop ytop]",
-    "width",		PC_WIDTH,	"layers",
-    0,
+    {"clrdebug",	PC_CLRD,	"flags"},
+    {"help",		PC_HELP,	""},
+    {"jogreduce",	PC_JOG,		""},
+    {"lwidth",		PC_LWIDTH,	"layers"},
+    {"lshadow",		PC_LSHADOW,	"layers"},
+    {"mergedown",	PC_MERGEDOWN,	""},
+    {"mergeup",		PC_MERGEUP,	""},
+    {"move",		PC_MOVE,	""},
+    {"outline",		PC_OUTLINE,	"direction layers"},
+    {"plow",		PC_PLOW,	"direction [layers]"},
+    {"print",		PC_PRINT,	""},
+    {"random",		PC_RANDOM,	""},
+    {"setdebug",	PC_SETD,	"flags"},
+    {"shadow",		PC_SHADOW,	"layers"},
+    {"showdebug",	PC_SHOWD,	""},
+    {"split",		PC_SPLIT,	""},
+    {"techshow",	PC_TECHSHOW,	"[file]"},
+    {"trail",		PC_TRAIL,	"[value]"},
+    {"whenbot",		PC_WHENBOT,	"[xbot ybot]"},
+    {"whentop",		PC_WHENTOP,	"[xtop ytop]"},
+    {"width",		PC_WIDTH,	"layers"},
+    {0},
 };
 
 void
@@ -161,6 +161,8 @@ PlowTest(w, cmd)
 	    TxPrintf("Valid plowing command are:\n");
 	    for (n = 0; plowCmds[n].p_name; n++)
 		TxPrintf("%-15s %s\n", plowCmds[n].p_name, plowCmds[n].p_help);
+	    break;
+	case PC_ERROR: /* exhaustive switch on enum compiler warning */
 	    break;
 	case PC_RANDOM:
 	    PlowRandomTest(def);
@@ -307,8 +309,8 @@ PlowTest(w, cmd)
 	    tp = TiSrPointNoHint(plane, &editArea.r_ll);
 	    if (cmd->tx_argc == 3) trail = atoi(cmd->tx_argv[2]);
 	    else trail = editArea.r_xtop;
-	    TxPrintf("Trailing coordinate of tile 0x%x updated from %d to %d\n",
-			tp, TRAILING(tp), trail);
+	    TxPrintf("Trailing coordinate of tile %p updated from %d to %d\n",
+			(void *)tp, TRAILING(tp), trail);
 	    plowSetTrailing(tp, trail);
 	    break;
 	case PC_MOVE:
@@ -328,13 +330,13 @@ PlowTest(w, cmd)
 		return;
 	    }
 	    TiToRect(tp, &area2);
-	    TxPrintf("Splitting tile 0x%x at y=%d yielding 0x%x\n",
-			tp, editArea.r_ybot, plowSplitY(tp, editArea.r_ybot));
+	    TxPrintf("Splitting tile %p at y=%d yielding %p\n",
+			(void *)tp, editArea.r_ybot, (void *)plowSplitY(tp, editArea.r_ybot));
 	    DBWAreaChanged(def, &area2, DBW_ALLWINDOWS, &DBAllButSpaceBits);
 	    break;
 	case PC_MERGEDOWN:
 	    tp = TiSrPointNoHint(plane, &editArea.r_ll);
-	    TxPrintf("Merging tile 0x%x below\n", tp);
+	    TxPrintf("Merging tile %p below\n", tp);
 	    TiToRect(tp, &editArea);
 	    TiToRect(RT(tp), &area2);
 	    (void) GeoInclude(&area2, &editArea);
@@ -343,7 +345,7 @@ PlowTest(w, cmd)
 	    break;
 	case PC_MERGEUP:
 	    tp = TiSrPointNoHint(plane, &editArea.r_ll);
-	    TxPrintf("Merging tile 0x%x above\n", tp);
+	    TxPrintf("Merging tile %p above\n", tp);
 	    TiToRect(tp, &editArea);
 	    TiToRect(RT(tp), &area2);
 	    (void) GeoInclude(&area2, &editArea);
@@ -352,7 +354,7 @@ PlowTest(w, cmd)
 	    break;
 	case PC_PRINT:
 	    tp = TiSrPointNoHint(plane, &editArea.r_ll);
-	    TxPrintf("Tile 0x%x  LEFT=%d RIGHT=%d BOTTOM=%d TOP=%d\n",
+	    TxPrintf("Tile %p  LEFT=%d RIGHT=%d BOTTOM=%d TOP=%d\n",
 		tp, LEFT(tp), RIGHT(tp), BOTTOM(tp), TOP(tp));
 	    TxPrintf("    TRAILING=%d LEADING=%d TYPE=%s\n",
 		TRAILING(tp), LEADING(tp), DBTypeLongName(TiGetTypeExact(tp)));
@@ -457,14 +459,14 @@ plowDebugInit()
 	char	*di_name;
 	int	*di_id;
     } debug[] = {
-	"addedge",	&plowDebAdd,
-	"jogs",		&plowDebJogs,
-	"moveedge",	&plowDebMove,
-	"nextedge",	&plowDebNext,
-	"time",		&plowDebTime,
-	"width",	&plowDebWidth,
-	"yankall",	&plowDebYankAll,
-	0
+	{"addedge",	&plowDebAdd},
+	{"jogs",	&plowDebJogs},
+	{"moveedge",	&plowDebMove},
+	{"nextedge",	&plowDebNext},
+	{"time",	&plowDebTime},
+	{"width",	&plowDebWidth},
+	{"yankall",	&plowDebYankAll},
+	{0}
     };
 
     /* Register ourselves with the debugging module */

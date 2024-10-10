@@ -69,28 +69,28 @@ GetRect(fin, skip, rect, scalen, scaled)
     while (skip-- > 0)
 	(void) FGETC(fin);
 
-    if (isNegative = ((c = FGETC(fin)) == '-')) c = FGETC(fin);
+    if ((isNegative = ((c = FGETC(fin)) == '-'))) c = FGETC(fin);
     for (n = 0; isdigit(c); n = n * 10 + c - '0', c = FGETC(fin))
 	/* Nothing */;
     rect->r_xbot = isNegative ? -n : n;
     if (!isspace(c)) goto bad;
     while ((c = FGETC(fin)) != EOF && isspace(c)) /* Nothing */;
 
-    if (isNegative = (c == '-')) c = FGETC(fin);
+    if ((isNegative = (c == '-'))) c = FGETC(fin);
     for (n = 0; isdigit(c); n = n * 10 + c - '0', c = FGETC(fin))
 	/* Nothing */;
     rect->r_ybot = isNegative ? -n : n;
     if (!isspace(c)) goto bad;
     while ((c = FGETC(fin)) != EOF && isspace(c)) /* Nothing */;
 
-    if (isNegative = (c == '-')) c = FGETC(fin);
+    if ((isNegative = (c == '-'))) c = FGETC(fin);
     for (n = 0; isdigit(c); n = n * 10 + c - '0', c = FGETC(fin))
 	/* Nothing */;
     rect->r_xtop = isNegative ? -n : n;
     if (!isspace(c)) goto bad;
     while ((c = FGETC(fin)) != EOF && isspace(c)) /* Nothing */;
 
-    if (isNegative = (c == '-')) c = FGETC(fin);
+    if ((isNegative = (c == '-'))) c = FGETC(fin);
     for (n = 0; isdigit(c); n = n * 10 + c - '0', c = FGETC(fin))
 	/* Nothing */;
     rect->r_ytop = isNegative ? -n : n;

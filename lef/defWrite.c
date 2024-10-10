@@ -330,7 +330,7 @@ defnodeCount(node, res, cap, total)
 	if (pwr && (!strcmp(cp, pwr)))
 	{
 	    /* Diagnostic */
-	    TxPrintf("Node %s matches VDD variable definition!\n");
+	    TxPrintf("Node %s matches VDD variable definition!\n", cp);
 	    node->efnode_flags |= EF_SPECIAL;
 	}
 
@@ -338,7 +338,7 @@ defnodeCount(node, res, cap, total)
 	if (pwr && (!strcmp(cp, pwr)))
 	{
 	    /* Diagnostic */
-	    TxPrintf("Node %s matches GND variable definition!\n");
+	    TxPrintf("Node %s matches GND variable definition!\n", cp);
 	    node->efnode_flags |= EF_SPECIAL;
 	}
 
@@ -412,7 +412,7 @@ defHNsprintf(str, hierName, divchar)
     /* (which are interpreted as wildcard characters by LEF/DEF).	*/
 
     cp = hierName->hn_name;
-    while (c = *cp++)
+    while ((c = *cp++))
     {
 	switch (c)
 	{
@@ -441,10 +441,10 @@ char *defHNsprintfPrefix(hierName, str, divchar)
     char *cp, c;
 
     if (hierName->hn_parent)
-	str = defHNsprintfPrefix(hierName->hn_parent, str);
+	str = defHNsprintfPrefix(hierName->hn_parent, str, divchar);
 
     cp = hierName->hn_name;
-    while (*str++ = *cp++) ;
+    while ((*str++ = *cp++)) ;
     *(--str) = divchar;
     return ++str;
 }
@@ -531,7 +531,7 @@ defWriteRouteWidth(defdata, width)
     int width;
 {
     float oscale = defdata->scale;
-    char numstr[12];
+    char numstr[32];
     sprintf(numstr, "%.10g", ((float)width * defdata->scale));
     defCheckForBreak(strlen(numstr) + 1, defdata);
     fprintf(defdata->f, "%s ", numstr);
@@ -564,7 +564,7 @@ defWriteCoord(defdata, x, y, orient)
     unsigned char orient;
 {
     FILE *f = defdata->f;
-    char numstr[12];
+    char numstr[32];
     int ctot = 4;
 
     /* The "12" here is just a fudge factor;  it is not crucial */
@@ -2036,11 +2036,11 @@ defGetType(ttype, lefptr, do_vias)
     if (LefInfo.ht_table != (HashEntry **) NULL)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (lefl && (do_vias == FALSE) && (contact == CLASS_VIA) &&
-			(lefl->info.via.lr != NULL))
+			(lefl->lefClass == CLASS_VIA))
 		continue;	/* Skip VIA definitions if do_vias is FALSE */
 	    
 	    if (lefl && ((contact == lefl->lefClass) ||
@@ -2101,7 +2101,7 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 	cscale = CIFGetOutputScale(1);
 
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    int size, sep, border;
 	    char *us1, *us2;
@@ -2285,8 +2285,7 @@ defCountCompFunc(cellUse, total)
     int sy = cellUse->cu_yhi - cellUse->cu_ylo + 1;
     // TxPrintf("Diagnostic: cell %s %d %d\n", cellUse->cu_id, sx, sy);
     ASSERT(sx >= 0 && sy >= 0, "Valid array");
-
-    (*total) += sx * sy;	/* Increment the count of uses */
+    (*total) += (unsigned long)sx * sy;	/* Increment the count of uses */
 
     return 0;	/* Keep the search going */
 }
@@ -2476,7 +2475,7 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
     if (LefInfo.ht_table != (HashEntry **) NULL)
     {
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefInfo, &hs))
+	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (lefl != NULL)
@@ -2496,7 +2495,7 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
 	{
 	    numblocks = 0;
 	    HashStartSearch(&hs);
-	    while (he = HashNext(&LefInfo, &hs))
+	    while ((he = HashNext(&LefInfo, &hs)))
 	    {
 		lefl = (lefLayer *)HashGetValue(he);
 		if ((lefl != NULL) && ((lefl->lefClass == CLASS_ROUTE) ||
@@ -2773,7 +2772,7 @@ arrayDefFunc(use, transform, x, y, defdata)
 	char *propval;
 	bool found;
 
-	propval = DBPropGet(use->cu_def, "FIXED_BBOX", &found);
+	propval = (char *)DBPropGet(use->cu_def, "FIXED_BBOX", &found);
 	if (found)
 	{
 	    if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,
@@ -2831,7 +2830,7 @@ defComponentFunc(cellUse, defdata)
 	char *propval;
 	bool found;
 
-	propval = DBPropGet(cellUse->cu_def, "FIXED_BBOX", &found);
+	propval = (char *)DBPropGet(cellUse->cu_def, "FIXED_BBOX", &found);
 	if (found)
 	{
 	    if (sscanf(propval, "%d %d %d %d", &rect.r_xbot, &rect.r_ybot,
@@ -3064,7 +3063,7 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 
 	fprintf(f, "NONDEFAULTRULES %d ;\n", numrules);
 	HashStartSearch(&hs);
-	while (he = HashNext(&LefNonDefaultRules, &hs))
+	while ((he = HashNext(&LefNonDefaultRules, &hs)))
 	{
 	    nrules = (LefRules *)HashGetValue(he);
 	    fprintf(f, "  - %s", nrules->name);
@@ -3082,7 +3081,7 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 		    lefLayer *lefl2;
 
 		    HashStartSearch(&hs2);
-		    while (he2 = HashNext(&LefInfo, &hs2))
+		    while ((he2 = HashNext(&LefInfo, &hs2)))
 		    {
 			lefl2 = (lefLayer *)HashGetValue(he2);
 			if (lefl2->lefClass == CLASS_ROUTE)
@@ -3109,7 +3108,7 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
 
 		    /* Put the reference counts back to the way they were */
 		    HashStartSearch(&hs2);
-		    while (he2 = HashNext(&LefInfo, &hs2))
+		    while ((he2 = HashNext(&LefInfo, &hs2)))
 		    {
 			lefl2 = (lefLayer *)HashGetValue(he2);
 			if (lefl2->refCnt < 0)

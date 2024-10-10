@@ -195,15 +195,45 @@ proc magic::generate_layout_add {subname subpins complist library} {
 
     box 0 0 0 0
 
-    # Generate pins
+    # Generate pins.  This routine can be made re-entrant;  if a
+    # cell exists, then its contents are compared to the incoming
+    # netlist contents.  Pins that exist in the netlist but not
+    # the layout are added.  Pins that exist in the layout but not
+    # in the netlist are removed.
+
     if {[llength $subpins] > 0} {
 	set pinlist [split $subpins]
-	set i 0
+
+	# Determine if this cell already has pins.
+	set existpins []
+	for {set i [port first]} {$i > -1} {set i [port $i next]} {
+            lappend existpins [port $i name]
+	}
+	set addpins []
 	foreach pin $pinlist {
+	    if {[lsearch $existpins $pin] == -1} {
+		lappend addpins $pin
+	    }
+	}
+
+	set rmpins []
+	foreach pin $existpins {
+	    if {[lsearch $pinlist $pin] == -1} {
+		lappend rmpins $pin
+	    }
+	}
+
+	set i 0
+	foreach pin $addpins {
 	    # Escape [ and ] in pin name
 	    set pin_esc [string map {\[ \\\[ \] \\\]} $pin]
 	    magic::create_new_pin $pin_esc $i
 	    incr i
+	}
+	foreach pin $rmpins {
+	    set llayer [goto $pin]
+	    select area $llayer
+	    erase label
 	}
     }
 
@@ -212,6 +242,24 @@ proc magic::generate_layout_add {subname subpins complist library} {
     set posx 0
     set posy [expr {round(3 / [cif scale out])}]
     box position ${posx}i ${posy}i
+
+    # Find all instances in the circuit
+    select top cell
+    set compexist [instance list children]
+    set compcells []
+    # Find the matching cell defs
+    foreach comp $compexist {
+	lappend compcells [instance list celldef $comp]
+    }
+
+    # Diagnostic
+    puts stdout "Cells already in the layout of ${subname}:"
+    for {set i 0} {$i < [llength $compexist]} {incr i} {
+	set comp [lindex $compexist $i]
+	set ccell [lindex $compcells $i]
+	puts stdout "${comp} (${ccell})"
+    }
+    flush stdout
 
     # Seed layout with components
     foreach comp $complist {
@@ -286,7 +334,9 @@ proc magic::generate_layout_add {subname subpins complist library} {
 	}
 
 	set outparts {}
-	lappend outparts "magic::gencell $libdev $instname"
+	# Escape any brackets in the instance name, since it gets passed to "eval"
+	set minstname [string map {[ \\\[ ] \\\]} $instname]
+	lappend outparts "magic::gencell $libdev $minstname"
 
 	# Output all parameters.  Parameters not used by the toolkit are
 	# ignored by the toolkit.
@@ -297,12 +347,30 @@ proc magic::generate_layout_add {subname subpins complist library} {
 	    lappend outparts [lindex $param 1]
 	}
 
-	if {[catch {eval [join $outparts]}]} {
-	    # Assume this is not a gencell, and get an instance.
-	    magic::get_and_move_inst $devtype $instname $mult
-	} else {
-	    # Move forward for next gencell
-	    magic::move_forward_by_width $instname
+	set inst_exists false
+	set existidx [lsearch $compexist $instname]
+	if {$existidx > -1} {
+	    set existcell [lindex $compcells $existidx]
+	    if {$devtype == $existcell} {
+		set inst_exists true
+	    } else {
+		# Instance name exists but is the wrong device type.
+		# To do:  Attempt to maintain the same position
+		pushbox
+		select cell $instname
+		delete
+		popbox
+ 	    }
+	}
+
+	if {$inst_exists == false} {
+	    if {[catch {eval [join $outparts]}]} {
+		# Assume this is not a gencell, and get an instance.
+		magic::get_and_move_inst $devtype $instname $mult
+	    } else {
+		# Move forward for next gencell
+		magic::move_forward_by_width $instname
+	    }
 	}
     }
     save $subname
@@ -393,7 +461,8 @@ proc magic::netlist_to_layout {netfile library} {
    set curtop [cellname list self]
 
    foreach subckt $allsubs {
-        puts stdout "Test: pre-generating subcircuit $subckt"
+	# Diagnostic output
+        puts stdout "Pre-generating subcircuit $subckt placeholder"
 	load $subckt -silent
    }
    load $curtop
@@ -1371,11 +1440,22 @@ proc magic::gencell_dialog {instname gencell_type library parameters} {
 
    if {$instname != {}} {
       # Remove any array component of the instance name
-      set instname [string map {\\ ""} $instname]
-      if {[regexp {^(.*)\[[0-9,]+\]$} $instname valid instroot]} {
+      set baseinstname [string map {\\ ""} $instname]
+      if {[regexp {^(.*)\[[0-9,]+\]$} $baseinstname valid instroot]} {
+	 set originstname $instname
 	 set instname $instroot
+      } else {
+	 set instroot ""
       }
       set gname [instance list celldef [subst $instname]]
+      if {$gname == ""} {
+	 # Check if name inherited brackets but is not an array
+         if {$instroot != ""} {
+             set testinstname [string map {\[ \\\[ \] \\\]} $baseinstname]
+	     set gname [instance list celldef [subst $testinstname]]
+	     set instname $originstname
+	 }
+      }
       set gencell_type [cellname list property $gname gencell]
       if {$library == {}} {
 	 set library [cellname list property $gname library]
@@ -1493,6 +1573,7 @@ proc magic::gencell_dialog {instname gencell_type library parameters} {
 		magic::gencell_dialog \$inst $gencell_type $library {} ; \
 		destroy .params}]
    } else {
+	set instname [string map {\[ \\\[ \] \\\]} $instname]
 	button .params.buttons.apply -text "Apply" -command \
 		"magic::gencell_change $instname $gencell_type $library {}"
 	button .params.buttons.okay -text "Okay" -command \

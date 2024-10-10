@@ -24,6 +24,7 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 #include <stdint.h>
 #include <stdlib.h>	/* for random() */
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <arpa/inet.h>	/* for htons() */
@@ -302,6 +303,7 @@ CalmaWrite(rootDef, f)
 {
     int oldCount = DBWFeedbackCount, problems, nerr;
     bool good;
+    CellDef *err_def;
     CellUse dummy;
     HashEntry *he;
     HashSearch hs;
@@ -327,9 +329,11 @@ CalmaWrite(rootDef, f)
      */
 
     dummy.cu_def = rootDef;
-    if (DBCellReadArea(&dummy, &rootDef->cd_bbox, !CalmaAllowUndefined))
+    err_def = DBCellReadArea(&dummy, &rootDef->cd_bbox, !CalmaAllowUndefined);
+    if (err_def != NULL)
     {
 	TxError("Failure to read entire subtree of the cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return FALSE;
     }
 
@@ -390,7 +394,7 @@ CalmaWrite(rootDef, f)
     good = !ferror(f);
 
     /* See if any problems occurred */
-    if (problems = (DBWFeedbackCount - oldCount))
+    if ((problems = (DBWFeedbackCount - oldCount)))
 	TxPrintf("%d problems occurred.  See feedback entries.\n", problems);
 
     /*
@@ -426,7 +430,7 @@ calmaDumpStructure(def, outf, calmaDefHash, filename)
     HashTable *calmaDefHash;
     char *filename;
 {
-    int nbytes, rtype;
+    int nbytes = -1, rtype = 0;
     char *strname = NULL, *newnameptr;
     HashEntry *he, *he2;
     CellDef *edef;
@@ -1437,7 +1441,7 @@ calmaOutFunc(def, f, cliprect)
 		numports++;
 	    }
 	}
-	if (newll != NULL)
+	if (ll != NULL)
 	{
 	    /* Turn linked list into an array, then run qsort on it	*/
 	    /* to sort by port number.					*/
@@ -1766,7 +1770,7 @@ calmaOutStructName(type, def, f)
     }
 
     /* Is the def name a legal Calma name? */
-    for (cp = def->cd_name; c = (unsigned char) *cp; cp++)
+    for (cp = def->cd_name; (c = (unsigned char) *cp); cp++)
     {
 	if ((c > 127) || (table[c] == 0))
 	    goto bad;

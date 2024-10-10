@@ -21,6 +21,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif  /* not lint */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -123,12 +124,12 @@ GlTest(w, cmd)
 	char	*cmd_name;
 	cmdType	 cmd_val;
     } cmds[] = {
-	"clrdebug",		CLRDEBUG,
-	"onlynet",		ONLYNET,
-	"setdebug",		SETDEBUG,
-	"showdebug",		SHOWDEBUG,
-	"sides",		SIDES,
-	0
+	{"clrdebug",		CLRDEBUG},
+	{"onlynet",		ONLYNET},
+	{"setdebug",		SETDEBUG},
+	{"showdebug",		SHOWDEBUG},
+	{"sides",		SIDES},
+	{0}
     };
 
     if (!glInitialized)
@@ -261,24 +262,24 @@ GlInit()
 	char	*di_name;
 	int	*di_id;
     } dflags[] = {
-	"allpoints",	&glDebAllPoints,
-	"chan",		&glDebChan,
-	"cross",	&glDebCross,
-	"fast",		&glDebFast,
-	"heap",		&glDebHeap,
-	"histo",	&glDebHisto,
-	"log",		&glDebLog,
-	"greedy",	&glDebGreedy,
-	"maze",		&glDebMaze,
-	"net",		&glDebNet,
-	"newheaps",	&glDebNewHeaps,
-	"penalties",	&glDebPen,
-	"showpins",	&glDebShowPins,
-	"stemsonly",	&glDebStemsOnly,
-	"straight",	&glDebStraight,
-	"tiles",	&glDebTiles,
-	"verbose",	&glDebVerbose,
-	0
+	{"allpoints",	&glDebAllPoints},
+	{"chan",	&glDebChan},
+	{"cross",	&glDebCross},
+	{"fast",	&glDebFast},
+	{"heap",	&glDebHeap},
+	{"histo",	&glDebHisto},
+	{"log",		&glDebLog},
+	{"greedy",	&glDebGreedy},
+	{"maze",	&glDebMaze},
+	{"net",		&glDebNet},
+	{"newheaps",	&glDebNewHeaps},
+	{"penalties",	&glDebPen},
+	{"showpins",	&glDebShowPins},
+	{"stemsonly",	&glDebStemsOnly},
+	{"straight",	&glDebStraight},
+	{"tiles",	&glDebTiles},
+	{"verbose",	&glDebVerbose},
+	{0}
     };
 
     if (glInitialized)
@@ -371,9 +372,9 @@ glShowCross(pin, netId, kind)
     {
 	(void) strcpy(name1, NLNetName(pin->gcr_pId));
 	(void) strcpy(name2, NLNetName(netId.netid_net));
-	TxPrintf("%s (%d,%d), Net %s/%d->%s/%d, Ch %d\n",
+	TxPrintf("%s (%d,%d), Net %s/%d->%s/%d, Ch %ld\n",
 		name, pin->gcr_point.p_x, pin->gcr_point.p_y,
-		name1, pin->gcr_pSeg, name2, netId.netid_seg, pin->gcr_ch);
+		name1, pin->gcr_pSeg, name2, netId.netid_seg, (intmax_t) pin->gcr_ch);
     }
 
     r.r_ll = r.r_ur = pin->gcr_point;

@@ -518,7 +518,7 @@ pnmTile (tile, cxp)
     col = PaintStyles[type].color;
     t = rtile + x + ds_xsize * y;
 
-    for (dy; dy > 0; dy--)
+    for ( ; dy > 0; dy--)
     {
 	for (j = 0; j < dx; j++)
 	{
@@ -582,7 +582,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
     int i, x, y, tile_ydelta;
     int save_ds, iter;
     int scale_over_2, ds_over_2;
-    float *strip;
+    float *strip = NULL;
     float scale, invscale, scaledown, normal;
 
 #ifdef VERSATEC
@@ -877,7 +877,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
 	/* Clear tile memory with the background gray level */
 
 	memset((void *)rtile, PlotPNMBG,
-		(size_t)(ds_xsize * ds_ysize * PIXELSZ));
+		(size_t)ds_xsize * ds_ysize * PIXELSZ);
 
 	if (SigInterruptPending)
 	{
@@ -937,8 +937,10 @@ PlotPNM(fileName, scx, layers, xMask, width)
 done:
     PlotPNMdownsample = save_ds;
     freeMagic(rtile);
+    rtile = NULL;
     freeMagic(strip);
     freeMagic(lkstep);
+    lkstep = NULL;
     return;
 }
 

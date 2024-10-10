@@ -910,8 +910,8 @@ undoPrintEvent(iup)
     else
 	client_name = undoClientTable[iup->iue_type].uc_name;
 
-    (void) TxPrintf("0x%x: \t%s \tf=0x%x \tb=0x%x\n",
-		iup, client_name, iup->iue_forw, iup->iue_back);
+    (void) TxPrintf("%p: \t%s \tf=%p \tb=%p\n",
+		(void *)iup, client_name, (void *)iup->iue_forw, (void *)iup->iue_back);
 }
 
 /* Print events forward from "iup".  If n is 0 or negative, print to	*/
@@ -924,8 +924,8 @@ undoPrintForw(iup, n)
 {
     int i = 0;
 
-    (void) TxPrintf("head=0x%x\ttail=0x%x\tcur=0x%x\n",
-		undoLogHead, undoLogTail, undoLogCur);
+    (void) TxPrintf("head=%p\ttail=%p\tcur=%p\n",
+		(void *)undoLogHead, (void *)undoLogTail, (void *)undoLogCur);
     if (iup == (internalUndoEvent *) NULL)
 	iup = undoLogHead;
     while (iup != (internalUndoEvent *) NULL)
@@ -947,8 +947,8 @@ undoPrintBack(iup, n)
 {
     int i = 0;
 
-    (void) TxPrintf("head=0x%x\ttail=0x%x\tcur=0x%x\n",
-		undoLogHead, undoLogTail, undoLogCur);
+    (void) TxPrintf("head=%p\ttail=%p\tcur=%p\n",
+		(void *)undoLogHead, (void *)undoLogTail, (void *)undoLogCur);
     if (iup == (internalUndoEvent *) NULL)
 	iup = undoLogTail;
     while (iup != (internalUndoEvent *) NULL)

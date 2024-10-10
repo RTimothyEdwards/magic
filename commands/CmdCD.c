@@ -23,6 +23,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
@@ -3683,7 +3684,7 @@ CmdCrash(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    int option;
+    int option = -1;
     char *filename = NULL;
     static char *cmdCrashOpt[] = {"save", "recover", 0};
 
@@ -5253,9 +5254,21 @@ box_error:
 
     scx->scx_use = dummy;
 
-    GeoTranslateTrans(&trans_cell, rootPoint.p_x - childPoint.p_x,
-	    rootPoint.p_y - childPoint.p_y,
-	    &scx->scx_trans);
+    /* Transform childPoint by trans_cell */
+    if (hasChild)
+    {
+	Point refpoint;
+
+	GeoTransPoint(&trans_cell, &childPoint, &refpoint);
+	GeoTranslateTrans(&trans_cell, rootPoint.p_x - refpoint.p_x,
+		rootPoint.p_y - refpoint.p_y, &scx->scx_trans);
+    }
+    else
+    {
+	GeoTranslateTrans(&trans_cell, rootPoint.p_x - childPoint.p_x,
+		rootPoint.p_y - childPoint.p_y, &scx->scx_trans);
+    }
+
     scx->scx_area = bbox;
     return TRUE;
 

@@ -428,6 +428,10 @@ ResAddPlumbing(tile, arg)
 		{
 		    t1 = (SplitSide(tp1)) ? SplitRightType(tp1) :
 				SplitLeftType(tp1);
+		    /* Check in case this is the wrong side */
+		    if (ExtCurStyle->exts_device[t1] == NULL)
+			t1 = (SplitSide(tp1)) ? SplitLeftType(tp1) :
+				SplitRightType(tp1);
 		}
 		else
 		    t1 = TiGetTypeExact(tp1);
@@ -445,6 +449,16 @@ ResAddPlumbing(tile, arg)
 	       		Junk->deviceList = resDev;
 	       		Junk->tj_status |= RES_TILE_DEV;
 
+			/* Update device position to point to the lower-leftmost tile */
+			if ((tp2->ti_ll.p_x < resDev->rd_inside.r_ll.p_x) ||
+				((tp2->ti_ll.p_x == resDev->rd_inside.r_ll.p_x) &&
+				(tp2->ti_ll.p_y < resDev->rd_inside.r_ll.p_y)))
+			{
+			    resDev->rd_inside.r_ll.p_x = LEFT(tp2);
+			    resDev->rd_inside.r_ll.p_y = BOTTOM(tp2);
+			    resDev->rd_inside.r_ur.p_x = RIGHT(tp2);
+			    resDev->rd_inside.r_ur.p_y = TOP(tp2);
+			}
 		    }
 	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetBottomType(tp2))
@@ -464,6 +478,17 @@ ResAddPlumbing(tile, arg)
 			STACKPUSH((ClientData)tp2, resDevStack);
 	       		Junk->deviceList =  resDev;
 	       		Junk->tj_status |= RES_TILE_DEV;
+
+			/* Update device position to point to the lower-leftmost tile */
+			if ((tp2->ti_ll.p_x < resDev->rd_inside.r_ll.p_x) ||
+				((tp2->ti_ll.p_x == resDev->rd_inside.r_ll.p_x) &&
+				(tp2->ti_ll.p_y < resDev->rd_inside.r_ll.p_y)))
+			{
+			    resDev->rd_inside.r_ll.p_x = LEFT(tp2);
+			    resDev->rd_inside.r_ll.p_y = BOTTOM(tp2);
+			    resDev->rd_inside.r_ur.p_x = RIGHT(tp2);
+			    resDev->rd_inside.r_ur.p_y = TOP(tp2);
+			}
 		    }
 	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetTopType(tp2))
@@ -483,6 +508,17 @@ ResAddPlumbing(tile, arg)
 			STACKPUSH((ClientData)tp2, resDevStack);
 	       		Junk->deviceList =  resDev;
 	       		Junk->tj_status |= RES_TILE_DEV;
+
+			/* Update device position to point to the lower-leftmost tile */
+			if ((tp2->ti_ll.p_x < resDev->rd_inside.r_ll.p_x) ||
+				((tp2->ti_ll.p_x == resDev->rd_inside.r_ll.p_x) &&
+				(tp2->ti_ll.p_y < resDev->rd_inside.r_ll.p_y)))
+			{
+			    resDev->rd_inside.r_ll.p_x = LEFT(tp2);
+			    resDev->rd_inside.r_ll.p_y = BOTTOM(tp2);
+			    resDev->rd_inside.r_ur.p_x = RIGHT(tp2);
+			    resDev->rd_inside.r_ur.p_y = TOP(tp2);
+			}
 		    }
 	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetLeftType(tp2))
@@ -502,6 +538,17 @@ ResAddPlumbing(tile, arg)
 			STACKPUSH((ClientData)tp2, resDevStack);
 	       		Junk->deviceList =  resDev;
 	       		Junk->tj_status |= RES_TILE_DEV;
+
+			/* Update device position to point to the lower-leftmost tile */
+			if ((tp2->ti_ll.p_x < resDev->rd_inside.r_ll.p_x) ||
+				((tp2->ti_ll.p_x == resDev->rd_inside.r_ll.p_x) &&
+				(tp2->ti_ll.p_y < resDev->rd_inside.r_ll.p_y)))
+			{
+			    resDev->rd_inside.r_ll.p_x = LEFT(tp2);
+			    resDev->rd_inside.r_ll.p_y = BOTTOM(tp2);
+			    resDev->rd_inside.r_ur.p_x = RIGHT(tp2);
+			    resDev->rd_inside.r_ur.p_y = TOP(tp2);
+			}
 		    }
 	      	    else if TTMaskHasType(&(devptr->exts_deviceSDTypes[0]),
 				TiGetRightType(tp2))

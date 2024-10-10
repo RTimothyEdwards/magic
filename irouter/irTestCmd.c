@@ -220,20 +220,20 @@ irParmsTstCmd(w, cmd)
 
 /*--------------------------- Command Table ------------------------------ */
 TestCmdTableE irTestCommands[] = {
-    "debug",	irDebugTstCmd,
+    {"debug",	irDebugTstCmd,
     "set or clear debug flags",
-    "debug [flag] [value]",
+    "debug [flag] [value]"},
 
-    "help",	irHelpTstCmd,
+    {"help",	irHelpTstCmd,
     "summarize *iroute subcommands",
-    "help [subcommand]",
+    "help [subcommand]"},
 
-    "parms",	irParmsTstCmd,
+    {"parms",	irParmsTstCmd,
     "print internal data structures",
-    "parms",
+    "parms"},
 
-	0
-    }, *irTestCmdP;
+    {0}
+}, *irTestCmdP;
 
 
 /*

@@ -166,7 +166,7 @@ glCrossTakePin(rootUse, pin, netid)
     GCRPin *pin;	/* Pin to take */
     NetId netid;	/* Identifier to assign */
 {
-    char c[256], name1[1024], name2[1024];
+    char c[2048+64], name1[1024], name2[1024];
     Rect r;
 
     if (DebugIsSet(glDebugID, glDebGreedy))

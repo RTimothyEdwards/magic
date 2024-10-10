@@ -21,6 +21,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <strings.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <sys/time.h>
@@ -648,7 +649,7 @@ LefRedefined(lefl, redefname)
     records = 0;
     altName = NULL;
     HashStartSearch(&hs);
-    while (he = HashNext(&LefInfo, &hs))
+    while ((he = HashNext(&LefInfo, &hs)))
     {
 	slef = (lefLayer *)HashGetValue(he);
 	if (slef == lefl)
@@ -1331,7 +1332,7 @@ LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
 			    rectList = rectNew;
 
 			if ((!do_list) && (otherlayer != -1))
-			    LefPaintPolygon(lefMacro, pointList, points, otherlayer);
+			    LefPaintPolygon(lefMacro, pointList, points, otherlayer, FALSE);
 		    }
 		    freeMagic(pointList);
 		}
@@ -1432,8 +1433,24 @@ LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, pinShape, oscale,
 		}
 	    }
 	    else
+	    {
+		/* If any other label is a port and has the same name,	*/
+		/* then use its port number.				*/
+
+		Label *sl;
+		for (sl = lefMacro->cd_labels; sl != NULL; sl = sl->lab_next)
+		{
+		    if (sl->lab_flags & PORT_DIR_MASK)
+			if (!strcmp(sl->lab_text, pinName))
+			{
+			    pinNum = sl->lab_port;
+			    break;
+			}
+		}
+
 		/* Create a new label (non-rendered) */
 		DBPutLabel(lefMacro, &rectList->r_r, -1, pinName, rectList->r_type, 0, 0);
+	    }
 
 	    /* Set this label to be a port */
 

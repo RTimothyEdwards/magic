@@ -6,6 +6,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <math.h>
 #include <float.h>
@@ -945,8 +946,8 @@ ResCheckPorts(cellDef)
 		/* and a drivepoint.					*/
 
 		node = ResInitializeNode(entry);
-		TxPrintf("Port: name = %s is new node 0x%x\n",
-			lab->lab_text, node);
+		TxPrintf("Port: name = %s is new node %p\n",
+			lab->lab_text, (void *)node);
 		TxPrintf("Location is (%d, %d); drivepoint (%d, %d)\n",
 			portloc.p_x, portloc.p_y,
 			portloc.p_x, portloc.p_y);
@@ -1033,9 +1034,9 @@ ResCheckSimNodes(celldef, resisdata)
      	ResFHFile = NULL;
     }
 
-    if (ResExtFile == NULL && (ResOptionsFlags & ResOpt_DoExtFile)
-         || (ResOptionsFlags & ResOpt_DoLumpFile) && ResLumpFile == NULL
-         || (ResOptionsFlags & ResOpt_FastHenry) && ResFHFile == NULL)
+    if ((ResExtFile == NULL && (ResOptionsFlags & ResOpt_DoExtFile))
+         || ((ResOptionsFlags & ResOpt_DoLumpFile) && ResLumpFile == NULL)
+         || ((ResOptionsFlags & ResOpt_FastHenry) && ResFHFile == NULL))
     {
      	TxError("Couldn't open output file\n");
 	return;
@@ -1206,7 +1207,11 @@ ResCheckSimNodes(celldef, resisdata)
 	    if (ResExtractNet(node, &gparams, outfile) != 0)
 	    {
 		/* On error, don't output this net, but keep going */
-	       	TxError("Error in extracting node %s\n", node->name);
+		if (node->type == TT_SPACE)
+		    TxPrintf("Note:  Substrate node %s not extracted as network.\n",
+				node->name);
+		else
+		    TxError("Error in extracting node %s\n", node->name);
 	    }
 	    else
 	    {
@@ -1833,7 +1838,7 @@ ResWriteExtFile(celldef, node, rctol, nidx, eidx)
         }
         for (ptr = node->firstDev; ptr != NULL; ptr=ptr->nextDev)
         {
-	    if (layoutDev = ResGetDevice(&ptr->thisDev->location, ptr->thisDev->rs_ttype))
+	    if ((layoutDev = ResGetDevice(&ptr->thisDev->location, ptr->thisDev->rs_ttype)))
 	    {
 		ResFixUpConnections(ptr->thisDev, layoutDev, node, newname);
 	    }

@@ -389,7 +389,7 @@ CIFInputRescale(n, d)
     CIFScalePlanes(n, d, cifCurReadPlanes);
     if (cifCurReadPlanes != cifEditCellPlanes)
 	CIFScalePlanes(n, d, cifEditCellPlanes);
-    if (cifEditCellPlanes != cifSubcellPlanes && cifCurReadPlanes != cifSubcellPlanes)
+    if ((const Plane*)cifEditCellPlanes != (const Plane*)cifSubcellPlanes && cifCurReadPlanes != cifSubcellPlanes)
 	CIFScalePlanes(n, d, cifSubcellPlanes);
 
     CIFReadWarning("CIF style %s: units rescaled by factor of %d / %d\n",

@@ -25,6 +25,7 @@ static char sccsid[] = "@(#)ExtTech.c	4.8 MAGIC (Berkeley) 10/26/85";
 #include <stdio.h>
 #include <stdlib.h>		/* for strtod() */
 #include <string.h>
+#include <strings.h>
 #include <math.h>
 #include <ctype.h>		/* for isspace() */
 
@@ -96,99 +97,99 @@ typedef struct
 } keydesc;
 
 static keydesc keyTable[] = {
-    "areacap",		AREAC,		3,	3,
-"types capacitance",
+    {"areacap",		AREAC,		3,	3,
+"types capacitance"},
 
-    "contact",		CONTACT,	3,	6,
-"type resistance",
+    {"contact",		CONTACT,	3,	6,
+"type resistance"},
 
-    "cscale",		CSCALE,		2,	2,
-"capacitance-scalefactor",
+    {"cscale",		CSCALE,		2,	2,
+"capacitance-scalefactor"},
 
-    "defaultareacap",	DEFAULTAREACAP,	4,	6,
-"types plane capacitance",
+    {"defaultareacap",	DEFAULTAREACAP,	4,	6,
+"types plane capacitance"},
 
-    "defaultoverlap",	DEFAULTOVERLAP,	6,	6,
-"types plane otertypes otherplane capacitance",
+    {"defaultoverlap",	DEFAULTOVERLAP,	6,	6,
+"types plane otertypes otherplane capacitance"},
 
-    "defaultperimeter",	DEFAULTPERIMETER, 4,	6,
-"types plane capacitance",
+    {"defaultperimeter",	DEFAULTPERIMETER, 4,	6,
+"types plane capacitance"},
 
-    "defaultsideoverlap", DEFAULTSIDEOVERLAP, 6, 6,
-"types plane othertypes otherplane capacitance",
+    {"defaultsideoverlap", DEFAULTSIDEOVERLAP, 6, 6,
+"types plane othertypes otherplane capacitance"},
 
-    "defaultsidewall",	DEFAULTSIDEWALL, 4,	5,
-"types plane capacitance [offset]",
+    {"defaultsidewall",	DEFAULTSIDEWALL, 4,	5,
+"types plane capacitance [offset]"},
 
-    "device",		DEVICE,		4,	10,
-"device dev-type types options...",
+    {"device",		DEVICE,		4,	10,
+"device dev-type types options..."},
 
-    "fet",		FET,		8,	9,
-"types terminal-types min-#-terminals name [subs-types] subs-node gscap gate-chan-cap",
+    {"fet",		FET,		8,	9,
+"types terminal-types min-#-terminals name [subs-types] subs-node gscap gate-chan-cap"},
 
-    "fetresist",	FETRESIST,	4,	4,
-"type region ohms-per-square",
+    {"fetresist",	FETRESIST,	4,	4,
+"type region ohms-per-square"},
 
-    "fringeshieldhalo",	FRINGESHIELDHALO,  2,	2,
-"distance",
+    {"fringeshieldhalo",	FRINGESHIELDHALO,  2,	2,
+"distance"},
 
-    "height",		HEIGHT,		4,	4,
-"type height-above-subtrate thickness",
+    {"height",		HEIGHT,		4,	4,
+"type height-above-subtrate thickness"},
 
-    "antenna",		ANTENNA,	4,	6,
-"type [calc-type] [antenna-ratio-proportional] antenna-ratio-const",
+    {"antenna",		ANTENNA,	4,	6,
+"type [calc-type] [antenna-ratio-proportional] antenna-ratio-const"},
 
-    "model",		MODEL,		2,	3,
-"partial-cumulative [area-sidewall]",
+    {"model",		MODEL,		2,	3,
+"partial-cumulative [area-sidewall]"},
 
-    "tiedown",		TIEDOWN,	2,	2,
-"types",
+    {"tiedown",		TIEDOWN,	2,	2,
+"types"},
 
-    "lambda",		LAMBDA,		2,	2,
-"units-per-lambda",
+    {"lambda",		LAMBDA,		2,	2,
+"units-per-lambda"},
 
-    "overlap",		OVERC,		4,	5,
-"toptypes bottomtypes capacitance [shieldtypes]",
+    {"overlap",		OVERC,		4,	5,
+"toptypes bottomtypes capacitance [shieldtypes]"},
 
-    "perimc",		PERIMC,		4,	4,
-"intypes outtypes capacitance",
+    {"perimc",		PERIMC,		4,	4,
+"intypes outtypes capacitance"},
 
-    "planeorder",	PLANEORDER,	3,	3,
-"plane index",
-    "noplaneordering",	NOPLANEORDER,	1,	1,
-"(no arguments needed)",
+    {"planeorder",	PLANEORDER,	3,	3,
+"plane index"},
+    {"noplaneordering",	NOPLANEORDER,	1,	1,
+"(no arguments needed)"},
 
-    "resist",		RESIST,		3,	4,
-"types resistance",
+    {"resist",		RESIST,		3,	4,
+"types resistance"},
 
-    "rscale",		RSCALE,		2,	2,
-"resistance-scalefactor",
+    {"rscale",		RSCALE,		2,	2,
+"resistance-scalefactor"},
 
-    "sidehalo",		SIDEHALO,	2,	2,
-"distance",
+    {"sidehalo",		SIDEHALO,	2,	2,
+"distance"},
 
-    "sideoverlap",	SIDEOVERLAP,	5,	6,
-"intypes outtypes ovtypes capacitance [shieldtypes]",
+    {"sideoverlap",	SIDEOVERLAP,	5,	6,
+"intypes outtypes ovtypes capacitance [shieldtypes]"},
 
-    "sidewall",		SIDEWALL,	6,	7,
-"intypes outtypes neartypes fartypes capacitance [offset]",
+    {"sidewall",		SIDEWALL,	6,	7,
+"intypes outtypes neartypes fartypes capacitance [offset]"},
 
-    "step",		STEP,		2,	2,
-"size",
+    {"step",		STEP,		2,	2,
+"size"},
 
-    "style",		STYLE,		2,	4,
-"stylename",
+    {"style",		STYLE,		2,	4,
+"stylename"},
 
-    "substrate",	SUBSTRATE,	3,	5,
-"types plane [subs-node]",
+    {"substrate",	SUBSTRATE,	3,	5,
+"types plane [subs-node]"},
 
-    "units",		UNITS,		2,	2,
-"lambda|microns",
+    {"units",		UNITS,		2,	2,
+"lambda|microns"},
 
-    "variants",		VARIANT,	2,	2,
-"style,...",
+    {"variants",		VARIANT,	2,	2,
+"style,..."},
 
-    0
+    {0}
 };
 
 
@@ -202,43 +203,43 @@ static keydesc keyTable[] = {
 /* types are enumerated in extract.h */
 
 static keydesc devTable[] = {
-    "mosfet",		DEV_MOSFET,		5,	10,
-"name gate-types src-types [drn-types] sub-types|None sub-node [gscap gccap]",
+    {"mosfet",		DEV_MOSFET,		5,	10,
+"name gate-types src-types [drn-types] sub-types|None sub-node [gscap gccap]"},
 
-    "bjt",		DEV_BJT,		5,	5,
-"name base-types emitter-types collector-types",
+    {"bjt",		DEV_BJT,		5,	5,
+"name base-types emitter-types collector-types"},
 
-    "capacitor",	DEV_CAP,		4,	8,
-"name top-types bottom-types [sub-types|None sub-node] [[perimcap] areacap]",
+    {"capacitor",	DEV_CAP,		4,	8,
+"name top-types bottom-types [sub-types|None sub-node] [[perimcap] areacap]"},
 
-    "capreverse",	DEV_CAPREV,		4,	8,
-"name bottom-types top-types [sub-types|None sub-node] [[perimcap] areacap]",
+    {"capreverse",	DEV_CAPREV,		4,	8,
+"name bottom-types top-types [sub-types|None sub-node] [[perimcap] areacap]"},
 
-    "resistor",		DEV_RES,		4,	6,
-"name|None res-types terminal-types [sub-types|None sub-node]",
+    {"resistor",		DEV_RES,		4,	6,
+"name|None res-types terminal-types [sub-types|None sub-node]"},
 
-    "diode",		DEV_DIODE,		4,	6,
-"name pos-types neg-types [sub-types|None sub-node]",
+    {"diode",		DEV_DIODE,		4,	6,
+"name pos-types neg-types [sub-types|None sub-node]"},
 
-    "pdiode",		DEV_PDIODE,		4,	6,
-"name pos-types neg-types [sub-types|None sub-node]",
+    {"pdiode",		DEV_PDIODE,		4,	6,
+"name pos-types neg-types [sub-types|None sub-node]"},
 
-    "ndiode",		DEV_NDIODE,		4,	6,
-"name neg-types pos-types [sub-types|None sub-node]",
+    {"ndiode",		DEV_NDIODE,		4,	6,
+"name neg-types pos-types [sub-types|None sub-node]"},
 
-    "subcircuit",	DEV_SUBCKT,		3,	11,
-"name dev-types [N] [term1-types ... termN-types [sub-types|None sub-node]] [options]",
+    {"subcircuit",	DEV_SUBCKT,		3,	11,
+"name dev-types [N] [term1-types ... termN-types [sub-types|None sub-node]] [options]"},
 
-    "rsubcircuit",	DEV_RSUBCKT,		4,	7,
-"name dev-types terminal-types [sub-types|None sub-node] [options]",
+    {"rsubcircuit",	DEV_RSUBCKT,		4,	7,
+"name dev-types terminal-types [sub-types|None sub-node] [options]"},
 
-    "msubcircuit",	DEV_MSUBCKT,		3,	11,
-"name dev-types [N] [term1-types ... termN-types [sub-types|None sub-node]] [options]",
+    {"msubcircuit",	DEV_MSUBCKT,		3,	11,
+"name dev-types [N] [term1-types ... termN-types [sub-types|None sub-node]] [options]"},
 
-    "csubcircuit",	DEV_CSUBCKT,		4,	7,
-"name dev-types terminal-types [sub-types|None sub-node] [options]",
+    {"csubcircuit",	DEV_CSUBCKT,		4,	7,
+"name dev-types terminal-types [sub-types|None sub-node] [options]"},
 
-    0
+    {0}
 };
 
 #ifdef MAGIC_WRAPPER
@@ -2501,7 +2502,7 @@ ExtTechLine(sectionName, argc, argv)
 		    equal = TRUE;
 		    limitstr++;
 		}
-		if (sscanf(limitstr, "%lg", &dval) == 0)
+		if (sscanf(limitstr, "%lg", &dval) != 1)
 		{
 		    TxError("Non-numeric limit \"%s\" for parameter \"%c%s\".\n",
 				limitstr, cond, argv[argc - 1]);
@@ -2976,7 +2977,7 @@ ExtTechLine(sectionName, argc, argv)
 		ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_CUMULATIVE;
 	    else
 		TxError("Unknown antenna model \"%s\":  Use \"partial\" or "
-			    "\"cumulative\"");
+			    "\"cumulative\"", argv[1]);
 
 	    if (argc > 2)
 	    {
@@ -2986,7 +2987,7 @@ ExtTechLine(sectionName, argc, argv)
 		    ExtCurStyle->exts_antennaModel |= ANTENNAMODEL_SIDEWALL;
 		else
 		    TxError("Unknown antenna model \"%s\":  Use \"surface\" or "
-				    "\"sidewall\"");
+				    "\"sidewall\"", argv[2]);
 	    }
 	    break;
 

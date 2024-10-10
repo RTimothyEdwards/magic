@@ -445,6 +445,8 @@ _tk_dispatch(ClientData clientData,
     char *arg0;
     Point txp;
 
+    arg0 = argv[0];
+
     if (GrWindowIdPtr)
     {
 	/* Key macros set the point from the graphics module code but	*/
@@ -466,7 +468,6 @@ _tk_dispatch(ClientData clientData,
 	    txp.p_y = 20;
 	}
 	TxSetPoint(txp.p_x, txp.p_y, id);
-	arg0 = argv[0];
 	argc--;
 	argv++;
     }

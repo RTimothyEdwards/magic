@@ -74,8 +74,8 @@ global int GeoOppositePos[] =
  *-------------------------------------------------------------------
  */
 
-global Rect  GeoNullRect = { 0, 0, 0, 0 };
-global Rect  GeoInvertedRect = { 0, 0, -1, -1 };
+global Rect  GeoNullRect = { {0, 0}, {0, 0} };
+global Rect  GeoInvertedRect = { {0, 0}, {-1, -1} };
 global Point GeoOrigin = { 0, 0 };
 
 
@@ -365,40 +365,40 @@ GeoNameToPos(name, manhattan, verbose)
     }
     positions[] =
     {
-	"bl",		GEO_SOUTHWEST,		FALSE,
-	"bottom",	GEO_SOUTH,		TRUE,
-	"br",		GEO_SOUTHEAST,		FALSE,
-	"center",	GEO_CENTER,		FALSE,
-	"d",		GEO_SOUTH,		TRUE,
-	"dl",		GEO_SOUTHWEST,		FALSE,
-	"down",		GEO_SOUTH,		TRUE,
-	"dr",		GEO_SOUTHEAST,		FALSE,
-	"e",		GEO_EAST,		TRUE,
-	"east",		GEO_EAST,		TRUE,
-	"left",		GEO_WEST,		TRUE,
-	"n",		GEO_NORTH,		TRUE,
-	"ne",		GEO_NORTHEAST,		FALSE,
-	"north",	GEO_NORTH,		TRUE,
-	"northeast",	GEO_NORTHEAST,		FALSE,
-	"northwest",	GEO_NORTHWEST,		FALSE,
-	"nw",		GEO_NORTHWEST,		FALSE,
-	"right",	GEO_EAST,		TRUE,
-	"s",		GEO_SOUTH,		TRUE,
-	"se",		GEO_SOUTHEAST,		FALSE,
-	"south",	GEO_SOUTH,		TRUE,
-	"southeast",	GEO_SOUTHEAST,		FALSE,
-	"southwest",	GEO_SOUTHWEST,		FALSE,
-	"sw",		GEO_SOUTHWEST,		FALSE,
-	"tl",		GEO_NORTHWEST,		FALSE,
-	"top",		GEO_NORTH,		TRUE,
-	"tr",		GEO_NORTHEAST,		FALSE,
-	"u",		GEO_NORTH,		TRUE,
-	"ul",		GEO_NORTHWEST,		FALSE,
-	"up",		GEO_NORTH,		TRUE,
-	"ur",		GEO_NORTHEAST,		FALSE,
-	"w",		GEO_WEST,		TRUE,
-	"west",		GEO_WEST,		TRUE,
-	0
+	{"bl",		GEO_SOUTHWEST,		FALSE},
+	{"bottom",	GEO_SOUTH,		TRUE},
+	{"br",		GEO_SOUTHEAST,		FALSE},
+	{"center",	GEO_CENTER,		FALSE},
+	{"d",		GEO_SOUTH,		TRUE},
+	{"dl",		GEO_SOUTHWEST,		FALSE},
+	{"down",	GEO_SOUTH,		TRUE},
+	{"dr",		GEO_SOUTHEAST,		FALSE},
+	{"e",		GEO_EAST,		TRUE},
+	{"east",	GEO_EAST,		TRUE},
+	{"left",	GEO_WEST,		TRUE},
+	{"n",		GEO_NORTH,		TRUE},
+	{"ne",		GEO_NORTHEAST,		FALSE},
+	{"north",	GEO_NORTH,		TRUE},
+	{"northeast",	GEO_NORTHEAST,		FALSE},
+	{"northwest",	GEO_NORTHWEST,		FALSE},
+	{"nw",		GEO_NORTHWEST,		FALSE},
+	{"right",	GEO_EAST,		TRUE},
+	{"s",		GEO_SOUTH,		TRUE},
+	{"se",		GEO_SOUTHEAST,		FALSE},
+	{"south",	GEO_SOUTH,		TRUE},
+	{"southeast",	GEO_SOUTHEAST,		FALSE},
+	{"southwest",	GEO_SOUTHWEST,		FALSE},
+	{"sw",		GEO_SOUTHWEST,		FALSE},
+	{"tl",		GEO_NORTHWEST,		FALSE},
+	{"top",		GEO_NORTH,		TRUE},
+	{"tr",		GEO_NORTHEAST,		FALSE},
+	{"u",		GEO_NORTH,		TRUE},
+	{"ul",		GEO_NORTHWEST,		FALSE},
+	{"up",		GEO_NORTH,		TRUE},
+	{"ur",		GEO_NORTHEAST,		FALSE},
+	{"w",		GEO_WEST,		TRUE},
+	{"west",	GEO_WEST,		TRUE},
+	{0}
     };
     struct pos *pp;
     char *fmt;
@@ -586,6 +586,8 @@ GeoTransOrient(t)
 		return ORIENT_FLIPPED_WEST;
 	}
     }
+    
+    return ORIENT_NORTH;
 }
 
 

@@ -137,23 +137,23 @@ ExtInit()
 	char	*di_name;
 	int	*di_id;
     } debugFlags[] = {
-	"areaenum",	&extDebAreaEnum,
-	"array",	&extDebArray,
-	"hardway",	&extDebHardWay,
-	"hiercap",	&extDebHierCap,
-        "hierareacap",	&extDebHierAreaCap,
-	"label",	&extDebLabel,
-	"length",	&extDebLength,
-	"neighbor",	&extDebNeighbor,
-	"noarray",	&extDebNoArray,
-	"nofeedback",	&extDebNoFeedback,
-	"nohard",	&extDebNoHard,
-	"nosubcell",	&extDebNoSubcell,
-	"perimeter",	&extDebPerim,
-	"resist",	&extDebResist,
-	"visonly",	&extDebVisOnly,
-	"yank",		&extDebYank,
-	0
+	{"areaenum",	&extDebAreaEnum},
+	{"array",	&extDebArray},
+	{"hardway",	&extDebHardWay},
+	{"hiercap",	&extDebHierCap},
+	{"hierareacap",	&extDebHierAreaCap},
+	{"label",	&extDebLabel},
+	{"length",	&extDebLength},
+	{"neighbor",	&extDebNeighbor},
+	{"noarray",	&extDebNoArray},
+	{"nofeedback",	&extDebNoFeedback},
+	{"nohard",	&extDebNoHard},
+	{"nosubcell",	&extDebNoSubcell},
+	{"perimeter",	&extDebPerim},
+	{"resist",	&extDebResist},
+	{"visonly",	&extDebVisOnly},
+	{"yank",	&extDebYank},
+	{0}
     };
 
     /* Register ourselves with the debugging module */
@@ -361,11 +361,14 @@ ExtAll(rootUse)
     CellUse *rootUse;
 {
     LinkedDef *defList = NULL;
+    CellDef *err_def;
 
     /* Make sure the entire subtree is read in */
-    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    err_def = DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE);
+    if (err_def != NULL)
     {
 	TxError("Failure to read entire subtree of cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return;
     }
 
@@ -460,15 +463,17 @@ ExtUnique(rootUse, option)
     CellUse *rootUse;
     int option;
 {
-    CellDef *def;
+    CellDef *def, *err_def;
     LinkedDef *defList = NULL;
     int nwarn;
     int locoption;
 
     /* Make sure the entire subtree is read in */
-    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    err_def = DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE);
+    if (err_def != NULL)
     {
 	TxError("Failure to read entire subtree of cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return;
     }
 
@@ -491,7 +496,7 @@ ExtUnique(rootUse, option)
 
     /* Now process all the cells we just found */
     nwarn = 0;
-    while (def = (CellDef *) StackPop(extDefStack))
+    while ((def = (CellDef *) StackPop(extDefStack)))
     {
 	/* EXT_UNIQ_NOTOPPORTS:  Use EXT_UNIQ_ALL on all cells other than the top */
 	if ((option == EXT_UNIQ_NOTOPPORTS) &&
@@ -857,11 +862,14 @@ ExtIncremental(rootUse)
     CellUse *rootUse;
 {
     LinkedDef *defList = NULL;
+    CellDef *err_def;
 
     /* Make sure the entire subtree is read in */
-    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    err_def = DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE);
+    if (err_def != NULL)
     {
 	TxError("Failure to read entire subtree of cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return;
     }
 
@@ -959,7 +967,7 @@ extExtractStack(stack, doExtract, rootDef)
     CellDef *def;
     struct saveList *newsl, *sl = (struct saveList *)NULL;
 
-    while (def = (CellDef *) StackPop(stack))
+    while ((def = (CellDef *) StackPop(stack)))
     {
 	def->cd_client = (ClientData) 0;
 	if (!SigInterruptPending)

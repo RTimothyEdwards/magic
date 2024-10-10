@@ -233,22 +233,22 @@ bool mzPathsDirty = FALSE;
 
 /* macro for adding address pairs to translation table */
 #define ADDR_TBL_EQUIV(a1,a2) \
-if(TRUE) \
+do \
 { \
    HashSetValue(HashFind(&aT, (char *) (a1)), (char *) (a2)); \
    HashSetValue(HashFind(&aT, (char *) (a2)), (char *) (a1)); \
-} else
+} while(0)
 
 /* macro for translating address to address paired with it in address table */
 #define ADDR_TBL(type,a) \
-if (TRUE) \
+do \
 { \
   HashEntry *he = HashLookOnly(&aT, (char *) (a)); \
   if(he) \
   { \
       a = (type) HashGetValue(he); \
   } \
-} else
+} while(0)
 
 
 /*

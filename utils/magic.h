@@ -36,12 +36,12 @@
 #define SIZEOF_VOID_P SIZEOF_UNSIGNED_INT
 #endif
 
-#if SIZEOF_VOID_P == SIZEOF_UNSIGNED_INT
-typedef unsigned int pointertype;
-typedef signed int spointertype;
-#elif SIZEOF_VOID_P == SIZEOF_UNSIGNED_LONG
+#if SIZEOF_VOID_P == SIZEOF_UNSIGNED_LONG
 typedef unsigned long pointertype;
 typedef signed long spointertype;
+#elif SIZEOF_VOID_P == SIZEOF_UNSIGNED_INT
+typedef unsigned int pointertype;
+typedef signed int spointertype;
 #else
 ERROR: Cannot compile without knowing the size of a pointer.  See utils/magic.h
 #endif
@@ -49,7 +49,13 @@ ERROR: Cannot compile without knowing the size of a pointer.  See utils/magic.h
 typedef int64_t dlong;
 #define DLONG_MAX INT64_MAX
 #define DLONG_MIN INT64_MIN
+#if (defined(__x86_64__) && !defined(_WIN64))
+/* gcc x86_64 defines int64_t as 'long int' on LP64 */
+#define DLONG_PREFIX "l"
+#else
+/* for 32bit and 64bit LLP64 (_WIN64) systems */
 #define DLONG_PREFIX "ll"
+#endif
 
 /* --------------------- Universal pointer type ----------------------- */
 

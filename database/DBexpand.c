@@ -274,8 +274,8 @@ dbUnexpandFunc(scx, arg)
  * the given rectangle.
  *
  * Results:
- *	If "halt_on_error" is TRUE, then return 1 if any subcell could not
- *	be read.  Otherwise, return 0.
+ *	If "halt_on_error" is TRUE, then return a pointer to the first
+ *	subcell that could not be read.  Otherwise, return NULL.
  *
  * Side effects:
  *	May make new cells known to the database.  Sets the CDAVAILABLE
@@ -284,7 +284,7 @@ dbUnexpandFunc(scx, arg)
  * ----------------------------------------------------------------------------
  */
 
-int
+CellDef *
 DBCellReadArea(rootUse, rootRect, halt_on_error)
     CellUse *rootUse;	/* Root cell use from which search begins */
     Rect *rootRect;	/* Area to be read, in root coordinates */
@@ -292,32 +292,37 @@ DBCellReadArea(rootUse, rootRect, halt_on_error)
 {
     int dbReadAreaFunc();
     SearchContext scontext;
+    CellDef *err_def = NULL;
 
     scontext.scx_use = rootUse;
     scontext.scx_trans = GeoIdentityTransform;
     scontext.scx_area = *rootRect;
-    if (dbReadAreaFunc(&scontext, halt_on_error) == 1)
-	return 1;
+    if (dbReadAreaFunc(&scontext, ((halt_on_error == TRUE) ? &err_def : NULL)) == 1)
+	return err_def;
 
-    return 0;
+    return NULL;
 }
 
 int
-dbReadAreaFunc(scx, halt_on_error)
+dbReadAreaFunc(scx, err_ptr)
     SearchContext *scx;	/* Pointer to context specifying
 					 * the cell use to be read in, and
 					 * an area to be recursively read in
 					 * coordinates of the cell use's def.
 					 */
-    bool halt_on_error;	/* If TRUE, failure to find a cell causes a halt */
+    CellDef  **err_ptr;	/* If non-NULL, failure to find a cell causes a halt
+			 * and the CellDef in error is returned in err_def.
+			 */
 {
     CellDef *def = scx->scx_use->cu_def;
 
     if ((def->cd_flags & CDAVAILABLE) == 0)
     {
 	if (DBCellRead(def, TRUE, TRUE, NULL) == FALSE)
-	    if (halt_on_error)
-		return 1;
+	{
+	    *err_ptr = def;
+	    return 1;
+	}
 
 	/* Note: we don't have to invoke DBReComputeBbox here because
 	 * if the bbox changed then there was a timestamp mismatch and
@@ -325,9 +330,8 @@ dbReadAreaFunc(scx, halt_on_error)
 	 */
     }
 
-    if (DBCellSrArea(scx, dbReadAreaFunc, (ClientData)halt_on_error))
-	if (halt_on_error)
-	    return 1;
+    if (DBCellSrArea(scx, dbReadAreaFunc, (ClientData)err_ptr))
+	return 1;
 
     /* Be clever about handling arrays:  if the search area covers this
      * whole definition, then there's no need to look at any other

@@ -67,7 +67,7 @@ DumpCore()
     int cpid, gcpid, wpid;
     FILE *commentFile, *crashFile;
     time_t now;
-    char pidString[20], line[150], command[200], tempName[200], *crashDir;
+    char pidString[20], line[150], command[512], tempName[200], *crashDir;
 
     TxPrintf("Please wait while magic generates a core image of itself....\n");
     sprintf(pidString, "%d", parentPid);
@@ -118,7 +118,7 @@ DumpCore()
      * to place the crash dump.
      */
 
-    if (crashFile = PaOpen(CRASHDIR, "r", "", ".", "", &crashDir))
+    if ((crashFile = PaOpen(CRASHDIR, "r", "", ".", "", &crashDir)))
     {
 	(void) fclose(crashFile);
 

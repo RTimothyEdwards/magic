@@ -121,26 +121,46 @@ proc createLayerFrame {framename layername i} {
    # Place the layer button, checking if it is locked or not
    set locklist [tech locked]
 
-   # Locked button bindings
    if {[lsearch $locklist $layername] != -1} {
+      # Locked button bindings
+
       set toolbar_button ${layer_frame}.p
+      button $toolbar_button -image pale_$layername
 
-      button $toolbar_button -image pale_$layername -command \
-          "$win see $layername"
+      # Bind keypresses when mouse if over layer frame
+      bind $layer_frame <KeyPress-u> \
+		"$win tech unlock $layername ; \
+		grid forget $toolbar_button ; \
+		grid ${layer_frame}.b -row $i -column 0 -sticky w"
+
+      # Bindings for painiting, erasing and seeing layers,
+      # which are bound both to the layer button, as well
+      # as the layer label
+      set childrenList [winfo children $layer_frame]
+
+      foreach child $childrenList {
+	 # 3rd mouse button makes layer invisible; 1st mouse button restores it.
+	 # 2nd mouse button paints the layer color.  Key "p" also does paint, esp.
+	 # for users with 2-button mice.  Key "e" erases, as does Shift-Button-2.
+	 bind $child <ButtonPress-1> "$win see $layername"
+	 bind $child <ButtonPress-3> "$win see no $layername"
+
+	 # Intercept mousewheel on the layer/button as well
+	 bind $child <Button-4> \
+		[subst { event generate ${framename}.toolbar.canvas <Button-4> }]
+	 bind $child <Button-5> \
+		[subst { event generate ${framename}.toolbar.canvas <Button-5> }]
+      }
+
+      # Bind the mouse enter event to highlight the label
+      bind $toolbar_label <Enter> "$toolbar_label configure -background yellow"
+
       bind $layer_frame <Enter> \
-      [subst {focus %W ; ${framename}.titlebar.message configure \
-         -text "$layername (locked)"}]
+	 	[subst {focus %W ; ${framename}.titlebar.message configure \
+		-text "$layername (locked)"}]
 
-      bind $layer_frame <ButtonPress-3> \
-   "$win see no $layername"
-
-   bind $layer_frame <KeyPress-u> \
-      "$win tech unlock $layername ; \
-      grid forget $toolbar_button ; \
-      grid ${layer_frame}.b -row $i -column 0 -sticky w"
-
-   # Unlocked button bindings
    } else {
+      # Unlocked button bindings
    
       set toolbar_button ${layer_frame}.b
       button $toolbar_button -image img_$layername
@@ -162,21 +182,21 @@ proc createLayerFrame {framename layername i} {
       # as the layer label
       set childrenList [winfo children $layer_frame]
 
-   foreach child $childrenList {
-      # 3rd mouse button makes layer invisible; 1st mouse button restores it.
-      # 2nd mouse button paints the layer color.  Key "p" also does paint, esp.
-      # for users with 2-button mice.  Key "e" erases, as does Shift-Button-2.
-      bind $child <ButtonPress-1> "$win see $layername"
-      bind $child <ButtonPress-2> "$win paint $layername"
-      bind $child <Shift-ButtonPress-2> "$win erase $layername"
-      bind $child <ButtonPress-3> "$win see no $layername"
+      foreach child $childrenList {
+	 # 3rd mouse button makes layer invisible; 1st mouse button restores it.
+	 # 2nd mouse button paints the layer color.  Key "p" also does paint, esp.
+	 # for users with 2-button mice.  Key "e" erases, as does Shift-Button-2.
+	 bind $child <ButtonPress-1> "$win see $layername"
+	 bind $child <ButtonPress-2> "$win paint $layername"
+	 bind $child <Shift-ButtonPress-2> "$win erase $layername"
+	 bind $child <ButtonPress-3> "$win see no $layername"
 
-      # Intercept mousewheel on the layer/button as well
-      bind $child <Button-4> \
-         [subst { event generate ${framename}.toolbar.canvas <Button-4> }]
-      bind $child <Button-5> \
-         [subst { event generate ${framename}.toolbar.canvas <Button-5> }]
-   }
+	 # Intercept mousewheel on the layer/button as well
+	 bind $child <Button-4> \
+		[subst { event generate ${framename}.toolbar.canvas <Button-4> }]
+	 bind $child <Button-5> \
+		[subst { event generate ${framename}.toolbar.canvas <Button-5> }]
+      }
 
       # Bind the mouse enter event to highlight the label
       bind $toolbar_label <Enter> "$toolbar_label configure -background yellow"

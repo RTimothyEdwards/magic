@@ -471,10 +471,12 @@ typedef struct capval
 #define RES_TILE_DONE	0x08
 /*a temporary marking flag 				*/
 #define RES_TILE_MARK	0x10
+/*another temporary marking flag			*/
+#define RES_TILE_PUSHED	0x20
 /* indicates that tile has unidirectional current flow */
 #ifdef LAPLACE
-#define RES_TILE_1D	0x20
-#define RES_TILE_GDONE	0x40
+#define RES_TILE_1D	0x40
+#define RES_TILE_GDONE	0x80
 #endif
 /* tree walking flags */
 #define	RES_LOOP_OK	1

@@ -283,6 +283,7 @@ DBPaintValid(cellDef, rect, mask, dinfo)
 
     for (t = TT_SELECTBASE; t < DBNumUserLayers; t++)
 	if (TTMaskHasType(&mmask, t))
+	{
 	    if (DBIsContact(t))
 	    {
 		tMask = DBResidueMask(t);
@@ -310,6 +311,7 @@ DBPaintValid(cellDef, rect, mask, dinfo)
 				(t << 14) : t) : t);
 		DBPaint(cellDef, rect, tloc);
 	    }
+	}
 }
 
 /*
@@ -382,6 +384,7 @@ DBEraseValid(cellDef, rect, mask, dinfo)
 
     for (t = TT_SELECTBASE; t < DBNumUserLayers; t++)
 	if (TTMaskHasType(&mmask, t))
+	{
 	    if (DBIsContact(t))
 	    {
 		tMask = DBResidueMask(t);
@@ -409,4 +412,5 @@ DBEraseValid(cellDef, rect, mask, dinfo)
 			 (t << 14) : t) : t);
 		DBErase(cellDef, rect, tloc);
 	    }
+	}
 }

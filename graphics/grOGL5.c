@@ -36,7 +36,7 @@ extern HashTable	grOGLWindowTable;
 extern Display *grXdpy;
 extern int	grXscrn;
 
-Cursor grCursors[MAX_CURSORS];
+extern Cursor grCursors[MAX_CURSORS]; /* grX11su5.c */
 
 
 /*

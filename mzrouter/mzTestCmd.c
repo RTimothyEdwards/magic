@@ -537,40 +537,40 @@ mzVersionCmd(w, cmd)
 /*--------------------------- Command Table ------------------------------ */
 
 TestCmdTableE mzTestCommands[] = {
-    "debug",	mzDebugTstCmd,
+    {"debug",	mzDebugTstCmd,
     "set or clear debug flags",
-    "debug [flag] [value]",
+    "debug [flag] [value]"},
 
-    "dumpEstimates", mzDumpEstimatesTstCmd,
+    {"dumpEstimates", mzDumpEstimatesTstCmd,
     "print global estimate info for tiles under box",
-    "dumpEstimates",
+    "dumpEstimates"},
 
-    "dumpTags", mzDumpTagsTstCmd,
+    {"dumpTags", mzDumpTagsTstCmd,
     "print tag info on data tiles under box",
-    "dumpTags",
+    "dumpTags"},
 
-    "help",	mzHelpTstCmd,
+    {"help",	mzHelpTstCmd,
     "summarize *mzroute subcommands",
-    "help [subcommand]",
+    "help [subcommand]"},
 
-    "numberLine", mzNumberLineTstCmd,
+    {"numberLine", mzNumberLineTstCmd,
     "exercise numberline code",
-    "numberLine",
+    "numberLine"},
 
-    "parms",	mzParmsTstCmd,
+    {"parms",	mzParmsTstCmd,
     "print internal data structures",
-    "parms",
+    "parms"},
 
-    "plane",	mzPlaneTstCmd,
+    {"plane",	mzPlaneTstCmd,
     "make internal tile plane visible",
-    "plane [plane]",
+    "plane [plane]"},
 
-    "version",	mzVersionCmd,
+    {"version",	mzVersionCmd,
     "identify mzrouter version",
-    "version",
+    "version"},
 
-     0
-    }, *mzTestCmdP;
+    {0}
+}, *mzTestCmdP;
 
 void
 MZTest(w, cmd)

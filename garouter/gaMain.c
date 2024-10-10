@@ -262,7 +262,7 @@ GARouteCmd(routeUse, netListName)
     CellUse *routeUse;
     char *netListName;
 {
-    int errs;
+    int errs = -1;
     NLNetList netList;
     GCRChannel *ch;
     NLNet *net;

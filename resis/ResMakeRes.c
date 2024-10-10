@@ -667,11 +667,11 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
 	/* 2. There are devices along two sides at right angles,    */
 	/*    and the tile is wider than it is tall.		    */
 
-	if ((devedge & TOPEDGE) && (devedge & BOTTOMEDGE) &&
-	      !(devedge & LEFTEDGE) && !(devedge & RIGHTEDGE) ||
-	      (devedge & TOPEDGE || devedge & BOTTOMEDGE) &&
+	if (((devedge & TOPEDGE) && (devedge & BOTTOMEDGE) &&
+	      !(devedge & LEFTEDGE) && !(devedge & RIGHTEDGE)) ||
+	      ((devedge & TOPEDGE || devedge & BOTTOMEDGE) &&
 	      (devedge & LEFTEDGE || devedge & RIGHTEDGE) &&
-	      (RIGHT(tile) - LEFT(tile)) > (TOP(tile) - BOTTOM(tile)))
+	      (RIGHT(tile) - LEFT(tile)) > (TOP(tile) - BOTTOM(tile))))
 	{
             /* re-sort nodes south to north. */
 	    ResSortBreaks(&junk->breakList, FALSE);
@@ -939,8 +939,8 @@ ResSortBreaks(masterlist, xsort)
 	p3 = p2->br_next;
 	while (p3 != NULL)
 	{
-	    if (xsort == TRUE  && p2->br_loc.p_x > p3->br_loc.p_x ||
-	           xsort == FALSE && p2->br_loc.p_y > p3->br_loc.p_y)
+	    if ((xsort == TRUE  && p2->br_loc.p_x > p3->br_loc.p_x) ||
+	           (xsort == FALSE && p2->br_loc.p_y > p3->br_loc.p_y))
 	    {
 		changed = TRUE;
 		if (p1 == NULL)

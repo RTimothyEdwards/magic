@@ -28,6 +28,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/file.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
@@ -497,6 +499,7 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
     int n = 1, d = 1;
     HashTable dbUseTable;
     bool needcleanup = FALSE;
+    bool hasrcfile = FALSE;
 
     /*
      * It's very important to disable interrupts during the body of
@@ -556,7 +559,7 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 		     * magic/ and look for a compatible techfile there.
 		     */
 		    char *found = NULL;
-		    char *string, *techfullname;
+		    char *sptr, *string, *techfullname;
     
 		    techfullname = mallocMagic(strlen(tech) + 6);
 		    sprintf(techfullname, "%s.tech", tech);
@@ -621,45 +624,61 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 			    found = DBSearchForTech(techfullname, tech, string, 0);
 		    }
 		
-		    /* Experimental---check for a ".magicrc" file in	*/
-		    /* the same directory as ".tech" and source it	*/
-		    /* first.						*/
+		    /* Check for a ".magicrc" file in the same directory */
+		    /* as ".tech" and source it	first.			 */
 
 		    if (found)
 		    {
 			char *rcpath;
+			FILE *tmpf;
 
 			rcpath = (char *)mallocMagic(strlen(found) + strlen(tech)
 					+ 10);
 			sprintf(rcpath, "%s/%s.magicrc", found, tech);
-			Tcl_EvalFile(magicinterp, rcpath);
+			if ((tmpf = fopen(rcpath, "r")) != NULL)
+			{
+			    fclose(tmpf);
+			    Tcl_EvalFile(magicinterp, rcpath);
+			    hasrcfile = TRUE;
+			}
 			freeMagic(rcpath);
 		    }
 #endif
 
 		    freeMagic(techfullname);
 		    if (found)
-		    {
-			char *sptr;
 			PaAppend(&SysLibPath, found);
 
-			TxError("Loading technology %s\n", tech);
-			if (!TechLoad(tech, 0))
-			    TxError("Error in loading technology file\n");
-			else if ((sptr = strstr(found, "libs.tech")) != NULL)
+		    TxError("Loading technology %s\n", tech);
+		    result = TechLoad(tech, 0);
+		    if (!result)
+			TxError("Error in loading technology file\n");
+		    else if (found)
+		    {
+			if ((sptr = strstr(found, "libs.tech")) != NULL)
 			{
 			    int paths = 0;
-			    /* Additional automatic handling of open_pdks-  */
-			    /* style PDKs.  Append the libs.ref libraries   */
-			    /* to the cell search path.			    */
+
+			    if (hasrcfile == FALSE)
+			    {
+				/* Additional automatic handling of open_pdks-  */
+				/* style PDKs.  Append the libs.ref libraries   */
+				/* to the cell search path.  Do this only if a	*/
+				/* magicrc file was not associated with the PDK	*/
+				/* as the magicrc file is expected to set the	*/
+				/* search path.					*/
 			    
-			    strcpy(sptr + 5, "ref");
-			    paths = DBAddStandardCellPaths(found, 0);
-			    if (paths > 0)
-				TxPrintf("Cell path is now \"%s\"\n", CellLibPath);
+				strcpy(sptr + 5, "ref");
+				paths = DBAddStandardCellPaths(found, 0);
+				if (paths > 0)
+				    TxPrintf("Cell path is now \"%s\"\n", CellLibPath);
+			    }
 			}
 			freeMagic(found);
+		    }
 #ifdef MAGIC_WRAPPER
+		    if (result)
+		    {
 			/* Apply tag callbacks for "tech load" command */
 			{
 			    char *argv[2];
@@ -669,8 +688,8 @@ dbCellReadDef(f, cellDef, ignoreTech, dereference)
 			    freeMagic(argv[1]);
 			    freeMagic(argv[0]);
 			}
-#endif
 		    }
+#endif
 		}
 		if (strcmp(DBTechName, tech))
 		{
@@ -1053,7 +1072,7 @@ DBFileRecovery(filename)
     struct stat sbuf;
     uid_t userid = getuid();
     time_t recent = 0;
-    char *snptr, *tempdir, tempname[256];
+    char *snptr, *tempdir, tempname[1024];
     int pid;
     static char *actionNames[] = {"read", "cancel", 0 };
     char *prompt;
@@ -1079,7 +1098,8 @@ DBFileRecovery(filename)
 	while ((dp = readdir(cwd)) != NULL)
 	{
 	    char *doslash = (tempdir[strlen(tempdir) - 1] == '/') ? "" : "/";
-	    sprintf(tempname, "%s%s%s", tempdir, doslash, dp->d_name);
+	    int n = snprintf(tempname, sizeof(tempname), "%s%s%s", tempdir, doslash, dp->d_name);
+	    ASSERT(n < sizeof(tempname), "tempname");
 	    snptr = tempname + strlen(tempdir);
 	    if (!strncmp(snptr, "MAG", 3))
 	    {
@@ -1400,9 +1420,10 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 
 	pptr = strrchr(sptr, '.');
 	if (pptr != NULL)
+	{
 	    if (strcmp(pptr, DBSuffix)) pptr = NULL;
-	else
-	    *pptr = '\0';
+	    else *pptr = '\0';
+	}
 
 	/* If dereferencing, then use search paths first */
 	if (!dereference)
@@ -1577,7 +1598,7 @@ DBOpenOnly(cellDef, name, setFileName, errptr)
 			 */
     int *errptr;	/* Pointer to int to hold error value */
 {
-    dbReadOpen(cellDef, name != NULL, setFileName, FALSE, errptr);
+    dbReadOpen(cellDef, setFileName, FALSE, errptr);
 }
 
 /*
@@ -1890,7 +1911,8 @@ badTransform:
 	    {
 		char savepath[1024];
 		strcpy(savepath, pathptr);
-		sprintf(path, "%s/%s", cellDef->cd_file, savepath);
+		int n = snprintf(path, sizeof(path), "%s/%s", cellDef->cd_file, savepath);
+		ASSERT(n < sizeof(path), "path");
 	    }
 	    pathptr = &path[0];
 	    *slashptr = '/';
@@ -1956,6 +1978,123 @@ badTransform:
 		}
 		else if (!strcmp(cwddir, pathptr)) pathOK = TRUE;
 
+		/* Apply same check as done in DBWprocs, which is to check the
+		 * inode of the two files and declare the path okay if they are
+		 * the same.  This avoids conflicts in files that are referenced
+		 * from two different places via different relative paths, or
+		 * through symbolic links.
+		 */
+
+		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
+			    && (dereference == FALSE) && (firstUse == TRUE))
+		{
+		    struct stat statbuf;
+		    ino_t inode;
+
+		    if (stat(subCellDef->cd_file, &statbuf) == 0)
+		    {
+			inode = statbuf.st_ino;
+
+			if (stat(pathptr, &statbuf) == 0)
+			{
+			    if (inode == statbuf.st_ino)
+				pathOK = TRUE;
+			}
+		    }
+		}
+
+		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
+			    && (dereference == FALSE) && (firstUse == TRUE))
+		{
+		    /* See if both paths are inside a git repository, and both
+		     * git repositories have the same commit hash.  Then the
+		     * two layouts can be considered equivalent.  If the "git"
+		     * command fails for any reason, then ignore the error and
+		     * continue.
+		     */
+		    char *sl1ptr, *sl2ptr;
+		    int link[2], nbytes, status;
+		    pid_t pid;
+		    char githash1[128];
+		    char githash2[128];
+		    char argstr[1024];
+
+		    githash1[0] = '\0';
+		    githash2[0] = '\0';
+
+		    /* Remove the file component */
+		    sl1ptr = strrchr(pathptr, '/');
+		    if (sl1ptr != NULL) *sl1ptr = '\0';
+
+		    /* Check first file for a git hash */
+		    if (pipe(link) != -1)
+		    {
+			FORK(pid);
+			if (pid == 0)
+			{
+			    dup2(link[1], STDOUT_FILENO);
+			    close(link[0]);
+			    close(link[1]);
+			    int n = snprintf(argstr, sizeof(argstr), "-C %s", pathptr);
+			    ASSERT(n < sizeof(argstr), "argstr");
+			    execlp("git", argstr, "rev-parse", "HEAD", NULL);
+			    _exit(122);  /* see vfork man page for reason for _exit() */
+			}
+			else
+			{
+			    close(link[1]);
+			    nbytes = read(link[0], githash1, sizeof(githash1));
+			    waitpid(pid, &status, 0);
+			}
+		    }
+
+		    if (sl1ptr != NULL) *sl1ptr = '/';
+
+		    if (githash1[0] != '\0')
+		    {
+			/* Check the second repository */
+
+			/* Remove the file component */
+			sl2ptr = strrchr(subCellDef->cd_file, '/');
+			if (sl2ptr != NULL) *sl2ptr = '\0';
+
+			/* Check first file for a git hash */
+			if (pipe(link) != -1)
+			{
+			    FORK(pid);
+			    if (pid == 0)
+			    {
+				dup2(link[1], STDOUT_FILENO);
+				close(link[0]);
+				close(link[1]);
+				sprintf(argstr, "-C %s", subCellDef->cd_file);
+				execlp("git", argstr, "rev-parse", "HEAD", NULL);
+				_exit(123);  /* see vfork man page for reason for _exit() */
+			    }
+			    else
+			    {
+				close(link[1]);
+				nbytes = read(link[0], githash2, sizeof(githash2));
+				waitpid(pid, &status, 0);
+			    }
+			}
+
+			if (sl2ptr != NULL) *sl2ptr = '/';
+
+			if (githash2[0] != '\0')
+			{
+			    /* Check if the repositories have the same hash */
+			    if (!strcmp(githash1, githash2))
+			    {
+				TxPrintf("Cells %s in %s and %s have matching git repository"
+					" commits and can be considered equivalent.\n",
+					slashptr + 1, subCellDef->cd_file, pathptr);
+				pathOK = TRUE;
+			    }
+			}
+		    }
+		}
+
 		if ((pathOK == FALSE) && strcmp(subCellDef->cd_file, pathptr)
 			    && (dereference == FALSE) && (firstUse == TRUE))
 		{
@@ -1977,7 +2116,7 @@ badTransform:
 		    }
 		    else
 		    {
-			char *newname = (char *)mallocMagic(strlen(cellname) + 6);
+			char *newname = (char *)mallocMagic(strlen(cellname) + 7);
 			int i = 0;
 
 			/* To do:  Run checksum on file (not yet implemented) */
@@ -1985,7 +2124,7 @@ badTransform:
 
 			while (TRUE)
 			{
-			    sprintf(newname, "%s#%d", cellname, i);
+			    sprintf(newname, "%s__%d", cellname, i);
 			    if (DBCellLookDef(newname) == NULL) break;
 			    i++;
 			}
@@ -2014,7 +2153,7 @@ badTransform:
 	    /* default path but the new cell has a (different) path.	*/
 	    /* The paths only match if pathptr is the CWD.		*/
 
-	    else if ((pathptr != NULL) && (*pathptr != '\0'))
+	    else if (*pathptr != '\0')
 	    {
 		bool pathOK = FALSE;
 		char *cwddir = getenv("PWD");
@@ -2054,7 +2193,7 @@ badTransform:
 			}
 			else
 			{
-			    char *newname = (char *)mallocMagic(strlen(cellname) + 6);
+			    char *newname = (char *)mallocMagic(strlen(cellname) + 7);
 			    int i = 0;
 
 			    /* To do:  Run checksum on file (not yet implemented) */
@@ -2062,7 +2201,7 @@ badTransform:
 
 			    while (TRUE)
 			    {
-				sprintf(newname, "%s#%d", cellname, i);
+				sprintf(newname, "%s__%d", cellname, i);
 				if (DBCellLookDef(newname) == NULL) break;
 				i++;
 			    }
@@ -2176,7 +2315,7 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
     int scalen;		/* Scale up by this factor */
     int scaled;		/* Scale down by this factor */
 {
-    char propertyname[128], propertyvalue[2048], *storedvalue;
+    char propertyname[128], propertyvalue[2049], *storedvalue;
     char *pvalueptr;
     int ntok;
     unsigned int noeditflag;
@@ -2250,7 +2389,8 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 	    if (!strcmp(propertyname, "GDS_FILE"))
 		cellDef->cd_flags |= CDVENDORGDS;
 
-	    /* Also process FIXED_BBOX property, as units must match */
+	    /* Also process FIXED_BBOX property, as units must match,	*/
+	    /* and ditto for MASKHINTS_*.				*/
 
 	    if (!strcmp(propertyname, "FIXED_BBOX"))
 	    {
@@ -2290,6 +2430,74 @@ dbReadProperties(cellDef, line, len, f, scalen, scaled)
 			    locbbox.r_xtop, locbbox.r_ytop);
 		    (void) DBPropPut(cellDef, propertyname, storedvalue);
 		}
+	    }
+	    else if (!strncmp(propertyname, "MASKHINTS_", 10))
+	    {
+		Rect locbbox;
+		char *pptr = pvalueptr;
+		int  numvals, numrects = 0, slen, n;
+
+		while (*pptr != '\0')
+		{
+		    numvals = sscanf(pptr, "%d %d %d %d",
+				&(locbbox.r_xbot),
+				&(locbbox.r_ybot),
+				&(locbbox.r_xtop),
+				&(locbbox.r_ytop));
+		    if (numvals <= 0)
+			break;
+		    else if (numvals != 4)
+		    {
+			TxError("Cannot read bounding box values in %s property",
+				propertyname);
+			break;
+		    }
+		    else
+		    {
+			if (numrects == 0)
+			{
+			    storedvalue = (char *)mallocMagic(40);
+			    *storedvalue = '\0';
+			    slen = -1;
+			}
+			else
+			{
+			    char *newvalue;
+			    slen = strlen(storedvalue);
+			    newvalue = (char *)mallocMagic(40 + slen);
+			    sprintf(newvalue, "%s ", storedvalue);
+			    freeMagic(storedvalue);
+			    storedvalue = newvalue;
+			}
+			numrects++;
+
+			if (scalen > 1)
+			{
+			    locbbox.r_xbot *= scalen;
+			    locbbox.r_ybot *= scalen;
+			    locbbox.r_xtop *= scalen;
+			    locbbox.r_ytop *= scalen;
+			}
+			if (scaled > 1)
+			{
+			    locbbox.r_xbot /= scaled;
+			    locbbox.r_ybot /= scaled;
+			    locbbox.r_xtop /= scaled;
+			    locbbox.r_ytop /= scaled;
+			}
+			sprintf(storedvalue + slen + 1, "%d %d %d %d",
+				locbbox.r_xbot, locbbox.r_ybot,
+				locbbox.r_xtop, locbbox.r_ytop);
+
+			/* Skip forward four values in pvalueptr */
+			for (n = 0; n < 4; n++)
+			{
+			    while ((*pptr != '\0') && !isspace(*pptr)) pptr++;
+			    while ((*pptr != '\0') && isspace(*pptr)) pptr++;
+			}
+		    }
+		}
+		(void) DBPropPut(cellDef, propertyname, storedvalue);
 	    }
 	    else
 	    {
@@ -2831,7 +3039,7 @@ dbFgets(line, len, f)
 {
     char *cs;
     int l;
-    int c;
+    int c = EOF;
 
     do
     {
@@ -3130,7 +3338,7 @@ dbGetPropFunc(key, value, propRec)
     propRec->keyValueList[propRec->idx] =
 		(struct keyValuePair *)mallocMagic(sizeof(struct keyValuePair));
     propRec->keyValueList[propRec->idx]->key = key;
-    propRec->keyValueList[propRec->idx]->value = value;
+    propRec->keyValueList[propRec->idx]->value = (char *)value;
     propRec->idx++;
 
     return 0;
@@ -3159,6 +3367,16 @@ dbCountPropFunc(key, value, count)
     (*count)++;
     return 0;
 }
+
+/* Structure used by dbPropWriteFunc.  Holds the FILE stream pointer of
+ * the file being written to, and the scale reducer for dimensional
+ * values in the output (magscale).
+ */
+
+typedef struct _pwfrec {
+    FILE *pwf_file;
+    int pwf_reducer;
+} pwfrec;
 
 /*
  * ----------------------------------------------------------------------------
@@ -3211,6 +3429,7 @@ DBCellWriteFile(cellDef, f)
     CellUse **useList;
     int i, numUses = 0, numProps = 0;
     struct cellUseList cul;
+    pwfrec pwf;
 
 #define FPUTSF(f,s)\
 {\
@@ -3433,34 +3652,6 @@ DBCellWriteFile(cellDef, f)
 
     /* And any properties */
 
-    /* NOTE:  FIXED_BBOX is treated specially;  values are database */
-    /* values and should be divided by reducer.  Easiest to do it   */
-    /* here and revert values after.				    */
-
-    propvalue = (char *)DBPropGet(cellDef, "FIXED_BBOX", &propfound);
-    if (propfound)
-    {
-	char *proporig, *propscaled;
-	Rect scalebox, bbox;
-
-	proporig = StrDup((char **)NULL, propvalue);
-	propscaled = mallocMagic(strlen(propvalue) + 5);
-	if (sscanf(propvalue, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
-		    &bbox.r_xtop, &bbox.r_ytop) == 4)
-	{
-	    scalebox.r_xbot = bbox.r_xbot / reducer;
-	    scalebox.r_xtop = bbox.r_xtop / reducer;
-	    scalebox.r_ybot = bbox.r_ybot / reducer;
-	    scalebox.r_ytop = bbox.r_ytop / reducer;
-	    sprintf(propscaled, "%d %d %d %d",
-		    bbox.r_xbot / reducer, bbox.r_ybot / reducer,
-		    bbox.r_xtop / reducer, bbox.r_ytop / reducer);
-
-	    DBPropPut(cellDef, "FIXED_BBOX", propscaled);
-	    propvalue = proporig;
-	}
-    }
-
     DBPropEnum(cellDef, dbCountPropFunc, (ClientData)&numProps);
     if (numProps > 0)
     {
@@ -3475,18 +3666,17 @@ DBCellWriteFile(cellDef, f)
 			keycompare);
 
 	FPUTSF(f, "<< properties >>\n");
+	pwf.pwf_file = f;
+	pwf.pwf_reducer = reducer;
 	for (i = 0; i < numProps; i++)
 	{
 	    dbWritePropFunc(propRec.keyValueList[i]->key,
 			propRec.keyValueList[i]->value,
-			(ClientData)f);
+			(ClientData)&pwf);
 	    freeMagic ((char *)propRec.keyValueList[i]);
 	}
 	freeMagic((char *)propRec.keyValueList);
     }
-
-    /* Restore the original values in FIXED_BBOX, if any */
-    if (propfound) DBPropPut(cellDef, "FIXED_BBOX", propvalue);
 
     FPUTSF(f, "<< end >>\n");
 
@@ -3522,6 +3712,11 @@ ioerror:
  *	expected property strings and output the value based on the
  *	known format of what it points to.
  *
+ *	Also, this function assumes that properties FIXED_BBOX and
+ *	MASKHINTS_* are in internal units, and converts them by
+ *	dividing by the reducer value passed in cdata.  No other
+ *	properties are altered.
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -3531,13 +3726,98 @@ dbWritePropFunc(key, value, cdata)
     char *value;
     ClientData cdata;
 {
-    FILE *f = (FILE *)cdata;
+    pwfrec *pwf = (pwfrec *)cdata;
+    FILE *f = pwf->pwf_file;
+    int reducer = pwf->pwf_reducer;
+    char *newvalue = value;
+
+    /* NOTE:  FIXED_BBOX is treated specially;  values are database */
+    /* values and should be divided by reducer.  Easiest to do it   */
+    /* here and revert values after.  Ditto for MASKHINTS_*.	    */
+
+    if (!strcmp(key, "FIXED_BBOX"))
+    {
+	Rect scalebox, bbox;
+
+	if (sscanf(value, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		    &bbox.r_xtop, &bbox.r_ytop) == 4)
+	{
+	    scalebox.r_xbot = bbox.r_xbot / reducer;
+	    scalebox.r_xtop = bbox.r_xtop / reducer;
+	    scalebox.r_ybot = bbox.r_ybot / reducer;
+	    scalebox.r_ytop = bbox.r_ytop / reducer;
+
+	    newvalue = mallocMagic(strlen(value) + 5);
+	    sprintf(newvalue, "%d %d %d %d",
+		    scalebox.r_xbot, scalebox.r_ybot,
+		    scalebox.r_xtop, scalebox.r_ytop);
+	}
+	else
+	    TxError("Error:  Cannot parse FIXED_BBOX property value!\n");
+	
+    }
+    else if (!strncmp(key, "MASKHINTS_", 10))
+    {
+	Rect scalebox, bbox;
+        char *vptr = value, *sptr;
+	int numvals, numrects = 0, n;
+
+	while (TRUE)
+	{
+	    numvals = sscanf(vptr, "%d %d %d %d", &bbox.r_xbot, &bbox.r_ybot,
+		    &bbox.r_xtop, &bbox.r_ytop);
+	    if (numvals <= 0)
+		break;
+	    else if (numvals != 4)
+	    {
+		TxError("Error:  Cannot parse %s property value!\n", key);
+		/* Revert property value to original string */
+		if (newvalue != value) freeMagic(newvalue);
+		newvalue = value;
+		break;
+	    }
+	    else
+	    {
+		scalebox.r_xbot = bbox.r_xbot / reducer;
+		scalebox.r_xtop = bbox.r_xtop / reducer;
+		scalebox.r_ybot = bbox.r_ybot / reducer;
+		scalebox.r_ytop = bbox.r_ytop / reducer;
+		if (numrects == 0)
+		{
+		    newvalue = mallocMagic(40);
+		    sptr = newvalue;
+		}
+		else
+		{
+		    char *tempvalue;
+		    tempvalue = mallocMagic(strlen(newvalue) + 40);
+		    sprintf(tempvalue, "%s ", newvalue);
+		    sptr = tempvalue + strlen(newvalue) + 1;
+		    freeMagic(newvalue);
+		    newvalue = tempvalue;
+		}
+		sprintf(sptr, "%d %d %d %d",
+			scalebox.r_xbot, scalebox.r_ybot,
+			scalebox.r_xtop, scalebox.r_ytop);
+		numrects++;
+	    }
+
+	    /* Skip forward four values in value */
+	    for (n = 0; n < 4; n++)
+	    {
+		while (!isspace(*vptr)) vptr++;
+		while (isspace(*vptr) && (*vptr != '\0')) vptr++;
+	    }
+	}
+    }
 
     FPUTSR(f, "string ");
     FPUTSR(f, key);
     FPUTSR(f, " ");
-    FPUTSR(f, value);
+    FPUTSR(f, newvalue);
     FPUTSR(f, "\n");
+
+    if (newvalue != value) freeMagic(newvalue);
 
     return 0;
 }
@@ -3713,7 +3993,7 @@ DBCellWrite(cellDef, fileName)
      * If so, write to the temp file and then rename it after
      * we're done.
      */
-    if (tmpf = fopen(tmpname, "w"))
+    if ((tmpf = fopen(tmpname, "w")))
     {
 	result = DBCellWriteFile(cellDef, tmpf);
 	(void) fclose(tmpf);

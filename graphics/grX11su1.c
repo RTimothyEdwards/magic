@@ -52,7 +52,7 @@
 
 extern char  *DBWStyleType;
 
-Display      *grXdpy;
+extern Display *grXdpy; /* grX11thread.c */
 int	      grXscrn;
 Colormap      grXcmap;
 Visual       *grVisual;
@@ -143,7 +143,7 @@ grx11SetWMandC (mask, c)
     static int oldM = -1;
 
     c = grPixels[c];
-    if(grDisplay.depth <= 8) {
+    if (grDisplay.depth <= 8) {
       mask = grPlanes[mask];
       if (mask == -65) mask = AllPlanes;
     }
@@ -413,7 +413,7 @@ GrX11Init(dispType)
     grtemplate.screen = grXscrn;
     grtemplate.depth = 0;
     grvisual_get = XGetVisualInfo(grXdpy, VisualScreenMask, &grtemplate, &gritems);
-    if(grvisual_get == NULL)
+    if (grvisual_get == NULL)
     {
 	TxPrintf("Could not obtain Visual Info from Server %s. "
 		"Will attempt default.\n", getenv("DISPLAY"));
@@ -794,7 +794,7 @@ grX11Stdin()
 		}
 
 	        grCurrent.window = ButtonEvent->window;
-		entry = HashLookOnly(&grX11WindowTable,grCurrent.window);
+		entry = HashLookOnly(&grX11WindowTable, (char *)grCurrent.window);
 	        grCurrent.mw= (entry)?(MagWindow *)HashGetValue(entry):0;
 
 		event->txe_p.p_x = ButtonEvent->x;
@@ -811,7 +811,7 @@ grX11Stdin()
 	        event = TxNewEvent();
 
 	        grCurrent.window = KeyPressedEvent->window;
-		entry = HashLookOnly(&grX11WindowTable,grCurrent.window);
+		entry = HashLookOnly(&grX11WindowTable, (char *)grCurrent.window);
 	        grCurrent.mw= (entry)?(MagWindow *)HashGetValue(entry):0;
 
     		read(pipeRead, &c, sizeof(int));
@@ -832,9 +832,11 @@ grX11Stdin()
 		    MagWindow	*w;
 
 	            grCurrent.window = ExposeEvent->window;
-		    entry = HashLookOnly(&grX11WindowTable,grCurrent.window);
+		    entry = HashLookOnly(&grX11WindowTable, (char *)grCurrent.window);
 	            w = (entry)?(MagWindow *)HashGetValue(entry):0;
 	            grCurrent.mw=w;
+	            if (!w)
+	                break;
 
 		    screenRect.r_xbot = ExposeEvent->x;
             	    screenRect.r_xtop = ExposeEvent->x+ExposeEvent->width;
@@ -865,7 +867,7 @@ grX11Stdin()
 		    MagWindow	*w;
 
 	            grCurrent.window = ConfigureEvent->window;
-		    entry = HashLookOnly(&grX11WindowTable,grCurrent.window);
+		    entry = HashLookOnly(&grX11WindowTable, (char *)grCurrent.window);
 	            w = (entry)?(MagWindow *)HashGetValue(entry):0;
 	            grCurrent.mw=w;
 
@@ -886,8 +888,10 @@ grX11Stdin()
 		XVisibilityEvent *VisEvent = (XVisibilityEvent*) &xevent;
 		MagWindow	*w;
 
-		entry = HashLookOnly(&grX11WindowTable, VisEvent->window);
+		entry = HashLookOnly(&grX11WindowTable, (char *)VisEvent->window);
 		w = (entry)?(MagWindow *)HashGetValue(entry):0;
+		if (!w)
+		    break;
 
 		switch(VisEvent->state)
 		{
@@ -916,14 +920,14 @@ grX11Stdin()
 		    MagWindow	*w;
 
 	            grCurrent.window = anyEvent->window;
-		    entry = HashLookOnly(&grX11WindowTable, grCurrent.window);
+		    entry = HashLookOnly(&grX11WindowTable, (char *)grCurrent.window);
 	            w = (entry)?(MagWindow *)HashGetValue(entry):0;
 
 /* The line above is defintely NOT a good idea. w == 0 causes address
    exception. Why X11 is generating an event for a non-existent
    window is another question... ***mdg***                             */
 
-                    if(w == 0) {printf("CreateNotify: w = %d.\n", w); break;}
+                    if (w == 0) {printf("CreateNotify: w = %d.\n", w); break;}
 		    SigDisableInterrupts();
 	    	    WindView(w);
 		    SigEnableInterrupts();
@@ -1179,13 +1183,13 @@ GrX11Create(w, name)
     grAttributes.border_pixel = BlackPixel(grXdpy,grXscrn);
     grAttributes.colormap = grXcmap;
     grDepth = grDisplay.depth;
-    if(grClass == 3) grDepth = 8;  /* Needed since grDisplay.depth is reset
+    if (grClass == 3) grDepth = 8;  /* Needed since grDisplay.depth is reset
 				     to 7 if Pseudocolor      */
 #ifdef HIRESDB
     TxPrintf("x %d y %d width %d height %d depth %d class %d mask %d\n",
       x,y,width,height, grDepth, grClass, attribmask);
 #endif  /* HIRESDB */
-    if ( wind = XCreateWindow(grXdpy,  XDefaultRootWindow(grXdpy),
+    if (wind = XCreateWindow(grXdpy,  XDefaultRootWindow(grXdpy),
     		x, y, width, height, 0, grDepth, InputOutput, grVisual,
                 attribmask, &grAttributes))
     {
@@ -1229,7 +1233,7 @@ GrX11Create(w, name)
 	grCurrent.mw = w;
 	w->w_grdata = (ClientData) wind;
 
-	entry = HashFind(&grX11WindowTable,grCurrent.window);
+	entry = HashFind(&grX11WindowTable, (char *)grCurrent.window);
 	HashSetValue(entry,w);
 
         XDefineCursor(grXdpy, grCurrent.window,grCurrent.cursor);
@@ -1278,7 +1282,7 @@ GrX11Delete(w)
     HashEntry	*entry;
 
     xw = (Window) w->w_grdata;
-    entry = HashLookOnly(&grX11WindowTable,xw);
+    entry = HashLookOnly(&grX11WindowTable, (char *)xw);
     HashSetValue(entry,NULL);
 
     XDestroyWindow(grXdpy,xw);

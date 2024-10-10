@@ -320,7 +320,7 @@ NLSort(netList, netHeap)
 	/* Find bounding box around all terminals in this net */
 	nterms = 0;
 	for (term = net->nnet_terms; term; term = term->nterm_next)
-	    if (loc = term->nterm_locs)
+	    if ((loc = term->nterm_locs))
 	    {
 		for ( ; loc; loc = loc->nloc_next)
 		{
@@ -369,6 +369,8 @@ NLNetName(net)
     static char tempId[100];
 #if defined(EMSCRIPTEN)
  int etext;    
+#elif defined(linux) && defined(__clang__)
+    extern char etext;
 #elif defined(linux) || defined(CYGWIN)
     extern int etext asm("etext");
 #elif defined(__APPLE__)

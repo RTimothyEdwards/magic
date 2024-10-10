@@ -19,6 +19,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <stdlib.h>	/* for atof() */
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <math.h>	/* for sqrt() in bipolar L,W calculation */
 
@@ -534,7 +535,7 @@ runexttosim:
 
     if (err_result == TRUE)
     {
-	EFDone();
+	EFDone(NULL);
         return /* TCL_ERROR */;
     }
 
@@ -548,7 +549,7 @@ runexttosim:
 	if (w == (MagWindow *) NULL)
 	{
 	    TxError("Point to a window or specify a cell name.\n");
-	    EFDone();
+	    EFDone(NULL);
 	    return /* TCL_ERROR */;
 	}
 	inName = ((CellUse *) w->w_surfaceID)->cu_def->cd_name;
@@ -585,7 +586,7 @@ runexttosim:
 #else
 	TxError("exttosim: Unable to open file %s for writing\n", simesOutName);
 #endif
-	EFDone();
+	EFDone(NULL);
 	return /* TCL_ERROR */;
     }
     if (!esNoAlias && (esAliasF = fopen(esAliasName, "w")) == NULL)
@@ -598,7 +599,7 @@ runexttosim:
 #else
 	TxError("exttosim: Unable to open file %s for writing\n", esAliasName);
 #endif
-	EFDone();
+	EFDone(NULL);
 	return /* TCL_ERROR */;
     }
     if (!esNoLabel && (esLabF = fopen(esLabelName, "w")) == NULL)
@@ -617,7 +618,7 @@ runexttosim:
     /* Read the hierarchical description of the input circuit */
     if (EFReadFile(inName, FALSE, esDoSimExtResis, FALSE, FALSE) == FALSE)
     {
-	EFDone();
+	EFDone(NULL);
 	return /* TCL_ERROR */;
     }
 
@@ -1338,8 +1339,8 @@ FILE *outf;
     suf = EFHNToStr(suffix);
     if (fetInfo[type].defSubs && strcasecmp(suf,fetInfo[type].defSubs) == 0) {
     	l = strlen(suf) - 1;
-	if (  ( EFOutputFlags & EF_TRIMGLOB ) && suf[l] =='!' ||
-	      ( EFOutputFlags & EF_TRIMLOCAL ) && suf[l] == '#'  )
+	if (  (( EFOutputFlags & EF_TRIMGLOB ) && suf[l] =='!') ||
+	      (( EFOutputFlags & EF_TRIMLOCAL ) && suf[l] == '#')  )
 	      suf[l] = '\0' ;
 	if ( esFormat == SU )
 		fprintf(outf, "S_");

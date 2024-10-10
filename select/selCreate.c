@@ -1247,11 +1247,14 @@ SelectAndCopy2(newSourceDef)
     (void) DBCellCopyAllCells(&scx, CU_DESCEND_SPECIAL, EditCellUse, (Rect *) NULL);
     GeoTransRect(&scx.scx_trans, &scx.scx_area, &editArea);
 
-    DBAdjustLabels(EditCellUse->cu_def, &editArea);
-    DBWAreaChanged(EditCellUse->cu_def, &editArea, DBW_ALLWINDOWS,
-	(TileTypeBitMask *) NULL);
-    DRCCheckThis(EditCellUse->cu_def, TT_CHECKPAINT, &editArea);
-    DBReComputeBbox(EditCellUse->cu_def);
+    if (EditCellUse != NULL)
+    {
+	DBAdjustLabels(EditCellUse->cu_def, &editArea);
+	DBWAreaChanged(EditCellUse->cu_def, &editArea, DBW_ALLWINDOWS,
+			(TileTypeBitMask *) NULL);
+	DRCCheckThis(EditCellUse->cu_def, TT_CHECKPAINT, &editArea);
+	DBReComputeBbox(EditCellUse->cu_def);
+    }
 
     SelectRootDef = newSourceDef;
     SelSetDisplay(SelectUse, SelectRootDef);

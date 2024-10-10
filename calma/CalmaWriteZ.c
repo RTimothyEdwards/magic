@@ -34,6 +34,7 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/c
 #include <stdint.h>
 #include <stdlib.h>	/* for random() */
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <arpa/inet.h>	/* for htons() */
@@ -277,6 +278,7 @@ CalmaWriteZ(rootDef, f)
 {
     int oldCount = DBWFeedbackCount, problems, nerr;
     bool good;
+    CellDef *err_def;
     CellUse dummy;
     HashEntry *he;
     HashSearch hs;
@@ -302,9 +304,11 @@ CalmaWriteZ(rootDef, f)
      */
 
     dummy.cu_def = rootDef;
-    if (DBCellReadArea(&dummy, &rootDef->cd_bbox, !CalmaAllowUndefined))
+    err_def = DBCellReadArea(&dummy, &rootDef->cd_bbox, !CalmaAllowUndefined);
+    if (err_def != NULL)
     {
 	TxError("Failure to read entire subtree of the cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return FALSE;
     }
 
@@ -366,7 +370,7 @@ CalmaWriteZ(rootDef, f)
     good = (nerr == 0) ? TRUE : FALSE;
 
     /* See if any problems occurred */
-    if (problems = (DBWFeedbackCount - oldCount))
+    if ((problems = (DBWFeedbackCount - oldCount)))
 	TxPrintf("%d problems occurred.  See feedback entries.\n", problems);
 
     /*
@@ -402,7 +406,7 @@ calmaDumpStructureZ(def, outf, calmaDefHash, filename)
     HashTable *calmaDefHash;
     char *filename;
 {
-    int nbytes, rtype;
+    int nbytes = -1, rtype = 0;
     char *strname = NULL, *newnameptr;
     HashEntry *he, *he2;
     CellDef *edef;
@@ -1602,7 +1606,7 @@ calmaOutStructNameZ(type, def, f)
     }
 
     /* Is the def name a legal Calma name? */
-    for (cp = def->cd_name; c = (unsigned char) *cp; cp++)
+    for (cp = def->cd_name; (c = (unsigned char) *cp); cp++)
     {
 	if ((c > 127) || (table[c] == 0))
 	    goto bad;

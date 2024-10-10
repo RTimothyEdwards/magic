@@ -46,7 +46,7 @@ int dbDRCDebug = 0;
 
 static DRCCookie drcOverlapCookie = {
     0, 0, 0, 0,
-    { 0 }, { 0 },
+    { {0} }, { {0} },
     0, 0, 0,
     DRC_OVERLAP_TAG,
     (DRCCookie *) NULL
@@ -61,7 +61,7 @@ extern MaxRectsData *drcCanonicalMaxwidth();
 /*
  *-----------------------------------------------------------------------
  *
- * point_to_segment
+ * drcCifPointToSegment
  *
  *	Euclidean-distance point-to-segment distance (squared)
  *	calculation (borrowed from XCircuit)
@@ -77,7 +77,7 @@ extern MaxRectsData *drcCanonicalMaxwidth();
  */
 
 long
-point_to_segment(px, py, s1x, s1y, s2x, s2y)
+drcCifPointToSegment(px, py, s1x, s1y, s2x, s2y)
     int px, py;		/* The position of the point */
     int s1x, s1y;	/* One endpoint of the line segment */
     int s2x, s2y;	/* The other endpoint of the line segment */
@@ -176,7 +176,7 @@ areaCheck(tile, arg)
 	unsigned int i;
 	int sqx, sqy;
 	int sdist = arg->dCD_radial & 0xfff;
-	long sstest, ssdist = sdist * sdist;
+	long sstest, ssdist = (long) sdist * sdist;
 
 	if ((arg->dCD_radial & RADIAL_NW) != 0)
 	{
@@ -187,7 +187,7 @@ areaCheck(tile, arg)
 		return 0;
 	    else if (IsSplit(tile) && !SplitDirection(tile) && !SplitSide(tile))
 	    {
-		sstest = point_to_segment(arg->dCD_constraint->r_xbot + sdist,
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xbot + sdist,
 			arg->dCD_constraint->r_ytop - sdist,
 			LEFT(tile), BOTTOM(tile), RIGHT(tile), TOP(tile));
 		if (sstest > ssdist) return 0;
@@ -202,7 +202,7 @@ areaCheck(tile, arg)
 		return 0;
 	    else if (IsSplit(tile) && SplitDirection(tile) && SplitSide(tile))
 	    {
-		sstest = point_to_segment(arg->dCD_constraint->r_xtop - sdist,
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xtop - sdist,
 			arg->dCD_constraint->r_ytop - sdist,
 			LEFT(tile), TOP(tile), RIGHT(tile), BOTTOM(tile));
 		if (sstest > ssdist) return 0;
@@ -218,7 +218,7 @@ areaCheck(tile, arg)
 		return 0;
 	    else if (IsSplit(tile) && SplitDirection(tile) && !SplitSide(tile))
 	    {
-		sstest = point_to_segment(arg->dCD_constraint->r_xbot + sdist,
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xbot + sdist,
 			arg->dCD_constraint->r_ybot + sdist,
 			LEFT(tile), TOP(tile), RIGHT(tile), BOTTOM(tile));
 		if (sstest > ssdist) return 0;
@@ -234,7 +234,7 @@ areaCheck(tile, arg)
 		return 0;
 	    else if (IsSplit(tile) && !SplitDirection(tile) && SplitSide(tile))
 	    {
-		sstest = point_to_segment(arg->dCD_constraint->r_xtop - sdist,
+		sstest = drcCifPointToSegment(arg->dCD_constraint->r_xtop - sdist,
 			arg->dCD_constraint->r_ybot + sdist,
 			LEFT(tile), BOTTOM(tile), RIGHT(tile), TOP(tile));
 		if (sstest > ssdist) return 0;
@@ -692,9 +692,15 @@ drcTile (tile, arg)
 			cptr->drcc_dist++;
 
 		    if (cptr->drcc_flags & DRC_REVERSE)
+		    {
 			mrd = drcCanonicalMaxwidth(tpleft, GEO_WEST, arg, cptr);
+			triggered = 0;
+		    }
 		    else if (firsttile)
+		    {
 			mrd = drcCanonicalMaxwidth(tile, GEO_EAST, arg, cptr);
+			triggered = 0;
+		    }
 		    if (!trigpending || (DRCCurStyle->DRCFlags
 				& DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE))
 			cptr->drcc_dist--;
@@ -1089,9 +1095,15 @@ drcTile (tile, arg)
 			cptr->drcc_dist++;
 
 		    if (cptr->drcc_flags & DRC_REVERSE)
+		    {
 			mrd = drcCanonicalMaxwidth(tpbot, GEO_SOUTH, arg, cptr);
+			triggered = 0;
+		    }
 		    else if (firsttile)
+		    {
 			mrd = drcCanonicalMaxwidth(tile, GEO_NORTH, arg, cptr);
+			triggered = 0;
+		    }
 		    if (!trigpending || (DRCCurStyle->DRCFlags
 				& DRC_FLAGS_WIDEWIDTH_NONINCLUSIVE))
 			cptr->drcc_dist--;

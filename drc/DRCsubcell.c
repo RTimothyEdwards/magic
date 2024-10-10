@@ -55,7 +55,7 @@ static ClientData drcSubClientData;
 
 static DRCCookie drcSubcellCookie = {
     0, 0, 0, 0,
-    { 0 }, { 0 },
+    { {0} }, { {0} },
     0, 0, 0,
     DRC_SUBCELL_OVERLAP_TAG,
     (DRCCookie *) NULL
@@ -68,7 +68,7 @@ static DRCCookie drcSubcellCookie = {
 
 static DRCCookie drcInSubCookie = {
     0, 0, 0, 0,
-    { 0 }, { 0 },
+    { {0} }, { {0} },
     0, 0, 0,
     DRC_IN_SUBCELL_TAG,
     (DRCCookie *) NULL
@@ -82,7 +82,7 @@ static DRCCookie drcInSubCookie = {
 
 static DRCCookie drcOffGridCookie = {
     0, 0, 0, 0,
-    { 0 }, { 0 },
+    { {0} }, { {0} },
     0, 0, 0,
     DRC_OFFGRID_TAG,
     (DRCCookie *) NULL
@@ -882,6 +882,7 @@ DRCInteractionCheck(def, area, erasebox, func, cdarg)
 
 	    (void) DBCellCheckCopyAllPaint(&scx, &DBAllButSpaceBits, 0,
 			DRCuse, func);
+	    (void) DBFlatCopyMaskHints(&scx, 0, DRCuse);
 
 	    (void) DBNewPaintTable(savedPaintTable);
 	    (void) DBNewPaintPlane(savedPaintPlane);
@@ -944,6 +945,7 @@ DRCFlatCheck(use, area)
 	    savedPaintPlane = DBNewPaintPlane(DBPaintPlaneMark);
 
 	    (void) DBCellCopyAllPaint(&scx, &DBAllButSpaceBits, 0, DRCuse);
+	    (void) DBFlatCopyMaskHints(&scx, 0, DRCuse);
 
 	    (void) DBNewPaintTable(savedPaintTable);
 	    (void) DBNewPaintPlane(savedPaintPlane);
@@ -963,5 +965,5 @@ drcIncCount(def, area, rule, count)
     DRCCookie *rule;
     int *count;
 {
-    *count++;
+    (*count)++;
 }

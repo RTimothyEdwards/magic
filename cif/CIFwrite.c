@@ -124,6 +124,7 @@ CIFWrite(rootDef, f)
 {
     bool good;
     int oldCount = DBWFeedbackCount;
+    CellDef *err_def;
     CellUse dummy;
 
     /*
@@ -133,9 +134,11 @@ CIFWrite(rootDef, f)
      */
 
     dummy.cu_def = rootDef;
-    if (DBCellReadArea(&dummy, &rootDef->cd_bbox, TRUE))
+    err_def = DBCellReadArea(&dummy, &rootDef->cd_bbox, TRUE);
+    if (err_def != NULL)
     {
 	TxError("Failure to read in entire subtree of the cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return (FALSE);
     }
     DBFixMismatch();

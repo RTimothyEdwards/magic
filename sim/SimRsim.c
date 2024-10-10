@@ -553,7 +553,7 @@ SimRsimIt(cmd, nodeName)
     char *nodeName;
 {
 
-    static char cmdStr[256];
+    static char cmdStr[512];
     static char cleanName[256];
     char *strptr;
 

@@ -1120,7 +1120,7 @@ windDoMacro(w, cmd, interactive)
 
     if (cmd->tx_argc == argstart)
     {
-	h = HashLookOnly(&MacroClients, wc);
+	h = HashLookOnly(&MacroClients, (char *)wc);
 	if (h == NULL)
 	    return;
 	else

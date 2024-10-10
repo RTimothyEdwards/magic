@@ -154,9 +154,32 @@ extUniqueCell(def, option)
 	    }
 	    if (lastreg != lp && lastreg != &processedLabel)
 	    {
-		nwarn += extMakeUnique(def, ll, lp, lregList,
+		LabelList *lltest = NULL;
+
+		/* If the last label is a port and this label is not, then
+		 * run extMakeUnique on the port (since extMakeUnique() causes
+		 * all other nodes to be made unique).  This preserves the port
+		 * name whenever a port name disagrees with an internal name.
+		 */
+
+		if (!(ll->ll_label->lab_flags & PORT_DIR_MASK))
+		    for (lltest = lastreg->lreg_labels; lltest; lltest = lltest->ll_next)
+			if ((lltest->ll_label != NULL) &&
+					(!strcmp(lltest->ll_label->lab_text, text)))
+			    if (lltest->ll_label->lab_flags & PORT_DIR_MASK)
+				break;
+
+		if (lltest != NULL)
+		{
+		    nwarn += extMakeUnique(def, lltest, lastreg, lregList,
 				&labelHash, option);
-		HashSetValue(he, (ClientData) &processedLabel);
+		}
+		else
+		{
+		    nwarn += extMakeUnique(def, ll, lp, lregList,
+				&labelHash, option);
+		    HashSetValue(he, (ClientData) &processedLabel);
+		}
 	    }
 	}
     }
@@ -180,7 +203,7 @@ extMakeUnique(def, ll, lreg, lregList, labelHash, option)
 {
     static char *badmesg =
     "Non-global label \"%s\" attached to more than one unconnected node: %s";
-    char *cpend, *text, name[1024], name2[1024], message[1024];
+    char *cpend, *text, name[1024], name2[1024+32], message[1024];
     LabRegion *lp2;
     LabelList *ll2;
     int nsuffix, nwarn;
@@ -198,14 +221,18 @@ extMakeUnique(def, ll, lreg, lregList, labelHash, option)
     text = ll->ll_label->lab_text;
     if (option == EXT_UNIQ_ALL)
 	goto makeUnique;
-    else if ((option == EXT_UNIQ_NOPORTS || option == EXT_UNIQ_NOTOPPORTS) &&
-		!(ll->ll_label->lab_flags & PORT_DIR_MASK))
+    else if ((option == EXT_UNIQ_NOPORTS || option == EXT_UNIQ_NOTOPPORTS)
+		&& !(ll->ll_label->lab_flags & PORT_DIR_MASK))
 	goto makeUnique;
 
     cpend = strchr(text, '\0');
     if (cpend > text) cpend--;
     if (*cpend == '#') goto makeUnique;
     if (*cpend == '!') return 0;
+
+    /* Don't generate warnings about ports when given the "noports" or
+     * "notopports" options.
+     */
     if (((option == EXT_UNIQ_NOPORTS) || (option == EXT_UNIQ_NOTOPPORTS))
 		&& (ll->ll_label->lab_flags & PORT_DIR_MASK))
 	return 0;
@@ -250,7 +277,7 @@ makeUnique:
 	{
 	    if (ll2->ll_label == (Label *) NULL)
 		continue;
-	    if (strcmp(ll2->ll_label->lab_text, name) != 0)
+	    if (strcmp(ll2->ll_label->lab_text, name))
 		continue;
 
 	    /*

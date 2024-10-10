@@ -167,11 +167,14 @@ ExtTimes(rootUse, f)
     double clip, inter;
     HashSearch hs;
     HashEntry *he;
+    CellDef *err_def;
 
     /* Make sure this cell is read in */
-    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    err_def = DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE);
+    if (err_def != NULL)
     {
 	TxError("Failure to read entire subtree of cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return;
     }
 
@@ -210,7 +213,7 @@ ExtTimes(rootUse, f)
      */
     TxPrintf("Computing individual cell statistics:\n"); TxFlush();
     HashStartSearch(&hs);
-    while (he = HashNext(&cellStatsTable, &hs))
+    while ((he = HashNext(&cellStatsTable, &hs)))
 	extTimesCellFunc((struct cellStats *) HashGetValue(he));
 
     /*
@@ -220,7 +223,7 @@ ExtTimes(rootUse, f)
      */
     TxPrintf("Computing hierarchical and incremental statistics:\n"); TxFlush();
     HashStartSearch(&hs);
-    while (he = HashNext(&cellStatsTable, &hs))
+    while ((he = HashNext(&cellStatsTable, &hs)))
 	extTimesIncrFunc((struct cellStats *) HashGetValue(he));
 
     /*
@@ -229,7 +232,7 @@ ExtTimes(rootUse, f)
      */
     TxPrintf("Computing summary statistics:\n"); TxFlush();
     HashStartSearch(&hs);
-    while (he = HashNext(&cellStatsTable, &hs))
+    while ((he = HashNext(&cellStatsTable, &hs)))
     {
 	extTimesSummaryFunc((struct cellStats *) HashGetValue(he), f);
 	freeMagic((char *) HashGetValue(he));
@@ -1022,11 +1025,14 @@ ExtInterCount(rootUse, halo, f)
     FILE *f;
 {
     double inter;
+    CellDef *err_def;
 
     /* Make sure this cell is read in */
-    if (DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE))
+    err_def = DBCellReadArea(rootUse, &rootUse->cu_def->cd_bbox, TRUE);
+    if (err_def != NULL)
     {
 	TxError("Failure to read entire subtree of cell.\n");
+	TxError("Failed on cell %s.\n", err_def->cd_name);
 	return;
     }
 

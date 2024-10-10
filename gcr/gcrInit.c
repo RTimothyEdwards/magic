@@ -236,7 +236,7 @@ gcrUnlinkPin(pin)
 {
     GCRNet *net;
 
-    if (net = pin->gcr_pId)
+    if ((net = pin->gcr_pId))
     {
 	ASSERT(pin == net->gcr_lPin, "gcrUnlinkPin");
 	net->gcr_lPin = pin->gcr_pNext;
