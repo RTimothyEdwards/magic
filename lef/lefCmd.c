@@ -80,7 +80,8 @@ CmdLef(w, cmd)
     TxCommand *cmd;
 {
     int option, i, cargs, units = 1000;	    /* Default nanometers */
-    char **msg, *namep;
+    const char * const *msg;
+    char *namep;
     CellUse *selectedUse;
     CellDef *selectedDef;
     bool is_lef;
@@ -148,7 +149,7 @@ CmdLef(w, cmd)
 					 * sensible interpretation was possible.
 					 */
 
-    static char *cmdLefOption[] =
+    static const char * const cmdLefOption[] =
     {
 	"read [filename]		read a LEF file filename[.lef]\n"
 	"    read [filename] -import	read a LEF file; import cells from .mag files\n"
@@ -167,7 +168,7 @@ CmdLef(w, cmd)
 	NULL
     };
 
-    static char *cmdDefOption[] =
+    static const char * const cmdDefOption[] =
     {
 	"read [filename]		read a DEF file filename[.def]\n"
 	"    read [filename] -labels	read a DEF file with net labeling\n"

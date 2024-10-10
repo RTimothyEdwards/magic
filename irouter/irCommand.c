@@ -1442,7 +1442,7 @@ irLayersCmd(w, cmd)
  */
 
 /* Route options Table */
-static char* rOptions[] = {
+static const char* const rOptions[] = {
     "-dbox",	/* 0 */
     "-dlabel",  /* 1 */
     "-dlayers", /* 2 */

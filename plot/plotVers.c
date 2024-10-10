@@ -1074,7 +1074,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
 					 */
     int user_scale;			/* Scalefactor of output */
 {
-    static char *yesNo[] = {"no", "yes", NULL};
+    static const char * const yesNo[] = {"no", "yes", NULL};
     int dotsAcross, dotsDown, swathsDown, scaleDown;
     int mag_width;			/* lambda */
     float width;			/* inches */

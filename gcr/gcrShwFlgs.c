@@ -38,15 +38,15 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #define MAXFLAGS 17
 
-char * GCRFlagNames[]=
+const char * const GCRFlagNames[]=
     {"blkb", "blkm", "blkp", "cc",  "ce",  "r",  "tc", "te", "u",
      "v2",   "vl",   "vd",   "vm",  "vr",  "vu", "x",  "z",  0};
 
-int GCRFlagValue[]=
+const int GCRFlagValue[]=
     {   3,  1,     2,   256,  1024,     8,  128, 512, 4,
        64, 32, 32768,  2048,  8192, 16384,   16,  4096};
 
-char * GCRFlagDescr[]={
+const char * const GCRFlagDescr[]={
 	"3     Both layers are blocked",
 	"1     Location is blocked with metal",
 	"2     Location is blocked with poly",
