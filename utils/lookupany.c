@@ -47,9 +47,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 int
 LookupAny(c, table)
     char c;
-    char **table;
+    const char * const *table;
 {
-    char **tp;
+    const char * const *tp;
 
     for (tp = table; *tp; tp++)
 	if (strchr(*tp, c) != (char *) 0)

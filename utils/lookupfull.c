@@ -50,10 +50,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 int
 LookupFull(name, table)
-    char *name;
-    char **table;
+    const char *name;
+    const char * const *table;
 {
-    char **tp;
+    const char * const *tp;
 
     for (tp = table; *tp; tp++)
     {
@@ -61,7 +61,7 @@ LookupFull(name, table)
 	    return (tp - table);
 	else
 	{
-	    char *sptr, *tptr;
+	    const char *sptr, *tptr;
 	    for (sptr = name, tptr = *tp; ((*sptr != '\0') && (*tptr != '\0'));
 			sptr++, tptr++)
 		if (toupper(*sptr) != toupper(*tptr))
@@ -84,7 +84,7 @@ LookupFull(name, table)
  *
  *	struct
  *	{
- *		char *string;
+ *		const char *string;
  *		... rest of structure
  *	};
  *
@@ -107,22 +107,23 @@ LookupFull(name, table)
 
 int
 LookupStructFull(str, table, size)
-    char str[];		/* Pointer to a string to be looked up */
-    char **table;	/* Pointer to an array of structs containing string
+    const char *str;		/* Pointer to a string to be looked up */
+    const char * const *table;
+			/* Pointer to an array of structs containing string
 			 * pointers to valid commands.
 			 * The last table entry should have a NULL
 			 * string pointer.
 			 */
     int	size;		/* The size, in bytes, of each table entry */
 {
-  char **entry;
+  const char * const *entry;
   int pos;
 
   for(entry=table, pos=0; *entry!=NULL; pos++) {
     if( strcmp(str, *entry) == 0 ) {
       return pos;
     }
-    entry = (char **)((long)entry + (long)size);
+    entry = (const char * const *)((long)entry + (long)size);
   }
 
   return -1;

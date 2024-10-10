@@ -34,18 +34,18 @@
  */
 typedef struct
 {
-    char *d_str;
+    const char *d_str;
 } LookupTable;
 
 /* The following stuff just defines the global routines provided
  * by files other than hash and stack and geometry.
  */
 
-extern int Lookup();
-extern int LookupAny(char, char **);
-extern int LookupFull(char *, char **);
-extern int LookupStruct();
-extern int LookupStructFull();
+extern int Lookup(const char *str, const char * const *table);
+extern int LookupAny(char, const char * const *);
+extern int LookupFull(const char *, const char * const *);
+extern int LookupStruct(const char *str, const LookupTable *table_start, int size);
+extern int LookupStructFull(const char *str, const char * const *table, int size);
 extern int PaExpand(char **, char **, int);
 extern char *nextName();
 extern FILE *PaOpen(char *, char *, char *, char *, char *, char **);

@@ -56,8 +56,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 int
 Lookup(str, table)
-char *str;			/* Pointer to a string to be looked up */
-char *(table[]);		/* Pointer to an array of string pointers
+const char *str;		/* Pointer to a string to be looked up */
+const char * const *table;	/* Pointer to an array of string pointers
 				 * which are the valid commands.
 				 * The end of
 				 * the table is indicated by a NULL string.
@@ -68,7 +68,7 @@ char *(table[]);		/* Pointer to an array of string pointers
     int ststart = 0;
 
 #ifdef MAGIC_WRAPPER
-    static char *namespace = "::magic::";
+    static const char *namespace = "::magic::";
 
     /* Skip over prefix of qualified namespaces "::magic::" and "magic::" */
     for (pos = 0; pos < 9; pos++)
@@ -85,8 +85,8 @@ char *(table[]);		/* Pointer to an array of string pointers
     /* search for match */
     for(pos=0; table[pos]!=NULL; pos++)
     {
-	char *tabc = table[pos];
-	char *strc = &(str[ststart]);
+	const char *tabc = table[pos];
+	const char *strc = &(str[ststart]);
 	while(*strc!='\0' && *tabc!=' ' &&
 	    ((*tabc==*strc) ||
 	     (isupper(*tabc) && islower(*strc) && (tolower(*tabc)== *strc))||
@@ -136,7 +136,7 @@ char *(table[]);		/* Pointer to an array of string pointers
  *
  *	struct
  *	{
- *		char *string;
+ *		const char *string;
  *		... rest of structure
  *	};
  *
@@ -164,19 +164,21 @@ char *(table[]);		/* Pointer to an array of string pointers
  */
 
 int
-LookupStruct(str, table, size)
-    char str[];		/* Pointer to a string to be looked up */
-    char **table;	/* Pointer to an array of structs containing string
+LookupStruct(str, table_start, size)
+    const char *str;	/* Pointer to a string to be looked up */
+    const LookupTable *table_start;
+			/* Pointer to an array of structs containing string
 			 * pointers to valid commands.
 			 * The last table entry should have a NULL
 			 * string pointer.
 			 */
     int	size;		/* The size, in bytes, of each table entry */
 {
+    const char * const *table = (const char * const *)table_start;
     int match = -2;	/* result, initialized to -2 = no match */
-    char **entry;
+    const char * const *entry;
     int pos;
-    char *tabc , *strc ;
+    const char *tabc , *strc ;
 
     /* search for match */
     for (entry = table, pos = 0; *entry != NULL; )
@@ -217,7 +219,7 @@ LookupStruct(str, table, size)
 	    }
 	}
 	pos++;
-	entry = (char **)((long)entry + (long) size);
+	entry = (const char **)((long)entry + (long) size);
     }
     return(match);
 }
