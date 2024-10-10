@@ -219,7 +219,7 @@ LookupStruct(str, table_start, size)
 	    }
 	}
 	pos++;
-	entry = (const char **)((long)entry + (long) size);
+	entry = (const char **)((pointertype)entry + (pointertype)size);
     }
     return(match);
 }

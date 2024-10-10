@@ -123,7 +123,7 @@ LookupStructFull(str, table, size)
     if( strcmp(str, *entry) == 0 ) {
       return pos;
     }
-    entry = (const char * const *)((long)entry + (long)size);
+    entry = (const char * const *)((pointertype)entry + (pointertype)size);
   }
 
   return -1;
