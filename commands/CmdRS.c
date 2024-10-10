@@ -760,7 +760,7 @@ CmdSelect(
      * second table, due to a help message for ":select" with no arguments.
      */
 
-    static char *cmdSelectOption[] =
+    static const char * const cmdSelectOption[] =
     {
 	"area",
 	"visible",
@@ -783,7 +783,7 @@ CmdSelect(
 	"short",
 	NULL
     };
-    static char *cmdSelectMsg[] =
+    static const char * const cmdSelectMsg[] =
     {
 	"[more | less | nocycle] [layers] [at x y]\n"
         "                                [de]select paint chunk/region/net under\n"
@@ -839,7 +839,9 @@ CmdSelect(
 				 * also used to step through multiple uses.
 				 */
     static bool lessCycle = FALSE, lessCellCycle = FALSE;
-    char path[200], *printPath, **msg, **optionArgs, *feedtext, *pstr, *globmatch;
+    char path[200], *printPath;
+    const char * const *msg;
+    char **optionArgs, *feedtext, *pstr, *globmatch;
     TerminalPath tpath;
     CellUse *use;
     CellDef *rootBoxDef;
@@ -2092,7 +2094,7 @@ CmdSetLabel(
 {
     int pos = -1, font = -1, size = 0, rotate = 0, flags = 0;
     int locargc, argstart = 1;
-    char **msg;
+    const char * const *msg;
     Point offset;
     Rect rect;
     TileType ttype;
@@ -2102,10 +2104,10 @@ CmdSetLabel(
     Tcl_Obj *lobj;
 #endif
 
-    static char *cmdLabelYesNo[] = { "no", "false", "off", "0",
+    static const char * const cmdLabelYesNo[] = { "no", "false", "off", "0",
 		"yes", "true", "on", "1", 0 };
 
-    static char *cmdLabelSetOption[] =
+    static const char * const cmdLabelSetOption[] =
     {
 	"box <lx> <ly> <ux> <uy>	change/get label box",
 	"font <name>		change/get label font",
@@ -2847,7 +2849,7 @@ CmdSnap(
     MagWindow *w,
     TxCommand *cmd)
 {
-    static char *names[] = { "off", "internal", "lambda", "grid", "user", "on",
+    static const char * const names[] = { "off", "internal", "lambda", "grid", "user", "on",
 		"list", 0 };
     int n = SNAP_LIST;
     DBWclientRec *crec;

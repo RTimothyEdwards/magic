@@ -136,7 +136,7 @@ CmdAntennaCheck(w, cmd)
     int value;
     int argc = cmd->tx_argc;
     char **argv = cmd->tx_argv;
-    char **msg;
+    const char * const *msg;
     bool err_result;
 
     short sd_rclass;
@@ -146,7 +146,7 @@ CmdAntennaCheck(w, cmd)
 
     CellUse *editUse;
 
-    static char *cmdAntennaCheckOption[] = {
+    static const char * const cmdAntennaCheckOption[] = {
 	"[run] [options]	run antennacheck on current cell\n"
 	"			use \"run -help\" to get standard options",
 	"debug			print detailed information about each error",

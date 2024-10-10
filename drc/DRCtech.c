@@ -3457,7 +3457,7 @@ drcRectangle(argc, argv)
     int why = drcWhyCreate(argv[4]);
     TileTypeBitMask types, nottypes;
     int maxwidth;
-    static char *drcRectOpt[4] = {"any", "even", "odd", 0};
+    static const char * const drcRectOpt[4] = {"any", "even", "odd", 0};
     int i, j, even, plane;
     PlaneMask pMask, pset, ptest;
 

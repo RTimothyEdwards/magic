@@ -134,7 +134,7 @@ CmdArray(
     MagWindow *w,
     TxCommand *cmd)
 {
-    static char *cmdArrayOption[] = {
+    static const char * const cmdArrayOption[] = {
 	"count 		[[xlo] xhi [ylo] yhi]	array subcells",
 	"width 		[value]			set or return array x-spacing",
 	"height 	[value]			set or return array y-spacing",
@@ -144,7 +144,7 @@ CmdArray(
 	NULL
     };
 
-    char **msg;
+    const char * const *msg;
     int option, locargc, argstart;
     bool doList = FALSE;
     ArrayInfo a;
@@ -597,7 +597,7 @@ CmdBox(
     MagWindow *w,
     TxCommand *cmd)
 {
-    static char *cmdBoxOption[] = {
+    static const char * const cmdBoxOption[] = {
 	"width		[value]			set or return box width",
 	"height		[value]			set or return box height",
 	"size		[width height]		set or return box size",
@@ -626,7 +626,7 @@ CmdBox(
     bool needBox = TRUE;		/* require that box be defined */
     bool refEdit = FALSE;		/* referenced to edit cell coordinates */
     bool cursorRef = FALSE;		/* reference position is the cursor */
-    char **msg;
+    const char * const *msg;
 
     argc = cmd->tx_argc;
     if (argc > 7) goto badusage;
