@@ -1549,7 +1549,7 @@ DBLoadFont(fontfile, scale)
     float scale;
 {
     FILE *ff;
-    char *ascii_names[] = {
+    const char * const ascii_names[] = {
 	"space", "exclam", "quotedbl", "numbersign", "dollar",
 	"percent", "ampersand", "quoteright", "parenleft", "parenright",
 	"asterisk", "plus", "comma", "hyphen", "period", "slash", "zero",
@@ -1654,7 +1654,7 @@ DBLoadFont(fontfile, scale)
 	    {
 		if (psname != NULL)
 		{
-		    asciiidx = LookupStructFull(psname, ascii_names, sizeof(char *));
+		    asciiidx = LookupStructFull(psname, ascii_names, sizeof(const char *));
 		    if (asciiidx >= 0)
 			chardef = 2;
 		}
