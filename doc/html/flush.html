@@ -26,7 +26,7 @@ last saved version.
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>flush</B> [<I>cellname</I>] [<B>-dereference</B>]<BR><BR>
+      <B>flush</B> [<I>cellname</I>] [<B>-noprompt</B>] [<B>-dereference</B>]<BR><BR>
       <BLOCKQUOTE>
          where <I>cellname</I> is the name of a cell definition to be
 	 flushed.
@@ -42,6 +42,10 @@ last saved version.
 
       The effects of the <B>flush</B> command are irrevocable; the
       command cannot be undone with an <B>undo</B> command. <P>
+
+      With the <B>-noprompt</B> option, no interactive confirmation is
+      presented if there are unsaved changes.  Those changes will be
+      flushed.
 
       With the <B>-dereference</B> option, any file path that has been
       associated with the cell is discarded, and the cell is reloaded

@@ -31,7 +31,7 @@ Exit magic
 
 <H3>Usage:</H3>
    <BLOCKQUOTE>
-      <B>quit</B> <BR><BR>
+      <B>quit</B> [<B>exit_status</B>] [<B>-noprompt</B>]<BR><BR>
    </BLOCKQUOTE>
 
 <H3>Summary:</H3>
@@ -45,6 +45,13 @@ Exit magic
       and the Tcl <B>exit</B> command is required to quit the program.
       The Tcl <B>exit</B> command will <I>always</I> exit <B>magic</B>
       immediately, without prompting or cleanup or any other niceties. <P>
+
+      The <B>exit_status</B> option allows an exit status number in
+      the range 0 to 255 to be indicated to the parent process. The
+      default exit_status is 0 indicating success.<P>
+
+      With the <B>-noprompt</B> option, the interactive confirm prompt
+      does not occur so any changes will be discarded. <P>
    </BLOCKQUOTE>
 
 <H3>Implementation Notes:</H3>
