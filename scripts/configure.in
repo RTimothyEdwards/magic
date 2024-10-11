@@ -150,6 +150,9 @@ AC_CHECK_HEADERS(param.h)
 dnl Check for <paths.h>
 AC_CHECK_HEADERS(paths.h)
 
+dnl Check for <sys/time.h>
+AC_CHECK_HEADERS(sys/time.h)
+
 dnl Check for va_copy
 AC_CACHE_CHECK([for va_copy], ac_cv_c_va_copy,
  AC_TRY_LINK(
