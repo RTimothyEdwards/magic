@@ -95,7 +95,7 @@ global int CIFErrorLayer;	/* Index of CIF layer associated with errors.*/
  */
 
 void
-CIFPrintStats()
+CIFPrintStats(void)
 {
     TxPrintf("CIF statistics (recent/total):\n");
     cifTotalTileOps += CIFTileOps;
@@ -136,8 +136,8 @@ CIFPrintStats()
  */
 
 float
-CIFGetOutputScale(convert)
-   int convert;
+CIFGetOutputScale(
+   int convert)
 {
     if (CIFCurStyle == NULL) return 1.0;
 
@@ -159,8 +159,8 @@ CIFGetOutputScale(convert)
  */
 
 float
-CIFGetScale(convert)
-   int convert;
+CIFGetScale(
+   int convert)
 {
     if (CIFCurStyle == NULL) return 1.0;
 
@@ -185,10 +185,10 @@ CIFGetScale(convert)
  */
 
 void
-CIFPrintStyle(dolist, doforall, docurrent)
-    bool dolist;		/* Return as a list if true */
-    bool doforall;		/* Print all known styles if true */
-    bool docurrent;		/* Print current style if true */
+CIFPrintStyle(
+    bool dolist,		/* Return as a list if true */
+    bool doforall,		/* Print all known styles if true */
+    bool docurrent)		/* Print current style if true */
 {
     CIFKeep *style;
 
@@ -254,8 +254,8 @@ CIFPrintStyle(dolist, doforall, docurrent)
  */
 
 void
-CIFSetStyle(name)
-    char *name;			/* Name of the new style.  If NULL, just
+CIFSetStyle(
+    char *name)			/* Name of the new style.  If NULL, just
 				 * print out the valid styles.
 				 */
 {
@@ -320,10 +320,10 @@ CIFSetStyle(name)
  */
 
 bool
-CIFNameToMask(name, result, depend)
-    char *name;
-    TileTypeBitMask *result;
-    TileTypeBitMask *depend;
+CIFNameToMask(
+    char *name,
+    TileTypeBitMask *result,
+    TileTypeBitMask *depend)
 {
     int i, j;
     CIFOp *op;
@@ -414,11 +414,11 @@ CIFNameToMask(name, result, depend)
  */
 
 void
-CIFError(area, message)
-    Rect *area;			/* Place in CIFErrorDef where there was a
+CIFError(
+    Rect *area,			/* Place in CIFErrorDef where there was a
 				 * problem in generating CIFErrorLayer.
 				 */
-    char *message;		/* Short note about what went wrong. */
+    char *message)		/* Short note about what went wrong. */
 {
     char msg[200];
 
@@ -452,7 +452,7 @@ CIFError(area, message)
  */
 
 int
-CIFOutputScaleFactor()
+CIFOutputScaleFactor(void)
 {
     if (CIFCurStyle == NULL) return 1;
     return CIFCurStyle->cs_scaleFactor;
