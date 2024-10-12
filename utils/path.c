@@ -817,18 +817,18 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 
 gzFile
 PaZOpen(file, mode, ext, path, library, pRealName)
-    char *file;			/* Name of the file to be opened. */
-    char *mode;			/* The file mode, as given to gzopen. */
-    char *ext;			/* The extension to be added to the file name,
+    const char *file;		/* Name of the file to be opened. */
+    const char *mode;		/* The file mode, as given to gzopen. */
+    const char *ext;		/* The extension to be added to the file name,
 				 * or NULL.  Note:  this string must include
 				 * the dot (or whatever separator you use).
 				 */
-    char *path;			/* A search path:  a list of directory names
+    const char *path;		/* A search path:  a list of directory names
 				 * separated by colons or blanks.  To use
 				 * only the working directory, use "." for
 				 * the path.
 				 */
-    char *library;		/* A 2nd path containing library names.  Can be
+    const char *library;	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
     char **pRealName;		/* Pointer to a location that will be filled
@@ -837,7 +837,8 @@ PaZOpen(file, mode, ext, path, library, pRealName)
 				 * If NULL, then nothing is stored.
 				 */
 {
-    char extendedName[MAXSIZE], *p1, *p2;
+    char extendedName[MAXSIZE], *p1;
+    const char *p2;
     static char realName[MAXSIZE];
     int length, extLength, i;
     gzFile f;
