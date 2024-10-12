@@ -70,10 +70,10 @@ bool FileLocking = TRUE;
  * attempting to open the file.
  *
  * Return value:
- *	The string value that resulted in a valid file descriptor.
- *	This is a dynamically allocated string *or* a pointer to the
- *	original filename;  the calling routine should check and
- *	free if needed.
+ *	The string value that resulted in a valid file descriptor
+ *      (a file that could be opened using that filename).
+ *	Return value is a dynamically allocated string the calling
+ *      routine should free.
  *
  *-------------------------------------------------------------------
  */
@@ -91,8 +91,7 @@ PaCheckCompressed(filename)
     fd = open(gzname, O_RDONLY);
     if (fd < 0)
     {
-	freeMagic(gzname);
-	gzname = filename;
+        strcpy(gzname, filename); /* always shorter than allocation */
     }
     else
 	close(fd);
