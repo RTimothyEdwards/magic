@@ -161,7 +161,7 @@ extern void CIFSkipToSemi(), CIFSkipSep(), CIFSkipBlanks();
 extern void CIFFreePath(), CIFCleanPath();
 extern void CIFReadCellInit(), CIFReadCellCleanup();
 extern LinkedRect *CIFPolyToRects();
-extern Transform *CIFDirectionToTrans();
+extern const Transform *CIFDirectionToTrans(const Point *point);
 extern int CIFReadNameToType();
 
 /* Variable argument procedures require complete prototype */

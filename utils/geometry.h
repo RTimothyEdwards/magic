@@ -211,19 +211,19 @@ extern void GeoScaleTrans(const Transform *trans1, int m, Transform *trans2);
  *-------------------------------------------------------------------
  */
 
-extern Transform GeoIdentityTransform;
-extern Transform GeoUpsideDownTransform;
-extern Transform GeoSidewaysTransform;
-extern Transform Geo90Transform;
-extern Transform Geo180Transform;
-extern Transform Geo270Transform;
-extern Transform GeoRef45Transform;
-extern Transform GeoRef135Transform;
+extern const Transform GeoIdentityTransform;
+extern const Transform GeoUpsideDownTransform;
+extern const Transform GeoSidewaysTransform;
+extern const Transform Geo90Transform;
+extern const Transform Geo180Transform;
+extern const Transform Geo270Transform;
+extern const Transform GeoRef45Transform;
+extern const Transform GeoRef135Transform;
 
-extern Rect GeoNullRect;
-extern Rect GeoInvertedRect;
-extern Point GeoOrigin;
+extern const Rect GeoNullRect;
+extern const Rect GeoInvertedRect;
+extern const Point GeoOrigin;
 
-extern int GeoOppositePos[];
+extern const int GeoOppositePos[];
 
 #endif /* _GEOMETRY_H */

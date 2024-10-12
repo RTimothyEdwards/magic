@@ -4819,7 +4819,8 @@ cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
     CellDef *def, *rootDef, *editDef;
     bool hasChild, hasRoot, hasTrans;
     Rect rootBox, bbox;
-    Transform *tx_cell, trans_cell;
+    const Transform *tx_cell;
+    Transform trans_cell;
     char **av;
     char *cellnameptr, *fullpathname;
     int ac, clen;
