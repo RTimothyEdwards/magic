@@ -76,7 +76,8 @@ extern bool ParsSplit();
 
 #ifdef HAVE_ZLIB
 extern gzFile PaZOpen(char *, char *, char *, char *, char *, char **);
-extern gzFile PaLockZOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
+extern gzFile PaLockZOpen(const char *file, const char *mode, const char *ext, const char *path, const char *library,
+                          char **pRealName, bool *is_locked, int *fdp);
 extern char *PaCheckCompressed(const char *filename);
 #endif
 
