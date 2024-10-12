@@ -585,7 +585,9 @@ irWzdSetBloomLimit(s,file)
     char *s;
     FILE *file;
 {
-    SetNoisyDI(&(irMazeParms->mp_bloomLimit),s,file);
+    dlong tmp;
+    SetNoisyDI(&tmp,s,file);
+    irMazeParms->mp_bloomLimit = tmp; /* FIXME should this be truncated ? */
 }
 
 /* irWzdSetBoundsIncrement -- */
