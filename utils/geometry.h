@@ -176,26 +176,34 @@ typedef struct
  *-------------------------------------------------------------------
  */
 
-extern int GeoNameToPos(char *, bool, bool);
-extern char * GeoPosToName(int);
-extern void GeoTransRect(Transform *, Rect *, Rect *), GeoTransTrans(Transform *, Transform *, Transform *);
-extern void GeoTransPoint(Transform *, Point *, Point *), GeoInvertTrans(Transform *, Transform *);
-extern void GeoTranslateTrans(Transform *, int, int, Transform *);
-extern void GeoTransTranslate(int, int, Transform *, Transform *);
-extern int GeoTransPos(Transform *, int);
-extern bool GeoInclude(Rect *, Rect *), GeoIncludeAll(Rect *, Rect *);
-extern void GeoClip(Rect *, Rect *);
-extern void GeoClipPoint(Point *, Rect *);
-extern int GeoRectPointSide(Rect *, Point *);
-extern int GeoRectRectSide(Rect *, Rect *);
-extern void GeoIncludePoint(Point *, Rect *);
-extern void GeoDecomposeTransform(Transform *, bool *, int *);
-extern void GeoIncludeRectInBBox(Rect *, Rect *);
-extern void GeoCanonicalRect(Rect *, Rect *);
+extern void GeoTransPointDelta(const Transform *t, const Point *p1, Point *p2);
+extern int GeoTransAngle(const Transform *t, int a);
+
+extern int GeoNameToPos(const char *name, bool manhattan, bool verbose);
+extern const char *GeoPosToName(int pos);
+extern void GeoTransRect(const Transform *t, const Rect *r1, Rect *r2);
+extern void GeoTransTrans(const Transform *first, const Transform *second, Transform *net);
+extern void GeoTransPoint(const Transform *t, const Point *p1, Point *p2);
+extern void GeoInvertTrans(const Transform *t, Transform *inverse);
+extern void GeoTranslateTrans(const Transform *trans1, int x, int y, Transform *trans2);
+extern void GeoTransTranslate(int x, int y, const Transform *trans1, Transform *trans2);
+extern int GeoTransPos(const Transform *t, int pos);
+extern int GeoTransOrient(const Transform *t);
+extern bool GeoInclude(const Rect *src, Rect *dst);
+extern bool GeoIncludeAll(const Rect *src, Rect *dst);
+extern void GeoClip(Rect *r, const Rect *area);
+extern void GeoClipPoint(Point *p, const Rect *area);
+extern int GeoRectPointSide(const Rect *r, const Point *p);
+extern int GeoRectRectSide(const Rect *r0, const Rect *r1);
+extern void GeoIncludePoint(const Point *src, Rect *dst);
+extern void GeoDecomposeTransform(const Transform *t, bool *upsidedown, int *angle);
+extern void GeoIncludeRectInBBox(const Rect *r, Rect *bbox);
+extern void GeoCanonicalRect(const Rect *r, Rect *rnew);
 
 /* C99 compat */
-extern bool GeoDisjoint();
-extern void GeoScaleTrans();
+extern bool GeoDisjoint(Rect *area, const Rect *clipBox, bool (*func)(), ClientData cdarg);
+extern int GeoScale(const Transform *t);
+extern void GeoScaleTrans(const Transform *trans1, int m, Transform *trans2);
 
 /*
  *-------------------------------------------------------------------

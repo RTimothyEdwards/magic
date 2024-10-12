@@ -93,10 +93,11 @@ global Point GeoOrigin = { 0, 0 };
 
 void
 GeoTransPoint(t, p1, p2)
-    Transform *t;		/* A description of the mapping from the
+    const Transform *t;		/* A description of the mapping from the
 				 * coordinate system of p1 to that of p2.
 				 */
-    Point *p1, *p2;		/* Pointers to two points; p1 is the old
+    const Point *p1;
+    Point *p2;			/* Pointers to two points; p1 is the old
 				 * point, and p2 will contain the transformed
 				 * point.
 				 */
@@ -127,10 +128,11 @@ GeoTransPoint(t, p1, p2)
  */
 void
 GeoTransPointDelta(t, p1, p2)
-    Transform *t;		/* A description of the mapping from the
+    const Transform *t;		/* A description of the mapping from the
 				 * coordinate system of p1 to that of p2.
 				 */
-    Point *p1, *p2;		/* Pointers to two points; p1 is the old
+    const Point *p1;
+    Point *p2;			/* Pointers to two points; p1 is the old
 				 * point, and p2 will contain the transformed
 				 * point.
 				 */
@@ -152,7 +154,7 @@ GeoTransPointDelta(t, p1, p2)
 
 int
 GeoTransAngle(t, a)
-    Transform *t;	/* Transformation matrix */
+    const Transform *t;	/* Transformation matrix */
     int a;		/* Angle to transform */
 {
     bool flip = FALSE;
@@ -203,10 +205,11 @@ GeoTransAngle(t, a)
 
 void
 GeoTransRect(t, r1, r2)
-    Transform *t;		/* A description of the mapping from the
+    const Transform *t;		/* A description of the mapping from the
 				 * coordinate system of r1 to that of r2.
 				 */
-    Rect *r1, *r2;		/* Pointers to two rectangles, r1 is the old
+    const Rect *r1;
+    Rect *r2;			/* Pointers to two rectangles, r1 is the old
 				 * rectangle, r2 will contain the transformed
 				 * rectangle.
 				 */
@@ -258,7 +261,7 @@ GeoTransRect(t, r1, r2)
 
 void
 GeoTranslateTrans(trans1, x, y, trans2)
-    Transform *trans1;	/* Transform to be translated */
+    const Transform *trans1;	/* Transform to be translated */
     int x, y;		/* Amount by which to translated */
     Transform *trans2;	/* Result transform */
 {
@@ -292,7 +295,7 @@ GeoTranslateTrans(trans1, x, y, trans2)
 void
 GeoTransTranslate(x, y, trans1, trans2)
     int x, y;		/* Amount of translation */
-    Transform *trans1;	/* Transform to be applied to translation */
+    const Transform *trans1;	/* Transform to be applied to translation */
     Transform *trans2;	/* Result transform */
 {
     trans2->t_a = trans1->t_a;
@@ -320,8 +323,8 @@ GeoTransTranslate(x, y, trans1, trans2)
 
 void
 GeoTransTrans(first, second, net)
-    Transform *first;		/* Pointers to three transforms */
-    Transform *second;
+    const Transform *first;	/* Pointers to three transforms */
+    const Transform *second;
     Transform *net;
 {
     net->t_a = first->t_a*second->t_a + first->t_d*second->t_b;
@@ -349,7 +352,7 @@ GeoTransTrans(first, second, net)
 
 int
 GeoNameToPos(name, manhattan, verbose)
-    char *name;
+    const char *name;
     bool manhattan;	/* If TRUE, only Manhattan directions (up, down,
 			 * left, right, and their synonyms) are allowed.
 			 */
@@ -460,7 +463,7 @@ GeoNameToPos(name, manhattan, verbose)
  *
  * ----------------------------------------------------------------------------
  */
-char *
+const char *
 GeoPosToName(pos)
     int pos;
 {
@@ -493,7 +496,7 @@ GeoPosToName(pos)
 
 int
 GeoTransPos(t, pos)
-    Transform *t;		/* Transform to be applied. */
+    const Transform *t;		/* Transform to be applied. */
     int pos;			/* Position to which it is to be applied. */
 
 {
@@ -549,7 +552,7 @@ enum def_orient {ORIENT_NORTH, ORIENT_SOUTH, ORIENT_EAST, ORIENT_WEST,
 
 int
 GeoTransOrient(t)
-    Transform *t;		/* Transform to be applied. */
+    const Transform *t;		/* Transform to be applied. */
 
 {
     int pidx;
@@ -607,7 +610,7 @@ GeoTransOrient(t)
 
 void
 GeoInvertTrans(t, inverse)
-    Transform *t;			/* Pointer to a transform */
+    const Transform *t;			/* Pointer to a transform */
     Transform *inverse;			/* Place to store the inverse */
 
 {
@@ -641,7 +644,8 @@ GeoInvertTrans(t, inverse)
 
 bool
 GeoInclude(src, dst)
-    Rect *src, *dst;
+    const Rect *src;
+    Rect *dst;
 {
     int value;
 
@@ -697,7 +701,8 @@ GeoInclude(src, dst)
 
 bool
 GeoIncludeAll(src, dst)
-    Rect *src, *dst;
+    const Rect *src;
+    Rect *dst;
 {
     bool value;
 
@@ -754,7 +759,7 @@ GeoIncludeAll(src, dst)
 
 void
 GeoIncludePoint(src, dst)
-    Point *src;
+    const Point *src;
     Rect  *dst;
 {
     if ((dst->r_xbot > dst->r_xtop) || (dst->r_ybot > dst->r_ytop))
@@ -784,7 +789,7 @@ GeoIncludePoint(src, dst)
  */
 void
 GeoIncludeRectInBBox(r, bbox)
-    Rect *r;
+    const Rect *r;
     Rect *bbox;
 {
     bbox->r_xbot = MIN(bbox->r_xbot,r->r_xbot);
@@ -812,7 +817,7 @@ GeoIncludeRectInBBox(r, bbox)
 void
 GeoClip(r, area)
     Rect *r;		/* Rectangle to be clipped. */
-    Rect *area;		/* Area against which to be clipped. */
+    const Rect *area;	/* Area against which to be clipped. */
 
 {
     if (r->r_xbot < area->r_xbot) r->r_xbot = area->r_xbot;
@@ -836,7 +841,7 @@ GeoClip(r, area)
 void
 GeoClipPoint(p, area)
     Point *p;		/* Point to be clipped. */
-    Rect *area;		/* Area against which to be clipped. */
+    const Rect *area;	/* Area against which to be clipped. */
 {
     if (p->p_x < area->r_xbot) p->p_x = area->r_xbot;
     if (p->p_y < area->r_ybot) p->p_y = area->r_ybot;
@@ -871,7 +876,7 @@ GeoClipPoint(p, area)
 bool
 GeoDisjoint(area, clipBox, func, cdarg)
     Rect	* area;
-    Rect	* clipBox;
+    const Rect	* clipBox;
     bool 	(*func) ();
     ClientData	  cdarg;
 {
@@ -943,7 +948,7 @@ GeoDisjoint(area, clipBox, func, cdarg)
 
 bool
 GeoDummyFunc(box, cdarg)
-    Rect * box;
+    const Rect *box;
     ClientData cdarg;
 {
     return TRUE;
@@ -964,7 +969,7 @@ GeoDummyFunc(box, cdarg)
 
 void
 GeoCanonicalRect(r, rnew)
-    Rect *r;
+    const Rect *r;
     Rect *rnew;
 {
     if (r->r_xbot > r->r_xtop)
@@ -1005,7 +1010,7 @@ GeoCanonicalRect(r, rnew)
 
 int
 GeoScale(t)
-    Transform *t;
+    const Transform *t;
 {
     int scale;
 
@@ -1034,7 +1039,7 @@ GeoScale(t)
 
 void
 GeoScaleTrans(trans1, m, trans2)
-    Transform *trans1;	/* Transform to be scaled */
+    const Transform *trans1;	/* Transform to be scaled */
     int m;		/* Amount by which to scale */
     Transform *trans2;	/* Result transform */
 {
@@ -1062,8 +1067,8 @@ GeoScaleTrans(trans1, m, trans2)
 
 int
 GeoRectPointSide(r, p)
-    Rect  * r;
-    Point * p;
+    const Rect  * r;
+    const Point * p;
 {
     if(r->r_xbot == p->p_x) return GEO_WEST;
     else
@@ -1094,8 +1099,8 @@ GeoRectPointSide(r, p)
 
 int
 GeoRectRectSide(r0, r1)
-    Rect * r0;
-    Rect * r1;
+    const Rect * r0;
+    const Rect * r1;
 {
     if(r0->r_xbot == r1->r_xtop) return GEO_WEST;
     else
@@ -1127,7 +1132,7 @@ GeoRectRectSide(r0, r1)
 
 void
 GeoDecomposeTransform(t, upsidedown, angle)
-    Transform *t;
+    const Transform *t;
     bool *upsidedown;		/* Set to TRUE iff we should flip upsidedown
 				 * before rotating.
 				 */
