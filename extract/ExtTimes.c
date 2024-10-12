@@ -23,7 +23,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
 #include <sys/resource.h>
 #if defined(SYSV) || defined(EMSCRIPTEN)
 #include <sys/param.h>

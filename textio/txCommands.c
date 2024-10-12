@@ -26,9 +26,17 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/t
 #include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <sys/time.h>
 #include <signal.h>
-#include <time.h>
+#ifdef TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# ifdef HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
 
 #include "tcltk/tclmagic.h"
 #include "utils/magsgtty.h"
