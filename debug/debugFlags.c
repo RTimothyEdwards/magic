@@ -57,7 +57,7 @@ int debugNumClients = 0;
 
 ClientData
 DebugAddClient(name, maxflags)
-    char *name;
+    const char *name;
     int maxflags;
 {
     struct debugClient *dc;
@@ -114,7 +114,7 @@ DebugAddClient(name, maxflags)
 int
 DebugAddFlag(clientID, name)
     ClientData clientID;	/* Client identifier from DebugAddClient */
-    char *name;			/* Name of debugging flag */
+    const char *name;		/* Name of debugging flag */
 {
     int id = (int) clientID;
     struct debugClient *dc;

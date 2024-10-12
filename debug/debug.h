@@ -28,7 +28,7 @@
 
 struct debugClient
 {
-    char		*dc_name;	/* Name of client */
+    const char		*dc_name;	/* Name of client */
     int			 dc_maxflags;	/* Maximum number of flags */
     int			 dc_nflags;	/* Number flags now in array */
     struct debugFlag	*dc_flags;	/* Array of flags */
@@ -36,7 +36,7 @@ struct debugClient
 
 struct debugFlag
 {
-    char	*df_name;	/* Name of debugging flag */
+    const char	*df_name;	/* Name of debugging flag */
     bool	 df_value;	/* Current value of the flag */
 };
 
@@ -71,8 +71,8 @@ extern struct debugClient debugClients[];
 extern void HistCreate(const char *name, int ptrKeys, int low, int step, int bins);
 extern void HistAdd(const char *name, int ptrKeys, int value);
 extern void HistPrint(const char *name);
-extern ClientData DebugAddClient(char *name, int maxflags);
-extern int DebugAddFlag(ClientData clientID, char *name);
+extern ClientData DebugAddClient(const char *name, int maxflags);
+extern int DebugAddFlag(ClientData clientID, const char *name);
 extern void DebugShow(ClientData clientID);
 extern void DebugSet(ClientData clientID, int argc, char *argv[], int value);
 
