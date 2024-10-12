@@ -103,7 +103,7 @@ extern gzFile flock_zopen();
  */
 #define	LAST_BIT_OF(x)	((x) & ~((x) - 1))
 
-extern float MagAtof();
+extern float MagAtof(const char *s);
 
 extern int Wait(int *status);
 extern int WaitPid(int pid, int *status);
