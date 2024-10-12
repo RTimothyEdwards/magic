@@ -51,7 +51,7 @@ Histogram * hist_list = (Histogram *) NULL;
  */
 Histogram *
 histFind(name, ptrKeys)
-    char * name;
+    const char * name;
     bool ptrKeys;
 {
     Histogram * h;
@@ -82,7 +82,7 @@ histFind(name, ptrKeys)
  */
 void
 HistCreate(name, ptrKeys, low, step, bins)
-    char * name;	/* Name for histogram add and print   */
+    const char * name;	/* Name for histogram add and print   */
     bool   ptrKeys;	/* TRUE if name is a character pointer*/
     int    low;		/* The lowest value for the histogram */
     int    step;	/* The increment for each bin         */
@@ -135,7 +135,7 @@ HistCreate(name, ptrKeys, low, step, bins)
  */
 void
 HistAdd(name, ptrKeys, value)
-    char * name;	/* Identifier for the histogram */
+    const char * name;	/* Identifier for the histogram */
     bool   ptrKeys;	/* TRUE if the name is a pointer*/
     int    value;	/* Value to index the column	*/
 {
@@ -177,7 +177,7 @@ HistAdd(name, ptrKeys, value)
  */
 void
 HistPrint(name)
-    char * name;
+    const char * name;
 {
     FILE * fp, * fopen();
     Histogram * h;

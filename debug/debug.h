@@ -54,7 +54,7 @@ typedef struct histogram
     int		       hi_max;		/* Largest item in the histogram*/
     int		       hi_min;		/* Smallest item in the histogram*/
     int		       hi_cum;		/* Cumulative item total 	*/
-    char             * hi_title;	/* Histogram identifier 	*/
+    const char       * hi_title;	/* Histogram identifier 	*/
     bool	       hi_ptrKeys;	/* TRUE if title is a pointer   */
     int              * hi_data;		/* Buckets for histogram counts	*/
     struct histogram * hi_next;		/* Linked list to next histogram*/
@@ -68,9 +68,9 @@ extern struct debugClient debugClients[];
 #define	DebugIsSet(cid, f)	debugClients[(spointertype) cid].dc_flags[f].df_value
 
 /* procedures */
-extern void HistCreate(char *name, int ptrKeys, int low, int step, int bins);
-extern void HistAdd(char *name, int ptrKeys, int value);
-extern void HistPrint(char *name);
+extern void HistCreate(const char *name, int ptrKeys, int low, int step, int bins);
+extern void HistAdd(const char *name, int ptrKeys, int value);
+extern void HistPrint(const char *name);
 extern ClientData DebugAddClient(char *name, int maxflags);
 extern int DebugAddFlag(ClientData clientID, char *name);
 extern void DebugShow(ClientData clientID);
