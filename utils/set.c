@@ -98,7 +98,7 @@ SetNoisyInt(parm,valueS,file)
 int
 SetNoisyBool(parm,valueS,file)
     bool *parm;
-    char *valueS;
+    const char *valueS;
     FILE *file;
 {
     int n, which, result = -2;
