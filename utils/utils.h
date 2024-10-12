@@ -70,7 +70,7 @@ extern void niceabort();
 extern void ShowRect();
 extern void FindDisplay();
 extern void ForkChildAdd();
-extern int  PaEnum();
+extern int  PaEnum(const char *path, const char *file, int (*proc)(), ClientData cdata);
 extern int  paVisitProcess();
 extern void SetNoisyInt();
 extern void SetNoisyDI();
