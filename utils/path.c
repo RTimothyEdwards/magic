@@ -162,12 +162,13 @@ PaAppend(char **pathptr, const char *newstring)
 
 int
 PaExpand(psource, pdest, size)
-    char **psource;		/* Pointer to a pointer to the source string */
+    const char **psource;	/* Pointer to a pointer to the source string */
     char **pdest;		/* Pointer to a ptr to dest string area. */
     int size;			/* Number of bytes available at pdest */
 
 {
-    char *ps, *pd;
+    const char *ps;
+    char *pd;
     struct passwd *passwd, *getpwnam();
     char expandName[512], *string, *newEntry;
     HashEntry *h;
