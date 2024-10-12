@@ -84,7 +84,7 @@ extern gzFile PaLockZOpen(const char *file, const char *mode, const char *ext, c
 extern char *PaCheckCompressed(const char *filename);
 #endif
 
-extern int SetNoisyBool(bool *, char *, FILE *);
+extern int SetNoisyBool(bool *parm, const char *valueS, FILE *file);
 
 #ifdef FILE_LOCKS
 extern FILE *flock_open();
