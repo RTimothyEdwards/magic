@@ -77,7 +77,7 @@ extern bool ParsSplit();
 #ifdef HAVE_ZLIB
 extern gzFile PaZOpen(char *, char *, char *, char *, char *, char **);
 extern gzFile PaLockZOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
-extern char *PaCheckCompressed(char *);
+extern char *PaCheckCompressed(const char *filename);
 #endif
 
 extern int SetNoisyBool(bool *, char *, FILE *);

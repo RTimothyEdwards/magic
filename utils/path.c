@@ -80,7 +80,7 @@ bool FileLocking = TRUE;
  
 char *
 PaCheckCompressed(filename)
-    char *filename;
+    const char *filename;
 {
     int fd;
     char *gzname;
