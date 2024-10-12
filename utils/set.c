@@ -172,7 +172,7 @@ SetNoisyBool(parm,valueS,file)
 void
 SetNoisyDI(parm,valueS,file)
     dlong *parm;		/* BY NP */
-    char *valueS;
+    const char *valueS;
     FILE *file;
 {
     /* If value not null, set parm */

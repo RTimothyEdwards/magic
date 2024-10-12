@@ -73,7 +73,7 @@ extern void ForkChildAdd();
 extern int  PaEnum(const char *path, const char *file, int (*proc)(), ClientData cdata);
 extern int  paVisitProcess();
 extern void SetNoisyInt(int *parm, const char *valueS, FILE *file);
-extern void SetNoisyDI();
+extern void SetNoisyDI(dlong *parm, const char *valueS, FILE *file);
 extern bool ParsSplit();
 
 #ifdef HAVE_ZLIB
