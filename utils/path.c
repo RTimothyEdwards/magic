@@ -416,18 +416,18 @@ nextName(ppath, file, dest, size)
 
 gzFile
 PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
-    char *file;			/* Name of the file to be opened. */
-    char *mode;			/* The file mode, as given to fopen. */
-    char *ext;			/* The extension to be added to the file name,
+    const char *file;		/* Name of the file to be opened. */
+    const char *mode;		/* The file mode, as given to fopen. */
+    const char *ext;		/* The extension to be added to the file name,
 				 * or NULL.  Note:  this string must include
 				 * the dot (or whatever separator you use).
 				 */
-    char *path;			/* A search path:  a list of directory names
+    const char *path;		/* A search path:  a list of directory names
 				 * separated by colons or blanks.  To use
 				 * only the working directory, use "." for
 				 * the path.
 				 */
-    char *library;		/* A 2nd path containing library names.  Can be
+    const char *library;	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
     char **pRealName;		/* Pointer to a location that will be filled
@@ -442,7 +442,8 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 				 */
     int *fdp;			/* If non-NULL, put the file descriptor here */
 {
-    char extendedName[MAXSIZE], *p1, *p2;
+    char extendedName[MAXSIZE], *p1;
+    const char *p2;
     static char realName[MAXSIZE];
     int length, extLength, i, fd;
     int oflag = 0;
