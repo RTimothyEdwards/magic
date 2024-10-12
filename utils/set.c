@@ -66,7 +66,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 void
 SetNoisyInt(parm,valueS,file)
     int *parm;
-    char *valueS;
+    const char *valueS;
     FILE *file;
 {
 
