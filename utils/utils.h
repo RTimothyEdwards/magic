@@ -72,7 +72,7 @@ extern void FindDisplay();
 extern void ForkChildAdd();
 extern int  PaEnum(const char *path, const char *file, int (*proc)(), ClientData cdata);
 extern int  paVisitProcess();
-extern void SetNoisyInt();
+extern void SetNoisyInt(int *parm, const char *valueS, FILE *file);
 extern void SetNoisyDI();
 extern bool ParsSplit();
 
