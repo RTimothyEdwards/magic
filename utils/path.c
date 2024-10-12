@@ -1095,8 +1095,8 @@ const char *newWD;		/* New working directory to be used.  Must
 
 int
 PaEnum(path, file, proc, cdata)
-    char *path;		/* Search path */
-    char *file;		/* Each element of the search path is prepended to
+    const char *path;		/* Search path */
+    const char *file;	/* Each element of the search path is prepended to
 			 * this file name and passed to the client.
 			 */
     int (*proc)();	/* Client procedure */
