@@ -176,16 +176,14 @@ extern void CIFReadCellInit(int ptrkeys);
 extern void CIFReadCellCleanup(int filetype);
 extern LinkedRect *CIFPolyToRects(CIFPath *path, Plane *plane, PaintResultType *resultTbl,
                                   PaintUndoInfo *ui, bool isCalma);
-extern Transform *CIFDirectionToTrans(Point *point);
+extern const Transform *CIFDirectionToTrans(const Point *point);
 extern int CIFReadNameToType(char *name, bool newOK);
 
 extern int CIFCalmaLayerToCifLayer(int layer, int datatype, CIFReadStyle *calmaStyle);
-
 extern void CIFPropRecordPath(CellDef *def, CIFPath *pathheadp, bool iswire, char *propname);
 extern void CIFPaintWirePath(CIFPath *pathheadp, int width, bool endcap, Plane *plane,
                              PaintResultType *ptable, PaintUndoInfo *ui);
 extern void CIFMakeManhattanPath(CIFPath *pathHead, Plane *plane, PaintResultType *resultTbl, PaintUndoInfo *ui);
-
 extern int CIFEdgeDirection(CIFPath *first, CIFPath *last);
 
 /* Variable argument procedures require complete prototype */

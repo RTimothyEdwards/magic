@@ -1469,9 +1469,9 @@ cifParseComment(void)
  * ----------------------------------------------------------------------------
  */
 
-Transform *
+const Transform *
 CIFDirectionToTrans(
-    Point *point)		/* Direction vector from origin. */
+    const Point *point)		/* Direction vector from origin. */
 {
     if ((point->p_x != 0) && (point->p_y == 0))
     {

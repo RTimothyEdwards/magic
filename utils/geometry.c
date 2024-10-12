@@ -36,26 +36,26 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  *-------------------------------------------------------------------
  */
 
-global Transform GeoIdentityTransform	= {  1,  0,  0,  0,  1,  0 };
-global Transform GeoUpsideDownTransform	= {  1,  0,  0,  0, -1,  0 };
-global Transform GeoSidewaysTransform	= { -1,  0,  0,  0,  1,  0 };
-global Transform Geo90Transform		= {  0,  1,  0, -1,  0,  0 };
-global Transform Geo180Transform	= { -1,  0,  0,  0, -1,  0 };
-global Transform Geo270Transform	= {  0, -1,  0,  1,  0,  0 };
+global const Transform GeoIdentityTransform	= {  1,  0,  0,  0,  1,  0 };
+global const Transform GeoUpsideDownTransform	= {  1,  0,  0,  0, -1,  0 };
+global const Transform GeoSidewaysTransform	= { -1,  0,  0,  0,  1,  0 };
+global const Transform Geo90Transform		= {  0,  1,  0, -1,  0,  0 };
+global const Transform Geo180Transform	= { -1,  0,  0,  0, -1,  0 };
+global const Transform Geo270Transform	= {  0, -1,  0,  1,  0,  0 };
 
 /*
  * Additional Transforms (Reflections at 45 and 135 degrees)
  */
 
-global Transform GeoRef45Transform	= {  0,  1,  0,  1,  0,  0 };
-global Transform GeoRef135Transform	= {  0, -1,  0, -1,  0,  0 };
+global const Transform GeoRef45Transform	= {  0,  1,  0,  1,  0,  0 };
+global const Transform GeoRef135Transform	= {  0, -1,  0, -1,  0,  0 };
 
 /*
  *-------------------------------------------------------------------
  *	Declaration of the table of opposite directions:
  *-------------------------------------------------------------------
  */
-global int GeoOppositePos[] =
+global const int GeoOppositePos[] =
 {
 	GEO_CENTER,	/* GEO_CENTER */
 	GEO_SOUTH,	/* GEO_NORTH */
@@ -74,9 +74,9 @@ global int GeoOppositePos[] =
  *-------------------------------------------------------------------
  */
 
-global Rect  GeoNullRect = { {0, 0}, {0, 0} };
-global Rect  GeoInvertedRect = { {0, 0}, {-1, -1} };
-global Point GeoOrigin = { 0, 0 };
+global const Rect  GeoNullRect = { {0, 0}, {0, 0} };
+global const Rect  GeoInvertedRect = { {0, 0}, {-1, -1} };
+global const Point GeoOrigin = { 0, 0 };
 
 
 /*-------------------------------------------------------------------

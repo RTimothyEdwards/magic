@@ -722,7 +722,7 @@ LefReadLayers(f, obstruct, lreturn, rreturn)
     FILE *f;
     bool obstruct;
     TileType *lreturn;
-    Rect **rreturn;
+    const Rect **rreturn;
 {
     char *token;
     TileType curlayer = -1;
@@ -810,7 +810,7 @@ LefReadLayer(f, obstruct)
     FILE *f;
     bool obstruct;
 {
-    return LefReadLayers(f, obstruct, (TileType *)NULL, (Rect **)NULL);
+    return LefReadLayers(f, obstruct, (TileType *)NULL, (const Rect **)NULL);
 }
 
 /*
@@ -1200,7 +1200,8 @@ LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
     LinkedRect *newRect, *rectList;
     Point *pointList;
     int points;
-    Rect *paintrect, *contact = NULL;
+    Rect *paintrect;
+    const Rect *contact = NULL;
 
     static char *geometry_keys[] = {
 	"LAYER",

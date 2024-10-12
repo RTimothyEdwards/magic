@@ -1302,7 +1302,8 @@ DefReadLocation(use, f, oscale, tptr, noplace)
     Transform *tptr;
     bool noplace;
 {
-    Rect *r, tr, rect;
+    const Rect *r;
+    Rect tr, rect;
     int keyword;
     char *token;
     float x, y;
