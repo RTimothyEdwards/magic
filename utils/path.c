@@ -358,10 +358,10 @@ noexpand:
 
 char *
 nextName(ppath, file, dest, size)
-    char **ppath;		/* Pointer to a pointer to the next
+    const char **ppath;		/* Pointer to a pointer to the next
 				 * entry in the path.
 				 */
-    char *file;			/* Pointer to a file name. */
+    const char *file;		/* Pointer to a file name. */
     char *dest;			/* Place to build result name. */
     int size;			/* Size of result area. */
 
