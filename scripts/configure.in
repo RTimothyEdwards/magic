@@ -166,6 +166,7 @@ AC_CHECK_HEADERS(sys/resource.h)
 
 dnl Check for <sys/time.h>
 AC_CHECK_HEADERS(sys/time.h)
+AC_HEADER_TIME
 
 dnl Check for va_copy
 AC_CACHE_CHECK([for va_copy], ac_cv_c_va_copy,
