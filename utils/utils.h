@@ -58,7 +58,7 @@ extern bool StrIsInt(const char *);
 extern bool StrIsNumeric(const char *);
 
 /* C99 compat */
-extern void PaAppend(char **, char *);
+extern void PaAppend(char **pathptr, const char *newstring);
 extern void ReduceFraction(int *, int *);
 extern bool TechLoad(char *, SectionID);
 extern void UndoFlush();

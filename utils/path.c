@@ -108,7 +108,7 @@ PaCheckCompressed(filename)
  *	newstring is the new string to append to the path.
  */
 void
-PaAppend(char **pathptr, char *newstring)
+PaAppend(char **pathptr, const char *newstring)
 {
     int oldlength, addlength;
     char *new;
