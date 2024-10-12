@@ -52,7 +52,7 @@ extern FILE *PaOpen(char *, char *, char *, char *, char *, char **);
 extern FILE *PaLockOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
 extern char *StrDup(char **, const char *);
 extern bool Match(const char *pattern, const char *string);
-extern char *ArgStr();
+extern char *ArgStr(int *pargc, char ***pargv, const char *argType);
 extern bool StrIsWhite(const char *, bool);
 extern bool StrIsInt(const char *);
 extern bool StrIsNumeric(const char *);
