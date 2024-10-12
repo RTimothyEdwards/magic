@@ -46,7 +46,7 @@ extern int LookupAny(char, const char * const *);
 extern int LookupFull(const char *, const char * const *);
 extern int LookupStruct(const char *str, const LookupTable *table_start, int size);
 extern int LookupStructFull(const char *str, const char * const *table, int size);
-extern int PaExpand(char **, char **, int);
+extern int PaExpand(const char **, char **, int);
 extern char *nextName();
 extern FILE *PaOpen(char *, char *, char *, char *, char *, char **);
 extern FILE *PaLockOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
