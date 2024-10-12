@@ -129,7 +129,7 @@ gzFile flock_zopen(filename, mode, is_locked, fdp)
 
 	fd = open(fname, oflag);
 	if (fdp != NULL) *fdp = fd;
-	if (fname != filename) freeMagic(fname);
+	freeMagic(fname);
 	return gzdopen(fd, mode);
     }
 
@@ -196,7 +196,7 @@ gzFile flock_zopen(filename, mode, is_locked, fdp)
 
 done:
     if (fdp != NULL) *fdp = fd;
-    if (fname != filename) freeMagic(fname);
+    freeMagic(fname);
     return f;
 }
 
