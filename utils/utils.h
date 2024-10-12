@@ -49,7 +49,8 @@ extern int LookupStructFull(const char *str, const char * const *table, int size
 extern int PaExpand(const char **, char **, int);
 extern char *nextName(const char **ppath, const char *file, char *dest, int size);
 extern FILE *PaOpen(char *, char *, char *, char *, char *, char **);
-extern FILE *PaLockOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
+extern FILE *PaLockOpen(const char *file, const char *mode, const char *ext, const char *path, const char *library,
+                        char **pRealName, bool *is_locked, int *fdp);
 extern char *StrDup(char **, const char *);
 extern bool Match(const char *pattern, const char *string);
 extern char *ArgStr(int *pargc, char ***pargv, const char *argType);
