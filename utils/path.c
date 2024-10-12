@@ -996,15 +996,17 @@ PaOpen(file, mode, ext, path, library, pRealName)
 
 char *
 PaSubsWD(path, newWD)
-char *path;			/* Path in which to substitute. */
-char *newWD;			/* New working directory to be used.  Must
+const char *path;		/* Path in which to substitute. */
+const char *newWD;		/* New working directory to be used.  Must
 				 * end in a slash.
 				 */
 
 {
 #define NEWPATHSIZE 1000
     static char newPath[NEWPATHSIZE];
-    char *pOld, *pNew, *pWD;
+    const char *pOld;
+    char *pNew;
+    const char *pWD;
     int spaceLeft;
 
     pOld = path;
