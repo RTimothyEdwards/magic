@@ -105,8 +105,8 @@ extern gzFile flock_zopen();
 
 extern float MagAtof();
 
-extern int Wait();
-extern int WaitPid();
+extern int Wait(int *status);
+extern int WaitPid(int pid, int *status);
 
 
 #define FORK_f(pid) do { pid = fork(); if (pid > 0) ForkChildAdd (pid); } while (0)
