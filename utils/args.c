@@ -56,7 +56,7 @@ char *
 ArgStr(pargc, pargv, argType)
     int *pargc;
     char ***pargv;
-    char *argType;	/* For error messages: what the following string is
+    const char *argType;/* For error messages: what the following string is
 			 * supposed to be interpreted as.
 			 */
 {
