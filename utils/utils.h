@@ -50,12 +50,12 @@ extern int PaExpand(char **, char **, int);
 extern char *nextName();
 extern FILE *PaOpen(char *, char *, char *, char *, char *, char **);
 extern FILE *PaLockOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
-extern char *StrDup(char **, char *);
+extern char *StrDup(char **, const char *);
 extern int Match();
 extern char *ArgStr();
-extern bool StrIsWhite(char *, bool);
-extern bool StrIsInt(char *);
-extern bool StrIsNumeric(char *);
+extern bool StrIsWhite(const char *, bool);
+extern bool StrIsInt(const char *);
+extern bool StrIsNumeric(const char *);
 
 /* C99 compat */
 extern void PaAppend(char **, char *);
