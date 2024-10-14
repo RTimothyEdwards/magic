@@ -29,6 +29,8 @@
 #include <zlib.h>
 #endif
 
+#include "utils/magic_assert.h"
+
 /* ------------------- Universal pointer typecast --------------------- */
 
 /* Set default value for backwards compatibility with non-autoconf make */
@@ -122,13 +124,6 @@ extern char *CellLibPath;	/* Path for finding cells. */
 extern char *SysLibPath;	/* Path for finding system
 				 * files like color maps, styles, etc.
 				 */
-
-/* --------------------- Debugging and assertions --------------------- */
-
-/* To enable assertions, undefine NDEBUG in file defs.mak */
-
-#include <assert.h>
-#define	ASSERT(p, where) assert(p)	/* "where" is ignored */
 
 /* ------------------------ Malloc/free ------------------------------- */
 
