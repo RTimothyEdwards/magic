@@ -28,6 +28,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <unistd.h>		/* for getpid(), sleep() */
 #include <sys/types.h>
 #include <sys/stat.h>		/* for chmod() */
+#include <time.h>
 
 
 #include "utils/magic.h"
@@ -55,10 +56,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 char AbortMessage[200];
 bool AbortFatal = FALSE;
-
-/* For lint */
-time_t time();
-char *ctime();
 
 void
 DumpCore()
