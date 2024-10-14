@@ -177,6 +177,12 @@ extern char AbortMessage[];
  #define ATTR_UNREACHABLE __builtin_unreachable()
  #define ATTR_NORETURN __attribute__((noreturn))
  #define __unused__(x) x __attribute__((unused))
+
+ #define ANALYSER_CSTRING(n) __attribute__((null_terminated_string_arg(n)))
+ #define ANALYSER_FD_ARG(fd) __attribute__((fd_arg(fd)))
+ #define ANALYSER_MALLOC(dealloc, idx) __attribute__((malloc, malloc(dealloc, idx)))
+ #define ANALYSER_NONNULL(n...) __attribute__((nonnull(n)))
+ #define ANALYSER_RETURNS_NONNULL __attribute__((returns_nonnull))
 #else
  #define ATTR_FORMAT_PRINTF_1 /* */
  #define ATTR_FORMAT_PRINTF_2 /* */
@@ -184,6 +190,12 @@ extern char AbortMessage[];
  #define ATTR_UNREACHABLE /* */
  #define ATTR_NORETURN /* */
  #define __unused__(x) x
+
+ #define ANALYSER_CSTRING(n) /* */
+ #define ANALYSER_FD_ARG(fd) /* */
+ #define ANALYSER_MALLOC(dealloc, idx) /* */
+ #define ANALYSER_NONNULL(n...) /* */
+ #define ANALYSER_RETURNS_NONNULL /* */
 #endif
 
 /* ---------------- Start of Machine Configuration Section ----------------- */
