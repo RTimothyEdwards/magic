@@ -20,8 +20,8 @@
  * rcsid "$Header: /usr/cvsroot/magic-8.0/tiles/tile.h,v 1.3 2010/06/24 12:37:57 tim Exp $"
  */
 
-#ifndef _TILES_H
-#define	_TILES_H
+#ifndef _MAGIC__TILES__TILE_H
+#define	_MAGIC__TILES__TILE_H
 
 #ifndef _MAGIC_H
 #include "utils/magic.h"
@@ -390,4 +390,4 @@ extern const Rect TiPlaneRect;	/* Rectangle large enough to force area
 				 * that should ever be painted in a plane.
 				 */
 
-#endif /* _TILES_H */
+#endif /* _MAGIC__TILES__TILE_H */

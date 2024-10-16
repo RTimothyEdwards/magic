@@ -30,8 +30,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/irouter/irInternal.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _IRINTERNAL_H
-#define _IRINTERNAL_H
+#ifndef _MAGIC__IROUTER__IRINTERNAL_H
+#define _MAGIC__IROUTER__IRINTERNAL_H
 
 #include "irouter/irouter.h"
 #include "mzrouter/mzrouter.h"
@@ -75,4 +75,4 @@ extern int irRouteWid;		/* Reference window for subcell expansion
 #define DT_RECT		3
 #define DT_SELECTION	4
 
-#endif /* _IRINTERNAL_H */
+#endif /* _MAGIC__IROUTER__IRINTERNAL_H */

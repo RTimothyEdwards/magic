@@ -23,8 +23,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/mzrouter/mzInternal.h,v 1.2 2008/06/01 18:37:44 tim Exp $
  */
 
-#ifndef _MZINTERNAL_H
-#define _MZINTERNAL_H
+#ifndef _MAGIC__MZROUTER__MZINTERNAL_H
+#define _MAGIC__MZROUTER__MZINTERNAL_H
 
 /*
  * Structures etc. that are exported by the mzrouter are defined in
@@ -504,4 +504,4 @@ extern void mzWalkUDContact();
 #define RC_WALKLRC	1024
 #define RC_DONE		2048
 
-#endif /* _MZINTERNAL_H */
+#endif /* _MAGIC__MZROUTER__MZINTERNAL_H */

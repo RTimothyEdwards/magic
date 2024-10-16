@@ -8,8 +8,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/dbwind/dbwtech.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _DBWTECH_H
-#define	_DBWTECH_H
+#ifndef _MAGIC__DBWIND__DBWTECH_H
+#define	_MAGIC__DBWIND__DBWTECH_H
 
 extern TileTypeBitMask	*DBWStyleToTypesTbl;
 
@@ -23,4 +23,4 @@ extern void DBWElementStyle();
 extern void DBWElementText();
 extern void DBWSetCrosshair();
 
-#endif /* _DBWTECH_H */
+#endif /* _MAGIC__DBWIND__DBWTECH_H */

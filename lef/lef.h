@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef _LEF_H
-#define _LEF_H
+#ifndef _MAGIC__LEF__LEF_H
+#define _MAGIC__LEF__LEF_H
 
 #include "utils/magic.h"
 
@@ -22,4 +22,4 @@ extern void LefTechSetDefaults(void);
 
 extern void LefInit(void);
 
-#endif /* _LEF_H */
+#endif /* _MAGIC__LEF__LEF_H */

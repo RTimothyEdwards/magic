@@ -29,8 +29,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/garouter/gaInternal.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _GAINTERNAL_H
-#define _GAINTERNAL_H
+#ifndef _MAGIC__GAROUTER__GAINTERNAL_H
+#define _MAGIC__GAROUTER__GAINTERNAL_H
 
 #include "database/database.h"
 
@@ -108,4 +108,4 @@ extern bool gaStemSimpleRoute();
 extern bool gaStemSimpleRoute();
 extern int  gaBuildNetList();
 
-#endif /* _GAINTERNAL_H */
+#endif /* _MAGIC__GAROUTER__GAINTERNAL_H */

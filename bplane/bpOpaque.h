@@ -27,8 +27,8 @@
 
 
 
-#ifndef _BPOPAQUE_H
-#define _BPOPAQUE_H
+#ifndef _MAGIC__BPLANE__BPOPAQUE_H
+#define _MAGIC__BPLANE__BPOPAQUE_H
 
 #ifndef _IHASH_H
 #include "utils/ihash.h"
@@ -192,4 +192,4 @@ typedef struct bpenum
   BPStack bpe_stack[10000];    /* stack for tree traversal during enum */
 } BPEnum;
 
-#endif /* _BPOPAQUE_H */
+#endif /* _MAGIC__BPLANE__BPOPAQUE_H */

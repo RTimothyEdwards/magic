@@ -62,8 +62,8 @@
  */
 
 
-#ifndef _HEAP_H
-#define _HEAP_H
+#ifndef _MAGIC__UTILS__HEAP_H
+#define _MAGIC__UTILS__HEAP_H
 
 #include "utils/geometry.h"
 
@@ -141,4 +141,4 @@ extern void HeapDump(Heap *heap);
 
 #define HEAP_EMPTY(h)   ((h)->he_used == 0)
 
-#endif /* _HEAP_H */
+#endif /* _MAGIC__UTILS__HEAP_H */

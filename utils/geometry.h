@@ -18,8 +18,8 @@
 
 /* rcsid "$Header: /usr/cvsroot/magic-8.0/utils/geometry.h,v 1.2 2009/09/10 20:32:55 tim Exp $" */
 
-#ifndef _GEOMETRY_H
-#define _GEOMETRY_H 1
+#ifndef _MAGIC__UTILS__GEOMETRY_H
+#define _MAGIC__UTILS__GEOMETRY_H 
 
 /*-------------------------------------------------------------------
  * Structure definition for Point (an x,y pair).
@@ -226,4 +226,4 @@ extern const Point GeoOrigin;
 
 extern const int GeoOppositePos[];
 
-#endif /* _GEOMETRY_H */
+#endif /* _MAGIC__UTILS__GEOMETRY_H */

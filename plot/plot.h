@@ -19,8 +19,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/plot/plot.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _PLOT_H
-#define _PLOT_H
+#ifndef _MAGIC__PLOT__PLOT_H
+#define _MAGIC__PLOT__PLOT_H
 
 #include "utils/magic.h"
 
@@ -50,4 +50,4 @@ extern void PlotPNM();
 extern void PlotSetParam();
 extern void PlotPrintParams();
 
-#endif /* _PLOT_H */
+#endif /* _MAGIC__PLOT__PLOT_H */

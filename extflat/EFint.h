@@ -19,8 +19,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/extflat/EFint.h,v 1.6 2010/12/16 18:59:03 tim Exp $
  */
 
-#ifndef _EFINT_H
-#define _EFINT_H
+#ifndef _MAGIC__EXTFLAT__EFINT_H
+#define _MAGIC__EXTFLAT__EFINT_H
 
 #include "utils/magic.h"
 
@@ -319,4 +319,4 @@ extern void efBuildResistor();
 extern void efBuildCap();
 extern HierContext *EFFlatBuildOneLevel();
 
-#endif /* _EFINT_H */
+#endif /* _MAGIC__EXTFLAT__EFINT_H */

@@ -18,8 +18,8 @@
  * rcsid "$Header: /usr/cvsroot/magic-8.0/utils/runstats.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $"
  */
 
-#ifndef	_RUNSTATS_H
-#define	_RUNSTATS_H
+#ifndef	_MAGIC__UTILS__RUNSTATS_H
+#define	_MAGIC__UTILS__RUNSTATS_H
 
 #define	RS_TCUM		01	/* Cumulative user and system time */
 #define	RS_TINCR	02	/* User and system time since last call */
@@ -28,4 +28,4 @@
 extern char *RunStats();
 extern char *RunStatsRealTime();
 
-#endif	/* _RUNSTATS_H */
+#endif	/* _MAGIC__UTILS__RUNSTATS_H */

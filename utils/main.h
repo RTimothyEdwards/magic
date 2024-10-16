@@ -20,8 +20,8 @@
  * rcsid="$Header: /usr/cvsroot/magic-8.0/utils/main.h,v 1.2 2009/09/10 20:32:55 tim Exp $"
  */
 
-#ifndef _MAIN_H
-#define _MAIN_H
+#ifndef _MAGIC__UTILS__MAIN_H
+#define _MAGIC__UTILS__MAIN_H
 
 #include "windows/windows.h"
 #include "database/database.h"
@@ -101,4 +101,4 @@ extern int  mainDoArgs();
 extern int  mainInitAfterArgs();
 extern int  mainInitFinal();
 
-#endif /* _MAIN_H */
+#endif /* _MAGIC__UTILS__MAIN_H */

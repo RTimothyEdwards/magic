@@ -18,8 +18,8 @@
  * rcsid="$Header: /usr/cvsroot/magic-8.0/router/rtrDcmpose.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $"
  */
 
-#ifndef _RTRDECOMPOSE_H
-#define _RTRDECOMPOSE_H
+#ifndef _MAGIC__ROUTER__RTRDCMPOSE_H
+#define _MAGIC__ROUTER__RTRDCMPOSE_H
 
 #define rtrNW 1	/* Corner codes :	*/
 #define rtrSW 2  /*  NW=1 ______ NE=8	*/
@@ -72,4 +72,4 @@ int rtrSrFunc();
 /* Exported Procedures */
 CellDef * RtrDecompose();
 
-#endif /* _RTRDECOMPOSE_H */
+#endif /* _MAGIC__ROUTER__RTRDCMPOSE_H */

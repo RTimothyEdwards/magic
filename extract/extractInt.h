@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef _EXTRACTINT_H
-#define _EXTRACTINT_H
+#ifndef _MAGIC__EXTRACT__EXTRACTINT_H
+#define _MAGIC__EXTRACT__EXTRACTINT_H
 
 #include "database/database.h"
 
@@ -1118,4 +1118,4 @@ extern int  extMakeUnique();
 
 #include "extDebugInt.h"
 
-#endif /* _EXTRACTINT_H */
+#endif /* _MAGIC__EXTRACT__EXTRACTINT_H */

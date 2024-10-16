@@ -18,10 +18,10 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/utils/touchingtypes.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef	_TOUCHINGTYPES_H
-#define	_TOUCHINGTYPES_H
+#ifndef	_MAGIC__UTILS__TOUCHINGTYPES_H
+#define	_MAGIC__UTILS__TOUCHINGTYPES_H
 
 /* -------------------- Functions (exported by touching.c) ---------------- */
 extern TileTypeBitMask TouchingTypes();
 
-#endif	/* _TOUCHINGTYPES_H */
+#endif	/* _MAGIC__UTILS__TOUCHINGTYPES_H */

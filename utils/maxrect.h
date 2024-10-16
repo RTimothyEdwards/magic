@@ -20,8 +20,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/utils/maxrect.h,v 1.1 2008/12/04 16:21:44 tim Exp $
  */
 
-#ifndef _MAXRECT_H
-#define	_MAXRECT_H
+#ifndef _MAGIC__UTILS__MAXRECT_H
+#define	_MAGIC__UTILS__MAXRECT_H
 
 #include "database/database.h"
 
@@ -48,4 +48,4 @@ extern Rect *FindMaxRectangle();
 extern Rect *FindMaxRectangle2();
 extern int FindMaxRects();
 
-#endif /* _MAXRECT_H */
+#endif /* _MAGIC__UTILS__MAXRECT_H */

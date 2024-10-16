@@ -27,8 +27,8 @@
 
 
 
-#ifndef _BPLANE_H
-#define _BPLANE_H
+#ifndef _MAGIC__BPLANE__BPLANE_H
+#define _MAGIC__BPLANE__BPLANE_H
 
 /*
  * bplane.h --
@@ -232,4 +232,4 @@ BPStat(BPlane *bp,
        int *totUnbinned,     /* ret tot num of e's not binned */
        int *maxDepth);       /* ret max bin array depth */
 
-#endif /* _BPLANE_H */
+#endif /* _MAGIC__BPLANE__BPLANE_H */

@@ -20,8 +20,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/commands/commands.h,v 1.3 2009/01/19 15:43:03 tim Exp $
  */
 
-#ifndef _COMMANDS_H
-#define	_COMMANDS_H
+#ifndef _MAGIC__COMMANDS__COMMANDS_H
+#define	_MAGIC__COMMANDS__COMMANDS_H
 
 #include "windows/windows.h"
 #include "database/database.h"
@@ -75,4 +75,4 @@ extern void CmdInit(void);
 extern void CmdDoProperty(CellDef *def, TxCommand *cmd, int argstart);
 extern void CmdPaintEraseButton(MagWindow *w, Point *refPoint, bool isPaint, bool isScreen);
 
-#endif /* _COMMANDS_H */
+#endif /* _MAGIC__COMMANDS__COMMANDS_H */

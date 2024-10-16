@@ -18,8 +18,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/plow/plow.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _PLOW_H
-#define _PLOW_H
+#ifndef _MAGIC__PLOW__PLOW_H
+#define _MAGIC__PLOW__PLOW_H
 
 #include "utils/magic.h"
 
@@ -59,4 +59,4 @@ extern void DRCPlowScale();
 extern void PlowInit();
 extern void PlowAfterTech();
 
-#endif /* _PLOW_H */
+#endif /* _MAGIC__PLOW__PLOW_H */

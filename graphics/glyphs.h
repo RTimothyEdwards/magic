@@ -20,8 +20,8 @@
  * rcsid "$Header: /usr/cvsroot/magic-8.0/graphics/glyphs.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $"
  */
 
-#ifndef _GLYPHS_H
-#define _GLYPHS_H
+#ifndef _MAGIC__GRAPHICS__GLYPHS_H
+#define _MAGIC__GRAPHICS__GLYPHS_H
 
 #include "utils/geometry.h"
 
@@ -54,4 +54,4 @@ extern void GrFreeGlyphs();
 
 extern GrGlyphs *windGlyphs;
 
-#endif /* _GLYPHS_H */
+#endif /* _MAGIC__GRAPHICS__GLYPHS_H */

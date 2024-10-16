@@ -18,8 +18,8 @@
  * rcsid:  $Header: /usr/cvsroot/magic-8.0/utils/styles.h,v 1.2 2008/12/11 04:20:14 tim Exp $
  */
 
-#ifndef _STYLES_H
-#define _STYLES_H 1
+#ifndef _MAGIC__UTILS__STYLES_H
+#define _MAGIC__UTILS__STYLES_H 
 
 /* Styles are divided into three parts: 1) system styles, used for
  * purposes such as drawing and erasing tools, window borders, etc.,
@@ -199,4 +199,4 @@
 /* pick icon */
 #define STYLE_CURS_PICK		22
 
-#endif /* _STYLES_H */
+#endif /* _MAGIC__UTILS__STYLES_H */

@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef _WIND3D_H
-#define _WIND3D_H
+#ifndef _MAGIC__GRAPHICS__WIND3D_H
+#define _MAGIC__GRAPHICS__WIND3D_H
 
 #include "windows/windows.h"
 
@@ -67,4 +67,4 @@ extern void w3dCutBox();
 
 extern WindClient W3DclientID;
 
-#endif /* _WIND3D_H */
+#endif /* _MAGIC__GRAPHICS__WIND3D_H */

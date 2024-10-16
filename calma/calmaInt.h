@@ -19,8 +19,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/calma/calmaInt.h,v 1.2 2010/06/24 12:37:15 tim Exp $
  */
 
-#ifndef _CALMAINT_H
-#define _CALMAINT_H
+#ifndef _MAGIC__CALMA__CALMAINT_H
+#define _MAGIC__CALMA__CALMAINT_H
 
 #include "utils/magic.h"
 #include "database/database.h"
@@ -274,4 +274,4 @@ extern Plane **cifCurReadPlanes;
 extern HashTable CifCellTable;
 extern Plane *cifEditCellPlanes[];
 
-#endif /* _CALMAINT_H */
+#endif /* _MAGIC__CALMA__CALMAINT_H */

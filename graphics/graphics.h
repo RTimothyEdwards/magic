@@ -19,8 +19,8 @@
 
 /* rcsid "$Header: /usr/cvsroot/magic-8.0/graphics/graphics.h,v 1.3 2010/06/24 12:37:18 tim Exp $" */
 
-#ifndef _GRAPHICS_H
-#define	_GRAPHICS_H
+#ifndef _MAGIC__GRAPHICS__GRAPHICS_H
+#define	_MAGIC__GRAPHICS__GRAPHICS_H
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -233,4 +233,4 @@ extern unsigned char GrDisplayStatus;
 /* Special full-screen access for window manager only */
 #define GR_LOCK_SCREEN	(MagWindow *)(-1)
 
-#endif /* _GRAPHICS_H */
+#endif /* _MAGIC__GRAPHICS__GRAPHICS_H */

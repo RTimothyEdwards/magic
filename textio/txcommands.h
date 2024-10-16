@@ -18,8 +18,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/textio/txcommands.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _TXCOMMANDS_H
-#define _TXCOMMANDS_H
+#ifndef _MAGIC__TEXTIO__TXCOMMANDS_H
+#define _MAGIC__TEXTIO__TXCOMMANDS_H
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -164,4 +164,4 @@ extern int TxCommandNumber;	/* Serial number of current command. */
 extern int TxTclDispatch(ClientData clientData, int argc, char *argv[], bool quiet);
 #endif
 
-#endif /* _TXCOMMANDS_H */
+#endif /* _MAGIC__TEXTIO__TXCOMMANDS_H */

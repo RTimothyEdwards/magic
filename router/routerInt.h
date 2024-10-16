@@ -23,8 +23,8 @@
  *	but global to all source files within the router module.
  */
 
-#ifndef _ROUTERINT_H
-#define _ROUTERINT_H
+#ifndef _MAGIC__ROUTER__ROUTERINT_H
+#define _MAGIC__ROUTER__ROUTERINT_H
 
 extern int	rtrTarget;			/* Via minimization, target type	*/
 extern int	rtrReplace;			/* Via minimization, replacement type	*/
@@ -46,4 +46,4 @@ extern int  rtrSrTraverse();
 extern int  rtrListVia();
 extern void rtrListArea();
 
-#endif /* _ROUTERINT_H */
+#endif /* _MAGIC__ROUTER__ROUTERINT_H */

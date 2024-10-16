@@ -20,8 +20,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/plow/plowInt.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _PLOWINT_H
-#define	_PLOWINT_H
+#ifndef _MAGIC__PLOW__PLOWINT_H
+#define	_MAGIC__PLOW__PLOWINT_H
 
 #include "tiles/tile.h"
 
@@ -293,4 +293,4 @@ extern void plowShowTime();
  */
 #include "plowDebugInt.h"
 
-#endif	/* _PLOWINT_H */
+#endif	/* _MAGIC__PLOW__PLOWINT_H */

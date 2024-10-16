@@ -19,8 +19,8 @@
  * rcsid $Header$
  */
 
-#ifndef _WIRING_H
-#define _WIRING_H
+#ifndef _MAGIC__WIRING__WIRING_H
+#define _MAGIC__WIRING__WIRING_H
 
 #include "utils/magic.h"
 #include "database/database.h"
@@ -96,4 +96,4 @@ extern void WireTechScale(int scalen, int scaled);
 
 extern void WireInit(void);
 
-#endif /* _WIRING_H */
+#endif /* _MAGIC__WIRING__WIRING_H */

@@ -20,8 +20,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/database/databaseInt.h,v 1.3 2010/06/24 12:37:15 tim Exp $
  */
 
-#ifndef _DATABASEINT_H
-#define _DATABASEINT_H
+#ifndef _MAGIC__DATABASE__DATABASEINT_H
+#define _MAGIC__DATABASE__DATABASEINT_H
 
 #include "database/database.h"
 
@@ -247,4 +247,4 @@ extern TileTypeBitMask dbNotDefaultPaintTbl[];
 #define	ERASEAFFECTS(t, s) \
 	((t) != TT_SPACE && DBStdEraseEntry((t), (s), DBPlane(t)) != (t))
 
-#endif /* _DATABASEINT_H */
+#endif /* _MAGIC__DATABASE__DATABASEINT_H */
