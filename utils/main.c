@@ -73,7 +73,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #ifdef ROUTE_MODULE
 #include "mzrouter/mzrouter.h"
 #endif
+#ifdef SCHEME_INTERPRETER
 #include "lisp/lisp.h"
+#endif
 #ifdef THREE_D
 #include "graphics/wind3d.h"
 #endif
