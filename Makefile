@@ -47,9 +47,9 @@ mains: database/database.h modules libs
 	for dir in ${PROGRAMS}; do \
 		(cd $$dir && ${MAKE} main) || exit 1; done
 
-database/database.h: database/database.h.in
+database/database.h: ${MAGICDIR}/database/database.h.in
 	@echo --- making header file database/database.h
-	${SCRIPTS}/makedbh database/database.h.in database/database.h
+	${SCRIPTS}/makedbh ${MAGICDIR}/database/database.h.in database/database.h
 
 modules: database/database.h depend
 	@echo --- making modules
@@ -124,6 +124,7 @@ distclean:
 	${RM} defs.mak old.defs.mak ${MAGICDIR}/scripts/defs.mak
 	${RM} ${MAGICDIR}/scripts/default.conf
 	${RM} ${MAGICDIR}/scripts/config.log ${MAGICDIR}/scripts/config.status
+	${RM} database/database.h
 	${RM} scripts/magic.spec magic-${VERSION} magic-${VERSION}.tgz
 	${RM} *.log
 
