@@ -20,7 +20,18 @@ jobs:
         shell: bash # default shell has unwanted broken pipe indication
         run: |
           brew install --cask xquartz
+          PACKAGE_LIST="xquartz"
           brew install cairo tcl-tk tcsh
+          _package_list="cairo tcl-tk tcsh"
+          # These seem needed maybe they are being provided from somewhere else GHA runner
+          #  or brew transitive depend either way doesn't hurt to confirm they are installed.
+          _package_list="$_package_list libglu freeglut"
+          if [ -n "$PACKAGE_LIST" ]
+          then
+            brew install $PACKAGE_LIST
+          fi
+          PACKAGE_LIST="$PACKAGE_LIST $_package_list"
+          echo "PACKAGE_LIST=$PACKAGE_LIST" >> $GITHUB_ENV
           echo "UNAME_M=$(uname -m)" >> $GITHUB_ENV
           set +e
           set +o pipefail # macosx this is on by default (turn it off)
@@ -35,10 +46,12 @@ jobs:
             #  this removes unwanted GHA SIGPIPE error/warning indicators from GHA logs
             # brew maybe a nodejs command which has a known issue in this area on macosx
             TMPFILE=/tmp/shell0$$.tmp
-            brew info xquartz > $TMPFILE && head -n1 $TMPFILE
-            brew info cairo   > $TMPFILE && head -n1 $TMPFILE
-            brew info tcl-tk  > $TMPFILE && head -n1 $TMPFILE
-            brew info tcsh    > $TMPFILE && head -n1 $TMPFILE
+            brew info xquartz  > $TMPFILE && head -n1 $TMPFILE
+            brew info cairo    > $TMPFILE && head -n1 $TMPFILE
+            brew info libglu   > $TMPFILE && head -n1 $TMPFILE
+            brew info freeglut > $TMPFILE && head -n1 $TMPFILE
+            brew info tcl-tk   > $TMPFILE && head -n1 $TMPFILE
+            brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
             echo ""
             cc -v 2>&1
             echo ""
@@ -128,7 +141,18 @@ jobs:
         shell: bash # default shell has unwanted broken pipe indication
         run: |
           brew install --cask xquartz
+          PACKAGE_LIST="xquartz"
           brew install cairo tcl-tk tcsh
+          _package_list="cairo tcl-tk tcsh"
+          # These seem needed maybe they are being provided from somewhere else GHA runner
+          #  or brew transitive depend either way doesn't hurt to confirm they are installed.
+          _package_list="$_package_list libglu freeglut"
+          if [ -n "$PACKAGE_LIST" ]
+          then
+            brew install $PACKAGE_LIST
+          fi
+          PACKAGE_LIST="$PACKAGE_LIST $_package_list"
+          echo "PACKAGE_LIST=$PACKAGE_LIST" >> $GITHUB_ENV
           echo "UNAME_M=$(uname -m)" >> $GITHUB_ENV
           set +e
           set +o pipefail # macosx this is on by default (turn it off)
@@ -143,10 +167,12 @@ jobs:
             #  this removes unwanted GHA SIGPIPE error/warning indicators from GHA logs
             # brew maybe a nodejs command which has a known issue in this area on macosx
             TMPFILE=/tmp/shell0$$.tmp
-            brew info xquartz > $TMPFILE && head -n1 $TMPFILE
-            brew info cairo   > $TMPFILE && head -n1 $TMPFILE
-            brew info tcl-tk  > $TMPFILE && head -n1 $TMPFILE
-            brew info tcsh    > $TMPFILE && head -n1 $TMPFILE
+            brew info xquartz  > $TMPFILE && head -n1 $TMPFILE
+            brew info cairo    > $TMPFILE && head -n1 $TMPFILE
+            brew info libglu   > $TMPFILE && head -n1 $TMPFILE
+            brew info freeglut > $TMPFILE && head -n1 $TMPFILE
+            brew info tcl-tk   > $TMPFILE && head -n1 $TMPFILE
+            brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
             echo ""
             cc -v 2>&1
             echo ""
