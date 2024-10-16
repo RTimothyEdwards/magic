@@ -145,6 +145,55 @@ jobs:
           echo "=== magic -d null -noconsole -T scmos"
           echo "version ; quit" | magic -d null -noconsole -T scmos
 
+      - name: Summary
+        run: |
+          set +e
+          grep "error:"   MAKE.LOG > MAKE_error.LOG
+          grep "warning:" MAKE.LOG > MAKE_warning.LOG
+
+          # Less important warnings relating to codesmell more than security (filter out of headline)
+          grep -v  "Wunused-variable"         MAKE_warning.LOG |
+           grep -v "Wunused-local-typedefs" |
+           grep -v "Wunused-label" |
+           grep -v "Wunused-but-set-variable" > MAKE_warning_filtered.LOG
+
+          ls -l
+          wc -l *.LOG
+
+          error_count=$(           grep -c "error:"   MAKE_error.LOG)
+          filtered_warning_count=$(grep -c "warning:" MAKE_warning_filtered.LOG)
+
+          title="### $(cat VERSION) ${MATRIX_OS} ${MATRIX_TC} ${MATRIX_PKGS} :: "
+          if [ "$error_count" -gt 0 ]
+          then
+            title="$title $error_count error(s)"
+          fi
+          if [ "$filtered_warning_count" -gt 0 ]
+          then
+            title="$title $filtered_warning_count warning(s)"
+          fi
+
+          (
+            total_error_count=$(  wc -l MAKE_error.LOG   | cut -d' ' -f1)
+            total_warning_count=$(wc -l MAKE_warning.LOG | cut -d' ' -f1)
+            echo "---"
+            echo "$title"
+            echo ""
+            echo "PACKAGE_LIST=$PACKAGE_LIST"
+            echo "CONFIGURE_ARGS=$CONFIGURE_ARGS"
+            echo ""
+            echo "total ${total_error_count} error(s) ${total_warning_count} warning(s) :"
+            echo "|Count|Warning Group (-j build log inaccuracies)|"
+            echo "|--:|:--|"
+            # due to -j build the log lines might get corrupted, so missing/incorrect/bogus entries might be seen
+            #  so we add extra: egrep "\[\-W.*\]"  (to try to remove that)
+            sed -e 's#.*\(\[\-W\)#\1#' -e 's#\(\]\).*$#\1#' MAKE_warning.LOG | egrep "\[\-W.*\]" | sort | uniq -c | sort -n  | tr -s ' ' | tr ' ' '|' | awk '{print $0"|"}'
+            echo ""
+            grep -A100 "Configuration Summary" CONFIGURE.LOG | grep -v "Configuration Summary" | egrep "^.*:" | sed -e '/\---/,//d'
+            echo ""
+            grep DCAD_DIR MAKE.LOG  | tail -n1
+          ) >> $GITHUB_STEP_SUMMARY
+
   simple_build_macos:
     runs-on: macos-latest
     steps:
@@ -279,3 +328,52 @@ jobs:
           echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
           echo "=== magic -d null -noconsole -T scmos"
           echo "version ; quit" | magic -d null -noconsole -T scmos
+
+      - name: Summary
+        run: |
+          set +e
+          grep "error:"   MAKE.LOG > MAKE_error.LOG
+          grep "warning:" MAKE.LOG > MAKE_warning.LOG
+
+          # Less important warnings relating to codesmell more than security (filter out of headline)
+          grep -v  "Wunused-variable"         MAKE_warning.LOG |
+           grep -v "Wunused-local-typedefs" |
+           grep -v "Wunused-label" |
+           grep -v "Wunused-but-set-variable" > MAKE_warning_filtered.LOG
+
+          ls -l
+          wc -l *.LOG
+
+          error_count=$(           grep -c "error:"   MAKE_error.LOG)
+          filtered_warning_count=$(grep -c "warning:" MAKE_warning_filtered.LOG)
+
+          title="### $(cat VERSION) ${MATRIX_OS} ${MATRIX_TC} ${MATRIX_PKGS} :: "
+          if [ "$error_count" -gt 0 ]
+          then
+            title="$title $error_count error(s)"
+          fi
+          if [ "$filtered_warning_count" -gt 0 ]
+          then
+            title="$title $filtered_warning_count warning(s)"
+          fi
+
+          (
+            total_error_count=$(  wc -l MAKE_error.LOG   | cut -d' ' -f1)
+            total_warning_count=$(wc -l MAKE_warning.LOG | cut -d' ' -f1)
+            echo "---"
+            echo "$title"
+            echo ""
+            echo "PACKAGE_LIST=$PACKAGE_LIST"
+            echo "CONFIGURE_ARGS=$CONFIGURE_ARGS"
+            echo ""
+            echo "total ${total_error_count} error(s) ${total_warning_count} warning(s) :"
+            echo "|Count|Warning Group (-j build log inaccuracies)|"
+            echo "|--:|:--|"
+            # due to -j build the log lines might get corrupted, so missing/incorrect/bogus entries might be seen
+            #  so we add extra: egrep "\[\-W.*\]"  (to try to remove that)
+            sed -e 's#.*\(\[\-W\)#\1#' -e 's#\(\]\).*$#\1#' MAKE_warning.LOG | egrep "\[\-W.*\]" | sort | uniq -c | sort -n  | tr -s ' ' | tr ' ' '|' | awk '{print $0"|"}'
+            echo ""
+            grep -A100 "Configuration Summary" CONFIGURE.LOG | grep -v "Configuration Summary" | egrep "^.*:" | sed -e '/\---/,//d'
+            echo ""
+            grep DCAD_DIR MAKE.LOG  | tail -n1
+          ) >> $GITHUB_STEP_SUMMARY
