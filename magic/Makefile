@@ -32,8 +32,7 @@ EXTRA_LIBS = ${MAGICDIR}/bplane/libbplane.o \
 BITMAPS = up.gif down.gif left.gif right.gif zoom.gif lock.xbm
 DEST_XBM = $(BITMAPS:%=$(DESTDIR)${INSTALL_TCLDIR}/bitmaps/%)
 
-# DFLAGS += -DMAGIC_DATE="\"`date`\"" -DCAD_DIR="${LIBDIR}"
-DFLAGS += -DMAGIC_DATE="\"`date`\""
+# DFLAGS += -DCAD_DIR="${LIBDIR}"
 LIBS   += ${GR_LIBS} ${READLINE_LIBS} -lm ${LD_EXTRA_LIBS} \
 		${OA_LIBS} ${ZLIB_FLAG} ${TOP_EXTRA_LIBS}
 CLEANS += tclmagic${SHDLIB_EXT} libtclmagic${SHDLIB_EXT}.a proto.magicrc

@@ -75,16 +75,24 @@ LIB_SPECS_NOSTUB       = @LIB_SPECS_NOSTUB@
 LIB_SPECS_GRNULL       = @LIB_SPECS_GRNULL@
 WISH_EXE	       = @WISH_EXE@
 TCL_LIB_DIR	       = @TCL_LIB_DIR@
-MAGIC_VERSION	       = $(shell cat ${MAGICDIR}/VERSION | cut -d. -f1-2)
-MAGIC_REVISION	       = $(shell cat ${MAGICDIR}/VERSION | cut -d. -f3)
-MAGIC_COMMIT	       = $(shell git rev-parse HEAD)
+
+MAGIC_VERSION	       ?= $(shell cat ${MAGICDIR}/VERSION | cut -d. -f1-2)
+MAGIC_REVISION	       ?= $(shell cat ${MAGICDIR}/VERSION | cut -d. -f3)
+MAGIC_COMMIT	       ?= $(shell git rev-parse HEAD)
+MAGIC_BUILDDATE	       ?= $(shell date | tr -d '\r\n')
+
+# This allow inheritence of the values from toplevel Makefile
+export MAGIC_VERSION
+export MAGIC_REVISION
+export MAGIC_COMMIT
+export MAGIC_BUILDDATE
 
 CC                     = @CC@
 CPP                    = @CPP@
 CXX		       = @CXX@
 
 CPPFLAGS               = -I${MAGICDIR} @CPPFLAGS@
-DFLAGS_MAGICVERSION    = -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\"
+DFLAGS_MAGICVERSION    = -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" "-DMAGIC_BUILDDATE=\"${MAGIC_BUILDDATE}\""
 DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ ${DFLAGS_MAGICVERSION} -DGCORE=\"@GCORE@\"
 DFLAGS		      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" -DNDEBUG
 DFLAGS_NOSTUB	       = @extra_defs@             @DEFS@ ${DFLAGS_MAGICVERSION} -DGCORE=\"@GCORE@\"

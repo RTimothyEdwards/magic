@@ -63,4 +63,4 @@ main(int argc, char *argv[])
 
 char *MagicVersion = MAGIC_VERSION;
 char *MagicRevision = MAGIC_REVISION;
-char *MagicCompileTime = MAGIC_DATE;
+char *MagicCompileTime = MAGIC_BUILDDATE;
