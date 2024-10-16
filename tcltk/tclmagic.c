@@ -54,7 +54,7 @@
 
 char *MagicVersion = MAGIC_VERSION;
 char *MagicRevision = MAGIC_REVISION;
-char *MagicCompileTime = MAGIC_DATE;
+char *MagicCompileTime = MAGIC_BUILDDATE;
 
 #if TCL_MAJOR_VERSION < 9
 const char *Tclmagic_InitStubsVersion = "8.5";
