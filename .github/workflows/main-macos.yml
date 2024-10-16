@@ -47,6 +47,35 @@ jobs:
             xcodebuild -showsdks | grep macOS
           ) >> $GITHUB_STEP_SUMMARY
 
+      - name: Search
+        run: |
+          set +e
+          ( # designed to speed up this process in a single scan
+            echo "#!/bin/sh"
+            echo "echo \$*"
+            echo "ls -ld -- \$*"
+            echo "shasum -a 1 \$* </dev/null"
+            echo "echo \"\""
+            echo "exit 0"
+          ) > search.sh
+          echo "=== search.sh"
+          cat search.sh
+          chmod a+x search.sh
+          find /opt /usr $HOME \( -iname "libX11.*dylib" -or -iname "Xlib.h" \) -exec ./search.sh {} \; 2>/dev/null
+          #
+          # Example symbols that were found missing from the tcl-tk X11 implementation
+          #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XCreateGC" {} \; 2>/dev/null || true
+          #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XGetVisualInfo" {} \; 2>/dev/null || true
+          #for i in /usr/X11/include/X11/Xlib.h /opt/X11/include/X11/Xlib.h /usr/local/include/X11/Xlib.h;
+          #do
+          #  echo "====== $i"
+          #  head -n 50 "$i"
+          #  echo "==="
+          #  tail -n 50 "$i"
+          #  echo "======"
+          #done
+          echo "Done"
+
       - name: Build
         run: |
           export PATH="/opt/X11/bin:$PATH"
@@ -125,6 +154,35 @@ jobs:
             echo ""
             xcodebuild -showsdks | grep macOS
           ) >> $GITHUB_STEP_SUMMARY
+
+      - name: Search
+        run: |
+          set +e
+          ( # designed to speed up this process in a single scan
+            echo "#!/bin/sh"
+            echo "echo \$*"
+            echo "ls -ld -- \$*"
+            echo "shasum -a 1 \$* </dev/null"
+            echo "echo \"\""
+            echo "exit 0"
+          ) > search.sh
+          echo "=== search.sh"
+          cat search.sh
+          chmod a+x search.sh
+          find /opt /usr $HOME \( -iname "libX11.*dylib" -or -iname "Xlib.h" \) -exec ./search.sh {} \; 2>/dev/null
+          #
+          # Example symbols that were found missing from the tcl-tk X11 implementation
+          #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XCreateGC" {} \; 2>/dev/null || true
+          #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XGetVisualInfo" {} \; 2>/dev/null || true
+          #for i in /usr/X11/include/X11/Xlib.h /opt/X11/include/X11/Xlib.h /usr/local/include/X11/Xlib.h;
+          #do
+          #  echo "====== $i"
+          #  head -n 50 "$i"
+          #  echo "==="
+          #  tail -n 50 "$i"
+          #  echo "======"
+          #done
+          echo "Done"
 
       - name: Build
         run: |
