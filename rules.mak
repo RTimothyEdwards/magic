@@ -53,8 +53,8 @@ clean:
 tags: ${SRCS} ${LIB_SRCS}
 	ctags ${SRCS} ${LIB_SRCS}
 
-# If "include" is unqualified, it will attempt to build all targets of "include"
-# So, we gate the include, only running it if "clean" is not the target
-ifneq ($(MAKECMDGOALS),clean)
+# Depends are a somewhat optional part of the build process that are only useful when incremental
+# building.  If the file is here it's here, if not continue with build optimistically
+ifneq (,$(wildcard ${DEPEND_FILE}))
 include ${DEPEND_FILE}
 endif
