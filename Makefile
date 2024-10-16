@@ -4,7 +4,7 @@
 
 MAGICDIR   = .
 PROGRAMS   = magic
-TECH       = scmos
+TECHS      = scmos
 LIBRARIES  = database utils extflat
 MODULES    = bplane cmwind commands database dbwind debug drc extflat \
 	     extract graphics netmenu plow resis select sim textio tiles \
@@ -14,11 +14,11 @@ MODULES    = bplane cmwind commands database dbwind debug drc extflat \
 VERSION    := $(shell cat ${MAGICDIR}/VERSION)
 
 MAKEFLAGS  =
-INSTALL_CAD_DIRS = windows doc ${TECH}
+INSTALL_CAD_DIRS = windows doc ${TECHS}
 
 -include defs.mak
 
-all:	$(ALL_TARGET)
+all:	$(ALL_TARGET) techs
 
 standard:
 	@echo --- errors and warnings logged in file make.log
@@ -80,6 +80,12 @@ $(addsuffix /Depend, ${SUBDIRS_FILTERED}): database/database.h
 
 .PHONY: depend
 depend: defs.mak $(addsuffix /Depend, ${SUBDIRS_FILTERED})
+
+.PHONY: techs
+techs: depend
+	@echo --- making techs
+	for dir in ${TECHS}; do \
+		(cd $$dir && ${MAKE} all) || exit 1; done
 
 install: $(INSTALL_TARGET)
 
