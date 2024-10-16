@@ -98,11 +98,11 @@ $(HCIFin):
 $(HCIFout):
 $(SCIFin):
 $(SCIFout):
-	cd cif_template; ${MAKE} clean; ${MAKE};
+	cd cif_template && ${MAKE} clean && ${MAKE}
 
 $(DESTDIR)${INSTALL_SYSDIR}/%: %
 	cp $* $(DESTDIR)${INSTALL_SYSDIR}/$*
 
 clean:;
-	-rm -f *.tech *.tech27
-	cd cif_template && ${MAKE} clean;
+	-$(RM) *.tech *.tech27
+	cd cif_template && ${MAKE} clean

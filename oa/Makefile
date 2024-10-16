@@ -27,7 +27,7 @@ DEP_FILES = $(addprefix .deps/,$(SRCS:.c=.P))\
 	tr ' ' '\012' < .deps/$(*F).pp \
 	| sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
 	>> .deps/$(*F).P; \
-	rm .deps/$(*F).pp
+	${RM} .deps/$(*F).pp
 
 clean:
 	${RM} *.o
