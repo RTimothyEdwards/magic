@@ -170,6 +170,15 @@ dnl Check for <sys/time.h>
 AC_CHECK_HEADERS(sys/time.h)
 AC_HEADER_TIME
 
+dnl Check for <termio.h>
+AC_CHECK_HEADERS(termio.h)
+
+dnl Check for <termios.h>
+AC_CHECK_HEADERS(termios.h)
+
+dnl Check for <sys/ioctl.h>
+AC_CHECK_HEADERS(sys/ioctl.h)
+
 dnl Check for va_copy
 AC_CACHE_CHECK([for va_copy], ac_cv_c_va_copy,
  AC_TRY_LINK(
