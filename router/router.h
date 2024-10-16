@@ -20,8 +20,8 @@
  * rcsid="$Header: /usr/cvsroot/magic-8.0/router/router.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $"
  */
 
-#ifndef _ROUTER_H
-#define _ROUTER_H
+#ifndef _MAGIC__ROUTER__ROUTER_H
+#define _MAGIC__ROUTER__ROUTER_H
 
 #include "database/database.h"
 #include "utils/geometry.h"
@@ -212,4 +212,4 @@ extern void RtrPaintStats();
 extern CellDef *RtrFindChannelDef();
 extern struct pin *RtrPointToPin();
 
-#endif /* _ROUTER_H */
+#endif /* _MAGIC__ROUTER__ROUTER_H */

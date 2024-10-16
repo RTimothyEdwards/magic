@@ -18,8 +18,8 @@
 
 /* rcsid "$Header: /usr/cvsroot/magic-8.0/utils/hash.h,v 1.2 2009/09/10 20:32:55 tim Exp $" */
 
-#ifndef	_HASH_H
-#define	_HASH_H
+#ifndef	_MAGIC__UTILS__HASH_H
+#define	_MAGIC__UTILS__HASH_H
 
 /*---------------------------------------------------------
  *	This first stuff should only be used internally
@@ -133,4 +133,4 @@ extern HashEntry *HashNext(HashTable *, HashSearch *);
 /* HashGetNumEntries(ht); HashTable *ht ; returns number of entries in table */
 #define	HashGetNumEntries(ht)	((ht)->ht_nEntries)
 
-#endif	/* _HASH_H */
+#endif	/* _MAGIC__UTILS__HASH_H */

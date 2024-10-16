@@ -19,8 +19,8 @@
  * rcsid "$Header: /usr/cvsroot/magic-8.0/graphics/graphicsInt.h,v 1.3 2010/06/24 12:37:18 tim Exp $"
  */
 
-#ifndef _GRAPHICSINT_H
-#define _GRAPHICSINT_H
+#ifndef _MAGIC__GRAPHICS__GRAPHICSINT_H
+#define _MAGIC__GRAPHICS__GRAPHICSINT_H
 
 #include "windows/windows.h"
 #include "utils/magic.h"
@@ -103,4 +103,4 @@ extern bool groglPreLoadFont();
 extern bool grtcairoLoadFont();
 #endif
 
-#endif /* _GRAPHICSINT_H */
+#endif /* _MAGIC__GRAPHICS__GRAPHICSINT_H */

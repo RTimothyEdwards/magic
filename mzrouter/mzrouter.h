@@ -20,8 +20,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/mzrouter/mzrouter.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _MZROUTER_H
-#define _MZROUTER_H
+#ifndef _MAGIC__MZROUTER__MZROUTER_H
+#define _MAGIC__MZROUTER__MZROUTER_H
 
 #include "database/database.h"
 #include "utils/geometry.h"
@@ -345,4 +345,4 @@ extern void MZAttachHintPlanes();
 /* Major cost unit */
 extern int mzMajorCostUnit;
 
-#endif /* _MZROUTER_H */
+#endif /* _MAGIC__MZROUTER__MZROUTER_H */

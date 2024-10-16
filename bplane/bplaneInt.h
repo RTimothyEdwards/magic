@@ -33,8 +33,8 @@
  * This file defines constants and datastructures used internally by the
  * bplane module, but not exported to the rest of the world.
  */
-#ifndef _BPLANEINT_H
-#define _BPLANEINT_H
+#ifndef _MAGIC__BPLANE__BPLANEINT_H
+#define _MAGIC__BPLANE__BPLANEINT_H
 
 /* Tcl linked Parameters */
 extern int bpMinBAPop;         /* don't sub(bin) when count less than this
@@ -79,4 +79,4 @@ extern Plane *bpTestSnowTile(int size, bool trace);
 
 extern int bpRand(int min, int max);
 
-#endif /* _BPLANEINT_H */
+#endif /* _MAGIC__BPLANE__BPLANEINT_H */

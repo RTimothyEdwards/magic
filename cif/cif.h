@@ -20,8 +20,8 @@
  * rcsid "$Header: /usr/cvsroot/magic-8.0/cif/cif.h,v 1.4 2010/06/24 12:37:15 tim Exp $
  */
 
-#ifndef _CIF_H
-#define _CIF_H
+#ifndef _MAGIC__CIF__CIF_H
+#define _MAGIC__CIF__CIF_H
 
 #include "database/database.h"
 
@@ -95,4 +95,4 @@ extern LinkedRect *PaintPolygon(Point *pointlist, int number, Plane *plane, Pain
 /* C99 compat */
 extern int CIFGetContactSize(TileType type, int *edge, int *spacing, int *border);
 
-#endif /* _CIF_H */
+#endif /* _MAGIC__CIF__CIF_H */

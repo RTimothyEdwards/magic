@@ -20,8 +20,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/dbwind/dbwind.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _DBWIND_H
-#define _DBWIND_H
+#ifndef _MAGIC__DBWIND__DBWIND_H
+#define _MAGIC__DBWIND__DBWIND_H
 
 #include "database/database.h"
 #include "windows/windows.h"
@@ -261,4 +261,4 @@ extern void dbwElementInit();
 extern void dbwCrosshairInit();
 
 
-#endif /* _DBWIND_H */
+#endif /* _MAGIC__DBWIND__DBWIND_H */

@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _EXTRACT_H
-#define _EXTRACT_H
+#ifndef _MAGIC__EXTRACT__EXTRACT_H
+#define _MAGIC__EXTRACT__EXTRACT_H
 
 #include "utils/magic.h"
 #include "database/database.h"  /* TileTypeBitMask */
@@ -147,4 +147,4 @@ extern void ExtLabelOneRegion();
 extern void ExtInit();
 extern bool ExtGetDevInfo();
 
-#endif /* _EXTRACT_H */
+#endif /* _MAGIC__EXTRACT__EXTRACT_H */

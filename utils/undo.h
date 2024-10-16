@@ -21,8 +21,8 @@
  * rcsid "$Header: /usr/cvsroot/magic-8.0/utils/undo.h,v 1.2 2009/09/10 20:32:55 tim Exp $"
  */
 
-#ifndef	_UNDO_H
-#define	_UNDO_H
+#ifndef	_MAGIC__UTILS__UNDO_H
+#define	_MAGIC__UTILS__UNDO_H
 
 #include "utils/magic.h"
 
@@ -90,4 +90,4 @@ extern void UndoStackTrace(int);
 extern int UndoDisableCount;
 #define	UndoIsEnabled()	(UndoDisableCount == 0)
 
-#endif	/* _UNDO_H */
+#endif	/* _MAGIC__UTILS__UNDO_H */

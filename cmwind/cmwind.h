@@ -19,8 +19,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/cmwind/cmwind.h,v 1.2 2009/09/10 20:32:51 tim Exp $
  */
 
-#ifndef _CMWIND_H
-#define _CMWIND_H
+#ifndef _MAGIC__CMWIND__CMWIND_H
+#define _MAGIC__CMWIND__CMWIND_H
 
 #include "windows/windows.h"
 #include "textio/txcommands.h"
@@ -81,4 +81,4 @@ extern bool CMWCheckWritten(void);
 extern void CMWinit(void);
 
 
-#endif /* _CMWIND_H */
+#endif /* _MAGIC__CMWIND__CMWIND_H */

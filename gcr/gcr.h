@@ -19,8 +19,8 @@
  * rcsid "$Header: /usr/cvsroot/magic-8.0/gcr/gcr.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $"
  */
 
-#ifndef _GCR_H
-#define _GCR_H
+#ifndef _MAGIC__GCR__GCR_H
+#define _MAGIC__GCR__GCR_H
 
 #include "utils/magic.h"
 
@@ -377,4 +377,4 @@ extern int  gcrTryRun();
 extern void gcrUncollapse();
 extern void gcrVacate();
 
-#endif /* _GCR_H */
+#endif /* _MAGIC__GCR__GCR_H */

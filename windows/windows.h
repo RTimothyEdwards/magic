@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef _WINDOWS_H
-#define _WINDOWS_H
+#ifndef _MAGIC__WINDOWS__WINDOWS_H
+#define _MAGIC__WINDOWS__WINDOWS_H
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -343,4 +343,4 @@ extern int WindScrollBarWidth;
 /* Global identifier for the window client structure */
 extern WindClient windClientID;
 
-#endif /* _WINDOWS_H */
+#endif /* _MAGIC__WINDOWS__WINDOWS_H */

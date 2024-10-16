@@ -19,8 +19,8 @@
  * rcsid $Header$
  */
 
-#ifndef _WIREINT_H
-#define _WIREINT_H
+#ifndef _MAGIC__WIRING__WIREINT_H
+#define _MAGIC__WIRING__WIREINT_H
 
 #include "utils/magic.h"
 #include "database/database.h"
@@ -37,4 +37,4 @@ extern int WireUnits;
 extern void WireRememberForUndo(void);
 extern void WireUndoInit(void);
 
-#endif /* _WIREINT_H */
+#endif /* _MAGIC__WIRING__WIREINT_H */

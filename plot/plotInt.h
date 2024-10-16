@@ -19,8 +19,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/plot/plotInt.h,v 1.2 2010/03/08 13:33:33 tim Exp $
  */
 
-#ifndef _PLOTINT_H
-#define _PLOTINT_H
+#ifndef _MAGIC__PLOT__PLOTINT_H
+#define _MAGIC__PLOT__PLOTINT_H
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
@@ -250,4 +250,4 @@ extern void PlotPNM();
 extern void PlotPNM();
 extern int  PlotRTLCompress();
 
-#endif /* _PLOTINT_H */
+#endif /* _MAGIC__PLOT__PLOTINT_H */

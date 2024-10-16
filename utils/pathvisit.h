@@ -18,8 +18,8 @@
 
 /* rcsid "$Header: /usr/cvsroot/magic-8.0/utils/pathvisit.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $" */
 
-#ifndef	_PATHVISIT_H
-#define	_PATHVISIT_H
+#ifndef	_MAGIC__UTILS__PATHVISIT_H
+#define	_MAGIC__UTILS__PATHVISIT_H
 
 /* Each client will match words beginning with a particular keyword */
 typedef struct pvc
@@ -46,4 +46,4 @@ extern void PaVisitAddClient();
 extern int  PaVisitFiles();
 extern void PaVisitFree();
 
-#endif	/* _PATHVISIT_H */
+#endif	/* _MAGIC__UTILS__PATHVISIT_H */

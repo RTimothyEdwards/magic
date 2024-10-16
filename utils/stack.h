@@ -20,8 +20,8 @@
  * sccsid @(#)stack.h	4.1 MAGIC (Berkeley) 7/4/85
  */
 
-#ifndef	_STACK_H
-#define	_STACK_H
+#ifndef	_MAGIC__UTILS__STACK_H
+#define	_MAGIC__UTILS__STACK_H
 
 #include "utils/magic.h"
 
@@ -80,4 +80,4 @@ void StackCopy();
 		*((st)->st_ptr++) = (ClientData)(pointertype) (a); \
 	} else
 
-#endif	/* _STACK_H */
+#endif	/* _MAGIC__UTILS__STACK_H */

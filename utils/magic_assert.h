@@ -18,8 +18,8 @@
  * rcsid="$Header"
  */
 
-#ifndef _MAGIC_ASSERT_H
-#define _MAGIC_ASSERT_H
+#ifndef _MAGIC__UTILS__MAGIC_ASSERT_H
+#define _MAGIC__UTILS__MAGIC_ASSERT_H
 
 
 /* --------------------- Debugging and assertions --------------------- */
@@ -30,4 +30,4 @@
 #define	ASSERT(p, where) assert(p)	/* "where" is ignored */
 
 
-#endif /* _MAGIC_ASSERT_H */
+#endif /* _MAGIC__UTILS__MAGIC_ASSERT_H */

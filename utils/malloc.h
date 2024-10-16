@@ -19,11 +19,11 @@
  *     *********************************************************************
  */
 
-#ifndef _MALLOC_H
-#define _MALLOC_H
+#ifndef _MAGIC__UTILS__MALLOC_H
+#define _MAGIC__UTILS__MALLOC_H
 
 extern void *mallocMagic(size_t);
 extern void *callocMagic(size_t);
 extern void freeMagic(void *);
 
-#endif /* _MALLOC_H */
+#endif /* _MAGIC__UTILS__MALLOC_H */

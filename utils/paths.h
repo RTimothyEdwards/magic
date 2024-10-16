@@ -20,8 +20,8 @@
  * rcsid="$Header"
  */
 
-#ifndef _PATHS_H
-#define _PATHS_H
+#ifndef _MAGIC__UTILS__PATHS_H
+#define _MAGIC__UTILS__PATHS_H
 
 /*
  * Paths used by 'ext2sim' and 'magicusage'.
@@ -72,4 +72,4 @@
  */
 #define CAD_LIB_PATH	". $CAD_ROOT/"
 
-#endif /* _PATHS_H */
+#endif /* _MAGIC__UTILS__PATHS_H */

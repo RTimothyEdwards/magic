@@ -19,8 +19,8 @@
  * rcsid "$Header: /usr/cvsroot/magic-8.0/utils/macros.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $"
  */
 
-#ifndef _MACROS_H
-#define _MACROS_H
+#ifndef _MAGIC__UTILS__MACROS_H
+#define _MAGIC__UTILS__MACROS_H
 
 #include "utils/magic.h"
 #include "utils/hash.h"
@@ -51,4 +51,4 @@ extern char *MacroName();	/* returns a malloc'ed string */
 extern int MacroKey();
 extern int MacroCode();
 
-#endif /* _MACROS_H */
+#endif /* _MAGIC__UTILS__MACROS_H */

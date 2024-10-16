@@ -47,8 +47,8 @@
  *
  */
 
-#ifndef _MAGIC__ALLOCA_H
-#define _MAGIC__ALLOCA_H
+#ifndef _MAGIC__UTILS__MAGIC_ALLOCA_H
+#define _MAGIC__UTILS__MAGIC_ALLOCA_H
 
 /* taken from autoconf documentation:
  *    https://www.gnu.org/software/autoconf/manual/autoconf-2.69/html_node/Particular-Functions.html
@@ -83,4 +83,4 @@ void *alloca (size_t);
 # endif
 #endif
 
-#endif /* _MAGIC__ALLOCA_H */
+#endif /* _MAGIC__UTILS__MAGIC_ALLOCA_H */

@@ -1,5 +1,5 @@
-#ifndef _SIM_H
-#define _SIM_H
+#ifndef _MAGIC__SIM__SIM_H
+#define _MAGIC__SIM__SIM_H
 
 #include "utils/magic.h"
 #include "textio/txcommands.h"	/* TxCommand */
@@ -49,4 +49,4 @@ extern bool SimSelection(const char *cmd);
 extern void SimRsimMouse(MagWindow *w);
 extern int SimFillBuffer(char *buffHead, char **pLastChar, int *charCount);
 
-#endif /* _SIM_H */
+#endif /* _MAGIC__SIM__SIM_H */

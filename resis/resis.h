@@ -6,8 +6,8 @@
    refer to both before and after processing.
 */
 
-#ifndef _RESIS_H
-#define _RESIS_H
+#ifndef _MAGIC__RESIS__RESIS_H
+#define _MAGIC__RESIS__RESIS_H
 
 #define LAYERS_PER_CONTACT 4
 #define TILES_PER_JUNCTION 2
@@ -737,4 +737,4 @@ extern int  resWalkup();
 	pX_->portList = rp; \
 }
 
-#endif /* _RESIS_H */
+#endif /* _MAGIC__RESIS__RESIS_H */

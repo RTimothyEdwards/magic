@@ -25,8 +25,8 @@
 //
 // ************************************************************************
 
-#ifndef _BPENUM_H
-#define _BPENUM_H
+#ifndef _MAGIC__BPLANE__BPENUM_H
+#define _MAGIC__BPLANE__BPENUM_H
 
 /* bpEnum.h --
  *
@@ -534,4 +534,4 @@ static __inline__ void *BPEnumNext(BPEnum *bpe)
   }
 }
 
-#endif /* _BPENUM_H */
+#endif /* _MAGIC__BPLANE__BPENUM_H */

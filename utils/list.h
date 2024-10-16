@@ -25,8 +25,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/utils/list.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef	_LIST_H
-#define	_LIST_H
+#ifndef	_MAGIC__UTILS__LIST_H
+#define	_MAGIC__UTILS__LIST_H
 
 #include "utils/magic.h"
 
@@ -71,4 +71,4 @@ extern List *ListReverse();	/* usage:  ListReverse(&List) */
 	ListDealloc(LIST_intermediate); \
     } else
 
-#endif	/* _LIST_H */
+#endif	/* _MAGIC__UTILS__LIST_H */

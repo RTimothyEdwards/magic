@@ -7,8 +7,8 @@
 /* MultiGiG, Inc., Scotts Valley, CA				*/
 /*--------------------------------------------------------------*/
 
-#ifndef _OA_H
-#define _OA_H
+#ifndef _MAGIC__OA__OA_H
+#define _MAGIC__OA__OA_H
 
 /* Header file is wrapped in ifdef so include statements don't	*/
 /* need to be.							*/
@@ -20,4 +20,4 @@ extern int oaTreeCellSrFunc();		/* see DBcellsrch.c */
 
 #endif	/* OPENACCESS */
 
-#endif /* _OA_H */
+#endif /* _MAGIC__OA__OA_H */

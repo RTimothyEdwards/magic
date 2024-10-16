@@ -19,8 +19,8 @@
  * RCSID $Header: /usr/cvsroot/magic-8.0/utils/netlist.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _RMNETLIST_H
-#define _RMNETLIST_H
+#ifndef _MAGIC__UTILS__NETLIST_H
+#define _MAGIC__UTILS__NETLIST_H
 
 #include "utils/geometry.h"
 #include "utils/magic.h"
@@ -128,4 +128,4 @@ extern void NLFree();
 extern int  NLBuild();
 extern void NLSort();
 
-#endif /* _RMNETLIST_H */
+#endif /* _MAGIC__UTILS__NETLIST_H */

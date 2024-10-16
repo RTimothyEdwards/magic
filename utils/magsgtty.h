@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef	_MAGSGTTY_H
-#define _MAGSGTTY_H
+#ifndef	_MAGIC__UTILS__MAGSGTTY_H
+#define _MAGIC__UTILS__MAGSGTTY_H
 
 #if !defined(SYSV) && !defined(CYGWIN)
 
@@ -44,4 +44,4 @@
 #include <termio.h>
 #endif
 
-#endif	/* _MAGSGTTY_H */
+#endif	/* _MAGIC__UTILS__MAGSGTTY_H */

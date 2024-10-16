@@ -22,8 +22,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/textio/textio.h,v 1.2 2008/02/18 01:01:35 tim Exp $
  */
 
-#ifndef _TEXTIO_H
-#define _TEXTIO_H
+#ifndef _MAGIC__TEXTIO__TEXTIO_H
+#define _MAGIC__TEXTIO__TEXTIO_H
 
 #include "utils/magic.h"
 #include "utils/dqueue.h" /* DQueue */
@@ -110,4 +110,4 @@ extern void TxInit(void);
 extern void TxInitReadline(void);
 #endif
 
-#endif /* _TEXTIO_H */
+#endif /* _MAGIC__TEXTIO__TEXTIO_H */

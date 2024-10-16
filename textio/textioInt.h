@@ -19,8 +19,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/textio/textioInt.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _TEXTIOINT_H
-#define _TEXTIOINT_H
+#ifndef _MAGIC__TEXTIO__TEXTIOINT_H
+#define _MAGIC__TEXTIO__TEXTIOINT_H
 
 #include "utils/magic.h"
 #include "textio/textio.h"
@@ -68,4 +68,4 @@ extern char *TxGetLineWPrompt(char *dest, int maxChars, const char *prompt, cons
 extern int Tcl_printf(FILE *fp, const char *fmt, va_list ap);
 #endif
 
-#endif /* _TEXTIOINT_H */
+#endif /* _MAGIC__TEXTIO__TEXTIOINT_H */

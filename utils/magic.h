@@ -18,8 +18,8 @@
  * rcsid="$Header"
  */
 
-#ifndef _MAGIC_H
-#define	_MAGIC_H
+#ifndef _MAGIC__UTILS__MAGIC_H
+#define	_MAGIC__UTILS__MAGIC_H
 
 #include <errno.h>
 #include <limits.h>
@@ -286,4 +286,4 @@ extern char AbortMessage[];
 
 /* ------------------ End of Machine Configuration Section ----------------- */
 
-#endif /* _MAGIC_H */
+#endif /* _MAGIC__UTILS__MAGIC_H */

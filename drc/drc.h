@@ -20,8 +20,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/drc/drc.h,v 1.6 2010/09/20 21:13:22 tim Exp $
  */
 
-#ifndef _DRC_H
-#define	_DRC_H
+#ifndef _MAGIC__DRC__DRC_H
+#define	_MAGIC__DRC__DRC_H
 
 #include "database/database.h"
 
@@ -323,4 +323,4 @@ extern long drcCifPointToSegment();
 #define DRCHasWork ((DRCPendingRoot != NULL) && (DRCBackGround != DRC_SET_OFF))
 #endif
 
-#endif /* _DRC_H */
+#endif /* _MAGIC__DRC__DRC_H */

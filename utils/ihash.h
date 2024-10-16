@@ -39,8 +39,8 @@
 
 /* rcsid "$Header$" */
 
-#ifndef _IHASH_H
-#define	_IHASH_H
+#ifndef _MAGIC__UTILS__IHASH_H
+#define	_MAGIC__UTILS__IHASH_H
 
 /* returns total memory required for malloc of given size, for	*/
 /* routine IHashStat2() only.					*/
@@ -130,4 +130,4 @@ extern int IHash4WordKeyHash(void *key);
 
 /* key comparison function for four word keys */
 extern int IHash4WordKeyEq(void *key1, void *key2);
-#endif /* _IHASH_H */
+#endif /* _MAGIC__UTILS__IHASH_H */
