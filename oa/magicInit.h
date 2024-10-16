@@ -95,4 +95,4 @@ TCL_RTN_ERROR(#func)
 }
 #endif
 
-#endif
+#endif /* _magicinit_h_ */
