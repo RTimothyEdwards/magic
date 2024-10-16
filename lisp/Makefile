@@ -6,7 +6,7 @@ MODULE    = lisp
 MAGICDIR  = ..
 SRCS      = lispMain.c lispEval.c lispPrint.c lispParse.c lispA-Z.c \
             lispGC.c lispFrame.c lispTrace.c lispMagic.c lispArith.c \
-            lispString.c lispIO.c 
+            lispString.c lispIO.c
 SCMSRC    = default.scm box.scm label.scm draw.scm drc.scm \
             stack.scm layout.scm prs.scm help.scm gate.scm \
             sel.scm
