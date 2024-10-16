@@ -11,6 +11,8 @@ SCMSRC    = default.scm box.scm label.scm draw.scm drc.scm \
             stack.scm layout.scm prs.scm help.scm gate.scm \
             sel.scm
 
+all:
+
 include ${MAGICDIR}/defs.mak
 
 INST_SCMSRC = ${SCMSRC:%=$(DESTDIR)${INSTALL_SCMDIR}/%}
