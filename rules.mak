@@ -12,14 +12,18 @@ depend: ${DEPEND_FILE}
 # any header (.h) files with an absolute path (beginning with "/"), and
 # 3) remove isolated backslash-returns just to clean things up a bit.
 
-${DEPEND_FILE}:
-	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} ${DEPSRCS} | \
-	sed -e "/#/D" -e "/ \//s/ \/.*\.h//" -e "/  \\\/D" > ${DEPEND_FILE}
+# The $$PPID allows this to be run on the same dir in parallel without
+# corrupting the output, the final MV is transactional. If that is needed
+# it indicates a missing dependency somewhere in a upstream/parent Makefile.
+${DEPEND_FILE}: ${DEPSRCS}
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} ${DEPSRCS} > ${DEPEND_FILE}$$PPID.tmp
+	${SED} -e "/#/D" -e "/ \//s/ \/.*\.h//" -e "/  \\\/D" -i ${DEPEND_FILE}$$PPID.tmp
+	${MV} -f ${DEPEND_FILE}$$PPID.tmp ${DEPEND_FILE}
 
 # Original Depend file generating line:
 #	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} ${SRCS} > ${DEPEND_FILE}
 
-${OBJS}: %.o: ${SRCS} ../database/database.h
+%.o: %.c
 	@echo --- compiling ${MODULE}/$*.o
 	${RM} $*.o
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS}  -c $*.c
