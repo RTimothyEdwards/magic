@@ -84,9 +84,10 @@ CPP                    = @CPP@
 CXX		       = @CXX@
 
 CPPFLAGS               = -I${MAGICDIR} @CPPFLAGS@
-DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" -DGCORE=\"@GCORE@\"
+DFLAGS_MAGICVERSION    = -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\"
+DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ ${DFLAGS_MAGICVERSION} -DGCORE=\"@GCORE@\"
 DFLAGS		      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" -DNDEBUG
-DFLAGS_NOSTUB	       = @extra_defs@ @DEFS@ -DGCORE=\"@GCORE@\"
+DFLAGS_NOSTUB	       = @extra_defs@             @DEFS@ ${DFLAGS_MAGICVERSION} -DGCORE=\"@GCORE@\"
 DFLAGS_NOSTUB	      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" -DNDEBUG
 CFLAGS                 = @CFLAGS@ @SHLIB_CFLAGS@ @INC_SPECS@
 
