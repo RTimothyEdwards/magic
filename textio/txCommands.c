@@ -49,7 +49,9 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/t
 #include "utils/dqueue.h"
 #include "utils/malloc.h"
 #include "utils/utils.h"
+#ifdef SCHEME_INTERPRETER
 #include "lisp/lisp.h"
+#endif
 
 /* C99 compat */
 #include "windows/windows.h"
