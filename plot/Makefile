@@ -5,7 +5,7 @@
 MODULE    = plot
 MAGICDIR  = ..
 SRCS      = plotCmd.c plotGremln.c plotHP.c plotPS.c plotMain.c plotRutils.c \
-	    plotVers.c plotPixels.c plotPNM.c 
+	    plotVers.c plotPixels.c plotPNM.c
 
 include ${MAGICDIR}/defs.mak
 

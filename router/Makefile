@@ -6,7 +6,7 @@ MODULE    = router
 MAGICDIR  = ..
 SRCS      = rtrCmd.c rtrMain.c rtrDcmpose.c rtrFdback.c rtrHazards.c \
             rtrChannel.c rtrPaint.c rtrPin.c rtrSide.c rtrStem.c rtrTech.c \
-            rtrVia.c rtrTravers.c 
+            rtrVia.c rtrTravers.c
 
 include ${MAGICDIR}/defs.mak
 

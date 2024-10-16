@@ -22,7 +22,7 @@ TUTFILES= m3a.mag maint2a.mag tut1.mag \
     tut9a.mag tut9b.mag tut9x.mag tut9y.mag \
     tut11a.mag tut11b.mag tut11c.mag tut11d.mag \
     tut11a.al tut11a.cmd tut11a.ext tut11a.nodes tut11a.sim \
-    tut11b.ext tut11c.ext tut11d.ext 
+    tut11b.ext tut11c.ext tut11d.ext
 
 INST_TUTFILES= $(TUTFILES:%=$(DESTDIR)${TUTDIR}/%)
 
