@@ -26,4 +26,4 @@ extern void *mallocMagic(size_t);
 extern void *callocMagic(size_t);
 extern void freeMagic(void *);
 
-#endif
+#endif /* _MALLOC_H */
