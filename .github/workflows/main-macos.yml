@@ -59,6 +59,36 @@ jobs:
           make database/database.h
           make -j$(sysctl -n hw.ncpu)
 
+      - name: Install
+        run: |
+          sudo make install
+
+      - name: Kick The Tyres
+        run: |
+          set +e
+          echo "=== ls -l"
+          ls -l
+          echo "=== find /usr/local/bin"
+          find /usr/local/bin -mtime 0
+          echo "=== find /usr/local/share"
+          find /usr/local/share -mtime 0
+          echo "=== find /usr/local/lib/magic"
+          find /usr/local/lib/magic -mtime 0
+          echo "=== otool -L magic/tclmagic.dylib"
+          otool -L magic/tclmagic.dylib
+          echo "=== otool -L tcltk/magicexec"
+          otool -L tcltk/magicexec
+          echo "=== otool -L tcltk/magicdnull"
+          otool -L tcltk/magicdnull
+          echo "=== magic --version"
+          magic --version
+          echo "=== magic -d help -noconsole"
+          magic -d help -noconsole
+          echo "=== magic -d null -noconsole -nowindow -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
+          echo "=== magic -d null -noconsole -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -T scmos
+
   simple_build_macos:
     runs-on: macos-latest
     steps:
@@ -107,3 +137,33 @@ jobs:
 
           make database/database.h
           make -j$(sysctl -n hw.ncpu)
+
+      - name: Install
+        run: |
+          sudo make install
+
+      - name: Kick The Tyres
+        run: |
+          set +e
+          echo "=== ls -l"
+          ls -l
+          echo "=== find /usr/local/bin"
+          find /usr/local/bin -mtime 0
+          echo "=== find /usr/local/share"
+          find /usr/local/share -mtime 0
+          echo "=== find /usr/local/lib/magic"
+          find /usr/local/lib/magic -mtime 0
+          echo "=== otool -L magic/tclmagic.dylib"
+          otool -L magic/tclmagic.dylib
+          echo "=== otool -L tcltk/magicexec"
+          otool -L tcltk/magicexec
+          echo "=== otool -L tcltk/magicdnull"
+          otool -L tcltk/magicdnull
+          echo "=== magic --version"
+          magic --version
+          echo "=== magic -d help -noconsole"
+          magic -d help -noconsole
+          echo "=== magic -d null -noconsole -nowindow -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
+          echo "=== magic -d null -noconsole -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -T scmos
