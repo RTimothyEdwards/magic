@@ -58,10 +58,25 @@ libs: database/database.h depend
 	for dir in ${LIBRARIES}; do \
 		(cd $$dir && ${MAKE} lib) || exit 1; done
 
-depend:	database/database.h
+#
+# extcheck - utility tool
+# net2ir   - utility tool
+# oa       - disabled (needs 'clean' target renaming)
+SUBDIRS = bplane cmwind commands database dbwind debug drc extflat extract graphics \
+	  magic netmenu plow resis select sim textio tiles utils windows wiring
+
+BUNDLED_MODULES = readline lisp
+
+# Unique list of all subdir that might have Depend file, we have to deduplicate otherwise
+# MAKE will warning loudly.  This list is somewhat empty when defs.mak does not exist
+SUBDIRS_FILTERED := $(shell echo ${MODULES} ${PROGRAMS} ${SUBDIRS} | tr ' ' '\n' | sort | uniq)
+
+$(addsuffix /Depend, ${SUBDIRS_FILTERED}): database/database.h
 	@echo --- making dependencies
-	for dir in ${MODULES} ${UNUSED_MODULES} ${PROGRAMS}; do \
-		(cd $$dir && ${MAKE} depend) || exit 1; done
+	${MAKE} -C $(dir $@) depend
+
+.PHONY: depend
+depend: defs.mak $(addsuffix /Depend, ${SUBDIRS_FILTERED})
 
 install: $(INSTALL_TARGET)
 
@@ -96,7 +111,7 @@ install-tcl-real: install-tcl-dirs
 		(cd $$dir && ${MAKE} install-tcl); done
 
 clean:
-	for dir in ${MODULES} ${PROGRAMS} ${TECH} ${UNUSED_MODULES}; do \
+	for dir in ${SUBDIRS_FILTERED} ${TECHS} ${BUNDLED_MODULES}; do \
 		(cd $$dir && ${MAKE} clean); done
 	${RM} *.tmp */*.tmp *.sav */*.sav *.log TAGS tags
 
@@ -107,7 +122,7 @@ distclean:
 	${RM} ${MAGICDIR}/scripts/default.conf
 	${RM} ${MAGICDIR}/scripts/config.log ${MAGICDIR}/scripts/config.status
 	${RM} scripts/magic.spec magic-`cat VERSION` magic-`cat VERSION`.tgz
-	${RM} *.log */Depend
+	${RM} *.log
 
 dist:
 	${RM} scripts/magic.spec magic-`cat VERSION` magic-`cat VERSION`.tgz
