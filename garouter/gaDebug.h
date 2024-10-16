@@ -21,6 +21,9 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/garouter/gaDebug.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
+#ifndef _MAGIC__GAROUTER__GADEBUG_H
+#define _MAGIC__GAROUTER__GADEBUG_H
+
     /* Flags */
 extern int gaDebChanOnly;
 extern int gaDebChanStats;
@@ -32,3 +35,5 @@ extern int gaDebShowMaze;
 extern int gaDebStems;
 extern int gaDebVerbose;
 extern int gaDebNoClean;
+
+#endif /* _MAGIC__GAROUTER__GADEBUG_H */

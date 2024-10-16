@@ -21,6 +21,9 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/plow/plowDebugInt.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
+#ifndef _MAGIC__PLOW__PLOWDEBUGINT_H
+#define _MAGIC__PLOW__PLOWDEBUGINT_H
+
 extern int plowDebAdd;
 extern int plowDebMove;
 extern int plowDebNext;
@@ -33,3 +36,5 @@ extern ClientData plowDebugID;
 
 extern Point plowWhenTopPoint, plowWhenBotPoint;
 extern bool plowWhenTop, plowWhenBot;
+
+#endif /* _MAGIC__PLOW__PLOWDEBUGINT_H */

@@ -31,7 +31,12 @@
  *
  */
 
+#ifndef _MAGIC__IROUTER__IRDEBUG_H
+#define _MAGIC__IROUTER__IRDEBUG_H
+
 extern int irDebEndPts; /* traces endpoint processing */
 extern int irDebNoClean; /* doesn't cleanup after route, so data strucs
 			  * can be examined.
 			  */
+
+#endif /* _MAGIC__IROUTER__IRDEBUG_H */

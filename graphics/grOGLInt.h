@@ -8,6 +8,9 @@
  * the X .h files.
  */
 
+#ifndef _MAGIC__GRAPHICS__GROGLINT_H
+#define _MAGIC__GRAPHICS__GROGLINT_H
+
 #include "utils/magic.h"
 
 /* Constants
@@ -93,3 +96,5 @@ extern int groglNbRects;
 #define GR_X_FLUSH_LINES() {if (groglNbLines>0) {groglDrawLines(groglLines, groglNbLines); groglNbLines=0;}}
 #define GR_X_FLUSH_RECTS() {if (groglNbRects>0) {groglFillRects(groglRects, groglNbRects); groglNbRects=0;}}
 #define	GR_X_FLUSH_BATCH() {GR_X_FLUSH_LINES(); GR_X_FLUSH_RECTS();}
+
+#endif /* _MAGIC__GRAPHICS__GROGLINT_H */

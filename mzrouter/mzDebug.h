@@ -30,8 +30,12 @@
  *
  */
 
+#ifndef _MAGIC__MZROUTER__MZDEBUG_H
+#define _MAGIC__MZROUTER__MZDEBUG_H
+
 extern int mzDebStep;	/* single step - pauses after each path extension,
 			   and prints statistics */
 extern int mzDebMaze;	/* traces maze router - details on selection of
 			   best path and extension from it. */
 
+#endif /* _MAGIC__MZROUTER__MZDEBUG_H */

@@ -24,6 +24,9 @@
 
 /* rcsid "$Header: /usr/cvsroot/magic-8.0/utils/geofast.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $" */
 
+#ifndef _MAGIC__UTILS__GEOFAST_H
+#define _MAGIC__UTILS__GEOFAST_H
+
 /* ---------------------------- Clipping ------------------------------ */
 
 /*
@@ -187,3 +190,5 @@
 	(tresult)->t_c += tMul(x, xt->t_a) + tMul(y, xt->t_b); \
 	(tresult)->t_f += tMul(x, xt->t_d) + tMul(y, xt->t_e); \
     }
+
+#endif /* _MAGIC__UTILS__GEOFAST_H */
