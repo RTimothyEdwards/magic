@@ -92,14 +92,28 @@ jobs:
       - name: Build
         run: |
           export PATH="/opt/X11/bin:$PATH"
-          ./scripts/configure_mac
+          ./scripts/configure_mac 2>&1 | tee CONFIGURE.LOG
+
+          config_log=""
+          if [ -f scripts/config.log ]
+          then
+            config_log="scripts/config.log"
+          elif [ -f build-magic/config.log ]
+          then
+            config_log="build-magic/config.log"
+          fi
+          if [ -n "$config_log" ]
+          then
+            CONFIGURE_ARGS=$(head -n 10 $config_log | egrep "./configure" | sed -e 's#^ *\$ ##' -e 's#./configure ##')
+            echo "CONFIGURE_ARGS=$CONFIGURE_ARGS" >> $GITHUB_ENV
+          fi
 
           echo "===== defs.mak ====="
           cat defs.mak
           echo "===== defs.mak ====="
 
           make database/database.h
-          make -j$(sysctl -n hw.ncpu)
+          make -j$(sysctl -n hw.ncpu) 2>&1 | tee MAKE.LOG
 
       - name: Install
         run: |
@@ -213,14 +227,28 @@ jobs:
       - name: Build
         run: |
           export PATH="/opt/X11/bin:$PATH"
-          ./scripts/configure_mac
+          ./scripts/configure_mac 2>&1 | tee CONFIGURE.LOG
+
+          config_log=""
+          if [ -f scripts/config.log ]
+          then
+            config_log="scripts/config.log"
+          elif [ -f build-magic/config.log ]
+          then
+            config_log="build-magic/config.log"
+          fi
+          if [ -n "$config_log" ]
+          then
+            CONFIGURE_ARGS=$(head -n 10 $config_log | egrep "./configure" | sed -e 's#^ *\$ ##' -e 's#./configure ##')
+            echo "CONFIGURE_ARGS=$CONFIGURE_ARGS" >> $GITHUB_ENV
+          fi
 
           echo "===== defs.mak ====="
           cat defs.mak
           echo "===== defs.mak ====="
 
           make database/database.h
-          make -j$(sysctl -n hw.ncpu)
+          make -j$(sysctl -n hw.ncpu) 2>&1 | tee MAKE.LOG
 
       - name: Install
         run: |
