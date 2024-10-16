@@ -1754,7 +1754,9 @@ GrTkIconUpdate(w, text)		/* See Blt code */
     class.res_class = "magic";
 
     XSetClassHint( grXdpy, wind, &class);
-    if ((brack = strchr(text,'[')))
+    if (text == NULL)
+        return;
+    if ((brack = strchr(text,'[')) && brack != text)
     {
      	brack--;
 	*brack = 0;
