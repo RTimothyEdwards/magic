@@ -10,6 +10,9 @@
  * Copyright 2003 Open Circuit Design, Inc., for MultiGiG Ltd.
  */
 
+#ifndef _MAGIC__GRAPHICS__GRTCAIROINT_H
+#define _MAGIC__GRAPHICS__GRTCAIROINT_H
+
 #include "utils/magic.h"
 
 /* Constants
@@ -122,3 +125,5 @@ extern TCairoRect grtcairoRects[];
 
 /* Used by the wind3d window */
 extern void TCairoEventProc();
+
+#endif /* _MAGIC__GRAPHICS__GRTCAIROINT_H */

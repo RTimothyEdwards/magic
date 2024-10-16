@@ -10,6 +10,9 @@
  * Copyright 2003 Open Circuit Design, Inc., for MultiGiG Ltd.
  */
 
+#ifndef _MAGIC__GRAPHICS__GRTKINT_H
+#define _MAGIC__GRAPHICS__GRTKINT_H
+
 #include "utils/magic.h"
 
 /* Constants
@@ -90,3 +93,4 @@ extern int grtkNbRects;
 #define GR_TK_FLUSH_RECTS() {if (grtkNbRects>0) {grtkFillRects(grtkRects, grtkNbRects); grtkNbRects=0;}}
 #define	GR_TK_FLUSH_BATCH() {GR_TK_FLUSH_LINES(); GR_TK_FLUSH_RECTS();}
 
+#endif /* _MAGIC__GRAPHICS__GRTKINT_H */

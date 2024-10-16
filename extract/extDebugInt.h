@@ -22,6 +22,9 @@
  *
  */
 
+#ifndef _MAGIC__EXTRACT__EXTDEBUGINT_H
+#define _MAGIC__EXTRACT__EXTDEBUGINT_H
+
 extern int extDebAreaEnum;
 extern int extDebArray;
 extern int extDebHardWay;
@@ -38,3 +41,5 @@ extern int extDebPerim;
 extern int extDebResist;
 extern int extDebVisOnly;
 extern int extDebYank;
+
+#endif /* _MAGIC__EXTRACT__EXTDEBUGINT_H */

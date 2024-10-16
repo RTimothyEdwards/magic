@@ -10,6 +10,9 @@
  * Copyright 2003 Open Circuit Design, Inc., for MultiGiG Ltd.
  */
 
+#ifndef _MAGIC__GRAPHICS__GRTOGLINT_H
+#define _MAGIC__GRAPHICS__GRTOGLINT_H
+
 #include "utils/magic.h"
 
 /* Constants
@@ -119,3 +122,5 @@ extern TOGLRect grtoglRects[];
 
 /* Used by the wind3d window */
 extern void TOGLEventProc();
+
+#endif /* _MAGIC__GRAPHICS__GRTOGLINT_H */

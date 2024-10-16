@@ -8,6 +8,9 @@
  * the X .h files.
  */
 
+#ifndef _MAGIC__GRAPHICS__GRX11INT_H
+#define _MAGIC__GRAPHICS__GRX11INT_H
+
 #include "utils/magic.h"
 
 /* Constants
@@ -116,3 +119,5 @@ extern int grx11NbRects;
 #define GR_X_FLUSH_LINES() {if (grx11NbLines>0) {grx11DrawLines(grx11Lines, grx11NbLines); grx11NbLines=0;}}
 #define GR_X_FLUSH_RECTS() {if (grx11NbRects>0) {grx11FillRects(grx11Rects, grx11NbRects); grx11NbRects=0;}}
 #define	GR_X_FLUSH_BATCH() {GR_X_FLUSH_LINES(); GR_X_FLUSH_RECTS();}
+
+#endif /* _MAGIC__GRAPHICS__GRX11INT_H */

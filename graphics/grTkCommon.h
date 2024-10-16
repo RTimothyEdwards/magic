@@ -5,6 +5,9 @@
  *
  */
 
+#ifndef _MAGIC__GRAPHICS__GRTKCOMMON_H
+#define _MAGIC__GRAPHICS__GRTKCOMMON_H
+
 #define MAX_CURSORS 32
 
 #define grSmallFont     grTkFonts[0]
@@ -48,3 +51,4 @@ extern Tk_Cursor grCursors[MAX_CURSORS];
 extern Display *grXdpy;
 extern int      grXscrn;
 
+#endif /* _MAGIC__GRAPHICS__GRTKCOMMON_H */
