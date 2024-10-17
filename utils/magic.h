@@ -151,7 +151,7 @@ extern char AbortMessage[];
 /* ------------ zlib (compression) support -------------------------------- */
 
 #ifdef HAVE_ZLIB
-    #define FOPEN    gzopen
+    #define magicFOPEN    gzopen
     #define FCLOSE   gzclose
     #define FGETC    gzgetc
     #define magicFREAD(a,b,c,d)    gzread(d,a,b*c)
@@ -162,7 +162,7 @@ extern char AbortMessage[];
     #define FILETYPE gzFile
     #define OFFTYPE  z_off_t
 #else
-    #define FOPEN    fopen
+    #define magicFOPEN    fopen
     #define FCLOSE   fclose
     #define FGETC    getc
     #define magicFREAD    fread
