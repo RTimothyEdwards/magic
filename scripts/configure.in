@@ -1401,6 +1401,19 @@ if test $usingX11 ; then
      gr_libs="$gr_libs \${X11_LDFLAGS}"
 fi
 
+dnl We use GR_LIBS for graphics but some autoconf helpers might edit LIBS
+dnl remove "-lcairo" from LIBS if present in GR_LIBS
+for find in \
+  cairo X11 GL GLU fontconfig freetype
+do
+  if echo "$gr_libs" | grep -q -- "\-l${find}" ; then
+    dnl Not all sed support wildcard '\?'
+    LIBS=`echo "$LIBS" | sed -e "s/\-l${find} \?//" | tr -d '\n'`
+    LIBS=`echo "$LIBS" | sed -e "s/\-l${find} //" | tr -d '\n'`
+    LIBS=`echo "$LIBS" | sed -e "s/\-l${find}//" | tr -d '\n'`
+  fi
+done
+
 dnl ----------------------------------------------------------------
 dnl Define system-specific settings
 dnl ----------------------------------------------------------------

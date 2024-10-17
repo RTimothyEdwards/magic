@@ -46,6 +46,7 @@ LD_EXTRA_LIBS	       = @ld_extra_libs@
 LD_SHARED	       = @ld_extra_objs@
 TOP_EXTRA_LIBS	       = @top_extra_libs@
 SUB_EXTRA_LIBS	       = @sub_extra_libs@
+LIBS		       = @LIBS@
 
 MODULES               += @modules@
 UNUSED_MODULES        += @unused@
