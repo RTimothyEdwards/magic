@@ -384,7 +384,7 @@ fi
 # to it.
 DIST_DIR="\${exec_prefix}"
 AC_ARG_WITH(distdir,
-[  --with-distdir=DIR	    install into location DIR for distribution], [
+[  --with-distdir=DIR	  install into location DIR for distribution], [
   if test "$withval" = "no" -o "$withval" = "NO" ; then
      DIST_DIR="\${exec_prefix}"
   else
@@ -402,7 +402,7 @@ AC_CHECK_LIB([Xmu], [XmuInternAtom], use_libxmu="-lXmu")
 AC_CHECK_LIB([Xext], [XextFindDisplay], use_libxext="-lXext")
 
 AC_ARG_WITH(interpreter,
-[  --with-interpreter=[arg]	enable interpreter (tcl, scheme, or no)], [
+[  --with-interpreter=[arg]  enable interpreter (tcl, scheme, or no)], [
   if test "$withval" = "no" -o "$withval" = "NO"; then
     usingTcl=
   elif test "$withval" = "scheme" -o "$withval" = "SCHEME"; then
@@ -917,7 +917,7 @@ dnl installation location for the OpenAccess libraries and include
 dnl files?
 
 AC_ARG_WITH(openaccess,
-[  --with-openaccess=DIR	use OpenAccess libraries in DIR], [
+[  --with-openaccess=DIR   use OpenAccess libraries in DIR], [
   if test "$withval" = "no" -o "$withval" = "NO" ; then
      OA=
      OA_LIBS=
@@ -953,7 +953,7 @@ if test "x$enable_memdebug" = "xyes" ; then
 fi
 
 AC_ARG_ENABLE(modular,
-[  --enable-modular        embed ext2sim and ext2spice packages],
+[  --enable-modular             embed ext2sim and ext2spice packages],
 [],
 [enable_modular=no])
 
@@ -967,7 +967,7 @@ else
 fi
 
 AC_ARG_ENABLE(locking,
-[  --disable-locking        disable file locking],
+[  --disable-locking            disable file locking],
 [],
 [enable_locking=yes])
 
@@ -982,7 +982,7 @@ if test "x$enable_locking" = "xyes" ; then
 fi
 
 AC_ARG_ENABLE(calma,
-[  --disable-calma        disable calma package],
+[  --disable-calma              disable calma package],
 [],
 [enable_calma=yes])
 
@@ -995,7 +995,7 @@ else
 fi
 
 AC_ARG_ENABLE(cif,
-[  --disable-cif        disable cif package],
+[  --disable-cif                disable cif package],
 [],
 [enable_cif=yes])
 
@@ -1008,7 +1008,7 @@ else
 fi
 
 AC_ARG_ENABLE(client-render,
-[  --disable-client-render        disable OpenGL client-side rendering],
+[  --disable-client-render      disable OpenGL client-side rendering],
 [], 
 [enable_client_render=yes])
 
@@ -1017,7 +1017,7 @@ if test "x$enable_client_render" = "xno" ; then
 fi
 
 AC_ARG_ENABLE(invert-y,
-[  --enable-invert-y        invert screen top to bottom in OpenGL],
+[  --enable-invert-y            invert screen top to bottom in OpenGL],
 [], 
 [enable_invert_y=no])
 
@@ -1035,7 +1035,7 @@ if test "x$enable_framebuffer_backing_store" != "xyes" ; then
 fi
 
 AC_ARG_ENABLE(plot,
-[  --disable-plot	disable plot package],
+[  --disable-plot               disable plot package],
 [],
 [enable_plot=yes])
 
@@ -1048,7 +1048,7 @@ else
 fi
 
 AC_ARG_ENABLE(lef,
-[  --disable-lef	disable LEF package],
+[  --disable-lef                disable LEF package],
 [],
 [enable_lef=yes])
 
@@ -1065,7 +1065,7 @@ dnl readline-like interface, so regardless of the setting of this
 dnl option, if Tcl/Tk support is enabled, it will always be disabled.
 
 AC_ARG_ENABLE(readline,
-[  --disable-readline	disable readline package],
+[  --disable-readline           disable readline package],
 [ if test $usingTcl ; then
      enable_readline=no
   fi
@@ -1109,7 +1109,7 @@ else
 fi
 
 AC_ARG_ENABLE(threads,
-[  --disable-threads        disable threaded graphics],
+[  --disable-threads            disable threaded graphics],
 [ if test $usingTcl ; then
      enable_threads=no
   fi
@@ -1133,7 +1133,7 @@ if test "x$enable_threads" = "xyes" ; then
 fi
 
 AC_ARG_ENABLE(route,
-[  --disable-route        disable routing package],
+[  --disable-route              disable routing package],
 [],
 [enable_route=yes])
 
@@ -1150,7 +1150,7 @@ else
 fi
 
 AC_ARG_ENABLE(rsim,
-[  --disable-rsim        disable IRSIM tool],
+[  --disable-rsim               disable IRSIM tool],
 [ if test $usingTcl ; then
       enable_rsim=no
   fi
@@ -1167,7 +1167,7 @@ if test "x$enable_rsim" = "xyes" ; then
 fi
 
 AC_ARG_ENABLE(new-macros,
-[  --disable-new-macros        disable new macro set],
+[  --disable-new-macros         disable new macro set],
 [],
 [enable_new_macros=yes])
 
@@ -1176,7 +1176,7 @@ if test "x$enable_new_macros" = "xyes" ; then
 fi
 
 AC_ARG_WITH(opengl,
-[  --with-opengl=DIR          use OpenGL include files in DIR], [
+[  --with-opengl=DIR       use OpenGL include files in DIR], [
   if test "$withval" = "no" -o "$withval" = "NO" ; then
     usingOGL=
   elif test "$withval" != "no" -a "$withval" != "yes"; then
@@ -1237,7 +1237,7 @@ dnl Check for cairo graphics headers and libraries
 dnl ----------------------------------------------------------------
 
 AC_ARG_WITH(cairo,
-[  --with-cairo=DIR          use Cairo include files in DIR], [
+[  --with-cairo=DIR        use Cairo include files in DIR], [
   if test "$withval" = "no" -o "$withval" = "NO" ; then
     usingCairo=
   elif test "$withval" != "no" -a "$withval" != "yes"; then
@@ -1279,7 +1279,7 @@ fi
 dnl 
 
 AC_ARG_ENABLE(cairo-offscreen,
-[  --enable-cairo-offscreen        Use Cairo for off-screen rendering],
+[  --enable-cairo-offscreen     Use Cairo for off-screen rendering],
 [enable_cairo_offscreen=yes], 
 [])
 
