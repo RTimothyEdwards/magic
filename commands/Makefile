@@ -12,10 +12,9 @@ SRCS      = CmdSubrs.c CmdAB.c CmdCD.c CmdE.c CmdFI.c \
 
 module: ${MAGICDIR}/readline/readline lib${MODULE}.o
 
+# Delegate this task to the readline/Makefile
 ${MAGICDIR}/readline/readline:
-	@if ( ! test -f ${MAGICDIR}/readline/readline ) ; then \
-	(cd ${MAGICDIR}/readline; ln -s `ls | grep readline` readline) ; \
-	fi
+	${MAKE} -C ${MAGICDIR}/readline readline-create-symlinks
 
 include ${MAGICDIR}/defs.mak
 include ${MAGICDIR}/rules.mak
