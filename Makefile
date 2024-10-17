@@ -10,6 +10,9 @@ MODULES    = bplane cmwind commands database dbwind debug drc extflat \
 	     extract graphics netmenu plow resis select sim textio tiles \
 	     utils windows wiring
 
+# This was `cat VERSION`
+VERSION    := $(shell cat ${MAGICDIR}/VERSION)
+
 MAKEFLAGS  =
 INSTALL_CAD_DIRS = windows doc ${TECH}
 
@@ -121,18 +124,18 @@ distclean:
 	${RM} defs.mak old.defs.mak ${MAGICDIR}/scripts/defs.mak
 	${RM} ${MAGICDIR}/scripts/default.conf
 	${RM} ${MAGICDIR}/scripts/config.log ${MAGICDIR}/scripts/config.status
-	${RM} scripts/magic.spec magic-`cat VERSION` magic-`cat VERSION`.tgz
+	${RM} scripts/magic.spec magic-${VERSION} magic-${VERSION}.tgz
 	${RM} *.log
 
 dist:
-	${RM} scripts/magic.spec magic-`cat VERSION` magic-`cat VERSION`.tgz
-	sed -e /@VERSION@/s%@VERSION@%`cat VERSION`% \
+	${RM} scripts/magic.spec magic-${VERSION} magic-${VERSION}.tgz
+	sed -e /@VERSION@/s%@VERSION@%${VERSION}% \
 	    scripts/magic.spec.in > scripts/magic.spec
-	ln -nsf . magic-`cat VERSION`
-	tar zchvf magic-`cat VERSION`.tgz --exclude CVS \
-	    --exclude magic-`cat VERSION`/magic-`cat VERSION` \
-	    --exclude magic-`cat VERSION`/magic-`cat VERSION`.tgz \
-	    magic-`cat VERSION`
+	ln -nsf . magic-${VERSION}
+	tar zchvf magic-${VERSION}.tgz --exclude CVS \
+	    --exclude magic-${VERSION}/magic-${VERSION} \
+	    --exclude magic-${VERSION}/magic-${VERSION}.tgz \
+	    magic-${VERSION}
 
 clean-mains:
 	for dir in ${PROGRAMS}; do \
