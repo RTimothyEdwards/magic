@@ -8678,6 +8678,16 @@ if test $usingX11 ; then
      gr_libs="$gr_libs \${X11_LDFLAGS}"
 fi
 
+for find in \
+  cairo X11 GL GLU fontconfig freetype
+do
+  if echo "$gr_libs" | grep -q -- "\-l${find}" ; then
+        LIBS=`echo "$LIBS" | sed -e "s/\-l${find} \?//" | tr -d '\n'`
+    LIBS=`echo "$LIBS" | sed -e "s/\-l${find} //" | tr -d '\n'`
+    LIBS=`echo "$LIBS" | sed -e "s/\-l${find}//" | tr -d '\n'`
+  fi
+done
+
 
 case $target in
   *-linux*)
