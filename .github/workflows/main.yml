@@ -49,6 +49,9 @@ jobs:
         run: |
           source ./emsdk/emsdk_env.sh
           emconfigure ./configure --without-cairo --without-opengl --without-x --disable-readline --disable-compression --target=asmjs-unknown-emscripten
+          echo "===== defs.mak ====="
+          cat defs.mak
+          echo "===== defs.mak ====="
           emmake make
       - name: archive wasm bundle
         uses: actions/upload-artifact@v4
