@@ -1885,14 +1885,6 @@ topVisit(def, doStub)
 	    else
     	        heh = HashLookOnly(&efNodeHashTable,
 			    (char *)snode->efnode_name->efnn_hier);
-	    if (heh == (HashEntry *)NULL)
-	    {
-		/* Port was optimized out */
-		snode->efnode_flags &= ~EF_PORT;
-		TxPrintf("Note:  Port %s was optimized out of %s\n",
-			pname, def->def_name);
-		continue;
-	    }
 
 	    /* If view is abstract, rely on the given port name, not
 	     * the node.  Otherwise, artifacts of the abstract view
@@ -1907,6 +1899,15 @@ topVisit(def, doStub)
 	    else
 		// pname = nodeSpiceName(snode->efnode_name->efnn_hier, NULL);
 		pname = nodeSpiceName(nodeName->efnn_hier, NULL);
+
+	    if (heh == (HashEntry *)NULL) /* pname now resolved for log output */
+	    {
+		/* Port was optimized out */
+		snode->efnode_flags &= ~EF_PORT;
+		TxPrintf("Note:  Port %s was optimized out of %s\n",
+			pname, def->def_name);
+		continue;
+	    }
 
 	    hep = HashLookOnly(&portNameTable, pname);
 	    if (hep == (HashEntry *)NULL)

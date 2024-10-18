@@ -189,7 +189,8 @@ EFHNConcat(prefix, suffix)
 	else
 	    firstNew = new;
     }
-    prev->hn_parent = prefix;
+    if (prev)
+	prev->hn_parent = prefix;
 
     return firstNew;
 }
@@ -506,6 +507,9 @@ EFHNBest(hierName1, hierName2)
     int ncomponents1, ncomponents2, len1, len2;
     HierName *np1, *np2;
     char last1, last2;
+
+    ASSERT(hierName1, "hierName1");
+    ASSERT(hierName2, "hierName2");
 
     for (ncomponents1 = 0, np1 = hierName1; np1; np1 = np1->hn_parent)
 	ncomponents1++;

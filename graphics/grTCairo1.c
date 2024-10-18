@@ -1490,7 +1490,7 @@ char	*text;
 	XSetClassHint( grXdpy, wind, &class);
 	if (text)
 	{
-		if ((brack = strchr(text, '[')))
+		if ((brack = strchr(text, '[')) && brack != text)
 		{
 			brack--;
 			*brack = 0;

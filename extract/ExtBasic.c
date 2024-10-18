@@ -1259,6 +1259,8 @@ extComputeEffectiveLW(rlengthptr, rwidthptr, numregions, chop)
 	    case BD_RIGHT:  oppdir = BD_LEFT;   break;
 	    case BD_TOP:    oppdir = BD_BOTTOM; break;
 	    case BD_BOTTOM: oppdir = BD_TOP;    break;
+	    default:        ASSERT(FALSE, "oppdir"); /* should never happen */
+	                    oppdir = 0;         break;
 	}
 
 	/* First pass: Find the distance of the closest segment within	*/

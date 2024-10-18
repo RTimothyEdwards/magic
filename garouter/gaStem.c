@@ -802,6 +802,9 @@ gaStemNetClear(termArea, point, side, netList)
      */
     switch (side)
     {
+	default:
+	    ASSERT(FALSE, "side");
+	    /* fall-thru */
 	case GEO_NORTH:
 	    r.r_xbot = point->p_x - RtrSubcellSepUp;
 	    r.r_xtop = point->p_x + RtrSubcellSepDown;
