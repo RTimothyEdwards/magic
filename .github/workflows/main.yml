@@ -56,17 +56,3 @@ jobs:
           name: magic-wasm-bundle
           path: |
             ${{ github.workspace }}/magic/magic.wasm
-  # simple_build_mac:
-  #   runs-on: macos-11
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Get Dependencies
-  #       run: |
-  #         brew install --cask xquartz
-  #         brew install cairo tcl-tk tcsh
-  #     - name: Build
-  #       run: |
-  #         export PATH="/opt/X11/bin:$PATH"
-  #         ./scripts/configure_mac
-  #         make database/database.h
-  #         make -j$(sysctl -n hw.ncpu)

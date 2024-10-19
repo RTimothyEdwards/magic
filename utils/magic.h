@@ -146,7 +146,7 @@ extern char AbortMessage[];
     #define FOPEN    gzopen
     #define FCLOSE   gzclose
     #define FGETC    gzgetc
-    #define FREAD(a,b,c,d)    gzread(d,a,b*c)
+    #define magicFREAD(a,b,c,d)    gzread(d,a,b*c)
     #define FEOF     gzeof
     #define FSEEK    gzseek
     #define FTELL    gztell
@@ -157,7 +157,7 @@ extern char AbortMessage[];
     #define FOPEN    fopen
     #define FCLOSE   fclose
     #define FGETC    getc
-    #define FREAD    fread
+    #define magicFREAD    fread
     #define FEOF     feof
     #define FSEEK    fseek
     #define FTELL    ftello
