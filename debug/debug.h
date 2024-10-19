@@ -68,11 +68,12 @@ extern struct debugClient debugClients[];
 #define	DebugIsSet(cid, f)	debugClients[(spointertype) cid].dc_flags[f].df_value
 
 /* procedures */
-extern void HistCreate();
-extern void HistAdd();
-extern void HistPrint();
-extern ClientData DebugAddClient();
-extern int DebugAddFlag();
-extern void DebugShow(), DebugSet();
+extern void HistCreate(char *name, int ptrKeys, int low, int step, int bins);
+extern void HistAdd(char *name, int ptrKeys, int value);
+extern void HistPrint(char *name);
+extern ClientData DebugAddClient(char *name, int maxflags);
+extern int DebugAddFlag(ClientData clientID, char *name);
+extern void DebugShow(ClientData clientID);
+extern void DebugSet(ClientData clientID, int argc, char *argv[], int value);
 
 #endif /* _DEBUG_H */
