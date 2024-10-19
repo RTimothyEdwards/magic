@@ -43,10 +43,11 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Forward declarations: */
 
-extern void cmwButtonUp(), cmwButtonDown();
-extern void cbUpdate();
-extern void RGBxHSV();
-extern void HSVxRGB();
+extern void cmwButtonUp(MagWindow *w, Point *p, int button);
+extern void cmwButtonDown(MagWindow *w, Point *p, int button);
+extern void cbUpdate(MagWindow *w, int code, double x, int replace);
+extern bool RGBxHSV(double r, double g, double b, double *h, double *s, double *v);
+extern void HSVxRGB(double h, double s, double v, double *r, double *g, double *b);
 
 /* If a button is pressed over the top box in the window, which
  * displays the current color, we must save the window in which
@@ -84,9 +85,9 @@ bool cmwModified = FALSE;
  */
 
 void
-CMWcommand(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CMWcommand(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     switch (cmd->tx_button)
     {
@@ -137,10 +138,10 @@ CMWcommand(w, cmd)
  */
 
 void
-cmwButtonDown(w, p, button)
-    MagWindow *w;		/* Window where the button was pressed. */
-    Point *p;
-    int button;
+cmwButtonDown(
+    MagWindow *w,		/* Window where the button was pressed. */
+    Point *p,
+    int button)
 {
     ColorBar *cb;
     ColorPump *cp;
@@ -224,14 +225,14 @@ cmwButtonDown(w, p, button)
  */
 
 void
-cmwButtonUp(w, p, button)
-    MagWindow *w;	/* Window where the button was released */
-    Point *p;		/* Point where button was released, in window coords.*/
-    int button;		/* Button that was released. */
+cmwButtonUp(
+    MagWindow *w,	/* Window where the button was released */
+    Point *p,		/* Point where button was released, in window coords.*/
+    int button)		/* Button that was released. */
 {
     CMWclientRec *crec;
     int r, g, b, color, oldR, oldG, oldB;
-    extern int cmwRedisplayFunc();
+    extern int cmwRedisplayFunc(MagWindow *w, int color);
 
     /* If the button wasn't depressed over the top box in the window
      * (the one displaying the current color), then we ignore the
@@ -296,9 +297,9 @@ cmwButtonUp(w, p, button)
  */
 
 void
-cmwPushbutton(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+cmwPushbutton(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int button;
     static char *cmwButton[] = {"left", "middle", "right", NULL};
@@ -355,9 +356,9 @@ cmwPushbutton(w, cmd)
  */
 
 void
-cmwColor(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+cmwColor(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int color, r, g, b;
     CMWclientRec *crec;
@@ -450,9 +451,9 @@ cmwColor(w, cmd)
  */
 
 void
-cmwSave(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+cmwSave(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     bool ok;
     if ((cmd->tx_argc != 1) && (cmd->tx_argc != 4))
@@ -495,9 +496,9 @@ cmwSave(w, cmd)
  */
 
 void
-cmwLoad(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+cmwLoad(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if ((cmd->tx_argc != 1) && (cmd->tx_argc != 4))
     {
@@ -537,18 +538,18 @@ cmwLoad(w, cmd)
  */
 
 void
-cbUpdate(w, code, x, replace)
-    MagWindow *w;		/* Window whose color is to be changed. */
-    int code;		/* Indicates which color component to change. */
-    double x;		/* Gives increment or new value for color. */
-    int replace;	/* TRUE means replace component with x, FALSE
+cbUpdate(
+    MagWindow *w,		/* Window whose color is to be changed. */
+    int code,		/* Indicates which color component to change. */
+    double x,		/* Gives increment or new value for color. */
+    int replace)	/* TRUE means replace component with x, FALSE
 			 * means increment component by x.
 			 */
 {
     CMWclientRec *cr = (CMWclientRec *) w->w_clientData;
     double values[6];
     int r, g, b, nr, ng, nb;
-    extern int cmwRedisplayFunc();
+    extern int cmwRedisplayFunc(MagWindow *w, int color);
 
     /* Get current color map values */
     (void) GrGetColor(cr->cmw_color, &r, &g, &b);
@@ -591,9 +592,9 @@ cbUpdate(w, code, x, replace)
 }
 
 int
-cmwRedisplayFunc(w, color)
-    MagWindow *w;		/* Window that may have to be redisplayed. */
-    int color;			/* If this color is in window, redisplay the
+cmwRedisplayFunc(
+    MagWindow *w,		/* Window that may have to be redisplayed. */
+    int color)			/* If this color is in window, redisplay the
 				 * color bars in the window.
 				 */
 {
@@ -644,7 +645,7 @@ cmwRedisplayFunc(w, color)
  */
 
 bool
-CMWCheckWritten()
+CMWCheckWritten(void)
 {
     bool indx;
     char *prompt;
