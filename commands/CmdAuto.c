@@ -48,9 +48,9 @@
  */
 
 void
-CmdAutoExtToSim(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdAutoExtToSim(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int result;
 
@@ -83,9 +83,9 @@ CmdAutoExtToSim(w, cmd)
  */
 
 void
-CmdAutoExtToSpice(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdAutoExtToSpice(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int result;
 
@@ -119,9 +119,9 @@ CmdAutoExtToSpice(w, cmd)
  */
 
 void
-CmdAutoRoute(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdAutoRoute(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int result;
 
@@ -154,9 +154,9 @@ CmdAutoRoute(w, cmd)
  */
 
 void
-CmdAutoPlot(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdAutoPlot(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int result;
 
@@ -189,9 +189,9 @@ CmdAutoPlot(w, cmd)
  */
 
 void
-CmdAutoLef(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdAutoLef(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int result;
 

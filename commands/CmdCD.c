@@ -67,8 +67,8 @@ struct cmdCornerArea
 };
 
 /* Forward declarations */
-int cmdDumpFunc();
-bool cmdDumpParseArgs();
+int cmdDumpFunc(Rect *rect, char *name, Label *label, Point *point);
+bool cmdDumpParseArgs(char *cmdName, MagWindow *w, TxCommand *cmd, CellUse *dummy, SearchContext *scx);
 #ifdef CALMA_MODULE
 
 /*
@@ -125,9 +125,9 @@ bool cmdDumpParseArgs();
 #define CALMA_WARN_HELP CIF_WARN_END	/* undefined by CIF module */
 
 void
-CmdCalma(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdCalma(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int option, ext, value;
     char **msg, *namep, *dotptr;
@@ -1101,9 +1101,9 @@ outputCalma:
 	/* ARGSUSED */
 
 void
-CmdCellname(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdCellname(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     bool is_cellname;
     bool dolist = FALSE;
@@ -1323,8 +1323,6 @@ CmdCellname(w, cmd)
 	    /* Unload the cell definition and re-read with search paths */
 	    if (locargc == 3)
 	    {
-		void cmdFlushCell();
-
 		if (cellname == NULL)
 		    cellDef = EditRootDef;
 		else
@@ -1635,7 +1633,14 @@ CmdCellname(w, cmd)
 		TxError("Cannot set orientation by name.  Use selection.\n");
 		break;
 	    }
-	    DBOrientUse(cellname, dodef, orient);
+	    /* FIXME reading the function documentation above DBOrientUse() this method
+	     *  is only used to report orientation.  The selection interface should be
+	     *  used to change orientation.  Which is conveyed in the TxError() above.
+	     * So the 3rd argument here does not do anything.
+	     * Maybe the intention here is to display the current orientation, if so
+	     *  please remove this comment and the extra argument 'orient' below.
+	     */
+	    DBOrientUse(cellname, dodef/*, orient*/);
 	    break;
 	case IDX_ABUTMENT:
 	    DBAbutmentUse(cellname, dolist);
@@ -1710,9 +1715,9 @@ badusage:
 #define CIF_WARN_HELP  CIF_WARN_END	/* undefined by CIF module */
 
 void
-CmdCif(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdCif(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int option, yesno;
     char **msg, *namep;
@@ -2263,9 +2268,9 @@ CmdCif(w, cmd)
  */
 
 void
-CmdClockwise(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdClockwise(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Transform trans, t2;
     int degrees, locargc;
@@ -2378,17 +2383,17 @@ typedef struct CCS
 } CCStruct;
 
 void
-CmdContact(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdContact(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     TileType type, rtype, ctype;
     TileTypeBitMask *rmask, smask;
     CCStruct ccs;
     Rect area;
     LinkedRect *lr = NULL;
-    int cmdContactFunc();	/* Forward declaration */
-    int cmdContactEraseFunc();	/* Forward declaration */
+    int cmdContactFunc(Tile *tile, CCStruct *ccs);	/* Forward declaration */
+    int cmdContactEraseFunc(Tile *tile, LinkedRect **lr);	/* Forward declaration */
 
     windCheckOnlyWindow(&w, DBWclientID);
     if ((w == (MagWindow *) NULL) || (w->w_client != DBWclientID))
@@ -2516,13 +2521,13 @@ CmdContact(w, cmd)
  */
 
 int
-cmdContactFunc(tile, ccs)
-    Tile *tile;
-    CCStruct *ccs;
+cmdContactFunc(
+    Tile *tile,
+    CCStruct *ccs)
 {
     TileType stype;
     TileTypeBitMask smask;
-    int cmdContactFunc2();	/* Forward declaration */
+    int cmdContactFunc2(Tile *tile, CCStruct *ccs);	/* Forward declaration */
 
     TiToRect(tile, &ccs->area);
     GeoClip(&ccs->area, &ccs->clip);
@@ -2538,9 +2543,9 @@ cmdContactFunc(tile, ccs)
 }
 
 int
-cmdContactFunc2(tile, ccs)
-    Tile *tile;
-    CCStruct *ccs;
+cmdContactFunc2(
+    Tile *tile,
+    CCStruct *ccs)
 {
     LinkedRect *newlr;
     Rect area;
@@ -2560,9 +2565,9 @@ cmdContactFunc2(tile, ccs)
  */
 
 int
-cmdContactEraseFunc(tile, lr)
-    Tile *tile;
-    LinkedRect **lr;
+cmdContactEraseFunc(
+    Tile *tile,
+    LinkedRect **lr)
 {
     LinkedRect *newlr;
     Rect area;
@@ -2598,9 +2603,9 @@ cmdContactEraseFunc(tile, lr)
  */
 
 void
-CmdCopy(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdCopy(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Transform t;
     Rect rootBox, newBox;
@@ -2808,18 +2813,18 @@ typedef struct nmcornerpath
 } NMCornerPath;
 
 void
-CmdCorner(w, cmd)
-    MagWindow *w;	/* Window in which command was invoked. */
-    TxCommand *cmd;	/* Describes the command that was invoked. */
+CmdCorner(
+    MagWindow *w,	/* Window in which command was invoked. */
+    TxCommand *cmd)	/* Describes the command that was invoked. */
 {
     TileTypeBitMask maskBits;
     Rect editBox;
     SearchContext scx;
-    extern int cmdCornerFunc();
+    extern int cmdCornerFunc(Tile *tile, TreeContext *cxp);
     bool hasErr = FALSE;
     int locargc = cmd->tx_argc;
 
-    extern int cmdBevelFunc();
+    extern int cmdBevelFunc(Tile *tile, TreeContext *cxp);
     bool dobevel = FALSE;
     NMCornerPath cmdPathList;
 
@@ -3005,9 +3010,9 @@ CmdCorner(w, cmd)
  * ----------------------------------------------------------------------------
  */
 int
-cmdCornerFunc(tile, cxp)
-    Tile *tile;			/* Tile to fill with. */
-    TreeContext *cxp;		/* Describes state of search. */
+cmdCornerFunc(
+    Tile *tile,			/* Tile to fill with. */
+    TreeContext *cxp)		/* Describes state of search. */
 {
     Rect r1, r2, r3;
     struct cmdCornerArea *cca;
@@ -3140,7 +3145,8 @@ cmdCornerFunc(tile, cxp)
  */
 
 void
-AddNewPoint(CIFPath **pathhead)
+AddNewPoint(
+    CIFPath **pathhead)
 {
     CIFPath *newpoint;
 
@@ -3170,9 +3176,9 @@ AddNewPoint(CIFPath **pathhead)
  * ----------------------------------------------------------------------------
  */
 int
-cmdBevelFunc(tile, cxp)
-    Tile *tile;			/* Tile to fill with. */
-    TreeContext *cxp;		/* Describes state of search. */
+cmdBevelFunc(
+    Tile *tile,			/* Tile to fill with. */
+    TreeContext *cxp)		/* Describes state of search. */
 {
     Rect r1, r2, r3;
     CIFPathList *cpl;
@@ -3680,9 +3686,9 @@ cmdBevelFunc(tile, cxp)
  * ----------------------------------------------------------------------------
  */
 void
-CmdCrash(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdCrash(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int option = -1;
     char *filename = NULL;
@@ -3730,9 +3736,9 @@ CmdCrash(w, cmd)
  * ----------------------------------------------------------------------------
  */
 void
-CmdCrosshair(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdCrosshair(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     Point pos;
 
@@ -3783,9 +3789,9 @@ CmdCrosshair(w, cmd)
  */
 
 void
-CmdDelete(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdDelete(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     if (cmd->tx_argc != 1) goto badusage;
     if (!ToolGetEditBox((Rect *)NULL)) return;
@@ -3826,14 +3832,14 @@ CmdDelete(w, cmd)
 static bool cmdFoundNewDown;
 
 void
-CmdDown(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdDown(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     CellUse *use = NULL;
     Rect area, pointArea;
-    int cmdEditRedisplayFunc();		/* External declaration. */
-    int cmdDownEnumFunc();		/* Forward declaration. */
+    int cmdEditRedisplayFunc(MagWindow *w, Rect *area);		/* External declaration. */
+    int cmdDownEnumFunc(CellUse *selUse, CellUse *use, Transform *transform, Rect *area);		/* Forward declaration. */
 
     if ((w != NULL) && (cmd->tx_argc == 2))
     {
@@ -3908,13 +3914,13 @@ CmdDown(w, cmd)
 
     /* ARGSUSED */
 int
-cmdDownEnumFunc(selUse, use, transform, area)
-    CellUse *selUse;		/* Use from selection (not used). */
-    CellUse *use;		/* Use from layout that corresponds to
+cmdDownEnumFunc(
+    CellUse *selUse,		/* Use from selection (not used). */
+    CellUse *use,		/* Use from layout that corresponds to
 				 * selUse (could be an array!).
 				 */
-    Transform *transform;	/* Transform from use->cu_def to root coords. */
-    Rect *area;			/* We're looking for a use containing this
+    Transform *transform,	/* Transform from use->cu_def to root coords. */
+    Rect *area)			/* We're looking for a use containing this
 				 * area, in root coords.
 				 */
 {
@@ -3982,9 +3988,9 @@ cmdDownEnumFunc(selUse, use, transform, area)
 #define WHY		18
 
 void
-CmdDrc(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdDrc(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     FILE        * fp;
     static int	drc_nth = 1;
@@ -4544,9 +4550,10 @@ CmdDrc(w, cmd)
  * ----------------------------------------------------------------------------
  */
 
-int cmdDropPaintCell(tile, cxp)
-    Tile *tile;
-    TreeContext *cxp;
+int
+cmdDropPaintCell(
+    Tile *tile,
+    TreeContext *cxp)
 {
     CellDef *cellDef = cxp->tc_scx->scx_use->cu_def;
     TileTypeBitMask *lMask = (TileTypeBitMask *)cxp->tc_filter->tf_arg;
@@ -4585,7 +4592,9 @@ int cmdDropPaintCell(tile, cxp)
  */
 
 int
-cmdDropFunc(Tile *tile, ClientData clientData)
+cmdDropFunc(
+    Tile *tile,
+    ClientData clientData)
 {
     TileTypeBitMask tMask, *lMask = (TileTypeBitMask *)clientData;
     SearchContext scx;
@@ -4619,10 +4628,10 @@ cmdDropFunc(Tile *tile, ClientData clientData)
  */
 
 int
-cmdDropPaintFunc(rect, type, mask)
-    Rect *rect;                 /* Not used. */
-    TileType type;              /* Type of this piece of paint. */
-    TileTypeBitMask *mask;      /* Place to OR in type's bit. */
+cmdDropPaintFunc(
+    Rect *rect,                 /* Not used. */
+    TileType type,              /* Type of this piece of paint. */
+    TileTypeBitMask *mask)      /* Place to OR in type's bit. */
 {
     if (type & TT_DIAGONAL)
 	type = (type & TT_SIDE) ? (type & TT_RIGHTMASK) >> 14 :
@@ -4680,9 +4689,9 @@ cmdDropPaintFunc(rect, type, mask)
  */
 
 void
-CmdDrop(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdDrop(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     TileType i;
     TileTypeBitMask lMask, tMask;
@@ -4765,9 +4774,9 @@ CmdDrop(w, cmd)
  */
 
 void
-CmdDump(w, cmd)
-    MagWindow *w;		/* Window in which command was invoked. */
-    TxCommand *cmd;		/* Describes command arguments. */
+CmdDump(
+    MagWindow *w,		/* Window in which command was invoked. */
+    TxCommand *cmd)		/* Describes command arguments. */
 {
     SearchContext scx;
     CellUse dummy;
@@ -4803,12 +4812,12 @@ CmdDump(w, cmd)
 
     /*ARGSUSED*/
 bool
-cmdDumpParseArgs(cmdName, w, cmd, dummy, scx)
-    char *cmdName;	/* Either "dump" or "getcell" */
-    MagWindow *w;	/* Window in which command was invoked (UNUSED) */
-    TxCommand *cmd;	/* Arguments to command */
-    CellUse *dummy;	/* Filled in to point to cell mentioned in command */
-    SearchContext *scx;	/* Filled in with the transform from the child cell's
+cmdDumpParseArgs(
+    char *cmdName,	/* Either "dump" or "getcell" */
+    MagWindow *w,	/* Window in which command was invoked (UNUSED) */
+    TxCommand *cmd,	/* Arguments to command */
+    CellUse *dummy,	/* Filled in to point to cell mentioned in command */
+    SearchContext *scx)	/* Filled in with the transform from the child cell's
 			 * def to ROOT coordinates, the bounding box of the
 			 * child cell in child cell coordinates, and with
 			 * scx_use = dummy, where dummy->cu_def is the child
@@ -5304,11 +5313,11 @@ usage:
 
     /* ARGSUSED */
 int
-cmdDumpFunc(rect, name, label, point)
-    Rect *rect;			/* Root coordinates of the label. */
-    char *name;			/* Label name (not used). */
-    Label *label;		/* Pointer to label (not used). */
-    Point *point;		/* Place to store label's lower-left. */
+cmdDumpFunc(
+    Rect *rect,			/* Root coordinates of the label. */
+    char *name,			/* Label name (not used). */
+    Label *label,		/* Pointer to label (not used). */
+    Point *point)		/* Place to store label's lower-left. */
 {
     *point = rect->r_ll;
     return 1;

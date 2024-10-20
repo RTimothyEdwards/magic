@@ -50,12 +50,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  * cell graph; if it returns 0 then the subcells of 'def' are visited;
  * if it returns 1 then the subcells are not visited.
  *
- *	int
+ *	void
  *	hiercount(parent, uses, child, cdata)
- *	    CellDef *parent, *child;
+ *	    CellDef *parent;
  *	    int uses;		/# Scale factor: number of times child
  *				 # is used by parent
  *				 #/
+ *          CellDef *child;
  *	    ClientData cdata;
  *	{
  *	}
@@ -103,7 +104,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 struct countArg
 {
     int (*ca_count)();
-    int (*ca_hiercount)();
+    void (*ca_hiercount)();
     ClientData ca_cdata;
 };
 
@@ -111,7 +112,7 @@ void
 DBTreeCountPaint(def, count, hiercount, cleanup, cdata)
     CellDef *def;
     int (*count)();
-    int (*hiercount)();
+    void (*hiercount)();
     int (*cleanup)();
     ClientData cdata;
 {

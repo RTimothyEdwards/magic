@@ -100,9 +100,9 @@ struct cmdFPArg
  */
 
 int
-feedPolyFunc(tile, arg)
-    Tile *tile;
-    struct cmdFPArg *arg;
+feedPolyFunc(
+    Tile *tile,
+    struct cmdFPArg *arg)
 {
     Rect area;
     TiToRect(tile, &area);
@@ -146,9 +146,9 @@ feedPolyFunc(tile, arg)
 #define WHY		6
 
 void
-CmdFeedback(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdFeedback(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     static char *cmdFeedbackOptions[] =
     {
@@ -505,14 +505,14 @@ Rect cmdFillRootBox;			/* Root coords of box. */
 struct cmdFillArea *cmdFillList;	/* List of areas to fill. */
 
 void
-CmdFill(w, cmd)
-    MagWindow *w;		/* Window in which command was invoked. */
-    TxCommand *cmd;	/* Describes the command that was invoked. */
+CmdFill(
+    MagWindow *w,		/* Window in which command was invoked. */
+    TxCommand *cmd)	/* Describes the command that was invoked. */
 {
     TileTypeBitMask maskBits;
     Rect editBox;
     SearchContext scx;
-    extern int cmdFillFunc();
+    extern int cmdFillFunc(Tile *tile, TreeContext *cxp);
 
     if (cmd->tx_argc < 2 || cmd->tx_argc > 3)
     {
@@ -603,9 +603,9 @@ CmdFill(w, cmd)
  */
 
 int
-cmdFillFunc(tile, cxp)
-    Tile *tile;			/* Tile to fill with. */
-    TreeContext *cxp;		/* Describes state of search. */
+cmdFillFunc(
+    Tile *tile,			/* Tile to fill with. */
+    TreeContext *cxp)		/* Describes state of search. */
 {
     Rect r1, r2;
     struct cmdFillArea *cfa;
@@ -658,9 +658,9 @@ cmdFillFunc(tile, cxp)
  */
 
 void
-CmdFindBox(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdFindBox(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     CellDef *boxDef;
     Rect box;
@@ -751,11 +751,12 @@ typedef struct _labsearchrec
 } LabSearchRec;
 
 
-int cmdFindLabelFunc(rect, name, label, cdarg)
-    Rect *rect;
-    char *name;
-    Label *label;
-    LabSearchRec *cdarg;
+int
+cmdFindLabelFunc(
+    Rect *rect,
+    char *name,
+    Label *label,
+    LabSearchRec *cdarg)
 {
     if (cdarg->lsr_occur == 0)
     {
@@ -790,9 +791,9 @@ int cmdFindLabelFunc(rect, name, label, cdarg)
  */
 
 void
-CmdFindLabel(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdFindLabel(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     CellDef *boxDef;
     CellUse *labUse;
@@ -801,7 +802,7 @@ CmdFindLabel(w, cmd)
     int found, occur, plainargs;
     bool doglob = FALSE;   /* csh-style glob matching (see utils/match.c) */
     LabSearchRec lsr;
-    int dbListLabels();	   /* forward declaration */
+    int dbListLabels(SearchContext *scx, Label *label, TerminalPath *tpath, ClientData cdarg);	   /* forward declaration */
 
     plainargs = cmd->tx_argc;
     if ((plainargs > 2) && !strncmp(cmd->tx_argv[1], "-glob", 5))
@@ -889,11 +890,11 @@ usage:
  */
 
 int
-dbListLabels(scx, label, tpath, cdarg)
-    SearchContext *scx;
-    Label *label;			/* Pointer to label structure	*/
-    TerminalPath *tpath;		/* Full pathname of terminal	*/
-    ClientData cdarg;			/* (unused)			*/
+dbListLabels(
+    SearchContext *scx,
+    Label *label,			/* Pointer to label structure	*/
+    TerminalPath *tpath,		/* Full pathname of terminal	*/
+    ClientData cdarg)			/* (unused)			*/
 {
     char *n = tpath->tp_next;
     char c = *n;
@@ -934,9 +935,9 @@ dbListLabels(scx, label, tpath, cdarg)
  */
 
 void
-CmdFlush(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdFlush(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     CellDef *def;
     int action;
@@ -1015,9 +1016,9 @@ CmdFlush(w, cmd)
  */
 
 void
-CmdGetcell(w, cmd)
-    MagWindow *w;			/* Window in which command was invoked. */
-    TxCommand *cmd;		/* Describes command arguments. */
+CmdGetcell(
+    MagWindow *w,			/* Window in which command was invoked. */
+    TxCommand *cmd)		/* Describes command arguments. */
 {
     CellUse dummy, *newUse;
     Transform editTrans;
@@ -1100,9 +1101,9 @@ CmdGetcell(w, cmd)
  */
 
 void
-CmdGetnode(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdGetnode(
+    MagWindow *w,
+    TxCommand *cmd)
 {
 #define TBLSIZE 50
 #define STRINGS 0
@@ -1251,9 +1252,9 @@ badusage:
 #define GRID_WHAT	7
 
 void
-CmdGrid(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdGrid(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int option, locargc;
     int xSpacing, ySpacing, xOrig, yOrig, multiple;
@@ -1419,9 +1420,9 @@ CmdGrid(w, cmd)
 
 #ifdef USE_READLINE
 void
-CmdHistory(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdHistory(
+    MagWindow *w,
+    TxCommand *cmd)
 {
   int i;
   HIST_ENTRY *he;
@@ -1500,11 +1501,11 @@ CmdHistory(w, cmd)
  */
 
 void
-CmdIdentify(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdIdentify(
+    MagWindow *w,
+    TxCommand *cmd)
 {
-    extern int cmdIdFunc();		/* Forward reference. */
+    extern int cmdIdFunc(CellUse *selUse, CellUse *use, Transform *transform, char *newId);		/* Forward reference. */
 
     if (cmd->tx_argc != 2)
     {
@@ -1529,13 +1530,13 @@ CmdIdentify(w, cmd)
 
     /* ARGSUSED */
 int
-cmdIdFunc(selUse, use, transform, newId)
-    CellUse *selUse;		/* Use from selection cell. */
-    CellUse *use;		/* Use from layout that corresponds to
+cmdIdFunc(
+    CellUse *selUse,		/* Use from selection cell. */
+    CellUse *use,		/* Use from layout that corresponds to
 				 * selUse.
 				 */
-    Transform *transform;	/* Not used. */
-    char *newId;		/* New id for cell use. */
+    Transform *transform,	/* Not used. */
+    char *newId)		/* New id for cell use. */
 {
     if (EditCellUse == NULL)
     {
@@ -1576,12 +1577,12 @@ cmdIdFunc(selUse, use, transform, newId)
 }
 
 TileType
-CmdFindNetProc(nodename, use, rect, warn_not_found, isvalid)
-    char *nodename;
-    CellUse *use;
-    Rect *rect;
-    bool warn_not_found;
-    bool *isvalid;
+CmdFindNetProc(
+    char *nodename,
+    CellUse *use,
+    Rect *rect,
+    bool warn_not_found,
+    bool *isvalid)
 {
     char		*s,*s2;
     SearchContext	scx, scx2;
@@ -1694,7 +1695,7 @@ checklocal:
 
     if (locvalid == TRUE)
     {
-	int findTile();
+	int findTile(Tile *tile, TileType *rtype);
 	CellDef	 *targetdef = use->cu_def;
 	Plane *plane = targetdef->cd_planes[pnum];
 
@@ -1768,9 +1769,9 @@ checklocal:
  */
 
 void
-CmdGoto(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdGoto(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     char	*s, *nodename = cmd->tx_argv[1];
     Rect	rect;
@@ -1826,9 +1827,9 @@ CmdGoto(w, cmd)
  */
 
 int
-findTile(tile, rtype)
-    Tile *tile;
-    TileType *rtype;
+findTile(
+    Tile *tile,
+    TileType *rtype)
 {
     TileType ttype;
 
@@ -1851,13 +1852,13 @@ findTile(tile, rtype)
  */
 
 void
-FlatCopyAllLabels(scx, mask, xMask, targetUse)
-    SearchContext *scx;
-    TileTypeBitMask *mask;
-    int xMask;
-    CellUse *targetUse;
+FlatCopyAllLabels(
+    SearchContext *scx,
+    TileTypeBitMask *mask,
+    int xMask,
+    CellUse *targetUse)
 {
-    int flatCopyAllLabels();
+    int flatCopyAllLabels(SearchContext *scx, Label *lab, TerminalPath *tpath, CellUse *targetUse);
     char pathstring[FLATTERMSIZE];
     TerminalPath	tpath;
 
@@ -1870,11 +1871,11 @@ FlatCopyAllLabels(scx, mask, xMask, targetUse)
 }
 
 int
-flatCopyAllLabels(scx, lab, tpath, targetUse)
-    SearchContext *scx;
-    Label *lab;
-    TerminalPath *tpath;
-    CellUse	*targetUse;
+flatCopyAllLabels(
+    SearchContext *scx,
+    Label *lab,
+    TerminalPath *tpath,
+    CellUse	*targetUse)
 {
     Rect labTargetRect;
     int targetPos;
@@ -1953,9 +1954,9 @@ flatCopyAllLabels(scx, lab, tpath, targetUse)
  */
 
 void
-CmdFlatten(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdFlatten(
+    MagWindow *w,
+    TxCommand *cmd)
 {
      int		i, xMask, optargs;
      bool		dolabels, dobox, toplabels, invert, doports, doinplace;

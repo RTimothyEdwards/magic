@@ -52,7 +52,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* Forward declarations */
 
-extern void cmdPsearchStats();
+extern void cmdPsearchStats(char *str, struct tms *tl, struct tms *td, int count);
 
 void cmdStatsHier(CellDef *, int, CellDef *);
 
@@ -79,9 +79,9 @@ void cmdStatsHier(CellDef *, int, CellDef *);
  */
 
 void
-CmdCoord(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdCoord(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     MagWindow *pointW = (MagWindow *) NULL;
     Rect editRect, rootRect;
@@ -181,9 +181,9 @@ CmdCoord(w, cmd)
 
 #ifndef NO_EXT
 void
-CmdExtractTest(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdExtractTest(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     ExtractTest(w, cmd);
 }
@@ -212,9 +212,9 @@ CmdExtractTest(w, cmd)
  */
 
 void
-showTech(outf, verbose)
-    FILE *outf;		/* File to which information is to be output */
-    bool verbose;	/* If TRUE, output detailed erase table */
+showTech(
+    FILE *outf,		/* File to which information is to be output */
+    bool verbose)	/* If TRUE, output detailed erase table */
 {
     int i, j;
     int pNum;
@@ -359,9 +359,9 @@ showTech(outf, verbose)
 }
 
 void
-CmdShowtech(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdShowtech(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     FILE *outf;
     bool verbose;
@@ -427,16 +427,16 @@ CmdShowtech(w, cmd)
  */
 
 void
-CmdTilestats(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdTilestats(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     CellUse *selectedUse;
     FILE *outf = stdout;
     bool allDefs = FALSE;
     char **av = cmd->tx_argv + 1;
     int ac = cmd->tx_argc - 1;
-    int cmdStatsFunc();
+    int cmdStatsFunc(CellDef *def, FILE *outf);
 
     if (ac > 2)
     {
@@ -511,11 +511,12 @@ int totalTiles[TT_MAXTYPES];
  */
 
 int
-cmdStatsFunc(def, outf)
-    CellDef *def;
-    FILE *outf;
+cmdStatsFunc(
+    CellDef *def,
+    FILE *outf)
 {
-    int cmdStatsCount(), cmdStatsOutput();
+    int cmdStatsCount(CellDef *def, struct countClient *cc);
+    int cmdStatsOutput(CellDef *def, struct countClient *cc);
     struct countClient cc;
     int total;
     TileType t;
@@ -564,11 +565,11 @@ cmdStatsFunc(def, outf)
  */
 
 int
-cmdStatsCount(def, cc)
-    CellDef *def;
-    struct countClient *cc;
+cmdStatsCount(
+    CellDef *def,
+    struct countClient *cc)
 {
-    int cmdStatsCountTile();
+    int cmdStatsCountTile(Tile *tile, struct cellInfo *ci);
     int pNum;
     struct cellInfo *ci;
     TileType t;
@@ -595,9 +596,9 @@ cmdStatsCount(def, cc)
 }
 
 int
-cmdStatsCountTile(tile, ci)
-    Tile *tile;
-    struct cellInfo *ci;
+cmdStatsCountTile(
+    Tile *tile,
+    struct cellInfo *ci)
 {
     TileType type = TiGetType(tile);
 
@@ -638,9 +639,10 @@ cmdStatsCountTile(tile, ci)
  */
 
 void
-cmdStatsHier(parent, nuses, child)
-    CellDef *parent, *child;
-    int nuses;
+cmdStatsHier(
+    CellDef *parent,
+    int nuses,
+    CellDef *child)
 {
     struct cellInfo *pi, *ci;
     TileType t;
@@ -685,9 +687,9 @@ cmdStatsHier(parent, nuses, child)
  */
 
 int
-cmdStatsOutput(def, cc)
-    CellDef *def;
-    struct countClient *cc;
+cmdStatsOutput(
+    CellDef *def,
+    struct countClient *cc)
 {
     TileType t;
     struct cellInfo *ci;
@@ -750,11 +752,11 @@ cmdStatsOutput(def, cc)
  */
 
 void
-CmdPsearch(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdPsearch(
+    MagWindow *w,
+    TxCommand *cmd)
 {
-    char *RunStats();
+    char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
     static struct tms tlast, tdelta;
     Point p;
     Plane *plane;
@@ -816,12 +818,13 @@ CmdPsearch(w, cmd)
 }
 
 void
-cmdPsearchStats(str, tl, td, count)
-    char *str;
-    struct tms *tl, *td;
-    int count;
+cmdPsearchStats(
+    char *str,
+    struct tms *tl,
+    struct tms *td,
+    int count)
 {
-    char *RunStats();
+    char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
     char *rstatp;
     int us, ups;
 
@@ -861,12 +864,13 @@ int numTilesFound;
 bool cmdTsearchDebug = FALSE;
 
 void
-CmdTsearch(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdTsearch(
+    MagWindow *w,
+    TxCommand *cmd)
 {
-    int cmdTsrFunc();
-    char *RunStats(), *rstatp;
+    int cmdTsrFunc(Tile *tp);
+    char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
+    char *rstatp;
     static TileTypeBitMask mask;
     static struct tms tlast, tdelta;
     Rect rtool, rsearch;
@@ -973,8 +977,8 @@ CmdTsearch(w, cmd)
 }
 
 int
-cmdTsrFunc(tp)
-    Tile *tp;
+cmdTsrFunc(
+    Tile *tp)
 {
     if (cmdTsearchDebug)
 	TxPrintf("%lx\n", (intmax_t) tp);
@@ -1000,9 +1004,9 @@ cmdTsrFunc(tp)
  */
 
 void
-CmdWatch(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdWatch(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     DBWclientRec *crec;
     int pNum;
