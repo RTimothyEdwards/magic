@@ -745,10 +745,17 @@ typedef struct LayerInstance {
  * The type record for bitmap images:
  */
 
+#if TCL_MAJOR_VERSION < 9
 static int		ImgLayerCreate (Tcl_Interp *interp,
 			    const char *name, int argc, Tcl_Obj *const objv[],
 			    const Tk_ImageType *typePtr, Tk_ImageMaster master,
 			    ClientData *clientDataPtr);
+#else
+static int		ImgLayerCreate (Tcl_Interp *interp,
+			    const char *name, Tcl_Size argc, Tcl_Obj *const objv[],
+			    const Tk_ImageType *typePtr, Tk_ImageMaster master,
+			    ClientData *clientDataPtr);
+#endif
 static ClientData	ImgLayerGet (Tk_Window tkwin,
 			    ClientData clientData);
 static void		ImgLayerDisplay (ClientData clientData,
@@ -827,7 +834,11 @@ ImgLayerCreate(interp, name, argc, argv, typePtr, master, clientDataPtr)
     Tcl_Interp *interp;		/* Interpreter for application containing
 				 * image. */
     const char *name;		/* Name to use for image. */
+#if TCL_MAJOR_VERSION < 9
     int argc;			/* Number of arguments. */
+#else
+    Tcl_Size argc;		/* Number of arguments. */
+#endif
     Tcl_Obj *const argv[];	/* Argument objects for options (doesn't
 				 * include image name or type). */
     const Tk_ImageType *typePtr;/* Pointer to our type record (not used). */
