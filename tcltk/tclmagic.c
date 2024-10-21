@@ -623,7 +623,7 @@ typedef struct FileState {
 
 static int
 _magic_flags(ClientData clientData,
-        Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+        Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     int index, index2;
     bool value;
