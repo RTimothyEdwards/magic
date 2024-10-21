@@ -634,7 +634,7 @@ _magic_initialize(ClientData clientData,
     return TCL_OK;
 
 magicfatal:
-    TxResetTerminal();
+    TxResetTerminal(FALSE);
     Tcl_SetResult(interp, "Magic initialization encountered a fatal error.", NULL);
     return TCL_ERROR;
 }
@@ -780,7 +780,7 @@ _magic_startup(ClientData clientData,
 		NULL);
     }
 
-    TxResetTerminal();
+    TxResetTerminal(FALSE);
 
     if (TxTkConsole)
     {
