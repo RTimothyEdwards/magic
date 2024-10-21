@@ -895,7 +895,7 @@ ImgLayerConfigureMaster(masterPtr, objc, objv, flags)
     argv[objc] = NULL;
 
     if (Tk_ConfigureWidget(masterPtr->interp, Tk_MainWindow(masterPtr->interp),
-	    configSpecs, objc, (CONST84 char **)argv, (char *) masterPtr, flags)
+	    configSpecs, objc, (const char **)argv, (char *) masterPtr, flags)
 	    != TCL_OK) {
 	Tcl_Free((char *) argv);
 	return TCL_ERROR;
@@ -1225,7 +1225,7 @@ ImgLayerCmd(clientData, interp, objc, objv)
 	Tcl_WrongNumArgs(interp, 1, objv, "option ?arg arg ...?");
 	return TCL_ERROR;
     }
-    if (Tcl_GetIndexFromObj(interp, objv[1], (CONST84 char **)layerOptions,
+    if (Tcl_GetIndexFromObj(interp, objv[1], (const char **)layerOptions,
 		"option", 0, &index) != TCL_OK) {
 	return TCL_ERROR;
     }
