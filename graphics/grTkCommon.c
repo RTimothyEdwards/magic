@@ -888,19 +888,30 @@ ImgLayerConfigureMaster(masterPtr, objc, objv, flags)
     LayerInstance *instancePtr;
     int dummy1;
 
-    char **argv = (char **) Tcl_Alloc((objc+1) * sizeof(char *));
+#if TCL_MAJOR_VERSION < 9
+    char **tmp_argv = (char **) Tcl_Alloc((objc+1) * sizeof(char *));
     for (dummy1 = 0; dummy1 < objc; dummy1++) {
-	argv[dummy1]=Tcl_GetString(objv[dummy1]);
+	tmp_argv[dummy1]=Tcl_GetString(objv[dummy1]);
     }
-    argv[objc] = NULL;
+    tmp_argv[objc] = NULL;
 
+    int argc = objc;
+    const char **argv = (const char **)tmp_argv;
+#else
+    Tcl_Size argc = objc;
+    Tcl_Obj *const *argv = (Tcl_Obj *const *)objv;
+#endif
     if (Tk_ConfigureWidget(masterPtr->interp, Tk_MainWindow(masterPtr->interp),
-	    configSpecs, objc, (const char **)argv, (char *) masterPtr, flags)
+	    configSpecs, argc, argv, (char *) masterPtr, flags)
 	    != TCL_OK) {
-	Tcl_Free((char *) argv);
+#if TCL_MAJOR_VERSION < 9
+	Tcl_Free((char *) tmp_argv);
+#endif
 	return TCL_ERROR;
     }
-    Tcl_Free((char *) argv);
+#if TCL_MAJOR_VERSION < 9
+    Tcl_Free((char *) tmp_argv);
+#endif
 
     /*
      * Cycle through all of the instances of this image, regenerating
