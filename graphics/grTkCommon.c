@@ -745,19 +745,19 @@ typedef struct LayerInstance {
  * The type record for bitmap images:
  */
 
-static int		ImgLayerCreate _ANSI_ARGS_((Tcl_Interp *interp,
-			    CONST84 char *name, int argc, Tcl_Obj *const objv[],
-			    CONST84 Tk_ImageType *typePtr, Tk_ImageMaster master,
-			    ClientData *clientDataPtr));
-static ClientData	ImgLayerGet _ANSI_ARGS_((Tk_Window tkwin,
-			    ClientData clientData));
-static void		ImgLayerDisplay _ANSI_ARGS_((ClientData clientData,
+static int		ImgLayerCreate (Tcl_Interp *interp,
+			    const char *name, int argc, Tcl_Obj *const objv[],
+			    const Tk_ImageType *typePtr, Tk_ImageMaster master,
+			    ClientData *clientDataPtr);
+static ClientData	ImgLayerGet (Tk_Window tkwin,
+			    ClientData clientData);
+static void		ImgLayerDisplay (ClientData clientData,
 			    Display *display, Drawable drawable,
 			    int imageX, int imageY, int width, int height,
-			    int drawableX, int drawableY));
-static void		ImgLayerFree _ANSI_ARGS_((ClientData clientData,
-			    Display *display));
-static void		ImgLayerDelete _ANSI_ARGS_((ClientData clientData));
+			    int drawableX, int drawableY);
+static void		ImgLayerFree (ClientData clientData,
+			    Display *display);
+static void		ImgLayerDelete (ClientData clientData);
 
 Tk_ImageType tkLayerImageType = {
     "layer",			/* name */
@@ -794,15 +794,15 @@ static Tk_ConfigSpec configSpecs[] = {
  * Prototypes for procedures used only locally in this file:
  */
 
-static int		ImgLayerCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, Tcl_Obj *CONST objv[]));
-static void		ImgLayerCmdDeletedProc _ANSI_ARGS_((
-			    ClientData clientData));
-static void		ImgLayerConfigureInstance _ANSI_ARGS_((
-			    LayerInstance *instancePtr));
-static int		ImgLayerConfigureMaster _ANSI_ARGS_((
-			    LayerMaster *masterPtr, int argc, Tcl_Obj *CONST objv[],
-			    int flags));
+static int		ImgLayerCmd (ClientData clientData,
+			    Tcl_Interp *interp, int argc, Tcl_Obj *const objv[]);
+static void		ImgLayerCmdDeletedProc (
+			    ClientData clientData);
+static void		ImgLayerConfigureInstance (
+			    LayerInstance *instancePtr);
+static int		ImgLayerConfigureMaster (
+			    LayerMaster *masterPtr, int argc, Tcl_Obj *const objv[],
+			    int flags);
 
 /*
  *----------------------------------------------------------------------
