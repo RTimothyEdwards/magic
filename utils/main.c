@@ -793,15 +793,21 @@ mainInitAfterArgs()
 }
 
 /*
- * Tcl exit procedure hook for the Tcl_Exit() subroutine
+ * Tcl_SetExitProc() was removed in TCL9 and used to perform this function
+ * see: https://core.tcl-lang.org/tips/doc/trunk/tip/512.md
  *
- * clientData is an exit value if "exit" was specified from a script.
+ * Note this change will slightly alter the order, the termios restore will
+ * not longer be performed before exit() is called.
+ *
+ * The default Tcl_Exit() does manage calling exit(status) by default.
+ * This assumes TxResetTerminal() will only attempt a restore if state
+ * was saved.
+ * TxResetTerminal() does not do anything if TxTkConsole is set that appears
+ * to be the popup shell window.
  */
-
-void tcl_exit_hook(ClientData clientData)
+static void atexit_exit_hook(void)
 {
-    TxResetTerminal();
-    exit(*(int *)(&clientData));
+    TxResetTerminal(TRUE);
 }
 
 /*
@@ -830,7 +836,7 @@ mainInitFinal()
 
 #ifdef MAGIC_WRAPPER
     /* Reset terminal if exit is called inside a TCL script */
-    Tcl_SetExitProc(tcl_exit_hook);
+    atexit(atexit_exit_hook);
 
     /* Read in system pre-startup file, if it exists. */
 
@@ -1222,10 +1228,6 @@ mainInitFinal()
      */
     UndoFlush();
     TxClearPoint();
-
-#ifdef MAGIC_WRAPPER
-    Tcl_SetExitProc(NULL);
-#endif
 
     return 0;
 }
