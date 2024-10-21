@@ -235,7 +235,7 @@ proc ::tkcon::Init {} {
     ## Do platform specific configuration here, other than defaults
     ### Use tkcon.cfg filename for resource filename on non-unix systems
     ### Determine what directory the resource file should be in
-    switch $::tcl_platform(platform) {
+    switch $tcl_platform(platform) {
 	macintosh	{
 	    if {![interp issafe]} {cd [file dirname [info script]]}
 	    set envHome		PREF_FOLDER
@@ -1153,7 +1153,7 @@ proc ::tkcon::InitMenus {w title} {
 		-command ::tkcon::Destroy
 	$m add command -label "Clear Console"	-underline 1 -accel Ctrl-l \
 		-command { clear; ::tkcon::Prompt }
-	if {[string match unix $::tcl_platform(platform)]} {
+	if {[string match unix $tcl_platform(platform)]} {
 	    $m add separator
 	    $m add command -label "Make Xauth Secure" -und 5 \
 		    -command ::tkcon::XauthSecure
@@ -1191,7 +1191,7 @@ proc ::tkcon::InitMenus {w title} {
 
 	## Attach Display Menu
 	##
-	if {![string compare "unix" $::tcl_platform(platform)]} {
+	if {![string compare "unix" $tcl_platform(platform)]} {
 	    $sub add cascade -label "Display" -und 1 -menu $sub.disp
 	    menu $sub.disp -disabledforeground $COLOR(disabled) \
 		    -tearoff 0 \
@@ -1577,7 +1577,7 @@ proc ::tkcon::NamespacesList {names} {
 proc ::tkcon::XauthSecure {} {
     global tcl_platform
 
-    if {[string compare unix $::tcl_platform(platform)]} {
+    if {[string compare unix $tcl_platform(platform)]} {
 	# This makes no sense outside of Unix
 	return
     }
@@ -4176,7 +4176,7 @@ proc ::tkcon::Bindings {} {
     #			and auto-scanning.
     #-----------------------------------------------------------------------
 
-    switch -glob $::tcl_platform(platform) {
+    switch -glob $tcl_platform(platform) {
 	win*	{ set PRIV(meta) Alt }
 	mac*	{ set PRIV(meta) Command }
 	default	{ set PRIV(meta) Meta }
@@ -4817,7 +4817,7 @@ proc ::tkcon::ExpandPathname str {
     } else {
 	if {[llength $m] > 1} {
 	    global tcl_platform
-	    if {[string match windows $::tcl_platform(platform)]} {
+	    if {[string match windows $tcl_platform(platform)]} {
 		## Windows is screwy because it's case insensitive
 		set tmp [ExpandBestMatch [string tolower $m] \
 			[string tolower $dir]]
