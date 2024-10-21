@@ -28,5 +28,7 @@ extern int  TagVerify();
 extern int  Tcl_printf();
 extern void MakeWindowCommand();
 
+extern const char *Tclmagic_InitStubsVersion;
+
 #endif	/* MAGIC_WRAPPER */
 #endif /* _TCLMAGIC_H */
