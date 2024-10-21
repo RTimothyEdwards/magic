@@ -49,19 +49,19 @@
 /* rtrMARKED(t,s) 	Tile * t;  int s;
  * Return 1 if the indicated horizontal boundary of a tile is marked.
  */
-#define rtrMARKED(t,s) (((int) (t)->ti_client) & (s))
+#define rtrMARKED(t,s) (((int) CD2INT((t)->ti_client)) & (s))
 
 /* rtrMARK(t,s)		Tile * t;  int s;
  * Mark the indicated horizontal tile edge as a valid channel boundary.
  */
 #define rtrMARK(t,s) \
-    ((t)->ti_client = (ClientData) (((int) (t)->ti_client)&(s)))
+    ((t)->ti_client = INT2CD((((int) CD2INT((t)->ti_client))&(s))))
 
 /* rtrCLEAR(t,s)		Tile * t;  int s;
  * Clear the indicated horizontal tile edge as a valid channel boundary.
  */
 #define rtrCLEAR(t,s) \
-    ((t)->ti_client = (ClientData) (((int) (t)->ti_client)&(!s)))
+    ((t)->ti_client = INT2CD((((int) CD2INT((t)->ti_client))&(!s))))
 
 /* Private Procedures */
 int rtrSrPaint();

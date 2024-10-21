@@ -39,6 +39,10 @@
  *  the head of that function.
  */
 
+#ifndef _MAGIC_H
+#include "utils/magic.h"
+#endif
+
 #ifndef _MZROUTER_H
 #include "mzrouter/mzrouter.h"
 #endif
@@ -86,8 +90,8 @@ extern ClientData mzDebugID;
  * electrically connected to specified start or dest regions.
  */
 #define DEF_EXPAND_ENDPOINTS 1
-#define MZ_EXPAND_START	     1	/* ClientData type for start tiles */
-#define MZ_EXPAND_DEST	     0  /* ClientData type for dest tiles */
+#define MZ_EXPAND_START	     INT2CD(1)	/* ClientData type for start tiles */
+#define MZ_EXPAND_DEST	     INT2CD(0)  /* ClientData type for dest tiles */
 #define MZ_EXPAND_NONE	     CLIENTDEFAULT  /* Normal ClientData type */
 
 /* If set only hints in toplevel cell are recognized - speeds up processing
