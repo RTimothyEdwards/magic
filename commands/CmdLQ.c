@@ -1873,7 +1873,7 @@ CmdPort(w, cmd)
 			{
 #ifdef MAGIC_WRAPPER
 			    Tcl_AppendResult(magicinterp, cmdPortClassTypes[idx],
-					NULL);
+					(char *)NULL);
 #else
 			    TxPrintf("Class = %s\n", cmdPortClassTypes[idx]);
 #endif
@@ -1918,7 +1918,7 @@ CmdPort(w, cmd)
 			{
 #ifdef MAGIC_WRAPPER
 			    Tcl_AppendResult(magicinterp, cmdPortUseTypes[idx],
-					NULL);
+					(char *)NULL);
 #else
 			    TxPrintf("Use = %s\n", cmdPortUseTypes[idx]);
 #endif
@@ -1963,7 +1963,7 @@ CmdPort(w, cmd)
 			{
 #ifdef MAGIC_WRAPPER
 			    Tcl_AppendResult(magicinterp, cmdPortShapeTypes[idx],
-					NULL);
+					(char *)NULL);
 #else
 			    TxPrintf("Shape = %s\n", cmdPortShapeTypes[idx]);
 #endif
@@ -2042,7 +2042,7 @@ CmdPort(w, cmd)
 		    if (pos & PORT_DIR_SOUTH) strcat(cdir, "s");
 		    if (pos & PORT_DIR_WEST) strcat(cdir, "w");
 #ifdef MAGIC_WRAPPER
-		    Tcl_AppendResult(magicinterp, cdir, NULL);
+		    Tcl_AppendResult(magicinterp, cdir, (char *)NULL);
 #else
 		    TxPrintf("Directions = %s\n", cdir);
 #endif

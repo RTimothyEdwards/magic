@@ -696,7 +696,7 @@ CIFPaintCurrent(filetype)
 			&DBAllButSpaceBits, cifCheckPaintFunc,
 			(ClientData)NULL) == 1))
 		    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
-			&CIFSolidBits, cifMakeBoundaryFunc, (ClientData)filetype);
+			&CIFSolidBits, cifMakeBoundaryFunc, INT2CD(filetype));
 	    }
 
 	    /* Swap planes */
@@ -708,7 +708,7 @@ CIFPaintCurrent(filetype)
 	{
 	    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
 			&CIFSolidBits, cifPaintCurrentFunc,
-			(ClientData)type);
+			INT2CD(type));
 	}
 
 	/* Recycle the plane, which was dynamically allocated. */
@@ -897,7 +897,7 @@ cifMakeBoundaryFunc(tile, clientdata)
     Rect area;
     char propertyvalue[128], *storedvalue;
     int savescale;
-    bool filetype = (bool)clientdata;
+    bool filetype = (bool)CD2INT(clientdata);
 
     TiToRect(tile, &area);
     area.r_xtop = CIFScaleCoord(area.r_xtop, COORD_EXACT);
