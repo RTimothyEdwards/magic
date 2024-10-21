@@ -373,7 +373,7 @@ plowProcessJogFunc(edge, area)
     ret = 0;
     plowJogEraseList = (LinkedRect *) NULL;
     if (plowSrShadowBack(newedge.e_pNum, &r, mask,
-		plowJogDragLHS, (ClientData) newedge.e_newx - width) == 0)
+		plowJogDragLHS, INT2CD(newedge.e_newx - width)) == 0)
     {
 	/* Success: first paint to extend the RHS of the jog */
 	plane = plowYankDef->cd_planes[newedge.e_pNum];

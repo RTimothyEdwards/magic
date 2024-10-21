@@ -266,12 +266,12 @@ nm_enum:
 
 	    if (!(ignore_sides & IGNORE_LEFT))
 	    {
-		TiSetBody(tp, (ClientData)(tpt & ~TT_SIDE)); /* bit clear */
+		TiSetBody(tp, INT2CD(tpt & ~TT_SIDE)); /* bit clear */
 		if ((*func)(tp, arg)) return (1);
 	    }
 	    if (!(ignore_sides & IGNORE_RIGHT))
 	    {
-		TiSetBody(tp, (ClientData)(tpt | TT_SIDE)); /* bit set */
+		TiSetBody(tp, INT2CD(tpt | TT_SIDE)); /* bit set */
 		if ((*func)(tp, arg)) return (1);
 	    }
         }
@@ -416,7 +416,7 @@ enumerate:
 			(dlong)(rect->r_xbot - LEFT(tp)) * theight : DLONG_MIN;
 		if (SplitDirection(tp) ? (f1 > f4) : (f2 > f4))
 		{
-		    TiSetBody(tp, (ClientData)((TileType)TiGetBody(tp)
+		    TiSetBody(tp, INT2CD((TileType)CD2INT(TiGetBody(tp))
 				& ~TT_SIDE));  /* bit clear */
 		    if ((*func)(tp, arg)) return (1);
 		}
@@ -429,7 +429,7 @@ enumerate:
 			(dlong)(RIGHT(tp) - rect->r_xtop) * theight : DLONG_MIN;
 		if (SplitDirection(tp) ? (f2 > f3) : (f1 > f3))
 		{
-		    TiSetBody(tp, (ClientData)((TileType)TiGetBody(tp)
+		    TiSetBody(tp, INT2CD((TileType)CD2INT(TiGetBody(tp))
 				| TT_SIDE));      /* bit set */
 		    if ((*func)(tp, arg)) return (1);
 		}
@@ -576,7 +576,7 @@ enumerate:
 			(dlong)(rect->r_xbot - LEFT(tp)) * (dlong)theight : DLONG_MIN;
 		if (SplitDirection(tp) ? (f1 > f4) : (f2 > f4))
 		{
-		    TiSetBody(tp, (ClientData)((TileType)TiGetBody(tp)
+		    TiSetBody(tp, INT2CD((TileType)CD2INT(TiGetBody(tp))
 				& ~TT_SIDE));  /* bit clear */
 		    if ((tp->ti_client == client) && (*func)(tp, arg))
 			return (1);
@@ -590,7 +590,7 @@ enumerate:
 			(dlong)(RIGHT(tp) - rect->r_xtop) * (dlong)theight : DLONG_MIN;
 		if (SplitDirection(tp) ? (f2 > f3) : (f1 > f3))
 		{
-		    TiSetBody(tp, (ClientData)((TileType)TiGetBody(tp)
+		    TiSetBody(tp, INT2CD((TileType)CD2INT(TiGetBody(tp))
 				| TT_SIDE));      /* bit set */
 		    if ((tp->ti_client == client) && (*func)(tp, arg))
 			return (1);

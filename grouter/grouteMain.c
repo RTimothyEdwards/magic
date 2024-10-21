@@ -134,7 +134,7 @@ GlGlobalRoute(chanList, netList)
 	    glPenSetPerChan(net);
 	}
 	numTerms += glMultiSteiner(EditCellUse, net, glProcessLoc,
-			glCrossMark, (ClientData) doFast, (ClientData) 0);
+			glCrossMark, INT2CD(doFast), (ClientData) 0);
 	if (DebugIsSet(glDebugID, glDebPen))
 	    glPenClearPerChan(net);
 	RtrMilestonePrint();

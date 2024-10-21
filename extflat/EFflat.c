@@ -146,7 +146,7 @@ EFFlatBuild(name, flags)
 	else
 	{
 	    flatnodeflags |= FLATNODE_DOWARN;    /* No FLATNODE_STDCELL flag */
-	    efFlatNodes(&efFlatContext, (ClientData)flatnodeflags);
+	    efFlatNodes(&efFlatContext, INT2CD(flatnodeflags));
 	}
 	efFlatKills(&efFlatContext);
 	if (!(flags & EF_NONAMEMERGE))
@@ -217,7 +217,7 @@ EFFlatBuildOneLevel(def, flags)
 
     /* Record all nodes down the hierarchy from here */
     flatnodeflags = 0;    /* No FLATNODE_DOWARN */
-    efFlatNodes(&efFlatContext, (ClientData)flatnodeflags);
+    efFlatNodes(&efFlatContext, INT2CD(flatnodeflags));
 
     /* Expand all subcells that contain connectivity information but	*/
     /* no active devices (including those in subcells).			*/
@@ -319,7 +319,7 @@ efFlatNodes(hc, clientData)
     HierContext *hc;
     ClientData clientData;
 {
-    int flags = (int)clientData;
+    int flags = (int)CD2INT(clientData);
 
     bool stdcell = (flags & FLATNODE_STDCELL) ? TRUE : FALSE;
     bool doWarn = (flags & FLATNODE_DOWARN) ? TRUE : FALSE;
@@ -616,7 +616,7 @@ efAddConns(hc, doWarn)
 	if (conn->conn_1.cn_nsubs == 0)
 	    efAddOneConn(hc, conn->conn_name1, conn->conn_name2, conn, doWarn);
 	else
-	    efHierSrArray(hc, conn, efAddOneConn, (ClientData)doWarn);
+	    efHierSrArray(hc, conn, efAddOneConn, INT2CD(doWarn));
     }
 
     return (0);

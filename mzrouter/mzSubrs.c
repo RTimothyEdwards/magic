@@ -423,7 +423,7 @@ mzConnectedTileFunc(tile, cxp)
      * MZAddStart() and MZAddDest().
      */
 
-    if ((int)tile->ti_client != mzMakeEndpoints)
+    if ((int)CD2INT(tile->ti_client) != mzMakeEndpoints)
     {
 	SearchContext *scx = cxp->tc_scx;
 	List *expandList = (List *) (cxp->tc_filter->tf_arg);
@@ -434,12 +434,12 @@ mzConnectedTileFunc(tile, cxp)
 	GEOTRANSRECT(&scx->scx_trans, &rRaw, &r);
 
 	/* mark tile with destination type */
-	tile->ti_client = (ClientData) mzMakeEndpoints;
+	tile->ti_client = INT2CD(mzMakeEndpoints);
 
 	/* Add tiles connected to Start to mzStartTerms */
 	/* (Added by Tim, August 2006)			*/
 
-	if (mzMakeEndpoints == MZ_EXPAND_START)
+	if (INT2CD(mzMakeEndpoints) == MZ_EXPAND_START)
 	{
 	    ColoredRect *newTerm;
 	    extern List *mzStartTerms;
@@ -454,7 +454,7 @@ mzConnectedTileFunc(tile, cxp)
 	/* or the planes will get fractured up, possibly into areas too	*/
 	/* small to place a valid route.				*/
 
-	else if (mzMakeEndpoints == MZ_EXPAND_DEST)
+	else if (INT2CD(mzMakeEndpoints) == MZ_EXPAND_DEST)
 	{
 	    RouteLayer *rL;
 	    TileType ttype = TiGetType(tile);

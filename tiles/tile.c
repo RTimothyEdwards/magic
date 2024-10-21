@@ -732,9 +732,9 @@ TileStoreFree(ptr)
     }
     else
     {
-	TileStoreFreeList_end->ti_client = (unsigned long)ptr;
+	TileStoreFreeList_end->ti_client = PTR2CD(ptr);
 	TileStoreFreeList_end = ptr;
-	TileStoreFreeList_end->ti_client = (unsigned long) 0;
+	TileStoreFreeList_end->ti_client = INT2CD(0);
     }
 }
 
@@ -827,5 +827,5 @@ tiPrintAll(tp)
     printf("UR=(%d,%d)\n", RIGHT(tp), TOP(tp));
 
     /* The following is for plowing debugging */
-    printf("LEAD=%d\n", (int) tp->ti_client);
+    printf("LEAD=%d\n", (int) CD2INT(tp->ti_client));
 }
