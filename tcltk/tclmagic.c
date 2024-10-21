@@ -913,7 +913,12 @@ TxGetLinePfix(dest, maxChars, prefix)
     char *prefix;
 {
     Tcl_Obj *objPtr;
-    int charsStored, length;
+    int charsStored;
+#if TCL_MAJOR_VERSION < 9
+    int length;
+#else
+    Tcl_Size length;
+#endif
     char *string;
 
     if (TxTkConsole)
