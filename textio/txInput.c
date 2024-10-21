@@ -1004,7 +1004,7 @@ TxGetLineWPrompt(dest, maxChars, prompt, prefix)
     txReprint1 = NULL;
 #else
     _rl_prefix = prefix;
-    TxResetTerminal ();
+    TxResetTerminal (FALSE);
 
     if (prompt != NULL) {
       res = readline (prompt);
@@ -1427,6 +1427,9 @@ TxSetTerminal()
  *
  * 	Returns the terminal to the way it was when Magic started up.
  *
+ *      'force' maybe set for atexit() restoration, when the console
+ *      input handler is no longer in effect.  Also crash handling, SIGSTOP.
+ *
  * Results:
  *	none.
  *
@@ -1436,13 +1439,12 @@ TxSetTerminal()
  */
 
 void
-TxResetTerminal()
+TxResetTerminal(bool force)
 {
-
 #ifdef MAGIC_WRAPPER
     /* If using Tk console, don't mess with the terminal settings;	  */
     /* Otherwise, this prevents running magic in the terminal background. */
-    if (TxTkConsole) return;
+    if (TxTkConsole && !force) return;
 #endif
 
     if (TxStdinIsatty && haveCloseState) txSetTermState(&closeTermState);

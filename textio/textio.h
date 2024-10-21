@@ -89,7 +89,7 @@ extern void TxReprint();
 
 /* terminal-state procedures */
 extern void TxSetTerminal();
-extern void TxResetTerminal();
+extern void TxResetTerminal(bool force);
 extern char TxEOFChar;			/* The current EOF character */
 extern char TxInterruptChar;		/* The current interrupt character */
 

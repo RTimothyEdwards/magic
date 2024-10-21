@@ -195,7 +195,7 @@ MainExit(errNum)
     DBRemoveBackup();
 
     TxFlush();
-    TxResetTerminal();
+    TxResetTerminal(FALSE); /* set also atexit() handler */
 
 #ifdef MAGIC_WRAPPER
 

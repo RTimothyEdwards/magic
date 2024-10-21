@@ -204,7 +204,7 @@ sigRetVal
 sigOnStop(int signo)
 {
     /* fix things up */
-    TxResetTerminal();
+    TxResetTerminal(TRUE);
     GrStop();
 
     /* restore the default action and resend the signal */
@@ -565,7 +565,7 @@ sigCrash(signum)
 	strcpy(AbortMessage, msg);
 	AbortFatal = TRUE;
 	niceabort();
-	TxResetTerminal();
+	TxResetTerminal(TRUE);
     }
 #else
 	if (magicNumber == 1239987) {
@@ -585,7 +585,7 @@ sigCrash(signum)
 	  strcpy(AbortMessage, msg);
 	  AbortFatal = TRUE;
 	  niceabort();
-	  TxResetTerminal();
+	  TxResetTerminal(TRUE);
 	}
 #endif
 
