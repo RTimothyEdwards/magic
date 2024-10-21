@@ -29,6 +29,7 @@ force: clean all
 
 defs.mak:
 	@echo No \"defs.mak\" file found.  Run "configure" to make one.
+	@exit 1
 
 config:
 	${MAGICDIR}/configure
@@ -52,7 +53,7 @@ modules: database/database.h depend
 	for dir in ${MODULES} ${PROGRAMS}; do \
 		(cd $$dir && ${MAKE} module) || exit 1; done
 
-libs:
+libs: database/database.h depend
 	@echo --- making libraries
 	for dir in ${LIBRARIES}; do \
 		(cd $$dir && ${MAKE} lib) || exit 1; done
