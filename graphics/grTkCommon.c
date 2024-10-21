@@ -828,7 +828,7 @@ ImgLayerCreate(interp, name, argc, argv, typePtr, master, clientDataPtr)
 				 * image. */
     const char *name;		/* Name to use for image. */
     int argc;			/* Number of arguments. */
-    Tcl_Obj *CONST argv[];	/* Argument objects for options (doesn't
+    Tcl_Obj *const argv[];	/* Argument objects for options (doesn't
 				 * include image name or type). */
     const Tk_ImageType *typePtr;/* Pointer to our type record (not used). */
     Tk_ImageMaster master;	/* Token for image, to be used by us in
@@ -881,7 +881,7 @@ ImgLayerConfigureMaster(masterPtr, objc, objv, flags)
     LayerMaster *masterPtr;	/* Pointer to data structure describing
 				 * overall pixmap image to (reconfigure). */
     int objc;			/* Number of entries in objv. */
-    Tcl_Obj *CONST objv[];	/* Pairs of configuration options for image. */
+    Tcl_Obj *const objv[];	/* Pairs of configuration options for image. */
     int flags;			/* Flags to pass to Tk_ConfigureWidget,
 				 * such as TK_CONFIG_ARGV_ONLY. */
 {
@@ -1215,7 +1215,7 @@ ImgLayerCmd(clientData, interp, objc, objv)
     ClientData clientData;	/* Information about the image master. */
     Tcl_Interp *interp;		/* Current interpreter. */
     int objc;			/* Number of arguments. */
-    Tcl_Obj *CONST objv[];	/* Argument objects. */
+    Tcl_Obj *const objv[];	/* Argument objects. */
 {
     static char *layerOptions[] = {"cget", "configure", (char *) NULL};
     LayerMaster *masterPtr = (LayerMaster *) clientData;
