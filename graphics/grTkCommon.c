@@ -777,15 +777,15 @@ Tk_ImageType tkLayerImageType = {
 
 static Tk_ConfigSpec configSpecs[] = {
     {TK_CONFIG_STRING, "-name", (char *) NULL, (char *) NULL,
-	(char *) NULL, Tk_Offset(LayerMaster, layerString), TK_CONFIG_NULL_OK},
+	(char *) NULL, offsetof(LayerMaster, layerString), TK_CONFIG_NULL_OK},
     {TK_CONFIG_BOOLEAN, "-disabled", (char *) NULL, (char *) NULL,
-	(char *) "0", Tk_Offset(LayerMaster, layerOff), 0},
+	(char *) "0", offsetof(LayerMaster, layerOff), 0},
     {TK_CONFIG_INT, "-icon", (char *) NULL, (char *) NULL,
-	(char *) "-1", Tk_Offset(LayerMaster, layerLock), 0},
+	(char *) "-1", offsetof(LayerMaster, layerLock), 0},
     {TK_CONFIG_INT, "-width", (char *) NULL, (char *) NULL,
-	(char *) "16", Tk_Offset(LayerMaster, width), 0},
+	(char *) "16", offsetof(LayerMaster, width), 0},
     {TK_CONFIG_INT, "-height", (char *) NULL, (char *) NULL,
-	(char *) "16", Tk_Offset(LayerMaster, height), 0},
+	(char *) "16", offsetof(LayerMaster, height), 0},
     {TK_CONFIG_END, (char *) NULL, (char *) NULL, (char *) NULL,
 	(char *) NULL, 0, 0}
 };
