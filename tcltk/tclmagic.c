@@ -854,6 +854,7 @@ TxDialog(prompt, responses, defresp)
 
     Tcl_EvalEx(magicinterp, evalstr, -1, 0);
     objPtr = Tcl_GetObjResult(magicinterp);
+    /* tcl9 checked, this API is still (int) for &code */
     result = Tcl_GetIntFromObj(magicinterp, objPtr, &code);
 
     if (result == TCL_OK) return code;
