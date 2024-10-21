@@ -27,8 +27,8 @@ extern FILE *REX_debug_file;
 
 #define USE_TCL_STUBS 1
 
-#define TCL_ARGS _ANSI_ARGS_((ClientData clientData, \
-    Tcl_Interp *interp, int objc, struct Tcl_Obj * CONST * objv))
+#define TCL_ARGS (ClientData clientData, \
+    Tcl_Interp *interp, int objc, struct Tcl_Obj * CONST * objv)
 
 #define TCLENTRY() {REX_interp = interp;}
 
