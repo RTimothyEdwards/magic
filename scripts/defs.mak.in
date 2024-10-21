@@ -53,11 +53,16 @@ PROGRAMS	      += @programs@
 INSTALL_CAD_DIRS      += @cadinstall@
 
 RM                     = rm -f
+RMDIR                  = rmdir
 CP                     = cp
+MV                     = mv
+LN                     = ln
 AR                     = ar
 ARFLAGS                = crv
 LINK                   = @LD@ -r
 LD                     = @LD@
+MKDIR                  = mkdir
+SED                    = sed
 MCPP		       = @MCPP@
 MSED		       = @MSED@
 RANLIB                 = @RANLIB@
