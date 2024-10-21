@@ -63,6 +63,16 @@ typedef int64_t dlong;
 typedef pointertype ClientData;
 #endif
 
+/* this is not the (int) C type, but the conceptual difference between
+ *  a pointer and an integer.  The integer width uses same size as pointer
+ *  width, so integer width truncations need to be applied at usage site.
+ */
+#define CD2PTR(cd)   ((void*)(cd))
+#define CD2INT(cd)   ((pointertype)(cd))
+
+#define PTR2CD(data) ((ClientData)(data))
+#define INT2CD(data) ((ClientData)(pointertype)(data))
+
 /* --------------------------- Booleans ------------------------------- */
 
 typedef unsigned char bool;
