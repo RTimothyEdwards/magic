@@ -93,7 +93,7 @@ GATest(w, cmd)
 {
     int n;
     typedef enum { CLRDEBUG, SETDEBUG, SHOWDEBUG} cmdType;
-    static struct
+    static const struct
     {
 	char	*cmd_name;
 	cmdType	 cmd_val;
@@ -111,7 +111,7 @@ GATest(w, cmd)
 	goto badCmd;
     }
 
-    n = LookupStruct(cmd->tx_argv[1], (LookupTable *) cmds, sizeof cmds[0]);
+    n = LookupStruct(cmd->tx_argv[1], (const LookupTable *) cmds, sizeof cmds[0]);
     if (n < 0)
     {
 	TxError("Unrecognized subcommand: %s\n", cmd->tx_argv[1]);

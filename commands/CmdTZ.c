@@ -170,16 +170,16 @@ CmdTech(w, cmd)
     TxCommand *cmd;		/* Info about command options. */
 {
     int	option, action, i, locargc;
-    char **msg;
+    const char * const *msg;
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj;
 #endif
     bool noprompt = FALSE;
 
-    static char *actionNames[] =
+    static const char * const actionNames[] =
 	{ "no", "yes", 0 };
 
-    static char *cmdTechOption[] =
+    static const char * const cmdTechOption[] =
     {
 	"load filename [-noprompt][-[no]override]\n\
 				Load a new technology",
@@ -1421,7 +1421,8 @@ CmdWire(w, cmd)
     TxCommand *cmd;
 {
     int option, locargc;
-    char **msg, *lastargv;
+    const char * const *msg;
+    char *lastargv;
     TileType type;
     int width;
 
@@ -1429,7 +1430,7 @@ CmdWire(w, cmd)
     Tcl_Obj *lobj;
 #endif
 
-    static char *cmdWireOption[] =
+    static const char * const cmdWireOption[] =
     {
 	"decrement layer|width 	decrement the wire layer or width",
 	"help                   print this help information",
@@ -1860,7 +1861,7 @@ CmdWriteall(w, cmd)
 {
     int cmdWriteallFunc();
     int option = -1;
-    static char *writeallOpts[] = { "force", "modified", 0 };
+    static const char * const writeallOpts[] = { "force", "modified", 0 };
     int argc;
     int flags = CDMODIFIED | CDBOXESCHANGED | CDSTAMPSCHANGED;
 

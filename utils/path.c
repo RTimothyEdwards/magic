@@ -70,17 +70,17 @@ bool FileLocking = TRUE;
  * attempting to open the file.
  *
  * Return value:
- *	The string value that resulted in a valid file descriptor.
- *	This is a dynamically allocated string *or* a pointer to the
- *	original filename;  the calling routine should check and
- *	free if needed.
+ *	The string value that resulted in a valid file descriptor
+ *      (a file that could be opened using that filename).
+ *	Return value is a dynamically allocated string the calling
+ *      routine should free.
  *
  *-------------------------------------------------------------------
  */
  
 char *
 PaCheckCompressed(filename)
-    char *filename;
+    const char *filename;
 {
     int fd;
     char *gzname;
@@ -91,8 +91,7 @@ PaCheckCompressed(filename)
     fd = open(gzname, O_RDONLY);
     if (fd < 0)
     {
-	freeMagic(gzname);
-	gzname = filename;
+        strcpy(gzname, filename); /* always shorter than allocation */
     }
     else
 	close(fd);
@@ -109,7 +108,7 @@ PaCheckCompressed(filename)
  *	newstring is the new string to append to the path.
  */
 void
-PaAppend(char **pathptr, char *newstring)
+PaAppend(char **pathptr, const char *newstring)
 {
     int oldlength, addlength;
     char *new;
@@ -163,12 +162,13 @@ PaAppend(char **pathptr, char *newstring)
 
 int
 PaExpand(psource, pdest, size)
-    char **psource;		/* Pointer to a pointer to the source string */
+    const char **psource;	/* Pointer to a pointer to the source string */
     char **pdest;		/* Pointer to a ptr to dest string area. */
     int size;			/* Number of bytes available at pdest */
 
 {
-    char *ps, *pd;
+    const char *ps;
+    char *pd;
     struct passwd *passwd, *getpwnam();
     char expandName[512], *string, *newEntry;
     HashEntry *h;
@@ -358,10 +358,10 @@ noexpand:
 
 char *
 nextName(ppath, file, dest, size)
-    char **ppath;		/* Pointer to a pointer to the next
+    const char **ppath;		/* Pointer to a pointer to the next
 				 * entry in the path.
 				 */
-    char *file;			/* Pointer to a file name. */
+    const char *file;		/* Pointer to a file name. */
     char *dest;			/* Place to build result name. */
     int size;			/* Size of result area. */
 
@@ -416,18 +416,18 @@ nextName(ppath, file, dest, size)
 
 gzFile
 PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
-    char *file;			/* Name of the file to be opened. */
-    char *mode;			/* The file mode, as given to fopen. */
-    char *ext;			/* The extension to be added to the file name,
+    const char *file;		/* Name of the file to be opened. */
+    const char *mode;		/* The file mode, as given to fopen. */
+    const char *ext;		/* The extension to be added to the file name,
 				 * or NULL.  Note:  this string must include
 				 * the dot (or whatever separator you use).
 				 */
-    char *path;			/* A search path:  a list of directory names
+    const char *path;		/* A search path:  a list of directory names
 				 * separated by colons or blanks.  To use
 				 * only the working directory, use "." for
 				 * the path.
 				 */
-    char *library;		/* A 2nd path containing library names.  Can be
+    const char *library;	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
     char **pRealName;		/* Pointer to a location that will be filled
@@ -442,7 +442,8 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 				 */
     int *fdp;			/* If non-NULL, put the file descriptor here */
 {
-    char extendedName[MAXSIZE], *p1, *p2;
+    char extendedName[MAXSIZE], *p1;
+    const char *p2;
     static char realName[MAXSIZE];
     int length, extLength, i, fd;
     int oflag = 0;
@@ -631,18 +632,18 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 
 FILE *
 PaLockOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
-    char *file;			/* Name of the file to be opened. */
-    char *mode;			/* The file mode, as given to fopen. */
-    char *ext;			/* The extension to be added to the file name,
+    const char *file;		/* Name of the file to be opened. */
+    const char *mode;		/* The file mode, as given to fopen. */
+    const char *ext;		/* The extension to be added to the file name,
 				 * or NULL.  Note:  this string must include
 				 * the dot (or whatever separator you use).
 				 */
-    char *path;			/* A search path:  a list of directory names
+    const char *path;		/* A search path:  a list of directory names
 				 * separated by colons or blanks.  To use
 				 * only the working directory, use "." for
 				 * the path.
 				 */
-    char *library;		/* A 2nd path containing library names.  Can be
+    const char *library;	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
     char **pRealName;		/* Pointer to a location that will be filled
@@ -657,7 +658,8 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 				 */
     int *fdp;			/* If non-NULL, put the file descriptor here. */
 {
-    char extendedName[MAXSIZE], *p1, *p2;
+    char extendedName[MAXSIZE], *p1;
+    const char *p2;
     static char realName[MAXSIZE];
     int length, extLength, i;
     FILE *f;
@@ -815,18 +817,18 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 
 gzFile
 PaZOpen(file, mode, ext, path, library, pRealName)
-    char *file;			/* Name of the file to be opened. */
-    char *mode;			/* The file mode, as given to gzopen. */
-    char *ext;			/* The extension to be added to the file name,
+    const char *file;		/* Name of the file to be opened. */
+    const char *mode;		/* The file mode, as given to gzopen. */
+    const char *ext;		/* The extension to be added to the file name,
 				 * or NULL.  Note:  this string must include
 				 * the dot (or whatever separator you use).
 				 */
-    char *path;			/* A search path:  a list of directory names
+    const char *path;		/* A search path:  a list of directory names
 				 * separated by colons or blanks.  To use
 				 * only the working directory, use "." for
 				 * the path.
 				 */
-    char *library;		/* A 2nd path containing library names.  Can be
+    const char *library;	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
     char **pRealName;		/* Pointer to a location that will be filled
@@ -835,7 +837,8 @@ PaZOpen(file, mode, ext, path, library, pRealName)
 				 * If NULL, then nothing is stored.
 				 */
 {
-    char extendedName[MAXSIZE], *p1, *p2;
+    char extendedName[MAXSIZE], *p1;
+    const char *p2;
     static char realName[MAXSIZE];
     int length, extLength, i;
     gzFile f;
@@ -949,18 +952,18 @@ PaZOpen(file, mode, ext, path, library, pRealName)
 
 FILE *
 PaOpen(file, mode, ext, path, library, pRealName)
-    char *file;			/* Name of the file to be opened. */
-    char *mode;			/* The file mode, as given to fopen. */
-    char *ext;			/* The extension to be added to the file name,
+    const char *file;		/* Name of the file to be opened. */
+    const char *mode;		/* The file mode, as given to fopen. */
+    const char *ext;		/* The extension to be added to the file name,
 				 * or NULL.  Note:  this string must include
 				 * the dot (or whatever separator you use).
 				 */
-    char *path;			/* A search path:  a list of directory names
+    const char *path;			/* A search path:  a list of directory names
 				 * separated by colons or blanks.  To use
 				 * only the working directory, use "." for
 				 * the path.
 				 */
-    char *library;		/* A 2nd path containing library names.  Can be
+    const char *library;	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
     char **pRealName;		/* Pointer to a location that will be filled
@@ -993,15 +996,17 @@ PaOpen(file, mode, ext, path, library, pRealName)
 
 char *
 PaSubsWD(path, newWD)
-char *path;			/* Path in which to substitute. */
-char *newWD;			/* New working directory to be used.  Must
+const char *path;		/* Path in which to substitute. */
+const char *newWD;		/* New working directory to be used.  Must
 				 * end in a slash.
 				 */
 
 {
 #define NEWPATHSIZE 1000
     static char newPath[NEWPATHSIZE];
-    char *pOld, *pNew, *pWD;
+    const char *pOld;
+    char *pNew;
+    const char *pWD;
     int spaceLeft;
 
     pOld = path;
@@ -1090,8 +1095,8 @@ char *newWD;			/* New working directory to be used.  Must
 
 int
 PaEnum(path, file, proc, cdata)
-    char *path;		/* Search path */
-    char *file;		/* Each element of the search path is prepended to
+    const char *path;		/* Search path */
+    const char *file;	/* Each element of the search path is prepended to
 			 * this file name and passed to the client.
 			 */
     int (*proc)();	/* Client procedure */

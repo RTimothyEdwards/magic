@@ -34,56 +34,57 @@
  */
 typedef struct
 {
-    char *d_str;
+    const char *d_str;
 } LookupTable;
 
 /* The following stuff just defines the global routines provided
  * by files other than hash and stack and geometry.
  */
 
-extern int Lookup();
-extern int LookupAny(char, char **);
-extern int LookupFull(char *, char **);
-extern int LookupStruct();
-extern int LookupStructFull();
-extern int PaExpand(char **, char **, int);
-extern char *nextName();
-extern FILE *PaOpen(char *, char *, char *, char *, char *, char **);
-extern FILE *PaLockOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
-extern char *StrDup(char **, char *);
-extern int Match();
-extern char *ArgStr();
-extern bool StrIsWhite(char *, bool);
-extern bool StrIsInt(char *);
-extern bool StrIsNumeric(char *);
+extern int Lookup(const char *str, const char * const *table);
+extern int LookupAny(char, const char * const *);
+extern int LookupFull(const char *, const char * const *);
+extern int LookupStruct(const char *str, const LookupTable *table_start, int size);
+extern int LookupStructFull(const char *str, const char * const *table, int size);
+extern int PaExpand(const char **, char **, int);
+extern char *nextName(const char **ppath, const char *file, char *dest, int size);
+extern FILE *PaOpen(const char *file, const char *mode, const char *ext, const char *path, const char *library,
+                    char **pRealName);
+extern FILE *PaLockOpen(const char *file, const char *mode, const char *ext, const char *path, const char *library,
+                        char **pRealName, bool *is_locked, int *fdp);
+extern char *StrDup(char **, const char *);
+extern bool Match(const char *pattern, const char *string);
+extern char *ArgStr(int *pargc, char ***pargv, const char *argType);
+extern bool StrIsWhite(const char *, bool);
+extern bool StrIsInt(const char *);
+extern bool StrIsNumeric(const char *);
 
 /* C99 compat */
-extern void PaAppend(char **, char *);
+extern void PaAppend(char **pathptr, const char *newstring);
 extern void ReduceFraction(int *, int *);
 extern bool TechLoad(char *, SectionID);
 extern void UndoFlush();
-extern int  GeoTransAngle();
-extern int  GeoTransOrient();
-extern void GeoTransPointDelta();
 extern int  FindGCF();
 extern int  GetRect();
 extern void niceabort();
 extern void ShowRect();
 extern void FindDisplay();
 extern void ForkChildAdd();
-extern int  PaEnum();
+extern int  PaEnum(const char *path, const char *file, int (*proc)(), ClientData cdata);
 extern int  paVisitProcess();
-extern void SetNoisyInt();
-extern void SetNoisyDI();
+extern void SetNoisyInt(int *parm, const char *valueS, FILE *file);
+extern void SetNoisyDI(dlong *parm, const char *valueS, FILE *file);
 extern bool ParsSplit();
 
 #ifdef HAVE_ZLIB
-extern gzFile PaZOpen(char *, char *, char *, char *, char *, char **);
-extern gzFile PaLockZOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
-extern char *PaCheckCompressed(char *);
+extern gzFile PaZOpen(const char *file, const char *mode, const char *ext, const char *path, const char *library,
+                      char **pRealName);
+extern gzFile PaLockZOpen(const char *file, const char *mode, const char *ext, const char *path, const char *library,
+                          char **pRealName, bool *is_locked, int *fdp);
+extern char *PaCheckCompressed(const char *filename);
 #endif
 
-extern int SetNoisyBool(bool *, char *, FILE *);
+extern int SetNoisyBool(bool *parm, const char *valueS, FILE *file);
 
 #ifdef FILE_LOCKS
 extern FILE *flock_open();
@@ -102,10 +103,10 @@ extern gzFile flock_zopen();
  */
 #define	LAST_BIT_OF(x)	((x) & ~((x) - 1))
 
-extern float MagAtof();
+extern float MagAtof(const char *s);
 
-extern int Wait();
-extern int WaitPid();
+extern int Wait(int *status);
+extern int WaitPid(int pid, int *status);
 
 
 #define FORK_f(pid) do { pid = fork(); if (pid > 0) ForkChildAdd (pid); } while (0)

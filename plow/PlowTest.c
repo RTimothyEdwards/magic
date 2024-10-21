@@ -99,11 +99,11 @@ typedef enum
     PC_WHENTOP, PC_WHENBOT,
     PC_SETD, PC_CLRD, PC_SHOWD
 } pCmd;
-struct
+const struct
 {
-    char *p_name;
+    const char *p_name;
     pCmd  p_cmd;
-    char *p_help;
+    const char *p_help;
 } plowCmds[] = {
     {"clrdebug",	PC_CLRD,	"flags"},
     {"help",		PC_HELP,	""},
@@ -423,7 +423,7 @@ plowGetCommand(cmd)
     }
 
     plowIndex = LookupStruct(cmd->tx_argv[1],
-			(LookupTable *) plowCmds, sizeof plowCmds[0]);
+			(const LookupTable *) plowCmds, sizeof plowCmds[0]);
     if (plowIndex < 0)
     {
 	TxError("Bad plowing command '%s'.\n", cmd->tx_argv[1]);

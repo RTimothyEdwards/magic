@@ -52,7 +52,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* remain in the following lists so that magic doesn't complain when	*/
 /* encountering these styles in the technology file.			*/
 
-static char *plotStyles[] =		/* Names of tech subsections. */
+static const char * const plotStyles[] =		/* Names of tech subsections. */
 {
     "postscript",
     "pnm",
@@ -64,7 +64,7 @@ static char *plotStyles[] =		/* Names of tech subsections. */
 };
 
 /* These names need to match the plot types enumerated in plotInt.h */
-static char *plotTypeNames[] =
+static const char * const plotTypeNames[] =
 {
     "versatec_color",
     "versatec_bw",
@@ -384,8 +384,8 @@ PlotSetParam(name, value)
     char *value;		/* New value for the parameter. */
 {
     int indx, i;
-    static char *tfNames[] = { "false", "true", 0 };
-    static char *paramNames[] =
+    static const char * const tfNames[] = { "false", "true", 0 };
+    static const char * const paramNames[] =
     {
 	"showcellnames",
 	"ps_cellidfont",

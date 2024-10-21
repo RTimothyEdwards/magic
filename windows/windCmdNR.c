@@ -168,7 +168,7 @@ windPauseCmd(w, cmd)
 }
 
 
-char *butTable[] =
+const char * const butTable[] =
 {
     "left",
     "middle",
@@ -176,7 +176,7 @@ char *butTable[] =
     0
 };
 
-char *actTable[] =
+const char * const actTable[] =
 {
     "down",
     "up",

@@ -265,7 +265,7 @@ WindSendCommand(w, cmd, quiet)
 	    (*(windClient->w_command))(w, cmd);
 	else if ((windCmdNum >= 0) && (clientCmdNum >= 0))
 	{
-	    char *(ownTable[3]);
+	    const char *(ownTable[3]);
 	    int ownCmdNum;
 
 	    ownTable[0] = rc->w_commandTable[clientCmdNum];

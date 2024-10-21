@@ -273,7 +273,7 @@ WindAreaChanged(w, area)
 			 */
 {
     Rect biggerArea;
-    int windChangedFunc();	/* Forward declaration. */
+    bool windChangedFunc();	/* Forward declaration. */
 
     if (w == NULL) {
         if (windSomeSeparateRedisplay) {
@@ -345,7 +345,7 @@ WindAreaChanged(w, area)
     }
 }
 
-int
+bool
 windChangedFunc(area, next)
     Rect *area;			/* Area that is still unobscured. */
     LinkedRect *next;		/* Next obscuring area. */
@@ -360,7 +360,7 @@ windChangedFunc(area, next)
 	    DBStdPaintTbl(TT_ERROR_P, PL_DRC_ERROR), (PaintUndoInfo *) NULL);
     else (void) GeoDisjoint(area, &next->r_r, windChangedFunc,
 	(ClientData) next->r_next);
-    return 0;
+    return FALSE;
 }
 
 

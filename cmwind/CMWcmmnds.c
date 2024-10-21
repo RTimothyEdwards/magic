@@ -301,7 +301,7 @@ cmwPushbutton(w, cmd)
     TxCommand *cmd;
 {
     int button;
-    static char *cmwButton[] = {"left", "middle", "right", NULL};
+    static const char * const cmwButton[] = {"left", "middle", "right", NULL};
 
     if (cmd->tx_argc != 2)
     {

@@ -512,7 +512,7 @@ _magic_initialize(ClientData clientData,
     int n, i;
     char keyword[100];
     char *kwptr = keyword + 7;
-    char **commandTable;
+    const char * const *commandTable;
     int result;
 
     /* Is magic being executed in a slave interpreter? */

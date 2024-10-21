@@ -87,14 +87,15 @@ CmdPlow(w, cmd)
 {
     int xdelta, ydelta, absX, absY;
     int option, dir, distance;
-    char *layers, **msg;
+    char *layers;
+    const char * const *msg;
     TileTypeBitMask mask;
     Rect rootBox, editBox, newBox;
     CellDef *rootDef, *editDef;
     Point rootPoint;
     MagWindow *window;
     Transform t;
-    static char *cmdPlowOption[] =
+    static const char * const cmdPlowOption[] =
     {
 	"boundary	set boundary around area plowing may affect",
 	"help		print this help information",

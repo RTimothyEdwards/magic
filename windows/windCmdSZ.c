@@ -990,8 +990,8 @@ windScrollBarsCmd(w, cmd)
     TxCommand *cmd;
 {
     int place;
-    static char *onoff[] = {"on", "off", 0};
-    static bool truth[] = {TRUE, FALSE};
+    static const char * const onoff[] = {"on", "off", 0};
+    static const bool truth[] = {TRUE, FALSE};
 
     if (cmd->tx_argc != 2) goto usage;
 

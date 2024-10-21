@@ -108,7 +108,7 @@ Netlist *nmListHead = NULL;		/* The first netlist in the linked
 
 /* Used in asking the user for confirmation: */
 
-static char *(yesno[]) = {"no", "yes", NULL};
+static const char * const yesno[] = {"no", "yes", NULL};
 
 
 /*
@@ -881,7 +881,7 @@ void
 NMWriteAll()
 {
     Netlist *nl, *saveCurrent;
-    static char *(options[]) = {"write", "skip", "abort", NULL};
+    static const char * const options[] = {"write", "skip", "abort", NULL};
     char answer[10];
     int indx;
 

@@ -103,8 +103,8 @@ static CellDef *dbwelemRootDef;		/* To pass root cell definition from
 void
 AppendString(oldstr, newstr, postfix)
     char **oldstr;
-    char *newstr;
-    char *postfix;
+    const char *newstr;
+    const char *postfix;
 {
     char *tmpstr;
     int olen = 0;
@@ -146,7 +146,11 @@ AppendString(oldstr, newstr, postfix)
  * ----------------------------------------------------------------------------
  */
 
-void AppendFlag(char **rstr, bool *flagset, char *fname)
+void
+AppendFlag(
+    char **rstr,
+    bool *flagset,
+    const char *fname)
 {
     AppendString(rstr, *flagset ? "," : " ", fname);
     *flagset = TRUE;
@@ -946,12 +950,12 @@ DBWElementParseFlags(MagWindow *w, char *ename, char *flagstr)
     HashEntry *entry;
     int flidx, newflags;
 
-    static char *lineOffset[] = {"halfx", "halfy", "exactx", "exacty",
+    static const char * const lineOffset[] = {"halfx", "halfy", "exactx", "exacty",
 		"arrowleft", "arrowbottom", "arrowright", "arrowtop",
 		"plainleft", "plainbottom", "plainright", "plaintop", NULL};
-    static char *textSizes[] = {"small", "medium", "large", "xlarge",
+    static const char * const textSizes[] = {"small", "medium", "large", "xlarge",
 	"default", NULL};
-    static char *genFlags[] = {"persistent", "temporary", NULL};
+    static const char * const genFlags[] = {"persistent", "temporary", NULL};
 
     entry = HashFind(&elementTable, ename);
     if (entry == NULL)

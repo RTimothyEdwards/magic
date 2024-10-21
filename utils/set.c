@@ -66,7 +66,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 void
 SetNoisyInt(parm,valueS,file)
     int *parm;
-    char *valueS;
+    const char *valueS;
     FILE *file;
 {
 
@@ -98,15 +98,15 @@ SetNoisyInt(parm,valueS,file)
 int
 SetNoisyBool(parm,valueS,file)
     bool *parm;
-    char *valueS;
+    const char *valueS;
     FILE *file;
 {
     int n, which, result = -2;
 
     /* Bool string Table */
-    static struct
+    static const struct
     {
-	char	*bS_name;	/* name */
+	const char *bS_name;	/* name */
 	bool    bS_value;	/* procedure processing this parameter */
     } boolStrings[] = {
 	{"yes",		TRUE},
@@ -126,7 +126,7 @@ SetNoisyBool(parm,valueS,file)
 	/* Lookup value string in boolString table */
 	which = LookupStruct(
 	    valueS,
-	    (LookupTable *) boolStrings,
+	    (const LookupTable *) boolStrings,
 	    sizeof boolStrings[0]);
 
         /* Process result of lookup */
@@ -172,7 +172,7 @@ SetNoisyBool(parm,valueS,file)
 void
 SetNoisyDI(parm,valueS,file)
     dlong *parm;		/* BY NP */
-    char *valueS;
+    const char *valueS;
     FILE *file;
 {
     /* If value not null, set parm */

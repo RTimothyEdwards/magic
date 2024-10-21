@@ -36,7 +36,7 @@ typedef struct WIND_S3 {
     bool (*w_exit)();
     void (*w_reposition)();	/* called when a window moves or changes size */
     GrGlyph *w_icon;
-    char **w_commandTable;
+    const char * const *w_commandTable;
     void (**w_functionTable)();
     struct WIND_S3 *w_nextClient;
 } clientRec;
@@ -45,8 +45,8 @@ typedef struct WIND_S3 {
 extern MagWindow *windTopWindow;
 extern MagWindow *windBottomWindow;
 extern clientRec *windFirstClientRec;
-extern char *butTable[];
-extern char *actTable[];
+extern const char * const butTable[];
+extern const char * const actTable[];
 extern bool windPrintCommands;
 
 /* ----------------- procedures ----------------- */

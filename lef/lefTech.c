@@ -213,7 +213,7 @@ LefTechLine(sectionName, argc, argv)
     TileTypeBitMask mmask;
     lefLayer *lefl, *newlefl;
     int i, option;
-    static char *keywords[] = {
+    static const char * const keywords[] = {
 	"obstruction", "layer", "route", "routing", "masterslice",
 	"cut", "contact", "overlap", "bound", "ignore", NULL
     };

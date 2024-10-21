@@ -269,7 +269,7 @@ CmdExtToSpice(w, cmd)
     int option = EXTTOSPC_RUN;
     int argc = cmd->tx_argc;
     char **argv = cmd->tx_argv;
-    char **msg;
+    const char * const *msg;
     char *resstr = NULL;
     char *substr = NULL;
     bool err_result, locDoSubckt;
@@ -284,11 +284,11 @@ CmdExtToSpice(w, cmd)
     static EFCapValue LocCapThreshold = 2;
     static int LocResistThreshold = INFINITE_THRESHOLD;
 
-    static char *spiceFormats[] = {
+    static const char * const spiceFormats[] = {
 	"SPICE2", "SPICE3", "HSPICE", "NGSPICE", NULL
     };
 
-    static char *cmdExtToSpcOption[] = {
+    static const char * const cmdExtToSpcOption[] = {
 	"[run] [options]	run exttospice on current cell\n"
 	"			use \"run -help\" to get standard options",
 	"default		reset to default values",
@@ -313,20 +313,20 @@ CmdExtToSpice(w, cmd)
 	NULL
     };
 
-    static char *cmdMergeTypes[] = {
+    static const char * const cmdMergeTypes[] = {
 	"none			don't merge parallel devices",
 	"conservative		merge devices with same L, W",
 	"aggressive		merge devices with same L",
 	NULL
     };
 
-    static char *cmdShortTypes[] = {
+    static const char * const cmdShortTypes[] = {
 	"none			merge shorted ports",
 	"resistor		separate shorted ports with 0 ohm resistor",
 	"voltage		separate shorted ports with 0 volt source",
 	NULL
     };
-    static char *cmdExtToSpcFormat[] = {
+    static const char * const cmdExtToSpcFormat[] = {
 	"spice2",
 	"spice3",
 	"hspice",
@@ -334,7 +334,7 @@ CmdExtToSpice(w, cmd)
 	NULL
     };
 
-    static char *yesno[] = {
+    static const char * const yesno[] = {
 	"yes",
 	"true",
 	"on",
@@ -344,7 +344,7 @@ CmdExtToSpice(w, cmd)
 	NULL
     };
 
-    static char *subcktopts[] = {
+    static const char * const subcktopts[] = {
 	"yes",
 	"true",
 	"on",
@@ -357,7 +357,7 @@ CmdExtToSpice(w, cmd)
 	NULL
     };
 
-    static char *shorttypes[] = {
+    static const char * const shorttypes[] = {
 	"none",
 	"resistor",
 	"voltage",
@@ -649,7 +649,8 @@ CmdExtToSpice(w, cmd)
 	    if (cmd->tx_argc == 2)
 	    {
 #ifdef MAGIC_WRAPPER
-		Tcl_SetResult(magicinterp, cmdExtToSpcFormat[esFormat], NULL);
+		/* FIXME check NULL is ok here, should this be TCL_STATIC ?  TCL_STATIC==0  maybe using TCL_STATIC is better? */
+		Tcl_SetResult(magicinterp, (char*)cmdExtToSpcFormat[esFormat], NULL);
 #else
 		TxPrintf("Format:  %s\n", cmdExtToSpcFormat[esFormat]);
 #endif
@@ -1181,7 +1182,7 @@ main(argc, argv)
 
     esSpiceDevsMerged = 0;
 
-    static char *spiceFormats[] = {
+    static const char * const spiceFormats[] = {
 	"SPICE2", "SPICE3", "HSPICE", "NGSPICE", NULL
     };
 

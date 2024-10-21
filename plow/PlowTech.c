@@ -175,9 +175,9 @@ PlowDRCLine(sectionName, argc, argv)
     char *argv[];
 {
     int which;
-    static struct
+    static const struct
     {
-	char	*rk_keyword;	/* Initial keyword */
+	const char *rk_keyword;	/* Initial keyword */
 	int	 rk_minargs;	/* Min # arguments */
 	int	 rk_maxargs;	/* Max # arguments */
 	int    (*rk_proc)();	/* Procedure implementing this keyword */
@@ -193,7 +193,7 @@ PlowDRCLine(sectionName, argc, argv)
      * Leave the job of printing error messages to the DRC tech file reader.
      * We only process a few of the various design-rule types here anyway.
      */
-    which = LookupStruct(argv[0], (LookupTable *) ruleKeys, sizeof ruleKeys[0]);
+    which = LookupStruct(argv[0], (const LookupTable *) ruleKeys, sizeof ruleKeys[0]);
     if (which >= 0)
     {
 	rp = &ruleKeys[which];
