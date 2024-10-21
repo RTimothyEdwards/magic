@@ -163,7 +163,7 @@ typedef struct
 /* depending on whether it is cast into a 32 or a 64 bit word.		*/
 
 #define	CLIENTMAX	(((pointertype)1 << (8 * sizeof(pointertype) - 2)) - 4)
-#define	CLIENTDEFAULT	(-CLIENTMAX)
+#define	CLIENTDEFAULT	INT2CD(-CLIENTMAX)
 
 /* ------------------------ Flags, etc -------------------------------- */
 
@@ -239,9 +239,9 @@ extern Tile *TiSrPoint(Tile *, Plane *, Point *);
 
 #define	TiGetBody(tp)		((tp)->ti_body)
 /* See diagnostic subroutine version in tile.c */
-#define	TiSetBody(tp, b)	((tp)->ti_body = (ClientData)(pointertype) (b))
+#define	TiSetBody(tp, b)	((tp)->ti_body = INT2CD((b)))
 #define	TiGetClient(tp)		((tp)->ti_client)
-#define	TiSetClient(tp,b)	((tp)->ti_client = (ClientData)(pointertype) (b))
+#define	TiSetClient(tp,b)	((tp)->ti_client = INT2CD((b)))
 
 Tile *TiAlloc(void);
 void TiFree(Tile *);

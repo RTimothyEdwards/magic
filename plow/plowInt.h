@@ -161,11 +161,11 @@ typedef struct
  * of the tile to its right.
  */
 #define	TRAIL_UNINIT	CLIENTDEFAULT
-#define	TRAILING(tp)	(((tp)->ti_client == (ClientData)TRAIL_UNINIT) \
-				? LEFT(tp) : ((int)(tp)->ti_client))
+#define	TRAILING(tp)	(((tp)->ti_client == INT2CD(TRAIL_UNINIT)) \
+				? LEFT(tp) : ((int)CD2INT((tp)->ti_client)))
 #define	LEADING(tp)	TRAILING(TR(tp))
 
-#define	plowSetTrailing(tp, n)	((tp)->ti_client = (ClientData) (n))
+#define	plowSetTrailing(tp, n)	((tp)->ti_client = INT2CD((n)))
 
 /* ------------------ Design rules used by plowing -------------------- */
 
