@@ -336,7 +336,7 @@ _tcl_dispatch(ClientData clientData,
     if (!strncmp(argv0, "::", 2)) argv0 += 2;
 
     objv0 = Tcl_NewStringObj(argv0, strlen(argv0));
-    if (Tcl_GetIndexFromObj(interp, objv0, (CONST84 char **)conflicts,
+    if (Tcl_GetIndexFromObj(interp, objv0, (const char **)conflicts,
 	"overloaded command", 0, &idx) == TCL_OK)
     {
 	int i;
@@ -636,7 +636,7 @@ _magic_flags(ClientData clientData,
 	Tcl_WrongNumArgs(interp, 1, objv, "flag ?value?");
 	return TCL_ERROR;
     }
-    if (Tcl_GetIndexFromObj(interp, objv[1], (CONST84 char **)flagOptions,
+    if (Tcl_GetIndexFromObj(interp, objv[1], (const char **)flagOptions,
 		"option", 0, &index) != TCL_OK) {
 	return TCL_ERROR;
     }
@@ -664,7 +664,7 @@ _magic_flags(ClientData clientData,
 	Tcl_SetObjResult(interp, Tcl_NewBooleanObj(value));
     }
     else {
-	if (Tcl_GetIndexFromObj(interp, objv[2], (CONST84 char **)yesNo,
+	if (Tcl_GetIndexFromObj(interp, objv[2], (const char **)yesNo,
 		"value", 0, &index2) != TCL_OK)
 	    return TCL_ERROR;
 

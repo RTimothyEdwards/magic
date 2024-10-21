@@ -28,11 +28,5 @@ extern int  TagVerify();
 extern int  Tcl_printf();
 extern void MakeWindowCommand();
 
-/* Backward compatibility issues */
-#ifndef CONST84
-#define CONST84		/* indicates something was changed to "const"	*/
-			/* in Tcl version 8.4.				*/
-#endif
-
 #endif	/* MAGIC_WRAPPER */
 #endif /* _TCLMAGIC_H */
