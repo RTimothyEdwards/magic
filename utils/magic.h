@@ -60,7 +60,15 @@ typedef int64_t dlong;
 /* --------------------- Universal pointer type ----------------------- */
 
 #ifndef _CLIENTDATA
+// #ifdef MAGIC_WRAPPER
+//#error "ClientData type is not defined, but we are building with TCL support, so we expect TCL to provide this type definition"
+// #endif
+ #ifndef NO_VOID
+typedef void *ClientData;
+ #else
 typedef pointertype ClientData;
+ #endif
+#define _CLIENTDATA
 #endif
 
 /* this is not the (int) C type, but the conceptual difference between
