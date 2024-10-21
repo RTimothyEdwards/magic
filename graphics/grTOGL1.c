@@ -269,7 +269,7 @@ GrTOGLInit ()
     static int attributeList[] = { GLX_RGBA, None, None };
 #endif
 
-    if (Tk_InitStubs(magicinterp, "8.5", 0) == NULL) return FALSE;
+    if (Tk_InitStubs(magicinterp, Tclmagic_InitStubsVersion, 0) == NULL) return FALSE;
 
     toglCurrent.window = Tk_MainWindow(magicinterp);
     if (toglCurrent.window == NULL)

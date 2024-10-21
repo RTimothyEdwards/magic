@@ -53,6 +53,16 @@ char *MagicVersion = MAGIC_VERSION;
 char *MagicRevision = MAGIC_REVISION;
 char *MagicCompileTime = MAGIC_DATE;
 
+#if TCL_MAJOR_VERSION < 9
+const char *Tclmagic_InitStubsVersion = "8.5";
+#else
+/* Major version changed API (as you'd expect for a major version upgrade)
+ *  which is compiled into the resulting binary.
+ * No possibility of dual version support.
+ */
+const char *Tclmagic_InitStubsVersion = "9.0";
+#endif
+
 Tcl_Interp *magicinterp;
 Tcl_Interp *consoleinterp;
 
@@ -1293,7 +1303,7 @@ Tclmagic_Init(interp)
     /* Remember the interpreter */
     magicinterp = interp;
 
-    if (Tcl_InitStubs(interp, "8.5", 0) == NULL) return TCL_ERROR;
+    if (Tcl_InitStubs(interp, Tclmagic_InitStubsVersion, 0) == NULL) return TCL_ERROR;
 
     /* Initialization and Startup commands */
     Tcl_CreateCommand(interp, "magic::initialize", (Tcl_CmdProc *)_magic_initialize,
