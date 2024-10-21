@@ -103,8 +103,8 @@ static CellDef *dbwelemRootDef;		/* To pass root cell definition from
 void
 AppendString(oldstr, newstr, postfix)
     char **oldstr;
-    char *newstr;
-    char *postfix;
+    const char *newstr;
+    const char *postfix;
 {
     char *tmpstr;
     int olen = 0;
@@ -146,7 +146,11 @@ AppendString(oldstr, newstr, postfix)
  * ----------------------------------------------------------------------------
  */
 
-void AppendFlag(char **rstr, bool *flagset, char *fname)
+void
+AppendFlag(
+    char **rstr,
+    bool *flagset,
+    const char *fname)
 {
     AppendString(rstr, *flagset ? "," : " ", fname);
     *flagset = TRUE;
