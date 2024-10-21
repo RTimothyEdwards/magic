@@ -103,7 +103,7 @@ MacroDefine(client, xc, str, help, imacro)
 	HashInit(clienttable, 32, HT_WORDKEYS);
 	HashSetValue(h, clienttable);
     }
-    h = HashFind(clienttable, (char *)((ClientData)xc));
+    h = HashFind(clienttable, (char *)INT2CD(xc));
     oldMacro = (macrodef *)HashGetValue(h);
     if (oldMacro != NULL)
     {
@@ -158,7 +158,7 @@ MacroDefineHelp(client, xc, help)
     clienttable = (HashTable *)HashGetValue(h);
     if (clienttable == NULL) return;
 
-    h = HashFind(clienttable, (char *)((ClientData)xc));
+    h = HashFind(clienttable, (char *)INT2CD(xc));
     curMacro = (macrodef *)HashGetValue(h);
     if (curMacro == NULL) return;
 
@@ -202,7 +202,7 @@ MacroRetrieve(client, xc, iReturn)
 	clienttable = (HashTable *)HashGetValue(h);
 	if (clienttable != NULL)
 	{
-	    h = HashLookOnly(clienttable, (char *)((ClientData)xc));
+	    h = HashLookOnly(clienttable, (char *)INT2CD(xc));
 	    if (h != NULL)
 	    {
 		cMacro = (macrodef *)HashGetValue(h);
@@ -249,7 +249,7 @@ MacroRetrieveHelp(client, xc)
 	clienttable = (HashTable *)HashGetValue(h);
 	if (clienttable != NULL)
 	{
-	    h = HashLookOnly(clienttable, (char *)((ClientData)xc));
+	    h = HashLookOnly(clienttable, (char *)INT2CD(xc));
 	    if (h != NULL)
 	    {
 		cMacro = (macrodef *)HashGetValue(h);
@@ -347,7 +347,7 @@ MacroDelete(client, xc)
 	clienttable = (HashTable *)HashGetValue(h);
 	if (clienttable != NULL)
 	{
-	    h = HashLookOnly(clienttable, (char *)((ClientData)xc));
+	    h = HashLookOnly(clienttable, (char *)INT2CD(xc));
 	    if (h != NULL)
 	    {
 		cMacro = (macrodef *)HashGetValue(h);

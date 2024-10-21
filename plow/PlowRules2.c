@@ -1086,7 +1086,7 @@ plowFoundCell(use, ar)
 
     /* Only queue the edge if the cell has not moved far enough */
     if ((use->cu_client != (ClientData)CLIENTDEFAULT) &&
-		((int)(use->cu_client) < xmove))
+		((int)CD2INT(use->cu_client) < xmove))
     {
 	edge.e_use = use;
 	edge.e_flags = 0;

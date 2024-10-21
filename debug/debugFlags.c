@@ -82,7 +82,7 @@ DebugAddClient(name, maxflags)
 	dc->dc_flags[maxflags].df_value = FALSE;
     }
 
-    return ((ClientData) debugNumClients++);
+    return (INT2CD(debugNumClients++));
 }
 
 /*
@@ -116,7 +116,7 @@ DebugAddFlag(clientID, name)
     ClientData clientID;	/* Client identifier from DebugAddClient */
     char *name;			/* Name of debugging flag */
 {
-    int id = (int) clientID;
+    int id = (int) CD2INT(clientID);
     struct debugClient *dc;
 
     if (id < 0 || id >= debugNumClients)
@@ -159,7 +159,7 @@ void
 DebugShow(clientID)
     ClientData clientID;
 {
-    int id = (int) clientID;
+    int id = (int) CD2INT(clientID);
     struct debugClient *dc;
     int n;
 
@@ -202,7 +202,7 @@ DebugSet(clientID, argc, argv, value)
     bool value;
 {
     bool badFlag = FALSE;
-    int id = (int) clientID;
+    int id = (int) CD2INT(clientID);
     struct debugClient *dc;
     int n;
 

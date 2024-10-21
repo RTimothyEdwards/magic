@@ -404,9 +404,9 @@ selShortTileProc(tile, ssd)
     Tile *tile;
     ShortSearchData *ssd;
 {
-    if ((int)tile->ti_client < ssd->cost)
+    if ((int)CD2INT(tile->ti_client) < ssd->cost)
     {
-	ssd->cost = (int)tile->ti_client;
+	ssd->cost = (int)CD2INT(tile->ti_client);
 	ssd->tile = tile;
     }
     return 0;
@@ -448,7 +448,7 @@ selShortFindReverse(rlist, tile, pnum, fdir)
     TileType ttype;
 
     mindir = fdir;
-    mincost = (int)tile->ti_client;
+    mincost = (int)CD2INT(tile->ti_client);
 
     while (TRUE)
     {
@@ -495,7 +495,7 @@ selShortFindReverse(rlist, tile, pnum, fdir)
 	newrrec->r_next = *rlist;
 	*rlist = newrrec;
 
-	if ((int)tile->ti_client == 0) return 0;	/* We're done */
+	if ((int)CD2INT(tile->ti_client) == 0) return 0;	/* We're done */
 
 	minp = pnum;
 
@@ -510,9 +510,9 @@ selShortFindReverse(rlist, tile, pnum, fdir)
 	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
 	{
 	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	    if ((int)tp->ti_client < mincost)
+	    if ((int)CD2INT(tp->ti_client) < mincost)
 	    {
-		mincost = (int)tp->ti_client;
+		mincost = (int)CD2INT(tp->ti_client);
 		mintp = tp;
 		mindir = GEO_NORTH;
 	    }
@@ -530,9 +530,9 @@ leftside:
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 	{
 	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	    if ((int)tp->ti_client < mincost)
+	    if ((int)CD2INT(tp->ti_client) < mincost)
 	    {
-		mincost = (int)tp->ti_client;
+		mincost = (int)CD2INT(tp->ti_client);
 		mintp = tp;
 		mindir = GEO_WEST;
 	    }
@@ -550,9 +550,9 @@ bottomside:
 	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
 	{
 	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	    if ((int)tp->ti_client < mincost)
+	    if ((int)CD2INT(tp->ti_client) < mincost)
 	    {
-		mincost = (int)tp->ti_client;
+		mincost = (int)CD2INT(tp->ti_client);
 		mintp = tp;
 		mindir = GEO_SOUTH;
 	    }
@@ -570,9 +570,9 @@ rightside:
 	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 	{
 	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	    if ((int)tp->ti_client < mincost)
+	    if ((int)CD2INT(tp->ti_client) < mincost)
 	    {
-		mincost = (int)tp->ti_client;
+		mincost = (int)CD2INT(tp->ti_client);
 		mintp = tp;
 		mindir = GEO_EAST;
 	    }
@@ -741,7 +741,7 @@ selShortProcessTile(tile, cost, fdir, mask)
 
     if (tile->ti_client == (ClientData)CLIENTDEFAULT)
 	TiSetClient(tile, cost);
-    else if ((int)tile->ti_client > cost)
+    else if ((int)CD2INT(tile->ti_client) > cost)
 	TiSetClient(tile, cost);
     else
 	return 1;
@@ -1222,7 +1222,7 @@ SelectExpand(mask)
     extern int selExpandFunc();	/* Forward reference. */
 
     (void) SelEnumCells(FALSE, (bool *) NULL, (SearchContext *) NULL,
-	    selExpandFunc, (ClientData) mask);
+	    selExpandFunc, INT2CD(mask));
 }
 
     /* ARGSUSED */

@@ -1274,7 +1274,7 @@ SelectAndCopy2(newSourceDef)
     {
 	(void) DBSrPaintArea((Tile *) NULL, Select2Def->cd_planes[plane],
 		&TiPlaneRect, &DBAllButSpaceAndDRCBits, selACPaintFunc,
-		(ClientData) plane);
+		INT2CD(plane));
 	DBMergeNMTiles(Select2Def->cd_planes[plane], &TiPlaneRect,
 		(PaintUndoInfo *)NULL);
     }

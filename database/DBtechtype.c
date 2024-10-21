@@ -140,7 +140,7 @@ DBTechInitPlane()
 
     for (dpp = dbTechDefaultPlanes; dpp->dp_names; dpp++)
     {
-	cp = dbTechNameAdd(dpp->dp_names, (ClientData) dpp->dp_plane,
+	cp = dbTechNameAdd(dpp->dp_names, INT2CD(dpp->dp_plane),
 			&dbPlaneNameLists, FALSE);
 	if (cp == NULL)
 	{
@@ -223,7 +223,7 @@ DBTechInitType()
      */
     for (dtp = dbTechDefaultTypes; dtp->dt_names; dtp++)
     {
-	cp = dbTechNameAdd(dtp->dt_names, (ClientData) dtp->dt_type,
+	cp = dbTechNameAdd(dtp->dt_names, INT2CD(dtp->dt_type),
 			&dbTypeNameLists, FALSE);
 	if (cp == NULL)
 	{
@@ -283,7 +283,7 @@ DBTechAddPlane(sectionName, argc, argv)
 	return FALSE;
     }
 
-    cp = dbTechNameAdd(argv[0], (ClientData) DBNumPlanes, &dbPlaneNameLists, FALSE);
+    cp = dbTechNameAdd(argv[0], INT2CD(DBNumPlanes), &dbPlaneNameLists, FALSE);
     if (cp == NULL)
 	return FALSE;
     DBPlaneLongNameTbl[DBNumPlanes++] = cp;
@@ -315,7 +315,7 @@ DBTechAddNameToType(newname, ttype, canonical)
 {
     char *cp;
 
-    cp = dbTechNameAdd(newname, (ClientData) ttype, &dbTypeNameLists, TRUE);
+    cp = dbTechNameAdd(newname, INT2CD(ttype), &dbTypeNameLists, TRUE);
     if (canonical)
 	DBTypeLongNameTbl[ttype] = cp;
 }
@@ -455,7 +455,7 @@ DBTechAddType(sectionName, argc, argv)
     }
     else
     {
-	cp = dbTechNameAdd(argv[1], (ClientData) DBNumTypes, &dbTypeNameLists, FALSE);
+	cp = dbTechNameAdd(argv[1], INT2CD(DBNumTypes), &dbTypeNameLists, FALSE);
 	if (cp == NULL)
 	    return FALSE;
 
@@ -513,7 +513,7 @@ dbTechNewStackedType(type1, type2)
     }
 
     sprintf(buf, "%s+%s", DBTypeShortName(type1), DBTypeShortName(type2));
-    cp = dbTechNameAdd(buf, (ClientData) DBNumTypes, &dbTypeNameLists, FALSE);
+    cp = dbTechNameAdd(buf, INT2CD(DBNumTypes), &dbTypeNameLists, FALSE);
     if (cp == NULL)
     {
 	TechError("Couldn't generate new stacking type %s\n", buf);

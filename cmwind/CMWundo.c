@@ -212,5 +212,5 @@ cmwUndoDone(void)
     for (i = 0; i < 256; i++)
 	if (cmwColorsChanged[i])
 	    (void) WindSearch(CMWclientID, (ClientData) NULL, (Rect *) NULL,
-			cmwRedisplayFunc, (ClientData) i);
+			cmwRedisplayFunc, INT2CD(i));
 }

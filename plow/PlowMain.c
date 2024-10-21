@@ -736,11 +736,11 @@ plowPropagateRect(def, userRect, lc, changedArea)
 	/* Add the initial edges */
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	(void) plowSrShadowInitial(pNum, &plowRect,
-		    lc, plowInitialPaint, (ClientData) plowRect.r_xtop);
+		    lc, plowInitialPaint, INT2CD(plowRect.r_xtop));
 
 	/* Find any subcells crossed by the plow */
     (void) DBSrCellPlaneArea(plowYankDef->cd_cellPlane,
-		    &cellPlowRect, plowInitialCell, (ClientData) &cellPlowRect);
+		    &cellPlowRect, plowInitialCell, PTR2CD(&cellPlowRect));
 
 	/* While edges remain, process them */
     tooFar = 0;
@@ -910,9 +910,9 @@ plowPropagateSel(def, pdistance, changedArea)
 
 	/* Add everything in the selection */
     SelEnumPaint(&DBAllButSpaceBits, TRUE, &dummy,
-		plowSelPaintPlow, (ClientData) *pdistance);
+		plowSelPaintPlow, INT2CD(*pdistance));
     SelEnumCells(TRUE, &dummy, (SearchContext *) NULL,
-		plowSelCellPlow, (ClientData) *pdistance);
+		plowSelCellPlow, INT2CD(*pdistance));
 
 	/* While edges remain, process them */
     tooFar = 0;
@@ -1043,7 +1043,7 @@ plowSelPaintPlow(rect, type, distance)
 #endif	/* notdef */
     plowLHS.r_xbot--;
     plowSrShadow(DBPlane(type), &plowLHS, DBZeroTypeBits,
-			plowInitialPaint, (ClientData) plowLHS.r_xtop);
+			plowInitialPaint, INT2CD(plowLHS.r_xtop));
 
     /* Queue the RHS */
     plowRHS.r_xbot = plowRHS.r_xtop;
@@ -1054,7 +1054,7 @@ plowSelPaintPlow(rect, type, distance)
     plowRHS.r_xbot--;
     TTMaskSetOnlyType(&mask, type);
     plowSrShadow(DBPlane(type), &plowRHS, mask,
-			plowInitialPaint, (ClientData) plowRHS.r_xtop);
+			plowInitialPaint, INT2CD(plowRHS.r_xtop));
 
     return (0);
 }
@@ -1102,8 +1102,8 @@ plowSelCellPlow(selUse, realUse, transform, distance)
 
     /* Find the cell in the yanked def that has the same use-id as this one */
     save = realUse->cu_client;
-    realUse->cu_client = (ClientData)distance;
-    (void) DBCellEnum(plowYankDef, plowFindSelCell, (ClientData)realUse);
+    realUse->cu_client = INT2CD(distance);
+    (void) DBCellEnum(plowYankDef, plowFindSelCell, PTR2CD(realUse));
     realUse->cu_client = save;
 
     return (0);
@@ -1125,7 +1125,7 @@ plowFindSelCell(yankUse, editUse)
     edge.e_ytop = yankUse->cu_bbox.r_ytop;
     edge.e_ybot = yankUse->cu_bbox.r_ybot;
     edge.e_x = yankUse->cu_bbox.r_xtop;
-    edge.e_newx = yankUse->cu_bbox.r_xtop + (int)editUse->cu_client;
+    edge.e_newx = yankUse->cu_bbox.r_xtop + (int)CD2INT(editUse->cu_client);
     edge.e_ltype = PLOWTYPE_CELL;
     edge.e_rtype = PLOWTYPE_CELL;
     (void) plowQueueAdd(&edge);
@@ -1538,7 +1538,7 @@ plowProcessEdge(edge, changedArea)
     plowProcessedEdges++;
     if (edge->e_use)
     {
-	if (amountToMove > (int)edge->e_use->cu_client)
+	if (amountToMove > (int)CD2INT(edge->e_use->cu_client))
 	{
 	    /* Update area modified by plowing */
 	    (void) GeoInclude(&edge->e_rect, changedArea);
@@ -1558,7 +1558,7 @@ plowProcessEdge(edge, changedArea)
 	     * to update the area changed by the area of the
 	     * cell PLUS the area swept out by its RHS.
 	     */
-	    edge->e_use->cu_client = (ClientData)amountToMove;
+	    edge->e_use->cu_client = INT2CD(amountToMove);
 	    r = edge->e_use->cu_bbox;
 	    r.r_xbot += amountToMove;
 	    r.r_xtop += amountToMove;
