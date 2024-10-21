@@ -104,7 +104,11 @@ TagCallback(interp, tkpath, argc, argv)
     char *postcmd, *substcmd, *newcmd, *sptr, *sres;
     char *croot;
     HashEntry *entry;
+#if TCL_MAJOR_VERSION < 9
     Tcl_SavedResult state;
+#else
+    Tcl_InterpState state;
+#endif
     bool reset = FALSE;
     int cmdnum;
 
@@ -240,12 +244,28 @@ TagCallback(interp, tkpath, argc, argv)
 	/* fprintf(stderr, "Substituted tag callback is \"%s\"\n", substcmd); */
 	/* fflush(stderr); */
 
+#if TCL_MAJOR_VERSION < 9
 	Tcl_SaveResult(interp, &state);
+#else
+	state = Tcl_SaveInterpState(interp, TCL_OK);
+#endif
 	result = Tcl_EvalEx(interp, substcmd, -1, 0);
 	if ((result == TCL_OK) && (reset == FALSE))
+	{
+#if TCL_MAJOR_VERSION < 9
 	    Tcl_RestoreResult(interp, &state);
+#else
+	    Tcl_RestoreInterpState(interp, state);
+#endif
+        }
 	else
+	{
+#if TCL_MAJOR_VERSION < 9
 	    Tcl_DiscardResult(&state);
+#else
+	    Tcl_DiscardInterpState(state);
+#endif
+        }
 
 	freeMagic(substcmd);
 	TxCommandNumber = cmdnum;	/* restore original value */
@@ -858,15 +878,27 @@ void
 TxSetPrompt(ch)
     char ch;
 {
+#if TCL_MAJOR_VERSION < 9
     Tcl_SavedResult state;
+#else
+    Tcl_InterpState state;
+#endif
     char promptline[16];
 
     if (TxTkConsole)
     {
 	sprintf(promptline, "replaceprompt %c", ch);
+#if TCL_MAJOR_VERSION < 9
 	Tcl_SaveResult(consoleinterp, &state);
+#else
+	state = Tcl_SaveInterpState(consoleinterp, TCL_OK);
+#endif
 	Tcl_EvalEx(consoleinterp, promptline, 15, 0);
+#if TCL_MAJOR_VERSION < 9
 	Tcl_RestoreResult(consoleinterp, &state);
+#else
+	Tcl_RestoreInterpState(consoleinterp, state);
+#endif
     }
 }
 
@@ -979,11 +1011,23 @@ TxParseString(str, q, event)
 void
 TxFlushErr()
 {
+#if TCL_MAJOR_VERSION < 9
     Tcl_SavedResult state;
+#else
+    Tcl_InterpState state;
+#endif
 
+#if TCL_MAJOR_VERSION < 9
     Tcl_SaveResult(magicinterp, &state);
+#else
+    state = Tcl_SaveInterpState(magicinterp, TCL_OK);
+#endif
     Tcl_EvalEx(magicinterp, "::tcl_flush stderr", 18, 0);
+#if TCL_MAJOR_VERSION < 9
     Tcl_RestoreResult(magicinterp, &state);
+#else
+    Tcl_RestoreInterpState(magicinterp, state);
+#endif
 }
 
 /*--------------------------------------------------------------*/
@@ -991,11 +1035,23 @@ TxFlushErr()
 void
 TxFlushOut()
 {
+#if TCL_MAJOR_VERSION < 9
     Tcl_SavedResult state;
+#else
+    Tcl_InterpState state;
+#endif
 
+#if TCL_MAJOR_VERSION < 9
     Tcl_SaveResult(magicinterp, &state);
+#else
+    state = Tcl_SaveInterpState(magicinterp, TCL_OK);
+#endif
     Tcl_EvalEx(magicinterp, "::tcl_flush stdout", 18, 0);
+#if TCL_MAJOR_VERSION < 9
     Tcl_RestoreResult(magicinterp, &state);
+#else
+    Tcl_RestoreInterpState(magicinterp, state);
+#endif
 }
 
 /*--------------------------------------------------------------*/

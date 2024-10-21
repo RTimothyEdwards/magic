@@ -629,7 +629,11 @@ keys_and_buttons:
 
 			if ((LocRedirect == TX_INPUT_REDIRECTED) && TxTkConsole)
 			{
+#if TCL_MAJOR_VERSION < 9
 				Tcl_SavedResult state;
+#else
+				Tcl_InterpState state;
+#endif
 				static char outstr[] = "::tkcon::Insert .text \"x\" ";
 
 				switch (keysym)
@@ -644,12 +648,20 @@ keys_and_buttons:
 					TxInputRedirect = TX_INPUT_NORMAL;
 					TxSetPrompt('%');
 
+#if TCL_MAJOR_VERSION < 9
 					Tcl_SaveResult(magicinterp, &state);
+#else
+					state = Tcl_SaveInterpState(magicinterp, TCL_OK);
+#endif
 					Tcl_EvalEx(magicinterp, "history event 0", 15, 0);
 					MacroDefine(mw->w_client, (int)'.',
 					            Tcl_GetStringResult(magicinterp), NULL,
 					            FALSE);
+#if TCL_MAJOR_VERSION < 9
 					Tcl_RestoreResult(magicinterp, &state);
+#else
+					Tcl_RestoreInterpState(magicinterp, state);
+#endif
 					break;
 				case XK_Up:
 					Tcl_EvalEx(consoleinterp, "::tkcon::Event -1",
