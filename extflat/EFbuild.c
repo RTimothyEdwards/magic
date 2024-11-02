@@ -1510,8 +1510,58 @@ efBuildConnect(def, nodeName1, nodeName2, deltaC, av, ac)
 {
     int n;
     Connection *conn;
+
     unsigned size = sizeof (Connection)
 		    + (efNumResistClasses - 1) * sizeof (EFPerimArea);
+
+    if ((EFOutputFlags & EF_SHORT_MASK) != EF_SHORT_NONE)
+    {
+	/* Handle the case where two ports on different nets get merged.
+	 * If "extract short resistor" or "extract short voltage" has
+	 * been specified, then his is similar to parsing an "equiv" statement,
+	 * resulting in a shorting resistor or voltage source being placed
+	 * between the two node names, and abandoning the merge.
+	 */
+
+	HashEntry *he1, *he2;
+
+	he1 = HashLookOnly(&def->def_nodes, nodeName1);
+	he2 = HashLookOnly(&def->def_nodes, nodeName2);
+
+	if (he1 && he2)
+	{
+	    EFNodeName *nn1, *nn2;
+
+	    nn1 = (EFNodeName *) HashGetValue(he1);
+	    nn2 = (EFNodeName *) HashGetValue(he2);
+
+	    if (nn1 && nn2 && (nn1->efnn_port >= 0) && (nn2->efnn_port >= 0) &&
+			(nn1->efnn_port != nn2->efnn_port))
+	    {
+		int i;
+		int sdev;
+		char *argv[10], zeroarg[] = "0";
+
+		if ((EFOutputFlags & EF_SHORT_MASK) == EF_SHORT_R)
+		    sdev = DEV_RES;
+		else
+		    sdev = DEV_VOLT;
+
+		for (i = 0; i < 10; i++) argv[i] = zeroarg;
+		argv[0] = StrDup((char **)NULL, "0.0");
+		argv[1] = StrDup((char **)NULL, "dummy");
+		argv[4] = StrDup((char **)NULL, nodeName1);
+		argv[7] = StrDup((char **)NULL, nodeName2);
+		efBuildDevice(def, sdev, "None", &GeoNullRect, 10, argv);
+		freeMagic(argv[0]);
+		freeMagic(argv[1]);
+		freeMagic(argv[4]);
+		freeMagic(argv[7]);
+
+		return;
+	    }
+	}
+    }
 
     conn = (Connection *) mallocMagic((unsigned)(size));
 

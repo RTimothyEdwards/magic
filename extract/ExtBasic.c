@@ -3413,14 +3413,52 @@ extTransPerimFunc(bp)
     Label *lab;
     bool SDterm = FALSE;
 
+    /* NOTE:  The tile side bit is not guaranteed to be correct
+     * when entering this routine.  For split tiles, determine
+     * the correct type (type on left, right, bottom, or top)
+     * based on the recorded boundary direction.
+     */
+
     tile = bp->b_inside;
     if (IsSplit(tile))
-        tinside = (SplitSide(tile)) ? SplitRightType(tile): SplitLeftType(tile);
+    {
+	switch (bp->b_direction)
+	{
+	    case BD_LEFT:
+		tinside = TiGetLeftType(tile);
+		break;
+	    case BD_TOP:
+		tinside = TiGetTopType(tile);
+		break;
+	    case BD_RIGHT:
+		tinside = TiGetRightType(tile);
+		break;
+	    case BD_BOTTOM:
+		tinside = TiGetBottomType(tile);
+		break;
+	}
+    }
     else
         tinside = TiGetTypeExact(bp->b_inside);
     tile = bp->b_outside;
     if (IsSplit(tile))
-        toutside = (SplitSide(tile)) ? SplitRightType(tile): SplitLeftType(tile);
+    {
+	switch (bp->b_direction)
+	{
+	    case BD_LEFT:
+		toutside = TiGetRightType(tile);
+		break;
+	    case BD_TOP:
+		toutside = TiGetBottomType(tile);
+		break;
+	    case BD_RIGHT:
+		toutside = TiGetLeftType(tile);
+		break;
+	    case BD_BOTTOM:
+		toutside = TiGetTopType(tile);
+		break;
+	}
+    }
     else
         toutside = TiGetTypeExact(bp->b_outside);
 
