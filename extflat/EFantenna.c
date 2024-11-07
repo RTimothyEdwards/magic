@@ -527,7 +527,7 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 		DBTreeCopyConnect(&scx, &DBConnectTbl[t], 0,
 			DBConnectTbl, &TiPlaneRect, SEL_NO_LABELS, extPathUse);
 
-		/* Search planes of tie types and accumulate all tiedown areas */
+		/* Search planes of tile types and accumulate all tiedown areas */
 		gdas.accum = (dlong)0;
 		for (p = 0;  p < DBNumPlanes; p++)
 		{
@@ -584,7 +584,12 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 			    saveRatio = ExtCurStyle->exts_antennaRatio[i].ratioGate;
 		    }
 
-		    if (anttotal > (double)gatearea)
+		    /* gatearea == 0 indicates that something went wrong---No device
+		     * of type "t" was found connected to this net.  This should be
+		     * reported as an error.  Avoid generating an antenna error with
+		     * infinite area ratio.
+		     */
+		    if ((gatearea > 0) && (anttotal > (double)gatearea))
 		    {
 			antennaError = TRUE;
 			if (efAntennaDebug == TRUE)
@@ -606,7 +611,7 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 				    aas.r.r_xtop, aas.r.r_ytop);
 			}
 		    }
-		    if (conttotal > (double)gatearea)
+		    if ((gatearea > 0) && (conttotal > (double)gatearea))
 		    {
 			antennaError = TRUE;
 			if (efAntennaDebug == TRUE)
