@@ -2549,8 +2549,17 @@ extOutputDevices(def, transList, outFile)
 		    /* Mark annular resistors as requiring extra processing */
 		    if (extTransRec.tr_termvector[n].p_x == 0 &&
 				extTransRec.tr_termvector[n].p_y == 0)
-			isAnnular = TRUE;
+		    {
+			/* Update: 11/14/2024:  A snake resistor with terminals
+			 * tied together also has a zero termvector and should
+			 * not be treated as annular!
+			 */
+			if ((n == 0) || (extTransRec.tr_termnode[n] !=
+				extTransRec.tr_termnode[n - 1]))
+			    isAnnular = TRUE;
+		    }
 		}
+
 
 		if (n == 0)
 		    width = length = 0;
