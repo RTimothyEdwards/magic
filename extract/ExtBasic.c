@@ -327,12 +327,11 @@ extBasic(def, outFile)
 	    fprintf(outFile, "parameters :%s %s\n", def->cd_name, propptr + 10);
     }
 
-    else
-    {
-	/* Output device parameters for any subcircuit devices */
-	if (!SigInterruptPending)
-	    extOutputParameters(def, transList, outFile);
-    }
+    /* Output device parameters for any subcircuit devices.		*/
+    /* This includes devices specified with the "device" parameter.	*/
+
+    if (!SigInterruptPending)
+	extOutputParameters(def, transList, outFile);
 
     if (isabstract) fprintf(outFile, "abstract\n");
 
@@ -1625,6 +1624,8 @@ extOutputParameters(def, transList, outFile)
     TileType t;
     TileTypeBitMask tmask;
     ExtDevice *devptr;
+    bool propfound = FALSE;
+    char *propptr;
 
     TTMaskZero(&tmask);
 
@@ -1640,6 +1641,42 @@ extOutputParameters(def, transList, outFile)
 			TT_RIGHTMASK) >> 14) : (reg->treg_type & TT_LEFTMASK);
 
 	TTMaskSetType(&tmask, loctype);
+    }
+
+    /* Check for the presence of property "device" followed by a device type
+     * and device name, and if detected, add the type corresponding to the
+     * device name to the mask so it gets handled, too.
+     */
+    propptr = DBPropGet(def, "device", &propfound);
+    if (propfound)
+    {
+	char *devname;
+	devname = propptr;
+	while (!isspace(*devname)) devname++;
+	if (*devname != '\0')
+	    while (isspace(*devname)) devname++;
+
+	if (*devname != '\0')
+	{
+	    char replace = *(devname + strlen(devname));
+	    *(devname + strlen(devname)) = '\0';
+
+	    /* This is dreadfully inefficient but happens only once */
+	    for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)
+	    {
+		for (devptr = ExtCurStyle->exts_device[t]; devptr;
+				devptr = devptr->exts_next)
+		{
+		    if (!strcmp(devptr->exts_deviceName, devname))
+		    {
+			TTMaskSetType(&tmask, t);
+			break;
+		    }
+		}
+	    }
+
+	    *(devname + strlen(devname)) = replace;
+	}
     }
 
     for (t = TT_TECHDEPBASE; t < DBNumTypes; t++)

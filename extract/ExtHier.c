@@ -484,7 +484,7 @@ extHierConnectFunc2(cum, ha)
     TileType ttype;
     HashEntry *he;
     NodeName *nn;
-    char *name;
+    char *name1, *name2;
     Rect r;
 
     /* Compute the overlap area */
@@ -511,14 +511,14 @@ extHierConnectFunc2(cum, ha)
 
     if (extConnectsTo(ha->hierType, ttype, ExtCurStyle->exts_nodeConn))
     {
-	name = (*ha->ha_nodename)(cum, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
-	he = HashFind(table, name);
+	name1 = (*ha->ha_nodename)(cum, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
+	he = HashFind(table, name1);
 	nn = (NodeName *) HashGetValue(he);
 	node1 = nn ? nn->nn_node : extHierNewNode(he);
 
-	name = (*ha->ha_nodename)(ha->hierOneTile, ha->hierPNum, extHierOneFlat,
+	name2 = (*ha->ha_nodename)(ha->hierOneTile, ha->hierPNum, extHierOneFlat,
 		ha, TRUE);
-	he = HashFind(table, name);
+	he = HashFind(table, name2);
 	nn = (NodeName *) HashGetValue(he);
 	node2 = nn ? nn->nn_node : extHierNewNode(he);
 
@@ -593,7 +593,7 @@ extHierConnectFunc3(cum, ha)
     TileType ttype;
     HashEntry *he;
     NodeName *nn;
-    char *name;
+    char *name1, *name2;
     Rect r;
     Label *lab = (Label *)(ha->hierOneTile);	/* Lazy recasting */
 
@@ -620,13 +620,13 @@ extHierConnectFunc3(cum, ha)
 
     if (extConnectsTo(ha->hierType, ttype, ExtCurStyle->exts_nodeConn))
     {
-	name = (*ha->ha_nodename)(cum, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
-	he = HashFind(table, name);
+	name1 = (*ha->ha_nodename)(cum, ha->hierPNumBelow, extHierCumFlat, ha, TRUE);
+	he = HashFind(table, name1);
 	nn = (NodeName *) HashGetValue(he);
 	node1 = nn ? nn->nn_node : extHierNewNode(he);
 
-	name = lab->lab_text;
-	he = HashFind(table, name);
+	name2 = lab->lab_text;
+	he = HashFind(table, name2);
 	nn = (NodeName *) HashGetValue(he);
 	node2 = nn ? nn->nn_node : extHierNewNode(he);
 
