@@ -224,7 +224,7 @@ DBCellDelete(cellname, force)
 {
     HashEntry *entry;
     CellDef *celldef;
-    CellUse *celluse;
+    CellUse *celluse, *lastuse;
     bool result;
 
     entry = HashLookOnly(&dbCellDefTable, cellname);
@@ -257,6 +257,29 @@ DBCellDelete(cellname, force)
 	TxError("Cell has non-top-level dependency in use \"%s\"\n",
 		celluse->cu_id);
 	return FALSE;
+    }
+
+    /* 2nd pass:  If there are instances of the cell in		*/
+    /* internal	cells like SelectDef, etc., then remove the use	*/
+    /* from the definition.					*/
+
+    lastuse = NULL;
+    celluse = celldef->cd_parents;
+    while (celluse != (CellUse *) NULL)
+    {
+	if (celluse->cu_parent != (CellDef *)NULL)
+	{
+	    if ((celluse->cu_parent->cd_flags & CDINTERNAL) == CDINTERNAL)
+	    {
+		DBDeleteCell(celluse);
+		celluse = lastuse;
+	    }
+	}
+	lastuse = celluse;
+	if (lastuse == NULL)
+	    celluse = celldef->cd_parents;
+	else
+	    celluse = celluse->cu_nextuse;
     }
 
     /* Cleared to delete. . . now prompt user if the cell has changes. */
