@@ -65,7 +65,7 @@ extern bool CalmaWrite();
 extern void CalmaReadFile();
 extern void CalmaTechInit();
 extern bool CalmaGenerateArray();
-extern void CalmaReadError(char *format, ...);
+extern void CalmaReadError(const char *format, ...) ATTR_FORMAT_PRINTF_1;
 
 /* C99 compat */
 extern int  calmaAddSegment();
