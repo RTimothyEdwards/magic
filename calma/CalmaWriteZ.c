@@ -1845,8 +1845,11 @@ calmaProcessBoundaryZ(blist, cos)
 	    calmaOutI4Z(lbref->lb_start.p_y * calmaPaintScale, f);
 	    chkcount++;
 	}
-	calmaOutI4Z(listtop->lb_start.p_x * calmaPaintScale, f);
-	calmaOutI4Z(listtop->lb_start.p_y * calmaPaintScale, f);
+	if (listtop != NULL)
+	{
+	    calmaOutI4Z(listtop->lb_start.p_x * calmaPaintScale, f);
+	    calmaOutI4Z(listtop->lb_start.p_y * calmaPaintScale, f);
+	}
 
 	if (chkcount != bounds->bt_points)
 	    TxError("Points recorded=%d;  Points written=%d\n",
