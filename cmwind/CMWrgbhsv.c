@@ -45,9 +45,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 */
 
 bool
-RGBxHSV( r, g, b, h, s, v)
-    double r, g, b;
-    double *h, *s, *v;
+RGBxHSV(
+    double r,
+    double g,
+    double b,
+    double *h,
+    double *s,
+    double *v)
 {
   double	max, delta;
   double	mr,mg,mb;
@@ -90,10 +94,14 @@ RGBxHSV( r, g, b, h, s, v)
 #define		SETRGB(rr,gg,bb)	*r=rr;*g=gg;*b=bb
 
 void
-HSVxRGB( h,s,v,r,g,b)
-double	h,s,v;
-double	*r,*g,*b;
-    {
+HSVxRGB(
+    double h,
+    double s,
+    double v,
+    double *r,
+    double *g,
+    double *b)
+{
     double	f,m,n,k;
     int	i;
     double	vs,vsf;
@@ -125,9 +133,13 @@ double	*r,*g,*b;
 */
 
 bool
-RGBxHSL( r, g, b, h, s, l )
-    double  r,  g,  b;
-    double  *h, *s, *l;
+RGBxHSL(
+    double r,
+    double g,
+    double b,
+    double *h,
+    double *s,
+    double *l)
 {
   double min, max;
   double delta, mr, mg, mb;
@@ -184,9 +196,13 @@ RGBxHSL( r, g, b, h, s, l )
 */
 
 void
-HSLxRGB( h, s, l, r, g, b )
-    double h, s, l;
-    double *r, *g, *b;
+HSLxRGB(
+    double h,
+    double s,
+    double l,
+    double *r,
+    double *g,
+    double *b)
 {
   double	min;
   double	v;
@@ -235,9 +251,11 @@ HSLxRGB( h, s, l, r, g, b )
 */
 
 void
-Correct_chromaticity(x, y, wx, wy)
-    double	*x,*y;
-    double	wx,wy;
+Correct_chromaticity(
+    double	*x,
+    double	*y,
+    double	wx,
+    double	wy)
 {
     double	oldx,oldy;
     double	slope;
@@ -261,9 +279,13 @@ Correct_chromaticity(x, y, wx, wy)
 */
 
 void
-xyz_to_mrgb(x, y, z, mr, mg, mb)
-    double	x, y, z;
-    double	*mr, *mg, *mb;
+xyz_to_mrgb(
+    double	x,
+    double	y,
+    double	z,
+    double	*mr,
+    double	*mg,
+    double	*mb)
 {
     *mr =  2.4513*x - 1.2249*y - 0.3237*z;
     *mg = -1.4746*x + 2.5052*y + 0.0596*z;
@@ -281,8 +303,10 @@ xyz_to_mrgb(x, y, z, mr, mg, mb)
 */
 
 void
-Make_mRGB_Nice(mR,mG,mB)
-    double	*mR,*mG,*mB;
+Make_mRGB_Nice(
+    double	*mR,
+    double	*mG,
+    double	*mB)
 {
     double	min,max;
     double	mr, mg, mb;

@@ -36,12 +36,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 UndoType cmwUndoClientID;
 
 /*
- * Functions to play events forward/backward.
- */
-void cmwUndoForw(), cmwUndoBack();
-void cmwUndoStart(), cmwUndoDone();
-
-/*
  * A single undo event for the
  * color map module.
  */
@@ -57,6 +51,14 @@ void cmwUndoStart(), cmwUndoDone();
  * of an undo/redo command.
  */
 bool cmwColorsChanged[256];
+
+/*
+ * Functions to play events forward/backward.
+ */
+void cmwUndoForw(colorUE *up);
+void cmwUndoBack(colorUE *up);
+void cmwUndoStart(void);
+void cmwUndoDone(void);
 
 /*
  * ----------------------------------------------------------------------------
@@ -77,7 +79,7 @@ bool cmwColorsChanged[256];
  */
 
 void
-CMWundoInit()
+CMWundoInit(void)
 {
     cmwUndoClientID = UndoAddClient(cmwUndoStart, cmwUndoDone, NULL, NULL,
 				cmwUndoForw, cmwUndoBack, "color map");
@@ -102,16 +104,16 @@ CMWundoInit()
  */
 
 void
-cmwUndoForw(up)
-    colorUE *up;
+cmwUndoForw(
+    colorUE *up)
 {
     (void) GrPutColor(up->cue_color, up->new_r, up->new_g, up->new_b);
     cmwColorsChanged[up->cue_color] = TRUE;
 }
 
 void
-cmwUndoBack(up)
-    colorUE *up;
+cmwUndoBack(
+    colorUE *up)
 {
     (void) GrPutColor(up->cue_color, up->old_r, up->old_g, up->old_b);
     cmwColorsChanged[up->cue_color] = TRUE;
@@ -134,10 +136,14 @@ cmwUndoBack(up)
  */
 
 void
-cmwUndoColor(color, oldr, oldg, oldb, newr, newg, newb)
-    int color;
-    int oldr, oldg, oldb;
-    int newr, newg, newb;
+cmwUndoColor(
+    int color,
+    int oldr,
+    int oldg,
+    int oldb,
+    int newr,
+    int newg,
+    int newb)
 {
     colorUE *up;
 
@@ -171,7 +177,7 @@ cmwUndoColor(color, oldr, oldg, oldb, newr, newg, newb)
  */
 
 void
-cmwUndoStart()
+cmwUndoStart(void)
 {
     int i;
 
@@ -198,10 +204,10 @@ cmwUndoStart()
  */
 
 void
-cmwUndoDone()
+cmwUndoDone(void)
 {
     int i;
-    extern int cmwRedisplayFunc();
+    extern int cmwRedisplayFunc(MagWindow *w, int color);
 
     for (i = 0; i < 256; i++)
 	if (cmwColorsChanged[i])
