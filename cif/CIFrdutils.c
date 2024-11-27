@@ -205,9 +205,9 @@ CIFReadWarning(char *format, ...)
  */
 
 int
-CIFScaleCoord(cifCoord, snap_type)
-    int cifCoord;			/* A coordinate in CIF units. */
-    int snap_type;			/* How to deal with fractional results */
+CIFScaleCoord(
+    int cifCoord,			/* A coordinate in CIF units. */
+    int snap_type)			/* How to deal with fractional results */
 {
     int result, scale, remain, denom;
     int mult, mfactor;
@@ -343,8 +343,8 @@ CIFScaleCoord(cifCoord, snap_type)
  */
 
 bool
-cifIsBlank(ch)
-    int	ch;
+cifIsBlank(
+    int	ch)
 {
 
     if (  isdigit(ch) || isupper(ch)
@@ -376,7 +376,7 @@ cifIsBlank(ch)
  */
 
 void
-CIFSkipBlanks()
+CIFSkipBlanks(void)
 {
 
     while (cifIsBlank(PEEK())) {
@@ -405,7 +405,7 @@ CIFSkipBlanks()
  */
 
 void
-CIFSkipSep()
+CIFSkipSep(void)
 {
     int	ch;
 
@@ -435,7 +435,7 @@ CIFSkipSep()
  */
 
 void
-CIFSkipToSemi()
+CIFSkipToSemi(void)
 {
     int	ch;
 
@@ -464,7 +464,7 @@ CIFSkipToSemi()
  */
 
 void
-CIFSkipSemi()
+CIFSkipSemi(void)
 {
 
     CIFSkipBlanks();
@@ -495,8 +495,8 @@ CIFSkipSemi()
  */
 
 bool
-CIFParseSInteger(valuep)
-    int		*valuep;
+CIFParseSInteger(
+    int		*valuep)
 {
     bool	is_signed;
     char	buffer[ BUFSIZ ];
@@ -540,8 +540,8 @@ CIFParseSInteger(valuep)
  */
 
 bool
-CIFParseInteger(valuep)
-    int *valuep;
+CIFParseInteger(
+    int *valuep)
 {
 
     if (!CIFParseSInteger(valuep))
@@ -581,9 +581,9 @@ CIFParseInteger(valuep)
  */
 
 bool
-CIFParsePoint(pointp, iscale)
-    Point *pointp;
-    int iscale;
+CIFParsePoint(
+    Point *pointp,
+    int iscale)
 {
     int rescale;
 
@@ -667,9 +667,9 @@ CIFParsePoint(pointp, iscale)
  */
 
 bool
-CIFParsePath(pathheadpp, iscale)
-    CIFPath **pathheadpp;
-    int iscale;
+CIFParsePath(
+    CIFPath **pathheadpp,
+    int iscale)
 {
     CIFPath *pathtailp, *newpathp;
     bool nonManhattan = FALSE;		/* diagnostic only */
@@ -744,9 +744,9 @@ CIFParsePath(pathheadpp, iscale)
  */
 
 bool
-test_insideness(start, tpoint)
-    CIFPath *start;
-    Point *tpoint;
+test_insideness(
+    CIFPath *start,
+    Point *tpoint)
 {
     Rect tmprect, irect;
 
@@ -782,10 +782,11 @@ test_insideness(start, tpoint)
  */
 
 bool
-seg_intersect(tstart, bf, bs, respt)
-    CIFPath *tstart;
-    Point *bf, *bs;
-    Point *respt;
+seg_intersect(
+    CIFPath *tstart,
+    Point *bf,
+    Point *bs,
+    Point *respt)
 {
     int afx = tstart->cifp_x;
     int afy = tstart->cifp_y;
@@ -848,9 +849,10 @@ seg_intersect(tstart, bf, bs, respt)
  */
 
 bool
-path_intersect(pathHead, start, respt)
-    CIFPath *pathHead, *start;
-    Point *respt;
+path_intersect(
+    CIFPath *pathHead,
+    CIFPath *start,
+    Point *respt)
 {
     CIFPath *path, *segcrossed, *new;
     Point tmppt;
@@ -953,8 +955,8 @@ path_intersect(pathHead, start, respt)
  */
 
 bool
-is_clockwise(pathHead)
-    CIFPath *pathHead;
+is_clockwise(
+    CIFPath *pathHead)
 {
     CIFPath *path, *midx = NULL, *last;
     Point *p1, *p2, *p3;
@@ -1047,11 +1049,11 @@ is_clockwise(pathHead)
  */
 
 void
-CIFMakeManhattanPath(pathHead, plane, resultTbl, ui)
-    CIFPath *pathHead;
-    Plane *plane;
-    PaintResultType *resultTbl;
-    PaintUndoInfo *ui;
+CIFMakeManhattanPath(
+    CIFPath *pathHead,
+    Plane *plane,
+    PaintResultType *resultTbl,
+    PaintUndoInfo *ui)
 {
     CIFPath *new, *new2, *next, *path;
     int xinit, xdiff, xincr, xlast, x;
@@ -1185,8 +1187,9 @@ CIFMakeManhattanPath(pathHead, plane, resultTbl, ui)
  */
 
 int
-CIFEdgeDirection(first, last)
-    CIFPath *first, *last;		/* Edge to be categorized. */
+CIFEdgeDirection(
+    CIFPath *first,
+    CIFPath *last)		/* Edge to be categorized. */
 {
 
     if (first->cifp_x < last->cifp_x)
@@ -1233,8 +1236,8 @@ CIFEdgeDirection(first, last)
  */
 
 void
-CIFCleanPath(pathHead)
-    CIFPath *pathHead;
+CIFCleanPath(
+    CIFPath *pathHead)
 {
     CIFPath *next, *path, *prev, *last;
     int dir1, dir2;
@@ -1332,8 +1335,8 @@ path_inc:
  */
 
 void
-CIFFreePath(path)
-    CIFPath *path;		/* Path to be freed. */
+CIFFreePath(
+    CIFPath *path)		/* Path to be freed. */
 {
     while (path != NULL)
     {
@@ -1361,7 +1364,7 @@ CIFFreePath(path)
  */
 
 void
-cifCommandError()
+cifCommandError(void)
 {
     CIFReadError("unknown command `%c'; ignored.\n" , PEEK());
     CIFSkipToSemi();
@@ -1386,7 +1389,7 @@ cifCommandError()
  */
 
 bool
-cifParseEnd()
+cifParseEnd(void)
 {
     TAKE();
     CIFSkipBlanks();
@@ -1415,7 +1418,7 @@ cifParseEnd()
  */
 
 bool
-cifParseComment()
+cifParseComment(void)
 {
     int		opens;
     int		ch;
@@ -1467,8 +1470,8 @@ cifParseComment()
  */
 
 Transform *
-CIFDirectionToTrans(point)
-    Point *point;		/* Direction vector from origin. */
+CIFDirectionToTrans(
+    Point *point)		/* Direction vector from origin. */
 {
     if ((point->p_x != 0) && (point->p_y == 0))
     {
@@ -1507,8 +1510,8 @@ CIFDirectionToTrans(point)
  */
 
 bool
-CIFParseTransform(transformp)
-    Transform	*transformp;
+CIFParseTransform(
+    Transform	*transformp)
 {
     char	ch;
     Point	point;
@@ -1601,8 +1604,8 @@ CIFParseTransform(transformp)
  */
 
 void
-CIFReadFile(file)
-    FILE *file;			/* File from which to read CIF. */
+CIFReadFile(
+    FILE *file)			/* File from which to read CIF. */
 {
     /* We will use 1-word CIF numbers as keys in this hash table */
     CIFReadCellInit(1);
