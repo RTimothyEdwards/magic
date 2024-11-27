@@ -53,6 +53,16 @@ char *MagicVersion = MAGIC_VERSION;
 char *MagicRevision = MAGIC_REVISION;
 char *MagicCompileTime = MAGIC_DATE;
 
+#if TCL_MAJOR_VERSION < 9
+const char *Tclmagic_InitStubsVersion = "8.5";
+#else
+/* Major version changed API (as you'd expect for a major version upgrade)
+ *  which is compiled into the resulting binary.
+ * No possibility of dual version support.
+ */
+const char *Tclmagic_InitStubsVersion = "9.0";
+#endif
+
 Tcl_Interp *magicinterp;
 Tcl_Interp *consoleinterp;
 
@@ -104,7 +114,11 @@ TagCallback(interp, tkpath, argc, argv)
     char *postcmd, *substcmd, *newcmd, *sptr, *sres;
     char *croot;
     HashEntry *entry;
+#if TCL_MAJOR_VERSION < 9
     Tcl_SavedResult state;
+#else
+    Tcl_InterpState state;
+#endif
     bool reset = FALSE;
     int cmdnum;
 
@@ -240,12 +254,28 @@ TagCallback(interp, tkpath, argc, argv)
 	/* fprintf(stderr, "Substituted tag callback is \"%s\"\n", substcmd); */
 	/* fflush(stderr); */
 
+#if TCL_MAJOR_VERSION < 9
 	Tcl_SaveResult(interp, &state);
+#else
+	state = Tcl_SaveInterpState(interp, TCL_OK);
+#endif
 	result = Tcl_EvalEx(interp, substcmd, -1, 0);
 	if ((result == TCL_OK) && (reset == FALSE))
+	{
+#if TCL_MAJOR_VERSION < 9
 	    Tcl_RestoreResult(interp, &state);
+#else
+	    Tcl_RestoreInterpState(interp, state);
+#endif
+        }
 	else
+	{
+#if TCL_MAJOR_VERSION < 9
 	    Tcl_DiscardResult(&state);
+#else
+	    Tcl_DiscardInterpState(state);
+#endif
+        }
 
 	freeMagic(substcmd);
 	TxCommandNumber = cmdnum;	/* restore original value */
@@ -336,7 +366,7 @@ _tcl_dispatch(ClientData clientData,
     if (!strncmp(argv0, "::", 2)) argv0 += 2;
 
     objv0 = Tcl_NewStringObj(argv0, strlen(argv0));
-    if (Tcl_GetIndexFromObj(interp, objv0, (CONST84 char **)conflicts,
+    if (Tcl_GetIndexFromObj(interp, objv0, (const char **)conflicts,
 	"overloaded command", 0, &idx) == TCL_OK)
     {
 	int i;
@@ -604,7 +634,7 @@ _magic_initialize(ClientData clientData,
     return TCL_OK;
 
 magicfatal:
-    TxResetTerminal();
+    TxResetTerminal(FALSE);
     Tcl_SetResult(interp, "Magic initialization encountered a fatal error.", NULL);
     return TCL_ERROR;
 }
@@ -623,7 +653,7 @@ typedef struct FileState {
 
 static int
 _magic_flags(ClientData clientData,
-        Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+        Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     int index, index2;
     bool value;
@@ -636,7 +666,7 @@ _magic_flags(ClientData clientData,
 	Tcl_WrongNumArgs(interp, 1, objv, "flag ?value?");
 	return TCL_ERROR;
     }
-    if (Tcl_GetIndexFromObj(interp, objv[1], (CONST84 char **)flagOptions,
+    if (Tcl_GetIndexFromObj(interp, objv[1], (const char **)flagOptions,
 		"option", 0, &index) != TCL_OK) {
 	return TCL_ERROR;
     }
@@ -664,7 +694,7 @@ _magic_flags(ClientData clientData,
 	Tcl_SetObjResult(interp, Tcl_NewBooleanObj(value));
     }
     else {
-	if (Tcl_GetIndexFromObj(interp, objv[2], (CONST84 char **)yesNo,
+	if (Tcl_GetIndexFromObj(interp, objv[2], (const char **)yesNo,
 		"value", 0, &index2) != TCL_OK)
 	    return TCL_ERROR;
 
@@ -750,7 +780,7 @@ _magic_startup(ClientData clientData,
 		NULL);
     }
 
-    TxResetTerminal();
+    TxResetTerminal(FALSE);
 
     if (TxTkConsole)
     {
@@ -824,6 +854,7 @@ TxDialog(prompt, responses, defresp)
 
     Tcl_EvalEx(magicinterp, evalstr, -1, 0);
     objPtr = Tcl_GetObjResult(magicinterp);
+    /* tcl9 checked, this API is still (int) for &code */
     result = Tcl_GetIntFromObj(magicinterp, objPtr, &code);
 
     if (result == TCL_OK) return code;
@@ -858,15 +889,27 @@ void
 TxSetPrompt(ch)
     char ch;
 {
+#if TCL_MAJOR_VERSION < 9
     Tcl_SavedResult state;
+#else
+    Tcl_InterpState state;
+#endif
     char promptline[16];
 
     if (TxTkConsole)
     {
 	sprintf(promptline, "replaceprompt %c", ch);
+#if TCL_MAJOR_VERSION < 9
 	Tcl_SaveResult(consoleinterp, &state);
+#else
+	state = Tcl_SaveInterpState(consoleinterp, TCL_OK);
+#endif
 	Tcl_EvalEx(consoleinterp, promptline, 15, 0);
+#if TCL_MAJOR_VERSION < 9
 	Tcl_RestoreResult(consoleinterp, &state);
+#else
+	Tcl_RestoreInterpState(consoleinterp, state);
+#endif
     }
 }
 
@@ -881,7 +924,12 @@ TxGetLinePfix(dest, maxChars, prefix)
     char *prefix;
 {
     Tcl_Obj *objPtr;
-    int charsStored, length;
+    int charsStored;
+#if TCL_MAJOR_VERSION < 9
+    int length;
+#else
+    Tcl_Size length;
+#endif
     char *string;
 
     if (TxTkConsole)
@@ -979,11 +1027,23 @@ TxParseString(str, q, event)
 void
 TxFlushErr()
 {
+#if TCL_MAJOR_VERSION < 9
     Tcl_SavedResult state;
+#else
+    Tcl_InterpState state;
+#endif
 
+#if TCL_MAJOR_VERSION < 9
     Tcl_SaveResult(magicinterp, &state);
+#else
+    state = Tcl_SaveInterpState(magicinterp, TCL_OK);
+#endif
     Tcl_EvalEx(magicinterp, "::tcl_flush stderr", 18, 0);
+#if TCL_MAJOR_VERSION < 9
     Tcl_RestoreResult(magicinterp, &state);
+#else
+    Tcl_RestoreInterpState(magicinterp, state);
+#endif
 }
 
 /*--------------------------------------------------------------*/
@@ -991,11 +1051,23 @@ TxFlushErr()
 void
 TxFlushOut()
 {
+#if TCL_MAJOR_VERSION < 9
     Tcl_SavedResult state;
+#else
+    Tcl_InterpState state;
+#endif
 
+#if TCL_MAJOR_VERSION < 9
     Tcl_SaveResult(magicinterp, &state);
+#else
+    state = Tcl_SaveInterpState(magicinterp, TCL_OK);
+#endif
     Tcl_EvalEx(magicinterp, "::tcl_flush stdout", 18, 0);
+#if TCL_MAJOR_VERSION < 9
     Tcl_RestoreResult(magicinterp, &state);
+#else
+    Tcl_RestoreInterpState(magicinterp, state);
+#endif
 }
 
 /*--------------------------------------------------------------*/
@@ -1232,7 +1304,7 @@ Tclmagic_Init(interp)
     /* Remember the interpreter */
     magicinterp = interp;
 
-    if (Tcl_InitStubs(interp, "8.5", 0) == NULL) return TCL_ERROR;
+    if (Tcl_InitStubs(interp, Tclmagic_InitStubsVersion, 0) == NULL) return TCL_ERROR;
 
     /* Initialization and Startup commands */
     Tcl_CreateCommand(interp, "magic::initialize", (Tcl_CmdProc *)_magic_initialize,

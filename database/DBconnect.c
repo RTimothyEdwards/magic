@@ -483,13 +483,13 @@ dbSrConnectFunc(tile, csa)
 
     /* Drop the first entry on the stack */
     pNum = csa->csa_pNum;
-    STACKPUSH((ClientData)tile, dbConnectStack);
-    STACKPUSH((ClientData)pNum, dbConnectStack);
+    STACKPUSH(INT2CD(tile), dbConnectStack);
+    STACKPUSH(INT2CD(pNum), dbConnectStack);
 
     while (!StackEmpty(dbConnectStack))
     {
-	pNum = (int)STACKPOP(dbConnectStack);
-	tile = (Tile *)STACKPOP(dbConnectStack);
+	pNum = (int)CD2INT(STACKPOP(dbConnectStack));
+	tile = (Tile *)CD2INT(STACKPOP(dbConnectStack));
 	if (result == 1) continue;
 
 	TiToRect(tile, &tileArea);
@@ -565,9 +565,9 @@ dbSrConnectFunc(tile, csa)
 		}
 		else if (t2->ti_client == (ClientData) 1) continue;
 		if (IsSplit(t2))
-		    TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE)); /* bit set */
-		STACKPUSH((ClientData)t2, dbConnectStack);
-    		STACKPUSH((ClientData)pNum, dbConnectStack);
+		    TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) | TT_SIDE)); /* bit set */
+		STACKPUSH(INT2CD(t2), dbConnectStack);
+		STACKPUSH(INT2CD(pNum), dbConnectStack);
 	    }
 	}
 
@@ -596,13 +596,13 @@ bottomside:
 		{
 		    if (SplitDirection(t2))
 			/* bit set */
-			TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE));
+			TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) | TT_SIDE));
 		    else
 			/* bit clear */
-			TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE));
+			TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) & ~TT_SIDE));
 		}
-		STACKPUSH((ClientData)t2, dbConnectStack);
-    		STACKPUSH((ClientData)pNum, dbConnectStack);
+		STACKPUSH(INT2CD(t2), dbConnectStack);
+		STACKPUSH(INT2CD(pNum), dbConnectStack);
 	    }
 	}
 
@@ -627,9 +627,9 @@ rightside:
 		}
 		else if (t2->ti_client == (ClientData) 1) goto nextRight;
 		if (IsSplit(t2))
-		    TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE)); /* bit clear */
-		STACKPUSH((ClientData)t2, dbConnectStack);
-    		STACKPUSH((ClientData)pNum, dbConnectStack);
+		    TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) & ~TT_SIDE)); /* bit clear */
+		STACKPUSH(INT2CD(t2), dbConnectStack);
+		STACKPUSH(INT2CD(pNum), dbConnectStack);
 	    }
 	    nextRight: if (BOTTOM(t2) <= tileArea.r_ybot) break;
 	}
@@ -658,13 +658,13 @@ topside:
 		{
 		    if (SplitDirection(t2))
 			/* bit clear */
-			TiSetBody(t2, (ClientData)(t2->ti_body & ~TT_SIDE));
+			TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) & ~TT_SIDE));
 		    else
 			/* bit set */
-			TiSetBody(t2, (ClientData)(t2->ti_body | TT_SIDE));
+			TiSetBody(t2, INT2CD(CD2INT(t2->ti_body) | TT_SIDE));
 		}
-		STACKPUSH((ClientData)t2, dbConnectStack);
-    		STACKPUSH((ClientData)pNum, dbConnectStack);
+		STACKPUSH(INT2CD(t2), dbConnectStack);
+		STACKPUSH(INT2CD(pNum), dbConnectStack);
 	    }
 	    nextTop: if (LEFT(t2) <= tileArea.r_xbot) break;
 	}
@@ -692,16 +692,16 @@ donesides:
 				TiGetTypeExact(tile), &newArea, connectMask,
 				dbcFindTileFunc, (ClientData)&t2) != 0)
 		    {
-			STACKPUSH((ClientData)t2, dbConnectStack);
-    			STACKPUSH((ClientData)i, dbConnectStack);
+			STACKPUSH(INT2CD(t2), dbConnectStack);
+			STACKPUSH(INT2CD(i), dbConnectStack);
 		    }
 		}
 		else if (DBSrPaintArea((Tile *) NULL, csa->csa_def->cd_planes[i],
 			&newArea, connectMask, dbcFindTileFunc,
 			(ClientData)&t2) != 0)
 		{
-    		    STACKPUSH((ClientData)t2, dbConnectStack);
-    		    STACKPUSH((ClientData)i, dbConnectStack);
+		    STACKPUSH(INT2CD(t2), dbConnectStack);
+		    STACKPUSH(INT2CD(i), dbConnectStack);
 		}
 	    }
 	}

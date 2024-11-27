@@ -4968,7 +4968,7 @@ CIFGenLayer(op, area, cellDef, origDef, temps, hier, clientdata)
 		if (CIFErrorDef == NULL) break;
 
 		/* co_client contains the flag (1) for top-level only */
-		if ((int)op->co_client == 1)
+		if ((int)CD2INT(op->co_client) == 1)
 		{
 		    /* Only generate output for the top-level cell */
 		    int found = 0;
