@@ -55,7 +55,7 @@ static char sccsid[] = "@(#)ExtBasic.c	4.13 MAGIC (Berkeley) 12/5/85";
 /* ext2spice/ext2sim are compiled as separate programs (i.e., non-Tcl)	*/
 
 #ifdef MAGIC_WRAPPER
-char *extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
+const char * const extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
 	"devcap", "devcaprev", "vsource", "diode", "pdiode", "ndiode",
 	"subckt", "rsubckt", "msubckt", "csubckt", NULL};
 #endif

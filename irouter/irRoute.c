@@ -927,7 +927,7 @@ irChooseEndPtLayers(routeUse,expansionMask,endPt,argLayers,endPtName)
     List *presentContacts;
     List *presentContactLayers;
 
-    static char *actionNames[] = { "no", "yes", 0 };
+    static const char * const actionNames[] = { "no", "yes", 0 };
 
     List *l;
     RouteLayer *rL;

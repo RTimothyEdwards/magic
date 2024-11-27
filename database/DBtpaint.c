@@ -356,9 +356,9 @@ DBTechAddCompose(sectionName, argc, argv)
 {
     TileType type, r, s;
     int pNum, ruleType, i;
-    static char *ruleNames[] =
+    static const char * const ruleNames[] =
 	{ "compose", "decompose", "paint", "erase", 0 };
-    static int ruleTypes[] =
+    static const int ruleTypes[] =
 	{ RULE_COMPOSE, RULE_DECOMPOSE, RULE_PAINT, RULE_ERASE };
 
     if (argc < 4)

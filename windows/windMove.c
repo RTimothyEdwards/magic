@@ -556,7 +556,7 @@ WindOver(w)
  * ----------------------------------------------------------------------------
  */
 
-int
+bool
 windFindUnobscured(area, okArea)
     Rect *area;				/* Area that may be obscured. */
     Rect *okArea;			/* Modified to contain one of the
@@ -609,7 +609,7 @@ WindReframe(w, r, inside, move)
 					 * not have to be redisplayed.
 					 */
     int xmove, ymove;			/* Distance window is moving. */
-    extern int windReframeFunc();	/* Forward declaration. */
+    extern bool windReframeFunc();	/* Forward declaration. */
     clientRec *cr;
 
     cr = (clientRec *) w->w_client;
@@ -720,14 +720,14 @@ WindReframe(w, r, inside, move)
 	(*(cr->w_reposition))(w, &newFrameArea, TRUE);
 }
 
-int
+bool
 windReframeFunc(area, w)
     Rect *area;			/* Area to redisplay. */
     MagWindow *w;			/* Window in which to redisplay. */
 
 {
     WindAreaChanged(w, area);
-    return 0;
+    return FALSE;
 }
 
 /*

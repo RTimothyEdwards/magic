@@ -161,7 +161,7 @@ NMCmdCleanup(w, cmd)
     {
 	char answer[30];
 	int indx, defaultValue;
-	static char *options[] = {"abort", "dnet", "dterm", "skip", NULL};
+	static const char * const options[] = {"abort", "dnet", "dterm", "skip", NULL};
 
 	if (p->nmcl_problem == NMCL_ONETERM)
 	{

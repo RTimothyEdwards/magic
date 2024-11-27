@@ -35,7 +35,7 @@ typedef struct h1
     struct h1 *h_next;		/* Next element, zero for end. */
     union
     {
-	char *h_ptr;		/* One-word key value to identify entry. */
+	const char *h_ptr;	/* One-word key value to identify entry. */
 	unsigned h_words[1];	/* N-word key value.  Note: the actual
 				 * size may be longer if necessary to hold
 				 * the entire key.
@@ -113,9 +113,9 @@ typedef struct h2
 
 extern void HashInit(HashTable *, int, int), HashInitClient(), HashStats(), HashKill(),
 	    HashFreeKill();
-extern HashEntry *HashFind(HashTable *, char *);
-extern HashEntry *HashLookOnly(HashTable *, char *);
-extern void HashRemove(HashTable *, char *);
+extern HashEntry *HashFind(HashTable *, const char *);
+extern HashEntry *HashLookOnly(HashTable *, const char *);
+extern void HashRemove(HashTable *, const char *);
 extern void HashStartSearch(HashSearch *);
 extern HashEntry *HashNext(HashTable *, HashSearch *);
 

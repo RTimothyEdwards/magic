@@ -250,7 +250,7 @@ extern void windFixSurfaceArea();
 extern int WindExecute();
 extern void WindAddCommand();
 extern int WindReplaceCommand();
-extern char **WindGetCommandTable();
+extern const char * const *WindGetCommandTable();
 extern int windCheckOnlyWindow(MagWindow **, WindClient);
 
 

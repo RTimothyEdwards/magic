@@ -167,7 +167,7 @@ EFDone(func)
     while ((he = HashNext(&efFreeHashTable, &hs)))
     {
 	/* Keys of this table are entries to be free'd */
-	freeMagic(he->h_key.h_ptr);
+	freeMagic((void *)he->h_key.h_ptr);
     }
     HashKill(&efFreeHashTable);
 

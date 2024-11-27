@@ -235,7 +235,7 @@ NMCmdPushButton(w, cmd)
     TxCommand *cmd;		/* Contains the command's argc and argv. */
 {
     int button, action;
-    static char *NMButton[] = {"left", "middle", "right", NULL};
+    static const char * const NMButton[] = {"left", "middle", "right", NULL};
 
     if (cmd->tx_argc != 2)
     {

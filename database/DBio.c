@@ -3872,7 +3872,8 @@ DBCellWrite(cellDef, fileName)
 #define NAME_SIZE	1000
     char *template = ".XXXXXXX";
     char *realname, *tmpname, *expandname;
-    char *cp1, *cp2, *dotptr;
+    const char *cp1;
+    char *cp2, *dotptr;
     char expandbuf[NAME_SIZE];
     FILE *realf, *tmpf;
     int tmpres;
