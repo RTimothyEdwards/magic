@@ -9,7 +9,10 @@ global Opts
 # the environment variable HOME to its original value.
 
 variable MAGIC_TCL_DIR [file dirname [file normalize [info script]]]
-variable CAD_ROOT_DEFAULT [file normalize [file join $MAGIC_TCL_DIR ../..]]
+
+if {![info exists CAD_ROOT]} {
+   variable CAD_ROOT [file normalize [file join $MAGIC_TCL_DIR ../..]]
+}
 
 if {${tcl_version} >= 8.6} {
    load -lazy [file join $MAGIC_TCL_DIR tclmagic[info sharedlibextension]]
