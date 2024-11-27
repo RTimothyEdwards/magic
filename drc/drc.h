@@ -219,6 +219,7 @@ extern int  DRCstatVRulesHisto[DRC_MAXRULESHISTO];
 
 extern int DRCTechHalo;		/* Current halo being used */
 extern int DRCStepSize;		/* Current step size being used */
+extern bool DRCPrintConvert;    /* print as lambda or microns */
 extern DRCPendingCookie * DRCPendingRoot;
 
 extern unsigned char DRCBackGround;	/* global flag to enable/disable
