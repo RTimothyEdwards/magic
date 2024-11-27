@@ -288,7 +288,6 @@ DBWloadWindow(window, name, flags)
 {
     CellDef *newEditDef, *deleteDef;
     CellUse *newEditUse;
-    void DisplayWindow();
     int res, newEdit, error_val;
     int xadd, yadd;
     Rect loadBox;
