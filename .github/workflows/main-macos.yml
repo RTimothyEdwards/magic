@@ -1,0 +1,415 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI-macos
+
+# Controls when the workflow will run
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  simple_build_macos12:
+    runs-on: macos-12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Dependencies
+        shell: bash # default shell has unwanted broken pipe indication
+        run: |
+          brew install --cask xquartz
+          PACKAGE_LIST="xquartz"
+          brew install cairo tcl-tk tcsh
+          _package_list="cairo tcl-tk tcsh"
+          # These seem needed maybe they are being provided from somewhere else GHA runner
+          #  or brew transitive depend either way doesn't hurt to confirm they are installed.
+          _package_list="$_package_list libglu freeglut"
+          if [ -n "$PACKAGE_LIST" ]
+          then
+            brew install $PACKAGE_LIST
+          fi
+          PACKAGE_LIST="$PACKAGE_LIST $_package_list"
+          echo "PACKAGE_LIST=$PACKAGE_LIST" >> $GITHUB_ENV
+          echo "UNAME_M=$(uname -m)" >> $GITHUB_ENV
+          set +e
+          set +o pipefail # macosx this is on by default (turn it off)
+          (
+            echo "### $(uname -s) $(uname -m) $(uname -r)"
+            echo ""
+            set +e
+            set +o pipefail # macosx this is on by default (turn it off)
+            export HOMEBREW_NO_COLOR=true
+            export HOMEBREW_NO_EMOKI=true
+            # output to $TMPFILE first, then head, instead of using pipeline directly
+            #  this removes unwanted GHA SIGPIPE error/warning indicators from GHA logs
+            # brew maybe a nodejs command which has a known issue in this area on macosx
+            TMPFILE=/tmp/shell0$$.tmp
+            brew info xquartz  > $TMPFILE && head -n1 $TMPFILE
+            brew info cairo    > $TMPFILE && head -n1 $TMPFILE
+            brew info libglu   > $TMPFILE && head -n1 $TMPFILE
+            brew info freeglut > $TMPFILE && head -n1 $TMPFILE
+            brew info tcl-tk   > $TMPFILE && head -n1 $TMPFILE
+            brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
+            echo ""
+            cc -v 2>&1
+            echo ""
+            xcodebuild -version
+            echo ""
+            xcodebuild -showsdks | grep macOS
+          ) >> $GITHUB_STEP_SUMMARY
+
+      - name: Search
+        run: |
+          set +e
+          ( # designed to speed up this process in a single scan
+            echo "#!/bin/sh"
+            echo "echo \$*"
+            echo "ls -ld -- \$*"
+            echo "shasum -a 1 \$* </dev/null"
+            echo "echo \"\""
+            echo "exit 0"
+          ) > search.sh
+          echo "=== search.sh"
+          cat search.sh
+          chmod a+x search.sh
+          find /opt /usr $HOME \( -iname "libX11.*dylib" -or -iname "Xlib.h" \) -exec ./search.sh {} \; 2>/dev/null
+          #
+          # Example symbols that were found missing from the tcl-tk X11 implementation
+          #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XCreateGC" {} \; 2>/dev/null || true
+          #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XGetVisualInfo" {} \; 2>/dev/null || true
+          #for i in /usr/X11/include/X11/Xlib.h /opt/X11/include/X11/Xlib.h /usr/local/include/X11/Xlib.h;
+          #do
+          #  echo "====== $i"
+          #  head -n 50 "$i"
+          #  echo "==="
+          #  tail -n 50 "$i"
+          #  echo "======"
+          #done
+          echo "Done"
+
+      - name: Build
+        run: |
+          export PATH="/opt/X11/bin:$PATH"
+          ./scripts/configure_mac 2>&1 | tee CONFIGURE.LOG
+
+          config_log=""
+          if [ -f scripts/config.log ]
+          then
+            config_log="scripts/config.log"
+          elif [ -f build-magic/config.log ]
+          then
+            config_log="build-magic/config.log"
+          fi
+          if [ -n "$config_log" ]
+          then
+            CONFIGURE_ARGS=$(head -n 10 $config_log | egrep "./configure" | sed -e 's#^ *\$ ##' -e 's#./configure ##')
+            echo "CONFIGURE_ARGS=$CONFIGURE_ARGS" >> $GITHUB_ENV
+          fi
+
+          echo "===== defs.mak ====="
+          cat defs.mak
+          echo "===== defs.mak ====="
+
+          make database/database.h
+          make -j$(sysctl -n hw.ncpu) 2>&1 | tee MAKE.LOG
+
+      - name: Install
+        run: |
+          sudo make install
+
+      - name: Kick The Tyres
+        run: |
+          set +e
+          echo "=== ls -l"
+          ls -l
+          echo "=== find /usr/local/bin"
+          find /usr/local/bin -mtime 0
+          echo "=== find /usr/local/share"
+          find /usr/local/share -mtime 0
+          echo "=== find /usr/local/lib/magic"
+          find /usr/local/lib/magic -mtime 0
+          echo "=== otool -L magic/tclmagic.dylib"
+          otool -L magic/tclmagic.dylib
+          echo "=== otool -L tcltk/magicexec"
+          otool -L tcltk/magicexec
+          echo "=== otool -L tcltk/magicdnull"
+          otool -L tcltk/magicdnull
+          echo "=== magic --version"
+          magic --version
+          echo "=== magic -d help -noconsole"
+          magic -d help -noconsole
+          echo "=== magic -d null -noconsole -nowindow -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
+          echo "=== magic -d null -noconsole -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -T scmos
+
+      - name: Summary
+        run: |
+          set +e
+          grep "error:"   MAKE.LOG > MAKE_error.LOG
+          grep "warning:" MAKE.LOG > MAKE_warning.LOG
+
+          # Less important warnings relating to codesmell more than security (filter out of headline)
+          grep -v  "Wunused-variable"         MAKE_warning.LOG |
+           grep -v "Wunused-local-typedefs" |
+           grep -v "Wunused-label" |
+           grep -v "Wunused-but-set-variable" > MAKE_warning_filtered.LOG
+
+          ls -l
+          wc -l *.LOG
+
+          error_count=$(           grep -c "error:"   MAKE_error.LOG)
+          filtered_warning_count=$(grep -c "warning:" MAKE_warning_filtered.LOG)
+
+          title="### $(cat VERSION) ${MATRIX_OS} ${MATRIX_TC} ${MATRIX_PKGS} :: "
+          if [ "$error_count" -gt 0 ]
+          then
+            title="$title $error_count error(s)"
+          fi
+          if [ "$filtered_warning_count" -gt 0 ]
+          then
+            title="$title $filtered_warning_count warning(s)"
+          fi
+
+          (
+            total_error_count=$(  wc -l MAKE_error.LOG   | cut -d' ' -f1)
+            total_warning_count=$(wc -l MAKE_warning.LOG | cut -d' ' -f1)
+            echo "---"
+            echo "$title"
+            echo ""
+            echo "PACKAGE_LIST=$PACKAGE_LIST"
+            echo "CONFIGURE_ARGS=$CONFIGURE_ARGS"
+            echo ""
+            echo "total ${total_error_count} error(s) ${total_warning_count} warning(s) :"
+            echo "|Count|Warning Group (-j build log inaccuracies)|"
+            echo "|--:|:--|"
+            # due to -j build the log lines might get corrupted, so missing/incorrect/bogus entries might be seen
+            #  so we add extra: egrep "\[\-W.*\]"  (to try to remove that)
+            sed -e 's#.*\(\[\-W\)#\1#' -e 's#\(\]\).*$#\1#' MAKE_warning.LOG | egrep "\[\-W.*\]" | sort | uniq -c | sort -n  | tr -s ' ' | tr ' ' '|' | awk '{print $0"|"}'
+            echo ""
+            grep -A100 "Configuration Summary" CONFIGURE.LOG | grep -v "Configuration Summary" | egrep "^.*:" | sed -e '/\---/,//d'
+            echo ""
+            grep DCAD_DIR MAKE.LOG  | tail -n1
+          ) >> $GITHUB_STEP_SUMMARY
+
+      - name: Prepare archive
+        run: |
+          mkdir -p dist
+          make install "DESTDIR=$(pwd)/dist"
+          # Diagnostic details about this build
+          mkdir -p dist/BUILD-INFO
+          set +e
+          cp */config.log dist/BUILD-INFO/
+          cp *.mak dist/BUILD-INFO/
+          cp *.LOG dist/BUILD-INFO/
+
+      - name: Upload archive magic-macos12
+        uses: actions/upload-artifact@v4
+        with:
+          name: magic-macos12
+          path: |
+            ${{ github.workspace }}/dist
+
+  simple_build_macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Dependencies
+        shell: bash # default shell has unwanted broken pipe indication
+        run: |
+          brew install --cask xquartz
+          PACKAGE_LIST="xquartz"
+          brew install cairo tcl-tk tcsh
+          _package_list="cairo tcl-tk tcsh"
+          # These seem needed maybe they are being provided from somewhere else GHA runner
+          #  or brew transitive depend either way doesn't hurt to confirm they are installed.
+          _package_list="$_package_list libglu freeglut"
+          if [ -n "$PACKAGE_LIST" ]
+          then
+            brew install $PACKAGE_LIST
+          fi
+          PACKAGE_LIST="$PACKAGE_LIST $_package_list"
+          echo "PACKAGE_LIST=$PACKAGE_LIST" >> $GITHUB_ENV
+          echo "UNAME_M=$(uname -m)" >> $GITHUB_ENV
+          set +e
+          set +o pipefail # macosx this is on by default (turn it off)
+          (
+            echo "### $(uname -s) $(uname -m) $(uname -r)"
+            echo ""
+            set +e
+            set +o pipefail # macosx this is on by default (turn it off)
+            export HOMEBREW_NO_COLOR=true
+            export HOMEBREW_NO_EMOKI=true
+            # output to $TMPFILE first, then head, instead of using pipeline directly
+            #  this removes unwanted GHA SIGPIPE error/warning indicators from GHA logs
+            # brew maybe a nodejs command which has a known issue in this area on macosx
+            TMPFILE=/tmp/shell0$$.tmp
+            brew info xquartz  > $TMPFILE && head -n1 $TMPFILE
+            brew info cairo    > $TMPFILE && head -n1 $TMPFILE
+            brew info libglu   > $TMPFILE && head -n1 $TMPFILE
+            brew info freeglut > $TMPFILE && head -n1 $TMPFILE
+            brew info tcl-tk   > $TMPFILE && head -n1 $TMPFILE
+            brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
+            echo ""
+            cc -v 2>&1
+            echo ""
+            xcodebuild -version
+            echo ""
+            xcodebuild -showsdks | grep macOS
+          ) >> $GITHUB_STEP_SUMMARY
+
+      - name: Search
+        run: |
+          set +e
+          ( # designed to speed up this process in a single scan
+            echo "#!/bin/sh"
+            echo "echo \$*"
+            echo "ls -ld -- \$*"
+            echo "shasum -a 1 \$* </dev/null"
+            echo "echo \"\""
+            echo "exit 0"
+          ) > search.sh
+          echo "=== search.sh"
+          cat search.sh
+          chmod a+x search.sh
+          find /opt /usr $HOME \( -iname "libX11.*dylib" -or -iname "Xlib.h" \) -exec ./search.sh {} \; 2>/dev/null
+          #
+          # Example symbols that were found missing from the tcl-tk X11 implementation
+          #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XCreateGC" {} \; 2>/dev/null || true
+          #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XGetVisualInfo" {} \; 2>/dev/null || true
+          #for i in /usr/X11/include/X11/Xlib.h /opt/X11/include/X11/Xlib.h /usr/local/include/X11/Xlib.h;
+          #do
+          #  echo "====== $i"
+          #  head -n 50 "$i"
+          #  echo "==="
+          #  tail -n 50 "$i"
+          #  echo "======"
+          #done
+          echo "Done"
+
+      - name: Build
+        run: |
+          export PATH="/opt/X11/bin:$PATH"
+          ./scripts/configure_mac 2>&1 | tee CONFIGURE.LOG
+
+          config_log=""
+          if [ -f scripts/config.log ]
+          then
+            config_log="scripts/config.log"
+          elif [ -f build-magic/config.log ]
+          then
+            config_log="build-magic/config.log"
+          fi
+          if [ -n "$config_log" ]
+          then
+            CONFIGURE_ARGS=$(head -n 10 $config_log | egrep "./configure" | sed -e 's#^ *\$ ##' -e 's#./configure ##')
+            echo "CONFIGURE_ARGS=$CONFIGURE_ARGS" >> $GITHUB_ENV
+          fi
+
+          echo "===== defs.mak ====="
+          cat defs.mak
+          echo "===== defs.mak ====="
+
+          make database/database.h
+          make -j$(sysctl -n hw.ncpu) 2>&1 | tee MAKE.LOG
+
+      - name: Install
+        run: |
+          sudo make install
+
+      - name: Kick The Tyres
+        run: |
+          set +e
+          echo "=== ls -l"
+          ls -l
+          echo "=== find /usr/local/bin"
+          find /usr/local/bin -mtime 0
+          echo "=== find /usr/local/share"
+          find /usr/local/share -mtime 0
+          echo "=== find /usr/local/lib/magic"
+          find /usr/local/lib/magic -mtime 0
+          echo "=== otool -L magic/tclmagic.dylib"
+          otool -L magic/tclmagic.dylib
+          echo "=== otool -L tcltk/magicexec"
+          otool -L tcltk/magicexec
+          echo "=== otool -L tcltk/magicdnull"
+          otool -L tcltk/magicdnull
+          echo "=== magic --version"
+          magic --version
+          echo "=== magic -d help -noconsole"
+          magic -d help -noconsole
+          echo "=== magic -d null -noconsole -nowindow -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
+          echo "=== magic -d null -noconsole -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -T scmos
+
+      - name: Summary
+        run: |
+          set +e
+          grep "error:"   MAKE.LOG > MAKE_error.LOG
+          grep "warning:" MAKE.LOG > MAKE_warning.LOG
+
+          # Less important warnings relating to codesmell more than security (filter out of headline)
+          grep -v  "Wunused-variable"         MAKE_warning.LOG |
+           grep -v "Wunused-local-typedefs" |
+           grep -v "Wunused-label" |
+           grep -v "Wunused-but-set-variable" > MAKE_warning_filtered.LOG
+
+          ls -l
+          wc -l *.LOG
+
+          error_count=$(           grep -c "error:"   MAKE_error.LOG)
+          filtered_warning_count=$(grep -c "warning:" MAKE_warning_filtered.LOG)
+
+          title="### $(cat VERSION) ${MATRIX_OS} ${MATRIX_TC} ${MATRIX_PKGS} :: "
+          if [ "$error_count" -gt 0 ]
+          then
+            title="$title $error_count error(s)"
+          fi
+          if [ "$filtered_warning_count" -gt 0 ]
+          then
+            title="$title $filtered_warning_count warning(s)"
+          fi
+
+          (
+            total_error_count=$(  wc -l MAKE_error.LOG   | cut -d' ' -f1)
+            total_warning_count=$(wc -l MAKE_warning.LOG | cut -d' ' -f1)
+            echo "---"
+            echo "$title"
+            echo ""
+            echo "PACKAGE_LIST=$PACKAGE_LIST"
+            echo "CONFIGURE_ARGS=$CONFIGURE_ARGS"
+            echo ""
+            echo "total ${total_error_count} error(s) ${total_warning_count} warning(s) :"
+            echo "|Count|Warning Group (-j build log inaccuracies)|"
+            echo "|--:|:--|"
+            # due to -j build the log lines might get corrupted, so missing/incorrect/bogus entries might be seen
+            #  so we add extra: egrep "\[\-W.*\]"  (to try to remove that)
+            sed -e 's#.*\(\[\-W\)#\1#' -e 's#\(\]\).*$#\1#' MAKE_warning.LOG | egrep "\[\-W.*\]" | sort | uniq -c | sort -n  | tr -s ' ' | tr ' ' '|' | awk '{print $0"|"}'
+            echo ""
+            grep -A100 "Configuration Summary" CONFIGURE.LOG | grep -v "Configuration Summary" | egrep "^.*:" | sed -e '/\---/,//d'
+            echo ""
+            grep DCAD_DIR MAKE.LOG  | tail -n1
+          ) >> $GITHUB_STEP_SUMMARY
+
+      - name: Prepare archive
+        run: |
+          mkdir -p dist
+          make install "DESTDIR=$(pwd)/dist"
+          # Diagnostic details about this build
+          mkdir -p dist/BUILD-INFO
+          set +e
+          cp */config.log dist/BUILD-INFO/
+          cp *.mak dist/BUILD-INFO/
+          cp *.LOG dist/BUILD-INFO/
+
+      - name: Upload archive magic-macos
+        uses: actions/upload-artifact@v4
+        with:
+          name: magic-macos
+          path: |
+            ${{ github.workspace }}/dist
