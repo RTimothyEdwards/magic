@@ -4020,6 +4020,11 @@ drcTechFinalStyle(style)
 			if (!(next->drcc_flags & DRC_OUTSIDE) &&
 				(dp->drcc_flags & DRC_OUTSIDE)) continue;
 		    }
+		    if (dp->drcc_flags & DRC_SPLITTILE)
+		    {
+			if (!(next->drcc_flags & DRC_SPLITTILE)) continue;
+		    }
+		    else if (next->drcc_flags & DRC_SPLITTILE) continue;
 		    break;
 		}
 
