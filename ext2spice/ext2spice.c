@@ -2181,15 +2181,48 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
 		break;
 
 	    case 'w':
-		fprintf(esSpiceF, " %s=", plist->parm_name);
-		if (esScale < 0)
-		    fprintf(esSpiceF, "%g", w * scale);
-		else if (plist->parm_scale != 1.0)
-		    fprintf(esSpiceF, "%g", (double)w * scale * esScale
+		// Check for width of device vs. width of terminal
+		if (plist->parm_type[1] == '\0' || plist->parm_type[1] == '0')
+		{
+		    fprintf(esSpiceF, " %s=", plist->parm_name);
+		    if (esScale < 0)
+			fprintf(esSpiceF, "%g", w * scale);
+		    else if (plist->parm_scale != 1.0)
+			fprintf(esSpiceF, "%g", (double)w * scale * esScale
 				* plist->parm_scale * 1E-6);
-		else
-		    esSIvalue(esSpiceF, 1.0E-6 * (w + plist->parm_offset)
+		    else
+			esSIvalue(esSpiceF, 1.0E-6 * (w + plist->parm_offset)
 				* scale * esScale);
+		}
+		else
+		{
+		    /* w1, w2, etc. used to indicate the width of the terminal */
+		    /* Find the value in dev_params */
+		    for (dparam = dev->dev_params; dparam; dparam = dparam->parm_next)
+		    {
+			if ((strlen(dparam->parm_name) > 2) &&
+				(dparam->parm_name[0] == 'w') &&
+				(dparam->parm_name[1] == plist->parm_type[1]) &&
+				(dparam->parm_name[2] == '='))
+			{
+			    int dval;
+			    if (sscanf(&dparam->parm_name[3], "%d", &dval) == 1)
+			    {
+				fprintf(esSpiceF, " %s=", plist->parm_name);
+				if (esScale < 0)
+				    fprintf(esSpiceF, "%g", dval * scale);
+				else if (plist->parm_scale != 1.0)
+				    fprintf(esSpiceF, "%g", (double)dval * scale * esScale
+						* plist->parm_scale * 1E-6);
+				else
+				    esSIvalue(esSpiceF, (dval + plist->parm_offset)
+						* scale * esScale * 1.0E-6);
+				dparam->parm_name[0] = '\0';
+				break;
+			    }
+			}
+		    }
+		}
 		break;
 	    case 's':
 		fprintf(esSpiceF, " %s=", plist->parm_name);

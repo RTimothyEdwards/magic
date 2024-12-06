@@ -1768,13 +1768,14 @@ extOutputParameters(def, transList, outFile)
  */
 
 void
-extOutputDevParams(reg, devptr, outFile, length, width, areavec)
+extOutputDevParams(reg, devptr, outFile, length, width, areavec, perimvec)
     TransRegion *reg;
     ExtDevice *devptr;
     FILE *outFile;
     int length;
     int width;
     int *areavec;
+    int *perimvec;
 {
     ParamList *chkParam;
 
@@ -1815,8 +1816,34 @@ extOutputDevParams(reg, devptr, outFile, length, width, areavec)
 		}
 		break;
 	    case 'w':
-		fprintf(outFile, " %c=%d", chkParam->pl_param[0],
+		if (chkParam->pl_param[1] == '\0' ||
+			chkParam->pl_param[1] == '0')
+		    fprintf(outFile, " %c=%d", chkParam->pl_param[0],
 				width);
+		else if (chkParam->pl_param[1] > '0' && chkParam->pl_param[1] <= '9')
+		{
+		    int tidx = chkParam->pl_param[1] - '1';
+		    /* NOTE: For a MOSFET, the gate width is the terminal
+		     * width, and only "w" should be used as a parameter.
+		     * For other devices, "w" with an index indicates that
+		     * the device width is *not* the gate width.  Since only
+		     * the device area is maintained, then in this case the
+		     * terminal must be a single rectangle, from which the
+		     * length and width are extracted as the length of the
+		     * short and long sides, respectively.  This changes the
+		     * value "width";  therefore, "w" with a suffix should
+		     * come before "l" with a suffix in the device line in
+		     * the tech file, since the "l" value will be derived
+		     * from the area and width.
+		     */
+		    double newwidth = (double)(perimvec[tidx] * perimvec[tidx]);
+		    newwidth -= (double)(16 * areavec[tidx]);
+		    newwidth = sqrt(newwidth);
+		    newwidth += perimvec[tidx];
+		    width = (int)(0.25 * newwidth);
+		    fprintf(outFile, " %c%c=%d", chkParam->pl_param[0],
+				chkParam->pl_param[1], width);
+		}
 		break;
 	    case 'c':
 		fprintf(outFile, " %c=%g", chkParam->pl_param[0],
@@ -2546,7 +2573,7 @@ extOutputDevices(def, transList, outFile)
 		}
 
 		extOutputDevParams(reg, devptr, outFile, length, width,
-				extTransRec.tr_termarea);
+				extTransRec.tr_termarea, extTransRec.tr_termperim);
 
 		fprintf(outFile, " \"%s\"", (subsName == NULL) ?
 					"None" : subsName);
@@ -2565,7 +2592,7 @@ extOutputDevices(def, transList, outFile)
 			reg->treg_ll.p_x + 1, reg->treg_ll.p_y + 1);
 
 		extOutputDevParams(reg, devptr, outFile, length, width,
-				extTransRec.tr_termarea);
+				extTransRec.tr_termarea, extTransRec.tr_termperim);
 		if (subsName != NULL)
 		    fprintf(outFile, " \"%s\"", subsName);
 		break;
@@ -2712,7 +2739,7 @@ extOutputDevices(def, transList, outFile)
 		    fprintf(outFile, " %g", dres / 1000.0); /* mOhms -> Ohms */
 
 		extOutputDevParams(reg, devptr, outFile, length, width,
-				extTransRec.tr_termarea);
+				extTransRec.tr_termarea, extTransRec.tr_termperim);
 
 		if (devptr->exts_deviceClass == DEV_RSUBCKT)
 		{
@@ -2811,7 +2838,7 @@ extOutputDevices(def, transList, outFile)
 		    }
 
 		    extOutputDevParams(reg, devptr, outFile, length, width,
-				extTransRec.tr_termarea);
+				extTransRec.tr_termarea, extTransRec.tr_termperim);
 
 		    if (devptr->exts_deviceClass == DEV_CSUBCKT)
 		    {
