@@ -4237,8 +4237,8 @@ DRCGetDefaultLayerWidth(ttype)
 	/* Skip area rule */
 	if (cptr->drcc_flags & DRC_AREA) continue;
 
-	/* FORWARD rules only, and no MAXWIDTH */
-	if ((cptr->drcc_flags & (DRC_REVERSE | DRC_MAXWIDTH)) == 0)
+	/* FORWARD rules only, and no MAXWIDTH or SPLITTILE */
+	if ((cptr->drcc_flags & (DRC_REVERSE | DRC_MAXWIDTH | DRC_SPLITTILE)) == 0)
 	{
 	    set = &cptr->drcc_mask;
 	    if (TTMaskHasType(set, ttype) && TTMaskEqual(set, &cptr->drcc_corner))

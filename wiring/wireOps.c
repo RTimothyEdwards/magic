@@ -826,7 +826,23 @@ WireAddContact(newType, newWidth)
 
     gotContact:
     totalSize = conSize + 2 * oldOverlap;
-    if (totalSize < WireWidth) totalSize = WireWidth;
+
+    /* If the contact size + overlap is less than the wire width,
+     * then make the contact size equal to the wire width - the
+     * overlap so that the full contact area isn't larger than
+     * the exiting wire width.
+     */
+    if (updown == WIRING_CONTACT_UP)
+    {
+	if (totalSize < (WireWidth - 2 * conSurround2))
+	    totalSize = WireWidth - 2 * conSurround2;
+    }
+    else
+    {
+	if (totalSize < (WireWidth - 2 * conSurround1))
+	    totalSize = WireWidth - 2 * conSurround1;
+    }
+
     contactArea = oldLeg;
     if ((contactArea.r_xtop - contactArea.r_xbot) < totalSize)
     {
