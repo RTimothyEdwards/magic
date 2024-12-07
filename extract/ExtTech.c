@@ -3359,7 +3359,7 @@ ExtTechLine(sectionName, argc, argv)
 	     else
 		ExtCurStyle->exts_planeOrderStatus = noPlaneOrder ;
 	    }
-	    break ;
+	    break;
 	case PLANEORDER: {
 	    int pnum = (spointertype) dbTechNameLookup(argv[1], &dbPlaneNameLists);
 	    int pos = atoi(argv[2]);

@@ -127,6 +127,15 @@ typedef struct LB1
 } LinkedBoundary;
 
 LinkedBoundary **extSpecialBounds;	/* Linked Boundary List */
+
+typedef struct LT1
+{
+    Tile *t;
+    struct LT1 *t_next;
+} LinkedTile;
+
+LinkedTile *extSpecialDevice;		/* Linked tile list */
+
 NodeRegion *glob_subsnode = NULL;	/* Global substrate node */
 NodeRegion *temp_subsnode = NULL;	/* Last subsnode found */
 
@@ -1812,7 +1821,7 @@ extOutputDevParams(reg, devptr, outFile, length, width, areavec, perimvec)
 		     */
 		    fprintf(outFile, " %c%c=%d", chkParam->pl_param[0],
 				chkParam->pl_param[1],
-				areavec[tidx] / width);
+				((width == 0) ? 0 : areavec[tidx] / width));
 		}
 		break;
 	    case 'w':
@@ -2038,6 +2047,36 @@ extDevFindParamMatch(devptr, length, width)
 /*
  * ----------------------------------------------------------------------------
  *
+ * extSDTileFunc --
+ *
+ * Callback function to gather tiles belonging to a multiple-tile device
+ * region.
+ *
+ * Results:
+ *	Always return 0 to keep the search going.
+ *
+ * Side effects:
+ *	Allocates memory in the extSpecialDevice linked list.
+ *
+ * ----------------------------------------------------------------------------
+ */
+int
+extSDTileFunc(tile, pNum)
+    Tile *tile;
+    int pNum;
+{
+    LinkedTile *newdevtile;
+
+    newdevtile = (LinkedTile *)mallocMagic(sizeof(LinkedTile));
+    newdevtile->t = tile;
+    newdevtile->t_next = extSpecialDevice;
+    extSpecialDevice = newdevtile;
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * extTransFindTermArea --
  *
  * Callback function to find the area and perimeter of a terminal area in
@@ -2232,7 +2271,52 @@ extOutputDevices(def, transList, outFile)
 		    /* First try to find a region under the device */
 		    extTransFindSubs(reg->treg_tile, t, tmask, def, &node, &tt);
 
-		    if ((node == NULL) && (TTMaskHasType(tmask, TT_SPACE))) {
+		    /* If the device has multiple tiles, then check all of them.
+		     * This is inefficient, so this routine first assumes that
+		     * the device is a single tile, and if nothing is found
+		     * underneath, it then checks if the accumulated gate area
+		     * is larger than the tile area.  If so, it does a full
+		     * search on all tiles.
+		     */
+		    if (node == NULL)
+		    {
+			int tarea;
+			tarea = (RIGHT(reg->treg_tile) - LEFT(reg->treg_tile)) *
+				(TOP(reg->treg_tile) - BOTTOM(reg->treg_tile));
+			if (tarea < reg->treg_area)
+			{
+			    LinkedTile *lt;
+
+			    extSpecialDevice = (LinkedTile *)NULL;
+
+			    arg.fra_uninit = (ClientData)extTransRec.tr_gatenode;
+			    arg.fra_region = (ExtRegion *)reg;
+			    arg.fra_each = extSDTileFunc;
+			    ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
+
+			    arg.fra_uninit = (ClientData) reg;
+			    arg.fra_region = (ExtRegion *) extTransRec.tr_gatenode;
+			    arg.fra_each = (int (*)()) NULL;
+			    ExtFindNeighbors(reg->treg_tile, arg.fra_pNum, &arg);
+
+			    for (lt = extSpecialDevice; lt; lt = lt->t_next)
+			    {
+				extTransFindSubs(lt->t, t, tmask, def, &node, &tt);
+				if (node != NULL)
+				{
+				    TiToRect(lt->t, &r);
+				    break;
+				}
+			    }
+			    for (lt = extSpecialDevice; lt; lt = lt->t_next)
+				freeMagic((char *)lt);
+			}
+		    }
+		    else
+			TiToRect(reg->treg_tile, &r);
+
+		    if ((node == NULL) && (TTMaskHasType(tmask, TT_SPACE)))
+		    {
 			/* Device node is the global substrate. */
 			node = glob_subsnode;
 		    }
@@ -2248,7 +2332,6 @@ extOutputDevices(def, transList, outFile)
 		    /* Terminals on other planes will not have area and perimeter
 		     * computed, so do that here.
 		     */
-		    TiToRect(reg->treg_tile, &r);
 		    eapd.eapd_area = 0;
 		    eapd.eapd_perim = 0;
 		    eapd.eapd_shared = NULL;
