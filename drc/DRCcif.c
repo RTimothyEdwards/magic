@@ -1268,11 +1268,12 @@ drcCifMaxwidth(argc, argv)
          return (0);
     }
 
-    if (strcmp(bends,"bend_illegal") == 0) bend =0;
-    else if (strcmp(bends,"bend_ok") == 0) bend =DRC_BENDS;
+    if (strcmp(bends, "bend_illegal") == 0) bend = 0;
+    else if (strcmp(bends, "bend_ok") == 0) bend = DRC_BENDS;
+    else if (strcmp(bends, "both") == 0) bend = DRC_MAXWIDTH_BOTH;
     else
     {
-    	 TechError("unknown bend option %s\n",bends);
+    	 TechError("unknown bend option %s\n", bends);
 	 return (0);
     }
 
@@ -1447,10 +1448,35 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
     if (DRCstack == (Stack *) NULL)
 	DRCstack = StackNew(64);
 
-    /* if bends are allowed, just check on a tile-by-tile basis that
-        one dimension is the max.  This is pretty stupid, but it correctly
-	calculates the trench width rule. dcs 12.06.89 */
-    if (cptr->drcc_flags & DRC_BENDS)
+    /* If bends are allowed, just check on a tile-by-tile basis that
+     * both dimensions exceed the max.  This is pretty stupid, but it
+     * correctly calculates, e.g., the trench width rule. dcs 12.06.89
+     *
+     * Do the same for the "both" case, checking on a tile-by-tile basis
+     * that either dimension exceeds the max.
+     */
+
+    if (cptr->drcc_flags & DRC_MAXWIDTH_BOTH)
+    {
+	 Rect	rect;
+	 TiToRect(starttile,&rect);
+	 if ((rect.r_xtop-rect.r_xbot > edgelimit) ||
+	    (rect.r_ytop-rect.r_ybot > edgelimit))
+	 {
+              rect.r_xbot /= scale;
+              rect.r_xtop /= scale;
+              rect.r_ybot /= scale;
+              rect.r_ytop /= scale;
+	      GeoClip(&rect, arg->dCD_clip);
+	      if (!GEO_RECTNULL(&rect)) {
+		  (*(arg->dCD_function)) (arg->dCD_celldef, &rect,
+			arg->dCD_cptr, arg->dCD_clientData);
+		  (*(arg->dCD_errors))++;
+	     }
+	 }
+	 return;
+    }
+    else if (cptr->drcc_flags & DRC_BENDS)
     {
 	 Rect	rect;
 	 TiToRect(starttile,&rect);
@@ -1470,7 +1496,9 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
 	 }
 	 return;
     }
+
     /* Mark this tile as pending and push it */
+
     PUSHTILE(starttile);
     TiToRect(starttile,&boundrect);
 
