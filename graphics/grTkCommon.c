@@ -745,19 +745,26 @@ typedef struct LayerInstance {
  * The type record for bitmap images:
  */
 
-static int		ImgLayerCreate _ANSI_ARGS_((Tcl_Interp *interp,
-			    CONST84 char *name, int argc, Tcl_Obj *const objv[],
-			    CONST84 Tk_ImageType *typePtr, Tk_ImageMaster master,
-			    ClientData *clientDataPtr));
-static ClientData	ImgLayerGet _ANSI_ARGS_((Tk_Window tkwin,
-			    ClientData clientData));
-static void		ImgLayerDisplay _ANSI_ARGS_((ClientData clientData,
+#if TCL_MAJOR_VERSION < 9
+static int		ImgLayerCreate (Tcl_Interp *interp,
+			    const char *name, int argc, Tcl_Obj *const objv[],
+			    const Tk_ImageType *typePtr, Tk_ImageMaster master,
+			    ClientData *clientDataPtr);
+#else
+static int		ImgLayerCreate (Tcl_Interp *interp,
+			    const char *name, Tcl_Size argc, Tcl_Obj *const objv[],
+			    const Tk_ImageType *typePtr, Tk_ImageMaster master,
+			    ClientData *clientDataPtr);
+#endif
+static ClientData	ImgLayerGet (Tk_Window tkwin,
+			    ClientData clientData);
+static void		ImgLayerDisplay (ClientData clientData,
 			    Display *display, Drawable drawable,
 			    int imageX, int imageY, int width, int height,
-			    int drawableX, int drawableY));
-static void		ImgLayerFree _ANSI_ARGS_((ClientData clientData,
-			    Display *display));
-static void		ImgLayerDelete _ANSI_ARGS_((ClientData clientData));
+			    int drawableX, int drawableY);
+static void		ImgLayerFree (ClientData clientData,
+			    Display *display);
+static void		ImgLayerDelete (ClientData clientData);
 
 Tk_ImageType tkLayerImageType = {
     "layer",			/* name */
@@ -777,15 +784,15 @@ Tk_ImageType tkLayerImageType = {
 
 static Tk_ConfigSpec configSpecs[] = {
     {TK_CONFIG_STRING, "-name", (char *) NULL, (char *) NULL,
-	(char *) NULL, Tk_Offset(LayerMaster, layerString), TK_CONFIG_NULL_OK},
+	(char *) NULL, offsetof(LayerMaster, layerString), TK_CONFIG_NULL_OK},
     {TK_CONFIG_BOOLEAN, "-disabled", (char *) NULL, (char *) NULL,
-	(char *) "0", Tk_Offset(LayerMaster, layerOff), 0},
+	(char *) "0", offsetof(LayerMaster, layerOff), 0},
     {TK_CONFIG_INT, "-icon", (char *) NULL, (char *) NULL,
-	(char *) "-1", Tk_Offset(LayerMaster, layerLock), 0},
+	(char *) "-1", offsetof(LayerMaster, layerLock), 0},
     {TK_CONFIG_INT, "-width", (char *) NULL, (char *) NULL,
-	(char *) "16", Tk_Offset(LayerMaster, width), 0},
+	(char *) "16", offsetof(LayerMaster, width), 0},
     {TK_CONFIG_INT, "-height", (char *) NULL, (char *) NULL,
-	(char *) "16", Tk_Offset(LayerMaster, height), 0},
+	(char *) "16", offsetof(LayerMaster, height), 0},
     {TK_CONFIG_END, (char *) NULL, (char *) NULL, (char *) NULL,
 	(char *) NULL, 0, 0}
 };
@@ -794,15 +801,15 @@ static Tk_ConfigSpec configSpecs[] = {
  * Prototypes for procedures used only locally in this file:
  */
 
-static int		ImgLayerCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, Tcl_Obj *CONST objv[]));
-static void		ImgLayerCmdDeletedProc _ANSI_ARGS_((
-			    ClientData clientData));
-static void		ImgLayerConfigureInstance _ANSI_ARGS_((
-			    LayerInstance *instancePtr));
-static int		ImgLayerConfigureMaster _ANSI_ARGS_((
-			    LayerMaster *masterPtr, int argc, Tcl_Obj *CONST objv[],
-			    int flags));
+static int		ImgLayerCmd (ClientData clientData,
+			    Tcl_Interp *interp, int argc, Tcl_Obj *const objv[]);
+static void		ImgLayerCmdDeletedProc (
+			    ClientData clientData);
+static void		ImgLayerConfigureInstance (
+			    LayerInstance *instancePtr);
+static int		ImgLayerConfigureMaster (
+			    LayerMaster *masterPtr, int argc, Tcl_Obj *const objv[],
+			    int flags);
 
 /*
  *----------------------------------------------------------------------
@@ -827,8 +834,12 @@ ImgLayerCreate(interp, name, argc, argv, typePtr, master, clientDataPtr)
     Tcl_Interp *interp;		/* Interpreter for application containing
 				 * image. */
     const char *name;		/* Name to use for image. */
+#if TCL_MAJOR_VERSION < 9
     int argc;			/* Number of arguments. */
-    Tcl_Obj *CONST argv[];	/* Argument objects for options (doesn't
+#else
+    Tcl_Size argc;		/* Number of arguments. */
+#endif
+    Tcl_Obj *const argv[];	/* Argument objects for options (doesn't
 				 * include image name or type). */
     const Tk_ImageType *typePtr;/* Pointer to our type record (not used). */
     Tk_ImageMaster master;	/* Token for image, to be used by us in
@@ -881,26 +892,37 @@ ImgLayerConfigureMaster(masterPtr, objc, objv, flags)
     LayerMaster *masterPtr;	/* Pointer to data structure describing
 				 * overall pixmap image to (reconfigure). */
     int objc;			/* Number of entries in objv. */
-    Tcl_Obj *CONST objv[];	/* Pairs of configuration options for image. */
+    Tcl_Obj *const objv[];	/* Pairs of configuration options for image. */
     int flags;			/* Flags to pass to Tk_ConfigureWidget,
 				 * such as TK_CONFIG_ARGV_ONLY. */
 {
     LayerInstance *instancePtr;
     int dummy1;
 
-    char **argv = (char **) Tcl_Alloc((objc+1) * sizeof(char *));
+#if TCL_MAJOR_VERSION < 9
+    char **tmp_argv = (char **) Tcl_Alloc((objc+1) * sizeof(char *));
     for (dummy1 = 0; dummy1 < objc; dummy1++) {
-	argv[dummy1]=Tcl_GetString(objv[dummy1]);
+	tmp_argv[dummy1]=Tcl_GetString(objv[dummy1]);
     }
-    argv[objc] = NULL;
+    tmp_argv[objc] = NULL;
 
+    int argc = objc;
+    const char **argv = (const char **)tmp_argv;
+#else
+    Tcl_Size argc = objc;
+    Tcl_Obj *const *argv = (Tcl_Obj *const *)objv;
+#endif
     if (Tk_ConfigureWidget(masterPtr->interp, Tk_MainWindow(masterPtr->interp),
-	    configSpecs, objc, (CONST84 char **)argv, (char *) masterPtr, flags)
+	    configSpecs, argc, argv, (char *) masterPtr, flags)
 	    != TCL_OK) {
-	Tcl_Free((char *) argv);
+#if TCL_MAJOR_VERSION < 9
+	Tcl_Free((char *) tmp_argv);
+#endif
 	return TCL_ERROR;
     }
-    Tcl_Free((char *) argv);
+#if TCL_MAJOR_VERSION < 9
+    Tcl_Free((char *) tmp_argv);
+#endif
 
     /*
      * Cycle through all of the instances of this image, regenerating
@@ -1215,7 +1237,7 @@ ImgLayerCmd(clientData, interp, objc, objv)
     ClientData clientData;	/* Information about the image master. */
     Tcl_Interp *interp;		/* Current interpreter. */
     int objc;			/* Number of arguments. */
-    Tcl_Obj *CONST objv[];	/* Argument objects. */
+    Tcl_Obj *const objv[];	/* Argument objects. */
 {
     static char *layerOptions[] = {"cget", "configure", (char *) NULL};
     LayerMaster *masterPtr = (LayerMaster *) clientData;
@@ -1225,7 +1247,7 @@ ImgLayerCmd(clientData, interp, objc, objv)
 	Tcl_WrongNumArgs(interp, 1, objv, "option ?arg arg ...?");
 	return TCL_ERROR;
     }
-    if (Tcl_GetIndexFromObj(interp, objv[1], (CONST84 char **)layerOptions,
+    if (Tcl_GetIndexFromObj(interp, objv[1], (const char **)layerOptions,
 		"option", 0, &index) != TCL_OK) {
 	return TCL_ERROR;
     }

@@ -745,12 +745,12 @@ glChanBlockDens(ch)
 	{
 	    /* Clip tiles overlapped by pa->pa_area */
 	    while (DBSrPaintArea((Tile *) NULL, glChanPlane, &pa->pa_area,
-		    &DBAllTypeBits, glChanClipFunc, (ClientData) &pa->pa_area))
+		    &DBAllTypeBits, glChanClipFunc, PTR2CD(&pa->pa_area)))
 		/* Nothing */;
 
 	    /* Change the type of all tiles within the area */
 	    (void) DBSrPaintArea((Tile *) NULL, glChanPlane, &pa->pa_area,
-		    &DBAllTypeBits, glChanPaintFunc, (ClientData) pa->pa_type);
+		    &DBAllTypeBits, glChanPaintFunc, INT2CD(pa->pa_type));
 
 	    /*
 	     * Allow merging, as long as no tiles get merged across

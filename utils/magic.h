@@ -60,8 +60,26 @@ typedef int64_t dlong;
 /* --------------------- Universal pointer type ----------------------- */
 
 #ifndef _CLIENTDATA
+// #ifdef MAGIC_WRAPPER
+//#error "ClientData type is not defined, but we are building with TCL support, so we expect TCL to provide this type definition"
+// #endif
+ #ifndef NO_VOID
+typedef void *ClientData;
+ #else
 typedef pointertype ClientData;
+ #endif
+#define _CLIENTDATA
 #endif
+
+/* this is not the (int) C type, but the conceptual difference between
+ *  a pointer and an integer.  The integer width uses same size as pointer
+ *  width, so integer width truncations need to be applied at usage site.
+ */
+#define CD2PTR(cd)   ((void*)cd)
+#define CD2INT(cd)   ((pointertype)(cd))
+
+#define PTR2CD(data) ((ClientData)(data))
+#define INT2CD(data) ((ClientData)(pointertype)(data))
 
 /* --------------------------- Booleans ------------------------------- */
 

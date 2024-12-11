@@ -185,7 +185,7 @@ plowYankMore(area, halo, back)
     {
 	(void) DBSrPaintArea((Tile *) NULL, plowYankDef->cd_planes[pNum],
 			&oldArea, &DBAllTypeBits, plowYankUpdatePaint,
-			(ClientData) pNum);
+			INT2CD(pNum));
     }
 
 	/* Switch the yank cell and the spare cell */
@@ -487,16 +487,16 @@ plowUpdateCell(use, origDef)
     switch (plowDirection)
     {
 	case GEO_NORTH:
-	    y = (int)use->cu_client;
+	    y = (int)CD2INT(use->cu_client);
 	    break;
 	case GEO_SOUTH:
-	    y = -(int)use->cu_client;
+	    y = -(int)CD2INT(use->cu_client);
 	    break;
 	case GEO_WEST:
-	    x = -(int)use->cu_client;
+	    x = -(int)CD2INT(use->cu_client);
 	    break;
 	case GEO_EAST:
-	    x = (int)use->cu_client;
+	    x = (int)CD2INT(use->cu_client);
 	    break;
     }
     GeoTranslateTrans(&origUse->cu_transform, x, y, &newTrans);
