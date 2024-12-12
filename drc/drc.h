@@ -59,6 +59,7 @@ typedef struct drccookie
  * DRC_BOTHCORNERS:	Must make corner extensions in both directions.
  * DRC_OUTSIDE:		Rule applies only to the outside edge of the rule area.
  * DRC_TRIGGER:		Violation of rule triggers a secondary rule.
+ * DRC_RUNLENGTH:	"cdist" encodes runlength distance, not corner distance.
  *
  * All other flags denote special DRC rules that do not use the standard 4-way
  * edge processing.
@@ -78,11 +79,12 @@ typedef struct drccookie
 #define		DRC_ANGLES_45		0x0400
 #define		DRC_ANGLES_90		0x0800
 #define		DRC_SPLITTILE		0x1000
+#define		DRC_RUNLENGTH		0x2000
 #define 	DRC_NONSTANDARD		(DRC_AREA|DRC_MAXWIDTH|DRC_RECTSIZE\
 					 |DRC_ANGLES_90|DRC_OFFGRID)
 
 /* More flags for indicating what the rule type represents */
-#define		DRC_CIFRULE		0x2000
+#define		DRC_CIFRULE		0x4000
 
 #define	DRC_PENDING			0
 #define DRC_UNPROCESSED 		CLIENTDEFAULT

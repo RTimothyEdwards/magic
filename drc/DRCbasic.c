@@ -161,6 +161,15 @@ areaCheck(tile, arg)
     if ((rect.r_xbot >= rect.r_xtop) || (rect.r_ybot >= rect.r_ytop))
 	return 0;
 
+    /* Run-length rules are ignored unless the width of the error
+     * exceeds the run-length distance (which is held in the
+     * drcc_cdist entry for the rule).
+     */
+    if (arg->dCD_cptr->drcc_flags & DRC_RUNLENGTH)
+	if (((rect.r_xtop - rect.r_xbot) < arg->dCD_cptr->drcc_cdist) &&
+		((rect.r_ytop - rect.r_ybot) < arg->dCD_cptr->drcc_cdist))
+	    return 0;
+
     /*
      * When Euclidean distance checks are enabled, check for error tiles
      * outside of the perimeter of the circle in the corner extension area
@@ -716,7 +725,6 @@ drcTile (tile, arg)
 				for (i = 0; i < mrd->entries; i++)
 				{
 				    lr = &mrd->rlist[i];
-				    GeoClip(lr, arg->dCD_clip);
 				    if ((lr->r_ytop - lr->r_ybot) > cptr->drcc_cdist)
 				    {
 					triggered = mrd->entries;
@@ -1067,7 +1075,7 @@ drcTile (tile, arg)
 
 		/* Find the rule distances according to the scale factor */
 		dist = cptr->drcc_dist;
-		cdist = cptr->drcc_cdist;
+		cdist = (cptr->drcc_flags & DRC_RUNLENGTH) ? 0 : cptr->drcc_cdist;
 		trigpending = (cptr->drcc_flags & DRC_TRIGGER) ? TRUE : FALSE;
 
 		/* drcc_edgeplane is used to avoid checks on edges	*/
@@ -1119,7 +1127,6 @@ drcTile (tile, arg)
 				for (i = 0; i < mrd->entries; i++)
 				{
 				    lr = &mrd->rlist[i];
-				    GeoClip(lr, arg->dCD_clip);
 				    if ((lr->r_xtop - lr->r_xbot) > cptr->drcc_cdist)
 				    {
 					triggered = mrd->entries;

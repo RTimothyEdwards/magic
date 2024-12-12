@@ -2135,13 +2135,27 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 			/* reverse order due to the stack property of	*/
 			/* the linked list.				*/
 
-			drcAssign(dpnew, distance, dp->drcc_next, &tmp1, &tmp2,
-				why, distance, DRC_FORWARD, plane2, plane);
-			dptrig = (DRCCookie *) mallocMagic((unsigned)
-				(sizeof (DRCCookie)));
-			drcAssign(dptrig, wwidth, dpnew, set1, set1, why,
-				runlength, DRC_REVERSE | DRC_MAXWIDTH |
-				DRC_TRIGGER | DRC_BENDS, plane2, plane);
+			if (runlength > 0)
+			{
+			    drcAssign(dpnew, distance, dp->drcc_next, &tmp1, &tmp2,
+					why, runlength, DRC_RUNLENGTH |
+					DRC_FORWARD, plane2, plane);
+			    dptrig = (DRCCookie *) mallocMagic((unsigned)
+					(sizeof (DRCCookie)));
+			    drcAssign(dptrig, wwidth, dpnew, set1, set1, why,
+					runlength, DRC_REVERSE | DRC_MAXWIDTH |
+					DRC_TRIGGER | DRC_BENDS, plane2, plane);
+			}
+			else
+			{
+			    drcAssign(dpnew, distance, dp->drcc_next, &tmp1, &tmp2,
+					why, distance, DRC_FORWARD, plane2, plane);
+			    dptrig = (DRCCookie *) mallocMagic((unsigned)
+					(sizeof (DRCCookie)));
+			    drcAssign(dptrig, wwidth, dpnew, set1, set1, why,
+					distance, DRC_REVERSE | DRC_MAXWIDTH |
+					DRC_TRIGGER | DRC_BENDS, plane2, plane);
+			}
 
 			dp->drcc_next = dptrig;
 		    }
@@ -2189,14 +2203,28 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 
 			    /* Assign two coupled rules (see above) */
 
-			    drcAssign(dpnew, distance, dp->drcc_next, &tmp1,
-					&tmp2, why, distance,
+			    if (runlength > 0)
+			    {
+				drcAssign(dpnew, distance, dp->drcc_next, &tmp1,
+					&tmp2, why, runlength, DRC_RUNLENGTH |
 					DRC_REVERSE | DRC_BOTHCORNERS, plane2, plane);
-			    dptrig = (DRCCookie *) mallocMagic((unsigned)
+				dptrig = (DRCCookie *) mallocMagic((unsigned)
 					(sizeof (DRCCookie)));
-			    drcAssign(dptrig, wwidth, dpnew, set1, set1, why,
+				drcAssign(dptrig, wwidth, dpnew, set1, set1, why,
 					runlength, DRC_FORWARD | DRC_MAXWIDTH |
 					DRC_TRIGGER | DRC_BENDS, plane2, plane);
+			    }
+			    else
+			    {
+				drcAssign(dpnew, distance, dp->drcc_next, &tmp1,
+					&tmp2, why, distance,
+					DRC_REVERSE | DRC_BOTHCORNERS, plane2, plane);
+				dptrig = (DRCCookie *) mallocMagic((unsigned)
+					(sizeof (DRCCookie)));
+				drcAssign(dptrig, wwidth, dpnew, set1, set1, why,
+					distance, DRC_FORWARD | DRC_MAXWIDTH |
+					DRC_TRIGGER | DRC_BENDS, plane2, plane);
+			    }
 			    dp->drcc_next = dptrig;
 			}
 			else if (needtrigger)
@@ -2474,7 +2502,7 @@ drcSpacing(argc, argv)
 	{
 	    layers2 = argv[3];
 	    distance = atoi(argv[4]);
-	    runlength = distance;
+	    runlength = -1;
 	    adjacency = argv[5];
 	    why = drcWhyCreate(argv[6]);
 	}
@@ -2488,7 +2516,7 @@ drcSpacing(argc, argv)
 	adjacency = argv[4];
 	wwidth = distance;
 	why = drcWhyCreate(argv[5]);
-	runlength = distance;
+	runlength = -1;
 	if (argc >= 7)
 	{
 	    TechError("Unknown argument in spacing line.\n");
