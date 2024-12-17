@@ -829,7 +829,6 @@ extern void DBTechInitContact();
 extern void DBTechFinalContact();
 extern void DBTechFinalConnect();
 extern void DBTechInitConnect();
-extern bool DBIsContact();
 
     /* Cell symbol table */
 extern void DBCellInit();
@@ -899,6 +898,8 @@ extern Plane *DBCellGenerateSimpleSubstrate();
 extern TileType DBPlaneToResidue();
 extern TileType DBTechFindStacking();
 extern bool DBIsContact();
+extern PlaneMask DBLayerPlanes();
+
 extern TileTypeBitMask *DBResidueMask();
 extern void DBFullResidueMask();
 

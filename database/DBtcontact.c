@@ -898,6 +898,24 @@ DBIsContact(type)
 /*
  * ----------------------------------------------------------------------------
  *
+ * DBLayerPlanes --
+ *
+ *   Like LayerPlaneMask(), except as a subroutine, not a macro.  For export
+ *   to other routines.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+PlaneMask
+DBLayerPlanes(type)
+    TileType type;
+{
+    return LayerPlaneMask(type);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * DBResidueMask --
  *
  *   Get the residue mask of the specified type.  For export to other

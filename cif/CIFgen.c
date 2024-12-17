@@ -1327,9 +1327,17 @@ cifBloatAllFunc(tile, bls)
     }
     else
     {
-	int pNum = DBPlane(type);
-	pmask = (bloats->bl_plane < 0) ? 0 :
-		CoincidentPlanes(connect, PlaneNumToMaskBit(pNum));
+	if (DBIsContact(type))
+	{
+	    pmask = (bloats->bl_plane < 0) ? 0 :
+			CoincidentPlanes(connect, DBLayerPlanes(type));
+	}
+	else
+	{
+	    int pNum = DBPlane(type);
+	    pmask = (bloats->bl_plane < 0) ? 0 :
+			CoincidentPlanes(connect, PlaneNumToMaskBit(pNum));
+	}
 	if (pmask == 0) TiToRect(tile, &area);
 	if (bloats->bl_plane < 0)
 	{
