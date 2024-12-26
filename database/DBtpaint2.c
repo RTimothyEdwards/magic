@@ -526,7 +526,6 @@ dbComposePaintContact(lpImage, lpPaint)
 			    SETPAINT(lpImage->l_type, lpPaint->l_type,
 					pNum, newtype);
 		}
-		break;
 	    }
 	}
 	/* else default paint/erase behavior */
