@@ -1725,7 +1725,12 @@ ResGetDevice(pt, type)
             return (((tileJunk *)tile->ti_client)->deviceList);
     }
     else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetType(tile)))
-        return (((tileJunk *)tile->ti_client)->deviceList);
-
+    {
+	/* Failure to have a valid client data will result in a "Bad Device"
+	 * error and indicates a problem that needs debugging.
+	 */
+	if (tile->ti_client != CLIENTDEFAULT)
+            return (((tileJunk *)tile->ti_client)->deviceList);
+    }
     return NULL;
 }

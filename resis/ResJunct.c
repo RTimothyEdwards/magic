@@ -55,6 +55,13 @@ ResNewSDDevice(tile, tp, xj, yj, direction, PendingList)
     tileJunk	*j;
 
     newnode = FALSE;
+
+    /* Watch for invalid client data.  If found, a "Bad Device" error will
+     * be generated which means "more debugging needed";  however, it will
+     * not cause a segmentation violation.
+     */
+    if (tp->ti_client == CLIENTDEFAULT) return;
+
     j = (tileJunk *) tp->ti_client;
     resDev = j->deviceList;
     if ((j->sourceEdge & direction) != 0)
