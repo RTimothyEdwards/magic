@@ -1163,7 +1163,7 @@ CIFTechLine(sectionName, argc, argv)
 	    break;
 
 	case CIFOP_BLOATALL:
-	    if (argc != 3) goto wrongNumArgs;
+	    if (argc != 3 && argc != 4) goto wrongNumArgs;
 	    cifParseLayers(argv[1], CIFCurStyle, &newOp->co_paintMask,
 			&newOp->co_cifMask, FALSE);
 	    bloats = (BloatData *)mallocMagic(sizeof(BloatData));
@@ -1178,6 +1178,21 @@ CIFTechLine(sectionName, argc, argv)
 
 	    if (!TTMaskIsZero(&mask) && !TTMaskIsZero(&cifMask))
 		TechError("Can't mix CIF and magic layers in bloat statement.\n");
+
+	    if (argc == 4)
+	    {
+		/* 12/23/2024:  Allow an additional argument, which is a
+		 * maximum halo distance to bloat (i.e., clip mask)
+		 */
+		newOp->co_distance = atoi(argv[3]);
+		if (newOp->co_distance <= 0)
+		{
+		    TechError("Bloat distance must be greater than zero.\n");
+		    goto errorReturn;
+		}
+	    }
+	    else
+		newOp->co_distance = 0;
 
 	    /* 10/15/2019:  Lifting restriction that the types that	*/
 	    /* trigger the bloating must be in the same plane as the	*/

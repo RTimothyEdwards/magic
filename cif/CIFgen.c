@@ -1228,6 +1228,32 @@ cifProcessResetFunc(tile, clientData)
 /*
  *-------------------------------------------------------
  *
+ * cifProcessSelectiveResetFunc --
+ *
+ *	Unmark tiles which are partially or wholly outside
+ *	the clip area (passed as client data).
+ *
+ * Results:	Return 0 to keep the search going.
+ *
+ *-------------------------------------------------------
+ */
+
+int
+cifProcessSelectiveResetFunc(tile, clipArea)
+    Tile *tile;
+    Rect *clipArea;
+{
+    Rect area;
+
+    TiToRect(tile, &area);
+    if (!GEO_SURROUND(&area, clipArea))
+	tile->ti_client = (ClientData) CIF_UNPROCESSED;
+    return 0;
+}
+
+/*
+ *-------------------------------------------------------
+ *
  * cifFoundFunc --
  *
  *	Find the first tile in the given area.
@@ -1280,9 +1306,9 @@ cifBloatAllFunc(tile, bls)
     Tile *tile;			/* The tile to be processed. */
     BloatStruct *bls;
 {
-    Rect area;
+    Rect area, clipArea;
     TileTypeBitMask *connect;
-    Tile *t, *tp;
+    Tile *t, *tp, *firstTile = NULL;
     TileType type, ttype;
     BloatData *bloats;
     int i, locScale;
@@ -1291,6 +1317,7 @@ cifBloatAllFunc(tile, bls)
     CellDef *def;
     Plane **temps;
     static Stack *BloatStack = (Stack *)NULL;
+    static Stack *ResetStack = (Stack *)NULL;
 
     op = bls->op;
     def = bls->def;
@@ -1302,6 +1329,8 @@ cifBloatAllFunc(tile, bls)
 
     if (BloatStack == (Stack *)NULL)
 	BloatStack = StackNew(64);
+    if (ResetStack == (Stack *)NULL)
+	ResetStack = StackNew(64);
 
     /* If the type of the tile to be processed is not in the same plane	*/
     /* as the bloat type(s), then find any tile under the tile to be	*/
@@ -1310,6 +1339,7 @@ cifBloatAllFunc(tile, bls)
 
     t = tile;
     type = TiGetType(tile);
+
     if (type == CIF_SOLIDTYPE)
     {
 	pmask = 0;
@@ -1324,6 +1354,8 @@ cifBloatAllFunc(tile, bls)
 	area.r_xtop /= locScale;
 	area.r_ybot /= locScale;
 	area.r_ytop /= locScale;
+
+	if (op->co_distance > 0) clipArea = area;
     }
     else
     {
@@ -1339,6 +1371,7 @@ cifBloatAllFunc(tile, bls)
 			CoincidentPlanes(connect, PlaneNumToMaskBit(pNum));
 	}
 	if (pmask == 0) TiToRect(tile, &area);
+
 	if (bloats->bl_plane < 0)
 	{
 	    /* Get the tile into CIF database coordinates if it's in magic coords */
@@ -1347,14 +1380,18 @@ cifBloatAllFunc(tile, bls)
 	    area.r_ybot *= cifScale;
 	    area.r_ytop *= cifScale;
 	    locScale = 1;
+	    if (op->co_distance > 0) clipArea = area;
 	}
 	else
 	{
 	    locScale = cifScale;
+	    if (op->co_distance > 0) TiToRect(tile, &clipArea);
 	}
     }
     if (pmask == 0)
     {
+	Rect foundArea;
+
 	if (bloats->bl_plane < 0)   /* Bloat types are CIF types */
 	{
 	    /* This expands the area to the OR of all temp layers specified */
@@ -1365,13 +1402,54 @@ cifBloatAllFunc(tile, bls)
 		if (bloats->bl_distance[ttype] > 0)
 		    (void) DBSrPaintArea((Tile *)NULL, *temps, &area,
 				&CIFSolidBits, cifFoundFunc, (ClientData)(&BloatStack));
+
+	    /* Get clip area from intersection of found tile and t */
+	    if (op->co_distance > 0)
+	    {
+		if (!StackEmpty(BloatStack))
+		{
+		    firstTile = (Tile *)StackLook(BloatStack);
+		    TiToRect(firstTile, &foundArea);
+		    GeoClip(&clipArea, &foundArea);
+		}
+	    }
 	}
 	else
+	{
 	    DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &area,
 		    connect, cifFoundFunc, (ClientData)(&BloatStack));
+
+	    /* Get clip area from intersection of found tile and t */
+	    if (op->co_distance > 0)
+	    {
+		if (!StackEmpty(BloatStack))
+		{
+		    firstTile = (Tile *)StackLook(BloatStack);
+		    TiToRect(firstTile, &foundArea);
+		    GeoClip(&clipArea, &foundArea);
+		}
+	    }
+	}
     }
     else
+    {
 	PUSHTILE(t, BloatStack);
+	firstTile = t;
+    }
+
+    /* Note:  if op->co_distance is 0 then bloat distance is arbitrarily large */
+    if (op->co_distance > 0)
+    {
+	clipArea.r_xbot *= locScale;
+	clipArea.r_ybot *= locScale;
+	clipArea.r_xtop *= locScale;
+	clipArea.r_ytop *= locScale;
+
+	clipArea.r_xtop += op->co_distance;
+	clipArea.r_xbot -= op->co_distance;
+	clipArea.r_ytop += op->co_distance;
+	clipArea.r_ybot -= op->co_distance;
+    }
 
     while (!StackEmpty(BloatStack))
     {
@@ -1386,6 +1464,17 @@ cifBloatAllFunc(tile, bls)
 	area.r_ybot *= locScale;
 	area.r_xtop *= locScale;
 	area.r_ytop *= locScale;
+
+	if (op->co_distance > 0)
+	{
+	    if (!GEO_SURROUND(&clipArea, &area))
+	    {
+		STACKPUSH(t, ResetStack);
+	    }
+	    GeoClip(&area, &clipArea);
+	    if (GEO_RECTNULL(&area))
+		continue;
+	}
 
 	/* Diagonal:  If expanding across the edge of a diagonal, */
 	/* then just fill the whole tile.			  */
@@ -1425,49 +1514,46 @@ cifBloatAllFunc(tile, bls)
 	for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
 	    if (TTMaskHasType(connect, TiGetLeftType(tp)))
 		PUSHTILE(tp, BloatStack);
-
     }
 
-    /* Clear the tiles that were processed */
-
+    /* Clear self */
     tile->ti_client = (ClientData)CIF_UNPROCESSED;
-    STACKPUSH(tile, BloatStack);
-    while (!StackEmpty(BloatStack))
+
+    /* NOTE:  Tiles must be cleared after the bloat-all function has
+     * completed.  However, for bloat-all with a limiting distance,
+     * it is necessary to clear tiles after each tile processed,
+     * because a processed tile that was partially or wholly outside
+     * of the clip area may be inside another tile's clip area.
+     * Those tiles that were not fully inside the clip area have all
+     * been pushed to the ResetStack.
+     */
+
+    while (!StackEmpty(ResetStack))
     {
-	t = (Tile *) STACKPOP(BloatStack);
-
-	/* Top */
-	for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
-	    if (tp->ti_client != (ClientData)CIF_UNPROCESSED)
-	    {
-		tp->ti_client = (ClientData)CIF_UNPROCESSED;
-		STACKPUSH(tp, BloatStack);
-	    }
-
-	/* Left */
-	for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
-	    if (tp->ti_client != (ClientData)CIF_UNPROCESSED)
-	    {
-		tp->ti_client = (ClientData)CIF_UNPROCESSED;
-		STACKPUSH(tp, BloatStack);
-	    }
-
-	/* Bottom */
-	for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
-	    if (tp->ti_client != (ClientData)CIF_UNPROCESSED)
-	    {
-		tp->ti_client = (ClientData)CIF_UNPROCESSED;
-		STACKPUSH(tp, BloatStack);
-	    }
-
-	/* Right */
-	for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
-	    if (tp->ti_client != (ClientData)CIF_UNPROCESSED)
-	    {
-		tp->ti_client = (ClientData)CIF_UNPROCESSED;
-		STACKPUSH(tp, BloatStack);
-	    }
+	t = (Tile *)STACKPOP(ResetStack);
+	t->ti_client = (ClientData) CIF_UNPROCESSED;
     }
+
+#if 0
+    if ((firstTile != NULL) && (op->co_distance > 0))
+    {
+	if (bloats->bl_plane < 0)
+	{
+	    /* This would be a lot more efficient if the plane number of
+	     * firstTile were pushed to the stack along with firstTile
+	     */
+	    temps = bls->temps;
+	    for (ttype = 0; ttype < TT_MAXTYPES; ttype++, temps++)
+		if (bloats->bl_distance[ttype] > 0)
+		    (void) DBSrPaintArea((Tile *)NULL, *temps, &clipArea,
+				&CIFSolidBits, cifProcessSelectiveResetFunc,
+				&clipArea);
+	}
+	else
+	    DBSrPaintArea((Tile *)firstTile, def->cd_planes[bloats->bl_plane],
+			&clipArea, connect, cifProcessSelectiveResetFunc, &clipArea);
+    }
+#endif
 
     return 0;	/* Keep the search alive. . . */
 }
