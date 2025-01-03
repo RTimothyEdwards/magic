@@ -374,7 +374,7 @@ extern int CIFHierRects;
 
 /* Tables used for painting and erasing CIF. */
 
-extern PaintResultType CIFPaintTable[], CIFEraseTable[];
+extern const PaintResultType CIFPaintTable[], CIFEraseTable[];
 
 /* Procedures and variables for reporting errors. */
 

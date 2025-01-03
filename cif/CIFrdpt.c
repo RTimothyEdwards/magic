@@ -18,7 +18,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/cif/CIFrdpt.c,v 1.2 2010/06/24 12:37:15 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/cif/CIFrdpt.c,v 1.2 2010/06/24 12:37:15 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -321,7 +321,7 @@ CIFPaintWirePath(
     int width,
     bool endcap,
     Plane *plane,
-    PaintResultType *ptable,
+    const PaintResultType *ptable,
     PaintUndoInfo *ui)
 {
     CIFPath *pathp, *previousp, *nextp, *polypath;

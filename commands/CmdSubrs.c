@@ -18,7 +18,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/commands/CmdSubrs.c,v 1.2 2010/06/24 12:37:15 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/commands/CmdSubrs.c,v 1.2 2010/06/24 12:37:15 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -720,7 +720,7 @@ cmdCheckNewName(
     bool tryRename,
     bool noninteractive)
 {
-    static char *yesno[] = { "no", "yes", 0 };
+    static const char * const yesno[] = { "no", "yes", 0 };
     char *filename;
     char *prompt;
     char *returnname;
@@ -1076,7 +1076,7 @@ CmdWarnWrite(void)
 {
     int count, code;
     int cmdWarnWriteFunc(CellDef *cellDef, int *pcount);
-    static char *yesno[] = { "no", "yes", 0 };
+    static const char * const yesno[] = { "no", "yes", 0 };
     char *prompt;
 
     count = 0;

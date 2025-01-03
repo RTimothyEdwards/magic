@@ -18,7 +18,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/calma/CalmaRdpt.c,v 1.7 2010/08/25 17:33:54 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/calma/CalmaRdpt.c,v 1.7 2010/08/25 17:33:54 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -257,13 +257,13 @@ calmaElementBoundary(void)
     if ((CalmaSubcellPolygons != CALMA_POLYGON_NONE) && (calmaNonManhattan > 0))
     {
 	/* Place the polygon in its own subcell */
-	char newname[] = "polygonXXXXX";
+	char newname[16];
 	HashEntry *he;
 
 	savedef = cifReadCellDef;
 
 	/* Make up name for cell */
-	sprintf(newname + 7, "%05d", ++CalmaPolygonCount);
+	snprintf(newname, sizeof(newname), "polygon%05d", ++CalmaPolygonCount);
 
 	he = HashFind(&calmaDefInitHash, newname);
 	if (!HashGetValue(he))
@@ -663,13 +663,13 @@ calmaElementPath(void)
 	if (CalmaSubcellPaths)
 	{
 	    /* Place the path in its own subcell */
-	    char newname[] = "pathXXXXX";
+	    char newname[16];
 	    HashEntry *he;
 
 	    savedef = cifReadCellDef;
 
 	    /* Make up name for cell */
-	    sprintf(newname + 4, "%05d", ++CalmaPathCount);
+	    snprintf(newname, sizeof(newname), "path%05d", ++CalmaPathCount);
 
 	    he = HashFind(&calmaDefInitHash, newname);
 	    if (!HashGetValue(he))
@@ -732,7 +732,7 @@ calmaElementPath(void)
 void
 calmaElementText(void)
 {
-    static int ignore[] = { CALMA_PATHTYPE, CALMA_WIDTH, -1 };
+    static const int ignore[] = { CALMA_PATHTYPE, CALMA_WIDTH, -1 };
     char *textbody = NULL;
     int nbytes = -1, rtype = 0;
     int layer, textt, cifnum, textpres;

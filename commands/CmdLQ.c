@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/commands/CmdLQ.c,v 1.9 2010/06/24 12:37:15 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/commands/CmdLQ.c,v 1.9 2010/06/24 12:37:15 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -1566,7 +1566,7 @@ CmdPort(
 	NULL
     };
 
-    static int cmdClassToBitmask[] =
+    static const int cmdClassToBitmask[] =
     {
 	PORT_CLASS_DEFAULT,
 	PORT_CLASS_INPUT,
@@ -1590,7 +1590,7 @@ CmdPort(
 	NULL
     };
 
-    static int cmdUseToBitmask[] =
+    static const int cmdUseToBitmask[] =
     {
 	PORT_USE_DEFAULT,
 	PORT_USE_ANALOG,
@@ -1611,7 +1611,7 @@ CmdPort(
 	NULL
     };
 
-    static int cmdShapeToBitmask[] =
+    static const int cmdShapeToBitmask[] =
     {
 	PORT_SHAPE_DEFAULT,
 	PORT_SHAPE_ABUT,

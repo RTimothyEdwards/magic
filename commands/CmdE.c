@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/commands/CmdE.c,v 1.4 2010/06/17 14:38:33 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/commands/CmdE.c,v 1.4 2010/06/17 14:38:33 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -201,7 +201,7 @@ cmdEditRedisplayFunc(
     MagWindow *w,			/* Window containing edit cell. */
     Rect *area)			/* Area to be redisplayed. */
 {
-    static Rect origin = {{-1, -1}, {1, 1}};
+    static const Rect origin = {-1, -1, 1, 1};
     Rect tmp;
     DBWclientRec *crec = (DBWclientRec *) w->w_clientData;
 

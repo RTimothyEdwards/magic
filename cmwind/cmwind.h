@@ -69,11 +69,11 @@ typedef struct
 extern void CMWloadWindow(MagWindow *, int);
 extern void CMWcommand(MagWindow *, TxCommand *);
 
-extern Rect colorWindowRect;
+extern const Rect colorWindowRect;
 extern WindClient CMWclientID;
-extern ColorBar colorBars[];
-extern ColorPump colorPumps[];
-extern Rect cmwCurrentColorArea;
+extern const ColorBar colorBars[];
+extern const ColorPump colorPumps[];
+extern const Rect cmwCurrentColorArea;
 extern void cmwUndoColor(int, int, int, int, int, int, int);
 extern bool CMWCheckWritten(void);
 

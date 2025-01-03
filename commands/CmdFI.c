@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/commands/CmdFI.c,v 1.4 2010/06/24 12:37:15 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/commands/CmdFI.c,v 1.4 2010/06/24 12:37:15 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -942,7 +942,7 @@ CmdFlush(
 {
     CellDef *def;
     int action;
-    static char *actionNames[] = { "no", "yes", 0 };
+    static const char * const actionNames[] = { "no", "yes", 0 };
     char *prompt;
     bool dereference = FALSE;
     char *strNoConfirm;

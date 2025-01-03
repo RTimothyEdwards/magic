@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/cif/CIFrdpoly.c,v 1.3 2010/06/24 12:37:15 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/cif/CIFrdpoly.c,v 1.3 2010/06/24 12:37:15 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -55,10 +55,14 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 int
-cifLowX(a, b)
-    CIFPath **a, **b;
+cifLowX(
+    const void *aa,
+    const void *bb)
 {
-    Point *p, *q;
+    const CIFPath **a = (const CIFPath **)aa;
+    const CIFPath **b = (const CIFPath **)bb;
+
+    const Point *p, *q;
 
     p = &(*a)->cifp_point;
     q = &(*b)->cifp_point;
@@ -88,9 +92,12 @@ cifLowX(a, b)
  */
 
 int
-cifLowY(a, b)
-    Point **a, **b;
+cifLowY(
+    const void *aa,
+    const void *bb)
 {
+    const Point **a = (const Point **)aa;
+    const Point **b = (const Point **)bb;
     if ((*a)->p_y < (*b)->p_y)
 	return (-1);
     if ((*a)->p_y > (*b)->p_y)
@@ -227,7 +234,7 @@ LinkedRect *
 CIFPolyToRects(
     CIFPath *path,		/* Path describing a polygon. */
     Plane *plane,		/* Plane to draw on */
-    PaintResultType *resultTbl,
+    const PaintResultType *resultTbl,
     PaintUndoInfo *ui,
     bool isCalma)		/* TRUE for Calma, FALSE for CIF */
 {

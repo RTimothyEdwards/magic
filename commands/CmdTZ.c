@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/commands/CmdTZ.c,v 1.8 2010/06/24 12:37:15 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/commands/CmdTZ.c,v 1.8 2010/06/24 12:37:15 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -1932,9 +1932,9 @@ cmdWriteallFunc(
 {
     char *prompt, *argv;
     int i, action, cidx = 0;
-    static char *actionNames[] =
+    static const char * const actionNames[] =
         { "write", "flush", "skip", "abort", "autowrite", 0 };
-    static char *explain[] =
+    static const char * const explain[] =
 	{ "", "(bboxes)", "(timestamps)", "(bboxes/timestamps)", 0 };
 
     if (def->cd_flags & CDINTERNAL) return 0;

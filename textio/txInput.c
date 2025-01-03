@@ -324,7 +324,7 @@ TxReprint()
 int
 TxDialog(prompt, responses, deflt)
     char *prompt;
-    char *(responses[]);
+    char *responses[];
     int deflt;
 {
     int code;

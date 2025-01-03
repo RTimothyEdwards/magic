@@ -28,7 +28,7 @@
 
 struct debugClient
 {
-    char		*dc_name;	/* Name of client */
+    const char		*dc_name;	/* Name of client */
     int			 dc_maxflags;	/* Maximum number of flags */
     int			 dc_nflags;	/* Number flags now in array */
     struct debugFlag	*dc_flags;	/* Array of flags */
@@ -36,7 +36,7 @@ struct debugClient
 
 struct debugFlag
 {
-    char	*df_name;	/* Name of debugging flag */
+    const char	*df_name;	/* Name of debugging flag */
     bool	 df_value;	/* Current value of the flag */
 };
 
@@ -54,7 +54,7 @@ typedef struct histogram
     int		       hi_max;		/* Largest item in the histogram*/
     int		       hi_min;		/* Smallest item in the histogram*/
     int		       hi_cum;		/* Cumulative item total 	*/
-    char             * hi_title;	/* Histogram identifier 	*/
+    const char       * hi_title;	/* Histogram identifier 	*/
     bool	       hi_ptrKeys;	/* TRUE if title is a pointer   */
     int              * hi_data;		/* Buckets for histogram counts	*/
     struct histogram * hi_next;		/* Linked list to next histogram*/
@@ -68,11 +68,11 @@ extern struct debugClient debugClients[];
 #define	DebugIsSet(cid, f)	debugClients[(spointertype) cid].dc_flags[f].df_value
 
 /* procedures */
-extern void HistCreate(char *name, int ptrKeys, int low, int step, int bins);
-extern void HistAdd(char *name, int ptrKeys, int value);
-extern void HistPrint(char *name);
-extern ClientData DebugAddClient(char *name, int maxflags);
-extern int DebugAddFlag(ClientData clientID, char *name);
+extern void HistCreate(const char *name, int ptrKeys, int low, int step, int bins);
+extern void HistAdd(const char *name, int ptrKeys, int value);
+extern void HistPrint(const char *name);
+extern ClientData DebugAddClient(const char *name, int maxflags);
+extern int DebugAddFlag(ClientData clientID, const char *name);
 extern void DebugShow(ClientData clientID);
 extern void DebugSet(ClientData clientID, int argc, char *argv[], int value);
 

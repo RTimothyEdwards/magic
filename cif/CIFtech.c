@@ -18,7 +18,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/cif/CIFtech.c,v 1.7 2010/10/20 20:34:19 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/cif/CIFtech.c,v 1.7 2010/10/20 20:34:19 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
