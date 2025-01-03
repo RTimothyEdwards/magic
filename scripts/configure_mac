@@ -36,6 +36,56 @@ do
     fi
 done
 
+# This appeared to have the "@8" suffix add to the installed path
+brew_prefix_tcl_tk=$(brew --prefix tcl-tk)
+echo "brew_prefix_tcl_tk=$(brew --prefix tcl-tk)"
+brew_prefix_tcl_tk_at8=$(brew --prefix tcl-tk@8)
+echo "brew_prefix_tcl_tk_at8=$(brew --prefix tcl-tk@8)"
+# Changed the order to reflect current state to use TCL8 in preference to default,
+#  but you can swap/edit these to modify the first-found-is-selected for building.
+for d in "${brew_prefix_tcl_tk_at8}" "${brew_prefix_tcl_tk}"
+do
+    if [ -d "$d" ]
+    then
+        echo "Directory Exists: $d"
+        ls -l "${d}/"
+        if [ -z "$tcl_tk_prefix_dir" ]
+        then
+            if [ -f "${d}/include/tcl.h" ]
+            then
+                echo "Found tcl-tk: ${d}"
+                tcl_tk_prefix_dir="${d}"
+            else
+                echo "WARNING: Not Found tcl.h in ${d}/include/"
+                ls -l "${d}/include/"
+                if [ -d "${d}/lib" ]
+                then
+                    # A subdir exists
+                    ls -l "${d}/lib"
+                    # TEST does it build if we set
+                    echo "Found tcl-tk (lib): ${d}/lib"
+                    tcl_tk_prefix_dir="${d}/lib"
+                elif [ -d "${d}/include/tcl-tk" ]
+                then
+                    # A subdir exists
+                    ls -l "${d}/include/tcl-tk"
+                    # TEST does it build if we set
+                    if [ -f "${d}/include/tcl-tk/tcl.h" ]
+                    then
+                        echo "Found tcl-tk: ${d}/include/tcl-tk"
+                        tcl_tk_prefix_dir="${d}/include/tcl-tk"
+                    fi
+                fi
+            fi
+        else
+            echo "WARNING: Multiple tcl-tk packages found installed (side-by-side) please manually edit this script or fixup configure command line" 1>&2
+            echo "WARNING: The version being used for this build is: $tcl_tk_prefix_dir" 1>&2
+        fi
+    fi
+done
+# Restores the original script default when the above detection fails
+tcl_tk_prefix_dir=${tcl_tk_prefix_dir:-$brew_prefix_tcl_tk}
+
 if [ -n "$x11_include_dir" ]
 then
     # On some versions of MacOSX (example macosx12 / XCode 14.2) the tcl-tk
@@ -61,8 +111,8 @@ then
 fi
 
 ./configure\
-    --with-tcl=$(brew --prefix tcl-tk)\
-    --with-tk=$(brew --prefix tcl-tk)\
+    --with-tcl="${tcl_tk_prefix_dir}"\
+    --with-tk="${tcl_tk_prefix_dir}"\
     --with-cairo=$(brew --prefix cairo)/include\
     $CONFARGS\
     "LDFLAGS=-L$(brew --prefix cairo)/lib"
