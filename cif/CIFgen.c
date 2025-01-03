@@ -2086,7 +2086,7 @@ cifCloseFunc(
 {
     Rect area, newarea;
     int atotal;
-    int cifGatherFunc(Tile *tile, int *atotal, bool mode);
+    int cifGatherFunc(Tile *tile, int *atotal, int mode);
 
     /* If tile is marked, then it has been handled, so ignore it */
     if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
@@ -2118,7 +2118,7 @@ int
 cifGatherFunc(
     Tile *tile,
     int *atotal,
-    bool mode)
+    int mode)
 {
     Tile *tp;
     TileType type;
