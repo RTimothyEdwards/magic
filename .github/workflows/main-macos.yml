@@ -10,8 +10,9 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  simple_build_macos12:
-    runs-on: macos-12
+  simple_build_macos13:
+    runs-on: macos-13
+    timeout-minutes: 45 # x86_64 seems non-SSD based (slower)
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,8 +22,8 @@ jobs:
         run: |
           brew install --cask xquartz
           PACKAGE_LIST="xquartz"
-          brew install cairo tcl-tk tcsh
-          _package_list="cairo tcl-tk tcsh"
+          brew install cairo tcl-tk@8 tcsh
+          _package_list="cairo tcl-tk@8 tcsh"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -51,6 +52,7 @@ jobs:
             brew info libglu   > $TMPFILE && head -n1 $TMPFILE
             brew info freeglut > $TMPFILE && head -n1 $TMPFILE
             brew info tcl-tk   > $TMPFILE && head -n1 $TMPFILE
+            brew info tcl-tk@8 > $TMPFILE && head -n1 $TMPFILE
             brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
             echo ""
             cc -v 2>&1
@@ -74,7 +76,7 @@ jobs:
           echo "=== search.sh"
           cat search.sh
           chmod a+x search.sh
-          find /opt /usr $HOME \( -iname "libX11.*dylib" -or -iname "Xlib.h" \) -exec ./search.sh {} \; 2>/dev/null
+          find /opt /usr $HOME \( -iname "libX11.*dylib" -or -iname "Xlib.h" -or -iname "libtcl*dylib" -or -iname "tcl.h" \) -exec ./search.sh {} \; 2>/dev/null
           #
           # Example symbols that were found missing from the tcl-tk X11 implementation
           #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XCreateGC" {} \; 2>/dev/null || true
@@ -87,6 +89,20 @@ jobs:
           #  tail -n 50 "$i"
           #  echo "======"
           #done
+
+          # Different GHA platforms have different layouts (x86_64/arm64)
+          echo "=== /opt"
+          ls -l /opt
+          if [ -d /opt/homebrew ]
+          then
+            echo "=== /opt/homebrew"
+            ls -l /opt/homebrew
+          fi
+          echo "=== /usr/local/opt"
+          ls -l /usr/local/opt
+          echo "=== /usr/local/opt/runner"
+          ls -l /usr/local/opt/runner
+
           echo "Done"
 
       - name: Build
@@ -124,6 +140,7 @@ jobs:
           set +e
           echo "=== ls -l"
           ls -l
+          find . -type f \( -name "*.dylib" -or -name "magic" -or -name "magicexec" -or -name "magicdnull" \)
           echo "=== find /usr/local/bin"
           find /usr/local/bin -mtime 0
           echo "=== find /usr/local/share"
@@ -136,6 +153,9 @@ jobs:
           otool -L tcltk/magicexec
           echo "=== otool -L tcltk/magicdnull"
           otool -L tcltk/magicdnull
+
+          set +o pipefail # macosx this is on by default (turn it off)
+
           echo "=== magic --version"
           magic --version
           echo "=== magic -d help -noconsole"
@@ -146,8 +166,13 @@ jobs:
           echo "version ; quit" | magic -d null -noconsole -T scmos
 
       - name: Summary
+        if: always()
         run: |
           set +e
+
+          ls -l
+
+          touch MAKE.LOG # just in case it did not even build
           grep "error:"   MAKE.LOG > MAKE_error.LOG
           grep "warning:" MAKE.LOG > MAKE_warning.LOG
 
@@ -157,7 +182,6 @@ jobs:
            grep -v "Wunused-label" |
            grep -v "Wunused-but-set-variable" > MAKE_warning_filtered.LOG
 
-          ls -l
           wc -l *.LOG
 
           error_count=$(           grep -c "error:"   MAKE_error.LOG)
@@ -179,16 +203,21 @@ jobs:
             echo "---"
             echo "$title"
             echo ""
+            [ -f scripts/config.log ] && grep "./configure" scripts/config.log | head -n1
+            echo ""
             echo "PACKAGE_LIST=$PACKAGE_LIST"
             echo "CONFIGURE_ARGS=$CONFIGURE_ARGS"
             echo ""
-            echo "total ${total_error_count} error(s) ${total_warning_count} warning(s) :"
-            echo "|Count|Warning Group (-j build log inaccuracies)|"
-            echo "|--:|:--|"
-            # due to -j build the log lines might get corrupted, so missing/incorrect/bogus entries might be seen
-            #  so we add extra: egrep "\[\-W.*\]"  (to try to remove that)
-            sed -e 's#.*\(\[\-W\)#\1#' -e 's#\(\]\).*$#\1#' MAKE_warning.LOG | egrep "\[\-W.*\]" | sort | uniq -c | sort -n  | tr -s ' ' | tr ' ' '|' | awk '{print $0"|"}'
-            echo ""
+            if [ -s MAKE.LOG ]
+            then
+              echo "total ${total_error_count} error(s) ${total_warning_count} warning(s) :"
+              echo "|Count|Warning Group (-j build log inaccuracies)|"
+              echo "|--:|:--|"
+              # due to -j build the log lines might get corrupted, so missing/incorrect/bogus entries might be seen
+              #  so we add extra: egrep "\[\-W.*\]"  (to try to remove that)
+              sed -e 's#.*\(\[\-W\)#\1#' -e 's#\(\]\).*$#\1#' MAKE_warning.LOG | egrep "\[\-W.*\]" | sort | uniq -c | sort -n  | tr -s ' ' | tr ' ' '|' | awk '{print $0"|"}'
+              echo ""
+            fi
             grep -A100 "Configuration Summary" CONFIGURE.LOG | grep -v "Configuration Summary" | egrep "^.*:" | sed -e '/\---/,//d'
             echo ""
             grep DCAD_DIR MAKE.LOG  | tail -n1
@@ -205,15 +234,16 @@ jobs:
           cp *.mak dist/BUILD-INFO/
           cp *.LOG dist/BUILD-INFO/
 
-      - name: Upload archive magic-macos12
+      - name: Upload archive magic-macos13
         uses: actions/upload-artifact@v4
         with:
-          name: magic-macos12
+          name: magic-macos13
           path: |
             ${{ github.workspace }}/dist
 
   simple_build_macos:
     runs-on: macos-latest
+    timeout-minutes: 30 # arm64 seems SSD based (faster)
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -223,8 +253,8 @@ jobs:
         run: |
           brew install --cask xquartz
           PACKAGE_LIST="xquartz"
-          brew install cairo tcl-tk tcsh
-          _package_list="cairo tcl-tk tcsh"
+          brew install cairo tcl-tk@8 tcsh
+          _package_list="cairo tcl-tk@8 tcsh"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -253,6 +283,7 @@ jobs:
             brew info libglu   > $TMPFILE && head -n1 $TMPFILE
             brew info freeglut > $TMPFILE && head -n1 $TMPFILE
             brew info tcl-tk   > $TMPFILE && head -n1 $TMPFILE
+            brew info tcl-tk@8 > $TMPFILE && head -n1 $TMPFILE
             brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
             echo ""
             cc -v 2>&1
@@ -276,7 +307,7 @@ jobs:
           echo "=== search.sh"
           cat search.sh
           chmod a+x search.sh
-          find /opt /usr $HOME \( -iname "libX11.*dylib" -or -iname "Xlib.h" \) -exec ./search.sh {} \; 2>/dev/null
+          find /opt /usr $HOME \( -iname "libX11.*dylib" -or -iname "Xlib.h" -or -iname "libtcl*dylib" -or -iname "tcl.h" \) -exec ./search.sh {} \; 2>/dev/null
           #
           # Example symbols that were found missing from the tcl-tk X11 implementation
           #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XCreateGC" {} \; 2>/dev/null || true
@@ -289,6 +320,20 @@ jobs:
           #  tail -n 50 "$i"
           #  echo "======"
           #done
+
+          # Different GHA platforms have different layouts (x86_64/arm64)
+          echo "=== /opt"
+          ls -l /opt
+          if [ -d /opt/homebrew ]
+          then
+            echo "=== /opt/homebrew"
+            ls -l /opt/homebrew
+          fi
+          echo "=== /usr/local/opt"
+          ls -l /usr/local/opt
+          echo "=== /usr/local/opt/runner"
+          ls -l /usr/local/opt/runner
+
           echo "Done"
 
       - name: Build
@@ -326,6 +371,7 @@ jobs:
           set +e
           echo "=== ls -l"
           ls -l
+          find . -type f \( -name "*.dylib" -or -name "magic" -or -name "magicexec" -or -name "magicdnull" \)
           echo "=== find /usr/local/bin"
           find /usr/local/bin -mtime 0
           echo "=== find /usr/local/share"
@@ -338,6 +384,9 @@ jobs:
           otool -L tcltk/magicexec
           echo "=== otool -L tcltk/magicdnull"
           otool -L tcltk/magicdnull
+
+          set +o pipefail # macosx this is on by default (turn it off)
+
           echo "=== magic --version"
           magic --version
           echo "=== magic -d help -noconsole"
@@ -348,8 +397,13 @@ jobs:
           echo "version ; quit" | magic -d null -noconsole -T scmos
 
       - name: Summary
+        if: always()
         run: |
           set +e
+
+          ls -l
+
+          touch MAKE.LOG # just in case it did not even build
           grep "error:"   MAKE.LOG > MAKE_error.LOG
           grep "warning:" MAKE.LOG > MAKE_warning.LOG
 
@@ -359,7 +413,6 @@ jobs:
            grep -v "Wunused-label" |
            grep -v "Wunused-but-set-variable" > MAKE_warning_filtered.LOG
 
-          ls -l
           wc -l *.LOG
 
           error_count=$(           grep -c "error:"   MAKE_error.LOG)
@@ -381,16 +434,21 @@ jobs:
             echo "---"
             echo "$title"
             echo ""
+            [ -f scripts/config.log ] && grep "./configure" scripts/config.log | head -n1
+            echo ""
             echo "PACKAGE_LIST=$PACKAGE_LIST"
             echo "CONFIGURE_ARGS=$CONFIGURE_ARGS"
             echo ""
-            echo "total ${total_error_count} error(s) ${total_warning_count} warning(s) :"
-            echo "|Count|Warning Group (-j build log inaccuracies)|"
-            echo "|--:|:--|"
-            # due to -j build the log lines might get corrupted, so missing/incorrect/bogus entries might be seen
-            #  so we add extra: egrep "\[\-W.*\]"  (to try to remove that)
-            sed -e 's#.*\(\[\-W\)#\1#' -e 's#\(\]\).*$#\1#' MAKE_warning.LOG | egrep "\[\-W.*\]" | sort | uniq -c | sort -n  | tr -s ' ' | tr ' ' '|' | awk '{print $0"|"}'
-            echo ""
+            if [ -s MAKE.LOG ]
+            then
+              echo "total ${total_error_count} error(s) ${total_warning_count} warning(s) :"
+              echo "|Count|Warning Group (-j build log inaccuracies)|"
+              echo "|--:|:--|"
+              # due to -j build the log lines might get corrupted, so missing/incorrect/bogus entries might be seen
+              #  so we add extra: egrep "\[\-W.*\]"  (to try to remove that)
+              sed -e 's#.*\(\[\-W\)#\1#' -e 's#\(\]\).*$#\1#' MAKE_warning.LOG | egrep "\[\-W.*\]" | sort | uniq -c | sort -n  | tr -s ' ' | tr ' ' '|' | awk '{print $0"|"}'
+              echo ""
+            fi
             grep -A100 "Configuration Summary" CONFIGURE.LOG | grep -v "Configuration Summary" | egrep "^.*:" | sed -e '/\---/,//d'
             echo ""
             grep DCAD_DIR MAKE.LOG  | tail -n1
