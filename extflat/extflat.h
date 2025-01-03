@@ -390,7 +390,7 @@ extern int  efHierSrArray();
 extern int  efHierSrUses();
 extern int  efHierVisitDevs();
 extern EFNode *efNodeMerge();
-extern void efReadError();
+extern void efReadError(const char *fmt, ...) ATTR_FORMAT_PRINTF_1;
 extern int  efReadLine();
 extern bool efSymAdd();
 extern bool efSymAddFile();

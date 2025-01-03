@@ -3669,7 +3669,8 @@ spcnodeVisit(node, res, cap)
     EFNodeName *nn;
     HierName *hierName;
     bool isConnected = FALSE;
-    char *fmt, *nsn;
+    const char *fmt;
+    char *nsn;
     EFAttr *ap;
 
     if (node->efnode_client)
@@ -3731,7 +3732,7 @@ nodeVisitDebug(node, res, cap)
 {
     EFNodeName *nn;
     HierName *hierName;
-    char *fmt, *nsn;
+    char *nsn;
     EFAttr *ap;
 
     hierName = (HierName *) node->efnode_name->efnn_hier;

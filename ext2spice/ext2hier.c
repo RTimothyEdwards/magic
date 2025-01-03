@@ -1423,7 +1423,7 @@ spcnodeHierVisit(hc, node, res, cap)
     EFNodeName *nn;
     HierName *hierName;
     bool isConnected = FALSE;
-    char *fmt, *nsn;
+    const char *fmt, *nsn;
     EFAttr *ap;
 
     if (node->efnode_client)

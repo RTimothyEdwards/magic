@@ -1028,7 +1028,7 @@ TxFlush()
 /*--------------------------------------------------------------*/
 
 int
-Tcl_printf(FILE *f, char *fmt, va_list args_in)
+Tcl_printf(FILE *f, const char *fmt, va_list args_in)
 {
     va_list args;
     static char outstr[128] = "puts -nonewline std";

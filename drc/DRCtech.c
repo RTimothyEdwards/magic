@@ -1020,7 +1020,7 @@ DRCTechAddRule(sectionName, argc, argv)
     char *argv[];
 {
     int which, distance, mdist;
-    char *fmt;
+    const char *fmt;
     static const struct
     {
 	const char *rk_keyword;	/* Initial keyword */

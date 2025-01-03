@@ -64,7 +64,7 @@ extern int Tcl_printf();
  */
 
 void
-efReadError(char *fmt, ...)
+efReadError(const char *fmt, ...)
 {
     va_list args;
 

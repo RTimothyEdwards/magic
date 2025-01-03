@@ -403,7 +403,7 @@ GeoNameToPos(name, manhattan, verbose)
 	{"west",	GEO_WEST,		TRUE},
 	{0}
     };
-    char *fmt;
+    const char *fmt;
     const struct pos *pp;
     int pos;
 

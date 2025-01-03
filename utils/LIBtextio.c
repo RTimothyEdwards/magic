@@ -96,7 +96,7 @@ TxFlush()
  */
 
 void
-TxError(char *fmt, ...)
+TxError(const char *fmt, ...)
 {
     va_list ap;
 
@@ -126,7 +126,7 @@ TxError(char *fmt, ...)
  */
 
 void
-TxPrintf(char *fmt, ...)
+TxPrintf(const char *fmt, ...)
 {
     va_list ap;
 

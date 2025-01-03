@@ -1603,7 +1603,7 @@ int simnodeVisit(node, res, cap)
     EFNodeName *nn;
     HierName *hierName;
     bool isGlob;
-    char *fmt;
+    const char *fmt;
     EFAttr *ap;
 
     if (esDevNodesOnly && node->efnode_client == (ClientData) NULL)

@@ -68,10 +68,10 @@ extern void TxUseMore();
 extern void TxStopMore();
 
 /* printing procedures with variable arguments lists */
-extern void TxError(char *, ...);
-extern void TxErrorV(char *, va_list args);
-extern void TxPrintf(char *, ...);
-extern char *TxPrintString(char *, ...);
+extern void TxError(const char *, ...) ATTR_FORMAT_PRINTF_1;
+extern void TxErrorV(const char *, va_list args);
+extern void TxPrintf(const char *, ...) ATTR_FORMAT_PRINTF_1;
+extern char *TxPrintString(const char *, ...) ATTR_FORMAT_PRINTF_1;
 
 /* input procedures */
 extern char *TxGetLinePrompt();

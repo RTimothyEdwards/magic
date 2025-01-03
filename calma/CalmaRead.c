@@ -459,7 +459,7 @@ calmaParseUnits(void)
  */
 
 void
-CalmaReadError(char *format, ...)
+CalmaReadError(const char *format, ...)
 {
     va_list args;
     OFFTYPE filepos;
