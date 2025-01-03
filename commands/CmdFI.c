@@ -945,7 +945,6 @@ CmdFlush(
     static const char * const actionNames[] = { "no", "yes", 0 };
     char *prompt;
     bool dereference = FALSE;
-    char *strNoConfirm;
 
     if (!strncmp(cmd->tx_argv[cmd->tx_argc - 1], "-deref", 6))
     {
@@ -976,19 +975,13 @@ CmdFlush(
 	}
     }
 
-    strNoConfirm = (char *)Tcl_GetVar(magicinterp, "CmdFlush_NoConfirm", TCL_GLOBAL_ONLY);
-
-    if(strNoConfirm){
-        TxPrintf("CmdFlush_NoConfirm set, skipping prompt.\n");
-    }else{
-        if (def->cd_flags & (CDMODIFIED|CDSTAMPSCHANGED|CDBOXESCHANGED))
-        {
-            prompt = TxPrintString("Really throw away all changes made"
-                                   " to cell %s? ", def->cd_name);
-            action = TxDialog(prompt, actionNames, 0);
-            if (action == 0)	/* No */
-                return;
-        }
+    if (def->cd_flags & (CDMODIFIED|CDSTAMPSCHANGED|CDBOXESCHANGED))
+    {
+	prompt = TxPrintString("Really throw away all changes made"
+			" to cell %s? ", def->cd_name);
+	action = TxDialog(prompt, actionNames, 0);
+	if (action == 0)	/* No */
+	    return;
     }
 
     cmdFlushCell(def, dereference);
