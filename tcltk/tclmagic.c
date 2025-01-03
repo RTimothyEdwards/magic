@@ -824,7 +824,7 @@ _magic_startup(ClientData clientData,
 int
 TxDialog(prompt, responses, defresp)
     char *prompt;
-    char *(responses[]);
+    char *responses[];
     int defresp;
 {
     Tcl_Obj *objPtr;
