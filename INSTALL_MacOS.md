@@ -3,9 +3,11 @@
 Get [Homebrew](https://brew.sh).
 
 ```sh
-brew install cairo tcl-tk python3
+# TCL9 should be supported soon (Q2 2025)
+brew install cairo tcl-tk@8 python3
 brew install --cask xquartz
 ./scripts/configure_mac
+# If you have both TCL8 and TCL9 installed you may need to verify TCL8 was selected.
 make database/database.h
 make -j$(sysctl -n hw.ncpu)
 make install # may need sudo depending on your setup
