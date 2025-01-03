@@ -649,7 +649,7 @@ CMWCheckWritten(void)
 {
     bool indx;
     char *prompt;
-    static const char * const (yesno[]) = {"no", "yes", NULL};
+    static const char * const yesno[] = {"no", "yes", NULL};
 
     if (!cmwModified) return TRUE;
     prompt = TxPrintString("The color map has been modified.\n"
