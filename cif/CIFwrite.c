@@ -167,8 +167,8 @@ CIFWrite(
     cifOutPreamble(f, rootDef);
     cifOut(f);
     StackFree(cifStack);
-    if ((int) rootDef->cd_client < 0)
-	rootDef->cd_client = (ClientData) (- (int) rootDef->cd_client);
+    if ((int) CD2INT(rootDef->cd_client) < 0)
+	rootDef->cd_client = INT2CD(- (int) CD2INT(rootDef->cd_client));
 
     /* See if any problems occurred. */
 
@@ -182,7 +182,7 @@ CIFWrite(
      * Now we are almost done.
      * Just output a call on the root cell
      */
-    fprintf(f, "C %d;\nEnd\n", (int) rootDef->cd_client);
+    fprintf(f, "C %d;\nEnd\n", (int) CD2INT(rootDef->cd_client));
     good = !ferror(f);
     return (good);
 }
@@ -233,7 +233,7 @@ cifWriteMarkFunc(
     CellUse *use)
 {
     if (use->cu_def->cd_client != (ClientData) 0) return 0;
-    use->cu_def->cd_client = (ClientData) cifCellNum;
+    use->cu_def->cd_client = INT2CD(cifCellNum);
     cifCellNum -= 1;
     StackPush((ClientData) use->cu_def, cifStack);
     return (0);
@@ -313,10 +313,10 @@ cifOut(
     while (!StackEmpty(cifStack))
     {
 	def = (CellDef *) StackPop(cifStack);
-	if ((int) def->cd_client >= 0) continue;	/* Already output */
+	if ((int) CD2INT(def->cd_client) >= 0) continue;	/* Already output */
 	if (SigInterruptPending) continue;
 
-	def->cd_client = (ClientData) (- (int) def->cd_client);
+	def->cd_client = INT2CD(- (int) CD2INT(def->cd_client));
 
 	/* Read the cell in if it is not already available. */
 	if ((def->cd_flags & CDAVAILABLE) == 0)
@@ -362,7 +362,7 @@ cifOutFunc(
     int type;
     CIFLayer *layer;
 
-    fprintf(f, "DS %d %d %d;\n", (int) def->cd_client,
+    fprintf(f, "DS %d %d %d;\n", (int) CD2INT(def->cd_client),
 	CIFCurStyle->cs_reducer, 2 * CIFCurStyle->cs_expander);
 
     if (def->cd_name != (char *) NULL)
@@ -493,7 +493,7 @@ cifWriteUseFunc(
     Transform *t;
     int cifnum;
 
-    cifnum = (int) use->cu_def->cd_client;
+    cifnum = (int) CD2INT(use->cu_def->cd_client);
     if (cifnum < 0) cifnum = (-cifnum);
     topx = use->cu_xhi - use->cu_xlo;
     if (topx < 0) topx = -topx;
@@ -773,7 +773,7 @@ CIFWriteFlat(
      * Just output a call on the root cell
      */
 
-    fprintf(f, "C %d;\nEnd\n", (int) CIFComponentDef->cd_client);
+    fprintf(f, "C %d;\nEnd\n", (int) CD2INT(CIFComponentDef->cd_client));
     DBCellClearDef(CIFComponentDef);
     good = !ferror(f);
 

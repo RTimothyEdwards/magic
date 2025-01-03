@@ -53,7 +53,7 @@ Tclroute_Init(interp)
     if (interp == NULL) return TCL_ERROR;
     if (Tcl_PkgRequire(interp, "Tclmagic", MAGIC_VERSION, 0) == NULL)
 	return TCL_ERROR;
-    if (Tcl_InitStubs(interp, "8.5", 0) == NULL) return TCL_ERROR;
+    if (Tcl_InitStubs(interp, Tclmagic_InitStubsVersion, 0) == NULL) return TCL_ERROR;
 
     TxPrintf("Auto-loading ROUTE module\n");
     TxFlushOut();

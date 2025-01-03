@@ -867,15 +867,15 @@ calmaProcessDef(
     HashEntry *he;
 
     /* Skip if already output */
-    if ((int) def->cd_client > 0)
+    if ((int) CD2INT(def->cd_client) > 0)
 	return (0);
 
     /* Assign it a (negative) number if it doesn't have one yet */
-    if ((int) def->cd_client == 0)
-	def->cd_client = (ClientData) calmaCellNum--;
+    if ((int) CD2INT(def->cd_client) == 0)
+	def->cd_client = INT2CD(calmaCellNum--);
 
     /* Mark this cell */
-    def->cd_client = (ClientData) (- (int) def->cd_client);
+    def->cd_client = INT2CD(- (int) CD2INT(def->cd_client));
 
     /* Read the cell in if it is not already available. */
     if ((def->cd_flags & CDAVAILABLE) == 0)
@@ -1769,7 +1769,7 @@ calmaOutStructName(
     {
 	/* Bad name: use XXXXXcalmaNum */
 bad:
-	calmanum = (int) def->cd_client;
+	calmanum = (int) CD2INT(def->cd_client);
 	if (calmanum < 0) calmanum = -calmanum;
 	defname = (char *)mallocMagic(32);
 	(void) sprintf(defname, "XXXXX%d", calmanum);

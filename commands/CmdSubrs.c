@@ -1132,7 +1132,7 @@ cmdExpandOneLevel(
 
     /* now, unexpand its direct children (ONE LEVEL ONLY) */
     if (expand)
-	(void) DBCellEnum(cu->cu_def, cmdExpand1func, (ClientData) bitmask);
+	(void) DBCellEnum(cu->cu_def, cmdExpand1func, INT2CD(bitmask));
 }
 
 int
@@ -1140,7 +1140,7 @@ cmdExpand1func(
     CellUse *cu,
     ClientData bitmask)
 {
-    DBExpand(cu, (int) bitmask, FALSE);
+    DBExpand(cu, (int)CD2INT(bitmask), FALSE);
     return 0;
 }
 

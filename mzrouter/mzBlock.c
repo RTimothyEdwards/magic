@@ -285,7 +285,7 @@ mzBlockSubcellsFunc(scx, cdarg)
     r = scx->scx_use->cu_def->cd_bbox;
     GEOTRANSRECT(&scx->scx_trans, &r, &rDest);
 
-    if((int)(scx->scx_use->cu_client) != MZ_EXPAND_DEST)
+    if(scx->scx_use->cu_client != MZ_EXPAND_DEST)
     /* cell over part of dest node, paint normal blocks onto affected
      * planes.
      * (area is bloated by appropriate spacing on each affected plane)

@@ -549,8 +549,8 @@ DBWloadWindow(window, name, flags)
 	if (expand)
 	    DBExpandAll(newEditUse, &(newEditUse->cu_bbox),
 			((DBWclientRec *)window->w_clientData)->dbw_bitmask,
-			FALSE, UnexpandFunc, (ClientData)
-			(((DBWclientRec *)window->w_clientData)->dbw_bitmask));
+			FALSE, UnexpandFunc,
+			INT2CD(((DBWclientRec *)window->w_clientData)->dbw_bitmask));
 
 	if (newEdit)
 	{

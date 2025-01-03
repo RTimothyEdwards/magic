@@ -697,7 +697,7 @@ CIFPaintCurrent(
 			&DBAllButSpaceBits, cifCheckPaintFunc,
 			(ClientData)NULL) == 1))
 		    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
-			&CIFSolidBits, cifMakeBoundaryFunc, (ClientData)filetype);
+			&CIFSolidBits, cifMakeBoundaryFunc, INT2CD(filetype));
 	    }
 
 	    /* Swap planes */
@@ -709,7 +709,7 @@ CIFPaintCurrent(
 	{
 	    DBSrPaintArea((Tile *) NULL, plane, &TiPlaneRect,
 			&CIFSolidBits, cifPaintCurrentFunc,
-			(ClientData)type);
+			INT2CD(type));
 	}
 
 	/* Recycle the plane, which was dynamically allocated. */

@@ -64,14 +64,14 @@ catch {unset pkg file name version}
 # Tk 8.4 makes previously exposed stuff private.
 # FIX: Update tkcon to not rely on the private Tk code.
 #
-if {![llength [info globals tkPriv]]} {
-    ::tk::unsupported::ExposePrivateVariable tkPriv
-}
-foreach cmd {SetCursor UpDownLine Transpose ScrollPages} {
-    if {![llength [info commands tkText$cmd]]} {
-        ::tk::unsupported::ExposePrivateCommand tkText$cmd
-    }
-}
+#if {![llength [info globals tkPriv]]} {
+#    ::tk::unsupported::ExposePrivateVariable tkPriv
+#}
+#foreach cmd {SetCursor UpDownLine Transpose ScrollPages} {
+#    if {![llength [info commands tkText$cmd]]} {
+#        ::tk::unsupported::ExposePrivateCommand tkText$cmd
+#    }
+#}
 
 # Initialize the ::tkcon namespace
 #
