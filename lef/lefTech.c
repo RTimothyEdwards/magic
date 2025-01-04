@@ -69,7 +69,7 @@ HashTable LefNonDefaultRules;
  */
 
 void
-LefInit()
+LefInit(void)
 {
     /* Ensure that the table has a null entry so we don't run HashKill	*/
     /* on it when we to the tech initialization.			*/
@@ -95,7 +95,7 @@ LefInit()
  */
 
 void
-LefTechInit()
+LefTechInit(void)
 {
     HashSearch hs;
     HashEntry *he;
@@ -148,7 +148,7 @@ LefTechInit()
  */
 
 void
-lefRemoveGeneratedVias()
+lefRemoveGeneratedVias(void)
 {
     HashSearch hs;
     HashEntry *he;
@@ -202,10 +202,10 @@ lefRemoveGeneratedVias()
 #define LEFTECH_IGNORE	9
 
 bool
-LefTechLine(sectionName, argc, argv)
-    char *sectionName;          /* Name of this section (unused). */
-    int argc;                   /* Number of arguments on line. */
-    char *argv[];               /* Pointers to fields of line. */
+LefTechLine(
+    char *sectionName,          /* Name of this section (unused). */
+    int argc,                   /* Number of arguments on line. */
+    char *argv[])               /* Pointers to fields of line. */
 {
     bool isObstruction, isContact, isInactive;
     HashEntry *he;
@@ -413,8 +413,9 @@ LefTechLine(sectionName, argc, argv)
  */
 
 void
-LefTechScale(scalen, scaled)
-    int scalen, scaled;
+LefTechScale(
+    int scalen,
+    int scaled)
 {
     HashSearch hs;
     HashEntry *he;
@@ -474,7 +475,7 @@ LefTechScale(scalen, scaled)
  */
 
 void
-LefTechSetDefaults()
+LefTechSetDefaults(void)
 {
     HashSearch hs;
     HashEntry *he;

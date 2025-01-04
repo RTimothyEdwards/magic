@@ -82,10 +82,10 @@ HashTable lefDefInitHash;
 #define PRINT_INTERVAL 5	/* print status at 4 second intervals */
 
 void
-LefEstimate(processed, total, item_name)
-   int processed;
-   int total;
-   char *item_name;
+LefEstimate(
+   int processed,
+   int total,
+   char *item_name)
 {
     static int check_interval, partition;
     static struct timeval tv_start;
@@ -137,10 +137,10 @@ LefEstimate(processed, total, item_name)
 
 #if 0
 void
-LefEstimate(processed, total, item_name)
-   int processed;
-   int total;
-   char *item_name;
+LefEstimate(
+   int processed,
+   int total,
+   char *item_name)
 {
     static int check_interval, partition;
     static struct timeval tv_start;
@@ -217,9 +217,9 @@ LefEstimate(processed, total, item_name)
  */
 
 char *
-LefNextToken(f, ignore_eol)
-    FILE *f;
-    bool ignore_eol;
+LefNextToken(
+    FILE *f,
+    bool ignore_eol)
 {
     static char line[LEF_LINE_MAX + 2];	/* input buffer */
     static char *nexttoken = NULL;	/* pointer to next token */
@@ -306,7 +306,9 @@ LefNextToken(f, ignore_eol)
  */
 
 void
-LefError(int type, const char *fmt, ...)
+LefError(
+    int type,
+    const char *fmt, ...)
 {
     static int errors = 0, warnings = 0, messages = 0;
     va_list args;
@@ -456,9 +458,9 @@ LefError(int type, const char *fmt, ...)
  */
 
 int
-LefParseEndStatement(f, match)
-    FILE *f;
-    const char *match;
+LefParseEndStatement(
+    FILE *f,
+    const char *match)
 {
     char *token;
     int keyword, words;
@@ -523,9 +525,9 @@ LefParseEndStatement(f, match)
  */
 
 void
-LefSkipSection(f, section)
-    FILE *f;
-    const char *section;
+LefSkipSection(
+    FILE *f,
+    const char *section)
 {
     const char *token;
     int keyword, result;
@@ -571,8 +573,8 @@ LefSkipSection(f, section)
  */
 
 CellDef *
-lefFindCell(name)
-    char *name;		/* Name of the cell to search for */
+lefFindCell(
+    char *name)		/* Name of the cell to search for */
 {
     HashEntry *h;
     CellDef *def;
@@ -602,8 +604,8 @@ lefFindCell(name)
  */
 
 char *
-LefLower(token)
-    char *token;
+LefLower(
+    char *token)
 {
     char *tptr;
 
@@ -634,9 +636,9 @@ LefLower(token)
  */
 
 lefLayer *
-LefRedefined(lefl, redefname)
-    lefLayer *lefl;
-    char *redefname;
+LefRedefined(
+    lefLayer *lefl,
+    char *redefname)
 {
     lefLayer *slef, *newlefl;
     char *altName;
@@ -718,11 +720,11 @@ LefRedefined(lefl, redefname)
  */
 
 TileType
-LefReadLayers(f, obstruct, lreturn, rreturn)
-    FILE *f;
-    bool obstruct;
-    TileType *lreturn;
-    const Rect **rreturn;
+LefReadLayers(
+    FILE *f,
+    bool obstruct,
+    TileType *lreturn,
+    const Rect **rreturn)
 {
     char *token;
     TileType curlayer = -1;
@@ -806,9 +808,9 @@ LefReadLayers(f, obstruct, lreturn, rreturn)
  */
 
 TileType
-LefReadLayer(f, obstruct)
-    FILE *f;
-    bool obstruct;
+LefReadLayer(
+    FILE *f,
+    bool obstruct)
 {
     return LefReadLayers(f, obstruct, (TileType *)NULL, (const Rect **)NULL);
 }
@@ -838,9 +840,10 @@ LefReadLayer(f, obstruct)
  */
 
 int
-LefReadLefPoint(f, xp, yp)
-    FILE *f;
-    float *xp, *yp;
+LefReadLefPoint(
+    FILE *f,
+    float *xp,
+    float *yp)
 {
     char *token;
     bool needMatch = FALSE;
@@ -885,10 +888,10 @@ LefReadLefPoint(f, xp, yp)
  */
 
 Rect *
-LefReadRect(f, curlayer, oscale)
-    FILE *f;
-    TileType curlayer;
-    float oscale;
+LefReadRect(
+    FILE *f,
+    TileType curlayer,
+    float oscale)
 {
     char *token;
     float llx, lly, urx, ury;
@@ -983,11 +986,11 @@ parse_error:
  */
 
 Point *
-LefReadPolygon(f, curlayer, oscale, ppoints)
-    FILE *f;
-    TileType curlayer;
-    float oscale;
-    int *ppoints;
+LefReadPolygon(
+    FILE *f,
+    TileType curlayer,
+    float oscale,
+    int *ppoints)
 {
     LinkedRect *lr = NULL, *newRect;
     Point *plist = NULL;
@@ -1059,12 +1062,12 @@ LefReadPolygon(f, curlayer, oscale, ppoints)
  */
 
 LinkedRect *
-LefPaintPolygon(lefMacro, pointList, points, curlayer, keep)
-    CellDef *lefMacro;
-    Point *pointList;
-    int points;
-    TileType curlayer;
-    bool keep;
+LefPaintPolygon(
+    CellDef *lefMacro,
+    Point *pointList,
+    int points,
+    TileType curlayer,
+    bool keep)
 {
     int pNum;
     PaintUndoInfo ui;
@@ -1111,9 +1114,9 @@ typedef struct _plane_type {
  *------------------------------------------------------------
  */
 int
-lefConnectFunc(tile, cxp)
-    Tile *tile;
-    TreeContext *cxp;
+lefConnectFunc(
+    Tile *tile,
+    TreeContext *cxp)
 {
     SearchContext *scx = cxp->tc_scx;
     PlaneType *pt = (PlaneType *)cxp->tc_filter->tf_arg;
@@ -1145,9 +1148,9 @@ lefConnectFunc(tile, cxp)
  */
 
 int
-lefUnconnectFunc(tile, clientdata)
-    Tile *tile;
-    ClientData clientdata;	/* (unused) */
+lefUnconnectFunc(
+    Tile *tile,
+    ClientData clientdata)	/* (unused) */
 {
     return 1;
 }
@@ -1186,12 +1189,12 @@ enum lef_geometry_keys {LEF_LAYER = 0, LEF_WIDTH, LEF_PATH,
 	LEF_GEOMETRY_END};
 
 LinkedRect *
-LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
-    CellDef *lefMacro;
-    FILE *f;
-    float oscale;
-    bool do_list;
-    bool is_imported;
+LefReadGeometry(
+    CellDef *lefMacro,
+    FILE *f,
+    float oscale,
+    bool do_list,
+    bool is_imported)
 {
     TileType curlayer = -1, otherlayer = -1;
 
@@ -1387,15 +1390,17 @@ LefReadGeometry(lefMacro, f, oscale, do_list, is_imported)
  */
 
 void
-LefReadPort(lefMacro, f, pinName, pinNum, pinDir, pinUse, pinShape, oscale,
-	is_imported, lanno)
-    CellDef *lefMacro;
-    FILE *f;
-    char *pinName;
-    int pinNum, pinDir, pinUse, pinShape;
-    float oscale;
-    bool  is_imported;
-    Label *lanno;
+LefReadPort(
+    CellDef *lefMacro,
+    FILE *f,
+    char *pinName,
+    int pinNum,
+    int pinDir,
+    int pinUse,
+    int pinShape,
+    float oscale,
+    bool  is_imported,
+    Label *lanno)
 {
     Label *newlab;
     LinkedRect *rectList;
@@ -1509,13 +1514,13 @@ enum lef_pin_keys {LEF_DIRECTION = 0, LEF_USE, LEF_PORT, LEF_CAPACITANCE,
 	LEF_SHAPE, LEF_NETEXPR, LEF_PIN_END};
 
 void
-LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
-   CellDef *lefMacro;
-   FILE *f;
-   char *pinname;
-   int pinNum;
-   float oscale;
-   bool is_imported;
+LefReadPin(
+   CellDef *lefMacro,
+   FILE *f,
+   char *pinname,
+   int pinNum,
+   float oscale,
+   bool is_imported)
 {
     char *token;
     char *testpin = pinname;
@@ -1826,8 +1831,8 @@ LefReadPin(lefMacro, f, pinname, pinNum, oscale, is_imported)
  */
 
 void
-LefEndStatement(f)
-    FILE *f;
+LefEndStatement(
+    FILE *f)
 {
     char *token;
 
@@ -1861,10 +1866,10 @@ enum lef_nondefprop_keys {
 	LEF_NONDEFLAYER_SPACE, LEF_NONDEFLAYER_EXT};
 
 void
-LefReadNonDefaultRule(f, rname, oscale)
-    FILE *f;			/* LEF file being read	*/
-    char *rname;		/* name of the rule 	*/
-    float oscale;		/* scale factor um->magic units */
+LefReadNonDefaultRule(
+    FILE *f,			/* LEF file being read	*/
+    char *rname,		/* name of the rule 	*/
+    float oscale)		/* scale factor um->magic units */
 {
     char *token;
     char tsave[128];
@@ -2071,17 +2076,17 @@ enum lef_macro_keys {LEF_CLASS = 0, LEF_SIZE, LEF_ORIGIN,
 	LEF_TIMING, LEF_FOREIGN, LEF_PROPERTY, LEF_MACRO_END};
 
 void
-LefReadMacro(f, mname, oscale, importForeign, doAnnotate, lefTimestamp)
-    FILE *f;			/* LEF file being read	*/
-    char *mname;		/* name of the macro 	*/
-    float oscale;		/* scale factor um->magic units */
-    bool importForeign;		/* Whether we should try to read
+LefReadMacro(
+    FILE *f,			/* LEF file being read	*/
+    char *mname,		/* name of the macro 	*/
+    float oscale,		/* scale factor um->magic units */
+    bool importForeign,		/* Whether we should try to read
 				 * in a cell.
 				 */
-    bool doAnnotate;		/* If true, ignore all macros that are
+    bool doAnnotate,		/* If true, ignore all macros that are
 				 * not already CellDefs.
 				 */
-    int lefTimestamp;		/* If not -1, use the value pointed to
+    int lefTimestamp)		/* If not -1, use the value pointed to
 				 * as the CellDef's timestamp.
 				 */
 {
@@ -2472,20 +2477,23 @@ void LefGrowVia(curlayer, currect, lefl)
  */
 
 void
-LefGenViaGeometry(f, lefl, sizex, sizey, spacex, spacey,
-	encbx, encby, enctx, encty, rows, cols,
-	tlayer, clayer, blayer, oscale)
-    FILE *f;			/* LEF file being read	*/
-    lefLayer *lefl;		/* pointer to via info	*/
-    int sizex, sizey;		/* cut size */
-    int spacex, spacey;		/* cut spacing */
-    int encbx, encby;		/* bottom enclosure of cuts */
-    int enctx, encty;		/* top enclosure of cuts */
-    int rows, cols;		/* number of cut rows and columns */
-    TileType tlayer;		/* Top layer type */
-    TileType clayer;		/* Cut layer type */
-    TileType blayer;		/* Bottom layer type */
-    float oscale;		/* output scaling	*/
+LefGenViaGeometry(
+    FILE *f,			/* LEF file being read	*/
+    lefLayer *lefl,		/* pointer to via info	*/
+    int sizex,			/* cut size */
+    int sizey,
+    int spacex,			/* cut spacing */
+    int spacey,
+    int encbx,			/* bottom enclosure of cuts */
+    int encby,
+    int enctx,			/* top enclosure of cuts */
+    int encty,
+    int rows,			/* number of cut rows and columns */
+    int cols,
+    TileType tlayer,		/* Top layer type */
+    TileType clayer,		/* Cut layer type */
+    TileType blayer,		/* Bottom layer type */
+    float oscale)		/* output scaling	*/
 {
     Rect rect;
     int i, j, x, y, w, h, sw, sh;
@@ -2570,11 +2578,11 @@ LefGenViaGeometry(f, lefl, sizex, sizey, spacex, spacey,
  */
 
 void
-LefAddViaGeometry(f, lefl, curlayer, oscale)
-    FILE *f;			/* LEF file being read	*/
-    lefLayer *lefl;		/* pointer to via info	*/
-    TileType curlayer;		/* current tile type	*/
-    float oscale;		/* output scaling	*/
+LefAddViaGeometry(
+    FILE *f,			/* LEF file being read	*/
+    lefLayer *lefl,		/* pointer to via info	*/
+    TileType curlayer,		/* current tile type	*/
+    float oscale)		/* output scaling	*/
 {
     Rect *currect;
     LinkedRect *viaLR;
@@ -2646,11 +2654,11 @@ enum lef_layer_keys {LEF_LAYER_TYPE=0, LEF_LAYER_WIDTH,
 	LEF_VIARULE_GENERATE, LEF_LAYER_END};
 
 void
-LefReadLayerSection(f, lname, mode, lefl)
-    FILE *f;			/* LEF file being read	  */
-    char *lname;		/* name of the layer 	  */
-    int mode;			/* layer, via, or viarule */
-    lefLayer *lefl;		/* pointer to layer info  */
+LefReadLayerSection(
+    FILE *f,			/* LEF file being read	  */
+    char *lname,		/* name of the layer 	  */
+    int mode,			/* layer, via, or viarule */
+    lefLayer *lefl)		/* pointer to layer info  */
 {
     char *token;
     int keyword, typekey;
@@ -2883,11 +2891,11 @@ enum lef_sections {LEF_VERSION = 0,
 	LEF_END};
 
 void
-LefRead(inName, importForeign, doAnnotate, lefTimestamp)
-    char *inName;
-    bool importForeign;
-    bool doAnnotate;
-    int lefTimestamp;
+LefRead(
+    char *inName,
+    bool importForeign,
+    bool doAnnotate,
+    int lefTimestamp)
 {
     FILE *f;
     char *filename;

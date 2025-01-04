@@ -79,15 +79,15 @@ enum def_netspecial_shape_keys {
 	DEF_SPECNET_SHAPE_DRCFILL};
 
 char *
-DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotate)
-    CellDef *rootDef;		/* Cell to paint */
-    FILE *f;			/* Input file */
-    float oscale;		/* Scale factor between LEF and magic units */
-    bool special;		/* True if this section is SPECIALNETS */
-    char *netname;		/* Name of the net, if net is to be labeled */
-    LefRules *ruleset;		/* Non-default rule, or NULL */
-    LefMapping *defLayerMap;	/* magic-to-lef layer mapping array */
-    bool annotate;		/* If TRUE, do not generate any geometry */
+DefAddRoutes(
+    CellDef *rootDef,		/* Cell to paint */
+    FILE *f,			/* Input file */
+    float oscale,		/* Scale factor between LEF and magic units */
+    bool special,		/* True if this section is SPECIALNETS */
+    char *netname,		/* Name of the net, if net is to be labeled */
+    LefRules *ruleset,		/* Non-default rule, or NULL */
+    LefMapping *defLayerMap,	/* magic-to-lef layer mapping array */
+    bool annotate)		/* If TRUE, do not generate any geometry */
 {
     char *token;
     LinkedRect *routeList, *newRoute = NULL, *routeTop = NULL;
@@ -783,12 +783,12 @@ enum def_nondefprop_keys {
 	DEF_NONDEFPROP_DONE};
 
 void
-DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
-    FILE *f;
-    CellDef *rootDef;
-    char *sname;
-    float oscale;
-    int total;
+DefReadNonDefaultRules(
+    FILE *f,
+    CellDef *rootDef,
+    const char *sname,
+    float oscale,
+    int total)
 {
     char *token;
     int keyword, subkey;
@@ -1005,9 +1005,9 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
  */
 
 int
-defFoundOneFunc(tile, tret)
-    Tile *tile;
-    Tile **tret;
+defFoundOneFunc(
+    Tile *tile,
+    Tile **tret)
 {
     *tret = tile;
     return 1;
@@ -1041,15 +1041,15 @@ enum def_netprop_keys {
 };
 
 void
-DefReadNets(f, rootDef, sname, oscale, special, dolabels, annotate, total)
-    FILE *f;
-    CellDef *rootDef;
-    char *sname;
-    float oscale;
-    bool special;		/* True if this section is SPECIALNETS */
-    bool dolabels;		/* If true, create a label for each net */
-    bool annotate;		/* If true, create labels, not geometry */
-    int total;
+DefReadNets(
+    FILE *f,
+    CellDef *rootDef,
+    const char *sname,
+    float oscale,
+    bool special,		/* True if this section is SPECIALNETS */
+    bool dolabels,		/* If true, create a label for each net */
+    bool annotate,		/* If true, create labels, not geometry */
+    int total)
 {
     char *token;
     char *netname = NULL, *prnet;
@@ -1295,12 +1295,12 @@ enum def_orient {DEF_NORTH, DEF_SOUTH, DEF_EAST, DEF_WEST,
 	DEF_FLIPPED_WEST};
 
 int
-DefReadLocation(use, f, oscale, tptr, noplace)
-    CellUse *use;
-    FILE *f;
-    float oscale;
-    Transform *tptr;
-    bool noplace;
+DefReadLocation(
+    CellUse *use,
+    FILE *f,
+    float oscale,
+    Transform *tptr,
+    bool noplace)
 {
     const Rect *r;
     Rect tr, rect;
@@ -1433,13 +1433,13 @@ enum def_pins_prop_keys {
 	DEF_PINS_PROP_PORT, DEF_PINS_PROP_SPECIAL};
 
 void
-DefReadPins(f, rootDef, sname, oscale, total, annotate)
-    FILE *f;
-    CellDef *rootDef;
-    char *sname;
-    float oscale;
-    int total;
-    bool annotate;
+DefReadPins(
+    FILE *f,
+    CellDef *rootDef,
+    const char *sname,
+    float oscale,
+    int total,
+    bool annotate)
 {
     char *token;
     char pinname[LEF_LINE_MAX];
@@ -1763,12 +1763,12 @@ enum def_block_prop_keys {
 	DEF_BLOCK_PROP_RECT = 0, DEF_BLOCK_PROP_LAYER};
 
 void
-DefReadBlockages(f, rootDef, sname, oscale, total)
-    FILE *f;
-    CellDef *rootDef; 
-    char *sname;
-    float oscale;
-    int total;
+DefReadBlockages(
+    FILE *f,
+    CellDef *rootDef,
+    const char *sname,
+    float oscale,
+    int total)
 {
     char *token;
     int keyword, subkey, values;
@@ -1881,11 +1881,11 @@ enum def_vias_prop_keys {
 	DEF_VIAS_PROP_ROWCOL};
 
 void
-DefReadVias(f, sname, oscale, total)
-    FILE *f;
-    char *sname;
-    float oscale;
-    int total;
+DefReadVias(
+    FILE *f,
+    const char *sname,
+    float oscale,
+    int total)
 {
     char *token;
     char vianame[LEF_LINE_MAX];
@@ -2164,12 +2164,12 @@ enum def_prop_keys {
 	DEF_PROP_EEQMASTER};
 
 void
-DefReadComponents(f, rootDef, sname, oscale, total)
-    FILE *f;
-    CellDef *rootDef;
-    char *sname;
-    float oscale;
-    int total;
+DefReadComponents(
+    FILE *f,
+    CellDef *rootDef,
+    const char *sname,
+    float oscale,
+    int total)
 {
     CellDef *defMacro;
     CellUse *defUse;
@@ -2383,11 +2383,11 @@ enum def_sections {DEF_VERSION = 0, DEF_NAMESCASESENSITIVE,
 	DEF_NONDEFAULTRULES, DEF_END};
 
 void
-DefRead(inName, dolabels, annotate, noblockage)
-    char *inName;
-    bool dolabels;
-    bool annotate;
-    bool noblockage;
+DefRead(
+    char *inName,
+    bool dolabels,
+    bool annotate,
+    bool noblockage)
 {
     CellDef *rootDef;
     FILE *f;

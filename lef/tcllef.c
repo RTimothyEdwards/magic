@@ -35,8 +35,8 @@ extern void CmdLef();
  */
 
 int
-Magiclef_Init(interp)
-    Tcl_Interp *interp;
+Magiclef_Init(
+    Tcl_Interp *interp)
 {
     /* Sanity checks! */
     if (interp == NULL) return TCL_ERROR;

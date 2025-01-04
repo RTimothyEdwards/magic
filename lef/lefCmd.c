@@ -75,9 +75,9 @@ linkedNetName *lefIgnoreNets = NULL; /* Nets names to ignore for antenna area */
 #define LEF_HELP		5
 
 void
-CmdLef(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdLef(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int option, i, cargs, units = 1000;	    /* Default nanometers */
     const char * const *msg;
