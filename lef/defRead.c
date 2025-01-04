@@ -2625,7 +2625,7 @@ DefRead(inName, dolabels, annotate, noblockage)
 				oscale, total);
 		break;
 	    case DEF_END:
-		if (!LefParseEndStatement(token, "DESIGN"))
+		if (!LefParseEndStatement(f, "DESIGN"))
 		{
 		    LefError(DEF_ERROR, "END statement out of context.\n");
 		    keyword = -1;
