@@ -145,8 +145,8 @@ extern int lefDefInitFunc(CellDef *def);
 extern int lefDefPushFunc(CellUse *use, bool *recurse);
 extern FILE *lefFileOpen(CellDef *def, char *file, char *suffix, char *mode, char **prealfile);
 
-extern int LefParseEndStatement(FILE *f, char *match);
-extern void LefSkipSection(FILE *f, char *section);
+extern int LefParseEndStatement(FILE *f, const char *match);
+extern void LefSkipSection(FILE *f, const char *section);
 extern void LefEndStatement(FILE *f);
 extern CellDef *lefFindCell(char *name);
 extern char *LefNextToken(FILE *f, bool ignore_eol);

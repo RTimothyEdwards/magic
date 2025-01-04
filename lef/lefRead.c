@@ -458,7 +458,7 @@ LefError(int type, const char *fmt, ...)
 int
 LefParseEndStatement(f, match)
     FILE *f;
-    char *match;
+    const char *match;
 {
     char *token;
     int keyword, words;
@@ -525,9 +525,9 @@ LefParseEndStatement(f, match)
 void
 LefSkipSection(f, section)
     FILE *f;
-    char *section;
+    const char *section;
 {
-    char *token;
+    const char *token;
     int keyword, result;
     static const char * const end_section[] = {
 	"END",
