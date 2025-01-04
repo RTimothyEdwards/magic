@@ -257,7 +257,6 @@ lefWriteHeader(
     HashTable *propTable,   /* Hash table of property definitions */
     HashTable *siteTable)   /* Hash table of sites used */
 {
-    TileType type;
     HashSearch hs;
     HashEntry *he;
     int nprops;
@@ -732,10 +731,9 @@ lefYankContacts(
 {
     lefClient *lefdata = (lefClient *)cdata;
     Rect area;
-    TileType ttype, ptype, stype;
+    TileType ttype, stype;
     LefMapping *lefMagicToLefLayer;
-    TileTypeBitMask sMask, *lrmask;
-    bool iscut;
+    TileTypeBitMask *lrmask;
 
     /* Ignore marked tiles */
     if (tile->ti_client != (ClientData)CLIENTDEFAULT) return 0;
