@@ -107,7 +107,6 @@ defWriteHeader(
     float oscale,
     int units)		/* Units for UNITS; could be derived from oscale */
 {
-    TileType type;
     char *propvalue;
     bool propfound;
 
@@ -294,7 +293,6 @@ defnodeCount(
     NetCount *total)
 {
     HierName *hierName;
-    char ndn[256];
     char *cp, clast;
 
     /* Ignore the substrate node if it is not connected to any routing */
@@ -530,7 +528,6 @@ defWriteRouteWidth(
     DefData *defdata,
     int width)
 {
-    float oscale = defdata->scale;
     char numstr[32];
     sprintf(numstr, "%.10g", ((float)width * defdata->scale));
     defCheckForBreak(strlen(numstr) + 1, defdata);
@@ -666,10 +663,8 @@ defnodeVisit(
     char locndn[256];
     FILE *f = defdata->f;
     CellDef *def = defdata->def;
-    float oscale = defdata->scale;
     TileTypeBitMask tmask, *rmask;
-    TileType nodetype, magictype;
-    Rect *nodeloc;
+    TileType magictype;
     LinkedRect *lr;
     EFNodeName *thisnn;
     int defNetGeometryFunc(Tile *tile, int plane, DefData *defdata);		/* Forward declaration */
@@ -1168,7 +1163,6 @@ defNetGeometryFunc(
 		int ndv = (h > w) ? w : h;
 		char ndname[100];
 		LefRules *ruleset;
-		lefRule *rule;
 
 		/*
 	    	TxPrintf("Net at (%d, %d) has width %d, default width is %d\n",
@@ -1718,7 +1712,7 @@ defCountViaFunc(
     TileType ttype = TiGetType(tile), ctype, rtype;
     TileTypeBitMask *rmask, *rmask2;
     Tile *tp;
-    char *lname, vname[100], *vp, posstr[24];
+    char *lname, vname[100], posstr[24];
     Rect r, r2, rorig;
     int w, h, offx, offy, sdist, lorient, horient;
     int ldist, hdist, sldist, shdist, pNum;
@@ -2760,8 +2754,7 @@ arrayDefFunc(
     int sx = use->cu_xhi - use->cu_xlo;
     int sy = use->cu_yhi - use->cu_ylo;
     char idx[32];
-    Rect box, rect, *r, bbrect, defrect;
-    int xoff, yoff;
+    Rect box, rect, *r;
 
     idx[0] = 0;
 
@@ -2770,7 +2763,6 @@ arrayDefFunc(
 
     r = &use->cu_def->cd_bbox;
 
-    xoff = yoff = 0;
     if (use->cu_def->cd_flags & CDFIXEDBBOX)
     {
 	char *propval;
@@ -2954,8 +2946,6 @@ DefWriteCell(
     HashTable defViaTable;
 
     LefMapping *lefMagicToLefLayer;
-    int i;
-    lefLayer *lefl;
     HashEntry *he;
     HashSearch hs;
 

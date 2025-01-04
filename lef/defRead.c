@@ -1444,7 +1444,7 @@ DefReadPins(
 {
     char *token;
     char pinname[LEF_LINE_MAX];
-    int keyword, subkey, values, flags;
+    int keyword, subkey, flags;
     int processed = 0;
     int pinDir = PORT_CLASS_DEFAULT;
     int pinUse = PORT_USE_DEFAULT;
@@ -1454,7 +1454,6 @@ DefReadPins(
     LinkedRect *rectList = NULL, *newRect;
     Rect *currect, topRect;
     Transform t;
-    lefLayer *lefl;
     bool pending = FALSE;
     bool hasports = FALSE;
 
@@ -1772,12 +1771,10 @@ DefReadBlockages(
     int total)
 {
     char *token;
-    int keyword, subkey, values;
+    int keyword, subkey;
     int processed = 0;
     TileType curlayer;
     Rect *currect;
-    lefLayer *lefl;
-    HashEntry *he;
 
     static const char * const block_keys[] = {
 	"-",
@@ -1890,10 +1887,9 @@ DefReadVias(
 {
     char *token;
     char vianame[LEF_LINE_MAX];
-    int keyword, subkey, values;
+    int keyword, subkey;
     int processed = 0;
     TileType curlayer;
-    Rect *currect;
     lefLayer *lefl;
     HashEntry *he;
 
@@ -2177,7 +2173,7 @@ DefReadComponents(
     Transform t;
     char *token, *dptr;
     char usename[512];
-    int keyword, subkey, values;
+    int keyword, subkey;
     int processed = 0;
 
     static const char * const component_keys[] = {

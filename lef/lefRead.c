@@ -87,9 +87,7 @@ LefEstimate(
    int total,
    const char *item_name)
 {
-    static int check_interval, partition;
     static struct timeval tv_start;
-    static float last_time;
     struct timeval tv;
     struct timezone tz;
     float cur_time, time_left;
@@ -463,7 +461,7 @@ LefParseEndStatement(
     const char *match)
 {
     char *token;
-    int keyword, words;
+    int keyword;
     const char * match_name[2];
 
     static const char * const end_section[] = {
@@ -2496,7 +2494,7 @@ LefGenViaGeometry(
     float oscale)		/* output scaling	*/
 {
     Rect rect;
-    int i, j, x, y, w, h, sw, sh;
+    int i, j, x, y, w, h;
     LinkedRect *viaLR;
     float hscale = oscale / 2;
 
@@ -2662,7 +2660,6 @@ LefReadLayerSection(
 {
     char *token;
     int keyword, typekey;
-    Rect viaArea;
     TileType curlayer = -1;
     float fvalue, oscale;
 
@@ -2719,7 +2716,6 @@ LefReadLayerSection(
     };
 
     oscale = CIFGetOutputScale(1000);
-    viaArea = GeoNullRect;
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
