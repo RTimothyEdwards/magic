@@ -304,7 +304,7 @@ LefTechLine(
 
 	    if (newlefl == NULL)
 	    {
-		float oscale = CIFGetOutputScale(1000);
+		float oscale = CIFGetOutputScale(1000); /* FIXME unused return value from call to function with no side-effects */
 
 		newlefl = (lefLayer *)mallocMagic(sizeof(lefLayer));
 		newlefl->refCnt = 0;
