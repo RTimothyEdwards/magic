@@ -79,7 +79,7 @@ typedef struct {
 
 /*----------------------------------------------------------------------*/
 
-char *defGetType();		/* Forward declaration */
+char *defGetType(TileType ttype, lefLayer **lefptr, bool do_vias);		/* Forward declaration */
 
 /*----------------------------------------------------------------------*/
 
@@ -248,7 +248,7 @@ defCountNets(
     bool allSpecial)
 {
     NetCount total;
-    int defnodeCount();
+    int defnodeCount(EFNode *node, int res, EFCapValue cap, NetCount *total);
 
     total.regular = (allSpecial) ? -1 : 0;
     total.special = 0;
@@ -400,7 +400,7 @@ defHNsprintf(
 {
     const char *cp;
     char c;
-    char *defHNsprintfPrefix();
+    char *defHNsprintfPrefix(const HierName *hierName, char *str, char divchar);  /* Forward declaration */
 
     if (hierName->hn_parent) str = defHNsprintfPrefix(hierName->hn_parent, str,
 		divchar);
@@ -639,7 +639,7 @@ defWriteNets(
     unsigned char specialmode)		/* What to write as a SPECIALNET */
 {
     DefData defdata;
-    int defnodeVisit();
+    int defnodeVisit(EFNode *node, int res, EFCapValue cap, DefData *defdata);
 
     defdata.f = f;
     defdata.scale = oscale;
@@ -672,7 +672,7 @@ defnodeVisit(
     Rect *nodeloc;
     LinkedRect *lr;
     EFNodeName *thisnn;
-    int defNetGeometryFunc();		/* Forward declaration */
+    int defNetGeometryFunc(Tile *tile, int plane, DefData *defdata);		/* Forward declaration */
 
     /* For regular nets, only count those nodes having port	*/
     /* connections.  For special nets, only count those nodes	*/
@@ -784,7 +784,7 @@ defnodeVisit(
 
 	    Rect rport;
 	    SearchContext scx;
-	    int defPortTileFunc();	/* Fwd declaration */
+	    int defPortTileFunc(Tile *tile, TreeContext *cx);	/* Fwd declaration */
 
 	    scx.scx_area = node->efnode_loc;
 	    scx.scx_use = def->cd_parents;
@@ -1657,7 +1657,7 @@ defCountVias(
     TileType ttype, stype;
     int pNum;
     CViaData cviadata;
-    int defCountViaFunc();
+    int defCountViaFunc(Tile *tile, CViaData *cviadata);
 
     cviadata.scale = oscale;
     cviadata.total = 0;
@@ -2262,7 +2262,7 @@ defCountComponents(
     CellDef *rootDef)
 {
     pointertype total;
-    int defCountCompFunc();
+    int defCountCompFunc(CellUse *cellUse, pointertype *total);
 
     TxPrintf("Diagnostic:  Finding all components of cell %s\n", rootDef->cd_name);
 
@@ -2461,8 +2461,8 @@ defWriteBlockages(
     HashEntry *he;
     TileTypeBitMask ExtraObsLayersMask;
 
-    int defSimpleBlockageFunc();	/* Forward declaration */
-    int defblockageVisit();
+    int defSimpleBlockageFunc(Tile *tile, DefObsData *defobsdata);	/* Forward declaration */
+    int defblockageVisit(EFNode *node, int res, EFCapValue cap, DefObsData *defobsdata);
 
     defobsdata.def = rootDef;
     defobsdata.nlayers = 0;
@@ -2590,7 +2590,7 @@ defblockageVisit(
     CellDef *def = defobsdata->def;
     TileType magictype;
     TileTypeBitMask tmask;
-    int defBlockageGeometryFunc();	/* Forward declaration */
+    int defBlockageGeometryFunc(Tile *tile, int plane, DefObsData *defobsdata);	/* Forward declaration */
 
     /* For regular nets, only count those nodes having port	*/
     /* connections.  For special nets, only count those nodes	*/
@@ -2737,7 +2737,7 @@ defWriteComponents(
     float oscale)			/* Output scale factor */
 {
     DefData defdata;
-    int defComponentFunc();		/* Forward declaration */
+    int defComponentFunc(CellUse *cellUse, DefData *defdata);		/* Forward declaration */
 
     defdata.f = f;
     defdata.scale = oscale;

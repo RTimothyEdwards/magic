@@ -25,7 +25,7 @@
 
 /* External routines */
 
-extern void CmdLef();
+extern void CmdLef(MagWindow *w, TxCommand *cmd);
 
 /*
  * ----------------------------------------------------------------------------
