@@ -144,7 +144,6 @@ extern linkedNetName *lefIgnoreNets;
 int lefDefInitFunc(), lefDefPushFunc();
 FILE *lefFileOpen();
 
-char *LefGetInput();
 int LefParseEndStatement();
 void LefSkipSection();
 void LefEndStatement();
