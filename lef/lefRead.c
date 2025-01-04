@@ -639,7 +639,7 @@ LefRedefined(
     const char *redefname)
 {
     lefLayer *slef, *newlefl;
-    char *altName;
+    const char *altName;
     LinkedRect *viaLR;
     HashSearch hs;
     HashEntry *he;
@@ -659,8 +659,8 @@ LefRedefined(
 	if (slef == lefl)
 	    records++;
 	if (altName == NULL)
-	    if (strcmp((char *)he->h_key.h_name, redefname))
-		altName = (char *)he->h_key.h_name;
+	    if (strcmp((const char *)he->h_key.h_name, redefname))
+		altName = (const char *)he->h_key.h_name;
     }
     if (records == 1)
     {
@@ -676,7 +676,7 @@ LefRedefined(
 	he = HashFind(&LefInfo, redefname);
 	newlefl = (lefLayer *)mallocMagic(sizeof(lefLayer));
 	newlefl->refCnt = 1;
-	newlefl->canonName = (char *)he->h_key.h_name;
+	newlefl->canonName = (const char *)he->h_key.h_name;
 	HashSetValue(he, newlefl);
 
 	/* If the canonical name of the original entry	*/
@@ -1960,7 +1960,7 @@ LefReadNonDefaultRule(
 		    lefl->info.via.lr = (LinkedRect *)NULL;
 		    HashSetValue(he, lefl);
 		    LefReadLayerSection(f, tsave, keyword, lefl);
-		    lefl->canonName = (char *)he->h_key.h_name;
+		    lefl->canonName = (const char *)he->h_key.h_name;
 		}
 		goto newrule;
 
@@ -3007,7 +3007,7 @@ LefRead(
 		    lefl->info.via.lr = (LinkedRect *)NULL;
 		    HashSetValue(he, lefl);
 		    LefReadLayerSection(f, tsave, keyword, lefl);
-		    lefl->canonName = (char *)he->h_key.h_name;
+		    lefl->canonName = (const char *)he->h_key.h_name;
 		}
 		else if (keyword == LEF_SECTION_VIARULE)
 		    /* If we've already seen this via, don't reprocess. */
@@ -3064,7 +3064,7 @@ LefRead(
 			lefl->refCnt = 1;
 			lefl->lefClass = (DBIsContact(mtype)) ? CLASS_VIA : CLASS_ROUTE;
 			HashSetValue(he, lefl);
-		        lefl->canonName = (char *)he->h_key.h_name;
+		        lefl->canonName = (const char *)he->h_key.h_name;
 		    }
 		}
 		else

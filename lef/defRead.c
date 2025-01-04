@@ -1959,7 +1959,7 @@ DefReadVias(
 		    lefl->info.via.cell = (CellDef *)NULL;
 		    lefl->info.via.lr = (LinkedRect *)NULL;
 		    HashSetValue(he, lefl);
-		    lefl->canonName = (char *)he->h_key.h_name;
+		    lefl->canonName = (const char *)he->h_key.h_name;
 		}
 		else
 		{

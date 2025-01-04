@@ -317,7 +317,7 @@ LefTechLine(
 		    else
 			newlefl->type = mtype;
 		}
-		newlefl->canonName = (char *)he->h_key.h_name;
+		newlefl->canonName = (const char *)he->h_key.h_name;
 
 		/* "isObstruction" records whether the type is an	*/
 		/* obstruction or not.  So recast the option to a route	*/

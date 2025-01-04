@@ -62,7 +62,7 @@ typedef struct {
 typedef struct {
    CellDef	*def;
    int		nlayers;
-   char		**baseNames;
+   const char	**baseNames;
    TileTypeBitMask *blockMasks;
    LinkedRect **blockData;
 } DefObsData;
@@ -79,7 +79,7 @@ typedef struct {
 
 /*----------------------------------------------------------------------*/
 
-char *defGetType(TileType ttype, lefLayer **lefptr, bool do_vias);		/* Forward declaration */
+const char *defGetType(TileType ttype, lefLayer **lefptr, bool do_vias);		/* Forward declaration */
 
 /*----------------------------------------------------------------------*/
 
@@ -933,7 +933,8 @@ defNetGeometryFunc(
     int routeWidth, w, h, midlinex2, topClip, botClip;
     float x1, y1, x2, y2, extlen;
     lefLayer *lefType, *lefl;
-    char *lefName, viaName[128], posstr[24];
+    const char *lefName;
+    char viaName[128], posstr[24];
     LefRules *lastruleset = defdata->ruleset;
     HashEntry *he;
     HashTable *defViaTable = defdata->defViaTable;
@@ -1455,7 +1456,7 @@ defNetGeometryFunc(
 
 	    if (orient == GEO_CENTER)
 	    {
-		char *rName;
+		const char *rName;
 
 		/* Type can be zero (space) if the first tile	*/
 		/* encountered is a via.  If so, use the 1st	*/
@@ -1711,7 +1712,8 @@ defCountViaFunc(
     TileType ttype = TiGetType(tile), ctype, rtype;
     TileTypeBitMask *rmask, *rmask2;
     Tile *tp;
-    char *lname, vname[100], posstr[24];
+    const char *lname;
+    char vname[100], posstr[24];
     Rect r, r2, rorig;
     int w, h, offx, offy, sdist, lorient, horient;
     int ldist, hdist, sldist, shdist, pNum;
@@ -1932,7 +1934,7 @@ defCountViaFunc(
 	lefl->info.via.lr = (LinkedRect *)NULL;
 	lefl->refCnt = 0;	/* These entries will be removed after writing */
 	HashSetValue(he, lefl);
-	lefl->canonName = (char *)he->h_key.h_name;
+	lefl->canonName = (const char *)he->h_key.h_name;
 
 	if ((sldist > 0) || (ldist > 0))
 	{
@@ -2014,7 +2016,7 @@ defCountViaFunc(
  *------------------------------------------------------------
  */
 
-char *
+const char *
 defGetType(
     TileType ttype,
     lefLayer **lefptr,
@@ -2099,7 +2101,7 @@ defWriteVias(
 	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    int size, sep, border;
-	    char *us1, *us2;
+	    const char *us1, *us2;
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (!lefl) continue;
 
@@ -2496,7 +2498,7 @@ defWriteBlockages(
 		if ((lefl != NULL) && ((lefl->lefClass == CLASS_ROUTE) ||
 				(lefl->lefClass == CLASS_VIA)))
 		{
-		    char *llayer;
+		    const char *llayer;
 		    if (lefl->lefClass == CLASS_ROUTE)
 			llayer = lefl->canonName;
 		    else
@@ -2874,7 +2876,7 @@ defMakeInverseLayerMap(
     LefMapping *lefMagicToLefLayer;
     lefLayer *lefl;
     TileType i;
-    char *lefname;
+    const char *lefname;
 
     lefMagicToLefLayer = (LefMapping *)mallocMagic(DBNumTypes
 		* sizeof(LefMapping));

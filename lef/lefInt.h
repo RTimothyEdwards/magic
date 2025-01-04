@@ -85,7 +85,7 @@ typedef struct {
     TileType	  type;		/* magic tile type, or -1 for none */
     TileType	  obsType;	/* magic type to use if this is an obstruction */
     short	  refCnt;	/* reference count for memory deallocation */
-    char *	  canonName;	/* name to use when writing LEF output */
+    const char *  canonName;	/* name to use when writing LEF output */
     unsigned char lefClass;	/* is this a via, route, or masterslice layer */
     union {
 	lefRoute  route;	/* for route layers */
@@ -97,7 +97,7 @@ typedef struct {
 /* layer corresponding to a magic tile type.			*/
 
 typedef struct {
-    char *lefName;              /* Primary name of LEF layer */
+    const char *lefName;        /* Primary name of LEF layer */
     lefLayer *lefInfo;          /* Pointer to information about the layer */
 } LefMapping;
 
@@ -114,7 +114,7 @@ typedef struct _lefRule {
 /* Structure to hold nondefault rules required by nets */
 
 typedef struct {
-    char *name;
+    const char *name;
     lefRule *rule;
 } LefRules;
 
@@ -129,7 +129,7 @@ typedef struct {
 
 /* Linked string structure used to maintain list of nets to ignore */
 typedef struct _linkedNetName {
-    char *lnn_name;
+    const char *lnn_name;
     struct _linkedNetName *lnn_next;
 } linkedNetName;
 
