@@ -395,14 +395,13 @@ defnodeCount(
 void
 defHNsprintf(
     char *str,
-    HierName *hierName,
+    const HierName *hierName,
     char divchar)
 {
-    bool trimGlob, trimLocal;
-    char *s, *cp, c;
+    const char *cp;
+    char c;
     char *defHNsprintfPrefix();
 
-    s = str;
     if (hierName->hn_parent) str = defHNsprintfPrefix(hierName->hn_parent, str,
 		divchar);
 
@@ -434,12 +433,12 @@ defHNsprintf(
     *str++ = '\0';
 }
 
-char *defHNsprintfPrefix(hierName, str, divchar)
-    HierName *hierName;
-    char *str;
-    char divchar;
+char *defHNsprintfPrefix(
+    const HierName *hierName,
+    char *str,
+    char divchar)
 {
-    char *cp, c;
+    const char *cp;
 
     if (hierName->hn_parent)
 	str = defHNsprintfPrefix(hierName->hn_parent, str, divchar);
