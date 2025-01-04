@@ -21,6 +21,7 @@
 #include "commands/commands.h"
 #include "utils/tech.h"
 #include "dbwind/dbwind.h"
+#include "textio/textio.h"
 
 /* External routines */
 
