@@ -141,39 +141,44 @@ extern linkedNetName *lefIgnoreNets;
 
 /* Forward declarations */
 
-int lefDefInitFunc(), lefDefPushFunc();
-FILE *lefFileOpen();
+extern int lefDefInitFunc(CellDef *def);
+extern int lefDefPushFunc(CellUse *use, bool *recurse);
+extern FILE *lefFileOpen(CellDef *def, char *file, char *suffix, char *mode, char **prealfile);
 
-int LefParseEndStatement();
-void LefSkipSection();
-void LefEndStatement();
-CellDef *lefFindCell();
-char *LefNextToken();
-char *LefLower();
-LinkedRect *LefReadGeometry();
-void LefEstimate();
-lefLayer *LefRedefined();
-void LefAddViaGeometry();
-void LefGenViaGeometry();
-Rect *LefReadRect();
-TileType LefReadLayer();
-void LefReadLayerSection();
+extern int LefParseEndStatement(FILE *f, char *match);
+extern void LefSkipSection(FILE *f, char *section);
+extern void LefEndStatement(FILE *f);
+extern CellDef *lefFindCell(char *name);
+extern char *LefNextToken(FILE *f, bool ignore_eol);
+extern char *LefLower(char *token);
+extern LinkedRect *LefReadGeometry(CellDef *lefMacro, FILE *f, float oscale, bool do_list, bool is_imported);
+extern void LefEstimate(int processed, int total, char *item_name);
+extern lefLayer *LefRedefined(lefLayer *lefl, char *redefname);
+extern void LefAddViaGeometry(FILE *f, lefLayer *lefl, TileType curlayer, float oscale);
+extern void LefGenViaGeometry(FILE *f, lefLayer *lefl, int sizex, int sizey, int spacex, int spacey, int encbx,
+                              int encby, int enctx, int encty, int rows, int cols, TileType tlayer, TileType clayer,
+                              TileType blayer, float oscale);
+extern Rect *LefReadRect(FILE *f, TileType curlayer, float oscale);
+extern TileType LefReadLayer(FILE *f, bool obstruct);
+extern void LefReadLayerSection(FILE *f, char *lname, int mode, lefLayer *lefl);
 
-LefMapping *defMakeInverseLayerMap();
+extern LefMapping *defMakeInverseLayerMap(bool do_vias);
 
 /* Variable argument procedure requires parameter list. */
-void LefError(int, const char *, ...) ATTR_FORMAT_PRINTF_2;
+extern void LefError(int type, const char *fmt, ...) ATTR_FORMAT_PRINTF_2;
 
 /* C99 compat */
-extern void LefRead();
-extern void DefRead();
+extern void LefRead(char *inName, bool importForeign, bool doAnnotate, int lefTimestamp);
+extern void DefRead(char *inName, bool dolabels, bool annotate, bool noblockage);
 
-void LefWriteAll();
-void DefWriteCell();
-void LefWriteCell();
-int  DRCGetDefaultLayerWidth();
-void LefTechInit();
-void lefRemoveGeneratedVias();
+extern void LefWriteAll(CellUse *rootUse, bool writeTopCell, bool lefTech, int lefHide, int lefPinOnly, bool lefTopLayer,
+                        bool lefDoMaster, bool recurse);
+extern void DefWriteCell(CellDef *def, char *outName, bool allSpecial, int units, bool analRetentive);
+extern void LefWriteCell(CellDef *def, char *outName, bool isRoot, bool lefTech, int lefHide, int lefPinOnly,
+                         bool lefTopLayer, bool lefDoMaster);
+extern int DRCGetDefaultLayerWidth(TileType ttype);
+extern void LefTechInit(void);
+extern void lefRemoveGeneratedVias(void);
 
 /* Definitions for type passed to LefError() */
 
