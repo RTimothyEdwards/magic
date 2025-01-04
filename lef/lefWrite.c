@@ -2082,7 +2082,7 @@ lefGetSites(
 
     propvalue = (char *)DBPropGet(def, "LEFsite", &propfound);
     if (propfound)
-	he = HashFind(lefSiteTbl, propvalue);
+	he = HashFind(lefSiteTbl, propvalue); /* FIXME return value not used from call to function with no side-effects (reevaluate this entire func purpose?) */
 
     return 0;
 }
@@ -2124,7 +2124,7 @@ lefGetProperties(
 	    while (*psrch != ' ' && *psrch != '\0') psrch++;
 	    if (*psrch == '\0') break;
 	    *psrch = '\0';
-	    he = HashFind(lefPropTbl, key);
+	    he = HashFind(lefPropTbl, key); /* FIXME return value not used from call to function with no side-effects */
 
 	    /* Potentially to do:  Handle INT and REAL types */
 	    /* For now, only STRING properties are handled.  */

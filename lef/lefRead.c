@@ -1247,7 +1247,7 @@ LefReadGeometry(
 		{
 		    if (is_imported)
 		    {
-			int pNum = DBPlane(curlayer);
+			int pNum = DBPlane(curlayer); /* FIXME unused return value from call to function with no side-effects */
 			SearchContext scx;
 			CellUse	dummy;
 			PlaneType pt;
