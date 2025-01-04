@@ -13,13 +13,13 @@
 
 /* Procedures for reading the technology file: */
 
-extern void LefTechInit();
-extern bool LefTechLine();
-extern void LefTechScale();
-extern void LefTechSetDefaults();
+extern void LefTechInit(void);
+extern bool LefTechLine(char *sectionName, int argc, char *argv[]);
+extern void LefTechScale(int scalen, int scaled);
+extern void LefTechSetDefaults(void);
 
 /* Initialization: */
 
-extern void LefInit();
+extern void LefInit(void);
 
 #endif /* _LEF_H */
