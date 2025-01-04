@@ -151,21 +151,21 @@ lefFileOpen(
     CellDef *def,	/* Cell whose .lef file is to be written.  Should
 			 * be NULL if file is being opened for reading.
 			 */
-    char *file,		/* If non-NULL, open 'name'.lef; otherwise,
+    const char *file,	/* If non-NULL, open 'name'.lef; otherwise,
 			 * derive filename from 'def' as described
 			 * above.
 			 */
-    char *suffix,	/* Either ".lef" for LEF files or ".def" for DEF files */
-    char *mode,		/* Either "r" or "w", the mode in which the LEF/DEF
+    const char *suffix,	/* Either ".lef" for LEF files or ".def" for DEF files */
+    const char *mode,	/* Either "r" or "w", the mode in which the LEF/DEF
 			 * file is to be opened.
 			 */
     char **prealfile)	/* If this is non-NULL, it gets set to point to
 			 * a string holding the name of the LEF/DEF file.
 			 */
 {
-    char namebuf[512], *name, *endp, *ends;
-    char *locsuffix;
-    char *pptr;
+    const char *name, *ends, *endp;
+    char namebuf[512];
+    const char *locsuffix;
     int len;
     FILE *rfile;
 

@@ -85,7 +85,7 @@ void
 LefEstimate(
    int processed,
    int total,
-   char *item_name)
+   const char *item_name)
 {
     static int check_interval, partition;
     static struct timeval tv_start;
@@ -140,7 +140,7 @@ void
 LefEstimate(
    int processed,
    int total,
-   char *item_name)
+   const char *item_name)
 {
     static int check_interval, partition;
     static struct timeval tv_start;
@@ -574,7 +574,7 @@ LefSkipSection(
 
 CellDef *
 lefFindCell(
-    char *name)		/* Name of the cell to search for */
+    const char *name)		/* Name of the cell to search for */
 {
     HashEntry *h;
     CellDef *def;
@@ -638,7 +638,7 @@ LefLower(
 lefLayer *
 LefRedefined(
     lefLayer *lefl,
-    char *redefname)
+    const char *redefname)
 {
     lefLayer *slef, *newlefl;
     char *altName;
@@ -2656,7 +2656,7 @@ enum lef_layer_keys {LEF_LAYER_TYPE=0, LEF_LAYER_WIDTH,
 void
 LefReadLayerSection(
     FILE *f,			/* LEF file being read	  */
-    char *lname,		/* name of the layer 	  */
+    const char *lname,		/* name of the layer 	  */
     int mode,			/* layer, via, or viarule */
     lefLayer *lefl)		/* pointer to layer info  */
 {
@@ -2892,7 +2892,7 @@ enum lef_sections {LEF_VERSION = 0,
 
 void
 LefRead(
-    char *inName,
+    const char *inName,
     bool importForeign,
     bool doAnnotate,
     int lefTimestamp)
