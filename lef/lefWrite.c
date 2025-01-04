@@ -308,7 +308,7 @@ lefWriteHeader(
     
 	/* NOTE: Type (e.g., "STRING") may be kept in hash value.   */
 	/* This has not been implemented;  only string types are supported */
-	fprintf(f, IN0 "MACRO %s STRING ;\n", (char *)he->h_key.h_name);
+	fprintf(f, IN0 "MACRO %s STRING ;\n", (const char *)he->h_key.h_name);
     }
     if (nprops > 0) fprintf(f, "END PROPERTYDEFINITIONS\n\n");
 
@@ -323,7 +323,7 @@ lefWriteHeader(
 	char *propvalue;
 	Rect boundary;
 
-	siteDef = DBCellLookDef((char *)he->h_key.h_name);
+	siteDef = DBCellLookDef((const char *)he->h_key.h_name);
 	if (siteDef)
 	{
 	    fprintf(f, "SITE %s\n", siteDef->cd_name);
