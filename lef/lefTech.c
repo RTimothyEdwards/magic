@@ -203,7 +203,7 @@ lefRemoveGeneratedVias(void)
 
 bool
 LefTechLine(
-    char *sectionName,          /* Name of this section (unused). */
+    const char *sectionName,    /* Name of this section (unused). */
     int argc,                   /* Number of arguments on line. */
     char *argv[])               /* Pointers to fields of line. */
 {

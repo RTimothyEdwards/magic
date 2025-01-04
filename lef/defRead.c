@@ -2384,7 +2384,7 @@ enum def_sections {DEF_VERSION = 0, DEF_NAMESCASESENSITIVE,
 
 void
 DefRead(
-    char *inName,
+    const char *inName,
     bool dolabels,
     bool annotate,
     bool noblockage)
