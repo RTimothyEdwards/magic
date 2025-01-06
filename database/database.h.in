@@ -581,7 +581,7 @@ typedef struct diagonaltilebody
 
 typedef struct diag_info
 {
-   PaintResultType *resultTbl; 
+   const PaintResultType *resultTbl;
    bool dir;
    bool side;
 } DiagInfo;
