@@ -511,6 +511,7 @@ typedef struct capval
 #define SINGLE 8
 #define TRIANGLE 32
 
+#define RESTRUE 1
 #define PENDING 2
 #define FINISHED 4
 
