@@ -131,8 +131,11 @@ typedef struct
 /* Length of record header */
 #define	CALMAHEADERLENGTH	4
 
-/* Label types */
-typedef enum { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT, LABEL_TYPE_CELLID } labelType;
+/* Label types
+ *  The intention is all the values can be stored/converted with unsigned char type,
+ *  C23 allows us to be explicit with the type but C99 does not, so a comment for now.
+ */
+typedef enum /* : unsigned char */ { LABEL_TYPE_NONE, LABEL_TYPE_TEXT, LABEL_TYPE_PORT, LABEL_TYPE_CELLID } labelType;
 
 /* ------------------------- Input macros ----------------------------- */
 

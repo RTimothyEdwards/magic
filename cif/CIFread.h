@@ -104,8 +104,10 @@ typedef struct cifrstyle
 				/* Gives the Magic layer to use for labels
 				 * on each possible CIF layer.
 				 */
-    bool crs_labelSticky[MAXCIFRLAYERS];
-				/* Marker if label layer makes sticky labels */
+    /* enum labelType */ unsigned char crs_labelSticky[MAXCIFRLAYERS];
+				/* Marker if label layer makes sticky labels
+				 * enum labelType LABEL_TYPE_xxxxxx
+				 */
     CIFReadLayer *crs_layers[MAXCIFRLAYERS];
     HashTable cifCalmaToCif;    /* Table mapping from Calma layer numbers to
                                  * CIF layers
