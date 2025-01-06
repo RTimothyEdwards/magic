@@ -241,8 +241,8 @@ glRouteToPoint(loc, bestCost)
 	glHistoAdd(heapPts, frontierPts, startPts);
 
     /* Free the auxiliary heaps */
-    HeapKill(&glBestHeap, (void (*)()) NULL);
-    HeapKill(&glProximityHeap, (void (*)()) NULL);
+    HeapKill(&glBestHeap, (cb_heap_kill_t) NULL);
+    HeapKill(&glProximityHeap, (cb_heap_kill_t) NULL);
 
     return (lastPt);
 }

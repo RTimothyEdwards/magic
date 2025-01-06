@@ -125,18 +125,19 @@ typedef struct
 } Heap;
 
 /* PROCEDURES */
-extern void HeapInit(Heap *, int, int, int);
-extern void HeapInitType(Heap *, int, int, int, int);
-extern void HeapKill(Heap *, void (*)());
-extern void HeapFreeIdFunc(Heap *, int);
-extern HeapEntry *HeapRemoveTop(Heap *, HeapEntry *);
-extern HeapEntry *HeapLookAtTop(Heap *);
-extern void HeapAdd(Heap *, union heUnion *, char *);
-extern void HeapAddInt(Heap *, int, char *);
-extern void HeapAddDLong(Heap *, dlong, char *);
-extern void HeapAddFloat(Heap *, float, char *);
-extern void HeapAddDouble(Heap *, double, char *);
-extern void HeapDump(Heap *);
+extern void HeapInit(Heap *heap, int size, int descending, int stringIds);
+extern void HeapInitType(Heap *heap, int size, int descending, int stringIds, int keyType);
+typedef void (*cb_heap_kill_t)(Heap *heap, int index);
+extern void HeapKill(Heap *heap, cb_heap_kill_t func);
+extern void HeapFreeIdFunc(Heap *heap, int i);
+extern HeapEntry *HeapRemoveTop(Heap *heap, HeapEntry *entry);
+extern HeapEntry *HeapLookAtTop(Heap *heap);
+extern void HeapAdd(Heap *heap, union heUnion *pKey, char *id);
+extern void HeapAddInt(Heap *heap, int data, char *id);
+extern void HeapAddDLong(Heap *heap, dlong data, char *id);
+extern void HeapAddFloat(Heap *heap, float data, char *id);
+extern void HeapAddDouble(Heap *heap, double data, char *id);
+extern void HeapDump(Heap *heap);
 
 #define HEAP_EMPTY(h)   ((h)->he_used == 0)
 

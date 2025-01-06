@@ -111,22 +111,22 @@ extern void heapify();
  */
 
 void
-HeapInit(heap, size, descending, stringIds)
-    Heap *heap;		/* Pointer to a heap struct */
-    int size;		/* Initial size of heap */
-    int	descending;	/* TRUE if largest on top */
-    int	stringIds;	/* TRUE if entry id's are strings */
+HeapInit(
+    Heap *heap,		/* Pointer to a heap struct */
+    int size,		/* Initial size of heap */
+    int	descending,	/* TRUE if largest on top */
+    int	stringIds)	/* TRUE if entry id's are strings */
 {
     HeapInitType(heap, size, descending, stringIds, HE_INT);
 }
 
 void
-HeapInitType(heap, size, descending, stringIds, keyType)
-    Heap *heap;		/* Pointer to a heap struct */
-    int size;		/* Initial size of heap */
-    int	descending;	/* TRUE if largest on top */
-    int	stringIds;	/* TRUE if entry id's are strings */
-    int keyType;	/* Type of keys to use */
+HeapInitType(
+    Heap *heap,		/* Pointer to a heap struct */
+    int size,		/* Initial size of heap */
+    int	descending,	/* TRUE if largest on top */
+    int	stringIds,	/* TRUE if entry id's are strings */
+    int keyType)	/* Type of keys to use */
 {
     if (size < 0) size = -size;
     heap->he_size = 2;
@@ -177,9 +177,9 @@ HeapInitType(heap, size, descending, stringIds, keyType)
  */
 
 void
-HeapKill(heap, func)
-    Heap *heap;		/* The heap being killed */
-    void (*func)();	/* Some function to free each id element */
+HeapKill(
+    Heap *heap,			/* The heap being killed */
+    cb_heap_kill_t func)	/* Some function to free each id element */
 {
     int i;
 
@@ -189,7 +189,7 @@ HeapKill(heap, func)
      */
     if (func)
         for (i = 1; i <= heap->he_used; i++)
-	   (*func) (heap, i);
+	   (*func) (heap, i); /** @invoke cb_heap_kill_t */
     freeMagic((char *) heap->he_list);
     heap->he_list = NULL;
 }
@@ -212,9 +212,9 @@ HeapKill(heap, func)
  */
 
 void
-HeapFreeIdFunc(heap, i)
-    Heap *heap;	/* The heap in which the free is performed */
-    int i;			/* The index of the entry whose id gets freed */
+HeapFreeIdFunc(
+    Heap *heap,	/* The heap in which the free is performed */
+    int i)			/* The index of the entry whose id gets freed */
 {
     if (heap->he_stringId)
 	freeMagic(heap->he_list[i].he_id);
@@ -239,9 +239,9 @@ HeapFreeIdFunc(heap, i)
  */
 
 HeapEntry *
-HeapRemoveTop(heap, entry)
-    Heap *heap;	/* The heap from which the top is removed */
-    HeapEntry *entry;		/* Return the value in this struct */
+HeapRemoveTop(
+    Heap *heap,	/* The heap from which the top is removed */
+    HeapEntry *entry)		/* Return the value in this struct */
 {
     int i;
 
@@ -278,8 +278,8 @@ HeapRemoveTop(heap, entry)
  */
 
 HeapEntry *
-HeapLookAtTop(heap)
-    Heap *heap;
+HeapLookAtTop(
+    Heap *heap)
 {
     int i;
 
@@ -311,9 +311,9 @@ HeapLookAtTop(heap)
  */
 
 void
-heapify(heap, root)
-    Heap *heap;
-    int root;
+heapify(
+    Heap *heap,
+    int root)
 {
     HeapEntry *list = heap->he_list;
     int x, r, used = heap->he_used;
@@ -383,10 +383,10 @@ heapify(heap, root)
  */
 
 void
-HeapAdd(heap, pKey, id)
-    Heap *heap;
-    union heUnion *pKey;
-    char *id;
+HeapAdd(
+    Heap *heap,
+    union heUnion *pKey,
+    char *id)
 {
     HeapEntry *list = heap->he_list;
     int i, cmp, keyType;
@@ -462,10 +462,10 @@ HeapAdd(heap, pKey, id)
  * ----------------------------------------------------------------------------
  */
 void
-HeapAddInt(heap, data, id)
-    Heap *heap;
-    int data;
-    char *id;
+HeapAddInt(
+    Heap *heap,
+    int data,
+    char *id)
 {
     union heUnion pKey;
 
@@ -476,10 +476,10 @@ HeapAddInt(heap, data, id)
 }
 
 void
-HeapAddDLong(heap, data, id)
-    Heap *heap;
-    dlong data;
-    char *id;
+HeapAddDLong(
+    Heap *heap,
+    dlong data,
+    char *id)
 {
     union heUnion pKey;
 
@@ -490,10 +490,10 @@ HeapAddDLong(heap, data, id)
 }
 
 void
-HeapAddFloat(heap, data, id)
-    Heap *heap;
-    float data;
-    char *id;
+HeapAddFloat(
+    Heap *heap,
+    float data,
+    char *id)
 {
     union heUnion pKey;
 
@@ -504,10 +504,10 @@ HeapAddFloat(heap, data, id)
 }
 
 void
-HeapAddDouble(heap, data, id)
-    Heap *heap;
-    double data;
-    char *id;
+HeapAddDouble(
+    Heap *heap,
+    double data,
+    char *id)
 {
     union heUnion pKey;
 
@@ -534,8 +534,8 @@ HeapAddDouble(heap, data, id)
  */
 
 void
-HeapDump(heap)
-    Heap *heap;
+HeapDump(
+    Heap *heap)
 {
     int i;
 

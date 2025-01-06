@@ -139,7 +139,7 @@ GlGlobalRoute(chanList, netList)
 	    glPenClearPerChan(net);
 	RtrMilestonePrint();
     }
-    HeapKill(&netHeap, (void (*)()) NULL);
+    HeapKill(&netHeap, (cb_heap_kill_t) NULL);
 
     glClientFree(chanList, netList);
     glChanFreeMap();
@@ -333,7 +333,7 @@ glProcessLoc(startList, loc, bestCost, doFast)
     headFree = glPathCurPage->glp_free;
     bestPt = glMazeFindPath(loc, bestCost);
     glMazeResetCost(headPage, headFree);
-    HeapKill(&glMazeHeap, (void (*)()) NULL);
+    HeapKill(&glMazeHeap, (cb_heap_kill_t) NULL);
     if (bestPt == (GlPoint *) NULL)
     {
 	glBadRoutes++;
@@ -372,7 +372,7 @@ glProcessLoc(startList, loc, bestCost, doFast)
     }
     if (doFast)
 	glMazeResetCost(headPage, headFree);
-    HeapKill(&glMazeHeap, (void (*)()) NULL);
+    HeapKill(&glMazeHeap, (cb_heap_kill_t) NULL);
     if (bestPt)
     {
 	if (glLogFile)

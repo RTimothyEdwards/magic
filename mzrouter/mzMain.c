@@ -1292,10 +1292,10 @@ MZClean()
 	/* Free up route-path queues */
 	if(mzPathsDirty)
 	{
-	    HeapKill(&mzMaxToGoHeap, (void (*)()) NULL);
-	    HeapKill(&mzMinCostHeap, (void (*)()) NULL);
-	    HeapKill(&mzMinAdjCostHeap, (void (*)()) NULL);
-	    HeapKill(&mzMinCostCompleteHeap, (void (*)()) NULL);
+	    HeapKill(&mzMaxToGoHeap, (cb_heap_kill_t) NULL);
+	    HeapKill(&mzMinCostHeap, (cb_heap_kill_t) NULL);
+	    HeapKill(&mzMinAdjCostHeap, (cb_heap_kill_t) NULL);
+	    HeapKill(&mzMinCostCompleteHeap, (cb_heap_kill_t) NULL);
 	    ListDealloc(mzBloomStack);
 	    ListDealloc(mzStraightStack);
 	    ListDealloc(mzDownHillStack);

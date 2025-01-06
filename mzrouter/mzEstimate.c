@@ -1550,7 +1550,7 @@ mzAssignVertexCosts()
     }
 
     /* Free heap */
-    HeapKill(&adjHeap, (void (*)()) NULL);
+    HeapKill(&adjHeap, (cb_heap_kill_t) NULL);
 
     return;
 }

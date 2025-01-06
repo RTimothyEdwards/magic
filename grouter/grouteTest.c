@@ -476,7 +476,7 @@ glHistoDump()
 	}
 	count++, total++;
     }
-    HeapKill(&histoHeap, (void (*)()) NULL);
+    HeapKill(&histoHeap, (cb_heap_kill_t) NULL);
     if (count > 0)
 	fprintf(fp, "%d: %d\n", lastsize, count);
     fprintf(fp, "TOTAL: %d\n", total);
@@ -499,7 +499,7 @@ glHistoDump()
 	}
 	count++, total++;
     }
-    HeapKill(&histoHeap, (void (*)()) NULL);
+    HeapKill(&histoHeap, (cb_heap_kill_t) NULL);
     if (count > 0)
 	fprintf(fp, "%d: %d\n", lastsize, count);
     fprintf(fp, "TOTAL: %d\n", total);
