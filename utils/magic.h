@@ -201,6 +201,7 @@ extern char AbortMessage[];
  #define ANALYSER_CSTRING(n) __attribute__((null_terminated_string_arg(n)))
  #define ANALYSER_FD_ARG(fd) __attribute__((fd_arg(fd)))
  #define ANALYSER_MALLOC(dealloc, idx) __attribute__((malloc, malloc(dealloc, idx)))
+ /* looking to squash excessive -Wpedantic warnings ? add into defs.mak: CPPFLAGS += -Wno-variadic-macros */
  #define ANALYSER_NONNULL(n...) __attribute__((nonnull(n)))
  #define ANALYSER_RETURNS_NONNULL __attribute__((returns_nonnull))
 #else
