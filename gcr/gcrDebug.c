@@ -542,11 +542,11 @@ gcrDumpCol(col, size)
 	return;
 
     for (i = size; i >= 0; i--)
-	TxPrintf("[%2d] hi=%6d(%c) lo=%6d(%c) h=%6d v=%6d w=%6d f=%4d\n", i,
+	TxPrintf("[%2d] hi=%6d(%c) lo=%6d(%c) h=%6lu v=%6lu w=%6lu f=%4d\n", i,
 	    col[i].gcr_hi, col[i].gcr_hOk ? 'T' : 'F',
 	    col[i].gcr_lo, col[i].gcr_lOk ? 'T' : 'F',
-	    col[i].gcr_h, col[i].gcr_v,
-	    col[i].gcr_wanted, col[i].gcr_flags);
+	    (pointertype) col[i].gcr_h, (pointertype) col[i].gcr_v,
+	    (pointertype) col[i].gcr_wanted, col[i].gcr_flags);
 }
 
 /*

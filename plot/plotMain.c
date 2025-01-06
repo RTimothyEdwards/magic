@@ -281,7 +281,7 @@ PlotPrintParams()
 {
     TxPrintf("General plotting parameters are:\n");
     TxPrintf("    showCellNames: %s\n", PlotShowCellNames ? "true" : "false");
-    TxPrintf("");
+    TxPrintf("\n");
     TxPrintf("Postscript plotting parameters are:\n");
     TxPrintf("    PS_cellIdFont:  \"%s\"\n", PlotPSIdFont);
     TxPrintf("    PS_cellNameFont:\"%s\"\n", PlotPSNameFont);
@@ -297,7 +297,7 @@ PlotPrintParams()
     TxPrintf("    PS_margin:      %d (%.3f in)\n", PlotPSMargin,
 		(float)PlotPSMargin / 72);
 
-    TxPrintf("");
+    TxPrintf("\n");
     TxPrintf("PNM plotting parameters are:\n");
     TxPrintf("    pnmmaxmem: %d KB\n", PlotPNMmaxmem);
     TxPrintf("    pnmdownsample: %d\n", PlotPNMdownsample);
@@ -305,7 +305,7 @@ PlotPrintParams()
 
 #ifdef VERSATEC
     TxPrintf("    pnmplotRTL: %s\n", PlotPNMRTL ? "true" : "false");
-    TxPrintf("");
+    TxPrintf("\n");
     TxPrintf("HP/Versatec plotting parameters are:\n");
     TxPrintf("    cellIdFont:    \"%s\"\n", PlotVersIdFont);
     TxPrintf("    cellNameFont:  \"%s\"\n", PlotVersNameFont);

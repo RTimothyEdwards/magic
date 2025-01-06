@@ -383,7 +383,7 @@ extBasic(def, outFile)
 	    if (devidx < 0)
 	    {
 		TxError("Extract error:  \"device\" property has unknown "
-				"device type.\n", token);
+				"device type: %s\n", token);
 		propfound = FALSE;
 	    }
 	    if (propfound)

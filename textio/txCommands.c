@@ -201,7 +201,7 @@ void
 TxPrintEvent(event)
     TxInputEvent *event;
 {
-    TxError("Input event at %p\n    ", event);
+    TxError("Input event at %p\n    ", (void *) event);
     if (event->txe_button == TX_EOF) {
 	TxError("EOF event");
     } else if (event->txe_button == TX_BYPASS) {
@@ -255,7 +255,7 @@ TxPrintCommand(cmd)
     int i, j;
     char TxTemp[200];
 
-    TxError("Command at %p\n    ", cmd);
+    TxError("Command at %p\n    ", (void *) cmd);
     if (cmd->tx_button == TX_CHARACTER) {
 	TxError("Text command with %d words: ", cmd->tx_argc);
 	for (i = 0; i < cmd->tx_argc; i++) {

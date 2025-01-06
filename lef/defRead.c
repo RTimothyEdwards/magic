@@ -348,7 +348,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 	}
 	else if (!strcmp(token, "POLYGON"))
 	{
-	    LefError(DEF_ERROR, "Route has POLYGON entries, this is not handled!\n",
+	    LefError(DEF_ERROR, "Route has %s entries, this is not handled!\n",
 			token);
 	    token = LefNextToken(f, TRUE);	/* read opening parens */
 	    goto endCoord;

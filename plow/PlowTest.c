@@ -336,7 +336,7 @@ PlowTest(w, cmd)
 	    break;
 	case PC_MERGEDOWN:
 	    tp = TiSrPointNoHint(plane, &editArea.r_ll);
-	    TxPrintf("Merging tile %p below\n", tp);
+	    TxPrintf("Merging tile %p below\n", (void *)tp);
 	    TiToRect(tp, &editArea);
 	    TiToRect(RT(tp), &area2);
 	    (void) GeoInclude(&area2, &editArea);
@@ -345,7 +345,7 @@ PlowTest(w, cmd)
 	    break;
 	case PC_MERGEUP:
 	    tp = TiSrPointNoHint(plane, &editArea.r_ll);
-	    TxPrintf("Merging tile %p above\n", tp);
+	    TxPrintf("Merging tile %p above\n", (void *)tp);
 	    TiToRect(tp, &editArea);
 	    TiToRect(RT(tp), &area2);
 	    (void) GeoInclude(&area2, &editArea);
@@ -355,7 +355,7 @@ PlowTest(w, cmd)
 	case PC_PRINT:
 	    tp = TiSrPointNoHint(plane, &editArea.r_ll);
 	    TxPrintf("Tile %p  LEFT=%d RIGHT=%d BOTTOM=%d TOP=%d\n",
-		tp, LEFT(tp), RIGHT(tp), BOTTOM(tp), TOP(tp));
+		(void *)tp, LEFT(tp), RIGHT(tp), BOTTOM(tp), TOP(tp));
 	    TxPrintf("    TRAILING=%d LEADING=%d TYPE=%s\n",
 		TRAILING(tp), LEADING(tp), DBTypeLongName(TiGetTypeExact(tp)));
 	    break;

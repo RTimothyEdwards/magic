@@ -140,7 +140,7 @@ CIFReadError(const char *format, ...)
 	if (cifLineNumber > 0)
 	    TxError("Error at line %d of CIF file: ", cifLineNumber);
 	else
-	    TxError("CIF file read error: ", cifLineNumber);
+	    TxError("CIF file read error: ");
 	va_start(args, format);
 	Vfprintf(stderr, format, args);
 	va_end(args);
