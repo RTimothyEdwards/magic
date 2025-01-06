@@ -55,15 +55,15 @@ Use efFlatRootUse;
 HierContext efFlatContext;
 
 /* Forward declarations */
-int efFlatSingleCap();
-void efFlatGlob();
+int efFlatSingleCap(HierContext *hc, char *name1, char *name2, Connection *conn);
+void efFlatGlob(void);
 int efFlatGlobHash(HierName *);
 bool efFlatGlobCmp(HierName *, HierName *);
 char *efFlatGlobCopy(HierName *);
-void efFlatGlobError(EFNodeName *, EFNodeName *);
-int efAddNodes(HierContext *, bool);
-int efAddConns(HierContext *, bool);
-int efAddOneConn(HierContext *, char *, char *, Connection *, bool);
+void efFlatGlobError(EFNodeName *nameGlob, EFNodeName *nameFlat);
+int efAddNodes(HierContext *hc, bool stdcell);
+int efAddConns(HierContext *hc, bool doWarn);
+int efAddOneConn(HierContext *hc, char *name1, char *name2, Connection *conn, bool doWarn);
 
 /* Flags passed to efFlatNode() */
 
@@ -453,9 +453,9 @@ efFlatNodesDeviceless(hc, cdata)
  */
 
 int
-efAddNodes(hc, stdcell)
-    HierContext *hc;
-    bool stdcell;
+efAddNodes(
+    HierContext *hc,
+    bool stdcell)
 {
     Def *def = hc->hc_use->use_def;
     EFNodeName *nn, *newname, *oldname;
@@ -599,9 +599,9 @@ efAddNodes(hc, stdcell)
  */
 
 int
-efAddConns(hc, doWarn)
-    HierContext *hc;
-    bool doWarn;
+efAddConns(
+    HierContext *hc,
+    bool doWarn)
 {
     Connection *conn;
 
@@ -643,11 +643,12 @@ efAddConns(hc, doWarn)
  */
 
 int
-efAddOneConn(hc, name1, name2, conn, doWarn)
-    HierContext *hc;
-    char *name1, *name2;	/* These are strings, not HierNames */
-    Connection *conn;
-    bool doWarn;
+efAddOneConn(
+    HierContext *hc,
+    char *name1,	/* These are strings, not HierNames */
+    char *name2,
+    Connection *conn,
+    bool doWarn)
 {
     HashEntry *he1, *he2;
     EFNode *node, *newnode;
@@ -710,7 +711,7 @@ efAddOneConn(hc, name1, name2, conn, doWarn)
  */
 
 void
-efFlatGlob()
+efFlatGlob(void)
 {
     EFNodeName *nameFlat, *nameGlob;
     EFNode *nodeFlat, *nodeGlob;
@@ -825,8 +826,9 @@ efFlatGlob()
 }
 
 void
-efFlatGlobError(nameGlob, nameFlat)
-    EFNodeName *nameGlob, *nameFlat;
+efFlatGlobError(
+    EFNodeName *nameGlob,
+    EFNodeName *nameFlat)
 {
     EFNode *nodeGlob = nameGlob->efnn_node, *nodeFlat = nameFlat->efnn_node;
     EFNodeName *nn;
@@ -1066,10 +1068,11 @@ efFlatCaps(hc)
  */
 
 int
-efFlatSingleCap(hc, name1, name2, conn)
-    HierContext *hc;		/* Contains hierarchical pathname to cell */
-    char *name1, *name2;	/* Names of nodes connecting to capacitor */
-    Connection *conn;		/* Contains capacitance to add */
+efFlatSingleCap(
+    HierContext *hc,		/* Contains hierarchical pathname to cell */
+    char *name1,		/* Names of nodes connecting to capacitor */
+    char *name2,
+    Connection *conn)		/* Contains capacitance to add */
 {
     EFNode *n1, *n2;
     HashEntry *he;
