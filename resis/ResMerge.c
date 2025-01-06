@@ -53,7 +53,7 @@ ResDoneWithNode(resptr)
     resResistor	*rr1;
 
     resptr2 = NULL;
-    resptr->rn_status |= TRUE;
+    resptr->rn_status |= RESTRUE;
     status = UNTOUCHED;
 
     /* are there any resistors? */
@@ -93,9 +93,9 @@ ResDoneWithNode(resptr)
 	    ResMergeNodes(resptr2, resptr, &ResNodeQueue, &ResNodeList);
 	    resptr2->rn_float.rn_area += rr1->rr_float.rr_area;
 	    ResEliminateResistor(rr1, &ResResList);
-	    if ((resptr2->rn_status & TRUE) == TRUE)
+	    if ((resptr2->rn_status & RESTRUE) == RESTRUE)
 	    {
-		resptr2->rn_status &= ~TRUE;
+		resptr2->rn_status &= ~RESTRUE;
 		ResDoneWithNode(resptr2);
 	    }
 	    resptr2 = NULL;
@@ -253,9 +253,9 @@ ResSeriesCheck(resptr)
 	ResEliminateResistor(rr1, &ResResList);
 	ResCleanNode(resptr, TRUE, &ResNodeList, &ResNodeQueue);
 	status = SINGLE;
-	if (resptr2->rn_status & TRUE)
+	if (resptr2->rn_status & RESTRUE)
 	{
-	    resptr2->rn_status &= ~TRUE;
+	    resptr2->rn_status &= ~RESTRUE;
 	    ResDoneWithNode(resptr2);
 	}
 	resptr2 = NULL;
@@ -291,9 +291,9 @@ ResSeriesCheck(resptr)
 			rr1->rr_connection1 = rr2->rr_connection2;
 			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
 		    }
-		    if ((resptr2->rn_status & TRUE) == TRUE)
+		    if ((resptr2->rn_status & RESTRUE) == RESTRUE)
 		    {
-			resptr2->rn_status &= ~TRUE;
+			resptr2->rn_status &= ~RESTRUE;
 			ResDoneWithNode(resptr2);
 		    }
 		    resptr2 = NULL;
@@ -322,9 +322,9 @@ ResSeriesCheck(resptr)
 			rr1->rr_connection1 = rr2->rr_connection1;
 			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
 		    }
-		    if ((resptr2->rn_status & TRUE) == TRUE)
+		    if ((resptr2->rn_status & RESTRUE) == RESTRUE)
 		    {
-			resptr2->rn_status &= ~TRUE;
+			resptr2->rn_status &= ~RESTRUE;
 			ResDoneWithNode(resptr2);
 		    }
 		    resptr2 = NULL;
@@ -356,9 +356,9 @@ ResSeriesCheck(resptr)
 			rr1->rr_connection2 = rr2->rr_connection2;
 			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
 		    }
-		    if ((resptr2->rn_status & TRUE) == TRUE)
+		    if ((resptr2->rn_status & RESTRUE) == RESTRUE)
 		    {
-			resptr2->rn_status &= ~TRUE;
+			resptr2->rn_status &= ~RESTRUE;
 			ResDoneWithNode(resptr2);
 		    }
 		    resptr2 = NULL;
@@ -387,9 +387,9 @@ ResSeriesCheck(resptr)
 			rr1->rr_connection2 = rr2->rr_connection1;
 			ResFixRes(resptr, resptr2, resptr3, rr2, rr1);
 		    }
-		    if ((resptr2->rn_status & TRUE) == TRUE)
+		    if ((resptr2->rn_status & RESTRUE) == RESTRUE)
 		    {
-			resptr2->rn_status &= ~TRUE;
+			resptr2->rn_status &= ~RESTRUE;
 			ResDoneWithNode(resptr2);
 		    }
 		    resptr2 = NULL;
@@ -444,10 +444,10 @@ ResParallelCheck(resptr)
 		ResFixParallel(r1, r2);
 	        status = PARALLEL;
 		resptr2 = NULL;
-		if (resptr3->rn_status & TRUE)
+		if (resptr3->rn_status & RESTRUE)
 		{
 		    resptr2 = resptr3;
-		    resptr2->rn_status &= ~TRUE;
+		    resptr2->rn_status &= ~RESTRUE;
 		}
 		ResDoneWithNode(resptr);
 		if (resptr2 != NULL) ResDoneWithNode(resptr2);
@@ -543,7 +543,7 @@ ResTriangleCheck(resptr)
 		/* occupied by the first node.		    */
 
 		InitializeNode(n3, resptr->rn_loc.p_x, resptr->rn_loc.p_y, TRIANGLE);
-		n3->rn_status = FINISHED | TRUE | MARKED;
+		n3->rn_status = FINISHED | RESTRUE | MARKED;
 
 		n3->rn_less = NULL;
 		n3->rn_more = ResNodeList;
@@ -591,13 +591,13 @@ ResTriangleCheck(resptr)
 		element->re_nextEl = n3->rn_re;
 		element->re_thisEl = rr3;
 		n3->rn_re = element;
-	      	if ((n1->rn_status & TRUE) == TRUE)
-		    n1->rn_status &= ~TRUE;
+		if ((n1->rn_status & RESTRUE) == RESTRUE)
+		    n1->rn_status &= ~RESTRUE;
 		else
 		    n1 = NULL;
 
-		if ((n2->rn_status & TRUE) == TRUE)
-		    n2->rn_status &= ~TRUE;
+		if ((n2->rn_status & RESTRUE) == RESTRUE)
+		    n2->rn_status &= ~RESTRUE;
 		else
 		    n2 = NULL;
 
