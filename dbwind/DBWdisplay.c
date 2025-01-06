@@ -1117,7 +1117,7 @@ dbwTileFunc(tile)
     }
     else
     {
-	(void) sprintf(string, "%p", tile);
+	(void) sprintf(string, "%p", (void *) tile);
     }
 
     GeoClip(&r2, &rootClip);
@@ -1258,7 +1258,7 @@ dbwTileFunc(tile)
 	}
 	else if (!dbwSeeTypes)
 	{
-	    (void) sprintf(string, "%p", stitch);
+	    (void) sprintf(string, "%p", (void *) stitch);
 	    GrPutText(string, STYLE_DRAWTILE, &p, pos,
 		GR_TEXT_SMALL, FALSE, &r2, (Rect *) NULL);
 	}

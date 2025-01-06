@@ -229,8 +229,16 @@ styleBuildDisplayStyle(line, version)
 					 */
 
 	/* Allow colors to be specified by index or by name */
-	if (sscanf(colorName, ((version > 6) ? "%i" : "%o"), &color) <= 0)
-	    color = GrNameToColor(colorName);
+	if (version > 6)
+	{
+	    if (sscanf(colorName, "%i", &color) <= 0)
+		color = GrNameToColor(colorName);
+	}
+	else
+	{
+	    if (sscanf(colorName, "%o", (unsigned int *)&color) <= 0)
+		color = GrNameToColor(colorName);
+	}
 
 	newstyle->style.mask = (mask & grBitPlaneMask);
 	newstyle->style.color = (color & grBitPlaneMask);

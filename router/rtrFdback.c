@@ -99,11 +99,11 @@ RtrChannelError(ch, col, track, msg, net)
 	netname = NLNetName(net);
 	if ((strlen(netname) + strlen(msg)) >= 2048)
 	    netname = "too long";
-	(void) sprintf(buff, "Net `%s', channel %p:  ", netname, ch);
+	(void) sprintf(buff, "Net `%s', channel %p:  ", netname, (void *) ch);
     }
     else
     {
-	(void) sprintf(buff, "channel %p: ", ch);
+	(void) sprintf(buff, "channel %p: ", (void *) ch);
     }
     (void) strcat(buff, msg);
     old.p_x = col;

@@ -54,7 +54,7 @@ ResPrintNodeList(fp, list)
     for (; list != NULL; list = list->rn_more)
     {
 	fprintf(fp, "node %p: (%d %d) r= %d\n",
-	  	list, list->rn_loc.p_x, list->rn_loc.p_y, list->rn_noderes);
+	    (void *) list, list->rn_loc.p_x, list->rn_loc.p_y, list->rn_noderes);
     }
 }
 

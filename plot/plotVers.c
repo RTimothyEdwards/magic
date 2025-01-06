@@ -342,7 +342,8 @@ PlotVersTechLine(sectionName, argc, argv)
     }
     else
     {
-	int i, value;
+	unsigned int value;
+	int i;
 
 	if (argc != 17)
 	{
@@ -440,7 +441,8 @@ PlotColorVersTechLine(sectionName, argc, argv)
     }
     else
     {
-	int i, j, value;
+	unsigned int value;
+	int i, j;
 
 	if (argc != 3 && argc != 4 && argc != 6 && argc != 10 && argc != 18)
 	{

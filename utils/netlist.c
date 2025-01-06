@@ -393,7 +393,7 @@ NLNetName(net)
     term = net->nnet_terms;
     if (term == NULL || term->nterm_name == NULL)
     {
-	(void) sprintf(tempId, "[%p]", net);
+	(void) sprintf(tempId, "[%p]", (void *) net);
 	return tempId;
     }
 

@@ -431,7 +431,7 @@ void rtrPinShow(pin)
 		pin->gcr_ch->gcr_type,
 		pin->gcr_x, pin->gcr_y,
 		pin->gcr_point.p_x, pin->gcr_point.p_y,
-		(dlong) pin->gcr_pId, pin->gcr_linked);
+		(dlong) pin->gcr_pId, (void *) pin->gcr_linked);
     if (pin->gcr_pId || pin->gcr_linked == NULL)
 	(void) strcat(mesg, " **BLOCKED**");
     else DBWFeedbackAdd(&r, mesg, EditCellUse->cu_def, 1, STYLE_PALEHIGHLIGHTS);

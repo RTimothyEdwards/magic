@@ -815,8 +815,9 @@ tiPrint(tp)
     Tile *tp;
 {
     printf("tp=%p LL=(%d,%d) body=0x%"DLONG_PREFIX"x\n",
-	tp, LEFT(tp), BOTTOM(tp), (dlong) tp->ti_body);
-    printf("BL=%p LB=%p RT=%p TR=%p\n", BL(tp), LB(tp), RT(tp), TR(tp));
+	(void *) tp, LEFT(tp), BOTTOM(tp), (dlong) tp->ti_body);
+    printf("BL=%p LB=%p RT=%p TR=%p\n",
+        (void *) BL(tp), (void *) LB(tp), (void *) RT(tp), (void *) TR(tp));
 }
 
 void

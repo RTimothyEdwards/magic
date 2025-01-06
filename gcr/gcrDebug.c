@@ -288,7 +288,7 @@ gcrSaveChannel(ch)
     char name[128];
     int flags, i, j;
 
-    (void) sprintf(name, "chan.%p", ch);
+    (void) sprintf(name, "chan.%p", (void *) ch);
     fp = fopen(name, "w");
     if (fp == NULL)
     {

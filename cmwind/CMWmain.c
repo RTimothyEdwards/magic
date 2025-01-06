@@ -89,7 +89,7 @@ extern void CMWundoInit(void);
  * which pump is hit and which mouse button is used to hit it.
  */
 
-const ColorBar const colorBars[] =
+const ColorBar colorBars[] =
 {
     {"Red",	CB_RED,		STYLE_RED,	{{ 2000,	8000},	{10000,	 9000}},
 						{{ 2000,	9500},	{10000,	10500}}},
@@ -106,7 +106,7 @@ const ColorBar const colorBars[] =
     {0}
 };
 
-const ColorPump const colorPumps[] =
+const ColorPump colorPumps[] =
 {
     {CB_RED,	-.0078,	{{  500, 8000},	{ 1500,	9000}}},
     {CB_RED,	 .0078,	{{10500, 8000},	{11500,	9000}}},
@@ -155,7 +155,7 @@ CMWcreate(
     char *argv[])
 {
     CMWclientRec *crec;
-    int color;
+    unsigned int color;
 
     crec = (CMWclientRec *) mallocMagic(sizeof(CMWclientRec));
     window->w_clientData = (ClientData) crec;

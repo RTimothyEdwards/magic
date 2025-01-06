@@ -216,7 +216,7 @@ CmdTech(
 	    Tcl_SetResult(magicinterp, DBTechName, NULL);
 	    break;
 	case TECH_FILE:
-	    Tcl_SetResult(magicinterp, TechFileName, NULL);
+	    Tcl_SetResult(magicinterp, (char *)TechFileName, NULL);
 	    break;
 	case TECH_VERSION:
 	    Tcl_SetResult(magicinterp, DBTechVersion, NULL);

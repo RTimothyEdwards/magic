@@ -1978,7 +1978,7 @@ mzDumpEstFunc(tile, fd)
     if(fd)
     {
 	fprintf(fd,"\ntile %p\t\t  (x: %d to %d, y: %d to %d)\n",
-		tile, r.r_xbot, r.r_xtop, r.r_ybot, r.r_ytop);
+		(void *) tile, r.r_xbot, r.r_xtop, r.r_ybot, r.r_ytop);
 	fprintf(fd,"\thcost = %d ",
 		tilec->tc_hCost);
 	fprintf(fd,"vcost = %d \n",

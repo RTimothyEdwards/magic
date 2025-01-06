@@ -201,7 +201,7 @@ cmdEditRedisplayFunc(
     MagWindow *w,			/* Window containing edit cell. */
     Rect *area)			/* Area to be redisplayed. */
 {
-    static const Rect origin = {-1, -1, 1, 1};
+    static const Rect origin = {{-1, -1}, {1, 1}};
     Rect tmp;
     DBWclientRec *crec = (DBWclientRec *) w->w_clientData;
 

@@ -3810,7 +3810,7 @@ nodeVisitDebug(node, res, cap)
 
     printf("\t client.name=%s, client.m_w=%p\n",
     ((nodeClient *)node->efnode_client)->spiceNodeName,
-    ((nodeClient *)node->efnode_client)->m_w.widths);
+    (void *)((nodeClient *)node->efnode_client)->m_w.widths);
    return 0;
 }
 

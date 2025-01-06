@@ -1601,7 +1601,7 @@ calmaWriteUseFunc(
 		if (whichangle)
 		{
 		    calmaOutRH(12, CALMA_ANGLE, CALMA_R8, f);
-		    calmaOut8(whichangle, f);
+		    calmaOut8((char *)whichangle, f);
 		}
 
 		/* Translation */
@@ -1638,7 +1638,7 @@ calmaWriteUseFunc(
 	if (whichangle)
 	{
 	    calmaOutRH(12, CALMA_ANGLE, CALMA_R8, f);
-	    calmaOut8(whichangle, f);
+	    calmaOut8((char *)whichangle, f);
 	}
 
 	/* If array, number of columns and rows in the array */

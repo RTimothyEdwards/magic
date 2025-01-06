@@ -174,7 +174,7 @@ DRCPrintStyle(dolist, doforall, docurrent)
 	    if (!dolist) TxPrintf("The current style is \"");
 #ifdef MAGIC_WRAPPER
 	    if (dolist)
-	        Tcl_SetResult(magicinterp, DRCCurStyle->ds_name, NULL);
+	        Tcl_SetResult(magicinterp, (char *)DRCCurStyle->ds_name, NULL);
 	    else
 #endif
 	    TxPrintf("%s", DRCCurStyle->ds_name);
