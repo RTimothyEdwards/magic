@@ -898,7 +898,7 @@ cifMakeBoundaryFunc(
     Rect area;
     char propertyvalue[128], *storedvalue;
     int savescale;
-    int filetype = (int)clientdata;
+    int filetype = (int)CD2INT(clientdata);
 
     TiToRect(tile, &area);
     area.r_xtop = CIFScaleCoord(area.r_xtop, COORD_EXACT);

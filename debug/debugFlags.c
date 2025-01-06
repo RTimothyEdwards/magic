@@ -121,7 +121,7 @@ DebugAddFlag(clientID, name)
 
     if (id < 0 || id >= debugNumClients)
     {
-	TxError("DebugAddFlag: bad client id %lu (flag %s)\n", clientID, name);
+	TxError("DebugAddFlag: bad client id %lu (flag %s)\n", CD2INT(clientID), name);
 	return (0);
     }
 
@@ -165,7 +165,7 @@ DebugShow(clientID)
 
     if (id < 0 || id >= debugNumClients)
     {
-	TxError("DebugShow: bad client id %lu\n", clientID);
+	TxError("DebugShow: bad client id %lu\n", CD2INT(clientID));
 	return;
     }
     dc = &debugClients[id];
