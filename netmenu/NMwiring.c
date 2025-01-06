@@ -712,11 +712,12 @@ nmwVerifyLabelFunc2(scx, label, tpath, cd)
  */
 
 int
-nmwVerifyTileFunc(tile, plane, func)
-    Tile *tile;			/* Tile that is connected to this net. */
-    int plane;			/* Plane index of the tile. */
-    int (*func)();		/* Processing function for each tile. */
+nmwVerifyTileFunc(
+    Tile *tile,			/* Tile that is connected to this net. */
+    int plane,			/* Plane index of the tile. */
+    ClientData cdata)		/* Processing function for each tile. */
 {
+    int (*func)(Tile *) = (int (*)(Tile *))CD2FUN(cdata);
     SearchContext scx;
     char label[TERMLENGTH];
     TerminalPath tpath;
@@ -733,7 +734,7 @@ nmwVerifyTileFunc(tile, plane, func)
     tpath.tp_next = label;
     tpath.tp_last = &label[TERMLENGTH-1];
     (void) DBTreeSrLabels(&scx, &DBConnectTbl[TiGetType(tile)],
-	0, &tpath, TF_LABEL_ATTACH, nmwVerifyLabelFunc2, (ClientData) func);
+	0, &tpath, TF_LABEL_ATTACH, nmwVerifyLabelFunc2, cdata);
     return 0;
 }
 
@@ -764,7 +765,7 @@ nmwVerifyLabelFunc(rect, name, label, cd)
     Rect *rect;			/* Area of the label, in EditUse coords. */
     char *name;			/* Hierarchical name of label. */
     Label *label;		/* Actual label structure. */
-    ClientData cd;		/* Client data for nmwVerifyTileFunc */
+    ClientData cd;		/* Client data for nmwVerifyTileFunc (function pointer) */
 {
     TileTypeBitMask *mask;
     int i;
@@ -1287,7 +1288,7 @@ nmAllFunc(name, firstInNet, fp)
     nmwVerifyCount = 0;
     nmMeasureCount = 0;
     (void) DBSrLabelLoc(EditCellUse, name, nmwVerifyLabelFunc,
-	    (ClientData) nmwMeasureTileFunc);
+	    FUN2CD(nmwMeasureTileFunc));
 
     if (fp!=NULL)
     {

@@ -77,9 +77,11 @@ typedef pointertype ClientData;
  */
 #define CD2PTR(cd)   ((void*)(cd))
 #define CD2INT(cd)   ((pointertype)(cd))
+#define CD2FUN(cd)   ((const void*)(cd))
 
 #define PTR2CD(data) ((ClientData)(data))
 #define INT2CD(data) ((ClientData)(pointertype)(data))
+#define FUN2CD(data) ((ClientData)(const void*)(data))
 
 /* --------------------------- Booleans ------------------------------- */
 
