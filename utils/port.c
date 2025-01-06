@@ -41,8 +41,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 float
-MagAtof(s)
-    const char *s;
+MagAtof(
+    const char *s)
 {
 #ifdef linux
     float flt;

@@ -64,10 +64,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 /* SetNoisyInt -- */
 void
-SetNoisyInt(parm,valueS,file)
-    int *parm;
-    const char *valueS;
-    FILE *file;
+SetNoisyInt(
+    int *parm,
+    const char *valueS,
+    FILE *file)
 {
 
     /* If value not null, set parm */
@@ -96,10 +96,10 @@ SetNoisyInt(parm,valueS,file)
 /* SetNoisyBool --  */
 
 int
-SetNoisyBool(parm,valueS,file)
-    bool *parm;
-    const char *valueS;
-    FILE *file;
+SetNoisyBool(
+    bool *parm,
+    const char *valueS,
+    FILE *file)
 {
     int n, which, result = -2;
 
@@ -170,10 +170,10 @@ SetNoisyBool(parm,valueS,file)
 /* SetNoisyDI -- */
 /* double size non-negative integer */
 void
-SetNoisyDI(parm,valueS,file)
-    dlong *parm;		/* BY NP */
-    const char *valueS;
-    FILE *file;
+SetNoisyDI(
+    dlong *parm,		/* BY NP */
+    const char *valueS,
+    FILE *file)
 {
     /* If value not null, set parm */
     if (valueS)

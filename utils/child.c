@@ -22,7 +22,7 @@
  *------------------------------------------------------------------------*/
 
 struct Wait_List {
-  int pid;
+  int pid; /* FIXME pid_t */
   int status;
   int pending;
   struct Wait_List *next;
@@ -30,11 +30,10 @@ struct Wait_List {
 
 static struct Wait_List *wl = NULL;
 
-static
-void
-make_finished (pid, status)
-     int pid;
-     int *status;
+static void
+make_finished(
+     int pid,
+     int *status)
 {
   struct Wait_List *l;
 
@@ -50,10 +49,9 @@ make_finished (pid, status)
   return;
 }
 
-static
-void
-add_pending_to_list (pid)
-     int pid;
+static void
+add_pending_to_list(
+     int pid)
 {
   struct Wait_List *l;
 
@@ -66,11 +64,10 @@ add_pending_to_list (pid)
   return;
 }
 
-static
-int
-find_pid (pid,status)
-     int pid;
-     int *status;
+static int
+find_pid(
+     int pid,
+     int *status)
 {
   struct Wait_List *l;
   l = wl;
@@ -84,10 +81,9 @@ find_pid (pid,status)
   return -1;
 }
 
-static
-int
-get_next (status)
-     int *status;
+static int
+get_next(
+     int *status)
 {
   struct Wait_List *l, *prev;
   int pid;
@@ -111,10 +107,9 @@ get_next (status)
   return -1;
 }
 
-static
-void
-delete_from_list (pid)
-     int pid;
+static void
+delete_from_list(
+     int pid)
 {
   struct Wait_List *l, *prev;
 
@@ -159,8 +154,8 @@ delete_from_list (pid)
  */
 
 int
-Wait (status)
-     int *status;
+Wait(
+     int *status)
 {
   int pid;
   int p_status = 0;
@@ -208,9 +203,9 @@ Wait (status)
  */
 
 int
-WaitPid (pid,status)
-     int pid;
-     int *status;
+WaitPid(
+     int pid,
+     int *status)
 {
   int stat;
   int n_pid, n_status;
@@ -254,8 +249,8 @@ WaitPid (pid,status)
  */
 
 void
-ForkChildAdd (pid)
-     int pid;
+ForkChildAdd(
+     int pid)
 {
   add_pending_to_list (pid);
 }

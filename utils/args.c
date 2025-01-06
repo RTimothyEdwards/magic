@@ -53,10 +53,10 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 char *
-ArgStr(pargc, pargv, argType)
-    int *pargc;
-    char ***pargv;
-    const char *argType;/* For error messages: what the following string is
+ArgStr(
+    int *pargc,
+    char ***pargv,
+    const char *argType)/* For error messages: what the following string is
 			 * supposed to be interpreted as.
 			 */
 {

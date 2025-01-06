@@ -44,9 +44,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 bool
-Match(pattern, string)
-    const char *pattern;	/* csh-like pattern. */
-    const char *string;	/* String to check for match against pattern.*/
+Match(
+    const char *pattern,	/* csh-like pattern. */
+    const char *string)		/* String to check for match against pattern.*/
 {
     char c2;
 

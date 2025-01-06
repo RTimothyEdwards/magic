@@ -76,9 +76,10 @@ int end;
  */
 
 char *
-RunStats(flags, lastt, deltat)
-    int flags;
-    struct tms *lastt, *deltat;
+RunStats(
+    int flags,
+    struct tms *lastt,
+    struct tms *deltat)
 {
     struct tms buffer;
     static char string[100];
@@ -166,7 +167,7 @@ RunStats(flags, lastt, deltat)
  */
 
 char *
-RunStatsRealTime()
+RunStatsRealTime(void)
 {
     struct timeval curtime;
     static struct timeval firsttime, lasttime;
