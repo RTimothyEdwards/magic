@@ -40,7 +40,7 @@
  *
  */
 
-#define DEREF(ptr,offset) ((ptr)+(offset))
+#define DEREF(ptr,offset) (((char*)ptr)+(offset))
 
 static char rcsid[] = "$Header$";
 #include <string.h>
@@ -178,7 +178,7 @@ void IHashDelete(IHashTable *table, void *entry)
 
   for(pp = &table->iht_table[bucket];
       (*pp) && (*pp) != entry;
-      pp = DEREF((*pp),nextOffset));
+      pp = (void**) DEREF((*pp),nextOffset));
 
   ASSERT(*pp,"IHashDelete");
   (*pp) = * (void **) DEREF(entry,nextOffset);
