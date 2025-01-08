@@ -25,7 +25,7 @@ DEP_FILES = $(addprefix .deps/,$(SRCS:.c=.P))\
 	${CXX} ${CXX_CFLAGS} ${OTHER_CFLAGS} ${CXX_INCLUDES} -Wp,-MD,.deps/$(*F).pp -c $<
 	@-cp .deps/$(*F).pp .deps/$(*F).P; \
 	tr ' ' '\012' < .deps/$(*F).pp \
-	| sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	| ${SED} -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
 	>> .deps/$(*F).P; \
 	${RM} .deps/$(*F).pp
 
