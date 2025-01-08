@@ -22,8 +22,8 @@ jobs:
         run: |
           brew install --cask xquartz
           PACKAGE_LIST="xquartz"
-          brew install cairo tcl-tk@8 tcsh
-          _package_list="cairo tcl-tk@8 tcsh"
+          brew install cairo tcl-tk@8 tcsh gnu-sed
+          _package_list="cairo tcl-tk@8 tcsh gnu-sed"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -54,6 +54,7 @@ jobs:
             brew info tcl-tk   > $TMPFILE && head -n1 $TMPFILE
             brew info tcl-tk@8 > $TMPFILE && head -n1 $TMPFILE
             brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
+            brew info gnu-sed  > $TMPFILE && head -n1 $TMPFILE
             echo ""
             cc -v 2>&1
             echo ""
@@ -253,8 +254,8 @@ jobs:
         run: |
           brew install --cask xquartz
           PACKAGE_LIST="xquartz"
-          brew install cairo tcl-tk@8 tcsh
-          _package_list="cairo tcl-tk@8 tcsh"
+          brew install cairo tcl-tk@8 tcsh gnu-sed
+          _package_list="cairo tcl-tk@8 tcsh gnu-sed"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -285,6 +286,7 @@ jobs:
             brew info tcl-tk   > $TMPFILE && head -n1 $TMPFILE
             brew info tcl-tk@8 > $TMPFILE && head -n1 $TMPFILE
             brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
+            brew info gnu-sed  > $TMPFILE && head -n1 $TMPFILE
             echo ""
             cc -v 2>&1
             echo ""
