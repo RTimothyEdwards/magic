@@ -138,7 +138,7 @@ dist:
 	${RM} scripts/magic.spec magic-${VERSION} magic-${VERSION}.tgz
 	sed -e /@VERSION@/s%@VERSION@%${VERSION}% \
 	    scripts/magic.spec.in > scripts/magic.spec
-	ln -nsf . magic-${VERSION}
+	${LN} -nsf . magic-${VERSION}
 	tar zchvf magic-${VERSION}.tgz --exclude CVS \
 	    --exclude magic-${VERSION}/magic-${VERSION} \
 	    --exclude magic-${VERSION}/magic-${VERSION}.tgz \
