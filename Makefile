@@ -159,6 +159,6 @@ TAGS:
 setup-git:
 	git config --local include.path ../.gitconfig
 	git stash save
-	rm .git/index
+	${RM} .git/index
 	git checkout HEAD -- "$$(git rev-parse --show-toplevel)"
 	git stash pop
