@@ -1360,7 +1360,7 @@ spcParseArgs(pargc, pargv)
     int argc = *pargc;
     char *ftmp, *t;
 
-    char usage_text[] = "Usage: ext2spice "
+    const char usage_text[] = "Usage: ext2spice "
 		"[-B] [-o spicefile] [-M|-m] [-J flat|hier]\n"
 		"[-f spice2|spice3|hspice|ngspice] [-M] [-m] "
 		"[file]\n";

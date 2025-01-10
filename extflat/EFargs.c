@@ -156,7 +156,7 @@ EFArgs(argc, argv, err_result, argsProc, cdata)
     HierName *hierName;
     FILE *f;
 
-    char usage_text[] =
+    const char usage_text[] =
 	"Standard arguments: [-R] [-C] [-r rthresh] [-c cthresh] [-v]\n"
 		"[-p searchpath] [-s sym=value] [-S symfile] [-t trimchars]\n"
 #ifdef MAGIC_WRAPPER

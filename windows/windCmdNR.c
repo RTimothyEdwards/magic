@@ -158,7 +158,7 @@ windPauseCmd(w, cmd)
 
     for (i = 1; i < cmd->tx_argc; i++)
     {
-	TxPrintf(cmd->tx_argv[i]);
+	TxPrintf("%s", cmd->tx_argv[i]);
 	TxPrintf(" ");
 	if (i+1 == cmd->tx_argc) TxPrintf(" ");
     }
