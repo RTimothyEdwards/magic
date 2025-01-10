@@ -6,10 +6,12 @@ module: readline readline/libreadline.a readline/libhistory.a
 
 depend:
 
+# NOTE:  Previously, source code was in a directory readline-4.3 and
+# recipe "readline" created a symbolic link to it.  This symbolic
+# link has been removed, and code is now just in real directory
+# "readline".
+
 readline:
-	@if ( ! test -f readline/readline ) ; then \
-	ln -s `ls | grep readline` readline ; \
-	fi
 
 readline/libhistory.a: readline/libreadline.a
 

@@ -695,7 +695,6 @@ magic_completion_function(char *text, int start, int end)
 void
 update_cellname_hash(void)
 {
-    extern char *nextName(char **, char *, char *, int);
     extern char *Path;
     char *path    = Path;
     char *dirname = strdup(Path);

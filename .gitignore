@@ -14,7 +14,6 @@ database/database.h
 install.log
 magic/proto.magicrc
 make.log
-readline/readline
 scmos/gdsquery.tech
 scmos/minimum.tech
 scmos/scmos-sub.tech
