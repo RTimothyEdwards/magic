@@ -391,6 +391,12 @@ dbGetUseName(celluse)
     ybuf[0] = '\0';
 
     useID = celluse->cu_id;
+    if (useID == NULL)
+    {
+	newID = (char *)mallocMagic(7);
+	sprintf(newID, "(null)");
+	return (newID);
+    }
     newsize = strlen(useID) + 1;
     if (isx || isy)
     {
