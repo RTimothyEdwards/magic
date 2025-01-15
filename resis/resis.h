@@ -494,6 +494,7 @@ typedef struct capval
 #define		DRIVELOC		0x0000100
 #define		PORTNODE		0x0000200
 #define		REDUNDANT		0x0000400
+#define		DONTKILL		0x0000800
 
 /* Capacitance table constants */
 #define		RES_CAP_GND		0

@@ -212,39 +212,54 @@ ResPrintExtDev(outextfile, devices)
  */
 
 void
-ResPrintExtNode(outextfile, nodelist, nodename)
+ResPrintExtNode(outextfile, nodelist, node)
 	FILE	*outextfile;
 	resNode	*nodelist;
-	char	*nodename;
+	ResSimNode *node;
 {
+    char       *nodename = node->name;
     int		nodenum = 0;
     char	newname[MAXNAME+32], tmpname[MAXNAME], *cp;
     HashEntry  *entry;
-    ResSimNode *node, *ResInitializeNode();
+    ResSimNode *newnode, *ResInitializeNode();
     bool	DoKillNode = TRUE;
-    resNode	*snode = nodelist;
+    bool	NeedFix = FALSE;
+    resNode	*snode;
 
     /* If any of the subnode names match the original node name, then	*/
     /* we don't want to rip out that node with a "killnode" statement.	*/
 
-    for (; nodelist != NULL; nodelist = nodelist->rn_more)
+    for (snode = nodelist; snode != NULL; snode = snode->rn_more)
     {
-	if (nodelist->rn_name != NULL)
-	    if (!strcmp(nodelist->rn_name, nodename))
+	if (snode->rn_name != NULL)
+	    if (!strcmp(snode->rn_name, nodename))
 	    {
 		DoKillNode = FALSE;
 		break;
 	    }
     }
 
+    /* If any device terminal failed to extract for any reason, then	*/
+    /* this node cannot be killed.  If it is already marked for killing	*/
+    /* then there are no connections from the node to any of its sub-	*/
+    /* nodes, so create one an flag a warning.  Note that this		*/
+    /* condition indicates a fundamental underlying error in device	*/
+    /* extraction, but this prevents magic from generating an invalid	*/
+    /* netlist.								*/
+
+    if (node->status & DONTKILL)
+	if (DoKillNode == TRUE)
+	{
+	    DoKillNode = FALSE;
+	    NeedFix = TRUE;
+	}
+
     if ((ResOptionsFlags & ResOpt_DoExtFile) && DoKillNode)
-    {
-          fprintf(outextfile, "killnode \"%s\"\n", nodename);
-    }
+        fprintf(outextfile, "killnode \"%s\"\n", nodename);
 
     /* Create "rnode" entries for each subnode */
 
-    for (; snode != NULL; snode = snode->rn_more)
+    for (snode = nodelist; snode != NULL; snode = snode->rn_more)
     {
 	if (snode->rn_name == NULL)
 	{
@@ -255,9 +270,9 @@ ResPrintExtNode(outextfile, nodelist, nodename)
 
      	    (void)sprintf(newname, "%s%s%d", tmpname, ".n", nodenum++);
      	    entry = HashFind(&ResNodeTable, newname);
-	    node = ResInitializeNode(entry);
-	    snode->rn_name = node->name;
-	    node->oldname = nodename;
+	    newnode = ResInitializeNode(entry);
+	    snode->rn_name = newnode->name;
+	    newnode->oldname = nodename;
 	}
 
 	if (ResOptionsFlags & ResOpt_DoExtFile)
@@ -271,6 +286,18 @@ ResPrintExtNode(outextfile, nodelist, nodename)
 		    /* the following is TEMPORARILY set to 0 */
 		    0);
 	}
+    }
+
+    if (NeedFix)
+    {
+	/* Patch up the output netlist for an orphaned node by
+	 * creating a zero-valued resistance between it and the
+	 * first subnode (arbitrary connection).  Flag a warning.
+	 */
+	fprintf(outextfile, "resist \"%s\" \"%s\" 0.0\n",
+		node->name, nodelist->rn_name);
+	TxError("Warning:  Orphaned node \"%s\" arbitrarily attached to \"%s\"\n",
+		node->name, nodelist->rn_name);
     }
 }
 

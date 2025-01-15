@@ -1363,9 +1363,12 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
      	    sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
 	}
 	else
+	{
 	    TxError("Missing gate connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
+	    simNode->status |= DONTKILL;
+	}
     }
     if (simDev->subs == simNode)
     {
@@ -1381,9 +1384,12 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
      	    sprintf(newname, "%s%s%d", nodename, ".t", resNodeNum++);
 	}
 	else
+	{
 	    TxError("Missing substrate connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
+	    simNode->status |= DONTKILL;
+	}
     }
 
     if (simDev->source == simNode)
@@ -1425,9 +1431,12 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	       	/* one to each */
 	    }
 	    else
+	    {
 		TxError("Missing terminal connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
+		simNode->status |= DONTKILL;
+	    }
 	}
 	else
 	{
@@ -1468,9 +1477,12 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 
 	    }
 	    else
+	    {
 	       	TxError("Missing terminal connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
+		simNode->status |= DONTKILL;
+	    }
 	}
     }
     else if (simDev->drain == simNode)
@@ -1525,9 +1537,12 @@ ResFixUpConnections(simDev, layoutDev, simNode, nodename)
 	    drain->rn_name = simDev->drain->name;
 	}
 	else
+	{
 	    TxError("Missing terminal connection of device at (%d %d) on net %s\n",
 			layoutDev->rd_inside.r_xbot, layoutDev->rd_inside.r_ybot,
 			nodename);
+	    simNode->status |= DONTKILL;
+	}
     }
     else
 	resNodeNum--;
@@ -1845,7 +1860,7 @@ ResWriteExtFile(celldef, node, rctol, nidx, eidx)
 	}
         if (ResOptionsFlags & ResOpt_DoExtFile)
         {
-	    ResPrintExtNode(ResExtFile, ResNodeList, node->name);
+	    ResPrintExtNode(ResExtFile, ResNodeList, node);
       	    ResPrintExtRes(ResExtFile, ResResList, newname);
         }
 	if (ResOptionsFlags & ResOpt_FastHenry)
