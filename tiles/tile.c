@@ -699,7 +699,10 @@ getTileFromTileStore(void)
     if (TileStoreFreeList)
     {
 	_return_tile = TileStoreFreeList;
-	TileStoreFreeList = (Tile *)CD2PTR(TileStoreFreeList->ti_client);
+	Tile *nextfree = (Tile *)CD2PTR(TileStoreFreeList->ti_client);
+	TileStoreFreeList = nextfree;
+	if (!nextfree)
+	    TileStoreFreeList_end = NULL;
 	return _return_tile;
     }
 
@@ -723,30 +726,20 @@ getTileFromTileStore(void)
 Tile *
 TiAlloc(void)
 {
-    Tile *newtile;
-
-    newtile = getTileFromTileStore();
+    Tile *newtile = getTileFromTileStore();
     TiSetClient(newtile, CLIENTDEFAULT);
     TiSetBody(newtile, 0);
-    return (newtile);
+    return newtile;
 }
 
 static void
 TileStoreFree(
     Tile *ptr)
 {
-    if (!TileStoreFreeList_end || !TileStoreFreeList)
-    {
-	TileStoreFreeList_end = ptr;
-	ptr->ti_client = PTR2CD(NULL);
-	TileStoreFreeList = TileStoreFreeList_end;
-    }
-    else
-    {
-	TileStoreFreeList_end->ti_client = PTR2CD(ptr);
-	TileStoreFreeList_end = ptr;
-	TileStoreFreeList_end->ti_client = PTR2CD(NULL);
-    }
+    ptr->ti_client = PTR2CD(TileStoreFreeList);
+    if (!TileStoreFreeList_end)
+        TileStoreFreeList_end = ptr;
+    TileStoreFreeList = ptr;
 }
 
 void
@@ -774,12 +767,10 @@ TiFree(
 Tile *
 TiAlloc(void)
 {
-    Tile *newtile;
-
-    newtile = (Tile *) mallocMagic((unsigned) (sizeof (Tile)));
+    Tile *newtile = (Tile *) mallocMagic(sizeof(Tile));
     TiSetClient(newtile, CLIENTDEFAULT);
     TiSetBody(newtile, 0);
-    return (newtile);
+    return newtile;
 }
 
 /*
