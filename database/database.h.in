@@ -879,7 +879,7 @@ extern void DBSetTrans();
 extern void DBArrayOverlap();
 extern void DBComputeArrayArea();
 extern Transform *DBGetArrayTransform();
-extern char *DBPrintUseId();
+extern char *DBPrintUseId(SearchContext *scx, char *name, int size, bool display_only);
 
     /* Massive copying */
 extern void DBCellCopyPaint();
