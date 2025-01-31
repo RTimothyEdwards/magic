@@ -720,6 +720,17 @@ getTileFromTileStore(void)
     return (Tile *)((pointertype)_current_ptr - sizeof(Tile));
 }
 
+Tile *
+TiAlloc(void)
+{
+    Tile *newtile;
+
+    newtile = getTileFromTileStore();
+    TiSetClient(newtile, CLIENTDEFAULT);
+    TiSetBody(newtile, 0);
+    return (newtile);
+}
+
 static void
 TileStoreFree(
     Tile *ptr)
@@ -736,17 +747,6 @@ TileStoreFree(
 	TileStoreFreeList_end = ptr;
 	TileStoreFreeList_end->ti_client = PTR2CD(NULL);
     }
-}
-
-Tile *
-TiAlloc(void)
-{
-    Tile *newtile;
-
-    newtile = getTileFromTileStore();
-    TiSetClient(newtile, CLIENTDEFAULT);
-    TiSetBody(newtile, 0);
-    return (newtile);
 }
 
 void
