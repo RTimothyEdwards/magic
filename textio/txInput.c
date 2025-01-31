@@ -65,25 +65,25 @@ int    TxPrefix(void);
 
 /* Globally keep track of the imacro string, if any; */
 /* the readline callback takes no parameters.	     */
-char *_rl_prefix;
+const char *_rl_prefix;
 
 /* Custom completer function */
-char **magic_completion_function(char *, int, int);
+char **magic_completion_function(const char *, int, int);
 
 /* match generators */
-char  *list_completion_function(char *, int);
-char  *macro_completion_function(char *, int);
-char  *cellname_completion_function(char *, int);
-char  *istyle_completion_function(char *, int);
-char  *ostyle_completion_function(char *, int);
+char  *list_completion_function(const char *, int);
+char  *macro_completion_function(const char *, int);
+char  *cellname_completion_function(const char *, int);
+char  *istyle_completion_function(const char *, int);
+char  *ostyle_completion_function(const char *, int);
 
 /* match list generators */
 void   make_techtype_list(void);
 void   update_cellname_hash(void);
 
-char **completion_list;
-char **magic_command_list  = (char **)NULL;
-char **magic_techtype_list = (char **)NULL;
+const char **completion_list;
+const char **magic_command_list  = (char **)NULL;
+const char **magic_techtype_list = (char **)NULL;
 HashTable cellname_hash;
 
 static int interactive_flag;
@@ -275,8 +275,8 @@ char TxInterruptChar = -1;	/* The current interrupt character (e.g. ^C) */
 static char txPromptChar;	/* the current prompt */
 bool txHavePrompt = FALSE;	/* is a prompt on the screen? */
 
-char *txReprint1 = NULL;
-char *txReprint2 = NULL;
+static const char *txReprint1 = NULL;
+static const char *txReprint2 = NULL;
 
 /*
  * ----------------------------------------------------------------------------
@@ -562,7 +562,7 @@ TxPrefix(void)
 
 char **
 magic_completion_function(
-    char *text,
+    const char *text,
     int start,
     int end)
 {
@@ -742,7 +742,7 @@ update_cellname_hash(void)
  */
 char *
 istyle_completion_function(
-    char *text,
+    const char *text,
     int state)
 {
     extern CIFReadKeep *cifReadStyleList;
@@ -778,7 +778,7 @@ istyle_completion_function(
  */
 char *
 ostyle_completion_function(
-    char *text,
+    const char *text,
     int state)
 {
     extern CIFKeep *CIFStyleList;
@@ -814,7 +814,7 @@ ostyle_completion_function(
  */
 char *
 cellname_completion_function(
-    char *text,
+    const char *text,
     int state)
 {
     extern HashTable dbCellDefTable;
@@ -859,7 +859,7 @@ cellname_completion_function(
  */
 char *
 macro_completion_function(
-    char *text,
+    const char *text,
     int state)
 {
     extern HashTable MacroClients;
@@ -908,11 +908,11 @@ macro_completion_function(
  */
 char *
 list_completion_function(
-    char *text,
+    const char *text,
     int state)
 {
     static int list_index, len;
-    char *match;
+    const char *match;
 
     /* If this is a new word to complete, initialize now.  This includes
      * saving the length of TEXT for efficiency, and initializing the index
@@ -957,20 +957,20 @@ make_techtype_list(void)
     for (i = 0; i < techdep_layers; i++)
 	magic_techtype_list[i] = DBTypeLongNameTbl[i+TT_TECHDEPBASE];
 
-    magic_techtype_list[i++] = (char *)"magnet";
-    magic_techtype_list[i++] = (char *)"fence";
-    magic_techtype_list[i++] = (char *)"rotate";
-    magic_techtype_list[i++] = (char *)"subcircuit";
-    magic_techtype_list[i++] = (char *)"$";
-    magic_techtype_list[i++] = (char *)"*";
-    magic_techtype_list[i++] = (char *)"errors";
-    magic_techtype_list[i++] = (char *)"labels";
-    magic_techtype_list[i++] = (char *)"subcell";
+    magic_techtype_list[i++] = "magnet";
+    magic_techtype_list[i++] = "fence";
+    magic_techtype_list[i++] = "rotate";
+    magic_techtype_list[i++] = "subcircuit";
+    magic_techtype_list[i++] = "$";
+    magic_techtype_list[i++] = "*";
+    magic_techtype_list[i++] = "errors";
+    magic_techtype_list[i++] = "labels";
+    magic_techtype_list[i++] = "subcell";
 
-    magic_techtype_list[i++] = (char *)"no";
-    magic_techtype_list[i++] = (char *)"allSame";
+    magic_techtype_list[i++] = "no";
+    magic_techtype_list[i++] = "allSame";
 
-    magic_techtype_list[i]   = (char *)NULL;
+    magic_techtype_list[i]   = NULL;
 }
 
 #define free You_should_use_the_Magic_procedure_freeMagic
