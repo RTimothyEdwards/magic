@@ -669,7 +669,7 @@ mmapTileStore()
 {
     int prot = PROT_READ | PROT_WRITE;
     int flags = MAP_ANON | MAP_PRIVATE;
-    unsigned long map_len = TILE_STORE_BLOCK_SIZE;
+    size_t map_len = TILE_STORE_BLOCK_SIZE;
 
     _block_begin = mmap(NULL, map_len, prot, flags, -1, 0);
     if (_block_begin == MAP_FAILED)
@@ -677,7 +677,7 @@ mmapTileStore()
 	TxError("TileStore: Unable to mmap ANON SEGMENT\n");
 	_exit(1);
     }
-    _block_end = (void *) ((unsigned long) _block_begin + map_len);
+    _block_end = (void *) ((pointertype) _block_begin + map_len);
     _current_ptr = _block_begin;
     return 0;
 }
@@ -705,19 +705,19 @@ getTileFromTileStore()
 
     /* Get it from the mmap */
 
-    if (((unsigned long)_current_ptr + sizeof(Tile))
-		 > (unsigned long)_block_end)
+    if (((pointertype)_current_ptr + sizeof(Tile))
+		 > (pointertype)_block_end)
     {
 	 mmapTileStore();
     }
-    _current_ptr  = (void *)((unsigned long)_current_ptr + sizeof(Tile));
+    _current_ptr  = (void *)((pointertype)_current_ptr + sizeof(Tile));
 
-    if ((unsigned long)_current_ptr > (unsigned long) _block_end)
+    if ((pointertype)_current_ptr > (pointertype) _block_end)
     {
 	fprintf(stderr,"TileStore: internal assertion failure...");
 	_exit(1);
     }
-    return (Tile *)((unsigned long)_current_ptr - sizeof(Tile));
+    return (Tile *)((pointertype)_current_ptr - sizeof(Tile));
 }
 
 static void
