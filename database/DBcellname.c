@@ -288,7 +288,7 @@ DBCellDelete(cellname, force)
     if ((force == FALSE) &&
 	(celldef->cd_flags & (CDMODIFIED|CDBOXESCHANGED|CDSTAMPSCHANGED)))
     {
-	static char *yesno[] = { "no", "yes", 0 };
+	static const char *yesno[] = { "no", "yes", 0 };
 	int code;
 	char *prompt = TxPrintString("Cell %s has been modified.\n  Do you"
 		" want to delete it and lose all changes? ",

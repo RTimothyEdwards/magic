@@ -1074,7 +1074,7 @@ DBFileRecovery(filename)
     time_t recent = 0;
     char *snptr, *tempdir, tempname[1024];
     int pid;
-    static char *actionNames[] = {"read", "cancel", 0 };
+    static const char *actionNames[] = {"read", "cancel", 0 };
     char *prompt;
     int action;
 
