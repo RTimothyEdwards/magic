@@ -731,6 +731,8 @@ donesides:
  * ----------------------------------------------------------------------------
  */
 
+/** @typedef cb_database_srpaintnmarea_t */
+/** @typedef cb_database_srpaintarea_t */
 int
 dbcUnconnectFunc(tile, clientData)
     Tile *tile;				/* Current tile	*/
