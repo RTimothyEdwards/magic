@@ -955,6 +955,7 @@ extern int DBArraySr();
 extern bool DBNearestLabel();
 extern int DBSrLabelLoc();
 extern TileType DBTransformDiagonal();
+extern int dbcUnconnectFunc(Tile *tile, ClientData clientData); /* (notused) */
 
 /* C99 compat */
 extern void DBEraseValid();
