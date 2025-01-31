@@ -823,8 +823,8 @@ _magic_startup(ClientData clientData,
 
 int
 TxDialog(prompt, responses, defresp)
-    char *prompt;
-    char *responses[];
+    const char *prompt;
+    const char * const *responses;
     int defresp;
 {
     Tcl_Obj *objPtr;
@@ -886,8 +886,8 @@ TxStopMore()
 extern char txPromptChar;
 
 void
-TxSetPrompt(ch)
-    char ch;
+TxSetPrompt(
+    char ch)
 {
 #if TCL_MAJOR_VERSION < 9
     Tcl_SavedResult state;
@@ -1004,11 +1004,11 @@ TxDispatch(f)
 
 void
 TxParseString(str, q, event)
-    char *str;
+    const char *str;
     void *q;		/* unused */
     void *event;	/* always NULL (ignored) */
 {
-    char *reply;
+    const char *reply;
 
     Tcl_EvalEx(magicinterp, str, -1, 0);
 
