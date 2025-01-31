@@ -74,7 +74,7 @@ static char 	keyBoardBuf[BUF_SIZE];
 static bool	RsimJustStarted = TRUE;
 static char	rsim_prompt[20];
 static int	prompt_len;
-static int      rsim_pid;
+static pid_t    rsim_pid;
 
 bool	SimRsimRunning = FALSE;
 bool	SimHasCoords = FALSE;
@@ -156,7 +156,7 @@ SimStartRsim(
     char *argv[])		/* list of rsim args for the fork */
 {
 
-    int child;
+    pid_t child;
     int magToRsimPipe[2];
     int rsimToMagPipe[2];
     char *getenv();
@@ -465,7 +465,7 @@ InitRsim(
 void
 SimStopRsim(void)
 {
-    int  pid;
+    pid_t pid;
 
     if (SimRsimRunning) {
 
