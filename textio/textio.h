@@ -63,7 +63,6 @@ extern bool TxPrintOff();	/* disables TxPrintf output */
 extern void TxFlush();
 extern void TxFlushOut();
 extern void TxFlushErr();
-extern void TxVisChar();
 extern void TxUseMore();
 extern void TxStopMore();
 
@@ -82,7 +81,6 @@ extern int TxDialog();
 /* prompting procedures */
 extern void TxSetPrompt();
 extern void TxPrompt();
-extern void TxPromptOnNewLine();
 extern void TxUnPrompt();
 extern void TxRestorePrompt();
 extern void TxReprint();
