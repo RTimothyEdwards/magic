@@ -675,7 +675,7 @@ SimTreeSrTiles(
     int (*func)(),		/* Function to apply at each qualifying tile */
     ClientData cdarg)		/* Client data for above function */
 {
-    int SimCellTileSrFunc();
+    int SimCellTileSrFunc(SearchContext *scx, ClientData cdata); /* cb_database_cellsrarea_t (TreeFilter *fp) */
     TreeFilter filter;
 
     filter.tf_func = func;
@@ -686,7 +686,7 @@ SimTreeSrTiles(
     filter.tf_tpath = tpath;
     filter.tf_dinfo = 0;
 
-    return SimCellTileSrFunc(scx, &filter);
+    return SimCellTileSrFunc(scx, PTR2CD(&filter));
 }
 
 /*
@@ -720,7 +720,7 @@ SimTreeSrNMTiles(
     int (*func)(),		/* Function to apply at each qualifying tile */
     ClientData cdarg)		/* Client data for above function */
 {
-    int SimCellTileSrFunc();
+    int SimCellTileSrFunc(SearchContext *scx, ClientData cdata); /* cb_database_cellsrarea_t (TreeFilter *fp) */
     TreeFilter filter;
 
     filter.tf_func = func;
@@ -731,18 +731,20 @@ SimTreeSrNMTiles(
     filter.tf_planes = DBTechTypesToPlanes(mask);
     filter.tf_tpath = tpath;
 
-    return SimCellTileSrFunc(scx, &filter);
+    return SimCellTileSrFunc(scx, PTR2CD(&filter));
 }
 
 /*
  * Filter procedure applied to subcells by SimTreeSrTiles().
  */
 
+/** @typedef cb_database_cellsrarea_t */
 int
 SimCellTileSrFunc(
     SearchContext *scx,
-    TreeFilter *fp)
+    ClientData cdata)	/* (TreeFilter *fp) */
 {
+    TreeFilter *fp = (TreeFilter *)CD2PTR(cdata);
     TreeContext context;
     TerminalPath *tp;
     CellDef *def = scx->scx_use->cu_def;
@@ -811,7 +813,7 @@ SimCellTileSrFunc(
      * in our tile plane.
      */
 
-    if (DBCellSrArea(scx, SimCellTileSrFunc, (ClientData) fp))
+    if (DBCellSrArea(scx, SimCellTileSrFunc, PTR2CD(fp)))
 	result = 1;
 
 cleanup:
