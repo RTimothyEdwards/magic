@@ -84,7 +84,7 @@ int  CalmaCompression = 0;	/* Output file compression level (0 = uncompressed) *
 
 typedef struct {
    FILE *f;		/* File stream for output		*/
-   Rect *area;		/* Clipping area, in GDS coordinates	*/
+   const Rect *area;	/* Clipping area, in GDS coordinates	*/
    int type;		/* Layer index				*/
 } calmaOutputStruct;
 
@@ -96,7 +96,7 @@ extern int calmaWriteUseFunc(CellUse *use, FILE *f);
 extern int calmaPaintLabelFunc(Tile *tile, calmaOutputStruct *cos);
 extern void calmaWriteContacts(FILE *f);
 extern void calmaDelContacts(void);
-extern void calmaOutFunc(CellDef *def, FILE *f, Rect *cliprect);
+extern void calmaOutFunc(CellDef *def, FILE *f, const Rect *cliprect);
 extern void calmaOutStructName(int type, CellDef *def, FILE *f);
 extern void calmaWriteLabelFunc(Label *lab, int ltype, int type, FILE *f);
 extern void calmaOutHeader(CellDef *rootDef, FILE *f);
@@ -1244,7 +1244,7 @@ void
 calmaOutFunc(
     CellDef *def,	/* Pointer to cell def to be written */
     FILE *f,		/* Open output file */
-    Rect *cliprect)	/* Area to clip to (used for contact cells),
+    const Rect *cliprect)/* Area to clip to (used for contact cells),
 			 * in CIF/GDS coordinates.
 			 */
 {
@@ -2449,7 +2449,7 @@ calmaMergePaintFunc(
     calmaOutputStruct *cos)	/* Information needed by algorithm */
 {
     FILE *f = cos->f;
-    Rect *clipArea = cos->area;
+    const Rect *clipArea = cos->area;
     Tile *t, *tp;
     TileType ttype;
     int i, llx, lly, urx, ury, intedges, num_points, split_type;
@@ -2772,7 +2772,7 @@ calmaWritePaintFunc(
     calmaOutputStruct *cos)	/* File for output and clipping area */
 {
     FILE *f = cos->f;
-    Rect *clipArea = cos->area;
+    const Rect *clipArea = cos->area;
     Rect r, r2;
 
     TiToRect(tile, &r);
@@ -3048,7 +3048,7 @@ calmaPaintLabelFunc(
     calmaOutputStruct *cos)	/* File for output and clipping area */
 {
     FILE *f = cos->f;
-    Rect *clipArea = cos->area;
+    const Rect *clipArea = cos->area;
     Rect r, r2;
     Point p;
     int len;
