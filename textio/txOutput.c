@@ -22,6 +22,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>	/* getenv() */
 #include <string.h>
 
 #ifndef	SYSV
@@ -357,7 +358,6 @@ TxUseMore(void)
     int moreRunning = TRUE;
     static int moreMsg = FALSE;
     const char *pagername, *pagerpath, *useenv = NULL;
-    extern char *getenv();
     struct stat buf;
 
     ASSERT(TxMoreFile == NULL, "TxUseMore");
