@@ -814,14 +814,14 @@ void
 txLogCommand(
     TxCommand *cmd)
 {
-    static char *txButTable[] =
+    static const char *txButTable[] =
     {
 	"left",
 	"middle",
 	"right",
 	0
     };
-    static char *txActTable[] =
+    static const char *txActTable[] =
     {
 	"down",
 	"up",
@@ -829,9 +829,9 @@ txLogCommand(
     };
 
 #ifdef MAGIC_WRAPPER
-    char *pfix = "";
+    const char *pfix = "";
 #else
-    char *pfix = ":";
+    const char *pfix = ":";
 #endif
 
     /* Do not do anything if there is no log file */
