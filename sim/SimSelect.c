@@ -262,7 +262,7 @@ SimSelectArea(
     const Rect *rect)
 {
     int plane;
-    int SimSelectFunc();
+    int SimSelectFunc(Tile *tile, ClientData cdata); /* cb_database_srpaintarea_t (TileListElt **pHead) */
 
     /* only need to extract node names if the selection has changed or
      * if node aliases are to be printed.
@@ -278,7 +278,7 @@ SimSelectArea(
 	{
 	    (void) DBSrPaintArea((Tile *) NULL, SelectDef->cd_planes[plane],
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
-			SimSelectFunc, (ClientData) &NodeList);
+			SimSelectFunc, PTR2CD(&NodeList));
 	}
 
 	HashKill(&SimAbortSeenTbl);
@@ -318,11 +318,13 @@ SimSelectArea(
  * ----------------------------------------------------------------------------
  */
 
+/** @typedef cb_database_srpaintarea_t */
 int
 SimSelectFunc(
-    Tile *tile,			/* Tile in SelectDef. */
-    TileListElt **pHead)	/* list of node names found */
+    Tile *tile,		/* Tile in SelectDef. */
+    ClientData cdata)	/* list of node names found (TileListElt **pHead) */
 {
+    TileListElt **pHead = (TileListElt **)CD2PTR(cdata);
     TileTypeBitMask 	mask;
     SearchContext 	scx;
     DBWclientRec 	*crec;
