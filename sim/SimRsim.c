@@ -51,7 +51,7 @@
 /* C99 compat */
 #include "textio/textio.h"
 
-static bool InitRsim();
+static bool InitRsim(const char *hello_msg);
 
 #define BUF_SIZE	1024
 #define	LINEBUF_SIZE	256
@@ -382,7 +382,7 @@ SimConnectRsim(
  *-----------------------------------------------------------------------
  */
 
-bool
+static bool
 InitRsim(
     const char  *hello_msg)
 {

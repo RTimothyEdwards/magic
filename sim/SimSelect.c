@@ -447,7 +447,7 @@ SimSelection(
     char		*strPtr;
     bool		goodReply;
 
-    extern void		RsimErrorMsg();
+    extern void		RsimErrorMsg(void);
 
     timeString[0] = 0;
 
