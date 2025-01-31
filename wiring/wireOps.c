@@ -1050,6 +1050,7 @@ WireAddContact(
  * ----------------------------------------------------------------------------
  */
 
+/** @typedef cb_database_buttonhandler_t */
 void
 WireButtonProc(
     MagWindow *w,		/* Window in which button was pushed. */
@@ -1094,7 +1095,7 @@ WireButtonProc(
 void
 WireInit(void)
 {
-    static char *doc =
+    static const char *doc =
 "You are currently using the \"wiring\" tool.  The button actions are:\n\
    left    - pick a wiring layer and width (same as \":wire type\")\n\
    right   - add a leg to the wire (same as \":wire leg\")\n\

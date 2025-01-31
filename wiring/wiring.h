@@ -88,7 +88,7 @@ extern TileType WireGetType(void);
 /* Procedures for reading the technology file: */
 
 extern void WireTechInit(void);
-extern bool WireTechLine(char *sectionName, int argc, char *argv[]);
+extern bool WireTechLine(const char *sectionName, int argc, char *argv[]);
 extern void WireTechFinal(void);
 extern void WireTechScale(int scalen, int scaled);
 
