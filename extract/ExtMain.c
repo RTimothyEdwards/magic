@@ -106,7 +106,7 @@ void extDefParentAreaFunc();
 void extExtractStack();
 
 bool extContainsGeometry();
-bool extContainsCellFunc();
+int extContainsCellFunc(CellUse *use, ClientData cdata); /* cb_database_srcellplanearea_t (const CellUse *allButUse) */
 bool extTimestampMisMatch();
 
 /*
@@ -806,7 +806,6 @@ extContainsGeometry(def, allButUse, area)
     Rect *area;
 {
     int extContainsPaintFunc();
-    int extContainsCellFunc(CellUse *use, ClientData cdata); /* cb_database_srcellplanearea_t (const CellUse *allButUse) */
     int pNum;
 
     if (DBSrCellPlaneArea(def->cd_cellPlane, area,
