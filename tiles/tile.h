@@ -23,10 +23,10 @@
 #ifndef _MAGIC__TILES__TILE_H
 #define	_MAGIC__TILES__TILE_H
 
-#ifndef _MAGIC_H
+#ifndef _MAGIC__UTILS__MAGIC_H
 #include "utils/magic.h"
 #endif
-#ifndef _GEOMETRY_H
+#ifndef _MAGIC__UTILS__GEOMETRY_H
 #include "utils/geometry.h"
 #endif
 

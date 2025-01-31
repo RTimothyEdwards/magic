@@ -25,21 +25,21 @@
 #ifndef _MAGIC__DATABASE__DATABASE_H
 #define _MAGIC__DATABASE__DATABASE_H
 
-#ifndef	_TILES_H
+#ifndef _MAGIC__TILES__TILE_H
 #include "tiles/tile.h"
-#endif	/* _TILES_H */
+#endif
 
-#ifndef	_HASH_H
+#ifndef _MAGIC__UTILS__HASH_H
 #include "utils/hash.h"
-#endif	/* _HASH_H */
+#endif
 
-#ifndef	_STACK_H
+#ifndef _MAGIC__UTILS__STACK_H
 #include "utils/stack.h"
-#endif	/* _STACK_H */
+#endif
 
-#ifndef _BPLANE_H
+#ifndef _MAGIC__BPLANE__BPLANE_H
 #include "bplane/bplane.h"
-#endif /* _BPLANE_H */
+#endif
 
 /* ----------------------- Tunable constants -------------------------- */
 

@@ -13,9 +13,9 @@
 #ifndef _MAGIC__DATABASE__FONTS_H
 #define _MAGIC__DATABASE__FONTS_H
 
-#ifndef	_TILES_H
+#ifndef _MAGIC__TILES__TILE_H
 #include "tiles/tile.h"
-#endif	/* _TILES_H */
+#endif
 
 /* ---------------------------- Fonts --------------------------------- */
 
