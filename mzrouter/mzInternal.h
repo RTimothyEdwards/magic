@@ -39,15 +39,15 @@
  *  the head of that function.
  */
 
-#ifndef _MAGIC_H
+#ifndef _MAGIC__UTILS__MAGIC_H
 #include "utils/magic.h"
 #endif
 
-#ifndef _MZROUTER_H
+#ifndef _MAGIC__MZROUTER__MZROUTER_H
 #include "mzrouter/mzrouter.h"
 #endif
 
-#ifndef _HEAP_H
+#ifndef _MAGIC__UTILS__HEAP_H
 #include "utils/heap.h"
 #endif
 

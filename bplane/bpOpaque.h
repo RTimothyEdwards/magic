@@ -30,9 +30,9 @@
 #ifndef _MAGIC__BPLANE__BPOPAQUE_H
 #define _MAGIC__BPLANE__BPOPAQUE_H
 
-#ifndef _IHASH_H
+#ifndef _MAGIC__UTILS__IHASH_H
 #include "utils/ihash.h"
-#endif /* _IHASH_H */
+#endif
 
 /*
  * bpOpaque.h --
