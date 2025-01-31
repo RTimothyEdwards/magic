@@ -116,8 +116,6 @@ extern TxCommand TxCurCommand;
 
 /* procedures to help in making device command routines */
 
-extern TxCommand *TxDeviceStdin();
-extern TxCommand *TxButtonMaskToCommand();
 extern void TxAddInputDevice(const fd_set *fdmask, void (*inputProc)(), ClientData cdata);		/* Can read multiple file desc. */
 extern void TxAdd1InputDevice();	/* Can read only 1 file desc. */
 extern void TxDeleteInputDevice(const fd_set *fdmask);
