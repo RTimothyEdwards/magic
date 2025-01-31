@@ -647,7 +647,7 @@ typedef struct treeFilter
 {
     int (*tf_func)();		/* Client's filter function */
     ClientData tf_arg;		/* Client's argument to pass to filter */
-    TileTypeBitMask *tf_mask;	/* Only process tiles with these types */
+    const TileTypeBitMask *tf_mask;	/* Only process tiles with these types */
     int tf_xmask;		/* Expand mask */
     PlaneMask tf_planes;	/* Mask of planes which will be visited */
     TileType tf_dinfo;		/* Info for processing triangular areas */
@@ -685,7 +685,7 @@ struct conSrArg
 {
     CellDef *csa_def;                   /* Definition being searched. */
     int csa_pNum;			/* Index of plane being searched */
-    TileTypeBitMask *csa_connect;       /* Table indicating what connects
+    const TileTypeBitMask *csa_connect; /* Table indicating what connects
                                          * to what.
                                          */
     int (*csa_clientFunc)();            /* Client function to call. */
@@ -700,19 +700,19 @@ struct conSrArg
 typedef struct
 {
     Rect                area;           /* Area to process */
-    TileTypeBitMask     *connectMask;   /* Connection mask for search */
+    const TileTypeBitMask *connectMask; /* Connection mask for search */
     TileType            dinfo;          /* Info about triangular search areas */
 } conSrArea;
 
 struct conSrArg2
 {
     CellUse             *csa2_use;      /* Destination use */
-    TileTypeBitMask     *csa2_connect;  /* Table indicating what connects
+    const TileTypeBitMask *csa2_connect;/* Table indicating what connects
                                          * to what.
                                          */
     SearchContext       *csa2_topscx;   /* Original top-level search context */
     int                  csa2_xMask;    /* Cell window mask for search */
-    Rect                *csa2_bounds;   /* Area that limits the search */
+    const Rect          *csa2_bounds;   /* Area that limits the search */
 
     Stack               *csa2_stack;    /* Stack of full csa2_list entries */
     conSrArea           *csa2_list;     /* List of areas to process */

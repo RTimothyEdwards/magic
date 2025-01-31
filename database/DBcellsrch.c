@@ -677,7 +677,7 @@ dbCellLabelSrFunc(scx, fp)
 {
     Label *lab;
     Rect *r = &scx->scx_area;
-    TileTypeBitMask *mask = fp->tf_mask;
+    const TileTypeBitMask *mask = fp->tf_mask;
     CellDef *def = scx->scx_use->cu_def;
     char *tnext;
     int result;
