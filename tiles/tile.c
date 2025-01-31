@@ -61,8 +61,8 @@ global const Rect TiPlaneRect = { {MINFINITY+2, MINFINITY+2}, {INFINITY-2, INFIN
 
 #ifdef HAVE_SYS_MMAN_H
 
-global Tile *TileStoreFreeList = NULL;
-global Tile *TileStoreFreeList_end = NULL;
+static Tile *TileStoreFreeList = NULL;
+static Tile *TileStoreFreeList_end = NULL;
 
 /* The new Tile Allocation scheme (Magic 8.0) */
 
