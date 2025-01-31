@@ -663,7 +663,7 @@ TiJoinY(
 #ifdef HAVE_SYS_MMAN_H
 
 /* MMAP the tile store */
-static signed char
+static void *
 mmapTileStore(void)
 {
     int prot = PROT_READ | PROT_WRITE;
@@ -676,25 +676,17 @@ mmapTileStore(void)
 	TxError("TileStore: Unable to mmap ANON SEGMENT\n");
 	_exit(1);
     }
-    _block_end = (void *) ((pointertype) _block_begin + map_len);
+    _block_end = (void *) ((char *) _block_begin + map_len);
     _current_ptr = _block_begin;
-    return 0;
+    return _current_ptr;
 }
 
-Tile *
+static Tile *
 getTileFromTileStore(void)
 {
     Tile *_return_tile = NULL;
 
-    if (!_block_begin && !_block_end)
-    {
-	mmapTileStore();
-    }
-
-    /* Check if we can get the tile from the
-     * Free list
-     */
-
+    /* Check if we can get the tile from the Free list */
     if (TileStoreFreeList)
     {
 	_return_tile = TileStoreFreeList;
@@ -704,19 +696,30 @@ getTileFromTileStore(void)
 
     /* Get it from the mmap */
 
-    if (((pointertype)_current_ptr + sizeof(Tile))
-		 > (pointertype)_block_end)
+    void *nextp = (char*)_current_ptr + sizeof(Tile);
+    if ((pointertype)nextp > (pointertype)_block_end)
     {
+        /* this will trigger for initial allocatation on startup, due to:
+         *  0 + sizeof(Tile) > 0
+         *  _current_ptr + sizeof(Tile) > _block_end
+         * so there is no need to explicitly test for that in the allocation path
+         * the comparison is greater-than (instead of greater-than-or-equal-to)
+         * so the last block/byte can be allocated
+         */
 	 mmapTileStore();
-    }
-    _current_ptr  = (void *)((pointertype)_current_ptr + sizeof(Tile));
 
-    if ((pointertype)_current_ptr > (pointertype) _block_end)
-    {
-	fprintf(stderr,"TileStore: internal assertion failure...");
-	_exit(1);
+	/* _current_ptr will be updated, so recompute nextp */
+	nextp = (char*)_current_ptr + sizeof(Tile);
+	ASSERT((pointertype)nextp <= (pointertype)_block_end, "nextp");
     }
-    return (Tile *)((pointertype)_current_ptr - sizeof(Tile));
+
+    void *thisp = _current_ptr;
+
+    /* TODO investigate alignment padding, maybe best to pad Tile for this */
+    /* advance _current_ptr for next time */
+    _current_ptr = nextp;
+
+    return (Tile *)thisp;
 }
 
 Tile *
