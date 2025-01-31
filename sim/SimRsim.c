@@ -80,7 +80,7 @@ bool	SimRsimRunning = FALSE;
 bool	SimHasCoords = FALSE;
 
 /* Forward declaration */
-void SimStopRsim();
+void SimStopRsim(void);
 
 /*
  *-----------------------------------------------------------------------
@@ -99,8 +99,8 @@ void SimStopRsim();
  */
 
 char *
-SimGetNodeCommand(cmd)
-    char *cmd;
+SimGetNodeCommand(
+    char *cmd)
 {
     /* This table is used to define which Rsim commands are applied to
      * each node in the selection.  Depending on the command, you
@@ -152,8 +152,8 @@ SimGetNodeCommand(cmd)
  */
 
 bool
-SimStartRsim(argv)
-    char *argv[];		/* list of rsim args for the fork */
+SimStartRsim(
+    char *argv[])		/* list of rsim args for the fork */
 {
 
     int child;
@@ -289,8 +289,8 @@ SimStartRsim(argv)
  */
 
 void
-SimConnectRsim(escRsim)
-    bool escRsim;			/* TRUE if we should escape back to Magic */
+SimConnectRsim(
+    bool escRsim)			/* TRUE if we should escape back to Magic */
 {
     static char HELLO_MSG[] =
 	"Type \"q\" to quit simulator or \".\" to escape back to Magic.\n";
@@ -383,8 +383,8 @@ SimConnectRsim(escRsim)
  */
 
 bool
-InitRsim(hello_msg)
-    char  *hello_msg;
+InitRsim(
+    char  *hello_msg)
 {
     char	buff[READBUF_SIZE];
     char	*last;
@@ -463,7 +463,7 @@ InitRsim(hello_msg)
  */
 
 void
-SimStopRsim()
+SimStopRsim(void)
 {
     int  pid;
 
@@ -515,7 +515,7 @@ SimStopRsim()
  */
 
 void
-RsimErrorMsg()
+RsimErrorMsg(void)
 {
     static char msg[] = "The simulator must be running before this command "
 		"can be executed.  To do\n"
@@ -548,9 +548,9 @@ RsimErrorMsg()
  */
 
 void
-SimRsimIt(cmd, nodeName)
-    char *cmd;
-    char *nodeName;
+SimRsimIt(
+    char *cmd,
+    char *nodeName)
 {
 
     static char cmdStr[512];
@@ -619,12 +619,12 @@ SimRsimIt(cmd, nodeName)
  */
 
 int
-SimFillBuffer(buffHead, pLastChar, charCount)
-    char *buffHead;			/* ptr to start of buffer */
-    char **pLastChar;			/* used to return ptr to last char
+SimFillBuffer(
+    char *buffHead,			/* ptr to start of buffer */
+    char **pLastChar,			/* used to return ptr to last char
 					 * in the buffer.
 					 */
-    int *charCount;			/* number of chars in the buffer */
+    int *charCount)			/* number of chars in the buffer */
 {
     int 	charsRead = 0;
     char 	*temp;
@@ -723,10 +723,10 @@ try_again:
  */
 
 void
-SimShiftChars(buffStart, lineStart, lastChar)
-    char *buffStart;		/* beginning of buffer */
-    char **lineStart;		/* ptr to first valid char in buffer */
-    char **lastChar;		/* ptr to last valid char in buffer */
+SimShiftChars(
+    char *buffStart,		/* beginning of buffer */
+    char **lineStart,		/* ptr to first valid char in buffer */
+    char **lastChar)		/* ptr to last valid char in buffer */
 {
     char *temp;
     char *temp1;
@@ -761,9 +761,9 @@ SimShiftChars(buffStart, lineStart, lastChar)
  */
 
 char *
-SimFindNewLine(buffStart, buffEnd)
-    char 	*buffStart;		/* first char in buffer */
-    char	*buffEnd;		/* last char in buffer */
+SimFindNewLine(
+    char 	*buffStart,		/* first char in buffer */
+    char	*buffEnd)		/* last char in buffer */
 {
     char *sp;
 
@@ -807,8 +807,8 @@ SimFindNewLine(buffStart, buffEnd)
  */
 
 bool
-SimGetReplyLine(replyLine)
-    char **replyLine;
+SimGetReplyLine(
+    char **replyLine)
 {
     static char	simReadBuff[READBUF_SIZE];	/* buffer in which to read the
 						 * rsim reply before processing
@@ -930,7 +930,7 @@ SimGetReplyLine(replyLine)
  */
 
 void
-SimInit()
+SimInit(void)
 {
     static char *rsimdoc =
 "You are currently using the \"rsim\" tool.  The button actions are:\n\

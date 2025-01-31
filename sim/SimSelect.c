@@ -125,17 +125,17 @@ bool	  SimRsimRunning = FALSE;	/* Always false if there's no rsim module */
  */
 
 char *
-SimSelectNode(scx, type, xMask, buffer)
-    SearchContext *scx;		/* Area to tree-search for material.  The
+SimSelectNode(
+    SearchContext *scx,		/* Area to tree-search for material.  The
 				 * transform must map to EditRoot coordinates.
 				 */
-    TileType type;		/* The type of material to be considered. */
-    int xMask;			/* Indicates window (or windows) where cells
+    TileType type,		/* The type of material to be considered. */
+    int xMask,			/* Indicates window (or windows) where cells
 				 * must be expanded for their contents to be
 				 * considered.  0 means treat everything as
 				 * expanded.
 				 */
-    char *buffer;		/* buffer to hold node name */
+    char *buffer)		/* buffer to hold node name */
 {
     TileTypeBitMask mask;
     char *strptr;
@@ -180,7 +180,7 @@ SimSelectNode(scx, type, xMask, buffer)
 }
 
 int
-NullFunc()
+NullFunc(void)
 {
     return(0);
 }
@@ -202,8 +202,8 @@ NullFunc()
  */
 
 void
-SimFreeNodeList(List)
-    TileListElt **List;
+SimFreeNodeList(
+    TileListElt **List)
 {
     TileListElt *current;
     TileListElt *temp;
@@ -219,8 +219,9 @@ SimFreeNodeList(List)
 }
 
 TileListElt *
-simFreeNodeEntry(list, entry)
-    TileListElt *list, *entry;
+simFreeNodeEntry(
+    TileListElt *list,
+    TileListElt *entry)
 {
     TileListElt *prev, *curr;
 
@@ -257,7 +258,8 @@ simFreeNodeEntry(list, entry)
  */
 
 TileListElt *
-SimSelectArea(Rect *rect)
+SimSelectArea(
+    Rect *rect)
 {
     int plane;
     int SimSelectFunc();
@@ -317,9 +319,9 @@ SimSelectArea(Rect *rect)
  */
 
 int
-SimSelectFunc(tile, pHead)
-    Tile *tile;			/* Tile in SelectDef. */
-    TileListElt **pHead;	/* list of node names found */
+SimSelectFunc(
+    Tile *tile,			/* Tile in SelectDef. */
+    TileListElt **pHead)	/* list of node names found */
 {
     TileTypeBitMask 	mask;
     SearchContext 	scx;
@@ -431,8 +433,8 @@ SimSelectFunc(tile, pHead)
  */
 
 bool
-SimSelection(cmd)
-    char *cmd;			/* rsim command to apply to the selection */
+SimSelection(
+    char *cmd)			/* rsim command to apply to the selection */
 {
     static char Hstring[] = "RSIM=1";
     static char Lstring[] = "RSIM=0";
@@ -606,9 +608,9 @@ the selection.\n");
  */
 
 void
-SimAddLabels(SelectNodeList, rootuse)
-    TileListElt *SelectNodeList;
-    CellDef *rootuse;		/* the root cell def for the window */
+SimAddLabels(
+    TileListElt *SelectNodeList,
+    CellDef *rootuse)		/* the root cell def for the window */
 {
 
     TileListElt *current;
@@ -652,8 +654,8 @@ SimAddLabels(SelectNodeList, rootuse)
  */
 
 void
-SimRsimMouse(w)
-    MagWindow *w;
+SimRsimMouse(
+    MagWindow *w)
 {
 
     CellUse *cu;
@@ -720,7 +722,7 @@ SimRsimMouse(w)
  */
 
 void
-SimGetnode()
+SimGetnode(void)
 {
     TileListElt *current;
 
@@ -765,7 +767,7 @@ SimGetnode()
  */
 
 void
-SimGetsnode()
+SimGetsnode(void)
 {
     TileListElt *current;
 
@@ -813,7 +815,7 @@ SimGetsnode()
  */
 
 void
-SimEraseLabels()
+SimEraseLabels(void)
 {
     SimDefListElt *p;
 
