@@ -998,7 +998,7 @@ TxGetInputEvent(
 /*
  * ----------------------------------------------------------------------------
  *
- * TxParseString --
+ * TxParseString_internal --
  *
  *	Parse a string into commands, and add them to the rear of a queue.
  *	The commands in the queue should eventually be freed by the caller
@@ -1010,11 +1010,13 @@ TxGetInputEvent(
  * Side Effects:
  *	None.
  *
+ * Module internal API.  See TxParseString() for public version.
+ *
  * ----------------------------------------------------------------------------
  */
 
-void
-TxParseString(
+static void
+TxParseString_internal(
     const char *str,		/* The string to be parsed. */
     DQueue *q,			/* Add to the tail of this queue. */
     TxInputEvent *event)	/* An event to supply the point, window ID,
@@ -1051,6 +1053,53 @@ TxParseString(
 		return;
 	    }
     }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * TxParseString --
+ *
+ *	Parse a string into commands, and add them to the rear of a queue.
+ *	The commands in the queue should eventually be freed by the caller
+ *	via TxFreeCommand().
+ *
+ * Results:
+ *	None.
+ *
+ * Side Effects:
+ *	None.
+ *
+ * Public API.  See also TxParseString_internal().
+ *
+ * ----------------------------------------------------------------------------
+ */
+void
+TxParseString(
+    const char *str)		/* The string to be parsed. */
+{
+    TxParseString_internal(str, NULL, NULL);
+}
+
+#else
+
+/* tclmagic.c defines TxParseString() so we need a shim to other way
+ *
+ * FIXME it feels like there is some design error here, only this
+ *  file cares about DQueue/TxInputEvent arguments but they are
+ *  passed but not used by tclmagic.c TxParseString()
+ *
+ * It must be that !MAGIC_WRAPPER needs the DQueue/TxInputEvent for
+ * the other builds, such as WASM.
+ *
+ */
+static void
+TxParseString_internal(
+    const char *str,            /* The string to be parsed. */
+    DQueue *q,
+    TxInputEvent *event)
+{
+    TxParseString(str);
 }
 
 #endif  /* !MAGIC_WRAPPER */
@@ -1149,7 +1198,7 @@ txGetInteractiveCommand(
 	    (void) TxGetLinePrompt(inputLine, TX_MAX_CMDLEN, TX_CMD_PROMPT);
 	    if (inputLine[0] != '\0') MacroDefine(DBWclientID, (int)'.',
 			inputLine, NULL, FALSE);
-	    TxParseString(inputLine, queue, (TxInputEvent* ) NULL);
+	    TxParseString_internal(inputLine, queue, (TxInputEvent* ) NULL);
 	}
 	else
 	{
@@ -1182,11 +1231,11 @@ txGetInteractiveCommand(
 					TX_MAX_CMDLEN, TX_CMD_PROMPT, macroDef);
 		    if (inputLine[0] != '\0') MacroDefine(DBWclientID, (int)'.',
 				inputLine, NULL, FALSE);
-		    TxParseString(inputLine, queue, (TxInputEvent *) NULL);
+		    TxParseString_internal(inputLine, queue, (TxInputEvent *) NULL);
 		}
 		else
 		{
-		    TxParseString(macroDef, queue, (TxInputEvent *) NULL);
+		    TxParseString_internal(macroDef, queue, (TxInputEvent *) NULL);
 		}
 		freeMagic(macroDef);
 	    }
@@ -1291,7 +1340,7 @@ txGetFileCommand(
     if ((inputLine[0] == ':') || (inputLine[1] == ';')) linep++;
 #endif
 
-    TxParseString(linep, queue, (TxInputEvent *) NULL);
+    TxParseString_internal(linep, queue, (TxInputEvent *) NULL);
 }
 
 /*

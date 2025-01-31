@@ -1003,10 +1003,8 @@ TxDispatch(f)
 /*--------------------------------------------------------------*/
 
 void
-TxParseString(str, q, event)
+TxParseString(str)
     const char *str;
-    void *q;		/* unused */
-    void *event;	/* always NULL (ignored) */
 {
     const char *reply;
 
