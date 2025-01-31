@@ -170,7 +170,7 @@ extFindCoupling(def, table, clipArea)
     HashTable *table;
     Rect *clipArea;
 {
-    Rect *searchArea;
+    const Rect *searchArea;
     int pNum;
     extCapStruct ecs;
 
