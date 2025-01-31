@@ -116,9 +116,9 @@ extern TxCommand TxCurCommand;
 #define TX_KEY_DOWN	2
 
 /* procedures to help in making device command routines */
-
-extern void TxAddInputDevice(const fd_set *fdmask, void (*inputProc)(), ClientData cdata);		/* Can read multiple file desc. */
-extern void TxAdd1InputDevice(int fd, void (*inputProc)(), ClientData cdata);	/* Can read only 1 file desc. */
+typedef void (*cb_textio_input_t)(int fd, ClientData cdata);
+extern void TxAddInputDevice(const fd_set *fdmask, const cb_textio_input_t inputProc, ClientData cdata);		/* Can read multiple file desc. */
+extern void TxAdd1InputDevice(int fd, const cb_textio_input_t inputProc, ClientData cdata);	/* Can read only 1 file desc. */
 extern void TxDeleteInputDevice(const fd_set *fdmask);
 extern void TxDelete1InputDevice(int fd);
 

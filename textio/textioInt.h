@@ -32,7 +32,8 @@ typedef struct {
     fd_set tx_fdmask;		/* A mask of the file descriptors for this
 				 * device.
 				 */
-    void (*tx_inputProc)(); 	/* A procedure that fetches events and stores
+    cb_textio_input_t tx_inputProc;
+				/* A procedure that fetches events and stores
 				 * them in the input queue via TxAddEvent().
 				 */
     ClientData tx_cdata;	/* Data to be passed back to caller. */

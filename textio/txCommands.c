@@ -457,7 +457,8 @@ TxAddInputDevice(
     const fd_set *fdmask,	/* A mask of file descriptors that this
 				 * device will handle.
 				 */
-    void (*inputProc)(),	/* A routine to call.  This routine will
+    const cb_textio_input_t inputProc,
+				/* A routine to call.  This routine will
 				 * be passed a single file descriptor that
 				 * is ready, and should read that file and
 				 * add events(s) by calling TxNewEvent()
@@ -484,7 +485,7 @@ TxAddInputDevice(
 void
 TxAdd1InputDevice(
     int fd,
-    void (*inputProc)(),
+    const cb_textio_input_t inputProc,
     ClientData cdata)
 {
     fd_set fs;
@@ -975,7 +976,7 @@ TxGetInputEvent(
 			    FD_ISSET(fd, &(txInputDevice[i].tx_fdmask))) {
 		    lastNum = txNumInputEvents;
 		    (*(txInputDevice[i].tx_inputProc))
-			(fd, txInputDevice[i].tx_cdata);
+			(fd, txInputDevice[i].tx_cdata); /** @invoke cb_textio_input_t */
 		    FD_CLR(fd, &inputs);
 		    /* Did this driver choose to add an event? */
 		    if (txNumInputEvents != lastNum) gotSome = TRUE;
