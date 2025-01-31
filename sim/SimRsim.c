@@ -98,9 +98,9 @@ void SimStopRsim(void);
  *-----------------------------------------------------------------------
  */
 
-char *
+const char *
 SimGetNodeCommand(
-    char *cmd)
+    const char *cmd)
 {
     /* This table is used to define which Rsim commands are applied to
      * each node in the selection.  Depending on the command, you
@@ -292,7 +292,7 @@ void
 SimConnectRsim(
     bool escRsim)			/* TRUE if we should escape back to Magic */
 {
-    static char HELLO_MSG[] =
+    static const char HELLO_MSG[] =
 	"Type \"q\" to quit simulator or \".\" to escape back to Magic.\n";
 
     char *replyLine;		/* used to hold one line of the Rsim reply */
@@ -384,7 +384,7 @@ SimConnectRsim(
 
 bool
 InitRsim(
-    char  *hello_msg)
+    const char  *hello_msg)
 {
     char	buff[READBUF_SIZE];
     char	*last;
@@ -517,7 +517,7 @@ SimStopRsim(void)
 void
 RsimErrorMsg(void)
 {
-    static char msg[] = "The simulator must be running before this command "
+    static const char msg[] = "The simulator must be running before this command "
 		"can be executed.  To do\n"
 		"this enter the command \"rsim <options> <filename>\".  "
 		"To escape back to\n"
@@ -549,8 +549,8 @@ RsimErrorMsg(void)
 
 void
 SimRsimIt(
-    char *cmd,
-    char *nodeName)
+    const char *cmd,
+    const char *nodeName)
 {
 
     static char cmdStr[512];
@@ -925,7 +925,7 @@ SimGetReplyLine(
 void
 SimInit(void)
 {
-    static char *rsimdoc =
+    static const char *rsimdoc =
 "You are currently using the \"rsim\" tool.  The button actions are:\n\
    left    - move the box so its lower-left corner is at cursor position\n\
    right   - resize box by moving upper-right corner to cursor position\n\

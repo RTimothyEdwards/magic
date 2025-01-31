@@ -94,7 +94,8 @@ SimConnectFunc(
     struct conSrArg2	*csa2;
     Rect 		tileArea, *srArea, newarea;
     SearchContext	*scx = cx->tc_scx;
-    TileTypeBitMask	notConnectMask, *connectMask;
+    TileTypeBitMask	notConnectMask;
+    const TileTypeBitMask *connectMask;
     TileType		loctype, ctype;
     TileType		dinfo = 0;
     int 		i, pNum;
@@ -327,18 +328,18 @@ SimTreeCopyConnect(
 					 * this area.  The transform is from
 					 * coords of scx_use to destUse.
 					 */
-    TileTypeBitMask *mask,		/* Tile types to start from in area. */
+    const TileTypeBitMask *mask,	/* Tile types to start from in area. */
     int xMask,				/* Information must be expanded in all
 					 * of the windows indicated by this
 					 * mask.  Use 0 to consider all info
 					 * regardless of expansion.
 					 */
-    TileTypeBitMask *connect,		/* Points to table that defines what
+    const TileTypeBitMask *connect,	/* Points to table that defines what
 					 * each tile type is considered to
 					 * connect to.  Use DBConnectTbl as
 					 * a default.
 					 */
-    Rect *area,				/* The resulting information is
+    const Rect *area,			/* The resulting information is
 					 * clipped to this area.  Pass
 					 * TiPlaneRect to get everything.
 					 */
@@ -354,7 +355,7 @@ SimTreeCopyConnect(
 {
     TerminalPath tpath;
     char pathName[MAXPATHNAME];
-    TileTypeBitMask *newmask;
+    const TileTypeBitMask *newmask;
     struct conSrArg2 csa2;
     TileType newtype;
 
@@ -439,11 +440,11 @@ SimTreeCopyConnect(
 
 bool
 efPreferredName(
-    char *name1,
-    char *name2)
+    const char *name1,
+    const char *name2)
 {
     int nslashes1, nslashes2;
-    char *np1, *np2;
+    const char *np1, *np2;
 
     if( name1[0] == '@' && name1[1] == '=' )
 	return( TRUE );
@@ -556,20 +557,21 @@ SimSrConnect(
 				 * the connectivity search.  Only paint
 				 * in this definition is considered.
 				 */
-    Rect *startArea,		/* Area to search for an initial tile.  Only
+    const Rect *startArea,	/* Area to search for an initial tile.  Only
 				 * tiles OVERLAPPING the area are considered.
 				 * This area should have positive x and y
 				 * dimensions.
 				 */
-    TileTypeBitMask *mask,	/* Only tiles of one of these types are used
+    const TileTypeBitMask *mask,/* Only tiles of one of these types are used
 				 * as initial tiles.
 				 */
-    TileTypeBitMask *connect,	/* Pointer to a table indicating what tile
+    const TileTypeBitMask *connect,
+				/* Pointer to a table indicating what tile
 				 * types connect to what other tile types.
 				 * Each entry gives a mask of types that
 				 * connect to tiles of a given type.
 				 */
-    Rect *bounds,		/* Area, in coords of scx->scx_use->cu_def,
+    const Rect *bounds,		/* Area, in coords of scx->scx_use->cu_def,
 				 * that limits the search:  only tiles
 				 * overalapping this area will be returned.
 				 * Use TiPlaneRect to search everywhere.
@@ -667,7 +669,7 @@ SimTreeSrTiles(
 				 * coordinates of the cell's def, and a
 				 * transform back to "root" coordinates.
 				 */
-    TileTypeBitMask *mask,	/* Only tiles with a type for which
+    const TileTypeBitMask *mask,/* Only tiles with a type for which
 				 * a bit in this mask is on are processed.
 				 */
     int xMask,			/* All subcells are visited recursively
@@ -712,7 +714,7 @@ SimTreeSrNMTiles(
     TileType dinfo,		/* Type containing information about the
 				 * triangular area to search.
 				 */
-    TileTypeBitMask *mask,	/* Only tiles with a type for which
+    const TileTypeBitMask *mask,/* Only tiles with a type for which
 				 * a bit in this mask is on are processed.
 				 */
     int xMask,			/* All subcells are visited recursively
@@ -862,12 +864,12 @@ cleanup:
 int
 SimPutLabel(
     CellDef *cellDef,	/* Cell in which label is placed */
-    Rect *rect,		/* Location of label, see above for description */
+    const Rect *rect,	/* Location of label, see above for description */
     int align,		/* Orientation/alignment of text.  If this is < 0,
 			 * an orientation will be picked to keep the text
 			 * inside the cell boundary.
 			 */
-    char *text,		/* Pointer to actual text of label */
+    const char *text,	/* Pointer to actual text of label */
     TileType type)	/* Type of tile to be labeled */
 {
     Label *lab;

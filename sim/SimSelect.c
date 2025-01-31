@@ -259,7 +259,7 @@ simFreeNodeEntry(
 
 TileListElt *
 SimSelectArea(
-    Rect *rect)
+    const Rect *rect)
 {
     int plane;
     int SimSelectFunc();
@@ -434,12 +434,12 @@ SimSelectFunc(
 
 bool
 SimSelection(
-    char *cmd)			/* rsim command to apply to the selection */
+    const char *cmd)		/* rsim command to apply to the selection */
 {
-    static char Hstring[] = "RSIM=1";
-    static char Lstring[] = "RSIM=0";
-    static char Xstring[] = "RSIM=X";
-    static char QUESTstring[] = "?";
+    static const char Hstring[] = "RSIM=1";
+    static const char Lstring[] = "RSIM=0";
+    static const char Xstring[] = "RSIM=X";
+    static const char QUESTstring[] = "?";
 
     char timeString[256];
     TileListElt	*current, *node_list;
