@@ -39,9 +39,9 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
  */
 /*
 void
-TiSetBody(tp, b)
-   Tile *tp;
-   ClientData b;
+TiSetBody(
+   Tile *tp,
+   ClientData b)
 {
    if (b != (ClientData)0 && b != (ClientData)(-1))
 	if (RIGHT(tp) == INFINITY || TOP(tp) == INFINITY ||
@@ -93,8 +93,8 @@ static void *_block_end = NULL;
  */
 
 Plane *
-TiNewPlane(tile)
-    Tile *tile;/* Tile to become initial tile of plane.
+TiNewPlane(
+    Tile *tile)/* Tile to become initial tile of plane.
 			 * May be NULL.
 			 */
 {
@@ -184,8 +184,8 @@ TiNewPlane(tile)
  */
 
 void
-TiFreePlane(plane)
-    Plane *plane;	/* Plane to be freed */
+TiFreePlane(
+    Plane *plane)	/* Plane to be freed */
 {
     TiFree(plane->pl_left);
     TiFree(plane->pl_right);
@@ -211,9 +211,9 @@ TiFreePlane(plane)
  */
 
 void
-TiToRect(tile, rect)
-    const Tile *tile; /* Tile whose bounding box is to be stored in *rect */
-    Rect *rect; /* Pointer to rect to be set to bounding box */
+TiToRect(
+    const Tile *tile, /* Tile whose bounding box is to be stored in *rect */
+    Rect *rect) /* Pointer to rect to be set to bounding box */
 {
     rect->r_xbot = LEFT(tile);
     rect->r_xtop = RIGHT(tile);
@@ -242,9 +242,9 @@ TiToRect(tile, rect)
  */
 
 Tile *
-TiSplitX(tile, x)
-    Tile *tile;	/* Tile to be split */
-    int x;		/* X coordinate of split */
+TiSplitX(
+    Tile *tile,	/* Tile to be split */
+    int x)		/* X coordinate of split */
 {
     Tile *newtile;
     Tile *tp;
@@ -314,9 +314,9 @@ TiSplitX(tile, x)
  */
 
 Tile *
-TiSplitY(tile, y)
-    Tile *tile;	/* Tile to be split */
-    int y;		/* Y coordinate of split */
+TiSplitY(
+    Tile *tile,	/* Tile to be split */
+    int y)		/* Y coordinate of split */
 {
     Tile *newtile;
     Tile *tp;
@@ -387,9 +387,9 @@ TiSplitY(tile, y)
  */
 
 Tile *
-TiSplitX_Left(tile, x)
-    Tile *tile;	/* Tile to be split */
-    int x;		/* X coordinate of split */
+TiSplitX_Left(
+    Tile *tile,	/* Tile to be split */
+    int x)		/* X coordinate of split */
 {
     Tile *newtile;
     Tile *tp;
@@ -450,9 +450,9 @@ TiSplitX_Left(tile, x)
  */
 
 Tile *
-TiSplitY_Bottom(tile, y)
-    Tile *tile;	/* Tile to be split */
-    int y;		/* Y coordinate of split */
+TiSplitY_Bottom(
+    Tile *tile,	/* Tile to be split */
+    int y)		/* Y coordinate of split */
 {
     Tile *newtile;
     Tile *tp;
@@ -514,10 +514,10 @@ TiSplitY_Bottom(tile, y)
  */
 
 void
-TiJoinX(tile1, tile2, plane)
-    Tile *tile1;	/* First tile, remains allocated after call */
-    Tile *tile2;	/* Second tile, deallocated by call */
-    Plane *plane;	/* Plane in which hint tile is updated */
+TiJoinX(
+    Tile *tile1,	/* First tile, remains allocated after call */
+    Tile *tile2,	/* Second tile, deallocated by call */
+    Plane *plane)	/* Plane in which hint tile is updated */
 {
     Tile *tp;
 
@@ -599,10 +599,10 @@ TiJoinX(tile1, tile2, plane)
  */
 
 void
-TiJoinY(tile1, tile2, plane)
-    Tile *tile1;	/* First tile, remains allocated after call */
-    Tile *tile2;	/* Second tile, deallocated by call */
-    Plane *plane;	/* Plane in which hint tile is updated */
+TiJoinY(
+    Tile *tile1,	/* First tile, remains allocated after call */
+    Tile *tile2,	/* Second tile, deallocated by call */
+    Plane *plane)	/* Plane in which hint tile is updated */
 {
     Tile *tp;
 
@@ -665,7 +665,7 @@ TiJoinY(tile1, tile2, plane)
 
 /* MMAP the tile store */
 static signed char
-mmapTileStore()
+mmapTileStore(void)
 {
     int prot = PROT_READ | PROT_WRITE;
     int flags = MAP_ANON | MAP_PRIVATE;
@@ -683,7 +683,7 @@ mmapTileStore()
 }
 
 Tile *
-getTileFromTileStore()
+getTileFromTileStore(void)
 {
     Tile *_return_tile = NULL;
 
@@ -721,8 +721,8 @@ getTileFromTileStore()
 }
 
 static void
-TileStoreFree(ptr)
-    Tile *ptr;
+TileStoreFree(
+    Tile *ptr)
 {
     if (!TileStoreFreeList_end || !TileStoreFreeList)
     {
@@ -739,7 +739,7 @@ TileStoreFree(ptr)
 }
 
 Tile *
-TiAlloc()
+TiAlloc(void)
 {
     Tile *newtile;
 
@@ -750,8 +750,8 @@ TiAlloc()
 }
 
 void
-TiFree(tp)
-    Tile *tp;
+TiFree(
+    Tile *tp)
 {
     TileStoreFree(tp);
 }
@@ -772,7 +772,7 @@ TiFree(tp)
  */
 
 Tile *
-TiAlloc()
+TiAlloc(void)
 {
     Tile *newtile;
 
@@ -796,8 +796,8 @@ TiAlloc()
  */
 
 void
-TiFree(tp)
-    Tile *tp;
+TiFree(
+    Tile *tp)
 {
     freeMagic((char *)tp);
 }
@@ -811,8 +811,8 @@ TiFree(tp)
 /* ==================================================================== */
 
 void
-tiPrint(tp)
-    Tile *tp;
+tiPrint(
+    Tile *tp)
 {
     printf("tp=%p LL=(%d,%d) body=0x%"DLONG_PREFIX"x\n",
 	(void *) tp, LEFT(tp), BOTTOM(tp), (dlong) tp->ti_body);
@@ -821,8 +821,8 @@ tiPrint(tp)
 }
 
 void
-tiPrintAll(tp)
-    Tile *tp;
+tiPrintAll(
+    Tile *tp)
 {
     tiPrint(tp);
     printf("UR=(%d,%d)\n", RIGHT(tp), TOP(tp));
