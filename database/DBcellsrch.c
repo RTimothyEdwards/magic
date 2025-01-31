@@ -83,7 +83,7 @@ struct seeTypesArg
  */
 
 int
-DBSrCellPlaneArea(BPlane *plane, Rect *rect, int (*func)(), ClientData arg)
+DBSrCellPlaneArea(BPlane *plane, const Rect *rect, int (*func)(), ClientData arg)
 {
     BPEnum *bpe;
     CellUse *use;

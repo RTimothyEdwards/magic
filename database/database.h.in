@@ -970,7 +970,7 @@ extern void DBUndoPutLabel();
 extern bool DBCellRename();
 extern bool DBCellDelete();
 extern int  DBCellSrArea();
-extern int  DBSrCellPlaneArea();
+extern int  DBSrCellPlaneArea(BPlane *plane, const Rect *rect, int (*func)(), ClientData arg);
 extern int  DBMoveCell();
 extern bool DBReLinkCell();
 extern int  DBBoundCellPlane();
