@@ -131,7 +131,7 @@ extern void TxClearPoint(void);
 
 /* Routines to handle command logging.
  */
-extern void TxLogStart(char *fileName, MagWindow *mw);
+extern void TxLogStart(const char *fileName, MagWindow *mw);
 extern void TxLogStop(void);
 extern void TxLogUpdate(void);
 extern void TxLogSuspend(void);
@@ -155,7 +155,7 @@ extern void TxReleaseButton(int but);
 extern void TxPrintCommand(TxCommand *cmd);
 extern TxCommand *TxNewCommand(void);
 extern void TxFreeCommand(TxCommand *command);
-extern void TxParseString(char *str, void *q, void *event);
+extern void TxParseString(const char *str, void *q, void *event);
 extern void TxDispatch(FILE *f);
 extern void TxRebuildCommand(TxCommand *cmd);
 extern int TxCommandNumber;	/* Serial number of current command. */

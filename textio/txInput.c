@@ -261,7 +261,7 @@ static const struct cmd_spec {
 
 /* Characters for input processing.  Set to -1 if not defined */
 
-char *TxGetLinePfix();
+char *TxGetLinePfix(char *dest, int maxChars, const char *prefix);
 
 char txEraseChar = -1;		/* Erase line (e.g. ^H) */
 char txKillChar = -1;		/* Kill line (e.g. ^U or ^X) */
@@ -323,8 +323,8 @@ TxReprint(void)
 
 int
 TxDialog(
-    char *prompt,
-    char *responses[],
+    const char *prompt,
+    const char * const *responses,
     int deflt)
 {
     int code;
@@ -999,8 +999,8 @@ char *
 TxGetLineWPrompt(
     char *dest,
     int maxChars,
-    char *prompt,
-    char *prefix)
+    const char *prompt,
+    const char *prefix)
 {
     char *res, *hist_res, *tmp;
     int return_nothing = 0;
@@ -1086,7 +1086,7 @@ char *
 TxGetLinePrompt(
     char *dest,
     int maxChars,
-    char *prompt)
+    const char *prompt)
 {
     return TxGetLineWPrompt(dest, maxChars, prompt, NULL);
 }
@@ -1117,7 +1117,7 @@ char *
 TxGetLinePfix(
     char *dest,
     int maxChars,
-    char *prefix)
+    const char *prefix)
 {
     int i;
     char *ret;

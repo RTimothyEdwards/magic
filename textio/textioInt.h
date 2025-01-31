@@ -58,7 +58,7 @@ extern void txFprintfBasic(FILE *f, const char *fmt, ...) ATTR_FORMAT_PRINTF_2;
 /* C99 compat */
 extern void txCommandsInit(void);
 extern int TranslateChar(int key);
-extern char *TxGetLineWPrompt(char *dest, int maxChars, char *prompt, char *prefix);
+extern char *TxGetLineWPrompt(char *dest, int maxChars, const char *prompt, const char *prefix);
 
 #ifdef MAGIC_WRAPPER
 /* tcltk/tclmagic.c has a function implementation prototype mimics vfprintf() mapping

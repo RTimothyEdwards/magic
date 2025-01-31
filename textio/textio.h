@@ -74,10 +74,10 @@ extern void TxPrintf(const char *, ...) ATTR_FORMAT_PRINTF_1;
 extern char *TxPrintString(const char *, ...) ATTR_FORMAT_PRINTF_1;
 
 /* input procedures */
-extern char *TxGetLinePrompt(char *dest, int maxChars, char *prompt);
+extern char *TxGetLinePrompt(char *dest, int maxChars, const char *prompt);
 extern char *TxGetLine(char *line, int len);
 extern int TxGetChar(void);
-extern int TxDialog(char *prompt, char *(responses[]), int defresp);
+extern int TxDialog(const char *prompt, const char * const *responses, int defresp);
 
 /* prompting procedures */
 extern void TxSetPrompt(char ch);
@@ -96,7 +96,7 @@ extern char TxInterruptChar;		/* The current interrupt character */
 extern void TxDispatch(FILE *f);
 
 /* C99 compat */
-extern void TxMore(char *mesg);
+extern void TxMore(const char *mesg);
 extern void txGetFileCommand(FILE *f, DQueue *queue);
 
 /* variables that tell if stdin and stdout are to a terminal */

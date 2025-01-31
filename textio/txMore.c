@@ -46,7 +46,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 void
 TxMore(
-    char *mesg)
+    const char *mesg)
 {
     char prompt[512];
     char line[512];

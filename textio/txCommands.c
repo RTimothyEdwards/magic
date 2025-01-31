@@ -636,7 +636,7 @@ unsigned char txLogFlags;
 
 void
 TxLogStart(
-    char *fileName,
+    const char *fileName,
     MagWindow *mw)	 /* Window commands are logged from */
 {
     if (txLogFile != NULL)
@@ -1014,7 +1014,7 @@ TxGetInputEvent(
 
 void
 TxParseString(
-    char *str,			/* The string to be parsed. */
+    const char *str,		/* The string to be parsed. */
     DQueue *q,			/* Add to the tail of this queue. */
     TxInputEvent *event)	/* An event to supply the point, window ID,
 				 * etc. .  If NULL, we will use the last
