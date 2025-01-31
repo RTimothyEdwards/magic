@@ -82,7 +82,8 @@ static int wireOldDir = GEO_NORTH;		/* Last direction */
 void
 WireUndoInit(void)
 {
-    extern void WireUndoForw(), WireUndoBack();
+    extern void WireUndoForw(WireUndoEvent *wue); /* forward declaration */
+    extern void WireUndoBack(WireUndoEvent *wue); /* forward declaration */
 
     WireUndoClientID = UndoAddClient((void (*)()) NULL, (void (*)()) NULL,
 	    (UndoEvent *(*)()) NULL, (int (*)()) NULL, WireUndoForw,
