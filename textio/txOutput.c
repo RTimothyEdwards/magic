@@ -205,7 +205,7 @@ TxPrintString(const char *fmt, ...)
  */
 
 bool
-TxPrintOn()
+TxPrintOn(void)
 {
     bool oldValue = txPrintFlag;
 
@@ -228,7 +228,7 @@ TxPrintOn()
  */
 
 bool
-TxPrintOff()
+TxPrintOff(void)
 {
     bool oldValue = txPrintFlag;
 
@@ -253,7 +253,7 @@ TxPrintOff()
  */
 
 void
-TxFlushErr()
+TxFlushErr(void)
 {
     (void) fflush(stderr);
 }
@@ -261,7 +261,7 @@ TxFlushErr()
 /*----------------------------------------------------------------------------*/
 
 void
-TxFlushOut()
+TxFlushOut(void)
 {
     (void) fflush(stdout);
 }
@@ -269,7 +269,7 @@ TxFlushOut()
 /*----------------------------------------------------------------------------*/
 
 void
-TxFlush()
+TxFlush(void)
 {
     TxFlushOut();
     TxFlushErr();
@@ -300,13 +300,13 @@ TxFlush()
  */
 
 void
-TxError(const char *fmt, ...) {
+TxError(const char *fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
     TxErrorV(fmt, args);
     va_end(args);
 }
-
 void
 TxErrorV(const char *fmt, va_list args)
 {
@@ -351,7 +351,7 @@ TxErrorV(const char *fmt, va_list args)
  */
 
 void
-TxUseMore()
+TxUseMore(void)
 {
     int pipeEnds[2];
     int moreRunning = TRUE;
@@ -440,7 +440,7 @@ done:
  */
 
 void
-TxStopMore()
+TxStopMore(void)
 {
     /* TxMoreFile may be NULL if the "more" executable was not found */
     if (TxMoreFile == NULL) return;

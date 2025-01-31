@@ -295,7 +295,7 @@ char *txReprint2 = NULL;
  */
 
 void
-TxReprint()
+TxReprint(void)
 {
     (void) txFprintfBasic(stdout, "\n");
     if (txReprint1 != NULL) (void) txFprintfBasic(stdout, "%s", txReprint1);
@@ -322,10 +322,10 @@ TxReprint()
  */
 
 int
-TxDialog(prompt, responses, deflt)
-    char *prompt;
-    char *responses[];
-    int deflt;
+TxDialog(
+    char *prompt,
+    char *responses[],
+    int deflt)
 {
     int code;
     int maxresp;
@@ -368,8 +368,8 @@ TxDialog(prompt, responses, deflt)
  */
 
 void
-TxSetPrompt(ch)
-    char ch;
+TxSetPrompt(
+    char ch)
 {
     txPromptChar = ch;
 }
@@ -392,7 +392,7 @@ TxSetPrompt(ch)
  */
 
 void
-TxPrompt()
+TxPrompt(void)
 {
     static char lastPromptChar;
     static char prompts[2];
@@ -428,7 +428,7 @@ TxPrompt()
  */
 
 void
-TxRestorePrompt()
+TxRestorePrompt(void)
 {
     if (txHavePrompt)
     {
@@ -454,7 +454,7 @@ TxRestorePrompt()
 
 
 void
-TxUnPrompt()
+TxUnPrompt(void)
 {
     int i, tlen;
 
@@ -495,7 +495,7 @@ TxUnPrompt()
  */
 
 int
-TxGetChar()
+TxGetChar(void)
 {
     int ch;
     extern DQueue txInputEvents, txFreeEvents;
@@ -561,7 +561,10 @@ TxPrefix(void)
  */
 
 char **
-magic_completion_function(char *text, int start, int end)
+magic_completion_function(
+    char *text,
+    int start,
+    int end)
 {
     CPFunction *completion_func = (CPFunction *)NULL;
     char **matches, **tokens;
@@ -738,7 +741,9 @@ update_cellname_hash(void)
  * ----------------------------------------------------------------------------
  */
 char *
-istyle_completion_function(char *text, int state)
+istyle_completion_function(
+    char *text,
+    int state)
 {
     extern CIFReadKeep *cifReadStyleList;
     static CIFReadKeep *style;
@@ -772,7 +777,9 @@ istyle_completion_function(char *text, int state)
  * ----------------------------------------------------------------------------
  */
 char *
-ostyle_completion_function(char *text, int state)
+ostyle_completion_function(
+    char *text,
+    int state)
 {
     extern CIFKeep *CIFStyleList;
     static CIFKeep *style;
@@ -806,7 +813,9 @@ ostyle_completion_function(char *text, int state)
  * ----------------------------------------------------------------------------
  */
 char *
-cellname_completion_function(char *text, int state)
+cellname_completion_function(
+    char *text,
+    int state)
 {
     extern HashTable dbCellDefTable;
     static int            len;
@@ -849,7 +858,9 @@ cellname_completion_function(char *text, int state)
  * ----------------------------------------------------------------------------
  */
 char *
-macro_completion_function(char *text, int state)
+macro_completion_function(
+    char *text,
+    int state)
 {
     extern HashTable MacroClients;
     static HashSearch hs, mc_hs;
@@ -896,7 +907,9 @@ macro_completion_function(char *text, int state)
  * ----------------------------------------------------------------------------
  */
 char *
-list_completion_function(char *text, int state)
+list_completion_function(
+    char *text,
+    int state)
 {
     static int list_index, len;
     char *match;
@@ -983,11 +996,11 @@ make_techtype_list(void)
  */
 
 char *
-TxGetLineWPrompt(dest, maxChars, prompt, prefix)
-    char *dest;
-    int maxChars;
-    char *prompt;
-    char *prefix;
+TxGetLineWPrompt(
+    char *dest,
+    int maxChars,
+    char *prompt,
+    char *prefix)
 {
     char *res, *hist_res, *tmp;
     int return_nothing = 0;
@@ -1070,10 +1083,10 @@ TxGetLineWPrompt(dest, maxChars, prompt, prefix)
  */
 
 char *
-TxGetLinePrompt(dest, maxChars, prompt)
-    char *dest;
-    int maxChars;
-    char *prompt;
+TxGetLinePrompt(
+    char *dest,
+    int maxChars,
+    char *prompt)
 {
     return TxGetLineWPrompt(dest, maxChars, prompt, NULL);
 }
@@ -1101,10 +1114,10 @@ TxGetLinePrompt(dest, maxChars, prompt)
  */
 
 char *
-TxGetLinePfix(dest, maxChars, prefix)
-    char *dest;
-    int maxChars;
-    char *prefix;
+TxGetLinePfix(
+    char *dest,
+    int maxChars,
+    char *prefix)
 {
     int i;
     char *ret;
@@ -1186,9 +1199,9 @@ TxGetLinePfix(dest, maxChars, prefix)
  */
 
 char *
-TxGetLine(dest, maxChars)
-    char *dest;
-    int maxChars;
+TxGetLine(
+    char *dest,
+    int maxChars)
 {
     return TxGetLinePfix(dest, maxChars, NULL);
 }
@@ -1211,9 +1224,8 @@ TxGetLine(dest, maxChars)
 #if defined(SYSV) || defined(CYGWIN)
 
 void
-txGetTermState(buf)
-    struct termio *buf;
-
+txGetTermState(
+    struct termio *buf)
 {
     ioctl( fileno( stdin ), TCGETA, buf);
 }
@@ -1221,8 +1233,8 @@ txGetTermState(buf)
 #elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
 
 void
-txGetTermState(buf)
-    struct termios *buf;
+txGetTermState(
+    struct termios *buf)
 {
     (void) tcgetattr(fileno(stdin), buf);
 }
@@ -1230,8 +1242,8 @@ txGetTermState(buf)
 #else
 
 void
-txGetTermState(buf)
-    txTermState *buf;
+txGetTermState(
+    txTermState *buf)
 {
     ASSERT(TxStdinIsatty, "txGetTermState");
     /* save the current terminal characteristics */
@@ -1256,14 +1268,15 @@ txGetTermState(buf)
  */
 
 void
-txSetTermState(buf)
+txSetTermState(
 #if defined(SYSV) || defined(CYGWIN)
-    struct termio *buf;
+    struct termio *buf
 #elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
-    struct termios *buf;
+    struct termios *buf
 #else
-    txTermState *buf;
+    txTermState *buf
 #endif /* SYSV */
+    )
 {
 #if defined(SYSV) || defined(CYGWIN)
     ioctl( fileno(stdin), TCSETAF, buf );
@@ -1295,14 +1308,15 @@ txSetTermState(buf)
  */
 
 void
-txInitTermRec(buf)
+txInitTermRec(
 #if defined(SYSV) || defined(CYGWIN)
-    struct termio *buf;
+    struct termio *buf
 #elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
-    struct termios *buf;
+    struct termios *buf
 #else
-    txTermState *buf;
+    txTermState *buf
 #endif /* SYSV */
+    )
 {
 #if defined(SYSV) || defined(CYGWIN) || defined(__OpenBSD__) || defined(EMSCRIPTEN)
     buf->c_lflag = ISIG;    /* raw: no echo and no processing, allow signals */
@@ -1346,7 +1360,7 @@ static bool haveCloseState = FALSE;
  */
 
 void
-txSaveTerm()
+txSaveTerm(void)
 {
 #if defined(SYSV) || defined(CYGWIN)
     ioctl( fileno( stdin ), TCGETA, &closeTermState);
@@ -1394,7 +1408,7 @@ txSaveTerm()
  */
 
 void
-TxSetTerminal()
+TxSetTerminal(void)
 {
 #if defined(SYSV) || defined(CYGWIN)
     struct termio buf;
@@ -1438,7 +1452,8 @@ TxSetTerminal()
  */
 
 void
-TxResetTerminal(bool force)
+TxResetTerminal(
+    bool force)
 {
 #ifdef MAGIC_WRAPPER
     /* If using Tk console, don't mess with the terminal settings;	  */

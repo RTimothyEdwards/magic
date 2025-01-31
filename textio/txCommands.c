@@ -137,8 +137,8 @@ static TxCommand *lisp_cur_cmd = NULL;
  */
 
 bool
-FD_IsZero(fdmask)
-    const fd_set *fdmask;
+FD_IsZero(
+    const fd_set *fdmask)
 {
     int i;
     for (i = 0; i <= TX_MAX_OPEN_FILES; i++)
@@ -147,9 +147,9 @@ FD_IsZero(fdmask)
 }
 
 void
-FD_OrSet(fdmask, dst)
-    const fd_set *fdmask;
-    fd_set *dst;
+FD_OrSet(
+    const fd_set *fdmask,
+    fd_set *dst)
 {
     int i;
     for (i = 0; i <= TX_MAX_OPEN_FILES; i++)
@@ -175,8 +175,8 @@ FD_OrSet(fdmask, dst)
  */
 
 void
-TxReleaseButton(but)
-    int but;
+TxReleaseButton(
+    int but)
 {
     TxCurButtons &= ~but;
 }
@@ -198,8 +198,8 @@ TxReleaseButton(but)
  */
 
 void
-TxPrintEvent(event)
-    TxInputEvent *event;
+TxPrintEvent(
+    TxInputEvent *event)
 {
     TxError("Input event at %p\n    ", (void *) event);
     if (event->txe_button == TX_EOF) {
@@ -249,8 +249,8 @@ TxPrintEvent(event)
  */
 
 void
-TxPrintCommand(cmd)
-    TxCommand *cmd;
+TxPrintCommand(
+    TxCommand *cmd)
 {
     int i, j;
     char TxTemp[200];
@@ -302,7 +302,7 @@ TxPrintCommand(cmd)
  */
 
 TxInputEvent *
-TxNewEvent()
+TxNewEvent(void)
 {
     TxInputEvent *event;
     event = (TxInputEvent *) DQPopFront(&txFreeEvents);
@@ -333,8 +333,8 @@ TxNewEvent()
  */
 
 void
-TxAddEvent(event)
-    TxInputEvent *event;
+TxAddEvent(
+    TxInputEvent *event)
 {
     ASSERT(event != NULL, "TxAddEvent");
     DQPushRear(&txInputEvents, (ClientData) event);
@@ -358,8 +358,8 @@ TxAddEvent(event)
  */
 
 void
-TxFreeEvent(event)
-    TxInputEvent *event;
+TxFreeEvent(
+    TxInputEvent *event)
 {
     ASSERT(event != NULL, "TxFreeEvent");
     DQPushRear(&txFreeEvents, (ClientData) event);
@@ -382,7 +382,7 @@ TxFreeEvent(event)
  */
 
 TxCommand *
-TxNewCommand()
+TxNewCommand(void)
 {
     TxCommand *command;
     command = (TxCommand *) DQPopFront(&txFreeCommands);
@@ -410,8 +410,8 @@ TxNewCommand()
  */
 
 void
-TxFreeCommand(command)
-    TxCommand *command;
+TxFreeCommand(
+    TxCommand *command)
 {
     ASSERT(command != NULL, "TxFreeCommand");
 #ifdef MAGIC_WRAPPER
@@ -453,17 +453,17 @@ TxFreeCommand(command)
  */
 
 void
-TxAddInputDevice(fdmask, inputProc, cdata)
-    const fd_set *fdmask;	/* A mask of file descriptors that this
+TxAddInputDevice(
+    const fd_set *fdmask,	/* A mask of file descriptors that this
 				 * device will handle.
 				 */
-    void (*inputProc)();	/* A routine to call.  This routine will
+    void (*inputProc)(),	/* A routine to call.  This routine will
 				 * be passed a single file descriptor that
 				 * is ready, and should read that file and
 				 * add events(s) by calling TxNewEvent()
 				 * followed by TxAddEvent().
 				 */
-    ClientData cdata;		/* Will be passed back to the proc whenever
+    ClientData cdata)		/* Will be passed back to the proc whenever
 				 * it is called.
 				 */
 {
@@ -482,10 +482,10 @@ TxAddInputDevice(fdmask, inputProc, cdata)
 }
 
 void
-TxAdd1InputDevice(fd, inputProc, cdata)
-    int fd;
-    void (*inputProc)();
-    ClientData cdata;
+TxAdd1InputDevice(
+    int fd,
+    void (*inputProc)(),
+    ClientData cdata)
 {
     fd_set fs;
     FD_ZERO(&fs);
@@ -508,8 +508,8 @@ TxAdd1InputDevice(fd, inputProc, cdata)
  */
 
 void
-TxDeleteInputDevice(fdmask)
-    const fd_set *fdmask;	/* A mask of file descriptors that are
+TxDeleteInputDevice(
+    const fd_set *fdmask)	/* A mask of file descriptors that are
 				 * no longer active.
 				 */
 {
@@ -520,8 +520,8 @@ TxDeleteInputDevice(fdmask)
 }
 
 void
-TxDelete1InputDevice(fd)
-    int fd;
+TxDelete1InputDevice(
+    int fd)
 {
     int i, j;
 
@@ -554,8 +554,10 @@ TxDelete1InputDevice(fd)
  */
 
 void
-TxSetPoint(x, y, wid)
-    int x, y, wid;
+TxSetPoint(
+    int x,
+    int y,
+    int wid)
 {
     txHaveCurrentPoint = TRUE;
     txCurrentPoint.p_x = x;
@@ -581,8 +583,8 @@ TxSetPoint(x, y, wid)
  */
 
 int
-TxGetPoint(tx_p)
-    Point *tx_p;
+TxGetPoint(
+    Point *tx_p)
 {
     if (txHaveCurrentPoint)
     {
@@ -609,7 +611,7 @@ TxGetPoint(tx_p)
  */
 
 void
-TxClearPoint()
+TxClearPoint(void)
 {
     txHaveCurrentPoint = FALSE;
 }
@@ -633,9 +635,9 @@ unsigned char txLogFlags;
  */
 
 void
-TxLogStart(fileName, mw)
-    char *fileName;
-    MagWindow *mw;	 /* Window commands are logged from */
+TxLogStart(
+    char *fileName,
+    MagWindow *mw)	 /* Window commands are logged from */
 {
     if (txLogFile != NULL)
     {
@@ -703,7 +705,7 @@ TxLogStart(fileName, mw)
  */
 
 void
-TxLogStop()
+TxLogStop(void)
 {
     if (txLogFile != NULL)
     {
@@ -729,7 +731,7 @@ TxLogStop()
  */
 
 void
-TxLogUpdate()
+TxLogUpdate(void)
 {
     if (txLogFile == NULL)
     {
@@ -763,7 +765,7 @@ TxLogUpdate()
  */
 
 void
-TxLogSuspend()
+TxLogSuspend(void)
 {
     if (txLogFile == NULL)
 	return;
@@ -786,7 +788,7 @@ TxLogSuspend()
  */
 
 void
-TxLogResume()
+TxLogResume(void)
 {
     if (txLogFile == NULL)
 	return;
@@ -809,8 +811,8 @@ TxLogResume()
  */
 
 void
-txLogCommand(cmd)
-    TxCommand *cmd;
+txLogCommand(
+    TxCommand *cmd)
 {
     static char *txButTable[] =
     {
@@ -923,11 +925,11 @@ txLogCommand(cmd)
  */
 
 bool
-TxGetInputEvent(block, returnOnSigWinch)
-    bool block;		/* If TRUE, we will wait for an event.  Otherwise, we
+TxGetInputEvent(
+    bool block,		/* If TRUE, we will wait for an event.  Otherwise, we
 			 * just poll.
 			 */
-    bool returnOnSigWinch;
+    bool returnOnSigWinch)
 			/* If we get a Sig-Winch signal, should we abondon
 			 * our quest to read an input event and return
 			 * immediately instead?
@@ -1011,10 +1013,10 @@ TxGetInputEvent(block, returnOnSigWinch)
  */
 
 void
-TxParseString(str, q, event)
-    char *str;			/* The string to be parsed. */
-    DQueue *q;			/* Add to the tail of this queue. */
-    TxInputEvent *event;	/* An event to supply the point, window ID,
+TxParseString(
+    char *str,			/* The string to be parsed. */
+    DQueue *q,			/* Add to the tail of this queue. */
+    TxInputEvent *event)	/* An event to supply the point, window ID,
 				 * etc. .  If NULL, we will use the last
 				 * event processed.
 				 */
@@ -1068,12 +1070,12 @@ TxParseString(str, q, event)
  */
 
 void
-txGetInteractiveCommand(block, queue)
-    bool block;			/* If TRUE, then wait until we have a command.
+txGetInteractiveCommand(
+    bool block,			/* If TRUE, then wait until we have a command.
 				 * If FALSE, then get one only if input is
 				 * available.
 				 */
-    DQueue *queue;		/* Queue to receive the new commands. */
+    DQueue *queue)		/* Queue to receive the new commands. */
 {
     static char inputLine[TX_MAX_CMDLEN] = "";
     TxInputEvent *event;
@@ -1233,9 +1235,9 @@ txGetInteractiveCommand(block, queue)
  */
 
 void
-txGetFileCommand(f, queue)
-    FILE *f;			/* File to read. */
-    DQueue *queue;		/* Queue to receive the new commands. */
+txGetFileCommand(
+    FILE *f,			/* File to read. */
+    DQueue *queue)		/* Queue to receive the new commands. */
 {
     char inputLine[TX_MAX_CMDLEN];
     char *linep;
@@ -1308,7 +1310,8 @@ txGetFileCommand(f, queue)
  * ----------------------------------------------------------------------------
  */
 void
-TxRebuildCommand(TxCommand *cmd)
+TxRebuildCommand(
+    TxCommand *cmd)
 {
     char *cptr, *tptr, c;
 
@@ -1344,11 +1347,11 @@ TxRebuildCommand(TxCommand *cmd)
  */
 
 int
-TxTclDispatch(clientData, argc, argv, quiet)
-   ClientData clientData;
-   int argc;
-   char *argv[];
-   bool quiet;
+TxTclDispatch(
+   ClientData clientData,
+   int argc,
+   char *argv[],
+   bool quiet)
 {
     int result;
     int n, asize;
@@ -1448,8 +1451,8 @@ TxTclDispatch(clientData, argc, argv, quiet)
  */
 
 void
-TxDispatch(f)
-    FILE *f;		/* Read commands from this file instead of
+TxDispatch(
+    FILE *f)		/* Read commands from this file instead of
 			 * from the mouse or keyboard.
 			 */
 {
@@ -1641,7 +1644,7 @@ done:
  */
 
 void
-txCommandsInit()
+txCommandsInit(void)
 {
     txZeroTime.tv_sec = 0;
     txZeroTime.tv_usec = 0;
