@@ -85,9 +85,6 @@ typedef Tile *TileStore;
 /* Page size is 4KB so we mmap a segment equal to 64 pages */
 #define TILE_STORE_BLOCK_SIZE (4 * 1024 * 64)
 
-extern Tile *TileStoreFreeList;
-extern Tile *TileStoreFreeList_end;
-
 #endif /* HAVE_SYS_MMAN_H */
 
 #define	BOTTOM(tp)		((tp)->ti_ll.p_y)
