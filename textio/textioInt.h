@@ -22,6 +22,7 @@
 #ifndef _TEXTIOINT_H
 #define _TEXTIOINT_H
 
+#include "utils/magic.h"
 #include "textio/textio.h"
 #include "textio/txcommands.h"
 
@@ -48,16 +49,16 @@ typedef struct {
 } txTermState;
 #endif /* SYSV */
 
-extern bool TxGetInputEvent();
+extern bool TxGetInputEvent(bool block, bool returnOnSigWinch);
 
 /* Routines with variable argument lists */
 
-extern void txFprintfBasic(FILE *, const char *fmt, ...) ATTR_FORMAT_PRINTF_2;
+extern void txFprintfBasic(FILE *f, const char *fmt, ...) ATTR_FORMAT_PRINTF_2;
 
 /* C99 compat */
-void txCommandsInit();
-int  TranslateChar();
-char *TxGetLineWPrompt();
+extern void txCommandsInit(void);
+extern int TranslateChar(int key);
+extern char *TxGetLineWPrompt(char *dest, int maxChars, char *prompt, char *prefix);
 
 #ifdef MAGIC_WRAPPER
 /* tcltk/tclmagic.c has a function implementation prototype mimics vfprintf() mapping

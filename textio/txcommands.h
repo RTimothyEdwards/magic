@@ -23,6 +23,7 @@
 
 #include "utils/magic.h"
 #include "utils/geometry.h"
+#include "windows/windows.h"	/* MagWindow */
 
 /* Structure of one Magic command.  All commands are in the same format.
  * Commands are tagged with the point and window at which the command was
@@ -117,24 +118,24 @@ extern TxCommand TxCurCommand;
 /* procedures to help in making device command routines */
 
 extern void TxAddInputDevice(const fd_set *fdmask, void (*inputProc)(), ClientData cdata);		/* Can read multiple file desc. */
-extern void TxAdd1InputDevice();	/* Can read only 1 file desc. */
+extern void TxAdd1InputDevice(int fd, void (*inputProc)(), ClientData cdata);	/* Can read only 1 file desc. */
 extern void TxDeleteInputDevice(const fd_set *fdmask);
-extern void TxDelete1InputDevice();
+extern void TxDelete1InputDevice(int fd);
 
 /* Routines to manipulate the current point.  Only really used for command
  * scripts.
  */
-extern void TxSetPoint();
-extern int TxGetPoint();
-extern void TxClearPoint();
+extern void TxSetPoint(int x, int y, int wid);
+extern int TxGetPoint(Point *tx_p);
+extern void TxClearPoint(void);
 
 /* Routines to handle command logging.
  */
-extern void TxLogStart();
-extern void TxLogStop();
-extern void TxLogUpdate();
-extern void TxLogSuspend();
-extern void TxLogResume();
+extern void TxLogStart(char *fileName, MagWindow *mw);
+extern void TxLogStop(void);
+extern void TxLogUpdate(void);
+extern void TxLogSuspend(void);
+extern void TxLogResume(void);
 
 
 /* Routines for handling input events.  A typical device driver in the
@@ -142,25 +143,25 @@ extern void TxLogResume();
  * then put them in the input queue via TxAddEvent().
  */
 
-extern TxInputEvent *TxNewEvent();
-extern void TxAddEvent();
-extern void TxPrintEvent();
-extern void TxFreeEvent();
-extern void TxReleaseButton();
+extern TxInputEvent *TxNewEvent(void);
+extern void TxAddEvent(TxInputEvent *event);
+extern void TxPrintEvent(TxInputEvent *event);
+extern void TxFreeEvent(TxInputEvent *event);
+extern void TxReleaseButton(int but);
 
 /* Routines for dealing with commands.  Usually only used within this
  * module, although they may be used elsewhere.
  */
-extern void TxPrintCommand();
-extern TxCommand *TxNewCommand();
-extern void TxFreeCommand();
-extern void TxParseString();
-extern void TxDispatch();
-extern void TxRebuildCommand();
+extern void TxPrintCommand(TxCommand *cmd);
+extern TxCommand *TxNewCommand(void);
+extern void TxFreeCommand(TxCommand *command);
+extern void TxParseString(char *str, void *q, void *event);
+extern void TxDispatch(FILE *f);
+extern void TxRebuildCommand(TxCommand *cmd);
 extern int TxCommandNumber;	/* Serial number of current command. */
 
 #ifdef MAGIC_WRAPPER
-extern int TxTclDispatch();
+extern int TxTclDispatch(ClientData clientData, int argc, char *argv[], bool quiet);
 #endif
 
 #endif /* _TXCOMMANDS_H */

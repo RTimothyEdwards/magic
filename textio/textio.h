@@ -26,6 +26,7 @@
 #define _TEXTIO_H
 
 #include "utils/magic.h"
+#include "utils/dqueue.h" /* DQueue */
 
 #ifdef MAGIC_WRAPPER
 extern char *TxBuffer;
@@ -58,13 +59,13 @@ extern int TxCurButtons;
 #endif  /* MAGIC_WRAPPER */
 
 /* printing procedures */
-extern bool TxPrintOn();  	/* enables TxPrintf output */
-extern bool TxPrintOff();	/* disables TxPrintf output */
-extern void TxFlush();
-extern void TxFlushOut();
-extern void TxFlushErr();
-extern void TxUseMore();
-extern void TxStopMore();
+extern bool TxPrintOn(void);  	/* enables TxPrintf output */
+extern bool TxPrintOff(void);	/* disables TxPrintf output */
+extern void TxFlush(void);
+extern void TxFlushOut(void);
+extern void TxFlushErr(void);
+extern void TxUseMore(void);
+extern void TxStopMore(void);
 
 /* printing procedures with variable arguments lists */
 extern void TxError(const char *, ...) ATTR_FORMAT_PRINTF_1;
@@ -73,30 +74,30 @@ extern void TxPrintf(const char *, ...) ATTR_FORMAT_PRINTF_1;
 extern char *TxPrintString(const char *, ...) ATTR_FORMAT_PRINTF_1;
 
 /* input procedures */
-extern char *TxGetLinePrompt();
-extern char *TxGetLine();
-extern int TxGetChar();
-extern int TxDialog();
+extern char *TxGetLinePrompt(char *dest, int maxChars, char *prompt);
+extern char *TxGetLine(char *line, int len);
+extern int TxGetChar(void);
+extern int TxDialog(char *prompt, char *(responses[]), int defresp);
 
 /* prompting procedures */
-extern void TxSetPrompt();
-extern void TxPrompt();
-extern void TxUnPrompt();
-extern void TxRestorePrompt();
-extern void TxReprint();
+extern void TxSetPrompt(char ch);
+extern void TxPrompt(void);
+extern void TxUnPrompt(void);
+extern void TxRestorePrompt(void);
+extern void TxReprint(void);
 
 /* terminal-state procedures */
-extern void TxSetTerminal();
+extern void TxSetTerminal(void);
 extern void TxResetTerminal(bool force);
 extern char TxEOFChar;			/* The current EOF character */
 extern char TxInterruptChar;		/* The current interrupt character */
 
 /* command procedures */
-extern void TxDispatch();
+extern void TxDispatch(FILE *f);
 
 /* C99 compat */
-extern void TxMore();
-extern void txGetFileCommand();
+extern void TxMore(char *mesg);
+extern void txGetFileCommand(FILE *f, DQueue *queue);
 
 /* variables that tell if stdin and stdout are to a terminal */
 extern bool TxStdinIsatty;
@@ -104,9 +105,9 @@ extern bool TxStdoutIsatty;
 #define TxInteractive	(TxStdinIsatty && TxStdoutIsatty)
 
 /* Misc procs */
-void TxInit();
+extern void TxInit(void);
 #ifdef USE_READLINE
-void TxInitReadline();
+extern void TxInitReadline(void);
 #endif
 
 #define   TX_MAX_OPEN_FILES       20
