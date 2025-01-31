@@ -56,7 +56,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "plow/plow.h"
 
 /* Cannot include tcltk/tclmagic.h for a clash with utils/magic.h
-extern int Tcl_printf(FILE *, char *, va_list); */
+extern int Tcl_printf(FILE *, const char *, va_list); */
 
 global int  TechFormatVersion;
 global bool TechOverridesDefault;
