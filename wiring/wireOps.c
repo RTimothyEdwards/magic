@@ -81,12 +81,12 @@ wireFindRootWindow(
 				 */
 {
     MagWindow *mw;
-    extern int wireFindRootFunc();
+    extern int wireFindRootFunc(MagWindow *window, ClientData cdata); /* forward declaration cb_windows_search_t (MagWindow **) */
 
     mw = NULL;
     wireDesiredDef = rootDef;
     (void) WindSearch(DBWclientID, (ClientData) NULL, (Rect *) NULL,
-	    wireFindRootFunc, (ClientData) &mw);
+	    wireFindRootFunc, PTR2CD(&mw));
     return mw;
 }
 
@@ -99,8 +99,9 @@ wireFindRootWindow(
 int
 wireFindRootFunc(
     MagWindow *window,		/* A layout window. */
-    MagWindow **mwPtr)		/* Copy layout window pointer to this */
+    ClientData cdata)		/* Copy layout window pointer to this */
 {
+    MagWindow **mwPtr = (MagWindow **)CD2PTR(cdata);
     CellUse *use;
 
     use = (CellUse *) window->w_surfaceID;
