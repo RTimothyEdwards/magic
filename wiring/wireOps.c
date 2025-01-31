@@ -75,8 +75,8 @@ static CellDef *wireDesiredDef;
  */
 
 CellUse *
-wireFindRootUse(rootDef)
-    CellDef *rootDef;		/* Root definition for which a root use
+wireFindRootUse(
+    CellDef *rootDef)		/* Root definition for which a root use
 				 * is desired.
 				 */
 {
@@ -96,9 +96,9 @@ wireFindRootUse(rootDef)
  */
 
 int
-wireFindRootFunc(window, cellUsePtr)
-    MagWindow *window;			/* A layout window. */
-    CellUse **cellUsePtr;		/* Pointer to cellUse pointer. */
+wireFindRootFunc(
+    MagWindow *window,			/* A layout window. */
+    CellUse **cellUsePtr)		/* Pointer to cellUse pointer. */
 {
     CellUse *use;
 
@@ -128,12 +128,12 @@ wireFindRootFunc(window, cellUsePtr)
  */
 
 void
-WirePickType(type, width)
-    TileType type;		/* New type of material to use for wiring.
+WirePickType(
+    TileType type,		/* New type of material to use for wiring.
 				 * If less than zero, then pick a new type
 				 * based on what's underneath the cursor.
 				 */
-    int width;			/* Width to use for future wiring.  If type
+    int width)			/* Width to use for future wiring.  If type
 				 * is less than zero then this parameter is
 				 * ignored and the width of the material
 				 * underneath the cursor is used.
@@ -253,13 +253,13 @@ WirePickType(type, width)
  */
 
 int
-WireGetWidth()
+WireGetWidth(void)
 {
     return WireWidth;
 }
 
 TileType
-WireGetType()
+WireGetType(void)
 {
     return WireType;
 }
@@ -283,16 +283,16 @@ WireGetType()
  */
 
 void
-WireAddLeg(rect, point, direction)
-    Rect *rect;			/* Describes the current (last-painted) leg
+WireAddLeg(
+    Rect *rect,			/* Describes the current (last-painted) leg
 				 * of the wire, in root coordinates.  If NULL,
 				 * then the box is used for this.
 				 */
-    Point *point;		/* Describes where to paint the wire to, in
+    Point *point,		/* Describes where to paint the wire to, in
 				 * root coordinates.  If NULL, then the cursor
 				 * location is used as the point.
 				 */
-    int direction;		/* Which direction to run the wire, in root
+    int direction)		/* Which direction to run the wire, in root
 				 * coords.  If WIRE_CHOOSE, then pick a
 				 * direction based on point.  If WIRE_VERTICAL
 				 * or WIRE_HORIZONTAL, then run the wire in
@@ -539,7 +539,7 @@ WireAddLeg(rect, point, direction)
  */
 
 void
-WireShowLeg()
+WireShowLeg(void)
 {
     Rect current, new, leg, editArea, *rect = &current;
     CellDef *boxRootDef;
@@ -713,12 +713,12 @@ WireShowLeg()
 #define WIRING_CONTACT_DOWN	0
 
 void
-WireAddContact(newType, newWidth)
-    TileType newType;		/* New type of material to use for wiring.
+WireAddContact(
+    TileType newType,		/* New type of material to use for wiring.
 				 * If less than zero, pick a new type based
 				 * on what's underneath the cursor.
 				 */
-    int newWidth;		/* New width to use for future wiring.  If
+    int newWidth)		/* New width to use for future wiring.  If
 				 * newType is less than zero, then this
 				 * parameter is ignored and the width of
 				 * the material underneath the cursor is
@@ -1051,9 +1051,9 @@ WireAddContact(newType, newWidth)
  */
 
 void
-WireButtonProc(w, cmd)
-    MagWindow *w;			/* Window in which button was pushed. */
-    TxCommand *cmd;		/* Describes exactly what happened. */
+WireButtonProc(
+    MagWindow *w,		/* Window in which button was pushed. */
+    TxCommand *cmd)		/* Describes exactly what happened. */
 {
     /* We do commands on the down-pushes and ignore the releases. */
 
@@ -1092,7 +1092,7 @@ WireButtonProc(w, cmd)
  */
 
 void
-WireInit()
+WireInit(void)
 {
     static char *doc =
 "You are currently using the \"wiring\" tool.  The button actions are:\n\
