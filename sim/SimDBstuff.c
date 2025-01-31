@@ -575,8 +575,6 @@ SimSrConnect(
     struct conSrArg csa;
     int startPlane, result;
     Tile *startTile;			/* Starting tile for search. */
-    extern int dbSrConnectFunc();	/* Forward declaration. */
-    extern int dbSrConnectStartFunc();
 
     result = 0;
     csa.csa_def = def;
@@ -592,7 +590,7 @@ SimSrConnect(
     {
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
-	    dbSrConnectStartFunc, (ClientData) &startTile) != 0) break;
+	    dbSrConnectStartFunc, PTR2CD(&startTile)) != 0) break;
     }
     if (startTile == NULL) return 0;
 
@@ -603,7 +601,7 @@ SimSrConnect(
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
     csa.csa_pNum = startPlane;
-    if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
+    if (dbSrConnectFunc(startTile, PTR2CD(&csa)) != 0) result = 1;
 
     return result;
 }

@@ -956,6 +956,8 @@ extern bool DBNearestLabel();
 extern int DBSrLabelLoc();
 extern TileType DBTransformDiagonal();
 extern int dbcUnconnectFunc(Tile *tile, ClientData clientData); /* (notused) */
+extern int dbSrConnectFunc(Tile *tile, ClientData clientData); /*  (struct conSrArg *csa) */
+extern int dbSrConnectStartFunc(Tile *tile, ClientData clientData); /* cb_database_srpaintarea_t (Tile **pTile) */
 
 /* C99 compat */
 extern void DBEraseValid();

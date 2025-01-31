@@ -179,7 +179,6 @@ DBSrConnectOnePlane(startTile, connect, func, clientData)
 {
     struct conSrArg csa;
     int result;
-    extern int dbSrConnectFunc();	/* Forward declaration. */
 
     result = 0;
     csa.csa_def = (CellDef *)NULL;
@@ -193,7 +192,7 @@ DBSrConnectOnePlane(startTile, connect, func, clientData)
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
     csa.csa_pNum = -1;
-    if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
+    if (dbSrConnectFunc(startTile, PTR2CD(&csa)) != 0) result = 1;
 
     /* Pass 2.  Don't call any client function, just clear the marks.
      * Don't allow any interruptions.
@@ -202,7 +201,7 @@ DBSrConnectOnePlane(startTile, connect, func, clientData)
     SigDisableInterrupts();
     csa.csa_clientFunc = NULL;
     csa.csa_clear = TRUE;
-    (void) dbSrConnectFunc(startTile, &csa);
+    (void) dbSrConnectFunc(startTile, PTR2CD(&csa));
     SigEnableInterrupts();
 
     return result;
@@ -278,8 +277,6 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     struct conSrArg csa;
     int startPlane, result;
     Tile *startTile;			/* Starting tile for search. */
-    extern int dbSrConnectFunc();	/* Forward declaration. */
-    extern int dbSrConnectStartFunc();
 
     result = 0;
     csa.csa_def = def;
@@ -296,7 +293,7 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     	csa.csa_pNum = startPlane;
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
-	    dbSrConnectStartFunc, (ClientData) &startTile) != 0) break;
+	    dbSrConnectStartFunc, PTR2CD(&startTile)) != 0) break;
     }
     if (startTile == NULL) return 0;
     /* The following lets us call DBSrConnect recursively */
@@ -309,7 +306,7 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clientDefault = CLIENTDEFAULT;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
-    if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
+    if (dbSrConnectFunc(startTile, PTR2CD(&csa)) != 0) result = 1;
 
     /* Pass 2.  Don't call any client function, just clear the marks.
      * Don't allow any interruptions.
@@ -318,17 +315,20 @@ DBSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     SigDisableInterrupts();
     csa.csa_clientFunc = NULL;
     csa.csa_clear = TRUE;
-    (void) dbSrConnectFunc(startTile, &csa);
+    (void) dbSrConnectFunc(startTile, PTR2CD(&csa));
     SigEnableInterrupts();
 
     return result;
 }
 
+/** @typedef cb_database_srpaintarea_t */
 int
-dbSrConnectStartFunc(tile, pTile)
-    Tile *tile;			/* This will be the starting tile. */
-    Tile **pTile;		/* We store tile's address here. */
+dbSrConnectStartFunc(
+    Tile *tile,		/* This will be the starting tile. */
+    ClientData cdata)	/* We store tile's address here. */
+			/* (Tile **pTile) */
 {
+    Tile **pTile = (Tile **)CD2PTR(cdata);
     *pTile = tile;
     return 1;
 }
@@ -368,8 +368,6 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     struct conSrArg csa;
     int startPlane, result;
     Tile *startTile;			/* Starting tile for search. */
-    extern int dbSrConnectFunc();	/* Forward declaration. */
-    extern int dbSrConnectStartFunc();
 
     result = 0;
     csa.csa_def = def;
@@ -386,7 +384,7 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     	csa.csa_pNum = startPlane;
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
-	    dbSrConnectStartFunc, (ClientData) &startTile) != 0) break;
+	    dbSrConnectStartFunc, PTR2CD(&startTile)) != 0) break;
     }
     if (startTile == NULL) return 0;
     /* The following lets us call DBSrConnect recursively */
@@ -399,7 +397,7 @@ DBSrConnectOnePass(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clientDefault = CLIENTDEFAULT;
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
-    if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
+    if (dbSrConnectFunc(startTile, PTR2CD(&csa)) != 0) result = 1;
 
     return result;
 }
@@ -465,10 +463,12 @@ dbcFindTileFunc(tile, arg)
  */
 
 int
-dbSrConnectFunc(tile, csa)
-    Tile *tile;			/* Tile that is connected. */
-    struct conSrArg *csa;	/* Contains information about the search. */
+dbSrConnectFunc(
+    Tile *tile,		/* Tile that is connected. */
+    ClientData cdata)	/* Contains information about the search. */
+			/* (struct conSrArg *csa) */
 {
+    struct conSrArg *csa = (struct conSrArg *)CD2PTR(cdata);
     Tile *t2;
     Rect tileArea;
     int i, pNum;
