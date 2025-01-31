@@ -474,7 +474,7 @@ dbSrConnectFunc(tile, csa)
     int i, pNum;
     int result = 0;
     bool callClient;
-    TileTypeBitMask *connectMask;
+    const TileTypeBitMask *connectMask;
     TileType loctype, checktype;
     PlaneMask planes;
 
@@ -826,7 +826,7 @@ dbcConnectLabelFunc(scx, lab, tpath, csa2)
 	CellDef *orig_def = scx->scx_use->cu_def;
 	Label *slab;
 	int lidx = lab->lab_port;
-	TileTypeBitMask *connectMask;
+	const TileTypeBitMask *connectMask;
 
 	/* Check for equivalent ports. For any found, call	*/
 	/* DBTreeSrTiles recursively on the type and area	*/
@@ -940,7 +940,8 @@ dbcConnectFunc(tile, cx)
 {
     struct conSrArg2 *csa2;
     Rect tileArea, newarea;
-    TileTypeBitMask *connectMask, notConnectMask;
+    const TileTypeBitMask *connectMask;
+    TileTypeBitMask notConnectMask;
     Rect *srArea;
     SearchContext *scx = cx->tc_scx;
     SearchContext scx2;
@@ -1155,7 +1156,7 @@ DBTreeCopyConnect(scx, mask, xMask, connect, area, doLabels, destUse)
 					 */
 {
     struct conSrArg2 csa2;
-    TileTypeBitMask *newmask;
+    const TileTypeBitMask *newmask;
     TileType newtype;
     unsigned char searchtype;
 
