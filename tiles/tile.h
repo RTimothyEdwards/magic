@@ -203,7 +203,6 @@ extern Tile *TiSplitX_Left(Tile *, int);
 extern Tile *TiSplitY_Bottom(Tile *, int);
 extern void  TiJoinX(Tile *, Tile *, Plane *);
 extern void  TiJoinY(Tile *, Tile *, Plane *);
-extern int   TiSrArea();
 extern Tile *TiSrPoint(Tile *, Plane *, Point *);
 
 #define	TiBottom(tp)		(BOTTOM(tp))
