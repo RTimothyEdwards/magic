@@ -56,7 +56,7 @@ int WireUnits;		    // Units per lambda for wiring sizes
  */
 
 void
-WireTechInit()
+WireTechInit(void)
 {
     Contact *contact;
     int i;
@@ -87,10 +87,10 @@ WireTechInit()
 
 	/* ARGSUSED */
 bool
-WireTechLine(sectionName, argc, argv)
-    char *sectionName;		/* Name of this section (unused). */
-    int argc;			/* Number of arguments on line. */
-    char *argv[];		/* Pointers to fields of line. */
+WireTechLine(
+    char *sectionName,		/* Name of this section (unused). */
+    int argc,			/* Number of arguments on line. */
+    char *argv[])		/* Pointers to fields of line. */
 {
     Contact *new;
     int hasExtend = 0;
@@ -193,7 +193,7 @@ WireTechLine(sectionName, argc, argv)
  */
 
 void
-WireTechFinal()
+WireTechFinal(void)
 {
     /* Debugging code to print info about layers: */
 
@@ -223,8 +223,9 @@ WireTechFinal()
  */
 
 void
-WireTechScale(scalen, scaled)
-    int scalen, scaled;
+WireTechScale(
+    int scalen,
+    int scaled)
 {
     Contact *con;
 

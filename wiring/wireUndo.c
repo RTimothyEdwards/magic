@@ -80,7 +80,7 @@ static int wireOldDir = GEO_NORTH;		/* Last direction */
  */
 
 void
-WireUndoInit()
+WireUndoInit(void)
 {
     extern void WireUndoForw(), WireUndoBack();
 
@@ -110,7 +110,7 @@ WireUndoInit()
  */
 
 void
-WireRememberForUndo()
+WireRememberForUndo(void)
 {
     WireUndoEvent *wue;
 
@@ -144,8 +144,8 @@ WireRememberForUndo()
  */
 
 void
-WireUndoForw(wue)
-    WireUndoEvent *wue;			/* Event to be redone. */
+WireUndoForw(
+    WireUndoEvent *wue)			/* Event to be redone. */
 {
     WireType = wireOldType = wue->wue_newType;
     WireWidth = wireOldWidth = wue->wue_newWidth;
@@ -153,8 +153,8 @@ WireUndoForw(wue)
 }
 
 void
-WireUndoBack(wue)
-    WireUndoEvent *wue;			/* Event to be undone. */
+WireUndoBack(
+    WireUndoEvent *wue)			/* Event to be undone. */
 {
     WireType = wireOldType = wue->wue_oldType;
     WireWidth = wireOldWidth = wue->wue_oldWidth;
