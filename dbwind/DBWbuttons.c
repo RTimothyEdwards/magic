@@ -58,7 +58,7 @@ static char *dbwButtonDoc[MAXBUTTONHANDLERS];
 			/* A documentation string for each handler:  tells
 			 * what the button pushes and releases mean.
 			 */
-static void (*dbwButtonProcs[MAXBUTTONHANDLERS])();
+static cb_database_buttonhandler_t dbwButtonProcs[MAXBUTTONHANDLERS];
 			/* A procedure for each handler that is invoked
 			 * on button presses and releases when that handler
 			 * is the current one.
@@ -68,7 +68,7 @@ static int dbwButtonCursors[MAXBUTTONHANDLERS];
 
 static int dbwButtonCurrentIndex;
 			/* Index of current handler. */
-void (*DBWButtonCurrentProc)();
+cb_database_buttonhandler_t DBWButtonCurrentProc;
 			/* Current button-handling procedure. */
 
 static int buttonCorner = TOOL_ILG;	/* Nearest corner when button went
@@ -108,18 +108,19 @@ static int buttonCorner = TOOL_ILG;	/* Nearest corner when button went
  */
 
 void
-DBWAddButtonHandler(name, proc, cursor, doc)
-    char *name;			/* Name of this button handler.  This name
+DBWAddButtonHandler(
+    const char *name,		/* Name of this button handler.  This name
 				 * is what's passed to DBWChangeButtonHandler
 				 * to activate the handler.
 				 */
-    void (*proc)();		/* Procedure to call on button actions when
+    const cb_database_buttonhandler_t proc,
+				/* Procedure to call on button actions when
 				 * this handler is active.
 				 */
-    int cursor;			/* Cursor shape (e.g. STYLE_CURS_NORMAL) to
+    int cursor,			/* Cursor shape (e.g. STYLE_CURS_NORMAL) to
 				 * use when this handler is active.
 				 */
-    char *doc;			/* A documentation string for this handler:
+    const char *doc)		/* A documentation string for this handler:
 				 * describes what the button pushes do when
 				 * this handler is active.
 				 */
