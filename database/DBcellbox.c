@@ -59,15 +59,15 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 char *
-DBPrintUseId(scx, name, size, display_only)
-    SearchContext *scx;	/* Pointer to current search context, specifying a
+DBPrintUseId(
+    SearchContext *scx,	/* Pointer to current search context, specifying a
 			 * cell use and X,Y array indices.
 			 */
-    char *name;		/* Pointer to string into which we will copy the
+    char *name,		/* Pointer to string into which we will copy the
 			 * print name of this instance.
 			 */
-    int size;		/* Maximum number of characters to copy into string. */
-    bool display_only;	/* TRUE if called for displaying only */
+    int size,		/* Maximum number of characters to copy into string. */
+    bool display_only)	/* TRUE if called for displaying only */
 {
     CellUse *use = scx->scx_use;
     char *sp, *id, *ep;
