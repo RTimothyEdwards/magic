@@ -62,7 +62,6 @@ global const Rect TiPlaneRect = { {MINFINITY+2, MINFINITY+2}, {INFINITY-2, INFIN
 #ifdef HAVE_SYS_MMAN_H
 
 static Tile *TileStoreFreeList = NULL;
-static Tile *TileStoreFreeList_end = NULL;
 
 /* The new Tile Allocation scheme (Magic 8.0) */
 
@@ -699,11 +698,8 @@ getTileFromTileStore(void)
     if (TileStoreFreeList)
     {
 	_return_tile = TileStoreFreeList;
-	Tile *nextfree = (Tile *)CD2PTR(TileStoreFreeList->ti_client);
-	TileStoreFreeList = nextfree;
-	if (!nextfree)
-	    TileStoreFreeList_end = NULL;
-	return _return_tile;
+	TileStoreFreeList = (Tile *)CD2PTR(TileStoreFreeList->ti_client);
+	return _return_tile; /* fast path */
     }
 
     /* Get it from the mmap */
@@ -737,8 +733,6 @@ TileStoreFree(
     Tile *ptr)
 {
     ptr->ti_client = PTR2CD(TileStoreFreeList);
-    if (!TileStoreFreeList_end)
-        TileStoreFreeList_end = ptr;
     TileStoreFreeList = ptr;
 }
 
