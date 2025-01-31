@@ -46,13 +46,6 @@
 #include "utils/styles.h"
 #include "graphics/graphics.h"
 
-/* Forward declarations */
-
-extern char *DBPrintUseId();
-extern int  dbcUnconnectFunc();
-extern void SimInitScxStk();
-extern void SimPopScx();
-extern void SimMakePathname();
 
 static char 		bestName[256];
 
