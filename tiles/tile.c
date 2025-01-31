@@ -57,7 +57,7 @@ TiSetBody(tp, b)
  * this area.
  */
 
-global Rect TiPlaneRect = { {MINFINITY+2, MINFINITY+2}, {INFINITY-2, INFINITY-2} };
+global const Rect TiPlaneRect = { {MINFINITY+2, MINFINITY+2}, {INFINITY-2, INFINITY-2} };
 
 #ifdef HAVE_SYS_MMAN_H
 
@@ -212,7 +212,7 @@ TiFreePlane(plane)
 
 void
 TiToRect(tile, rect)
-    Tile *tile; /* Tile whose bounding box is to be stored in *rect */
+    const Tile *tile; /* Tile whose bounding box is to be stored in *rect */
     Rect *rect; /* Pointer to rect to be set to bounding box */
 {
     rect->r_xbot = LEFT(tile);

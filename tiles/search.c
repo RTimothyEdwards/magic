@@ -53,7 +53,7 @@ TiSrPoint(hintTile, plane, point)
 				 * with the plane instead.
 				 */
     Plane * plane;		/* Plane (containing hint tile pointer) */
-    Point * point;	/* Point for which to search */
+    const Point * point;	/* Point for which to search */
 {
     Tile *tp = (hintTile) ? hintTile : PlaneGetHint(plane);
 
