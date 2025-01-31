@@ -88,7 +88,7 @@ HashTable cellname_hash;
 
 static int interactive_flag;
 
-char *magic_direction_list[] = {
+const char *magic_direction_list[] = {
   "bottom", "down", "e", "east", "left", "n", "north", "right",
   "s", "south", "top", "up", "w", "west", (char *)NULL };
 
