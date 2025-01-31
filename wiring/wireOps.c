@@ -81,12 +81,12 @@ wireFindRootUse(
 				 */
 {
     CellUse *result;
-    extern int wireFindRootFunc();
+    extern int wireFindRootFunc(MagWindow *window, ClientData cdata); /* forward declaration cb_windows_search_t (CellUse **) */
 
     result = NULL;
     wireDesiredDef = rootDef;
     (void) WindSearch(DBWclientID, (ClientData) NULL, (Rect *) NULL,
-	    wireFindRootFunc, (ClientData) &result);
+	    wireFindRootFunc, PTR2CD(&result));
     return result;
 }
 
@@ -98,8 +98,9 @@ wireFindRootUse(
 int
 wireFindRootFunc(
     MagWindow *window,			/* A layout window. */
-    CellUse **cellUsePtr)		/* Pointer to cellUse pointer. */
+    ClientData cdata)			/* Pointer to cellUse pointer. */
 {
+    CellUse **cellUsePtr = (CellUse **)CD2PTR(cdata);
     CellUse *use;
 
     use = (CellUse *) window->w_surfaceID;
