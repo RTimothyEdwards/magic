@@ -114,8 +114,8 @@ PlaneMask	SimFetPlanes;
  */
 
 void
-SimAddDefList(newdef)
-    CellDef *newdef;
+SimAddDefList(
+    CellDef *newdef)
 {
     DefListElt *d;
 
@@ -163,7 +163,7 @@ SimAddDefList(newdef)
  */
 
 void
-SimInitDefList()
+SimInitDefList(void)
 {
     DefListElt *p, *q;
 
@@ -194,8 +194,8 @@ SimInitDefList()
  */
 
 void
-SimAddNodeList(newnode)
-    NodeRegion *newnode;
+SimAddNodeList(
+    NodeRegion *newnode)
 {
     if( NodeRegList != (NodeRegion *) NULL )
 	newnode->nreg_next = NodeRegList;
@@ -220,7 +220,7 @@ SimAddNodeList(newnode)
  */
 
 void
-SimFreeNodeRegs()
+SimFreeNodeRegs(void)
 {
     NodeRegion *p, *q;
 
@@ -239,7 +239,8 @@ SimFreeNodeRegs()
  * to the region being searched.
  *----------------------------------------------------------------
  */
-int SimInitConnTables()
+int
+SimInitConnTables(void)
 {
     int  i, t, sd, p;
     ExtDevice *devptr;
@@ -337,10 +338,11 @@ typedef struct			/* return value from SimFindOneNode */
  *
  *----------------------------------------------------------------
  */
-char *SimTxtorLabel( nterm, tm, trans )
-    int		nterm;
-    Transform	*tm;
-    SimTrans	*trans;
+char *
+SimTxtorLabel(
+    int		nterm,
+    Transform	*tm,
+    SimTrans	*trans)
 {
     static char	name[30];
     Rect	r1, r2;
@@ -356,18 +358,20 @@ char *SimTxtorLabel( nterm, tm, trans )
     return( name );
 }
 
-int SimSDTransFunc( tile, ptile )
-    Tile  *tile;
-    Tile  **ptile;
+int
+SimSDTransFunc(
+    Tile  *tile,
+    Tile  **ptile)
 {
     *ptile = tile;
     return( 1 );
 }
 
 
-int SimTransTerms( bp, trans )
-    Boundary	*bp;
-    SimTrans	*trans;
+int
+SimTransTerms(
+    Boundary	*bp,
+    SimTrans	*trans)
 {
     TransTerm	*term;
     Tile	*tile = bp->b_outside;
@@ -427,9 +431,10 @@ int SimTransTerms( bp, trans )
 }
 
 
-int SimTermNum( trans, reg )
-    SimTrans	*trans;
-    NodeRegion	*reg;
+int
+SimTermNum(
+    SimTrans	*trans,
+    NodeRegion	*reg)
 {
     int		i, changed;
     TransTerm	*p1, *p2, tmp;
@@ -470,10 +475,10 @@ int SimTermNum( trans, reg )
 
 
 int
-SimTransistorTile(tile, pNum, arg)
-    Tile	*tile;
-    int		pNum;
-    FindRegion	*arg;
+SimTransistorTile(
+    Tile	*tile,
+    int		pNum,
+    FindRegion	*arg)
 {
     int i;
     TileType t;
@@ -494,10 +499,11 @@ SimTransistorTile(tile, pNum, arg)
 }
 
 
-int SimFindTxtor( tile, pNum, arg )
-  Tile		*tile;
-  int		pNum;
-  FindRegion	*arg;
+int
+SimFindTxtor(
+    Tile	*tile,
+    int		pNum,
+    FindRegion	*arg)
 {
     TileType	type;
 
@@ -549,9 +555,9 @@ int SimFindTxtor( tile, pNum, arg )
  */
 
 NodeSpec *
-SimFindOneNode( sx, tile )
-    SearchContext	*sx;
-    Tile		*tile;
+SimFindOneNode(
+    SearchContext	*sx,
+    Tile		*tile)
 {
     CellDef		*def = sx->scx_use->cu_def;
     NodeRegion		*reg;
@@ -696,12 +702,12 @@ SimFindOneNode( sx, tile )
  */
 
 char *
-SimGetNodeName(sx, tp, path)
-    SearchContext	*sx;		/* current search context */
-    Tile		*tp;		/* tile in this cell which is part
+SimGetNodeName(
+    SearchContext	*sx,		/* current search context */
+    Tile		*tp,		/* tile in this cell which is part
 					 * of the node
 					 */
-    char		*path;		/* path name of hierarchy of search */
+    char		*path)		/* path name of hierarchy of search */
 {
     CellDef	*def = sx->scx_use->cu_def;
     NodeRegion 	*nodeList;
@@ -820,7 +826,7 @@ SimGetNodeName(sx, tp, path)
  */
 
 void
-SimGetNodeCleanUp()
+SimGetNodeCleanUp(void)
 {
     SimFreeNodeRegs();
     SimInitDefList();
