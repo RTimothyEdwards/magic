@@ -25,6 +25,7 @@
 
 #include "database/database.h"
 #include "windows/windows.h"
+#include "textio/txcommands.h" /* TxCommand */
 
 /*--------------------------- Window Client Data ----------------------------
  * The dbwind package keeps special client data that it uses to
@@ -141,7 +142,9 @@ extern char *DBWStyleType;
  */
 
 extern void (*DBWButtonCurrentProc)();
-extern void DBWAddButtonHandler();
+typedef void (*cb_database_buttonhandler_t)(MagWindow *w, TxCommand *cmd);
+extern void DBWAddButtonHandler(const char *name, const cb_database_buttonhandler_t proc,
+                                int cursor, const char *doc);
 extern char *DBWChangeButtonHandler();
 extern void DBWPrintButtonDoc();
 extern void DBWBoxHandler();
