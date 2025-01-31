@@ -109,7 +109,7 @@ SimGetNodeCommand(cmd)
      * step the clock once for every node in the selection.
      */
 
-    static char *RsimNodeCommands[] =
+    static const char *RsimNodeCommands[] =
       {
 	"?",
 	"!",
@@ -162,7 +162,8 @@ SimStartRsim(argv)
     char *getenv();
     char rsimfile[256];
     char *cad = BIN_DIR;
-    char *src, *dst;
+    const char *src;
+    char *dst;
 
     /* don't start another rsim if one is already running */
 
