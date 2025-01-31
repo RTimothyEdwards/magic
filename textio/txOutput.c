@@ -465,7 +465,7 @@ TxStopMore(void)
 #ifdef	NEED_VFPRINTF
 
 int
-vfprintf(FILR *iop, const char *fmt, va_list args_in)
+vfprintf(FILE *iop, const char *fmt, va_list args_in)
 {
     va_list ap;
     int len;
