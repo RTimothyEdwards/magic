@@ -47,13 +47,13 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
  */
 
 Tile *
-TiSrPoint(hintTile, plane, point)
-    Tile * hintTile;		/* Pointer to tile at which to begin search.
+TiSrPoint(
+    Tile * hintTile,		/* Pointer to tile at which to begin search.
 				 * If this is NULL, use the hint tile stored
 				 * with the plane instead.
 				 */
-    Plane * plane;		/* Plane (containing hint tile pointer) */
-    const Point * point;	/* Point for which to search */
+    Plane * plane,		/* Plane (containing hint tile pointer) */
+    const Point * point)	/* Point for which to search */
 {
     Tile *tp = (hintTile) ? hintTile : plane->pl_hint;
 
