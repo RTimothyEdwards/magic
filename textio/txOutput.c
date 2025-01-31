@@ -356,7 +356,7 @@ TxUseMore(void)
     int pipeEnds[2];
     int moreRunning = TRUE;
     static int moreMsg = FALSE;
-    char *pagername, *pagerpath, *useenv = NULL;
+    const char *pagername, *pagerpath, *useenv = NULL;
     extern char *getenv();
     struct stat buf;
 

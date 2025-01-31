@@ -55,12 +55,12 @@ global bool TxStdoutIsatty;
 #endif
 
 int TxPrefix(void);
-char **magic_completion_function(char *, int, int);
+extern char **magic_completion_function(const char *, int, int);
 extern HashTable cellname_hash;
 
 /* The readline completion function requires a command list containing	*/
 /* just the command name (without the accompanying help text line)	*/
-extern char **magic_command_list;
+extern const char **magic_command_list;
 
 #endif
 
