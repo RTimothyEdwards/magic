@@ -60,7 +60,10 @@ int  TranslateChar();
 char *TxGetLineWPrompt();
 
 #ifdef MAGIC_WRAPPER
-int  Tcl_printf();
+/* tcltk/tclmagic.c has a function implementation prototype mimics vfprintf() mapping
+ * when ifndef MAGIC_WRAPPER
+ */
+extern int Tcl_printf(FILE *fp, const char *fmt, va_list ap);
 #endif
 
 #endif /* _TEXTIOINT_H */
