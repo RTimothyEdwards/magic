@@ -900,7 +900,7 @@ extern TileType DBTechFindStacking();
 extern bool DBIsContact();
 extern PlaneMask DBLayerPlanes();
 
-extern TileTypeBitMask *DBResidueMask();
+extern __nodiscard__ TileTypeBitMask *DBResidueMask(TileType type);
 extern void DBFullResidueMask();
 
     /* Miscellaneous */
