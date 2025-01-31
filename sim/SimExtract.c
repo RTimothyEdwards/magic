@@ -341,7 +341,7 @@ typedef struct			/* return value from SimFindOneNode */
 char *
 SimTxtorLabel(
     int		nterm,
-    Transform	*tm,
+    const Transform *tm,
     SimTrans	*trans)
 {
     static char	name[30];
@@ -707,7 +707,7 @@ SimGetNodeName(
     Tile		*tp,		/* tile in this cell which is part
 					 * of the node
 					 */
-    char		*path)		/* path name of hierarchy of search */
+    const char		*path)		/* path name of hierarchy of search */
 {
     CellDef	*def = sx->scx_use->cu_def;
     NodeRegion 	*nodeList;
