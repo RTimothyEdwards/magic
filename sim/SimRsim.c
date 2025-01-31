@@ -78,7 +78,6 @@ static int      rsim_pid;
 
 bool	SimRsimRunning = FALSE;
 bool	SimHasCoords = FALSE;
-bool	SimGetReplyLine();
 
 /* Forward declaration */
 void SimStopRsim();
