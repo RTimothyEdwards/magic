@@ -175,10 +175,11 @@ NullTextSize(text, size, r)
  * ----------------------------------------------------------------------------
  */
 
+/** @typedef cb_textio_input_t */
 void
-nullStdin(fd, cdata)
-    int fd;
-    ClientData cdata;
+nullStdin(
+    int fd,
+    ClientData cdata) /* notused */
 {
     int ch;
     TxInputEvent *event;

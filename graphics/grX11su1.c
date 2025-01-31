@@ -118,7 +118,7 @@ extern void GrX11Close(), GrX11Flush();
 extern bool GrX11Init(), GrX11Create();
 extern void GrX11Delete(), GrX11Configure(), GrX11Raise(), GrX11Lower();
 extern void GrX11Lock(), GrX11Unlock(), GrX11IconUpdate();
-extern void grXWStdin();
+extern void grXWStdin(int fd, ClientData cdata); /* cb_textio_input_t (unused) */
 extern bool grx11GetCursorPos();
 
 
@@ -739,7 +739,7 @@ GrX11Flush ()
 /*
  * ---------------------------------------------------------------------------
  *
- * grXStdin --
+ * grX11Stdin --
  *
  *      Handle the stdin device for the X driver.
  *
@@ -752,8 +752,12 @@ GrX11Flush ()
  * ---------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
+/** @typedef cb_textio_input_t */
 void
-grX11Stdin()
+grX11Stdin(
+    int fd,
+    ClientData cdata) /* notused */
 {
     TxInputEvent *event;
     XEvent	xevent;
@@ -1104,10 +1108,11 @@ x11SetDisplay (dispType, outFileName, mouseFileName)
  * ----------------------------------------------------------------------------
  */
 
+/** @typedef cb_textio_input_t */
 void
-grXWStdin(fd, cdata)
-    int fd;
-    ClientData cdata;
+grXWStdin(
+    int fd,
+    ClientData cdata) /* notused */
 {
     int ch;
     TxInputEvent *event;

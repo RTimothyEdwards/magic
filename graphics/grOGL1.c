@@ -64,7 +64,7 @@ extern void GrOGLClose(), GrOGLFlush();
 extern void GrOGLDelete(), GrOGLConfigure(), GrOGLRaise(), GrOGLLower();
 extern void GrOGLLock(), GrOGLUnlock(), GrOGLIconUpdate();
 extern bool GrOGLInit(), GrOGLCreate();
-extern void grOGLWStdin();
+extern void grOGLWStdin(int fd, ClientData cdata); /* cb_textio_input_t (unused) */
 
 
 /*---------------------------------------------------------
@@ -418,8 +418,11 @@ oglSetProjection(llx, lly, width, height)
 /* is a macro and can be re-implemented using XNextEvent() calls.	*/
 /*----------------------------------------------------------------------*/
 
+/** @typedef cb_textio_input_t */
 void
-pipehandler()
+pipehandler(
+    int fd,
+    ClientData cdata) /* notused */
 {
    TxInputEvent	*event;
    XEvent	xevent;
@@ -757,12 +760,12 @@ oglSetDisplay (dispType, outFileName, mouseFileName)
  *
  * ----------------------------------------------------------------------------
  */
- /*ARGSUSED*/
-
+/*ARGSUSED*/
+/** @typedef cb_textio_input_t */
 void
-grOGLWStdin(fd, cdata)
-   int fd;
-   ClientData cdata;
+grOGLWStdin(
+   int fd,
+   ClientData cdata) /* notused */
 {
    int ch;
    TxInputEvent *event;
