@@ -95,6 +95,7 @@ wireFindRootWindow(
  * with the window's root cellUse (and the search is aborted).
  */
 
+/* @typedef cb_windows_search_t */
 int
 wireFindRootFunc(
     MagWindow *window,		/* A layout window. */
@@ -133,7 +134,7 @@ WirePickType(
 				 * If less than zero, then pick a new type
 				 * based on what's underneath the cursor.
 				 */
-    Point *ppoint,		/* If non-NULL, contains a point position
+    const Point *ppoint,	/* If non-NULL, contains a point position
 				 * from which to get the wire type.
 				 */
     int width)			/* Width to use for future wiring.  If type
@@ -304,7 +305,7 @@ WireAddLeg(
 				 * of the wire, in root coordinates.  If NULL,
 				 * then the box is used for this.
 				 */
-    Point *point,		/* Describes where to paint the wire to, in
+    const Point *point,		/* Describes where to paint the wire to, in
 				 * root coordinates.  If NULL, then the cursor
 				 * location is used as the point.
 				 */
@@ -1070,6 +1071,7 @@ WireAddContact(
  * ----------------------------------------------------------------------------
  */
 
+/** @typedef cb_database_buttonhandler_t */
 void
 WireButtonProc(
     MagWindow *w,		/* Window in which button was pushed. */
@@ -1114,7 +1116,7 @@ WireButtonProc(
 void
 WireInit(void)
 {
-    static char *doc =
+    static const char *doc =
 "You are currently using the \"wiring\" tool.  The button actions are:\n\
    left    - pick a wiring layer and width (same as \":wire type\")\n\
    right   - add a leg to the wire (same as \":wire leg\")\n\

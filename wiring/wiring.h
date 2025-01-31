@@ -72,8 +72,8 @@ extern int WireWidth;		/* Thickness of material to use for wiring. */
 
 /* Procedures for placing wires: */
 
-extern void WirePickType(TileType type, int width);
-extern void WireAddLeg(Rect *rect, Point *point, int direction);
+extern void WirePickType(TileType type, const Point *ppoint, int width);
+extern void WireAddLeg(Rect *rect, const Point *point, int direction);
 extern void WireAddContact(TileType newType, int newWidth);
 extern void WireShowLeg(void);
 extern int WireGetWidth(void);
@@ -88,7 +88,7 @@ extern TileType WireGetType(void);
 /* Procedures for reading the technology file: */
 
 extern void WireTechInit(void);
-extern bool WireTechLine(char *sectionName, int argc, char *argv[]);
+extern bool WireTechLine(const char *sectionName, int argc, char *argv[]);
 extern void WireTechFinal(void);
 extern void WireTechScale(int scalen, int scaled);
 
