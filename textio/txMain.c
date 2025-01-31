@@ -81,7 +81,7 @@ extern char **magic_command_list;
  */
 
 void
-TxInit()
+TxInit(void)
 {
     static char sebuf[BUFSIZ];
 
@@ -101,7 +101,7 @@ TxInit()
 #ifdef USE_READLINE
 
 void
-TxInitReadline()
+TxInitReadline(void)
 {
     int i, j;
     const char * const *commandTable;
