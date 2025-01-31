@@ -699,7 +699,7 @@ getTileFromTileStore()
     if (TileStoreFreeList)
     {
 	_return_tile = TileStoreFreeList;
-	TileStoreFreeList = (Tile *)TileStoreFreeList->ti_client;
+	TileStoreFreeList = (Tile *)CD2PTR(TileStoreFreeList->ti_client);
 	return _return_tile;
     }
 
@@ -727,14 +727,14 @@ TileStoreFree(ptr)
     if (!TileStoreFreeList_end || !TileStoreFreeList)
     {
 	TileStoreFreeList_end = ptr;
-	ptr->ti_client = (unsigned long)0;
+	ptr->ti_client = PTR2CD(NULL);
 	TileStoreFreeList = TileStoreFreeList_end;
     }
     else
     {
 	TileStoreFreeList_end->ti_client = PTR2CD(ptr);
 	TileStoreFreeList_end = ptr;
-	TileStoreFreeList_end->ti_client = INT2CD(0);
+	TileStoreFreeList_end->ti_client = PTR2CD(NULL);
     }
 }
 
