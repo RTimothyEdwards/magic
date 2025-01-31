@@ -176,16 +176,16 @@ typedef struct
  * ever needed by modules other than the tile module.
  */
 
-extern Plane *TiNewPlane(Tile *);
-extern void TiFreePlane(Plane *);
-extern void TiToRect(Tile *, Rect *);
-extern Tile *TiSplitX(Tile *, int);
-extern Tile *TiSplitY(Tile *, int);
-extern Tile *TiSplitX_Left(Tile *, int);
-extern Tile *TiSplitY_Bottom(Tile *, int);
-extern void  TiJoinX(Tile *, Tile *, Plane *);
-extern void  TiJoinY(Tile *, Tile *, Plane *);
-extern Tile *TiSrPoint(Tile *, Plane *, Point *);
+extern Plane *TiNewPlane(Tile *tile);
+extern void TiFreePlane(Plane *plane);
+extern void TiToRect(Tile *tile, Rect *rect);
+extern Tile *TiSplitX(Tile *tile, int x);
+extern Tile *TiSplitY(Tile *tile, int y);
+extern Tile *TiSplitX_Left(Tile *tile, int x);
+extern Tile *TiSplitY_Bottom(Tile *tile, int y);
+extern void  TiJoinX(Tile *tile1, Tile *tile2, Plane *plane);
+extern void  TiJoinY(Tile *tile1, Tile *tile2, Plane *plane);
+extern Tile *TiSrPoint(Tile *hint, Plane *plane, Point *point);
 
 #define	TiBottom(tp)		(BOTTOM(tp))
 #define	TiLeft(tp)		(LEFT(tp))
@@ -242,8 +242,8 @@ extern Tile *TiSrPoint(Tile *, Plane *, Point *);
 #define	TiGetClient(tp)		((tp)->ti_client)
 #define	TiSetClient(tp,b)	((tp)->ti_client = INT2CD((b)))
 
-Tile *TiAlloc(void);
-void TiFree(Tile *);
+extern Tile *TiAlloc(void);
+extern void TiFree(Tile *tile);
 
 #define EnclosePoint(tile,point)	((LEFT(tile)   <= (point)->p_x ) && \
 					 ((point)->p_x   <  RIGHT(tile)) && \
