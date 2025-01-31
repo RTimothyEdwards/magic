@@ -155,7 +155,7 @@ extern void TxReleaseButton(int but);
 extern void TxPrintCommand(TxCommand *cmd);
 extern TxCommand *TxNewCommand(void);
 extern void TxFreeCommand(TxCommand *command);
-extern void TxParseString(const char *str, void *q, void *event);
+extern void TxParseString(const char *str);
 extern void TxDispatch(FILE *f);
 extern void TxRebuildCommand(TxCommand *cmd);
 extern int TxCommandNumber;	/* Serial number of current command. */

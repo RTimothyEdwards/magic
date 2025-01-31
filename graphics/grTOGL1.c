@@ -784,7 +784,7 @@ keys_and_buttons:
 				freeMagic(vis);
 			    }
 			    /* Print Carriage Return & Put back Tcl/Tk prompt */
-			    TxParseString("", NULL, NULL);
+			    TxParseString("");
 			}
 			else
 			{
@@ -820,7 +820,7 @@ keys_and_buttons:
 				TxSetPoint(KeyPressedEvent->x,
 					grXtransY(mw, KeyPressedEvent->y),
 					mw->w_wid);
-				TxParseString(macroDef, NULL, NULL);
+				TxParseString(macroDef);
 			    }
 			    freeMagic(macroDef);
 			}
