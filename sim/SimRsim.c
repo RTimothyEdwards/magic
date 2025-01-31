@@ -23,6 +23,7 @@
 #ifdef RSIM_MODULE
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <signal.h>
@@ -159,7 +160,6 @@ SimStartRsim(
     pid_t child;
     int magToRsimPipe[2];
     int rsimToMagPipe[2];
-    char *getenv();
     char rsimfile[256];
     char *cad = BIN_DIR;
     const char *src;
