@@ -120,6 +120,30 @@ cifPaintFunc(
 
 /*
  * ----------------------------------------------------------------------------
+ *
+ * cifInteractFunc --
+ *
+ * 	This search function is called during CIF_INTERACT for each tile that
+ *	interacts with (overlaps) any relevant material in the search plane.
+ *
+ * Results:
+ *	Always returns 1 to stop the search
+ *
+ * Side effects:
+ *	None.
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifInteractFunc(
+    Tile *tile,
+    ClientData clientdata)		/* Unused */
+{
+    return 1;
+}
+
+/*
+ * ----------------------------------------------------------------------------
  * SetBoxGrid ---
  *
  *	Adjust the given area by expanding each side individually to
@@ -3964,8 +3988,8 @@ cifSrTiles(
 		maskBits = DBPlaneTypes[i];
 		TTMaskAndMask(&maskBits, &cifOp->co_paintMask);
 		if (!TTMaskEqual(&maskBits, &DBZeroTypeBits))
-		    (void) DBSrPaintArea((Tile *) NULL, cellDef->cd_planes[i],
-			area, &cifOp->co_paintMask, func, cdArg);
+		    DBSrPaintArea((Tile *) NULL, cellDef->cd_planes[i],
+				area, &cifOp->co_paintMask, func, cdArg);
 	    }
 	    break;
     }
@@ -3975,11 +3999,84 @@ cifSrTiles(
     cifScale = 1;
     for (t = 0; t < TT_MAXTYPES; t++, temps++)
 	if (TTMaskHasType(&cifOp->co_cifMask, t))
-	    (void) DBSrPaintArea((Tile *) NULL, *temps, &TiPlaneRect,
-		&CIFSolidBits, func, (ClientData) cdArg);
+	    DBSrPaintArea((Tile *) NULL, *temps, &TiPlaneRect,
+			&CIFSolidBits, func, (ClientData) cdArg);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifSrTiles2 --
+ *
+ * 	This is a utility procedure that just calls DBSrPaintArea
+ *	one or more times for the planes being used in processing
+ *	where the CIF search should be conducted over "area" scaled
+ *	to CIF units, rather than the entire plane.  Currently used 
+ *	only for operator CIFOP_INTERACT.
+ *
+ * Results:
+ *	Returns the value returned by the function.
+ *
+ * Side effects:
+ *	This procedure itself has no side effects.  For each of the
+ *	paint or temporary planes indicated in cifOp, we call
+ *	DBSrPaintArea to find the desired tiles in the desired
+ *	area for the operation.  DBSrPaintArea is given func as a
+ *	search function, and cdArg as ClientData.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifSrTiles2(
+    CIFOp *cifOp,		/* Geometric operation being processed. */
+    Rect *area,			/* Area of Magic paint to consider. */
+    CellDef *cellDef,		/* CellDef to search for paint. */
+    Plane *temps[],		/* Planes to use for temporaries. */
+    int (*func)(),		/* Search function to pass to DBSrPaintArea. */
+    ClientData cdArg)		/* Client data for func. */
+{
+    TileTypeBitMask maskBits;
+    Rect r;
+    TileType t;
+    Tile *tp;
+    int i;
+
+    /* When reading data from a cell, it must first be scaled to
+     * CIF units.  Check for CIFCurStyle, as we don't want to
+     * crash while reading CIF/GDS just becuase the techfile
+     * "cifoutput" section was blank.
+     */
+
+    cifScale = (CIFCurStyle) ? CIFCurStyle->cs_scaleFactor : 1;
+
+    /* When processing local database, rescale area */
+    r.r_xbot = area->r_xbot / cifScale;
+    r.r_xtop = area->r_xtop / cifScale;
+    r.r_ybot = area->r_ybot / cifScale;
+    r.r_ytop = area->r_ytop / cifScale;
+    for (i = PL_DRC_CHECK; i < DBNumPlanes; i++)
+    {
+	maskBits = DBPlaneTypes[i];
+	TTMaskAndMask(&maskBits, &cifOp->co_paintMask);
+	if (!TTMaskEqual(&maskBits, &DBZeroTypeBits))
+	    if (DBSrPaintArea((Tile *) NULL, cellDef->cd_planes[i],
+			&r, &cifOp->co_paintMask, func, cdArg))
+		return 1;
+    }
+
+    cifScale = 1;
+    for (t = 0; t < TT_MAXTYPES; t++, temps++)
+	if (TTMaskHasType(&cifOp->co_cifMask, t))
+	    if (DBSrPaintArea((Tile *)NULL, *temps, area,
+			&CIFSolidBits, func, (ClientData)cdArg))
+		return 1;
+
+    return 0;
 }
 
 /* Data structure to pass plane and minimum width to the callback function */
+
 typedef struct _bridgeLimStruct {
     Plane       *plane;
     BridgeData	*bridge;
@@ -3992,6 +4089,7 @@ typedef struct _bridgeLimStruct {
 static int xOverlap, yOverlap;
 
 /* Bridge-lim Check data structure */
+
 typedef struct _bridgeLimCheckStruct {
    Tile *tile;		/* Tile that triggered search (ignore this tile) */
    int	direction;	/* What outside corner to look for */
@@ -3999,6 +4097,7 @@ typedef struct _bridgeLimCheckStruct {
    TileType checktype;	/* Type to check for, either TT_SPACE or CIF_SOLIDTYPE */
    long sqdistance;     /* Square of the minimum distance */
 } BridgeLimCheckStruct;
+
 /*
  *-----------------------------------------------------------------------
  * Callback function for bridgeLimSrTiles used when a limiting layer tile
@@ -4007,6 +4106,7 @@ typedef struct _bridgeLimCheckStruct {
  * return 1 to stop the search.
  *-----------------------------------------------------------------------
  */
+
 int
 bridgeLimFound(
     Tile *tile,
@@ -4029,6 +4129,7 @@ bridgeLimFound(
  * area contains tiles of the limiting layers.
  *------------------------------------------------------------------------
  */
+
 int
 bridgeLimSrTiles(
     BridgeLimStruct *brlims,    /* Bridge-Lim structure. */
@@ -4088,6 +4189,7 @@ bridgeLimSrTiles(
  *	but do not paint over limiting layer tiles.
  * ----------------------------------------------------------------------------
  */
+
 int
 cifBridgeLimFunc0(
     Tile *tile,
@@ -4163,6 +4265,7 @@ cifBridgeLimFunc0(
  * value 1 to stop the search.	Otherwise return 0 to keep going.
  *-----------------------------------------------------------------------
  */
+
 int
 bridgeLimCheckFunc(
     Tile *tile,
@@ -4233,6 +4336,7 @@ bridgeLimCheckFunc(
  * where new bridge overlaps the limiting layer tiles.
  *-----------------------------------------------------------------------
  */
+
 int
 bridgeErase(
     BridgeLimStruct *brlims,    /* Bridge-lim structure. */
@@ -4279,6 +4383,7 @@ bridgeErase(
  *	May paint into cifNewPlane
  * ----------------------------------------------------------------------------
  */
+
 int
 cifBridgeLimFunc1(
     Tile *tile,
@@ -4440,6 +4545,7 @@ cifBridgeLimFunc1(
  *	May paint into cifNewPlane
  * ----------------------------------------------------------------------------
  */
+
 int
 cifBridgeLimFunc2(
     Tile *tile,
@@ -4550,6 +4656,151 @@ cifBridgeLimFunc2(
     }
 
     return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * cifInteractingRegions --
+ *
+ *	Process each disjoint region and copy the entire content of each
+ *	region for which any part of the region overlaps with <...>
+ * 	to the current CIF plane.
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+cifInteractingRegions(
+    CIFOp *op,
+    CellDef *cellDef,
+    Plane *temps[],		/* Planes to use for temporaries. */
+    Plane *plane)
+{
+    Tile *tile = NULL, *t, *tp;
+    Rect area;
+    int i;
+    TileType type;
+    bool interacts;
+    static Stack *RegStack = (Stack *)NULL;
+
+    if (RegStack == (Stack *)NULL)
+	RegStack = StackNew(64);
+
+    while (DBSrPaintArea((Tile *)tile, plane, &TiPlaneRect, &CIFSolidBits,
+		cifSquaresInitFunc, (ClientData)NULL) != 0)
+    {
+	/* Now, search for (nontrivially) connected tiles in all	*/
+	/* directions.  Mark the tiles, and record the bounding box.	*/
+	/* This is the same method used for cifRectBoundingBox(),	*/
+	/* except that the contents of each disjoint region is copied	*/
+	/* to the destination plane or not depending on whether any	*/
+	/* part of the region overlapped the specified type(s).		*/
+
+	interacts = FALSE;
+	tile = plane->pl_hint;
+	PUSHTILE(tile, RegStack);
+	while (!StackEmpty(RegStack))
+	{
+	    t = (Tile *) STACKPOP(RegStack);
+	    if (t->ti_client != (ClientData)CIF_PENDING) continue;
+            t->ti_client = (ClientData)CIF_PROCESSED;
+
+	    /* Get tile area for interaction search */
+	    TiToRect(t, &area);
+
+	    /* Check if this tile interacts with the rule's types, or skip	*/
+	    /* if already known to be interacting.				*/
+
+	    if (!interacts)
+	    {
+		if (cifSrTiles2(op, &area, cellDef, temps, cifInteractFunc, (ClientData)NULL))
+		    interacts = TRUE;
+	    }
+
+	    /* Top */
+	    for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
+		if (TTMaskHasType(&CIFSolidBits, TiGetBottomType(tp)))
+		{
+		    PUSHTILE(tp, RegStack);
+		}
+
+	    /* Left */
+	    for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
+		if (TTMaskHasType(&CIFSolidBits, TiGetRightType(tp)))
+		{
+		    PUSHTILE(tp, RegStack);
+		}
+
+	    /* Bottom */
+	    for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
+		if (TTMaskHasType(&CIFSolidBits, TiGetTopType(tp)))
+		{
+		    PUSHTILE(tp, RegStack);
+		}
+
+	    /* Right */
+	    for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
+		if (TTMaskHasType(&CIFSolidBits, TiGetLeftType(tp)))
+		{
+		    PUSHTILE(tp, RegStack);
+		}
+	}
+
+	/* Clear the tiles that were processed in this set, first copying them	*/
+	/* to the destination if this region was found to be interacting with	*/
+	/* op->co_paintMask (op->co_cifMask)					*/ 
+
+	tile->ti_client = (ClientData)CIF_IGNORE;
+	STACKPUSH(tile, RegStack);
+	while (!StackEmpty(RegStack))
+	{
+	    t = (Tile *) STACKPOP(RegStack);
+
+	    if (interacts)
+	    {
+		TiToRect(t, &area);
+		DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *)NULL);
+	    }
+
+	    /* Top */
+	    for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
+		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		{
+		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    STACKPUSH(tp, RegStack);
+		}
+
+	    /* Left */
+	    for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
+		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		{
+		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    STACKPUSH(tp, RegStack);
+		}
+
+	    /* Bottom */
+	    for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
+		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		{
+		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    STACKPUSH(tp, RegStack);
+		}
+
+	    /* Right */
+	    for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
+		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		{
+		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    STACKPUSH(tp, RegStack);
+		}
+	}
+    }
 }
 
 /*
@@ -4998,6 +5249,17 @@ CIFGenLayer(
 		DBClearPaintPlane(nextPlane);
 		cifPlane = nextPlane;
 		cifRectBoundingBox(op, cellDef, curPlane);
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
+		break;
+
+	    case CIFOP_INTERACT:
+		cifPlane = curPlane;
+
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifInteractingRegions(op, cellDef, temps, curPlane);
 		temp = curPlane;
 		curPlane = nextPlane;
 		nextPlane = temp;

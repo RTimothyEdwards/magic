@@ -1094,6 +1094,8 @@ CIFTechLine(
 	newOp->co_opcode = CIFOP_BRIDGE;
     else if (strcmp(argv[0], "bridge-lim") == 0)
 	newOp->co_opcode = CIFOP_BRIDGELIM;
+    else if (strcmp(argv[0], "interact") == 0)
+	newOp->co_opcode = CIFOP_INTERACT;
     else
     {
 	TechError("Unknown statement \"%s\".\n", argv[0]);
@@ -1105,6 +1107,7 @@ CIFTechLine(
 	case CIFOP_AND:
 	case CIFOP_ANDNOT:
 	case CIFOP_OR:
+	case CIFOP_INTERACT:
 	    if (argc != 2) goto wrongNumArgs;
 	    cifParseLayers(argv[1], CIFCurStyle, &newOp->co_paintMask,
 		&newOp->co_cifMask,FALSE);
@@ -1625,6 +1628,7 @@ cifComputeRadii(
 	    case CIFOP_AND:
 	    case CIFOP_ANDNOT:
 	    case CIFOP_OR:
+	    case CIFOP_INTERACT:
 	    case CIFOP_MASKHINTS:
 		break;
 
@@ -2016,6 +2020,7 @@ CIFTechFinal(void)
 
 		case CIFOP_AND:
 		case CIFOP_ANDNOT:
+		case CIFOP_INTERACT:
 		case CIFOP_SHRINK:
 		case CIFOP_CLOSE:
 		case CIFOP_BRIDGELIM:

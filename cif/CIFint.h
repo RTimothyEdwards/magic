@@ -134,8 +134,9 @@ typedef struct cifop
  *			box coordinates into CIF layer geometry.
  * CIFOP_NET -		Added 11/3/08---pull an entire electrical net into
  *			the CIF layer, selectively picking layers.
- * CIFOP_MAXRECT -	Reduce all areas to the largest internal fitting
+ * CIFOP_MAXRECT -	Reduce all disjoint regions to the largest internal fitting
  *			rectangle.
+ * CIFOP_INTERACT -	Select all disjoint regions which overlap a given set of types
  * CIFOP_COPYUP -	Added 5/5/16---make and keep a copy the resulting layer,
  *			which will be painted into parent cells instead of the
  *			current cell.  This replaces the "fault" method.
@@ -163,11 +164,12 @@ typedef struct cifop
 #define CIFOP_BOUNDARY	16
 #define CIFOP_NET	17
 #define CIFOP_MAXRECT	18
-#define CIFOP_COPYUP	19
-#define CIFOP_CLOSE	20
-#define CIFOP_BRIDGE	21
-#define CIFOP_BRIDGELIM 22
-#define CIFOP_MASKHINTS 23
+#define CIFOP_INTERACT	19
+#define CIFOP_COPYUP	20
+#define CIFOP_CLOSE	21
+#define CIFOP_BRIDGE	22
+#define CIFOP_BRIDGELIM 23
+#define CIFOP_MASKHINTS 24
 
 
 /* Added by Tim 10/21/2004 */
