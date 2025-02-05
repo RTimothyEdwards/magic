@@ -1095,12 +1095,22 @@ CIFTechLine(
 	newOp->co_opcode = CIFOP_BRIDGE;
     else if (strcmp(argv[0], "bridge-lim") == 0)
 	newOp->co_opcode = CIFOP_BRIDGELIM;
-    else if (strcmp(argv[0], "interact") == 0)
+    else if (strcmp(argv[0], "overlapping") == 0)
 	newOp->co_opcode = CIFOP_INTERACT;
-    else if (strcmp(argv[0], "not-interact") == 0)
+    else if (strcmp(argv[0], "nonoverlapping") == 0)
     {
 	newOp->co_opcode = CIFOP_INTERACT;
-	newOp->co_client = (ClientData)1;
+	newOp->co_client = (ClientData)CIFOP_INT_NOT;
+    }
+    else if (strcmp(argv[0], "interacting") == 0)
+    {
+	newOp->co_opcode = CIFOP_INTERACT;
+	newOp->co_client = (ClientData)CIFOP_INT_TOUCHING;
+    }
+    else if (strcmp(argv[0], "noninteracting") == 0)
+    {
+	newOp->co_opcode = CIFOP_INTERACT;
+	newOp->co_client = (ClientData)(CIFOP_INT_TOUCHING | CIFOP_INT_NOT);
     }
     else
     {
@@ -2463,6 +2473,7 @@ CIFTechOutputScale(
 			case CIFOP_MASKHINTS:
 			case CIFOP_MAXRECT:
 			case CIFOP_NET:
+			case CIFOP_INTERACT:
 			    break;
 			case CIFOP_BRIDGELIM:
 			case CIFOP_BRIDGE:

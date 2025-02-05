@@ -4664,8 +4664,8 @@ cifBridgeLimFunc2(
  * cifInteractingRegions --
  *
  *	Process each disjoint region and copy the entire content of each
- *	region for which any part of the region overlaps with <...>
- * 	to the current CIF plane.
+ *	region for which any part of the region overlaps with co_cifMask
+ *	or co_paintMask to the current CIF plane.
  *
  * Results:
  *	None.
@@ -4714,6 +4714,19 @@ cifInteractingRegions(
 	    /* Get tile area for interaction search */
 	    TiToRect(t, &area);
 
+	    /* "interacting" includes touching as well as overlapping, so expand
+	     * search by one unit in every direction and then check overlap.
+	     * NOTE:  This catches catecorner-touching material, which is
+	     * assumed not to be an issue.
+	     */
+	    if ((pointertype)op->co_client & CIFOP_INT_TOUCHING)
+	    {
+		area.r_xbot -= 1;
+		area.r_xtop += 1;
+		area.r_ybot -= 1;
+		area.r_ytop += 1;
+	    }
+
 	    /* Check if this tile interacts with the rule's types, or skip	*/
 	    /* if already known to be interacting.				*/
 
@@ -4752,11 +4765,12 @@ cifInteractingRegions(
 		}
 	}
 
-	/* op->co_client is an invert bit indicating the rule is "not-interact",
-	 * so invert the sense of "interacts".  Then the non-interacting regions
-	 * will be kept and the interacting regions will be discarded.
+	/* op->co_client has an invert bit indicating the rule is "not interacting"
+	 * or "not-overlapping", so invert the sense of "interacts".  Then the non-
+	 * interacting/overlapping regions will be kept and the interacting/
+	 * overlapping regions will be discarded.
 	 */
-	if (op->co_client == (ClientData)1)
+	if ((pointertype)op->co_client & CIFOP_INT_NOT)
 	    interacts = (interacts) ? FALSE : TRUE;
 
 	/* Clear the tiles that were processed in this set, first copying them	*/

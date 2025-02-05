@@ -171,6 +171,9 @@ typedef struct cifop
 #define CIFOP_BRIDGELIM 23
 #define CIFOP_MASKHINTS 24
 
+/* Definitions of bit fields used in the value of co_client for CIFOP_INTERACT */
+#define CIFOP_INT_NOT	   0x1		/* Inverted sense (not interacting) */
+#define CIFOP_INT_TOUCHING 0x2		/* Include both touching and overlapping */
 
 /* Added by Tim 10/21/2004 */
 /* The following structure is used to pass information on how to draw
