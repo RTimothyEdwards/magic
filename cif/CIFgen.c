@@ -4752,6 +4752,13 @@ cifInteractingRegions(
 		}
 	}
 
+	/* op->co_client is an invert bit indicating the rule is "not-interact",
+	 * so invert the sense of "interacts".  Then the non-interacting regions
+	 * will be kept and the interacting regions will be discarded.
+	 */
+	if (op->co_client == (ClientData)1)
+	    interacts = (interacts) ? FALSE : TRUE;
+
 	/* Clear the tiles that were processed in this set, first copying them	*/
 	/* to the destination if this region was found to be interacting with	*/
 	/* op->co_paintMask (op->co_cifMask)					*/ 

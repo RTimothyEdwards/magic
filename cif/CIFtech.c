@@ -110,6 +110,7 @@ cifTechFreeStyle(void)
 			    case CIFOP_BBOX:
 			    case CIFOP_MAXRECT:
 			    case CIFOP_BOUNDARY:
+			    case CIFOP_INTERACT:
 				/* These options use co_client to hold a single	*/
 				/* integer value, so it is not allocated.	*/
 				break;
@@ -1096,6 +1097,11 @@ CIFTechLine(
 	newOp->co_opcode = CIFOP_BRIDGELIM;
     else if (strcmp(argv[0], "interact") == 0)
 	newOp->co_opcode = CIFOP_INTERACT;
+    else if (strcmp(argv[0], "not-interact") == 0)
+    {
+	newOp->co_opcode = CIFOP_INTERACT;
+	newOp->co_client = (ClientData)1;
+    }
     else
     {
 	TechError("Unknown statement \"%s\".\n", argv[0]);
