@@ -2052,37 +2052,15 @@ donecell:
     DBScalePoint(&cellDef->cd_extended.r_ll, scalen, scaled);
     DBScalePoint(&cellDef->cd_extended.r_ur, scalen, scaled);
 
-    /* If the cell is an abstract view with a fixed bounding box, then  */
-    /* adjust the bounding box property to match the new scale.         */
-
-    if ((cellDef->cd_flags & CDFIXEDBBOX) != 0)
-    {
-	Rect r;
-	bool found;
-	char *propval;
-
-	propval = (char *)DBPropGet(cellDef, "FIXED_BBOX", &found);
-	if (found)
-	{
-	    if (sscanf(propval, "%d %d %d %d", &r.r_xbot, &r.r_ybot,
-			&r.r_xtop, &r.r_ytop) == 4)
-	    {
-		DBScalePoint(&r.r_ll, scalen, scaled);
-		DBScalePoint(&r.r_ur, scalen, scaled);
-
-		propval = (char *)mallocMagic(40);
-		sprintf(propval, "%d %d %d %d", r.r_xbot, r.r_ybot,
-			r.r_xtop, r.r_ytop);
-		DBPropPut(cellDef, "FIXED_BBOX", propval);
-	    }
-	}
-    }
-
     /* Check all properties for ones with keys beginning with "MASKHINTS_"
      * or ending with "_BBOX", and scale them by the same amount as all
      * the geometry.
+     *
+     * Note:  This would be better handled if there were a special type
+     * for properties which are coordinates;  currently the only property
+     * type is a string, thus requiring the string to be parsed every time
+     * the coordinates are needed.
      */
-
 
     cps.cps_point.p_x = scalen;
     cps.cps_point.p_y = scaled;
