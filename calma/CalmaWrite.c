@@ -971,45 +971,20 @@ calmaProcessDef(
 	off_t cellstart, cellend, structstart;
  	dlong cval;
 	int namelen;
-	char *modName;
 	FILETYPE fi;
 
 	/* Give some feedback to the user */
 	TxPrintf("   Copying output for cell %s from %s\n", def->cd_name, filename);
 
-	/* Handle compressed files */
-	
-	modName = filename;
-	namelen = strlen(filename);
-	if ((namelen > 4) && !strcmp(filename + namelen - 3, ".gz"))
-	{
-	    char *sysCmd, *sptr;
-	
-	    sptr = strrchr(filename, '/');
-	    if (sptr == NULL)
-		sptr = filename;
-	    else
-		sptr++;
-	
-	    modName = StrDup((char **)NULL, sptr);
-	    *(modName + strlen(modName) - 3) = '\0';
-
-	    sysCmd = mallocMagic(18 + namelen + strlen(modName));
-	    sprintf(sysCmd, "gunzip -c %s > %s", filename, modName);
-	    if (system(sysCmd) != 0)
-	    {
-		/* File didn't uncompress.  Go back to original name,
-		 * although that will probably fail and raise an error.
-		 */
-		freeMagic(modName);
-		modName = filename;
-	    }
-	}
-	
 	/* Use PaZOpen() so the paths searched are the same as were	*/
 	/* searched to find the .mag file that indicated this GDS file.	*/
 
-	fi = PaZOpen(modName, "r", "", Path, CellLibPath, &retfilename);
+	fi = PaZOpen(filename, "r", "", Path, CellLibPath, &retfilename);
+
+	/* Check if file may have been compressed */
+	if (fi == NULL)
+	    fi = PaZOpen(filename, "r", ".gz", Path, CellLibPath, &retfilename);
+
 	if (fi == NULL)
 	{
 	    /* This is a rare error, but if the subcell is inside	*/
@@ -1025,9 +1000,7 @@ calmaProcessDef(
 
 	    TxError("Calma output error:  Can't find GDS file \"%s\" "
 				"for vendor cell \"%s\".  It will not be output.\n",
-				modName, def->cd_name);
-
-	    if (modName != filename) freeMagic(modName);
+				filename, def->cd_name);
 
 	    if (CalmaAllowUndefined)
 		return 0;
@@ -1174,17 +1147,6 @@ calmaProcessDef(
 		freeMagic(buffer);
 	    }
 	    FCLOSE(fi);
-
-	    if (modName != filename)
-	    {
-		/* Remove the uncompressed file */
-		if (unlink(modName) != 0)
-		{
-		    TxError("Error attempting to delete uncompressed file \"%s\"\n",
-				modName);
-		}
-		freeMagic(modName);
-	    }
 
 	    /* Mark the definition as vendor GDS so that magic doesn't	*/
 	    /* try to generate subcell interaction or array interaction	*/

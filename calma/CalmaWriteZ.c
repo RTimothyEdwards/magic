@@ -933,6 +933,11 @@ calmaProcessDefZ(
 	/* searched to find the .mag file that indicated this GDS file.	*/
 
 	fi = PaZOpen(filename, "r", "", Path, CellLibPath, &retfilename);
+
+	/* Check if file may have been compressed */
+	if (fi == NULL)
+	    fi = PaZOpen(filename, "r", ".gz", Path, CellLibPath, &retfilename);
+
 	if (fi == NULL)
 	{
 	    /* This is a rare error, but if the subcell is inside	*/
