@@ -723,9 +723,7 @@ enumerate:
  *
  * This procedure uses a carfully constructed non-recursive area
  * enumeration algorithm.  Care is taken to not access a tile that has
- * been deallocated.  The only exception is for a tile that has just been
- * passed to free(), but no more calls to free() or malloc() have been made.
- * Magic's malloc allows this.
+ * been deallocated.
  *
  * --------------------------------------------------------------------
  */
@@ -740,6 +738,7 @@ DBFreePaintPlane(plane)
     /* Start with the bottom-right non-infinity tile in the plane */
     tp = BL(plane->pl_right);
 
+    Tile *delayed = NULL;
     /* Each iteration visits another tile on the RHS of the search area */
     while (BOTTOM(tp) < rect->r_ytop)
     {
@@ -762,9 +761,9 @@ enumerate:
 	/* Each iteration returns one tile further to the right */
 	while (RIGHT(tp) < rect->r_xtop)
 	{
-	    TiFree(tp);
-	    tpnew = RT(tp);
-	    tp = TR(tp);
+	    TiFree1(&delayed, tp);
+	    tpnew = RT(tp); /* deref of delayed */
+	    tp = TR(tp); /* deref of delayed */
 	    if (CLIP_TOP(tpnew) <= CLIP_TOP(tp) && BOTTOM(tpnew) < rect->r_ytop)
 	    {
 		tp = tpnew;
@@ -772,13 +771,14 @@ enumerate:
 	    }
 	}
 
-	TiFree(tp);
+	TiFree1(&delayed, tp);
 	/* At right edge -- walk up to next tile along the right edge */
-	tp = RT(tp);
+	tp = RT(tp); /* deref of delayed */
 	if (BOTTOM(tp) < rect->r_ytop) {
 	    while(LEFT(tp) >= rect->r_xtop) tp = BL(tp);
 	}
     }
+    TiFreeIf(delayed);
 }
 
 /*
