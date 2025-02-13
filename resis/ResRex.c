@@ -997,17 +997,18 @@ ResCheckSimNodes(celldef, resisdata)
 
     if (ResOptionsFlags & ResOpt_DoExtFile)
     {
+	char *alloc = NULL;
 	if (ExtLocalPath != NULL)
 	    if (strcmp(ExtLocalPath, "."))
 	    {
 		char *namebuf;
-		namebuf = mallocMagic(strlen(ExtLocalPath) + strlen(celldef->cd_name)
+		namebuf = alloc = mallocMagic(strlen(ExtLocalPath) + strlen(celldef->cd_name)
 				+ 2);
 		sprintf(namebuf, "%s/%s", ExtLocalPath, celldef->cd_name);
 		outfile = namebuf;
 	    }
 	ResExtFile = PaOpen(outfile, "w", ".res.ext", ".", (char *)NULL, (char **)NULL);
-	if (outfile != celldef->cd_name) freeMagic(outfile);
+	if (alloc) freeMagic(alloc);
 	outfile = celldef->cd_name;
     }
     else
