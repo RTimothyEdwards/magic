@@ -192,7 +192,7 @@ glClientInit(chanList, netList)
     }
 
     for (net = netList->nnl_nets; net; net = net->nnet_next)
-	net->nnet_cdata = (ClientData) callocMagic((unsigned) (sizeof (NetClient)));
+	net->nnet_cdata = (ClientData) callocMagic(1, (unsigned) (sizeof (NetClient)));
 }
 
 /*
