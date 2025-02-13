@@ -414,7 +414,10 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
 	    if (gnode->efnode_client == (ClientData) NULL)
                 initNodeClient(gnode);
 	    if (beenVisited((nodeClient *)gnode->efnode_client, 0))
+	    {
+		freeMagic(antennaarea);
 		return 0;
+	    }
 	    else
 		markVisited((nodeClient *)gnode->efnode_client, 0);
 
