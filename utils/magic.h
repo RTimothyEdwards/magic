@@ -204,6 +204,21 @@ extern char AbortMessage[];
  /* looking to squash excessive -Wpedantic warnings ? add into defs.mak: CPPFLAGS += -Wno-variadic-macros */
  #define ANALYSER_NONNULL(n...) __attribute__((nonnull(n)))
  #define ANALYSER_RETURNS_NONNULL __attribute__((returns_nonnull))
+
+ /* These have keyword like behaviour so __nodiscard__ looks more like a keyword and is recognisable as such
+  * the historic use of __inline__ set a precedent on how backward compatibiliy maybe achieved for such things
+  */
+
+#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 202311L))
+ /* since C23 but maybe some compilers supported it before their official C23 releases */
+ #define __nodiscard__ [[nodiscard]]
+#elif (defined(__GNUC__) && (__GNUC__ >= 4))
+ #define __nodiscard__ __attribute__((warn_unused_result))
+#elif (defined(__clang__) && (__clang_major__ >= 1))
+ #define __nodiscard__ __attribute__((warn_unused_result))
+#else
+ #define __nodiscard__ /* */
+#endif
 #else
  #define ATTR_FORMAT_PRINTF_1 /* */
  #define ATTR_FORMAT_PRINTF_2 /* */
@@ -217,6 +232,8 @@ extern char AbortMessage[];
  #define ANALYSER_MALLOC(dealloc, idx) /* */
  #define ANALYSER_NONNULL(n...) /* */
  #define ANALYSER_RETURNS_NONNULL /* */
+
+ #define __nodiscard__ /* */
 #endif
 
 /* ---------------- Start of Machine Configuration Section ----------------- */
