@@ -133,9 +133,11 @@ extern char *SysLibPath;	/* Path for finding system
  * Just for the sake of robustness, though, we define malloc and free
  * here to error strings.
  */
+#ifndef SUPPORT_DIRECT_MALLOC
 #define	malloc	You_should_use_the_Magic_procedure_mallocMagic_instead
 #define	free	You_should_use_the_Magic_procedure_freeMagic_instead
 #define calloc	You_should_use_the_Magic_procedure_callocMagic_instead
+#endif
 
 /* ---------- Flag for global variables (for readability) ------------- */
 
