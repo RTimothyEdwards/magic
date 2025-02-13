@@ -119,7 +119,6 @@ ExtractTest(w, cmd)
     CellUse *selectedCell;
     Rect editArea;
     char *addr, *name;
-    FILE *f;
     typedef enum {  CLRDEBUG, CLRLENGTH, DRIVER, DUMP, INTERACTIONS,
 		    INTERCOUNT, EXTPARENTS, RECEIVER, SETDEBUG, SHOWDEBUG,
 		    SHOWPARENTS, SHOWTECH, STATS, STEP, TIME } cmdType;
@@ -215,37 +214,41 @@ ExtractTest(w, cmd)
 	    DBClearPaintPlane(interPlane);
 	    break;
 	case INTERCOUNT:
-	    f = stdout;
 	    halo = 1;
 	    if (cmd->tx_argc > 2)
 		halo = atoi(cmd->tx_argv[2]);
 	    if (cmd->tx_argc > 3)
 	    {
-		f = fopen(cmd->tx_argv[3], "w");
+		FILE *f = fopen(cmd->tx_argv[3], "w");
 		if (f == NULL)
 		{
 		    perror(cmd->tx_argv[3]);
 		    break;
 		}
+		ExtInterCount((CellUse *) w->w_surfaceID, halo, f);
+		fclose(f);
 	    }
-	    ExtInterCount((CellUse *) w->w_surfaceID, halo, f);
-	    if (f != stdout)
-		(void) fclose(f);
+	    else
+	    {
+		ExtInterCount((CellUse *) w->w_surfaceID, halo, stdout);
+	    }
 	    break;
 	case TIME:
-	    f = stdout;
 	    if (cmd->tx_argc > 2)
 	    {
-		f = fopen(cmd->tx_argv[2], "w");
+		FILE *f = fopen(cmd->tx_argv[2], "w");
 		if (f == NULL)
 		{
 		    perror(cmd->tx_argv[2]);
 		    break;
 		}
+		ExtTimes((CellUse *) w->w_surfaceID, f);
+		fclose(f);
 	    }
-	    ExtTimes((CellUse *) w->w_surfaceID, f);
-	    if (f != stdout)
-		(void) fclose(f);
+	    else
+	    {
+		ExtTimes((CellUse *) w->w_surfaceID, stdout);
+	    }
 	    break;
 	case EXTPARENTS:
 	    if (ToolGetEditBox(&editArea))
@@ -1105,6 +1108,7 @@ ExtDumpCaps(filename)
 	    return;
 	}
 	ExtDumpCapsToFile(f);
+	fclose(f);
 	return;
     }
 

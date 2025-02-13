@@ -340,25 +340,34 @@ badWarn:
 	    if (!ToolGetEditBox(&editArea))
 		return;
 	    channame = cmd->tx_argv[2];
-	    f = stdout;
-	    if (cmd->tx_argc == 4)
 	    {
-		f = fopen(cmd->tx_argv[3], "w");
-		if (f == NULL)
+		bool need_close;
+		FILE *f;
+		if (cmd->tx_argc == 4)
 		{
-		    perror(cmd->tx_argv[3]);
-		    return;
+		    f = fopen(cmd->tx_argv[3], "w");
+		    if (f == NULL)
+		    {
+			perror(cmd->tx_argv[3]);
+			return;
+		    }
+		    need_close = TRUE;
 		}
+		else
+		{
+		    f = stdout;
+		    need_close = FALSE;
+		}
+		if (channame[0] == 'h') GAGenChans(CHAN_HRIVER, &editArea, f);
+		else if (channame[0] == 'v') GAGenChans(CHAN_VRIVER, &editArea, f);
+		else
+		{
+		    TxError("Unrecognized channel type: %s\n", channame);
+		    TxError("Legal types are \"h\" or \"v\"\n");
+		}
+		if (need_close)
+		    (void) fclose(f);
 	    }
-	    if (channame[0] == 'h') GAGenChans(CHAN_HRIVER, &editArea, f);
-	    else if (channame[0] == 'v') GAGenChans(CHAN_VRIVER, &editArea, f);
-	    else
-	    {
-		TxError("Unrecognized channel type: %s\n", channame);
-		TxError("Legal types are \"h\" or \"v\"\n");
-	    }
-	    if (f != stdout)
-		(void) fclose(f);
 	    break;
 	case CHANNEL:
 	    channame = (char *) NULL;
