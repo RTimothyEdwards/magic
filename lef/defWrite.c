@@ -764,6 +764,7 @@ defnodeVisit(node, res, cap, defdata)
 	/* the first pass are picked up from the .ext file.	*/
 
 	magictype = DBTechNameType(EFLayerNames[lr->r_type]);
+	ASSERT(magictype >= 0, "magictype<0");
 
 	/* Note that the type of the node might be defined by the type */
 	/* in the subcircuit itself, so we need to search for any type */
@@ -2600,6 +2601,7 @@ defblockageVisit(node, res, cap, defobsdata)
 	return 0;
 
     magictype = DBTechNameType(EFLayerNames[node->efnode_type]);
+    ASSERT(magictype >= 0, "magictype<0");
     TTMaskZero(&tmask);
     TTMaskSetMask(&tmask, &DBConnectTbl[magictype]);
 
