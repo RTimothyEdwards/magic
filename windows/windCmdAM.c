@@ -1134,11 +1134,20 @@ windDoMacro(w, cmd, interactive)
 	    }
 	}
 
+	cn = NULL;
 	any = FALSE;
 	ch = 0;
 	HashStartSearch(&hs);
 	while (TRUE)
 	{
+	    if (cn)
+	    {
+		/* this loop uses 'continue' after 'cn' was assigned from malloc below, so
+		 *  this ensures it is freed up at the start of the next iteration.
+		 */
+		freeMagic(cn);
+		cn = NULL;
+	    }
 	    h = HashNext(clienttable, &hs);
 	    if (h == NULL) break;
 	    cMacro = (macrodef *) HashGetValue(h);
@@ -1186,7 +1195,6 @@ windDoMacro(w, cmd, interactive)
 		    TxPrintf("Macro '%s' %s \"%s\"\n",
 			     cn, (do_help) ? "" : "contains", cp);
 	    }
-	    freeMagic(cn);
 	    any = TRUE;
 	}
 	if (!any)
