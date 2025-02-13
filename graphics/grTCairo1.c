@@ -356,6 +356,7 @@ GrTCairoPlotSVG (char *filename, MagWindow *mw)
 {
     int screenw, screenh;
     char *fileptr;
+    char *alloc = NULL;
     cairo_surface_t *wind_surface;
     cairo_t *wind_context;
 
@@ -373,7 +374,7 @@ GrTCairoPlotSVG (char *filename, MagWindow *mw)
     fileptr = filename;
     if (strchr(filename, '.') == NULL)
     {
-	fileptr = mallocMagic(strlen(filename) + 5);
+	fileptr = alloc = mallocMagic(strlen(filename) + 5);
 	sprintf(fileptr, "%s.svg", filename);
     }
 
@@ -387,7 +388,7 @@ GrTCairoPlotSVG (char *filename, MagWindow *mw)
     cairo_svg_surface_restrict_to_version(tcairodata->surface,
 		CAIRO_SVG_VERSION_1_2);
 
-    if (fileptr != filename) freeMagic(fileptr);
+    if (alloc) freeMagic(alloc);
 
     tcairodata->context = cairo_create(tcairodata->surface);
     WindRedisplay(mw);
