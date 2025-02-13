@@ -216,6 +216,7 @@ ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
 	if (result != 0)
 	{
 	    TxError("Error in sim file %s\n", line[0]);
+	    fclose(fp);
 	    return 1;
 	}
     }
@@ -922,6 +923,7 @@ ResSimProcessDrivePoints(filename)
 	node->drivepoint.p_y = atoi(line[RES_EXT_ATTR_Y]);
 	node->rs_ttype = DBTechNoisyNameType(line[RES_EXT_ATTR_TILE]);
     }
+    fclose(fp);
 }
 
 /*
@@ -982,6 +984,7 @@ ResSimProcessFixPoints(filename)
 	thisfix->fp_tile = NULL;
 	strcpy(thisfix->fp_name, label);
     }
+    fclose(fp);
 }
 
 

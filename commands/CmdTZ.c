@@ -1821,6 +1821,7 @@ CmdWire(
 				TxError("Bad coordinate pair at %s line %d\n",
 					cmd->tx_argv[4], i + 1);
 				freeMagic(plist);
+				fclose(pfile);
 				return;
 			    }
 

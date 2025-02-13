@@ -122,7 +122,6 @@ char *path;			/* a search path */
 char *libPath;			/* a library search path */
 
 {
-    FILE *f;
     int max, red, green, blue, newmax, argc, i;
     colorEntry *ce;
     char fullName[256], inputLine[128], colorName[100];
@@ -135,7 +134,7 @@ char *libPath;			/* a library search path */
     (void) sprintf(fullName, "%.80s.%.80s.%.80s", techStyle,
 	    dispType, monType);
 
-    f = PaOpen(fullName, "r", ".cmap", path, libPath, (char **) NULL);
+    FILE *f = PaOpen(fullName, "r", ".cmap", path, libPath, (char **) NULL);
     if (f == NULL)
     {
 	/* Check for original ".cmap1" file (prior to magic v. 7.2.27) */
@@ -163,7 +162,7 @@ char *libPath;			/* a library search path */
 
 	    TxError("Syntax error in color map file \"%s.cmap\"\n", fullName);
 	    TxError("Last color read was index %d\n", max);
-	    return FALSE;
+	    goto cleanup;
 	}
 	else
 	{
@@ -219,6 +218,11 @@ char *libPath;			/* a library search path */
 
     GrSetCMap();
     return TRUE;
+
+cleanup:
+    if(f)
+	fclose(f);
+    return FALSE;
 }
 
 
