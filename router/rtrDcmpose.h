@@ -53,6 +53,7 @@
 
 /* rtrMARK(t,s)		Tile * t;  int s;
  * Mark the indicated horizontal tile edge as a valid channel boundary.
+ * FIXME this looks suspect, maybe it should be '|' operator and not '&'.
  */
 #define rtrMARK(t,s) \
     ((t)->ti_client = INT2CD((((int) CD2INT((t)->ti_client))&(s))))
@@ -61,7 +62,7 @@
  * Clear the indicated horizontal tile edge as a valid channel boundary.
  */
 #define rtrCLEAR(t,s) \
-    ((t)->ti_client = INT2CD((((int) CD2INT((t)->ti_client))&(!s))))
+    ((t)->ti_client = INT2CD((((int) CD2INT((t)->ti_client))&(~s))))
 
 /* Private Procedures */
 int rtrSrPaint();
