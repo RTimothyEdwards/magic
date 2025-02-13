@@ -425,6 +425,7 @@ ResSimSubckt(line)
 	return 1;
     }
     ttype = extGetDevType(EFDevTypes[j]);
+    ASSERT(ttype >= 0, "ttype<0");
 
     /* Find the device record that corresponds to the device name */
     for (devptr = ExtCurStyle->exts_device[ttype]; devptr; devptr = devptr->exts_next)
