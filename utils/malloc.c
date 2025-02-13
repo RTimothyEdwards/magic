@@ -43,14 +43,18 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <string.h>
 
 #include "tcltk/tclmagic.h"
+#define _MAGIC__UTILS__MALLOC_H__NOINLINE
 #include "utils/magic.h"
 #include "utils/malloc.h"
 
 /* Normally we're supposed to warn against the use of standard malloc()	*/
 /* and free(), but obviously that doesn't apply to this file.		*/
 
+#ifndef SUPPORT_DIRECT_MALLOC
+/* this is needed to remove the utils/magic.h defines */
 #undef malloc
 #undef free
+#endif
 
 /* Imports */
 
@@ -64,6 +68,7 @@ extern char *TxGetLine();
  * would no further references would be made to free'ed storage.
  */
 
+#ifndef SUPPORT_REMOVE_MALLOC_LEGACY
 /* Delay free'ing by one call, to accommodate Magic's needs. */
 static char *freeDelayedItem = NULL;
 
@@ -92,14 +97,14 @@ static char *freeDelayedItem = NULL;
 
 /*
  *---------------------------------------------------------------------
- * mallocMagic() --
+ * mallocMagicLegacy() --
  *
  *	memory allocator with support for one-delayed-item free'ing
  *---------------------------------------------------------------------
  */
 
 void *
-mallocMagic(nbytes)
+mallocMagicLegacy(nbytes)
     size_t nbytes;
 {
     void *p;
@@ -127,14 +132,14 @@ mallocMagic(nbytes)
 
 /*
  *---------------------------------------------------------------------
- * freeMagic() --
+ * freeMagicLegacy() --
  *
  *	one-delayed-item memory deallocation
  *---------------------------------------------------------------------
  */
 
 void
-freeMagic(cp)
+freeMagicLegacy(cp)
     void *cp;
 {
     if (cp == NULL)
@@ -150,14 +155,14 @@ freeMagic(cp)
 
 /*
  *---------------------------------------------------------------------
- * callocMagic() --
+ * callocMagicLegacy() --
  *
  *	allocate memory and initialize it to all zero bytes.
  *---------------------------------------------------------------------
  */
 
 void *
-callocMagic(nbytes)
+callocMagicLegacy(nbytes)
     size_t nbytes;
 {
     void *cp;
@@ -168,3 +173,42 @@ callocMagic(nbytes)
     return (cp);
 }
 
+#endif /* SUPPORT_REMOVE_MALLOC_LEGACY */
+
+
+/*
+ *  NOTICE: non-inline form of emitted functions, keep in sync with malloc.h
+ */
+#pragma weak freeMagic1_init = freeMagic1_init_func
+free_magic1_t freeMagic1_init_func() {
+    return NULL;
+}
+
+#pragma weak freeMagic1 = freeMagic1_func
+void freeMagic1_func(free_magic1_t* m1, void* ptr) {
+    //if(*m1) /* this if() is here to help inliner remove the call to free() when it can */
+    /* this is not the inline form here so if() is commented out */
+    {
+#if (defined(SUPPORT_DIRECT_MALLOC) || defined(SUPPORT_REMOVE_MALLOC_LEGACY))
+	free(*m1); /* no need for NULL check with free() */
+#else
+	/* but freeMagicLegacy() does not like NULL passed, so extra if() penalty here */
+	if(*m1) freeMagicLegacy(*m1);
+#endif
+    }
+    *m1 = ptr;
+}
+
+#pragma weak freeMagic1_end = freeMagic1_end_func
+void freeMagic1_end_func(free_magic1_t* m1) {
+    //if(*m1) /* this if() is here to help inliner remove the call to free() when it can */
+    /* this is not the inline form here so if() is commented out */
+    {
+#if (defined(SUPPORT_DIRECT_MALLOC) || defined(SUPPORT_REMOVE_MALLOC_LEGACY))
+	free(*m1); /* no need for NULL check with free() */
+#else
+	/* but freeMagicLegacy() does not like NULL passed, so extra if() penalty here */
+	if(*m1) freeMagicLegacy(*m1);
+#endif
+    }
+}
