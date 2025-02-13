@@ -1090,6 +1090,7 @@ calmaProcessDef(
 				"  Using magic's internal definition\n");
 		isReadOnly = FALSE;
 	    }
+	    freeMagic(buffer);
 
 	    if (cellend < cellstart)	/* Sanity check */
 	    {
