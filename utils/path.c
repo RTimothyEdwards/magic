@@ -63,6 +63,37 @@ bool FileLocking = TRUE;
 #define MAXSIZE MAXPATHLEN
 
 #ifdef HAVE_ZLIB
+/* this was found repeated a number of times, only sometimes checking NULL
+ * return from gzdopen() which is unlikely/difficult to ever see from libz,
+ * but then static code analyser raises multiple concerns over multiple paths
+ * leaking an fd. So at least this resolve these things and quietens the
+ * output somewhat.
+ */
+static gzFile
+gzdopen_internal(const char *path, int oflags, const char *modestr, int *fdp)
+{
+    ASSERT(fdp, "fdp");
+
+    int fd = open(path, oflags);
+    if (fd < 0)
+	return NULL;
+
+    /* when gzdopen() successful ownership of fd is transferred */
+    gzFile gzhandle = gzdopen(fd, modestr);
+    if (gzhandle == NULL)
+	goto close;
+
+    if (fdp) /* but sometimes the caller still wants to know the fd */
+	*fdp = fd;
+    return gzhandle;
+
+close:
+    close(fd);
+    if (fdp)
+	*fdp = -1;
+    return NULL;
+}
+
 /*
  *-------------------------------------------------------------------
  *
@@ -498,12 +529,8 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 #ifdef FILE_LOCKS
 	if (FileLocking)
 	    return flock_zopen(realName, mode, is_locked, fdp);
-	else
 #endif
-	    fd = open(realName, oflag);
-
-	if (fdp != NULL) *fdp = fd;
-	return gzdopen(fd, mode);
+	return gzdopen_internal(realName, oflag, mode, fdp);
     }
 
     /* If we were already given a full rooted file name,
@@ -522,12 +549,8 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 #ifdef FILE_LOCKS
 	if (FileLocking)
 	    return flock_zopen(realName, mode, is_locked, fdp);
-	else
 #endif
-	    fd = open(realName, oflag);
-
-	if (fdp != NULL) *fdp = fd;
-	return gzdopen(fd, mode);
+	return gzdopen_internal(realName, oflag, mode, fdp);
     }
 
     /* Now try going through the path, one entry at a time. */
@@ -540,13 +563,9 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 	if (FileLocking)
 	    f = flock_zopen(realName, mode, is_locked, &fd);
 	else
-	{
-	    fd = open(realName, oflag);
-	    f = gzdopen(fd, mode);
-	}
+	    f = gzdopen_internal(realName, oflag, mode, &fd);
 #else
-	fd = open(realName, oflag);
-	f = gzdopen(fd, mode);
+	f = gzdopen_internal(realName, oflag, mode, &fd);
 #endif
 
 	if (f != NULL)
@@ -571,13 +590,9 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 	if (FileLocking)
 	    f = flock_zopen(realName, mode, is_locked, &fd);
 	else
-	{
-	    fd = open(realName, oflag);
-	    f = gzdopen(fd, mode);
-	}
+	    f = gzdopen_internal(realName, oflag, mode, &fd);
 #else
-	fd = open(realName, oflag);
-	f = gzdopen(fd, mode);
+	f = gzdopen_internal(realName, oflag, mode, &fd);
 #endif
 
 	if (f != NULL)
