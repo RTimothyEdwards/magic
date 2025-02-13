@@ -138,22 +138,22 @@ static TxCommand *lisp_cur_cmd = NULL;
 
 bool
 FD_IsZero(fdmask)
-    fd_set fdmask;
+    const fd_set *fdmask;
 {
     int i;
     for (i = 0; i <= TX_MAX_OPEN_FILES; i++)
-	if (FD_ISSET(i, &fdmask)) return FALSE;
+	if (FD_ISSET(i, fdmask)) return FALSE;
     return TRUE;
 }
 
 void
 FD_OrSet(fdmask, dst)
-    fd_set fdmask;
+    const fd_set *fdmask;
     fd_set *dst;
 {
     int i;
     for (i = 0; i <= TX_MAX_OPEN_FILES; i++)
-	if (FD_ISSET(i, &fdmask)) FD_SET(i, dst);
+	if (FD_ISSET(i, fdmask)) FD_SET(i, dst);
 }
 
 /*
@@ -454,7 +454,7 @@ TxFreeCommand(command)
 
 void
 TxAddInputDevice(fdmask, inputProc, cdata)
-    fd_set fdmask;		/* A mask of file descriptors that this
+    const fd_set *fdmask;	/* A mask of file descriptors that this
 				 * device will handle.
 				 */
     void (*inputProc)();	/* A routine to call.  This routine will
@@ -475,7 +475,7 @@ TxAddInputDevice(fdmask, inputProc, cdata)
 	return;
     }
     txLastInputEntry++;
-    txInputDevice[txLastInputEntry].tx_fdmask = fdmask;
+    txInputDevice[txLastInputEntry].tx_fdmask = *fdmask;
     txInputDevice[txLastInputEntry].tx_inputProc = inputProc;
     txInputDevice[txLastInputEntry].tx_cdata = cdata;
     FD_OrSet(fdmask, &txInputDescriptors);
@@ -490,7 +490,7 @@ TxAdd1InputDevice(fd, inputProc, cdata)
     fd_set fs;
     FD_ZERO(&fs);
     FD_SET(fd, &fs);
-    TxAddInputDevice(fs, inputProc, cdata);
+    TxAddInputDevice(&fs, inputProc, cdata);
 }
 
 /*
@@ -509,14 +509,14 @@ TxAdd1InputDevice(fd, inputProc, cdata)
 
 void
 TxDeleteInputDevice(fdmask)
-    fd_set fdmask;		/* A mask of file descriptors that are
+    const fd_set *fdmask;	/* A mask of file descriptors that are
 				 * no longer active.
 				 */
 {
     int i;
 
     for (i = 0; i <= TX_MAX_OPEN_FILES; i++)
-	if (FD_ISSET(i, &fdmask)) TxDelete1InputDevice(i);
+	if (FD_ISSET(i, fdmask)) TxDelete1InputDevice(i);
 }
 
 void
@@ -528,7 +528,7 @@ TxDelete1InputDevice(fd)
     for (i = 0; i <= txLastInputEntry; i++)
     {
 	FD_CLR(fd, &(txInputDevice[i].tx_fdmask));
-	if (FD_IsZero(txInputDevice[i].tx_fdmask))
+	if (FD_IsZero(&txInputDevice[i].tx_fdmask))
 	{
 	    for (j = i+1; j <= txLastInputEntry; j++)
 		txInputDevice[j-1] = txInputDevice[j];
@@ -940,7 +940,7 @@ TxGetInputEvent(block, returnOnSigWinch)
     bool gotSome;
     int i, fd, lastNum;
 
-    ASSERT(!FD_IsZero(txInputDescriptors), "TxGetInputEvent");
+    ASSERT(!FD_IsZero(&txInputDescriptors), "TxGetInputEvent");
 
     if (block)
 	waitTime = NULL;
