@@ -689,6 +689,10 @@ CIFParsePath(
 	if (!CIFParsePoint(&path.cifp_point, iscale))
 	{
 	    CIFFreePath(*pathheadpp);
+	    /* important to invalidate as someone else will try to free due
+	     * to the storage having visbility out-of-scope of this function.
+	     */
+	    *pathheadpp = NULL;
 	    return FALSE;
 	}
 	if (savescale != cifReadScale1)

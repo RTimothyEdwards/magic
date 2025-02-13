@@ -1158,6 +1158,10 @@ calmaReadPath(
 	if (FEOF(calmaInputFile))
 	{
 	    CIFFreePath(*pathheadpp);
+	    /* important to invalidate as someone else will try to free due
+	     * to the storage having vibility out-of-scope of this function.
+	     */
+	    *pathheadpp = NULL;
 	    return (FALSE);
 	}
 
