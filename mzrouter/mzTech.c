@@ -123,16 +123,24 @@ MZFreeParameters(params)
     RouteLayer *rL;
     RouteContact *rC;
 
-    for (rL = params->mp_rLayers; rL; rL = rL->rl_next)
     {
-	ListDealloc(rL->rl_contactL);
-	TiFreePlane(rL->rl_routeType.rt_hBlock);
-	TiFreePlane(rL->rl_routeType.rt_vBlock);
-	freeMagic(rL);
+	free_magic1_t mm1 = freeMagic1_init();
+	for (rL = params->mp_rLayers; rL; rL = rL->rl_next)
+	{
+	    ListDealloc(rL->rl_contactL);
+	    TiFreePlane(rL->rl_routeType.rt_hBlock);
+	    TiFreePlane(rL->rl_routeType.rt_vBlock);
+	    freeMagic1(&mm1, rL);
+	}
+	freeMagic1_end(&mm1);
     }
 
-    for (rC = params->mp_rContacts; rC; rC = rC->rc_next)
-	freeMagic(rC);
+    {
+	free_magic1_t mm1 = freeMagic1_init();
+	for (rC = params->mp_rContacts; rC; rC = rC->rc_next)
+	    freeMagic1(&mm1, rC);
+	freeMagic1_end(&mm1);
+    }
 }
 
 
@@ -159,12 +167,14 @@ MZTechInit()
     /* Clear out any old information */
     if (mzStyles != NULL)
     {
+	free_magic1_t mm1 = freeMagic1_init();
 	for (style = mzStyles; style != NULL; style = style->ms_next)
 	{
 	    MZFreeParameters(&(style->ms_parms));
 	    freeMagic(style->ms_name);
-	    freeMagic(style);
+	    freeMagic1(&mm1, style);
 	}
+	freeMagic1_end(&mm1);
     }
 
     /* Initially no route types defined */

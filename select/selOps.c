@@ -1594,8 +1594,10 @@ SelectStretch(x, y)
 	TTMaskSetOnlyType(&tmask, tloc);
 
 	DBPaintValid(EditCellUse->cu_def, &selStretchList->sa_area, &tmask, type);
-	freeMagic((char *) selStretchList);
+	free_magic1_t mm1 = freeMagic1_init();
+	freeMagic1(&mm1, (char *) selStretchList);
 	selStretchList = selStretchList->sa_next;
+	freeMagic1_end(&mm1);
     }
 
     /* Paint the new translated selection back into the edit cell,

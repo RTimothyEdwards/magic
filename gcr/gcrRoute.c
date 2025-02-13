@@ -127,8 +127,10 @@ bottom:
      * the channel and cause the net structure to become invalid
      * anyway.
      */
+    free_magic1_t mm1 = freeMagic1_init();
     for (net = ch->gcr_nets; net; net = net->gcr_next)
-	freeMagic((char *) net);
+	freeMagic1(&mm1, (char *) net);
+    freeMagic1_end(&mm1);
     ch->gcr_nets = NULL;
 
     return (gcrRouterErrors);

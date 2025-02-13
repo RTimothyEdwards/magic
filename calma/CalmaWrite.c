@@ -1400,8 +1400,10 @@ calmaOutFunc(
 	    {
 		pllist[i].pl_label = ll->ll_label;
 		pllist[i].pl_port = (unsigned int)ll->ll_attr;
-		freeMagic(ll);
+		free_magic1_t mm1 = freeMagic1_init();
+		freeMagic1(&mm1, ll);
 		ll = ll->ll_next;
+		freeMagic1_end(&mm1);
 		i++;
 	    }	
 
@@ -2422,19 +2424,26 @@ calmaProcessBoundary(
 
 	/* Free the LinkedBoundary list */
 
-	lbref = listtop;
-	while (lbref->lb_next != listtop)
 	{
-	    freeMagic(lbref);
-	    lbref = lbref->lb_next;
+	    free_magic1_t mm1 = freeMagic1_init();
+	    lbref = listtop;
+	    while (lbref->lb_next != listtop)
+	    {
+		freeMagic1(&mm1, lbref);
+		lbref = lbref->lb_next;
+	    }
+	    freeMagic1_end(&mm1);
 	}
-	freeMagic(lbref);
     }
 
     /* Free the BoundaryTop list */
 
-    for (bounds = blist; bounds != NULL; bounds = bounds->bt_next)
-	freeMagic(bounds);
+    {
+	free_magic1_t mm1 = freeMagic1_init();
+	for (bounds = blist; bounds != NULL; bounds = bounds->bt_next)
+	    freeMagic1(&mm1, bounds);
+	freeMagic1_end(&mm1);
+    }
 }
 
 /*
@@ -2500,8 +2509,10 @@ calmaMergePaintFunc(
 		lb = edge;
 		while (lb->lb_next != edge) lb = lb->lb_next;
 		lb->lb_next = edge->lb_next;
-	 	freeMagic(edge);
+		free_magic1_t mm1 = freeMagic1_init();
+		freeMagic1(&mm1, edge);
 		edge = edge->lb_next;
+		freeMagic1_end(&mm1);
 	    }
 	}
 	else
@@ -2720,11 +2731,13 @@ done_searches:
 
 	    if (num_points != 4)
 	    {
+		free_magic1_t mm1 = freeMagic1_init();
 		for (i = 0; i < num_points; i++)
 		{
-		    freeMagic(edge);
+		    freeMagic1(&mm1, edge);
 		    edge = edge->lb_next;
 		}
+		freeMagic1_end(&mm1);
 		edge = NULL;
 	    }
 	    if (!StackEmpty(SegStack))

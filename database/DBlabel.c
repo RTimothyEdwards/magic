@@ -280,6 +280,7 @@ DBEraseGlobLabel(cellDef, area, mask, areaReturn, globmatch)
     bool erasedAny = FALSE;
     TileType newType;
 
+    free_magic1_t mm1 = freeMagic1_init();
     labPrev = NULL;
     lab = cellDef->cd_labels;
     while (lab != NULL)
@@ -313,7 +314,7 @@ DBEraseGlobLabel(cellDef, area, mask, areaReturn, globmatch)
 	if ((lab->lab_font >= 0) && areaReturn)
 	    GeoInclude(&lab->lab_bbox, areaReturn);
 
-	freeMagic((char *) lab);
+	freeMagic1(&mm1, (char *) lab);
 	lab = lab->lab_next;
 	erasedAny = TRUE;
 	continue;
@@ -321,6 +322,7 @@ DBEraseGlobLabel(cellDef, area, mask, areaReturn, globmatch)
 	nextLab: labPrev = lab;
 	lab = lab->lab_next;
     }
+    freeMagic1_end(&mm1);
 
     if (erasedAny)
 	cellDef->cd_flags |= CDMODIFIED|CDGETNEWSTAMP;
@@ -442,6 +444,7 @@ DBEraseLabelsByContent(def, rect, type, text)
 {
     Label *lab, *labPrev;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (labPrev = NULL, lab = def->cd_labels;
 	    lab != NULL;
 	    labPrev = lab, lab = lab->lab_next)
@@ -457,7 +460,7 @@ DBEraseLabelsByContent(def, rect, type, text)
 	else labPrev->lab_next = lab->lab_next;
 	if (def->cd_lastLabel == lab)
 	    def->cd_lastLabel = labPrev;
-	freeMagic((char *) lab);
+	freeMagic1(&mm1, (char *) lab);
 
 	/* Don't iterate through loop, since this will skip a label:
 	 * just go back to top.  This is tricky!
@@ -467,6 +470,7 @@ DBEraseLabelsByContent(def, rect, type, text)
 	if (lab == NULL) break;
 	else goto nextCheck;
     }
+    freeMagic1_end(&mm1);
 }
 
 /*
@@ -495,6 +499,7 @@ DBRemoveLabel(def, refLab)
 {
     Label *lab, *labPrev;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (labPrev = NULL, lab = def->cd_labels;
 	    lab != NULL;
 	    labPrev = lab, lab = lab->lab_next)
@@ -508,7 +513,7 @@ DBRemoveLabel(def, refLab)
 	else labPrev->lab_next = lab->lab_next;
 	if (def->cd_lastLabel == lab)
 	    def->cd_lastLabel = labPrev;
-	freeMagic((char *) lab);
+	freeMagic1(&mm1, (char *) lab);
 
 	/* Don't iterate through loop, since this will skip a label:
 	 * just go back to top.  This is tricky!
@@ -518,6 +523,7 @@ DBRemoveLabel(def, refLab)
 	if (lab == NULL) break;
 	else goto nextCheck;
     }
+    freeMagic1_end(&mm1);
 }
 
 /*
@@ -760,8 +766,10 @@ DBAdjustLabelsNew(def, area)
 		    def->cd_lastLabel = labPrev;
 		DBUndoEraseLabel(def, lab);
 		DBWLabelChanged(def, lab, DBW_ALLWINDOWS);
-		freeMagic((char *) lab);
+		free_magic1_t mm1 = freeMagic1_init();
+		freeMagic1(&mm1, (char *) lab);
 		lab = lab->lab_next;
+		freeMagic1_end(&mm1);
 		modified = TRUE;
 		continue;
 	    }
@@ -1744,8 +1752,10 @@ DBLoadFont(fontfile, scale)
 		}
 
 		/* Remove the pointlist */
+		free_magic1_t mm1 = freeMagic1_init();
 		for (newPath = pathStart; newPath != NULL; newPath = newPath->fp_next)
-		    freeMagic(newPath);
+		    freeMagic1(&mm1, newPath);
+		freeMagic1_end(&mm1);
 		pathStart = NULL;
 	    }
 	    else

@@ -1104,8 +1104,10 @@ runexttospice:
 
 	    fprintf(esSpiceF, " ");
 	    freeMagic(glist->gll_name);
-	    freeMagic(glist);
+	    free_magic1_t mm1 = freeMagic1_init();
+	    freeMagic1(&mm1, glist);
 	    glist = glist->gll_next;
+	    freeMagic1_end(&mm1);
 	}
 	fprintf(esSpiceF, "\n\n");
     }
@@ -1159,8 +1161,10 @@ runexttospice:
 	    EFVisitDevs(devMergeVisit, (ClientData) NULL);
 	    TxPrintf("Devs merged: %d\n", esSpiceDevsMerged);
 	    esFMIndex = 0;
+	    free_magic1_t mm1 = freeMagic1_init();
 	    for (p = devMergeList; p != NULL; p = p->next)
-		freeMagic((char *) p);
+		freeMagic1(&mm1, (char *) p);
+	    freeMagic1_end(&mm1);
 	    devMergeList = NULL;
 	}
 	else if (esDistrJunct)
@@ -1905,8 +1909,10 @@ topVisit(
 	sname = lnn->lnn_nodeName;
 	if (esDoBlackBox == FALSE || !(def->def_flags & DEF_ABSTRACT))
 	    sname->efnn_port = ++portmax;
-	freeMagic(lnn);
+	free_magic1_t mm1 = freeMagic1_init();
+	freeMagic1(&mm1, lnn);
 	lnn = lnn->lnn_next;
+	freeMagic1_end(&mm1);
     }
 
     /* Port numbers need not start at zero or be contiguous.  They will be  */

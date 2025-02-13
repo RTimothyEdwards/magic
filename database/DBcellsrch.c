@@ -1514,13 +1514,14 @@ DBScaleEverything(scalen, scaled)
     }
 
     /* Free the linked CellDef list */
-
+    free_magic1_t mm1 = freeMagic1_init();
     lcd = lhead;
     while (lcd != NULL)
     {
-	freeMagic((char *)lcd);
+	freeMagic1(&mm1, (char *)lcd);
 	lcd = lcd->cd_next;
     }
+    freeMagic1_end(&mm1);
 
     /* Scale all elements */
     DBWScaleElements(scalen, scaled);
@@ -1767,12 +1768,14 @@ DBSrCellUses(cellDef, func, arg)
     }
 
     /* Free this linked cellUse structure */
+    free_magic1_t mm1 = freeMagic1_init();
     lu = luhead;
     while (lu != NULL)
     {
-	freeMagic((char *)lu);
+	freeMagic1(&mm1, (char *)lu);
 	lu = lu->cu_next;
     }
+    freeMagic1_end(&mm1);
     return retval;
 }
 
@@ -2000,12 +2003,14 @@ dbScaleCell(cellDef, scalen, scaled)
     BPFree(cellPlaneOrig);
 
     /* Free this linked cellUse structure */
+    free_magic1_t mm1 = freeMagic1_init();
     lu = luhead;
     while (lu != NULL)
     {
-	freeMagic((char *)lu);
+	freeMagic1(&mm1, (char *)lu);
 	lu = lu->cu_next;
     }
+    freeMagic1_end(&mm1);
 
     /* Scale all of the paint tiles in this cell by creating a new plane */
     /* and copying all tiles into the new plane at scaled dimensions.	 */
@@ -2208,12 +2213,14 @@ DBMoveCell(cellDef, origx, origy)
     BPFree(cellPlaneOrig);
 
     /* Free this linked cellUse structure */
+    free_magic1_t mm1 = freeMagic1_init();
     lu = luhead;
     while (lu != NULL)
     {
-	freeMagic((char *)lu);
+	freeMagic1(&mm1, (char *)lu);
 	lu = lu->cu_next;
     }
+    freeMagic1_end(&mm1);
 
     /* Move all of the paint tiles in this cell by creating a new plane */
     /* and copying all tiles into the new plane at the new position.	 */

@@ -851,9 +851,11 @@ CIFPaintCurrent(
 		    	freeMagic(propstr);
 		    }
 		    propstr = newstr;
-		    freeMagic(lrec);
+		    free_magic1_t mm1 = freeMagic1_init();
+		    freeMagic1(&mm1, lrec);
 		    lrec = lrec->r_next;
-	    	}
+		    freeMagic1_end(&mm1);
+		}
 		/* NOTE: propstr is transferred to the CellDef and should
 		 * not be free'd here.
 		 */
