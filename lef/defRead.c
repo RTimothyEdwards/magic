@@ -499,6 +499,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 				*/
 				routeLayer = stype;
 
+				ASSERT(routerLayer >= 0, "routerLayer<0"); /* positive bounds check */
 				lefl = defLayerMap[routeLayer].lefInfo;
 
 				/* Get correct rule for nondefault rules */
