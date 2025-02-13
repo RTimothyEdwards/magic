@@ -588,10 +588,12 @@ DBWElementDelete(MagWindow *w, char *name)
     if (elem->flags & DBW_ELEMENT_PERSISTENT)
 	elem->rootDef->cd_flags |= CDMODIFIED;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (stylePtr = elem->stylelist; stylePtr != NULL; stylePtr = stylePtr->next)
     {
-	freeMagic(stylePtr);
+	freeMagic1(&mm1, stylePtr);
     }
+    freeMagic1_end(&mm1);
     if (elem->type == ELEMENT_TEXT)
 	freeMagic(elem->text);
 
@@ -1156,8 +1158,10 @@ DBWElementStyle(MagWindow *w, char *ename, int style, bool add)
 			(elem->stylelist->style == style))
 	    {
 		dbwElementUndraw(w, elem);
-		freeMagic(elem->stylelist);
+		free_magic1_t mm1 = freeMagic1_init();
+		freeMagic1(&mm1, elem->stylelist);
 		elem->stylelist = elem->stylelist->next;
+		freeMagic1_end(&mm1);
 		if (elem->stylelist == NULL)
 		    TxPrintf("Warning:  Element %s has no styles!\n", ename);
 	    }
@@ -1169,8 +1173,10 @@ DBWElementStyle(MagWindow *w, char *ename, int style, bool add)
 	    else if (sptr->next != NULL)
 	    {
 		dbwElementUndraw(w, elem);
-		freeMagic(sptr->next);
+		free_magic1_t mm1 = freeMagic1_init();
+		freeMagic1(&mm1, sptr->next);
 		sptr->next = sptr->next->next;
+		freeMagic1_end(&mm1);
 	    }
 	}
 	/* mark element's cell as having been modified */
@@ -1279,8 +1285,10 @@ DBWElementClearDef(cellDef)
 	if (!elem) continue;
 	if (elem->rootDef != cellDef) continue;
 
+	free_magic1_t mm1 = freeMagic1_init();
 	for (stylePtr = elem->stylelist; stylePtr != NULL; stylePtr = stylePtr->next)
-	    freeMagic(stylePtr);
+	    freeMagic1(&mm1, stylePtr);
+	freeMagic1_end(&mm1);
 
 	if (elem->type == ELEMENT_TEXT)
 	    freeMagic(elem->text);

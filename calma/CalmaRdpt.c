@@ -360,12 +360,14 @@ calmaElementBoundary(void)
     }
 
     /* Paint the rectangles (if any) */
+    free_magic1_t mm1 = freeMagic1_init();
     for (; rp != NULL ; rp = rp->r_next)
     {
 	if (plane)
 	    DBPaintPlane(plane, &rp->r_r, CIFPaintTable, (PaintUndoInfo *)NULL);
-	freeMagic((char *) rp);
+	freeMagic1(&mm1, (char *) rp);
     }
+    freeMagic1_end(&mm1);
 
     if (cifCurReadPlanes == cifEditCellPlanes)
     {

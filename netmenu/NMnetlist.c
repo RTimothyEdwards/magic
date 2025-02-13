@@ -350,14 +350,16 @@ NMDeleteNet(net)
      */
 
     next = ne->ne_next;
+    free_magic1_t mm1 = freeMagic1_init();
     while (TRUE)
     {
 	NMUndo(next->ne_name, net, NMUE_REMOVE);
 	HashSetValue(HashFind(&nmCurrentNetlist->nl_table, next->ne_name), 0);
-	freeMagic((char *) next);
+	freeMagic1(&mm1, (char *) next);
 	if (next == ne) break;
 	next = next->ne_next;
     }
+    freeMagic1_end(&mm1);
 }
 
 /*

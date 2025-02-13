@@ -157,7 +157,8 @@ NMCmdCleanup(w, cmd)
      * is in progress.
      */
 
-    for (p = nmCleanupList; p != NULL; p = p->nmcl_next)
+     free_magic1_t mm1 = freeMagic1_init();
+     for (p = nmCleanupList; p != NULL; p = p->nmcl_next)
     {
 	char answer[30];
 	int indx, defaultValue;
@@ -184,11 +185,15 @@ NMCmdCleanup(w, cmd)
         switch (indx)
 	{
 	    case 0:
+	    {
+		free_magic1_t mm1_ = freeMagic1_init();
 		while (p != NULL)
 		{
-		    freeMagic((char *) p);
+		    freeMagic1(&mm1_, (char *) p);
 		    p = p->nmcl_next;
 		}
+		freeMagic1_end(&mm1_);
+	    }
 		return;
 	    case 1:
 		NMDeleteNet(p->nmcl_name);
@@ -197,8 +202,9 @@ NMCmdCleanup(w, cmd)
 		NMDeleteTerm(p->nmcl_name);
 		break;
 	}
-	freeMagic((char *) p);
+	freeMagic1(&mm1, (char *) p);
     }
+    freeMagic1_end(&mm1);
 
     if (nmCleanupList == NULL)
 	TxPrintf("No problems found.\n");

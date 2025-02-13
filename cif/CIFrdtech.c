@@ -329,8 +329,10 @@ cifNewReadStyle(void)
 	    layer = cifCurReadStyle->crs_layers[i];
 	    if (layer != NULL)
 	    {
+		free_magic1_t mm1 = freeMagic1_init();
 		for (op = layer->crl_ops; op != NULL; op = op->co_next)
-		    freeMagic((char *)op);
+		    freeMagic1(&mm1, (char *)op);
+		freeMagic1_end(&mm1);
 		freeMagic((char *)layer);
 	    }
 	}
@@ -408,11 +410,13 @@ CIFReadTechInit(void)
 
     /* forget the list of styles */
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (style = cifReadStyleList; style != NULL; style = style->crs_next)
     {
         freeMagic(style->crs_name);
-        freeMagic(style);
+        freeMagic1(&mm1, style);
     }
+    freeMagic1_end(&mm1);
     cifReadStyleList = NULL;
 }
 

@@ -505,8 +505,10 @@ glHistoDump()
     fprintf(fp, "TOTAL: %d\n", total);
 
     /* Free memory */
+    free_magic1_t mm1 = freeMagic1_init();
     for (gh = glNetHistoList; gh; gh = gh->glh_next)
-	freeMagic((char *) gh);
+	freeMagic1(&mm1, (char *) gh);
+    freeMagic1_end(&mm1);
     glNetHistoList = NULL;
 
     /* Done */

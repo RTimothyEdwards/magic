@@ -1861,6 +1861,7 @@ lefWriteMacro(
 		DBPaint(lc.lefYank, &layerBound, ttype);
 	    }
 
+	free_magic1_t mm1 = freeMagic1_init();
 	for (thislll = lll; thislll; thislll = thislll->lll_next)
 	{
 	    int mspace;
@@ -1879,8 +1880,9 @@ lefWriteMacro(
 	    thislll->lll_area.r_ytop += mspace;
 
 	    DBErase(lc.lefYank, &thislll->lll_area, lab->lab_type);
-	    freeMagic(thislll);
+	    freeMagic1(&mm1, thislll);
 	}
+	freeMagic1_end(&mm1);
 
 	if (setback >= 0)
 	{

@@ -699,6 +699,7 @@ endCoord:
 
     /* Process each segment and paint into the layout */
 
+    free_magic1_t mm1 = freeMagic1_init();
     while (routeTop != NULL)
     {
 	/* paint */
@@ -752,9 +753,10 @@ endCoord:
 	}
 
 	/* advance to next point and free record (1-delayed) */
-	freeMagic((char *)routeTop);
+	freeMagic1(&mm1, (char *)routeTop);
 	routeTop = routeTop->r_next;
     }
+    freeMagic1_end(&mm1);
     return token;	/* Pass back the last token found */
 }
 
@@ -1633,6 +1635,7 @@ DefReadPins(
 				else
 				    flags |= LABEL_STICKY;
 
+				free_magic1_t mm1 = freeMagic1_init();
 				while (rectList != NULL)
 				{
 				    GeoTransRect(&t, &rectList->r_r, &topRect);
@@ -1658,9 +1661,10 @@ DefReadPins(
 						GEO_CENTER, pinname,
 				    		rectList->r_type,
 				    		pinDir | pinUse | flags, pinNum);
-				    freeMagic(rectList);
+				    freeMagic1(&mm1, rectList);
 				    rectList = rectList->r_next;
 				}
+				freeMagic1_end(&mm1);
 				pending = FALSE;
 				pinNum++;
 			    }
@@ -1681,6 +1685,7 @@ DefReadPins(
 				else
 				    flags |= LABEL_STICKY;
 
+				free_magic1_t mm1 = freeMagic1_init();
 				while (rectList != NULL)
 				{
 				    GeoTransRect(&t, &rectList->r_r, &topRect);
@@ -1715,9 +1720,10 @@ DefReadPins(
 						GEO_CENTER, pinname,
 				    		rectList->r_type,
 				    		pinDir | pinUse | flags, pinNum);
-				    freeMagic(rectList);
+				    freeMagic1(&mm1, rectList);
 				    rectList = rectList->r_next;
 				}
+				freeMagic1_end(&mm1);
 				pending = FALSE;
 				pinNum++;
 			    }

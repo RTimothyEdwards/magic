@@ -283,8 +283,10 @@ DBSearchForTech(techname, techroot, pathroot, level)
 		if (!strcmp(tdent->d_name, techname))
 		{
 		    closedir(tdir);
+		    free_magic1_t mm1 = freeMagic1_init();
 		    for (ld = dlist; ld; ld = ld->ld_next)
-			freeMagic(ld);
+			freeMagic1(&mm1, ld);
+		    freeMagic1_end(&mm1);
 		    return pathroot;
 		}
 	    }
@@ -297,8 +299,10 @@ DBSearchForTech(techname, techroot, pathroot, level)
 		if (found)
 		{
 		    closedir(tdir);
+		    free_magic1_t mm1 = freeMagic1_init();
 		    for (ld = dlist; ld; ld = ld->ld_next)
-			freeMagic(ld);
+			freeMagic1(&mm1, ld);
+		    freeMagic1_end(&mm1);
 		    return found;
 		}
 	    }
@@ -306,8 +310,12 @@ DBSearchForTech(techname, techroot, pathroot, level)
 	closedir(tdir);
     }
 
-    for (ld = dlist; ld; ld = ld->ld_next)
-	freeMagic(ld);
+    {
+	free_magic1_t mm1 = freeMagic1_init();
+	for (ld = dlist; ld; ld = ld->ld_next)
+	    freeMagic1(&mm1, ld);
+	freeMagic1_end(&mm1);
+    }
 
     return NULL;
 }

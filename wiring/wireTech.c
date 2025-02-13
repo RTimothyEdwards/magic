@@ -61,11 +61,13 @@ WireTechInit(void)
     Contact *contact;
     int i;
 
+    free_magic1_t mm1 = freeMagic1_init();
     while (WireContacts != NULL)
     {
-	freeMagic((char *) WireContacts);
+	freeMagic1(&mm1, (char *) WireContacts);
 	WireContacts = WireContacts->con_next;
     }
+    freeMagic1_end(&mm1);
     WireUnits = 1;
 }
 

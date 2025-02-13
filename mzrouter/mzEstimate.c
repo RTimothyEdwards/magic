@@ -497,10 +497,12 @@ mzReclaimTCFunc(tile, notUsed)
 	Estimate *e;
 
 	/* free estimates attached to tilecosts struc */
+	free_magic1_t mm1 = freeMagic1_init();
 	for(e=tc->tc_estimates; e!=NULL; e=e->e_next)
 	{
-	    freeMagic((char *) e);
+	    freeMagic1(&mm1, (char *) e);
 	}
+	freeMagic1_end(&mm1);
 
 	/* free tilecosts struc */
 	freeMagic((char *) (tile->ti_client));

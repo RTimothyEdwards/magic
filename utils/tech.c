@@ -760,8 +760,10 @@ skipsection:
     {
 	fclose(fstack->file);
 	freeMagic(fstack->filename);
-	freeMagic(fstack);
+	free_magic1_t mm1 = freeMagic1_init();
+	freeMagic1(&mm1, fstack);
 	fstack = fstack->next;
+	freeMagic1_end(&mm1);
     }
     if (fstack) fclose(fstack->file);
 

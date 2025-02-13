@@ -120,8 +120,10 @@ extHierFreeLabels(def)
 {
     Label *lab;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (lab = def->cd_labels; lab; lab = lab->lab_next)
-	freeMagic((char *) lab);
+	freeMagic1(&mm1, (char *) lab);
+    freeMagic1_end(&mm1);
     def->cd_labels = (Label *) NULL;
 }
 

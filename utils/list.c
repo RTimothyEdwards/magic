@@ -98,8 +98,10 @@ void
 ListDealloc(list)
     List *list;		/* List to free */
 {
+    free_magic1_t mm1 = freeMagic1_init();
     for(;list!=NULL; list=LIST_TAIL(list))
-	freeMagic((char *) list);
+	freeMagic1(&mm1, (char *) list);
+    freeMagic1_end(&mm1);
 
     return;
 }
@@ -124,11 +126,13 @@ void
 ListDeallocC(list)
     List *list;		/* List to free */
 {
+    free_magic1_t mm1 = freeMagic1_init();
     for(;list!=NULL; list=LIST_TAIL(list))
     {
-        freeMagic((char *) LIST_FIRST(list));
-	freeMagic((char *) list);
+        freeMagic1(&mm1, (char *) LIST_FIRST(list)); /* can probably use normal free() */
+	freeMagic1(&mm1, (char *) list);
     }
+    freeMagic1_end(&mm1);
 
     return;
 }

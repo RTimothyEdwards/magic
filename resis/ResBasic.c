@@ -92,6 +92,7 @@ resAllPortNodes(tile, list)
     resPort 	*pl;
     tileJunk	*junk = (tileJunk *)TiGetClientPTR(tile);
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (pl = junk->portList; pl; pl = pl->rp_nextPort)
     {
 	x = pl->rp_loc.p_x;
@@ -103,8 +104,9 @@ resAllPortNodes(tile, list)
 	resptr->rn_name = pl->rp_nodename;
 	ResAddToQueue(resptr, list);
 	NEWBREAK(resptr, tile, x, y, NULL);
-	freeMagic(pl);
+	freeMagic1(&mm1, pl);
     }
+    freeMagic1_end(&mm1);
 }
 
 /*

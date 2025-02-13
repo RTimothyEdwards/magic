@@ -218,8 +218,10 @@ DBCellClearDef(cellDef)
     cellDef->cd_bbox.r_xtop = cellDef->cd_bbox.r_ytop = 1;
     cellDef->cd_extended.r_xbot = cellDef->cd_extended.r_ybot = 0;
     cellDef->cd_extended.r_xtop = cellDef->cd_extended.r_ytop = 1;
+    free_magic1_t mm1 = freeMagic1_init();
     for (lab = cellDef->cd_labels; lab; lab = lab->lab_next)
-	freeMagic((char *) lab);
+	freeMagic1(&mm1, (char *) lab);
+    freeMagic1_end(&mm1);
     cellDef->cd_labels = (Label *) NULL;
     cellDef->cd_lastLabel = (Label *) NULL;
 

@@ -685,11 +685,13 @@ typedef enum {
     HashKill(&ResProcessedTable);
 
     /* Revert substrate planes */
+    free_magic1_t mm1 = freeMagic1_init();
     for (sl = resisdata.savePlanes; sl; sl = sl->sl_next)
     {
 	ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
-	freeMagic(sl);
+	freeMagic1(&mm1, sl);
     }
+    freeMagic1_end(&mm1);
 
     /* turn back on undo stuff */
     UndoEnable();

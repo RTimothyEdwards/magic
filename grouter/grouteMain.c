@@ -238,8 +238,10 @@ glClientFree(chanList, netList)
     for (net = netList->nnl_nets; net; net = net->nnet_next)
     {
 	nclient = (NetClient *) net->nnet_cdata;
+	free_magic1_t mm1 = freeMagic1_init();
 	for (cz = nclient->nc_pens; cz; cz = cz->cz_next)
-	    freeMagic((char *) cz);
+	    freeMagic1(&mm1, (char *) cz);
+	freeMagic1_end(&mm1);
 	net->nnet_cdata = (ClientData) NULL;
     }
 }

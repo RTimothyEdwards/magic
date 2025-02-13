@@ -507,8 +507,10 @@ ExtFreeRegions(regList)
 {
     ExtRegion *reg;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (reg = regList; reg; reg = reg->reg_next)
-	freeMagic((char *) reg);
+	freeMagic1(&mm1, (char *) reg);
+    freeMagic1_end(&mm1);
 }
 
 void
@@ -518,12 +520,16 @@ ExtFreeLabRegions(regList)
     LabRegion *lreg;
     LabelList *ll;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (lreg = regList; lreg; lreg = lreg->lreg_next)
     {
+	free_magic1_t mm1_ = freeMagic1_init();
 	for (ll = lreg->lreg_labels; ll; ll = ll->ll_next)
-	    freeMagic((char *) ll);
-	freeMagic((char *) lreg);
+	    freeMagic1(&mm1_, (char *) ll);
+	freeMagic1_end(&mm1_);
+	freeMagic1(&mm1, (char *) lreg);
     }
+    freeMagic1_end(&mm1);
 }
 
 void
@@ -533,13 +539,17 @@ ExtFreeHierLabRegions(regList)
     ExtRegion *reg;
     LabelList *ll;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (reg = regList; reg; reg = reg->reg_next)
     {
+	free_magic1_t mm1_ = freeMagic1_init();
 	for (ll = ((LabRegion *)reg)->lreg_labels; ll; ll = ll->ll_next)
 	{
 	    freeMagic((char *) ll->ll_label);
-	    freeMagic((char *) ll);
+	    freeMagic1(&mm1_, (char *) ll);
 	}
-	freeMagic((char *) reg);
+	freeMagic1_end(&mm1_);
+	freeMagic1(&mm1, (char *) reg);
     }
+    freeMagic1_end(&mm1);
 }

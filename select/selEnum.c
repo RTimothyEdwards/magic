@@ -259,8 +259,10 @@ selEnumPFunc1(tile, arg)
 
 	if ((*arg->sea_func)(&rootRect, arg->sea_rectList->r_type, arg->sea_cdarg) != 0)
 	    return 1;
-	freeMagic((char *)arg->sea_rectList);
+	free_magic1_t mm1 = freeMagic1_init();
+	freeMagic1(&mm1, (char *)arg->sea_rectList);
 	arg->sea_rectList = arg->sea_rectList->r_next;
+	freeMagic1_end(&mm1);
     }
     return 0;
 }

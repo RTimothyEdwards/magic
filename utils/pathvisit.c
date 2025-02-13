@@ -83,12 +83,14 @@ PaVisitFree(pv)
 {
     PaVisitClient *pvc;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (pvc = pv->pv_first; pvc; pvc = pvc->pvc_next)
     {
 	if (pvc->pvc_keyword)
 	    freeMagic(pvc->pvc_keyword);
-	freeMagic((char *) pvc);
+	freeMagic1(&mm1, (char *) pvc);
     }
+    freeMagic1_end(&mm1);
 
     freeMagic((char *) pv);
 }
