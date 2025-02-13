@@ -66,9 +66,10 @@ bool FileLocking = TRUE;
  * but then static code analyser raises multiple concerns over multiple paths
  * leaking an fd. So at least this resolve these things and quietens the
  * output somewhat.
+ * Made non-static as flock() can use it but still considered module internal API.
  */
-static gzFile
-gzdopen_internal(const char *path, int oflags, const char *modestr, int *fdp)
+gzFile
+path_gzdopen_internal(const char *path, int oflags, const char *modestr, int *fdp)
 {
     ASSERT(fdp, "fdp");
 
@@ -533,7 +534,7 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 	if (FileLocking)
 	    return flock_zopen(realName, mode, is_locked, fdp);
 #endif
-	return gzdopen_internal(realName, oflag, mode, fdp);
+	return path_gzdopen_internal(realName, oflag, mode, fdp);
     }
 
     /* If we were already given a full rooted file name,
@@ -553,7 +554,7 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 	if (FileLocking)
 	    return flock_zopen(realName, mode, is_locked, fdp);
 #endif
-	return gzdopen_internal(realName, oflag, mode, fdp);
+	return path_gzdopen_internal(realName, oflag, mode, fdp);
     }
 
     /* Now try going through the path, one entry at a time. */
@@ -566,9 +567,9 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 	if (FileLocking)
 	    f = flock_zopen(realName, mode, is_locked, &fd);
 	else
-	    f = gzdopen_internal(realName, oflag, mode, &fd);
+	    f = path_gzdopen_internal(realName, oflag, mode, &fd);
 #else
-	f = gzdopen_internal(realName, oflag, mode, &fd);
+	f = path_gzdopen_internal(realName, oflag, mode, &fd);
 #endif
 
 	if (f != NULL)
@@ -593,9 +594,9 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
 	if (FileLocking)
 	    f = flock_zopen(realName, mode, is_locked, &fd);
 	else
-	    f = gzdopen_internal(realName, oflag, mode, &fd);
+	    f = path_gzdopen_internal(realName, oflag, mode, &fd);
 #else
-	f = gzdopen_internal(realName, oflag, mode, &fd);
+	f = path_gzdopen_internal(realName, oflag, mode, &fd);
 #endif
 
 	if (f != NULL)
