@@ -338,18 +338,20 @@ CIFPaintWirePath(
     pathp = pathheadp->cifp_next;
     if (pathp != NULL)
     {
+	free_magic1_t mm1 = freeMagic1_init();
 	while (pathp->cifp_next != NULL)
 	{
 	    if (pathp->cifp_next->cifp_x == pathp->cifp_x &&
 			pathp->cifp_next->cifp_y == pathp->cifp_y)
 	    {
 		previousp->cifp_next = pathp->cifp_next;
-		freeMagic(pathp);
+		freeMagic1(&mm1, pathp);
 	    }
 	    else
 		previousp = pathp;
 	    pathp = pathp->cifp_next;
 	}
+	freeMagic1_end(&mm1);
     }
 
     previousp = pathheadp;
@@ -484,11 +486,13 @@ CIFPaintWirePath(
 	    rectp = CIFPolyToRects(polypath, plane, ptable, ui, FALSE);
 	    CIFFreePath(polypath);
 
+	    free_magic1_t mm1 = freeMagic1_init();
 	    for (; rectp != NULL ; rectp = rectp->r_next)
 	    {
 		DBPaintPlane(plane, &rectp->r_r, ptable, ui);
-		freeMagic((char *) rectp);
+		freeMagic1(&mm1, (char *) rectp);
 	    }
+	    freeMagic1_end(&mm1);
 	    polypath = NULL;
 	}
 	else
@@ -586,11 +590,13 @@ PaintPolygon(
     rectlist = CIFPolyToRects(cifpath, plane, ptable, ui, FALSE);
     CIFFreePath(cifpath);
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (rectp = rectlist; rectp != NULL ; rectp = rectp->r_next)
     {
 	DBPaintPlane(plane, &rectp->r_r, ptable, ui);
-	if (!keep) freeMagic((char *) rectp);
+	if (!keep) freeMagic1(&mm1, (char *) rectp);
     }
+    freeMagic1_end(&mm1);
     return (keep) ? rectlist : (LinkedRect *)NULL;
 }
 
@@ -817,11 +823,13 @@ CIFParsePoly(void)
 	CIFSkipToSemi();
 	return FALSE;
     }
+    free_magic1_t mm1 = freeMagic1_init();
     for (; rectp != NULL ; rectp = rectp->r_next)
     {
 	DBPaintPlane(cifReadPlane, &rectp->r_r, CIFPaintTable,
 		(PaintUndoInfo *) NULL);
-	freeMagic((char *) rectp);
+	freeMagic1(&mm1, (char *) rectp);
     }
+    freeMagic1_end(&mm1);
     return TRUE;
 }

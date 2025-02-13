@@ -293,22 +293,30 @@ extLength(rootUse, f)
 	 * each of the receivers.  Free each driver label
 	 * as it is processed.
 	 */
-	for (dLab = dList; dLab; dLab = dLab->lab_next)
 	{
-	    for (rLab = rList; rLab; rLab = rLab->lab_next)
+	    free_magic1_t mm1 = freeMagic1_init();
+	    for (dLab = dList; dLab; dLab = dLab->lab_next)
 	    {
-		extPathPairDistance(dLab, rLab, &min, &max);
-		fprintf(f, "distance %s %s %d %d\n",
+		for (rLab = rList; rLab; rLab = rLab->lab_next)
+		{
+		    extPathPairDistance(dLab, rLab, &min, &max);
+		    fprintf(f, "distance %s %s %d %d\n",
 			dLab->lab_text, rLab->lab_text, min, max);
-	    }
+		}
 
-	    /* Free the driver label */
-	    freeMagic((char *) dLab);
+		/* Free the driver label */
+		freeMagic1(&mm1, (char *) dLab);
+	    }
+	    freeMagic1_end(&mm1);
 	}
 
 	/* Free all the receiver labels built up during this iteration */
-	for (rLab = rList; rLab; rLab = rLab->lab_next)
-	    freeMagic((char *) rLab);
+	{
+	    free_magic1_t mm1 = freeMagic1_init();
+	    for (rLab = rList; rLab; rLab = rLab->lab_next)
+		freeMagic1(&mm1, (char *) rLab);
+	    freeMagic1_end(&mm1);
+	}
 
 	/* For sanity since we've freed the driver label list */
 	HashSetValue(he, (ClientData) NULL);

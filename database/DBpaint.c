@@ -1768,12 +1768,14 @@ nextrect:
 	    lr = lr->r_next;
 	}
 
+	free_magic1_t mm1 = freeMagic1_init();
 	lr = lhead;
 	while (lr != NULL)
 	{
-	    freeMagic((char *) lr);
+	    freeMagic1(&mm1, (char *) lr);
 	    lr = lr->r_next;
 	}
+	freeMagic1_end(&mm1);
     }
     else
 	result = DBPaintPlane0(plane, area, resultTbl, undo, (method == PAINT_MARK) ?

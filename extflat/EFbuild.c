@@ -2237,23 +2237,33 @@ efFreeNodeList(head, func)
     EFAttr *ap;
     LinkedRect *lr;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (node = (EFNode *) head->efnode_next;
 	    node != head;
 	    node = (EFNode *) node->efnode_next)
     {
-	for (ap = node->efnode_attrs; ap; ap = ap->efa_next)
-	    freeMagic((char *) ap);
+	{
+	    free_magic1_t mm1_ = freeMagic1_init();
+	    for (ap = node->efnode_attrs; ap; ap = ap->efa_next)
+		freeMagic1(&mm1_, (char *) ap);
+	    freeMagic1_end(&mm1_);
+	}
 	if (node->efnode_client != (ClientData)NULL)
 	{
 	    if (func != NULL)
 		(*func)(node->efnode_client);
 	    freeMagic((char *)node->efnode_client);
 	}
-	for (lr = node->efnode_disjoint; lr; lr = lr->r_next)
-	    freeMagic((char *)lr);
+	{
+	    free_magic1_t mm1_ = freeMagic1_init();
+	    for (lr = node->efnode_disjoint; lr; lr = lr->r_next)
+		freeMagic1(&mm1_, (char *)lr);
+	    freeMagic1_end(&mm1_);
+	}
 
-	freeMagic((char *) node);
+	freeMagic1(&mm1, (char *) node);
     }
+    freeMagic1_end(&mm1);
 }
 
 /*

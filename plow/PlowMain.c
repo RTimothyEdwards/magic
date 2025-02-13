@@ -236,11 +236,13 @@ PlowClearBound()
     pb = plowBoundaryList;
     plowCheckBoundary = FALSE;
     plowBoundaryList = (PlowBoundary *) NULL;
+    free_magic1_t mm1 = freeMagic1_init();
     for ( ; pb; pb = pb->pb_next)
     {
 	DBWHLRedraw(pb->pb_rootDef, &pb->pb_rootArea, TRUE);
-	freeMagic((char *) pb);
+	freeMagic1(&mm1, (char *) pb);
     }
+    freeMagic1_end(&mm1);
 }
 
 /*

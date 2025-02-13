@@ -127,11 +127,19 @@ PlowDRCInit()
     {
 	for (j = 0; j < DBNumTypes; j++)
 	{
-	    for (pr = plowWidthRulesTbl[i][j]; pr; pr = pr->pr_next)
-		freeMagic((char *)pr);
+	    {
+		free_magic1_t mm1 = freeMagic1_init();
+		for (pr = plowWidthRulesTbl[i][j]; pr; pr = pr->pr_next)
+		    freeMagic1(&mm1, (char *)pr);
+		freeMagic1_end(&mm1);
+	    }
 
-	    for (pr = plowSpacingRulesTbl[i][j]; pr; pr = pr->pr_next)
-		freeMagic((char *)pr);
+	    {
+		free_magic1_t mm1 = freeMagic1_init();
+		for (pr = plowSpacingRulesTbl[i][j]; pr; pr = pr->pr_next)
+		    freeMagic1(&mm1, (char *)pr);
+		freeMagic1_end(&mm1);
+	    }
 
 	    plowWidthRulesTbl[i][j] = NULL;
 	    plowSpacingRulesTbl[i][j] = NULL;
@@ -697,6 +705,7 @@ plowTechOptimizeRule(ruleList)
      */
     pCand = ruleList;
     pCandLast = (PlowRule *) NULL;
+    free_magic1_t mm1 = freeMagic1_init();
     while (pCand)
     {
 	for (pr = ruleList; pr; pr = pr->pr_next)
@@ -718,7 +727,7 @@ plowTechOptimizeRule(ruleList)
 		     * Delete pCand, and resume outer loop with the
 		     * new values of pCand and pCandLast set below.
 		     */
-		    freeMagic((char *) pCand);
+		    freeMagic1(&mm1, (char *) pCand);
 		    if (pCandLast)
 			pCandLast->pr_next = pCand->pr_next;
 		    else
@@ -734,6 +743,7 @@ plowTechOptimizeRule(ruleList)
 
 next:	;
     }
+    freeMagic1_end(&mm1);
 
     return (ruleList);
 }

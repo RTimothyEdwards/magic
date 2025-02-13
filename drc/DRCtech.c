@@ -522,11 +522,13 @@ DRCTechInit()
 
     drcTechFreeStyle();
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (style = DRCStyleList; style != NULL; style = style->ds_next)
     {
 	freeMagic(style->ds_name);
-	freeMagic(style);
+	freeMagic1(&mm1, style);
     }
+    freeMagic1_end(&mm1);
     DRCStyleList = NULL;
 }
 
@@ -3995,6 +3997,7 @@ drcTechFinalStyle(style)
     {
 	for (j = 0; j < DBNumTypes; j++)
 	{
+	    free_magic1_t mm1 = freeMagic1_init();
 	    for (dp = style->DRCRulesTbl[i][j]; dp != NULL; dp = dp->drcc_next)
 	    {
 		/* Don't optimize on trigger rules; optimize on the	*/
@@ -4077,7 +4080,8 @@ drcTechFinalStyle(style)
 		if (dptrig != NULL)
 		{
 		    dptrig = dp->drcc_next;
-		    freeMagic((char *)dp->drcc_next);
+		    free_magic1_t mm1_ = freeMagic1_init();
+		    freeMagic1(&mm1_, (char *)dp->drcc_next);
 		    *dp2back = dp->drcc_next->drcc_next;
 
 		    /* Replace this entry so on the next cycle	*/
@@ -4085,13 +4089,15 @@ drcTechFinalStyle(style)
 		    /* even though dp is free'd (below), due to	*/
 		    /* the one-delayed free mechanism.		*/
 		    dp->drcc_next = *dp2back;
+		    freeMagic1_end(&mm1_);
 		}
 		else
 		    *dp2back = dp->drcc_next;
 
-		freeMagic((char *) dp);
+		freeMagic1(&mm1, (char *) dp);
 		drcRulesOptimized += 1;
 	    }
+	    freeMagic1_end(&mm1);
 	}
     }
 }

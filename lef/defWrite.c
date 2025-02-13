@@ -2560,6 +2560,7 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
     	{
 	    if (defobsdata.blockData[i] == NULL) continue;
 	    fprintf(f, "   - LAYER %s", defobsdata.baseNames[i]);
+	    free_magic1_t mm1 = freeMagic1_init();
 	    for (lr = defobsdata.blockData[i]; lr; lr = lr->r_next)
 	    {
 	    	fprintf(f, "\n      RECT ( %.10g %.10g ) ( %.10g %.10g )",
@@ -2567,8 +2568,9 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
 				(float)(lr->r_r.r_ybot * oscale),
 				(float)(lr->r_r.r_xtop * oscale),
 				(float)(lr->r_r.r_ytop * oscale));
-	    	freeMagic(lr);
+		freeMagic1(&mm1, lr);
 	    }
+	    freeMagic1_end(&mm1);
             fprintf(f, " ;\n");
     	}
     	fprintf(f, "END BLOCKAGES\n\n");

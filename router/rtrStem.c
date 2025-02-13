@@ -173,6 +173,7 @@ RtrStemProcessAll(use, netList, doWarn, func)
 	     * they all turned out to be unusable.
 	     */
 	    locPrev = locFirst = (NLTermLoc *) NULL;
+	    free_magic1_t mm1 = freeMagic1_init();
 	    for (loc = term->nterm_locs; loc; loc = loc->nloc_next)
 	    {
 		if (loc->nloc_chan == (GCRChannel *) NULL)
@@ -187,13 +188,14 @@ RtrStemProcessAll(use, netList, doWarn, func)
 
 		    /* Nuke it */
 		    if (locPrev) locPrev->nloc_next = loc->nloc_next;
-		    freeMagic((char *) loc);
+		    freeMagic1(&mm1, (char *) loc);
 		    continue;
 		}
 		locPrev = loc;
 		if (locFirst == (NLTermLoc *) NULL)
 		    locFirst = loc;
 	    }
+	    freeMagic1_end(&mm1);
 
 	    /* Nuke any leading elements */
 	    term->nterm_locs = locFirst;

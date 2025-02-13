@@ -103,8 +103,10 @@ glPenClearPerChan(net)
 	    czNet = czNet->cz_next)
     {
 	gc = (GlobChan *) czNet->cz_chan->gcr_client;
+	free_magic1_t mm1 = freeMagic1_init();
 	for (czChan = gc->gc_penList; czChan; czChan = czChan->cz_next)
-	    freeMagic((char *) czChan);
+	    freeMagic1(&mm1, (char *) czChan);
+	freeMagic1_end(&mm1);
 	gc->gc_penList = (CZone *) NULL;
     }
     return 0;
@@ -457,8 +459,10 @@ glPenAssignCosts(cz, netList)
     }
 
     /* Cleanup */
+    free_magic1_t mm1 = freeMagic1_init();
     for (ns = crossNets; ns; ns = ns->ns_next)
-	freeMagic((char *) ns);
+	freeMagic1(&mm1, (char *) ns);
+    freeMagic1_end(&mm1);
     freeMagic((char *) crossArray);
 }
 

@@ -312,6 +312,7 @@ DBCellDelete(cellname, force)
     /* use.  If so, load the window with (UNNAMED).			*/
 
     UndoDisable();
+    free_magic1_t mm1 = freeMagic1_init();
     for (celluse = celldef->cd_parents; celluse != (CellUse *) NULL;
 	 	celluse = celluse->cu_nextuse)
     {
@@ -320,8 +321,9 @@ DBCellDelete(cellname, force)
 	    WindUnload(celluse);
 	    freeMagic(celluse->cu_id);
 	}
-	freeMagic((char *)celluse);
+	freeMagic1(&mm1, (char *)celluse);
     }
+    freeMagic1_end(&mm1);
     celldef->cd_parents = (CellUse *)NULL;
 
     DBWResetBox(celldef);
@@ -1997,8 +1999,10 @@ DBCellDefFree(cellDef)
 	cellDef->cd_planes[pNum] = (Plane *) NULL;
     }
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (lab = cellDef->cd_labels; lab; lab = lab->lab_next)
-	freeMagic((char *) lab);
+	freeMagic1(&mm1, (char *) lab);
+    freeMagic1_end(&mm1);
     SigEnableInterrupts();
     HashKill(&cellDef->cd_idHash);
 
