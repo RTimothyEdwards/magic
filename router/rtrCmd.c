@@ -566,8 +566,12 @@ CmdRoute(w, cmd)
 	    if(cmd->tx_argc!=3)
 		goto wrongNumArgs;
 	    if((ch = GCRRouteFromFile(cmd->tx_argv[2])) == (GCRChannel *) NULL)
-		 TxError("Bad channel from file %s\n", cmd->tx_argv[2]);
-	    else RtrPaintBack(ch, EditCellUse->cu_def);
+		TxError("Bad channel from file %s\n", cmd->tx_argv[2]);
+	    else
+	    {
+		RtrPaintBack(ch, EditCellUse->cu_def);
+		GCRFreeChannel(ch);
+	    }
 	    break;
 	case ROUTERSHOWRES:
 	    GcrShowResult= !GcrShowResult;
