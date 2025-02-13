@@ -609,7 +609,7 @@ mzTechLayer(argc, argv)
     }
 
     /* Allocate  new route layer */
-    new = (RouteLayer *) callocMagic((unsigned) (sizeof (RouteLayer)));
+    new = (RouteLayer *) callocMagic(1, (unsigned) (sizeof (RouteLayer)));
 
     /* Initialize RouteType section */
     mzInitRouteType(&(new->rl_routeType),tileType);
@@ -1143,7 +1143,7 @@ mzTechContact(argc, argv)
     if(tileType < 0) return;
 
     /* allocate new route contact */
-    new = (RouteContact *) callocMagic((unsigned) (sizeof (RouteContact)));
+    new = (RouteContact *) callocMagic(1, (unsigned) (sizeof (RouteContact)));
 
     /* initialize RouteType section:
      * sets route type, initializes spacing array, etc.
