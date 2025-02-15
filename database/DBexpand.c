@@ -312,6 +312,9 @@ dbReadAreaFunc(scx, err_ptr)
 					 */
     CellDef  **err_ptr;	/* If non-NULL, failure to find a cell causes a halt
 			 * and the CellDef in error is returned in err_def.
+			 * If NULL, failure to find a cell still causes a
+			 * halt but no information is passed back to the
+			 * calling routine.
 			 */
 {
     CellDef *def = scx->scx_use->cu_def;
@@ -320,7 +323,7 @@ dbReadAreaFunc(scx, err_ptr)
     {
 	if (DBCellRead(def, TRUE, TRUE, NULL) == FALSE)
 	{
-	    *err_ptr = def;
+	    if (err_ptr != NULL) *err_ptr = def;
 	    return 1;
 	}
 
