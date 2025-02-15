@@ -323,8 +323,12 @@ dbReadAreaFunc(scx, err_ptr)
     {
 	if (DBCellRead(def, TRUE, TRUE, NULL) == FALSE)
 	{
-	    if (err_ptr != NULL) *err_ptr = def;
-	    return 1;
+	    if (err_ptr != NULL) {
+		*err_ptr = def;
+		return 1;
+	    }
+	    else
+		return 0;
 	}
 
 	/* Note: we don't have to invoke DBReComputeBbox here because
