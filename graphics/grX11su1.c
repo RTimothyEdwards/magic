@@ -1443,7 +1443,7 @@ GrX11IconUpdate(w,text)
      XSetClassHint( grXdpy, wind, &class);
      if (text == NULL)
           return;
-     if ((brack = strchr(text,'[')) brack != text)
+     if ((brack = strchr(text,'[')) && (brack != text))
      {
      	  brack--;
 	  *brack = 0;
