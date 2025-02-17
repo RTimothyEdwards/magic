@@ -175,7 +175,7 @@ switch ((o)->o_nextDir) \
  * This is similar to an area search, except we call the procedure with
  * edges instead of tiles:
  *
- *	(*proc)(edge, cdata)
+ *	int (*proc)(edge, cdata)
  *	    Edge *edge;
  *	    ClientData cdata;
  *	{

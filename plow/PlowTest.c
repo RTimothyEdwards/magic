@@ -44,7 +44,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 
 /* Forward declarations */
-extern void plowShowShadow();
+extern int plowShowShadow();
 extern int plowShowOutline();
 extern void plowTestJog();
 extern void plowDebugMore();
@@ -485,6 +485,7 @@ plowDebugInit()
  *
  * Results:
  *	None.
+ *      Returns zero as per plowSrShadowXxx() callback requirements.
  *
  * Side effects:
  *	Leaves feedback.
@@ -492,7 +493,7 @@ plowDebugInit()
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 plowShowShadow(edge, def)
     Edge *edge;
     CellDef *def;
@@ -509,6 +510,7 @@ plowShowShadow(edge, def)
     edgeArea.r_ybot = edge->e_ybot * scaleFactor;
     edgeArea.r_ytop = edge->e_ytop * scaleFactor;
     DBWFeedbackAdd(&edgeArea, mesg, def, scaleFactor, STYLE_SOLIDHIGHLIGHTS);
+    return 0; /* TODO this callback was returning void, but plowSrShadowXxx() uses non-zero for early abort */
 }
 
 /*
