@@ -1043,7 +1043,7 @@ plowSelPaintPlow(rect, type, distance)
     plowAtomize(DBPlane(type), &plowLHS, plowSelPaintAdd, (ClientData) NULL);
 #endif	/* notdef */
     plowLHS.r_xbot--;
-    plowSrShadow(DBPlane(type), &plowLHS, DBZeroTypeBits,
+    plowSrShadow(DBPlane(type), &plowLHS, &DBZeroTypeBits,
 			plowInitialPaint, INT2CD(plowLHS.r_xtop));
 
     /* Queue the RHS */
@@ -1054,7 +1054,7 @@ plowSelPaintPlow(rect, type, distance)
 #endif	/* notdef */
     plowRHS.r_xbot--;
     TTMaskSetOnlyType(&mask, type);
-    plowSrShadow(DBPlane(type), &plowRHS, mask,
+    plowSrShadow(DBPlane(type), &plowRHS, &mask,
 			plowInitialPaint, INT2CD(plowRHS.r_xtop));
 
     return (0);

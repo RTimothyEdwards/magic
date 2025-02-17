@@ -240,7 +240,7 @@ PlowTest(w, cmd)
 	    saveDef = plowYankDef;
 	    plowYankDef = def;
 	    (void) plowSrShadow(PL_TECHDEPBASE, &editArea,
-			okTypes, plowShowShadow, (ClientData) def);
+			&okTypes, plowShowShadow, (ClientData) def);
 	    plowYankDef = saveDef;
 	    break;
 	case PC_TECHSHOW:

@@ -248,7 +248,7 @@ scanDown(inarg, type, canMoveInargEdge)
 	ar.ar_moving = movingEdge;
 	ar.ar_rule = (PlowRule *) NULL;
 	plowSrShadow(movingEdge->e_pNum, &shadowRect,
-		DBZeroTypeBits, plowApplyRule, (ClientData) &ar);
+		&DBZeroTypeBits, plowApplyRule, (ClientData) &ar);
     }
 #endif	/* notdef */
     return 0;
@@ -343,7 +343,7 @@ scanUp(inarg, type, canMoveInargEdge)
 	ar.ar_moving = movingEdge;
 	ar.ar_rule = (PlowRule *) NULL;
 	plowSrShadow(movingEdge->e_pNum, &shadowRect,
-		DBZeroTypeBits, plowApplyRule, (ClientData) &ar);
+		&DBZeroTypeBits, plowApplyRule, (ClientData) &ar);
     }
 #endif	/* notdef */
     return 0;
