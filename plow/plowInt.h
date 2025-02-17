@@ -50,7 +50,7 @@ typedef struct
     TileTypeBitMask	 rte_rtypes;	/* Apply if RHS type is in this set */
     int			 rte_whichRules;/* See below */
     int		       (*rte_proc)();	/* Procedure implementing rule */
-    char		*rte_name;	/* Name of rule (for debugging) */
+    const char		*rte_name;	/* Name of rule (for debugging) */
 } RuleTableEntry;
 
 #define	MAXRULES	100	/* Ridiculously high */
