@@ -737,7 +737,7 @@ plowPropagateRect(def, userRect, lc, changedArea)
 	/* Add the initial edges */
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	(void) plowSrShadowInitial(pNum, &plowRect,
-		    lc, plowInitialPaint, INT2CD(plowRect.r_xtop));
+		    &lc, plowInitialPaint, INT2CD(plowRect.r_xtop));
 
 	/* Find any subcells crossed by the plow */
     (void) DBSrCellPlaneArea(plowYankDef->cd_cellPlane,
