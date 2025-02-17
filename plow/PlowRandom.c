@@ -118,7 +118,7 @@ PlowRandomTest(def)
 	dir = plowGenRandom(0, 3);
 	plowDir = dirs[dir];
 	plowGenRect(&def->cd_bbox, &plowRect);
-	(void) Plow(def, &plowRect, DBAllTypeBits, plowDir);
+	(void) Plow(def, &plowRect, &DBAllTypeBits, plowDir);
 	TxPrintf("%s %d %d %d %d\n", dirnames[dir],
 			plowRect.r_xbot, plowRect.r_ybot,
 			plowRect.r_xtop, plowRect.r_ytop);

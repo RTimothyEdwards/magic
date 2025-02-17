@@ -207,7 +207,7 @@ PlowTest(w, cmd)
 	    okTypes = DBAllTypeBits;
 	    if (cmd->tx_argc > 3 && !CmdParseLayers(cmd->tx_argv[3], &okTypes))
 		return;
-	    if (!Plow(def, &editArea, okTypes, dir))
+	    if (!Plow(def, &editArea, &okTypes, dir))
 	    {
 		TxPrintf("Reduced plow size since we ran into the barrier.\n");
 		GeoTransRect(&EditToRootTransform, &editArea, &rootBox);
