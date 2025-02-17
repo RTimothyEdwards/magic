@@ -106,7 +106,7 @@ extern void ExtGetZAxis();
 
 extern void ExtDumpCaps();
 
-extern int extEnumTilePerim();
+extern int extEnumTilePerim(Tile *tpIn, const TileTypeBitMask *maskp, int pNum, int (*func)(), ClientData cdata);
 extern Plane *extPrepSubstrate();
 
 /* C99 compat */
