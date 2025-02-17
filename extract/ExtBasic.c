@@ -3250,7 +3250,7 @@ extTransTileFunc(tile, pNum, arg)
     /* The AMD target gcc compile works and the Intel target gcc	*/
     /* compile doesn't!  The following code works the same on both.	*/
 
-    perim = extEnumTilePerim(tile, mask, pNum,
+    perim = extEnumTilePerim(tile, &mask, pNum,
 		extTransPerimFunc, (ClientData)NULL);
     extTransRec.tr_perim += perim;
 
@@ -3876,7 +3876,7 @@ extAnnularTileFunc(tile, pNum)
 
     mask = ExtCurStyle->exts_deviceConn[loctype];
     TTMaskCom(&mask);
-    extEnumTilePerim(tile, mask, pNum, extSpecialPerimFunc, (ClientData) TRUE);
+    extEnumTilePerim(tile, &mask, pNum, extSpecialPerimFunc, (ClientData) TRUE);
     return (0);
 }
 
@@ -3934,7 +3934,7 @@ extResistorTileFunc(tile, pNum)
 	TTMaskSetMask(&mask, &devptr->exts_deviceSDTypes[0]);
 	TTMaskCom(&mask);
 
-	extEnumTilePerim(tile, mask, pNum, extSpecialPerimFunc, (ClientData)FALSE);
+	extEnumTilePerim(tile, &mask, pNum, extSpecialPerimFunc, (ClientData)FALSE);
 
 	if (extSpecialBounds[0] != NULL) break;
 	devptr = devptr->exts_next;
