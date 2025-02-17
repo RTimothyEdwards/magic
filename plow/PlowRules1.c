@@ -87,7 +87,7 @@ prClearUmbra(edge)
     ar.ar_moving = edge;
     ar.ar_rule = (PlowRule *) NULL;
     (void) plowSrShadow(edge->e_pNum, &edge->e_rect,
-		rhsTypes, plowApplyRule, (ClientData) &ar);
+		&rhsTypes, plowApplyRule, (ClientData) &ar);
 }
 
 /*
@@ -138,7 +138,7 @@ prUmbra(edge, rules)
 	ar.ar_rule = pr;
 	searchArea.r_xtop = edge->e_newx + pr->pr_dist;
 	(void) plowSrShadow(pr->pr_pNum, &searchArea,
-			pr->pr_oktypes, plowApplyRule, (ClientData) &ar);
+			&pr->pr_oktypes, plowApplyRule, (ClientData) &ar);
     }
 }
 
@@ -342,7 +342,7 @@ plowPenumbraTopProc(outline, ar)
 	    searchArea.r_ybot = outline->o_rect.r_ytop;
 	    searchArea.r_ytop = ar->ar_clip.p_y;
 	    (void) plowSrShadow(pr->pr_pNum,
-		&searchArea, pr->pr_oktypes, plowPenumbraRule,
+		&searchArea, &pr->pr_oktypes, plowPenumbraRule,
 		(ClientData) ar);
 	}
 	return (1);
@@ -350,7 +350,7 @@ plowPenumbraTopProc(outline, ar)
 
     /* Shadow search to right of this segment of the penumbra boundary */
     (void) plowSrShadow(pr->pr_pNum, &searchArea,
-		pr->pr_oktypes, plowApplyRule, (ClientData) ar);
+		&pr->pr_oktypes, plowApplyRule, (ClientData) ar);
     return (ret);
 }
 
@@ -396,7 +396,7 @@ plowPenumbraBotProc(outline, ar)
 	    searchArea.r_ybot = ar->ar_clip.p_y;
 	    searchArea.r_ytop = outline->o_rect.r_ybot;
 	    (void) plowSrShadow(pr->pr_pNum,
-		&searchArea, pr->pr_oktypes, plowPenumbraRule,
+		&searchArea, &pr->pr_oktypes, plowPenumbraRule,
 		(ClientData) ar);
 	}
 	return (1);
@@ -404,7 +404,7 @@ plowPenumbraBotProc(outline, ar)
 
     /* Shadow search to right of this segment of the penumbra boundary */
     (void) plowSrShadow(pr->pr_pNum, &searchArea,
-		pr->pr_oktypes, plowApplyRule, (ClientData) ar);
+		&pr->pr_oktypes, plowApplyRule, (ClientData) ar);
 
     return (ret);
 }

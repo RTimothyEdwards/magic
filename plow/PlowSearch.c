@@ -203,16 +203,17 @@ switch ((o)->o_nextDir) \
  */
 
 int
-plowSrShadow(pNum, area, okTypes, proc, cdata)
-    int pNum;			/* Plane from plowYankDef to search */
-    Rect *area;			/* Area to search.  Edges coincident with the
+plowSrShadow(
+    int pNum,			/* Plane from plowYankDef to search */
+    Rect *area,			/* Area to search.  Edges coincident with the
 				 * right-hand side of this area are not seen;
 				 * they must lie to the left of area->r_xtop.
 				 */
-    TileTypeBitMask okTypes;
-    int (*proc)();		/* Function to apply at each edge */
-    ClientData cdata;		/* Additional argument to pass to (*proc)() */
+    const TileTypeBitMask *okTypesp,
+    int (*proc)(),		/* Function to apply at each edge */
+    ClientData cdata)		/* Additional argument to pass to (*proc)() */
 {
+    TileTypeBitMask okTypes = *okTypesp; /* TTMaskCopy(&okTypes, okTypesp) */
     Plane *plane = plowYankDef->cd_planes[pNum];
     struct shadow s;
     Tile *tp;
