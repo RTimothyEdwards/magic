@@ -258,7 +258,7 @@ extern int  plowAtomize();
 extern void plowCleanupJogs();
 extern void plowDebugEdge();
 extern int  plowFindWidth(Edge *edge, const TileTypeBitMask *typesp, Rect *bbox, Rect *prect);
-extern int  plowFindWidthBack();
+extern int  plowFindWidthBack(Edge *edge, const TileTypeBitMask *typesp, Rect *bbox, Rect *prect);
 extern int  plowGenRandom();
 extern void plowQueueDone();
 extern void plowQueueInit();
