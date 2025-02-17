@@ -150,7 +150,7 @@ int plowInitialPaint(), plowInitialCell();
 int plowUpdatePaintTile(), plowUpdateCell();
 bool plowPastBoundary();
 bool plowPropagateSel();
-bool plowPropagateRect();
+bool plowPropagateRect(CellDef *def, Rect *userRect, const TileTypeBitMask *lcp, Rect *changedArea);
 PlowRule *plowBuildWidthRules();
 
 void plowMergeBottom(Tile *, Plane *);
@@ -519,7 +519,7 @@ Plow(
      */
     firstTime = TRUE;
     TTMaskCom2(&lc, &layers);
-    while (plowPropagateRect(def, userRect, lc, &changedArea))
+    while (plowPropagateRect(def, userRect, &lc, &changedArea))
 	firstTime = FALSE;
 
     if (!GEO_RECTNULL(&changedArea))
@@ -652,12 +652,13 @@ done:
  */
 
 bool
-plowPropagateRect(def, userRect, lc, changedArea)
-    CellDef *def;	/* Def being plowed */
-    Rect *userRect;	/* User-specified plow (we transform this) */
-    TileTypeBitMask lc;	/* Complement of set of layers to plow */
-    Rect *changedArea;	/* Set to bounding box around area modified */
+plowPropagateRect(
+    CellDef *def,	/* Def being plowed */
+    Rect *userRect,	/* User-specified plow (we transform this) */
+    const TileTypeBitMask *lcp,	/* Complement of set of layers to plow */
+    Rect *changedArea)	/* Set to bounding box around area modified */
 {
+    TileTypeBitMask lc = *lcp; /* TTMaskCopy(&lc, lcp) */
     Rect cellPlowRect, plowRect, r;
 #ifndef	NO_RUSAGE
     struct rusage t1, t2;
