@@ -154,7 +154,8 @@ bool plowPropagateRect(CellDef *def, Rect *userRect, const TileTypeBitMask *lcp,
 PlowRule *plowBuildWidthRules();
 
 void plowMergeBottom(Tile *, Plane *);
-void plowInitRule();
+void plowInitRule(RuleTableEntry *rtePtr, RuleTableEntry *rteEnd, int whichRules, int (*proc)(), const char *name,
+                  const TileTypeBitMask *ltypesp, const TileTypeBitMask *rtypesp);
 
 extern void PlowRedrawBound();
 extern void PlowClearBound();
@@ -2081,7 +2082,7 @@ PlowAfterTech()
     plowInitRule(&plowRuleInitial, (&plowRuleInitial) + 1, RTE_NULL,
 				(int (*)()) NULL,
 				"initial edge",
-				DBZeroTypeBits, DBZeroTypeBits);
+				&DBZeroTypeBits, &DBZeroTypeBits);
 
     /* Cell rules */
     rp = plowCellRulesPtr;
@@ -2089,7 +2090,7 @@ PlowAfterTech()
 	/* Drag geometry with cells */
     plowInitRule(rp++, re, RTE_NULL, prCell,
 				"drag paint with cells",
-				allBits, cellTypes);
+				&allBits, &cellTypes);
     if (rp >= re) rp = re;
     plowCellRulesPtr = rp;
 
@@ -2098,97 +2099,97 @@ PlowAfterTech()
     re = &plowSearchRulesTbl[MAXRULES];
 	/* Clear the umbra */
     plowInitRule(rp++, re, RTE_NULL, prClearUmbra, "clear umbra",
-				allBits, allButSpace);
+				&allBits, &allButSpace);
     plowInitRule(rp++, re, RTE_REALWIDTH, prUmbra, "umbra width",
-				widthL, widthR);
+				&widthL, &widthR);
     plowInitRule(rp++, re, RTE_SPACING, prUmbra, "umbra spacing",
-				spaceL, spaceR);
+				&spaceL, &spaceR);
 
 	/* Clear the penumbra */
     plowInitRule(rp++, re, RTE_REALWIDTH, prPenumbraTop,
 				"top penumbra width",
-				widthL, widthR);
+				&widthL, &widthR);
     plowInitRule(rp++, re, RTE_SPACING, prPenumbraTop,
 				"top penumbra spacing",
-				spaceL, spaceR);
+				&spaceL, &spaceR);
     plowInitRule(rp++, re, RTE_REALWIDTH, prPenumbraBot,
 				"bottom penumbra width",
-				widthL, widthR);
+				&widthL, &widthR);
     plowInitRule(rp++, re, RTE_SPACING, prPenumbraBot,
 				"bottom penumbra spacing",
-				spaceL, spaceR);
+				&spaceL, &spaceR);
 
 	/* Special penumbra searching when RHS is fixed */
     plowInitRule(rp++, re, RTE_NOSPACING, prFixedPenumbraTop,
 				"top penumbra spacing (RHS fixed-width)",
-				allBits, PlowFixedTypes);
+				&allBits, &PlowFixedTypes);
     plowInitRule(rp++, re, RTE_NOSPACING, prFixedPenumbraBot,
 				"bottom penumbra spacing (RHS fixed-width)",
-				allBits, PlowFixedTypes);
+				&allBits, &PlowFixedTypes);
 
 	/* Avoid introducing slivers */
     plowInitRule(rp++, re, RTE_MINWIDTH, prSliverTop,
 				"top width slivers",
-				widthL, widthR);
+				&widthL, &widthR);
     plowInitRule(rp++, re, RTE_SPACING, prSliverTop,
 				"top spacing slivers",
-				spaceL, spaceR);
+				&spaceL, &spaceR);
     plowInitRule(rp++, re, RTE_MINWIDTH, prSliverBot,
 				"bottom width slivers",
-				widthL, widthR);
+				&widthL, &widthR);
     plowInitRule(rp++, re, RTE_SPACING, prSliverBot,
 				"bottom spacing slivers",
-				spaceL, spaceR);
+				&spaceL, &spaceR);
 
 	/* Inside slivers (plow too small) */
     TTMaskCom2(&mask, &PlowFixedTypes);
     plowInitRule(rp++, re, RTE_NULL, prInSliver,
 				"inside slivers",
-				mask, mask);
+				&mask, &mask);
 
 	/* Avoid introducing illegal edges */
     plowInitRule(rp++, re, RTE_NULL, prIllegalTop,
 				"top illegal edges",
-				allBits, allBits);
+				&allBits, &allBits);
     plowInitRule(rp++, re, RTE_NULL, prIllegalBot,
 				"bottom illegal edges",
-				allBits, allBits);
+				&allBits, &allBits);
 
 	/* Avoid uncovering "covered" materials (e.g, fets) */
     plowInitRule(rp++, re, RTE_NULL, prCoverTop,
 				"top covering",
-				PlowCoveredTypes, allBits);
+				&PlowCoveredTypes, &allBits);
     plowInitRule(rp++, re, RTE_NULL, prCoverBot,
 				"bottom covering",
-				PlowCoveredTypes, allBits);
+				&PlowCoveredTypes, &allBits);
 
 	/* Preserve fixed-width objects */
     plowInitRule(rp++, re, RTE_NULL, prFixedLHS,
 				"LHS is fixed",
-				PlowFixedTypes, allBits);
+				&PlowFixedTypes, &allBits);
     plowInitRule(rp++, re, RTE_NULL, prFixedRHS,
 				"RHS is fixed",
-				allBits, PlowFixedTypes);
+				&allBits, &PlowFixedTypes);
 
 	/* Fixed-width objects drag trailing stubs */
     TTMaskCom2(&mask, &PlowDragTypes);
     TTMaskClearType(&mask, TT_SPACE);
     plowInitRule(rp++, re, RTE_NULL, prFixedDragStubs,
 				"RHS fixed dragging stubs",
-				mask, PlowDragTypes);
+				&mask, &PlowDragTypes);
 
 	/* Couple contacts */
     plowInitRule(rp++, re, RTE_NULL, prContactLHS,
 				"LHS is contact",
-				PlowContactTypes, allBits);
+				&PlowContactTypes, &allBits);
     plowInitRule(rp++, re, RTE_NULL, prContactRHS,
 				"RHS is contact",
-				allBits, PlowContactTypes);
+				&allBits, &PlowContactTypes);
 
 	/* Move cells out of the way */
     plowInitRule(rp++, re, RTE_NULL, prFindCells,
 				"find cells",
-				allBits, allBits);
+				&allBits, &allBits);
 
     if (rp >= re) rp = re;
     plowSearchRulesPtr = rp;
@@ -2201,14 +2202,17 @@ PlowAfterTech()
 }
 
 void
-plowInitRule(rtePtr, rteEnd, whichRules, proc, name, ltypes, rtypes)
-    RuleTableEntry *rtePtr;	/* Pointer to entry to be added */
-    RuleTableEntry *rteEnd;	/* Pointer to one past last entry in table */
-    int whichRules;		/* Which rules to use (RTE_* from earlier) */
-    int (*proc)();		/* Procedure implementing the rule */
-    char *name;			/* Name of this rule */
-    TileTypeBitMask ltypes, rtypes;
+plowInitRule(
+    RuleTableEntry *rtePtr,	/* Pointer to entry to be added */
+    RuleTableEntry *rteEnd,	/* Pointer to one past last entry in table */
+    int whichRules,		/* Which rules to use (RTE_* from earlier) */
+    int (*proc)(),		/* Procedure implementing the rule */
+    const char *name,		/* Name of this rule */
+    const TileTypeBitMask *ltypesp,
+    const TileTypeBitMask *rtypesp)
 {
+    TileTypeBitMask ltypes = *ltypesp; /* TTMaskCopy(&ltypes, ltypesp) */
+    TileTypeBitMask rtypes = *rtypesp; /* TTMaskCopy(&rtypes, rtypesp) */
     if (rtePtr >= rteEnd)
     {
 	TxError("Too many rules in PlowMain.c (maximum %d)\n", MAXRULES);
