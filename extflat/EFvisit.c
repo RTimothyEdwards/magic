@@ -33,7 +33,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "utils/malloc.h"
 #include "utils/utils.h"
 #include "extflat/extflat.h"
-#include "extflat/EFint.h"
+#include "database/database.h"  /* before EFint.h for ArrayInfo */
+#include "extflat/EFint.h"      /* also has ArrayInfo */
 #include "tiles/tile.h"
 #include "extract/extract.h"
 
