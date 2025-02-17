@@ -483,13 +483,13 @@ PlowSelection(def, pdistance, direction)
  */
 
 bool
-Plow(def, userRect, layers, direction)
-    CellDef *def;		/* Cell being plowed */
-    Rect *userRect;		/* The plow.  Interpreted as per direction
+Plow(
+    CellDef *def,		/* Cell being plowed */
+    Rect *userRect,		/* The plow.  Interpreted as per direction
 				 * below.
 				 */
-    TileTypeBitMask layers;	/* The initial plow only sees these layers */
-    int direction;		/* One of GEO_NORTH, GEO_SOUTH, GEO_WEST,
+    const TileTypeBitMask *layersp,/* The initial plow only sees these layers */
+    int direction)		/* One of GEO_NORTH, GEO_SOUTH, GEO_WEST,
 				 * or GEO_EAST.
 				 */
 {
@@ -497,6 +497,7 @@ Plow(def, userRect, layers, direction)
     extern int plowWidthNumCalls;
     extern int plowWidthNumChoices;
 #endif	/* COUNTWIDTHCALLS */
+    TileTypeBitMask layers = *layersp; /* TTMaskCopy(&layers, layersp) */
     TileTypeBitMask lc;
     Rect changedArea;
     bool firstTime;

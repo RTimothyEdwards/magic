@@ -30,7 +30,7 @@ extern int PlowDRCInit(), PlowDRCFinal();
 extern bool PlowDRCLine();
 
 /* Called by CmdPlow() */
-extern bool Plow();
+extern bool Plow(CellDef *def, Rect *userRect, const TileTypeBitMask *layersp, int direction);
 
 /* Debugging command procedure */
 extern int PlowTest();
