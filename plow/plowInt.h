@@ -265,7 +265,7 @@ extern void plowQueueInit();
 extern int  plowSrFinalArea();
 extern void plowSrOutline(int pNum, Point *startPoint, const TileTypeBitMask *insideTypesp, int initialDir, int dirMask, int (*proc)(), ClientData cdata);
 extern int  plowSrShadow(int pNum, Rect *area, const TileTypeBitMask *okTypesp, int (*proc)(), ClientData cdata);
-extern int  plowSrShadowBack();
+extern int  plowSrShadowBack(int pNum, Rect *area, const TileTypeBitMask *okTypesp, int (*proc)(), ClientData cdata);
 extern int  plowSrShadowInitial();
 extern bool plowYankMore();
 extern void PlowRandomTest();
