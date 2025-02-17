@@ -881,15 +881,15 @@ irSelectedTileFunc(rect, type, c)
  */
 
 bool
-LayerInTouchingContact(rL,touchingTypes)
-    RouteLayer *rL;
-    TileTypeBitMask touchingTypes;
+LayerInTouchingContact(
+    RouteLayer *rL,
+    const TileTypeBitMask *touchingTypes)
 {
     RouteContact *rC;
 
     for(rC=irRouteContacts; rC!=NULL; rC=rC->rc_next)
     {
-	if(TTMaskHasType(&touchingTypes,rC->rc_routeType.rt_tileType) &&
+	if(TTMaskHasType(touchingTypes,rC->rc_routeType.rt_tileType) &&
 	        (rC->rc_rLayer1==rL || rC->rc_rLayer2==rL))
 	    return(TRUE);
     }
@@ -1012,7 +1012,7 @@ irChooseEndPtLayers(routeUse,expansionMask,endPt,argLayers,endPtName)
 	{
 	    rL = (RouteLayer *) LIST_FIRST(l);
 	    if((TTMaskHasType(&touchingTypes,rL->rl_routeType.rt_tileType) ||
-		    LayerInTouchingContact(rL,touchingTypes)) &&
+		    LayerInTouchingContact(rL,&touchingTypes)) &&
 		    !ListContainsP(rL, presentContactLayers))
 	    {
 		LIST_ADD(rL,presentLayers);
