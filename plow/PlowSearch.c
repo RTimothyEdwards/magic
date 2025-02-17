@@ -512,16 +512,17 @@ plowShadowInitialRHS(tp, s, bottomLeft)
  */
 
 int
-plowSrShadowBack(pNum, area, okTypes, proc, cdata)
-    int pNum;			/* Plane from plowYankDef to search */
-    Rect *area;			/* Area to search.  Edges coincident with the
+plowSrShadowBack(
+    int pNum,			/* Plane from plowYankDef to search */
+    Rect *area,			/* Area to search.  Edges coincident with the
 				 * left-hand side of this area are not seen;
 				 * they must lie to the right of area->r_xbot.
 				 */
-    TileTypeBitMask okTypes;
-    int (*proc)();		/* Function to apply at each edge */
-    ClientData cdata;		/* Additional argument to pass to (*proc)() */
+    const TileTypeBitMask *okTypesp,
+    int (*proc)(),		/* Function to apply at each edge */
+    ClientData cdata)		/* Additional argument to pass to (*proc)() */
 {
+    TileTypeBitMask okTypes = *okTypesp; /* TTMaskCopy(&okTypes, okTypesp) */
     Plane *plane = plowYankDef->cd_planes[pNum];
     struct shadow s;
     Tile *tp;

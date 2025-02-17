@@ -189,12 +189,12 @@ plowProcessJog(edge, area)
      * it returns 1 and aborts.  We must therefore iterate until no more
      * jogs are eliminated.
      */
-    while (plowSrShadowBack(edge->e_pNum, &r, DBSpaceBits,
+    while (plowSrShadowBack(edge->e_pNum, &r, &DBSpaceBits,
 		plowProcessJogFunc, (ClientData) area))
 	/* Nothing */;
 
     /* Scan to next edge between space and material */
-    (void) plowSrShadowBack(edge->e_pNum, &r, DBAllButSpaceBits,
+    (void) plowSrShadowBack(edge->e_pNum, &r, &DBAllButSpaceBits,
 		plowJogPropagateLeft, (ClientData) NULL);
 }
 
@@ -372,7 +372,7 @@ plowProcessJogFunc(edge, area)
 
     ret = 0;
     plowJogEraseList = (LinkedRect *) NULL;
-    if (plowSrShadowBack(newedge.e_pNum, &r, mask,
+    if (plowSrShadowBack(newedge.e_pNum, &r, &mask,
 		plowJogDragLHS, INT2CD(newedge.e_newx - width)) == 0)
     {
 	/* Success: first paint to extend the RHS of the jog */
