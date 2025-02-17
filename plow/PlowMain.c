@@ -1762,7 +1762,7 @@ retry:
     {
 	*prReal = *prMin;
 	prReal->pr_next = prReal + 1;
-	dist = plowFindWidth(edge, prMin->pr_oktypes, bbox, &maxBox);
+	dist = plowFindWidth(edge, &prMin->pr_oktypes, bbox, &maxBox);
 
 	/* Conservative test of whether we need to yank more */
 	if (plowYankMore(&maxBox, 1, 1))

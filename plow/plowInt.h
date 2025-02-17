@@ -257,7 +257,7 @@ extern int  plowApplySearchRules();
 extern int  plowAtomize();
 extern void plowCleanupJogs();
 extern void plowDebugEdge();
-extern int  plowFindWidth();
+extern int  plowFindWidth(Edge *edge, const TileTypeBitMask *typesp, Rect *bbox, Rect *prect);
 extern int  plowFindWidthBack();
 extern int  plowGenRandom();
 extern void plowQueueDone();

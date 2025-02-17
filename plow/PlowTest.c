@@ -273,7 +273,7 @@ PlowTest(w, cmd)
 		editArea.r_ybot, editArea.r_ytop);
 	    saveDef = plowYankDef;
 	    plowYankDef = def;
-	    (void) plowFindWidth(&edge, okTypes, &def->cd_bbox, &editArea);
+	    (void) plowFindWidth(&edge, &okTypes, &def->cd_bbox, &editArea);
 	    plowYankDef = saveDef;
 	    GeoTransRect(&EditToRootTransform, &editArea, &rootBox);
 	    ToolMoveBox(TOOL_BL, &rootBox.r_ll, FALSE, rootBoxDef);
