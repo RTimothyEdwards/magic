@@ -320,13 +320,12 @@ clipright:
  */
 
 int
-plowFindWidthBack(edge, types, bbox, prect)
-    Edge *edge;			/* Edge along the RHS of this material */
-    TileTypeBitMask types;	/* Types whose width is being computed.  Note
-				 * that this set is passed by value.
+plowFindWidthBack(
+    Edge *edge,			/* Edge along the RHS of this material */
+    const TileTypeBitMask *typesp,/* Types whose width is being computed.
 				 */
-    Rect *bbox;			/* Bounding box of the cell */
-    Rect *prect;		/* (Debugging only): if this is non-NULL,
+    Rect *bbox,			/* Bounding box of the cell */
+    Rect *prect)		/* (Debugging only): if this is non-NULL,
 				 * the rectangle it points to is filled
 				 * in with the rectangle found by this
 				 * algorithm to be the largest containing
@@ -334,6 +333,7 @@ plowFindWidthBack(edge, types, bbox, prect)
 				 * set 'types'.
 				 */
 {
+    TileTypeBitMask types = *typesp; /* TTMaskCopy(&types, typesp); */
     Plane *plane = plowYankDef->cd_planes[edge->e_pNum];
     TileTypeBitMask ctypes;
     struct wclip wc;

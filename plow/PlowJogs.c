@@ -353,7 +353,7 @@ plowProcessJogFunc(edge, area)
      * all of the LHS of the jog.
      */
     TTMaskSetOnlyType(&mask, edge->e_ltype);
-    width = plowFindWidthBack(&newedge, mask, area, (Rect *) NULL);
+    width = plowFindWidthBack(&newedge, &mask, area, (Rect *) NULL);
     r.r_xtop = newedge.e_x;
     r.r_xbot = newedge.e_x - width - 1;
     r.r_ytop = newedge.e_ytop;
