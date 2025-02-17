@@ -193,7 +193,7 @@ PlowTest(w, cmd)
 	    }
 	    if (!CmdParseLayers(cmd->tx_argv[3], &okTypes))
 		return;
-	    (void) plowSrOutline(PL_TECHDEPBASE, &editArea.r_ll, okTypes, dir,
+	    (void) plowSrOutline(PL_TECHDEPBASE, &editArea.r_ll, &okTypes, dir,
 			GMASK_NORTH|GMASK_SOUTH|GMASK_EAST|GMASK_WEST,
 			plowShowOutline, (ClientData) &editArea);
 	    break;

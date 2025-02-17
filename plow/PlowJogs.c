@@ -278,7 +278,7 @@ plowProcessJogFunc(edge, area)
     startPoint.p_y = edge->e_ytop;
     jogTopPoint = startPoint;
     jogTopDir = J_N;
-    plowSrOutline(edge->e_pNum, &startPoint, mask, GEO_NORTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &mask, GEO_NORTH,
 		GMASK_NORTH|GMASK_WEST|GMASK_EAST,
 		plowJogTopProc, (ClientData) NULL);
 
@@ -287,7 +287,7 @@ plowProcessJogFunc(edge, area)
     startPoint.p_y = edge->e_ybot;
     jogBotPoint = startPoint;
     jogBotDir = J_N;
-    plowSrOutline(edge->e_pNum, &startPoint, mask, GEO_SOUTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &mask, GEO_SOUTH,
 		GMASK_SOUTH|GMASK_WEST|GMASK_EAST,
 		plowJogBotProc, (ClientData) NULL);
 

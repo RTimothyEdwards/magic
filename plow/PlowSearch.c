@@ -779,26 +779,27 @@ plowAtomize(pNum, rect, proc, cdata)
  */
 
 void
-plowSrOutline(pNum, startPoint, insideTypes, initialDir, dirMask, proc, cdata)
-    int pNum;				/* Plane # in plowYankDef to search */
-    Point *startPoint;			/* Point on boundary; material of types
+plowSrOutline(
+    int pNum,				/* Plane # in plowYankDef to search */
+    Point *startPoint,			/* Point on boundary; material of types
 					 * in insideTypes should be to the
 					 * inside (as determined by initialDir
 					 * below).
 					 */
-    TileTypeBitMask insideTypes;	/* Mask of types inside the region
+    const TileTypeBitMask *insideTypesp,/* Mask of types inside the region
 					 * whose outline is being traced.
 					 */
-    int initialDir;			/* Initial direction to go from the
+    int initialDir,			/* Initial direction to go from the
 					 * starting point.  One of GEO_NORTH,
 					 * or GEO_SOUTH.
 					 */
-    int dirMask;			/* Mask of those directions for which
+    int dirMask,			/* Mask of those directions for which
 					 * we will call the client procedure.
 					 */
-    int (*proc)();			/* Client procedure */
-    ClientData cdata;			/* Argument to client procedure */
+    int (*proc)(),			/* Client procedure */
+    ClientData cdata)			/* Argument to client procedure */
 {
+    TileTypeBitMask insideTypes = *insideTypesp; /* TTMaskCopy(&insideTypes, insideTypesp) */
     Outline outline;
 
     /*
