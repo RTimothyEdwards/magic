@@ -577,7 +577,7 @@ prIllegalTop(edge)
     ar.ar_slivtype = (TileType) -1;
     ar.ar_clip.p_x = edge->e_newx;
 
-    plowSrOutline(edge->e_pNum, &startPoint, insideTypes, GEO_NORTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &insideTypes, GEO_NORTH,
 		GMASK_EAST|GMASK_WEST|GMASK_NORTH|GMASK_SOUTH,
 		plowIllegalTopProc, (ClientData) &ar);
     if (ar.ar_slivtype == (TileType) -1)
@@ -586,7 +586,7 @@ prIllegalTop(edge)
     startPoint.p_x = ar.ar_mustmove;
     TTMaskSetOnlyType(&insideTypes, ar.ar_slivtype);
     TTMaskCom(&insideTypes);
-    plowSrOutline(edge->e_pNum, &startPoint, insideTypes, GEO_NORTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &insideTypes, GEO_NORTH,
 		GMASK_WEST|GMASK_NORTH|GMASK_SOUTH,
 		plowCoverTopProc, (ClientData) &ar);
 }
@@ -606,7 +606,7 @@ prIllegalBot(edge)
     ar.ar_slivtype = (TileType) -1;
     ar.ar_clip.p_x = edge->e_newx;
 
-    plowSrOutline(edge->e_pNum, &startPoint, insideTypes, GEO_SOUTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &insideTypes, GEO_SOUTH,
 		GMASK_EAST|GMASK_WEST|GMASK_NORTH|GMASK_SOUTH,
 		plowIllegalBotProc, (ClientData) &ar);
     if (ar.ar_slivtype == (TileType) -1)
@@ -614,7 +614,7 @@ prIllegalBot(edge)
 
     startPoint.p_x = ar.ar_mustmove;
     TTMaskSetOnlyType(&insideTypes, ar.ar_slivtype);
-    plowSrOutline(edge->e_pNum, &startPoint, insideTypes, GEO_SOUTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &insideTypes, GEO_SOUTH,
 		GMASK_WEST|GMASK_NORTH|GMASK_SOUTH,
 		plowCoverBotProc, (ClientData) &ar);
     return 0;
