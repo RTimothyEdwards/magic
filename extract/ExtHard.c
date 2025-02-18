@@ -495,6 +495,7 @@ extHardFreeAll(def, tReg)
     arg.fra_each = (int (*)()) NULL;
     arg.fra_region = (ExtRegion *) extUnInit;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (reg = tReg; reg; reg = reg->treg_next)
     {
 	/* Reset all ti_client fields to extUnInit */
@@ -506,11 +507,16 @@ extHardFreeAll(def, tReg)
 	}
 
 	/* Free all LabelLists and then the region */
-	for (ll = reg->treg_labels; ll; ll = ll->ll_next)
 	{
-	    if (ll->ll_label->lab_flags & LABEL_GENERATE) freeMagic(ll->ll_label);
-	    freeMagic((char *) ll);
+	    free_magic1_t mm1_ = freeMagic1_init();
+	    for (ll = reg->treg_labels; ll; ll = ll->ll_next)
+	    {
+		if (ll->ll_label->lab_flags & LABEL_GENERATE) freeMagic(ll->ll_label);
+		freeMagic1(&mm1_, (char *) ll);
+	    }
+	    freeMagic1_end(&mm1_);
 	}
-	freeMagic((char *) reg);
+	freeMagic1(&mm1, (char *) reg);
     }
+    freeMagic1_end(&mm1);
 }

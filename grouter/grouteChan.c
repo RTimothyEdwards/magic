@@ -761,11 +761,13 @@ glChanBlockDens(ch)
 	}
 
 	/* Second pass to propagate blockages to nearby areas */
+	free_magic1_t mm1 = freeMagic1_init();
 	for (pa = glChanPaintList, glChanPaintList = NULL; pa; pa = pa->pa_next)
 	{
 	    glChanFlood(&pa->pa_area, pa->pa_type);
-	    freeMagic((char *) pa);
+	    freeMagic1(&mm1, (char *) pa);
 	}
+	freeMagic1_end(&mm1);
     } while (glChanPaintList != NULL);
 }
 

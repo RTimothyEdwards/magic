@@ -78,11 +78,28 @@ CC                     = @CC@
 CPP                    = @CPP@
 CXX		       = @CXX@
 
+###
+### Feature flags (to enable uncomment these from ./defs.mak after your ./configure)
+###
+### SUPPORT_DIRECT_MALLOC: this removes the legacy malloc/free APIs that are
+###   not thread-safe and have a defer-free-by-1 quirk that maybe covering
+###   up unknown problems.   See utils/malloc.[ch] for more info.
+###
+###   Status: EXPERIMENTAL (this is expected to uncover issues we don't know about yet)
+#FEATURE_FLAGS += -DSUPPORT_DIRECT_MALLOC
+###
+### SUPPORT_REMOVE_MALLOC_LEGACY this completely removes the older non-threadsafe API
+###   from the output binaries.
+###   This option is dependent on SUPPORT_DIRECT_MALLOC
+###
+###   Status: NOT-STABILITY-AFFECTING (if your binary links you are good to continue)
+#FEATURE_FLAGS += -DSUPPORT_REMOVE_MALLOC_LEGACY
+
 CPPFLAGS               = -I. -I${MAGICDIR} @CPPFLAGS@
 DFLAGS                 = @extra_defs@ @stub_defs@ @DEFS@ -DMAGIC_VERSION=\"${MAGIC_VERSION}\" -DMAGIC_REVISION=\"${MAGIC_REVISION}\" -DMAGIC_COMMIT=\"${MAGIC_COMMIT}\" -DGCORE=\"@GCORE@\"
-DFLAGS		      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" -DNDEBUG
+DFLAGS		      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" -DNDEBUG ${FEATURE_FLAGS}
 DFLAGS_NOSTUB	       = @extra_defs@ @DEFS@ -DGCORE=\"@GCORE@\"
-DFLAGS_NOSTUB	      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" -DNDEBUG
+DFLAGS_NOSTUB	      += -DSHDLIB_EXT=\"@SHDLIB_EXT@\" -DNDEBUG ${FEATURE_FLAGS}
 CFLAGS                 = @CFLAGS@ @SHLIB_CFLAGS@ @INC_SPECS@
 
 READLINE_DEFS          = @rl_defs@

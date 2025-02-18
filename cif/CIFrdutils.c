@@ -1338,11 +1338,13 @@ void
 CIFFreePath(
     CIFPath *path)		/* Path to be freed. */
 {
+    free_magic1_t mm1 = freeMagic1_init();
     while (path != NULL)
     {
-	freeMagic((char *) path);
+	freeMagic1(&mm1, (char *) path);
 	path = path->cifp_next;
     }
+    freeMagic1_end(&mm1);
 }
 
 /*
