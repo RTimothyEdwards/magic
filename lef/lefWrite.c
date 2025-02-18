@@ -955,8 +955,9 @@ char *
 MakeLegalLEFSyntax(
     char *text)
 {
-    static char *badLEFchars = ";# -*$\n";
-    char *cptr, *bptr;
+    static const char * const badLEFchars = ";# -*$\n";
+    char *cptr;
+    const char *bptr;
     char *rstr;
 
     for (cptr = text; *cptr != '\0'; cptr++)

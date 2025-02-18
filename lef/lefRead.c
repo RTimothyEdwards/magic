@@ -214,7 +214,7 @@ LefEstimate(
  *------------------------------------------------------------
  */
 
-char *
+const char *
 LefNextToken(
     FILE *f,
     bool ignore_eol)
@@ -222,7 +222,7 @@ LefNextToken(
     static char line[LEF_LINE_MAX + 2];	/* input buffer */
     static char *nexttoken = NULL;	/* pointer to next token */
     static char *curtoken;		/* pointer to current token */
-    static char eol_token='\n';
+    static const char eol_token='\n';
 
     /* Read a new line if necessary */
 
@@ -460,7 +460,7 @@ LefParseEndStatement(
     FILE *f,
     const char *match)
 {
-    char *token;
+    const char *token;
     int keyword;
     const char * match_name[2];
 
@@ -615,6 +615,38 @@ LefLower(
 
 /*
  *------------------------------------------------------------
+ * LefHelper_DBTechNameType_LefLower --
+ *
+ *  Helper function to make other parts of module code more
+ *  readable (one liner usage), for the common use of:
+ *    tileType = DBTechNameType(LefLower(token));
+ *
+ *  This function allows token to be a (const char *) and
+ *  original data source is not edited.
+ *
+ * Results:
+ *  as per TileType from DBTechNameType() after lookup.
+ *
+ * Side Effects:
+ :  None
+ *
+ *  Module internal API only.
+ */
+
+TileType
+LefHelper_DBTechNameType_LefLower(const char *name)
+{
+    char tmp[256];
+    strncpy(tmp, name, sizeof(tmp));
+    /* after maybe helps codegen, only care to check overrun */
+    ASSERT(strlen(name) < sizeof(tmp), "strlen(name)");
+    tmp[sizeof(tmp)-1] = '\0';
+    LefLower(tmp);
+    return DBTechNameType(tmp);
+}
+
+/*
+ *------------------------------------------------------------
  * LefRedefined --
  *
  *	In preparation for redefining a LEF layer, we need
@@ -724,7 +756,7 @@ LefReadLayers(
     TileType *lreturn,
     const Rect **rreturn)
 {
-    char *token;
+    const char *token;
     TileType curlayer = -1;
     lefLayer *lefl = NULL;
 
@@ -772,8 +804,7 @@ LefReadLayers(
 	    curlayer = DBTechNameType(token);
 	    if (curlayer < 0)
 	    {
-		(void) LefLower(token);
-		curlayer = DBTechNameType(token);
+		curlayer = LefHelper_DBTechNameType_LefLower(token);
 	    }
 	}
 	if ((curlayer < 0) && ((!lefl) || (lefl->lefClass != CLASS_IGNORE)))
@@ -843,7 +874,7 @@ LefReadLefPoint(
     float *xp,
     float *yp)
 {
-    char *token;
+    const char *token;
     bool needMatch = FALSE;
 
     token = LefNextToken(f, TRUE);
@@ -891,7 +922,7 @@ LefReadRect(
     TileType curlayer,
     float oscale)
 {
-    char *token;
+    const char *token;
     float llx, lly, urx, ury;
     static Rect paintrect;
     Rect lefrect;
@@ -992,7 +1023,7 @@ LefReadPolygon(
 {
     LinkedRect *lr = NULL, *newRect;
     Point *plist = NULL;
-    char *token;
+    const char *token;
     float px, py;
     int lpoints = 0;
 
@@ -1196,7 +1227,7 @@ LefReadGeometry(
 {
     TileType curlayer = -1, otherlayer = -1;
 
-    char *token;
+    const char *token;
     int keyword;
     LinkedRect *newRect, *rectList;
     Point *pointList;
@@ -1520,7 +1551,7 @@ LefReadPin(
    float oscale,
    bool is_imported)
 {
-    char *token;
+    const char *token;
     char *testpin = pinname;
     int keyword, subkey;
     int pinDir = PORT_CLASS_DEFAULT;
@@ -1832,7 +1863,7 @@ void
 LefEndStatement(
     FILE *f)
 {
-    char *token;
+    const char *token;
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
 	if (*token == ';') break;
@@ -1869,7 +1900,7 @@ LefReadNonDefaultRule(
     char *rname,		/* name of the rule 	*/
     float oscale)		/* scale factor um->magic units */
 {
-    char *token;
+    const char *token;
     char tsave[128];
     int keyword;
     HashEntry *he;
@@ -2091,7 +2122,8 @@ LefReadMacro(
     CellDef *lefMacro;
     HashEntry *he;
 
-    char *token, tsave[128], *propval;
+    const char *token;
+    char tsave[128], *propval;
     int keyword, pinNum, propsize;
     float x, y;
     bool has_size, is_imported = FALSE, propfound;
@@ -2658,7 +2690,7 @@ LefReadLayerSection(
     int mode,			/* layer, via, or viarule */
     lefLayer *lefl)		/* pointer to layer info  */
 {
-    char *token;
+    const char *token;
     int keyword, typekey;
     TileType curlayer = -1;
     float fvalue, oscale;
@@ -2808,9 +2840,8 @@ LefReadLayerSection(
 		break;
 	    case LEF_LAYER_DIRECTION:
 		token = LefNextToken(f, TRUE);
-		LefLower(token);
 		if (lefl->lefClass == CLASS_ROUTE)
-		    lefl->info.route.hdirection = (token[0] == 'h') ? TRUE : FALSE;
+		    lefl->info.route.hdirection = (tolower(token[0]) == 'h') ? TRUE : FALSE;
 		LefEndStatement(f);
 		break;
 	    case LEF_LAYER_OFFSET:
@@ -2895,7 +2926,7 @@ LefRead(
 {
     FILE *f;
     char *filename;
-    char *token;
+    const char *token;
     char tsave[128];
     int keyword;
     float oscale;
@@ -3031,7 +3062,7 @@ LefRead(
 		{
 		    TileType mtype = DBTechNameType(token);
 		    if (mtype < 0)
-			mtype = DBTechNameType(LefLower(token));
+			mtype = LefHelper_DBTechNameType_LefLower(token);
 		    if (mtype < 0)
 		    {
 			/* Ignore.  This is probably a masterslice or	*/

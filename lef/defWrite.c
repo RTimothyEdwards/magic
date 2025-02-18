@@ -190,11 +190,11 @@ defWriteHeader(
  *------------------------------------------------------------
  */
 
-char *
+const char *
 defTransPos(
     Transform *t)
 {
-    static char *def_orient[] = {
+    static const char * def_orient[] = {
 	"N", "S", "E", "W", "FN", "FS", "FE", "FW"
     };
 
@@ -2486,7 +2486,7 @@ defWriteBlockages(
 			sizeof(TileTypeBitMask));
 	defobsdata.blockData = (LinkedRect **)mallocMagic(numblocks *
 			sizeof(LinkedRect *));
-	defobsdata.baseNames = (char **)mallocMagic(numblocks *
+	defobsdata.baseNames = (const char **)mallocMagic(numblocks *
 			sizeof(char *));
 
 	if (numblocks > 0)
