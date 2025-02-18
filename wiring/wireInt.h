@@ -34,7 +34,7 @@ extern int WireUnits;
 
 /* Undo procedure: */
 
-extern void WireRememberForUndo();
-extern void WireUndoInit();
+extern void WireRememberForUndo(void);
+extern void WireUndoInit(void);
 
 #endif /* _WIREINT_H */

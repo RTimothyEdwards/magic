@@ -18,7 +18,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header$";
+static const char rcsid[] __attribute__ ((unused)) = "$Header$";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -80,9 +80,10 @@ static int wireOldDir = GEO_NORTH;		/* Last direction */
  */
 
 void
-WireUndoInit()
+WireUndoInit(void)
 {
-    extern void WireUndoForw(), WireUndoBack();
+    extern void WireUndoForw(WireUndoEvent *wue); /* forward declaration */
+    extern void WireUndoBack(WireUndoEvent *wue); /* forward declaration */
 
     WireUndoClientID = UndoAddClient((void (*)()) NULL, (void (*)()) NULL,
 	    (UndoEvent *(*)()) NULL, (int (*)()) NULL, WireUndoForw,
@@ -110,7 +111,7 @@ WireUndoInit()
  */
 
 void
-WireRememberForUndo()
+WireRememberForUndo(void)
 {
     WireUndoEvent *wue;
 
@@ -144,8 +145,8 @@ WireRememberForUndo()
  */
 
 void
-WireUndoForw(wue)
-    WireUndoEvent *wue;			/* Event to be redone. */
+WireUndoForw(
+    WireUndoEvent *wue)			/* Event to be redone. */
 {
     WireType = wireOldType = wue->wue_newType;
     WireWidth = wireOldWidth = wue->wue_newWidth;
@@ -153,8 +154,8 @@ WireUndoForw(wue)
 }
 
 void
-WireUndoBack(wue)
-    WireUndoEvent *wue;			/* Event to be undone. */
+WireUndoBack(
+    WireUndoEvent *wue)			/* Event to be undone. */
 {
     WireType = wireOldType = wue->wue_oldType;
     WireWidth = wireOldWidth = wue->wue_oldWidth;
