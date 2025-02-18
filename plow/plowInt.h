@@ -50,7 +50,7 @@ typedef struct
     TileTypeBitMask	 rte_rtypes;	/* Apply if RHS type is in this set */
     int			 rte_whichRules;/* See below */
     int		       (*rte_proc)();	/* Procedure implementing rule */
-    char		*rte_name;	/* Name of rule (for debugging) */
+    const char		*rte_name;	/* Name of rule (for debugging) */
 } RuleTableEntry;
 
 #define	MAXRULES	100	/* Ridiculously high */
@@ -257,16 +257,16 @@ extern int  plowApplySearchRules();
 extern int  plowAtomize();
 extern void plowCleanupJogs();
 extern void plowDebugEdge();
-extern int  plowFindWidth();
-extern int  plowFindWidthBack();
+extern int  plowFindWidth(Edge *edge, const TileTypeBitMask *typesp, Rect *bbox, Rect *prect);
+extern int  plowFindWidthBack(Edge *edge, const TileTypeBitMask *typesp, Rect *bbox, Rect *prect);
 extern int  plowGenRandom();
 extern void plowQueueDone();
 extern void plowQueueInit();
 extern int  plowSrFinalArea();
-extern void plowSrOutline();
-extern int  plowSrShadow();
-extern int  plowSrShadowBack();
-extern int  plowSrShadowInitial();
+extern void plowSrOutline(int pNum, Point *startPoint, const TileTypeBitMask *insideTypesp, int initialDir, int dirMask, int (*proc)(), ClientData cdata);
+extern int  plowSrShadow(int pNum, Rect *area, const TileTypeBitMask *okTypesp, int (*proc)(), ClientData cdata);
+extern int  plowSrShadowBack(int pNum, Rect *area, const TileTypeBitMask *okTypesp, int (*proc)(), ClientData cdata);
+extern int  plowSrShadowInitial(int pNum, Rect *area, const TileTypeBitMask *okTypesp, int (*proc)(), ClientData cdata);
 extern bool plowYankMore();
 extern void PlowRandomTest();
 extern void plowDebugInit();

@@ -175,7 +175,7 @@ switch ((o)->o_nextDir) \
  * This is similar to an area search, except we call the procedure with
  * edges instead of tiles:
  *
- *	(*proc)(edge, cdata)
+ *	int (*proc)(edge, cdata)
  *	    Edge *edge;
  *	    ClientData cdata;
  *	{
@@ -203,16 +203,17 @@ switch ((o)->o_nextDir) \
  */
 
 int
-plowSrShadow(pNum, area, okTypes, proc, cdata)
-    int pNum;			/* Plane from plowYankDef to search */
-    Rect *area;			/* Area to search.  Edges coincident with the
+plowSrShadow(
+    int pNum,			/* Plane from plowYankDef to search */
+    Rect *area,			/* Area to search.  Edges coincident with the
 				 * right-hand side of this area are not seen;
 				 * they must lie to the left of area->r_xtop.
 				 */
-    TileTypeBitMask okTypes;
-    int (*proc)();		/* Function to apply at each edge */
-    ClientData cdata;		/* Additional argument to pass to (*proc)() */
+    const TileTypeBitMask *okTypesp,
+    int (*proc)(),		/* Function to apply at each edge */
+    ClientData cdata)		/* Additional argument to pass to (*proc)() */
 {
+    TileTypeBitMask okTypes = *okTypesp; /* TTMaskCopy(&okTypes, okTypesp) */
     Plane *plane = plowYankDef->cd_planes[pNum];
     struct shadow s;
     Tile *tp;
@@ -356,16 +357,17 @@ plowShadowRHS(tp, s, bottomLeft)
  */
 
 int
-plowSrShadowInitial(pNum, area, okTypes, proc, cdata)
-    int pNum;			/* Plane from plowYankDef to search */
-    Rect *area;			/* Area to search.  Edges coincident with the
+plowSrShadowInitial(
+    int pNum,			/* Plane from plowYankDef to search */
+    Rect *area,			/* Area to search.  Edges coincident with the
 				 * right-hand side of this area are not seen;
 				 * they must lie to the left of area->r_xtop.
 				 */
-    TileTypeBitMask okTypes;
-    int (*proc)();		/* Function to apply at each edge */
-    ClientData cdata;		/* Additional argument to pass to (*proc)() */
+    const TileTypeBitMask *okTypesp,
+    int (*proc)(),		/* Function to apply at each edge */
+    ClientData cdata)		/* Additional argument to pass to (*proc)() */
 {
+    TileTypeBitMask okTypes = *okTypesp; /* TTMaskCopy(&okTypes, okTypesp) */
     Plane *plane = plowYankDef->cd_planes[pNum];
     struct shadow s;
     Tile *tp;
@@ -511,16 +513,17 @@ plowShadowInitialRHS(tp, s, bottomLeft)
  */
 
 int
-plowSrShadowBack(pNum, area, okTypes, proc, cdata)
-    int pNum;			/* Plane from plowYankDef to search */
-    Rect *area;			/* Area to search.  Edges coincident with the
+plowSrShadowBack(
+    int pNum,			/* Plane from plowYankDef to search */
+    Rect *area,			/* Area to search.  Edges coincident with the
 				 * left-hand side of this area are not seen;
 				 * they must lie to the right of area->r_xbot.
 				 */
-    TileTypeBitMask okTypes;
-    int (*proc)();		/* Function to apply at each edge */
-    ClientData cdata;		/* Additional argument to pass to (*proc)() */
+    const TileTypeBitMask *okTypesp,
+    int (*proc)(),		/* Function to apply at each edge */
+    ClientData cdata)		/* Additional argument to pass to (*proc)() */
 {
+    TileTypeBitMask okTypes = *okTypesp; /* TTMaskCopy(&okTypes, okTypesp) */
     Plane *plane = plowYankDef->cd_planes[pNum];
     struct shadow s;
     Tile *tp;
@@ -779,26 +782,27 @@ plowAtomize(pNum, rect, proc, cdata)
  */
 
 void
-plowSrOutline(pNum, startPoint, insideTypes, initialDir, dirMask, proc, cdata)
-    int pNum;				/* Plane # in plowYankDef to search */
-    Point *startPoint;			/* Point on boundary; material of types
+plowSrOutline(
+    int pNum,				/* Plane # in plowYankDef to search */
+    Point *startPoint,			/* Point on boundary; material of types
 					 * in insideTypes should be to the
 					 * inside (as determined by initialDir
 					 * below).
 					 */
-    TileTypeBitMask insideTypes;	/* Mask of types inside the region
+    const TileTypeBitMask *insideTypesp,/* Mask of types inside the region
 					 * whose outline is being traced.
 					 */
-    int initialDir;			/* Initial direction to go from the
+    int initialDir,			/* Initial direction to go from the
 					 * starting point.  One of GEO_NORTH,
 					 * or GEO_SOUTH.
 					 */
-    int dirMask;			/* Mask of those directions for which
+    int dirMask,			/* Mask of those directions for which
 					 * we will call the client procedure.
 					 */
-    int (*proc)();			/* Client procedure */
-    ClientData cdata;			/* Argument to client procedure */
+    int (*proc)(),			/* Client procedure */
+    ClientData cdata)			/* Argument to client procedure */
 {
+    TileTypeBitMask insideTypes = *insideTypesp; /* TTMaskCopy(&insideTypes, insideTypesp) */
     Outline outline;
 
     /*

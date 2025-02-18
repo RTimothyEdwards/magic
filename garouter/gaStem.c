@@ -731,9 +731,9 @@ hardway:
 	TTMaskSetOnlyType(&polyMask, RtrPolyType);
 	TTMaskSetOnlyType(&metalMask, RtrMetalType);
 
-	if(gaMazeRoute(routeUse, terminalLoc, gridPoint, polyMask, side,
+	if(gaMazeRoute(routeUse, terminalLoc, gridPoint, &polyMask, side,
 		       writeFlag)  &&
-	   gaMazeRoute(routeUse, terminalLoc, gridPoint, metalMask, side,
+	   gaMazeRoute(routeUse, terminalLoc, gridPoint, &metalMask, side,
 		       writeFlag))
 	{
 	    gaNumMazeStem++;
@@ -1123,7 +1123,7 @@ gaStemPaint(routeUse, terminalLoc)
 		goto totalLoss;
 
 
-	if(gaMazeRoute(routeUse, terminalLoc, pinPoint, pinLayerMask, side,
+	if(gaMazeRoute(routeUse, terminalLoc, pinPoint, &pinLayerMask, side,
 		       writeResult))
 	{
 	    gaNumMazePaint++;

@@ -212,7 +212,7 @@ wrongNumArgs:
 	    layers = cmd->tx_argc == 2 ? "*,l,subcell,space" : cmd->tx_argv[2];
 	    if (!CmdParseLayers(layers, &mask))
 		break;
-	    if (Plow(editDef, &editBox, mask, dir))
+	    if (Plow(editDef, &editBox, &mask, dir))
 		break;
 
 	    TxPrintf("Reduced plow size to stay within the boundary.\n");

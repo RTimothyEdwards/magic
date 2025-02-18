@@ -44,7 +44,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "textio/txcommands.h"
 
 /* Forward declarations */
-extern void plowShowShadow();
+extern int plowShowShadow();
 extern int plowShowOutline();
 extern void plowTestJog();
 extern void plowDebugMore();
@@ -193,7 +193,7 @@ PlowTest(w, cmd)
 	    }
 	    if (!CmdParseLayers(cmd->tx_argv[3], &okTypes))
 		return;
-	    (void) plowSrOutline(PL_TECHDEPBASE, &editArea.r_ll, okTypes, dir,
+	    (void) plowSrOutline(PL_TECHDEPBASE, &editArea.r_ll, &okTypes, dir,
 			GMASK_NORTH|GMASK_SOUTH|GMASK_EAST|GMASK_WEST,
 			plowShowOutline, (ClientData) &editArea);
 	    break;
@@ -207,7 +207,7 @@ PlowTest(w, cmd)
 	    okTypes = DBAllTypeBits;
 	    if (cmd->tx_argc > 3 && !CmdParseLayers(cmd->tx_argv[3], &okTypes))
 		return;
-	    if (!Plow(def, &editArea, okTypes, dir))
+	    if (!Plow(def, &editArea, &okTypes, dir))
 	    {
 		TxPrintf("Reduced plow size since we ran into the barrier.\n");
 		GeoTransRect(&EditToRootTransform, &editArea, &rootBox);
@@ -226,7 +226,7 @@ PlowTest(w, cmd)
 	    saveDef = plowYankDef;
 	    plowYankDef = def;
 	    (void) plowSrShadowBack(PL_TECHDEPBASE, &editArea,
-			okTypes, plowShowShadow, (ClientData) def);
+			&okTypes, plowShowShadow, (ClientData) def);
 	    plowYankDef = saveDef;
 	    break;
 	case PC_SHADOW:
@@ -240,7 +240,7 @@ PlowTest(w, cmd)
 	    saveDef = plowYankDef;
 	    plowYankDef = def;
 	    (void) plowSrShadow(PL_TECHDEPBASE, &editArea,
-			okTypes, plowShowShadow, (ClientData) def);
+			&okTypes, plowShowShadow, (ClientData) def);
 	    plowYankDef = saveDef;
 	    break;
 	case PC_TECHSHOW:
@@ -273,7 +273,7 @@ PlowTest(w, cmd)
 		editArea.r_ybot, editArea.r_ytop);
 	    saveDef = plowYankDef;
 	    plowYankDef = def;
-	    (void) plowFindWidth(&edge, okTypes, &def->cd_bbox, &editArea);
+	    (void) plowFindWidth(&edge, &okTypes, &def->cd_bbox, &editArea);
 	    plowYankDef = saveDef;
 	    GeoTransRect(&EditToRootTransform, &editArea, &rootBox);
 	    ToolMoveBox(TOOL_BL, &rootBox.r_ll, FALSE, rootBoxDef);
@@ -294,7 +294,7 @@ PlowTest(w, cmd)
 		editArea.r_ybot, editArea.r_ytop);
 	    saveDef = plowYankDef;
 	    plowYankDef = def;
-	    (void) plowFindWidthBack(&edge, okTypes, &def->cd_bbox, &editArea);
+	    (void) plowFindWidthBack(&edge, &okTypes, &def->cd_bbox, &editArea);
 	    plowYankDef = saveDef;
 	    GeoTransRect(&EditToRootTransform, &editArea, &rootBox);
 	    ToolMoveBox(TOOL_BL, &rootBox.r_ll, FALSE, rootBoxDef);
@@ -485,6 +485,7 @@ plowDebugInit()
  *
  * Results:
  *	None.
+ *      Returns zero as per plowSrShadowXxx() callback requirements.
  *
  * Side effects:
  *	Leaves feedback.
@@ -492,7 +493,7 @@ plowDebugInit()
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 plowShowShadow(edge, def)
     Edge *edge;
     CellDef *def;
@@ -509,6 +510,7 @@ plowShowShadow(edge, def)
     edgeArea.r_ybot = edge->e_ybot * scaleFactor;
     edgeArea.r_ytop = edge->e_ytop * scaleFactor;
     DBWFeedbackAdd(&edgeArea, mesg, def, scaleFactor, STYLE_SOLIDHIGHLIGHTS);
+    return 0; /* TODO this callback was returning void, but plowSrShadowXxx() uses non-zero for early abort */
 }
 
 /*

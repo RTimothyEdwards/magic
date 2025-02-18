@@ -79,13 +79,14 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 int
-extEnumTilePerim(tpIn, mask, pNum, func, cdata)
-    Tile *tpIn;
-    TileTypeBitMask mask;	/* Note: this is not a pointer */
-    int pNum;			/* Plane of perimeter */
-    int (*func)();
-    ClientData cdata;
+extEnumTilePerim(
+    Tile *tpIn,
+    const TileTypeBitMask *maskp,
+    int pNum,			/* Plane of perimeter */
+    int (*func)(),
+    ClientData cdata)
 {
+    TileTypeBitMask mask = *maskp; /* TTMaskCopy(&mask, maskp) */
     TileType origType;
     Tile *tpOut;
     int perimCorrect;

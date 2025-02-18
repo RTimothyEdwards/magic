@@ -22,6 +22,7 @@
 #define _GAROUTER_H
 
 #include "grouter/grouter.h"
+#include "utils/netlist.h"      /* NLTermLoc */
 
 /*
  * The following structure describes "simple stems" -- routes
@@ -88,7 +89,8 @@ extern ClientData gaDebugID;	/* Our identity with the debugging module */
 extern GCRChannel *gaStemContainingChannel();
 extern GCRPin *gaStemCheckPin();
 extern int gaAlwaysOne();
-extern bool gaMazeRoute();
+extern bool gaMazeRoute(CellUse *routeUse, NLTermLoc *terminalLoc, Point *pinPoint,
+                        const TileTypeBitMask *pinLayerMaskp, int side, bool writeFlag);
 
 /* Exported procedures */
 extern int GARoute();

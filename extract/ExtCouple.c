@@ -768,7 +768,7 @@ extBasicCouple(tile, ecs)
     Tile *tile;
     extCapStruct *ecs;
 {
-    (void) extEnumTilePerim(tile, ExtCurStyle->exts_sideEdges[TiGetType(tile)],
+    (void) extEnumTilePerim(tile, &ExtCurStyle->exts_sideEdges[TiGetType(tile)],
 			ecs->plane, extAddCouple, (ClientData) ecs);
     return (0);
 }

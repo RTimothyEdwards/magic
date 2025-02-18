@@ -189,12 +189,12 @@ plowProcessJog(edge, area)
      * it returns 1 and aborts.  We must therefore iterate until no more
      * jogs are eliminated.
      */
-    while (plowSrShadowBack(edge->e_pNum, &r, DBSpaceBits,
+    while (plowSrShadowBack(edge->e_pNum, &r, &DBSpaceBits,
 		plowProcessJogFunc, (ClientData) area))
 	/* Nothing */;
 
     /* Scan to next edge between space and material */
-    (void) plowSrShadowBack(edge->e_pNum, &r, DBAllButSpaceBits,
+    (void) plowSrShadowBack(edge->e_pNum, &r, &DBAllButSpaceBits,
 		plowJogPropagateLeft, (ClientData) NULL);
 }
 
@@ -278,7 +278,7 @@ plowProcessJogFunc(edge, area)
     startPoint.p_y = edge->e_ytop;
     jogTopPoint = startPoint;
     jogTopDir = J_N;
-    plowSrOutline(edge->e_pNum, &startPoint, mask, GEO_NORTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &mask, GEO_NORTH,
 		GMASK_NORTH|GMASK_WEST|GMASK_EAST,
 		plowJogTopProc, (ClientData) NULL);
 
@@ -287,7 +287,7 @@ plowProcessJogFunc(edge, area)
     startPoint.p_y = edge->e_ybot;
     jogBotPoint = startPoint;
     jogBotDir = J_N;
-    plowSrOutline(edge->e_pNum, &startPoint, mask, GEO_SOUTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &mask, GEO_SOUTH,
 		GMASK_SOUTH|GMASK_WEST|GMASK_EAST,
 		plowJogBotProc, (ClientData) NULL);
 
@@ -353,7 +353,7 @@ plowProcessJogFunc(edge, area)
      * all of the LHS of the jog.
      */
     TTMaskSetOnlyType(&mask, edge->e_ltype);
-    width = plowFindWidthBack(&newedge, mask, area, (Rect *) NULL);
+    width = plowFindWidthBack(&newedge, &mask, area, (Rect *) NULL);
     r.r_xtop = newedge.e_x;
     r.r_xbot = newedge.e_x - width - 1;
     r.r_ytop = newedge.e_ytop;
@@ -372,7 +372,7 @@ plowProcessJogFunc(edge, area)
 
     ret = 0;
     plowJogEraseList = (LinkedRect *) NULL;
-    if (plowSrShadowBack(newedge.e_pNum, &r, mask,
+    if (plowSrShadowBack(newedge.e_pNum, &r, &mask,
 		plowJogDragLHS, INT2CD(newedge.e_newx - width)) == 0)
     {
 	/* Success: first paint to extend the RHS of the jog */

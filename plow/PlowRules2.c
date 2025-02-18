@@ -231,7 +231,7 @@ prFixedPenumbraTop(edge)
     for ( ; pr; pr = pr->pr_next)
     {
 	searchRect.r_ytop = edge->e_ytop + pr->pr_dist;
-	(void) plowSrShadow(pr->pr_pNum, &searchRect, pr->pr_oktypes,
+	(void) plowSrShadow(pr->pr_pNum, &searchRect, &pr->pr_oktypes,
 		plowApplyRule, (ClientData) &ar);
     }
 }
@@ -261,7 +261,7 @@ prFixedPenumbraBot(edge)
     for ( ; pr; pr = pr->pr_next)
     {
 	searchRect.r_ybot = edge->e_ybot - pr->pr_dist;
-	(void) plowSrShadow(pr->pr_pNum, &searchRect, pr->pr_oktypes,
+	(void) plowSrShadow(pr->pr_pNum, &searchRect, &pr->pr_oktypes,
 		plowApplyRule, (ClientData) &ar);
     }
     return 0;
@@ -493,13 +493,13 @@ prCoverTop(edge)
     for (pr = plowWidthRulesTbl[ltype][rtype]; pr; pr = pr->pr_next)
     {
 	searchArea.r_ytop = edge->e_ytop + pr->pr_dist;
-	(void) plowSrShadow(edge->e_pNum, &searchArea, pr->pr_oktypes,
+	(void) plowSrShadow(edge->e_pNum, &searchArea, &pr->pr_oktypes,
 		plowApplyRule, (ClientData) &ar);
     }
     for (pr = plowSpacingRulesTbl[ltype][rtype]; pr; pr = pr->pr_next)
     {
 	searchArea.r_ytop = edge->e_ytop + pr->pr_dist;
-	(void) plowSrShadow(edge->e_pNum, &searchArea, pr->pr_oktypes,
+	(void) plowSrShadow(edge->e_pNum, &searchArea, &pr->pr_oktypes,
 		plowApplyRule, (ClientData) &ar);
     }
 }
@@ -531,13 +531,13 @@ prCoverBot(edge)
     for (pr = plowWidthRulesTbl[ltype][rtype]; pr; pr = pr->pr_next)
     {
 	searchArea.r_ybot = edge->e_ybot - pr->pr_dist;
-	(void) plowSrShadow(edge->e_pNum, &searchArea, pr->pr_oktypes,
+	(void) plowSrShadow(edge->e_pNum, &searchArea, &pr->pr_oktypes,
 		plowApplyRule, (ClientData) &ar);
     }
     for (pr = plowSpacingRulesTbl[ltype][rtype]; pr; pr = pr->pr_next)
     {
 	searchArea.r_ybot = edge->e_ybot - pr->pr_dist;
-	(void) plowSrShadow(edge->e_pNum, &searchArea, pr->pr_oktypes,
+	(void) plowSrShadow(edge->e_pNum, &searchArea, &pr->pr_oktypes,
 		plowApplyRule, (ClientData) &ar);
     }
     return 0;
@@ -577,7 +577,7 @@ prIllegalTop(edge)
     ar.ar_slivtype = (TileType) -1;
     ar.ar_clip.p_x = edge->e_newx;
 
-    plowSrOutline(edge->e_pNum, &startPoint, insideTypes, GEO_NORTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &insideTypes, GEO_NORTH,
 		GMASK_EAST|GMASK_WEST|GMASK_NORTH|GMASK_SOUTH,
 		plowIllegalTopProc, (ClientData) &ar);
     if (ar.ar_slivtype == (TileType) -1)
@@ -586,7 +586,7 @@ prIllegalTop(edge)
     startPoint.p_x = ar.ar_mustmove;
     TTMaskSetOnlyType(&insideTypes, ar.ar_slivtype);
     TTMaskCom(&insideTypes);
-    plowSrOutline(edge->e_pNum, &startPoint, insideTypes, GEO_NORTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &insideTypes, GEO_NORTH,
 		GMASK_WEST|GMASK_NORTH|GMASK_SOUTH,
 		plowCoverTopProc, (ClientData) &ar);
 }
@@ -606,7 +606,7 @@ prIllegalBot(edge)
     ar.ar_slivtype = (TileType) -1;
     ar.ar_clip.p_x = edge->e_newx;
 
-    plowSrOutline(edge->e_pNum, &startPoint, insideTypes, GEO_SOUTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &insideTypes, GEO_SOUTH,
 		GMASK_EAST|GMASK_WEST|GMASK_NORTH|GMASK_SOUTH,
 		plowIllegalBotProc, (ClientData) &ar);
     if (ar.ar_slivtype == (TileType) -1)
@@ -614,7 +614,7 @@ prIllegalBot(edge)
 
     startPoint.p_x = ar.ar_mustmove;
     TTMaskSetOnlyType(&insideTypes, ar.ar_slivtype);
-    plowSrOutline(edge->e_pNum, &startPoint, insideTypes, GEO_SOUTH,
+    plowSrOutline(edge->e_pNum, &startPoint, &insideTypes, GEO_SOUTH,
 		GMASK_WEST|GMASK_NORTH|GMASK_SOUTH,
 		plowCoverBotProc, (ClientData) &ar);
     return 0;
@@ -919,7 +919,7 @@ prCell(edge)
 	(void) DBSrPaintArea((Tile *) NULL, plowYankDef->cd_planes[pNum],
 		&ar.ar_search, &DBAllTypeBits,
 		plowCellDragPaint, (ClientData) &ar);
-	(void) plowSrShadow(pNum, &shadowArea, DBZeroTypeBits,
+	(void) plowSrShadow(pNum, &shadowArea, &DBZeroTypeBits,
 		plowCellPushPaint, (ClientData) &ar);
     }
 

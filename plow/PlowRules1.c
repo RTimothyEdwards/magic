@@ -87,7 +87,7 @@ prClearUmbra(edge)
     ar.ar_moving = edge;
     ar.ar_rule = (PlowRule *) NULL;
     (void) plowSrShadow(edge->e_pNum, &edge->e_rect,
-		rhsTypes, plowApplyRule, (ClientData) &ar);
+		&rhsTypes, plowApplyRule, (ClientData) &ar);
 }
 
 /*
@@ -138,7 +138,7 @@ prUmbra(edge, rules)
 	ar.ar_rule = pr;
 	searchArea.r_xtop = edge->e_newx + pr->pr_dist;
 	(void) plowSrShadow(pr->pr_pNum, &searchArea,
-			pr->pr_oktypes, plowApplyRule, (ClientData) &ar);
+			&pr->pr_oktypes, plowApplyRule, (ClientData) &ar);
     }
 }
 
@@ -231,7 +231,7 @@ prPenumbraTop(edge, rules)
 	ar.ar_rule = pr;
 	ar.ar_clip.p_x = edge->e_newx + pr->pr_dist;
 	ar.ar_clip.p_y = edge->e_ytop + pr->pr_dist;
-	plowSrOutline(edge->e_pNum, &startPoint, pr->pr_ltypes, GEO_NORTH,
+	plowSrOutline(edge->e_pNum, &startPoint, &pr->pr_ltypes, GEO_NORTH,
 		GMASK_WEST|GMASK_NORTH|GMASK_SOUTH,
 		plowPenumbraTopProc, (ClientData) &ar);
     }
@@ -256,7 +256,7 @@ prPenumbraBot(edge, rules)
 	ar.ar_clip.p_x = edge->e_newx + pr->pr_dist;
 	ar.ar_clip.p_y = edge->e_ybot - pr->pr_dist;
 	TTMaskCom2(&insideTypes, &pr->pr_ltypes);
-	plowSrOutline(edge->e_pNum, &startPoint, insideTypes, GEO_SOUTH,
+	plowSrOutline(edge->e_pNum, &startPoint, &insideTypes, GEO_SOUTH,
 		GMASK_WEST|GMASK_NORTH|GMASK_SOUTH,
 		plowPenumbraBotProc, (ClientData) &ar);
     }
@@ -342,7 +342,7 @@ plowPenumbraTopProc(outline, ar)
 	    searchArea.r_ybot = outline->o_rect.r_ytop;
 	    searchArea.r_ytop = ar->ar_clip.p_y;
 	    (void) plowSrShadow(pr->pr_pNum,
-		&searchArea, pr->pr_oktypes, plowPenumbraRule,
+		&searchArea, &pr->pr_oktypes, plowPenumbraRule,
 		(ClientData) ar);
 	}
 	return (1);
@@ -350,7 +350,7 @@ plowPenumbraTopProc(outline, ar)
 
     /* Shadow search to right of this segment of the penumbra boundary */
     (void) plowSrShadow(pr->pr_pNum, &searchArea,
-		pr->pr_oktypes, plowApplyRule, (ClientData) ar);
+		&pr->pr_oktypes, plowApplyRule, (ClientData) ar);
     return (ret);
 }
 
@@ -396,7 +396,7 @@ plowPenumbraBotProc(outline, ar)
 	    searchArea.r_ybot = ar->ar_clip.p_y;
 	    searchArea.r_ytop = outline->o_rect.r_ybot;
 	    (void) plowSrShadow(pr->pr_pNum,
-		&searchArea, pr->pr_oktypes, plowPenumbraRule,
+		&searchArea, &pr->pr_oktypes, plowPenumbraRule,
 		(ClientData) ar);
 	}
 	return (1);
@@ -404,7 +404,7 @@ plowPenumbraBotProc(outline, ar)
 
     /* Shadow search to right of this segment of the penumbra boundary */
     (void) plowSrShadow(pr->pr_pNum, &searchArea,
-		pr->pr_oktypes, plowApplyRule, (ClientData) ar);
+		&pr->pr_oktypes, plowApplyRule, (ClientData) ar);
 
     return (ret);
 }
@@ -512,7 +512,7 @@ prSliverTop(edge, rules)
 	 */
 	ar.ar_slivtype = (TileType) -1;
 	ar.ar_lastx = ar.ar_mustmove = edge->e_x;
-	plowSrOutline(edge->e_pNum, &startPoint, pr->pr_ltypes, GEO_NORTH,
+	plowSrOutline(edge->e_pNum, &startPoint, &pr->pr_ltypes, GEO_NORTH,
 		GMASK_NORTH|GMASK_EAST|GMASK_SOUTH,
 		plowSliverTopExtent, (ClientData) &ar);
 
@@ -524,7 +524,7 @@ prSliverTop(edge, rules)
 	 * ar_lastx, or ar_clip.
 	 */
 	if (ar.ar_mustmove > edge->e_x)
-	    plowSrOutline(edge->e_pNum, &startPoint, pr->pr_ltypes, GEO_NORTH,
+	    plowSrOutline(edge->e_pNum, &startPoint, &pr->pr_ltypes, GEO_NORTH,
 		    GMASK_SOUTH|GMASK_NORTH,
 		    plowSliverTopMove, (ClientData) &ar);
     }
@@ -568,7 +568,7 @@ prSliverBot(edge, rules)
 	ar.ar_slivtype = (TileType) -1;
 	ar.ar_lastx = ar.ar_mustmove = edge->e_x;
 	TTMaskCom2(&insideTypes, &pr->pr_ltypes);
-	plowSrOutline(edge->e_pNum, &startPoint, insideTypes, GEO_SOUTH,
+	plowSrOutline(edge->e_pNum, &startPoint, &insideTypes, GEO_SOUTH,
 		GMASK_NORTH|GMASK_EAST|GMASK_SOUTH,
 		plowSliverBotExtent, (ClientData) &ar);
 
@@ -580,7 +580,7 @@ prSliverBot(edge, rules)
 	 * ar_lastx, or ar_clip.
 	 */
 	if (ar.ar_mustmove > edge->e_x)
-	    plowSrOutline(edge->e_pNum, &startPoint, insideTypes, GEO_SOUTH,
+	    plowSrOutline(edge->e_pNum, &startPoint, &insideTypes, GEO_SOUTH,
 		    GMASK_SOUTH|GMASK_NORTH,
 		    plowSliverBotMove, (ClientData) &ar);
     }

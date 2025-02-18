@@ -180,27 +180,28 @@ GAMazeInitParms()
  */
 
 bool
-gaMazeRoute(routeUse, terminalLoc, pinPoint, pinLayerMask, side, writeFlag)
-    CellUse *routeUse;		/* Cell to route in - top level cell visible
+gaMazeRoute(
+    CellUse *routeUse,		/* Cell to route in - top level cell visible
 				 * to router and also cell route is painted
 				 * into.  All subcells are treated as expanded
 				 * by the router, i.e. their contents are
 				 * examined.  And routing across the tops of
 				 * subcells is permitted.
 				 */
-    NLTermLoc *terminalLoc;	/* Terminal to connect to - somewhere in
+    NLTermLoc *terminalLoc,	/* Terminal to connect to - somewhere in
 				 * interior of cell */
-    Point *pinPoint;		/* Point to connect from (on edge of cell) */
-    TileTypeBitMask pinLayerMask;	/* layer at pin (no more than one
+    Point *pinPoint,		/* Point to connect from (on edge of cell) */
+    const TileTypeBitMask *pinLayerMaskp,/* layer at pin (no more than one
 					 * bit should correspond to a known
 					 * routing layer)
 					 */
-    int side;			/* side of cell destPoint lies on */
-    bool writeFlag;	        /* If non-null, paint back result (into
+    int side,			/* side of cell destPoint lies on */
+    bool writeFlag)	        /* If non-null, paint back result (into
 				 * routeUse), otherwise just check if
 				 * route is possible.
 				 */
 {
+    TileTypeBitMask pinLayerMask = *pinLayerMaskp; // TTMaskCopy(&pinLayerMask, pinLayerMaskp);
     Rect routeBounds;
     bool done = FALSE;
 
