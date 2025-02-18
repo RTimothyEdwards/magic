@@ -78,7 +78,7 @@ enum def_netspecial_shape_keys {
 	DEF_SPECNET_SHAPE_FILLWIREOPC,
 	DEF_SPECNET_SHAPE_DRCFILL};
 
-char *
+const char *
 DefAddRoutes(
     CellDef *rootDef,		/* Cell to paint */
     FILE *f,			/* Input file */
@@ -89,7 +89,7 @@ DefAddRoutes(
     LefMapping *defLayerMap,	/* magic-to-lef layer mapping array */
     bool annotate)		/* If TRUE, do not generate any geometry */
 {
-    char *token;
+    const char *token;
     LinkedRect *routeList, *newRoute = NULL, *routeTop = NULL;
     Point refp;			/* reference point */
     bool valid = FALSE;		/* is there a valid reference point? */
@@ -171,7 +171,7 @@ DefAddRoutes(
 		/* of type mappings in the lef section of the techfile is */
 		/* preferred.						  */
 
-		routeLayer = DBTechNameType(LefLower(token));
+		routeLayer = LefHelper_DBTechNameType_LefLower(token);
 		lefl = NULL;
 	    }
 
@@ -459,7 +459,7 @@ DefAddRoutes(
 
 		    iscontact = TRUE;
 		}
-		else if ((paintLayer = DBTechNameType(LefLower(token))) >= 0)
+		else if ((paintLayer = LefHelper_DBTechNameType_LefLower(token)) >= 0)
 		{
 		    LefError(DEF_ERROR, "Error: Via \"%s\" named but undefined.\n",
 				token);
@@ -790,7 +790,7 @@ DefReadNonDefaultRules(
     float oscale,
     int total)
 {
-    char *token;
+    const char *token;
     int keyword, subkey;
     int processed = 0;
     HashEntry *he;
@@ -1051,7 +1051,7 @@ DefReadNets(
     bool annotate,		/* If true, create labels, not geometry */
     int total)
 {
-    char *token;
+    const char *token;
     char *netname = NULL, *prnet;
     int keyword, subkey;
     int processed = 0;
@@ -1305,7 +1305,7 @@ DefReadLocation(
     const Rect *r;
     Rect tr, rect;
     int keyword;
-    char *token;
+    const char *token;
     float x, y;
     Transform t2;
 
@@ -1441,7 +1441,7 @@ DefReadPins(
     int total,
     bool annotate)
 {
-    char *token;
+    const char *token;
     char pinname[LEF_LINE_MAX];
     int keyword, subkey, flags;
     int processed = 0;
@@ -1769,7 +1769,7 @@ DefReadBlockages(
     float oscale,
     int total)
 {
-    char *token;
+    const char *token;
     int keyword, subkey;
     int processed = 0;
     TileType curlayer;
@@ -1884,7 +1884,7 @@ DefReadVias(
     float oscale,
     int total)
 {
-    char *token;
+    const char *token;
     char vianame[LEF_LINE_MAX];
     int keyword, subkey;
     int processed = 0;
@@ -2170,7 +2170,8 @@ DefReadComponents(
     CellDef *defMacro;
     CellUse *defUse;
     Transform t;
-    char *token, *dptr;
+    const char *token;
+    char *dptr;
     char usename[512];
     int keyword, subkey;
     int processed = 0;
@@ -2388,7 +2389,7 @@ DefRead(
     CellDef *rootDef;
     FILE *f;
     char *filename;
-    char *token;
+    const char *token;
     char *bboxstr;
     int keyword, dscale, total;
     float oscale;
