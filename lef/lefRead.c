@@ -311,10 +311,10 @@ LefError(
     static int errors = 0, warnings = 0, messages = 0;
     va_list args;
 
-    char *lefdeftypes[] = {"LEF", "DEF", "techfile lef section"};
+    const char *lefdeftypes[] = {"LEF", "DEF", "techfile lef section"};
 
     int mode, level;
-    char *lefdeftype;
+    const char *lefdeftype;
 
     switch (type) {
 	case LEF_INFO:

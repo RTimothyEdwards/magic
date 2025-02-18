@@ -194,7 +194,7 @@ const char *
 defTransPos(
     Transform *t)
 {
-    static const char * def_orient[] = {
+    static const char * const def_orient[] = {
 	"N", "S", "E", "W", "FN", "FS", "FE", "FW"
     };
 

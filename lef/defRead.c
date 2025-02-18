@@ -1497,7 +1497,7 @@ DefReadPins(
 	NULL
     };
 
-    static int lef_class_to_bitmask[] = {
+    static const int lef_class_to_bitmask[] = {
 	PORT_CLASS_DEFAULT,
 	PORT_CLASS_INPUT,
 	PORT_CLASS_TRISTATE,
@@ -1506,7 +1506,7 @@ DefReadPins(
 	PORT_CLASS_FEEDTHROUGH
     };
 
-    static int lef_use_to_bitmask[] = {
+    static const int lef_use_to_bitmask[] = {
 	PORT_USE_DEFAULT,
 	PORT_USE_SIGNAL,
 	PORT_USE_POWER,
