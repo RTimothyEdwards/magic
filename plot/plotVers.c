@@ -1353,7 +1353,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
 		    {
 		        TxError("Warning:  No color versatec styles are defined"
 				" in the technology file!\nPlotting aborted.\n");
-			return;
+			goto error_close_only;
 		    }
 		    break;
 		default:
@@ -1372,7 +1372,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
 		TxError("Warning:  No monochrome versatec styles are"
 			    " defined in the technology file!\nPlotting"
 			    " aborted.\n");
-		return;
+		goto error_close_only;
 	    }
 
 	    for ( ; curStyle != NULL; curStyle = curStyle->vs_next)
@@ -1475,10 +1475,14 @@ PlotVersatec(scx, layers, xMask, user_scale)
     }
     return;
 
-    error:
+error:
     TxError("\nVersatec plot aborted.\n");
     fclose(file);
     unlink(fileName);
+    return;
+
+error_close_only:
+    fclose(file);
 }
 
 #endif /* VERSATEC */

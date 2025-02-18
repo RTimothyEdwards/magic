@@ -82,19 +82,14 @@ char *
 PaCheckCompressed(filename)
     const char *filename;
 {
-    int fd;
     char *gzname;
 
     gzname = (char *)mallocMagic(strlen(filename) + 4);
     sprintf(gzname, "%s.gz", filename);
 
-    fd = open(gzname, O_RDONLY);
-    if (fd < 0)
-    {
+    int err = access(gzname, R_OK);
+    if (err < 0)
         strcpy(gzname, filename); /* always shorter than allocation */
-    }
-    else
-	close(fd);
 
     return gzname;
 }

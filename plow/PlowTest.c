@@ -143,7 +143,6 @@ PlowTest(w, cmd)
     Plane *plane;
     Edge edge;
     Tile *tp;
-    FILE *f;
 
     if (!ToolGetEditBox(&editArea) || !ToolGetBox(&rootBoxDef, &rootBox))
 	return;
@@ -244,19 +243,21 @@ PlowTest(w, cmd)
 	    plowYankDef = saveDef;
 	    break;
 	case PC_TECHSHOW:
-	    f = stdout;
 	    if (cmd->tx_argc >= 3)
 	    {
-		f = fopen(cmd->tx_argv[2], "w");
+		FILE *f = fopen(cmd->tx_argv[2], "w");
 		if (f == NULL)
 		{
 		    perror(cmd->tx_argv[2]);
 		    break;
 		}
+		plowTechShow(f);
+		fclose(f);
 	    }
-	    plowTechShow(f);
-	    if (f != stdout)
-		(void) fclose(f);
+	    else
+	    {
+		plowTechShow(stdout);
+	    }
 	    break;
 	case PC_WIDTH:
 	    if (cmd->tx_argc < 3)

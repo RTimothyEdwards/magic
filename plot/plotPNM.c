@@ -576,7 +576,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
 					 * plot, in pixels.
 					 */
 {
-    FILE *fp;
+    FILE *fp = NULL;
     Rect bbox;
     int bb_ysize, bb_xsize;
     int i, x, y, tile_ydelta;
@@ -920,6 +920,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
 	}
 	fflush(rtl_args.outfile);
 	fclose(rtl_args.outfile);
+	rtl_args.outfile = NULL;
 	freeMagic(rtl_args.outbytes);
 
 	/* Run spooler */
@@ -932,7 +933,13 @@ PlotPNM(fileName, scx, layers, xMask, width)
     }
     else
 #endif
-	fclose (fp);
+    {
+        if(fp)
+        {
+	    fclose (fp);
+	    fp = NULL;
+        }
+    }
 
 done:
     PlotPNMdownsample = save_ds;
@@ -941,6 +948,15 @@ done:
     freeMagic(strip);
     freeMagic(lkstep);
     lkstep = NULL;
+#ifdef VERSATEC
+    if(rtl_args.outfile) /* theoretical fp leak */
+    {
+	fclose(rtl_args.outfile);
+	rtl_args.outfile = NULL;
+    }
+#endif
+    if(fp)
+	fclose(fp);
     return;
 }
 
