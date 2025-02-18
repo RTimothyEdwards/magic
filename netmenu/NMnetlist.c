@@ -753,6 +753,7 @@ NMWriteNetlist(fileName)
     FILE *file;
     int nmWriteNetsFunc();
     char *realName, line[50];
+    char *alloc = NULL;
 
     if (nmCurrentNetlist == NULL)
     {
@@ -768,7 +769,7 @@ NMWriteNetlist(fileName)
     if (fileName == NULL) realName = nmCurrentNetlist->nl_fileName;
     else
     {
-	realName = mallocMagic((unsigned) (5 + strlen(fileName)));
+	realName = alloc = mallocMagic((unsigned) (5 + strlen(fileName)));
 	(void) sprintf(realName, "%s.net", fileName);
 	file = PaOpen(realName, "r", (char *) NULL, ".",
 	    (char *) NULL, (char **) NULL);
@@ -777,8 +778,16 @@ NMWriteNetlist(fileName)
 	    (void) fclose(file);
 	    TxPrintf("Net list file %s already exists.", realName);
 	    TxPrintf("  Should I overwrite it? [no] ");
-	    if (TxGetLine(line, 50) == (char *) NULL) return;
-	    if ((strcmp(line, "y") != 0) && (strcmp(line, "yes") != 0)) return;
+	    if (TxGetLine(line, sizeof(line)) == (char *) NULL)
+	    {
+	        freeMagic(alloc);
+		return;
+	    }
+	    if ((strcmp(line, "y") != 0) && (strcmp(line, "yes") != 0))
+	    {
+	        freeMagic(alloc);
+		return;
+	    }
 	}
     }
 
@@ -787,6 +796,7 @@ NMWriteNetlist(fileName)
     if (file == NULL)
     {
 	TxError("Couldn't write file %s.\n", realName);
+	if (alloc) freeMagic(alloc);
 	return;
     }
     fprintf(file, " Netlist File\n");
@@ -794,6 +804,7 @@ NMWriteNetlist(fileName)
     if (strcmp(realName, nmCurrentNetlist->nl_fileName) == 0)
 	nmCurrentNetlist->nl_flags &= ~NL_MODIFIED;
     (void) fclose(file);
+    if (alloc) freeMagic(alloc);
 }
 
 int

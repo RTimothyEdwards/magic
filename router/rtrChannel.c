@@ -183,6 +183,7 @@ RtrChannelRoute(ch, pCount)
 
 	GCRFlipXY(flipped, ch);
 	GCRFreeChannel(flipped_again);
+	// GCRFreeChannel(copy); // FIXME evaluate if this should be uncommented
     }
 
 bottom:
