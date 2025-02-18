@@ -1087,11 +1087,11 @@ ResExtractNet(node, goodies, cellname)
 		    resMakeDevFunc, (ClientData)thisDev);
 	if (result == 0)
 	{
-	    freeMagic(thisDev);
 	    TxError("No device of type %s found at location %d,%d\n",
 		    DBTypeLongNameTbl[thisDev->type],
 		    tptr->thisDev->location.p_x,
 		    tptr->thisDev->location.p_y);
+	    freeMagic(thisDev);
 	    continue;
 	}
 	thisDev->nextDev = DevTiles;
