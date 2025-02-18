@@ -140,6 +140,8 @@ GrReadGlyphs(filename, path, libPath, gl)
 	    /* an interesting line */
 	    if (sizeline)
 	    {
+		/* this section appears to expect ourgl to be  */
+		ASSERT(ourgl, "ourgl");
 		if (y > 0)
 		    y--; 	/* scan from top down */
 		else
