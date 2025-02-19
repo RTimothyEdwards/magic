@@ -687,7 +687,8 @@ CIFParseWire(void)
 
     width /= cifReadScale2;
     savescale = cifReadScale1;
-    if (!CIFParsePath(&pathheadp, 2))
+    pathheadp = CIFParsePath(2);
+    if (pathheadp == NULL)
     {
 	CIFReadError("wire, but improper path; ignored.\n");
 	CIFSkipToSemi();
@@ -797,7 +798,8 @@ CIFParsePoly(void)
 	CIFSkipToSemi();
 	return FALSE;
     }
-    if (!CIFParsePath(&pathheadp, 1))
+    pathheadp = CIFParsePath(1);
+    if (pathheadp == NULL)
     {
 	CIFReadError("polygon, but improper path; ignored.\n");
 	CIFSkipToSemi();

@@ -58,7 +58,7 @@ extern int CalmaPathCount;
 extern HashTable calmaDefInitHash;
 
 extern void calmaLayerError(char *mesg, int layer, int dt);
-bool calmaReadPath(CIFPath **pathheadpp, int iscale);
+CIFPath *calmaReadPath(int iscale);
 
 /*
  * ----------------------------------------------------------------------------
@@ -237,7 +237,8 @@ calmaElementBoundary(void)
 	plane = cifCurReadPlanes[ciftype];
 
     /* Read the path itself, building up a path structure */
-    if (!calmaReadPath(&pathheadp, (plane == NULL) ? 0 : 1))
+    pathheadp = calmaReadPath((plane == NULL) ? 0 : 1);
+    if (pathheadp == NULL)
     {
 	if (plane != NULL)
 	    CalmaReadError("Error while reading path for boundary/box; ignored.\n");
@@ -595,7 +596,8 @@ calmaElementPath(void)
 
     /* Read the points in the path */
     savescale = calmaReadScale1;
-    if (!calmaReadPath(&pathheadp, 2))
+    pathheadp = calmaReadPath(2);
+    if (pathheadp == NULL)
     {
 	CalmaReadError("Improper path; ignored.\n");
 	return;
@@ -1098,19 +1100,17 @@ calmaElementText(void)
  * centerline, to avoid roundoff errors.
  *
  * Results:
- *	TRUE is returned if the path was parsed successfully,
- *	FALSE otherwise.
+ *	non-NULL CIFPath* the caller takes ownership of
+ *	if the path was parsed successfully, otherwise NULL.
  *
  * Side effects:
- *	Modifies the parameter pathheadpp to point to the path
- *	that is constructed.
+ *	None
  *
  * ----------------------------------------------------------------------------
  */
 
-bool
+CIFPath *
 calmaReadPath(
-    CIFPath **pathheadpp,
     int iscale)
 {
     CIFPath path, *pathheadp, *pathtailp, *newpathp;
@@ -1126,12 +1126,12 @@ calmaReadPath(
     if (nbytes < 0)
     {
 	CalmaReadError("EOF when reading path.\n");
-	return (FALSE);
+	return (NULL);
     }
     if (rtype != CALMA_XY)
     {
 	calmaUnexpected(CALMA_XY, rtype);
-	return (FALSE);
+	return (NULL);
     }
 
     /* Read this many points (pairs of four-byte integers) */
@@ -1158,7 +1158,7 @@ calmaReadPath(
 	if (FEOF(calmaInputFile))
 	{
 	    CIFFreePath(pathheadp);
-	    return (FALSE);
+	    return (NULL);
 	}
 
 	if (iscale != 0)
@@ -1191,10 +1191,7 @@ calmaReadPath(
 	    pathtailp = newpathp;
 	}
     }
-    if (pathheadp == NULL)
-        return (FALSE);
-    *pathheadpp = pathheadp;
-    return (TRUE); /* commit data to caller */
+    return (pathheadp);
 }
 
 /*
