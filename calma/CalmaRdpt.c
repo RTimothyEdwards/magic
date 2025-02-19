@@ -213,7 +213,7 @@ calmaElementBoundary(void)
     LinkedRect *rp;
     Plane *plane;
     CellUse *use;
-    CellDef *savedef, *newdef = NULL;
+    CellDef *savedef = NULL, *newdef = NULL;
 
     /* Skip CALMA_ELFLAGS, CALMA_PLEX */
     calmaSkipSet(calmaElementIgnore);
@@ -513,7 +513,7 @@ calmaElementPath(void)
     Plane *plane;
     int first,last;
     CellUse *use;
-    CellDef *savedef, *newdef = NULL;
+    CellDef *savedef = NULL, *newdef = NULL;
 
     /* Skip CALMA_ELFLAGS, CALMA_PLEX */
     calmaSkipSet(calmaElementIgnore);
