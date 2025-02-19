@@ -166,7 +166,7 @@ extern bool CIFParseUser(void);
 extern bool CIFParseCall(void);
 extern bool CIFParseTransform(Transform *transformp);
 extern bool CIFParseInteger(int *valuep);
-extern bool CIFParsePath(CIFPath **pathheadpp, int iscale);
+extern CIFPath *CIFParsePath(int iscale);
 extern bool CIFParsePoint(Point *pointp, int iscale);
 extern bool CIFParseSInteger(int *valuep);
 extern void CIFSkipToSemi(void);
