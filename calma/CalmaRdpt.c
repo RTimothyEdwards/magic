@@ -1113,11 +1113,11 @@ calmaReadPath(
     CIFPath **pathheadpp,
     int iscale)
 {
-    CIFPath path, *pathtailp, *newpathp;
+    CIFPath path, *pathheadp, *pathtailp, *newpathp;
     int nbytes, rtype, npoints, savescale;
     bool nonManhattan = FALSE;
 
-    *pathheadpp = (CIFPath *) NULL;
+    pathheadp = (CIFPath *) NULL;
     pathtailp = (CIFPath *) NULL;
     path.cifp_next = (CIFPath *) NULL;
 
@@ -1142,7 +1142,7 @@ calmaReadPath(
 	calmaReadPoint(&path.cifp_point, iscale);
 	if (savescale != calmaReadScale1)
 	{
-	    CIFPath *phead = *pathheadpp;
+	    CIFPath *phead = pathheadp;
 	    int newscale = calmaReadScale1 / savescale;
 	    while (phead != NULL)
 	    {
@@ -1157,7 +1157,7 @@ calmaReadPath(
 	}
 	if (FEOF(calmaInputFile))
 	{
-	    CIFFreePath(*pathheadpp);
+	    CIFFreePath(pathheadp);
 	    return (FALSE);
 	}
 
@@ -1166,7 +1166,7 @@ calmaReadPath(
 	    newpathp = (CIFPath *) mallocMagic((unsigned) (sizeof (CIFPath)));
 	    *newpathp = path;
 
-	    if (*pathheadpp)
+	    if (pathheadp)
 	    {
 		/*
 		 * Check that this segment is Manhattan.  If not, remember the
@@ -1187,11 +1187,14 @@ calmaReadPath(
 		}
 		pathtailp->cifp_next = newpathp;
 	    }
-	    else *pathheadpp = newpathp;
+	    else pathheadp = newpathp;
 	    pathtailp = newpathp;
 	}
     }
-    return (*pathheadpp != NULL);
+    if (pathheadp == NULL)
+        return (FALSE);
+    *pathheadpp = pathheadp;
+    return (TRUE); /* commit data to caller */
 }
 
 /*
