@@ -872,7 +872,10 @@ antennaAccumFunc(tile, aaptr)
 	    {
 		if (type >= DBNumUserLayers)
 		{
-		    DBResidueMask(type, &sMask);
+		    /* FIXME: Remove this redundant call to DBResidueMask() ? */
+		    /* Maybe the intention was: DBFullResidueMask(type, &sMask); */
+		    /* But it has been called above and the sMask does not look to have been modified since */
+		    const TileTypeBitMask *tmp = DBResidueMask(type); /* tmp unused, DBResidueMask() has no side-effects */
 		    for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
 			if (TTMaskHasType(&sMask, ttype))
 			    if (DBTypeOnPlane(ttype, plane))
@@ -983,7 +986,10 @@ antennaAccumFunc(tile, aaptr)
 
 	    if (type >= DBNumUserLayers)
 	    {
-		DBResidueMask(type, &sMask);
+		/* FIXME: Remove this redundant call to DBResidueMask() ? */
+		/* Maybe the intention was: DBFullResidueMask(type, &sMask); */
+		/* But it has been called above and the sMask does not look to have been modified since */
+		const TileTypeBitMask *tmp = DBResidueMask(type); /* tmp unused, DBResidueMask() has no side-effects */
 		for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
 		    if (TTMaskHasType(&sMask, ttype))
 			if (DBTypeOnPlane(ttype, plane))
