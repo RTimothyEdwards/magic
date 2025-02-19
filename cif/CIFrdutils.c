@@ -649,12 +649,11 @@ CIFParsePoint(
  *	one or more points.
  *
  * Results:
- *	TRUE is returned if the path was parsed successfully,
- *	FALSE otherwise.
+ *	non-NULL CIFPath* the caller takes ownership of
+ *	if the path was parsed successfully, otherwise NULL.
  *
  * Side effects:
- *	Modifies the parameter pathheadpp to point to the path
- *	that is constructed.
+ *	None
  *
  * Corrections:
  *	CIF coordinates are multiplied by 2 to cover the case where
@@ -666,17 +665,16 @@ CIFParsePoint(
  * ----------------------------------------------------------------------------
  */
 
-bool
+CIFPath *
 CIFParsePath(
-    CIFPath **pathheadpp,
     int iscale)
 {
-    CIFPath *pathtailp, *newpathp;
+    CIFPath *pathheadp, *pathtailp, *newpathp;
     bool nonManhattan = FALSE;		/* diagnostic only */
     CIFPath path;
     int savescale;
 
-    *pathheadpp = NULL;
+    pathheadp = NULL;
     pathtailp = NULL;
     path.cifp_next = NULL;
     while (TRUE)
@@ -688,12 +686,12 @@ CIFParsePath(
 	savescale = cifReadScale1;
 	if (!CIFParsePoint(&path.cifp_point, iscale))
 	{
-	    CIFFreePath(*pathheadpp);
-	    return FALSE;
+	    CIFFreePath(pathheadp);
+	    return NULL;
 	}
 	if (savescale != cifReadScale1)
 	{
-	    CIFPath *phead = *pathheadpp;
+	    CIFPath *phead = pathheadp;
 	    int newscale = cifReadScale1 / savescale;
 	    while (phead != NULL)
 	    {
@@ -704,7 +702,7 @@ CIFParsePath(
 	}
 	newpathp = (CIFPath *) mallocMagic((unsigned) (sizeof (CIFPath)));
 	*newpathp = path;
-	if (*pathheadpp)
+	if (pathheadp)
 	{
 	    /*
 	     * Check that this segment is Manhattan.  If not, remember the
@@ -721,10 +719,10 @@ CIFParsePath(
 	    }
 	    pathtailp->cifp_next = newpathp;
 	}
-	else *pathheadpp = newpathp;
+	else pathheadp = newpathp;
 	pathtailp = newpathp;
     }
-    return (*pathheadpp != NULL);
+    return pathheadp;
 }
 
 /*
