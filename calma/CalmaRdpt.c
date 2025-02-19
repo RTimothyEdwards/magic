@@ -258,7 +258,7 @@ calmaElementBoundary(void)
     if ((CalmaSubcellPolygons != CALMA_POLYGON_NONE) && (calmaNonManhattan > 0))
     {
 	/* Place the polygon in its own subcell */
-	char newname[16];
+	char newname[20];
 	HashEntry *he;
 
 	savedef = cifReadCellDef;
