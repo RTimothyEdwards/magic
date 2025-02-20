@@ -82,6 +82,7 @@ extern gzFile PaZOpen(const char *file, const char *mode, const char *ext, const
 extern gzFile PaLockZOpen(const char *file, const char *mode, const char *ext, const char *path, const char *library,
                           char **pRealName, bool *is_locked, int *fdp);
 extern char *PaCheckCompressed(const char *filename);
+extern gzFile path_gzdopen_internal(const char *path, int oflags, const char *modestr, int *fdp);
 #endif
 
 extern int SetNoisyBool(bool *parm, const char *valueS, FILE *file);
