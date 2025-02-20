@@ -21,10 +21,11 @@
 #include "commands/commands.h"
 #include "utils/tech.h"
 #include "dbwind/dbwind.h"
+#include "textio/textio.h"
 
 /* External routines */
 
-extern void CmdLef();
+extern void CmdLef(MagWindow *w, TxCommand *cmd);
 
 /*
  * ----------------------------------------------------------------------------
@@ -35,8 +36,8 @@ extern void CmdLef();
  */
 
 int
-Magiclef_Init(interp)
-    Tcl_Interp *interp;
+Magiclef_Init(
+    Tcl_Interp *interp)
 {
     /* Sanity checks! */
     if (interp == NULL) return TCL_ERROR;

@@ -9,7 +9,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/defRead.c,v 1.2 2008/06/01 18:37:43 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/defRead.c,v 1.2 2008/06/01 18:37:43 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -78,18 +78,18 @@ enum def_netspecial_shape_keys {
 	DEF_SPECNET_SHAPE_FILLWIREOPC,
 	DEF_SPECNET_SHAPE_DRCFILL};
 
-char *
-DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotate)
-    CellDef *rootDef;		/* Cell to paint */
-    FILE *f;			/* Input file */
-    float oscale;		/* Scale factor between LEF and magic units */
-    bool special;		/* True if this section is SPECIALNETS */
-    char *netname;		/* Name of the net, if net is to be labeled */
-    LefRules *ruleset;		/* Non-default rule, or NULL */
-    LefMapping *defLayerMap;	/* magic-to-lef layer mapping array */
-    bool annotate;		/* If TRUE, do not generate any geometry */
+const char *
+DefAddRoutes(
+    CellDef *rootDef,		/* Cell to paint */
+    FILE *f,			/* Input file */
+    float oscale,		/* Scale factor between LEF and magic units */
+    bool special,		/* True if this section is SPECIALNETS */
+    char *netname,		/* Name of the net, if net is to be labeled */
+    LefRules *ruleset,		/* Non-default rule, or NULL */
+    LefMapping *defLayerMap,	/* magic-to-lef layer mapping array */
+    bool annotate)		/* If TRUE, do not generate any geometry */
 {
-    char *token;
+    const char *token;
     LinkedRect *routeList, *newRoute = NULL, *routeTop = NULL;
     Point refp;			/* reference point */
     bool valid = FALSE;		/* is there a valid reference point? */
@@ -171,7 +171,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 		/* of type mappings in the lef section of the techfile is */
 		/* preferred.						  */
 
-		routeLayer = DBTechNameType(LefLower(token));
+		routeLayer = LefHelper_DBTechNameType_LefLower(token);
 		lefl = NULL;
 	    }
 
@@ -459,7 +459,7 @@ DefAddRoutes(rootDef, f, oscale, special, netname, ruleset, defLayerMap, annotat
 
 		    iscontact = TRUE;
 		}
-		else if ((paintLayer = DBTechNameType(LefLower(token))) >= 0)
+		else if ((paintLayer = LefHelper_DBTechNameType_LefLower(token)) >= 0)
 		{
 		    LefError(DEF_ERROR, "Error: Via \"%s\" named but undefined.\n",
 				token);
@@ -783,14 +783,14 @@ enum def_nondefprop_keys {
 	DEF_NONDEFPROP_DONE};
 
 void
-DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
-    FILE *f;
-    CellDef *rootDef;
-    char *sname;
-    float oscale;
-    int total;
+DefReadNonDefaultRules(
+    FILE *f,
+    CellDef *rootDef,
+    const char *sname,
+    float oscale,
+    int total)
 {
-    char *token;
+    const char *token;
     int keyword, subkey;
     int processed = 0;
     HashEntry *he;
@@ -1005,9 +1005,9 @@ DefReadNonDefaultRules(f, rootDef, sname, oscale, total)
  */
 
 int
-defFoundOneFunc(tile, tret)
-    Tile *tile;
-    Tile **tret;
+defFoundOneFunc(
+    Tile *tile,
+    Tile **tret)
 {
     *tret = tile;
     return 1;
@@ -1041,17 +1041,17 @@ enum def_netprop_keys {
 };
 
 void
-DefReadNets(f, rootDef, sname, oscale, special, dolabels, annotate, total)
-    FILE *f;
-    CellDef *rootDef;
-    char *sname;
-    float oscale;
-    bool special;		/* True if this section is SPECIALNETS */
-    bool dolabels;		/* If true, create a label for each net */
-    bool annotate;		/* If true, create labels, not geometry */
-    int total;
+DefReadNets(
+    FILE *f,
+    CellDef *rootDef,
+    const char *sname,
+    float oscale,
+    bool special,		/* True if this section is SPECIALNETS */
+    bool dolabels,		/* If true, create a label for each net */
+    bool annotate,		/* If true, create labels, not geometry */
+    int total)
 {
-    char *token;
+    const char *token;
     char *netname = NULL, *prnet;
     int keyword, subkey;
     int processed = 0;
@@ -1295,17 +1295,17 @@ enum def_orient {DEF_NORTH, DEF_SOUTH, DEF_EAST, DEF_WEST,
 	DEF_FLIPPED_WEST};
 
 int
-DefReadLocation(use, f, oscale, tptr, noplace)
-    CellUse *use;
-    FILE *f;
-    float oscale;
-    Transform *tptr;
-    bool noplace;
+DefReadLocation(
+    CellUse *use,
+    FILE *f,
+    float oscale,
+    Transform *tptr,
+    bool noplace)
 {
     const Rect *r;
     Rect tr, rect;
     int keyword;
-    char *token;
+    const char *token;
     float x, y;
     Transform t2;
 
@@ -1433,17 +1433,17 @@ enum def_pins_prop_keys {
 	DEF_PINS_PROP_PORT, DEF_PINS_PROP_SPECIAL};
 
 void
-DefReadPins(f, rootDef, sname, oscale, total, annotate)
-    FILE *f;
-    CellDef *rootDef;
-    char *sname;
-    float oscale;
-    int total;
-    bool annotate;
+DefReadPins(
+    FILE *f,
+    CellDef *rootDef,
+    const char *sname,
+    float oscale,
+    int total,
+    bool annotate)
 {
-    char *token;
+    const char *token;
     char pinname[LEF_LINE_MAX];
-    int keyword, subkey, values, flags;
+    int keyword, subkey, flags;
     int processed = 0;
     int pinDir = PORT_CLASS_DEFAULT;
     int pinUse = PORT_USE_DEFAULT;
@@ -1453,7 +1453,6 @@ DefReadPins(f, rootDef, sname, oscale, total, annotate)
     LinkedRect *rectList = NULL, *newRect;
     Rect *currect, topRect;
     Transform t;
-    lefLayer *lefl;
     bool pending = FALSE;
     bool hasports = FALSE;
 
@@ -1498,7 +1497,7 @@ DefReadPins(f, rootDef, sname, oscale, total, annotate)
 	NULL
     };
 
-    static int lef_class_to_bitmask[] = {
+    static const int lef_class_to_bitmask[] = {
 	PORT_CLASS_DEFAULT,
 	PORT_CLASS_INPUT,
 	PORT_CLASS_TRISTATE,
@@ -1507,7 +1506,7 @@ DefReadPins(f, rootDef, sname, oscale, total, annotate)
 	PORT_CLASS_FEEDTHROUGH
     };
 
-    static int lef_use_to_bitmask[] = {
+    static const int lef_use_to_bitmask[] = {
 	PORT_USE_DEFAULT,
 	PORT_USE_SIGNAL,
 	PORT_USE_POWER,
@@ -1763,20 +1762,18 @@ enum def_block_prop_keys {
 	DEF_BLOCK_PROP_RECT = 0, DEF_BLOCK_PROP_LAYER};
 
 void
-DefReadBlockages(f, rootDef, sname, oscale, total)
-    FILE *f;
-    CellDef *rootDef; 
-    char *sname;
-    float oscale;
-    int total;
+DefReadBlockages(
+    FILE *f,
+    CellDef *rootDef,
+    const char *sname,
+    float oscale,
+    int total)
 {
-    char *token;
-    int keyword, subkey, values;
+    const char *token;
+    int keyword, subkey;
     int processed = 0;
     TileType curlayer;
     Rect *currect;
-    lefLayer *lefl;
-    HashEntry *he;
 
     static const char * const block_keys[] = {
 	"-",
@@ -1881,18 +1878,17 @@ enum def_vias_prop_keys {
 	DEF_VIAS_PROP_ROWCOL};
 
 void
-DefReadVias(f, sname, oscale, total)
-    FILE *f;
-    char *sname;
-    float oscale;
-    int total;
+DefReadVias(
+    FILE *f,
+    const char *sname,
+    float oscale,
+    int total)
 {
-    char *token;
+    const char *token;
     char vianame[LEF_LINE_MAX];
-    int keyword, subkey, values;
+    int keyword, subkey;
     int processed = 0;
     TileType curlayer;
-    Rect *currect;
     lefLayer *lefl;
     HashEntry *he;
 
@@ -1963,7 +1959,7 @@ DefReadVias(f, sname, oscale, total)
 		    lefl->info.via.cell = (CellDef *)NULL;
 		    lefl->info.via.lr = (LinkedRect *)NULL;
 		    HashSetValue(he, lefl);
-		    lefl->canonName = (char *)he->h_key.h_name;
+		    lefl->canonName = (const char *)he->h_key.h_name;
 		}
 		else
 		{
@@ -2164,19 +2160,20 @@ enum def_prop_keys {
 	DEF_PROP_EEQMASTER};
 
 void
-DefReadComponents(f, rootDef, sname, oscale, total)
-    FILE *f;
-    CellDef *rootDef;
-    char *sname;
-    float oscale;
-    int total;
+DefReadComponents(
+    FILE *f,
+    CellDef *rootDef,
+    const char *sname,
+    float oscale,
+    int total)
 {
     CellDef *defMacro;
     CellUse *defUse;
     Transform t;
-    char *token, *dptr;
+    const char *token;
+    char *dptr;
     char usename[512];
-    int keyword, subkey, values;
+    int keyword, subkey;
     int processed = 0;
 
     static const char * const component_keys[] = {
@@ -2383,16 +2380,16 @@ enum def_sections {DEF_VERSION = 0, DEF_NAMESCASESENSITIVE,
 	DEF_NONDEFAULTRULES, DEF_END};
 
 void
-DefRead(inName, dolabels, annotate, noblockage)
-    char *inName;
-    bool dolabels;
-    bool annotate;
-    bool noblockage;
+DefRead(
+    const char *inName,
+    bool dolabels,
+    bool annotate,
+    bool noblockage)
 {
     CellDef *rootDef;
     FILE *f;
     char *filename;
-    char *token;
+    const char *token;
     char *bboxstr;
     int keyword, dscale, total;
     float oscale;
@@ -2625,7 +2622,7 @@ DefRead(inName, dolabels, annotate, noblockage)
 				oscale, total);
 		break;
 	    case DEF_END:
-		if (!LefParseEndStatement(token, "DESIGN"))
+		if (!LefParseEndStatement(f, "DESIGN"))
 		{
 		    LefError(DEF_ERROR, "END statement out of context.\n");
 		    keyword = -1;

@@ -6,7 +6,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/lefCmd.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/lefCmd.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -75,9 +75,9 @@ linkedNetName *lefIgnoreNets = NULL; /* Nets names to ignore for antenna area */
 #define LEF_HELP		5
 
 void
-CmdLef(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdLef(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int option, i, cargs, units = 1000;	    /* Default nanometers */
     const char * const *msg;

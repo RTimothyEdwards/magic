@@ -13,7 +13,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header$";
+static const char rcsid[] __attribute__ ((unused)) = "$Header$";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -87,7 +87,9 @@ int LEFdbUnits = 1000;
  */
 
 const char *
-lefPrint(char *leffmt, float invalue)
+lefPrint(
+    char *leffmt,
+    float invalue)
 {
     float value, r, l;
 
@@ -145,25 +147,25 @@ lefPrint(char *leffmt, float invalue)
  */
 
 FILE *
-lefFileOpen(def, file, suffix, mode, prealfile)
-    CellDef *def;	/* Cell whose .lef file is to be written.  Should
+lefFileOpen(
+    CellDef *def,	/* Cell whose .lef file is to be written.  Should
 			 * be NULL if file is being opened for reading.
 			 */
-    char *file;		/* If non-NULL, open 'name'.lef; otherwise,
+    const char *file,	/* If non-NULL, open 'name'.lef; otherwise,
 			 * derive filename from 'def' as described
 			 * above.
 			 */
-    char *suffix;	/* Either ".lef" for LEF files or ".def" for DEF files */
-    char *mode;		/* Either "r" or "w", the mode in which the LEF/DEF
+    const char *suffix,	/* Either ".lef" for LEF files or ".def" for DEF files */
+    const char *mode,	/* Either "r" or "w", the mode in which the LEF/DEF
 			 * file is to be opened.
 			 */
-    char **prealfile;	/* If this is non-NULL, it gets set to point to
+    char **prealfile)	/* If this is non-NULL, it gets set to point to
 			 * a string holding the name of the LEF/DEF file.
 			 */
 {
-    char namebuf[512], *name, *endp, *ends;
-    char *locsuffix;
-    char *pptr;
+    const char *name, *ends, *endp;
+    char namebuf[512];
+    const char *locsuffix;
     int len;
     FILE *rfile;
 
@@ -248,14 +250,13 @@ lefFileOpen(def, file, suffix, mode, prealfile)
  */
 
 void
-lefWriteHeader(def, f, lefTech, propTable, siteTable)
-    CellDef *def;	    /* Def for which to generate LEF output */
-    FILE *f;		    /* Output to this file */
-    bool lefTech;	    /* If TRUE, write layer information */
-    HashTable *propTable;   /* Hash table of property definitions */
-    HashTable *siteTable;   /* Hash table of sites used */
+lefWriteHeader(
+    CellDef *def,	    /* Def for which to generate LEF output */
+    FILE *f,		    /* Output to this file */
+    bool lefTech,	    /* If TRUE, write layer information */
+    HashTable *propTable,   /* Hash table of property definitions */
+    HashTable *siteTable)   /* Hash table of sites used */
 {
-    TileType type;
     HashSearch hs;
     HashEntry *he;
     int nprops;
@@ -307,7 +308,7 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
     
 	/* NOTE: Type (e.g., "STRING") may be kept in hash value.   */
 	/* This has not been implemented;  only string types are supported */
-	fprintf(f, IN0 "MACRO %s STRING ;\n", (char *)he->h_key.h_name);
+	fprintf(f, IN0 "MACRO %s STRING ;\n", (const char *)he->h_key.h_name);
     }
     if (nprops > 0) fprintf(f, "END PROPERTYDEFINITIONS\n\n");
 
@@ -322,7 +323,7 @@ lefWriteHeader(def, f, lefTech, propTable, siteTable)
 	char *propvalue;
 	Rect boundary;
 
-	siteDef = DBCellLookDef((char *)he->h_key.h_name);
+	siteDef = DBCellLookDef((const char *)he->h_key.h_name);
 	if (siteDef)
 	{
 	    fprintf(f, "SITE %s\n", siteDef->cd_name);
@@ -496,9 +497,9 @@ typedef struct
  */
 
 int
-lefEraseGeometry(tile, cdata)
-    Tile *tile;
-    ClientData cdata;
+lefEraseGeometry(
+    Tile *tile,
+    ClientData cdata)
 {
     lefClient *lefdata = (lefClient *)cdata;
     CellDef *flatDef = lefdata->lefFlat;
@@ -538,9 +539,9 @@ lefEraseGeometry(tile, cdata)
  */
 
 int
-lefGetBound(tile, cdata)
-    Tile *tile;
-    ClientData cdata;
+lefGetBound(
+    Tile *tile,
+    ClientData cdata)
 {
     Rect *boundary = (Rect *)cdata;
     Rect area;
@@ -566,9 +567,9 @@ lefGetBound(tile, cdata)
  */
 
 int
-lefHasPaint(tile, clientData)
-    Tile *tile;
-    ClientData clientData;
+lefHasPaint(
+    Tile *tile,
+    ClientData clientData)
 {
     return 1;
 }
@@ -585,9 +586,9 @@ lefHasPaint(tile, clientData)
  */
 
 int
-lefAccumulateArea(tile, cdata)
-    Tile *tile;
-    ClientData cdata;
+lefAccumulateArea(
+    Tile *tile,
+    ClientData cdata)
 {
     int *area = (int *)cdata;
     Rect rarea;
@@ -611,9 +612,9 @@ lefAccumulateArea(tile, cdata)
  */
 
 int
-lefFindTopmost(tile, cdata)
-    Tile *tile;
-    ClientData cdata;
+lefFindTopmost(
+    Tile *tile,
+    ClientData cdata)
 {
     return 1;	    /* Stop processing on the first tile found */
 }
@@ -633,9 +634,9 @@ lefFindTopmost(tile, cdata)
  */
 
 int
-lefYankGeometry(tile, cdata)
-    Tile *tile;
-    ClientData cdata;
+lefYankGeometry(
+    Tile *tile,
+    ClientData cdata)
 {
     lefClient *lefdata = (lefClient *)cdata;
     Rect area;
@@ -724,16 +725,15 @@ lefYankGeometry(tile, cdata)
  */
 
 int
-lefYankContacts(tile, cdata)
-    Tile *tile;
-    ClientData cdata;
+lefYankContacts(
+    Tile *tile,
+    ClientData cdata)
 {
     lefClient *lefdata = (lefClient *)cdata;
     Rect area;
-    TileType ttype, ptype, stype;
+    TileType ttype, stype;
     LefMapping *lefMagicToLefLayer;
-    TileTypeBitMask sMask, *lrmask;
-    bool iscut;
+    TileTypeBitMask *lrmask;
 
     /* Ignore marked tiles */
     if (tile->ti_client != (ClientData)CLIENTDEFAULT) return 0;
@@ -793,9 +793,9 @@ lefYankContacts(tile, cdata)
  */
 
 int
-lefWriteGeometry(tile, cdata)
-    Tile *tile;
-    ClientData cdata;
+lefWriteGeometry(
+    Tile *tile,
+    ClientData cdata)
 {
     lefClient *lefdata = (lefClient *)cdata;
     FILE *f = lefdata->file;
@@ -952,11 +952,12 @@ lefWriteGeometry(tile, cdata)
  */
 
 char *
-MakeLegalLEFSyntax(text)
-    char *text;
+MakeLegalLEFSyntax(
+    char *text)
 {
-    static char *badLEFchars = ";# -*$\n";
-    char *cptr, *bptr;
+    static const char * const badLEFchars = ";# -*$\n";
+    char *cptr;
+    const char *bptr;
     char *rstr;
 
     for (cptr = text; *cptr != '\0'; cptr++)
@@ -1003,9 +1004,9 @@ typedef struct _labelLinkedList {
  */
 
 bool
-LefWritePinHeader(f, lab)
-    FILE *f;
-    Label *lab;
+LefWritePinHeader(
+    FILE *f,
+    Label *lab)
 {
     bool ispwrrail = FALSE;
 
@@ -1119,14 +1120,14 @@ LefWritePinHeader(f, lab)
  */
 
 void
-lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
-    CellDef *def;	/* Def for which to generate LEF output */
-    FILE *f;		/* Output to this file */
-    float scale;	/* Output distance units conversion factor */
-    int setback;	/* If >= 0, hide all detail except pins inside setback */
-    int pinonly;	/* If >= 0, only place pins where labels are defined */
-    bool toplayer;	/* If TRUE, only output topmost layer of pins */
-    bool domaster;	/* If TRUE, write masterslice layers */
+lefWriteMacro(
+    CellDef *def,	/* Def for which to generate LEF output */
+    FILE *f,		/* Output to this file */
+    float scale,	/* Output distance units conversion factor */
+    int setback,	/* If >= 0, hide all detail except pins inside setback */
+    int pinonly,	/* If >= 0, only place pins where labels are defined */
+    bool toplayer,	/* If TRUE, only output topmost layer of pins */
+    bool domaster)	/* If TRUE, write masterslice layers */
 {
     bool propfound, ispwrrail;
     char *propvalue, *class = NULL;
@@ -2069,10 +2070,10 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
  *------------------------------------------------------------
  */
 int
-lefGetSites(stackItem, i, clientData)
-    ClientData stackItem;
-    int i;
-    ClientData clientData;
+lefGetSites(
+    ClientData stackItem,
+    int i,
+    ClientData clientData)
 {
     CellDef *def = (CellDef *)stackItem;
     HashTable *lefSiteTbl = (HashTable *)clientData;
@@ -2082,7 +2083,7 @@ lefGetSites(stackItem, i, clientData)
 
     propvalue = (char *)DBPropGet(def, "LEFsite", &propfound);
     if (propfound)
-	he = HashFind(lefSiteTbl, propvalue);
+	he = HashFind(lefSiteTbl, propvalue); /* FIXME return value not used from call to function with no side-effects (reevaluate this entire func purpose?) */
 
     return 0;
 }
@@ -2099,10 +2100,10 @@ lefGetSites(stackItem, i, clientData)
  *------------------------------------------------------------
  */
 int
-lefGetProperties(stackItem, i, clientData)
-    ClientData stackItem;
-    int i;
-    ClientData clientData;
+lefGetProperties(
+    ClientData stackItem,
+    int i,
+    ClientData clientData)
 {
     CellDef *def = (CellDef *)stackItem;
     HashTable *lefPropTbl = (HashTable *)clientData;
@@ -2124,7 +2125,7 @@ lefGetProperties(stackItem, i, clientData)
 	    while (*psrch != ' ' && *psrch != '\0') psrch++;
 	    if (*psrch == '\0') break;
 	    *psrch = '\0';
-	    he = HashFind(lefPropTbl, key);
+	    he = HashFind(lefPropTbl, key); /* FIXME return value not used from call to function with no side-effects */
 
 	    /* Potentially to do:  Handle INT and REAL types */
 	    /* For now, only STRING properties are handled.  */
@@ -2171,16 +2172,15 @@ lefGetProperties(stackItem, i, clientData)
  */
 
 void
-LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefPinOnly, lefTopLayer,
-	    lefDoMaster, recurse)
-    CellUse *rootUse;
-    bool writeTopCell;
-    bool lefTech;
-    int lefHide;
-    int lefPinOnly;
-    bool lefTopLayer;
-    bool lefDoMaster;
-    bool recurse;
+LefWriteAll(
+    CellUse *rootUse,
+    bool writeTopCell,
+    bool lefTech,
+    int lefHide,
+    int lefPinOnly,
+    bool lefTopLayer,
+    bool lefDoMaster,
+    bool recurse)
 {
     HashTable propHashTbl, siteHashTbl;
     CellDef *def, *rootdef, *err_def;
@@ -2268,8 +2268,8 @@ LefWriteAll(rootUse, writeTopCell, lefTech, lefHide, lefPinOnly, lefTopLayer,
  */
 
 int
-lefDefInitFunc(def)
-    CellDef *def;
+lefDefInitFunc(
+    CellDef *def)
 {
     def->cd_client = (ClientData) 0;
     return (0);
@@ -2282,9 +2282,9 @@ lefDefInitFunc(def)
  */
 
 int
-lefDefPushFunc(use, recurse)
-    CellUse *use;
-    bool *recurse;
+lefDefPushFunc(
+    CellUse *use,
+    bool *recurse)
 {
     CellDef *def = use->cu_def;
 
@@ -2315,16 +2315,15 @@ lefDefPushFunc(use, recurse)
  */
 
 void
-LefWriteCell(def, outName, isRoot, lefTech, lefHide, lefPinOnly, lefTopLayer,
-	    lefDoMaster)
-    CellDef *def;		/* Cell being written */
-    char *outName;		/* Name of output file, or NULL. */
-    bool isRoot;		/* Is this the root cell? */
-    bool lefTech;		/* Output layer information if TRUE */
-    int  lefHide;		/* Hide detail other than pins if >= 0 */
-    int  lefPinOnly;		/* Only generate pins on label areas */
-    bool lefTopLayer;		/* Use only topmost layer of pin if TRUE */
-    bool lefDoMaster;		/* Write masterslice layers if TRUE */
+LefWriteCell(
+    CellDef *def,		/* Cell being written */
+    char *outName,		/* Name of output file, or NULL. */
+    bool isRoot,		/* Is this the root cell? */
+    bool lefTech,		/* Output layer information if TRUE */
+    int  lefHide,		/* Hide detail other than pins if >= 0 */
+    int  lefPinOnly,		/* Only generate pins on label areas */
+    bool lefTopLayer,		/* Use only topmost layer of pin if TRUE */
+    bool lefDoMaster)		/* Write masterslice layers if TRUE */
 {
     char *filename;
     FILE *f;

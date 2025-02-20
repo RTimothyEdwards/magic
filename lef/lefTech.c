@@ -21,7 +21,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header$";
+static const char rcsid[] __attribute__ ((unused)) = "$Header$";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -69,7 +69,7 @@ HashTable LefNonDefaultRules;
  */
 
 void
-LefInit()
+LefInit(void)
 {
     /* Ensure that the table has a null entry so we don't run HashKill	*/
     /* on it when we to the tech initialization.			*/
@@ -95,7 +95,7 @@ LefInit()
  */
 
 void
-LefTechInit()
+LefTechInit(void)
 {
     HashSearch hs;
     HashEntry *he;
@@ -148,7 +148,7 @@ LefTechInit()
  */
 
 void
-lefRemoveGeneratedVias()
+lefRemoveGeneratedVias(void)
 {
     HashSearch hs;
     HashEntry *he;
@@ -202,10 +202,10 @@ lefRemoveGeneratedVias()
 #define LEFTECH_IGNORE	9
 
 bool
-LefTechLine(sectionName, argc, argv)
-    char *sectionName;          /* Name of this section (unused). */
-    int argc;                   /* Number of arguments on line. */
-    char *argv[];               /* Pointers to fields of line. */
+LefTechLine(
+    const char *sectionName,    /* Name of this section (unused). */
+    int argc,                   /* Number of arguments on line. */
+    char *argv[])               /* Pointers to fields of line. */
 {
     bool isObstruction, isContact, isInactive;
     HashEntry *he;
@@ -304,7 +304,7 @@ LefTechLine(sectionName, argc, argv)
 
 	    if (newlefl == NULL)
 	    {
-		float oscale = CIFGetOutputScale(1000);
+		float oscale = CIFGetOutputScale(1000); /* FIXME unused return value from call to function with no side-effects */
 
 		newlefl = (lefLayer *)mallocMagic(sizeof(lefLayer));
 		newlefl->refCnt = 0;
@@ -317,7 +317,7 @@ LefTechLine(sectionName, argc, argv)
 		    else
 			newlefl->type = mtype;
 		}
-		newlefl->canonName = (char *)he->h_key.h_name;
+		newlefl->canonName = (const char *)he->h_key.h_name;
 
 		/* "isObstruction" records whether the type is an	*/
 		/* obstruction or not.  So recast the option to a route	*/
@@ -413,8 +413,9 @@ LefTechLine(sectionName, argc, argv)
  */
 
 void
-LefTechScale(scalen, scaled)
-    int scalen, scaled;
+LefTechScale(
+    int scalen,
+    int scaled)
 {
     HashSearch hs;
     HashEntry *he;
@@ -474,7 +475,7 @@ LefTechScale(scalen, scaled)
  */
 
 void
-LefTechSetDefaults()
+LefTechSetDefaults(void)
 {
     HashSearch hs;
     HashEntry *he;
