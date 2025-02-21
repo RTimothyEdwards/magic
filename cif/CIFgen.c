@@ -1222,8 +1222,8 @@ endbloat:
 #define CIF_IGNORE   	2
 
 #define PUSHTILE(tp, stack) \
-    if ((tp)->ti_client == (ClientData) CIF_UNPROCESSED) { \
-	(tp)->ti_client = (ClientData) CIF_PENDING; \
+    if (TiGetClient(tp) == CIF_UNPROCESSED) { \
+	TiSetClientINT(tp, CIF_PENDING); \
 	STACKPUSH((ClientData) (tp), stack); \
     }
 
@@ -1244,7 +1244,7 @@ cifProcessResetFunc(
     Tile *tile,
     ClientData clientData)	/* unused */
 {
-    tile->ti_client = (ClientData) CIF_UNPROCESSED;
+    TiSetClient(tile, CIF_UNPROCESSED);
     return 0;
 }
 
@@ -1270,7 +1270,7 @@ cifProcessSelectiveResetFunc(tile, clipArea)
 
     TiToRect(tile, &area);
     if (!GEO_SURROUND(&area, clipArea))
-	tile->ti_client = (ClientData) CIF_UNPROCESSED;
+	TiSetClient(tile, CIF_UNPROCESSED);
     return 0;
 }
 
@@ -1477,8 +1477,8 @@ cifBloatAllFunc(
     while (!StackEmpty(BloatStack))
     {
 	t = (Tile *) STACKPOP(BloatStack);
-	if (t->ti_client != (ClientData)CIF_PENDING) continue;
-        t->ti_client = (ClientData)CIF_PROCESSED;
+	if (TiGetClientINT(t) != CIF_PENDING) continue;
+        TiSetClientINT(t, CIF_PROCESSED);
 
 	/* Get the tile into CIF coordinates. */
 
@@ -1540,7 +1540,7 @@ cifBloatAllFunc(
     }
 
     /* Clear self */
-    tile->ti_client = (ClientData)CIF_UNPROCESSED;
+    TiSetClient(tile, CIF_UNPROCESSED);
 
     /* NOTE:  Tiles must be cleared after the bloat-all function has
      * completed.  However, for bloat-all with a limiting distance,
@@ -1554,7 +1554,7 @@ cifBloatAllFunc(
     while (!StackEmpty(ResetStack))
     {
 	t = (Tile *)STACKPOP(ResetStack);
-	t->ti_client = (ClientData) CIF_UNPROCESSED;
+	TiSetClient(t, CIF_UNPROCESSED);
     }
 
 #if 0
@@ -1819,7 +1819,7 @@ cifBridgeFunc1(
     int cifBridgeCheckFunc(Tile *tile, BridgeCheckStruct *brcs);	/* Forward reference */
 
     /* If tile is marked, then it has been handled, so ignore it */
-    if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
+    if (TiGetClient(tile) != CIF_UNPROCESSED) return 0;
 
     /* Find each tile outside corner (only two cases need to be checked) */
 
@@ -1942,7 +1942,7 @@ cifBridgeFunc2(
     int cifBridgeCheckFunc(Tile *tile, BridgeCheckStruct *brcs);	/* Forward reference */
 
     /* If tile is marked, then it has been handled, so ignore it */
-    if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
+    if (TiGetClient(tile) != CIF_UNPROCESSED) return 0;
 
     /* Find each tile outside corner (only two cases need to be checked) */
 
@@ -2113,7 +2113,7 @@ cifCloseFunc(
     int cifGatherFunc(Tile *tile, int *atotal, int mode);
 
     /* If tile is marked, then it has been handled, so ignore it */
-    if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
+    if (TiGetClient(tile) != CIF_UNPROCESSED) return 0;
 
     atotal = 0;
 
@@ -2148,8 +2148,8 @@ cifGatherFunc(
     TileType type;
     dlong locarea;
     Rect area, newarea;
-    ClientData cdata = (mode == CLOSE_SEARCH) ? (ClientData)CIF_UNPROCESSED :
-	    (ClientData)CIF_PENDING;
+    ClientData cdata = (mode == CLOSE_SEARCH) ? CIF_UNPROCESSED :
+	    CD2INT(CIF_PENDING);
 
     static Stack *GatherStack = (Stack *)NULL;
 
@@ -2162,7 +2162,7 @@ cifGatherFunc(
 	tile = (Tile *)STACKPOP(GatherStack);
 
 	/* Ignore if tile has already been processed */
-	if (tile->ti_client != cdata) continue;
+	if (TiGetClient(tile) != cdata) continue;
 
 	TiToRect(tile, &area);
 
@@ -2213,15 +2213,15 @@ cifGatherFunc(
         }
 
         if (mode == CLOSE_SEARCH)
-	    tile->ti_client = (ClientData)CIF_PENDING;
+	    TiSetClientINT(tile, CIF_PENDING);
         else
-	    tile->ti_client = (ClientData)CIF_PROCESSED;
+	    TiSetClientINT(tile, CIF_PROCESSED);
 
         /* Look for additional neighboring space tiles */
         /* Check top */
         if (area.r_ytop != TiPlaneRect.r_ytop)
             for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-	        if (tp->ti_client == cdata && TiGetBottomType(tp) == TT_SPACE)
+	        if (TiGetClient(tp) == cdata && TiGetBottomType(tp) == TT_SPACE)
 		{
 		    STACKPUSH(tp, GatherStack);
 		}
@@ -2229,7 +2229,7 @@ cifGatherFunc(
     	/* Check bottom */
     	if (area.r_ybot != TiPlaneRect.r_ybot)
             for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
-	    	if (tp->ti_client == cdata && TiGetTopType(tp) == TT_SPACE)
+		if (TiGetClient(tp) == cdata && TiGetTopType(tp) == TT_SPACE)
 		{
 		    STACKPUSH(tp, GatherStack);
 		}
@@ -2237,7 +2237,7 @@ cifGatherFunc(
     	/* Check left */
     	if (area.r_xbot != TiPlaneRect.r_xbot)
 	    for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
-	    	if (tp->ti_client == cdata && TiGetRightType(tp) == TT_SPACE)
+		if (TiGetClient(tp) == cdata && TiGetRightType(tp) == TT_SPACE)
 		{
 		    STACKPUSH(tp, GatherStack);
 		}
@@ -2245,7 +2245,7 @@ cifGatherFunc(
     	/* Check right */
     	if (area.r_xtop != TiPlaneRect.r_xtop)
 	    for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-	    	if (tp->ti_client == cdata && TiGetLeftType(tp) == TT_SPACE)
+		if (TiGetClient(tp) == cdata && TiGetLeftType(tp) == TT_SPACE)
 		{
 		    STACKPUSH(tp, GatherStack);
 		}
@@ -2295,7 +2295,7 @@ cifSquaresInitFunc(tile, clientData)
     Tile *tile;
     ClientData clientData;
 {
-    if (tile->ti_client == (ClientData) CIF_UNPROCESSED)
+    if (TiGetClient(tile) == CIF_UNPROCESSED)
 	return 1;
     else
 	return 0;
@@ -2450,7 +2450,7 @@ cifUnconnectFunc(
     TileType t = TiGetTypeExact(tile);
     if (t == TT_SPACE) return 1;
     else if (t & TT_DIAGONAL) return 1;
-    else if (tile->ti_client != (ClientData)CIF_PROCESSED) return 1;
+    else if (TiGetClientINT(tile) != CIF_PROCESSED) return 1;
     return 0;
 }
 
@@ -2503,8 +2503,8 @@ cifRectBoundingBox(
 	while (!StackEmpty(BoxStack))
 	{
 	    t = (Tile *) STACKPOP(BoxStack);
-	    if (t->ti_client != (ClientData)CIF_PENDING) continue;
-            t->ti_client = (ClientData)CIF_PROCESSED;
+	    if (TiGetClientINT(t) != CIF_PENDING) continue;
+            TiSetClientINT(t, CIF_PROCESSED);
 
 	    /* Adjust bounding box */
 	    TiToRect(t, &area);
@@ -2567,7 +2567,7 @@ cifRectBoundingBox(
 
 	/* Clear the tiles that were processed in this set */
 
-	tile->ti_client = (ClientData)CIF_IGNORE;
+	TiSetClientINT(tile, CIF_IGNORE);
 	STACKPUSH(tile, BoxStack);
 	while (!StackEmpty(BoxStack))
 	{
@@ -2575,33 +2575,33 @@ cifRectBoundingBox(
 
 	    /* Top */
 	    for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, BoxStack);
 		}
 
 	    /* Left */
 	    for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, BoxStack);
 		}
 
 	    /* Bottom */
 	    for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, BoxStack);
 		}
 
 	    /* Right */
 	    for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, BoxStack);
 		}
 	}
@@ -2772,8 +2772,8 @@ cifSquaresFillArea(
 	while (!StackEmpty(CutStack))
 	{
 	    t = (Tile *) STACKPOP(CutStack);
-	    if (t->ti_client != (ClientData)CIF_PENDING) continue;
-            t->ti_client = (ClientData)CIF_PROCESSED;
+	    if (TiGetClientINT(t) != CIF_PENDING) continue;
+            TiSetClientINT(t, CIF_PROCESSED);
 
 	    /* Adjust bounding box */
 	    TiToRect(t, &area);
@@ -2898,7 +2898,7 @@ cifSquaresFillArea(
 
 	/* Clear the tiles that were processed */
 
-	tile->ti_client = (ClientData)CIF_IGNORE;
+	TiSetClientINT(tile, CIF_IGNORE);
 	STACKPUSH(tile, CutStack);
 	while (!StackEmpty(CutStack))
 	{
@@ -2906,33 +2906,33 @@ cifSquaresFillArea(
 
 	    /* Top */
 	    for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, CutStack);
 		}
 
 	    /* Left */
 	    for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, CutStack);
 		}
 
 	    /* Bottom */
 	    for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, CutStack);
 		}
 
 	    /* Right */
 	    for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, CutStack);
 		}
 	}
@@ -3114,8 +3114,8 @@ cifSlotsFillArea(
 	while (!StackEmpty(CutStack))
 	{
 	    t = (Tile *) STACKPOP(CutStack);
-	    if (t->ti_client != (ClientData)CIF_PENDING) continue;
-            t->ti_client = (ClientData)CIF_PROCESSED;
+	    if (TiGetClientINT(t) != CIF_PENDING) continue;
+            TiSetClientINT(t, CIF_PROCESSED);
 
 	    /* Adjust bounding box */
 	    TiToRect(t, &area);
@@ -3261,7 +3261,7 @@ cifSlotsFillArea(
 
 	/* Clear the tiles that were processed */
 
-	tile->ti_client = (ClientData)CIF_IGNORE;
+	TiSetClientINT(tile, CIF_IGNORE);
 	STACKPUSH(tile, CutStack);
 	while (!StackEmpty(CutStack))
 	{
@@ -3269,33 +3269,33 @@ cifSlotsFillArea(
 
 	    /* Top */
 	    for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, CutStack);
 		}
 
 	    /* Left */
 	    for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, CutStack);
 		}
 
 	    /* Bottom */
 	    for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, CutStack);
 		}
 
 	    /* Right */
 	    for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, CutStack);
 		}
 	}
@@ -4398,7 +4398,7 @@ cifBridgeLimFunc1(
     brlimcs.sqdistance = (long) spacing * spacing;
 
     /* If tile is marked, then it has been handled, so ignore it */
-    if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
+    if (TiGetClient(tile) != CIF_UNPROCESSED) return 0;
 
     /* Find each tile outside corner (up to four) */
 
@@ -4561,7 +4561,7 @@ cifBridgeLimFunc2(
     brlimcs.sqdistance = (long) width * width;
 
     /* If tile is marked, then it has been handled, so ignore it */
-    if (tile->ti_client != (ClientData)CIF_UNPROCESSED) return 0;
+    if (TiGetClient(tile) != CIF_UNPROCESSED) return 0;
 
     /* Find each tile outside corner (up to four) */
 
@@ -4708,8 +4708,8 @@ cifInteractingRegions(
 	while (!StackEmpty(RegStack))
 	{
 	    t = (Tile *) STACKPOP(RegStack);
-	    if (t->ti_client != (ClientData)CIF_PENDING) continue;
-            t->ti_client = (ClientData)CIF_PROCESSED;
+	    if (TiGetClientINT(t) != CIF_PENDING) continue;
+            TiSetClientINT(t, CIF_PROCESSED);
 
 	    /* Get tile area for interaction search */
 	    TiToRect(t, &area);
@@ -4777,7 +4777,7 @@ cifInteractingRegions(
 	/* to the destination if this region was found to be interacting with	*/
 	/* op->co_paintMask (op->co_cifMask)					*/ 
 
-	tile->ti_client = (ClientData)CIF_IGNORE;
+	TiSetClientINT(tile, CIF_IGNORE);
 	STACKPUSH(tile, RegStack);
 	while (!StackEmpty(RegStack))
 	{
@@ -4791,33 +4791,33 @@ cifInteractingRegions(
 
 	    /* Top */
 	    for (tp = RT(t); RIGHT(tp) > LEFT(t); tp = BL(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, RegStack);
 		}
 
 	    /* Left */
 	    for (tp = BL(t); BOTTOM(tp) < TOP(t); tp = RT(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, RegStack);
 		}
 
 	    /* Bottom */
 	    for (tp = LB(t); LEFT(tp) < RIGHT(t); tp = TR(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, RegStack);
 		}
 
 	    /* Right */
 	    for (tp = TR(t); TOP(tp) > BOTTOM(t); tp = LB(tp))
-		if (tp->ti_client == (ClientData)CIF_PROCESSED)
+		if (TiGetClientINT(tp) == CIF_PROCESSED)
 		{
-		    tp->ti_client = (ClientData)CIF_IGNORE;
+		    TiSetClientINT(tp, CIF_IGNORE);
 		    STACKPUSH(tp, RegStack);
 		}
 	}

@@ -117,8 +117,8 @@ extern void calmaRemoveDegenerate(BoundaryTop *blist);
 #define GDS_PROCESSED	1
 
 #define PUSHTILEC(tp) \
-    if ((tp)->ti_client == (ClientData) GDS_UNPROCESSED) { \
-	(tp)->ti_client = (ClientData) GDS_PENDING; \
+    if (TiGetClient(tp) == GDS_UNPROCESSED) { \
+	TiSetClientINT(tp, GDS_PENDING); \
 	STACKPUSH((ClientData) (tp), SegStack); \
     }
 
@@ -2462,7 +2462,7 @@ calmaMergePaintFunc(
     BoundaryTop *bounds = NULL;
 
     /* Quick check for tiles that have already been processed */
-    if (tile->ti_client == (ClientData)GDS_PROCESSED) return 0;
+    if (TiGetClientINT(tile) == GDS_PROCESSED) return 0;
 
     if (SegStack == (Stack *)NULL)
 	SegStack = StackNew(64);
@@ -2471,8 +2471,8 @@ calmaMergePaintFunc(
     while (!StackEmpty(SegStack))
     {
 	t = (Tile *) STACKPOP(SegStack);
-	if (t->ti_client != (ClientData)GDS_PENDING) continue;
-	t->ti_client = (ClientData)GDS_PROCESSED;
+	if (TiGetClientINT(t) != GDS_PENDING) continue;
+	TiSetClientINT(t, GDS_PROCESSED);
 
 	split_type = -1;
 	if (IsSplit(t))

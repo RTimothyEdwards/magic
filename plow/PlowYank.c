@@ -314,7 +314,7 @@ plowYankUpdatePaint(yankTp, pNum)
 		(void) plowSplitY(spareTp, TOP(yankTp));
 	    if (BOTTOM(spareTp) < BOTTOM(yankTp))
 		spareTp = plowSplitY(spareTp, BOTTOM(yankTp));
-	    spareTp->ti_client = yankTp->ti_client;
+	    TiSetClient(spareTp, TiGetClient(yankTp));
 	}
 
 	startPoint.p_y = BOTTOM(spareTp) - 1;

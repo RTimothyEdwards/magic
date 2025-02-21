@@ -372,7 +372,7 @@ int SimTransTerms( bp, trans )
     TransTerm	*term;
     Tile	*tile = bp->b_outside;
     TileType	type;
-    NodeRegion	*reg = (NodeRegion *) tile->ti_client;
+    NodeRegion	*reg = (NodeRegion *) TiGetClientPTR(tile);
     int		pNum;
     int		i;
 
@@ -590,7 +590,7 @@ SimFindOneNode( sx, tile )
 	transistor.t_pnum = DBNumPlanes;
 	transistor.t_do_terms = FALSE;
 
-	gateTile->ti_client = (ClientData) extUnInit;
+	TiSetClient(gateTile, extUnInit);
 	arg.fra_connectsTo = &SimTransMask;
 
 	if (IsSplit(tile))
@@ -639,7 +639,7 @@ SimFindOneNode( sx, tile )
 	    loctype = TiGetTypeExact(sdTile);
 
 	arg.fra_pNum = DBPlane(loctype);
-	arg.fra_uninit = (ClientData) sdTile->ti_client;
+	arg.fra_uninit = TiGetClient(sdTile);
 	arg.fra_region = (ExtRegion *) &ret;
 	arg.fra_each = SimTransistorTile;
 	(void) ExtFindNeighbors( sdTile, arg.fra_pNum, &arg );
@@ -718,7 +718,7 @@ SimGetNodeName(sx, tp, path)
 
     /* check to see if this tile has been extracted before */
 
-    if (tp->ti_client == extUnInit)
+    if (TiGetClient(tp) == extUnInit)
     {
 	NodeSpec  *ns;
 
@@ -732,7 +732,7 @@ SimGetNodeName(sx, tp, path)
     }
     else
     {
-	nodeList = (NodeRegion *)(tp->ti_client);
+	nodeList = (NodeRegion *)TiGetClientPTR(tp);
     }
 
     /* generate the node name from the label region and the path name */

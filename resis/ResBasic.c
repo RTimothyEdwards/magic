@@ -46,7 +46,7 @@ resNodeIsPort(node, x, y, tile)
     Rect 	*rect;
     Point 	p;
     resPort 	*pl, *lp;
-    tileJunk	*junk = (tileJunk *)(tile->ti_client);
+    tileJunk	*junk = (tileJunk *)TiGetClientPTR(tile);
 
     p.p_x = x;
     p.p_y = y;
@@ -90,7 +90,7 @@ resAllPortNodes(tile, list)
     int		x, y;
     resNode	*resptr;
     resPort 	*pl;
-    tileJunk	*junk = (tileJunk *)(tile->ti_client);
+    tileJunk	*junk = (tileJunk *)TiGetClientPTR(tile);
 
     for (pl = junk->portList; pl; pl = pl->rp_nextPort)
     {
@@ -198,7 +198,7 @@ ResEachTile(tile, startpoint)
     int		xj, yj, i;
     bool	merged;
     tElement	*tcell;
-    tileJunk	*tstructs= (tileJunk *)(tile->ti_client);
+    tileJunk	*tstructs= (tileJunk *)TiGetClientPTR(tile);
     ExtDevice   *devptr;
 
     ResTileCount++;
