@@ -656,10 +656,10 @@ ResRemovePlumbing(tile, arg)
     ClientData	*arg;
 
 {
-
-    if (TiGetClient(tile) != CLIENTDEFAULT)
+    ClientData ticlient = TiGetClient(tile);
+    if (ticlient != CLIENTDEFAULT)
     {
-	freeMagic((char *)TiGetClientPTR(tile));
+	freeMagic((char *)CD2PTR(ticlient));
 	TiSetClient(tile, CLIENTDEFAULT);
     }
     return(0);
@@ -845,8 +845,9 @@ tileJunk *
 resAddField(tile)
     Tile    *tile;
 {
-    tileJunk *Junk;
-    if ((Junk = (tileJunk *)TiGetClientPTR(tile)) == (tileJunk *) CLIENTDEFAULT)
+    ClientData ticlient = TiGetClient(tile);
+    tileJunk *Junk = (tileJunk *)CD2PTR(ticlient);
+    if (ticlient == CLIENTDEFAULT)
     {
      	Junk = (tileJunk *) mallocMagic((unsigned) (sizeof(tileJunk)));
 	ResJunkInit(Junk);
