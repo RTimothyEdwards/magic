@@ -241,9 +241,9 @@ ExtLabelRegions(def, connTo, nodeList, clipArea)
 			+ offsets[quad].p_x;
 	    p.p_y = ((lab->lab_rect.r_ybot + lab->lab_rect.r_ytop) >> 1)
 			+ offsets[quad].p_y;
-	    tp = def->cd_planes[pNum]->pl_hint;
+	    tp = PlaneGetHint(def->cd_planes[pNum]);
 	    GOTOPOINT(tp, &p);
-	    def->cd_planes[pNum]->pl_hint = tp;
+	    PlaneSetHint(def->cd_planes[pNum], tp);
 	    if (extConnectsTo(TiGetType(tp), lab->lab_type, connTo)
 		    && extHasRegion(tp, extUnInit))
 	    {
@@ -408,9 +408,9 @@ ExtLabelOneRegion(def, connTo, reg)
 	     */
 	    p.p_x = lab->lab_rect.r_xbot + offsets[quad].p_x;
 	    p.p_y = lab->lab_rect.r_ybot + offsets[quad].p_y;
-	    tp = def->cd_planes[pNum]->pl_hint;
+	    tp = PlaneGetHint(def->cd_planes[pNum]);
 	    GOTOPOINT(tp, &p);
-	    def->cd_planes[pNum]->pl_hint = tp;
+	    PlaneSetHint(def->cd_planes[pNum], tp);
 	    if (extConnectsTo(TiGetType(tp), lab->lab_type, connTo)
 		    && (NodeRegion *) extGetRegion(tp) == reg)
 	    {

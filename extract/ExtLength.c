@@ -851,9 +851,9 @@ extPathFlood(tile, p, distance, epa)
 		Plane *plane = extPathDef->cd_planes[pNum];
 
 		/* Find the point on the new plane */
-		tp = plane->pl_hint;
+		tp = PlaneGetHint(plane);
 		GOTOPOINT(tp, &tile->ti_ll);
-		plane->pl_hint = tp;
+		PlaneSetHint(plane, tp);
 
 		/* If not yet visited, process tp */
 		if (TiGetClient(tp) == CLIENTDEFAULT

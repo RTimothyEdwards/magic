@@ -259,7 +259,7 @@ FindMaxRectangle(bbox, startpoint, plane, expandtypes)
     int s, sidx = -1;
 
     /* Find tile in def that surrounds or touches startpoint */
-    starttile = plane->pl_hint;
+    starttile = PlaneGetHint(plane);
     GOTOPOINT(starttile, startpoint);
     mrd = genCanonicalMaxwidth(bbox, starttile, plane, NULL);
 

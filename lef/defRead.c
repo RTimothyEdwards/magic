@@ -724,7 +724,7 @@ endCoord:
 	    {
 		Tile *tp;
 		Plane *plane = rootDef->cd_planes[DBPlane(routeTop->r_type)];
-		tp = plane->pl_hint;
+		tp = PlaneGetHint(plane);
 		GOTOPOINT(tp, &routeTop->r_r.r_ll);
 		if (TiGetType(tp) == routeTop->r_type)
 		{

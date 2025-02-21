@@ -237,9 +237,12 @@ donesides:
 		{
 		    Plane *plane = arg->fra_def->cd_planes[pNum];
 
-		    tp = plane->pl_hint;
+		    /* Find the point on the new plane */
+		    tp = PlaneGetHint(plane);
 		    GOTOPOINT(tp, &tile->ti_ll);
-		    plane->pl_hint = tp;
+		    PlaneSetHint(plane, tp);
+
+		    /* If not yet visited, process tp */
 		    if (TiGetClient(tp) != extNbrUn) continue;
 
                     /* tp and tile should have the same geometry for a contact */

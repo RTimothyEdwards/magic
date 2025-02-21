@@ -169,7 +169,7 @@ ResDissolveContacts(contacts)
 	    if (TTMaskHasType(&residues, t))
 		DBPaint(ResUse->cu_def, &(contacts->cp_rect), t);
 
-	tp = ResDef->cd_planes[DBPlane(contacts->cp_type)]->pl_hint;
+	tp = PlaneGetHint(ResDef->cd_planes[DBPlane(contacts->cp_type)]);
 	GOTOPOINT(tp, &(contacts->cp_rect.r_ll));
 
 #ifdef PARANOID
@@ -410,7 +410,7 @@ ResFindNewContactTiles(contacts)
 	
      	for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	{
-	    tile = ResDef->cd_planes[pNum]->pl_hint;
+	    tile = PlaneGetHint(ResDef->cd_planes[pNum]);
 	    GOTOPOINT(tile, &(contacts->cp_center));
 #ifdef PARANOID
 	    if (tile == (Tile *) NULL)
@@ -517,7 +517,7 @@ ResProcessTiles(goodies, origin)
       	    Tile *tile = fix->fp_tile;
 	    if (tile == NULL)
 	    {
-		tile = ResDef->cd_planes[DBPlane(fix->fp_ttype)]->pl_hint;
+		tile = PlaneGetHint(ResDef->cd_planes[DBPlane(fix->fp_ttype)]);
 		GOTOPOINT(tile, &(fix->fp_loc));
 		if (TiGetTypeExact(tile) != TT_SPACE)
 		{
@@ -1129,7 +1129,7 @@ ResExtractNet(node, goodies, cellname)
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
     {
 	Plane *plane = ResUse->cu_def->cd_planes[pNum];
-	DBSrPaintArea(plane->pl_hint, plane, &(ResUse->cu_def->cd_bbox),
+	DBSrPaintArea(PlaneGetHint(plane), plane, &(ResUse->cu_def->cd_bbox),
 		&DBAllButSpaceAndDRCBits, ResShaveContacts,
 		(ClientData)ResUse->cu_def);
     }
@@ -1192,7 +1192,7 @@ ResExtractNet(node, goodies, cellname)
     {
     	for (fix = startlist; fix != NULL; fix = fix->fp_next)
 	{
-     	    fix->fp_tile = ResUse->cu_def->cd_planes[DBPlane(fix->fp_ttype)]->pl_hint;
+	    fix->fp_tile = PlaneGetHint(ResUse->cu_def->cd_planes[DBPlane(fix->fp_ttype)]);
 	    GOTOPOINT(fix->fp_tile, &fix->fp_loc);
 	    if (TiGetTypeExact(fix->fp_tile) == TT_SPACE) fix->fp_tile = NULL;
 	}
@@ -1358,7 +1358,7 @@ FindStartTile(goodies, SourcePoint)
     /* for drivepoints, we don't have to find a device */
     if (goodies->rg_status & DRIVEONLY)
     {
-	tile = ResUse->cu_def->cd_planes[pnum]->pl_hint;
+	tile = PlaneGetHint(ResUse->cu_def->cd_planes[pnum]);
 	GOTOPOINT(tile, &workingPoint);
 	SourcePoint->p_x = workingPoint.p_x;
 	SourcePoint->p_y = workingPoint.p_y;
@@ -1390,7 +1390,7 @@ FindStartTile(goodies, SourcePoint)
 	return NULL;
     }
 
-    tile = ResUse->cu_def->cd_planes[pnum]->pl_hint;
+    tile = PlaneGetHint(ResUse->cu_def->cd_planes[pnum]);
     GOTOPOINT(tile, &workingPoint);
 
     if (IsSplit(tile))
@@ -1743,7 +1743,7 @@ ResGetDevice(pt, type)
 
     /* Start at hint tile for device plane */
 
-    tile = ResUse->cu_def->cd_planes[pnum]->pl_hint;
+    tile = PlaneGetHint(ResUse->cu_def->cd_planes[pnum]);
     GOTOPOINT(tile, &workingPoint);
 
     const ClientData ticlient = TiGetClient(tile);

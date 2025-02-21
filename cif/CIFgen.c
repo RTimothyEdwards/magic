@@ -2544,7 +2544,7 @@ cifRectBoundingBox(
 	/* (Largely copied from cifSquaresFillArea)			*/
 
 	simple = TRUE;
-	tile = plane->pl_hint;
+	tile = PlaneGetHint(plane);
 	TiToRect(tile, &bbox);
 
 	PUSHTILE(tile, BoxStack);
@@ -2813,7 +2813,7 @@ cifSquaresFillArea(
 	/* (Largely copied from cifBloatAllFunc)			*/
 
 	simple = TRUE;
-	tile = plane->pl_hint;
+	tile = PlaneGetHint(plane);
 	TiToRect(tile, &bbox);
 
 	PUSHTILE(tile, CutStack);
@@ -3155,7 +3155,7 @@ cifSlotsFillArea(
 	/* (Largely copied from cifBloatAllFunc)			*/
 
 	simple = TRUE;
-	tile = plane->pl_hint;
+	tile = PlaneGetHint(plane);
 	TiToRect(tile, &bbox);
 
 	PUSHTILE(tile, CutStack);
@@ -4751,7 +4751,7 @@ cifInteractingRegions(
 	/* part of the region overlapped the specified type(s).		*/
 
 	interacts = FALSE;
-	tile = plane->pl_hint;
+	tile = PlaneGetHint(plane);
 	PUSHTILE(tile, RegStack);
 	while (!StackEmpty(RegStack))
 	{
