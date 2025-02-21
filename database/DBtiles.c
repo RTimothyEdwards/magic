@@ -121,7 +121,7 @@ DBSrPaintNMArea(hintTile, plane, ttype, rect, mask, func, arg)
 
     start.p_x = rect->r_xbot;
     start.p_y = rect->r_ytop - 1;
-    tp = hintTile ? hintTile : plane->pl_hint;
+    tp = hintTile ? hintTile : PlaneGetHint(plane);
     GOTOPOINT(tp, &start);
 
     /* Each iteration visits another tile on the LHS of the search area */
@@ -129,7 +129,7 @@ DBSrPaintNMArea(hintTile, plane, ttype, rect, mask, func, arg)
     {
 	/* Each iteration enumerates another tile */
 nm_enum:
-	plane->pl_hint = tp;
+	PlaneSetHint(plane, tp);
 	if (SigInterruptPending)
 	    return (1);
 
@@ -372,7 +372,7 @@ DBSrPaintArea(hintTile, plane, rect, mask, func, arg)
 
     start.p_x = rect->r_xbot;
     start.p_y = rect->r_ytop - 1;
-    tp = hintTile ? hintTile : plane->pl_hint;
+    tp = hintTile ? hintTile : PlaneGetHint(plane);
     GOTOPOINT(tp, &start);
 
     /* Each iteration visits another tile on the LHS of the search area */
@@ -380,7 +380,7 @@ DBSrPaintArea(hintTile, plane, rect, mask, func, arg)
     {
 	/* Each iteration enumerates another tile */
 enumerate:
-	plane->pl_hint = tp;
+	PlaneSetHint(plane, tp);
 	if (SigInterruptPending)
 	    return (1);
 
@@ -532,7 +532,7 @@ DBSrPaintClient(hintTile, plane, rect, mask, client, func, arg)
 
     start.p_x = rect->r_xbot;
     start.p_y = rect->r_ytop - 1;
-    tp = hintTile ? hintTile : plane->pl_hint;
+    tp = hintTile ? hintTile : PlaneGetHint(plane);
     GOTOPOINT(tp, &start);
 
     /* Each iteration visits another tile on the LHS of the search area */
@@ -540,7 +540,7 @@ DBSrPaintClient(hintTile, plane, rect, mask, client, func, arg)
     {
 	/* Each iteration enumerates another tile */
 enumerate:
-	plane->pl_hint = tp;
+	PlaneSetHint(plane, tp);
 	if (SigInterruptPending)
 	    return (1);
 

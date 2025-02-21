@@ -273,7 +273,7 @@ DBPaintPlane0(plane, area, resultTbl, undo, method)
 
     start.p_x = area->r_xbot;
     start.p_y = area->r_ytop - 1;
-    tile = plane->pl_hint;
+    tile = PlaneGetHint(plane);
     GOTOPOINT(tile, &start);
 
     /* Each iteration visits another tile on the LHS of the search area */
@@ -648,7 +648,7 @@ done:
 	start.p_x = area->r_xbot;
 	start.p_y = area->r_ytop - 1;
 
-	tile = plane->pl_hint;
+	tile = PlaneGetHint(plane);
 	GOTOPOINT(tile, &start);
 
 	while (TOP(tile) > area->r_ybot)
@@ -696,7 +696,7 @@ enum2:
     }
 
 done2:
-    plane->pl_hint = tile;
+    PlaneSetHint(plane, tile);
     return 0;
 }
 
@@ -719,7 +719,7 @@ DBSplitTile(plane, point, splitx)
     int splitx;
 {
     Tile *tile, *newtile, *tp;
-    tile = plane->pl_hint;
+    tile = PlaneGetHint(plane);
     GOTOPOINT(tile, point);
 
     if (IsSplit(tile))		/* This should always be true */
@@ -793,7 +793,7 @@ DBFracturePlane(plane, area, resultTbl, undo)
 
     start.p_x = area->r_xbot;
     start.p_y = area->r_ytop - 1;
-    tile = plane->pl_hint;
+    tile = PlaneGetHint(plane);
     GOTOPOINT(tile, &start);
 
     /* Each iteration visits another tile on the LHS of the search area */
@@ -990,7 +990,7 @@ paintdone:
     }
 
 done:
-    plane->pl_hint = tile;
+    PlaneSetHint(plane, tile);
 }
 
 /*
@@ -1036,7 +1036,7 @@ DBMergeNMTiles0(plane, area, undo, mergeOnce)
 
     start.p_x = area->r_xbot;
     start.p_y = area->r_ytop - 1;
-    tile = plane->pl_hint;
+    tile = PlaneGetHint(plane);
     GOTOPOINT(tile, &start);
 
     /* Each iteration visits another tile on the LHS of the search area */
@@ -1306,7 +1306,7 @@ nmenum:
     }
 
 nmdone:
-    plane->pl_hint = tile;
+    PlaneSetHint(plane, tile);
     return 0;
 }
 
@@ -1499,7 +1499,7 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
 	/* linked list out of them.				*/
 
 	lhead = NULL;
-	DBSrPaintArea(plane->pl_hint, plane, area, &DBAllTypeBits,
+	DBSrPaintArea(PlaneGetHint(plane), plane, area, &DBAllTypeBits,
 			dbNMEnumFunc, (ClientData) &lhead);
 
 	/*--------------------------------------------------------------*/
@@ -1519,7 +1519,7 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
 	        GeoClip(&lhead->r_r, area);
 		start.p_x = area->r_xbot;
 		start.p_y = area->r_ytop - 1;
-		tile = plane->pl_hint;
+		tile = PlaneGetHint(plane);
 		GOTOPOINT(tile, &start);
 
 		/* Ignore tiles that don't interact.  This has	*/
@@ -1608,7 +1608,7 @@ DBNMPaintPlane0(plane, exacttype, area, resultTbl, undo, method)
 		    {
 			result = DBPaintPlane(plane, &(lr->r_r), DBSpecialPaintTbl,
 				(PaintUndoInfo *)NULL);
-			tile = plane->pl_hint;
+			tile = PlaneGetHint(plane);
 			GOTOPOINT(tile, &(lr->r_r.r_ll));
 			if (undo && UndoIsEnabled())
 			{
@@ -2096,7 +2096,7 @@ DBPaintType(plane, area, resultTbl, client, undo, tileMask)
 
     start.p_x = area->r_xbot;
     start.p_y = area->r_ytop - 1;
-    tile = plane->pl_hint;
+    tile = PlaneGetHint(plane);
     GOTOPOINT(tile, &start);
 
     /* Each iteration visits another tile on the LHS of the search area */
@@ -2333,7 +2333,7 @@ paintdone:
     }
 
 done:
-    plane->pl_hint = tile;
+    PlaneSetHint(plane, tile);
 }
 
 /*
@@ -2583,7 +2583,7 @@ DBPaintPlaneVert(plane, area, resultTbl, undo)
 
     start.p_x = area->r_xbot;
     start.p_y = area->r_ytop - 1;
-    tile = plane->pl_hint;
+    tile = PlaneGetHint(plane);
     GOTOPOINT(tile, &start);
 
     /* Each iteration visits another tile on the LHS of the search area */
@@ -2796,7 +2796,7 @@ paintdone:
     }
 
 done:
-    plane->pl_hint = tile;
+    PlaneSetHint(plane, tile);
     return 0;
 }
 

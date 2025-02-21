@@ -335,9 +335,9 @@ extHardSetLabel(scx, reg, arg)
 	 GEOCLIP(&r,&scx->scx_area);
 
 	 pNum = DBPlane(oldlab->lab_type);
-         tp = scx->scx_use->cu_def->cd_planes[pNum]->pl_hint;
+	 tp = PlaneGetHint(scx->scx_use->cu_def->cd_planes[pNum]);
 	 GOTOPOINT(tp, &r.r_ll);
-	 scx->scx_use->cu_def->cd_planes[pNum]->pl_hint = tp;
+	 PlaneSetHint(scx->scx_use->cu_def->cd_planes[pNum], tp);
 	 if ((TransRegion *)extGetRegion(tp) == reg)
 	 {
 	      /* found an OK point */

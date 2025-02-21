@@ -834,7 +834,7 @@ extSubtreeFunc(scx, ha)
 			 * instead of an area search.
 			 */
 			Plane *plane = cumDef->cd_planes[DBPlane(lab->lab_type)];
-			Tile *tile = plane->pl_hint;
+			Tile *tile = PlaneGetHint(plane);
 			GOTOPOINT(tile, &r.r_ll);
 			if (TTMaskHasType(&DBConnectTbl[lab->lab_type], TiGetType(tile)))
 			    continue;

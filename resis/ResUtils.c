@@ -721,7 +721,7 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 	else
 	    pNum = DBPlane(tt);		/* always correct for non-contact types */
 
-	tile = (Def->cd_planes[pNum])->pl_hint;
+	tile = PlaneGetHint(Def->cd_planes[pNum]);
 	GOTOPOINT(tile, &(TileList->area.r_ll));
 
 	tt = TiGetType(tile);

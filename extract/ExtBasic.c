@@ -4323,9 +4323,9 @@ Tile *extNodeToTile(np, et)
 
     myplane = et->et_use->cu_def->cd_planes[np->nreg_pnum];
 
-    tp = myplane->pl_hint;
+    tp = PlaneGetHint(myplane);
     GOTOPOINT(tp, &np->nreg_ll);
-    myplane->pl_hint = tp;
+    PlaneSetHint(myplane, tp);
 
     if (IsSplit(tp))
     {
@@ -5086,9 +5086,9 @@ donesides:
 		{
 		    Plane *plane = arg->fra_def->cd_planes[pNum];
 
-		    tp = plane->pl_hint;
+		    tp = PlaneGetHint(plane);
 		    GOTOPOINT(tp, &tile->ti_ll);
-		    plane->pl_hint = tp;
+		    PlaneSetHint(plane, tp);
 
 		    if (tp->ti_client != extUnInit) continue;
 
