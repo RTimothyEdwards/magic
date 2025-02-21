@@ -190,7 +190,7 @@ ResAddPlumbing(tile, arg)
     if (resDevStack == NULL)
      	resDevStack = StackNew(64);
 
-    if (tile->ti_client == (ClientData) CLIENTDEFAULT)
+    if (TiGetClient(tile) == CLIENTDEFAULT)
     {
 	if (IsSplit(tile))
 	    loctype = (SplitSide(tile)) ? SplitRightType(tile) :
@@ -437,12 +437,12 @@ ResAddPlumbing(tile, arg)
 		    t1 = TiGetTypeExact(tp1);
 
 		devptr = ExtCurStyle->exts_device[t1];
-		j0 = (tileJunk *) tp1->ti_client;
+		j0 = (tileJunk *) TiGetClientPTR(tp1);
 		/* top */
 		for (tp2 = RT(tp1); RIGHT(tp2) > LEFT(tp1); tp2 = BL(tp2))
 		{
 		    if ((TiGetBottomType(tp2) == t1) &&
-			      (tp2->ti_client == (ClientData) CLIENTDEFAULT))
+			      (TiGetClient(tp2) == CLIENTDEFAULT))
 		    {
      	  		Junk = resAddField(tp2);
 			STACKPUSH((ClientData)tp2, resDevStack);
@@ -472,7 +472,7 @@ ResAddPlumbing(tile, arg)
 		for (tp2 = LB(tp1); LEFT(tp2) < RIGHT(tp1); tp2 = TR(tp2))
 		{
 		    if ((TiGetTopType(tp2) == t1) &&
-			      (tp2->ti_client == (ClientData) CLIENTDEFAULT))
+			      (TiGetClient(tp2) == CLIENTDEFAULT))
 		    {
      	  		Junk = resAddField(tp2);
 			STACKPUSH((ClientData)tp2, resDevStack);
@@ -502,7 +502,7 @@ ResAddPlumbing(tile, arg)
 		for (tp2 = TR(tp1); TOP(tp2) > BOTTOM(tp1); tp2 = LB(tp2))
 		{
 		    if ((TiGetLeftType(tp2) == t1) &&
-			      (tp2->ti_client == (ClientData) CLIENTDEFAULT))
+			      (TiGetClient(tp2) == CLIENTDEFAULT))
 		    {
 			Junk = resAddField(tp2);
 			STACKPUSH((ClientData)tp2, resDevStack);
@@ -532,7 +532,7 @@ ResAddPlumbing(tile, arg)
 		for (tp2 = BL(tp1); BOTTOM(tp2) < TOP(tp1); tp2 = RT(tp2))
 		{
 		    if ((TiGetRightType(tp2) == t1) &&
-			      (tp2->ti_client == (ClientData) CLIENTDEFAULT))
+			      (TiGetClient(tp2) == CLIENTDEFAULT))
 		    {
      	  		Junk = resAddField(tp2);
 			STACKPUSH((ClientData)tp2, resDevStack);
@@ -564,7 +564,7 @@ ResAddPlumbing(tile, arg)
 
 	    if (source != (Tile *) NULL)
 	    {
-	        tileJunk *j = (tileJunk *) source->ti_client;
+	        tileJunk *j = (tileJunk *) TiGetClientPTR(source);
 
 		STACKPUSH((ClientData)source, resDevStack);
 		j->tj_status &= ~RES_TILE_SD;
@@ -583,7 +583,7 @@ ResAddPlumbing(tile, arg)
 		/* top */
 		for (tp2 = RT(tp1); RIGHT(tp2) > LEFT(tp1); tp2 = BL(tp2))
 		{
-		    tileJunk *j2 = (tileJunk *) tp2->ti_client;
+		    tileJunk *j2 = (tileJunk *) TiGetClientPTR(tp2);
 		    if (TiGetBottomType(tp2) == t1)
 		    {
 			if (j2->tj_status & RES_TILE_SD)
@@ -596,7 +596,7 @@ ResAddPlumbing(tile, arg)
 		/* bottom */
 		for(tp2 = LB(tp1); LEFT(tp2) < RIGHT(tp1); tp2 = TR(tp2))
 		{
-		    tileJunk *j2 = (tileJunk *) tp2->ti_client;
+		    tileJunk *j2 = (tileJunk *) TiGetClientPTR(tp2);
 		    if (TiGetTopType(tp2) == t1)
 		    {
 			if (j2->tj_status & RES_TILE_SD)
@@ -609,7 +609,7 @@ ResAddPlumbing(tile, arg)
 		/* right */
 		for (tp2 = TR(tp1); TOP(tp2) > BOTTOM(tp1); tp2 = LB(tp2))
 		{
-		    tileJunk *j2 = (tileJunk *) tp2->ti_client;
+		    tileJunk *j2 = (tileJunk *) TiGetClientPTR(tp2);
 		    if (TiGetLeftType(tp2) == t1)
 		    {
 			if (j2->tj_status & RES_TILE_SD)
@@ -622,7 +622,7 @@ ResAddPlumbing(tile, arg)
 		/* left */
 		for (tp2 = BL(tp1); BOTTOM(tp2) < TOP(tp1); tp2 = RT(tp2))
 		{
-		    tileJunk *j2 = (tileJunk *) tp2->ti_client;
+		    tileJunk *j2 = (tileJunk *) TiGetClientPTR(tp2);
 		    if (TiGetRightType(tp2) == t1)
 		    {
 			if (j2->tj_status & RES_TILE_SD)
@@ -657,10 +657,10 @@ ResRemovePlumbing(tile, arg)
 
 {
 
-    if (tile->ti_client != (ClientData) CLIENTDEFAULT)
+    if (TiGetClient(tile) != CLIENTDEFAULT)
     {
-	freeMagic(((char *)(tile->ti_client)));
-	tile->ti_client = (ClientData) CLIENTDEFAULT;
+	freeMagic((char *)TiGetClientPTR(tile));
+	TiSetClient(tile, CLIENTDEFAULT);
     }
     return(0);
 }
@@ -725,7 +725,7 @@ ResPreProcessDevices(TileList, DeviceList, Def)
 	GOTOPOINT(tile, &(TileList->area.r_ll));
 
 	tt = TiGetType(tile);
-	tstruct = (tileJunk *) tile->ti_client;
+	tstruct = (tileJunk *) TiGetClientPTR(tile);
 
 	if ((tstruct == (tileJunk *)CLIENTDEFAULT) ||
 		    (tstruct->deviceList == NULL) ||
@@ -846,11 +846,11 @@ resAddField(tile)
     Tile    *tile;
 {
     tileJunk *Junk;
-    if ((Junk = (tileJunk *)tile->ti_client) == (tileJunk *) CLIENTDEFAULT)
+    if ((Junk = (tileJunk *)TiGetClientPTR(tile)) == (tileJunk *) CLIENTDEFAULT)
     {
      	Junk = (tileJunk *) mallocMagic((unsigned) (sizeof(tileJunk)));
 	ResJunkInit(Junk);
-	tile->ti_client = (ClientData) Junk;
+	TiSetClientPTR(tile, Junk);
     }
     return Junk;
 }

@@ -289,7 +289,7 @@ rtrSideInitClient(tile, client)
     Tile *tile;
     ClientData client;
 {
-    tile->ti_client = client;
+    TiSetClient(tile, client);
     return (0);
 }
 
@@ -323,7 +323,7 @@ rtrEnumSidesFunc(tile)
     Side side;
 
     /* Skip if already processed, out of the area, or not a cell tile */
-    yprev = (int) CD2INT(tile->ti_client);
+    yprev = (int) TiGetClientINT(tile);
     ybot = MAX(BOTTOM(tile), rtrSideArea.r_ybot);
     if (yprev <= ybot || tile->ti_body == (ClientData) NULL
 	    || RIGHT(tile) >= rtrSideArea.r_xtop)
@@ -392,7 +392,7 @@ rtrEnumSidesFunc(tile)
 	if (LEFT(tp) != RIGHT(tile) || TOP(tp) <= ybot)
 	{
 	    /* Processed this tile completely */
-	    tile->ti_client = INT2CD(ybot);
+	    TiSetClientINT(tile, ybot);
 	    return (0);
 	}
     }
@@ -441,7 +441,7 @@ rtrEnumSidesFunc(tile)
 	    else
 	    {
 		side.side_line.r_ytop = MIN(TOP(tp), ytop);
-		tp->ti_client = INT2CD(ybot);
+		TiSetClientINT(tp, ybot);
 	    }
 	}
     }

@@ -335,7 +335,7 @@ SimSelectFunc(tile, pHead)
 
     /* check to see if the node has already been extracted */
 
-    if (tile->ti_client == (ClientData) 1) {
+    if (TiGetClientINT(tile) == 1) {
 	return(0);
     }
 

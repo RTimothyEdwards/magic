@@ -646,7 +646,7 @@ lefYankGeometry(
     bool iscut;
 
     /* Ignore marked tiles */
-    if (tile->ti_client != (ClientData)CLIENTDEFAULT) return 0;
+    if (TiGetClient(tile) != CLIENTDEFAULT) return 0;
 
     otype = TiGetTypeExact(tile);
     if (IsSplit(tile))
@@ -736,7 +736,7 @@ lefYankContacts(
     TileTypeBitMask *lrmask;
 
     /* Ignore marked tiles */
-    if (tile->ti_client != (ClientData)CLIENTDEFAULT) return 0;
+    if (TiGetClient(tile) != CLIENTDEFAULT) return 0;
 
     /* Ignore split tiles */
     if (IsSplit(tile)) return 0;
@@ -805,11 +805,11 @@ lefWriteGeometry(
     LefMapping *lefMagicToLefLayer = lefdata->lefMagicMap;
 
     /* Ignore tiles that have already been output */
-    if (tile->ti_client != (ClientData)CLIENTDEFAULT)
+    if (TiGetClient(tile) != CLIENTDEFAULT)
 	return 0;
 
     /* Mark this tile as visited */
-    TiSetClient(tile, (ClientData)1);
+    TiSetClientINT(tile, 1);
 
     /* Get layer type */
     if (IsSplit(tile))
@@ -834,7 +834,7 @@ lefWriteGeometry(
 	/* Reset the tile to not visited and return 1 to    */
 	/* signal that something is going to be written.    */
 
-	TiSetClient(tile, (ClientData)CLIENTDEFAULT);
+	TiSetClient(tile, CLIENTDEFAULT);
 	return 1;
     }
 

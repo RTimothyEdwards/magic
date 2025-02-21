@@ -875,14 +875,14 @@ defExemptWireFunc(
     Rect r;
 
     /* Do not change the client data of tiles that have been processed! */
-    if (tile->ti_client != (ClientData) 1)
+    if (TiGetClientINT(tile) != 1)
     {
 	/* Ignore contacts, which need additional processing */
 	if (DBIsContact(TiGetType(tile))) return 0;
 
 	TiToRect(tile, &r);
 	if (GEO_SURROUND(rect, &r))
-	    tile->ti_client = (ClientData) 2;
+	    TiSetClientINT(tile, 2);
     }
     return 0;
 }
