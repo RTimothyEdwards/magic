@@ -1443,9 +1443,13 @@ FindStartTile(goodies, SourcePoint)
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
 		    return(tp);
 		}
-		else if (TiGetClient(tp) != CLIENTDEFAULT)
-		    if (((tileJunk *)TiGetClientPTR(tp))->tj_status & RES_TILE_DEV)
+		else
+		{
+		    const ClientData ticlient = TiGetClient(tp);
+		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
 			complex = TRUE;
+		}
 	    }
 
 	    /* right */
@@ -1460,9 +1464,13 @@ FindStartTile(goodies, SourcePoint)
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
 		    return(tp);
 		}
-		else if (TiGetClient(tp) != CLIENTDEFAULT)
-		    if (((tileJunk *)TiGetClientPTR(tp))->tj_status & RES_TILE_DEV)
+		else
+		{
+		    const ClientData ticlient = TiGetClient(tp);
+		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
 			complex = TRUE;
+		}
 	    }
 
 	    /* top */
@@ -1477,9 +1485,13 @@ FindStartTile(goodies, SourcePoint)
 		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
 		    return(tp);
 		}
-		else if (TiGetClient(tp) != CLIENTDEFAULT)
-		    if (((tileJunk *)TiGetClientPTR(tp))->tj_status & RES_TILE_DEV)
+		else
+		{
+		    const ClientData ticlient = TiGetClient(tp);
+		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
 			complex = TRUE;
+		}
 	    }
 
 	    /* bottom */
@@ -1494,9 +1506,13 @@ FindStartTile(goodies, SourcePoint)
 		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
 		    return(tp);
 		}
-		else if (TiGetClient(tp) != CLIENTDEFAULT)
-		    if (((tileJunk *)TiGetClientPTR(tp))->tj_status & RES_TILE_DEV)
+		else
+		{
+		    const ClientData ticlient = TiGetClient(tp);
+		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
 			complex = TRUE;
+		}
 	    }
 
 	    if (complex == TRUE)
@@ -1529,16 +1545,19 @@ FindStartTile(goodies, SourcePoint)
 			    }
 			    return(tp);
 			}
-			else if (TiGetClient(tp) != CLIENTDEFAULT)
+			else
 			{
-			    if (((tileJunk *)TiGetClientPTR(tp))->tj_status & RES_TILE_DEV)
+			    const ClientData ticlient = TiGetClient(tp);
+			    if (ticlient != CLIENTDEFAULT)
 			    {
-				if (!(((tileJunk *)TiGetClientPTR(tp))->tj_status
-						& RES_TILE_PUSHED))
+				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+				if (tj->tj_status & RES_TILE_DEV)
 				{
-				    ((tileJunk *)TiGetClientPTR(tp))->tj_status
-							|= RES_TILE_PUSHED;
-				    STACKPUSH((ClientData)tp, devStack);
+				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    {
+				        tj->tj_status |= RES_TILE_PUSHED;
+				        STACKPUSH((ClientData)tp, devStack);
+				    }
 				}
 			    }
 			}
@@ -1560,16 +1579,19 @@ FindStartTile(goodies, SourcePoint)
 			    }
 			    return(tp);
 			}
-			else if (TiGetClient(tp) != CLIENTDEFAULT)
+			else
 			{
-			    if (((tileJunk *)TiGetClientPTR(tp))->tj_status & RES_TILE_DEV)
+			    const ClientData ticlient = TiGetClient(tp);
+			    if (ticlient != CLIENTDEFAULT)
 			    {
-				if (!(((tileJunk *)TiGetClientPTR(tp))->tj_status
-						& RES_TILE_PUSHED))
+				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+				if (tj->tj_status & RES_TILE_DEV)
 				{
-				    ((tileJunk *)TiGetClientPTR(tp))->tj_status
-							|= RES_TILE_PUSHED;
-				    STACKPUSH((ClientData)tp, devStack);
+				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    {
+					tj->tj_status |= RES_TILE_PUSHED;
+					STACKPUSH((ClientData)tp, devStack);
+				    }
 				}
 			    }
 			}
@@ -1591,16 +1613,19 @@ FindStartTile(goodies, SourcePoint)
 			    }
 			    return(tp);
 			}
-			else if (TiGetClient(tp) != CLIENTDEFAULT)
+			else
 			{
-			    if (((tileJunk *)TiGetClientPTR(tp))->tj_status & RES_TILE_DEV)
+			    const ClientData ticlient = TiGetClient(tp);
+			    if (ticlient != CLIENTDEFAULT)
 			    {
-				if (!(((tileJunk *)TiGetClientPTR(tp))->tj_status
-						& RES_TILE_PUSHED))
+				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+				if (tj->tj_status & RES_TILE_DEV)
 				{
-				    ((tileJunk *)TiGetClientPTR(tp))->tj_status
-							|= RES_TILE_PUSHED;
-				    STACKPUSH((ClientData)tp, devStack);
+				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    {
+					tj->tj_status |= RES_TILE_PUSHED;
+					STACKPUSH((ClientData)tp, devStack);
+				    }
 				}
 			    }
 			}
@@ -1622,16 +1647,19 @@ FindStartTile(goodies, SourcePoint)
 			    }
 			    return(tp);
 			}
-			else if (TiGetClient(tp) != CLIENTDEFAULT)
+			else
 			{
-			    if (((tileJunk *)TiGetClientPTR(tp))->tj_status & RES_TILE_DEV)
+			    const ClientData ticlient = TiGetClient(tp);
+			    if (ticlient != CLIENTDEFAULT)
 			    {
-				if (!(((tileJunk *)TiGetClientPTR(tp))->tj_status
-						& RES_TILE_PUSHED))
+				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+				if (tj->tj_status & RES_TILE_DEV)
 				{
-				    ((tileJunk *)TiGetClientPTR(tp))->tj_status
-							|= RES_TILE_PUSHED;
-				    STACKPUSH((ClientData)tp, devStack);
+				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    {
+					tj->tj_status |= RES_TILE_PUSHED;
+					STACKPUSH((ClientData)tp, devStack);
+				    }
 				}
 			    }
 			}
@@ -1718,19 +1746,20 @@ ResGetDevice(pt, type)
     tile = ResUse->cu_def->cd_planes[pnum]->pl_hint;
     GOTOPOINT(tile, &workingPoint);
 
+    const ClientData ticlient = TiGetClient(tile);
     if (IsSplit(tile))
     {
         if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetLeftType(tile))
               	   || TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetRightType(tile)))
-            return (((tileJunk *)TiGetClientPTR(tile))->deviceList);
+            return (((tileJunk *)CD2PTR(ticlient))->deviceList);
     }
     else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetType(tile)))
     {
 	/* Failure to have a valid client data will result in a "Bad Device"
 	 * error and indicates a problem that needs debugging.
 	 */
-	if (TiGetClient(tile) != CLIENTDEFAULT)
-            return (((tileJunk *)TiGetClientPTR(tile))->deviceList);
+	if (ticlient != CLIENTDEFAULT)
+            return (((tileJunk *)CD2PTR(ticlient))->deviceList);
     }
     return NULL;
 }

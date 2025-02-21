@@ -3038,10 +3038,12 @@ extTransFindSubsFunc1(tile, noderecptr)
      * regions under the same device)
      */
 
-    if (TiGetClient(tile) != extUnInit)
+    ClientData ticlient = TiGetClient(tile);
+    if (ticlient != extUnInit)
     {
+	NodeRegion *reg = (NodeRegion *) CD2PTR(ticlient);
 	if ((noderecptr->region != (NodeRegion *)NULL) &&
-		    (noderecptr->region != TiGetClientPTR(tile)))
+		    (noderecptr->region != reg))
 	    TxError("Warning:  Split substrate under device at (%d %d)\n",
 			tile->ti_ll.p_x, tile->ti_ll.p_y);
 	if (IsSplit(tile))
@@ -3052,7 +3054,7 @@ extTransFindSubsFunc1(tile, noderecptr)
 	else
 	    type = TiGetTypeExact(tile);
 
-	noderecptr->region = (NodeRegion *)TiGetClientPTR(tile);
+	noderecptr->region = (NodeRegion *) reg;
 	noderecptr->layer = type;
 	return 1;
     }
@@ -4906,14 +4908,15 @@ topside:
 		len = EDGENULL(&r) ? 0 : r.r_xtop - r.r_xbot;
 	    }
 	    else len = MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
+	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
         	t = SplitBottomType(tp);
-		if (TiGetClient(tp) == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILEBOTTOM(tp, tilePlaneNum);
 		}
-		else if (TiGetClientPTR(tp) != reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to. */
 		    TiSetClient(tp, extUnInit);
@@ -4923,7 +4926,7 @@ topside:
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (TiGetClient(tp) == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}
@@ -4951,14 +4954,15 @@ leftside:
 		len = EDGENULL(&r) ? 0 : r.r_ytop - r.r_ybot;
 	    }
 	    else len = MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
+	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
                 t = SplitRightType(tp);
-		if (TiGetClient(tp) == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILERIGHT(tp, tilePlaneNum);
 		}
-		else if (TiGetClientPTR(tp) != reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to. */
 		    TiSetClient(tp, extUnInit);
@@ -4968,7 +4972,7 @@ leftside:
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (TiGetClient(tp) == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}
@@ -4997,14 +5001,15 @@ bottomside:
 		len = EDGENULL(&r) ? 0 : r.r_xtop - r.r_xbot;
 	    }
 	    else len = MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
+	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
                 t = SplitTopType(tp);
-		if (TiGetClient(tp) == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILETOP(tp, tilePlaneNum);
 		}
-		else if (TiGetClientPTR(tp) != reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to. */
 		    TiSetClient(tp, extUnInit);
@@ -5014,7 +5019,7 @@ bottomside:
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (TiGetClient(tp) == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}
@@ -5042,14 +5047,15 @@ rightside:
 		len = EDGENULL(&r) ? 0 : r.r_ytop - r.r_ybot;
 	    }
 	    else len = MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
+	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
                 t = SplitLeftType(tp);
-		if (TiGetClient(tp) == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
-		else if (TiGetClientPTR(tp) != reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to	*/
 		    TiSetClient(tp, extUnInit);
@@ -5059,7 +5065,7 @@ rightside:
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (TiGetClient(tp) == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}

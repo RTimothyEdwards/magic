@@ -404,9 +404,10 @@ selShortTileProc(tile, ssd)
     Tile *tile;
     ShortSearchData *ssd;
 {
-    if ((int)TiGetClientINT(tile) < ssd->cost)
+    const int curr = (int)TiGetClientINT(tile);
+    if (curr < ssd->cost)
     {
-	ssd->cost = (int)TiGetClientINT(tile);
+	ssd->cost = curr;
 	ssd->tile = tile;
     }
     return 0;
@@ -509,10 +510,12 @@ selShortFindReverse(rlist, tile, pnum, fdir)
 
 	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
 	{
-	    if (TiGetClient(tp) == CLIENTDEFAULT) continue;
-	    if ((int)TiGetClientINT(tp) < mincost)
+	    const ClientData ticlient = TiGetClient(tp);
+	    if (ticlient == CLIENTDEFAULT) continue;
+	    const int curr = (int)CD2INT(ticlient);
+	    if (curr < mincost)
 	    {
-		mincost = (int)TiGetClientINT(tp);
+		mincost = curr;
 		mintp = tp;
 		mindir = GEO_NORTH;
 	    }
@@ -529,10 +532,12 @@ leftside:
 
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 	{
-	    if (TiGetClient(tp) == CLIENTDEFAULT) continue;
-	    if ((int)TiGetClientINT(tp) < mincost)
+	    const ClientData ticlient = TiGetClient(tp);
+	    if (ticlient == CLIENTDEFAULT) continue;
+	    const int curr = (int)CD2INT(ticlient);
+	    if (curr < mincost)
 	    {
-		mincost = (int)TiGetClientINT(tp);
+		mincost = curr;
 		mintp = tp;
 		mindir = GEO_WEST;
 	    }
@@ -549,10 +554,12 @@ bottomside:
 
 	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
 	{
-	    if (TiGetClient(tp) == CLIENTDEFAULT) continue;
-	    if ((int)TiGetClientINT(tp) < mincost)
+	    const ClientData ticlient = TiGetClient(tp);
+	    if (ticlient == CLIENTDEFAULT) continue;
+	    const int curr = (int)CD2INT(ticlient);
+	    if (curr < mincost)
 	    {
-		mincost = (int)TiGetClientINT(tp);
+		mincost = curr;
 		mintp = tp;
 		mindir = GEO_SOUTH;
 	    }
@@ -569,10 +576,12 @@ rightside:
 
 	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 	{
-	    if (TiGetClient(tp) == CLIENTDEFAULT) continue;
-	    if ((int)TiGetClientINT(tp) < mincost)
+	    const ClientData ticlient = TiGetClient(tp);
+	    if (ticlient == CLIENTDEFAULT) continue;
+	    const int curr = (int)CD2INT(ticlient);
+	    if (curr < mincost)
 	    {
-		mincost = (int)TiGetClientINT(tp);
+		mincost = curr;
 		mintp = tp;
 		mindir = GEO_EAST;
 	    }
@@ -739,9 +748,11 @@ selShortProcessTile(tile, cost, fdir, mask)
     /* If this tile is unvisited, or has a lower cost, then return and	  */
     /* keep going.  Otherwise, return 1 to stop the search this direction */
 
-    if (TiGetClient(tile) == CLIENTDEFAULT)
+    const ClientData ticlient = TiGetClient(tile);
+    const int curr = (int)CD2INT(ticlient);
+    if (ticlient == CLIENTDEFAULT)
 	TiSetClientINT(tile, cost);
-    else if ((int)TiGetClientINT(tile) > cost)
+    else if (curr > cost)
 	TiSetClientINT(tile, cost);
     else
 	return 1;
