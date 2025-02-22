@@ -1431,6 +1431,8 @@ CmdWire(
     char *lastargv;
     TileType type;
     int width;
+    Point point, rootPoint;
+    bool needCoord = FALSE;
 
 #ifdef MAGIC_WRAPPER
     Tcl_Obj *lobj;
@@ -1508,11 +1510,11 @@ CmdWire(
 		int value = 1;
 		if (cmd->tx_argc == 4)
 		    value = cmdParseCoord(w, cmd->tx_argv[3], TRUE, TRUE);
-		WirePickType(WireType, WireWidth - value);
+		WirePickType(WireType, (Point *)NULL, WireWidth - value);
 	    }
 	    else
 		goto badargs;
-	    return;
+	    break;
 
 	case INCREMENT:
 	    if (cmd->tx_argc != 3 && cmd->tx_argc != 4)
@@ -1548,11 +1550,11 @@ CmdWire(
 		int value = 1;
 		if (cmd->tx_argc == 4)
 		    value = cmdParseCoord(w, cmd->tx_argv[3], TRUE, TRUE);
-		WirePickType(WireType, WireWidth + value);
+		WirePickType(WireType, (Point *)NULL, WireWidth + value);
 	    }
 	    else
 		goto badargs;
-	    return;
+	    break;
 
 
 	case HELP:
@@ -1562,15 +1564,41 @@ CmdWire(
 	    {
 		TxPrintf("    %s\n", *msg);
 	    }
-	    return;
+	    break;
 
 	case HORIZONTAL:
-	    WireAddLeg((Rect *) NULL, (Point *) NULL, WIRE_HORIZONTAL);
-	    return;
+	    if ((cmd->tx_argc > 2) && strcmp(cmd->tx_argv[2], "to") == 0)
+	    {
+		if (cmd->tx_argc != 5)
+		    goto badargs;
+		point.p_x = cmdParseCoord(w, cmd->tx_argv[3], FALSE, TRUE);
+		point.p_y = cmdParseCoord(w, cmd->tx_argv[4], FALSE, FALSE);
+		GeoTransPoint(&EditToRootTransform, &point, &rootPoint);
+		WireAddLeg((Rect *)NULL, &rootPoint, WIRE_HORIZONTAL);
+	    }
+	    else
+	    {
+		WireAddLeg((Rect *) NULL, (Point *) NULL, WIRE_HORIZONTAL);
+		needCoord = TRUE;
+	    }
+	    break;
 
 	case LEG:
-	    WireAddLeg((Rect *) NULL, (Point *) NULL, WIRE_CHOOSE);
-	    return;
+	    if ((cmd->tx_argc > 2) && strcmp(cmd->tx_argv[2], "to") == 0)
+	    {
+		if (cmd->tx_argc != 5)
+		    goto badargs;
+		point.p_x = cmdParseCoord(w, cmd->tx_argv[3], FALSE, TRUE);
+		point.p_y = cmdParseCoord(w, cmd->tx_argv[4], FALSE, FALSE);
+		GeoTransPoint(&EditToRootTransform, &point, &rootPoint);
+		WireAddLeg((Rect *)NULL, &rootPoint, WIRE_CHOOSE);
+	    }
+	    else
+	    {
+		WireAddLeg((Rect *)NULL, (Point *)NULL, WIRE_CHOOSE);
+		needCoord = TRUE;
+	    }
+	    break;
 
 	case SHOW:
 	    WireShowLeg();
@@ -1604,7 +1632,17 @@ CmdWire(
 
 	case TYPE:
 	    if (locargc == 2)
-		WirePickType(-1, 0);
+	    {
+		WirePickType(-1, (Point *)NULL, 0);
+		needCoord = TRUE;
+	    }
+	    else if ((locargc == 5) && !strcmp(cmd->tx_argv[2], "at"))
+	    {
+		point.p_x = cmdParseCoord(w, cmd->tx_argv[3], FALSE, TRUE);
+		point.p_y = cmdParseCoord(w, cmd->tx_argv[4], FALSE, FALSE);
+		GeoTransPoint(&EditToRootTransform, &point, &rootPoint);
+		WirePickType(-1, &rootPoint, 0);
+	    }
 	    else if (locargc != 3 && locargc != 4)
 	    {
 		badargs:
@@ -1635,7 +1673,7 @@ CmdWire(
 		}
 		else
 		    width = cmdParseCoord(w, cmd->tx_argv[3], TRUE, TRUE);
-		WirePickType(type, width);
+		WirePickType(type, (Point *)NULL, width);
 		return;
 	    }
 	    break;
@@ -1657,11 +1695,24 @@ CmdWire(
 			DBTypeLongNameTbl[type], width);
 #endif
 	    }
-	    return;
+	    break;
 
 	case VERTICAL:
-	    WireAddLeg((Rect *) NULL, (Point *) NULL, WIRE_VERTICAL);
-	    return;
+	    if ((cmd->tx_argc > 2) && strcmp(cmd->tx_argv[2], "to") == 0)
+	    {
+		if (cmd->tx_argc != 5)
+		    goto badargs;
+		point.p_x = cmdParseCoord(w, cmd->tx_argv[3], FALSE, TRUE);
+		point.p_y = cmdParseCoord(w, cmd->tx_argv[4], FALSE, FALSE);
+		GeoTransPoint(&EditToRootTransform, &point, &rootPoint);
+		WireAddLeg((Rect *)NULL, &rootPoint, WIRE_VERTICAL);
+	    }
+	    else
+	    {
+		WireAddLeg((Rect *) NULL, (Point *) NULL, WIRE_VERTICAL);
+		needCoord = TRUE;
+	    }
+	    break;
 
 	case WIDTH:
 	    if (locargc == 2)
@@ -1680,7 +1731,7 @@ CmdWire(
 	    {
 		width = cmdParseCoord(w, cmd->tx_argv[2], TRUE, TRUE);
 		type =  WireGetType();
-		WirePickType(type, width);
+		WirePickType(type, (Point *)NULL, width);
 		return;
 	    }
 	    break;
@@ -1828,6 +1879,22 @@ CmdWire(
 		freeMagic(plist);
 	    }
 	    break;
+    }
+
+    /* Recast the command as "wire <option> to <x> <y>" so that it no longer
+     * depends on the pointer position, for command logging.
+     */
+    if (needCoord)
+    {
+	if (ToolGetPoint(&rootPoint, (Rect *)NULL) != NULL)
+	{
+	    GeoTransPoint(&RootToEditTransform, &rootPoint, &point);
+	    sprintf(cmd->tx_argstring, "wire %s %s %di %di",
+			cmd->tx_argv[1],
+			(option == TYPE) ? "at" : "to",
+			point.p_x, point.p_y);
+	    TxRebuildCommand(cmd);
+	}
     }
 }
 

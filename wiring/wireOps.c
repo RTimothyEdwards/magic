@@ -52,42 +52,42 @@ int WireWidth;			/* Thickness of material to use for wiring. */
 int WireLastDir;		/* Last direction in which a wire was run. */
 
 /* The following variable is used to communicate the desired root cellDef
- * between wireFindRootUse and wireFindRootFunc.
+ * between wireFindRootWindow and wireFindRootFunc.
  */
 
 static CellDef *wireDesiredDef;
 
 /*
  * ----------------------------------------------------------------------------
- *	wireFindRootUse --
+ *	wireFindRootWindow --
  *
  * 	This is a utility procedure to find a window containing a particular
  *	definition as its root.
  *
  * Results:
- *	The return value is the root use of a window, such that the
- *	use is an instance of rootDef.  If the definition isn't the
- *	root of any window then NULL is returned.
+ *	The return value is a pointer to a window for which the
+ *	window is an instance of rootDef.  If no window is an instance
+ *	of rootDef, then NULL is returned.
  *
  * Side effects:
  *	None.
  * ----------------------------------------------------------------------------
  */
 
-CellUse *
-wireFindRootUse(rootDef)
+MagWindow *
+wireFindRootWindow(rootDef)
     CellDef *rootDef;		/* Root definition for which a root use
 				 * is desired.
 				 */
 {
-    CellUse *result;
+    MagWindow *mw;
     extern int wireFindRootFunc();
 
-    result = NULL;
+    mw = NULL;
     wireDesiredDef = rootDef;
     (void) WindSearch(DBWclientID, (ClientData) NULL, (Rect *) NULL,
-	    wireFindRootFunc, (ClientData) &result);
-    return result;
+	    wireFindRootFunc, (ClientData) &mw);
+    return mw;
 }
 
 /* The following search function is called for each window.  If the
@@ -96,15 +96,15 @@ wireFindRootUse(rootDef)
  */
 
 int
-wireFindRootFunc(window, cellUsePtr)
-    MagWindow *window;			/* A layout window. */
-    CellUse **cellUsePtr;		/* Pointer to cellUse pointer. */
+wireFindRootFunc(window, mwPtr)
+    MagWindow *window;		/* A layout window. */
+    MagWindow **mwPtr;		/* Copy layout window pointer to this */
 {
     CellUse *use;
 
     use = (CellUse *) window->w_surfaceID;
     if (use->cu_def != wireDesiredDef) return 0;
-    *cellUsePtr = use;
+    *mwPtr = window;
     return 1;
 }
 
@@ -128,10 +128,13 @@ wireFindRootFunc(window, cellUsePtr)
  */
 
 void
-WirePickType(type, width)
+WirePickType(type, ppoint, width)
     TileType type;		/* New type of material to use for wiring.
 				 * If less than zero, then pick a new type
 				 * based on what's underneath the cursor.
+				 */
+    Point *ppoint;		/* If non-NULL, contains a point position
+				 * from which to get the wire type.
 				 */
     int width;			/* Width to use for future wiring.  If type
 				 * is less than zero then this parameter is
@@ -162,12 +165,25 @@ WirePickType(type, width)
      * so each type gets a chance.
      */
 
-    w = ToolGetPoint(&point, &scx.scx_area);
-    if (w == NULL)
+    if (ppoint)
     {
-	TxError("Can't use cursor to select wiring material unless\n");
-	TxError("    cursor is in a layout window.\n");
-	return;
+	point.p_x = ppoint->p_x;
+	point.p_y = ppoint->p_y;
+	w = wireFindRootWindow(EditRootDef);
+	scx.scx_area.r_xbot = point.p_x;
+	scx.scx_area.r_ybot = point.p_y;
+	scx.scx_area.r_xtop = scx.scx_area.r_xbot + 1;
+	scx.scx_area.r_ytop = scx.scx_area.r_ybot + 1;
+    }
+    else
+    {
+	w = ToolGetPoint(&point, &scx.scx_area);
+	if (w == NULL)
+	{
+	    TxError("Can't use cursor to select wiring material unless\n");
+	    TxError("    cursor is in a layout window.\n");
+	    return;
+	}
     }
     scx.scx_use = (CellUse *) w->w_surfaceID;
     scx.scx_trans = GeoIdentityTransform;
@@ -299,6 +315,7 @@ WireAddLeg(rect, point, direction)
 				 * the indicated direction.
 				 */
 {
+    MagWindow *w;
     Rect current, new, leg, editArea;
     CellDef *boxRootDef;
     SearchContext scx;
@@ -476,7 +493,8 @@ WireAddLeg(rect, point, direction)
      * windows.
      */
 
-    scx.scx_use = wireFindRootUse(EditRootDef);
+    w = wireFindRootWindow(EditRootDef);
+    scx.scx_use = w->w_surfaceID;
     if (scx.scx_use != NULL)
     {
 	SelectClear();
@@ -725,6 +743,7 @@ WireAddContact(newType, newWidth)
 				 * used.
 				 */
 {
+    MagWindow *w;
     Rect oldLeg, contactArea, tmp, tmp2, editArea;
     CellDef *boxRootDef;
     TileType oldType;
@@ -760,7 +779,7 @@ WireAddContact(newType, newWidth)
      * there's no need to add a contact.
      */
 
-    WirePickType(newType, newWidth);
+    WirePickType(newType, (Point *)NULL, newWidth);
     if (WireType == oldType)
     {
 	TxError("The new wiring layer is the same as the old one, so\n");
@@ -1001,7 +1020,8 @@ WireAddContact(newType, newWidth)
      */
 
     SelectClear();
-    scx.scx_use = wireFindRootUse(EditRootDef);
+    w = wireFindRootWindow(EditRootDef);
+    scx.scx_use = w->w_surfaceID;
     if (scx.scx_use != NULL)
     {
 	scx.scx_trans = GeoIdentityTransform;
@@ -1063,7 +1083,7 @@ WireButtonProc(w, cmd)
     switch (cmd->tx_button)
     {
 	case TX_LEFT_BUTTON:
-	    WirePickType(-1, 0);
+	    WirePickType(-1, (Point *)NULL, 0);
 	    break;
 	case TX_RIGHT_BUTTON:
 	    WireAddLeg((Rect *) NULL, (Point *) NULL, WIRE_CHOOSE);

@@ -845,6 +845,8 @@ txLogCommand(cmd)
 
 	/* Do not output "logcommand" commands to the log file.
 	 * Do not output "*bypass" commands to the log file.
+	 * Do not output "setpoint" commands to the log file.
+	 * Do not output "wire show" commands to the log file (excessive output).
 	 */
 	postns = strstr(cmd->tx_argv[0], "::");
 	if (postns == NULL)
@@ -856,7 +858,10 @@ txLogCommand(cmd)
 	    return;
 	else if (!strcmp(postns, "*bypass"))
 	    return;
-	else if (!strcmp(postns, "setpoint")) return;
+	else if (!strcmp(postns, "setpoint"))
+	    return;
+	else if (!strcmp(postns, "wire") && !strcmp(cmd->tx_argv[1], "show"))
+	    return;
 
 	fprintf(txLogFile, "%s%s", pfix, cmd->tx_argv[0]);
 	for (i = 1; i < cmd->tx_argc; i++)
