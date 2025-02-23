@@ -4477,6 +4477,7 @@ CmdDrc(
 	    {
 		DRCPrintRulesTable (stdout);
 	    }
+	    else
 	    {
 	        FILE *fp = fopen (argv[2], "w");
 	        if (fp == NULL)
