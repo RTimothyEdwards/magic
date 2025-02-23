@@ -1643,7 +1643,7 @@ lefWriteMacro(def, f, scale, setback, pinonly, toplayer, domaster)
 
 		if (toplayer && (pNum != pTop))
 		{
-		    if (domaster & (pmask != 0))
+		    if (domaster && (pmask != 0))
 		    {
 			if (!PlaneMaskHasPlane(pmask, pNum))
 			    continue;
