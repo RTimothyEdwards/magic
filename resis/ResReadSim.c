@@ -191,8 +191,11 @@ ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
 	    case 'r':
 		break;
 	    default:
+		/* we expect fclose(fp) and early return to occur below,
+		 * but code path might still modify result (maybe to zero)
+		 * allowing us to loop again, which will then access 'fp'
+		 */
 		result = 1;
-		fclose(fp);
 		break;
 	}
         if (fettype == -1)
