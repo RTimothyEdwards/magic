@@ -43,16 +43,34 @@ Generate wires from the command line.
 	 <DL>
 	   <DT> <B>help</B>
 	   <DD> Print help information
-	   <DT> <B>horizontal</B>
-	   <DD> Add a new horizontal wire leg
-	   <DT> <B>leg</B>
-	   <DD> Add a new horizontal or vertical leg
+	   <DT> <B>horizontal</B> [<B>to</B> <I>x y</I>]
+	   <DD> Add a new horizontal wire leg.  If coordinates are specified, the
+		wire is drawn between the current last position and the indicated
+		coordinate ("y" value ignored).  If a coordinate is not specified,
+		the wire is drawn from the current last position to the "x"
+		position of the cursor.
+	   <DT> <B>leg</B> [<B>to</B> <I>x y</I>]
+	   <DD> Add a new horizontal or vertical leg.  This behaves like
+		<B>wire horizontal</B> or <B>wire vertical</B>, but chooses
+		the orientation depending on which orientation ends closer to
+		the cursor position or to the indicated coordinate.
 	   <DT> <B>switch</B> [<I>layer width</I>]
 	   <DD> Place contact and switch layers
 	   <DT> <B>type</B> [<I>layer width</I>]
-	   <DD> Select the type and size of wires
-	   <DT> <B>vertical</B>
-	   <DD> add a new vertical wire leg
+	   <DD> Select the type and size of wires.  If the layer and width are not
+		given, the the layer and width are chosen from the material that is
+		found under the location of the cursor, with the width determined by
+		the largest square that will fit completely inside the material at
+		that point.
+	   <DT> <B>type at</B> <I>x y</I>]
+	   <DD> Select the type and size of wire, determining the wire type and
+		size from the material found at the given coordinate.
+	   <DT> <B>vertical</B> [<B>to</B> <I>x y</I>]
+	   <DD> Add a new vertical wire leg.  If coordinates are specified, the
+		wire is drawn between the current last position and the indicated
+		coordinate ("x" value ignored).  If a coordinate is not specified,
+		the wire is drawn from the current last position to the "y"
+		position of the cursor.
 	   <DT> <B>segment</B> <I>layer width x1 y1 x2 y2</I>... [<B>-noendcap</B>]
 	   <DD> Paint one or more wire segments
 	   <DT> <B>segment</B> <I>layer width filename</I> [<B>-noendcap</B>]
