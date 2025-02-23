@@ -875,7 +875,6 @@ antennaAccumFunc(tile, aaptr)
 	    {
 		if (type >= DBNumUserLayers)
 		{
-		    DBResidueMask(type, &sMask);
 		    for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
 			if (TTMaskHasType(&sMask, ttype))
 			    if (DBTypeOnPlane(ttype, plane))
@@ -986,7 +985,6 @@ antennaAccumFunc(tile, aaptr)
 
 	    if (type >= DBNumUserLayers)
 	    {
-		DBResidueMask(type, &sMask);
 		for (ttype = TT_TECHDEPBASE; ttype < DBNumTypes; ttype++)
 		    if (TTMaskHasType(&sMask, ttype))
 			if (DBTypeOnPlane(ttype, plane))
