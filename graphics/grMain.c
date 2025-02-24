@@ -457,8 +457,15 @@ grFgets(str, n, stream, name)
     twentySecs.tv_sec = 20;
     twentySecs.tv_usec = 0;
 
+    const int fd = fileno(stream);
+    ASSERT(fd >= 0 && fd < FD_SETSIZE, "fd>=0&&fd<FD_SETSIZE");
+    if (fd < 0 || fd >= FD_SETSIZE)
+    {
+	TxError("WARNING: grFgets(fd=%d) called with fd out of range 0..%d\n", fd, FD_SETSIZE-1);
+	return NULL; /* allowing things to continue is UB */
+    }
     FD_ZERO(&fn);
-    FD_SET(fileno(stream), &fn);
+    FD_SET(fd, &fn);
     newstr = str;
     n--;
     if (n < 0) return (char *) NULL;
@@ -470,13 +477,13 @@ grFgets(str, n, stream, name)
         int sel;
 
 	f = fn;
-	sel = select(TX_MAX_OPEN_FILES, &f, (fd_set *) NULL, (fd_set *) NULL, &threeSec);
+	sel = select(fd + 1, &f, (fd_set *) NULL, (fd_set *) NULL, &threeSec);
 	if  (sel == 0)
 	{
 	    TxError("The %s is responding slowly, or not at all.\n", name);
 	    TxError("I'll wait for 20 seconds and then give up.\n");
 	    f = fn;
-	    sel = select(TX_MAX_OPEN_FILES, &f, (fd_set *) NULL,
+	    sel = select(fd + 1, &f, (fd_set *) NULL,
 			(fd_set *) NULL, &twentySecs);
 	    if (sel == 0)
 	    {
