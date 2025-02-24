@@ -650,6 +650,13 @@ SimFillBuffer(buffHead, pLastChar, charCount)
     FD_ZERO(&exceptfds);
 #endif  /* SYSV */
 
+    ASSERT(pipeIn >= 0 && pipeIn < FD_SETSIZE, "pipeIn>=0&&pipeIn<FD_SETSIZE");
+    if (pipeIn < 0 || pipeIn >= FD_SETSIZE)
+    {
+        TxError("WARNING: SimFillBuffer(fd=%d) called with fd out of range 0..%d\n", pipeIn, FD_SETSIZE-1);
+        return -1; /* allowing things to continue is UB */
+    }
+
     nfd = pipeIn + 1;
 
 try_again:
