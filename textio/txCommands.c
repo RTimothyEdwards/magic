@@ -1021,22 +1021,33 @@ TxGetInputEvent(
 	    perror("magic");
 	}
 
-	for (i = 0; numReady && i < txLastInputEntry; i++)
+	/* 0..1023 using numReady==0 to terminate early */
+	for (fd = 0; numReady && fd <= txInputDescriptors_nfds; fd++)
 	{
-	    /* This device has data on its file descriptor, call
-	     * it so that it can add events to the input queue.
-	     */
-	    for (fd = 0; fd <= txInputDescriptors_nfds; fd++) {
-		if (FD_ISSET(fd, &inputs) &&
-			    FD_ISSET(fd, &txInputDevice[i].tx_fdmask)) {
-		    lastNum = txNumInputEvents;
-		    (*(txInputDevice[i].tx_inputProc))
-			(fd, txInputDevice[i].tx_cdata); /** @invoke cb_textio_input_t */
-		    FD_CLR(fd, &inputs);
-		    /* Did this driver choose to add an event? */
-		    if (txNumInputEvents != lastNum) gotSome = TRUE;
-		    numReady--;
-		}
+	    if (!FD_ISSET(fd, &inputs))
+		continue; /* this fd is was not monitored or is not ready */
+
+	    /* find the input device receiver entry */
+	    for (i = 0; i < txLastInputEntry; i++)
+	    {
+		if (!FD_ISSET(fd, &txInputDevice[i].tx_fdmask))
+		    continue;
+
+		/* This device has data on its file descriptor, call
+		 * it so that it can add events to the input queue.
+		 */
+		lastNum = txNumInputEvents;
+
+		(*txInputDevice[i].tx_inputProc)(fd, txInputDevice[i].tx_cdata);
+
+		/* Did this driver choose to add an event? */
+		if (txNumInputEvents != lastNum) gotSome = TRUE;
+		numReady--;
+
+		/* original code would FD_CLR() which would effectively break here
+		 * so this only allows the first found receiver to receive the data
+		 */
+		break;
 	    }
 	}
 	/*
