@@ -489,6 +489,12 @@ TxAdd1InputDevice(
     ClientData cdata)
 {
     fd_set fs;
+    ASSERT(fd >= 0 && fd < FD_SETSIZE, "fd>=0&&fd<FD_SETSIZE");
+    if (fd < 0 || fd >= FD_SETSIZE)
+    {
+	TxError("WARNING: TxAdd1InputDevice(fd=%d) called with fd out of range 0..%d\n", fd, FD_SETSIZE-1);
+	return; /* allowing things to continue is UB */
+    }
     FD_ZERO(&fs);
     FD_SET(fd, &fs);
     TxAddInputDevice(&fs, inputProc, cdata);
@@ -524,8 +530,14 @@ void
 TxDelete1InputDevice(
     int fd)
 {
-    int i, j;
+    ASSERT(fd >= 0 && fd < FD_SETSIZE, "fd>=0&&fd<FD_SETSIZE");
+    if (fd < 0 || fd >= FD_SETSIZE)
+    {
+	TxError("WARNING: TxDelete1InputDevice(fd=%d) called with fd out of range 0..%d\n", fd, FD_SETSIZE-1);
+	return; /* allowing things to continue is UB */
+    }
 
+    int i, j;
     for (i = 0; i <= txLastInputEntry; i++)
     {
 	FD_CLR(fd, &(txInputDevice[i].tx_fdmask));
