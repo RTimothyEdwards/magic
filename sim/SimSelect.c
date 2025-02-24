@@ -19,7 +19,7 @@
  */
 
 #ifndef lint
-static char sccsid[] = "@(#)SimSelect.c	4.14 MAGIC (Berkeley) 10/3/85";
+static const char sccsid[] = "@(#)SimSelect.c	4.14 MAGIC (Berkeley) 10/3/85";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -125,17 +125,17 @@ bool	  SimRsimRunning = FALSE;	/* Always false if there's no rsim module */
  */
 
 char *
-SimSelectNode(scx, type, xMask, buffer)
-    SearchContext *scx;		/* Area to tree-search for material.  The
+SimSelectNode(
+    SearchContext *scx,		/* Area to tree-search for material.  The
 				 * transform must map to EditRoot coordinates.
 				 */
-    TileType type;		/* The type of material to be considered. */
-    int xMask;			/* Indicates window (or windows) where cells
+    TileType type,		/* The type of material to be considered. */
+    int xMask,			/* Indicates window (or windows) where cells
 				 * must be expanded for their contents to be
 				 * considered.  0 means treat everything as
 				 * expanded.
 				 */
-    char *buffer;		/* buffer to hold node name */
+    char *buffer)		/* buffer to hold node name */
 {
     TileTypeBitMask mask;
     char *strptr;
@@ -180,7 +180,7 @@ SimSelectNode(scx, type, xMask, buffer)
 }
 
 int
-NullFunc()
+NullFunc(void)
 {
     return(0);
 }
@@ -202,8 +202,8 @@ NullFunc()
  */
 
 void
-SimFreeNodeList(List)
-    TileListElt **List;
+SimFreeNodeList(
+    TileListElt **List)
 {
     TileListElt *current;
     TileListElt *temp;
@@ -219,8 +219,9 @@ SimFreeNodeList(List)
 }
 
 TileListElt *
-simFreeNodeEntry(list, entry)
-    TileListElt *list, *entry;
+simFreeNodeEntry(
+    TileListElt *list,
+    TileListElt *entry)
 {
     TileListElt *prev, *curr;
 
@@ -257,10 +258,11 @@ simFreeNodeEntry(list, entry)
  */
 
 TileListElt *
-SimSelectArea(Rect *rect)
+SimSelectArea(
+    const Rect *rect)
 {
     int plane;
-    int SimSelectFunc();
+    int SimSelectFunc(Tile *tile, ClientData cdata); /* cb_database_srpaintarea_t (TileListElt **pHead) */
 
     /* only need to extract node names if the selection has changed or
      * if node aliases are to be printed.
@@ -276,7 +278,7 @@ SimSelectArea(Rect *rect)
 	{
 	    (void) DBSrPaintArea((Tile *) NULL, SelectDef->cd_planes[plane],
 			&TiPlaneRect, &DBAllButSpaceAndDRCBits,
-			SimSelectFunc, (ClientData) &NodeList);
+			SimSelectFunc, PTR2CD(&NodeList));
 	}
 
 	HashKill(&SimAbortSeenTbl);
@@ -316,11 +318,13 @@ SimSelectArea(Rect *rect)
  * ----------------------------------------------------------------------------
  */
 
+/** @typedef cb_database_srpaintarea_t */
 int
-SimSelectFunc(tile, pHead)
-    Tile *tile;			/* Tile in SelectDef. */
-    TileListElt **pHead;	/* list of node names found */
+SimSelectFunc(
+    Tile *tile,		/* Tile in SelectDef. */
+    ClientData cdata)	/* list of node names found (TileListElt **pHead) */
 {
+    TileListElt **pHead = (TileListElt **)CD2PTR(cdata);
     TileTypeBitMask 	mask;
     SearchContext 	scx;
     DBWclientRec 	*crec;
@@ -431,13 +435,13 @@ SimSelectFunc(tile, pHead)
  */
 
 bool
-SimSelection(cmd)
-    char *cmd;			/* rsim command to apply to the selection */
+SimSelection(
+    const char *cmd)		/* rsim command to apply to the selection */
 {
-    static char Hstring[] = "RSIM=1";
-    static char Lstring[] = "RSIM=0";
-    static char Xstring[] = "RSIM=X";
-    static char QUESTstring[] = "?";
+    static const char Hstring[] = "RSIM=1";
+    static const char Lstring[] = "RSIM=0";
+    static const char Xstring[] = "RSIM=X";
+    static const char QUESTstring[] = "?";
 
     char timeString[256];
     TileListElt	*current, *node_list;
@@ -445,7 +449,7 @@ SimSelection(cmd)
     char		*strPtr;
     bool		goodReply;
 
-    extern void		RsimErrorMsg();
+    extern void		RsimErrorMsg(void);
 
     timeString[0] = 0;
 
@@ -606,9 +610,9 @@ the selection.\n");
  */
 
 void
-SimAddLabels(SelectNodeList, rootuse)
-    TileListElt *SelectNodeList;
-    CellDef *rootuse;		/* the root cell def for the window */
+SimAddLabels(
+    TileListElt *SelectNodeList,
+    CellDef *rootuse)		/* the root cell def for the window */
 {
 
     TileListElt *current;
@@ -652,8 +656,8 @@ SimAddLabels(SelectNodeList, rootuse)
  */
 
 void
-SimRsimMouse(w)
-    MagWindow *w;
+SimRsimMouse(
+    MagWindow *w)
 {
 
     CellUse *cu;
@@ -720,7 +724,7 @@ SimRsimMouse(w)
  */
 
 void
-SimGetnode()
+SimGetnode(void)
 {
     TileListElt *current;
 
@@ -765,7 +769,7 @@ SimGetnode()
  */
 
 void
-SimGetsnode()
+SimGetsnode(void)
 {
     TileListElt *current;
 
@@ -813,7 +817,7 @@ SimGetsnode()
  */
 
 void
-SimEraseLabels()
+SimEraseLabels(void)
 {
     SimDefListElt *p;
 

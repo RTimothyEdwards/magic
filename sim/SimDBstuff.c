@@ -46,13 +46,6 @@
 #include "utils/styles.h"
 #include "graphics/graphics.h"
 
-/* Forward declarations */
-
-extern char *DBPrintUseId();
-extern int  dbcUnconnectFunc();
-extern void SimInitScxStk();
-extern void SimPopScx();
-extern void SimMakePathname();
 
 static char 		bestName[256];
 
@@ -83,9 +76,9 @@ static char 		bestName[256];
  */
 
 int
-SimConnectFunc(tile, cx)
-    Tile *tile;			/* Tile found. */
-    TreeContext *cx;		/* Describes context of search.  The client
+SimConnectFunc(
+    Tile *tile,			/* Tile found. */
+    TreeContext *cx)		/* Describes context of search.  The client
 				 * data is a pointer to the list head of
 				 * the conSrArg2's describing the areas
 				 * left to check.
@@ -94,7 +87,8 @@ SimConnectFunc(tile, cx)
     struct conSrArg2	*csa2;
     Rect 		tileArea, *srArea, newarea;
     SearchContext	*scx = cx->tc_scx;
-    TileTypeBitMask	notConnectMask, *connectMask;
+    TileTypeBitMask	notConnectMask;
+    const TileTypeBitMask *connectMask;
     TileType		loctype, ctype;
     TileType		dinfo = 0;
     int 		i, pNum;
@@ -318,8 +312,8 @@ SimConnectFunc(tile, cx)
 #define MAXPATHNAME 256
 
 void
-SimTreeCopyConnect(scx, mask, xMask, connect, area, destUse, Node_Name)
-    SearchContext *scx;			/* Describes starting area.  The
+SimTreeCopyConnect(
+    SearchContext *scx,			/* Describes starting area.  The
 					 * scx_use field gives the root of
 					 * the hierarchy to search, and the
 					 * scx_area field gives the starting
@@ -327,26 +321,26 @@ SimTreeCopyConnect(scx, mask, xMask, connect, area, destUse, Node_Name)
 					 * this area.  The transform is from
 					 * coords of scx_use to destUse.
 					 */
-    TileTypeBitMask *mask;		/* Tile types to start from in area. */
-    int xMask;				/* Information must be expanded in all
+    const TileTypeBitMask *mask,	/* Tile types to start from in area. */
+    int xMask,				/* Information must be expanded in all
 					 * of the windows indicated by this
 					 * mask.  Use 0 to consider all info
 					 * regardless of expansion.
 					 */
-    TileTypeBitMask *connect;		/* Points to table that defines what
+    const TileTypeBitMask *connect,	/* Points to table that defines what
 					 * each tile type is considered to
 					 * connect to.  Use DBConnectTbl as
 					 * a default.
 					 */
-    Rect *area;				/* The resulting information is
+    const Rect *area,			/* The resulting information is
 					 * clipped to this area.  Pass
 					 * TiPlaneRect to get everything.
 					 */
-    CellUse *destUse;			/* Result use in which to place
+    CellUse *destUse,			/* Result use in which to place
 					 * anything connected to material of
 					 * type mask in area of rootUse.
 					 */
-    char *Node_Name;			/* Name of node returned.
+    char *Node_Name)			/* Name of node returned.
 					 * NOTE:  Don't call this "NodeName",
 					 * because that conflicts with reserved
 					 * words in some compilers.
@@ -354,7 +348,7 @@ SimTreeCopyConnect(scx, mask, xMask, connect, area, destUse, Node_Name)
 {
     TerminalPath tpath;
     char pathName[MAXPATHNAME];
-    TileTypeBitMask *newmask;
+    const TileTypeBitMask *newmask;
     struct conSrArg2 csa2;
     TileType newtype;
 
@@ -438,11 +432,12 @@ SimTreeCopyConnect(scx, mask, xMask, connect, area, destUse, Node_Name)
  */
 
 bool
-efPreferredName(name1, name2)
-    char *name1, *name2;
+efPreferredName(
+    const char *name1,
+    const char *name2)
 {
     int nslashes1, nslashes2;
-    char *np1, *np2;
+    const char *np1, *np2;
 
     if( name1[0] == '@' && name1[1] == '=' )
 	return( TRUE );
@@ -550,38 +545,36 @@ efPreferredName(name1, name2)
  */
 
 int
-SimSrConnect(def, startArea, mask, connect, bounds, func, clientData)
-    CellDef *def;		/* Cell definition in which to carry out
+SimSrConnect(
+    CellDef *def,		/* Cell definition in which to carry out
 				 * the connectivity search.  Only paint
 				 * in this definition is considered.
 				 */
-    Rect *startArea;		/* Area to search for an initial tile.  Only
+    const Rect *startArea,	/* Area to search for an initial tile.  Only
 				 * tiles OVERLAPPING the area are considered.
 				 * This area should have positive x and y
 				 * dimensions.
 				 */
-    TileTypeBitMask *mask;	/* Only tiles of one of these types are used
+    const TileTypeBitMask *mask,/* Only tiles of one of these types are used
 				 * as initial tiles.
 				 */
-    TileTypeBitMask *connect;	/* Pointer to a table indicating what tile
+    const TileTypeBitMask *connect,
+				/* Pointer to a table indicating what tile
 				 * types connect to what other tile types.
 				 * Each entry gives a mask of types that
 				 * connect to tiles of a given type.
 				 */
-    Rect *bounds;		/* Area, in coords of scx->scx_use->cu_def,
+    const Rect *bounds,		/* Area, in coords of scx->scx_use->cu_def,
 				 * that limits the search:  only tiles
 				 * overalapping this area will be returned.
 				 * Use TiPlaneRect to search everywhere.
 				 */
-    int (*func)();		/* Function to apply at each connected tile. */
-    ClientData clientData;	/* Client data for above function. */
-
+    int (*func)(),		/* Function to apply at each connected tile. */
+    ClientData clientData)	/* Client data for above function. */
 {
     struct conSrArg csa;
     int startPlane, result;
     Tile *startTile;			/* Starting tile for search. */
-    extern int dbSrConnectFunc();	/* Forward declaration. */
-    extern int dbSrConnectStartFunc();
 
     result = 0;
     csa.csa_def = def;
@@ -597,7 +590,7 @@ SimSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     {
 	if (DBSrPaintArea((Tile *) NULL,
 	    def->cd_planes[startPlane], startArea, mask,
-	    dbSrConnectStartFunc, (ClientData) &startTile) != 0) break;
+	    dbSrConnectStartFunc, PTR2CD(&startTile)) != 0) break;
     }
     if (startTile == NULL) return 0;
 
@@ -608,7 +601,7 @@ SimSrConnect(def, startArea, mask, connect, bounds, func, clientData)
     csa.csa_clear = FALSE;
     csa.csa_connect = connect;
     csa.csa_pNum = startPlane;
-    if (dbSrConnectFunc(startTile, &csa) != 0) result = 1;
+    if (dbSrConnectFunc(startTile, PTR2CD(&csa)) != 0) result = 1;
 
     return result;
 }
@@ -661,28 +654,28 @@ SimSrConnect(def, startArea, mask, connect, bounds, func, clientData)
  */
 
 int
-SimTreeSrTiles(scx, mask, xMask, tpath, func, cdarg)
-    SearchContext *scx;		/* Pointer to search context specifying
+SimTreeSrTiles(
+    SearchContext *scx,		/* Pointer to search context specifying
 				 * a cell use to search, an area in the
 				 * coordinates of the cell's def, and a
 				 * transform back to "root" coordinates.
 				 */
-    TileTypeBitMask *mask;	/* Only tiles with a type for which
+    const TileTypeBitMask *mask,/* Only tiles with a type for which
 				 * a bit in this mask is on are processed.
 				 */
-    int xMask;			/* All subcells are visited recursively
+    int xMask,			/* All subcells are visited recursively
 				 * until we encounter uses whose flags,
 				 * when anded with xMask, are not
 				 * equal to xMask.
 				 */
-    TerminalPath *tpath;	/* Pointer to a structure describing a
+    TerminalPath *tpath,	/* Pointer to a structure describing a
 				 * partially filled-in terminal pathname.
 				 * Add new components as encountered.
 				 */
-    int (*func)();		/* Function to apply at each qualifying tile */
-    ClientData cdarg;		/* Client data for above function */
+    int (*func)(),		/* Function to apply at each qualifying tile */
+    ClientData cdarg)		/* Client data for above function */
 {
-    int SimCellTileSrFunc();
+    int SimCellTileSrFunc(SearchContext *scx, ClientData cdata); /* cb_database_cellsrarea_t (TreeFilter *fp) */
     TreeFilter filter;
 
     filter.tf_func = func;
@@ -693,7 +686,7 @@ SimTreeSrTiles(scx, mask, xMask, tpath, func, cdarg)
     filter.tf_tpath = tpath;
     filter.tf_dinfo = 0;
 
-    return SimCellTileSrFunc(scx, &filter);
+    return SimCellTileSrFunc(scx, PTR2CD(&filter));
 }
 
 /*
@@ -703,31 +696,31 @@ SimTreeSrTiles(scx, mask, xMask, tpath, func, cdarg)
  */
 
 int
-SimTreeSrNMTiles(scx, dinfo, mask, xMask, tpath, func, cdarg)
-    SearchContext *scx;		/* Pointer to search context specifying
+SimTreeSrNMTiles(
+    SearchContext *scx,		/* Pointer to search context specifying
 				 * a cell use to search, an area in the
 				 * coordinates of the cell's def, and a
 				 * transform back to "root" coordinates.
 				 */
-    TileType dinfo;		/* Type containing information about the
+    TileType dinfo,		/* Type containing information about the
 				 * triangular area to search.
 				 */
-    TileTypeBitMask *mask;	/* Only tiles with a type for which
+    const TileTypeBitMask *mask,/* Only tiles with a type for which
 				 * a bit in this mask is on are processed.
 				 */
-    int xMask;			/* All subcells are visited recursively
+    int xMask,			/* All subcells are visited recursively
 				 * until we encounter uses whose flags,
 				 * when anded with xMask, are not
 				 * equal to xMask.
 				 */
-    TerminalPath *tpath;	/* Pointer to a structure describing a
+    TerminalPath *tpath,	/* Pointer to a structure describing a
 				 * partially filled-in terminal pathname.
 				 * Add new components as encountered.
 				 */
-    int (*func)();		/* Function to apply at each qualifying tile */
-    ClientData cdarg;		/* Client data for above function */
+    int (*func)(),		/* Function to apply at each qualifying tile */
+    ClientData cdarg)		/* Client data for above function */
 {
-    int SimCellTileSrFunc();
+    int SimCellTileSrFunc(SearchContext *scx, ClientData cdata); /* cb_database_cellsrarea_t (TreeFilter *fp) */
     TreeFilter filter;
 
     filter.tf_func = func;
@@ -738,18 +731,20 @@ SimTreeSrNMTiles(scx, dinfo, mask, xMask, tpath, func, cdarg)
     filter.tf_planes = DBTechTypesToPlanes(mask);
     filter.tf_tpath = tpath;
 
-    return SimCellTileSrFunc(scx, &filter);
+    return SimCellTileSrFunc(scx, PTR2CD(&filter));
 }
 
 /*
  * Filter procedure applied to subcells by SimTreeSrTiles().
  */
 
+/** @typedef cb_database_cellsrarea_t */
 int
-SimCellTileSrFunc(scx, fp)
-    SearchContext *scx;
-    TreeFilter *fp;
+SimCellTileSrFunc(
+    SearchContext *scx,
+    ClientData cdata)	/* (TreeFilter *fp) */
 {
+    TreeFilter *fp = (TreeFilter *)CD2PTR(cdata);
     TreeContext context;
     TerminalPath *tp;
     CellDef *def = scx->scx_use->cu_def;
@@ -818,7 +813,7 @@ SimCellTileSrFunc(scx, fp)
      * in our tile plane.
      */
 
-    if (DBCellSrArea(scx, SimCellTileSrFunc, (ClientData) fp))
+    if (DBCellSrArea(scx, SimCellTileSrFunc, PTR2CD(fp)))
 	result = 1;
 
 cleanup:
@@ -860,15 +855,15 @@ cleanup:
  */
 
 int
-SimPutLabel(cellDef, rect, align, text, type)
-    CellDef *cellDef;	/* Cell in which label is placed */
-    Rect *rect;		/* Location of label; see above for description */
-    int align;		/* Orientation/alignment of text.  If this is < 0,
+SimPutLabel(
+    CellDef *cellDef,	/* Cell in which label is placed */
+    const Rect *rect,	/* Location of label, see above for description */
+    int align,		/* Orientation/alignment of text.  If this is < 0,
 			 * an orientation will be picked to keep the text
 			 * inside the cell boundary.
 			 */
-    char *text;		/* Pointer to actual text of label */
-    TileType type;	/* Type of tile to be labeled */
+    const char *text,	/* Pointer to actual text of label */
+    TileType type)	/* Type of tile to be labeled */
 {
     Label *lab;
     int len, x1, x2, y1, y2, tmp, labx, laby;
@@ -963,9 +958,9 @@ SimPutLabel(cellDef, rect, align, text, type)
  */
 
 void
-SimRsimHandler(w, cmd)
-    MagWindow *w;			/* Window containing cursor. */
-    TxCommand *cmd;		/* Describes what happened. */
+SimRsimHandler(
+    MagWindow *w,		/* Window containing cursor. */
+    TxCommand *cmd)		/* Describes what happened. */
 {
 
     static int buttonCorner = TOOL_ILG;

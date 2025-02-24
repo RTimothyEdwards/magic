@@ -2,16 +2,18 @@
 #define _SIM_H
 
 #include "utils/magic.h"
+#include "textio/txcommands.h"	/* TxCommand */
+#include "windows/windows.h"	/* MagWindow */
 
-extern	char	*SimGetNodeCommand();
-extern	char	*SimGetNodeName();
-extern	char	*SimSelectNode();
-extern	bool	SimGetReplyLine();
-extern	void	SimRsimIt();
-extern	void	SimEraseLabels();
-extern	bool	efPreferredName();
-extern  void	SimRsimHandler();
-extern  void	SimInit();
+extern	const char *SimGetNodeCommand(const char *cmd);
+extern	char	*SimGetNodeName(SearchContext *sx, Tile *tp, const char *path);
+extern	char	*SimSelectNode(SearchContext *scx, TileType type, int xMask, char *buffer);
+extern	bool	SimGetReplyLine(char **replyLine);
+extern	void	SimRsimIt(const char *cmd, const char *nodeName);
+extern	void	SimEraseLabels(void);
+extern	bool	efPreferredName(const char *name1, const char *name2);
+extern  void	SimRsimHandler(MagWindow *w, TxCommand *cmd);
+extern  void	SimInit(void);
 
 extern  bool	SimRecomputeSel;
 extern 	bool	SimInitGetnode;
@@ -29,18 +31,22 @@ extern HashTable SimGetnodeTbl;
 extern HashTable SimAbortSeenTbl;
 
 /* C99 compat */
-extern void SimGetnode();
-extern void SimGetsnode();
-extern void SimGetNodeCleanUp();
-extern int  SimPutLabel();
-extern int  SimSrConnect();
-extern void SimTreeCopyConnect();
-extern int  SimTreeSrNMTiles();
-extern int  SimTreeSrTiles();
-extern bool SimStartRsim();
-extern void SimConnectRsim();
-extern bool SimSelection();
-extern void SimRsimMouse();
-extern int  SimFillBuffer();
+extern void SimGetnode(void);
+extern void SimGetsnode(void);
+extern void SimGetNodeCleanUp(void);
+extern int SimPutLabel(CellDef *cellDef, const Rect *rect, int align, const char *text, TileType type);
+extern int SimSrConnect(CellDef *def, const Rect *startArea, const TileTypeBitMask *mask, const TileTypeBitMask *connect,
+                        const Rect *bounds, int (*func)(), ClientData clientData);
+extern void SimTreeCopyConnect(SearchContext *scx, const TileTypeBitMask *mask, int xMask, const TileTypeBitMask *connect,
+                               const Rect *area, CellUse *destUse, char *Node_Name);
+extern int SimTreeSrNMTiles(SearchContext *scx, TileType dinfo, const TileTypeBitMask *mask, int xMask, TerminalPath *tpath,
+                            int (*func)(), ClientData cdarg);
+extern int SimTreeSrTiles(SearchContext *scx, const TileTypeBitMask *mask, int xMask, TerminalPath *tpath,
+                          int (*func)(), ClientData cdarg);
+extern bool SimStartRsim(char *argv[]);
+extern void SimConnectRsim(bool escRsim);
+extern bool SimSelection(const char *cmd);
+extern void SimRsimMouse(MagWindow *w);
+extern int SimFillBuffer(char *buffHead, char **pLastChar, int *charCount);
 
 #endif /* _SIM_H */
