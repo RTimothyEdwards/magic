@@ -4252,11 +4252,11 @@ mergeAttr(a1, a2)
 	*a1 = *a2;
     else
     {
-	char *t;
-	int l1 = strlen(*a1);
-	int l2 = strlen(*a2);
-	t = (char *) mallocMagic((unsigned int)((l1 + l2) + 1));
-	t = (char *) strcat(*a1, *a2);
+	size_t l1 = strlen(*a1);
+	size_t l2 = strlen(*a2);
+	char *t = (char *) mallocMagic(l1 + l2 + 1);
+	strcpy(t, *a1); /* strcpy_advance() */
+	strcat(t, *a2);
 	freeMagic(*a1);
 	*a1 = t;
     }
