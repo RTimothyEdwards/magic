@@ -132,6 +132,12 @@ AC_HEADER_STDC
 dnl Need either setenv or putenv
 AC_CHECK_FUNCS(setenv putenv)
 
+dnl Check for getrlimit
+AC_CHECK_FUNCS(getrlimit)
+
+dnl Check for setrlimit
+AC_CHECK_FUNCS(setrlimit)
+
 dnl Check for vfork
 AC_CHECK_FUNC(vfork)
 
@@ -149,6 +155,9 @@ AC_CHECK_HEADERS(param.h)
 
 dnl Check for <paths.h>
 AC_CHECK_HEADERS(paths.h)
+
+dnl Check for <sys/resource.h>
+AC_CHECK_HEADERS(sys/resource.h)
 
 dnl Check for <sys/time.h>
 AC_CHECK_HEADERS(sys/time.h)

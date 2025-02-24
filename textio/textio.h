@@ -110,6 +110,4 @@ extern void TxInit(void);
 extern void TxInitReadline(void);
 #endif
 
-#define   TX_MAX_OPEN_FILES       20
-
 #endif /* _TEXTIO_H */
