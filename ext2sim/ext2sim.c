@@ -1744,34 +1744,6 @@ Dev    *dev;
 /*
  * ----------------------------------------------------------------------------
  *
- * mergeAttr --
- * Macro to merge two attribute strings
- *
- * Results:
- *  The merged strings
- *
- * Side effects:
- *  Might allocate and free memory.
- *
- * ----------------------------------------------------------------------------
- */
-#define	mergeAttr(a1, a2) { \
-	if ( a1 == NULL ) a1 = a2 ; \
-	else { \
-		char *t; \
-		int l1 = strlen(a1); \
-		int l2 = strlen(a2); \
-		t = (char *) mallocMagic((unsigned) (l1+l2)+1); \
-		t = (char *) strcat(a1,a2); \
-		freeMagic(a1); \
-		a1 = t ; \
-	} \
-}
-
-
-/*
- * ----------------------------------------------------------------------------
- *
  * simmergeVisit --
  * Visits each dev throu EFVisitDevs and finds if it is in parallel with
  * any previously visited dev.
