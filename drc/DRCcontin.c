@@ -548,8 +548,10 @@ DRCContinuous()
 
 	if (DRCPendingRoot != (DRCPendingCookie *)NULL) {
 	    DBReComputeBbox(DRCPendingRoot->dpc_def);
-	    freeMagic((char *) DRCPendingRoot);
+	    free_magic1_t mm1 = freeMagic1_init();
+	    freeMagic1(&mm1, (char *) DRCPendingRoot);
 	    DRCPendingRoot = DRCPendingRoot->dpc_next;
+	    freeMagic1_end(&mm1);
 	}
 
 	/* Give the timestamp manager a chance to update any mismatches. */

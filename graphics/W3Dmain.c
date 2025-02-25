@@ -309,6 +309,7 @@ w3dFillOps(trans, tile, cliprect, ztop, zbot)
     }
     else
     {
+	free_magic1_t mm1 = freeMagic1_init();
 	for (segptr = tilesegs; segptr != NULL; segptr = segptr->r_next)
 	{
 	    GeoTransRect(trans, &segptr->r_r, &r2);
@@ -322,8 +323,9 @@ w3dFillOps(trans, tile, cliprect, ztop, zbot)
 	    }
 	    else
 		w3dFillEdge(&r, &r2, ztop, zbot);
-	    freeMagic(segptr);
+	    freeMagic1(&mm1, segptr);
 	}
+	freeMagic1_end(&mm1);
 
 	/* For non-manhattan tiles, GrBoxOutline only returns	*/
 	/* the manhattan edges.  This leaves the (possibly	*/

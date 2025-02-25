@@ -684,8 +684,10 @@ runexttosim:
 	EFVisitDevs(simmergeVisit, (ClientData) NULL);
 	TxPrintf("Devices merged: %d\n", esDevsMerged);
 	esFMIndex = 0;
+	free_magic1_t mm1 = freeMagic1_init();
 	for (p = devMergeList; p != NULL; p = p->next)
-	    freeMagic(p);
+	    freeMagic1(&mm1, p);
+	freeMagic1_end(&mm1);
 	devMergeList = NULL;
     }
 

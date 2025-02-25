@@ -426,8 +426,10 @@ extDefPush(defList)
     while (defList != NULL)
     {
     	StackPush((ClientData)defList->ld_def, extDefStack);
-	freeMagic(defList);
+	free_magic1_t mm1 = freeMagic1_init();
+	freeMagic1(&mm1, defList);
 	defList = defList->ld_next;
+	freeMagic1_end(&mm1);
     }
 }
 
@@ -569,8 +571,12 @@ extParents(use, doExtract)
     extDefListFunc(use, &defList);
 
     /* use->cu_def is on the top of the list, so remove it */ 
-    freeMagic(defList);
-    defList = defList->ld_next;
+    {
+	free_magic1_t mm1 = freeMagic1_init();
+	freeMagic1(&mm1, defList);
+	defList = defList->ld_next;
+	freeMagic1_end(&mm1);
+    }
 
     while (defList != NULL)
     {
@@ -585,8 +591,10 @@ extParents(use, doExtract)
 	    sl = newsl;
 	}
 
-	freeMagic(defList);
+	free_magic1_t mm1 = freeMagic1_init();
+	freeMagic1(&mm1, defList);
 	defList = defList->ld_next;
+	freeMagic1_end(&mm1);
     }
 
     /* Mark all defs as being unvisited */
@@ -601,10 +609,14 @@ extParents(use, doExtract)
     StackFree(extDefStack);
 
     /* Replace any modified substrate planes in use->cu_def's children */
-    for (; sl; sl = sl->sl_next)
     {
-	ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
-	freeMagic(sl);
+	free_magic1_t mm1 = freeMagic1_init();
+	for (; sl; sl = sl->sl_next)
+	{
+	    ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
+	    freeMagic1(&mm1, sl);
+	}
+	freeMagic1_end(&mm1);
     }
 }
 
@@ -765,8 +777,12 @@ ExtractOneCell(def, outName, doLength)
     extDefListFunc(&dummyUse, &defList);
 
     /* def is on top of the list, so remove it */
-    freeMagic(defList);
-    defList = defList->ld_next;
+    {
+        free_magic1_t mm1 = freeMagic1_init();
+        freeMagic1(&mm1, defList);
+        defList = defList->ld_next;
+        freeMagic1_end(&mm1);
+    }
 
     /* Prepare substrates of all children of def */
     while (defList != NULL)
@@ -781,8 +797,10 @@ ExtractOneCell(def, outName, doLength)
             newsl->sl_next = sl;
             sl = newsl;
         }
-        freeMagic(defList);
+        free_magic1_t mm1 = freeMagic1_init();
+        freeMagic1(&mm1, defList);
         defList = defList->ld_next;
+        freeMagic1_end(&mm1);
     }
 
     savePlane = ExtCell(def, outName, doLength);
@@ -790,11 +808,13 @@ ExtractOneCell(def, outName, doLength)
     /* Restore all modified substrate planes */
 
     if (savePlane != NULL) ExtRevertSubstrate(def, savePlane);
+    free_magic1_t mm1 = freeMagic1_init();
     for (; sl; sl = sl->sl_next)
     {
         ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
-        freeMagic(sl);
+        freeMagic1(&mm1, sl);
     }
+    freeMagic1_end(&mm1);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -998,12 +1018,14 @@ extExtractStack(stack, doExtract, rootDef)
     }
 
     /* Replace any modified substrate planes */
+    free_magic1_t mm1 = freeMagic1_init();
     for (; sl; sl = sl->sl_next)
     {
 	ExtRevertSubstrate(sl->sl_def, sl->sl_plane);
 	sl->sl_def->cd_flags &= ~CDNOEXTRACT; 
-	freeMagic(sl);
+	freeMagic1(&mm1, sl);
     }
+    freeMagic1_end(&mm1);
 
     if (!doExtract)
     {

@@ -466,11 +466,15 @@ badusage:
     }
 
 freelist:
-    la = lahead;
-    while (la != NULL)
     {
-	freeMagic((char *)la);
-	la = la->ar_next;
+	la = lahead;
+	while (la != NULL)
+	{
+	    free_magic1_t mm1 = freeMagic1_init();
+	    freeMagic1(&mm1, (char *)la);
+	    la = la->ar_next;
+	    freeMagic1_end(&mm1);
+	}
     }
     return;
 }
