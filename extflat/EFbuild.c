@@ -1487,6 +1487,34 @@ efBuildUse(def, subDefName, subUseId, ta, tb, tc, td, te, tf)
 /*
  * ----------------------------------------------------------------------------
  *
+ * efConnectionFreeLinkedList --
+ *
+ * Release memory for linked-list of Connection* based on internal list
+ *  at Connection->conn_next.  'conn' argument must be non-NULL.
+ *
+ * Results:
+ *	Deallocates linked-list of Connection* starting at 'conn'
+ *
+ * Side effects:
+ *	Deallocates one or more connection record(s).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+efConnectionFreeLinkedList(Connection *conn)
+{
+    while (conn)
+    {
+	Connection *next = conn->conn_next;
+	efFreeConn(conn);
+	conn = next;
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * efBuildConnect --
  *
  * Process a "connect" line from a .ext file.
