@@ -47,7 +47,7 @@ genCanonicalMaxwidth(bbox, starttile, plane, mask)
 	mrd->listdepth = 8;
     }
     if (mask == NULL)
-	mrd->match = starttile->ti_client;
+	mrd->match = TiGetClient(starttile);
     else
 	mrd->match = CLIENTDEFAULT;
 
@@ -104,7 +104,7 @@ FindMaxRects(tile, mrd)
     int s, entries;
 
     if (mrd->match != CLIENTDEFAULT)
-	if (tile->ti_client == mrd->match)
+	if (TiGetClient(tile) == mrd->match)
 	    return 0;
 
     entries = 0;

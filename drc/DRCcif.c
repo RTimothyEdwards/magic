@@ -59,8 +59,8 @@ extern void drcCheckCifArea();
 extern Stack	*DRCstack;
 
 #define PUSHTILE(tp) \
-    if ((tp)->ti_client == (ClientData) DRC_UNPROCESSED) { \
-        (tp)->ti_client = (ClientData)  DRC_PENDING; \
+    if (TiGetClient(tp) == DRC_UNPROCESSED) { \
+        TiSetClientINT(tp, DRC_PENDING); \
         STACKPUSH((ClientData) (tp), DRCstack); \
     }
 
@@ -1328,9 +1328,9 @@ drcCheckCifArea(starttile, arg, cptr)
     while (!StackEmpty(DRCstack))
     {
 	tile = (Tile *) STACKPOP(DRCstack);
-	if (tile->ti_client != (ClientData)DRC_PENDING) continue;
+	if (TiGetClientINT(tile) != DRC_PENDING) continue;
 	area += (long)(RIGHT(tile)-LEFT(tile))*(TOP(tile)-BOTTOM(tile));
-	tile->ti_client = (ClientData)DRC_PROCESSED;
+	TiSetClientINT(tile, DRC_PROCESSED);
 	/* are we at the clip boundary? If so, skip to the end */
 	if (RIGHT(tile) == cliprect->r_xtop ||
 	    LEFT(tile) == cliprect->r_xbot ||
@@ -1373,7 +1373,7 @@ drcCheckCifArea(starttile, arg, cptr)
      }
 forgetit:
      /* reset the tiles */
-     starttile->ti_client = (ClientData)DRC_UNPROCESSED;
+     TiSetClient(starttile, DRC_UNPROCESSED);
      STACKPUSH(starttile, DRCstack);
      while (!StackEmpty(DRCstack))
      {
@@ -1381,34 +1381,34 @@ forgetit:
 
 	/* Top */
 	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-	    if (tp->ti_client != (ClientData)DRC_UNPROCESSED)
+	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
-	    	 tp->ti_client = (ClientData)DRC_UNPROCESSED;
-		 STACKPUSH(tp,DRCstack);
+		TiSetClient(tp, DRC_UNPROCESSED);
+		STACKPUSH(tp,DRCstack);
 	    }
 
 	/* Left */
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
-	    if (tp->ti_client != (ClientData)DRC_UNPROCESSED)
+	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
-	    	 tp->ti_client = (ClientData)DRC_UNPROCESSED;
-		 STACKPUSH(tp,DRCstack);
+		TiSetClient(tp, DRC_UNPROCESSED);
+		STACKPUSH(tp,DRCstack);
 	    }
 
 	/* Bottom */
 	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
-	    if (tp->ti_client != (ClientData)DRC_UNPROCESSED)
+	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
-	    	 tp->ti_client = (ClientData)DRC_UNPROCESSED;
-		 STACKPUSH(tp,DRCstack);
+		TiSetClient(tp, DRC_UNPROCESSED);
+		STACKPUSH(tp,DRCstack);
 	    }
 
 	/* Right */
 	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-	    if (tp->ti_client != (ClientData)DRC_UNPROCESSED)
+	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
-	    	 tp->ti_client = (ClientData)DRC_UNPROCESSED;
-		 STACKPUSH(tp,DRCstack);
+		TiSetClient(tp, DRC_UNPROCESSED);
+		STACKPUSH(tp,DRCstack);
 	    }
 
      }
@@ -1505,13 +1505,13 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
     while (!StackEmpty(DRCstack))
     {
 	tile = (Tile *) STACKPOP(DRCstack);
-	if (tile->ti_client != (ClientData)DRC_PENDING) continue;
+	if (TiGetClientINT(tile) != DRC_PENDING) continue;
 
 	if (boundrect.r_xbot > LEFT(tile)) boundrect.r_xbot = LEFT(tile);
 	if (boundrect.r_xtop < RIGHT(tile)) boundrect.r_xtop = RIGHT(tile);
 	if (boundrect.r_ybot > BOTTOM(tile)) boundrect.r_ybot = BOTTOM(tile);
 	if (boundrect.r_ytop < TOP(tile)) boundrect.r_ytop = TOP(tile);
-	tile->ti_client = (ClientData)DRC_PROCESSED;
+	TiSetClientINT(tile, DRC_PROCESSED);
 
          if (boundrect.r_xtop - boundrect.r_xbot > edgelimit &&
              boundrect.r_ytop - boundrect.r_ybot > edgelimit) break;
@@ -1553,7 +1553,7 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
 
      }
      /* reset the tiles */
-     starttile->ti_client = (ClientData)DRC_UNPROCESSED;
+     TiSetClient(starttile, DRC_UNPROCESSED);
      STACKPUSH(starttile, DRCstack);
      while (!StackEmpty(DRCstack))
      {
@@ -1561,34 +1561,34 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
 
 	/* Top */
 	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-	    if (tp->ti_client != (ClientData)DRC_UNPROCESSED)
+	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
-	    	 tp->ti_client = (ClientData)DRC_UNPROCESSED;
-		 STACKPUSH(tp,DRCstack);
+		TiSetClient(tp, DRC_UNPROCESSED);
+		STACKPUSH(tp,DRCstack);
 	    }
 
 	/* Left */
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
-	    if (tp->ti_client != (ClientData)DRC_UNPROCESSED)
+	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
-	    	 tp->ti_client = (ClientData)DRC_UNPROCESSED;
-		 STACKPUSH(tp,DRCstack);
+		TiSetClient(tp, DRC_UNPROCESSED);
+		STACKPUSH(tp,DRCstack);
 	    }
 
 	/* Bottom */
 	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
-	    if (tp->ti_client != (ClientData)DRC_UNPROCESSED)
+	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
-	    	 tp->ti_client = (ClientData)DRC_UNPROCESSED;
-		 STACKPUSH(tp,DRCstack);
+		TiSetClient(tp, DRC_UNPROCESSED);
+		STACKPUSH(tp,DRCstack);
 	    }
 
 	/* Right */
 	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-	    if (tp->ti_client != (ClientData)DRC_UNPROCESSED)
+	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
-	    	 tp->ti_client = (ClientData)DRC_UNPROCESSED;
-		 STACKPUSH(tp,DRCstack);
+		TiSetClient(tp, DRC_UNPROCESSED);
+		STACKPUSH(tp,DRCstack);
 	    }
 
      }

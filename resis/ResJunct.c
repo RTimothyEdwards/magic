@@ -60,9 +60,9 @@ ResNewSDDevice(tile, tp, xj, yj, direction, PendingList)
      * be generated which means "more debugging needed";  however, it will
      * not cause a segmentation violation.
      */
-    if (tp->ti_client == CLIENTDEFAULT) return;
+    if (TiGetClient(tp) == CLIENTDEFAULT) return;
 
-    j = (tileJunk *) tp->ti_client;
+    j = (tileJunk *) TiGetClientPTR(tp);
     resDev = j->deviceList;
     if ((j->sourceEdge & direction) != 0)
     {
@@ -128,7 +128,7 @@ ResNewSubDevice(tile, tp, xj, yj, direction, PendingList)
     tileJunk	*j;
 
     newnode = FALSE;
-    j = (tileJunk *) tp->ti_client;
+    j = (tileJunk *) TiGetClientPTR(tp);
     resDev = j->deviceList;
 
     /* Arrived at a device that has a terminal connected to substrate	*/
@@ -181,8 +181,8 @@ ResProcessJunction(tile, tp, xj, yj, NodeList)
     ResJunction *junction;
     resNode	*resptr;
     jElement    *jcell;
-    tileJunk	*j0 = (tileJunk *)tile->ti_client;
-    tileJunk	*j2 = (tileJunk *)tp->ti_client;
+    tileJunk	*j0 = (tileJunk *)TiGetClientPTR(tile);
+    tileJunk	*j2 = (tileJunk *)TiGetClientPTR(tp);
 
 #ifdef PARANOID
     if (tile == tp)

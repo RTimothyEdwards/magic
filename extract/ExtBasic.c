@@ -3038,10 +3038,12 @@ extTransFindSubsFunc1(tile, noderecptr)
      * regions under the same device)
      */
 
-    if (tile->ti_client != (ClientData) extUnInit)
+    ClientData ticlient = TiGetClient(tile);
+    if (ticlient != extUnInit)
     {
+	NodeRegion *reg = (NodeRegion *) CD2PTR(ticlient);
 	if ((noderecptr->region != (NodeRegion *)NULL) &&
-		    ((ClientData)noderecptr->region != tile->ti_client))
+		    (noderecptr->region != reg))
 	    TxError("Warning:  Split substrate under device at (%d %d)\n",
 			tile->ti_ll.p_x, tile->ti_ll.p_y);
 	if (IsSplit(tile))
@@ -3052,7 +3054,7 @@ extTransFindSubsFunc1(tile, noderecptr)
 	else
 	    type = TiGetTypeExact(tile);
 
-	noderecptr->region = (NodeRegion *)tile->ti_client;
+	noderecptr->region = (NodeRegion *) reg;
 	noderecptr->layer = type;
 	return 1;
     }
@@ -3495,8 +3497,8 @@ extTermAPFunc(tile, pNum, eapd)
 	    eapd->eapd_perim += MIN(RIGHT(tile), RIGHT(tp)) -
 			MAX(LEFT(tile), LEFT(tp));
 	    if (TTMaskHasType(eapd->eapd_gatemask, type))
-		if (tp->ti_client != (ClientData)eapd->eapd_gatenode)
-		    extAddSharedDevice(eapd, (NodeRegion *)tp->ti_client);
+		if (TiGetClientPTR(tp) != eapd->eapd_gatenode)
+		    extAddSharedDevice(eapd, (NodeRegion *)TiGetClientPTR(tp));
 	}
     }
 
@@ -3509,8 +3511,8 @@ extTermAPFunc(tile, pNum, eapd)
 	    eapd->eapd_perim += MIN(RIGHT(tile), RIGHT(tp)) -
 			MAX(LEFT(tile), LEFT(tp));
 	    if (TTMaskHasType(eapd->eapd_gatemask, type))
-		if (tp->ti_client != (ClientData)eapd->eapd_gatenode)
-		    extAddSharedDevice(eapd, (NodeRegion *)tp->ti_client);
+		if (TiGetClientPTR(tp) != eapd->eapd_gatenode)
+		    extAddSharedDevice(eapd, (NodeRegion *)TiGetClientPTR(tp));
 	}
     }
 
@@ -3523,8 +3525,8 @@ extTermAPFunc(tile, pNum, eapd)
 	    eapd->eapd_perim += MIN(TOP(tile), TOP(tp)) -
 			MAX(BOTTOM(tile), BOTTOM(tp));
 	    if (TTMaskHasType(eapd->eapd_gatemask, type))
-		if (tp->ti_client != (ClientData)eapd->eapd_gatenode)
-		    extAddSharedDevice(eapd, (NodeRegion *)tp->ti_client);
+		if (TiGetClientPTR(tp) != eapd->eapd_gatenode)
+		    extAddSharedDevice(eapd, (NodeRegion *)TiGetClientPTR(tp));
 	}
     }
 
@@ -3537,8 +3539,8 @@ extTermAPFunc(tile, pNum, eapd)
 	    eapd->eapd_perim += MIN(TOP(tile), TOP(tp)) -
 			MAX(BOTTOM(tile), BOTTOM(tp));
 	    if (TTMaskHasType(eapd->eapd_gatemask, type))
-		if (tp->ti_client != (ClientData)eapd->eapd_gatenode)
-		    extAddSharedDevice(eapd, (NodeRegion *)tp->ti_client);
+		if (TiGetClientPTR(tp) != eapd->eapd_gatenode)
+		    extAddSharedDevice(eapd, (NodeRegion *)TiGetClientPTR(tp));
 	}
     }
 
@@ -4803,9 +4805,9 @@ extNodeAreaFunc(tile, arg)
 	 * been visited in the meantime.  If it's still unvisited,
 	 * visit it and process its neighbors.
 	 */
-	if (tile->ti_client == (ClientData) reg)
+	if (TiGetClientPTR(tile) == reg)
 	    continue;
-	tile->ti_client = (ClientData) reg;
+	TiSetClientPTR(tile, reg);
 	if (DebugIsSet(extDebugID, extDebNeighbor))
 	    extShowTile(tile, "neighbor", 1);
 
@@ -4906,24 +4908,25 @@ topside:
 		len = EDGENULL(&r) ? 0 : r.r_xtop - r.r_xbot;
 	    }
 	    else len = MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
+	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
         	t = SplitBottomType(tp);
-		if (tp->ti_client == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILEBOTTOM(tp, tilePlaneNum);
 		}
-		else if (tp->ti_client != (ClientData)reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to. */
-		    tp->ti_client = extUnInit;
+		    TiSetClient(tp, extUnInit);
 		    PUSHTILEBOTTOM(tp, tilePlaneNum);
 		}
 	    }
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (tp->ti_client == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}
@@ -4951,24 +4954,25 @@ leftside:
 		len = EDGENULL(&r) ? 0 : r.r_ytop - r.r_ybot;
 	    }
 	    else len = MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
+	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
                 t = SplitRightType(tp);
-		if (tp->ti_client == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILERIGHT(tp, tilePlaneNum);
 		}
-		else if (tp->ti_client != (ClientData)reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to. */
-		    tp->ti_client = extUnInit;
+		    TiSetClient(tp, extUnInit);
 		    PUSHTILERIGHT(tp, tilePlaneNum);
 		}
 	    }
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (tp->ti_client == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}
@@ -4997,24 +5001,25 @@ bottomside:
 		len = EDGENULL(&r) ? 0 : r.r_xtop - r.r_xbot;
 	    }
 	    else len = MIN(RIGHT(tile), RIGHT(tp)) - MAX(LEFT(tile), LEFT(tp));
+	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
                 t = SplitTopType(tp);
-		if (tp->ti_client == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILETOP(tp, tilePlaneNum);
 		}
-		else if (tp->ti_client != (ClientData)reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to. */
-		    tp->ti_client = extUnInit;
+		    TiSetClient(tp, extUnInit);
 		    PUSHTILETOP(tp, tilePlaneNum);
 		}
 	    }
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (tp->ti_client == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}
@@ -5042,24 +5047,25 @@ rightside:
 		len = EDGENULL(&r) ? 0 : r.r_ytop - r.r_ybot;
 	    }
 	    else len = MIN(TOP(tile), TOP(tp)) - MAX(BOTTOM(tile), BOTTOM(tp));
+	    ClientData ticlient = TiGetClient(tp);
             if (IsSplit(tp))
 	    {
                 t = SplitLeftType(tp);
-		if (tp->ti_client == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
-		else if (tp->ti_client != (ClientData)reg && TTMaskHasType(mask, t))
+		else if ((NodeRegion *)CD2PTR(ticlient) != reg && TTMaskHasType(mask, t))
 		{
 		    /* Count split tile twice, once for each node it belongs to	*/
-		    tp->ti_client = extUnInit;
+		    TiSetClient(tp, extUnInit);
 		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
 	    }
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (tp->ti_client == extUnInit && TTMaskHasType(mask, t))
+		if (ticlient == extUnInit && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}
@@ -5090,7 +5096,7 @@ donesides:
 		    GOTOPOINT(tp, &tile->ti_ll);
 		    plane->pl_hint = tp;
 
-		    if (tp->ti_client != extUnInit) continue;
+		    if (TiGetClient(tp) != extUnInit) continue;
 
 		    /* tp and tile should have the same geometry for a contact */
 		    if (IsSplit(tile) && IsSplit(tp))

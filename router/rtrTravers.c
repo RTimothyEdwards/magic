@@ -268,13 +268,13 @@ rtrSrTraverseFunc(tile, ts)
 
     if (csa->csa_clear)
     {
-	if (tile->ti_client == (ClientData) CLIENTDEFAULT) return 0;
-	tile->ti_client = (ClientData) CLIENTDEFAULT;
+	if (TiGetClient(tile) == CLIENTDEFAULT) return 0;
+	TiSetClient(tile, CLIENTDEFAULT);
     }
     else
     {
-	if (tile->ti_client != (ClientData) CLIENTDEFAULT) return 0;
-	tile->ti_client = (ClientData) 1;
+	if (TiGetClient(tile) != CLIENTDEFAULT) return 0;
+	TiSetClientINT(tile, 1);
     }
 
     /* Call the client function, if there is one. */
@@ -300,9 +300,9 @@ rtrSrTraverseFunc(tile, ts)
 	{
 	    if (csa->csa_clear)
 	    {
-		if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
+		if (TiGetClient(t2) == CLIENTDEFAULT) continue;
 	    }
-	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) continue;
+	    else if (TiGetClient(t2) != CLIENTDEFAULT) continue;
 	    if (rtrSrTraverseFunc(t2, &nts) != 0) return 1;
 	}
     }
@@ -315,9 +315,9 @@ rtrSrTraverseFunc(tile, ts)
 	{
 	    if (csa->csa_clear)
 	    {
-		if (t2->ti_client == (ClientData) CLIENTDEFAULT) continue;
+		if (TiGetClient(t2) == CLIENTDEFAULT) continue;
 	    }
-	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) continue;
+	    else if (TiGetClient(t2) != CLIENTDEFAULT) continue;
 	    if (rtrSrTraverseFunc(t2, &nts) != 0) return 1;
 	}
     }
@@ -330,9 +330,9 @@ rtrSrTraverseFunc(tile, ts)
 	{
 	    if (csa->csa_clear)
 	    {
-		if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextRight;
+		if (TiGetClient(t2) == CLIENTDEFAULT) goto nextRight;
 	    }
-	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) goto nextRight;
+	    else if (TiGetClient(t2) != CLIENTDEFAULT) goto nextRight;
 	    if (rtrSrTraverseFunc(t2, &nts) != 0) return 1;
 	}
 	nextRight: if (BOTTOM(t2) <= tileArea.r_ybot) break;
@@ -346,9 +346,9 @@ rtrSrTraverseFunc(tile, ts)
 	{
 	    if (csa->csa_clear)
 	    {
-		if (t2->ti_client == (ClientData) CLIENTDEFAULT) goto nextTop;
+		if (TiGetClient(t2) == CLIENTDEFAULT) goto nextTop;
 	    }
-	    else if (t2->ti_client != (ClientData) CLIENTDEFAULT) goto nextTop;
+	    else if (TiGetClient(t2) != CLIENTDEFAULT) goto nextTop;
 	    if (rtrSrTraverseFunc(t2, &nts) != 0) return 1;
 	}
 	nextTop: if (LEFT(t2) <= tileArea.r_xbot) break;

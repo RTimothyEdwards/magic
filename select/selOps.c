@@ -404,9 +404,10 @@ selShortTileProc(tile, ssd)
     Tile *tile;
     ShortSearchData *ssd;
 {
-    if ((int)CD2INT(tile->ti_client) < ssd->cost)
+    const int curr = (int)TiGetClientINT(tile);
+    if (curr < ssd->cost)
     {
-	ssd->cost = (int)CD2INT(tile->ti_client);
+	ssd->cost = curr;
 	ssd->tile = tile;
     }
     return 0;
@@ -448,7 +449,7 @@ selShortFindReverse(rlist, tile, pnum, fdir)
     TileType ttype;
 
     mindir = fdir;
-    mincost = (int)CD2INT(tile->ti_client);
+    mincost = (int)TiGetClientINT(tile);
 
     while (TRUE)
     {
@@ -495,7 +496,7 @@ selShortFindReverse(rlist, tile, pnum, fdir)
 	newrrec->r_next = *rlist;
 	*rlist = newrrec;
 
-	if ((int)CD2INT(tile->ti_client) == 0) return 0;	/* We're done */
+	if ((int)TiGetClientINT(tile) == 0) return 0;	/* We're done */
 
 	minp = pnum;
 
@@ -509,10 +510,12 @@ selShortFindReverse(rlist, tile, pnum, fdir)
 
 	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
 	{
-	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	    if ((int)CD2INT(tp->ti_client) < mincost)
+	    const ClientData ticlient = TiGetClient(tp);
+	    if (ticlient == CLIENTDEFAULT) continue;
+	    const int curr = (int)CD2INT(ticlient);
+	    if (curr < mincost)
 	    {
-		mincost = (int)CD2INT(tp->ti_client);
+		mincost = curr;
 		mintp = tp;
 		mindir = GEO_NORTH;
 	    }
@@ -529,10 +532,12 @@ leftside:
 
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
 	{
-	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	    if ((int)CD2INT(tp->ti_client) < mincost)
+	    const ClientData ticlient = TiGetClient(tp);
+	    if (ticlient == CLIENTDEFAULT) continue;
+	    const int curr = (int)CD2INT(ticlient);
+	    if (curr < mincost)
 	    {
-		mincost = (int)CD2INT(tp->ti_client);
+		mincost = curr;
 		mintp = tp;
 		mindir = GEO_WEST;
 	    }
@@ -549,10 +554,12 @@ bottomside:
 
 	for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
 	{
-	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	    if ((int)CD2INT(tp->ti_client) < mincost)
+	    const ClientData ticlient = TiGetClient(tp);
+	    if (ticlient == CLIENTDEFAULT) continue;
+	    const int curr = (int)CD2INT(ticlient);
+	    if (curr < mincost)
 	    {
-		mincost = (int)CD2INT(tp->ti_client);
+		mincost = curr;
 		mintp = tp;
 		mindir = GEO_SOUTH;
 	    }
@@ -569,10 +576,12 @@ rightside:
 
 	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 	{
-	    if (tp->ti_client == (ClientData)CLIENTDEFAULT) continue;
-	    if ((int)CD2INT(tp->ti_client) < mincost)
+	    const ClientData ticlient = TiGetClient(tp);
+	    if (ticlient == CLIENTDEFAULT) continue;
+	    const int curr = (int)CD2INT(ticlient);
+	    if (curr < mincost)
 	    {
-		mincost = (int)CD2INT(tp->ti_client);
+		mincost = curr;
 		mintp = tp;
 		mindir = GEO_EAST;
 	    }
@@ -611,7 +620,7 @@ donesides:
 	if (mincost == INT_MAX) return 1;
 
 	/* Failsafe:  Avoid infinite recursion */
-	if ((tile == mintp) || (tile->ti_client == CLIENTDEFAULT))
+	if ((tile == mintp) || (TiGetClient(tile) == CLIENTDEFAULT))
 	{
 	    TxError("Failed to trace back shorting path.\n");
 	    break;
@@ -703,7 +712,7 @@ selShortProcessTile(tile, cost, fdir, mask)
     /* algorithm to find any valid path but not the best path.   That	*/
     /* choice keeps the algorithm fast and efficient.			*/
 
-    if (tile->ti_client != (ClientData)CLIENTDEFAULT) return 1;
+    if (TiGetClient(tile) != CLIENTDEFAULT) return 1;
 
     if (IsSplit(tile))
     {
@@ -739,10 +748,12 @@ selShortProcessTile(tile, cost, fdir, mask)
     /* If this tile is unvisited, or has a lower cost, then return and	  */
     /* keep going.  Otherwise, return 1 to stop the search this direction */
 
-    if (tile->ti_client == (ClientData)CLIENTDEFAULT)
-	TiSetClient(tile, cost);
-    else if ((int)CD2INT(tile->ti_client) > cost)
-	TiSetClient(tile, cost);
+    const ClientData ticlient = TiGetClient(tile);
+    const int curr = (int)CD2INT(ticlient);
+    if (ticlient == CLIENTDEFAULT)
+	TiSetClientINT(tile, cost);
+    else if (curr > cost)
+	TiSetClientINT(tile, cost);
     else
 	return 1;
 
@@ -786,7 +797,7 @@ selShortFindForward(srctile, srctype, srcpnum, desttile)
 	ShortStack = StackNew(64);
 
     /* Set the cost of the source tile to zero */
-    TiSetClient(srctile, (ClientData)0);
+    TiSetClientINT(srctile, 0);
 
     /* Drop the first entry on the stack */
     sd = NewSD(cost, srctile, srctype, srcpnum);
@@ -1000,7 +1011,7 @@ SelectShort(char *lab1, char *lab2)
     selShortFindForward(srctile, srctype, srcpnum, desttile/*, desttype*/);
 
     /* Now see if destination has been counted */
-    if (desttile->ti_client == (ClientData)CLIENTDEFAULT) return NULL;
+    if (TiGetClient(desttile) == CLIENTDEFAULT) return NULL;
 
     /* Now find the shortest path between source and destination */
     rlist = NULL;

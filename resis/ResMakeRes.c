@@ -132,7 +132,7 @@ ResCalcEastWest(tile, pendingList, doneList, resList)
     resElement	*element;
     resNode	*currNode;
     float	rArea;
-    tileJunk	*junk = (tileJunk *)tile->ti_client;
+    tileJunk	*junk = (tileJunk *)TiGetClientPTR(tile);
 
     merged = FALSE;
     height = TOP(tile) - BOTTOM(tile);
@@ -303,7 +303,7 @@ ResCalcNorthSouth(tile, pendingList, doneList, resList)
     resElement	*element;
     resNode	*currNode;
     float	rArea;
-    tileJunk	*junk = (tileJunk *)tile->ti_client;
+    tileJunk	*junk = (tileJunk *)TiGetClientPTR(tile);
 
     merged = FALSE;
     width = RIGHT(tile) - LEFT(tile);
@@ -472,7 +472,7 @@ ResCalcNearDevice(tile, pendingList, doneList, resList)
     bool 	merged;
     int		devcount, devedge, deltax, deltay;
     Breakpoint	*p1, *p2, *p3;
-    tileJunk	*junk = (tileJunk *)tile->ti_client;
+    tileJunk	*junk = (tileJunk *)TiGetClientPTR(tile);
 
     merged = FALSE;
 

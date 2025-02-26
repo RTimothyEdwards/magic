@@ -562,7 +562,7 @@ rtrStemTryPin(loc, dir, p, use)
     tp = TiSrPointNoHint(RtrChannelPlane, &pSearch);
     if (TiGetType(tp) != TT_SPACE)
 	return ((GCRPin *) NULL);
-    ch = (GCRChannel *) tp->ti_client;
+    ch = (GCRChannel *) TiGetClientPTR(tp);
     if (ch == (GCRChannel *) NULL || ch->gcr_type != CHAN_NORMAL)
 	return ((GCRPin *) NULL);
 
@@ -949,7 +949,7 @@ rtrStemSearch(center, dir, point)
 	tile = TiSrPointNoHint(RtrChannelPlane, point);
 	if (TiGetType(tile) == TT_SPACE)
 	{
-	    if ((ch = (GCRChannel *) tile->ti_client))
+	    if ((ch = (GCRChannel *) TiGetClientPTR(tile)))
 		break;
 	    return ((GCRChannel *) NULL);
 	}

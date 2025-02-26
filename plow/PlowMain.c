@@ -1948,7 +1948,7 @@ plowSplitY(tp, y)
     Tile *newTile;
 
     newTile = TiSplitY(tp, y);
-    newTile->ti_client = tp->ti_client;
+    TiSetClient(newTile, TiGetClient(tp));
     TiSetBody(newTile, TiGetBody(tp));
 
     return (newTile);

@@ -709,7 +709,7 @@ ResMergeNodes(node1, node2, pendingList, doneList)
 	    tileJunk *junk;
 
 	    tile = tJunc->je_thisj->rj_Tile[i];
-	    junk = (tileJunk *) tile->ti_client;
+	    junk = (tileJunk *) TiGetClientPTR(tile);
 
 	    if ((junk->tj_status & RES_TILE_DONE) == FALSE)
 		ResFixBreakPoint(&junk->breakList, node2, node1);
@@ -733,7 +733,7 @@ ResMergeNodes(node1, node2, pendingList, doneList)
 
 		workingCon->ce_thisc->cp_cnode[i] = node1;
 	        tile =tCon->ce_thisc->cp_tile[i];
-		junk = (tileJunk *) tile->ti_client;
+		junk = (tileJunk *) TiGetClientPTR(tile);
 	   	if ((junk->tj_status & RES_TILE_DONE) == FALSE)
 		    ResFixBreakPoint(&junk->breakList, node2, node1);
 	    }

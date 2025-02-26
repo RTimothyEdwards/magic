@@ -357,7 +357,7 @@ ResAddBreakpointFunc(tile, node)
 {
     tileJunk *junk;
 
-    if (tile->ti_client == (ClientData) CLIENTDEFAULT)
+    if (TiGetClient(tile) == CLIENTDEFAULT)
 	return 0;
 
     NEWPORT(node, tile);
@@ -422,7 +422,7 @@ ResFindNewContactTiles(contacts)
 	    if ((IsSplit(tile) && TTMaskHasType(&mask, TiGetRightType(tile)))
 			|| TTMaskHasType(&mask, TiGetType(tile)))
 	    {
-		tileJunk *j = (tileJunk *)tile->ti_client;
+		tileJunk *j = (tileJunk *)TiGetClientPTR(tile);
 		cElement *ce;
 
 		ce = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
@@ -444,7 +444,7 @@ ResFindNewContactTiles(contacts)
 		     */
 		    if (TTMaskIntersect(DBResidueMask(ttype), &mask))
 		    {
-			tileJunk *j = (tileJunk *)tile->ti_client;
+			tileJunk *j = (tileJunk *)TiGetClientPTR(tile);
 			cElement *ce;
 
 			ce = (cElement *) mallocMagic((unsigned) (sizeof(cElement)));
@@ -545,7 +545,7 @@ ResProcessTiles(goodies, origin)
 	{
       	    Tile    *tile = fix->fp_tile;
 
-	    if (tile != NULL && (((tileJunk *)tile->ti_client)->tj_status &
+	    if (tile != NULL && (((tileJunk *)TiGetClientPTR(tile)->tj_status &
 			RES_TILE_DONE) == 0)
 	    {
 	        resCurrentNode = fix->fp_node;
@@ -584,7 +584,7 @@ ResProcessTiles(goodies, origin)
 		for (tilenum = 0; tilenum < TILES_PER_JUNCTION; tilenum++)
 		{
 	      	    Tile *tile = rj->rj_Tile[tilenum];
-		    tileJunk *j = (tileJunk *)tile->ti_client;
+		    tileJunk *j = (tileJunk *)TiGetClientPTR(tile);
 
 		    if ((j->tj_status & RES_TILE_DONE) == 0)
 		    {
@@ -611,7 +611,7 @@ ResProcessTiles(goodies, origin)
 		for (tilenum = 0; tilenum < cp->cp_currentcontact; tilenum++)
 		{
 	      	    Tile *tile = cp->cp_tile[tilenum];
-		    tileJunk *j = (tileJunk *) tile->ti_client;
+		    tileJunk *j = (tileJunk *) TiGetClientPTR(tile);
 
 		    if ((j->tj_status & RES_TILE_DONE) == 0)
 		    {
@@ -814,7 +814,7 @@ resExpandDevFunc(tile, cx)
     if (devResetStack == NULL)
 	devResetStack = StackNew(8);
 
-    tile->ti_client = (ClientData)DEV_PROCESSED;
+    TiSetClientINT(tile, DEV_PROCESSED);
     STACKPUSH((ClientData)tile, devExtentsStack);
 
     while (!StackEmpty(devExtentsStack))
@@ -837,12 +837,12 @@ resExpandDevFunc(tile, cx)
 	/* top */
 	for (tp2 = RT(tp); RIGHT(tp2) > LEFT(tp); tp2 = BL(tp2))
 	{
-	    if (tp2->ti_client == (ClientData)DEV_PROCESSED) continue;
+	    if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
 	    ttype = TiGetBottomType(tp2);
 	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
 		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
 	    {
-		tp2->ti_client = (ClientData)DEV_PROCESSED;
+		TiSetClientINT(tp2, DEV_PROCESSED);
 		STACKPUSH((ClientData)tp2, devExtentsStack);
 	    }
 	}
@@ -850,12 +850,12 @@ resExpandDevFunc(tile, cx)
 	/* bottom */
 	for (tp2 = LB(tp); LEFT(tp2) < RIGHT(tp); tp2 = TR(tp2))
 	{
-	    if (tp2->ti_client == (ClientData)DEV_PROCESSED) continue;
+	    if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
 	    ttype = TiGetTopType(tp2);
 	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
 		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
 	    {
-		tp2->ti_client = (ClientData)DEV_PROCESSED;
+		TiSetClientINT(tp2, DEV_PROCESSED);
 		STACKPUSH((ClientData)tp2, devExtentsStack);
 	    }
 	}
@@ -863,12 +863,12 @@ resExpandDevFunc(tile, cx)
 	/* right */
 	for (tp2 = TR(tp); TOP(tp2) > BOTTOM(tp); tp2 = LB(tp2))
 	{
-	    if (tp2->ti_client == (ClientData)DEV_PROCESSED) continue;
+	    if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
 	    ttype = TiGetLeftType(tp2);
 	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
 		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
 	    {
-		tp2->ti_client = (ClientData)DEV_PROCESSED;
+		TiSetClientINT(tp2, DEV_PROCESSED);
 		STACKPUSH((ClientData)tp2, devExtentsStack);
 	    }
 	}
@@ -876,12 +876,12 @@ resExpandDevFunc(tile, cx)
 	/* left */
 	for (tp2 = BL(tp); BOTTOM(tp2) < TOP(tp); tp2 = RT(tp2))
 	{
-	    if (tp2->ti_client == (ClientData)DEV_PROCESSED) continue;
+	    if (TiGetClientINT(tp2) == DEV_PROCESSED) continue;
 	    ttype = TiGetRightType(tp2);
 	    if ((ttype == thisDev->type) || (DBIsContact(ttype)
 		&& TTMaskHasType(DBResidueMask(ttype), thisDev->type)))
 	    {
-		tp2->ti_client = (ClientData)DEV_PROCESSED;
+		TiSetClientINT(tp2, DEV_PROCESSED);
 		STACKPUSH((ClientData)tp2, devExtentsStack);
 	    }
 	}
@@ -891,7 +891,7 @@ resExpandDevFunc(tile, cx)
     while (!StackEmpty(devResetStack))
     {
 	tp = (Tile *) STACKPOP(devResetStack);
-	tp->ti_client = (ClientData)CLIENTDEFAULT;
+	TiSetClient(tp, CLIENTDEFAULT);
     }
 
     /* Return 1 to stop the search;  we only need to run this from  */
@@ -1443,9 +1443,13 @@ FindStartTile(goodies, SourcePoint)
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
 		    return(tp);
 		}
-		else if (tp->ti_client != CLIENTDEFAULT)
-		    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+		else
+		{
+		    const ClientData ticlient = TiGetClient(tp);
+		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
 			complex = TRUE;
+		}
 	    }
 
 	    /* right */
@@ -1460,9 +1464,13 @@ FindStartTile(goodies, SourcePoint)
 		   			MAX(BOTTOM(tile), BOTTOM(tp))) >> 1;
 		    return(tp);
 		}
-		else if (tp->ti_client != CLIENTDEFAULT)
-		    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+		else
+		{
+		    const ClientData ticlient = TiGetClient(tp);
+		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
 			complex = TRUE;
+		}
 	    }
 
 	    /* top */
@@ -1477,9 +1485,13 @@ FindStartTile(goodies, SourcePoint)
 		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
 		    return(tp);
 		}
-		else if (tp->ti_client != CLIENTDEFAULT)
-		    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+		else
+		{
+		    const ClientData ticlient = TiGetClient(tp);
+		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
 			complex = TRUE;
+		}
 	    }
 
 	    /* bottom */
@@ -1494,9 +1506,13 @@ FindStartTile(goodies, SourcePoint)
 		   			MAX(LEFT(tile), LEFT(tp))) >> 1;
 		    return(tp);
 		}
-		else if (tp->ti_client != CLIENTDEFAULT)
-		    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+		else
+		{
+		    const ClientData ticlient = TiGetClient(tp);
+		    const tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+		    if (ticlient != CLIENTDEFAULT && tj->tj_status & RES_TILE_DEV)
 			complex = TRUE;
+		}
 	    }
 
 	    if (complex == TRUE)
@@ -1507,7 +1523,7 @@ FindStartTile(goodies, SourcePoint)
 
 		if (devStack == NULL) devStack = StackNew(8);
 
-		((tileJunk *)tile->ti_client)->tj_status |= RES_TILE_PUSHED;
+		((tileJunk *)TiGetClientPTR(tile))->tj_status |= RES_TILE_PUSHED;
        		STACKPUSH((ClientData)tile, devStack);
 		while (!StackEmpty(devStack))
 		{
@@ -1529,16 +1545,19 @@ FindStartTile(goodies, SourcePoint)
 			    }
 			    return(tp);
 			}
-			else if (tp->ti_client != CLIENTDEFAULT)
+			else
 			{
-			    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			    const ClientData ticlient = TiGetClient(tp);
+			    if (ticlient != CLIENTDEFAULT)
 			    {
-				if (!(((tileJunk *)tp->ti_client)->tj_status
-						& RES_TILE_PUSHED))
+				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+				if (tj->tj_status & RES_TILE_DEV)
 				{
-				    ((tileJunk *)tp->ti_client)->tj_status
-							|= RES_TILE_PUSHED;
-				    STACKPUSH((ClientData)tp, devStack);
+				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    {
+				        tj->tj_status |= RES_TILE_PUSHED;
+				        STACKPUSH((ClientData)tp, devStack);
+				    }
 				}
 			    }
 			}
@@ -1560,16 +1579,19 @@ FindStartTile(goodies, SourcePoint)
 			    }
 			    return(tp);
 			}
-			else if (tp->ti_client != CLIENTDEFAULT)
+			else
 			{
-			    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			    const ClientData ticlient = TiGetClient(tp);
+			    if (ticlient != CLIENTDEFAULT)
 			    {
-				if (!(((tileJunk *)tp->ti_client)->tj_status
-						& RES_TILE_PUSHED))
+				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+				if (tj->tj_status & RES_TILE_DEV)
 				{
-				    ((tileJunk *)tp->ti_client)->tj_status
-							|= RES_TILE_PUSHED;
-				    STACKPUSH((ClientData)tp, devStack);
+				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    {
+					tj->tj_status |= RES_TILE_PUSHED;
+					STACKPUSH((ClientData)tp, devStack);
+				    }
 				}
 			    }
 			}
@@ -1591,16 +1613,19 @@ FindStartTile(goodies, SourcePoint)
 			    }
 			    return(tp);
 			}
-			else if (tp->ti_client != CLIENTDEFAULT)
+			else
 			{
-			    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			    const ClientData ticlient = TiGetClient(tp);
+			    if (ticlient != CLIENTDEFAULT)
 			    {
-				if (!(((tileJunk *)tp->ti_client)->tj_status
-						& RES_TILE_PUSHED))
+				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+				if (tj->tj_status & RES_TILE_DEV)
 				{
-				    ((tileJunk *)tp->ti_client)->tj_status
-							|= RES_TILE_PUSHED;
-				    STACKPUSH((ClientData)tp, devStack);
+				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    {
+					tj->tj_status |= RES_TILE_PUSHED;
+					STACKPUSH((ClientData)tp, devStack);
+				    }
 				}
 			    }
 			}
@@ -1622,16 +1647,19 @@ FindStartTile(goodies, SourcePoint)
 			    }
 			    return(tp);
 			}
-			else if (tp->ti_client != CLIENTDEFAULT)
+			else
 			{
-			    if (((tileJunk *)tp->ti_client)->tj_status & RES_TILE_DEV)
+			    const ClientData ticlient = TiGetClient(tp);
+			    if (ticlient != CLIENTDEFAULT)
 			    {
-				if (!(((tileJunk *)tp->ti_client)->tj_status
-						& RES_TILE_PUSHED))
+				tileJunk *tj = (tileJunk *)CD2PTR(ticlient);
+				if (tj->tj_status & RES_TILE_DEV)
 				{
-				    ((tileJunk *)tp->ti_client)->tj_status
-							|= RES_TILE_PUSHED;
-				    STACKPUSH((ClientData)tp, devStack);
+				    if (!(tj->tj_status & RES_TILE_PUSHED))
+				    {
+					tj->tj_status |= RES_TILE_PUSHED;
+					STACKPUSH((ClientData)tp, devStack);
+				    }
 				}
 			    }
 			}
@@ -1718,19 +1746,20 @@ ResGetDevice(pt, type)
     tile = ResUse->cu_def->cd_planes[pnum]->pl_hint;
     GOTOPOINT(tile, &workingPoint);
 
+    const ClientData ticlient = TiGetClient(tile);
     if (IsSplit(tile))
     {
         if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetLeftType(tile))
               	   || TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetRightType(tile)))
-            return (((tileJunk *)tile->ti_client)->deviceList);
+            return (((tileJunk *)CD2PTR(ticlient))->deviceList);
     }
     else if (TTMaskHasType(&ExtCurStyle->exts_deviceMask, TiGetType(tile)))
     {
 	/* Failure to have a valid client data will result in a "Bad Device"
 	 * error and indicates a problem that needs debugging.
 	 */
-	if (tile->ti_client != CLIENTDEFAULT)
-            return (((tileJunk *)tile->ti_client)->deviceList);
+	if (ticlient != CLIENTDEFAULT)
+            return (((tileJunk *)CD2PTR(ticlient))->deviceList);
     }
     return NULL;
 }

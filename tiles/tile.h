@@ -241,7 +241,11 @@ extern Tile *TiSrPoint(Tile *, Plane *, Point *);
 /* See diagnostic subroutine version in tile.c */
 #define	TiSetBody(tp, b)	((tp)->ti_body = INT2CD((b)))
 #define	TiGetClient(tp)		((tp)->ti_client)
-#define	TiSetClient(tp,b)	((tp)->ti_client = INT2CD((b)))
+#define	TiGetClientINT(tp)	(CD2INT((tp)->ti_client))
+#define	TiGetClientPTR(tp)	(CD2PTR((tp)->ti_client))
+#define	TiSetClient(tp,cd)	((tp)->ti_client = (cd))
+#define	TiSetClientINT(tp,cd)	((tp)->ti_client = INT2CD((cd)))
+#define	TiSetClientPTR(tp,cd)	((tp)->ti_client = PTR2CD((cd)))
 
 Tile *TiAlloc(void);
 void TiFree(Tile *);

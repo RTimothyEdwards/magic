@@ -108,7 +108,7 @@ struct extPathFloodArg
 };
 
 /* Used to mark tiles during path tracing */
-#define	MARKED	((ClientData) 1)
+#define	MARKED	(1)
 
 /* Forward declarations */
 Label *extPathLabel();
@@ -665,7 +665,7 @@ extPathPairDistance(lab1, lab2, pMin, pMax)
     /* Reset ti_client fields in tiles */
     for (pNum = PL_TECHDEPBASE; pNum < DBNumPlanes; pNum++)
 	(void) DBSrPaintClient((Tile *) NULL, extPathDef->cd_planes[pNum],
-		&TiPlaneRect, &DBAllButSpaceBits, MARKED,
+		&TiPlaneRect, &DBAllButSpaceBits, (ClientData) MARKED,
 		extPathResetClient, (ClientData) NULL);
 }
 
@@ -688,7 +688,7 @@ int
 extPathResetClient(tile)
     Tile *tile;
 {
-    tile->ti_client = (ClientData) CLIENTDEFAULT;
+    TiSetClient(tile, CLIENTDEFAULT);
     return (0);
 }
 
@@ -780,7 +780,7 @@ extPathFlood(tile, p, distance, epa)
     Rect r;
 
     /* Mark the tile as being visited */
-    tile->ti_client = MARKED;
+    TiSetClientINT(tile, MARKED);
 
     /*
      * Are we at the destination yet?
@@ -820,22 +820,22 @@ extPathFlood(tile, p, distance, epa)
 
 	/* TOP */
     for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-	if (tp->ti_client != MARKED && DBConnectsTo(TiGetType(tp), type))
+	if (TiGetClientINT(tp) != MARKED && DBConnectsTo(TiGetType(tp), type))
 	    extPathFloodTile(tile, p, distance, tp, epa);
 
 	/* RIGHT */
     for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
-	if (tp->ti_client != MARKED && DBConnectsTo(TiGetType(tp), type))
+	if (TiGetClientINT(tp) != MARKED && DBConnectsTo(TiGetType(tp), type))
 	    extPathFloodTile(tile, p, distance, tp, epa);
 
 	/* BOTTOM */
     for (tp = LB(tile); LEFT(tp) < RIGHT(tile); tp = TR(tp))
-	if (tp->ti_client != MARKED && DBConnectsTo(TiGetType(tp), type))
+	if (TiGetClientINT(tp) != MARKED && DBConnectsTo(TiGetType(tp), type))
 	    extPathFloodTile(tile, p, distance, tp, epa);
 
 	/* LEFT */
     for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
-	if (tp->ti_client != MARKED && DBConnectsTo(TiGetType(tp), type))
+	if (TiGetClientINT(tp) != MARKED && DBConnectsTo(TiGetType(tp), type))
 	    extPathFloodTile(tile, p, distance, tp, epa);
 
     /* Try connections to other planes */
@@ -856,7 +856,7 @@ extPathFlood(tile, p, distance, epa)
 		plane->pl_hint = tp;
 
 		/* If not yet visited, process tp */
-		if (tp->ti_client == (ClientData) CLIENTDEFAULT
+		if (TiGetClient(tp) == CLIENTDEFAULT
 			&& DBConnectsTo(type, TiGetType(tp)))
 		{
 		    epa->epa_pNum = pNum;

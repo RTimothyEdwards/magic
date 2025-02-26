@@ -117,9 +117,9 @@ ExtFindNeighbors(tile, tilePlaneNum, arg)
 	 * been visited in the meantime.  If it's still unvisited,
 	 * visit it and process its neighbors.
 	 */
-	if (tile->ti_client == (ClientData) arg->fra_region)
+	if (TiGetClientPTR(tile) == arg->fra_region)
 	    continue;
-	tile->ti_client = (ClientData) arg->fra_region;
+	TiSetClientPTR(tile, arg->fra_region);
 	tilesfound++;
 	if (DebugIsSet(extDebugID, extDebNeighbor))
 	    extShowTile(tile, "neighbor", 1);
@@ -132,8 +132,8 @@ topside:
             if (IsSplit(tp))
 	    {
                 t = SplitBottomType(tp);
-		// if (tp->ti_client == extNbrUn && TTMaskHasType(mask, t))
-		if (tp->ti_client != (ClientData)arg->fra_region && TTMaskHasType(mask, t))
+		// if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
+		if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
 		{
 		    PUSHTILEBOTTOM(tp, tilePlaneNum);
 		}
@@ -141,7 +141,7 @@ topside:
             else
 	    {
         	t = TiGetTypeExact(tp);
-		if (tp->ti_client == extNbrUn && TTMaskHasType(mask, t))
+		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}
@@ -156,8 +156,8 @@ leftside:
             if (IsSplit(tp))
 	    {
                 t = SplitRightType(tp);
-		// if (tp->ti_client == extNbrUn && TTMaskHasType(mask, t))
-		if (tp->ti_client != (ClientData)arg->fra_region && TTMaskHasType(mask, t))
+		// if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
+		if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
 		{
 		    PUSHTILERIGHT(tp, tilePlaneNum);
 		}
@@ -165,7 +165,7 @@ leftside:
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (tp->ti_client == extNbrUn && TTMaskHasType(mask, t))
+		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}
@@ -181,8 +181,8 @@ bottomside:
             if (IsSplit(tp))
 	    {
                 t = SplitTopType(tp);
-		// if (tp->ti_client == extNbrUn && TTMaskHasType(mask, t))
-		if (tp->ti_client != (ClientData)arg->fra_region && TTMaskHasType(mask, t))
+		// if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
+		if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
 		{
 		    PUSHTILETOP(tp, tilePlaneNum);
 		}
@@ -190,7 +190,7 @@ bottomside:
             else
 	    {
         	t = TiGetTypeExact(tp);
-		if (tp->ti_client == extNbrUn && TTMaskHasType(mask, t))
+		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}
@@ -205,8 +205,8 @@ rightside:
             if (IsSplit(tp))
 	    {
                 t = SplitLeftType(tp);
-		// if (tp->ti_client == extNbrUn && TTMaskHasType(mask, t))
-		if (tp->ti_client != (ClientData)arg->fra_region && TTMaskHasType(mask, t))
+		// if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
+		if (TiGetClientPTR(tp) != arg->fra_region && TTMaskHasType(mask, t))
 		{
 		    PUSHTILELEFT(tp, tilePlaneNum);
 		}
@@ -214,7 +214,7 @@ rightside:
             else
 	    {
 		t = TiGetTypeExact(tp);
-		if (tp->ti_client == extNbrUn && TTMaskHasType(mask, t))
+		if (TiGetClient(tp) == extNbrUn && TTMaskHasType(mask, t))
 		{
 		    PUSHTILE(tp, tilePlaneNum);
 		}
@@ -240,7 +240,7 @@ donesides:
 		    tp = plane->pl_hint;
 		    GOTOPOINT(tp, &tile->ti_ll);
 		    plane->pl_hint = tp;
-		    if (tp->ti_client != extNbrUn) continue;
+		    if (TiGetClient(tp) != extNbrUn) continue;
 
                     /* tp and tile should have the same geometry for a contact */
                     if (IsSplit(tile) && IsSplit(tp))
@@ -317,7 +317,7 @@ fail:
     while (!StackEmpty(extNodeStack))
     {
 	POPTILE(tile, tilePlaneNum);
-	tile->ti_client = (ClientData) arg->fra_region;
+	TiSetClientPTR(tile, arg->fra_region);
     }
     return -1;
 }
@@ -356,7 +356,7 @@ extNbrPushFunc(tile, pla)
     tileArea = &pla->area;
 
     /* Ignore tile if it's already been visited */
-    if (tile->ti_client != extNbrUn)
+    if (TiGetClient(tile) != extNbrUn)
 	return 0;
 
     /* Only consider tile if it overlaps tileArea or shares part of a side */
