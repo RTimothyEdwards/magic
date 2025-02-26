@@ -25,6 +25,9 @@
 #include <signal.h>
 #include <string.h>
 #include <errno.h>
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
 
 #include "tcltk/tclmagic.h"
 #include "utils/main.h"
@@ -530,6 +533,61 @@ MakeWindowCommand(char *wname, MagWindow *mw)
     freeMagic(tclcmdstr);
 }
 
+#ifdef HAVE_SETRLIMIT
+static int
+process_rlimit_nofile_ensure(rlim_t nofile)
+{
+    struct rlimit rlim;
+    int err = getrlimit(RLIMIT_NOFILE, &rlim);
+    if (err < 0)
+	return err;
+    rlim_t rlim_cur = rlim.rlim_cur;
+    /* nofile != RLIM_INFINITY && rlim.rlim_max != RLIM_INFINITY */
+    if (nofile > rlim.rlim_max && nofile != rlim.rlim_max)
+	return -1;
+    if (rlim.rlim_cur < nofile || nofile == RLIM_INFINITY)
+    {
+	rlim.rlim_cur = nofile;
+	err = setrlimit(RLIMIT_NOFILE, &rlim);
+    }
+    if (err != 0)
+	TxPrintf("WARNING: process_rlimit_nofile_ensure(%lu) = %d (%d) [rlim_cur=%lu rlim_max=%lu]\n", nofile, err, errno, rlim_cur, rlim.rlim_max);
+    return err;
+}
+#endif /* HAVE_SETRLIMIT */
+
+/* this function encapsulates the default policy on startup */
+static int
+process_rlimit_startup_check(void)
+{
+#ifdef HAVE_GETRLIMIT
+ #if TCL_MAJOR_VERSION < 9
+    /* TCL8 has select() support and no support for poll/epoll for the main event loop */
+    struct rlimit rlim;
+    int err = getrlimit(RLIMIT_NOFILE, &rlim);
+    if (err < 0)
+	return err;
+    if (rlim.rlim_cur > FD_SETSIZE)
+    {
+	TxPrintf("WARNING: RLIMIT_NOFILE is above %d and Tcl_Version<9 this may cause runtime issues [rlim_cur=%lu]\n", FD_SETSIZE, rlim.rlim_cur);
+	return -1;
+    }
+    return 0;
+ #else
+  #ifdef HAVE_SETRLIMIT
+    /* TCL9 has poll/epoll support for the main event loop,
+     * ifdef due to rlim_t type availbility
+     */
+    return process_rlimit_nofile_ensure(4096);
+  #else
+    return -1;
+  #endif /* HAVE_SETRLIMIT */
+ #endif /* TCL_MAJOR_VERSION < 9 */
+#else
+    return -1;
+#endif /* HAVE_GETRLIMIT */
+}
+
 /*------------------------------------------------------*/
 /* Main startup procedure				*/
 /*------------------------------------------------------*/
@@ -587,6 +645,8 @@ _magic_initialize(ClientData clientData,
     else
 	TxPrintf("Using the terminal as the console.\n");
     TxFlushOut();
+
+    process_rlimit_startup_check();
 
     if (mainInitAfterArgs() != 0) goto magicfatal;
 

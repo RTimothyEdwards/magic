@@ -64,11 +64,17 @@ bool TxDebug = FALSE;
 /* A mask of the file descriptors for all input devices.
  */
 static fd_set txInputDescriptors;
+/* Used for the 'nfds' field for select() syscall, the highest
+ * fd number that is set in the txInputDescriptors bitmask.
+ * Don't forget to plus 1 for select().
+ */
+static int txInputDescriptors_nfds;
 
+#define   TX_MAX_INPUT_DEVICES       20
 /* A table of all input devices.
  */
-static txInputDevRec txInputDevice[TX_MAX_OPEN_FILES];
-static int txLastInputEntry = -1;
+static txInputDevRec txInputDevice[TX_MAX_INPUT_DEVICES];
+static int txLastInputEntry;
 
 /* The current point -- reset by the 'setpoint' command and for each
  * interactive command.  Calls to TxClearPoint clear previous setpoints,
@@ -130,6 +136,9 @@ static TxCommand *lisp_cur_cmd = NULL;
  *
  * FD_IsZero --
  * FD_OrSet --
+ * FD_MaxFd --
+ *      Returns the highest 'fd' in the mask for select(2) nfds argument, or
+ *      -1 when 'fdmask' is empty.
  *
  *	Routines for manipulating set of file descriptors.
  *
@@ -140,9 +149,9 @@ bool
 FD_IsZero(
     const fd_set *fdmask)
 {
-    int i;
-    for (i = 0; i <= TX_MAX_OPEN_FILES; i++)
-	if (FD_ISSET(i, fdmask)) return FALSE;
+    int fd;
+    for (fd = 0; fd < FD_SETSIZE; fd++)
+	if (FD_ISSET(fd, fdmask)) return FALSE;
     return TRUE;
 }
 
@@ -151,9 +160,30 @@ FD_OrSet(
     const fd_set *fdmask,
     fd_set *dst)
 {
-    int i;
-    for (i = 0; i <= TX_MAX_OPEN_FILES; i++)
-	if (FD_ISSET(i, fdmask)) FD_SET(i, dst);
+    int fd;
+    for (fd = 0; fd < FD_SETSIZE; fd++)
+	if (FD_ISSET(fd, fdmask)) FD_SET(fd, dst);
+}
+
+/* A bitmask find max bit set operation */
+int
+FD_MaxFd(fdmask)
+    const fd_set *fdmask;
+{
+    int fd;
+    for (fd = FD_SETSIZE-1; fd >= 0; fd--) /* backwards */
+	if (FD_ISSET(fd, fdmask)) return fd;
+    return -1;
+}
+
+/* update txInputDescriptors_nfds with the correct value
+ * call this everytime txInputDescriptors is modified
+ */
+static void
+TxInputDescriptorsRecalc(void)
+{
+    int nfds = FD_MaxFd(&txInputDescriptors);
+    txInputDescriptors_nfds = (nfds >= 0) ? nfds : 0;
 }
 
 /*
@@ -468,18 +498,20 @@ TxAddInputDevice(
 				 * it is called.
 				 */
 {
-    int i;
     TxDeleteInputDevice(fdmask);
-    if (txLastInputEntry + 1 == TX_MAX_OPEN_FILES)
+    if (txLastInputEntry == TX_MAX_INPUT_DEVICES)
     {
 	TxError("Too many input devices.\n");
 	return;
     }
-    txLastInputEntry++;
+
     txInputDevice[txLastInputEntry].tx_fdmask = *fdmask;
     txInputDevice[txLastInputEntry].tx_inputProc = inputProc;
     txInputDevice[txLastInputEntry].tx_cdata = cdata;
+    txLastInputEntry++;
+
     FD_OrSet(fdmask, &txInputDescriptors);
+    TxInputDescriptorsRecalc();
 }
 
 void
@@ -489,6 +521,12 @@ TxAdd1InputDevice(
     ClientData cdata)
 {
     fd_set fs;
+    ASSERT(fd >= 0 && fd < FD_SETSIZE, "fd>=0&&fd<FD_SETSIZE");
+    if (fd < 0 || fd >= FD_SETSIZE)
+    {
+	TxError("WARNING: TxAdd1InputDevice(fd=%d) called with fd out of range 0..%d\n", fd, FD_SETSIZE-1);
+	return; /* allowing things to continue is UB */
+    }
     FD_ZERO(&fs);
     FD_SET(fd, &fs);
     TxAddInputDevice(&fs, inputProc, cdata);
@@ -514,29 +552,46 @@ TxDeleteInputDevice(
 				 * no longer active.
 				 */
 {
-    int i;
-
-    for (i = 0; i <= TX_MAX_OPEN_FILES; i++)
-	if (FD_ISSET(i, fdmask)) TxDelete1InputDevice(i);
+    int fd;
+    for (fd = 0; fd < FD_SETSIZE; fd++)
+	if (FD_ISSET(fd, fdmask)) TxDelete1InputDevice(fd);
 }
 
 void
 TxDelete1InputDevice(
     int fd)
 {
-    int i, j;
-
-    for (i = 0; i <= txLastInputEntry; i++)
+    ASSERT(fd >= 0 && fd < FD_SETSIZE, "fd>=0&&fd<FD_SETSIZE");
+    if (fd < 0 || fd >= FD_SETSIZE)
     {
-	FD_CLR(fd, &(txInputDevice[i].tx_fdmask));
-	if (FD_IsZero(&txInputDevice[i].tx_fdmask))
+	TxError("WARNING: TxDelete1InputDevice(fd=%d) called with fd out of range 0..%d\n", fd, FD_SETSIZE-1);
+	return; /* allowing things to continue is UB */
+    }
+
+restart:
+    {
+	int i;
+	for (i = 0; i < txLastInputEntry; i++)
 	{
-	    for (j = i+1; j <= txLastInputEntry; j++)
-		txInputDevice[j-1] = txInputDevice[j];
-	    txLastInputEntry--;
+	    FD_CLR(fd, &txInputDevice[i].tx_fdmask);
+	    if (FD_IsZero(&txInputDevice[i].tx_fdmask))
+	    {
+		int j;
+		for (j = i+1; j < txLastInputEntry; j++)
+		    txInputDevice[j-1] = txInputDevice[j];
+		txLastInputEntry--;
+		/* we shuffled entries down one, so txInputDevice[i] now
+		 * looks at potential next one to inspect, but we're about
+		 * to i++ (if we continue) and that will incorrectly skip
+		 * inspection of it.
+		 * lets just start over
+		 */
+		goto restart;
+	    }
 	}
     }
     FD_CLR(fd, &txInputDescriptors);
+    TxInputDescriptorsRecalc();
 }
 
 
@@ -956,7 +1011,7 @@ TxGetInputEvent(
 	{
 	    if (returnOnSigWinch && SigGotSigWinch) return gotSome;
 	    inputs = txInputDescriptors;
-	    numReady = select(TX_MAX_OPEN_FILES, &inputs, (fd_set *)NULL,
+	    numReady = select(txInputDescriptors_nfds + 1, &inputs, (fd_set *)NULL,
 		(fd_set *)NULL, waitTime);
 	    if (numReady <= 0) FD_ZERO(&inputs);	/* no fd is ready */
 	} while ((numReady <= 0) && (errno == EINTR));
@@ -966,21 +1021,33 @@ TxGetInputEvent(
 	    perror("magic");
 	}
 
-	for (i = 0; i <= txLastInputEntry; i++)
+	/* 0..1023 using numReady==0 to terminate early */
+	for (fd = 0; numReady && fd <= txInputDescriptors_nfds; fd++)
 	{
-	    /* This device has data on its file descriptor, call
-	     * it so that it can add events to the input queue.
-	     */
-	    for (fd = 0; fd < TX_MAX_OPEN_FILES; fd++) {
-		if (FD_ISSET(fd, &inputs) &&
-			    FD_ISSET(fd, &(txInputDevice[i].tx_fdmask))) {
-		    lastNum = txNumInputEvents;
-		    (*(txInputDevice[i].tx_inputProc))
-			(fd, txInputDevice[i].tx_cdata); /** @invoke cb_textio_input_t */
-		    FD_CLR(fd, &inputs);
-		    /* Did this driver choose to add an event? */
-		    if (txNumInputEvents != lastNum) gotSome = TRUE;
-		}
+	    if (!FD_ISSET(fd, &inputs))
+		continue; /* this fd is was not monitored or is not ready */
+
+	    /* find the input device receiver entry */
+	    for (i = 0; i < txLastInputEntry; i++)
+	    {
+		if (!FD_ISSET(fd, &txInputDevice[i].tx_fdmask))
+		    continue;
+
+		/* This device has data on its file descriptor, call
+		 * it so that it can add events to the input queue.
+		 */
+		lastNum = txNumInputEvents;
+
+		(*txInputDevice[i].tx_inputProc)(fd, txInputDevice[i].tx_cdata);
+
+		/* Did this driver choose to add an event? */
+		if (txNumInputEvents != lastNum) gotSome = TRUE;
+		numReady--;
+
+		/* original code would FD_CLR() which would effectively break here
+		 * so this only allows the first found receiver to receive the data
+		 */
+		break;
 	    }
 	}
 	/*
@@ -1699,6 +1766,7 @@ txCommandsInit(void)
     txZeroTime.tv_sec = 0;
     txZeroTime.tv_usec = 0;
     FD_ZERO(&txInputDescriptors);
+    txInputDescriptors_nfds = 0;
     DQInit(&txInputEvents, 4);
     DQInit(&txFreeEvents, 4);
     DQInit(&txFreeCommands, 4);
