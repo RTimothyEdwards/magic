@@ -2807,6 +2807,7 @@ ExtTechLine(sectionName, argc, argv)
 		    }
 		    devptr->exts_deviceResist.ht_table = (HashEntry **) NULL;
 		    HashInit(&devptr->exts_deviceResist, 8, HT_STRINGKEYS);
+		    devptr->exts_linearResist = 0;
 
 		    devptr->exts_next = ExtCurStyle->exts_device[t];
 		    ExtCurStyle->exts_device[t] = devptr;
