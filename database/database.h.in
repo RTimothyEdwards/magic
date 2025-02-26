@@ -25,6 +25,9 @@
 #ifndef _DATABASE_H
 #define	_DATABASE_H
 
+#include <assert.h>
+//#include "utils/magic_assert.h" // FIXME does not exist yet
+
 #ifndef	_TILES_H
 #include "tiles/tile.h"
 #endif	/* _TILES_H */
@@ -89,11 +92,14 @@ typedef int TileType;
  * Note that the value of 5 for TT_WORDSHIFT effectively requires that
  * bits-per-word equal 32 or havoc is likely to result.
  */
+_Static_assert(sizeof (unsigned int) == 4, "TileTypeBitMask sizeof(unsigned int)");
 
 #define	TT_BPW		(8 * sizeof (unsigned int))
 #define	TT_WORDMASK	(TT_BPW - 1)
 #define	TT_WORDSHIFT	5			/* LOG2(TT_BPW) */
 #define	TT_MASKWORDS	((TT_MAXTYPES + TT_BPW - 1) / TT_BPW)
+
+_Static_assert((1<<TT_WORDSHIFT) == TT_BPW, "TileTypeBitMask computation"); /* crosscheck */
 
 typedef struct
 {

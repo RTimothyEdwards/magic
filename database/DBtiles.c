@@ -723,9 +723,7 @@ enumerate:
  *
  * This procedure uses a carfully constructed non-recursive area
  * enumeration algorithm.  Care is taken to not access a tile that has
- * been deallocated.  The only exception is for a tile that has just been
- * passed to free(), but no more calls to free() or malloc() have been made.
- * Magic's malloc allows this.
+ * been deallocated.
  *
  * --------------------------------------------------------------------
  */
@@ -762,9 +760,10 @@ enumerate:
 	/* Each iteration returns one tile further to the right */
 	while (RIGHT(tp) < rect->r_xtop)
 	{
-	    TiFree(tp);
 	    tpnew = RT(tp);
-	    tp = TR(tp);
+	    Tile *tr_tmp = TR(tp);
+	    TiFree(tp);
+	    tp = tr_tmp; //TR(tp);
 	    if (CLIP_TOP(tpnew) <= CLIP_TOP(tp) && BOTTOM(tpnew) < rect->r_ytop)
 	    {
 		tp = tpnew;
@@ -772,9 +771,10 @@ enumerate:
 	    }
 	}
 
-	TiFree(tp);
+	Tile *tp_free = tp;
 	/* At right edge -- walk up to next tile along the right edge */
 	tp = RT(tp);
+	TiFree(tp_free);
 	if (BOTTOM(tp) < rect->r_ytop) {
 	    while(LEFT(tp) >= rect->r_xtop) tp = BL(tp);
 	}
