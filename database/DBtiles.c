@@ -657,7 +657,7 @@ DBResetTilePlane(plane, cdata)
     ClientData cdata;
 {
     Tile *tp, *tpnew;
-    Rect *rect = &TiPlaneRect;
+    const Rect *rect = &TiPlaneRect;
 
     /* Start with the leftmost non-infinity tile in the plane */
     tp = TR(plane->pl_left);
@@ -735,7 +735,7 @@ DBFreePaintPlane(plane)
     Plane *plane;	/* Plane whose storage is to be freed */
 {
     Tile *tp, *tpnew;
-    Rect *rect = &TiPlaneRect;
+    const Rect *rect = &TiPlaneRect;
 
     /* Start with the bottom-right non-infinity tile in the plane */
     tp = BL(plane->pl_right);

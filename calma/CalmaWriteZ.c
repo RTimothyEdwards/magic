@@ -96,7 +96,7 @@ extern int calmaWriteInitFunc(CellDef *def);
 
 typedef struct {
    gzFile f;		/* Compressed file stream for output	*/
-   Rect *area;		/* Clipping area, in GDS coordinates	*/
+   const Rect *area;	/* Clipping area, in GDS coordinates	*/
    int type;		/* Layer index				*/
 } calmaOutputStructZ;
 
@@ -106,7 +106,7 @@ extern int calmaMergePaintFuncZ(Tile *tile, calmaOutputStructZ *cos);
 extern int calmaWriteUseFuncZ(CellUse *use, gzFile f);
 extern int calmaPaintLabelFuncZ(Tile *tile, calmaOutputStructZ *cos);
 extern void calmaWriteContactsZ(gzFile f);
-extern void calmaOutFuncZ(CellDef *def, gzFile f, Rect *cliprect);
+extern void calmaOutFuncZ(CellDef *def, gzFile f, const Rect *cliprect);
 extern void calmaOutStructNameZ(int type, CellDef *def, gzFile f);
 extern void calmaWriteLabelFuncZ(Label *lab, int ltype, int type, gzFile f);
 extern void calmaOutHeaderZ(CellDef *rootDef, gzFile f);
@@ -1169,7 +1169,7 @@ void
 calmaOutFuncZ(
     CellDef *def,	/* Pointer to cell def to be written */
     gzFile f,		/* Open output file */
-    Rect *cliprect)	/* Area to clip to (used for contact cells),
+    const Rect *cliprect)/* Area to clip to (used for contact cells),
 			 * in CIF/GDS coordinates.
 			 */
 {
@@ -1886,7 +1886,7 @@ calmaMergePaintFuncZ(
     calmaOutputStructZ *cos)	/* Information needed by algorithm */
 {
     gzFile f = cos->f;
-    Rect *clipArea = cos->area;
+    const Rect *clipArea = cos->area;
     Tile *t, *tp;
     TileType ttype;
     int i, llx, lly, urx, ury, intedges, num_points, split_type;
@@ -2209,7 +2209,7 @@ calmaWritePaintFuncZ(
     calmaOutputStructZ *cos)	/* File for output and clipping area */
 {
     gzFile f = cos->f;
-    Rect *clipArea = cos->area;
+    const Rect *clipArea = cos->area;
     Rect r, r2;
 
     TiToRect(tile, &r);
@@ -2485,7 +2485,7 @@ calmaPaintLabelFuncZ(
     calmaOutputStructZ *cos)	/* File for output and clipping area */
 {
     gzFile f = cos->f;
-    Rect *clipArea = cos->area;
+    const Rect *clipArea = cos->area;
     Rect r, r2;
     Point p;
     int len;

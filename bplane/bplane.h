@@ -185,9 +185,9 @@ extern void BPEnumInit(BPEnum *bpe, /* this procedure initializes this
 				     * enumeration.
 				     */
 		       BPlane *bp, /* bplane to search */
-		       Rect *area, /* area to search */
+		       const Rect *area, /* area to search */
 		       int match,  /* see below */
-		       char *id);  /* for debugging */
+		       const char *id);  /* for debugging */
 /* match values */
 
   /* enum all elements in the bplane (area arg must be null) */

@@ -327,10 +327,10 @@ typedef struct cifstyle
 extern bool CIFNameToMask(char *name, TileTypeBitMask *result, TileTypeBitMask *depend);
 extern void CIFGenSubcells(CellDef *def, Rect *area, Plane **output);
 extern void CIFGenArrays(CellDef *def, Rect *area, Plane **output);
-extern void CIFGen(CellDef *cellDef, CellDef *origDef, Rect *area, Plane **planes, TileTypeBitMask *layers,
+extern void CIFGen(CellDef *cellDef, CellDef *origDef, const Rect *area, Plane **planes, TileTypeBitMask *layers,
                    bool replace, bool genAllPlanes, bool hier, ClientData clientdata);
 extern void CIFClearPlanes(Plane **planes);
-extern Plane *CIFGenLayer(CIFOp *op, Rect *area, CellDef *cellDef, CellDef *origDef, Plane *temps[],
+extern Plane *CIFGenLayer(CIFOp *op, const Rect *area, CellDef *cellDef, CellDef *origDef, Plane *temps[],
                           bool hier, ClientData clientdata);
 extern void CIFInitCells(void);
 extern int cifHierCopyFunc(Tile *tile, TreeContext *cxp);

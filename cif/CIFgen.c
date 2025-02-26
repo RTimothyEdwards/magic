@@ -79,7 +79,7 @@ static Plane *cifPlane;		/* Plane acted on by search functions. */
 static int cifScale;		/* Scale factor to use on tiles. */
 
 extern void cifClipPlane(Plane *plane, Rect *clip);
-extern void cifGenClip(Rect *area, Rect *expanded, Rect *clip);
+extern void cifGenClip(const Rect *area, Rect *expanded, Rect *clip);
 
 /*
  * ----------------------------------------------------------------------------
@@ -3947,7 +3947,7 @@ cifSquareGridFunc(
 void
 cifSrTiles(
     CIFOp *cifOp,		/* Geometric operation being processed. */
-    Rect *area,			/* Area of Magic paint to consider. */
+    const Rect *area,		/* Area of Magic paint to consider. */
     CellDef *cellDef,		/* CellDef to search for paint. */
     Plane *temps[],		/* Planes to use for temporaries. */
     int (*func)(),		/* Search function to pass to DBSrPaintArea. */
@@ -4848,7 +4848,7 @@ cifInteractingRegions(
 Plane *
 CIFGenLayer(
     CIFOp *op,			/* List of CIFOps telling how to make layer. */
-    Rect *area,			/* Area to consider when generating CIF.  Only
+    const Rect *area,		/* Area to consider when generating CIF.  Only
 				 * material in this area will be considered, so
 				 * the caller should usually expand his desired
 				 * area by one CIF radius.
@@ -5465,7 +5465,7 @@ void
 CIFGen(
     CellDef *cellDef,		/* Cell for which CIF is to be generated. */
     CellDef *origDef,		/* Original cell, if different from cellDef */
-    Rect *area,			/* Any CIF overlapping this area (in coords
+    const Rect *area,		/* Any CIF overlapping this area (in coords
 				 * of cellDef) will be generated.  The CIF
 				 * will be clipped to this area.
 				 */
@@ -5631,7 +5631,7 @@ cifClipPlane(
 
 void
 cifGenClip(
-    Rect *area,			/* Any CIF overlapping this area (in coords
+    const Rect *area,		/* Any CIF overlapping this area (in coords
 				 * of cellDef) will be generated.  The CIF
 				 * will be clipped to this area.
 				 */

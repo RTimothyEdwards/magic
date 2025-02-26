@@ -50,9 +50,9 @@
  */
 void BPEnumInit(BPEnum *bpe,   /* enum to initialize */
 		BPlane *bp,
-		Rect *area,    /* search area */
+		const Rect *area,    /* search area */
 		int match,
-		char *id)      /* for debugging */
+		const char *id)      /* for debugging */
 {
   bool inside = FALSE;
   bpe->bpe_plane = bp;

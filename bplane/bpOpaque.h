@@ -182,7 +182,7 @@ typedef struct bpenum
   BPlane *bpe_plane;           /* plane being searched */
   Rect    bpe_srchArea;        /* area being searched */
   int     bpe_match;           /* match criteria */
-  char   *bpe_id;              /* for debug */
+  const char *bpe_id;          /* for debug */
   int     bpe_subBinMinX;
   int     bpe_subBinMinY;      /* consider subbinning
 				* for bins bigger than this.
