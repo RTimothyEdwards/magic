@@ -371,7 +371,7 @@ glMazeTile(inPt, tile, dir)
     TileType type = TiGetType(tile);
     Tile *tp;
 
-    ASSERT((int) ch != MINFINITY, "glMazeTile");
+    ASSERT((pointertype)ch != MINFINITY, "glMazeTile");
 
     /*
      * If this is a "real" channel boundary, pick a crossing point,
