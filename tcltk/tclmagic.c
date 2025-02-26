@@ -369,6 +369,7 @@ _tcl_dispatch(ClientData clientData,
     if (!strncmp(argv0, "::", 2)) argv0 += 2;
 
     objv0 = Tcl_NewStringObj(argv0, strlen(argv0));
+    Tcl_IncrRefCount(objv0); /* this seems needed to ensure it is freed across Tcl_EvalObjv() */
     if (Tcl_GetIndexFromObj(interp, objv0, (const char **)conflicts,
 	"overloaded command", 0, &idx) == TCL_OK)
     {
@@ -396,7 +397,10 @@ _tcl_dispatch(ClientData clientData,
 	Tcl_Free((char *)objv);
 
 	if (result == TCL_OK)
+	{
+	    Tcl_DecrRefCount(objv0);
 	    return result;
+        }
 
 	/* The rule is to execute Magic commands for any Tcl command 	*/
 	/* with the same name that returns an error.  However, this	*/
@@ -420,11 +424,17 @@ _tcl_dispatch(ClientData clientData,
 		    slashptr++;
 
 		if ((dotptr = strrchr(slashptr, '.')) != NULL)
+		{
 		    if (strcmp(dotptr + 1, "mag") && strcmp(dotptr + 1, "gz"))
+		    {
+			Tcl_DecrRefCount(objv0);
 			return result;
+                    }
+                }
 	    }
 	}
     }
+    Tcl_DecrRefCount(objv0);
     Tcl_ResetResult(interp);
 
     if (TxInputRedirect == TX_INPUT_REDIRECTED)
