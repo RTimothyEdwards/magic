@@ -384,7 +384,7 @@ mzPaintBlockType(r, type, buildArea, blockType)
 	    if (blockType != TT_SAMENODE)
 	    {
 		RouteContact *rC;
-		Tile *tp = rT->rt_hBlock->pl_hint;
+		Tile *tp = PlaneGetHint(rT->rt_hBlock);
 		GOTOPOINT(tp, &r->r_ll);
 		if (TiGetType(tp) == TT_SAMENODE)
 		{
@@ -404,16 +404,16 @@ mzPaintBlockType(r, type, buildArea, blockType)
 				Tile *tp2;
 				if (rC->rc_rLayer1->rl_routeType.rt_tileType == type)
 				{
-				    tp2 = rC->rc_rLayer1->
-						rl_routeType.rt_hBlock->pl_hint;
+				    tp2 = PlaneGetHint(rC->rc_rLayer1->
+						rl_routeType.rt_hBlock);
 				    GOTOPOINT(tp2, &r->r_ll);
 				    if (TiGetType(tp) == TT_SAMENODE) break;
 				}
 				else if (rC->rc_rLayer2->rl_routeType.rt_tileType
 						== type)
 				{
-				    tp2 = rC->rc_rLayer2->
-						rl_routeType.rt_hBlock->pl_hint;
+				    tp2 = PlaneGetHint(rC->rc_rLayer2->
+						rl_routeType.rt_hBlock);
 				    GOTOPOINT(tp2, &r->r_ll);
 				    if (TiGetType(tp) == TT_SAMENODE) break;
 				}

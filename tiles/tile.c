@@ -162,7 +162,7 @@ TiNewPlane(tile)
     BL(newplane->pl_right) = tile;
     TiSetBody(newplane->pl_right, -1);
 
-    newplane->pl_hint = tile;
+    PlaneSetHint(newplane, tile);
     return (newplane);
 }
 
@@ -571,8 +571,8 @@ TiJoinX(tile1, tile2, plane)
 	LEFT(tile1) = LEFT(tile2);
     }
 
-    if (plane->pl_hint == tile2)
-	plane->pl_hint = tile1;
+    if (PlaneGetHint(plane) == tile2)
+	PlaneSetHint(plane, tile1);
     TiFree(tile2);
 }
 
@@ -656,8 +656,8 @@ TiJoinY(tile1, tile2, plane)
 	BOTTOM(tile1) = BOTTOM(tile2);
     }
 
-    if (plane->pl_hint == tile2)
-	plane->pl_hint = tile1;
+    if (PlaneGetHint(plane) == tile2)
+	PlaneSetHint(plane, tile1);
     TiFree(tile2);
 }
 

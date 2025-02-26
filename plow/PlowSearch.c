@@ -235,7 +235,7 @@ plowSrShadow(
     /* Walk along the LHS of the sweep area from top to bottom */
     p.p_x = s.s_area.r_xbot;
     p.p_y = s.s_area.r_ytop - 1;
-    tp = plane->pl_hint;
+    tp = PlaneGetHint(plane);
     while (p.p_y >= s.s_area.r_ybot)
     {
 	/* Find the next tile along the LHS of the sweep area */
@@ -254,7 +254,7 @@ plowSrShadow(
 	}
     }
 
-    plane->pl_hint = tp;
+    PlaneSetHint(plane, tp);
     return (ret);
 }
 
@@ -389,7 +389,7 @@ plowSrShadowInitial(
     /* Walk along the LHS of the sweep area from top to bottom */
     p.p_x = s.s_area.r_xbot;
     p.p_y = s.s_area.r_ytop - 1;
-    tp = plane->pl_hint;
+    tp = PlaneGetHint(plane);
     while (p.p_y >= s.s_area.r_ybot)
     {
 	/* Find the next tile along the LHS of the sweep area */
@@ -408,7 +408,7 @@ plowSrShadowInitial(
 	}
     }
 
-    plane->pl_hint = tp;
+    PlaneSetHint(plane, tp);
     return (ret);
 }
 
@@ -545,7 +545,7 @@ plowSrShadowBack(
     /* Walk along the RHS of the sweep area from bottom to top */
     p.p_x = s.s_area.r_xtop - 1;
     p.p_y = s.s_area.r_ybot;
-    tp = plane->pl_hint;
+    tp = PlaneGetHint(plane);
     while (p.p_y < s.s_area.r_ytop)
     {
 	/* Find the next tile along the RHS of the sweep area */
@@ -566,7 +566,7 @@ plowSrShadowBack(
     }
 
     /* if ret = 1 then tp may point to an invalid tile --- Tim 6/15/01 */
-    if (!ret) plane->pl_hint = tp;
+    if (!ret) PlaneSetHint(plane, tp);
     return (ret);
 }
 
@@ -700,9 +700,9 @@ plowAtomize(pNum, rect, proc, cdata)
     startPoint.p_y = rect->r_ytop - 1;
 
     /* Walk down the RHS of the edge */
-    tpR = plane->pl_hint;
+    tpR = PlaneGetHint(plane);
     GOTOPOINT(tpR, &startPoint);
-    plane->pl_hint = tpR;
+    PlaneSetHint(plane, tpR);
     for ( ; TOP(tpR) > rect->r_ybot; tpR = LB(tpR))
     {
 	/* Only process edges that haven't moved far enough */
@@ -912,7 +912,7 @@ plowSrOutlineInit(outline)
 	     *
 	     * It is possible for 'in' and 'out' to be the same tile.
 	     */
-	    out = plane->pl_hint;
+	    out = PlaneGetHint(plane);
 	    p = outline->o_rect.r_ll;
 	    GOTOPOINT(out, &p);
 	    p.p_x--;
@@ -975,7 +975,7 @@ plowSrOutlineInit(outline)
 	     */
 	    p.p_x = outline->o_rect.r_xbot - 1;
 	    p.p_y = outline->o_rect.r_ybot - 1;
-	    out = plane->pl_hint;
+	    out = PlaneGetHint(plane);
 	    GOTOPOINT(out, &p);
 	    p.p_x++;
 	    in = out;

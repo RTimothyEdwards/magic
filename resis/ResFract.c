@@ -73,7 +73,7 @@ ResFracture(plane, rect)
 
     start.p_x = rect->r_xbot;
     start.p_y = rect->r_ytop - 1;
-    resSrTile = plane->pl_hint;
+    resSrTile = PlaneGetHint(plane);
     GOTOPOINT(resSrTile, &start);
 
     /* Each iteration visits another tile on the LHS of the search area */
@@ -81,7 +81,7 @@ ResFracture(plane, rect)
     {
 	/* Each iteration enumerates another tile */
 enumerate:
-	plane->pl_hint = resSrTile;
+	PlaneSetHint(plane, resSrTile);
 	if (SigInterruptPending)
 	    return (1);
 

@@ -874,9 +874,9 @@ donesrch:
 	    {
 		if (PlaneMaskHasPlane(pmask, p) && (p != pnum))
 		{
-		    tp = SelectDef->cd_planes[p]->pl_hint;
+		    tp = PlaneGetHint(SelectDef->cd_planes[p]);
 		    GOTOPOINT(tp, &tile->ti_ll);
-		    SelectDef->cd_planes[p]->pl_hint = tp;
+		    PlaneSetHint(SelectDef->cd_planes[p], tp);
 	    	    if (selShortProcessTile(tp, cost + 1, GEO_CENTER, lmask) == 0)
 		    {
 			sd = NewSD(cost + 1, tp, TiGetLeftType(tp), p);
@@ -974,7 +974,7 @@ SelectShort(char *lab1, char *lab2)
 	if (PlaneMaskHasPlane(pmask, destpnum))
 	{
 	    plane = SelectDef->cd_planes[destpnum];
-	    desttile = plane->pl_hint;
+	    desttile = PlaneGetHint(plane);
 	    GOTOPOINT(desttile, &destlab->lab_rect.r_ll)
 	    desttype = TiGetTopType(desttile);
 	    if (TTMaskHasType(&DBConnectTbl[destlab->lab_type], desttype)) break;
@@ -988,7 +988,7 @@ SelectShort(char *lab1, char *lab2)
 	if (PlaneMaskHasPlane(pmask, srcpnum))
 	{
 	    plane = SelectDef->cd_planes[srcpnum];
-	    srctile = plane->pl_hint;
+	    srctile = PlaneGetHint(plane);
 	    GOTOPOINT(srctile, &srclab->lab_rect.r_ll)
 	    srctype = TiGetTopType(srctile);
 	    if (TTMaskHasType(&DBConnectTbl[srclab->lab_type], srctype)) break;

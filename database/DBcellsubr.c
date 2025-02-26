@@ -262,7 +262,7 @@ DBClearPaintPlane(plane)
 
     /* Allocate a new central space tile */
     newCenterTile = TiAlloc();
-    plane->pl_hint = newCenterTile;
+    PlaneSetHint(plane, newCenterTile);
     TiSetBody(newCenterTile, TT_SPACE);
     dbSetPlaneTile(plane, newCenterTile);
 }

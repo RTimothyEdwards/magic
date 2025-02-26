@@ -55,9 +55,9 @@ TiSrPoint(hintTile, plane, point)
     Plane * plane;		/* Plane (containing hint tile pointer) */
     Point * point;	/* Point for which to search */
 {
-    Tile *tp = (hintTile) ? hintTile : plane->pl_hint;
+    Tile *tp = (hintTile) ? hintTile : PlaneGetHint(plane);
 
     GOTOPOINT(tp, point);
-    plane->pl_hint = tp;
+    PlaneSetHint(plane, tp);
     return(tp);
 }

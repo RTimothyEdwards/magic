@@ -278,7 +278,7 @@ glChanFreeMap()
 
     /* Allocate a new central space tile */
     newCenterTile = TiAlloc();
-    glChanPlane->pl_hint = newCenterTile;
+    PlaneSetHint(glChanPlane, newCenterTile);
     TiSetBody(newCenterTile, CHAN_BLOCKED);
     dbSetPlaneTile(glChanPlane, newCenterTile);
 }
