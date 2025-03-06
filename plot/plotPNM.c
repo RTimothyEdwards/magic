@@ -587,6 +587,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
 
 #ifdef VERSATEC
     struct plotRTLdata rtl_args;
+    rtl_args.outfile = NULL;
     char command[200], tempFile[200];
 #endif
 
