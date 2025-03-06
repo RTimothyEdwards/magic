@@ -314,6 +314,7 @@ extern void CapHashSetValue();
 
 extern DevParam *efGetDeviceParams();
 extern void efBuildNode();
+extern void efConnectionFreeLinkedList(Connection *conn);
 extern void efBuildConnect();
 extern void efBuildResistor();
 extern void efBuildCap();

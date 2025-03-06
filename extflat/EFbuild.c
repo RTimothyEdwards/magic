@@ -1484,6 +1484,34 @@ efBuildUse(def, subDefName, subUseId, ta, tb, tc, td, te, tf)
 /*
  * ----------------------------------------------------------------------------
  *
+ * efConnectionFreeLinkedList --
+ *
+ * Release memory for linked-list of Connection* based on internal list
+ *  at Connection->conn_next.  'conn' argument must be non-NULL.
+ *
+ * Results:
+ *	Deallocates linked-list of Connection* starting at 'conn'
+ *
+ * Side effects:
+ *	Deallocates one or more connection record(s).
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+efConnectionFreeLinkedList(Connection *conn)
+{
+    while (conn)
+    {
+	Connection *next = conn->conn_next;
+	efFreeConn(conn);
+	conn = next;
+    }
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * efBuildConnect --
  *
  * Process a "connect" line from a .ext file.
@@ -2237,23 +2265,33 @@ efFreeNodeList(head, func)
     EFAttr *ap;
     LinkedRect *lr;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (node = (EFNode *) head->efnode_next;
 	    node != head;
 	    node = (EFNode *) node->efnode_next)
     {
-	for (ap = node->efnode_attrs; ap; ap = ap->efa_next)
-	    freeMagic((char *) ap);
+	{
+	    free_magic1_t mm1_ = freeMagic1_init();
+	    for (ap = node->efnode_attrs; ap; ap = ap->efa_next)
+		freeMagic1(&mm1_, (char *) ap);
+	    freeMagic1_end(&mm1_);
+	}
 	if (node->efnode_client != (ClientData)NULL)
 	{
 	    if (func != NULL)
 		(*func)(node->efnode_client);
 	    freeMagic((char *)node->efnode_client);
 	}
-	for (lr = node->efnode_disjoint; lr; lr = lr->r_next)
-	    freeMagic((char *)lr);
+	{
+	    free_magic1_t mm1_ = freeMagic1_init();
+	    for (lr = node->efnode_disjoint; lr; lr = lr->r_next)
+		freeMagic1(&mm1_, (char *)lr);
+	    freeMagic1_end(&mm1_);
+	}
 
-	freeMagic((char *) node);
+	freeMagic1(&mm1, (char *) node);
     }
+    freeMagic1_end(&mm1);
 }
 
 /*

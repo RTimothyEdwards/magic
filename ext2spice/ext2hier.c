@@ -2048,11 +2048,13 @@ esMakePorts(hc, cdata)
     }
 
     /* Free table data */
+    free_magic1_t mm1 = freeMagic1_init();
     while (flagtop != NULL)
     {
-	freeMagic((char *)flagtop);
+	freeMagic1(&mm1, (char *)flagtop);
 	flagtop = flagtop->fdr_next;
     }
+    freeMagic1_end(&mm1);
     HashKill(&flagHashTable);
     return 0;
 }
@@ -2184,8 +2186,10 @@ esHierVisit(hc, cdata)
 	    EFHierVisitDevs(hcf, spcdevHierMergeVisit, (ClientData)NULL);
 	    TxPrintf("Devs merged: %d\n", esSpiceDevsMerged);
 	    esFMIndex = 0;
+	    free_magic1_t mm1 = freeMagic1_init();
 	    for (p = devMergeList; p != NULL; p = p->next)
-		freeMagic(p);
+		freeMagic1(&mm1, p);
+	    freeMagic1_end(&mm1);
 	    devMergeList = NULL;
 	}
 	else if (esDistrJunct)

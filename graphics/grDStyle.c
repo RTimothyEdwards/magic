@@ -632,8 +632,10 @@ recovery:
 		    GrStyleTable[i] = sstyle->style;
 		    /* Add short style name reverse lookup table entry */
 		    GrStyleNames[(int)(sstyle->shortname)] = i;
-		    freeMagic(sstyle);
+		    free_magic1_t mm1 = freeMagic1_init();
+		    freeMagic1(&mm1, sstyle);
 		    sstyle = sstyle->next;
+		    freeMagic1_end(&mm1);
 		}
 	    }
 	    dstylehead = NULL;

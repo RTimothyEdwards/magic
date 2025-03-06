@@ -523,8 +523,10 @@ CmdLef(
 		    if (!strcasecmp(inet, "none"))
 		    {
 			/* Remove all net names from the list */
+			free_magic1_t mm1 = freeMagic1_init();
 			for (lnn = lefIgnoreNets; lnn; lnn = lnn->lnn_next)
-			    freeMagic(lnn);
+			    freeMagic1(&mm1, lnn);
+			freeMagic1_end(&mm1);
 			lefIgnoreNets = NULL;
 		    }
 		    else
