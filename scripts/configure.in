@@ -24,6 +24,9 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PROG_SED
 
+AC_PATH_PROG(PERL, perl, no)
+AC_SUBST(PERL)
+
 dnl check if the linker is a GNU linker
 
 #------------------------------------------------------------

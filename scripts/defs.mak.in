@@ -62,6 +62,7 @@ ARFLAGS                = cr
 LINK                   = @LD@ -r
 LD                     = @LD@
 MKDIR                  = mkdir
+PERL                   = @PERL@
 SED                    = @SED@
 MCPP		       = @MCPP@
 MSED		       = @MSED@
