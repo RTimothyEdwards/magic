@@ -2383,6 +2383,50 @@ DBGenerateUniqueIds(def, warn)
 /*
  * ----------------------------------------------------------------------------
  *
+ * DBSelectionUniqueIds --
+ *
+ * This is similar to DBGenerateUniqueIds(), but the purpose is to make
+ * sure that cell IDs in the selection do not collide with IDs in the
+ * definition.  This is done before copying from Select2Def back to the
+ * root edit CellDef.  Otherwise, any copied cell takes the name of the
+ * original, and the original gets renamed, which is unexpected behavior.
+ * Called only from SelectCopy().
+ *
+ * Results:
+ *	None.
+ *
+ * Side effects:
+ *	May modify the use-id's of the cells in the cell plane of 'selDef'.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+void
+DBSelectionUniqueIds(selDef, rootDef)
+    CellDef *selDef;	/* Should be Select2Def */
+    CellDef *rootDef;	/* Should be EditRootDef */
+{
+    int dbFindNamesFunc();
+    int dbGenerateUniqueIdsFunc();
+
+    dbWarnUniqueIds = FALSE;
+    HashInit(&dbUniqueDefTable, 32, 1);		/* Indexed by (CellDef *) */
+    HashInit(&dbUniqueNameTable, 32, 0);	/* Indexed by use-id */
+
+    /* Build up tables of names */
+    DBCellEnum(rootDef, dbFindNamesFunc, (ClientData) rootDef);
+    DBCellEnum(selDef, dbFindNamesFunc, (ClientData) selDef);
+
+    /* Assign unique use-ids to all cells in the selection  */
+    DBCellEnum(selDef, dbGenerateUniqueIdsFunc, (ClientData) selDef);
+
+    HashKill(&dbUniqueDefTable);
+    HashKill(&dbUniqueNameTable);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * dbFindNamesFunc --
  *
  * Called via DBCellEnum() on behalf of DBGenerateUniqueIds() above,

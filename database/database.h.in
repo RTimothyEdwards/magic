@@ -983,6 +983,7 @@ extern int  DBScaleCell();
 extern TileType DBTechNameTypes();
 extern void DBTreeFindUse();
 extern void DBGenerateUniqueIds();
+extern void DBSelectionUniqueIds();
 extern TileType DBInvTransformDiagonal();
 extern bool DBIsSubcircuit();
 extern int  DBSrPaintNMArea();

@@ -311,9 +311,18 @@ SelectCopy(transform)
     (void) DBCellCopyAllLabels(&scx, &DBAllTypeBits, CU_DESCEND_NO_LOCK, Select2Use,
 		(Rect *) NULL);
     (void) DBCellCopyAllCells(&scx, CU_DESCEND_NO_LOCK, Select2Use, (Rect *) NULL);
+
+    /* The selection now has the same instance names as the cell def.  If
+     * copies are made, then there will be name conflicts, and the original
+     * instance may be the one renamed.  The sensible thing to do is to make
+     * sure that all conflicts are resolved within the select CellDef before
+     * the copy is made.
+     */
+    DBSelectionUniqueIds(Select2Def, EditRootDef);
+
     DBReComputeBbox(Select2Def);
     UndoEnable();
-
+ 
     SelectClear();
     SelectAndCopy2(EditRootDef);
 }
