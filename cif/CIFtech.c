@@ -111,6 +111,7 @@ cifTechFreeStyle(void)
 			    case CIFOP_MAXRECT:
 			    case CIFOP_BOUNDARY:
 			    case CIFOP_INTERACT:
+			    case CIFOP_MANHATTAN:
 				/* These options use co_client to hold a single	*/
 				/* integer value, so it is not allocated.	*/
 				break;
@@ -1091,6 +1092,8 @@ CIFTechLine(
 	newOp->co_opcode = CIFOP_MASKHINTS;
     else if (strcmp(argv[0], "close") == 0)
 	newOp->co_opcode = CIFOP_CLOSE;
+    else if (strcmp(argv[0], "orthogonal") == 0)
+	newOp->co_opcode = CIFOP_MANHATTAN;
     else if (strcmp(argv[0], "bridge") == 0)
 	newOp->co_opcode = CIFOP_BRIDGE;
     else if (strcmp(argv[0], "bridge-lim") == 0)
@@ -1133,13 +1136,32 @@ CIFTechLine(
 	case CIFOP_GROWMIN:
 	case CIFOP_GROW_G:
 	case CIFOP_SHRINK:
-	case CIFOP_CLOSE:
 	    if (argc != 2) goto wrongNumArgs;
 	    newOp->co_distance = atoi(argv[1]);
 	    if (newOp->co_distance <= 0)
 	    {
 		TechError("Grow/shrink distance must be greater than zero.\n");
 		goto errorReturn;
+	    }
+	    break;
+
+	case CIFOP_CLOSE:
+	    /* "close" is like "grow" and "shrink" except that it can have
+	     * no argument, in which case any closed shape of any size
+	     * will be closed (useful for finding enclosed areas).
+	     */
+	    if (argc == 1)
+		newOp->co_distance = 0;
+	    else if (argc != 2)
+		goto wrongNumArgs;
+	    else
+	    {
+		newOp->co_distance = atoi(argv[1]);
+		if (newOp->co_distance <= 0)
+		{
+		    TechError("Grow/shrink distance must be greater than zero.\n");
+		    goto errorReturn;
+		}
 	    }
 	    break;
 
@@ -1329,6 +1351,19 @@ bloatCheck:
 		else if (strncmp(argv[1], "int", 3))
 		    TechError("Maxrect takes only one optional argument "
 				"\"external\" or \"internal\" (default).\n");
+	    }
+	    else if (argc != 1)
+		goto wrongNumArgs;
+	    break;
+
+	case CIFOP_MANHATTAN:
+	    if (argc == 2)
+	    {
+		if (!strcmp(argv[1], "fill"))
+		    newOp->co_client = (ClientData)1;
+		else if (strcmp(argv[1], "remove"))
+		    TechError("Orthogonal takes only one optional argument "
+				"\"fill\" or \"remove\" (default).\n");
 	    }
 	    else if (argc != 1)
 		goto wrongNumArgs;
@@ -1925,7 +1960,7 @@ CIFTechFinal(void)
 		    }
 		}
 		/* Presence of op->co_opcode in CIFOP_OR indicates a copy */
-		/* of the SquaresData pointer from a following operator	  */
+		/* of the SquaresData pointer from a following operator.  */
 		/* CIFOP_BBOX and CIFOP_MAXRECT uses the co_client field  */
 		/* as a flag field, while CIFOP_NET and CIFOP_MASKHINTS	  */
 		/* uses it for a string.				  */
@@ -1938,6 +1973,7 @@ CIFTechFinal(void)
 			case CIFOP_MASKHINTS:
 			case CIFOP_BOUNDARY:
 			case CIFOP_MAXRECT:
+			case CIFOP_MANHATTAN:
 			case CIFOP_NET:
 			    break;
 			case CIFOP_BRIDGELIM:
@@ -2472,6 +2508,7 @@ CIFTechOutputScale(
 			case CIFOP_BOUNDARY:
 			case CIFOP_MASKHINTS:
 			case CIFOP_MAXRECT:
+			case CIFOP_MANHATTAN:
 			case CIFOP_NET:
 			case CIFOP_INTERACT:
 			    break;

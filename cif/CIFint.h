@@ -141,6 +141,7 @@ typedef struct cifop
  *			which will be painted into parent cells instead of the
  *			current cell.  This replaces the "fault" method.
  * CIFOP_CLOSE -	Added 11/25/19---close up areas smaller than indicated
+ * CIFOP_MANHATTAN -	Added 3/27/25---remove or fill nonmanhattan areas
  * CIFOP_BRIDGE -	Added 6/11/20---Bridge across catecorner gaps
  * CIFOP_BRIDGELIM -	Added 27/07/20---Bridge across catecorner gaps, but with limiting layers
  * CIFOP_MASKHINTS -	Added 12/14/20---Add geometry from cell properties, if any.
@@ -167,9 +168,10 @@ typedef struct cifop
 #define CIFOP_INTERACT	19
 #define CIFOP_COPYUP	20
 #define CIFOP_CLOSE	21
-#define CIFOP_BRIDGE	22
-#define CIFOP_BRIDGELIM 23
-#define CIFOP_MASKHINTS 24
+#define CIFOP_MANHATTAN 22
+#define CIFOP_BRIDGE	23
+#define CIFOP_BRIDGELIM 24
+#define CIFOP_MASKHINTS 25
 
 /* Definitions of bit fields used in the value of co_client for CIFOP_INTERACT */
 #define CIFOP_INT_NOT	   0x1		/* Inverted sense (not interacting) */

@@ -2085,6 +2085,53 @@ cifBridgeCheckFunc(
 /*
  * ----------------------------------------------------------------------------
  *
+ * cifOrthogonalFunc --
+ *
+ * 	Called for each relevant tile during "orthogonal" operations.
+ *
+ * Results:
+ *	Always returns 0 to keep the search alive.
+ *
+ * Side effects:
+ *	Paints into cifNewPlane.  Tiles in old plane are copied as-is
+ *	if they are not split tiles.  Split tiles are either replaced
+ *	with a rectangle of type "1" or "0" depending on whether the
+ *	option is "fill" or "remove", respectively.
+ * ----------------------------------------------------------------------------
+ */
+
+int
+cifOrthogonalFunc(
+    Tile *tile,
+    const PaintResultType *table)		/* Table to be used for painting. */
+{
+    Rect area;
+    TileType oldType = TiGetTypeExact(tile);
+
+    TiToRect(tile, &area);
+
+    /* In scaling the tile, watch out for infinities!!  If something
+     * is already infinity, don't change it. */
+
+    if (area.r_xbot > TiPlaneRect.r_xbot) area.r_xbot *= cifScale;
+    if (area.r_ybot > TiPlaneRect.r_ybot) area.r_ybot *= cifScale;
+    if (area.r_xtop < TiPlaneRect.r_xtop) area.r_xtop *= cifScale;
+    if (area.r_ytop < TiPlaneRect.r_ytop) area.r_ytop *= cifScale;
+
+    /* Diagonal tiles get replaced with non-diagonal tiles */
+
+    if (oldType & TT_DIAGONAL)
+	DBPaintPlane(cifPlane, &area, table, (PaintUndoInfo *) NULL);
+    else
+	DBPaintPlane(cifPlane, &area, CIFPaintTable, (PaintUndoInfo *) NULL);
+
+    CIFTileOps += 1;
+    return 0;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * cifCloseFunc --
  *
  * 	Called for each relevant tile during close operations.
@@ -2117,16 +2164,18 @@ cifCloseFunc(
 
     atotal = 0;
 
-    /* Search all sides for connected space tiles, and accumulate the total */
-    /* area.  If any connected tile borders infinity, then stop searching   */
-    /* because the area is not enclosed.				    */
+    /* Search all sides for connected space tiles, and accumulate the	*/
+    /* total area.  If any connected tile borders infinity, then stop	*/
+    /* searching because the area is not enclosed.			*/
 
     cifGatherFunc(tile, &atotal, CLOSE_SEARCH);
 
-    /* If the total area is smaller than the rule area, then paint all the  */
-    /* tile areas into the destination plane.				    */
+    /* If the total area is smaller than the rule area, then paint all	*/
+    /* the tile areas into the destination plane.  A rule area of zero	*/
+    /* indicates that any enclosed area, no matter how large, should be	*/
+    /* filled.								*/
 
-    if ((atotal != INFINITY) && (atotal < growDistance))
+    if ((atotal != INFINITY) && ((atotal < growDistance) || (growDistance == 0)))
     {
 	cifGatherFunc(tile, &atotal, CLOSE_FILL);
     }
@@ -2134,7 +2183,6 @@ cifCloseFunc(
     {
 	cifGatherFunc(tile, &atotal, CLOSE_DONE);
     }
-
     return 0;
 }
 
@@ -5263,6 +5311,22 @@ CIFGenLayer(
 		    nextPlane = temp;
 		}
 		break;
+
+	    case CIFOP_MANHATTAN:
+		DBClearPaintPlane(nextPlane);
+		cifPlane = nextPlane;
+		cifScale = 1;
+		DBSrPaintArea((Tile *) NULL, curPlane, &TiPlaneRect,
+		    	&CIFSolidBits, cifOrthogonalFunc,
+			(op->co_client == (ClientData)1) ?
+			(ClientData) CIFPaintTable : 
+			(ClientData) CIFEraseTable);
+
+		temp = curPlane;
+		curPlane = nextPlane;
+		nextPlane = temp;
+		break;
+
 
 	    case CIFOP_MAXRECT:
 		cifPlane = curPlane;
