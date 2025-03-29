@@ -152,7 +152,7 @@ extern CellDef *lefFindCell(const char *name);
 extern const char *LefNextToken(FILE *f, bool ignore_eol);
 extern char *LefLower(char *token);
 extern TileType LefHelper_DBTechNameType_LefLower(const char *name);
-extern LinkedRect *LefReadGeometry(CellDef *lefMacro, FILE *f, float oscale, bool do_list, bool is_imported);
+extern LinkedRect *LefReadGeometry(CellDef *lefMacro, FILE *f, float oscale, Point *, bool do_list, bool is_imported);
 extern void LefEstimate(int processed, int total, const char *item_name);
 extern lefLayer *LefRedefined(lefLayer *lefl, const char *redefname);
 extern void LefAddViaGeometry(FILE *f, lefLayer *lefl, TileType curlayer, float oscale);

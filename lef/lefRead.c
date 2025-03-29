@@ -852,7 +852,9 @@ LefReadLayer(
  *	return the two coordinates in LEF units (floating-point).
  *
  * Results:
- *	Return 0 on success, 1 on error.
+ *	Return 0 on success, 1 on error.  Return -1 if no
+ *	coordinates are found in the input (used where
+ *	coordinates may be optional).
  *
  * Side Effects:
  *	Reads input from file f;
@@ -878,6 +880,7 @@ LefReadLefPoint(
     bool needMatch = FALSE;
 
     token = LefNextToken(f, TRUE);
+    if (!token) return -1;
     if (*token == '(')
     {
 	token = LefNextToken(f, TRUE);
@@ -1019,6 +1022,7 @@ LefReadPolygon(
     FILE *f,
     TileType curlayer,
     float oscale,
+    Point *gdsOffset,
     int *ppoints)
 {
     LinkedRect *lr = NULL, *newRect;
@@ -1056,8 +1060,8 @@ LefReadPolygon(
 	/* as we read it in.					*/
 
 	newRect = (LinkedRect *)mallocMagic(sizeof(LinkedRect));
-	newRect->r_r.r_xbot = (int)roundf(px / oscale);
-	newRect->r_r.r_ybot = (int)roundf(py / oscale);
+	newRect->r_r.r_xbot = (int)roundf(px / oscale) + gdsOffset->p_x;
+	newRect->r_r.r_ybot = (int)roundf(py / oscale) + gdsOffset->p_y;
 	newRect->r_next = lr;
 	lr = newRect;
 	lpoints++;
@@ -1222,6 +1226,7 @@ LefReadGeometry(
     CellDef *lefMacro,
     FILE *f,
     float oscale,
+    Point *gdsOffset,
     bool do_list,
     bool is_imported)
 {
@@ -1276,6 +1281,11 @@ LefReadGeometry(
 		paintrect = (curlayer < 0) ? NULL : LefReadRect(f, curlayer, oscale);
 		if (paintrect)
 		{
+		    paintrect->r_xbot += gdsOffset->p_x;
+		    paintrect->r_ybot += gdsOffset->p_y;
+		    paintrect->r_xtop += gdsOffset->p_x;
+		    paintrect->r_ytop += gdsOffset->p_y;
+
 		    if (is_imported)
 		    {
 			int pNum = DBPlane(curlayer); /* FIXME unused return value from call to function with no side-effects */
@@ -1346,7 +1356,7 @@ LefReadGeometry(
 		LefEndStatement(f);
 		break;
 	    case LEF_POLYGON:
-		pointList = LefReadPolygon(f, curlayer, oscale, &points);
+		pointList = LefReadPolygon(f, curlayer, oscale, gdsOffset, &points);
 		if (pointList)
 		{
 		    if (lefMacro)
@@ -1428,13 +1438,14 @@ LefReadPort(
     int pinUse,
     int pinShape,
     float oscale,
+    Point *gdsOffset,
     bool  is_imported,
     Label *lanno)
 {
     Label *newlab;
     LinkedRect *rectList;
 
-    rectList = LefReadGeometry(lefMacro, f, oscale, TRUE, is_imported);
+    rectList = LefReadGeometry(lefMacro, f, oscale, gdsOffset, TRUE, is_imported);
 
     while (rectList != NULL)
     {
@@ -1549,6 +1560,7 @@ LefReadPin(
    char *pinname,
    int pinNum,
    float oscale,
+   Point *gdsOffset,
    bool is_imported)
 {
     const char *token;
@@ -1815,7 +1827,7 @@ LefReadPin(
 			    DBEraseLabelsByContent(lefMacro, NULL, -1, testpin);
 
 			LefReadPort(lefMacro, f, testpin, pinNum, pinDir, pinUse,
-				pinShape, oscale, TRUE, lab);
+				pinShape, oscale, gdsOffset, TRUE, lab);
 		    }
 		    else
 			LefSkipSection(f, NULL);
@@ -1823,7 +1835,7 @@ LefReadPin(
 		}
 		else
 		    LefReadPort(lefMacro, f, testpin, pinNum, pinDir, pinUse,
-			    pinShape, oscale, FALSE, NULL);
+			    pinShape, oscale, gdsOffset, FALSE, NULL);
 		break;
 	    case LEF_CAPACITANCE:
 	    case LEF_ANTENNADIFF:
@@ -2124,10 +2136,11 @@ LefReadMacro(
 
     const char *token;
     char tsave[128], *propval;
-    int keyword, pinNum, propsize;
+    int keyword, pinNum, propsize, result;
     float x, y;
     bool has_size, is_imported = FALSE, propfound;
     Rect lefBBox;
+    Point gdsOffset;	/* Difference between GDS and LEF coordinates */
 
     static const char * const macro_keys[] = {
 	"CLASS",
@@ -2203,6 +2216,8 @@ LefReadMacro(
     has_size = FALSE;
     lefBBox.r_xbot = 0;
     lefBBox.r_ybot = 0;
+    gdsOffset.p_x = 0;
+    gdsOffset.p_y = 0;
 
     while ((token = LefNextToken(f, TRUE)) != NULL)
     {
@@ -2252,6 +2267,8 @@ size_error:
 		    lefBBox.r_xtop += lefBBox.r_xbot;
 		    lefBBox.r_ytop += lefBBox.r_ybot;
 		}
+		gdsOffset.p_x += lefBBox.r_xbot;
+		gdsOffset.p_y += lefBBox.r_ybot;
 		LefEndStatement(f);
 		break;
 origin_error:
@@ -2312,7 +2329,7 @@ origin_error:
 		TxPrintf("   Macro defines pin %s\n", token);
 		*/
 		sprintf(tsave, "%.127s", token);
-		LefReadPin(lefMacro, f, tsave, pinNum++, oscale, is_imported);
+		LefReadPin(lefMacro, f, tsave, pinNum++, oscale, &gdsOffset, is_imported);
 		break;
 	    case LEF_OBS:
 		/* Diagnostic */
@@ -2322,18 +2339,28 @@ origin_error:
 		if (is_imported)
 		    LefSkipSection(f, NULL);
 		else
-		    LefReadGeometry(lefMacro, f, oscale, FALSE, is_imported);
+		    LefReadGeometry(lefMacro, f, oscale, &gdsOffset, FALSE, is_imported);
 		break;
 	    case LEF_TIMING:
 		LefSkipSection(f, macro_keys[LEF_TIMING]);
 		break;
 	    case LEF_FOREIGN:
+		token = LefNextToken(f, TRUE);
+		sprintf(tsave, "%.127s", token);
+
+		/* Read (optional) FOREIGN coordinate */
+		result = LefReadLefPoint(f, &x, &y);
+		if (result == 1) goto origin_error;
+		else if (result == 0)
+		{
+		    gdsOffset.p_x += -(int)roundf(x / oscale);
+		    gdsOffset.p_y += -(int)roundf(y / oscale);
+		}
 		if (importForeign)
 		{
-		    token = LefNextToken(f, TRUE);
-		    sprintf(tsave, "%.127s", token);
-
-		    /* To do:  Read and apply X and Y offsets */
+		    /* There is no behavioral difference when using
+		     * importForiegn.
+		     */
 		}
 		LefEndStatement(f);
 		break;
@@ -2349,6 +2376,10 @@ origin_error:
     }
 
     /* Finish up creating the cell */
+    lefBBox.r_xbot -= gdsOffset.p_x;
+    lefBBox.r_ybot -= gdsOffset.p_y;
+    lefBBox.r_xtop -= gdsOffset.p_x;
+    lefBBox.r_ytop -= gdsOffset.p_y;
     DBReComputeBbox(lefMacro);
 
     if (is_imported)
