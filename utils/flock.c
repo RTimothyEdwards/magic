@@ -127,10 +127,8 @@ gzFile flock_zopen(filename, mode, is_locked, fdp)
 	else if (mode[0] == 'w')
 	    oflag = (mode[1] == '+') ? O_APPEND : O_WRONLY;
 
-	fd = open(fname, oflag);
-	if (fdp != NULL) *fdp = fd;
-	freeMagic(fname);
-	return gzdopen(fd, mode);
+	f = path_gzdopen_internal(fname, oflag, mode, fdp);
+	goto done;
     }
 
     /* Diagnostic */
@@ -140,8 +138,7 @@ gzFile flock_zopen(filename, mode, is_locked, fdp)
     if (fd < 0)
     {
 	if (is_locked) *is_locked = TRUE;
-	fd = open(fname, O_RDONLY);
-	f = gzdopen(fd, "r");
+	f = path_gzdopen_internal(fname, O_RDONLY, "r", fdp);
 	goto done;
     }
 
@@ -155,7 +152,8 @@ gzFile flock_zopen(filename, mode, is_locked, fdp)
     {
 	perror(fname);
 	f = gzdopen(fd, mode);
-	goto done;
+	if (f)
+	    goto done_store_fdp;
     }
     close(fd);
     fd = -1;
@@ -171,7 +169,9 @@ gzFile flock_zopen(filename, mode, is_locked, fdp)
 	fd = open(fname, O_RDWR);
 	if (fcntl(fd, F_SETLK, &fl))
 	{
- 	    perror(fname);
+	    perror(fname);
+	    /* appears to be a best-effort rather than signal error, */
+	    /* and continues to gzdopen() to provide caller handle   */
 	}
 	else
 	{
@@ -179,6 +179,11 @@ gzFile flock_zopen(filename, mode, is_locked, fdp)
 	    /* TxPrintf("Obtained lock on file <%s> (fd=%d)\n", fname, fd); */
 	}
 	f = gzdopen(fd, mode);
+	if (f == NULL)
+	{
+	    close(fd);
+	    fd = -1;
+	}
     }
     else
     {
@@ -190,12 +195,13 @@ gzFile flock_zopen(filename, mode, is_locked, fdp)
 	    TxPrintf("File <%s> is already locked by pid %d.  Opening read-only.\n",
 				fname, (int)fl.l_pid);
 	if (is_locked) *is_locked = TRUE;
-        fd = open(fname, O_RDONLY);
-	f = gzdopen(fd, "r");
+	f = path_gzdopen_internal(fname, O_RDONLY, "r", fdp);
+	goto done;
     }
 
+done_store_fdp:
+    if (fdp) *fdp = fd;
 done:
-    if (fdp != NULL) *fdp = fd;
     freeMagic(fname);
     return f;
 }
@@ -235,7 +241,8 @@ FILE *flock_open(filename, mode, is_locked, fdp)
     if (is_locked == NULL)
     {
 	f = fopen(filename, mode);
-	if ((fdp != NULL) && (f != NULL)) *fdp = fileno(f);
+	if (f)
+	    if (fdp) *fdp = fileno(f);
 	return f;
     }
 
@@ -297,7 +304,8 @@ FILE *flock_open(filename, mode, is_locked, fdp)
     }
 
 done:
-    if ((fdp != NULL) && (f != NULL)) *fdp = fileno(f);
+    if (f)
+	if (fdp) *fdp = fileno(f);
     return f;
 }
 
