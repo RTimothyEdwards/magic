@@ -215,10 +215,12 @@ PlotVersTechInit()
 {
     VersatecStyle *style;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (style = plotVersStyles; style != NULL; style = style->vs_next)
     {
-	freeMagic((char *) style);
+	freeMagic1(&mm1, (char *) style);
     }
+    freeMagic1_end(&mm1);
     plotVersStyles = NULL;
 
     if (PlotVersPrinter == NULL)
@@ -266,10 +268,12 @@ PlotColorVersTechInit()
 {
     VersatecStyle *style;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (style = plotColorVersStyles; style != NULL; style = style->vs_next)
     {
-	freeMagic((char *) style);
+	freeMagic1(&mm1, (char *) style);
     }
+    freeMagic1_end(&mm1);
     plotColorVersStyles = NULL;
 
     if (PlotVersPrinter == NULL)

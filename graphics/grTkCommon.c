@@ -209,9 +209,17 @@ grTkDefineCursor(glyphs)
 	    return;
 	}
 
+#ifdef SUPPORT_DIRECT_MALLOC
+        glyphcache = (CursorCache *)malloc(sizeof(CursorCache));
+#else
         glyphcache = (CursorCache *)mallocMagic(sizeof(CursorCache));
+#endif
 	g->gr_cache = (ClientData)glyphcache;
-	g->gr_free = freeMagic;
+#ifdef SUPPORT_DIRECT_MALLOC
+	g->gr_free = free;
+#else
+	g->gr_free = freeMagicLegacy;
+#endif
 
 	/* Find the foreground and background colors of the glyph */
 

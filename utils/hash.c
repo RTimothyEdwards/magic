@@ -587,11 +587,12 @@ HashRemove(table, key)
     bucket = hash(table, key);
     h = *(table->ht_table + bucket);
     hlast = NULL;
+    free_magic1_t mm1 = freeMagic1_init();
     while (h != NIL)
     {
 	if (strcmp(h->h_key.h_name, key) == 0)
 	{
-	    freeMagic((char *)h);
+	    freeMagic1(&mm1, (char *)h);
 	    if (hlast != NULL)
 		hlast->h_next = h->h_next;
 	    else
@@ -601,6 +602,7 @@ HashRemove(table, key)
 	hlast = h;
 	h = h->h_next;
     }
+    freeMagic1_end(&mm1);
 }
 
 
@@ -690,16 +692,20 @@ HashKill(table)
 
     if (table->ht_ptrKeys == HT_CLIENTKEYS) killFn = table->ht_killFn;
     for (hp = table->ht_table, hend = &hp[table->ht_size]; hp < hend; hp++)
+    {
+	free_magic1_t mm1 = freeMagic1_init();
 	for (h = *hp; h != NIL; h = h->h_next)
 	{
 	    const void *p;
-	    freeMagic((char *) h);
+	    freeMagic1(&mm1, (char *) h);
 	    if (killFn)
 	    {
 		p = h->h_key.h_ptr;
 		(*killFn)((void *)p);
 	    }
 	}
+	freeMagic1_end(&mm1);
+    }
     freeMagic((char *) table->ht_table);
 
     /*

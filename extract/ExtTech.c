@@ -869,6 +869,7 @@ extTechStyleInit(style)
 	if (style->exts_device[r] != NULL)
 	{
 	    ExtDevice *devptr;
+	    free_magic1_t mm1 = freeMagic1_init();
 	    for (devptr = style->exts_device[r]; devptr; devptr = devptr->exts_next)
 	    {
 
@@ -891,15 +892,18 @@ extTechStyleInit(style)
 		    {
 			if (devptr->exts_deviceParams->pl_name != NULL)
 			    freeMagic(devptr->exts_deviceParams->pl_name);
-			freeMagic(devptr->exts_deviceParams);
+			free_magic1_t mm1_ = freeMagic1_init();
+			freeMagic1(&mm1_, devptr->exts_deviceParams);
 			devptr->exts_deviceParams = devptr->exts_deviceParams->pl_next;
+			freeMagic1_end(&mm1_);
 		    }
 		}
 		if (devptr->exts_deviceResist.ht_table != (HashEntry **) NULL)
 		    HashKill(&devptr->exts_deviceResist);
 
-		freeMagic(devptr);
+		freeMagic1(&mm1, devptr);
 	    }
+	    freeMagic1_end(&mm1);
 	    style->exts_device[r] = (ExtDevice *)NULL;
 	}
     }
@@ -1101,11 +1105,13 @@ ExtTechInit()
 
     /* Forget all the extract style names */
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (style = ExtAllStyles; style != NULL; style = style->exts_next)
     {
 	freeMagic(style->exts_name);
-	freeMagic(style);
+	freeMagic1(&mm1, style);
     }
+    freeMagic1_end(&mm1);
     ExtAllStyles = NULL;
 
     if (allExtractTypes == NULL)
@@ -2564,8 +2570,10 @@ ExtTechLine(sectionName, argc, argv)
 			{
 			    if (subcktParams->pl_name != NULL)
 				freeMagic(subcktParams->pl_name);
-			    freeMagic(subcktParams);
+			    free_magic1_t mm1 = freeMagic1_init();
+			    freeMagic1(&mm1, subcktParams);
 			    subcktParams = subcktParams->pl_next;
+			    freeMagic1_end(&mm1);
 			}
 			goto usage;
 		    }

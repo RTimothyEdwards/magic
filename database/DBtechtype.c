@@ -126,12 +126,14 @@ DBTechInitPlane()
     {
 	NameList *tbl;
 
+	free_magic1_t mm1 = freeMagic1_init();
 	for (tbl = dbPlaneNameLists.sn_next; tbl != &dbPlaneNameLists;
 			tbl = tbl->sn_next)
 	{
 	    freeMagic(tbl->sn_name);
-	    freeMagic(tbl);
+	    freeMagic1(&mm1, tbl);
 	}
+	freeMagic1_end(&mm1);
     }
 
     /* Tables of short names */
@@ -205,12 +207,14 @@ DBTechInitType()
     {
 	NameList *tbl;
 
+	free_magic1_t mm1 = freeMagic1_init();
 	for (tbl = dbTypeNameLists.sn_next; tbl != &dbTypeNameLists;
 		tbl = tbl->sn_next)
 	{
 	    freeMagic(tbl->sn_name);
-	    freeMagic(tbl);
+	    freeMagic1(&mm1, tbl);
 	}
+	freeMagic1_end(&mm1);
     }
 
     /* Tables of short names */
