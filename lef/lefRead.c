@@ -881,6 +881,7 @@ LefReadLefPoint(
 
     token = LefNextToken(f, TRUE);
     if (!token) return -1;
+    if (*token == ';') return -1;
     if (*token == '(')
     {
 	token = LefNextToken(f, TRUE);
@@ -2350,7 +2351,7 @@ origin_error:
 
 		/* Read (optional) FOREIGN coordinate */
 		result = LefReadLefPoint(f, &x, &y);
-		if (result == 1) goto origin_error;
+		if (result == 1) goto foreign_error;
 		else if (result == 0)
 		{
 		    gdsOffset.p_x += -(int)roundf(x / oscale);
@@ -2362,6 +2363,11 @@ origin_error:
 		     * importForiegn.
 		     */
 		}
+		LefEndStatement(f);
+		break;
+foreign_error:
+		LefError(LEF_ERROR, "Bad origin in macro FOREIGN; requires "
+				"0 or 2 values.\n");
 		LefEndStatement(f);
 		break;
 	    case LEF_MACRO_END:
