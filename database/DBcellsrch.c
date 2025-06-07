@@ -1525,8 +1525,10 @@ DBScaleEverything(scalen, scaled)
     /* Scale all elements */
     DBWScaleElements(scalen, scaled);
 
+#ifdef ROUTE_MODULE
     /* Recovery of global plane pointers */
     MZAttachHintPlanes();
+#endif
 
     /* Modify root box */
     ToolScaleBox(scalen, scaled);
