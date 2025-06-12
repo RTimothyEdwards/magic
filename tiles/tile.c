@@ -490,6 +490,63 @@ TiSplitY_Bottom(
     return (newtile);
 }
 
+/* Obnoxious global variable introduced to fix a use-after-free issue
+ * in DBMergeNMTiles0();  should get cleaned up when the one-delayed-free
+ * method gets purged from the code.
+ */
+
+static Tile *tile_join_TiFree = NULL;
+
+/*
+ * --------------------------------------------------------------------
+ * TiJoinFreeFinal --
+ *
+ *    Manages use-after free style bugs relating to the use of TiJoin{X,Y}
+ *
+ * Results:  None
+ *
+ * Side effects:  Calls TiFree() and may modify the global variable
+ *	tile_join_TiFree.
+ *
+ * --------------------------------------------------------------------
+ */
+
+static void
+TiJoinFreeFinal(void)
+{
+    Tile *tile = tile_join_TiFree;
+    if (tile)
+    {
+       tile_join_TiFree = NULL;
+       TiFree(tile);
+    }
+}
+
+/*
+ * --------------------------------------------------------------------
+ * TiJoinFree --
+ *
+ *   Tile deallocation function to use with TiJoinX() and TiJoinY(),
+ *   running TiJoinFreeFinal() and using the global variable
+ *   tile_join_TiFree to avoid issues with the one-delayed-free
+ *   method.  It's a bit of a hack, but it solves the problem.
+ *
+ * Results:  None
+ *
+ * Side effects:  Sets global variable tile_join_TiFree to point to
+ *	the freed tile so that it won't get accidentally used before
+ *	it is reallocated.
+ *
+ * --------------------------------------------------------------------
+ */
+
+static void
+TiJoinFree(Tile* tile)
+{
+   TiJoinFreeFinal();
+   tile_join_TiFree = tile;
+}
+
 /*
  * --------------------------------------------------------------------
  *
@@ -572,7 +629,7 @@ TiJoinX(
 
     if (PlaneGetHint(plane) == tile2)
 	PlaneSetHint(plane, tile1);
-    TiFree(tile2);
+    TiJoinFree(tile2);
 }
 
 /*
@@ -657,7 +714,7 @@ TiJoinY(
 
     if (PlaneGetHint(plane) == tile2)
 	PlaneSetHint(plane, tile1);
-    TiFree(tile2);
+    TiJoinFree(tile2);
 }
 
 #ifdef HAVE_SYS_MMAN_H
