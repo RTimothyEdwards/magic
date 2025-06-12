@@ -491,6 +491,34 @@ TiSplitY_Bottom(
 }
 
 /*
+ * tile_join_TiFree manages use-after free style bugs relating to the use of TiJoin{X,Y}
+ */
+static Tile* tile_join_TiFree = NULL;
+
+static void
+TiJoinFreeFinal(void)
+{
+    Tile *tile = tile_join_TiFree;
+    if(tile) {
+       tile_join_TiFree = NULL;
+       TiFree(tile);
+    }
+}
+
+static void
+TiJoinFree(Tile* tile)
+{
+#if 1
+   /* see Issue 404 for an example to trigger */
+   /* look at tile use-after-free issues in DBMergeNMTiles0() */
+   TiJoinFreeFinal();
+   tile_join_TiFree = tile;
+#else
+   TiFree(tile);
+#endif
+}
+
+/*
  * --------------------------------------------------------------------
  *
  * TiJoinX --
@@ -572,7 +600,7 @@ TiJoinX(
 
     if (PlaneGetHint(plane) == tile2)
 	PlaneSetHint(plane, tile1);
-    TiFree(tile2);
+    TiJoinFree(tile2);
 }
 
 /*
@@ -657,7 +685,7 @@ TiJoinY(
 
     if (PlaneGetHint(plane) == tile2)
 	PlaneSetHint(plane, tile1);
-    TiFree(tile2);
+    TiJoinFree(tile2);
 }
 
 #ifdef HAVE_SYS_MMAN_H
