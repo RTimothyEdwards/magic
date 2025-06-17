@@ -203,6 +203,7 @@ jobs:
             export CPP="clang-cpp-${BUILD_CLANG_VERSION}"
           fi
 
+          set -o pipefail # due to pipe inside CI
           ./configure $CONFIGURE_ARGS 2>&1 | tee CONFIGURE.LOG
 
           egrep "^(CPP|CXX|CC)\s" defs.mak
