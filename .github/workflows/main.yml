@@ -24,7 +24,7 @@ jobs:
       - name: Run the testing on the container and send the mail
         run: docker exec test_magic /vezzal/test_magic.sh "lankasaicharan123@gmail.com,tim@opencircuitdesign.com" ${{secrets.MAILING_KEY}}
   simple_build_linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Get Dependencies
@@ -36,7 +36,7 @@ jobs:
           make database/database.h
           make -j$(nproc)
   simple_build_wasm:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Get Dependencies
