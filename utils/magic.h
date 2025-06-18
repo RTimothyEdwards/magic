@@ -85,14 +85,7 @@ typedef pointertype ClientData;
 
 /* --------------------------- Booleans ------------------------------- */
 
-typedef unsigned char bool;
-
-#ifndef TRUE
-#define	TRUE	((bool)1)
-#endif
-#ifndef FALSE
-#define	FALSE	((bool)0)
-#endif
+#include "utils/magic_stdbool.h"
 
 /* ----------------------- Simple functions --------------------------- */
 
