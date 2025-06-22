@@ -139,21 +139,6 @@ typedef struct
 #define PlaneGetHint(pl)        ((pl)->pl_hint)
 #define PlaneSetHint(pl, ti)    ((pl)->pl_hint = (ti))
 
-inline Tile*
-PlaneGetHint_inline(const Plane *pl)
-{
-    return pl->pl_hint;
-}
-
-inline void
-PlaneSetHint_inline(Plane *pl, Tile *ti)
-{
-    pl->pl_hint = ti;
-}
-
-//#define PlaneGetHint(pl)        PlaneGetHint_inline(pl)
-//#define PlaneSetHint(pl, ti)    PlaneSetHint_inline((pl), (ti))
-
 /*
  * The following coordinate, INFINITY, is used to represent a
  * tile location outside of the tile plane.
