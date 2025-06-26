@@ -13,21 +13,24 @@ RUN ls -l /etc/yum.repos.d/ \
     && yum -y update \
     && rm -f /tmp/CentOS-Base.repo.old
 
-# Build Dependencies
-RUN yum install -y cairo-devel freeglut-devel gcc make tcsh
+# Build Dependencies (and dump version to logging)
+RUN yum install -y cairo-devel freeglut-devel gcc make tcsh \
+    && echo "### rpm -qa:" \
+    && rpm -qa | sort \
+    && echo ""
 
 # Tcl/Tk 
 WORKDIR /tcl
-RUN curl -L https://prdownloads.sourceforge.net/tcl/tcl8.6.12-src.tar.gz | tar --strip-components=1 -xzC . \
+RUN curl -L https://prdownloads.sourceforge.net/tcl/tcl8.6.16-src.tar.gz | tar --strip-components=1 -xzC . \
     && cd unix \
     && ./configure --prefix=/prefix \
     && make \
     && make install
 
 WORKDIR /tk
-RUN curl -L https://prdownloads.sourceforge.net/tcl/tk8.6.12-src.tar.gz | tar --strip-components=1 -xzC . \
+RUN curl -L https://prdownloads.sourceforge.net/tcl/tk8.6.16-src.tar.gz | tar --strip-components=1 -xzC . \
     && cd unix \
-    && ./configure --prefix=/prefix --with-tcl=/prefix/lib\
+    && ./configure --prefix=/prefix --with-tcl=/prefix/lib \
     && make \
     && make install
 
@@ -48,6 +51,16 @@ RUN ./configure \
     && make database/database.h \
     && make -j$(nproc) \
     && make install
+
+# Produce summary of what was created and confirm their DSOs
+RUN echo "### filesystem:" \
+    find /prefix -printf "%y/%M/%m %i/%n %l %u/%U %g/%G %s/%b %T+/%T@\t%p\n"; \
+    ls -lR /prefix; \
+    find /prefix -type f -perm /111 -exec bash -c "echo \#\#\# {}; ldd -v {}" \; 2>/dev/null; \
+    for name in libgcc_s libstdc++ libpng liblzma libxml2 libz libcairo libGL libGLU; do \
+      find /lib64 /usr/lib64 -maxdepth 2 -name "*.so" -name "${name}*" -exec bash -c "echo \#\#\# {}; ldd -v {}" \; 2>/dev/null; \
+    done; \
+    echo "###"
 
 WORKDIR /
 RUN tar -czf /prefix.tar.gz -C ./prefix .
