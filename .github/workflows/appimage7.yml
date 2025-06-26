@@ -48,7 +48,7 @@ jobs:
 
       - name: Build project
         run: |
-          cd appimage
+          cd appimage/7
           make
 
           ln -v Magic-x86_64.AppImage "${MAGIC_APPIMAGE_OUTPUT_FILENAME}"
@@ -58,7 +58,7 @@ jobs:
 
       - name: Create RELEASE-NOTES.txt
         run: |
-          cd appimage
+          cd appimage/7
           # Find the last tag (that does not match the current GITHUB_REF)
           echo GITHUB_REF=$GITHUB_REF
           echo GITHUB_SHA=$GITHUB_SHA
@@ -70,7 +70,7 @@ jobs:
           echo "" >> RELEASE-NOTES-EL7.txt
           echo "This release is based on EL7 (CentOS7), the AppImage format is designed to run on a wide range of Linux distributions." >> RELEASE-NOTES-EL7.txt
           echo "" >> RELEASE-NOTES-EL7.txt
-          echo "See documentation at https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_SHA:0:8}/appimage/README.md" >> RELEASE-NOTES-EL7.txt
+          echo "See documentation at https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_SHA:0:8}/appimage/7/README.md" >> RELEASE-NOTES-EL7.txt
           echo "" >> RELEASE-NOTES-EL7.txt
           length_info=$(stat "--format=%s bytes" "${MAGIC_APPIMAGE_OUTPUT_FILENAME}")
           sha256_info=$(sha256sum "${MAGIC_APPIMAGE_OUTPUT_FILENAME}" | cut -d ' ' -f1)
@@ -125,10 +125,10 @@ jobs:
         if: ${{ env.MY_GITHUB_TAG != '' }} # if: ${{ github.ref_type == 'tag' }}
         uses: softprops/action-gh-release@v2
         with:
-          body_path: ${{ github.workspace }}/appimage/RELEASE-NOTES-GH.txt
+          body_path: ${{ github.workspace }}/appimage/7/RELEASE-NOTES-GH.txt
           files: |
-            ${{ github.workspace }}/appimage/${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}
-            ${{ github.workspace }}/appimage/RELEASE-NOTES-EL7.txt
+            ${{ github.workspace }}/appimage/7/${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}
+            ${{ github.workspace }}/appimage/7/RELEASE-NOTES-EL7.txt
 
       - name: Upload Artifact
         #if: ${{ env.MY_GITHUB_TAG == '' }} # commented out to always upload
@@ -136,4 +136,4 @@ jobs:
         with:
           name: ${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}
           path: |
-            ${{ github.workspace }}/appimage/${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}
+            ${{ github.workspace }}/appimage/7/${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}
