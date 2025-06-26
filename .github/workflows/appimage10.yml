@@ -1,0 +1,139 @@
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+
+name: CI-appimage10
+
+jobs:
+  build_appimage10:
+    name: Build AppImage EL10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # action-gh-release
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 149 # enough to cover between tags
+
+      - name: Get the version
+        id: get_version
+        run: |
+          git show -s
+          version=$(cat VERSION) # 8.9.999
+          version_tstamp=$(git show -s "--format=%cs" | tr -d '-') # YYYYMMDD
+          version_hash=$(git show -s "--format=%h") # abcdefg
+          version_num=$(ruby -e "print '$GITHUB_REF'.split('/')[2]") # legacy version method: master
+          echo "version=${version}"
+          echo "version_tstamp=${version_tstamp}"
+          echo "version_hash=${version_hash}"
+          echo "version_num=${version_num}"
+          VERSION_NUM="${version}~${version_tstamp}~${version_hash}"
+          echo "VERSION_NUM=${VERSION_NUM}" >> $GITHUB_ENV
+          echo "MAGIC_APPIMAGE_OUTPUT_FILENAME=Magic-${VERSION_NUM}-x86_64-EL10.AppImage" >> $GITHUB_ENV
+          # Is this GHA being run due to a push-on-tag ?  if so we make a GitHub release, otherwise we just publish artifact
+          github_tag=$(echo -n "$GITHUB_REF" | sed -e 's#refs/tags/##') # 8.9.999
+          echo "github_tag=$github_tag"
+          if echo -n "$GITHUB_REF" | egrep -q "^refs/tags/" # check prefix
+          then
+            if [ -n "$github_tag" ]
+            then
+              echo "MY_GITHUB_TAG=${github_tag}" >> $GITHUB_ENV
+            fi
+          fi
+          # ubuntu-latest on GHA (now needs explicit dependencies for AppImageTool)
+          sudo apt-get install -y libfuse2 desktop-file-utils
+
+      - name: Build project
+        run: |
+          cd appimage/10
+          make
+
+          ln -v Magic-x86_64.AppImage "${MAGIC_APPIMAGE_OUTPUT_FILENAME}"
+          ls -l *.AppImage
+          sha256sum *.AppImage
+          pwd
+
+      - name: Create RELEASE-NOTES.txt
+        run: |
+          cd appimage/10
+          # Find the last tag (that does not match the current GITHUB_REF)
+          echo GITHUB_REF=$GITHUB_REF
+          echo GITHUB_SHA=$GITHUB_SHA
+          git fetch --tags --no-progress --quiet # fetch-tags: true # did not work
+          git_describe=$(git describe $GITHUB_SHA | sed -e 's#-#+#')
+
+          # RELEASE-NOTES-EL10.txt
+          echo "### ${MAGIC_APPIMAGE_OUTPUT_FILENAME} commit ${git_describe}" | sed -e 's#~#\\~#g' > RELEASE-NOTES-EL10.txt
+          echo "" >> RELEASE-NOTES-EL10.txt
+          echo "This release is based on EL10 (AlmaLinux10), the AppImage format is designed to run on a wide range of Linux distributions." >> RELEASE-NOTES-EL10.txt
+          echo "" >> RELEASE-NOTES-EL10.txt
+          echo "See documentation at https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_SHA:0:8}/appimage/10/README.md" >> RELEASE-NOTES-EL10.txt
+          echo "" >> RELEASE-NOTES-EL10.txt
+          length_info=$(stat "--format=%s bytes" "${MAGIC_APPIMAGE_OUTPUT_FILENAME}")
+          sha256_info=$(sha256sum "${MAGIC_APPIMAGE_OUTPUT_FILENAME}" | cut -d ' ' -f1)
+          echo "|   |   |" >> RELEASE-NOTES-EL10.txt
+          echo "| :-------- | :------ |" >> RELEASE-NOTES-EL10.txt
+          echo "| File Name | ${MAGIC_APPIMAGE_OUTPUT_FILENAME} |" | sed -e 's#~#\\~#g' >> RELEASE-NOTES-EL10.txt
+          echo "| File Length | ${length_info} |" >> RELEASE-NOTES-EL10.txt
+          echo "| File SHA256 | ${sha256_info} |" >> RELEASE-NOTES-EL10.txt
+          echo "" >> RELEASE-NOTES-EL10.txt
+
+          # RELEASE-NOTES-CL.txt
+          git_previous_tag=$(git describe --tags --abbrev=0 ${GITHUB_SHA}~1)
+          if [ -n "${git_previous_tag}" ]
+          then
+              echo "### Change Log (since previous tag):" > RELEASE-NOTES-CL.txt
+              echo "\`\`\`" >> RELEASE-NOTES-CL.txt
+              git log --oneline --no-color --no-decorate "refs/tags/${git_previous_tag}..${GITHUB_REF}" >> RELEASE-NOTES-CL.txt
+              echo "\`\`\`" >> RELEASE-NOTES-CL.txt
+          else
+              echo "### Change Log (last commit only):" > RELEASE-NOTES-CL.txt
+              echo "\`\`\`" >> RELEASE-NOTES-CL.txt
+              git log --oneline -n1 --no-color --no-decorate "${GITHUB_REF}" >> RELEASE-NOTES-CL.txt
+              echo "\`\`\`" >> RELEASE-NOTES-CL.txt
+          fi
+          echo "" >> RELEASE-NOTES-CL.txt
+
+          #echo "### Build Info:" > RELEASE-NOTES-BI.txt
+          # FIXME extract package version info and DSO symvers into RELEASE-NOTES.txt
+          #echo "" >> RELEASE-NOTES-BI.txt
+
+          cat RELEASE-NOTES-CL.txt >> RELEASE-NOTES-EL10.txt
+          cat RELEASE-NOTES-EL10.txt
+
+          # RELEASE-NOTES-DOCS.txt
+          echo "See documentation at https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_SHA:0:8}/appimage/7/README.md" >> RELEASE-NOTES-DOCS.txt
+          echo "See documentation at https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_SHA:0:8}/appimage/8/README.md" >> RELEASE-NOTES-DOCS.txt
+          echo "See documentation at https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_SHA:0:8}/appimage/9/README.md" >> RELEASE-NOTES-DOCS.txt
+          echo "See documentation at https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_SHA:0:8}/appimage/10/README.md" >> RELEASE-NOTES-DOCS.txt
+
+          # RELEASE-NOTES-GH.txt (this is shared for all AppImage for one tag)
+          echo "### commit ${git_describe}" | sed -e 's#~#\\~#g' > RELEASE-NOTES-GH.txt
+          echo "" >> RELEASE-NOTES-GH.txt
+          cat RELEASE-NOTES-DOCS.txt >> RELEASE-NOTES-GH.txt
+          cat RELEASE-NOTES-CL.txt >> RELEASE-NOTES-GH.txt
+
+          # Show in action/artifact output
+          echo "## RELEASE NOTES" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat RELEASE-NOTES-EL10.txt >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Release Asset
+        if: ${{ env.MY_GITHUB_TAG != '' }} # if: ${{ github.ref_type == 'tag' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: ${{ github.workspace }}/appimage/10/RELEASE-NOTES-GH.txt
+          files: |
+            ${{ github.workspace }}/appimage/10/${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}
+            ${{ github.workspace }}/appimage/10/RELEASE-NOTES-EL10.txt
+
+      - name: Upload Artifact
+        #if: ${{ env.MY_GITHUB_TAG == '' }} # commented out to always upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}
+          path: |
+            ${{ github.workspace }}/appimage/10/${{env.MAGIC_APPIMAGE_OUTPUT_FILENAME}}
