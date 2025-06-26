@@ -245,7 +245,7 @@ rtrSrTraverseFunc(tile, ts)
     Tile *t2;
     Rect tileArea;
     int i;
-    TileTypeBitMask *connectMask;
+    const TileTypeBitMask *connectMask;
     TileType ttype;
     unsigned int planes;
     struct conSrArg *csa = ts->ts_csa;
