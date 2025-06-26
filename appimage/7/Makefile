@@ -1,5 +1,5 @@
-MAGIC_SRC_ROOT = ..
-RESOURCES := $(shell find rsc/ -type f)
+MAGIC_SRC_ROOT = ../..
+RESOURCES := $(shell find ../rsc/ -type f)
 ARCH := $(shell uname -m)
 APPIMAGE = Magic-$(ARCH).AppImage
 VERSION_MAGIC := $(shell cat $(MAGIC_SRC_ROOT)/VERSION)
