@@ -249,6 +249,27 @@ extern Tile *TiSrPoint(Tile *hint, Plane *plane, const Point *point);
 extern Tile *TiAlloc(void);
 extern void TiFree(Tile *tile);
 
+#ifdef __GNUC_STDC_INLINE__
+/* Provide compiler visibility of STDC 'inline' semantics */
+inline void
+TiFreeIf(Tile *tile)
+{
+    if (tile != NULL)
+        TiFree(tile);
+}
+
+inline void
+TiFree1(Tile **delay1, Tile *tile)
+{
+    TiFreeIf(*delay1);
+    *delay1 = tile;
+}
+#else
+/* To support older compilers (that don't auto emit based on -O level) */
+extern void TiFreeIf(Tile *tile);
+extern void TiFree1(Tile **delay1, Tile *tile);
+#endif
+
 #define EnclosePoint(tile,point)	((LEFT(tile)   <= (point)->p_x ) && \
 					 ((point)->p_x   <  RIGHT(tile)) && \
 					 (BOTTOM(tile) <= (point)->p_y ) && \
