@@ -849,6 +849,28 @@ TiFree(
 
 #endif /* !HAVE_SYS_MMAN_H */
 
+#ifdef __GNUC_STDC_INLINE__
+/* Use of 'extern inline' force an emit of inline code at a symbol */
+extern inline void TiFreeIf(Tile *tile);
+extern inline void TiFree1(Tile **delay1, Tile *tile);
+#else
+/* To support older compilers (that don't auto emit based on -O level) */
+void
+TiFreeIf(Tile *tile)
+{
+    if (tile != NULL)
+        TiFree(tile);
+}
+
+void
+TiFree1(Tile **delay1, Tile *tile)
+{
+    TiFreeIf(*delay1);
+    *delay1 = tile;
+}
+#endif
+
+
 /* ==================================================================== */
 /*									*/
 /*			DEBUGGING PROCEDURES				*/
