@@ -1236,15 +1236,17 @@ CmdSelect(
 	    /* of rlist)						*/
 	    SelectClear();
 
+	    free_magic1_t mm1 = freeMagic1_init();
 	    while (rlist != NULL)
 	    {
 		/* Paint rlist back into SelectDef */
 		DBPaint(SelectDef, &rlist->r_r, rlist->r_type);
 
 		/* cleanup as we go */
-		freeMagic(rlist);
+		freeMagic1(&mm1, rlist);
 		rlist = rlist->r_next;
 	    }
+	    freeMagic1_end(&mm1);
 
 	    /* Force erase and redraw of the selection */
 	    DBReComputeBbox(SelectDef);

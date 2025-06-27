@@ -2453,6 +2453,7 @@ CmdContact(
 
 	    rmask = DBResidueMask(type);
 
+	    free_magic1_t mm1 = freeMagic1_init();
 	    while (lr != NULL)
 	    {
     		GeoClip(&lr->r_r, &area);
@@ -2463,9 +2464,10 @@ CmdContact(
 	    	    if (TTMaskHasType(rmask, rtype))
 			DBPaint(EditCellUse->cu_def, &lr->r_r, rtype);
 
-		freeMagic(lr);
+		freeMagic1(&mm1, lr);
 		lr = lr->r_next;
 	    }
+	    freeMagic1_end(&mm1);
 
 	    /* Refresh the layout drawing */
 	    DBWAreaChanged(EditCellUse->cu_def, &area, DBW_ALLWINDOWS, &smask);
@@ -2502,14 +2504,16 @@ CmdContact(
 	DBSrPaintArea((Tile *) NULL, EditCellUse->cu_def->cd_planes[DBPlane(rtype)],
 		&area, &smask, cmdContactFunc, (ClientData) &ccs);
 
+	free_magic1_t mm1 = freeMagic1_init();
 	while (ccs.lhead != NULL)
 	{
 	    TTMaskSetOnlyType(&smask, type);
 	    TTMaskAndMask(&smask, &DBActiveLayerBits);
 	    DBPaintMask(EditCellUse->cu_def, &ccs.lhead->r_r, &smask);
-	    freeMagic(ccs.lhead);
+	    freeMagic1(&mm1, ccs.lhead);
 	    ccs.lhead = ccs.lhead->r_next;
 	}
+	freeMagic1_end(&mm1);
 
 	/* Refresh the layout drawing */
 	DBWAreaChanged(EditCellUse->cu_def, &area, DBW_ALLWINDOWS, &smask);
@@ -2950,14 +2954,22 @@ CmdCorner(
 
 	    rectp = CIFPolyToRects(cmdPathList.pathlist->pathhead, plane,
 			resultTbl, &ui, FALSE);
-	    for (; rectp != NULL; rectp = rectp->r_next)
 	    {
-		DBPaintPlane(plane, &rectp->r_r, resultTbl, &ui);
-		freeMagic((char *)rectp);
+		free_magic1_t mm1 = freeMagic1_init();
+		for (; rectp != NULL; rectp = rectp->r_next)
+		{
+		    DBPaintPlane(plane, &rectp->r_r, resultTbl, &ui);
+		    freeMagic1(&mm1, (char *)rectp);
+		}
+		freeMagic1_end(&mm1);
 	    }
 	    CIFFreePath(cmdPathList.pathlist->pathhead);
-	    freeMagic((char *)cmdPathList.pathlist);
-	    cmdPathList.pathlist = cmdPathList.pathlist->cpl_next;
+	    {
+		free_magic1_t mm1 = freeMagic1_init();
+		freeMagic1(&mm1, (char *)cmdPathList.pathlist);
+		cmdPathList.pathlist = cmdPathList.pathlist->cpl_next;
+		freeMagic1_end(&mm1);
+	    }
 	}
     }
     else
@@ -2975,14 +2987,16 @@ CmdCorner(
 	/* Now that we've got all the material, scan over the list
 	 * painting the material and freeing up the entries on the list.
 	 */
+	free_magic1_t mm1 = freeMagic1_init();
 	while (cmdCornerList != NULL)
 	{
 	    DBPaint(EditCellUse->cu_def, &cmdCornerList->cca_area,
 			cmdCornerList->cca_type);
-	    freeMagic((char *) cmdCornerList);
+	    freeMagic1(&mm1, (char *) cmdCornerList);
 	    cmdCornerList = cmdCornerList->cca_next;
 	}
-    }
+	freeMagic1_end(&mm1);
+}
 
     SelectClear();
     DBAdjustLabels(EditCellUse->cu_def, &editBox);
@@ -3641,8 +3655,10 @@ cmdBevelFunc(
     GeoClip(&r3, &cmdCornerRootBox);
     if (GEO_RECTNULL(&r2) || GEO_RECTNULL(&r3))
     {
+	free_magic1_t mm1 = freeMagic1_init();
 	for (pptr = pathhead; pptr != NULL; pptr = pptr->cifp_next)
-	    freeMagic((char *)pptr);
+	    freeMagic1(&mm1, (char *)pptr);
+	freeMagic1_end(&mm1);
 	return 0;
     }
 
@@ -4152,6 +4168,7 @@ CmdDrc(
 
 	    rootUse = (CellUse *) window->w_surfaceID;
 	    dcl = DRCCount(rootUse, &rootArea, doforall);
+	    free_magic1_t mm1 = freeMagic1_init();
 	    while (dcl != NULL)
 	    {
 		if (count_total >= 0)
@@ -4181,9 +4198,10 @@ CmdDrc(
 		    }
 #endif
 		}
-		freeMagic((char *)dcl);
+		freeMagic1(&mm1, (char *)dcl);
 		dcl = dcl->dcl_next;
 	    }
+	    freeMagic1_end(&mm1);
 
 #ifdef MAGIC_WRAPPER
 	    if ((count_total >= 0) || (!dolist))
@@ -4332,12 +4350,14 @@ CmdDrc(
 	    }
 	    if (findonly)
 	    {
+		free_magic1_t mm1 = freeMagic1_init();
 		/* Delete temporary rules */
 		while (DRCIgnoreRules != NULL)
 		{
-		    freeMagic(DRCIgnoreRules);
+		    freeMagic1(&mm1, DRCIgnoreRules);
 		    DRCIgnoreRules = DRCIgnoreRules->li_next;
 		}
+		freeMagic1_end(&mm1);
 		/* Replace temporary set of rules */
 		DRCIgnoreRules = DRCSaveRules;
 	    }
@@ -4420,8 +4440,10 @@ CmdDrc(
 	    {
 		while (DRCIgnoreRules != NULL)
 		{
-		    freeMagic(DRCIgnoreRules);
+		    free_magic1_t mm1 = freeMagic1_init();
+		    freeMagic1(&mm1, DRCIgnoreRules);
 		    DRCIgnoreRules = DRCIgnoreRules->li_next;
+		    freeMagic1_end(&mm1);
 		}
 	    }
 	    else
