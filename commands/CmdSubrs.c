@@ -1196,6 +1196,17 @@ cmdGetSelFunc(
     return 1;			/* Skip any other selected cells. */
 }
 
+
+/* The Open Group, Sep 2006, Austin/317 deprecated isascii(),
+ *  Apparently it cannot be used portably in a localized application.
+ */
+static int
+magic_isascii(int c)
+{
+    return (c & ~0x7f) == 0;
+}
+
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -1228,7 +1239,7 @@ CmdIllegalChars(
 
     for (p = string; *p != 0; p++)
     {
-	if (!isascii(*p)) goto error;
+	if (!magic_isascii(*p)) goto error;
 	if (iscntrl(*p)) goto error;
 	for (bad = illegal; *bad != 0; bad++)
 	{
@@ -1237,7 +1248,7 @@ CmdIllegalChars(
 	continue;
 
 	error:
-	if (!isascii(*p) || iscntrl(*p))
+	if (!magic_isascii(*p) || iscntrl(*p))
 	{
 	    TxError("%s contains illegal control character 0x%x\n",
 		   msg, *p);
