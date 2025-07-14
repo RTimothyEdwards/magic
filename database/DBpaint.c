@@ -271,6 +271,7 @@ DBPaintPlane0(plane, area, resultTbl, undo, method)
      * search.
      */
 
+    Tile *delayed = NULL; /* delayed free to extend lifetime */
     start.p_x = area->r_xbot;
     start.p_y = area->r_ytop - 1;
     tile = PlaneGetHint(plane);
@@ -439,11 +440,11 @@ enumerate:
 
 		    /* Merge the outside tile to its top */
 		    tp = RT(newtile);
-		    if (CANMERGE_Y(newtile, tp)) TiJoinY(newtile, tp, plane);
+		    if (CANMERGE_Y(newtile, tp)) TiJoinY1(&delayed, newtile, tp, plane);
 
 		    /* Merge the outside tile to its bottom */
 		    tp = LB(newtile);
-		    if (CANMERGE_Y(newtile, tp)) TiJoinY(newtile, tp, plane);
+		    if (CANMERGE_Y(newtile, tp)) TiJoinY1(&delayed, newtile, tp, plane);
 		}
 		mergeFlags &= ~MRG_RIGHT;
 	    }
@@ -483,11 +484,11 @@ enumerate:
 
 		    /* Merge the outside tile to its top */
 		    tp = RT(newtile);
-		    if (CANMERGE_Y(newtile, tp)) TiJoinY(newtile, tp, plane);
+		    if (CANMERGE_Y(newtile, tp)) TiJoinY1(&delayed, newtile, tp, plane);
 
 		    /* Merge the outside tile to its bottom */
 		    tp = LB(newtile);
-		    if (CANMERGE_Y(newtile, tp)) TiJoinY(newtile, tp, plane);
+		    if (CANMERGE_Y(newtile, tp)) TiJoinY1(&delayed, newtile, tp, plane);
 		}
 		mergeFlags &= ~MRG_LEFT;
 	    }
@@ -579,7 +580,7 @@ clipdone:
 	if (mergeFlags & MRG_TOP)
 	{
 	    tp = RT(tile);
-	    if (CANMERGE_Y(tile, tp)) TiJoinY(tile, tp, plane);
+	    if (CANMERGE_Y(tile, tp)) TiJoinY1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	    if (dbPaintDebug)
 		dbPaintShowTile(tile, undo, "merged up (CHEAP)");
@@ -588,7 +589,7 @@ clipdone:
 	if (mergeFlags & MRG_BOTTOM)
 	{
 	    tp = LB(tile);
-	    if (CANMERGE_Y(tile, tp)) TiJoinY(tile, tp, plane);
+	    if (CANMERGE_Y(tile, tp)) TiJoinY1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	    if (dbPaintDebug)
 		dbPaintShowTile(tile, undo, "merged down (CHEAP)");
@@ -697,6 +698,7 @@ enum2:
 
 done2:
     PlaneSetHint(plane, tile);
+    TiFreeIf(delayed);
     return 0;
 }
 
@@ -1032,6 +1034,7 @@ DBMergeNMTiles0(plane, area, undo, mergeOnce)
     int clipTop;
     Tile *tile, *tp, *tp2, *newtile, *tpnew;
     int aspecta, aspectb;
+    Tile *delayed = NULL; /* delayed free to extend lifetime */
     TileType ttype, ltype, rtype;
 
     start.p_x = area->r_xbot;
@@ -1121,23 +1124,23 @@ nmenum:
 			newtile = TiSplitY(tp2, TOP(tile));
 			TiSetBody(newtile, ltype);
 			if (CANMERGE_X(newtile, BL(newtile)))
-			    TiJoinX(newtile, BL(newtile), plane);
+			    TiJoinX1(&delayed, newtile, BL(newtile), plane);
 			if (CANMERGE_X(newtile, TR(newtile)))
-			    TiJoinX(newtile, TR(newtile), plane);
+			    TiJoinX1(&delayed, newtile, TR(newtile), plane);
 			if (CANMERGE_Y(newtile, RT(newtile)))
-			    TiJoinY(newtile, RT(newtile), plane);
+			    TiJoinY1(&delayed, newtile, RT(newtile), plane);
 		    }
 		    if (LEFT(tp2) < LEFT(tp))
 		    {
 			newtile = TiSplitX(tp2, LEFT(tp));
 			TiSetBody(newtile, ltype);
 			if (CANMERGE_Y(tp2, LB(tp2)))
-			    TiJoinY(tp2, LB(tp2), plane);
+			    TiJoinY1(&delayed, tp2, LB(tp2), plane);
 			if (CANMERGE_Y(tp2, RT(tp2)))
-			    TiJoinY(tp2, RT(tp2), plane);
+			    TiJoinY1(&delayed, tp2, RT(tp2), plane);
 			tp2 = newtile;
 		    }
-		    TiJoinY(tp2, tp, plane);
+		    TiJoinY1(&delayed, tp2, tp, plane);
 		    tp = tp2;
 		    tp2 = RT(tp2);
 		}
@@ -1151,11 +1154,11 @@ nmenum:
 			newtile = TiSplitY(tp2, BOTTOM(tp));
 			TiSetBody(newtile, rtype);
 			if (CANMERGE_X(tp2, BL(tp2)))
-			    TiJoinX(tp2, BL(tp2), plane);
+			    TiJoinX1(&delayed, tp2, BL(tp2), plane);
 			if (CANMERGE_X(tp2, TR(tp2)))
-			    TiJoinX(tp2, TR(tp2), plane);
+			    TiJoinX1(&delayed, tp2, TR(tp2), plane);
 			if (CANMERGE_Y(tp2, LB(tp2)))
-			    TiJoinY(tp2, LB(tp2), plane);
+			    TiJoinY1(&delayed, tp2, LB(tp2), plane);
 			tp2 = newtile;
 		    }
 		    if (RIGHT(tp2) > RIGHT(tile))
@@ -1163,16 +1166,16 @@ nmenum:
 			newtile = TiSplitX(tp2, RIGHT(tile));
 			TiSetBody(newtile, rtype);
 			if (CANMERGE_Y(newtile, LB(newtile)))
-			    TiJoinY(newtile, LB(newtile), plane);
+			    TiJoinY1(&delayed, newtile, LB(newtile), plane);
 			if (CANMERGE_Y(newtile, RT(newtile)))
-			    TiJoinY(newtile, RT(newtile), plane);
+			    TiJoinY1(&delayed, newtile, RT(newtile), plane);
 		    }
-		    TiJoinY(tp2, tile, plane);
+		    TiJoinY1(&delayed, tp2, tile, plane);
 		    tile = tp2;
 		    tp2 = LB(tp2);
 		}
 		/* Merge tp and tile */
-		TiJoinX(tile, tp, plane);
+		TiJoinX1(&delayed, tile, tp, plane);
 		TiSetBody(tile, ttype);
 	    }
 	    else	/* split direction 1 */
@@ -1213,11 +1216,11 @@ nmenum:
 			newtile = TiSplitY(tp2, BOTTOM(tp));
 			TiSetBody(newtile, ltype);
 			if (CANMERGE_X(tp2, BL(tp2)))
-			    TiJoinX(tp2, BL(tp2), plane);
+			    TiJoinX1(&delayed, tp2, BL(tp2), plane);
 			if (CANMERGE_X(tp2, TR(tp2)))
-			    TiJoinX(tp2, TR(tp2), plane);
+			    TiJoinX1(&delayed, tp2, TR(tp2), plane);
 			if (CANMERGE_Y(tp2, LB(tp2)))
-			    TiJoinY(tp2, LB(tp2), plane);
+			    TiJoinY1(&delayed, tp2, LB(tp2), plane);
 			tp2 = newtile;
 		    }
 		    if (LEFT(tp2) < LEFT(tile))
@@ -1225,12 +1228,12 @@ nmenum:
 			newtile = TiSplitX(tp2, LEFT(tile));
 			TiSetBody(newtile, ltype);
 			if (CANMERGE_Y(tp2, LB(tp2)))
-			    TiJoinY(tp2, LB(tp2), plane);
+			    TiJoinY1(&delayed, tp2, LB(tp2), plane);
 			if (CANMERGE_Y(tp2, RT(tp2)))
-			    TiJoinY(tp2, RT(tp2), plane);
+			    TiJoinY1(&delayed, tp2, RT(tp2), plane);
 			tp2 = newtile;
 		    }
-		    TiJoinY(tp2, tile, plane);
+		    TiJoinY1(&delayed, tp2, tile, plane);
 		    tile = tp2;
 		    tp2 = LB(tp2);
 		}
@@ -1245,27 +1248,27 @@ nmenum:
 			newtile = TiSplitY(tp2, TOP(tile));
 			TiSetBody(newtile, rtype);
 			if (CANMERGE_X(newtile, BL(newtile)))
-			    TiJoinX(newtile, BL(newtile), plane);
+			    TiJoinX1(&delayed, newtile, BL(newtile), plane);
 			if (CANMERGE_X(newtile, TR(newtile)))
-			    TiJoinX(newtile, TR(newtile), plane);
+			    TiJoinX1(&delayed, newtile, TR(newtile), plane);
 			if (CANMERGE_Y(newtile, RT(newtile)))
-			    TiJoinY(newtile, RT(newtile), plane);
+			    TiJoinY1(&delayed, newtile, RT(newtile), plane);
 		    }
 		    if (RIGHT(tp2) > RIGHT(tp))
 		    {
 			newtile = TiSplitX(tp2, RIGHT(tp));
 			TiSetBody(newtile, rtype);
 			if (CANMERGE_Y(newtile, LB(newtile)))
-			    TiJoinY(newtile, LB(newtile), plane);
+			    TiJoinY1(&delayed, newtile, LB(newtile), plane);
 			if (CANMERGE_Y(newtile, RT(newtile)))
-			    TiJoinY(newtile, RT(newtile), plane);
+			    TiJoinY1(&delayed, newtile, RT(newtile), plane);
 		    }
-		    TiJoinY(tp2, tp, plane);
+		    TiJoinY1(&delayed, tp2, tp, plane);
 		    tp = tp2;
 		    tp2 = RT(tp2);
 		}
 	 	/* Merge tp and tile */
-		TiJoinX(tile, tp, plane);
+		TiJoinX1(&delayed, tile, tp, plane);
 		TiSetBody(tile, ttype);
 	    }
 	    /* Now repeat until no more merging is possible */
@@ -1307,6 +1310,7 @@ nmenum:
 
 nmdone:
     PlaneSetHint(plane, tile);
+    TiFreeIf(delayed);
     return 0;
 }
 
@@ -1885,6 +1889,7 @@ dbPaintMerge(tile, newType, area, plane, mergeFlags, undo, mark)
     PaintUndoInfo *undo;	/* See DBPaintPlane() above */
     bool mark;			/* Mark tiles that were processed */
 {
+    Tile *delayed = NULL; /* delayed free to extend lifetime */
     Tile *tp, *tpLast;
     int ysplit;
 
@@ -1991,7 +1996,7 @@ dbPaintMerge(tile, newType, area, plane, mergeFlags, undo, mark)
 	    if (mark) dbMarkClient(tile, area);
 	}
 	if (BOTTOM(tp) < BOTTOM(tile)) tp = TiSplitY(tp, BOTTOM(tile));
-	TiJoinX(tile, tp, plane);
+	TiJoinX1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged left");
@@ -2007,7 +2012,7 @@ dbPaintMerge(tile, newType, area, plane, mergeFlags, undo, mark)
 	    if (mark) dbMarkClient(tile, area);
 	}
 	if (BOTTOM(tp) < BOTTOM(tile)) tp = TiSplitY(tp, BOTTOM(tile));
-	TiJoinX(tile, tp, plane);
+	TiJoinX1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged right");
@@ -2016,7 +2021,7 @@ dbPaintMerge(tile, newType, area, plane, mergeFlags, undo, mark)
     if (mergeFlags&MRG_TOP)
     {
 	tp = RT(tile);
-	if (CANMERGE_Y(tp, tile)) TiJoinY(tile, tp, plane);
+	if (CANMERGE_Y(tp, tile)) TiJoinY1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged up");
@@ -2025,13 +2030,14 @@ dbPaintMerge(tile, newType, area, plane, mergeFlags, undo, mark)
     if (mergeFlags&MRG_BOTTOM)
     {
 	tp = LB(tile);
-	if (CANMERGE_Y(tp, tile)) TiJoinY(tile, tp, plane);
+	if (CANMERGE_Y(tp, tile)) TiJoinY1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged down");
 #endif	/* PAINTDEBUG */
     }
 
+    TiFreeIf(delayed);
     return (tile);
 }
 
@@ -2094,6 +2100,7 @@ DBPaintType(plane, area, resultTbl, client, undo, tileMask)
      * search.
      */
 
+    Tile *delayed = NULL; /* delayed free to extend lifetime */
     start.p_x = area->r_xbot;
     start.p_y = area->r_ytop - 1;
     tile = PlaneGetHint(plane);
@@ -2186,14 +2193,14 @@ enumerate:
 		if (CANMERGE_Y(newtile, tp) &&
 			( (TiGetClient(tp) == TiGetClient(newtile)) ||
 			( ! TTMaskHasType(tileMask, TiGetTypeExact(tp)) ) ) )
-			    TiJoinY(newtile, tp, plane);
+			    TiJoinY1(&delayed, newtile, tp, plane);
 
 		/* Merge the outside tile to its bottom */
 		tp = LB(newtile);
 		if (CANMERGE_Y(newtile, tp) &&
 			( (TiGetClient(tp) == TiGetClient(newtile)) ||
 			( ! TTMaskHasType(tileMask, TiGetTypeExact(tp)) ) ) )
-			    TiJoinY(newtile, tp, plane);
+			    TiJoinY1(&delayed, newtile, tp, plane);
 	    }
 
 	    /* Clip left */
@@ -2210,14 +2217,14 @@ enumerate:
 		if (CANMERGE_Y(newtile, tp) &&
 			( (TiGetClient(tp) == TiGetClient(newtile)) ||
 			( ! TTMaskHasType(tileMask, TiGetTypeExact(tp)) ) ) )
-			TiJoinY(newtile, tp, plane);
+			TiJoinY1(&delayed, newtile, tp, plane);
 
 		/* Merge the outside tile to its bottom */
 		tp = LB(newtile);
 		if (CANMERGE_Y(newtile, tp) &&
 			( (TiGetClient(tp) == TiGetClient(newtile)) ||
 			( ! TTMaskHasType(tileMask, TiGetTypeExact(tp)) ) ) )
-			TiJoinY(newtile, tp, plane);
+			TiJoinY1(&delayed, newtile, tp, plane);
 	    }
 
 #ifdef	PAINTDEBUG
@@ -2276,7 +2283,7 @@ enumerate:
 	{
 	    tp = RT(tile);
 	    if (CANMERGE_Y(tile, tp) && (tp->ti_client == client))
-		TiJoinY(tile, tp, plane);
+		TiJoinY1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	    if (dbPaintDebug)
 		dbPaintShowTile(tile, undo, "merged up (CHEAP)");
@@ -2286,7 +2293,7 @@ enumerate:
 	{
 	    tp = LB(tile);
 	    if (CANMERGE_Y(tile, tp) && (tp->ti_client == client))
-		TiJoinY(tile, tp, plane);
+		TiJoinY1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	    if (dbPaintDebug)
 		dbPaintShowTile(tile, undo, "merged down (CHEAP)");
@@ -2334,6 +2341,7 @@ paintdone:
 
 done:
     PlaneSetHint(plane, tile);
+    TiFreeIf(delayed);
 }
 
 /*
@@ -2380,6 +2388,7 @@ dbMergeType(tile, newType, plane, mergeFlags, undo, client)
     PaintUndoInfo *undo;	/* See DBPaintPlane() above */
     ClientData client;
 {
+    Tile *delayed = NULL; /* delayed free to extend lifetime */
     Tile *tp, *tpLast;
     int ysplit;
 
@@ -2481,7 +2490,7 @@ dbMergeType(tile, newType, plane, mergeFlags, undo, client)
 	    TiSetClient(tpLast, client);
 	}
 	if (BOTTOM(tp) < BOTTOM(tile)) tp = TiSplitY(tp, BOTTOM(tile));
-	TiJoinX(tile, tp, plane);
+	TiJoinX1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged left");
@@ -2497,7 +2506,7 @@ dbMergeType(tile, newType, plane, mergeFlags, undo, client)
 	    TiSetClient(tpLast, client);
 	}
 	if (BOTTOM(tp) < BOTTOM(tile)) tp = TiSplitY(tp, BOTTOM(tile));
-	TiJoinX(tile, tp, plane);
+	TiJoinX1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged right");
@@ -2506,7 +2515,7 @@ dbMergeType(tile, newType, plane, mergeFlags, undo, client)
     if (mergeFlags&MRG_TOP)
     {
 	tp = RT(tile);
-	if (CANMERGE_Y(tp, tile) && (tp->ti_client == client)) TiJoinY(tile, tp, plane);
+	if (CANMERGE_Y(tp, tile) && (tp->ti_client == client)) TiJoinY1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged up");
@@ -2515,13 +2524,14 @@ dbMergeType(tile, newType, plane, mergeFlags, undo, client)
     if (mergeFlags&MRG_BOTTOM)
     {
 	tp = LB(tile);
-	if (CANMERGE_Y(tp, tile) && (tp->ti_client == client)) TiJoinY(tile, tp, plane);
+	if (CANMERGE_Y(tp, tile) && (tp->ti_client == client)) TiJoinY1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged down");
 #endif	/* PAINTDEBUG */
     }
 
+    TiFreeIf(delayed);
     return (tile);
 }
 
@@ -2581,6 +2591,7 @@ DBPaintPlaneVert(plane, area, resultTbl, undo)
      * search.
      */
 
+    Tile *delayed = NULL; /* delayed free to extend lifetime */
     start.p_x = area->r_xbot;
     start.p_y = area->r_ytop - 1;
     tile = PlaneGetHint(plane);
@@ -2662,11 +2673,11 @@ enumerate:
 
 		/* Merge the outside tile to its left */
 		tp = BL(newtile);
-		if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
+		if (CANMERGE_X(newtile, tp)) TiJoinX1(&delayed, newtile, tp, plane);
 
 		/* Merge the outside tile to its right */
 		tp = TR(newtile);
-		if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
+		if (CANMERGE_X(newtile, tp)) TiJoinX1(&delayed, newtile, tp, plane);
 	    }
 
 	    /* Clip down */
@@ -2678,11 +2689,11 @@ enumerate:
 
 		/* Merge the outside tile to its left */
 		tp = BL(newtile);
-		if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
+		if (CANMERGE_X(newtile, tp)) TiJoinX1(&delayed, newtile, tp, plane);
 
 		/* Merge the outside tile to its right */
 		tp = TR(newtile);
-		if (CANMERGE_X(newtile, tp)) TiJoinX(newtile, tp, plane);
+		if (CANMERGE_X(newtile, tp)) TiJoinX1(&delayed, newtile, tp, plane);
 	    }
 
 #ifdef	PAINTDEBUG
@@ -2740,7 +2751,7 @@ enumerate:
 	if (mergeFlags & MRG_LEFT)
 	{
 	    tp = BL(tile);
-	    if (CANMERGE_X(tile, tp)) TiJoinX(tile, tp, plane);
+	    if (CANMERGE_X(tile, tp)) TiJoinX1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	    if (dbPaintDebug)
 		dbPaintShowTile(tile, undo, "merged left (CHEAP)");
@@ -2749,7 +2760,7 @@ enumerate:
 	if (mergeFlags & MRG_RIGHT)
 	{
 	    tp = TR(tile);
-	    if (CANMERGE_X(tile, tp)) TiJoinX(tile, tp, plane);
+	    if (CANMERGE_X(tile, tp)) TiJoinX1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	    if (dbPaintDebug)
 		dbPaintShowTile(tile, undo, "merged right (CHEAP)");
@@ -2797,6 +2808,7 @@ paintdone:
 
 done:
     PlaneSetHint(plane, tile);
+    TiFreeIf(delayed);
     return 0;
 }
 
@@ -2849,6 +2861,7 @@ dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
     int mergeFlags;		/* Specify which directions to merge */
     PaintUndoInfo *undo;	/* See DBPaintPlane() above */
 {
+    Tile *delayed = NULL; /* delayed free to extend lifetime */
     Tile *tp, *tpLast;
     int xsplit;
 
@@ -2943,7 +2956,7 @@ dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
 	if (LEFT(tp) < LEFT(tile)) tp = TiSplitX(tp, LEFT(tile));
 	if (RIGHT(tp) > RIGHT(tile))
 	    tpLast = TiSplitX(tp, RIGHT(tile)), TiSetBody(tpLast, newType);
-	TiJoinY(tile, tp, plane);
+	TiJoinY1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged up");
@@ -2956,7 +2969,7 @@ dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
 	if (LEFT(tp) < LEFT(tile)) tp = TiSplitX(tp, LEFT(tile));
 	if (RIGHT(tp) > RIGHT(tile))
 	    tpLast = TiSplitX(tp, RIGHT(tile)), TiSetBody(tpLast, newType);
-	TiJoinY(tile, tp, plane);
+	TiJoinY1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged down");
@@ -2966,7 +2979,7 @@ dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
     if (mergeFlags&MRG_LEFT)
     {
 	tp = BL(tile);
-	if (CANMERGE_X(tp, tile)) TiJoinX(tile, tp, plane);
+	if (CANMERGE_X(tp, tile)) TiJoinX1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged left");
@@ -2975,13 +2988,14 @@ dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
     if (mergeFlags&MRG_RIGHT)
     {
 	tp = TR(tile);
-	if (CANMERGE_X(tp, tile)) TiJoinX(tile, tp, plane);
+	if (CANMERGE_X(tp, tile)) TiJoinX1(&delayed, tile, tp, plane);
 #ifdef	PAINTDEBUG
 	if (dbPaintDebug)
 	    dbPaintShowTile(tile, undo, "(DBMERGE) merged right");
 #endif	/* PAINTDEBUG */
     }
 
+    TiFreeIf(delayed);
     return (tile);
 }
 
@@ -3316,6 +3330,7 @@ TiNMMergeRight(tile, plane)
     Tile *tile;
     Plane *plane;
 {
+    Tile *delayed = NULL; /* delayed free to extend lifetime */
     TileType ttype = TiGetTypeExact(tile);
     Tile *tp, *tp2, *newtile;
 
@@ -3347,7 +3362,7 @@ TiNMMergeRight(tile, plane)
 	    else
 		newtile = tile;
 	    // Join tp to newtile
-	    TiJoinX(newtile, tp, plane);
+	    TiJoinX1(&delayed, newtile, tp, plane);
 	}
 	tp = tp2;
     }
@@ -3364,11 +3379,13 @@ TiNMMergeRight(tile, plane)
 	    newtile = TiSplitY(tp, BOTTOM(tile));
 	    TiSetBody(newtile, ttype);
 	    // join newtile to tile
-	    TiJoinX(tile, newtile, plane);
+	    TiJoinX1(&delayed, tile, newtile, plane);
 	    // merge up if possible
-	    if (CANMERGE_Y(tile, RT(tile))) TiJoinY(tile, RT(tile), plane);
+	    if (CANMERGE_Y(tile, RT(tile))) TiJoinY1(&delayed, tile, RT(tile), plane);
 	}
     }
+
+    TiFreeIf(delayed);
     return tile;
 }
 
@@ -3396,6 +3413,7 @@ TiNMMergeLeft(tile, plane)
     Tile *tile;
     Plane *plane;
 {
+    Tile *delayed = NULL; /* delayed free to extend lifetime */
     TileType ttype = TiGetTypeExact(tile);
     Tile *tp, *tp2, *newtile;
 
@@ -3428,7 +3446,7 @@ TiNMMergeLeft(tile, plane)
 	    else
 		newtile = tile;
 	    // Join tp to tile
-	    TiJoinX(tile, tp, plane);
+	    TiJoinX1(&delayed, tile, tp, plane);
 	    tile = newtile;
 	}
 	tp = tp2;
@@ -3446,14 +3464,16 @@ TiNMMergeLeft(tile, plane)
 	    newtile = TiSplitY(tp, TOP(tile));
 	    TiSetBody(newtile, ttype);
 	    // join tp to tile
-	    TiJoinX(tile, tp, plane);
+	    TiJoinX1(&delayed, tile, tp, plane);
 	}
     }
     else
     {
 	// Merge up if possible
-	if (CANMERGE_Y(tile, tp)) TiJoinY(tile, tp, plane);
+	if (CANMERGE_Y(tile, tp)) TiJoinY1(&delayed, tile, tp, plane);
     }
+
+    TiFreeIf(delayed);
     return tile;
 }
 

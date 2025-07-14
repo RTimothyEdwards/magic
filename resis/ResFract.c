@@ -438,6 +438,7 @@ ResSplitX(tile, x)
     int	    x;
 
 {
+    Tile        *delayed = NULL; /* delayed free to extend lifetime */
     TileType	tt = TiGetType(tile);
     Tile	*tp = TiSplitX(tile, x);
     Tile	*tp2;
@@ -450,13 +451,13 @@ ResSplitX(tile, x)
      	if (tp2 == resSrTile)
 	{
 	    if (resTopTile == tile) resTopTile = NULL;
-	    TiJoinY(tp2, tile, resFracPlane);
+	    TiJoinY1(&delayed, tp2, tile, resFracPlane);
 	    tile = tp2;
 	}
 	else
 	{
 	    if (resTopTile == tp2) resTopTile = NULL;
-	    TiJoinY(tile, tp2, resFracPlane);
+	    TiJoinY1(&delayed, tile, tp2, resFracPlane);
 	}
     }
     tp2 = LB(tile);
@@ -465,26 +466,28 @@ ResSplitX(tile, x)
      	if (tp2 == resSrTile)
 	{
 	    if (resTopTile == tile) resTopTile = NULL;
-	    TiJoinY(tp2, tile, resFracPlane);
+	    TiJoinY1(&delayed, tp2, tile, resFracPlane);
 	    tile = tp2;
 	}
 	else
 	{
 	    if (resTopTile == tp2) resTopTile = NULL;
-	    TiJoinY(tile, tp2, resFracPlane);
+	    TiJoinY1(&delayed, tile, tp2, resFracPlane);
 	}
     }
     /* do the same checks with the newly created tile */
     tp2 = RT(tp);
     if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tp) && RIGHT(tp2) == RIGHT(tp))
     {
-     	TiJoinY(tp2, tp, resFracPlane);
+	TiJoinY1(&delayed, tp2, tp, resFracPlane);
 	tp = tp2;
     }
     tp2 = LB(tp);
     if (TiGetType(tp2) == tt && LEFT(tp2) == LEFT(tp) && RIGHT(tp2) == RIGHT(tp))
     {
-     	TiJoinY(tp2, tp, resFracPlane);
+	TiJoinY1(&delayed, tp2, tp, resFracPlane);
     }
+
+    TiFreeIf(delayed);
     return tile;
 }

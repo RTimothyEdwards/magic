@@ -79,7 +79,7 @@ extern void rtrRoundRect();
 extern void rtrHashKill();
 extern void rtrSplitToArea();
 extern void rtrMarkChannel();
-extern void rtrMerge();
+extern void rtrMerge(Tile **delay1, Tile *tup, Tile *tdn, Plane *plane);
 
 bool rtrUseCorner();
 
@@ -775,6 +775,7 @@ rtrMarkChannel(plane, tiles, point, corner)
     }
     else	/* Choose the vertical boundary */
     {
+        Tile *delayed = NULL; /* delayed free to extend lifetime */
 	/*
 	 * Split a sequence of space tiles starting with tiles[0]
 	 * (the bottom tile), for yDist at the point->p_y.
@@ -810,8 +811,8 @@ rtrMarkChannel(plane, tiles, point, corner)
 	    rtrCLEAR(tile, rtrSE);
 
 	    /* Merge tile and new with lower neighbors if possible */
-	    rtrMerge(new, LB(new), plane);
-	    rtrMerge(tile, LB(tile), plane);
+	    rtrMerge(&delayed, new, LB(new), plane);
+	    rtrMerge(&delayed, tile, LB(tile), plane);
 
 	    /* Find next (higher) tile to split */
 	    if (TOP(tile) >= lastY) break;
@@ -820,8 +821,9 @@ rtrMarkChannel(plane, tiles, point, corner)
 	}
 
 	/* Merge new and tile with upper neighbors if possible */
-        rtrMerge(RT(new), new, plane);
-        rtrMerge(RT(tile), tile, plane);
+        rtrMerge(&delayed, RT(new), new, plane);
+        rtrMerge(&delayed, RT(tile), tile, plane);
+        TiFreeIf(delayed);
     }
 }
 
@@ -983,9 +985,7 @@ rtrXDist(tiles, x, isRight)
  */
 
 void
-rtrMerge(tup, tdn, plane)
-    Tile *tup, *tdn;
-    Plane *plane;
+rtrMerge(Tile **delay1, Tile *tup, Tile *tdn, Plane *plane)
 {
     Tile *side;
 
@@ -1006,7 +1006,7 @@ rtrMerge(tup, tdn, plane)
 
     if (rtrMARKED(tdn, rtrSW)) rtrMARK(tup, rtrSW); else rtrCLEAR(tup, rtrSW);
     if (rtrMARKED(tdn, rtrSE)) rtrMARK(tup, rtrSE); else rtrCLEAR(tup, rtrSE);
-    TiJoinY(tup, tdn, plane);
+    TiJoinY1(delay1, tup, tdn, plane);
 
     /*
      * Merge sideways if the result of the join matches a tile on either side,
@@ -1017,12 +1017,12 @@ rtrMerge(tup, tdn, plane)
 		&& LEFT(side) >= RouteArea.r_xbot
 		&& TOP(side) == TOP(tup)
 		&& BOTTOM(side) == BOTTOM(tup))
-	TiJoinX(tup, side, plane);
+	TiJoinX1(delay1, tup, side, plane);
 
     side = TR(tup);
     if (TiGetBody(side) == (ClientData) NULL
 		&& RIGHT(side) <= RouteArea.r_xtop
 		&& TOP(side) == TOP(tup)
 		&& BOTTOM(side) == BOTTOM(tup))
-	TiJoinX(tup, side, plane);
+	TiJoinX1(delay1, tup, side, plane);
 }

@@ -153,7 +153,7 @@ bool plowPropagateSel();
 bool plowPropagateRect(CellDef *def, Rect *userRect, const TileTypeBitMask *lcp, Rect *changedArea);
 PlowRule *plowBuildWidthRules();
 
-void plowMergeBottom(Tile *, Plane *);
+void plowMergeBottom(Tile **delay1, Tile *tp, Plane *plane);
 void plowInitRule(RuleTableEntry *rtePtr, RuleTableEntry *rteEnd, int whichRules, int (*proc)(), const char *name,
                   const TileTypeBitMask *ltypesp, const TileTypeBitMask *rtypesp);
 
@@ -163,7 +163,7 @@ extern void plowUpdate();
 extern void plowSetTrans();
 extern void plowProcessEdge();
 extern void plowMoveEdge();
-extern void plowMergeTop();
+extern void plowMergeTop(Tile **delay1, Tile *tp, Plane *plane);
 extern void plowYankCreate();
 
 
@@ -1829,6 +1829,7 @@ plowMoveEdge(edge)
     Edge *edge;	/* Edge to be moved */
 {
     Plane *plane = plowYankDef->cd_planes[edge->e_pNum];
+    Tile *delayed = NULL; /* delayed free to extend lifetime */
     Tile *tp, *tpL;
     Point p;
 
@@ -1863,7 +1864,7 @@ plowMoveEdge(edge)
     {
 	if (TRAILING(tp) < edge->e_newx)
 	    plowSetTrailing(tp, edge->e_newx);
-	plowMergeTop(tp, plane);
+	plowMergeTop(&delayed, tp, plane);
     }
 
     /*
@@ -1886,18 +1887,18 @@ plowMoveEdge(edge)
 	    /* Merge (no clipping was necessary) */
 	    tpL = BL(tp);
 	    plowSetTrailing(tp, edge->e_newx);
-	    plowMergeBottom(tp, plane);
+	    plowMergeBottom(&delayed, tp, plane);
 	}
 
 	/* Split the bottom-left tile if necessary; otherwise, merge down */
 	if (BOTTOM(tpL) < edge->e_ybot)
 	    tpL = plowSplitY(tpL, edge->e_ybot);	/* TpL is upper tile */
 	else
-	    plowMergeBottom(tpL, plane);
+	    plowMergeBottom(&delayed, tpL, plane);
     }
     else for (tpL = BL(tp); TOP(tpL) <= edge->e_ybot; tpL = RT(tpL))
 	/* Nothing */;
-    plowMergeTop(tp, plane);
+    plowMergeTop(&delayed, tp, plane);
 
     /*
      * Now 'tpL' is the bottom-left tile, which has already been merged
@@ -1905,7 +1906,7 @@ plowMoveEdge(edge)
      * each tile with its lower neighbor.
      */
     for (tp = RT(tpL); BOTTOM(tp) < edge->e_ytop; tp = RT(tp))
-	plowMergeBottom(tp, plane);
+	plowMergeBottom(&delayed, tp, plane);
 
     /*
      * If tp now extends above edge->e_ytop, then it must not have been split
@@ -1914,10 +1915,12 @@ plowMoveEdge(edge)
      * not changed.  Hence, we needn't try to merge to its bottom.
      */
     if (BOTTOM(tp) == edge->e_ytop)
-	plowMergeBottom(tp, plane);
+	plowMergeBottom(&delayed, tp, plane);
 
     if (DebugIsSet(plowDebugID, plowDebMove))
 	plowDebugEdge(edge, (RuleTableEntry *) NULL, "move");
+
+    TiFreeIf(delayed);
 }
 
 /*
@@ -1979,9 +1982,7 @@ plowSplitY(tp, y)
  */
 
 void
-plowMergeTop(tp, plane)
-    Tile *tp;
-    Plane *plane;
+plowMergeTop(Tile **delay1, Tile *tp, Plane *plane)
 {
     Tile *tpRT = RT(tp);
 
@@ -1989,14 +1990,12 @@ plowMergeTop(tp, plane)
 	    && LEFT(tp) == LEFT(tpRT) && RIGHT(tp) == RIGHT(tpRT)
 	    && LEADING(tp) == LEADING(tpRT) && TRAILING(tp) == TRAILING(tpRT))
     {
-	TiJoinY(tp, tpRT, plane);
+	TiJoinY1(delay1, tp, tpRT, plane);
     }
 }
 
 void
-plowMergeBottom(tp, plane)
-    Tile *tp;
-    Plane *plane;
+plowMergeBottom(Tile **delay1, Tile *tp, Plane *plane)
 {
     Tile *tpLB = LB(tp);
 
@@ -2004,7 +2003,7 @@ plowMergeBottom(tp, plane)
 	    && LEFT(tp) == LEFT(tpLB) && RIGHT(tp) == RIGHT(tpLB)
 	    && LEADING(tp) == LEADING(tpLB) && TRAILING(tp) == TRAILING(tpLB))
     {
-	TiJoinY(tp, tpLB, plane);
+	TiJoinY1(delay1, tp, tpLB, plane);
     }
 }
 
