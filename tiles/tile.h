@@ -76,8 +76,6 @@ typedef struct tile
      */
 
 #ifdef HAVE_SYS_MMAN_H
-#include <sys/mman.h>
-#include <unistd.h>
 
 /* This is an on-demand Free List management */
 typedef Tile *TileStore;
