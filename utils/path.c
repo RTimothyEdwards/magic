@@ -29,6 +29,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #ifdef HAVE_ZLIB
 #include <zlib.h>

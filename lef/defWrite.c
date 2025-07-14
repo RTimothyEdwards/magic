@@ -18,6 +18,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
