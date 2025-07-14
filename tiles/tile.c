@@ -23,6 +23,9 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#ifdef HAVE_SYS_MMAN_H
+#include <sys/mman.h>
+#endif
 
 #include "utils/magic.h"
 #include "utils/malloc.h"
