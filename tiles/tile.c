@@ -61,7 +61,7 @@ global const Rect TiPlaneRect = { {MINFINITY+2, MINFINITY+2}, {INFINITY-2, INFIN
 
 #ifdef HAVE_SYS_MMAN_H
 
-static Tile *TileStoreFreeList = NULL;
+Tile *TileStoreFreeList = NULL;
 
 /* The new Tile Allocation scheme (Magic 8.0) */
 
@@ -788,21 +788,6 @@ TiAlloc(void)
     return newtile;
 }
 
-static void
-TileStoreFree(
-    Tile *ptr)
-{
-    ptr->ti_client = PTR2CD(TileStoreFreeList);
-    TileStoreFreeList = ptr;
-}
-
-void
-TiFree(
-    Tile *tp)
-{
-    TileStoreFree(tp);
-}
-
 #else
 
 /*
@@ -826,31 +811,11 @@ TiAlloc(void)
     TiSetBody(newtile, 0);
     return newtile;
 }
-
-/*
- * --------------------------------------------------------------------
- *
- * TiFree ---
- *
- *	Release memory allocation for tiles
- *
- * Results:
- *	None.
- *
- * --------------------------------------------------------------------
- */
-
-void
-TiFree(
-    Tile *tp)
-{
-    freeMagic((char *)tp);
-}
-
 #endif /* !HAVE_SYS_MMAN_H */
 
 #ifdef __GNUC_STDC_INLINE__
 /* Use of 'extern inline' force an emit of inline code at a symbol */
+extern inline void TiFree(Tile *tile);
 extern inline void TiFreeIf(Tile *tile);
 extern inline void TiFree1(Tile **delay1, Tile *tile);
 extern inline void TiJoinX1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane);

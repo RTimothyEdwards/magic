@@ -247,10 +247,41 @@ extern Tile *TiSrPoint(Tile *hint, Plane *plane, const Point *point);
 #define	TiSetClientPTR(tp,cd)	((tp)->ti_client = PTR2CD((cd)))
 
 extern Tile *TiAlloc(void);
-extern void TiFree(Tile *tile);
 
 #ifdef __GNUC_STDC_INLINE__
+
 /* Provide compiler visibility of STDC 'inline' semantics */
+
+#ifdef HAVE_SYS_MMAN_H
+extern Tile *TileStoreFreeList;
+
+inline void
+TiFree(Tile *tile)
+{
+    tile->ti_client = PTR2CD(TileStoreFreeList);
+    TileStoreFreeList = tile;
+}
+#else
+/*
+ * --------------------------------------------------------------------
+ *
+ * TiFree ---
+ *
+ *	Release memory allocation for tiles
+ *
+ * Results:
+ *	None.
+ *
+ * --------------------------------------------------------------------
+ */
+
+inline void
+TiFree(Tile *tile)
+{
+    freeMagic((char *)tile);
+}
+#endif
+
 inline void
 TiFreeIf(Tile *tile)
 {
@@ -280,6 +311,7 @@ TiJoinY1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane)
 }
 #else
 /* To support older compilers (that don't auto emit based on -O level) */
+extern void TiFree(Tile *tile);
 extern void TiFreeIf(Tile *tile);
 extern void TiFree1(Tile **delay1, Tile *tile);
 extern void TiJoinX1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane);
