@@ -571,6 +571,7 @@ glChanMergeFunc(tile)
     Tile *tile;
 {
     GCRChannel *ch = (GCRChannel *) tile->ti_client;
+    Tile *delayed = NULL; /* delayed free to extend lifetime */
     Tile *tp;
     int ret;
 
@@ -582,7 +583,7 @@ glChanMergeFunc(tile)
 		&& LEFT(tp) == LEFT(tile)
 		&& RIGHT(tp) == RIGHT(tile))
 	{
-	    TiJoinY(tile, tp, glChanPlane);
+	    TiJoinY1(&delayed, tile, tp, glChanPlane);
 	    ret = 1;
 	}
     }
@@ -593,7 +594,7 @@ glChanMergeFunc(tile)
 		&& TOP(tp) == TOP(tile)
 		&& BOTTOM(tp) == BOTTOM(tile))
 	{
-	    TiJoinX(tile, tp, glChanPlane);
+	    TiJoinX1(&delayed, tile, tp, glChanPlane);
 	    ret = 1;
 	}
     }
@@ -604,7 +605,7 @@ glChanMergeFunc(tile)
 		&& LEFT(tp) == LEFT(tile)
 		&& RIGHT(tp) == RIGHT(tile))
 	{
-	    TiJoinY(tile, tp, glChanPlane);
+	    TiJoinY1(&delayed, tile, tp, glChanPlane);
 	    ret = 1;
 	}
     }
@@ -615,11 +616,12 @@ glChanMergeFunc(tile)
 		&& TOP(tp) == TOP(tile)
 		&& BOTTOM(tp) == BOTTOM(tile))
 	{
-	    TiJoinX(tile, tp, glChanPlane);
+	    TiJoinX1(&delayed, tile, tp, glChanPlane);
 	    ret = 1;
 	}
     }
 
+    TiFreeIf(delayed);
     return ret;
 }
 
