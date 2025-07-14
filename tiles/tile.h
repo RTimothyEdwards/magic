@@ -264,10 +264,26 @@ TiFree1(Tile **delay1, Tile *tile)
     TiFreeIf(*delay1);
     *delay1 = tile;
 }
+
+inline void
+TiJoinX1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane)
+{
+    TiFreeIf(*delay1);
+    TiJoinX(tile1, tile2, plane);
+}
+
+inline void
+TiJoinY1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane)
+{
+    TiFreeIf(*delay1);
+    TiJoinY(tile1, tile2, plane);
+}
 #else
 /* To support older compilers (that don't auto emit based on -O level) */
 extern void TiFreeIf(Tile *tile);
 extern void TiFree1(Tile **delay1, Tile *tile);
+extern void TiJoinX1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane);
+extern void TiJoinY1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane);
 #endif
 
 #define EnclosePoint(tile,point)	((LEFT(tile)   <= (point)->p_x ) && \

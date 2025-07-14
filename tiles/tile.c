@@ -853,6 +853,8 @@ TiFree(
 /* Use of 'extern inline' force an emit of inline code at a symbol */
 extern inline void TiFreeIf(Tile *tile);
 extern inline void TiFree1(Tile **delay1, Tile *tile);
+extern inline void TiJoinX1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane);
+extern inline void TiJoinY1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane);
 #else
 /* To support older compilers (that don't auto emit based on -O level) */
 void
@@ -867,6 +869,20 @@ TiFree1(Tile **delay1, Tile *tile)
 {
     TiFreeIf(*delay1);
     *delay1 = tile;
+}
+
+void
+TiJoinX1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane)
+{
+    TiFreeIf(*delay1);
+    TiJoinX(tile1, tile2, plane);
+}
+
+void
+TiJoinY1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane)
+{
+    TiFreeIf(*delay1);
+    TiJoinY(tile1, tile2, plane);
 }
 #endif
 
