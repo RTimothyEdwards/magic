@@ -369,7 +369,7 @@ NLNetName(net)
 {
     static char tempId[100];
 #if defined(EMSCRIPTEN)
- int etext;    
+    int etext;
 #elif defined(linux) && defined(__GLIBC__) && defined(__GLIBC_MINOR__) && (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 29)
     extern char etext;
 #elif defined(linux) && defined(__clang__)
@@ -377,7 +377,7 @@ NLNetName(net)
 #elif defined(linux) || defined(CYGWIN)
     extern int etext asm("etext");
 #elif defined(__APPLE__)
- int etext;
+    int etext;
 #else
     extern int etext;
 #endif
