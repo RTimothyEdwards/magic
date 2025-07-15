@@ -22,6 +22,7 @@
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/utils/netlist.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
 #endif	/* lint */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "utils/magic.h"
@@ -369,6 +370,8 @@ NLNetName(net)
     static char tempId[100];
 #if defined(EMSCRIPTEN)
  int etext;    
+#elif defined(linux) && defined(__GLIBC__) && defined(__GLIBC_MINOR__) && (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 29)
+    extern char etext;
 #elif defined(linux) && defined(__clang__)
     extern char etext;
 #elif defined(linux) || defined(CYGWIN)
