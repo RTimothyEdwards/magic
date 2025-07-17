@@ -38,9 +38,9 @@
 #include <sys/ioctl.h>
 #endif
 
-#ifdef HAVE_TERMIOS_H
+#if defined(HAVE_TERMIOS_H)
 #include <termios.h>
-#else
+#elif defined(HAVE_SYS_IOCTL_COMPAT_H)
 /* unclear which platform(s) require <sys/ioctl_compat.h> and the structure
  *  of this file is such that it will try to include it by default, better
  *  to invert the #if and only select this on the known platforms that need
@@ -48,11 +48,17 @@
  * many possible solutions to make this work by default:
  *   HAVE_SYS_IOCTL_COMPAT_H ?  HAVE_TERMIOS_H ?  !defined(linux) at top (MaxOSX is BSD type)
  */
-#include <sys/ioctl_compat.h>
+#include <sys/ioctl_compat.h> /* replaced sgtty.h */
+#elif defined(HAVE_SGTTY_H)
+#include <sgtty.h> /* legacy - struct sgttyb{} defn */
 #endif
 
 #else
+
+#if defined(HAVE_TERMIO_H)
 #include <termio.h>
 #endif
+
+#endif /* !SYSV && !CYGWIN */
 
 #endif	/* _MAGIC__UTILS__MAGSGTTY_H */
