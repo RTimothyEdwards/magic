@@ -228,7 +228,7 @@ grx11SetCharSize (size)
  *	Determine the size of a text string.
  *
  * Results:
- *	None.
+ *	Returns 0 when 'r' updated, otherwise -1 on error (no side-effects).
  *
  * Side effects:
  *	A rectangle is filled in that is the size of the text in pixels.
@@ -237,7 +237,7 @@ grx11SetCharSize (size)
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 GrX11TextSize(text, size, r)
     char *text;
     int size;
@@ -266,12 +266,13 @@ GrX11TextSize(text, size, r)
 		size );
 	break;
     }
-    if (font == NULL) return;
+    if (font == NULL) return -1;
     XTextExtents(font, text, strlen(text), &dir, &fa, &fd, &overall);
     r->r_ytop = overall.ascent;
     r->r_ybot = -overall.descent;
     r->r_xtop = overall.width - overall.lbearing;
     r->r_xbot = -overall.lbearing - 1;
+    return 0;
 }
 
 
@@ -790,7 +791,7 @@ grx11PutText (text, pos, clip, obscure)
 
     if (grCurrent.font == NULL) return;
 
-    GrX11TextSize(text, grCurrent.fontSize, &textrect);
+    if (GrX11TextSize(text, grCurrent.fontSize, &textrect) < 0) return;
 
     location.r_xbot = pos->p_x + textrect.r_xbot;
     location.r_xtop = pos->p_x + textrect.r_xtop;

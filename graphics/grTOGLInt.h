@@ -60,7 +60,7 @@ extern void grtoglPutText();
 extern void grtoglFontText();
 #endif
 extern void GrTOGLSetCursor();
-extern void GrTOGLTextSize();
+extern int  GrTOGLTextSize();
 extern void GrTOGLDrawGlyph();
 extern void GrTOGLBitBlt();
 extern void NullBitBlt();

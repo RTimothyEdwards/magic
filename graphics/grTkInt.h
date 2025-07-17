@@ -66,7 +66,7 @@ extern void GrTkSetCMap();
 extern void grtkPutText();
 extern void grtkFontText();
 extern void GrTkSetCursor();
-extern void GrTkTextSize();
+extern int  GrTkTextSize();
 extern void GrTkDrawGlyph();
 extern void GrTkBitBlt();
 extern void NullBitBlt();
