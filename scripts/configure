@@ -5706,6 +5706,32 @@ fi
 done
 
 
+for ac_header in sys/ioctl_compat.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/ioctl_compat.h" "ac_cv_header_sys_ioctl_compat_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_ioctl_compat_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_IOCTL_COMPAT_H 1
+_ACEOF
+
+fi
+
+done
+
+
+for ac_header in sgtty.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sgtty.h" "ac_cv_header_sgtty_h" "$ac_includes_default"
+if test "x$ac_cv_header_sgtty_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SGTTY_H 1
+_ACEOF
+
+fi
+
+done
+
+
 ac_header_dirent=no
 for ac_hdr in dirent.h sys/ndir.h sys/dir.h ndir.h; do
   as_ac_Header=`$as_echo "ac_cv_header_dirent_$ac_hdr" | $as_tr_sh`
