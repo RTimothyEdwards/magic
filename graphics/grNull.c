@@ -136,7 +136,7 @@ NullInit()
  *	Determine the size of a text string.
  *
  * Results:
- *	None.
+ *	Returns 0 indicating 'r' has been updated.
  *
  * Side effects:
  *	A rectangle is filled in that is the size of the text in pixels.
@@ -146,7 +146,7 @@ NullInit()
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 NullTextSize(text, size, r)
     char *text;
     int size;
@@ -157,6 +157,7 @@ NullTextSize(text, size, r)
     r->r_xtop = strlen(text);
     r->r_ybot = 0;
     r->r_ytop = 1;
+    return 0;
 }
 
 /*

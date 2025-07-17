@@ -158,7 +158,7 @@ void (*GrClosePtr)()		= NULL;
 void (*GrSetCMapPtr)()		= NULL;
 
 void (*GrSetCursorPtr)()	= NULL;
-void (*GrTextSizePtr)()		= NULL;
+int  (*GrTextSizePtr)()		= NULL;
 void (*GrDrawGlyphPtr)()	= NULL;
 void (*GrBitBltPtr)()		= NULL;
 int  (*GrReadPixelPtr)()	= NULL;

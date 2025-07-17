@@ -42,7 +42,7 @@ typedef struct {	/* Colormap table entry */
 /* Housekeeping and initialization routines */
 extern bool (*GrInitPtr)();
 extern void (*GrClosePtr)();
-extern void (*GrTextSizePtr)();
+extern int (*GrTextSizePtr)();
 
 /*
  * Display painting and text routines

@@ -173,7 +173,7 @@ int size;       /* Width of characters, in pixels (6 or 8). */
  *  Determine the size of a text string.
  *
  * Results:
- *  None.
+ *  Return 0 when 'r' updated, otherwise -1 on error (no side-effects).
  *
  * Side effects:
  *  A rectangle is filled in that is the size of the text in pixels.
@@ -182,7 +182,7 @@ int size;       /* Width of characters, in pixels (6 or 8). */
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 GrTCairoTextSize(text, size, r)
 char *text;
 int size;
@@ -195,7 +195,7 @@ Rect *r;
 	/* Note:  size is ignored, as it is passed the current value;	*/
 	/* but the font size in cairo has already been set.		*/
 
-	if (tcairoCurrent.mw == 0) return;
+	if (tcairoCurrent.mw == 0) return -1;
 
 	tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 	cairo_text_extents(tcairodata->context, text, &extents);
@@ -204,6 +204,7 @@ Rect *r;
 	r->r_ybot = -(extents.height + extents.y_bearing);
 	r->r_xtop = extents.width + extents.x_bearing;
 	r->r_xbot = extents.x_bearing;
+	return 0;
 }
 
 /* Cairo backing store functions (now removed from the X11-based ones) */
@@ -598,7 +599,7 @@ LinkedRect *obscure;    /* A list of obscuring rectangles */
 	float tscale;
 	TCairoData *tcairodata = (TCairoData *)tcairoCurrent.mw->w_grdata2;
 
-	GrTCairoTextSize(text, tcairoCurrent.fontSize, &textrect);
+	if (GrTCairoTextSize(text, tcairoCurrent.fontSize, &textrect) < 0) return;
 
 	location.r_xbot = pos->p_x + textrect.r_xbot;
 	location.r_xtop = pos->p_x + textrect.r_xtop;

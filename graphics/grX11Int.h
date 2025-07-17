@@ -87,7 +87,7 @@ extern void grx11PutText();
 extern void grx11FontText();
 extern void grx11DefineCursor();
 extern void GrX11SetCursor();
-extern void GrX11TextSize();
+extern int  GrX11TextSize();
 extern void GrX11DrawGlyph();
 extern void GrX11BitBlt();
 extern void NullBitBlt();

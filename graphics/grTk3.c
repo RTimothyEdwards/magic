@@ -167,7 +167,7 @@ grtkSetCharSize (size)
  *	Determine the size of a text string.
  *
  * Results:
- *	None.
+ *	Returns 0 when 'r' updated, otherwise -1 on error (no side-effects).
  *
  * Side effects:
  *	A rectangle is filled in that is the size of the text in pixels.
@@ -176,7 +176,7 @@ grtkSetCharSize (size)
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 GrTkTextSize(text, size, r)
     char *text;
     int size;
@@ -206,13 +206,14 @@ GrTkTextSize(text, size, r)
 		size );
 	break;
     }
-    if (font == NULL) return;
+    if (font == NULL) return -1;
     Tk_GetFontMetrics(font, &overall);
     width = Tk_TextWidth(font, text, strlen(text));
     r->r_ytop = overall.ascent;
     r->r_ybot = -overall.descent;
     r->r_xtop = width;
     r->r_xbot = 0;
+    return 0;
 }
 
 
@@ -493,7 +494,7 @@ grtkPutText (text, pos, clip, obscure)
 
     if (grCurrent.font == NULL) return;
 
-    GrTkTextSize(text, grCurrent.fontSize, &textrect);
+    if (GrTkTextSize(text, grCurrent.fontSize, &textrect) < 0) return;
 
     location.r_xbot = pos->p_x + textrect.r_xbot;
     location.r_xtop = pos->p_x + textrect.r_xtop;

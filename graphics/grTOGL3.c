@@ -194,7 +194,7 @@ grtoglSetCharSize (size)
  *	Determine the size of a text string.
  *
  * Results:
- *	None.
+ *	Returns 0 when 'r' updated, otherwise -1 on error (no side-effects).
  *
  * Side effects:
  *	A rectangle is filled in that is the size of the text in pixels.
@@ -203,7 +203,7 @@ grtoglSetCharSize (size)
  * ----------------------------------------------------------------------------
  */
 
-void
+int
 GrTOGLTextSize(text, size, r)
     char *text;
     int size;
@@ -233,7 +233,7 @@ GrTOGLTextSize(text, size, r)
 		size );
 	break;
     }
-    if (font == NULL) return;
+    if (font == NULL) return -1;
     Tk_GetFontMetrics(font, &overall);
     width = Tk_TextWidth(font, text, strlen(text));
     /* Hack alert!  Tk_TextWidth returns values too small! */
@@ -242,6 +242,7 @@ GrTOGLTextSize(text, size, r)
     r->r_ybot = -overall.descent;
     r->r_xtop = width;
     r->r_xbot = 0;
+    return 0;
 }
 
 /* OpenGL backing store functions (now removed from the X11-based ones) */
@@ -682,7 +683,7 @@ grtoglPutText (text, pos, clip, obscure)
     int i;
     float tscale;
 
-    GrTOGLTextSize(text, toglCurrent.fontSize, &textrect);
+    if (GrTOGLTextSize(text, toglCurrent.fontSize, &textrect) < 0) return;
 
     location.r_xbot = pos->p_x + textrect.r_xbot;
     location.r_xtop = pos->p_x + textrect.r_xtop;

@@ -257,7 +257,7 @@ groglSetCharSize (size)
  *	Determine the size of a text string.
  *
  * Results:
- *	0 on success.  -1 on error (no side-effects).
+ *	Returns 0 when 'r' updated, otherwise -1 on error (no side-effects).
  *
  * Side effects:
  *	A rectangle is filled in that is the size of the text in pixels.

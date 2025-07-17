@@ -63,7 +63,7 @@ extern void groglFontText();
 extern void groglDefineCursor();
 extern void GrOGLSetCursor();
 extern void GrOGLSetWindow();
-extern void GrOGLTextSize();
+extern int  GrOGLTextSize();
 extern void GrOGLDrawGlyph();
 extern void GrOGLBitBlt();
 extern void NullBitBlt();
