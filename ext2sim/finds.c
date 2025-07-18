@@ -46,6 +46,7 @@ endmatch(
     return (0);
 }
 
+int
 main(
     int argc,
     char *argv[])
@@ -75,6 +76,7 @@ main(
     HashStartSearch(&hs);
     while (he = HashNext(&ht, &hs))
 	printf("%s\n", he->h_key.h_name);
+    return 0;
 }
 
 char *
