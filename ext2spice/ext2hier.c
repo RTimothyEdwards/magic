@@ -75,7 +75,8 @@ ESGenerateHierarchy(
     char *inName,
     int flags)
 {
-    int esHierVisit(), esMakePorts();	/* Forward declaration */
+    int esHierVisit(HierContext *hc, ClientData cdata); /* (DefFlagsData *) */
+    int esMakePorts(HierContext *hc, ClientData cdata);	/* Forward declaration (UNUSED) */
     Use u;
     Def *def;
     HierContext hc;
@@ -582,7 +583,7 @@ spcdevHierVisit(
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
     int l, w, i, parmval;
     Rect r;
-    bool subAP = FALSE, hierS, hierD, extHierSDAttr();
+    bool subAP = FALSE, hierS, hierD;
     float sdM;
     char devchar;
     bool has_model = TRUE;

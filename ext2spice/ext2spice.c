@@ -116,7 +116,7 @@ devMerge *devMergeList = NULL ;
 
 #define        atoCap(s)       ((EFCapValue)atof(s))
 
-extern void ESGenerateHierarchy();  /* forward reference */
+extern void ESGenerateHierarchy(char *inName, int flags);  /* forward reference ext2hier.c */
 
 /*
  * ----------------------------------------------------------------------------
@@ -1999,8 +1999,6 @@ spcWriteParams(
     int parmval;
     EFNode *dnode, *subnodeFlat = NULL;
 
-    bool extHierSDAttr();
-
     plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
     while (plist != NULL)
     {
@@ -2484,7 +2482,7 @@ spcdevVisit(
     DevTerm *gate, *source, *drain;
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
     int l, w, i, parmval;
-    bool subAP= FALSE, hierS, hierD, extHierSDAttr();
+    bool subAP= FALSE, hierS, hierD;
     float sdM;
     char name[12], devchar;
     bool has_model = TRUE;
