@@ -25,7 +25,7 @@
 #include "utils/utils.h"
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/net2ir/net2ir.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/net2ir/net2ir.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
 #endif /* lint */
 
 #define	INITHASHSIZE	128
