@@ -107,7 +107,7 @@ typedef struct Sexp {
 /*
  * Internal commands
  */
-extern void LispDispatch();
+extern bool TxLispDispatch();
 
 extern LispObj *LispNewObj ();
 extern LispObj *LispCopyObj ();
@@ -136,7 +136,7 @@ extern void LispGCRemoveSexp ();
 extern LispObj *LispFrameLookup ();
 extern char *LispFrameRevLookup ();
 extern void LispFrameInit ();
-extern int  LispModifyFrame ();
+extern int  LispModifyBinding ();
 extern void LispAddBinding ();
 extern Sexp *LispFramePush ();
 
