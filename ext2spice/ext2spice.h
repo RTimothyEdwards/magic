@@ -17,40 +17,45 @@ typedef struct _devMerge {
 } devMerge;
 
 /* Forward declarations */
-void CmdExtToSpice();
-extern int spcParseArgs();
-extern int spccapVisit(), spcdevVisit(), spcnodeVisit(), subcktVisit();
-extern int spcresistVisit(), devMergeVisit(), devDistJunctVisit();
-extern int spcsubVisit();
-extern int subcktUndef();
-extern EFNode *spcdevSubstrate();
-extern char *nodeSpiceName();
-extern int nodeVisitDebug();
-extern void topVisit();
-extern void swapDrainSource();
+extern void CmdExtToSpice(MagWindow *w, TxCommand *cmd);
+extern int spcParseArgs(int *pargc, char ***pargv);
+extern int spccapVisit(HierName *hierName1, HierName *hierName2, double cap);
+extern int spcdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
+extern int spcnodeVisit(EFNode *node, int res, double cap);
+extern int subcktVisit(Use *use, HierName *hierName, bool is_top);
+extern int spcresistVisit(HierName *hierName1, HierName *hierName2, float res);
+extern int devMergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
+extern int devDistJunctVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
+extern int spcsubVisit(EFNode *node, int res, double cap, char **resstr);
+extern int subcktUndef(Use *use, HierName *hierName, bool is_top);
+extern EFNode *spcdevSubstrate(HierName *prefix, HierName *suffix, int type, FILE *outf);
+extern char *nodeSpiceName(HierName *hname, EFNode **rnode);
+extern int nodeVisitDebug(EFNode *node, int res, double cap);
+extern void topVisit(Def *def, bool doStub);
+extern void swapDrainSource(Dev *dev);
 
-extern char *nodeSpiceHierName();
-extern devMerge *mkDevMerge();
-extern bool extHierSDAttr();
-extern int esFreeNodeClient();
+extern char *nodeSpiceHierName(HierContext *hc, HierName *hname);
+extern devMerge *mkDevMerge(float l, float w, EFNode *g, EFNode *s, EFNode *d, EFNode *b, HierName *hn, Dev *dev);
+extern bool extHierSDAttr(DevTerm *term);
+extern int esFreeNodeClient(nodeClient *client);
 
-extern bool devIsKilled();
-extern float getCurDevMult();
-extern void addDevMult();
-extern void setDevMult();
+extern bool devIsKilled(int n);
+extern float getCurDevMult(void);
+extern void addDevMult(float f);
+extern void setDevMult(int i, float f);
 
 /* C99 compat */
-extern int  EFHNSprintf();
-extern int  printSubcktDict();
-extern int  spcdevOutNode();
-extern int  spcnAP();
-extern int  parallelDevs();
-extern int  nodeHspiceName();
-extern int  devDistJunctHierVisit();
-extern int  spcnAPHier();
-extern void mergeAttr();
-extern int  update_w();
-extern void esSIvalue();
+extern int EFHNSprintf(char *str, HierName *hierName);
+extern int printSubcktDict(void);
+extern int spcdevOutNode(HierName *prefix, HierName *suffix, char *name, FILE *outf);
+extern int spcnAP(DevTerm *dterm, EFNode *node, int resClass, float scale, char *asterm, char *psterm, float m, FILE *outf, int w);
+extern int parallelDevs(devMerge *f1, devMerge *f2);
+extern int nodeHspiceName(char *s);
+extern int devDistJunctHierVisit(HierContext *hc, Dev *dev, float scale);
+extern int spcnAPHier(DevTerm *dterm, HierName *hierName, int resClass, float scale, char *asterm, char *psterm, float m, FILE *outf);
+extern void mergeAttr(char **a1, char **a2);
+extern int update_w(short resClass, int w, EFNode *n);
+extern void esSIvalue(FILE *file, float value);
 
 /* Options specific to ext2spice */
 extern bool esDoExtResis;
