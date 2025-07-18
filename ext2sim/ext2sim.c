@@ -190,9 +190,6 @@ extern devMerge *devMergeList;
 
 #ifdef MAGIC_WRAPPER
 
-/* Forward declaration */
-int _ext2sim_start();
-
 #ifdef EXT2SIM_AUTO
 /*
  * ----------------------------------------------------------------------------
