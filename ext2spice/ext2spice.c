@@ -1157,7 +1157,7 @@ runexttospice:
     return;
 }
 
-#if 0	/* Independent program "ext2spice" has been deprecated */
+#ifdef EXT2SPICE_MAIN	/* Independent program "ext2spice" has been deprecated */
 
 /*
  * ----------------------------------------------------------------------------
@@ -1324,7 +1324,7 @@ main(
     exit (0);
 }
 
-#endif	/* Deprecated */
+#endif /* EXT2SPICE_MAIN Deprecated */
 
 
 /*
