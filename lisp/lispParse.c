@@ -90,11 +90,11 @@ char *LispNewString (s)
 
   h = HashLookOnly (&Strings, s);
   if (h)
-    i = (int) HashGetValue(h);
+    i = (int) (pointertype) HashGetValue(h);
   else {
     i = nstrings++;
     h = HashFind (&Strings, s);
-    HashSetValue (h, i);
+    HashSetValue (h, (pointertype) i);
   }
   return h->h_key.h_name;
 }
@@ -126,7 +126,7 @@ LispStringId (s)
   if (!h)
     i = -1;
   else
-    i = (int)HashGetValue (h);
+    i = (int) (pointertype) HashGetValue (h);
   return i;
 }
 
