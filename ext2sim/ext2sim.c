@@ -45,16 +45,19 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "extflat/extflat.h"
 
 /* Forward declarations */
-void CmdExtToSim();
-bool simnAP();
-bool simnAPHier();
-int simParseArgs();
-int simdevVisit(), simresistVisit(), simcapVisit(), simnodeVisit();
-int simmergeVisit();
+void CmdExtToSim(MagWindow *w, TxCommand *cmd);
+bool simnAP(EFNode *node, int resClass, float scale, FILE *outf);
+bool simnAPHier(DevTerm *dterm, HierName *hierName, int resClass, float scale, FILE *outf);
+int simParseArgs(int *pargc, char ***pargv);
+int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
+int simresistVisit(HierName *hierName1, HierName *hierName2, float res);
+int simcapVisit(HierName *hierName1, HierName *hierName2, double cap);
+int simnodeVisit(EFNode *node, int res, double cap);
+int simmergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
 
 /* C99 compat */
-int simdevOutNode();
-int simdevSubstrate();
+int simdevOutNode(HierName *prefix, HierName *suffix, char *name, FILE *outf);
+int simdevSubstrate(HierName *prefix, HierName *suffix, int type, float scale, bool doAP, FILE *outf);
 
 /* Options specific to ext2sim */
 #ifdef EXT2SIM_AUTO
