@@ -707,7 +707,7 @@ runexttosim:
     TxPrintf("exttosim finished.\n");
 }
 
-#if 0	/* Independent program "ext2sim" deprecated */
+#ifdef EXT2SIM_MAIN	/* Independent program "ext2sim" deprecated */
 
 /*
  * ----------------------------------------------------------------------------
@@ -834,7 +834,7 @@ main(
     exit(0);
 }
 
-#endif		/* Deprecated */
+#endif /* EXT2SIM_MAIN Deprecated */
 
 /*
  * ----------------------------------------------------------------------------
