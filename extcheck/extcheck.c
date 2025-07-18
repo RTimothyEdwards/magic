@@ -50,7 +50,10 @@ int ecNumNodeCaps;
 int ecNumNodeResists;
 
 /* Forward declarations */
-int nodeVisit(), devVisit(), capVisit(), resistVisit();
+int nodeVisit(EFNode *node, int res, double cap);
+int devVisit(void);
+int capVisit(HierName *hn1, HierName *hn2, double cap);
+int resistVisit(HierName *hn1, HierName *hn2, float res);
 
 /*
  * ----------------------------------------------------------------------------
