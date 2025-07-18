@@ -187,14 +187,7 @@ typedef struct def
  * structure describes the indices and the separation between elements
  * (for computing transforms).
  */
-#ifndef _MAGIC__DATABASE__DATABASE_H
-typedef struct
-{
-    int		 ar_xlo, ar_xhi;
-    int		 ar_ylo, ar_yhi;
-    int		 ar_xsep, ar_ysep;
-} ArrayInfo;
-#endif /* _MAGIC__DATABASE__DATABASE_H */
+#include "database/arrayinfo.h" /* ArrayInfo */
 
 typedef struct use
 {
