@@ -282,7 +282,6 @@ extern Def *efFlatRootDef;
     /* Def table management */
 extern Def *efDefLook();
 extern Def *efDefNew();
-extern Def *EFRootDef();
 
     /* HierName manipulation */
 extern HierName *efHNFromUse();
