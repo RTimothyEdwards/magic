@@ -1531,6 +1531,8 @@ extHierSDAttr(
  *
  * ----------------------------------------------------------------------------
  */
+
+/* @typedef cb_extflat_visitsubcircuits_t (UNUSED) */
 int
 subcktVisit(
     Use *use,
@@ -1718,6 +1720,8 @@ subcktVisit(
  *
  * ----------------------------------------------------------------------------
  */
+
+/* @typedef cb_extflat_visitsubcircuits_t (UNUSED) */
 int
 subcktUndef(
     Use *use,
@@ -2471,12 +2475,14 @@ swapDrainSource(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 spcdevVisit(
     Dev *dev,		/* Dev being output */
     HierContext *hc,	/* Hierarchical context down to this dev */
     float scale,	/* Scale transform for output */
-    Transform *trans)	/* (unused) */
+    Transform *trans,	/* (unused) */
+    ClientData cdata)	/* (unused) */
 {
     DevParam *plist, *pptr;
     DevTerm *gate, *source, *drain;
@@ -3601,11 +3607,13 @@ spcdevOutNode(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_visitcaps_t (UNUSED) */
 int
 spccapVisit(
     HierName *hierName1,
     HierName *hierName2,
-    double cap)
+    double cap,
+    ClientData cdata)	/* unused */
 {
     cap = cap / 1000;
     if (cap <= EFCapThreshold)
@@ -3643,11 +3651,14 @@ spccapVisit(
  *
  * ----------------------------------------------------------------------------
  */
+
+/* @typedef cb_extflat_visitresists_t (UNUSED) */
 int
 spcresistVisit(
     HierName *hierName1,
     HierName *hierName2,
-    float res)
+    float res,
+    ClientData cdata)	/* unused */
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -3711,8 +3722,9 @@ spcsubVisit(
     EFNode *node,
     int res, 		// Unused
     double cap,		// Unused
-    char **resstr)
+    ClientData cdata)
 {
+    char **resstr = (char **)CD2PTR(cdata);
     HierName *hierName;
     char *nsn;
 
@@ -3743,11 +3755,13 @@ spcsubVisit(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_visitnodes_t (UNUSED) */
 int
 spcnodeVisit(
     EFNode *node,
     int res,
-    double cap)
+    double cap,
+    ClientData cdata) /* unused */
 {
     EFNodeName *nn;
     HierName *hierName;
@@ -3807,11 +3821,13 @@ spcnodeVisit(
 }
 
 /* a debugging procedure */
+/* @typedef cb_extflat_visitnodes_t (UNUSED) */
 int
 nodeVisitDebug(
     EFNode *node,
     int res,
-    double cap)
+    double cap,
+    ClientData cdata)	/* unused */
 {
     EFNodeName *nn;
     HierName *hierName;
@@ -4303,12 +4319,14 @@ mergeAttr(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 devMergeVisit(
     Dev *dev,			/* Dev to examine */
     HierContext *hc,		/* Hierarchical context down to this dev */
     float scale,		/* Scale transform */
-    Transform *trans)		/* (unused) */
+    Transform *trans,		/* (unused) */
+    ClientData cdata)		/* (unused) */
 {
     DevTerm *gate, *source, *drain;
     Dev     *cf;
@@ -4322,7 +4340,7 @@ devMergeVisit(
     HierName *hierName = hc->hc_hierName;
 
     if (esDistrJunct)
-	devDistJunctVisit(dev, hc, scale, trans);
+	devDistJunctVisit(dev, hc, scale, trans, cdata);
 
     if (dev->dev_nterm < 2)
     {
@@ -4522,12 +4540,14 @@ update_w(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 devDistJunctVisit(
     Dev *dev,			/* Dev to examine */
     HierContext *hc,		/* Hierarchical path down to this dev */
     float scale,		/* Scale transform */
-    Transform *trans)		/* (unused) */
+    Transform *trans,		/* (unused) */
+    ClientData cdata)		/* (unused) */
 {
     EFNode  *n;
     int      i;

@@ -16,21 +16,23 @@ typedef struct _devMerge {
 	const struct _devMerge *next;
 } devMerge;
 
+#include "extflat/EFint.h" /* HierContext */
+
 /* Forward declarations */
 extern void CmdExtToSpice(MagWindow *w, TxCommand *cmd);
 extern int spcParseArgs(int *pargc, char ***pargv);
-extern int spccapVisit(HierName *hierName1, HierName *hierName2, double cap);
-extern int spcdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
-extern int spcnodeVisit(EFNode *node, int res, double cap);
-extern int subcktVisit(Use *use, HierName *hierName, bool is_top);
-extern int spcresistVisit(HierName *hierName1, HierName *hierName2, float res);
-extern int devMergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
-extern int devDistJunctVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
-extern int spcsubVisit(EFNode *node, int res, double cap, char **resstr);
-extern int subcktUndef(Use *use, HierName *hierName, bool is_top);
+extern int spccapVisit(HierName *hierName1, HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_visitcaps_t (UNUSED) */
+extern int spcdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
+extern int spcnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (UNUSED) */
+extern int subcktVisit(Use *use, HierName *hierName, bool is_top); /* @typedef cb_extflat_visitsubcircuits_t */
+extern int spcresistVisit(HierName *hierName1, HierName *hierName2, float res,  ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
+extern int devMergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
+extern int devDistJunctVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
+extern int spcsubVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (char** resstr) */
+extern int subcktUndef(Use *use, HierName *hierName, bool is_top); /* @typedef cb_extflat_visitsubcircuits_t */
 extern EFNode *spcdevSubstrate(HierName *prefix, HierName *suffix, int type, FILE *outf);
 extern char *nodeSpiceName(HierName *hname, EFNode **rnode);
-extern int nodeVisitDebug(EFNode *node, int res, double cap);
+extern int nodeVisitDebug(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (UNUSED) */
 extern void topVisit(Def *def, bool doStub);
 extern void swapDrainSource(Dev *dev);
 
