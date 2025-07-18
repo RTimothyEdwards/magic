@@ -11,7 +11,7 @@ EXTRA_LIBS = ${MAGICDIR}/extflat/libextflat.o ${MAGICDIR}/utils/libutils.a
 include ${MAGICDIR}/defs.mak
 
 LIBS += -lm ${LD_EXTRA_LIBS} ${SUB_EXTRA_LIBS}
-CLEANS += exttospice${SHDLIB_EXT} spicewrap.o spicehier.o
+CLEANS += exttospice${SHDLIB_EXT} ext2spice_main.o spicewrap.o spicehier.o
 
 main: ext2spice
 
@@ -22,6 +22,9 @@ spicewrap.o: ext2spice.c ext2spice.h
 
 spicehier.o: ext2hier.c ext2spice.h
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ext2hier.c -c -o spicehier.o
+
+ext2spice_main.o: ext2spice.c
+	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} -DEXT2SPICE_MAIN -c -o $@ $^
 
 exttospice${SHDLIB_EXT}: spicewrap.o spicehier.o ${MAGICDIR}/extflat/libextflat.o
 	@echo --- making exttospice Tcl library \(exttospice${SHDLIB_EXT}\)
