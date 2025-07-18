@@ -1,6 +1,7 @@
 #include "utils/magic.h"
 #include "utils/hash.h"
 #include <stdio.h>
+#include <stdarg.h>
 #include <ctype.h>
 
 char *
@@ -87,13 +88,18 @@ TxGetLine(
     return (fgets(line, len, stdin));
 }
 
+void
 TxError(
-    char *s)
+    const char *s, ...)
 {
-    vfprintf(stdout, s, &a);
+    va_list ap;
+    va_start(ap, s);
+    vfprintf(stdout, s, ap);
+    va_end(ap);
     fflush(stdout);
 }
 
+void
 MainExit(
     int code)
 {
