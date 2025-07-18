@@ -92,9 +92,9 @@ _LispPrint (fp,l)
   HashEntry *h;
   int i;
   if (SigInterruptPending) return;
-  h = HashLookOnly (&PrintTable, l);
+  h = HashLookOnly (&PrintTable, (const char *)l);
   if (h) {
-    i = (int) HashGetValue (h);
+    i = (int) (pointertype) HashGetValue (h);
     if (i) {
       /* i > 0 */
       if (fp == stdout) TxPrintf ("#%d", i);
@@ -103,7 +103,7 @@ _LispPrint (fp,l)
     }
     else {
       /* not printed; set the print tag */
-      HashSetValue (h, ++num_refs);
+      HashSetValue (h, (pointertype) ++num_refs);
       if (fp == stdout) TxPrintf ("#%d:", num_refs);
       else fprintf (fp, "#%d:", num_refs);
     }
@@ -141,9 +141,9 @@ _LispPrint (fp,l)
       while ((LTYPE(CDR(s)) == S_LIST) && LLIST(CDR(s))) {
 	if (fp == stdout) TxPrintf (" ");
 	else fprintf (fp, " ");
-	h = HashLookOnly (&PrintTable, CDR(s));
+	h = HashLookOnly (&PrintTable, (const char *) CDR(s));
 	if (h) {
-	  i = (int) HashGetValue (h);
+	  i = (int) (pointertype) HashGetValue (h);
 	  if (i) {
 	    /* i > 0 */
 	    if (fp == stdout) TxPrintf ("#%d", i);
@@ -152,7 +152,7 @@ _LispPrint (fp,l)
 	  }
 	  else {
 	    /* not printed; set the print tag */
-	    HashSetValue (h, ++num_refs);
+	    HashSetValue (h, (pointertype) ++num_refs);
 	    if (fp == stdout) TxPrintf ("#%d:", num_refs);
 	    else fprintf (fp, "#%d:", num_refs);
 	  }
@@ -198,14 +198,14 @@ _LispGenTable (l)
   HashEntry *h;
   int i;
   if (SigInterruptPending) return;
-  h = HashLookOnly (&GenTable, l);
+  h = HashLookOnly (&GenTable, (const char *) l);
   if (h) {
-    i = (int) HashGetValue (h);
+    i = (int) (pointertype) HashGetValue (h);
     i++;
-    HashSetValue (h, i);
+    HashSetValue (h, (pointertype) i);
     return;
   }
-  h = HashFind (&GenTable, l);
+  h = HashFind (&GenTable, (const char *) l);
   HashSetValue (h, 0);
   switch (LTYPE(l)) {
   case S_INT:
@@ -222,14 +222,14 @@ _LispGenTable (l)
       s = LLIST(l);
       _LispGenTable (CAR(s));
       while ((LTYPE(CDR(s)) == S_LIST) && LLIST(CDR(s))) {
-	h = HashLookOnly (&GenTable, CDR(s));
+	h = HashLookOnly (&GenTable, (const char *) CDR(s));
 	if (h) {
-	  i = (int) HashGetValue (h);
+	  i = (int) (pointertype) HashGetValue (h);
 	  i++;
-	  HashSetValue (h, i);
+	  HashSetValue (h, (pointertype) i);
 	  return;
 	}
-	h = HashFind (&GenTable, CDR(s));
+	h = HashFind (&GenTable, (const char *) CDR(s));
 	HashSetValue (h, 0);
 	s = LLIST(CDR(s));
 	_LispGenTable (CAR(s));
@@ -264,7 +264,7 @@ LispPrint (fp, l)
   _LispGenTable (l);
   HashStartSearch (&hs);
   while (h = HashNext (&GenTable, &hs)) {
-    i = (int) HashGetValue (h);
+    i = (int) (pointertype) HashGetValue (h);
     if (i) {
       h = HashFind (&PrintTable, h->h_key.h_ptr);
       HashSetValue (h, 0);
