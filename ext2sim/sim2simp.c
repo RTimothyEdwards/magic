@@ -21,8 +21,9 @@ MOS	mosFets[NSIZE];
 int	par = 0, ndx = 0;
 
 
-char *strsave(s)
-char *s;
+char *
+strsave(
+    char *s)
 {
 	char *p ;
 
@@ -31,9 +32,11 @@ char *s;
 	return p;
 }
 
-void parseAttr(str, a, p)
-char *str;
-int *a, *p;
+void
+parseAttr(
+    char *str,
+    int *a,
+    int *p)
 {
 	int l;
 	char *s;
@@ -51,8 +54,19 @@ int *a, *p;
 			fprintf(stderr,"Weird attributes output will be incorect\n");
 }
 
-void addMos( typ, g, s, d, l, w, x, y, ga, sa, da)
-char *typ, *g, *s, *d, *l, *w, *x, *y, *ga, *sa, *da;
+void
+addMos(
+    char *typ,
+    char *g,
+    char *s,
+    char *d,
+    char *l,
+    char *w,
+    char *x,
+    char *y,
+    char *ga,
+    char *sa,
+    char *da)
 {
 	int i ;
 	MOS *iptr;

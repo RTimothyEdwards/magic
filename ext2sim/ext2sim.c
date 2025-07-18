@@ -200,8 +200,8 @@ extern devMerge *devMergeList;
  */
 
 int
-Exttosim_Init(interp)
-    Tcl_Interp *interp;
+Exttosim_Init(
+    Tcl_Interp *interp)
 {
     /* Sanity checks! */
     if (interp == NULL) return TCL_ERROR;
@@ -249,9 +249,9 @@ Exttosim_Init(interp)
 #define EXTTOSIM_HELP		9
 
 void
-CmdExtToSim(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdExtToSim(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int i,flatFlags;
     char *inName;
@@ -717,9 +717,9 @@ runexttosim:
  */
 
 int
-main(argc, argv)
-    int argc;
-    char *argv[];
+main(
+    int argc,
+    char *argv[])
 {
 
     int i,flatFlags;
@@ -859,9 +859,9 @@ main(argc, argv)
  */
 
 int
-simParseArgs(pargc, pargv)
-    int *pargc;
-    char ***pargv;
+simParseArgs(
+    int *pargc,
+    char ***pargv)
 {
     char **argv = *pargv, *cp;
     int argc = *pargc;
@@ -967,9 +967,9 @@ usage:
  * ----------------------------------------------------------------------------
  */
 EFNode *
-SimGetNode(prefix, suffix)
-HierName *prefix;
-HierName *suffix;
+SimGetNode(
+    HierName *prefix,
+    HierName *suffix)
 {
 	HashEntry *he;
 
@@ -1009,11 +1009,11 @@ HierName *suffix;
  */
 
 int
-simdevVisit(dev, hc, scale, trans)
-    Dev *dev;		/* Device being output */
-    HierContext *hc;	/* Hierarchical context down to this device */
-    float scale;	/* Scale transform for output */
-    Transform *trans;	/* Coordinate transform */
+simdevVisit(
+    Dev *dev,		/* Device being output */
+    HierContext *hc,	/* Hierarchical context down to this device */
+    float scale,	/* Scale transform for output */
+    Transform *trans)	/* Coordinate transform */
 {
     DevTerm *gate, *source, *drain, *term;
     EFNode  *subnode, *snode, *dnode;
@@ -1319,13 +1319,13 @@ simdevVisit(dev, hc, scale, trans)
 }
 
 int
-simdevSubstrate( prefix, suffix, type, scale, doAP, outf)
-HierName *prefix;
-HierName *suffix;
-int type;
-float scale;
-bool doAP;
-FILE *outf;
+simdevSubstrate(
+    HierName *prefix,
+    HierName *suffix,
+    int type,
+    float scale,
+    bool doAP,
+    FILE *outf)
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -1389,11 +1389,12 @@ FILE *outf;
  * ----------------------------------------------------------------------------
  */
 
-bool simnAP(node, resClass, scale, outf)
-EFNode *node;
-int  resClass;
-float scale;
-FILE *outf;
+bool
+simnAP(
+    EFNode *node,
+    int resClass,
+    float scale,
+    FILE *outf)
 {
 	int a, p;
 
@@ -1413,12 +1414,13 @@ FILE *outf;
 	return TRUE;
 }
 
-bool simnAPHier(dterm, hierName, resClass, scale, outf)
-    DevTerm *dterm;
-    HierName *hierName;
-    int  resClass;
-    float scale;
-    FILE *outf;
+bool
+simnAPHier(
+    DevTerm *dterm,
+    HierName *hierName,
+    int resClass,
+    float scale,
+    FILE *outf)
 {
 	EFNode *node = dterm->dterm_node;
 	nodeClientHier   *nc ;
@@ -1467,11 +1469,11 @@ bool simnAPHier(dterm, hierName, resClass, scale, outf)
  */
 
 int
-simdevOutNode(prefix, suffix, name, outf)
-    HierName *prefix;
-    HierName *suffix;
-    char *name;
-    FILE *outf;
+simdevOutNode(
+    HierName *prefix,
+    HierName *suffix,
+    char *name,
+    FILE *outf)
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -1517,10 +1519,11 @@ simdevOutNode(prefix, suffix, name, outf)
  * ----------------------------------------------------------------------------
  */
 
-int simcapVisit(hierName1, hierName2, cap)
-    HierName *hierName1;
-    HierName *hierName2;
-    double cap;
+int
+simcapVisit(
+    HierName *hierName1,
+    HierName *hierName2,
+    double cap)
 {
     cap = cap / 1000;
     if (cap <= EFCapThreshold)
@@ -1561,10 +1564,10 @@ int simcapVisit(hierName1, hierName2, cap)
  */
 
 int
-simresistVisit(hierName1, hierName2, res)
-    HierName *hierName1;
-    HierName *hierName2;
-    float res;
+simresistVisit(
+    HierName *hierName1,
+    HierName *hierName2,
+    float res)
 {
     fprintf(esSimF, "r ");
     EFHNOut(hierName1, esSimF);
@@ -1592,10 +1595,11 @@ simresistVisit(hierName1, hierName2, res)
  * ----------------------------------------------------------------------------
  */
 
-int simnodeVisit(node, res, cap)
-    EFNode *node;
-    int res;
-    double cap;
+int
+simnodeVisit(
+    EFNode *node,
+    int res,
+    double cap)
 {
     EFNodeName *nn;
     HierName *hierName;
@@ -1687,13 +1691,18 @@ int simnodeVisit(node, res, cap)
  *
  * ----------------------------------------------------------------------------
  */
-devMerge *simmkDevMerge(l, w, g, s, d, b, hn, dev)
-int   l, w;
-EFNode *g, *s, *d, *b;
-HierName *hn;
-Dev    *dev;
+devMerge *
+simmkDevMerge(
+    int l,
+    int w,
+    EFNode *g,
+    EFNode *s,
+    EFNode *d,
+    EFNode *b,
+    HierName *hn,
+    Dev *dev)
 {
-	   devMerge *fp;
+	devMerge *fp;
 
 	fp = (devMerge *) mallocMagic((unsigned) (sizeof(devMerge)));
 	fp->l = l; fp->w = w;
@@ -1754,11 +1763,11 @@ Dev    *dev;
  * ----------------------------------------------------------------------------
  */
 int
-simmergeVisit(dev, hc, scale, trans)
-Dev *dev;		/* Dev to examine */
-HierContext *hc;	/* Hierarchical context down to this dev */
-float scale;		/* Scale transform */
-Transform *trans;	/* Coordinate transform (not used) */
+simmergeVisit(
+    Dev *dev,		/* Dev to examine */
+    HierContext *hc,	/* Hierarchical context down to this dev */
+    float scale,	/* Scale transform */
+    Transform *trans)	/* Coordinate transform (not used) */
 {
 	DevTerm *gate, *source, *drain;
 	Dev     *cf;
