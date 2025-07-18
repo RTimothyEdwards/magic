@@ -37,7 +37,6 @@ extern void swapDrainSource(Dev *dev);
 extern char *nodeSpiceHierName(HierContext *hc, HierName *hname);
 extern devMerge *mkDevMerge(float l, float w, EFNode *g, EFNode *s, EFNode *d, EFNode *b, HierName *hn, Dev *dev);
 extern bool extHierSDAttr(DevTerm *term);
-extern int esFreeNodeClient(nodeClient *client);
 
 extern bool devIsKilled(int n);
 extern float getCurDevMult(void);
@@ -194,5 +193,7 @@ typedef struct {
 #ifdef MAGIC_WRAPPER
 #define 	atoCap(s)	((EFCapValue)atof(s))
 #endif
+
+extern int esFreeNodeClient(nodeClient *client);
 
 #endif  /* _EXTTOSPICE_H */
