@@ -4,8 +4,8 @@
 #include <ctype.h>
 
 char *
-token(pnext)
-    char **pnext;
+token(
+    char **pnext)
 {
     char *cp, *ep;
 
@@ -25,9 +25,11 @@ token(pnext)
  * Match the last len characters of cp against name.
  * Returns 1 on success, 0 on failure.
  */
-endmatch(name, len, cp)
-    char *name, *cp;
-    int len;
+int
+endmatch(
+    char *name,
+    int len,
+    char *cp)
 {
     char *ep;
 
@@ -44,9 +46,9 @@ endmatch(name, len, cp)
     return (0);
 }
 
-main(argc, argv)
-    int argc;
-    char *argv[];
+main(
+    int argc,
+    char *argv[])
 {
     char line[1024], *name, *cp, *next;
     HashTable ht;
@@ -76,22 +78,22 @@ main(argc, argv)
 }
 
 char *
-TxGetLine(line, len)
-    char *line;
-    int len;
+TxGetLine(
+    char *line,
+    int len)
 {
     return (fgets(line, len, stdin));
 }
 
-TxError(s, a)
-    char *s;
+TxError(
+    char *s)
 {
     vfprintf(stdout, s, &a);
     fflush(stdout);
 }
 
-MainExit(code)
-    int code;
+MainExit(
+    int code)
 {
     exit(code);
 }
