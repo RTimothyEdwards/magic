@@ -46,9 +46,7 @@ typedef struct
 } LabInfo;
 
 int
-main(argc, argv)
-    int argc;
-    char *argv[];
+main(int argc, char *argv[])
 {
     char line1[LINESIZE], line2[LINESIZE], layer[LINESIZE], label[LINESIZE];
     HashEntry *he;
