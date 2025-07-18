@@ -62,8 +62,8 @@ int nodeVisit(), devVisit(), capVisit(), resistVisit();
  * ----------------------------------------------------------------------------
  */
 
-main(argc, argv)
-    char *argv[];
+int
+main(int argc, char *argv[])
 {
     char *inName;
 
@@ -127,10 +127,10 @@ main(argc, argv)
  */
 
 int
-nodeVisit(node, res, cap)
-    EFNode *node;
-    int res;
-    double cap;
+nodeVisit(
+    EFNode *node,
+    int res,
+    double cap)
 {
     cap = (cap + 500) / 1000;
     res = (res + 500) / 1000;
@@ -144,7 +144,7 @@ nodeVisit(node, res, cap)
 }
 
 int
-devVisit()
+devVisit(void)
 {
     ecNumDevs++;
     return 0;
@@ -152,9 +152,10 @@ devVisit()
 
     /*ARGSUSED*/
 int
-capVisit(hn1, hn2, cap)
-    HierName *hn1, *hn2;	/* UNUSED */
-    double cap;
+capVisit(
+    HierName *hn1,
+    HierName *hn2,	/* UNUSED */
+    double cap)
 {
     ecNumCaps++;
     if ((cap / 1000.) > (double) EFCapThreshold) ecNumThreshCaps++;
@@ -163,9 +164,10 @@ capVisit(hn1, hn2, cap)
 
     /*ARGSUSED*/
 int
-resistVisit(hn1, hn2, res)
-    HierName *hn1, *hn2;	/* UNUSED */
-    float res;
+resistVisit(
+    HierName *hn1,
+    HierName *hn2,	/* UNUSED */
+    float res)
 {
     ecNumResists++;
     if ((res / 1000.) > EFResistThreshold) ecNumThreshResists++;
