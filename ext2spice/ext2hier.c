@@ -71,9 +71,9 @@ typedef struct _defflagsdata {
  */
 
 void
-ESGenerateHierarchy(inName, flags)
-    char *inName;
-    int flags;
+ESGenerateHierarchy(
+    char *inName,
+    int flags)
 {
     int esHierVisit(), esMakePorts();	/* Forward declaration */
     Use u;
@@ -112,9 +112,9 @@ ESGenerateHierarchy(inName, flags)
  */
 
 EFNode *
-GetHierNode(hc, name)
-    HierContext *hc;
-    HierName *name;
+GetHierNode(
+    HierContext *hc,
+    HierName *name)
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -140,13 +140,13 @@ GetHierNode(hc, name)
  */
 
 void
-spcHierWriteParams(hc, dev, scale, l, w, sdM)
-    HierContext *hc;
-    Dev *dev;           /* Dev being output */
-    float scale;        /* Scale transform for output */
-    int l;              /* Device length, in internal units */
-    int w;              /* Device width, in internal units */
-    float sdM;          /* Device multiplier */
+spcHierWriteParams(
+    HierContext *hc,
+    Dev *dev,           /* Dev being output */
+    float scale,        /* Scale transform for output */
+    int l,              /* Device length, in internal units */
+    int w,              /* Device width, in internal units */
+    float sdM)          /* Device multiplier */
 {
     bool hierD;
     DevParam *plist, *dparam;
@@ -410,14 +410,16 @@ spcHierWriteParams(hc, dev, scale, l, w, sdM)
  */
 
 void
-esOutputHierResistor(hc, dev, scale, term1, term2, has_model, l, w, dscale)
-    HierContext *hc;
-    Dev *dev;			/* Dev being output */
-    float scale;		/* Scale transform for output */
-    DevTerm *term1, *term2;	/* Terminals of the device */
-    bool has_model;		/* Is this a modeled resistor? */
-    int l, w;			/* Device length and width */
-    int dscale;			/* Device scaling (for split resistors) */
+esOutputHierResistor(
+    HierContext *hc,
+    Dev *dev,			/* Dev being output */
+    float scale,		/* Scale transform for output */
+    DevTerm *term1,
+    DevTerm *term2,		/* Terminals of the device */
+    bool has_model,		/* Is this a modeled resistor? */
+    int l,
+    int w,			/* Device length and width */
+    int dscale)			/* Device scaling (for split resistors) */
 {
     Rect r;
     float sdM ;
@@ -482,10 +484,10 @@ esOutputHierResistor(hc, dev, scale, term1, term2, has_model, l, w, dscale)
  */
 
 int
-subcktHierVisit(use, hierName, is_top)
-    Use *use;
-    HierName *hierName;
-    bool is_top;                /* TRUE if this is the top-level cell */
+subcktHierVisit(
+    Use *use,
+    HierName *hierName,
+    bool is_top)                /* TRUE if this is the top-level cell */
 {
     Def *def = use->use_def;
     EFNode *snode;
@@ -570,10 +572,10 @@ subcktHierVisit(use, hierName, is_top)
  */
 
 int
-spcdevHierVisit(hc, dev, scale)
-    HierContext *hc;
-    Dev *dev;		/* Dev being output */
-    float scale;	/* Scale transform for output */
+spcdevHierVisit(
+    HierContext *hc,
+    Dev *dev,		/* Dev being output */
+    float scale)	/* Scale transform for output */
 {
     DevParam *plist, *pptr;
     DevTerm *gate, *source, *drain;
@@ -1148,10 +1150,10 @@ spcdevHierVisit(hc, dev, scale)
  */
 
 int
-spcdevHierMergeVisit(hc, dev, scale)
-    HierContext *hc;
-    Dev *dev;		/* Dev being output */
-    float scale;	/* Scale of transform (may be non-integer) */
+spcdevHierMergeVisit(
+    HierContext *hc,
+    Dev *dev,		/* Dev being output */
+    float scale)	/* Scale of transform (may be non-integer) */
 {
     DevTerm *gate, *source, *drain;
     EFNode *subnode, *snode, *dnode, *gnode;
@@ -1269,11 +1271,11 @@ spcdevHierMergeVisit(hc, dev, scale)
  */
 
 int
-spccapHierVisit(hc, hierName1, hierName2, cap)
-    HierContext *hc;
-    HierName *hierName1;
-    HierName *hierName2;
-    double cap;
+spccapHierVisit(
+    HierContext *hc,
+    HierName *hierName1,
+    HierName *hierName2,
+    double cap)
 {
     cap = cap / 1000;
     if (fabs(cap) <= EFCapThreshold)
@@ -1313,11 +1315,11 @@ spccapHierVisit(hc, hierName1, hierName2, cap)
  * ----------------------------------------------------------------------------
  */
 int
-spcresistHierVisit(hc, hierName1, hierName2, res)
-    HierContext *hc;
-    HierName *hierName1;
-    HierName *hierName2;
-    float res;
+spcresistHierVisit(
+    HierContext *hc,
+    HierName *hierName1,
+    HierName *hierName2,
+    float res)
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -1376,12 +1378,12 @@ spcresistHierVisit(hc, hierName1, hierName2, res)
  */
 
 int
-spcsubHierVisit(hc, node, res, cap, resstrptr)
-    HierContext *hc;
-    EFNode *node;
-    int res; 		// Unused
-    double cap;		// Unused
-    char **resstrptr;
+spcsubHierVisit(
+    HierContext *hc,
+    EFNode *node,
+    int res, 		// Unused
+    double cap,		// Unused
+    char **resstrptr)
 {
     HierName *hierName;
     char *nsn;
@@ -1414,11 +1416,11 @@ spcsubHierVisit(hc, node, res, cap, resstrptr)
  */
 
 int
-spcnodeHierVisit(hc, node, res, cap)
-    HierContext *hc;
-    EFNode *node;
-    int res;
-    double cap;
+spcnodeHierVisit(
+    HierContext *hc,
+    EFNode *node,
+    int res,
+    double cap)
 {
     EFNodeName *nn;
     HierName *hierName;
@@ -1495,9 +1497,10 @@ spcnodeHierVisit(hc, node, res, cap)
  */
 static char esTempName[MAX_STR_SIZE];
 
-char *nodeSpiceHierName(hc, hname)
-    HierContext *hc;
-    HierName *hname;
+char *
+nodeSpiceHierName(
+    HierContext *hc,
+    HierName *hname)
 {
     EFNodeName *nn;
     HashEntry *he, *he2;
@@ -1553,10 +1556,10 @@ retName:
  */
 
 int
-devMergeHierVisit(hc, dev, scale)
-    HierContext *hc;
-    Dev *dev;			/* Dev to examine */
-    float scale;		/* Scale transform of output */
+devMergeHierVisit(
+    HierContext *hc,
+    Dev *dev,			/* Dev to examine */
+    float scale)		/* Scale transform of output */
 {
     DevTerm *gate, *source, *drain;
     Dev     *cf;
@@ -1715,10 +1718,10 @@ mergeThem:
  */
 
 int
-devDistJunctHierVisit(hc, dev, scale)
-    HierContext *hc;
-    Dev *dev;			/* Dev to examine */
-    float scale;		/* Scale tranform of output */
+devDistJunctHierVisit(
+    HierContext *hc,
+    Dev *dev,			/* Dev to examine */
+    float scale)		/* Scale tranform of output */
 {
     EFNode  *n;
     int i, l, w;
@@ -1767,9 +1770,9 @@ typedef struct _flagDefRecord {
  */
 
 int
-esMakePorts(hc, cdata)
-    HierContext *hc;
-    ClientData cdata;
+esMakePorts(
+    HierContext *hc,
+    ClientData cdata)
 {
     Connection *conn;
     Def *def = hc->hc_use->use_def, *portdef, *updef;
@@ -2071,9 +2074,9 @@ esMakePorts(hc, cdata)
  */
 
 int
-esHierVisit(hc, cdata)
-    HierContext *hc;
-    ClientData cdata;
+esHierVisit(
+    HierContext *hc,
+    ClientData cdata)
 {
     HierContext *hcf;
     Def *def = hc->hc_use->use_def;

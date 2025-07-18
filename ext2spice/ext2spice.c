@@ -136,8 +136,8 @@ extern void ESGenerateHierarchy();  /* forward reference */
  */
 
 int
-esFreeNodeClient(client)
-    nodeClient *client;
+esFreeNodeClient(
+    nodeClient *client)
 {
     if (client != (nodeClient *)NULL)
 	if (client->spiceNodeName != NULL)
@@ -160,9 +160,9 @@ esFreeNodeClient(client)
  */
 
 void
-esFormatSubs(outf, suf)
-    FILE *outf;
-    char *suf;
+esFormatSubs(
+    FILE *outf,
+    char *suf)
 {
     char *specchar;
     int l;
@@ -201,8 +201,8 @@ esFormatSubs(outf, suf)
  */
 
 int
-Exttospice_Init(interp)
-    Tcl_Interp *interp;
+Exttospice_Init(
+    Tcl_Interp *interp)
 {
     /* Sanity checks! */
     if (interp == NULL) return TCL_ERROR;
@@ -257,9 +257,9 @@ Exttospice_Init(interp)
 #define EXTTOSPC_HELP		16
 
 void
-CmdExtToSpice(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdExtToSpice(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int i,flatFlags;
     char *inName;
@@ -1170,9 +1170,9 @@ runexttospice:
  */
 
 int
-main(argc, argv)
-    int argc;
-    char *argv[];
+main(
+    int argc,
+    char *argv[])
 {
 
     int i,flatFlags;
@@ -1352,9 +1352,9 @@ main(argc, argv)
  */
 
 int
-spcParseArgs(pargc, pargv)
-    int *pargc;
-    char ***pargv;
+spcParseArgs(
+    int *pargc,
+    char ***pargv)
 {
     char **argv = *pargv, *cp;
     int argc = *pargc;
@@ -1457,9 +1457,9 @@ usage:
  * ----------------------------------------------------------------------------
  */
 EFNode *
-SpiceGetNode(prefix, suffix)
-HierName *prefix;
-HierName *suffix;
+SpiceGetNode(
+    HierName *prefix,
+    HierName *suffix)
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -1488,8 +1488,9 @@ HierName *suffix;
  * ----------------------------------------------------------------------------
  */
 
-bool extHierSDAttr(term)
-    DevTerm *term;
+bool
+extHierSDAttr(
+    DevTerm *term)
 {
     bool r = esHierAP;
 
@@ -1531,10 +1532,10 @@ bool extHierSDAttr(term)
  * ----------------------------------------------------------------------------
  */
 int
-subcktVisit(use, hierName, is_top)
-    Use *use;
-    HierName *hierName;
-    bool is_top;		/* TRUE if this is the top-level cell */
+subcktVisit(
+    Use *use,
+    HierName *hierName,
+    bool is_top)		/* TRUE if this is the top-level cell */
 {
     EFNode *snode;
     Def *def = use->use_def;
@@ -1718,10 +1719,10 @@ subcktVisit(use, hierName, is_top)
  * ----------------------------------------------------------------------------
  */
 int
-subcktUndef(use, hierName, is_top)
-    Use *use;
-    HierName *hierName;
-    bool is_top;	/* TRUE if this is the top-level cell */
+subcktUndef(
+    Use *use,
+    HierName *hierName,
+    bool is_top)	/* TRUE if this is the top-level cell */
 {
     Def *def = use->use_def;
 
@@ -1769,9 +1770,9 @@ typedef struct _lnn {
  */
 
 void
-topVisit(def, doStub)
-    Def *def;
-    bool doStub;
+topVisit(
+    Def *def,
+    bool doStub)
 {
     EFNode *snode, *basenode;
     EFNodeName *sname, *nodeName;
@@ -1985,13 +1986,13 @@ topVisit(def, doStub)
  */
 
 void
-spcWriteParams(dev, hierName, scale, l, w, sdM)
-    Dev *dev;		/* Dev being output */
-    HierName *hierName;	/* Hierarchical path down to this dev */
-    float scale;	/* Scale transform for output */
-    int l;		/* Device length, in internal units */
-    int w;		/* Device width, in internal units */
-    float sdM;		/* Device multiplier */
+spcWriteParams(
+    Dev *dev,		/* Dev being output */
+    HierName *hierName,	/* Hierarchical path down to this dev */
+    float scale,	/* Scale transform for output */
+    int l,		/* Device length, in internal units */
+    int w,		/* Device width, in internal units */
+    float sdM)		/* Device multiplier */
 {
     bool hierD;
     DevParam *plist, *dparam;
@@ -2292,14 +2293,16 @@ spcWriteParams(dev, hierName, scale, l, w, sdM)
  */
 
 void
-esOutputResistor(dev, hierName, scale, term1, term2, has_model, l, w, dscale)
-    Dev *dev;			/* Dev being output */
-    HierName *hierName;		/* Hierarchical path down to this dev */
-    float scale;		/* Scale transform for output */
-    DevTerm *term1, *term2;	/* Terminals of the device */
-    bool has_model;		/* Is this a modeled resistor? */
-    int l, w;			/* Device length and width */
-    int dscale;			/* Device scaling (for split resistors) */
+esOutputResistor(
+    Dev *dev,			/* Dev being output */
+    HierName *hierName,		/* Hierarchical path down to this dev */
+    float scale,		/* Scale transform for output */
+    DevTerm *term1,
+    DevTerm *term2,		/* Terminals of the device */
+    bool has_model,		/* Is this a modeled resistor? */
+    int l,
+    int w,			/* Device length and width */
+    int dscale)			/* Device scaling (for split resistors) */
 {
     float sdM ;
     char name[12], devchar;
@@ -2350,8 +2353,8 @@ esOutputResistor(dev, hierName, scale, term1, term2, has_model, l, w, dscale)
 /* Report if device at index n has been deleted due to merging */
 
 bool
-devIsKilled(n)
-    int n;
+devIsKilled(
+    int n)
 {
     return (esFMult[(n)] <= (float)0.0) ? TRUE : FALSE;
 }
@@ -2359,8 +2362,8 @@ devIsKilled(n)
 /* Add a dev's multiplier to the table and grow it if necessary */
 
 void
-addDevMult(f)
-    float f;
+addDevMult(
+    float f)
 {
     int i;
     float *op;
@@ -2382,9 +2385,9 @@ addDevMult(f)
 /* Set the multiplier value f of device at index i */
 
 void
-setDevMult(i, f)
-    int i;
-    float f;
+setDevMult(
+    int i,
+    float f)
 {
     esFMult[i] = f;
 }
@@ -2392,7 +2395,7 @@ setDevMult(i, f)
 /* Get the multiplier value of the device at the current index esFMIndex */
 
 float
-getCurDevMult()
+getCurDevMult(void)
 {
     return (esFMult && (esFMIndex > 0)) ? esFMult[esFMIndex-1] : (float)1.0;
 }
@@ -2423,8 +2426,8 @@ getCurDevMult()
  */
 
 void
-swapDrainSource(dev)
-    Dev *dev;
+swapDrainSource(
+    Dev *dev)
 {
     DevTerm tmpTerm;
 
@@ -2471,11 +2474,11 @@ swapDrainSource(dev)
  */
 
 int
-spcdevVisit(dev, hc, scale, trans)
-    Dev *dev;		/* Dev being output */
-    HierContext *hc;	/* Hierarchical context down to this dev */
-    float scale;	/* Scale transform for output */
-    Transform *trans;	/* (unused) */
+spcdevVisit(
+    Dev *dev,		/* Dev being output */
+    HierContext *hc,	/* Hierarchical context down to this dev */
+    float scale,	/* Scale transform for output */
+    Transform *trans)	/* (unused) */
 {
     DevParam *plist, *pptr;
     DevTerm *gate, *source, *drain;
@@ -3081,10 +3084,12 @@ spcdevVisit(dev, hc, scale, trans)
  *
  * ----------------------------------------------------------------------------
  */
-EFNode *spcdevSubstrate( prefix, suffix, type,  outf)
-HierName *prefix, *suffix;
-int type;
-FILE *outf;
+EFNode *
+spcdevSubstrate(
+    HierName *prefix,
+    HierName *suffix,
+    int type,
+    FILE *outf)
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -3138,7 +3143,10 @@ FILE *outf;
  */
 
 void
-nDecimals(char *s, double d, int n)
+nDecimals(
+    char *s,
+    double d,
+    int n)
 {
     int sz;
     double d2;
@@ -3177,7 +3185,9 @@ nDecimals(char *s, double d, int n)
  */
 
 void
-morphNumericString(char *s, int n)
+morphNumericString(
+    char *s,
+    int n)
 {
     char *p;
     int count;
@@ -3220,9 +3230,9 @@ morphNumericString(char *s, int n)
  */
 
 void
-esSIvalue(file, value)
-    FILE *file;
-    float value;
+esSIvalue(
+    FILE *file,
+    float value)
 {
     char vstr[32];
     char suffix = '\0';
@@ -3306,14 +3316,17 @@ esSIvalue(file, value)
  *
  * ----------------------------------------------------------------------------
  */
-int spcnAP(dterm, node, resClass, scale, asterm, psterm, m, outf, w)
-    DevTerm *dterm;
-    EFNode *node;
-    int  resClass;
-    float scale, m;
-    char *asterm, *psterm;
-    FILE *outf;
-    int w;
+int
+spcnAP(
+    DevTerm *dterm,
+    EFNode *node,
+    int resClass,
+    float scale,
+    char *asterm,
+    char *psterm,
+    float m,
+    FILE *outf,
+    int w)
 {
     char afmt[15], pfmt[15];
     float dsc;
@@ -3437,13 +3450,16 @@ newFmt:
     return 0;
 }
 
-int spcnAPHier(dterm, hierName, resClass, scale, asterm, psterm, m, outf)
-    DevTerm *dterm;
-    HierName *hierName;
-    int  resClass;
-    float scale, m;
-    char *asterm, *psterm;
-    FILE *outf;
+int
+spcnAPHier(
+    DevTerm *dterm,
+    HierName *hierName,
+    int resClass,
+    float scale,
+    char *asterm,
+    char *psterm,
+    float m,
+    FILE *outf)
 {
     EFNode *node = dterm->dterm_node;
     nodeClientHier   *nc;
@@ -3531,11 +3547,11 @@ int spcnAPHier(dterm, hierName, resClass, scale, asterm, psterm, m, outf)
  */
 
 int
-spcdevOutNode(prefix, suffix, name, outf)
-    HierName *prefix;
-    HierName *suffix;
-    char *name;
-    FILE *outf;
+spcdevOutNode(
+    HierName *prefix,
+    HierName *suffix,
+    char *name,
+    FILE *outf)
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -3588,10 +3604,10 @@ spcdevOutNode(prefix, suffix, name, outf)
  */
 
 int
-spccapVisit(hierName1, hierName2, cap)
-    HierName *hierName1;
-    HierName *hierName2;
-    double cap;
+spccapVisit(
+    HierName *hierName1,
+    HierName *hierName2,
+    double cap)
 {
     cap = cap / 1000;
     if (cap <= EFCapThreshold)
@@ -3630,10 +3646,10 @@ spccapVisit(hierName1, hierName2, cap)
  * ----------------------------------------------------------------------------
  */
 int
-spcresistVisit(hierName1, hierName2, res)
-    HierName *hierName1;
-    HierName *hierName2;
-    float res;
+spcresistVisit(
+    HierName *hierName1,
+    HierName *hierName2,
+    float res)
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -3693,11 +3709,11 @@ spcresistVisit(hierName1, hierName2, res)
  */
 
 int
-spcsubVisit(node, res, cap, resstr)
-    EFNode *node;
-    int res; 		// Unused
-    double cap;		// Unused
-    char **resstr;
+spcsubVisit(
+    EFNode *node,
+    int res, 		// Unused
+    double cap,		// Unused
+    char **resstr)
 {
     HierName *hierName;
     char *nsn;
@@ -3730,10 +3746,10 @@ spcsubVisit(node, res, cap, resstr)
  */
 
 int
-spcnodeVisit(node, res, cap)
-    EFNode *node;
-    int res;
-    double cap;
+spcnodeVisit(
+    EFNode *node,
+    int res,
+    double cap)
 {
     EFNodeName *nn;
     HierName *hierName;
@@ -3794,10 +3810,10 @@ spcnodeVisit(node, res, cap)
 
 /* a debugging procedure */
 int
-nodeVisitDebug(node, res, cap)
-    EFNode *node;
-    int res;
-    double cap;
+nodeVisitDebug(
+    EFNode *node,
+    int res,
+    double cap)
 {
     EFNodeName *nn;
     HierName *hierName;
@@ -3834,9 +3850,10 @@ nodeVisitDebug(node, res, cap)
  */
 static char esTempName[MAX_STR_SIZE];
 
-char *nodeSpiceName(hname, rnode)
-    HierName *hname;
-    EFNode **rnode;
+char *
+nodeSpiceName(
+    HierName *hname,
+    EFNode **rnode)
 {
     EFNodeName *nn;
     HashEntry *he;
@@ -3893,9 +3910,9 @@ retName:
  */
 
 int
-EFHNSprintf(str, hierName)
-    char *str;
-    HierName *hierName;
+EFHNSprintf(
+    char *str,
+    HierName *hierName)
 {
     bool trimGlob, trimLocal, convertComma, convertEqual, convertBrackets;
     char *s, *cp, c;
@@ -3931,9 +3948,10 @@ EFHNSprintf(str, hierName)
     return 0;
 }
 
-char *efHNSprintfPrefix(hierName, str)
-    HierName *hierName;
-    char *str;
+char *
+efHNSprintfPrefix(
+    HierName *hierName,
+    char *str)
 {
     char *cp, c;
     bool convertEqual = (EFOutputFlags & EF_CONVERTEQUAL) ? TRUE : FALSE;
@@ -3981,8 +3999,9 @@ char *efHNSprintfPrefix(hierName, str)
  * ----------------------------------------------------------------------------
  */
 
-int nodeHspiceName(s)
-    char *s;
+int
+nodeHspiceName(
+    char *s)
 {
     char *p, *sf;
     int l, snum = -1;
@@ -4064,7 +4083,8 @@ topLevel:
  * ----------------------------------------------------------------------------
  */
 
-int printSubcktDict()
+int
+printSubcktDict(void)
 {
     HashSearch  hs;
     HashEntry  *he;
@@ -4096,11 +4116,16 @@ int printSubcktDict()
  * ----------------------------------------------------------------------------
  */
 
-devMerge *mkDevMerge(l, w, g, s, d, b, hn, dev)
-    float   l, w;
-    EFNode *g, *s, *d, *b;
-    HierName *hn;
-    Dev    *dev;
+devMerge *
+mkDevMerge(
+    float l,
+    float w,
+    EFNode *g,
+    EFNode *s,
+    EFNode *d,
+    EFNode *b,
+    HierName *hn,
+    Dev *dev)
 {
     devMerge *fp;
 
@@ -4136,8 +4161,9 @@ devMerge *mkDevMerge(l, w, g, s, d, b, hn, dev)
  */
 
 int
-parallelDevs(f1, f2)
-    devMerge *f1, *f2;
+parallelDevs(
+    devMerge *f1,
+    devMerge *f2)
 {
     /* If the devices are not in the same class, then	*/
     /* they cannot be parallel.				*/
@@ -4245,11 +4271,12 @@ parallelDevs(f1, f2)
  */
 
 void
-mergeAttr(a1, a2)
-    char **a1, **a2;
+mergeAttr(
+    char **a1,
+    char **a2)
 {
     if (*a1 == NULL)
-	*a1 = *a2;
+	*a1 = *a2; /* TODO check strdup() is appropiate due to lifetime ambiguity this creates */
     else
     {
 	size_t l1 = strlen(*a1);
@@ -4279,11 +4306,11 @@ mergeAttr(a1, a2)
  */
 
 int
-devMergeVisit(dev, hc, scale, trans)
-    Dev *dev;			/* Dev to examine */
-    HierContext *hc;		/* Hierarchical context down to this dev */
-    float scale;		/* Scale transform */
-    Transform *trans;		/* (unused) */
+devMergeVisit(
+    Dev *dev,			/* Dev to examine */
+    HierContext *hc,		/* Hierarchical context down to this dev */
+    float scale,		/* Scale transform */
+    Transform *trans)		/* (unused) */
 {
     DevTerm *gate, *source, *drain;
     Dev     *cf;
@@ -4459,10 +4486,10 @@ mergeThem:
  */
 
 int
-update_w(resClass, w,  n)
-    short  resClass;
-    int w;
-    EFNode *n;
+update_w(
+    short resClass,
+    int w,
+    EFNode *n)
 {
     nodeClient *nc;
     int i;
@@ -4497,11 +4524,11 @@ update_w(resClass, w,  n)
  */
 
 int
-devDistJunctVisit(dev, hc, scale, trans)
-    Dev *dev;			/* Dev to examine */
-    HierContext *hc;		/* Hierarchical path down to this dev */
-    float scale;		/* Scale transform */
-    Transform *trans;		/* (unused) */
+devDistJunctVisit(
+    Dev *dev,			/* Dev to examine */
+    HierContext *hc,		/* Hierarchical path down to this dev */
+    float scale,		/* Scale transform */
+    Transform *trans)		/* (unused) */
 {
     EFNode  *n;
     int      i;
