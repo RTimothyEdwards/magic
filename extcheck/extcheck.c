@@ -38,6 +38,7 @@ static const char rcsid[] = "$Header: /usr/cvsroot/magic-8.0/extcheck/extcheck.c
 #include "utils/pathvisit.h"
 #include "extflat/extflat.h"
 #include "utils/runstats.h"
+#include "extflat/EFint.h" /* HierContext */
 
 int ecNumDevs;
 int ecNumCaps;
@@ -50,10 +51,10 @@ int ecNumNodeCaps;
 int ecNumNodeResists;
 
 /* Forward declarations */
-int nodeVisit(EFNode *node, int res, double cap);
-int devVisit(void);
-int capVisit(HierName *hn1, HierName *hn2, double cap);
-int resistVisit(HierName *hn1, HierName *hn2, float res);
+int nodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (UNUSED) */
+int devVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
+int capVisit(HierName *hn1, HierName *hn2, double cap, ClientData cdata); /* @typedef cb_extflat_visitcaps_t (UNUSED) */
+int resistVisit(HierName *hn1, HierName *hn2, float res, ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
 
 /*
  * ----------------------------------------------------------------------------
@@ -129,11 +130,13 @@ main(int argc, char *argv[])
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_visitnodes_t (UNUSED) */
 int
 nodeVisit(
     EFNode *node,
     int res,
-    double cap)
+    double cap,
+    ClientData cdata) /* unused */
 {
     cap = (cap + 500) / 1000;
     res = (res + 500) / 1000;
@@ -146,31 +149,42 @@ nodeVisit(
     return 0;
 }
 
+/*ARGSUSED*/
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
-devVisit(void)
+devVisit(
+    Dev *dev,
+    HierContext *hc,
+    float scale,
+    Transform *trans,
+    ClientData cdata) /* UNUSED */
 {
     ecNumDevs++;
     return 0;
 }
 
-    /*ARGSUSED*/
+/*ARGSUSED*/
+/* @typedef cb_extflat_visitcaps_t (UNUSED) */
 int
 capVisit(
     HierName *hn1,
     HierName *hn2,	/* UNUSED */
-    double cap)
+    double cap,
+    ClientData cdata)	/* UNUSED */
 {
     ecNumCaps++;
     if ((cap / 1000.) > (double) EFCapThreshold) ecNumThreshCaps++;
     return 0;
 }
 
-    /*ARGSUSED*/
+/*ARGSUSED*/
+/* @typedef cb_extflat_visitresists_t (UNUSED) */
 int
 resistVisit(
     HierName *hn1,
     HierName *hn2,	/* UNUSED */
-    float res)
+    float res,
+    ClientData cdata)   /* UNUSED */
 {
     ecNumResists++;
     if ((res / 1000.) > EFResistThreshold) ecNumThreshResists++;
