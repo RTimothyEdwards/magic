@@ -23,6 +23,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <ctype.h>
 
 #include "lisp/lisp.h"
 #include "lispInt.h"
