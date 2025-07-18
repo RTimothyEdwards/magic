@@ -23,7 +23,7 @@
  */
 
 #ifndef lint
-static char rcsid[] = "$Header: /usr/cvsroot/magic-8.0/extcheck/extcheck.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
+static const char rcsid[] = "$Header: /usr/cvsroot/magic-8.0/extcheck/extcheck.c,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
