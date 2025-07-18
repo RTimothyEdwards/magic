@@ -23,6 +23,7 @@
  *************************************************************************/
 
 #include <stdio.h>
+#include <string.h>
 
 #include "lisp/lisp.h"
 #include "lispInt.h"
