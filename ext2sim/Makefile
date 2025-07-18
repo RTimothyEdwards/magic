@@ -11,11 +11,21 @@ EXTRA_LIBS  = ${MAGICDIR}/extflat/libextflat.o ${MAGICDIR}/utils/libutils.a
 include ${MAGICDIR}/defs.mak
 
 LIBS += -lm ${LD_EXTRA_LIBS} ${SUB_EXTRA_LIBS}
-CLEANS += exttosim${SHDLIB_EXT} simwrap.o
+CLEANS += exttosim${SHDLIB_EXT} simwrap.o finds.o ext2sim_main.o ext2sim_main finds sim2simp
 
-main: ext2sim
+main: finds sim2simp # ext2sim_main # deprecated
 
 tcl-main: exttosim${SHDLIB_EXT}
+
+# Not linkable due to libutils.a needing more hierarchical separation
+ext2sim_main: ext2sim_main.o ${EXTRA_LIBS} ${MAGICDIR}/tiles/libtiles.o
+	${CC} ${LDFLAGS} ${CFLAGS} -o $@ $^ ${LIBS} -lX11 -lz
+
+ext2sim_main.o: ext2sim.c
+	${CC} ${CFLAGS} -I${MAGICDIR} -DEXT2SIM_MAIN -c -o $@ $^
+
+finds: finds.o ${MAGICDIR}/utils/libutils.a
+	${CC} ${LDFLAGS} ${CFLAGS} -o $@ $^
 
 simwrap.o: ext2sim.c
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ext2sim.c -c -o simwrap.o
