@@ -121,7 +121,8 @@ addMos(
 }
 
 
-main ()
+int
+main (int argc, char *argv[])
 {
 	int i;
 	char str[STRLEN];
