@@ -2475,6 +2475,7 @@ swapDrainSource(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
 /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 spcdevVisit(
@@ -4319,6 +4320,7 @@ mergeAttr(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
 /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 devMergeVisit(
@@ -4540,6 +4542,7 @@ update_w(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
 /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 devDistJunctVisit(

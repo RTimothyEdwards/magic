@@ -246,14 +246,15 @@ EFGetLengthAndWidth(dev, lptr, wptr)
  * Visit all the devs in the circuit.
  * Must be called after EFFlatBuild().
  * For each dev in the circuit, call the user-supplied procedure
- * (*devProc)(), which should be of the following form:
+ * (*devProc)(), which should be of the following form
+ *   see also typedef cb_extflat_visitdevs_t:
  *
- *	(*devProc)(dev, hierName, scale, cdata)
- *	    Dev *dev;
- *	    HierName *hierName;
- *	    float scale;
- *	    Transform *trans;
- *	    ClientData cdata;
+ *	int (*devProc)(
+ *	    Dev *dev,
+ *	    HierContext *hc,
+ *	    float scale,
+ *	    Transform *trans,
+ *	    ClientData cdata)
  *	{
  *	}
  *
@@ -274,13 +275,13 @@ EFGetLengthAndWidth(dev, lptr, wptr)
  */
 
 int
-EFVisitDevs(devProc, cdata)
-    int (*devProc)();
-    ClientData cdata;
+EFVisitDevs(
+    const cb_extflat_visitdevs_t devProc,
+    ClientData cdata)
 {
     CallArg ca;
 
-    ca.ca_proc = devProc;
+    ca.ca_proc = (int (*)()) devProc;
     ca.ca_cdata = cdata;
     return efVisitDevs(&efFlatContext, (ClientData) &ca);
 }
