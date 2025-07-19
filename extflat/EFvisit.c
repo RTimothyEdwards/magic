@@ -506,7 +506,8 @@ EFVisitResists(
  *	Calls the client procedure (*ca->ca_proc)().
  */
 
-extern int efVisitSingleResist();
+extern int efVisitSingleResist(HierContext *hc, const char *name1, const char *name2,
+                               Connection *res, ClientData cdata); /* @typedef cb_extflat_hiersrarray_t (CallArg*) */
 
 int
 efVisitResists(hc, ca)
@@ -559,25 +560,28 @@ efVisitResists(hc, ca)
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_hiersrarray_t (CallArg*) */
 int
-efVisitSingleResist(hc, name1, name2, res, ca)
-    HierContext *hc;		/* Contains hierarchical pathname to cell */
-    char *name1, *name2;	/* Names of nodes connecting to resistor */
-    Connection *res;		/* Contains resistance to add */
-    CallArg *ca;
+efVisitSingleResist(
+    HierContext *hc,		/* Contains hierarchical pathname to cell */
+    const char *name1,
+    const char *name2,		/* Names of nodes connecting to resistor */
+    Connection *res,		/* Contains resistance to add */
+    ClientData cdata)
 {
-    EFNode *n1, *n2;
+    CallArg *ca = (CallArg *)CD2PTR(cdata);
+    const EFNode *n1, *n2;
     HashEntry *he;
 
     if ((he = EFHNLook(hc->hc_hierName, name1, "resist(1)")) == NULL)
 	return 0;
-    n1 = ((EFNodeName *) HashGetValue(he))->efnn_node;
+    n1 = ((const EFNodeName *) HashGetValue(he))->efnn_node;
     if (n1->efnode_flags & EF_KILLED)
 	return 0;
 
     if ((he = EFHNLook(hc->hc_hierName, name2, "resist(2)")) == NULL)
 	return 0;
-    n2 = ((EFNodeName *) HashGetValue(he))->efnn_node;
+    n2 = ((const EFNodeName *) HashGetValue(he))->efnn_node;
     if (n2->efnode_flags & EF_KILLED)
 	return 0;
 
