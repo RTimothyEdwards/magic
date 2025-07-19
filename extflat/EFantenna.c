@@ -44,7 +44,7 @@
 
 /* Forward declarations */
 int antennacheckArgs(int *pargc, char ***pargv);
-int antennacheckVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, CellUse *editUse);
+int antennacheckVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (CellUse *editUse) */
 
 typedef struct {
 	TileTypeBitMask visitMask;
@@ -255,7 +255,7 @@ runantennacheck:
 
     efGates = 0;
     TxPrintf("Running antenna checks.\n");
-    EFVisitDevs(antennacheckVisit, (ClientData)editUse);
+    EFVisitDevs(antennacheckVisit, PTR2CD(editUse));
     EFFlatDone(NULL);
     EFDone(NULL);
 
@@ -355,14 +355,16 @@ HierName *suffix;
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_visitdevs_t (CellUse *editUse) */
 int
 antennacheckVisit(
     Dev *dev,		/* Device being output */
     HierContext *hc,	/* Hierarchical context down to this device */
     float scale,	/* Scale transform for output */
     Transform *trans,	/* Coordinate transform */
-    CellUse *editUse)	/* ClientData is edit cell use */
+    ClientData cdata)	/* ClientData is edit cell use */
 {
+    CellUse *editUse = (CellUse *) CD2PTR(cdata);
     DevTerm *gate;
     TileType t, conType;
     int pos, pNum, pNum2, pmax, p, i, j, total;
