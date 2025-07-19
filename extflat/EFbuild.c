@@ -62,13 +62,12 @@ char *EFLayerNames[MAXTYPES] = { "space" };
 int   EFLayerNumNames;
 
 /* Forward declarations */
-Connection *efAllocConn();
-EFNode *efBuildDevNode();
-void efNodeAddName();
-EFNode *efNodeMerge();
+EFNode *efBuildDevNode(Def *def, char *name, bool isSubsNode);
+void efNodeAddName(EFNode *node, HashEntry *he, HierName *hn, bool isNew);
+EFNode *efNodeMerge(EFNode **node1ptr, EFNode **node2ptr);
 
-bool efConnBuildName();
-bool efConnInitSubs();
+bool efConnBuildName(ConnName *cnp, char *name);
+bool efConnInitSubs(Connection *conn, char *nodeName1, char *nodeName2);
 
 extern float locScale;
 

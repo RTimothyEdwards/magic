@@ -106,7 +106,7 @@ float locScale;		/* Multiply values in the file by this on read-in */
 bool EFSaveLocs;	/* If TRUE, save location of merged top-level nodes */
 
 /* Data local to this file */
-static bool efReadDef();
+static bool efReadDef(Def *def, bool dosubckt, bool resist, bool noscale, bool toplevel, bool isspice);
 
 /* atoCap - convert a string to a EFCapValue */
 #define	atoCap(s)	((EFCapValue)atof(s))

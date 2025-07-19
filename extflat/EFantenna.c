@@ -43,8 +43,8 @@
 #include "extract/extract.h"
 
 /* Forward declarations */
-int antennacheckArgs();
-int antennacheckVisit();
+int antennacheckArgs(int *pargc, char ***pargv);
+int antennacheckVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, CellUse *editUse);
 
 typedef struct {
 	TileTypeBitMask visitMask;
