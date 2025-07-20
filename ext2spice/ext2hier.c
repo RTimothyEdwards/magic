@@ -572,11 +572,14 @@ subcktHierVisit(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_hiervisitdevs_t (UNUSED) */
 int
 spcdevHierVisit(
     HierContext *hc,
     Dev *dev,		/* Dev being output */
-    float scale)	/* Scale transform for output */
+    float scale,	/* Scale transform for output */
+    ClientData cdata)	/* unused */
 {
     DevParam *plist, *pptr;
     DevTerm *gate, *source, *drain;
@@ -1150,11 +1153,14 @@ spcdevHierVisit(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_hiervisitdevs_t (UNUSED) */
 int
 spcdevHierMergeVisit(
     HierContext *hc,
     Dev *dev,		/* Dev being output */
-    float scale)	/* Scale of transform (may be non-integer) */
+    float scale,	/* Scale of transform (may be non-integer) */
+    ClientData cdata)	/* unused */
 {
     DevTerm *gate, *source, *drain;
     EFNode *subnode, *snode, *dnode, *gnode;
@@ -1272,12 +1278,15 @@ spcdevHierMergeVisit(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_hiervisitdevs_t (UNUSED) */
 int
 spccapHierVisit(
     HierContext *hc,
     HierName *hierName1,
     HierName *hierName2,
-    double cap)
+    double cap,
+    ClientData cdata)	/* unused */
 {
     cap = cap / 1000;
     if (fabs(cap) <= EFCapThreshold)
@@ -1574,7 +1583,7 @@ devMergeHierVisit(
     float m;
 
     if (esDistrJunct)
-	devDistJunctHierVisit(hc, dev, scale);
+	devDistJunctHierVisit(hc, dev, scale, PTR2CD(NULL));
 
     if (dev->dev_nterm < 2)
     {
@@ -1720,11 +1729,14 @@ mergeThem:
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_hiervisitdevs_t (UNUSED) */
 int
 devDistJunctHierVisit(
     HierContext *hc,
     Dev *dev,			/* Dev to examine */
-    float scale)		/* Scale tranform of output */
+    float scale,		/* Scale tranform of output */
+    ClientData cdata)		/* unused */
 {
     EFNode  *n;
     int i, l, w;
@@ -2195,10 +2207,10 @@ esHierVisit(
 	    devMergeList = NULL;
 	}
 	else if (esDistrJunct)
-	    EFHierVisitDevs(hcf, devDistJunctHierVisit, (ClientData)NULL);
+	    EFHierVisitDevs(hcf, devDistJunctHierVisit, PTR2CD(NULL));
 
 	/* Output devices */
-	EFHierVisitDevs(hcf, spcdevHierVisit, (ClientData)NULL);
+	EFHierVisitDevs(hcf, spcdevHierVisit, PTR2CD(NULL));
 
 	/* Output lumped parasitic resistors */
 	EFHierVisitResists(hcf, spcresistHierVisit, (ClientData)NULL);

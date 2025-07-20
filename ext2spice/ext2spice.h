@@ -52,7 +52,7 @@ extern int spcdevOutNode(const HierName *prefix, const HierName *suffix, const c
 extern int spcnAP(DevTerm *dterm, EFNode *node, int resClass, float scale, char *asterm, char *psterm, float m, FILE *outf, int w);
 extern int parallelDevs(const devMerge *f1, const devMerge *f2);
 extern int nodeHspiceName(char *s);
-extern int devDistJunctHierVisit(HierContext *hc, Dev *dev, float scale);
+extern int devDistJunctHierVisit(HierContext *hc, Dev *dev, float scale, ClientData cdata); /* @typedef cb_extflat_hiervisitdevs_t (UNUSED) */
 extern int spcnAPHier(DevTerm *dterm, HierName *hierName, int resClass, float scale, char *asterm, char *psterm, float m, FILE *outf);
 extern void mergeAttr(char **a1, char **a2);
 extern int update_w(short resClass, int w, EFNode *n);
