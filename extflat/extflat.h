@@ -130,7 +130,8 @@ extern int  EFVisitSubcircuits();
 extern int  EFHierVisitSubcircuits();
 typedef int (*cb_extflat_hiervisitdevs_t)(HierContext *hc, Dev *dev, float scale, ClientData cdata);
 extern int EFHierVisitDevs(HierContext *hc, const cb_extflat_hiervisitdevs_t devProc, ClientData cdata);
-extern int  EFHierVisitResists();
+typedef int (*cb_extflat_hiervisitresists_t)(HierContext *hc, const HierName *hierName1, const HierName *hierName2, float resistance, ClientData cdata);
+extern int EFHierVisitResists(HierContext *hc, const cb_extflat_hiervisitresists_t resProc, ClientData cdata);
 extern int  EFHierVisitCaps();
 extern int  EFHierVisitNodes();
 

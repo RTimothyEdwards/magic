@@ -559,13 +559,15 @@ efHierVisitSingleResist(hc, name1, name2, res, ca)
  * Visit all the resistors in the circuit.
  * For each resistor in the circuit, call the user-supplied procedure
  * (*resProc)(), which should be of the following form, where hn1 and
- * hn2 are the HierNames of the two nodes connected by the resistor.
+ * hn2 are the HierNames of the two nodes connected by the resistor
+ *   see also typedef cb_extflat_hiervisitresists_t:
  *
- *	(*resProc)(hc, hn1, hn2, resistance, cdata)
- *	    HierContext *hc;
- *	    HierName *hn1, *hn2;
- *	    int resistance;
- *	    ClientData cdata;
+ *	int (*resProc)(
+ *	    HierContext *hc,
+ *	    const HierName *hierName1,
+ *	    const HierName *hierName2,
+ *	    float resistance,
+ *	    ClientData cdata)
  *	{
  *	}
  *
@@ -586,15 +588,15 @@ efHierVisitSingleResist(hc, name1, name2, res, ca)
  */
 
 int
-EFHierVisitResists(hc, resProc, cdata)
-    HierContext *hc;
-    int (*resProc)();
-    ClientData cdata;
+EFHierVisitResists(
+    HierContext *hc,
+    const cb_extflat_hiervisitresists_t resProc,
+    ClientData cdata)
 {
     CallArg ca;
     int efHierVisitResists();	/* Forward reference */
 
-    ca.ca_proc = resProc;
+    ca.ca_proc = (int (*)()) resProc;
     ca.ca_cdata = cdata;
     return efHierVisitResists(hc, (ClientData) &ca);
 }
@@ -630,7 +632,7 @@ efHierVisitResists(hc, ca)
 			res, ca))
 		return 1;
 	}
-	else if (efHierSrArray(hc, res, efHierVisitSingleResist, (ClientData) ca))
+	else if (efHierSrArray(hc, res, efHierVisitSingleResist, PTR2CD(ca)))
 	    return 1;
     }
     return 0;
