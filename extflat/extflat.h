@@ -118,8 +118,9 @@ typedef int (*cb_extflat_visitdevs_t)(Dev *dev, HierContext *hc, float scale, Tr
 extern int EFVisitDevs(const cb_extflat_visitdevs_t devProc, ClientData cdata);
 extern int efVisitDevs(HierContext *hc, CallArg *ca);
 extern bool efSymLook();
-extern int  efVisitResists();
-extern int  EFVisitResists();
+extern int efVisitResists(HierContext *hc, CallArg *ca);
+typedef int (*cb_extflat_visitresists_t)(const HierName *hn1, const HierName *hn2, float resistance, ClientData cdata);
+extern int EFVisitResists(const cb_extflat_visitresists_t resProc, ClientData cdata);
 extern int  EFVisitNodes();
 extern int  EFVisitCaps();
 extern void EFGetLengthAndWidth();

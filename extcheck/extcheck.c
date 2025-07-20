@@ -54,7 +54,7 @@ int ecNumNodeResists;
 int nodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (UNUSED) */
 int devVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int capVisit(HierName *hn1, HierName *hn2, double cap, ClientData cdata); /* @typedef cb_extflat_visitcaps_t (UNUSED) */
-int resistVisit(HierName *hn1, HierName *hn2, float res, ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
+int resistVisit(const HierName *hn1, const HierName *hn2, float res, ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
 
 /*
  * ----------------------------------------------------------------------------
@@ -89,7 +89,7 @@ main(int argc, char *argv[])
     if (IS_FINITE_F(EFCapThreshold))
 	EFVisitCaps(capVisit, (ClientData) NULL);
     if (EFResistThreshold != INFINITE_THRESHOLD)
-	EFVisitResists(resistVisit, (ClientData) NULL);
+	EFVisitResists(resistVisit, PTR2CD(NULL));
     EFVisitNodes(nodeVisit, (ClientData) NULL);
 
 #ifdef	free_all_mem
@@ -181,8 +181,8 @@ capVisit(
 /* @typedef cb_extflat_visitresists_t (UNUSED) */
 int
 resistVisit(
-    HierName *hn1,
-    HierName *hn2,	/* UNUSED */
+    const HierName *hn1,
+    const HierName *hn2,/* UNUSED */
     float res,
     ClientData cdata)   /* UNUSED */
 {

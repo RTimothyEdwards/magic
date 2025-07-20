@@ -25,7 +25,7 @@ extern int spccapVisit(HierName *hierName1, HierName *hierName2, double cap, Cli
 extern int spcdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 extern int spcnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (UNUSED) */
 extern int subcktVisit(Use *use, HierName *hierName, bool is_top); /* @typedef cb_extflat_visitsubcircuits_t */
-extern int spcresistVisit(HierName *hierName1, HierName *hierName2, float res,  ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
+extern int spcresistVisit(const HierName *hierName1, const HierName *hierName2, float res,  ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
 extern int devMergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 extern int devDistJunctVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 extern int spcsubVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (char** resstr) */

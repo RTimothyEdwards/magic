@@ -456,12 +456,14 @@ skip:
  * Must be called after EFFlatBuild().
  * For each resistor in the circuit, call the user-supplied procedure
  * (*resProc)(), which should be of the following form, where hn1 and
- * hn2 are the HierNames of the two nodes connected by the resistor.
+ * hn2 are the HierNames of the two nodes connected by the resistor
+ *   see also typedef cb_extflat_visitresists_t:
  *
- *	(*resProc)(hn1, hn2, resistance, cdata)
- *	    HierName *hn1, *hn2;
- *	    int resistance;
- *	    ClientData cdata;
+ *	int (*resProc)(
+ *	    const HierName *hn1,
+ *	    const HierName *hn2,
+ *	    float resistance,
+ *	    ClientData cdata)
  *	{
  *	}
  *
@@ -482,15 +484,15 @@ skip:
  */
 
 int
-EFVisitResists(resProc, cdata)
-    int (*resProc)();
-    ClientData cdata;
+EFVisitResists(
+    const cb_extflat_visitresists_t resProc,
+    ClientData cdata)
 {
     CallArg ca;
 
-    ca.ca_proc = resProc;
+    ca.ca_proc = (int (*)()) resProc;
     ca.ca_cdata = cdata;
-    return efVisitResists(&efFlatContext, (ClientData) &ca);
+    return efVisitResists(&efFlatContext, &ca);
 }
 
 /*
@@ -585,7 +587,7 @@ efVisitSingleResist(hc, name1, name2, res, ca)
 
     return (*ca->ca_proc)(n1->efnode_name->efnn_hier,
 		n2->efnode_name->efnn_hier,
-		res->conn_res, ca->ca_cdata);
+		res->conn_res, ca->ca_cdata); /* @invoke cb_extflat_visitresists_t */
 }
 
 /*
