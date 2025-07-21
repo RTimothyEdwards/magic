@@ -3864,9 +3864,9 @@ nodeVisitDebug(
  */
 static char esTempName[MAX_STR_SIZE];
 
-char *
+const char *
 nodeSpiceName(
-    HierName *hname,
+    const HierName *hname,
     EFNode **rnode)
 {
     EFNodeName *nn;

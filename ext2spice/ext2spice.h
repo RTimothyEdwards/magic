@@ -31,7 +31,7 @@ extern int devDistJunctVisit(Dev *dev, HierContext *hc, float scale, Transform *
 extern int spcsubVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (char** resstr) */
 extern int subcktUndef(Use *use, HierName *hierName, bool is_top); /* @typedef cb_extflat_visitsubcircuits_t */
 extern EFNode *spcdevSubstrate(HierName *prefix, HierName *suffix, int type, FILE *outf);
-extern char *nodeSpiceName(HierName *hname, EFNode **rnode);
+extern const char *nodeSpiceName(const HierName *hname, EFNode **rnode);
 extern int nodeVisitDebug(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (UNUSED) */
 extern void topVisit(Def *def, bool doStub);
 extern void swapDrainSource(Dev *dev);
