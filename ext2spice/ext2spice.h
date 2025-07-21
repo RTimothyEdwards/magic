@@ -36,7 +36,7 @@ extern int nodeVisitDebug(EFNode *node, int res, double cap, ClientData cdata); 
 extern void topVisit(Def *def, bool doStub);
 extern void swapDrainSource(Dev *dev);
 
-extern char *nodeSpiceHierName(HierContext *hc, HierName *hname);
+extern const char *nodeSpiceHierName(HierContext *hc, const HierName *hname);
 extern devMerge *mkDevMerge(float l, float w, EFNode *g, EFNode *s, EFNode *d, EFNode *b, HierName *hn, Dev *dev);
 extern bool extHierSDAttr(DevTerm *term);
 
