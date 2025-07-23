@@ -1388,7 +1388,7 @@ spcsubHierVisit(
     char **resstrptr)
 {
     HierName *hierName;
-    char *nsn;
+    const char *nsn;
 
     if (node->efnode_flags & EF_GLOB_SUBS_NODE)
     {
