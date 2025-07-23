@@ -3552,14 +3552,14 @@ spcnAPHier(
 
 int
 spcdevOutNode(
-    HierName *prefix,
-    HierName *suffix,
-    char *name,
+    const HierName *prefix,
+    const HierName *suffix,
+    const char *name,
     FILE *outf)
 {
     HashEntry *he;
     EFNodeName *nn;
-    char *nname;
+    const char *nname;
 
     he = EFHNConcatLook(prefix, suffix, name);
     if (he == NULL)
