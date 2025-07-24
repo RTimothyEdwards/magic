@@ -258,7 +258,6 @@ CmdExtToSim(
 {
     int i,flatFlags;
     const char *inName;
-    FILE *f;
 
     int value;
     int option = EXTTOSIM_RUN;
@@ -1792,8 +1791,6 @@ simmergeVisit(
     ClientData cdata)	/* unused */
 {
 	const DevTerm *gate, *source, *drain;
-	Dev     *cf;
-	const DevTerm *cg, *cs, *cd;
 	const EFNode *subnode, *snode, *dnode, *gnode;
 	int      pmode, l, w;
 	float	 m;
@@ -1828,17 +1825,18 @@ simmergeVisit(
 
 	for (cfp = devMergeList; cfp != NULL; cfp = cfp->next) {
 	  if ((pmode = parallelDevs(fp, cfp)) != NOT_PARALLEL) {
-
-		cf = cfp->dev;
-		cg = &cfp->dev->dev_terms[0];
-		cs = cd = &cfp->dev->dev_terms[1];
+#if 0 /* -Wunused-but-set-variable cf, cs, cg */
+		Dev *cf = cfp->dev;
+		DevTerm *cg = &cfp->dev->dev_terms[0];
+		DevTerm *cs = &cfp->dev->dev_terms[1];
+		DevTerm *cd = cs;
 		if (cfp->dev->dev_nterm >= 3) {
 			if (pmode == PARALLEL)
 				cd = &cfp->dev->dev_terms[2];
 			else if (pmode == PARALLEL_R)
 				cs = &cfp->dev->dev_terms[2];
 		}
-
+#endif
 		m = esFMult[cfp->esFMIndex] + ((float)fp->w/(float)cfp->w);
 		setDevMult(fp->esFMIndex, DEV_KILLED);
 		setDevMult(cfp->esFMIndex, m);
