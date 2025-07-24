@@ -21,11 +21,9 @@ INSTALL_CAD_DIRS = windows doc ${TECHS}
 all:	$(ALL_TARGET) techs
 
 standard:
-	@echo --- errors and warnings logged in file make.log
 	@${MAKE} mains
 
 tcl:
-	@echo --- errors and warnings logged in file make.log
 	@${MAKE} tcllibrary
 
 force: clean all
