@@ -47,15 +47,21 @@ database/database.h: ${MAGICDIR}/database/database.h.in
 	@echo --- making header file database/database.h
 	${SCRIPTS}/makedbh ${MAGICDIR}/database/database.h.in database/database.h
 
-modules: database/database.h depend
-	@echo --- making modules
-	for dir in ${MODULES} ${PROGRAMS}; do \
-		(cd $$dir && ${MAKE} module) || exit 1; done
+# tiles xyz => tiles/libtiles.o xyz/libxyz.o
+MODULES_SUBDIR := $(shell for i in ${MODULES}; do echo "$${i}/lib$${i}.o"; done)
+# tiles xyz => tiles/libtiles.a xyz/libxyz.a
+LIBS_SUBDIR := $(shell for i in ${MODULES}; do echo "$${i}/lib$${i}.a"; done)
 
-libs: database/database.h depend
-	@echo --- making libraries
-	for dir in ${LIBRARIES}; do \
-		(cd $$dir && ${MAKE} lib) || exit 1; done
+.PHONY: FORCE
+${MODULES_SUBDIR}: FORCE
+	@${MAKE} -C $(dir $@) module
+
+modules: database/database.h depend ${MODULES_SUBDIR}
+
+${LIBS_SUBDIR}: FORCE
+	@${MAKE} -C $(dir $@) lib
+
+libs: database/database.h depend ${LIBS_SUBDIR}
 
 #
 # extcheck - utility tool
