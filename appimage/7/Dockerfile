@@ -19,7 +19,7 @@ RUN yum install -y cairo-devel freeglut-devel gcc make tcsh \
     && rpm -qa | sort \
     && echo ""
 
-# Tcl/Tk 
+# Tcl/Tk
 WORKDIR /tcl
 RUN curl -L https://prdownloads.sourceforge.net/tcl/tcl8.6.16-src.tar.gz | tar --strip-components=1 -xzC . \
     && cd unix \

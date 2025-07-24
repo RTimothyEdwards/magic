@@ -31,7 +31,7 @@ appimagetool:
 	curl -L "$(APPIMAGETOOL_DOWNLOAD_URL)" > ./appimagetool
 	chmod +x ./appimagetool
 
-$(APPIMAGE): prefix/bin/magic appimagetool $(RESOURCES) 
+$(APPIMAGE): prefix/bin/magic appimagetool $(RESOURCES)
 	cp $(RESOURCES) ./prefix/
 	./appimagetool prefix
 
