@@ -1156,7 +1156,8 @@ spcdevHierMergeVisit(hc, dev, scale)
     DevTerm *gate, *source, *drain;
     EFNode *subnode, *snode, *dnode, *gnode;
     int pmode, l, w;
-    devMerge *fp, *cfp;
+    devMerge *fp;
+    const devMerge *cfp;
     float m;
 
     /* If no terminals, or only a gate, can't do much of anything */
@@ -1564,7 +1565,8 @@ devMergeHierVisit(hc, dev, scale)
     EFNode *subnode, *snode, *dnode, *gnode;
     int      pmode, l, w;
     bool     hS, hD, chS, chD;
-    devMerge *fp, *cfp;
+    devMerge *fp;
+    const devMerge *cfp;
     float m;
 
     if (esDistrJunct)
@@ -2179,13 +2181,13 @@ esHierVisit(hc, cdata)
 	/* Merge devices */
 	if (esMergeDevsA || esMergeDevsC)
 	{
-	    devMerge *p;
+	    const devMerge *p;
 
 	    EFHierVisitDevs(hcf, spcdevHierMergeVisit, (ClientData)NULL);
 	    TxPrintf("Devs merged: %d\n", esSpiceDevsMerged);
 	    esFMIndex = 0;
 	    for (p = devMergeList; p != NULL; p = p->next)
-		freeMagic(p);
+		freeMagic((char *)p);
 	    devMergeList = NULL;
 	}
 	else if (esDistrJunct)

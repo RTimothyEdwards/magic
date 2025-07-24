@@ -175,13 +175,13 @@ typedef struct _devMerge {
         Dev * dev;
         int       esFMIndex;
         const HierName *hierName;
-        struct _devMerge *next;
+        const struct _devMerge *next;
 } devMerge;
 
 #ifdef EXT2SIM_AUTO
-devMerge *devMergeList = NULL ;
+const devMerge *devMergeList = NULL;
 #else
-extern devMerge *devMergeList;
+extern const devMerge *devMergeList;
 #endif
 
 /* attributes controlling the Area/Perimeter extraction of fet terminals */
@@ -679,13 +679,13 @@ runexttosim:
 
     if (esMergeDevsA || esMergeDevsC)
     {
-	devMerge *p;
+	const devMerge *p;
 
 	EFVisitDevs(simmergeVisit, PTR2CD(NULL));
 	TxPrintf("Devices merged: %d\n", esDevsMerged);
 	esFMIndex = 0;
 	for (p = devMergeList; p != NULL; p = p->next)
-	    freeMagic(p);
+	    freeMagic((char *)p);
 	devMergeList = NULL;
     }
 
@@ -808,12 +808,12 @@ main(
     EFFlatBuild(inName, flatFlags);
 
     if (esMergeDevsA || esMergeDevsC) {
-	devMerge *p;
+	const devMerge *p;
 
 	EFVisitDevs(simmergeVisit, PTR2CD(NULL));
 	TxPrintf("Devices merged: %d\n", esDevsMerged);
 	esFMIndex = 0;
-	for (p = devMergeList; p != NULL; p = p->next) freeMagic(p);
+	for (p = devMergeList; p != NULL; p = p->next) freeMagic((char *)p);
     }
 
     EFVisitDevs(simdevVisit, PTR2CD(NULL));
@@ -1797,7 +1797,8 @@ simmergeVisit(
 	const EFNode *subnode, *snode, *dnode, *gnode;
 	int      pmode, l, w;
 	float	 m;
-	devMerge *fp, *cfp;
+	devMerge *fp;
+	const devMerge *cfp;
 	const HierName *hierName = hc->hc_hierName;
 
 	if (dev->dev_nterm < 2) {
@@ -1842,7 +1843,7 @@ simmergeVisit(
 		setDevMult(fp->esFMIndex, DEV_KILLED);
 		setDevMult(cfp->esFMIndex, m);
 		esDevsMerged++;
-		freeMagic(fp);
+		freeMagic((char *)fp);
 		return 0;
 	  }
 	}
