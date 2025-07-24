@@ -149,10 +149,9 @@ spcHierWriteParams(
     int w,              /* Device width, in internal units */
     float sdM)          /* Device multiplier */
 {
-    bool hierD;
     DevParam *plist, *dparam;
     int parmval;
-    EFNode *dnode, *subnodeFlat = NULL;
+    EFNode *dnode;
 
     /* Write all requested parameters to the subcircuit call.	*/
 
@@ -346,7 +345,7 @@ spcHierWriteParams(
 		break;
 	    case 's':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
-		subnodeFlat = spcdevSubstrate(hc->hc_hierName,
+		/*EFNode *subnodeFlat =*/ spcdevSubstrate(hc->hc_hierName,
 			dev->dev_subsnode->efnode_name->efnn_hier,
 			dev->dev_type, esSpiceF);
 		break;
@@ -422,9 +421,7 @@ esOutputHierResistor(
     int w,			/* Device length and width */
     int dscale)			/* Device scaling (for split resistors) */
 {
-    Rect r;
-    float sdM ;
-    char name[12], devchar;
+    float sdM;
 
     /* Resistor is "Rnnn term1 term2 value" 		 */
     /* extraction sets two terminals, which are assigned */
@@ -584,9 +581,8 @@ spcdevHierVisit(
     DevParam *plist, *pptr;
     DevTerm *gate, *source, *drain;
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
-    int l, w, i, parmval;
-    Rect r;
-    bool subAP = FALSE, hierS, hierD;
+    int l, w, i;
+    bool subAP = FALSE;
     float sdM;
     char devchar;
     bool has_model = TRUE;
@@ -1081,8 +1077,10 @@ spcdevHierVisit(
 	    /*
 	     * Check controlling attributes and output area and perimeter.
 	     */
-	    hierS = extHierSDAttr(source);
-	    hierD = extHierSDAttr(drain);
+#if 0 /* -Wunused-but-set-variable  extHierSDAttr() has no side-effects */
+	    bool hierS = extHierSDAttr(source);
+	    bool hierD = extHierSDAttr(drain);
+#endif
 	    if ( gate->dterm_attrs )
 		subAP = Match(ATTR_SUBSAP, gate->dterm_attrs ) ;
 
@@ -1437,7 +1435,6 @@ spcnodeHierVisit(
     int res,
     double cap)
 {
-    EFNodeName *nn;
     HierName *hierName;
     bool isConnected = FALSE;
     const char *fmt, *nsn;
@@ -1518,9 +1515,8 @@ nodeSpiceHierName(
     const HierName *hname)
 {
     EFNodeName *nn;
-    HashEntry *he, *he2;
+    HashEntry *he;
     EFNode *node;
-    Def *def = hc->hc_use->use_def;
 
     he = EFHNLook(hname, NULL, "ext2spice");
     if (he == NULL) return "error";
@@ -1577,8 +1573,6 @@ devMergeHierVisit(
     float scale)		/* Scale transform of output */
 {
     DevTerm *gate, *source, *drain;
-    Dev     *cf;
-    DevTerm *cg, *cs, *cd;
     EFNode *subnode, *snode, *dnode, *gnode;
     int      pmode, l, w;
     bool     hS, hD, chS, chD;
@@ -1634,9 +1628,12 @@ devMergeHierVisit(
     {
 	if ((pmode = parallelDevs(fp, cfp)) != NOT_PARALLEL)
 	{
-	    cf = cfp->dev;
-	    cg = &cfp->dev->dev_terms[0];
-	    cs = cd = &cfp->dev->dev_terms[1];
+#if 0 /* -Wunused-but-set-variable cf, cg */
+	    Dev *cf = cfp->dev;
+	    DevTerm *cg = &cfp->dev->dev_terms[0];
+#endif
+	    DevTerm *cs = &cfp->dev->dev_terms[1];
+	    DevTerm *cd = cs;
 	    if (cfp->dev->dev_nterm >= 3)
 	    {
 		if (pmode == PARALLEL)
@@ -1862,7 +1859,6 @@ esMakePorts(
 
 	    while (tptr != NULL)
 	    {
-		int idum[6];
 		bool is_array;
 
 		/* Ignore array information for the purpose of tracing	*/
