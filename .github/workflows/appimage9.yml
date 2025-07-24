@@ -66,7 +66,7 @@ jobs:
           echo GITHUB_REF=$GITHUB_REF
           echo GITHUB_SHA=$GITHUB_SHA
           git fetch --tags --no-progress --quiet # fetch-tags: true # did not work
-          git_describe=$(git describe $GITHUB_SHA | sed -e 's#-#+#')
+          git_describe=$(git describe --tags $GITHUB_SHA | sed -e 's#\-\([0-9]\+\-g\)#\+\1#') # /-\d+-g/
 
           # RELEASE-NOTES-EL9.txt
           echo "### ${MAGIC_APPIMAGE_OUTPUT_FILENAME} commit ${git_describe}" | sed -e 's#~#\\~#g' > RELEASE-NOTES-EL9.txt
@@ -85,7 +85,8 @@ jobs:
           echo "" >> RELEASE-NOTES-EL9.txt
 
           # RELEASE-NOTES-CL.txt
-          git_previous_tag=$(git describe --tags --abbrev=0 ${GITHUB_SHA}~1)
+          git_previous_tag=$(git describe --tags --abbrev=0 $(git rev-list --tags --skip=1 --max-count=1))
+          echo git_previous_tag=$git_previous_tag
           if [ -n "${git_previous_tag}" ]
           then
               echo "### Change Log (since previous tag):" > RELEASE-NOTES-CL.txt
