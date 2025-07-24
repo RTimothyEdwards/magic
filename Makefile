@@ -63,7 +63,8 @@ modules: database/database.h depend ${MODULES_SUBDIR}
 ${LIBS_SUBDIR}: FORCE
 	@${MAKE} -C $(dir $@) lib
 
-libs: database/database.h depend ${LIBS_SUBDIR}
+# Force the tiles/utils modules to exist first for libdatabase.a
+libs: database/database.h tiles/libtiles.o utils/libutils.o depend ${LIBS_SUBDIR}
 
 #
 # extcheck - utility tool
