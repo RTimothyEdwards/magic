@@ -48,7 +48,7 @@ extern int EFHNSprintf(char *str, HierName *hierName);
 extern int printSubcktDict(void);
 extern int spcdevOutNode(HierName *prefix, HierName *suffix, char *name, FILE *outf);
 extern int spcnAP(DevTerm *dterm, EFNode *node, int resClass, float scale, char *asterm, char *psterm, float m, FILE *outf, int w);
-extern int parallelDevs(devMerge *f1, devMerge *f2);
+extern int parallelDevs(const devMerge *f1, const devMerge *f2);
 extern int nodeHspiceName(char *s);
 extern int devDistJunctHierVisit(HierContext *hc, Dev *dev, float scale);
 extern int spcnAPHier(DevTerm *dterm, HierName *hierName, int resClass, float scale, char *asterm, char *psterm, float m, FILE *outf);
