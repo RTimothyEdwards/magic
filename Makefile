@@ -20,11 +20,9 @@ INSTALL_CAD_DIRS = windows doc ${TECHS}
 
 all:	$(ALL_TARGET) techs
 
-standard:
-	@${MAKE} mains
+standard: mains
 
-tcl:
-	@${MAKE} tcllibrary
+tcl: tcllibrary
 
 force: clean all
 
