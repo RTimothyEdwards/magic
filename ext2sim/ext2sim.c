@@ -48,12 +48,12 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 void CmdExtToSim(MagWindow *w, TxCommand *cmd);
 bool simnAP(EFNode *node, int resClass, float scale, FILE *outf);
 bool simnAPHier(DevTerm *dterm, HierName *hierName, int resClass, float scale, FILE *outf);
-int simParseArgs(int *pargc, char ***pargv);
-int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
-int simresistVisit(HierName *hierName1, HierName *hierName2, float res);
-int simcapVisit(HierName *hierName1, HierName *hierName2, double cap);
-int simnodeVisit(EFNode *node, int res, double cap);
-int simmergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
+bool simParseArgs(int *pargc, char ***pargv, ClientData cdata); /* @typedef cb_extflat_args_t (UNUSED) */
+int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
+int simresistVisit(const HierName *hierName1, const HierName *hierName2, float res, ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
+int simcapVisit(const HierName *hierName1, const HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_visitcaps_t (UNUSED) */
+int simnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (UNUSED) */
+int simmergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 
 /* C99 compat */
 int simdevOutNode(HierName *prefix, HierName *suffix, char *name, FILE *outf);
@@ -531,7 +531,7 @@ runexttosim:
     EFResistThreshold = LocResistThreshold;
 
     /* Process command line arguments */
-    inName = EFArgs(argc, argv, &err_result, simParseArgs, (ClientData) NULL);
+    inName = EFArgs(argc, argv, &err_result, simParseArgs, PTR2CD(NULL));
 
     if (err_result == TRUE)
     {
@@ -681,7 +681,7 @@ runexttosim:
     {
 	devMerge *p;
 
-	EFVisitDevs(simmergeVisit, (ClientData) NULL);
+	EFVisitDevs(simmergeVisit, PTR2CD(NULL));
 	TxPrintf("Devices merged: %d\n", esDevsMerged);
 	esFMIndex = 0;
 	for (p = devMergeList; p != NULL; p = p->next)
@@ -689,13 +689,13 @@ runexttosim:
 	devMergeList = NULL;
     }
 
-    EFVisitDevs(simdevVisit, (ClientData)NULL);
+    EFVisitDevs(simdevVisit, PTR2CD(NULL));
     if (flatFlags & EF_FLATCAPS) {
-	EFVisitCaps(simcapVisit, (ClientData) NULL);
+	EFVisitCaps(simcapVisit, PTR2CD(NULL));
     }
-    EFVisitResists(simresistVisit, (ClientData) NULL);
+    EFVisitResists(simresistVisit, PTR2CD(NULL));
     esSpiceCapNode = esSpiceDefaultGnd;
-    EFVisitNodes(simnodeVisit, (ClientData) NULL);
+    EFVisitNodes(simnodeVisit, PTR2CD(NULL));
 
     EFFlatDone(NULL);
     EFDone(NULL);
@@ -758,7 +758,7 @@ main(
     fetInfo[i].resClassSub = 6 ;
     fetInfo[i].defSubs = "Vdd!";
     /* Process command line arguments */
-    inName = EFArgs(argc, argv, NULL, simParseArgs, (ClientData) NULL);
+    inName = EFArgs(argc, argv, NULL, simParseArgs, PTR2CD(NULL));
     if (inName == NULL)
 	exit (1);
 
@@ -810,18 +810,18 @@ main(
     if (esMergeDevsA || esMergeDevsC) {
 	devMerge *p;
 
-	EFVisitDevs(simmergeVisit, (ClientData) NULL);
+	EFVisitDevs(simmergeVisit, PTR2CD(NULL));
 	TxPrintf("Devices merged: %d\n", esDevsMerged);
 	esFMIndex = 0;
 	for (p = devMergeList; p != NULL; p = p->next) freeMagic(p);
     }
 
-    EFVisitDevs(simdevVisit, (ClientData) NULL);
+    EFVisitDevs(simdevVisit, PTR2CD(NULL));
     if (flatFlags & EF_FLATCAPS)
-	EFVisitCaps(simcapVisit, (ClientData) NULL);
-    EFVisitResists(simresistVisit, (ClientData) NULL);
+	EFVisitCaps(simcapVisit, PTR2CD(NULL));
+    EFVisitResists(simresistVisit, PTR2CD(NULL));
     esSpiceCapNode = esSpiceDefaultGnd;
-    EFVisitNodes(simnodeVisit, (ClientData) NULL);
+    EFVisitNodes(simnodeVisit, PTR2CD(NULL));
 
     EFFlatDone(NULL);
     EFDone(NULL);
@@ -861,10 +861,12 @@ main(
  * ----------------------------------------------------------------------------
  */
 
-int
+/* @typedef cb_extflat_args_t */
+bool
 simParseArgs(
     int *pargc,
-    char ***pargv)
+    char ***pargv,
+    ClientData cdata)	/* unused */
 {
     char **argv = *pargv, *cp;
     int argc = *pargc;
@@ -944,7 +946,7 @@ simParseArgs(
 
     *pargv = argv;
     *pargc = argc;
-    return 0;
+    return FALSE;
 
 usage:
     TxError("Usage: ext2sim [-a aliasfile] [-A] [-B] [-l labelfile] [-L]\n"
@@ -953,7 +955,7 @@ usage:
 		"[file]\n"
 		);
 
-    return 1;
+    return TRUE;
 }
 
 
@@ -1011,12 +1013,15 @@ SimGetNode(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 simdevVisit(
     Dev *dev,		/* Device being output */
     HierContext *hc,	/* Hierarchical context down to this device */
     float scale,	/* Scale transform for output */
-    Transform *trans)	/* Coordinate transform */
+    Transform *trans,	/* Coordinate transform */
+    ClientData cdata)	/* unused */
 {
     DevTerm *gate, *source, *drain, *term;
     EFNode  *subnode, *snode, *dnode;
@@ -1522,11 +1527,14 @@ simdevOutNode(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_visitcaps_t (UNUSED) */
 int
 simcapVisit(
-    HierName *hierName1,
-    HierName *hierName2,
-    double cap)
+    const HierName *hierName1,
+    const HierName *hierName2,
+    double cap,
+    ClientData cdata)	/* unused */
 {
     cap = cap / 1000;
     if (cap <= EFCapThreshold)
@@ -1566,11 +1574,14 @@ simcapVisit(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_visitresists_t (UNUSED) */
 int
 simresistVisit(
-    HierName *hierName1,
-    HierName *hierName2,
-    float res)
+    const HierName *hierName1,
+    const HierName *hierName2,
+    float res,
+    ClientData)	/* unused */
 {
     fprintf(esSimF, "r ");
     EFHNOut(hierName1, esSimF);
@@ -1598,11 +1609,14 @@ simresistVisit(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_visitnodes_t (UNUSED) */
 int
 simnodeVisit(
     EFNode *node,
     int res,
-    double cap)
+    double cap,
+    ClientData cdata) /* unused */
 {
     EFNodeName *nn;
     HierName *hierName;
@@ -1765,12 +1779,16 @@ simmkDevMerge(
  *
  * ----------------------------------------------------------------------------
  */
+
+/* ARGSUSED */
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 simmergeVisit(
     Dev *dev,		/* Dev to examine */
     HierContext *hc,	/* Hierarchical context down to this dev */
     float scale,	/* Scale transform */
-    Transform *trans)	/* Coordinate transform (not used) */
+    Transform *trans,	/* Coordinate transform (not used) */
+    ClientData cdata)	/* unused */
 {
 	DevTerm *gate, *source, *drain;
 	Dev     *cf;
