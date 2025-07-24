@@ -13,7 +13,7 @@ typedef struct _devMerge {
 	Dev * dev;
 	int	  esFMIndex;
 	HierName *hierName;
-	struct _devMerge *next;
+	const struct _devMerge *next;
 } devMerge;
 
 /* Forward declarations */
@@ -89,7 +89,7 @@ extern int	 esFMIndex;     /* current index to it */
 extern int	 esFMSize; 	/* its current size (growable) */
 
 extern int	 esSpiceDevsMerged;
-extern devMerge *devMergeList;
+extern const devMerge *devMergeList;
 
 /*
  * The following hash table and associated functions are used only if

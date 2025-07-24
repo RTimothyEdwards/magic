@@ -112,7 +112,7 @@ int	 esFMIndex = 0;          /* current index to it */
 int	 esFMSize = FMULT_SIZE ; /* its current size (growable) */
 int	 esSpiceDevsMerged;
 
-devMerge *devMergeList = NULL ;
+const devMerge *devMergeList = NULL ;
 
 #define        atoCap(s)       ((EFCapValue)atof(s))
 
@@ -1106,13 +1106,13 @@ runexttospice:
 
 	if (esMergeDevsA || esMergeDevsC)
 	{
-	    devMerge *p;
+	    const devMerge *p;
 
 	    EFVisitDevs(devMergeVisit, (ClientData) NULL);
 	    TxPrintf("Devs merged: %d\n", esSpiceDevsMerged);
 	    esFMIndex = 0;
 	    for (p = devMergeList; p != NULL; p = p->next)
-		freeMagic(p);
+		freeMagic((char *) p);
 	    devMergeList = NULL;
 	}
 	else if (esDistrJunct)
@@ -1287,9 +1287,9 @@ main(argc, argv)
 	TxPrintf("Devs merged: %d\n", esSpiceDevsMerged);
 	esFMIndex = 0 ;
 	{
-	  devMerge *p;
+	  const devMerge *p;
 
-	  for ( p = devMergeList ; p != NULL ; p=p->next ) freeMagic(p);
+	  for ( p = devMergeList ; p != NULL ; p=p->next ) freeMagic((char *)p);
 	}
     } else if ( esDistrJunct )
      	EFVisitDevs(devDistJunctVisit, (ClientData) NULL);
@@ -4291,7 +4291,8 @@ devMergeVisit(dev, hc, scale, trans)
     EFNode *subnode, *snode, *dnode, *gnode;
     int      pmode, l, w;
     bool     hS, hD, chS, chD;
-    devMerge *fp, *cfp;
+    devMerge *fp;
+    const devMerge *cfp;
     float m;
     HierName *hierName = hc->hc_hierName;
 
