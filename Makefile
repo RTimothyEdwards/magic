@@ -74,12 +74,14 @@ BUNDLED_MODULES = readline lisp
 # MAKE will warning loudly.  This list is somewhat empty when defs.mak does not exist
 SUBDIRS_FILTERED := $(shell echo ${MODULES} ${PROGRAMS} ${SUBDIRS} | tr ' ' '\n' | sort | uniq)
 
-$(addsuffix /Depend, ${SUBDIRS_FILTERED}): database/database.h
+SUBDIRS_DEPEND = $(addsuffix /Depend, ${SUBDIRS_FILTERED})
+
+${SUBDIRS_DEPEND}: database/database.h
 	@echo --- making dependencies
 	${MAKE} -C $(dir $@) depend
 
 .PHONY: depend
-depend: defs.mak $(addsuffix /Depend, ${SUBDIRS_FILTERED})
+depend: defs.mak ${SUBDIRS_DEPEND}
 
 .PHONY: techs
 techs: depend
