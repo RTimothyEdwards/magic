@@ -11,9 +11,9 @@
 
 typedef	struct {
 	char		typ;
-	char 		*g, *s, *d ;
+	const char	*g, *s, *d ;
 	float		l, w;
-	char 		*ga ;
+	const char	*ga ;
 	int		x, y, as, ps, ad, pd;
 }	MOS ;
 
@@ -23,7 +23,7 @@ int	par = 0, ndx = 0;
 
 char *
 strsave(
-    char *s)
+    const char *s)
 {
 	char *p ;
 
@@ -34,12 +34,12 @@ strsave(
 
 void
 parseAttr(
-    char *str,
+    const char *str,
     int *a,
     int *p)
 {
 	int l;
-	char *s;
+	const char *s;
 
 	if ( (l=strlen(str)) <= 2 ) {
 		*a = 0 ; *p = 0;
@@ -56,17 +56,17 @@ parseAttr(
 
 void
 addMos(
-    char *typ,
-    char *g,
-    char *s,
-    char *d,
-    char *l,
-    char *w,
-    char *x,
-    char *y,
-    char *ga,
-    char *sa,
-    char *da)
+    const char *typ,
+    const char *g,
+    const char *s,
+    const char *d,
+    const char *l,
+    const char *w,
+    const char *x,
+    const char *y,
+    const char *ga,
+    const char *sa,
+    const char *da)
 {
 	int i ;
 	MOS *iptr;
@@ -126,7 +126,7 @@ main (int argc, char *argv[])
 {
 	int i;
 	char str[STRLEN];
-	char *typ, *g, *s, *d, *l, *w, *x, *y, *ga, *sa, *da;
+	const char *typ, *g, *s, *d, *l, *w, *x, *y, *ga, *sa, *da;
 
 
         while (fgets (str, STRLEN - 1, stdin)) {
