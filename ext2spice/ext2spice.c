@@ -364,10 +364,10 @@ CmdExtToSpice(
 	NULL
     };
 
-    typedef enum {
+    enum {
 	IDX_YES, IDX_TRUE, IDX_ON, IDX_NO, IDX_FALSE, IDX_OFF,
 	IDX_AUTO, IDX_TOP, IDX_DESCEND
-    } yesnoType;
+    };
 
     esNoModelType = -1;
 
