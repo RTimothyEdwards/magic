@@ -31,36 +31,36 @@ scg: cifout.c cifout-cmos26b.gen cifout.gen cifout.nw\
 $(OBJS_DIR):
 	$(MKDIR) $(OBJS_DIR)
 
-$(CIFIN): cifin.c cifin-cmos26b.gen cifin.gen cifin.nw cifin.oldnw\
+$(CIFIN): $(OBJS_DIR) cifin.c cifin-cmos26b.gen cifin.gen cifin.nw cifin.oldnw\
 	  cifin.others cifin.pw cifin-ami16.gen
 	rm -f $(CIFIN)
 	$(SC_CPP) -DSTANDARD cifin.c | ${SED_CMD} > $(CIFIN)
 
-$(CIFOUT): cifout.c cifout-cmos26b.gen cifout.gen cifout.nw\
+$(CIFOUT): $(OBJS_DIR) cifout.c cifout-cmos26b.gen cifout.gen cifout.nw\
 	   cifout.others cifout.pw cifout-ami16.gen
 	rm -f $(CIFOUT)
 	$(SC_CPP) -DSTANDARD cifout.c | ${SED_CMD} > $(CIFOUT)
 
-$(IBMCIFIN): cifin.c cifin-ibm.gen
+$(IBMCIFIN): $(OBJS_DIR) cifin.c cifin-ibm.gen
 	rm -f $(IBMCIFIN)
 	$(SC_CPP) -DIBM cifin.c | ${SED_CMD} > $(IBMCIFIN)
 
-$(IBMCIFOUT): cifout.c cifout-ibm.gen
+$(IBMCIFOUT): $(OBJS_DIR) cifout.c cifout-ibm.gen
 	rm -f $(IBMCIFOUT)
 	$(SC_CPP) -DIBM cifout.c | ${SED_CMD} > $(IBMCIFOUT)
 
-$(TMCIFIN): cifin.c cifin-cmos26b.gen
+$(TMCIFIN): $(OBJS_DIR) cifin.c cifin-cmos26b.gen
 	rm -f $(TMCIFIN)
 	$(SC_CPP) -DTIGHTMETAL cifin.c | ${SED_CMD} > $(TMCIFIN)
 
-$(TMCIFOUT): cifout.c cifout-cmos26b.gen
+$(TMCIFOUT): $(OBJS_DIR) cifout.c cifout-cmos26b.gen
 	rm -f $(TMCIFOUT)
 	$(SC_CPP) -DTIGHTMETAL cifout.c | ${SED_CMD} > $(TMCIFOUT)
 
-$(SUBCIFIN): cifin.c cifin-cmos26g.gen cifin-cmos14b.gen
+$(SUBCIFIN): $(OBJS_DIR) cifin.c cifin-cmos26g.gen cifin-cmos14b.gen
 	rm -f $(SUBCIFIN)
 	$(SC_CPP) -DSUBMICRON cifin.c | ${SED_CMD} > $(SUBCIFIN)
 
-$(SUBCIFOUT): cifout.c cifout-cmos26g.gen cifout-cmos14b.gen
+$(SUBCIFOUT): $(OBJS_DIR) cifout.c cifout-cmos26g.gen cifout-cmos14b.gen
 	rm -f $(SUBCIFOUT)
 	$(SC_CPP) -DSUBMICRON cifout.c | ${SED_CMD} > $(SUBCIFOUT)
