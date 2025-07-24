@@ -171,7 +171,7 @@ int  esDevsMerged;
 /* cache list used to find parallel devs */
 typedef struct _devMerge {
         int     l, w;
-        EFNode *g, *s, *d, *b;
+        const EFNode *g, *s, *d, *b;
         Dev * dev;
         int       esFMIndex;
         const HierName *hierName;
@@ -1024,7 +1024,8 @@ simdevVisit(
     ClientData cdata)	/* unused */
 {
     const DevTerm *gate, *source, *drain, *term;
-    EFNode  *subnode, *snode, *dnode;
+    const EFNode *subnode;
+    EFNode *snode, *dnode;
     int l, w;
     Rect r;
     char name[12];
@@ -1336,7 +1337,7 @@ simdevSubstrate(
     FILE *outf)
 {
     HashEntry *he;
-    EFNodeName *nn;
+    const EFNodeName *nn;
     char *suf;
     int l;
     EFNode *subnode;
@@ -1359,7 +1360,7 @@ simdevSubstrate(
 		return 0;
     	}
     	/* Canonical name */
-    	nn = (EFNodeName *) HashGetValue(he);
+	nn = (const EFNodeName *) HashGetValue(he);
 	subnode = nn->efnn_node;
 	if ( esFormat == SU ) {
 	  if ( doAP ) {
@@ -1484,7 +1485,7 @@ simdevOutNode(
     FILE *outf)
 {
     HashEntry *he;
-    EFNodeName *nn;
+    const EFNodeName *nn;
 
     he = EFHNConcatLook(prefix, suffix, name);
     if (he == NULL)
@@ -1494,7 +1495,7 @@ simdevOutNode(
     }
 
     /* Canonical name */
-    nn = (EFNodeName *) HashGetValue(he);
+    nn = (const EFNodeName *) HashGetValue(he);
     (void) putc(' ', outf);
     EFHNOut(nn->efnn_node->efnode_name->efnn_hier, outf);
     if ( nn->efnn_node->efnode_client == PTR2CD(NULL) )
@@ -1618,11 +1619,11 @@ simnodeVisit(
     double cap,
     ClientData cdata) /* unused */
 {
-    EFNodeName *nn;
+    const EFNodeName *nn;
     const HierName *hierName;
     bool isGlob;
     const char *fmt;
-    EFAttr *ap;
+    const EFAttr *ap;
 
     if (esDevNodesOnly && node->efnode_client == PTR2CD(NULL))
 	return 0;
@@ -1712,10 +1713,10 @@ devMerge *
 simmkDevMerge(
     int l,
     int w,
-    EFNode *g,
-    EFNode *s,
-    EFNode *d,
-    EFNode *b,
+    const EFNode *g,
+    const EFNode *s,
+    const EFNode *d,
+    const EFNode *b,
     const HierName *hn,
     Dev *dev)
 {
@@ -1790,10 +1791,10 @@ simmergeVisit(
     Transform *trans,	/* Coordinate transform (not used) */
     ClientData cdata)	/* unused */
 {
-	DevTerm *gate, *source, *drain;
+	const DevTerm *gate, *source, *drain;
 	Dev     *cf;
-	DevTerm *cg, *cs, *cd;
-	EFNode	*subnode, *snode, *dnode, *gnode;
+	const DevTerm *cg, *cs, *cd;
+	const EFNode *subnode, *snode, *dnode, *gnode;
 	int      pmode, l, w;
 	float	 m;
 	devMerge *fp, *cfp;
