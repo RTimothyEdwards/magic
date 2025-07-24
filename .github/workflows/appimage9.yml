@@ -6,6 +6,9 @@ on:
 
 name: CI-appimage9
 
+env:
+  APPIMAGETOOL_DOWNLOAD_URL: https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+
 jobs:
   build_appimage9:
     name: Build AppImage EL9

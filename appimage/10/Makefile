@@ -8,6 +8,9 @@ VERSION_HASH := $(shell git show-ref --hash=7 remotes/origin/HEAD)
 VERSION_NUM ?= $(VERSION_MAGIC)~$(VERSION_TSTAMP)~$(VERSION_HASH)
 VERSION := $(VERSION_NUM)
 
+# Allow CI to override
+APPIMAGETOOL_DOWNLOAD_URL ?= https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+
 all: $(APPIMAGE)
 
 .PHONY: prefix/bin/magic
@@ -25,7 +28,7 @@ prefix/bin/magic: Dockerfile Makefile
 	cp -r prefix/lib/tcl9.0 prefix/lib/tcl9.0.1/library
 
 appimagetool:
-	curl -L https://github.com/AppImage/appimagetool/releases/download/1.9.0/appimagetool-x86_64.AppImage > ./appimagetool
+	curl -L "$(APPIMAGETOOL_DOWNLOAD_URL)" > ./appimagetool
 	chmod +x ./appimagetool
 
 $(APPIMAGE): prefix/bin/magic appimagetool $(RESOURCES)
