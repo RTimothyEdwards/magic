@@ -4160,8 +4160,8 @@ mkDevMerge(
 
 int
 parallelDevs(
-    devMerge *f1,
-    devMerge *f2)
+    const devMerge *f1,
+    const devMerge *f2)
 {
     /* If the devices are not in the same class, then	*/
     /* they cannot be parallel.				*/
