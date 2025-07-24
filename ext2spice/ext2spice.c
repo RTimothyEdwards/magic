@@ -58,8 +58,8 @@ bool esMergeNames = TRUE;
 bool esNoAttrs = FALSE;
 bool esHierAP = FALSE;
 char spcesDefaultOut[FNSIZE];
-char *esSpiceCapNode;
-char esSpiceDefaultGnd[] = "0";
+const char *esSpiceCapNode;
+const char esSpiceDefaultGnd[] = "0";
 char *spcesOutName = spcesDefaultOut;
 FILE *esSpiceF = NULL;
 float esScale = -1.0 ; /* negative if hspice the EFScale/100 otherwise */

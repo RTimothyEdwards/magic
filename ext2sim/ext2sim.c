@@ -73,18 +73,18 @@ extern bool esNoAttrs;
 extern bool esHierAP;
 extern bool esMergeDevsA;
 extern bool esMergeDevsC;
-extern char esSpiceDefaultGnd[];
-extern char *esSpiceCapNode;
+extern const char esSpiceDefaultGnd[];
+extern const char *esSpiceCapNode;
 #endif
 
 bool esDoSimExtResis = FALSE;
 bool esNoAlias = TRUE;
 bool esNoLabel = TRUE;
 char simesDefaultOut[FNSIZE];
-char *simesOutName = simesDefaultOut;
+const char *simesOutName = simesDefaultOut;
 char esDefaultAlias[FNSIZE], esDefaultLabel[FNSIZE];
-char *esAliasName = esDefaultAlias;
-char *esLabelName = esDefaultLabel;
+const char *esAliasName = esDefaultAlias;
+const char *esLabelName = esDefaultLabel;
 char esCapFormat[FNSIZE];
 FILE *esSimF = NULL;
 FILE *esAliasF = NULL;
