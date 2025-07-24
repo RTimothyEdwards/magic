@@ -78,7 +78,6 @@ ESGenerateHierarchy(
     int esHierVisit(HierContext *hc, ClientData cdata); /* (DefFlagsData *) */
     int esMakePorts(HierContext *hc, ClientData cdata);	/* Forward declaration (UNUSED) */
     Use u;
-    Def *def;
     HierContext hc;
     DefFlagsData dfd;
 
@@ -119,7 +118,6 @@ GetHierNode(
 {
     HashEntry *he;
     EFNodeName *nn;
-    Def *def = hc->hc_use->use_def;
 
     he = EFHNConcatLook(hc->hc_hierName, name, "node");
     if (he == NULL) return NULL;

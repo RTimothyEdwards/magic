@@ -263,7 +263,6 @@ CmdExtToSpice(
 {
     int i,flatFlags;
     char *inName;
-    FILE *f;
 
     int value;
     int option = EXTTOSPC_RUN;
@@ -357,12 +356,14 @@ CmdExtToSpice(
 	NULL
     };
 
+#if 0 /* -Wunused-variable */
     static const char * const shorttypes[] = {
 	"none",
 	"resistor",
 	"voltage",
 	NULL
     };
+#endif
 
     enum {
 	IDX_YES, IDX_TRUE, IDX_ON, IDX_NO, IDX_FALSE, IDX_OFF,
@@ -1356,7 +1357,7 @@ spcParseArgs(
     int *pargc,
     char ***pargv)
 {
-    char **argv = *pargv, *cp;
+    char **argv = *pargv;
     int argc = *pargc;
     char *ftmp, *t;
 
@@ -1544,7 +1545,7 @@ subcktVisit(
     EFNodeName *sname, *nodeName;
     HashSearch hs;
     HashEntry *he;
-    int portorder, portmax, portidx, tchars;
+    int portmax, portidx, tchars;
     char stmp[MAX_STR_SIZE];
     char *instname, *subcktname;
     DevParam *plist, *pptr;
@@ -1634,10 +1635,6 @@ subcktVisit(
 
 	    for (nodeName = sname; nodeName != NULL; nodeName = nodeName->efnn_next)
 	    {
-		EFNodeName *nn;
-		HashEntry *he;
-		char *pname;
-
 		portidx = nodeName->efnn_port;
 		if (portidx < 0) continue;
 		if (nodeList[portidx] == NULL)
@@ -1778,7 +1775,7 @@ topVisit(
     Def *def,
     bool doStub)
 {
-    EFNode *snode, *basenode;
+    EFNode *snode;
     EFNodeName *sname, *nodeName;
     HashSearch hs;
     HashEntry *he, *hep, *heh;
@@ -2001,7 +1998,7 @@ spcWriteParams(
     bool hierD;
     DevParam *plist, *dparam;
     int parmval;
-    EFNode *dnode, *subnodeFlat = NULL;
+    EFNode *dnode;
 
     plist = efGetDeviceParams(EFDevTypes[dev->dev_type]);
     while (plist != NULL)
@@ -2231,7 +2228,7 @@ spcWriteParams(
 		break;
 	    case 's':
 		fprintf(esSpiceF, " %s=", plist->parm_name);
-		subnodeFlat = spcdevSubstrate(hierName,
+		/*EFNode *subnodeFlat =*/ spcdevSubstrate(hierName,
 			dev->dev_subsnode->efnode_name->efnn_hier,
 			dev->dev_type, esSpiceF);
 		break;
@@ -2306,8 +2303,8 @@ esOutputResistor(
     int w,			/* Device length and width */
     int dscale)			/* Device scaling (for split resistors) */
 {
-    float sdM ;
-    char name[12], devchar;
+    float sdM;
+    char name[12];
 
     /* Resistor is "Rnnn term1 term2 value" 		 */
     /* extraction sets two terminals, which are assigned */
@@ -2488,7 +2485,7 @@ spcdevVisit(
     DevParam *plist, *pptr;
     DevTerm *gate, *source, *drain;
     EFNode  *subnode, *snode, *dnode, *subnodeFlat = NULL;
-    int l, w, i, parmval;
+    int l, w, i;
     bool subAP= FALSE, hierS, hierD;
     float sdM;
     char name[12], devchar;
@@ -3241,7 +3238,6 @@ esSIvalue(
 {
     char vstr[32];
     char suffix = '\0';
-    int precision;
     float avalue;
 
     avalue = fabsf(value);
@@ -3765,7 +3761,6 @@ spcnodeVisit(
     double cap,
     ClientData cdata) /* unused */
 {
-    EFNodeName *nn;
     HierName *hierName;
     bool isConnected = FALSE;
     const char *fmt;
@@ -3831,10 +3826,8 @@ nodeVisitDebug(
     double cap,
     ClientData cdata)	/* unused */
 {
-    EFNodeName *nn;
     HierName *hierName;
     const char *nsn;
-    EFAttr *ap;
 
     hierName = (HierName *) node->efnode_name->efnn_hier;
     nsn = nodeSpiceName(hierName, NULL);
@@ -4102,7 +4095,6 @@ topLevel:
 int
 printSubcktDict(void)
 {
-    HashSearch  hs;
     HashEntry  *he;
 
     fprintf(esSpiceF,"\n** hspice subcircuit dictionary\n");
@@ -4332,8 +4324,6 @@ devMergeVisit(
     ClientData cdata)		/* (unused) */
 {
     DevTerm *gate, *source, *drain;
-    Dev     *cf;
-    DevTerm *cg, *cs, *cd;
     EFNode *subnode, *snode, *dnode, *gnode;
     int      pmode, l, w;
     bool     hS, hD, chS, chD;
@@ -4393,9 +4383,12 @@ devMergeVisit(
     {
 	if ((pmode = parallelDevs(fp, cfp)) != NOT_PARALLEL)
 	{
-	    cf = cfp->dev;
-	    cg = &cfp->dev->dev_terms[0];
-	    cs = cd = &cfp->dev->dev_terms[1];
+#if 0 /* -Wunused-but-set-variable */
+	    Dev *cf = cfp->dev;
+	    DevTerm *cg = &cfp->dev->dev_terms[0];
+#endif
+	    DevTerm *cs = &cfp->dev->dev_terms[1];
+	    DevTerm *cd = cs;
 	    if (cfp->dev->dev_nterm >= 3)
 	    {
 		if (pmode == PARALLEL)
