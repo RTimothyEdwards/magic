@@ -95,23 +95,23 @@ FILE *esLabF = NULL;
 #define	LBL 1
 #define	SU  2
 
-static unsigned short esFormat = MIT ;
+static unsigned short esFormat = MIT;
 
 struct {
-   short resClassSource ;   /* The resistance class of the source of the dev */
-   short resClassDrain ;    /* The resistance class of the drain of the dev */
-   short resClassSub ;	    /* The resistance class of the substrate of the dev */
-   TileType devType ;	    /* Magic tile type of the device */
-   const char  *defSubs ;    /* The default substrate node */
+    short resClassSource;   /* The resistance class of the source of the dev */
+    short resClassDrain;    /* The resistance class of the drain of the dev */
+    short resClassSub;	    /* The resistance class of the substrate of the dev */
+    TileType devType;	    /* Magic tile type of the device */
+    const char *defSubs;    /* The default substrate node */
 } fetInfo[TT_MAXTYPES];
 
 typedef struct {
-	TileTypeBitMask visitMask;
+    TileTypeBitMask visitMask;
 } nodeClient;
 
 typedef struct {
-	const HierName *lastPrefix;
-	TileTypeBitMask visitMask;
+    const HierName *lastPrefix;
+    TileTypeBitMask visitMask;
 } nodeClientHier;
 
 #define NO_RESCLASS	-1
@@ -123,19 +123,19 @@ typedef struct {
   { TTMaskZero(&((client)->visitMask)); }
 
 #define beenVisited(client, rclass)  \
-  ( TTMaskHasType(&((client)->visitMask), rclass) )
+  (TTMaskHasType(&((client)->visitMask), rclass))
 
 #define initNodeClient(node) \
 { \
 	(node)->efnode_client = PTR2CD(mallocMagic(sizeof(nodeClient))); \
-	TTMaskZero(&(( nodeClient *)(node)->efnode_client)->visitMask); \
+	TTMaskZero(&((nodeClient *)(node)->efnode_client)->visitMask); \
 }
 
 
 #define initNodeClientHier(node) \
 { \
 	(node)->efnode_client = PTR2CD(mallocMagic(sizeof(nodeClientHier))); \
-	TTMaskZero(&(( nodeClientHier *)(node)->efnode_client)->visitMask); \
+	TTMaskZero(&((nodeClientHier *)(node)->efnode_client)->visitMask); \
 }
 
 
@@ -152,13 +152,13 @@ int  esDevsMerged;
 /* macro to add a dev's multiplier to the table and grow it if necessary */
 #define addDevMult(f) \
 {  \
-        if ( esFMult == NULL ) { \
+        if (esFMult == NULL) { \
           esFMult = (float *) mallocMagic((unsigned) (esFMSize*sizeof(float)));  \
-        } else if ( esFMIndex >= esFMSize ) {  \
+        } else if (esFMIndex >= esFMSize) {  \
           int i;  \
-          float *op = esFMult ;  \
+          float *op = esFMult;  \
           esFMult = (float *) mallocMagic((unsigned) ((esFMSize = esFMSize*2)*sizeof(float))); \
-          for ( i = 0 ; i < esFMSize/2 ; i++ ) esFMult[i] = op[i]; \
+          for (i = 0; i < esFMSize/2; i++) esFMult[i] = op[i]; \
           if (op) freeMagic(op); \
         }  \
         esFMult[esFMIndex++] = (float)(f); \
@@ -631,7 +631,7 @@ runexttosim:
     /* create default fetinfo entries (MOSIS) which can be overriden by
        the command line arguments */
 
-    for ( i = 0 ; i < TT_MAXTYPES ; i++ )
+    for (i = 0; i < TT_MAXTYPES; i++)
     {
 	fetInfo[i].resClassSource = NO_RESCLASS;
 	fetInfo[i].resClassDrain = NO_RESCLASS;
@@ -669,7 +669,7 @@ runexttosim:
 
     fprintf(esSimF, "| units: %g tech: %s format: %s\n", EFScale, EFTech,
 		   (esFormat == MIT) ? "MIT" :
-		      ( (esFormat == LBL) ? "LBL" : "SU" ) );
+		      ((esFormat == LBL) ? "LBL" : "SU"));
 
     /* Convert the hierarchical description to a flat one */
     flatFlags = EF_FLATNODES;
@@ -734,7 +734,7 @@ main(
     EFInit();
     /* create default fetinfo entries (MOSIS) which can be overriden by
        the command line arguments */
-    for ( i = 0 ; i < TT_MAXTYPES ; i++ ) {
+    for (i = 0; i < TT_MAXTYPES; i++) {
 	fetInfo[i].resClassSource = NO_RESCLASS;
 	fetInfo[i].resClassDrain = NO_RESCLASS;
 	fetInfo[i].resClassSub = NO_RESCLASS;
@@ -742,20 +742,20 @@ main(
 	fetInfo[i].devType = TT_SPACE;
     }
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "nfet");
-    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 0 ;
-    fetInfo[i].resClassSub = NO_RESCLASS ;
+    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 0;
+    fetInfo[i].resClassSub = NO_RESCLASS;
     fetInfo[i].defSubs = "Gnd!";
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "pfet");
-    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 1 ;
-    fetInfo[i].resClassSub = 6 ;
+    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 1;
+    fetInfo[i].resClassSub = 6;
     fetInfo[i].defSubs = "Vdd!";
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "nmos");
-    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 0 ;
-    fetInfo[i].resClassSub = NO_RESCLASS ;
+    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 0;
+    fetInfo[i].resClassSub = NO_RESCLASS;
     fetInfo[i].defSubs = "Gnd!";
     i = efBuildAddStr(EFDevTypes, &EFDevNumTypes, TT_MAXTYPES, "pmos");
-    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 1 ;
-    fetInfo[i].resClassSub = 6 ;
+    fetInfo[i].resClassSource = fetInfo[i].resClassDrain = 1;
+    fetInfo[i].resClassSub = 6;
     fetInfo[i].defSubs = "Vdd!";
     /* Process command line arguments */
     inName = EFArgs(argc, argv, NULL, simParseArgs, PTR2CD(NULL));
@@ -799,7 +799,7 @@ main(
 
     fprintf(esSimF, "| units: %g tech: %s format: %s\n", EFScale, EFTech,
 		   (esFormat == MIT) ? "MIT" :
-		      ( (esFormat == LBL) ? "LBL" : "SU" ) );
+		      ((esFormat == LBL) ? "LBL" : "SU"));
 
     /* Convert the hierarchical description to a flat one */
     flatFlags = EF_FLATNODES;
@@ -904,37 +904,37 @@ simParseArgs(
 		goto usage;
 	    break;
 	case 'f': {
-	     const char *ftmp ;
+	     const char *ftmp;
 
 	     if ((ftmp = ArgStr(&argc, &argv, "format")) == NULL)
 		goto usage;
-	     if ( strcasecmp(ftmp,"MIT") == 0 )
-	        esFormat = MIT ;
-	     else if ( strcasecmp(ftmp,"LBL") == 0 )
-		esFormat = LBL ;
-	     else if ( strcasecmp(ftmp,"SU") == 0 )
-		esFormat = SU ;
+	     if (strcasecmp(ftmp,"MIT") == 0)
+	        esFormat = MIT;
+	     else if (strcasecmp(ftmp,"LBL") == 0)
+		esFormat = LBL;
+	     else if (strcasecmp(ftmp,"SU") == 0)
+		esFormat = SU;
 	     else goto usage;
 	     break;
 	     }
 	case 'y': {
 	      const char *t;
 
-	      if (( t =  ArgStr(&argc, &argv, "cap-accuracy") ) == NULL)
+	      if ((t = ArgStr(&argc, &argv, "cap-accuracy")) == NULL)
 		goto usage;
 	      TxPrintf("Cap accuracy option -y is deprecated.\n");
 	      break;
 	      }
 	case 'J':
 	     {
-	     const char *ftmp ;
+	     const char *ftmp;
 
 	     if ((ftmp = ArgStr(&argc, &argv, "hierAP_SD")) == NULL)
 		goto usage;
-	     if ( strcasecmp(ftmp, "HIER") == 0 )
-		esHierAP = TRUE ;
-	     else if ( strcasecmp(ftmp, "FLAT") == 0 )
-		esHierAP = FALSE ;
+	     if (strcasecmp(ftmp, "HIER") == 0)
+		esHierAP = TRUE;
+	     else if (strcasecmp(ftmp, "FLAT") == 0)
+		esHierAP = FALSE;
 	     else goto usage;
 
 	     break;
@@ -1267,9 +1267,9 @@ simdevVisit(
 
 	   if (gate->dterm_attrs)
 	       fprintf(esSimF, " g=%s", gate->dterm_attrs);
-	   if ( esFormat == SU ) {
-	       if ( gate->dterm_attrs ) {
-	         subAP = Match(ATTR_SUBSAP, gate->dterm_attrs ) ;
+	   if (esFormat == SU) {
+	       if (gate->dterm_attrs) {
+	         subAP = Match(ATTR_SUBSAP, gate->dterm_attrs);
 	         fprintf(esSimF, ",");
 	       } else
 	         fprintf(esSimF, " g=");
@@ -1278,13 +1278,13 @@ simdevVisit(
 	   }
 	   if (source->dterm_attrs) {
 	       fprintf(esSimF, " s=%s", source->dterm_attrs);
-	       if  ( Match(ATTR_HIERAP, source->dterm_attrs ) != FALSE )
-		   hierS = TRUE ;
-	       else if ( Match(ATTR_FLATAP, source->dterm_attrs ) != FALSE )
-		   hierS = FALSE ;
+	       if (Match(ATTR_HIERAP, source->dterm_attrs) != FALSE)
+		   hierS = TRUE;
+	       else if (Match(ATTR_FLATAP, source->dterm_attrs) != FALSE)
+		   hierS = FALSE;
 	   }
-	   if ( esFormat == SU ) {
-	       fprintf(esSimF, "%s", (source->dterm_attrs) ? "," : " s=" );
+	   if (esFormat == SU) {
+	       fprintf(esSimF, "%s", (source->dterm_attrs) ? "," : " s=");
 	       if (hierS)
 	         simnAPHier(source, hierName, fetInfo[dev->dev_type].resClassSource,
 		      scale, esSimF);
@@ -1296,13 +1296,13 @@ simdevVisit(
 	   }
 	   if (drain->dterm_attrs) {
 	       fprintf(esSimF, " d=%s", drain->dterm_attrs);
-	       if  ( Match(ATTR_HIERAP, drain->dterm_attrs ) != FALSE )
-		   hierD = TRUE ;
-	       else if ( Match(ATTR_FLATAP, drain->dterm_attrs ) != FALSE )
-		   hierD = FALSE ;
+	       if  (Match(ATTR_HIERAP, drain->dterm_attrs) != FALSE)
+		   hierD = TRUE;
+	       else if (Match(ATTR_FLATAP, drain->dterm_attrs) != FALSE)
+		   hierD = FALSE;
 	   }
-	   if ( esFormat == SU ) {
-	       fprintf(esSimF, "%s", (drain->dterm_attrs) ? "," : " d=" );
+	   if (esFormat == SU) {
+	       fprintf(esSimF, "%s", (drain->dterm_attrs) ? "," : " d=");
 	       if (hierD)
 	         simnAPHier(drain, hierName, fetInfo[dev->dev_type].resClassDrain,
 		      scale, esSimF);
@@ -1345,10 +1345,10 @@ simdevSubstrate(
     suf = EFHNToStr(suffix);
     if (fetInfo[type].defSubs && strcasecmp(suf,fetInfo[type].defSubs) == 0) {
     	l = strlen(suf) - 1;
-	if (  (( EFOutputFlags & EF_TRIMGLOB ) && suf[l] =='!') ||
-	      (( EFOutputFlags & EF_TRIMLOCAL ) && suf[l] == '#')  )
-	      suf[l] = '\0' ;
-	if ( esFormat == SU )
+	if (((EFOutputFlags & EF_TRIMGLOB) && suf[l] =='!') ||
+	    ((EFOutputFlags & EF_TRIMLOCAL) && suf[l] == '#'))
+	      suf[l] = '\0';
+	if (esFormat == SU)
 		fprintf(outf, "S_");
 	fprintf(outf, "%s", suf);
     }
@@ -1362,9 +1362,9 @@ simdevSubstrate(
     	/* Canonical name */
 	nn = (const EFNodeName *) HashGetValue(he);
 	subnode = nn->efnn_node;
-	if ( esFormat == SU ) {
-	  if ( doAP ) {
-	    if ( fetInfo[type].resClassSub < 0 ) {
+	if (esFormat == SU) {
+	  if (doAP) {
+	    if (fetInfo[type].resClassSub < 0) {
 	     TxError("Error: subap for devtype %d required but not "
 			"specified on command line\n", type);
 	     fprintf(outf,"A_0,P_0,");
@@ -1407,18 +1407,18 @@ simnAP(
 {
 	int a, p;
 
-	if ( node->efnode_client == PTR2CD(NULL) )
+	if (node->efnode_client == PTR2CD(NULL))
 		initNodeClient(node);
-	if ( resClass == NO_RESCLASS ||
-	     beenVisited((nodeClient *)node->efnode_client, resClass) ) {
+	if (resClass == NO_RESCLASS ||
+	     beenVisited((nodeClient *)node->efnode_client, resClass)) {
 		fprintf(outf,"A_0,P_0");
 		return FALSE;
 	}
 	markVisited((nodeClient *)node->efnode_client, resClass);
 	a = (int)(node->efnode_pa[resClass].pa_area*scale*scale);
 	p = (int)(node->efnode_pa[resClass].pa_perim*scale);
-	if ( a < 0 ) a = 0;
-	if ( p < 0 ) p = 0;
+	if (a < 0) a = 0;
+	if (p < 0) p = 0;
 	fprintf(outf,"A_%d,P_%d", a, p);
 	return TRUE;
 }
@@ -1432,26 +1432,26 @@ simnAPHier(
     FILE *outf)
 {
 	EFNode *node = dterm->dterm_node;
-	nodeClientHier   *nc ;
+	nodeClientHier *nc;
 	int a, p;
 
-	if ( node->efnode_client == PTR2CD(NULL) )
+	if (node->efnode_client == PTR2CD(NULL))
 		initNodeClientHier(node);
 	nc = (nodeClientHier *)node->efnode_client;
-	if ( nc->lastPrefix != hierName ) {
+	if (nc->lastPrefix != hierName) {
 		TTMaskZero(&(nc->visitMask));
 		nc->lastPrefix = hierName;
 	}
-	if ( resClass == NO_RESCLASS ||
-	     beenVisited((nodeClientHier *)node->efnode_client, resClass) ) {
+	if (resClass == NO_RESCLASS ||
+	    beenVisited((nodeClientHier *)node->efnode_client, resClass)) {
 		fprintf(outf,"A_0,P_0");
 		return FALSE;
 	}
 	markVisited((nodeClientHier *)node->efnode_client, resClass);
 	a = (int)(node->efnode_pa[resClass].pa_area*scale*scale);
 	p = (int)(node->efnode_pa[resClass].pa_perim*scale);
-	if ( a < 0 ) a = 0;
-	if ( p < 0 ) p = 0;
+	if (a < 0) a = 0;
+	if (p < 0) p = 0;
 	fprintf(outf,"A_%d,P_%d", a, p);
 	return TRUE;
 }
@@ -1498,7 +1498,7 @@ simdevOutNode(
     nn = (const EFNodeName *) HashGetValue(he);
     (void) putc(' ', outf);
     EFHNOut(nn->efnn_node->efnode_name->efnn_hier, outf);
-    if ( nn->efnn_node->efnode_client == PTR2CD(NULL) )
+    if (nn->efnn_node->efnode_client == PTR2CD(NULL))
 	initNodeClient(nn->efnn_node);
     return 0;
 }
@@ -1757,11 +1757,11 @@ simmkDevMerge(
 
 #define parallelDevs(f1, f2) \
 ( \
-	( (f1)->g == (f2)->g && (f1)->b == (f2)->b && (f1)->l == (f2)->l && \
-	  ( esMergeDevsA || (f1)->w == (f2)->w ) )  ? \
-	   ( ((f1)->d == (f2)->d && (f1)->s == (f2)->s ) ? \
+	((f1)->g == (f2)->g && (f1)->b == (f2)->b && (f1)->l == (f2)->l && \
+	  (esMergeDevsA || (f1)->w == (f2)->w))  ? \
+	   (((f1)->d == (f2)->d && (f1)->s == (f2)->s) ? \
 	       PARALLEL : \
-	      (((f1)->s == (f2)->d && (f1)->d == (f2)->s ) ? PARALLEL_R : NOT_PARALLEL) )\
+	      (((f1)->s == (f2)->d && (f1)->d == (f2)->s) ? PARALLEL_R : NOT_PARALLEL)) \
 	  : NOT_PARALLEL  \
 )
 
@@ -1826,16 +1826,16 @@ simmergeVisit(
 	 * merge them.
 	 */
 
-	for ( cfp = devMergeList ; cfp != NULL ; cfp = cfp->next ) {
+	for (cfp = devMergeList; cfp != NULL; cfp = cfp->next) {
 	  if ((pmode = parallelDevs(fp, cfp)) != NOT_PARALLEL) {
 
 		cf = cfp->dev;
 		cg = &cfp->dev->dev_terms[0];
 		cs = cd = &cfp->dev->dev_terms[1];
 		if (cfp->dev->dev_nterm >= 3) {
-			if ( pmode == PARALLEL )
+			if (pmode == PARALLEL)
 				cd = &cfp->dev->dev_terms[2];
-			else if ( pmode == PARALLEL_R )
+			else if (pmode == PARALLEL_R)
 				cs = &cfp->dev->dev_terms[2];
 		}
 
