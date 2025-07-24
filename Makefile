@@ -24,7 +24,9 @@ standard: mains
 
 tcl: tcllibrary
 
-force: clean all
+force:
+	@${MAKE} clean
+	@${MAKE} all
 
 defs.mak:
 	@echo No \"defs.mak\" file found.  Run "configure" to make one.
