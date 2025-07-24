@@ -64,5 +64,5 @@ clean:
 	done ; true
 	$(RM) libhistory.a
 	$(RM) libreadline.a
-	$(RM) readline
+	test -L readline && $(RM) readline || true
 
