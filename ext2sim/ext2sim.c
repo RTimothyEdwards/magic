@@ -127,14 +127,14 @@ typedef struct {
 
 #define initNodeClient(node) \
 { \
-	(node)->efnode_client = (ClientData) mallocMagic((unsigned) (sizeof(nodeClient))); \
+	(node)->efnode_client = PTR2CD(mallocMagic(sizeof(nodeClient))); \
 	TTMaskZero(&(( nodeClient *)(node)->efnode_client)->visitMask); \
 }
 
 
 #define initNodeClientHier(node) \
 { \
-	(node)->efnode_client = (ClientData) mallocMagic((unsigned) (sizeof(nodeClientHier))); \
+	(node)->efnode_client = PTR2CD(mallocMagic(sizeof(nodeClientHier))); \
 	TTMaskZero(&(( nodeClientHier *)(node)->efnode_client)->visitMask); \
 }
 
@@ -1406,7 +1406,7 @@ simnAP(
 {
 	int a, p;
 
-	if ( node->efnode_client == (ClientData) NULL )
+	if ( node->efnode_client == PTR2CD(NULL) )
 		initNodeClient(node);
 	if ( resClass == NO_RESCLASS ||
 	     beenVisited((nodeClient *)node->efnode_client, resClass) ) {
@@ -1434,7 +1434,7 @@ simnAPHier(
 	nodeClientHier   *nc ;
 	int a, p;
 
-	if ( node->efnode_client == (ClientData) NULL )
+	if ( node->efnode_client == PTR2CD(NULL) )
 		initNodeClientHier(node);
 	nc = (nodeClientHier *)node->efnode_client;
 	if ( nc->lastPrefix != hierName ) {
@@ -1497,7 +1497,7 @@ simdevOutNode(
     nn = (EFNodeName *) HashGetValue(he);
     (void) putc(' ', outf);
     EFHNOut(nn->efnn_node->efnode_name->efnn_hier, outf);
-    if ( nn->efnn_node->efnode_client == (ClientData) NULL )
+    if ( nn->efnn_node->efnode_client == PTR2CD(NULL) )
 	initNodeClient(nn->efnn_node);
     return 0;
 }
@@ -1624,7 +1624,7 @@ simnodeVisit(
     const char *fmt;
     EFAttr *ap;
 
-    if (esDevNodesOnly && node->efnode_client == (ClientData) NULL)
+    if (esDevNodesOnly && node->efnode_client == PTR2CD(NULL))
 	return 0;
 
     hierName = node->efnode_name->efnn_hier;
