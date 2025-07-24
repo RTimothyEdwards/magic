@@ -65,8 +65,8 @@ extern bool esDevNodesOnly;
 extern bool esNoAttrs;
 extern bool esHierAP;
 extern char spcesDefaultOut[FNSIZE];
-extern char *esSpiceCapNode;
-extern char esSpiceDefaultGnd[];
+extern const char *esSpiceCapNode;
+extern const char esSpiceDefaultGnd[];
 extern char *spcesOutName;
 extern FILE *esSpiceF;
 extern float esScale;	/* negative if hspice the EFScale/100 otherwise */
