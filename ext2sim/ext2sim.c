@@ -47,7 +47,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 /* Forward declarations */
 void CmdExtToSim(MagWindow *w, TxCommand *cmd);
 bool simnAP(EFNode *node, int resClass, float scale, FILE *outf);
-bool simnAPHier(DevTerm *dterm, HierName *hierName, int resClass, float scale, FILE *outf);
+bool simnAPHier(DevTerm *dterm, const HierName *hierName, int resClass, float scale, FILE *outf);
 bool simParseArgs(int *pargc, char ***pargv, ClientData cdata); /* @typedef cb_extflat_args_t (UNUSED) */
 int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int simresistVisit(const HierName *hierName1, const HierName *hierName2, float res, ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
@@ -56,8 +56,8 @@ int simnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typed
 int simmergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 
 /* C99 compat */
-int simdevOutNode(HierName *prefix, HierName *suffix, char *name, FILE *outf);
-int simdevSubstrate(HierName *prefix, HierName *suffix, int type, float scale, bool doAP, FILE *outf);
+int simdevOutNode(const HierName *prefix, const HierName *suffix, const char *name, FILE *outf);
+int simdevSubstrate(const HierName *prefix, const HierName *suffix, int type, float scale, bool doAP, FILE *outf);
 
 /* Options specific to ext2sim */
 #ifdef EXT2SIM_AUTO
@@ -110,7 +110,7 @@ typedef struct {
 } nodeClient;
 
 typedef struct {
-	HierName *lastPrefix;
+	const HierName *lastPrefix;
 	TileTypeBitMask visitMask;
 } nodeClientHier;
 
@@ -174,7 +174,7 @@ typedef struct _devMerge {
         EFNode *g, *s, *d, *b;
         Dev * dev;
         int       esFMIndex;
-        HierName *hierName;
+        const HierName *hierName;
         struct _devMerge *next;
 } devMerge;
 
@@ -497,12 +497,12 @@ CmdExtToSim(
 	    EFScale = 0.0;
 	    if (EFArgTech)
 	    {
-		freeMagic(EFArgTech);
+		freeMagic((char *) EFArgTech);
 		EFArgTech = NULL;
 	    }
 	    if (EFSearchPath)
 	    {
-		freeMagic(EFSearchPath);
+		freeMagic((char *) EFSearchPath);
 		EFSearchPath = NULL;
 	    }
 	    break;
@@ -973,8 +973,8 @@ usage:
  */
 EFNode *
 SimGetNode(
-    HierName *prefix,
-    HierName *suffix)
+    const HierName *prefix,
+    const HierName *suffix)
 {
 	HashEntry *he;
 
@@ -1029,7 +1029,7 @@ simdevVisit(
     Rect r;
     char name[12];
     bool is_subckt = FALSE;
-    HierName *hierName = hc->hc_hierName;
+    const HierName *hierName = hc->hc_hierName;
 
     sprintf(name, "output");
 
@@ -1328,8 +1328,8 @@ simdevVisit(
 
 int
 simdevSubstrate(
-    HierName *prefix,
-    HierName *suffix,
+    const HierName *prefix,
+    const HierName *suffix,
     int type,
     float scale,
     bool doAP,
@@ -1337,8 +1337,8 @@ simdevSubstrate(
 {
     HashEntry *he;
     EFNodeName *nn;
-    char *suf ;
-    int  l ;
+    char *suf;
+    int l;
     EFNode *subnode;
 
     suf = EFHNToStr(suffix);
@@ -1425,7 +1425,7 @@ simnAP(
 bool
 simnAPHier(
     DevTerm *dterm,
-    HierName *hierName,
+    const HierName *hierName,
     int resClass,
     float scale,
     FILE *outf)
@@ -1478,9 +1478,9 @@ simnAPHier(
 
 int
 simdevOutNode(
-    HierName *prefix,
-    HierName *suffix,
-    char *name,
+    const HierName *prefix,
+    const HierName *suffix,
+    const char *name,
     FILE *outf)
 {
     HashEntry *he;
@@ -1716,7 +1716,7 @@ simmkDevMerge(
     EFNode *s,
     EFNode *d,
     EFNode *b,
-    HierName *hn,
+    const HierName *hn,
     Dev *dev)
 {
 	devMerge *fp;
@@ -1797,7 +1797,7 @@ simmergeVisit(
 	int      pmode, l, w;
 	float	 m;
 	devMerge *fp, *cfp;
-	HierName *hierName = hc->hc_hierName;
+	const HierName *hierName = hc->hc_hierName;
 
 	if (dev->dev_nterm < 2) {
 		TxError("outPremature\n");
