@@ -66,10 +66,30 @@ jobs:
           echo GITHUB_SHA=$GITHUB_SHA
           # GitHub CI is a shallow checkout by default (just the files needed to build)
           # but we also want history back to next tag, see fetch-tags/fetch-depth actions/checkout~issue#1471
-          git update-ref -d $GITHUB_REF # remove the ref (to avoid conflict during fetch)
+          if [[ "$GITHUB_REF" =~ ^refs/tags/ ]]
+          then
+            # remove only if ref of tag (to avoid conflict during fetch)
+            git update-ref -d $GITHUB_REF
+            echo git_update_ref_exitstatus=$?
+          fi
+          set +e
           git fetch --tags --prune --no-recurse-submodules --depth=149 origin +$GITHUB_SHA # fetch-tags: true # is broken
-          test "$(git show-ref --hash $GITHUB_REF)" = "$GITHUB_SHA" # check we got the ref back (or fail CI)
+          echo git_fetch_exitstatus=$?
+          git_show_ref=$(git show-ref --hash $GITHUB_REF)
+          git_show_ref_exitstatus=$?
+          set -e
+          echo git_show_ref_exitstatus=$git_show_ref_exitstatus
+          if [ $git_show_ref_exitstatus -ne 0 ] # should never occur
+          then
+            git update-ref $GITHUB_REF $GITHUB_SHA # put it back
+            echo git_update_ref=$?
+            git_show_ref=$(git show-ref --hash $GITHUB_REF) # retry
+            echo git_show_ref_exitstatus=$?
+          fi
+          echo git_show_ref=$git_show_ref
+          test "$git_show_ref" = "$GITHUB_SHA" # check we got the ref back (or fail CI)
           git_describe=$(git describe --tags $GITHUB_SHA | sed -e 's#\-\([0-9]\+\-g\)#\+\1#') # /-\d+-g/
+          echo git_describe=$git_describe
 
           # RELEASE-NOTES-EL7.txt
           echo "### ${MAGIC_APPIMAGE_OUTPUT_FILENAME} commit ${git_describe}" | sed -e 's#~#\\~#g' > RELEASE-NOTES-EL7.txt
