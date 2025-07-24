@@ -47,7 +47,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 /* Forward declarations */
 void CmdExtToSim(MagWindow *w, TxCommand *cmd);
 bool simnAP(EFNode *node, int resClass, float scale, FILE *outf);
-bool simnAPHier(DevTerm *dterm, const HierName *hierName, int resClass, float scale, FILE *outf);
+bool simnAPHier(const DevTerm *dterm, const HierName *hierName, int resClass, float scale, FILE *outf);
 bool simParseArgs(int *pargc, char ***pargv, ClientData cdata); /* @typedef cb_extflat_args_t (UNUSED) */
 int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int simresistVisit(const HierName *hierName1, const HierName *hierName2, float res, ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
@@ -102,7 +102,7 @@ struct {
    short resClassDrain ;    /* The resistance class of the drain of the dev */
    short resClassSub ;	    /* The resistance class of the substrate of the dev */
    TileType devType ;	    /* Magic tile type of the device */
-   char  *defSubs ;	    /* The default substrate node */
+   const char  *defSubs ;    /* The default substrate node */
 } fetInfo[TT_MAXTYPES];
 
 typedef struct {
@@ -257,7 +257,7 @@ CmdExtToSim(
     TxCommand *cmd)
 {
     int i,flatFlags;
-    char *inName;
+    const char *inName;
     FILE *f;
 
     int value;
@@ -268,8 +268,8 @@ CmdExtToSim(
     bool err_result;
 
     short s_rclass, d_rclass, sub_rclass;
-    char *devname;
-    char *subname;
+    const char *devname;
+    const char *subname;
     TileType devtype;
     int idx;
 
@@ -726,7 +726,7 @@ main(
 {
 
     int i,flatFlags;
-    char *inName;
+    const char *inName;
     FILE *f;
 
     esDevsMerged = 0;
@@ -868,7 +868,7 @@ simParseArgs(
     char ***pargv,
     ClientData cdata)	/* unused */
 {
-    char **argv = *pargv, *cp;
+    char **argv = *pargv;
     int argc = *pargc;
 
     switch (argv[0][1])
@@ -904,7 +904,7 @@ simParseArgs(
 		goto usage;
 	    break;
 	case 'f': {
-	     char *ftmp ;
+	     const char *ftmp ;
 
 	     if ((ftmp = ArgStr(&argc, &argv, "format")) == NULL)
 		goto usage;
@@ -918,7 +918,7 @@ simParseArgs(
 	     break;
 	     }
 	case 'y': {
-	      char *t;
+	      const char *t;
 
 	      if (( t =  ArgStr(&argc, &argv, "cap-accuracy") ) == NULL)
 		goto usage;
@@ -927,7 +927,7 @@ simParseArgs(
 	      }
 	case 'J':
 	     {
-	     char *ftmp ;
+	     const char *ftmp ;
 
 	     if ((ftmp = ArgStr(&argc, &argv, "hierAP_SD")) == NULL)
 		goto usage;
@@ -1023,7 +1023,7 @@ simdevVisit(
     Transform *trans,	/* Coordinate transform */
     ClientData cdata)	/* unused */
 {
-    DevTerm *gate, *source, *drain, *term;
+    const DevTerm *gate, *source, *drain, *term;
     EFNode  *subnode, *snode, *dnode;
     int l, w;
     Rect r;
@@ -1424,7 +1424,7 @@ simnAP(
 
 bool
 simnAPHier(
-    DevTerm *dterm,
+    const DevTerm *dterm,
     const HierName *hierName,
     int resClass,
     float scale,
@@ -1619,7 +1619,7 @@ simnodeVisit(
     ClientData cdata) /* unused */
 {
     EFNodeName *nn;
-    HierName *hierName;
+    const HierName *hierName;
     bool isGlob;
     const char *fmt;
     EFAttr *ap;
@@ -1627,7 +1627,7 @@ simnodeVisit(
     if (esDevNodesOnly && node->efnode_client == (ClientData) NULL)
 	return 0;
 
-    hierName = (HierName *) node->efnode_name->efnn_hier;
+    hierName = node->efnode_name->efnn_hier;
     cap = cap  / 1000;
     res = (res + 500) / 1000;
     if (cap > EFCapThreshold)
