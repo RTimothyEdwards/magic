@@ -4,7 +4,7 @@ ARCH := $(shell uname -m)
 APPIMAGE = Magic-$(ARCH).AppImage
 VERSION_MAGIC := $(shell cat $(MAGIC_SRC_ROOT)/VERSION)
 VERSION_TSTAMP := $(shell git show -s "--format=%cs" | tr -d '-')
-VERSION_HASH := $(shell git show-ref --hash=7 remotes/origin/HEAD)
+VERSION_HASH := $(shell git show -s "--format=%h")
 VERSION_NUM ?= $(VERSION_MAGIC)~$(VERSION_TSTAMP)~$(VERSION_HASH)
 VERSION := $(VERSION_NUM)
 
