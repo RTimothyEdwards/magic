@@ -30,11 +30,11 @@ token(
  */
 int
 endmatch(
-    char *name,
+    const char *name,
     int len,
-    char *cp)
+    const char *cp)
 {
-    char *ep;
+    const char *ep;
 
     ep = cp;
     while (*ep++) /* Nothing */;
@@ -54,7 +54,8 @@ main(
     int argc,
     char *argv[])
 {
-    char line[1024], *name, *cp, *next;
+    char line[1024], *cp, *next;
+    const char *name;
     HashTable ht;
     HashSearch hs;
     HashEntry *he;
