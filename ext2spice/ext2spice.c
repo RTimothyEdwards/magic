@@ -2304,7 +2304,6 @@ esOutputResistor(
     int dscale)			/* Device scaling (for split resistors) */
 {
     float sdM;
-    char name[12];
 
     /* Resistor is "Rnnn term1 term2 value" 		 */
     /* extraction sets two terminals, which are assigned */
@@ -2312,9 +2311,9 @@ esOutputResistor(
     /* extracted units are Ohms; output is in Ohms 	 */
 
     spcdevOutNode(hierName, term1->dterm_node->efnode_name->efnn_hier,
-			name, esSpiceF);
+			"esOutputResistor", esSpiceF);
     spcdevOutNode(hierName, term2->dterm_node->efnode_name->efnn_hier,
-			name, esSpiceF);
+			"esOutputResistor", esSpiceF);
 
     sdM = getCurDevMult();
 
