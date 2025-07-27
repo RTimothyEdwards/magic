@@ -46,8 +46,6 @@ jobs:
               echo "MY_GITHUB_TAG=${github_tag}" >> $GITHUB_ENV
             fi
           fi
-          # ubuntu-latest on GHA (now needs explicit dependencies for AppImageTool)
-          sudo apt-get install -y libfuse2 desktop-file-utils
 
       - name: Build project
         run: |
