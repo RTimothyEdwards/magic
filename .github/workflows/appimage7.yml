@@ -20,6 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 149 # enough to cover between tags
+          #fetch-tags: true # this should work see actions/checkout~issue#1471
 
       - name: Get the version
         id: get_version
@@ -63,7 +64,9 @@ jobs:
           # Find the last tag (that does not match the current GITHUB_REF)
           echo GITHUB_REF=$GITHUB_REF
           echo GITHUB_SHA=$GITHUB_SHA
-          git fetch --tags --no-progress --quiet # fetch-tags: true # did not work
+          # GitHub CI is a shallow checkout by default (just the files needed to build)
+          # but we also want history back to next tag, see fetch-tags/fetch-depth actions/checkout~issue#1471
+          git fetch --tags --prune --no-recurse-submodules --depth=149 origin +$GITHUB_SHA # fetch-tags: true # is broken
           git_describe=$(git describe --tags $GITHUB_SHA | sed -e 's#\-\([0-9]\+\-g\)#\+\1#') # /-\d+-g/
 
           # RELEASE-NOTES-EL7.txt
