@@ -478,7 +478,7 @@ DBTechPrintTypes(mask, dolist)
 #ifdef MAGIC_WRAPPER
 		Tcl_AppendResult(magicinterp, " ", (char *)NULL);
 #else
-		TxPrintf(" ", keepname);
+		TxPrintf(" ");
 #endif
 	    }
 	}
@@ -530,7 +530,7 @@ DBTechPrintTypes(mask, dolist)
 #ifdef MAGIC_WRAPPER
 		    Tcl_AppendResult(magicinterp, " ", (char *)NULL);
 #else
-		    TxPrintf(" ", keepname);
+		    TxPrintf(" ");
 #endif
 		}
 	    }
