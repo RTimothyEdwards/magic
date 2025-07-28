@@ -111,7 +111,7 @@ DBSrPaintNMArea(hintTile, plane, ttype, rect, mask, func, arg)
     TileType tpt;
     int rheight, rwidth, rmax;
     dlong f1, f2, f3, f4;
-    bool ignore_sides;
+    int ignore_sides;
 
     /* If the search area is not diagonal, return the result of the	*/
     /* standard (manhattan) search function.				*/
