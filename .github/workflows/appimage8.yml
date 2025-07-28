@@ -66,7 +66,9 @@ jobs:
           echo GITHUB_SHA=$GITHUB_SHA
           # GitHub CI is a shallow checkout by default (just the files needed to build)
           # but we also want history back to next tag, see fetch-tags/fetch-depth actions/checkout~issue#1471
+          git update-ref -d $GITHUB_REF # remove the ref (to avoid conflict during fetch)
           git fetch --tags --prune --no-recurse-submodules --depth=149 origin +$GITHUB_SHA # fetch-tags: true # is broken
+          test "$(git show-ref --hash $GITHUB_REF)" = "$GITHUB_SHA" # check we got the ref back (or fail CI)
           git_describe=$(git describe --tags $GITHUB_SHA | sed -e 's#\-\([0-9]\+\-g\)#\+\1#') # /-\d+-g/
 
           # RELEASE-NOTES-EL8.txt
