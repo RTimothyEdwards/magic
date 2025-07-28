@@ -1581,7 +1581,7 @@ simresistVisit(
     const HierName *hierName1,
     const HierName *hierName2,
     float res,
-    ClientData)	/* unused */
+    ClientData cdata)	/* unused */
 {
     fprintf(esSimF, "r ");
     EFHNOut(hierName1, esSimF);
