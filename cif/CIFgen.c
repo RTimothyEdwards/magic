@@ -1282,8 +1282,13 @@ cifProcessSelectiveResetFunc(tile, clipArea)
  *	Find the first tile in the given area.
  *
  * Results:
- *	Return 1 to stop the search and process.
- *	Set clientData to the tile found.
+ *	Return 1 to stop the search and process if an
+ *	unprocessed tile was found.  Otherwise, return
+ *	0 to keep the search going.
+ *
+ * Side effects:
+ *	Push tile pointer to the stack that is passed
+ *	as client data.
  *
  *-------------------------------------------------------
  */
@@ -1293,8 +1298,13 @@ cifFoundFunc(
     Tile *tile,
     Stack **BloatStackPtr)
 {
-    PUSHTILE(tile, *BloatStackPtr);
-    return 0;
+    if (TiGetClient(tile) == CIF_UNPROCESSED)
+    {
+	PUSHTILE(tile, *BloatStackPtr);
+	return 1;
+    }
+    else
+	return 0;	
 }
 
 /* Data structure for bloat-all function */
@@ -1425,33 +1435,11 @@ cifBloatAllFunc(
 		if (bloats->bl_distance[ttype] > 0)
 		    (void) DBSrPaintArea((Tile *)NULL, *temps, &area,
 				&CIFSolidBits, cifFoundFunc, (ClientData)(&BloatStack));
-
-	    /* Get clip area from intersection of found tile and t */
-	    if (op->co_distance > 0)
-	    {
-		if (!StackEmpty(BloatStack))
-		{
-		    firstTile = (Tile *)StackLook(BloatStack);
-		    TiToRect(firstTile, &foundArea);
-		    GeoClip(&clipArea, &foundArea);
-		}
-	    }
 	}
 	else
 	{
 	    DBSrPaintArea((Tile *)NULL, def->cd_planes[bloats->bl_plane], &area,
 		    connect, cifFoundFunc, (ClientData)(&BloatStack));
-
-	    /* Get clip area from intersection of found tile and t */
-	    if (op->co_distance > 0)
-	    {
-		if (!StackEmpty(BloatStack))
-		{
-		    firstTile = (Tile *)StackLook(BloatStack);
-		    TiToRect(firstTile, &foundArea);
-		    GeoClip(&clipArea, &foundArea);
-		}
-	    }
 	}
     }
     else
@@ -1490,10 +1478,12 @@ cifBloatAllFunc(
 
 	if (op->co_distance > 0)
 	{
-	    if (!GEO_SURROUND(&clipArea, &area))
-	    {
-		STACKPUSH(t, ResetStack);
-	    }
+	    /* Note:  This is non-optimal, as it causes all tiles
+	     * in the "bloat" group to be re-processed for each
+	     * tile processed in the search group.  However, it
+	     * is difficult to find an optimal method.
+	     */
+	    STACKPUSH(t, ResetStack);
 	    GeoClip(&area, &clipArea);
 	    if (GEO_RECTNULL(&area))
 		continue;
@@ -1556,27 +1546,6 @@ cifBloatAllFunc(
 	t = (Tile *)STACKPOP(ResetStack);
 	TiSetClient(t, CIF_UNPROCESSED);
     }
-
-#if 0
-    if ((firstTile != NULL) && (op->co_distance > 0))
-    {
-	if (bloats->bl_plane < 0)
-	{
-	    /* This would be a lot more efficient if the plane number of
-	     * firstTile were pushed to the stack along with firstTile
-	     */
-	    temps = bls->temps;
-	    for (ttype = 0; ttype < TT_MAXTYPES; ttype++, temps++)
-		if (bloats->bl_distance[ttype] > 0)
-		    (void) DBSrPaintArea((Tile *)NULL, *temps, &clipArea,
-				&CIFSolidBits, cifProcessSelectiveResetFunc,
-				&clipArea);
-	}
-	else
-	    DBSrPaintArea((Tile *)firstTile, def->cd_planes[bloats->bl_plane],
-			&clipArea, connect, cifProcessSelectiveResetFunc, &clipArea);
-    }
-#endif
 
     return 0;	/* Keep the search alive. . . */
 }
