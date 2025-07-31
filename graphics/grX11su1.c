@@ -31,7 +31,6 @@
 #include <X11/Xutil.h>
 
 #include "utils/magic.h"
-#include "utils/magsgtty.h"
 #include "textio/textio.h"
 #include "utils/geometry.h"
 #include "textio/txcommands.h"

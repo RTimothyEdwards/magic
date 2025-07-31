@@ -39,7 +39,6 @@ static char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic-8.0/t
 #endif
 
 #include "tcltk/tclmagic.h"
-#include "utils/magsgtty.h"
 #include "utils/magic.h"
 #include "textio/textio.h"
 #include "utils/geometry.h"

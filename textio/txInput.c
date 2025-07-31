@@ -32,14 +32,13 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include <dirent.h>
 
 
-#include "utils/magsgtty.h"
 #include "utils/magic.h"
-#include "utils/magsgtty.h"
 #include "utils/main.h"
 #include "textio/textio.h"
 #include "utils/geometry.h"
 #include "textio/txcommands.h"
 #include "textio/textioInt.h"
+#include "utils/magsgtty.h"	/* txTermState */
 #include "utils/dqueue.h"
 #include "utils/macros.h"
 #include "utils/hash.h"
@@ -1225,36 +1224,21 @@ TxGetLine(
  * ----------------------------------------------------------------------------
  */
 
-#if defined(SYSV) || defined(CYGWIN)
-
-void
-txGetTermState(
-    struct termio *buf)
-{
-    ioctl( fileno( stdin ), TCGETA, buf);
-}
-
-#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
-
-void
-txGetTermState(
-    struct termios *buf)
-{
-    (void) tcgetattr(fileno(stdin), buf);
-}
-
-#else
-
 void
 txGetTermState(
     txTermState *buf)
 {
+#if defined(HAVE_TERMIOS_H)
+    (void) tcgetattr(fileno(stdin), &buf->termios);
+#elif defined(HAVE_TERMIO_H)
+    ioctl(fileno(stdin), TCGETA, &buf->termio);
+#else /* sgtty */
     ASSERT(TxStdinIsatty, "txGetTermState");
     /* save the current terminal characteristics */
-    (void) ioctl(fileno(stdin), TIOCGETP, (char *) &(buf->tx_i_sgtty) );
-    (void) ioctl(fileno(stdin), TIOCGETC, (char *) &(buf->tx_i_tchars) );
+    (void) ioctl(fileno(stdin), TIOCGETP, (char *) &buf->tx_i_sgtty);
+    (void) ioctl(fileno(stdin), TIOCGETC, (char *) &buf->tx_i_tchars);
+#endif
 }
-#endif /* SYSV */
 
 
 /*
@@ -1273,24 +1257,17 @@ txGetTermState(
 
 void
 txSetTermState(
-#if defined(SYSV) || defined(CYGWIN)
-    struct termio *buf
-#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
-    struct termios *buf
-#else
-    txTermState *buf
-#endif /* SYSV */
-    )
+    txTermState *buf)
 {
-#if defined(SYSV) || defined(CYGWIN)
-    ioctl( fileno(stdin), TCSETAF, buf );
-#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
-    (void) tcsetattr( fileno(stdin), TCSANOW, buf );
-#else
+#if defined(HAVE_TERMIOS_H)
+    (void) tcsetattr(fileno(stdin), TCSANOW, &buf->termios);
+#elif defined(HAVE_TERMIO_H)
+    ioctl(fileno(stdin), TCSETAF, &buf->termio);
+#else /* sgtty */
     /* set the current terminal characteristics */
-    (void) ioctl(fileno(stdin), TIOCSETN, (char *) &(buf->tx_i_sgtty) );
-    (void) ioctl(fileno(stdin), TIOCSETC, (char *) &(buf->tx_i_tchars) );
-#endif /* SYSV */
+    (void) ioctl(fileno(stdin), TIOCSETN, (char *) &buf->tx_i_sgtty);
+    (void) ioctl(fileno(stdin), TIOCSETC, (char *) &buf->tx_i_tchars);
+#endif
 }
 
 
@@ -1313,37 +1290,27 @@ txSetTermState(
 
 void
 txInitTermRec(
-#if defined(SYSV) || defined(CYGWIN)
-    struct termio *buf
-#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
-    struct termios *buf
-#else
-    txTermState *buf
-#endif /* SYSV */
-    )
+    txTermState *buf)
 {
-#if defined(SYSV) || defined(CYGWIN) || defined(__OpenBSD__) || defined(EMSCRIPTEN)
-    buf->c_lflag = ISIG;    /* raw: no echo and no processing, allow signals */
-    buf->c_cc[ VMIN ] = 1;
-    buf->c_cc[ VTIME ] = 0;
-#else
+#if defined(HAVE_TERMIOS_H)
+    buf->termios.c_lflag = ISIG;    /* raw: no echo and no processing, allow signals */
+    buf->termios.c_cc[ VMIN ] = 1;
+    buf->termios.c_cc[ VTIME ] = 0;
+#elif defined(HAVE_TERMIO_H)
+    buf->termio.c_lflag = ISIG;    /* raw: no echo and no processing, allow signals */
+    buf->termio.c_cc[ VMIN ] = 1;
+    buf->termio.c_cc[ VTIME ] = 0;
+#else /* sgtty */
     /* set things up for us, turn off echo, turn on cbreak, no EOF */
     buf->tx_i_sgtty.sg_flags |= CBREAK;
     buf->tx_i_sgtty.sg_flags &= ~ECHO;
     buf->tx_i_tchars.t_eofc = -1;
-
-#endif /* SYSV */
+#endif
 }
 
 
 
-#if defined(SYSV) || defined(CYGWIN)
-struct termio closeTermState;
-#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
-struct termios closeTermState;
-#else
 static txTermState closeTermState;
-#endif /* SYSV */
 
 static bool haveCloseState = FALSE;
 
@@ -1366,21 +1333,21 @@ static bool haveCloseState = FALSE;
 void
 txSaveTerm(void)
 {
-#if defined(SYSV) || defined(CYGWIN)
-    ioctl( fileno( stdin ), TCGETA, &closeTermState);
-    txEraseChar = closeTermState.c_cc[VERASE];
-    txKillChar =  closeTermState.c_cc[VKILL];
-    TxEOFChar = closeTermState.c_cc[VEOF];
-    TxInterruptChar = closeTermState.c_cc[VINTR];
+#if defined(HAVE_TERMIOS_H)
+    (void) tcgetattr(fileno(stdin), &closeTermState.termios);
+    txEraseChar = closeTermState.termios.c_cc[VERASE];
+    txKillChar = closeTermState.termios.c_cc[VKILL];
+    TxEOFChar = closeTermState.termios.c_cc[VEOF];
+    TxInterruptChar = closeTermState.termios.c_cc[VINTR];
     haveCloseState = TRUE;
-#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
-    (void) tcgetattr( fileno( stdin ), &closeTermState);
-    txEraseChar = closeTermState.c_cc[VERASE];
-    txKillChar =  closeTermState.c_cc[VKILL];
-    TxEOFChar = closeTermState.c_cc[VEOF];
-    TxInterruptChar = closeTermState.c_cc[VINTR];
+#elif defined(HAVE_TERMIO_H)
+    ioctl(fileno(stdin), TCGETA, &closeTermState.termio);
+    txEraseChar = closeTermState.termio.c_cc[VERASE];
+    txKillChar = closeTermState.termio.c_cc[VKILL];
+    TxEOFChar = closeTermState.termio.c_cc[VEOF];
+    TxInterruptChar = closeTermState.termio.c_cc[VINTR];
     haveCloseState = TRUE;
-#else
+#else /* sgtty */
     struct ltchars lt;
     txGetTermState(&closeTermState);
     (void) ioctl(fileno(stdin), TIOCGLTC, (char *) &lt);
@@ -1393,7 +1360,7 @@ txSaveTerm(void)
     TxEOFChar = closeTermState.tx_i_tchars.t_eofc;
     TxInterruptChar = closeTermState.tx_i_tchars.t_intrc;
     haveCloseState = TRUE;
-#endif /* SYSV */
+#endif
 }
 
 
@@ -1414,13 +1381,7 @@ txSaveTerm(void)
 void
 TxSetTerminal(void)
 {
-#if defined(SYSV) || defined(CYGWIN)
-    struct termio buf;
-#elif defined (__OpenBSD__) || defined(EMSCRIPTEN)
-    struct termios buf;
-#else
     txTermState buf;
-#endif /* SYSV */
 
 #ifdef MAGIC_WRAPPER
     /* If using Tk console, don't mess with the terminal settings;	  */

@@ -42,20 +42,6 @@ typedef struct {
 #define TX_PROMPT	'>'
 #define TX_CMD_PROMPT	":"
 
-/* all of the state associated with a tty terminal */
-#if !defined(SYSV) && !defined(CYGWIN) && !defined(__OpenBSD__) && !defined(EMSCRIPTEN)
-#if defined(HAVE_SYS_IOCTL_COMPAT_H) || defined(HAVE_SGTTY_H)
-#if defined(HAVE_SYS_IOCTL_COMPAT_H)
-#include <sys/ioctl_compat.h> /* replaced sgtty.h */
-#elif defined(HAVE_SGTTY_H)
-#include <sgtty.h>/* legacy - struct sgttyb{} defn */
-#endif
-typedef struct {
-    struct sgttyb tx_i_sgtty;
-    struct tchars tx_i_tchars;
-} txTermState;
-#endif /* HAVE_SYS_IOCTL_COMPAT_H || HAVE_SGTTY_H */
-#endif /* SYSV */
 
 extern bool TxGetInputEvent(bool block, bool returnOnSigWinch);
 

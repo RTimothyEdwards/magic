@@ -21,44 +21,54 @@
 #ifndef	_MAGIC__UTILS__MAGSGTTY_H
 #define _MAGIC__UTILS__MAGSGTTY_H
 
-/* maybe this can be #ifndef HAVE_TERMIO_H */
-#if !defined(SYSV) && !defined(CYGWIN)
-
-# ifdef	ALPHA
-# undef MAX
-# undef MIN
-# endif
-
-/* unclear what platform requires this OpenBSD/FreeBSD ? */
-# ifndef COMPAT_43TTY
-# define COMPAT_43TTY
-# endif
-
-#ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
-#endif
 
 #if defined(HAVE_TERMIOS_H)
-#include <termios.h>
-#elif defined(HAVE_SYS_IOCTL_COMPAT_H)
-/* unclear which platform(s) require <sys/ioctl_compat.h> and the structure
- *  of this file is such that it will try to include it by default, better
- *  to invert the #if and only select this on the known platforms that need
- *  it so that <termios.h> goes by default, which exists on MacOSX, Linux, etc..
- * many possible solutions to make this work by default:
- *   HAVE_SYS_IOCTL_COMPAT_H ?  HAVE_TERMIOS_H ?  !defined(linux) at top (MaxOSX is BSD type)
- */
-#include <sys/ioctl_compat.h> /* replaced sgtty.h */
-#elif defined(HAVE_SGTTY_H)
-#include <sgtty.h> /* legacy - struct sgttyb{} defn */
+ /* In modern times everything has POSIX */
+ #include <termios.h>
+
+ #ifdef HAVE_SYS_IOCTL_H
+  /* Linux glibx 2.x       - present
+   * FreeBSD 14.3-RELEASE  - present
+   * Solaris 11.4          - present
+   */
+  #include <sys/ioctl.h>
+ #endif
+
+#elif defined(HAVE_TERMIO_H)
+ /* Linux glibx 2.x       - present (just includes termios.h & sys/ioctl.h)
+  * Linux glibc 2.45+     - not present
+  * FreeBSD 14.3-RELEASE  - not present
+  * Solaris 11.4          - present
+  */
+ #include <termio.h>
+#else /* sgtty */
+ #if defined(HAVE_SYS_IOCTL_COMPAT_H)
+  /* Linux glibc2.x        - not present
+   * FreeBSD 14.3-RELEASE  - not present
+   * Solaris 11.4          - not present
+   */
+  #include <sys/ioctl_compat.h> /* replaced sgtty.h */
+ #elif defined(HAVE_SGTTY_H)
+  /* Linux glibc2.x        - present (includes sys/ioctl.h)
+   * FreeBSD 14.3-RELEASE  - not present
+   * Solaris 11.4          - present
+   */
+  #include <sgtty.h> /* legacy - struct sgttyb{} defn */
+ #endif
 #endif
 
-#else
 
-#if defined(HAVE_TERMIO_H)
-#include <termio.h>
+/* all of the state associated with a tty terminal */
+typedef struct {
+#if defined(HAVE_TERMIOS_H)
+    struct termios termios;
+#elif defined(HAVE_TERMIO_H)
+    struct termio termio;
+#else /* sgtty */
+    struct sgttyb tx_i_sgtty;
+    struct tchars tx_i_tchars;
 #endif
+} txTermState;
 
-#endif /* !SYSV && !CYGWIN */
 
 #endif	/* _MAGIC__UTILS__MAGSGTTY_H */
