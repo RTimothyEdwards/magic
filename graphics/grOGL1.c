@@ -17,7 +17,6 @@
 #include <signal.h>
 
 #include "utils/magic.h"
-#include "utils/magsgtty.h"
 #include "utils/geometry.h"
 #include "graphics/graphics.h"
 #include "windows/windows.h"

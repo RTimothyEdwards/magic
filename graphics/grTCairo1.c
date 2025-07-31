@@ -28,7 +28,6 @@
 #include "utils/main.h"
 #include "utils/magic.h"
 #include "utils/malloc.h"
-#include "utils/magsgtty.h"
 #include "utils/geometry.h"
 #include "windows/windows.h"
 #include "graphics/graphics.h"

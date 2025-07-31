@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "utils/magsgtty.h"
 #include "utils/magic.h"
 #include "utils/geometry.h"
 #include "windows/windows.h"

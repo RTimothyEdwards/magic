@@ -15,7 +15,6 @@
 
 #include "tcltk/tclmagic.h"
 #include "utils/magic.h"
-#include "utils/magsgtty.h"
 #include "textio/textio.h"
 #include "utils/geometry.h"
 #include "windows/windows.h"
