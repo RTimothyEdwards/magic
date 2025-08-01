@@ -59,6 +59,8 @@ Tile *TiNMMergeRight();
 Tile *TiNMMergeLeft();
 
 #ifdef	PAINTDEBUG
+void dbPaintShowTile(Tile *tile, PaintUndoInfo *undo, char *str);
+
 int dbPaintDebug = 0;
 #endif	/* PAINTDEBUG */
 
@@ -311,6 +313,11 @@ enumerate:
 	 * Set up the directions in which we will have to
 	 * merge initially.  Clipping can cause some of these
 	 * to be turned off.
+	 *
+	 * The search runs from left to right, top to bottom.
+	 * Therefore always merge left and up, but never right
+	 * and down, unless at or beyond the each of the search
+	 * area.
 	 */
 	mergeFlags = MRG_TOP | MRG_LEFT;
 	if (RIGHT(tile) >= area->r_xtop) mergeFlags |= MRG_RIGHT;
@@ -340,6 +347,7 @@ enumerate:
 	     * Merging is only necessary if we clip to the left or to
 	     * the right, and then only to the top or the bottom.
 	     * We do the merge in-line for efficiency.
+	     * Clipping of split tiles is more complicated.
 	     */
 
 	    /* Clip up */
@@ -354,13 +362,17 @@ enumerate:
 			newType = (method == (unsigned char)PAINT_XOR) ?
 				 *resultTbl : resultTbl[oldType];
 
-			tile = TiNMMergeLeft(tile, plane);
-			TiNMMergeRight(TR(newtile), plane);
+			if (mergeFlags & MRG_LEFT)
+			    tile = TiNMMergeLeft(tile, plane);
+			if ((mergeFlags & MRG_RIGHT) || SplitDirection(newtile) == 1)
+			    TiNMMergeRight(TR(newtile), plane);
 		    }
 		    else
 		    {
-			TiNMMergeLeft(newtile, plane);
-			TiNMMergeRight(TR(tile), plane);
+			if (mergeFlags & MRG_LEFT)
+			    TiNMMergeLeft(newtile, plane);
+			if ((mergeFlags & MRG_RIGHT) || SplitDirection(tile) == 1)
+			    TiNMMergeRight(TR(tile), plane);
 		    }
 		}
 		else
@@ -389,13 +401,17 @@ enumerate:
 			newType = (method == (unsigned char)PAINT_XOR) ?
 				 *resultTbl : resultTbl[oldType];
 
-			tile = TiNMMergeLeft(tile, plane);
-			TiNMMergeRight(TR(newtile), plane);
+			if (mergeFlags & MRG_LEFT)
+			    tile = TiNMMergeLeft(tile, plane);
+			if ((mergeFlags & MRG_RIGHT) || SplitDirection(newtile) == 0)
+			    TiNMMergeRight(TR(newtile), plane);
 		    }
 		    else
 		    {
-			TiNMMergeLeft(newtile, plane);
-			TiNMMergeRight(TR(tile), plane);
+			if (mergeFlags & MRG_LEFT)
+			    TiNMMergeLeft(newtile, plane);
+			if ((mergeFlags & MRG_RIGHT) || SplitDirection(tile) == 0)
+			    TiNMMergeRight(TR(tile), plane);
 		    }
 		}
 		else
@@ -424,13 +440,17 @@ enumerate:
 			newType = (method == (unsigned char)PAINT_XOR) ?
 				 *resultTbl : resultTbl[oldType];
 
-			tile = TiNMMergeLeft(tile, plane);
-			TiNMMergeRight(LB(newtile), plane);
+			if (mergeFlags & MRG_LEFT)
+			    tile = TiNMMergeLeft(tile, plane);
+			if (mergeFlags & MRG_RIGHT)
+			    TiNMMergeRight(LB(newtile), plane);
 		    }
 		    else
 		    {
-			TiNMMergeRight(newtile, plane);
-			TiNMMergeLeft(LB(tile), plane);
+			if (mergeFlags & MRG_LEFT)
+			    TiNMMergeRight(newtile, plane);
+			if (mergeFlags & MRG_RIGHT)
+			    TiNMMergeLeft(LB(tile), plane);
 		    }
 		}
 		else
@@ -467,13 +487,17 @@ enumerate:
 			newType = (method == (unsigned char)PAINT_XOR) ?
 				 *resultTbl : resultTbl[oldType];
 
-			// tile = TiNMMergeRight(tile, plane);
-			TiNMMergeLeft(LB(newtile), plane);
+			if (mergeFlags & MRG_RIGHT)
+			    tile = TiNMMergeRight(tile, plane);  // was commented out?
+			if (mergeFlags & MRG_LEFT)
+			    TiNMMergeLeft(LB(newtile), plane);
 		    }
 		    else
 		    {
-			TiNMMergeLeft(newtile, plane);
-			// TiNMMergeRight(LB(tile), plane);
+			if (mergeFlags & MRG_LEFT)
+			    TiNMMergeLeft(newtile, plane);
+			if (mergeFlags & MRG_RIGHT)
+			    TiNMMergeRight(LB(tile), plane);	// was commented out?
 		    }
 		}
 		else
@@ -3018,7 +3042,7 @@ dbPaintMergeVert(tile, newType, plane, mergeFlags, undo)
  * ----------------------------------------------------------------------------
  */
 
-#include "styles.h"
+#include "utils/styles.h"
 
 void
 dbPaintShowTile(tile, undo, str)
@@ -3041,6 +3065,16 @@ dbPaintShowTile(tile, undo, str)
     TxPrintf("%s --more--", str); fflush(stdout);
     (void) TxGetLine(answer, sizeof answer);
     DBWFeedbackClear(NULL);
+
+    /* To debug tile operations that happen away from the active layout
+     * window, it may be advantageous to replace the display code above
+     * with the print statement below.
+     */
+    /*
+    TxPrintf("Debug %s: Tile (%d %d) to (%d %d) type %d\n",
+		str, LEFT(tile), BOTTOM(tile), RIGHT(tile), TOP(tile),
+		TiGetBody(tile));
+    */
 }
 #endif	/* PAINTDEBUG */
 
