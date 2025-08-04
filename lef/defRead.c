@@ -1431,7 +1431,8 @@ enum def_pins_prop_keys {
 	DEF_PINS_PROP_NET = 0, DEF_PINS_PROP_DIR,
 	DEF_PINS_PROP_LAYER, DEF_PINS_PROP_USE,
 	DEF_PINS_PROP_PLACED, DEF_PINS_PROP_FIXED,
-	DEF_PINS_PROP_PORT, DEF_PINS_PROP_SPECIAL};
+	DEF_PINS_PROP_COVER, DEF_PINS_PROP_PORT,
+	DEF_PINS_PROP_SPECIAL};
 
 void
 DefReadPins(
@@ -1470,6 +1471,7 @@ DefReadPins(
 	"USE",
 	"PLACED",
 	"FIXED",
+	"COVER",
 	"PORT",
 	"SPECIAL",
 	NULL
@@ -1664,6 +1666,7 @@ DefReadPins(
 			    }
 			    break;
 			case DEF_PINS_PROP_FIXED:
+			case DEF_PINS_PROP_COVER:
 			case DEF_PINS_PROP_PLACED:
 			    DefReadLocation(NULL, f, oscale, &t, FALSE);
 			    if (curlayer == -1)
