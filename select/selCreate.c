@@ -474,14 +474,9 @@ SelectArea(scx, types, xMask, globmatch)
     else (void) DBCellCopyAllLabels(scx, types, xMask, SelectUse, &labelArea);
 
     /* Select cell uses. */
-    /* NOTE:  Changed 2/9/2025;  Previously this was restricted to unexpanded
-     * cell instances, which is an unnecessary restriction.  By changing "xMask"
-     * to "CU_DESCEND_ALL", this now only ever looks one level down and will
-     * select any instance that is a child of the edit cell, expanded or not.
-     */
 
     if (TTMaskHasType(types, L_CELL))
-        (void) DBCellCopyAllCells(scx, CU_DESCEND_ALL, SelectUse, &cellArea);
+        (void) DBCellCopyAllCells(scx, xMask, SelectUse, &cellArea);
     else
     {
 	cellArea.r_xbot = 0;
