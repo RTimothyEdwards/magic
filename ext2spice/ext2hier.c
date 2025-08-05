@@ -1183,7 +1183,7 @@ spcdevHierMergeVisit(
 
     for (cfp = devMergeList; cfp != NULL; cfp = cfp->next)
     {
-	if ((pmode = parallelDevs(fp, (devMerge *)cfp)) != NOT_PARALLEL)
+	if ((pmode = parallelDevs(fp, cfp)) != NOT_PARALLEL)
 	{
 	    /* To-do:  add back source, drain attribute check */
 
@@ -1619,7 +1619,7 @@ devMergeHierVisit(
 
     for (cfp = devMergeList; cfp != NULL; cfp = cfp->next)
     {
-	if ((pmode = parallelDevs(fp, (devMerge *)cfp)) != NOT_PARALLEL)
+	if ((pmode = parallelDevs(fp, cfp)) != NOT_PARALLEL)
 	{
 	    cf = cfp->dev;
 	    cg = &cfp->dev->dev_terms[0];
