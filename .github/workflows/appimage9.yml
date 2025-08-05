@@ -105,8 +105,10 @@ jobs:
           echo "" >> RELEASE-NOTES-EL9.txt
 
           # RELEASE-NOTES-CL.txt
+          set +e # allow this to fail to empty string
           git_previous_tag=$(git describe --tags --abbrev=0 $(git rev-list --tags --skip=1 --max-count=1))
           echo git_previous_tag=$git_previous_tag
+          set -e
           if [ -n "${git_previous_tag}" ]
           then
               echo "### Change Log (since previous tag):" > RELEASE-NOTES-CL.txt
@@ -136,6 +138,11 @@ jobs:
 
           # RELEASE-NOTES-GH.txt (this is shared for all AppImage for one tag)
           echo "### commit ${git_describe}" | sed -e 's#~#\\~#g' > RELEASE-NOTES-GH.txt
+          if [[ "$GITHUB_REF" =~ ^refs/tags/ ]]
+          then
+            # show tag annotation with tags like before
+            git tag  --cleanup=strip "--format=%(contents)" -n "${GITHUB_REF:10}" | sed -e 's#\([~|]\)#\\\1#g' >> RELEASE-NOTES-GH.txt
+          fi
           echo "" >> RELEASE-NOTES-GH.txt
           cat RELEASE-NOTES-DOCS.txt >> RELEASE-NOTES-GH.txt
           cat RELEASE-NOTES-CL.txt >> RELEASE-NOTES-GH.txt
