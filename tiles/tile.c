@@ -769,6 +769,33 @@ extern inline void TiFree1(Tile **delay1, Tile *tile);
 extern inline void TiJoinX1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane);
 extern inline void TiJoinY1(Tile **delay1, Tile *tile1, Tile *tile2, Plane *plane);
 #else
+#ifdef HAVE_SYS_MMAN_H
+void
+TiFree(Tile *tile)
+{
+    tile->ti_client = PTR2CD(TileStoreFreeList);
+    TileStoreFreeList = tile;
+}
+#else
+/*
+ * --------------------------------------------------------------------
+ *
+ * TiFree ---
+ *
+ *	Release memory allocation for tiles
+ *
+ * Results:
+ *	None.
+ *
+ * --------------------------------------------------------------------
+ */
+void
+TiFree(Tile *tile)
+{
+    freeMagic((char *)tile);
+}
+#endif
+
 /* To support older compilers (that don't auto emit based on -O level) */
 void
 TiFreeIf(Tile *tile)
