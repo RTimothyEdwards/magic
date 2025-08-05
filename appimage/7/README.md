@@ -39,6 +39,34 @@ Example startup with command line options:
 ./Magic-x86_64.AppImage -d XR -T scmos
 ```
 
+# FAQ: How to use (inside docker / podman)
+
+```
+chmod +x Magic-x86_64.AppImage
+
+### Podman or Docker, use :Z when rootless with selinux enabled
+podman run --rm --device /dev/fuse --privileged \
+  -v "$(pwd):/tmp/work:Z" -v "/tmp/.X11-unix/X0:/tmp/.X11-unix/X0:Z" \
+  -e DISPLAY -ti centos:7
+
+### Inside Docker:
+echo "FIXUP yum from vault and update" \
+  && ls -l /etc/yum.repos.d/ \
+  && cp /etc/yum.repos.d/CentOS-Base.repo /tmp/CentOS-Base.repo.old \
+  && sed -e 's/mirror.centos.org/vault.centos.org/g' -i /etc/yum.repos.d/*.repo  \
+  && sed -e 's/^#.*baseurl=http/baseurl=http/g'      -i /etc/yum.repos.d/*.repo  \
+  && sed -e 's/^mirrorlist=http/#mirrorlist=http/g'  -i /etc/yum.repos.d/*.repo  \
+  && diff -u /tmp/CentOS-Base.repo.old /etc/yum.repos.d/CentOS-Base.repo; \
+  yum clean all \
+  && yum -y update \
+  && rm -f /tmp/CentOS-Base.repo.old
+
+yum install -y fuse libX11 cairo
+
+cd /tmp/work
+
+./Magic-x86_64.AppImage -d XR -T scmos
+```
 
 # Building Requirements
 
