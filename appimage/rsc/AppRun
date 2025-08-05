@@ -1,7 +1,39 @@
 #!/bin/sh
 export CURDIR=$(dirname $(readlink -f "${0}"))
+
 export PATH="${CURDIR}/bin":$PATH
 export LD_LIBRARY_PATH=${CURDIR}/lib:$LD_LIBRARY_PATH
+
 export CAD_ROOT="${CURDIR}/lib"
 export MAGIC_WISH="${CURDIR}/bin/wish"
-exec "${CURDIR}/bin/magic" $@
+
+function my_echo() {
+    if [ "$MAGIC_VERBOSE" != "0" ]
+    then
+        echo -- $@
+    fi
+}
+
+# Attempt to set by default a valid 'ulimit -n' based on TCL version this
+#  will automatically apply valid limit inside docker running processes.
+if [ "X${MAGIC_ULIMIT_NOFILE:+set}" = "X" ] # not set to something
+then
+    if $MAGIC_WISH "${CURDIR}/version_check.tcl" | grep -q "=8\." # only needed for tcl8
+    then
+        if [ $(ulimit -Sn) -gt 1024 ] # only reduce >1024 to 1024
+        then
+            MAGIC_ULIMIT_NOFILE=1024
+            my_echo "# ulimit -Sn reduced from $(ulimit -Sn) to $MAGIC_ULIMIT_NOFILE"
+        fi
+    fi
+fi
+
+if [ "X$MAGIC_ULIMIT_NOFILE" != "X" ] # non empty
+then
+    # Inform user we did this and hint at how to customize
+    my_echo "ulimit -Sn $MAGIC_ULIMIT_NOFILE # use \$MAGIC_ULIMIT_NOFILE to customize"
+    ulimit -Sn $MAGIC_ULIMIT_NOFILE
+fi
+
+my_echo "# Starting Magic"
+exec "${CURDIR}/bin/magic" "$@"
