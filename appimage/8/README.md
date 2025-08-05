@@ -4,6 +4,7 @@ This is an AppImage that runs on all GNU/Linux platforms with:
     * This excludes non-privileged Docker containers unfortunately, unless pre-extracted.
 * GLIBC 2.28+
 * Cairo 1.15+
+* Supports all Linux x86_64 CPUs
 
 This AppImage build is based on EL8 (via AlmaLinux 8)
 
@@ -38,6 +39,25 @@ Example startup with command line options:
 ./Magic-x86_64.AppImage -d XR -T scmos
 ```
 
+# FAQ: How to use (inside docker / podman)
+
+```
+chmod +x Magic-x86_64.AppImage
+
+### Podman or Docker, use :Z when rootless with selinux enabled
+podman run --rm --device /dev/fuse --privileged \
+  -v "$(pwd):/tmp/work:Z" -v "/tmp/.X11-unix/X0:/tmp/.X11-unix/X0:Z" \
+  -e DISPLAY -ti almalinux:8
+
+### Inside Docker:
+dnf update -y
+
+dnf install -y fuse libX11 cairo libGL libGLU
+
+cd /tmp/work
+
+./Magic-x86_64.AppImage -d XR -T scmos
+```
 
 # Building Requirements
 
