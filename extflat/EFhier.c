@@ -520,12 +520,14 @@ efHierVisitDevs(hc, ca)
  */
 
 int
-efHierVisitSingleResist(hc, name1, name2, res, ca)
-    HierContext *hc;		/* Contains hierarchical pathname to cell */
-    char *name1, *name2;	/* Names of nodes connecting to resistor */
-    Connection *res;		/* Contains resistance to add */
-    CallArg *ca;
+efHierVisitSingleResist(
+    HierContext *hc,		/* Contains hierarchical pathname to cell */
+    const char *name1,
+    const char *name2,		/* Names of nodes connecting to resistor */
+    Connection *res,		/* Contains resistance to add */
+    ClientData cdata)		/* (CallArg *) */
 {
+    CallArg *ca = (CallArg *) CD2PTR(cdata);
     EFNode *n1, *n2;
     HashEntry *he;
     Def *def = hc->hc_use->use_def;
