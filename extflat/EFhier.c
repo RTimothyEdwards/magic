@@ -528,19 +528,19 @@ efHierVisitSingleResist(
     ClientData cdata)		/* (CallArg *) */
 {
     CallArg *ca = (CallArg *) CD2PTR(cdata);
-    EFNode *n1, *n2;
+    const EFNode *n1, *n2;
     HashEntry *he;
     Def *def = hc->hc_use->use_def;
 
     if ((he = HashLookOnly(&def->def_nodes, name1)) == NULL)
 	return 0;
-    n1 = ((EFNodeName *) HashGetValue(he))->efnn_node;
+    n1 = ((const EFNodeName *) HashGetValue(he))->efnn_node;
     if (n1->efnode_flags & EF_KILLED)
 	return 0;
 
     if ((he = HashLookOnly(&def->def_nodes, name2)) == NULL)
 	return 0;
-    n2 = ((EFNodeName *) HashGetValue(he))->efnn_node;
+    n2 = ((const EFNodeName *) HashGetValue(he))->efnn_node;
     if (n2->efnode_flags & EF_KILLED)
 	return 0;
 
