@@ -493,7 +493,8 @@ efHierVisitDevs(hc, ca)
 	if (efHierDevKilled(hc, dev, hc->hc_hierName))
 	    continue;
 
-	if ((*ca->ca_proc)(hc, dev, scale, ca->ca_cdata))
+	const cb_extflat_hiervisitdevs_t ca_hiervisitdevs_proc = (cb_extflat_hiervisitdevs_t) ca->ca_proc; /* FIXME temporary */
+	if ((*ca_hiervisitdevs_proc)(hc, dev, scale, ca->ca_cdata)) /* @invoke cb_extflat_hiervisitdevs_t */
 	    return 1;
     }
     return 0;
