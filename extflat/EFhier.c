@@ -548,7 +548,8 @@ efHierVisitSingleResist(
     if (n1 == n2)
 	return 0;
 
-    return (*ca->ca_proc)(hc, n1->efnode_name->efnn_hier,
+    const cb_extflat_hiervisitresists_t ca_hiervisitresists_proc = (cb_extflat_hiervisitresists_t) ca->ca_proc; /* FIXME temporary */
+    return (*ca_hiervisitresists_proc)(hc, n1->efnode_name->efnn_hier,
 		n2->efnode_name->efnn_hier,
 		res->conn_res, ca->ca_cdata);
 }
