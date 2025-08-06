@@ -594,11 +594,11 @@ EFHierVisitResists(
     ClientData cdata)
 {
     CallArg ca;
-    int efHierVisitResists();	/* Forward reference */
+    int efHierVisitResists(HierContext *hc, CallArg *ca);	/* Forward reference */
 
     ca.ca_proc = (int (*)()) resProc;
     ca.ca_cdata = cdata;
-    return efHierVisitResists(hc, (ClientData) &ca);
+    return efHierVisitResists(hc, &ca);
 }
 
 /*
@@ -613,9 +613,9 @@ EFHierVisitResists(
  */
 
 int
-efHierVisitResists(hc, ca)
-    HierContext *hc;
-    CallArg *ca;
+efHierVisitResists(
+    HierContext *hc,
+    CallArg *ca)
 {
     Def *def = hc->hc_use->use_def;
     Connection *res;
