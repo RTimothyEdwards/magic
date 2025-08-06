@@ -1708,6 +1708,12 @@ drcMaxwidth(argc, argv)
  * must be limited to 90 degrees or 45 degrees.  If not specified, any
  * angle is allowed, although width rules will flag errors on acute angles.
  *
+ * For all types in "layers" (argv[1]), edges between types on the same
+ * plane are considered false edges (e.g., if poly is 90-degrees only,
+ * then a transistor-to-poly edge is not considered because it represents
+ * an angled edge on diffusion, not poly, assuming that both poly and
+ * transistor types appear in the layers list).
+ *
  * ----------------------------------------------------------------------------
  */
 
@@ -1763,7 +1769,7 @@ drcAngles(argc, argv)
 
 	if (pmask == 0)
 	{
-	    TechError("All types for \"rect_only\"  must be on the same plane.\n");
+	    TechError("All types for \"angles\"  must be on the same plane.\n");
 	    return 0;
 	}
 
@@ -1842,16 +1848,29 @@ drcAngles(argc, argv)
 	{
 	    plane = DBPlane(i);
 
-	    /* Insert rule at boundary of tile and TT_SPACE.  This is	*/
-	    /* processed for each tile, separately from other rules, so	*/
-	    /* we don't really care what the edge is;  TT_SPACE is	*/
-	    /* chosen as an arbitrary place to hold the rule.		*/
+	    /* Insert rule at boundary of type and all other types	*/
+	    /* in the same plane that do not belong to the layer list.	*/
 
-	    dp = drcFindBucket(TT_SPACE, i, 1);
-	    dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
-	    drcAssign(dpnew, 1, dp->drcc_next, &set, &set, why,
-			1, angles, plane, plane);
-	    dp->drcc_next = dpnew;
+	    for (j = 0; j < DBNumTypes; j++)
+	    {
+		if (i == j) continue;
+		if ((j != TT_SPACE) && (DBPlane(j) != plane)) continue;
+
+		if (!TTMaskHasType(&set, j))
+		{
+		    dp = drcFindBucket(j, i, 1);
+		    dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
+		    drcAssign(dpnew, 1, dp->drcc_next, &set, &set, why,
+				1, angles, plane, plane);
+		    dp->drcc_next = dpnew;
+
+		    dp = drcFindBucket(i, j, 1);
+		    dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
+		    drcAssign(dpnew, 1, dp->drcc_next, &set, &set, why,
+				1, angles | DRC_REVERSE, plane, plane);
+		    dp->drcc_next = dpnew;
+		}
+	    }
 	}
     }
     return 1;

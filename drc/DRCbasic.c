@@ -478,33 +478,17 @@ drcTile (tile, arg)
 	int deltax, deltay;
 	TileType tt, to;
 
-	/* Check rules for DRC_ANGLES_90 rule and process */
-	tt = TiGetLeftType(tile);
-	if (tt != TT_SPACE)
-	{
-	    for (cptr = DRCCurStyle->DRCRulesTbl[TT_SPACE][tt];
-			cptr != (DRCCookie *) NULL; cptr = cptr->drcc_next)
-		if (cptr->drcc_flags & DRC_ANGLES_90)
-		{
-		    drcCheckAngles(tile, arg, cptr);
-		    break;
-		}
-	}
-	tt = TiGetRightType(tile);
-	if (tt != TT_SPACE)
-	{
-	    for (cptr = DRCCurStyle->DRCRulesTbl[TT_SPACE][tt];
-			cptr != (DRCCookie *) NULL; cptr = cptr->drcc_next)
-		if (cptr->drcc_flags & DRC_ANGLES_90)
-		{
-		    drcCheckAngles(tile, arg, cptr);
-		    break;
-		}
-	}
-
-	/* Full check of edge rules along the diagonal. */
 	tt = TiGetLeftType(tile);	/* inside type */
 	to = TiGetRightType(tile);	/* outside type */
+
+	/* Check rules for DRC_ANGLES_90 rule and process */
+	for (cptr = DRCCurStyle->DRCRulesTbl[to][tt];
+			cptr != (DRCCookie *) NULL; cptr = cptr->drcc_next)
+	    if (cptr->drcc_flags & DRC_ANGLES_90)
+	    {
+		drcCheckAngles(tile, arg, cptr);
+		break;
+	    }
 
 	for (cptr = DRCCurStyle->DRCRulesTbl[to][tt]; cptr != (DRCCookie *) NULL;
 			cptr = cptr->drcc_next)
