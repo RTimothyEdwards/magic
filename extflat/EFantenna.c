@@ -356,12 +356,12 @@ HierName *suffix;
  */
 
 int
-antennacheckVisit(dev, hc, scale, trans, editUse)
-    Dev *dev;		/* Device being output */
-    HierContext *hc;	/* Hierarchical context down to this device */
-    float scale;	/* Scale transform for output */
-    Transform *trans;	/* Coordinate transform */
-    CellUse *editUse;	/* ClientData is edit cell use */
+antennacheckVisit(
+    Dev *dev,		/* Device being output */
+    HierContext *hc,	/* Hierarchical context down to this device */
+    float scale,	/* Scale transform for output */
+    Transform *trans,	/* Coordinate transform */
+    CellUse *editUse)	/* ClientData is edit cell use */
 {
     DevTerm *gate;
     TileType t, conType;
