@@ -327,7 +327,8 @@ efVisitDevs(hc, ca)
 	if (efDevKilled(dev, hc->hc_hierName))
 	    continue;
 
-	if ((*ca->ca_proc)(dev, hc, scale, &t, ca->ca_cdata))
+	const cb_extflat_visitdevs_t ca_visitdevs_proc = (cb_extflat_visitdevs_t) ca->ca_proc; /* FIXME temporary */
+	if ((*ca_visitdevs_proc)(dev, hc, scale, &t, ca->ca_cdata)) /* @invoke cb_extflat_visitdevs_t */
 	    return 1;
     }
     return 0;
