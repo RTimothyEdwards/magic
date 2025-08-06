@@ -25,6 +25,7 @@
 #include "utils/magic.h"
 
 #include "extflat/EFtypes.h" /* EFCapValue, HierName, EFPerimArea, EFNode */
+#include "extflat/EFint.h" /* Def, HierContext, Connection, Distance, CallArg */
 
 
 extern float EFScale;		/* Scale factor to multiply all coords by */
