@@ -49,7 +49,8 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* This must match the definition for extDevTable in extract/ExtBasic.c */
 const char * const extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
 		"devcap", "devcaprev", "vsource", "diode", "pdiode",
-		"ndiode", "subckt", "rsubckt", "msubckt", "csubckt", NULL};
+		"ndiode", "subckt", "rsubckt", "msubckt", "csubckt",
+		"veriloga", NULL};
 #endif
 
 /*
@@ -368,6 +369,7 @@ readfile:
 			   ac = 9;	/* Has device L and W */
 			break;
 		    case DEV_SUBCKT:
+		    case DEV_VERILOGA:
 		    case DEV_MSUBCKT:
 		    case DEV_RSUBCKT:
 		    case DEV_CSUBCKT:

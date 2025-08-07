@@ -197,7 +197,7 @@ static const keydesc keyTable[] = {
  * Table used for parsing the "device" keyword types
  *
  * (Note: "10" for max types in subcircuit is arbitrary---the parser
- * ignores max types for DEV_SUBCKT and DEV_MSUBCKT).
+ * ignores max types for DEV_SUBCKT, DEV_MSUBCKT, and DEV_VERILOGA).
  */
 
 /* types are enumerated in extract.h */
@@ -238,6 +238,9 @@ static const keydesc devTable[] = {
 
     {"csubcircuit",	DEV_CSUBCKT,		4,	7,
 "name dev-types terminal-types [sub-types|None sub-node] [options]"},
+
+    {"veriloga",	DEV_VERILOGA,		3,	11,
+"name dev-types [N] [term1-types ... termN-types [sub-types|None sub-node]] [options]"},
 
     {0}
 };
@@ -2544,13 +2547,14 @@ ExtTechLine(sectionName, argc, argv)
 
 	    /* Check the number of arguments after splitting out	*/
 	    /* parameter entries.  There is no limit on arguments in	*/
-	    /* DEV_SUBCKT and DEV_MSUBCKT.				*/
+	    /* DEV_SUBCKT, DEV_MSUBCKT, and DEV_VERILOGA.		*/
 
 	    class = dv->k_key;
 	    switch (class)
 	    {
 		case DEV_SUBCKT:
 		case DEV_MSUBCKT:
+		case DEV_VERILOGA:
 		    break;
 		default:
 		    /* If parameters were saved but the	*/
@@ -2698,6 +2702,7 @@ ExtTechLine(sectionName, argc, argv)
 
 		case DEV_SUBCKT:
 		case DEV_MSUBCKT:
+		case DEV_VERILOGA:
 		    // Determine if [substrate, name] optional arguments
 		    // are present by checking if the last argument
 		    // parses as a layer list.

@@ -2531,6 +2531,7 @@ spcdevVisit(
     switch(dev->dev_class)
     {
 	case DEV_SUBCKT:
+	case DEV_VERILOGA:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
 	case DEV_MSUBCKT:
@@ -2624,6 +2625,9 @@ spcdevVisit(
 	case DEV_CAPREV:
 	    devchar = 'C';
 	    break;
+	case DEV_VERILOGA:
+	    devchar = 'N';
+	    break;
 	case DEV_SUBCKT:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
@@ -2665,6 +2669,7 @@ spcdevVisit(
 		fprintf(esSpiceF, "%d", esVoltNum++);
 		break;
 	    case DEV_SUBCKT:
+	    case DEV_VERILOGA:
 	    case DEV_RSUBCKT:
 	    case DEV_CSUBCKT:
 	    case DEV_MSUBCKT:
@@ -2716,6 +2721,7 @@ spcdevVisit(
 
 	case DEV_SUBCKT:
 	case DEV_CSUBCKT:
+	case DEV_VERILOGA:
 
 	    /* Subcircuit is "Xnnn gate [source [drain [sub]]]"		*/
 	    /* Subcircuit .subckt record must be ordered to match!	*/
@@ -2746,8 +2752,8 @@ spcdevVisit(
 				name, esSpiceF);
 	    }
 
-	    /* The following only applies to DEV_SUBCKT*, which may define as	*/
-	    /* many terminal types as it wants.					*/
+	    /* The following only applies to DEV_SUBCKT and DEV_VERILOGA, which	*/
+	    /* may define as many terminal types as they want.			*/
 
 	    for (i = 4; i < dev->dev_nterm; i++)
 	    {
@@ -4251,6 +4257,7 @@ parallelDevs(
 	/* There is no way to merge subcircuit devices */
 
 	case DEV_SUBCKT:
+	case DEV_VERILOGA:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
 	    break;

@@ -688,6 +688,9 @@ spcdevHierVisit(
 	case DEV_CAPREV:
 	    devchar = 'C';
 	    break;
+	case DEV_VERILOGA:
+	    devchar = 'N';
+	    break;
 	case DEV_SUBCKT:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:
@@ -725,6 +728,7 @@ spcdevHierVisit(
 		fprintf(esSpiceF, "%d", esVoltNum++);
 		break;
 	    case DEV_SUBCKT:
+	    case DEV_VERILOGA:
 	    case DEV_RSUBCKT:
 	    case DEV_CSUBCKT:
 	    case DEV_MSUBCKT:
@@ -778,6 +782,7 @@ spcdevHierVisit(
 	    /* Drop through to below (no break statement) */
 
 	case DEV_SUBCKT:
+	case DEV_VERILOGA:
 	case DEV_CSUBCKT:
 
 	    /* Subcircuit is "Xnnn gate [source [drain [sub]]]"		*/
@@ -809,8 +814,8 @@ spcdevHierVisit(
 		    spcdevOutNode(hc->hc_hierName, source->dterm_node->efnode_name->efnn_hier,
 				"subckt", esSpiceF);
 	    }
-	    /* The following only applies to DEV_SUBCKT*, which may define as	*/
-	    /* many terminal types as it wants.					*/
+	    /* The following only applies to DEV_SUBCKT and DEV_VERILOGA, which	*/
+	    /* may define as many terminal types as they want.			*/
 
 	    for (i = 4; i < dev->dev_nterm; i++)
 	    {

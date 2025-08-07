@@ -186,6 +186,7 @@ EFGetLengthAndWidth(dev, lptr, wptr)
 	case DEV_ASYMMETRIC:
 	case DEV_BJT:
 	case DEV_SUBCKT:
+	case DEV_VERILOGA:
 	case DEV_MSUBCKT:
 	case DEV_RSUBCKT:
 	case DEV_CSUBCKT:

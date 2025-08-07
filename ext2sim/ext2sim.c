@@ -1127,6 +1127,13 @@ simdevVisit(
 	    fprintf(esSimF, "x");
 	    break;
 
+	case DEV_VERILOGA:
+	    /* Treat verilog-A models as subcircuits (for now, anyway)	*/
+	    /* since IRSIM has no concept of verilog-A models.		*/
+	    is_subckt = TRUE;
+	    fprintf(esSimF, "x");
+	    break;
+
 	default:
 	    fprintf(esSimF, "%c", EFDevTypes[dev->dev_type][0]);
 	    break;

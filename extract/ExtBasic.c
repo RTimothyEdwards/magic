@@ -57,7 +57,7 @@ static char sccsid[] = "@(#)ExtBasic.c	4.13 MAGIC (Berkeley) 12/5/85";
 #ifdef MAGIC_WRAPPER
 const char * const extDevTable[] = {"fet", "mosfet", "asymmetric", "bjt", "devres",
 	"devcap", "devcaprev", "vsource", "diode", "pdiode", "ndiode",
-	"subckt", "rsubckt", "msubckt", "csubckt", NULL};
+	"subckt", "rsubckt", "msubckt", "csubckt", "veriloga", NULL};
 #endif
 
 /* --------------------- Data local to this file ---------------------- */
@@ -2525,6 +2525,7 @@ extOutputDevices(def, transList, outFile)
 	    case DEV_MOSFET:
 	    case DEV_BJT:
 	    case DEV_SUBCKT:
+	    case DEV_VERILOGA:
 	    case DEV_MSUBCKT:
 	    case DEV_ASYMMETRIC:
 		length = 0;
