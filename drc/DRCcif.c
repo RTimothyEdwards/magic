@@ -328,7 +328,7 @@ drcCifSpacing(argc, argv)
          dpnext = drcCifRules[layer[1]][DRC_CIF_SOLID];
          dpnew = (DRCCookie *) mallocMagic((unsigned) (sizeof (DRCCookie)));
          drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
-		why, centidistance, DRC_FORWARD|DRC_BOTHCORNERS | DRC_CIFRULE,
+		why, centidistance, DRC_FORWARD | DRC_BOTHCORNERS | DRC_CIFRULE,
 		layer[0], 0);
          drcCifRules[layer[1]][DRC_CIF_SOLID] = dpnew;
 
@@ -336,7 +336,7 @@ drcCifSpacing(argc, argv)
 	 dpnext = drcCifRules[layer[1]][DRC_CIF_SPACE];
 	 dpnew = (DRCCookie *) mallocMagic((unsigned) sizeof (DRCCookie));
 	 drcCifAssign(dpnew, centidistance, dpnext, &DBSpaceBits, &cmask,
-		why, centidistance, DRC_REVERSE|DRC_BOTHCORNERS | DRC_CIFRULE,
+		why, centidistance, DRC_REVERSE | DRC_BOTHCORNERS | DRC_CIFRULE,
 		layer[0], 0);
 	 drcCifRules[layer[1]][DRC_CIF_SPACE] = dpnew;
 
@@ -1432,7 +1432,7 @@ forgetit:
  */
 
 void
-drcCheckCifMaxwidth(starttile,arg,cptr)
+drcCheckCifMaxwidth(starttile, arg, cptr)
     Tile	*starttile;
     struct drcClientData *arg;
     DRCCookie	*cptr;
@@ -1441,7 +1441,7 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
     int			edgelimit = cptr->drcc_dist;
     Rect		boundrect;
     TileTypeBitMask	*oktypes = &cptr->drcc_mask;
-    Tile		*tile,*tp;
+    Tile		*tile, *tp;
     int 		scale = drcCifStyle->cs_scaleFactor;
 
     arg->dCD_cptr = (DRCCookie *)cptr;
@@ -1458,43 +1458,53 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
 
     if (cptr->drcc_flags & DRC_MAXWIDTH_BOTH)
     {
-	 Rect	rect;
-	 TiToRect(starttile,&rect);
-	 if ((rect.r_xtop-rect.r_xbot > edgelimit) ||
+	Rect	rect;
+	TiToRect(starttile, &rect);
+	if ((rect.r_xtop-rect.r_xbot > edgelimit) ||
 	    (rect.r_ytop-rect.r_ybot > edgelimit))
-	 {
-              rect.r_xbot /= scale;
-              rect.r_xtop /= scale;
-              rect.r_ybot /= scale;
-              rect.r_ytop /= scale;
-	      GeoClip(&rect, arg->dCD_clip);
-	      if (!GEO_RECTNULL(&rect)) {
-		  (*(arg->dCD_function)) (arg->dCD_celldef, &rect,
+	{
+	    rect.r_xbot /= scale;
+	    rect.r_xtop /= scale;
+	    rect.r_ybot /= scale;
+	    rect.r_ytop /= scale;
+	    GeoClip(&rect, arg->dCD_clip);
+	    if (!GEO_RECTNULL(&rect))
+	    {
+		(*(arg->dCD_function)) (arg->dCD_celldef, &rect,
 			arg->dCD_cptr, arg->dCD_clientData);
-		  (*(arg->dCD_errors))++;
-	     }
-	 }
-	 return;
+		(*(arg->dCD_errors))++;
+	    }
+	}
+	return;
     }
     else if (cptr->drcc_flags & DRC_BENDS)
     {
-	 Rect	rect;
-	 TiToRect(starttile,&rect);
-	 if (rect.r_xtop-rect.r_xbot > edgelimit &&
-	    rect.r_ytop-rect.r_ybot > edgelimit)
-	 {
-              rect.r_xbot /= scale;
-              rect.r_xtop /= scale;
-              rect.r_ybot /= scale;
-              rect.r_ytop /= scale;
-	      GeoClip(&rect, arg->dCD_clip);
-	      if (!GEO_RECTNULL(&rect)) {
-		  (*(arg->dCD_function)) (arg->dCD_celldef, &rect,
+	Rect	rect;
+
+	/* Ignore split tiles;  this is a limitation but another
+	 * algorithm is needed to check for maximum width in a
+	 * non-Manhattan area.
+	 */
+	if (IsSplit(starttile)) return;
+
+	TiToRect(starttile, &rect);
+
+	if (rect.r_xtop-rect.r_xbot > edgelimit &&
+		rect.r_ytop-rect.r_ybot > edgelimit)
+	{
+	    rect.r_xbot /= scale;
+	    rect.r_xtop /= scale;
+	    rect.r_ybot /= scale;
+	    rect.r_ytop /= scale;
+	    GeoClip(&rect, arg->dCD_clip);
+	    if (!GEO_RECTNULL(&rect))
+	    {
+		(*(arg->dCD_function)) (arg->dCD_celldef, &rect,
 			arg->dCD_cptr, arg->dCD_clientData);
-		  (*(arg->dCD_errors))++;
-	     }
-	 }
-	 return;
+		(*(arg->dCD_errors))++;
+	    }
+	}
+	return;
     }
 
     /* Mark this tile as pending and push it */
@@ -1513,12 +1523,12 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
 	if (boundrect.r_ytop < TOP(tile)) boundrect.r_ytop = TOP(tile);
 	TiSetClientINT(tile, DRC_PROCESSED);
 
-         if (boundrect.r_xtop - boundrect.r_xbot > edgelimit &&
-             boundrect.r_ytop - boundrect.r_ybot > edgelimit) break;
+        if (boundrect.r_xtop - boundrect.r_xbot > edgelimit &&
+		boundrect.r_ytop - boundrect.r_ybot > edgelimit) break;
 
 	/* Top */
 	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
-	    if (TTMaskHasType(oktypes, TiGetType(tp)))	PUSHTILE(tp);
+	    if (TTMaskHasType(oktypes, TiGetType(tp)))PUSHTILE(tp);
 
 	/* Left */
 	for (tp = BL(tile); BOTTOM(tp) < TOP(tile); tp = RT(tp))
@@ -1531,40 +1541,40 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
 	/* Right */
 	for (tp = TR(tile); TOP(tp) > BOTTOM(tile); tp = LB(tp))
 	    if (TTMaskHasType(oktypes, TiGetType(tp))) PUSHTILE(tp);
-     }
+    }
 
-     if (boundrect.r_xtop - boundrect.r_xbot > edgelimit &&
-             boundrect.r_ytop - boundrect.r_ybot > edgelimit)
-     {
-	 Rect	rect;
-	 TiToRect(starttile,&rect);
-	 {
-              rect.r_xbot /= scale;
-              rect.r_xtop /= scale;
-              rect.r_ybot /= scale;
-              rect.r_ytop /= scale;
-	      GeoClip(&rect, arg->dCD_clip);
-	      if (!GEO_RECTNULL(&rect)) {
-		  (*(arg->dCD_function)) (arg->dCD_celldef, &rect,
+    if (boundrect.r_xtop - boundrect.r_xbot > edgelimit &&
+		boundrect.r_ytop - boundrect.r_ybot > edgelimit)
+    {
+	Rect	rect;
+	TiToRect(starttile, &rect);
+	{
+	    rect.r_xbot /= scale;
+	    rect.r_xtop /= scale;
+	    rect.r_ybot /= scale;
+	    rect.r_ytop /= scale;
+	    GeoClip(&rect, arg->dCD_clip);
+	    if (!GEO_RECTNULL(&rect))
+	    {
+		(*(arg->dCD_function)) (arg->dCD_celldef, &rect,
 			arg->dCD_cptr, arg->dCD_clientData);
-		  (*(arg->dCD_errors))++;
-	      }
-	 }
-
-     }
-     /* reset the tiles */
-     TiSetClient(starttile, DRC_UNPROCESSED);
-     STACKPUSH(starttile, DRCstack);
-     while (!StackEmpty(DRCstack))
-     {
-	tile = (Tile *) STACKPOP(DRCstack);
+		(*(arg->dCD_errors))++;
+	    }
+	}
+    }
+    /* reset the tiles */
+    TiSetClient(starttile, DRC_UNPROCESSED);
+    STACKPUSH(starttile, DRCstack);
+    while (!StackEmpty(DRCstack))
+    {
+	tile = (Tile *)STACKPOP(DRCstack);
 
 	/* Top */
 	for (tp = RT(tile); RIGHT(tp) > LEFT(tile); tp = BL(tp))
 	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
 		TiSetClient(tp, DRC_UNPROCESSED);
-		STACKPUSH(tp,DRCstack);
+		STACKPUSH(tp, DRCstack);
 	    }
 
 	/* Left */
@@ -1572,7 +1582,7 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
 	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
 		TiSetClient(tp, DRC_UNPROCESSED);
-		STACKPUSH(tp,DRCstack);
+		STACKPUSH(tp, DRCstack);
 	    }
 
 	/* Bottom */
@@ -1580,7 +1590,7 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
 	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
 		TiSetClient(tp, DRC_UNPROCESSED);
-		STACKPUSH(tp,DRCstack);
+		STACKPUSH(tp, DRCstack);
 	    }
 
 	/* Right */
@@ -1588,9 +1598,8 @@ drcCheckCifMaxwidth(starttile,arg,cptr)
 	    if (TiGetClient(tp) != DRC_UNPROCESSED)
 	    {
 		TiSetClient(tp, DRC_UNPROCESSED);
-		STACKPUSH(tp,DRCstack);
+		STACKPUSH(tp, DRCstack);
 	    }
-
-     }
+    }
 }
 
