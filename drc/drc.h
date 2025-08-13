@@ -80,11 +80,12 @@ typedef struct drccookie
 #define		DRC_ANGLES_90		0x0800
 #define		DRC_SPLITTILE		0x1000
 #define		DRC_RUNLENGTH		0x2000
+#define		DRC_MANHATTAN		0x4000
 #define 	DRC_NONSTANDARD		(DRC_AREA|DRC_MAXWIDTH|DRC_RECTSIZE\
 					 |DRC_ANGLES_90|DRC_OFFGRID)
 
 /* More flags for indicating what the rule type represents */
-#define		DRC_CIFRULE		0x4000
+#define		DRC_CIFRULE		0x8000
 
 #define	DRC_PENDING			0
 #define DRC_UNPROCESSED 		CLIENTDEFAULT

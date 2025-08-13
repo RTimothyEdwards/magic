@@ -1031,10 +1031,10 @@ DRCTechAddRule(sectionName, argc, argv)
     } ruleKeys[] = {
 	{"angles",	 4,	4,	drcAngles,
     "layers 45|90 why"},
-	{"edge",	 8,	9,	drcEdge,
-    "layers1 layers2 distance okTypes cornerTypes cornerDistance why [plane]"},
-	{"edge4way",	 8,	9,	drcEdge,
-    "layers1 layers2 distance okTypes cornerTypes cornerDistance why [plane]"},
+	{"edge",	 8,	10,	drcEdge,
+    "layers1 layers2 distance okTypes cornerTypes cornerDistance [option] why [plane]"},
+	{"edge4way",	 8,	10,	drcEdge,
+    "layers1 layers2 distance okTypes cornerTypes cornerDistance [option] why [plane]"},
 	{"exact_overlap", 2,	2,	drcExactOverlap,
     "layers"},
 	{"extend",	 5,	6,	drcExtend,
@@ -1985,6 +1985,10 @@ drcSpacing3(argc, argv)
  * Side effects:
  *	Adds rules to the DRC rule table.
  *
+ * Notes:
+ *	8/13/2025:  Added "manhattan_dist" as an option indicating
+ *	that corner checks should assume manhattan distance.  Otherwise
+ *	the rule type is the same as "touching_illegal".
  *-------------------------------------------------------------------
  */
 
@@ -2010,6 +2014,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
     bool touchingok = TRUE;
     bool cornerok = FALSE;
     bool surroundok = FALSE;
+    unsigned short flags = 0;
 
     if (!strcmp(adjacency, "surround_ok"))
     {
@@ -2064,6 +2069,12 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
     {
 	touchingok = FALSE;
 	needtrigger = FALSE;
+    }
+    else if (!strcmp(adjacency, "manhattan_dist"))
+    {
+	touchingok = FALSE;
+	needtrigger = FALSE;
+	flags = DRC_MANHATTAN;
     }
     else
     {
@@ -2198,7 +2209,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 		    else
 		    {
 			drcAssign(dpnew, distance, dp->drcc_next, &tmp1,
-				&tmp2, why, wwidth, DRC_FORWARD, plane2, plane);
+				&tmp2, why, wwidth, DRC_FORWARD | flags, plane2, plane);
 			dp->drcc_next = dpnew;
 		    }
 
@@ -2267,7 +2278,8 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 			{
 			    drcAssign(dpnew,distance,dp->drcc_next,
 					&tmp1, &tmp2, why, wwidth,
-					DRC_REVERSE | DRC_BOTHCORNERS, plane2, plane);
+					DRC_REVERSE | DRC_BOTHCORNERS | flags,
+					plane2, plane);
 			    dp->drcc_next = dpnew;
 		 	}
 		    }
@@ -2320,7 +2332,8 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 		    else
 		    {
 			drcAssign(dpnew, distance, dp->drcc_next, &tmp1, &tmp2,
-					why, distance, DRC_FORWARD, plane2, plane);
+					why, distance, DRC_FORWARD | flags,
+					plane2, plane);
 			dp->drcc_next = dpnew;
 		    }
 
@@ -2358,7 +2371,8 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 			{
 			    drcAssign(dpnew, distance, dp->drcc_next,
 					&tmp1, &tmp2, why, distance,
-					DRC_REVERSE | DRC_BOTHCORNERS, plane2, plane);
+					DRC_REVERSE | DRC_BOTHCORNERS | flags,
+					plane2, plane);
 			    dp->drcc_next = dpnew;
 			}
 		    }
@@ -2418,7 +2432,7 @@ drcMaskSpacing(set1, set2, pmask1, pmask2, wwidth, distance, adjacency,
 		    TTMaskZero(&tmp2);
 
 		    drcAssign(dpnew, 1, dp->drcc_next, &tmp1, &tmp2, why,
-				distance, DRC_FORWARD, plane2, plane);
+				distance, DRC_FORWARD | flags, plane2, plane);
 		    dp->drcc_next = dpnew;
 		}
 	    }
@@ -2640,8 +2654,8 @@ drcSpacing(argc, argv)
  * Process a primitive edge rule.
  * This is of the form:
  *
- *	edge layers1 layers2 dist OKtypes cornerTypes cornerDist why [plane]
- * or	edge4way layers1 layers2 dist OKtypes cornerTypes cornerDist why [plane]
+ *	edge layers1 layers2 dist OKtypes cornerTypes cornerDist [option] why [plane]
+ * or	edge4way layers1 layers2 dist OKtypes cornerTypes cornerDist [option] why [plane]
  *
  * e.g,
  *
@@ -2649,6 +2663,9 @@ drcSpacing(argc, argv)
  *
  * An "edge" rule is applied only down and to the left.
  * An "edge4way" rule is applied in all four directions.
+ *
+ * "option" can be "manhattan_dist", which forces the corner areas to be
+ * checked per manhattan distance rules, not euclidean distance rules.
  *
  * Results:
  *	Returns greater of dist and cdist.
@@ -2668,13 +2685,29 @@ drcEdge(argc, argv)
     int distance = atoi(argv[3]);
     char *okTypes = argv[4], *cornerTypes = argv[5];
     int cdist = atoi(argv[6]);
-    int why = drcWhyCreate(argv[7]);
+    unsigned short flags = 0;
+    int why;
     bool fourway = (strcmp(argv[0], "edge4way") == 0);
     TileTypeBitMask set1, set2, setC, setM;
     DRCCookie *dp, *dpnew;
-    int plane, checkPlane, tmpPlane;
+    int plane, checkPlane, tmpPlane = 0;
     PlaneMask pMask1, pMaskM, pMaskC, pset, ptest;
     TileType i, j;
+
+    if ((argc > 7) && (!strcmp(argv[7], "manhattan_dist")))
+    {
+	flags = DRC_MANHATTAN;
+	why = drcWhyCreate(argv[8]);
+	if (argc == 10)
+	    tmpPlane = DBTechNoisyNamePlane(argv[9]);
+	argc--;
+    }
+    else
+    {
+	why = drcWhyCreate(argv[7]);
+	if (argc == 9)
+	    tmpPlane = DBTechNoisyNamePlane(argv[8]);
+    }
 
     /*
      * Edge4way rules produce [j][i] entries as well as [i][j]
@@ -2707,9 +2740,6 @@ drcEdge(argc, argv)
 	TechError("Corner types aren't in same plane as edges.\n");
 	return (0);
     }
-
-    if (argc == 9)
-	tmpPlane = DBTechNoisyNamePlane(argv[8]);
 
     /*
      * OKtypes determine the checkPlane.  If checkPlane exists, it should
@@ -2786,7 +2816,7 @@ drcEdge(argc, argv)
 		    dp = drcFindBucket(i, j, distance);
 		    dpnew = (DRCCookie *)mallocMagic(sizeof (DRCCookie));
 		    drcAssign(dpnew, distance, dp->drcc_next, &setM, &setC,
-				why, cdist, DRC_FORWARD, checkPlane, plane);
+				why, cdist, DRC_FORWARD | flags, checkPlane, plane);
 		    if (fourway) dpnew->drcc_flags |= DRC_BOTHCORNERS;
 		    dp->drcc_next = dpnew;
 
@@ -2796,7 +2826,7 @@ drcEdge(argc, argv)
 		    dp = drcFindBucket(j, i, distance);
 		    dpnew = (DRCCookie *)mallocMagic(sizeof (DRCCookie));
 		    drcAssign(dpnew,distance,dp->drcc_next, &setM, &setC,
-				why, cdist, DRC_REVERSE, checkPlane, plane);
+				why, cdist, DRC_REVERSE | flags, checkPlane, plane);
 		    dpnew->drcc_flags |= DRC_BOTHCORNERS;
 		    dp->drcc_next = dpnew;
 		}

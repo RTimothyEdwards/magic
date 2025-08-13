@@ -823,7 +823,7 @@ drcTile (tile, arg)
 			    if (TTMaskHasType(&cptr->drcc_corner, TiGetTopType(tpr)))
 		 	    {
 				errRect.r_ybot -= cdist;
-				if (DRCEuclidean)
+				if (DRCEuclidean && !(cptr->drcc_flags & DRC_MANHATTAN))
 				    arg->dCD_radial |= RADIAL_SW;
 			    }
 			}
@@ -851,7 +851,8 @@ drcTile (tile, arg)
 					TiGetBottomType(tpr)))
 				{
 				    errRect.r_ytop += cdist;
-				    if (DRCEuclidean)
+				    if (DRCEuclidean &&
+						!(cptr->drcc_flags & DRC_MANHATTAN))
 					arg->dCD_radial |= RADIAL_NW;
 				}
 			    }
@@ -897,7 +898,7 @@ drcTile (tile, arg)
 			    if (TTMaskHasType(&cptr->drcc_corner, TiGetBottomType(tpl)))
 			    {
 				errRect.r_ytop += cdist;
-				if (DRCEuclidean)
+				if (DRCEuclidean && !(cptr->drcc_flags & DRC_MANHATTAN))
 				    arg->dCD_radial |= RADIAL_NE;
 			    }
 			}
@@ -924,7 +925,8 @@ drcTile (tile, arg)
 				if (TTMaskHasType(&cptr->drcc_corner, TiGetTopType(tpl)))
 				{
 				    errRect.r_ybot -= cdist;
-				    if (DRCEuclidean)
+				    if (DRCEuclidean &&
+						!(cptr->drcc_flags & DRC_MANHATTAN))
 					arg->dCD_radial |= RADIAL_SE;
 				}
 			    }
@@ -1196,7 +1198,7 @@ drcTile (tile, arg)
 		 	if (TTMaskHasType(&cptr->drcc_corner, TiGetBottomType(tpx)))
 			{
 			    errRect.r_xtop += cdist;
-			    if (DRCEuclidean)
+			    if (DRCEuclidean && !(cptr->drcc_flags & DRC_MANHATTAN))
 				arg->dCD_radial |= RADIAL_SE;
 			}
 
@@ -1213,7 +1215,7 @@ drcTile (tile, arg)
 			    if (TTMaskHasType(&cptr->drcc_corner, TiGetBottomType(tpx)))
 			    {
 				errRect.r_xbot -= cdist;
-				if (DRCEuclidean)
+				if (DRCEuclidean && !(cptr->drcc_flags & DRC_MANHATTAN))
 				    arg->dCD_radial |= RADIAL_SW;
 			    }
 			}
@@ -1250,7 +1252,7 @@ drcTile (tile, arg)
 			if (TTMaskHasType(&cptr->drcc_corner, TiGetTopType(tpx)))
 			{
 			    errRect.r_xbot -= cdist;
-			    if (DRCEuclidean)
+			    if (DRCEuclidean && !(cptr->drcc_flags & DRC_MANHATTAN))
 				arg->dCD_radial |= RADIAL_NW;
 			}
 
@@ -1266,7 +1268,7 @@ drcTile (tile, arg)
 			    if (TTMaskHasType(&cptr->drcc_corner, TiGetTopType(tpx)))
 			    {
 				errRect.r_xtop += cdist;
-				if (DRCEuclidean)
+				if (DRCEuclidean && !(cptr->drcc_flags & DRC_MANHATTAN))
 				    arg->dCD_radial |= RADIAL_NE;
 			    }
 			}
