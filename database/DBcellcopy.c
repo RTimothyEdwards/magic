@@ -974,7 +974,7 @@ dbEraseSubFunc(tile, cxp)
     SearchContext *scx;
     Rect sourceRect, targetRect;
     int pNum;
-    TileType type, loctype, subType;
+    TileType dinfo, loctype, subType;
     Plane *plane;
     struct dbCopySubData *csd;	/* Client data */
 
@@ -983,11 +983,12 @@ dbEraseSubFunc(tile, cxp)
     plane = csd->csd_plane;
     pNum = csd->csd_pNum;
     subType = csd->csd_subtype;
-    type = TiGetTypeExact(tile);
+    dinfo = TiGetTypeExact(tile);
     if (IsSplit(tile))
     {
 	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (loctype == TT_SPACE) return 0;
+	dinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
     }
 
     /* Construct the rect for the tile */
@@ -998,7 +999,7 @@ dbEraseSubFunc(tile, cxp)
 
     csd->csd_modified = TRUE;
 
-    return DBNMPaintPlane(plane, type, &targetRect, DBStdEraseTbl(subType, pNum),
+    return DBNMPaintPlane(plane, dinfo, &targetRect, DBStdEraseTbl(subType, pNum),
 		(PaintUndoInfo *)NULL);
 }
 
@@ -1017,7 +1018,7 @@ dbPaintSubFunc(tile, cxp)
     SearchContext *scx;
     Rect sourceRect, targetRect;
     int pNum;
-    TileType type, loctype, subType;
+    TileType dinfo, loctype, subType;
     Plane *plane;
     struct dbCopySubData *csd;	/* Client data */
 
@@ -1026,11 +1027,12 @@ dbPaintSubFunc(tile, cxp)
     plane = csd->csd_plane;
     pNum = csd->csd_pNum;
     subType = csd->csd_subtype;
-    type = TiGetTypeExact(tile);
+    dinfo = TiGetTypeExact(tile);
     if (IsSplit(tile))
     {
 	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (loctype == TT_SPACE) return 0;
+	dinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
     }
 
     /* Construct the rect for the tile */
@@ -1041,7 +1043,7 @@ dbPaintSubFunc(tile, cxp)
 
     csd->csd_modified = TRUE;
 
-    return DBNMPaintPlane(plane, type, &targetRect, DBStdPaintTbl(subType, pNum),
+    return DBNMPaintPlane(plane, dinfo, &targetRect, DBStdPaintTbl(subType, pNum),
 		(PaintUndoInfo *)NULL);
 }
 
@@ -1061,7 +1063,7 @@ dbEraseNonSub(tile, cxp)
     SearchContext *scx;
     Rect sourceRect, targetRect;
     Plane *plane;		/* Plane of target data */
-    TileType type, loctype, subType;
+    TileType dinfo, loctype, subType;
     struct dbCopySubData *csd;
     int pNum;
 
@@ -1072,11 +1074,12 @@ dbEraseNonSub(tile, cxp)
 
     scx = cxp->tc_scx;
 
-    type = TiGetTypeExact(tile);
+    dinfo = TiGetTypeExact(tile);
     if (IsSplit(tile))
     {
 	loctype = (SplitSide(tile)) ? SplitRightType(tile) : SplitLeftType(tile);
 	if (loctype == TT_SPACE) return 0;
+	dinfo = DBTransformDiagonal(dinfo, &scx->scx_trans);
     }
 
     /* Construct the rect for the tile */
@@ -1086,7 +1089,7 @@ dbEraseNonSub(tile, cxp)
     GEOTRANSRECT(&scx->scx_trans, &sourceRect, &targetRect);
 
     /* Erase the substrate type from the area of this tile in the target plane. */
-    return DBNMPaintPlane(plane, type, &targetRect, DBStdEraseTbl(subType, pNum),
+    return DBNMPaintPlane(plane, dinfo, &targetRect, DBStdEraseTbl(subType, pNum),
 		(PaintUndoInfo *)NULL);
 }
 
