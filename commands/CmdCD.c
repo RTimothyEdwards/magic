@@ -4765,9 +4765,10 @@ CmdDrop(
  * Usage:
  *	dump cellName [child refPointChild] [parent refPointParent]
  *
- * where the refPoints are either a label name, e.g., SOCKET_A, or an x-y
- * pair of integers, e.g., 100 200.  The words "child" and "parent" are
- * keywords, and may be abbreviated.
+ * where the refPoints are either "label" and a label name, e.g.,
+ * "label SOCKET_A", a corner position, e.g., "ur", or an x-y pair of
+ * coordinates, e.g., "100 200", or "1um 5um".  The words "child",
+ * "parent", and "label" are keywords, and may be abbreviated.
  *
  * Results:
  *      None.
@@ -4973,18 +4974,40 @@ cmdDumpParseArgs(
      * points weren't provided.  (Lower-left of the box tool is interpreted
      * in root coordinates).
      */
-	// getcell cellname child 0 0 parent ll v 0 0
+
+    /*
+     * Examples:  getcell cellname v child 0 0 parent ll
+     *		  getcell cellname child 0 0 parent 1um 1um
+     *		  getcell cellname child 0 0
+     *		  getcell cellname 90v child label VDD
+     * etc.
+     */
+
     av = &cmd->tx_argv[2];
     ac = cmd->tx_argc - 2;
     hasChild = hasRoot = hasTrans = FALSE;
     while (ac > 0)
     {
-	static const char * const kwdNames[] = { "child", "parent", "0", "90", "180", "270",
-					    "v", "0v", "90v", "180v", "270v",
-					    "h", "0h", "90h", "180h", "270h", 0 };
-	static const char * const refPointNames[] = { "ll", "lr", "ul", "ur", 0 };
+	static const char * const kwdNames[] = { "child", "parent",
+					"0", "90", "180", "270",
+					"v", "0v", "90v", "180v", "270v",
+					"h", "0h", "90h", "180h", "270h", 0 };
+	typedef enum {
+		IDX_CHILD, IDX_PARENT,
+		IDX_ZERO, IDX_90, IDX_180, IDX_270,
+		IDX_VERT, IDX_ZERO_VERT, IDX_90_VERT, IDX_180_VERT, IDX_270_VERT,
+		IDX_HORZ, IDX_ZERO_HORZ, IDX_90_HORZ, IDX_180_HORZ, IDX_270_HORZ
+	} optionType;
+
+	static const char * const refPointNames[] = {
+			"ll", "lr", "ul", "ur", "label", 0 };
+	typedef enum {
+		IDX_LL, IDX_LR, IDX_UL, IDX_UR, IDX_LABEL
+	} refPointType;
+
 	Label *lab;
-	int n,p;
+	int n, p;
+	Point locp;
 
 	n = Lookup(av[0], kwdNames);
 	if (n < 0)
@@ -4994,130 +5017,143 @@ cmdDumpParseArgs(
 	}
 	switch (n)
 	{
-	    case  0:	/* Child */
+	    case  IDX_CHILD:	/* "child" */
 		if (ac < 2)
 		{
 		    TxError("Keyword must be followed by a reference point\n");
 		    goto usage;
 	        }
-		//else if (ac == 3) # error case: getcell cellname child 0 0 parent ll -> (ac > 3) -> read 0 as label 
-		else if (ac >= 3 && StrIsInt(av[1]) && StrIsInt(av[2]))
-		{
-		    childPoint.p_x = cmdParseCoord(w, av[1], TRUE, TRUE);
-		    childPoint.p_y = cmdParseCoord(w, av[2], TRUE, FALSE);
-		    av += 3;
-		    ac -= 3;
-		}
 		else
 		{
 		    p = Lookup(av[1], refPointNames);
-		    if (p == 0) /* lower left */
+		    if (p == IDX_LL) /* lower left */
 		    {
 			childPoint.p_x = bbox.r_ll.p_x;
 			childPoint.p_y = bbox.r_ll.p_y;
 		    }
-		    else if (p == 1) /* lower right */
+		    else if (p == IDX_LR) /* lower right */
 		    {
 			childPoint.p_x = bbox.r_ur.p_x;
 			childPoint.p_y = bbox.r_ll.p_y;
 		    }
-		    else if (p == 2) /* upper left */
+		    else if (p == IDX_UL) /* upper left */
 		    {
 			childPoint.p_x = bbox.r_ll.p_x;
 			childPoint.p_y = bbox.r_ur.p_y;
 		    }
-		    else if (p == 3) /* upper right */
+		    else if (p == IDX_UR) /* upper right */
 		    {
 			childPoint.p_x = bbox.r_ur.p_x;
 			childPoint.p_y = bbox.r_ur.p_y;
 		    }
-		    else
+		    else if ((p == IDX_LABEL) && (ac >= 3)) /* label */
 		    {
 			childPoint = TiPlaneRect.r_ur;
-			(void) DBSrLabelLoc(dummy, av[1], cmdDumpFunc,
+			(void) DBSrLabelLoc(dummy, av[2], cmdDumpFunc,
 					    &childPoint);
 			if (childPoint.p_x == TiPlaneRect.r_xtop &&
 			    childPoint.p_y == TiPlaneRect.r_ytop)
 			{
 			    TxError("Couldn't find label \"%s\" in cell \"%s\".\n",
-				    av[1], cmd->tx_argv[1]);
+				    av[2], cmd->tx_argv[1]);
 			    return FALSE;
 			}
+			av += 1;
+			ac -= 1;
+		    }
+		    else if (ac >= 3)	/* Coordinate pair */
+		    {
+			childPoint.p_x = cmdParseCoord(w, av[1], TRUE, TRUE);
+			childPoint.p_y = cmdParseCoord(w, av[2], TRUE, FALSE);
+			av += 1;
+			ac -= 1;
+		    }
+		    else
+		    {
+			TxError("Must provide two valid coordinates\n");
+			goto usage;
 		    }
 		    av += 2;
 		    ac -= 2;
 		}
 		hasChild = TRUE;
 		break;
-	    case  1:	/* Parent */
+
+	    case  IDX_PARENT:	/* "parent" */
 		if (ac < 2)
 		{
 		    TxError("Keyword must be followed by a reference point\n");
 		    goto usage;
-	    }
-		//else if (ac == 3) # error case: getcell cellname child 0 0 parent ll v 0 0 -> (ac > 3) -> read 0 as label 
-		else if (ac >= 3 && StrIsInt(av[1]) && StrIsInt(av[2]))
-		{
-		    editPoint.p_x = cmdParseCoord(w, av[1], TRUE, TRUE);
-		    editPoint.p_y = cmdParseCoord(w, av[2], TRUE, FALSE);
-		    av += 3;
-		    ac -= 3;
-		    GeoTransPoint(&EditToRootTransform, &editPoint,
-				  &rootPoint);
 		}
 		else
 		{
 		    p = Lookup(av[1], refPointNames);
-		    if (p == 0) /* lower left */
+		    if (p == IDX_LL)	/* lower left */
 		    {
 			if (!ToolGetBox(&rootDef, &rootBox) ||
 			    (rootDef != EditRootDef)) goto box_error;
 			rootPoint.p_x = rootBox.r_ll.p_x;
 			rootPoint.p_y = rootBox.r_ll.p_y;
 		    }
-		    else if (p == 1) /* lower right */
+		    else if (p == IDX_LR) /* lower right */
 		    {
 			if (!ToolGetBox(&rootDef, &rootBox) ||
 			    (rootDef != EditRootDef)) goto box_error;
 			rootPoint.p_x = rootBox.r_ur.p_x;
 			rootPoint.p_y = rootBox.r_ll.p_y;
 		    }
-		    else if (p == 2) /* upper left */
+		    else if (p == IDX_UL) /* upper left */
 		    {
 			if (!ToolGetBox(&rootDef, &rootBox) ||
 			    (rootDef != EditRootDef)) goto box_error;
 			rootPoint.p_x = rootBox.r_ll.p_x;
 			rootPoint.p_y = rootBox.r_ur.p_y;
 		    }
-		    else if (p == 3) /* upper right */
+		    else if (p == IDX_UR) /* upper right */
 		    {
 			if (!ToolGetBox(&rootDef, &rootBox) ||
 			    (rootDef != EditRootDef)) goto box_error;
 			rootPoint.p_x = rootBox.r_ur.p_x;
 			rootPoint.p_y = rootBox.r_ur.p_y;
 		    }
-		    else
+		    else if ((p == IDX_LABEL) && (ac >= 3))	/* label */
 		    {
 			for (lab = editDef->cd_labels; lab; lab = lab->lab_next)
-			    if (strcmp(lab->lab_text, av[1]) == 0)
+			    if (strcmp(lab->lab_text, av[2]) == 0)
 				break;
 
 			if (lab == NULL)
 			{
 			    TxError("Couldn't find label \"%s\" in edit cell.\n",
-				    av[1]);
+				    av[2]);
 			    return FALSE;
 			}
 			editPoint = lab->lab_rect.r_ll;
 			GeoTransPoint(&EditToRootTransform, &editPoint,
 				      &rootPoint);
+			av += 1;
+			ac -= 1;
+		    }
+		    else if (ac >= 3)	/* Coordinate pair */
+		    {
+			editPoint.p_x = cmdParseCoord(w, av[1], TRUE, TRUE);
+			editPoint.p_y = cmdParseCoord(w, av[2], TRUE, FALSE);
+			av += 1;
+			ac -= 1;
+			GeoTransPoint(&EditToRootTransform, &editPoint,
+				  &rootPoint);
+		    }
+		    else
+		    {
+			TxError("Must provide two valid coordinates\n");
+			goto usage;
 		    }
 		    av += 2;
 		    ac -= 2;
 		}
 		hasRoot = TRUE;
 		break;
-	    case  2:	/* 0 */
+	    case  IDX_ZERO:	/* "0" */
 		tx_cell = &GeoIdentityTransform;
 transform_cell:
 		if (ac < 2 )
@@ -5133,109 +5169,116 @@ default_action:
 		    }
 		    av += 1;
 		    ac -= 1;
-	    }
-		// error case: getcell cellname v 0 0 -> read 0 in kwdNames -> goto default transform
-		// av[1] = "0", "90", "180", "270" case -> av[1] must mean editpoint coordinate
-		else if (Lookup(av[1], kwdNames)>=0 && Lookup(av[1], kwdNames)!= 2 && strcmp(av[1],"90") && strcmp(av[1],"180") && strcmp(av[1],"270"))
+		}
+
+		/*
+		 * Error case:
+		 * getcell cellname v 0 0 ->
+		 *	read 0 in kwdNames
+		 *	goto default transform
+		 * av[1] = "0", "90", "180", "270" case ->
+		 *	av[1] must mean editpoint coordinate
+		 */
+
+		else if (Lookup(av[1], kwdNames) >= 0 &&
+			Lookup(av[1], kwdNames) != 2 &&
+			strcmp(av[1], "90") &&
+			strcmp(av[1], "180") &&
+			strcmp(av[1], "270"))
 		{
 		    goto default_action;
 		}
 		else
 		{
-		    if (StrIsInt(av[1]))
+		    p = Lookup(av[1], refPointNames);
+		    if (p == IDX_LL) /* lower left */
 		    {
-			editPoint.p_x = atoi(av[1]);
-			if (ac < 3 || !StrIsInt(av[2]))
+			editPoint.p_x = bbox.r_ll.p_x;
+			editPoint.p_y = bbox.r_ll.p_y;
+		    }
+		    else if (p == IDX_LR) /* lower right */
+		    {
+			editPoint.p_x = bbox.r_ur.p_x;
+			editPoint.p_y = bbox.r_ll.p_y;
+		    }
+		    else if (p == IDX_UL) /* upper left */
+		    {
+			editPoint.p_x = bbox.r_ll.p_x;
+			editPoint.p_y = bbox.r_ur.p_y;
+		    }
+		    else if (p == IDX_UR) /* upper right */
+		    {
+			editPoint.p_x = bbox.r_ur.p_x;
+			editPoint.p_y = bbox.r_ur.p_y;
+		    }
+		    else if ((p == IDX_LABEL) && (ac >= 3))	/* label */
+		    {
+			editPoint = TiPlaneRect.r_ur;
+			(void) DBSrLabelLoc(dummy, av[1], cmdDumpFunc, &editPoint);
+			if (editPoint.p_x == TiPlaneRect.r_xtop &&
+				editPoint.p_y == TiPlaneRect.r_ytop)
 			{
-			    TxError("Must provide two coordinates\n");
-			    goto usage;
+			    TxError("Couldn't find label \"%s\" in cell \"%s\".\n",
+					av[1], cmd->tx_argv[1]);
+			    return FALSE;
 			}
-			editPoint.p_y = atoi(av[2]);
-			av += 3;
-			ac -= 3;
+			av += 1;
+			ac -= 1;
+		    }
+		    else if (ac >= 3)	/* Coordinate pair */
+		    {
+			editPoint.p_x = cmdParseCoord(w, av[1], TRUE, TRUE);
+			editPoint.p_y = cmdParseCoord(w, av[2], TRUE, FALSE);
+			av += 1;
+			ac -= 1;
 		    }
 		    else
 		    {
-			p = Lookup(av[1], refPointNames);
-			if (p == 0) /* lower left */
-			{
-			    editPoint.p_x = bbox.r_ll.p_x;
-			    editPoint.p_y = bbox.r_ll.p_y;
-			}
-			else if (p == 1) /* lower right */
-			{
-			    editPoint.p_x = bbox.r_ur.p_x;
-			    editPoint.p_y = bbox.r_ll.p_y;
-			}
-			else if (p == 2) /* upper left */
-			{
-			    editPoint.p_x = bbox.r_ll.p_x;
-			    editPoint.p_y = bbox.r_ur.p_y;
-			}
-			else if (p == 3) /* upper right */
-			{
-			    editPoint.p_x = bbox.r_ur.p_x;
-			    editPoint.p_y = bbox.r_ur.p_y;
-			}
-			else
-			{
-			    editPoint = TiPlaneRect.r_ur;
-			    (void) DBSrLabelLoc(dummy, av[1], cmdDumpFunc,
-						&editPoint);
-			    if (editPoint.p_x == TiPlaneRect.r_xtop &&
-				editPoint.p_y == TiPlaneRect.r_ytop)
-			    {
-				TxError("Couldn't find label \"%s\" in cell \"%s\".\n",
-					av[1], cmd->tx_argv[1]);
-				return FALSE;
-			    }
-			}
-			av += 2;
-			ac -= 2;
+			TxError("Must provide two valid coordinates\n");
+			goto usage;
 		    }
-		    {
-			Point p;
-
-			GeoTransPoint(tx_cell, &editPoint, &p);
-			GeoTranslateTrans(tx_cell, editPoint.p_x - p.p_x,
-					  editPoint.p_y - p.p_y, &trans_cell);
-		    }
+		    av += 2;
+		    ac -= 2;
 		}
+		GeoTransPoint(tx_cell, &editPoint, &locp);
+		GeoTranslateTrans(tx_cell, editPoint.p_x - locp.p_x,
+					editPoint.p_y - locp.p_y,
+					&trans_cell);
 		hasTrans = TRUE;
 		break;
-	    case  3:	/* 90 */
+	    case  IDX_90:		/* "90" */
 		tx_cell = &Geo90Transform;
 		goto transform_cell;
-	    case  4:	/* 180 */
+	    case  IDX_180:		/* "180" */
 		tx_cell = &Geo180Transform;
 		goto transform_cell;
-	    case  5:	/* 270 */
+	    case  IDX_270:		/* "270" */
 		tx_cell = &Geo270Transform;
 		goto transform_cell;
-	    case  6:	/* v */
-	    case  7:	/* 0v */
+	    case  IDX_VERT:		/* "v" */
+	    case  IDX_ZERO_VERT:	/* "0v" */
 		tx_cell = &GeoUpsideDownTransform;
 		goto transform_cell;
-	    case  8:	/* 90v */
+	    case  IDX_90_VERT:		/* "90v" */
 		tx_cell = &GeoRef45Transform;
 		goto transform_cell;
-	    case  9:	/* 180v */
+	    case  IDX_180_VERT:		/* "180v" */
 		tx_cell = &GeoSidewaysTransform;
 		goto transform_cell;
-	    case  10:	/* 270v */
+	    case  IDX_270_VERT:		/* "270v" */
 		tx_cell = &GeoRef135Transform;
 		goto transform_cell;
-	    case  11:	/* h */
-	    case  12:	/* 0h */
+	    case  IDX_HORZ:		/* "h" */
+	    case  IDX_ZERO_HORZ:	/* "0h" */
 		tx_cell = &GeoSidewaysTransform;
 		goto transform_cell;
-	    case 13:	/* 90h */
+	    case  IDX_90_HORZ:		/* "90h" */
 		tx_cell = &GeoRef135Transform;
 		goto transform_cell;
-	    case 14:	/* 180h */
+	    case  IDX_180_HORZ:		/* "180h" */
 		tx_cell = &GeoUpsideDownTransform;
 		goto transform_cell;
-	    case 15:	/* 270h */
+	    case  IDX_270_HORZ:		/* "270h" */
 		tx_cell = &GeoRef45Transform;
 		goto transform_cell;
 	}
@@ -5295,15 +5338,17 @@ usage:
 	"Usage: %s cellName [child refPointChild] [parent refPointParent]\n",
 	cmdName);
     TxError("       [transform [refPointTrans]],\n");
-    TxError("       where the refPoints are either a single label name,\n");
+    TxError("       where the refPoints are one of:\n");
     TxError(
-    "       or ll for lower left corner, or lr for lower right corner\n");
+    "	    'label' followed by a single label name,\n");
     TxError(
-    "       or ul for upper left corner, or ur for upper right corner\n");
+    "       or 'll' for lower left corner, 'lr' for lower right corner,\n");
     TxError(
-    "       or a pair of integer coordinates, and the transform is one of\n");
+    "       'ul' for upper left corner, 'ur' for upper right corner,\n");
     TxError(
-    "       90, 180, 270, v, 90v, 180v, 270v, h, 90h, 180h, 270h.\n");
+    "       or a pair of coordinates.  The transform is one of:\n");
+    TxError(
+    "       90, 180, 270, v, 90v, 180v, 270v, h, 90h, 180h, or 270h.\n");
     return FALSE;
 }
 
