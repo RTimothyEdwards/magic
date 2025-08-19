@@ -953,6 +953,7 @@ ResCheckPorts(cellDef)
 			portloc.p_x, portloc.p_y);
 		node->location = portloc;
 		node->drivepoint = node->location;
+		node->status |= REDUNDANT;
 	    }
 	    node->status |= DRIVELOC | PORTNODE;
 	    node->rs_bbox = lab->lab_rect;
