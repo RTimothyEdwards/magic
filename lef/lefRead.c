@@ -2365,7 +2365,7 @@ origin_error:
 		     * importForiegn.
 		     */
 		}
-		LefEndStatement(f);
+		if (result != -1) LefEndStatement(f);
 		break;
 foreign_error:
 		LefError(LEF_ERROR, "Bad origin in macro FOREIGN; requires "
