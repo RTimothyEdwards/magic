@@ -5239,11 +5239,12 @@ default_action:
 		    }
 		    av += 2;
 		    ac -= 2;
-		}
-		GeoTransPoint(tx_cell, &editPoint, &locp);
-		GeoTranslateTrans(tx_cell, editPoint.p_x - locp.p_x,
+
+		    GeoTransPoint(tx_cell, &editPoint, &locp);
+		    GeoTranslateTrans(tx_cell, editPoint.p_x - locp.p_x,
 					editPoint.p_y - locp.p_y,
 					&trans_cell);
+		}
 		hasTrans = TRUE;
 		break;
 	    case  IDX_90:		/* "90" */
