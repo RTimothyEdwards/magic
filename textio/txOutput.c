@@ -369,8 +369,9 @@ TxUseMore(void)
 
     if ((useenv = getenv("PAGER")) == NULL)
     {
-	pagerpath = (char *) mallocMagic((unsigned) (strlen(PAGERDIR) + 1));
-	strcpy(pagerpath, PAGERDIR);
+	char *tmp = (char *) mallocMagic((unsigned) (strlen(PAGERDIR) + 1));
+	strcpy(tmp, PAGERDIR);
+	pagerpath = tmp;
     }
     else
 	pagerpath = useenv;
@@ -418,7 +419,7 @@ TxUseMore(void)
     TxMoreFile = fdopen(pipeEnds[1], "w");
 
 done:
-    if (useenv == NULL) freeMagic(pagerpath);
+    if (useenv == NULL) freeMagic((char*)pagerpath);
     return;
 }
 
