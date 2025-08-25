@@ -769,7 +769,7 @@ extern void DBTechInit();
 extern bool DBTechSetTech();
 extern void DBTechInitVersion();
 extern bool DBTechSetVersion();
-extern bool DBTechAddPlane();
+extern bool DBTechAddPlane(const char *sectionName, int argc, char *argv[]);
 extern bool DBTechAddType();
 extern bool DBTechAddAlias();
 extern void DBTechFinalType();

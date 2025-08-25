@@ -264,12 +264,12 @@ DBTechInitType()
 
     /*ARGSUSED*/
 bool
-DBTechAddPlane(sectionName, argc, argv)
-    char *sectionName;
-    int argc;
-    char *argv[];
+DBTechAddPlane(
+    const char *sectionName,
+    int argc,
+    char *argv[])
 {
-    char *cp;
+    const char *cp;
 
     if (DBNumPlanes >= PL_MAXTYPES)
     {
