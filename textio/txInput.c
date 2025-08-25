@@ -84,8 +84,8 @@ void   make_techtype_list(void);
 void   update_cellname_hash(void);
 
 const char **completion_list;
-const char **magic_command_list  = (char **)NULL;
-const char **magic_techtype_list = (char **)NULL;
+const char **magic_command_list  = (const char **)NULL;
+const char **magic_techtype_list = (const char **)NULL;
 HashTable cellname_hash;
 
 static int interactive_flag;
@@ -628,7 +628,7 @@ magic_completion_function(
 		    break;
 		case LAYER_COMPL:
 		    completion_func = list_completion_function;
-		    if (magic_techtype_list == (char **)NULL)
+		    if (magic_techtype_list == NULL)
 			make_techtype_list();
 		    completion_list = magic_techtype_list;
 		    break;
@@ -701,7 +701,7 @@ void
 update_cellname_hash(void)
 {
     extern char *Path;
-    char *path    = Path;
+    const char *path = Path;
     char *dirname = strdup(Path);
 
     while (nextName(&path, "", dirname, strlen(Path)))
@@ -953,7 +953,7 @@ make_techtype_list(void)
 {
     int i, techdep_layers = DBNumUserLayers - TT_TECHDEPBASE;
 
-    magic_techtype_list = (char **)mallocMagic(sizeof(char *)
+    magic_techtype_list = (const char **)mallocMagic(sizeof(char *)
 		* (techdep_layers + 8 + 2 + 1));
 
     for (i = 0; i < techdep_layers; i++)
