@@ -101,6 +101,14 @@ TxInit(void)
 
 #ifdef USE_READLINE
 
+/*ARGSUSED*/
+static int
+TxGetChar_internal(FILE *fp)
+{
+    /* The readline prototype is: typedef int rl_getc_func_t PARAMS((FILE *)); */
+    return TxGetChar();
+}
+
 void
 TxInitReadline(void)
 {
@@ -108,7 +116,7 @@ TxInitReadline(void)
     const char * const *commandTable;
     char nobell[] = "set bell-style none";
 
-    rl_getc_function = TxGetChar;
+    rl_getc_function = TxGetChar_internal;
     rl_pre_input_hook = TxPrefix;
     rl_readline_name = "magic";
 
