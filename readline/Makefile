@@ -4,6 +4,8 @@ include ${MAGICDIR}/defs.mak
 
 module: readline-create-symlinks libreadline.a libhistory.a
 
+lib: libreadline.a libhistory.a
+
 depend:
 
 # NOTE:  Previously, source code was in a directory readline-4.3 and
