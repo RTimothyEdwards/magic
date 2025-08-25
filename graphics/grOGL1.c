@@ -920,7 +920,7 @@ GrOGLDelete(w)
     HashEntry	*entry;
 
     xw = (Window) w->w_grdata;
-    entry = HashLookOnly(&grOGLWindowTable, (char *)xw);
+    entry = HashLookOnly(&grOGLWindowTable, (const char *)(intptr_t)xw);
     HashSetValue(entry,NULL);
 
     XDestroyWindow(grXdpy, xw);
