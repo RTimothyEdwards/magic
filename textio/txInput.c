@@ -83,9 +83,9 @@ char  *ostyle_completion_function(const char *, int);
 void   make_techtype_list(void);
 void   update_cellname_hash(void);
 
-const char **completion_list;
-const char **magic_command_list  = (const char **)NULL;
-const char **magic_techtype_list = (const char **)NULL;
+const char * const *completion_list;
+const char * const *magic_command_list  = (const char **)NULL;
+const char * const *magic_techtype_list = (const char **)NULL;
 HashTable cellname_hash;
 
 static int interactive_flag;
@@ -110,153 +110,153 @@ const char *magic_direction_list[] = {
 static const struct cmd_spec {
   const char *cmd;
   int   type;
-  char *args[32];
-} const magic_cmd_spec[] = {
-  { "", COMMAND_COMPL, {(char *)NULL} },
-  { "help", COMMAND_COMPL, {(char *)NULL} },
+  const char *args[32];
+} magic_cmd_spec[] = {
+  { "", COMMAND_COMPL, {NULL} },
+  { "help", COMMAND_COMPL, {NULL} },
 
-  { "shell", FILE_COMPL, {(char *)NULL} },
-  { "addpath", FILE_COMPL, {(char *)NULL} },
-  { "path", FILE_COMPL, {(char *)NULL} },
-  { "logcommands", FILE_COMPL, {(char *)NULL} },
-  { "startrsim", FILE_COMPL, {(char *)NULL} },
-  { "rsim", FILE_COMPL, {(char *)NULL} },
-  { "source", FILE_COMPL, {(char *)NULL} },
-  { "save", FILE_COMPL, {(char *)NULL} },
+  { "shell", FILE_COMPL, {NULL} },
+  { "addpath", FILE_COMPL, {NULL} },
+  { "path", FILE_COMPL, {NULL} },
+  { "logcommands", FILE_COMPL, {NULL} },
+  { "startrsim", FILE_COMPL, {NULL} },
+  { "rsim", FILE_COMPL, {NULL} },
+  { "source", FILE_COMPL, {NULL} },
+  { "save", FILE_COMPL, {NULL} },
 
-  { "getcell", CELL_COMPL, {(char *)NULL} },
-  { "child", CELL_COMPL, {(char *)NULL} },
-  { "parent", CELL_COMPL, {(char *)NULL} },
-  { "dump", CELL_COMPL, {(char *)NULL} },
-  { "list", CELL_COMPL, {(char *)NULL} },
-  { "load", CELL_COMPL, {(char *)NULL} },
-  { "xload", CELL_COMPL, {(char *)NULL} },
+  { "getcell", CELL_COMPL, {NULL} },
+  { "child", CELL_COMPL, {NULL} },
+  { "parent", CELL_COMPL, {NULL} },
+  { "dump", CELL_COMPL, {NULL} },
+  { "list", CELL_COMPL, {NULL} },
+  { "load", CELL_COMPL, {NULL} },
+  { "xload", CELL_COMPL, {NULL} },
 
-  { "macro", MACRO_COMPL, {(char *)NULL} },
-  { "imacro", IMACRO_COMPL, {(char *)NULL} },
-  { "see*", LAYER_COMPL, {(char *)NULL} },
-  { "paint", LAYER_COMPL, {(char *)NULL} },
+  { "macro", MACRO_COMPL, {NULL} },
+  { "imacro", IMACRO_COMPL, {NULL} },
+  { "see*", LAYER_COMPL, {NULL} },
+  { "paint", LAYER_COMPL, {NULL} },
 
   { "*extract", ARGS_COMPL, {"clrdebug", "clrlength", "driver", "interactions",
                              "intercount", "parents", "receiver", "setdebug",
                              "showdebug", "showparents", "showtech", "stats",
-                             "step", "times", (char *)NULL} },
+                             "step", "times", NULL} },
 
-  { "*garoute", ARGS_COMPL, {"clrdebug", "setdebug", "showdebug", (char *)NULL} },
+  { "*garoute", ARGS_COMPL, {"clrdebug", "setdebug", "showdebug", NULL} },
   { "*groute", ARGS_COMPL, {"clrdebug", "onlynet", "setdebug", "showdebug",
-                            "sides", (char *)NULL} },
-  { "*iroute", ARGS_COMPL, {"debug", "help", "parms", (char *)NULL} },
-  { "*malloc", ARGS_COMPL, {"all", "off", "on", "only", "watch", "unwatch", (char *)NULL} },
+                            "sides", NULL} },
+  { "*iroute", ARGS_COMPL, {"debug", "help", "parms", NULL} },
+  { "*malloc", ARGS_COMPL, {"all", "off", "on", "only", "watch", "unwatch", NULL} },
   { "*mzroute", ARGS_COMPL, {"debug", "dumpEstimates", "dumpTags", "help",
-                             "numberLine", "parms", "plane", "version", (char *)NULL} },
+                             "numberLine", "parms", "plane", "version", NULL} },
 
   { "*plow", ARGS_COMPL, {"help", "clrdebug", "jogreduce", "lwidth", "lshadow",
                           "mergedown", "mergeup", "move", "outline", "plow",
                           "print", "random", "setdebug", "shadow", "showdebug",
                           "split", "techshow", "trail", "whenbot", "whentop",
-                          "width", (char *)NULL} },
-  { "*plow lwidth", LAYER_COMPL, { (char *)NULL } },
-  { "*plow width", LAYER_COMPL, { (char *)NULL } },
-  { "*plow lshadow", LAYER_COMPL, { (char *)NULL } },
-  { "*plow shadow", LAYER_COMPL, { (char *)NULL } },
-  { "*plow techshow", FILE_COMPL, { (char *)NULL } },
-  { "*plow outline", DIRECT_COMPL, { (char *)NULL } },
-  { "*plow plow", DIRECT_COMPL, { (char *)NULL } },
+                          "width", NULL} },
+  { "*plow lwidth", LAYER_COMPL, { NULL } },
+  { "*plow width", LAYER_COMPL, { NULL } },
+  { "*plow lshadow", LAYER_COMPL, { NULL } },
+  { "*plow shadow", LAYER_COMPL, { NULL } },
+  { "*plow techshow", FILE_COMPL, { NULL } },
+  { "*plow outline", DIRECT_COMPL, { NULL } },
+  { "*plow plow", DIRECT_COMPL, { NULL } },
 
-  { "*profile", ARGS_COMPL, {"on", "off", (char *)NULL} },
-  { "*watch", PLANE_COMPL, {(char *)NULL} },
-  { "*watch*", ARGS_COMPL, {"demo", "types", (char *)NULL} },
+  { "*profile", ARGS_COMPL, {"on", "off", NULL} },
+  { "*watch", PLANE_COMPL, {NULL} },
+  { "*watch*", ARGS_COMPL, {"demo", "types", NULL} },
 
   { "calma", ARGS_COMPL, {"help", "flatten", "labels", "lower", "noflatten",
-                          "nolabels", "nolower", "read", "write", (char *)NULL} },
-  { "calma read", FILE_COMPL, { (char *)NULL } },
-  { "calma write", FILE_COMPL, { (char *)NULL } },
+                          "nolabels", "nolower", "read", "write", NULL} },
+  { "calma read", FILE_COMPL, { NULL } },
+  { "calma write", FILE_COMPL, { NULL } },
 
   { "cif", ARGS_COMPL, {"help", "arealabels", "idcell", "istyle", "prefix",
-                        "ostyle", "read", "see", "statistics", "write", "flat", (char *)NULL} },
-  { "cif read", FILE_COMPL, { (char *)NULL } },
-  { "cif flat", FILE_COMPL, { (char *)NULL } },
-  { "cif write", FILE_COMPL, { (char *)NULL } },
-  { "cif idcell", ARGS_COMPL, { "yes", "no", (char *)NULL } },
-  { "cif arealabels", ARGS_COMPL, { "yes", "no", (char *)NULL } },
-  { "cif prefix", FILE_COMPL, { (char *)NULL } },
-  { "cif see", LAYER_COMPL, { (char *)NULL } },
-  { "cif istyle", ISTYLE_COMPL, { (char *)NULL } },
-  { "cif ostyle", OSTYLE_COMPL, { (char *)NULL } },
+                        "ostyle", "read", "see", "statistics", "write", "flat", NULL} },
+  { "cif read", FILE_COMPL, { NULL } },
+  { "cif flat", FILE_COMPL, { NULL } },
+  { "cif write", FILE_COMPL, { NULL } },
+  { "cif idcell", ARGS_COMPL, { "yes", "no", NULL } },
+  { "cif arealabels", ARGS_COMPL, { "yes", "no", NULL } },
+  { "cif prefix", FILE_COMPL, { NULL } },
+  { "cif see", LAYER_COMPL, { NULL } },
+  { "cif istyle", ISTYLE_COMPL, { NULL } },
+  { "cif ostyle", OSTYLE_COMPL, { NULL } },
 
-  { "copy", DIRECT_COMPL, { (char *)NULL } },
-  { "move", DIRECT_COMPL, { (char *)NULL } },
-  { "stretch", DIRECT_COMPL, { (char *)NULL } },
+  { "copy", DIRECT_COMPL, { NULL } },
+  { "move", DIRECT_COMPL, { NULL } },
+  { "stretch", DIRECT_COMPL, { NULL } },
 
   { "drc", ARGS_COMPL, {"help", "catchup", "check", "count", "find", "off",
-                        "on", "printrules", "rulestats", "statistics", "why", (char *)NULL} },
-  { "drc printrules", FILE_COMPL, { (char *)NULL } },
+                        "on", "printrules", "rulestats", "statistics", "why", NULL} },
+  { "drc printrules", FILE_COMPL, { NULL } },
 
   { "ext", ARGS_COMPL, {"help", "all", "cell", "do", "length", "no", "parents",
-                        "showparents", "style", "unique", "warn", (char *)NULL} },
-  { "ext style", OSTYLE_COMPL, { (char *)NULL } },
+                        "showparents", "style", "unique", "warn", NULL} },
+  { "ext style", OSTYLE_COMPL, { NULL } },
 
   { "feedback", ARGS_COMPL, {"help", "add", "clear", "count", "find", "save",
-                             "why", "fill", (char *)NULL} },
-  { "feedback save", FILE_COMPL, { (char *)NULL } },
+                             "why", "fill", NULL} },
+  { "feedback save", FILE_COMPL, { NULL } },
 
   { "garoute", ARGS_COMPL, {"help", "channel", "generate", "nowarn", "route",
-                            "reset", "warn", (char *)NULL} },
-  { "getnode", ARGS_COMPL, {"alias", "fast", "abort", (char *)NULL} },
+                            "reset", "warn", NULL} },
+  { "getnode", ARGS_COMPL, {"alias", "fast", "abort", NULL} },
 
   { "iroute", ARGS_COMPL, {"help", "contacts", "layers", "route",
                            "saveParameters", "search", "spacings", "verbosity",
-                           "version", "wizard", (char *)NULL} },
+                           "version", "wizard", NULL} },
   { "iroute help", ARGS_COMPL, {"contacts", "layers", "route",
                            "saveParameters", "search", "spacings", "verbosity",
-                           "version", "wizard", (char *)NULL} },
+                           "version", "wizard", NULL} },
 
   { "plot", ARGS_COMPL, {"help", "postscript", "gremlin", "versatec", "pnm",
-                         "parameters", (char *)NULL} },
-  { "plot postscript", FILE_COMPL, { (char *)NULL } },
-  { "plot gremlin", FILE_COMPL, { (char *)NULL } },
-  { "plot versatec", FILE_COMPL, { (char *)NULL } },
-  { "plot pnm", FILE_COMPL, { (char *)NULL } },
+                         "parameters", NULL} },
+  { "plot postscript", FILE_COMPL, { NULL } },
+  { "plot gremlin", FILE_COMPL, { NULL } },
+  { "plot versatec", FILE_COMPL, { NULL } },
+  { "plot pnm", FILE_COMPL, { NULL } },
 
   { "plow", ARGS_COMPL, {"help", "boundary", "horizon", "jogs", "selection",
-                         "straighten", "noboundary", "nojogs", "nostraighten", (char *)NULL} },
-  { "plow selection", DIRECT_COMPL, { (char *)NULL } },
+                         "straighten", "noboundary", "nojogs", "nostraighten", NULL} },
+  { "plow selection", DIRECT_COMPL, { NULL } },
 
   { "route", ARGS_COMPL, {"help", "end", "jog", "metal", "netlist", "obstacle",
                           "origin", "stats", "settings", "steady", "tech",
-                          "vias", "viamin", (char *)NULL} },
-  { "route netlist", FILE_COMPL, { (char *)NULL } },
+                          "vias", "viamin", NULL} },
+  { "route netlist", FILE_COMPL, { NULL } },
 
   { "select", ARGS_COMPL, {"help", "more", "less", "area", "visible", "cell",
-                           "clear", "save", "box", (char *)NULL} },
-  { "select save", FILE_COMPL, { (char *)NULL } },
-  { "select more", ARGS_COMPL, { "area", "visible", "cell", "box", (char *)NULL } },
-  { "select less", ARGS_COMPL, { "area", "visible", "cell", "box", (char *)NULL } },
-  { "select more area", LAYER_COMPL, { (char *)NULL } },
-  { "select less area", LAYER_COMPL, { (char *)NULL } },
-  { "select more visible", LAYER_COMPL, { (char *)NULL } },
-  { "select less visible", LAYER_COMPL, { (char *)NULL } },
-  { "select more cell", CELL_COMPL, { (char *)NULL } },
-  { "select less cell", CELL_COMPL, { (char *)NULL } },
-  { "select more box", LAYER_COMPL, { (char *)NULL } },
-  { "select less box", LAYER_COMPL, { (char *)NULL } },
+                           "clear", "save", "box", NULL} },
+  { "select save", FILE_COMPL, { NULL } },
+  { "select more", ARGS_COMPL, { "area", "visible", "cell", "box", NULL } },
+  { "select less", ARGS_COMPL, { "area", "visible", "cell", "box", NULL } },
+  { "select more area", LAYER_COMPL, { NULL } },
+  { "select less area", LAYER_COMPL, { NULL } },
+  { "select more visible", LAYER_COMPL, { NULL } },
+  { "select less visible", LAYER_COMPL, { NULL } },
+  { "select more cell", CELL_COMPL, { NULL } },
+  { "select less cell", CELL_COMPL, { NULL } },
+  { "select more box", LAYER_COMPL, { NULL } },
+  { "select less box", LAYER_COMPL, { NULL } },
 
   { "send", ARGS_COMPL, {"netlist", "color", "layout",
 #ifdef THREE_D
 	"wind3d",
 #endif
-		 (char *)NULL} },
-  { "snap", ARGS_COMPL, {"on", "off", (char *)NULL} },
-  { "tool", ARGS_COMPL, {"box", "wiring", "netlist", "rsim", (char *)NULL} },
+		 NULL} },
+  { "snap", ARGS_COMPL, {"on", "off", NULL} },
+  { "tool", ARGS_COMPL, {"box", "wiring", "netlist", "rsim", NULL} },
   { "wire", ARGS_COMPL, {"help", "horizontal", "leg", "switch", "type",
-                         "vertical", (char *)NULL} },
-  { "wire type", LAYER_COMPL, { (char *)NULL } },
-  { "wire switch", LAYER_COMPL, { (char *)NULL } },
+                         "vertical", NULL} },
+  { "wire type", LAYER_COMPL, { NULL } },
+  { "wire switch", LAYER_COMPL, { NULL } },
 
 #ifdef USE_READLINE
-  { "history", ARGS_COMPL, {"n", "r", "help", (char *)NULL} },
+  { "history", ARGS_COMPL, {"n", "r", "help", NULL} },
 #endif
-  { (char *)NULL , 0, {(char *)NULL} }
+  { NULL , 0, {NULL} }
 };
 #endif
 
@@ -953,26 +953,28 @@ make_techtype_list(void)
 {
     int i, techdep_layers = DBNumUserLayers - TT_TECHDEPBASE;
 
-    magic_techtype_list = (const char **)mallocMagic(sizeof(char *)
+    const char **tmp = (const char **)mallocMagic(sizeof(char *)
 		* (techdep_layers + 8 + 2 + 1));
 
     for (i = 0; i < techdep_layers; i++)
-	magic_techtype_list[i] = DBTypeLongNameTbl[i+TT_TECHDEPBASE];
+	tmp[i] = DBTypeLongNameTbl[i+TT_TECHDEPBASE];
 
-    magic_techtype_list[i++] = "magnet";
-    magic_techtype_list[i++] = "fence";
-    magic_techtype_list[i++] = "rotate";
-    magic_techtype_list[i++] = "subcircuit";
-    magic_techtype_list[i++] = "$";
-    magic_techtype_list[i++] = "*";
-    magic_techtype_list[i++] = "errors";
-    magic_techtype_list[i++] = "labels";
-    magic_techtype_list[i++] = "subcell";
+    tmp[i++] = "magnet";
+    tmp[i++] = "fence";
+    tmp[i++] = "rotate";
+    tmp[i++] = "subcircuit";
+    tmp[i++] = "$";
+    tmp[i++] = "*";
+    tmp[i++] = "errors";
+    tmp[i++] = "labels";
+    tmp[i++] = "subcell";
 
-    magic_techtype_list[i++] = "no";
-    magic_techtype_list[i++] = "allSame";
+    tmp[i++] = "no";
+    tmp[i++] = "allSame";
 
-    magic_techtype_list[i]   = NULL;
+    tmp[i]   = NULL;
+
+    magic_techtype_list = tmp; /* (const char * const *) */
 }
 
 #define free You_should_use_the_Magic_procedure_freeMagic
