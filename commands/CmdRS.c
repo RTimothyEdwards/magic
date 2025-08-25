@@ -2534,7 +2534,7 @@ CmdSetLabel(
 		    else
 #ifdef MAGIC_WRAPPER
 		        Tcl_SetResult(magicinterp,
-				DBTypeLongNameTbl[DefaultLabel->lab_type],
+				(char*)DBTypeLongNameTbl[DefaultLabel->lab_type], /* Tcl treats as const */
 				TCL_VOLATILE);
 #else
 		    	TxPrintf("%s\n", DBTypeLongNameTbl[DefaultLabel->lab_type]);

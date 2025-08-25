@@ -781,7 +781,7 @@ extern int DBTechNamePlane(), DBTechNoisyNamePlane();
 extern PlaneMask DBTechNameMask(), DBTechNoisyNameMask();
 extern PlaneMask DBTechTypesToPlanes();
 extern bool DBTechTypesOnPlane();
-extern void DBTechInitPlane();
+extern void DBTechInitPlane(void);
 extern void DBTypeInit();
 extern void DBTechInitType();
 extern void DBTechInitCompose();
@@ -1055,7 +1055,7 @@ extern int DBNumPlanes;
 extern HashTable	DBTypeAliasTable;
 
     /* Gives the official long name of each plane: */
-extern char		*DBPlaneLongNameTbl[NP];
+extern const char	*DBPlaneLongNameTbl[NP];
 
     /* Gives a short name for each plane: */
 extern const char	*DBPlaneShortName();
