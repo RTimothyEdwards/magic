@@ -135,7 +135,7 @@ TxInitReadline(void)
       j++;
     }
 
-    magic_command_list = (char **)mallocMagic(sizeof(char *) * (j + 1));
+    magic_command_list = (const char **)mallocMagic(sizeof(char *) * (j + 1));
 
     i = j = 0;
     commandTable = WindGetCommandTable(DBWclientID);
@@ -145,9 +145,10 @@ TxInitReadline(void)
         k++;
       }
       if( k > 0 ) {
-        magic_command_list[j] = (char *)mallocMagic((k+1)*sizeof(char));
-        strncpy(magic_command_list[j], commandTable[i], k);
-        magic_command_list[j][k] = '\0';
+        char *tmp = (char *)mallocMagic((k+1)*sizeof(char));
+        strncpy(tmp, commandTable[i], k);
+        tmp[k] = '\0';
+        magic_command_list[j] = tmp;
         j++;
       }
       i++;
@@ -160,9 +161,10 @@ TxInitReadline(void)
         k++;
       }
       if( k > 0 ) {
-        magic_command_list[j] = (char *)mallocMagic((k+1)*sizeof(char));
-        strncpy(magic_command_list[j], commandTable[i], k);
-        magic_command_list[j][k] = '\0';
+        char *tmp = (char *)mallocMagic((k+1)*sizeof(char));
+        strncpy(tmp, commandTable[i], k);
+        tmp[k] = '\0';
+        magic_command_list[j] = tmp;
         j++;
       }
       i++;
