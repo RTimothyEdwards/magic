@@ -45,7 +45,7 @@ HashTable DBTypeAliasTable;
 
     /* Planes and their names */
 int DBNumPlanes;
-char *DBPlaneLongNameTbl[PL_MAXTYPES];
+const char *DBPlaneLongNameTbl[PL_MAXTYPES];
 NameList dbPlaneNameLists = {NULL, NULL, NULL, (ClientData)0, FALSE};
 
 
@@ -116,10 +116,10 @@ NameList *dbTechNameAddOne();
  */
 
 void
-DBTechInitPlane()
+DBTechInitPlane(void)
 {
     DefaultPlane *dpp;
-    char *cp;
+    const char *cp;
 
     /* Clear out any old information */
     if (dbPlaneNameLists.sn_next != NULL)

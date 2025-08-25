@@ -1824,7 +1824,7 @@ CmdGoto(
     /* are multiple layers drawn at the indicated point.		*/
 
 #ifdef MAGIC_WRAPPER
-    Tcl_SetResult(magicinterp, DBTypeLongName(ttype), NULL);
+    Tcl_SetResult(magicinterp, (char*)DBTypeLongName(ttype), NULL); /* Tcl treats as const */
 #else
     TxPrintf("node %s is type %s\n", s, DBTypeLongName(ttype));
 #endif
