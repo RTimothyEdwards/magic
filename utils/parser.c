@@ -52,12 +52,12 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
  */
 
 bool
-ParsSplit(str, maxArgc, argc, argv, remainder)
-    char *str;
-    int maxArgc;
-    int *argc;
-    char **argv;
-    char **remainder;
+ParsSplit(
+    char *str,
+    int maxArgc,
+    int *argc,
+    char **argv,
+    const char **remainder)
 {
     char **largv;
     char *newstrp;

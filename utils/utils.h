@@ -70,7 +70,7 @@ extern int  PaEnum(const char *path, const char *file, int (*proc)(), ClientData
 extern int  paVisitProcess();
 extern void SetNoisyInt(int *parm, const char *valueS, FILE *file);
 extern void SetNoisyDI(dlong *parm, const char *valueS, FILE *file);
-extern bool ParsSplit();
+extern bool ParsSplit(char *str, int maxArgc, int *argc, char **argv, const char **remainder);
 
 extern int SetNoisyBool(bool *parm, const char *valueS, FILE *file);
 
