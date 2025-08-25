@@ -573,7 +573,7 @@ groglCreateBackingStore(MagWindow *w)
     if (w->w_client != DBWclientID) return;
 
     /* deferred */
-    if (w->w_grdata == (Window)NULL) return;
+    if (w->w_grdata == PTR2CD(NULL)) return;
 
     width = w->w_screenArea.r_xtop - w->w_screenArea.r_xbot;
     height = w->w_screenArea.r_ytop - w->w_screenArea.r_ybot;
