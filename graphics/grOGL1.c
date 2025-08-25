@@ -1075,7 +1075,7 @@ GrOGLIconUpdate(w,text)
      XClassHint	class;
      char	*brack;
 
-     if (w->w_grdata == (ClientData)NULL) return;
+     if (w->w_grdata == PTR2CD(NULL)) return;
      class.res_name = "magic";
      class.res_class = "magic";
      XSetClassHint( grXdpy, wind, &class);
