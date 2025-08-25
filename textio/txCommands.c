@@ -1101,7 +1101,7 @@ TxParseString_internal(
 				 * event processed.
 				 */
 {
-    char *remainder;
+    const char *remainder;
     TxCommand *cmd;
 
     if (event == NULL) event = &txLastEvent;
