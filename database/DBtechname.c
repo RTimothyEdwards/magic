@@ -347,11 +347,11 @@ DBTypeShortName(
     return ("???");
 }
 
-char *
-DBPlaneShortName(pNum)
-    int pNum;
+const char *
+DBPlaneShortName(
+    int pNum)
 {
-    NameList *tbl;
+    const NameList *tbl;
 
     for (tbl = dbPlaneNameLists.sn_next;
 	    tbl != &dbPlaneNameLists;

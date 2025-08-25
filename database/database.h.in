@@ -1058,7 +1058,7 @@ extern HashTable	DBTypeAliasTable;
 extern char		*DBPlaneLongNameTbl[NP];
 
     /* Gives a short name for each plane: */
-extern char		*DBPlaneShortName();
+extern const char	*DBPlaneShortName();
 
     /* Gives for each plane a mask of all tile types stored in that plane: */
 extern TileTypeBitMask	DBPlaneTypes[NP];
