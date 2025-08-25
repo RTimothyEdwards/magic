@@ -1120,7 +1120,7 @@ extern PlaneMask	DBTypePlaneMaskTbl[TT_MAXTYPES];
 extern char		*DBTypeLongNameTbl[TT_MAXTYPES];
 
     /* Gives a short name for a tile type: */
-extern char		*DBTypeShortName();
+extern const char	*DBTypeShortName(TileType type);
 
     /*
      * The following give masks of all planes that may be affected

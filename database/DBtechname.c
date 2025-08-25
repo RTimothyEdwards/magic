@@ -327,11 +327,11 @@ DBTechNoisyNamePlane(planename)
  * ----------------------------------------------------------------------------
  */
 
-char *
-DBTypeShortName(type)
-    TileType type;
+const char *
+DBTypeShortName(
+    TileType type)
 {
-    NameList *tbl;
+    const NameList *tbl;
 
     for (tbl = dbTypeNameLists.sn_next;
 	    tbl != &dbTypeNameLists;

@@ -32,7 +32,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "drc/drc.h"
 
 extern char *maskToPrint();
-extern char *DBTypeShortName();
+extern const char *DBTypeShortName(TileType type);
 
 /*
  * ----------------------------------------------------------------------------
