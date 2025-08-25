@@ -38,7 +38,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
     /* Types and their names */
 int DBNumTypes;
-char *DBTypeLongNameTbl[NT];
+const char *DBTypeLongNameTbl[NT];
 int DBTypePlaneTbl[NT];		/* Normally accessed as macro "DBPlane(x)" */
 NameList dbTypeNameLists = {NULL, NULL, NULL, (ClientData)0, FALSE};
 HashTable DBTypeAliasTable;
