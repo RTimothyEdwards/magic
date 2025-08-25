@@ -232,7 +232,7 @@ showTech(
     fprintf(outf, "\n");
     fprintf(outf, "Types:\n");
     for (i = 0; i < DBNumTypes; i++) {
-	int pl ; char *spl ;
+	int pl ; const char *spl ;
 
 	pl = DBPlane(i);
 	spl = ( pl <= 0 || pl > DBNumPlanes ) ? "??" : DBPlaneLongName(pl);
@@ -1047,7 +1047,7 @@ CmdWatch(
 	pNum = DBTechNamePlane(cmd->tx_argv[1]);
 	if (pNum < 0)
 	{
-	    char *cp;
+	    const char *cp;
 	    TxError("Unrecognized plane: %s.  Legal names are:\n",
 		    cmd->tx_argv[1]);
 	    for(pNum=0; pNum < PL_MAXTYPES; pNum++) {

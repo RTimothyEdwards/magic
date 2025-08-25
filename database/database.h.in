@@ -1117,7 +1117,7 @@ extern int		DBTypePlaneTbl[TT_MAXTYPES];
 extern PlaneMask	DBTypePlaneMaskTbl[TT_MAXTYPES];
 
     /* Gives the long name for each tile type: */
-extern char		*DBTypeLongNameTbl[TT_MAXTYPES];
+extern const char	*DBTypeLongNameTbl[TT_MAXTYPES];
 
     /* Gives a short name for a tile type: */
 extern const char	*DBTypeShortName(TileType type);
