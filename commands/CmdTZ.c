@@ -1945,7 +1945,7 @@ CmdWriteall(
 	option = Lookup(cmd->tx_argv[1], writeallOpts);
 	if (option < 0)
 	{
-	    TxError("Usage: %s [force|modified|noupdate [cellname ...]]\n",
+	    TxError("Usage: %s [force|modified [cellname ...]]\n",
 		    cmd->tx_argv[0]);
 	    return;
 	}

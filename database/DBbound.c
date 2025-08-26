@@ -30,19 +30,32 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 typedef struct dbcellboundstruct
 {
     Rect *area;
-    bool extended;
+    Rect *extended;
     bool found;
 } DBCellBoundStruct;
 
 /*
  * --------------------------------------------------------------------
+ * DBBoundCellPlane ---
+ *
+ *	Find the extents of all subcells of the cell "def", both the
+ *	extent of geometry (rect) and the extent of geometry plus any
+ *	labels extending outside the extent of geometry (extended).
+ *
+ * Results:
+ *	TRUE if subcells were found and measured;  FALSE if no subcells
+ *	were found (in which case "extended" and "rect" may not be
+ *	valid).
+ *
+ * Side effects:
+ *	Values may be recorded in "extended" and "rect".
  * --------------------------------------------------------------------
  */
 
 int
 DBBoundCellPlane(def, extended, rect)
     CellDef *def;
-    bool extended;
+    Rect *extended;
     Rect *rect;
 {
     TreeFilter filter;
@@ -70,25 +83,19 @@ dbCellBoundFunc(use, fp)
     CellUse *use;
     TreeFilter *fp;
 {
-    Rect *bbox;
     DBCellBoundStruct *cbs;
 
     cbs = (DBCellBoundStruct *)fp->tf_arg;
 
-    bbox = &use->cu_bbox;
     if (cbs->found)
     {
-	if (cbs->extended)
-	    GeoInclude(&use->cu_extended, cbs->area);
-	else
-	    GeoInclude(&use->cu_bbox, cbs->area);
+	GeoInclude(&use->cu_extended, cbs->extended);
+	GeoInclude(&use->cu_bbox, cbs->area);
     }
     else
     {
-	if (cbs->extended)
-	    *cbs->area = use->cu_extended;
-	else
-	    *cbs->area = use->cu_bbox;
+	*cbs->extended = use->cu_extended;
+	*cbs->area = use->cu_bbox;
 	cbs->found = TRUE;
     }
     return 0;

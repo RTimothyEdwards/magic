@@ -619,7 +619,7 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
     /*
      * Include area of subcells separately
      */
-    if ((foundAny = DBBoundCellPlane(cellDef, TRUE, &rect)) > 0)
+    if ((foundAny = DBBoundCellPlane(cellDef, &extended, &rect)) > 0)
 	area = rect;
 
     for (pNum = PL_PAINTBASE; pNum < DBNumPlanes; pNum++)
@@ -634,7 +634,7 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
 	    }
 
     /*
-     * Include the area of labels, too.
+     * Include the area of label anchors, too.
      */
     for (label = cellDef->cd_labels; label != NULL;  label = label->lab_next)
     {
@@ -656,7 +656,11 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
 	}
     }
 
-    extended = area;
+    /* Make sure the extended bounding box includes the area of all
+     * paint material just found, then include the area of all text
+     * in the current cell.
+     */
+    GeoInclude(&area, &extended);
     if (foundAny)
     {
 	for (label = cellDef->cd_labels; label != NULL;  label = label->lab_next)
@@ -673,6 +677,7 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
 	degenerate = TRUE;
 	area.r_xbot = area.r_ybot = 0;
 	area.r_xtop = area.r_ytop = 1;
+	extended = area;
     }
     else degenerate = FALSE;
 
@@ -687,7 +692,11 @@ dbReComputeBboxFunc(cellDef, boundProc, recurseProc)
     if (area.r_ybot == area.r_ytop)
 	area.r_ytop = area.r_ybot + 1;
 
-    if (degenerate) extended = area;
+    if (extended.r_xbot == extended.r_xtop)
+	extended.r_xtop = extended.r_xbot + 1;
+
+    if (extended.r_ybot == extended.r_ytop)
+	extended.r_ytop = extended.r_ybot + 1;
 
     /* Did the bounding box change?  If not then there's no need to
      * recompute the parents.  If the cell has no material, then
