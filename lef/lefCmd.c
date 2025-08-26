@@ -261,7 +261,16 @@ CmdLef(
 	    if (is_lef)
 		LefRead(namep, lefImport, lefAnnotate, lefDateStamp);
 	    else
-		DefRead(namep, defLabelNets, defAnnotate, defNoBlockage);
+	    {
+		selectedDef = DefRead(namep, defLabelNets, defAnnotate, defNoBlockage);
+		if (selectedDef != (CellDef *)NULL)
+		{
+		    /* Load this in the layout window */
+		    windCheckOnlyWindow(&w, DBWclientID);
+		    if (w != (MagWindow *) NULL)
+			DBWloadWindow(w, selectedDef->cd_name, DBW_LOAD_IGNORE_TECH);
+		}
+	    }
 	    break;
 	case LEF_WRITEALL:
 	    if (!is_lef)

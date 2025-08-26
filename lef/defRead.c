@@ -2356,6 +2356,37 @@ DefReadComponents(
 
 /*
  *------------------------------------------------------------
+ * DefNewCell --
+ *
+ *	Create a new CellDef for the DEF file contents.
+ *
+ * Returns:
+ *	Pointer to new CellDef
+ *
+ * Side effects:
+ *	If a cell of the given name did not exist, then
+ *	a new CellDef is allocated.
+ *------------------------------------------------------------
+ */
+CellDef *
+DefNewCell(
+    const char *name)
+{
+    CellDef *newDef;
+
+    newDef = DBCellLookDef(name);
+    if (newDef == NULL)	
+    {
+	newDef = DBCellNewDef(name);
+	DBReComputeBbox(newDef);
+ 	DBCellClearDef(newDef);
+	DBCellSetAvail(newDef);
+    }
+    return newDef;
+}
+
+/*
+ *------------------------------------------------------------
  *
  * DefRead --
  *
@@ -2383,7 +2414,7 @@ enum def_sections {DEF_VERSION = 0, DEF_NAMESCASESENSITIVE,
 	DEF_CONSTRAINTS, DEF_GROUPS, DEF_EXTENSION, DEF_BLOCKAGES,
 	DEF_NONDEFAULTRULES, DEF_END};
 
-void
+CellDef *
 DefRead(
     const char *inName,
     bool dolabels,
@@ -2398,6 +2429,7 @@ DefRead(
     int keyword, dscale, total;
     float oscale;
     Rect *dierect;
+    bool design_is_root = FALSE;
 
     static const char * const sections[] = {
 	"VERSION",
@@ -2450,7 +2482,7 @@ DefRead(
 	TxError("Cannot open input file: ");
 	perror(filename);
 #endif
-	return;
+	return NULL;
     }
 
     /* Initialize */
@@ -2459,11 +2491,8 @@ DefRead(
     TxPrintf("This action cannot be undone.\n");
     UndoDisable();
 
-    /* This works for CIF reads;  maybe should only do this if the top	*/
-    /* cell is (UNNAMED)?						*/
+    rootDef = NULL;
 
-    rootDef = EditCellUse->cu_def;
-    DBCellRenameDef(rootDef, inName);
     oscale = CIFGetOutputScale(1000);
     lefCurrentLine = 0;
 
@@ -2501,7 +2530,16 @@ DefRead(
 		break;
 	    case DEF_DESIGN:
 		token = LefNextToken(f, TRUE);
-		DBCellRenameDef(rootDef, token);
+		
+		/* If rootDef is not NULL, then it was created before DESIGN
+		 * was specified;  this should not happen, but if so, then
+		 * rename the rootDef rather than creating a new CellDef.
+		 */
+		if (rootDef == NULL)	
+		    rootDef = DefNewCell(token);
+		else
+		    DBCellRenameDef(rootDef, token);
+
 		LefEndStatement(f);
 		break;
 	    case DEF_UNITS:
@@ -2545,6 +2583,7 @@ DefRead(
 			dierect->r_ybot,
 			dierect->r_xtop,
 			dierect->r_ytop);
+		if (rootDef == NULL) rootDef = DefNewCell(inName);
 		DBPropPut(rootDef, "FIXED_BBOX", bboxstr);
 		LefEndStatement(f);
 		break;
@@ -2561,8 +2600,11 @@ DefRead(
 		if (annotate)
 		    LefSkipSection(f, sections[DEF_COMPONENTS]);
 		else
+		{
+		    if (rootDef == NULL) rootDef = DefNewCell(inName);
 		    DefReadComponents(f, rootDef, sections[DEF_COMPONENTS],
 				oscale, total);
+		}
 		break;
 	    case DEF_VIAS:
 		token = LefNextToken(f, TRUE);
@@ -2574,6 +2616,7 @@ DefRead(
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
+		if (rootDef == NULL) rootDef = DefNewCell(inName);
 		DefReadPins(f, rootDef, sections[DEF_PINS], oscale, total, annotate);
 		break;
 	    case DEF_PINPROPERTIES:
@@ -2583,6 +2626,7 @@ DefRead(
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
+		if (rootDef == NULL) rootDef = DefNewCell(inName);
 		DefReadNets(f, rootDef, sections[DEF_SPECIALNETS], oscale, TRUE,
 			dolabels, annotate, total);
 		break;
@@ -2590,6 +2634,7 @@ DefRead(
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
+		if (rootDef == NULL) rootDef = DefNewCell(inName);
 		DefReadNets(f, rootDef, sections[DEF_NETS], oscale, FALSE,
 			dolabels, annotate, total);
 		break;
@@ -2597,6 +2642,7 @@ DefRead(
 		token = LefNextToken(f, TRUE);
 		if (sscanf(token, "%d", &total) != 1) total = 0;
 		LefEndStatement(f);
+		if (rootDef == NULL) rootDef = DefNewCell(inName);
 		DefReadNonDefaultRules(f, rootDef, sections[DEF_NONDEFAULTRULES],
 			oscale, total);
 		break;
@@ -2622,8 +2668,11 @@ DefRead(
 		if (annotate || noblockage)
 		    LefSkipSection(f, sections[DEF_BLOCKAGES]);
 		else
+		{
+		    if (rootDef == NULL) rootDef = DefNewCell(inName);
 		    DefReadBlockages(f, rootDef, sections[DEF_BLOCKAGES],
 				oscale, total);
+		}
 		break;
 	    case DEF_END:
 		if (!LefParseEndStatement(f, "DESIGN"))
@@ -2640,12 +2689,18 @@ DefRead(
 
     /* Cleanup */
 
-    DBAdjustLabels(rootDef, &TiPlaneRect);
-    DBReComputeBbox(rootDef);
-    DBWAreaChanged(rootDef, &rootDef->cd_bbox, DBW_ALLWINDOWS,
+    if (rootDef != NULL) 
+    {
+	DBAdjustLabels(rootDef, &TiPlaneRect);
+	DBReComputeBbox(rootDef);
+	DBWAreaChanged(rootDef, &rootDef->cd_bbox, DBW_ALLWINDOWS,
 		&DBAllButSpaceBits);
-    DBCellSetModified(rootDef, TRUE);
+	DBCellSetModified(rootDef, TRUE);
+    }
+    else
+	TxPrintf("DEF read: Design has no contents.\n");
 
     if (f != NULL) fclose(f);
     UndoEnable();
+    return rootDef;
 }

@@ -170,7 +170,7 @@ extern void LefError(int type, const char *fmt, ...) ATTR_FORMAT_PRINTF_2;
 
 /* C99 compat */
 extern void LefRead(const char *inName, bool importForeign, bool doAnnotate, int lefTimestamp);
-extern void DefRead(const char *inName, bool dolabels, bool annotate, bool noblockage);
+extern CellDef *DefRead(const char *inName, bool dolabels, bool annotate, bool noblockage);
 
 extern void LefWriteAll(CellUse *rootUse, bool writeTopCell, bool lefTech, int lefHide, int lefPinOnly, bool lefTopLayer,
                         bool lefDoMaster, bool recurse);
