@@ -188,8 +188,10 @@ glPathFreePerm(list)
 {
     GlPoint *p;
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (p = list; p; p = p->gl_path)
-	freeMagic((char *) p);
+	freeMagic1(&mm1, (char *) p);
+    freeMagic1_end(&mm1);
     return 0;
 }
 

@@ -180,6 +180,7 @@ NMRipup()
      */
 
     TTMaskZero(&maskBits);
+    free_magic1_t mm1 = freeMagic1_init();
     while (list != NULL)
     {
 	DBErase(EditCellUse->cu_def, &list->nmwa_area, list->nmwa_type);
@@ -189,9 +190,10 @@ NMRipup()
 	DRCCheckThis(EditCellUse->cu_def, TT_CHECKPAINT, &list->nmwa_area);
 	DBWAreaChanged(EditCellUse->cu_def, &list->nmwa_area, DBW_ALLWINDOWS,
 	     &DBAllButSpaceBits);
-	freeMagic((char *) list);
+	freeMagic1(&mm1, (char *) list);
 	list = list->nmwa_next;
     }
+    freeMagic1_end(&mm1);
     DBReComputeBbox(EditCellUse->cu_def);
     return 0;
 }
@@ -240,6 +242,7 @@ nmRipLocFunc(rect, name, label, area)
 	&TiPlaneRect, nmwRipTileFunc, (ClientData) &list);
     TTMaskZero(&maskBits);
     TTMaskClearType(&maskBits, label->lab_type);
+    free_magic1_t mm1 = freeMagic1_init();
     while (list != NULL)
     {
 	DBErase(EditCellUse->cu_def, &list->nmwa_area, list->nmwa_type);
@@ -247,9 +250,10 @@ nmRipLocFunc(rect, name, label, area)
 	(void) DBEraseLabel(EditCellUse->cu_def, &list->nmwa_area, &maskBits, NULL);
 	TTMaskClearType(&maskBits, list->nmwa_type);
 	(void) GeoInclude(&list->nmwa_area, area);
-	freeMagic((char *) list);
+	freeMagic1(&mm1, (char *) list);
 	list = list->nmwa_next;
     }
+    freeMagic1_end(&mm1);
     return 0;
 }
 

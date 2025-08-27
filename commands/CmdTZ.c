@@ -1094,11 +1094,13 @@ CmdWhat(
 			}
 #endif
 
-		        while (lid != NULL)
-		        {
-			   freeMagic(lid);
+			free_magic1_t mm1 = freeMagic1_init();
+			while (lid != NULL)
+			{
+			   freeMagic1(&mm1, lid);
 			   lid = lid->lid_next;
 			}
+			freeMagic1_end(&mm1);
 #ifdef MAGIC_WRAPPER
 			if (doListAll)
 			    Tcl_ListObjAppendElement(magicinterp, paintobj,

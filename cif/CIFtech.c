@@ -100,6 +100,7 @@ cifTechFreeStyle(void)
 	    layer = CIFCurStyle->cs_layers[i];
 	    if (layer != NULL)
 	    {
+		free_magic1_t mm1 = freeMagic1_init();
 		for (op = layer->cl_ops; op != NULL; op = op->co_next)
 		{
 		    if (op->co_client != (ClientData)NULL)
@@ -120,8 +121,9 @@ cifTechFreeStyle(void)
 				break;
 			}
 		    }
-		    freeMagic((char *)op);
+		    freeMagic1(&mm1, (char *)op);
 		}
+		freeMagic1_end(&mm1);
 		freeMagic((char *)layer);
 	    }
 	}
@@ -369,11 +371,13 @@ CIFTechInit(void)
 
     /* forget the list of styles */
 
+    free_magic1_t mm1 = freeMagic1_init();
     for (style = CIFStyleList; style != NULL; style = style->cs_next)
     {
 	freeMagic(style->cs_name);
-	freeMagic(style);
+	freeMagic1(&mm1, style);
     }
+    freeMagic1_end(&mm1);
     CIFStyleList = NULL;
 }
 
