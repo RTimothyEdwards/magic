@@ -1121,14 +1121,36 @@ CmdSelect(
 
 	/*--------------------------------------------------------------------
 	 * Move the selection relative to the cell def
+	 * With two additional arguments:  Arguments are X and Y position
+	 * With no additional arugments:  X and Y position taken from pointer.
 	 *--------------------------------------------------------------------
 	 */
 
 	 case SEL_MOVE:
-	    if ((more) || (less) || (primargs != 4)) goto usageError;
+	    if ((more) || (less) || ((primargs != 4) && (primargs != 2)))
+		goto usageError;
 
-	    p.p_x = cmdParseCoord(w, cmd->tx_argv[2], FALSE, TRUE);
-	    p.p_y = cmdParseCoord(w, cmd->tx_argv[3], FALSE, FALSE);
+	    if (primargs == 2)
+	    {
+		MagWindow *window;
+		Rect rootBox;
+
+		window = ToolGetPoint(&p, (Rect *)NULL);
+		if ((window == NULL)  ||
+			!ToolGetBox(&SelectRootDef, &rootBox) ||
+			(EditRootDef != ((CellUse *) window->w_surfaceID)->cu_def))
+		{
+		    TxError("Error:  Pointer is not in the edit cell.\n");
+		    return;
+		}
+		p.p_x -= rootBox.r_xbot;
+		p.p_y -= rootBox.r_ybot;
+	    }
+	    else
+	    {
+		p.p_x = cmdParseCoord(w, cmd->tx_argv[2], FALSE, TRUE);
+		p.p_y = cmdParseCoord(w, cmd->tx_argv[3], FALSE, FALSE);
+	    }
 
 	    /* Erase first, then recompute the transform */
 	    GeoTransRect(&SelectUse->cu_transform, &SelectDef->cd_bbox, &selarea);

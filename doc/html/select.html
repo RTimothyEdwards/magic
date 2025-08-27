@@ -99,9 +99,12 @@ create a new cell definition from a selection.
 	   <DD> Copy the selection from the layout into the selection
 	   	buffer, and keep the selection buffer for interactive
 		processing.
-	   <DT>	<B>move</B> <I>x y</I>
+	   <DT>	<B>move</B> [ <I>x y</I> ]
 	   <DD> Move the selection buffer to position <I>x y</I>,
-	   	relative to the cell definition origin.
+	   	relative to the cell definition origin.  If <I>x</I> and
+		<I>y</I> are not given, the move the selection buffer so
+		that its lower left corner is at the current pointer
+		position.
 	   <DT> <B>bbox</B>
 	   <DD> Return the bounding box of the selection.
 	   <DT> <B>feedback</B> [ <I>style</I> [ <I>text</I> ]]
