@@ -17,7 +17,7 @@ depend: ${DEPEND_FILE}
 # it indicates a missing dependency somewhere in a upstream/parent Makefile.
 ${DEPEND_FILE}: ${DEPSRCS}
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} ${DEPSRCS} > ${DEPEND_FILE}$$PPID.tmp
-	${SED} -e "/#/D" -e "/ \//s/ \/.*\.h//" -e "/  \\\/D" -i '' -- ${DEPEND_FILE}$$PPID.tmp
+	${SED} -e "/#/D" -e "/ \//s/ \/.*\.h//" -e "/  \\\/D" -i'' -- ${DEPEND_FILE}$$PPID.tmp
 	${MV} -f ${DEPEND_FILE}$$PPID.tmp ${DEPEND_FILE}
 
 # Original Depend file generating line:
